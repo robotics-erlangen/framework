@@ -1,7 +1,7 @@
 import { log } from "base/amun";
 import * as Entrypoints from "base/entrypoints";
 
-function init () {
+function init() {
 	log("No function for debug chosen!");
 	return true;
 }

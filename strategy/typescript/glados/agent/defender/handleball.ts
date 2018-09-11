@@ -1,29 +1,30 @@
 import * as debug from "base/debug";
 import * as Field from "base/field";
-import {Robot, FriendlyRobot} from "base/robot";
 import * as geom from "base/geom";
 import * as Referee from "base/referee";
+import { FriendlyRobot, Robot } from "base/robot";
+import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
-import {Position, Vector} from "base/vector";
 import * as World from "base/world";
-import {Behavior, TaskAssignment} from "glados/agent/base/behavior";
-import {MessageType} from "glados/control/messaging";
+
+import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
+import { MessageType } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
 import * as Goal from "glados/observer/goal";
-import * as ObserverRobot from "glados/observer/robot";
 import * as Physics from "glados/observer/physics";
-import {InterceptPass} from "glados/task/defender/interceptpass"
-import {Duel} from "glados/task/shared/duel";
+import * as ObserverRobot from "glados/observer/robot";
+import { InterceptPass } from "glados/task/defender/interceptpass";
+import { Duel } from "glados/task/shared/duel";
 import * as Attack from "glados/util/attack";
 import * as DefUtil from "glados/util/defense";
 import * as Rating from "glados/util/rating";
 
 const G = World.Geometry;
 
-function rateRobot (robot: FriendlyRobot) {
+function rateRobot(robot: FriendlyRobot) {
 	let [bestPos, posTime, bestRatingOppTime] = InterceptPass.calculateInterceptPos(robot);
-	let distanceToInterceptPos = robot.pos.distanceTo(<Position>bestPos);
-	let timeToInterceptPos = <number>posTime;
+	let distanceToInterceptPos = robot.pos.distanceTo(<Position> bestPos);
+	let timeToInterceptPos = <number> posTime;
 	let timeOppToInterceptPos = bestRatingOppTime;
 	let differenceSelfAndOppToInterceptPos = timeToInterceptPos - timeOppToInterceptPos;
 
@@ -38,12 +39,12 @@ export class HandleBall extends Behavior {
 	private _taskDecision: string | undefined = undefined;
 	private _forceDefenderFrameCounter: number = 0;
 
-	_stop () {
+	_stop() {
 		this._taskDecision = undefined;
-		this._forceDefenderFrameCounter = 0
+		this._forceDefenderFrameCounter = 0;
 	}
 
-	private _checkDefender (): boolean {
+	private _checkDefender(): boolean {
 		// stay defender if the ball is currently being shot at our goal
 		if (!DefUtil.dangerousBallTowardsDefense() && !Ball.isAccelerating()) {
 			this._forceDefenderFrameCounter = this._forceDefenderFrameCounter + 1;
@@ -53,7 +54,7 @@ export class HandleBall extends Behavior {
 
 		if (this._forceDefenderFrameCounter < 5) {
 			let assignment = this._messaging.receiveTrainer(MessageType.roleAssignment);
-			if (assignment != undefined && assignment.name == "CenterBack") {
+			if (assignment !== undefined && assignment.name === "CenterBack") {
 				return true;
 			}
 		}
@@ -61,13 +62,13 @@ export class HandleBall extends Behavior {
 		return false;
 	}
 
-	private _checkAttacker (): boolean {
+	private _checkAttacker(): boolean {
 		let isAttacker = this._taskDecision === "attacker";
 
 		// don't if we take too long to get the ball
 		let timeDiff = isAttacker ? 0.5 : 1.0;
 		let distanceFactor = isAttacker ? 1 : 1.5;
-		let distanceOffset = isAttacker ? 3 * this._robot.radius : 5* this._robot.radius;
+		let distanceOffset = isAttacker ? 3 * this._robot.radius : 5 * this._robot.radius;
 		let [firstOpp, firstOppTime] = Ball.firstRobotAtBall(World.OpponentRobots);
 
 		if (firstOppTime < ObserverRobot.minTimeToBall(this._robot) + timeDiff) {
@@ -88,7 +89,7 @@ export class HandleBall extends Behavior {
 		}
 
 		// don't if an opponent is close to us
-		let distToOppLimit = isAttacker ? 0.3 : 0.5
+		let distToOppLimit = isAttacker ? 0.3 : 0.5;
 		let closestOppDist = DefUtil.getClosestRobot(World.OpponentRobots, this._robot.pos)[1];
 		if (closestOppDist < distToOppLimit) {
 			return false;
@@ -104,10 +105,10 @@ export class HandleBall extends Behavior {
 		return true;
 	}
 
-	private _checkInterceptPass () {
+	private _checkInterceptPass() {
 
-		let isInterceptPass = this._taskDecision == "interceptpass"
-								 ||  (this._messaging.receiveTrainer(MessageType.interceptPass) === this._robot);
+		let isInterceptPass = this._taskDecision === "interceptpass"
+								||  (this._messaging.receiveTrainer(MessageType.interceptPass) === this._robot);
 
 		// don't if we want to intercept our own pass
 		let [sender, passInfoTable] = this._messaging.receiveSingleSender(MessageType.passInfo);
@@ -143,7 +144,7 @@ export class HandleBall extends Behavior {
 
 		// don't intercept if there is no pass receiver
 		let receivers = Goal.predictShot()[3];
-		if (receivers == undefined || receivers.length == 0) {
+		if (receivers == undefined || receivers.length === 0) {
 			return false;
 		}
 
@@ -161,7 +162,7 @@ export class HandleBall extends Behavior {
 
 	}
 
-	private _checkDuel (): boolean {
+	private _checkDuel(): boolean {
 		// don't if we are not close to the ball
 		let ballDistLimit = this._taskDecision === "duel" ? 1.2 : 0.8;
 		if (this._robot.pos.distanceTo(World.Ball.pos) > ballDistLimit) {
@@ -176,9 +177,9 @@ export class HandleBall extends Behavior {
 		return true;
 	}
 
-	check (): boolean {
+	check(): boolean {
 		if (Referee.isFriendlyFreeKickState() || Referee.isStopState() || Referee.isKickoffState()
-				 ||  Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius)) {
+				||  Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius)) {
 			return false;
 		}
 
@@ -198,26 +199,26 @@ export class HandleBall extends Behavior {
 
 		debug.set("HandleBall", this._taskDecision);
 
-		if (this._taskDecision != "forcedefender") {
-			if ((mainAttacker == this._robot
-					 ||  this._taskDecision == "attacker"
-					 ||  this._taskDecision == "duel")
-					 &&  this._taskDecision != "interceptpass") {
+		if (this._taskDecision !== "forcedefender") {
+			if ((mainAttacker === this._robot
+					||  this._taskDecision === "attacker"
+					||  this._taskDecision === "duel")
+					&&  this._taskDecision !== "interceptpass") {
 				this._applyForMainAttacker();
 			}
 		}
 
-		return (mainAttacker == this._robot) || (this._messaging.receiveTrainer(MessageType.interceptPass) === this._robot);
+		return (mainAttacker === this._robot) || (this._messaging.receiveTrainer(MessageType.interceptPass) === this._robot);
 	}
 
-	_updateTask (): TaskAssignment<typeof InterceptPass> | TaskAssignment<typeof Duel> {
-		let selfDefenseDist = Field.distanceToFriendlyDefenseArea(this._robot.pos, this._robot.radius)
+	_updateTask(): TaskAssignment<typeof InterceptPass> | TaskAssignment<typeof Duel> {
+		let selfDefenseDist = Field.distanceToFriendlyDefenseArea(this._robot.pos, this._robot.radius);
 		if (selfDefenseDist < DefUtil.centerBackDistanceToDefenseArea() + this._robot.radius + 0.03) {
 			// TODO: EVACUATE or EVACUATING
 			// this._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: "centerback", payload: {} });
 		}
 
-		if (this._taskDecision == "attacker"  ||
+		if (this._taskDecision === "attacker"  ||
 			((this._messaging.receiveTrainer(MessageType.mainAttacker) === this._robot) &&
 				(this._messaging.receiveTrainer(MessageType.interceptPass) === this._robot))) {
 			this._messaging.sendToTrainer(MessageType.poolChangeRequest, "attacker");

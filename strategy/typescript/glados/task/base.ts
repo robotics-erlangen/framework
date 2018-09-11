@@ -1,15 +1,16 @@
-import {FriendlyRobot} from "base/robot";
-import {Position} from "base/vector";
-import {MessageBox} from "glados/control/messaging";
+import { FriendlyRobot } from "base/robot";
+import { Position } from "base/vector";
+
+import { MessageBox } from "glados/control/messaging";
 
 type MainAttackerParameters = [Position, number];
 
 export interface Agent {
-	isAgent: ()=> boolean;
+	isAgent(): boolean;
 	_messaging: MessageBox;
-	robot:()=> FriendlyRobot;
+	robot(): FriendlyRobot;
 	_activeBehavior: any;
-};
+}
 
 export abstract class Task {
 	_agent: Agent;
@@ -18,33 +19,33 @@ export abstract class Task {
 	_mainAttackerParameters: MainAttackerParameters | undefined;
 
 
-	constructor (agent: Agent) {
+	constructor(agent: Agent) {
 		this._agent = agent;
 		this._robot = agent.robot();
 		this._messaging = agent._messaging;
 		this.clearMainAttackerParameters();
 	}
 
-	robot () {
-		return this._robot
+	robot() {
+		return this._robot;
 	}
 
-	abstract run (): void;
+	abstract run(): void;
 
 	// use for type stubs, to avoid cyclic imports
 	isTask(): boolean {
 		return true;
 	}
 
-	clearMainAttackerParameters () {
+	clearMainAttackerParameters() {
 		this._mainAttackerParameters = undefined;
 	}
 
-	setMainAttackerParameters (target: Position, endSpeedLength: number) {
+	setMainAttackerParameters(target: Position, endSpeedLength: number) {
 		this._mainAttackerParameters = [ target, endSpeedLength ];
 	}
 
-	mainAttackerParameters (): MainAttackerParameters | undefined {
+	mainAttackerParameters(): MainAttackerParameters | undefined {
 		return this._mainAttackerParameters;
 	}
 }

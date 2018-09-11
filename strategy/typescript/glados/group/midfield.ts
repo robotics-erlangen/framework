@@ -1,10 +1,11 @@
 import * as Constants from "base/constants";
-import {FriendlyRobot} from "base/robot";
 import * as debug from "base/debug";
+import { FriendlyRobot } from "base/robot";
 import * as vis from "base/vis";
-import {Vector, Position} from "base/vector";
+
+import { Position, Vector } from "base/vector";
 import * as World from "base/world";
-import {MessageBox, MessageType} from "glados/control/messaging";
+import { MessageBox, MessageType } from "glados/control/messaging";
 
 const G = World.Geometry;
 
@@ -13,24 +14,24 @@ interface Boundaries {
 	left: number;
 	top: number;
 	bottom: number;
-};
+}
 
 interface Zone {
 	boundaries: Boundaries;
 	defaultPos: Position;
-};
+}
 
-let getDefaultPosition = function (boundaries: Boundaries) {
+let getDefaultPosition = function(boundaries: Boundaries) {
 	let zoneWidth = Math.abs(boundaries.right - boundaries.left);
 	let zoneHeight = Math.abs(boundaries.top - boundaries.bottom);
 
 	let isInTopHalf = Math.abs(boundaries.right) > Math.abs(boundaries.left);
-	let fraction = isInTopHalf ? 1/8 : 7/8
+	let fraction = isInTopHalf ? 1 / 8 : 7 / 8;
 
-	return new Vector(boundaries.right - zoneWidth * fraction, boundaries.bottom + zoneHeight * 2/3);
-}
+	return new Vector(boundaries.right - zoneWidth * fraction, boundaries.bottom + zoneHeight * 2 / 3);
+};
 
-function visualizeZone (zone: Zone) {
+function visualizeZone(zone: Zone) {
 	let visFlag = true;
 
 	if (visFlag) {
@@ -44,9 +45,9 @@ function visualizeZone (zone: Zone) {
 	}
 }
 
-function assignRobotsToZones (robotPositions: Map<FriendlyRobot, Position>, zones: Zone[]): Map<Zone, FriendlyRobot> {
+function assignRobotsToZones(robotPositions: Map<FriendlyRobot, Position>, zones: Zone[]): Map<Zone, FriendlyRobot> {
 	let n = zones.length;
-	if (n == 0) {
+	if (n === 0) {
 		return new Map<Zone, FriendlyRobot>();
 	}
 
@@ -85,7 +86,7 @@ export class Midfield {
 	private _lastRobots: FriendlyRobot[] | undefined;
 	private _lastAssignments: Map<Zone, FriendlyRobot> | undefined;
 
-	private _determineMidfielderCount (nAttackers: number): number {
+	private _determineMidfielderCount(nAttackers: number): number {
 		let nMidfielders;
 		let thresholdY = this._farAwayHyst ? -1 : -2.5;
 		if (World.Ball.pos.y < thresholdY) {
@@ -112,45 +113,45 @@ export class Midfield {
 		return nMidfielders;
 	}
 
-	private _updateZones (nMidfielders: number): boolean {
+	private _updateZones(nMidfielders: number): boolean {
 		this._zones = [];
 
-		let topHalfThreshold = this._topHalfHyst ? 1 : 0
-		let isInTopHalf = World.Ball.pos.x < topHalfThreshold
+		let topHalfThreshold = this._topHalfHyst ? 1 : 0;
+		let isInTopHalf = World.Ball.pos.x < topHalfThreshold;
 
-		let updateAssignments = this._topHalfHyst != isInTopHalf
+		let updateAssignments = this._topHalfHyst !== isInTopHalf;
 
-		this._topHalfHyst = isInTopHalf
+		this._topHalfHyst = isInTopHalf;
 
-		let totalLeft = -G.FieldWidthHalf
+		let totalLeft = -G.FieldWidthHalf;
 
-		let remainingZones = nMidfielders
+		let remainingZones = nMidfielders;
 
-		let robotRadius = Constants.maxRobotRadius
-		let zoneWidth = G.FieldWidth / 3
-		let top = isInTopHalf ? -1 : 1
-		let verticalOffset = G.FieldWidthHalf / 4
-		let horizontalOffset = G.FieldHeightHalf / 4
+		let robotRadius = Constants.maxRobotRadius;
+		let zoneWidth = G.FieldWidth / 3;
+		let top = isInTopHalf ? -1 : 1;
+		let verticalOffset = G.FieldWidthHalf / 4;
+		let horizontalOffset = G.FieldHeightHalf / 4;
 
 		// two hardcoded zones, depending on the number of robots we have
 		if (remainingZones >= 1) {
 			let boundaries = {
-				bottom: -G.FieldHeightHalf * 3/5,
+				bottom: -G.FieldHeightHalf * 3 / 5,
 				top: G.FieldWidthHalf / 3,
 				left: top * (totalLeft + robotRadius + verticalOffset) + top,
 				right: top * (totalLeft + robotRadius + verticalOffset + zoneWidth) + top
-			}
+			};
 			let zone: Zone = {
 				defaultPos: getDefaultPosition(boundaries),
 				boundaries: boundaries
-			}
-			remainingZones = remainingZones - 1
+			};
+			remainingZones = remainingZones - 1;
 			this._zones.push(zone);
 		}
 
 		if (remainingZones >= 1) {
 			let boundaries = {
-				bottom: -G.FieldHeightHalf * 3/5 + horizontalOffset,
+				bottom: -G.FieldHeightHalf * 3 / 5 + horizontalOffset,
 				top: G.FieldWidthHalf / 3 + horizontalOffset,
 				right: -top * (totalLeft + robotRadius + verticalOffset + zoneWidth) + top,
 				left: -top * (totalLeft + robotRadius + verticalOffset) + top
@@ -158,49 +159,49 @@ export class Midfield {
 			let zone: Zone = {
 				defaultPos: getDefaultPosition(boundaries),
 				boundaries: boundaries
-			}
+			};
 			this._zones.push(zone);
 		}
 
-		return updateAssignments
+		return updateAssignments;
 	}
 
 
 
-	public run (messaging: MessageBox, messages: Map<FriendlyRobot, any>) {
+	public run(messaging: MessageBox, messages: Map<FriendlyRobot, any>) {
 		let robots = Array.from(messages.keys());
 		let mainAttacker = messaging.receiveTrainer(MessageType.mainAttacker);
 
 		// update assignments if necessary
-		let updateAssignments = this._lastRobots == undefined || this._lastAssignments == undefined || robots.length != this._lastRobots.length;
+		let updateAssignments = this._lastRobots == undefined || this._lastAssignments == undefined || robots.length !== this._lastRobots.length;
 		if (!updateAssignments) {
-			for (let i = 0;i<robots.length;i++) {
-				if (robots[i] != (this._lastRobots as FriendlyRobot[])[i]) {
-					updateAssignments = true
-					break
+			for (let i = 0;i < robots.length;i++) {
+				if (robots[i] !== (this._lastRobots as FriendlyRobot[])[i]) {
+					updateAssignments = true;
+					break;
 				}
 			}
 		}
 
 		let numAttackers = messaging.receive(MessageType.attackerFlag).size;
-		let remainingMidfielders = this._determineMidfielderCount(numAttackers)
-		if (this._lastAssignments && this._lastAssignments.size != remainingMidfielders) {
-			updateAssignments = this._updateZones(remainingMidfielders) || updateAssignments
+		let remainingMidfielders = this._determineMidfielderCount(numAttackers);
+		if (this._lastAssignments && this._lastAssignments.size !== remainingMidfielders) {
+			updateAssignments = this._updateZones(remainingMidfielders) || updateAssignments;
 		}
-		updateAssignments = updateAssignments || this._lastRobots != undefined && this._lastRobots.length != remainingMidfielders
+		updateAssignments = updateAssignments || this._lastRobots != undefined && this._lastRobots.length !== remainingMidfielders;
 
-		
+
 
 
 		// assign the zones to the nearest Midfields
 		let robotPositions = new Map<FriendlyRobot, Position>(); // robot -> pos
 		let passInfoTable = messaging.receiveSingleSender(MessageType.passInfo)[1];
 		for (let r of robots) {
-			let pos = r.pos
+			let pos = r.pos;
 			if (passInfoTable) {
 				for (let passInfo of passInfoTable) {
-					if (passInfo.target == r) {
-						pos = passInfo.ballPos + (passInfo.ballPos - World.Ball.pos).setLength(r.shootRadius + World.Ball.radius)
+					if (passInfo.target === r) {
+						pos = passInfo.ballPos + (passInfo.ballPos - World.Ball.pos).setLength(r.shootRadius + World.Ball.radius);
 					}
 				}
 			}
@@ -219,7 +220,7 @@ export class Midfield {
 
 		let robotZones;
 		if (mainAttacker && updateAssignments) {
-			robotZones = assignRobotsToZones(robotPositions, zoneList)// updateAssignments and <- or this._lastAssignments
+			robotZones = assignRobotsToZones(robotPositions, zoneList);// updateAssignments and <- or this._lastAssignments
 		} else {
 			robotZones = this._lastAssignments;
 		}

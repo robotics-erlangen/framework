@@ -1,17 +1,17 @@
-import {CenterBack} from "glados/group/centerback";
-import {Moves} from "glados/group/moves";
-import {Striker} from "glados/group/striker";
-import {Midfield} from "glados/group/midfield";
+import { FriendlyRobot } from "base/robot";
 
-import {FriendlyRobot} from "base/robot";
-import {MessageBox, MessageType} from "glados/control/messaging";
+import { MessageBox, MessageType } from "glados/control/messaging";
+import { CenterBack } from "glados/group/centerback";
+import { Midfield } from "glados/group/midfield";
+import { Moves } from "glados/group/moves";
+import { Striker } from "glados/group/striker";
 
 type GroupName = "centerback" | "moves" | "striker" | "midfield";
 
 interface Group {
 	name: GroupName;
 	new (): Group;
-	run (messaging: MessageBox, messages: Map<FriendlyRobot, any>): void;
+	run(messaging: MessageBox, messages: Map<FriendlyRobot, any>): void;
 }
 
 interface Application {
@@ -40,11 +40,11 @@ export class Groups {
 		this._messaging = messaging;
 	}
 
-	setGroups (groupList: Group[]) {
+	setGroups(groupList: Group[]) {
 		this._groupList = groupList;
 	}
 
-	_runGroups () {
+	_runGroups() {
 		// robot -> { groupname -> application }
 		let groupApplications = this._messaging.receiveRepeated(MessageType.groupApplication);
 
@@ -58,7 +58,7 @@ export class Groups {
 			for (let app of msg) {
 				let application = robotApplications[app.name];
 				if (application == undefined) {
-					throw new Error("No group with name '"  +  app.name  +  "' found");
+					throw new Error(`No group with name '${app.name}' found`);
 				}
 				application.set(robot, app.payload);
 			}

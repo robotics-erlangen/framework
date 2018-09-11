@@ -1,7 +1,8 @@
 import * as Referee from "base/referee";
 import * as World from "base/world";
-import {Behavior} from "glados/agent/base/behavior";
-import {MessageType} from "glados/control/messaging";
+
+import { Behavior } from "glados/agent/base/behavior";
+import { MessageType } from "glados/control/messaging";
 import * as Robot from "glados/observer/robot";
 import * as Attack from "glados/util/attack";
 import * as Defense from "glados/util/defense";
@@ -9,11 +10,11 @@ import * as Defense from "glados/util/defense";
 export class ApplyForMainattacker extends Behavior {
 	_applying: boolean = false;
 
-	_stop () {
+	_stop() {
 		this._applying = false;
 	}
 
-	check (): boolean {
+	check(): boolean {
 		if (Referee.isOpponentPenaltyState()) {
 			this._applying = false;
 			return false;
@@ -27,7 +28,7 @@ export class ApplyForMainattacker extends Behavior {
 
 		let applying = false;
 		let [sender, passInfoTable] = this._messaging.receiveSingleSender(MessageType.passInfo);
-		if (Attack.currentPlannedMainAttacker(sender, passInfoTable) == this._robot) {
+		if (Attack.currentPlannedMainAttacker(sender, passInfoTable) === this._robot) {
 			this._applyForMainAttacker(undefined, undefined, 2);
 			(this._agent as any).beOffensive = true;
 			applying = true;
@@ -51,7 +52,7 @@ export class ApplyForMainattacker extends Behavior {
 		return false;
 	}
 
-	_updateTask (): any {
+	_updateTask(): any {
 		throw new Error("This behavior is not supposed to run");
 	}
 }

@@ -10,7 +10,7 @@ export function standardNormalDistributedNumber(): number {
 		if (neg) {
 			u = -u;
 		}
-	} while (u == 0);
+	} while (u === 0);
 
 	// box-muller transform
 	let z = Math.sqrt(-2 * Math.log(u));

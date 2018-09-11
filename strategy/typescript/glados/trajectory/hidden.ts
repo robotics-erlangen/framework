@@ -1,9 +1,9 @@
-import {Position} from "base/vector";
-import {TrajectoryHandler} from "base/trajectory";
+import { TrajectoryHandler } from "base/trajectory";
+import { Position } from "base/vector";
 
 // only works for hidden robots
 export class Hidden extends TrajectoryHandler {
-	update (speedForward: number, speedSide: number, omega: number): [any, Position, number] {
+	update(speedForward: number, speedSide: number, omega: number): [any, Position, number] {
 		if (this._robot.isVisible) {
 			throw new Error("can only control invisible robots");
 		}
@@ -13,7 +13,7 @@ export class Hidden extends TrajectoryHandler {
 		return [{ v_f: speedForward, v_s: speedSide, omega: omega }, this._robot.pos, 0];
 	}
 
-	canHandle (): boolean {
+	canHandle(): boolean {
 		return true;
 	}
 }

@@ -1,18 +1,19 @@
 import * as geom from "base/geom";
-import {Vector, Speed} from "base/vector";
+import { Speed, Vector } from "base/vector";
 import * as World from "base/world";
-import {Task} from "glados/task/base";
-import {Hidden} from "glados/trajectory/hidden";
+
+import { Task } from "glados/task/base";
+import { Hidden } from "glados/trajectory/hidden";
 
 export class RescueRobot extends Task {
 	private _rotation: number | undefined;
 	// list of local speeds: (speedForward, speedSide)
 	private _speeds: Speed[] | undefined;
 
-	public run () {
+	public run() {
 		// ignore visible robots
 		if (this._robot.isVisible || this._robot.speed == undefined) {
-			return
+			return;
 		}
 
 		if (this._rotation == undefined || this._speeds == undefined) {

@@ -1,13 +1,14 @@
 import * as MathUtil from "base/mathutil";
-import {Vector, Speed} from "base/vector";
+import { Speed, Vector } from "base/vector";
 import * as World from "base/world";
-import {MessageType} from "glados/control/messaging";
+
+import { MessageType } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
-import {Direct} from "glados/trajectory/direct";
-import {Hidden} from "glados/trajectory/hidden";
+import { Shoot } from "glados/task/ability/shoot";
+import { Agent, Task } from "glados/task/base";
+import { Direct } from "glados/trajectory/direct";
+import { Hidden } from "glados/trajectory/hidden";
 import * as PathHelper from "glados/trajectory/pathhelper";
-import {Task, Agent} from "glados/task/base";
-import {Shoot} from "glados/task/ability/shoot";
 
 const obstacleTable: PathHelper.PathHelperParameters = {
 	ignoreBall: true,
@@ -15,7 +16,7 @@ const obstacleTable: PathHelper.PathHelperParameters = {
 	stopBallDistance: 0,
 	ignoreOpponentDefenseArea: true,
 	ignorePass: true
-}
+};
 
 export class Manual extends Task {
 	private _shoot: Shoot;
@@ -25,22 +26,22 @@ export class Manual extends Task {
 		this._shoot = new Shoot(this._robot, this._messaging, this.setMainAttackerParameters);
 	}
 
-	_limitRobotSpeed (v: Speed) {
+	_limitRobotSpeed(v: Speed) {
 		let slowSpeed = 0.3;
 		let fastSpeed = 2;
 		let pos = this._robot.pos;
 
 		let a = 2; // 1/a m is slow zone
-		let kleft = MathUtil.bound(0, 1 - a*World.Geometry.FieldWidthHalf - a*pos.x, 1);
-		let kright = MathUtil.bound(0, a*pos.x - a*World.Geometry.FieldWidthHalf + 1, 1);
-		let kdown = MathUtil.bound(0, 1 - a*World.Geometry.FieldHeightHalf - a*pos.y, 1);
-		let kup = MathUtil.bound(0, a*pos.y - a*World.Geometry.FieldHeightHalf + 1, 1);
+		let kleft = MathUtil.bound(0, 1 - a * World.Geometry.FieldWidthHalf - a * pos.x, 1);
+		let kright = MathUtil.bound(0, a * pos.x - a * World.Geometry.FieldWidthHalf + 1, 1);
+		let kdown = MathUtil.bound(0, 1 - a * World.Geometry.FieldHeightHalf - a * pos.y, 1);
+		let kup = MathUtil.bound(0, a * pos.y - a * World.Geometry.FieldHeightHalf + 1, 1);
 
 		let khor = Math.max(kleft, kright);
 		let kver = Math.max(kdown, kup);
 		let k = Math.max(khor, kver);
 
-		let vmax = k * slowSpeed + (1-k) * fastSpeed;
+		let vmax = k * slowSpeed + (1 - k) * fastSpeed;
 
 		let vlimited = v;
 		if (v.length() > vmax) {
@@ -49,7 +50,7 @@ export class Manual extends Task {
 		return vlimited;
 	}
 
-	run () {
+	run() {
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
 
 		let input = this._robot.userControl;
@@ -57,7 +58,7 @@ export class Manual extends Task {
 			throw new Error("task manuel can only be run with user control!");
 		}
 
-		if (input.kickPower && input.kickPower > 0 && Ball.friendlyBallOwner() == this._robot) {
+		if (input.kickPower && input.kickPower > 0 && Ball.friendlyBallOwner() === this._robot) {
 			// shoot
 			let shootDistance = 1.5;
 			let shootPos = this._robot.pos + Vector.fromAngle(this._robot.dir).scaleLength(shootDistance);
@@ -72,7 +73,7 @@ export class Manual extends Task {
 			if (limitedSpeed.length() > 0.3) {
 				limitedSpeed = limitedSpeed.copy().setLength(0.3);
 			}
-			let omegamax = Math.PI/2;
+			let omegamax = Math.PI / 2;
 			let omega = MathUtil.bound(-omegamax, input.omega, omegamax);
 			this._robot.trajectory.update(Hidden, limitedSpeed.y, limitedSpeed.x, omega);
 		} else {

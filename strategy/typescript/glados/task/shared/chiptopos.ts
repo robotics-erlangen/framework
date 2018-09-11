@@ -1,6 +1,7 @@
-import {Position} from "base/vector";
-import {Shoot} from "glados/task/ability/shoot";
-import {Task, Agent} from "glados/task/base";
+import { Position } from "base/vector";
+
+import { Shoot } from "glados/task/ability/shoot";
+import { Agent, Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 
 export class ChipToPos extends Task {
@@ -11,21 +12,21 @@ export class ChipToPos extends Task {
 
 	private _shoot: Shoot;
 
-	constructor (agent: Agent, firstContactPos: Position, targetTime: number, ballReceiptPos: Position, precision?: number) {
+	constructor(agent: Agent, firstContactPos: Position, targetTime: number, ballReceiptPos: Position, precision?: number) {
 		super(agent);
-		this._firstContactPos = firstContactPos
-		this._targetTime = targetTime
-		this._ballReceiptPos = ballReceiptPos
-		this._chipPrecision = precision
+		this._firstContactPos = firstContactPos;
+		this._targetTime = targetTime;
+		this._ballReceiptPos = ballReceiptPos;
+		this._chipPrecision = precision;
 
 		this._shoot = new Shoot(this._robot, this._messaging, this.setMainAttackerParameters);
 	}
 
-	public run () {
+	public run() {
 		let obstacleTable = {
 			messaging: this._messaging
-		}
-		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable)
-		this._shoot._chipToPos(this._firstContactPos, this._targetTime, this._ballReceiptPos, this._chipPrecision)
+		};
+		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
+		this._shoot._chipToPos(this._firstContactPos, this._targetTime, this._ballReceiptPos, this._chipPrecision);
 	}
 }

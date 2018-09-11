@@ -2,14 +2,14 @@ import * as Cache from "base/cache";
 import * as Constants from "base/constants";
 import * as Field from "base/field";
 import * as geom from "base/geom";
+import { Robot } from "base/robot";
+import { Position, Speed, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
-import {Robot} from "base/robot";
-import {Position, Speed, Vector} from "base/vector";
 
 import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
-import {Volley} from "glados/task/ability/volley";
+import { Volley } from "glados/task/ability/volley";
 import * as Interval from "glados/util/interval";
 import * as Rating from "glados/util/rating";
 
@@ -25,7 +25,7 @@ let G = World.Geometry;
 // @param endAngle number - end angle of the sector to scan
 // @param insertRobots - set to true iff you want the robots included in its sector
 // @return occupiedSectors list - all unsorted, unmerged occupied sectors
-export function getOccupiedSectors<R extends {pos: Position, radius: number}> (viewPos: Position, robotList: R[],
+export function getOccupiedSectors<R extends {pos: Position, radius: number}>(viewPos: Position, robotList: R[],
 		startAngle: number, endAngle: number, insertRobots: boolean = false): Interval.Interval<R>[] {
 	if (endAngle < startAngle) { // normalize angles
 		endAngle = endAngle + 2 * Math.PI;
@@ -39,7 +39,7 @@ export function getOccupiedSectors<R extends {pos: Position, radius: number}> (v
 		if (robot.radius + extraRadius <= toRobot.length()) {
 			robotAngleDiff = Math.asin((robot.radius + extraRadius) / toRobot.length()); // min angle between toRobot and shoot sector
 		} else {
-			robotAngleDiff = Math.PI/2; // 90 deg, if the ball touches the robot (asin[-1,1]!)
+			robotAngleDiff = Math.PI / 2; // 90 deg, if the ball touches the robot (asin[-1,1]!)
 		}
 		let robotAngle = toRobot.angle(); // direction of the robot
 		let robotStart = robotAngle - robotAngleDiff; // can be < 0
@@ -66,7 +66,7 @@ export function getOccupiedSectors<R extends {pos: Position, radius: number}> (v
 	return occupiedSectors;
 }
 
-export function getFreeSectors<R extends {pos: Position, radius: number}> (viewPos: Position, robotList: R[],
+export function getFreeSectors<R extends {pos: Position, radius: number}>(viewPos: Position, robotList: R[],
 		startAngle: number, endAngle: number): Interval.Interval<R>[] {
 	if (endAngle < startAngle) { // normalize angles
 		endAngle = endAngle + 2 * Math.PI;
@@ -82,9 +82,9 @@ export function getFreeSectors<R extends {pos: Position, radius: number}> (viewP
 // @param robotList list - all robot objects that should be considered
 // @param opp boolean - true for opponent goal, false for friendly goal
 // @return list - list of free sectors [startAngle, endAngle] ascending by start angle
-export function freeSectors<R extends {pos: Position, radius: number}> (viewPos: Position, robotList: R[], opp: boolean): Interval.Interval<R>[] {
-	if ((opp ? 1 : -1)*viewPos.y > G.FieldHeightHalf) {
-		//log("viewPos is behind the goal.")
+export function freeSectors<R extends {pos: Position, radius: number}>(viewPos: Position, robotList: R[], opp: boolean): Interval.Interval<R>[] {
+	if ((opp ? 1 : -1) * viewPos.y > G.FieldHeightHalf) {
+		// log("viewPos is behind the goal.")
 		return [];
 	}
 
@@ -92,7 +92,7 @@ export function freeSectors<R extends {pos: Position, radius: number}> (viewPos:
 	let goalEnd = ((opp ? G.OpponentGoalLeft : G.FriendlyGoalRight) - viewPos).angle(); // direction of the other goalpost (is always greater than goalStart, if viewPos is in the field)
 
 	let unoccupiedSectors = getFreeSectors(viewPos, robotList, goalStart, goalEnd);
-	//log(tostring(goalEnd - goalStart))
+	// log(tostring(goalEnd - goalStart))
 	// returns all unoccupied sectors in the interval [right goalpost, left goalpost]
 	return unoccupiedSectors;
 }
@@ -102,7 +102,7 @@ export function freeSectors<R extends {pos: Position, radius: number}> (viewPos:
 // @param robotList list - all robot objects that should be considered
 // @param opp boolean - true for opponent goal, false for friendly goal
 // @return largestFreeSector interval - the largest free sector
-export function largestFreeSector<R extends {pos: Position, radius: number}> (viewPos: Position, robotList: R[], opp: boolean): Interval.Interval<R> | undefined {
+export function largestFreeSector<R extends {pos: Position, radius: number}>(viewPos: Position, robotList: R[], opp: boolean): Interval.Interval<R> | undefined {
 	let unoccupiedSectors = freeSectors(viewPos, robotList, opp); // get list of all unoccupied sectors
 	return Interval.getLargest(unoccupiedSectors);
 }
@@ -110,73 +110,73 @@ export function largestFreeSector<R extends {pos: Position, radius: number}> (vi
 /// Returns a list of all sectors not covered by any robot from robotList (not limited to the goal)
 // @param viewPos vector - position from which the free angles should be found
 // @param robotList list - all robot objects that should be considered
-export function allFreeSectors<R extends {pos: Position, radius: number}> (viewPos: Position, robotList: R[]): Interval.Interval<R>[] {
-	let occupiedSectors = getOccupiedSectors(viewPos, robotList, 0, 2*Math.PI);
-	//for i,sector in ipairs(occupiedSectors) do
-	//	debug.set("osectors["+i+"]", "{"+sector[1]+", "+sector[2]+"}")
-	//end
+export function allFreeSectors<R extends {pos: Position, radius: number}>(viewPos: Position, robotList: R[]): Interval.Interval<R>[] {
+	let occupiedSectors = getOccupiedSectors(viewPos, robotList, 0, 2 * Math.PI);
+	// for i,sector in ipairs(occupiedSectors) do
+	// 	debug.set("osectors["+i+"]", "{"+sector[1]+", "+sector[2]+"}")
+	// end
 	let matching = undefined;
 	let deleted: number[] = [];
-	for (let i = 0;i<occupiedSectors.length;i++) {
+	for (let i = 0;i < occupiedSectors.length;i++) {
 		let sector = occupiedSectors[i];
-		if (sector[0] == 0) {
+		if (sector[0] === 0) {
 			if (matching) {
-				occupiedSectors[matching] = [occupiedSectors[matching][0], sector[1] + 2*Math.PI];
-				//debug.set("match "+matching+" & "+i, "{"+occupiedSectors[matching][0]+", "+occupiedSectors[matching][1]+"}")
+				occupiedSectors[matching] = [occupiedSectors[matching][0], sector[1] + 2 * Math.PI];
+				// debug.set("match "+matching+" & "+i, "{"+occupiedSectors[matching][0]+", "+occupiedSectors[matching][1]+"}")
 				matching = undefined;
 				deleted.push(i);
 			} else {
 				matching = i;
-				//debug.set("match "+i, "start")
-				//log("start")
+				// debug.set("match "+i, "start")
+				// log("start")
 			}
-		} else if (sector[1] == 2*Math.PI) {
+		} else if (sector[1] === 2 * Math.PI) {
 			if (matching) {
-				occupiedSectors[matching] = [sector[0], occupiedSectors[matching][1] + 2*Math.PI];
-				//debug.set("match "+matching+" & "+i, "{"+occupiedSectors[matching][0]+", "+occupiedSectors[matching][1]+"}")
+				occupiedSectors[matching] = [sector[0], occupiedSectors[matching][1] + 2 * Math.PI];
+				// debug.set("match "+matching+" & "+i, "{"+occupiedSectors[matching][0]+", "+occupiedSectors[matching][1]+"}")
 				matching = undefined;
-				deleted.push(i)
+				deleted.push(i);
 			} else {
 				matching = i;
-				//debug.set("match "+i, "end")
-				//log("end")
+				// debug.set("match "+i, "end")
+				// log("end")
 			}
 		}
 	}
-	for (let i = deleted.length;i>=0;i--) {
+	for (let i = deleted.length;i >= 0;i--) {
 		occupiedSectors.splice(deleted[i], 1);
 	}
 	Interval.sort(occupiedSectors);
-	//for i,sector in ipairs(occupiedSectors) do
-	//	debug.set("O2sectors["+i+"]", "{"+sector[1]+", "+sector[2]+"}")
-	//end
+	// for i,sector in ipairs(occupiedSectors) do
+	// 	debug.set("O2sectors["+i+"]", "{"+sector[1]+", "+sector[2]+"}")
+	// end
 	Interval.merge(occupiedSectors);
-	//for i,sector in ipairs(occupiedSectors) do
-	//	debug.set("MOsectors["+i+"]", "{"+sector[1]+", "+sector[2]+"}")
-	//end
+	// for i,sector in ipairs(occupiedSectors) do
+	// 	debug.set("MOsectors["+i+"]", "{"+sector[1]+", "+sector[2]+"}")
+	// end
 	let freeSectors = Interval.negate(occupiedSectors, -42, 1337); // magic constants, don't change!
 	if (freeSectors.length > 2) {
 		let first = freeSectors[0];
-		let last = freeSectors[freeSectors.length-1];
-		//log(#freeSectors)
-		//for i,sector in ipairs(freeSectors) do
-		//	debug.set("Fsectors["+i+"]", "{"+sector[1]+", "+sector[2]+"}")
-		//end
+		let last = freeSectors[freeSectors.length - 1];
+		// log(#freeSectors)
+		// for i,sector in ipairs(freeSectors) do
+		// 	debug.set("Fsectors["+i+"]", "{"+sector[1]+", "+sector[2]+"}")
+		// end
 		freeSectors[0] = [last[0], first[1]];
 		freeSectors.pop();
 	} else if (freeSectors.length > 1) { // exactly 2 halfs (that are actually 1 sector, but with a sign flip)
 		let first = freeSectors[0];
 		let second = freeSectors[1];
 		freeSectors = [[second[0], first[1]]];
-		//for i,sector in ipairs(freeSectors) do
-		//	debug.set("Fsectors["+i+"]", "{"+sector[1]+", "+sector[2]+"}")
-		//end
+		// for i,sector in ipairs(freeSectors) do
+		// 	debug.set("Fsectors["+i+"]", "{"+sector[1]+", "+sector[2]+"}")
+		// end
 	} else {// no free sector
 		freeSectors = [];
 	}
 	// remove sectors that are broader than 2pi
-	for (let i = freeSectors.length-1;i>=0;i--) {
-		if (Math.abs(freeSectors[i][1] - freeSectors[i][0]) > 2*Math.PI) {
+	for (let i = freeSectors.length - 1;i >= 0;i--) {
+		if (Math.abs(freeSectors[i][1] - freeSectors[i][0]) > 2 * Math.PI) {
 			freeSectors.splice(i, 1);
 		}
 	}
@@ -185,16 +185,16 @@ export function allFreeSectors<R extends {pos: Position, radius: number}> (viewP
 
 let oldRobotPositions: Map<Robot, Position> = new Map<Robot, Position>(); // robot -> position
 let lastRawdataBallPos = World.Ball.pos;
-function updateRobotPositions () {
+function updateRobotPositions() {
 	if (World.Ball.hasRawData) {
-		lastRawdataBallPos = World.Ball.pos
+		lastRawdataBallPos = World.Ball.pos;
 		for (let robot of World.OpponentRobots) {
 			oldRobotPositions.set(robot, robot.pos);
 		}
 	}
 }
 
-function getInvisibleBallPrediction (): [Position | undefined, Speed | undefined, Robot] | [] {
+function getInvisibleBallPrediction(): [Position | undefined, Speed | undefined, Robot] | [] {
 	// basically invisible ball
 	if (World.Ball.detectionQuality < 0.05) {
 		// get the last tracked ball state
@@ -207,8 +207,8 @@ function getInvisibleBallPrediction (): [Position | undefined, Speed | undefined
 		}
 
 		// TODO: check for fast ball and save predictShot
-		//if not Ball.isSlowBall() then
-		//end
+		// if not Ball.isSlowBall() then
+		// end
 
 		// search for robots that were close at that point in time
 		let closestRobot = undefined;
@@ -266,13 +266,13 @@ interface PassReceiver {
 	ballTime: number;
 	catchPos: Position;
 }
-function comparePrediction (p1: PassReceiver, p2: PassReceiver): number {
+function comparePrediction(p1: PassReceiver, p2: PassReceiver): number {
 	if (p1.dist === p2.dist) {
 		return p1.ballTime - p2.ballTime;
 	}
 	return p2.dist - p1.dist;
 }
-function _predictShot (allShots: boolean = false): [Position, Speed, boolean, PassReceiver[] | undefined, boolean] {
+function _predictShot(allShots: boolean = false): [Position, Speed, boolean, PassReceiver[] | undefined, boolean] {
 	// check for bad vision
 	let [invisibleBallPos, invisibleBallSpeed, oppRobot] = getInvisibleBallPrediction();
 	if (invisibleBallPos) {
@@ -292,7 +292,7 @@ function _predictShot (allShots: boolean = false): [Position, Speed, boolean, Pa
 	if (oppBallDribbler) {
 		isShot = true;
 		isDribbling = true;
-		//NOTE: use World.Ball instead of futureBall is fine, as the shot is assumed to be imminent.
+		// NOTE: use World.Ball instead of futureBall is fine, as the shot is assumed to be imminent.
 		let relativeSpeedLength = World.Ball.speed - oppBallDribbler.speed;
 		let [dirx, diry] = Volley.calcVOutFromVOutAbs(Constants.maxBallSpeed, relativeSpeedLength.length(), oppBallDribbler.dir, relativeSpeedLength.angle(), "opp");
 		ballSpeed = (new Vector(dirx, diry) + oppBallDribbler.speed).normalize();
@@ -324,11 +324,11 @@ function _predictShot (allShots: boolean = false): [Position, Speed, boolean, Pa
 		}
 
 		if (allShots || Field.isInField(volleyPos, 0)) { // if a volley is possible
-			let lengthOfBallMovement = 0.5 * ballSpeed.lengthSq() / (-Constants.ballDeceleration)
-			let lineSegments = Field.allowedLineSegments(pos, ballSpeed, lengthOfBallMovement)
+			let lengthOfBallMovement = 0.5 * ballSpeed.lengthSq() / (-Constants.ballDeceleration);
+			let lineSegments = Field.allowedLineSegments(pos, ballSpeed, lengthOfBallMovement);
 			if (!allShots) {
 				for (let line of lineSegments) {
-					vis.addPath("o/goal: predictShot: allowed catch path", [line[0], line[1]], vis.colors.cyan)
+					vis.addPath("o/goal: predictShot: allowed catch path", [line[0], line[1]], vis.colors.cyan);
 				}
 			}
 
@@ -352,7 +352,7 @@ function _predictShot (allShots: boolean = false): [Position, Speed, boolean, Pa
 
 				// calculate chance of the robot reaching catchPos before the ball
 				let weightedDistance;
-				if (Math.abs(ballRollTime) == Infinity) {
+				if (Math.abs(ballRollTime) === Infinity) {
 					weightedDistance = 0;
 				} else if (robot.pos.distanceTo(catchPos) < 0.1) {
 					weightedDistance = 100000000; // very large number smaller than Infinity
@@ -360,7 +360,7 @@ function _predictShot (allShots: boolean = false): [Position, Speed, boolean, Pa
 					let robotTime = Physics.robotTimeToPos(robot, catchPos, new Vector(robot.maxSpeed, 0))[0];
 					weightedDistance = Rating.valueToRating(robotTime, ballRollTime, 0) * 1 / pos.distanceTo(catchPos);
 				}
-				if (robot.id == lastBestRobotId && weightedDistance > 0) {
+				if (robot.id === lastBestRobotId && weightedDistance > 0) {
 					weightedDistance = weightedDistance * BEST_ROBOT_HYSTERESIS;
 				}
 				if ((robot.pos.distanceTo(World.Ball.pos)) < robot.shootRadius) {
@@ -384,9 +384,9 @@ function _predictShot (allShots: boolean = false): [Position, Speed, boolean, Pa
 				let ballRollTime = Physics.ballRollTime(World.Ball, World.Ball.pos.distanceTo(pos));
 				// assume that the opponent will try to stop for the volley and brake from now
 				// TODO: Don't use 4 m/s*s as constant, at least not hidden like this
-				let oppBrakeSpeed = Math.max(0, passReceiver.robot.speed.length() - 4 * ballRollTime)
-				let minRobotSpeed = passReceiver.robot.speed.copy().setLength(oppBrakeSpeed)
-				let futureBallSpeed = Physics.ballAtTime(World.Ball, ballRollTime).speed
+				let oppBrakeSpeed = Math.max(0, passReceiver.robot.speed.length() - 4 * ballRollTime);
+				let minRobotSpeed = passReceiver.robot.speed.copy().setLength(oppBrakeSpeed);
+				let futureBallSpeed = Physics.ballAtTime(World.Ball, ballRollTime).speed;
 				// TODO: Check what happens if futureBallSpeed.length() is zero
 				let robotAngle = passReceiver.robot.dir;
 				let [dirx, diry] = Volley.calcVOutTeamCoordinates(Constants.maxBallSpeed, futureBallSpeed, robotAngle,
@@ -412,6 +412,6 @@ function _predictShot (allShots: boolean = false): [Position, Speed, boolean, Pa
 }
 export let predictShot = Cache.forFrame(_predictShot);
 
-export function _update () {
+export function _update() {
 	updateRobotPositions();
 }

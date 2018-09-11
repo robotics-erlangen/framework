@@ -1,14 +1,14 @@
 import { Ball } from "base/ball";
-import * as MathUtil from "base/mathutil";
 import * as Constants from "base/constants";
 import * as debug from "base/debug";
 import * as Field from "base/field";
 import * as geom from "base/geom";
+import * as MathUtil from "base/mathutil";
 import { Position, RelativePosition } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
 
-import * as BallObserver from "glados/observer/ball"
+import * as BallObserver from "glados/observer/ball";
 import { Agent, Task } from "glados/task/base";
 import { Direct } from "glados/trajectory/direct";
 import * as PathHelper from "glados/trajectory/pathhelper";

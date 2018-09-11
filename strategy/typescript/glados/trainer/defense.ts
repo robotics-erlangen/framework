@@ -338,7 +338,7 @@ export class Defense {
 				break;
 			}
 			let toGoalLineDistance = intersection ? info.pos.distanceTo(intersection[0]) : 10;
-			let robotTime = ObserverRobot.timeAroundDefenseAreaByWay(closestRobot, undefined, <any>info.pos, info.way!, defenseExtraRadius, true, 3);
+			let robotTime = ObserverRobot.timeAroundDefenseAreaByWay(closestRobot, undefined, <any> info.pos, info.way!, defenseExtraRadius, true, 3);
 			let robotTimeMargin = this._centerbackAssignments.indexOf(closestRobot) >= 0 ? ROBOT_TIME_MARGIN_LOW : ROBOT_TIME_MARGIN_HIGH;
 			if ((robotTime + robotTimeMargin < rollTime
 					|| robotTime < rollTime && rollTime < ROBOT_TIME_MARGIN_HIGH

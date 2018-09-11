@@ -1,24 +1,22 @@
+import { FriendlyRobot } from "base/robot";
+import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
-import {FriendlyRobot} from "base/robot";
-import {Vector, Position} from "base/vector";
 import * as World from "base/world";
 
-import {MessageBox, MessageType} from "glados/control/messaging";
-
+import { MessageBox, MessageType } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 import * as Robot from "glados/observer/robot";
 import * as ObserverShoot from "glados/observer/shoot";
-
 import * as Rating from "glados/util/rating";
 
 
-function visualizeRating (name: string, pos: Position, rating: number) {
-	if (name != "total") {
+function visualizeRating(name: string, pos: Position, rating: number) {
+	if (name !== "total") {
 		return;
 	}
 
-	vis.addCircle("t/a/MidfieldSampling: "+name, pos, 0.06,
+	vis.addCircle("t/a/MidfieldSampling: " + name, pos, 0.06,
 		vis.fromTemperature(1 - rating), true);
 }
 
@@ -42,43 +40,43 @@ export class MidfieldSampling {
 	_robot: FriendlyRobot;
 	_messaging: MessageBox;
 
-	constructor (robot: FriendlyRobot, messaging: MessageBox) {
+	constructor(robot: FriendlyRobot, messaging: MessageBox) {
 		this._robot = robot;
 		this._messaging = messaging;
 	}
 
-	_findStrikerPassSuggestions () {
+	_findStrikerPassSuggestions() {
 		let passSuggestions = this._messaging.receive(MessageType.passSuggestion);
 		let strikerSuggestions: Map<FriendlyRobot, Suggestion> = new Map<FriendlyRobot, Suggestion>();
 		let strikers = this._messaging.receive(MessageType.strikerFlag);
 		for (let [sender, msg] of passSuggestions.entries()) {
 			for (let striker of strikers.keys()) {
-				this._strikers.push(striker)
-				if (sender.id == striker.id) {
-					strikerSuggestions.set(sender, msg)
-					break
+				this._strikers.push(striker);
+				if (sender.id === striker.id) {
+					strikerSuggestions.set(sender, msg);
+					break;
 				}
 			}
 		}
 
-		this._strikerSuggestions = strikerSuggestions
+		this._strikerSuggestions = strikerSuggestions;
 	}
 
-	precalculate () {
+	precalculate() {
 		this._mainAttacker = this._messaging.receiveTrainer(MessageType.mainAttacker);
 		let pos = this._messaging.receiveSingleSender(MessageType.attackPosition)[1];
 		let time = this._messaging.receiveSingleSender(MessageType.attackTime)[1];
-		this._attackPosition = pos || World.Ball.pos
+		this._attackPosition = pos || World.Ball.pos;
 		this._attackTime = time || (this._mainAttacker ? World.Time + Robot.minTimeToBall(this._mainAttacker) : World.Time);
 
-		this._findStrikerPassSuggestions()
+		this._findStrikerPassSuggestions();
 	}
 
-	closeOpponents (ballPos: Position) {
+	closeOpponents(ballPos: Position) {
 		let minRating = 0.3;
 		let closestDistance = Infinity;
 
-		//TODO count all close robots, not just the closest
+		// TODO count all close robots, not just the closest
 		for (let bot of World.OpponentRobots) {
 			let distToPos = bot.pos.distanceToSq(ballPos);
 			if (distToPos < closestDistance) {
@@ -96,7 +94,7 @@ export class MidfieldSampling {
 		return rating;
 	}
 
-	movingAhead (ballPos: Position) {
+	movingAhead(ballPos: Position) {
 		let minRating = 0.3;
 		let currentY = this._attackPosition.y;
 		let plannedY = ballPos.y;
@@ -109,7 +107,7 @@ export class MidfieldSampling {
 		return rating;
 	}
 
-	passDistance (ballPos: Position) {
+	passDistance(ballPos: Position) {
 		let minRating = 0.7;
 		let dist = this._attackPosition.distanceTo(ballPos);
 		let rating = (1 - minRating) * Rating.valueToRating(dist, 6, 3) + minRating;
@@ -121,7 +119,7 @@ export class MidfieldSampling {
 		return rating;
 	}
 
-	volleyToStriker (ballPos: Position) {
+	volleyToStriker(ballPos: Position) {
 		let minRating = 0.7;
 
 		let passSuggestions = this._strikerSuggestions;
@@ -146,24 +144,24 @@ export class MidfieldSampling {
 		return rating;
 	}
 
-	volleyPass (ballPos: Position) {
+	volleyPass(ballPos: Position) {
 		if (!this._mainAttacker || !Ball.receivesPass(this._mainAttacker)) {
-			return 1
+			return 1;
 		}
 
-		let minRating = 0.6
-		let volleyAngle = World.Ball.speed.absoluteAngleDiff(this._attackPosition - ballPos)
-		let volleySuccessProbability = Rating.valueToRating(volleyAngle, 65 / 180 * Math.PI, 50 / 180 * Math.PI)
-		let rating = volleySuccessProbability * (1 - minRating) + minRating
+		let minRating = 0.6;
+		let volleyAngle = World.Ball.speed.absoluteAngleDiff(this._attackPosition - ballPos);
+		let volleySuccessProbability = Rating.valueToRating(volleyAngle, 65 / 180 * Math.PI, 50 / 180 * Math.PI);
+		let rating = volleySuccessProbability * (1 - minRating) + minRating;
 
 		if (!amun.isPerformanceMode) {
-			visualizeRating("volleyPass", ballPos, rating)
+			visualizeRating("volleyPass", ballPos, rating);
 		}
 
-		return rating
+		return rating;
 	}
 
-	canReachInTime (ballPos: Position) {
+	canReachInTime(ballPos: Position) {
 		if (!this._mainAttacker) {
 			return 1;
 		}
@@ -183,7 +181,7 @@ export class MidfieldSampling {
 		return rating;
 	}
 
-	evalLocation (ballPos: Position, bestScore: number) {
+	evalLocation(ballPos: Position, bestScore: number) {
 		let score = 1;
 
 		score *= this.movingAhead(ballPos);

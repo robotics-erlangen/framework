@@ -1,16 +1,17 @@
 import * as Field from "base/field";
-import {Robot} from "base/robot";
+import { Robot } from "base/robot";
 import * as World from "base/world";
+
+import { Agent, Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
-import {ToTarget} from "glados/trajectory/totarget";
-import {Task, Agent} from "glados/task/base";
+import { ToTarget } from "glados/trajectory/totarget";
 
 
 export class BallEscort extends Task {
 	private _opponentRobot: Robot;
 	private _obstacleTable: PathHelper.PathHelperParameters;
 
-	constructor (agent: Agent, opponentRobot: Robot) {
+	constructor(agent: Agent, opponentRobot: Robot) {
 		super(agent);
 		this._opponentRobot = opponentRobot;
 		this._obstacleTable = {
@@ -18,10 +19,10 @@ export class BallEscort extends Task {
 			extraBallDistance: 0.25,
 			ignorePass: true,
 			messaging: this._messaging
-		}
+		};
 	}
 
-	public run () {
+	public run() {
 		let target = this._opponentRobot ? this._opponentRobot.pos : World.Geometry.FriendlyGoal;
 		let pos = World.Ball.pos + (target - World.Ball.pos).setLength(0.3 + this._robot.radius);
 

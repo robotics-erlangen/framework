@@ -1,10 +1,11 @@
 import * as Field from "base/field";
 import * as MathUtil from "base/mathutil";
-import {Vector} from "base/vector";
+import { Vector } from "base/vector";
 import * as World from "base/world";
+
+import { Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
-import {ToTarget} from "glados/trajectory/totarget";
-import {Task} from "glados/task/base";
+import { ToTarget } from "glados/trajectory/totarget";
 
 const DEST_SWITCH_DISTANCE = 0.02;
 const GOAL_DISTANCE = 0.06;
@@ -12,9 +13,9 @@ const GOAL_DISTANCE = 0.06;
 export class RandomKeeper extends Task {
 	_nextX: number | undefined;
 
-	run () {
+	run() {
 		if (this._nextX == undefined || Math.abs(this._robot.pos.x - this._nextX) < DEST_SWITCH_DISTANCE) {
-			let bound = World.Geometry.GoalWidth/2 - this._robot.radius;
+			let bound = World.Geometry.GoalWidth / 2 - this._robot.radius;
 			this._nextX = MathUtil.random() * bound * 2 - bound;
 		}
 
@@ -34,6 +35,6 @@ export class RandomKeeper extends Task {
 			obstacleTable.ignoreOpponentRobots = true;
 		}
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
-		this._robot.trajectory.update(ToTarget, moveDest, Math.PI/2);
+		this._robot.trajectory.update(ToTarget, moveDest, Math.PI / 2);
 	}
 }

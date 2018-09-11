@@ -1,13 +1,14 @@
 import * as debug from "base/debug";
-import {Robot} from "base/robot";
-import {Position} from "base/vector";
-import * as World from "base/world";
 import * as Field from "base/field";
-import {MessageType} from "glados/control/messaging";
+import { Robot } from "base/robot";
+import { Position } from "base/vector";
+import * as World from "base/world";
+
+import { MessageType } from "glados/control/messaging";
+import { Agent, Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
-import {ToTarget} from "glados/trajectory/totarget";
+import { ToTarget } from "glados/trajectory/totarget";
 import * as Defense from "glados/util/defense";
-import {Task, Agent} from "glados/task/base";
 
 
 const BLOCK_DIST_MAX = 0.05;
@@ -35,7 +36,7 @@ export class ManMark extends Task {
 		};
 	}
 
-	run () {
+	run() {
 		let preferredPos = Defense.manMarkPos(this._targetRobot);
 		let preferredDir = (World.Ball.pos - this._robot.pos).angle();
 
@@ -50,13 +51,13 @@ export class ManMark extends Task {
 		let basePos;
 		if (intersectionDefenseArea) {
 			// calculate new position between ball (regarding robot shootRadius) and the intersection with defense area
-			moveDest = preferredPos //+ (intersectionDefenseArea - preferredPos).setLength(0)//this._robot.shootRadius + World.Ball.radius)
+			moveDest = preferredPos; // + (intersectionDefenseArea - preferredPos).setLength(0)//this._robot.shootRadius + World.Ball.radius)
 			moveDest = Defense.fastestPointInInterval(this._robot, moveDest, intersectionDefenseArea,
 								this._oldPosition, BLOCK_POS_PRECISION, BLOCK_POS_ALPHA);
 			basePos = intersectionDefenseArea;
 		} else {
 			// case if there isn't an intersection with the defense area
-			moveDest = preferredPos + (this._robot.pos-preferredPos).setLength(this._robot.shootRadius + World.Ball.radius);
+			moveDest = preferredPos + (this._robot.pos - preferredPos).setLength(this._robot.shootRadius + World.Ball.radius);
 			basePos = this._robot.pos;
 		}
 
@@ -76,13 +77,13 @@ export class ManMark extends Task {
 		// local ignoreBall = false
 
 		if (this._blockingShot) {
-			//if closestOpponentRobot then
-			//	moveDest = this._moveToNearBlock(futureBall, closestOpponentRobot)
-			//else
-			//	ignoreBall = true
+			// if closestOpponentRobot then
+			// 	moveDest = this._moveToNearBlock(futureBall, closestOpponentRobot)
+			// else
+			// 	ignoreBall = true
 				moveDest = preferredPos + (World.Geometry.FriendlyGoal - preferredPos).setLength(
 							World.Ball.radius + this._robot.shootRadius);
-			//end
+			// end
 		}
 
 		this._obstacleTable.ignoreOpponentRobots = Field.distanceToFriendlyDefenseArea(this._robot.pos, this._robot.radius)

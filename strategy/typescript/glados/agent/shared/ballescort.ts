@@ -1,23 +1,24 @@
 import * as debug from "base/debug";
-import {Robot} from "base/robot";
 import * as Field from "base/field";
 import * as Referee from "base/referee";
+import { Robot } from "base/robot";
 import * as World from "base/world";
-import {Behavior, TaskAssignment} from "glados/agent/base/behavior";
-import {MessageType} from "glados/control/messaging";
+
+import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
+import { MessageType } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
-import * as RefereeObs from "glados/observer/referee"
+import * as RefereeObs from "glados/observer/referee";
 import * as ObserverRobot from "glados/observer/robot";
-import {BallEscort as BallEscortTask} from "glados/task/shared/ballescort";
+import {BallEscort as BallEscortTask } from "glados/task/shared/ballescort";
 
 export class BallEscort extends Behavior {
 	_minRobot: Robot | undefined = undefined;
 
-	private _checkOpponentTimings (): [Robot | undefined, number] {
+	private _checkOpponentTimings(): [Robot | undefined, number] {
 		let [minOppRobot, minOppTime] = Ball.firstRobotAtBall(World.OpponentRobots);
 
-		if (minOppTime == Infinity) {
+		if (minOppTime === Infinity) {
 			// firstRobotAtBall calls minTimeToBall which assumes the robot wants to look at it's opponent's goal
 			// This can lead to situations where the function returns Infinity even though it wouldn't if we checked
 			// with a different position (here: the ball position while receiving a pass)
@@ -35,7 +36,7 @@ export class BallEscort extends Behavior {
 		return [minOppRobot, minOppTime];
 	}
 
-	private _isReachabilityOk (oppTime: number, ownTime: number): boolean {
+	private _isReachabilityOk(oppTime: number, ownTime: number): boolean {
 		if (!(oppTime < Infinity)) {
 			return true;
 		}
@@ -47,12 +48,12 @@ export class BallEscort extends Behavior {
 		return oppTime - ownTime > 1;
 	}
 
-	check (): boolean {
+	check(): boolean {
 		let shotHysteresis = this._active ? 0.075 : 0.15;
 
 		if (!(World.RefereeState === "Game" || World.RefereeState === "GameForce")
-				 ||  !Referee.opponentTouchedLast()
-				 ||  Ball.wasShot(shotHysteresis)) {
+				||  !Referee.opponentTouchedLast()
+				||  Ball.wasShot(shotHysteresis)) {
 			return false;
 		}
 
@@ -90,15 +91,15 @@ export class BallEscort extends Behavior {
 			return false;
 		}
 
-		this._applyForMainAttacker()
-		if (this._messaging.receiveTrainer(MessageType.mainAttacker) != this._robot) {
+		this._applyForMainAttacker();
+		if (this._messaging.receiveTrainer(MessageType.mainAttacker) !== this._robot) {
 			return false;
 		}
 
 		return true;
 	}
 
-	_updateTask (): TaskAssignment<typeof BallEscortTask> {
+	_updateTask(): TaskAssignment<typeof BallEscortTask> {
 		return [BallEscortTask, this._minRobot ? [this._minRobot] : undefined];
 	}
 }

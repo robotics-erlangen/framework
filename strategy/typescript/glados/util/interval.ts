@@ -1,16 +1,17 @@
-import {Position} from "base/vector";
+import { Position } from "base/vector";
+
 export type Interval<T> = [number, number, [T, T]?];
 type AnyInterval = Interval<any>;
 
 /// Merges a list of intervals
 // @param sortedIntervals list (by reference) - the initial intervals ordered by increasing interval start
-export function merge (sortedIntervals: AnyInterval[]) {
+export function merge(sortedIntervals: AnyInterval[]) {
 	if (sortedIntervals.length === 0) {
 		return;
 	}
 	let currentInterval = sortedIntervals[0];
 	let n = 0;
-	for (let i = 1;i<sortedIntervals.length;i++) {
+	for (let i = 1;i < sortedIntervals.length;i++) {
 		let interval = sortedIntervals[i];
 		if (interval[0] <= currentInterval[1]) {
 			// join overlapping intervals
@@ -32,18 +33,18 @@ export function merge (sortedIntervals: AnyInterval[]) {
 	// last interval
 	sortedIntervals[n] = currentInterval;
 	n++;
-	sortedIntervals.splice(n, sortedIntervals.length-n);
+	sortedIntervals.splice(n, sortedIntervals.length - n);
 }
 
 /// Negates a list of intervals
 // @param mergedIntervals interval[] - list of intervals as returned by merge
 // @param outerStart number - start of the outer limit of the result
 // @param outerEnd number - end of the outer limit of the result
-export function negate<T> (mergedIntervals: Interval<T>[], outerStart: number, outerEnd: number): Interval<T>[] {
-	let chunkStart = outerStart // end of previous sector
+export function negate<T>(mergedIntervals: Interval<T>[], outerStart: number, outerEnd: number): Interval<T>[] {
+	let chunkStart = outerStart; // end of previous sector
 	let negated: Interval<T>[] = [];
 
-	for (let i = 0;i<mergedIntervals.length;i++) {
+	for (let i = 0;i < mergedIntervals.length;i++) {
 		let interval = mergedIntervals[i];
 		if (interval[0] > chunkStart) {
 			negated.push([chunkStart, interval[0]]);
@@ -61,30 +62,30 @@ export function negate<T> (mergedIntervals: Interval<T>[], outerStart: number, o
 	return negated;
 }
 
-function intervalOrder (t1: AnyInterval, t2: AnyInterval): number {
+function intervalOrder(t1: AnyInterval, t2: AnyInterval): number {
 	return t1[0] - t2[0];
 }
 
 /// Sorts the given list of intervals, by increasing interval start
 // @param intervals interval[] - list of intervals (by reference)
-export function sort (intervals: AnyInterval[]) {
+export function sort(intervals: AnyInterval[]) {
 	intervals.sort(intervalOrder);
 }
 
 /// Returns the largest interval
 // @param intervals interval[] - list of intervals
 // @return [interval - largest interval, if one exists]
-export function getLargest<T> (intervals: Interval<T>[]): Interval<T> | undefined {
+export function getLargest<T>(intervals: Interval<T>[]): Interval<T> | undefined {
 	let largestInterval = undefined;
-	let valueLargest = -1 // size of the largest interval
+	let valueLargest = -1; // size of the largest interval
 	for (let interval of intervals) { // find the largest interval
-		let diff = interval[1] - interval[0]
+		let diff = interval[1] - interval[0];
 		if (diff > valueLargest) {
-			largestInterval = interval
-			valueLargest = diff
+			largestInterval = interval;
+			valueLargest = diff;
 		}
 	}
-	return largestInterval
+	return largestInterval;
 }
 
 /// Finds the closest point in an array of intervals with a given distance to its interval boarders
@@ -92,11 +93,11 @@ export function getLargest<T> (intervals: Interval<T>[]): Interval<T> | undefine
 // @param Q number - point to which the distance of the searched point is minimal
 // @param D number - minimum distance of the searched point to its nearest boarder.
 // This means that it can only lie in an interval with size 2*D or bigger
-export function getClosestPoint (mergedIntervals: AnyInterval[], Q: number, D: number): number | undefined {
+export function getClosestPoint(mergedIntervals: AnyInterval[], Q: number, D: number): number | undefined {
 	let biggestSector = undefined;
 	let bestMinDist = Infinity;
 	for (let sector of mergedIntervals) {
-		if (sector[1] - sector[0] >= 2*D) {
+		if (sector[1] - sector[0] >= 2 * D) {
 			let minDist = Math.min(Math.abs(sector[1] - Q), Math.abs(sector[0] - Q));
 			if (biggestSector == undefined || minDist < bestMinDist) {
 				biggestSector = sector;
@@ -107,7 +108,7 @@ export function getClosestPoint (mergedIntervals: AnyInterval[], Q: number, D: n
 	if (biggestSector) {
 		let spaceRight = Math.abs(Q - biggestSector[1]);
 		let spaceLeft = Math.abs(Q - biggestSector[0]);
-		if (spaceRight >= D && spaceLeft >= D && (Q>biggestSector[0] && Q<biggestSector[1])) {
+		if (spaceRight >= D && spaceLeft >= D && (Q > biggestSector[0] && Q < biggestSector[1])) {
 			return Q;
 		} else if (spaceRight > spaceLeft) {
 			return biggestSector[0] + D;
@@ -124,11 +125,11 @@ export function getClosestPoint (mergedIntervals: AnyInterval[], Q: number, D: n
 // @param Q number - point to which the distance of the searched point is maximal
 // @param D number - minimum distance of the searched point to its nearest boarder.
 // This means that it can only lie in an interval with size 2*D or bigger
-export function getFurthestPoint (mergedIntervals: AnyInterval[], Q: number, D: number): number | undefined {
+export function getFurthestPoint(mergedIntervals: AnyInterval[], Q: number, D: number): number | undefined {
 	let nearestSector = undefined;
 	let bestMaxDist = -Infinity;
 	for (let sector of mergedIntervals) {
-		if (sector[1] - sector[0] >= 2*D) {
+		if (sector[1] - sector[0] >= 2 * D) {
 			let maxDist = Math.max(Math.abs(sector[1] - Q), Math.abs(sector[0] - Q));
 			if (nearestSector == undefined || maxDist > bestMaxDist) {
 				nearestSector = sector;

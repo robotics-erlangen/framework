@@ -17,14 +17,14 @@ interface BallLike {
 // @param ball - A ball like structure
 // @param friendly bool - Perform the check for our own team if true
 // @return bool - Wether icing is predicted
-export function icingPredicted (ball: BallLike, friendly: boolean): boolean {
+export function icingPredicted(ball: BallLike, friendly: boolean): boolean {
 	let ballOutPos = Field.nextLineCut(ball.pos, ball.speed);
 	let lastTouchPos = BaseRef.robotAndPosOfLastBallTouch()[1];
 	if (!lastTouchPos || !ballOutPos) {
 		return false;
 	}
 	// Touched by correct team?
-	if (friendly != BaseRef.friendlyTouchedLast()) {
+	if (friendly !== BaseRef.friendlyTouchedLast()) {
 		return false;
 	}
 	// On the correct side?
@@ -49,31 +49,31 @@ export function icingPredicted (ball: BallLike, friendly: boolean): boolean {
 // Returns true if the ball's next line cut would result in an opponent icing
 // @param ball - a ball like structure
 // @return bool - Wether icing is predicted
-export function opponentIcingPredicted (ball: BallLike): boolean {
+export function opponentIcingPredicted(ball: BallLike): boolean {
 	return icingPredicted(ball, false);
 }
 
 // Returns true if the ball's next line cut would result in a friendly icing
 // @param ball - A ball like structure
 // @return bool - Wether icing is predicted
-export function friendlyIcingPredicted (ball: BallLike): boolean {
+export function friendlyIcingPredicted(ball: BallLike): boolean {
 	return icingPredicted(ball, true);
 }
 
-let cntO = 0
-//Tries to accept that not every signal by the refbox is correct
-//has to be called once and only once a frame
-export function realisticCardsOpponent () {
+let cntO = 0;
+// Tries to accept that not every signal by the refbox is correct
+// has to be called once and only once a frame
+export function realisticCardsOpponent() {
 	if (World.OpponentRobots.length <= 8 - World.OpponentYellowCards.length - World.OpponentRedCards) {
 		cntO = 0;
-	} else if (World.RefereeState != "Stop" && World.Time - Error.getLastRefChange() > 0.5) {
+	} else if (World.RefereeState !== "Stop" && World.Time - Error.getLastRefChange() > 0.5) {
 		cntO = cntO + 1;
 	}
-	if (cntO % 1000 == 1) {
+	if (cntO % 1000 === 1) {
 		log("Warning: More Enemies than allowed by the refbox, check Referee");
 	}
 
-	//assumes that there is only one yellow card that is not beeing played
+	// assumes that there is only one yellow card that is not beeing played
 	if (cntO > 50) {
 		return Math.min(0, World.OpponentYellowCards.length + World.OpponentRedCards - 1);
 	}

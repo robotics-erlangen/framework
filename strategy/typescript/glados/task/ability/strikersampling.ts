@@ -1,10 +1,10 @@
 import * as geom from "base/geom";
-import {FriendlyRobot} from "base/robot";
+import { FriendlyRobot } from "base/robot";
+import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
-import {Vector, Position} from "base/vector";
 import * as World from "base/world";
 
-import {MessageBox, MessageType} from "glados/control/messaging";
+import { MessageBox, MessageType } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 import * as Robot from "glados/observer/robot";
@@ -14,8 +14,8 @@ import * as Rating from "glados/util/rating";
 let G = World.Geometry;
 
 
-function visualizeRating (name: string, pos: Position, rating: number) {
-	vis.addCircle("t/a/strikersampling: "+name, pos, 0.06,
+function visualizeRating(name: string, pos: Position, rating: number) {
+	vis.addCircle("t/a/strikersampling: " + name, pos, 0.06,
 		vis.fromTemperature(1 - rating), true);
 }
 
@@ -27,12 +27,12 @@ export class StrikerSampling {
 	_robot: FriendlyRobot;
 	_messaging: MessageBox;
 
-	constructor (robot: FriendlyRobot, messaging: MessageBox) {
+	constructor(robot: FriendlyRobot, messaging: MessageBox) {
 		this._robot = robot;
 		this._messaging = messaging;
 	}
 
-	precalculate () {
+	precalculate() {
 		this._mainAttacker = this._messaging.receiveTrainer(MessageType.mainAttacker);
 		let pos = this._messaging.receiveSingleSender(MessageType.attackPosition)[1];
 		let time = this._messaging.receiveSingleSender(MessageType.attackTime)[1];
@@ -44,9 +44,9 @@ export class StrikerSampling {
 	}
 
 
-	canReachInTime (ballPos: Position): number {
+	canReachInTime(ballPos: Position): number {
 		if (!this._mainAttacker) {
-			return 1
+			return 1;
 		}
 
 		let robotPos = ballPos + (ballPos - this._attackPosition).setLength(this._robot.shootRadius + World.Ball.radius);
@@ -64,7 +64,7 @@ export class StrikerSampling {
 		return rating;
 	}
 
-	passTooShort (ballPos: Position): number {
+	passTooShort(ballPos: Position): number {
 		let rating = Rating.valueToRating(ballPos.distanceTo(this._attackPosition), 3, 5);
 
 		if (!amun.isPerformanceMode) {
@@ -74,7 +74,7 @@ export class StrikerSampling {
 		return rating;
 	}
 
-	volleyPass (ballPos: Position): number {
+	volleyPass(ballPos: Position): number {
 		if (!this._mainAttacker || !Ball.receivesPass(this._mainAttacker)) {
 			return 1;
 		}
@@ -91,7 +91,7 @@ export class StrikerSampling {
 		return rating;
 	}
 
-	goalAngle (ballPos: Position): number {
+	goalAngle(ballPos: Position): number {
 		let minRating = 0.0;
 		let angle = (World.Geometry.OpponentGoalRight - ballPos).absoluteAngleDiff(World.Geometry.OpponentGoalLeft - ballPos);
 		let rating = Rating.valueToRating(angle, 0, 20 / 180 * Math.PI) * (1 - minRating) + minRating;
@@ -113,7 +113,7 @@ export class StrikerSampling {
 	// 	return rating
 	// end
 
-	crossPass (ballPos: Position): number {
+	crossPass(ballPos: Position): number {
 		let angleAttackGoalBall = (ballPos - World.Geometry.OpponentGoal).absoluteAngleDiff(
 			this._attackPosition - World.Geometry.OpponentGoal);
 		let rating = Rating.valueToRating(angleAttackGoalBall, 0, Math.PI * 0.5);
@@ -125,7 +125,7 @@ export class StrikerSampling {
 		return rating * 0.5 + 0.5;
 	}
 
-	distToGoal (ballPos: Position): number {
+	distToGoal(ballPos: Position): number {
 		let minRating = World.Ball.speed.length() < 1 ? 0.3 : 0.1;
 
 		let distToGoal = ballPos.distanceTo(World.Geometry.OpponentGoal);
@@ -135,10 +135,10 @@ export class StrikerSampling {
 		let rating = 0.2 * ratingBase + 0.8 * ratingBonus;
 
 		// rating demerit for steep passes, as these often miss due to volley inaccuracy
-		if (G.DefenseWidth && Math.abs(ballPos.x) > G.DefenseWidth/2
-				 &&  World.Ball.pos.y > 1.5 * G.DefenseHeight) {
+		if (G.DefenseWidth && Math.abs(ballPos.x) > G.DefenseWidth / 2
+				&&  World.Ball.pos.y > 1.5 * G.DefenseHeight) {
 			let demeritWeight = 0.3;
-			let distanceRatingDemerit = Rating.valueToRating(distToGoal, G.DefenseWidth/2, minDist * 1.2);
+			let distanceRatingDemerit = Rating.valueToRating(distToGoal, G.DefenseWidth / 2, minDist * 1.2);
 			rating = (1 - demeritWeight) * rating + demeritWeight * distanceRatingDemerit;
 		}
 
@@ -149,7 +149,7 @@ export class StrikerSampling {
 		return rating * (1 - minRating) + minRating;
 	}
 
-	volleyCircle (ballPos: Position): number {
+	volleyCircle(ballPos: Position): number {
 		// the smaller the radius is, the more positions are viable for volley
 
 		let minRating = 0.6;
@@ -160,7 +160,7 @@ export class StrikerSampling {
 	}
 
 
-	evalLocation (ballPos: Position, bestScore: number): number {
+	evalLocation(ballPos: Position, bestScore: number): number {
 		let score = 1;
 
 		score *= this.distToGoal(ballPos);

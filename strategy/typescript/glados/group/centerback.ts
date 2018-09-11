@@ -67,7 +67,7 @@ function assignRobotsToPoints(robotList: FriendlyRobot[], pointList: Point[], re
 			let way = lastWay + delta * (isLeft ? -1 : 1);
 			let point =  {
 				pos: Field.defenseIntersectionByWay(way, radius, true)!,
-				target:undefined,
+				target: undefined,
 				way: way,
 			};
 			resultAssignment[robotList[i]] = point;
@@ -81,7 +81,7 @@ function assignRobotsToPoints(robotList: FriendlyRobot[], pointList: Point[], re
 					let way = lastWay - delta;
 					let newPoint = {
 						pos: Field.defenseIntersectionByWay(way, radius, true)!,
-						target:undefined,
+						target: undefined,
 						way: way,
 					};
 					resultAssignment[robotList[i + offset]] = newPoint;
@@ -109,7 +109,7 @@ function assignRobotsToPoints(robotList: FriendlyRobot[], pointList: Point[], re
 		// check integrity
 		if (amun.isDebug) {
 			for (let point of pointList) {
-				if (Array.from(resultAssignment.values()).indexOf(point)<0 && substitutedPoints.indexOf(point) < 0) {
+				if (Array.from(resultAssignment.values()).indexOf(point) < 0 && substitutedPoints.indexOf(point) < 0) {
 					throw new Error("point that is not covered: "  +  String(point));
 				}
 			}
@@ -283,7 +283,7 @@ export class CenterBack {
 				let imax = i.waypos + i.wayrange / 2;
 				for (let jx = 0;jx < intersections.length;jx++) {
 					let j = intersections[jx];
-					if (ix != jx) {
+					if (ix !== jx) {
 						let jmin = j.waypos - j.wayrange / 2;
 						let jmax = j.waypos + j.wayrange / 2;
 						if (imax > jmin && jmax > imin) {
@@ -317,7 +317,7 @@ export class CenterBack {
 								} else if (j.targets[0] == undefined) {
 									j.targets = i.targets;
 								}
-								j.targets = i.targets.concat(j.targets)
+								j.targets = i.targets.concat(j.targets);
 								intersections.splice(ux,1);
 								merged = true;
 								break;
@@ -378,7 +378,7 @@ export class CenterBack {
 						pos: final_pos,
 						target: t.target,
 						way: way,
-						time: (i.n == 1) ? i.time : Infinity
+						time: (i.n === 1) ? i.time : Infinity
 					};
 					if (necessaryWay && Math.abs(way - necessaryWay) < EPSILON) {
 						if (necessaryDefensePoint != undefined) {
@@ -417,10 +417,10 @@ export class CenterBack {
 			// second: partition the world in pre and post idealBot / defensePoint
 			let indexRobot = sortedRobots.indexOf(idealBot);
 			let firstRobots = sortedRobots.slice(0,indexRobot);
-			let secondRobots = sortedRobots.slice(indexRobot+1);
-			let indexPoint = defensePoints.indexOf(necessaryDefensePoint!)
+			let secondRobots = sortedRobots.slice(indexRobot + 1);
+			let indexPoint = defensePoints.indexOf(necessaryDefensePoint!);
 			let firstPoints = defensePoints.slice(0, indexPoint);
-			let secondPoints = defensePoints.slice(indexPoint+1);
+			let secondPoints = defensePoints.slice(indexPoint + 1);
 			assignRobotsToPoints(firstRobots, firstPoints, centerBackPositions, necessaryDefensePoint!.way, true, delta, extraDistance);
 			assignRobotsToPoints(secondRobots, secondPoints, centerBackPositions, necessaryDefensePoint!.way, false, delta, extraDistance);
 		}
@@ -442,7 +442,7 @@ export class CenterBack {
 			}
 			for (let i of intersections) {
 				if (target_way - robot_radius < i.waypos + i.wayrange / 2
-						 && target_way + robot_radius > i.waypos - i.wayrange / 2) {
+						&& target_way + robot_radius > i.waypos - i.wayrange / 2) {
 					target_way = MathUtil.bound(i.waypos - i.wayrange / 2 - robot_radius,
 							robot_way, i.waypos + i.wayrange / 2 + robot_radius);
 				}

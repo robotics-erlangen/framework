@@ -1,10 +1,11 @@
+import { Robot } from "base/robot";
 import * as World from "base/world";
-import {Robot} from "base/robot";
-import {MessageType} from "glados/control/messaging";
+
+import { MessageType } from "glados/control/messaging";
+import { Agent, Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
-import {ToTarget} from "glados/trajectory/totarget";
+import { ToTarget } from "glados/trajectory/totarget";
 import * as UtilDefense from "glados/util/defense";
-import {Task, Agent} from "glados/task/base";
 
 export class Piggy extends Task {
 	private _targetRobot: Robot;
@@ -17,7 +18,7 @@ export class Piggy extends Task {
 		this._targetRobot = targetRobot;
 	}
 
-	run () {
+	run() {
 		let obstacleTable = { messaging: this._messaging};
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
 

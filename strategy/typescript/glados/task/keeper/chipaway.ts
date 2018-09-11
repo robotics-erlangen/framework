@@ -1,13 +1,13 @@
-import * as World from "base/world";
 import * as vis from "base/vis";
+import * as World from "base/world";
 
-import {Shoot} from "glados/task/ability/shoot";
-import {Task, Agent} from "glados/task/base";
+import { Shoot } from "glados/task/ability/shoot";
+import { Agent, Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 
 let obstacleTable: PathHelper.PathHelperParameters = {
-    ignorePass: true
-}
+	ignorePass: true
+};
 
 export class ChipAway extends Task {
 	private _shoot: Shoot;
@@ -17,8 +17,8 @@ export class ChipAway extends Task {
 		this._shoot = new Shoot(this._robot, this._messaging, this.setMainAttackerParameters);
 	}
 
-	run () {
-	    PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
+	run() {
+		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
 		// chip to opponent's defense line, so that the ball would roll into the goal's center
 		let oppGoal = World.Geometry.OpponentGoal;
 		let chipPos = oppGoal + (this._robot.pos - oppGoal).setLength(World.Geometry.DefenseRadius);

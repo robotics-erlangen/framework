@@ -1,31 +1,32 @@
 import "base/base";
+
+import { log } from "base/amun";
+import * as Cache from "base/cache";
+import * as debug from "base/debug";
 import * as Entrypoints from "base/entrypoints";
+import * as plot from "base/plot";
+import { Process } from "base/process";
+import * as Processor from "base/processor";
+import * as  Referee from "base/referee";
 import * as World from "base/world";
 
 import "glados/control/maincoordinator";
 import "glados/observer/initReplay";
+import "glados/util/lineup";
+
+import * as Ball from "glados/observer/ball";
+import * as Error from "glados/observer/error";
+import * as Goal from "glados/observer/goal";
+import * as Robot from "glados/observer/robot";
 // require "test/move/index";
 // require "test/observer/index";
 // require "test/situation/index";
 // require "test/task/index";
 // require "test/unit/index";
-import "glados/util/lineup";
-
-import { log } from "base/amun";
-import * as Cache from "base/cache";
-import * as debug from "base/debug";
-import { Process } from "base/process";
-import * as Processor from "base/processor";
-import * as plot from "base/plot";
-import * as  Referee from "base/referee";
-import * as Ball from "glados/observer/ball";
-import * as Robot from "glados/observer/robot";
-import * as Error from "glados/observer/error";
-import * as Goal from "glados/observer/goal";
 
 
 class PreProc implements Process {
-	run () {
+	run() {
 		Ball._update();
 		Robot._update();
 		Referee.check();
@@ -34,32 +35,32 @@ class PreProc implements Process {
 		Goal._update();
 	}
 
-	isFinished (): boolean {
+	isFinished(): boolean {
 		return false;
 	}
 }
-Processor.addPre(new PreProc)
+Processor.addPre(new PreProc());
 // import {BallAnalyzer} from "glados/observer/ballAnalyzer";
 // Processor.addPre(new BallAnalyzer)
 
 let frameCount = 0;
-function wrapper (func: ()=> boolean) {
+function wrapper(func: () => boolean) {
 	return function() {
-		frameCount = frameCount + 1
+		frameCount = frameCount + 1;
 		if (!World.update()) {
-			if ((frameCount % 100) == 0) {
-				log("Waiting for vision data...")
+			if ((frameCount % 100) === 0) {
+				log("Waiting for vision data...");
 			}
-			return // skip processing if no vision data is available yet
+			return; // skip processing if no vision data is available yet
 		}
-		debug.set("frame", frameCount)
+		debug.set("frame", frameCount);
 		// let time0 = amun.getCurrentTime();
-		Processor.pre()
+		Processor.pre();
 		// let time1 = amun.getCurrentTime();
 		// plot.addPlot("preproc time", (time1 - time0));
 		if (!func()) { // Entrypoint has to return true if robots shouldn't be stopped on halt
 			if (World.RefereeState === "Halt") {
-				World.haltOwnRobots()
+				World.haltOwnRobots();
 			}
 		}
 		World.setRobotCommands();
@@ -67,7 +68,7 @@ function wrapper (func: ()=> boolean) {
 		debug.resetStack();
 		Cache.resetFrame();
 		plot._plotAggregated();
-	}
+	};
 }
 
 let result = {name: "GLaDOS", entrypoints: Entrypoints.get(wrapper)};

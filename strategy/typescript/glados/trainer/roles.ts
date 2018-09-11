@@ -1,9 +1,9 @@
 import * as Referee from "base/referee";
-import {FriendlyRobot} from "base/robot";
+import { FriendlyRobot } from "base/robot";
 import * as vis from "base/vis";
 import * as World from "base/world";
 
-import {MessageBox, MessageType, ExclusiveRole} from "glados/control/messaging";
+import { ExclusiveRole, MessageBox, MessageType } from "glados/control/messaging";
 
 
 const ROLE_HYSTERESIS = 0.05;
@@ -17,7 +17,7 @@ export class Roles {
 		this._messaging = messaging;
 	}
 
-	_chooseExclusiveRoles () {
+	_chooseExclusiveRoles() {
 		let roleHysteresis = ROLE_HYSTERESIS;
 		if (Referee.isStopState()) {
 			roleHysteresis = 1;
@@ -51,7 +51,7 @@ export class Roles {
 				exclusiveRoles[role] = bestRobot;
 				this._messaging.sendBroadcast(role, bestRobot);
 
-				vis.addCircle("tr/roles: "+MessageType[role], bestRobot.pos, 0.12,
+				vis.addCircle("tr/roles: " + MessageType[role], bestRobot.pos, 0.12,
 					World.TeamIsBlue ? vis.colors.blue : vis.colors.yellow, true, true);
 			}
 		}

@@ -1,8 +1,9 @@
 import * as geom from "base/geom";
 import * as MathUtil from "base/mathutil";
-import {FriendlyRobot} from "base/robot";
+import { FriendlyRobot } from "base/robot";
 import * as World from "base/world";
-import {Direct} from "glados/trajectory/direct";
+
+import { Direct } from "glados/trajectory/direct";
 
 
 export class RotateAndShoot {
@@ -10,11 +11,11 @@ export class RotateAndShoot {
 
 	_robot: FriendlyRobot;
 
-	constructor (robot: FriendlyRobot) {
+	constructor(robot: FriendlyRobot) {
 		this._robot = robot;
 	}
 
-	_rotateAndShoot (destAngle: number) {
+	_rotateAndShoot(destAngle: number) {
 		if (this._RAS_startTime == undefined) {
 			this._RAS_startTime = World.Time;
 		}
@@ -31,13 +32,13 @@ export class RotateAndShoot {
 		let vf = MathUtil.bound(vf_min, t * vf_max / vf_t, vf_max);
 		let vs = MathUtil.bound(vs_min, (vs_t - t) * vs_max / vs_t, vs_max);
 
-		//HACK
+		// HACK
 		if (t < 0.12) {
 			vf = 0;
 		}
 
-		let rotate = 0.4 * (2*Math.PI) * invert;
-		if (Math.abs(geom.getAngleDiff(this._robot.dir, destAngle)) < 8 * Math.PI/180) {
+		let rotate = 0.4 * (2 * Math.PI) * invert;
+		if (Math.abs(geom.getAngleDiff(this._robot.dir, destAngle)) < 8 * Math.PI / 180) {
 			this._robot.shoot(Infinity);
 		}
 

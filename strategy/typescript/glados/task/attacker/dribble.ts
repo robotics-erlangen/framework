@@ -1,11 +1,12 @@
+import { Position, Vector } from "base/vector";
 import * as World from "base/world";
-import {Vector, Position} from "base/vector";
+
 import * as Physics from "glados/observer/physics";
-import {Task, Agent} from "glados/task/base";
-import {CatchBall} from "glados/task/ability/catchball";
-import {SuggestPass} from "glados/task/ability/suggestpass";
+import { CatchBall } from "glados/task/ability/catchball";
+import { SuggestPass } from "glados/task/ability/suggestpass";
+import { Agent, Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
-import {ToTarget} from "glados/trajectory/totarget";
+import { ToTarget } from "glados/trajectory/totarget";
 
 // Warning: This task has some very strict precoditions.
 // 1. It will only work if you have the ball in the dribbler at the start
@@ -14,7 +15,7 @@ import {ToTarget} from "glados/trajectory/totarget";
 let obstacleTable: PathHelper.PathHelperParameters = {
 	ignoreBall: true,
 	ignorePass: true
-}
+};
 
 export class Dribble extends Task {
 	private _pos: Position;
@@ -25,7 +26,7 @@ export class Dribble extends Task {
 	private _catchBall: CatchBall;
 	private _suggestPass: SuggestPass;
 
-	constructor (agent: Agent, pos: Position, suggestPass: boolean = false, endSpeedLength: number = 0) {
+	constructor(agent: Agent, pos: Position, suggestPass: boolean = false, endSpeedLength: number = 0) {
 		super(agent);
 		this._pos = pos;
 		this._dir = (pos - this._robot.pos).angle();
@@ -36,13 +37,13 @@ export class Dribble extends Task {
 		this._suggestPass = new SuggestPass(this._robot, this._messaging);
 	}
 
-	run () {
+	run() {
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
 		this._robot.setDribblerSpeed(0.7);
 
-		let time
+		let time;
 		if (World.Ball.pos.distanceTo(this._robot.pos) > this._robot.radius + World.Ball.radius + 0.05) {
-			let catchTime = this._catchBall._catchBall(this._pos, 0)
+			let catchTime = this._catchBall._catchBall(this._pos, 0);
 			time = catchTime + Physics.robotTimeToPos(this._robot, this._pos, new Vector(0, 0))[0];
 		} else {
 			let endSpeed = (this._pos - this._robot.pos).setLength(this._endSpeedLength);
@@ -51,7 +52,7 @@ export class Dribble extends Task {
 
 
 		if (this._suggestPassFlag) {
-			this._suggestPass._suggestPass(this._pos, undefined, time)
+			this._suggestPass._suggestPass(this._pos, undefined, time);
 		}
 	}
 }

@@ -1,5 +1,5 @@
 import * as debug from "base/debug";
-import {FriendlyRobot} from "base/robot";
+import { FriendlyRobot } from "base/robot";
 import * as World from "base/world";
 
 
@@ -14,11 +14,11 @@ export class ForceShoot {
 
 	private _robot: FriendlyRobot;
 
-	constructor (robot: FriendlyRobot) {
+	constructor(robot: FriendlyRobot) {
 		this._robot = robot;
 	}
 
-	public _doForceShoot () {
+	public _doForceShoot() {
 		if (this._robot.radioResponse) {
 			debug.set("light barrier", this._robot.radioResponse.ball_detected);
 		}

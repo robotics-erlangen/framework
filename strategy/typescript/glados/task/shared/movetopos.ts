@@ -1,10 +1,10 @@
-import {Position} from "base/vector";
+import { Position } from "base/vector";
 import * as World from "base/world";
 
-import {Task, Agent} from "glados/task/base";
-import {SuggestPass} from "glados/task/ability/suggestpass"
+import { SuggestPass } from "glados/task/ability/suggestpass";
+import { Agent, Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
-import {ToTarget} from "glados/trajectory/totarget";
+import { ToTarget } from "glados/trajectory/totarget";
 
 interface CircleObstacle {
 	type: "circle";
@@ -54,7 +54,7 @@ export class MoveToPos extends Task {
 	// customObstacles is a table of obstacle tables
 	// An obstacle table contains a string field called type and parameters relevant for Path:addX
 	// Type can be "circle", "line", "rect" and "triangle"
-	constructor (agent: Agent, pos: Position, dir: number = (World.Ball.pos - pos).angle(), suggestPass: boolean = false,
+	constructor(agent: Agent, pos: Position, dir: number = (World.Ball.pos - pos).angle(), suggestPass: boolean = false,
 			endSpeedLength: number = 0, ignoreDefaultObstacles: boolean = false, customObstacles: Obstacle[] = [],
 			ignoreBallPlacement: boolean = false, ignoreBall: boolean = false) {
 		super(agent);
@@ -69,7 +69,7 @@ export class MoveToPos extends Task {
 			ignoreOpponentDefenseArea: ignore,
 			messaging: this._messaging,
 			ignorePass: this._messaging == undefined || ignore,
-	        ignoreBallPlacementObstacle: ignoreBallPlacement
+			ignoreBallPlacementObstacle: ignoreBallPlacement
 		};
 		this._customObstacles = customObstacles;
 
@@ -78,7 +78,7 @@ export class MoveToPos extends Task {
 		}
 	}
 
-	public run () {
+	public run() {
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, this._obstacleTable);
 
 		for (let obstacle of this._customObstacles) {
@@ -93,16 +93,16 @@ export class MoveToPos extends Task {
 		}
 	}
 
-	private _addCustomObstacle (obstInfo: Obstacle) {
+	private _addCustomObstacle(obstInfo: Obstacle) {
 		let path = this._robot.path;
 		// If this gets changed, the comment before _init also needs to be updated
-		if (obstInfo.type == "circle") {
+		if (obstInfo.type === "circle") {
 			path.addCircle(obstInfo.x, obstInfo.y, obstInfo.radius, obstInfo.name);
-		} else if (obstInfo.type == "line") {
+		} else if (obstInfo.type === "line") {
 			path.addLine(obstInfo.start_x, obstInfo.start_y, obstInfo.end_x, obstInfo.end_y, obstInfo.radius, obstInfo.name);
-		} else if (obstInfo.type == "rect") {
+		} else if (obstInfo.type === "rect") {
 			path.addRect(obstInfo.start_x, obstInfo.start_y, obstInfo.end_x, obstInfo.end_y, obstInfo.name);
-		} else if (obstInfo.type == "triangle") {
+		} else if (obstInfo.type === "triangle") {
 			path.addTriangle(obstInfo.x1, obstInfo.y1, obstInfo.x2, obstInfo.y2, obstInfo.x3, obstInfo.y3, obstInfo.lineWidth, obstInfo.name);
 		}
 	}

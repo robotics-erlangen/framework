@@ -1,12 +1,13 @@
-import * as Physics from "glados/observer/physics";
-import * as Ball from "glados/observer/ball";
+import { FriendlyRobot } from "base/robot";
+import { Position } from "base/vector";
 import * as World from "base/world";
-import {Position} from "base/vector";
-import {FriendlyRobot} from "base/robot";
+
+import * as Ball from "glados/observer/ball";
+import * as Physics from "glados/observer/physics";
 import * as Rating from "glados/util/rating";
 
 let MIN_PASS_SPEED = 2.5;
-export function ballPassTime (shootPos: Position, passPos: Position, targetRobot: FriendlyRobot | undefined,
+export function ballPassTime(shootPos: Position, passPos: Position, targetRobot: FriendlyRobot | undefined,
 		destSpeedLength: number | undefined, shootRobot: FriendlyRobot): number {
 	let dist = shootPos.distanceTo(passPos);
 	if (destSpeedLength == undefined) {
@@ -22,7 +23,7 @@ export function ballPassTime (shootPos: Position, passPos: Position, targetRobot
 	return Physics.ballRollTime(shootBall, dist);
 }
 
-export function volleyPossible (passRobot: FriendlyRobot, targetPos: Position): boolean {
+export function volleyPossible(passRobot: FriendlyRobot, targetPos: Position): boolean {
 	if (Ball.receivesPass(passRobot)) {
 		let volleyAngle = (targetPos - passRobot.pos).absoluteAngleDiff(World.Ball.pos - passRobot.pos);
 		if (volleyAngle < 66 * Math.PI / 180) {
@@ -38,7 +39,7 @@ export function volleyPossible (passRobot: FriendlyRobot, targetPos: Position): 
 // @param chipDistanceFactor number - the percentage of the pass distance at which the chipkick reaches the ground
 // @param isFreekickLike bool - in a freekick like state, the beginning of the corridor is wider
 // @return string {"linear", "chip", "blocked"}
-export function evaluatePassCorridor (shootPos: Position, destPos: Position, chipDistanceFactor: number = 0.55,
+export function evaluatePassCorridor(shootPos: Position, destPos: Position, chipDistanceFactor: number = 0.55,
 		isFreekickLike: boolean): "linear" | "chip" | "blocked" {
 	let corridorFree = true;
 	let passDistSq = shootPos.distanceToSq(destPos);

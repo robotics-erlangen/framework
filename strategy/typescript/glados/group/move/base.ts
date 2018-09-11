@@ -1,8 +1,9 @@
-import {FriendlyRobot} from "base/robot";
-import {Task} from "glados/task/base";
-import {Behavior} from "glados/agent/base/behavior";
-import {MessageBox, MessageType} from "glados/control/messaging";
 import * as Referee from "base/referee";
+import { FriendlyRobot } from "base/robot";
+
+import { Behavior } from "glados/agent/base/behavior";
+import { MessageBox, MessageType } from "glados/control/messaging";
+import { Task } from "glados/task/base";
 
 export {MessageBox} from "glados/control/messaging";
 
@@ -14,7 +15,7 @@ export type Assignment = {
 	behavior: any,
 	params?: any[],
 	restart?: boolean
-}
+};
 
 export abstract class Move {
 	private _firstFrame: boolean = true;
@@ -23,22 +24,22 @@ export abstract class Move {
 
 	protected static Referee: typeof Referee = Referee;
 
-	constructor (robots: FriendlyRobot[], messaging: MessageBox) {
-		this._firstFrame = true
-		this._robots = robots
-		this._messaging = messaging
+	constructor(robots: FriendlyRobot[], messaging: MessageBox) {
+		this._firstFrame = true;
+		this._robots = robots;
+		this._messaging = messaging;
 	}
 
-	public updateTasks (): [Map<FriendlyRobot, Assignment>, FriendlyRobot | undefined] {
-		let [assignments, mainAttacker] = this._updateTasks()
+	public updateTasks(): [Map<FriendlyRobot, Assignment>, FriendlyRobot | undefined] {
+		let [assignments, mainAttacker] = this._updateTasks();
 		for (let assignment of assignments.values()) {
-			assignment.restart = assignment.restart || this._firstFrame // TODO: test
+			assignment.restart = assignment.restart || this._firstFrame; // TODO: test
 		}
-		this._firstFrame = false
-		return [assignments, mainAttacker]
+		this._firstFrame = false;
+		return [assignments, mainAttacker];
 	}
 
-	static injectReferee (pseudoRef: typeof Referee) {
+	static injectReferee(pseudoRef: typeof Referee) {
 		Move.Referee = pseudoRef;
 	}
 

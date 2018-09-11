@@ -1,16 +1,15 @@
-import {Coordinator} from "glados/control/coordinator";
-
 import * as debug from "base/debug";
-import {FriendlyRobot} from "base/robot";
 import * as Entrypoints from "base/entrypoints";
+import { FriendlyRobot } from "base/robot";
 import * as World from "base/world";
-import {Trainer} from "glados/trainer/trainer";
 
 // import {Ally} from "glados/agent/ally";
-import {Attacker} from "glados/agent/attacker";
-import {Defender} from "glados/agent/defender";
-import {Hidden} from "glados/agent/hidden";
-import {Keeper} from "glados/agent/keeper";
+import { Attacker } from "glados/agent/attacker";
+import { Defender } from "glados/agent/defender";
+import { Hidden } from "glados/agent/hidden";
+import { Keeper } from "glados/agent/keeper";
+import { Coordinator } from "glados/control/coordinator";
+import { Trainer } from "glados/trainer/trainer";
 // import {Manual} from "glados/agent/manual";
 
 let Agents = {
@@ -22,11 +21,11 @@ let Agents = {
 	// Manual: Manual
 };
 
-import {AgentPool} from "glados/control/agentpool";
-import {MainTrainer} from "glados/trainer/maintrainer";
+import { AgentPool } from "glados/control/agentpool";
+import { MainTrainer } from "glados/trainer/maintrainer";
 
 class MainCoordinator extends Coordinator {
-	constructor (trainer: MainTrainer) {
+	constructor(trainer: MainTrainer) {
 		let pools: {[name: string]: AgentPool} = {
 			// manual: new AgentPool(Agents.Manual),
 			// ally: new AgentPool(Agents.Ally),
@@ -45,7 +44,7 @@ class MainCoordinator extends Coordinator {
 		super(trainer, pools, poolGroups);
 	}
 
-	_postTrainerHook () {
+	_postTrainerHook() {
 		// the trainer inbox is empty after deliverMessages
 		let [attackers, defenders] = this._trainer._attackRatio.attackerDefenderDistribution();
 		debug.set("#attackers", attackers);
@@ -63,13 +62,13 @@ class MainCoordinator extends Coordinator {
 	}
 
 
-	_changeRobot (attackers: number, defenders: number, changingRobot: FriendlyRobot, isAttacker: boolean) {
+	_changeRobot(attackers: number, defenders: number, changingRobot: FriendlyRobot, isAttacker: boolean) {
 		let oldPool = isAttacker ? "attack" : "defense";
 		let newPool = isAttacker ? "defense" : "attack";
 		let poolLimit = isAttacker ? defenders : attackers;
 
 		// kick the least suitable robot
-		this._pools[newPool].setRobotLimit(poolLimit-1);
+		this._pools[newPool].setRobotLimit(poolLimit - 1);
 		this._pools[newPool].cleanupRobots();
 		// ensure a new robot can be added
 		this._pools[newPool].setRobotLimit(poolLimit);
@@ -83,7 +82,7 @@ class MainCoordinator extends Coordinator {
 }
 
 let coord: MainCoordinator | undefined = undefined;
-function createCoordinator (mode?: "passive" | "aggressive"): ()=> boolean {
+function createCoordinator(mode?: "passive" | "aggressive"): () => boolean {
 	return function() {
 		if (coord == undefined) {
 			let trainer = new MainTrainer(mode);
@@ -91,7 +90,7 @@ function createCoordinator (mode?: "passive" | "aggressive"): ()=> boolean {
 		}
 		coord.run();
 		return true;
-	}
+	};
 }
 
 Entrypoints.add(" main", createCoordinator());

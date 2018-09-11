@@ -1,6 +1,6 @@
-import {AttackRatio} from "glados/trainer/attackratio";
-import {Defense} from "glados/trainer/defense";
-import {Trainer} from "glados/trainer/trainer";
+import { AttackRatio } from "glados/trainer/attackratio";
+import { Defense } from "glados/trainer/defense";
+import { Trainer } from "glados/trainer/trainer";
 
 
 export class MainTrainer extends Trainer {
@@ -8,7 +8,7 @@ export class MainTrainer extends Trainer {
 	_attackRatio: AttackRatio;
 	_mode: "passive" | "aggressive" | undefined;
 
-	constructor (mode: "passive" | "aggressive" | undefined) {
+	constructor(mode: "passive" | "aggressive" | undefined) {
 		super();
 		this._mode = mode;
 
@@ -16,7 +16,7 @@ export class MainTrainer extends Trainer {
 		this._attackRatio = new AttackRatio(this._messaging);
 	}
 
-	attackRatio (): number {
+	attackRatio(): number {
 		if (this._mode === "passive") {
 			return 0;
 		} else if (this._mode === "aggressive") {
@@ -26,7 +26,7 @@ export class MainTrainer extends Trainer {
 		}
 	}
 
-	run () {
+	run() {
 		super.run();
 		this._defense._assignDefenders();
 	}

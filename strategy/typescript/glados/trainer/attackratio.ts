@@ -1,12 +1,13 @@
 import * as debug from "base/debug";
 import * as Field from "base/field";
-import {FriendlyRobot} from "base/robot";
+import { FriendlyRobot } from "base/robot";
 import * as World from "base/world";
-//import {Ally} from "glados/agent/ally";
-import {MessageBox, MessageType} from "glados/control/messaging";
+//
+// import {Ally} from "glados/agent/ally";
+import { MessageBox, MessageType } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
-import * as Robot from "glados/observer/robot";
 import * as Referee from "glados/observer/referee";
+import * as Robot from "glados/observer/robot";
 
 export class AttackRatio {
 	_friendlyFreeKickOngoing: boolean = false;
@@ -21,7 +22,7 @@ export class AttackRatio {
 		this._messaging = messaging;
 	}
 
-	attackRatio () {
+	attackRatio() {
 		let ball = World.Ball;
 		let refState = World.RefereeState;
 		if ((this._ballInOpponentFieldHalf && ball.pos.y < -1.5)  ||
@@ -43,7 +44,7 @@ export class AttackRatio {
 		}
 
 		if (refState === "DirectOffensive" || refState === "IndirectOffensive"
-			 ||  refState === "KickoffOffensive") {
+			||  refState === "KickoffOffensive") {
 			this._friendlyFreeKickOngoing = true;
 		} else if (refState !== "Game") {
 			this._friendlyFreeKickOngoing = false;
@@ -100,7 +101,7 @@ export class AttackRatio {
 			}
 		}
 
-		//increase attackRatio if we have more robots
+		// increase attackRatio if we have more robots
 		let enemies = 8 - Referee.realisticCardsOpponent();
 		if (enemies < Math.min(8, World.FriendlyRobots.length)) {
 			attackRatio = Math.max(attackRatio, Math.min(attackRatio + 1 , 6));
@@ -109,10 +110,10 @@ export class AttackRatio {
 		return attackRatio;
 	}
 
-	attackerDefenderDistribution (): [number, number] {
+	attackerDefenderDistribution(): [number, number] {
 		let attackRatio = this.attackRatio();
 
-		let attackers = attackRatio > 0 ? Math.max(1, Math.floor(attackRatio/8 * World.FriendlyRobots.length)) : 0;
+		let attackers = attackRatio > 0 ? Math.max(1, Math.floor(attackRatio / 8 * World.FriendlyRobots.length)) : 0;
 
 		let mainAttacker = this._messaging.receiveTrainer(MessageType.mainAttacker);
 
@@ -130,7 +131,7 @@ export class AttackRatio {
 		}
 
 		if (mainAttackerIsDefender && this._previousMainAttacker && !previousMainAttackerIsDefender
-				 &&  Field.distanceToFriendlyDefenseArea(this._previousMainAttacker.pos, this._previousMainAttacker.radius) < 0.5) {
+				&&  Field.distanceToFriendlyDefenseArea(this._previousMainAttacker.pos, this._previousMainAttacker.radius) < 0.5) {
 			// being either a defender or an attacker is not a completet partitioning of an agents state
 			// it could also be currently hidden
 			let isAttacker = false;
@@ -162,7 +163,7 @@ export class AttackRatio {
 		}
 		debug.set("Dangerous Duel", this._dangerousDuelSituation);
 
-		if (mainAttacker && mainAttacker != this._previousMainAttacker) {
+		if (mainAttacker && mainAttacker !== this._previousMainAttacker) {
 			this._previousMainAttacker = mainAttacker;
 		}
 
@@ -184,7 +185,7 @@ export class AttackRatio {
 		return [attackers, defenders];
 	}
 
-	changingRobots (): {robot: FriendlyRobot, isAttacker: boolean}[] {
+	changingRobots(): {robot: FriendlyRobot, isAttacker: boolean}[] {
 		let robots = [];
 		let forcePoolChangeMsg = this._messaging.receiveTrainerRepeated(MessageType.forcePoolChange);
 		if (forcePoolChangeMsg) {

@@ -1,21 +1,22 @@
 import * as debug from "base/debug";
 import * as Field from "base/field";
-import {FriendlyRobot} from "base/robot";
 import * as MathUtil from "base/mathutil";
+import { FriendlyRobot } from "base/robot";
 import * as timing from "base/timing";
-import {Vector, Position} from "base/vector";
+import { Position, Vector } from "base/vector";
 import * as World from "base/world";
-import {Behavior} from "glados/agent/base/behavior";
-import {Halt} from "glados/agent/shared/halt";
-import {Error as AgentError} from "glados/agent/shared/error";
-import {MoveCommand} from "glados/agent/shared/movecommand";
-import {Messaging, MessageBox, MessageType, MessageTypeList} from "glados/control/messaging";
+
+import { Behavior } from "glados/agent/base/behavior";
+import {Error as AgentError } from "glados/agent/shared/error";
+import { Halt } from "glados/agent/shared/halt";
+import { MoveCommand } from "glados/agent/shared/movecommand";
+import { MessageBox, MessageType, MessageTypeList, Messaging } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 import * as Robot from "glados/observer/robot";
-import * as Rating from "glados/util/rating";
+import { Task } from "glados/task/base";
 import * as UtilDefense from "glados/util/defense";
-import {Task} from "glados/task/base";
+import * as Rating from "glados/util/rating";
 
 let MEASURE_TIMING = false;
 let MAX_RATING_TIME_BOOST = 0.1;
@@ -30,33 +31,31 @@ export abstract class Agent {
 	_debugIdStr: string;
 
 	// static method for pool
-	abstract static takeRobot (_robots: FriendlyRobot[]): FriendlyRobot | undefined;
+	abstract static takeRobot(_robots: FriendlyRobot[]): FriendlyRobot | undefined;
 
-	constructor (robot: FriendlyRobot, messaging: Messaging) {
+	constructor(robot: FriendlyRobot, messaging: Messaging) {
 		this._robot = robot;
 		this._messaging = messaging.registerAgent(this);
-		let obj: any = this;
 		// behaviors are ordered by decreasing priority
 		this._behaviors = [
 			new MoveCommand(this),
 			new Halt(this),
 			new AgentError(this),
-			...(this.getBehaviors().map(function (B: any): Behavior { return new B(obj); }))
+			...this.getBehaviors().map((B: any) => new B(this)),
 		];
 		this._debugIdStr = "Agent " + this._robot.id;
 	}
 
 	abstract getBehaviors(): any[];
 
-	_run () {
-	}
+	_run() { }
 
 	// for identificatio of agent like types, to avoid cyclic imports
 	isAgent(): boolean {
 		return true;
 	}
 
-	run () {
+	run() {
 		debug.pushtop(this._debugIdStr);
 		debug.set(undefined, this.constructor.name);
 		this._dumpInbox();
@@ -66,10 +65,10 @@ export abstract class Agent {
 		this._applyForMainAttacker(task);
 		this._run();
 
-		debug.pop() // Agent
+		debug.pop(); // Agent
 	}
 
-	_runBehavior (): Task | undefined {
+	_runBehavior(): Task | undefined {
 		if (MEASURE_TIMING) {
 			timing.start("Behavior check", this._robot.id);
 		}
@@ -85,7 +84,7 @@ export abstract class Agent {
 			}
 		}
 		// check if the behavior has changed
-		if (bestBehavior != this._activeBehavior) {
+		if (bestBehavior !== this._activeBehavior) {
 			if (this._activeBehavior) {
 				this._activeBehavior.stop();
 			}
@@ -115,7 +114,7 @@ export abstract class Agent {
 		return this._activeBehavior != undefined ? this._activeBehavior.task() : undefined;
 	}
 
-	_dumpInbox () {
+	_dumpInbox() {
 		debug.push("Inbox");
 		for (let type of MessageTypeList) {
 			let messages = this._messaging.receiveGeneric(type);
@@ -125,7 +124,7 @@ export abstract class Agent {
 					if (typeof msg === "object" && msg.time != undefined) {
 						let msgTmp = {...msg};
 						let relTime = String(msg.time - World.Time);
-						msgTmp.time = relTime.substring(0, 4) +  " ("  +  msg.time  +  ")";
+						msgTmp.time = `${relTime.substring(0, 4)} (${msg.time})`;
 						debug.set(sender.id || sender, msgTmp);
 					} else {
 						debug.set(sender.id || sender, msg);
@@ -137,7 +136,7 @@ export abstract class Agent {
 		debug.pop(); // Inbox
 	}
 
-	_runTask (task: Task | undefined) {
+	_runTask(task: Task | undefined) {
 		if (MEASURE_TIMING) {
 			timing.start("Task", this._robot.id);
 		}
@@ -157,8 +156,8 @@ export abstract class Agent {
 		}
 	}
 
-	_applyForMainAttacker (task: Task | undefined) {
-		debug.push("mainAttackerRating")
+	_applyForMainAttacker(task: Task | undefined) {
+		debug.push("mainAttackerRating");
 		// the keeper just overrides this
 		let parameters = undefined;
 		for (let behavior of this._behaviors) {
@@ -167,7 +166,7 @@ export abstract class Agent {
 				break;
 			}
 		}
-		let overrideRating = parameters && parameters[2]
+		let overrideRating = parameters && parameters[2];
 		if (parameters && task != undefined && !overrideRating) {
 			// only use task parameters if behavior asked for main attacker application
 			parameters = task.mainAttackerParameters() || parameters;
@@ -179,10 +178,10 @@ export abstract class Agent {
 			return;
 		}
 
-		if (this._robot != World.FriendlyKeeper && World.RefereeState != "BallPlacementOffensive") {
+		if (this._robot !== World.FriendlyKeeper && World.RefereeState !== "BallPlacementOffensive") {
 			// only the keeper can apply for MA if it could touch the ball inside the defense area
 			if (Field.isInFriendlyDefenseArea(this._robot.pos, this._robot.radius + World.Ball.radius + 0.02)
-				 &&  World.Ball.pos.y < this._robot.pos.y + this._robot.radius * 3) {
+				&&  World.Ball.pos.y < this._robot.pos.y + this._robot.radius * 3) {
 				debug.set("return case 2", true);
 				debug.pop();
 				return;
@@ -209,7 +208,7 @@ export abstract class Agent {
 			}
 
 			// if we have the ball, the time is 0
-			if (timeToBall == Infinity) {
+			if (timeToBall === Infinity) {
 				let dribblerPos = this._robot.pos + Vector.fromAngle(this._robot.dir) * this._robot.shootRadius;
 				if (World.Ball.pos.distanceTo(dribblerPos) < 0.15) {
 					if (World.Ball.speed.dot(this._robot.pos - World.Ball.pos) > 0) {
@@ -218,7 +217,7 @@ export abstract class Agent {
 				}
 			}
 
-			if (timeToBall == Infinity) {
+			if (timeToBall === Infinity) {
 				let ballOutPos = Field.nextLineCut(World.Ball.pos, World.Ball.speed);
 				if (ballOutPos && Math.abs(ballOutPos.x) > World.Geometry.DefenseStretch / 2  + World.Geometry.DefenseRadius) {
 					timeToBall = Physics.robotTimeToPos(this._robot, ballOutPos, new Vector(0, 0))[0];
@@ -229,8 +228,8 @@ export abstract class Agent {
 			let ratingBoost;
 			if (Ball.isSlowBall()) {
 				// slow ball: being behind the ball is better
-				let relativeYPos = World.Ball.pos.y - this._robot.pos.y
-				ratingBoost = Math.min(timeToBall / 2, Math.sin(MathUtil.bound(0, relativeYPos * Math.PI, Math.PI / 2)) * MAX_RATING_TIME_BOOST)
+				let relativeYPos = World.Ball.pos.y - this._robot.pos.y;
+				ratingBoost = Math.min(timeToBall / 2, Math.sin(MathUtil.bound(0, relativeYPos * Math.PI, Math.PI / 2)) * MAX_RATING_TIME_BOOST);
 			} else {
 				// fast ball: being in the direction of the ball is better
 				let ballToRobot = this._robot.pos - World.Ball.pos;
@@ -256,13 +255,13 @@ export abstract class Agent {
 	}
 
 	// controls whether the robot may be kept in its pool
-	abstract keepRobot (): boolean;
+	abstract keepRobot(): boolean;
 
 	// rate robot for deciding which robots to keep in the pool
 	// the robots with the lowest rating are removed until the robot limit is satisfied
-	abstract rateRobot (): number;
+	abstract rateRobot(): number;
 
-	robot (): FriendlyRobot {
+	robot(): FriendlyRobot {
 		return this._robot;
 	}
 }

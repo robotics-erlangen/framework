@@ -1,10 +1,10 @@
+import { FriendlyRobot } from "base/robot";
 import * as World from "base/world";
-import {FriendlyRobot} from "base/robot";
 
+import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
+import { MessageType } from "glados/control/messaging";
+import {DuelAssistant as TaskDuelAssistant } from "glados/task/attacker/duelassistant";
 import * as Rating from "glados/util/rating";
-import {Behavior, TaskAssignment} from "glados/agent/base/behavior";
-import {MessageType} from "glados/control/messaging";
-import {DuelAssistant as TaskDuelAssistant} from "glados/task/attacker/duelassistant"
 
 
 export class DuelAssistant extends Behavior {
@@ -13,14 +13,14 @@ export class DuelAssistant extends Behavior {
 	_lastChippedHysteresis: boolean = false;
 	_lastTrue: number | undefined = undefined;
 
-	_stop () {
+	_stop() {
 		this._opponentHasBall = false;
 		this._closerThanOpp = false;
 		this._lastChippedHysteresis = false;
 		this._lastTrue = undefined;
 	}
 
-	private rateRobot (sender: FriendlyRobot): number {
+	private rateRobot(sender: FriendlyRobot): number {
 		let distanceToDuelRobot = this._robot.pos.distanceTo(sender.pos);
 		let distanceToOwnGoal = World.Geometry.FriendlyGoal.distanceTo(this._robot.pos);
 		let distanceBallToOwnGoal = World.Geometry.FriendlyGoal.distanceTo(World.Ball.pos);
@@ -36,8 +36,8 @@ export class DuelAssistant extends Behavior {
 
 	}
 
-	check (): boolean {
-		if (this._robot == this._messaging.receiveTrainer(MessageType.mainAttacker)) {
+	check(): boolean {
+		if (this._robot === this._messaging.receiveTrainer(MessageType.mainAttacker)) {
 			this._lastTrue = undefined;
 			return false;
 		}
@@ -72,7 +72,7 @@ export class DuelAssistant extends Behavior {
 	}
 
 
-	_updateTask (): TaskAssignment<typeof TaskDuelAssistant> {
+	_updateTask(): TaskAssignment<typeof TaskDuelAssistant> {
 		return [TaskDuelAssistant];
 	}
 }

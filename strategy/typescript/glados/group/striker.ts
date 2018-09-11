@@ -1,11 +1,11 @@
 import * as Field from "base/field";
 import * as MathUtil from "base/mathutil";
-import {FriendlyRobot} from "base/robot";
-import {Vector, Position} from "base/vector";
+import { FriendlyRobot } from "base/robot";
+import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
 
-import {MessageBox, MessageType} from "glados/control/messaging";
+import { MessageBox, MessageType } from "glados/control/messaging";
 import * as MovesHelper from "glados/util/moveshelper";
 
 let G = World.Geometry;
@@ -15,14 +15,14 @@ interface Boundaries {
 	left: number;
 	top: number;
 	bottom: number;
-};
+}
 
 interface Zone {
 	boundaries: Boundaries;
 	defaultPos: Position;
-};
+}
 
-function getDefaultPosition (boundaries: Boundaries): Position {
+function getDefaultPosition(boundaries: Boundaries): Position {
 	const zoneWidth = boundaries.right - boundaries.left;
 	const zoneHeight = boundaries.top - boundaries.bottom;
 	let x, y;
@@ -33,7 +33,7 @@ function getDefaultPosition (boundaries: Boundaries): Position {
 	return new Vector(x, y);
 }
 
-function visualizeZone (zone: Zone) {
+function visualizeZone(zone: Zone) {
 	let edge = 0.05;
 	let left = zone.boundaries.left + edge;
 	let right = zone.boundaries.right - edge;
@@ -43,9 +43,9 @@ function visualizeZone (zone: Zone) {
 	vis.addPolygon("g/striker: Zones", points, vis.colors.gold);
 }
 
-function assignRobotsToZones (robotPositions: Map<FriendlyRobot, Position>, zones: Zone[]): Map<Zone, FriendlyRobot> {
-	let n = zones.length
-	if (n == 0) {
+function assignRobotsToZones(robotPositions: Map<FriendlyRobot, Position>, zones: Zone[]): Map<Zone, FriendlyRobot> {
+	let n = zones.length;
+	if (n === 0) {
 		return new Map<Zone, FriendlyRobot>();
 	}
 
@@ -57,12 +57,12 @@ function assignRobotsToZones (robotPositions: Map<FriendlyRobot, Position>, zone
 	}
 	let zonePositions: Position[] = [];
 	for (let zone of zones) {
-		zonePositions.push(zone.defaultPos)
+		zonePositions.push(zone.defaultPos);
 	}
-	let assignment = MovesHelper.assignRobots(positions, zonePositions, 0)
+	let assignment = MovesHelper.assignRobots(positions, zonePositions, 0);
 
 	let zoneAssignment: Map<Zone, FriendlyRobot> = new Map<Zone, FriendlyRobot>();
-	for (let i = 0;i<zones.length;i++) {
+	for (let i = 0;i < zones.length;i++) {
 		const zone = zones[i];
 		zoneAssignment[zone] = robots[assignment[i]];
 	}
@@ -89,7 +89,7 @@ export class Striker {
 	_lastAssignments: Map<Zone, FriendlyRobot> | undefined = undefined;
 
 
-	_updateZones (robots: FriendlyRobot[]) {
+	_updateZones(robots: FriendlyRobot[]) {
 		let totalLeft = -G.FieldWidthHalf;
 		let totalRight = G.FieldWidthHalf;
 		let totalTop = G.FieldHeightHalf;
@@ -101,41 +101,41 @@ export class Striker {
 
 		// reset the zones
 		this._zones = [];
-		if (remainingZones == 0) {
+		if (remainingZones === 0) {
 			return;
 		}
 
 		// create midfield zone
 		{
-			let boundaries = { left: totalLeft, right: totalRight, top: G.FieldHeightHalf/4, bottom: totalBottom };
+			let boundaries = { left: totalLeft, right: totalRight, top: G.FieldHeightHalf / 4, bottom: totalBottom };
 			let defaultPos = getDefaultPosition(boundaries);
 			this._zones.push({boundaries: boundaries, defaultPos: defaultPos});
 			remainingZones = remainingZones - 1;
 		}
 
 		// create offensive zones
-		let zoneWidth = (totalRight - totalLeft) / remainingZones
-		for (let i = 1;i<=remainingZones;i++) {
+		let zoneWidth = (totalRight - totalLeft) / remainingZones;
+		for (let i = 1;i <= remainingZones;i++) {
 			let boundaries = { left: totalLeft + (i - 1) * zoneWidth, right: totalLeft + i * zoneWidth,
-					top: totalTop, bottom: G.FieldHeightHalf / 4 }
-			let defaultPos = getDefaultPosition(boundaries)
-			this._zones.push({boundaries: boundaries, defaultPos: defaultPos})
+					top: totalTop, bottom: G.FieldHeightHalf / 4 };
+			let defaultPos = getDefaultPosition(boundaries);
+			this._zones.push({boundaries: boundaries, defaultPos: defaultPos});
 		}
 
 		// reset empty zone hysteresis
-		this._emptyZone = undefined
+		this._emptyZone = undefined;
 	}
 
-	_chooseEmptyZone (mainAttackerPos?: Position) {
-		let emptyZoneHysteresis = this._emptyZone ? 0.2 : 0
+	_chooseEmptyZone(mainAttackerPos?: Position) {
+		let emptyZoneHysteresis = this._emptyZone ? 0.2 : 0;
 		if (mainAttackerPos != undefined) {
 			for (let zone of this._zones) {
 				if (mainAttackerPos.x >= zone.boundaries.left + emptyZoneHysteresis
-						 &&  mainAttackerPos.x <= zone.boundaries.right - emptyZoneHysteresis
-						 &&  mainAttackerPos.y >= zone.boundaries.bottom + emptyZoneHysteresis
-						 &&  mainAttackerPos.y <= zone.boundaries.top - emptyZoneHysteresis) {
-					this._emptyZone = zone
-					break
+						&&  mainAttackerPos.x <= zone.boundaries.right - emptyZoneHysteresis
+						&&  mainAttackerPos.y >= zone.boundaries.bottom + emptyZoneHysteresis
+						&&  mainAttackerPos.y <= zone.boundaries.top - emptyZoneHysteresis) {
+					this._emptyZone = zone;
+					break;
 				}
 			}
 		}
@@ -146,7 +146,7 @@ export class Striker {
 		}
 	}
 
-	run (messaging: MessageBox, messages: Map<FriendlyRobot, any>) {
+	run(messaging: MessageBox, messages: Map<FriendlyRobot, any>) {
 		let robots = Array.from(messages.keys());
 		let mainAttacker = messaging.receiveTrainer(MessageType.mainAttacker);
 		let prevEmptyZone = this._emptyZone;
@@ -154,7 +154,7 @@ export class Striker {
 		// if the mainAttacker changes, assume that the previous mainAttacker becomes a striker instead
 		let robotsTmp: FriendlyRobot[] = [];
 		for (let robot of robots) {
-			if (robot == mainAttacker && this._lastMainAttacker) {
+			if (robot === mainAttacker && this._lastMainAttacker) {
 				robotsTmp.push(this._lastMainAttacker);
 			} else {
 				robotsTmp.push(robot);
@@ -163,31 +163,31 @@ export class Striker {
 		robots = robotsTmp;
 
 		// update assignments if necessary
-		let updateAssignments = this._lastRobots == undefined || this._lastAssignments == undefined || robots.length != this._lastRobots.length;
+		let updateAssignments = this._lastRobots == undefined || this._lastAssignments == undefined || robots.length !== this._lastRobots.length;
 		if (!updateAssignments) {
-			for (let i = 0;i<robots.length;i++) {
-				if (robots[i] != (this._lastRobots as FriendlyRobot[])[i]) {
-					updateAssignments = true
-					break
+			for (let i = 0;i < robots.length;i++) {
+				if (robots[i] !== (this._lastRobots as FriendlyRobot[])[i]) {
+					updateAssignments = true;
+					break;
 				}
 			}
 		}
 
 		// update zones if necessary
-		if (robots.length != this._strikerCount) {
-			updateAssignments = true
-			this._updateZones(robots)
+		if (robots.length !== this._strikerCount) {
+			updateAssignments = true;
+			this._updateZones(robots);
 		}
 
 		// choose which zone is occupied by the mainAttacker
-		let mainAttackerPos = undefined
+		let mainAttackerPos = undefined;
 		if (mainAttacker) {
 			mainAttackerPos = messaging.receiveSingleSender(MessageType.attackPosition)[1] || mainAttacker.pos;
 		}
-		this._chooseEmptyZone(mainAttackerPos)
+		this._chooseEmptyZone(mainAttackerPos);
 
-		//update assignments if empty zone changed
-		updateAssignments = updateAssignments || this._emptyZone != prevEmptyZone
+		// update assignments if empty zone changed
+		updateAssignments = updateAssignments || this._emptyZone !== prevEmptyZone;
 
 		// assign the zones to the nearest strikers
 		let robotPositions = new Map<FriendlyRobot, Position>(); // robot -> pos
@@ -196,31 +196,31 @@ export class Striker {
 			let pos = r.pos;
 			if (passInfoTable) {
 				for (let passInfo of passInfoTable) {
-					if (passInfo.target == r) {
-						pos = passInfo.ballPos + (passInfo.ballPos - World.Ball.pos).setLength(r.shootRadius + World.Ball.radius)
+					if (passInfo.target === r) {
+						pos = passInfo.ballPos + (passInfo.ballPos - World.Ball.pos).setLength(r.shootRadius + World.Ball.radius);
 					}
 				}
 			}
 			robotPositions[r] = pos;
 		}
 
-		let zoneList: Zone[] = [] // { zone }
+		let zoneList: Zone[] = []; // { zone }
 		for (let zone of this._zones) {
-			if (zone != this._emptyZone) {
+			if (zone !== this._emptyZone) {
 				zoneList.push(zone);
 				visualizeZone(zone);
 			}
 		}
 
-		let robotZones = updateAssignments ? assignRobotsToZones(robotPositions, zoneList) : <Map<Zone, FriendlyRobot>>this._lastAssignments
+		let robotZones = updateAssignments ? assignRobotsToZones(robotPositions, zoneList) : <Map<Zone, FriendlyRobot>> this._lastAssignments;
 
 		for (let [zone, robot] of robotZones.entries()) {
 			messaging.send(MessageType.strikerZone, robot, zone);
 		}
 
 
-		this._lastMainAttacker = mainAttacker
-		this._lastRobots = robots
-		this._lastAssignments = robotZones
+		this._lastMainAttacker = mainAttacker;
+		this._lastRobots = robots;
+		this._lastAssignments = robotZones;
 	}
 }

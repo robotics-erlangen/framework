@@ -1,10 +1,10 @@
-import {FriendlyRobot} from "base/robot";
+import { FriendlyRobot } from "base/robot";
 
-import {Agent} from "glados/agent/base/agent";
-import {Messaging} from "glados/control/messaging";
+import { Agent } from "glados/agent/base/agent";
+import { Messaging } from "glados/control/messaging";
 
 // sort in descending order
-function sortByRating (a1: Agent, a2: Agent): number {
+function sortByRating(a1: Agent, a2: Agent): number {
 	return a2.rateRobot() - a1.rateRobot();
 }
 
@@ -13,23 +13,23 @@ export class AgentPool {
 	private _agentType: typeof Agent;
 	private _robotLimit: number;
 
-	constructor (agentType: typeof Agent, robotLimit: number = Infinity) {
+	constructor(agentType: typeof Agent, robotLimit: number = Infinity) {
 		// robots and agents are mapped 1:1 to each other
 		this._agentType = agentType;
 		this._robotLimit = robotLimit;
 	}
 
-	run () {
+	run() {
 		for (let agent of this._agents) {
 			agent.run();
 		}
 	}
 
 	// remove agents and associated robots we no longer want to keep
-	cleanupRobots () {
+	cleanupRobots() {
 		let agents: Agent[] = []; // agents to keep
 		for (let agent of this._agents) {
-			if(agent.keepRobot()) {
+			if (agent.keepRobot()) {
 				agents.push(agent);
 			}
 		}
@@ -43,7 +43,7 @@ export class AgentPool {
 		this._agents = agents;
 	}
 
-	takeRobot (robots: FriendlyRobot[], messaging: Messaging): FriendlyRobot | undefined {
+	takeRobot(robots: FriendlyRobot[], messaging: Messaging): FriendlyRobot | undefined {
 		if (this._agents.length >= this._robotLimit) {
 			return;
 		}
@@ -55,7 +55,7 @@ export class AgentPool {
 		return robot;
 	}
 
-	robots (): FriendlyRobot[] {
+	robots(): FriendlyRobot[] {
 		let robots: FriendlyRobot[] = [];
 		for (let agent of this._agents) {
 			robots.push(agent.robot());
@@ -63,7 +63,7 @@ export class AgentPool {
 		return robots;
 	}
 
-	removeRobot (robot: FriendlyRobot): boolean {
+	removeRobot(robot: FriendlyRobot): boolean {
 		for (let agent of this._agents) {
 			if (agent.robot() === robot) {
 				this._agents.splice(this._agents.indexOf(agent), 1);
@@ -73,7 +73,7 @@ export class AgentPool {
 		return false;
 	}
 
-	setRobotLimit (robotLimit: number) {
+	setRobotLimit(robotLimit: number) {
 		this._robotLimit = robotLimit;
 	}
 }

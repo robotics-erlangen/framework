@@ -343,7 +343,7 @@ export class MessageBox {
 					let receiverRobot = (this.origin === "trainer") ? "trainer" : this.origin;
 					for (let sender of allBox.keys()) {
 						let data = allBox.get(sender);
-						if (sender != receiverRobot || this.origin === "trainer") {
+						if (sender !== receiverRobot || this.origin === "trainer") {
 							receiveBox.set(sender, data);
 						}
 					}

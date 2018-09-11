@@ -6,6 +6,7 @@ import { Robot } from "base/robot";
 import { Position, Speed, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
+
 import * as Physics from "glados/observer/physics";
 
 export interface RobotDynamics {
@@ -206,7 +207,7 @@ function updateOwnStandardShooter() {
 	} else if (World.RefereeState === "Game" && standardShooterRobot) {
 		// reset when any other robot touches the ball
 		for (let robot of World.Robots) {
-			if (robot != standardShooterRobot && touchedBall(robot, 0)) {
+			if (robot !== standardShooterRobot && touchedBall(robot, 0)) {
 				standardShooterRobot = undefined;
 			}
 		}
@@ -267,7 +268,7 @@ export function timeAroundDefenseAreaByWay(robot: Robot, robotWay: number | unde
 	for (let i = 1;i < drivePoints.length;i++) {
 		fakeRobot.pos = drivePoints[i - 1];
 		let es = new Vector(0, 0);
-		if (i == drivePoints.length - 1 && endSpeed != undefined) {
+		if (i === drivePoints.length - 1 && endSpeed != undefined) {
 			es = new Vector(endSpeed, 0);
 		}
 		totalTime = totalTime + Physics.robotTimeToPos(fakeRobot, drivePoints[i], es)[0];

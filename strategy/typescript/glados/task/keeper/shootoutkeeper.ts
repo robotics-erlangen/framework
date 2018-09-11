@@ -1,15 +1,16 @@
 import * as Field from "base/field";
 import * as geom from "base/geom";
+import { Vector } from "base/vector";
 import * as vis from "base/vis";
-import {Vector} from "base/vector";
 import * as World from "base/world";
+
+import * as Goal from "glados/observer/goal";
 import * as Physics from "glados/observer/physics";
 import * as Robot from "glados/observer/robot";
+import { ForceShoot } from "glados/task/ability/forceshoot";
+import { Agent, Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
-import {ToTarget} from "glados/trajectory/totarget";
-import {Task, Agent} from "glados/task/base";
-import {ForceShoot} from "glados/task/ability/forceshoot";
-import * as Goal from "glados/observer/goal";
+import { ToTarget } from "glados/trajectory/totarget";
 
 const G = World.Geometry;
 
@@ -29,9 +30,9 @@ const leftFriendlyCorner = new Vector(-G.FieldWidthHalf, -G.FieldHeightHalf);
 const rightFriendlyCorner = new Vector(G.FieldWidthHalf, -G.FieldHeightHalf);
 
 // assume chips crossing this line might cross the goal line
-const leftNearBasePoint = new Vector(-G.FieldWidthHalf, G.FieldHeightHalf-CHIP_GOAL_LINE_DIST);
-const rightNearBasePoint = new Vector(G.FieldWidthHalf, G.FieldHeightHalf-CHIP_GOAL_LINE_DIST);
-const nearBaseLineDir = rightNearBasePoint-leftNearBasePoint;
+const leftNearBasePoint = new Vector(-G.FieldWidthHalf, G.FieldHeightHalf - CHIP_GOAL_LINE_DIST);
+const rightNearBasePoint = new Vector(G.FieldWidthHalf, G.FieldHeightHalf - CHIP_GOAL_LINE_DIST);
+const nearBaseLineDir = rightNearBasePoint - leftNearBasePoint;
 
 export class ShootoutKeeper extends Task {
 	private _forceShoot: ForceShoot;
@@ -41,10 +42,10 @@ export class ShootoutKeeper extends Task {
 		this._forceShoot = new ForceShoot(this._robot);
 	}
 
-	public run () {
+	public run() {
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, OBSTACLE_TABLE);
 
-		let moveDest
+		let moveDest;
 		let endspeed = new Vector(0,0);
 		let ballSpeed = World.Ball.speed;
 		let viewDir = World.Ball.pos - SAFE_GOAL_MID;
@@ -71,17 +72,17 @@ export class ShootoutKeeper extends Task {
 			let centerDistancePerc = Math.max(2 * Math.abs(predictedGoallinePoint) / G.GoalWidth, 1);
 
 			// Used to determine a spot between predicted shot position and the catch position near the ball
-			let alpha = ( 1 - Math.exp(-ballSpeed.length() / 2) ) / ( 1 + this._robot.pos.distanceTo(pos) / 2 );
+			let alpha = (1 - Math.exp(-ballSpeed.length() / 2)) / (1 + this._robot.pos.distanceTo(pos) / 2);
 			// It is unlikely that the opponent doesn't want to shoot the ball at our goal
 			alpha = alpha / centerDistancePerc;
 
-			let interceptPos = this._robot.pos.orthogonalProjection(pos, pos+dir)[0];
+			let interceptPos = this._robot.pos.orthogonalProjection(pos, pos + dir)[0];
 
 			vis.addCircle("t/k/shootoutkeeper: intercept", interceptPos, World.Ball.radius, vis.colors.gold, true);
 			vis.addCircle("t/k/shootoutkeeper: intercept", moveDest, World.Ball.radius, vis.colors.gold, true);
 
 			// If the ball was shot and we probably wont reach it in time, we go rambo
-			if (ballSpeed.y < -2 && ballTime == 1) {
+			if (ballSpeed.y < -2 && ballTime === 1) {
 				endspeed = (interceptPos - this._robot.pos).setLength(2) + this._robot.speed;
 				moveDest = this._robot.pos + (this._robot.speed + endspeed) * ballTime / 2;
 			} else {
@@ -96,7 +97,7 @@ export class ShootoutKeeper extends Task {
 		this._robot.trajectory.update(ToTarget, moveDest, viewDir.angle(), undefined, endspeed);
 	}
 
-	_chipToBorderIfSafe () {
+	_chipToBorderIfSafe() {
 		let robotPos = this._robot.pos;
 		let ballPos = World.Ball.pos;
 		let robotDir = ballPos - robotPos;
@@ -117,8 +118,8 @@ export class ShootoutKeeper extends Task {
 				chipPos = G.OpponentGoal;
 			}
 			let chipDist = World.Ball.pos.distanceTo(chipPos) - CHIP_IMPACT_DIST_FROM_BORDER;
-			if (chipPos != touchLineIntersection) { // try to avoid icing if chipping towards the opponent goal line
-				chipDist = chipDist*CHIP_DIST_FACTOR;
+			if (chipPos !== touchLineIntersection) { // try to avoid icing if chipping towards the opponent goal line
+				chipDist = chipDist * CHIP_DIST_FACTOR;
 			}
 
 			vis.addCircle("t/a/chipToBorder", ballPos + robotDir.copy().setLength(chipDist), 0.1, vis.colors.blue, true);

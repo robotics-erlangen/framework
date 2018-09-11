@@ -19,7 +19,7 @@ rules:
   no-duplicate-super: true
   no-duplicate-switch-case:  true
   no-duplicate-variable: true
-  no-empty: [ true, "allow-empty-catch", "allow-empty-function" ]
+  no-empty: [ true, "allow-empty-catch", "allow-empty-functions" ]
   no-eval: true
   no-invalid-template-strings: true
   no-invalid-this: true

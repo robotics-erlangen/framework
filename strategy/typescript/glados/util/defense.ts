@@ -8,6 +8,7 @@ import * as Referee from "base/referee";
 import { FriendlyRobot, Robot } from "base/robot";
 import { Position, RelativePosition, Speed, Vector } from "base/vector";
 import * as World from "base/world";
+
 import * as Ball from "glados/observer/ball";
 import * as Goal from "glados/observer/goal";
 import * as Physics from "glados/observer/physics";
@@ -77,7 +78,7 @@ function _manMarkPos(opponent: { pos: Position, radius: number, speed: Speed }):
 		targetPos = intersectionDefenseArea || targetPos;
 	}
 
-	if (World.RefereeState == "PenaltyOffensivePrepare" || World.RefereeState == "PenaltyOffensive") {
+	if (World.RefereeState === "PenaltyOffensivePrepare" || World.RefereeState === "PenaltyOffensive") {
 		targetPos.y = Math.min(targetPos.y, G.PenaltyLine - PENALTY_LINE_DISTANCE);
 	}
 

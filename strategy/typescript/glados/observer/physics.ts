@@ -557,7 +557,7 @@ export function robotTimeToPos(robot: RobotLike, endPos: Position, endSpeedVecto
 	let currentSpeed = startSpeed.length();
 	let currentPos = startPos;
 
-	if (startPos == endPos && currentSpeed <= endSpeed) {
+	if (startPos === endPos && currentSpeed <= endSpeed) {
 		return [0, 0];
 	}
 

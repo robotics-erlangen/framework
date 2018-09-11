@@ -1,14 +1,15 @@
 import * as debug from "base/debug";
 import * as Field from "base/field";
-import {Vector} from "base/vector";
 import * as geom from "base/geom";
+import { Vector } from "base/vector";
 import * as World from "base/world";
-import {Behavior, TaskAssignment} from "glados/agent/base/behavior";
-import {MessageType} from "glados/control/messaging";
+
+import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
+import { MessageType } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 import * as Robot from "glados/observer/robot";
-import {Duel as TaskDuel} from "glados/task/shared/duel"
+import {Duel as TaskDuel } from "glados/task/shared/duel";
 
 
 const SAFTY_SPACE = 0.05;
@@ -19,14 +20,14 @@ export class Duel extends Behavior {
 	private _closerThanOpp: boolean = false;
 	private _lastChippedHysteresis: boolean = false;
 
-	_stop () {
+	_stop() {
 		this._opponentHasBall = false;
 		this._closerThanOpp = false;
 		this._lastChippedHysteresis = false;
 		this._active = false;
 	}
 
-	private genericCheck (): boolean {
+	private genericCheck(): boolean {
 		// if we receive the ball first, try shootgoal or something
 		let receivesPass = Ball.receivesPass(this._robot);
 		if (receivesPass) {
@@ -76,13 +77,13 @@ export class Duel extends Behavior {
 		}
 
 		// if the ball is shot fast at the opponent goal, dont duel it since it might be chipped by us
-		let ballSpeed = World.Ball.speed.length()
+		let ballSpeed = World.Ball.speed.length();
 		if (ballSpeed > MAX_BALL_SPEED + (this._lastChippedHysteresis ? 0 : 0.5)) {
 			let intersection = geom.intersectLineLine(World.Ball.pos, World.Ball.speed, World.Geometry.OpponentGoal, new Vector(1, 0))[0];
 			if (intersection && Math.abs(intersection.x) < World.Geometry.GoalWidth / 2 + (this._lastChippedHysteresis ? 1 : 0)) {
 				this._lastChippedHysteresis = true;
 				debug.set("duel check", "ball speed");
-				return false
+				return false;
 			} else {
 				this._lastChippedHysteresis = false;
 			}
@@ -127,7 +128,7 @@ export class Duel extends Behavior {
 			}
 		}
 
-		let timeToBallHysteresis = this._active ? 0 : 0.3
+		let timeToBallHysteresis = this._active ? 0 : 0.3;
 		if (!Ball.receivesPass(this._robot)) {
 			let oppTime = Ball.firstRobotAtBall(World.OpponentRobots)[1];
 			if (oppTime + timeToBallHysteresis < Robot.minTimeToBall(this._robot)) {
@@ -141,7 +142,7 @@ export class Duel extends Behavior {
 	}
 
 
-	check () {
+	check() {
 		let isMainAttacker = (this._messaging.receiveTrainer(MessageType.mainAttacker) === this._robot);
 		this._forceKeepingInPool = isMainAttacker;
 
@@ -155,7 +156,7 @@ export class Duel extends Behavior {
 	}
 
 
-	_updateTask (): TaskAssignment<typeof TaskDuel> {
+	_updateTask(): TaskAssignment<typeof TaskDuel> {
 		return [TaskDuel];
 	}
 }

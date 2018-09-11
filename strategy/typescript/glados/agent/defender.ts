@@ -1,17 +1,17 @@
-import {FriendlyRobot} from "base/robot";
+import { FriendlyRobot } from "base/robot";
 import * as World from "base/world";
 
-import {Agent} from "glados/agent/base/agent";
-import {Behavior} from "glados/agent/base/behavior";
-import {Default} from "glados/agent/defender/default";
-import {HandleBall} from "glados/agent/defender/handleball";
-import {ManMark} from "glados/agent/defender/manmark";
-import {ZoneDefense} from "glados/agent/defender/zonedefense";
-import {Penalty} from "glados/agent/defender/penalty";
-import {Piggy} from "glados/agent/defender/piggy";
-import {BallEscort} from "glados/agent/shared/ballescort";
-import {RescueFromDefenseArea} from "glados/agent/shared/rescuefromdefensearea";
-import {MessageType} from "glados/control/messaging";
+import { Agent } from "glados/agent/base/agent";
+import { Behavior } from "glados/agent/base/behavior";
+import { Default } from "glados/agent/defender/default";
+import { HandleBall } from "glados/agent/defender/handleball";
+import { ManMark } from "glados/agent/defender/manmark";
+import { Penalty } from "glados/agent/defender/penalty";
+import { Piggy } from "glados/agent/defender/piggy";
+import { ZoneDefense } from "glados/agent/defender/zonedefense";
+import { BallEscort } from "glados/agent/shared/ballescort";
+import { RescueFromDefenseArea } from "glados/agent/shared/rescuefromdefensearea";
+import { MessageType } from "glados/control/messaging";
 
 export class Defender extends Agent {
 
@@ -28,11 +28,11 @@ export class Defender extends Agent {
 		];
 	}
 
-	public _run () {
+	public _run() {
 		(this._activeBehavior as Behavior)._messaging.sendBroadcast(MessageType.defenderFlag);
 	}
 
-	public static takeRobot (robots: FriendlyRobot[]): FriendlyRobot | undefined {
+	public static takeRobot(robots: FriendlyRobot[]): FriendlyRobot | undefined {
 		for (let robot of robots) {
 			if (robot.isVisible) {
 				return robot;
@@ -41,12 +41,12 @@ export class Defender extends Agent {
 		return undefined;
 	}
 
-	public keepRobot (): boolean {
-		return this._robot.isVisible && this._robot != World.FriendlyKeeper && this._robot.userControl == undefined;
+	public keepRobot(): boolean {
+		return this._robot.isVisible && this._robot !== World.FriendlyKeeper && this._robot.userControl == undefined;
 	}
 
 	// worse rating if robot if farther away from own goal
-	public rateRobot (): number {
+	public rateRobot(): number {
 		if (this._activeBehavior != undefined && this._activeBehavior.forceKeepingInPool()) {
 			return Infinity;
 		}

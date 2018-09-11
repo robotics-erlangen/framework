@@ -1,8 +1,8 @@
 import * as World from "base/world";
 
-import {AgentPool} from "glados/control/agentpool";
-import {Messaging} from "glados/control/messaging";
-import {MainTrainer} from "glados/trainer/maintrainer";
+import { AgentPool } from "glados/control/agentpool";
+import { Messaging } from "glados/control/messaging";
+import { MainTrainer } from "glados/trainer/maintrainer";
 
 export class Coordinator {
 	_trainer: MainTrainer;
@@ -11,7 +11,7 @@ export class Coordinator {
 	_poolsList: AgentPool[] = [];
 	_messaging: Messaging;
 
-	constructor (trainer: MainTrainer, pools: {[name: string]: AgentPool}, poolGroups: AgentPool[][]) {
+	constructor(trainer: MainTrainer, pools: {[name: string]: AgentPool}, poolGroups: AgentPool[][]) {
 		this._trainer = trainer;
 		// list of agentPools
 		this._pools = pools;
@@ -26,7 +26,7 @@ export class Coordinator {
 		this._messaging = trainer._allMessaging;
 	}
 
-	run () {
+	run() {
 		this._trainer.run();
 		this._postTrainerHook();
 
@@ -38,11 +38,11 @@ export class Coordinator {
 		}
 	}
 
-	_postTrainerHook () {
+	_postTrainerHook() {
 		// overwrite in subclasses
 	}
 
-	_updatePoolRobots () {
+	_updatePoolRobots() {
 		// remove no longer needed / surplus robots from pools
 		for (let pool of this._poolsList) {
 			pool.cleanupRobots();
@@ -71,7 +71,7 @@ export class Coordinator {
 			do {
 				groupFinished = true;
 				for (let pool of group) {
-					if (unassignedRobots.length == 0) {
+					if (unassignedRobots.length === 0) {
 						break;
 					}
 					let robot = pool.takeRobot(unassignedRobots, this._messaging);

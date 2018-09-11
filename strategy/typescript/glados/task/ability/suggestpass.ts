@@ -1,20 +1,21 @@
+import { FriendlyRobot } from "base/robot";
+import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
-import {FriendlyRobot} from "base/robot";
-import {Vector, Position} from "base/vector";
 import * as World from "base/world";
+
+import { MessageBox, MessageType } from "glados/control/messaging";
 import * as Physics from "glados/observer/physics";
-import {MessageBox, MessageType} from "glados/control/messaging";
 
 export class SuggestPass {
 	_robot: FriendlyRobot;
 	_messaging: MessageBox;
 
-	constructor (robot: FriendlyRobot, messaging: MessageBox) {
+	constructor(robot: FriendlyRobot, messaging: MessageBox) {
 		this._robot = robot;
 		this._messaging = messaging;
 	}
 
-	_suggestPass (destBallPos: Position, attackPos: Position = World.Ball.pos,
+	_suggestPass(destBallPos: Position, attackPos: Position = World.Ball.pos,
 			relativeTime?: number, anonymous: boolean = false, chip: boolean = false) {
 		// check for mainAttacker
 		let mainAttacker = this._messaging.receiveTrainer(MessageType.mainAttacker);
@@ -38,7 +39,7 @@ export class SuggestPass {
 			{ ballPos: destBallPos, time: receiveTime , anonymous: anonymous, chip: chip, manual: false});
 	}
 
-	_suggestPassRobotPosition (destRobotPos: Position, attackPos: Position = World.Ball.pos, relativeTime?: number,
+	_suggestPassRobotPosition(destRobotPos: Position, attackPos: Position = World.Ball.pos, relativeTime?: number,
 			anonymous?: boolean) {
 		let destBallPos = destRobotPos + (attackPos - destRobotPos).setLength(this._robot.shootRadius + World.Ball.radius);
 		this._suggestPass(destBallPos, attackPos, relativeTime, anonymous);

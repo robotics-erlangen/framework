@@ -1,21 +1,19 @@
 import * as debug from "base/debug";
 import * as Field from "base/field";
+import { FriendlyRobot } from "base/robot";
+import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
-import {FriendlyRobot} from "base/robot";
-import {Vector, Position} from "base/vector";
 import * as World from "base/world";
 
-import {Behavior, TaskAssignment} from "glados/agent/base/behavior";
-import {MessageType} from "glados/control/messaging";
+import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
+import { MessageType } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 import * as Robot from "glados/observer/robot";
 import * as ObserverShoot from "glados/observer/shoot";
-
-import {ChipToPos} from "glados/task/shared/chiptopos"
-import {Pass} from "glados/task/shared/pass";
-import {ShootGoal} from "glados/task/attacker/shootgoal";
-
+import { ShootGoal } from "glados/task/attacker/shootgoal";
+import { ChipToPos } from "glados/task/shared/chiptopos";
+import { Pass } from "glados/task/shared/pass";
 import * as Attack from "glados/util/attack";
 import * as ShootGoalUtil from "glados/util/shootgoal";
 
@@ -41,7 +39,7 @@ type Decision = {
 	pos: Position;
 	time: number;
 	quality: "clean" | "fallback";
-}
+};
 
 export class Shoot extends Behavior {
 	private _nextDecisionTime: number = World.Time;
@@ -56,32 +54,32 @@ export class Shoot extends Behavior {
 	private _wasPressed: boolean = false;
 	private _manualFlag: boolean = false;
 
-	_stop () {
-		this._nextDecisionTime = World.Time
-		this._decision = { task: "none" }
+	_stop() {
+		this._nextDecisionTime = World.Time;
+		this._decision = { task: "none" };
 
 		this._prevPassPos = undefined;
 
 		this._attackPosition = undefined;
 		this._prevAttackPosition = undefined;
 
-		this._activeFrames = 0
+		this._activeFrames = 0;
 
 		this._lastIncomingPassInfoPos = undefined;
 
-		this._hadBallCounter = 0
-		this._touchedBall = false
+		this._hadBallCounter = 0;
+		this._touchedBall = false;
 
-		this._wasPressed = false
+		this._wasPressed = false;
 
-		this._manualFlag = false
+		this._manualFlag = false;
 	}
 
-	public check (): boolean {
+	public check(): boolean {
 		return this._messaging.receiveTrainer(MessageType.mainAttacker) === this._robot;
 	}
 
-	private static _shootGoalPossible (robot: FriendlyRobot, attackPosition: Position | undefined): [boolean, number | undefined] {
+	private static _shootGoalPossible(robot: FriendlyRobot, attackPosition: Position | undefined): [boolean, number | undefined] {
 		let [sg_target, angle, sg_dirty] = ShootGoalUtil.updateTarget(robot, undefined, false, attackPosition);
 
 		if (sg_dirty) {
@@ -100,7 +98,7 @@ export class Shoot extends Behavior {
 		return [true, angle];
 	}
 
-	private _checkForManualAlly () {
+	private _checkForManualAlly() {
 		this._manualFlag = false;
 		for (let [sender, passSuggestion] of this._messaging.receive(MessageType.passSuggestion).entries()) {
 			if (passSuggestion.manual) {
@@ -116,7 +114,7 @@ export class Shoot extends Behavior {
 		}
 	}
 
-	private _decide (): Decision {
+	private _decide(): Decision {
 		this._wasPressed = Robot.isPressed(this._robot);
 
 		// perform clean goal shots if possible
@@ -132,11 +130,11 @@ export class Shoot extends Behavior {
 			this._messaging.receive(MessageType.passSuggestion), this._prevPassPos, true)[0];
 
 		// consider chipping forward
-		let passRating = pass ? Attack.ratePass(this._robot, pass, true) : 0
+		let passRating = pass ? Attack.ratePass(this._robot, pass, true) : 0;
 		if (ENABLE_PSEUDO_PASS && this._attackPosition && passRating < MIN_PASS_RATING
-				 &&  Field.distanceToDefenseAreaSq(this._attackPosition, false) > 2
-				 &&  World.Ball.speed.length() < 1
-				 &&  Math.abs(this._attackPosition.y) < 5/6 * G.FieldWidthHalf) {
+				&&  Field.distanceToDefenseAreaSq(this._attackPosition, false) > 2
+				&&  World.Ball.speed.length() < 1
+				&&  Math.abs(this._attackPosition.y) < 5 / 6 * G.FieldWidthHalf) {
 
 			let MIN_DISTANCE = 0.1;
 			let MAX_DISTANCE = 0.5;
@@ -150,7 +148,7 @@ export class Shoot extends Behavior {
 			// look for close opponents
 			let closestOppDist = Infinity;
 			for (let opp of World.OpponentRobots) {
-				let toGoal = (G.OpponentGoal - this._attackPosition).setLength((MAX_DISTANCE-MIN_DISTANCE)/2 + MIN_DISTANCE);
+				let toGoal = (G.OpponentGoal - this._attackPosition).setLength((MAX_DISTANCE - MIN_DISTANCE) / 2 + MIN_DISTANCE);
 				let newAttackPosition = this._attackPosition + toGoal;
 				let oppDist = opp.pos.distanceToSq(newAttackPosition);
 				if (oppDist < closestOppDist) {
@@ -164,8 +162,8 @@ export class Shoot extends Behavior {
 
 				let bestFreeAngle = 0;
 				let bestAttackPosition = undefined;
-				for (let dist = MIN_DISTANCE;dist<=MAX_DISTANCE;dist += DISTANCE_STEP) {
-					for (let angle = -CONE_WIDTH/2;angle<=CONE_WIDTH/2;angle += ANGLE_STEP) {
+				for (let dist = MIN_DISTANCE;dist <= MAX_DISTANCE;dist += DISTANCE_STEP) {
+					for (let angle = -CONE_WIDTH / 2;angle <= CONE_WIDTH / 2;angle += ANGLE_STEP) {
 						// check for possible goalshot opportunity
 						let newAttackPosition = this._attackPosition + Vector.fromAngle(attackAngle + angle).setLength(dist);
 						let [possible, freeAngle] = Shoot._shootGoalPossible(this._robot, newAttackPosition);
@@ -188,7 +186,7 @@ export class Shoot extends Behavior {
 
 				// goalshot opportunity
 				if (bestAttackPosition != undefined) {
-					let passVector = bestAttackPosition - this._attackPosition
+					let passVector = bestAttackPosition - this._attackPosition;
 					if (Attack.isPassAllowed(this._attackPosition, this._attackPosition + passVector.setLength(0.5))) {
 						return {
 							task: "pass",
@@ -196,14 +194,14 @@ export class Shoot extends Behavior {
 							pos: this._attackPosition + passVector.setLength(0.5),
 							time: World.Time,
 							quality: "clean"
-						}
+						};
 					}
 				}
 
 				// short chip forward
 				if (pass == undefined || Attack.ratePass(this._robot, pass, true) < MIN_PASS_RATING) {
-					let newAttackPosition = this._attackPosition + Vector.fromAngle(attackAngle).setLength((MAX_DISTANCE-MIN_DISTANCE)/2 + MIN_DISTANCE)
-					let passVector = newAttackPosition - this._attackPosition
+					let newAttackPosition = this._attackPosition + Vector.fromAngle(attackAngle).setLength((MAX_DISTANCE - MIN_DISTANCE) / 2 + MIN_DISTANCE);
+					let passVector = newAttackPosition - this._attackPosition;
 					if (Attack.isPassAllowed(this._attackPosition, this._attackPosition + passVector.setLength(0.5))) {
 						return {
 							task: "pass",
@@ -211,7 +209,7 @@ export class Shoot extends Behavior {
 							pos: this._attackPosition + passVector.setLength(0.5),
 							time: World.Time,
 							quality: "clean"
-						}
+						};
 					}
 				}
 			}
@@ -224,18 +222,18 @@ export class Shoot extends Behavior {
 				pos: pass.ballPos,
 				time: pass.time,
 				quality: "clean"
-			}
+			};
 		}
 
 		// try to chip through opponent defense area
-		let attackPosition = this._attackPosition || World.Ball.pos
+		let attackPosition = this._attackPosition || World.Ball.pos;
 		if (attackPosition && attackPosition.y > G.FieldHeightHalf - G.DefenseHeight) {
 			return {
 				task: "chipToPos",
 				pos: new Vector(0, G.FieldHeightHalf - 0.5 * G.DefenseHeight),
 				time: World.Time,
 				quality: "clean"
-			}
+			};
 		}
 
 		// fallback to shoot goal
@@ -243,10 +241,10 @@ export class Shoot extends Behavior {
 			task: "shootgoal",
 			pos: World.Geometry.OpponentGoal,
 			quality: "fallback"
-		}
+		};
 	}
 
-	private _redeciding (): boolean {
+	private _redeciding(): boolean {
 
 		if (Ball.wasShot(0.25)) {
 			this._hadBallCounter = 0;
@@ -269,7 +267,7 @@ export class Shoot extends Behavior {
 
 		// redecide if during a pseudo pass, the ball overtakes the pass pos
 		// this is moderately likely to happen during chaseBall
-		if (ENABLE_PSEUDO_PASS && this._decision.task == "pass" && this._decision.target == this._robot) {
+		if (ENABLE_PSEUDO_PASS && this._decision.task === "pass" && this._decision.target === this._robot) {
 			let attackPosition = this._attackPosition || World.Ball.pos;
 			let passVector = (this._decision.pos - attackPosition).setLength(0.4);
 
@@ -277,7 +275,7 @@ export class Shoot extends Behavior {
 			let lowerAngle = (new Vector(G.FieldWidthHalf, G.FieldHeightHalf) - attackPosition).angle();
 			let passAngle = passVector.angle();
 
-			if (World.Ball.pos.distanceToSq(this._decision.pos) < 0.2*0.2 || (passAngle < upperAngle && passAngle > lowerAngle)) {
+			if (World.Ball.pos.distanceToSq(this._decision.pos) < 0.2 * 0.2 || (passAngle < upperAngle && passAngle > lowerAngle)) {
 				debug.set("redeciding", "TRUE (passPos overtaken)");
 				return true;
 			}
@@ -300,7 +298,7 @@ export class Shoot extends Behavior {
 
 		// never redecide if the ball is being shot (but isShot did not trigger yet)
 		if (Robot.hadBall(this._robot, 0.25)) {
-			this._hadBallCounter = this._hadBallCounter + 1
+			this._hadBallCounter = this._hadBallCounter + 1;
 			debug.set("redeciding", "FALSE (hadBall)");
 			return false;
 		}
@@ -324,15 +322,15 @@ export class Shoot extends Behavior {
 
 		// redecide if the attackPosition changed a lot
 		if (this._attackPosition && this._prevAttackPosition
-				 &&  this._attackPosition.distanceTo(this._prevAttackPosition) > 0.3) {
+				&&  this._attackPosition.distanceTo(this._prevAttackPosition) > 0.3) {
 			debug.set("redeciding", "TRUE (attackPosition)");
 			return true;
 		}
 
 		// redecide if the last decision was the fallback one
-		if (this._decision.quality == "fallback") {
-			debug.set("redeciding", "TRUE (fallback)")
-			return true
+		if (this._decision.quality === "fallback") {
+			debug.set("redeciding", "TRUE (fallback)");
+			return true;
 		}
 
 		if (!this._wasPressed && Robot.isPressed(this._robot)) {
@@ -341,7 +339,7 @@ export class Shoot extends Behavior {
 		}
 
 		// don't redecide if we are close to shoot a stationary ball
-		if (World.Ball.speed.lengthSq() < 0.5 * 0.5 && World.Ball.pos.distanceToSq(this._robot.pos) < (0.2+this._robot.radius) * (0.2 + this._robot.radius)) {
+		if (World.Ball.speed.lengthSq() < 0.5 * 0.5 && World.Ball.pos.distanceToSq(this._robot.pos) < (0.2 + this._robot.radius) * (0.2 + this._robot.radius)) {
 			debug.set("redeciding", "FALSE (stationary)");
 			return false;
 		}
@@ -365,7 +363,7 @@ export class Shoot extends Behavior {
 		return false;
 	}
 
-	_updateTask (): TaskAssignment<typeof Pass> | TaskAssignment<typeof ShootGoal> | TaskAssignment<typeof ChipToPos> {
+	_updateTask(): TaskAssignment<typeof Pass> | TaskAssignment<typeof ShootGoal> | TaskAssignment<typeof ChipToPos> {
 		let pressed = Robot.isPressed(this._robot);
 		let color = pressed ? vis.colors.redHalf : vis.colors.greenHalf;
 		vis.addCircle("a/a/shoot: pressed", this._robot.pos, 0.3, color, true);
@@ -405,7 +403,7 @@ export class Shoot extends Behavior {
 			if (k !== "task") {
 				let value = String(v);
 				if (k === "time") {
-					value = String(v - World.Time) + " (" + value + ")";
+					value = `${v - World.Time} (${value})`;
 				}
 				debug.set("decision/" + String(k), value);
 			}
@@ -424,7 +422,7 @@ export class Shoot extends Behavior {
 
 			let chipOverride = undefined;
 			let targetSpeed = undefined;
-			if (target == this._robot) {
+			if (target === this._robot) {
 				chipOverride = true;
 				targetSpeed = 0.1;
 			}
@@ -432,8 +430,8 @@ export class Shoot extends Behavior {
 			// update target if the decision changed
 			// creating a new task instance would mess up catchBall
 			if (this._task != undefined && this._task instanceof Pass
-					 &&  this._decision.pos != this._prevPassPos) {
-				this._task.updateTarget(this._decision.target, this._decision.pos, chipOverride, this._decision.time, targetSpeed)
+					&&  this._decision.pos !== this._prevPassPos) {
+				this._task.updateTarget(this._decision.target, this._decision.pos, chipOverride, this._decision.time, targetSpeed);
 			}
 			this._prevPassPos = this._decision.pos;
 
@@ -443,7 +441,7 @@ export class Shoot extends Behavior {
 			let ballTravelTime = ObserverShoot.ballPassTime(shootPos, ballPos, target, undefined, this._robot);
 			let passReceiveTime = Math.max(suggestedTime, shootTime + ballTravelTime + World.Time);
 
-			//save time for future use:
+			// save time for future use:
 			this._decision.time = passReceiveTime;
 
 			this._messaging.sendBroadcast(MessageType.passInfo, [{ target: target,

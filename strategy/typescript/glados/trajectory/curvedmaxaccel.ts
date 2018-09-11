@@ -1,21 +1,22 @@
-import {Coordinates} from "base/coordinates";
+import { log } from "base/amun";
 import * as Constants from "base/constants";
+import { Coordinates } from "base/coordinates";
+import * as debug from "base/debug";
 import * as geom from "base/geom";
+import * as MathUtil from "base/mathutil";
 import * as plot from "base/plot";
 import * as Referee from "base/referee";
+import { FriendlyRobot } from "base/robot";
+import { TrajectoryHandler } from "base/trajectory";
+import { Position, Speed, Vector } from "base/vector";
 import * as vis from "base/vis";
-import {FriendlyRobot} from "base/robot";
 import * as World from "base/world";
-import {TrajectoryHandler} from "base/trajectory";
-import {Vector, Position, Speed} from "base/vector";
-import * as MathUtil from "base/mathutil";
-import * as debug from "base/debug";
-import { log } from "base/amun";
+
 import * as PathHelper from "glados/trajectory/pathhelper";
 
 // preprocess the waypoints to ensure that the first corner is more or less
 // in the direction the robot is currently moving into
-function _preprocessPath (waypoints: Position[], maxError: number, robotPos: Position, robotSpeed: Speed) {
+function _preprocessPath(waypoints: Position[], maxError: number, robotPos: Position, robotSpeed: Speed) {
 	// move the next waypoint inwards if we will miss it
 	let startDir = waypoints[1] - waypoints[0];
 	if (startDir.dot(robotSpeed) > 0 && robotSpeed.length() > 0.1 && waypoints.length >= 3) {
@@ -25,7 +26,7 @@ function _preprocessPath (waypoints: Position[], maxError: number, robotPos: Pos
 		// only move the cornerPos inwards
 		if (cornerPos && lambda1 > 0 && angleDiff * lambda2 < 0) {
 			// limit the movement a bit
-			let magicScale = Math.sqrt(2)/2;
+			let magicScale = Math.sqrt(2) / 2;
 			waypoints[1] = waypoints[1] + perpendicular * (MathUtil.bound(-maxError, lambda2, maxError) * magicScale);
 			// vis.addCircleRaw("waypoints", waypoints[1], 0.03, vis.colors.green)
 		}
@@ -38,7 +39,7 @@ function _preprocessPath (waypoints: Position[], maxError: number, robotPos: Pos
 // to drive on an approximatelly circular trajectory, the calculations are done using
 // the osculating circle and the path curvature. Then limit the speed in corners
 // such that the centripetal force doesn't exceed the possible sidewards acceleration
-function _calculateCurveSpeedLimits (waypoints: Position[], accelLimit: number, maxSpeed: number,
+function _calculateCurveSpeedLimits(waypoints: Position[], accelLimit: number, maxSpeed: number,
 		maxError: number, startSpeed: number, endSpeed: number): [number, number, number, boolean?][] {
 	// ignore angle between current robot speed and move destination
 	// this only leads to problems if the path is changing fast
@@ -53,7 +54,7 @@ function _calculateCurveSpeedLimits (waypoints: Position[], accelLimit: number, 
 	let maxSpeedProfile: [number, number, number, boolean?][] = [ [startSpeed, maxSpeed, 0] ];
 
 	// to calculate an angle two line segments are necessary
-	for (let i = 2; i<waypoints.length;i++) {
+	for (let i = 2; i < waypoints.length;i++) {
 		let newPathDir = waypoints[i] - prev;
 		// limit angle for extremely sharp corners
 		let angleDiff = Math.min(lastPathDir.absoluteAngleDiff(newPathDir), Math.PI - 0.001);
@@ -68,8 +69,8 @@ function _calculateCurveSpeedLimits (waypoints: Position[], accelLimit: number, 
 			xRemaining = newPathDir.length();
 		} else {
 			// TODO use corridor width for maxError calculation
-			let angleSin = Math.sin((Math.PI - angleDiff)/2);
-			let angleTan = Math.tan((Math.PI - angleDiff)/2);
+			let angleSin = Math.sin((Math.PI - angleDiff) / 2);
+			let angleTan = Math.tan((Math.PI - angleDiff) / 2);
 			let radius = maxError * angleSin / (1 - angleSin); // osculating circle radius
 			let maxRadius = maxSpeed * maxSpeed / accelLimit; // no speed benefit from larger radius
 			radius = Math.min(radius, maxRadius);
@@ -90,7 +91,7 @@ function _calculateCurveSpeedLimits (waypoints: Position[], accelLimit: number, 
 			let startDist = startRadius * (1 / angleTan);
 			let endDist = endRadius * (1 / angleTan);
 			// ensure that startSpeed is still usable when the robot has nearly reached the corner
-			if (i == 2 && startDist < endDist) {
+			if (i === 2 && startDist < endDist) {
 				maxStartSpeed = maxEndSpeed;
 				startDist = endDist;
 			}
@@ -102,7 +103,7 @@ function _calculateCurveSpeedLimits (waypoints: Position[], accelLimit: number, 
 			}
 			maxSpeedProfile.push([maxStartSpeed, maxEndSpeed, actualDist, true]); // curved part
 			vis.addPathRaw("waypoints"
-//..tostring(i)
+// ..tostring(i)
 , [prev - lastPathDir.copy().setLength(startDist), prev + newPathDir.copy().setLength(endDist)], vis.colors.blue);
 			xRemaining = newPathDir.length() - endDist; // >= newPathDir.length() / 2
 		}
@@ -113,7 +114,7 @@ function _calculateCurveSpeedLimits (waypoints: Position[], accelLimit: number, 
 
 	if (xRemaining > 0) {
 		maxSpeedProfile.push([maxSpeed, endSpeed, xRemaining]); // end segment
-		//vis.addPathRaw("waypoints"+"End", {prev - lastPathDir.copy().setLength(xRemaining), prev}, vis.colors.blue)
+		// vis.addPathRaw("waypoints"+"End", {prev - lastPathDir.copy().setLength(xRemaining), prev}, vis.colors.blue)
 	}
 
 	return maxSpeedProfile;
@@ -122,9 +123,9 @@ function _calculateCurveSpeedLimits (waypoints: Position[], accelLimit: number, 
 // brake must be a negative value
 // ensures that the speedProfile ends with at most maxSpeed
 // if braking is necessary this is down with the deceleration brake
-function _backpropagateSpeedLimit (speedProfile: number[][], maxSpeed: number, brake: number) {
+function _backpropagateSpeedLimit(speedProfile: number[][], maxSpeed: number, brake: number) {
 	// no need to slow down
-	if (speedProfile[speedProfile.length-1][1] <= maxSpeed) {
+	if (speedProfile[speedProfile.length - 1][1] <= maxSpeed) {
 		return;
 	}
 
@@ -134,24 +135,24 @@ function _backpropagateSpeedLimit (speedProfile: number[][], maxSpeed: number, b
 	// the new speed will always be lower than the old one, except for the injectTime
 	// The injectTime is required to keep the total distance unchanged
 	// TODO robot could be faster during time injection
-	let endTime = speedProfile[speedProfile.length-1][0]; // end time of the speed profile
-	if (endTime == 0) { // empty speed profile
+	let endTime = speedProfile[speedProfile.length - 1][0]; // end time of the speed profile
+	if (endTime === 0) { // empty speed profile
 		speedProfile.splice(0, speedProfile.length);
 		speedProfile.push([0, maxSpeed]);
 		return;
 	}
 
 	let distance = 0;
-	for (let i = speedProfile.length-2;i>=0;i--) {
+	for (let i = speedProfile.length - 2;i >= 0;i--) {
 		let entry = speedProfile[i];
-		let nextEntry = speedProfile[i+1]; // only used for acceleration calculations
+		let nextEntry = speedProfile[i + 1]; // only used for acceleration calculations
 
 		// max possible speed at the current time to allow braking down to maxSpeed
 		// actually just an approximation as the distance travelled while braking
 		// is less than the distance travelled with the original speed
 		distance = distance + (nextEntry[1] + entry[1]) / 2 * (nextEntry[0] - entry[0]); // integrate distance
 		// distance and start speed for braking over the distance
-		let fullBrakeTime = (-maxSpeed + Math.sqrt(maxSpeed*maxSpeed-2*brake*distance)) / (-brake);
+		let fullBrakeTime = (-maxSpeed + Math.sqrt(maxSpeed * maxSpeed - 2 * brake * distance)) / (-brake);
 		let maxTimedSpeed = maxSpeed - brake * fullBrakeTime;
 		// can brake starting from the current entry
 		if (entry[1] < maxTimedSpeed) { // skips entries with zero timediff
@@ -176,11 +177,11 @@ function _backpropagateSpeedLimit (speedProfile: number[][], maxSpeed: number, b
 
 			if (oldAccel > 0) {
 				// Fomulas for wxMaxima
-				//solve(v_0=v_0+a*t_mid+b*(t_end-t_mid),t_end);
-				//assume(a > 0);assume(b < 0);assume(d > 0);assume(t_end>t_mid);
-				//ratsimp(integrate(v_0+a*t,t,0,t_mid)+integrate(v_0+a*t_mid+b*(t-t_mid),t,t_mid,t_end)=d);
+				// solve(v_0=v_0+a*t_mid+b*(t_end-t_mid),t_end);
+				// assume(a > 0);assume(b < 0);assume(d > 0);assume(t_end>t_mid);
+				// ratsimp(integrate(v_0+a*t,t,0,t_mid)+integrate(v_0+a*t_mid+b*(t-t_mid),t,t_mid,t_end)=d);
 				let v_0 = switchSpeed, a = oldAccel, b = brake,d = missingDistance;
-				let t1 = MathUtil.solveSq(b-a, 2*(b-a)*v_0, -2*b*d)[0];
+				let t1 = MathUtil.solveSq(b - a, 2 * (b - a) * v_0, -2 * b * d)[0];
 				if (t1 && t1 > 0) {
 					switchTime = switchTime + t1;
 					switchSpeed = switchSpeed + t1 * oldAccel;
@@ -190,8 +191,8 @@ function _backpropagateSpeedLimit (speedProfile: number[][], maxSpeed: number, b
 			}
 
 			// remove all speed entries after the current one
-			speedProfile.splice(i+1, speedProfile.length-i-1);
-			if (switchSpeed != entry[1]) { // just a duplicate
+			speedProfile.splice(i + 1, speedProfile.length - i - 1);
+			if (switchSpeed !== entry[1]) { // just a duplicate
 				speedProfile.push([switchTime, switchSpeed]); // remaining part with old accel
 			}
 			if (injectTime > 0) {
@@ -213,13 +214,13 @@ function _backpropagateSpeedLimit (speedProfile: number[][], maxSpeed: number, b
 }
 
 // assumes that the startSpeed limit is not violated by speedProfile!
-function _addLinearSpeedSegment (speedProfile: number[][], startSpeed: number, endSpeed: number, distance: number,
+function _addLinearSpeedSegment(speedProfile: number[][], startSpeed: number, endSpeed: number, distance: number,
 		accelerate: number, brake: number) {
-	let startEntry = speedProfile[speedProfile.length-1];
+	let startEntry = speedProfile[speedProfile.length - 1];
 	let startTime = startEntry[0];
 	let speed = startEntry[1];
 	if (startSpeed < speed) {
-		throw "invalid speedProfile";
+		throw new Error("invalid speedProfile");
 	}
 
 	let accelTime = 0;
@@ -230,20 +231,20 @@ function _addLinearSpeedSegment (speedProfile: number[][], startSpeed: number, e
 		// too slow or too fast to reach endSpeed
 		accel = MathUtil.bound(brake, linearAccel, accelerate);
 		// linearAccel is either brake or accelerate
-		accelTime = (-speed + Math.sqrt(speed*speed+2*accel*distance))/accel;
-	} else if (startSpeed == endSpeed) {
+		accelTime = (-speed + Math.sqrt(speed * speed + 2 * accel * distance)) / accel;
+	} else if (startSpeed === endSpeed) {
 		// time required for distance if permanently accelerating with accelerate
-		accelTime = (-speed + Math.sqrt(speed*speed+2*accelerate*distance))/accelerate;
+		accelTime = (-speed + Math.sqrt(speed * speed + 2 * accelerate * distance)) / accelerate;
 		// limit to time required for reaching maxSpeed (= startSpeed or endSpeed)
 		accelTime = Math.min(accelTime, (startSpeed - speed) / accelerate);
 	} else if (speed < startSpeed - 0.001) {
 		// Fomulas for wxMaxima
-		//solve(v_0+a*t_mid=v_s+(v_e-v_s)*t_mid/t_end,t_end); -> set t_end to result
-		//assume(a > (v_e-v_s)/t_end);assume(a > 0);assume(d > 0);
-		//solve(integrate(v_0+a*t,t,0,t_mid)+integrate(v_s+(v_e-v_s)*t/t_end,t,t_mid,t_end)=d,t_mid);
+		// solve(v_0+a*t_mid=v_s+(v_e-v_s)*t_mid/t_end,t_end); -> set t_end to result
+		// assume(a > (v_e-v_s)/t_end);assume(a > 0);assume(d > 0);
+		// solve(integrate(v_0+a*t,t,0,t_mid)+integrate(v_s+(v_e-v_s)*t/t_end,t,t_mid,t_end)=d,t_mid);
 		let a = accelerate, d = distance, v_0 = speed, v_s = startSpeed, v_e = endSpeed;
-		accelTime = (Math.sqrt((4*v_0*v_0+8*a*d)*v_s*v_s+(-4*v_0*v_e*v_e-4*v_0*v_0*v_0-8*a*d*v_0)*v_s+v_e*v_e*v_e*v_e
-			+(2*v_0*v_0-4*a*d)*v_e*v_e+v_0*v_0*v_0*v_0+4*a*d*v_0*v_0+4*a*a*d*d)-2*v_0*v_s+v_e*v_e+v_0*v_0-2*a*d)/(2*a*v_s-2*a*v_0);
+		accelTime = (Math.sqrt((4 * v_0 * v_0 + 8 * a * d) * v_s * v_s + (-4 * v_0 * v_e * v_e - 4 * v_0 * v_0 * v_0 - 8 * a * d * v_0) * v_s + v_e * v_e * v_e * v_e
+			+ (2 * v_0 * v_0 - 4 * a * d) * v_e * v_e + v_0 * v_0 * v_0 * v_0 + 4 * a * d * v_0 * v_0 + 4 * a * a * d * d) - 2 * v_0 * v_s + v_e * v_e + v_0 * v_0 - 2 * a * d) / (2 * a * v_s - 2 * a * v_0);
 	}
 	// nothing to do if startSpeed == speed
 	// acceleration part
@@ -258,8 +259,8 @@ function _addLinearSpeedSegment (speedProfile: number[][], startSpeed: number, e
 
 	// work around numerical precision problem
 	if (distance > 0.00001) { // robot is driving with startSpeed
-		//solve(integrate(v_s+(v_e-v_s)/t_end*t,t,0,t_end)=d,t_end);
-		let linTime = (2 * distance)/(startSpeed + endSpeed);
+		// solve(integrate(v_s+(v_e-v_s)/t_end*t,t,0,t_end)=d,t_end);
+		let linTime = (2 * distance) / (startSpeed + endSpeed);
 		speedProfile.push([startTime + linTime, endSpeed]);
 	}
 }
@@ -267,16 +268,16 @@ function _addLinearSpeedSegment (speedProfile: number[][], startSpeed: number, e
 // accelerate must be a positive value
 // brake must be a negative value
 // speed profile for forward movement, the speed limits in maxSpeedProfile are derived from sidewards movement limits
-function _calculate1DSpeedProfile (maxSpeedProfile: [number, number, number, boolean?][], accelerate: number, brake: number): number[][] {
+function _calculate1DSpeedProfile(maxSpeedProfile: [number, number, number, boolean?][], accelerate: number, brake: number): number[][] {
 	let speedProfile = [ [0, maxSpeedProfile[0][0]] ]; // begin with start speed
 	let initialSpeed = speedProfile[0][1];
 	// handle negative start speed by braking and moving back
 	if (initialSpeed < 0) {
 		let brakeTime = initialSpeed / brake;
-		let brakeDist = (-initialSpeed)/2 * brakeTime;
+		let brakeDist = (-initialSpeed) / 2 * brakeTime;
 		speedProfile.push([brakeTime, 0]);
 		if (brakeTime < 0) {
-			throw "invalid brake time";
+			throw new Error("invalid brake time");
 		}
 		// move back to start point
 		let vrestore = Math.sqrt(2 * accelerate * brakeDist);
@@ -285,7 +286,7 @@ function _calculate1DSpeedProfile (maxSpeedProfile: [number, number, number, boo
 	}
 
 	// skip maxSpeedProfile entry containing the current robot and max speed
-	for (let i = 1;i<maxSpeedProfile.length;i++) {
+	for (let i = 1;i < maxSpeedProfile.length;i++) {
 		let segment = maxSpeedProfile[i];
 		let startSpeed = segment[0];
 		let endSpeed = segment[1];
@@ -307,42 +308,42 @@ function _calculate1DSpeedProfile (maxSpeedProfile: [number, number, number, boo
 	return speedProfile;
 }
 
-function _decreaseDistance (speedProfile: number[][], cutoffDistance: number): number {
+function _decreaseDistance(speedProfile: number[][], cutoffDistance: number): number {
 	let currentDistance = 0;
 	let cutoffAfter = 1; // always keep the first speedProfile segment
-	for (let i = speedProfile.length-2;i>=0;i--) {
-		let segmentDistance = (speedProfile[i+1][1] + speedProfile[i][1]) / 2 * (speedProfile[i+1][0] - speedProfile[i][0]);
+	for (let i = speedProfile.length - 2;i >= 0;i--) {
+		let segmentDistance = (speedProfile[i + 1][1] + speedProfile[i][1]) / 2 * (speedProfile[i + 1][0] - speedProfile[i][0]);
 
-		if (currentDistance <= cutoffDistance && cutoffDistance < currentDistance+segmentDistance) {
-			let accel = (speedProfile[i+1][1] - speedProfile[i][1]) / (speedProfile[i+1][0] - speedProfile[i][0]);
-			let endSpeed = speedProfile[i+1][1];
+		if (currentDistance <= cutoffDistance && cutoffDistance < currentDistance + segmentDistance) {
+			let accel = (speedProfile[i + 1][1] - speedProfile[i][1]) / (speedProfile[i + 1][0] - speedProfile[i][0]);
+			let endSpeed = speedProfile[i + 1][1];
 			let distLeft = cutoffDistance - currentDistance;
 			// calculate time from end of the segment
 			let time;
-			if (accel == 0) {
+			if (accel === 0) {
 				time = distLeft / endSpeed;
 			} else {
-				time = (-endSpeed + Math.sqrt(endSpeed*endSpeed-2*accel*distLeft)) / -accel;
+				time = (-endSpeed + Math.sqrt(endSpeed * endSpeed - 2 * accel * distLeft)) / -accel;
 			}
-			speedProfile[i+1][0] = speedProfile[i+1][0] - time;
-			speedProfile[i+1][1] = speedProfile[i][1] + (speedProfile[i+1][0] - speedProfile[i][0]) * accel;
+			speedProfile[i + 1][0] = speedProfile[i + 1][0] - time;
+			speedProfile[i + 1][1] = speedProfile[i][1] + (speedProfile[i + 1][0] - speedProfile[i][0]) * accel;
 			currentDistance = cutoffDistance;
-			cutoffAfter = i+2;
+			cutoffAfter = i + 2;
 			break;
 		} else {
 			currentDistance = currentDistance + segmentDistance;
 		}
 	}
-	speedProfile.splice(cutoffAfter+1, speedProfile.length-cutoffAfter-1);
+	speedProfile.splice(cutoffAfter + 1, speedProfile.length - cutoffAfter - 1);
 	return currentDistance;
 }
 
-function _injectExponentialFalloff (speedProfile: number[][], exponentialTime: number, exponentialError: number,
+function _injectExponentialFalloff(speedProfile: number[][], exponentialTime: number, exponentialError: number,
 		brake: number, endSpeedLen: number) {
 	// FIXME? may ignore maxSpeed
 	// handle exponential falloff
-	if (speedProfile[speedProfile.length-1][1] >= endSpeedLen // too fast -> exponential falloff
-			&& speedProfile[speedProfile.length-2][1] > speedProfile[speedProfile.length-1][1]) { // decelerating
+	if (speedProfile[speedProfile.length - 1][1] >= endSpeedLen // too fast -> exponential falloff
+			&& speedProfile[speedProfile.length - 2][1] > speedProfile[speedProfile.length - 1][1]) { // decelerating
 		// v(t) = v_0 * e^(-k*t)  <//> v(dist) = k*dist
 		// v_0 = expStartSpeed
 		// v'(0) = brake -> k = 1/exponentialTime
@@ -350,8 +351,8 @@ function _injectExponentialFalloff (speedProfile: number[][], exponentialTime: n
 		let timeFactor = -Math.log(exponentialError);
 		let expStartSpeed = exponentialTime * -brake;
 		// integrate v(t) from 0 to +inf + distance traveled with endSpeed
-		let expDistance = expStartSpeed*exponentialTime;
-		let distance = expDistance + timeFactor*exponentialTime*endSpeedLen;
+		let expDistance = expStartSpeed * exponentialTime;
+		let distance = expDistance + timeFactor * exponentialTime * endSpeedLen;
 		// <= distance, < distance if speedProfile is too short
 		let actualDistance = _decreaseDistance(speedProfile, distance);
 
@@ -366,41 +367,41 @@ function _injectExponentialFalloff (speedProfile: number[][], exponentialTime: n
 			// assume target is reached if exponential part traveled a distance of (1-exponentialError)*expDistance
 			// solve integrate(expStartSpeed*%e^(-k*t)+endSpeed,t,0,t)=expDistance+endSpeed*fac-d for t
 			// actualDistance decreases when getting closer to the target
-			let time = 2*exponentialTime; // initial guess
-			let expTime = timeFactor*exponentialTime;
-			for (let i = 0;i<10;i++) {
-				let e = Math.exp(-k*time);
+			let time = 2 * exponentialTime; // initial guess
+			let expTime = timeFactor * exponentialTime;
+			for (let i = 0;i < 10;i++) {
+				let e = Math.exp(-k * time);
 				// only consider endSpeedLen for a distance of expTime * endSpeedLen
-				let err = Math.max(0, time-expTime)*endSpeedLen-e*expDistance+actualDistance;
+				let err = Math.max(0, time - expTime) * endSpeedLen - e * expDistance + actualDistance;
 				let diff;
 				if (time < expTime) {
-					diff = expStartSpeed*e+endSpeedLen;
+					diff = expStartSpeed * e + endSpeedLen;
 				} else {
-					diff = expStartSpeed*e;
+					diff = expStartSpeed * e;
 				}
-				time = MathUtil.bound(0, time - err/diff, 10*exponentialTime);
+				time = MathUtil.bound(0, time - err / diff, 10 * exponentialTime);
 			}
 
 			timeFactor = Math.max(0, timeFactor - time / exponentialTime);
 
-			let curSpeedLimit = expStartSpeed*Math.exp(-k*time) + endSpeedLen;
+			let curSpeedLimit = expStartSpeed * Math.exp(-k * time) + endSpeedLen;
 			speedProfile.splice(0, speedProfile.length);
 			speedProfile.push([0, curSpeedLimit]);
 			// disable deceleration of controller for exponential part
 			let timeQuantum = 0.001;
-			if (timeFactor*exponentialTime > timeQuantum) {
+			if (timeFactor * exponentialTime > timeQuantum) {
 				speedProfile.push([timeQuantum, curSpeedLimit]);
 			}
 		}
 
 		// fake end time
-		let endTime = speedProfile[speedProfile.length-1][0] + timeFactor*exponentialTime;
-		speedProfile.push([endTime, speedProfile[speedProfile.length-1][1]]);
+		let endTime = speedProfile[speedProfile.length - 1][0] + timeFactor * exponentialTime;
+		speedProfile.push([endTime, speedProfile[speedProfile.length - 1][1]]);
 	}
 	return speedProfile;
 }
 
-function _calculateRotation (currentDir: number, currentOmega: number, targetDir: number,
+function _calculateRotation(currentDir: number, currentOmega: number, targetDir: number,
 		accelerate: number, brake: number, maxSpeed: number, exponentialTime: number): [number, number] {
 	let fullBrakeTime = Math.abs(currentOmega / brake);
 	// how far the robot will rotate even if it brakes with maximum speed
@@ -414,9 +415,9 @@ function _calculateRotation (currentDir: number, currentOmega: number, targetDir
 	// if the robot is fast enough that rotating with the opposite angle would be faster
 	if (Math.abs(dirChange - forcedRotation) >= Math.PI) {
 		if (dirChange < 0) {
-			dirChange = dirChange + 2*Math.PI;
+			dirChange = dirChange + 2 * Math.PI;
 		} else {
-			dirChange = dirChange - 2*Math.PI;
+			dirChange = dirChange - 2 * Math.PI;
 		}
 	}
 
@@ -426,7 +427,7 @@ function _calculateRotation (currentDir: number, currentOmega: number, targetDir
 	let k = 1 / exponentialTime;
 	let expStartSpeed = exponentialTime * -brake;
 	// integrate v(t) from 0 to +inf
-	let expDistance = expStartSpeed*exponentialTime;
+	let expDistance = expStartSpeed * exponentialTime;
 
 	let outSpeed;
 	let outAccel;
@@ -435,7 +436,7 @@ function _calculateRotation (currentDir: number, currentOmega: number, targetDir
 		// exponential part
 		outSpeed = MathUtil.bound(-maxSpeed, dirChange * k, maxSpeed);
 		outAccel = 0; // FIXME
-	} else if (MathUtil.sign(currentOmega) != MathUtil.sign(dirChange)) {
+	} else if (MathUtil.sign(currentOmega) !== MathUtil.sign(dirChange)) {
 		// robot rotates into the wrong direciton
 		outSpeed = currentOmega;
 		outAccel = MathUtil.sign(dirChange) * -brake;
@@ -452,9 +453,9 @@ function _calculateRotation (currentDir: number, currentOmega: number, targetDir
 		let brakeDist = expDistance + -brake * brakeTime * brakeTime / 2 + expStartSpeed * brakeTime;
 
 		if (Math.abs(dirChange) <= brakeDist) {
-			let remainingBrakeTime = MathUtil.solveSq(-brake/2, expStartSpeed, expDistance - brakeDist)[0];
+			let remainingBrakeTime = MathUtil.solveSq(-brake / 2, expStartSpeed, expDistance - brakeDist)[0];
 			if (remainingBrakeTime == undefined || remainingBrakeTime < 0) {
-				throw "";
+				throw new Error("");
 			}
 			outSpeed = MathUtil.sign(dirChange) * (expStartSpeed + remainingBrakeTime * -brake);
 			outAccel = MathUtil.sign(dirChange) * brake;
@@ -474,35 +475,35 @@ function _calculateRotation (currentDir: number, currentOmega: number, targetDir
 	return [outSpeed, outAccel];
 }
 
-function _speedAtTime (speedProfile: number[][], time: number): number {
+function _speedAtTime(speedProfile: number[][], time: number): number {
 	let endIdx = speedProfile.length;
-	for (let i = 1;i<speedProfile.length;i++) {
+	for (let i = 1;i < speedProfile.length;i++) {
 		if (speedProfile[i][0] >= time) {
 			endIdx = i;
 			break;
 		}
 	}
 	if (endIdx >= speedProfile.length) {
-		return speedProfile[speedProfile.length-1][1];
+		return speedProfile[speedProfile.length - 1][1];
 	} else {
-		let accel = (speedProfile[endIdx][1]-speedProfile[endIdx-1][1])/(speedProfile[endIdx][0]-speedProfile[endIdx-1][0]);
-		if (speedProfile[endIdx][0] - speedProfile[endIdx-1][0] == 0) {
+		let accel = (speedProfile[endIdx][1] - speedProfile[endIdx - 1][1]) / (speedProfile[endIdx][0] - speedProfile[endIdx - 1][0]);
+		if (speedProfile[endIdx][0] - speedProfile[endIdx - 1][0] === 0) {
 			// segement has duration of 0 seconds
 			accel = 0;
 		}
-		return speedProfile[endIdx-1][1] + accel*(time - speedProfile[endIdx-1][0]);
+		return speedProfile[endIdx - 1][1] + accel * (time - speedProfile[endIdx - 1][0]);
 	}
 }
 
-function _calculateSpeed (robotId: number, waypoints: Position[], maxSpeedProfile: [number, number, number, boolean?][],
+function _calculateSpeed(robotId: number, waypoints: Position[], maxSpeedProfile: [number, number, number, boolean?][],
 		speedProfile: number[][], robotSpeed: Speed, accelLimit: number, sidewardsErrorFactor: number): [Speed, Vector] {
 	let timeOffset = 0.00;
 	let timeStep = 0.02;
 	let speed = _speedAtTime(speedProfile, timeOffset);
-	let speedNextStep = _speedAtTime(speedProfile, timeOffset+timeStep);
-	let accel = (speedNextStep-speed)*(1/timeStep);
+	let speedNextStep = _speedAtTime(speedProfile, timeOffset + timeStep);
+	let accel = (speedNextStep - speed) * (1 / timeStep);
 	// if target is reached
-	if (speedProfile[1][0] == speedProfile[0][0]) {
+	if (speedProfile[1][0] === speedProfile[0][0]) {
 		accel = 0;
 	}
 
@@ -524,8 +525,8 @@ function _calculateSpeed (robotId: number, waypoints: Position[], maxSpeedProfil
 	let accelVector = moveDir.copy().setLength(accel);
 
 	plot.addPlot(String(robotId)  +  ".speed", speed);
-	//debug.set("speed", speedVector)
-	//debug.set("accel", accelVector)
+	// debug.set("speed", speedVector)
+	// debug.set("accel", accelVector)
 
 	if (speedVector.length() >= 0.0001) {
 		// check if the robot is on a curve segment
@@ -550,7 +551,7 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 	private _lastTargetDir: number | undefined;
 	private _lastTime: number | undefined;
 
-	private _getPath (targetPos: Position): Position[] {
+	private _getPath(targetPos: Position): Position[] {
 		targetPos = Coordinates.toGlobal(targetPos);
 		let robotPos = Coordinates.toGlobal(this._robot.pos);
 
@@ -563,12 +564,12 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 
 		// convert waypoints to vectors and draw
 		let waypointsVector: Position[] = [];
-		for (let i = 0;i<waypoints.length;i++) {
+		for (let i = 0;i < waypoints.length;i++) {
 			waypointsVector.push(new Vector(waypoints[i].p_x, waypoints[i].p_y));
 		}
 
 		let waypointsColor = vis.colors.yellow;
-		if (waypointsVector[waypointsVector.length-1].distanceTo(targetPos) > 0.01) {
+		if (waypointsVector[waypointsVector.length - 1].distanceTo(targetPos) > 0.01) {
 			// orange path if target can't be reached
 			waypointsColor = vis.colors.orange;
 		}
@@ -581,7 +582,7 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 				vis.addCircleRaw("waypoints", robotPos, 0.05, vis.colors.orangeHalf);
 			}
 			return [];
-		} else if (waypointsVector.length == 2) {
+		} else if (waypointsVector.length === 2) {
 			// distance error < 0.1 mm
 			if (waypointsVector[0].distanceTo(waypointsVector[1]) < 0.0001) {
 				return [];
@@ -606,11 +607,11 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 		return [angularSpeed, angularAccel];
 	}
 
-	update (...args: [Position, number, number, Speed, number, boolean]): [any, Position, number] {
+	update(...args: [Position, number, number, Speed, number, boolean]): [any, Position, number] {
 		return this._update(args[0], args[1], args[2], args[3], args[4], args[5]);
 	}
 
-	private _update (targetPos: Position, targetDir: number, maxSpeed: number = this._robot.maxSpeed,
+	private _update(targetPos: Position, targetDir: number, maxSpeed: number = this._robot.maxSpeed,
 			endSpeed: Speed = new Vector(0, 0), accelScale: number = 1.0, dribble: boolean): [any, Position, number] {
 
 		let directionVector = Vector.fromAngle(targetDir).scaleLength(0.09);
@@ -630,7 +631,7 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 		let rotationExponentialTime = 0.1;
 		let rotationAccelerationFactor = 1;
 
-		//insert default values
+		// insert default values
 		if (Referee.isSlowDriveState()) {
 			maxSpeed = Math.min(maxSpeed, (World.IsLargeField ? Constants.stopSpeed : 1) - 0.25);
 		}
@@ -649,7 +650,7 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 		let rotMaxSpeed = this._robot.maxAngularSpeed;
 
 		let waypoints = this._getPath(targetPos);
-		if (waypoints.length == 0) { // no waypoints left, just stay here but also update the orientation
+		if (waypoints.length === 0) { // no waypoints left, just stay here but also update the orientation
 			targetDir = Coordinates.toGlobal(targetDir);
 			let [angularSpeed, angularAccel] = this._calculateRotationHysteresis(robotDir, this._robot.angularSpeed, targetDir,
 				rotAccelerate, rotBrake, rotMaxSpeed, rotationExponentialTime);
@@ -664,7 +665,7 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 
 		// no endspeed if the target can't be reached because it's in an obstacle
 		// must be calculated in all global coordinates
-		if (waypoints[waypoints.length-1].distanceTo(Coordinates.toGlobal(targetPos)) > 0.02) {
+		if (waypoints[waypoints.length - 1].distanceTo(Coordinates.toGlobal(targetPos)) > 0.02) {
 			endSpeed = new Vector(0, 0);
 		}
 
@@ -673,12 +674,12 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 		let accelLimit = Math.abs(this._robot.acceleration.aSpeedupSMax);
 		// forward acceleration and deceleration
 
-		//dribble. backward. speed & accel, forward brake
-		let accelerate = Math.abs(this._robot.acceleration.aSpeedupFMax) * accelerationFactor; //* (dribble and 0.2 or 1)
+		// dribble. backward. speed & accel, forward brake
+		let accelerate = Math.abs(this._robot.acceleration.aSpeedupFMax) * accelerationFactor; // * (dribble and 0.2 or 1)
 		let brake = -Math.abs(this._robot.acceleration.aBrakeFMax) * accelerationFactor  * (dribble ? 0.8 : 1);
-	//	if dribble then
-	//		maxSpeed = 0.5
-	//	end
+	// 	if dribble then
+	// 		maxSpeed = 0.5
+	// 	end
 
 		// smooth first corner
 		_preprocessPath(waypoints, maxError, robotPos, robotSpeed);
@@ -692,9 +693,9 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 		let startSpeed = (waypoints[1] - waypoints[0]).normalize().dot(robotSpeed);
 		// debug.set("startSpeed", startSpeed);
 		// handle endSpeed
-		let endSpeedLen = Math.max(0, (waypoints[waypoints.length-1] - waypoints[waypoints.length - 2]).normalize().dot(endSpeed));
+		let endSpeedLen = Math.max(0, (waypoints[waypoints.length - 1] - waypoints[waypoints.length - 2]).normalize().dot(endSpeed));
 		// calculate speed limits for curve segments based on sidewards acceleration limits while driving curves
-		let maxSpeedProfile = _calculateCurveSpeedLimits(waypoints, accelLimit, maxSpeed, maxError, startSpeed, endSpeedLen)
+		let maxSpeedProfile = _calculateCurveSpeedLimits(waypoints, accelLimit, maxSpeed, maxError, startSpeed, endSpeedLen);
 		// debug.set("maxSpeedProfile", maxSpeedProfile)
 		// convert to actual speed curve
 		let speedProfile = _calculate1DSpeedProfile(maxSpeedProfile, accelerate, brake);
@@ -715,7 +716,7 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 			} else if (sin < 0) {
 				sgn = -1;
 			}
-			if (sgn != 0) {
+			if (sgn !== 0) {
 				// although we drive a parabel, we try to fit a circle to calculate centripetal acceleration for the ball
 				// we assume |v| as r
 				vis.addCircleRaw("circle_fitting", robotPos + speedVector.perpendicular() * sgn, speedVector.length(), vis.colors.green);
@@ -725,7 +726,7 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 				// -> MY * G = Constants.fastBallDeceleration
 				// we assume v = r, so phi = atan (v / Constants.fBD)
 				let speed = speedVector.length();
-				let phi = -Math.atan(speed / Math.abs(Constants.fastBallDeceleration))
+				let phi = -Math.atan(speed / Math.abs(Constants.fastBallDeceleration));
 				targetDir = targetDir + sgn * phi;
 			}
 		} else {
@@ -740,11 +741,11 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 			phi: { a0: robotDir, a1: angularSpeed, a2: angularAccel / 2, a3: 0}
 		} ];
 
-		let endTime = speedProfile[speedProfile.length-1][1];
+		let endTime = speedProfile[speedProfile.length - 1][1];
 		return [{spline: spline}, targetPos, endTime];
 	}
 
-	canHandle (...args: any[]): boolean {
+	canHandle(...args: any[]): boolean {
 		return true;
 	}
 }

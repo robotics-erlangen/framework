@@ -8,6 +8,7 @@ import * as Referee from "base/referee";
 import { FriendlyRobot, Robot } from "base/robot";
 import { Position, Speed, Vector } from "base/vector";
 import * as World from "base/world";
+
 import { MessageBox, MessageType } from "glados/control/messaging";
 import * as Physics from "glados/observer/physics";
 import * as Rating from "glados/util/rating";
@@ -58,7 +59,7 @@ let _GoalAreaFriendly = [
 function addFriendlyDefenseAreaObstacle(path: Path, robot: FriendlyRobot) {
 	// only keeper may enter friendly defense area
 	// don't add obstacles for friendly defense area if the robot is in the opponent half
-	if (World.FriendlyKeeper != robot && robot.pos.y < 0
+	if (World.FriendlyKeeper !== robot && robot.pos.y < 0
 			&& World.RefereeState !== "BallPlacementOffensive") {
 		if (World.RULEVERSION === "2018") {
 			path.addRect(G.FriendlyGoal.x - G.DefenseWidthHalf - POSITION_PADDING,
@@ -198,7 +199,7 @@ function addGoalObstacleShot(path: Path, robot: FriendlyRobot, messaging: Messag
 	}
 
 	let mainAttacker = messaging.receiveTrainer(MessageType.mainAttacker);
-	if (mainAttacker != undefined && robot == mainAttacker) {
+	if (mainAttacker != undefined && robot === mainAttacker) {
 		return true;
 	}
 	let goal = G.OpponentGoal;
@@ -240,7 +241,7 @@ function addFriendlyPassObstacle(path: Path, robot: FriendlyRobot, messaging: Me
 	let epsilonSq = robot.radius * robot.radius / 4;
 	let attackPosition = messaging.receiveSingleSender(MessageType.attackPosition)[1];
 	let mainAttacker = messaging.receiveTrainer(MessageType.mainAttacker);
-	if (mainAttacker && robot != mainAttacker) {
+	if (mainAttacker && robot !== mainAttacker) {
 		let dangerPos = attackPosition || mainAttacker.pos;
 		// ball - intercept
 		if (dangerPos.distanceToSq(World.Ball.pos) > epsilonSq) {
@@ -254,7 +255,7 @@ function addFriendlyPassObstacle(path: Path, robot: FriendlyRobot, messaging: Me
 		if (passInfoTable) {
 			for (let passInfo of passInfoTable) {
 				// don't block the pass receiver
-				if (passInfo.target && passInfo.target != robot) {
+				if (passInfo.target && passInfo.target !== robot) {
 					let startPoint = passInfo.target.pos;
 					let endPoint = passInfo.ballPos;
 					path.addLine(endPoint.x, endPoint.y, dangerPos.x, dangerPos.y, radius, "pass2", Priorities.PASS_BALL_STRIKER);
@@ -337,7 +338,7 @@ function addRobotObstacles(path: Path, robot: FriendlyRobot, ignoreFriendlyRobot
 	let SLOW_ROBOT = 0.3;
 	if (!ignoreFriendlyRobots) {
 		for (let r of World.FriendlyRobots) {
-			if (r.id != robot.id && !ignoreRobot(robot, r)) { // don't add current robot
+			if (r.id !== robot.id && !ignoreRobot(robot, r)) { // don't add current robot
 				// use speed difference to calculate the safety distance
 				let safetyDistance = MathUtil.bound(0, robot.speed.distanceTo(r.speed) * 0.05, 0.05);
 				let estimatedPosition = r.pos + r.speed * estimationTime;
@@ -397,7 +398,7 @@ interface PathHelperParametersRaw {
 	messaging?: MessageBox;
 	path?: Path;
 }
-export type PathHelperParameters = PathHelperParametersRaw & ({ignorePass: true} | {messaging: MessageBox})
+export type PathHelperParameters = PathHelperParametersRaw & ({ignorePass: true} | {messaging: MessageBox});
 
 export enum ParameterType {
 	ignoreBall = "ignoreBall", ignoreGoals = "ignoreGoals", ignoreDefenseArea = "ignoreDefenseArea",
@@ -460,11 +461,11 @@ export function insertObstacles(robot: FriendlyRobot) {
 	setDefaultObstacles(p.path, robot, p.ignoreBall, p.ignoreGoals, p.ignoreDefenseArea,
 		p.pathRadius, p.stopBallDistance, p.noSeedTarget, p.ignoreOpponentDefenseArea, p.extraBallDistance);
 	if (!p.ignorePass) {
-		if(p.messaging == undefined){
+		if (p.messaging == undefined) {
 			throw new Error("");
-			
+
 		}
-		let disablePass = addGoalObstacleShot(p.path, robot, p.messaging) || World.RefereeState == "Stop";
+		let disablePass = addGoalObstacleShot(p.path, robot, p.messaging) || World.RefereeState === "Stop";
 		if (!disablePass) {
 			addFriendlyPassObstacle(p.path, robot, p.messaging);
 		}

@@ -1,15 +1,16 @@
 import * as debug from "base/debug";
 import * as Referee from "base/referee";
 import * as World from "base/world";
-import {Behavior, TaskAssignment} from "glados/agent/base/behavior";
+
+import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import * as Ball from "glados/observer/ball";
 import * as Robot from "glados/observer/robot";
-import {StopAttack} from "glados/task/attacker/stopattack"
+import { StopAttack } from "glados/task/attacker/stopattack";
 
-//prevents freekicking robot from moving away after failed shot
+// prevents freekicking robot from moving away after failed shot
 let lastFreekickTime = 1;
 export class DoubleTouchGuard extends Behavior {
-	check (): boolean {
+	check(): boolean {
 		if (Referee.isFriendlyFreeKickState()) {
 			// subtract half a second to ensure that the freekick shot gets detected
 			lastFreekickTime = World.Time - 0.5;
@@ -23,13 +24,13 @@ export class DoubleTouchGuard extends Behavior {
 		debug.set("wasShot Condition", !wasShot);
 		debug.pop();
 
-		if (World.RefereeState == "Game" && shooter === this._robot && !wasShot) {
+		if (World.RefereeState === "Game" && shooter === this._robot && !wasShot) {
 			return true;
 		}
 		return false;
 	}
 
-	_updateTask (): TaskAssignment<typeof StopAttack> {
+	_updateTask(): TaskAssignment<typeof StopAttack> {
 		return [StopAttack, [0.15]];
 	}
 }

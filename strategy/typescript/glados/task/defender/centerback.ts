@@ -1,20 +1,20 @@
 import * as debug from "base/debug";
 import * as Field from "base/field";
 import * as geom from "base/geom";
-import {Position} from "base/vector";
 import * as MathUtil from "base/mathutil";
-import {Robot} from "base/robot";
 import * as Referee from "base/referee";
-import {Vector} from "base/vector";
+import { Robot } from "base/robot";
+import { Position, Vector } from "base/vector";
 import * as World from "base/world";
-import {MessageType} from "glados/control/messaging";
+
+import { MessageType } from "glados/control/messaging";
 import * as Physics from "glados/observer/physics";
 import * as ObserverRobot from "glados/observer/robot";
+import { ForceShoot } from "glados/task/ability/forceshoot";
+import { Agent, Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
-import {ToTarget} from "glados/trajectory/totarget";
+import { ToTarget } from "glados/trajectory/totarget";
 import * as UtilDefense from "glados/util/defense";
-import {ForceShoot} from "glados/task/ability/forceshoot";
-import {Task, Agent} from "glados/task/base";
 
 const G = World.Geometry;
 
@@ -41,7 +41,7 @@ export class CenterBack extends Task {
 		this._forceShoot = new ForceShoot(this._robot);
 	}
 
-	run () {
+	run() {
 		this._messaging.sendToTrainerRepeated(MessageType.groupApplication,
 			{ name: "centerback", payload: this._preliminaryCenterbackTarget });
 
@@ -58,7 +58,7 @@ export class CenterBack extends Task {
 				World.Geometry.FieldHeightHalf) - this._robot.pos).angle();
 		let fromGoalAngle = (this._robot.pos - World.Geometry.FriendlyGoal).angle();
 
-		let hystAngle = 5 * Math.PI/180;
+		let hystAngle = 5 * Math.PI / 180;
 		let dir = toBallAngle;
 		if ((this._lookingToGoal && toBallAngle < toCornerLeftAngle + hystAngle  &&
 				toBallAngle > toCornerRightAngle + hystAngle)  ||
@@ -77,12 +77,12 @@ export class CenterBack extends Task {
 		if (!ObserverRobot.hadBall(this._robot, 0)) {
 			this._forceShoot._forceShootTimer = undefined;
 		}
-		let chipActivationAngle = Math.PI / 6
-		let isGame = World.RefereeState == "Game" || World.RefereeState == "GameForce"
+		let chipActivationAngle = Math.PI / 6;
+		let isGame = World.RefereeState === "Game" || World.RefereeState === "GameForce";
 		if (isGame && dir > chipActivationAngle && dir < Math.PI - chipActivationAngle  &&
 				Vector.fromAngle(dir).absoluteAngleDiff(destinationPos - G.FriendlyGoal) < Math.PI
-				 &&  World.Ball.pos.distanceTo(this._robot.pos) < 1
-				 &&  this._robot.pos.distanceTo(destinationPos) < 1) {
+					&&  World.Ball.pos.distanceTo(this._robot.pos) < 1
+					&&  this._robot.pos.distanceTo(destinationPos) < 1) {
 			debug.set("chip", true);
 			this._forceShoot._doForceShoot();
 			this._robot.chip(2);

@@ -1,5 +1,5 @@
 import * as Referee from "base/referee";
-import {FriendlyRobot} from "base/robot";
+import { FriendlyRobot } from "base/robot";
 import * as World from "base/world";
 
 interface Outliers {
@@ -21,18 +21,18 @@ let batteryTable: Map<FriendlyRobot, RingBuffer> = new Map<FriendlyRobot, RingBu
 let BATTERY_TABLE_SIZE = 50;
 let lastStopTime = 0;
 
-export function getAverageBatterySate (robot: FriendlyRobot): number {
-	if (!batteryTable.has(robot) || batteryTable.get(robot)!.size == 0) {
+export function getAverageBatterySate(robot: FriendlyRobot): number {
+	if (!batteryTable.has(robot) || batteryTable.get(robot)!.size === 0) {
 		return 1;
 	}
 	return batteryTable.get(robot)!.sum / batteryTable.get(robot)!.size;
 }
 
-function initBatteryTable (robot: FriendlyRobot) {
+function initBatteryTable(robot: FriendlyRobot) {
 	batteryTable.set(robot, {size: 0, next: 1, sum: 0, outliers: {size: 0, next: 1, sum: 0}});
 }
 
-function insertRingBuffer (ringbuffer: RingBuffer | undefined, value: number) {
+function insertRingBuffer(ringbuffer: RingBuffer | undefined, value: number) {
 	if (ringbuffer == undefined) {
 		return;
 	}
@@ -53,13 +53,13 @@ function insertRingBuffer (ringbuffer: RingBuffer | undefined, value: number) {
 	ringbuffer.next = ringbuffer.next + 1 %  BATTERY_TABLE_SIZE;
 }
 
-function addBatteryState (robot: FriendlyRobot, newBatteryState: number) {
+function addBatteryState(robot: FriendlyRobot, newBatteryState: number) {
 	let robotBatteryTable = batteryTable[robot];
 	if (robotBatteryTable == undefined) {
 		initBatteryTable(robot);
 		robotBatteryTable = batteryTable[robot];
 	}
-	if (robotBatteryTable.size == BATTERY_TABLE_SIZE) {
+	if (robotBatteryTable.size === BATTERY_TABLE_SIZE) {
 		let avg = getAverageBatterySate(robot);
 		if (Math.abs(avg - newBatteryState) > 0.2) {
 			if (robotBatteryTable.outliers.size > 15) {
@@ -76,11 +76,11 @@ function addBatteryState (robot: FriendlyRobot, newBatteryState: number) {
 	insertRingBuffer(robotBatteryTable, newBatteryState);
 }
 
-export function getErrorTable (robot: FriendlyRobot) {
-	return errorTables[robot]
+export function getErrorTable(robot: FriendlyRobot) {
+	return errorTables[robot];
 }
 
-function convertErrorTable (errorTable: ErrorTable): ErrorTable {
+function convertErrorTable(errorTable: ErrorTable): ErrorTable {
 	let newTable: ErrorTable = {};
 	for (let [k, v] of Object.entries(errorTable)) {
 		if (typeof(v) === "number") {
@@ -92,7 +92,7 @@ function convertErrorTable (errorTable: ErrorTable): ErrorTable {
 	return newTable;
 }
 
-function addErrorTables (errorTable1: ErrorTable | undefined, errorTable2: ErrorTable | undefined): ErrorTable {
+function addErrorTables(errorTable1: ErrorTable | undefined, errorTable2: ErrorTable | undefined): ErrorTable {
 	if (errorTable1 == undefined && errorTable2 == undefined) {
 		return {};
 	}
@@ -112,7 +112,7 @@ function addErrorTables (errorTable1: ErrorTable | undefined, errorTable2: Error
 	}
 	for (let [k, v] of Object.entries(errorTable2)) {
 		if (typeof(v) === "number") {
-			//errorTable2 is newer than errorTable1, so override errorTable1
+			// errorTable2 is newer than errorTable1, so override errorTable1
 			newTable[k] = v;
 		} else if (v != undefined) {
 			if (newTable[k] != undefined) {
@@ -125,7 +125,7 @@ function addErrorTables (errorTable1: ErrorTable | undefined, errorTable2: Error
 	return newTable;
 }
 
-function updateErrorTables (isLeavingStop: boolean) {
+function updateErrorTables(isLeavingStop: boolean) {
 	if (isLeavingStop) {
 		errorTables = new Map<FriendlyRobot, ErrorTable>();
 	}
@@ -141,42 +141,42 @@ function updateErrorTables (isLeavingStop: boolean) {
 let lastRefChange: number;
 let refereeState: string;
 
-function updateRefereeState () {
-	if (refereeState != World.RefereeState) {
+function updateRefereeState() {
+	if (refereeState !== World.RefereeState) {
 		refereeState = World.RefereeState;
 		lastRefChange = World.Time;
 	}
 }
 
-function updateLastStopTime (isLeavingStop: boolean) {
+function updateLastStopTime(isLeavingStop: boolean) {
 	if (isLeavingStop) {
 		lastStopTime = World.Time;
 	}
 }
 
-export function getLastRefChange (): number {
+export function getLastRefChange(): number {
 	return lastRefChange;
 }
 
-export function getLastStopTime (): number {
+export function getLastStopTime(): number {
 	return lastStopTime;
 }
 
-function isLeavingStop () {
+function isLeavingStop() {
 	return refereeState === "Stop" && World.RefereeState !== "Stop";
 }
 
-//we don't have any feedback by our robots. At least we have to assume its like that
-//We still want to be able to detect broken bots.
-//To do so, we use the previous moveTo. If it is far (~0.5m) from our current pos while our speed is slow we increase a counter.
-//If that stays true for 4.5 s (that is, 450 runs), we consider the robot to be damaged.
-//We reset this counter if the robot gets fast eanough, or reaches its destination.
-//We want the robot to stay at the error position if it was decided that it's broken. Therefore, we don't tick down due to position if the robot was
-//detected as failure, and will only tick down if a certain speed was reached.
-//If the robot is invisible, speedError does tick down, this is to ensure that a exchanged robot that may have been repaired by humans is ok after reinsertion
-//If the strategy is being replayed, there's no point in counting up or down. As starting the replay results in a fresh load this will disabled this detection during replays
+// we don't have any feedback by our robots. At least we have to assume its like that
+// We still want to be able to detect broken bots.
+// To do so, we use the previous moveTo. If it is far (~0.5m) from our current pos while our speed is slow we increase a counter.
+// If that stays true for 4.5 s (that is, 450 runs), we consider the robot to be damaged.
+// We reset this counter if the robot gets fast eanough, or reaches its destination.
+// We want the robot to stay at the error position if it was decided that it's broken. Therefore, we don't tick down due to position if the robot was
+// detected as failure, and will only tick down if a certain speed was reached.
+// If the robot is invisible, speedError does tick down, this is to ensure that a exchanged robot that may have been repaired by humans is ok after reinsertion
+// If the strategy is being replayed, there's no point in counting up or down. As starting the replay results in a fresh load this will disabled this detection during replays
 let speedError: Map<FriendlyRobot, number> = new Map<FriendlyRobot, number>();
-function updateSpeedError () {
+function updateSpeedError() {
 	let halfSpeed = Referee.isSlowDriveState() ? 0.75 : 1.5;
 	for (let robot of World.FriendlyRobots) {
 		if (robot.prevMoveTo && !World.IsReplay && !World.IsSimulated) {
@@ -199,11 +199,11 @@ function updateSpeedError () {
 	}
 }
 
-export function getSpeedErrorCount (robot: FriendlyRobot): number {
+export function getSpeedErrorCount(robot: FriendlyRobot): number {
 	return speedError.get(robot) || 0;
 }
 
-export function _update () {
+export function _update() {
 	let leavingStop = isLeavingStop();
 	for (let r of World.FriendlyRobots) {
 		if (r.radioResponse && r.radioResponse.battery) {
