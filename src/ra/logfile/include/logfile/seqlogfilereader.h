@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2015 Michael Eischer                                        *
+ *   Copyright 2018 Tobias Heineken                                        *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,12 +18,10 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef LOGFILEREADER_H
-#define LOGFILEREADER_H
+#ifndef SEQLOGFILEREADER_H
+#define SEQLOGFILEREADER_H
 
 #include "protobuf/status.h"
-#include "statussource.h"
-#include "seqlogfilereader.h"
 #include <QObject>
 #include <QString>
 #include <QDataStream>
@@ -32,42 +30,50 @@
 
 class QMutex;
 
-class LogFileReader : public StatusSource
+class SeqLogFileReader
 {
-    Q_OBJECT
 public:
     // checks if the format matches and opens the log file if it applies
-    static QPair<StatusSource*, QString> tryOpen(QString filename);
-    explicit LogFileReader();
-    explicit LogFileReader(const QList<qint64> &timings, const QList<qint64> &offsets, const qint32 groupedPackages);
-    ~LogFileReader() override;
+    //static QPair<StatusSource*, QString> tryOpen(QString filename);
+    SeqLogFileReader();
+    ~SeqLogFileReader();
 
     bool open(const QString &filename);
-    bool isOpen() const override { return m_reader.isOpen(); }
+    bool isOpen() const { return m_file.isOpen(); }
 
-    QString filename() const { return m_reader.fileName(); }
+    QString fileName() const { return m_file.fileName(); }
     QString errorMsg() const { return m_errorMsg; }
 
-    const QList<qint64>& timings() const override { return m_timings; }
-    // equals timings().size()
-    int packetCount() const override { return m_packets.size(); }
-    Status readStatus(int packet) override;
-
-public slots:
-    void readPackets(int startPacket, int count) override;
-
-private:
-    bool indexFile();
+    Status readStatus();
+    QPair<qint64,int>  readTimestamp(int packetIndex);
+    void seek(qint64 offset, int num) ; // { m_file.seek(offset); }
+    bool atEnd() { return m_stream.atEnd() || (m_version == Version2 && m_currentGroupIndex >= m_currentGroupMaxIndex); }
+    qint64 pos() {return m_file.pos(); }
     void close();
 
+private:
+//    bool indexFile();
+    bool readVersion();
+    qint64 readTimestampVersion0();
+    qint64 readTimestampVersion1();
+    QPair<qint64,int> readTimestampVersion2(int packetIndex);
+
+    mutable QMutex *m_mutex;
     QString m_errorMsg;
 
+    QFile m_file;
+    QDataStream m_stream;
 
-    QList<QPair<qint64,int>> m_packets;
-    QList<qint64> m_timings;
+    enum Version { Version0, Version1, Version2 };
+    Version m_version;
     // a group of Status packages and an array of offsets
-    bool m_headerCorrect;
-    SeqLogFileReader m_reader;
+    QByteArray m_currentGroup;
+    QList<qint32> m_currentGroupOffsets;
+    int m_currentGroupIndex;
+    int m_currentGroupMaxIndex;
+    // how many packets are one group
+    qint32 m_packageGroupSize;
+    qint64 m_baseOffset;
 };
 
-#endif // LOGFILEREADER_H
+#endif // SEQLOGFILEREADER_H

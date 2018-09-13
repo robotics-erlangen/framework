@@ -43,7 +43,7 @@ LogFileReader * LogFileWriter::makeStatusSource()
 {
     m_packetOffsets.erase(m_packetOffsets.begin() + m_writtenPackages, m_packetOffsets.end());
     m_timeStamps.erase(m_timeStamps.begin() + m_writtenPackages, m_timeStamps.end());
-    LogFileReader * reader = new LogFileReader(m_timeStamps, m_packetOffsets);
+    LogFileReader * reader = new LogFileReader(m_timeStamps, m_packetOffsets, GROUPED_PACKAGES);
     reader->open(m_file.fileName());
     return reader;
 }

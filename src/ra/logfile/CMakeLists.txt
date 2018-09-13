@@ -22,6 +22,7 @@ add_library(logfile
     include/logfile/backlogwriter.h
     include/logfile/combinedlogwriter.h
     include/logfile/logfilereader.h
+    include/logfile/seqlogfilereader.h
     include/logfile/logfilewriter.h
     include/logfile/statussource.h
     include/logfile/visionlogliveconverter.h
@@ -29,6 +30,7 @@ add_library(logfile
     backlogwriter.cpp
     combinedlogwriter.cpp
     logfilereader.cpp
+    seqlogfilereader.cpp
     logfilewriter.cpp
     visionlogliveconverter.cpp
 )
