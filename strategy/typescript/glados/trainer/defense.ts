@@ -169,6 +169,7 @@ export class Defense {
 				bestDefender = <FriendlyRobot> UtilDefense.getClosestRobot(defenders, manMarkPos)[0];
 			}
 			this._manmarkAssignments[mostDangerousRobot] = <FriendlyRobot> bestDefender;
+			this._manmarkTargets.delete(mostDangerousRobot);
 
 			return [mostDangerousRobot, <FriendlyRobot> bestDefender];
 		}
