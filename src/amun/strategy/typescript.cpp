@@ -54,9 +54,18 @@ Typescript::Typescript(const Timer *timer, StrategyType type, bool debugEnabled,
 
 Typescript::~Typescript()
 {
-    // TODO: delete objects
-    //m_context.Reset();
-    //m_isolate->Dispose();
+    if (m_profiler != nullptr) {
+        m_profiler->Dispose();
+        m_profiler = nullptr;
+    }
+    for (auto element : m_requireCache.values()) {
+        delete element;
+    }
+    m_function.Reset();
+    m_requireTemplate.Reset();
+    m_context.Reset();
+    m_isolate->Exit();
+    m_isolate->Dispose();
 }
 
 bool Typescript::canHandle(const QString &filename)
