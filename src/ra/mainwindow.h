@@ -51,6 +51,8 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(bool tournamentMode, QWidget *parent = 0);
     ~MainWindow() override;
+    MainWindow(const MainWindow&) = delete;
+    MainWindow& operator=(const MainWindow&) = delete;
 
 signals:
     void gotStatus(const Status &status);

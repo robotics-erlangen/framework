@@ -37,6 +37,8 @@ class RefereeWidget : public QWidget
 public:
     explicit RefereeWidget(QWidget *parent = 0);
     ~RefereeWidget() override;
+    RefereeWidget(const RefereeWidget&) = delete;
+    RefereeWidget& operator=(const RefereeWidget&) = delete;
     void load();
 
 signals:

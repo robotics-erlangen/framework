@@ -100,6 +100,8 @@ public:
 public:
     Path(uint32_t rng_seed);
     ~Path();
+    Path(const Path&) = delete;
+    Path& operator=(const Path&) = delete;
 
 public:
     void reset();

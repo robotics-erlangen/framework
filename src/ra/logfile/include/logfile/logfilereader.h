@@ -41,6 +41,8 @@ public:
     explicit LogFileReader();
     explicit LogFileReader(const QList<qint64> &timings, const QList<qint64> &offsets, const qint32 groupedPackages);
     ~LogFileReader() override;
+    LogFileReader(const LogFileReader &) = delete;
+    LogFileReader& operator= (const LogFileReader &) = delete;
 
     bool open(const QString &filename);
     bool isOpen() const override { return m_reader.isOpen(); }

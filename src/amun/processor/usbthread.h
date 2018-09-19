@@ -31,6 +31,8 @@ class USBThread : public QThread
 public:
     USBThread();
     ~USBThread() override;
+    USBThread(const USBThread&) = delete;
+    USBThread& operator=(const USBThread&) = delete;
 
 public:
     libusb_context* context() const { return m_context; }

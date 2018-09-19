@@ -36,6 +36,8 @@ class PlotterWidget : public QGLWidget
 public:
     explicit PlotterWidget(QWidget *parent = 0);
     ~PlotterWidget() override;
+    PlotterWidget(const PlotterWidget&) = delete;
+    PlotterWidget& operator=(const PlotterWidget&) = delete;
 
 public:
     void update(float time);

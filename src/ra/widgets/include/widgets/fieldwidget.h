@@ -77,6 +77,8 @@ private:
 public:
     explicit FieldWidget(QWidget *parent = 0);
     ~FieldWidget() override;
+    FieldWidget(const FieldWidget&) = delete;
+    FieldWidget& operator=(const FieldWidget&) = delete;
 
     void setLogplayer();
     void setRegularVisualizationsEnabled(bool blue, bool enabled);

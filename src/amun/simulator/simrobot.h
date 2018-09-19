@@ -35,6 +35,8 @@ class SimRobot
 public:
     SimRobot(RNG *rng, const robot::Specs &specs, btDiscreteDynamicsWorld *world, const btVector3 &pos, float dir);
     ~SimRobot();
+    SimRobot(const SimRobot&) = delete;
+    SimRobot& operator=(const SimRobot&) = delete;
 
 public:
     void begin(SimBall *ball, double time);

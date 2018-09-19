@@ -25,6 +25,8 @@ public:
     explicit LogProcessor(const QList<QString>& inputFiles, const QString& outputFile,
                           Options options, QObject *parent = 0);
     ~LogProcessor() override;
+    LogProcessor(const LogProcessor&) = delete;
+    LogProcessor& operator=(const LogProcessor&) = delete;
 
     void run() override;
 

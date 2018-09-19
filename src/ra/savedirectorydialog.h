@@ -16,6 +16,8 @@ class SaveDirectoryDialog : public QDialog
 public:
     explicit SaveDirectoryDialog(const QList<QString> &directories, QWidget *parent = nullptr);
     ~SaveDirectoryDialog();
+    SaveDirectoryDialog(const SaveDirectoryDialog&) = delete;
+    SaveDirectoryDialog& operator=(const SaveDirectoryDialog&) = delete;
     // call this function after the dialog finished with status 'Accepted' to get the resulting list
     QList<QString> getResult();
 

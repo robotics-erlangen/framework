@@ -53,6 +53,8 @@ public:
 public:
     explicit RobotSelectionWidget(QWidget *parent = 0);
     ~RobotSelectionWidget() override;
+    RobotSelectionWidget(const RobotSelectionWidget&) = delete;
+    RobotSelectionWidget& operator=(const RobotSelectionWidget&) = delete;
     void shutdown();
     void enableContent(bool enable);
     void resend();

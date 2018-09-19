@@ -7,8 +7,6 @@ QuadraticLeastSquaresFitter::QuadraticLeastSquaresFitter(int pointLimit) :
     clear();
 }
 
-QuadraticLeastSquaresFitter::~QuadraticLeastSquaresFitter() { }
-
 void QuadraticLeastSquaresFitter::update(float scale, std::pair<float, float> &val)
 {
     Tx += scale * val.first;

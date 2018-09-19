@@ -32,6 +32,8 @@ class DebugModel : public QStandardItemModel
 public:
     explicit DebugModel(QObject *parent = 0);
     ~DebugModel() override;
+    DebugModel(const DebugModel&) = delete;
+    DebugModel& operator=(const DebugModel&) = delete;
 
 signals:
     void expand(const QModelIndex &index);

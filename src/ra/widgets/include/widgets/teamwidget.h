@@ -41,6 +41,8 @@ public:
 
     explicit TeamWidget(QWidget *parent = 0);
     ~TeamWidget() override;
+    TeamWidget(const TeamWidget&) = delete;
+    TeamWidget& operator=(const TeamWidget&) = delete;
 
 signals:
     void sendCommand(const Command &command);

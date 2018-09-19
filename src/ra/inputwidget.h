@@ -35,6 +35,8 @@ class InputWidget : public QWidget
 public:
     explicit InputWidget(QWidget *parent = 0);
     ~InputWidget() override;
+    InputWidget(const InputWidget&) = delete;
+    InputWidget& operator=(const InputWidget&) = delete;
 
 public:
     void init(InputManager *inputManager);

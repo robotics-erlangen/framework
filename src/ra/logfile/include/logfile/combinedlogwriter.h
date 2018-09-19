@@ -21,6 +21,8 @@ class CombinedLogWriter : public QObject
 public:
     CombinedLogWriter(bool replay, int backlogLength);
     ~CombinedLogWriter();
+    CombinedLogWriter(const CombinedLogWriter&) = delete;
+    CombinedLogWriter& operator=(const CombinedLogWriter&) = delete;
     StatusSource * makeStatusSource();
     QList<Status> getBacklogStatus(int lastNPackets);
 

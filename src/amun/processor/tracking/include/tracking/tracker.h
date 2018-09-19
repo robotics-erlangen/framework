@@ -53,6 +53,8 @@ private:
 public:
     Tracker();
     ~Tracker();
+    Tracker(const Tracker&) = delete;
+    Tracker& operator=(const Tracker&) = delete;
 
 public:
     void process(qint64 currentTime);

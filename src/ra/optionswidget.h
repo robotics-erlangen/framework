@@ -40,6 +40,8 @@ class OptionsWidget : public QWidget
 public:
     explicit OptionsWidget(QWidget *parent = 0);
     ~OptionsWidget() override;
+    OptionsWidget(const OptionsWidget&) = delete;
+    OptionsWidget& operator=(const OptionsWidget&) = delete;
 
 signals:
     void sendCommand(const Command &command);

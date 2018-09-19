@@ -37,6 +37,8 @@ class ConfigDialog : public QDialog
 public:
     explicit ConfigDialog(QWidget *parent = 0);
     ~ConfigDialog() override;
+    ConfigDialog(const ConfigDialog&) = delete;
+    ConfigDialog& operator=(const ConfigDialog&) = delete;
 
 signals:
     void sendCommand(const Command &command);

@@ -37,6 +37,8 @@ class RobotFilter : public Filter
 public:
     RobotFilter(const SSL_DetectionRobot &robot, qint64 last_time);
     ~RobotFilter() override;
+    RobotFilter(const RobotFilter&) = delete;
+    RobotFilter& operator=(const RobotFilter&) = delete;
 
     void update(qint64 time);
     void get(world::Robot *robot, bool flip, bool noRawData);

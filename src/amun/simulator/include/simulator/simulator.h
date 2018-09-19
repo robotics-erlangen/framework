@@ -51,6 +51,8 @@ public:
 
     explicit Simulator(const Timer *timer, amun::CommandSimulator::RuleVersion ruleVersion);
     ~Simulator() override;
+    Simulator(const Simulator&) = delete;
+    Simulator& operator=(const Simulator&) = delete;
     void handleSimulatorTick(double timeStep);
 
 signals:

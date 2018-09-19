@@ -40,6 +40,8 @@ public:
 public:
     explicit RobotWidget(InputManager *inputManager, bool is_generation, QWidget *parent = 0);
     ~RobotWidget() override;
+    RobotWidget(const RobotWidget&) = delete;
+    RobotWidget& operator=(const RobotWidget&) = delete;
 
 public:
     void setSpecs(const robot::Specs &specs);

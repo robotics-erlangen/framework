@@ -41,6 +41,8 @@ private:
 
 public:
     ~USBDevice() override;
+    USBDevice(const USBDevice&) = delete;
+    USBDevice& operator=(const USBDevice&) = delete;
 
 public:
     bool open(OpenMode mode) override;

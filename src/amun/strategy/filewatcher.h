@@ -33,6 +33,8 @@ class FileWatcher : public QObject
 public:
     explicit FileWatcher(QObject *parent = 0);
     ~FileWatcher() override;
+    FileWatcher(const FileWatcher&) = delete;
+    FileWatcher& operator=(const FileWatcher&) = delete;
     bool addFile(const QString &filename);
 
 signals:

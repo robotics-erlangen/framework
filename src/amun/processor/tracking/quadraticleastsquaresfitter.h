@@ -15,7 +15,6 @@ public:
     };
 
     explicit QuadraticLeastSquaresFitter(int pointLimit);
-    ~QuadraticLeastSquaresFitter();
 
     void addPoint(float x, float y);
     void clear();

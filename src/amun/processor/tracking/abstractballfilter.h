@@ -47,6 +47,8 @@ typedef KalmanFilter<6, 3> Kalman;
 class AbstractBallFilter {
 public:
     AbstractBallFilter(VisionFrame& frame, CameraInfo& cameraInfo);
+    AbstractBallFilter(const AbstractBallFilter&) = delete;
+    AbstractBallFilter& operator=(const AbstractBallFilter&) = delete;
 
     virtual void processVisionFrame(VisionFrame const& frame)=0;
     virtual bool acceptDetection(const VisionFrame& frame)=0;

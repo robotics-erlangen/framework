@@ -56,6 +56,8 @@ private:
 public:
     explicit Transceiver(const Timer *timer);
     ~Transceiver() override;
+    Transceiver(const Transceiver&) = delete;
+    Transceiver& operator=(const Transceiver&) = delete;
 
 signals:
     void sendStatus(const Status &status);

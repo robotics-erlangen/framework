@@ -48,6 +48,8 @@ class Strategy : public QObject
 public:
     Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, bool internalAutoref = false, bool isLogplayer = false);
     ~Strategy() override;
+    Strategy(const Strategy&) = delete;
+    Strategy& operator=(const Strategy&) = delete;
     void resetIsReplay() { m_isReplay = false; }
     void setEnabled(bool enable) { m_isEnabled = enable; }
 

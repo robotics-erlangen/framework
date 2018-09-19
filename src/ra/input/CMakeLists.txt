@@ -42,7 +42,7 @@ if(TARGET lib::sdl2)
         joystick.cpp
         joystick.h
     )
-	target_link_libraries(input PRIVATE lib::sdl2)
+    target_link_libraries(input PRIVATE lib::sdl2)
     target_compile_definitions(input PUBLIC SDL2_FOUND)
 endif()
 

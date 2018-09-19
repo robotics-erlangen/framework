@@ -37,6 +37,8 @@ class RefereeStatusWidget : public QWidget
 public:
     explicit RefereeStatusWidget(QWidget *parent = 0);
     ~RefereeStatusWidget() override;
+    RefereeStatusWidget(const RefereeStatusWidget&) = delete;
+    RefereeStatusWidget& operator=(const RefereeStatusWidget&) = delete;
 
 public slots:
     void handleStatus(const Status &status);

@@ -36,6 +36,8 @@ class TimingWidget : public QWidget
 public:
     explicit TimingWidget(QWidget *parent = 0);
     ~TimingWidget() override;
+    TimingWidget(const TimingWidget&) = delete;
+    TimingWidget& operator=(const TimingWidget&) = delete;
 
 public slots:
     void handleStatus(const Status &status);

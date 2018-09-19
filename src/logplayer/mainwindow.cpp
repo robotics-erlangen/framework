@@ -376,6 +376,6 @@ void MainWindow::clearAll()
 
 void MainWindow::selectFrame(int amm)
 {
-	int frame = std::max(0,std::min(amm, ui->logManager->getLastFrame()));
-	ui->logManager->seekPacket(frame);
+    int frame = std::max(0,std::min(amm, ui->logManager->getLastFrame()));
+    ui->logManager->seekPacket(frame);
 }

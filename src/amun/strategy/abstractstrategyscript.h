@@ -44,6 +44,8 @@ class AbstractStrategyScript : public QObject
 public:
     AbstractStrategyScript(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled);
     ~AbstractStrategyScript() override {}
+    AbstractStrategyScript(const AbstractStrategyScript&) = delete;
+    AbstractStrategyScript& operator=(const AbstractStrategyScript&) = delete;
 
     // simple factory to allow for different strategy handlers
     static bool canHandle(const QString &filename);

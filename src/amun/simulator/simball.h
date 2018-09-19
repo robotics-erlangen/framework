@@ -36,6 +36,8 @@ class SimBall
 public:
     SimBall(RNG *rng, btDiscreteDynamicsWorld *world, float fieldWidth, float fieldHeight);
     ~SimBall();
+    SimBall(const SimBall&) = delete;
+    SimBall& operator=(const SimBall&) = delete;
 
 public:
     void begin();

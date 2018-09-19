@@ -49,8 +49,8 @@ add_executable(visionextractor
 )
 
 target_link_libraries(visionextractor
-	PRIVATE ra::logfile
-	PRIVATE shared::protobuf
-	PRIVATE visionlog::visionlog
-	PUBLIC Qt5::Core
+    PRIVATE ra::logfile
+    PRIVATE shared::protobuf
+    PRIVATE visionlog::visionlog
+    PUBLIC Qt5::Core
 )

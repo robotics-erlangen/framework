@@ -34,6 +34,8 @@ class Connector : public QObject
 public:
     explicit Connector(QObject *parent = 0);
     ~Connector() override;
+    Connector(const Connector&) = delete;
+    Connector& operator=(const Connector&) = delete;
 
     void setInitScript(const QString &initScript);
     void setEntryPoint(const QString &entryPoint);

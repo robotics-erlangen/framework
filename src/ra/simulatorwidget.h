@@ -36,6 +36,8 @@ class SimulatorWidget : public QWidget
 public:
     explicit SimulatorWidget(QWidget *parent = 0);
     ~SimulatorWidget() override;
+    SimulatorWidget(const SimulatorWidget&) = delete;
+    SimulatorWidget& operator=(const SimulatorWidget&) = delete;
 
 signals:
     void sendCommand(const Command &command);

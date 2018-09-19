@@ -27,7 +27,7 @@ add_library(core
     timer.cpp
 )
 target_link_libraries(core
-	PUBLIC Qt5::Core
+    PUBLIC Qt5::Core
 )
 target_include_directories(core
     INTERFACE include

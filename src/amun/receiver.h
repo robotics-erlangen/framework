@@ -31,6 +31,8 @@ class Receiver : public QObject
 public:
     Receiver(const QHostAddress &groupAddress, quint16 port);
     ~Receiver() override;
+    Receiver(const Receiver&) = delete;
+    Receiver& operator=(const Receiver&) = delete;
 
 signals:
     void gotPacket(const QByteArray &data, qint64 time, QString sender);

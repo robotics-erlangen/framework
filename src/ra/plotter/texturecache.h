@@ -10,6 +10,8 @@ class TextureCache
 public:
     explicit TextureCache(QGLContext *context);
     ~TextureCache();
+    TextureCache(const TextureCache&) = delete;
+    TextureCache& operator=(const TextureCache&) = delete;
 
     bool find(const QString &key, GLuint *textureId, QPixmap *pixmap);
     GLuint insert(const QString &key, const QPixmap &pixmap);

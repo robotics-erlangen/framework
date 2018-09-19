@@ -43,6 +43,8 @@ class VisualizationWidget : public QWidget
 public:
     explicit VisualizationWidget(QWidget *parent = 0);
     ~VisualizationWidget() override;
+    VisualizationWidget(const VisualizationWidget&) = delete;
+    VisualizationWidget& operator=(const VisualizationWidget&) = delete;
 
 signals:
     void itemsChanged(const QStringList &items);

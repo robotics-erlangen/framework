@@ -33,6 +33,8 @@ class DebuggerConsole : public QPlainTextEdit
 public:
     explicit DebuggerConsole(QWidget *parent = 0);
     ~DebuggerConsole();
+    DebuggerConsole(const DebuggerConsole&) = delete;
+    DebuggerConsole& operator=(const DebuggerConsole&) = delete;
 
     void setStrategy(amun::DebugSource debugSource);
 

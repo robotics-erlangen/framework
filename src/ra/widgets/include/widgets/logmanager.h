@@ -42,6 +42,8 @@ class LogManager : public QWidget
 public:
     explicit LogManager(QWidget *parent = 0);
     ~LogManager();
+    LogManager(const LogManager&) = delete;
+    LogManager& operator=(const LogManager&) = delete;
     void setStatusSource(StatusSource * source);
     Timer * getPlayTimer() { return &m_playTimer; }
     void setMinimalMode();

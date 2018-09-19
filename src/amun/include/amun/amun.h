@@ -44,6 +44,8 @@ class Amun : public QObject
 public:
     explicit Amun(bool simulatorOnly, QObject *parent = 0);
     ~Amun() override;
+    Amun(const Amun&) = delete;
+    Amun& operator=(const Amun&) = delete;
 
 signals:
     void sendStatus(const Status &status);

@@ -42,7 +42,7 @@ VisionLogReader::VisionLogReader(const QString& filename):
         return;
     }
 
-	VisionLog::FileHeader fileHeader;
+    VisionLog::FileHeader fileHeader;
     in_stream->read((char*) &fileHeader, sizeof(fileHeader));
     // Log data is stored big endian, convert to host byte order
     fileHeader.version = qFromBigEndian(fileHeader.version);

@@ -35,12 +35,12 @@ add_library(amun
 )
 target_link_libraries(amun
     PRIVATE shared::core
-	PRIVATE amun::processor
-	PRIVATE amun::simulator
-	PRIVATE amun::strategy
-	PUBLIC shared::protobuf
-	PUBLIC Qt5::Core
-	PRIVATE Qt5::Network
+    PRIVATE amun::processor
+    PRIVATE amun::simulator
+    PRIVATE amun::strategy
+    PUBLIC shared::protobuf
+    PUBLIC Qt5::Core
+    PRIVATE Qt5::Network
 )
 target_include_directories(amun
     INTERFACE include

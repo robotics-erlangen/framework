@@ -30,6 +30,8 @@ class SimField
 public:
     SimField(btDiscreteDynamicsWorld *world, const world::Geometry &geometry);
     ~SimField();
+    SimField(const SimField&) = delete;
+    SimField& operator=(const SimField&) = delete;
 
 private:
     void addObject(btCollisionShape *shape, const btTransform &transform, float restitution, float friction);

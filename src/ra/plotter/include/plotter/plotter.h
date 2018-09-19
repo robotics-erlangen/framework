@@ -43,6 +43,8 @@ class Plotter : public QWidget
 public:
     explicit Plotter();
     ~Plotter() override;
+    Plotter(const Plotter&) = delete;
+    Plotter& operator=(const Plotter&) = delete;
 
 public slots:
     void setScaling(float min, float max, float timespan);

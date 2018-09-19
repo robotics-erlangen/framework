@@ -99,7 +99,7 @@ void LogManager::goToEnd()
 
 int LogManager::getLastFrame()
 {
-	return m_frames.back();
+    return m_frames.back();
 }
 
 void LogManager::previousFrame()

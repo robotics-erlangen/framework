@@ -34,6 +34,8 @@ class DebugTreeWidget : public QTreeView
 public:
     explicit DebugTreeWidget(QWidget *parent = 0);
     ~DebugTreeWidget() override;
+    DebugTreeWidget(const DebugTreeWidget&) = delete;
+    DebugTreeWidget& operator=(const DebugTreeWidget&) = delete;
     void setFilterRegEx(const QString &keyFilter, const QString &valueFilter);
 
 public slots:

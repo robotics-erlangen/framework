@@ -28,7 +28,7 @@
 
 class Plot : public QObject
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
     explicit Plot(const QString &name, QObject *parent = 0);
 

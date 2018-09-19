@@ -36,6 +36,8 @@ class DebugWidget : public QWidget
 public:
     explicit DebugWidget(QWidget *parent = 0);
     ~DebugWidget();
+    DebugWidget(const DebugWidget&) = delete;
+    DebugWidget& operator=(const DebugWidget&) = delete;
 
 public slots:
     void clearData();

@@ -40,6 +40,8 @@ private:
 public:
     SpeedTracker();
     ~SpeedTracker();
+    SpeedTracker(const SpeedTracker&) = delete;
+    SpeedTracker& operator=(const SpeedTracker&) = delete;
 
 public:
     void process(qint64 currentTime);

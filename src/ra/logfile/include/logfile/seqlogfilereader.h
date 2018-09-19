@@ -37,6 +37,8 @@ public:
     //static QPair<StatusSource*, QString> tryOpen(QString filename);
     SeqLogFileReader();
     ~SeqLogFileReader();
+    SeqLogFileReader(const SeqLogFileReader&) = delete;
+    SeqLogFileReader& operator=(const SeqLogFileReader&) = delete;
 
     bool open(const QString &filename);
     bool isOpen() const { return m_file.isOpen(); }

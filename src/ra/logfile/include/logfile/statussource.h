@@ -30,6 +30,8 @@ class StatusSource : public QObject
     Q_OBJECT
 public:
     virtual ~StatusSource() {}
+    StatusSource(const StatusSource&) = delete;
+    StatusSource& operator=(const StatusSource&) = delete;
     virtual bool isOpen() const = 0;
 
     virtual const QList<qint64>& timings() const = 0;
@@ -42,6 +44,9 @@ public slots:
 
 signals:
     void gotStatus(int packet, const Status &status);
+
+protected:
+    StatusSource() = default;
 };
 
 #endif // STATUSSOURCE_H

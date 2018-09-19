@@ -32,6 +32,8 @@ public:
 public:
     KdTree(const Vector &position, bool inObstacle);
     ~KdTree();
+    KdTree(const KdTree&) = delete;
+    KdTree& operator=(const KdTree&) = delete;
 
 public:
     KdTree::Node* insert(const Vector &position, bool inObstacle, const Node *previous);

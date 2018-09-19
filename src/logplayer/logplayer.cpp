@@ -51,8 +51,8 @@ int main(int argc, char *argv[])
     if (args.size() >= 2) {
         window.openFile(args.at(1));
     }
-	if(args.size() >= 3)
-		window.selectFrame(args.at(2).toInt());
+    if(args.size() >= 3)
+        window.selectFrame(args.at(2).toInt());
 
     return app.exec();
 }

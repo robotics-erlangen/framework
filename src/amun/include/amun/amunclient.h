@@ -34,6 +34,8 @@ class AmunClient : public QObject
 public:
     explicit AmunClient(QObject *parent = 0);
     ~AmunClient() override;
+    AmunClient(const AmunClient&) = delete;
+    AmunClient& operator=(const AmunClient&) = delete;
 
 signals:
     void gotStatus(const Status &status);

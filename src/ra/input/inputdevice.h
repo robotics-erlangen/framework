@@ -32,6 +32,8 @@ class InputDevice : public QObject
 public:
     explicit InputDevice(const QString &name);
     ~InputDevice() override;
+    InputDevice(const InputDevice&) = delete;
+    InputDevice& operator=(const InputDevice&) = delete;
 
 signals:
     void sendRefereeCommand(SSL_Referee::Command command);

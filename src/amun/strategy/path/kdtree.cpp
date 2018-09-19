@@ -25,6 +25,8 @@ class KdTree::Node
 public:
     Node(const Vector &position, bool inObstacle, const Node *previous, unsigned int axis, Node *parent);
     ~Node();
+    Node(const Node&) = delete;
+    Node& operator=(const Node&) = delete;
 
 public:
     Node** nearestChildPointer(const Vector &position);

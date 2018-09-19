@@ -17,6 +17,8 @@ class ReplayTeamWidget : public QWidget
 public:
     explicit ReplayTeamWidget(QWidget *parent = 0);
     ~ReplayTeamWidget();
+    ReplayTeamWidget(const ReplayTeamWidget&) = delete;
+    ReplayTeamWidget& operator=(const ReplayTeamWidget&) = delete;
     bool replayBlueEnabled() const;
     bool replayYellowEnabled() const;
 

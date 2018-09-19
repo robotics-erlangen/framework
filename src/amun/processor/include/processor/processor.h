@@ -46,6 +46,8 @@ public:
 
     explicit Processor(const Timer *timer);
     ~Processor() override;
+    Processor(const Processor&) = delete;
+    Processor& operator=(const Processor&) = delete;
     bool getIsFlipped() const { return m_lastFlipped; }
 
 signals:

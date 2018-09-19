@@ -42,6 +42,8 @@ class InputManager : public QObject
 public:
     explicit InputManager(QObject *parent = NULL);
     ~InputManager() override;
+    InputManager(const InputManager&) = delete;
+    InputManager& operator=(const InputManager&) = delete;
 
 signals:
     // input manager signals

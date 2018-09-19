@@ -35,6 +35,8 @@ public:
     BallTracker(const SSL_DetectionBall &ball, qint64 last_time, qint32 primaryCamera, CameraInfo* cameraInfo, RobotInfo robotInfo, qint64 visionProcessingDelay);
     BallTracker(const BallTracker& previousFilter, qint32 primaryCamera);
     ~BallTracker() override;
+    BallTracker(const BallTracker&) = delete;
+    BallTracker& operator=(const BallTracker&) = delete;
 
 public:
     void update(qint64 time);

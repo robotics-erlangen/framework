@@ -139,9 +139,9 @@ int main(int argc, char* argv[])
         } while(receiveTimeNanos <= systemTimeNanos && receiveTimeNanos != -1);
 
         if(!enabled || (counter > first_frame && counter < last_frame))
-		{
+        {
             tracker.process(systemTimeNanos);
-		}
+        }
 
         timer->setTime(systemTimeNanos, 1.0); // update timer for strategy
 
