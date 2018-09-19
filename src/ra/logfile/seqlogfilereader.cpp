@@ -59,8 +59,11 @@ bool SeqLogFileReader::open(const QString &filename)
     }
 
     // initialize variables
-    m_currentGroupIndex = -1;
-    m_baseOffset = -1;
+    m_currentGroupIndex = 0;
+    m_baseOffset = m_file.pos() + sizeof(qint64) * m_packageGroupSize;
+    m_readingTimstamps = true;
+    //assume its a full packet. As we are reading timestamps, thats fine. If we swap to read packets, we update m_currentGroupMaxIndex
+    m_currentGroupMaxIndex = m_packageGroupSize;
 
     return true;
 }
@@ -75,46 +78,63 @@ void SeqLogFileReader::close()
     m_currentGroup.clear();
 }
 
-void SeqLogFileReader::seek(qint64 offset, int num)
+QList<SeqLogFileReader::Memento> SeqLogFileReader::createMementos(const QList<qint64>& offsets, qint32 groupedPackages)
 {
-    // lock to prevent intermediate file changes
-    QMutexLocker locker(m_mutex);
-    qint64 v2BaseOffset = offset + sizeof(qint64) * (m_packageGroupSize - num);
-    if(m_version == Version2 && v2BaseOffset != m_baseOffset){
-        m_currentGroupMaxIndex = m_packageGroupSize;
-        m_file.seek(v2BaseOffset - sizeof(qint64) * m_packageGroupSize);
-        for(int i=0; i < m_packageGroupSize; ++i){
-            qint64 time;
-            m_stream >> time;
-            if (time == 0){
-                m_currentGroupMaxIndex = i;
-                break;
-            }
+    int groupIndex = 0;
+    QList<Memento> out;
+    for (qint64 offset : offsets) {
+        out.append(Memento(offset - sizeof(qint64) * groupIndex, groupIndex));
+        groupIndex++;
+        if (groupIndex >= groupedPackages) {
+            groupIndex -= groupedPackages;
         }
-        m_file.seek(v2BaseOffset);
-        m_baseOffset = v2BaseOffset;
-            // read and decompress group
-            m_currentGroup.clear();
-            m_stream >> m_currentGroup;
-            m_currentGroup = qUncompress(m_currentGroup);
-            if (m_currentGroup.isEmpty()) {
-                return ;
-            }
-            // get offsets in package
-            m_currentGroupOffsets.clear();
-            QDataStream ds(m_currentGroup);
-            ds.setVersion(QDataStream::Qt_4_6);
-            ds.skipRawData(m_currentGroup.size() - sizeof(qint32) * m_packageGroupSize);
-            for (int i = 0; i < m_packageGroupSize; ++i) {
-                qint32 offset;
-                ds >> offset;
-                m_currentGroupOffsets.append(offset);
-            }
-            m_currentGroupIndex = num;
     }
-    else if (m_version != Version2){
-        m_file.seek(offset);
+    return out;
+}
+
+void SeqLogFileReader::readNextGroup()
+{
+    QMutexLocker locker(m_mutex);
+    qint64 baseOffset = m_file.pos() + sizeof(qint64) * m_packageGroupSize;
+    //assume its a full group
+    m_currentGroupMaxIndex = m_packageGroupSize;
+    for (int i=0; i < m_packageGroupSize; ++i) {
+        qint64 time;
+        m_stream >> time;
+        //time 0 stands for invalid packets
+        if (time == 0) {
+            m_currentGroupMaxIndex = i;
+            m_file.seek(baseOffset);
+            break;
+        }
     }
+    m_baseOffset = baseOffset;
+    // read and decompress group
+    m_currentGroup.clear();
+    m_stream >> m_currentGroup;
+    m_currentGroup = qUncompress(m_currentGroup);
+    if (m_currentGroup.isEmpty()) {
+        return ;
+    }
+    // get offsets in package
+    m_currentGroupOffsets.clear();
+    QDataStream ds(m_currentGroup);
+    ds.setVersion(QDataStream::Qt_4_6);
+    ds.skipRawData(m_currentGroup.size() - sizeof(qint32) * m_packageGroupSize);
+    for (int i = 0; i < m_packageGroupSize; ++i) {
+        qint32 offset;
+        ds >> offset;
+        m_currentGroupOffsets.append(offset);
+    }
+    m_currentGroupIndex = 0;
+    m_readingTimstamps = false;
+}
+
+//readCurrentGroup reads the group that is referenced by m_baseOffset
+void SeqLogFileReader::readCurrentGroup()
+{
+    m_file.seek(m_baseOffset - sizeof(qint64) * m_packageGroupSize);
+    readNextGroup();
 }
 
 bool SeqLogFileReader::readVersion()
@@ -177,30 +197,54 @@ qint64 SeqLogFileReader::readTimestampVersion1()
     return time;
 }
 
-QPair<qint64, int> SeqLogFileReader::readTimestampVersion2(int packetIndex)
+qint64 SeqLogFileReader::readTimestampVersion2()
 {
+    if(!m_readingTimstamps){
+        m_file.seek(m_baseOffset - sizeof(qint64) * (m_packageGroupSize - m_currentGroupIndex));
+        m_readingTimstamps = true;
+    }
     qint64 time;
     m_stream >> time;
+    m_currentGroupIndex++;
 
-    if (packetIndex % m_packageGroupSize == 0) {
+    if (m_currentGroupIndex % m_packageGroupSize == 0) {
         quint32 size;
         m_stream >> size;
         m_file.seek(m_file.pos() + size);
+        m_currentGroupIndex = 0;
+        m_baseOffset = m_file.pos() + sizeof(qint64) * m_packageGroupSize;
+        m_currentGroup.clear();
     }
 
-    return QPair<qint64, int>(time, (packetIndex-1) % m_packageGroupSize);
+    return time;
 }
 
-QPair<qint64, int> SeqLogFileReader::readTimestamp(int packetIndex)
+qint64 SeqLogFileReader::readTimestamp()
 {
     // lock to prevent intermediate file changes
     QMutexLocker locker(m_mutex);
     switch (m_version) {
-        case Version0: return QPair<qint64, int>(readTimestampVersion0(), 0);
-        case Version1: return QPair<qint64, int>(readTimestampVersion1(), 0);
-        case Version2: return readTimestampVersion2(packetIndex);
+        case Version0: return readTimestampVersion0();
+        case Version1: return readTimestampVersion1();
+        case Version2: return readTimestampVersion2();
         default: qFatal("unknown Version");
     }
+}
+
+void SeqLogFileReader::applyMemento(const Memento& mem){
+    // handle old versions
+    if (m_version != Version2) {
+        m_file.seek(mem.baseOffset);
+        return;
+    }
+
+    if (mem.baseOffset != m_baseOffset) {
+        m_baseOffset = mem.baseOffset;
+        //we are not in the correct group, so load it
+        //readCurrentGroup handles everything as soon as baseOffset is correct
+        readCurrentGroup();
+    }
+    m_currentGroupIndex = mem.groupIndex;
 }
 
 Status SeqLogFileReader::readStatus()
@@ -208,33 +252,42 @@ Status SeqLogFileReader::readStatus()
     // lock to prevent intermediate file changes
     QMutexLocker locker(m_mutex);
     if (m_version == Version2) {
-        // if the packet is new and must be decompressed first
-        if (m_currentGroupIndex == -1 || ++m_currentGroupIndex >= m_currentGroupMaxIndex) {
-            //if the end is near
-            if(m_currentGroupMaxIndex != m_packageGroupSize) {
-                return Status();
-            }
-            //seek to the requested packetgroup
-            seek(m_file.pos(), 0);
+        // if the group is not loaded yet, do so.
+        if (m_currentGroup.isEmpty()) {
+            // There's no need to check m_readingTimstamps, as readCurrentGroup does not care about that and resets it to false
+            readCurrentGroup();
         }
-
-        qint32 packetOffset = m_currentGroupOffsets[m_currentGroupIndex];
-        //check for invalid offset
-        if (packetOffset >= m_currentGroup.size() || packetOffset < 0) {
+        // if the index is out of bounds, we're at the end of the logfile and recognized that during readCurrentGroup.
+        // This cannot happen if we're just at the end of a group, as we change groups at the end of readStatus / readTimestamp,
+        // to have relieable atEnd()
+        if (m_currentGroupIndex >= m_currentGroupMaxIndex) {
             return Status();
         }
 
-        qint32 packetSize;
-        if (m_currentGroupIndex < m_packageGroupSize - 1) {
-            packetSize = m_currentGroupOffsets[m_currentGroupIndex + 1] - packetOffset;
-        } else {
-            packetSize = m_currentGroup.size() - sizeof(qint32) * m_packageGroupSize - packetOffset;
+        qint32 packetOffset = m_currentGroupOffsets[m_currentGroupIndex];
+        m_currentGroupIndex++;
+        Status res;
+        //check for invalid offset
+        if (packetOffset < m_currentGroup.size() && packetOffset >= 0) {
+            qint32 packetSize;
+            if (m_currentGroupIndex < m_packageGroupSize - 1) {
+                packetSize = m_currentGroupOffsets[m_currentGroupIndex + 1] - packetOffset;
+            } else {
+                packetSize = m_currentGroup.size() - sizeof(qint32) * m_packageGroupSize - packetOffset;
+            }
+
+            Status status = Status::createArena();
+            if (status->ParseFromArray(m_currentGroup.data() + packetOffset, packetSize)) {
+                res = status;
+            }
         }
 
-        Status status = Status::createArena();
-        if (status->ParseFromArray(m_currentGroup.data() + packetOffset, packetSize)) {
-            return status;
+        //load next group if possible
+        if (m_currentGroupIndex >= m_currentGroupMaxIndex && !m_stream.atEnd()){
+            readNextGroup();
         }
+        return res;
+
     } else {
         // skip timestamp of version one
         if (m_version == Version1) {

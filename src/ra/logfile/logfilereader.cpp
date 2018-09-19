@@ -29,16 +29,9 @@ LogFileReader::LogFileReader()
 }
 
 LogFileReader::LogFileReader(const QList<qint64> &timings, const QList<qint64> &offsets, const qint32 groupedPackages):
+    m_packets(SeqLogFileReader::createMementos(offsets, groupedPackages)),
     m_timings(timings)
 {
-    int inGroupIndex = 0;
-    for(qint64 off: offsets){
-        m_packets.append(QPair<qint64, int>(off, inGroupIndex));
-        inGroupIndex++;
-        if(inGroupIndex >= groupedPackages){
-            inGroupIndex -= groupedPackages;
-        }
-    }
 }
 
 LogFileReader::~LogFileReader()
@@ -106,15 +99,11 @@ void LogFileReader::close()
 
 bool LogFileReader::indexFile()
 {
-    int packetIndex = 0;
     qint64 lastTime = 0;
     while (!m_reader.atEnd()) {
-        const qint64 offset = m_reader.pos();
-        packetIndex++;
+        SeqLogFileReader::Memento mem = m_reader.createMemento();
 
-        QPair<qint64,int> pair = m_reader.readTimestamp(packetIndex);
-        qint64 time = pair.first;
-
+        qint64 time = m_reader.readTimestamp();
         // a timestamp of 0 indicates a invalid packet
         if (time != 0) {
             // timestamps that are too far apart mean that the logfile is corrupt
@@ -124,7 +113,7 @@ bool LogFileReader::indexFile()
             }
 
             // remember the start of the current frame
-            m_packets.append(QPair<qint64, int>(offset, pair.second));
+            m_packets.append(mem);
             m_timings.append(time);
         }
         lastTime = time;
@@ -138,8 +127,7 @@ Status LogFileReader::readStatus(int packetNum)
         return Status();
     }
     //seek to the requested packetgroup
-    QPair<qint64, int> pos = m_packets.value(packetNum);
-    m_reader.seek(pos.first, pos.second);
+    m_reader.applyMemento(m_packets.at(packetNum));
     return m_reader.readStatus();
 }
 

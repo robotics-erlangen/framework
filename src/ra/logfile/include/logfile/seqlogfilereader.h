@@ -30,11 +30,21 @@
 
 class QMutex;
 
+// This class reads logfiles _sequentially_.
+// Calling either of readStatus and readTimestamp will result in moving the pointer to the next entry.
+// To aquire both, timestamp and status, call readStatus and extract the timestamp from the returned Status object.
+// Calling readTimestamp does not need to decompress the data, so it is the faster operation, as long as no Status from this group is needed.
 class SeqLogFileReader
 {
 public:
-    // checks if the format matches and opens the log file if it applies
-    //static QPair<StatusSource*, QString> tryOpen(QString filename);
+    class Memento
+    {
+    private:
+        explicit Memento(qint64 base, int index): baseOffset(base), groupIndex(index) {}
+        qint64 baseOffset;
+        int groupIndex;
+        friend class SeqLogFileReader;
+    };
     SeqLogFileReader();
     ~SeqLogFileReader();
     SeqLogFileReader(const SeqLogFileReader&) = delete;
@@ -47,18 +57,21 @@ public:
     QString errorMsg() const { return m_errorMsg; }
 
     Status readStatus();
-    QPair<qint64,int>  readTimestamp(int packetIndex);
-    void seek(qint64 offset, int num) ; // { m_file.seek(offset); }
-    bool atEnd() { return m_stream.atEnd() || (m_version == Version2 && m_currentGroupIndex >= m_currentGroupMaxIndex); }
-    qint64 pos() {return m_file.pos(); }
+    qint64 readTimestamp();
+    bool atEnd() const { return m_stream.atEnd() || (m_version == Version2 && m_currentGroupIndex >= m_currentGroupMaxIndex); }
     void close();
 
+    Memento createMemento() const { return m_version == Version2 ? Memento(m_baseOffset, m_currentGroupIndex): Memento(m_file.pos(), 0); }
+    void applyMemento(const Memento& m);
+    static QList<Memento> createMementos(const QList<qint64>& offsets, qint32 groupedPackages);
+
 private:
-//    bool indexFile();
     bool readVersion();
     qint64 readTimestampVersion0();
     qint64 readTimestampVersion1();
-    QPair<qint64,int> readTimestampVersion2(int packetIndex);
+    qint64 readTimestampVersion2();
+    void readNextGroup();
+    void readCurrentGroup();
 
     mutable QMutex *m_mutex;
     QString m_errorMsg;
@@ -71,11 +84,14 @@ private:
     // a group of Status packages and an array of offsets
     QByteArray m_currentGroup;
     QList<qint32> m_currentGroupOffsets;
+    // The index of the package inside its group that will be returned on the next call of either readTimestamp or readStatus
     int m_currentGroupIndex;
+    // The index of the first package inside its group that is no longer part of that group
     int m_currentGroupMaxIndex;
     // how many packets are one group
     qint32 m_packageGroupSize;
     qint64 m_baseOffset;
+    bool m_readingTimstamps;
 };
 
 #endif // SEQLOGFILEREADER_H

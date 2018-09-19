@@ -39,7 +39,7 @@ public:
     // checks if the format matches and opens the log file if it applies
     static QPair<StatusSource*, QString> tryOpen(QString filename);
     explicit LogFileReader();
-    explicit LogFileReader(const QList<qint64> &timings, const QList<qint64> &offsets, const qint32 groupedPackages);
+    explicit LogFileReader(const QList<qint64> &timings, const QList<qint64> &offsets, qint32 groupedPackages);
     ~LogFileReader() override;
     LogFileReader(const LogFileReader &) = delete;
     LogFileReader& operator= (const LogFileReader &) = delete;
@@ -65,9 +65,8 @@ private:
     QString m_errorMsg;
 
 
-    QList<QPair<qint64,int>> m_packets;
+    QList<SeqLogFileReader::Memento> m_packets;
     QList<qint64> m_timings;
-    // a group of Status packages and an array of offsets
     bool m_headerCorrect;
     SeqLogFileReader m_reader;
 };
