@@ -444,6 +444,7 @@ export class Shoot {
 		debug.set("Shoot/State", this._state);
 
 		this._linearShoot = linearShoot;
+		this._precision = precision;
 
 		let color: vis.Color;
 		if (this._state === ShootState.StationaryBall) {
