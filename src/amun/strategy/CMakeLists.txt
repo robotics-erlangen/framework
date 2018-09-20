@@ -49,6 +49,8 @@ add_library(strategy
     strategyreplayhelper.cpp
     typescript.cpp
     typescript.h
+    typescriptcompiler.cpp
+    typescriptcompiler.h
 )
 target_link_libraries(strategy
     PRIVATE lib::luajit
