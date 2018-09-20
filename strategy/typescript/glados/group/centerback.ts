@@ -317,7 +317,7 @@ export class CenterBack {
 								} else if (j.targets[0] == undefined) {
 									j.targets = i.targets;
 								}
-								j.targets = i.targets.concat(j.targets);
+								n.targets = i.targets.concat(j.targets);
 								intersections.splice(ux,1);
 								merged = true;
 								break;
