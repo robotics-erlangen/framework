@@ -73,9 +73,11 @@ private slots:
     void showBacklogMode();
     void ruleVersionChanged(QAction * action);
     void saveConfig();
+    void switchToWidgetConfiguration(int configId);
 
 private:
     void toggleInstantReplay(bool enable);
+    void loadConfig(bool doRestoreGeometry);
 
 private:
     Ui::MainWindow *ui;
@@ -94,6 +96,7 @@ private:
     QList<Status> m_replayStrategyBuffer;
     DebuggerConsole *m_console;
     bool m_isTournamentMode;
+    uint m_currentWidgetConfiguration;
 
     const std::string TEAM_NAME = "Replace with your own team name!";
 };

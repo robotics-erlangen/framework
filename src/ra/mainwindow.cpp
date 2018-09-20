@@ -40,7 +40,8 @@ MainWindow::MainWindow(bool tournamentMode, QWidget *parent) :
     m_transceiverActive(false),
     m_lastStageTime(0),
     m_logWriter(false, 20),
-    m_isTournamentMode(tournamentMode)
+    m_isTournamentMode(tournamentMode),
+    m_currentWidgetConfiguration(1)
 {
     qRegisterMetaType<SSL_Referee::Command>("SSL_Referee::Command");
     qRegisterMetaType<SSL_Referee::Stage>("SSL_Referee::Stage");
@@ -190,24 +191,19 @@ MainWindow::MainWindow(bool tournamentMode, QWidget *parent) :
     // hide options dock by default
     ui->dockOptions->hide();
 
-    QSettings s;
-
-    s.beginGroup("MainWindow");
-    restoreGeometry(s.value("Geometry").toByteArray());
-    if (s.value("State").isNull()) {
-        tabifyDockWidget(ui->dockSimulator, ui->dockInput);
-        tabifyDockWidget(ui->dockInput, ui->dockVisualization);
-        tabifyDockWidget(ui->dockRobots, ui->dockBlueDebugger);
-        tabifyDockWidget(ui->dockRobots, ui->dockYellowDebugger);
-
-        ui->dockBlueDebugger->close();
-        ui->dockYellowDebugger->close();
+    loadConfig(true);
+    // switch configuration keys
+    QSignalMapper *switchConfigMapper = new QSignalMapper(this);
+    for (uint i = 0;i<10;i++) {
+        QAction *action = new QAction(this);
+        action->setShortcut(QKeySequence(static_cast<Qt::Key>(static_cast<unsigned int>((Qt::ALT + Qt::Key_0) + i))));
+        connect(action, SIGNAL(triggered()), switchConfigMapper, SLOT(map()));
+        switchConfigMapper->setMapping(action, int(i));
+        addAction(action);
     }
-    restoreState(s.value("State").toByteArray());
-    ui->splitterV->restoreState(s.value("SplitterV").toByteArray());
-    ui->splitterH->restoreState(s.value("SplitterH").toByteArray());
-    s.endGroup();
+    connect(switchConfigMapper, SIGNAL(mapped(int)), SLOT(switchToWidgetConfiguration(int)));
 
+    QSettings s;
     ui->actionSimulator->setChecked(s.value("Simulator/Enabled").toBool());
     ui->actionInternalReferee->setChecked(s.value("Referee/Internal").toBool());
     if (!ui->actionInternalReferee->isChecked()) {
@@ -284,7 +280,8 @@ void MainWindow::saveConfig()
 {
     QSettings s;
 
-    s.beginGroup("MainWindow");
+    s.beginGroup("MainWindow" + (m_currentWidgetConfiguration == 0 ? "" :
+                                    QString::number(m_currentWidgetConfiguration)));
     s.setValue("Geometry", saveGeometry());
     s.setValue("State", saveState());
     s.setValue("SplitterH", ui->splitterH->saveState());
@@ -296,6 +293,36 @@ void MainWindow::saveConfig()
     s.setValue("Referee/Internal", ui->actionInternalReferee->isChecked());
     s.setValue("InputDevices/Enabled", ui->actionInputDevices->isChecked());
     s.setValue("Flipped", ui->actionSidesFlipped->isChecked());
+}
+
+void MainWindow::loadConfig(bool doRestoreGeometry)
+{
+    QSettings s;
+    s.beginGroup("MainWindow" + (m_currentWidgetConfiguration == 0 ? "" :
+                                    QString::number(m_currentWidgetConfiguration)));
+    if (doRestoreGeometry) {
+        restoreGeometry(s.value("Geometry").toByteArray());
+    }
+    if (s.value("State").isNull()) {
+        tabifyDockWidget(ui->dockSimulator, ui->dockInput);
+        tabifyDockWidget(ui->dockInput, ui->dockVisualization);
+        tabifyDockWidget(ui->dockRobots, ui->dockBlueDebugger);
+        tabifyDockWidget(ui->dockRobots, ui->dockYellowDebugger);
+
+        ui->dockBlueDebugger->close();
+        ui->dockYellowDebugger->close();
+    }
+    restoreState(s.value("State").toByteArray());
+    ui->splitterV->restoreState(s.value("SplitterV").toByteArray());
+    ui->splitterH->restoreState(s.value("SplitterH").toByteArray());
+    s.endGroup();
+}
+
+void MainWindow::switchToWidgetConfiguration(int configId)
+{
+    saveConfig();
+    m_currentWidgetConfiguration = static_cast<unsigned int>(configId);
+    loadConfig(false);
 }
 
 void MainWindow::ruleVersionChanged(QAction * action)
