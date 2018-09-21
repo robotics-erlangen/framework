@@ -41,6 +41,8 @@ public:
 
     bool loadScript(const QString &filename, const QString &entryPoint, const world::Geometry &geometry, const robot::Team &team) override;
     bool process(double &pathPlanning, const world::State &worldState, const amun::GameState &refereeState, const amun::UserInput &userInput) override;
+    void startProfiling() override;
+    void endProfiling(const std::string &filename) override;
 
 private:
     static void performRequire(const v8::FunctionCallbackInfo<v8::Value>& args);
