@@ -35,10 +35,16 @@ class Timer;
 class QTimer;
 class QTcpSocket;
 class QUdpSocket;
+namespace v8 {
+    class Platform;
+}
 
 class Strategy : public QObject
 {
     Q_OBJECT
+
+public:
+    static void initV8();
 
 public:
     Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, bool internalAutoref = false, bool isLogplayer = false);
@@ -114,6 +120,8 @@ private:
     qint32 m_refboxReplyLength;
     QByteArray m_refboxReplyPartialPacket;
     bool m_isInLogplayer;
+
+    static std::unique_ptr<v8::Platform> static_platform;
 };
 
 #endif // STRATEGY_H

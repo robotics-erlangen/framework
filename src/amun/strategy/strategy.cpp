@@ -25,6 +25,7 @@
 #include "core/timer.h"
 #include "protobuf/geometry.h"
 #include "protobuf/robot.h"
+#include <QCoreApplication>
 #include <QDateTime>
 #include <QFileInfo>
 #include <QHostAddress>
@@ -32,6 +33,8 @@
 #include <QTimer>
 #include <QUdpSocket>
 #include <QtEndian>
+#include <v8.h>
+#include <libplatform/libplatform.h>
 
 /*!
  * \class Strategy
@@ -49,6 +52,18 @@ public:
     quint16 remoteControlPort;
     QByteArray remoteControlData;
 };
+
+// default initialization
+std::unique_ptr<v8::Platform> Strategy::static_platform;
+
+void Strategy::initV8() {
+    // TODO: use data directory
+    v8::V8::InitializeICUDefaultLocation(QCoreApplication::applicationFilePath().toUtf8().data());
+    v8::V8::InitializeExternalStartupData(QCoreApplication::applicationFilePath().toUtf8().data());
+    static_platform = v8::platform::NewDefaultPlatform();
+    v8::V8::InitializePlatform(static_platform.get());
+    v8::V8::Initialize();
+}
 
 /*!
  * \brief Creates a Strategy instance

@@ -26,18 +26,8 @@
 #include <QIcon>
 #include <QCommandLineParser>
 
-#include "v8.h"
-#include "libplatform/libplatform.h"
-
 int main(int argc, char* argv[])
 {
-    // TODO: use data directory
-    v8::V8::InitializeICUDefaultLocation(argv[0]);
-    v8::V8::InitializeExternalStartupData(argv[0]);
-    std::unique_ptr<v8::Platform> platform = v8::platform::NewDefaultPlatform();
-    v8::V8::InitializePlatform(platform.get());
-    v8::V8::Initialize();
-
     QApplication app(argc, argv);
     app.setApplicationName("Ra");
     app.setOrganizationName("ER-Force");

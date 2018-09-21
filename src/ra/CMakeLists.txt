@@ -96,7 +96,6 @@ target_link_libraries(ra
     ${OPENGL_LIBRARIES}
     Qt5::Widgets
     Qt5::OpenGL
-	lib::v8
     Threads::Threads
 )
 v8_copy_deps(ra)
