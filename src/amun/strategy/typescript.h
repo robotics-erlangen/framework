@@ -22,10 +22,12 @@
 #define TYPESCRIPT_H
 
 #include "abstractstrategyscript.h"
-#include "v8.h"
 
 #include <QString>
 #include <QMap>
+#include <QTextStream>
+#include <v8.h>
+#include <v8-profiler.h>
 
 class Typescript : public AbstractStrategyScript
 {

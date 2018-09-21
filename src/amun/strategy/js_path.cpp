@@ -20,14 +20,15 @@
 
 #include "js_path.h"
 
+#include <QList>
+#include <v8.h>
+
 #include "path/path.h"
 #include "core/timer.h"
 #include "protobuf/debug.pb.h"
 #include "protobuf/robot.pb.h"
 #include "js_protobuf.h"
 #include "typescript.h"
-#include "v8.h"
-#include <QList>
 
 using namespace v8;
 

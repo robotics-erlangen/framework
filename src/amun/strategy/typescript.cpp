@@ -24,9 +24,9 @@
 #include <QTextStream>
 #include <QDebug>
 #include <vector>
+#include <v8.h>
+#include <libplatform/libplatform.h>
 
-#include "v8.h"
-#include "libplatform/libplatform.h"
 #include "js_amun.h"
 #include "js_path.h"
 

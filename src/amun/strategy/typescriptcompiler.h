@@ -22,10 +22,10 @@
 #define TYPESCRIPTCOMPILER_H
 
 #include "abstractstrategyscript.h"
-#include "v8.h"
-#include "v8-profiler.h"
 
 #include <QString>
+#include <v8.h>
+#include <v8-profiler.h>
 
 class TypescriptCompiler
 {

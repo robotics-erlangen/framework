@@ -19,12 +19,13 @@
  ***************************************************************************/
 
 #include "js_amun.h"
-#include "typescript.h"
-#include "js_protobuf.h"
 
-#include "v8.h"
 #include <QList>
 #include <functional>
+#include <v8.h>
+
+#include "js_protobuf.h"
+#include "typescript.h"
 
 using namespace v8;
 

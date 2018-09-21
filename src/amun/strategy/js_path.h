@@ -21,7 +21,7 @@
 #ifndef JS_PATH_H
 #define JS_PATH_H
 
-#include "v8.h"
+#include <v8.h>
 
 class Typescript;
 
