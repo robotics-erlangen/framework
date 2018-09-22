@@ -432,8 +432,8 @@ export function ballRollTime(ball: {speed: Speed, maxSpeed: number}, distance: n
 
 		if (distance < s_switch) {
 			// a_slide/2 * t^2 + v_current * t - distance = 0
-			let [t_result] = MathUtil.solveSq(a_slide / 2, v_current, -distance + epsilon);
-			return t_result ? t_result : Infinity;
+			let t_result = MathUtil.solveSq(a_slide / 2, v_current, -distance + epsilon)[0];
+			return t_result != undefined ? t_result : Infinity;
 		}
 	} else {
 		t_switch = 0;
@@ -443,8 +443,8 @@ export function ballRollTime(ball: {speed: Speed, maxSpeed: number}, distance: n
 
 	let s_roll = distance - s_switch;
 	// a_roll/2 * t^2 + v_switch * t - s_roll = 0
-	let [t_roll] = MathUtil.solveSq(a_roll / 2, v_switch, -s_roll + epsilon);
-	let rollTime = t_roll ? t_roll : Infinity;
+	let t_roll = MathUtil.solveSq(a_roll / 2, v_switch, -s_roll + epsilon)[0];
+	let rollTime = t_roll != undefined ? t_roll : Infinity;
 
 	let t_result = t_switch + rollTime;
 	return t_result;

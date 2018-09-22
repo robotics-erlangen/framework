@@ -182,7 +182,7 @@ function _backpropagateSpeedLimit(speedProfile: number[][], maxSpeed: number, br
 				// ratsimp(integrate(v_0+a*t,t,0,t_mid)+integrate(v_0+a*t_mid+b*(t-t_mid),t,t_mid,t_end)=d);
 				let v_0 = switchSpeed, a = oldAccel, b = brake,d = missingDistance;
 				let t1 = MathUtil.solveSq(b - a, 2 * (b - a) * v_0, -2 * b * d)[0];
-				if (t1 && t1 > 0) {
+				if (t1 != undefined && t1 > 0) {
 					switchTime = switchTime + t1;
 					switchSpeed = switchSpeed + t1 * oldAccel;
 					injectTime = 0;
