@@ -23,23 +23,34 @@
 #include <QFileInfo>
 #include <QTextStream>
 #include <QDebug>
+#include <QThread>
 #include <vector>
 #include <v8.h>
 #include <libplatform/libplatform.h>
 
 #include "js_amun.h"
 #include "js_path.h"
+#include "checkforscripttimeout.h"
 
 using namespace v8;
 
 Typescript::Typescript(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled) :
-    AbstractStrategyScript (timer, type, debugEnabled, refboxControlEnabled)
+    AbstractStrategyScript (timer, type, debugEnabled, refboxControlEnabled),
+    m_executionCounter(0),
+    m_profiler (nullptr)
 {
     Isolate::CreateParams create_params;
     create_params.array_buffer_allocator = ArrayBuffer::Allocator::NewDefaultAllocator();
     m_isolate = Isolate::New(create_params);
     m_isolate->SetRAILMode(PERFORMANCE_LOAD);
     m_isolate->Enter();
+
+    // creates its own QThread and moves to it
+    m_checkForScriptTimeout = new CheckForScriptTimeout(m_isolate, m_timeoutCounter);
+    m_timeoutCheckerThread = new QThread(this);
+    m_timeoutCheckerThread->start();
+    m_checkForScriptTimeout->moveToThread(m_timeoutCheckerThread);
+
 
     HandleScope handleScope(m_isolate);
     Local<ObjectTemplate> globalTemplate = ObjectTemplate::New(m_isolate);
@@ -54,6 +65,9 @@ Typescript::Typescript(const Timer *timer, StrategyType type, bool debugEnabled,
 
 Typescript::~Typescript()
 {
+    m_checkForScriptTimeout->deleteLater();
+    m_timeoutCheckerThread->quit();
+    m_timeoutCheckerThread->wait();
     if (m_profiler != nullptr) {
         m_profiler->Dispose();
         m_profiler = nullptr;
@@ -265,7 +279,6 @@ bool Typescript::loadModule(QString name)
         m_currentExecutingModule = name;
         script->Run(context);
         if (tryCatch.HasCaught() || tryCatch.HasTerminated()) {
-            qDebug() <<"Run exception!";
             tryCatch.ReThrow();
             return false;
         }
@@ -291,13 +304,15 @@ bool Typescript::process(double &pathPlanning, const world::State &worldState, c
 {
     Q_ASSERT(!m_entryPoint.isNull());
 
+    m_executionCounter++;
+    m_timeoutCounter.store(m_executionCounter);
+
     m_worldState.CopyFrom(worldState);
     m_worldState.clear_vision_frames();
     m_refereeState.CopyFrom(refereeState);
     m_userInput.CopyFrom(userInput);
     takeDebugStatus();
 
-    // TODO: script timeout
     m_totalPathTime = 0;
 
     HandleScope handleScope(m_isolate);
@@ -308,10 +323,17 @@ bool Typescript::process(double &pathPlanning, const world::State &worldState, c
     Local<Function> function = Local<Function>::New(m_isolate, m_function);
     function->Call(context, context->Global(), 0, nullptr);
     if (tryCatch.HasTerminated() || tryCatch.HasCaught()) {
-        String::Utf8Value error(m_isolate, tryCatch.StackTrace(context).ToLocalChecked());
-        m_errorMsg = "<font color=\"red\">" + QString(*error) + "</font>";
+        Local<Value> stackTrace;
+        if (tryCatch.StackTrace(context).ToLocal(&stackTrace)) {
+            String::Utf8Value error(m_isolate, stackTrace);
+            m_errorMsg = "<font color=\"red\">" + QString(*error) + "</font>";
+        } else {
+            // this will only happen if the script was terminated by CheckForScriptTimeout
+            m_errorMsg = "<font color=\"red\">Script timeout</font>";
+        }
         return false;
     }
     pathPlanning = m_totalPathTime;
+    m_timeoutCounter.store(0);
     return true;
 }

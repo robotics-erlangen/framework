@@ -26,8 +26,12 @@
 #include <QString>
 #include <QMap>
 #include <QTextStream>
+#include <QAtomicInt>
 #include <v8.h>
 #include <v8-profiler.h>
+
+class CheckForScriptTimeout;
+class QThread;
 
 class Typescript : public AbstractStrategyScript
 {
@@ -60,6 +64,12 @@ private:
     QMap<QString, v8::Global<v8::Value>*> m_requireCache;
     v8::Persistent<v8::FunctionTemplate> m_requireTemplate;
     QString m_currentExecutingModule;
+    QAtomicInt m_timeoutCounter; // used for script timeout
+    int m_executionCounter;
+
+    v8::CpuProfiler *m_profiler;
+    CheckForScriptTimeout *m_checkForScriptTimeout;
+    QThread *m_timeoutCheckerThread;
 };
 
 #endif // TYPESCRIPT_H

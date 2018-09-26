@@ -28,6 +28,7 @@ add_library(strategy
 
     abstractstrategyscript.cpp
     abstractstrategyscript.h
+    checkforscripttimeout.h
     debughelper.cpp
     filewatcher.cpp
     filewatcher.h
