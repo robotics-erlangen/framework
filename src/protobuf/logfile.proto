@@ -1,0 +1,14 @@
+syntax="proto2";
+option cc_enable_arenas = true;
+
+package logfile;
+
+
+message UidEntry {
+    required string hash = 1;
+    optional uint64 flags = 2 [default = 0];
+}
+
+message Uid {
+    repeated UidEntry parts = 1;
+}

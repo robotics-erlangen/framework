@@ -35,6 +35,7 @@ set(PROTO_FILES
     command.proto
     debug.proto
     gamestate.proto
+    logfile.proto
     robot.proto
     ssl_detection.proto
     ssl_game_controller_common.proto

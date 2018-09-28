@@ -26,6 +26,7 @@ add_library(logfile
     include/logfile/logfilewriter.h
     include/logfile/statussource.h
     include/logfile/visionlogliveconverter.h
+    include/logfile/logfilehasher.h
 
     backlogwriter.cpp
     combinedlogwriter.cpp
@@ -33,6 +34,7 @@ add_library(logfile
     seqlogfilereader.cpp
     logfilewriter.cpp
     visionlogliveconverter.cpp
+    logfilehasher.cpp
 )
 target_link_libraries(logfile
     PUBLIC shared::protobuf
