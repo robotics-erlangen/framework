@@ -8,6 +8,11 @@
 class SeqLogFileReader;
 class Exchanger;
 class LogFileWriter;
+class Status;
+namespace amun
+{
+    class GameState;
+}
 
 class LogProcessor : public QThread
 {
@@ -40,6 +45,8 @@ signals:
 private:
     qint64 filterLog(SeqLogFileReader &reader, Exchanger *writer, Exchanger *dump, qint64 lastTime);
     void signalFrames(int currentFrame, double percent) { emit progressUpdate(QString("Processed %1 frames (%2%) in logfile %3 of %4").arg(currentFrame).arg(((int)(percent*100)), 2).arg(m_currentLog).arg(m_inputFiles.size())); }
+    bool skipStatus(const amun::GameState& lastGameState, bool isSimulated) const;
+    void changeTimestamps(Status& status, qint64 timeRemoved, bool& isSimulated) const;
 
     QList<QString> m_inputFiles;
     QString m_outputFile;

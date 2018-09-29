@@ -162,6 +162,87 @@ void LogProcessor::run()
     emit finished();
 }
 
+// skip uninteresting states
+bool LogProcessor::skipStatus(const amun::GameState& lastGameState, bool isSimulated) const
+{
+    if (m_options & CutHalt) {
+        if (lastGameState.IsInitialized()
+                && (lastGameState.state() == amun::GameState::Halt
+                    || lastGameState.state() == amun::GameState::TimeoutBlue
+                    || lastGameState.state() == amun::GameState::TimeoutYellow)) {
+            return true;
+        }
+    }
+    if (m_options & CutNonGame) {
+        if (!lastGameState.IsInitialized()
+                || (lastGameState.stage() != SSL_Referee::NORMAL_FIRST_HALF
+                    && lastGameState.stage() != SSL_Referee::NORMAL_SECOND_HALF
+                    && lastGameState.stage() != SSL_Referee::EXTRA_FIRST_HALF
+                    && lastGameState.stage() != SSL_Referee::EXTRA_SECOND_HALF
+                    && lastGameState.stage() != SSL_Referee::PENALTY_SHOOTOUT)) {
+            return true;
+        }
+    }
+    if (m_options & CutStop) {
+        if (lastGameState.IsInitialized()
+                && lastGameState.state() == amun::GameState::Stop) {
+            return true;
+        }
+    }
+    if (m_options & CutBallplacement) {
+        if (lastGameState.IsInitialized()
+                && (lastGameState.state() == amun::GameState::BallPlacementBlue
+                    || lastGameState.state() == amun::GameState::BallPlacementYellow)) {
+                return true;
+        }
+    }
+    if (m_options & CutSimulated && isSimulated) {
+        return true;
+    }
+    return false;
+}
+
+void LogProcessor::changeTimestamps(Status& status, qint64 timeRemoved, bool& isSimulated) const
+{
+    status->set_time(status->time() - timeRemoved);
+    if (status->has_world_state()) {
+        world::State *state = status->mutable_world_state();
+        state->set_time(state->time() - timeRemoved);
+
+        if (state->has_ball()) {
+            world::Ball *ball = state->mutable_ball();
+            for (auto it = ball->mutable_raw()->begin(); it != ball->mutable_raw()->end(); ++it) {
+                it->set_time(it->time() - timeRemoved);
+            }
+        }
+
+        for (auto it = state->mutable_blue()->begin(); it != state->mutable_blue()->end(); ++it) {
+            for (auto it2 = it->mutable_raw()->begin(); it2 != it->mutable_raw()->end(); ++it2) {
+                it2->set_time(it2->time() - timeRemoved);
+            }
+        }
+
+        for (auto it = state->mutable_yellow()->begin(); it != state->mutable_yellow()->end(); ++it) {
+            for (auto it2 = it->mutable_raw()->begin(); it2 != it->mutable_raw()->end(); ++it2) {
+                it2->set_time(it2->time() - timeRemoved);
+            }
+        }
+
+        for (auto it = state->mutable_radio_response()->begin(); it != state->mutable_radio_response()->end(); ++it) {
+            it->set_time(it->time() - timeRemoved);
+        }
+
+        if (state->has_is_simulated()) {
+            isSimulated = state->is_simulated();
+        }
+    }
+    for (amun::DebugValues debug : *status->mutable_debug()) {
+        if (debug.has_time()) {
+             debug.set_time(debug.time() - timeRemoved);
+        }
+    }
+}
+
 qint64 LogProcessor::filterLog(SeqLogFileReader &reader, Exchanger *writer, Exchanger *dump, qint64 lastTime)
 {
     qint64 timeRemoved = 0;
@@ -192,88 +273,14 @@ qint64 LogProcessor::filterLog(SeqLogFileReader &reader, Exchanger *writer, Exch
             timeDelta = 0;
         }
         lastTime = status->time();
-        status->set_time(status->time() - timeRemoved);
-        if (status->has_world_state()) {
-            world::State *state = status->mutable_world_state();
-            state->set_time(state->time() - timeRemoved);
-
-            if (state->has_ball()) {
-                world::Ball *ball = state->mutable_ball();
-                for (auto it = ball->mutable_raw()->begin(); it != ball->mutable_raw()->end(); ++it) {
-                    it->set_time(it->time() - timeRemoved);
-                }
-            }
-
-            for (auto it = state->mutable_blue()->begin(); it != state->mutable_blue()->end(); ++it) {
-                for (auto it2 = it->mutable_raw()->begin(); it2 != it->mutable_raw()->end(); ++it2) {
-                    it2->set_time(it2->time() - timeRemoved);
-                }
-            }
-
-            for (auto it = state->mutable_yellow()->begin(); it != state->mutable_yellow()->end(); ++it) {
-                for (auto it2 = it->mutable_raw()->begin(); it2 != it->mutable_raw()->end(); ++it2) {
-                    it2->set_time(it2->time() - timeRemoved);
-                }
-            }
-
-            for (auto it = state->mutable_radio_response()->begin(); it != state->mutable_radio_response()->end(); ++it) {
-                it->set_time(it->time() - timeRemoved);
-            }
-
-            if (state->has_is_simulated()) {
-                isSimulated = state->is_simulated();
-            }
-        }
-        for (amun::DebugValues debug : *status->mutable_debug()) {
-            if (debug.has_time()) {
-                 debug.set_time(debug.time() - timeRemoved);
-            }
-        }
+        changeTimestamps(status, timeRemoved, isSimulated);
 
         // keep game status to find relevant frames
         if (status->has_game_state()) {
             lastGameState = status->game_state();
         }
 
-        bool skipStatus = false;
-
-        // skip uninteresting states
-        if (m_options & CutHalt) {
-            if (lastGameState.IsInitialized()
-                    && (lastGameState.state() == amun::GameState::Halt
-                        || lastGameState.state() == amun::GameState::TimeoutBlue
-                        || lastGameState.state() == amun::GameState::TimeoutYellow)) {
-                skipStatus = true;
-            }
-        }
-        if (m_options & CutNonGame) {
-            if (!lastGameState.IsInitialized()
-                    || (lastGameState.stage() != SSL_Referee::NORMAL_FIRST_HALF
-                        && lastGameState.stage() != SSL_Referee::NORMAL_SECOND_HALF
-                        && lastGameState.stage() != SSL_Referee::EXTRA_FIRST_HALF
-                        && lastGameState.stage() != SSL_Referee::EXTRA_SECOND_HALF
-                        && lastGameState.stage() != SSL_Referee::PENALTY_SHOOTOUT)) {
-                skipStatus = true;
-            }
-        }
-        if (m_options & CutStop) {
-            if (lastGameState.IsInitialized()
-                    && lastGameState.state() == amun::GameState::Stop) {
-                skipStatus = true;
-            }
-        }
-        if (m_options & CutBallplacement) {
-            if (lastGameState.IsInitialized()
-                    && (lastGameState.state() == amun::GameState::BallPlacementBlue
-                        || lastGameState.state() == amun::GameState::BallPlacementYellow)) {
-                    skipStatus = true;
-            }
-        }
-        if (m_options & CutSimulated && isSimulated) {
-            skipStatus = true;
-        }
-
-        if (skipStatus) {
+        if (skipStatus(lastGameState, isSimulated)) {
             // the frame contains team settings, these MUST be retained
             if (status->has_team_yellow() || status->has_team_blue()) {
                 modStatus = Status(new amun::Status);
