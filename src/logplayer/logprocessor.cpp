@@ -285,7 +285,6 @@ qint64 LogProcessor::filterLog(SeqLogFileReader &reader, Exchanger *writer, Exch
                 }
             }
 
-            lastWrittenTime = status->time();
             timeRemoved += timeDelta;
             dump->transfer(status);
             continue;
