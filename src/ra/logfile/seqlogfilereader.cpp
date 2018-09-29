@@ -208,7 +208,7 @@ qint64 SeqLogFileReader::readTimestampVersion2()
     m_stream >> time;
     m_currentGroupIndex++;
 
-    if (m_currentGroupIndex % m_packageGroupSize == 0) {
+    if (!m_stream.atEnd() && m_currentGroupIndex % m_packageGroupSize == 0) {
         quint32 size;
         m_stream >> size;
         m_file.seek(m_file.pos() + size);
