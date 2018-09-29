@@ -1,5 +1,5 @@
 #include "logprocessor.h"
-#include "logfile/logfilereader.h"
+#include "logfile/seqlogfilereader.h"
 #include "logfile/logfilewriter.h"
 #include "protobuf/gamestate.pb.h"
 #include "protobuf/status.pb.h"
@@ -99,13 +99,12 @@ LogProcessor::~LogProcessor()
 
 void LogProcessor::run()
 {
-    m_currentFrame = 0;
-    m_totalFrames = 0;
+    m_currentLog = 1;
 
-    QList<LogFileReader *> logreaders;
+    QList<SeqLogFileReader *> logreaders;
     for (int i = 0; i < m_inputFiles.size(); ++i) {
         QString logfile = m_inputFiles[i];
-        LogFileReader *reader = new LogFileReader;
+        SeqLogFileReader *reader = new SeqLogFileReader;
         logreaders.append(reader);
         if (!reader->open(logfile)) {
             emit error("Failed to open logfile: " + logfile);
@@ -113,7 +112,6 @@ void LogProcessor::run()
             return;
         }
         emit progressUpdate(QString("Opened Logfile %1 of %2").arg(i).arg(m_inputFiles.size()));
-        m_totalFrames += reader->packetCount();
     }
 
     LogFileWriter writer;
@@ -133,8 +131,9 @@ void LogProcessor::run()
 
     // stream data
     qint64 lastTime = 0;
-    for (LogFileReader *reader: logreaders) {
+    for (SeqLogFileReader *reader: logreaders) {
         lastTime = filterLog(*reader, &writerExchanger, &dumpExchanger, lastTime);
+        m_currentLog++;
     }
 
     // kill pipeline
@@ -153,7 +152,7 @@ void LogProcessor::run()
     emit finished();
 }
 
-qint64 LogProcessor::filterLog(LogFileReader &reader, Exchanger *writer, Exchanger *dump, qint64 lastTime)
+qint64 LogProcessor::filterLog(SeqLogFileReader &reader, Exchanger *writer, Exchanger *dump, qint64 lastTime)
 {
     qint64 timeRemoved = 0;
     qint64 lastWrittenTime = 0;
@@ -162,13 +161,14 @@ qint64 LogProcessor::filterLog(LogFileReader &reader, Exchanger *writer, Exchang
 
     Status modStatus;
     bool isSimulated = false;
-    for (int i = 0; i < reader.packetCount(); ++i) {
-        if ((m_currentFrame % 1000) == 0) {
-            signalFrames(m_currentFrame, m_totalFrames);
+    int currentFrame = 0;
+    while(!reader.atEnd()){
+        if ((currentFrame % 1000) == 0) {
+            signalFrames(currentFrame, reader.percent());
         }
-        m_currentFrame++;
+        currentFrame++;
 
-        Status status = reader.readStatus(i);
+        Status status = reader.readStatus();
         // skip invalid packets
         if (status.isNull()) {
             continue;
@@ -177,7 +177,7 @@ qint64 LogProcessor::filterLog(LogFileReader &reader, Exchanger *writer, Exchang
         // removed deleted time
         qint64 timeDelta = (lastTime != 0) ? status->time() - lastTime : 0;
         // remove time between log files
-        if (i == 0 && lastTime != 0) {
+        if (currentFrame == 1 && lastTime != 0) {
             timeRemoved = timeDelta;
             timeDelta = 0;
         }

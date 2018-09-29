@@ -5,7 +5,7 @@
 #include <QList>
 #include <QString>
 
-class LogFileReader;
+class SeqLogFileReader;
 class Exchanger;
 
 class LogProcessor : public QThread
@@ -36,15 +36,14 @@ signals:
     void error(const QString &message);
 
 private:
-    qint64 filterLog(LogFileReader &reader, Exchanger *writer, Exchanger *dump, qint64 lastTime);
-    void signalFrames(int currentFrame, int totalFrames) { emit progressUpdate(QString("Processed %1 of %2 frames").arg(currentFrame).arg(totalFrames)); }
+    qint64 filterLog(SeqLogFileReader &reader, Exchanger *writer, Exchanger *dump, qint64 lastTime);
+    void signalFrames(int currentFrame, double percent) { emit progressUpdate(QString("Processed %1 frames (%2%) in logfile %3 of %4").arg(currentFrame).arg(((int)(percent*100)), 2).arg(m_currentLog).arg(m_inputFiles.size())); }
 
     QList<QString> m_inputFiles;
     QString m_outputFile;
     Options m_options;
 
-    int m_currentFrame;
-    int m_totalFrames;
+    int m_currentLog;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(LogProcessor::Options)

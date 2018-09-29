@@ -59,6 +59,9 @@ public:
     Status readStatus();
     qint64 readTimestamp();
     bool atEnd() const { return m_stream.atEnd() && (m_version != Version2 || m_currentGroupIndex >= m_currentGroupMaxIndex); }
+    // returns how much data has been read from the disc at the moment. pecent() should only be used to visiualize some kind of progress.
+    // Do not use percent in any way to check if the reader finished working. Use atEnd() instead.
+    double percent() const {return 1.0 * m_file.pos() / m_file.size();}
     void close();
 
     Memento createMemento() const { return m_version == Version2 ? Memento(m_baseOffset, m_currentGroupIndex): Memento(m_file.pos(), 0); }
