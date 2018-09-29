@@ -23,7 +23,7 @@ private slots:
     void selectOutputFile();
     void startProcess();
 
-    void updateProgress(int currentFrame, int totalFrames);
+    void updateProgress(const QString& progress);
     void updateError(const QString &error);
     void updateFinished();
 

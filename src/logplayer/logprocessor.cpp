@@ -103,7 +103,8 @@ void LogProcessor::run()
     m_totalFrames = 0;
 
     QList<LogFileReader *> logreaders;
-    for (QString logfile: m_inputFiles) {
+    for (int i = 0; i < m_inputFiles.size(); ++i) {
+        QString logfile = m_inputFiles[i];
         LogFileReader *reader = new LogFileReader;
         logreaders.append(reader);
         if (!reader->open(logfile)) {
@@ -111,8 +112,8 @@ void LogProcessor::run()
             qDeleteAll(logreaders);
             return;
         }
+        emit progressUpdate(QString("Opened Logfile %1 of %2").arg(i).arg(m_inputFiles.size()));
         m_totalFrames += reader->packetCount();
-        emit progressUpdate(m_currentFrame, m_totalFrames);
     }
 
     LogFileWriter writer;
@@ -163,7 +164,7 @@ qint64 LogProcessor::filterLog(LogFileReader &reader, Exchanger *writer, Exchang
     bool isSimulated = false;
     for (int i = 0; i < reader.packetCount(); ++i) {
         if ((m_currentFrame % 1000) == 0) {
-            emit progressUpdate(m_currentFrame, m_totalFrames);
+            signalFrames(m_currentFrame, m_totalFrames);
         }
         m_currentFrame++;
 

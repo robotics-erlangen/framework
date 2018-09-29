@@ -85,9 +85,9 @@ void LogCutter::startProcess()
     ui->progressLbl->setText("Loading logfiles");
 }
 
-void LogCutter::updateProgress(int currentFrame, int totalFrames)
+void LogCutter::updateProgress(const QString& progress)
 {
-    ui->progressLbl->setText(QString("Processed %1 of %2 frames").arg(currentFrame).arg(totalFrames));
+    ui->progressLbl->setText(progress);
 }
 
 void LogCutter::updateError(const QString &error)

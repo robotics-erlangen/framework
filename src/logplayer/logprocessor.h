@@ -31,12 +31,13 @@ public:
     void run() override;
 
 signals:
-    void progressUpdate(int currentFrame, int totalFrames);
+    void progressUpdate(const QString& progress);
     void finished();
     void error(const QString &message);
 
 private:
     qint64 filterLog(LogFileReader &reader, Exchanger *writer, Exchanger *dump, qint64 lastTime);
+    void signalFrames(int currentFrame, int totalFrames) { emit progressUpdate(QString("Processed %1 of %2 frames").arg(currentFrame).arg(totalFrames)); }
 
     QList<QString> m_inputFiles;
     QString m_outputFile;
