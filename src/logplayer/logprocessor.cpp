@@ -38,31 +38,34 @@ private:
     QMutex m_mutex;
 };
 
-class LogWriter : public QThread {
+class LogWriter : public QObject {
+    Q_OBJECT
 public:
-    LogWriter(LogFileWriter *writer, Exchanger *inExchanger, Exchanger *dumpExchanger) {
-        m_writer = writer;
+    LogWriter(Exchanger *inExchanger, Exchanger *dumpExchanger) {
         m_inExchanger = inExchanger;
         m_dumpExchanger = dumpExchanger;
     }
-
-protected:
-   void run() override {
+public slots:
+    void write(LogFileWriter *writer){
         while (true) {
             // write status and forward to call destructor in seperate thread
             // destruction takes a significant amount of time (20% of total!)
             Status status = m_inExchanger->take();
             if (status.isNull()) {
-                m_dumpExchanger->transfer(status);
+                writer->close();
                 break;
             }
-            m_writer->writeStatus(status);
+            writer->writeStatus(status);
             m_dumpExchanger->transfer(status);
         }
     }
+    void shutdown(){
+        Status emptyStatus;
+        m_dumpExchanger->transfer(emptyStatus);
+        deleteLater();
+    }
 
 private:
-    LogFileWriter *m_writer;
     Exchanger *m_inExchanger;
     Exchanger *m_dumpExchanger;
 };
@@ -124,7 +127,13 @@ void LogProcessor::run()
     // setup pipeline
     Exchanger writerExchanger;
     Exchanger dumpExchanger;
-    QThread *writerThread = new LogWriter(&writer, &writerExchanger, &dumpExchanger);
+    LogWriter* writerObject = new LogWriter(&writerExchanger, &dumpExchanger);
+    QThread *writerThread = new QThread();
+    writerObject->moveToThread(writerThread);
+    connect(this, &LogProcessor::outputSelected, writerObject, &LogWriter::write);
+    connect(writerThread, SIGNAL(finished()), writerObject, SLOT(shutdown()));
+    emit(outputSelected(&writer));
+
     QThread *dumpThread = new LogDump(&dumpExchanger);
     writerThread->start();
     dumpThread->start();
@@ -139,6 +148,8 @@ void LogProcessor::run()
     // kill pipeline
     Status emptyStatus;
     writerExchanger.transfer(emptyStatus);
+    //only the writerThread uses the event queue, and it's shutdown stops dumpThread
+    writerThread->quit();
     writerThread->wait();
     dumpThread->wait();
 
@@ -147,7 +158,6 @@ void LogProcessor::run()
 
     // cleanup
     qDeleteAll(logreaders);
-    writer.close();
 
     emit finished();
 }
@@ -293,3 +303,4 @@ qint64 LogProcessor::filterLog(SeqLogFileReader &reader, Exchanger *writer, Exch
 
     return lastWrittenTime;
 }
+#include "logprocessor.moc"

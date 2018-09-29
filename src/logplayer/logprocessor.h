@@ -7,6 +7,7 @@
 
 class SeqLogFileReader;
 class Exchanger;
+class LogFileWriter;
 
 class LogProcessor : public QThread
 {
@@ -34,6 +35,7 @@ signals:
     void progressUpdate(const QString& progress);
     void finished();
     void error(const QString &message);
+    void outputSelected(LogFileWriter* writer);
 
 private:
     qint64 filterLog(SeqLogFileReader &reader, Exchanger *writer, Exchanger *dump, qint64 lastTime);
