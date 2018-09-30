@@ -133,6 +133,7 @@ void SeqLogFileReader::readNextGroup()
 //readCurrentGroup reads the group that is referenced by m_baseOffset
 void SeqLogFileReader::readCurrentGroup()
 {
+    QMutexLocker locker(m_mutex);
     m_file.seek(m_baseOffset - sizeof(qint64) * m_packageGroupSize);
     readNextGroup();
 }
