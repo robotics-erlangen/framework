@@ -58,7 +58,7 @@ public:
 
     Status readStatus();
     qint64 readTimestamp();
-    bool atEnd() const { return m_stream.atEnd() || (m_version == Version2 && m_currentGroupIndex >= m_currentGroupMaxIndex); }
+    bool atEnd() const { return m_stream.atEnd() && (m_version != Version2 || m_currentGroupIndex >= m_currentGroupMaxIndex); }
     void close();
 
     Memento createMemento() const { return m_version == Version2 ? Memento(m_baseOffset, m_currentGroupIndex): Memento(m_file.pos(), 0); }
