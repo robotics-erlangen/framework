@@ -270,8 +270,8 @@ Status SeqLogFileReader::readStatus()
         //check for invalid offset
         if (packetOffset < m_currentGroup.size() && packetOffset >= 0) {
             qint32 packetSize;
-            if (m_currentGroupIndex < m_packageGroupSize - 1) {
-                packetSize = m_currentGroupOffsets[m_currentGroupIndex + 1] - packetOffset;
+            if (m_currentGroupIndex < m_packageGroupSize) {
+                packetSize = m_currentGroupOffsets[m_currentGroupIndex] - packetOffset;
             } else {
                 packetSize = m_currentGroup.size() - sizeof(qint32) * m_packageGroupSize - packetOffset;
             }
