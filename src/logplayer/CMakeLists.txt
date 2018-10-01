@@ -32,6 +32,12 @@ add_executable(logplayer WIN32 MACOSX_BUNDLE
     replayteamwidget.h
 )
 
+add_executable(logcutter-cli
+    logcuttercli.cpp
+    logprocessor.cpp
+    logprocessor.h
+)
+
 set(UI_SOURCES
     mainwindow.ui
     logcutter.ui
@@ -74,6 +80,15 @@ if (TARGET lib::jemalloc)
     target_link_libraries(logplayer lib::jemalloc)
 endif()
 
+target_link_libraries(logcutter-cli
+    ra::logfile
+    shared::protobuf
+    Qt5::Core
+)
+target_include_directories(logcutter-cli
+    PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
+)
 # add plist file
 if(APPLE)
     set_target_properties(logplayer PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/data/pkg/MacBundleInfo.plist.in)
