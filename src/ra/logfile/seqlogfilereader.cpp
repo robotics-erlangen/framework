@@ -34,6 +34,7 @@ SeqLogFileReader::SeqLogFileReader() :
 SeqLogFileReader::~SeqLogFileReader()
 {
     close();
+    delete m_mutex;
 }
 
 bool SeqLogFileReader::open(const QString &filename)

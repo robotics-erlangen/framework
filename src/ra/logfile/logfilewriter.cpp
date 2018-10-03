@@ -37,6 +37,7 @@ LogFileWriter::~LogFileWriter()
     close();
 
     m_packageBuffer.clear();
+    delete m_mutex;
 }
 
 LogFileReader * LogFileWriter::makeStatusSource()
