@@ -221,6 +221,15 @@ BallTracker* Tracker::bestBallFilter()
     return m_currentBallFilter;
 }
 
+static amun::DebugValues* mutable_debug(amun::DebugValues** adv, Status s)
+{
+    if (nullptr == *adv) {
+        *adv = s->add_debug();
+        (*adv)->set_source(amun::Tracking);
+    }
+    return *adv;
+}
+
 Status Tracker::worldState(qint64 currentTime, bool resetRaw)
 {
     const qint64 resetTimeout = 500*1000*1000;
@@ -275,28 +284,26 @@ Status Tracker::worldState(qint64 currentTime, bool resetRaw)
         aoi->set_y2(m_aoi_y2);
     }
 
-    amun::DebugValues *debug = status->add_debug();
+    amun::DebugValues *debug = nullptr;
 #ifdef ENABLE_TRACKING_DEBUG
     for (auto& filter : m_ballFilter) {
         if (filter == ball) {
-            amun::DebugValue *debugValue = debug->add_value();
+            amun::DebugValue *debugValue = mutable_debug(&debug, status)->add_value();
             debugValue->set_key("active cam");
             debugValue->set_float_value(ball->primaryCamera());
             debug->MergeFrom(filter->debugValues());
         } else {
-            debug->MergeFrom(filter->debugValues());
+            mutable_debug(&debug, status)->MergeFrom(filter->debugValues());
         }
         filter->clearDebugValues();
     }
-    status->mutable_debug()->set_source(amun::Tracking);
 #endif
     if (m_errorMessages.size() > 0) {
         for (QString message : m_errorMessages) {
-            amun::StatusLog *log = debug->add_log();
+            amun::StatusLog *log = mutable_debug(&debug, status)->add_log();
             log->set_timestamp(currentTime);
             log->set_text(message.toStdString());
         }
-        debug->set_source(amun::Tracking);
         m_errorMessages.clear();
     }
 
