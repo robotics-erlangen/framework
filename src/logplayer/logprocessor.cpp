@@ -106,7 +106,7 @@ void LogProcessor::run()
 
     QList<SeqLogFileReader *> logreaders;
     for (int i = 0; i < m_inputFiles.size(); ++i) {
-        QString logfile = m_inputFiles[i];
+        const QString& logfile = m_inputFiles[i];
         SeqLogFileReader *reader = new SeqLogFileReader;
         logreaders.append(reader);
         if (!reader->open(logfile)) {
