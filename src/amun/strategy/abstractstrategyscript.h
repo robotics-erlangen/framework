@@ -68,8 +68,8 @@ public:
     // getter functions
     QString errorMsg() const { return m_errorMsg; }
     // may be called after loadScript / process
-    void takeDebugStatus(amun::DebugValues* dV);
-    void clearDebugStatus(){ m_debugStatus.Clear();}
+    amun::DebugValues* setDebugStatus(amun::DebugValues* dV);
+    void clearDebugStatus(){ if(m_debugStatus) m_debugStatus->Clear();}
 
     QStringList entryPoints() const { return m_entryPoints; }
     QString entryPoint() const { return m_entryPoint; }
@@ -133,7 +133,7 @@ protected:
     const bool m_refboxControlEnabled;
 
     QString m_errorMsg;
-    amun::DebugValues m_debugStatus;
+    amun::DebugValues* m_debugStatus = nullptr;
     bool m_hasDebugger;
     DebugHelper *m_debugHelper;
     bool m_isInternalAutoref;

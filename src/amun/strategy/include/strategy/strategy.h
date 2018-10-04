@@ -94,6 +94,7 @@ private:
     world::Geometry m_geometry;
     robot::Team m_team;
     Status m_status;
+    Status m_debugStatus;
     const StrategyType m_type;
     QStringList m_selectedOptions;
 

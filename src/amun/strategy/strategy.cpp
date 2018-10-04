@@ -87,6 +87,7 @@ Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, b
     m_p(new StrategyPrivate),
     m_timer(timer),
     m_strategy(nullptr),
+    m_debugStatus(Status::createArena()),
     m_type(type),
     m_debugEnabled(type == StrategyType::AUTOREF),
     m_refboxControlEnabled(false),
@@ -515,6 +516,9 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
         return;
     }
 
+    //insert m_debugStatus into m_strategy
+    takeStrategyDebugStatus();
+
     if (m_debugEnabled && m_debugHelper) {
         m_strategy->setDebugHelper(m_debugHelper);
         // the debug helper doesn't know the exact moment when the strategy gets reloaded
@@ -665,15 +669,19 @@ Status Strategy::takeStrategyDebugStatus()
         return Status(new amun::Status);
     }
     Status status = Status::createArena();
-    amun::DebugValues* debugValues = status->add_debug();
-    m_strategy->takeDebugStatus(debugValues);
+    amun::DebugValues* debugValues = m_strategy->setDebugStatus(status->add_debug());
+    Status out = m_debugStatus;
+    m_debugStatus = status;
+    if (!debugValues) {
+        return Status(new amun::Status);
+    }
     debugValues->set_source(debugSource());
     if (!m_status.isNull()) {
-        status->set_time(m_status->time());
+        out->set_time(m_status->time());
         auto &worldState = m_status->execution_state().IsInitialized() ? m_status->execution_state() : m_status->world_state();
         debugValues->set_time(worldState.time());
     }
-    return status;
+    return out;
 }
 
 amun::DebugSource Strategy::debugSource() const
