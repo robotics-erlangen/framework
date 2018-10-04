@@ -57,6 +57,10 @@ public:
 std::unique_ptr<v8::Platform> Strategy::static_platform;
 
 void Strategy::initV8() {
+    if (static_platform) {
+        return;
+    }
+
     // TODO: use data directory
     v8::V8::InitializeICUDefaultLocation(QCoreApplication::applicationFilePath().toUtf8().data());
     v8::V8::InitializeExternalStartupData(QCoreApplication::applicationFilePath().toUtf8().data());
@@ -89,6 +93,8 @@ Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, b
     m_refboxReplyLength(-1),
     m_isInLogplayer(isLogplayer)
 {
+    initV8();
+
     m_udpSenderSocket = new QUdpSocket(this);
     m_refboxSocket = new QTcpSocket(this);
     m_refboxSocket->setSocketOption(QAbstractSocket::LowDelayOption,1);

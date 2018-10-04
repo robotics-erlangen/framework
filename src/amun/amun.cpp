@@ -94,8 +94,6 @@ Amun::Amun(bool simulatorOnly, QObject *parent) :
     m_debugHelperThread = new QThread(this);
 
     m_networkInterfaceWatcher = (!m_simulatorOnly) ? new NetworkInterfaceWatcher(this) : nullptr;
-
-    Strategy::initV8();
 }
 
 /*!

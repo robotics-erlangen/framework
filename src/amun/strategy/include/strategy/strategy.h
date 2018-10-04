@@ -44,9 +44,6 @@ class Strategy : public QObject
     Q_OBJECT
 
 public:
-    static void initV8();
-
-public:
     Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, bool internalAutoref = false, bool isLogplayer = false);
     ~Strategy() override;
     void resetIsReplay() { m_isReplay = false; }
@@ -73,6 +70,7 @@ private slots:
     void sendCommand(const Command &command);
 
 private:
+    static void initV8();
     void loadScript(const QString &filename, const QString &entryPoint);
     void close();
     void triggerDebugger();
