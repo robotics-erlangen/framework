@@ -28,16 +28,9 @@ add_library(strategy
 
     abstractstrategyscript.cpp
     abstractstrategyscript.h
-    checkforscripttimeout.h
     debughelper.cpp
     filewatcher.cpp
     filewatcher.h
-    js_amun.cpp
-    js_amun.h
-    js_path.cpp
-    js_path.h
-    js_protobuf.cpp
-    js_protobuf.h
     lua.cpp
     lua.h
     lua_amun.cpp
@@ -48,10 +41,6 @@ add_library(strategy
     lua_protobuf.h
     strategy.cpp
     strategyreplayhelper.cpp
-    typescript.cpp
-    typescript.h
-    typescriptcompiler.cpp
-    typescriptcompiler.h
 )
 target_link_libraries(strategy
     PRIVATE lib::luajit
@@ -60,12 +49,29 @@ target_link_libraries(strategy
     PUBLIC shared::protobuf
     PUBLIC Qt5::Core
     PRIVATE Qt5::Network
-    PRIVATE lib::v8
 )
 
 target_include_directories(strategy
     INTERFACE include
     PRIVATE include/strategy
 )
+
+if(V8_FOUND)
+    target_sources(strategy PRIVATE
+        checkforscripttimeout.h
+        js_amun.cpp
+        js_amun.h
+        js_path.cpp
+        js_path.h
+        js_protobuf.cpp
+        js_protobuf.h
+        typescript.cpp
+        typescript.h
+        typescriptcompiler.cpp
+        typescriptcompiler.h
+    )
+    target_link_libraries(strategy PRIVATE lib::v8)
+    target_compile_definitions(strategy PRIVATE V8_FOUND)
+endif()
 
 add_library(amun::strategy ALIAS strategy)

@@ -19,7 +19,6 @@
  ***************************************************************************/
 
 #include "lua.h"
-#include "typescript.h"
 #include "debughelper.h"
 #include "strategy.h"
 #include "core/timer.h"
@@ -33,8 +32,12 @@
 #include <QTimer>
 #include <QUdpSocket>
 #include <QtEndian>
+
+#ifdef V8_FOUND
+#include "typescript.h"
 #include <v8.h>
 #include <libplatform/libplatform.h>
+#endif
 
 /*!
  * \class Strategy
@@ -53,6 +56,7 @@ public:
     QByteArray remoteControlData;
 };
 
+#ifdef V8_FOUND
 // default initialization
 std::unique_ptr<v8::Platform> Strategy::static_platform;
 
@@ -68,6 +72,9 @@ void Strategy::initV8() {
     v8::V8::InitializePlatform(static_platform.get());
     v8::V8::Initialize();
 }
+#else
+void Strategy::initV8() { }
+#endif
 
 /*!
  * \brief Creates a Strategy instance
@@ -475,8 +482,10 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
     // hardcoded factory pattern
     if (Lua::canHandle(filename)) {
         m_strategy = Lua::createStrategy(m_timer, m_type, m_debugEnabled, m_refboxControlEnabled);
+#ifdef V8_FOUND
     } else if (Typescript::canHandle(filename)) {
         m_strategy = Typescript::createStrategy(m_timer, m_type, m_debugEnabled, m_refboxControlEnabled);
+#endif
     } else {
         fail(QString("No strategy handler for file %1").arg(filename));
         return;

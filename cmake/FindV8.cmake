@@ -145,4 +145,7 @@ if(V8_FOUND)
                     $<TARGET_FILE_DIR:${target}>
         )
     endmacro()
+else()
+    macro(v8_copy_deps target)
+    endmacro()
 endif()

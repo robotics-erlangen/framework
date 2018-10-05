@@ -89,7 +89,7 @@ endif()
 include(BuildBullet)
 include(BuildEigen)
 include(BuildLuaJIT2)
-find_package(V8 6.8 REQUIRED)
+find_package(V8 6.8)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 add_subdirectory(src)
