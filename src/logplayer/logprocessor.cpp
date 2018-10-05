@@ -296,6 +296,7 @@ qint64 LogProcessor::filterLog(SeqLogFileReader &reader, Exchanger *writer, Exch
             dump->transfer(status);
             continue;
         }
+        status->set_original_frame_number(currentFrame - 1);
 
         if (!modStatus.isNull()) {
             modStatus->set_time(status->time());

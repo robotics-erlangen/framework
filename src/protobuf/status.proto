@@ -78,5 +78,6 @@ message Status {
     optional world.State execution_state = 23;
     optional GameState execution_game_state = 24;
     optional UserInput execution_user_input = 25;
-    reserved 27,28; //for timeline
+    reserved 27; //for timeline
+    optional uint64 original_frame_number = 28;
 }
