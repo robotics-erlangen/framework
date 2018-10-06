@@ -21,6 +21,7 @@
 #include "js_amun.h"
 
 #include <QList>
+#include <QtEndian>
 #include <functional>
 #include <v8.h>
 
@@ -70,7 +71,18 @@ static void amunIsReplay(const FunctionCallbackInfo<Value>& args)
     args.GetReturnValue().Set(result);
 }
 
-// TODO: amunGetSelectedOptions
+static void amunGetSelectedOptions(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = args.GetIsolate();
+    Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
+    Local<Array> result = Array::New(isolate, t->selectedOptions().length());
+    unsigned int ctr = 0;
+    for (const QString &option: t->selectedOptions()) {
+        Local<String> opt = String::NewFromUtf8(isolate, option.toUtf8().constData(), String::kNormalString);
+        result->Set(Integer::NewFromUnsigned(isolate, ctr++), opt);
+    }
+    args.GetReturnValue().Set(result);
+}
 
 static void amunGetWorldState(const FunctionCallbackInfo<Value>& args)
 {
@@ -103,18 +115,54 @@ static void amunGetCurrentTime(const FunctionCallbackInfo<Value>& args)
     args.GetReturnValue().Set(BigInt::New(isolate, t->time()));
 }
 
+static bool toUintChecked(Isolate *isolate, Local<Value> value, uint &result)
+{
+    Maybe<uint> maybeValue = value->Uint32Value(isolate->GetCurrentContext());
+    if (!maybeValue.To(&result)) {
+        Local<String> errorMessage = String::NewFromUtf8(isolate, "Argument has to be an integer", String::kNormalString);
+        isolate->ThrowException(errorMessage);
+        return false;
+    }
+    return true;
+}
+
+static bool toBoolChecked(Isolate *isolate, Local<Value> value, bool &result)
+{
+    Maybe<bool> maybeValue = value->BooleanValue(isolate->GetCurrentContext());
+    if (!maybeValue.To(&result)) {
+        Local<String> errorMessage = String::NewFromUtf8(isolate, "Argument has to be a boolean", String::kNormalString);
+        isolate->ThrowException(errorMessage);
+        return false;
+    }
+    return true;
+}
+
+static bool checkNumberOfArguments(Isolate *isolate, int expected, int got)
+{
+    if (got < expected) {
+        QString errorMessage = QString("Expected %1 arguments, but got %2").arg(expected).arg(got);
+        Local<String> message = String::NewFromUtf8(isolate, errorMessage.toUtf8().constData(), String::kNormalString);
+        isolate->ThrowException(message);
+        return false;
+    }
+    return true;
+}
+
 static void amunSetCommand(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = args.GetIsolate();
     Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
 
     // set robot movement command
-    // TODO: error handling
-    Local<Context> context = isolate->GetCurrentContext();
+    if (!checkNumberOfArguments(isolate, 3, args.Length())) {
+        return;
+    }
     RobotCommand command(new robot::Command);
-    const uint generation = args[0]->Uint32Value(context).ToChecked();
-    const uint robotId = args[1]->Uint32Value(context).ToChecked();
-    jsToProtobuf(isolate, args[2], context, *command);
+    uint generation, robotId;
+    if (!toUintChecked(isolate, args[0], generation) || !toUintChecked(isolate, args[1], robotId)) {
+        return;
+    }
+    jsToProtobuf(isolate, args[2], isolate->GetCurrentContext(), *command);
 
     t->setCommand(generation, robotId, command);
 }
@@ -172,8 +220,135 @@ static void amunAddPlot(const FunctionCallbackInfo<Value>& args)
     value->set_value(float(number));
 }
 
-// TODO: amunSendCommand, amunSendRefereeCommand, amunSendMixedTeamInfo, amunSendNetworkRefereeCommand
-//      amunNextRefboxReply, amunSetRobotExchangeSymbol, amunDebuggerRead, amunDebuggerWrite
+static void amunSendCommand(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = args.GetIsolate();
+    Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
+
+    Command command(new amun::Command);
+    jsToProtobuf(isolate, args[0], isolate->GetCurrentContext(), *command);
+    if (!t->sendCommand(command)) {
+        isolate->ThrowException(String::NewFromUtf8(isolate, "This function is only allowed in debug mode!", String::kNormalString));
+    }
+}
+
+static void amunSendRefereeCommand(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = args.GetIsolate();
+    Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
+
+    SSL_Referee referee;
+    jsToProtobuf(isolate, args[0], isolate->GetCurrentContext(), referee);
+
+    std::string refereeStr;
+    if (!referee.SerializeToString(&refereeStr)) {
+        isolate->ThrowException(String::NewFromUtf8(isolate, "Invalid referee command packet!", String::kNormalString));
+        return;
+    }
+
+    Command command(new amun::Command);
+    command->mutable_referee()->set_command(refereeStr);
+
+    if (!t->sendCommand(command)) {
+        isolate->ThrowException(String::NewFromUtf8(isolate, "This function is only allowed in debug mode!", String::kNormalString));
+    }
+}
+
+static void amunSendMixedTeamInfo(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = args.GetIsolate();
+    Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
+
+    ssl::TeamPlan mixedTeamInfo;
+    jsToProtobuf(isolate, args[0], isolate->GetCurrentContext(), mixedTeamInfo);
+
+    QByteArray data;
+    data.resize(mixedTeamInfo.ByteSize());
+    if (!mixedTeamInfo.SerializeToArray(data.data(), data.size())) {
+        isolate->ThrowException(String::NewFromUtf8(isolate, "Invalid mixed team information packet!", String::kNormalString));
+        return;
+    }
+
+    t->sendMixedTeam(data);
+}
+
+static void amunSendNetworkRefereeCommand(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = args.GetIsolate();
+    Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
+
+    if (t->isInternalAutoref()) {
+        Command command(new amun::Command);
+        SSL_RefereeRemoteControlRequest * request = command->mutable_referee()->mutable_autoref_command();
+        jsToProtobuf(isolate, args[0], isolate->GetCurrentContext(), *request);
+
+        // flip position if necessary
+        if (t->isFlipped() && request->has_designated_position()) {
+            auto *pos = request->mutable_designated_position();
+            pos->set_x(-pos->x());
+            pos->set_y(-pos->y());
+        }
+
+        if (!t->sendCommand(command)) {
+            isolate->ThrowException(String::NewFromUtf8(isolate, "This function is only allowed in debug mode!", String::kNormalString));
+        }
+    } else {
+        if (!t->refboxControlEnabled()) {
+            return;
+        }
+
+        SSL_RefereeRemoteControlRequest request;
+        jsToProtobuf(isolate, args[0], isolate->GetCurrentContext(), request);
+
+        // flip position if necessary
+        if (t->isFlipped() && request.has_designated_position()) {
+            auto *pos = request.mutable_designated_position();
+            pos->set_x(pos->x());
+            pos->set_y(pos->y());
+        }
+
+        QByteArray data;
+        // the first 4 bytes denote the packet's size in big endian
+        data.resize(request.ByteSize()+4);
+        qToBigEndian<quint32>(request.ByteSize(), (uchar*)data.data());
+        if (!request.SerializeToArray(data.data()+4, request.ByteSize())) {
+            isolate->ThrowException(String::NewFromUtf8(isolate, "Invalid referee packet!", String::kNormalString));
+        }
+
+        if (!t->sendNetworkReferee(data)) {
+            isolate->ThrowException(String::NewFromUtf8(isolate, "This function is only allowed in debug mode!", String::kNormalString));
+        }
+    }
+}
+
+static void amunNextRefboxReply(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = args.GetIsolate();
+    Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
+    if (t->hasRefereeReply()) {
+        args.GetReturnValue().Set(protobufToJs(isolate, t->nextRefereeReply()));
+    }
+}
+
+static void amunSetRobotExchangeSymbol(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = args.GetIsolate();
+    Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
+
+    if (!checkNumberOfArguments(isolate, 3, args.Length())) {
+        return;
+    }
+    amun::RobotValue *value = t->addRobotValue();
+    uint generation, id;
+    bool set;
+    if (!toUintChecked(isolate, args[0], generation) || !toUintChecked(isolate, args[1], id)
+            || !toBoolChecked(isolate, args[2], set)) {
+        return;
+    }
+    value->set_generation(generation);
+    value->set_id(id);
+    value->set_exchange(set);
+}
 
 static void amunGetPerformanceMode(const FunctionCallbackInfo<Value>& args)
 {
@@ -190,13 +365,13 @@ struct FunctionInfo {
 
 void registerAmunJsCallbacks(Isolate *isolate, Local<Object> global, Typescript *t)
 {
-    // TODO: set side effect property
     QList<FunctionInfo> callbacks = {
         { "getGeometry",        amunGetGeometry},
         { "getTeam",            amunGetTeam},
         { "getStrategyPath",    amunGetStrategyPath},
         { "isBlue",             amunIsBlue},
         { "isReplay",           amunIsReplay},
+        { "getSelectedOptions", amunGetSelectedOptions},
         { "getWorldState",      amunGetWorldState},
         { "getGameState",       amunGetGameState},
         { "getUserInput",       amunGetUserInput},
@@ -206,7 +381,13 @@ void registerAmunJsCallbacks(Isolate *isolate, Local<Object> global, Typescript 
         { "addPlot",            amunAddPlot},
         { "getPerformanceMode", amunGetPerformanceMode},
         { "setCommand",         amunSetCommand},
-        { "getCurrentTime",     amunGetCurrentTime}};
+        { "getCurrentTime",     amunGetCurrentTime},
+        { "sendCommand",        amunSendCommand},
+        { "sendRefereeCommand", amunSendRefereeCommand},
+        { "sendMixedTeamInfo",  amunSendMixedTeamInfo},
+        { "sendNetworkRefereeCommand", amunSendNetworkRefereeCommand},
+        { "nextRefboxReply",    amunNextRefboxReply},
+        { "setRobotExchangeSymbol", amunSetRobotExchangeSymbol}};
 
     Local<Object> amunObject = Object::New(isolate);
     Local<String> amunStr = String::NewFromUtf8(isolate, "amun", NewStringType::kNormal).ToLocalChecked();
