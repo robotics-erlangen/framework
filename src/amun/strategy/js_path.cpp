@@ -32,20 +32,20 @@
 
 using namespace v8;
 
-// TODO: obstacle names
-
 // ensure that we got a valid number
-static float verifyNumber(Local<Context> &context, Local<Value> value)
+static bool verifyNumber(Isolate *isolate, Local<Value> value, float &result)
 {
-    // TODO: error handling
-    const float number = float(value->NumberValue(context).ToChecked());
-    if (std::isnan(number) || std::isinf(number)) {
-        return 0; // TODO
+    Maybe<double> maybeValue = value->NumberValue(isolate->GetCurrentContext());
+    double v = 0.0;
+    if (!maybeValue.To(&v) || std::isnan(result) || std::isinf(result)) {
+        Local<String> errorMessage = String::NewFromUtf8(isolate, "Invalid argument", String::kNormalString);
+        isolate->ThrowException(errorMessage);
+        return false;
     }
-    return number;
+    result = float(v);
+    return true;
 }
 
-// Path is a C++ class and thus can't be created with newuserdata
 static void pathCreate(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = args.GetIsolate();
@@ -74,105 +74,106 @@ static void pathClearObstacles(const FunctionCallbackInfo<Value>& args)
 
 static void pathSetBoundary(const FunctionCallbackInfo<Value>& args)
 {
-    Local<Context> c = args.GetIsolate()->GetCurrentContext();
+    Isolate * isolate = args.GetIsolate();
     Path *p = static_cast<Path*>(Local<External>::Cast(args[0])->Value());
-    const float x1 = verifyNumber(c, args[1]);
-    const float y1 = verifyNumber(c, args[2]);
-    const float x2 = verifyNumber(c, args[3]);
-    const float y2 = verifyNumber(c, args[4]);
+    float x1, y1, x2, y2;
+    if (!verifyNumber(isolate, args[1], x1) || !verifyNumber(isolate, args[2], y1) ||
+            !verifyNumber(isolate, args[3], x2) || !verifyNumber(isolate, args[4], y2)) {
+        return;
+    }
     p->setBoundary(x1, y1, x2, y2);
 }
 
 static void pathSetRadius(const FunctionCallbackInfo<Value>& args)
 {
-    Local<Context> c = args.GetIsolate()->GetCurrentContext();
+    Isolate * isolate = args.GetIsolate();
     Path *p = static_cast<Path*>(Local<External>::Cast(args[0])->Value());
-    const float r = verifyNumber(c, args[1]);
+    float r;
+    verifyNumber(isolate, args[1], r);
     p->setRadius(r);
 }
 
 static void pathAddCircle(const FunctionCallbackInfo<Value>& args)
 {
-    Local<Context> c = args.GetIsolate()->GetCurrentContext();
+    Isolate * isolate = args.GetIsolate();
     Path *p = static_cast<Path*>(Local<External>::Cast(args[0])->Value());
-    const float x = verifyNumber(c, args[1]);
-    const float y = verifyNumber(c, args[2]);
-    const float r = verifyNumber(c, args[3]);
-    const char* name = nullptr;
-    const int prio = int(verifyNumber(c, args[4]));
-    p->addCircle(x, y, r, name, prio);
+    float x, y, r, prio;
+
+    if (!verifyNumber(isolate, args[1], x) || !verifyNumber(isolate, args[2], y) ||
+            !verifyNumber(isolate, args[3], r) || !verifyNumber(isolate, args[4], prio)) {
+        return;
+    }
+    p->addCircle(x, y, r, nullptr, int(prio));
 }
 
 static void pathAddLine(const FunctionCallbackInfo<Value>& args)
 {
-    Local<Context> c = args.GetIsolate()->GetCurrentContext();
+    Isolate *isolate = args.GetIsolate();
     Path *p = static_cast<Path*>(Local<External>::Cast(args[0])->Value());
-    const float x1 = verifyNumber(c, args[1]);
-    const float y1 = verifyNumber(c, args[2]);
-    const float x2 = verifyNumber(c, args[3]);
-    const float y2 = verifyNumber(c, args[4]);
-    const float width = verifyNumber(c, args[5]);
-
-    const char* name = nullptr;
-    const int prio = int(verifyNumber(c, args[6]));
+    float x1, y1, x2, y2, width, prio;
+    if (!verifyNumber(isolate, args[1], x1) || !verifyNumber(isolate, args[2], y1) ||
+            !verifyNumber(isolate, args[3], x2) || !verifyNumber(isolate, args[4], y2) ||
+            !verifyNumber(isolate, args[5], width) || !verifyNumber(isolate, args[6], prio)) {
+        return;
+    }
 
     // a line musn't have length zero
     if (x1 == x2 && y1 == y2) {
-        // TODO: error handling
+        isolate->ThrowException(String::NewFromUtf8(isolate, "line must have non zero length", String::kNormalString));
         return;
     }
-    p->addLine(x1, y1, x2, y2, width, name, prio);
+    p->addLine(x1, y1, x2, y2, width, nullptr, int(prio));
 }
 
 static void pathSetProbabilities(const FunctionCallbackInfo<Value>& args)
 {
-    Local<Context> c = args.GetIsolate()->GetCurrentContext();
+    Isolate *isolate = args.GetIsolate();
     Path *p = static_cast<Path*>(Local<External>::Cast(args[0])->Value());
-    const float p_dest = verifyNumber(c, args[1]);
-    const float p_wp = verifyNumber(c, args[2]);
-    p->setProbabilities(p_dest, p_wp);
+    float pDest, pWp;
+    if (!verifyNumber(isolate, args[1], pDest) || !verifyNumber(isolate, args[2], pWp)) {
+        return;
+    }
+    p->setProbabilities(pDest, pWp);
 }
 
 static void pathAddSeedTarget(const FunctionCallbackInfo<Value>& args)
 {
-    Local<Context> c = args.GetIsolate()->GetCurrentContext();
+    Isolate *isolate = args.GetIsolate();
     Path *p = static_cast<Path*>(Local<External>::Cast(args[0])->Value());
-    const float p_x = verifyNumber(c, args[1]);
-    const float p_y = verifyNumber(c, args[2]);
-    p->addSeedTarget(p_x, p_y);
+    float px, py;
+    if (!verifyNumber(isolate, args[1], px) || !verifyNumber(isolate, args[2], py)) {
+        return;
+    }
+    p->addSeedTarget(px, py);
 }
 
 static void pathAddRect(const FunctionCallbackInfo<Value>& args)
 {
-    Local<Context> c = args.GetIsolate()->GetCurrentContext();
+    Isolate *isolate = args.GetIsolate();
     Path *p = static_cast<Path*>(Local<External>::Cast(args[0])->Value());
-    const float x1 = verifyNumber(c, args[1]);
-    const float y1 = verifyNumber(c, args[2]);
-    const float x2 = verifyNumber(c, args[3]);
-    const float y2 = verifyNumber(c, args[4]);
+    float x1, y1, x2, y2, prio;
+    if (!verifyNumber(isolate, args[1], x1) || !verifyNumber(isolate, args[2], y1) ||
+            !verifyNumber(isolate, args[3], x2) || !verifyNumber(isolate, args[4], y2) ||
+            !verifyNumber(isolate, args[5], prio)) {
+        return;
+    }
 
-    const char* name = nullptr;
-    const int prio = int(verifyNumber(c, args[5]));
-
-    p->addRect(x1, y1, x2, y2, name, prio);
+    p->addRect(x1, y1, x2, y2, nullptr, int(prio));
 }
 
 static void pathAddTriangle(const FunctionCallbackInfo<Value>& args)
 {
-    Local<Context> c = args.GetIsolate()->GetCurrentContext();
+    Isolate *isolate = args.GetIsolate();
     Path *p = static_cast<Path*>(Local<External>::Cast(args[0])->Value());
-    const float x1 = verifyNumber(c, args[1]);
-    const float y1 = verifyNumber(c, args[2]);
-    const float x2 = verifyNumber(c, args[3]);
-    const float y2 = verifyNumber(c, args[4]);
-    const float x3 = verifyNumber(c, args[5]);
-    const float y3 = verifyNumber(c, args[6]);
-    const float lineWidth = verifyNumber(c, args[7]);
+    float x1, y1, x2, y2, x3, y3, lineWidth, prio;
+    if (!verifyNumber(isolate, args[1], x1) || !verifyNumber(isolate, args[2], y1) ||
+            !verifyNumber(isolate, args[3], x2) || !verifyNumber(isolate, args[4], y2) ||
+            !verifyNumber(isolate, args[5], x3) || !verifyNumber(isolate, args[6], y3) ||
+            !verifyNumber(isolate, args[7], lineWidth) || !verifyNumber(isolate, args[8], prio)) {
+        return;
+    }
 
-    const char* name = nullptr;
-    const int prio = int(verifyNumber(c, args[8]));
-
-    p->addTriangle(x1, y1, x2, y2, x3, y3, lineWidth, name, prio);
+    p->addTriangle(x1, y1, x2, y2, x3, y3, lineWidth, nullptr, int(prio));
 }
 
 static void pathTest(const FunctionCallbackInfo<Value>& args)
@@ -187,11 +188,14 @@ static void pathTest(const FunctionCallbackInfo<Value>& args)
     jsToProtobuf(args.GetIsolate(), args[1], c, spline);
 
     if (spline.t_start() >= spline.t_end()) {
-        // TODO: error handling
+        args.GetIsolate()->ThrowException(String::NewFromUtf8(args.GetIsolate(), "spline.t_start must be smaller than spline.t_end", String::kNormalString));
         return;
     }
 
-    const float radius = verifyNumber(c, args[2]);
+    float radius;
+    if (!verifyNumber(args.GetIsolate(), args[2], radius)) {
+        return;
+    }
     const bool ret = p->testSpline(spline, radius);
     args.GetReturnValue().Set(Boolean::New(args.GetIsolate(), ret));
 
@@ -202,24 +206,24 @@ static void pathTest(const FunctionCallbackInfo<Value>& args)
 static void pathGet(const FunctionCallbackInfo<Value>& args)
 {
     Isolate *isolate = args.GetIsolate();
-    Local<Context> c = args.GetIsolate()->GetCurrentContext();
     const qint64 t = Timer::systemTime();
 
     // robot radius must have been set before
     Path *p = static_cast<Path*>(Local<External>::Cast(args[0])->Value());
     if (!p->isRadiusValid()) {
-        // TODO: error handling
+        isolate->ThrowException(String::NewFromUtf8(isolate, "Invalid radius", String::kNormalString));
         return;
     }
 
-    const float start_x = verifyNumber(c, args[1]);
-    const float start_y = verifyNumber(c, args[2]);
-    const float end_x = verifyNumber(c, args[3]);
-    const float end_y = verifyNumber(c, args[4]);
+    float startX, startY, endX, endY;
+    if (!verifyNumber(isolate, args[1], startX) || !verifyNumber(isolate, args[2], startY) ||
+            !verifyNumber(isolate, args[3], endX) || !verifyNumber(isolate, args[4], endY)) {
+        return;
+    }
 
-    Path::List list = p->get(start_x, start_y, end_x, end_y);
+    Path::List list = p->get(startX, startY, endX, endY);
 
-    // convert path to lua table
+    // convert path to js object
     unsigned int i = 0;
     Local<Array> result = Array::New(isolate, list.size());
     Local<String> pxString = String::NewFromUtf8(isolate, "p_x", NewStringType::kNormal).ToLocalChecked();
@@ -240,7 +244,44 @@ static void pathGet(const FunctionCallbackInfo<Value>& args)
     args.GetReturnValue().Set(result);
 }
 
-// TODO: drawTreeVisualization
+static void drawTree(Typescript *thread, const KdTree *tree) {
+    if (tree == NULL) {
+        return;
+    }
+    const QList<const KdTree::Node *> nodes = tree->getChildren();
+
+    amun::Point *point;
+    // draw tree by creating lines from every node to its predecessor
+    foreach (const KdTree::Node *node, nodes) {
+        amun::Visualization *vis = thread->addVisualization();
+        vis->set_name("RRT");
+        amun::Pen *pen = vis->mutable_pen();
+        pen->mutable_color()->set_red(255);
+        amun::Path *path = vis->mutable_path();
+
+        const Vector &p1 = tree->position(node);
+        point = path->add_point();
+        point->set_x(p1.x);
+        point->set_y(p1.y);
+
+        const KdTree::Node *endNode = tree->previous(node);
+        if (tree->inObstacle(endNode)) { // mark line segments starting in an obstacle node
+            pen->mutable_color()->set_blue(255);
+        }
+        const Vector &p2 = tree->position(endNode);
+        point = path->add_point();
+        point->set_x(p2.x);
+        point->set_y(p2.y);
+    }
+}
+
+static void pathAddTreeVisualization(const FunctionCallbackInfo<Value>& args)
+{
+    Path *p = static_cast<Path*>(Local<External>::Cast(args[0])->Value());
+    Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
+    drawTree(t, p->treeStart());
+    drawTree(t, p->treeEnd());
+}
 
 struct FunctionInfo {
     const char *name;
@@ -249,7 +290,6 @@ struct FunctionInfo {
 
 void registerPathJsCallbacks(Isolate *isolate, Local<Object> global, Typescript *t)
 {
-    // TODO: set side effect property
     QList<FunctionInfo> callbacks = {
         { "create",             pathCreate},
         { "destroy",            pathDestroy},
@@ -264,7 +304,8 @@ void registerPathJsCallbacks(Isolate *isolate, Local<Object> global, Typescript 
         { "addRect",            pathAddRect},
         { "addTriangle",        pathAddTriangle},
         { "test",               pathTest},
-        { "getPath",            pathGet}};
+        { "getPath",            pathGet},
+        { "addTreeVisualization", pathAddTreeVisualization}};
 
     Local<Object> pathObject = Object::New(isolate);
     Local<String> pathStr = String::NewFromUtf8(isolate, "path", NewStringType::kNormal).ToLocalChecked();

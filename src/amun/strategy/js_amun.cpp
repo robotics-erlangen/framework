@@ -172,7 +172,6 @@ static void amunLog(const FunctionCallbackInfo<Value>& args)
     Isolate* isolate = args.GetIsolate();
     Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
 
-    // TODO: string format functionality needed?
     // returns the string undefined if no argument is given
     String::Utf8Value value(isolate, args[0]);
     t->log(*value);
@@ -183,13 +182,15 @@ static void amunAddVisualization(const FunctionCallbackInfo<Value>& args)
     Isolate* isolate = args.GetIsolate();
     Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
 
+    if (!checkNumberOfArguments(isolate, 1, args.Length())) {
+        return;
+    }
     amun::Visualization *vis = t->addVisualization();
     jsToProtobuf(isolate, args[0], isolate->GetCurrentContext(), *vis);
 }
 
 static void amunAddDebug(const FunctionCallbackInfo<Value>& args)
 {
-    // TODO: error messages
     Isolate* isolate = args.GetIsolate();
     Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
     amun::DebugValue *debugValue = t->addDebug();
@@ -199,13 +200,15 @@ static void amunAddDebug(const FunctionCallbackInfo<Value>& args)
     Local<Context> context = isolate->GetCurrentContext();
     Local<Value> value = args[1];
     if (value->IsNumber()) {
-        debugValue->set_float_value(value->NumberValue(context).ToChecked());
+        debugValue->set_float_value(float(value->NumberValue(context).ToChecked()));
     } else if (value->IsBoolean()) {
         debugValue->set_bool_value(value->BooleanValue(context).ToChecked());
     } else if (value->IsString()) {
         debugValue->set_string_value(*String::Utf8Value(value));
     } else if (value->IsUndefined()) {
         debugValue->set_string_value("<undefined>");
+    } else {
+        debugValue->set_string_value("<unknown data type>");
     }
 }
 
@@ -216,7 +219,10 @@ static void amunAddPlot(const FunctionCallbackInfo<Value>& args)
     amun::PlotValue *value = t->addPlot();
     value->set_name(*String::Utf8Value(isolate, args[0]));
     double number = 0.0;
-    args[1]->NumberValue(isolate->GetCurrentContext()).To(&number);
+    if (!args[1]->NumberValue(isolate->GetCurrentContext()).To(&number)) {
+        isolate->ThrowException(String::NewFromUtf8(isolate, "invalid number to plot", String::kNormalString));
+        return;
+    }
     value->set_value(float(number));
 }
 
