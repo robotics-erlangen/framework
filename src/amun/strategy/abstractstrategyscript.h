@@ -52,9 +52,9 @@ public:
     // return true on success, if false is returned the error msg can be retrieved via errorMsg()
     // loadScript and process MUST NOT be called anymore after an error was thrown!
     // must only be called once
-    virtual bool loadScript(const QString &filename, const QString &entryPoint, const world::Geometry &geometry, const robot::Team &team) = 0;
+    bool loadScript(const QString &filename, const QString &entryPoint, const world::Geometry &geometry, const robot::Team &team);
     // must only be called after loadScript was executed successfully
-    virtual bool process(double &pathPlanning, const world::State &worldState, const amun::GameState &refereeState, const amun::UserInput &userInput) = 0;
+    bool process(double &pathPlanning, const world::State &worldState, const amun::GameState &refereeState, const amun::UserInput &userInput);
     virtual bool triggerDebugger();
 
     void setSelectedOptions(const QStringList &options);
@@ -102,7 +102,7 @@ public:
     const amun::GameState& refereeState() const { return m_refereeState; }
     const amun::UserInput& userInput() const { return m_userInput; }
     bool isBlue() const { return m_type == StrategyType::BLUE; }
-    const QDir baseDir() const { return m_baseDir; }
+    QDir baseDir() const { return m_baseDir; }
 
 signals:
     // wrapper may listen to reload request, but doesn't have to
@@ -111,6 +111,11 @@ signals:
     void sendStrategyCommand(bool blue, uint generation, uint id, const RobotCommand &command, qint64 time);
     void sendMixedTeamInfo(const QByteArray &data);
     void sendNetworkRefereeCommand(const QByteArray &data);
+
+protected:
+    bool chooseEntryPoint(QString entryPoint);
+    virtual bool loadScript(const QString &filename, const QString &entryPoint) = 0;
+    virtual bool process(double &pathPlanning) = 0;
 
 protected:
     QStringList m_entryPoints;

@@ -143,3 +143,33 @@ void AbstractStrategyScript::sendMixedTeam(const QByteArray &info)
 {
     emit sendMixedTeamInfo(info);
 }
+
+bool AbstractStrategyScript::loadScript(const QString &filename, const QString &entryPoint, const world::Geometry &geometry, const robot::Team &team)
+{
+    Q_ASSERT(m_filename.isNull());
+
+    // startup strategy information
+    m_filename = filename;
+    m_name = "<no script>";
+    // strategy modules are loaded relative to the init script
+    m_baseDir = QFileInfo(m_filename).absoluteDir();
+
+    m_geometry.CopyFrom(geometry);
+    m_team.CopyFrom(team);
+    takeDebugStatus();
+
+    return loadScript(filename, entryPoint);
+}
+
+bool AbstractStrategyScript::process(double &pathPlanning, const world::State &worldState, const amun::GameState &refereeState, const amun::UserInput &userInput)
+{
+    Q_ASSERT(!m_entryPoint.isNull());
+
+    m_worldState.CopyFrom(worldState);
+    m_worldState.clear_vision_frames();
+    m_refereeState.CopyFrom(refereeState);
+    m_userInput.CopyFrom(userInput);
+    takeDebugStatus();
+
+    return process(pathPlanning);
+}

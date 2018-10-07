@@ -94,21 +94,8 @@ AbstractStrategyScript* Typescript::createStrategy(const Timer *timer, StrategyT
     return new Typescript(timer, type, debugEnabled, refboxControlEnabled);
 }
 
-bool Typescript::loadScript(const QString &filename, const QString &entryPoint, const world::Geometry &geometry, const robot::Team &team)
+bool Typescript::loadScript(const QString &filename, const QString &entryPoint)
 {
-    // TODO: factor this common code to a function in AbstractStrategyScript
-    Q_ASSERT(m_filename.isNull());
-
-    // startup strategy information
-    m_filename = filename;
-    m_name = "<no script>";
-    // strategy modules are loaded relative to the init script
-    m_baseDir = QFileInfo(m_filename).absoluteDir();
-
-    m_geometry.CopyFrom(geometry);
-    m_team.CopyFrom(team);
-    takeDebugStatus();
-
     QFile file(filename);
     if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QTextStream in(&file);
@@ -300,18 +287,46 @@ void Typescript::addPathTime(double time)
     m_totalPathTime += time;
 }
 
-bool Typescript::process(double &pathPlanning, const world::State &worldState, const amun::GameState &refereeState, const amun::UserInput &userInput)
+void Typescript::saveNode(QTextStream &file, const CpuProfileNode *node, QString functionStack)
 {
-    Q_ASSERT(!m_entryPoint.isNull());
+    QString functionLine = QString(node->GetScriptId() == 0 ? "C" : node->GetScriptResourceNameStr()) + ":"
+            + QString(node->GetFunctionNameStr()) + "\n";
+    QString newStack = functionLine + functionStack;
+    file <<newStack;
+    file <<'\t'<<node->GetHitCount()<<'\n';
+    for (int i = 0;i<node->GetChildrenCount();i++) {
+        saveNode(file, node->GetChild(i), newStack);
+    }
+}
 
+void Typescript::startProfiling()
+{
+    HandleScope handleScope(m_isolate);
+    m_profiler = CpuProfiler::New(m_isolate);
+    m_profiler->SetSamplingInterval(200);
+    m_profiler->StartProfiling(String::NewFromUtf8(m_isolate, "profile", NewStringType::kNormal).ToLocalChecked());
+}
+
+void Typescript::endProfiling(const std::string &filename)
+{
+    HandleScope handleScope(m_isolate);
+    if (m_profiler == nullptr) {
+        qFatal("Stopped typescript profiling before being started");
+    }
+    CpuProfile *profile = m_profiler->StopProfiling(String::NewFromUtf8(m_isolate, "profile", NewStringType::kNormal).ToLocalChecked());
+    QFile file(filename.c_str());
+    if (file.open(QFile::WriteOnly)) {
+        QTextStream stream(&file);
+        saveNode(stream, profile->GetTopDownRoot(), "");
+    }
+    m_profiler->Dispose();
+    m_profiler = nullptr;
+}
+
+bool Typescript::process(double &pathPlanning)
+{
     m_executionCounter++;
     m_timeoutCounter.store(m_executionCounter);
-
-    m_worldState.CopyFrom(worldState);
-    m_worldState.clear_vision_frames();
-    m_refereeState.CopyFrom(refereeState);
-    m_userInput.CopyFrom(userInput);
-    takeDebugStatus();
 
     m_totalPathTime = 0;
 

@@ -44,14 +44,15 @@ public:
     ~Lua() override;
 
 public:
-    bool loadScript(const QString &filename, const QString &entryPoint, const world::Geometry &geometry, const robot::Team &team) override;
-    bool process(double &pathPlanning, const world::State &worldState, const amun::GameState &refereeState, const amun::UserInput &userInput) override;
     bool triggerDebugger() override;
 
     qint64 startTime() const { return m_startTime; }
     void watch(const QString &filename);
     QString debuggerRead();
     bool debuggerWrite(const QString& line);
+protected:
+    bool loadScript(const QString &filename, const QString &entryPoint) override;
+    bool process(double &pathPlanning) override;
 private:
     void loadLibs();
     void loadRestrictedDebugLibs();

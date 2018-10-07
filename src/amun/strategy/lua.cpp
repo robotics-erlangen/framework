@@ -340,20 +340,8 @@ Lua::~Lua()
     lua_close(m_state);
 }
 
-bool Lua::loadScript(const QString &filename, const QString &entryPoint, const world::Geometry &geometry, const robot::Team &team)
+bool Lua::loadScript(const QString &filename, const QString &entryPoint)
 {
-    Q_ASSERT(m_filename.isNull());
-
-    // startup strategy information
-    m_filename = filename;
-    m_name = "<no script>";
-    // strategy modules are loaded relative to the init script
-    m_baseDir = QFileInfo(m_filename).absoluteDir();
-
-    m_geometry.CopyFrom(geometry);
-    m_team.CopyFrom(team);
-    takeDebugStatus();
-
     // start init script loader, sets strategy name and entrypoints
     lua_pushcfunction(m_state, luaLoadInitScript);
     // only the init script filename may be passed with '.lua'
@@ -406,16 +394,8 @@ bool Lua::loadScript(const QString &filename, const QString &entryPoint, const w
     return true;
 }
 
-bool Lua::process(double &pathPlanning, const world::State &worldState, const amun::GameState &refereeState, const amun::UserInput &userInput)
+bool Lua::process(double &pathPlanning)
 {
-    Q_ASSERT(!m_entryPoint.isNull());
-
-    m_worldState.CopyFrom(worldState);
-    m_worldState.clear_vision_frames();
-    m_refereeState.CopyFrom(refereeState);
-    m_userInput.CopyFrom(userInput);
-    takeDebugStatus();
-
     // used to check for script timeout
     m_startTime = Timer::systemTime();
 
