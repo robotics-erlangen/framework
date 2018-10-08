@@ -61,7 +61,7 @@ find_package(OpenGL REQUIRED)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 sanitize_env()
-find_package(Protobuf 3.0.0)
+find_package(Protobuf 3.3.0)
 restore_env()
 # old cmake versions can't detect the protobuf version number
 # the protobuf version on such systems is too old to be useful
