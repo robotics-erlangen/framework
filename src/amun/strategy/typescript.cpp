@@ -343,8 +343,14 @@ bool Typescript::process(double &pathPlanning)
             String::Utf8Value error(m_isolate, stackTrace);
             m_errorMsg = "<font color=\"red\">" + QString(*error) + "</font>";
         } else {
-            // this will only happen if the script was terminated by CheckForScriptTimeout
-            m_errorMsg = "<font color=\"red\">Script timeout</font>";
+            Local<Message> message = tryCatch.Message();
+            if (!message.IsEmpty()) {
+                String::Utf8Value exception(m_isolate, tryCatch.Exception());
+                m_errorMsg = "<font color=\"red\">" + QString(*exception) + "</font>";
+            } else {
+                // this will only happen if the script was terminated by CheckForScriptTimeout
+                m_errorMsg = "<font color=\"red\">Script timeout</font>";
+            }
         }
         return false;
     }
