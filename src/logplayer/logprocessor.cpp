@@ -1,11 +1,13 @@
 #include "logprocessor.h"
 #include "logfile/seqlogfilereader.h"
 #include "logfile/logfilewriter.h"
+#include "logfile/logfilehasher.h"
 #include "protobuf/gamestate.pb.h"
 #include "protobuf/status.pb.h"
 #include <QSemaphore>
 #include <QMutex>
 #include <QLinkedList>
+#include <QTemporaryFile>
 
 class Exchanger {
 public:
@@ -132,16 +134,21 @@ void LogProcessor::run()
     writerObject->moveToThread(writerThread);
     connect(this, &LogProcessor::outputSelected, writerObject, &LogWriter::write);
     connect(writerThread, SIGNAL(finished()), writerObject, SLOT(shutdown()));
-    emit(outputSelected(&writer));
 
     QThread *dumpThread = new LogDump(&dumpExchanger);
     writerThread->start();
     dumpThread->start();
 
+    //handle hashing
+    collectHashes(logreaders, &writerExchanger);
+    logfile::Uid resultingUid = calculateUid();
+
     // stream data
+    emit outputSelected(&writer);
     qint64 lastTime = 0;
+    m_currentLog = 1;
     for (SeqLogFileReader *reader: logreaders) {
-        lastTime = filterLog(*reader, &writerExchanger, &dumpExchanger, lastTime);
+        lastTime = filterLog(*reader, &writerExchanger, &dumpExchanger, lastTime, resultingUid);
         m_currentLog++;
     }
 
@@ -243,7 +250,7 @@ void LogProcessor::changeTimestamps(Status& status, qint64 timeRemoved, bool& is
     }
 }
 
-qint64 LogProcessor::filterLog(SeqLogFileReader &reader, Exchanger *writer, Exchanger *dump, qint64 lastTime)
+qint64 LogProcessor::filterLog(SeqLogFileReader &reader, Exchanger *writer, Exchanger *dump, qint64 lastTime, logfile::Uid& loguid)
 {
     qint64 timeRemoved = 0;
     qint64 lastWrittenTime = 0;
@@ -255,7 +262,7 @@ qint64 LogProcessor::filterLog(SeqLogFileReader &reader, Exchanger *writer, Exch
     int currentFrame = 0;
     while(!reader.atEnd()){
         if ((currentFrame % 1000) == 0) {
-            signalFrames(currentFrame, reader.percent());
+            signalFrames("Processed", currentFrame, reader.percent());
         }
         currentFrame++;
 
@@ -264,6 +271,11 @@ qint64 LogProcessor::filterLog(SeqLogFileReader &reader, Exchanger *writer, Exch
         if (status.isNull()) {
             continue;
         }
+
+        if (status->has_log_id()) {
+            status->clear_log_id();
+        }
+
 
         // removed deleted time
         qint64 timeDelta = (lastTime != 0) ? status->time() - lastTime : 0;
@@ -296,6 +308,10 @@ qint64 LogProcessor::filterLog(SeqLogFileReader &reader, Exchanger *writer, Exch
             dump->transfer(status);
             continue;
         }
+        if (loguid.IsInitialized()) {
+            status->mutable_log_id()->CopyFrom(loguid);
+            loguid.Clear();
+        }
         status->set_original_frame_number(currentFrame - 1);
 
         if (!modStatus.isNull()) {
@@ -309,5 +325,69 @@ qint64 LogProcessor::filterLog(SeqLogFileReader &reader, Exchanger *writer, Exch
     }
 
     return lastWrittenTime;
+}
+
+void LogProcessor::collectHashes(QList<SeqLogFileReader*> readers, Exchanger* writer)
+{
+    if (!m_hashes.empty()) qFatal("LogProcessor: collect Hashes called twice");
+
+    for (int i = 0; i < readers.size(); ++i) {
+        emit progressUpdate(QString("Hashing logfile %1 of %2").arg(i).arg(readers.size()));
+        SeqLogFileReader* reader = readers[i];
+        SeqLogFileReader::Memento mem = reader->createMemento();
+        Status s = reader->readStatus();
+        reader->applyMemento(mem);
+        logfile::Uid hash;
+        if (s->has_log_id()) {
+            hash = s->log_id();
+        }
+        else {
+            //QTemporaryFile will be delete when out of scope
+            QTemporaryFile tmpFile(reader->fileName()+".tmp");
+            tmpFile.open();
+            LogFileWriter hashWriter;
+            hashWriter.open(tmpFile.fileName());
+            emit(outputSelected(&hashWriter));
+            hash.add_parts()->mutable_hash()->assign(LogFileHasher::hash(*reader));
+            reencode(reader, hash, writer);
+            LogFileHasher::replace(tmpFile.fileName(), reader->fileName());
+            //TODO: check how overriding logfiles behaves on different OS
+            //Assumption: UNIX keeps old fp, and therefore rehashes the same logfile twice, while Windows don't know.
+        }
+        m_hashes.append(hash);
+        m_currentLog++;
+    }
+    emit progressUpdate("Hashing completed");
+}
+
+void LogProcessor::reencode(SeqLogFileReader* reader, const logfile::Uid& hash, Exchanger* writer)
+{
+    SeqLogFileReader::Memento mem = reader->createMemento();
+    Status current = reader->readStatus();
+    if (current->has_log_id()) qFatal("Reencode a logfile that already contains a logfile:uid");
+    *(current->mutable_log_id()) = hash;
+    writer->transfer(current);
+    for (int i = 1; !reader->atEnd(); ++i) {
+        current = reader->readStatus();
+        writer->transfer(current);
+        if (i % 1000 == 0) signalFrames("Rehash", i, reader->percent());
+    }
+    //kill pipeline
+    Status empty;
+    writer->transfer(empty);
+    reader->applyMemento(mem);
+}
+
+logfile::Uid LogProcessor::calculateUid() const
+{
+    logfile::Uid res;
+
+    for (const auto& entry: m_hashes) {
+        for(const auto& part : entry.parts()) {
+            res.add_parts()->CopyFrom(part);
+            //TODO: handle FLAGS
+        }
+    }
+    return res;
 }
 #include "logprocessor.moc"

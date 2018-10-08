@@ -1,6 +1,8 @@
 #ifndef LOGPROCESSOR_H
 #define LOGPROCESSOR_H
 
+#include "protobuf/logfile.pb.h"
+
 #include <QThread>
 #include <QList>
 #include <QString>
@@ -43,12 +45,16 @@ signals:
     void outputSelected(LogFileWriter* writer);
 
 private:
-    qint64 filterLog(SeqLogFileReader &reader, Exchanger *writer, Exchanger *dump, qint64 lastTime);
-    void signalFrames(int currentFrame, double percent) { emit progressUpdate(QString("Processed %1 frames (%2%) in logfile %3 of %4").arg(currentFrame).arg(((int)(percent*100)), 2).arg(m_currentLog).arg(m_inputFiles.size())); }
+    qint64 filterLog(SeqLogFileReader &reader, Exchanger *writer, Exchanger *dump, qint64 lastTime, logfile::Uid& uid);
+    void signalFrames(QString prefix, int currentFrame, double percent) { emit progressUpdate((prefix+" %1 frames (%2%) in logfile %3 of %4").arg(currentFrame).arg(((int)(percent*100)), 2).arg(m_currentLog).arg(m_inputFiles.size())); }
     bool skipStatus(const amun::GameState& lastGameState, bool isSimulated) const;
     void changeTimestamps(Status& status, qint64 timeRemoved, bool& isSimulated) const;
+    void collectHashes(QList<SeqLogFileReader*> reader, Exchanger* writer);
+    void reencode(SeqLogFileReader* reader, const logfile::Uid& id, Exchanger* writer);
+    logfile::Uid calculateUid() const;
 
     QList<QString> m_inputFiles;
+    QList<logfile::Uid> m_hashes;
     QString m_outputFile;
     Options m_options;
 
