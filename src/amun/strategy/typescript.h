@@ -72,6 +72,7 @@ private:
     v8::CpuProfiler *m_profiler;
     CheckForScriptTimeout *m_checkForScriptTimeout;
     QThread *m_timeoutCheckerThread;
+    QList<v8::ScriptOrigin*> m_scriptOrigins;
 };
 
 #endif // TYPESCRIPT_H

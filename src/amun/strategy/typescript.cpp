@@ -65,6 +65,7 @@ Typescript::Typescript(const Timer *timer, StrategyType type, bool debugEnabled,
 
 Typescript::~Typescript()
 {
+    qDeleteAll(m_scriptOrigins);
     m_checkForScriptTimeout->deleteLater();
     m_timeoutCheckerThread->quit();
     m_timeoutCheckerThread->wait();
@@ -237,6 +238,13 @@ void Typescript::registerDefineFunction(Local<ObjectTemplate> global)
 
     Local<FunctionTemplate> requireTemplate = FunctionTemplate::New(m_isolate, performRequire, External::New(m_isolate, this));
     m_requireTemplate.Reset(m_isolate, requireTemplate);
+}
+
+ScriptOrigin *Typescript::scriptOriginFromFileName(QString name)
+{
+    ScriptOrigin *origin = new ScriptOrigin(String::NewFromUtf8(m_isolate, name.toStdString().c_str(), NewStringType::kNormal).ToLocalChecked());
+    m_scriptOrigins.push_back(origin);
+    return origin;
 }
 
 bool Typescript::loadModule(QString name)
