@@ -58,7 +58,6 @@ private:
 
 private:
     v8::Isolate* m_isolate;
-    // TODO: global instead of persistent?
     v8::Persistent<v8::Context> m_context;
     v8::Persistent<v8::Function> m_function;
     double m_totalPathTime;

@@ -86,8 +86,7 @@ Typescript::~Typescript()
 bool Typescript::canHandle(const QString &filename)
 {
     QFileInfo file(filename);
-    // TODO: js is only for temporary tests
-    return file.fileName().split(".").last() == "js";
+    return file.fileName() == "init.js";
 }
 
 AbstractStrategyScript* Typescript::createStrategy(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled)
@@ -98,102 +97,98 @@ AbstractStrategyScript* Typescript::createStrategy(const Timer *timer, StrategyT
 bool Typescript::loadScript(const QString &filename, const QString &entryPoint)
 {
     QFile file(filename);
-    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        QTextStream in(&file);
-        QString content = in.readAll();
-        QByteArray contentBytes = content.toLatin1();
-
-        HandleScope handleScope(m_isolate);
-        Local<Context> context = Local<Context>::New(m_isolate, m_context);
-        Context::Scope contextScope(context);
-
-        Local<String> source = String::NewFromUtf8(m_isolate,
-                                            contentBytes.data(), NewStringType::kNormal).ToLocalChecked();
-
-        // Compile the source code.
-        Local<Script> script;
-        TryCatch tryCatch(m_isolate);
-        if (!Script::Compile(context, source).ToLocal(&script)) {
-            String::Utf8Value error(m_isolate, tryCatch.StackTrace(context).ToLocalChecked());
-            m_errorMsg = "<font color=\"red\">" + QString(*error) + "</font>";
-            return false;
-        }
-
-        // execute the script once to get entrypoints etc.
-        m_currentExecutingModule = m_filename;
-        script->Run(context);
-        if (tryCatch.HasTerminated() || tryCatch.HasCaught()) {
-            String::Utf8Value error(m_isolate, tryCatch.Exception());
-            m_errorMsg = "<font color=\"red\">" + QString(*error) + "</font>";
-            return false;
-        }
-        Local<Object> initExport = Local<Value>::New(m_isolate, *m_requireCache[m_filename])->ToObject(context).ToLocalChecked();
-        Local<String> scriptInfoString = String::NewFromUtf8(m_isolate, "scriptInfo", NewStringType::kNormal).ToLocalChecked();
-        if (!initExport->Has(context, scriptInfoString).ToChecked()) {
-            // the script returns nothing
-            m_errorMsg = "<font color=\"red\">Script must export scriptInfo object!</font>";
-            return false;
-        }
-        Local<Value> result = initExport->Get(context, scriptInfoString).ToLocalChecked();
-
-        if (!result->IsObject()) {
-            m_errorMsg = "<font color=\"red\">scriptInfo export must be an object!</font>";
-            return false;
-        }
-
-        Local<Object> resultObject = result->ToObject(context).ToLocalChecked();
-        Local<String> nameString = String::NewFromUtf8(m_isolate, "name", NewStringType::kNormal).ToLocalChecked();
-        Local<String> entrypointsString = String::NewFromUtf8(m_isolate, "entrypoints", NewStringType::kNormal).ToLocalChecked();
-        if (!resultObject->Has(nameString) || !resultObject->Has(entrypointsString)) {
-            m_errorMsg = "<font color=\"red\">scriptInfo export must be an object containing 'name' and 'entrypoints'!</font>";
-            return false;
-        }
-
-        // TODO: Has will be deprecated
-        // TODO: Get will be deprecated
-        Local<Value> maybeName = resultObject->Get(nameString);
-        if (!maybeName->IsString()) {
-            m_errorMsg = "<font color=\"red\">Script name must be a string!</font>";
-            return false;
-        }
-        Local<String> name = maybeName->ToString(context).ToLocalChecked();
-        m_name = QString(*String::Utf8Value(name));
-        // TODO: get options from strategy
-
-        Local<Value> maybeEntryPoints = resultObject->Get(entrypointsString);
-        if (!maybeEntryPoints->IsObject()) {
-            m_errorMsg = "<font color=\"red\">Entrypoints must be an object!</font>";
-            return false;
-        }
-
-        m_entryPoints.clear();
-        QMap<QString, Local<Function>> entryPoints;
-        Local<Object> entrypointsObject = maybeEntryPoints->ToObject(context).ToLocalChecked();
-        Local<Array> properties = entrypointsObject->GetOwnPropertyNames();
-        for (unsigned int i = 0;i<properties->Length();i++) {
-            Local<Value> key = properties->Get(i);
-            Local<Value> value = entrypointsObject->Get(key);
-            if (!value->IsFunction()) {
-                m_errorMsg = "<font color=\"red\">Entrypoints must contain functions!</font>";
-                return false;
-            }
-            Local<Function> function = Local<Function>::Cast(value);
-
-            QString keyString(*String::Utf8Value(key));
-            m_entryPoints.append(keyString);
-            entryPoints[keyString] = function;
-        }
-
-        if (!chooseEntryPoint(entryPoint)) {
-            return false;
-        }
-
-        m_function.Reset(m_isolate, entryPoints[m_entryPoint]);
-        return true;
-    } else {
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         m_errorMsg = "<font color=\"red\">Could not open file " + filename + "</font>";
         return false;
     }
+    QTextStream in(&file);
+    QString content = in.readAll();
+    QByteArray contentBytes = content.toLatin1();
+
+    HandleScope handleScope(m_isolate);
+    Local<Context> context = Local<Context>::New(m_isolate, m_context);
+    Context::Scope contextScope(context);
+
+    Local<String> source = String::NewFromUtf8(m_isolate,
+                                        contentBytes.data(), NewStringType::kNormal).ToLocalChecked();
+
+    // Compile the source code.
+    Local<Script> script;
+    TryCatch tryCatch(m_isolate);
+    if (!Script::Compile(context, source, scriptOriginFromFileName(filename)).ToLocal(&script)) {
+        String::Utf8Value error(m_isolate, tryCatch.StackTrace(context).ToLocalChecked());
+        m_errorMsg = "<font color=\"red\">" + QString(*error) + "</font>";
+        return false;
+    }
+
+    // execute the script once to get entrypoints etc.
+    m_currentExecutingModule = m_filename;
+    script->Run(context);
+    if (tryCatch.HasTerminated() || tryCatch.HasCaught()) {
+        String::Utf8Value error(m_isolate, tryCatch.Exception());
+        m_errorMsg = "<font color=\"red\">" + QString(*error) + "</font>";
+        return false;
+    }
+    Local<Object> initExport = Local<Value>::New(m_isolate, *m_requireCache[m_filename])->ToObject(context).ToLocalChecked();
+    Local<String> scriptInfoString = String::NewFromUtf8(m_isolate, "scriptInfo", NewStringType::kNormal).ToLocalChecked();
+    if (!initExport->Has(context, scriptInfoString).ToChecked()) {
+        // the script returns nothing
+        m_errorMsg = "<font color=\"red\">Script must export scriptInfo object!</font>";
+        return false;
+    }
+    Local<Value> result = initExport->Get(context, scriptInfoString).ToLocalChecked();
+
+    if (!result->IsObject()) {
+        m_errorMsg = "<font color=\"red\">scriptInfo export must be an object!</font>";
+        return false;
+    }
+
+    Local<Object> resultObject = result->ToObject(context).ToLocalChecked();
+    Local<String> nameString = String::NewFromUtf8(m_isolate, "name", NewStringType::kNormal).ToLocalChecked();
+    Local<String> entrypointsString = String::NewFromUtf8(m_isolate, "entrypoints", NewStringType::kNormal).ToLocalChecked();
+    if (!resultObject->Has(nameString) || !resultObject->Has(entrypointsString)) {
+        m_errorMsg = "<font color=\"red\">scriptInfo export must be an object containing 'name' and 'entrypoints'!</font>";
+        return false;
+    }
+
+    Local<Value> maybeName = resultObject->Get(nameString);
+    if (!maybeName->IsString()) {
+        m_errorMsg = "<font color=\"red\">Script name must be a string!</font>";
+        return false;
+    }
+    Local<String> name = maybeName->ToString(context).ToLocalChecked();
+    m_name = QString(*String::Utf8Value(name));
+
+    Local<Value> maybeEntryPoints = resultObject->Get(entrypointsString);
+    if (!maybeEntryPoints->IsObject()) {
+        m_errorMsg = "<font color=\"red\">Entrypoints must be an object!</font>";
+        return false;
+    }
+
+    m_entryPoints.clear();
+    QMap<QString, Local<Function>> entryPoints;
+    Local<Object> entrypointsObject = maybeEntryPoints->ToObject(context).ToLocalChecked();
+    Local<Array> properties = entrypointsObject->GetOwnPropertyNames();
+    for (unsigned int i = 0;i<properties->Length();i++) {
+        Local<Value> key = properties->Get(i);
+        Local<Value> value = entrypointsObject->Get(key);
+        if (!value->IsFunction()) {
+            m_errorMsg = "<font color=\"red\">Entrypoints must contain functions!</font>";
+            return false;
+        }
+        Local<Function> function = Local<Function>::Cast(value);
+
+        QString keyString(*String::Utf8Value(key));
+        m_entryPoints.append(keyString);
+        entryPoints[keyString] = function;
+    }
+
+    if (!chooseEntryPoint(entryPoint)) {
+        return false;
+    }
+
+    m_function.Reset(m_isolate, entryPoints[m_entryPoint]);
+    return true;
 }
 
 void Typescript::defineModule(const FunctionCallbackInfo<Value> &args)

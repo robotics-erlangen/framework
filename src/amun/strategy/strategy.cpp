@@ -65,7 +65,6 @@ void Strategy::initV8() {
         return;
     }
 
-    // TODO: use data directory
     v8::V8::InitializeICUDefaultLocation(QCoreApplication::applicationFilePath().toUtf8().data());
     v8::V8::InitializeExternalStartupData(QCoreApplication::applicationFilePath().toUtf8().data());
     static_platform = v8::platform::NewDefaultPlatform();

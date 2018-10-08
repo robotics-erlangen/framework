@@ -329,8 +329,7 @@ QString TeamWidget::shortenEntrypointName(const QMenu *menu, const QString &name
 
 void TeamWidget::showOpenDialog()
 {
-    // TODO: js only temporary, move to .ts
-    QString filename = QFileDialog::getOpenFileName(this, "Open script", QString(), QString("Lua/Js script entrypoint (init.lua *.js)"), 0, 0);
+    QString filename = QFileDialog::getOpenFileName(this, "Open script", QString(), QString("Lua/Js script entrypoint (init.lua init.js)"));
     if (filename.isNull()) {
         return;
     }
