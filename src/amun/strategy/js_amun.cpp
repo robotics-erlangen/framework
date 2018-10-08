@@ -162,7 +162,9 @@ static void amunSetCommand(const FunctionCallbackInfo<Value>& args)
     if (!toUintChecked(isolate, args[0], generation) || !toUintChecked(isolate, args[1], robotId)) {
         return;
     }
-    jsToProtobuf(isolate, args[2], isolate->GetCurrentContext(), *command);
+    if (!jsToProtobuf(isolate, args[2], isolate->GetCurrentContext(), *command)) {
+        return;
+    }
 
     t->setCommand(generation, robotId, command);
 }
@@ -232,7 +234,9 @@ static void amunSendCommand(const FunctionCallbackInfo<Value>& args)
     Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
 
     Command command(new amun::Command);
-    jsToProtobuf(isolate, args[0], isolate->GetCurrentContext(), *command);
+    if (!jsToProtobuf(isolate, args[0], isolate->GetCurrentContext(), *command)) {
+        return;
+    }
     if (!t->sendCommand(command)) {
         isolate->ThrowException(String::NewFromUtf8(isolate, "This function is only allowed in debug mode!", String::kNormalString));
     }
@@ -244,7 +248,9 @@ static void amunSendRefereeCommand(const FunctionCallbackInfo<Value>& args)
     Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
 
     SSL_Referee referee;
-    jsToProtobuf(isolate, args[0], isolate->GetCurrentContext(), referee);
+    if (!jsToProtobuf(isolate, args[0], isolate->GetCurrentContext(), referee)) {
+        return;
+    }
 
     std::string refereeStr;
     if (!referee.SerializeToString(&refereeStr)) {
@@ -266,7 +272,9 @@ static void amunSendMixedTeamInfo(const FunctionCallbackInfo<Value>& args)
     Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
 
     ssl::TeamPlan mixedTeamInfo;
-    jsToProtobuf(isolate, args[0], isolate->GetCurrentContext(), mixedTeamInfo);
+    if (!jsToProtobuf(isolate, args[0], isolate->GetCurrentContext(), mixedTeamInfo)) {
+        return;
+    }
 
     QByteArray data;
     data.resize(mixedTeamInfo.ByteSize());
@@ -286,7 +294,9 @@ static void amunSendNetworkRefereeCommand(const FunctionCallbackInfo<Value>& arg
     if (t->isInternalAutoref()) {
         Command command(new amun::Command);
         SSL_RefereeRemoteControlRequest * request = command->mutable_referee()->mutable_autoref_command();
-        jsToProtobuf(isolate, args[0], isolate->GetCurrentContext(), *request);
+        if (!jsToProtobuf(isolate, args[0], isolate->GetCurrentContext(), *request)) {
+            return;
+        }
 
         // flip position if necessary
         if (t->isFlipped() && request->has_designated_position()) {
@@ -304,7 +314,9 @@ static void amunSendNetworkRefereeCommand(const FunctionCallbackInfo<Value>& arg
         }
 
         SSL_RefereeRemoteControlRequest request;
-        jsToProtobuf(isolate, args[0], isolate->GetCurrentContext(), request);
+        if (!jsToProtobuf(isolate, args[0], isolate->GetCurrentContext(), request)) {
+            return;
+        }
 
         // flip position if necessary
         if (t->isFlipped() && request.has_designated_position()) {

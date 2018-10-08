@@ -38,15 +38,12 @@ static Local<Value> protobufFieldToJs(Isolate *isolate, const google::protobuf::
         return Int32::New(isolate, refl->GetInt32(message, field));
 
     case google::protobuf::FieldDescriptor::CPPTYPE_INT64:
-        // TODO: why can't v8 serialize BigInts???, fix
         return Number::New(isolate, refl->GetInt64(message, field));
-        //return BigInt::New(isolate, refl->GetInt64(message, field));
 
     case google::protobuf::FieldDescriptor::CPPTYPE_UINT32:
         return Uint32::NewFromUnsigned(isolate, refl->GetUInt32(message, field));
 
     case google::protobuf::FieldDescriptor::CPPTYPE_UINT64:
-        //return BigInt::NewFromUnsigned(isolate, refl->GetUInt64(message, field));
         return Number::New(isolate, refl->GetUInt64(message, field));
 
     case google::protobuf::FieldDescriptor::CPPTYPE_DOUBLE:
@@ -81,14 +78,12 @@ static Local<Value> repeatedFieldToJs(Isolate *isolate, const google::protobuf::
         return Int32::New(isolate, refl->GetRepeatedInt32(message, field, index));
 
     case google::protobuf::FieldDescriptor::CPPTYPE_INT64:
-        //return BigInt::New(isolate, refl->GetRepeatedInt64(message, field, index));
         return Number::New(isolate, refl->GetRepeatedInt64(message, field, index));
 
     case google::protobuf::FieldDescriptor::CPPTYPE_UINT32:
         return Uint32::NewFromUnsigned(isolate, refl->GetRepeatedUInt32(message, field, index));
 
     case google::protobuf::FieldDescriptor::CPPTYPE_UINT64:
-        //return BigInt::NewFromUnsigned(isolate, refl->GetRepeatedUInt64(message, field, index));
         return Number::New(isolate, refl->GetRepeatedUInt64(message, field, index));
 
     case google::protobuf::FieldDescriptor::CPPTYPE_DOUBLE:
@@ -110,6 +105,8 @@ static Local<Value> repeatedFieldToJs(Isolate *isolate, const google::protobuf::
 
     case google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE:
         return protobufToJs(isolate, refl->GetRepeatedMessage(message, field, index));
+    default:
+        qDebug() <<"Unknown protobuf field type";
     }
     return Undefined(isolate);
 }
@@ -140,44 +137,86 @@ Local<Value> protobufToJs(Isolate *isolate, const google::protobuf::Message &mes
 
 
 // js to protobuf
+static bool jsPartToProtobuf(Isolate *isolate, Local<Value> value, Local<Context> c, google::protobuf::Message &message);
 
-static void jsValueToProtobufField(Isolate *isolate, Local<Value> value, Local<Context> c, google::protobuf::Message &message, const google::protobuf::FieldDescriptor *field)
+// returns true iff the conversion was sucessfull
+static bool jsValueToProtobufField(Isolate *isolate, Local<Value> value, Local<Context> c, google::protobuf::Message &message, const google::protobuf::FieldDescriptor *field)
 {
     if (value->IsNullOrUndefined()) {
-        return;
+        return true;
     }
     const google::protobuf::Reflection *refl = message.GetReflection();
 
-    // TODO: ra will crash when the type doesn't match
     switch (field->cpp_type()) {
     case google::protobuf::FieldDescriptor::CPPTYPE_INT32:
-        refl->SetInt32(&message, field, value->Int32Value(c).ToChecked());
+    {
+        qint32 result;
+        if (!value->Int32Value(c).To(&result)) {
+            return false;
+        }
+        refl->SetInt32(&message, field, result);
         break;
+    }
 
     case google::protobuf::FieldDescriptor::CPPTYPE_INT64:
-        refl->SetInt64(&message, field, value->IntegerValue(c).ToChecked());
+    {
+        long result;
+        if (!value->IntegerValue(c).To(&result)) {
+            return false;
+        }
+        refl->SetInt64(&message, field, result);
         break;
+    }
 
     case google::protobuf::FieldDescriptor::CPPTYPE_UINT32:
-        refl->SetUInt32(&message, field, value->Uint32Value(c).ToChecked());
+    {
+        quint32 result;
+        if (!value->Uint32Value(c).To(&result)) {
+            return false;
+        }
+        refl->SetUInt32(&message, field, result);
         break;
+    }
 
     case google::protobuf::FieldDescriptor::CPPTYPE_UINT64:
-        // TODO: there seems to be no way to get an unsigned long from v8
-        refl->SetUInt64(&message, field, (unsigned long)value->IntegerValue(c).ToChecked());
+    {
+        long result;
+        if (!value->IntegerValue(c).To(&result)) {
+            return false;
+        }
+        refl->SetUInt64(&message, field, (unsigned long)result);
         break;
+    }
 
     case google::protobuf::FieldDescriptor::CPPTYPE_DOUBLE:
-        refl->SetDouble(&message, field, value->NumberValue(c).ToChecked());
+    {
+        double result;
+        if (!value->NumberValue(c).To(&result)) {
+            return false;
+        }
+        refl->SetDouble(&message, field, result);
         break;
+    }
 
     case google::protobuf::FieldDescriptor::CPPTYPE_FLOAT:
-        refl->SetFloat(&message, field, float(value->NumberValue(c).ToChecked()));
+    {
+        double result;
+        if (!value->NumberValue(c).To(&result)) {
+            return false;
+        }
+        refl->SetFloat(&message, field, float(result));
         break;
+    }
 
     case google::protobuf::FieldDescriptor::CPPTYPE_BOOL:
-        refl->SetBool(&message, field, value->BooleanValue(c).ToChecked());
+    {
+        bool result;
+        if (!value->BooleanValue(c).To(&result)) {
+            return false;
+        }
+        refl->SetBool(&message, field, result);
         break;
+    }
 
     case google::protobuf::FieldDescriptor::CPPTYPE_STRING:
         refl->SetString(&message, field, *String::Utf8Value(value));
@@ -189,50 +228,95 @@ static void jsValueToProtobufField(Isolate *isolate, Local<Value> value, Local<C
         const google::protobuf::EnumValueDescriptor *value = field->enum_type()->FindValueByName(str);
         if (value) {
             refl->SetEnum(&message, field, value);
+        } else {
+            return false;
         }
         break;
     }
 
     case google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE:
-        jsToProtobuf(isolate, value, c, *refl->MutableMessage(&message, field));
-        break;
+        return jsPartToProtobuf(isolate, value, c, *refl->MutableMessage(&message, field));
+
+    default:
+        return false;
     }
+    return true;
 }
 
-static void jsValueToRepeatedProtobufField(Isolate *isolate, Local<Value> value, Local<Context> c, google::protobuf::Message &message, const google::protobuf::FieldDescriptor *field)
+static bool jsValueToRepeatedProtobufField(Isolate *isolate, Local<Value> value, Local<Context> c, google::protobuf::Message &message, const google::protobuf::FieldDescriptor *field)
 {
     const google::protobuf::Reflection *refl = message.GetReflection();
 
-    // TODO: ra will crash when the type doesn't match
     switch (field->cpp_type()) {
     case google::protobuf::FieldDescriptor::CPPTYPE_INT32:
-        refl->AddInt32(&message, field, value->Int32Value(c).ToChecked());
+    {
+        qint32 result;
+        if (!value->Int32Value(c).To(&result)) {
+            return false;
+        }
+        refl->AddInt32(&message, field, result);
         break;
+    }
 
     case google::protobuf::FieldDescriptor::CPPTYPE_INT64:
-        refl->AddInt64(&message, field, value->IntegerValue(c).ToChecked());
+    {
+        long result;
+        if (!value->IntegerValue(c).To(&result)) {
+            return false;
+        }
+        refl->AddInt64(&message, field, result);
         break;
+    }
 
     case google::protobuf::FieldDescriptor::CPPTYPE_UINT32:
-        refl->AddUInt32(&message, field, value->Uint32Value(c).ToChecked());
+    {
+        quint32 result;
+        if (!value->Uint32Value(c).To(&result)) {
+            return false;
+        }
+        refl->AddUInt32(&message, field, result);
         break;
+    }
 
     case google::protobuf::FieldDescriptor::CPPTYPE_UINT64:
-        // TODO: there seems to be no way to get an unsigned long from v8
-        refl->AddUInt64(&message, field, (unsigned long)value->IntegerValue(c).ToChecked());
+    {
+        long result;
+        if (!value->IntegerValue(c).To(&result)) {
+            return false;
+        }
+        refl->AddUInt64(&message, field, (unsigned long)result);
         break;
+    }
 
     case google::protobuf::FieldDescriptor::CPPTYPE_DOUBLE:
-        refl->AddDouble(&message, field, value->NumberValue(c).ToChecked());
+    {
+        double result;
+        if (!value->NumberValue(c).To(&result)) {
+            return false;
+        }
+        refl->AddDouble(&message, field, result);
         break;
+    }
 
     case google::protobuf::FieldDescriptor::CPPTYPE_FLOAT:
-        refl->AddFloat(&message, field, float(value->NumberValue(c).ToChecked()));
+    {
+        double result;
+        if (!value->NumberValue(c).To(&result)) {
+            return false;
+        }
+        refl->AddFloat(&message, field, float(result));
         break;
+    }
 
     case google::protobuf::FieldDescriptor::CPPTYPE_BOOL:
-        refl->AddBool(&message, field, value->BooleanValue(c).ToChecked());
+    {
+        bool result;
+        if (!value->BooleanValue(c).To(&result)) {
+            return false;
+        }
+        refl->AddBool(&message, field, result);
         break;
+    }
 
     case google::protobuf::FieldDescriptor::CPPTYPE_STRING:
         refl->AddString(&message, field, *String::Utf8Value(value));
@@ -244,23 +328,29 @@ static void jsValueToRepeatedProtobufField(Isolate *isolate, Local<Value> value,
         const google::protobuf::EnumValueDescriptor *value = field->enum_type()->FindValueByName(str);
         if (value) {
             refl->AddEnum(&message, field, value);
+        } else {
+            return false;
         }
         break;
     }
 
     case google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE:
-        jsToProtobuf(isolate, value, c, *refl->AddMessage(&message, field));
-        break;
+        return jsPartToProtobuf(isolate, value, c, *refl->AddMessage(&message, field));
+
+    default:
+        return false;
     }
+    return true;
 }
 
-void jsToProtobuf(Isolate *isolate, Local<Value> value, Local<Context> c, google::protobuf::Message &message)
+static bool jsPartToProtobuf(Isolate *isolate, Local<Value> value, Local<Context> c, google::protobuf::Message &message)
 {
-    // TODO: add error messages?
-
     Local<Object> object;
-    if (value->IsNullOrUndefined() || !value->ToObject(c).ToLocal(&object)) {
-        return;
+    if (value->IsNullOrUndefined()) {
+        return true;
+    }
+    if (!value->ToObject(c).ToLocal(&object)) {
+        return false;
     }
 
     // iterate over message fields
@@ -273,15 +363,37 @@ void jsToProtobuf(Isolate *isolate, Local<Value> value, Local<Context> c, google
             Local<Value> v = object->Get(name);
             if (field->is_repeated()) {
                 if (!v->IsArray()) {
-                    continue;
+                    if (v->IsNullOrUndefined()) {
+                        continue;
+                    }
+                    return false;
                 }
                 Local<Array> array = Local<Array>::Cast(v);
                 for (unsigned int j = 0;j<array->Length(); j++) {
-                    jsValueToRepeatedProtobufField(isolate, array->Get(c, j).ToLocalChecked(), c, message, field);
+                    if (!jsValueToRepeatedProtobufField(isolate, array->Get(c, j).ToLocalChecked(), c, message, field)) {
+                        return false;
+                    }
                 }
             } else {
-                jsValueToProtobufField(isolate, v, c, message, field);
+                if (!jsValueToProtobufField(isolate, v, c, message, field)) {
+                    return false;
+                }
             }
         }
     }
+    return true;
+}
+
+bool jsToProtobuf(Isolate *isolate, Local<Value> value, Local<Context> c, google::protobuf::Message &message)
+{
+    bool good = jsPartToProtobuf(isolate, value, c, message);
+    if (!good) {
+        isolate->ThrowException(String::NewFromUtf8(isolate, "Invalid object, can't convert to protobuf", String::kNormalString));
+        return false;
+    }
+    if (!message.IsInitialized()) {
+        isolate->ThrowException(String::NewFromUtf8(isolate, "Invalid or incomplete object", String::kNormalString));
+        return false;
+    }
+    return true;
 }

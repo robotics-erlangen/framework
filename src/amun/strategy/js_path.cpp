@@ -185,7 +185,9 @@ static void pathTest(const FunctionCallbackInfo<Value>& args)
 
     // get spline
     robot::Spline spline;
-    jsToProtobuf(args.GetIsolate(), args[1], c, spline);
+    if (!jsToProtobuf(args.GetIsolate(), args[1], c, spline)) {
+        return;
+    }
 
     if (spline.t_start() >= spline.t_end()) {
         args.GetIsolate()->ThrowException(String::NewFromUtf8(args.GetIsolate(), "spline.t_start must be smaller than spline.t_end", String::kNormalString));
@@ -245,7 +247,7 @@ static void pathGet(const FunctionCallbackInfo<Value>& args)
 }
 
 static void drawTree(Typescript *thread, const KdTree *tree) {
-    if (tree == NULL) {
+    if (tree == nullptr) {
         return;
     }
     const QList<const KdTree::Node *> nodes = tree->getChildren();

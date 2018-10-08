@@ -25,6 +25,6 @@
 #include <v8.h>
 
 v8::Local<v8::Value> protobufToJs(v8::Isolate *isolate, const google::protobuf::Message &message);
-void jsToProtobuf(v8::Isolate *isolate, v8::Local<v8::Value> value, v8::Local<v8::Context> c, google::protobuf::Message &message);
+bool jsToProtobuf(v8::Isolate *isolate, v8::Local<v8::Value> value, v8::Local<v8::Context> c, google::protobuf::Message &message);
 
 #endif // JS_PROTOBUF_H
