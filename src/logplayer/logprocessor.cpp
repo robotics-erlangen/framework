@@ -253,6 +253,15 @@ void LogProcessor::changeTimestamps(Status& status, qint64 timeRemoved, bool& is
     }
 }
 
+static void insertHashInfo(Status& status, logfile::Uid& loguid, int currentFrame)
+{
+    status->set_original_frame_number(currentFrame);
+    if (loguid.parts_size() > 0) {
+        status->mutable_log_id()->CopyFrom(loguid);
+        loguid.Clear();
+    }
+}
+
 qint64 LogProcessor::filterLog(SeqLogFileReader &reader, Exchanger *writer, Exchanger *dump, qint64 lastTime, logfile::Uid& loguid)
 {
     qint64 timeRemoved = 0;
@@ -305,17 +314,14 @@ qint64 LogProcessor::filterLog(SeqLogFileReader &reader, Exchanger *writer, Exch
                 if (status->has_team_blue()) {
                     modStatus->mutable_team_blue()->CopyFrom(status->team_blue());
                 }
+                insertHashInfo(modStatus, loguid, currentFrame - 1);
             }
 
             timeRemoved += timeDelta;
             dump->transfer(status);
             continue;
         }
-        if (loguid.IsInitialized()) {
-            status->mutable_log_id()->CopyFrom(loguid);
-            loguid.Clear();
-        }
-        status->set_original_frame_number(currentFrame - 1);
+        insertHashInfo(status, loguid, currentFrame - 1);
 
         if (!modStatus.isNull()) {
             modStatus->set_time(status->time());
