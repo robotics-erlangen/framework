@@ -190,6 +190,22 @@ bool Typescript::loadScript(const QString &filename, const QString &entryPoint)
         return false;
     }
 
+    // handle strategy options
+    Local<String> optionsString = String::NewFromUtf8(m_isolate, "options", NewStringType::kNormal).ToLocalChecked();
+    QStringList optionsList;
+    if (resultObject->Has(optionsString)) {
+        if (!resultObject->Get(optionsString)->IsArray()) {
+            m_errorMsg = "<font color=\"red\">options must be an array!</font>";
+            return false;
+        }
+        Local<Array> options = Local<Array>::Cast(resultObject->Get(optionsString));
+        for (unsigned int i = 0;i<options->Length();i++) {
+            QString option(*String::Utf8Value(options->Get(i)));
+            optionsList.append(option);
+        }
+    }
+    m_options = optionsList;
+
     m_function.Reset(m_isolate, entryPoints[m_entryPoint]);
     return true;
 }
