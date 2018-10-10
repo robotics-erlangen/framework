@@ -31,9 +31,9 @@ function generateLineup(lineStart: Position, lineupDir: number) {
 
 	// place friendly robots along the given line
 	let distToStart = 0;
-	let friendlyIndex = 1;
-	let opponentIndex = 1;
-	while (friendlyIndex <= World.FriendlyRobots.length) {
+	let friendlyIndex = 0;
+	let opponentIndex = 0;
+	while (friendlyIndex < World.FriendlyRobots.length) {
 		let r = World.FriendlyRobots[friendlyIndex];
 		let opp = sortedOpps.length > 0 && sortedOpps[opponentIndex];
 		let intendedPos = lineStart + (lineEnd - lineStart) * distToStart;
