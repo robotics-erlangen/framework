@@ -106,6 +106,7 @@ static Local<Value> repeatedFieldToJs(Isolate *isolate, const google::protobuf::
     case google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE:
         return protobufToJs(isolate, refl->GetRepeatedMessage(message, field, index));
     default:
+        // this case can currently not be entered, this is to handle future protobuf versions
         qDebug() <<"Unknown protobuf field type";
     }
     return Undefined(isolate);

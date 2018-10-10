@@ -89,7 +89,9 @@ static void pathSetRadius(const FunctionCallbackInfo<Value>& args)
     Isolate * isolate = args.GetIsolate();
     Path *p = static_cast<Path*>(Local<External>::Cast(args[0])->Value());
     float r;
-    verifyNumber(isolate, args[1], r);
+    if (!verifyNumber(isolate, args[1], r)) {
+        return;
+    }
     p->setRadius(r);
 }
 

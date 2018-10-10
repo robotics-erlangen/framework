@@ -34,6 +34,9 @@
 
 using namespace v8;
 
+// use this to silence a warn_unused_result warning
+template <typename T> inline void USE(T&&) {}
+
 Typescript::Typescript(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled) :
     AbstractStrategyScript (timer, type, debugEnabled, refboxControlEnabled),
     m_executionCounter(0),
@@ -123,7 +126,7 @@ bool Typescript::loadScript(const QString &filename, const QString &entryPoint)
 
     // execute the script once to get entrypoints etc.
     m_currentExecutingModule = m_filename;
-    script->Run(context);
+    USE(script->Run(context));
     if (tryCatch.HasTerminated() || tryCatch.HasCaught()) {
         String::Utf8Value error(m_isolate, tryCatch.Exception());
         m_errorMsg = "<font color=\"red\">" + QString(*error) + "</font>";
@@ -219,7 +222,7 @@ void Typescript::defineModule(const FunctionCallbackInfo<Value> &args)
     }
 
     TryCatch tryCatch(isolate);
-    module->Call(context, context->Global(), parameters.size(), parameters.data());
+    USE(module->Call(context, context->Global(), parameters.size(), parameters.data()));
     if (tryCatch.HasCaught() || tryCatch.HasTerminated()) {
         tryCatch.ReThrow();
         return;
@@ -267,7 +270,7 @@ bool Typescript::loadModule(QString name)
         // execute the script once to get entrypoints etc.
         QString moduleBefore = m_currentExecutingModule;
         m_currentExecutingModule = name;
-        script->Run(context);
+        USE(script->Run(context));
         if (tryCatch.HasCaught() || tryCatch.HasTerminated()) {
             tryCatch.ReThrow();
             return false;
@@ -339,7 +342,7 @@ bool Typescript::process(double &pathPlanning)
 
     TryCatch tryCatch(m_isolate);
     Local<Function> function = Local<Function>::New(m_isolate, m_function);
-    function->Call(context, context->Global(), 0, nullptr);
+    USE(function->Call(context, context->Global(), 0, nullptr));
     if (tryCatch.HasTerminated() || tryCatch.HasCaught()) {
         Local<Value> stackTrace;
         if (tryCatch.StackTrace(context).ToLocal(&stackTrace)) {
