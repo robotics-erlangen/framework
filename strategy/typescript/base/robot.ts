@@ -71,8 +71,8 @@ export interface UserControl {
 }
 
 enum KickStyle {
-	linear = "linear",
-	chip = "chip"
+	linear = "Linear",
+	chip = "Chip"
 }
 
 export class Robot {
