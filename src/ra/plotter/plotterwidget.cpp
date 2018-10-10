@@ -82,6 +82,9 @@ void PlotterWidget::updateView()
 
 void PlotterWidget::paintGL()
 {
+    if (m_yMin == m_yMax) {
+        return;
+    }
     qreal dpr = (window() && window()->windowHandle()) ? window()->windowHandle()->devicePixelRatio() : 1.0;
     glViewport(0, 0, width() * dpr, height() * dpr);
 
