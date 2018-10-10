@@ -255,7 +255,9 @@ void LogProcessor::changeTimestamps(Status& status, qint64 timeRemoved, bool& is
 
 static void insertHashInfo(Status& status, logfile::Uid& loguid, int currentFrame)
 {
-    status->set_original_frame_number(currentFrame);
+    if (!status->has_original_frame_number()) {
+        status->set_original_frame_number(currentFrame);
+    }
     if (loguid.parts_size() > 0) {
         status->mutable_log_id()->CopyFrom(loguid);
         loguid.Clear();
