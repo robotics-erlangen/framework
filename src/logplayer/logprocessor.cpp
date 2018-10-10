@@ -8,6 +8,7 @@
 #include <QMutex>
 #include <QLinkedList>
 #include <QTemporaryFile>
+#include <QFlags>
 
 class Exchanger {
 public:
@@ -395,8 +396,10 @@ logfile::Uid LogProcessor::calculateUid() const
 
     for (const auto& entry: m_hashes) {
         for(const auto& part : entry.parts()) {
-            res.add_parts()->CopyFrom(part);
-            //TODO: handle FLAGS
+            auto* resPart = res.add_parts();
+            resPart->set_hash(part.hash());
+            Options partOption((part.flags()));
+            resPart->set_flags(partOption | m_options);
         }
     }
     return res;
