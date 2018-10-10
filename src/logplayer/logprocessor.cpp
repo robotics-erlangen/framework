@@ -43,10 +43,8 @@ private:
 class LogWriter : public QObject {
     Q_OBJECT
 public:
-    LogWriter(Exchanger *inExchanger, Exchanger *dumpExchanger) {
-        m_inExchanger = inExchanger;
-        m_dumpExchanger = dumpExchanger;
-    }
+    LogWriter(Exchanger *inExchanger, Exchanger *dumpExchanger, QSemaphore& sem):
+       m_inExchanger(inExchanger), m_dumpExchanger(dumpExchanger), m_sem(sem){}
 public slots:
     void write(LogFileWriter *writer){
         while (true) {
@@ -55,6 +53,7 @@ public slots:
             Status status = m_inExchanger->take();
             if (status.isNull()) {
                 writer->close();
+                m_sem.release();
                 break;
             }
             writer->writeStatus(status);
@@ -70,6 +69,7 @@ public slots:
 private:
     Exchanger *m_inExchanger;
     Exchanger *m_dumpExchanger;
+    QSemaphore& m_sem;
 };
 
 class LogDump : public QThread {
@@ -97,7 +97,9 @@ LogProcessor::LogProcessor(const QList<QString> &inputFiles, const QString &outp
                            Options options, QObject *parent)
     : QThread(parent), m_inputFiles(inputFiles), m_outputFile(outputFile),
       m_options(options)
-{ }
+{
+    m_semaphore.release(1);
+}
 
 LogProcessor::~LogProcessor()
 { }
@@ -129,7 +131,7 @@ void LogProcessor::run()
     // setup pipeline
     Exchanger writerExchanger;
     Exchanger dumpExchanger;
-    LogWriter* writerObject = new LogWriter(&writerExchanger, &dumpExchanger);
+    LogWriter* writerObject = new LogWriter(&writerExchanger, &dumpExchanger, m_semaphore);
     QThread *writerThread = new QThread();
     writerObject->moveToThread(writerThread);
     connect(this, &LogProcessor::outputSelected, writerObject, &LogWriter::write);
@@ -327,6 +329,12 @@ qint64 LogProcessor::filterLog(SeqLogFileReader &reader, Exchanger *writer, Exch
     return lastWrittenTime;
 }
 
+void LogProcessor::sendOutputSelected(LogFileWriter* writer)
+{
+    m_semaphore.acquire();
+    emit outputSelected(writer);
+}
+
 void LogProcessor::collectHashes(QList<SeqLogFileReader*> readers, Exchanger* writer)
 {
     if (!m_hashes.empty()) qFatal("LogProcessor: collect Hashes called twice");
@@ -347,9 +355,12 @@ void LogProcessor::collectHashes(QList<SeqLogFileReader*> readers, Exchanger* wr
             tmpFile.open();
             LogFileWriter hashWriter;
             hashWriter.open(tmpFile.fileName());
-            emit(outputSelected(&hashWriter));
+            sendOutputSelected(&hashWriter);
             hash.add_parts()->mutable_hash()->assign(LogFileHasher::hash(*reader));
             reencode(reader, hash, writer);
+            //Wait for LogWriter to finish writing
+            m_semaphore.acquire();
+            m_semaphore.release();
             LogFileHasher::replace(tmpFile.fileName(), reader->fileName());
             //TODO: check how overriding logfiles behaves on different OS
             //Assumption: UNIX keeps old fp, and therefore rehashes the same logfile twice, while Windows don't know.

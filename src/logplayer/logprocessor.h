@@ -6,6 +6,7 @@
 #include <QThread>
 #include <QList>
 #include <QString>
+#include <QSemaphore>
 
 class SeqLogFileReader;
 class Exchanger;
@@ -51,12 +52,14 @@ private:
     void changeTimestamps(Status& status, qint64 timeRemoved, bool& isSimulated) const;
     void collectHashes(QList<SeqLogFileReader*> reader, Exchanger* writer);
     void reencode(SeqLogFileReader* reader, const logfile::Uid& id, Exchanger* writer);
+    void sendOutputSelected(LogFileWriter* writer);
     logfile::Uid calculateUid() const;
 
     QList<QString> m_inputFiles;
     QList<logfile::Uid> m_hashes;
     QString m_outputFile;
     Options m_options;
+    QSemaphore m_semaphore;
 
     int m_currentLog;
 };
