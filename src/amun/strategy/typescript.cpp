@@ -299,7 +299,7 @@ bool Typescript::loadModule(QString name)
 void Typescript::performRequire(const FunctionCallbackInfo<Value> &args)
 {
     Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
-    QString name = *String::Utf8Value(args[0]);
+    QString name(*String::Utf8Value(args[0]));
     t->loadModule(name);
     args.GetReturnValue().Set(*t->m_requireCache[name]);
 }

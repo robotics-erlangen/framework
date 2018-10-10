@@ -225,8 +225,8 @@ static bool jsValueToProtobufField(Isolate *isolate, Local<Value> value, Local<C
 
     case google::protobuf::FieldDescriptor::CPPTYPE_ENUM:
     {
-        char* str = *String::Utf8Value(value);
-        const google::protobuf::EnumValueDescriptor *value = field->enum_type()->FindValueByName(str);
+        String::Utf8Value stringValue(value);
+        const google::protobuf::EnumValueDescriptor *value = field->enum_type()->FindValueByName(*stringValue);
         if (value) {
             refl->SetEnum(&message, field, value);
         } else {
@@ -325,8 +325,8 @@ static bool jsValueToRepeatedProtobufField(Isolate *isolate, Local<Value> value,
 
     case google::protobuf::FieldDescriptor::CPPTYPE_ENUM:
     {
-        char* str = *String::Utf8Value(value);
-        const google::protobuf::EnumValueDescriptor *value = field->enum_type()->FindValueByName(str);
+        String::Utf8Value stringValue(value);
+        const google::protobuf::EnumValueDescriptor *value = field->enum_type()->FindValueByName(*stringValue);
         if (value) {
             refl->AddEnum(&message, field, value);
         } else {
