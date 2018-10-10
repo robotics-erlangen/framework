@@ -315,8 +315,11 @@ void registerPathJsCallbacks(Isolate *isolate, Local<Object> global, Typescript 
     Local<String> pathStr = String::NewFromUtf8(isolate, "path", NewStringType::kNormal).ToLocalChecked();
     for (auto callback : callbacks) {
         Local<String> name = String::NewFromUtf8(isolate, callback.name, NewStringType::kNormal).ToLocalChecked();
-        auto functionTemplate = FunctionTemplate::New(isolate, callback.function, External::New(isolate, t));
-        pathObject->Set(name, functionTemplate->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
+        auto functionTemplate = FunctionTemplate::New(isolate, callback.function, External::New(isolate, t),
+                                                      Local<Signature>(), 0, ConstructorBehavior::kThrow, SideEffectType::kHasSideEffect);
+        Local<Function> function = functionTemplate->GetFunction(isolate->GetCurrentContext()).ToLocalChecked();
+        function->SetName(name);
+        pathObject->Set(name, function);
     }
     global->Set(pathStr, pathObject);
 }

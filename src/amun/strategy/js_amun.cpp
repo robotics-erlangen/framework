@@ -411,8 +411,11 @@ void registerAmunJsCallbacks(Isolate *isolate, Local<Object> global, Typescript 
     Local<String> amunStr = String::NewFromUtf8(isolate, "amun", NewStringType::kNormal).ToLocalChecked();
     for (auto callback : callbacks) {
         Local<String> name = String::NewFromUtf8(isolate, callback.name, NewStringType::kNormal).ToLocalChecked();
-        auto functionTemplate = FunctionTemplate::New(isolate, callback.function, External::New(isolate, t));
-        amunObject->Set(name, functionTemplate->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
+        auto functionTemplate = FunctionTemplate::New(isolate, callback.function, External::New(isolate, t), Local<Signature>(),
+                                                      0, ConstructorBehavior::kThrow, SideEffectType::kHasSideEffect);
+        Local<Function> function = functionTemplate->GetFunction(isolate->GetCurrentContext()).ToLocalChecked();
+        function->SetName(name);
+        amunObject->Set(name, function);
     }
     global->Set(amunStr, amunObject);
 }
