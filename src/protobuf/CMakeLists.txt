@@ -50,6 +50,7 @@ set(PROTO_FILES
     status.proto
     userinput.proto
     world.proto
+    timeline.proto
 )
 protobuf_generate_cpp(PROTO_SOURCES PROTO_HEADERS ${PROTO_FILES})
 target_sources(protobuf PRIVATE ${PROTO_SOURCES} ${PROTO_HEADERS} ${PROTO_FILES})
