@@ -161,7 +161,7 @@ static bool jsValueToProtobufField(Isolate *isolate, Local<Value> value, Local<C
 
     case google::protobuf::FieldDescriptor::CPPTYPE_INT64:
     {
-        long result;
+        qint64 result;
         if (!value->IntegerValue(c).To(&result)) {
             return false;
         }
@@ -181,11 +181,11 @@ static bool jsValueToProtobufField(Isolate *isolate, Local<Value> value, Local<C
 
     case google::protobuf::FieldDescriptor::CPPTYPE_UINT64:
     {
-        long result;
+        qint64 result;
         if (!value->IntegerValue(c).To(&result)) {
             return false;
         }
-        refl->SetUInt64(&message, field, (unsigned long)result);
+        refl->SetUInt64(&message, field, (quint64)result);
         break;
     }
 
@@ -261,7 +261,7 @@ static bool jsValueToRepeatedProtobufField(Isolate *isolate, Local<Value> value,
 
     case google::protobuf::FieldDescriptor::CPPTYPE_INT64:
     {
-        long result;
+        qint64 result;
         if (!value->IntegerValue(c).To(&result)) {
             return false;
         }
@@ -281,11 +281,11 @@ static bool jsValueToRepeatedProtobufField(Isolate *isolate, Local<Value> value,
 
     case google::protobuf::FieldDescriptor::CPPTYPE_UINT64:
     {
-        long result;
+        qint64 result;
         if (!value->IntegerValue(c).To(&result)) {
             return false;
         }
-        refl->AddUInt64(&message, field, (unsigned long)result);
+        refl->AddUInt64(&message, field, (quint64)result);
         break;
     }
 
