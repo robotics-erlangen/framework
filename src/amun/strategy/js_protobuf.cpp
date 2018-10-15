@@ -161,7 +161,7 @@ static bool jsValueToProtobufField(Isolate *isolate, Local<Value> value, Local<C
 
     case google::protobuf::FieldDescriptor::CPPTYPE_INT64:
     {
-        qint64 result;
+        int64_t result;
         if (!value->IntegerValue(c).To(&result)) {
             return false;
         }
@@ -181,7 +181,7 @@ static bool jsValueToProtobufField(Isolate *isolate, Local<Value> value, Local<C
 
     case google::protobuf::FieldDescriptor::CPPTYPE_UINT64:
     {
-        qint64 result;
+        int64_t result;
         if (!value->IntegerValue(c).To(&result)) {
             return false;
         }
@@ -261,7 +261,7 @@ static bool jsValueToRepeatedProtobufField(Isolate *isolate, Local<Value> value,
 
     case google::protobuf::FieldDescriptor::CPPTYPE_INT64:
     {
-        qint64 result;
+        int64_t result;
         if (!value->IntegerValue(c).To(&result)) {
             return false;
         }
@@ -281,7 +281,7 @@ static bool jsValueToRepeatedProtobufField(Isolate *isolate, Local<Value> value,
 
     case google::protobuf::FieldDescriptor::CPPTYPE_UINT64:
     {
-        qint64 result;
+        int64_t result;
         if (!value->IntegerValue(c).To(&result)) {
             return false;
         }
