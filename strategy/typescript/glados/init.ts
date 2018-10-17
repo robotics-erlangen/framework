@@ -72,6 +72,7 @@ function wrapper(func: () => boolean) {
 		plot._plotAggregated();
 	};
 }
+let option: string[] = ["Disable Lua PRNG"];
 
-let result = {name: "GLaDOS", entrypoints: Entrypoints.get(wrapper)};
+let result = {name: "GLaDOS", entrypoints: Entrypoints.get(wrapper), options:option};
 export const scriptInfo = result;
