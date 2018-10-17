@@ -57,6 +57,9 @@ class ExtendedRandom {
 }
 
 function produceRandom(seed?: number): RandomLike {
+	if (seed == undefined) {
+		seed = new Date().getTime();
+	}
 	if (luaRandom) {
 		amun.luaRandomSetSeed(seed); // TODO: check these amun functions as soon as they are available
 		// as changing luaRandom fires a strategy reload, we can safely assume that _random is either a luaPRNG or undefined
