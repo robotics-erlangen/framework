@@ -1,11 +1,11 @@
 // Your assignment is to get three robots to move along a triangular shape. 
 // Use the MoveToPos-Task to do this. MoveToPos needs a Vector as parameter and will move to that position. 
 // In order to start this move in Ra, click the "main" button in the robots-widget to open a drop-down menu,
-// then locate "MoveTest" -> "Tutorial"
+// then locate "Tutorials" -> "Tutorial 1"
 
 // Hints:
-// 	- you can find a commented stub of a move under "glados/test/move/movestub.lua"
-// 	- self._robot[i].pos returns the current position of the i-th robot
+// 	- you can find a commented stub of a move under "glados/tutorials/t1Move/movestub.ts"
+// 	- this._robots[i].pos returns the current position of the i-th robot
 //  - indices in typescript tables start with 0 (like most of the programming languages)
 // 	- keep in mind that it may take varying time for the robots to arrive at their initial positions
 // 	- you can use other moves as reference material, they are located in the folder glados/group/move
@@ -33,7 +33,7 @@ export class Tutorial extends Move {
 		super(robots, messaging);
 	}
 
-	static canStart() {
+	public static canStart() {
 		return true;
 	}
 
@@ -44,7 +44,8 @@ export class Tutorial extends Move {
 	public _updateTasks(): [Map<FriendlyRobot, Assignment>, undefined] {
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
 
-		taskAssignments.set(this._robots[i], {class: MoveToPos, params:[new Vector(0,0)]});
+		// this will crash because the 'i' is just a placeholder and not a valid variable
+		taskAssignments[this._robots[i]] = {class: MoveToPos, params:[new Vector(0,0)]};
 
 		return [taskAssignments, undefined];
 	}
