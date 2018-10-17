@@ -44,8 +44,7 @@ export class Tutorial extends Move {
 	public _updateTasks(): [Map<FriendlyRobot, Assignment>, undefined] {
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
 
-		// this will crash because the 'i' is just a placeholder and not a valid variable
-		taskAssignments[this._robots[i]] = {class: MoveToPos, params:[new Vector(0,0)]};
+		taskAssignments[this._robots[0]] = {class: MoveToPos, params:[new Vector(0,0)]};
 
 		return [taskAssignments, undefined];
 	}
