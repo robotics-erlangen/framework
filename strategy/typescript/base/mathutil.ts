@@ -28,7 +28,7 @@ let min = Math.min;
 let max = Math.max;
 import { Random } from "base/random";
 
-let amunCopy = amun
+let amunCopy = amun;
 
 let luaRandom: boolean | undefined = undefined;
 
@@ -62,7 +62,7 @@ function produceRandom(seed?: number): RandomLike {
 		seed = new Date().getTime();
 	}
 	if (luaRandom == undefined) {
-		luaRandom = !(amunCopy.getSelectedOptions().indexOf('Disable Lua PRNG') > -1)
+		luaRandom = !(amunCopy.getSelectedOptions().indexOf("Disable Lua PRNG") > -1);
 		amun.log(luaRandom);
 	}
 	if (luaRandom) {

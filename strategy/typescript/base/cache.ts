@@ -22,24 +22,24 @@
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
-import {Vector} from "base/vector";
+import { Vector } from "base/vector";
 
 let cleanup: Function[] = [];
 let undefinedObj = Object.freeze([]);
 let undefinedVec = Object.freeze(new Vector(NaN, NaN));
 
-function getFromCache (cached: Map<any, any>, params: any[]): any {
+function getFromCache(cached: Map<any, any>, params: any[]): any {
 	let pcount = params.length;
 	params.unshift(pcount);
 
 	let entry = cached;
-	for (let i = 0; i<pcount+1;i++) {
+	for (let i = 0; i < pcount + 1;i++) {
 		let param = params[i];
 		if (param == undefined) {
 			param = undefinedObj;
 		} else if (param instanceof Vector) {
 			pcount += 2;
-			params.splice(i+1, 0, param.x, param.y);
+			params.splice(i + 1, 0, param.x, param.y);
 			param = undefinedVec;
 		}
 		if (!(entry instanceof Map)) {
@@ -53,18 +53,18 @@ function getFromCache (cached: Map<any, any>, params: any[]): any {
 	return entry;
 }
 
-function setInCache (cached: Map<any, any>, params: any[], result: any | any[]) {
+function setInCache(cached: Map<any, any>, params: any[], result: any | any[]) {
 	let pcount = params.length;
 	params.unshift(pcount);
 
 	let entry: Map<any, any> | any = cached;
-	for (let i = 0;i<pcount+1;i++) {
+	for (let i = 0;i < pcount + 1;i++) {
 		let param = params[i];
 		// undefined can't be used as a map index
 		if (param == undefined) {
 			param = undefinedObj;
 		} else if (param instanceof Vector) {
-			let v: Vector = <Vector>param;
+			let v: Vector = <Vector> param;
 			entry.set(undefinedVec, new Map<any, any>());
 			entry = entry.get(undefinedVec);
 
@@ -73,7 +73,7 @@ function setInCache (cached: Map<any, any>, params: any[], result: any | any[]) 
 
 			param = v.y;
 		}
-		if (i == pcount) {
+		if (i === pcount) {
 			entry.set(param, result);
 			return;
 		} else if (!entry.has(param)) {
@@ -95,7 +95,7 @@ function makeCached <F extends Function>(f: F, keepForever: boolean): F {
 			}
 		);
 	}
-	return <F><any>(function(...args: any[]): any[] | any {
+	return <F> <any> (function(...args: any[]): any[] | any {
 		// getFromCache modifies args in case there is a vector inside, so make a copy
 		let result = getFromCache(cached, args.slice());
 		if (result == undefined) {
@@ -130,7 +130,7 @@ export function forever <F extends Function>(f: F): F {
 
 /// Clears the value cache for the current frame
 // @name resetFrame
-export function resetFrame () {
+export function resetFrame() {
 	for (let obj of cleanup) {
 		obj();
 	}
