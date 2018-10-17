@@ -24,7 +24,7 @@ let Agents = {
 import { AgentPool } from "glados/control/agentpool";
 import { MainTrainer } from "glados/trainer/maintrainer";
 
-class MainCoordinator extends Coordinator {
+export class MainCoordinator extends Coordinator {
 	constructor(trainer: MainTrainer) {
 		let pools: {[name: string]: AgentPool} = {
 			// manual: new AgentPool(Agents.Manual),
