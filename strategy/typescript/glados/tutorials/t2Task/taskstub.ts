@@ -1,7 +1,7 @@
 // To use modules outside of this file, we need to import them.
 // "PathHelper" is a class needed for pathfinding.
-import * as PathHelper from "glados/trajectory/pathhelper";
 import * as World from "base/world";
+import * as PathHelper from "glados/trajectory/pathhelper";
 
 import { Agent, Task } from "glados/task/base";
 // "ToTarget" is a class that allows driving to a certain positions.

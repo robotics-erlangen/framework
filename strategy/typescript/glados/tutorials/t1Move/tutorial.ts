@@ -1,5 +1,5 @@
-// Your assignment is to get three robots to move along a triangular shape. 
-// Use the MoveToPos-Task to do this. MoveToPos needs a Vector as parameter and will move to that position. 
+// Your assignment is to get three robots to move along a triangular shape.
+// Use the MoveToPos-Task to do this. MoveToPos needs a Vector as parameter and will move to that position.
 // In order to start this move in Ra, click the "main" button in the robots-widget to open a drop-down menu,
 // then locate "Tutorials" -> "Tutorial 1"
 
@@ -44,7 +44,7 @@ export class Tutorial extends Move {
 	public _updateTasks(): [Map<FriendlyRobot, Assignment>, undefined] {
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
 
-		taskAssignments[this._robots[0]] = {class: MoveToPos, params:[new Vector(0,0)]};
+		taskAssignments[this._robots[0]] = {class: MoveToPos, params: [new Vector(0,0)]};
 
 		return [taskAssignments, undefined];
 	}

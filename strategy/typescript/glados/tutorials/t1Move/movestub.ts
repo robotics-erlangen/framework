@@ -14,7 +14,7 @@ import { MoveToPos } from "glados/task/shared/movetopos";
 // If you want to create a new class, copying an existing one is usually the way to go.
 export class Tutorial extends Move {
 	// We need to specify the number of robots we need. We can state both a minimum and a maximum,
-	// if both are the same number we get exactly that number. 
+	// if both are the same number we get exactly that number.
 	public static MIN_ROBOTS: number = 3;
 	public static MAX_ROBOTS: number = 3;
 
@@ -24,7 +24,7 @@ export class Tutorial extends Move {
 		super(robots, messaging);
 	}
 
-	// This is a necessary function that every move must have. It needs to return a boolean value 
+	// This is a necessary function that every move must have. It needs to return a boolean value
 	// that is used to evaluate if a move should start now.
 	// Note that the static in typescript is equivalent to the static in Java.
 	// All other methods are instance method. The object instance is accessible via the variable "this".
@@ -50,7 +50,7 @@ export class Tutorial extends Move {
 		// You need to assign each robot the class of the task you want it to use (needs to be required at the top!).
 		// Depending on the task you may need parameters, these can be passed as a array.
 		// For example, MoveToPos needs a position to drive to.
-		taskAssignments.set(this._robots[i], {class: MoveToPos, params:[new Vector(0,0)]});
+		taskAssignments.set(this._robots[i], {class: MoveToPos, params: [new Vector(0,0)]});
 
 		return [taskAssignments, undefined];
 	}
