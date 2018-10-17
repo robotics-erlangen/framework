@@ -4,7 +4,7 @@ import { Vector } from "base/vector";
 import { MessageBox, MessageType } from "glados/control/messaging";
 import { Assignment, Move } from "glados/group/move/base";
 import { MoveToPos } from "glados/task/shared/movetopos";
-import { TutorialTask } from "glados/tutorials/t2Task/tutorial";	/* ### ToDo ### */
+//import { TutorialTask } from "glados/tutorials/t2Task/tutorial";	/* ### ToDo ### */
 
 
 export class Tutorial2 extends Move {

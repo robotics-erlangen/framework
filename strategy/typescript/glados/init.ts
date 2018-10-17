@@ -13,12 +13,14 @@ import * as World from "base/world";
 import "glados/control/maincoordinator";
 import "glados/observer/initReplay";
 import "glados/util/lineup";
+import "glados/test/move/index";
+import "glados/tutorials/index";
 
 import * as Ball from "glados/observer/ball";
 import * as Error from "glados/observer/error";
 import * as Goal from "glados/observer/goal";
 import * as Robot from "glados/observer/robot";
-// require "test/move/index";
+
 // require "test/observer/index";
 // require "test/situation/index";
 // require "test/task/index";
