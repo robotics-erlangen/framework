@@ -28,8 +28,9 @@ let min = Math.min;
 let max = Math.max;
 import { Random } from "base/random";
 
-let luaRandom: boolean = false; // TODO: Read via strategy-option
+let amunCopy = amun
 
+let luaRandom: boolean | undefined = undefined;
 
 interface RandomLike {
 	nextNumber53(): number;
@@ -60,10 +61,14 @@ function produceRandom(seed?: number): RandomLike {
 	if (seed == undefined) {
 		seed = new Date().getTime();
 	}
+	if (luaRandom == undefined) {
+		luaRandom = !(amunCopy.getSelectedOptions().indexOf('Disable Lua PRNG') > -1)
+		amun.log(luaRandom);
+	}
 	if (luaRandom) {
-		amun.luaRandomSetSeed(seed); // TODO: check these amun functions as soon as they are available
+		amunCopy.luaRandomSetSeed(seed);
 		// as changing luaRandom fires a strategy reload, we can safely assume that _random is either a luaPRNG or undefined
-		return _random == undefined ? new ExtendedRandom({nextNumber53: amun.luaRandom}) : _random;
+		return _random == undefined ? new ExtendedRandom({nextNumber53: amunCopy.luaRandom}) : _random;
 	} else {
 		return new Random(seed);
 	}
