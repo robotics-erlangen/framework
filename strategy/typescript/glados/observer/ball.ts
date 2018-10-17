@@ -80,7 +80,7 @@ function ellipticDistance(robot: Robot, ballPos: Position): number {
 	let dribblerWidthHalf = Vector.fromAngle(robot.dir - Math.PI / 2).scaleLength(robot.dribblerWidth / 2);
 	let leftDribblerEdge = dribblerPos + dribblerWidthHalf;
 	let rightDribblerEdge = dribblerPos - dribblerWidthHalf;
-	return 0.5 * Math.sqrt((leftDribblerEdge.distanceTo(ballPos) + rightDribblerEdge.distanceTo(ballPos)) ^ 2 - robot.dribblerWidth * robot.dribblerWidth);
+	return 0.5 * Math.sqrt((leftDribblerEdge.distanceTo(ballPos) + rightDribblerEdge.distanceTo(ballPos)) ** 2 - robot.dribblerWidth * robot.dribblerWidth);
 }
 
 /// Returns the ball owner or null if no one is nearer than Settings.ballOwnDistance(hysteresis)

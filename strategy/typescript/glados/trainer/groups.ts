@@ -8,11 +8,13 @@ import { Striker } from "glados/group/striker";
 
 type GroupName = "centerback" | "moves" | "striker" | "midfield";
 
+/* tslint:disable:no-misused-new */
 interface Group {
 	name: GroupName;
-	new (): Group;
+	new(): Group;
 	run(messaging: MessageBox, messages: Map<FriendlyRobot, any>): void;
 }
+/* tslint:enable:no-misused-new */
 
 interface Application {
 	name: GroupName;
