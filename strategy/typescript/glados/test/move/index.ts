@@ -1,49 +1,60 @@
 import * as Entrypoints from "base/entrypoints";
+import {Position, Vector} from "base/vector";
 
-let MainCoordinator = require "control/maincoordinator"
-let MainTrainer = require "trainer/maintrainer"
+import {MainCoordinator} from "glados/control/maincoordinator";
+import {Group} from "glados/trainer/groups";
+import {MainTrainer} from "glados/trainer/maintrainer";
 
-let CenterBackGroup = require "group/centerback"
-let MoveGroup = require "group/moves"
-let StrikerGroup = require "group/striker"
-let MidfieldGroup = require "group/midfield"
-let moves = {
-	require "test/move/timetopos",
-	require "test/move/chiptime",
-	require "test/move/commchallengemaster",
-	require "test/move/commchallengeslave",
-	require "test/move/goalshot",
-	require "test/move/race",
-	require "test/move/volley",
-	require "test/move/dribble",
-	require "test/move/victory",
-	require "test/move/chipdribble",
-	require "test/move/interceptpass",
-	require "test/move/debugchip",
-	require "group/move/fastballplacement",
-	require "test/move/movesrc1",
-	require "test/move/defense",
-	require "test/move/keepertest"
-}
+import {CenterBack as CenterBackGroup} from "glados/group/centerback";
+import {Moves as MoveGroup} from "glados/group/moves";
+import {Move} from "glados/group/move/base";
+import {Midfield as MidfieldGroup} from "glados/group/midfield";
+import {Striker as StrikerGroup} from "glados/group/striker";
 
-let coord = nil
-let createEntrypoint = function (move) {
-	return function()
+
+// [TODO]
+
+// require "test/move/timetopos",
+// require "test/move/chiptime",
+// require "test/move/commchallengemaster",
+// require "test/move/commchallengeslave",
+// require "test/move/goalshot",
+// require "test/move/race",
+// require "test/move/volley",
+// require "test/move/dribble",
+// require "test/move/chipdribble",
+// require "test/move/interceptpass",
+// require "test/move/debugchip",
+// require "group/move/fastballplacement",
+// require "test/move/movesrc1",
+// require "test/move/defense",
+// require "test/move/keepertest"
+
+import {Victory} from "glados/test/move/victory";
+
+let moves: (typeof Move)[] = [
+	Victory
+];
+
+let coord: MainCoordinator | undefined = undefined;
+function createEntrypoint (move: typeof Move) {
+	return function() {
 		if (coord == undefined) {
-			let moveGroup = MoveGroup()
-			moveGroup.moveList = { move }
+			let moveGroup = new MoveGroup();
+			moveGroup.moveList =  [move];
 
-			let groupList = { CenterBackGroup(), StrikerGroup(), moveGroup, MidfieldGroup() }
+			let groupList: any[] = [new CenterBackGroup(), new StrikerGroup(), moveGroup, new MidfieldGroup()];
 
-			let trainer = MainTrainer()
-			trainer:setGroups(groupList)
+			let trainer = new MainTrainer(undefined);
+			trainer._groups.setGroups(groupList);
 
-			coord = MainCoordinator(trainer)
+			coord = new MainCoordinator(trainer);
 		}
-		coord:run()
+		coord.run();
+		return false;
 	}
 }
 
-for (_,move in ipairs(moves)) {
-	Entrypoints.add("MoveTest/"  +  Class.name(move, true), createEntrypoint(move))
+for (let move of moves) {
+	Entrypoints.add("MoveTest/"  + move.name, createEntrypoint(move));
 }
