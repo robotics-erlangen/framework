@@ -1,9 +1,8 @@
 /CMakeLists.txt.user
 /build*
-/strategy/typescript/*/built
+/strategy/typescript/**/built
 /src/html/
 Makefile
-/strategy/lua/marvin/learning/parameters/*
 error.html
 *.swp
 /libs/v8/depot_tools

@@ -1,0 +1,35 @@
+{
+	"compilerOptions": {
+		"module": "AMD",
+		"target": "esnext",
+		"lib": ["ESNext", "ES2018", "ES2017", "ES2016", "ES2015"],
+		"moduleResolution": "node",
+
+		"allowUnreachableCode": false,
+		"strict": true,
+		"strictNullChecks": true,
+		"noImplicitAny": true,
+		"noImplicitReturns": true,
+		"noFallthroughCasesInSwitch": true,
+
+		"pretty": true,
+		"preserveConstEnums": true,
+		"removeComments": true,
+		"sourceMap": true,
+
+		"outDir": "built",
+		"baseUrl": ".",
+
+		"plugins": [
+			{ "name": "tslint-language-service" }
+		]
+	},
+	"include": [
+		"**/*.ts"
+	],
+	"exclude": [
+		"base/debugcommands.ts",
+		"base/mixedteam.ts",
+		"base/table.ts"
+	]
+}
