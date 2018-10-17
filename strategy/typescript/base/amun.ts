@@ -279,7 +279,7 @@ interface Amun extends AmunPublic {
 	getPerformanceMode(): boolean;
 
 	// undocumented
-	luaRandomSetSeed(seed: number | undefined): void;
+	luaRandomSetSeed(seed: number): void;
 	luaRandom(): number;
 	isReplay?: () => boolean;
 }

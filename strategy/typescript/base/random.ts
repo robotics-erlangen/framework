@@ -86,11 +86,7 @@ export class Random {
     mti = Random.N + 1;
     /* mti==N+1 means mt[N] is not initialized */
 
-    constructor(seed?: number) {
-        if (seed == undefined) {
-            seed = new Date().getTime();
-        }
-
+    constructor(seed: number) {
         this.init_genrand(seed);
     }
 
