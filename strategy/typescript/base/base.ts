@@ -40,8 +40,8 @@ import "base/vector";
 // preload classes that require access to the amun API
 import { _setIsBlue } from "base/coordinates";
 _setIsBlue(amun.isBlue());
-import "base/debugcommands";
 import "base/debug";
+import "base/debugcommands";
 import "base/plot";
 import "base/robot";
 import "base/vis";

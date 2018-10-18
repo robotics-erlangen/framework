@@ -103,7 +103,7 @@ if(UNIX AND NOT APPLE)
     )
 endif()
 
-include(AddTests)
+include(AddLanguageServices)
 
 if(MINGW)
 	include(CollectWindows)
