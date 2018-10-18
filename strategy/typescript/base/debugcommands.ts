@@ -24,8 +24,8 @@
 // *************************************************************************
 
 import { Coordinates } from "base/coordinates";
+import { FriendlyRobot, Robot } from "base/robot";
 import { Position, Vector } from "base/vector";
-import {FriendlyRobot, Robot} from "base/robot";
 import * as World from "base/world";
 
 let amunLocal = amun;
@@ -169,44 +169,44 @@ export function sendRefereeCommand(refereeCommand: string, gameStage?: string, b
 // @param [opponentRobots robot[] - opponent robots by id]
 
 
-export function moveObjects (ball?: any, friendlyRobots?: FriendlyRobot[], opponentRobots?: Robot[]) {
+export function moveObjects(ball?: any, friendlyRobots?: FriendlyRobot[], opponentRobots?: Robot[]) {
 	if (!amun.isDebug) {
 		throw new Error("only works in debug mode");
-	} 
+	}
 	if (!World.IsSimulated) {
 		throw new Error("This can only be used in the simulator!");
 	}
-	let simCommand: any = { move_ball: {}, move_blue: [], move_yellow: [], }
+	let simCommand: any = { move_ball: {}, move_blue: [], move_yellow: [], };
 	if (ball != undefined) {
 		if (ball.pos == undefined || ball.speed == undefined) {
 			throw new Error("ball parameter missing");
-		} 
+		}
 		// convert to global coordinate system
-		let pos = Coordinates.toGlobal(ball.pos)
-		let speed = Coordinates.toGlobal(ball.speed)
-		simCommand.move_ball = {										
+		let pos = Coordinates.toGlobal(ball.pos);
+		let speed = Coordinates.toGlobal(ball.speed);
+		simCommand.move_ball = {
 			position: true, // just position
 			p_x: pos.x, p_y: pos.y, p_z: ball.posZ || 0,
 			v_x: speed.x, v_y: speed.y, v_z: ball.speedZ || 0
-		}
+		};
 	}
 
-	let friendly, opponent // handle blue / yellow team selection
+	let friendly, opponent; // handle blue / yellow team selection
 	if (World.TeamIsBlue) {
-		friendly = simCommand.move_blue
-		opponent = simCommand.move_yellow
+		friendly = simCommand.move_blue;
+		opponent = simCommand.move_yellow;
 	} else {
-		friendly = simCommand.move_yellow
-		opponent = simCommand.move_blue
+		friendly = simCommand.move_yellow;
+		opponent = simCommand.move_blue;
 	}
 
 	if (friendlyRobots != undefined) {
 		for (let robot of friendlyRobots) {
-			if (robot.id == undefined || robot.pos == undefined || robot.speed == undefined || robot.dir == undefined || robot.angularSpeed == undefined){
+			if (robot.id == undefined || robot.pos == undefined || robot.speed == undefined || robot.dir == undefined || robot.angularSpeed == undefined) {
 				throw new Error("robot parameter missing");
-			} 
-			let pos = Coordinates.toGlobal(robot.pos)
-			let speed = Coordinates.toGlobal(robot.speed)
+			}
+			let pos = Coordinates.toGlobal(robot.pos);
+			let speed = Coordinates.toGlobal(robot.speed);
 			friendly.push({
 				position: true, id: robot.id, // just position
 				p_x: pos.x, p_y: pos.y, phi: Coordinates.toGlobal(robot.dir),
@@ -214,14 +214,14 @@ export function moveObjects (ball?: any, friendlyRobots?: FriendlyRobot[], oppon
 			});
 		}
 	}
-	
+
 	if (opponentRobots != undefined) {
 		for (let robot of opponentRobots) {
-			if (robot.id == undefined || robot.pos == undefined || robot.speed == undefined || robot.dir == undefined || robot.angularSpeed == undefined){
+			if (robot.id == undefined || robot.pos == undefined || robot.speed == undefined || robot.dir == undefined || robot.angularSpeed == undefined) {
 				throw new Error("robot parameter missing");
-			} 
-			let pos = Coordinates.toGlobal(robot.pos)
-			let speed = Coordinates.toGlobal(robot.speed)
+			}
+			let pos = Coordinates.toGlobal(robot.pos);
+			let speed = Coordinates.toGlobal(robot.speed);
 			opponent.push({
 				position: true, id: robot.id, // just position
 				p_x: pos.x, p_y: pos.y, phi: Coordinates.toGlobal(robot.dir),
@@ -230,5 +230,5 @@ export function moveObjects (ball?: any, friendlyRobots?: FriendlyRobot[], oppon
 		}
 	}
 
-	amun.sendCommand({ simulator: simCommand, tracking: { reset: true } })
+	amun.sendCommand({ simulator: simCommand, tracking: { reset: true } });
 }
