@@ -93,6 +93,7 @@
     </property>
     <addaction name="actionRecord"/>
     <addaction name="actionSave20s"/>
+    <addaction name="actionUseLocation"/>
    </widget>
    <widget class="QMenu" name="menuTesting">
     <property name="title">
@@ -411,6 +412,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+B</string>
+   </property>
+  </action>
+  <action name="actionUseLocation">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Use Logfile default location</string>
    </property>
   </action>
   <action name="actionGoLive">

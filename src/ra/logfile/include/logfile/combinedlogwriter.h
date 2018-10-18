@@ -43,6 +43,7 @@ public slots:
     void enableLogging(bool enable); // enables or disables both record and backlog
     void backLogButtonClicked();
     void recordButtonToggled(bool enabled);
+    void useLogfileLocation(bool enabled);
 
 private:
     QString createLogFilename() const;
@@ -51,6 +52,7 @@ private:
 
 private:
     bool m_isReplay;
+    bool m_useSettingLocation = false;
     BacklogWriter *m_backlogWriter;
     QThread *m_backlogThread;
     LogFileWriter *m_logFile;

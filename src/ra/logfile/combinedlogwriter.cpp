@@ -5,6 +5,7 @@
 
 #include <QThread>
 #include <QDateTime>
+#include <QSettings>
 
 CombinedLogWriter::CombinedLogWriter(bool replay, int backlogLength) :
     m_isReplay(replay),
@@ -151,8 +152,26 @@ QString CombinedLogWriter::dateTimeToString(const QDateTime & dt)
     return date;
 }
 
+void CombinedLogWriter::useLogfileLocation(bool enabled)
+{
+    m_useSettingLocation = enabled;
+}
+
+
 QString CombinedLogWriter::createLogFilename() const
 {
+    QSettings s;
+    s.beginGroup("LogLocation");
+    QString path(".");
+    if (m_useSettingLocation) {
+        int size = s.beginReadArray("locations");
+        for (int i = 0; i < size; ++i) {
+            s.setArrayIndex(i);
+            path = s.value("path").toString();
+        }
+        s.endArray();
+        s.endGroup();
+    }
     QString teamnames;
     if (!m_yellowTeamName.isEmpty() && !m_blueTeamName.isEmpty()) {
         teamnames = QString("%1 vs %2").arg(m_yellowTeamName).arg(m_blueTeamName);
@@ -164,9 +183,9 @@ QString CombinedLogWriter::createLogFilename() const
 
     const QString date = dateTimeToString(QDateTime::currentDateTime()).replace(":", "");
     if (m_isReplay) {
-        return QString("replay%1.log").arg(date);
+        return path+"/"+QString("replay%1.log").arg(date);
     } else {
-        return QString("%1%2.log").arg(date).arg(teamnames);
+        return path+"/"+QString("%1%2.log").arg(date).arg(teamnames);
     }
 }
 

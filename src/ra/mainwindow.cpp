@@ -132,6 +132,7 @@ MainWindow::MainWindow(bool tournamentMode, QWidget *parent) :
     connect(ui->actionConfiguration, SIGNAL(triggered()), SLOT(showConfigDialog()));
     connect(ui->actionPlotter, SIGNAL(triggered()), m_plotter, SLOT(show()));
     connect(ui->actionAutoPause, SIGNAL(toggled(bool)), ui->simulator, SLOT(setEnableAutoPause(bool)));
+    connect(ui->actionUseLocation, SIGNAL(toggled(bool)), &m_logWriter, SLOT(useLogfileLocation(bool)));
 
     connect(ui->actionGoLive, SIGNAL(triggered()), SLOT(liveMode()));
     connect(ui->actionShowBacklog, SIGNAL(triggered()), SLOT(showBacklogMode()));
@@ -213,6 +214,7 @@ MainWindow::MainWindow(bool tournamentMode, QWidget *parent) :
     }
     ui->actionInputDevices->setChecked(s.value("InputDevices/Enabled").toBool());
     ui->actionAutoPause->setChecked(s.value("Simulator/AutoPause", true).toBool());
+    ui->actionUseLocation->setChecked(s.value("LogWriter/UseLocation", true).toBool());
 
     ui->actionSidesFlipped->setChecked(s.value("Flipped", false).toBool());
 
@@ -294,6 +296,7 @@ void MainWindow::saveConfig()
     s.setValue("Referee/Internal", ui->actionInternalReferee->isChecked());
     s.setValue("InputDevices/Enabled", ui->actionInputDevices->isChecked());
     s.setValue("Flipped", ui->actionSidesFlipped->isChecked());
+    s.setValue("LogWriter/UseLocation", ui->actionUseLocation->isChecked());
 }
 
 void MainWindow::loadConfig(bool doRestoreGeometry)
