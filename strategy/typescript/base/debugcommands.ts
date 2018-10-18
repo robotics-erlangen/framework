@@ -94,19 +94,6 @@ export function sendRefereeCommand(refereeCommand: string, gameStage?: string, b
 	}
 
 	// fill message with default values
-
-	// let state: any {
-	// 	state: any,
-	// 	stage: any,
-	// 	packet_timestamp: number,
-	// 	command_timestamp: number,
-	// 	stage_time_left: number,
-	// 	command_counter: number,
-	// 	blue: any,
-	// 	yellow: any,
-	// 	command: string | undefined,
-	// 	designated_position: {x: number, y: number} | undefined
-	// }
 	let state: any = {
 		state: origState.state, stage: origState.stage, // default values
 		packet_timestamp: 0, command_timestamp: 0,
