@@ -28,7 +28,6 @@
 		"**/*.ts"
 	],
 	"exclude": [
-		"base/debugcommands.ts",
 		"base/mixedteam.ts",
 		"base/table.ts",
 		"glados/agent/ally.ts",
@@ -130,6 +129,7 @@
 		"glados/test/unit/telescope.ts",
 		"glados/test/unit/tests.ts",
 		"glados/trajectory/ballrotate.ts",
+		"glados/tutorials/t1Move/movestub.ts",
 		"glados/util/debug.ts",
 		"glados/util/io.ts"
 	]
