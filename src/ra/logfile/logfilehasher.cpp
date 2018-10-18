@@ -31,15 +31,12 @@
 #include <Windows.h>
 #endif
 
-static Status collect(SeqLogFileReader& reader)
+static void collect(SeqLogFileReader& reader, LogFileHasher& hasher)
 {
-    Status merged(new amun::Status);
-    merged->set_time(0);
-    for(int i=0; !reader.atEnd() && i < 100; ++i){
+    for (int i=0; !reader.atEnd() && i < LogFileHasher::HASHED_PACKAGES; ++i) {
         Status current = reader.readStatus();
-        merged->MergeFrom(*current);
+        hasher.add(current);
     }
-    return merged;
 }
 
 static std::string hash(const Status& collected)
@@ -56,13 +53,31 @@ static std::string hash(const Status& collected)
     return out;
 }
 
+LogFileHasher::LogFileHasher()
+{
+    m_state->set_time(0);
+}
+
+void LogFileHasher::add(const Status& status)
+{
+    if (m_collected < HASHED_PACKAGES) {
+        m_state->MergeFrom(*status);
+        ++m_collected;
+    }
+}
+
+std::string LogFileHasher::takeResult() const
+{
+    return ::hash(m_state);
+}
 
 std::string LogFileHasher::hash(SeqLogFileReader& reader)
 {
     SeqLogFileReader::Memento mem = reader.createMemento();
-    Status collected = collect(reader);
+    LogFileHasher hasher;
+    collect(reader, hasher);
     reader.applyMemento(mem);
-    return hash(collected);
+    return hasher.takeResult();
 }
 
 QString LogFileHasher::replace(QString logname, QString output)
@@ -80,5 +95,5 @@ QString LogFileHasher::replace(QString logname, QString output)
         return QString("Rename Windows failed");
     }
 #endif
-	return QString("");
+    return QString("");
 }

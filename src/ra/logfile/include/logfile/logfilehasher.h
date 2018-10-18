@@ -22,15 +22,27 @@
 #define LOGFILEHASHER_H
 
 #include <QString>
+#include "protobuf/status.h"
 
 class SeqLogFileReader;
 
-namespace LogFileHasher
+class LogFileHasher
 {
+public:
     //hash uses an 'almost const' reference:
     //although it has to call modifieing calls to reader, it restores the
     //original state by using a memento before returning
-    std::string hash(SeqLogFileReader& reader);
-    QString replace(QString logfile, QString output);
-}
+    static std::string hash(SeqLogFileReader& reader);
+    static QString replace(QString logfile, QString output);
+    const static qint32 HASHED_PACKAGES = 100;
+
+    LogFileHasher();
+    std::string takeResult() const;
+    void add(const Status& status);
+    bool isFinished() const { return m_collected == HASHED_PACKAGES; }
+
+private:
+    Status m_state = Status(new amun::Status);
+    int m_collected = 0;
+};
 #endif // LOGFILEHASHER_H
