@@ -385,7 +385,7 @@ let gameStageMapping: {[name: string]: string} = {
 // keep for use by debugcommands.sendRefereeCommand
 let fullRefereeState: any = undefined;
 
-function _getFullRefereeState() {
+export function _getFullRefereeState() {
 	return fullRefereeState;
 }
 
