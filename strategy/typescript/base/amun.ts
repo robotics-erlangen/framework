@@ -238,7 +238,6 @@ separator for luadoc*/
 // @name nextRefboxReply
 // @return reply table - the last reply or nil if none is available
 
-import "base/debugcommands";
 import * as pb from "base/protobuf";
 
 interface AmunPublic {
