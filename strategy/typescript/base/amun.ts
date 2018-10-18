@@ -240,6 +240,7 @@ separator for luadoc]]--
 -- @return reply table - the last reply or nil if none is available
 */
 
+import "base/debugcommands";
 import * as pb from "base/protobuf";
 
 interface AmunPublic {
@@ -292,7 +293,7 @@ declare global {
 
 amun = {
 	...amun,
-	isDebug: false, // TODO
+	isDebug: true, // TODO
 	isPerformanceMode: amun.getPerformanceMode!()
 };
 
