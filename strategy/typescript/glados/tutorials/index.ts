@@ -17,7 +17,7 @@ import {Moves as MoveGroup } from "glados/group/moves";
 import {Striker as StrikerGroup } from "glados/group/striker";
 
 import {Tutorial as Tutorial1 } from "glados/tutorials/t1Move/tutorial";
-import { Tutorial2 } from "glados/tutorials/t2Task/tutorial2";
+import { Tutorial2 } from "glados/tutorials/t2Task/tutentrypoint";
 
 let coord: MainCoordinator | undefined = undefined;
 function createEntrypoint(move: typeof Move) {

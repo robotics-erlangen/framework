@@ -1,54 +1,43 @@
-import { FriendlyRobot } from "base/robot";
-import { Vector } from "base/vector";
+// For this assignment, we also want the robots to move along triangles.
+// This time however, we have a move that assigns this task.
+// Now the task has to take care of moving in triangles.
+// Like last time, there is a commented stub in the same folder as this file.
 
-import { MessageBox, MessageType } from "glados/control/messaging";
-import { Assignment, Move } from "glados/group/move/base";
-import { MoveToPos } from "glados/task/shared/movetopos";
-// import { TutorialTask } from "glados/tutorials/t2Task/tutorial";	/* ### ToDo ### */
+// The "number" parameter is a number from 1 to 3 and dictates your position.
+// The positions are 1m away from the middle and seperated by 120° respectively
+// So the first robot is at 120°, the second at 240° and the last at 360° (or 0°)
+// As soon as a robot arrives at its position, it should move towards the next
+// Start the move with the entrypoint "MoveTest" -> "Tutorial2"
 
+// Hints:
+// 	- if you have trouble imagining the positions, just start the move,
+//    the move will move into the correct positions first before assigning this task
+// 	- we measure angle in radians (2 * math.pi == 360°)
+// 	- the function Vector.fromAngle(angle) creates a Vector of length 1 in the specified direction
+// 	- vector.distanceTo(vector) measures the distance between two vectors
+//    e.g. pos.distanceTo(Vector(0,0)) would measure the distance of 'pos' from the middle in meters
+// 	- unlike moves, tasks only handle one robot (so just this._robot)
+// 	- real-life vision is never perfectly accurate, an accuracy of 10cm is sufficient (for this case, not in general!)
 
-export class Tutorial2 extends Move {
-	public static MIN_ROBOTS: number = 3;
-	public static MAX_ROBOTS: number = 3;
+import * as World from "base/world";
+import * as PathHelper from "glados/trajectory/pathhelper";
 
-	private _init: boolean;
+import { Agent, Task } from "glados/task/base";
+import { ToTarget } from "glados/trajectory/totarget";
 
-	constructor(robots: FriendlyRobot[], messaging: MessageBox) {
-		super(robots, messaging);
-		this._init = true;
+export class TutorialTask extends Task {
+	private _dir: number | undefined = undefined;
+
+	constructor(agent: Agent, dir: number) {
+
+		super(agent);
+
 	}
 
-	static canStart() {
-		return true;
-	}
+	public run() {
 
-	public _canContinue() {
-		return true;
-	}
+		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, { ignorePass: true });
 
-	public _updateTasks(): [Map<FriendlyRobot, Assignment>, undefined] {
-		let taskAssignments = new Map<FriendlyRobot, Assignment>();
-
-		if (this._init) {
-			this._init = false;
-
-			for (let i = 0; i < this._robots.length; i++) {
-				let r = this._robots[i];
-				let angle = (i - 1) * 2 / 3 * Math.PI;
-				let pos = Vector.fromAngle(angle);
-				taskAssignments.set(this._robots[i], {class: MoveToPos, params: [pos]});
-
-				if (r.pos.distanceTo(pos) > 0.1) {
-					this._init = true;
-				}
-			}
-
-		} else {
-
-			for (let i = 0; i < this._robots.length; i++) {
-				taskAssignments.set(this._robots[i], {class: TutorialTask, params: [i]});
-			}
-		}
-		return [taskAssignments, undefined];
+		this._robot.trajectory.update(ToTarget, undefined, this._dir, undefined, undefined);
 	}
 }
