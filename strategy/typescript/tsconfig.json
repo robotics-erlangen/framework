@@ -28,7 +28,6 @@
 		"**/*.ts"
 	],
 	"exclude": [
-		"base/debugcommands.ts",
 		"base/mixedteam.ts",
 		"base/table.ts"
 	]
