@@ -8,7 +8,7 @@
 // - You can get the current state of the ball from World.Ball
 //   (You need to import world first)
 // - World.Ball.pos returns a Vector describing the current ball position
-// - World.Ball.speed also returns a vector 
+// - World.Ball.speed also returns a vector
 //   This vector's length is the absolute speed and the vector's angle is the direction of the speed
 
 // - We have a module to assist all your ball-shooting needs
@@ -16,7 +16,7 @@
 // - To make use of it, import it and create a new instance of it
 // - Take a look at "glados/task/shootgoal" to find an example of how to properly use the 'shoot' ability
 
-// - We also have a module that attempts to catch balls 
+// - We also have a module that attempts to catch balls
 // - It is located in "glados/task/ability/catchball.lua"
 
 import * as PathHelper from "glados/trajectory/pathhelper";
@@ -26,7 +26,7 @@ import { ToTarget } from "glados/trajectory/totarget";
 
 export class TutorialTask extends Task {
 
-    constructor(agent: Agent, dir: number) {
+	constructor(agent: Agent, dir: number) {
 
 		super(agent);
 
