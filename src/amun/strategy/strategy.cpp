@@ -649,12 +649,14 @@ Status Strategy::takeStrategyDebugStatus()
     if (m_strategy == nullptr) {
         return Status(new amun::Status);
     }
-    Status status = m_strategy->takeDebugStatus();
-    status->mutable_debug()->set_source(debugSource());
+    Status status = Status::createArena();
+    amun::DebugValues* debugValues = status->mutable_debug();
+    m_strategy->takeDebugStatus(debugValues);
+    debugValues->set_source(debugSource());
     if (!m_status.isNull()) {
         status->set_time(m_status->time());
         auto &worldState = m_status->execution_state().IsInitialized() ? m_status->execution_state() : m_status->world_state();
-        status->mutable_debug()->set_time(worldState.time());
+        debugValues->set_time(worldState.time());
     }
     return status;
 }
