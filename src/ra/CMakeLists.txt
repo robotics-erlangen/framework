@@ -48,6 +48,8 @@ add_executable(ra WIN32 MACOSX_BUNDLE
     optionswidget.h
     simulatorwidget.cpp
     simulatorwidget.h
+    savedirectorydialog.cpp
+    savedirectorydialog.h
 )
 
 add_custom_command(
@@ -68,6 +70,7 @@ set(UI_SOURCES
     robotspecsdialog.ui
     optionswidget.ui
     simulatorwidget.ui
+    savedirectorydialog.ui
 )
 qt5_wrap_ui(UIC_SOURCES ${UI_SOURCES})
 target_sources(ra PRIVATE ${UIC_SOURCES})
