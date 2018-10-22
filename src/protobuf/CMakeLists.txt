@@ -37,6 +37,8 @@ set(PROTO_FILES
     gamestate.proto
     robot.proto
     ssl_detection.proto
+    ssl_game_controller_common.proto
+    ssl_game_controller_team.proto
     ssl_geometry.proto
     ssl_mixed_team.proto
     ssl_radio_protocol.proto
