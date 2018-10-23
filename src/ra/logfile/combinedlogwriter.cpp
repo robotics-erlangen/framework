@@ -165,8 +165,8 @@ QString CombinedLogWriter::createLogFilename() const
     QString path(".");
     if (m_useSettingLocation) {
         int size = s.beginReadArray("locations");
-        for (int i = 0; i < size; ++i) {
-            s.setArrayIndex(i);
+        if (size > 0) {
+            s.setArrayIndex(0);
             path = s.value("path").toString();
         }
         s.endArray();
