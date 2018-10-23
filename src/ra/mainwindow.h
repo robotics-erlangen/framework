@@ -76,6 +76,7 @@ private slots:
     void ruleVersionChanged(QAction * action);
     void saveConfig();
     void switchToWidgetConfiguration(int configId);
+    void showDirectoryDialog();
 
 private:
     void toggleInstantReplay(bool enable);

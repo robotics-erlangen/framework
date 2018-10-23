@@ -94,6 +94,7 @@
     <addaction name="actionRecord"/>
     <addaction name="actionSave20s"/>
     <addaction name="actionUseLocation"/>
+    <addaction name="actionChangeLocation"/>
    </widget>
    <widget class="QMenu" name="menuTesting">
     <property name="title">
@@ -420,6 +421,11 @@
    </property>
    <property name="text">
     <string>Use Logfile default location</string>
+   </property>
+  </action>
+  <action name="actionChangeLocation">
+   <property name="text">
+    <string>Select Logfile default locations</string>
    </property>
   </action>
   <action name="actionGoLive">

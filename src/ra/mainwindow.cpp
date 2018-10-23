@@ -26,6 +26,7 @@
 #include "plotter/plotter.h"
 #include "widgets/debuggerconsole.h"
 #include "widgets/refereestatuswidget.h"
+#include "savedirectorydialog.h"
 #include <QFile>
 #include <QFileDialog>
 #include <QLabel>
@@ -133,6 +134,7 @@ MainWindow::MainWindow(bool tournamentMode, QWidget *parent) :
     connect(ui->actionPlotter, SIGNAL(triggered()), m_plotter, SLOT(show()));
     connect(ui->actionAutoPause, SIGNAL(toggled(bool)), ui->simulator, SLOT(setEnableAutoPause(bool)));
     connect(ui->actionUseLocation, SIGNAL(toggled(bool)), &m_logWriter, SLOT(useLogfileLocation(bool)));
+    connect(ui->actionChangeLocation, SIGNAL(triggered()), SLOT(showDirectoryDialog()));
 
     connect(ui->actionGoLive, SIGNAL(triggered()), SLOT(liveMode()));
     connect(ui->actionShowBacklog, SIGNAL(triggered()), SLOT(showBacklogMode()));
@@ -277,6 +279,31 @@ void MainWindow::closeEvent(QCloseEvent *e)
     ui->robots->shutdown();
 
     QMainWindow::closeEvent(e);
+}
+
+void MainWindow::showDirectoryDialog()
+{
+    QList<QString> list;
+    QSettings s;
+    s.beginGroup("LogLocation");
+    int size = s.beginReadArray("locations");
+    list.reserve(size);
+    for (int i = 0; i < size; ++i) {
+        s.setArrayIndex(i);
+        list.append(s.value("path").toString());
+    }
+    s.endArray();
+    SaveDirectoryDialog dialog(list);
+    if (dialog.exec() == QDialog::Accepted) {
+        list=dialog.getResult();
+    }
+    s.beginWriteArray("locations");
+    for (int i = 0; i < list.size(); ++i) {
+        s.setArrayIndex(i);
+        s.setValue("path", list[i]);
+    }
+    s.endArray();
+    s.endGroup();
 }
 
 void MainWindow::saveConfig()
