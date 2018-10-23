@@ -35,6 +35,7 @@
 
 #ifdef V8_FOUND
 #include "typescript.h"
+#include "inspectorserver.h"
 #include <v8.h>
 #include <libplatform/libplatform.h>
 #endif
@@ -59,11 +60,14 @@ public:
 #ifdef V8_FOUND
 // default initialization
 std::unique_ptr<v8::Platform> Strategy::static_platform;
+std::unique_ptr<InspectorServer> Strategy::inspectorServer;
 
 void Strategy::initV8() {
     if (static_platform) {
         return;
     }
+
+    inspectorServer = std::unique_ptr<InspectorServer>(new InspectorServer());
 
     v8::V8::InitializeICUDefaultLocation(QCoreApplication::applicationFilePath().toUtf8().data());
     v8::V8::InitializeExternalStartupData(QCoreApplication::applicationFilePath().toUtf8().data());
@@ -480,10 +484,10 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
 
     // hardcoded factory pattern
     if (Lua::canHandle(filename)) {
-        m_strategy = Lua::createStrategy(m_timer, m_type, m_debugEnabled, m_refboxControlEnabled);
+        m_strategy = new Lua(m_timer, m_type, m_debugEnabled, m_refboxControlEnabled);
 #ifdef V8_FOUND
     } else if (Typescript::canHandle(filename)) {
-        m_strategy = Typescript::createStrategy(m_timer, m_type, m_debugEnabled, m_refboxControlEnabled);
+        m_strategy = new Typescript(m_timer, m_type, m_debugEnabled, m_refboxControlEnabled, inspectorServer.get());
 #endif
     } else {
         fail(QString("No strategy handler for file %1").arg(filename));

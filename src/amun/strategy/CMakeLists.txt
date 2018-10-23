@@ -47,6 +47,7 @@ target_link_libraries(strategy
     PRIVATE shared::core
     PRIVATE amun::path
     PUBLIC shared::protobuf
+    PRIVATE shared::config
     PUBLIC Qt5::Core
     PRIVATE Qt5::Network
 )
@@ -69,6 +70,11 @@ if(V8_FOUND)
         typescript.h
         typescriptcompiler.cpp
         typescriptcompiler.h
+        inspectorserver.cpp
+        inspectorserver.h
+        inspectorhandler.cpp
+        inspectorhandler.h
+        websocketprotocol.h
     )
     target_link_libraries(strategy PRIVATE lib::v8)
     target_compile_definitions(strategy PRIVATE V8_FOUND)

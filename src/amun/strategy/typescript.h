@@ -32,18 +32,25 @@
 
 class CheckForScriptTimeout;
 class QThread;
+class InspectorServer;
+class InspectorHandler;
 
 class Typescript : public AbstractStrategyScript
 {
     Q_OBJECT
 public:
-    Typescript(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled);
+    Typescript(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled, InspectorServer *server);
     static bool canHandle(const QString &filename);
     ~Typescript() override;
     void addPathTime(double time);
 
     void startProfiling() override;
     void endProfiling(const std::string &filename) override;
+    InspectorHandler *getInspectorHandler() const { return m_inspectorHandler; }
+
+signals:
+    void createInspectorHandler(InspectorHandler *handler);
+    void removeInspectorHandler(InspectorHandler *handler);
 
 protected:
     bool loadScript(const QString &filename, const QString &entryPoint) override;
@@ -71,6 +78,9 @@ private:
     CheckForScriptTimeout *m_checkForScriptTimeout;
     QThread *m_timeoutCheckerThread;
     QList<v8::ScriptOrigin*> m_scriptOrigins;
+    InspectorHandler *m_inspectorHandler;
+
+    int m_scriptIdCounter;
 };
 
 #endif // TYPESCRIPT_H

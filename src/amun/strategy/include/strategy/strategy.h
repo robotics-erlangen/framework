@@ -38,6 +38,8 @@ class QUdpSocket;
 namespace v8 {
     class Platform;
 }
+class InspectorServer;
+class InspectorHandler;
 
 class Strategy : public QObject
 {
@@ -120,6 +122,7 @@ private:
     bool m_isInLogplayer;
 
     static std::unique_ptr<v8::Platform> static_platform;
+    static std::unique_ptr<InspectorServer> inspectorServer;
 };
 
 #endif // STRATEGY_H

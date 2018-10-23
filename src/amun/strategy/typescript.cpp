@@ -31,16 +31,20 @@
 #include "js_amun.h"
 #include "js_path.h"
 #include "checkforscripttimeout.h"
+#include "inspectorhandler.h"
+#include "inspectorserver.h"
 
 using namespace v8;
 
 // use this to silence a warn_unused_result warning
 template <typename T> inline void USE(T&&) {}
 
-Typescript::Typescript(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled) :
+Typescript::Typescript(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled,
+                       InspectorServer *server) :
     AbstractStrategyScript (timer, type, debugEnabled, refboxControlEnabled),
     m_executionCounter(0),
-    m_profiler (nullptr)
+    m_profiler (nullptr),
+    m_scriptIdCounter(0)
 {
     Isolate::CreateParams create_params;
     create_params.array_buffer_allocator = ArrayBuffer::Allocator::NewDefaultAllocator();
@@ -64,10 +68,19 @@ Typescript::Typescript(const Timer *timer, StrategyType type, bool debugEnabled,
     registerAmunJsCallbacks(m_isolate, global, this);
     registerPathJsCallbacks(m_isolate, global, this);
     m_context.Reset(m_isolate, context);
+
+    // TODO: shared pointer for inspector handler?
+    // TODO: other types of strategies, for example autoref?
+    m_inspectorHandler = new InspectorHandler(m_isolate, m_context, m_scriptOrigins, isBlue() ? "blue_strategy" : "yellow_strategy");
+    connect(this, SIGNAL(createInspectorHandler(InspectorHandler*)), server, SLOT(newInspectorHandler(InspectorHandler*)));
+    connect(this, SIGNAL(removeInspectorHandler(InspectorHandler*)), server, SLOT(removeInspectorHandler(InspectorHandler*)));
+    emit createInspectorHandler(m_inspectorHandler);
 }
 
 Typescript::~Typescript()
 {
+    emit removeInspectorHandler(m_inspectorHandler);
+    delete m_inspectorHandler;
     qDeleteAll(m_scriptOrigins);
     m_checkForScriptTimeout->deleteLater();
     m_timeoutCheckerThread->quit();
@@ -94,6 +107,8 @@ bool Typescript::canHandle(const QString &filename)
 
 bool Typescript::loadScript(const QString &filename, const QString &entryPoint)
 {
+    m_inspectorHandler->setFilename(filename);
+
     QFile file(filename);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         m_errorMsg = "<font color=\"red\">Could not open file " + filename + "</font>";
@@ -251,7 +266,9 @@ void Typescript::registerDefineFunction(Local<ObjectTemplate> global)
 
 ScriptOrigin *Typescript::scriptOriginFromFileName(QString name)
 {
-    ScriptOrigin *origin = new ScriptOrigin(String::NewFromUtf8(m_isolate, name.toStdString().c_str(), NewStringType::kNormal).ToLocalChecked());
+    ScriptOrigin *origin = new ScriptOrigin(String::NewFromUtf8(m_isolate, name.toStdString().c_str(), NewStringType::kNormal).ToLocalChecked(),
+                                            Local<Integer>(), Local<Integer>(), Local<Boolean>(), Integer::New(m_isolate, m_scriptIdCounter));
+    m_scriptIdCounter++;
     m_scriptOrigins.push_back(origin);
     return origin;
 }
@@ -273,7 +290,7 @@ bool Typescript::loadModule(QString name)
         // Compile the source code.
         Local<Script> script;
         TryCatch tryCatch(m_isolate);
-        if (!Script::Compile(context, source).ToLocal(&script)) {
+        if (!Script::Compile(context, source, scriptOriginFromFileName(filename)).ToLocal(&script)) {
             tryCatch.ReThrow();
             return false;
         }
