@@ -103,13 +103,13 @@ bool LogFileWriter::writeStatus(const Status &status)
     QByteArray data;
     data.resize(status->ByteSize());
     if (status->IsInitialized() && status->SerializeToArray(data.data(), data.size())) {
-        writePackageEntry(status->time(), data);
+        writePackageEntry(status->time(), std::move(data));
         return true;
     }
     return false;
 }
 
-void LogFileWriter::writePackageEntry(qint64 time, const QByteArray &data)
+void LogFileWriter::writePackageEntry(qint64 time, QByteArray&& data)
 {
     m_timeStamps.append(time);
     m_packetOffsets.append(m_file.pos());

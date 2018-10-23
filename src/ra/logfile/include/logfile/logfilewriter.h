@@ -51,7 +51,7 @@ public slots:
     bool writeStatus(const Status &status);
 
 private:
-    void writePackageEntry(qint64 time, const QByteArray &data);
+    void writePackageEntry(qint64 time, QByteArray &&data);
 
     mutable QMutex *m_mutex;
     QFile m_file;
