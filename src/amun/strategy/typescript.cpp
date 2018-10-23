@@ -92,11 +92,6 @@ bool Typescript::canHandle(const QString &filename)
     return file.fileName() == "init.js";
 }
 
-AbstractStrategyScript* Typescript::createStrategy(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled)
-{
-    return new Typescript(timer, type, debugEnabled, refboxControlEnabled);
-}
-
 bool Typescript::loadScript(const QString &filename, const QString &entryPoint)
 {
     QFile file(filename);

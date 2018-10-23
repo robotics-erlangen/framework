@@ -35,11 +35,10 @@ class QThread;
 
 class Typescript : public AbstractStrategyScript
 {
-private:
-    Typescript(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled);
+    Q_OBJECT
 public:
+    Typescript(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled);
     static bool canHandle(const QString &filename);
-    static AbstractStrategyScript* createStrategy(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled);
     ~Typescript() override;
     void addPathTime(double time);
 

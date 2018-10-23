@@ -36,11 +36,9 @@ Lua *getStrategyThread(lua_State *state);
 class Lua : public AbstractStrategyScript
 {
     Q_OBJECT
-private:
-    Lua(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled);
 public:
+    Lua(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled);
     static bool canHandle(const QString &filename);
-    static AbstractStrategyScript* createStrategy(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled);
     ~Lua() override;
 
 public:

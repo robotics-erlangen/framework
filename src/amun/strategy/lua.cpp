@@ -331,10 +331,6 @@ bool Lua::canHandle(const QString &filename)
     return file.fileName() == "init.lua";
 }
 
-AbstractStrategyScript* Lua::createStrategy(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled) {
-    return new Lua(timer, type, debugEnabled, refboxControlEnabled);
-}
-
 Lua::~Lua()
 {
     lua_close(m_state);
