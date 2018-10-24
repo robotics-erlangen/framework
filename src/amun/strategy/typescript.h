@@ -48,6 +48,9 @@ public:
     void endProfiling(const std::string &filename) override;
     InspectorHandler *getInspectorHandler() const { return m_inspectorHandler; }
 
+    // functions used for debugging v8
+    void disableTimeoutOnce(); // disables script timeout for the currently running strategy frame
+
 signals:
     void createInspectorHandler(InspectorHandler *handler);
     void removeInspectorHandler(InspectorHandler *handler);

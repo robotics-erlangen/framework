@@ -24,6 +24,7 @@
 #include <functional>
 
 #include "websocketprotocol.h"
+#include "typescript.h"
 
 using namespace v8_inspector;
 using namespace v8;
@@ -49,8 +50,9 @@ StringView qStringToStringView(const QString &s)
 
 class RaInspectorClient : public V8InspectorClient {
 public:
-    explicit RaInspectorClient(Isolate *isolate, Persistent<Context> &context, std::function<void()> messageLoop) :
-        m_inspector(V8Inspector::create(isolate, this))
+    explicit RaInspectorClient(Isolate *isolate, Persistent<Context> &context, std::function<void()> messageLoop, Typescript *strategy) :
+        m_inspector(V8Inspector::create(isolate, this)),
+        m_strategy(strategy)
     {
         m_messageLoop = messageLoop;
 
@@ -79,6 +81,7 @@ public:
 
     virtual void runMessageLoopOnPause(int contextGroupId) override {
         qDebug() <<"Run message loop on pause";
+        m_strategy->disableTimeoutOnce();
         m_runMessageLoop = true;
         while (m_runMessageLoop) {
             m_messageLoop();
@@ -176,15 +179,17 @@ private:
     std::unique_ptr<V8Inspector> m_inspector;
     bool m_runMessageLoop = false;
     std::function<void()> m_messageLoop;
+    Typescript *m_strategy;
 };
 
 InspectorHandler::InspectorHandler(v8::Isolate *isolate, v8::Persistent<Context> &context,
-                                   QList<v8::ScriptOrigin*> &scriptOrigins, QString strategyName, QObject *parent) :
+                                   QList<v8::ScriptOrigin*> &scriptOrigins, QString strategyName, Typescript *strategy, QObject *parent) :
     QObject(parent),
     m_strategyName(strategyName),
     m_isolate(isolate),
     m_scriptOrigins(scriptOrigins),
-    m_inspectorClient(nullptr)
+    m_inspectorClient(nullptr),
+    m_strategy(strategy)
 {
     m_context.Reset(isolate, context);
     QByteArray idData;
@@ -200,7 +205,7 @@ InspectorHandler::InspectorHandler(v8::Isolate *isolate, v8::Persistent<Context>
     m_inspectorClient = new RaInspectorClient(m_isolate, m_context, [&]() {
         m_socket->waitForReadyRead();
         readData();
-    });
+    }, m_strategy);
     m_channel.reset(new ChannelImpl(m_socket));
     m_session = m_inspectorClient->connect(m_channel.get());
     m_inspectorClient->sendContextCreated();

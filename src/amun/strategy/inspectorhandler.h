@@ -32,6 +32,8 @@
 #include "v8.h"
 #include "v8-inspector.h"
 
+class Typescript;
+
 // TODO: no using ... in headers
 using v8_inspector::StringView;
 
@@ -80,7 +82,8 @@ class InspectorHandler : public QObject
     Q_OBJECT
 public:
     explicit InspectorHandler(v8::Isolate *isolate, v8::Persistent<v8::Context> &context,
-                              QList<v8::ScriptOrigin*> &scriptOrigins, QString strategyName, QObject *parent = nullptr);
+                              QList<v8::ScriptOrigin*> &scriptOrigins, QString strategyName,
+                              Typescript *strategy, QObject *parent = nullptr);
     QString getId() const { return m_id; }
     QString getName() const { return m_strategyName; }
     QString getFilename() const { return m_filename; }
@@ -106,6 +109,7 @@ private:
     RaInspectorClient *m_inspectorClient;
     std::unique_ptr<v8_inspector::V8InspectorSession> m_session;
     std::unique_ptr<ChannelImpl> m_channel;
+    Typescript *m_strategy;
 };
 
 #endif // INSPECTORHANDLER_H
