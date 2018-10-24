@@ -35,14 +35,26 @@ void Library::setLibraryHandle(Local<Object> handle) {
     m_libraryHandle.Reset(m_isolate, handle);
 }
 
-Local<ObjectTemplate> Library::createObjectTemplateWithCallbacks(const QList<CallbackInfo>& callbackInfos) {
+template<> Local<ObjectTemplate> Library::createTemplateWithCallbacks<ObjectTemplate>(const QList<CallbackInfo>& callbackInfos) {
+    EscapableHandleScope handleScope(m_isolate);
     Local<ObjectTemplate> object = ObjectTemplate::New(m_isolate);
     for (auto callbackInfo : callbackInfos) {
         Local<String> functionName = String::NewFromUtf8(m_isolate, callbackInfo.name, NewStringType::kNormal).ToLocalChecked();
         auto functionTemplate = FunctionTemplate::New(m_isolate, callbackInfo.callback, External::New(m_isolate, this));
         object->Set(functionName, functionTemplate);
     }
-    return object;
+    return handleScope.Escape(object);
+}
+
+template<> Local<FunctionTemplate> Library::createTemplateWithCallbacks<FunctionTemplate>(const QList<CallbackInfo>& callbackInfos) {
+    EscapableHandleScope handleScope(m_isolate);
+    Local<FunctionTemplate> object = FunctionTemplate::New(m_isolate);
+    for (auto callbackInfo : callbackInfos) {
+        Local<String> functionName = String::NewFromUtf8(m_isolate, callbackInfo.name, NewStringType::kNormal).ToLocalChecked();
+        auto functionTemplate = FunctionTemplate::New(m_isolate, callbackInfo.callback, External::New(m_isolate, this));
+        object->Set(functionName, functionTemplate);
+    }
+    return handleScope.Escape(object);
 }
 
 void Library::throwV8Exception(const QString& message) const {

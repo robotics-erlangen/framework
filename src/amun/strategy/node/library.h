@@ -46,7 +46,7 @@ protected:
         void (*callback)(v8::FunctionCallbackInfo<v8::Value> const &);
     };
 
-    v8::Local<v8::ObjectTemplate> createObjectTemplateWithCallbacks(const QList<CallbackInfo>& callbackInfos);
+    template<typename T> v8::Local<T> createTemplateWithCallbacks(const QList<CallbackInfo>& callbackInfos);
     void throwV8Exception(const QString& message) const;
 };
 

@@ -33,7 +33,7 @@ using namespace v8;
 FS::FS(Isolate* isolate) : Library(isolate) {
     HandleScope handleScope(m_isolate);
 
-    Local<ObjectTemplate> objectTemplate = createObjectTemplateWithCallbacks({
+    auto objectTemplate = createTemplateWithCallbacks<ObjectTemplate>({
         { "mkdirSync", &FS::mkdirSync },
         { "statSync", &FS::statSync },
         //{ "watchFile", &FS::watchFile },
@@ -49,7 +49,7 @@ FS::FS(Isolate* isolate) : Library(isolate) {
         //{ "unlinkSync", &FS::unlinkSync }
     });
 
-    Local<ObjectTemplate> fileStatTemplate = createObjectTemplateWithCallbacks({
+    auto fileStatTemplate = createTemplateWithCallbacks<ObjectTemplate>({
             { "isDirectory", &FileStat::isDirectory },
             { "isFile", &FileStat::isFile }
     });
