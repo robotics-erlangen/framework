@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2018 Andreas Wendler, Paul Bergmann                                        *
+ *   Copyright 2018 Paul Bergmann                                        *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,38 +18,18 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef TYPESCRIPTCOMPILER_H
-#define TYPESCRIPTCOMPILER_H
+#include "path.h"
 
-#include "abstractstrategyscript.h"
-#include "node/library.h"
 #include "v8.h"
-#include "v8-profiler.h"
 
-#include <map>
-#include <memory>
+using namespace v8;
 
-#include <QString>
+Path::Path(Isolate* isolate) : Library(isolate) {
+    HandleScope handleScope(m_isolate);
 
-class TypescriptCompiler
-{
-public:
-    TypescriptCompiler();
-    ~TypescriptCompiler();
+    Local<ObjectTemplate> objectTemplate = createObjectTemplateWithCallbacks({
+        //{ "resolve", &Path::resolve }
+    });
 
-    void startCompiler(const QString &filename);
-private:
-    static void requireModule(const v8::FunctionCallbackInfo<v8::Value>& args);
-    void registerRequireFunction(v8::Local<v8::ObjectTemplate> global);
-
-    // Node library functions
-    void createLibraryObjects();
-
-private:
-    v8::Isolate* m_isolate;
-    v8::Global<v8::Context> m_context;
-
-    std::map<QString, std::unique_ptr<Library>> m_libraryObjects;
-};
-
-#endif // TYPESCRIPTCOMPILER_H
+    setLibraryHandle(objectTemplate->NewInstance(isolate->GetCurrentContext()).ToLocalChecked());
+}

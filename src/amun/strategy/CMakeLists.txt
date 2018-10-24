@@ -80,6 +80,15 @@ if(V8_FOUND)
         inspectorhandler.h
         websocketprotocol.cpp
         websocketprotocol.h
+
+        node/library.h
+        node/library.cpp
+        node/fs.h
+        node/fs.cpp
+        node/os.h
+        node/os.cpp
+        node/path.h
+        node/path.cpp
     )
     target_link_libraries(strategy PRIVATE lib::v8)
     target_compile_definitions(strategy PUBLIC V8_FOUND)

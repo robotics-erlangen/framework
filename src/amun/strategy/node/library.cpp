@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2018 Andreas Wendler, Paul Bergmann                                        *
+ *   Copyright 2018 Paul Bergmann                                        *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,38 +18,37 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef TYPESCRIPTCOMPILER_H
-#define TYPESCRIPTCOMPILER_H
+ #include "library.h"
 
-#include "abstractstrategyscript.h"
-#include "node/library.h"
-#include "v8.h"
-#include "v8-profiler.h"
+using namespace v8;
 
-#include <map>
-#include <memory>
+Library::Library(v8::Isolate* isolate) : m_isolate(isolate) {
+}
 
-#include <QString>
+Local<Object> Library::getHandle() {
+    EscapableHandleScope handleScope(m_isolate);
+    Local<Object> object = m_libraryHandle.Get(m_isolate);
+    return handleScope.Escape(object);
+}
 
-class TypescriptCompiler
-{
-public:
-    TypescriptCompiler();
-    ~TypescriptCompiler();
+void Library::setLibraryHandle(Local<Object> handle) {
+    m_libraryHandle.Reset(m_isolate, handle);
+}
 
-    void startCompiler(const QString &filename);
-private:
-    static void requireModule(const v8::FunctionCallbackInfo<v8::Value>& args);
-    void registerRequireFunction(v8::Local<v8::ObjectTemplate> global);
+Local<ObjectTemplate> Library::createObjectTemplateWithCallbacks(const QList<CallbackInfo>& callbackInfos) {
+    Local<ObjectTemplate> object = ObjectTemplate::New(m_isolate);
+    for (auto callbackInfo : callbackInfos) {
+        Local<String> functionName = String::NewFromUtf8(m_isolate, callbackInfo.name, NewStringType::kNormal).ToLocalChecked();
+        auto functionTemplate = FunctionTemplate::New(m_isolate, callbackInfo.callback, External::New(m_isolate, this));
+        object->Set(functionName, functionTemplate);
+    }
+    return object;
+}
 
-    // Node library functions
-    void createLibraryObjects();
-
-private:
-    v8::Isolate* m_isolate;
-    v8::Global<v8::Context> m_context;
-
-    std::map<QString, std::unique_ptr<Library>> m_libraryObjects;
-};
-
-#endif // TYPESCRIPTCOMPILER_H
+void Library::throwV8Exception(const QString& message) const {
+    HandleScope handleScope(m_isolate);
+    Local<String> exceptionText = String
+        ::NewFromUtf8(m_isolate, message.toUtf8().constData(), NewStringType::kNormal)
+        .ToLocalChecked();
+    m_isolate->ThrowException(exceptionText);
+}

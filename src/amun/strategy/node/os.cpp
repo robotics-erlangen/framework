@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2018 Andreas Wendler, Paul Bergmann                                        *
+ *   Copyright 2018 Paul Bergmann                                        *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,38 +18,42 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef TYPESCRIPTCOMPILER_H
-#define TYPESCRIPTCOMPILER_H
+#include "os.h"
 
-#include "abstractstrategyscript.h"
-#include "node/library.h"
 #include "v8.h"
-#include "v8-profiler.h"
 
-#include <map>
-#include <memory>
+using namespace v8;
 
-#include <QString>
+OS::OS(Isolate* isolate) : Library(isolate) {
+    HandleScope handleScope(m_isolate);
 
-class TypescriptCompiler
-{
-public:
-    TypescriptCompiler();
-    ~TypescriptCompiler();
+    Local<ObjectTemplate> objectTemplate = createObjectTemplateWithCallbacks({
+        { "platform", &OS::platform }
+    });
 
-    void startCompiler(const QString &filename);
-private:
-    static void requireModule(const v8::FunctionCallbackInfo<v8::Value>& args);
-    void registerRequireFunction(v8::Local<v8::ObjectTemplate> global);
+    Local<String> eolName = String::NewFromUtf8(m_isolate, "EOL");
+    #ifdef Q_OS_WIN32
+        Local<String> eolString = String::NewFromUtf8(m_isolate, "\r\n", NewStringType::kNormal).ToLocalChecked();
+    #else
+        Local<String> eolString = String::NewFromUtf8(m_isolate, "\n", NewStringType::kNormal).ToLocalChecked();
+    #endif
+    objectTemplate->Set(eolName, eolString);
 
-    // Node library functions
-    void createLibraryObjects();
+    setLibraryHandle(objectTemplate->NewInstance(isolate->GetCurrentContext()).ToLocalChecked());
+}
 
-private:
-    v8::Isolate* m_isolate;
-    v8::Global<v8::Context> m_context;
+void OS::platform(const FunctionCallbackInfo<Value>& args) {
+    #if defined Q_OS_LINUX
+        const QString platform = "linux";
+    #elif defined Q_OS_WIN32
+        const QString platform = "win32";
+    #elif defined Q_OS_DARWIN
+        const QString platform = "darwin";
+    #else
+        #error Unsupported Platform
+    #endif
 
-    std::map<QString, std::unique_ptr<Library>> m_libraryObjects;
-};
-
-#endif // TYPESCRIPTCOMPILER_H
+    auto isolate = args.GetIsolate();
+    Local<String> platformHandle = String::NewFromUtf8(isolate, platform.toUtf8().data());
+    args.GetReturnValue().Set(platformHandle);
+}

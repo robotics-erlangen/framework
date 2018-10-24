@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2018 Andreas Wendler, Paul Bergmann                                        *
+ *   Copyright 2018 Paul Bergmann                                        *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,38 +18,36 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef TYPESCRIPTCOMPILER_H
-#define TYPESCRIPTCOMPILER_H
+#ifndef NODE_LIBRARY_H
+#define NODE_LIBRARY_H
 
-#include "abstractstrategyscript.h"
-#include "node/library.h"
+#include <QList>
+
 #include "v8.h"
-#include "v8-profiler.h"
 
-#include <map>
-#include <memory>
-
-#include <QString>
-
-class TypescriptCompiler
-{
+class Library {
 public:
-    TypescriptCompiler();
-    ~TypescriptCompiler();
+    Library(v8::Isolate* isolate);
+    // copying, moving is disabled since constructors can't be virtual
+    // a childs constructor wouldn't be used, which means their own members won't be copied/moved
+    Library(const Library& other) = delete;
+    Library& operator=(const Library& rhs) = delete;
+    Library(Library&& other) = delete;
+    Library& operator=(Library&& other) = delete;
 
-    void startCompiler(const QString &filename);
-private:
-    static void requireModule(const v8::FunctionCallbackInfo<v8::Value>& args);
-    void registerRequireFunction(v8::Local<v8::ObjectTemplate> global);
-
-    // Node library functions
-    void createLibraryObjects();
-
-private:
+    v8::Local<v8::Object> getHandle();
+protected:
+    void setLibraryHandle(v8::Local<v8::Object> handle);
     v8::Isolate* m_isolate;
-    v8::Global<v8::Context> m_context;
+    v8::Global<v8::Object> m_libraryHandle;
 
-    std::map<QString, std::unique_ptr<Library>> m_libraryObjects;
+    struct CallbackInfo {
+        const char *name;
+        void (*callback)(v8::FunctionCallbackInfo<v8::Value> const &);
+    };
+
+    v8::Local<v8::ObjectTemplate> createObjectTemplateWithCallbacks(const QList<CallbackInfo>& callbackInfos);
+    void throwV8Exception(const QString& message) const;
 };
 
-#endif // TYPESCRIPTCOMPILER_H
+#endif
