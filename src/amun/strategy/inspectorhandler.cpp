@@ -79,9 +79,30 @@ public:
         return m_inspector->connect(1, channel, StringView());
     }
 
+    void sendPauseSimulator(bool pause) {
+        Command command(new amun::Command);
+        amun::PauseSimulatorReason reason;
+        switch (m_strategy->getStrategyType()) {
+        case StrategyType::BLUE:
+            reason = amun::DebugBlueStrategy;
+            break;
+        case StrategyType::YELLOW:
+            reason = amun::DebugYellowStrategy;
+            break;
+        case StrategyType::AUTOREF:
+            reason = amun::DebugAutoref;
+            break;
+        }
+        command->mutable_pause_simulator()->set_reason(reason);
+        command->mutable_pause_simulator()->set_pause(pause);
+        m_strategy->sendCommand(command);
+    }
+
     virtual void runMessageLoopOnPause(int contextGroupId) override {
         qDebug() <<"Run message loop on pause";
         m_strategy->disableTimeoutOnce();
+        sendPauseSimulator(true);
+
         m_runMessageLoop = true;
         while (m_runMessageLoop) {
             m_messageLoop();
@@ -90,6 +111,7 @@ public:
     virtual void quitMessageLoopOnPause() override {
         qDebug() <<"quit message loop on pause";
         m_runMessageLoop = false;
+        sendPauseSimulator(false);
     }
     virtual void runIfWaitingForDebugger(int contextGroupId) override {
         qDebug() <<"Run if waiting for debugger";

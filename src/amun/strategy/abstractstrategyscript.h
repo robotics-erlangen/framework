@@ -101,6 +101,7 @@ public:
     const amun::GameState& refereeState() const { return m_refereeState; }
     const amun::UserInput& userInput() const { return m_userInput; }
     bool isBlue() const { return m_type == StrategyType::BLUE; }
+    StrategyType getStrategyType() const { return m_type; }
     QDir baseDir() const { return m_baseDir; }
 
 signals:
