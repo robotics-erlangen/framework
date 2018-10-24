@@ -28,10 +28,7 @@
 SimulatorWidget::SimulatorWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::SimulatorWidget),
-    m_speed(1.0f),
-    m_lastSpeed(1.0f),
-    m_enableAutoPause(false),
-    m_stoppedByUser(false)
+    m_enableAutoPause(false)
 {
     ui->setupUi(this);
 
@@ -70,6 +67,21 @@ void SimulatorWidget::setEnableAutoPause(bool autoPause)
     m_enableAutoPause = autoPause;
 }
 
+void SimulatorWidget::sendPauseSimulator(amun::PauseSimulatorReason reason, bool pause)
+{
+    Command command(new amun::Command);
+    command->mutable_pause_simulator()->set_reason(reason);
+    command->mutable_pause_simulator()->set_pause(pause);
+    emit sendCommand(command);
+}
+
+void SimulatorWidget::handleStatus(const Status &status)
+{
+    if (status->has_timer_scaling()) {
+        ui->spinSpeed->setValue(int(status->timer_scaling() * 100.0f));
+    }
+}
+
 void SimulatorWidget::handleAppState(Qt::ApplicationState state)
 {
     if (!m_enableAutoPause) {
@@ -77,31 +89,20 @@ void SimulatorWidget::handleAppState(Qt::ApplicationState state)
     }
 
     bool isActive = (state == Qt::ApplicationActive);
-    if (isActive) {
-        if (!m_stoppedByUser) {
-            start();
-        }
-    } else {
-        m_stoppedByUser = (m_speed == 0.0f);
-        stop();
-    }
+    sendPauseSimulator(amun::WindowFocus, !isActive);
 }
 
 void SimulatorWidget::setSpeed(int speed)
 {
-    m_lastSpeed = m_speed;
-    m_speed = speed / 100.0f;
-    emit speedChanged(m_speed);
-
     Command command(new amun::Command);
-    command->set_speed(m_speed);
+    command->set_speed(speed / 100.0f);
     emit sendCommand(command);
 }
 
 void SimulatorWidget::start()
 {
-    if (m_speed == 0.0f) {
-        ui->spinSpeed->setValue(m_lastSpeed * 100.0f);
+    if (ui->spinSpeed->value() == 0) {
+        sendPauseSimulator(amun::Ui, false);
     } else {
         ui->spinSpeed->setValue(100);
     }
@@ -109,7 +110,7 @@ void SimulatorWidget::start()
 
 void SimulatorWidget::stop()
 {
-    ui->spinSpeed->setValue(0);
+    sendPauseSimulator(amun::Ui, true);
 }
 
 void SimulatorWidget::increaseSpeed()
@@ -165,9 +166,8 @@ void SimulatorWidget::setStddevRobotPhi(double stddev)
 
 void SimulatorWidget::on_btnToggle_clicked()
 {
-    if (ui->spinSpeed->value() == 0) {
-        start();
-    } else {
-        stop();
-    }
+    Command command(new amun::Command);
+    command->mutable_pause_simulator()->set_reason(amun::Ui);
+    command->mutable_pause_simulator()->set_toggle(true);
+    emit sendCommand(command);
 }

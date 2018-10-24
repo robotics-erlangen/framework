@@ -156,6 +156,7 @@ MainWindow::MainWindow(bool tournamentMode, QWidget *parent) :
     connect(this, SIGNAL(gotStatus(Status)), ui->options, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), ui->blueDebugger, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), ui->yellowDebugger, SLOT(handleStatus(Status)));
+    connect(this, SIGNAL(gotStatus(Status)), ui->simulator, SLOT(handleStatus(Status)));
 
     // set up log connections
     connect(this, SIGNAL(gotStatus(Status)), &m_logWriter, SLOT(handleStatus(Status)));

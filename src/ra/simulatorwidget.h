@@ -22,6 +22,7 @@
 #define SIMULATORWIDGET_H
 
 #include "protobuf/command.h"
+#include "protobuf/status.h"
 #include <QWidget>
 
 namespace Ui {
@@ -38,12 +39,9 @@ public:
 
 signals:
     void sendCommand(const Command &command);
-    void speedChanged(float speed);
-
-public:
-    float speed() const { return m_speed; }
 
 public slots:
+    void handleStatus(const Status &status);
     void stop();
     void start();
 
@@ -61,9 +59,10 @@ private slots:
     void on_btnToggle_clicked();
 
 private:
+    void sendPauseSimulator(amun::PauseSimulatorReason reason, bool pause);
+
+private:
     Ui::SimulatorWidget *ui;
-    float m_speed;
-    float m_lastSpeed;
     bool m_enableAutoPause;
     bool m_stoppedByUser;
 };

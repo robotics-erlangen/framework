@@ -144,6 +144,20 @@ message CommandDebuggerInput {
     optional CommandDebuggerInputLine queue_line = 3;
 }
 
+enum PauseSimulatorReason {
+    Ui = 1;
+    WindowFocus = 2;
+    DebugBlueStrategy = 3;
+    DebugYellowStrategy = 4;
+    DebugAutoref = 5;
+}
+
+message PauseSimulatorCommand {
+    required PauseSimulatorReason reason = 1;
+    optional bool pause = 2;
+    optional bool toggle = 3;
+}
+
 message Command {
     optional CommandSimulator simulator = 1;
     optional CommandReferee referee = 2;
@@ -162,4 +176,5 @@ message Command {
     repeated RobotMoveCommand robot_move_yellow = 15;
     optional CommandDebuggerInput debugger_input = 16;
     optional uint32 remote_control_port = 17;
+    optional PauseSimulatorCommand pause_simulator = 18;
 }

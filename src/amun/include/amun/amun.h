@@ -24,6 +24,7 @@
 #include "protobuf/command.h"
 #include "protobuf/status.h"
 #include <QObject>
+#include <QSet>
 
 class DebugHelper;
 class NetworkInterfaceWatcher;
@@ -95,6 +96,9 @@ private:
     const bool m_simulatorOnly;
     bool m_useInternalReferee;
     bool m_useAutoref;
+
+    QSet<amun::PauseSimulatorReason> m_activePauseReasons;
+    float m_previousSpeed;
 
     NetworkInterfaceWatcher *m_networkInterfaceWatcher;
 };

@@ -322,9 +322,37 @@ void Amun::handleCommand(const Command &command)
         }
     }
 
-    if (command->has_speed()) {
+    if (command->has_speed() && m_scaling != command->speed()) {
         m_scaling = command->speed();
         if (m_simulatorEnabled) {
+            updateScaling(m_scaling);
+        }
+    }
+
+    if (command->has_pause_simulator()) {
+        const amun::PauseSimulatorCommand &pauseCommand = command->pause_simulator();
+        auto reason = pauseCommand.reason();
+        int reasonsSizeBefore = m_activePauseReasons.size();
+        if (pauseCommand.has_pause()) {
+            if (pauseCommand.pause() && !m_activePauseReasons.contains(reason)) {
+                m_activePauseReasons.insert(reason);
+            } else {
+                m_activePauseReasons.remove(reason);
+            }
+        }
+        if (pauseCommand.has_toggle() && pauseCommand.toggle()) {
+            if (!m_activePauseReasons.contains(reason)) {
+                m_activePauseReasons.insert(reason);
+            } else {
+                m_activePauseReasons.remove(reason);
+            }
+        }
+        if (reasonsSizeBefore > 0 && m_activePauseReasons.size() == 0) {
+            m_scaling = m_previousSpeed;
+            updateScaling(m_scaling);
+        } else if (reasonsSizeBefore == 0 && m_activePauseReasons.size() > 0) {
+            m_previousSpeed = m_scaling;
+            m_scaling = 0.0f;
             updateScaling(m_scaling);
         }
     }
