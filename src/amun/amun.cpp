@@ -137,6 +137,7 @@ void Amun::start()
         connect(this, SIGNAL(gotCommand(Command)),
                 m_debugHelper[i], SLOT(handleCommand(Command)));
         connect(m_debugHelper[i], SIGNAL(sendStatus(Status)), SLOT(handleStatus(Status)));
+        connect(m_debugHelperThread, SIGNAL(finished()), m_debugHelper[i], SLOT(deleteLater()));
 
         Q_ASSERT(m_strategy[i] == nullptr);
         m_strategy[i] = new Strategy(m_timer, strategy, m_debugHelper[i], i == 2);

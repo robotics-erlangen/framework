@@ -146,6 +146,7 @@ Processor::~Processor()
     delete m_tracker;
     delete m_refereeInternal;
     delete m_referee;
+    delete m_speedTracker;
 
     qDeleteAll(m_blueTeam.robots);
     qDeleteAll(m_yellowTeam.robots);
