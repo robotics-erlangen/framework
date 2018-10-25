@@ -41,6 +41,7 @@ class InspectorServer : public QObject
     Q_OBJECT
 public:
     InspectorServer(int port, QObject *parent = nullptr);
+    ~InspectorServer();
     // may only be called when no current active strategy is registered
     void newDebuggagleStrategy(Typescript *typescript);
     void clearHandlers();
@@ -48,6 +49,7 @@ public:
 private slots:
     void newConnection();
     void readData();
+    void acceptConnections();
 
 private:
     QString mapToString(const QMap<QString, QString> &map);
@@ -60,7 +62,8 @@ private:
 private:
     QTcpServer *m_server;
     QTcpSocket *m_socket;
-    std::unique_ptr<InspectorHandler> m_handler;
+    InspectorHandler *m_handler;
+    Typescript *m_strategy;
     int m_port;
 };
 

@@ -489,6 +489,9 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
 
     m_reloadTimer->stop();
     // use a fresh strategy instance when strategy is started
+#ifdef V8_FOUND
+    m_inspectorServer->clearHandlers();
+#endif
     delete m_strategy;
     m_strategy = NULL;
     m_strategyFailed = false;
@@ -500,7 +503,6 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
         m_strategy = new Lua(m_timer, m_type, m_debugEnabled, m_refboxControlEnabled);
 #ifdef V8_FOUND
     } else if (Typescript::canHandle(filename)) {
-        m_inspectorServer->clearHandlers();
         Typescript *t = new Typescript(m_timer, m_type, m_debugEnabled, m_refboxControlEnabled);
         m_strategy = t;
         if (m_debugEnabled) {

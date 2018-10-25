@@ -35,9 +35,6 @@
 class Typescript;
 class RaInspectorClient;
 
-QString stringViewToQString(v8_inspector::StringView view);
-std::vector<char> encode_frame_hybi17(const std::vector<char>& message);
-
 class ChannelImpl : public v8_inspector::V8Inspector::Channel {
 public:
     ChannelImpl(std::shared_ptr<QTcpSocket> &socket);
@@ -48,6 +45,31 @@ public:
 private:
     std::shared_ptr<QTcpSocket> &m_socket;
 };
+
+
+class RaInspectorClient : public v8_inspector::V8InspectorClient {
+public:
+    explicit RaInspectorClient(v8::Isolate *isolate, const v8::Persistent<v8::Context> &context, std::function<void()> messageLoop, Typescript *strategy);
+    std::unique_ptr<v8_inspector::V8InspectorSession> connect(v8_inspector::V8Inspector::Channel *channel);
+    void sendPauseSimulator(bool pause);
+    virtual void runMessageLoopOnPause(int) override;
+    virtual void quitMessageLoopOnPause() override;
+    virtual v8::Local<v8::Context> ensureDefaultContextInGroup(int contextGroupId) override;
+    virtual void consoleAPIMessage(int contextGroupId,
+                                   v8::Isolate::MessageErrorLevel level,
+                                   const v8_inspector::StringView& message,
+                                   const v8_inspector::StringView& url, unsigned lineNumber,
+                                   unsigned columnNumber, v8_inspector::V8StackTrace*) override;
+
+private:
+    std::unique_ptr<v8_inspector::V8Inspector> m_inspector;
+    bool m_runMessageLoop = false;
+    std::function<void()> m_messageLoop;
+    Typescript *m_strategy;
+    v8::Isolate *m_isolate;
+    v8::Persistent<v8::Context> m_context;
+};
+
 
 // runs in each strategy thread
 // represents that strategy and its isolate
@@ -61,6 +83,9 @@ public:
     explicit InspectorHandler(Typescript *strategy, QObject *parent = nullptr);
     QString getId() const { return m_id; }
 
+signals:
+    void frontendDisconnected();
+
 public slots:
     void setSocket(QTcpSocket *socket);
 
@@ -70,7 +95,7 @@ private slots:
 private:
     QString m_id;
     std::shared_ptr<QTcpSocket> m_socket;
-    RaInspectorClient *m_inspectorClient;
+    std::unique_ptr<RaInspectorClient> m_inspectorClient;
     std::unique_ptr<v8_inspector::V8InspectorSession> m_session;
     std::unique_ptr<ChannelImpl> m_channel;
 };

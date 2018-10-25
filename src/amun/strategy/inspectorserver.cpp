@@ -30,10 +30,16 @@
 InspectorServer::InspectorServer(int port, QObject *parent) :
     QObject(parent),
     m_socket(nullptr),
+    m_handler(nullptr),
     m_port(port)
 {
     m_server = new QTcpServer(this);
     connect(m_server, SIGNAL(newConnection()), SLOT(newConnection()));
+}
+
+InspectorServer::~InspectorServer()
+{
+    delete m_handler;
 }
 
 bool InspectorServer::handleGetRequest(QString request)
@@ -58,7 +64,6 @@ bool InspectorServer::handleGetRequest(QString request)
             disconnect(m_socket, SIGNAL(readyRead()), this, SLOT(readData()));
             m_handler->setSocket(m_socket);
             m_server->close();
-            // TODO: start accepting connections again after the handler got destroyed
             m_socket = nullptr;
             return true;
         }
@@ -155,20 +160,30 @@ QString InspectorServer::mapsToString(const QList<QMap<QString, QString>> &list)
     return result;
 }
 
+void InspectorServer::acceptConnections()
+{
+    m_handler->deleteLater();
+    m_handler = nullptr;
+    newDebuggagleStrategy(m_strategy);
+}
+
 void InspectorServer::newDebuggagleStrategy(Typescript *typescript)
 {
-    m_handler.reset(new InspectorHandler(typescript));
+    m_strategy = typescript;
+    delete m_handler;
+    m_handler = new InspectorHandler(typescript);
+    connect(m_handler, SIGNAL(frontendDisconnected()), SLOT(acceptConnections()));
     if (!m_server->isListening()) {
         if (!m_server->listen(QHostAddress::Any, (quint16)m_port)) {
-            // TODO: create an error message in the log widget here
-            // since it probably means that the port is blocked by another ra instance
+            typescript->log("<font color=\"red\">Could not connect debugging server to port " + QString::number(m_port) + "</font>");
         }
     }
 }
 
 void InspectorServer::clearHandlers()
 {
-    m_handler.release();
+    delete m_handler;
+    m_handler = nullptr;
     if (m_server->isListening()) {
         m_server->close();
     }

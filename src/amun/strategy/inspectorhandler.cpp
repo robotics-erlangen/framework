@@ -50,7 +50,8 @@ StringView qStringToStringView(const QString &s)
 }
 
 // ChannelImpl
-ChannelImpl::ChannelImpl(std::shared_ptr<QTcpSocket> &socket) : m_socket(socket) { }
+ChannelImpl::ChannelImpl(std::shared_ptr<QTcpSocket> &socket) : m_socket(socket)
+{ }
 
 void ChannelImpl::sendResponse(int callId, std::unique_ptr<v8_inspector::StringBuffer> message) {
     QString content = stringViewToQString(message->string());
@@ -76,86 +77,80 @@ void ChannelImpl::flushProtocolNotifications() {
 }
 
 
-class RaInspectorClient : public V8InspectorClient {
-public:
-    explicit RaInspectorClient(Isolate *isolate, const Persistent<Context> &context, std::function<void()> messageLoop, Typescript *strategy) :
-        m_inspector(V8Inspector::create(isolate, this)),
-        m_strategy(strategy),
-        m_isolate(isolate)
-    {
-        m_messageLoop = messageLoop;
+// RaInspectorClient
+RaInspectorClient::RaInspectorClient(Isolate *isolate, const Persistent<Context> &context, std::function<void()> messageLoop, Typescript *strategy) :
+    m_inspector(V8Inspector::create(isolate, this)),
+    m_strategy(strategy),
+    m_isolate(isolate)
+{
+    m_messageLoop = messageLoop;
 
-        m_context.Reset(isolate, context);
+    m_context.Reset(isolate, context);
+}
+
+std::unique_ptr<v8_inspector::V8InspectorSession> RaInspectorClient::connect(V8Inspector::Channel *channel)
+{
+    auto result = m_inspector->connect(1, channel, StringView());
+
+    HandleScope handleScope(m_isolate);
+    Local<Context> c = Local<Context>::New(m_isolate, m_context);
+    V8ContextInfo info(c, 1, StringView());
+    info.auxData = StringView(qStringToStringView("{\"isDefault\":true}"));
+    m_inspector->contextCreated(info);
+    return result;
+}
+
+void RaInspectorClient::sendPauseSimulator(bool pause)
+{
+    Command command(new amun::Command);
+    amun::PauseSimulatorReason reason = amun::DebugBlueStrategy;
+    switch (m_strategy->getStrategyType()) {
+    case StrategyType::BLUE:
+        reason = amun::DebugBlueStrategy;
+        break;
+    case StrategyType::YELLOW:
+        reason = amun::DebugYellowStrategy;
+        break;
+    case StrategyType::AUTOREF:
+        reason = amun::DebugAutoref;
+        break;
     }
+    command->mutable_pause_simulator()->set_reason(reason);
+    command->mutable_pause_simulator()->set_pause(pause);
+    m_strategy->sendCommand(command);
+}
 
-    std::unique_ptr<v8_inspector::V8InspectorSession> connect(V8Inspector::Channel *channel)
-    {
-        auto result = m_inspector->connect(1, channel, StringView());
+void RaInspectorClient::runMessageLoopOnPause(int)
+{
+    m_strategy->disableTimeoutOnce();
+    sendPauseSimulator(true);
 
-        HandleScope handleScope(m_isolate);
-        Local<Context> c = Local<Context>::New(m_isolate, m_context);
-        V8ContextInfo info(c, 1, StringView());
-        info.auxData = StringView(qStringToStringView("{\"isDefault\":true}"));
-        m_inspector->contextCreated(info);
-        return result;
+    m_runMessageLoop = true;
+    while (m_runMessageLoop) {
+        m_messageLoop();
     }
+}
 
-    void sendPauseSimulator(bool pause) {
-        Command command(new amun::Command);
-        amun::PauseSimulatorReason reason = amun::DebugBlueStrategy;
-        switch (m_strategy->getStrategyType()) {
-        case StrategyType::BLUE:
-            reason = amun::DebugBlueStrategy;
-            break;
-        case StrategyType::YELLOW:
-            reason = amun::DebugYellowStrategy;
-            break;
-        case StrategyType::AUTOREF:
-            reason = amun::DebugAutoref;
-            break;
-        }
-        command->mutable_pause_simulator()->set_reason(reason);
-        command->mutable_pause_simulator()->set_pause(pause);
-        m_strategy->sendCommand(command);
-    }
+void RaInspectorClient::quitMessageLoopOnPause()
+{
+    m_runMessageLoop = false;
+    sendPauseSimulator(false);
+}
 
-    virtual void runMessageLoopOnPause(int) override {
-        m_strategy->disableTimeoutOnce();
-        sendPauseSimulator(true);
+v8::Local<v8::Context> RaInspectorClient::ensureDefaultContextInGroup(int contextGroupId)
+{
+    return Local<Context>::New(m_isolate, m_context);
+}
 
-        m_runMessageLoop = true;
-        while (m_runMessageLoop) {
-            m_messageLoop();
-        }
-    }
+void RaInspectorClient::consoleAPIMessage(int contextGroupId, v8::Isolate::MessageErrorLevel level,
+                        const StringView& message, const StringView& url, unsigned lineNumber,
+                        unsigned columnNumber, V8StackTrace*)
+{
+    qDebug() <<"Console message: "<<stringViewToQString(message)<<stringViewToQString(url)<<lineNumber;
+}
 
-    virtual void quitMessageLoopOnPause() override {
-        m_runMessageLoop = false;
-        sendPauseSimulator(false);
-    }
 
-    virtual v8::Local<v8::Context> ensureDefaultContextInGroup(
-        int contextGroupId) {
-      return Local<Context>::New(m_isolate, m_context);
-    }
-
-    virtual void consoleAPIMessage(int contextGroupId,
-                                   v8::Isolate::MessageErrorLevel level,
-                                   const StringView& message,
-                                   const StringView& url, unsigned lineNumber,
-                                   unsigned columnNumber, V8StackTrace*) {
-        qDebug() <<"Console message: "<<stringViewToQString(message)<<stringViewToQString(url)<<lineNumber;
-    }
-
-private:
-    std::unique_ptr<V8Inspector> m_inspector;
-    bool m_runMessageLoop = false;
-    std::function<void()> m_messageLoop;
-    Typescript *m_strategy;
-    Isolate *m_isolate;
-    Persistent<Context> m_context;
-};
-
+// InspectorHandler
 InspectorHandler::InspectorHandler(Typescript *strategy, QObject *parent) :
     QObject(parent)
 {
@@ -165,10 +160,10 @@ InspectorHandler::InspectorHandler(Typescript *strategy, QObject *parent) :
     }
     m_id = QString(idData.toBase64());
 
-    m_inspectorClient = new RaInspectorClient(strategy->getIsolate(), strategy->getContext(), [&]() {
+    m_inspectorClient.reset(new RaInspectorClient(strategy->getIsolate(), strategy->getContext(), [&]() {
         m_socket->waitForReadyRead();
         readData();
-    }, strategy);
+    }, strategy));
     m_channel.reset(new ChannelImpl(m_socket));
     m_session = m_inspectorClient->connect(m_channel.get());
 }
@@ -177,7 +172,7 @@ void InspectorHandler::setSocket(QTcpSocket *socket)
 {
     m_socket.reset(socket);
     m_socket->setParent(this);
-    // TODO: read and handle any data that came in inbetween disconnect and connect
+    readData();
 
     connect(socket, SIGNAL(readyRead()), this, SLOT(readData()));
 }
@@ -193,11 +188,9 @@ void InspectorHandler::readData()
         bool compressed = false;
 
         ws_decode_result r =  decode_frame_hybi17(buffer, true, &bytes_consumed, &output, &compressed);
-        if (compressed || r == FRAME_ERROR) {
-            qDebug() <<"error";
-            bytes_consumed = 0;
-        } else if (r == FRAME_CLOSE) {
-            qDebug() <<"Close";
+        if (compressed || r == FRAME_ERROR || r == FRAME_CLOSE) {
+            // errors are handled by closing the connection
+            emit frontendDisconnected();
             bytes_consumed = 0;
             m_socket->close();
             deleteLater();
