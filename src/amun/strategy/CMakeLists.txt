@@ -73,6 +73,7 @@ if(V8_FOUND)
         inspectorserver.h
         inspectorhandler.cpp
         inspectorhandler.h
+        websocketprotocol.cpp
         websocketprotocol.h
     )
     target_link_libraries(strategy PRIVATE lib::v8)
