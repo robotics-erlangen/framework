@@ -21,6 +21,7 @@
 #include "logfilewriter.h"
 #include <QByteArray>
 #include <QMutexLocker>
+#include <functional>
 
 #include "logfilereader.h"
 
@@ -92,6 +93,17 @@ void LogFileWriter::close()
     m_file.close();
 }
 
+static bool serializeStatus(std::function<void(LogFileWriter*, qint64, QByteArray&&)> lambda, const Status &status, LogFileWriter* self)
+{
+    QByteArray data;
+    data.resize(status->ByteSize());
+    if (status->IsInitialized() && status->SerializeToArray(data.data(), data.size())) {
+        lambda(self, status->time(), std::move(data));
+        return true;
+    }
+    return false;
+}
+
 bool LogFileWriter::writeStatus(const Status &status)
 {
     // lock to prevent intermediate file changes
@@ -100,24 +112,44 @@ bool LogFileWriter::writeStatus(const Status &status)
         return false;
     }
 
-    QByteArray data;
-    data.resize(status->ByteSize());
-    if (status->IsInitialized() && status->SerializeToArray(data.data(), data.size())) {
-        writePackageEntry(status->time(), std::move(data));
-        return true;
+    bool serialize = true;
+    if (m_hashState == HashingState::UNINITIALIZED && status->has_log_id()) {
+        m_hashState = HashingState::HAS_HASHING;
+    } else if (m_hashState == HashingState::UNINITIALIZED) {
+        m_hashStatus->CopyFrom(*status);
+        serialize = false;
+        m_hashState = HashingState::NEEDS_HASHING;
     }
-    return false;
+
+    if (m_hashState == HashingState::NEEDS_HASHING) {
+        m_hasher.add(status);
+    }
+
+    if (m_hashState == HashingState::NEEDS_HASHING && m_hasher.isFinished()) {
+        m_hashStatus->mutable_log_id()->add_parts()->set_hash(m_hasher.takeResult());
+        serializeStatus(&LogFileWriter::addFirstPackage, m_hashStatus, this);
+        m_hashState = HashingState::HAS_HASHING;
+    }
+
+    if (serialize) {
+        return serializeStatus(&LogFileWriter::writePackageEntry, status, this);
+    }
+    return true;
 }
 
 void LogFileWriter::writePackageEntry(qint64 time, QByteArray&& data)
 {
     m_timeStamps.append(time);
-    m_packetOffsets.append(m_file.pos());
 
     m_packageBufferOffsets[m_packageBufferCount] = m_packageBuffer.size();
     m_packageBuffer.append(data);
+    if ( m_hashState != HashingState::NEEDS_HASHING) {
+        m_packetOffsets.append(m_file.pos());
+        m_stream << time;
+    } else {
+        m_packageTimeStamps[m_packageBufferCount] = time;
+    }
     m_packageBufferCount++;
-    m_stream << time;
     if (m_packageBufferCount == GROUPED_PACKAGES) {
         QDataStream ds(&m_packageBuffer, QIODevice::WriteOnly | QIODevice::Append);
         ds.setVersion(QDataStream::Qt_4_6);
@@ -128,5 +160,34 @@ void LogFileWriter::writePackageEntry(qint64 time, QByteArray&& data)
         m_packageBufferCount = 0;
         m_packageBuffer.clear();
         m_writtenPackages += GROUPED_PACKAGES;
+    }
+}
+
+void LogFileWriter::addFirstPackage(qint64 time, QByteArray&& data)
+{
+    m_timeStamps.prepend(time);
+    m_packetOffsets.append(m_file.pos());
+    m_stream << time;
+
+    for (qint64 oldTime : m_packageTimeStamps) {
+        m_packetOffsets.append(m_file.pos());
+        m_stream << oldTime;
+    }
+
+    qint32 oldOffset = m_packageBufferOffsets[0];
+    qint32 firstLength = data.size();
+    data.append(m_packageBuffer);
+    m_packageBuffer.swap(data);
+    m_packageBufferOffsets[0] = 0;
+
+    m_packageBufferCount++;
+    for (int i = 1; i < m_packageBufferCount; ++i) {
+        qint32 newOffset = oldOffset + firstLength;
+        oldOffset = m_packageBufferOffsets[i];
+        m_packageBufferOffsets[i] = newOffset;
+    }
+
+    if (m_packageBufferCount == GROUPED_PACKAGES) {
+        qFatal("Some strange thing happend in addFirstPackage");
     }
 }

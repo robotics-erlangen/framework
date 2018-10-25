@@ -22,6 +22,7 @@
 #define LOGFILEWRITER_H
 
 #include "protobuf/status.h"
+#include "logfilehasher.h"
 #include <QObject>
 #include <QString>
 #include <QDataStream>
@@ -52,6 +53,7 @@ public slots:
 
 private:
     void writePackageEntry(qint64 time, QByteArray &&data);
+    void addFirstPackage(qint64 time, QByteArray &&data);
 
     mutable QMutex *m_mutex;
     QFile m_file;
@@ -61,9 +63,19 @@ private:
     QList<qint64> m_timeStamps;
     QList<qint64> m_packetOffsets;
     qint64 m_writtenPackages;
+    LogFileHasher m_hasher;
+    enum class HashingState {
+        UNINITIALIZED, NEEDS_HASHING, HAS_HASHING
+    };
+    HashingState m_hashState = HashingState::UNINITIALIZED;
+    Status m_hashStatus = Status(new amun::Status);
 
     const static qint32 GROUPED_PACKAGES = 100;
+    static_assert(GROUPED_PACKAGES >= LogFileHasher::HASHED_PACKAGES);
+    static_assert(LogFileHasher::HASHED_PACKAGES > 2);
+
     qint32 m_packageBufferOffsets[GROUPED_PACKAGES];
+    qint64 m_packageTimeStamps[LogFileHasher::HASHED_PACKAGES-2]; //Only to be used while HashingState::NEEDS_HASHING
 };
 
 #endif // LOGFILEWRITER_H
