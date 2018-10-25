@@ -108,7 +108,8 @@ bool LogFileReader::indexFile()
         if (time != 0) {
             // timestamps that are too far apart mean that the logfile is corrupt
             if (lastTime != 0 && (time - lastTime < 0 || time - lastTime > 200000000000L)) {
-                m_errorMsg = "Invalid or corrupt logfile";
+                m_errorMsg = "Invalid or corrupt logfile %1, %2";
+                m_errorMsg = m_errorMsg.arg(time).arg(lastTime);
                 return false;
             }
 
