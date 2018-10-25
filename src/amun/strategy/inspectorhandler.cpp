@@ -52,36 +52,29 @@ class RaInspectorClient : public V8InspectorClient {
 public:
     explicit RaInspectorClient(Isolate *isolate, Persistent<Context> &context, std::function<void()> messageLoop, Typescript *strategy) :
         m_inspector(V8Inspector::create(isolate, this)),
-        m_strategy(strategy)
+        m_strategy(strategy),
+        m_isolate(isolate)
     {
         m_messageLoop = messageLoop;
 
-        // create context info
-        HandleScope handleScope(isolate);
         m_context.Reset(isolate, context);
-        m_isolate = isolate;
     }
 
-    void sendContextCreated()
+    std::unique_ptr<v8_inspector::V8InspectorSession> connect(V8Inspector::Channel *channel)
     {
+        auto result = m_inspector->connect(1, channel, StringView());
+
         HandleScope handleScope(m_isolate);
         Local<Context> c = Local<Context>::New(m_isolate, m_context);
         V8ContextInfo info(c, 1, StringView());
         info.auxData = StringView(qStringToStringView("{\"isDefault\":true}"));
         m_inspector->contextCreated(info);
-    }
-
-    Isolate *m_isolate;
-    Persistent<Context> m_context;
-
-    std::unique_ptr<v8_inspector::V8InspectorSession> connect(V8Inspector::Channel *channel)
-    {
-        return m_inspector->connect(1, channel, StringView());
+        return result;
     }
 
     void sendPauseSimulator(bool pause) {
         Command command(new amun::Command);
-        amun::PauseSimulatorReason reason;
+        amun::PauseSimulatorReason reason = amun::DebugBlueStrategy;
         switch (m_strategy->getStrategyType()) {
         case StrategyType::BLUE:
             reason = amun::DebugBlueStrategy;
@@ -98,8 +91,7 @@ public:
         m_strategy->sendCommand(command);
     }
 
-    virtual void runMessageLoopOnPause(int contextGroupId) override {
-        qDebug() <<"Run message loop on pause";
+    virtual void runMessageLoopOnPause(int) override {
         m_strategy->disableTimeoutOnce();
         sendPauseSimulator(true);
 
@@ -108,93 +100,23 @@ public:
             m_messageLoop();
         }
     }
+
     virtual void quitMessageLoopOnPause() override {
-        qDebug() <<"quit message loop on pause";
         m_runMessageLoop = false;
         sendPauseSimulator(false);
     }
-    virtual void runIfWaitingForDebugger(int contextGroupId) override {
-        qDebug() <<"Run if waiting for debugger";
-    }
-
-    virtual void muteMetrics(int contextGroupId) override {
-        qDebug() <<"Mute metrics";
-    }
-    virtual void unmuteMetrics(int contextGroupId) override {
-        qDebug() <<"unmute metrics";
-    }
-
-    virtual void beginUserGesture() override {
-        qDebug() <<"begin user gesture";
-    }
-    virtual void endUserGesture() override {
-        qDebug() <<"end user gesture";
-    }
-
-    virtual std::unique_ptr<StringBuffer> valueSubtype(v8::Local<v8::Value>) {
-        qDebug() <<"value subtype";
-      return nullptr;
-    }
-    virtual bool formatAccessorsAsProperties(v8::Local<v8::Value>) {
-        qDebug() <<"format accessors as properties";
-      return false;
-    }
-    virtual bool isInspectableHeapObject(v8::Local<v8::Object>) { return true; }
 
     virtual v8::Local<v8::Context> ensureDefaultContextInGroup(
         int contextGroupId) {
       return Local<Context>::New(m_isolate, m_context);
     }
-    virtual void beginEnsureAllContextsInGroup(int contextGroupId) {
-        qDebug() <<"begin ensure all contexts in group"<<contextGroupId;
-    }
-    virtual void endEnsureAllContextsInGroup(int contextGroupId) {
-        qDebug() <<"end ensure all contexts in group "<<contextGroupId;
-    }
 
-    virtual void installAdditionalCommandLineAPI(v8::Local<v8::Context>,
-                                                 v8::Local<v8::Object>) {
-        qDebug() <<"Install command line api";
-    }
     virtual void consoleAPIMessage(int contextGroupId,
                                    v8::Isolate::MessageErrorLevel level,
                                    const StringView& message,
                                    const StringView& url, unsigned lineNumber,
                                    unsigned columnNumber, V8StackTrace*) {
-        qDebug() <<"Console message";
-    }
-    virtual v8::MaybeLocal<v8::Value> memoryInfo(v8::Isolate*,
-                                                 v8::Local<v8::Context>) {
-        qDebug() <<"Memory info";
-      return v8::MaybeLocal<v8::Value>();
-    }
-
-    virtual void consoleTime(const StringView& title) {
-        qDebug() <<"console time";
-    }
-    virtual void consoleTimeEnd(const StringView& title) {
-        qDebug() <<"console tim end";
-    }
-    virtual void consoleTimeStamp(const StringView& title) {
-        qDebug() <<"console time stamp";
-    }
-    virtual void consoleClear(int contextGroupId) {
-        qDebug() <<"Console clear";
-    }
-    virtual double currentTimeMS() {
-        qDebug() <<"current time";
-        return 0;
-    }
-    typedef void (*TimerCallback)(void*);
-    virtual void startRepeatingTimer(double, TimerCallback, void* data) {
-        qDebug() <<"start repeating timer";
-    }
-    virtual void cancelTimer(void* data) {
-        qDebug() <<"cancel timer";
-    }
-
-    virtual void maxAsyncCallStackDepthChanged(int depth) {
-        qDebug() <<"max async calll stack depth changed";
+        qDebug() <<"Console message: "<<stringViewToQString(message)<<stringViewToQString(url)<<lineNumber;
     }
 
 private:
@@ -202,35 +124,25 @@ private:
     bool m_runMessageLoop = false;
     std::function<void()> m_messageLoop;
     Typescript *m_strategy;
+    Isolate *m_isolate;
+    Persistent<Context> m_context;
 };
 
-InspectorHandler::InspectorHandler(v8::Isolate *isolate, v8::Persistent<Context> &context,
-                                   QList<v8::ScriptOrigin*> &scriptOrigins, QString strategyName, Typescript *strategy, QObject *parent) :
-    QObject(parent),
-    m_strategyName(strategyName),
-    m_isolate(isolate),
-    m_scriptOrigins(scriptOrigins),
-    m_inspectorClient(nullptr),
-    m_strategy(strategy)
+InspectorHandler::InspectorHandler(v8::Isolate *isolate, v8::Persistent<Context> &context, Typescript *strategy, QObject *parent) :
+    QObject(parent)
 {
-    m_context.Reset(isolate, context);
     QByteArray idData;
     for (int i = 0;i<32;i++) {
         idData.append(qrand() % 256);
     }
     m_id = QString(idData.toBase64());
-    qDebug() <<m_id;
 
-    Isolate::Scope isolateScope(m_isolate);
-    HandleScope handleScope(m_isolate);
-
-    m_inspectorClient = new RaInspectorClient(m_isolate, m_context, [&]() {
+    m_inspectorClient = new RaInspectorClient(isolate, context, [&]() {
         m_socket->waitForReadyRead();
         readData();
-    }, m_strategy);
+    }, strategy);
     m_channel.reset(new ChannelImpl(m_socket));
     m_session = m_inspectorClient->connect(m_channel.get());
-    m_inspectorClient->sendContextCreated();
 }
 
 void InspectorHandler::setSocket(QTcpSocket *socket)
@@ -243,11 +155,6 @@ void InspectorHandler::setSocket(QTcpSocket *socket)
 
 void InspectorHandler::readData()
 {
-    Isolate::Scope isolateScope(m_isolate);
-    HandleScope handleScope(m_isolate);
-    Local<Context> c = Local<Context>::New(m_isolate, m_inspectorClient->m_context);
-    Context::Scope asdf(c);
-
     QByteArray data = m_socket->readAll();
 
     std::vector<char> buffer(data.begin(), data.end());
@@ -263,7 +170,11 @@ void InspectorHandler::readData()
         } else if (r == FRAME_CLOSE) {
             qDebug() <<"Close";
             bytes_consumed = 0;
+            m_socket->close();
+            deleteLater();
+            break;
         } else if (r == FRAME_OK) {
+            qDebug() <<"Nachricht: "<<QString::fromUtf8(output.data(), output.size());
             StringView message((uint8_t*)output.data(), output.size());
             m_session->dispatchProtocolMessage(message);
         }

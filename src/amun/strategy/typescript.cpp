@@ -71,7 +71,7 @@ Typescript::Typescript(const Timer *timer, StrategyType type, bool debugEnabled,
 
     // TODO: shared pointer for inspector handler?
     // TODO: other types of strategies, for example autoref?
-    m_inspectorHandler = new InspectorHandler(m_isolate, m_context, m_scriptOrigins, isBlue() ? "blue_strategy" : "yellow_strategy", this);
+    m_inspectorHandler = new InspectorHandler(m_isolate, m_context, this);
     connect(this, SIGNAL(createInspectorHandler(InspectorHandler*)), server, SLOT(newInspectorHandler(InspectorHandler*)));
     connect(this, SIGNAL(removeInspectorHandler(InspectorHandler*)), server, SLOT(removeInspectorHandler(InspectorHandler*)));
     emit createInspectorHandler(m_inspectorHandler);
@@ -107,8 +107,6 @@ bool Typescript::canHandle(const QString &filename)
 
 bool Typescript::loadScript(const QString &filename, const QString &entryPoint)
 {
-    m_inspectorHandler->setFilename(filename);
-
     QFile file(filename);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         m_errorMsg = "<font color=\"red\">Could not open file " + filename + "</font>";

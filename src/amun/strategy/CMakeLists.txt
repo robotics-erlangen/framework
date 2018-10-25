@@ -47,7 +47,6 @@ target_link_libraries(strategy
     PRIVATE shared::core
     PRIVATE amun::path
     PUBLIC shared::protobuf
-    PRIVATE shared::config
     PUBLIC Qt5::Core
     PRIVATE Qt5::Network
 )

@@ -19,7 +19,6 @@
  ***************************************************************************/
 
 #include "inspectorserver.h"
-#include "config/config.h"
 #include "inspectorhandler.h"
 
 #include <QTcpServer>
@@ -107,11 +106,8 @@ void InspectorServer::sendListResponse()
     for (InspectorHandler *handler : m_handlers) {
         QMap<QString, QString> infoMap;
         infoMap["description"] = "ra instance";
-        infoMap["faviconUrl"] = QString(ERFORCE_DATADIR) + "icons/ra.svg";
         infoMap["id"] = handler->getId();
-        infoMap["title"] = handler->getName();
         infoMap["type"] = "node";
-        infoMap["url"] = "file://" + handler->getFilename();
         // TODO: this only works for local debugging
         // TODO: dont hardcode the port
         infoMap["webSocketDebuggerUrl"] = "ws://127.0.0.1:9229/" + handler->getId();

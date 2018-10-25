@@ -34,9 +34,6 @@
 
 class Typescript;
 
-// TODO: no using ... in headers
-using v8_inspector::StringView;
-
 QString stringViewToQString(v8_inspector::StringView view);
 std::vector<char> encode_frame_hybi17(const std::vector<char>& message);
 
@@ -46,6 +43,7 @@ public:
 
     void sendResponse(int callId, std::unique_ptr<v8_inspector::StringBuffer> message) {
         QString content = stringViewToQString(message->string());
+        qDebug() <<"Response: "<<content;
         QByteArray d = stringViewToQString(message->string()).toUtf8();
         std::vector<char> data(d.begin(), d.end());
         std::vector<char> toSend = encode_frame_hybi17(data);
@@ -82,12 +80,8 @@ class InspectorHandler : public QObject
     Q_OBJECT
 public:
     explicit InspectorHandler(v8::Isolate *isolate, v8::Persistent<v8::Context> &context,
-                              QList<v8::ScriptOrigin*> &scriptOrigins, QString strategyName,
                               Typescript *strategy, QObject *parent = nullptr);
     QString getId() const { return m_id; }
-    QString getName() const { return m_strategyName; }
-    QString getFilename() const { return m_filename; }
-    void setFilename(QString filename) { m_filename = filename; }
 
 public slots:
     void setSocket(QTcpSocket *socket);
@@ -100,16 +94,10 @@ private:
 
 private:
     QString m_id;
-    QString m_strategyName;
-    QString m_filename;
     std::shared_ptr<QTcpSocket> m_socket;
-    v8::Isolate *m_isolate;
-    v8::Persistent<v8::Context> m_context;
-    QList<v8::ScriptOrigin*> &m_scriptOrigins;
     RaInspectorClient *m_inspectorClient;
     std::unique_ptr<v8_inspector::V8InspectorSession> m_session;
     std::unique_ptr<ChannelImpl> m_channel;
-    Typescript *m_strategy;
 };
 
 #endif // INSPECTORHANDLER_H
