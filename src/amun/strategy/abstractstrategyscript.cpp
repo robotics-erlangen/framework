@@ -156,7 +156,6 @@ bool AbstractStrategyScript::loadScript(const QString &filename, const QString &
 
     m_geometry.CopyFrom(geometry);
     m_team.CopyFrom(team);
-    takeDebugStatus();
 
     return loadScript(filename, entryPoint);
 }
@@ -169,7 +168,6 @@ bool AbstractStrategyScript::process(double &pathPlanning, const world::State &w
     m_worldState.clear_vision_frames();
     m_refereeState.CopyFrom(refereeState);
     m_userInput.CopyFrom(userInput);
-    takeDebugStatus();
 
     return process(pathPlanning);
 }
