@@ -33,42 +33,21 @@
 #include "v8-inspector.h"
 
 class Typescript;
+class RaInspectorClient;
 
 QString stringViewToQString(v8_inspector::StringView view);
 std::vector<char> encode_frame_hybi17(const std::vector<char>& message);
 
 class ChannelImpl : public v8_inspector::V8Inspector::Channel {
 public:
-    ChannelImpl(std::shared_ptr<QTcpSocket> &socket) : m_socket(socket) { }
-
-    void sendResponse(int callId, std::unique_ptr<v8_inspector::StringBuffer> message) {
-        QString content = stringViewToQString(message->string());
-        qDebug() <<"Response: "<<content;
-        QByteArray d = stringViewToQString(message->string()).toUtf8();
-        std::vector<char> data(d.begin(), d.end());
-        std::vector<char> toSend = encode_frame_hybi17(data);
-        m_socket->write(toSend.data(), toSend.size());
-        m_socket->flush();
-    }
-
-    virtual void sendNotification(std::unique_ptr<v8_inspector::StringBuffer> message) {
-        QString content = stringViewToQString(message->string());
-        QByteArray d = stringViewToQString(message->string()).toUtf8();
-        std::vector<char> data(d.begin(), d.end());
-        std::vector<char> toSend = encode_frame_hybi17(data);
-        m_socket->write(toSend.data(), toSend.size());
-        m_socket->flush();
-    }
-
-    virtual void flushProtocolNotifications() {
-        m_socket->flush();
-    }
+    ChannelImpl(std::shared_ptr<QTcpSocket> &socket);
+    virtual void sendResponse(int callId, std::unique_ptr<v8_inspector::StringBuffer> message) override;
+    virtual void sendNotification(std::unique_ptr<v8_inspector::StringBuffer> message) override;
+    virtual void flushProtocolNotifications() override;
 
 private:
     std::shared_ptr<QTcpSocket> &m_socket;
 };
-
-class RaInspectorClient;
 
 // runs in each strategy thread
 // represents that strategy and its isolate
@@ -79,8 +58,7 @@ class InspectorHandler : public QObject
 {
     Q_OBJECT
 public:
-    explicit InspectorHandler(v8::Isolate *isolate, v8::Persistent<v8::Context> &context,
-                              Typescript *strategy, QObject *parent = nullptr);
+    explicit InspectorHandler(Typescript *strategy, QObject *parent = nullptr);
     QString getId() const { return m_id; }
 
 public slots:
@@ -88,9 +66,6 @@ public slots:
 
 private slots:
     void readData();
-
-private:
-    QString publishScript(v8::ScriptOrigin *origin);
 
 private:
     QString m_id;

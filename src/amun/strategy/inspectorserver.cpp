@@ -20,23 +20,19 @@
 
 #include "inspectorserver.h"
 #include "inspectorhandler.h"
+#include "typescript.h"
 
 #include <QTcpServer>
 #include <QTcpSocket>
 #include <QCryptographicHash>
 #include <QDebug>
 
-InspectorServer::InspectorServer(QObject *parent) :
+InspectorServer::InspectorServer(int port, QObject *parent) :
     QObject(parent),
-    m_socket(nullptr)
+    m_socket(nullptr),
+    m_port(port)
 {
     m_server = new QTcpServer(this);
-    // TODO: properly set the port
-    // TODO: error handling
-    if (!m_server->listen(QHostAddress::Any, 9229)) {
-        qDebug() <<"Fehler beim listen";
-    }
-    qDebug() <<"Listening on: 128.0.0.1:9229";
     connect(m_server, SIGNAL(newConnection()), SLOT(newConnection()));
 }
 
@@ -47,26 +43,24 @@ bool InspectorServer::handleGetRequest(QString request)
     } else if (request.startsWith("GET /json/version ")) {
         sendVersionResponse();
     } else if (request.contains("Connection: Upgrade")) {
-        for (InspectorHandler *handler : m_handlers) {
-            if (request.startsWith("GET /" + handler->getId())) {
-                const QString guid = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-                // extract the websocket key, as we need it for the response
-                QString wsKey = request.split("Sec-WebSocket-Key: ")[1].split("\r\n")[0];
-                QCryptographicHash hash(QCryptographicHash::Sha1);
-                hash.addData(wsKey.toUtf8());
-                hash.addData(guid.toUtf8());
-                m_socket->write("HTTP/1.1 101 Switching Protocols\r\n"
-                                 "Upgrade: websocket\r\n"
-                                 "Connection: Upgrade\r\n"
-                                 "Sec-WebSocket-Accept: " + hash.result().toBase64() + "\r\n\r\n");
-                m_socket->flush();
-                disconnect(m_socket, SIGNAL(readyRead()), this, SLOT(readData()));
-                m_socket->setParent(nullptr);
-                m_socket->moveToThread(handler->thread());
-                QMetaObject::invokeMethod(handler, "setSocket", Q_ARG(QTcpSocket*, m_socket));
-                m_socket = nullptr;
-                return true;
-            }
+        if (request.startsWith("GET /" + m_handler->getId())) {
+            const QString guid = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+            // extract the websocket key, as we need it for the response
+            QString wsKey = request.split("Sec-WebSocket-Key: ")[1].split("\r\n")[0];
+            QCryptographicHash hash(QCryptographicHash::Sha1);
+            hash.addData(wsKey.toUtf8());
+            hash.addData(guid.toUtf8());
+            m_socket->write("HTTP/1.1 101 Switching Protocols\r\n"
+                             "Upgrade: websocket\r\n"
+                             "Connection: Upgrade\r\n"
+                             "Sec-WebSocket-Accept: " + hash.result().toBase64() + "\r\n\r\n");
+            m_socket->flush();
+            disconnect(m_socket, SIGNAL(readyRead()), this, SLOT(readData()));
+            m_handler->setSocket(m_socket);
+            m_server->close();
+            // TODO: start accepting connections again after the handler got destroyed
+            m_socket = nullptr;
+            return true;
         }
     }
     return false;
@@ -102,23 +96,16 @@ void InspectorServer::readData()
 
 void InspectorServer::sendListResponse()
 {
-    QList<QMap<QString, QString>> infos;
-    for (InspectorHandler *handler : m_handlers) {
-        QMap<QString, QString> infoMap;
-        infoMap["description"] = "ra instance";
-        infoMap["id"] = handler->getId();
-        infoMap["type"] = "node";
-        // TODO: this only works for local debugging
-        // TODO: dont hardcode the port
-        infoMap["webSocketDebuggerUrl"] = "ws://127.0.0.1:9229/" + handler->getId();
-        infos.append(infoMap);
-    }
-    sendHttpResponse(mapsToString(infos));
+    QMap<QString, QString> infoMap;
+    infoMap["description"] = "ra instance";
+    infoMap["id"] = m_handler->getId();
+    infoMap["type"] = "node";
+    infoMap["webSocketDebuggerUrl"] = "ws://127.0.0.1:" + QString::number(m_port) + "/" + m_handler->getId();
+    sendHttpResponse(mapsToString({infoMap}));
 }
 
 void InspectorServer::sendHttpResponse(QString response)
 {
-    qDebug() <<"Sende "<<response<<"\n\n";
     QString header = QString("HTTP/1.0 200 OK\r\n"
                         "Content-Type: application/json; charset=UTF-8\r\n"
                         "Cache-Control: no-cache\r\n"
@@ -168,12 +155,21 @@ QString InspectorServer::mapsToString(const QList<QMap<QString, QString>> &list)
     return result;
 }
 
-void InspectorServer::newInspectorHandler(InspectorHandler *handler)
+void InspectorServer::newDebuggagleStrategy(Typescript *typescript)
 {
-    m_handlers.append(handler);
+    m_handler.reset(new InspectorHandler(typescript));
+    if (!m_server->isListening()) {
+        if (!m_server->listen(QHostAddress::Any, (quint16)m_port)) {
+            // TODO: create an error message in the log widget here
+            // since it probably means that the port is blocked by another ra instance
+        }
+    }
 }
 
-void InspectorServer::removeInspectorHandler(InspectorHandler *handler)
+void InspectorServer::clearHandlers()
 {
-    m_handlers.removeOne(handler);
+    m_handler.release();
+    if (m_server->isListening()) {
+        m_server->close();
+    }
 }

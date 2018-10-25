@@ -32,28 +32,23 @@
 
 class CheckForScriptTimeout;
 class QThread;
-class InspectorServer;
-class InspectorHandler;
 
 class Typescript : public AbstractStrategyScript
 {
     Q_OBJECT
 public:
-    Typescript(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled, InspectorServer *server);
+    Typescript(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled);
     static bool canHandle(const QString &filename);
     ~Typescript() override;
     void addPathTime(double time);
 
     void startProfiling() override;
     void endProfiling(const std::string &filename) override;
-    InspectorHandler *getInspectorHandler() const { return m_inspectorHandler; }
 
     // functions used for debugging v8
     void disableTimeoutOnce(); // disables script timeout for the currently running strategy frame
-
-signals:
-    void createInspectorHandler(InspectorHandler *handler);
-    void removeInspectorHandler(InspectorHandler *handler);
+    v8::Isolate *getIsolate() const { return m_isolate; }
+    const v8::Persistent<v8::Context> &getContext() const { return m_context; }
 
 protected:
     bool loadScript(const QString &filename, const QString &entryPoint) override;
@@ -81,7 +76,6 @@ private:
     CheckForScriptTimeout *m_checkForScriptTimeout;
     QThread *m_timeoutCheckerThread;
     QList<v8::ScriptOrigin*> m_scriptOrigins;
-    InspectorHandler *m_inspectorHandler;
 
     int m_scriptIdCounter;
 };

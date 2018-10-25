@@ -29,6 +29,7 @@
 using namespace v8_inspector;
 using namespace v8;
 
+// general helper functions
 QString stringViewToQString(StringView view)
 {
     if (view.length() == 0) {
@@ -48,9 +49,36 @@ StringView qStringToStringView(const QString &s)
     return StringView((uint8_t*)d.data(), d.length());
 }
 
+// ChannelImpl
+ChannelImpl::ChannelImpl(std::shared_ptr<QTcpSocket> &socket) : m_socket(socket) { }
+
+void ChannelImpl::sendResponse(int callId, std::unique_ptr<v8_inspector::StringBuffer> message) {
+    QString content = stringViewToQString(message->string());
+    qDebug() <<"Response: "<<content;
+    QByteArray d = stringViewToQString(message->string()).toUtf8();
+    std::vector<char> data(d.begin(), d.end());
+    std::vector<char> toSend = encode_frame_hybi17(data);
+    m_socket->write(toSend.data(), toSend.size());
+    m_socket->flush();
+}
+
+void ChannelImpl::sendNotification(std::unique_ptr<v8_inspector::StringBuffer> message) {
+    QString content = stringViewToQString(message->string());
+    QByteArray d = stringViewToQString(message->string()).toUtf8();
+    std::vector<char> data(d.begin(), d.end());
+    std::vector<char> toSend = encode_frame_hybi17(data);
+    m_socket->write(toSend.data(), toSend.size());
+    m_socket->flush();
+}
+
+void ChannelImpl::flushProtocolNotifications() {
+    m_socket->flush();
+}
+
+
 class RaInspectorClient : public V8InspectorClient {
 public:
-    explicit RaInspectorClient(Isolate *isolate, Persistent<Context> &context, std::function<void()> messageLoop, Typescript *strategy) :
+    explicit RaInspectorClient(Isolate *isolate, const Persistent<Context> &context, std::function<void()> messageLoop, Typescript *strategy) :
         m_inspector(V8Inspector::create(isolate, this)),
         m_strategy(strategy),
         m_isolate(isolate)
@@ -128,7 +156,7 @@ private:
     Persistent<Context> m_context;
 };
 
-InspectorHandler::InspectorHandler(v8::Isolate *isolate, v8::Persistent<Context> &context, Typescript *strategy, QObject *parent) :
+InspectorHandler::InspectorHandler(Typescript *strategy, QObject *parent) :
     QObject(parent)
 {
     QByteArray idData;
@@ -137,7 +165,7 @@ InspectorHandler::InspectorHandler(v8::Isolate *isolate, v8::Persistent<Context>
     }
     m_id = QString(idData.toBase64());
 
-    m_inspectorClient = new RaInspectorClient(isolate, context, [&]() {
+    m_inspectorClient = new RaInspectorClient(strategy->getIsolate(), strategy->getContext(), [&]() {
         m_socket->waitForReadyRead();
         readData();
     }, strategy);
@@ -149,6 +177,7 @@ void InspectorHandler::setSocket(QTcpSocket *socket)
 {
     m_socket.reset(socket);
     m_socket->setParent(this);
+    // TODO: read and handle any data that came in inbetween disconnect and connect
 
     connect(socket, SIGNAL(readyRead()), this, SLOT(readData()));
 }

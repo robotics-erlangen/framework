@@ -25,20 +25,25 @@
 #include <QMap>
 #include <QList>
 #include <QString>
+#include <memory>
+
+#include "inspectorhandler.h"
 
 class QTcpServer;
 class QTcpSocket;
-class InspectorHandler;
+class Typescript;
 
+// this class handles connecting with the debugging frontend
+// until a websocket connection is created, which is then
+// forwarded to the corresponding InspectorHandler
 class InspectorServer : public QObject
 {
     Q_OBJECT
 public:
-    InspectorServer(QObject *parent = nullptr);
-
-public slots:
-    void newInspectorHandler(InspectorHandler *handler);
-    void removeInspectorHandler(InspectorHandler *handler);
+    InspectorServer(int port, QObject *parent = nullptr);
+    // may only be called when no current active strategy is registered
+    void newDebuggagleStrategy(Typescript *typescript);
+    void clearHandlers();
 
 private slots:
     void newConnection();
@@ -55,7 +60,8 @@ private:
 private:
     QTcpServer *m_server;
     QTcpSocket *m_socket;
-    QList<InspectorHandler*> m_handlers;
+    std::unique_ptr<InspectorHandler> m_handler;
+    int m_port;
 };
 
 #endif // INSPECTORSERVER_H

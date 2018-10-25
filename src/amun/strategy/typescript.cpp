@@ -39,8 +39,7 @@ using namespace v8;
 // use this to silence a warn_unused_result warning
 template <typename T> inline void USE(T&&) {}
 
-Typescript::Typescript(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled,
-                       InspectorServer *server) :
+Typescript::Typescript(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled) :
     AbstractStrategyScript (timer, type, debugEnabled, refboxControlEnabled),
     m_executionCounter(0),
     m_profiler (nullptr),
@@ -58,7 +57,6 @@ Typescript::Typescript(const Timer *timer, StrategyType type, bool debugEnabled,
     m_timeoutCheckerThread->start();
     m_checkForScriptTimeout->moveToThread(m_timeoutCheckerThread);
 
-
     HandleScope handleScope(m_isolate);
     Local<ObjectTemplate> globalTemplate = ObjectTemplate::New(m_isolate);
     registerDefineFunction(globalTemplate);
@@ -68,19 +66,10 @@ Typescript::Typescript(const Timer *timer, StrategyType type, bool debugEnabled,
     registerAmunJsCallbacks(m_isolate, global, this);
     registerPathJsCallbacks(m_isolate, global, this);
     m_context.Reset(m_isolate, context);
-
-    // TODO: shared pointer for inspector handler?
-    // TODO: other types of strategies, for example autoref?
-    m_inspectorHandler = new InspectorHandler(m_isolate, m_context, this);
-    connect(this, SIGNAL(createInspectorHandler(InspectorHandler*)), server, SLOT(newInspectorHandler(InspectorHandler*)));
-    connect(this, SIGNAL(removeInspectorHandler(InspectorHandler*)), server, SLOT(removeInspectorHandler(InspectorHandler*)));
-    emit createInspectorHandler(m_inspectorHandler);
 }
 
 Typescript::~Typescript()
 {
-    emit removeInspectorHandler(m_inspectorHandler);
-    delete m_inspectorHandler;
     qDeleteAll(m_scriptOrigins);
     m_checkForScriptTimeout->deleteLater();
     m_timeoutCheckerThread->quit();

@@ -60,14 +60,11 @@ public:
 #ifdef V8_FOUND
 // default initialization
 std::unique_ptr<v8::Platform> Strategy::static_platform;
-std::unique_ptr<InspectorServer> Strategy::inspectorServer;
 
 void Strategy::initV8() {
     if (static_platform) {
         return;
     }
-
-    inspectorServer = std::unique_ptr<InspectorServer>(new InspectorServer());
 
     v8::V8::InitializeICUDefaultLocation(QCoreApplication::applicationFilePath().toUtf8().data());
     v8::V8::InitializeExternalStartupData(QCoreApplication::applicationFilePath().toUtf8().data());
@@ -104,6 +101,22 @@ Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, b
     m_isInLogplayer(isLogplayer)
 {
     initV8();
+
+#ifdef V8_FOUND
+    int inspectorPort;
+    switch (m_type) {
+    case StrategyType::BLUE:
+        inspectorPort = 3415;
+        break;
+    case StrategyType::YELLOW:
+        inspectorPort = 3416;
+        break;
+    case StrategyType::AUTOREF:
+        inspectorPort = 3417;
+        break;
+    }
+    m_inspectorServer = std::unique_ptr<InspectorServer>(new InspectorServer(inspectorPort, this));
+#endif
 
     m_udpSenderSocket = new QUdpSocket(this);
     m_refboxSocket = new QTcpSocket(this);
@@ -487,7 +500,12 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
         m_strategy = new Lua(m_timer, m_type, m_debugEnabled, m_refboxControlEnabled);
 #ifdef V8_FOUND
     } else if (Typescript::canHandle(filename)) {
-        m_strategy = new Typescript(m_timer, m_type, m_debugEnabled, m_refboxControlEnabled, inspectorServer.get());
+        m_inspectorServer->clearHandlers();
+        Typescript *t = new Typescript(m_timer, m_type, m_debugEnabled, m_refboxControlEnabled);
+        m_strategy = t;
+        if (m_debugEnabled) {
+            m_inspectorServer->newDebuggagleStrategy(t);
+        }
 #endif
     } else {
         fail(QString("No strategy handler for file %1").arg(filename));
