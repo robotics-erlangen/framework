@@ -25,7 +25,6 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 #include <QCryptographicHash>
-#include <QDebug>
 
 InspectorServer::InspectorServer(int port, QObject *parent) :
     QObject(parent),

@@ -36,11 +36,9 @@ QString stringViewToQString(StringView view)
         return "";
     }
     if (view.is8Bit()) {
-        return QString::fromUtf8(reinterpret_cast<const char*>(view.characters8()),
-                                view.length());
+        return QString::fromUtf8(reinterpret_cast<const char*>(view.characters8()), view.length());
     }
-    return QString::fromUtf16(reinterpret_cast<const unsigned short*>(view.characters16()),
-                              view.length());
+    return QString::fromUtf16(reinterpret_cast<const unsigned short*>(view.characters16()), view.length());
 }
 
 StringView qStringToStringView(const QString &s)
@@ -49,58 +47,111 @@ StringView qStringToStringView(const QString &s)
     return StringView((uint8_t*)d.data(), d.length());
 }
 
+// InspectorHandler
+InspectorHandler::InspectorHandler(Typescript *strategy, QObject *parent) :
+    QObject(parent)
+{
+    QByteArray idData;
+    for (int i = 0;i<32;i++) {
+        idData.append(qrand() % 256);
+    }
+    m_id = QString(idData.toBase64());
+
+    m_inspectorClient.reset(new RaInspectorClient(strategy->getIsolate(), strategy->getContext(), [&]() {
+        m_socket->waitForReadyRead();
+        readData();
+    }, strategy));
+    m_channel.reset(new ChannelImpl());
+    m_session = m_inspectorClient->connect(m_channel.get());
+}
+
+void InspectorHandler::setSocket(QTcpSocket *socket)
+{
+    m_socket.reset(socket);
+    m_socket->setParent(this);
+    m_channel->setSocket(m_socket);
+    readData();
+
+    connect(socket, SIGNAL(readyRead()), this, SLOT(readData()));
+}
+
+void InspectorHandler::readData()
+{
+    QByteArray data = m_socket->readAll();
+
+    std::vector<char> buffer(data.begin(), data.end());
+    do {
+        int bytes_consumed = 0;
+        std::vector<char> output;
+        bool compressed = false;
+
+        ws_decode_result r =  decode_frame_hybi17(buffer, true, &bytes_consumed, &output, &compressed);
+        if (compressed || r == FRAME_ERROR || r == FRAME_CLOSE) {
+            // errors are handled by closing the connection
+            m_inspectorClient->quitMessageLoopOnPause();
+            emit frontendDisconnected();
+            bytes_consumed = 0;
+            m_socket->close();
+            deleteLater();
+            break;
+        } else if (r == FRAME_OK) {
+            StringView message((uint8_t*)output.data(), output.size());
+            m_session->dispatchProtocolMessage(message);
+        }
+        buffer.erase(buffer.begin(), buffer.begin() + bytes_consumed);
+    } while (buffer.size() > 0);
+}
+
+
 // ChannelImpl
-ChannelImpl::ChannelImpl(std::shared_ptr<QTcpSocket> &socket) : m_socket(socket)
-{ }
-
-void ChannelImpl::sendResponse(int callId, std::unique_ptr<v8_inspector::StringBuffer> message) {
+void InspectorHandler::ChannelImpl::sendResponse(int, std::unique_ptr<v8_inspector::StringBuffer> message) {
     QString content = stringViewToQString(message->string());
-    qDebug() <<"Response: "<<content;
-    QByteArray d = stringViewToQString(message->string()).toUtf8();
-    std::vector<char> data(d.begin(), d.end());
+    QByteArray byteContent = content.toUtf8();
+    std::vector<char> data(byteContent.begin(), byteContent.end());
     std::vector<char> toSend = encode_frame_hybi17(data);
     m_socket->write(toSend.data(), toSend.size());
     m_socket->flush();
 }
 
-void ChannelImpl::sendNotification(std::unique_ptr<v8_inspector::StringBuffer> message) {
+void InspectorHandler::ChannelImpl::sendNotification(std::unique_ptr<v8_inspector::StringBuffer> message) {
     QString content = stringViewToQString(message->string());
-    QByteArray d = stringViewToQString(message->string()).toUtf8();
-    std::vector<char> data(d.begin(), d.end());
+    QByteArray byteContent = content.toUtf8();
+    std::vector<char> data(byteContent.begin(), byteContent.end());
     std::vector<char> toSend = encode_frame_hybi17(data);
     m_socket->write(toSend.data(), toSend.size());
     m_socket->flush();
 }
 
-void ChannelImpl::flushProtocolNotifications() {
+void InspectorHandler::ChannelImpl::flushProtocolNotifications()
+{
     m_socket->flush();
 }
 
 
 // RaInspectorClient
-RaInspectorClient::RaInspectorClient(Isolate *isolate, const Persistent<Context> &context, std::function<void()> messageLoop, Typescript *strategy) :
+InspectorHandler::RaInspectorClient::RaInspectorClient(Isolate *isolate, const Persistent<Context> &context, std::function<void()> messageLoop, Typescript *strategy) :
     m_inspector(V8Inspector::create(isolate, this)),
+    m_runMessageLoop(false),
+    m_messageLoop(messageLoop),
     m_strategy(strategy),
     m_isolate(isolate)
 {
-    m_messageLoop = messageLoop;
-
     m_context.Reset(isolate, context);
 }
 
-std::unique_ptr<v8_inspector::V8InspectorSession> RaInspectorClient::connect(V8Inspector::Channel *channel)
+std::unique_ptr<v8_inspector::V8InspectorSession> InspectorHandler::RaInspectorClient::connect(V8Inspector::Channel *channel)
 {
     auto result = m_inspector->connect(1, channel, StringView());
 
     HandleScope handleScope(m_isolate);
     Local<Context> c = Local<Context>::New(m_isolate, m_context);
     V8ContextInfo info(c, 1, StringView());
-    info.auxData = StringView(qStringToStringView("{\"isDefault\":true}"));
+    info.auxData = qStringToStringView("{\"isDefault\":true}");
     m_inspector->contextCreated(info);
     return result;
 }
 
-void RaInspectorClient::sendPauseSimulator(bool pause)
+void InspectorHandler::RaInspectorClient::sendPauseSimulator(bool pause)
 {
     Command command(new amun::Command);
     amun::PauseSimulatorReason reason = amun::DebugBlueStrategy;
@@ -120,7 +171,7 @@ void RaInspectorClient::sendPauseSimulator(bool pause)
     m_strategy->sendCommand(command);
 }
 
-void RaInspectorClient::runMessageLoopOnPause(int)
+void InspectorHandler::RaInspectorClient::runMessageLoopOnPause(int)
 {
     m_strategy->disableTimeoutOnce();
     sendPauseSimulator(true);
@@ -131,75 +182,13 @@ void RaInspectorClient::runMessageLoopOnPause(int)
     }
 }
 
-void RaInspectorClient::quitMessageLoopOnPause()
+void InspectorHandler::RaInspectorClient::quitMessageLoopOnPause()
 {
     m_runMessageLoop = false;
     sendPauseSimulator(false);
 }
 
-v8::Local<v8::Context> RaInspectorClient::ensureDefaultContextInGroup(int contextGroupId)
+v8::Local<v8::Context> InspectorHandler::RaInspectorClient::ensureDefaultContextInGroup(int)
 {
     return Local<Context>::New(m_isolate, m_context);
-}
-
-void RaInspectorClient::consoleAPIMessage(int contextGroupId, v8::Isolate::MessageErrorLevel level,
-                        const StringView& message, const StringView& url, unsigned lineNumber,
-                        unsigned columnNumber, V8StackTrace*)
-{
-    qDebug() <<"Console message: "<<stringViewToQString(message)<<stringViewToQString(url)<<lineNumber;
-}
-
-
-// InspectorHandler
-InspectorHandler::InspectorHandler(Typescript *strategy, QObject *parent) :
-    QObject(parent)
-{
-    QByteArray idData;
-    for (int i = 0;i<32;i++) {
-        idData.append(qrand() % 256);
-    }
-    m_id = QString(idData.toBase64());
-
-    m_inspectorClient.reset(new RaInspectorClient(strategy->getIsolate(), strategy->getContext(), [&]() {
-        m_socket->waitForReadyRead();
-        readData();
-    }, strategy));
-    m_channel.reset(new ChannelImpl(m_socket));
-    m_session = m_inspectorClient->connect(m_channel.get());
-}
-
-void InspectorHandler::setSocket(QTcpSocket *socket)
-{
-    m_socket.reset(socket);
-    m_socket->setParent(this);
-    readData();
-
-    connect(socket, SIGNAL(readyRead()), this, SLOT(readData()));
-}
-
-void InspectorHandler::readData()
-{
-    QByteArray data = m_socket->readAll();
-
-    std::vector<char> buffer(data.begin(), data.end());
-    do {
-        int bytes_consumed = 0;
-        std::vector<char> output;
-        bool compressed = false;
-
-        ws_decode_result r =  decode_frame_hybi17(buffer, true, &bytes_consumed, &output, &compressed);
-        if (compressed || r == FRAME_ERROR || r == FRAME_CLOSE) {
-            // errors are handled by closing the connection
-            emit frontendDisconnected();
-            bytes_consumed = 0;
-            m_socket->close();
-            deleteLater();
-            break;
-        } else if (r == FRAME_OK) {
-            qDebug() <<"Nachricht: "<<QString::fromUtf8(output.data(), output.size());
-            StringView message((uint8_t*)output.data(), output.size());
-            m_session->dispatchProtocolMessage(message);
-        }
-        buffer.erase(buffer.begin(), buffer.begin() + bytes_consumed);
-    } while (buffer.size() > 0);
 }

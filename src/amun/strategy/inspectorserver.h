@@ -22,10 +22,7 @@
 #define INSPECTORSERVER_H
 
 #include <QObject>
-#include <QMap>
-#include <QList>
 #include <QString>
-#include <memory>
 
 #include "inspectorhandler.h"
 
