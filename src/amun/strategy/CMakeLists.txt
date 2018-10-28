@@ -77,7 +77,7 @@ if(V8_FOUND)
         websocketprotocol.h
     )
     target_link_libraries(strategy PRIVATE lib::v8)
-    target_compile_definitions(strategy PRIVATE V8_FOUND)
+    target_compile_definitions(strategy PUBLIC V8_FOUND)
 endif()
 
 add_library(amun::strategy ALIAS strategy)
