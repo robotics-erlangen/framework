@@ -50,6 +50,17 @@ LogFileReader * LogFileWriter::makeStatusSource()
     return reader;
 }
 
+static bool serializeStatus(std::function<void(LogFileWriter*, qint64, QByteArray&&)> lambda, const Status &status, LogFileWriter* self)
+{
+    QByteArray data;
+    data.resize(status->ByteSize());
+    if (status->IsInitialized() && status->SerializeToArray(data.data(), data.size())) {
+        lambda(self, status->time(), std::move(data));
+        return true;
+    }
+    return false;
+}
+
 bool LogFileWriter::open(const QString &filename)
 {
     // lock for atomar opening
@@ -82,26 +93,24 @@ void LogFileWriter::close()
     if (!m_file.isOpen()) {
         return;
     }
-
-    // write the last header part and compressed data
-    if (m_packageBufferCount > 0) {
-        // packet with time 0 get discarded
-        while (m_packageBufferCount > 0) {
+    if (m_hashState == HashingState::NEEDS_HASHING) {
+        //first: fill m_packageTimeStamps
+        while (m_packageBufferCount < LogFileHasher::HASHED_PACKAGES - 2) {
             writePackageEntry(0, QByteArray());
         }
+        //second: insert hash
+        m_hashStatus->mutable_log_id()->add_parts()->set_hash(m_hasher.takeResult());
+        serializeStatus(&LogFileWriter::addFirstPackage, m_hashStatus, this);
+        m_hashState = HashingState::HAS_HASHING;
+        //third: continue as usual
+    }
+
+    // write the last header part and compressed data
+    while (m_packageBufferCount > 0) {
+        // packet with time 0 get discarded
+        writePackageEntry(0, QByteArray());
     }
     m_file.close();
-}
-
-static bool serializeStatus(std::function<void(LogFileWriter*, qint64, QByteArray&&)> lambda, const Status &status, LogFileWriter* self)
-{
-    QByteArray data;
-    data.resize(status->ByteSize());
-    if (status->IsInitialized() && status->SerializeToArray(data.data(), data.size())) {
-        lambda(self, status->time(), std::move(data));
-        return true;
-    }
-    return false;
 }
 
 bool LogFileWriter::writeStatus(const Status &status)
