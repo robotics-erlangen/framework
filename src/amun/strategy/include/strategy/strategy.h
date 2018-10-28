@@ -121,9 +121,11 @@ private:
     QByteArray m_refboxReplyPartialPacket;
     bool m_isInLogplayer;
 
+#ifdef V8_FOUND
     std::unique_ptr<InspectorServer> m_inspectorServer;
 
     static std::unique_ptr<v8::Platform> static_platform;
+#endif
 };
 
 #endif // STRATEGY_H
