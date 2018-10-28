@@ -21,9 +21,10 @@
 #ifndef NODE_LIBRARY_H
 #define NODE_LIBRARY_H
 
-#include <QList>
-
 #include "v8.h"
+
+class QString;
+template<typename T> class QList;
 
 namespace Node {
     class Library {

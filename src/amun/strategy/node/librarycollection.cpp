@@ -20,19 +20,31 @@
 
 #include "librarycollection.h"
 
-#include <map>
-#include <memory>
-#include <QString>
-#include <utility>
-#include "v8.h"
-
 #include "buffer.h"
 #include "fs.h"
 #include "library.h"
 #include "os.h"
 #include "path.h"
 
-using namespace v8;
+#include <map>
+#include <memory>
+#include <QString>
+#include <utility>
+#include "v8.h"
+
+using v8::Context;
+using v8::EscapableHandleScope;
+using v8::External;
+using v8::FunctionCallbackInfo;
+using v8::FunctionTemplate;
+using v8::HandleScope;
+using v8::Isolate;
+using v8::Local;
+using v8::MaybeLocal;
+using v8::NewStringType;
+using v8::Object;
+using v8::String;
+using v8::Value;
 
 Node::LibraryCollection::LibraryCollection(Local<Context> context) : m_isolate(context->GetIsolate()) {
 	auto registerRequireCallback = [this]() {

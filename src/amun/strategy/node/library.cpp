@@ -18,9 +18,20 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
- #include "library.h"
+#include "library.h"
 
-using namespace v8;
+#include <QList>
+#include <QString>
+
+using v8::EscapableHandleScope;
+using v8::External;
+using v8::FunctionTemplate;
+using v8::HandleScope;
+using v8::Local;
+using v8::NewStringType;
+using v8::Object;
+using v8::ObjectTemplate;
+using v8::String;
 
 Node::Library::Library(v8::Isolate* isolate) : m_isolate(isolate) {
 }

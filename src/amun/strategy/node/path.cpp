@@ -20,9 +20,12 @@
 
 #include "path.h"
 
+#include <QList>
 #include "v8.h"
 
-using namespace v8;
+using v8::HandleScope;
+using v8::Isolate;
+using v8::ObjectTemplate;
 
 Node::Path::Path(Isolate* isolate) : Library(isolate) {
     HandleScope handleScope(m_isolate);

@@ -22,7 +22,12 @@
 #define NODE_PATH_H
 
 #include "library.h"
-#include "v8.h"
+
+namespace v8 {
+    class Isolate;
+    class Value;
+    template<typename T> class FunctionCallbackInfo;
+}
 
 namespace Node {
     class Path : public Library {

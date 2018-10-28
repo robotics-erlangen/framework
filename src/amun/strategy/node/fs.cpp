@@ -23,12 +23,19 @@
 #include <QDateTime>
 #include <QDir>
 #include <QList>
-
-#include <QDebug>
-
 #include "v8.h"
 
-using namespace v8;
+using v8::Date;
+using v8::External;
+using v8::FunctionCallbackInfo;
+using v8::HandleScope;
+using v8::Isolate;
+using v8::Local;
+using v8::Object;
+using v8::ObjectTemplate;
+using v8::PropertyCallbackInfo;
+using v8::String;
+using v8::Value;
 
 Node::FS::FS(Isolate* isolate) : Library(isolate) {
     HandleScope handleScope(m_isolate);

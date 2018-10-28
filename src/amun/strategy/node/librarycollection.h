@@ -21,12 +21,12 @@
 #ifndef NODE_LIBRARYCOLLECTION_H
 #define NODE_LIBRARYCOLLECTION_H
 
+#include "library.h"
+
 #include <map>
 #include <memory>
 #include <QString>
 #include "v8.h"
-
-#include "library.h"
 
 namespace Node {
     class LibraryCollection {

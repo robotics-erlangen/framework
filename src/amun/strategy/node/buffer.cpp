@@ -20,9 +20,23 @@
 
 #include "buffer.h"
 
+#include "library.h"
+
+#include <QList>
+#include <QString>
 #include "v8.h"
 
-using namespace v8;
+using v8::External;
+using v8::Function;
+using v8::FunctionCallbackInfo;
+using v8::FunctionTemplate;
+using v8::HandleScope;
+using v8::Isolate;
+using v8::Local;
+using v8::Object;
+using v8::ObjectTemplate;
+using v8::String;
+using v8::Value;
 
 Node::Buffer::Buffer(Isolate* isolate) : Library(isolate) {
 	HandleScope handleScope(m_isolate);

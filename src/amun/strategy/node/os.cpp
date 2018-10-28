@@ -20,9 +20,17 @@
 
 #include "os.h"
 
+#include <QList>
 #include "v8.h"
 
-using namespace v8;
+using v8::FunctionCallbackInfo;
+using v8::HandleScope;
+using v8::Isolate;
+using v8::Local;
+using v8::NewStringType;
+using v8::ObjectTemplate;
+using v8::String;
+using v8::Value;
 
 Node::OS::OS(Isolate* isolate) : Library(isolate) {
     HandleScope handleScope(m_isolate);

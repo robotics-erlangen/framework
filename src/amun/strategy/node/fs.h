@@ -22,9 +22,10 @@
 #define NODE_FS_H
 
 #include "library.h"
+
 #include "v8.h"
 
-#include <QFileInfo>
+class QString;
 
 namespace Node {
     class FS : public Library {
