@@ -1,0 +1,20 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+
+        {
+            "type": "node",
+            "request": "attach",
+            "name": "Blue strategy",
+            "address": "127.0.0.1",
+            "port": 3415
+        },
+        {
+            "type": "node",
+            "request": "attach",
+            "name": "Yellow strategy",
+            "address": "127.0.0.1",
+            "port": 3416
+        }
+    ]
+}
