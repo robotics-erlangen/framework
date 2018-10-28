@@ -21,15 +21,11 @@
 #ifndef TYPESCRIPTCOMPILER_H
 #define TYPESCRIPTCOMPILER_H
 
-#include "abstractstrategyscript.h"
-#include "node/library.h"
-#include "v8.h"
-#include "v8-profiler.h"
+#include "node/librarycollection.h"
 
-#include <map>
 #include <memory>
+#include "v8.h"
 
-#include <QString>
 
 class TypescriptCompiler
 {
@@ -39,17 +35,13 @@ public:
 
     void startCompiler(const QString &filename);
 private:
-    static void requireModule(const v8::FunctionCallbackInfo<v8::Value>& args);
-    void registerRequireFunction(v8::Local<v8::ObjectTemplate> global);
-
-    // Node library functions
-    void createLibraryObjects();
+    void registerLogFunction(v8::Local<v8::ObjectTemplate> global);
 
 private:
     v8::Isolate* m_isolate;
     v8::Global<v8::Context> m_context;
 
-    std::map<QString, std::unique_ptr<Library>> m_libraryObjects;
+    std::unique_ptr<Node::LibraryCollection> m_libraryCollection;
 };
 
 #endif // TYPESCRIPTCOMPILER_H

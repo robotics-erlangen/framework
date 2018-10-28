@@ -18,42 +18,33 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#include "os.h"
+#ifndef NODE_LIBRARYCOLLECTION_H
+#define NODE_LIBRARYCOLLECTION_H
 
+#include <map>
+#include <memory>
+#include <QString>
 #include "v8.h"
 
-using namespace v8;
+#include "library.h"
 
-Node::OS::OS(Isolate* isolate) : Library(isolate) {
-    HandleScope handleScope(m_isolate);
+namespace Node {
+    class LibraryCollection {
+    public:
+        LibraryCollection(v8::Local<v8::Context> context);
 
-    auto objectTemplate = createTemplateWithCallbacks<ObjectTemplate>({
-        { "platform", &OS::platform }
-    });
+        LibraryCollection(LibraryCollection& other) = delete;
+        LibraryCollection(LibraryCollection&& other) = delete;
+        LibraryCollection& operator=(LibraryCollection& rhs) = delete;
+        LibraryCollection& operator=(LibraryCollection&& rhs) = delete;
 
-    Local<String> eolName = String::NewFromUtf8(m_isolate, "EOL");
-    #ifdef Q_OS_WIN32
-        Local<String> eolString = String::NewFromUtf8(m_isolate, "\r\n", NewStringType::kNormal).ToLocalChecked();
-    #else
-        Local<String> eolString = String::NewFromUtf8(m_isolate, "\n", NewStringType::kNormal).ToLocalChecked();
-    #endif
-    objectTemplate->Set(eolName, eolString);
+        v8::MaybeLocal<v8::Object> require(const QString& moduleName);
+    private:
+        static void requireCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
 
-    setLibraryHandle(objectTemplate->NewInstance(isolate->GetCurrentContext()).ToLocalChecked());
+        v8::Isolate* m_isolate;
+        v8::Global<v8::Context> m_context;
+        std::map<QString, std::unique_ptr<Library>> m_libraryObjects;
+    };
 }
-
-void Node::OS::platform(const FunctionCallbackInfo<Value>& args) {
-    #if defined Q_OS_LINUX
-        const QString platform = "linux";
-    #elif defined Q_OS_WIN32
-        const QString platform = "win32";
-    #elif defined Q_OS_DARWIN
-        const QString platform = "darwin";
-    #else
-        #error Unsupported Platform
-    #endif
-
-    auto isolate = args.GetIsolate();
-    Local<String> platformHandle = String::NewFromUtf8(isolate, platform.toUtf8().data());
-    args.GetReturnValue().Set(platformHandle);
-}
+#endif // NODE_LIBRARYCOLLECTION_H

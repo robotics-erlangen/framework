@@ -1,6 +1,5 @@
 /***************************************************************************
- *   Copyright 2018 Paul Bergmann                                        *
- *   Robotics Erlangen e.V.                                                *
+ *   Copyright 2018 Paul Bergmann                                        * Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
  *                                                                         *
@@ -18,18 +17,26 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef NODE_OS_H
-#define NODE_OS_H
+#ifndef NODE_BUFFER_H
+#define NODE_BUFFER_H
 
 #include "library.h"
 #include "v8.h"
 
 namespace Node {
-    class OS : public Library {
+    class Buffer : public Library {
     public:
-        OS(v8::Isolate* isolate);
+        Buffer(v8::Isolate* isolate);
+    private:
+        class BufferInstance {
+        };
+        static const int OBJECT_BUFFERINSTANCE_INDEX = 0;
+        v8::Global<v8::Function> m_bufferConstructor;
+        v8::Global<v8::ObjectTemplate> m_bufferInstanceTemplate;
 
-        static void platform(const v8::FunctionCallbackInfo<v8::Value>& args);
+        static void bufferClass(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+        static void from(const v8::FunctionCallbackInfo<v8::Value>& args);
     };
 }
 #endif

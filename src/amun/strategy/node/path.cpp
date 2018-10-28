@@ -24,7 +24,7 @@
 
 using namespace v8;
 
-Path::Path(Isolate* isolate) : Library(isolate) {
+Node::Path::Path(Isolate* isolate) : Library(isolate) {
     HandleScope handleScope(m_isolate);
 
     auto objectTemplate = createTemplateWithCallbacks<ObjectTemplate>({

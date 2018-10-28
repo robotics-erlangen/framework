@@ -26,43 +26,44 @@
 
 #include <QFileInfo>
 
-class FS : public Library {
-public:
-    FS(v8::Isolate* isolate);
-private:
-    class FileStat {
+namespace Node {
+    class FS : public Library {
     public:
-        FileStat(const FS* fs, const QString& file);
-        static void sizeGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& info);
-        static void sizeSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value,  const v8::PropertyCallbackInfo<void>& info);
-        static void mtimeGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& info);
-        static void mtimeSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& info);
-
-        static void isDirectory(const v8::FunctionCallbackInfo<v8::Value>& info);
-        static void isFile(const v8::FunctionCallbackInfo<v8::Value>& info);
-        enum class Type {
-            Directory, File, Other
-        };
+        FS(v8::Isolate* isolate);
     private:
-        double size, mtimeMs;
-        Type type;
+        class FileStat {
+        public:
+            FileStat(const FS* fs, const QString& file);
+            static void sizeGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& info);
+            static void sizeSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value,  const v8::PropertyCallbackInfo<void>& info);
+            static void mtimeGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& info);
+            static void mtimeSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& info);
+
+            static void isDirectory(const v8::FunctionCallbackInfo<v8::Value>& info);
+            static void isFile(const v8::FunctionCallbackInfo<v8::Value>& info);
+            enum class Type {
+                Directory, File, Other
+            };
+        private:
+            double size, mtimeMs;
+            Type type;
+        };
+        static const int OBJECT_FILESTAT_INDEX = 0;
+        v8::Global<v8::ObjectTemplate> m_fileStatTemplate;
+
+        static void mkdirSync(const v8::FunctionCallbackInfo<v8::Value>& args);
+        static void statSync(const v8::FunctionCallbackInfo<v8::Value>& args);
+        static void watchFile(const v8::FunctionCallbackInfo<v8::Value>& args);
+        static void unwatchFile(const v8::FunctionCallbackInfo<v8::Value>& args);
+        static void watch(const v8::FunctionCallbackInfo<v8::Value>& args);
+        static void readFileSync(const v8::FunctionCallbackInfo<v8::Value>& args);
+        static void openSync(const v8::FunctionCallbackInfo<v8::Value>& args);
+        static void writeSync(const v8::FunctionCallbackInfo<v8::Value>& args);
+        static void closeSync(const v8::FunctionCallbackInfo<v8::Value>& args);
+        static void readdirSync(const v8::FunctionCallbackInfo<v8::Value>& args);
+        static void realpathSync(const v8::FunctionCallbackInfo<v8::Value>& args);
+        static void utimesSync(const v8::FunctionCallbackInfo<v8::Value>& args);
+        static void unlinkSync(const v8::FunctionCallbackInfo<v8::Value>& args);
     };
-    static const int OBJECT_FILESTAT_INDEX = 0;
-    v8::Global<v8::ObjectTemplate> m_fileStatTemplate;
-
-    static void mkdirSync(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void statSync(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void watchFile(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void unwatchFile(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void watch(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void readFileSync(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void openSync(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void writeSync(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void closeSync(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void readdirSync(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void realpathSync(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void utimesSync(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void unlinkSync(const v8::FunctionCallbackInfo<v8::Value>& args);
-};
-
+}
 #endif

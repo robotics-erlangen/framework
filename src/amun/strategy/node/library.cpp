@@ -22,20 +22,23 @@
 
 using namespace v8;
 
-Library::Library(v8::Isolate* isolate) : m_isolate(isolate) {
+Node::Library::Library(v8::Isolate* isolate) : m_isolate(isolate) {
 }
 
-Local<Object> Library::getHandle() {
+Node::Library::~Library() {
+}
+
+Local<Object> Node::Library::getHandle() {
     EscapableHandleScope handleScope(m_isolate);
     Local<Object> object = m_libraryHandle.Get(m_isolate);
     return handleScope.Escape(object);
 }
 
-void Library::setLibraryHandle(Local<Object> handle) {
+void Node::Library::setLibraryHandle(Local<Object> handle) {
     m_libraryHandle.Reset(m_isolate, handle);
 }
 
-template<> Local<ObjectTemplate> Library::createTemplateWithCallbacks<ObjectTemplate>(const QList<CallbackInfo>& callbackInfos) {
+template<> Local<ObjectTemplate> Node::Library::createTemplateWithCallbacks<ObjectTemplate>(const QList<CallbackInfo>& callbackInfos) {
     EscapableHandleScope handleScope(m_isolate);
     Local<ObjectTemplate> object = ObjectTemplate::New(m_isolate);
     for (auto callbackInfo : callbackInfos) {
@@ -46,7 +49,7 @@ template<> Local<ObjectTemplate> Library::createTemplateWithCallbacks<ObjectTemp
     return handleScope.Escape(object);
 }
 
-template<> Local<FunctionTemplate> Library::createTemplateWithCallbacks<FunctionTemplate>(const QList<CallbackInfo>& callbackInfos) {
+template<> Local<FunctionTemplate> Node::Library::createTemplateWithCallbacks<FunctionTemplate>(const QList<CallbackInfo>& callbackInfos) {
     EscapableHandleScope handleScope(m_isolate);
     Local<FunctionTemplate> object = FunctionTemplate::New(m_isolate);
     for (auto callbackInfo : callbackInfos) {
@@ -57,7 +60,7 @@ template<> Local<FunctionTemplate> Library::createTemplateWithCallbacks<Function
     return handleScope.Escape(object);
 }
 
-void Library::throwV8Exception(const QString& message) const {
+void Node::Library::throwV8Exception(const QString& message) const {
     HandleScope handleScope(m_isolate);
     Local<String> exceptionText = String
         ::NewFromUtf8(m_isolate, message.toUtf8().constData(), NewStringType::kNormal)

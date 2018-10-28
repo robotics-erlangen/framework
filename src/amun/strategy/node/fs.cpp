@@ -30,7 +30,7 @@
 
 using namespace v8;
 
-FS::FS(Isolate* isolate) : Library(isolate) {
+Node::FS::FS(Isolate* isolate) : Library(isolate) {
     HandleScope handleScope(m_isolate);
 
     auto objectTemplate = createTemplateWithCallbacks<ObjectTemplate>({
@@ -61,7 +61,7 @@ FS::FS(Isolate* isolate) : Library(isolate) {
     setLibraryHandle(objectTemplate->NewInstance(m_isolate->GetCurrentContext()).ToLocalChecked());
 }
 
-FS::FileStat::FileStat(const FS* fs, const QString& info) {
+Node::FS::FileStat::FileStat(const FS* fs, const QString& info) {
     QFileInfo fileInfo(info);
     if (!fileInfo.exists()) {
         QString errorText = "file '";
@@ -80,49 +80,49 @@ FS::FileStat::FileStat(const FS* fs, const QString& info) {
     }
 }
 
-void FS::FileStat::sizeGetter(Local<String> property, const PropertyCallbackInfo<Value>& info) {
+void Node::FS::FileStat::sizeGetter(Local<String> property, const PropertyCallbackInfo<Value>& info) {
     Local<Object> self = info.Holder();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(OBJECT_FILESTAT_INDEX));
     auto fileStat = static_cast<FileStat*>(wrap->Value());
     info.GetReturnValue().Set(fileStat->size);
 }
 
-void FS::FileStat::sizeSetter(Local<String> property, Local<Value> value, const PropertyCallbackInfo<void>& info) {
+void Node::FS::FileStat::sizeSetter(Local<String> property, Local<Value> value, const PropertyCallbackInfo<void>& info) {
     Local<Object> self = info.Holder();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(OBJECT_FILESTAT_INDEX));
     auto fileStat = static_cast<FileStat*>(wrap->Value());
     fileStat->size = value->Int32Value();
 }
 
-void FS::FileStat::mtimeGetter(Local<String> property, const PropertyCallbackInfo<Value>& info) {
+void Node::FS::FileStat::mtimeGetter(Local<String> property, const PropertyCallbackInfo<Value>& info) {
     Local<Object> self = info.Holder();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(OBJECT_FILESTAT_INDEX));
     auto fileStat = static_cast<FileStat*>(wrap->Value());
     info.GetReturnValue().Set(Date::New(info.GetIsolate(), fileStat->mtimeMs));
 }
 
-void FS::FileStat::mtimeSetter(Local<String> property, Local<Value> value, const PropertyCallbackInfo<void>& info) {
+void Node::FS::FileStat::mtimeSetter(Local<String> property, Local<Value> value, const PropertyCallbackInfo<void>& info) {
     Local<Object> self = info.Holder();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(OBJECT_FILESTAT_INDEX));
     auto fileStat = static_cast<FileStat*>(wrap->Value());
     fileStat->mtimeMs = value->NumberValue();
 }
 
-void FS::FileStat::isDirectory(const FunctionCallbackInfo<Value>& info) {
+void Node::FS::FileStat::isDirectory(const FunctionCallbackInfo<Value>& info) {
     Local<Object> self = info.Holder();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(OBJECT_FILESTAT_INDEX));
     auto fileStat = static_cast<FileStat*>(wrap->Value());
     info.GetReturnValue().Set(fileStat->type == FileStat::Type::Directory);
 }
 
-void FS::FileStat::isFile(const FunctionCallbackInfo<Value>& info) {
+void Node::FS::FileStat::isFile(const FunctionCallbackInfo<Value>& info) {
     Local<Object> self = info.Holder();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(OBJECT_FILESTAT_INDEX));
     auto fileStat = static_cast<FileStat*>(wrap->Value());
     info.GetReturnValue().Set(fileStat->type == FileStat::Type::File);
 }
 
-void FS::mkdirSync(const FunctionCallbackInfo<Value>& args) {
+void Node::FS::mkdirSync(const FunctionCallbackInfo<Value>& args) {
     auto fs = static_cast<FS*>(Local<External>::Cast(args.Data())->Value());
     if (args.Length() < 1 || !args[0]->IsString()) {
         fs->throwV8Exception("mkdirSync needs the first argument to be a string");
@@ -132,7 +132,7 @@ void FS::mkdirSync(const FunctionCallbackInfo<Value>& args) {
     dir.mkpath(name);
 }
 
-void FS::statSync(const FunctionCallbackInfo<Value>& args) {
+void Node::FS::statSync(const FunctionCallbackInfo<Value>& args) {
     auto fs = static_cast<FS*>(Local<External>::Cast(args.Data())->Value());
     if (args.Length() < 1 || !args[0]->IsString()) {
         fs->throwV8Exception("statSync needs the first argument to be a string");
@@ -147,7 +147,7 @@ void FS::statSync(const FunctionCallbackInfo<Value>& args) {
     args.GetReturnValue().Set(obj);
 }
 
-void FS::readFileSync(const FunctionCallbackInfo<Value>& args) {
+void Node::FS::readFileSync(const FunctionCallbackInfo<Value>& args) {
     auto fs = static_cast<FS*>(Local<External>::Cast(args.Data())->Value());
     if (args.Length() < 1 || !args[0]->IsString()) {
         fs->throwV8Exception("readFileSync needs the first argument to be a string");

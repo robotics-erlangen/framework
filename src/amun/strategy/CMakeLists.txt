@@ -83,12 +83,16 @@ if(V8_FOUND)
 
         node/library.h
         node/library.cpp
+        node/librarycollection.h
+        node/librarycollection.cpp
         node/fs.h
         node/fs.cpp
         node/os.h
         node/os.cpp
         node/path.h
         node/path.cpp
+        node/buffer.h
+        node/buffer.cpp
     )
     target_link_libraries(strategy PRIVATE lib::v8)
     target_compile_definitions(strategy PUBLIC V8_FOUND)

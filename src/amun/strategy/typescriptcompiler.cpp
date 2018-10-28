@@ -52,50 +52,18 @@ TypescriptCompiler::TypescriptCompiler()
 
     HandleScope handleScope(m_isolate);
     Local<ObjectTemplate> globalTemplate = ObjectTemplate::New(m_isolate);
-    registerRequireFunction(globalTemplate);
+    registerLogFunction(globalTemplate);
     Local<Context> context = Context::New(m_isolate, nullptr, globalTemplate);
-    Context::Scope contextScope(context);
+    m_libraryCollection = std::unique_ptr<Node::LibraryCollection>(new Node::LibraryCollection(context));
     m_context.Reset(m_isolate, context);
-    createLibraryObjects();
 }
 
 TypescriptCompiler::~TypescriptCompiler()
 {
-    m_libraryObjects.clear();
+    m_libraryCollection.release();
     m_context.Reset();
     m_isolate->Exit();
     m_isolate->Dispose();
-}
-
-void TypescriptCompiler::requireModule(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    Isolate *isolate = args.GetIsolate();
-    if (args.Length() != 1 || !args[0]->IsString()) {
-        Local<String> exception = String::NewFromUtf8(isolate, "require need exactly 1 string argument",
-                                                      NewStringType::kNormal).ToLocalChecked();
-        isolate->ThrowException(exception);
-    }
-    TypescriptCompiler* tsc = static_cast<TypescriptCompiler*>(Local<External>::Cast(args.Data())->Value());
-    QString name = *String::Utf8Value(args[0]);
-    /* if (tsc->m_libraryObjects.contains(name)) { */
-    auto library = tsc->m_libraryObjects.find(name);
-    if (library != tsc->m_libraryObjects.end()) {
-        args.GetReturnValue().Set(library->second->getHandle());
-    } else {
-        QString message("module ");
-        message += name;
-        message += " not found";
-        Local<String> exception = String::NewFromUtf8(isolate, message.toUtf8().data(),
-                                                      NewStringType::kNormal).ToLocalChecked();
-        isolate->ThrowException(exception);
-    }
-}
-
-void TypescriptCompiler::createLibraryObjects() {
-    // TODO funktioniert das (polymorphismus + move)?
-    // update: *offensichtlich* nicht
-    m_libraryObjects.emplace(std::make_pair("os", std::unique_ptr<Library>(new OS(m_isolate))));
-    m_libraryObjects.emplace(std::make_pair("fs", std::unique_ptr<Library>(new FS(m_isolate))));
 }
 
 void logCallback(const v8::FunctionCallbackInfo<v8::Value>& args) {
@@ -114,11 +82,8 @@ void logCallback(const v8::FunctionCallbackInfo<v8::Value>& args) {
     qDebug() << message;
 }
 
-void TypescriptCompiler::registerRequireFunction(v8::Local<v8::ObjectTemplate> global)
+void TypescriptCompiler::registerLogFunction(v8::Local<v8::ObjectTemplate> global)
 {
-    Local<String> name = String::NewFromUtf8(m_isolate, "require", NewStringType::kNormal).ToLocalChecked();
-    global->Set(name, FunctionTemplate::New(m_isolate, requireModule, External::New(m_isolate, this)));
-
     Local<String> logname = String::NewFromUtf8(m_isolate, "log", NewStringType::kNormal).ToLocalChecked();
     global->Set(logname, FunctionTemplate::New(m_isolate, &logCallback, External::New(m_isolate, this)));
 }

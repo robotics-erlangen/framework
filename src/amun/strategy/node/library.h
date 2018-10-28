@@ -25,29 +25,31 @@
 
 #include "v8.h"
 
-class Library {
-public:
-    Library(v8::Isolate* isolate);
-    // copying, moving is disabled since constructors can't be virtual
-    // a childs constructor wouldn't be used, which means their own members won't be copied/moved
-    Library(const Library& other) = delete;
-    Library& operator=(const Library& rhs) = delete;
-    Library(Library&& other) = delete;
-    Library& operator=(Library&& other) = delete;
+namespace Node {
+    class Library {
+    public:
+        Library(v8::Isolate* isolate);
+        virtual ~Library();
+        // copying, moving is disabled since constructors can't be virtual
+        // a childs constructor wouldn't be used, which means their own members won't be copied/moved
+        Library(const Library& other) = delete;
+        Library& operator=(const Library& rhs) = delete;
+        Library(Library&& other) = delete;
+        Library& operator=(Library&& other) = delete;
 
-    v8::Local<v8::Object> getHandle();
-protected:
-    void setLibraryHandle(v8::Local<v8::Object> handle);
-    v8::Isolate* m_isolate;
-    v8::Global<v8::Object> m_libraryHandle;
+        v8::Local<v8::Object> getHandle();
+    protected:
+        v8::Isolate* m_isolate;
+        v8::Global<v8::Object> m_libraryHandle;
 
-    struct CallbackInfo {
-        const char *name;
-        void (*callback)(v8::FunctionCallbackInfo<v8::Value> const &);
+        struct CallbackInfo {
+            const char *name;
+            void (*callback)(v8::FunctionCallbackInfo<v8::Value> const &);
+        };
+
+        void setLibraryHandle(v8::Local<v8::Object> handle);
+        template<typename T> v8::Local<T> createTemplateWithCallbacks(const QList<CallbackInfo>& callbackInfos);
+        void throwV8Exception(const QString& message) const;
     };
-
-    template<typename T> v8::Local<T> createTemplateWithCallbacks(const QList<CallbackInfo>& callbackInfos);
-    void throwV8Exception(const QString& message) const;
-};
-
+}
 #endif

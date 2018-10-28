@@ -24,11 +24,12 @@
 #include "library.h"
 #include "v8.h"
 
-class Path : public Library {
-public:
-    Path(v8::Isolate* isolate);
-private:
-    static void resolve(const v8::FunctionCallbackInfo<v8::Value>& args);
-};
-
+namespace Node {
+    class Path : public Library {
+    public:
+        Path(v8::Isolate* isolate);
+    private:
+        static void resolve(const v8::FunctionCallbackInfo<v8::Value>& args);
+    };
+}
 #endif
