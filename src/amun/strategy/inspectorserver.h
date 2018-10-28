@@ -23,10 +23,9 @@
 
 #include <QObject>
 #include <QString>
+#include <QTcpServer>
+#include <memory>
 
-#include "inspectorhandler.h"
-
-class QTcpServer;
 class QTcpSocket;
 class Typescript;
 
@@ -38,7 +37,6 @@ class InspectorServer : public QObject
     Q_OBJECT
 public:
     InspectorServer(int port, QObject *parent = nullptr);
-    ~InspectorServer();
     // may only be called when no current active strategy is registered
     void newDebuggagleStrategy(Typescript *typescript);
     void clearHandlers();
@@ -57,11 +55,12 @@ private:
     bool handleGetRequest(QString request);
 
 private:
-    QTcpServer *m_server;
-    QTcpSocket *m_socket;
-    InspectorHandler *m_handler;
+    QTcpServer m_server;
+    std::shared_ptr<QTcpSocket> m_socket;
     Typescript *m_strategy;
     int m_port;
+
+    const QString m_connectionId = "this_id_doesnt_seem_to_matter";
 };
 
 #endif // INSPECTORSERVER_H

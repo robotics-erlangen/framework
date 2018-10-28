@@ -22,23 +22,17 @@
 #include "inspectorhandler.h"
 #include "typescript.h"
 
-#include <QTcpServer>
 #include <QTcpSocket>
 #include <QCryptographicHash>
 
 InspectorServer::InspectorServer(int port, QObject *parent) :
     QObject(parent),
+    m_server(this),
     m_socket(nullptr),
-    m_handler(nullptr),
+    m_strategy(nullptr),
     m_port(port)
 {
-    m_server = new QTcpServer(this);
-    connect(m_server, SIGNAL(newConnection()), SLOT(newConnection()));
-}
-
-InspectorServer::~InspectorServer()
-{
-    delete m_handler;
+    connect(&m_server, SIGNAL(newConnection()), SLOT(newConnection()));
 }
 
 bool InspectorServer::handleGetRequest(QString request)
@@ -48,7 +42,7 @@ bool InspectorServer::handleGetRequest(QString request)
     } else if (request.startsWith("GET /json/version ")) {
         sendVersionResponse();
     } else if (request.contains("Connection: Upgrade")) {
-        if (request.startsWith("GET /" + m_handler->getId())) {
+        if (request.startsWith("GET /" + m_connectionId)) {
             const QString guid = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
             // extract the websocket key, as we need it for the response
             QString wsKey = request.split("Sec-WebSocket-Key: ")[1].split("\r\n")[0];
@@ -60,10 +54,13 @@ bool InspectorServer::handleGetRequest(QString request)
                              "Connection: Upgrade\r\n"
                              "Sec-WebSocket-Accept: " + hash.result().toBase64() + "\r\n\r\n");
             m_socket->flush();
-            disconnect(m_socket, SIGNAL(readyRead()), this, SLOT(readData()));
-            m_handler->setSocket(m_socket);
-            m_server->close();
-            m_socket = nullptr;
+            disconnect(m_socket.get(), SIGNAL(readyRead()), this, SLOT(readData()));
+            InspectorHandler *handler = new InspectorHandler(m_strategy, m_socket);
+            connect(handler, SIGNAL(frontendDisconnected()), SLOT(acceptConnections()));
+            m_strategy->setInspectorHandler(handler);
+            handler->readData();
+            m_server.close();
+            m_socket.reset();
             return true;
         }
     }
@@ -72,11 +69,16 @@ bool InspectorServer::handleGetRequest(QString request)
 
 void InspectorServer::newConnection()
 {
-    m_socket = m_server->nextPendingConnection();
-    if (m_socket == nullptr) {
+    m_socket.reset(m_server.nextPendingConnection());
+    if (!m_socket) {
         return;
     }
-    connect(m_socket, SIGNAL(readyRead()), SLOT(readData()));
+    if (m_strategy->hasInspectorHandler()) {
+        m_socket->close();
+        m_socket.reset();
+        return;
+    }
+    connect(m_socket.get(), SIGNAL(readyRead()), SLOT(readData()));
 }
 
 void InspectorServer::readData()
@@ -94,7 +96,7 @@ void InspectorServer::readData()
     }
     if (m_socket != nullptr) {
         m_socket->close();
-        m_socket = nullptr;
+        m_socket.reset();
     }
 }
 
@@ -102,9 +104,9 @@ void InspectorServer::sendListResponse()
 {
     QMap<QString, QString> infoMap;
     infoMap["description"] = "ra instance";
-    infoMap["id"] = m_handler->getId();
+    infoMap["id"] = m_connectionId;
     infoMap["type"] = "node";
-    infoMap["webSocketDebuggerUrl"] = "ws://127.0.0.1:" + QString::number(m_port) + "/" + m_handler->getId();
+    infoMap["webSocketDebuggerUrl"] = "ws://127.0.0.1:" + QString::number(m_port) + "/" + m_connectionId;
     sendHttpResponse(mapsToString({infoMap}));
 }
 
@@ -161,19 +163,14 @@ QString InspectorServer::mapsToString(const QList<QMap<QString, QString>> &list)
 
 void InspectorServer::acceptConnections()
 {
-    m_handler->deleteLater();
-    m_handler = nullptr;
     newDebuggagleStrategy(m_strategy);
 }
 
 void InspectorServer::newDebuggagleStrategy(Typescript *typescript)
 {
     m_strategy = typescript;
-    delete m_handler;
-    m_handler = new InspectorHandler(typescript);
-    connect(m_handler, SIGNAL(frontendDisconnected()), SLOT(acceptConnections()));
-    if (!m_server->isListening()) {
-        if (!m_server->listen(QHostAddress::Any, (quint16)m_port)) {
+    if (!m_server.isListening()) {
+        if (!m_server.listen(QHostAddress::Any, (quint16)m_port)) {
             typescript->log("<font color=\"red\">Could not connect debugging server to port " + QString::number(m_port) + "</font>");
         }
     }
@@ -181,9 +178,7 @@ void InspectorServer::newDebuggagleStrategy(Typescript *typescript)
 
 void InspectorServer::clearHandlers()
 {
-    delete m_handler;
-    m_handler = nullptr;
-    if (m_server->isListening()) {
-        m_server->close();
+    if (m_server.isListening()) {
+        m_server.close();
     }
 }

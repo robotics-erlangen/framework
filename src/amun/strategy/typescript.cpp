@@ -31,8 +31,7 @@
 #include "js_amun.h"
 #include "js_path.h"
 #include "checkforscripttimeout.h"
-#include "inspectorhandler.h"
-#include "inspectorserver.h"
+#include "inspectorholder.h"
 
 using namespace v8;
 
@@ -66,10 +65,15 @@ Typescript::Typescript(const Timer *timer, StrategyType type, bool debugEnabled,
     registerAmunJsCallbacks(m_isolate, global, this);
     registerPathJsCallbacks(m_isolate, global, this);
     m_context.Reset(m_isolate, context);
+
+    m_inspectorHolder.reset(new InspectorHolder(m_isolate, m_context));
 }
 
 Typescript::~Typescript()
 {
+    // must be destroyed before the isolate
+    delete m_inspectorHolder->getInspectorHandler();
+    m_inspectorHolder.release();
     qDeleteAll(m_scriptOrigins);
     m_checkForScriptTimeout->deleteLater();
     m_timeoutCheckerThread->quit();
@@ -92,6 +96,21 @@ bool Typescript::canHandle(const QString &filename)
 {
     QFileInfo file(filename);
     return file.fileName() == "init.js";
+}
+
+void Typescript::setInspectorHandler(AbstractInspectorHandler *handler)
+{
+    m_inspectorHolder->setInspectorHandler(handler);
+}
+
+void Typescript::removeInspectorHandler()
+{
+    m_inspectorHolder.reset(new InspectorHolder(m_isolate, m_context));
+}
+
+bool Typescript::hasInspectorHandler()
+{
+    return m_inspectorHolder->hasInspectorHandler();
 }
 
 bool Typescript::loadScript(const QString &filename, const QString &entryPoint)

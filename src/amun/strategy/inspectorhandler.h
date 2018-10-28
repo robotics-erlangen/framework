@@ -26,66 +26,38 @@
 #include <QTcpSocket>
 #include <memory>
 
-#include "v8.h"
-#include "v8-inspector.h"
+#include "inspectorholder.h"
 
 class Typescript;
-class RaInspectorClient;
-
 
 // handles websocket content and relays it to the v8 inspector
-class InspectorHandler : public QObject
+class InspectorHandler : public QObject, public AbstractInspectorHandler
 {
     Q_OBJECT
 public:
-    explicit InspectorHandler(Typescript *strategy, QObject *parent = nullptr);
-    QString getId() const { return m_id; }
+    explicit InspectorHandler(Typescript *strategy, std::shared_ptr<QTcpSocket> &socket, QObject *parent = nullptr);
+    virtual ~InspectorHandler() override;
+
+    void startMessageLoopOnPause() override;
+    void endMessageLoopOnPause() override;
+    void messageLoop() override;
+    void inspectorResponse(QString content) override;
+    void inspectorNotification(QString content) override;
+    void inspectorFlush() override;
 
 signals:
     void frontendDisconnected();
 
 public slots:
-    void setSocket(QTcpSocket *socket);
-
-private slots:
     void readData();
 
 private:
+    void sendPauseSimulator(bool pause);
 
-    class ChannelImpl : public v8_inspector::V8Inspector::Channel {
-    public:
-        void setSocket(std::shared_ptr<QTcpSocket> socket) { m_socket = socket; }
-        virtual void sendResponse(int, std::unique_ptr<v8_inspector::StringBuffer> message) override;
-        virtual void sendNotification(std::unique_ptr<v8_inspector::StringBuffer> message) override;
-        virtual void flushProtocolNotifications() override;
-
-    private:
-        std::shared_ptr<QTcpSocket> m_socket;
-    };
-
-    class RaInspectorClient : public v8_inspector::V8InspectorClient {
-    public:
-        explicit RaInspectorClient(v8::Isolate *isolate, const v8::Persistent<v8::Context> &context, std::function<void()> messageLoop, Typescript *strategy);
-        std::unique_ptr<v8_inspector::V8InspectorSession> connect(v8_inspector::V8Inspector::Channel *channel);
-        void sendPauseSimulator(bool pause);
-        virtual void runMessageLoopOnPause(int) override;
-        virtual void quitMessageLoopOnPause() override;
-        virtual v8::Local<v8::Context> ensureDefaultContextInGroup(int) override;
-
-    private:
-        std::unique_ptr<v8_inspector::V8Inspector> m_inspector;
-        bool m_runMessageLoop;
-        std::function<void()> m_messageLoop;
-        Typescript *m_strategy;
-        v8::Isolate *m_isolate;
-        v8::Persistent<v8::Context> m_context;
-    };
-
-    QString m_id;
+private:
     std::shared_ptr<QTcpSocket> m_socket;
-    std::unique_ptr<RaInspectorClient> m_inspectorClient;
-    std::unique_ptr<v8_inspector::V8InspectorSession> m_session;
-    std::unique_ptr<ChannelImpl> m_channel;
+    Typescript *m_strategy;
+    bool m_shouldResetHolder;
 };
 
 #endif // INSPECTORHANDLER_H

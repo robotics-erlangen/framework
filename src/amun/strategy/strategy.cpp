@@ -146,11 +146,6 @@ Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, b
 
 Strategy::~Strategy()
 {
-#ifdef V8_FOUND
-    // must be deleted before the strategy
-    m_inspectorServer->setParent(nullptr);
-    m_inspectorServer.release();
-#endif
     delete m_strategy;
     delete m_p;
 }

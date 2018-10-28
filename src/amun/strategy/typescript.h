@@ -32,6 +32,8 @@
 
 class CheckForScriptTimeout;
 class QThread;
+class InspectorHolder;
+class AbstractInspectorHandler;
 
 class Typescript : public AbstractStrategyScript
 {
@@ -49,6 +51,10 @@ public:
     void disableTimeoutOnce(); // disables script timeout for the currently running strategy frame
     v8::Isolate *getIsolate() const { return m_isolate; }
     const v8::Persistent<v8::Context> &getContext() const { return m_context; }
+    // gives ownership of the handler to this class
+    void setInspectorHandler(AbstractInspectorHandler *handler);
+    void removeInspectorHandler();
+    bool hasInspectorHandler();
 
 protected:
     bool loadScript(const QString &filename, const QString &entryPoint) override;
@@ -76,6 +82,7 @@ private:
     CheckForScriptTimeout *m_checkForScriptTimeout;
     QThread *m_timeoutCheckerThread;
     QList<v8::ScriptOrigin*> m_scriptOrigins;
+    std::unique_ptr<InspectorHolder> m_inspectorHolder;
 
     int m_scriptIdCounter;
 };

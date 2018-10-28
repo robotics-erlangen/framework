@@ -69,6 +69,8 @@ if(V8_FOUND)
         typescript.h
         typescriptcompiler.cpp
         typescriptcompiler.h
+        inspectorholder.cpp
+        inspectorholder.h
         inspectorserver.cpp
         inspectorserver.h
         inspectorhandler.cpp
