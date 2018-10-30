@@ -36,6 +36,6 @@ export class TutorialTask extends Task {
 
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, { ignorePass: true });
 
-		this._robot.trajectory.update(ToTarget, undefined, undfined, undefined, undefined);
+		this._robot.trajectory.update(ToTarget, undefined, undefined, undefined, undefined);
 	}
 }
