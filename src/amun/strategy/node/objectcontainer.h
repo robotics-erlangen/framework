@@ -18,45 +18,53 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef NODE_LIBRARY_H
-#define NODE_LIBRARY_H
+#ifndef NODE_OBJECT_H
+#define NODE_OBJECT_H
 
+#include <map>
+#include <memory>
+#include <string>
 #include "v8.h"
 
-namespace Node {
-    class LibraryCollection;
-}
-
-class QString;
 template<typename T> class QList;
 
 namespace Node {
-    class Library {
-    public:
-        Library(v8::Isolate* isolate, const LibraryCollection* libraryCollection);
-        virtual ~Library();
-        // copying, moving is disabled since constructors can't be virtual
-        // a childs constructor wouldn't be used, which means their own members won't be copied/moved
-        Library(const Library& other) = delete;
-        Library& operator=(const Library& rhs) = delete;
-        Library(Library&& other) = delete;
-        Library& operator=(Library&& other) = delete;
+	// TODO maybe template this class for different kinds of v8 objects (functions, arrays, etc.)
+	class ObjectContainer {
+	public:
+		ObjectContainer(v8::Isolate* isolate, const ObjectContainer* requireNamespace = nullptr);
+		virtual ~ObjectContainer();
 
-        v8::Local<v8::Object> getHandle();
-    protected:
-        v8::Isolate* m_isolate;
-        v8::Global<v8::Object> m_libraryHandle;
+		// Copying and moving is disabled since constructors can't be virtual
+		// A childs constructor would not be used, leading to their own members not being copying/moved
+		ObjectContainer(const ObjectContainer& other) = delete;
+		ObjectContainer(ObjectContainer&& other) = delete;
+		ObjectContainer& operator=(const ObjectContainer& rhs) = delete;
+		ObjectContainer& operator=(ObjectContainer&& rhs) = delete;
 
-        const LibraryCollection* m_libraryCollection;
+		v8::Local<v8::Object> getHandle();
 
-        struct CallbackInfo {
-            const char *name;
-            void (*callback)(v8::FunctionCallbackInfo<v8::Value> const &);
-        };
+		// TODO maybe use v8::Maybe
+		ObjectContainer* get(const std::string& index) const;
+		void put(const std::string& index, std::unique_ptr<ObjectContainer> object);
+	protected:
+		v8::Isolate* m_isolate;
+		const ObjectContainer* m_requireNamespace;
 
-        void setLibraryHandle(v8::Local<v8::Object> handle);
-        template<typename T> v8::Local<T> createTemplateWithCallbacks(const QList<CallbackInfo>& callbackInfos);
-        void throwV8Exception(const QString& message) const;
-    };
+		void setHandle(v8::Local<v8::Object> handle);
+
+		struct CallbackInfo {
+			const char* name;
+			void (*callback)(const v8::FunctionCallbackInfo<v8::Value>&);
+		};
+		template<typename TemplateType> v8::Local<TemplateType> createTemplateWithCallbacks(const QList<CallbackInfo>& callbackInfos);
+
+		void throwV8Exception(const std::string& message);
+	private:
+		std::map<std::string, std::unique_ptr<ObjectContainer>> m_children;
+
+		v8::Global<v8::Object> m_handle;
+	};
 }
+
 #endif

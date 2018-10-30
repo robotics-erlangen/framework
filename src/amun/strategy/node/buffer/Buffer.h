@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2018 Paul Bergmann                                        *
+ *   Copyright 2018 Paul Bergmann                                          *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,33 +18,43 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef NODE_LIBRARYCOLLECTION_H
-#define NODE_LIBRARYCOLLECTION_H
+#ifndef NODE_Buffer_H
+#define NODE_Buffer_H
 
-#include "library.h"
+#include "../objectcontainer.h"
 
-#include <map>
-#include <memory>
-#include <QString>
-#include "v8.h"
+#include <QByteArray>
+#include <QtGlobal>
+
+class QString;
+
+namespace v8 {
+    class Isolate;
+    class Value;
+    template<typename T> class PropertyCallbackInfo;
+}
 
 namespace Node {
-    class LibraryCollection {
+    class Buffer : public Node::ObjectContainer {
     public:
-        LibraryCollection(v8::Local<v8::Context> context);
-
-        LibraryCollection(LibraryCollection& other) = delete;
-        LibraryCollection(LibraryCollection&& other) = delete;
-        LibraryCollection& operator=(LibraryCollection& rhs) = delete;
-        LibraryCollection& operator=(LibraryCollection&& rhs) = delete;
-
-        v8::MaybeLocal<v8::Object> require(const QString& moduleName) const;
+        Buffer(v8::Isolate* isolate);
     private:
-        static void requireCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
+        class Instance {
+        public:
+            Instance(QByteArray&& data);
+        private:
+            const static int OBJECT_INSTANCE_INDEX = 0;
+            static void indexGet(quint32 index, const v8::PropertyCallbackInfo<v8::Value>& info);
+            static void indexSet(quint32 index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& info);
 
-        v8::Isolate* m_isolate;
-        v8::Global<v8::Context> m_context;
-        std::map<QString, std::unique_ptr<Library>> m_libraryObjects;
+            static void lengthGet(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& info);
+
+            QByteArray m_data;
+            friend class Node::Buffer;
+        };
+
+        static void from(const v8::FunctionCallbackInfo<v8::Value>& args);
     };
 }
-#endif // NODE_LIBRARYCOLLECTION_H
+
+#endif

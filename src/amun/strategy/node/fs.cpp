@@ -77,6 +77,7 @@ Node::FS::FileStat::FileStat(const FS* fs, const QString& info) {
         errorText += info;
         errorText += "' does not exist";
         fs->throwV8Exception(errorText);
+        return;
     }
     size = static_cast<double>(fileInfo.size());
     mtimeMs = static_cast<double>(fileInfo.lastModified().toMSecsSinceEpoch());
@@ -135,6 +136,7 @@ void Node::FS::mkdirSync(const FunctionCallbackInfo<Value>& args) {
     auto fs = static_cast<FS*>(Local<External>::Cast(args.Data())->Value());
     if (args.Length() < 1 || !args[0]->IsString()) {
         fs->throwV8Exception("mkdirSync needs the first argument to be a string");
+        return;
     }
     QString name = *String::Utf8Value(args[0]);
     QDir dir;
@@ -145,12 +147,14 @@ void Node::FS::statSync(const FunctionCallbackInfo<Value>& args) {
     auto fs = static_cast<FS*>(Local<External>::Cast(args.Data())->Value());
     if (args.Length() < 1 || !args[0]->IsString()) {
         fs->throwV8Exception("statSync needs the first argument to be a string");
+        return;
     }
     QString name = *String::Utf8Value(args[0]);
 
     auto isolate = fs->m_isolate;
     Local<ObjectTemplate> fileStatTemplate = fs->m_fileStatTemplate.Get(isolate);
     Local<Object> obj = fileStatTemplate->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
+    // TODO handle if FileStat constructor throws v8 Exception
     obj->SetInternalField(OBJECT_FILESTAT_INDEX, External::New(isolate, new FileStat(fs, name)));
 
     args.GetReturnValue().Set(obj);
@@ -160,5 +164,6 @@ void Node::FS::readFileSync(const FunctionCallbackInfo<Value>& args) {
     auto fs = static_cast<FS*>(Local<External>::Cast(args.Data())->Value());
     if (args.Length() < 1 || !args[0]->IsString()) {
         fs->throwV8Exception("readFileSync needs the first argument to be a string");
+        return;
     }
 }

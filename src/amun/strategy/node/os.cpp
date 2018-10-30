@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2018 Paul Bergmann                                        *
+ *   Copyright 2018 Paul Bergmann                                          *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -20,8 +20,6 @@
 
 #include "os.h"
 
-#include "librarycollection.h"
-
 #include <QList>
 #include "v8.h"
 
@@ -34,36 +32,35 @@ using v8::ObjectTemplate;
 using v8::String;
 using v8::Value;
 
-Node::OS::OS(Isolate* isolate, const LibraryCollection* libraryCollection) : Library(isolate, libraryCollection) {
+Node::os::os(Isolate* isolate) : ObjectContainer(isolate) {
     HandleScope handleScope(m_isolate);
 
     auto objectTemplate = createTemplateWithCallbacks<ObjectTemplate>({
-        { "platform", &OS::platform }
+        { "platform", &Node::os::platform }
     });
 
-    Local<String> eolName = String::NewFromUtf8(m_isolate, "EOL");
     #ifdef Q_OS_WIN32
         Local<String> eolString = String::NewFromUtf8(m_isolate, "\r\n", NewStringType::kNormal).ToLocalChecked();
     #else
         Local<String> eolString = String::NewFromUtf8(m_isolate, "\n", NewStringType::kNormal).ToLocalChecked();
     #endif
-    objectTemplate->Set(eolName, eolString);
+    objectTemplate->Set(m_isolate, "EOL", eolString);
 
-    setLibraryHandle(objectTemplate->NewInstance(isolate->GetCurrentContext()).ToLocalChecked());
+    setHandle(objectTemplate->NewInstance(m_isolate->GetCurrentContext()).ToLocalChecked());
 }
 
-void Node::OS::platform(const FunctionCallbackInfo<Value>& args) {
+void Node::os::platform(const FunctionCallbackInfo<Value>& args) {
     #if defined Q_OS_LINUX
-        const QString platform = "linux";
+        const char* platform = "linux";
     #elif defined Q_OS_WIN32
-        const QString platform = "win32";
+        const char* platform = "win32";
     #elif defined Q_OS_DARWIN
-        const QString platform = "darwin";
+        const char* platform = "darwin";
     #else
         #error Unsupported Platform
     #endif
 
     auto isolate = args.GetIsolate();
-    Local<String> platformHandle = String::NewFromUtf8(isolate, platform.toUtf8().data());
+    Local<String> platformHandle = String::NewFromUtf8(isolate, platform, NewStringType::kNormal).ToLocalChecked();
     args.GetReturnValue().Set(platformHandle);
 }

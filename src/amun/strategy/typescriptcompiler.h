@@ -21,11 +21,12 @@
 #ifndef TYPESCRIPTCOMPILER_H
 #define TYPESCRIPTCOMPILER_H
 
-#include "node/librarycollection.h"
+#include "node/objectcontainer.h"
 
 #include <memory>
 #include "v8.h"
 
+class QString;
 
 class TypescriptCompiler
 {
@@ -35,13 +36,14 @@ public:
 
     void startCompiler(const QString &filename);
 private:
-    void registerLogFunction(v8::Local<v8::ObjectTemplate> global);
+    void registerRequireFunction(v8::Local<v8::ObjectTemplate> global);
+    static void requireCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 private:
     v8::Isolate* m_isolate;
     v8::Global<v8::Context> m_context;
 
-    std::unique_ptr<Node::LibraryCollection> m_libraryCollection;
+    std::unique_ptr<Node::ObjectContainer> m_requireNamespace;
 };
 
 #endif // TYPESCRIPTCOMPILER_H

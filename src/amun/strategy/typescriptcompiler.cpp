@@ -20,25 +20,22 @@
 
 #include "typescriptcompiler.h"
 
+#include "node/objectcontainer.h"
+#include "node/os.h"
+#include "node/buffer.h"
+
 #include <QByteArray>
+#include <QDebug>
+#include <QDir>
 #include <QFile>
 #include <QFileInfo>
 #include <QIODevice>
 #include <QTextStream>
-#include <QDebug>
-#include <QDir>
-#include <QString>
 #include <QTextStream>
-#include <utility>
 #include <string>
-
-#include "node/os.h"
-#include "node/fs.h"
-
+#include <string>
+#include <utility>
 #include "v8.h"
-#include "libplatform/libplatform.h"
-#include "js_amun.h"
-#include "js_path.h"
 
 using namespace v8;
 
@@ -52,15 +49,21 @@ TypescriptCompiler::TypescriptCompiler()
 
     HandleScope handleScope(m_isolate);
     Local<ObjectTemplate> globalTemplate = ObjectTemplate::New(m_isolate);
-    registerLogFunction(globalTemplate);
+    registerRequireFunction(globalTemplate);
     Local<Context> context = Context::New(m_isolate, nullptr, globalTemplate);
-    m_libraryCollection = std::unique_ptr<Node::LibraryCollection>(new Node::LibraryCollection(context));
+    Context::Scope contextScope(context);
+
+    m_requireNamespace = std::unique_ptr<Node::ObjectContainer>(new Node::ObjectContainer(m_isolate));
+
+    m_requireNamespace->put("os", std::unique_ptr<Node::os>(new Node::os(m_isolate)));
+    m_requireNamespace->put("buffer", std::unique_ptr<Node::buffer>(new Node::buffer(m_isolate)));
+
     m_context.Reset(m_isolate, context);
 }
 
 TypescriptCompiler::~TypescriptCompiler()
 {
-    m_libraryCollection.release();
+    m_requireNamespace.release();
     m_context.Reset();
     m_isolate->Exit();
     m_isolate->Dispose();
@@ -82,12 +85,39 @@ void logCallback(const v8::FunctionCallbackInfo<v8::Value>& args) {
     qDebug() << message;
 }
 
-void TypescriptCompiler::registerLogFunction(v8::Local<v8::ObjectTemplate> global)
+void TypescriptCompiler::registerRequireFunction(v8::Local<v8::ObjectTemplate> global)
 {
-    Local<String> logname = String::NewFromUtf8(m_isolate, "log", NewStringType::kNormal).ToLocalChecked();
-    global->Set(logname, FunctionTemplate::New(m_isolate, &logCallback, External::New(m_isolate, this)));
+    global->Set(m_isolate, "log", FunctionTemplate::New(m_isolate, &logCallback, External::New(m_isolate, this)));
+    global->Set(m_isolate, "require", FunctionTemplate::New(m_isolate, &TypescriptCompiler::requireCallback, External::New(m_isolate, this)));
 }
 
+void TypescriptCompiler::requireCallback(const FunctionCallbackInfo<Value>& args) {
+    auto isolate = args.GetIsolate();
+    HandleScope handleScope(isolate);
+
+    if (args.Length() != 1 || !args[0]->IsString()) {
+        Local<String> exceptionText = String::NewFromUtf8(isolate, "require needs exactly one string argument",
+                NewStringType::kNormal).ToLocalChecked();
+        isolate->ThrowException(exceptionText);
+        return;
+    }
+    std::string moduleName = *String::Utf8Value(args[0]);
+
+    auto tsc = static_cast<TypescriptCompiler*>(Local<External>::Cast(args.Data())->Value());
+    Node::ObjectContainer* moduleContainer = tsc->m_requireNamespace->get(moduleName);
+
+    if (moduleContainer) {
+        args.GetReturnValue().Set(moduleContainer->getHandle());
+    } else {
+        std::string errorMessage = "module '";
+        errorMessage += moduleName;
+        errorMessage += "' not found";
+
+        Local<String> exceptionText = String::NewFromUtf8(isolate, errorMessage.c_str(), NewStringType::kNormal).ToLocalChecked();
+        isolate->ThrowException(exceptionText);
+        return;
+    }
+}
 
 void TypescriptCompiler::startCompiler(const QString &filename)
 {

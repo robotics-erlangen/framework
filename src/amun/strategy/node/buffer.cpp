@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2018 Paul Bergmann                                        *
+ *   Copyright 2018 Paul Bergmann                                          *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -20,57 +20,21 @@
 
 #include "buffer.h"
 
-#include "library.h"
-#include "librarycollection.h"
+#include "buffer/Buffer.h"
 
+#include <memory>
 #include <QList>
-#include <QString>
 #include "v8.h"
 
-using v8::External;
-using v8::Function;
-using v8::FunctionCallbackInfo;
-using v8::FunctionTemplate;
 using v8::HandleScope;
 using v8::Isolate;
-using v8::Local;
-using v8::Object;
 using v8::ObjectTemplate;
-using v8::String;
-using v8::Value;
 
-Node::Buffer::Buffer(Isolate* isolate, const LibraryCollection* libraryCollection) : Library(isolate, libraryCollection) {
-	HandleScope handleScope(m_isolate);
+Node::buffer::buffer(Isolate* isolate) : Node::ObjectContainer(isolate) {
+    HandleScope handleScope(m_isolate);
 
-	auto objectTemplate = createTemplateWithCallbacks<ObjectTemplate>({
-		{ "Buffer", &Buffer::bufferClass },
-	});
+    auto objectTemplate = createTemplateWithCallbacks<ObjectTemplate>({});
+    setHandle(objectTemplate->NewInstance(m_isolate->GetCurrentContext()).ToLocalChecked());
 
-	auto bufferConstructorTemplate = createTemplateWithCallbacks<FunctionTemplate>({
-		{ "from", &Buffer::from },
-	});
-	Local<ObjectTemplate> bufferPrototype = bufferConstructorTemplate->PrototypeTemplate();
-	bufferPrototype->SetInternalFieldCount(1);
-	Local<Function> bufferConstructor = bufferConstructorTemplate->GetFunction(m_isolate->GetCurrentContext()).ToLocalChecked();
-	m_bufferConstructor.Reset(m_isolate, bufferConstructor);
-
-	setLibraryHandle(objectTemplate->NewInstance(m_isolate->GetCurrentContext()).ToLocalChecked());
-}
-
-void Node::Buffer::bufferClass(const FunctionCallbackInfo<Value>& args) {
-	auto buffer = static_cast<Buffer*>(Local<External>::Cast(args.Data())->Value());
-	Local<Object> bufferConstructor = buffer->m_bufferConstructor.Get(buffer->m_isolate);
-	args.GetReturnValue().Set(bufferConstructor);
-}
-
-void Node::Buffer::from(const FunctionCallbackInfo<Value>& args) {
-	auto buffer = static_cast<Buffer*>(Local<External>::Cast(args.Data())->Value());
-	auto isolate = buffer->m_isolate;
-	if (args.Length() < 1 || !args[0]->IsString()) {
-		buffer->throwV8Exception("Buffer.from needs the first argument to be a string");
-	}
-	QString dataString;
-	QString encoding = args.Length() >= 2 && args[1]->IsString() ? *String::Utf8Value(args[1]) : "utf8";
-	if (encoding == "utf8") {
-	}
+    put("Buffer", std::unique_ptr<Node::ObjectContainer>(new Buffer(m_isolate)));
 }
