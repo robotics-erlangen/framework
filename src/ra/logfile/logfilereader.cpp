@@ -39,6 +39,14 @@ LogFileReader::~LogFileReader()
     close();
 }
 
+LogFileReader::LogFileReader(SeqLogFileReader&& reader) : m_reader(std::move(reader))
+{
+    m_headerCorrect = true;
+    if (m_reader.isOpen() && !indexFile()) {
+        m_reader.close();
+    }
+}
+
 QPair<StatusSource*, QString> LogFileReader::tryOpen(QString filename)
 {
     LogFileReader *reader = new LogFileReader();

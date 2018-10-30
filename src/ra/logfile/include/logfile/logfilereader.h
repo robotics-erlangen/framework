@@ -40,6 +40,7 @@ public:
     static QPair<StatusSource*, QString> tryOpen(QString filename);
     explicit LogFileReader();
     explicit LogFileReader(const QList<qint64> &timings, const QList<qint64> &offsets, qint32 groupedPackages);
+    explicit LogFileReader(SeqLogFileReader&& reader);
     ~LogFileReader() override;
     LogFileReader(const LogFileReader &) = delete;
     LogFileReader& operator= (const LogFileReader &) = delete;
