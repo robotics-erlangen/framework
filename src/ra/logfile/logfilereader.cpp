@@ -58,7 +58,6 @@ QPair<StatusSource*, QString> LogFileReader::tryOpen(QString filename)
 bool LogFileReader::open(const QString &filename)
 {
     m_headerCorrect = false;
-    // lock for atomar opening
     if (m_reader.isOpen()) {
         close();
     }
@@ -74,12 +73,6 @@ bool LogFileReader::open(const QString &filename)
 
     // index the whole file
     if (m_timings.size() == 0 && !indexFile()) {
-        m_reader.close();
-        return false;
-    }
-
-    if (m_packets.size() == 0) {
-        m_errorMsg = "Invalid or empty logfile";
         m_reader.close();
         return false;
     }
@@ -119,6 +112,12 @@ bool LogFileReader::indexFile()
         }
         lastTime = time;
     }
+
+    if (m_packets.size() == 0) {
+        m_errorMsg = "Invalid or empty logfile";
+        return false;
+    }
+
     return true;
 }
 
