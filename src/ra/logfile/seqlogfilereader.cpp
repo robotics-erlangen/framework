@@ -62,6 +62,7 @@ bool SeqLogFileReader::open(const QString &filename)
     // initialize variables
     m_currentGroupIndex = 0;
     m_baseOffset = m_file.pos() + sizeof(qint64) * m_packageGroupSize;
+    m_startOffset = m_baseOffset;
     m_readingTimstamps = true;
     //assume its a full packet. As we are reading timestamps, thats fine. If we swap to read packets, we update m_currentGroupMaxIndex
     m_currentGroupMaxIndex = m_packageGroupSize;

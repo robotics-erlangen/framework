@@ -63,6 +63,7 @@ public:
     // Do not use percent in any way to check if the reader finished working. Use atEnd() instead.
     double percent() const {return 1.0 * m_file.pos() / m_file.size();}
     void close();
+    void reset() { applyMemento(Memento{m_startOffset, 0}); }
 
     Memento createMemento() const { return m_version == Version2 ? Memento(m_baseOffset, m_currentGroupIndex): Memento(m_file.pos(), 0); }
     void applyMemento(const Memento& m);
@@ -95,6 +96,8 @@ private:
     qint32 m_packageGroupSize;
     qint64 m_baseOffset;
     bool m_readingTimstamps;
+    // m_baseOffset for the first group
+    qint64 m_startOffset;
 };
 
 #endif // SEQLOGFILEREADER_H
