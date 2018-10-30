@@ -24,11 +24,12 @@
 #include <QMutexLocker>
 
 SeqLogFileReader::SeqLogFileReader() :
-    m_stream(&m_file)
+    m_file(new QFile()),
+    m_stream(new QDataStream(m_file.get()))
 {
     m_mutex = new QMutex(QMutex::Recursive);
     // ensure compatibility across qt versions
-    m_stream.setVersion(QDataStream::Qt_4_6);
+    m_stream->setVersion(QDataStream::Qt_4_6);
 }
 
 SeqLogFileReader::~SeqLogFileReader()
@@ -41,13 +42,13 @@ bool SeqLogFileReader::open(const QString &filename)
 {
     // lock for atomar opening
     QMutexLocker locker(m_mutex);
-    if (m_file.isOpen()) {
+    if (m_file->isOpen()) {
         close();
     }
 
     // try to open the requested file
-    m_file.setFileName(filename);
-    if (!m_file.open(QIODevice::ReadOnly)) {
+    m_file->setFileName(filename);
+    if (!m_file->open(QIODevice::ReadOnly)) {
         close();
         m_errorMsg = "Opening logfile failed";
         return false;
@@ -55,13 +56,13 @@ bool SeqLogFileReader::open(const QString &filename)
 
     // check for known version
     if (!readVersion()) {
-        m_file.close();
+        m_file->close();
         return false;
     }
 
     // initialize variables
     m_currentGroupIndex = 0;
-    m_baseOffset = m_file.pos() + sizeof(qint64) * m_packageGroupSize;
+    m_baseOffset = m_file->pos() + sizeof(qint64) * m_packageGroupSize;
     m_startOffset = m_baseOffset;
     m_readingTimstamps = true;
     //assume its a full packet. As we are reading timestamps, thats fine. If we swap to read packets, we update m_currentGroupMaxIndex
@@ -74,7 +75,7 @@ void SeqLogFileReader::close()
 {
     // cleanup everything and close file
     QMutexLocker locker(m_mutex);
-    m_file.close();
+    m_file->close();
 
     m_errorMsg.clear();
     m_currentGroup.clear();
@@ -97,23 +98,23 @@ QList<SeqLogFileReader::Memento> SeqLogFileReader::createMementos(const QList<qi
 void SeqLogFileReader::readNextGroup()
 {
     QMutexLocker locker(m_mutex);
-    qint64 baseOffset = m_file.pos() + sizeof(qint64) * m_packageGroupSize;
+    qint64 baseOffset = m_file->pos() + sizeof(qint64) * m_packageGroupSize;
     //assume its a full group
     m_currentGroupMaxIndex = m_packageGroupSize;
     for (int i=0; i < m_packageGroupSize; ++i) {
         qint64 time;
-        m_stream >> time;
+        *m_stream >> time;
         //time 0 stands for invalid packets
         if (time == 0) {
             m_currentGroupMaxIndex = i;
-            m_file.seek(baseOffset);
+            m_file->seek(baseOffset);
             break;
         }
     }
     m_baseOffset = baseOffset;
     // read and decompress group
     m_currentGroup.clear();
-    m_stream >> m_currentGroup;
+    *m_stream >> m_currentGroup;
     m_currentGroup = qUncompress(m_currentGroup);
     if (m_currentGroup.isEmpty()) {
         return ;
@@ -136,20 +137,20 @@ void SeqLogFileReader::readNextGroup()
 void SeqLogFileReader::readCurrentGroup()
 {
     QMutexLocker locker(m_mutex);
-    m_file.seek(m_baseOffset - sizeof(qint64) * m_packageGroupSize);
+    m_file->seek(m_baseOffset - sizeof(qint64) * m_packageGroupSize);
     readNextGroup();
 }
 
 bool SeqLogFileReader::readVersion()
 {
     QString name;
-    m_stream >> name;
+    *m_stream >> name;
     m_version = Version0;
 
     // first version misses prefix
     if (name == "AMUN-RA LOG") {
         int v;
-        m_stream >> v;
+        *m_stream >> v;
         switch (v) {
         case 1:
             m_version = Version1;
@@ -157,7 +158,7 @@ bool SeqLogFileReader::readVersion()
 
         case 2:
             m_version = Version2;
-            m_stream >> m_packageGroupSize;
+            *m_stream >> m_packageGroupSize;
             break;
 
         default:
@@ -165,7 +166,7 @@ bool SeqLogFileReader::readVersion()
             return false;
         }
     } else {
-        m_file.seek(0);
+        m_file->seek(0);
     }
     return true;
 }
@@ -174,7 +175,7 @@ qint64 SeqLogFileReader::readTimestampVersion0()
 {
     // read the whole packet and decompress it
     QByteArray packet;
-    m_stream >> packet;
+    *m_stream >> packet;
     packet = qUncompress(packet);
 
     // parse and get the timestamp
@@ -189,9 +190,9 @@ qint64 SeqLogFileReader::readTimestampVersion1()
 {
     qint64 time;
     quint32 size; // hack to avoid reading the whole bytearray
-    m_stream >> time;
-    m_stream >> size;
-    m_file.seek(m_file.pos() + size);
+    *m_stream >> time;
+    *m_stream >> size;
+    m_file->seek(m_file->pos() + size);
 
     // simple sanity check
     if (size == 0) {
@@ -203,19 +204,19 @@ qint64 SeqLogFileReader::readTimestampVersion1()
 qint64 SeqLogFileReader::readTimestampVersion2()
 {
     if(!m_readingTimstamps){
-        m_file.seek(m_baseOffset - sizeof(qint64) * (m_packageGroupSize - m_currentGroupIndex));
+        m_file->seek(m_baseOffset - sizeof(qint64) * (m_packageGroupSize - m_currentGroupIndex));
         m_readingTimstamps = true;
     }
     qint64 time;
-    m_stream >> time;
+    *m_stream >> time;
     m_currentGroupIndex++;
 
-    if (!m_stream.atEnd() && m_currentGroupIndex % m_packageGroupSize == 0) {
+    if (!m_stream->atEnd() && m_currentGroupIndex % m_packageGroupSize == 0) {
         quint32 size;
-        m_stream >> size;
-        m_file.seek(m_file.pos() + size);
+        *m_stream >> size;
+        m_file->seek(m_file->pos() + size);
         m_currentGroupIndex = 0;
-        m_baseOffset = m_file.pos() + sizeof(qint64) * m_packageGroupSize;
+        m_baseOffset = m_file->pos() + sizeof(qint64) * m_packageGroupSize;
         m_currentGroup.clear();
     }
 
@@ -237,7 +238,7 @@ qint64 SeqLogFileReader::readTimestamp()
 void SeqLogFileReader::applyMemento(const Memento& mem){
     // handle old versions
     if (m_version != Version2) {
-        m_file.seek(mem.baseOffset);
+        m_file->seek(mem.baseOffset);
         return;
     }
 
@@ -286,7 +287,7 @@ Status SeqLogFileReader::readStatus()
         }
 
         //load next group if possible
-        if (m_currentGroupIndex >= m_currentGroupMaxIndex && !m_stream.atEnd()){
+        if (m_currentGroupIndex >= m_currentGroupMaxIndex && !m_stream->atEnd()){
             readNextGroup();
         }
         return res;
@@ -295,12 +296,12 @@ Status SeqLogFileReader::readStatus()
         // skip timestamp of version one
         if (m_version == Version1) {
             qint64 time;
-            m_stream >> time;
+            *m_stream >> time;
         }
 
         // read and parse status
         QByteArray packet;
-        m_stream >> packet;
+        *m_stream >> packet;
         packet = qUncompress(packet);
         if (!packet.isEmpty()) {
             Status status = Status::createArena();

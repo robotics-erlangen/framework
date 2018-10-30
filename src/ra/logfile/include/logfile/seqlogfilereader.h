@@ -49,23 +49,24 @@ public:
     ~SeqLogFileReader();
     SeqLogFileReader(const SeqLogFileReader&) = delete;
     SeqLogFileReader& operator=(const SeqLogFileReader&) = delete;
+    SeqLogFileReader(SeqLogFileReader&&) = default;
 
     bool open(const QString &filename);
-    bool isOpen() const { return m_file.isOpen(); }
+    bool isOpen() const { return m_file->isOpen(); }
 
-    QString fileName() const { return m_file.fileName(); }
+    QString fileName() const { return m_file->fileName(); }
     QString errorMsg() const { return m_errorMsg; }
 
     Status readStatus();
     qint64 readTimestamp();
-    bool atEnd() const { return m_stream.atEnd() && (m_version != Version2 || m_currentGroupIndex >= m_currentGroupMaxIndex); }
+    bool atEnd() const { return m_stream->atEnd() && (m_version != Version2 || m_currentGroupIndex >= m_currentGroupMaxIndex); }
     // returns how much data has been read from the disc at the moment. pecent() should only be used to visiualize some kind of progress.
     // Do not use percent in any way to check if the reader finished working. Use atEnd() instead.
-    double percent() const {return 1.0 * m_file.pos() / m_file.size();}
+    double percent() const {return 1.0 * m_file->pos() / m_file->size();}
     void close();
     void reset() { applyMemento(Memento{m_startOffset, 0}); }
 
-    Memento createMemento() const { return m_version == Version2 ? Memento(m_baseOffset, m_currentGroupIndex): Memento(m_file.pos(), 0); }
+    Memento createMemento() const { return m_version == Version2 ? Memento(m_baseOffset, m_currentGroupIndex): Memento(m_file->pos(), 0); }
     void applyMemento(const Memento& m);
     static QList<Memento> createMementos(const QList<qint64>& offsets, qint32 groupedPackages);
 
@@ -80,8 +81,8 @@ private:
     mutable QMutex *m_mutex;
     QString m_errorMsg;
 
-    QFile m_file;
-    QDataStream m_stream;
+    std::unique_ptr<QFile> m_file;
+    std::unique_ptr<QDataStream> m_stream;
 
     enum Version { Version0, Version1, Version2 };
     Version m_version;
