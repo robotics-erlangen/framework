@@ -20,6 +20,8 @@
 
 #include "path.h"
 
+#include "librarycollection.h"
+
 #include <QList>
 #include "v8.h"
 
@@ -27,7 +29,7 @@ using v8::HandleScope;
 using v8::Isolate;
 using v8::ObjectTemplate;
 
-Node::Path::Path(Isolate* isolate) : Library(isolate) {
+Node::Path::Path(Isolate* isolate, const LibraryCollection* libraryCollection) : Library(isolate, libraryCollection) {
     HandleScope handleScope(m_isolate);
 
     auto objectTemplate = createTemplateWithCallbacks<ObjectTemplate>({

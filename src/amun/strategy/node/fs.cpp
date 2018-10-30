@@ -20,6 +20,8 @@
 
 #include "fs.h"
 
+#include "librarycollection.h"
+
 #include <QDateTime>
 #include <QDir>
 #include <QList>
@@ -37,7 +39,7 @@ using v8::PropertyCallbackInfo;
 using v8::String;
 using v8::Value;
 
-Node::FS::FS(Isolate* isolate) : Library(isolate) {
+Node::FS::FS(Isolate* isolate, const LibraryCollection* libraryCollection) : Library(isolate, libraryCollection) {
     HandleScope handleScope(m_isolate);
 
     auto objectTemplate = createTemplateWithCallbacks<ObjectTemplate>({

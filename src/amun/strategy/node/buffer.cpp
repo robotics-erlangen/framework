@@ -21,6 +21,7 @@
 #include "buffer.h"
 
 #include "library.h"
+#include "librarycollection.h"
 
 #include <QList>
 #include <QString>
@@ -38,7 +39,7 @@ using v8::ObjectTemplate;
 using v8::String;
 using v8::Value;
 
-Node::Buffer::Buffer(Isolate* isolate) : Library(isolate) {
+Node::Buffer::Buffer(Isolate* isolate, const LibraryCollection* libraryCollection) : Library(isolate, libraryCollection) {
 	HandleScope handleScope(m_isolate);
 
 	auto objectTemplate = createTemplateWithCallbacks<ObjectTemplate>({

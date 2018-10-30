@@ -23,6 +23,10 @@
 
 #include "library.h"
 
+namespace Node {
+    class LibraryCollection;
+}
+
 namespace v8 {
     class Isolate;
     class Value;
@@ -32,7 +36,7 @@ namespace v8 {
 namespace Node {
     class Path : public Library {
     public:
-        Path(v8::Isolate* isolate);
+        Path(v8::Isolate* isolate, const LibraryCollection* libraryCollection);
     private:
         static void resolve(const v8::FunctionCallbackInfo<v8::Value>& args);
     };

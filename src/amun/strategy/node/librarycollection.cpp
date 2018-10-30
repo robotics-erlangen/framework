@@ -28,6 +28,7 @@
 
 #include <map>
 #include <memory>
+#include <QList>
 #include <QString>
 #include <utility>
 #include "v8.h"
@@ -54,10 +55,18 @@ Node::LibraryCollection::LibraryCollection(Local<Context> context) : m_isolate(c
 		context->Global()->Set(requireName, requireCallbackTemplate->GetFunction(context).ToLocalChecked());
 	};
 	auto createLibraryObjects = [this]() {
-		m_libraryObjects.insert(std::make_pair("buffer", std::unique_ptr<Library>(new Buffer(m_isolate))));
-		m_libraryObjects.insert(std::make_pair("fs", std::unique_ptr<Library>(new FS(m_isolate))));
-		m_libraryObjects.insert(std::make_pair("os", std::unique_ptr<Library>(new OS(m_isolate))));
-		m_libraryObjects.insert(std::make_pair("path", std::unique_ptr<Library>(new Path(m_isolate))));
+		m_libraryObjects.insert(std::make_pair(
+			"buffer", std::unique_ptr<Library>(new Buffer(m_isolate, this))
+		));
+		m_libraryObjects.insert(std::make_pair(
+			"fs", std::unique_ptr<Library>(new FS(m_isolate, this))
+		));
+		m_libraryObjects.insert(std::make_pair(
+			"os", std::unique_ptr<Library>(new OS(m_isolate, this))
+		));
+		m_libraryObjects.insert(std::make_pair(
+			"path", std::unique_ptr<Library>(new Path(m_isolate, this))
+		));
 	};
 
 	HandleScope handleScope(m_isolate);
@@ -68,7 +77,7 @@ Node::LibraryCollection::LibraryCollection(Local<Context> context) : m_isolate(c
 	createLibraryObjects();
 }
 
-MaybeLocal<Object> Node::LibraryCollection::require(const QString& moduleName) {
+MaybeLocal<Object> Node::LibraryCollection::require(const QString& moduleName) const {
 	EscapableHandleScope handleScope(m_isolate);
 	MaybeLocal<Object> obj;
 	auto library = m_libraryObjects.find(moduleName);

@@ -20,6 +20,8 @@
 
 #include "library.h"
 
+#include "librarycollection.h"
+
 #include <QList>
 #include <QString>
 
@@ -33,7 +35,8 @@ using v8::Object;
 using v8::ObjectTemplate;
 using v8::String;
 
-Node::Library::Library(v8::Isolate* isolate) : m_isolate(isolate) {
+Node::Library::Library(v8::Isolate* isolate, const LibraryCollection* libraryCollection)
+    : m_isolate(isolate), m_libraryCollection(libraryCollection) {
 }
 
 Node::Library::~Library() {

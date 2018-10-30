@@ -38,7 +38,7 @@ namespace Node {
         LibraryCollection& operator=(LibraryCollection& rhs) = delete;
         LibraryCollection& operator=(LibraryCollection&& rhs) = delete;
 
-        v8::MaybeLocal<v8::Object> require(const QString& moduleName);
+        v8::MaybeLocal<v8::Object> require(const QString& moduleName) const;
     private:
         static void requireCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
 

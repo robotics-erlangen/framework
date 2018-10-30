@@ -25,9 +25,13 @@
 #include "v8.h"
 
 namespace Node {
+    class LibraryCollection;
+}
+
+namespace Node {
     class Buffer : public Library {
     public:
-        Buffer(v8::Isolate* isolate);
+        Buffer(v8::Isolate* isolate, const LibraryCollection* libraryCollection);
     private:
         class BufferInstance {
         };

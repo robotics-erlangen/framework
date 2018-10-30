@@ -23,13 +23,17 @@
 
 #include "v8.h"
 
+namespace Node {
+    class LibraryCollection;
+}
+
 class QString;
 template<typename T> class QList;
 
 namespace Node {
     class Library {
     public:
-        Library(v8::Isolate* isolate);
+        Library(v8::Isolate* isolate, const LibraryCollection* libraryCollection);
         virtual ~Library();
         // copying, moving is disabled since constructors can't be virtual
         // a childs constructor wouldn't be used, which means their own members won't be copied/moved
@@ -42,6 +46,8 @@ namespace Node {
     protected:
         v8::Isolate* m_isolate;
         v8::Global<v8::Object> m_libraryHandle;
+
+        const LibraryCollection* m_libraryCollection;
 
         struct CallbackInfo {
             const char *name;

@@ -25,12 +25,16 @@
 
 #include "v8.h"
 
+namespace Node {
+    class LibraryCollection;
+}
+
 class QString;
 
 namespace Node {
     class FS : public Library {
     public:
-        FS(v8::Isolate* isolate);
+        FS(v8::Isolate* isolate, const LibraryCollection* libraryCollection);
     private:
         class FileStat {
         public:

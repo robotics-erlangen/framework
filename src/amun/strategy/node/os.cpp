@@ -20,6 +20,8 @@
 
 #include "os.h"
 
+#include "librarycollection.h"
+
 #include <QList>
 #include "v8.h"
 
@@ -32,7 +34,7 @@ using v8::ObjectTemplate;
 using v8::String;
 using v8::Value;
 
-Node::OS::OS(Isolate* isolate) : Library(isolate) {
+Node::OS::OS(Isolate* isolate, const LibraryCollection* libraryCollection) : Library(isolate, libraryCollection) {
     HandleScope handleScope(m_isolate);
 
     auto objectTemplate = createTemplateWithCallbacks<ObjectTemplate>({
