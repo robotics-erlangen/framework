@@ -1,11 +1,11 @@
 import * as DebugCommands from "base/debugcommands";
+import * as MathUtil from "base/mathutil";
 import { FriendlyRobot } from "base/robot";
-import * as MathUtil from "base/mathutil"
 import { Vector } from "base/vector";
 import * as World from "base/world";
 
 import { MessageBox } from "glados/control/messaging";
-import { Move, Assignment } from "glados/group/move/base";
+import { Assignment, Move } from "glados/group/move/base";
 import { MoveToPos } from "glados/task/shared/movetopos";
 import { TutorialTask } from "glados/tutorials/t3Ball/tutorial3";
 
@@ -41,11 +41,11 @@ export class BallTeleporter extends Move {
 		let robotPos = new Vector(0, -World.Geometry.FieldHeightHalf + World.Geometry.DefenseHeight + 0.3);
 		let ballPos = new Vector(0, World.Geometry.FieldHeightHalf - World.Geometry.DefenseHeight);
 
-		if(robotPos.distanceToSq(this._robots[0].pos) > (0.1*0.1) && !this._shot){
+		if (robotPos.distanceToSq(this._robots[0].pos) > (0.1 * 0.1) && !this._shot) {
 
 			taskAssignments[this._robots[0]] = {class: MoveToPos, params: [robotPos]};
 
-		} else if(!this._shot){
+		} else if (!this._shot) {
 
 			let leftVector = new Vector(-World.Geometry.FieldWidthHalf, -World.Geometry.FieldHeightHalf) - ballPos;
 			let angleLV = leftVector.angle();

@@ -14,7 +14,7 @@
 // - We have a module to assist all your ball-shooting needs
 //   It is located in "glados/task/ability/shoot.ts"
 // - To make use of it, import it and create a new instance of it
-// - Take a look at "glados/task/shootgoal" to find an example of how to properly use the 'shoot' ability
+// - Take a look at "glados/task/attacker/shootgoal" to find an example of how to properly use the 'shoot' ability
 
 // - We also have a module that attempts to catch balls
 // - It is located in "glados/task/ability/catchball.lua"
@@ -36,6 +36,6 @@ export class TutorialTask extends Task {
 
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, { ignorePass: true });
 
-		this._robot.trajectory.update(ToTarget, undefined, undefined, undefined, undefined);
+		this._robot.trajectory.update(ToTarget, this._robot.pos, this._robot.dir, undefined, undefined);
 	}
 }
