@@ -16,8 +16,9 @@ import { Move } from "glados/group/move/base";
 import {Moves as MoveGroup } from "glados/group/moves";
 import {Striker as StrikerGroup } from "glados/group/striker";
 
-import {Tutorial as Tutorial1 } from "glados/tutorials/t1Move/tutorial";
+import { Tutorial as Tutorial1 } from "glados/tutorials/t1Move/tutorial";
 import { Tutorial2 } from "glados/tutorials/t2Task/tutentrypoint";
+import { BallTeleporter as Tutorial3 } from "glados/tutorials/t3Ball/ballteleporter";
 
 let coord: MainCoordinator | undefined = undefined;
 function createEntrypoint(move: typeof Move) {
@@ -41,4 +42,5 @@ function createEntrypoint(move: typeof Move) {
 
 Entrypoints.add("Tutorials/Tutorial 1", createEntrypoint(Tutorial1));
 Entrypoints.add("Tutorials/Tutorial 2", createEntrypoint(Tutorial2));
+Entrypoints.add("Tutorials/Tutorial 3", createEntrypoint(Tutorial3));
 
