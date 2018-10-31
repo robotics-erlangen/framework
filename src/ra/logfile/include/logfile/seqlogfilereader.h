@@ -49,7 +49,7 @@ public:
     ~SeqLogFileReader();
     SeqLogFileReader(const SeqLogFileReader&) = delete;
     SeqLogFileReader& operator=(const SeqLogFileReader&) = delete;
-    SeqLogFileReader(SeqLogFileReader&&) = default;
+    SeqLogFileReader(SeqLogFileReader&&);
 
     bool open(const QString &filename);
     bool isOpen() const { return m_file->isOpen(); }

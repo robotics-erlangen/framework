@@ -38,6 +38,27 @@ SeqLogFileReader::~SeqLogFileReader()
     delete m_mutex;
 }
 
+SeqLogFileReader::SeqLogFileReader(SeqLogFileReader&& o) :
+    m_mutex(new QMutex(QMutex::Recursive)),
+    m_file(std::move(o.m_file)),
+    m_stream(std::move(o.m_stream)),
+    m_version(std::move(o.m_version)),
+    m_currentGroup(std::move(o.m_currentGroup)),
+    m_currentGroupOffsets(std::move(o.m_currentGroupOffsets)),
+    m_currentGroupIndex(std::move(o.m_currentGroupIndex)),
+    m_currentGroupMaxIndex(std::move(o.m_currentGroupMaxIndex)),
+    m_packageGroupSize(std::move(o.m_packageGroupSize)),
+    m_baseOffset(std::move(o.m_baseOffset)),
+    m_readingTimstamps(std::move(o.m_readingTimstamps)),
+    m_startOffset(std::move(o.m_startOffset))
+{
+    //leave o in a valid state
+    std::unique_ptr<QFile> ufp(new QFile());
+    o.m_file = std::move(ufp);
+    std::unique_ptr<QDataStream> uds(new QDataStream(o.m_file.get()));
+    o.m_stream = std::move(uds);
+}
+
 bool SeqLogFileReader::open(const QString &filename)
 {
     // lock for atomar opening
