@@ -18,6 +18,8 @@ export class Tutorial extends Move {
 	public static MIN_ROBOTS: number = 3;
 	public static MAX_ROBOTS: number = 3;
 
+	// if you need any additional attributes, define them heres
+
 	// This is, like the name obviously indicates, the constructor.
 	// It creates an object (of the type) of this move.
 	constructor(robots: FriendlyRobot[], messaging: MessageBox) {
@@ -27,7 +29,7 @@ export class Tutorial extends Move {
 	// This is a necessary function that every move must have. It needs to return a boolean value
 	// that is used to evaluate if a move should start now.
 	// Note that the static in typescript is equivalent to the static in Java.
-	// All other methods are instance method. The object instance is accessible via the variable "this".
+	// All other methods are instance methods. The object instance is accessible via the variable "this".
 	static canStart() {
 		return true;
 	}
@@ -39,7 +41,7 @@ export class Tutorial extends Move {
 	}
 
 	// This function is called every frame and needs to return an assignment for each robot.
-	// Robots, that don't get an assignment, no longer participate in the move!
+	// Robots that don't get an assignment no longer participate in the move!
 	public _updateTasks(): [Map<FriendlyRobot, Assignment>, undefined] {
 
 		// The task assignments are returned as a map.
@@ -47,10 +49,10 @@ export class Tutorial extends Move {
 
 		// this._robots[i] accesses the i-th participating robot.
 		// Note: "i" is a placeholder and not a valid variable. Replace it by a number (or a number variable).
-		// You need to assign each robot the class of the task you want it to use (needs to be required at the top!).
+		// You need to assign each robot the class of the task you want it to use (needs to be imported at the top!).
 		// Depending on the task you may need parameters, these can be passed as a array.
 		// For example, MoveToPos needs a position to drive to.
-		taskAssignments.set(this._robots[i], {class: MoveToPos, params: [new Vector(0,0)]});
+		taskAssignments[this._robots[i]] = {class: MoveToPos, params: [new Vector(0,0)]});
 
 		return [taskAssignments, undefined];
 	}

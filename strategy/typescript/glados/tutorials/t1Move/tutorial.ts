@@ -2,6 +2,9 @@
 // Use the MoveToPos-Task to do this. MoveToPos needs a Vector as parameter and will move to that position.
 // In order to start this move in Ra, click the "main" button in the robots-widget to open a drop-down menu,
 // then locate "Tutorials" -> "Tutorial 1"
+// If you change anything in the code, the strategy has to be recompiled and reloaded in ra
+// A manual for compiling can be found in the "COMPILE.md" file
+// The reload button is next to the entrypoints (the blue arrows)
 
 // Hints:
 // 	- you can find a commented stub of a move under "glados/tutorials/t1Move/movestub.ts"
