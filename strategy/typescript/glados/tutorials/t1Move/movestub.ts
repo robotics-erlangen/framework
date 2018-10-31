@@ -18,7 +18,12 @@ export class Tutorial extends Move {
 	public static MIN_ROBOTS: number = 3;
 	public static MAX_ROBOTS: number = 3;
 
-	// if you need any additional attributes, define them heres
+	// if you need any additional attributes, define them here
+	// you can then initialise them in the constructor
+
+	// This is just an example attribute
+	// By convention, private attributes have a leading underscore
+	private _myAttribute: number | undefined;
 
 	// This is, like the name obviously indicates, the constructor.
 	// It creates an object (of the type) of this move.
