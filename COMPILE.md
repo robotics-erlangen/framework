@@ -141,3 +141,23 @@ make
 ```
 
 (If starting ra.app the normal way doesn't work launch it from Qt Creator)
+
+
+# Compiling a strategy
+
+
+In order to build a strategy you will need:
+ * node
+ * prebuilt butterflyscript-compiler
+
+## Linux
+Names of required package for Ubuntu 16.04: `npm`
+
+To build a strategy using the precompiled butterflyscript-compiler call `node /path/to/tsc -w` in strategy/typescript.
+The resulting compiled strategy can be found in strategy/built/strategy_name/init.js
+
+## Windows
+Install node LTS via installer (https://nodejs.org/en/download/)
+
+To build a strategy using the precompiled butterflyscript-compiler type `node /path/to/tsc -w` in the Windows Powershell while beeing in strategy/typescript.
+The resulting compiled strategy can be found in strategy/built/strategy_name/init.js
