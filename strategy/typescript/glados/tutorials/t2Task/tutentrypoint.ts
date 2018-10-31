@@ -6,13 +6,13 @@ import { Assignment, Move } from "glados/group/move/base";
 import { MoveToPos } from "glados/task/shared/movetopos";
 import { TutorialTask } from "glados/tutorials/t2Task/tutorial2";
 
+// This file just creates the entrypoint to run the tutorial. You shouldn't modify the code in this file.
 
 export class Tutorial2 extends Move {
 	public static MIN_ROBOTS: number = 3;
 	public static MAX_ROBOTS: number = 3;
 
 	private _init: boolean;
-
 	constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 		super(robots, messaging);
 		this._init = true;

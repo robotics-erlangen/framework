@@ -14,8 +14,8 @@
 //    the move will move into the correct positions first before assigning this task
 // 	- we measure angle in radians (2 * math.pi == 360°)
 // 	- the function Vector.fromAngle(angle) creates a Vector of length 1 in the specified direction
-// 	- vector.distanceTo(vector) measures the distance between two vectors
-//    e.g. pos.distanceTo(Vector(0,0)) would measure the distance of 'pos' from the middle in meters
+// 	- Vector.distanceTo(vector) measures the distance between two vectors
+//    e.g. pos.distanceTo(new Vector(0,0)) would measure the distance of 'pos' from the middle in meters
 // 	- unlike moves, tasks only handle one robot (so just this._robot)
 // 	- real-life vision is never perfectly accurate, an accuracy of 10cm is sufficient (for this case, not in general!)
 
@@ -26,7 +26,6 @@ import { Agent, Task } from "glados/task/base";
 import { ToTarget } from "glados/trajectory/totarget";
 
 export class TutorialTask extends Task {
-	private _dir: number | undefined = undefined;
 
 	constructor(agent: Agent, dir: number) {
 
@@ -38,6 +37,6 @@ export class TutorialTask extends Task {
 
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, { ignorePass: true });
 
-		this._robot.trajectory.update(ToTarget, undefined, this._dir, undefined, undefined);
+		this._robot.trajectory.update(ToTarget, this._robot.pos, this._robot.dir, undefined, undefined);
 	}
 }
