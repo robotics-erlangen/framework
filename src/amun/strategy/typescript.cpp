@@ -381,12 +381,16 @@ bool Typescript::process(double &pathPlanning)
         Local<Value> stackTrace;
         if (tryCatch.StackTrace(context).ToLocal(&stackTrace)) {
             String::Utf8Value error(m_isolate, stackTrace);
-            m_errorMsg = "<font color=\"red\">" + QString(*error) + "</font>";
+            QString errorString(*error);
+            errorString.replace("\n", "<br>");
+            m_errorMsg = "<font color=\"red\">" + errorString + "</font>";
         } else {
             Local<Message> message = tryCatch.Message();
             if (!message.IsEmpty()) {
                 String::Utf8Value exception(m_isolate, tryCatch.Exception());
-                m_errorMsg = "<font color=\"red\">" + QString(*exception) + "</font>";
+                QString exceptionString(*exception);
+                exceptionString.replace("\n", "<br>");
+                m_errorMsg = "<font color=\"red\">" + exceptionString + "</font>";
             } else {
                 // this will only happen if the script was terminated by CheckForScriptTimeout
                 m_errorMsg = "<font color=\"red\">Script timeout</font>";
