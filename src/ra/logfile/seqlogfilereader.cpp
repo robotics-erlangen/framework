@@ -224,7 +224,17 @@ qint64 SeqLogFileReader::readTimestampVersion1()
 
 qint64 SeqLogFileReader::readTimestampVersion2()
 {
-    if(!m_readingTimstamps){
+    if (!m_readingTimstamps && !m_currentGroup.isEmpty()) {
+        Status s = readStatus(false);
+        if (m_currentGroupIndex >= m_currentGroupMaxIndex) {
+            m_readingTimstamps = true;
+            m_currentGroup.clear();
+            m_currentGroupIndex = 0;
+            m_baseOffset = m_file->pos() + sizeof(qint64) * m_packageGroupSize;
+        }
+        return s->time();
+    }
+    if (!m_readingTimstamps) {
         m_file->seek(m_baseOffset - sizeof(qint64) * (m_packageGroupSize - m_currentGroupIndex));
         m_readingTimstamps = true;
     }
@@ -274,6 +284,11 @@ void SeqLogFileReader::applyMemento(const Memento& mem){
 
 Status SeqLogFileReader::readStatus()
 {
+    return readStatus(true);
+}
+
+Status SeqLogFileReader::readStatus(bool loadNextGroup)
+{
     // lock to prevent intermediate file changes
     QMutexLocker locker(m_mutex);
     if (m_version == Version2) {
@@ -308,7 +323,7 @@ Status SeqLogFileReader::readStatus()
         }
 
         //load next group if possible
-        if (m_currentGroupIndex >= m_currentGroupMaxIndex && !m_stream->atEnd()){
+        if (loadNextGroup && m_currentGroupIndex >= m_currentGroupMaxIndex && !m_stream->atEnd()) {
             readNextGroup();
         }
         return res;
