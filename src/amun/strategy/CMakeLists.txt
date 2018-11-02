@@ -73,6 +73,8 @@ if(V8_FOUND)
         inspectorholder.h
         inspectorserver.cpp
         inspectorserver.h
+        internaldebugger.cpp
+        internaldebugger.h
         inspectorhandler.cpp
         inspectorhandler.h
         websocketprotocol.cpp

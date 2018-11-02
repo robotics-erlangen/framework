@@ -32,6 +32,7 @@
 #include "js_path.h"
 #include "checkforscripttimeout.h"
 #include "inspectorholder.h"
+#include "internaldebugger.h"
 
 using namespace v8;
 
@@ -67,6 +68,8 @@ Typescript::Typescript(const Timer *timer, StrategyType type, bool debugEnabled,
     m_context.Reset(m_isolate, context);
 
     m_inspectorHolder.reset(new InspectorHolder(m_isolate, m_context));
+    m_internalDebugger.reset(new InternalDebugger(m_isolate));
+    m_inspectorHolder->setInspectorHandler(m_internalDebugger.get());
 }
 
 Typescript::~Typescript()
@@ -74,6 +77,7 @@ Typescript::~Typescript()
     // must be destroyed before the isolate
     delete m_inspectorHolder->getInspectorHandler();
     m_inspectorHolder.release();
+    m_internalDebugger.release();
     qDeleteAll(m_scriptOrigins);
     m_checkForScriptTimeout->deleteLater();
     m_timeoutCheckerThread->quit();
@@ -100,17 +104,28 @@ bool Typescript::canHandle(const QString &filename)
 
 void Typescript::setInspectorHandler(AbstractInspectorHandler *handler)
 {
+    if (m_inspectorHolder->hasInspectorHandler()) {
+        m_inspectorHolder.reset(new InspectorHolder(m_isolate, m_context));
+    }
     m_inspectorHolder->setInspectorHandler(handler);
 }
 
 void Typescript::removeInspectorHandler()
 {
     m_inspectorHolder.reset(new InspectorHolder(m_isolate, m_context));
+    m_inspectorHolder->setInspectorHandler(new InternalDebugger(m_isolate));
 }
 
-bool Typescript::hasInspectorHandler()
+bool Typescript::hasInspectorHandler() const
 {
-    return m_inspectorHolder->hasInspectorHandler();
+    // internal debugger doesn't count
+    return m_inspectorHolder->hasInspectorHandler() && m_inspectorHolder->getInspectorHandler() != m_internalDebugger.get();
+}
+
+bool Typescript::canConnectInternalDebugger() const
+{
+    return m_inspectorHolder->hasInspectorHandler() && m_inspectorHolder->getInspectorHandler() == m_internalDebugger.get() &&
+            !m_internalDebugger->isConnected();
 }
 
 bool Typescript::loadScript(const QString &filename, const QString &entryPoint)
