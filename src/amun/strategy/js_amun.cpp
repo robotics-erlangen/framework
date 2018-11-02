@@ -28,6 +28,7 @@
 
 #include "js_protobuf.h"
 #include "typescript.h"
+#include "internaldebugger.h"
 
 using namespace v8;
 
@@ -435,6 +436,51 @@ static void amunLuaRandomSeed(const FunctionCallbackInfo<Value>& args)
     }
 }
 
+static void amunConnectDebugger(const FunctionCallbackInfo<Value>& args)
+{
+    // the internal debugger may not completely block the strategy, the simulator will not be paused
+    Isolate* isolate = args.GetIsolate();
+    Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
+
+    // test if a debugger can be connected
+    bool canConnect = t->canConnectInternalDebugger();
+    Local<Boolean> canRegister = Boolean::New(isolate, canConnect);
+    args.GetReturnValue().Set(canRegister);
+    if (!canConnect) {
+        return;
+    }
+
+    if (args.Length() != 3 || !args[0]->IsFunction() || !args[1]->IsFunction() || !args[2]->IsFunction()) {
+        isolate->ThrowException(String::NewFromUtf8(isolate, "connectDebugger takes three functions", String::kNormalString));
+        return;
+    }
+    Local<Function> handleResponse = Local<Function>::Cast(args[0]);
+    Local<Function> handleNotification = Local<Function>::Cast(args[1]);
+    Local<Function> messageLoop = Local<Function>::Cast(args[2]);
+
+    InternalDebugger *debugger = t->getInternalDebugger();
+    debugger->setFunctions(handleResponse, handleNotification, messageLoop);
+}
+
+static void amunDebuggerSend(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = args.GetIsolate();
+    Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
+    InternalDebugger *d = t->getInternalDebugger();
+    if (args.Length() != 1 || !args[0]->IsString()) {
+        isolate->ThrowException(String::NewFromUtf8(isolate, "debuggerSend takes one string", String::kNormalString));
+        return;
+    }
+    Local<String> message = args[0]->ToString(isolate->GetCurrentContext()).ToLocalChecked();
+    d->dispatchProtocolMessage((uint8_t*)*String::Utf8Value(isolate, message), message->Utf8Length());
+}
+
+static void amunDisconnectDebugger(const FunctionCallbackInfo<Value>& args)
+{
+    Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
+    t->getInternalDebugger()->clearFunctions();
+}
+
 struct FunctionInfo {
     const char *name;
     void(*function)(FunctionCallbackInfo<Value> const &);
@@ -465,8 +511,11 @@ void registerAmunJsCallbacks(Isolate *isolate, Local<Object> global, Typescript 
         { "sendNetworkRefereeCommand", amunSendNetworkRefereeCommand},
         { "nextRefboxReply",    amunNextRefboxReply},
         { "setRobotExchangeSymbol", amunSetRobotExchangeSymbol},
-        { "luaRandom", amunLuaRandom},
-        { "luaRandomSetSeed", amunLuaRandomSeed}};
+        { "luaRandom",          amunLuaRandom},
+        { "luaRandomSetSeed",   amunLuaRandomSeed},
+        { "connectDebugger",    amunConnectDebugger},
+        { "debuggerSend",       amunDebuggerSend},
+        { "disconnectDebugger", amunDisconnectDebugger}};
 
     Local<Object> amunObject = Object::New(isolate);
     Local<String> amunStr = String::NewFromUtf8(isolate, "amun", NewStringType::kNormal).ToLocalChecked();
