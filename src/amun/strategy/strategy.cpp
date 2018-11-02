@@ -503,10 +503,15 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
     // hardcoded factory pattern
     if (Lua::canHandle(filename)) {
         m_strategy = new Lua(m_timer, m_type, m_debugEnabled, m_refboxControlEnabled);
+        // insert m_debugStatus into m_strategy
+        takeStrategyDebugStatus();
 #ifdef V8_FOUND
     } else if (Typescript::canHandle(filename)) {
         Typescript *t = new Typescript(m_timer, m_type, m_debugEnabled, m_refboxControlEnabled);
         m_strategy = t;
+        // insert m_debugStatus into m_strategy
+        // this has to happen before newDebuggagleStrategy is called
+        takeStrategyDebugStatus();
         if (m_debugEnabled) {
             m_inspectorServer->newDebuggagleStrategy(t);
         }
@@ -516,8 +521,6 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
         return;
     }
 
-    //insert m_debugStatus into m_strategy
-    takeStrategyDebugStatus();
 
     if (m_debugEnabled && m_debugHelper) {
         m_strategy->setDebugHelper(m_debugHelper);
