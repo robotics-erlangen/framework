@@ -16,8 +16,9 @@ import "glados/observer/initReplay";
 import "glados/tutorials/index";
 import "glados/util/lineup";
 
+import * as Debugger from "base/debugger";
 import * as Ball from "glados/observer/ball";
-import * as Error from "glados/observer/error";
+import * as ErrorObserver from "glados/observer/error";
 import * as Goal from "glados/observer/goal";
 import * as Robot from "glados/observer/robot";
 
@@ -33,7 +34,7 @@ class PreProc implements Process {
 		Robot._update();
 		Referee.check();
 		Referee.illustrateRefereeStates();
-		Error._update();
+		ErrorObserver._update();
 		Goal._update();
 	}
 
@@ -49,6 +50,7 @@ let frameCount = 0;
 function wrapper(func: () => boolean) {
 	return function() {
 		frameCount = frameCount + 1;
+		Debugger.runDebugger();
 		if (!World.update()) {
 			if ((frameCount % 100) === 0) {
 				log("Waiting for vision data...");

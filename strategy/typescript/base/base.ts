@@ -33,6 +33,10 @@
 
 import * as amunModule from "base/amun";
 
+// leave the debugger at the top so that exceptions during the initial
+// file run can dump variables
+import "base/debugger";
+
 import "base/mathutil";
 import "base/path";
 import "base/vector";
