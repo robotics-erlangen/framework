@@ -87,9 +87,9 @@ export function pop() {
 // @name getInitialExtraParams
 // @return Initial extra params
 export function getInitialExtraParams(): object {
-	let visited = {};
+	let visited = new Map<object, string>();
 	let tableCounter = [0];
-	return { visited, tableCounter };
+	return [ visited, tableCounter ];
 }
 
 
