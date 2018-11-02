@@ -65,6 +65,9 @@ Typescript::Typescript(const Timer *timer, StrategyType type, bool debugEnabled,
     Local<Object> global = context->Global();
     registerAmunJsCallbacks(m_isolate, global, this);
     registerPathJsCallbacks(m_isolate, global, this);
+    // create an empty global variable used for debugging
+    Local<String> objectName = String::NewFromUtf8(m_isolate, "___globalpleasedontuseinregularcode", NewStringType::kNormal).ToLocalChecked();
+    global->Set(objectName, Object::New(m_isolate));
     m_context.Reset(m_isolate, context);
 
     m_inspectorHolder.reset(new InspectorHolder(m_isolate, m_context));
