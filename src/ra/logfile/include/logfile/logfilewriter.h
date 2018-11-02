@@ -71,8 +71,8 @@ private:
     Status m_hashStatus = Status(new amun::Status);
 
     const static qint32 GROUPED_PACKAGES = 100;
-    static_assert(GROUPED_PACKAGES >= LogFileHasher::HASHED_PACKAGES);
-    static_assert(LogFileHasher::HASHED_PACKAGES > 2);
+    static_assert(GROUPED_PACKAGES >= LogFileHasher::HASHED_PACKAGES, "Grouped Packages have to be larger than hashed packages to make sure that the hash is produced before the first group is written to the disc");
+    static_assert(LogFileHasher::HASHED_PACKAGES > 2, "Hashing way too few packages can result in unwanted collisions");
 
     qint32 m_packageBufferOffsets[GROUPED_PACKAGES];
     qint64 m_packageTimeStamps[LogFileHasher::HASHED_PACKAGES-2]; //Only to be used while HashingState::NEEDS_HASHING
