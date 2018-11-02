@@ -208,25 +208,6 @@ separator for luadoc*/
 // @name sendNetworkRefereeCommand
 // @param command SSL_Referee
 
-/*
-separator for luadoc*/
-
-/// Write output to debugger console
-// @class function
-// @name debuggerWrite
-// @param line string
-
-/*
-separator for luadoc*/
-
-/// Wait for and read input from debugger console
-// @class function
-// @name debuggerRead
-// @return line string
-
-/*
-separator for luadoc*/
-
 /// Check if performance mode is active
 // @class function
 // @name getPerformanceMode
@@ -274,8 +255,6 @@ interface Amun extends AmunPublic {
 	addPlot(name: string, value: number): void;
 	sendRefereeCommand(command: pb.SSL_Referee): void;
 	sendMixedTeamInfo(data: pb.ssl.TeamPlan): void;
-	debuggerWrite(line: string): void;
-	debuggerRead(line: string): void;
 	getPerformanceMode(): boolean;
 
 	// undocumented
@@ -337,8 +316,6 @@ export function _hideFunctions() {
 		addPlot: DISABLED_FUNCTION,
 		sendRefereeCommand: DISABLED_FUNCTION,
 		sendMixedTeamInfo: DISABLED_FUNCTION,
-		debuggerWrite: DISABLED_FUNCTION,
-		debuggerRead: DISABLED_FUNCTION,
 		getPerformanceMode: DISABLED_FUNCTION,
 
 		luaRandomSetSeed: DISABLED_FUNCTION,
