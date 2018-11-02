@@ -219,6 +219,27 @@ separator for luadoc*/
 // @name nextRefboxReply
 // @return reply table - the last reply or nil if none is available
 
+
+/// Connect to the v8 debugger
+// this function can be called as often as one wishes, if the debugger is
+// already connected, it will do nothing and return false
+// @class function
+// @name connectDebugger
+// @param handleResponse - (message: string) => void - function to be called on a message response
+// @param handleNotification - (notification: string) => void - function to be called on a notification
+// @param messageLoop - () => void - called when regular javascript execution is blocket as the debugger is paused
+// @return success - boolean - if the connection was successfull
+
+/// Send a command to the debugger
+// only call this if the debugger is connected
+// @class function
+// @name debuggerSend
+// @param command - string
+
+/// Disconnects from the v8 debugger
+// @class function
+// @name disconnectDebugger
+
 import * as pb from "base/protobuf";
 
 interface AmunPublic {
@@ -256,6 +277,10 @@ interface Amun extends AmunPublic {
 	sendRefereeCommand(command: pb.SSL_Referee): void;
 	sendMixedTeamInfo(data: pb.ssl.TeamPlan): void;
 	getPerformanceMode(): boolean;
+	connectDebugger(handleResponse: (message: string) => void, handleNotification: (notification: string) => void,
+		messageLoop: () => void): boolean;
+	debuggerSend(command: string): void;
+	disconnectDebugger(): void;
 
 	// undocumented
 	luaRandomSetSeed(seed: number): void;
@@ -317,6 +342,9 @@ export function _hideFunctions() {
 		sendRefereeCommand: DISABLED_FUNCTION,
 		sendMixedTeamInfo: DISABLED_FUNCTION,
 		getPerformanceMode: DISABLED_FUNCTION,
+		connectDebugger: DISABLED_FUNCTION,
+		debuggerSend: DISABLED_FUNCTION,
+		disconnectDebugger: DISABLED_FUNCTION,
 
 		luaRandomSetSeed: DISABLED_FUNCTION,
 		luaRandom: DISABLED_FUNCTION
@@ -324,3 +352,4 @@ export function _hideFunctions() {
 }
 
 export const log = amun.log;
+
