@@ -669,7 +669,7 @@ Status Strategy::takeStrategyDebugStatus()
         return Status(new amun::Status);
     }
     Status status = Status::createArena();
-    amun::DebugValues* debugValues = m_strategy->setDebugStatus(status->add_debug());
+    amun::DebugValues* debugValues = m_strategy->setDebugValues(status->add_debug());
     Status out = m_debugStatus;
     m_debugStatus = status;
     if (!debugValues) {

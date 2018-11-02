@@ -68,8 +68,13 @@ public:
     // getter functions
     QString errorMsg() const { return m_errorMsg; }
     // may be called after loadScript / process
-    amun::DebugValues* setDebugStatus(amun::DebugValues* dV);
-    void clearDebugStatus(){ if(m_debugStatus) m_debugStatus->Clear();}
+    // has to be called before calling log, addDebug, addPlot, ...
+    // as this function inserts the pointer dV into this object and log uses that pointer.
+    // The status containing dV has to be managed outside of AbstractStrategyScript,
+    // because it should be possible to have multiple debugValues in one Status,
+    // containing information of different scripts at once.
+    amun::DebugValues* setDebugValues(amun::DebugValues* dV);
+    void clearDebugValues(){ if(m_debugValues) m_debugValues->Clear();}
 
     QStringList entryPoints() const { return m_entryPoints; }
     QString entryPoint() const { return m_entryPoint; }
@@ -133,7 +138,6 @@ protected:
     const bool m_refboxControlEnabled;
 
     QString m_errorMsg;
-    amun::DebugValues* m_debugStatus = nullptr;
     bool m_hasDebugger;
     DebugHelper *m_debugHelper;
     bool m_isInternalAutoref;
@@ -150,6 +154,9 @@ protected:
     amun::UserInput m_userInput;
 
     QList<SSL_RefereeRemoteControlReply> m_refereeReplys;
+
+private:
+    amun::DebugValues* m_debugValues = nullptr;
 };
 
 #endif // ABSTRACTSTRATEGYSCRIPT_H

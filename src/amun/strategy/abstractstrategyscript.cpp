@@ -26,7 +26,6 @@ AbstractStrategyScript::AbstractStrategyScript(const Timer *timer, StrategyType 
     m_type(type),
     m_debugEnabled(debugEnabled),
     m_refboxControlEnabled(refboxControlEnabled),
-    m_debugStatus(nullptr),
     m_hasDebugger(false),
     m_debugHelper(nullptr),
     m_isInternalAutoref(false)
@@ -38,10 +37,10 @@ bool AbstractStrategyScript::triggerDebugger()
     return false;
 }
 
-amun::DebugValues* AbstractStrategyScript::setDebugStatus(amun::DebugValues* dV)
+amun::DebugValues* AbstractStrategyScript::setDebugValues(amun::DebugValues* dV)
 {
-    amun::DebugValues* out = m_debugStatus;
-    m_debugStatus = dV;
+    amun::DebugValues* out = m_debugValues;
+    m_debugValues = dV;
     return out;
 }
 
@@ -79,34 +78,34 @@ qint64 AbstractStrategyScript::time() const
 
 void AbstractStrategyScript::log(const QString &text)
 {
-    amun::StatusLog *log = m_debugStatus->add_log();
+    amun::StatusLog *log = m_debugValues->add_log();
     log->set_timestamp(time());
     log->set_text(text.toStdString());
 }
 
 amun::Visualization *AbstractStrategyScript::addVisualization()
 {
-    return m_debugStatus->add_visualization();
+    return m_debugValues->add_visualization();
 }
 
 void AbstractStrategyScript::removeVisualizations()
 {
-    m_debugStatus->clear_visualization();
+    m_debugValues->clear_visualization();
 }
 
 amun::DebugValue *AbstractStrategyScript::addDebug()
 {
-    return m_debugStatus->add_value();
+    return m_debugValues->add_value();
 }
 
 amun::PlotValue *AbstractStrategyScript::addPlot()
 {
-    return m_debugStatus->add_plot();
+    return m_debugValues->add_plot();
 }
 
 amun::RobotValue *AbstractStrategyScript::addRobotValue()
 {
-    return m_debugStatus->add_robot();
+    return m_debugValues->add_robot();
 }
 
 void AbstractStrategyScript::setCommand(uint generation, uint robotId, const RobotCommand &command)
