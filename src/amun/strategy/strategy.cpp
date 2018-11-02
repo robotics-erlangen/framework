@@ -105,7 +105,7 @@ Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, b
     initV8();
 
 #ifdef V8_FOUND
-    int inspectorPort;
+    int inspectorPort = 0;
     switch (m_type) {
     case StrategyType::BLUE:
         inspectorPort = 3415;
