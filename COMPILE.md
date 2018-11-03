@@ -19,7 +19,7 @@ Certain features require additional libraries:
  * libudev - Required for joystick support (only required if libsdl2 is not available via the package manager)
 
 ## Linux
-Names of required package for Ubuntu 16.04: `cmake protobuf-compiler libprotobuf-dev qtbase5-dev libsdl2-dev libusb-1.0-0-dev g++`
+Names of required package for Ubuntu 16.04: `cmake protobuf-compiler libprotobuf-dev qtbase5-dev libqt5opengl5-dev libsdl2-dev libusb-1.0-0-dev g++`
 Only on Ubuntu 14.04 you'll need `cmake3`.
 
 Names of required package for Arch/Manjaro (tested on Manjaro 17.1.15): `cmake qt5-base protobuf sdl2 libusb`
