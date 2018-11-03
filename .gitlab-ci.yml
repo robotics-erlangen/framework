@@ -1,4 +1,4 @@
-compile-ra:
+.compile-ra: &compile_template
   script:
     - mkdir -p build
     - cd build
@@ -17,6 +17,11 @@ compile-ra:
       - build/bin/
     expire_in: 1 day
 
+compile-ra:
+  <<: *compile_template
+  except:
+    - schedules
+
 .test: &test_template
   script:
     - "echo running test \"$TEST_PATTERN\""
@@ -28,8 +33,51 @@ compile-ra:
     key: "tests"
     paths:
       - build/
+  variables:
+    TEST_PATTERN: "."
 
 tests:
   <<: *test_template
-  variables:
-    TEST_PATTERN: "."
+  dependencies:
+    - compile-ra
+  except:
+    - schedules
+
+
+.compile-ra-schedule: &compile_schedule
+  <<: *compile_template
+  only:
+    - schedules
+
+compile-ra-16.04:
+  <<: *compile_schedule
+  image: ubuntu-16.04
+
+compile-ra-18.04:
+  <<: *compile_schedule
+  image: ubuntu-18.04
+
+compile-ra-18.04-no-v8:
+  <<: *compile_schedule
+  image: ubuntu-18.04-no-v8
+
+
+.test-schedule: &test_schedule
+  <<: *test_template
+  only:
+    - schedules
+
+tests-16.04:
+  <<: *test_schedule
+  dependencies:
+    - compile-ra-16.04
+
+tests-18.04:
+  <<: *test_schedule
+  dependencies:
+    - compile-ra-18.04
+
+tests-18.04-no-v8:
+  <<: *test_schedule
+  dependencies:
+    - compile-ra-18.04-no-v8
