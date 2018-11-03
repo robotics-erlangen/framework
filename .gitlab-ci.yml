@@ -9,7 +9,7 @@
     # Increase the number in the cache key to start with
     # a fresh build cache. This is only useful in case of
     # build system bug and/or updates of ExternalProjects!
-    key: "default-2"
+    key: "$CI_JOB_NAME-0"
     paths:
       - build/
   artifacts:
@@ -30,7 +30,7 @@ compile-ra:
     - "ctest --output-on-failure -R \"$TEST_PATTERN\""
   stage: test
   cache:
-    key: "tests"
+    key: "$CI_JOB_NAME"
     paths:
       - build/
   variables:
