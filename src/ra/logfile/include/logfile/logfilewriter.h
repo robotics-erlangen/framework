@@ -48,6 +48,9 @@ public:
     QString filename() const { return m_file.fileName(); }
     LogFileReader * makeStatusSource();
 
+    bool hasHash() const { return m_hashState == HashingState::HAS_HASHING; }
+    logfile::Uid getHash() const { return m_hashStatus->log_id(); }
+
 public slots:
     bool writeStatus(const Status &status);
 

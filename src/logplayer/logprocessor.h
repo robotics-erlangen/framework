@@ -51,7 +51,7 @@ private:
     bool skipStatus(const amun::GameState& lastGameState, bool isSimulated) const;
     void changeTimestamps(Status& status, qint64 timeRemoved, bool& isSimulated) const;
     void collectHashes(QList<SeqLogFileReader*> reader, Exchanger* writer);
-    void reencode(SeqLogFileReader* reader, const logfile::Uid& id, Exchanger* writer);
+    void reencode(SeqLogFileReader* reader, Exchanger* writer);
     void sendOutputSelected(LogFileWriter* writer);
     logfile::Uid calculateUid() const;
 

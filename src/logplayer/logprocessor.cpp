@@ -365,11 +365,11 @@ void LogProcessor::collectHashes(QList<SeqLogFileReader*> readers, Exchanger* wr
             LogFileWriter hashWriter;
             hashWriter.open(tmpFile.fileName());
             sendOutputSelected(&hashWriter);
-            hash.add_parts()->mutable_hash()->assign(LogFileHasher::hash(*reader));
-            reencode(reader, hash, writer);
+            reencode(reader, writer);
             //Wait for LogWriter to finish writing
             m_semaphore.acquire();
             m_semaphore.release();
+            hash = hashWriter.getHash();
             LogFileHasher::replace(tmpFile.fileName(), reader->fileName());
             //TODO: check how overriding logfiles behaves on different OS
             //Assumption: UNIX keeps old fp, and therefore rehashes the same logfile twice, while Windows don't know.
@@ -380,12 +380,11 @@ void LogProcessor::collectHashes(QList<SeqLogFileReader*> readers, Exchanger* wr
     emit progressUpdate("Hashing completed");
 }
 
-void LogProcessor::reencode(SeqLogFileReader* reader, const logfile::Uid& hash, Exchanger* writer)
+void LogProcessor::reencode(SeqLogFileReader* reader, Exchanger* writer)
 {
     SeqLogFileReader::Memento mem = reader->createMemento();
     Status current = reader->readStatus();
     if (current->has_log_id()) qFatal("Reencode a logfile that already contains a logfile:uid");
-    *(current->mutable_log_id()) = hash;
     writer->transfer(current);
     for (int i = 1; !reader->atEnd(); ++i) {
         current = reader->readStatus();

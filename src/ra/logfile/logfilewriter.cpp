@@ -124,6 +124,7 @@ bool LogFileWriter::writeStatus(const Status &status)
     bool serialize = true;
     if (m_hashState == HashingState::UNINITIALIZED && status->has_log_id()) {
         m_hashState = HashingState::HAS_HASHING;
+        m_hashStatus->mutable_log_id()->CopyFrom(status->log_id());
     } else if (m_hashState == HashingState::UNINITIALIZED) {
         m_hashStatus->CopyFrom(*status);
         serialize = false;
