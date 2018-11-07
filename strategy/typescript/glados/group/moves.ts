@@ -115,7 +115,7 @@ export class Moves {
 				let assignment: any = taskAssignments.get(robot);
 				if (assignment != undefined) {
 					assignment.mainAttacker = robot === mainAttacker;
-					if (assignment.class != undefined && assignment.class !== "none") {
+					if ((assignment.class != undefined && assignment.class !== "none") || assignment.behavior != undefined) {
 						messaging.send(MessageType.moveAssignment, robot, assignment);
 					}
 					this._participatingRobots.push(robot);
