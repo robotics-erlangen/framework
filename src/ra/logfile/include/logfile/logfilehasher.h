@@ -40,6 +40,7 @@ public:
     std::string takeResult() const;
     void add(const Status& status);
     bool isFinished() const { return m_collected == HASHED_PACKAGES; }
+    void clear();
 
 private:
     Status m_state = Status(new amun::Status);

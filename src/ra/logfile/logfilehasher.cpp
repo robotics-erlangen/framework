@@ -66,6 +66,12 @@ void LogFileHasher::add(const Status& status)
     }
 }
 
+void LogFileHasher::clear()
+{
+    m_collected = 0;
+    m_state->Clear();
+}
+
 std::string LogFileHasher::takeResult() const
 {
     return ::hash(m_state);

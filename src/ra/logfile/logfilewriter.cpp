@@ -82,6 +82,9 @@ bool LogFileWriter::open(const QString &filename)
     m_packageBufferCount = 0;
     m_packageBuffer.clear();
     m_writtenPackages = 0;
+    m_hasher.clear();
+    m_hashState = HashingState::UNINITIALIZED;
+    m_hashStatus->Clear();
 
     return true;
 }
