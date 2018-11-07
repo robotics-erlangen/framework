@@ -1,5 +1,5 @@
-import * as debug from "base/debug";
 import { log } from "base/amun";
+import * as debug from "base/debug";
 const connectDebugger = amun.connectDebugger;
 const debuggerSend = amun.debuggerSend;
 
