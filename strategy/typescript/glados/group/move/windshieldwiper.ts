@@ -79,7 +79,7 @@ export class WindshieldWiper extends Move {
 	_updateTasks(): [Map<FriendlyRobot, Assignment>, FriendlyRobot] {
 		let distances = this._distances;
 		// sort(distances,World.Ball)
-		let mainrobot = distances[1].robot;
+		let mainrobot = distances[0].robot;
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
 
 		if (World.RefereeState === "Stop") {
@@ -104,7 +104,7 @@ export class WindshieldWiper extends Move {
 
 			for (let i = 1;i < this._robots.length;i++) {
 				if (i !== nr) {
-					let acceptPos = geom.intersectLineCircle(posToShiftFrom, pos[i] - posToShiftFrom, circle, radius);
+					let acceptPos = geom.intersectLineCircle(posToShiftFrom, pos[i] - posToShiftFrom, circle, radius)[0];
 					taskAssignments[distances[i].robot] = {class: Striker, params: [pos[i], acceptPos], restart: true};
 				}
 			}
