@@ -63,7 +63,6 @@ function produceRandom(seed?: number): RandomLike {
 	}
 	if (luaRandom == undefined) {
 		luaRandom = !(amunCopy.getSelectedOptions().indexOf("Disable Lua PRNG") > -1);
-		amun.log(luaRandom);
 	}
 	if (luaRandom) {
 		amunCopy.luaRandomSetSeed(seed);
