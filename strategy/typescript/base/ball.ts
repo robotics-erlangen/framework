@@ -69,7 +69,7 @@ export class Ball {
 		//
 	}
 
-	__tostring() {
+	__toString() {
 		// return string.format("Ball(pos = (%6.3f, %6.3f), speed = %3.1f)",
 		// 	this.pos.x, this.pos.y, this.speed.length());
 		// TODO: string.format doesn't exist, but number of digits would be nice

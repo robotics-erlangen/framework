@@ -155,14 +155,14 @@ export class Robot {
 		this.isFriendly = false;
 	}
 
-	_tostring(): string {
+	_toString(): string {
 		if (this._toStringCache !== "") {
 			return this._toStringCache;
 		}
 		if (this.pos == undefined || this.id == undefined) {
 			this._toStringCache = `Robot(${this.id ? this.id : "?"})`;
 		} else {
-			this._toStringCache = `Robot(${this.id}, pos ${this.pos._toString})`;
+			this._toStringCache = `Robot(${this.id}, pos ${this.pos._toString()})`;
 		}
 		return this._toStringCache;
 	}
