@@ -37,6 +37,7 @@ export class Defense {
 	private _centerbackAssignments: FriendlyRobot[] = [];
 
 	private _piggyTargets: Map<Robot, number> = new Map(); 						// opponent -> rating
+	private _scrappedPiggyTargets: Robot[];
 	private _piggyAssignments: Map<Robot, FriendlyRobot> = new Map();  			// opponent -> defender
 
 	private _previousManmarkAssignments: Map<Robot, FriendlyRobot> = new Map(); // opponent -> defender
@@ -65,6 +66,7 @@ export class Defense {
 			radius: Constants.maxRobotRadius,
 			speed: new Vector(0, 0)
 		});
+		this._scrappedPiggyTargets = [];
 		// TODO Zonenverteidigung porten
 		// this._zonePosHysteresis = {}
 	}
@@ -206,13 +208,18 @@ export class Defense {
 			vis.addCircle("tr/defense: passViability", robot.pos, 0.2, vis.fromTemperature(rating), true);
 		}
 
+		let scrappedTargets: Robot[] = [];
+
 		// remove targets with lowest ratings
 		for (let [opp, rating] of passViability.entries()) {
-			if (rating < 0.1) {
+			let ratingThreshold = this._scrappedPiggyTargets.includes(opp) ? 0.15 : 0.1;
+			if (rating < ratingThreshold) {
 				passViability.delete(opp);
+				scrappedTargets.push(opp);
 			}
 		}
 
+		this._scrappedPiggyTargets = scrappedTargets;
 		this._piggyTargets = passViability;
 	}
 
