@@ -142,6 +142,7 @@ bool LogFileWriter::writeStatus(const Status &status)
         m_hashStatus->mutable_log_id()->add_parts()->set_hash(m_hasher.takeResult());
         serializeStatus(&LogFileWriter::addFirstPackage, m_hashStatus, this);
         m_hashState = HashingState::HAS_HASHING;
+        m_hasher.clear();
     }
 
     if (serialize) {
