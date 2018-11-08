@@ -37,7 +37,7 @@ static bool verifyNumber(Isolate *isolate, Local<Value> value, float &result)
 {
     Maybe<double> maybeValue = value->NumberValue(isolate->GetCurrentContext());
     double v = 0.0;
-    if (!maybeValue.To(&v) || std::isnan(result) || std::isinf(result)) {
+    if (!maybeValue.To(&v) || std::isnan(v) || std::isinf(v)) {
         Local<String> errorMessage = String::NewFromUtf8(isolate, "Invalid argument", String::kNormalString);
         isolate->ThrowException(errorMessage);
         return false;
