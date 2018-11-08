@@ -41,6 +41,7 @@ LogFileReader::~LogFileReader()
 
 LogFileReader::LogFileReader(SeqLogFileReader&& reader) : m_reader(std::move(reader))
 {
+    m_reader.reset();
     m_headerCorrect = true;
     if (m_reader.isOpen() && !indexFile()) {
         m_reader.close();
