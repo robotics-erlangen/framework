@@ -45,9 +45,6 @@ export class Color {
 	}
 }
 
-let gcolor: Color;
-let gisFilled: boolean = true;
-
 /// Joins rgba-value to a color.
 // Values from 0 to 255
 // @name fromRGBA
@@ -157,6 +154,8 @@ colors.mediumPurpleHalf = fromRGBA(171, 130, 255, 127);
 colors.darkPurple = fromRGBA(93, 71, 139, 255);
 colors.darkPurpleHalf = fromRGBA(93, 71, 139, 127);
 
+let gcolor: Color = colors.black;
+let gisFilled: boolean = true;
 
 /// Sets line and fill color.
 // If filled is true polygons and circles are filled using color.
@@ -185,23 +184,29 @@ export function addCircle(name: string, center: Position, radius: number, color?
 // @name addCircleRaw
 // @see addCircle
 export function addCircleRaw(name: string, center: Position, radius: number, color?: Color,
-		isFilled?: boolean, background?: boolean, style?: Style, lineWidth: number = 0.01) {
+		isFilled: boolean = false, background: boolean = false, style?: Style, lineWidth: number = 0.01) {
 	// if color is set use passed isFilled
 	if (color == undefined) {
 		isFilled = gisFilled;
 		color = gcolor;
 	}
-	let brush: Color | undefined;
-	if (isFilled) {
-		brush = color;
+	if (style) {
+		// style is not supported by the fast specialized version
+		let brush: Color | undefined;
+		if (isFilled) {
+			brush = color;
+		}
+		let t: any = {
+			name: name, pen: { color: color, style: style },
+			brush: brush, width: lineWidth,
+			circle: {p_x: center.x, p_y: center.y, radius: radius},
+			background: background
+		};
+		amunLocal.addVisualization(t);
+	} else {
+		amunLocal.addCircleSimple(name, center.x, center.y, radius, color.red,
+			color.green, color.blue, color.alpha, isFilled, background, lineWidth);
 	}
-	let t: any = {
-		name: name, pen: { color: color, style: style },
-		brush: brush, width: lineWidth,
-		circle: {p_x: center.x, p_y: center.y, radius: radius},
-		background: background
-	};
-	amunLocal.addVisualization(t);
 }
 
 /// Adds a polygon.
@@ -220,22 +225,32 @@ export function addPolygon(name: string, points: Position[], color?: Color,
 // @name addPolygonRaw
 // @see addPolygon
 export function addPolygonRaw(name: string, points: Position[], color?: Color,
-		isFilled?: boolean, background?: boolean, style?: Style) {
+		isFilled: boolean = false, background: boolean = false, style?: Style) {
 	// if color is set use passed isFilled
 	if (color == undefined) {
 		isFilled = gisFilled;
 		color = gcolor;
 	}
-	let brush: Color | undefined;
-	if (isFilled) {
-		brush = color;
+	if (style) {
+		let brush: Color | undefined;
+		if (isFilled) {
+			brush = color;
+		}
+		amunLocal.addVisualization({
+			name: name, pen: { color: color, style: style },
+			brush: brush, width: 0.01,
+			polygon: {point: points},
+			background: background
+		});
+	} else {
+		let pointArray: number[] = [];
+		for (let pos of points) {
+			pointArray.push(pos.x);
+			pointArray.push(pos.y);
+		}
+		amunLocal.addPolygonSimple(name, color.red, color.green, color.blue, color.alpha,
+			isFilled, background, pointArray);
 	}
-	amunLocal.addVisualization({
-		name: name, pen: { color: color, style: style },
-		brush: brush, width: 0.01,
-		polygon: {point: points},
-		background: background
-	});
 }
 
 
@@ -303,12 +318,21 @@ export function addPath(name: string, points: Position[], color?: Color, backgro
 /// Adds a path. Requires global coordinates.
 // @name addPathRaw
 // @see addPath
-export function addPathRaw(name: string, points: Position[], color: Color = gcolor, background?: boolean,
+export function addPathRaw(name: string, points: Position[], color: Color = gcolor, background: boolean = false,
 		style?: Style, lineWidth: number = 0.01) {
-	amunLocal.addVisualization({
-		name: name, pen: { color: color, style: style },
-		width: lineWidth,
-		path: {point: points},
-		background: background
-	});
+	if (style) {
+		amunLocal.addVisualization({
+			name: name, pen: { color: color, style: style },
+			width: lineWidth,
+			path: {point: points},
+			background: background
+		});
+	} else {
+		let pointArray: number[] = [];
+		for (let pos of points) {
+			pointArray.push(pos.x);
+			pointArray.push(pos.y);
+		}
+		amunLocal.addPathSimple(name, color.red, color.green, color.blue, color.alpha, lineWidth, background, pointArray);
+	}
 }
