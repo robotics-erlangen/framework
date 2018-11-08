@@ -321,7 +321,7 @@ export class Vector {
 
 	// used for base debug
 	_toString() {
-		return `Vector(${this.x}, ${this.y})`;
+		return `Vector(${this.x.toFixed(2)}, ${this.y.toFixed(2)})`;
 	}
 
 	/// Creates a new read-only vector
