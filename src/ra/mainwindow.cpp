@@ -329,6 +329,11 @@ void MainWindow::saveConfig()
 void MainWindow::loadConfig(bool doRestoreGeometry)
 {
     QSettings s;
+    if (!s.isWritable()) {
+        QLabel *label = new QLabel(this);
+        label->setText("<font color=\"red\">Can not save config! Check permissions of config file.</font>");
+        statusBar()->addPermanentWidget(label);
+    }
     s.beginGroup("MainWindow" + (m_currentWidgetConfiguration == 0 ? "" :
                                     QString::number(m_currentWidgetConfiguration)));
     if (doRestoreGeometry) {
