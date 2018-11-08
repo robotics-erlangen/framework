@@ -170,7 +170,7 @@ void InspectorServer::newDebuggagleStrategy(Typescript *typescript)
 {
     m_strategy = typescript;
     if (!m_server.isListening()) {
-        if (!m_server.listen(QHostAddress::Any, (quint16)m_port)) {
+        if (!m_server.listen(QHostAddress::LocalHost, (quint16)m_port)) {
             typescript->log("<font color=\"red\">Could not connect debugging server to port " + QString::number(m_port) + "</font>");
         }
     }
