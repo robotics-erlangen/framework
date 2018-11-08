@@ -274,7 +274,7 @@ export function _updateWorld(state: any) {
 		TimeDiff = 0;
 	}
 	Time = state.time * 1E-9;
-	MathUtil.randomseed(Time);
+	MathUtil.randomseed(state.time);
 	if (Time <= 0) {
 		throw new Error("Invalid Time. Outdated ra version!");
 	}
