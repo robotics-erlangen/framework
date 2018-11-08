@@ -246,7 +246,7 @@ void LogProcessor::changeTimestamps(Status& status, qint64 timeRemoved, bool& is
             isSimulated = state->is_simulated();
         }
     }
-    for (amun::DebugValues debug : *status->mutable_debug()) {
+    for (amun::DebugValues& debug : *status->mutable_debug()) {
         if (debug.has_time()) {
              debug.set_time(debug.time() - timeRemoved);
         }

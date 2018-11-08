@@ -54,7 +54,7 @@ void DebugTreeWidget::setFilterRegEx(const QString &keyFilter, const QString &va
     m_modelTree->setFilterRegEx(keyFilter, valueFilter);
     // publish last statuses again for filtering
     for (auto status: m_lastStatus) {
-        for (auto debug: status->debug()) {
+        for (const auto& debug: status->debug()) {
             m_modelTree->setDebug(debug, m_expanded);
         }
     }
@@ -62,7 +62,7 @@ void DebugTreeWidget::setFilterRegEx(const QString &keyFilter, const QString &va
 
 void DebugTreeWidget::handleStatus(const Status &status)
 {
-    for (auto debug : status->debug()) {
+    for (const auto& debug : status->debug()) {
         // save data for delayed update
         m_status[debug.source()] = status;
         m_guiTimer->requestTriggering();
@@ -75,8 +75,8 @@ void DebugTreeWidget::handleStatus(const Status &status)
 void DebugTreeWidget::updateTree()
 {
     // publish all cached data
-    for (auto status: m_status) {
-        for (auto debug: status->debug()) {
+    for (const auto& status: m_status) {
+        for (const auto& debug: status->debug()) {
             m_modelTree->setDebug(debug, m_expanded);
         }
     }

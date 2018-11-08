@@ -134,7 +134,7 @@ void VisualizationWidget::addItem(const std::string &stdName, bool checked)
 
 void VisualizationWidget::handleStatus(const Status &status)
 {
-    for (auto values : status->debug()) {
+    for (const auto& values : status->debug()) {
         m_time = status->time();
 
         for (int i = 0; i < values.visualization_size(); i++) {

@@ -528,7 +528,7 @@ void RobotSelectionWidget::handleStatus(const Status &status)
         }
     }
 
-    for (auto debug : status->debug()) {
+    for (const auto& debug : status->debug()) {
         for (int i = 0;i<debug.robot_size();i++) {
             const amun::RobotValue &value = debug.robot(i);
             emit setRobotExchangeIcon(value.generation(), value.id(), value.exchange());

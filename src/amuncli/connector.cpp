@@ -146,7 +146,7 @@ std::pair<int, bool> Connector::toExitCode(const QString &str)
 void Connector::handleStatus(const Status &status)
 {
     amun::DebugSource expectedSource = (m_asBlue) ? amun::StrategyBlue : amun::StrategyYellow;
-    for (auto debug: status->debug()) {
+    for (const auto& debug: status->debug()) {
         if (debug.source() == expectedSource) {
             if (m_debug) {
                 dumpProtobuf(*status);
