@@ -25,6 +25,7 @@
 #include <QtEndian>
 #include <functional>
 #include <v8.h>
+#include <cmath>
 
 #include "js_protobuf.h"
 #include "typescript.h"
@@ -139,6 +140,19 @@ static bool toBoolChecked(Isolate *isolate, Local<Value> value, bool &result)
     return true;
 }
 
+static bool verifyNumber(Isolate *isolate, Local<Value> value, float &result)
+{
+    Maybe<double> maybeValue = value->NumberValue(isolate->GetCurrentContext());
+    double v = 0.0;
+    if (!maybeValue.To(&v) || std::isnan(result) || std::isinf(result)) {
+        Local<String> errorMessage = String::NewFromUtf8(isolate, "Invalid argument", String::kNormalString);
+        isolate->ThrowException(errorMessage);
+        return false;
+    }
+    result = float(v);
+    return true;
+}
+
 static bool checkNumberOfArguments(Isolate *isolate, int expected, int got)
 {
     if (got < expected) {
@@ -191,6 +205,151 @@ static void amunAddVisualization(const FunctionCallbackInfo<Value>& args)
     }
     amun::Visualization *vis = t->addVisualization();
     jsToProtobuf(isolate, args[0], isolate->GetCurrentContext(), *vis);
+}
+
+static void amunAddCircleSimple(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = args.GetIsolate();
+    Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
+
+    float x, y, radius, r, g, b, alpha, lineWidth;
+    bool filled, background;
+    if (!checkNumberOfArguments(isolate, 9, args.Length()) || !verifyNumber(isolate, args[1], x) ||
+            !verifyNumber(isolate, args[2], y) || !verifyNumber(isolate, args[3], radius) ||
+            !verifyNumber(isolate, args[4], r) || !verifyNumber(isolate, args[5], g) ||
+            !verifyNumber(isolate, args[6], b) || !verifyNumber(isolate, args[7], alpha) ||
+            !toBoolChecked(isolate, args[8], filled) || !toBoolChecked(isolate, args[9], background) ||
+            !verifyNumber(isolate, args[10], lineWidth)) {
+        return;
+    }
+    std::string name(*String::Utf8Value(isolate, args[0]));
+    auto vis = t->addVisualization();
+    vis->set_width(lineWidth);
+    vis->set_name(name);
+    if (background) {
+        vis->set_background(background);
+    }
+    auto circle = vis->mutable_circle();
+    circle->set_p_x(x);
+    circle->set_p_y(y);
+    circle->set_radius(radius);
+    auto color = vis->mutable_pen()->mutable_color();
+    color->set_red(r);
+    color->set_green(g);
+    color->set_blue(b);
+    color->set_alpha(alpha);
+    if (filled) {
+        auto brush = vis->mutable_brush();
+        brush->set_red(r);
+        brush->set_green(g);
+        brush->set_blue(b);
+        brush->set_alpha(alpha);
+    }
+}
+
+static void amunAddPathSimple(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = args.GetIsolate();
+    Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
+
+    float r, g, b, alpha, width;
+    bool background;
+    if (!checkNumberOfArguments(isolate, 7, args.Length()) || !verifyNumber(isolate, args[1], r) ||
+            !verifyNumber(isolate, args[2], g) || !verifyNumber(isolate, args[3], b) ||
+            !verifyNumber(isolate, args[4], alpha) || !verifyNumber(isolate, args[5], width) ||
+            !toBoolChecked(isolate, args[6], background)) {
+        return;
+    }
+    std::string name(*String::Utf8Value(isolate, args[0]));
+    auto vis = t->addVisualization();
+    auto color = vis->mutable_pen()->mutable_color();
+    color->set_red(r);
+    color->set_green(g);
+    color->set_blue(b);
+    color->set_alpha(alpha);
+    vis->set_width(width);
+    vis->set_background(background);
+    vis->set_name(name);
+
+    if (!args[7]->IsArray()) {
+        Local<String> errorMessage = String::NewFromUtf8(isolate, "Argument is not an array", String::kNormalString);
+        isolate->ThrowException(errorMessage);
+        return;
+    }
+    Local<Array> points = Local<Array>::Cast(args[7]);
+    auto path = vis->mutable_path();
+    // TODO: pre-allocate the array size
+    if (points->Length() % 2 == 1) {
+        Local<String> errorMessage = String::NewFromUtf8(isolate, "Invalid array length", String::kNormalString);
+        isolate->ThrowException(errorMessage);
+        return;
+    }
+    for (unsigned int i = 0;i<points->Length();i+=2) {
+        float x, y;
+        if (!verifyNumber(isolate, points->Get(i), x) || !verifyNumber(isolate, points->Get(i+1), y)) {
+            Local<String> errorMessage = String::NewFromUtf8(isolate, "Array has to contain numbers", String::kNormalString);
+            isolate->ThrowException(errorMessage);
+            return;
+        }
+        auto point = path->add_point();
+        point->set_x(x);
+        point->set_y(y);
+    }
+}
+
+static void amunAddPolygonSimple(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = args.GetIsolate();
+    Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
+
+    float r, g, b, alpha;
+    bool filled, background;
+    if (!checkNumberOfArguments(isolate, 7, args.Length()) || !verifyNumber(isolate, args[1], r) ||
+            !verifyNumber(isolate, args[2], g) || !verifyNumber(isolate, args[3], b) ||
+            !verifyNumber(isolate, args[4], alpha) || !toBoolChecked(isolate, args[5], filled) ||
+            !toBoolChecked(isolate, args[6], background)) {
+        return;
+    }
+    std::string name(*String::Utf8Value(isolate, args[0]));
+    auto vis = t->addVisualization();
+    auto color = vis->mutable_pen()->mutable_color();
+    color->set_red(r);
+    color->set_green(g);
+    color->set_blue(b);
+    color->set_alpha(alpha);
+    if (filled) {
+        auto brush = vis->mutable_brush();
+        brush->set_red(r);
+        brush->set_green(g);
+        brush->set_blue(b);
+        brush->set_alpha(alpha);
+    }
+    vis->set_name(name);
+    vis->set_width(0.01f);
+
+    if (!args[7]->IsArray()) {
+        Local<String> errorMessage = String::NewFromUtf8(isolate, "Argument is not an array", String::kNormalString);
+        isolate->ThrowException(errorMessage);
+        return;
+    }
+    Local<Array> points = Local<Array>::Cast(args[7]);
+    auto polygon = vis->mutable_polygon();
+    if (points->Length() % 2 == 1) {
+        Local<String> errorMessage = String::NewFromUtf8(isolate, "Invalid array length", String::kNormalString);
+        isolate->ThrowException(errorMessage);
+        return;
+    }
+    for (unsigned int i = 0;i<points->Length();i+=2) {
+        float x, y;
+        if (!verifyNumber(isolate, points->Get(i), x) || !verifyNumber(isolate, points->Get(i+1), y)) {
+            Local<String> errorMessage = String::NewFromUtf8(isolate, "Array has to contain numbers", String::kNormalString);
+            isolate->ThrowException(errorMessage);
+            return;
+        }
+        auto point = polygon->add_point();
+        point->set_x(x);
+        point->set_y(y);
+    }
 }
 
 static void amunAddDebug(const FunctionCallbackInfo<Value>& args)
@@ -502,6 +661,9 @@ void registerAmunJsCallbacks(Isolate *isolate, Local<Object> global, Typescript 
         { "getUserInput",       amunGetUserInput},
         { "log",                amunLog},
         { "addVisualization",   amunAddVisualization},
+        { "addCircleSimple",    amunAddCircleSimple},
+        { "addPathSimple",      amunAddPathSimple},
+        { "addPolygonSimple",   amunAddPolygonSimple},
         { "addDebug",           amunAddDebug},
         { "addPlot",            amunAddPlot},
         { "getPerformanceMode", amunGetPerformanceMode},

@@ -71,21 +71,6 @@ separator for luadoc*/
 /*
 separator for luadoc*/
 
-/// Add a circle
-// @class function
-// @name addVisualizationCircle
-// @param string name
-// @param number centerX
-// @param number centerY
-// @param number radius
-// @param number colorRed
-// @param number colorGreen
-// @param number colorBlue
-// @param number colorAlpha
-// @param bool isFilled
-// @param bool background
-// @param number linewidth
-
 /*
 separator for luadoc*/
 
@@ -263,11 +248,15 @@ interface Amun extends AmunPublic {
 	getTeam(): pb.robot.Team;
 	isBlue(): boolean;
 	addVisualization(vis: pb.amun.Visualization): void;
-	addVisualizationCircle(name: string,
-		centerX: number, centerY: number, radius: number,
-		colorRed: number, colorGreen: number, colorBlue: number, colorAlpha: number,
-		isFilled: boolean, background: boolean, linewidth: number
-	): void;
+	/** Adds a circle visualization, this is faster than the generic addVisualization */
+	addCircleSimple(name: string, x: number, y: number, radius: number, r: number,
+		g: number, b: number, alpha: number, filled: boolean, background: boolean, lineWidth: number): void;
+	/** Adds a path visualization, pointCoordinates takes consecutive x and y coordinates of the points */
+	addPathSimple(name: string, r: number, g: number, b: number, alpha: number, width: number, background: boolean,
+		pointCoordinates: number[]): void;
+	/** Adds a polygon visualization, pointCoordinates takes consecutive x and y coordinates of the points */
+	addPolygonSimple(name: string, r: number, g: number, b: number, alpha: number, filled: boolean,
+		background: boolean, pointCoordinates: number[]): void;
 	setCommand(generation: number, id: number, cmd: pb.robot.Command): void;
 	getGameState(): pb.amun.GameState;
 	getUserInput(): pb.amun.UserInput;
@@ -332,7 +321,9 @@ export function _hideFunctions() {
 		getTeam: DISABLED_FUNCTION,
 		isBlue: DISABLED_FUNCTION,
 		addVisualization: DISABLED_FUNCTION,
-		addVisualizationCircle: DISABLED_FUNCTION,
+		addCircleSimple: DISABLED_FUNCTION,
+		addPathSimple: DISABLED_FUNCTION,
+		addPolygonSimple: DISABLED_FUNCTION,
 		setCommand: DISABLED_FUNCTION,
 		getGameState: DISABLED_FUNCTION,
 		getUserInput: DISABLED_FUNCTION,
@@ -353,4 +344,5 @@ export function _hideFunctions() {
 }
 
 export const log = amun.log;
+
 
