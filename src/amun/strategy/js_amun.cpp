@@ -378,9 +378,7 @@ static void amunGetPerformanceMode(const FunctionCallbackInfo<Value>& args)
     args.GetReturnValue().Set(result);
 }
 
-lua_State *luaState = nullptr;
-
-static void initLuaState()
+static void initLuaState(lua_State*& luaState)
 {
     if (luaState == nullptr) {
         luaState = lua_open();
@@ -388,7 +386,7 @@ static void initLuaState()
     }
 }
 
-static void handleLuaError(const char* prefix, Isolate* isolate)
+static void handleLuaError(const char* prefix, Isolate* isolate, lua_State* luaState)
 {
     std::string message(prefix);
     message.append(lua_tostring(luaState, -1));
@@ -399,12 +397,14 @@ static void handleLuaError(const char* prefix, Isolate* isolate)
 static void amunLuaRandom(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = args.GetIsolate();
-    initLuaState();
+    Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
+    lua_State*& luaState = t->luaState();
+    initLuaState(luaState);
     lua_getglobal(luaState, "math");
     lua_getfield(luaState, -1, "random");
     lua_remove(luaState, -2);
     if (lua_pcall(luaState, 0, 1, 0) != 0) {
-        handleLuaError("error random", isolate);
+        handleLuaError("error random", isolate, luaState);
         return;
     }
     if (!lua_isnumber(luaState, -1)) {
@@ -425,13 +425,15 @@ static void amunLuaRandomSeed(const FunctionCallbackInfo<Value>& args)
     if (!checkNumberOfArguments(isolate, 1, args.Length()) || !toUintChecked(isolate, args[0], seed)) {
         return;
     }
-    initLuaState();
+    Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
+    lua_State*& luaState = t->luaState();
+    initLuaState(luaState);
     lua_getglobal(luaState, "math");
     lua_getfield(luaState, -1, "randomseed");
     lua_remove(luaState, -2);
     lua_pushnumber(luaState, seed);
     if(lua_pcall(luaState, 1, 0, 0) != 0) {
-        handleLuaError("error randomseed", isolate);
+        handleLuaError("error randomseed", isolate, luaState);
         return;
     }
 }

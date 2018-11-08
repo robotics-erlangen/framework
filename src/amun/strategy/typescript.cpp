@@ -27,6 +27,7 @@
 #include <vector>
 #include <v8.h>
 #include <libplatform/libplatform.h>
+#include <lua.hpp>
 
 #include "js_amun.h"
 #include "js_path.h"
@@ -43,7 +44,8 @@ Typescript::Typescript(const Timer *timer, StrategyType type, bool debugEnabled,
     AbstractStrategyScript (timer, type, debugEnabled, refboxControlEnabled),
     m_executionCounter(0),
     m_profiler (nullptr),
-    m_scriptIdCounter(0)
+    m_scriptIdCounter(0),
+    m_luaState(nullptr)
 {
     Isolate::CreateParams create_params;
     create_params.array_buffer_allocator = ArrayBuffer::Allocator::NewDefaultAllocator();
@@ -97,6 +99,9 @@ Typescript::~Typescript()
     m_context.Reset();
     m_isolate->Exit();
     m_isolate->Dispose();
+    if (m_luaState) {
+        lua_close(m_luaState);
+    }
 }
 
 bool Typescript::canHandle(const QString &filename)

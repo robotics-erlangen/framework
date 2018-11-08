@@ -35,6 +35,7 @@ class QThread;
 class InspectorHolder;
 class AbstractInspectorHandler;
 class InternalDebugger;
+class lua_State;
 
 class Typescript : public AbstractStrategyScript
 {
@@ -58,6 +59,7 @@ public:
     bool hasInspectorHandler() const;
     bool canConnectInternalDebugger() const;
     InternalDebugger *getInternalDebugger() const { return m_internalDebugger.get(); }
+    lua_State*& luaState() { return m_luaState; }
 
 protected:
     bool loadScript(const QString &filename, const QString &entryPoint) override;
@@ -89,6 +91,8 @@ private:
     std::unique_ptr<InternalDebugger> m_internalDebugger;
 
     int m_scriptIdCounter;
+
+    lua_State* m_luaState;
 };
 
 #endif // TYPESCRIPT_H
