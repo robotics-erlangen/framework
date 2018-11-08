@@ -89,7 +89,6 @@ function limitToAllowedField_2018(pos: Readonly<Position>, extraLimit: number = 
 		oppExtraLimit = oppExtraLimit + G.FreeKickDefenseDist + 0.10;
 	}
 	pos = limitToField(pos, -extraLimit);
-	vis.addCircle("1Test", pos, 0.2, vis.colors.green);
 	if (isInFriendlyDefenseArea(pos, extraLimit)) {
 		let targety = -G.FieldHeightHalf + G.DefenseHeight + extraLimit;
 		let targetx = G.DefenseWidthHalf + extraLimit;
@@ -356,7 +355,6 @@ function intersectionsRayDefenseArea_2018(pos: Position, dir: RelativePosition, 
 		// intersections on lines
 		let length = (i % 2 === 1) ? G.DefenseWidth : G.DefenseHeight;
 		let [ipos, l1, l2] = geom.intersectLineLine(pos, dir, v * f, directions[i] * f);
-		vis.addPath("1Test", [pos, pos + dir], vis.colors.green);
 		if (l1 && l1 >= 0 && l2 >= 0 && l2 <= length) {
 			// no intersections with parallel lines
 			if (!(l1 === 0 && l2 === 0) || ipos.distanceToSq(v * f) < 0.0001) {
