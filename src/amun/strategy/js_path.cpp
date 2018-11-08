@@ -102,7 +102,7 @@ static void pathAddCircle(const FunctionCallbackInfo<Value>& args)
     float x, y, r, prio;
 
     if (!verifyNumber(isolate, args[1], x) || !verifyNumber(isolate, args[2], y) ||
-            !verifyNumber(isolate, args[3], r) || !verifyNumber(isolate, args[4], prio)) {
+            !verifyNumber(isolate, args[3], r) || !verifyNumber(isolate, args[5], prio)) {
         return;
     }
     p->addCircle(x, y, r, nullptr, int(prio));
@@ -115,7 +115,7 @@ static void pathAddLine(const FunctionCallbackInfo<Value>& args)
     float x1, y1, x2, y2, width, prio;
     if (!verifyNumber(isolate, args[1], x1) || !verifyNumber(isolate, args[2], y1) ||
             !verifyNumber(isolate, args[3], x2) || !verifyNumber(isolate, args[4], y2) ||
-            !verifyNumber(isolate, args[5], width) || !verifyNumber(isolate, args[6], prio)) {
+            !verifyNumber(isolate, args[5], width) || !verifyNumber(isolate, args[7], prio)) {
         return;
     }
 
@@ -156,7 +156,7 @@ static void pathAddRect(const FunctionCallbackInfo<Value>& args)
     float x1, y1, x2, y2, prio;
     if (!verifyNumber(isolate, args[1], x1) || !verifyNumber(isolate, args[2], y1) ||
             !verifyNumber(isolate, args[3], x2) || !verifyNumber(isolate, args[4], y2) ||
-            !verifyNumber(isolate, args[5], prio)) {
+            !verifyNumber(isolate, args[6], prio)) {
         return;
     }
 
@@ -171,7 +171,7 @@ static void pathAddTriangle(const FunctionCallbackInfo<Value>& args)
     if (!verifyNumber(isolate, args[1], x1) || !verifyNumber(isolate, args[2], y1) ||
             !verifyNumber(isolate, args[3], x2) || !verifyNumber(isolate, args[4], y2) ||
             !verifyNumber(isolate, args[5], x3) || !verifyNumber(isolate, args[6], y3) ||
-            !verifyNumber(isolate, args[7], lineWidth) || !verifyNumber(isolate, args[8], prio)) {
+            !verifyNumber(isolate, args[7], lineWidth) || !verifyNumber(isolate, args[9], prio)) {
         return;
     }
 

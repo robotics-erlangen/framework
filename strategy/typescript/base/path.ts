@@ -78,7 +78,7 @@ module "path"
 // @param y number - y coordinate of circle center
 // @param radius number
 // @param name string - name of the obstacle
-
+// @param prio number - priority
 
 // separator for luadoc//
 
@@ -92,7 +92,7 @@ module "path"
 // @param end_y number - y coordinate of line end point
 // @param radius number - line width and start/end cap radius
 // @param name string - name of the obstacle
-
+// @param prio number - priority
 
 // separator for luadoc//
 
@@ -105,7 +105,7 @@ module "path"
 // @param end_x number - x coordinate of upper right corner
 // @param end_y number - y coordinate of upper right corner
 // @param name string - name of the obstacle
-
+// @param prio number - priority
 
 // separator for luadoc//
 
@@ -121,6 +121,7 @@ module "path"
 // @param y3 number - y coordinate of the third point
 // @param lineWidth number - extra distance
 // @param name string - name of the obstacle
+// @param prio number - priority
 
 
 // separator for luadoc//
@@ -300,3 +301,4 @@ export class Path {
 		pathLocal.addSeedTarget(this._inst, x, y);
 	}
 }
+
