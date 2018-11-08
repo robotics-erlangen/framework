@@ -53,10 +53,8 @@ SeqLogFileReader::SeqLogFileReader(SeqLogFileReader&& o) :
     m_startOffset(std::move(o.m_startOffset))
 {
     //leave o in a valid state
-    std::unique_ptr<QFile> ufp(new QFile());
-    o.m_file = std::move(ufp);
-    std::unique_ptr<QDataStream> uds(new QDataStream(o.m_file.get()));
-    o.m_stream = std::move(uds);
+    o.m_file.reset(new QFile());
+    o.m_stream.reset(new QDataStream(o.m_file.get()));
 }
 
 bool SeqLogFileReader::open(const QString &filename)
