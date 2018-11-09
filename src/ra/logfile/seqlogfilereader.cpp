@@ -114,7 +114,7 @@ QList<SeqLogFileReader::Memento> SeqLogFileReader::createMementos(const QList<qi
     return out;
 }
 
-void SeqLogFileReader::readNextGroup()
+bool SeqLogFileReader::readNextGroup()
 {
     QMutexLocker locker(m_mutex);
     qint64 baseOffset = m_file->pos() + sizeof(qint64) * m_packageGroupSize;
@@ -136,7 +136,7 @@ void SeqLogFileReader::readNextGroup()
     *m_stream >> m_currentGroup;
     m_currentGroup = qUncompress(m_currentGroup);
     if (m_currentGroup.isEmpty()) {
-        return ;
+        return false;
     }
     // get offsets in package
     m_currentGroupOffsets.clear();
@@ -150,14 +150,15 @@ void SeqLogFileReader::readNextGroup()
     }
     m_currentGroupIndex = 0;
     m_readingTimstamps = false;
+    return true;
 }
 
 //readCurrentGroup reads the group that is referenced by m_baseOffset
-void SeqLogFileReader::readCurrentGroup()
+bool SeqLogFileReader::readCurrentGroup()
 {
     QMutexLocker locker(m_mutex);
     m_file->seek(m_baseOffset - sizeof(qint64) * m_packageGroupSize);
-    readNextGroup();
+    return readNextGroup();
 }
 
 bool SeqLogFileReader::readVersion()
@@ -293,7 +294,9 @@ Status SeqLogFileReader::readStatus(bool loadNextGroup)
         // if the group is not loaded yet, do so.
         if (m_currentGroup.isEmpty()) {
             // There's no need to check m_readingTimstamps, as readCurrentGroup does not care about that and resets it to false
-            readCurrentGroup();
+            if (!readCurrentGroup()) {
+                return Status();
+            }
         }
         // if the index is out of bounds, we're at the end of the logfile and recognized that during readCurrentGroup.
         // This cannot happen if we're just at the end of a group, as we change groups at the end of readStatus / readTimestamp,

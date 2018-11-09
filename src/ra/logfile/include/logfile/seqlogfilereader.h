@@ -75,8 +75,8 @@ private:
     qint64 readTimestampVersion0();
     qint64 readTimestampVersion1();
     qint64 readTimestampVersion2();
-    void readNextGroup();
-    void readCurrentGroup();
+    bool readNextGroup();
+    bool readCurrentGroup();
     // calling readStatus with false will NOT load the next group if necessary.
     // It is the callers responsibility to make sure seqlogfilereader is not left without loading the next group, either for
     // reading timestamps or for reading status
