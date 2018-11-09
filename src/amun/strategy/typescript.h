@@ -35,7 +35,7 @@ class QThread;
 class InspectorHolder;
 class AbstractInspectorHandler;
 class InternalDebugger;
-class lua_State;
+struct lua_State;
 
 class Typescript : public AbstractStrategyScript
 {
