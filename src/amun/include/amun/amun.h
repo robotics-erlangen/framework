@@ -71,6 +71,7 @@ private:
     void updateScaling(float scaling);
     void createSimulator(amun::CommandSimulator::RuleVersion ruleVersion);
     void enableAutoref(bool enable);
+    void pauseSimulator(const amun::PauseSimulatorCommand &pauseCommand);
 
 private:
     QThread *m_processorThread;

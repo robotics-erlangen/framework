@@ -78,7 +78,14 @@ void SimulatorWidget::sendPauseSimulator(amun::PauseSimulatorReason reason, bool
 void SimulatorWidget::handleStatus(const Status &status)
 {
     if (status->has_timer_scaling()) {
-        ui->spinSpeed->setValue(int(status->timer_scaling() * 100.0f));
+        if (status->timer_scaling() != 0.0f) {
+            ui->pausedState->setText("<font color=\"green\">Running</font>");
+            ui->spinSpeed->blockSignals(true);
+            ui->spinSpeed->setValue(int(status->timer_scaling() * 100.0f));
+            ui->spinSpeed->blockSignals(false);
+        } else {
+            ui->pausedState->setText("<font color=\"red\">Paused</font>");
+        }
     }
 }
 
