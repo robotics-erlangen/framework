@@ -89,6 +89,8 @@ if(V8_FOUND)
         node/buffer.cpp
         node/buffer/Buffer.h
         node/buffer/Buffer.cpp
+        node/fs.h
+        node/fs.cpp
     )
     target_link_libraries(strategy PRIVATE lib::v8)
     target_compile_definitions(strategy PUBLIC V8_FOUND)

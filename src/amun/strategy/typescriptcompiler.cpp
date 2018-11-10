@@ -20,9 +20,10 @@
 
 #include "typescriptcompiler.h"
 
+#include "node/buffer.h"
+#include "node/fs.h"
 #include "node/objectcontainer.h"
 #include "node/os.h"
-#include "node/buffer.h"
 
 #include <QByteArray>
 #include <QDebug>
@@ -57,6 +58,7 @@ TypescriptCompiler::TypescriptCompiler()
 
     m_requireNamespace->put("os", std::unique_ptr<Node::os>(new Node::os(m_isolate)));
     m_requireNamespace->put("buffer", std::unique_ptr<Node::buffer>(new Node::buffer(m_isolate)));
+    m_requireNamespace->put("fs", std::unique_ptr<Node::fs>(new Node::fs(m_isolate, m_requireNamespace.get())));
 
     m_context.Reset(m_isolate, context);
 }

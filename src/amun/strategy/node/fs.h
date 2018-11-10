@@ -18,27 +18,23 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef NODE_FS_H
-#define NODE_FS_H
+#ifndef NODE_fs_H
+#define NODE_fs_H
 
-#include "library.h"
+#include "objectcontainer.h"
 
 #include "v8.h"
-
-namespace Node {
-    class LibraryCollection;
-}
 
 class QString;
 
 namespace Node {
-    class FS : public Library {
+    class fs : public ObjectContainer {
     public:
-        FS(v8::Isolate* isolate, const LibraryCollection* libraryCollection);
+        fs(v8::Isolate* isolate, const ObjectContainer* requireNamespace);
     private:
         class FileStat {
         public:
-            FileStat(const FS* fs, const QString& file);
+            FileStat(const fs* fs, const QString& file);
             static void sizeGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& info);
             static void sizeSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value,  const v8::PropertyCallbackInfo<void>& info);
             static void mtimeGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& info);

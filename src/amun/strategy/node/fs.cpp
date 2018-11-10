@@ -20,14 +20,20 @@
 
 #include "fs.h"
 
-#include "librarycollection.h"
+#include "objectcontainer.h"
 
+#include <QByteArray>
 #include <QDateTime>
 #include <QDir>
+#include <QFile>
 #include <QList>
+#include <QString>
+#include <string>
 #include "v8.h"
 
 using v8::Date;
+using v8::NewStringType;
+using v8::Function;
 using v8::External;
 using v8::FunctionCallbackInfo;
 using v8::HandleScope;
@@ -39,23 +45,23 @@ using v8::PropertyCallbackInfo;
 using v8::String;
 using v8::Value;
 
-Node::FS::FS(Isolate* isolate, const LibraryCollection* libraryCollection) : Library(isolate, libraryCollection) {
+Node::fs::fs(Isolate* isolate, const ObjectContainer* requireNamespace) : ObjectContainer(isolate, requireNamespace) {
     HandleScope handleScope(m_isolate);
 
     auto objectTemplate = createTemplateWithCallbacks<ObjectTemplate>({
-        { "mkdirSync", &FS::mkdirSync },
-        { "statSync", &FS::statSync },
-        //{ "watchFile", &FS::watchFile },
-        //{ "unwatchFile", &FS::unwatchFile },
-        //{ "watch", &FS::watch },
-        { "readFileSync", &FS::readFileSync },
         //{ "openSync", &FS::openSync },
-        //{ "writeSync", &FS::writeSync },
-        //{ "closeSync", &FS::closeSync },
-        //{ "readdirSync", &FS::readdirSync },
-        //{ "realpathSync", &FS::realpathSync },
-        //{ "utimesSync", &FS::utimesSync },
-        //{ "unlinkSync", &FS::unlinkSync }
+        { "mkdirSync", &fs::mkdirSync },
+        { "statSync", &fs::statSync },
+        //{ "watchFile", &fs::watchFile },
+        //{ "unwatchFile", &fs::unwatchFile },
+        //{ "watch", &fs::watch },
+        { "readFileSync", &fs::readFileSync },
+        //{ "writeSync", &fs::writeSync },
+        //{ "closeSync", &fs::closeSync },
+        //{ "readdirSync", &fs::readdirSync },
+        //{ "realpathSync", &fs::realpathSync },
+        //{ "utimesSync", &fs::utimesSync },
+        //{ "unlinkSync", &fs::unlinkSync }
     });
 
     auto fileStatTemplate = createTemplateWithCallbacks<ObjectTemplate>({
@@ -67,15 +73,13 @@ Node::FS::FS(Isolate* isolate, const LibraryCollection* libraryCollection) : Lib
     fileStatTemplate->SetAccessor(String::NewFromUtf8(m_isolate, "mtime"), &FileStat::mtimeGetter, &FileStat::mtimeSetter);
     m_fileStatTemplate.Reset(m_isolate, fileStatTemplate);
 
-    setLibraryHandle(objectTemplate->NewInstance(m_isolate->GetCurrentContext()).ToLocalChecked());
+    setHandle(objectTemplate->NewInstance(m_isolate->GetCurrentContext()).ToLocalChecked());
 }
 
-Node::FS::FileStat::FileStat(const FS* fs, const QString& info) {
+Node::fs::FileStat::FileStat(const fs* fs, const QString& info) {
     QFileInfo fileInfo(info);
     if (!fileInfo.exists()) {
-        QString errorText = "file '";
-        errorText += info;
-        errorText += "' does not exist";
+        QString errorText = QString("file '%1' does not exist").arg(info);
         fs->throwV8Exception(errorText);
         return;
     }
@@ -90,50 +94,50 @@ Node::FS::FileStat::FileStat(const FS* fs, const QString& info) {
     }
 }
 
-void Node::FS::FileStat::sizeGetter(Local<String> property, const PropertyCallbackInfo<Value>& info) {
+void Node::fs::FileStat::sizeGetter(Local<String> property, const PropertyCallbackInfo<Value>& info) {
     Local<Object> self = info.Holder();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(OBJECT_FILESTAT_INDEX));
-    auto fileStat = static_cast<FileStat*>(wrap->Value());
+    auto fileStat = static_cast<Node::fs::FileStat*>(wrap->Value());
     info.GetReturnValue().Set(fileStat->size);
 }
 
-void Node::FS::FileStat::sizeSetter(Local<String> property, Local<Value> value, const PropertyCallbackInfo<void>& info) {
+void Node::fs::FileStat::sizeSetter(Local<String> property, Local<Value> value, const PropertyCallbackInfo<void>& info) {
     Local<Object> self = info.Holder();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(OBJECT_FILESTAT_INDEX));
-    auto fileStat = static_cast<FileStat*>(wrap->Value());
+    auto fileStat = static_cast<Node::fs::FileStat*>(wrap->Value());
     fileStat->size = value->Int32Value();
 }
 
-void Node::FS::FileStat::mtimeGetter(Local<String> property, const PropertyCallbackInfo<Value>& info) {
+void Node::fs::FileStat::mtimeGetter(Local<String> property, const PropertyCallbackInfo<Value>& info) {
     Local<Object> self = info.Holder();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(OBJECT_FILESTAT_INDEX));
-    auto fileStat = static_cast<FileStat*>(wrap->Value());
+    auto fileStat = static_cast<Node::fs::FileStat*>(wrap->Value());
     info.GetReturnValue().Set(Date::New(info.GetIsolate(), fileStat->mtimeMs));
 }
 
-void Node::FS::FileStat::mtimeSetter(Local<String> property, Local<Value> value, const PropertyCallbackInfo<void>& info) {
+void Node::fs::FileStat::mtimeSetter(Local<String> property, Local<Value> value, const PropertyCallbackInfo<void>& info) {
     Local<Object> self = info.Holder();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(OBJECT_FILESTAT_INDEX));
-    auto fileStat = static_cast<FileStat*>(wrap->Value());
+    auto fileStat = static_cast<Node::fs::FileStat*>(wrap->Value());
     fileStat->mtimeMs = value->NumberValue();
 }
 
-void Node::FS::FileStat::isDirectory(const FunctionCallbackInfo<Value>& info) {
+void Node::fs::FileStat::isDirectory(const FunctionCallbackInfo<Value>& info) {
     Local<Object> self = info.Holder();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(OBJECT_FILESTAT_INDEX));
-    auto fileStat = static_cast<FileStat*>(wrap->Value());
+    auto fileStat = static_cast<Node::fs::FileStat*>(wrap->Value());
     info.GetReturnValue().Set(fileStat->type == FileStat::Type::Directory);
 }
 
-void Node::FS::FileStat::isFile(const FunctionCallbackInfo<Value>& info) {
+void Node::fs::FileStat::isFile(const FunctionCallbackInfo<Value>& info) {
     Local<Object> self = info.Holder();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(OBJECT_FILESTAT_INDEX));
     auto fileStat = static_cast<FileStat*>(wrap->Value());
     info.GetReturnValue().Set(fileStat->type == FileStat::Type::File);
 }
 
-void Node::FS::mkdirSync(const FunctionCallbackInfo<Value>& args) {
-    auto fs = static_cast<FS*>(Local<External>::Cast(args.Data())->Value());
+void Node::fs::mkdirSync(const FunctionCallbackInfo<Value>& args) {
+    auto fs = static_cast<Node::fs*>(Local<External>::Cast(args.Data())->Value());
     if (args.Length() < 1 || !args[0]->IsString()) {
         fs->throwV8Exception("mkdirSync needs the first argument to be a string");
         return;
@@ -143,8 +147,8 @@ void Node::FS::mkdirSync(const FunctionCallbackInfo<Value>& args) {
     dir.mkpath(name);
 }
 
-void Node::FS::statSync(const FunctionCallbackInfo<Value>& args) {
-    auto fs = static_cast<FS*>(Local<External>::Cast(args.Data())->Value());
+void Node::fs::statSync(const FunctionCallbackInfo<Value>& args) {
+    auto fs = static_cast<Node::fs*>(Local<External>::Cast(args.Data())->Value());
     if (args.Length() < 1 || !args[0]->IsString()) {
         fs->throwV8Exception("statSync needs the first argument to be a string");
         return;
@@ -160,10 +164,35 @@ void Node::FS::statSync(const FunctionCallbackInfo<Value>& args) {
     args.GetReturnValue().Set(obj);
 }
 
-void Node::FS::readFileSync(const FunctionCallbackInfo<Value>& args) {
-    auto fs = static_cast<FS*>(Local<External>::Cast(args.Data())->Value());
+void Node::fs::readFileSync(const FunctionCallbackInfo<Value>& args) {
+    auto isolate = args.GetIsolate();
+    auto fs = static_cast<Node::fs*>(Local<External>::Cast(args.Data())->Value());
     if (args.Length() < 1 || !args[0]->IsString()) {
         fs->throwV8Exception("readFileSync needs the first argument to be a string");
         return;
     }
+
+    QString fileName = *String::Utf8Value(args[0]);
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        fs->throwV8Exception(QString("file '%s' could not be opened").arg(fileName));
+        return;
+    }
+    QByteArray fileBytes = file.readAll();
+    Local<String> dataString = String::NewFromUtf8(isolate, fileBytes.data(), NewStringType::kNormal).ToLocalChecked();
+
+    auto context = isolate->GetCurrentContext();
+    // how horrible
+    Local<Object> Buffer = fs->m_requireNamespace
+        ->get("buffer")
+        ->get("Buffer")
+        ->getHandle();
+    Local<String> bufferFromName = String::NewFromUtf8(isolate, "from", NewStringType::kNormal).ToLocalChecked();
+    Local<Function> bufferFrom = Buffer
+        ->Get(context, bufferFromName)
+        .ToLocalChecked()
+        .As<Function>();
+
+    Local<Value> argv[] = { dataString };
+    args.GetReturnValue().Set(bufferFrom->Call(context, Buffer, 1, argv).ToLocalChecked());
 }
