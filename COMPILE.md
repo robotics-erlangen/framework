@@ -142,7 +142,6 @@ make
 
 (If starting ra.app the normal way doesn't work launch it from Qt Creator)
 
-
 # Compiling a strategy
 
 
