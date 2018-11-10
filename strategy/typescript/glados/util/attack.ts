@@ -68,6 +68,11 @@ export function _ratePass(robot: FriendlyRobot, pass: PassObject, considerTiming
 		}
 	} else {
 		shootTime = Robot.minShootTime(robot, pass.ballPos);
+		// Infinity means that the ball can't be reached inside the field
+		if (shootTime === Infinity) {
+			vis.addCircle("u/a/ratePass: rating", pass.ballPos, 0.2, vis.fromTemperature(1, 127), true);
+			return 0;
+		}
 	}
 	let shootPos = Physics.ballAtTime(World.Ball, shootTime).pos;
 	let passTime = Shoot.ballPassTime(shootPos, pass.ballPos, pass.target, undefined, robot);
@@ -130,6 +135,9 @@ export function _ratePass(robot: FriendlyRobot, pass: PassObject, considerTiming
 			let shootSpeed = new Vector(1,1).setLength(robot.calculateShootSpeed(3, shootPos.distanceTo(pass.ballPos))); // direction doesn't actually matter
 			let fakeBall = {speed: shootSpeed, maxSpeed: shootSpeed.length()};
 			let ballRollTime = Physics.ballRollTime(fakeBall, passInterception.distanceTo(shootPos) - World.Ball.radius - opp.shootRadius);
+			if (ballRollTime === Infinity) {
+				throw new Error("Planning unreachable pass");
+			}
 
 			// calculate the time the robot needs to arrive at the intersection point
 			// to achieve more relevant results, the speed component parallel to the pass trajectory is ignored

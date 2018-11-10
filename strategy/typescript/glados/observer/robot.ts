@@ -177,6 +177,7 @@ export function minTimeToBall(robot: Robot): number {
 	return <number> _minTimeToBall.get(robot);
 }
 
+// WARNING: this function can return Infinity when the ball can't be reached inside the field
 let previousMinShootTimes: Map<Robot, number> = new Map<Robot, number>();
 function _minShootTime(robot: Robot, shootPos: Position): number {
 	let minDelay = 0.1;
