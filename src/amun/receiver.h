@@ -24,12 +24,14 @@
 #include <QUdpSocket>
 #include "protobuf/status.h"
 
+class Timer;
+
 class Receiver : public QObject
 {
     Q_OBJECT
 
 public:
-    Receiver(const QHostAddress &groupAddress, quint16 port);
+    Receiver(const QHostAddress &groupAddress, quint16 port, Timer *timer);
     ~Receiver() override;
     Receiver(const Receiver&) = delete;
     Receiver& operator=(const Receiver&) = delete;
@@ -51,6 +53,7 @@ private:
     QHostAddress m_groupAddress;
     quint16 m_port;
     QUdpSocket *m_socket;
+    Timer *m_timer;
 };
 
 #endif // RECEIVER_H

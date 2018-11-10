@@ -46,10 +46,11 @@
  * \param groupAddress Address of the multicast group to listen on
  * \param port Port to listen on
  */
-Receiver::Receiver(const QHostAddress &groupAddress, quint16 port) :
+Receiver::Receiver(const QHostAddress &groupAddress, quint16 port, Timer *timer) :
     m_groupAddress(groupAddress),
     m_port(port),
-    m_socket(NULL)
+    m_socket(nullptr),
+    m_timer(timer)
 { }
 
 /*!
@@ -145,6 +146,6 @@ void Receiver::readData()
         data.resize(m_socket->pendingDatagramSize());
         QHostAddress senderAdddress;
         m_socket->readDatagram(data.data(), data.size(), &senderAdddress);
-        emit gotPacket(data, Timer::systemTime(), senderAdddress.toString());
+        emit gotPacket(data, m_timer->currentTime(), senderAdddress.toString());
     }
 }

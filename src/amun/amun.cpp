@@ -273,7 +273,7 @@ void Amun::stop()
 void Amun::setupReceiver(Receiver *&receiver, const QHostAddress &address, quint16 port)
 {
     Q_ASSERT(receiver == NULL);
-    receiver = new Receiver(address, port);
+    receiver = new Receiver(address, port, m_timer);
     receiver->moveToThread(m_networkThread);
     connect(m_networkThread, SIGNAL(finished()), receiver, SLOT(deleteLater()));
     // start and stop socket

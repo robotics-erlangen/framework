@@ -271,8 +271,7 @@ void Transceiver::receive()
         return;
     }
 
-    // transceiver class is only used for real robot -> global timer can be used
-    const qint64 receiveTime = Timer::systemTime();
+    const qint64 receiveTime = m_timer->currentTime();
 
     int pos = 0;
     while (pos < size) {
@@ -378,7 +377,7 @@ void Transceiver::handleDatagramPacket(const char *data, uint size)
     debug->set_source(amun::RadioResponse);
     QString debugMessage = QString("[Length: %1] %2").arg(size).arg(QString::fromUtf8(data, size));
     amun::StatusLog *logEntry = debug->add_log();
-    logEntry->set_timestamp(Timer::systemTime());
+    logEntry->set_timestamp(m_timer->currentTime());
     logEntry->set_text(debugMessage.toStdString());
     emit sendStatus(status);
 }

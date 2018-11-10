@@ -365,7 +365,7 @@ void RobotFilter::get(world::Robot *robot, bool flip, bool noRawData)
             np->set_v_y((np->p_y() - prevPos.p_y()) / ((np->time() - prevPos.time()) * 1E-9));
             np->set_omega(limitAngle(np->phi() - prevPos.phi()) / ((np->time() - prevPos.time()) * 1E-9));
             np->set_time_diff_scaled((np->time() - prevPos.time()) * 1E-7);
-            np->set_system_delay((Timer::systemTime() - np->time()) * 1E-9);
+            np->set_system_delay((m_lastTime - np->time()) * 1E-9);
         }
         m_lastRaw[np->camera_id()] = *np;
     }
