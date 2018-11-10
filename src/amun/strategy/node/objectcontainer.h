@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2018 Paul Bergmann                                        *
+ *   Copyright 2018 Paul Bergmann                                          *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -27,6 +27,7 @@
 #include "v8.h"
 
 template<typename T> class QList;
+class QString;
 
 namespace Node {
 	// TODO maybe template this class for different kinds of v8 objects (functions, arrays, etc.)
@@ -59,7 +60,7 @@ namespace Node {
 		};
 		template<typename TemplateType> v8::Local<TemplateType> createTemplateWithCallbacks(const QList<CallbackInfo>& callbackInfos);
 
-		void throwV8Exception(const std::string& message);
+		void throwV8Exception(const QString& message) const;
 	private:
 		std::map<std::string, std::unique_ptr<ObjectContainer>> m_children;
 

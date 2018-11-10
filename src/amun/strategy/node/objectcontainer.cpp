@@ -22,9 +22,10 @@
 
 #include <map>
 #include <memory>
+#include <QList>
+#include <QString>
 #include <string>
 #include <utility>
-#include <QList>
 #include "v8.h"
 
 template <typename T> inline void USE(T&&) {}
@@ -97,8 +98,8 @@ template<> Local<FunctionTemplate> Node::ObjectContainer::createTemplateWithCall
 	return handleScope.Escape(resultingTemplate);
 }
 
-void Node::ObjectContainer::throwV8Exception(const std::string& message) {
+void Node::ObjectContainer::throwV8Exception(const QString& message) const {
 	HandleScope handleScope(m_isolate);
-	Local<String> exceptionText = String::NewFromUtf8(m_isolate, message.c_str(), NewStringType::kNormal).ToLocalChecked();
+	Local<String> exceptionText = String::NewFromUtf8(m_isolate, message.toUtf8().data(), NewStringType::kNormal).ToLocalChecked();
 	m_isolate->ThrowException(exceptionText);
 }

@@ -51,6 +51,8 @@ Node::Buffer::Buffer(Isolate* isolate) : Node::ObjectContainer(isolate) {
     instanceTemplate->SetHandler(IndexedPropertyHandlerConfiguration {
         &Node::Buffer::Instance::indexGet, &Node::Buffer::Instance::indexSet
     });
+    Local<String> lengthName = String::NewFromUtf8(m_isolate, "length");
+    instanceTemplate->SetAccessor(lengthName, &Node::Buffer::Instance::lengthGet);
 
     setHandle(functionTemplate->GetFunction(m_isolate->GetCurrentContext()).ToLocalChecked());
 }
@@ -88,6 +90,7 @@ void Node::Buffer::Instance::indexSet(quint32 index, v8::Local<v8::Value> value,
     info.GetReturnValue().Set(value);
 }
 
+#include <QDebug>
 void Node::Buffer::Instance::lengthGet(Local<String> property, const PropertyCallbackInfo<Value>& info) {
     auto isolate = info.GetIsolate();
     HandleScope handleScope(isolate);
@@ -104,7 +107,7 @@ void Node::Buffer::from(const FunctionCallbackInfo<Value>& args) {
     auto buffer = static_cast<Node::Buffer*>(Local<External>::Cast(args.Data())->Value());
 
     if (args.Length() < 1 || !args[0]->IsString()) {
-        std::string errorMessage = "Buffer.from needs the first argument to be a string";
+        QString errorMessage = "Buffer.from needs the first argument to be a string";
         buffer->throwV8Exception(errorMessage);
         return;
     }
