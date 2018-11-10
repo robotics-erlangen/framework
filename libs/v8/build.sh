@@ -123,7 +123,7 @@ if [[ "$IS_MINGW" == 1 ]]; then
     ninja -C out/x86.release
 else
     mkdir -p out/x64.release
-    gn gen out/x64.release --args="is_debug=false target_cpu=\"x64\" is_component_build=false v8_static_library=true use_custom_libcxx=false use_custom_libcxx_for_host=false"
+    gn gen out/x64.release --args="is_debug=false target_cpu=\"x64\" is_component_build=true v8_static_library=false use_custom_libcxx=false use_custom_libcxx_for_host=false"
     ../depot_tools/ninja -C out/x64.release
 fi
 

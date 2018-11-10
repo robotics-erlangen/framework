@@ -58,21 +58,38 @@ if(V8_INCLUDE_DIR AND EXISTS "${V8_INCLUDE_DIR}/v8-version.h")
     unset(V8_VERSION_PATCH)
 endif()
 
-set(V8_STATIC_LIBRARY_PREFIX ${CMAKE_STATIC_LIBRARY_PREFIX})
-set(V8_STATIC_LIBRARY_SUFFIX ${CMAKE_STATIC_LIBRARY_SUFFIX})
 if(MINGW)
     set(V8_ARCHITECTURE x86)
 else()
     set(V8_ARCHITECTURE x64)
 endif()
 
-find_path(V8_OUTPUT_DIR
-    NAMES obj/${V8_STATIC_LIBRARY_PREFIX}v8_base${V8_STATIC_LIBRARY_SUFFIX}
+find_path(V8_OUTPUT_DIR_DYNAMIC
+    NAMES ${CMAKE_SHARED_LIBRARY_PREFIX}v8${CMAKE_SHARED_LIBRARY_SUFFIX}
     HINTS $ENV{V8_OUTPUT_DIR}
     NO_DEFAULT_PATH
     PATHS
         ${CMAKE_SOURCE_DIR}/libs/v8/v8/out/${V8_ARCHITECTURE}.release
 )
+find_path(V8_OUTPUT_DIR_STATIC
+    NAMES obj/${CMAKE_STATIC_LIBRARY_PREFIX}v8_base${CMAKE_STATIC_LIBRARY_SUFFIX}
+    HINTS $ENV{V8_OUTPUT_DIR}
+    NO_DEFAULT_PATH
+    PATHS
+        ${CMAKE_SOURCE_DIR}/libs/v8/v8/out/${V8_ARCHITECTURE}.release
+)
+
+# prefer dynamic linking of v8, but allow fallback to static linking
+set(V8_OUTPUT_DIR ${V8_OUTPUT_DIR_DYNAMIC})
+set(V8_IS_DYNAMIC TRUE)
+if (NOT V8_OUTPUT_DIR)
+    set(V8_OUTPUT_DIR ${V8_OUTPUT_DIR_STATIC})
+    set(V8_IS_DYNAMIC FALSE)
+    message("Statically linking V8")
+    if(NOT MINGW)
+        message("Please rebuild V8 at your convenience")
+    endif()
+endif()
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(V8
@@ -84,16 +101,18 @@ find_package_handle_standard_args(V8
 )
 mark_as_advanced(
     V8_INCLUDE_DIR
-    V8_OUTPUT_DIR
+    V8_OUTPUT_DIR_DYNAMIC
+    V8_OUTPUT_DIR_STATIC
 )
 
 if(V8_FOUND)
-    set(V8_LIBRARY_DIR "${V8_OUTPUT_DIR}/obj")
     add_library(lib::v8 UNKNOWN IMPORTED)
-    set_target_properties(lib::v8 PROPERTIES
-        IMPORTED_LOCATION "${V8_LIBRARY_DIR}/${V8_STATIC_LIBRARY_PREFIX}v8_libbase${V8_STATIC_LIBRARY_SUFFIX}"
-        INTERFACE_INCLUDE_DIRECTORIES "${V8_INCLUDE_DIR}"
-    )
+    set_target_properties(lib::v8 PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${V8_INCLUDE_DIR}")
+    if(V8_IS_DYNAMIC)
+        set_target_properties(lib::v8 PROPERTIES IMPORTED_LOCATION "${V8_OUTPUT_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}v8${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    else()
+        set_target_properties(lib::v8 PROPERTIES IMPORTED_LOCATION "${V8_OUTPUT_DIR}/obj/${CMAKE_STATIC_LIBRARY_PREFIX}v8_base${CMAKE_STATIC_LIBRARY_SUFFIX}")
+    endif()
 
     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         set(USING_GCC TRUE)
@@ -102,22 +121,34 @@ if(V8_FOUND)
     endif()
 
     if(USING_GCC)
-        set_property(TARGET lib::v8 APPEND PROPERTY INTERFACE_LINK_LIBRARIES -Wl,--start-group)
+        # force the linker to explcitly include all v8 libs
+        # this is necesary as otherwise dependencies of v8 are resolved
+        # using the standard library search path which will fail.
+        set_property(TARGET lib::v8 APPEND PROPERTY INTERFACE_LINK_LIBRARIES -Wl,--push-state,--no-as-needed -Wl,--start-group)
     endif()
 
-    set_property(TARGET lib::v8 APPEND PROPERTY INTERFACE_LINK_LIBRARIES
-        ${V8_LIBRARY_DIR}/${V8_STATIC_LIBRARY_PREFIX}v8_base${V8_STATIC_LIBRARY_SUFFIX}
-        ${V8_LIBRARY_DIR}/${V8_STATIC_LIBRARY_PREFIX}v8_external_snapshot${V8_STATIC_LIBRARY_SUFFIX}
-        ${V8_LIBRARY_DIR}/${V8_STATIC_LIBRARY_PREFIX}v8_libbase${V8_STATIC_LIBRARY_SUFFIX}
-        ${V8_LIBRARY_DIR}/${V8_STATIC_LIBRARY_PREFIX}v8_libplatform${V8_STATIC_LIBRARY_SUFFIX}
-        ${V8_LIBRARY_DIR}/${V8_STATIC_LIBRARY_PREFIX}v8_libsampler${V8_STATIC_LIBRARY_SUFFIX}
-        ${V8_LIBRARY_DIR}/src/inspector/${V8_STATIC_LIBRARY_PREFIX}inspector${V8_STATIC_LIBRARY_SUFFIX}
-        ${V8_LIBRARY_DIR}/third_party/icu/${V8_STATIC_LIBRARY_PREFIX}icui18n${V8_STATIC_LIBRARY_SUFFIX}
-        ${V8_LIBRARY_DIR}/third_party/icu/${V8_STATIC_LIBRARY_PREFIX}icuuc${V8_STATIC_LIBRARY_SUFFIX}
-    )
+    if(V8_IS_DYNAMIC)
+        set_property(TARGET lib::v8 APPEND PROPERTY INTERFACE_LINK_LIBRARIES
+            ${V8_OUTPUT_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}icui18n${CMAKE_SHARED_LIBRARY_SUFFIX}
+            ${V8_OUTPUT_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}icuuc${CMAKE_SHARED_LIBRARY_SUFFIX}
+            ${V8_OUTPUT_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}v8_libbase${CMAKE_SHARED_LIBRARY_SUFFIX}
+            ${V8_OUTPUT_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}v8_libplatform${CMAKE_SHARED_LIBRARY_SUFFIX}
+        )
+    else()
+        set_property(TARGET lib::v8 APPEND PROPERTY INTERFACE_LINK_LIBRARIES
+            ${V8_OUTPUT_DIR}/obj/${CMAKE_STATIC_LIBRARY_PREFIX}v8_base${CMAKE_STATIC_LIBRARY_SUFFIX}
+            ${V8_OUTPUT_DIR}/obj/${CMAKE_STATIC_LIBRARY_PREFIX}v8_external_snapshot${CMAKE_STATIC_LIBRARY_SUFFIX}
+            ${V8_OUTPUT_DIR}/obj/${CMAKE_STATIC_LIBRARY_PREFIX}v8_libbase${CMAKE_STATIC_LIBRARY_SUFFIX}
+            ${V8_OUTPUT_DIR}/obj/${CMAKE_STATIC_LIBRARY_PREFIX}v8_libplatform${CMAKE_STATIC_LIBRARY_SUFFIX}
+            ${V8_OUTPUT_DIR}/obj/${CMAKE_STATIC_LIBRARY_PREFIX}v8_libsampler${CMAKE_STATIC_LIBRARY_SUFFIX}
+            ${V8_OUTPUT_DIR}/obj/src/inspector/${CMAKE_STATIC_LIBRARY_PREFIX}inspector${CMAKE_STATIC_LIBRARY_SUFFIX}
+            ${V8_OUTPUT_DIR}/obj/third_party/icu/${CMAKE_STATIC_LIBRARY_PREFIX}icui18n${CMAKE_STATIC_LIBRARY_SUFFIX}
+            ${V8_OUTPUT_DIR}/obj/third_party/icu/${CMAKE_STATIC_LIBRARY_PREFIX}icuuc${CMAKE_STATIC_LIBRARY_SUFFIX}
+        )
+    endif()
 
     if(USING_GCC)
-        set_property(TARGET lib::v8 APPEND PROPERTY INTERFACE_LINK_LIBRARIES -Wl,--end-group)
+        set_property(TARGET lib::v8 APPEND PROPERTY INTERFACE_LINK_LIBRARIES -Wl,--end-group -Wl,--pop-state)
     endif()
 
     if(MINGW)
