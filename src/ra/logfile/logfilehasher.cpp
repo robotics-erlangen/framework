@@ -97,7 +97,7 @@ QString LogFileHasher::replace(QString logname, QString output)
     QString windowsHeader = QString("\\\\?\\");
     tmpName.push_front(windowsHeader);
     output.push_front(windowsHeader);
-    if (MoveFileEx(tmpName.utf16(), output.utf16(), MOVEFILE_REPLACE_EXISTING) == 0) {
+    if (MoveFileExW((const wchar_t*) tmpName.utf16(), (const wchar_t*) output.utf16(), MOVEFILE_REPLACE_EXISTING) == 0) {
         return QString("Rename Windows failed");
     }
 #endif
