@@ -89,7 +89,7 @@ void Transceiver::process()
     // charging the condensator can be enabled / disable separately
     sendCommand(m_commands, m_charge, m_processingStart);
 
-    status->mutable_timing()->set_transceiver((Timer::systemTime() - transceiver_start) / 1E9);
+    status->mutable_timing()->set_transceiver((Timer::systemTime() - transceiver_start) * 1E-9f);
     emit sendStatus(status);
 }
 
@@ -350,7 +350,7 @@ void Transceiver::handlePingPacket(const char *data, uint size)
 
     const TransceiverPingData *ping = (const TransceiverPingData *)data;
     Status status(new amun::Status);
-    status->mutable_timing()->set_transceiver_rtt((Timer::systemTime() - ping->time) / 1E9);
+    status->mutable_timing()->set_transceiver_rtt((Timer::systemTime() - ping->time) * 1E-9f);
     emit sendStatus(status);
     // stop ping timeout timer
     m_timeoutTimer->stop();
@@ -466,7 +466,7 @@ void Transceiver::handleResponsePacket(QList<robot::RadioResponse> &responses, c
             r.set_cap_charged(packet->cap_charged);
         }
         if (m_frameTimes.contains(packet->counter)) {
-            r.set_radio_rtt((time - m_frameTimes[packet->counter]) / 1E9);
+            r.set_radio_rtt((time - m_frameTimes[packet->counter]) * 1E-9f);
         }
         responses.append(r);
     }

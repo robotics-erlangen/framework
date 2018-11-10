@@ -98,7 +98,7 @@ void CombinedLogWriter::handleStatus(const Status &status)
     }
     if (m_logStartTime != 0) {
         qint64 timeDelta = m_lastTime - m_logStartTime;
-        const double dtime = timeDelta / 1E9;
+        const double dtime = timeDelta * 1E-9;
         QString logLabel = "Log time: " + QString("%1:%2").arg((int) dtime / 60)
                 .arg((int) dtime % 60, 2, 10, QChar('0'));
         if (m_lastLogTimeLabel != logLabel) {

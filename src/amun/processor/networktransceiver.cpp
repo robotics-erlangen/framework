@@ -68,7 +68,7 @@ void NetworkTransceiver::handleRadioCommands(const QList<robot::RadioCommand> &c
         }
     }
 
-    status->mutable_timing()->set_transceiver((Timer::systemTime() - transceiver_start) / 1E9);
+    status->mutable_timing()->set_transceiver((Timer::systemTime() - transceiver_start) * 1E-9f);
     status->mutable_transceiver()->set_active(sendingSuccessful);
     status->mutable_transceiver()->set_error("Network");
     emit sendStatus(status);

@@ -145,7 +145,7 @@ GlobalSpeed CommandEvaluator::evaluateManualControl(const robot::Command &comman
 
 GlobalSpeed CommandEvaluator::evaluateSplineAtTime(const qint64 worldTime)
 {
-    float timeElapsed = (worldTime - m_startTime) / 1E9;
+    float timeElapsed = (worldTime - m_startTime) * 1E-9f;
     int activeSplineIndex = findActiveSpline(timeElapsed);
     if (activeSplineIndex >= 0) {
         // generate the desired state

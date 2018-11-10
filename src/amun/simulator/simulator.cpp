@@ -184,7 +184,7 @@ void Simulator::process()
     sendRadioResponses(responses);
 
     // simulate to current strategy time
-    double timeDelta = (current_time - m_time) / 1E9;
+    double timeDelta = (current_time - m_time) * 1E-9;
     m_data->dynamicsWorld->stepSimulation(timeDelta, 10, SUB_TIMESTEP);
     m_time = current_time;
 
@@ -209,7 +209,7 @@ void Simulator::process()
 
     // send timing information
     Status status(new amun::Status);
-    status->mutable_timing()->set_simulator((Timer::systemTime() - start_time) / 1E9);
+    status->mutable_timing()->set_simulator((Timer::systemTime() - start_time) * 1E-9f);
     emit sendStatus(status);
 }
 

@@ -280,19 +280,19 @@ void Plotter::handleStatus(const Status &status, bool backlogStatus)
         m_startTime = status->time();
     }
 
-    const float time = (status->time() - m_startTime) / 1E9;
+    const float time = (status->time() - m_startTime) * 1E-9f;
 
     // handle each message
     if (status->has_world_state()) {
         const world::State &worldState = status->world_state();
-        float time = (worldState.time() - m_startTime) / 1E9;
+        float time = (worldState.time() - m_startTime) * 1E-9f;
 
         if (worldState.has_ball()) {
             parseMessage(worldState.ball(), QStringLiteral("Ball"), time);
 
             for (int i = 0; i < worldState.ball().raw_size(); i++) {
                 const world::BallPosition &p = worldState.ball().raw(i);
-                parseMessage(p, QStringLiteral("Ball.raw"), (p.time() - m_startTime) / 1E9);
+                parseMessage(p, QStringLiteral("Ball.raw"), (p.time() - m_startTime) * 1E-9f);
             }
         }
 
@@ -303,7 +303,7 @@ void Plotter::handleStatus(const Status &status, bool backlogStatus)
             const QString rawParent = QString(QStringLiteral("Yellow.%1.raw")).arg(robot.id());
             for (int i = 0; i < robot.raw_size(); i++) {
                 const world::RobotPosition &p = robot.raw(i);
-                parseMessage(p, rawParent, (p.time() - m_startTime) / 1E9);
+                parseMessage(p, rawParent, (p.time() - m_startTime) * 1E-9f);
             }
         }
 
@@ -314,14 +314,14 @@ void Plotter::handleStatus(const Status &status, bool backlogStatus)
             const QString rawParent = QString(QStringLiteral("Blue.%1.raw")).arg(robot.id());
             for (int i = 0; i < robot.raw_size(); i++) {
                 const world::RobotPosition &p = robot.raw(i);
-                parseMessage(p, rawParent, (p.time() - m_startTime) / 1E9);
+                parseMessage(p, rawParent, (p.time() - m_startTime) * 1E-9f);
             }
         }
 
         for (int i = 0; i < worldState.radio_response_size(); i++) {
             const robot::RadioResponse &response = worldState.radio_response(i);
             const QString name = QString(QStringLiteral("%1-%2")).arg(response.generation()).arg(response.id());
-            const float responseTime = (response.time() - m_startTime) / 1E9;
+            const float responseTime = (response.time() - m_startTime) * 1E-9f;
             parseMessage(response, QString(QStringLiteral("RadioResponse.%1")).arg(name), responseTime);
             parseMessage(response.estimated_speed(), QString(QStringLiteral("RadioResponse.%1.estimatedSpeed")).arg(name), responseTime);
         }
@@ -347,7 +347,7 @@ void Plotter::handleStatus(const Status &status, bool backlogStatus)
         const amun::DebugValues &debug = status->debug(j);
         // ignore controller as it can create plots via RadioCommand.%1.debug
         if (debug.source() != amun::Controller) {
-            float debugTime = (debug.has_time()) ? (debug.time() - m_startTime) / 1E9 : time;
+            float debugTime = (debug.has_time()) ? (debug.time() - m_startTime) * 1E-9f : time;
             QVector<QStandardItem *> emptyLookup;
             QString parent;
             switch (debug.source()) {
@@ -413,7 +413,7 @@ void Plotter::invalidatePlots()
         return;
     }
 
-    const float time = (m_time - m_startTime) / 1E9;
+    const float time = (m_time - m_startTime) * 1E-9f;
 
     foreach (QStandardItem *item, m_items) {
         // check the role that is currently updated

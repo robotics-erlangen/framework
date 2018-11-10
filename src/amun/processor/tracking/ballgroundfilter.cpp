@@ -31,7 +31,7 @@ void GroundFilter::predict(qint64 time)
     if (time == m_lastUpdate) {
         return;
     }
-    const double timeDiff = (time  - m_lastUpdate) / 1E9;
+    const double timeDiff = (time  - m_lastUpdate) * 1E-9;
     Q_ASSERT(timeDiff > 0);
 
 

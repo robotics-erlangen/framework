@@ -268,7 +268,7 @@ static void luaDebugHook(lua_State *state, lua_Debug *ar)
     case LUA_HOOKTAILRET:
         break;
     case LUA_HOOKCOUNT:
-        if (currentTime - getStrategyThread(state)->startTime() > 0.5 * 1E9) {
+        if (currentTime - getStrategyThread(state)->startTime() > 0.5E9) {
             luaL_error(state, "Script timeout!");
         }
         break;

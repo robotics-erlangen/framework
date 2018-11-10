@@ -214,7 +214,7 @@ static int pathTest(lua_State *L)
     const bool ret = p->testSpline(spline, radius);
     lua_pushboolean(L, ret);
 
-    updateTiming(L, (Timer::systemTime() - t) / 1E9);
+    updateTiming(L, (Timer::systemTime() - t) * 1E-9);
 
     return 1;
 }
@@ -257,7 +257,7 @@ static int pathGet(lua_State *L)
         lua_settable(L, -3);
     }
 
-    updateTiming(L, (Timer::systemTime() - t) / 1E9);
+    updateTiming(L, (Timer::systemTime() - t) * 1E-9);
 
     return 1;
 }

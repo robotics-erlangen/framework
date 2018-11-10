@@ -412,7 +412,7 @@ void Strategy::process()
             handleRefboxReply(m_refboxSocket->readAll());
         }
 
-        double totalTime = (Timer::systemTime() - startTime) / 1E9;
+        double totalTime = (Timer::systemTime() - startTime) * 1E-9;
 
         // publish timings and debug output
         Status status = takeStrategyDebugStatus();

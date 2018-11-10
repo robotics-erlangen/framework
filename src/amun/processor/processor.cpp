@@ -194,7 +194,7 @@ void Processor::process()
     Status status_debug = Status::createArena();
     const qint64 controller_start = Timer::systemTime();
     // just ignore the referee for timing
-    status_debug->mutable_timing()->set_tracking((controller_start - tracker_start) / 1E9);
+    status_debug->mutable_timing()->set_tracking((controller_start - tracker_start) * 1E-9f);
 
     amun::DebugValues *debug = status_debug->add_debug();
     debug->set_source(amun::Controller);
@@ -225,7 +225,7 @@ void Processor::process()
     strategyStatus->mutable_user_input_blue()->CopyFrom(status->user_input_blue());
     emit sendStrategyStatus(strategyStatus);
 
-    status_debug->mutable_timing()->set_controller((Timer::systemTime() - controller_start) / 1E9);
+    status_debug->mutable_timing()->set_controller((Timer::systemTime() - controller_start) * 1E-9f);
     emit sendStatus(status_debug);
 
     if (m_transceiverEnabled) {

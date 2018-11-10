@@ -252,7 +252,7 @@ void LogManager::playNext()
 
 QString LogManager::formatTime(qint64 time) {
     // nanoseconds to mm:ss.MMMM time stamp (M = milliseconds)
-    const double dtime = time / 1E9;
+    const double dtime = time * 1E-9;
     return QString("%1:%2.%3")
            .arg((int) dtime / 60)
            .arg((int) dtime % 60, 2, 10, QChar('0'))
