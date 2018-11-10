@@ -42,9 +42,10 @@ private:
         int lastFrameCounter;
         uint8_t droppedFramesCounter;
         float droppedFramesRatio;
-        int skipedFrames;
+        int lastDroppedFrames;
 
-        DroppedFrameCounter() : startValue(-1), lastFrameCounter(0), droppedFramesCounter(0), droppedFramesRatio(0), skipedFrames(0) {}
+        DroppedFrameCounter() : startValue(-1), lastFrameCounter(0), droppedFramesCounter(0),
+            droppedFramesRatio(0), lastDroppedFrames(-1) {}
     };
 
     enum class State {

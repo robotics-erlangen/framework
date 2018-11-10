@@ -386,9 +386,6 @@ float Transceiver::calculateDroppedFramesRatio(uint generation, uint id, uint8_t
 {
     // get frame counter, is created with default values if not existing
     DroppedFrameCounter &c = m_droppedFrames[qMakePair(generation, id)];
-    if (skipedFrames >= 0) {
-        c.skipedFrames = skipedFrames;
-    }
 
     // correctly handle startup
     if (c.startValue == -1) {
@@ -400,12 +397,17 @@ float Transceiver::calculateDroppedFramesRatio(uint generation, uint id, uint8_t
     } else {
         // counter isn't increasing -> counter has overflown, update statistic
         // account for packets lost somewhere around the counter overflow
-        // as the robot can only reply if it got a frame, skip the frames it didn't get (only 2014)
-        c.droppedFramesRatio = (c.droppedFramesCounter + (255 - c.lastFrameCounter) - c.skipedFrames)
-                / (256.f - c.startValue - c.skipedFrames);
+        c.lastDroppedFrames = c.droppedFramesCounter + (255 - c.lastFrameCounter);
         // if the counter is non-zero we've already lost some packets
         c.droppedFramesCounter = counter;
+    }
+
+    if (c.lastDroppedFrames >= 0 && skipedFrames >= 0) {
+        // as the robot can only reply if it got a frame, skip the frames it didn't get (only 2014)
+        c.droppedFramesRatio = (c.lastDroppedFrames - skipedFrames)
+                / (256.f - c.startValue - skipedFrames);
         c.startValue = 0;
+        c.lastDroppedFrames = -1;
     }
 
     c.lastFrameCounter = counter;
