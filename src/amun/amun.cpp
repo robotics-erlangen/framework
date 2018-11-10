@@ -391,11 +391,15 @@ void Amun::pauseSimulator(const amun::PauseSimulatorCommand &pauseCommand)
     }
     if (reasonsSizeBefore > 0 && m_activePauseReasons.size() == 0) {
         m_scaling = m_previousSpeed;
-        updateScaling(m_scaling);
+        if (m_simulatorEnabled) {
+            updateScaling(m_scaling);
+        }
     } else if (reasonsSizeBefore == 0 && m_activePauseReasons.size() > 0) {
         m_previousSpeed = m_scaling;
         m_scaling = 0.0f;
-        updateScaling(m_scaling);
+        if (m_simulatorEnabled) {
+            updateScaling(m_scaling);
+        }
     }
 }
 
