@@ -29,13 +29,13 @@
 #include <QDropEvent>
 #include <QMimeData>
 #include <QUrl>
+#include <QDebug>
 #include "widgets/refereestatuswidget.h"
 #include "plotter/plot.h"
 #include "plotter/plotter.h"
 #include "logcutter.h"
 #include "logopener.h"
-#include "strategy/strategy.h"
-#include "strategy/strategyreplayhelper.h"
+#include "amun/amunclient.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -119,8 +119,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, SIGNAL(gotBacklogData(QList<Status>)), m_plotter, SLOT(handleBacklogStatus(QList<Status>)));
     connect(this, SIGNAL(showPlotter()), m_plotter, SLOT(show()));
 
-    connect(ui->replay, SIGNAL(enableStrategyBlue(bool)), this, SLOT(enableStrategyBlue(bool)));
-    connect(ui->replay, SIGNAL(enableStrategyYellow(bool)), this, SLOT(enableStrategyYellow(bool)));
+    connect(ui->replay, SIGNAL(setRegularVisualizationsEnabled(bool, bool)), ui->field, SLOT(setRegularVisualizationsEnabled(bool, bool)));
+    connect(ui->replay, SIGNAL(sendResetDebugPacket(bool)), SLOT(sendResetDebugPacket(bool)));
 
     // restore configuration
     QSettings s;
@@ -129,14 +129,6 @@ MainWindow::MainWindow(QWidget *parent) :
     restoreState(s.value("State").toByteArray());
     ui->splitter->restoreState(s.value("Splitter").toByteArray());
     s.endGroup();
-
-    // create strategy threads
-    for (int i = 0;i<2;i++) {
-        m_strategyThreads[i] = new QThread(this);
-        m_strategyThreads[i]->start();
-        m_strategys[i] = nullptr;
-        m_strategyBlocker[i] = nullptr;
-    }
 
     // set up log connections
     connect(this, SIGNAL(gotStatus(Status)), &m_logWriter, SLOT(handleStatus(Status)));
@@ -162,91 +154,36 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->logManager, SIGNAL(resetBacklog()), &m_logWriter, SIGNAL(resetBacklog()));
 
     ui->field->setFocus();
+
+    m_amun = new AmunClient(this);
+    m_amun->start(true);
+
+
+    // set up data distribution to and from strategy
+    connect(m_amun, SIGNAL(gotStatus(Status)), ui->visualization, SLOT(handleStatus(Status)));
+    connect(m_amun, SIGNAL(gotStatus(Status)), ui->debugTree, SLOT(handleStatus(Status)));
+    connect(m_amun, SIGNAL(gotStatus(Status)), ui->log, SLOT(handleStatus(Status)));
+    connect(m_amun, SIGNAL(gotStatus(Status)), ui->field, SLOT(handleStatus(Status)));
+    connect(m_amun, SIGNAL(gotStatus(Status)), ui->replay, SIGNAL(gotStatus(Status)));
+    connect(m_amun, SIGNAL(gotStatus(Status)), m_plotter, SLOT(handleStatus(Status)));
+    connect(m_amun, SIGNAL(gotStatus(Status)), SLOT(handleReplayStatus(Status)));
+
+    connect(ui->replay, SIGNAL(sendCommand(Command)), m_amun, SIGNAL(sendCommand(Command)));
+    connect(this, SIGNAL(sendCommand(Command)), m_amun, SIGNAL(sendCommand(Command)));
+    connect(this, SIGNAL(gotStatus(Status)), m_amun, SIGNAL(sendReplayStatus(Status)));
+
+    // enable replay
+    Command setReplayCommand(new amun::Command());
+    setReplayCommand->mutable_replay()->set_enable(true);
+    emit sendCommand(setReplayCommand);
+
+    // if the other strategy isnt running, reset debug data for it to remove visualizations
+    emit sendCommand(m_lastTeamInfo);
 }
 
 MainWindow::~MainWindow()
 {
-    for (int i = 0; i < 2; i++) {
-        if (m_strategys[i] != nullptr) {
-            m_strategys[i]->deleteLater();
-        }
-        if (m_strategyBlocker[i] != nullptr) {
-            m_strategyBlocker[i]->deleteLater();
-        }
-        m_strategyThreads[i]->quit();
-        m_strategyThreads[i]->wait();
-    }
     delete ui;
-}
-
-void MainWindow::logOpened()
-{
-    if (m_strategys[0] != nullptr) {
-        m_strategys[0]->resetIsReplay();
-    }
-    if (m_strategys[1] != nullptr) {
-        m_strategys[1]->resetIsReplay();
-    }
-}
-
-void MainWindow::enableStrategyBlue(bool enable)
-{
-    if (enable) {
-        createStrategy(1);
-    } else {
-        closeStrategy(1);
-    }
-}
-
-void MainWindow::enableStrategyYellow(bool enable)
-{
-    if (enable) {
-        createStrategy(0);
-    } else {
-        closeStrategy(0);
-    }
-}
-
-void MainWindow::closeStrategy(int index)
-{
-    m_strategys[index]->deleteLater();
-    m_strategys[index] = nullptr;
-    m_strategyBlocker[index]->deleteLater();
-    m_strategyBlocker[index] = nullptr;
-    sendResetDebugPacket(index != 0);
-    ui->field->setRegularVisualizationsEnabled(index != 0, true);
-}
-
-void MainWindow::createStrategy(int index)
-{
-    Q_ASSERT(m_strategys[index] == nullptr);
-    ui->field->setRegularVisualizationsEnabled(index != 0, false);
-    m_strategys[index] = new Strategy(m_playTimer, (index == 0) ? StrategyType::YELLOW : StrategyType::BLUE, nullptr,
-                                      false, true);
-    m_strategys[index]->moveToThread(m_strategyThreads[index]);
-    m_strategyBlocker[index] = new BlockingStrategyReplay(m_strategys[index]);
-
-    // set up data distribution to and from strategy
-    connect(m_strategyBlocker[index], SIGNAL(gotStatus(Status)), ui->visualization, SLOT(handleStatus(Status)));
-    connect(m_strategyBlocker[index], SIGNAL(gotStatus(Status)), ui->debugTree, SLOT(handleStatus(Status)));
-    connect(m_strategyBlocker[index], SIGNAL(gotStatus(Status)), ui->log, SLOT(handleStatus(Status)));
-    connect(m_strategyBlocker[index], SIGNAL(gotStatus(Status)), ui->field, SLOT(handleStatus(Status)));
-    connect(m_strategyBlocker[index], SIGNAL(gotStatus(Status)), ui->replay, SIGNAL(gotStatus(Status)));
-    connect(m_strategyBlocker[index], SIGNAL(gotStatus(Status)), m_plotter, SLOT(handleStatus(Status)));
-    connect(m_strategyBlocker[index], SIGNAL(gotStatus(Status)), SLOT(handleReplayStatus(Status)));
-
-    connect(ui->replay, SIGNAL(sendCommand(Command)), m_strategys[index], SLOT(handleCommand(Command)));
-    connect(this, SIGNAL(sendCommand(Command)), m_strategys[index], SLOT(handleCommand(Command)));
-    connect(this, SIGNAL(gotStatus(Status)), m_strategyBlocker[index], SLOT(handleStatus(Status)));
-    connect(this, SIGNAL(reloadStrategy()), m_strategys[index], SLOT(reload()));
-
-    // if the other strategy isnt running, reset debug data for it to remove visualizations
-    emit sendCommand(m_lastTeamInfo);
-
-    // create a status packet with empty debug to reset field debug visualizations
-    if (m_strategys[index ^ 1] == nullptr) {
-        sendResetDebugPacket(index == 0);
-    }
 }
 
 void MainWindow::openPlotter()
@@ -348,30 +285,6 @@ void MainWindow::dropEvent(QDropEvent *event)
             event->acceptProposedAction();
         }
     }
-}
-
-QString MainWindow::formatTime(qint64 time) {
-    // nanoseconds to mm:ss.MMMM time stamp (M = milliseconds)
-    const double dtime = time * 1E-9;
-    return QString("%1:%2.%3")
-           .arg((int) dtime / 60)
-           .arg((int) dtime % 60, 2, 10, QChar('0'))
-           .arg((int) (dtime * 1000) % 1000, 3, 10, QChar('0'));
-}
-
-void MainWindow::clearPlayConsumers()
-{
-    // the log just displays messages of a continuously played timespan
-    ui->log->clear();
-    m_plotter->clearData();
-    ui->field->clearTraces();
-    emit reloadStrategy();
-}
-
-void MainWindow::clearAll()
-{
-    ui->debugTree->clearData();
-    ui->field->clearData();
 }
 
 void MainWindow::selectFrame(int amm)

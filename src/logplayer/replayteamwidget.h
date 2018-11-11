@@ -19,20 +19,22 @@ public:
     ~ReplayTeamWidget();
     ReplayTeamWidget(const ReplayTeamWidget&) = delete;
     ReplayTeamWidget& operator=(const ReplayTeamWidget&) = delete;
-    bool replayBlueEnabled() const;
-    bool replayYellowEnabled() const;
 
 signals:
     void gotStatus(const Status & status);
     void sendCommand(const Command &command);
-    void enableStrategyBlue(bool enabled);
-    void enableStrategyYellow(bool enabled);
 
     void saveBacklog();
     void enableRecording(bool enabled);
     void enableBackLogLogButton(bool enable);
     void enableLogLogButton(bool enable);
     void setLogLogButton(bool on);
+    void setRegularVisualizationsEnabled(bool blue, bool enabled);
+    void sendResetDebugPacket(bool blue);
+
+private slots:
+    void strategyBlueEnabled(bool enabled);
+    void strategyYellowEnabled(bool enabled);
 
 private:
     Ui::ReplayTeamWidget *ui;

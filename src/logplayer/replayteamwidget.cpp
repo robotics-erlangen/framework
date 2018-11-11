@@ -21,10 +21,8 @@ ReplayTeamWidget::ReplayTeamWidget(QWidget *parent) :
 
     connect(ui->replayBlue, SIGNAL(clicked(bool)), ui->blue, SLOT(setEnabled(bool)));
     connect(ui->replayYellow, SIGNAL(clicked(bool)), ui->yellow, SLOT(setEnabled(bool)));
-    connect(ui->replayBlue, SIGNAL(clicked(bool)), this, SIGNAL(enableStrategyBlue(bool)));
-    connect(ui->replayYellow, SIGNAL(clicked(bool)), this, SIGNAL(enableStrategyYellow(bool)));
-    connect(ui->replayBlue, SIGNAL(clicked(bool)), ui->blue, SLOT(resendAll(bool)));
-    connect(ui->replayYellow, SIGNAL(clicked(bool)), ui->yellow, SLOT(resendAll(bool)));
+    connect(ui->replayBlue, SIGNAL(clicked(bool)), this, SLOT(strategyBlueEnabled(bool)));
+    connect(ui->replayYellow, SIGNAL(clicked(bool)), this, SLOT(strategyYellowEnabled(bool)));
 
     connect(ui->blue, SIGNAL(sendCommand(Command)), this, SIGNAL(sendCommand(Command)));
     connect(ui->yellow, SIGNAL(sendCommand(Command)), this, SIGNAL(sendCommand(Command)));
@@ -50,12 +48,28 @@ ReplayTeamWidget::~ReplayTeamWidget()
     delete ui;
 }
 
-bool ReplayTeamWidget::replayBlueEnabled() const
+void ReplayTeamWidget::strategyBlueEnabled(bool enabled)
 {
-    return ui->replayBlue->isChecked();
+    if (enabled) {
+        emit sendResetDebugPacket(true);
+        ui->blue->resendAll(true);
+    } else {
+        Command command(new amun::Command());
+        command->mutable_strategy_blue()->mutable_close();
+        emit sendCommand(command);
+    }
+    emit setRegularVisualizationsEnabled(true, !enabled);
 }
 
-bool ReplayTeamWidget::replayYellowEnabled() const
+void ReplayTeamWidget::strategyYellowEnabled(bool enabled)
 {
-    return ui->replayYellow->isChecked();
+    if (enabled) {
+        emit sendResetDebugPacket(false);
+        ui->yellow->resendAll(true);
+    } else {
+        Command command(new amun::Command());
+        command->mutable_strategy_yellow()->mutable_close();
+        emit sendCommand(command);
+    }
+    emit setRegularVisualizationsEnabled(false, !enabled);
 }

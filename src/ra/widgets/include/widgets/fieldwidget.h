@@ -81,7 +81,6 @@ public:
     FieldWidget& operator=(const FieldWidget&) = delete;
 
     void setLogplayer();
-    void setRegularVisualizationsEnabled(bool blue, bool enabled);
 
 signals:
     void sendCommand(const Command &command);
@@ -96,6 +95,7 @@ public slots:
     void saveConfig();
     void enableDragMeasure(bool enable) { m_enableDragMeasure = enable; }
     void toggleStrategyVisualizations();
+    void setRegularVisualizationsEnabled(bool blue, bool enabled);
 
 protected:
     void mousePressEvent(QMouseEvent *event) override;

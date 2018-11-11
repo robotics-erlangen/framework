@@ -32,7 +32,7 @@ class LogOpener;
 class RefereeStatusWidget;
 class QThread;
 class Plotter;
-class Strategy;
+class AmunClient;
 class BlockingStrategyReplay;
 
 namespace Ui {
@@ -60,8 +60,8 @@ protected:
 public slots:
     void handleStatus(const Status &status);
     void handleReplayStatus(const Status &status);
-    void logOpened();
     void openFile(const QString &filename);
+    void sendResetDebugPacket(bool blue);
 
 signals:
     void gotStatus(const Status &status);
@@ -70,40 +70,23 @@ signals:
     void sendCommand(const Command &command);
     void enableStrategyCheckboxBlue(bool enable);
     void enableStrategyCheckboxYellow(bool enable);
-    void reloadStrategy();
     void gotBacklogData(QList<Status> backlogData);
     void showPlotter();
 
 private slots:
-    void enableStrategyBlue(bool enable);
-    void enableStrategyYellow(bool enable);
-    void clearPlayConsumers();
-    void clearAll();
     void openPlotter();
-
-private:
-    QString formatTime(qint64 time);
-    void closeStrategy(int index);
-    void createStrategy(int index);
-    void sendResetDebugPacket(bool blue);
 
 private:
     Ui::MainWindow *ui;
     RefereeStatusWidget *m_refereeStatus;
 
-    QThread *m_strategyThreads[2];
-
     Command m_lastTeamInfo;
     bool m_lastTeamInfoUpdated;
 
     Plotter *m_plotter;
-
-    Strategy *m_strategys[2];
-    BlockingStrategyReplay *m_strategyBlocker[2];
+    AmunClient *m_amun;
     CombinedLogWriter m_logWriter;
-
     Timer *m_playTimer;
-
     LogOpener * m_logOpener;
 };
 

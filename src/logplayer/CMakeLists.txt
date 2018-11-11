@@ -65,7 +65,7 @@ target_link_libraries(logplayer
     ra::logfile
     ra::plotter
     ra::widgets
-    amun::strategy
+    amun::amun
     ${OPENGL_LIBRARIES}
     Qt5::Widgets
     Qt5::OpenGL
