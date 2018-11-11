@@ -150,12 +150,18 @@ enum PauseSimulatorReason {
     DebugBlueStrategy = 3;
     DebugYellowStrategy = 4;
     DebugAutoref = 5;
+    Replay = 6;
 }
 
 message PauseSimulatorCommand {
     required PauseSimulatorReason reason = 1;
     optional bool pause = 2;
     optional bool toggle = 3;
+}
+
+message CommandReplay {
+    // replay in general, not any specific strategy. This may be enabled even when no strategy is replayed
+    optional bool enable = 1;
 }
 
 message Command {
@@ -177,4 +183,5 @@ message Command {
     optional CommandDebuggerInput debugger_input = 16;
     optional uint32 remote_control_port = 17;
     optional PauseSimulatorCommand pause_simulator = 18;
+    optional CommandReplay replay = 19;
 }
