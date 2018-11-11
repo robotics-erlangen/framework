@@ -36,6 +36,8 @@ class Timer;
 class Transceiver;
 class NetworkTransceiver;
 class QHostAddress;
+class Integrator;
+class BlockingStrategyReplay;
 
 class Amun : public QObject
 {
@@ -48,6 +50,7 @@ public:
     Amun& operator=(const Amun&) = delete;
 
 signals:
+    void sendReplayStatus(const Status &status);
     void sendStatus(const Status &status);
     void gotCommand(const Command &command);
     void updateVisionPort(quint16 port);
@@ -91,8 +94,10 @@ private:
     Receiver *m_mixedTeam;
     Strategy *m_strategy[3];
     DebugHelper *m_debugHelper[3];
+    BlockingStrategyReplay *m_strategyBlocker[3];
     qint64 m_lastTime;
     Timer *m_timer;
+    Integrator *m_integrator;
     bool m_simulatorEnabled;
     float m_scaling;
     bool m_useNetworkTransceiver;

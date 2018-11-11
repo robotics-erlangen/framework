@@ -24,8 +24,10 @@
 #include "processor/processor.h"
 #include "processor/transceiver.h"
 #include "processor/networktransceiver.h"
+#include "processor/integrator.h"
 #include "simulator/simulator.h"
 #include "strategy/debughelper.h"
+#include "strategy/strategyreplayhelper.h"
 #include "strategy/strategy.h"
 #include "networkinterfacewatcher.h"
 #include <QMetaType>
@@ -116,10 +118,15 @@ void Amun::start()
     Q_ASSERT(m_processor == NULL);
     m_processor = new Processor(m_timer);
     m_processor->moveToThread(m_processorThread);
+    m_integrator = new Integrator();
+    m_integrator->moveToThread(m_processorThread);
     connect(m_processorThread, SIGNAL(finished()), m_processor, SLOT(deleteLater()));
-    // route commands to processor
+    // route commands and replay status to processor and integrator
     connect(this, SIGNAL(gotCommand(Command)), m_processor, SLOT(handleCommand(Command)));
+    connect(this, SIGNAL(gotCommand(Command)), m_integrator, SLOT(handleCommand(Command)));
+    connect(this, SIGNAL(sendReplayStatus(Status)), m_integrator, SLOT(handleReplayStatus(Status)));
     // relay tracking, geometry, referee, controller and accelerator information
+    connect(m_processor, SIGNAL(sendStrategyStatus(Status)), m_integrator, SLOT(handleStatus(Status)));
     connect(m_processor, SIGNAL(sendStatus(Status)), SLOT(handleStatus(Status)));
 
     // start strategy threads
@@ -142,16 +149,17 @@ void Amun::start()
         Q_ASSERT(m_strategy[i] == nullptr);
         m_strategy[i] = new Strategy(m_timer, strategy, m_debugHelper[i], i == 2);
         m_strategy[i]->moveToThread(m_strategyThread[i]);
+        // use a rather large queue to make replay faster
+        m_strategyBlocker[i] = new BlockingStrategyReplay(m_strategy[i], 20);
         connect(m_strategyThread[i], SIGNAL(finished()), m_strategy[i], SLOT(deleteLater()));
 
         // send tracking, geometry and referee to strategy
-        connect(m_processor, SIGNAL(sendStrategyStatus(Status)),
-                m_strategy[i], SLOT(handleStatus(Status)));
+        connect(m_integrator, SIGNAL(sendReplayStatus(Status)), m_strategyBlocker[i], SLOT(handleStatus(Status)));
+        connect(m_integrator, SIGNAL(sendStatus(Status)), m_strategy[i], SLOT(handleStatus(Status)));
         // forward robot commands to processor
         connect(m_strategy[i], SIGNAL(sendStrategyCommand(bool, unsigned int, unsigned int, RobotCommand, qint64)),
                 m_processor, SLOT(handleStrategyCommand(bool, unsigned int, unsigned int, RobotCommand, qint64)));
-        connect(m_strategy[i], SIGNAL(sendHalt(bool)),
-                m_processor, SLOT(handleStrategyHalt(bool)));
+        connect(m_strategy[i], SIGNAL(sendHalt(bool)), m_processor, SLOT(handleStrategyHalt(bool)));
         connect(this, SIGNAL(gotRefereeHost(QString)), m_strategy[i], SLOT(handleRefereeHost(QString)));
         connect(m_processor, SIGNAL(setFlipped(bool)), m_strategy[i], SLOT(setFlipped(bool)));
 
@@ -256,18 +264,21 @@ void Amun::stop()
     m_debugHelperThread->wait();
 
     // worker objects are destroyed on thread shutdown
-    m_transceiver = NULL;
-    m_networkTransceiver = NULL;
-    m_networkCommand = NULL;
-    m_simulator = NULL;
-    m_vision = NULL;
-    m_referee = NULL;
-    m_mixedTeam = NULL;
+    m_transceiver = nullptr;
+    m_networkTransceiver = nullptr;
+    m_networkCommand = nullptr;
+    m_simulator = nullptr;
+    m_vision = nullptr;
+    m_referee = nullptr;
+    m_mixedTeam = nullptr;
     for (int i = 0; i < 3; i++) {
-        m_strategy[i] = NULL;
+        m_strategy[i] = nullptr;
+        delete m_strategyBlocker[i];
+        m_strategyBlocker[i] = nullptr;
         m_debugHelper[i] = nullptr;
     }
-    m_processor = NULL;
+    m_processor = nullptr;
+    m_integrator = nullptr;
 }
 
 void Amun::setupReceiver(Receiver *&receiver, const QHostAddress &address, quint16 port)
@@ -365,6 +376,16 @@ void Amun::handleCommand(const Command &command)
         bool internalAutoref = m_useInternalReferee && m_useAutoref;
         if (internalAutoref != internalAutorefBefore) {
             enableAutoref(internalAutoref);
+        }
+    }
+
+    if (command->has_replay()) {
+        const amun::CommandReplay &replay = command->replay();
+        if (replay.has_enable()) {
+            amun::PauseSimulatorCommand pause;
+            pause.set_pause(replay.enable());
+            pause.set_reason(amun::Replay);
+            pauseSimulator(pause);
         }
     }
 
