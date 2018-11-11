@@ -19,13 +19,15 @@
  ***************************************************************************/
 
 #include "internaldebugger.h"
+#include "typescript.h"
 
 using namespace v8;
 
 template <typename T> inline void USE(T&&) {}
 
-InternalDebugger::InternalDebugger(Isolate *isolate) :
+InternalDebugger::InternalDebugger(Isolate *isolate, Typescript *strategy) :
     m_isolate(isolate),
+    m_strategy(strategy),
     m_hasFunctions(false)
 { }
 
@@ -51,6 +53,7 @@ void InternalDebugger::messageLoop()
     if (!m_hasFunctions) {
         return;
     }
+    m_strategy->disableTimeoutOnce();
     Local<Context> context = m_isolate->GetCurrentContext();
     Local<Function> function = Local<Function>::New(m_isolate, m_messageLoop);
     USE(function->Call(context, context->Global(), 0, nullptr));
@@ -71,6 +74,7 @@ void InternalDebugger::handleStringContent(QString content, v8::Persistent<v8::F
     if (!m_hasFunctions) {
         return;
     }
+    m_strategy->disableTimeoutOnce();
     QByteArray utf8Content = content.toUtf8();
     Local<String> contentString = String::NewFromUtf8(m_isolate, utf8Content.data(), String::kNormalString, utf8Content.length());
     Local<Value> arguments[] = {contentString};

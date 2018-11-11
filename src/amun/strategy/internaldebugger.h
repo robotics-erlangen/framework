@@ -25,10 +25,12 @@
 
 #include <v8.h>
 
+class Typescript;
+
 class InternalDebugger : public AbstractInspectorHandler
 {
 public:
-    InternalDebugger(v8::Isolate *isolate);
+    InternalDebugger(v8::Isolate *isolate, Typescript *strategy);
     void setFunctions(v8::Local<v8::Function> &responseCallback, v8::Local<v8::Function> &notificationCallback,
                       v8::Local<v8::Function> &messageLoop);
     void clearFunctions();
@@ -42,6 +44,7 @@ private:
 
 private:
     v8::Isolate *m_isolate;
+    Typescript *m_strategy;
     bool m_hasFunctions;
     v8::Persistent<v8::Function> m_responseCallback;
     v8::Persistent<v8::Function> m_notificationCallback;
