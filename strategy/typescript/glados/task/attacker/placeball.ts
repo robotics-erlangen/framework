@@ -317,7 +317,7 @@ export class PlaceBall extends Task {
 					}
 				} else {
 					this._lostBallTime = undefined;
-					if (this._robot.pos.distanceTo(<Position> this._currentTargetPos)) {
+					if (this._robot.pos.distanceTo(<Position> this._currentTargetPos) < 0.01) {
 						nextState = State.BACK_UP_WAIT;
 					}
 				}
