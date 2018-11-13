@@ -45,10 +45,12 @@ int main(int argc, char* argv[])
     QCommandLineOption outputLog({"o", "output"}, "Location to output the resulting log file","outputFile", "lc_out.log");
     QCommandLineOption flags({"f", "flags"}, "Flags for the logprocessor", "flags", "0");
     QCommandLineOption abortExecution({"d", "die-on-error"}, "Die when a problem occurs");
+    QCommandLineOption noHash("no-hash", "Do not insert any hash into the resulting logfile");
 
     parser.addOption(outputLog);
     parser.addOption(abortExecution);
     parser.addOption(flags);
+    parser.addOption(noHash);
 
     // parse command line
     parser.process(app);
@@ -59,7 +61,7 @@ int main(int argc, char* argv[])
     }
 
     std::cout << "[ DEBUG] " << parser.value(outputLog).toStdString() << std::endl;
-    LogProcessor lp(parser.positionalArguments(), parser.value(outputLog), LogProcessor::Options(parser.value(flags).toInt()));
+    LogProcessor lp(parser.positionalArguments(), parser.value(outputLog), LogProcessor::Options(parser.value(flags).toInt()), nullptr, parser.isSet(noHash));
     QObject::connect(&lp, &LogProcessor::progressUpdate, [](const QString& progress){
             std::cout << "[STATUS] " << progress.toStdString() << std::endl;
     });

@@ -32,7 +32,7 @@ public:
     Q_DECLARE_FLAGS(Options, Option)
 
     explicit LogProcessor(const QList<QString>& inputFiles, const QString& outputFile,
-                          Options options, QObject *parent = 0);
+                          Options options, QObject *parent = 0, bool ignoreHashing = false);
     ~LogProcessor() override;
     LogProcessor(const LogProcessor&) = delete;
     LogProcessor& operator=(const LogProcessor&) = delete;
@@ -62,6 +62,7 @@ private:
     QSemaphore m_semaphore;
 
     int m_currentLog;
+    bool m_ignoreHashing;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(LogProcessor::Options)

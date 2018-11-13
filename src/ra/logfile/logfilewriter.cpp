@@ -61,7 +61,7 @@ static bool serializeStatus(std::function<void(LogFileWriter*, qint64, QByteArra
     return false;
 }
 
-bool LogFileWriter::open(const QString &filename)
+bool LogFileWriter::open(const QString &filename, bool ignoreHashing)
 {
     // lock for atomar opening
     QMutexLocker locker(m_mutex);
@@ -85,6 +85,10 @@ bool LogFileWriter::open(const QString &filename)
     m_hasher.clear();
     m_hashState = HashingState::UNINITIALIZED;
     m_hashStatus->Clear();
+
+    if (ignoreHashing) {
+        m_hashState = HashingState::HAS_HASHING;
+    }
 
     return true;
 }

@@ -95,9 +95,9 @@ private:
 };
 
 LogProcessor::LogProcessor(const QList<QString> &inputFiles, const QString &outputFile,
-                           Options options, QObject *parent)
+                           Options options, QObject *parent, bool ignoreHashing)
     : QThread(parent), m_inputFiles(inputFiles), m_outputFile(outputFile),
-      m_options(options)
+      m_options(options), m_ignoreHashing(ignoreHashing)
 {
     m_semaphore.release(1);
 }
@@ -123,7 +123,7 @@ void LogProcessor::run()
     }
 
     LogFileWriter writer;
-    if (!writer.open(m_outputFile)) {
+    if (!writer.open(m_outputFile, m_ignoreHashing)) {
         emit error("Failed to output logfile: " + m_outputFile);
         qDeleteAll(logreaders);
         return;
@@ -145,6 +145,12 @@ void LogProcessor::run()
     //handle hashing
     collectHashes(logreaders, &writerExchanger);
     logfile::Uid resultingUid = calculateUid();
+    emit progressUpdate("Resulting Hash: " + QString::fromStdString(resultingUid.DebugString()));
+
+    if (m_ignoreHashing) {
+        emit progressUpdate("Clearing Hash ");
+        resultingUid.Clear();
+    }
 
     // stream data
     emit outputSelected(&writer);

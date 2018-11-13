@@ -41,7 +41,7 @@ public:
     LogFileWriter(const LogFileWriter &) = delete;
     LogFileWriter& operator=(const LogFileWriter &) = delete;
 
-    bool open(const QString &filename);
+    bool open(const QString &filename, bool ignoreHashing = false);
     void close();
     bool isOpen() const { return m_file.isOpen(); }
 
