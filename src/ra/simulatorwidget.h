@@ -38,6 +38,7 @@ public:
     ~SimulatorWidget() override;
     SimulatorWidget(const SimulatorWidget&) = delete;
     SimulatorWidget& operator=(const SimulatorWidget&) = delete;
+    void sendPauseSimulator(amun::PauseSimulatorReason reason, bool pause);
 
 signals:
     void sendCommand(const Command &command);
@@ -59,9 +60,6 @@ private slots:
     void setStddevRobotPhi(double stddev);
 
     void on_btnToggle_clicked();
-
-private:
-    void sendPauseSimulator(amun::PauseSimulatorReason reason, bool pause);
 
 private:
     Ui::SimulatorWidget *ui;

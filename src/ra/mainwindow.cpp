@@ -27,6 +27,8 @@
 #include "widgets/debuggerconsole.h"
 #include "widgets/refereestatuswidget.h"
 #include "savedirectorydialog.h"
+#include "logcutter/logcutter.h"
+#include "logopener.h"
 #include <QFile>
 #include <QFileDialog>
 #include <QLabel>
@@ -34,6 +36,12 @@
 #include <QSettings>
 #include <QThread>
 #include <QSignalMapper>
+#include <QDragEnterEvent>
+#include <QDragLeaveEvent>
+#include <QDragMoveEvent>
+#include <QDropEvent>
+#include <QMimeData>
+#include <QUrl>
 
 MainWindow::MainWindow(bool tournamentMode, QWidget *parent) :
     QMainWindow(parent),
@@ -48,11 +56,11 @@ MainWindow::MainWindow(bool tournamentMode, QWidget *parent) :
     qRegisterMetaType<SSL_Referee::Stage>("SSL_Referee::Stage");
     qRegisterMetaType<Status>("Status");
 
-    setWindowIcon(QIcon("icon:ra.svg"));
     ui->setupUi(this);
 
     ui->logManager->setMinimalMode();
     ui->logManager->hide();
+    ui->btnOpen->setVisible(false);
 
     // setup icons
     ui->actionEnableTransceiver->setIcon(QIcon("icon:32/network-wireless.png"));
@@ -260,6 +268,23 @@ MainWindow::MainWindow(bool tournamentMode, QWidget *parent) :
         ui->actionSimulator->setChecked(false);
         ui->actionInternalReferee->setChecked(false);
     }
+
+    // logplayer mode connections
+    LogCutter *logCutter = new LogCutter();
+    m_logOpener = new LogOpener(ui, this);
+    connect(m_logOpener, SIGNAL(logOpened(QString)), SLOT(logOpened(QString)));
+
+    m_playTimer = ui->logManager->getPlayTimer();
+
+    setAcceptDrops(true);
+
+    // add shortcuts
+    connect(ui->actionLogCutter, &QAction::triggered, logCutter, &LogCutter::show);
+
+    // setup data distribution
+    connect(this, SIGNAL(gotStatus(Status)), m_logOpener, SLOT(handleStatus(Status)));
+
+    raMode();
 }
 
 MainWindow::~MainWindow()
@@ -324,6 +349,8 @@ void MainWindow::saveConfig()
     s.setValue("InputDevices/Enabled", ui->actionInputDevices->isChecked());
     s.setValue("Flipped", ui->actionSidesFlipped->isChecked());
     s.setValue("LogWriter/UseLocation", ui->actionUseLocation->isChecked());
+
+    m_logOpener->close();
 }
 
 void MainWindow::loadConfig(bool doRestoreGeometry)
@@ -359,6 +386,13 @@ void MainWindow::switchToWidgetConfiguration(int configId)
     saveConfig();
     m_currentWidgetConfiguration = static_cast<unsigned int>(configId);
     loadConfig(false);
+
+    // Horus mode
+    if (configId % 2 == 0) {
+        horusMode();
+    } else {
+        raMode();
+    }
 }
 
 void MainWindow::ruleVersionChanged(QAction * action)
@@ -526,41 +560,16 @@ void MainWindow::setFlipped(bool flipped)
 
 void MainWindow::liveMode()
 {
-    ui->field->enableDragMeasure(false);
-    for (const Status &status : m_replayStrategyBuffer) {
-        handleStatus(status);
-    }
-    m_replayStrategyBuffer.clear();
-    if (ui->actionSimulator->isChecked()) {
-        ui->simulator->start();
-    }
-    ui->logManager->setDisabled(true);
-    ui->logManager->hide();
-    connect(&m_amun, SIGNAL(gotStatus(Status)), SLOT(handleStatus(Status)));
-    disconnect(&m_amun, SIGNAL(gotStatus(Status)), this, SLOT(handleCheckHaltStatus(Status)));
-    disconnect(ui->logManager, SIGNAL(gotStatus(Status)), this, SLOT(handleStatus(Status)));
-    connect(this, SIGNAL(gotStatus(Status)), &m_logWriter, SLOT(handleStatus(Status)));
-
-    toggleInstantReplay(false);
+    switchToWidgetConfiguration(static_cast<int>(m_currentWidgetConfiguration - 1));
 }
 
 void MainWindow::showBacklogMode()
 {
     if (ui->actionSimulator->isChecked() || m_lastRefState == amun::GameState::Halt) {
-        ui->field->enableDragMeasure(true);
-        if (ui->actionSimulator->isChecked()) {
-            ui->simulator->stop();
-        }
-        ui->logManager->setEnabled(true);
-        ui->logManager->show();
+        m_horusTitleString = "Instant Replay";
+        switchToWidgetConfiguration(static_cast<int>(m_currentWidgetConfiguration + 1));
         ui->logManager->setStatusSource(m_logWriter.makeStatusSource());
-        disconnect(this, SIGNAL(gotStatus(Status)), &m_logWriter, SLOT(handleStatus(Status)));
-        disconnect(&m_amun, SIGNAL(gotStatus(Status)), this, SLOT(handleStatus(Status)));
-        connect(&m_amun, SIGNAL(gotStatus(Status)), SLOT(handleCheckHaltStatus(Status)));
-        connect(ui->logManager, SIGNAL(gotStatus(Status)), SLOT(handleStatus(Status)));
         ui->logManager->goToEnd();
-
-        toggleInstantReplay(true);
     }
 }
 
@@ -570,19 +579,66 @@ void MainWindow::handleCheckHaltStatus(const Status &status)
     if (status->has_game_state()) {
         const amun::GameState &gameState = status->game_state();
         if (gameState.state() != amun::GameState::Halt) {
-            liveMode();
+            m_checkHaltCounter++;
+            // ignore the first 20 packets (the exact number is irrelevant) in order to ignore any packets that were still in
+            // the pipeline when horus mode was triggered
+            if (m_checkHaltCounter > 20) {
+                liveMode();
+            }
         }
     }
     if (status->has_strategy_blue() || status->has_strategy_yellow() ||
             status->has_strategy_autoref() || status->debug_size() > 0) {
         // use 50 as some upper limit, the exact number is irrelevant
-        if (m_replayStrategyBuffer.size() < 50) {
-            m_replayStrategyBuffer.push_back(status);
+        if (m_horusStrategyBuffer.size() < 50) {
+            m_horusStrategyBuffer.push_back(status);
         }
     }
 }
 
-void MainWindow::toggleInstantReplay(bool enable)
+void MainWindow::raMode()
+{
+    setWindowIcon(QIcon("icon:ra.svg"));
+    setWindowTitle("Ra");
+    ui->field->enableDragMeasure(false);
+    toggleHorusModeWidgets(false);
+    ui->btnOpen->hide();
+    ui->logManager->setEnabled(false);
+    ui->logManager->hide();
+
+    for (const Status &status : m_horusStrategyBuffer) {
+        handleStatus(status);
+    }
+    m_horusStrategyBuffer.clear();
+
+    ui->simulator->sendPauseSimulator(amun::Horus, false);
+
+    disconnect(&m_amun, SIGNAL(gotStatus(Status)), this, SLOT(handleCheckHaltStatus(Status)));
+    connect(&m_amun, SIGNAL(gotStatus(Status)), SLOT(handleStatus(Status)));
+    disconnect(ui->logManager, SIGNAL(gotStatus(Status)), this, SLOT(handleStatus(Status)));
+    connect(this, SIGNAL(gotStatus(Status)), &m_logWriter, SLOT(handleStatus(Status)));
+}
+
+void MainWindow::horusMode()
+{
+    setWindowIcon(QIcon("icon:logplayer.svg"));
+    setWindowTitle(m_horusTitleString.isEmpty() ? "Horus" : "Horus - " + m_horusTitleString);
+    ui->field->enableDragMeasure(true);
+    toggleHorusModeWidgets(true);
+    ui->btnOpen->show();
+    ui->logManager->setEnabled(true);
+    ui->logManager->show();
+
+    ui->simulator->sendPauseSimulator(amun::Horus, true);
+
+    m_checkHaltCounter = 0;
+    disconnect(this, SIGNAL(gotStatus(Status)), &m_logWriter, SLOT(handleStatus(Status)));
+    disconnect(&m_amun, SIGNAL(gotStatus(Status)), this, SLOT(handleStatus(Status)));
+    connect(&m_amun, SIGNAL(gotStatus(Status)), SLOT(handleCheckHaltStatus(Status)));
+    connect(ui->logManager, SIGNAL(gotStatus(Status)), SLOT(handleStatus(Status)));
+}
+
+void MainWindow::toggleHorusModeWidgets(bool enable)
 {
     ui->actionGoLive->setEnabled(enable);
     ui->actionFrameBack->setEnabled(enable);
@@ -591,14 +647,7 @@ void MainWindow::toggleInstantReplay(bool enable)
     ui->actionStepForward->setEnabled(enable);
     ui->actionTogglePause->setEnabled(enable);
     ui->actionShowBacklog->setEnabled(!enable);
-    ui->actionSpeed1->setEnabled(enable);
-    ui->actionSpeed5->setEnabled(enable);
-    ui->actionSpeed10->setEnabled(enable);
-    ui->actionSpeed20->setEnabled(enable);
-    ui->actionSpeed50->setEnabled(enable);
-    ui->actionSpeed100->setEnabled(enable);
-    ui->actionSpeed200->setEnabled(enable);
-    ui->actionSpeed1000->setEnabled(enable);
+    ui->menuPlaySpeed->setEnabled(enable);
     ui->referee->setEnabled(!enable);
     ui->simulator->setEnabled(!enable);
     ui->robots->enableContent(!enable);
@@ -607,4 +656,44 @@ void MainWindow::toggleInstantReplay(bool enable)
 void MainWindow::showConfigDialog()
 {
     m_configDialog->exec();
+}
+
+void MainWindow::dragEnterEvent(QDragEnterEvent *event)
+{
+    event->acceptProposedAction();
+}
+
+void MainWindow::dragMoveEvent(QDragMoveEvent *event)
+{
+    event->acceptProposedAction();
+}
+
+void MainWindow::dragLeaveEvent(QDragLeaveEvent *event)
+{
+    event->accept();
+}
+
+void MainWindow::logOpened(QString name)
+{
+    m_horusTitleString = name;
+    switchToWidgetConfiguration(static_cast<int>(m_currentWidgetConfiguration + m_currentWidgetConfiguration % 2));
+}
+
+void MainWindow::dropEvent(QDropEvent *event)
+{
+    const QMimeData* mimeData = event->mimeData();
+
+    if (mimeData->hasUrls()) {
+        QList<QUrl> urlList = mimeData->urls();
+        if (urlList.size() > 0) {
+            m_logOpener->openFile(urlList.at(0).toLocalFile());
+            event->acceptProposedAction();
+        }
+    }
+}
+
+void MainWindow::selectFrame(int amm)
+{
+    int frame = std::max(0,std::min(amm, ui->logManager->getLastFrame()));
+    ui->logManager->seekPacket(frame);
 }

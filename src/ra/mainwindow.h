@@ -40,6 +40,8 @@ class QLabel;
 class QModelIndex;
 class QThread;
 class QString;
+class Timer;
+class LogOpener;
 namespace Ui {
     class MainWindow;
 }
@@ -53,12 +55,17 @@ public:
     ~MainWindow() override;
     MainWindow(const MainWindow&) = delete;
     MainWindow& operator=(const MainWindow&) = delete;
+    void selectFrame(int amm);
 
 signals:
     void gotStatus(const Status &status);
 
 protected:
     void closeEvent(QCloseEvent *e) override;
+    void dragEnterEvent(QDragEnterEvent *event) override;
+    void dragMoveEvent(QDragMoveEvent *event) override;
+    void dragLeaveEvent(QDragLeaveEvent *event) override;
+    void dropEvent(QDropEvent *event) override;
 
 private slots:
     void handleCheckHaltStatus(const Status &status);
@@ -77,10 +84,13 @@ private slots:
     void saveConfig();
     void switchToWidgetConfiguration(int configId);
     void showDirectoryDialog();
+    void logOpened(QString name);
 
 private:
-    void toggleInstantReplay(bool enable);
+    void toggleHorusModeWidgets(bool enable);
     void loadConfig(bool doRestoreGeometry);
+    void raMode();
+    void horusMode();
 
 private:
     Ui::MainWindow *ui;
@@ -96,10 +106,14 @@ private:
     QLabel *m_logTimeLabel;
     CombinedLogWriter m_logWriter;
     amun::GameState::State m_lastRefState;
-    QList<Status> m_replayStrategyBuffer;
+    QList<Status> m_horusStrategyBuffer;
     DebuggerConsole *m_console;
     bool m_isTournamentMode;
     uint m_currentWidgetConfiguration;
+    Timer *m_playTimer;
+    LogOpener * m_logOpener;
+    int m_checkHaltCounter;
+    QString m_horusTitleString;
 
     const std::string TEAM_NAME = "Replace with your own team name!";
 };

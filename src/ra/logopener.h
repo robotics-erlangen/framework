@@ -28,7 +28,7 @@
 #include "protobuf/status.h"
 
 // Disable for now in order to be able to compile
-/*class QMenu;
+class QMenu;
 class QAction;
 class StatusSource;
 namespace Ui {
@@ -46,10 +46,10 @@ public:
     void close();
 
 signals:
-    void logOpened();
+    void logOpened(QString name);
 
 public slots:
-    void handleStatus(const Status &status);
+    void handleStatus(const Status&);
     void openFile(const QString &filename);
     void openFile();
     void goToLastFilePosition();
@@ -70,6 +70,6 @@ private:
     QAction *m_recentFilesMenuAction;
 
     const int MAX_RECENT_FILE_COUNT = 10;
-};*/
+};
 
 #endif // LOGOPENER_H

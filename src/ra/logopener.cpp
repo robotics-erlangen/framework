@@ -32,7 +32,7 @@
 #include <QAction>
 #include <functional>
 
-/*LogOpener::LogOpener(Ui::MainWindow *ui, QObject *parent) :
+LogOpener::LogOpener(Ui::MainWindow *ui, QObject *parent) :
     QObject(parent),
     ui(ui),
     m_packetsSinceOpened(0),
@@ -91,7 +91,7 @@ void LogOpener::close()
     s.endArray();
 }
 
-void LogOpener::handleStatus(const Status &status)
+void LogOpener::handleStatus(const Status&)
 {
     // around 10 seconds
     if (m_packetsSinceOpened > 5000) {
@@ -129,7 +129,6 @@ void LogOpener::openFile(const QString &filename)
                 m_logFile = openResult.first;
 
                 m_openFileName = filename;
-                emit logOpened();
                 ui->logManager->setStatusSource(m_logFile);
 
                 // move the file to the end of the recent files list
@@ -150,16 +149,16 @@ void LogOpener::openFile(const QString &filename)
                 }
                 m_packetsSinceOpened = 0;
 
-                ((QMainWindow*)parent())->setWindowTitle("Horus - " + QFileInfo(filename).fileName());
+                emit logOpened(QFileInfo(filename).fileName());
                 return;
 
             } else if (!openResult.second.isEmpty()) {
                 // the header matched, but the log file is corrupt
-                QMessageBox::critical((QMainWindow*)parent(), "Error", openResult.second);
+                emit logOpened("Error: " + openResult.second);
                 return;
             }
         }
-        QMessageBox::critical((QMainWindow*)parent(), "Error", "Could not open log file - no matching format found");
+        emit logOpened("Error: Could not open log file - no matching format found");
     }
 }
 
@@ -194,4 +193,3 @@ void LogOpener::goToLastFilePosition()
     ui->goToLastPosition->setVisible(false);
     ui->logManager->seekPacket(m_lastFilePositions[m_openFileName]);
 }
-*/
