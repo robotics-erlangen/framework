@@ -35,7 +35,6 @@
 /*LogOpener::LogOpener(Ui::MainWindow *ui, QObject *parent) :
     QObject(parent),
     ui(ui),
-    m_logFile(nullptr),
     m_packetsSinceOpened(0),
     m_recentFilesMenu(nullptr)
 {
@@ -105,7 +104,7 @@ void LogOpener::openFile()
 {
     QString previousDir;
     // open again in previously used folder
-    if (m_logFile != nullptr) {
+    if (m_logFile) {
         m_lastFilePositions[m_openFileName] = ui->logManager->getFrame();
         QFileInfo finfo(m_openFileName);
         previousDir = finfo.dir().path();
@@ -119,7 +118,7 @@ void LogOpener::openFile(const QString &filename)
 {
     // don't do anything if the user couldn't decide for a new log file
     if (!filename.isEmpty()) {
-        QList<std::function<QPair<StatusSource*, QString>(QString)>> openFunctions =
+        QList<std::function<QPair<std::shared_ptr<StatusSource>, QString>(QString)>> openFunctions =
             { &VisionLogLiveConverter::tryOpen, &LogFileReader::tryOpen};
         for (auto openFunction : openFunctions) {
             auto openResult = openFunction(filename);

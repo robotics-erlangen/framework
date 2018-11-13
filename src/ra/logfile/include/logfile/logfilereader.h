@@ -37,7 +37,7 @@ class LogFileReader : public StatusSource
     Q_OBJECT
 public:
     // checks if the format matches and opens the log file if it applies
-    static QPair<StatusSource*, QString> tryOpen(QString filename);
+    static QPair<std::shared_ptr<StatusSource>, QString> tryOpen(QString filename);
     explicit LogFileReader();
     explicit LogFileReader(const QList<qint64> &timings, const QList<qint64> &offsets, qint32 groupedPackages);
     explicit LogFileReader(SeqLogFileReader&& reader);

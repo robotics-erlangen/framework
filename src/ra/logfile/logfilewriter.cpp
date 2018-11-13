@@ -41,13 +41,13 @@ LogFileWriter::~LogFileWriter()
     delete m_mutex;
 }
 
-LogFileReader * LogFileWriter::makeStatusSource()
+std::shared_ptr<StatusSource> LogFileWriter::makeStatusSource()
 {
     m_packetOffsets.erase(m_packetOffsets.begin() + m_writtenPackages, m_packetOffsets.end());
     m_timeStamps.erase(m_timeStamps.begin() + m_writtenPackages, m_timeStamps.end());
     LogFileReader * reader = new LogFileReader(m_timeStamps, m_packetOffsets, GROUPED_PACKAGES);
     reader->open(m_file.fileName());
-    return reader;
+    return std::shared_ptr<StatusSource>(reader);
 }
 
 static bool serializeStatus(std::function<void(LogFileWriter*, qint64, QByteArray&&)> lambda, const Status &status, LogFileWriter* self)

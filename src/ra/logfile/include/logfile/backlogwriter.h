@@ -56,7 +56,7 @@ class BacklogWriter : public QObject
     Q_OBJECT
 public:
     BacklogWriter(unsigned seconds);
-    BacklogStatusSource * makeStatusSource();
+    std::shared_ptr<StatusSource> makeStatusSource();
 
 signals:
     void enableBacklogSave(bool enabled);

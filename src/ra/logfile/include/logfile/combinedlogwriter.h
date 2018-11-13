@@ -23,7 +23,7 @@ public:
     ~CombinedLogWriter();
     CombinedLogWriter(const CombinedLogWriter&) = delete;
     CombinedLogWriter& operator=(const CombinedLogWriter&) = delete;
-    StatusSource * makeStatusSource();
+    std::shared_ptr<StatusSource> makeStatusSource();
     QList<Status> getBacklogStatus(int lastNPackets);
 
 signals:

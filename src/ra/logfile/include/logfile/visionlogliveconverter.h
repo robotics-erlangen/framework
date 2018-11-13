@@ -39,7 +39,7 @@ private:
 public:
     ~VisionLogLiveConverter() override;
     // checks if the format matches and opens the log file if it applies
-    static QPair<StatusSource*, QString> tryOpen(QString filename);
+    static QPair<std::shared_ptr<StatusSource>, QString> tryOpen(QString filename);
 
     bool isOpen() const override { return true; }
     const QList<qint64>& timings() const override { return m_timings; }

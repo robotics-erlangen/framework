@@ -24,11 +24,11 @@
 #include <QWidget>
 #include <QQueue>
 #include <QTimer>
+#include <memory>
 #include "protobuf/status.h"
 #include "core/timer.h"
 #include "logfile/statussource.h"
 
-class LogFileReader;
 class Timer;
 
 namespace Ui {
@@ -44,7 +44,7 @@ public:
     ~LogManager();
     LogManager(const LogManager&) = delete;
     LogManager& operator=(const LogManager&) = delete;
-    void setStatusSource(StatusSource * source);
+    void setStatusSource(std::shared_ptr<StatusSource> source);
     Timer * getPlayTimer() { return &m_playTimer; }
     void setMinimalMode();
     void goToEnd();
@@ -88,7 +88,7 @@ private:
 
     QThread *m_logthread;
 
-    StatusSource *m_statusSource;
+    std::shared_ptr<StatusSource> m_statusSource;
 
     QList<int> m_frames;
     qint64 m_startTime;

@@ -27,7 +27,6 @@
 LogManager::LogManager(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::LogManager),
-    m_statusSource(),
     m_scroll(true)
 {
     ui->setupUi(this);
@@ -67,7 +66,6 @@ LogManager::LogManager(QWidget *parent) :
 LogManager::~LogManager()
 {
     delete ui;
-    delete m_statusSource;
 }
 
 void LogManager::setMinimalMode()
@@ -78,15 +76,14 @@ void LogManager::setMinimalMode()
     ui->spinPacketCurrent->hide();
 }
 
-void LogManager::setStatusSource(StatusSource * source)
+void LogManager::setStatusSource(std::shared_ptr<StatusSource> source)
 {
     ui->btnPlay->setEnabled(true);
     if (source != m_statusSource) {
-        delete m_statusSource;
         m_statusSource = source;
         m_statusSource->moveToThread(m_logthread);
-        connect(m_statusSource, SIGNAL(gotStatus(int,Status)), this, SLOT(addStatus(int,Status)));
-        connect(this, SIGNAL(triggerRead(int,int)), m_statusSource, SLOT(readPackets(int,int)));
+        connect(m_statusSource.get(), SIGNAL(gotStatus(int,Status)), this, SLOT(addStatus(int,Status)));
+        connect(this, SIGNAL(triggerRead(int,int)), m_statusSource.get(), SLOT(readPackets(int,int)));
     }
     resetVariables();
     indexLogFile();
@@ -261,7 +258,7 @@ QString LogManager::formatTime(qint64 time) {
 
 void LogManager::togglePaused()
 {
-    if (m_statusSource != nullptr) {
+    if (m_statusSource) {
         setPaused(!m_paused);
     }
 }
@@ -270,7 +267,7 @@ void LogManager::setPaused(bool p)
 {
     m_paused = p;
     // pause if playback has reached the end
-    if (m_statusSource != nullptr && m_nextPacket == m_statusSource->packetCount()) {
+    if (m_statusSource && m_nextPacket == m_statusSource->packetCount()) {
         m_paused = true;
     }
 

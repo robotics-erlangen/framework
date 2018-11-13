@@ -48,20 +48,19 @@ QList<Status> CombinedLogWriter::getBacklogStatus(int lastNPackets)
         return QList<Status>();
     }
     // source is located in another thread, but when no signals/slots are used this is fine
-    BacklogStatusSource *source = m_backlogWriter->makeStatusSource();
+    std::shared_ptr<StatusSource> source = m_backlogWriter->makeStatusSource();
     QList<Status> packets;
     packets.reserve(source->packetCount());
     for (int i = std::max(0, source->packetCount() - lastNPackets);i<source->packetCount();i++) {
         packets.append(source->readStatus(i));
     }
-    delete source;
     return packets;
 }
 
-StatusSource * CombinedLogWriter::makeStatusSource()
+std::shared_ptr<StatusSource> CombinedLogWriter::makeStatusSource()
 {
     if (m_isRecording) {
-        return (StatusSource*)m_logFile->makeStatusSource();
+        return m_logFile->makeStatusSource();
     } else {
         return m_backlogWriter->makeStatusSource();
     }

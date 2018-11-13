@@ -60,7 +60,7 @@ private:
 private:
     Ui::MainWindow *ui;
 
-    StatusSource *m_logFile;
+    std::shared_ptr<StatusSource> m_logFile;
     QString m_openFileName;
 
     QList<QString> m_recentFiles;

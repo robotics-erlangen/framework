@@ -58,9 +58,9 @@ BacklogWriter::BacklogWriter(unsigned seconds)
     connect(this, SIGNAL(clearData()), this, SLOT(clear()), Qt::QueuedConnection);
 }
 
-BacklogStatusSource * BacklogWriter::makeStatusSource()
+std::shared_ptr<StatusSource> BacklogWriter::makeStatusSource()
 {
-    return new BacklogStatusSource(m_packets, m_timings);
+    return std::shared_ptr<StatusSource>(new BacklogStatusSource(m_packets, m_timings));
 }
 
 void BacklogWriter::handleStatus(const Status &status)

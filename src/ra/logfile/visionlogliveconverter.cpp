@@ -49,20 +49,20 @@ VisionLogLiveConverter::~VisionLogLiveConverter()
     delete m_logFile;
 }
 
-QPair<StatusSource*, QString> VisionLogLiveConverter::tryOpen(QString filename)
+QPair<std::shared_ptr<StatusSource>, QString> VisionLogLiveConverter::tryOpen(QString filename)
 {
     VisionLogReader *reader = new VisionLogReader(filename);
     if (!reader->errorMessage().isEmpty()) {
         delete reader;
-        return QPair<StatusSource*, QString>(nullptr, "");
+        return QPair<std::shared_ptr<StatusSource>, QString>(nullptr, "");
     }
     VisionLogLiveConverter *converter = new VisionLogLiveConverter(reader);
     QString errorMessage = converter->m_indexError;
     if (errorMessage.isEmpty()) {
-        return QPair<StatusSource*, QString>(converter, "");
+        return QPair<std::shared_ptr<StatusSource>, QString>(std::shared_ptr<StatusSource>(converter), "");
     } else {
         delete converter;
-        return QPair<StatusSource*, QString>(nullptr, errorMessage);
+        return QPair<std::shared_ptr<StatusSource>, QString>(nullptr, errorMessage);
     }
 }
 

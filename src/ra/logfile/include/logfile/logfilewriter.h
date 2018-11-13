@@ -23,6 +23,7 @@
 
 #include "protobuf/status.h"
 #include "logfilehasher.h"
+#include "statussource.h"
 #include <QObject>
 #include <QString>
 #include <QDataStream>
@@ -30,7 +31,6 @@
 #include <QList>
 
 class QMutex;
-class LogFileReader;
 
 class LogFileWriter : public QObject
 {
@@ -46,7 +46,7 @@ public:
     bool isOpen() const { return m_file.isOpen(); }
 
     QString filename() const { return m_file.fileName(); }
-    LogFileReader * makeStatusSource();
+    std::shared_ptr<StatusSource> makeStatusSource();
 
     bool hasHash() const { return m_hashState == HashingState::HAS_HASHING; }
     logfile::Uid getHash() const { return m_hashStatus->log_id(); }

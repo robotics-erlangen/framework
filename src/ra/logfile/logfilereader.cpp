@@ -48,19 +48,19 @@ LogFileReader::LogFileReader(SeqLogFileReader&& reader) : m_reader(std::move(rea
     }
 }
 
-QPair<StatusSource*, QString> LogFileReader::tryOpen(QString filename)
+QPair<std::shared_ptr<StatusSource>, QString> LogFileReader::tryOpen(QString filename)
 {
     LogFileReader *reader = new LogFileReader();
     if (reader->open(filename)) {
-        return QPair<StatusSource*, QString>(reader, "");
+        return QPair<std::shared_ptr<StatusSource>, QString>(std::shared_ptr<StatusSource>(reader), "");
     }
     QString errorMessage = reader->errorMsg();
     bool headerCorrect = reader->m_headerCorrect;
     delete reader;
     if(headerCorrect) {
-        return QPair<StatusSource*, QString>(nullptr, errorMessage);
+        return QPair<std::shared_ptr<StatusSource>, QString>(nullptr, errorMessage);
     } else {
-        return QPair<StatusSource*, QString>(nullptr, "");
+        return QPair<std::shared_ptr<StatusSource>, QString>(nullptr, "");
     }
 }
 
