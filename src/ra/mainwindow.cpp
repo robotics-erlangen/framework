@@ -43,14 +43,13 @@
 #include <QMimeData>
 #include <QUrl>
 
-MainWindow::MainWindow(bool tournamentMode, QWidget *parent) :
+MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     m_transceiverActive(false),
     m_lastStageTime(0),
     m_logWriter(false, 20),
-    m_isTournamentMode(tournamentMode),
-    m_currentWidgetConfiguration(1)
+    m_isTournamentMode(tournamentMode)
 {
     qRegisterMetaType<SSL_Referee::Command>("SSL_Referee::Command");
     qRegisterMetaType<SSL_Referee::Stage>("SSL_Referee::Stage");
@@ -284,7 +283,7 @@ MainWindow::MainWindow(bool tournamentMode, QWidget *parent) :
     // setup data distribution
     connect(this, SIGNAL(gotStatus(Status)), m_logOpener, SLOT(handleStatus(Status)));
 
-    raMode();
+    switchToWidgetConfiguration(isRa ? 1 : 2);
 }
 
 MainWindow::~MainWindow()
@@ -696,4 +695,9 @@ void MainWindow::selectFrame(int amm)
 {
     int frame = std::max(0,std::min(amm, ui->logManager->getLastFrame()));
     ui->logManager->seekPacket(frame);
+}
+
+void MainWindow::openFile(QString fileName)
+{
+    m_logOpener->openFile(fileName);
 }

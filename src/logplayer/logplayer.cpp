@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include "config/config.h"
+#include "mainwindow.h"
 #include <clocale>
 #include <QApplication>
 #include <QDir>
@@ -27,7 +28,8 @@
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
-    app.setApplicationName("LogPlayer");
+    // use Ra as the name to share a configuration with ra
+    app.setApplicationName("Ra");
     app.setOrganizationName("ER-Force");
 // available starting with Qt 5.1
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 1, 0))
@@ -43,8 +45,7 @@ int main(int argc, char *argv[])
 
     QDir::addSearchPath("icon", QString(ERFORCE_DATADIR) + "/icons");
 
-    // TODO: possibly start ra::mainwindow here or just delete this whole folder
-    /*MainWindow window;
+    MainWindow window(false, false);
     window.show();
 
     QStringList args = QCoreApplication::arguments();
@@ -52,7 +53,7 @@ int main(int argc, char *argv[])
         window.openFile(args.at(1));
     }
     if(args.size() >= 3)
-        window.selectFrame(args.at(2).toInt());*/
+        window.selectFrame(args.at(2).toInt());
 
     return app.exec();
 }

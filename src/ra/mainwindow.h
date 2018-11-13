@@ -51,11 +51,12 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(bool tournamentMode, QWidget *parent = 0);
+    explicit MainWindow(bool tournamentMode, bool isRa, QWidget *parent = 0);
     ~MainWindow() override;
     MainWindow(const MainWindow&) = delete;
     MainWindow& operator=(const MainWindow&) = delete;
     void selectFrame(int amm);
+    void openFile(QString fileName);
 
 signals:
     void gotStatus(const Status &status);

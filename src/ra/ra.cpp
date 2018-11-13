@@ -52,7 +52,7 @@ int main(int argc, char* argv[])
     parser.addOption(tournamentOption);
     parser.process(app);
 
-    MainWindow window(parser.isSet(tournamentOption));
+    MainWindow window(parser.isSet(tournamentOption), true);
     window.show();
 
     return app.exec();

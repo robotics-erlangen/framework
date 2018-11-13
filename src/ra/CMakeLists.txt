@@ -25,7 +25,7 @@ add_subdirectory(logfile)
 add_subdirectory(plotter)
 add_subdirectory(widgets)
 
-add_executable(ra WIN32 MACOSX_BUNDLE
+add_library(ra-horus
     configdialog.cpp
     configdialog.h
     internalreferee.cpp
@@ -34,7 +34,6 @@ add_executable(ra WIN32 MACOSX_BUNDLE
     inputwidget.h
     mainwindow.cpp
     mainwindow.h
-    ra.cpp
     refereewidget.cpp
     refereewidget.h
     resettableitemdelegate.cpp
@@ -55,15 +54,6 @@ add_executable(ra WIN32 MACOSX_BUNDLE
     logopener.h
 )
 
-add_custom_command(
-    OUTPUT ${CMAKE_BINARY_DIR}/startRa.sh
-    COMMAND cp ${CMAKE_SOURCE_DIR}/cmake/startRa.sh ${CMAKE_BINARY_DIR}/startRa.sh
-    DEPENDS ${CMAKE_SOURCE_DIR}/cmake/startRa.sh
-)
-
-add_custom_target(generateStartRa DEPENDS ${CMAKE_BINARY_DIR}/startRa.sh)
-add_dependencies(ra generateStartRa)
-
 set(UI_SOURCES
     configdialog.ui
     inputwidget.ui
@@ -75,8 +65,48 @@ set(UI_SOURCES
     simulatorwidget.ui
     savedirectorydialog.ui
 )
+
 qt5_wrap_ui(UIC_SOURCES ${UI_SOURCES})
-target_sources(ra PRIVATE ${UIC_SOURCES})
+
+target_sources(ra-horus PRIVATE ${UIC_SOURCES})
+
+target_link_libraries(ra-horus
+    PUBLIC amun::amun
+    PUBLIC ra::logfile
+    PRIVATE shared::core
+    PRIVATE shared::config
+    PRIVATE shared::protobuf
+    PRIVATE ra::guihelper
+    PRIVATE ra::input
+    PRIVATE ra::plotter
+    PRIVATE ra::logcutter
+    PRIVATE ra::widgets
+    PRIVATE ${OPENGL_LIBRARIES}
+    PRIVATE Qt5::Widgets
+    PRIVATE Qt5::OpenGL
+    PRIVATE Threads::Threads
+)
+
+target_include_directories(ra-horus
+    INTERFACE .
+    PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
+)
+
+add_library(ra::ra-horus ALIAS ra-horus)
+
+add_executable(ra WIN32 MACOSX_BUNDLE
+    ra.cpp
+)
+
+add_custom_command(
+    OUTPUT ${CMAKE_BINARY_DIR}/startRa.sh
+    COMMAND cp ${CMAKE_SOURCE_DIR}/cmake/startRa.sh ${CMAKE_BINARY_DIR}/startRa.sh
+    DEPENDS ${CMAKE_SOURCE_DIR}/cmake/startRa.sh
+)
+
+add_custom_target(generateStartRa DEPENDS ${CMAKE_BINARY_DIR}/startRa.sh)
+add_dependencies(ra generateStartRa)
 
 if(MINGW)
     target_sources(ra PRIVATE ${CMAKE_SOURCE_DIR}/data/pkg/ra.rc)
@@ -90,20 +120,9 @@ if(APPLE)
 endif(APPLE)
 
 target_link_libraries(ra
-    amun::amun
-    shared::core
-    shared::config
-    shared::protobuf
-    ra::guihelper
-    ra::input
-    ra::logfile
-    ra::plotter
-    ra::logcutter
-    ra::widgets
-    ${OPENGL_LIBRARIES}
+    ra::ra-horus
     Qt5::Widgets
-    Qt5::OpenGL
-    Threads::Threads
+    shared::config
 )
 v8_copy_deps(ra)
 target_include_directories(ra
