@@ -32,7 +32,7 @@
 #include <QAction>
 #include <functional>
 
-LogOpener::LogOpener(Ui::MainWindow *ui, QObject *parent) :
+/*LogOpener::LogOpener(Ui::MainWindow *ui, QObject *parent) :
     QObject(parent),
     ui(ui),
     m_logFile(nullptr),
@@ -195,3 +195,4 @@ void LogOpener::goToLastFilePosition()
     ui->goToLastPosition->setVisible(false);
     ui->logManager->seekPacket(m_lastFilePositions[m_openFileName]);
 }
+*/

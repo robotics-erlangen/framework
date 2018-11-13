@@ -29,6 +29,7 @@ add_library(widgets
     include/widgets/visualizationproxymodel.h
     include/widgets/visualizationwidget.h
     include/widgets/teamwidget.h
+    include/widgets/replayteamwidget.h
 
     debuggerconsole.cpp
     debugmodel.cpp
@@ -46,6 +47,7 @@ add_library(widgets
     visualizationproxymodel.cpp
     visualizationwidget.cpp
     teamwidget.cpp
+    replayteamwidget.cpp
 )
 
 set(UI_SOURCES
@@ -54,6 +56,7 @@ set(UI_SOURCES
     refereestatuswidget.ui
     timingwidget.ui
     visualizationwidget.ui
+    replayteamwidget.ui
 )
 qt5_wrap_ui(UIC_SOURCES ${UI_SOURCES})
 target_sources(widgets PRIVATE ${UIC_SOURCES})

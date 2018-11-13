@@ -1,5 +1,5 @@
 # ***************************************************************************
-# *   Copyright 2015 Michael Bleier, Philipp Nordhus                        *
+# *   Copyright 2018 Andreas Wendler                                        *
 # *   Robotics Erlangen e.V.                                                *
 # *   http://www.robotics-erlangen.de/                                      *
 # *   info@robotics-erlangen.de                                             *
@@ -18,19 +18,30 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-# firmware
-add_subdirectory(firmware)
+add_library(logcutter
+    include/logcutter/logcutter.h
+    include/logcutter/logprocessor.h
 
-# libs
-add_subdirectory(config)
-add_subdirectory(core)
-add_subdirectory(protobuf)
-add_subdirectory(amun)
-add_subdirectory(visionlog)
+    logcutter.cpp
+    logprocessor.cpp
+)
 
-# apps
-add_subdirectory(ra)
-add_subdirectory(logplayer)
-add_subdirectory(amuncli)
-add_subdirectory(visionanalyzer)
-add_subdirectory(logcuttercli)
+set(UI_SOURCES
+    logcutter.ui
+)
+qt5_wrap_ui(UIC_SOURCES ${UI_SOURCES})
+target_sources(logcutter PRIVATE ${UIC_SOURCES})
+
+target_link_libraries(logcutter
+    PUBLIC Qt5::Widgets
+    PRIVATE shared::protobuf
+    PRIVATE ra::logfile
+)
+target_include_directories(logcutter
+    INTERFACE include
+    PRIVATE include/logcutter
+    PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
+)
+
+add_library(ra::logcutter ALIAS logcutter)

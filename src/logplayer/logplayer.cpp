@@ -19,7 +19,6 @@
  ***************************************************************************/
 
 #include "config/config.h"
-#include "mainwindow.h"
 #include <clocale>
 #include <QApplication>
 #include <QDir>
@@ -44,7 +43,8 @@ int main(int argc, char *argv[])
 
     QDir::addSearchPath("icon", QString(ERFORCE_DATADIR) + "/icons");
 
-    MainWindow window;
+    // TODO: possibly start ra::mainwindow here or just delete this whole folder
+    /*MainWindow window;
     window.show();
 
     QStringList args = QCoreApplication::arguments();
@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
         window.openFile(args.at(1));
     }
     if(args.size() >= 3)
-        window.selectFrame(args.at(2).toInt());
+        window.selectFrame(args.at(2).toInt());*/
 
     return app.exec();
 }

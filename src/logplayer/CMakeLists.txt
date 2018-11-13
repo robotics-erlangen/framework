@@ -20,29 +20,8 @@
 
 add_executable(logplayer WIN32 MACOSX_BUNDLE
     logplayer.cpp
-    mainwindow.cpp
-    mainwindow.h
-    logcutter.cpp
-    logcutter.h
-    logopener.cpp
-    logopener.h
-    logprocessor.cpp
-    logprocessor.h
-    replayteamwidget.cpp
-    replayteamwidget.h
 )
 
-add_executable(logcutter-cli
-    logcuttercli.cpp
-    logprocessor.cpp
-    logprocessor.h
-)
-
-set(UI_SOURCES
-    mainwindow.ui
-    logcutter.ui
-    replayteamwidget.ui
-)
 qt5_wrap_ui(UIC_SOURCES ${UI_SOURCES})
 target_sources(logplayer PRIVATE ${UIC_SOURCES})
 
@@ -59,17 +38,7 @@ endif(APPLE)
 
 target_link_libraries(logplayer
     shared::config
-    shared::core
-    shared::protobuf
-    ra::guihelper
-    ra::logfile
-    ra::plotter
-    ra::widgets
-    amun::amun
-    ${OPENGL_LIBRARIES}
-    Qt5::Widgets
     Qt5::OpenGL
-    Threads::Threads
 )
 v8_copy_deps(logplayer)
 target_include_directories(logplayer
@@ -80,15 +49,6 @@ if (TARGET lib::jemalloc)
     target_link_libraries(logplayer lib::jemalloc)
 endif()
 
-target_link_libraries(logcutter-cli
-    ra::logfile
-    shared::protobuf
-    Qt5::Core
-)
-target_include_directories(logcutter-cli
-    PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
-    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
-)
 # add plist file
 if(APPLE)
     set_target_properties(logplayer PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/data/pkg/MacBundleInfo.plist.in)

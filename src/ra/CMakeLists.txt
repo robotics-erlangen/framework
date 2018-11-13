@@ -20,6 +20,7 @@
 
 add_subdirectory(guihelper)
 add_subdirectory(input)
+add_subdirectory(logcutter)
 add_subdirectory(logfile)
 add_subdirectory(plotter)
 add_subdirectory(widgets)
@@ -50,6 +51,8 @@ add_executable(ra WIN32 MACOSX_BUNDLE
     simulatorwidget.h
     savedirectorydialog.cpp
     savedirectorydialog.h
+    logopener.cpp
+    logopener.h
 )
 
 add_custom_command(
@@ -95,6 +98,7 @@ target_link_libraries(ra
     ra::input
     ra::logfile
     ra::plotter
+    ra::logcutter
     ra::widgets
     ${OPENGL_LIBRARIES}
     Qt5::Widgets

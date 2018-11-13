@@ -27,7 +27,8 @@
 
 #include "protobuf/status.h"
 
-class QMenu;
+// Disable for now in order to be able to compile
+/*class QMenu;
 class QAction;
 class StatusSource;
 namespace Ui {
@@ -69,6 +70,6 @@ private:
     QAction *m_recentFilesMenuAction;
 
     const int MAX_RECENT_FILE_COUNT = 10;
-};
+};*/
 
 #endif // LOGOPENER_H

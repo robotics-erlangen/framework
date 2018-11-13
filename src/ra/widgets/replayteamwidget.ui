@@ -98,7 +98,7 @@
   <customwidget>
    <class>TeamWidget</class>
    <extends>QWidget</extends>
-   <header>widgets/teamwidget.h</header>
+   <header>teamwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

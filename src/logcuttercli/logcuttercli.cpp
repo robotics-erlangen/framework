@@ -24,7 +24,7 @@
 #include <QtGlobal>
 #include <iostream>
 
-#include "logprocessor.h"
+#include "logcutter/logprocessor.h"
 #include "logfile/logfilewriter.h"
 
 
