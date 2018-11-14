@@ -158,11 +158,11 @@ export class ShootGoal extends Task {
 					let intervalB = bothOcc[bothCnt];
 					let intervalE = occupied[occCnt];
 					// floatEq is correct here
-					if (intervalB[1] === intervalE[1] && intervalB[2] === intervalE[2]) {
+					if (intervalB[0] === intervalE[0] && intervalB[1] === intervalE[1]) {
 						onlyOppOcc.push(intervalB);
 						occCnt = occCnt + 1;
 						bothCnt = bothCnt + 1;
-					} else if (intervalB[1] < intervalE[1]) {
+					} else if (intervalB[0] < intervalE[0]) {
 						bothCnt = bothCnt + 1;
 					} else {
 						occCnt = occCnt + 1;
@@ -183,7 +183,7 @@ export class ShootGoal extends Task {
 						// try to continue shooting at the same bot
 						// TODO: don't pretend its always going to be that side
 						for (let v of onlyOppOcc) {
-							if ((v[3] as OpponentRobot[])[1].id === this._desperateTargetID) {
+							if ((v[2] as OpponentRobot[])[0].id === this._desperateTargetID) {
 								selectedInterval = v;
 								break;
 							}
@@ -194,7 +194,7 @@ export class ShootGoal extends Task {
 						// TODO: Use heuristic instead of random
 						selectedInterval = onlyOppOcc[MathUtil.randomInt([1, onlyOppOcc.length])];
 					}
-					let selectedDir = selectedInterval[1] + 1 / 2 * (((selectedInterval[3] as OpponentRobot[])[1].pos - ballReceiptPos).angle() - selectedInterval[1]); // TODO: select side
+					let selectedDir = selectedInterval[0] + 1 / 2 * (((selectedInterval[2] as OpponentRobot[])[0].pos - ballReceiptPos).angle() - selectedInterval[0]); // TODO: select side
 					let angleError = selectedDir - selectedInterval[1];
 					let avoidIcing = ballReceiptPos.y < 0.3;
 					if (avoidIcing) {
@@ -210,7 +210,7 @@ export class ShootGoal extends Task {
 						}
 					}
 
-					this._desperateTargetID = (selectedInterval[3] as OpponentRobot[])[1].id;
+					this._desperateTargetID = (selectedInterval[2] as OpponentRobot[])[0].id;
 					localTarget = Vector.fromAngle(selectedDir) + ballReceiptPos;
 					mode = "desperate clean";
 					this._shoot._shoot(localTarget, Infinity, undefined, ballReceiptPos, angleError);
