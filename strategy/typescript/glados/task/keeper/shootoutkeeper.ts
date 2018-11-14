@@ -67,7 +67,8 @@ export class ShootoutKeeper extends Task {
 			let [pos, dir] = Goal.predictShot();
 
 			// The x coordinate where the predicted ball will cross the goal line
-			let predictedGoallinePoint = geom.intersectLineLine(G.FriendlyGoal, new Vector(1, 0), pos, dir)[0].x;
+			let intersection = geom.intersectLineLine(G.FriendlyGoal, new Vector(1, 0), pos, dir)[0];
+			let predictedGoallinePoint = intersection ? intersection.x : dir.x;
 			// The distance of the predicted point as a percentage of the half goal width, is 1 if the point is inside the goal
 			let centerDistancePerc = Math.max(2 * Math.abs(predictedGoallinePoint) / G.GoalWidth, 1);
 

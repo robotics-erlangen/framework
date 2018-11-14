@@ -357,7 +357,7 @@ export function shootGoalViewPos(shootDest: Position, attackPos: Position): Posi
 	// if the ball is rolling towards the opponent goal
 	if (World.Ball.speed.length() > 3) {
 		let [intersection, l1, l2] = geom.intersectLineLine(World.Ball.pos, World.Ball.speed, G.OpponentGoal, new Vector(1, 0));
-		if (intersection && Math.abs(l2) < G.GoalWidth / 2 + 0.2 && l1 > 0) {
+		if (intersection && Math.abs(l2!) < G.GoalWidth / 2 + 0.2 && l1! > 0) {
 			if (Physics.checkedBallRollTime(World.Ball, intersection) < Infinity) {
 				return World.Ball.pos;
 			}

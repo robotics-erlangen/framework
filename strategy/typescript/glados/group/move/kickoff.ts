@@ -59,7 +59,7 @@ export class KickOff extends Move {
 			let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
 			taskAssignments[this._robots[this._assignments[0]]] = { behavior: FreeKick };
 			for (let i = 0;i < this._robots.length - 1;i++) {
-				if (Attack.checkPassInfos(this._robots[this._assignments[i + 1]], passInfoTable, false)) {
+				if (passInfoTable && Attack.checkPassInfos(this._robots[this._assignments[i + 1]], passInfoTable, false)) {
 					taskAssignments[this._robots[this._assignments[i + 1]]] = { class: AcceptPass };
 				} else {
 					taskAssignments[this._robots[this._assignments[i + 1]]] = { class: Striker, params: [ this._assistantPos[i], this._passDest[i] ] };

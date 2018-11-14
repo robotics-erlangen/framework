@@ -217,7 +217,7 @@ export class CatchBall {
 			let dribblerDir = Vector.fromAngle(this._robot.dir).perpendicular().scaleLength(this._robot.dribblerWidth / 2 - ball.radius);
 			let [intersection, _, lambda2] = geom.intersectLineLine(ball.pos, ball.speed, dribblerMid, dribblerDir);
 			// abs(lambda2) <= 1 if intersection is inside the dribbler width
-			if (intersection != undefined && Math.abs(lambda2) <= 1) {
+			if (intersection != undefined && Math.abs(lambda2!) <= 1) {
 				hitPoint = intersection;
 				rollDist = ball.pos.distanceTo(hitPoint);
 			}
@@ -246,7 +246,7 @@ export class CatchBall {
 				endSpeedLength = 0;
 			} else if (!Field.isInAllowedField(extrapolatedPos, extraDistance)) {
 				let nextLineCutLambda = Field.nextAllowedFieldLineCut(moveDest, endSpeed, extraDistance)[1];
-				endSpeedLength = Math.min(Math.sqrt(2 * this._robot.acceleration.aBrakeFMax * nextLineCutLambda), endSpeedLength);
+				endSpeedLength = Math.min(Math.sqrt(2 * this._robot.acceleration.aBrakeFMax * nextLineCutLambda!), endSpeedLength);
 			}
 		}
 		return endSpeed.copy().setLength(endSpeedLength);

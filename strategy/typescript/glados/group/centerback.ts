@@ -462,7 +462,7 @@ export class CenterBack {
 		for (let robot of messages.keys()) {
 			let pos_target = centerBackPositions[robot];
 			pos_target = pos_target || privateCenterBackPositions[robot];
-			messaging.send(MessageType.centerBackPosTarget, robot, pos_target);
+			messaging.send(MessageType.centerBackPosTarget, robot, pos_target!);
 		}
 	}
 }

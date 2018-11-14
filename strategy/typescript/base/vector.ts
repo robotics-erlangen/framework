@@ -256,7 +256,7 @@ export class Vector {
 		}
 		let [is, dist] = geom.intersectLineLine(this, rv.perpendicular(), linePoint1, rv);
 		if (is != undefined) {
-			return [is, dist * rv.length()];
+			return [is, dist! * rv.length()];
 		} else {
 			return [this, 0];
 		}

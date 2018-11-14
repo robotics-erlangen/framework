@@ -96,7 +96,7 @@ export class Armada extends Move {
 				// shift positions to make volley possible
 				if (pos.distanceTo(circle) <= radius) {
 					let posToShiftFrom = (World.Ball.pos + G.OpponentGoal) / 2;
-					let intersectionWithCircle = geom.intersectLineCircle(posToShiftFrom, pos - posToShiftFrom, circle, radius)[0];
+					let intersectionWithCircle = geom.intersectLineCircle(posToShiftFrom, pos - posToShiftFrom, circle, radius)[0]!;
 					pos = posToShiftFrom + (intersectionWithCircle - posToShiftFrom).setLength(randomExtension(intersectionWithCircle.distanceTo(posToShiftFrom) + 0.1));
 				}
 				this._positions.push(Field.limitToAllowedField(pos, 0.3));

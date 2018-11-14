@@ -45,13 +45,17 @@ export class ShootGoal extends Task {
 		this._shoot = new Shoot(this._robot, this._messaging, this.setMainAttackerParameters);
 	}
 
-	private _lockTarget(ballReceiptPos: Position): boolean {
+	private _lockTarget(ballReceiptPos?: Position): boolean {
 		if (this._shootTargetPoint == undefined) {
 			return false;
 		}
 
-		if (Ball.receivesPass(this._robot) && Physics.checkedBallRollTime(World.Ball, ballReceiptPos) < 0.5) {
-			return true;
+		if (Ball.receivesPass(this._robot)) {
+			if (ballReceiptPos && Physics.checkedBallRollTime(World.Ball, ballReceiptPos) < 0.5) {
+				return true;
+			} else {
+				return false;
+			}
 		}
 
 		if (Robot.isPressed(this._robot)) {

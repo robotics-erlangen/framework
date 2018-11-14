@@ -30,8 +30,8 @@ export class Default extends Behavior {
 
 	_updateTask(): TaskAssignment<typeof SideStep> | TaskAssignment<typeof AcceptPass> | TaskAssignment<typeof Freebreaker> {
 		let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
-		let relevantPassInfo = Attack.relevantPassInfoMessage(this._robot, passInfoTable);
-		let acceptingPass = Attack.checkPassInfos(this._robot, passInfoTable, false);
+		let relevantPassInfo = passInfoTable ? Attack.relevantPassInfoMessage(this._robot, passInfoTable) : undefined;
+		let acceptingPass = passInfoTable ? Attack.checkPassInfos(this._robot, passInfoTable, false) : false;
 
 		let midfieldZone = this._messaging.receiveTrainer(MessageType.midfieldZone);
 		let Freebreaker = midfieldZone ? Midfield : Striker;

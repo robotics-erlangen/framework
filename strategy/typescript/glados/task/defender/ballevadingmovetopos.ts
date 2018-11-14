@@ -28,7 +28,7 @@ export class BallEvadingMoveToPos extends Task {
 		let pos = this._pos;
 		if (pos.distanceTo(World.Ball.pos) < minDist - 0.01) {
 			pos = geom.intersectLineCircle(World.Geometry.FriendlyGoal,
-				World.Geometry.FriendlyGoal - this._pos, World.Ball.pos, minDist)[0];
+				World.Geometry.FriendlyGoal - this._pos, World.Ball.pos, minDist)[0]!;
 		}
 
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, this._obstacleTable);

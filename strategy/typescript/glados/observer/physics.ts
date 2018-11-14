@@ -685,7 +685,9 @@ export function robotTimeToPos(robot: RobotLike, endPos: Position, endSpeedVecto
 	let A = 0.5 * speedupAccel * brakeAccel / (speedupAccel + brakeAccel);
 	let B = plateauSpeed;
 	let C = -distSym;
-	let timeSym = MathUtil.solveSq(A, B, C)[0];
+
+	// A,distSym: positive
+	let timeSym = MathUtil.solveSq(A, B, C)[0]!;
 
 	return [currentTime + timeDiff + timeSym + expBrakeExtraTime, currentTime];
 }
@@ -880,7 +882,7 @@ function rttbSpecialCases(robot: Robot, ball: BallLike & {radius: number}, targe
 	let frontOffset = (targetPos - robot.pos).setLength(ball.radius + robot.shootRadius);
 	let [ballHitPos, _, lambda] = geom.intersectLineLine(ball.pos, ball.speed,
 			robot.pos + frontOffset, ball.speed.perpendicular().normalize());
-	let ballTimeToHitPos = ballRollTime(ball, ball.pos.distanceTo(ballHitPos));
+	let ballTimeToHitPos = ballRollTime(ball, ball.pos.distanceTo(ballHitPos!));
 	let robotTimeToHitPos = robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, ballTimeToHitPos);
 
 	// catch ball at nearest point on ball move line, if that's possible
@@ -905,8 +907,8 @@ function rttbSpecialCases(robot: Robot, ball: BallLike & {radius: number}, targe
 	// In the end the sampling is no longer able to find a valid time
 	// The instability is increased as predicting the fasted position
 	// where to catch the ball on the dribber gets more important.
-	if (Math.abs(lambda) < robot.dribblerWidth / 2 + 0.01 && ballTimeToHitPos < 0.25
-			&&  ball.speed.dot(ballHitPos - ball.pos) > 0) {
+	if (Math.abs(lambda!) < robot.dribblerWidth / 2 + 0.01 && ballTimeToHitPos < 0.25
+			&&  ball.speed.dot(ballHitPos! - ball.pos) > 0) {
 		if (ballTimeToHitPos <= t_max) {
 			return [undefined, ballTimeToHitPos];
 		} else {

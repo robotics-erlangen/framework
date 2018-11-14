@@ -99,12 +99,12 @@ export class SideStep extends Task {
 	private _rateLine(line: Vector): [number, number] {
 		let [intersection, lambda] = Field.nextAllowedFieldLineCut(this._passInfo.ballPos, line, this._robot.radius);
 		if (intersection) {
-			let rating = 1 - Rating.valueToRating(lambda, 2, 0) / 2;
+			let rating = 1 - Rating.valueToRating(lambda!, 2, 0) / 2;
 			let dist = this._projectBotsOnLine(this._passInfo.ballPos, this._passInfo.ballPos + line);
 			let distRating = Rating.valueToRating(dist, 1, MANMARK_DISTANCE_THRESHOLD);
 
 			rating = rating - (1 - distRating) / 10;
-			return [lambda, rating];
+			return [lambda!, rating];
 		} else {
 			return [0, 0];
 		}

@@ -95,7 +95,9 @@ export class WindshieldWiper extends Move {
 		let circle = center1.y < center2.y ? center1 : center2;
 		let posToShiftFrom = (World.Ball.pos + G.OpponentGoal) / 2;
 		for (let i = 1;i < this._robots.length;i++) {
-			nr = Attack.checkPassInfos(distances[i].robot, passInfoTable, false) ? i : nr;
+			if (passInfoTable) {
+				nr = Attack.checkPassInfos(distances[i].robot, passInfoTable, false) ? i : nr;
+			}
 			let acceptPos = geom.intersectLineCircle(posToShiftFrom, pos[i] - posToShiftFrom, circle, radius)[0];
 			taskAssignments[distances[i].robot] = {class: Striker, params: [new Vector(-pos[i].x,pos[i].y), acceptPos]};
 		}

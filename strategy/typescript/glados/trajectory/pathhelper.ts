@@ -180,8 +180,8 @@ function addGoalObstacle(path: Path, robot: FriendlyRobot) {
 function _isGoalShot(): boolean {
 	if (World.Ball.speed.length() > 0.5) {
 		let [intersection, lambda1, lambda2] = geom.intersectLineLine(G.OpponentGoal, new Vector(1,0), World.Ball.pos, World.Ball.speed);
-		if (intersection && Math.abs(lambda1) < G.GoalWidth / 2 + 0.2) {
-			if (lambda2 > 0 && Physics.checkedBallRollTime(World.Ball, intersection) < Infinity) {
+		if (intersection && Math.abs(lambda1!) < G.GoalWidth / 2 + 0.2) {
+			if (lambda2! > 0 && Physics.checkedBallRollTime(World.Ball, intersection) < Infinity) {
 				return true;
 			}
 		}

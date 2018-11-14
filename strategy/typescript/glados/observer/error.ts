@@ -59,7 +59,7 @@ function addBatteryState(robot: FriendlyRobot, newBatteryState: number) {
 		initBatteryTable(robot);
 		robotBatteryTable = batteryTable[robot];
 	}
-	if (robotBatteryTable.size === BATTERY_TABLE_SIZE) {
+	if (robotBatteryTable!.size === BATTERY_TABLE_SIZE) {
 		let avg = getAverageBatterySate(robot);
 		if (Math.abs(avg - newBatteryState) > 0.2) {
 			if (robotBatteryTable.outliers.size > 15) {

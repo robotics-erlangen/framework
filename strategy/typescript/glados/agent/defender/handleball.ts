@@ -112,7 +112,7 @@ export class HandleBall extends Behavior {
 
 		// don't if we want to intercept our own pass
 		let [sender, passInfoTable] = this._messaging.receiveSingleSender(MessageType.passInfo);
-		if (Attack.currentPlannedMainAttacker(sender, passInfoTable)) {
+		if (sender && Attack.currentPlannedMainAttacker(sender, passInfoTable!)) {
 			return false;
 		}
 

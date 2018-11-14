@@ -204,10 +204,10 @@ export class FastBallPlacement extends Move {
 
 				let ballSpeed = World.Ball.speed;
 				let [intersection, ballLambda] = geom.intersectLineLine(World.Ball.pos, ballSpeed, this.RECEIVER.pos, ballSpeed.perpendicular());
-				this._ballReceiverIntersects = ballLambda > 0;
+				this._ballReceiverIntersects = ballLambda != undefined && ballLambda > 0;
 
 				// We don't want to receive a pass out of field because setback may not be possible there
-				if (!Field.isInField(intersection)) {
+				if (intersection == undefined || !Field.isInField(intersection)) {
 					intersection = Field.nextLineCut(World.Ball.pos, ballSpeed) || World.Ball.pos;
 				}
 

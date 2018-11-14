@@ -276,8 +276,8 @@ function _predictShot(allShots: boolean = false): [Position, Speed, boolean, Pas
 	// check for bad vision
 	let [invisibleBallPos, invisibleBallSpeed, oppRobot] = getInvisibleBallPrediction();
 	if (invisibleBallPos) {
-		vis.addCircle("o/goal: predictShot: invisible ball", oppRobot.pos, oppRobot.radius, vis.colors.white, false);
-			vis.addPath("o/goal: predictShot: invisible ball", [oppRobot.pos, oppRobot.pos + invisibleBallSpeed! * 10], vis.colors.white);
+		vis.addCircle("o/goal: predictShot: invisible ball", oppRobot!.pos, oppRobot!.radius, vis.colors.white, false);
+			vis.addPath("o/goal: predictShot: invisible ball", [oppRobot!.pos, oppRobot!.pos + invisibleBallSpeed! * 10], vis.colors.white);
 		return [invisibleBallPos, invisibleBallSpeed!, true, undefined, true];
 	}
 

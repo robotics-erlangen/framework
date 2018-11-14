@@ -7,12 +7,12 @@ import * as PathHelper from "glados/trajectory/pathhelper";
 export class ChipToPos extends Task {
 	private _firstContactPos: Position;
 	private _targetTime: number;
-	private _ballReceiptPos: Position;
+	private _ballReceiptPos: Position | undefined;
 	private _chipPrecision: number | undefined;
 
 	private _shoot: Shoot;
 
-	constructor(agent: Agent, firstContactPos: Position, targetTime: number, ballReceiptPos: Position, precision?: number) {
+	constructor(agent: Agent, firstContactPos: Position, targetTime: number, ballReceiptPos?: Position, precision?: number) {
 		super(agent);
 		this._firstContactPos = firstContactPos;
 		this._targetTime = targetTime;

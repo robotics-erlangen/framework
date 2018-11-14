@@ -41,7 +41,7 @@ function generateLineup(lineStart: Position, lineupDir: number) {
 		if (opp && opp.pos.distanceTo(intendedPos) < mindist) {
 			// extra distance for numeric stability
 			let [p1, p2] = geom.intersectLineCircle(lineStart, lineEnd - lineStart, opp.pos, mindist + 0.0001);
-			let d1 = lineStart.distanceTo(p1);
+			let d1 = lineStart.distanceTo(p1!);
 			let d2 = p2 ? lineStart.distanceTo(p2) : Infinity;
 			let further = d1 > d2 ? d1 : d2;
 			distToStart = further;

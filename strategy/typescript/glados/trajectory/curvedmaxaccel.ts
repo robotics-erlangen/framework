@@ -24,10 +24,10 @@ function _preprocessPath(waypoints: Position[], maxError: number, robotPos: Posi
 		let [cornerPos, lambda1, lambda2] = geom.intersectLineLine(robotPos, robotSpeed, waypoints[1], perpendicular);
 		let angleDiff = startDir.angleDiff(waypoints[2] - waypoints[0]);
 		// only move the cornerPos inwards
-		if (cornerPos && lambda1 > 0 && angleDiff * lambda2 < 0) {
+		if (cornerPos && lambda1! > 0 && angleDiff * lambda2! < 0) {
 			// limit the movement a bit
 			let magicScale = Math.sqrt(2) / 2;
-			waypoints[1] = waypoints[1] + perpendicular * (MathUtil.bound(-maxError, lambda2, maxError) * magicScale);
+			waypoints[1] = waypoints[1] + perpendicular * (MathUtil.bound(-maxError, lambda2!, maxError) * magicScale);
 			// vis.addCircleRaw("waypoints", waypoints[1], 0.03, vis.colors.green)
 		}
 	}
