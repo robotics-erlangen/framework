@@ -24,6 +24,23 @@
 
 #include <QSettings>
 #include <QHeaderView>
+#include <QStyledItemDelegate>
+#include <QLineEdit>
+
+class NoEditItemDelegate : public QStyledItemDelegate
+{
+public:
+    NoEditItemDelegate(QWidget *parent) : QStyledItemDelegate(parent) {}
+    QWidget* createEditor(QWidget *, const QStyleOptionViewItem &, const QModelIndex &index) const override;
+};
+
+QWidget *NoEditItemDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &, const QModelIndex &index) const
+{
+    QLineEdit *edit = new QLineEdit(parent);
+    edit->setText(index.data().toString());
+    edit->setReadOnly(true);
+    return edit;
+}
 
 DebugTreeWidget::DebugTreeWidget(QWidget *parent) :
     QTreeView(parent)
@@ -31,6 +48,8 @@ DebugTreeWidget::DebugTreeWidget(QWidget *parent) :
     m_modelTree = new DebugModel(this);
     setUniformRowHeights(true); // big performance win
     setModel(m_modelTree);
+    setItemDelegate(new NoEditItemDelegate(this));
+
     expandAll();
     connect(this, SIGNAL(expanded(QModelIndex)), SLOT(debugExpanded(QModelIndex)));
     connect(this, SIGNAL(collapsed(QModelIndex)), SLOT(debugCollapsed(QModelIndex)));
