@@ -303,8 +303,8 @@ function insideSector(s: [Vector, Vector], a: Vector): boolean {
 function intersectRayArc(pos: Position, dir: RelativePosition, m: Position, r: number, minangle: number, maxangle: number): [Vector, number, number][] {
 	let intersections: [Vector, number, number][] = [];
 	let [i1, i2, l1, l2] = geom.intersectLineCircle(pos, dir, m, r);
-	if (i1 && l1 >= 0) {
 	let interval = geom.normalizeAngle(maxangle - minangle);
+	if (i1 && l1! >= 0) {
 		let a1 = geom.normalizeAngle((i1 - m).angle() - minangle);
 		if (a1 < interval) {
 			intersections.push([i1, a1, l1!]);
