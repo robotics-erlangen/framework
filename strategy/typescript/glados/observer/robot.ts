@@ -226,16 +226,16 @@ export function ownStandardShooter(): Robot | undefined {
 	}
 }
 
-function calculateWayForPosition(pos: Position, goal: Position, radius: number, friendly: boolean): number {
-	if (pos.y < -World.Geometry.FieldHeightHalf) {
-		if (pos.x < 0) {
+function calculateWayForPosition(pos: Position, radius: number, friendly: boolean): number {
+	let goal = friendly ? World.Geometry.FriendlyGoal : World.Geometry.OpponentGoal;
+	if (Math.abs(pos.y) > World.Geometry.FieldHeightHalf) {
+		if (pos.x * pos.y > 0) {
 			return 0;
 		} else {
 			return Field.maxWay(radius);
 		}
 	}
-	let projectedPos = goal + (pos - goal) * 100;
-	return Field.intersectRayDefenseArea(projectedPos, goal - projectedPos, radius, friendly)[1];
+	return Field.intersectRayDefenseArea(goal, pos - goal, radius, friendly, true)[1]!;
 }
 
 // calculates the time a robot needs around the defense area
@@ -252,14 +252,13 @@ export function timeAroundDefenseAreaByWay(robot: Robot, robotWay: number | unde
 		targetWay: number, radius: number, friendly: boolean, endSpeed?: number): number;
 export function timeAroundDefenseAreaByWay(robot: Robot, robotWay: number | undefined, targetPos: Position | undefined,
 		targetWay: number | undefined, radius: number, friendly: boolean, endSpeed?: number): number {
-	let targetGoal = friendly ? World.Geometry.FriendlyGoal : World.Geometry.OpponentGoal;
 	if (robotWay == undefined) {
-		robotWay = calculateWayForPosition(robot.pos, targetGoal, radius, friendly);
+		robotWay = calculateWayForPosition(robot.pos, radius, friendly);
 	}
 	if (targetPos == undefined) {
 		targetPos = Field.defenseIntersectionByWay(<number> targetWay, radius, friendly);
 	} else if (targetWay == undefined) {
-		targetWay = calculateWayForPosition(targetPos, targetGoal, radius, friendly);
+		targetWay = calculateWayForPosition(targetPos, radius, friendly);
 	}
 	let drivePoints = Field.cornerPointsBetweenWays(robotWay, <number> targetWay, radius, friendly);
 	drivePoints.unshift(robot.pos);
