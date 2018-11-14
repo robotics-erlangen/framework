@@ -370,15 +370,15 @@ function intersectionsRayDefenseArea_2018(pos: Position, dir: RelativePosition, 
 	return intersections;
 }
 
-function intersectDefenseArea_2018(pos: Position, dir: RelativePosition, extraDistance: number, friendly: boolean):
-		[Position, number, number] | [] {
+function intersectDefenseArea_2018(pos: Position, dir: RelativePosition, extraDistance: number, friendly: boolean, invertedPos: boolean = false):
+		[Position, number, number] | [undefined, number] {
 	let intersections = intersectionsRayDefenseArea_2018(pos, dir, extraDistance, friendly);
-	if (intersections[1] && pos.distanceToSq(intersections[0].pos) > pos.distanceToSq(intersections[1].pos)) {
+	if (intersections[1] && (pos.distanceToSq(intersections[0].pos) > pos.distanceToSq(intersections[1].pos) !== invertedPos)) {
 		return [intersections[1].pos, intersections[1].way, intersections[1].sec];
 	} else if (intersections[0]) {
 		return [intersections[0].pos, intersections[0].way, intersections[0].sec];
 	}
-	return [];
+	return [undefined, G.DefenseHeight + G.DefenseWidthHalf + extraDistance * Math.PI / 4];
 }
 
 // if the way is <0 or greater than the maximum way, the intersection is on
@@ -458,17 +458,17 @@ function intersectionsRayDefenseArea_2017Wrapper(pos: Position, dir: RelativePos
 	return intersectionsRayDefenseArea_2017(pos, dir, extraDistance, friendly)[0];
 }
 
-function intersectRayDefenseArea_2017(pos: Position, dir: RelativePosition, extraDistance: number, friendly: boolean):
+function intersectRayDefenseArea_2017(pos: Position, dir: RelativePosition, extraDistance: number, friendly: boolean, invertedPos: boolean = false):
 		[Position | undefined, number] {
 	let [intersections, totalway] = intersectionsRayDefenseArea_2017(pos, dir, extraDistance, friendly);
 
 	// choose nearest intersection
-	let minDistance = Infinity;
+	let minDistance = invertedPos ? 0 : Infinity;
 	let minIntersection = undefined;
 	let minWay = totalway / 2;
 	for (let i of intersections) {
 		let dist = pos.distanceTo(i.pos);
-		if (dist < minDistance) {
+		if (dist < minDistance !== invertedPos) {
 			minDistance = dist;
 			minIntersection = i.pos;
 			minWay = i.l1;
@@ -493,7 +493,7 @@ function intersectRayDefenseArea_2017(pos: Position, dir: RelativePosition, extr
 // 	the sectors are ordered as followes:
 // 2  3  4
 // 1     5
-export let intersectRayDefenseArea: (pos: Position, dir: RelativePosition, extraDist: number, friendly: boolean) => [Position | undefined, number, number?] | [];
+export let intersectRayDefenseArea: (pos: Position, dir: RelativePosition, extraDist: number, friendly: boolean, invertedPos?: boolean) => [Position | undefined, number, number?];
 export let intersectionsRayDefenseArea: (pos: Position, dir: RelativePosition, extraDist: number, friendly: boolean) => IntersectionsType[];
 if (World.RULEVERSION === "2018") {
 	intersectRayDefenseArea = intersectDefenseArea_2018;
