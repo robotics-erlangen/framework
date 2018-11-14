@@ -300,28 +300,18 @@ function insideSector(s: [Vector, Vector], a: Vector): boolean {
 	}
 }
 
-function normalize(angle: number): number {
-	while (angle >= 2 * Math.PI) {
-		angle = angle - 2 * Math.PI;
-	}
-	while (angle < 0) {
-		angle = angle + 2 * Math.PI;
-	}
-	return angle;
-}
-
 function intersectRayArc(pos: Position, dir: RelativePosition, m: Position, r: number, minangle: number, maxangle: number): [Vector, number, number][] {
 	let intersections: [Vector, number, number][] = [];
 	let [i1, i2, l1, l2] = geom.intersectLineCircle(pos, dir, m, r);
-	let interval = normalize(maxangle - minangle);
 	if (i1 && l1 >= 0) {
-		let a1 = normalize((i1 - m).angle() - minangle);
+	let interval = geom.normalizeAngle(maxangle - minangle);
+		let a1 = geom.normalizeAngle((i1 - m).angle() - minangle);
 		if (a1 < interval) {
 			intersections.push([i1, a1, l1]);
 		}
 	}
 	if (i2 && l2 != undefined && l2 >= 0) {
-		let a2 = normalize((i2 - m).angle() - minangle);
+		let a2 = geom.normalizeAngle((i2 - m).angle() - minangle);
 		if (a2 < interval) {
 			intersections.push([i2, a2, l2]);
 		}
@@ -440,8 +430,8 @@ function intersectionsRayDefenseArea_2017(pos: Position, dir: RelativePosition, 
 
 	// calclulate global angles
 	let oppadd = friendly ? 0 : Math.PI;
-	let to_opponent = normalize(oppadd + Math.PI / 2);
-	let to_friendly = normalize(oppadd - Math.PI / 2);
+	let to_opponent = geom.normalizeAngle(oppadd + Math.PI / 2);
+	let to_friendly = geom.normalizeAngle(oppadd - Math.PI / 2);
 
 	// calculate intersection points with defense arcs
 	let intersections: {pos: Vector, l1: number}[] = [];
