@@ -92,6 +92,7 @@ private:
     void loadConfig(bool doRestoreGeometry);
     void raMode();
     void horusMode();
+    void createLogWriterConnections(CombinedLogWriter &writer, QAction *record, QAction *backlog1, QAction *backlog2);
 
 private:
     Ui::MainWindow *ui;
@@ -105,7 +106,7 @@ private:
     bool m_transceiverActive;
     qint32 m_lastStageTime;
     QLabel *m_logTimeLabel;
-    CombinedLogWriter m_logWriter;
+    CombinedLogWriter m_logWriterRa, m_logWriterHorus;
     amun::GameState::State m_lastRefState;
     QList<Status> m_horusStrategyBuffer;
     DebuggerConsole *m_console;
@@ -113,7 +114,6 @@ private:
     uint m_currentWidgetConfiguration;
     Timer *m_playTimer;
     LogOpener * m_logOpener;
-    int m_checkHaltCounter;
     QString m_horusTitleString;
 
     const std::string TEAM_NAME = "Replace with your own team name!";

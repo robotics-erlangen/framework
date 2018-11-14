@@ -120,7 +120,9 @@
      <string>Logging</string>
     </property>
     <addaction name="actionRecord"/>
+    <addaction name="actionRecordLogLog"/>
     <addaction name="actionSave20s"/>
+    <addaction name="actionBackloglog"/>
     <addaction name="actionUseLocation"/>
     <addaction name="actionChangeLocation"/>
    </widget>
@@ -266,7 +268,9 @@
    <addaction name="actionConfiguration"/>
    <addaction name="actionPlotter"/>
    <addaction name="actionRecord"/>
+   <addaction name="actionRecordLogLog"/>
    <addaction name="actionSaveBacklog"/>
+   <addaction name="actionSaveBackloglog"/>
   </widget>
   <widget class="QDockWidget" name="dockTiming">
    <property name="windowTitle">
@@ -442,7 +446,23 @@
     <string>Save Backlog</string>
    </property>
   </action>
+  <action name="actionSaveBackloglog">
+   <property name="text">
+    <string>20s</string>
+   </property>
+   <property name="toolTip">
+    <string>Save Backloglog</string>
+   </property>
+  </action>
   <action name="actionSave20s">
+   <property name="text">
+    <string>Save last 20s</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+B</string>
+   </property>
+  </action>
+  <action name="actionBackloglog">
    <property name="text">
     <string>Save last 20s</string>
    </property>
@@ -681,6 +701,20 @@
   <action name="actionQuit">
    <property name="text">
     <string>Quit</string>
+   </property>
+  </action>
+  <action name="actionRecordLogLog">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Record file</string>
+   </property>
+   <property name="toolTip">
+    <string>Record Loglog</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
    </property>
   </action>
  </widget>

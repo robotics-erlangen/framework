@@ -48,8 +48,10 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     ui(new Ui::MainWindow),
     m_transceiverActive(false),
     m_lastStageTime(0),
-    m_logWriter(false, 20),
-    m_isTournamentMode(tournamentMode)
+    m_logWriterRa(false, 20),
+    m_logWriterHorus(true, 20),
+    m_isTournamentMode(tournamentMode),
+    m_currentWidgetConfiguration(0)
 {
     qRegisterMetaType<SSL_Referee::Command>("SSL_Referee::Command");
     qRegisterMetaType<SSL_Referee::Stage>("SSL_Referee::Stage");
@@ -65,6 +67,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     ui->actionEnableTransceiver->setIcon(QIcon("icon:32/network-wireless.png"));
     ui->actionSidesFlipped->setIcon(QIcon("icon:32/change-ends.png"));
     ui->actionRecord->setIcon(QIcon("icon:32/media-record.png"));
+    ui->actionRecordLogLog->setIcon(QIcon("icon:32/media-record.png"));
     ui->actionChargeKicker->setIcon(QIcon("icon:32/capacitor.png"));
     ui->actionSimulator->setIcon(QIcon("icon:32/computer.png"));
     ui->actionInternalReferee->setIcon(QIcon("icon:32/whistle.png"));
@@ -140,7 +143,8 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     connect(ui->actionConfiguration, SIGNAL(triggered()), SLOT(showConfigDialog()));
     connect(ui->actionPlotter, SIGNAL(triggered()), m_plotter, SLOT(show()));
     connect(ui->actionAutoPause, SIGNAL(toggled(bool)), ui->simulator, SLOT(setEnableAutoPause(bool)));
-    connect(ui->actionUseLocation, SIGNAL(toggled(bool)), &m_logWriter, SLOT(useLogfileLocation(bool)));
+    connect(ui->actionUseLocation, SIGNAL(toggled(bool)), &m_logWriterRa, SLOT(useLogfileLocation(bool)));
+    connect(ui->actionUseLocation, SIGNAL(toggled(bool)), &m_logWriterHorus, SLOT(useLogfileLocation(bool)));
     connect(ui->actionChangeLocation, SIGNAL(triggered()), SLOT(showDirectoryDialog()));
 
     connect(ui->actionGoLive, SIGNAL(triggered()), SLOT(liveMode()));
@@ -169,17 +173,22 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     connect(this, SIGNAL(gotStatus(Status)), ui->simulator, SLOT(handleStatus(Status)));
 
     // set up log connections
-    connect(this, SIGNAL(gotStatus(Status)), &m_logWriter, SLOT(handleStatus(Status)));
-    connect(ui->actionRecord, SIGNAL(toggled(bool)), &m_logWriter, SLOT(recordButtonToggled(bool)));
-    connect(ui->actionSave20s, SIGNAL(triggered(bool)), &m_logWriter, SLOT(backLogButtonClicked()));
-    connect(ui->actionSaveBacklog, SIGNAL(triggered(bool)), &m_logWriter, SLOT(backLogButtonClicked()));
-    connect(&m_logWriter, SIGNAL(setRecordButton(bool)), ui->actionRecord, SLOT(setChecked(bool)));
-    connect(&m_logWriter, SIGNAL(enableRecordButton(bool)), ui->actionRecord, SLOT(setEnabled(bool)));
-    connect(&m_logWriter, SIGNAL(enableBacklogButton(bool)), ui->actionSave20s, SLOT(setEnabled(bool)));
-    connect(&m_logWriter, SIGNAL(enableBacklogButton(bool)), ui->actionSaveBacklog, SLOT(setEnabled(bool)));
-    connect(&m_logWriter, SIGNAL(changeLogTimeLabel(QString)), m_logTimeLabel, SLOT(setText(QString)));
-    connect(&m_logWriter, SIGNAL(showLogTimeLabel(bool)), m_logTimeLabel, SLOT(setVisible(bool)));
-    //TODO: alle buttons nicht nur die direkt sichtbaren
+    createLogWriterConnections(m_logWriterRa, ui->actionRecord, ui->actionSave20s, ui->actionSaveBacklog);
+    createLogWriterConnections(m_logWriterHorus, ui->actionRecordLogLog, ui->actionBackloglog, ui->actionSaveBackloglog);
+
+    // disable all possibilities of skipping / going back packets when recording
+    connect(&m_logWriterHorus, SIGNAL(disableSkipping(bool)), ui->logManager, SIGNAL(disableSkipping(bool)));
+    connect(&m_logWriterHorus, SIGNAL(disableSkipping(bool)), ui->actionFrameBack, SLOT(setDisabled(bool)));
+    connect(&m_logWriterHorus, SIGNAL(disableSkipping(bool)), ui->actionFrameForward, SLOT(setDisabled(bool)));
+    connect(&m_logWriterHorus, SIGNAL(disableSkipping(bool)), ui->actionStepBack, SLOT(setDisabled(bool)));
+    connect(&m_logWriterHorus, SIGNAL(disableSkipping(bool)), ui->actionStepForward, SLOT(setDisabled(bool)));
+
+    // reset backlog if packets have been skipped
+    connect(ui->actionFrameForward, SIGNAL(triggered(bool)), &m_logWriterHorus, SIGNAL(resetBacklog()));
+    connect(ui->actionFrameBack, SIGNAL(triggered(bool)), &m_logWriterHorus, SIGNAL(resetBacklog()));
+    connect(ui->actionStepForward, SIGNAL(triggered(bool)), &m_logWriterHorus, SIGNAL(resetBacklog()));
+    connect(ui->actionStepBack, SIGNAL(triggered(bool)), &m_logWriterHorus, SIGNAL(resetBacklog()));
+    connect(ui->logManager, SIGNAL(resetBacklog()), &m_logWriterHorus, SIGNAL(resetBacklog()));
 
     // start amun
     connect(&m_amun, SIGNAL(gotStatus(Status)), SLOT(handleStatus(Status)));
@@ -330,6 +339,20 @@ void MainWindow::showDirectoryDialog()
     s.endGroup();
 }
 
+void MainWindow::createLogWriterConnections(CombinedLogWriter &writer, QAction *record, QAction *backlog1, QAction *backlog2)
+{
+    connect(this, SIGNAL(gotStatus(Status)), &writer, SLOT(handleStatus(Status)));
+    connect(record, SIGNAL(toggled(bool)), &writer, SLOT(recordButtonToggled(bool)));
+    connect(backlog1, SIGNAL(triggered(bool)), &writer, SLOT(backLogButtonClicked()));
+    connect(backlog2, SIGNAL(triggered(bool)), &writer, SLOT(backLogButtonClicked()));
+    connect(&writer, SIGNAL(setRecordButton(bool)), record, SLOT(setChecked(bool)));
+    connect(&writer, SIGNAL(enableRecordButton(bool)), record, SLOT(setEnabled(bool)));
+    connect(&writer, SIGNAL(enableBacklogButton(bool)), backlog1, SLOT(setEnabled(bool)));
+    connect(&writer, SIGNAL(enableBacklogButton(bool)), backlog2, SLOT(setEnabled(bool)));
+    connect(&writer, SIGNAL(changeLogTimeLabel(QString)), m_logTimeLabel, SLOT(setText(QString)));
+    connect(&writer, SIGNAL(showLogTimeLabel(bool)), m_logTimeLabel, SLOT(setVisible(bool)));
+}
+
 void MainWindow::saveConfig()
 {
     QSettings s;
@@ -382,16 +405,20 @@ void MainWindow::loadConfig(bool doRestoreGeometry)
 
 void MainWindow::switchToWidgetConfiguration(int configId)
 {
-    saveConfig();
-    m_currentWidgetConfiguration = static_cast<unsigned int>(configId);
-    loadConfig(false);
+    unsigned int id = static_cast<unsigned int>(configId);
+    if (id != m_currentWidgetConfiguration) {
+        saveConfig();
+        m_currentWidgetConfiguration = id;
+        loadConfig(false);
 
-    // Horus mode
-    if (configId % 2 == 0) {
-        horusMode();
-    } else {
-        raMode();
+        // Horus mode
+        if (configId % 2 == 0) {
+            horusMode();
+        } else {
+            raMode();
+        }
     }
+
 }
 
 void MainWindow::ruleVersionChanged(QAction * action)
@@ -567,23 +594,20 @@ void MainWindow::showBacklogMode()
     if (ui->actionSimulator->isChecked() || m_lastRefState == amun::GameState::Halt) {
         m_horusTitleString = "Instant Replay";
         switchToWidgetConfiguration(static_cast<int>(m_currentWidgetConfiguration + 1));
-        ui->logManager->setStatusSource(m_logWriter.makeStatusSource());
+        m_logOpener->saveCurrentPosition();
+        ui->logManager->setStatusSource(m_logWriterRa.makeStatusSource());
         ui->logManager->goToEnd();
     }
 }
 
 void MainWindow::handleCheckHaltStatus(const Status &status)
 {
-    m_logWriter.handleStatus(status);
+    m_logWriterRa.handleStatus(status);
     if (status->has_game_state()) {
         const amun::GameState &gameState = status->game_state();
         if (gameState.state() != amun::GameState::Halt) {
-            m_checkHaltCounter++;
-            // ignore the first 20 packets (the exact number is irrelevant) in order to ignore any packets that were still in
-            // the pipeline when horus mode was triggered
-            if (m_checkHaltCounter > 20) {
-                liveMode();
-            }
+            // TODO: stop playing the log
+            liveMode();
         }
     }
     if (status->has_strategy_blue() || status->has_strategy_yellow() ||
@@ -615,7 +639,8 @@ void MainWindow::raMode()
     disconnect(&m_amun, SIGNAL(gotStatus(Status)), this, SLOT(handleCheckHaltStatus(Status)));
     connect(&m_amun, SIGNAL(gotStatus(Status)), SLOT(handleStatus(Status)));
     disconnect(ui->logManager, SIGNAL(gotStatus(Status)), this, SLOT(handleStatus(Status)));
-    connect(this, SIGNAL(gotStatus(Status)), &m_logWriter, SLOT(handleStatus(Status)));
+    disconnect(this, SIGNAL(gotStatus(Status)), &m_logWriterHorus, SLOT(handleStatus(Status)));
+    connect(this, SIGNAL(gotStatus(Status)), &m_logWriterRa, SLOT(handleStatus(Status)));
 }
 
 void MainWindow::horusMode()
@@ -630,8 +655,13 @@ void MainWindow::horusMode()
 
     ui->simulator->sendPauseSimulator(amun::Horus, true);
 
-    m_checkHaltCounter = 0;
-    disconnect(this, SIGNAL(gotStatus(Status)), &m_logWriter, SLOT(handleStatus(Status)));
+    // there may still be packets between amun and the gui coming from the simulator
+    // especially when a log was opened and the gui was blocked for some time
+    // 200 ms is an arbitrary number, the exact time shouldn't really matter
+    QCoreApplication::processEvents(QEventLoop::AllEvents, 200);
+
+    disconnect(this, SIGNAL(gotStatus(Status)), &m_logWriterRa, SLOT(handleStatus(Status)));
+    connect(this, SIGNAL(gotStatus(Status)), &m_logWriterHorus, SLOT(handleStatus(Status)));
     disconnect(&m_amun, SIGNAL(gotStatus(Status)), this, SLOT(handleStatus(Status)));
     connect(&m_amun, SIGNAL(gotStatus(Status)), SLOT(handleCheckHaltStatus(Status)));
     connect(ui->logManager, SIGNAL(gotStatus(Status)), SLOT(handleStatus(Status)));
@@ -650,6 +680,19 @@ void MainWindow::toggleHorusModeWidgets(bool enable)
     ui->referee->setEnabled(!enable);
     ui->simulator->setEnabled(!enable);
     ui->robots->enableContent(!enable);
+    ui->actionRecordLogLog->setEnabled(enable);
+    ui->actionRecordLogLog->setVisible(enable);
+    ui->actionBackloglog->setEnabled(enable);
+    ui->actionBackloglog->setVisible(enable);
+    ui->actionSaveBackloglog->setEnabled(enable);
+    ui->actionSaveBackloglog->setVisible(enable);
+    ui->actionRecord->setEnabled(!enable);
+    ui->actionRecord->setVisible(!enable);
+    ui->actionSave20s->setEnabled(!enable);
+    ui->actionSave20s->setVisible(!enable);
+    ui->actionSaveBacklog->setEnabled(!enable);
+    ui->actionSaveBacklog->setVisible(!enable);
+    ui->goToLastPosition->setVisible(enable && m_logOpener->showGoToLastPositionButton());
 }
 
 void MainWindow::showConfigDialog()

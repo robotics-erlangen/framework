@@ -36,7 +36,8 @@ LogOpener::LogOpener(Ui::MainWindow *ui, QObject *parent) :
     QObject(parent),
     ui(ui),
     m_packetsSinceOpened(0),
-    m_recentFilesMenu(nullptr)
+    m_recentFilesMenu(nullptr),
+    m_showGoToLastPosition(false)
 {
     QSettings s;
     int recentFileCount = s.beginReadArray("recent files");
@@ -56,7 +57,7 @@ LogOpener::LogOpener(Ui::MainWindow *ui, QObject *parent) :
 
     makeRecentFileMenu();
 
-    ui->goToLastPosition->setVisible(false);
+    showLastPosition(false);
 
     connect(ui->field, SIGNAL(fileDropped(QString)), SLOT(openFile(QString)));
 
@@ -71,7 +72,9 @@ LogOpener::LogOpener(Ui::MainWindow *ui, QObject *parent) :
 
 void LogOpener::close()
 {
-    m_lastFilePositions[m_openFileName] = ui->logManager->getFrame();
+    if (m_logFile.lock()) {
+        m_lastFilePositions[m_openFileName] = ui->logManager->getFrame();
+    }
 
     QSettings s;
     s.beginWriteArray("recent files", m_recentFiles.size());
@@ -91,11 +94,17 @@ void LogOpener::close()
     s.endArray();
 }
 
+void LogOpener::showLastPosition(bool show)
+{
+    m_showGoToLastPosition = show;
+    ui->goToLastPosition->setVisible(show);
+}
+
 void LogOpener::handleStatus(const Status&)
 {
     // around 10 seconds
     if (m_packetsSinceOpened > 5000) {
-        ui->goToLastPosition->setVisible(false);
+        showLastPosition(false);
     }
     m_packetsSinceOpened++;
 }
@@ -104,14 +113,20 @@ void LogOpener::openFile()
 {
     QString previousDir;
     // open again in previously used folder
-    if (m_logFile) {
-        m_lastFilePositions[m_openFileName] = ui->logManager->getFrame();
+    if (m_logFile.lock()) {
         QFileInfo finfo(m_openFileName);
         previousDir = finfo.dir().path();
     }
 
     QString filename = QFileDialog::getOpenFileName((QMainWindow*)parent(), "Select log file", previousDir, "Log files (*.log)");
     openFile(filename);
+}
+
+void LogOpener::saveCurrentPosition()
+{
+    if (m_logFile.lock()) {
+        m_lastFilePositions[m_openFileName] = ui->logManager->getFrame();
+    }
 }
 
 void LogOpener::openFile(const QString &filename)
@@ -124,12 +139,17 @@ void LogOpener::openFile(const QString &filename)
             auto openResult = openFunction(filename);
 
             if (openResult.first != nullptr) {
+                if (m_logFile.lock()) {
+                    m_lastFilePositions[m_openFileName] = ui->logManager->getFrame();
+                }
+
                 // the logfile was successfully opened
                 // the old logfile is deleted by the logmanager
-                m_logFile = openResult.first;
+                auto logfile = openResult.first;
+                m_logFile = logfile;
 
                 m_openFileName = filename;
-                ui->logManager->setStatusSource(m_logFile);
+                ui->logManager->setStatusSource(logfile);
 
                 // move the file to the end of the recent files list
                 m_recentFiles.removeAll(filename);
@@ -140,12 +160,12 @@ void LogOpener::openFile(const QString &filename)
                 makeRecentFileMenu();
 
                 // add button to go to the last position (if log is long enough, around 1:30 min)
-                if (m_logFile->timings().size() > 50000 &&
+                if (logfile->timings().size() > 50000 &&
                         m_lastFilePositions.contains(filename)) {
-                    ui->goToLastPosition->setVisible(true);
+                    showLastPosition(true);
                     ui->goToLastPosition->setText(QString::number(m_lastFilePositions[filename]));
                 } else {
-                    ui->goToLastPosition->setVisible(false);
+                    showLastPosition(false);
                 }
                 m_packetsSinceOpened = 0;
 
@@ -190,6 +210,6 @@ void LogOpener::makeRecentFileMenu()
 
 void LogOpener::goToLastFilePosition()
 {
-    ui->goToLastPosition->setVisible(false);
+    showLastPosition(false);
     ui->logManager->seekPacket(m_lastFilePositions[m_openFileName]);
 }

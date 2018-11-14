@@ -44,6 +44,8 @@ class LogOpener : public QObject
 public:
     explicit LogOpener(Ui::MainWindow *ui, QObject *parent = nullptr);
     void close();
+    bool showGoToLastPositionButton() const { return m_showGoToLastPosition; }
+    void saveCurrentPosition();
 
 signals:
     void logOpened(QString name);
@@ -56,11 +58,12 @@ public slots:
 
 private:
     void makeRecentFileMenu();
+    void showLastPosition(bool show);
 
 private:
     Ui::MainWindow *ui;
 
-    std::shared_ptr<StatusSource> m_logFile;
+    std::weak_ptr<StatusSource> m_logFile;
     QString m_openFileName;
 
     QList<QString> m_recentFiles;
@@ -68,6 +71,7 @@ private:
     uint m_packetsSinceOpened;
     QMenu *m_recentFilesMenu;
     QAction *m_recentFilesMenuAction;
+    bool m_showGoToLastPosition;
 
     const int MAX_RECENT_FILE_COUNT = 10;
 };
