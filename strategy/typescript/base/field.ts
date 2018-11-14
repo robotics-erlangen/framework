@@ -303,11 +303,11 @@ function insideSector(s: [Vector, Vector], a: Vector): boolean {
 function intersectRayArc(pos: Position, dir: RelativePosition, m: Position, r: number, minangle: number, maxangle: number): [Vector, number, number][] {
 	let intersections: [Vector, number, number][] = [];
 	let [i1, i2, l1, l2] = geom.intersectLineCircle(pos, dir, m, r);
-	if (i1 && l1 >= 0) {
 	let interval = geom.normalizeAngle(maxangle - minangle);
+	if (i1 && l1! >= 0) {
 		let a1 = geom.normalizeAngle((i1 - m).angle() - minangle);
 		if (a1 < interval) {
-			intersections.push([i1, a1, l1]);
+			intersections.push([i1, a1, l1!]);
 		}
 	}
 	if (i2 && l2 != undefined && l2 >= 0) {
@@ -345,10 +345,10 @@ function intersectionsRayDefenseArea_2018(pos: Position, dir: RelativePosition, 
 		// intersections on lines
 		let length = (i % 2 === 1) ? G.DefenseWidth : G.DefenseHeight;
 		let [ipos, l1, l2] = geom.intersectLineLine(pos, dir, v * f, directions[i] * f);
-		if (l1 && l1 >= 0 && l2 >= 0 && l2 <= length) {
+		if (l1 && l1 >= 0 && l2! >= 0 && l2! <= length) {
 			// no intersections with parallel lines
-			if (!(l1 === 0 && l2 === 0) || ipos.distanceToSq(v * f) < 0.0001) {
-				intersections.push({pos: ipos, way: way + l2, sec: (i + 1) * 2 - 1});
+			if (!(l1 === 0 && l2 === 0) || ipos!.distanceToSq(v * f) < 0.0001) {
+				intersections.push({pos: ipos!, way: way + l2!, sec: (i + 1) * 2 - 1});
 			}
 		}
 		way = way + length;
@@ -447,8 +447,8 @@ function intersectionsRayDefenseArea_2017(pos: Position, dir: RelativePosition, 
 	// calculate intersection point with defense stretch
 	let defenseLineOnpoint = new Vector(0, -G.FieldHeightHalf + radius) * oppfac;
 	let [lineIntersection,l1,l2] = geom.intersectLineLine(pos, dir, defenseLineOnpoint, new Vector(1,0));
-	if (lineIntersection && l1 >= 0 && Math.abs(l2) <= G.DefenseStretchHalf) {
-		intersections.push({pos: lineIntersection, l1: l2 + totalway / 2});
+	if (lineIntersection && l1! >= 0 && Math.abs(l2!) <= G.DefenseStretchHalf) {
+		intersections.push({pos: lineIntersection, l1: l2! + totalway / 2});
 	}
 	return [intersections, totalway];
 }
@@ -597,7 +597,7 @@ export function allowedLineSegments(pos: Position, dir: RelativePosition, maxLen
 			// an offset 0f 0.05 is used here and below as the calculated point is on
 			// the border of the field anyways, otherwise it might flicker due to floating
 			// point inaccuracies
-			if (isInField(fieldPos[i], 0.05) && lambda > 0) {
+			if (isInField(fieldPos[i]!, 0.05) && lambda > 0) {
 				lambdas.push(lambda);
 			}
 		}
@@ -732,7 +732,7 @@ function intersectCircleDefenseArea_2017(pos: Position, radius: number, extraDis
 	if (mi1 && Math.abs(mi1.x) <= G.DefenseStretchHalf) {
 		intersections.push(mi1);
 	}
-	if (mi2 && Math.abs(mi1.x) <= G.DefenseStretchHalf) {
+	if (mi2 && Math.abs(mi2.x) <= G.DefenseStretchHalf) {
 		intersections.push(mi2);
 	}
 
@@ -787,10 +787,10 @@ function intersectCircleDefenseArea_2018(pos: Position, radius: number, extraDis
 		// get intersections with line
 		[li1, li2, lambda1, lambda2] = geom.intersectLineCircle(corners[i + 4], dir, pos, radius);
 		if (lambda1 != undefined && lambda1 >= 0 && lambda1 * lambda1 < dir.lengthSq()) {
-			intersections.push(li1);
+			intersections.push(li1!);
 		}
-		if (lambda2 != undefined && li2 != undefined && lambda2 >= 0 && lambda2 * lambda2 < dir.lengthSq()) {
-			intersections.push(li2);
+		if (lambda2 != undefined && lambda2 >= 0 && lambda2 * lambda2 < dir.lengthSq()) {
+			intersections.push(li2!);
 		}
 	}
 	// invert coordinates if opp-flag is set
@@ -850,7 +850,7 @@ export function nextLineCut(startPos: Position, dir: RelativePosition, offset: n
 	let [frontCut, frontLambda] = geom.intersectLineLine(startPos, dir, height, width);
 	if (sideCut) {
 		if (frontCut) {
-			if (sideLambda < frontLambda) {
+			if (sideLambda! < frontLambda!) {
 				return sideCut;
 			} else {
 				return frontCut;
