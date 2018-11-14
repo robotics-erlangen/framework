@@ -156,8 +156,8 @@ void Connector::handleStatus(const Status &status)
         }
     }
 
-    if ((m_asBlue && status->has_strategy_blue()) || (!m_asBlue && status->has_strategy_yellow())) {
-        const auto& strategy = (m_asBlue) ? status->strategy_blue() : status->strategy_yellow();
+    if (status->has_status_strategy()) {
+        const auto& strategy = status->status_strategy().status();
         handleStrategyStatus(strategy);
     }
 }

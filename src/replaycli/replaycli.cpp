@@ -166,15 +166,12 @@ int main(int argc, char* argv[])
                     }
             });
         if (parser.isSet(abortExecution))
-            strategy->connect(strategy, &Strategy::sendStatus, [asBlue](const Status& s){
+            strategy->connect(strategy, &Strategy::sendStatus, [] (const Status& s) {
                     const amun::StatusStrategy* replayStatus = nullptr;
-                    if(s->has_strategy_blue() && asBlue) {
-                        replayStatus = &s->strategy_blue();
+                    if (s->has_status_strategy()) {
+                        replayStatus = &s->status_strategy().status();
                     }
-                    else if(s->has_strategy_yellow() && !asBlue) {
-                        replayStatus = &s->strategy_yellow();
-                    }
-                    if(replayStatus && replayStatus->state() == amun::StatusStrategy::FAILED){
+                    if (replayStatus && replayStatus->state() == amun::StatusStrategy::FAILED) {
                         exit(1);
                     }
             });

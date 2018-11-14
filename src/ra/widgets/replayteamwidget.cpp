@@ -1,14 +1,15 @@
 #include <QSettings>
 #include "replayteamwidget.h"
 #include "ui_replayteamwidget.h"
+#include "protobuf/status.pb.h"
 
 ReplayTeamWidget::ReplayTeamWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ReplayTeamWidget)
 {
     ui->setupUi(this);
-    ui->blue->init(TeamWidget::BLUE);
-    ui->yellow->init(TeamWidget::YELLOW);
+    ui->blue->init(amun::StatusStrategyWrapper::REPLAY_BLUE);
+    ui->yellow->init(amun::StatusStrategyWrapper::REPLAY_YELLOW);
     QSettings s;
     s.beginGroup("Strategy");
     m_recentScripts = s.value("RecentScripts").toStringList();

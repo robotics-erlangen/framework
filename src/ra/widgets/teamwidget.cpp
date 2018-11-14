@@ -31,7 +31,7 @@
 
 TeamWidget::TeamWidget(QWidget *parent) :
     QFrame(parent),
-    m_type(BLUE),
+    m_type(amun::StatusStrategyWrapper::BLUE),
     m_userAutoReload(false),
     m_notification(false),
     m_recentScripts(NULL)
@@ -60,7 +60,7 @@ void TeamWidget::saveConfig()
     s.endGroup();
 }
 
-void TeamWidget::init(TeamType type)
+void TeamWidget::init(amun::StatusStrategyWrapper::StrategyType type)
 {
     m_type = type;
 
@@ -103,7 +103,7 @@ void TeamWidget::init(TeamType type)
     m_btnEnableDebug->setToolTip("Enable debugging");
     m_btnEnableDebug->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
     m_btnEnableDebug->setCheckable(true);
-    if (m_type == AUTOREF) {
+    if (m_type == amun::StatusStrategyWrapper::AUTOREF) {
         m_btnEnableDebug->setChecked(true);
         m_btnEnableDebug->setDisabled(true);
     }
@@ -138,12 +138,16 @@ void TeamWidget::init(TeamType type)
 QString TeamWidget::teamTypeName() const
 {
     switch (m_type) {
-    case BLUE:
+    case amun::StatusStrategyWrapper::BLUE:
         return "BlueTeam";
-    case YELLOW:
+    case amun::StatusStrategyWrapper::YELLOW:
         return "YellowTeam";
-    case AUTOREF:
+    case amun::StatusStrategyWrapper::AUTOREF:
         return "Autoref";
+    case amun::StatusStrategyWrapper::REPLAY_BLUE:
+        return "ReplayBlue";
+    case amun::StatusStrategyWrapper::REPLAY_YELLOW:
+        return "ReplayYellow";
     }
     return "";
 }
@@ -154,7 +158,7 @@ void TeamWidget::enableContent(bool enable)
     m_btnEntryPoint->setEnabled(enable);
     m_btnReload->blockSignals(!enable);
     m_reloadAction->setEnabled(enable);
-    m_btnEnableDebug->setEnabled(enable && m_type != AUTOREF);
+    m_btnEnableDebug->setEnabled(enable && m_type != amun::StatusStrategyWrapper::AUTOREF);
     m_debugAction->setEnabled(enable);
     m_performanceAction->setEnabled(enable);
 }
@@ -167,7 +171,7 @@ void TeamWidget::load()
     m_entryPoint = s.value("EntryPoint").toString();
     m_reloadAction->setChecked(s.value("AutoReload").toBool());
     m_performanceAction->setChecked(s.value("PerformanceMode", true).toBool());
-    if (m_type != AUTOREF) {
+    if (m_type != amun::StatusStrategyWrapper::AUTOREF) {
         m_btnEnableDebug->setChecked(s.value("EnableDebug", false).toBool());
     }
     s.endGroup();
@@ -198,13 +202,12 @@ void TeamWidget::forceAutoReload(bool force)
 void TeamWidget::handleStatus(const Status &status)
 {
     // select corresponding strategy status
-    const amun::StatusStrategy *strategy = NULL;
-    if (m_type == BLUE && status->has_strategy_blue()) {
-        strategy = &status->strategy_blue();
-    } else if (m_type == YELLOW && status->has_strategy_yellow()) {
-        strategy = &status->strategy_yellow();
-    } else if (m_type == AUTOREF && status->has_strategy_autoref()) {
-        strategy = &status->strategy_autoref();
+    const amun::StatusStrategy *strategy = nullptr;
+    if (status->has_status_strategy()) {
+        const auto &statusStrategy = status->status_strategy();
+        if (statusStrategy.type() == m_type) {
+            strategy = &statusStrategy.status();
+        }
     }
 
     if (strategy) {
@@ -349,12 +352,13 @@ void TeamWidget::open()
 
 amun::CommandStrategy * TeamWidget::commandStrategyFromType(const Command &command) const
 {
+
     switch (m_type) {
-    case BLUE:
+    case amun::StatusStrategyWrapper::BLUE:
         return command->mutable_strategy_blue();
-    case YELLOW:
+    case amun::StatusStrategyWrapper::YELLOW:
         return command->mutable_strategy_yellow();
-    case AUTOREF:
+    case amun::StatusStrategyWrapper::AUTOREF:
         return command->mutable_strategy_autoref();
     }
     return nullptr;
@@ -495,13 +499,15 @@ void TeamWidget::updateStyleSheet()
     // update background and border color
     QColor color;
     switch (m_type) {
-    case BLUE:
+    case amun::StatusStrategyWrapper::BLUE:
+    case amun::StatusStrategyWrapper::REPLAY_BLUE:
         color = "dodgerblue";
         break;
-    case YELLOW:
+    case amun::StatusStrategyWrapper::YELLOW:
+    case amun::StatusStrategyWrapper::REPLAY_YELLOW:
         color = "yellow";
         break;
-    case AUTOREF:
+    case amun::StatusStrategyWrapper::AUTOREF:
         color = "lightgray";
         break;
     }

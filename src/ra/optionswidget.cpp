@@ -68,14 +68,8 @@ void OptionsWidget::handleStrategyStatus(const amun::StatusStrategy &strategy)
 
 void OptionsWidget::handleStatus(const Status &status)
 {
-    if (status->has_strategy_yellow()) {
-        handleStrategyStatus(status->strategy_yellow());
-    }
-    if (status->has_strategy_blue()) {
-        handleStrategyStatus(status->strategy_blue());
-    }
-    if (status->has_strategy_autoref()) {
-        handleStrategyStatus(status->strategy_autoref());
+    if (status->has_status_strategy()) {
+        handleStrategyStatus(status->status_strategy().status());
     }
 }
 

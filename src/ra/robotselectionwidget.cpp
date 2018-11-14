@@ -193,9 +193,9 @@ void RobotSelectionWidget::init(QWidget *window, InputManager *inputManager)
     connect(window, SIGNAL(gotStatus(Status)), ui->autoref, SLOT(handleStatus(Status)));
     connect(ui->autoref, SIGNAL(sendCommand(Command)), window, SLOT(sendCommand(Command)));
 
-    ui->blue->init(TeamWidget::BLUE);
-    ui->yellow->init(TeamWidget::YELLOW);
-    ui->autoref->init(TeamWidget::AUTOREF);
+    ui->blue->init(amun::StatusStrategyWrapper::BLUE);
+    ui->yellow->init(amun::StatusStrategyWrapper::YELLOW);
+    ui->autoref->init(amun::StatusStrategyWrapper::AUTOREF);
 
     m_itemDelegate = new ItemDelegate(inputManager, this);
     ui->robots->setItemDelegate(m_itemDelegate);

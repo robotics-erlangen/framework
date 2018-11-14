@@ -22,6 +22,18 @@ message StatusStrategy {
     optional bool has_debugger = 7;
 }
 
+message StatusStrategyWrapper {
+    enum StrategyType {
+        BLUE = 1;
+        YELLOW = 2;
+        AUTOREF = 3;
+        REPLAY_BLUE = 4;
+        REPLAY_YELLOW = 5;
+    }
+    required StrategyType type = 1;
+    required StatusStrategy status = 2;
+}
+
 message Timing {
     optional float blue_total = 1;
     optional float blue_path = 2;
@@ -61,9 +73,9 @@ message Status {
     optional world.Geometry geometry = 4;
     optional robot.Team team_blue = 5;
     optional robot.Team team_yellow = 6;
-    optional StatusStrategy strategy_blue = 7;
-    optional StatusStrategy strategy_yellow = 8;
-    optional StatusStrategy strategy_autoref = 18;
+    optional StatusStrategy strategy_blue = 7; // deprecated
+    optional StatusStrategy strategy_yellow = 8; // deprecated
+    optional StatusStrategy strategy_autoref = 18; // deprecated
     repeated DebugValues debug = 10;
     optional Timing timing = 11;
     repeated robot.RadioCommand radio_command = 12;
@@ -81,4 +93,5 @@ message Status {
     optional UserInput execution_user_input = 25;
     optional logfile.Uid log_id = 27;
     optional uint64 original_frame_number = 28;
+    optional StatusStrategyWrapper status_strategy = 29;
 }

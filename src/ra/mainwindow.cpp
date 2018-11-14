@@ -610,8 +610,7 @@ void MainWindow::handleCheckHaltStatus(const Status &status)
             liveMode();
         }
     }
-    if (status->has_strategy_blue() || status->has_strategy_yellow() ||
-            status->has_strategy_autoref() || status->debug_size() > 0) {
+    if (status->has_status_strategy() || status->debug_size() > 0) {
         // use 50 as some upper limit, the exact number is irrelevant
         if (m_horusStrategyBuffer.size() < 50) {
             m_horusStrategyBuffer.push_back(status);

@@ -642,9 +642,20 @@ void Strategy::setStrategyStatus(Status &status, amun::StatusStrategy::STATE sta
 {
     Q_ASSERT(m_strategy != nullptr || state != amun::StatusStrategy::RUNNING);
 
-    amun::StatusStrategy *strategy = (m_type == StrategyType::BLUE) ? status->mutable_strategy_blue() :
-                                            (m_type == StrategyType::YELLOW) ? status->mutable_strategy_yellow() :
-                                                    status->mutable_strategy_autoref();
+    amun::StatusStrategy *strategy = status->mutable_status_strategy()->mutable_status();
+    amun::StatusStrategyWrapper::StrategyType type = amun::StatusStrategyWrapper::BLUE;
+    switch (m_type) {
+    case StrategyType::BLUE:
+        type = m_isInLogplayer ? amun::StatusStrategyWrapper::REPLAY_BLUE : amun::StatusStrategyWrapper::BLUE;
+        break;
+    case StrategyType::YELLOW:
+        type = m_isInLogplayer ? amun::StatusStrategyWrapper::REPLAY_YELLOW : amun::StatusStrategyWrapper::YELLOW;
+        break;
+    case StrategyType::AUTOREF:
+        type = amun::StatusStrategyWrapper::AUTOREF;
+        break;
+    }
+    status->mutable_status_strategy()->set_type(type);
     strategy->set_state(state);
 
     if (m_strategy != nullptr && state != amun::StatusStrategy::CLOSED) {

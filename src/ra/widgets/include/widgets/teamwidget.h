@@ -35,10 +35,6 @@ class TeamWidget : public QFrame
     Q_OBJECT
 
 public:
-    enum TeamType {
-        BLUE, YELLOW, AUTOREF
-    };
-
     explicit TeamWidget(QWidget *parent = 0);
     ~TeamWidget() override;
     TeamWidget(const TeamWidget&) = delete;
@@ -48,7 +44,7 @@ signals:
     void sendCommand(const Command &command);
 
 public:
-    void init(TeamType type);
+    void init(amun::StatusStrategyWrapper::StrategyType type);
     void load();
     void setRecentScripts(QStringList *recent);
     void forceAutoReload(bool force);
@@ -84,7 +80,7 @@ private:
     amun::CommandStrategy *commandStrategyFromType(const Command &command) const;
 
 private:
-    TeamType m_type;
+    amun::StatusStrategyWrapper::StrategyType m_type;
     QToolButton *m_btnOpen;
     QToolButton *m_btnEntryPoint;
     QToolButton *m_btnReload;
