@@ -30,6 +30,8 @@ export abstract class Agent {
 	_mainAttackerLastTime: number | undefined = undefined;
 	_debugIdStr: string;
 
+	private static _dumpAllTime: number = 0;
+
 	// static method for pool
 	abstract static takeRobot(_robots: FriendlyRobot[]): FriendlyRobot | undefined;
 
@@ -115,23 +117,36 @@ export abstract class Agent {
 	}
 
 	_dumpInbox() {
+		if (World.Time !== Agent._dumpAllTime) {
+			Agent._dumpAllTime = World.Time;
+			debug.pushtop("Global Inbox");
+			for (let type of MessageTypeList) {
+				let messages = this._messaging.receiveAllInbox(type);
+				Agent._dumpMessages(messages, type);
+			}
+			debug.pop(); // Global Inbox
+		}
 		debug.push("Inbox");
 		for (let type of MessageTypeList) {
-			let messages = this._messaging.receiveGeneric(type);
-			if (messages.size > 0) {
-				debug.push(MessageType[type]);
-				for (let [sender, msg] of messages.entries()) {
-					debug.set(sender.id || sender, msg);
-					if (typeof msg === "object" && msg.time != undefined) {
-						let relTime = String(msg.time - World.Time);
-						relTime = `${relTime.substring(0, 4)} (${msg.time})`;
-						debug.set((sender.id || sender) + "/time", relTime);
-					}
-				}
-				debug.pop(); // name
-			}
+			let messages = this._messaging.receiveNoBroadcast(type);
+			Agent._dumpMessages(messages, type);
 		}
 		debug.pop(); // Inbox
+	}
+
+	private static _dumpMessages(messages: any, type: MessageType) {
+		if (messages.size > 0) {
+			debug.push(MessageType[type]);
+			for (let [sender, msg] of messages.entries()) {
+				debug.set(sender.id || sender, msg);
+				if (typeof msg === "object" && msg.time != undefined) {
+					let relTime = String(msg.time - World.Time);
+					relTime = `${relTime.substring(0, 4)} (${msg.time})`;
+					debug.set((sender.id || sender) + "/time", relTime);
+				}
+			}
+			debug.pop(); // name
+		}
 	}
 
 	_runTask(task: Task | undefined) {
