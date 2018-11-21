@@ -473,24 +473,26 @@ void Processor::handleControl(Team &team, const amun::CommandControl &control)
 }
 
 // blue is actually redundant, but this ensures that only the right strategy can control a robot
-void Processor::handleStrategyCommand(bool blue, uint generation, uint id, const RobotCommand &command, qint64 time)
+void Processor::handleStrategyCommands(bool blue, const QList<RobotCommandInfo> &commands, qint64 time)
 {
-    Team &team = blue ? m_blueTeam : m_yellowTeam;
-    Robot *robot = team.robots.value(qMakePair(generation, id));
-    if (!robot) {
-        // invalid id
-        return;
-    }
+    for (const RobotCommandInfo &command : commands) {
+        Team &team = blue ? m_blueTeam : m_yellowTeam;
+        Robot *robot = team.robots.value(qMakePair(command.generation, command.robotId));
+        if (!robot) {
+            // invalid id
+            return;
+        }
 
-    // halt robot on invalid strategy command
-    if (!robot->setStrategyCommand(command)) {
-        robot->clearStrategyCommand();
-        robot->controller.clearInput();
-        return;
-    }
+        // halt robot on invalid strategy command
+        if (!robot->setStrategyCommand(command.command)) {
+            robot->clearStrategyCommand();
+            robot->controller.clearInput();
+            return;
+        }
 
-    if (robot->strategy_command->has_controller()) {
-        robot->controller.setInput(robot->strategy_command->controller(), time);
+        if (robot->strategy_command->has_controller()) {
+            robot->controller.setInput(robot->strategy_command->controller(), time);
+        }
     }
 }
 

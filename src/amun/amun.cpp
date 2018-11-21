@@ -32,6 +32,7 @@
 #include "networkinterfacewatcher.h"
 #include <QMetaType>
 #include <QThread>
+#include <QList>
 
 /*!
  * \class Amun
@@ -72,7 +73,7 @@ Amun::Amun(bool simulatorOnly, QObject *parent) :
 {
     qRegisterMetaType<QNetworkInterface>("QNetworkInterface");
     qRegisterMetaType<Command>("Command");
-    qRegisterMetaType<RobotCommand>("RobotCommand");
+    qRegisterMetaType<QList<RobotCommandInfo>>("QList<RobotCommandInfo>");
     qRegisterMetaType< QList<robot::RadioCommand> >("QList<robot::RadioCommand>");
     qRegisterMetaType< QList<robot::RadioResponse> >("QList<robot::RadioResponse>");
     qRegisterMetaType<Status>("Status");
@@ -157,9 +158,10 @@ void Amun::start()
         connect(m_integrator, SIGNAL(sendReplayStatus(Status)), m_strategyBlocker[i], SLOT(handleStatus(Status)));
         connect(m_integrator, SIGNAL(sendStatus(Status)), m_strategy[i], SLOT(handleStatus(Status)));
         // forward robot commands to processor
-        connect(m_strategy[i], SIGNAL(sendStrategyCommand(bool, unsigned int, unsigned int, RobotCommand, qint64)),
-                m_processor, SLOT(handleStrategyCommand(bool, unsigned int, unsigned int, RobotCommand, qint64)));
-        connect(m_strategy[i], SIGNAL(sendHalt(bool)), m_processor, SLOT(handleStrategyHalt(bool)));
+        connect(m_strategy[i], SIGNAL(sendStrategyCommands(bool, QList<RobotCommandInfo>, qint64)),
+                m_processor, SLOT(handleStrategyCommands(bool, QList<RobotCommandInfo>, qint64)));
+        connect(m_strategy[i], SIGNAL(sendHalt(bool)),
+                m_processor, SLOT(handleStrategyHalt(bool)));
         connect(this, SIGNAL(gotRefereeHost(QString)), m_strategy[i], SLOT(handleRefereeHost(QString)));
         connect(m_processor, SIGNAL(setFlipped(bool)), m_strategy[i], SLOT(setFlipped(bool)));
 

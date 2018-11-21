@@ -516,8 +516,16 @@ export function haltOwnRobots() {
 // Robots without a command stop by default
 // @name setRobotCommands
 export function setRobotCommands() {
-	for (let robot of FriendlyRobotsAll) {
-		amunLocal.setCommand(robot.generation, robot.id, robot._command());
+	if (amunLocal.setCommands) {
+		let commands: [number, number, any][] = [];
+		for (let robot of FriendlyRobotsAll) {
+			commands.push([robot.generation, robot.id, robot._command()]);
+		}
+		amunLocal.setCommands(commands);
+	} else {
+		for (let robot of FriendlyRobotsAll) {
+			amunLocal.setCommand(robot.generation, robot.id, robot._command());
+		}
 	}
 }
 

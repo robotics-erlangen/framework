@@ -258,6 +258,8 @@ interface Amun extends AmunPublic {
 	addPolygonSimple(name: string, r: number, g: number, b: number, alpha: number, filled: boolean,
 		background: boolean, pointCoordinates: number[]): void;
 	setCommand(generation: number, id: number, cmd: pb.robot.Command): void;
+	/** Takes an array of tuples of generation, id, and command. */
+	setCommands(commands: [number, number, pb.robot.Command][]): void;
 	getGameState(): pb.amun.GameState;
 	getUserInput(): pb.amun.UserInput;
 	getStrategyPath(): string;
@@ -325,6 +327,7 @@ export function _hideFunctions() {
 		addPathSimple: DISABLED_FUNCTION,
 		addPolygonSimple: DISABLED_FUNCTION,
 		setCommand: DISABLED_FUNCTION,
+		setCommands: DISABLED_FUNCTION,
 		getGameState: DISABLED_FUNCTION,
 		getUserInput: DISABLED_FUNCTION,
 		getStrategyPath: DISABLED_FUNCTION,

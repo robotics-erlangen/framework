@@ -34,6 +34,7 @@
 #include <QString>
 #include <QStringList>
 #include <QDir>
+#include <QList>
 
 class DebugHelper;
 class Timer;
@@ -99,7 +100,7 @@ public:
     amun::PlotValue *addPlot();
     amun::RobotValue *addRobotValue();
     bool refboxControlEnabled() const { return m_refboxControlEnabled; }
-    void setCommand(uint generation, uint robotId, const RobotCommand &command);
+    void setCommands(const QList<RobotCommandInfo> &commands);
     bool sendCommand(const Command &command);
     bool sendNetworkReferee(const QByteArray &referee);
     void sendMixedTeam(const QByteArray &info);
@@ -116,7 +117,7 @@ signals:
     // wrapper may listen to reload request, but doesn't have to
     void requestReload();
     void gotCommand(const Command &command);
-    void sendStrategyCommand(bool blue, uint generation, uint id, const RobotCommand &command, qint64 time);
+    void sendStrategyCommands(bool blue, const QList<RobotCommandInfo> &commands, qint64 time);
     void sendMixedTeamInfo(const QByteArray &data);
     void sendNetworkRefereeCommand(const QByteArray &data);
 

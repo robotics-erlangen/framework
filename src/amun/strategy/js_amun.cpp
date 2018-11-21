@@ -171,18 +171,54 @@ static void amunSetCommand(const FunctionCallbackInfo<Value>& args)
 
     // set robot movement command
     if (!checkNumberOfArguments(isolate, 3, args.Length())) {
+        Local<String> errorMessage = String::NewFromUtf8(isolate, "Invalid number of arguments", String::kNormalString);
+        isolate->ThrowException(errorMessage);
         return;
     }
-    RobotCommand command(new robot::Command);
-    uint generation, robotId;
-    if (!toUintChecked(isolate, args[0], generation) || !toUintChecked(isolate, args[1], robotId)) {
+    RobotCommandInfo commandInfo;
+    commandInfo.command = RobotCommand(new robot::Command);
+    if (!toUintChecked(isolate, args[0], commandInfo.generation) || !toUintChecked(isolate, args[1], commandInfo.robotId)) {
         return;
     }
-    if (!jsToProtobuf(isolate, args[2], isolate->GetCurrentContext(), *command)) {
+    if (!jsToProtobuf(isolate, args[2], isolate->GetCurrentContext(), *commandInfo.command)) {
         return;
     }
 
-    t->setCommand(generation, robotId, command);
+    t->setCommands({commandInfo});
+}
+
+static void amunSetCommands(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = args.GetIsolate();
+    Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
+
+    // set robot movement command
+    if (!checkNumberOfArguments(isolate, 1, args.Length()) || !args[0]->IsArray()) {
+        Local<String> errorMessage = String::NewFromUtf8(isolate, "Invalid number of arguments", String::kNormalString);
+        isolate->ThrowException(errorMessage);
+        return;
+    }
+    Local<Array> commands = Local<Array>::Cast(args[0]);
+    QList<RobotCommandInfo> robotCommands;
+    for (int i = 0;i<commands->Length();i++) {
+        Local<Value> commandObject = commands->Get(i);
+        if (!commandObject->IsArray()) {
+            Local<String> errorMessage = String::NewFromUtf8(isolate, "Argument is not an array", String::kNormalString);
+            isolate->ThrowException(errorMessage);
+            return;
+        }
+        Local<Array> commandArray = Local<Array>::Cast(commandObject);
+        RobotCommandInfo robotCommand;
+        if (!toUintChecked(isolate, commandArray->Get(0), robotCommand.generation) || !toUintChecked(isolate, commandArray->Get(1), robotCommand.robotId)) {
+            return;
+        }
+        robotCommand.command = RobotCommand(new robot::Command);
+        if (!jsToProtobuf(isolate, commandArray->Get(2), isolate->GetCurrentContext(), *robotCommand.command)) {
+            return;
+        }
+        robotCommands.append(robotCommand);
+    }
+    t->setCommands(robotCommands);
 }
 
 static void amunLog(const FunctionCallbackInfo<Value>& args)
@@ -668,6 +704,7 @@ void registerAmunJsCallbacks(Isolate *isolate, Local<Object> global, Typescript 
         { "addPlot",            amunAddPlot},
         { "getPerformanceMode", amunGetPerformanceMode},
         { "setCommand",         amunSetCommand},
+        { "setCommands",        amunSetCommands},
         { "getCurrentTime",     amunGetCurrentTime},
         { "sendCommand",        amunSendCommand},
         { "sendRefereeCommand", amunSendRefereeCommand},

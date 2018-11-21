@@ -106,13 +106,14 @@ static int amunSetCommand(lua_State *state)
     std::string errorMsg;
     {
         // set robot movement command
-        RobotCommand command(new robot::Command);
-        const uint generation = lua_tointeger(state, 1);
-        const uint robotId = lua_tointeger(state, 2);
-        protobufToMessage(state, 3, *command, &errorMsg);
+        RobotCommandInfo commandInfo;
+        commandInfo.command = RobotCommand(new robot::Command);
+        commandInfo.generation = lua_tointeger(state, 1);
+        commandInfo.robotId = lua_tointeger(state, 2);
+        protobufToMessage(state, 3, *commandInfo.command, &errorMsg);
 
         if (errorMsg.size() == 0) {
-            thread->setCommand(generation, robotId, command);
+            thread->setCommands({commandInfo});
             return 0;
         }
     }

@@ -535,8 +535,8 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
     // delay reload until strategy is no longer running
     connect(m_strategy, SIGNAL(requestReload()), SLOT(reload()), Qt::QueuedConnection);
     // forward immediately
-    connect(m_strategy, SIGNAL(sendStrategyCommand(bool,unsigned int,unsigned int,RobotCommand,qint64)),
-            SIGNAL(sendStrategyCommand(bool,unsigned int,unsigned int,RobotCommand,qint64)));
+    connect(m_strategy, SIGNAL(sendStrategyCommands(bool,QList<RobotCommandInfo>,qint64)),
+            SIGNAL(sendStrategyCommands(bool,QList<RobotCommandInfo>,qint64)));
     connect(m_strategy, SIGNAL(gotCommand(Command)), SLOT(sendCommand(Command)));
     connect(m_strategy, SIGNAL(sendMixedTeamInfo(QByteArray)), SLOT(sendMixedTeamInfo(QByteArray)));
     connect(m_strategy, SIGNAL(sendNetworkRefereeCommand(QByteArray)), SLOT(sendNetworkRefereeCommand(QByteArray)));

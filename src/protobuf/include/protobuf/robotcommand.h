@@ -31,6 +31,13 @@
 //! Protobuf command wrapper with reference counting
 typedef QSharedPointer<robot::Command> RobotCommand;
 
+struct RobotCommandInfo
+{
+    unsigned int generation;
+    unsigned int robotId;
+    RobotCommand command;
+};
+
 //! @}
 
 #endif // ROBOTCOMMAND_H

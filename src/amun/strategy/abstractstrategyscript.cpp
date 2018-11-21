@@ -108,7 +108,7 @@ amun::RobotValue *AbstractStrategyScript::addRobotValue()
     return m_debugValues->add_robot();
 }
 
-void AbstractStrategyScript::setCommand(uint generation, uint robotId, const RobotCommand &command)
+void AbstractStrategyScript::setCommands(const QList<RobotCommandInfo> &commands)
 {
     if (m_type != StrategyType::BLUE && m_type != StrategyType::YELLOW) {
         log("Only blue or yellow strategy may send robot commands!");
@@ -116,7 +116,7 @@ void AbstractStrategyScript::setCommand(uint generation, uint robotId, const Rob
     }
     // movement commands are immediatelly forwarded to the processor
     // that is while the strategy is still running
-    emit sendStrategyCommand(m_type == StrategyType::BLUE, generation, robotId, command, m_worldState.time());
+    emit sendStrategyCommands(m_type == StrategyType::BLUE, commands, m_worldState.time());
 }
 
 bool AbstractStrategyScript::sendCommand(const Command &command)

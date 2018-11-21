@@ -56,7 +56,7 @@ public:
 signals:
     void gotCommand(const Command &command);
     void sendStatus(const Status &status);
-    void sendStrategyCommand(bool blue, uint generation, uint id, const RobotCommand &command, qint64 time);
+    void sendStrategyCommands(bool blue, const QList<RobotCommandInfo> &commands, qint64 time);
     void sendHalt(bool blue);
     void startReadingStatus();
 

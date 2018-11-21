@@ -64,7 +64,7 @@ public slots:
     void handleMixedTeamInfo(const QByteArray &data, qint64 time);
     void handleRadioResponses(const QList<robot::RadioResponse> &responses);
     void handleCommand(const Command &command);
-    void handleStrategyCommand(bool blue, uint generation, uint id, const RobotCommand &command, qint64 time);
+    void handleStrategyCommands(bool blue, const QList<RobotCommandInfo> &commands, qint64 time);
     void handleStrategyHalt(bool blue);
 
 private:
