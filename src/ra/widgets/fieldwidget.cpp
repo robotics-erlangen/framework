@@ -154,9 +154,8 @@ FieldWidget::FieldWidget(QWidget *parent) :
     if (!m_isLogplayer) {
         m_actionShowBlueReplayVis->setVisible(false);
         m_actionShowYellowReplayVis->setVisible(false);
-    } else {
-        addToggleVisAction();
     }
+    addToggleVisAction();
 
     updateVisualizationVisibility(); // update the visibility map
 
@@ -299,22 +298,23 @@ void FieldWidget::addToggleVisAction()
     addAction(actionToggleVisualizations);
 }
 
-void FieldWidget::setLogplayer()
+void FieldWidget::setHorusMode(bool enable)
 {
-    m_isLogplayer = true;
-    m_actionBallPlacementBlue->setVisible(false);
-    m_actionBallPlacementYellow->setVisible(false);
-    m_actionShowBlueReplayVis->setVisible(true);
-    m_actionShowYellowReplayVis->setVisible(true);
-    addToggleVisAction();
+    m_isLogplayer = enable;
+    m_actionBallPlacementBlue->setVisible(!enable);
+    m_actionBallPlacementYellow->setVisible(!enable);
+    m_actionShowBlueReplayVis->setVisible(enable);
+    m_actionShowYellowReplayVis->setVisible(enable);
 }
 
 void FieldWidget::toggleStrategyVisualizations()
 {
-    m_actionShowBlueVis->setChecked(!m_actionShowBlueVis->isChecked());
-    m_actionShowBlueReplayVis->setChecked(!m_actionShowBlueReplayVis->isChecked());
-    m_actionShowYellowVis->setChecked(!m_actionShowYellowVis->isChecked());
-    m_actionShowYellowReplayVis->setChecked(!m_actionShowYellowReplayVis->isChecked());
+    if (m_isLogplayer) {
+        m_actionShowBlueVis->setChecked(!m_actionShowBlueVis->isChecked());
+        m_actionShowBlueReplayVis->setChecked(!m_actionShowBlueReplayVis->isChecked());
+        m_actionShowYellowVis->setChecked(!m_actionShowYellowVis->isChecked());
+        m_actionShowYellowReplayVis->setChecked(!m_actionShowYellowReplayVis->isChecked());
+    }
 }
 
 void FieldWidget::handleStatus(const Status &status)

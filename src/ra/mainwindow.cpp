@@ -190,7 +190,6 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     connect(ui->logManager, SIGNAL(resetBacklog()), &m_logWriterHorus, SIGNAL(resetBacklog()));
 
     // start amun
-    connect(&m_amun, SIGNAL(gotStatus(Status)), SLOT(handleStatus(Status)));
     m_amun.start();
 
     QActionGroup* rulesActionGroup = new QActionGroup(this);
@@ -285,6 +284,9 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
 
     setAcceptDrops(true);
 
+    connect(&m_amun, SIGNAL(gotReplayStatus(Status)), ui->replay, SIGNAL(gotStatus(Status)));
+    connect(ui->replay, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
+
     // add shortcuts
     connect(ui->actionLogCutter, &QAction::triggered, logCutter, &LogCutter::show);
 
@@ -340,7 +342,6 @@ void MainWindow::showDirectoryDialog()
 
 void MainWindow::createLogWriterConnections(CombinedLogWriter &writer, QAction *record, QAction *backlog1, QAction *backlog2)
 {
-    connect(this, SIGNAL(gotStatus(Status)), &writer, SLOT(handleStatus(Status)));
     connect(record, SIGNAL(toggled(bool)), &writer, SLOT(recordButtonToggled(bool)));
     connect(backlog1, SIGNAL(triggered(bool)), &writer, SLOT(backLogButtonClicked()));
     connect(backlog2, SIGNAL(triggered(bool)), &writer, SLOT(backLogButtonClicked()));
@@ -605,7 +606,7 @@ void MainWindow::handleCheckHaltStatus(const Status &status)
     if (status->has_game_state()) {
         const amun::GameState &gameState = status->game_state();
         if (gameState.state() != amun::GameState::Halt) {
-            // TODO: stop playing the log
+            ui->logManager->setPaused(true);
             liveMode();
         }
     }
@@ -626,6 +627,7 @@ void MainWindow::raMode()
     ui->btnOpen->hide();
     ui->logManager->setEnabled(false);
     ui->logManager->hide();
+    ui->field->setHorusMode(false);
 
     for (const Status &status : m_horusStrategyBuffer) {
         handleStatus(status);
@@ -636,7 +638,9 @@ void MainWindow::raMode()
 
     disconnect(&m_amun, SIGNAL(gotStatus(Status)), this, SLOT(handleCheckHaltStatus(Status)));
     connect(&m_amun, SIGNAL(gotStatus(Status)), SLOT(handleStatus(Status)));
+    disconnect(&m_amun, SIGNAL(gotReplayStatus(Status)), this, SLOT(handleStatus(Status)));
     disconnect(ui->logManager, SIGNAL(gotStatus(Status)), this, SLOT(handleStatus(Status)));
+    disconnect(ui->logManager, SIGNAL(gotStatus(Status)), &m_amun, SIGNAL(sendReplayStatus(Status)));
     disconnect(this, SIGNAL(gotStatus(Status)), &m_logWriterHorus, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), &m_logWriterRa, SLOT(handleStatus(Status)));
 }
@@ -650,6 +654,7 @@ void MainWindow::horusMode()
     ui->btnOpen->show();
     ui->logManager->setEnabled(true);
     ui->logManager->show();
+    ui->field->setHorusMode(true);
 
     ui->simulator->sendPauseSimulator(amun::Horus, true);
 
@@ -661,8 +666,10 @@ void MainWindow::horusMode()
     disconnect(this, SIGNAL(gotStatus(Status)), &m_logWriterRa, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), &m_logWriterHorus, SLOT(handleStatus(Status)));
     disconnect(&m_amun, SIGNAL(gotStatus(Status)), this, SLOT(handleStatus(Status)));
+    connect(&m_amun, SIGNAL(gotReplayStatus(Status)), this, SLOT(handleStatus(Status)));
     connect(&m_amun, SIGNAL(gotStatus(Status)), SLOT(handleCheckHaltStatus(Status)));
     connect(ui->logManager, SIGNAL(gotStatus(Status)), SLOT(handleStatus(Status)));
+    connect(ui->logManager, SIGNAL(gotStatus(Status)), &m_amun, SIGNAL(sendReplayStatus(Status)));
 }
 
 void MainWindow::toggleHorusModeWidgets(bool enable)

@@ -51,26 +51,22 @@ ReplayTeamWidget::~ReplayTeamWidget()
 
 void ReplayTeamWidget::strategyBlueEnabled(bool enabled)
 {
+    Command command(new amun::Command);
+    command->mutable_replay()->set_enable_blue_strategy(enabled);
+    emit sendCommand(command);
     if (enabled) {
         emit sendResetDebugPacket(true);
-        ui->blue->resendAll(true);
-    } else {
-        Command command(new amun::Command());
-        command->mutable_strategy_blue()->mutable_close();
-        emit sendCommand(command);
     }
     emit setRegularVisualizationsEnabled(true, !enabled);
 }
 
 void ReplayTeamWidget::strategyYellowEnabled(bool enabled)
 {
+    Command command(new amun::Command);
+    command->mutable_replay()->set_enable_yellow_strategy(enabled);
+    emit sendCommand(command);
     if (enabled) {
         emit sendResetDebugPacket(false);
-        ui->yellow->resendAll(true);
-    } else {
-        Command command(new amun::Command());
-        command->mutable_strategy_yellow()->mutable_close();
-        emit sendCommand(command);
     }
     emit setRegularVisualizationsEnabled(false, !enabled);
 }

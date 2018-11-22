@@ -46,7 +46,6 @@ public:
     LogManager& operator=(const LogManager&) = delete;
     void setStatusSource(std::shared_ptr<StatusSource> source);
     Timer * getPlayTimer() { return &m_playTimer; }
-    void setMinimalMode();
     void goToEnd();
     void setPaused(bool p);
     int getLastFrame();

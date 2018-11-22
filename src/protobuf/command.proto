@@ -163,6 +163,10 @@ message PauseSimulatorCommand {
 message CommandReplay {
     // replay in general, not any specific strategy. This may be enabled even when no strategy is replayed
     optional bool enable = 1;
+    optional bool enable_blue_strategy = 2;
+    optional CommandStrategy blue_strategy = 3;
+    optional bool enable_yellow_strategy = 4;
+    optional CommandStrategy yellow_strategy = 5;
 }
 
 message Command {

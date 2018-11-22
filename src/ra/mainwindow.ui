@@ -317,6 +317,15 @@
    </attribute>
    <widget class="DebuggerConsole" name="yellowDebugger"/>
   </widget>
+  <widget class="QDockWidget" name="dockReplay">
+   <property name="windowTitle">
+    <string>Replay</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="ReplayTeamWidget" name="replay"/>
+  </widget>
   <action name="actionPlotter">
    <property name="text">
     <string>&amp;Plotter</string>
@@ -787,6 +796,12 @@
    <class>DebuggerConsole</class>
    <extends>QWidget</extends>
    <header>widgets/debuggerconsole.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ReplayTeamWidget</class>
+   <extends>QWidget</extends>
+   <header>widgets/replayteamwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

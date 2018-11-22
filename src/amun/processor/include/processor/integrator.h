@@ -38,7 +38,6 @@ public slots:
     void handleCommand(const Command &command);
 
 signals:
-    void sendStatus(const Status &status);
     // to be connected to a replay blocker
     void sendReplayStatus(const Status &status);
 

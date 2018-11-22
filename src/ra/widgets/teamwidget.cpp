@@ -360,6 +360,10 @@ amun::CommandStrategy * TeamWidget::commandStrategyFromType(const Command &comma
         return command->mutable_strategy_yellow();
     case amun::StatusStrategyWrapper::AUTOREF:
         return command->mutable_strategy_autoref();
+    case amun::StatusStrategyWrapper::REPLAY_BLUE:
+        return command->mutable_replay()->mutable_blue_strategy();
+    case amun::StatusStrategyWrapper::REPLAY_YELLOW:
+        return command->mutable_replay()->mutable_yellow_strategy();
     }
     return nullptr;
 }

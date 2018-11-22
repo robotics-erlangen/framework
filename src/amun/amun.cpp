@@ -82,9 +82,14 @@ Amun::Amun(bool simulatorOnly, QObject *parent) :
         m_strategy[i] = nullptr;
         m_debugHelper[i] = nullptr;
     }
+    for (int i = 0;i < 2; i++) {
+        m_replayStrategy[i] = nullptr;
+    }
 
     // global timer, which can be slowed down / sped up
     m_timer = new Timer;
+    m_replayTimer = new Timer;
+    m_replayTimer->setScaling(0);
     // these threads just run an event loop
     // using the signal-slot mechanism the objects in these can be called
     m_processorThread = new QThread(this);
@@ -106,6 +111,7 @@ Amun::~Amun()
 {
     stop();
     delete m_timer;
+    delete m_replayTimer;
 }
 
 /*!
@@ -116,18 +122,15 @@ Amun::~Amun()
 void Amun::start()
 {
     // create processor
-    Q_ASSERT(m_processor == NULL);
+    Q_ASSERT(m_processor == nullptr);
     m_processor = new Processor(m_timer);
     m_processor->moveToThread(m_processorThread);
-    m_integrator = new Integrator();
-    m_integrator->moveToThread(m_processorThread);
     connect(m_processorThread, SIGNAL(finished()), m_processor, SLOT(deleteLater()));
+
     // route commands and replay status to processor and integrator
     connect(this, SIGNAL(gotCommand(Command)), m_processor, SLOT(handleCommand(Command)));
-    connect(this, SIGNAL(gotCommand(Command)), m_integrator, SLOT(handleCommand(Command)));
-    connect(this, SIGNAL(sendReplayStatus(Status)), m_integrator, SLOT(handleReplayStatus(Status)));
+
     // relay tracking, geometry, referee, controller and accelerator information
-    connect(m_processor, SIGNAL(sendStrategyStatus(Status)), m_integrator, SLOT(handleStatus(Status)));
     connect(m_processor, SIGNAL(sendStatus(Status)), SLOT(handleStatus(Status)));
 
     // start strategy threads
@@ -150,13 +153,10 @@ void Amun::start()
         Q_ASSERT(m_strategy[i] == nullptr);
         m_strategy[i] = new Strategy(m_timer, strategy, m_debugHelper[i], i == 2);
         m_strategy[i]->moveToThread(m_strategyThread[i]);
-        // use a rather large queue to make replay faster
-        m_strategyBlocker[i] = new BlockingStrategyReplay(m_strategy[i], 20);
         connect(m_strategyThread[i], SIGNAL(finished()), m_strategy[i], SLOT(deleteLater()));
 
         // send tracking, geometry and referee to strategy
-        connect(m_integrator, SIGNAL(sendReplayStatus(Status)), m_strategyBlocker[i], SLOT(handleStatus(Status)));
-        connect(m_integrator, SIGNAL(sendStatus(Status)), m_strategy[i], SLOT(handleStatus(Status)));
+        connect(m_processor, SIGNAL(sendStrategyStatus(Status)), m_strategy[i], SLOT(handleStatus(Status)));
         // forward robot commands to processor
         connect(m_strategy[i], SIGNAL(sendStrategyCommands(bool, QList<RobotCommandInfo>, qint64)),
                 m_processor, SLOT(handleStrategyCommands(bool, QList<RobotCommandInfo>, qint64)));
@@ -171,6 +171,30 @@ void Amun::start()
                 m_strategy[i], SLOT(handleCommand(Command)));
         // relay status and debug information of strategy
         connect(m_strategy[i], SIGNAL(sendStatus(Status)), SLOT(handleStatus(Status)));
+    }
+
+    // replay strategies and connections
+    m_integrator = new Integrator();
+    m_integrator->moveToThread(m_processorThread);
+    connect(this, SIGNAL(gotCommand(Command)), m_integrator, SLOT(handleCommand(Command)));
+    connect(this, SIGNAL(sendStatusForReplay(Status)), m_integrator, SLOT(handleReplayStatus(Status)));
+    // relay tracking, geometry, referee, controller and accelerator information
+    connect(m_processor, SIGNAL(sendStrategyStatus(Status)), m_integrator, SLOT(handleStatus(Status)));
+    for (int i = 0;i<2;i++) {
+        StrategyType strategy = i == 0 ? StrategyType::BLUE : StrategyType::YELLOW;
+        Q_ASSERT(m_replayStrategy[i] == nullptr);
+        m_replayStrategy[i] = new Strategy(m_replayTimer, strategy, nullptr, false, true);
+        // re-use thread for regular and replay strategy
+        m_replayStrategy[i]->moveToThread(m_strategyThread[i]);
+        connect(m_strategyThread[i], SIGNAL(finished()), m_replayStrategy[i], SLOT(deleteLater()));
+
+        // use a rather large queue to make replay faster
+        m_strategyBlocker[i] = new BlockingStrategyReplay(m_replayStrategy[i], 20);
+
+        connect(m_integrator, SIGNAL(sendReplayStatus(Status)), m_strategyBlocker[i], SLOT(handleStatus(Status)));
+
+        connect(this, SIGNAL(gotCommand(Command)), m_replayStrategy[i], SLOT(handleCommand(Command)));
+        connect(m_replayStrategy[i], SIGNAL(sendStatus(Status)), SLOT(handleReplayStatus(Status)));
     }
 
     if (!m_simulatorOnly) {
@@ -200,12 +224,12 @@ void Amun::start()
     }
 
     // create simulator
-    Q_ASSERT(m_simulator == NULL);
+    Q_ASSERT(m_simulator == nullptr);
     createSimulator(amun::CommandSimulator::RULES2018);
     connect(m_processor, SIGNAL(setFlipped(bool)), m_simulator, SLOT(setFlipped(bool)));
 
     if (!m_simulatorOnly) {
-        Q_ASSERT(m_transceiver == NULL);
+        Q_ASSERT(m_transceiver == nullptr);
         m_transceiver = new Transceiver(m_timer);
         m_transceiver->moveToThread(m_transceiverThread);
         connect(m_processorThread, SIGNAL(finished()), m_transceiver, SLOT(deleteLater()));
@@ -214,7 +238,7 @@ void Amun::start()
         // relay transceiver status and timing
         connect(m_transceiver, SIGNAL(sendStatus(Status)), SLOT(handleStatus(Status)));
 
-        Q_ASSERT(m_networkTransceiver == NULL);
+        Q_ASSERT(m_networkTransceiver == nullptr);
         m_networkTransceiver = new NetworkTransceiver();
         m_networkTransceiver->moveToThread(m_transceiverThread);
         connect(m_processorThread, SIGNAL(finished()), m_networkTransceiver, SLOT(deleteLater()));
@@ -275,9 +299,12 @@ void Amun::stop()
     m_mixedTeam = nullptr;
     for (int i = 0; i < 3; i++) {
         m_strategy[i] = nullptr;
+        m_debugHelper[i] = nullptr;
+    }
+    for (int i = 0; i < 2; i++) {
+        m_replayStrategy[i] = nullptr;
         delete m_strategyBlocker[i];
         m_strategyBlocker[i] = nullptr;
-        m_debugHelper[i] = nullptr;
     }
     m_processor = nullptr;
     m_integrator = nullptr;
@@ -285,7 +312,7 @@ void Amun::stop()
 
 void Amun::setupReceiver(Receiver *&receiver, const QHostAddress &address, quint16 port)
 {
-    Q_ASSERT(receiver == NULL);
+    Q_ASSERT(receiver == nullptr);
     receiver = new Receiver(address, port, m_timer);
     receiver->moveToThread(m_networkThread);
     connect(m_networkThread, SIGNAL(finished()), receiver, SLOT(deleteLater()));
@@ -458,6 +485,18 @@ void Amun::handleStatus(const Status &status)
 {
     status->set_time(m_timer->currentTime());
     emit sendStatus(status);
+}
+
+void Amun::handleStatusForReplay(const Status &status)
+{
+    m_replayTimer->setTime(status->time(), 0);
+    emit sendStatusForReplay(status);
+}
+
+void Amun::handleReplayStatus(const Status &status)
+{
+    status->set_time(m_replayTimer->currentTime());
+    emit gotReplayStatus(status);
 }
 
 /*!

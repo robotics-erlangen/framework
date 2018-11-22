@@ -50,8 +50,9 @@ public:
     Amun& operator=(const Amun&) = delete;
 
 signals:
-    void sendReplayStatus(const Status &status);
+    void sendStatusForReplay(const Status &status);
     void sendStatus(const Status &status);
+    void gotReplayStatus(const Status &status);
     void gotCommand(const Command &command);
     void updateVisionPort(quint16 port);
     void updateRefereePort(quint16 port);
@@ -63,9 +64,11 @@ public:
 
 public slots:
     void handleCommand(const Command &command);
+    void handleStatusForReplay(const Status &status);
 
 private slots:
     void handleStatus(const Status &status);
+    void handleReplayStatus(const Status &status);
     void handleRefereePacket(QByteArray, qint64, QString host);
 
 private:
@@ -94,9 +97,11 @@ private:
     Receiver *m_mixedTeam;
     Strategy *m_strategy[3];
     DebugHelper *m_debugHelper[3];
-    BlockingStrategyReplay *m_strategyBlocker[3];
+    Strategy *m_replayStrategy[2];
+    BlockingStrategyReplay *m_strategyBlocker[2];
     qint64 m_lastTime;
     Timer *m_timer;
+    Timer *m_replayTimer;
     Integrator *m_integrator;
     bool m_simulatorEnabled;
     float m_scaling;

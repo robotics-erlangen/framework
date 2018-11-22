@@ -42,7 +42,8 @@ void AmunClient::start(bool simulatorOnly)
     connect(m_amunThread, SIGNAL(finished()), m_amun, SLOT(deleteLater()));
 
     connect(m_amun, SIGNAL(sendStatus(Status)), SIGNAL(gotStatus(Status)));
-    connect(this, SIGNAL(sendReplayStatus(Status)), m_amun, SIGNAL(sendReplayStatus(Status)), Qt::BlockingQueuedConnection);
+    connect(m_amun, SIGNAL(gotReplayStatus(Status)), SIGNAL(gotReplayStatus(Status)));
+    connect(this, SIGNAL(sendReplayStatus(Status)), m_amun, SLOT(handleStatusForReplay(Status)), Qt::BlockingQueuedConnection);
     connect(this, SIGNAL(sendCommand(Command)), m_amun, SLOT(handleCommand(Command)));
     m_amun->start();
     m_amunThread->start();

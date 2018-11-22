@@ -25,17 +25,11 @@ Integrator::Integrator() :
 { }
 
 void Integrator::handleStatus(const Status &status)
-{
-    if (!m_isReplay) {
-        emit sendStatus(status);
-    }
-}
+{ }
 
 void Integrator::handleReplayStatus(const Status &status)
 {
-    if (m_isReplay) {
-        emit sendReplayStatus(status);
-    }
+    emit sendReplayStatus(status);
 }
 
 void Integrator::handleCommand(const Command &command)

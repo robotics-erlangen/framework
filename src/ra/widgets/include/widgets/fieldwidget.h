@@ -80,7 +80,7 @@ public:
     FieldWidget(const FieldWidget&) = delete;
     FieldWidget& operator=(const FieldWidget&) = delete;
 
-    void setLogplayer();
+    void setHorusMode(bool enable);
 
 signals:
     void sendCommand(const Command &command);

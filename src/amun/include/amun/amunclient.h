@@ -41,6 +41,7 @@ signals:
     // the replay status is not in a command to avoid copying it
     void sendReplayStatus(const Status &status);
     void gotStatus(const Status &status);
+    void gotReplayStatus(const Status &status);
     void sendCommand(const Command &command);
 
 public:

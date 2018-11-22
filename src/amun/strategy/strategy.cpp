@@ -93,7 +93,7 @@ Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, b
     m_refboxControlEnabled(false),
     m_autoReload(false),
     m_strategyFailed(false),
-    m_isEnabled(true),
+    m_isEnabled(!isLogplayer),
     m_isReplay(false),
     m_debugHelper(helper),
     m_isInternalAutoref(internalAutoref),
@@ -194,15 +194,31 @@ void Strategy::handleStatus(const Status &status)
 
 void Strategy::handleCommand(const Command &command)
 {
-    const amun::CommandStrategy *cmd = NULL;
+    const amun::CommandStrategy *cmd = nullptr;
 
     // get commands for own team color
-    if (m_type == StrategyType::BLUE && command->has_strategy_blue()) {
-        cmd = &command->strategy_blue();
-    } else if (m_type == StrategyType::YELLOW && command->has_strategy_yellow()) {
-        cmd = &command->strategy_yellow();
-    } else if (m_type == StrategyType::AUTOREF && command->has_strategy_autoref()) {
-        cmd = &command->strategy_autoref();
+    if (m_isInLogplayer) {
+        if (command->has_replay()) {
+            const auto &replay = command->replay();
+            if (m_type == StrategyType::BLUE && replay.has_blue_strategy()) {
+                cmd = &replay.blue_strategy();
+            } else if (m_type == StrategyType::YELLOW && replay.has_yellow_strategy()) {
+                cmd = &replay.yellow_strategy();
+            }
+            if (m_type == StrategyType::BLUE && replay.has_enable_blue_strategy()) {
+                m_isEnabled = replay.enable_blue_strategy();
+            } else if (m_type == StrategyType::YELLOW && replay.has_enable_yellow_strategy()) {
+                m_isEnabled = replay.enable_yellow_strategy();
+            }
+        }
+    } else {
+        if (m_type == StrategyType::BLUE && command->has_strategy_blue()) {
+            cmd = &command->strategy_blue();
+        } else if (m_type == StrategyType::YELLOW && command->has_strategy_yellow()) {
+            cmd = &command->strategy_yellow();
+        } else if (m_type == StrategyType::AUTOREF && command->has_strategy_autoref()) {
+            cmd = &command->strategy_autoref();
+        }
     }
 
     if (m_type == StrategyType::BLUE) {
@@ -700,9 +716,9 @@ Status Strategy::takeStrategyDebugStatus()
 
 amun::DebugSource Strategy::debugSource() const
 {
-    if (m_isReplay && m_type == StrategyType::BLUE) {
+    if (m_isInLogplayer && m_type == StrategyType::BLUE) {
         return amun::ReplayBlue;
-    } else if (m_isReplay && m_type == StrategyType::YELLOW) {
+    } else if (m_isInLogplayer && m_type == StrategyType::YELLOW) {
         return amun::ReplayYellow;
     }
     switch (m_type) {
