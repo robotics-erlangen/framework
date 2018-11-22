@@ -59,7 +59,6 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
 
     ui->setupUi(this);
 
-    ui->logManager->setMinimalMode();
     ui->logManager->hide();
     ui->btnOpen->setVisible(false);
 

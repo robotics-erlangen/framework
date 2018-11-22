@@ -68,14 +68,6 @@ LogManager::~LogManager()
     delete ui;
 }
 
-void LogManager::setMinimalMode()
-{
-    ui->lblPacketMax->hide();
-    ui->lblTimeCurrent->hide();
-    ui->lblTimeMax->hide();
-    ui->spinPacketCurrent->hide();
-}
-
 void LogManager::setStatusSource(std::shared_ptr<StatusSource> source)
 {
     ui->btnPlay->setEnabled(true);
