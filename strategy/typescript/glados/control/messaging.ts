@@ -354,6 +354,36 @@ export class MessageBox {
 			return receiveBox;
 		}
 	}
+
+	public receiveNoBroadcast(type: MessageType) {
+		let mtypeBox = this.messaging._deliveredMessages[type];
+		if (this.origin === "trainer") {
+			mtypeBox = this.messaging._newMessages[type];
+		}
+		if (mtypeBox == undefined) {
+			return emptyMap;
+		}
+		let receiveBox = mtypeBox.get(this.origin);
+		if (receiveBox == undefined) {
+			return emptyMap;
+		} else {
+			return receiveBox;
+		}
+	}
+
+	public receiveAllInbox(type: MessageType) {
+		let mtypeBox = this.messaging._deliveredMessages[type];
+		if (this.origin === "trainer") {
+			mtypeBox = this.messaging._newMessages[type];
+		}
+		if (mtypeBox == undefined) {
+			return emptyMap;
+		}
+		if (mtypeBox.get("all") == undefined) {
+			return emptyMap;
+		}
+		return mtypeBox.get("all");
+	}
 }
 
 export class Messaging {
