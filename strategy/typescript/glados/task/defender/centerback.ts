@@ -48,7 +48,7 @@ export class CenterBack extends Task {
 		const pos_target = this._messaging.receiveTrainer(MessageType.centerBackPosTarget);
 
 		let destinationPos = pos_target ? pos_target.pos : UtilDefense.centerBackDefaultPos;
-		let destinationTime = pos_target ? pos_target.time : Infinity;
+		let destinationTime = (pos_target != undefined && pos_target.time != undefined) ? pos_target.time : Infinity;
 
 		let toBallAngle = (World.Ball.pos - this._robot.pos).angle();
 		let toGoalAngle = (World.Geometry.OpponentGoal - this._robot.pos).angle();

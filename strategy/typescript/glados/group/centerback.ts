@@ -46,10 +46,11 @@ interface Target {
 				// 	["way"] = way,
 				// 	["time"] = (i.n == 1) and i.time or math.huge
 				// }
-interface Point {
+export interface Point {
 	pos: Position;
 	target: any;
 	way: number;
+	time?: number;
 }
 
 function assignRobotsToPoints(robotList: FriendlyRobot[], pointList: Point[], resultAssignment: Map<FriendlyRobot, Point>,

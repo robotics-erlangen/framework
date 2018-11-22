@@ -1,6 +1,8 @@
 import { FriendlyRobot, Robot } from "base/robot";
 import { Position, RelativePosition } from "base/vector";
 
+import { Point as CenterBackPoint } from "glados/group/centerback";
+
 // TODO: document the messages in a more native format
 /*
 local msgDefs = {
@@ -169,7 +171,7 @@ export class MessageBox {
 		this.origin = origin;
 	}
 
-	send(type: MessageType.centerBackPosTarget, dest: FriendlyRobot, target: {pos: Position, target: any, way: number, time: number}): void;
+	send(type: MessageType.centerBackPosTarget, dest: FriendlyRobot, target: CenterBackPoint): void;
 	send(type: MessageType.moveAssignment, dest: FriendlyRobot, assignment: {behavior?: any, class?: any, params: any, restart: boolean, mainAttacker: boolean}): void;
 	send(type: MessageType.roleAssignment, dest: FriendlyRobot, assignment: { name: "CenterBack", params: {pos: Position, dir?: RelativePosition, time?: number} }): void;
 	send(type: MessageType.roleAssignment, dest: FriendlyRobot, assignment: { name: "ManMark", params: Robot[] }): void;
@@ -288,7 +290,7 @@ export class MessageBox {
 		return this.receiveGeneric(type, broadcast);
 	}
 
-	receiveTrainer(type: MessageType.centerBackPosTarget, broadcast?: boolean): {pos: Position, target: any, way: number, time: number} | undefined;
+	receiveTrainer(type: MessageType.centerBackPosTarget, broadcast?: boolean): CenterBackPoint | undefined;
 	receiveTrainer(type: MessageType.moveAssignment, broadcast?: boolean): {behavior: any, class: any, params: any, restart: boolean, mainAttacker: boolean} | undefined;
 	receiveTrainer(type: MessageType.moveNumAttackers, broadcast?: boolean): number | undefined;
 	receiveTrainer(type: MessageType.roleAssignment, broadcast?: boolean):
