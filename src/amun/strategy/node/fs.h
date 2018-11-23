@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2018 Paul Bergmann                                        *
+ *   Copyright 2018 Paul Bergmann                                          *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -23,7 +23,10 @@
 
 #include "objectcontainer.h"
 
+#include <memory>
+#include <QFile>
 #include "v8.h"
+#include <vector>
 
 class QString;
 
@@ -51,6 +54,10 @@ namespace Node {
         };
         static const int OBJECT_FILESTAT_INDEX = 0;
         v8::Global<v8::ObjectTemplate> m_fileStatTemplate;
+
+        std::vector<std::shared_ptr<QFile>> m_fileDescriptors;
+
+        std::shared_ptr<QFile> extractFD(v8::Local<v8::Number> fdAsNumber);
 
         static void mkdirSync(const v8::FunctionCallbackInfo<v8::Value>& args);
         static void statSync(const v8::FunctionCallbackInfo<v8::Value>& args);

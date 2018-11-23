@@ -22,7 +22,11 @@
 
 #include "objectcontainer.h"
 
+#include <algorithm>
+#include <cstdint>
+#include <memory>
 #include <QByteArray>
+#include <QStringList>
 #include <QDateTime>
 #include <QDir>
 #include <QFile>
@@ -30,15 +34,20 @@
 #include <QString>
 #include <string>
 #include "v8.h"
+#include <vector>
 
+using v8::BigInt;
+using v8::Array;
 using v8::Date;
-using v8::NewStringType;
-using v8::Function;
 using v8::External;
+using v8::Function;
 using v8::FunctionCallbackInfo;
+using v8::Integer;
 using v8::HandleScope;
 using v8::Isolate;
 using v8::Local;
+using v8::NewStringType;
+using v8::Number;
 using v8::Object;
 using v8::ObjectTemplate;
 using v8::PropertyCallbackInfo;
@@ -49,16 +58,16 @@ Node::fs::fs(Isolate* isolate, const ObjectContainer* requireNamespace) : Object
     HandleScope handleScope(m_isolate);
 
     auto objectTemplate = createTemplateWithCallbacks<ObjectTemplate>({
-        //{ "openSync", &FS::openSync },
         { "mkdirSync", &fs::mkdirSync },
         { "statSync", &fs::statSync },
         //{ "watchFile", &fs::watchFile },
         //{ "unwatchFile", &fs::unwatchFile },
         //{ "watch", &fs::watch },
         { "readFileSync", &fs::readFileSync },
-        //{ "writeSync", &fs::writeSync },
-        //{ "closeSync", &fs::closeSync },
-        //{ "readdirSync", &fs::readdirSync },
+        { "openSync", &fs::openSync },
+        { "writeSync", &fs::writeSync },
+        { "closeSync", &fs::closeSync },
+        { "readdirSync", &fs::readdirSync },
         //{ "realpathSync", &fs::realpathSync },
         //{ "utimesSync", &fs::utimesSync },
         //{ "unlinkSync", &fs::unlinkSync }
@@ -136,6 +145,18 @@ void Node::fs::FileStat::isFile(const FunctionCallbackInfo<Value>& info) {
     info.GetReturnValue().Set(fileStat->type == FileStat::Type::File);
 }
 
+std::shared_ptr<QFile> Node::fs::extractFD(Local<Number> fdAsNumber) {
+    double fdAsDouble = fdAsNumber->Value();
+    // wtf
+    QFile* fdRaw = *reinterpret_cast<QFile**>(&fdAsDouble);
+    auto fdIt = std::find_if(m_fileDescriptors.begin(), m_fileDescriptors.end(),
+            [fdRaw](const std::shared_ptr<QFile>& val) { return val.get() == fdRaw; });
+    if (fdIt == m_fileDescriptors.end()) {
+        return std::shared_ptr<QFile>();
+    }
+    return *fdIt;
+}
+
 void Node::fs::mkdirSync(const FunctionCallbackInfo<Value>& args) {
     auto fs = static_cast<Node::fs*>(Local<External>::Cast(args.Data())->Value());
     if (args.Length() < 1 || !args[0]->IsString()) {
@@ -195,4 +216,165 @@ void Node::fs::readFileSync(const FunctionCallbackInfo<Value>& args) {
 
     Local<Value> argv[] = { dataString };
     args.GetReturnValue().Set(bufferFrom->Call(context, Buffer, 1, argv).ToLocalChecked());
+}
+
+#include <QDebug>
+void Node::fs::openSync(const v8::FunctionCallbackInfo<Value>& args) {
+    auto isolate = args.GetIsolate();
+    auto fs = static_cast<Node::fs*>(Local<External>::Cast(args.Data())->Value());
+    if (args.Length() < 1 || !args[0]->IsString()) {
+        fs->throwV8Exception("openSync needs the first argument to be a string");
+        return;
+    } else if (args.Length() > 2) {
+        fs->throwV8Exception("openSync with more than 2 arguments is not supported");
+        return;
+    }
+    QString fileName = *String::Utf8Value(args[0]);
+    QFile file(fileName);
+
+    QString modeString = args.Length() >= 2 ? *String::Utf8Value(args[1]) : "r";
+    QIODevice::OpenMode mode;
+    if (modeString == "a") {
+        mode = QIODevice::Append;
+    } else if (modeString == "ax") {
+        mode = QIODevice::Append | QIODevice::NewOnly;
+    } else if (modeString == "a+") {
+        mode = QIODevice::ReadOnly | QIODevice::Append;
+    } else if (modeString == "ax+") {
+        mode = QIODevice::ReadOnly | QIODevice::Append | QIODevice::NewOnly;
+    } else if (modeString == "as") {
+        mode = QIODevice::Append | QIODevice::Unbuffered;
+    } else if (modeString == "as+") {
+        mode = QIODevice::ReadOnly | QIODevice::Append | QIODevice::Unbuffered;
+    } else if (modeString == "r") {
+        mode = QIODevice::ReadOnly;
+    } else if (modeString == "r+") {
+        mode = QIODevice::ReadWrite;
+    } else if (modeString == "rs+") {
+        mode = QIODevice::ReadWrite | QIODevice::Unbuffered;
+    } else if (modeString == "w") {
+        mode = QIODevice::WriteOnly;
+    } else if (modeString == "wx") {
+        mode = QIODevice::ReadOnly | QIODevice::NewOnly;
+    } else if (modeString == "w+") {
+        mode = QIODevice::ReadWrite;
+    } else if (modeString == "wx+") {
+        mode = QIODevice::ReadWrite | QIODevice::NewOnly;
+    } else {
+        fs->throwV8Exception(QString("openSync called with invalid mode flag '%1'").arg(mode));
+        return;
+    }
+
+    std::shared_ptr<QFile> fileHandle = std::make_shared<QFile>(fileName);
+    if (!fileHandle->open(mode)) {
+        fs->throwV8Exception(QString("openSync could not open file '%1' because of '%2'").arg(fileName).arg(fileHandle->errorString()));
+        return;
+    }
+
+    QFile* fd = fileHandle.get();
+    fs->m_fileDescriptors.push_back(fileHandle);
+
+    Local<Number> fdAsNumber = Number::New(isolate, *reinterpret_cast<double*>(&fd));
+    args.GetReturnValue().Set(fdAsNumber);
+}
+
+void Node::fs::writeSync(const v8::FunctionCallbackInfo<Value>& args) {
+    auto isolate = args.GetIsolate();
+    auto fs = static_cast<Node::fs*>(Local<External>::Cast(args.Data())->Value());
+    if (args.Length() < 2) {
+        fs->throwV8Exception("writeSync needs at least 2 arguments");
+        return;
+    } else if (!args[0]->IsNumber()) {
+        fs->throwV8Exception("writeSync needs the first argument to be a number");
+        return;
+    }
+    // TODO check if used with buffer or string
+
+    std::shared_ptr<QFile> fd = fs->extractFD(args[0].As<Number>());
+    if (!fd) {
+        fs->throwV8Exception("writeSync called with invalid file descriptor");
+        return;
+    }
+
+    if ((fd->openMode() & QIODevice::WriteOnly) == 0 && (fd->openMode() & QIODevice::Append) == 0) {
+        fs->throwV8Exception("writeSync called on file not opened for writing or appending");
+        return;
+    }
+
+    if (args.Length() >= 3 && args[2]->IsNumber()) {
+        qint64 position = args[2].As<Number>()->Value();
+        if (!fd->seek(position)) {
+            fs->throwV8Exception(QString("Could not seek to position %1: %2").arg(position).arg(fd->errorString()));
+            return;
+        }
+    }
+
+    QString encoding = args.Length() >= 4 && args[3]->IsString() ? *String::Utf8Value(args[3]) : "utf8";
+
+    Local<String> stringArg = args[1].As<String>();
+    // WriteOneByte seems to want to write a 0 Byte
+    // But we dont need it so we don't add 1 to the length
+    QByteArray tempHolder(stringArg->Length(), '\0');
+    stringArg->WriteOneByte(isolate, (unsigned char*) tempHolder.data(), 0, tempHolder.length());
+
+    QByteArray dataHolder;
+    if (encoding == "base64") {
+        // this won't handle url encoded strings correctly
+        // node would
+        dataHolder = QByteArray::fromBase64(std::move(tempHolder));
+    } else if (encoding == "hex") {
+        dataHolder = QByteArray::fromHex(std::move(tempHolder));
+    } else {
+        dataHolder = std::move(tempHolder);
+    }
+
+    qint64 bytesWritten = fd->write(dataHolder);
+    if (bytesWritten < 0) {
+        fs->throwV8Exception(QString("writeSync write error occured: %1").arg(fd->errorString()));
+        return;
+    }
+    // this will break if you write more than 4GiB at once
+    args.GetReturnValue().Set(static_cast<qint32>(bytesWritten));
+}
+
+void Node::fs::closeSync(const v8::FunctionCallbackInfo<Value>& args) {
+    auto fs = static_cast<Node::fs*>(Local<External>::Cast(args.Data())->Value());
+    if (args.Length() != 1 || !args[0]->IsNumber()) {
+        fs->throwV8Exception("closeSync needs exactly one number argument");
+        return;
+    }
+    std::shared_ptr<QFile> fd = fs->extractFD(args[0].As<Number>());
+    if (!fd) {
+        fs->throwV8Exception("closeSync called with invalid file descriptor");
+        return;
+    }
+
+    fd->close();
+    fs->m_fileDescriptors.erase(std::remove(fs->m_fileDescriptors.begin(), fs->m_fileDescriptors.end(), fd));
+}
+
+void Node::fs::readdirSync(const v8::FunctionCallbackInfo<v8::Value>& args) {
+    auto isolate = args.GetIsolate();
+    auto fs = static_cast<Node::fs*>(Local<External>::Cast(args.Data())->Value());
+    if (args.Length() != 1 || !args[0]->IsString()) {
+        fs->throwV8Exception("readdirSync needs exactly 1 string argument");
+        return;
+    }
+
+    QString path = *String::Utf8Value(isolate, args[0].As<String>());
+    QDir dir(path);
+
+    if (!dir.exists()) {
+        fs->throwV8Exception(QString("directory '%1' does not exist").arg(path));
+        return;
+    }
+
+    QStringList entries = dir.entryList(QDir::AllEntries | QDir::NoDotAndDotDot);
+    Local<Array> result = Array::New(isolate, entries.length());
+    for (int i = 0; i < entries.length(); ++i) {
+        const QString& entry = entries[i];
+        Local<String> entryConverted = String::NewFromUtf8(isolate, entry.toUtf8().data(), NewStringType::kNormal).ToLocalChecked();
+        result->Set(i, entryConverted);
+    }
+    args.GetReturnValue().Set(result);
 }
