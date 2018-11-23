@@ -4,7 +4,7 @@ import { FriendlyRobot } from "base/robot";
 
 import { MessageBox, MessageType } from "glados/control/messaging";
 import { Armada } from "glados/group/move/armada";
-import { FastBallPlacement } from "glados/group/move/ballplacement";
+import { BallPlacement } from "glados/group/move/ballplacement";
 import { Assignment, Move } from "glados/group/move/base";
 import { KickOff } from "glados/group/move/kickoff";
 import { KickOffDefensive } from "glados/group/move/kickoffdefensive";
@@ -31,7 +31,7 @@ export class Moves {
 			KickOffDefensive,
 			MrlTestCorner,
 			Armada,
-			FastBallPlacement,
+			BallPlacement,
 			WindshieldWiper,
 			None
 		];

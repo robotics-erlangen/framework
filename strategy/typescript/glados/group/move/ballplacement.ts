@@ -32,7 +32,6 @@ const enum State {
 // Tolerance according to the rules
 const TOLERANCE = 0.1;
 
-
 const ARRIVED_DISTANCE = 0.05;
 const BALL_STOP_SPEED = 0.2;
 const MAX_BALL_DISTANCE = 0.25;
@@ -53,7 +52,7 @@ function estimateBallStopPosition(ball: Physics.BallLike): Position {
 	return Physics.ballAtTime(ball, stopTime).pos;
 }
 
-export class FastBallPlacement extends Move {
+export class BallPlacement extends Move {
 	public static MIN_ROBOTS: number = 2;
 	public static MAX_ROBOTS: number = 2;
 
@@ -107,14 +106,14 @@ export class FastBallPlacement extends Move {
 				x: World.Ball.pos.x,
 				y: World.Ball.pos.y,
 				radius: World.Ball.radius,
-				name: "g/m/fastballplacement Ball"
+				name: "g/m/ballplacement Ball"
 			},
 			{
 				type: "circle",
 				x: this._ballPlacementPos.x,
 				y: this._ballPlacementPos.y,
 				radius: FINE_ADJUST_ZONE,
-				name: "g/m/fastballplacement Receiver Zone"
+				name: "g/m/ballplacement Receiver Zone"
 			}
 		];
 
@@ -130,8 +129,8 @@ export class FastBallPlacement extends Move {
 		debug.set("State", this._state);
 		debug.pop();
 
-		vis.addCircle("g/m/fastballplacement", this._ballPlacementPos, TOLERANCE, vis.colors.red, true);
-		vis.addCircle("g/m/fastballplacement", this._ballPlacementPos, FINE_ADJUST_ZONE, vis.colors.orange);
+		vis.addCircle("g/m/ballplacement", this._ballPlacementPos, TOLERANCE, vis.colors.red, true);
+		vis.addCircle("g/m/ballplacement", this._ballPlacementPos, FINE_ADJUST_ZONE, vis.colors.orange);
 
 		switch (this._state) {
 			case State.WAIT_FOR_BALL_STOP: {
@@ -211,7 +210,7 @@ export class FastBallPlacement extends Move {
 					intersection = Field.nextLineCut(World.Ball.pos, ballSpeed) || World.Ball.pos;
 				}
 
-				vis.addPath("g/m/fastballplacement", [ this.RECEIVER.pos, intersection, World.Ball.pos ], vis.colors.red);
+				vis.addPath("g/m/ballplacement", [ this.RECEIVER.pos, intersection, World.Ball.pos ], vis.colors.red);
 
 				// Stop moving if the ball is near the receiver
 				// We don't use halt because Halt could possibly stop the dribbler from spinning
