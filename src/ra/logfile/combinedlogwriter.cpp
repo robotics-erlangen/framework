@@ -106,12 +106,11 @@ void CombinedLogWriter::handleStatus(const Status &status)
         }
     }
 
-    if (m_isLoggingEnabled) {
-        if (m_isRecording) {
-            emit gotStatusForRecording(status);
-        } else {
-            emit gotStatusForBacklog(status);
-        }
+    if (m_isLoggingEnabled && m_isRecording) {
+        emit gotStatusForRecording(status);
+    }
+    if (!m_isRecording) {
+        emit gotStatusForBacklog(status);
     }
 }
 

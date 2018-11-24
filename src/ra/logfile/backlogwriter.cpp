@@ -22,6 +22,7 @@
 #include "logfilewriter.h"
 #include <QString>
 #include <QByteArray>
+#include <QCoreApplication>
 
 BacklogStatusSource::BacklogStatusSource(QContiguousCache<QByteArray> &backlog, QContiguousCache<qint64> &timings)
     : m_packets(backlog)
@@ -93,14 +94,21 @@ void BacklogWriter::saveBacklog(QString filename, Status teamStatus)
     if (writer.open(filename)) {
         teamStatus->set_time(packetFromByteArray(m_packets.first())->time());
         writer.writeStatus(teamStatus);
-        while (m_packets.size() > 0) {
-            m_timings.takeFirst();
-            Status status = packetFromByteArray(m_packets.takeFirst());
+
+        QContiguousCache<QByteArray> packetCopy = m_packets;
+        packetCopy.normalizeIndexes();
+        for (int i = 0;i<packetCopy.size();i++) {
+            Status status = packetFromByteArray(packetCopy.at((packetCopy.firstIndex() + i) % packetCopy.size()));
             writer.writeStatus(status);
+
+            // process incoming status packages to avoid building up memory
+            if (i % 100 == 0) {
+                QCoreApplication::processEvents();
+            }
         }
+
         writer.close();
     }
-    emit clearData();
     emit enableBacklogSave(true);
 }
 
