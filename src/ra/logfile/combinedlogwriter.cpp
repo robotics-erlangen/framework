@@ -232,8 +232,10 @@ void CombinedLogWriter::recordButtonToggled(bool enabled)
         }
     } else {
         // defer log file deletion to happen in its thread
-        m_logFile->deleteLater();
-        m_logFile = NULL;
+        if (m_logFile != nullptr) {
+            m_logFile->deleteLater();
+            m_logFile = nullptr;
+        }
         m_logStartTime = 0;
         emit changeLogTimeLabel("");
         emit showLogTimeLabel(false);
