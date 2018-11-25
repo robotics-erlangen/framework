@@ -55,6 +55,7 @@ public slots:
     void openFile(const QString &filename);
     void openFile();
     void goToLastFilePosition();
+    void useLogfileLocation(bool enabled);
 
 private:
     void makeRecentFileMenu();
@@ -72,6 +73,7 @@ private:
     QMenu *m_recentFilesMenu;
     QAction *m_recentFilesMenuAction;
     bool m_showGoToLastPosition;
+    bool m_useSettingLocation;
 
     const int MAX_RECENT_FILE_COUNT = 10;
 };

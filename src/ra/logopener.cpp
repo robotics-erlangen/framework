@@ -37,7 +37,8 @@ LogOpener::LogOpener(Ui::MainWindow *ui, QObject *parent) :
     ui(ui),
     m_packetsSinceOpened(0),
     m_recentFilesMenu(nullptr),
-    m_showGoToLastPosition(false)
+    m_showGoToLastPosition(false),
+    m_useSettingLocation(false)
 {
     QSettings s;
     int recentFileCount = s.beginReadArray("recent files");
@@ -109,9 +110,25 @@ void LogOpener::handleStatus(const Status&)
     m_packetsSinceOpened++;
 }
 
+void LogOpener::useLogfileLocation(bool enabled)
+{
+    m_useSettingLocation = enabled;
+}
+
 void LogOpener::openFile()
 {
     QString previousDir;
+    QSettings s;
+    s.beginGroup("LogLocation");
+    if (m_useSettingLocation) {
+        int size = s.beginReadArray("locations");
+        if (size > 0) {
+            s.setArrayIndex(0);
+            previousDir = s.value("path").toString();
+        }
+        s.endArray();
+        s.endGroup();
+    }
     // open again in previously used folder
     if (m_logFile.lock()) {
         QFileInfo finfo(m_openFileName);

@@ -90,6 +90,9 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     m_refereeStatus = new RefereeStatusWidget;
     statusBar()->addPermanentWidget(m_refereeStatus);
 
+    m_logOpener = new LogOpener(ui, this);
+    connect(m_logOpener, SIGNAL(logOpened(QString)), SLOT(logOpened(QString)));
+
     // setup ui parts that send commands
     m_internalReferee = new InternalReferee(this);
     connect(m_internalReferee, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
@@ -144,6 +147,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     connect(ui->actionAutoPause, SIGNAL(toggled(bool)), ui->simulator, SLOT(setEnableAutoPause(bool)));
     connect(ui->actionUseLocation, SIGNAL(toggled(bool)), &m_logWriterRa, SLOT(useLogfileLocation(bool)));
     connect(ui->actionUseLocation, SIGNAL(toggled(bool)), &m_logWriterHorus, SLOT(useLogfileLocation(bool)));
+    connect(ui->actionUseLocation, SIGNAL(toggled(bool)), m_logOpener, SLOT(useLogfileLocation(bool)));
     connect(ui->actionChangeLocation, SIGNAL(triggered()), SLOT(showDirectoryDialog()));
 
     connect(ui->actionGoLive, SIGNAL(triggered()), SLOT(liveMode()));
@@ -277,8 +281,6 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
 
     // logplayer mode connections
     LogCutter *logCutter = new LogCutter();
-    m_logOpener = new LogOpener(ui, this);
-    connect(m_logOpener, SIGNAL(logOpened(QString)), SLOT(logOpened(QString)));
 
     m_playTimer = ui->logManager->getPlayTimer();
 
