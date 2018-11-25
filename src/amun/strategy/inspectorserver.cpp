@@ -163,6 +163,7 @@ QString InspectorServer::mapsToString(const QList<QMap<QString, QString>> &list)
 
 void InspectorServer::acceptConnections()
 {
+    m_strategy->removeInspectorHandler();
     newDebuggagleStrategy(m_strategy);
 }
 

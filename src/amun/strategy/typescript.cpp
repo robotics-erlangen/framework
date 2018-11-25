@@ -121,7 +121,8 @@ void Typescript::setInspectorHandler(AbstractInspectorHandler *handler)
 void Typescript::removeInspectorHandler()
 {
     m_inspectorHolder.reset(new InspectorHolder(m_isolate, m_context));
-    m_inspectorHolder->setInspectorHandler(new InternalDebugger(m_isolate, this));
+    m_internalDebugger.reset(new InternalDebugger(m_isolate, this));
+    m_inspectorHolder->setInspectorHandler(m_internalDebugger.get());
 }
 
 bool Typescript::hasInspectorHandler() const
