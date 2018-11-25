@@ -64,7 +64,7 @@ private slots:
 private:
     Ui::SimulatorWidget *ui;
     bool m_enableAutoPause;
-    bool m_stoppedByUser;
+    bool m_paused;
 };
 
 #endif // SIMULATORWIDGET_H

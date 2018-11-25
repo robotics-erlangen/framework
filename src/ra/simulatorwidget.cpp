@@ -28,7 +28,8 @@
 SimulatorWidget::SimulatorWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::SimulatorWidget),
-    m_enableAutoPause(false)
+    m_enableAutoPause(false),
+    m_paused(false)
 {
     ui->setupUi(this);
 
@@ -83,8 +84,10 @@ void SimulatorWidget::handleStatus(const Status &status)
             ui->spinSpeed->blockSignals(true);
             ui->spinSpeed->setValue(int(status->timer_scaling() * 100.0f));
             ui->spinSpeed->blockSignals(false);
+            m_paused = false;
         } else {
             ui->pausedState->setText("<font color=\"red\">Paused</font>");
+            m_paused = true;
         }
     }
 }
@@ -108,7 +111,7 @@ void SimulatorWidget::setSpeed(int speed)
 
 void SimulatorWidget::start()
 {
-    if (ui->spinSpeed->value() == 0) {
+    if (m_paused) {
         sendPauseSimulator(amun::Ui, false);
     } else {
         ui->spinSpeed->setValue(100);
