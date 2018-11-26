@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2018 Paul Bergmann                                        *
+ *   Copyright 2018 Paul Bergmann                                          *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -23,27 +23,30 @@
 #include "objectcontainer.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstdint>
 #include <memory>
 #include <QByteArray>
-#include <QStringList>
 #include <QDateTime>
 #include <QDir>
 #include <QFile>
+#include <QFileInfo>
 #include <QList>
 #include <QString>
+#include <QStringList>
 #include <string>
 #include "v8.h"
 #include <vector>
 
-using v8::BigInt;
 using v8::Array;
+using v8::BigInt;
 using v8::Date;
 using v8::External;
 using v8::Function;
 using v8::FunctionCallbackInfo;
-using v8::Integer;
 using v8::HandleScope;
+using v8::Int32;
+using v8::Integer;
 using v8::Isolate;
 using v8::Local;
 using v8::NewStringType;
@@ -68,8 +71,8 @@ Node::fs::fs(Isolate* isolate, const ObjectContainer* requireNamespace) : Object
         { "writeSync", &fs::writeSync },
         { "closeSync", &fs::closeSync },
         { "readdirSync", &fs::readdirSync },
-        //{ "realpathSync", &fs::realpathSync },
-        //{ "utimesSync", &fs::utimesSync },
+        { "realpathSync", &fs::realpathSync },
+        { "utimesSync", &fs::utimesSync },
         //{ "unlinkSync", &fs::unlinkSync }
     });
 
@@ -377,4 +380,64 @@ void Node::fs::readdirSync(const v8::FunctionCallbackInfo<v8::Value>& args) {
         result->Set(i, entryConverted);
     }
     args.GetReturnValue().Set(result);
+}
+
+void Node::fs::realpathSync(const v8::FunctionCallbackInfo<v8::Value>& args) {
+    auto isolate = args.GetIsolate();
+    auto fs = static_cast<Node::fs*>(Local<External>::Cast(args.Data())->Value());
+    if (args.Length() != 1 || !args[0]->IsString()) {
+        fs->throwV8Exception("realpathSync needs exactly 1 string argument");
+        return;
+    }
+
+    QString path = *String::Utf8Value(isolate, args[0].As<String>());
+    QFileInfo info(path);
+
+    if (!info.exists()) {
+        fs->throwV8Exception(QString("realpathSync called on non existing path '%1'").arg(path));
+        return;
+    }
+
+    Local<String> result = String::NewFromUtf8(isolate, info.canonicalFilePath().toUtf8().data(), NewStringType::kNormal).ToLocalChecked();
+    args.GetReturnValue().Set(result);
+}
+
+void Node::fs::utimesSync(const v8::FunctionCallbackInfo<v8::Value>& args) {
+    auto isolate = args.GetIsolate();
+    auto fs = static_cast<Node::fs*>(Local<External>::Cast(args.Data())->Value());
+    // TODO what do negative epoch values mean?
+    if (args.Length() != 3 || !args[0]->IsString() || !args[1]->IsNumber() || !args[2]->IsNumber()) {
+        fs->throwV8Exception("utimesSync needs exactly 3 arguments (string, int, int)");
+        return;
+    }
+
+    QString path = *String::Utf8Value(isolate, args[0].As<String>());
+    QFile file(path);
+
+    if (!file.exists()) {
+        fs->throwV8Exception(QString("utimesSync called on non existing path '%1'").arg(path));
+        return;
+    }
+
+    // technically not exactly like node
+    if (!std::isnormal(args[1].As<Number>()->Value())) {
+        fs->throwV8Exception("utimesSync called with invalid atime");
+        return;
+    }
+    if (!std::isnormal(args[2].As<Number>()->Value())) {
+        fs->throwV8Exception("utimesSync called with invalid mtime");
+        return;
+    }
+
+    auto atime = QDateTime::fromMSecsSinceEpoch(args[1].As<Integer>()->Value());
+    auto mtime = QDateTime::fromMSecsSinceEpoch(args[2].As<Integer>()->Value());
+
+    if (!file.setFileTime(atime, QFileDevice::FileTime::FileAccessTime)) {
+        fs->throwV8Exception(QString("utimesSync could not set atime of path '%1'").arg(path));
+        return;
+    }
+    if (!file.setFileTime(mtime, QFileDevice::FileTime::FileModificationTime)) {
+        fs->throwV8Exception(QString("utimesSync could not set atime of path '%1'").arg(path));
+        return;
+    }
 }
