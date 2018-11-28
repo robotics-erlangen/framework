@@ -105,7 +105,7 @@ QList<SeqLogFileReader::Memento> SeqLogFileReader::createMementos(const QList<qi
     int groupIndex = 0;
     QList<Memento> out;
     for (qint64 offset : offsets) {
-        out.append(Memento(offset - sizeof(qint64) * groupIndex, groupIndex));
+        out.append(Memento(offset - sizeof(qint64) * groupIndex + sizeof(qint64) * groupedPackages, groupIndex));
         groupIndex++;
         if (groupIndex >= groupedPackages) {
             groupIndex -= groupedPackages;
