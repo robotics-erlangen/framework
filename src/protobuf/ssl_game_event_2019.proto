@@ -2,6 +2,8 @@ syntax = "proto2";
 
 import "ssl_game_controller_common.proto";
 
+package gameController;
+
 // GameEvent contains exactly one game event
 // Each game event has optional and required fields. The required fields are mandatory to process the event.
 // Some optional fields are only used for visualization, others are required to determine the ball placement position.

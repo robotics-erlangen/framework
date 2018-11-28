@@ -1,5 +1,7 @@
 syntax = "proto2";
 
+package gameController;
+
 // Team is either blue or yellow
 enum Team {
     // team not set
