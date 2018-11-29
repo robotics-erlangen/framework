@@ -684,6 +684,9 @@ void MainWindow::toggleHorusModeWidgets(bool enable)
     ui->actionTogglePause->setEnabled(enable);
     ui->actionShowBacklog->setEnabled(!enable);
     ui->menuPlaySpeed->setEnabled(enable);
+    for (auto speedAction : ui->menuPlaySpeed->actions()) {
+        speedAction->setEnabled(enable);
+    }
     ui->referee->setEnabled(!enable);
     ui->simulator->setEnabled(!enable);
     ui->robots->enableContent(!enable);
