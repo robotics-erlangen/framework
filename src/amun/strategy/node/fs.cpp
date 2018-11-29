@@ -75,12 +75,12 @@ Node::fs::fs(Isolate* isolate, const ObjectContainer* requireNamespace) : Object
         { "readdirSync", &fs::readdirSync },
         { "realpathSync", &fs::realpathSync },
         { "utimesSync", &fs::utimesSync },
-        //{ "unlinkSync", &fs::unlinkSync }
+        { "unlinkSync", &fs::unlinkSync }
     });
 
     auto fileStatTemplate = createTemplateWithCallbacks<ObjectTemplate>({
-            { "isDirectory", &FileStat::isDirectory },
-            { "isFile", &FileStat::isFile }
+        { "isDirectory", &FileStat::isDirectory },
+        { "isFile", &FileStat::isFile }
     });
     fileStatTemplate->SetInternalFieldCount(1);
     fileStatTemplate->SetAccessor(String::NewFromUtf8(m_isolate, "size"), &FileStat::sizeGetter, &FileStat::sizeSetter);
@@ -223,8 +223,7 @@ void Node::fs::readFileSync(const FunctionCallbackInfo<Value>& args) {
     args.GetReturnValue().Set(bufferFrom->Call(context, Buffer, 1, argv).ToLocalChecked());
 }
 
-#include <QDebug>
-void Node::fs::openSync(const v8::FunctionCallbackInfo<Value>& args) {
+void Node::fs::openSync(const FunctionCallbackInfo<Value>& args) {
     auto isolate = args.GetIsolate();
     auto fs = static_cast<Node::fs*>(Local<External>::Cast(args.Data())->Value());
     if (args.Length() < 1 || !args[0]->IsString()) {
@@ -283,7 +282,7 @@ void Node::fs::openSync(const v8::FunctionCallbackInfo<Value>& args) {
     args.GetReturnValue().Set(fdAsNumber);
 }
 
-void Node::fs::writeSync(const v8::FunctionCallbackInfo<Value>& args) {
+void Node::fs::writeSync(const FunctionCallbackInfo<Value>& args) {
     auto isolate = args.GetIsolate();
     auto fs = static_cast<Node::fs*>(Local<External>::Cast(args.Data())->Value());
     if (args.Length() < 2) {
@@ -342,7 +341,7 @@ void Node::fs::writeSync(const v8::FunctionCallbackInfo<Value>& args) {
     args.GetReturnValue().Set(static_cast<qint32>(bytesWritten));
 }
 
-void Node::fs::closeSync(const v8::FunctionCallbackInfo<Value>& args) {
+void Node::fs::closeSync(const FunctionCallbackInfo<Value>& args) {
     auto fs = static_cast<Node::fs*>(Local<External>::Cast(args.Data())->Value());
     if (args.Length() != 1 || !args[0]->IsNumber()) {
         fs->throwV8Exception("closeSync needs exactly one number argument");
@@ -358,7 +357,7 @@ void Node::fs::closeSync(const v8::FunctionCallbackInfo<Value>& args) {
     fs->m_fileDescriptors.erase(std::remove(fs->m_fileDescriptors.begin(), fs->m_fileDescriptors.end(), fd));
 }
 
-void Node::fs::readdirSync(const v8::FunctionCallbackInfo<v8::Value>& args) {
+void Node::fs::readdirSync(const FunctionCallbackInfo<Value>& args) {
     auto isolate = args.GetIsolate();
     auto fs = static_cast<Node::fs*>(Local<External>::Cast(args.Data())->Value());
     if (args.Length() != 1 || !args[0]->IsString()) {
@@ -384,7 +383,7 @@ void Node::fs::readdirSync(const v8::FunctionCallbackInfo<v8::Value>& args) {
     args.GetReturnValue().Set(result);
 }
 
-void Node::fs::realpathSync(const v8::FunctionCallbackInfo<v8::Value>& args) {
+void Node::fs::realpathSync(const FunctionCallbackInfo<Value>& args) {
     auto isolate = args.GetIsolate();
     auto fs = static_cast<Node::fs*>(Local<External>::Cast(args.Data())->Value());
     if (args.Length() != 1 || !args[0]->IsString()) {
@@ -404,7 +403,7 @@ void Node::fs::realpathSync(const v8::FunctionCallbackInfo<v8::Value>& args) {
     args.GetReturnValue().Set(result);
 }
 
-void Node::fs::utimesSync(const v8::FunctionCallbackInfo<v8::Value>& args) {
+void Node::fs::utimesSync(const FunctionCallbackInfo<Value>& args) {
     auto isolate = args.GetIsolate();
     auto fs = static_cast<Node::fs*>(Local<External>::Cast(args.Data())->Value());
     // TODO what do negative epoch values mean?
@@ -444,6 +443,23 @@ void Node::fs::utimesSync(const v8::FunctionCallbackInfo<v8::Value>& args) {
 
     if (utime(path.toUtf8().constData(), &timings)) {
         fs->throwV8Exception(QString("utimesSync could not set atime of path '%1'").arg(path));
+        return;
+    }
+}
+
+void Node::fs::unlinkSync(const FunctionCallbackInfo<Value>& args) {
+    auto isolate = args.GetIsolate();
+    auto fs = static_cast<Node::fs*>(Local<External>::Cast(args.Data())->Value());
+    if (args.Length() != 1 || !args[0]->IsString()) {
+        fs->throwV8Exception("unlinkSync needs exactly 1 string argument");
+        return;
+    }
+
+    QString path = *String::Utf8Value(isolate, args[0].As<String>());
+    QFile file(path);
+
+    if (!file.remove()) {
+        fs->throwV8Exception(QString("Could not unlink file at '%1': %2").arg(path).arg(file.errorString()));
         return;
     }
 }
