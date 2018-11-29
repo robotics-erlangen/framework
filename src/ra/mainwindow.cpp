@@ -604,6 +604,9 @@ void MainWindow::showBacklogMode()
 
 void MainWindow::handleCheckHaltStatus(const Status &status)
 {
+    if (m_currentWidgetConfiguration % 2 == 1) { // ra mode
+        return;
+    }
     m_logWriterRa.handleStatus(status);
     if (status->has_game_state()) {
         const amun::GameState &gameState = status->game_state();
