@@ -293,7 +293,7 @@ void FieldWidget::saveConfig()
 void FieldWidget::addToggleVisAction()
 {
     QAction *actionToggleVisualizations = new QAction(this);
-    actionToggleVisualizations->setShortcut(QKeySequence("R"));
+    actionToggleVisualizations->setShortcut(QKeySequence("T"));
     connect(actionToggleVisualizations, SIGNAL(triggered()), SLOT(toggleStrategyVisualizations()));
     addAction(actionToggleVisualizations);
 }
