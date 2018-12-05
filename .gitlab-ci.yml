@@ -9,7 +9,7 @@
     # Increase the number in the cache key to start with
     # a fresh build cache. This is only useful in case of
     # build system bug and/or updates of ExternalProjects!
-    key: "$CI_JOB_NAME-1"
+    key: "$CI_JOB_NAME-2"
     paths:
       - build/
   artifacts:
