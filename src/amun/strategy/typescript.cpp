@@ -75,6 +75,7 @@ Typescript::Typescript(const Timer *timer, StrategyType type, bool debugEnabled,
     m_inspectorHolder.reset(new InspectorHolder(m_isolate, m_context));
     m_internalDebugger.reset(new InternalDebugger(m_isolate, this));
     m_inspectorHolder->setInspectorHandler(m_internalDebugger.get());
+    delete create_params.array_buffer_allocator;
 }
 
 Typescript::~Typescript()
