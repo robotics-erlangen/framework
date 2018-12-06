@@ -82,6 +82,10 @@ if(V8_FOUND)
     )
     target_link_libraries(strategy PRIVATE lib::v8)
     target_compile_definitions(strategy PUBLIC V8_FOUND)
+    target_include_directories(strategy
+        # older cmake versions don't add includes for automoc generated sources
+        PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
+    )
 endif()
 
 add_library(amun::strategy ALIAS strategy)
