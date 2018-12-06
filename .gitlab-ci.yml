@@ -3,7 +3,8 @@
     - mkdir -p build
     - cd build
     - cmake -GNinja ..
-    - cmake --build .
+    # limit average load to enforce some load distribution between different ninja instances
+    - cmake --build . -- -l $(( $(nproc) * 3 / 2))
   stage: build
   cache:
     # Increase the number in the cache key to start with
