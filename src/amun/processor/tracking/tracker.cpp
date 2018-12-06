@@ -277,7 +277,7 @@ Status Tracker::worldState(qint64 currentTime, bool resetRaw)
     }
 
     if (m_aoiEnabled) {
-        amun::TrackingAOI *aoi = worldState->mutable_tracking_aoi();
+        world::TrackingAOI *aoi = worldState->mutable_tracking_aoi();
         aoi->set_x1(m_aoi_x1);
         aoi->set_y1(m_aoi_y1);
         aoi->set_x2(m_aoi_x2);

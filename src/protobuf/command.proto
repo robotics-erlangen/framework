@@ -1,6 +1,7 @@
 syntax = "proto2";
 option cc_enable_arenas = true;
 
+import "world.proto";
 import "robot.proto";
 import "ssl_refbox_remotecontrol.proto";
 
@@ -106,16 +107,10 @@ message CommandTransceiver {
     optional bool use_network = 5;
 }
 
-message TrackingAOI {
-    required float x1 = 1;
-    required float y1 = 2;
-    required float x2 = 3;
-    required float y2 = 4;
-}
 
 message CommandTracking {
     optional bool aoi_enabled = 1;
-    optional TrackingAOI aoi = 2;
+    optional world.TrackingAOI aoi = 2;
     optional int64 system_delay = 3;
     optional bool reset = 4;
 }

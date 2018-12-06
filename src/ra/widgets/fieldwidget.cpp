@@ -1058,7 +1058,7 @@ void FieldWidget::updateAOI()
     amun::CommandTracking *tracking = command->mutable_tracking();
     tracking->set_aoi_enabled(m_aoiItem->isVisible());
     if (m_aoiItem->isVisible()) {
-        amun::TrackingAOI *aoi = tracking->mutable_aoi();
+        world::TrackingAOI *aoi = tracking->mutable_aoi();
         aoi->set_x1(qMin(m_aoi.left(), m_aoi.right()));
         aoi->set_y1(qMin(m_aoi.top(), m_aoi.bottom()));
         aoi->set_x2(qMax(m_aoi.left(), m_aoi.right()));

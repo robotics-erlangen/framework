@@ -1,7 +1,6 @@
 syntax = "proto2";
 option cc_enable_arenas = true;
 
-import "command.proto";
 import "robot.proto";
 import "ssl_mixed_team.proto";
 import "ssl_wrapper.proto";
@@ -85,6 +84,13 @@ message Robot {
     repeated RobotPosition raw = 8;
 }
 
+message TrackingAOI {
+    required float x1 = 1;
+    required float y1 = 2;
+    required float x2 = 3;
+    required float y2 = 4;
+}
+
 message State {
     required int64 time = 1;
     optional Ball ball = 2;
@@ -94,6 +100,6 @@ message State {
     optional bool is_simulated = 6;
     optional bool has_vision_data = 7;
     optional ssl.TeamPlan mixed_team_info = 8;
-    optional amun.TrackingAOI tracking_aoi = 9;
+    optional TrackingAOI tracking_aoi = 9;
     repeated SSL_WrapperPacket vision_frames = 10;
 }
