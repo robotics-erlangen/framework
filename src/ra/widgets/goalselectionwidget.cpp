@@ -62,18 +62,18 @@ std::array<float, 6> GoalSelectionWidget::fieldTransform(float visionWidth, floa
 {
     const std::vector<std::vector<float>> directions = {{0, 1}, {0, 1}, {0, 1}, {1, 0}, {1, 0}, {1, 0},
                                              {0, -1}, {0, -1}, {0, -1}, {-1, 0}, {-1, 0}, {-1, 0}};
-    const std::vector<int> rotations = {1, 1, 1, 2, 2, 2, 3, 3, 3, 0, 0, 0};
-    const std::vector<std::vector<int>> rotationMatrices = {{1, 0, 0, 1}, {0, 1, 1, 0}, {-1, 0, 0, 1}, {1, 0, 0, -1}};
+    const std::vector<unsigned int> rotations = {1, 1, 1, 2, 2, 2, 3, 3, 3, 0, 0, 0};
+    const std::vector<std::vector<int>> rotationMatrices = {{1, 0, 0, 1}, {0, 1, -1, 0}, {-1, 0, 0, -1}, {0, 1, 1, 0}};
 
-    int radioButtonId = m_buttonGroup.checkedId();
+    unsigned int radioButtonId = (unsigned int)m_buttonGroup.checkedId();
     std::array<float, 6> result;
-    for (int i = 0;i<4;i++) {
+    for (unsigned int i = 0;i<4;i++) {
         result[i] = rotationMatrices[rotations[radioButtonId]][i];
     }
-    float realGoalPosX = visionWidth * m_buttonCoordinates[radioButtonId][1] - visionWidth / 2.0f;
-    float realGoalPosY = visionHeight * m_buttonCoordinates[radioButtonId][0] - visionHeight / 2.0f;
-    float virtualGoalPosY = -virtualHeight / 2.0f;
-    result[4] = realGoalPosX;
-    result[5] = realGoalPosY - virtualGoalPosY;
+    float realGoalPosX = visionWidth * (m_buttonCoordinates[radioButtonId][1] - 0.5f);
+    float realGoalPosY = visionHeight * (m_buttonCoordinates[radioButtonId][0]- 0.5f);
+    float virtualGoalPosY = virtualHeight * 0.5f;
+    result[4] = -(result[0] * realGoalPosX + result[1] * realGoalPosY);
+    result[5] = virtualGoalPosY - (result[2] * realGoalPosX + result[3] * realGoalPosY);
     return result;
 }
