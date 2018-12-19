@@ -178,6 +178,7 @@ void Amun::start()
     m_integrator->moveToThread(m_processorThread);
     connect(this, SIGNAL(gotCommand(Command)), m_integrator, SLOT(handleCommand(Command)));
     connect(this, SIGNAL(sendStatusForReplay(Status)), m_integrator, SLOT(handleReplayStatus(Status)));
+    connect(m_processorThread, SIGNAL(finished()), m_integrator, SLOT(deleteLater()));
     // relay tracking, geometry, referee, controller and accelerator information
     connect(m_processor, SIGNAL(sendStrategyStatus(Status)), m_integrator, SLOT(handleStatus(Status)));
     for (int i = 0;i<2;i++) {
@@ -232,7 +233,7 @@ void Amun::start()
         Q_ASSERT(m_transceiver == nullptr);
         m_transceiver = new Transceiver(m_timer);
         m_transceiver->moveToThread(m_transceiverThread);
-        connect(m_processorThread, SIGNAL(finished()), m_transceiver, SLOT(deleteLater()));
+        connect(m_transceiverThread, SIGNAL(finished()), m_transceiver, SLOT(deleteLater()));
         // route commands to transceiver
         connect(this, SIGNAL(gotCommand(Command)), m_transceiver, SLOT(handleCommand(Command)));
         // relay transceiver status and timing
