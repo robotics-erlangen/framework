@@ -97,16 +97,14 @@ add_library(ra::ra-horus ALIAS ra-horus)
 
 add_executable(ra WIN32 MACOSX_BUNDLE
     ra.cpp
+    ${CMAKE_BINARY_DIR}/startRa.sh
 )
 
 add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/startRa.sh
-    COMMAND cp ${CMAKE_SOURCE_DIR}/cmake/startRa.sh ${CMAKE_BINARY_DIR}/startRa.sh
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/cmake/startRa.sh ${CMAKE_BINARY_DIR}/startRa.sh
     DEPENDS ${CMAKE_SOURCE_DIR}/cmake/startRa.sh
 )
-
-add_custom_target(generateStartRa DEPENDS ${CMAKE_BINARY_DIR}/startRa.sh)
-add_dependencies(ra generateStartRa)
 
 if(MINGW)
     target_sources(ra PRIVATE ${CMAKE_SOURCE_DIR}/data/pkg/ra.rc)
