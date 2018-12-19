@@ -37,7 +37,7 @@ struct VirtualFieldConfiguration {
     std::array<float, 6> transform;
 
     // to restore the internal state again
-    int goalId = 4;
+    int goalId = 10;
     float width = 9, height = 12;
 };
 
@@ -48,7 +48,7 @@ class VirtualFieldSetupDialog : public QDialog
 public:
     explicit VirtualFieldSetupDialog(const VirtualFieldConfiguration &start, QWidget *parent = nullptr);
     ~VirtualFieldSetupDialog();
-    VirtualFieldConfiguration getResult(float visionWidth, float visionHeight);
+    VirtualFieldConfiguration getResult(const world::Geometry &realGeometry);
 
 protected slots:
     void widthChanged(double width);

@@ -49,14 +49,20 @@ VirtualFieldSetupDialog::~VirtualFieldSetupDialog()
     delete ui;
 }
 
-VirtualFieldConfiguration VirtualFieldSetupDialog::getResult(float visionWidth, float visionHeight)
+VirtualFieldConfiguration VirtualFieldSetupDialog::getResult(const world::Geometry &realGeometry)
 {
     VirtualFieldConfiguration result;
     result.enabled = ui->enableVirtualField->isChecked();
-    geometrySetDefault(&result.geometry);
+    bool exactQuadField = ui->quadSizeWidth->isChecked() && ui->quadSizeHeight->isChecked();
+    geometrySetDefault(&result.geometry, exactQuadField);
     result.geometry.set_field_width(ui->widthSpinBox->value());
     result.geometry.set_field_height(ui->heightSpinBox->value());
-    result.transform = ui->goalPositionSelection->fieldTransform(visionWidth, visionHeight, ui->heightSpinBox->value());
+    result.geometry.set_goal_depth(realGeometry.goal_depth());
+    result.geometry.set_goal_height(realGeometry.goal_height());
+    result.geometry.set_goal_wall_width(realGeometry.goal_wall_width());
+    result.geometry.set_goal_width(realGeometry.goal_width());
+
+    result.transform = ui->goalPositionSelection->fieldTransform(realGeometry.field_width(), realGeometry.field_height(), ui->heightSpinBox->value());
     result.width = ui->widthSpinBox->value();
     result.height = ui->heightSpinBox->value();
     result.goalId = ui->goalPositionSelection->goalId();
