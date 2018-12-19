@@ -38,6 +38,8 @@ add_library(tracking
     robotfilter.h
     tracker.cpp
     speedtracker.cpp
+    fieldtransform.cpp
+    fieldtransform.h
 )
 target_link_libraries(tracking
     PRIVATE shared::core
