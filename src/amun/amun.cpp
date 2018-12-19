@@ -242,7 +242,7 @@ void Amun::start()
         Q_ASSERT(m_networkTransceiver == nullptr);
         m_networkTransceiver = new NetworkTransceiver();
         m_networkTransceiver->moveToThread(m_transceiverThread);
-        connect(m_processorThread, SIGNAL(finished()), m_networkTransceiver, SLOT(deleteLater()));
+        connect(m_transceiverThread, SIGNAL(finished()), m_networkTransceiver, SLOT(deleteLater()));
         // route commands to transceiver
         connect(this, SIGNAL(gotCommand(Command)), m_networkTransceiver, SLOT(handleCommand(Command)));
         // relay transceiver status and timing
