@@ -82,7 +82,7 @@ Typescript::~Typescript()
 {
     // must be destroyed before the isolate
     delete m_inspectorHolder->getInspectorHandler();
-    m_inspectorHolder.release();
+    m_inspectorHolder.reset();
     m_internalDebugger.release();
     qDeleteAll(m_scriptOrigins);
     m_checkForScriptTimeout->deleteLater();
