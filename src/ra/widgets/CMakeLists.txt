@@ -38,12 +38,16 @@ add_library(widgets
     debugtreewidget.h
     debugwidget.cpp
     fieldwidget.cpp
+    goalselectionwidget.h
+    goalselectionwidget.cpp
     logmanager.cpp
     logwidget.cpp
     refereestatuswidget.cpp
     savesituation.cpp
     savesituation.h
     timingwidget.cpp
+    virtualfieldsetupdialog.h
+    virtualfieldsetupdialog.cpp
     visualizationproxymodel.cpp
     visualizationwidget.cpp
     teamwidget.cpp
@@ -55,6 +59,7 @@ set(UI_SOURCES
     logmanager.ui
     refereestatuswidget.ui
     timingwidget.ui
+    virtualfieldsetupdialog.ui
     visualizationwidget.ui
     replayteamwidget.ui
 )
