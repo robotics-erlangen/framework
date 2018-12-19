@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2018 Paul Bergmann                                        *
+ *   Copyright 2018 Paul Bergmann                                          *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -21,11 +21,7 @@
 #ifndef NODE_PATH_H
 #define NODE_PATH_H
 
-#include "library.h"
-
-namespace Node {
-    class LibraryCollection;
-}
+#include "objectcontainer.h"
 
 namespace v8 {
     class Isolate;
@@ -34,9 +30,9 @@ namespace v8 {
 }
 
 namespace Node {
-    class Path : public Library {
+    class path : public ObjectContainer {
     public:
-        Path(v8::Isolate* isolate, const LibraryCollection* libraryCollection);
+        path(v8::Isolate* isolate);
     private:
         static void resolve(const v8::FunctionCallbackInfo<v8::Value>& args);
     };

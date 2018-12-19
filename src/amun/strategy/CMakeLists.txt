@@ -81,16 +81,18 @@ if(V8_FOUND)
         websocketprotocol.cpp
         websocketprotocol.h
 
-        node/objectcontainer.h
-        node/objectcontainer.cpp
-        node/os.h
-        node/os.cpp
-        node/buffer.h
-        node/buffer.cpp
-        node/buffer/Buffer.h
         node/buffer/Buffer.cpp
-        node/fs.h
+        node/buffer/Buffer.h
+        node/buffer.cpp
+        node/buffer.h
         node/fs.cpp
+        node/fs.h
+        node/objectcontainer.cpp
+        node/objectcontainer.h
+        node/os.cpp
+        node/os.h
+        node/path.cpp
+        node/path.h
     )
     target_link_libraries(strategy PRIVATE lib::v8)
     target_compile_definitions(strategy PUBLIC V8_FOUND)

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2018 Paul Bergmann                                        *
+ *   Copyright 2018 Paul Bergmann                                          *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -20,21 +20,68 @@
 
 #include "path.h"
 
-#include "librarycollection.h"
+#include "objectcontainer.h"
 
 #include <QList>
-#include "v8.h"
+#include <QString>
+#include <QDir>
+#include <QFileInfo>
 
+using v8::FunctionCallbackInfo;
 using v8::HandleScope;
 using v8::Isolate;
+using v8::Local;
+using v8::String;
 using v8::ObjectTemplate;
+using v8::Value;
+using v8::External;
+using v8::NewStringType;
 
-Node::Path::Path(Isolate* isolate, const LibraryCollection* libraryCollection) : Library(isolate, libraryCollection) {
+Node::path::path(Isolate* isolate) : ObjectContainer(isolate) {
     HandleScope handleScope(m_isolate);
 
     auto objectTemplate = createTemplateWithCallbacks<ObjectTemplate>({
-        //{ "resolve", &Path::resolve }
+        { "resolve", Node::path::resolve }
     });
 
-    setLibraryHandle(objectTemplate->NewInstance(isolate->GetCurrentContext()).ToLocalChecked());
+    setHandle(objectTemplate->NewInstance(isolate->GetCurrentContext()).ToLocalChecked());
+}
+
+#include <QDebug>
+void Node::path::resolve(const FunctionCallbackInfo<Value>& args) {
+    auto isolate = args.GetIsolate();
+    auto path = static_cast<Node::path*>(Local<External>::Cast(args.Data())->Value());
+
+    QString constructedPath;
+
+    for (int currentArg = args.Length() - 1; currentArg >= 0; --currentArg) {
+        if (!args[currentArg]->IsString()) {
+            path->throwV8Exception("The path arguments must be of type string");
+            return;
+        }
+        if (args[currentArg].As<String>()->Length() == 0) {
+            continue;
+        }
+
+        QString currentSegment = *String::Utf8Value(args[currentArg]);
+
+        if (!constructedPath.isEmpty()) {
+            constructedPath.prepend("/");
+        }
+
+        constructedPath.prepend(currentSegment);
+
+        if (QFileInfo(constructedPath).isAbsolute()) {
+            break;
+        }
+    }
+    if (constructedPath.isEmpty()) {
+        constructedPath = ".";
+    } else if (!QDir::isAbsolutePath(constructedPath)) {
+        constructedPath.prepend("./");
+    }
+
+    QString absolutePath = QFileInfo(constructedPath).absoluteFilePath();
+    Local<String> absolutePathHandle = String::NewFromUtf8(isolate, absolutePath.toUtf8().data(), NewStringType::kNormal).ToLocalChecked();
+    args.GetReturnValue().Set(absolutePathHandle);
 }
