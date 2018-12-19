@@ -107,12 +107,23 @@ message CommandTransceiver {
     optional bool use_network = 5;
 }
 
+message VirtualFieldTransform {
+    required float a11 = 1;
+    required float a12 = 2;
+    required float a21 = 3;
+    required float a22 = 4;
+    required float offsetX = 5;
+    required float offsetY = 6;
+}
 
 message CommandTracking {
     optional bool aoi_enabled = 1;
     optional world.TrackingAOI aoi = 2;
     optional int64 system_delay = 3;
     optional bool reset = 4;
+    optional bool enable_virtual_field = 5;
+    optional VirtualFieldTransform field_transform = 6;
+    optional world.Geometry virtual_geometry = 7;
 }
 
 message CommandAmun {
