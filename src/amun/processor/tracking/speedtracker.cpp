@@ -21,13 +21,14 @@
 #include "speedtracker.h"
 #include "protobuf/ssl_wrapper.pb.h"
 #include "robotfilter.h"
+#include "fieldtransform.h"
 
 SpeedTracker::SpeedTracker() :
-    m_flip(false),
     m_systemDelay(30 * 1000 * 1000),
     m_resetTime(0),
     m_hasVisionData(false),
-    m_lastUpdateTime(0)
+    m_lastUpdateTime(0),
+    m_fieldTransform(new FieldTransform)
 {
 }
 
@@ -57,7 +58,7 @@ void SpeedTracker::reset()
 void SpeedTracker::setFlip(bool flip)
 {
     // used to change goals between blue and yellow
-    m_flip = flip;
+    m_fieldTransform->setFlip(flip);
 }
 
 void SpeedTracker::process(qint64 currentTime)
@@ -135,7 +136,7 @@ Status SpeedTracker::worldState(qint64 currentTime)
         RobotFilter *robot = bestFilter(*it, minFrameCount);
         if (robot != NULL) {
             robot->update(currentTime);
-            robot->get(worldState->add_yellow(), m_flip, false);
+            robot->get(worldState->add_yellow(), *m_fieldTransform, false);
         }
     }
 
@@ -143,7 +144,7 @@ Status SpeedTracker::worldState(qint64 currentTime)
         RobotFilter *robot = bestFilter(*it, minFrameCount);
         if (robot != NULL) {
             robot->update(currentTime);
-            robot->get(worldState->add_blue(), m_flip, false);
+            robot->get(worldState->add_blue(), *m_fieldTransform, false);
         }
     }
 

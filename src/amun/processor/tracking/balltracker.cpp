@@ -150,7 +150,7 @@ void BallTracker::update(qint64 time)
 #endif
 }
 
-void BallTracker::get(world::Ball *ball, bool flip, bool resetRaw)
+void BallTracker::get(world::Ball *ball, const FieldTransform &transform, bool resetRaw)
 {
     ball->set_is_bouncing(false); // fly filter overwrites if appropriate
     if (m_flyFilter->isActive()) {
@@ -166,26 +166,26 @@ void BallTracker::get(world::Ball *ball, bool flip, bool resetRaw)
         m_activeFilter->writeBallState(ball, m_lastUpdateTime);
     }
 
-    if (flip) {
-        ball->set_p_x(-ball->p_x());
-        ball->set_p_y(-ball->p_y());
-        ball->set_v_x(-ball->v_x());
-        ball->set_v_y(-ball->v_y());
-        if (ball->has_touchdown_x() && ball->has_touchdown_y()) {
-            ball->set_touchdown_x(-ball->touchdown_x());
-            ball->set_touchdown_y(-ball->touchdown_y());
-        }
+    float transformedPX = transform.applyPosX(ball->p_x(), ball->p_y());
+    float transformedPY = transform.applyPosY(ball->p_x(), ball->p_y());
+    ball->set_p_x(transformedPX);
+    ball->set_p_y(transformedPY);
+    float transformedVX = transform.applySpeedX(ball->v_x(), ball->v_y());
+    float transformedVY = transform.applySpeedY(ball->v_x(), ball->v_y());
+    ball->set_v_x(transformedVX);
+    ball->set_v_y(transformedVY);
+    if (ball->has_touchdown_x() && ball->has_touchdown_y()) {
+        float transformedTX = transform.applyPosX(ball->touchdown_x(), ball->touchdown_y());
+        float transformedTY = transform.applyPosY(ball->touchdown_x(), ball->touchdown_y());
+        ball->set_touchdown_x(transformedTX);
+        ball->set_touchdown_y(transformedTY);
     }
+
     for (auto& frame: m_rawMeasurements) {
         world::BallPosition* raw = ball->add_raw();
         raw->set_time(frame.time);
-        if (flip) {
-            raw->set_p_x(-frame.x);
-            raw->set_p_y(-frame.y);
-        } else {
-            raw->set_p_x(frame.x);
-            raw->set_p_y(frame.y);
-        }
+        raw->set_p_x(transform.applyPosX(frame.x, frame.y));
+        raw->set_p_y(transform.applyPosY(frame.x, frame.y));
 
         raw->set_camera_id(frame.cameraId);
         raw->set_area(frame.ballArea);

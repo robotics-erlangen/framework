@@ -24,26 +24,29 @@
 #include "robotfilter.h"
 #include "protobuf/debug.pb.h"
 #include "protobuf/geometry.h"
+#include "fieldtransform.h"
 #include <QDebug>
 #include <iostream>
 #include <limits>
 
 Tracker::Tracker() :
     m_cameraInfo(new CameraInfo),
-    m_flip(false),
     m_systemDelay(0),
     m_resetTime(0),
     m_geometryUpdated(false),
     m_hasVisionData(false),
+    m_virtualFieldEnabled(false),
     m_lastUpdateTime(0),
     m_currentBallFilter(nullptr),
     m_aoiEnabled(false),
     m_aoi_x1(0.0f),
     m_aoi_y1(0.0f),
     m_aoi_x2(0.0f),
-    m_aoi_y2(0.0f)
+    m_aoi_y2(0.0f),
+    m_fieldTransform(new FieldTransform)
 {
     geometrySetDefault(&m_geometry, true);
+    geometrySetDefault(&m_virtualFieldGeometry, true);
 }
 
 Tracker::~Tracker()
@@ -52,15 +55,13 @@ Tracker::~Tracker()
     delete m_cameraInfo;
 }
 
-static bool isInAOI(float detectionX, float detectionY, bool flip, float x1, float y1, float x2, float y2)
+static bool isInAOI(float detectionX, float detectionY, const FieldTransform &transform, float x1, float y1, float x2, float y2)
 {
     float x = -detectionY / 1000.0f;
     float y = detectionX / 1000.0f;
-    if (flip) {
-        x = -x;
-        y = -y;
-    }
-    return (x > x1 && x < x2 && y > y1 && y < y2);
+    float xn = transform.applyPosX(x, y);
+    float yn = transform.applyPosY(x, y);
+    return (xn > x1 && xn < x2 && yn > y1 && yn < y2);
 }
 
 void Tracker::reset()
@@ -90,7 +91,7 @@ void Tracker::reset()
 void Tracker::setFlip(bool flip)
 {
     // used to change goals between blue and yellow
-    m_flip = flip;
+    m_fieldTransform->setFlip(flip);
 }
 
 void Tracker::process(qint64 currentTime)
@@ -104,9 +105,6 @@ void Tracker::process(qint64 currentTime)
     invalidateBall(currentTime);
     invalidateRobots(m_robotFilterYellow, currentTime);
     invalidateRobots(m_robotFilterBlue, currentTime);
-
-    //track geometry changes
-    m_geometryUpdated = false;
 
     foreach (const Packet &p, m_visionPackets) {
         SSL_WrapperPacket wrapper;
@@ -252,7 +250,7 @@ Status Tracker::worldState(qint64 currentTime, bool resetRaw)
 
     if (ball != NULL) {
         ball->update(currentTime);
-        ball->get(worldState->mutable_ball(), m_flip, resetRaw);
+        ball->get(worldState->mutable_ball(), *m_fieldTransform, resetRaw);
     }
 
 
@@ -260,7 +258,7 @@ Status Tracker::worldState(qint64 currentTime, bool resetRaw)
         RobotFilter *robot = bestFilter(*it, minFrameCount);
         if (robot != NULL) {
             robot->update(currentTime);
-            robot->get(worldState->add_yellow(), m_flip, false);
+            robot->get(worldState->add_yellow(), *m_fieldTransform, false);
         }
     }
 
@@ -268,12 +266,18 @@ Status Tracker::worldState(qint64 currentTime, bool resetRaw)
         RobotFilter *robot = bestFilter(*it, minFrameCount);
         if (robot != NULL) {
             robot->update(currentTime);
-            robot->get(worldState->add_blue(), m_flip, false);
+            robot->get(worldState->add_blue(), *m_fieldTransform, false);
         }
     }
 
     if (m_geometryUpdated) {
-        status->mutable_geometry()->CopyFrom(m_geometry);
+        if (m_virtualFieldEnabled) {
+            status->mutable_geometry()->CopyFrom(m_virtualFieldGeometry);
+        } else {
+            status->mutable_geometry()->CopyFrom(m_geometry);
+        }
+
+        m_geometryUpdated = false;
     }
 
     if (m_aoiEnabled) {
@@ -488,7 +492,7 @@ static RobotInfo nearestRobotInfo(const QList<RobotFilter *> &robots, const SSL_
 void Tracker::trackBall(const SSL_DetectionBall &ball, qint64 receiveTime, quint32 cameraId, const QList<RobotFilter *> &bestRobots, qint64 visionProcessingDelay)
 {
 
-    if (m_aoiEnabled && !isInAOI(ball.x(), ball.y() , m_flip, m_aoi_x1, m_aoi_y1, m_aoi_x2, m_aoi_y2)) {
+    if (m_aoiEnabled && !isInAOI(ball.x(), ball.y() , *m_fieldTransform, m_aoi_x1, m_aoi_y1, m_aoi_x2, m_aoi_y2)) {
         return;
     }
     if (! m_cameraInfo->cameraPosition.contains(cameraId)) {
@@ -536,7 +540,7 @@ void Tracker::trackRobot(RobotMap &robotMap, const SSL_DetectionRobot &robot, qi
         return;
     }
 
-    if (m_aoiEnabled && !isInAOI(robot.x(), robot.y() , m_flip, m_aoi_x1, m_aoi_y1, m_aoi_x2, m_aoi_y2)) {
+    if (m_aoiEnabled && !isInAOI(robot.x(), robot.y() , *m_fieldTransform, m_aoi_x1, m_aoi_y1, m_aoi_x2, m_aoi_y2)) {
         return;
     }
 
@@ -609,5 +613,21 @@ void Tracker::handleCommand(const amun::CommandTracking &command)
     // allows resetting by the strategy
     if (command.reset()) {
         reset();
+    }
+
+    if (command.has_enable_virtual_field()) {
+        m_virtualFieldEnabled = true;
+        m_geometryUpdated = true;
+    }
+
+    if (command.has_field_transform()) {
+        const auto &tr = command.field_transform();
+        std::array<float, 6> transform({tr.a11(), tr.a12(), tr.a21(), tr.a22(), tr.offsetx(), tr.offsety()});
+        m_fieldTransform->setTransform(transform);
+    }
+
+    if (command.has_virtual_geometry()) {
+        m_geometryUpdated = true;
+        m_virtualFieldGeometry.CopyFrom(command.virtual_geometry());
     }
 }

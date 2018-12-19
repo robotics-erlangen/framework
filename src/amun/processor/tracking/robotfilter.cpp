@@ -310,7 +310,7 @@ void RobotFilter::applyVisionFrame(const VisionFrame &frame)
     m_kalman->update();
 }
 
-void RobotFilter::get(world::Robot *robot, bool flip, bool noRawData)
+void RobotFilter::get(world::Robot *robot, const FieldTransform &transform, bool noRawData)
 {
     float px = m_futureKalman->state()(0);
     float py = m_futureKalman->state()(1);
@@ -320,13 +320,15 @@ void RobotFilter::get(world::Robot *robot, bool flip, bool noRawData)
     float vy = m_futureKalman->state()(4);
     float omega = m_futureKalman->state()(5);
 
-    if (flip) {
-        phi += M_PI;
-        px = -px;
-        py = -py;
-        vx = -vx;
-        vy = -vy;
-    }
+    phi = transform.applyAngle(phi);
+    float transformedPX = transform.applyPosX(px, py);
+    float transformedPY = transform.applyPosY(px, py);
+    px = transformedPX;
+    py = transformedPY;
+    float transformedVX = transform.applySpeedX(vx, vy);
+    float transformedVY = transform.applySpeedY(vx, vy);
+    vx = transformedVX;
+    vy = transformedVY;
 
     robot->set_id(m_id);
     robot->set_p_x(px);
@@ -344,15 +346,9 @@ void RobotFilter::get(world::Robot *robot, bool flip, bool noRawData)
         world::RobotPosition *np = robot->add_raw();
         np->set_time(p.time());
         float rot;
-        if (flip) {
-            np->set_p_x(-p.p_x());
-            np->set_p_y(-p.p_y());
-            rot = p.phi() + M_PI;
-        } else {
-            np->set_p_x(p.p_x());
-            np->set_p_y(p.p_y());
-            rot = p.phi();
-        }
+        np->set_p_x(transform.applyPosX(p.p_x(), p.p_y()));
+        np->set_p_y(transform.applyPosY(p.p_x(), p.p_y()));
+        rot = transform.applyAngle(p.phi());
         np->set_phi(limitAngle(rot));
         np->set_camera_id(p.camera_id());
         np->set_vision_processing_time(p.vision_processing_time());

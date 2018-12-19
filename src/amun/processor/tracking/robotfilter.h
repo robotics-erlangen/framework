@@ -26,6 +26,7 @@
 #include "protobuf/robot.pb.h"
 #include "protobuf/ssl_detection.pb.h"
 #include "protobuf/world.pb.h"
+#include "fieldtransform.h"
 #include <QList>
 #include <QMap>
 #include <QPair>
@@ -41,7 +42,7 @@ public:
     RobotFilter& operator=(const RobotFilter&) = delete;
 
     void update(qint64 time);
-    void get(world::Robot *robot, bool flip, bool noRawData);
+    void get(world::Robot *robot, const FieldTransform &transform, bool noRawData);
 
     void addVisionFrame(qint32 cameraId, const SSL_DetectionRobot &robot, qint64 time, qint64 visionProcessingTime);
     void addRadioCommand(const robot::Command &radioCommand, qint64 time);

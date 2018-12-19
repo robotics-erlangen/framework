@@ -24,6 +24,7 @@
 #include "protobuf/command.pb.h"
 #include "protobuf/status.h"
 #include "protobuf/world.pb.h"
+#include <memory>
 #include <QMap>
 #include <QPair>
 #include <QByteArray>
@@ -31,6 +32,7 @@
 class RobotFilter;
 class SSL_DetectionFrame;
 class SSL_DetectionRobot;
+class FieldTransform;
 
 class SpeedTracker
 {
@@ -66,7 +68,6 @@ private:
 private:
     typedef QPair<QByteArray, qint64> Packet;
 
-    bool m_flip;
     qint64 m_systemDelay;
     qint64 m_resetTime;
 
@@ -77,6 +78,10 @@ private:
 
     RobotMap m_robotFilterYellow;
     RobotMap m_robotFilterBlue;
+    robot::Team m_blueTeam;
+    robot::Team m_yellowTeam;
+
+    std::unique_ptr<FieldTransform> m_fieldTransform;
 };
 
 #endif // SPEEDTRACKER_H

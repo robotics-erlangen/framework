@@ -37,6 +37,7 @@ class SSL_GeometryFieldSize;
 class SSL_FieldCircularArc;
 class SSL_FieldLineSegment;
 class SSL_GeometryCameraCalibration;
+class FieldTransform;
 struct CameraInfo;
 
 class Tracker
@@ -83,13 +84,14 @@ private:
     typedef QPair<robot::RadioCommand, qint64> RadioCommand;
     CameraInfo * const m_cameraInfo;
 
-    bool m_flip;
     qint64 m_systemDelay;
     qint64 m_resetTime;
 
     world::Geometry m_geometry;
+    world::Geometry m_virtualFieldGeometry;
     bool m_geometryUpdated;
     bool m_hasVisionData;
+    bool m_virtualFieldEnabled;
 
     qint64 m_lastUpdateTime;
     QList<Packet> m_visionPackets;
@@ -111,6 +113,7 @@ private:
 
     QList<QString> m_errorMessages;
     QList<SSL_WrapperPacket> m_detectionWrappers;
+    std::unique_ptr<FieldTransform> m_fieldTransform;
 };
 
 #endif // TRACKER_H
