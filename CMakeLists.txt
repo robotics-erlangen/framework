@@ -26,7 +26,12 @@ if(POLICY CMP0071) # compatibility with CMake 3.10.0
     cmake_policy(SET CMP0071 OLD)
 endif()
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=gnu++11")
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG(-std=c++14 HAVE_C14)
+if (NOT HAVE_C14)
+    message(FATAL_ERROR "Your compiler does not understand -std=c++14, consider updating your compiler")
+endif()
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++14")
 
 if(NOT CMAKE_BUILD_TYPE)
     message(STATUS "Setting build type to Release")
