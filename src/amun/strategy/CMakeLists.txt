@@ -94,7 +94,10 @@ if(V8_FOUND)
         node/path.cpp
         node/path.h
     )
-    target_link_libraries(strategy PRIVATE lib::v8)
+    target_link_libraries(strategy
+        PRIVATE lib::v8
+        PRIVATE shared::config
+    )
     target_compile_definitions(strategy PUBLIC V8_FOUND)
     target_include_directories(strategy
         # older cmake versions don't add includes for automoc generated sources

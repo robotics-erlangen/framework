@@ -24,7 +24,10 @@
 #include "node/fs.h"
 #include "node/objectcontainer.h"
 #include "node/os.h"
+#include "node/path.h"
+#include "config/config.h"
 
+#include <QCoreApplication>
 #include <QByteArray>
 #include <QDebug>
 #include <QDir>
@@ -59,6 +62,7 @@ TypescriptCompiler::TypescriptCompiler()
     m_requireNamespace->put("os", std::unique_ptr<Node::os>(new Node::os(m_isolate)));
     m_requireNamespace->put("buffer", std::unique_ptr<Node::buffer>(new Node::buffer(m_isolate)));
     m_requireNamespace->put("fs", std::unique_ptr<Node::fs>(new Node::fs(m_isolate, m_requireNamespace.get())));
+    m_requireNamespace->put("path", std::unique_ptr<Node::path>(new Node::path(m_isolate)));
 
     m_context.Reset(m_isolate, context);
 }
@@ -121,24 +125,74 @@ void TypescriptCompiler::requireCallback(const FunctionCallbackInfo<Value>& args
     }
 }
 
+static void processCwdCallback(const FunctionCallbackInfo<Value>& args) {
+    Local<String> cwd = String::NewFromUtf8(args.GetIsolate(), QDir::currentPath().toUtf8().data(), NewStringType::kNormal).ToLocalChecked();
+    args.GetReturnValue().Set(cwd);
+}
+
 void TypescriptCompiler::startCompiler(const QString &filename)
 {
-    // TODO
-    QFile file(filename);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        qDebug() << "could not open file " << filename;
-        return;
-    }
-    QTextStream in(&file);
-    QString content = in.readAll();
-    QByteArray contentBytes = content.toUtf8();
-
     HandleScope handleScope(m_isolate);
     Local<Context> context = m_context.Get(m_isolate);
     Context::Scope contextScope(context);
 
-    Local<String> source = String::NewFromUtf8(m_isolate, contentBytes.data(), NewStringType::kNormal).ToLocalChecked();
+    QString compilerPath = QString(ERFORCE_LIBDIR) + "tsc/built/local/tsc.js";
 
+    Local<Object> global = context->Global();
+
+    Local<Object> process = Object::New(m_isolate);
+    Local<String> processName = String::NewFromUtf8(m_isolate, "process", NewStringType::kNormal).ToLocalChecked();
+    {
+        Local<Array> argv = Array::New(m_isolate, 2);
+        Local<String> argvName = String::NewFromUtf8(m_isolate, "argv", NewStringType::kNormal).ToLocalChecked();
+
+        Local<String> executable = String::NewFromUtf8(m_isolate, QCoreApplication::applicationFilePath().toUtf8().data(), NewStringType::kNormal).ToLocalChecked();
+        Local<String> scriptName = String::NewFromUtf8(m_isolate, compilerPath.toUtf8().data(), NewStringType::kNormal).ToLocalChecked();
+
+        argv->Set(0, executable);
+        argv->Set(1, scriptName);
+
+        process->Set(argvName, argv);
+    }
+    {
+        // only for compiler existence check
+        Local<Object> nextTick = Object::New(m_isolate);
+        Local<String> nextTickName = String::NewFromUtf8(m_isolate, "nextTick", NewStringType::kNormal).ToLocalChecked();
+        process->Set(nextTickName, nextTick);
+
+        Local<Object> env = Object::New(m_isolate);
+        Local<String> envName = String::NewFromUtf8(m_isolate, "env", NewStringType::kNormal).ToLocalChecked();
+        process->Set(envName, env);
+
+        Local<Function> cwd = Function::New(m_isolate, &processCwdCallback);
+        Local<String> cwdName = String::NewFromUtf8(m_isolate, "cwd", NewStringType::kNormal).ToLocalChecked();
+        process->Set(cwdName, cwd);
+    }
+    {
+        // TODO may needs to be implemented for watch mode
+        Local<Function> setTimeout = Function::New(m_isolate, nullptr);
+        Local<String> setTimeoutName = String::NewFromUtf8(m_isolate, "setTimeout", NewStringType::kNormal).ToLocalChecked();
+        global->Set(setTimeoutName, setTimeout);
+
+        Local<Function> clearTimeout = Function::New(m_isolate, nullptr);
+        Local<String> clearTimeoutName = String::NewFromUtf8(m_isolate, "clearTimeout", NewStringType::kNormal).ToLocalChecked();
+        global->Set(clearTimeoutName, clearTimeout);
+
+        Local<String> filename = String::NewFromUtf8(m_isolate, compilerPath.toUtf8().data(), NewStringType::kNormal).ToLocalChecked();
+        Local<String> filenameName = String::NewFromUtf8(m_isolate, "__filename", NewStringType::kNormal).ToLocalChecked();
+        global->Set(filenameName, filename);
+    }
+    global->Set(processName, process);
+
+    QFile compilerFile(compilerPath);
+    if (!compilerFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qDebug() << "Could not open compiler";
+        return;
+    }
+    QByteArray compilerBytes = compilerFile.readAll();
+
+
+    Local<String> source = String::NewFromUtf8(m_isolate, compilerBytes.data(), NewStringType::kNormal).ToLocalChecked();
     Local<Script> script;
     TryCatch tryCatch(m_isolate);
     if (!Script::Compile(context, source).ToLocal(&script)) {
@@ -147,7 +201,7 @@ void TypescriptCompiler::startCompiler(const QString &filename)
     }
     script->Run(context);
     if (tryCatch.HasTerminated() || tryCatch.HasCaught()) {
-        String::Utf8Value error(m_isolate, tryCatch.Exception());
+        String::Utf8Value error(m_isolate, tryCatch.StackTrace(context).ToLocalChecked());
         qDebug() << *error;
     }
 }
