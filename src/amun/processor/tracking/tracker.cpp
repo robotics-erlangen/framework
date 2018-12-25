@@ -616,7 +616,7 @@ void Tracker::handleCommand(const amun::CommandTracking &command)
     }
 
     if (command.has_enable_virtual_field()) {
-        m_virtualFieldEnabled = true;
+        m_virtualFieldEnabled = command.enable_virtual_field();
         m_geometryUpdated = true;
     }
 
