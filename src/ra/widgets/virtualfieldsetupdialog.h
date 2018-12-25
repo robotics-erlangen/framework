@@ -30,7 +30,7 @@ class VirtualFieldSetupDialog;
 }
 
 struct VirtualFieldConfiguration {
-    bool enabled;
+    bool enabled = false;
     world::Geometry geometry;
     // from vision space to virtual space (affine linear)
     // first the four entries of the matrix, then the offset vector

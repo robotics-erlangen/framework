@@ -40,7 +40,24 @@
 #include <QDropEvent>
 #include <QMimeData>
 #include <QUrl>
-#include <fieldwidget.h>
+#include "fieldwidget.h"
+#include "virtualfieldsetupdialog.h"
+
+float reverseTransformX(const std::array<float, 6> &transform, float x, float y)
+{
+    x -= transform[4];
+    y -= transform[5];
+    float invDet = transform[0] * transform[3] - transform[1] * transform[2];
+    return invDet * (transform[3] * x - transform[1] * y);
+}
+
+float reverseTransformY(const std::array<float, 6> &transform, float x, float y)
+{
+    x -= transform[4];
+    y -= transform[5];
+    float invDet = transform[0] * transform[3] - transform[1] * transform[2];
+    return invDet * (-transform[2] * x + transform[0] * y);
+}
 
 class TouchStatusGesture : public QGesture
 {
@@ -106,6 +123,7 @@ class TouchStatusRecognizer : public QGestureRecognizer
 FieldWidget::FieldWidget(QWidget *parent) :
     QGraphicsView(parent),
     m_geometryUpdated(true),
+    m_usingVirtualField(false),
     m_rotation(0.0f),
     m_visualizationsUpdated(false),
     m_infoTextUpdated(false),
@@ -114,7 +132,8 @@ FieldWidget::FieldWidget(QWidget *parent) :
     m_dragItem(NULL),
     m_isLogplayer(false),
     m_enableDragMeasure(false),
-    m_flipped(false)
+    m_flipped(false),
+    m_virtualFieldConfiguration(new VirtualFieldConfiguration)
 {
     m_touchStatusType = QGestureRecognizer::registerRecognizer(new TouchStatusRecognizer);
     grabGesture(m_touchStatusType);
@@ -126,6 +145,7 @@ FieldWidget::FieldWidget(QWidget *parent) :
     m_guiTimer->requestTriggering();
 
     geometrySetDefault(&m_geometry);
+    geometrySetDefault(&m_virtualFieldGeometry);
 
     setAcceptDrops(true);
 
@@ -182,6 +202,8 @@ FieldWidget::FieldWidget(QWidget *parent) :
     QAction *actionShowAOI = m_contextMenu->addAction("Enable custom vision area");
     actionShowAOI->setCheckable(true);
     connect(actionShowAOI, SIGNAL(toggled(bool)), SLOT(setAOIVisible(bool)));
+    QAction *actionCustomFieldSetup = m_contextMenu->addAction("Virtual Field");
+    connect(actionCustomFieldSetup, &QAction::triggered, this, &FieldWidget::virtualFieldSetupDialog);
     m_actionAntialiasing = m_contextMenu->addAction("Anti-aliasing");
     m_actionAntialiasing->setCheckable(true);
     connect(m_actionAntialiasing, SIGNAL(toggled(bool)), SLOT(setAntialiasing(bool)));
@@ -407,6 +429,7 @@ void FieldWidget::clearData()
     m_visualizationsUpdated = true;
 
     geometrySetDefault(&m_geometry);
+    geometrySetDefault(&m_virtualFieldGeometry);
     m_geometryUpdated = true;
     m_guiTimer->requestTriggering();
 }
@@ -906,17 +929,17 @@ void FieldWidget::addRobotTrace(qint64 time, const world::Robot &robot, Trace &r
 
 void FieldWidget::updateGeometry()
 {
-    if (!m_geometry.IsInitialized() || !m_geometryUpdated) {
+    const world::Geometry &g = m_usingVirtualField ? m_virtualFieldGeometry : m_geometry;
+    if (!g.IsInitialized() || !m_geometryUpdated) {
         return;
     }
     m_geometryUpdated = false; // don't process geometry again and again
 
     // check if geometry changed
-    const std::string geometry = m_geometry.SerializeAsString();
+    const std::string geometry = g.SerializeAsString();
     if (m_geometryString != geometry) {
         m_geometryString = geometry;
 
-        const world::Geometry &g = m_geometry;
         // add some space around the field
         const float offset = g.referee_width() + g.boundary_width() + 0.1f;
 
@@ -1012,12 +1035,38 @@ void FieldWidget::setAOIVisible(bool visible)
     updateAOI();
 }
 
+void FieldWidget::virtualFieldSetupDialog()
+{
+    VirtualFieldSetupDialog dialog(*m_virtualFieldConfiguration, this);
+    dialog.exec();
+    auto config = new VirtualFieldConfiguration(dialog.getResult(m_geometry));
+    m_virtualFieldConfiguration.reset(config);
+    m_usingVirtualField = m_virtualFieldConfiguration->enabled;
+    m_virtualFieldGeometry.CopyFrom(m_virtualFieldConfiguration->geometry);
+    updateGeometry();
+
+    Command command(new amun::Command);
+    auto tracking = command->mutable_tracking();
+    tracking->set_enable_virtual_field(m_virtualFieldConfiguration->enabled);
+    auto transform = tracking->mutable_field_transform();
+    transform->set_a11(m_virtualFieldConfiguration->transform[0]);
+    transform->set_a12(m_virtualFieldConfiguration->transform[1]);
+    transform->set_a21(m_virtualFieldConfiguration->transform[2]);
+    transform->set_a22(m_virtualFieldConfiguration->transform[3]);
+    transform->set_offsetx(m_virtualFieldConfiguration->transform[4]);
+    transform->set_offsety(m_virtualFieldConfiguration->transform[5]);
+
+    tracking->mutable_virtual_geometry()->CopyFrom(config->geometry);
+    emit sendCommand(command);
+}
+
 void FieldWidget::resizeAOI(QPointF pos)
 {
-    if (m_geometry.IsInitialized()) {
-        double offset = m_geometry.boundary_width() + 0.1f;
-        double limitX = m_geometry.field_width() / 2 + offset;
-        double limitY = m_geometry.field_height() / 2 + offset;
+    const world::Geometry &geometry = m_usingVirtualField ? m_virtualFieldGeometry : m_geometry;
+    if (geometry.IsInitialized()) {
+        double offset = geometry.boundary_width() + 0.1f;
+        double limitX = geometry.field_width() / 2 + offset;
+        double limitY = geometry.field_height() / 2 + offset;
         pos.setY(qBound(-limitY, pos.y(), limitY));
         pos.setX(qBound(-limitX, pos.x(), limitX));
     }
@@ -1141,17 +1190,24 @@ void FieldWidget::dropEvent(QDropEvent *event)
     }
 }
 
+QPointF inverseTransform(QPointF original, const std::array<float, 6> &transform)
+{
+    return QPointF(reverseTransformX(transform, original.x(), original.y()), reverseTransformY(transform, original.x(), original.y()));
+}
+
 void FieldWidget::mousePressEvent(QMouseEvent *event)
 {
     const QPointF p = mapToScene(event->pos());
+    const QPointF realFieldPos = inverseTransform(p, m_virtualFieldConfiguration->transform);
+    const QPointF selectedPos = m_usingVirtualField ? realFieldPos : p;
 
     if (event->button() == Qt::LeftButton) {
         if (event->modifiers().testFlag(Qt::ControlModifier)) {
-            sendSimulatorTeleportBall(p);
+            sendSimulatorTeleportBall(selectedPos);
             return;
         }
 
-        m_dragItem = NULL;
+        m_dragItem = nullptr;
         m_dragType = DragNone;
         if (m_aoiItem->isVisible()) {
             // find side which should be dragged
@@ -1209,18 +1265,20 @@ void FieldWidget::mousePressEvent(QMouseEvent *event)
         }
 
         if (m_dragType != DragMeasure) {
-            sendRobotMoveCommands(p);
+            sendRobotMoveCommands(selectedPos);
         }
     }
 
     event->accept();
     m_dragStart = event->pos();
-    m_mouseBegin = p;
+    m_mouseBegin = selectedPos;
 }
 
 void FieldWidget::mouseMoveEvent(QMouseEvent *event)
 {
     const QPointF p = mapToScene(event->pos());
+    const QPointF realFieldPos = inverseTransform(p, m_virtualFieldConfiguration->transform);
+    const QPointF selectedPos = m_usingVirtualField ? realFieldPos : p;
     event->accept();
 
     QString infoText = QString("(%1, %2)").arg(p.x(), 0, 'f', 4).arg(p.y(), 0, 'f', 4);
@@ -1236,7 +1294,7 @@ void FieldWidget::mouseMoveEvent(QMouseEvent *event)
             resizeAOI(p);
         } else if (m_dragType != DragNone) {
             if (m_dragItem) {
-                sendRobotMoveCommands(p);
+                sendRobotMoveCommands(selectedPos);
             }
         } else if (!event->modifiers().testFlag(Qt::ControlModifier)) {
             QPointF d = p - m_mouseBegin;
@@ -1416,15 +1474,16 @@ bool FieldWidget::viewportEvent(QEvent *event)
 
 void FieldWidget::drawBackground(QPainter *painter, const QRectF &rect)
 {
+    const world::Geometry &geometry = m_usingVirtualField ? m_virtualFieldGeometry : m_geometry;
     painter->save();
 
     QRectF rect1;
-    rect1.setLeft(-m_geometry.field_width() / 2.0f);
-    rect1.setTop(-m_geometry.field_height() / 2.0f);
-    rect1.setWidth(m_geometry.field_width());
-    rect1.setHeight(m_geometry.field_height());
+    rect1.setLeft(-geometry.field_width() / 2.0f);
+    rect1.setTop(-geometry.field_height() / 2.0f);
+    rect1.setWidth(geometry.field_width());
+    rect1.setHeight(geometry.field_height());
 
-    const float offset = m_geometry.referee_width() + m_geometry.boundary_width() + 0.025f;
+    const float offset = geometry.referee_width() + geometry.boundary_width() + 0.025f;
     const QRectF rect2 = rect1.adjusted(-offset, -offset, offset, offset);
 
     if (m_actionAntialiasing->isChecked()) {
@@ -1449,15 +1508,16 @@ void FieldWidget::drawBackground(QPainter *painter, const QRectF &rect)
     // penalty points
     painter->setPen(Qt::NoPen);
     painter->setBrush(Qt::white);
-    painter->drawEllipse(QPointF(0, m_geometry.field_height() / 2.0 - m_geometry.penalty_spot_from_field_line_dist()), 0.01, 0.01);
-    painter->drawEllipse(QPointF(0, -m_geometry.field_height() / 2.0 + m_geometry.penalty_spot_from_field_line_dist()), 0.01, 0.01);
+    painter->drawEllipse(QPointF(0, geometry.field_height() / 2.0 - geometry.penalty_spot_from_field_line_dist()), 0.01, 0.01);
+    painter->drawEllipse(QPointF(0, -geometry.field_height() / 2.0 + geometry.penalty_spot_from_field_line_dist()), 0.01, 0.01);
 
     painter->restore();
 }
 
 void FieldWidget::drawLines(QPainter *painter, QRectF rect, bool cosmetic)
 {
-    const float lw = m_geometry.line_width();
+    const world::Geometry &geometry = m_usingVirtualField ? m_virtualFieldGeometry : m_geometry;
+    const float lw = geometry.line_width();
     const float lwh = lw / 2.0f;
 
     QPen pen;
@@ -1473,9 +1533,9 @@ void FieldWidget::drawLines(QPainter *painter, QRectF rect, bool cosmetic)
     {
         
         // defense areas
-        if (m_geometry.type() == world::Geometry::TYPE_2014) {
-            float dr = m_geometry.defense_radius();
-            const float ds = m_geometry.defense_stretch();
+        if (geometry.type() == world::Geometry::TYPE_2014) {
+            float dr = geometry.defense_radius();
+            const float ds = geometry.defense_stretch();
 
             if (!cosmetic) {
                 dr -= lwh;
@@ -1495,8 +1555,8 @@ void FieldWidget::drawLines(QPainter *painter, QRectF rect, bool cosmetic)
             painter->drawPath(path);
 
         } else {
-            float dw = m_geometry.defense_width();
-            float dh = m_geometry.defense_height();
+            float dw = geometry.defense_width();
+            float dh = geometry.defense_height();
 
             if (!cosmetic) {
                 dw -= lwh;
@@ -1519,14 +1579,14 @@ void FieldWidget::drawLines(QPainter *painter, QRectF rect, bool cosmetic)
     painter->drawLine(QPointF(rect.left(), 0.0f), QPointF(rect.right(), 0.0f));
 
     // center circle
-    float r = m_geometry.center_circle_radius();
+    float r = geometry.center_circle_radius();
     if (!cosmetic) {
         r -= lwh;
     }
     painter->drawEllipse(QPointF(0, 0), r, r);
 
     if (!cosmetic) {
-        pen.setWidthF(m_geometry.goal_wall_width());
+        pen.setWidthF(geometry.goal_wall_width());
     }
     painter->setPen(pen);
 
@@ -1543,14 +1603,15 @@ void FieldWidget::drawLines(QPainter *painter, QRectF rect, bool cosmetic)
 
 void FieldWidget::drawGoal(QPainter *painter, float side, bool cosmetic)
 {
+    const world::Geometry &geometry = m_usingVirtualField ? m_virtualFieldGeometry : m_geometry;
     QPainterPath path;
 
-    const float d = cosmetic ? 0 : m_geometry.goal_wall_width() / 2.0f;
-    const float h = m_geometry.field_height() / 2.0f;
-    const float w = m_geometry.goal_width() / 2.0f + d;
+    const float d = cosmetic ? 0 : geometry.goal_wall_width() / 2.0f;
+    const float h = geometry.field_height() / 2.0f;
+    const float w = geometry.goal_width() / 2.0f + d;
     path.moveTo( w, side * h);
-    path.lineTo( w, side * (h + m_geometry.goal_depth() + d));
-    path.lineTo(-w, side * (h + m_geometry.goal_depth() + d));
+    path.lineTo( w, side * (h + geometry.goal_depth() + d));
+    path.lineTo(-w, side * (h + geometry.goal_depth() + d));
     path.lineTo(-w, side * h);
 
     painter->drawPath(path);

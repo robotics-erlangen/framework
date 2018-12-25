@@ -127,6 +127,19 @@
         </layout>
        </item>
        <item>
+        <widget class="QLabel" name="label">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Position of virtual blue goal:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="GoalSelectionWidget" name="goalPositionSelection" native="true"/>
        </item>
       </layout>

@@ -33,6 +33,7 @@ class GuiTimer;
 class QLabel;
 class QMenu;
 class QGestureEvent;
+struct VirtualFieldConfiguration;
 
 class FieldWidget : public QGraphicsView
 {
@@ -124,6 +125,7 @@ private slots:
     void setOpenGL(bool enable);
     void updateAll();
     void setAOIVisible(bool visible);
+    void virtualFieldSetupDialog();
     void takeScreenshot();
     void saveSituation();
     void ballPlacementBlue();
@@ -184,10 +186,13 @@ private:
     std::string m_geometryString;
     bool m_geometryUpdated;
     world::Geometry m_geometry;
+    world::Geometry m_virtualFieldGeometry;
+    bool m_usingVirtualField;
     float m_rotation;
     QRectF m_fieldRect;
     QRectF m_aoi;
     QGraphicsPathItem *m_aoiItem;
+    QRectF m_virtualFieldAoi;
 
     QHash<uint, robot::Specs> m_teamBlue;
     QHash<uint, robot::Specs> m_teamYellow;
@@ -231,6 +236,7 @@ private:
     bool m_flipped;
 
     SSL_Referee m_referee;
+    std::unique_ptr<VirtualFieldConfiguration> m_virtualFieldConfiguration;
 };
 
 #endif // FIELDWIDGET_H

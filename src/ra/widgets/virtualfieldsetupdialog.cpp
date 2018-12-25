@@ -36,12 +36,14 @@ VirtualFieldSetupDialog::VirtualFieldSetupDialog(const VirtualFieldConfiguration
     connect(ui->enableVirtualField, &QCheckBox::toggled, ui->widthGroupBox, &QGroupBox::setEnabled);
     connect(ui->enableVirtualField, &QCheckBox::toggled, ui->heightGroupBox, &QGroupBox::setEnabled);
     connect(ui->enableVirtualField, &QCheckBox::toggled, ui->goalPositionSelection, &GoalSelectionWidget::setEnabled);
+    connect(ui->enableVirtualField, &QCheckBox::toggled, ui->label, &GoalSelectionWidget::setEnabled);
     connect(ui->okButton, &QPushButton::clicked, this, &VirtualFieldSetupDialog::close);
     connect(ui->widthSpinBox, SIGNAL(valueChanged(double)), SLOT(widthChanged(double)));
     connect(ui->heightSpinBox, SIGNAL(valueChanged(double)), SLOT(heightChanged(double)));
     ui->widthSpinBox->setValue(start.width);
     ui->heightSpinBox->setValue(start.height);
     ui->goalPositionSelection->setActiveButton(start.goalId);
+    ui->enableVirtualField->setChecked(start.enabled);
 }
 
 VirtualFieldSetupDialog::~VirtualFieldSetupDialog()
