@@ -21,6 +21,7 @@
 #ifndef FIELDWIDGET_H
 #define FIELDWIDGET_H
 
+#include "core/fieldtransform.h"
 #include "protobuf/command.h"
 #include "protobuf/status.h"
 #include "protobuf/ssl_referee.h"
@@ -165,6 +166,7 @@ private:
     void clearBallTraces();
     void clearRobotTraces();
     void ballPlacement(bool blue);
+    QGraphicsPathItem *createAoiItem(unsigned int transparency);
 
 private:
     QGraphicsScene *m_scene;
@@ -190,8 +192,10 @@ private:
     bool m_usingVirtualField;
     float m_rotation;
     QRectF m_fieldRect;
+    QRectF m_realFieldRect;
     QRectF m_aoi;
     QGraphicsPathItem *m_aoiItem;
+    QGraphicsPathItem *m_virtualFieldAoiItem;
     QRectF m_virtualFieldAoi;
 
     QHash<uint, robot::Specs> m_teamBlue;
@@ -237,6 +241,7 @@ private:
 
     SSL_Referee m_referee;
     std::unique_ptr<VirtualFieldConfiguration> m_virtualFieldConfiguration;
+    FieldTransform m_virtualFieldTransform;
 };
 
 #endif // FIELDWIDGET_H

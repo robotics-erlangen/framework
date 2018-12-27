@@ -43,22 +43,6 @@
 #include "fieldwidget.h"
 #include "virtualfieldsetupdialog.h"
 
-float reverseTransformX(const std::array<float, 6> &transform, float x, float y)
-{
-    x -= transform[4];
-    y -= transform[5];
-    float invDet = transform[0] * transform[3] - transform[1] * transform[2];
-    return invDet * (transform[3] * x - transform[1] * y);
-}
-
-float reverseTransformY(const std::array<float, 6> &transform, float x, float y)
-{
-    x -= transform[4];
-    y -= transform[5];
-    float invDet = transform[0] * transform[3] - transform[1] * transform[2];
-    return invDet * (-transform[2] * x + transform[0] * y);
-}
-
 class TouchStatusGesture : public QGesture
 {
 public:
@@ -231,12 +215,8 @@ FieldWidget::FieldWidget(QWidget *parent) :
     m_scene->addItem(m_ball);
 
     // rectangle for area of interest
-    m_aoiItem = new QGraphicsPathItem;
-    m_aoiItem->setPen(Qt::NoPen);
-    m_aoiItem->setBrush(QColor(0, 0, 0, 128));
-    m_aoiItem->setZValue(10000.0f);
-    m_aoiItem->hide();
-    m_scene->addItem(m_aoiItem);
+    m_aoiItem = createAoiItem(128);
+    m_virtualFieldAoiItem = createAoiItem(80);
     m_aoi = QRectF(-1, -1, 2, 2);
 
     QColor ballColor(255, 66, 0);
@@ -312,6 +292,17 @@ void FieldWidget::saveConfig()
     s.endGroup();
 }
 
+QGraphicsPathItem *FieldWidget::createAoiItem(unsigned int transparency)
+{
+    QGraphicsPathItem *item = new QGraphicsPathItem;
+    item->setPen(Qt::NoPen);
+    item->setBrush(QColor(0, 0, 0, transparency));
+    item->setZValue(10000.0f);
+    item->hide();
+    m_scene->addItem(item);
+    return item;
+}
+
 void FieldWidget::addToggleVisAction()
 {
     QAction *actionToggleVisualizations = new QAction(this);
@@ -377,7 +368,7 @@ void FieldWidget::handleStatus(const Status &status)
         updateTeam(m_robotsYellow, m_teamYellow, status->team_yellow());
     }
 
-    if (status->has_geometry()) {
+    if (status->has_geometry() && !m_usingVirtualField) {
         m_geometry.CopyFrom(status->geometry());
         m_geometryUpdated = true;
         m_guiTimer->requestTriggering();
@@ -949,6 +940,9 @@ void FieldWidget::updateGeometry()
         rect.setWidth(g.field_width() + offset * 2);
         rect.setHeight(g.field_height() + offset * 2);
         m_fieldRect = rect;
+        if (!m_usingVirtualField) {
+            m_realFieldRect = rect;
+        }
         resetCachedContent();
 
         updateAOI();
@@ -1043,6 +1037,7 @@ void FieldWidget::virtualFieldSetupDialog()
     m_virtualFieldConfiguration.reset(config);
     m_usingVirtualField = m_virtualFieldConfiguration->enabled;
     m_virtualFieldGeometry.CopyFrom(m_virtualFieldConfiguration->geometry);
+    m_virtualFieldTransform.setTransform(m_virtualFieldConfiguration->transform);
     updateGeometry();
 
     Command command(new amun::Command);
@@ -1058,6 +1053,8 @@ void FieldWidget::virtualFieldSetupDialog()
 
     tracking->mutable_virtual_geometry()->CopyFrom(config->geometry);
     emit sendCommand(command);
+    m_virtualFieldAoiItem->setVisible(m_virtualFieldConfiguration->enabled);
+    updateAOI();
 }
 
 void FieldWidget::resizeAOI(QPointF pos)
@@ -1102,16 +1099,37 @@ void FieldWidget::updateAOI()
     // paint space around the area of interest
     path.addPolygon(polygon.subtracted(QPolygonF(m_aoi)));
     m_aoiItem->setPath(path);
+
+    QRectF transformedVirtualFieldRect;
+    if (m_usingVirtualField) {
+        // transform real field rect to virtual field space
+        QPointF virtualAoiOffset(0.3f, 0.3f); // subtract a small offset from the aoi to protect field borders etc.
+        QPointF topLeft = m_virtualFieldTransform.applyPosition(m_realFieldRect.topLeft() + virtualAoiOffset);
+        QPointF bottomRight = m_virtualFieldTransform.applyPosition(m_realFieldRect.bottomRight() - virtualAoiOffset);
+        transformedVirtualFieldRect = QRectF(topLeft, bottomRight);
+        QPainterPath realPath;
+        realPath.addPolygon(polygon.subtracted(QPolygonF(transformedVirtualFieldRect)));
+        m_virtualFieldAoiItem->setPath(realPath);
+    }
+
     // inform tracking about changes
     Command command(new amun::Command);
     amun::CommandTracking *tracking = command->mutable_tracking();
-    tracking->set_aoi_enabled(m_aoiItem->isVisible());
-    if (m_aoiItem->isVisible()) {
+    tracking->set_aoi_enabled(m_aoiItem->isVisible() || m_usingVirtualField);
+    if (m_aoiItem->isVisible() || m_usingVirtualField) {
         world::TrackingAOI *aoi = tracking->mutable_aoi();
-        aoi->set_x1(qMin(m_aoi.left(), m_aoi.right()));
-        aoi->set_y1(qMin(m_aoi.top(), m_aoi.bottom()));
-        aoi->set_x2(qMax(m_aoi.left(), m_aoi.right()));
-        aoi->set_y2(qMax(m_aoi.top(), m_aoi.bottom()));
+        QRectF resultAoi;
+        if (m_aoiItem->isVisible() && m_usingVirtualField) {
+            resultAoi = m_aoi.intersected(transformedVirtualFieldRect);
+        } else if (m_aoiItem->isVisible()) {
+            resultAoi = m_aoi;
+        } else { // m_usingVirtualField
+            resultAoi = transformedVirtualFieldRect;
+        }
+        aoi->set_x1(qMin(resultAoi.left(), resultAoi.right()));
+        aoi->set_y1(qMin(resultAoi.top(), resultAoi.bottom()));
+        aoi->set_x2(qMax(resultAoi.left(), resultAoi.right()));
+        aoi->set_y2(qMax(resultAoi.top(), resultAoi.bottom()));
     }
     emit sendCommand(command);
 }
@@ -1190,15 +1208,10 @@ void FieldWidget::dropEvent(QDropEvent *event)
     }
 }
 
-QPointF inverseTransform(QPointF original, const std::array<float, 6> &transform)
-{
-    return QPointF(reverseTransformX(transform, original.x(), original.y()), reverseTransformY(transform, original.x(), original.y()));
-}
-
 void FieldWidget::mousePressEvent(QMouseEvent *event)
 {
     const QPointF p = mapToScene(event->pos());
-    const QPointF realFieldPos = inverseTransform(p, m_virtualFieldConfiguration->transform);
+    const QPointF realFieldPos = m_virtualFieldTransform.applyInversePosition(p);
     const QPointF selectedPos = m_usingVirtualField ? realFieldPos : p;
 
     if (event->button() == Qt::LeftButton) {
@@ -1277,7 +1290,7 @@ void FieldWidget::mousePressEvent(QMouseEvent *event)
 void FieldWidget::mouseMoveEvent(QMouseEvent *event)
 {
     const QPointF p = mapToScene(event->pos());
-    const QPointF realFieldPos = inverseTransform(p, m_virtualFieldConfiguration->transform);
+    const QPointF realFieldPos = m_virtualFieldTransform.applyInversePosition(p);
     const QPointF selectedPos = m_usingVirtualField ? realFieldPos : p;
     event->accept();
 
