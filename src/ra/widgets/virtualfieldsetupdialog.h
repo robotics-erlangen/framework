@@ -39,6 +39,12 @@ struct VirtualFieldConfiguration {
     // to restore the internal state again
     int goalId = 10;
     float width = 9, height = 12;
+
+    enum GoalOrDefenseType {
+        QUAD_SIZE, DOUBLE_SIZE, FROM_REAL
+    };
+    GoalOrDefenseType goalType = GoalOrDefenseType::FROM_REAL;
+    GoalOrDefenseType defenseType = GoalOrDefenseType::QUAD_SIZE;
 };
 
 class VirtualFieldSetupDialog : public QDialog
@@ -53,6 +59,9 @@ public:
 protected slots:
     void widthChanged(double width);
     void heightChanged(double height);
+
+private slots:
+    void adaptGoalBoxVisibility();
 
 private:
     Ui::VirtualFieldSetupDialog *ui;

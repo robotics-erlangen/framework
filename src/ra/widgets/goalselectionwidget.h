@@ -34,6 +34,13 @@ public:
     std::array<float, 6> fieldTransform(float visionWidth, float visionHeight, float virtualHeight);
     void setActiveButton(int buttonId);
     int goalId() const { return m_buttonGroup.checkedId(); }
+    bool isSelectionRealGoal() const { return m_buttonGroup.checkedId() == 4 || m_buttonGroup.checkedId() == 10; }
+
+signals:
+    void goalIdChanged(int id);
+
+private slots:
+    void goalIdChanged();
 
 protected:
     void paintEvent(QPaintEvent *);

@@ -1038,6 +1038,7 @@ void FieldWidget::virtualFieldSetupDialog()
     m_usingVirtualField = m_virtualFieldConfiguration->enabled;
     m_virtualFieldGeometry.CopyFrom(m_virtualFieldConfiguration->geometry);
     m_virtualFieldTransform.setTransform(m_virtualFieldConfiguration->transform);
+    m_geometryUpdated = true;
     updateGeometry();
 
     Command command(new amun::Command);

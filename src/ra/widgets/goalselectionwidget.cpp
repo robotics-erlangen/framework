@@ -27,7 +27,13 @@ GoalSelectionWidget::GoalSelectionWidget(QWidget *parent) : QWidget(parent)
     for (int i = 0;i<12;i++) {
         m_goalSelectionButtons[i].setParent(this);
         m_buttonGroup.addButton(&m_goalSelectionButtons[i], i);
+        connect(&m_goalSelectionButtons[i], SIGNAL(clicked()), this, SLOT(goalIdChanged()));
     }
+}
+
+void GoalSelectionWidget::goalIdChanged()
+{
+    emit goalIdChanged(m_buttonGroup.checkedId());
 }
 
 void GoalSelectionWidget::setActiveButton(int buttonId)
