@@ -615,15 +615,19 @@ void Tracker::handleCommand(const amun::CommandTracking &command)
         reset();
     }
 
-    if (command.has_enable_virtual_field()) {
-        m_virtualFieldEnabled = command.enable_virtual_field();
-        m_geometryUpdated = true;
-    }
-
     if (command.has_field_transform()) {
         const auto &tr = command.field_transform();
         std::array<float, 6> transform({tr.a11(), tr.a12(), tr.a21(), tr.a22(), tr.offsetx(), tr.offsety()});
         m_fieldTransform->setTransform(transform);
+    }
+
+    if (command.has_enable_virtual_field()) {
+        m_virtualFieldEnabled = command.enable_virtual_field();
+        // reset transform
+        if (!command.enable_virtual_field()) {
+            m_fieldTransform->setTransform({1, 0, 0, 1, 0, 0});
+        }
+        m_geometryUpdated = true;
     }
 
     if (command.has_virtual_geometry()) {

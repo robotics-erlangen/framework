@@ -8,7 +8,7 @@ class FieldTransform
 public:
     FieldTransform();
     void setFlip(bool flip);
-    void setTransform(const std::array<float, 6> &values); // array of length 4
+    void setTransform(const std::array<float, 6> &values);
     float applyPosX(float x, float y) const;
     float applyPosY(float x, float y) const;
     float applySpeedX(float x, float y) const;
