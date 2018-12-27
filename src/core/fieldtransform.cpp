@@ -47,6 +47,11 @@ float FieldTransform::applyPosY(float x, float y) const
     return m_transform[2] * x + m_transform[3] * y + m_transform[5];
 }
 
+QPointF FieldTransform::applyPosition(const QPointF &pos) const
+{
+    return QPointF(applyPosX(pos.x(), pos.y()), applyPosY(pos.x(), pos.y()));
+}
+
 float FieldTransform::applySpeedX(float x, float y) const
 {
     return m_transform[0] * x + m_transform[1] * y;
@@ -71,4 +76,25 @@ float FieldTransform::applyAngle(float angle) const
         float yTransformed = applySpeedY(x, y);
         return std::atan2(yTransformed, xTransformed);
     }
+}
+
+float FieldTransform::applyInverseX(float x, float y) const
+{
+    x -= m_transform[4];
+    y -= m_transform[5];
+    float invDet = m_transform[0] * m_transform[3] - m_transform[1] * m_transform[2];
+    return invDet * (m_transform[3] * x - m_transform[1] * y);
+}
+
+float FieldTransform::applyInverseY(float x, float y) const
+{
+    x -= m_transform[4];
+    y -= m_transform[5];
+    float invDet = m_transform[0] * m_transform[3] - m_transform[1] * m_transform[2];
+    return invDet * (-m_transform[2] * x + m_transform[0] * y);
+}
+
+QPointF FieldTransform::applyInversePosition(const QPointF &pos) const
+{
+    return QPointF(applyInverseX(pos.x(), pos.y()), applyInverseY(pos.x(), pos.y()));
 }

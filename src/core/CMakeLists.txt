@@ -19,10 +19,12 @@
 # ***************************************************************************
 
 add_library(core
+	include/core/fieldtransform.h
     include/core/rng.h
     include/core/timer.h
     include/core/vector2.h
 
+	fieldtransform.cpp
     rng.cpp
     timer.cpp
 )
