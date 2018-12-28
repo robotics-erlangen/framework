@@ -231,6 +231,8 @@ void Processor::process()
     if (m_transceiverEnabled) {
         emit sendRadioCommands(radio_commands, current_time);
     }
+
+    m_tracker->finishProcessing();
 }
 
 const world::Robot* Processor::getWorldRobot(const RobotList &robots, uint id) {

@@ -276,8 +276,6 @@ Status Tracker::worldState(qint64 currentTime, bool resetRaw)
         } else {
             status->mutable_geometry()->CopyFrom(m_geometry);
         }
-
-        m_geometryUpdated = false;
     }
 
     if (m_aoiEnabled) {
@@ -312,6 +310,11 @@ Status Tracker::worldState(qint64 currentTime, bool resetRaw)
     }
 
     return status;
+}
+
+void Tracker::finishProcessing()
+{
+    m_geometryUpdated = false;
 }
 
 void Tracker::updateGeometry(const SSL_GeometryFieldSize &g)

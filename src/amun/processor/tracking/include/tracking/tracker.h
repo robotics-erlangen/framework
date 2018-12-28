@@ -66,6 +66,8 @@ public:
     void queueRadioCommands(const QList<robot::RadioCommand> &radio_commands, qint64 time);
     void handleCommand(const amun::CommandTracking &command);
     void reset();
+    void updateTeam(const robot::Team &team, bool isBlue);
+    void finishProcessing(); // has to be called after all calls to worldState for one frame
 
 private:
     void updateGeometry(const SSL_GeometryFieldSize &g);
