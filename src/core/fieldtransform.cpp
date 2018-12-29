@@ -4,47 +4,30 @@
 FieldTransform::FieldTransform() :
     m_lastFlipped(false),
     m_hasTransform(false),
-    m_baseTransform({1, 0, 0, 1, 0, 0})
-{
-    reCalculateTransform();
-}
+    m_transform({1, 0, 0, 1, 0, 0}),
+    m_flipFactor(1.0f)
+{ }
 
 void FieldTransform::setFlip(bool flip)
 {
-    if (flip != m_lastFlipped) {
-        m_lastFlipped = flip;
-        reCalculateTransform();
-    }
+    m_lastFlipped = flip;
+    m_flipFactor = flip ? -1.0f : 1.0f;
 }
 
 void FieldTransform::setTransform(const std::array<float, 6> &values)
 {
-    m_hasTransform = true;
-    if (values == std::array<float, 6>({1, 0, 0, 1, 0, 0})) {
-        m_hasTransform = false;
-    }
-    m_baseTransform = values;
-    reCalculateTransform();
-}
-
-void FieldTransform::reCalculateTransform()
-{
-    m_transform = m_baseTransform;
-    if (m_lastFlipped) {
-        for (int i = 0;i<4;i++) {
-            m_transform[i] = -m_transform[i];
-        }
-    }
+    m_hasTransform = values != std::array<float, 6>({1, 0, 0, 1, 0, 0});
+    m_transform = values;
 }
 
 float FieldTransform::applyPosX(float x, float y) const
 {
-    return m_transform[0] * x + m_transform[1] * y + m_transform[4];
+    return m_flipFactor * (m_transform[0] * x + m_transform[1] * y + m_transform[4]);
 }
 
 float FieldTransform::applyPosY(float x, float y) const
 {
-    return m_transform[2] * x + m_transform[3] * y + m_transform[5];
+    return m_flipFactor * (m_transform[2] * x + m_transform[3] * y + m_transform[5]);
 }
 
 QPointF FieldTransform::applyPosition(const QPointF &pos) const
@@ -54,12 +37,12 @@ QPointF FieldTransform::applyPosition(const QPointF &pos) const
 
 float FieldTransform::applySpeedX(float x, float y) const
 {
-    return m_transform[0] * x + m_transform[1] * y;
+    return m_flipFactor * (m_transform[0] * x + m_transform[1] * y);
 }
 
 float FieldTransform::applySpeedY(float x, float y) const
 {
-    return m_transform[2] * x + m_transform[3] * y;
+    return m_flipFactor * (m_transform[2] * x + m_transform[3] * y);
 }
 
 float FieldTransform::applyAngle(float angle) const
@@ -80,6 +63,8 @@ float FieldTransform::applyAngle(float angle) const
 
 float FieldTransform::applyInverseX(float x, float y) const
 {
+    x *= m_flipFactor;
+    y *= m_flipFactor;
     x -= m_transform[4];
     y -= m_transform[5];
     float invDet = m_transform[0] * m_transform[3] - m_transform[1] * m_transform[2];
@@ -88,6 +73,8 @@ float FieldTransform::applyInverseX(float x, float y) const
 
 float FieldTransform::applyInverseY(float x, float y) const
 {
+    x *= m_flipFactor;
+    y *= m_flipFactor;
     x -= m_transform[4];
     y -= m_transform[5];
     float invDet = m_transform[0] * m_transform[3] - m_transform[1] * m_transform[2];

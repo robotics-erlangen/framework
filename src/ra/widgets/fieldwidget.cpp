@@ -346,6 +346,7 @@ void FieldWidget::handleStatus(const Status &status)
         m_referee.mutable_blue()->CopyFrom(state.blue());
         if (state.has_goals_flipped()) {
             if (m_flipped != state.goals_flipped()) {
+                m_virtualFieldTransform.setFlip(state.goals_flipped());
                 QRectF flippedAoi;
                 flippedAoi.setTopLeft(-m_aoi.bottomRight());
                 flippedAoi.setBottomRight(-m_aoi.topLeft());
@@ -1139,7 +1140,7 @@ void FieldWidget::sendRobotMoveCommands(const QPointF &p)
 {
     Command command(new amun::Command);
     amun::CommandSimulator *sim = command->mutable_simulator();
-    float flipFactor = m_flipped ? -1.0f : 1.0f;
+    float flipFactor = m_flipped && !m_usingVirtualField ? -1.0f : 1.0f;
     if (m_dragType == DragBall) {
         amun::SimulatorMoveBall *ball = sim->mutable_move_ball();
         ball->set_p_x(p.x() * flipFactor);
@@ -1170,7 +1171,7 @@ void FieldWidget::sendRobotMoveCommands(const QPointF &p)
 
 void FieldWidget::sendSimulatorTeleportBall(const QPointF &p)
 {
-    float flipFactor = m_flipped ? -1.0f : 1.0f;
+    float flipFactor = m_flipped && !m_usingVirtualField ? -1.0f : 1.0f;
     Command command(new amun::Command);
     amun::CommandSimulator *sim = command->mutable_simulator();
     amun::SimulatorMoveBall *ball = sim->mutable_move_ball();
@@ -1285,7 +1286,7 @@ void FieldWidget::mousePressEvent(QMouseEvent *event)
 
     event->accept();
     m_dragStart = event->pos();
-    m_mouseBegin = selectedPos;
+    m_mouseBegin = p;
 }
 
 void FieldWidget::mouseMoveEvent(QMouseEvent *event)
@@ -1674,7 +1675,7 @@ void FieldWidget::saveSituation()
 void FieldWidget::ballPlacement(bool blue)
 {
     m_referee.set_command(blue ? SSL_Referee::BALL_PLACEMENT_BLUE : SSL_Referee::BALL_PLACEMENT_YELLOW);
-    float flipFactor = m_flipped ? -1.0f : 1.0f;
+    float flipFactor = m_flipped && !m_usingVirtualField ? -1.0f : 1.0f;
     m_referee.mutable_designated_position()->set_x(m_mouseBegin.y() * flipFactor * 1000.0f);
     m_referee.mutable_designated_position()->set_y(-m_mouseBegin.x() * flipFactor * 1000.0f);
     assert(m_referee.IsInitialized());

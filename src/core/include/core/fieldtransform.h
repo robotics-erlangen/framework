@@ -21,13 +21,10 @@ public:
     QPointF applyInversePosition(const QPointF &pos) const;
 
 private:
-    void reCalculateTransform();
-
-private:
     bool m_lastFlipped;
     bool m_hasTransform;
     std::array<float, 6> m_transform;
-    std::array<float, 6> m_baseTransform;
+    float m_flipFactor;
 };
 
 #endif // FIELDTRANSFORM_H
