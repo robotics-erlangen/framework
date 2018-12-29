@@ -69,7 +69,7 @@ std::array<float, 6> GoalSelectionWidget::fieldTransform(float visionWidth, floa
     const std::vector<std::vector<float>> directions = {{0, 1}, {0, 1}, {0, 1}, {1, 0}, {1, 0}, {1, 0},
                                              {0, -1}, {0, -1}, {0, -1}, {-1, 0}, {-1, 0}, {-1, 0}};
     const std::vector<unsigned int> rotations = {1, 1, 1, 2, 2, 2, 3, 3, 3, 0, 0, 0};
-    const std::vector<std::vector<int>> rotationMatrices = {{1, 0, 0, 1}, {0, 1, -1, 0}, {-1, 0, 0, -1}, {0, 1, 1, 0}};
+    const std::vector<std::vector<int>> rotationMatrices = {{1, 0, 0, 1}, {0, 1, -1, 0}, {-1, 0, 0, -1}, {0, -1, 1, 0}};
 
     unsigned int radioButtonId = (unsigned int)m_buttonGroup.checkedId();
     std::array<float, 6> result;
