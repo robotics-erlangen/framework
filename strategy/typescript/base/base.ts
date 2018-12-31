@@ -53,3 +53,8 @@ import "base/world";
 
 // prevent access to internal APIs
 amunModule._hideFunctions();
+
+// declare the always present 'require' function
+declare global {
+	function require(module: string, cleanRequire?: boolean, overlays?: {[name: string]: any}): any;
+}
