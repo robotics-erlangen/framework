@@ -10,3 +10,4 @@ import "glados/test/unit/base/processor";
 import "glados/test/unit/base/vector";
 import "glados/test/unit/glados/messaging";
 import "glados/test/unit/glados/pools";
+import "glados/test/unit/glados/unittest";

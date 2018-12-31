@@ -146,7 +146,7 @@ export class UnitTest {
 	}
 
 	protected assert_equal_eps(a: number, b: number, eps: number) {
-		if (Math.abs(a - b) >= eps) {
+		if (Math.abs(a - b) > eps) {
 			throw new Error(`Assert failed: diff between ${a} and ${b} (${Math.abs(a - b)} is greater than ${eps})`);
 		}
 	}
