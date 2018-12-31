@@ -237,7 +237,7 @@ export function sign(value: number): -1 | 0 | 1 {
 	}
 }
 
-export function average(array: [number], indexStart: number = 0, indexEnd: number = array.length): number {
+export function average(array: number[], indexStart: number = 0, indexEnd: number = array.length): number {
 	let sum = 0;
 	for (let i = indexStart;i < indexEnd;i++) {
 		sum += array[i];
@@ -245,7 +245,7 @@ export function average(array: [number], indexStart: number = 0, indexEnd: numbe
 	return sum / (indexEnd - indexStart);
 }
 
-export function variance(array: [number], avg?: number, indexStart: number = 0, indexEnd: number = array.length): number {
+export function variance(array: number[], avg?: number, indexStart: number = 0, indexEnd: number = array.length): number {
 	if (avg == undefined) {
 		avg = average(array, indexStart, indexEnd);
 	}
