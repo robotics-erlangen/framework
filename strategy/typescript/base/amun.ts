@@ -305,8 +305,11 @@ export function _hideFunctions() {
 	let sendCommand = amun.sendCommand;
 	let sendNetworkRefereeCommand = amun.sendNetworkRefereeCommand;
 
-	const DISABLED_FUNCTION = function(..._: any[]): any {
-		throw new Error("Usage of disabled amun function");
+	const makeDisabledFunction = function(name: string) {
+		function DISABLED_FUNCTION(..._: any[]): any {
+			throw new Error("Usage of disabled amun function " + name);
+		}
+		return DISABLED_FUNCTION;
 	};
 
 	amun = {
@@ -319,34 +322,34 @@ export function _hideFunctions() {
 		setRobotExchangeSymbol: setRobotExchangeSymbol,
 		nextRefboxReply: nextRefboxReply,
 		log: log,
-		sendCommand: isDebug ? sendCommand : DISABLED_FUNCTION,
-		sendNetworkRefereeCommand: isDebug ? sendNetworkRefereeCommand : DISABLED_FUNCTION,
+		sendCommand: isDebug ? sendCommand : makeDisabledFunction("sendCommand"),
+		sendNetworkRefereeCommand: isDebug ? sendNetworkRefereeCommand : makeDisabledFunction("sendNetworkRefereeCommand"),
 
-		getWorldState: DISABLED_FUNCTION,
-		getGeometry: DISABLED_FUNCTION,
-		getTeam: DISABLED_FUNCTION,
-		isBlue: DISABLED_FUNCTION,
-		addVisualization: DISABLED_FUNCTION,
-		addCircleSimple: DISABLED_FUNCTION,
-		addPathSimple: DISABLED_FUNCTION,
-		addPolygonSimple: DISABLED_FUNCTION,
-		setCommand: DISABLED_FUNCTION,
-		setCommands: DISABLED_FUNCTION,
-		getGameState: DISABLED_FUNCTION,
-		getUserInput: DISABLED_FUNCTION,
-		getStrategyPath: DISABLED_FUNCTION,
-		getSelectedOptions: DISABLED_FUNCTION,
-		addDebug: DISABLED_FUNCTION,
-		addPlot: DISABLED_FUNCTION,
-		sendRefereeCommand: DISABLED_FUNCTION,
-		sendMixedTeamInfo: DISABLED_FUNCTION,
-		getPerformanceMode: DISABLED_FUNCTION,
-		connectDebugger: DISABLED_FUNCTION,
-		debuggerSend: DISABLED_FUNCTION,
-		disconnectDebugger: DISABLED_FUNCTION,
+		getWorldState: makeDisabledFunction("getWorldState"),
+		getGeometry: makeDisabledFunction("getGeometry"),
+		getTeam: makeDisabledFunction("getTeam"),
+		isBlue: makeDisabledFunction("isBlue"),
+		addVisualization: makeDisabledFunction("addVisualization"),
+		addCircleSimple: makeDisabledFunction("addCircleSimple"),
+		addPathSimple: makeDisabledFunction("addPathSimple"),
+		addPolygonSimple: makeDisabledFunction("addPolygonSimple"),
+		setCommand: makeDisabledFunction("setCommand"),
+		setCommands: makeDisabledFunction("setCommands"),
+		getGameState: makeDisabledFunction("getGameState"),
+		getUserInput: makeDisabledFunction("getUserInput"),
+		getStrategyPath: makeDisabledFunction("getStrategyPath"),
+		getSelectedOptions: makeDisabledFunction("getSelectedOptions"),
+		addDebug: makeDisabledFunction("addDebug"),
+		addPlot: makeDisabledFunction("addPlot"),
+		sendRefereeCommand: makeDisabledFunction("sendRefereeCommand"),
+		sendMixedTeamInfo: makeDisabledFunction("sendMixedTeamInfo"),
+		getPerformanceMode: makeDisabledFunction("getPerformanceMode"),
+		connectDebugger: makeDisabledFunction("connectDebugger"),
+		debuggerSend: makeDisabledFunction("debuggerSend"),
+		disconnectDebugger: makeDisabledFunction("disconnectDebugger"),
 
-		luaRandomSetSeed: DISABLED_FUNCTION,
-		luaRandom: DISABLED_FUNCTION
+		luaRandomSetSeed: makeDisabledFunction("luaRandomSetSeed"),
+		luaRandom: makeDisabledFunction("luaRandom")
 	};
 }
 
