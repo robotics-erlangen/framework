@@ -200,7 +200,7 @@ static void amunSetCommands(const FunctionCallbackInfo<Value>& args)
     }
     Local<Array> commands = Local<Array>::Cast(args[0]);
     QList<RobotCommandInfo> robotCommands;
-    for (int i = 0;i<commands->Length();i++) {
+    for (unsigned int i = 0;i<commands->Length();i++) {
         Local<Value> commandObject = commands->Get(i);
         if (!commandObject->IsArray()) {
             Local<String> errorMessage = String::NewFromUtf8(isolate, "Argument is not an array", String::kNormalString);
