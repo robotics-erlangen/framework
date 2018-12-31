@@ -185,6 +185,11 @@ import * as vis from "base/vis";
 let teamIsBlue = amun.isBlue();
 let isPerformanceMode = amun.getPerformanceMode();
 
+// only to be used for unit tests
+export function getOriginalPath(): any {
+	return pathLocal;
+}
+
 export class Path {
 	private readonly _inst: any;
 	private readonly _robotId: number;
