@@ -5,6 +5,9 @@ const debuggerSend = amun.debuggerSend;
 
 declare let ___globalpleasedontuseinregularcode: any;
 
+// counts the number of exceptions every frame to improve the stacktrace
+let exceptionCounter = 0;
+
 // this debugger currently only supports dumping the stack on exceptions
 
 interface ScriptInfo {
@@ -179,7 +182,12 @@ function handleNotification(notification: string) {
 		___globalpleasedontuseinregularcode.debugExtraParams = debug.getInitialExtraParams();
 
 		let pausedInfo: DebuggerPaused = notificationObject.params;
-		debug.pushtop("Stack trace");
+		if (exceptionCounter === 0) {
+			debug.pushtop("Stack trace");
+		} else {
+			debug.pushtop(`Stack trace ${exceptionCounter}`);
+		}
+		exceptionCounter += 1;
 		debug.set("Globals", undefined);
 		let level = 0;
 		let globalDumped = false;
@@ -265,6 +273,7 @@ function messageLoop() {
 }
 
 export function runDebugger() {
+	exceptionCounter = 0;
 	if (connectDebugger(handleResponse, handleNotification, messageLoop)) {
 		sendMessage("Console.enable");
 		sendMessage("Debugger.enable");
