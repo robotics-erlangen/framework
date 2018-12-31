@@ -132,8 +132,8 @@ export function intersectLineCorridor(offset : Position, direction: RelativePosi
 	let offsetCorridorRight = offsetCorridor - corridorPerpendicular;
 	let [intersectionLeft, lambdaLeftLine, lambdaLeft] = intersectLineLine(offset, direction,
 															offsetCorridorLeft, directionCorridor);
-	if (intersectionLeft || direction.equals(new Vector(0, 0))) {
-		// Either no intersection || line is in corridor
+	if (intersectionLeft == undefined || direction.equals(new Vector(0, 0))) {
+		// Either no intersection or line is in corridor
 		let leftDistance = offset.orthogonalDistance(offsetCorridorLeft, offsetCorridorLeft + directionCorridor);
 		let rightDistance = offset.orthogonalDistance(offsetCorridorRight, offsetCorridorRight + directionCorridor);
 		if (Math.abs(leftDistance) <= widthHalf * 2 && Math.abs(rightDistance) <= widthHalf * 2) {
