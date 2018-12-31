@@ -77,7 +77,7 @@ private:
     v8::Persistent<v8::Function> m_function;
     double m_totalPathTime;
 
-    QMap<QString, v8::Global<v8::Value>*> m_requireCache;
+    QList<QMap<QString, v8::Global<v8::Value>*>> m_requireCache;
     v8::Persistent<v8::FunctionTemplate> m_requireTemplate;
     QString m_currentExecutingModule;
     QAtomicInt m_timeoutCounter; // used for script timeout

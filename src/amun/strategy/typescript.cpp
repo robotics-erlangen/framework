@@ -42,6 +42,7 @@ template <typename T> inline void USE(T&&) {}
 
 Typescript::Typescript(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled) :
     AbstractStrategyScript (timer, type, debugEnabled, refboxControlEnabled),
+    m_requireCache({{}}),
     m_executionCounter(0),
     m_profiler (nullptr),
     m_scriptIdCounter(0),
@@ -92,8 +93,10 @@ Typescript::~Typescript()
         m_profiler->Dispose();
         m_profiler = nullptr;
     }
-    for (auto element : m_requireCache.values()) {
-        delete element;
+    for (auto &cache : m_requireCache) {
+        for (auto element : cache.values()) {
+            delete element;
+        }
     }
     m_function.Reset();
     m_requireTemplate.Reset();
@@ -173,7 +176,7 @@ bool Typescript::loadScript(const QString &filename, const QString &entryPoint)
         m_errorMsg = "<font color=\"red\">" + QString(*error) + "</font>";
         return false;
     }
-    Local<Object> initExport = Local<Value>::New(m_isolate, *m_requireCache[m_filename])->ToObject(context).ToLocalChecked();
+    Local<Object> initExport = Local<Value>::New(m_isolate, *m_requireCache.back()[m_filename])->ToObject(context).ToLocalChecked();
     Local<String> scriptInfoString = String::NewFromUtf8(m_isolate, "scriptInfo", NewStringType::kNormal).ToLocalChecked();
     if (!initExport->Has(context, scriptInfoString).ToChecked()) {
         // the script returns nothing
@@ -266,7 +269,7 @@ void Typescript::defineModule(const FunctionCallbackInfo<Value> &args)
 
     Local<Object> exports = Object::New(isolate);
     parameters.push_back(exports);
-    t->m_requireCache[t->m_currentExecutingModule] = new Global<Value>(isolate, exports);
+    t->m_requireCache.back()[t->m_currentExecutingModule] = new Global<Value>(isolate, exports);
 
 
     for (unsigned int i = 2;i<imports->Length();i++) {
@@ -274,7 +277,7 @@ void Typescript::defineModule(const FunctionCallbackInfo<Value> &args)
         if (!t->loadModule(name)) {
             return;
         }
-        Local<Value> mod = Local<Value>::New(isolate, *t->m_requireCache[name]);
+        Local<Value> mod = Local<Value>::New(isolate, *t->m_requireCache.back()[name]);
         parameters.push_back(mod);
     }
 
@@ -306,7 +309,7 @@ ScriptOrigin *Typescript::scriptOriginFromFileName(QString name)
 
 bool Typescript::loadModule(QString name)
 {
-    if (!m_requireCache.contains(name)) {
+    if (!m_requireCache.back().contains(name)) {
         QFileInfo initInfo(m_filename);
         QFile file(initInfo.absolutePath() + "/" + name + ".js");
         file.open(QIODevice::ReadOnly);
@@ -342,9 +345,44 @@ bool Typescript::loadModule(QString name)
 void Typescript::performRequire(const FunctionCallbackInfo<Value> &args)
 {
     Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
+    Local<Context> context = args.GetIsolate()->GetCurrentContext();
+
+    bool cleanRequire = false;
+    if (args.Length() > 1) {
+        USE(args[1]->BooleanValue(context).To(&cleanRequire));
+        if (cleanRequire) {
+            t->m_requireCache.push_back({});
+        }
+    }
+    if (args.Length() > 2) {
+        if (!cleanRequire || !args[2]->IsObject()) {
+            const char *text = "Overlays can only be used with a clean require and must be an object!";
+            Local<String> exception = String::NewFromUtf8(args.GetIsolate(), text, NewStringType::kNormal).ToLocalChecked();
+            args.GetIsolate()->ThrowException(exception);
+            return;
+        }
+        Local<Object> overlays = args[2]->ToObject(context).ToLocalChecked();
+        Local<Array> properties = overlays->GetOwnPropertyNames();
+        for (unsigned int i = 0;i<properties->Length();i++) {
+            Local<Value> key = properties->Get(i);
+            Local<Value> value = overlays->Get(key);
+
+            QString keyString(*String::Utf8Value(key));
+            t->m_requireCache.back()[keyString] = new Global<Value>(args.GetIsolate(), value);
+        }
+    }
+
     QString name(*String::Utf8Value(args[0]));
     t->loadModule(name);
-    args.GetReturnValue().Set(*t->m_requireCache[name]);
+    args.GetReturnValue().Set(*t->m_requireCache.back()[name]);
+
+    // remove new require module stack layer
+    if (cleanRequire) {
+        for (auto element : t->m_requireCache.back().values()) {
+            delete element;
+        }
+        t->m_requireCache.pop_back();
+    }
 }
 
 void Typescript::addPathTime(double time)
