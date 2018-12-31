@@ -40,7 +40,7 @@ export function addPre(proc: Process) {
 // @name addPost
 // @param proc Process - Process object to be run
 export function addPost(proc: Process) {
-	preprocs.push(proc);
+	postprocs.push(proc);
 }
 
 function run(procs: Process[]) {
