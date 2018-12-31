@@ -26,7 +26,7 @@ import * as Robot from "glados/observer/robot";
 // require "test/situation/index";
 // require "test/task/index";
 // require "test/unit/index";
-
+import "glados/test/unit/index";
 
 class PreProc implements Process {
 	run() {
