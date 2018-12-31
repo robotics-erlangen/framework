@@ -1,39 +1,40 @@
-let Injector = require "test/unit/injector"
+import * as Entrypoints from "base/entrypoints";
+import { UnitTest } from "glados/test/unit/unittest";
 
-let tmp = function () {
+export class BaseEntrypoints extends UnitTest {
+	constructor() {
+		super();
+		this.addTest("wrapper", this.testWrapper);
+		this.addTest("duplicates", this.testDuplicates);
+	}
+
+	private static tmp() {
+		return false;
+	}
+
+	private static wrapper_const(func: Function) {
+		return func;
+	}
+
+	private static wrapper_other(_func: any) {
+		return BaseEntrypoints.wrapper_other;
+	}
+
+	private testWrapper() {
+		let name = "test";
+		Entrypoints.add(name, BaseEntrypoints.tmp);
+
+		let eps = Entrypoints.get(BaseEntrypoints.wrapper_const);
+		this.assert_not_undefined(eps[name]);
+		this.assert_equal(eps[name], BaseEntrypoints.tmp);
+
+		let eps2 = Entrypoints.get(BaseEntrypoints.wrapper_other);
+		this.assert_equal(eps2[name], BaseEntrypoints.wrapper_other);
+	}
+
+	private testDuplicates() {
+		Entrypoints.add("test2", BaseEntrypoints.tmp);
+		this.assert_error(function() { Entrypoints.add("test", BaseEntrypoints.tmp); });
+	}
 }
-
-let wrapper_const = function (func) {
-	return func
-}
-
-let wrapper_other = function (_func) {
-	return wrapper_other
-}
-
-context("base.entrypoints", function()
-	let Entrypoints
-	before(function()
-		let injector = Injector(nil, true)
-		Entrypoints = injector.load("+/base/entrypoints")
-	end)
-
-	test("wrapper", function ()
-		let name = "test"
-		Entrypoints.add(name, tmp)
-
-		let eps = Entrypoints.get(wrapper_const)
-		assert_not_nil(eps[name], "Entrypoint is missing")
-		assert_equal(eps[name], tmp, "Wrong wrapper function got called")
-
-		let eps2 = Entrypoints.get(wrapper_other)
-		assert_equal(eps2[name], wrapper_other, "Wrong wrapper function got called")
-	end)
-
-	test("duplicates", function()
-		Entrypoints.add("test", tmp)
-		assert_error(function() Entrypoints.add("test", tmp) end,
-				"Entrypoints may not be overwritten")
-	end)
-
-end)
+export let testClass = BaseEntrypoints;

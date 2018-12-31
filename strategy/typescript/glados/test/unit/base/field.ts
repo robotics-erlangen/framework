@@ -1,117 +1,117 @@
-let Injector = require "test/unit/injector"
+import { Vector } from "base/vector";
+import { UnitTest } from "glados/test/unit/unittest";
 
-context("base.field", function()
-	let Field, Referee, World, G
-	let injector
+export class BaseField extends UnitTest {
+	private static World = {
+		Geometry: {
+			FieldHeightHalf: 4.5,
+			FieldWidthHalf: 3,
+			FreeKickDefenseDist: 0.2,
+			DefenseStretch: 0.5,
+			DefenseRadius: 1,
+			GoalWidth: 1,
+			GoalDepth: 0.18
+		},
+		RULEVERSION: "" // keep empty for now
+	};
+	private Field: any;
+	private G: any;
+	private static Referee = {
+		isStopState: function() {
+			return false;
+		},
+		isFriendlyFreeKickState: function() {
+			return false;
+		}
+	};
 
-	let initHelper = function (ruleversion) {
-		World.RULEVERSION = ruleversion
-		Field = injector.load("+/base/field")
+	constructor() {
+		super();
+		this.addTest("distanceToDefenseArea_2018", this.testDistanceToDefenseArea_2018);
+		this.addTest("distanceToDefenseArea_2017", this.testDistanceToDefenseArea_2017);
+		this.addTest("intersectDefenseArea_2018", this.testIntersectDefenseArea_2018);
+
+		this.G = BaseField.World.Geometry;
+		this.G.DefenseStretchHalf = this.G.DefenseStretch / 2;
+		this.G.DefenseHeight = this.G.DefenseRadius;
+		this.G.DefenseWidth = this.G.DefenseHeight * 2;
+		this.G.DefenseWidthHalf = this.G.DefenseWidth / 2;
 	}
 
-	before(function()
-		injector = Injector(undefined)
-		injector.load("+/base/math")
-		injector.load("+/base/geom")
+	public static getOverlays() {
+		return {"base/world": this.World, "base/referee": this.Referee};
+	}
 
-		World = {
-			Geometry = {
-				FieldHeightHalf = 4.5,
-				FieldWidthHalf = 3,
-				FreeKickDefenseDist = 0.2,
-				DefenseStretch = 0.5,
-				DefenseRadius = 1,
-				GoalWidth = 1,
-				GoalDepth = 0.18,
-			},
-			RULEVERSION = undefined // keep unset for now
-		}
-		G = World.Geometry
-		G.DefenseStretchHalf = G.DefenseStretch / 2
-		G.DefenseHeight = G.DefenseRadius
-		G.DefenseWidth = G.DefenseHeight * 2
-		G.DefenseWidthHalf = G.DefenseWidth / 2
+	private initHelper(ruleversion: string) {
+		BaseField.World.RULEVERSION = ruleversion;
+		// tslint:disable-next-line
+		this.Field = require("base/field", true, BaseField.getOverlays());
+	}
 
-		Referee = {
-			isStopState = function()
-				return false
-			end,
-			isFriendlyFreeKickState = function()
-				return false
-			}
-		}
+	private testDistanceToDefenseArea_2018() {
+		this.initHelper("2018");
 
-		injector:addModuleOverlay("+/base/world", World)
-		injector:addModuleOverlay("+/base/referee", Referee)
-	end)
+		let pos = new Vector(0, 0);
+		this.assert_equal(this.Field.distanceToDefenseArea(pos, 3, false), 0.5);
+		this.assert_equal(this.Field.distanceToDefenseArea(pos, 3, true), 0.5);
 
-	test("distanceToDefenseArea_2018", function()
-		initHelper("2018")
+		this.assert_false(this.Field.isInDefenseArea(pos, 0.18, false));
+		this.assert_false(this.Field.isInDefenseArea(pos, 0.18, true));
+		pos = new Vector(0.1, this.G.FieldHeightHalf);
+		this.assert_true(this.Field.isInDefenseArea(pos, 0.18, false));
+		this.assert_false(this.Field.isInDefenseArea(pos, 0.18, true));
+		pos = new Vector(this.G.DefenseWidthHalf + 0.2, -this.G.FieldHeightHalf + 0.4);
+		this.assert_true(this.Field.isInDefenseArea(pos, 0.3, true));
+		this.assert_false(this.Field.isInDefenseArea(pos, 0.3, false));
+		pos = new Vector(this.G.DefenseWidthHalf + 0.1, this.G.FieldHeightHalf - this.G.DefenseHeight - 0.1);
+		this.assert_true(this.Field.isInDefenseArea(pos, 0.2, false));
 
-		let pos = new Vector(0, 0)
-		assert_equal(Field.distanceToDefenseArea(pos, 3, false), 0.5)
-		assert_equal(Field.distanceToDefenseArea(pos, 3, true), 0.5)
+		pos = new Vector(this.G.DefenseWidthHalf - 0.01, this.G.FieldHeightHalf - this.G.DefenseHeight / 2);
+		this.assert_true(Math.abs(this.Field.distanceToDefenseArea(pos, -0.02, false) - 0.01) < 0.000001);
+		this.assert_false(this.Field.isInDefenseArea(pos, -0.02, false));
+		this.assert_true(this.Field.distanceToDefenseArea(pos, -0.005, false) <= 0);
+		this.assert_true(this.Field.isInDefenseArea(pos, -0.005, false));
+		pos = new Vector(0, this.G.FieldHeightHalf - this.G.DefenseHeight / 2);
+		this.assert_true(this.Field.distanceToDefenseArea(pos, -this.G.DefenseHeight / 2 + 0.0001, false) <= 0);
+		this.assert_true(this.Field.isInDefenseArea(pos, -this.G.DefenseHeight / 2 + 0.0001, false));
+		this.assert_true(this.Field.distanceToDefenseArea(pos, -this.G.DefenseHeight / 2 - 0.0001, false) > 0);
+		this.assert_false(this.Field.isInDefenseArea(pos, -this.G.DefenseHeight / 2 - 0.0001, false));
+	}
 
-		assert_false(Field.isInDefenseArea(pos, 0.18, false))
-		assert_false(Field.isInDefenseArea(pos, 0.18, true))
-		pos = new Vector(0.1, G.FieldHeightHalf)
-		assert_true(Field.isInDefenseArea(pos, 0.18, false))
-		assert_false(Field.isInDefenseArea(pos, 0.18, true))
-		pos = new Vector(G.DefenseWidthHalf + 0.2, -G.FieldHeightHalf + 0.4)
-		assert_true(Field.isInDefenseArea(pos, 0.3, true))
-		assert_false(Field.isInDefenseArea(pos, 0.3, false))
-		pos = new Vector(G.DefenseWidthHalf + 0.1, G.FieldHeightHalf - G.DefenseHeight - 0.1)
-		assert_true(Field.isInDefenseArea(pos, 0.2, false))
+	private testDistanceToDefenseArea_2017() {
+		this.initHelper("2017");
 
-		pos = new Vector(G.DefenseWidthHalf - 0.01, G.FieldHeightHalf-G.DefenseHeight/2)
-		// log(Field.distanceToDefenseArea(pos, -0.02))
-		// log(Field.distanceToDefenseArea(pos, -0.02))
-		assert_true(Math.abs(Field.distanceToDefenseArea(pos, -0.02)-0.01)<0.000001)
-		assert_false(Field.isInDefenseArea(pos, -0.02))
-		assert_true(Field.distanceToDefenseArea(pos, -0.005)<=0)
-		assert_true(Field.isInDefenseArea(pos, -0.005))
-		pos = new Vector(0, G.FieldHeightHalf - G.DefenseHeight/2)
-		assert_true(Field.distanceToDefenseArea(pos, -G.DefenseHeight/2 + 0.0001)<=0)
-		assert_true(Field.isInDefenseArea(pos, -G.DefenseHeight/2 + 0.0001))
-		assert_true(Field.distanceToDefenseArea(pos, -G.DefenseHeight/2 - 0.0001)>0)
-		assert_false(Field.isInDefenseArea(pos, -G.DefenseHeight/2 - 0.0001))
-
-	end)
-	test("distanceToDefenseArea_2017", function()
-		initHelper("2017")
-
-		let pos = new Vector(0, 0)
-		assert_equal(Field.distanceToDefenseArea(pos, 3, false), 0.5)
-		assert_equal(Field.distanceToDefenseArea(pos, 3, true), 0.5)
-		assert_false(Field.isInDefenseArea(pos, 0.18, false))
-		assert_false(Field.isInDefenseArea(pos, 0.18, true))
-		pos = new Vector(0.1, G.FieldHeightHalf)
-		assert_true(Field.isInDefenseArea(pos, 0.18, false))
-		assert_false(Field.isInDefenseArea(pos, 0.18, true))
+		let pos = new Vector(0, 0);
+		this.assert_equal(this.Field.distanceToDefenseArea(pos, 3, false), 0.5);
+		this.assert_equal(this.Field.distanceToDefenseArea(pos, 3, true), 0.5);
+		this.assert_false(this.Field.isInDefenseArea(pos, 0.18, false));
+		this.assert_false(this.Field.isInDefenseArea(pos, 0.18, true));
+		pos = new Vector(0.1, this.G.FieldHeightHalf);
+		this.assert_true(this.Field.isInDefenseArea(pos, 0.18, false));
+		this.assert_false(this.Field.isInDefenseArea(pos, 0.18, true));
 
 
-		pos = new Vector(G.DefenseStretchHalf + G.DefenseRadius - 0.01, G.FieldHeightHalf)
-		// log(Field.distanceToDefenseArea(pos, -0.02))
-		// log(Field.distanceToDefenseArea(pos, -0.02))
-		assert_true(Math.abs(Field.distanceToDefenseArea(pos, -0.02)-0.01)<0.000001)
-		assert_false(Field.isInDefenseArea(pos, -0.02))
-		assert_true(Field.distanceToDefenseArea(pos, -0.005)<=0)
-		assert_true(Field.isInDefenseArea(pos, -0.005))
-		pos = new Vector(0, G.FieldHeightHalf)
-		assert_true(Field.distanceToDefenseArea(pos, -G.DefenseRadius + 0.0001)<=0)
-		assert_true(Field.isInDefenseArea(pos, -G.DefenseRadius + 0.0001))
-		assert_true(Field.distanceToDefenseArea(pos, -G.DefenseRadius - 0.0001)>0)
-		assert_false(Field.isInDefenseArea(pos, -G.DefenseRadius - 0.0001))
-	end)
-	test("intersectDefenseArea_2018", function()
-		initHelper("2018")
+		pos = new Vector(this.G.DefenseStretchHalf + this.G.DefenseRadius - 0.01, this.G.FieldHeightHalf);
+		this.assert_true(Math.abs(this.Field.distanceToDefenseArea(pos, -0.02) - 0.01) < 0.000001);
+		this.assert_false(this.Field.isInDefenseArea(pos, -0.02));
+		this.assert_true(this.Field.distanceToDefenseArea(pos, -0.005) <= 0);
+		this.assert_true(this.Field.isInDefenseArea(pos, -0.005));
+		pos = new Vector(0, this.G.FieldHeightHalf);
+		this.assert_true(this.Field.distanceToDefenseArea(pos, -this.G.DefenseRadius + 0.0001) <= 0);
+		this.assert_true(this.Field.isInDefenseArea(pos, -this.G.DefenseRadius + 0.0001));
+		this.assert_true(this.Field.distanceToDefenseArea(pos, -this.G.DefenseRadius - 0.0001) > 0);
+		this.assert_false(this.Field.isInDefenseArea(pos, -this.G.DefenseRadius - 0.0001));
+	}
 
-		let pos = new Vector(0,0)
-		let dir = new Vector(0,-1)
-		// log("hi")
-		let d = 0.2
-		let v = new Vector(0, -G.FieldHeightHalf+G.DefenseHeight+d)
-		let intersection = Field.intersectRayDefenseArea(pos,dir,d,true)
-		assert_true(v.distanceToSq(intersection) == 0)
-	end)
-end)
+	private testIntersectDefenseArea_2018() {
+		this.initHelper("2018");
+
+		let pos = new Vector(0, 0);
+		let dir = new Vector(0, -1);
+		let d = 0.2;
+		let v = new Vector(0, -this.G.FieldHeightHalf + this.G.DefenseHeight + d);
+		let intersection = this.Field.intersectRayDefenseArea(pos, dir, d, true)[0];
+		this.assert_true(v.distanceToSq(intersection) === 0);
+	}
+}
+export let testClass = BaseField;

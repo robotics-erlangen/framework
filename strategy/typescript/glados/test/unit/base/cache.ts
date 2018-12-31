@@ -1,123 +1,116 @@
-let Injector = require "test/unit/injector"
+import * as Cache from "base/cache";
+import { UnitTest } from "glados/test/unit/unittest";
 
-context("base.cache", function ()
-	let Cache
-	before(function()
-		let injector = Injector(nil, true)
-		Cache = injector.load("+/base/cache")
-	end)
+export class BaseCache extends UnitTest {
+	constructor() {
+		super();
+		this.addTest("different arguments", this.testDifferentArguments);
+		this.addTest("undefined parameters", this.testUndefinedParameters);
+		this.addTest("parameters", this.testParameters);
+		this.addTest("side effects", this.testSideEffects);
+		this.addTest("heavy", this.testHeavy);
+		this.addTest("forever", this.testForever);
+	}
 
-	test("different arguments", function ()
-		let foo = function (a, b, c) {
-			return a*(b+c)
+	private testDifferentArguments() {
+		function foo(a: number, b: number, c: number) {
+			return a * (b + c);
 		}
-		foo = Cache.forFrame(foo)
+		let cached = Cache.forFrame(foo);
 
-		let a = foo(1,2,3)
-		let b = foo(2,3,4)
-		assert_not_equal(a, b, "different arguments should result in different results")
-	end)
+		let a = cached(1,2,3);
+		let b = cached(2,3,4);
+		this.assert_not_equal(a, b);
+	}
 
-	test("nil parameters", function ()
-		let bar = function () {
-			return 4
+	private testUndefinedParameters() {
+		function bar() {
+			return 4;
 		}
-		bar = Cache.forFrame(bar)
+		let cached: Function = Cache.forFrame(bar);
 
 		// unused and undefined parameters should not pose problems (multiple calls are ok)
-		let a = bar()
-		let b = bar("bla")
-		let c = bar(nil, 7)
+		let a = cached();
+		let b = cached("bla");
+		let c = cached(undefined, 7);
 		// equal to a
-		let d = bar(nil, undefined, undefined)
-		assert_equal(a, 4)
-		assert_equal(b, 4)
-		assert_equal(c, 4)
-		assert_equal(d, 4)
-	end)
+		let d = cached(undefined, undefined, undefined);
+		this.assert_equal(a, 4);
+		this.assert_equal(b, 4);
+		this.assert_equal(c, 4);
+		this.assert_equal(d, 4);
+	}
 
-	test("parameters", function ()
-		let echo = function (...) {
-			return {...}
+	private testParameters() {
+		function echo(...args: any[]) {
+			return args;
 		}
-		echo = Cache.forFrame(echo)
+		let cached: any = Cache.forFrame(echo);
 
-		let a = echo()
-		let b = echo("bla")
-		let c = echo(nil, 7)
-		let d = echo(nil, undefined, undefined, 5)
-		assert_deep_equal(a, {})
-		assert_deep_equal(b, { "bla" })
-		assert_deep_equal(c, { undefined, 7 })
-		assert_deep_equal(d, { undefined, undefined, undefined, 5 })
-	end)
+		let a = cached();
+		let b = cached("bla");
+		let c = cached(undefined, 7);
+		let d = cached(undefined, undefined, undefined, 5);
+		this.assert_deep_equal(a, []);
+		this.assert_deep_equal(b, [ "bla" ]);
+		this.assert_deep_equal(c, [ undefined, 7 ]);
+		this.assert_deep_equal(d, [ undefined, undefined, undefined, 5 ]);
+	}
 
-	test("side effects", function ()
-		let side = 0
-		let sideEffect = function () {
-			side = side + 1
+	private testSideEffects() {
+		let side = 0;
+		function sideEffect() {
+			side = side + 1;
 		}
-		sideEffect = Cache.forFrame(sideEffect)
+		let cached = Cache.forFrame(sideEffect);
 
-		sideEffect()
-		let before = side
-		sideEffect()
-		let after = side
-		assert_equal(before, after, "when called with the same arguments, the function should only be called once")
+		cached();
+		let before = side;
+		cached();
+		let after = side;
+		this.assert_equal(before, after);
 
-		Cache.resetFrame()
-		sideEffect()
-		let afterReset = side
-		assert_equal(after + 1, afterReset)
-	end)
+		Cache.resetFrame();
+		cached();
+		let afterReset = side;
+		this.assert_equal(after + 1, afterReset);
+	}
 
-	test("multiple return", function ()
-		let multiReturn = function () {
-			return 1, 2, 3
-		}
-		multiReturn = Cache.forFrame(multiReturn)
-
-		let r1, r2, r3 = multiReturn()
-		// multiple return values should be possible
-		assert_equal(r1,1)
-		assert_equal(r2,2)
-		assert_equal(r3,3)
-	end)
-
-	test("heavy", function ()
-		let heavy = function () {
-			let a = 0
-			for (i = 0, 1000000) {
-				a = a + i
+	private testHeavy() {
+		function heavy() {
+			let a = 0;
+			for (let i = 0;i < 1000000;i++) {
+				a = a + i;
 			}
 		}
-		heavy = Cache.forFrame(heavy)
+		let cached = Cache.forFrame(heavy);
 
 		// some number-crunching for time-measuring
-		for (_ = 1, 100000) {
-			heavy()
+		for (let i = 0;i < 100000;i++) {
+			cached();
 		}
-		assert_true(true)
-	end)
+		this.assert_true(true);
+	}
 
-	test("forever", function ()
-		let side = 0
-		let sideEffect = function () {
-			side = side + 1
+	private testForever() {
+		let side = 0;
+		function sideEffect() {
+			side = side + 1;
 		}
-		sideEffect = Cache.forever(sideEffect)
+		let cached = Cache.forever(sideEffect);
 
-		let before = side
-		sideEffect()
-		let mid = side
-		sideEffect()
-		let after = side
-		assert_equal(before + 1, mid)
-		assert_equal(mid, after)
+		let before = side;
+		cached();
+		let mid = side;
+		cached();
+		let after = side;
+		this.assert_equal(before + 1, mid);
+		this.assert_equal(mid, after);
 
-		Cache.resetFrame()
-		sideEffect()
-		let afterReset = side
-		assert_equal(after, afterReset, "resetFrame shouldn't affect caching forever")
-	end)
-end)
+		Cache.resetFrame();
+		cached();
+		let afterReset = side;
+		this.assert_equal(after, afterReset);
+	}
+}
+export let testClass = BaseCache;

@@ -1,104 +1,102 @@
-let Injector = require "test/unit/injector"
+import * as C from "base/coordinates";
+import { Vector } from "base/vector";
+import { UnitTest } from "glados/test/unit/unittest";
 
-let testfuncs = function (teamIsBlue) {
-	return function()
-		let Coordinates
-		before(function()
-			let injector = Injector(undefined)
-			Coordinates = injector.load("+/base/coordinates")
-			Coordinates._setIsBlue(teamIsBlue)
-		end)
+import * as debug from "base/debug";
 
-		test("vector", function()
-			let vec = new Vector(1, 2)
-			let vec2 = Coordinates.toGlobal(vec)
-			let vec3 = Coordinates.toLocal(vec)
+export class BaseCoordinates extends UnitTest {
+	constructor() {
+		super();
+		C._setIsBlue(true);
+		for (let [teamName, teamIsBlue] of [["yellow team - ", false], ["blue team - ", true]]) {
+			this.addTest(teamName + "vector", this.wrapTeamColor(teamIsBlue as boolean, this.testVector));
+			this.addTest(teamName + "direction", this.wrapTeamColor(teamIsBlue as boolean, this.testDirection));
+			this.addTest(teamName + "list", this.wrapTeamColor(teamIsBlue as boolean, this.testList));
+		}
+	}
+
+	private wrapTeamColor(teamIsBlue: boolean, method: Function) {
+		// tslint:disable-next-line
+		const classThis = this;
+		return function() {
+			C._setIsBlue(teamIsBlue);
+			method.call(classThis, teamIsBlue);
+		};
+	}
+
+	private testVector(teamIsBlue: boolean) {
+		{
+			let vec = new Vector(1, 2);
+			let vec2 = C.Coordinates.toGlobal(vec);
+			let vec3 = C.Coordinates.toLocal(vec);
 			if (teamIsBlue) {
-				assert_equal(vec2.x, -vec.x)
-				assert_equal(vec2.y, -vec.y)
-				assert_equal(vec3.x, -vec.x)
-				assert_equal(vec3.y, -vec.y)
-				assert_false(vec2:isReadonly())
-				assert_false(vec3:isReadonly())
+				this.assert_equal(vec2.x, -vec.x);
+				this.assert_equal(vec2.y, -vec.y);
+				this.assert_equal(vec3.x, -vec.x);
+				this.assert_equal(vec3.y, -vec.y);
 			} else {
-				assert_equal(vec2.x, vec.x)
-				assert_equal(vec2.y, vec.y)
-				assert_equal(vec3.x, vec.x)
-				assert_equal(vec3.y, vec.y)
-				assert_false(vec2:isReadonly())
-				assert_false(vec3:isReadonly())
+				this.assert_equal(vec2.x, vec.x);
+				this.assert_equal(vec2.y, vec.y);
+				this.assert_equal(vec3.x, vec.x);
+				this.assert_equal(vec3.y, vec.y);
 			}
-			let vec = new Vector(1, 2, true)
-			let vec2 = Coordinates.toGlobal(vec)
-			let vec3 = Coordinates.toLocal(vec)
+		}
+		{
+			let vec = new Vector(1, 2);
+			let vec2 = C.Coordinates.toGlobal(vec);
+			let vec3 = C.Coordinates.toLocal(vec);
 			if (teamIsBlue) {
-				assert_equal(vec2.x, -vec.x)
-				assert_equal(vec2.y, -vec.y)
-				assert_equal(vec3.x, -vec.x)
-				assert_equal(vec3.y, -vec.y)
-				assert_true(vec2:isReadonly())
-				assert_true(vec3:isReadonly())
+				this.assert_equal(vec2.x, -vec.x);
+				this.assert_equal(vec2.y, -vec.y);
+				this.assert_equal(vec3.x, -vec.x);
+				this.assert_equal(vec3.y, -vec.y);
 			} else {
-				assert_equal(vec2.x, vec.x)
-				assert_equal(vec2.y, vec.y)
-				assert_equal(vec3.x, vec.x)
-				assert_equal(vec3.y, vec.y)
-				assert_true(vec2:isReadonly())
-				assert_true(vec3:isReadonly())
+				this.assert_equal(vec2.x, vec.x);
+				this.assert_equal(vec2.y, vec.y);
+				this.assert_equal(vec3.x, vec.x);
+				this.assert_equal(vec3.y, vec.y);
 			}
-		end)
+		}
+	}
 
-		test("direction", function()
-			let dir = Math.PI/4
-			let dir2 = Coordinates.toGlobal(dir)
-			let dir3 = Coordinates.toLocal(dir)
+	private testDirection(teamIsBlue: boolean) {
+		{
+			let dir = Math.PI / 4;
+			let dir2 = C.Coordinates.toGlobal(dir);
+			let dir3 = C.Coordinates.toLocal(dir);
 			if (teamIsBlue) {
-				assert_equal(dir2, dir + Math.PI)
-				assert_equal(dir3, dir + Math.PI)
+				this.assert_equal(dir2, dir + Math.PI);
+				this.assert_equal(dir3, dir + Math.PI);
 			} else {
-				assert_equal(dir2, dir)
-				assert_equal(dir3, dir)
+				this.assert_equal(dir2, dir);
+				this.assert_equal(dir3, dir);
 			}
-			let dir = Math.PI*5/4
-			let dir2 = Coordinates.toGlobal(dir)
-			let dir3 = Coordinates.toLocal(dir)
+		}
+		{
+			let dir = Math.PI * 5 / 4;
+			let dir2 = C.Coordinates.toGlobal(dir);
+			let dir3 = C.Coordinates.toLocal(dir);
 			if (teamIsBlue) {
-				assert_equal(dir2, dir - Math.PI)
-				assert_equal(dir3, dir - Math.PI)
+				this.assert_equal(dir2, dir - Math.PI);
+				this.assert_equal(dir3, dir - Math.PI);
 			} else {
-				assert_equal(dir2, dir)
-				assert_equal(dir3, dir)
+				this.assert_equal(dir2, dir);
+				this.assert_equal(dir3, dir);
 			}
-		end)
+		}
+	}
 
-		test("list", function()
-			let list = { Vector(0, 1), new Vector(1, 2), Math.PI/4 }
-			let list2 = Coordinates.listToGlobal(list)
+	private testList(teamIsBlue: boolean) {
+		let list: [Vector, Vector, number] = [ new Vector(0, 1), new Vector(1, 2), Math.PI / 4 ];
+		let list2 = C.Coordinates.listToGlobal(list as any);
+		debug.set("stuff", list);
+		debug.set("stuff2", list2);
 
-			if (teamIsBlue) {
-				assert_deep_equal({ -list[1], -list[2], Math.PI*5/4 }, list2)
-			} else {
-				assert_deep_equal(list, list2)
-			}
-		end)
-
-		test("sticky readonly", function()
-			let vec = Vector.createReadOnly(1, 2)
-			let vec2 = Coordinates.toGlobal(vec)
-			let vec3 = Coordinates.toLocal(vec)
-			assert_true(vec2:isReadonly())
-			assert_true(vec3:isReadonly())
-
-			let list = { Vector.createReadOnly(0, 1), Vector.createReadOnly(1, 2) }
-			let list2 = Coordinates.listToGlobal(list)
-			assert_true(list2[1]:isReadonly())
-			assert_true(list2[2]:isReadonly())
-		end)
+		if (teamIsBlue) {
+			this.assert_deep_equal([ -list[0], -list[1], Math.PI * 5 / 4 ], list2);
+		} else {
+			this.assert_deep_equal(list, list2);
+		}
 	}
 }
-
-
-context("base.coordinates", function()
-	context("yellow team", testfuncs(false))
-	context("blue team", testfuncs(true))
-end)
+export let testClass = BaseCoordinates;

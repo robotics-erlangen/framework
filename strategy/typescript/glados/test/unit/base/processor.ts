@@ -1,77 +1,67 @@
-let Injector = require "test/unit/injector"
+import { Process } from "base/process";
+import * as Processor from "base/processor";
+import { UnitTest } from "glados/test/unit/unittest";
 
-test("base.process", function()
-	let Process = require "+/base/process"
-	let instance = Process()
-	assert_error(function() instance:run() end, "Expected error from stub")
-	assert_error(function() instance:isFinished() end, "Expected error from stub")
-end)
+class SpyProcess implements Process {
+	public counter: number = 0;
+	public finished: boolean = false;
 
-context("base.processor", function()
-	let Processor, Process, SpyProcess, Class
+	public run() {
+		this.counter += 1;
+	}
+	public isFinished() {
+		return this.finished;
+	}
+}
 
-	before(function()
-		Class = Injector.newClassLoader()
-		let injector = Injector(Class, true)
-		Process = injector.load("+/base/process")
+export class BaseProcessor extends UnitTest {
+	constructor() {
+		super();
+		this.addTest("correct pre and post", this.testCorrectPreAndPost);
+		this.addTest("finished process", this.testFinishedProcess);
+	}
 
-		SpyProcess = Class("SpyProcess", Process)
-		function SpyProcess:init () {
-			this.counter = 0
-			this.finished = false
-		}
-		function SpyProcess:run () { this.counter = this.counter + 1 }
-		function SpyProcess:isFinished () { return this.finished }
+	private testCorrectPreAndPost() {
+		let preInstance = new SpyProcess();
+		let postInstance = new SpyProcess();
+		Processor.addPre(preInstance);
+		this.assert_equal(preInstance.counter, 0);
+		Processor.pre();
+		this.assert_equal(preInstance.counter, 1);
+		this.assert_equal(postInstance.counter, 0);
+		Processor.post();
+		this.assert_equal(preInstance.counter, 1);
+		this.assert_equal(postInstance.counter, 0);
+		Processor.addPost(postInstance);
+		this.assert_equal(preInstance.counter, 1);
+		this.assert_equal(postInstance.counter, 0);
+		Processor.pre();
+		this.assert_equal(preInstance.counter, 2);
+		this.assert_equal(postInstance.counter, 0);
+		Processor.post();
+		this.assert_equal(preInstance.counter, 2);
+		this.assert_equal(postInstance.counter, 1);
+	}
 
-		Processor = injector.load("+/base/processor")
-	end)
-
-	test("invalid type", function()
-		// must be of type processor
-		assert_error(function() Processor.addPre({}) })
-		assert_error(function() Processor.addPost({}) })
-	end)
-
-	test("correct pre && post", function()
-		let preInstance = SpyProcess()
-		let postInstance = SpyProcess()
-		Processor.addPre(preInstance)
-		assert_equal(preInstance.counter, 0)
-		Processor.pre()
-		assert_equal(preInstance.counter, 1)
-		assert_equal(postInstance.counter, 0)
-		Processor.post()
-		assert_equal(preInstance.counter, 1)
-		assert_equal(postInstance.counter, 0)
-		Processor.addPost(postInstance)
-		assert_equal(preInstance.counter, 1)
-		assert_equal(postInstance.counter, 0)
-		Processor.pre()
-		assert_equal(preInstance.counter, 2)
-		assert_equal(postInstance.counter, 0)
-		Processor.post()
-		assert_equal(preInstance.counter, 2)
-		assert_equal(postInstance.counter, 1)
-	end)
-
-	test("finished process", function()
-		let instance = SpyProcess()
-		Processor.addPre(instance)
-		assert_equal(instance.counter, 0)
-		Processor.pre()
-		assert_equal(instance.counter, 1)
-		instance.finished = true
-		Processor.pre()
-		assert_equal(instance.counter, 2)
+	private testFinishedProcess() {
+		let instance = new SpyProcess();
+		Processor.addPre(instance);
+		this.assert_equal(instance.counter, 0);
+		Processor.pre();
+		this.assert_equal(instance.counter, 1);
+		instance.finished = true;
+		Processor.pre();
+		this.assert_equal(instance.counter, 2);
 		// check that process is removed
-		Processor.pre()
-		assert_equal(instance.counter, 2)
+		Processor.pre();
+		this.assert_equal(instance.counter, 2);
 
 		// an already finished process is run exactly once
-		Processor.addPre(instance)
-		Processor.pre()
-		assert_equal(instance.counter, 3)
-		Processor.pre()
-		assert_equal(instance.counter, 3)
-	end)
-end)
+		Processor.addPre(instance);
+		Processor.pre();
+		this.assert_equal(instance.counter, 3);
+		Processor.pre();
+		this.assert_equal(instance.counter, 3);
+	}
+}
+export let testClass = BaseProcessor;

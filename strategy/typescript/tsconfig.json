@@ -116,7 +116,7 @@
 		"glados/test/unit/base/field.ts",
 		"glados/test/unit/base/geom.ts",
 		"glados/test/unit/base/globalschecker.ts",
-		"glados/test/unit/base/math.ts",
+		"glados/test/unit/base/mathutil.ts",
 		"glados/test/unit/base/processor.ts",
 		"glados/test/unit/base/typecheck.ts",
 		"glados/test/unit/base/vector.ts",
