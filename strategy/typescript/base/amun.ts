@@ -290,7 +290,11 @@ amun = {
 	isPerformanceMode: amun.getPerformanceMode!()
 };
 
+// only to be used for unit tests
+export let fullAmun: Amun;
+
 export function _hideFunctions() {
+	fullAmun = amun;
 	let isDebug = amun.isDebug;
 	let isPerformanceMode = amun.isPerformanceMode;
 	let strategyPath = amun.getStrategyPath!();
