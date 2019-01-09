@@ -94,6 +94,7 @@ endif()
 
 include(BuildBullet)
 include(BuildEigen)
+include(BuildSourceMap)
 include(BuildLuaJIT2)
 find_package(V8 6.8)
 
