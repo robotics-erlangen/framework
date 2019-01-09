@@ -27,7 +27,7 @@ SimField::SimField(btDiscreteDynamicsWorld *world, const world::Geometry &geomet
     const float totalWidth = geometry.field_width() / 2.0f + geometry.boundary_width() + geometry.referee_width();
     const float totalHeight = geometry.field_height() / 2.0f + geometry.boundary_width() + geometry.referee_width();
     // upper boundary
-    const float roomHeight = 4.0f;
+    const float roomHeight = 5.0f;
     const float height = geometry.field_height() / 2.0f - geometry.line_width();
     const float goalWidthHalf = geometry.goal_width() / 2.0f + geometry.goal_wall_width();
     const float goalHeightHalf = geometry.goal_height() / 2.0f;

@@ -58,6 +58,9 @@ private:
     amun::SimulatorMoveBall m_move;
     const float m_fieldWidth;
     const float m_fieldHeight;
+
+    // must always be lower than the room height in simfield.cpp
+    const float CAMERA_HEIGHT = 4.f;
 };
 
 #endif // SIMBALL_H

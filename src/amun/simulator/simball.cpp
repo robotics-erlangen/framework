@@ -160,9 +160,6 @@ int SimBall::update(SSL_DetectionBall *ball, float stddev, int numCameras,
         return -1;
     }
 
-    const float SCALING_LIMIT = 0.9f;
-    const float MAX_EXTRA_OVERLAP = 0.05f;
-
     // must match simulator camera geometry!!!
     int signX = (cameraId >= numCameras / 2) ? 1 : -1;
     int partsY = 2 * (cameraId % (numCameras / 2)) - (numCameras / 2 - 1);
@@ -171,7 +168,19 @@ int SimBall::update(SSL_DetectionBall *ball, float stddev, int numCameras,
     const float cameraHalfAreaY = m_fieldHeight / numCameras;
     const float cameraX = cameraHalfAreaX * signX;
     const float cameraY = cameraHalfAreaY * partsY;
-    const float cameraZ = 4.f;
+    const float cameraZ = CAMERA_HEIGHT;
+
+    const btVector3 cameraPosition = btVector3(cameraX, cameraY, cameraZ) * SIMULATOR_SCALE;
+
+    btCollisionWorld::ClosestRayResultCallback result(transform.getOrigin(), cameraPosition);
+    m_world->rayTest(transform.getOrigin(), cameraPosition, result);
+    // the ball is not visible to the camera
+    if (result.hasHit()) {
+        return -1;
+    }
+
+    const float SCALING_LIMIT = 0.9f;
+    const float MAX_EXTRA_OVERLAP = 0.05f;
 
     float modZ = std::min(SCALING_LIMIT * cameraZ, std::max(0.f, p.z() - BALL_RADIUS));
     float modX = (p.x() - cameraX) * (cameraZ / (cameraZ - modZ)) + cameraX;
