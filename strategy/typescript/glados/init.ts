@@ -1,3 +1,9 @@
+declare namespace Error {
+	function prepareStackTrace(e: any, s: any): any;
+}
+
+Error.prepareStackTrace = (e: any, structuredStackTrace: any) => structuredStackTrace;
+
 import "base/base";
 
 import { log } from "base/amun";
