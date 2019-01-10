@@ -70,7 +70,9 @@ local function calculateInterceptPos(robot)
 	-- evaluate a few positions on the line
 	local minTime = Robot.minTimeToBall(robot) + BALL_EXTRA_TIME
 	local ballOutTime = Physics.ballOutTime(World.Ball, 0)
-	local predictedBallOriginPos,_,_,passReceiver = Goal.predictShot()
+
+	local predictedBallOriginPos,_,_,passReceiver = Goal.predictShot(nil, true)
+
 	if not passReceiver then
 		error("InterceptPass is running with no pass to intercept")
 	end

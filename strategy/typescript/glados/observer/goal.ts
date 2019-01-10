@@ -272,13 +272,15 @@ function comparePrediction(p1: PassReceiver, p2: PassReceiver): number {
 	}
 	return p2.dist - p1.dist;
 }
-function _predictShot(allShots: boolean = false): [Position, Speed, boolean, PassReceiver[] | undefined, boolean] {
-	// check for bad vision
-	let [invisibleBallPos, invisibleBallSpeed, oppRobot] = getInvisibleBallPrediction();
-	if (invisibleBallPos) {
-		vis.addCircle("o/goal: predictShot: invisible ball", oppRobot!.pos, oppRobot!.radius, vis.colors.white, false);
-			vis.addPath("o/goal: predictShot: invisible ball", [oppRobot!.pos, oppRobot!.pos + invisibleBallSpeed! * 10], vis.colors.white);
-		return [invisibleBallPos, invisibleBallSpeed!, true, undefined, true];
+function _predictShot(allShots: boolean = false, includeInvisible: boolean = true): [Position, Speed, boolean, PassReceiver[] | undefined, boolean] {
+	if (includeInvisible) {
+		// check for bad vision
+		let [invisibleBallPos, invisibleBallSpeed, oppRobot] = getInvisibleBallPrediction();
+		if (invisibleBallPos) {
+			vis.addCircle("o/goal: predictShot: invisible ball", oppRobot!.pos, oppRobot!.radius, vis.colors.white, false);
+				vis.addPath("o/goal: predictShot: invisible ball", [oppRobot!.pos, oppRobot!.pos + invisibleBallSpeed! * 10], vis.colors.white);
+			return [invisibleBallPos, invisibleBallSpeed!, true, undefined, true];
+		}
 	}
 
 	let ballSpeed = World.Ball.speed.copy(); // Defend ball by default

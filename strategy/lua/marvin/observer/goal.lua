@@ -262,13 +262,18 @@ local function comparePrediction(p1, p2)
 	end
 	return p1.dist > p2.dist
 end
-function Goal.predictShot(allShots)
+
+function Goal.predictShot(allShots, excludeInvisible)
 	-- check for bad vision
-	local invisibleBallPos, invisibleBallSpeed, oppRobot = getInvisibleBallPrediction()
-	if invisibleBallPos then
-		vis.addCircle("o/goal: predictShot: invisible ball", oppRobot.pos, oppRobot.radius, vis.colors.white, false)
-			vis.addPath("o/goal: predictShot: invisible ball", {oppRobot.pos, oppRobot.pos + invisibleBallSpeed * 10}, vis.colors.white)
-		return invisibleBallPos, invisibleBallSpeed, true, nil, true
+	if not excludeInvisible then
+
+		local invisibleBallPos, invisibleBallSpeed, oppRobot = getInvisibleBallPrediction()
+		if invisibleBallPos then
+			vis.addCircle("o/goal: predictShot: invisible ball", oppRobot.pos, oppRobot.radius, vis.colors.white, false)
+				vis.addPath("o/goal: predictShot: invisible ball", {oppRobot.pos, oppRobot.pos + invisibleBallSpeed * 10}, vis.colors.white)
+			return invisibleBallPos, invisibleBallSpeed, true, nil, true
+		end
+
 	end
 
 	local ballSpeed = World.Ball.speed:copy() -- Defend ball by default

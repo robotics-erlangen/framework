@@ -65,7 +65,7 @@ function calculateInterceptPos(robot: FriendlyRobot): [Position | undefined, num
 	// evaluate a few positions on the line
 	const minTime = Robot.minTimeToBall(robot) + BALL_EXTRA_TIME;
 	const ballOutTime = Physics.ballOutTime(World.Ball, 0);
-	const [predictedBallOriginPos, _, _2, passReceiver] = Goal.predictShot();
+	const [predictedBallOriginPos, _, _2, passReceiver] = Goal.predictShot(false, false);
 	if (passReceiver == undefined) {
 		throw new Error("InterceptPass is running with no pass to intercept");
 	}
