@@ -35,11 +35,12 @@ ExternalProject_Add(project_sourcemap
 )
 
 externalproject_get_property(project_sourcemap binary_dir source_dir)
+set_target_properties(project_sourcemap PROPERTIES EXCLUDE_FROM_ALL true)
 
+add_library(lib::sourcemap STATIC IMPORTED)
+add_dependencies(lib::sourcemap project_sourcemap)
 # cmake enforces that the include directory exists
 file(MAKE_DIRECTORY "${source_dir}/src")
-add_library(lib::sourcemap UNKNOWN IMPORTED)
-add_dependencies(lib::sourcemap project_sourcemap)
 set_target_properties(lib::sourcemap PROPERTIES
     IMPORTED_LOCATION "${binary_dir}/${LIBSM_SUBPATH}"
     INTERFACE_LINK_LIBRARIES "Qt5::Core"
