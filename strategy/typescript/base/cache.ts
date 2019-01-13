@@ -95,7 +95,7 @@ function makeCached <F extends Function>(f: F, keepForever: boolean): F {
 			}
 		);
 	}
-	return <F> <any> (function(...args: any[]): any[] | any {
+	let cachedFunc: F = <F> <any> (function(...args: any[]): any[] | any {
 		// getFromCache modifies args in case there is a vector inside, so make a copy
 		let result = getFromCache(cached, args.slice());
 		if (result == undefined) {
@@ -110,6 +110,7 @@ function makeCached <F extends Function>(f: F, keepForever: boolean): F {
 		}
 		return result;
 	});
+	return cachedFunc;
 }
 
 /// Wraps a function call, the returned value is cached for this strategy run
