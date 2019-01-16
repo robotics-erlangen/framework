@@ -306,6 +306,7 @@ MainWindow::~MainWindow()
 void MainWindow::closeEvent(QCloseEvent *e)
 {
     saveConfig();
+    m_logOpener->close();
 
     // make sure the plotter is closed along with the mainwindow
     // this also ensure that a closeEvent is triggered
@@ -374,7 +375,7 @@ void MainWindow::saveConfig()
     s.setValue("Flipped", ui->actionSidesFlipped->isChecked());
     s.setValue("LogWriter/UseLocation", ui->actionUseLocation->isChecked());
 
-    m_logOpener->close();
+    m_logOpener->saveConfig();
 }
 
 void MainWindow::loadConfig(bool doRestoreGeometry)

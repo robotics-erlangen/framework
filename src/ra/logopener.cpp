@@ -76,7 +76,11 @@ void LogOpener::close()
     if (m_logFile.lock()) {
         m_lastFilePositions[m_openFileName] = ui->logManager->getFrame();
     }
+    saveConfig();
+}
 
+void LogOpener::saveConfig()
+{
     QSettings s;
     s.beginWriteArray("recent files", m_recentFiles.size());
     for (int i = 0;i<m_recentFiles.size();i++) {

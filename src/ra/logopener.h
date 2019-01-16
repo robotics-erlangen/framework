@@ -44,6 +44,7 @@ class LogOpener : public QObject
 public:
     explicit LogOpener(Ui::MainWindow *ui, QObject *parent = nullptr);
     void close();
+    void saveConfig();
     bool showGoToLastPositionButton() const { return m_showGoToLastPosition; }
     void saveCurrentPosition();
 
