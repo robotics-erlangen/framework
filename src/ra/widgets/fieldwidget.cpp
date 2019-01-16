@@ -1210,6 +1210,15 @@ void FieldWidget::dropEvent(QDropEvent *event)
     }
 }
 
+void FieldWidget::keyPressEvent(QKeyEvent *event)
+{
+    QGraphicsView::keyPressEvent(event);
+    int key = event->key();
+    if (key == Qt::Key_Up || key == Qt::Key_Down || key == Qt::Key_Left || key == Qt::Key_Right) {
+        createInfoText();
+    }
+}
+
 void FieldWidget::mousePressEvent(QMouseEvent *event)
 {
     const QPointF p = mapToScene(event->pos());
@@ -1289,13 +1298,9 @@ void FieldWidget::mousePressEvent(QMouseEvent *event)
     m_mouseBegin = p;
 }
 
-void FieldWidget::mouseMoveEvent(QMouseEvent *event)
+void FieldWidget::createInfoText()
 {
-    const QPointF p = mapToScene(event->pos());
-    const QPointF realFieldPos = m_virtualFieldTransform.applyInversePosition(p);
-    const QPointF selectedPos = m_usingVirtualField ? realFieldPos : p;
-    event->accept();
-
+    const QPointF p = mapToScene(m_mousePosition);
     QString infoText = QString("(%1, %2)").arg(p.x(), 0, 'f', 4).arg(p.y(), 0, 'f', 4);
     if (m_dragType == DragMeasure) {
         QPointF diff = (p - m_mouseBegin);
@@ -1303,6 +1308,17 @@ void FieldWidget::mouseMoveEvent(QMouseEvent *event)
         infoText += QString(", distance: %1").arg(dist, 0, 'f', 4);
     }
     setInfoText(infoText);
+}
+
+void FieldWidget::mouseMoveEvent(QMouseEvent *event)
+{
+    m_mousePosition = event->pos();
+    const QPointF p = mapToScene(event->pos());
+    const QPointF realFieldPos = m_virtualFieldTransform.applyInversePosition(p);
+    const QPointF selectedPos = m_usingVirtualField ? realFieldPos : p;
+    event->accept();
+
+    createInfoText();
 
     if (event->buttons() != Qt::NoButton) {
         if (m_dragType & DragAOIMask) {

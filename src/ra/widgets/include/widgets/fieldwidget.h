@@ -100,6 +100,7 @@ public slots:
     void setRegularVisualizationsEnabled(bool blue, bool enabled);
 
 protected:
+    void keyPressEvent(QKeyEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
@@ -134,6 +135,7 @@ private slots:
 
 private:
     void addToggleVisAction();
+    void createInfoText();
     void resizeAOI(QPointF pos);
     void updateAOI();
     void updateDetection();
@@ -232,6 +234,7 @@ private:
     QPointF m_mouseBegin;
     QPoint m_dragStart;
     DragType m_dragType;
+    QPoint m_mousePosition;
     QGraphicsItem *m_dragItem;
     int m_dragId;
 
