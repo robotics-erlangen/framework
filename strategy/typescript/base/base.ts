@@ -31,6 +31,8 @@
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
 
+import "base/error";
+
 import * as amunModule from "base/amun";
 
 // leave the debugger at the top so that exceptions during the initial
