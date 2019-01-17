@@ -221,13 +221,15 @@ static void evaluateStackFrame(const Local<Context>& c, QString& errorMsg, Local
             QByteArray arr(tsSourcemap.readAll());
             SourceMap::RevisionThree sourceMap = SourceMap::RevisionThree::fromJson(arr);
             QString tsFileName = absJSDir.canonicalPath() + "/" + *(sourceMap.sources().begin()); // assume that there is only one sourceFile for any js file
-            fileQString = QFileInfo(tsFileName).absoluteFilePath();
             SourceMap::Position jsPos(lineUint, columnUint);
             auto decodedMapping = sourceMap.decodedMappings<SourceMap::Data<SourceMap::Extension::Interpolation>>();
             SourceMap::Mapping<SourceMap::Extension::Interpolation> mapping(decodedMapping);
             const SourceMap::Entry<SourceMap::Extension::Interpolation>* entry(mapping.findEntryByGenerated(jsPos));
-            lineUint = entry->original.line;
-            columnUint = entry->original.column;
+            if (entry) {
+                fileQString = QFileInfo(tsFileName).absoluteFilePath();
+                lineUint = entry->original.line;
+                columnUint = entry->original.column;
+            }
         }
     }
     errorMsg = errorMsg + " (" + fileQString + ":";
