@@ -28,6 +28,8 @@
 #include <v8.h>
 #include <libplatform/libplatform.h>
 #include <lua.hpp>
+#include <SourceMap/RevisionThree.h>
+#include <SourceMap/Extension/Interpolation.h>
 
 #include "js_amun.h"
 #include "js_path.h"
@@ -192,13 +194,44 @@ static void evaluateStackFrame(const Local<Context>& c, QString& errorMsg, Local
     MaybeLocal<Value> fileName = callFunction(c, errorMsg, callSite, "getFileName", isolate);
     String::Utf8Value fileString(isolate, fileName.ToLocalChecked());
     QString fileQString(*fileString);
-    errorMsg = errorMsg + " (" + fileQString + ":";
+    QFile jsfile(fileQString);
+    QString tsSourcemapQString;
+    QFileInfo jsInfo(jsfile);
+    QDir absJSDir = jsInfo.absoluteDir();
     MaybeLocal<Value> lineNumber = callFunction(c, errorMsg, callSite, "getLineNumber", isolate);
     uint32_t lineUint = lineNumber.ToLocalChecked()->Uint32Value();
-    errorMsg += QString::number(lineUint) + ":";
-
     MaybeLocal<Value> columnNumber = callFunction(c, errorMsg, callSite, "getColumnNumber", isolate);
     uint32_t columnUint = columnNumber.ToLocalChecked()->Uint32Value();
+    if (jsfile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QList<QByteArray> jsLineList = QByteArray(jsfile.readAll()).split('\n');
+        for (auto revIt = jsLineList.rbegin(); revIt != jsLineList.rend(); ++revIt) {
+            QString line = QString::fromUtf8(*revIt);
+            if (line.startsWith("//# ")) {
+                QStringList entries = line.right(line.size()-4).split("=");
+                if (entries[0] == "sourceMappingURL") {
+                    tsSourcemapQString = absJSDir.canonicalPath() + "/" + entries[1];
+                    break;
+                }
+            }
+        }
+    }
+    if (!tsSourcemapQString.isEmpty()) {
+        QFile tsSourcemap(tsSourcemapQString);
+        if (tsSourcemap.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            QByteArray arr(tsSourcemap.readAll());
+            SourceMap::RevisionThree sourceMap = SourceMap::RevisionThree::fromJson(arr);
+            QString tsFileName = absJSDir.canonicalPath() + "/" + *(sourceMap.sources().begin()); // assume that there is only one sourceFile for any js file
+            fileQString = QFileInfo(tsFileName).absoluteFilePath();
+            SourceMap::Position jsPos(lineUint, columnUint);
+            auto decodedMapping = sourceMap.decodedMappings<SourceMap::Data<SourceMap::Extension::Interpolation>>();
+            SourceMap::Mapping<SourceMap::Extension::Interpolation> mapping(decodedMapping);
+            const SourceMap::Entry<SourceMap::Extension::Interpolation>* entry(mapping.findEntryByGenerated(jsPos));
+            lineUint = entry->original.line;
+            columnUint = entry->original.column;
+        }
+    }
+    errorMsg = errorMsg + " (" + fileQString + ":";
+    errorMsg += QString::number(lineUint) + ":";
     errorMsg += QString::number(columnUint) + ")<br>";
 }
 

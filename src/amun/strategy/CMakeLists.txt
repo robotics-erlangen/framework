@@ -43,6 +43,7 @@ add_library(strategy
     strategyreplayhelper.cpp
 )
 target_link_libraries(strategy
+    PRIVATE lib::sourcemap
     PRIVATE lib::luajit
     PRIVATE shared::core
     PRIVATE amun::path
