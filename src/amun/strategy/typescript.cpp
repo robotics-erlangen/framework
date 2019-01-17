@@ -332,6 +332,11 @@ bool Typescript::loadModule(QString name)
         // execute the script once to get entrypoints etc.
         QString moduleBefore = m_currentExecutingModule;
         m_currentExecutingModule = name;
+
+        // insert a default module content in case no define function is called in the module
+        Local<Object> defaultEmptyModule = Object::New(m_isolate);
+        m_requireCache.back()[name] = new Global<Value>(m_isolate, defaultEmptyModule);
+
         USE(script->Run(context));
         if (tryCatch.HasCaught() || tryCatch.HasTerminated()) {
             tryCatch.ReThrow();
