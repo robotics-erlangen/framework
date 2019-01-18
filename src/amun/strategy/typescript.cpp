@@ -204,7 +204,11 @@ static void evaluateStackFrame(const Local<Context>& c, QString& errorMsg, Local
     uint32_t columnUint = columnNumber.ToLocalChecked()->Uint32Value();
     if (jsfile.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QList<QByteArray> jsLineList = QByteArray(jsfile.readAll()).split('\n');
+#if QT_VERSION >= QT_VERSION_CHECK(5,6,0)
         for (auto revIt = jsLineList.rbegin(); revIt != jsLineList.rend(); ++revIt) {
+#else
+        for (auto revIt = jsLineList.begin(); revIt != jsLineList.end(); ++revIt) {
+#endif
             QString line = QString::fromUtf8(*revIt);
             if (line.startsWith("//# ")) {
                 QStringList entries = line.right(line.size()-4).split("=");
