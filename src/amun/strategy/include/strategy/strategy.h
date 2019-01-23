@@ -122,7 +122,7 @@ private:
 
     qint32 m_refboxReplyLength;
     QByteArray m_refboxReplyPartialPacket;
-    bool m_isInLogplayer;
+    const bool m_isInLogplayer;
 
 #ifdef V8_FOUND
     std::unique_ptr<InspectorServer> m_inspectorServer;

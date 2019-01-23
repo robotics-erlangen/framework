@@ -183,6 +183,9 @@ void Strategy::handleStatus(const Status &status)
     if ((status->has_blue_running() && status->blue_running() && m_type == StrategyType::BLUE)
             || (status->has_yellow_running() && status->yellow_running() && m_type == StrategyType::YELLOW)) {
         m_idleTimer->stop();
+        if (!m_isReplay) {
+            reload();
+        }
         m_isReplay = true;
         if (m_strategy){
             m_strategy->setIsReplay(true);
