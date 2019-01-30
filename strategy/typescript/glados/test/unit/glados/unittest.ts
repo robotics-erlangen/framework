@@ -64,6 +64,10 @@ export class GladosUnitTest extends UnitTest {
 		this.assert_greater_than(2, 1);
 
 		this.assert_less_than(1, 2);
+
+		this.assert_not_nan(1);
+
+		this.assert_nan(NaN);
 	}
 
 	private testAssertionsFail() {
@@ -126,12 +130,17 @@ export class GladosUnitTest extends UnitTest {
 		this.assert_error(() => { this.assert_lte(3, 2); });
 
 		this.assert_error(() => { this.assert_equal_eps(1, 2, 0.1); });
+		this.assert_error(() => { this.assert_equal_eps(NaN, 0, 0.1); });
 
 		this.assert_error(() => { this.assert_greater_than(1, 1); });
 		this.assert_error(() => { this.assert_greater_than(1, 2); });
 
 		this.assert_error(() => { this.assert_less_than(1, 1); });
 		this.assert_error(() => { this.assert_less_than(2, 1); });
+
+		this.assert_error(() => { this.assert_not_nan(NaN); });
+
+		this.assert_error(() => { this.assert_nan(2); });
 	}
 }
 export let testClass = GladosUnitTest;

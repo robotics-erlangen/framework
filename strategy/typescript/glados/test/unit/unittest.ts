@@ -140,26 +140,46 @@ export class UnitTest {
 	}
 
 	protected assert_lte(a: number, b: number) {
+		this.assert_not_nan(a);
+		this.assert_not_nan(b);
 		if (a > b) {
 			throw new Error(`Assert failed: ${a} is not less than or equal to ${b}`);
 		}
 	}
 
 	protected assert_equal_eps(a: number, b: number, eps: number) {
+		this.assert_not_nan(a);
+		this.assert_not_nan(b);
 		if (Math.abs(a - b) > eps) {
 			throw new Error(`Assert failed: diff between ${a} and ${b} (${Math.abs(a - b)} is greater than ${eps})`);
 		}
 	}
 
 	protected assert_greater_than(a: number, b: number) {
+		this.assert_not_nan(a);
+		this.assert_not_nan(b);
 		if (a <= b) {
 			throw new Error(`Assert failed: ${a} is not greater than ${b}`);
 		}
 	}
 
 	protected assert_less_than(a: number, b: number) {
+		this.assert_not_nan(a);
+		this.assert_not_nan(b);
 		if (a >= b) {
 			throw new Error(`Assert failed: ${a} is not less than ${b}`);
+		}
+	}
+
+	protected assert_not_nan(a: number) {
+		if (isNaN(a)) {
+			throw new Error(`Assert failed: ${a} is NaN`);
+		}
+	}
+
+	protected assert_nan(a: number) {
+		if (!isNaN(a)) {
+			throw new Error(`Assert failed: ${a} is not NaN`);
 		}
 	}
 }
