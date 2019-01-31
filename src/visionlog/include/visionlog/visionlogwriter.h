@@ -25,7 +25,9 @@
 #include <QString>
 #include <iostream>
 
-#include "protobuf/ssl_detection.pb.h"
+#include "protobuf/ssl_wrapper.pb.h"
+#include "protobuf/ssl_referee.pb.h"
+#include "messagetype.h"
 
 class VisionLogWriter: public QObject
 {
@@ -33,13 +35,14 @@ class VisionLogWriter: public QObject
 public:
     explicit VisionLogWriter(const QString& filename);
     ~VisionLogWriter() override;
-    void addVisionPacket(const SSL_DetectionFrame& data);
-    void passTime();
+    void addVisionPacket(const SSL_WrapperPacket& frame, qint64 time);
+    void addRefereePacket(const SSL_Referee& state, qint64 time);
 
+private:
+    void writePacket(const QByteArray &data, qint64 time, VisionLog::MessageType type);
 
 private:
     std::ofstream* out_stream;
-    qint64 time;
 };
 
 

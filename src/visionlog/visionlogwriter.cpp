@@ -53,7 +53,7 @@ VisionLogWriter::~VisionLogWriter()
     delete out_stream;
 }
 
-void VisionLogWriter::addVisionPacket(const SSL_DetectionFrame& frame)
+void VisionLogWriter::addVisionPacket(const SSL_WrapperPacket& frame, qint64 time)
 {
     QByteArray data;
     data.resize(frame.ByteSize());
@@ -64,9 +64,28 @@ void VisionLogWriter::addVisionPacket(const SSL_DetectionFrame& frame)
         qFatal("Writing to array failed in %s (%s:%d)", __func__, __FILE__, __LINE__);
     }
 
+    writePacket(data, time, VisionLog::MessageType::MESSAGE_SSL_VISION_2014);
+}
+
+void VisionLogWriter::addRefereePacket(const SSL_Referee& state, qint64 time)
+{
+    QByteArray data;
+    data.resize(state.ByteSize());
+    if (!state.IsInitialized()){
+        qFatal("Writing an uninitialized referee packet to Vision log");
+    }
+    if (!state.SerializeToArray(data.data(), data.size())){
+        qFatal("Writing to array failed in %s (%s:%d)", __func__, __FILE__, __LINE__);
+    }
+
+    writePacket(data, time, VisionLog::MessageType::MESSAGE_SSL_REFBOX_2013);
+}
+
+void VisionLogWriter::writePacket(const QByteArray &data, qint64 time, VisionLog::MessageType type)
+{
     VisionLog::DataHeader dataHeader;
     dataHeader.timestamp = time;
-    dataHeader.messageType = VisionLog::MessageType::MESSAGE_SSL_VISION_2014;
+    dataHeader.messageType = type;
     dataHeader.messageSize = data.size();
 
     // Log data is stored big endian, convert from host byte order
@@ -77,9 +96,4 @@ void VisionLogWriter::addVisionPacket(const SSL_DetectionFrame& frame)
     out_stream->write((char*) &dataHeader, sizeof(dataHeader));
 
     out_stream->write(data.constData(), data.size());
-}
-
-void VisionLogWriter::passTime()
-{
-    time += 10000000;
 }
