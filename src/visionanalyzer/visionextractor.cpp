@@ -25,7 +25,6 @@
 #include "logfile/logfilereader.h"
 #include "visionlog/visionlogwriter.h"
 
-#define MAX_CAMERA 8
 int main(int argc, char* argv[])
 {
     QCoreApplication app(argc, argv);
@@ -35,7 +34,7 @@ int main(int argc, char* argv[])
     std::setlocale(LC_NUMERIC, "C");
 
     QCommandLineParser parser;
-    parser.setApplicationDescription("Analyzer for recorded vision data");
+    parser.setApplicationDescription("Extracts a vision log from the ER-Force log format");
     parser.addHelpOption();
     parser.addPositionalArgument("source", "The log file to read");
 
@@ -56,23 +55,73 @@ int main(int argc, char* argv[])
 
     VisionLogWriter logfileOut(parser.value(outputDirOption));
 
+    amun::GameState::State lastState = amun::GameState::Halt;
+    qint64 gameStateChangeTime = logfileIn.readStatus(0)->time();
+    quint32 refereeCounter = 0;
+    SSL_Referee::Command lastCommand = SSL_Referee::HALT;
+
+    qint64 lastTime = 0;
     for(int i = 0; i < logfileIn.packetCount(); ++i){
         Status current = logfileIn.readStatus(i);
-        SSL_DetectionFrame visionFrame[MAX_CAMERA];
-        for (int j=0; j < MAX_CAMERA; ++j){
-            visionFrame[j].set_frame_number(i);
+
+        if (current->has_world_state()) {
+            for (const auto &frame : current->world_state().vision_frames()) {
+                logfileOut.addVisionPacket(frame, current->time());
+            }
+            lastTime = current->time();
         }
-        if (!current->has_world_state()){
-            continue;
-        }
-        const world::State& worldState = current->world_state();
-        if (worldState.has_ball()){
-            const world::Ball& ball = worldState.ball();
-            for( world::BallPosition entry : ball.raw()){
-			//	if (!entry.has_camera_id()){
-					std::cerr << "entry has no camera " << entry.DebugString() << std::endl;
-			//	}
-			}
+
+        if (current->has_game_state()) {
+            const auto &gameState = current->game_state();
+            SSL_Referee refereePacket;
+            refereePacket.set_packet_timestamp((quint64)current->time());
+            refereePacket.set_stage(gameState.stage());
+            if (gameState.has_stage_time_left()) {
+                refereePacket.set_stage_time_left(gameState.stage_time_left());
+            }
+            if (gameState.state() != lastState) {
+                lastState = gameState.state();
+                gameStateChangeTime = current->time();
+                refereeCounter++;
+
+                switch (gameState.state()) {
+                case amun::GameState::Halt: lastCommand = SSL_Referee::HALT; break;
+                case amun::GameState::Stop: lastCommand = SSL_Referee::STOP; break;
+                case amun::GameState::GameForce: lastCommand = SSL_Referee::FORCE_START; break;
+                case amun::GameState::KickoffYellowPrepare: lastCommand = SSL_Referee::PREPARE_KICKOFF_YELLOW; break;
+                case amun::GameState::KickoffYellow: lastCommand = SSL_Referee::NORMAL_START; break;
+                case amun::GameState::PenaltyYellowPrepare: lastCommand = SSL_Referee::PREPARE_PENALTY_YELLOW; break;
+                case amun::GameState::PenaltyYellow: lastCommand = SSL_Referee::NORMAL_START; break;
+                case amun::GameState::DirectYellow: lastCommand = SSL_Referee::DIRECT_FREE_YELLOW; break;
+                case amun::GameState::IndirectYellow: lastCommand = SSL_Referee::INDIRECT_FREE_YELLOW; break;
+                case amun::GameState::BallPlacementYellow: lastCommand = SSL_Referee::BALL_PLACEMENT_YELLOW; break;
+                case amun::GameState::KickoffBluePrepare: lastCommand = SSL_Referee::PREPARE_PENALTY_BLUE; break;
+                case amun::GameState::KickoffBlue: lastCommand = SSL_Referee::NORMAL_START; break;
+                case amun::GameState::PenaltyBluePrepare: lastCommand = SSL_Referee::PREPARE_PENALTY_BLUE; break;
+                case amun::GameState::PenaltyBlue: lastCommand = SSL_Referee::NORMAL_START; break;
+                case amun::GameState::DirectBlue: lastCommand = SSL_Referee::DIRECT_FREE_BLUE; break;
+                case amun::GameState::IndirectBlue: lastCommand = SSL_Referee::INDIRECT_FREE_BLUE; break;
+                case amun::GameState::BallPlacementBlue: lastCommand = SSL_Referee::BALL_PLACEMENT_BLUE; break;
+                case amun::GameState::TimeoutYellow: lastCommand = SSL_Referee::TIMEOUT_YELLOW; break;
+                case amun::GameState::TimeoutBlue: lastCommand = SSL_Referee::TIMEOUT_BLUE; break;
+                default: break;
+                }
+            }
+            refereePacket.set_command(lastCommand);
+            refereePacket.set_command_counter(refereeCounter);
+            refereePacket.set_command_timestamp((quint64)gameStateChangeTime);
+            refereePacket.mutable_yellow()->CopyFrom(gameState.yellow());
+            refereePacket.mutable_blue()->CopyFrom(gameState.blue());
+            if (gameState.has_designated_position()) {
+                refereePacket.mutable_designated_position()->CopyFrom(gameState.designated_position());
+            }
+            if (gameState.has_goals_flipped()) {
+                refereePacket.set_blueteamonpositivehalf(!gameState.goals_flipped());
+            }
+            if (gameState.has_game_event()) {
+                refereePacket.mutable_gameevent()->CopyFrom(gameState.game_event());
+            }
+            logfileOut.addRefereePacket(refereePacket, current->time());
         }
     }
 }
