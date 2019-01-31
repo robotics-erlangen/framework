@@ -91,6 +91,16 @@ export class UnitTest {
 		}
 	}
 
+	protected assert_vector_equal_eps(a: Vector | undefined, b: Vector | undefined, eps: number) {
+		this.assert_not_undefined(a);
+		this.assert_not_undefined(b);
+		a = a!;
+		b = b!;
+		if (isNaN(a.distanceToSq(b)) || a.distanceToSq(b) > eps * eps) {
+			throw new Error(`Assert failes: '${a ? a._toString() : a}' is not equal to '${b ? b._toString() : b}'. Distance: '${a.distanceTo(b)}' > '${eps}'`);
+		}
+	}
+
 	protected assert_false(a: any) {
 		if (a !== false) {
 			throw new Error(`Assert failed: '${a}' is not false`);
