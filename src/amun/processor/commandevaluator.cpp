@@ -48,6 +48,11 @@ void CommandEvaluator::clearInput()
     setInput(robot::ControllerInput(), 0);
 }
 
+bool CommandEvaluator::hasInput()
+{
+    return (m_startTime != 0);
+}
+
 void CommandEvaluator::calculateCommand(const world::Robot *robot, qint64 worldTime, robot::Command &command, amun::DebugValues *debug)
 {
     const bool hasRobot = (robot != nullptr);

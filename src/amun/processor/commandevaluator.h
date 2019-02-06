@@ -44,6 +44,7 @@ public:
     void calculateCommand(const world::Robot *robot, qint64 worldTime, robot::Command &command, amun::DebugValues *debug);
     void setInput(const robot::ControllerInput &input, qint64 currentTime);
     void clearInput();
+    bool hasInput();
 
 private:
     static float robotToPhi(const world::Robot *robot);

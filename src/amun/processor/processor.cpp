@@ -198,16 +198,24 @@ void Processor::process()
 
     amun::DebugValues *debug = status_debug->add_debug();
     debug->set_source(amun::Controller);
-    QList<robot::RadioCommand> radio_commands;
+    QList<robot::RadioCommand> radio_commands_prio;
 
-    // assume that current_time is still "now"
-    const qint64 controllerTime = current_time + tickDuration;
-    processTeam(m_blueTeam, true, status->world_state().blue(), radio_commands, status_debug, controllerTime, radioStatus->world_state().blue(), debug);
-    processTeam(m_yellowTeam, false, status->world_state().yellow(), radio_commands, status_debug, controllerTime, radioStatus->world_state().yellow(), debug);
+    {
+        QList<robot::RadioCommand> radio_commands;
+
+        // assume that current_time is still "now"
+        const qint64 controllerTime = current_time + tickDuration;
+        processTeam(m_blueTeam, true, status->world_state().blue(), radio_commands_prio, radio_commands,
+                    status_debug, controllerTime, radioStatus->world_state().blue(), debug);
+        processTeam(m_yellowTeam, false, status->world_state().yellow(), radio_commands_prio, radio_commands,
+                    status_debug, controllerTime, radioStatus->world_state().yellow(), debug);
+
+        radio_commands_prio.append(radio_commands);
+    }
 
     if (m_transceiverEnabled) {
         // the command is active starting from now
-        m_tracker->queueRadioCommands(radio_commands, current_time+1);
+        m_tracker->queueRadioCommands(radio_commands_prio, current_time+1);
     }
 
     // prediction which accounts for the strategy runtime
@@ -229,7 +237,7 @@ void Processor::process()
     emit sendStatus(status_debug);
 
     if (m_transceiverEnabled) {
-        emit sendRadioCommands(radio_commands, current_time);
+        emit sendRadioCommands(radio_commands_prio, current_time);
     }
 
     m_tracker->finishProcessing();
@@ -301,7 +309,9 @@ void Processor::injectUserControl(Status &status, bool isBlue)
     }
 }
 
-void Processor::processTeam(Team &team, bool isBlue, const RobotList &robots, QList<robot::RadioCommand> &radio_commands, Status &status, qint64 time, const RobotList &radioRobots, amun::DebugValues *debug)
+void Processor::processTeam(Team &team, bool isBlue, const RobotList &robots, QList<robot::RadioCommand> &radio_commands_prio,
+                            QList<robot::RadioCommand> &radio_commands, Status &status, qint64 time, const RobotList &radioRobots,
+                            amun::DebugValues *debug)
 {
     foreach (Robot *robot, team.robots) {
         robot::RadioCommand *radio_command = status->add_radio_command();
@@ -319,7 +329,12 @@ void Processor::processTeam(Team &team, bool isBlue, const RobotList &robots, QL
         injectRawSpeedIfAvailable(radio_command, radioRobots);
 
         // Prepare radio command
-        radio_commands.append(*radio_command);
+        // prioritize radio commands of robots with active commands
+        if (robot->controller.hasInput()) {
+            radio_commands_prio.append(*radio_command);
+        } else {
+            radio_commands.append(*radio_command);
+        }
     }
 }
 
