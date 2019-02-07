@@ -219,7 +219,7 @@ export function intersectLineLine(pos1: Position, dir1: RelativePosition, pos2: 
 // @param q1 Vector - point on line 2
 // @param q2 Vector - point on line 2
 export function intersectLinesByPoints(p1: Position, p2: Position, q1: Position, q2: Position):
-		[Position?, number?, number?] {
+		[Position, number, number] | [] {
 	return intersectLineLine(p1, p2 - p1, q1, q2 - q1);
 }
 
