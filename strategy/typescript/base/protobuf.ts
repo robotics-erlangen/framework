@@ -816,3 +816,328 @@ export namespace world {
 	}
 }
 
+export namespace gameController {
+	export interface AutoRefRegistration {
+		identifier: string;
+		signature?: gameController.Signature;
+	}
+	export interface AutoRefToController {
+		signature?: gameController.Signature;
+		gameEvent?: gameController.GameEvent;
+		autoRefMessage?: gameController.AutoRefMessage;
+	}
+	export interface ControllerToAutoRef {
+		controller_reply?: gameController.ControllerReply;
+	}
+	export namespace AutoRefMessage {
+		export namespace WaitForBots {
+			export interface Violator {
+				botId: gameController.BotId;
+				distance: number;
+			}
+		}
+		export interface WaitForBots {
+			violators?: gameController.AutoRefMessage.WaitForBots.Violator[];
+		}
+	}
+	export interface AutoRefMessage {
+		custom?: string;
+		waitForBots?: gameController.AutoRefMessage.WaitForBots;
+	}
+	export const enum Team {
+		UNKNOWN = 0,
+		YELLOW = 1,
+		BLUE = 2,
+	}
+	export interface BotId {
+		id?: number;
+		team?: gameController.Team;
+	}
+	export interface Location {
+		x: number;
+		y: number;
+	}
+	export namespace ControllerReply {
+		export const enum StatusCode {
+			UNKNOWN_STATUS_CODE = 0,
+			OK = 1,
+			REJECTED = 2,
+		}
+		export const enum Verification {
+			UNKNOWN_VERIFICATION = 0,
+			VERIFIED = 1,
+			UNVERIFIED = 2,
+		}
+	}
+	export interface ControllerReply {
+		status_code?: gameController.ControllerReply.StatusCode;
+		reason?: string;
+		next_token?: string;
+		verification?: gameController.ControllerReply.Verification;
+	}
+	export interface Signature {
+		token: string;
+		pkcs1v15: ArrayBuffer;
+	}
+	export interface BallSpeedMeasurement {
+		timestamp: number;
+		ballSpeed: number;
+		initialBallSpeed?: number;
+	}
+	export interface TeamRegistration {
+		team_name: string;
+		signature?: gameController.Signature;
+	}
+	export namespace TeamToController {
+		export const enum AdvantageResponse {
+			UNDECIDED = 0,
+			STOP = 0,
+			CONTINUE = 1,
+		}
+	}
+	export interface TeamToController {
+		signature?: gameController.Signature;
+		desired_keeper?: number;
+		advantage_response?: gameController.TeamToController.AdvantageResponse;
+		substitute_bot?: boolean;
+	}
+	export interface ControllerToTeam {
+		controller_reply?: gameController.ControllerReply;
+		advantage_choice?: gameController.AdvantageChoice;
+	}
+	export namespace AdvantageChoice {
+		export const enum Foul {
+			UNKNOWN = 0,
+			COLLISION = 1,
+			PUSHING = 2,
+		}
+	}
+	export interface AdvantageChoice {
+		foul: gameController.AdvantageChoice.Foul;
+	}
+	export namespace GameEvent {
+		export interface BallLeftFieldEvent {
+			byTeam: gameController.Team;
+			byBot?: number;
+			location?: gameController.Location;
+		}
+		export interface AimlessKick {
+			byTeam: gameController.Team;
+			byBot?: number;
+			location?: gameController.Location;
+			kickLocation?: gameController.Location;
+		}
+		export interface Goal {
+			byTeam: gameController.Team;
+			byBot?: number;
+			location?: gameController.Location;
+			kickLocation?: gameController.Location;
+		}
+		export interface IndirectGoal {
+			byTeam: gameController.Team;
+			byBot?: number;
+			location?: gameController.Location;
+			kickLocation?: gameController.Location;
+		}
+		export interface ChippedGoal {
+			byTeam: gameController.Team;
+			byBot?: number;
+			location?: gameController.Location;
+			kickLocation?: gameController.Location;
+			maxBallHeight?: number;
+		}
+		export interface BotTooFastInStop {
+			byTeam: gameController.Team;
+			byBot?: number;
+			location?: gameController.Location;
+			speed?: number;
+		}
+		export interface DefenderTooCloseToKickPoint {
+			byTeam: gameController.Team;
+			byBot?: number;
+			location?: gameController.Location;
+			distance?: number;
+		}
+		export interface BotCrashDrawn {
+			botYellow?: number;
+			botBlue?: number;
+			location?: gameController.Location;
+			crashSpeed?: number;
+			speedDiff?: number;
+			crashAngle?: number;
+		}
+		export interface BotCrashUnique {
+			byTeam: gameController.Team;
+			violator?: number;
+			victim?: number;
+			location?: gameController.Location;
+			crashSpeed?: number;
+			speedDiff?: number;
+			crashAngle?: number;
+		}
+		export interface BotPushedBot {
+			byTeam: gameController.Team;
+			violator?: number;
+			victim?: number;
+			location?: gameController.Location;
+			pushedDistance?: number;
+		}
+		export interface BotTippedOver {
+			byTeam: gameController.Team;
+			byBot?: number;
+			location?: gameController.Location;
+		}
+		export interface DefenderInDefenseArea {
+			byTeam: gameController.Team;
+			byBot?: number;
+			location?: gameController.Location;
+			distance?: number;
+		}
+		export interface DefenderInDefenseAreaPartially {
+			byTeam: gameController.Team;
+			byBot?: number;
+			location?: gameController.Location;
+			distance?: number;
+		}
+		export interface AttackerInDefenseArea {
+			byTeam: gameController.Team;
+			byBot?: number;
+			location?: gameController.Location;
+			distance?: number;
+		}
+		export interface BotKickedBallTooFast {
+			byTeam: gameController.Team;
+			byBot?: number;
+			location?: gameController.Location;
+			initialBallSpeed?: number;
+			maxBallHeight?: number;
+		}
+		export interface BotDribbledBallTooFar {
+			byTeam: gameController.Team;
+			byBot?: number;
+			start?: gameController.Location;
+			end?: gameController.Location;
+		}
+		export interface AttackerTouchedKeeper {
+			byTeam: gameController.Team;
+			byBot?: number;
+			location?: gameController.Location;
+		}
+		export interface AttackerDoubleTouchedBall {
+			byTeam: gameController.Team;
+			byBot?: number;
+			location?: gameController.Location;
+		}
+		export interface AttackerTooCloseToDefenseArea {
+			byTeam: gameController.Team;
+			byBot?: number;
+			location?: gameController.Location;
+			distance?: number;
+		}
+		export interface BotHeldBallDeliberately {
+			byTeam: gameController.Team;
+			byBot?: number;
+			location?: gameController.Location;
+			duration?: number;
+		}
+		export interface BotInterferedPlacement {
+			byTeam: gameController.Team;
+			byBot?: number;
+			location?: gameController.Location;
+		}
+		export interface MultipleCards {
+			byTeam: gameController.Team;
+		}
+		export interface MultipleFouls {
+			byTeam: gameController.Team;
+		}
+		export interface MultiplePlacementFailures {
+			byTeam: gameController.Team;
+		}
+		export interface KickTimeout {
+			byTeam: gameController.Team;
+			time?: number;
+		}
+		export interface NoProgressInGame {
+			location?: gameController.Location;
+			time?: number;
+		}
+		export interface PlacementFailedByTeamInFavor {
+			byTeam: gameController.Team;
+			remainingDistance?: number;
+		}
+		export interface PlacementFailedByOpponent {
+			byTeam: gameController.Team;
+			remainingDistance?: number;
+		}
+		export interface UnsportingBehaviorMinor {
+			byTeam: gameController.Team;
+			reason: string;
+		}
+		export interface UnsportingBehaviorMajor {
+			byTeam: gameController.Team;
+			reason: string;
+		}
+		export interface KeeperHeldBall {
+			byTeam: gameController.Team;
+			location?: gameController.Location;
+			duration?: number;
+		}
+		export interface PlacementSucceeded {
+			byTeam: gameController.Team;
+			timeTaken?: number;
+			precision?: number;
+			distance?: number;
+		}
+		export interface Prepared {
+			timeTaken?: number;
+		}
+		export interface BotSubstitution {
+			byTeam: gameController.Team;
+		}
+		export interface TooManyRobots {
+			byTeam: gameController.Team;
+		}
+	}
+	export interface GameEvent {
+		prepared?: gameController.GameEvent.Prepared;
+		noProgressInGame?: gameController.GameEvent.NoProgressInGame;
+		placementFailedByTeamInFavor?: gameController.GameEvent.PlacementFailedByTeamInFavor;
+		placementFailedByOpponent?: gameController.GameEvent.PlacementFailedByOpponent;
+		placementSucceeded?: gameController.GameEvent.PlacementSucceeded;
+		botSubstitution?: gameController.GameEvent.BotSubstitution;
+		tooManyRobots?: gameController.GameEvent.TooManyRobots;
+		ballLeftFieldTouchLine?: gameController.GameEvent.BallLeftFieldEvent;
+		ballLeftFieldGoalLine?: gameController.GameEvent.BallLeftFieldEvent;
+		possibleGoal?: gameController.GameEvent.Goal;
+		goal?: gameController.GameEvent.Goal;
+		indirectGoal?: gameController.GameEvent.IndirectGoal;
+		chippedGoal?: gameController.GameEvent.ChippedGoal;
+		aimlessKick?: gameController.GameEvent.AimlessKick;
+		kickTimeout?: gameController.GameEvent.KickTimeout;
+		keeperHeldBall?: gameController.GameEvent.KeeperHeldBall;
+		attackerDoubleTouchedBall?: gameController.GameEvent.AttackerDoubleTouchedBall;
+		attackerInDefenseArea?: gameController.GameEvent.AttackerInDefenseArea;
+		attackerTouchedKeeper?: gameController.GameEvent.AttackerTouchedKeeper;
+		botDribbledBallTooFar?: gameController.GameEvent.BotDribbledBallTooFar;
+		botKickedBallTooFast?: gameController.GameEvent.BotKickedBallTooFast;
+		attackerTooCloseToDefenseArea?: gameController.GameEvent.AttackerTooCloseToDefenseArea;
+		botInterferedPlacement?: gameController.GameEvent.BotInterferedPlacement;
+		botCrashDrawn?: gameController.GameEvent.BotCrashDrawn;
+		botCrashUnique?: gameController.GameEvent.BotCrashUnique;
+		botCrashUniqueSkipped?: gameController.GameEvent.BotCrashUnique;
+		botPushedBot?: gameController.GameEvent.BotPushedBot;
+		botPushedBotSkipped?: gameController.GameEvent.BotPushedBot;
+		botHeldBallDeliberately?: gameController.GameEvent.BotHeldBallDeliberately;
+		botTippedOver?: gameController.GameEvent.BotTippedOver;
+		botTooFastInStop?: gameController.GameEvent.BotTooFastInStop;
+		defenderTooCloseToKickPoint?: gameController.GameEvent.DefenderTooCloseToKickPoint;
+		defenderInDefenseAreaPartially?: gameController.GameEvent.DefenderInDefenseAreaPartially;
+		defenderInDefenseArea?: gameController.GameEvent.DefenderInDefenseArea;
+		multipleCards?: gameController.GameEvent.MultipleCards;
+		multiplePlacementFailures?: gameController.GameEvent.MultiplePlacementFailures;
+		multipleFouls?: gameController.GameEvent.MultipleFouls;
+		unsportingBehaviorMinor?: gameController.GameEvent.UnsportingBehaviorMinor;
+		unsportingBehaviorMajor?: gameController.GameEvent.UnsportingBehaviorMajor;
+	}
+}
