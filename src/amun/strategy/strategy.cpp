@@ -23,7 +23,9 @@
 #include "strategy.h"
 #include "core/timer.h"
 #include "protobuf/geometry.h"
+#include "protobuf/ssl_game_controller_team.pb.h"
 #include "protobuf/robot.h"
+#include "google/protobuf/util/delimited_message_util.h"
 #include <QCoreApplication>
 #include <QDateTime>
 #include <QFileInfo>
@@ -53,9 +55,11 @@ public:
     quint16 mixedTeamPort;
     QByteArray mixedTeamData;
 
-    QHostAddress remoteControlHost;
+    QHostAddress refereeHost;
+
     quint16 remoteControlPort;
     QByteArray remoteControlData;
+
 };
 
 #ifdef V8_FOUND
@@ -94,6 +98,8 @@ Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, b
     m_autoReload(false),
     m_strategyFailed(false),
     m_isEnabled(!isLogplayer),
+    m_udpSenderSocket(new QUdpSocket(this)),
+    m_refboxSocket(new QTcpSocket(this)),
     m_isReplay(false),
     m_debugHelper(helper),
     m_isInternalAutoref(internalAutoref),
@@ -120,11 +126,9 @@ Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, b
     m_inspectorServer = std::unique_ptr<InspectorServer>(new InspectorServer(inspectorPort, this));
 #endif
 
-    m_udpSenderSocket = new QUdpSocket(this);
-    m_refboxSocket = new QTcpSocket(this);
     m_refboxSocket->setSocketOption(QAbstractSocket::LowDelayOption,1);
 
-    m_p->remoteControlHost = QHostAddress("localhost");
+    m_p->refereeHost = QHostAddress("localhost");
     m_p->remoteControlPort = 10007;
 
     // used to delay processing until all status packets are processed
@@ -349,9 +353,12 @@ void Strategy::createDummyTeam()
 void Strategy::handleRefereeHost(QString hostName)
 {
     QHostAddress newAddress(hostName);
-    if (newAddress != m_p->remoteControlHost) {
-        m_p->remoteControlHost = hostName;
+    if (newAddress != m_p->refereeHost) {
+        m_p->refereeHost = hostName;
         m_refboxSocket->close();
+        if (m_strategy) {
+            m_strategy->setGameControllerHost(newAddress);
+        }
     }
 }
 
@@ -411,7 +418,7 @@ void Strategy::process()
 
         if (!m_p->remoteControlData.isNull()) {
             if (m_refboxSocket->state() != QAbstractSocket::ConnectedState) {
-                m_refboxSocket->connectToHost(m_p->remoteControlHost, m_p->remoteControlPort);
+                m_refboxSocket->connectToHost(m_p->refereeHost, m_p->remoteControlPort);
                 if (!m_refboxSocket->waitForConnected(1000)) {
                     m_p->remoteControlData = QByteArray(); // reset
                     fail("Failed to connect to refbox");
@@ -546,6 +553,7 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
         // the debug helper doesn't know the exact moment when the strategy gets reloaded
         m_debugHelper->enableQueue();
     }
+    m_strategy->setGameControllerHost(m_p->refereeHost);
     m_strategy->setIsInternalAutoref(m_isInternalAutoref);
     m_strategy->setIsPerformanceMode(m_isPerformanceMode);
     m_strategy->setIsReplay(m_isReplay);

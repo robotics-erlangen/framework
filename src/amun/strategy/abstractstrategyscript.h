@@ -35,9 +35,20 @@
 #include <QStringList>
 #include <QDir>
 #include <QList>
+#include <QHostAddress>
+#include <memory>
 
 class DebugHelper;
 class Timer;
+class QTcpSocket;
+class SocketAdapter;
+namespace google {
+    namespace protobuf {
+        namespace io {
+            class CopyingInputStreamAdaptor;
+        }
+    }
+}
 
 class AbstractStrategyScript : public QObject
 {
@@ -65,6 +76,11 @@ public:
     void setIsPerformanceMode(bool performance) { m_isPerformanceMode = performance; }
     void setIsReplay(bool replay) { m_isReplay = replay; }
     void setFlipped(bool flipped) { m_isFlipped = flipped; }
+
+    bool connectGameController();
+    bool sendGameControllerMessage(const google::protobuf::Message *message);
+    bool receiveGameControllerMessage(google::protobuf::Message *type);
+    void setGameControllerHost(QHostAddress host);
 
     // getter functions
     QString errorMsg() const { return m_errorMsg; }
@@ -155,6 +171,13 @@ protected:
     amun::UserInput m_userInput;
 
     QList<SSL_RefereeRemoteControlReply> m_refereeReplys;
+
+    // the game controller connection should be reset as soon the strategy dies, therefore it is managed here
+    std::shared_ptr<QTcpSocket> m_gameControllerSocket;
+    int m_nextPackageSize = -1; // negative if not known yet
+    QByteArray m_partialPacket;
+    unsigned int m_sizeBytesPosition = 0;
+    QHostAddress m_gameControllerHost;
 
 private:
     amun::DebugValues* m_debugValues = nullptr;

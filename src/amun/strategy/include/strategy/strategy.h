@@ -109,8 +109,8 @@ private:
     bool m_strategyFailed;
     bool m_isEnabled;
 
-    QUdpSocket *m_udpSenderSocket;
-    QTcpSocket *m_refboxSocket;
+    std::unique_ptr<QUdpSocket> m_udpSenderSocket;
+    std::unique_ptr<QTcpSocket> m_refboxSocket;
 
     amun::UserInput m_lastMoveCommand;
     bool m_isReplay;
