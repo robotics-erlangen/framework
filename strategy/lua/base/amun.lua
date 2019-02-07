@@ -256,6 +256,9 @@ function amun._hideFunctions()
 	local sendNetworkRefereeCommand = amun.sendNetworkRefereeCommand
 	local nextRefboxReply = amun.nextRefboxReply
 	local performanceMode = amun.isPerformanceMode
+	local connectGameController = amun.connectGameController
+	local sendGameController = amun.sendGameControllerMessage
+	local receiveGameController = amun.getGameControllerMessage
 
 	-- overwrite global amun
 	amun = {
@@ -266,7 +269,10 @@ function amun._hideFunctions()
 			return getCurrentTime() * 1E-9
 		end,
 		setRobotExchangeSymbol = amun.setRobotExchangeSymbol,
-		isPerformanceMode = performanceMode
+		isPerformanceMode = performanceMode,
+		connectGameController = connectGameController,
+		sendGameControllerMessage = sendGameController,
+		getGameControllerMessage = receiveGameController
 	}
 	if isDebug then
 		amun.sendCommand = sendCommand

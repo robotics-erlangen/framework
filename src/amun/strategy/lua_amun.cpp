@@ -21,6 +21,8 @@
 #include "lua.h"
 #include "lua_amun.h"
 #include "lua_protobuf.h"
+#include "protobuf/ssl_game_controller_team.pb.h"
+#include "protobuf/ssl_game_controller_auto_ref.pb.h"
 #include "protobuf/ssl_refbox_remotecontrol.pb.h"
 #include <QtEndian>
 
@@ -281,6 +283,63 @@ static int amunSendRefereeCommand(lua_State *state)
     return 0;
 }
 
+static int amunConnectGameController(lua_State *state)
+{
+    Lua *thread = getStrategyThread(state);
+    bool connected = thread->connectGameController();
+    lua_pushboolean(state, connected);
+    return 1;
+}
+
+static int amunSendGameControllerMessage(lua_State *state)
+{
+    Lua *thread = getStrategyThread(state);
+    QString type(luaL_checkstring(state, 1));
+    std::unique_ptr<google::protobuf::Message> message;
+    if (type == "TeamRegistration") {
+        message.reset(new gameController::TeamRegistration);
+    } else if (type == "AutoRefRegistration") {
+        message.reset(new gameController::AutoRefRegistration);
+    } else if (type == "TeamToController") {
+        message.reset(new gameController::TeamToController);
+    } else if (type == "AutoRefToController") {
+        message.reset(new gameController::AutoRefToController);
+    } else if (type == "AutoRefMessage") {
+        message.reset(new gameController::AutoRefMessage);
+    } else {
+        luaL_error(state, "Unknown game controller message type");
+        return 0;
+    }
+
+    if (!thread->connectGameController()) {
+        luaL_error(state, "Not connected to game controller");
+        return 0;
+    }
+
+    protobufToMessage(state, 2, *message, nullptr);
+
+    thread->sendGameControllerMessage(message.get());
+    return 0;
+}
+
+static int amunGetGameControllerMessage(lua_State *state)
+{
+    Lua *thread = getStrategyThread(state);
+    std::unique_ptr<google::protobuf::Message> message;
+    if (thread->getStrategyType() == StrategyType::AUTOREF) {
+        message.reset(new gameController::ControllerToAutoRef);
+    } else {
+        message.reset(new gameController::ControllerToTeam);
+    }
+
+    bool hasResult = thread->receiveGameControllerMessage(message.get());
+    if (hasResult) {
+        protobufPushMessage(state, *message);
+        return 1;
+    }
+    return 0;
+}
+
 static int amunSendMixedTeamInfo(lua_State *state)
 {
     Lua *thread = getStrategyThread(state);
@@ -418,6 +477,9 @@ static const luaL_Reg amunMethods[] = {
     {"addVisualizationCircle", amunAddVisualizationCircle},
     {"addDebug",            amunAddDebug},
     {"addPlot",             amunAddPlot},
+    {"sendGameControllerMessage",   amunSendGameControllerMessage},
+    {"getGameControllerMessage",    amunGetGameControllerMessage},
+    {"connectGameController",       amunConnectGameController},
     {"setRobotExchangeSymbol", amunSetRobotExchangeSymbol},
     // debug only
     {"sendCommand",         amunSendCommand},
