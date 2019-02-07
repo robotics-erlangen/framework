@@ -26,12 +26,10 @@ using namespace v8;
 
 // protobuf to js
 
+// the field must be present in the message
 static Local<Value> protobufFieldToJs(Isolate *isolate, const google::protobuf::Message &message, const google::protobuf::FieldDescriptor *field)
 {
     const google::protobuf::Reflection *refl = message.GetReflection();
-    if (!refl->HasField(message, field)) {
-        return Undefined(isolate);
-    }
 
     switch (field->cpp_type()) {
     case google::protobuf::FieldDescriptor::CPPTYPE_INT32:
@@ -124,13 +122,17 @@ Local<Value> protobufToJs(Isolate *isolate, const google::protobuf::Message &mes
                                                  NewStringType::kNormal).ToLocalChecked();
         if (field->is_repeated()) {
             const google::protobuf::Reflection *refl = message.GetReflection();
-            Local<Array> array = Array::New(isolate, refl->FieldSize(message, field));
-            for (int r = 0; r < refl->FieldSize(message, field); r++) {
+            int fieldSize = refl->FieldSize(message, field);
+            Local<Array> array = Array::New(isolate, fieldSize);
+            for (int r = 0; r < fieldSize; r++) {
                 array->Set(r, repeatedFieldToJs(isolate, message, field, r));
             }
             result->Set(name, array);
         } else {
-            result->Set(name, protobufFieldToJs(isolate, message, field));
+            const google::protobuf::Reflection *refl = message.GetReflection();
+            if (refl->HasField(message, field)) {
+                result->Set(name, protobufFieldToJs(isolate, message, field));
+            }
         }
     }
     return result;
