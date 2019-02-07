@@ -237,6 +237,15 @@ interface AmunPublic {
 	setRobotExchangeSymbol(generation: number, id: number, exchange: boolean): void;
 	nextRefboxReply(): pb.SSL_RefereeRemoteControlReply;
 
+	// game controller communication
+	connectGameController(): boolean;
+	sendGameControllerMessage(type: "TeamRegistration", message: pb.gameController.TeamRegistration): void;
+	sendGameControllerMessage(type: "AutoRefRegistration", message: pb.gameController.AutoRefRegistration): void;
+	sendGameControllerMessage(type: "TeamToController", message: pb.gameController.TeamToController): void;
+	sendGameControllerMessage(type: "AutoRefToController", message: pb.gameController.AutoRefToController): void;
+	sendGameControllerMessage(type: "AutoRefMessage", message: pb.gameController.AutoRefMessage): void;
+	getGameControllerMessage(): pb.gameController.ControllerToTeam | pb.gameController.ControllerToAutoRef;
+
 	// only in debug
 	sendCommand(command: pb.amun.Command): void;
 	sendNetworkRefereeCommand(command: pb.SSL_Referee): void;
@@ -322,6 +331,9 @@ export function _hideFunctions() {
 		setRobotExchangeSymbol: setRobotExchangeSymbol,
 		nextRefboxReply: nextRefboxReply,
 		log: log,
+		connectGameController: amun.connectGameController,
+		sendGameControllerMessage: amun.sendGameControllerMessage,
+		getGameControllerMessage: amun.getGameControllerMessage,
 		sendCommand: isDebug ? sendCommand : makeDisabledFunction("sendCommand"),
 		sendNetworkRefereeCommand: isDebug ? sendNetworkRefereeCommand : makeDisabledFunction("sendNetworkRefereeCommand"),
 

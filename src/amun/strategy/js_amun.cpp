@@ -30,6 +30,8 @@
 #include "js_protobuf.h"
 #include "typescript.h"
 #include "internaldebugger.h"
+#include "protobuf/ssl_game_controller_team.pb.h"
+#include "protobuf/ssl_game_controller_auto_ref.pb.h"
 
 using namespace v8;
 
@@ -678,6 +680,68 @@ static void amunDisconnectDebugger(const FunctionCallbackInfo<Value>& args)
     t->getInternalDebugger()->clearFunctions();
 }
 
+static void amunConnectGameController(const FunctionCallbackInfo<Value>& args)
+{
+    Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
+    bool connected = t->connectGameController();
+    args.GetReturnValue().Set(connected);
+}
+
+static void amunSendGameControllerMessage(const FunctionCallbackInfo<Value>& args)
+{
+    Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
+    Isolate *isolate = args.GetIsolate();
+    if (!checkNumberOfArguments(args.GetIsolate(), 2, args.Length())) {
+        return;
+    }
+    QString type = *String::Utf8Value(args[0]);
+    std::unique_ptr<google::protobuf::Message> message;
+    if (type == "TeamRegistration") {
+        message.reset(new gameController::TeamRegistration);
+    } else if (type == "AutoRefRegistration") {
+        message.reset(new gameController::AutoRefRegistration);
+    } else if (type == "TeamToController") {
+        message.reset(new gameController::TeamToController);
+    } else if (type == "AutoRefToController") {
+        message.reset(new gameController::AutoRefToController);
+    } else if (type == "AutoRefMessage") {
+        message.reset(new gameController::AutoRefMessage);
+    } else {
+        Local<String> message = String::NewFromUtf8(isolate, "Unknown game controller message type", String::kNormalString);
+        isolate->ThrowException(message);
+        return;
+    }
+
+    if (!t->connectGameController()) {
+        Local<String> message = String::NewFromUtf8(isolate, "Not connected to game controller", String::kNormalString);
+        isolate->ThrowException(message);
+        return;
+    }
+
+    if (!jsToProtobuf(isolate, args[1], isolate->GetCurrentContext(), *message)) {
+        return;
+    }
+
+    t->sendGameControllerMessage(message.get());
+}
+
+static void amunGetGameControllerMessage(const FunctionCallbackInfo<Value>& args)
+{
+    Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
+    std::unique_ptr<google::protobuf::Message> message;
+    if (t->getStrategyType() == StrategyType::AUTOREF) {
+        message.reset(new gameController::ControllerToAutoRef);
+    } else {
+        message.reset(new gameController::ControllerToTeam);
+    }
+
+    bool hasResult = t->receiveGameControllerMessage(message.get());
+    if (hasResult) {
+        Local<Value> result = protobufToJs(args.GetIsolate(), *message.get());
+        args.GetReturnValue().Set(result);
+    }
+}
+
 struct FunctionInfo {
     const char *name;
     void(*function)(FunctionCallbackInfo<Value> const &);
@@ -716,7 +780,10 @@ void registerAmunJsCallbacks(Isolate *isolate, Local<Object> global, Typescript 
         { "luaRandomSetSeed",   amunLuaRandomSeed},
         { "connectDebugger",    amunConnectDebugger},
         { "debuggerSend",       amunDebuggerSend},
-        { "disconnectDebugger", amunDisconnectDebugger}};
+        { "disconnectDebugger", amunDisconnectDebugger},
+        { "sendGameControllerMessage",   amunSendGameControllerMessage},
+        { "getGameControllerMessage",    amunGetGameControllerMessage},
+        { "connectGameController",       amunConnectGameController}};
 
     Local<Object> amunObject = Object::New(isolate);
     Local<String> amunStr = String::NewFromUtf8(isolate, "amun", NewStringType::kNormal).ToLocalChecked();
