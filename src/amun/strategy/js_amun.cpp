@@ -125,7 +125,7 @@ static bool toUintChecked(Isolate *isolate, Local<Value> value, uint &result)
     Maybe<uint> maybeValue = value->Uint32Value(isolate->GetCurrentContext());
     if (!maybeValue.To(&result)) {
         Local<String> errorMessage = String::NewFromUtf8(isolate, "Argument has to be an integer", String::kNormalString);
-        isolate->ThrowException(errorMessage);
+        isolate->ThrowException(Exception::Error(errorMessage));
         return false;
     }
     return true;
@@ -136,7 +136,7 @@ static bool toBoolChecked(Isolate *isolate, Local<Value> value, bool &result)
     Maybe<bool> maybeValue = value->BooleanValue(isolate->GetCurrentContext());
     if (!maybeValue.To(&result)) {
         Local<String> errorMessage = String::NewFromUtf8(isolate, "Argument has to be a boolean", String::kNormalString);
-        isolate->ThrowException(errorMessage);
+        isolate->ThrowException(Exception::Error(errorMessage));
         return false;
     }
     return true;
@@ -148,7 +148,7 @@ static bool verifyNumber(Isolate *isolate, Local<Value> value, float &result)
     double v = 0.0;
     if (!maybeValue.To(&v) || std::isnan(v) || std::isinf(v)) {
         Local<String> errorMessage = String::NewFromUtf8(isolate, "Invalid argument", String::kNormalString);
-        isolate->ThrowException(errorMessage);
+        isolate->ThrowException(Exception::Error(errorMessage));
         return false;
     }
     result = float(v);
@@ -160,7 +160,7 @@ static bool checkNumberOfArguments(Isolate *isolate, int expected, int got)
     if (got < expected) {
         QString errorMessage = QString("Expected %1 arguments, but got %2").arg(expected).arg(got);
         Local<String> message = String::NewFromUtf8(isolate, errorMessage.toUtf8().constData(), String::kNormalString);
-        isolate->ThrowException(message);
+        isolate->ThrowException(Exception::Error(message));
         return false;
     }
     return true;
@@ -173,8 +173,7 @@ static void amunSetCommand(const FunctionCallbackInfo<Value>& args)
 
     // set robot movement command
     if (!checkNumberOfArguments(isolate, 3, args.Length())) {
-        Local<String> errorMessage = String::NewFromUtf8(isolate, "Invalid number of arguments", String::kNormalString);
-        isolate->ThrowException(errorMessage);
+        t->throwException("Invalid number of arguments");
         return;
     }
     RobotCommandInfo commandInfo;
@@ -196,8 +195,7 @@ static void amunSetCommands(const FunctionCallbackInfo<Value>& args)
 
     // set robot movement command
     if (!checkNumberOfArguments(isolate, 1, args.Length()) || !args[0]->IsArray()) {
-        Local<String> errorMessage = String::NewFromUtf8(isolate, "Invalid number of arguments", String::kNormalString);
-        isolate->ThrowException(errorMessage);
+        t->throwException("Invalid number of arguments");
         return;
     }
     Local<Array> commands = Local<Array>::Cast(args[0]);
@@ -205,8 +203,7 @@ static void amunSetCommands(const FunctionCallbackInfo<Value>& args)
     for (unsigned int i = 0;i<commands->Length();i++) {
         Local<Value> commandObject = commands->Get(i);
         if (!commandObject->IsArray()) {
-            Local<String> errorMessage = String::NewFromUtf8(isolate, "Argument is not an array", String::kNormalString);
-            isolate->ThrowException(errorMessage);
+            t->throwException("Argument is not an array");
             return;
         }
         Local<Array> commandArray = Local<Array>::Cast(commandObject);
@@ -310,23 +307,20 @@ static void amunAddPathSimple(const FunctionCallbackInfo<Value>& args)
     vis->set_name(name);
 
     if (!args[7]->IsArray()) {
-        Local<String> errorMessage = String::NewFromUtf8(isolate, "Argument is not an array", String::kNormalString);
-        isolate->ThrowException(errorMessage);
+        t->throwException("Argument is not an array");
         return;
     }
     Local<Array> points = Local<Array>::Cast(args[7]);
     auto path = vis->mutable_path();
     // TODO: pre-allocate the array size
     if (points->Length() % 2 == 1) {
-        Local<String> errorMessage = String::NewFromUtf8(isolate, "Invalid array length", String::kNormalString);
-        isolate->ThrowException(errorMessage);
+        t->throwException("Invalid array length");
         return;
     }
     for (unsigned int i = 0;i<points->Length();i+=2) {
         float x, y;
         if (!verifyNumber(isolate, points->Get(i), x) || !verifyNumber(isolate, points->Get(i+1), y)) {
-            Local<String> errorMessage = String::NewFromUtf8(isolate, "Array has to contain numbers", String::kNormalString);
-            isolate->ThrowException(errorMessage);
+            t->throwException("Array has to contain numbers");
             return;
         }
         auto point = path->add_point();
@@ -366,22 +360,19 @@ static void amunAddPolygonSimple(const FunctionCallbackInfo<Value>& args)
     vis->set_width(0.01f);
 
     if (!args[7]->IsArray()) {
-        Local<String> errorMessage = String::NewFromUtf8(isolate, "Argument is not an array", String::kNormalString);
-        isolate->ThrowException(errorMessage);
+        t->throwException("Argument is not an array");
         return;
     }
     Local<Array> points = Local<Array>::Cast(args[7]);
     auto polygon = vis->mutable_polygon();
     if (points->Length() % 2 == 1) {
-        Local<String> errorMessage = String::NewFromUtf8(isolate, "Invalid array length", String::kNormalString);
-        isolate->ThrowException(errorMessage);
+        t->throwException("Invalid array length");
         return;
     }
     for (unsigned int i = 0;i<points->Length();i+=2) {
         float x, y;
         if (!verifyNumber(isolate, points->Get(i), x) || !verifyNumber(isolate, points->Get(i+1), y)) {
-            Local<String> errorMessage = String::NewFromUtf8(isolate, "Array has to contain numbers", String::kNormalString);
-            isolate->ThrowException(errorMessage);
+            t->throwException("Array has to contain numbers");
             return;
         }
         auto point = polygon->add_point();
@@ -421,7 +412,7 @@ static void amunAddPlot(const FunctionCallbackInfo<Value>& args)
     value->set_name(*String::Utf8Value(isolate, args[0]));
     double number = 0.0;
     if (!args[1]->NumberValue(isolate->GetCurrentContext()).To(&number)) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, "invalid number to plot", String::kNormalString));
+        t->throwException("invalid number to plot");
         return;
     }
     value->set_value(float(number));
@@ -437,7 +428,7 @@ static void amunSendCommand(const FunctionCallbackInfo<Value>& args)
         return;
     }
     if (!t->sendCommand(command)) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, "This function is only allowed in debug mode!", String::kNormalString));
+        t->throwException("This function is only allowed in debug mode!");
     }
 }
 
@@ -453,7 +444,7 @@ static void amunSendRefereeCommand(const FunctionCallbackInfo<Value>& args)
 
     std::string refereeStr;
     if (!referee.SerializeToString(&refereeStr)) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, "Invalid referee command packet!", String::kNormalString));
+        t->throwException("Invalid referee command packet!");
         return;
     }
 
@@ -461,7 +452,7 @@ static void amunSendRefereeCommand(const FunctionCallbackInfo<Value>& args)
     command->mutable_referee()->set_command(refereeStr);
 
     if (!t->sendCommand(command)) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, "This function is only allowed in debug mode!", String::kNormalString));
+        t->throwException("This function is only allowed in debug mode!");
     }
 }
 
@@ -478,7 +469,7 @@ static void amunSendMixedTeamInfo(const FunctionCallbackInfo<Value>& args)
     QByteArray data;
     data.resize(mixedTeamInfo.ByteSize());
     if (!mixedTeamInfo.SerializeToArray(data.data(), data.size())) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, "Invalid mixed team information packet!", String::kNormalString));
+        t->throwException("Invalid mixed team information packet!");
         return;
     }
 
@@ -505,7 +496,7 @@ static void amunSendNetworkRefereeCommand(const FunctionCallbackInfo<Value>& arg
         }
 
         if (!t->sendCommand(command)) {
-            isolate->ThrowException(String::NewFromUtf8(isolate, "This function is only allowed in debug mode!", String::kNormalString));
+            t->throwException("This function is only allowed in debug mode!");
         }
     } else {
         if (!t->refboxControlEnabled()) {
@@ -529,11 +520,11 @@ static void amunSendNetworkRefereeCommand(const FunctionCallbackInfo<Value>& arg
         data.resize(request.ByteSize()+4);
         qToBigEndian<quint32>(request.ByteSize(), (uchar*)data.data());
         if (!request.SerializeToArray(data.data()+4, request.ByteSize())) {
-            isolate->ThrowException(String::NewFromUtf8(isolate, "Invalid referee packet!", String::kNormalString));
+            t->throwException("Invalid referee packet!");
         }
 
         if (!t->sendNetworkReferee(data)) {
-            isolate->ThrowException(String::NewFromUtf8(isolate, "This function is only allowed in debug mode!", String::kNormalString));
+            t->throwException("This function is only allowed in debug mode!");
         }
     }
 }
@@ -588,7 +579,7 @@ static void handleLuaError(const char* prefix, Isolate* isolate, lua_State* luaS
     std::string message(prefix);
     message.append(lua_tostring(luaState, -1));
     Local<String> errorMessage = String::NewFromUtf8(isolate, message.c_str(), String::kNormalString);
-    isolate->ThrowException(errorMessage);
+    isolate->ThrowException(Exception::Error(errorMessage));
 }
 
 static void amunLuaRandom(const FunctionCallbackInfo<Value>& args)
@@ -605,8 +596,7 @@ static void amunLuaRandom(const FunctionCallbackInfo<Value>& args)
         return;
     }
     if (!lua_isnumber(luaState, -1)) {
-        Local<String> errorMessage = String::NewFromUtf8(isolate, "lua random did not return a number", String::kNormalString);
-        isolate->ThrowException(errorMessage);
+        t->throwException("lua random did not return a number");
         return;
     }
     double res = lua_tonumber(luaState, -1);
@@ -650,7 +640,7 @@ static void amunConnectDebugger(const FunctionCallbackInfo<Value>& args)
     }
 
     if (args.Length() != 3 || !args[0]->IsFunction() || !args[1]->IsFunction() || !args[2]->IsFunction()) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, "connectDebugger takes three functions", String::kNormalString));
+        t->throwException("connectDebugger takes three functions");
         return;
     }
     Local<Function> handleResponse = Local<Function>::Cast(args[0]);
@@ -667,7 +657,7 @@ static void amunDebuggerSend(const FunctionCallbackInfo<Value>& args)
     Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
     InternalDebugger *d = t->getInternalDebugger();
     if (args.Length() != 1 || !args[0]->IsString()) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, "debuggerSend takes one string", String::kNormalString));
+        t->throwException("debuggerSend takes one string");
         return;
     }
     Local<String> message = args[0]->ToString(isolate->GetCurrentContext()).ToLocalChecked();
@@ -707,14 +697,12 @@ static void amunSendGameControllerMessage(const FunctionCallbackInfo<Value>& arg
     } else if (type == "AutoRefMessage") {
         message.reset(new gameController::AutoRefMessage);
     } else {
-        Local<String> message = String::NewFromUtf8(isolate, "Unknown game controller message type", String::kNormalString);
-        isolate->ThrowException(message);
+        t->throwException("Unknown game controller message type");
         return;
     }
 
     if (!t->connectGameController()) {
-        Local<String> message = String::NewFromUtf8(isolate, "Not connected to game controller", String::kNormalString);
-        isolate->ThrowException(message);
+        t->throwException("Not connected to game controller");
         return;
     }
 

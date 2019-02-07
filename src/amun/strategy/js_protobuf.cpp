@@ -391,11 +391,11 @@ bool jsToProtobuf(Isolate *isolate, Local<Value> value, Local<Context> c, google
 {
     bool good = jsPartToProtobuf(isolate, value, c, message);
     if (!good) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, "Invalid object, can't convert to protobuf", String::kNormalString));
+        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "Invalid object, can't convert to protobuf", String::kNormalString)));
         return false;
     }
     if (!message.IsInitialized()) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, "Invalid or incomplete object", String::kNormalString));
+        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "Invalid or incomplete object", String::kNormalString)));
         return false;
     }
     return true;

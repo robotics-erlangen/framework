@@ -60,6 +60,7 @@ public:
     bool canConnectInternalDebugger() const;
     InternalDebugger *getInternalDebugger() const { return m_internalDebugger.get(); }
     lua_State*& luaState() { return m_luaState; }
+    void throwException(QString text);
 
 protected:
     bool loadScript(const QString &filename, const QString &entryPoint) override;

@@ -261,8 +261,8 @@ static void buildStackTrace(const Local<Context>& context, QString& errorMsg, co
             }
             errorMsg += "</font>";
         } else {
-            std::cerr << "No stack trace" << std::endl;
             Local<Message> message = tryCatch.Message();
+            // this will happen when an exception is created without an error object, i.e. throw "some error"
             if (!message.IsEmpty()) {
                 String::Utf8Value exception(isolate, tryCatch.Exception());
                 QString exceptionString(*exception);
@@ -441,12 +441,24 @@ ScriptOrigin *Typescript::scriptOriginFromFileName(QString name)
     return origin;
 }
 
+void Typescript::throwException(QString text)
+{
+    Local<String> exception = String::NewFromUtf8(m_isolate, text.toStdString().c_str(), NewStringType::kNormal).ToLocalChecked();
+    m_isolate->ThrowException(Exception::Error(exception));
+}
+
 bool Typescript::loadModule(QString name)
 {
     if (!m_requireCache.back().contains(name)) {
         QFileInfo initInfo(m_filename);
-        QFile file(initInfo.absolutePath() + "/" + name + ".js");
-        file.open(QIODevice::ReadOnly);
+        QDir typescriptDir = initInfo.absoluteDir();
+        typescriptDir.cdUp();
+        QString filename = typescriptDir.absolutePath() + "/" + name + ".js";
+        QFile file(filename);
+        if (!file.open(QIODevice::ReadOnly)) {
+            throwException("Could not import module: " + name);
+            return false;
+        }
         QTextStream in(&file);
         QString content = in.readAll();
         QByteArray contentBytes = content.toLatin1();
@@ -495,9 +507,7 @@ void Typescript::performRequire(const FunctionCallbackInfo<Value> &args)
     }
     if (args.Length() > 2) {
         if (!cleanRequire || !args[2]->IsObject()) {
-            const char *text = "Overlays can only be used with a clean require and must be an object!";
-            Local<String> exception = String::NewFromUtf8(args.GetIsolate(), text, NewStringType::kNormal).ToLocalChecked();
-            args.GetIsolate()->ThrowException(exception);
+            t->throwException("Overlays can only be used with a clean require and must be an object!");
             return;
         }
         Local<Object> overlays = args[2]->ToObject(context).ToLocalChecked();

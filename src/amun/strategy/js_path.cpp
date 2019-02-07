@@ -50,7 +50,7 @@ static bool verifyNumber(Isolate *isolate, Local<Value> value, float &result)
     double v = 0.0;
     if (!maybeValue.To(&v) || std::isnan(v) || std::isinf(v)) {
         Local<String> errorMessage = String::NewFromUtf8(isolate, "Invalid argument", String::kNormalString);
-        isolate->ThrowException(errorMessage);
+        isolate->ThrowException(Exception::Error(errorMessage));
         return false;
     }
     result = float(v);
@@ -132,7 +132,7 @@ static void pathAddLine(const FunctionCallbackInfo<Value>& args)
 
     // a line musn't have length zero
     if (x1 == x2 && y1 == y2) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, "line must have non zero length", String::kNormalString));
+        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "line must have non zero length", String::kNormalString)));
         return;
     }
     p.addLine(x1, y1, x2, y2, width, nullptr, int(prio));
@@ -203,7 +203,7 @@ static void pathTest(const FunctionCallbackInfo<Value>& args)
     }
 
     if (spline.t_start() >= spline.t_end()) {
-        args.GetIsolate()->ThrowException(String::NewFromUtf8(args.GetIsolate(), "spline.t_start must be smaller than spline.t_end", String::kNormalString));
+        args.GetIsolate()->ThrowException(Exception::Error(String::NewFromUtf8(args.GetIsolate(), "spline.t_start must be smaller than spline.t_end", String::kNormalString)));
         return;
     }
 
@@ -226,7 +226,7 @@ static void pathGet(const FunctionCallbackInfo<Value>& args)
     // robot radius must have been set before
     Path& p = static_cast<QTPath*>(Local<External>::Cast(args[0])->Value())->path();
     if (!p.isRadiusValid()) {
-        isolate->ThrowException(String::NewFromUtf8(isolate, "Invalid radius", String::kNormalString));
+        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "Invalid radius", String::kNormalString)));
         return;
     }
 
