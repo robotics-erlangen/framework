@@ -164,23 +164,24 @@ export function getTangentsToCircle(point: Position, centerpoint: Position, radi
 }
 
 /// Calculates the inner tangents of two circles.
-// Returns the point where the tangents intersect and the two points where they touch circle1. If the two circles are too close to each other, returns nil.
+// Returns the point where the tangents intersect and the two points where they touch circle1. If the two circles are too close to each other, returns [].
 // @name getInnerTangentsToCircle
 // @param centerpoint1 Vector - Centerpoint of circle1
 // @param radius1 number - Radius of circle1
 // @param centerpoint2 Vector - Centerpoint of circle2
 // @param radius2 number - Radius of circle2
-// @return intersection Vector - The point, where the two tangents intersect
+// @return [intersection] Vector - The point, where the two tangents intersect
 // @return [Vector] - Point, where the first tangent touches circle1
 // @return [Vector] - Point, where the second tangent touches circle1
 export function getInnerTangentsToCircles(centerpoint1: Position, radius1: number, centerpoint2: Position, radius2: number):
-		[Vector, Vector?] | undefined {
+		[Vector?, Vector?, Vector?] {
 	let d = centerpoint2 - centerpoint1;
 	if (d.length() > radius1 + radius2) {
 		let intersection = centerpoint1 + d * (radius1 / (radius1 + radius2));
-		return [intersection, getTangentsToCircle(intersection, centerpoint1, radius1)[0]];
+		let tangents = getTangentsToCircle(intersection, centerpoint1, radius1);
+		return [intersection, tangents[0], tangents[1]];
 	}
-	return undefined;
+	return [];
 }
 
 /// Intersects two lines.
