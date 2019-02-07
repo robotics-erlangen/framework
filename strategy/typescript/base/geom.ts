@@ -199,13 +199,7 @@ export function intersectLineLine(pos1: Position, dir1: RelativePosition, pos2: 
 		[Vector, number, number] | [] {
 	// check whether the directions are collinear
 	if (Math.abs(dir1.perpendicular().dot(dir2)) / (dir1.length() * dir2.length()) < 0.0001) {
-		// check whether connection vector of pos is collinear to dir
-		let d = pos2 - pos1;
-		if (Math.abs(d.perpendicular().dot(dir1)) / (dir1.length() * d.length()) < 0.0001) {
-			return [pos1, 0, 0];
-		} else {
-			return [];
-		}
+		return [];
 	}
 
 	let normal1 = dir1.perpendicular();
