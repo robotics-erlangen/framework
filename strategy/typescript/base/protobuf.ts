@@ -1,4 +1,5 @@
 // automatically generated, do not edit
+/* tslint:disable:class-name */
 
 export namespace amun {
 	export namespace GameState {
