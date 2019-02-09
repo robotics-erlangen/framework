@@ -101,6 +101,7 @@ target_link_libraries(ra
 target_include_directories(ra
     PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
     PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
+    PRIVATE /somewhere/v8/include
 )
 if (TARGET lib::jemalloc)
     target_link_libraries(ra lib::jemalloc)
