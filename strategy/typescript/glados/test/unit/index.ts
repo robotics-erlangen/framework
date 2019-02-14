@@ -79,7 +79,10 @@ function runTests(moduleNames: string[]) {
 	}
 
 	// throw at the end so that the tests are not repeated infinitely
-	throw new Error(`os.exit(${failedCounter})`);
+	// throw a string instead of an error to avoid a (useless) stacktrace.
+	// tslint:disable-next-line:no-string-throw
+	throw `os.exit(${failedCounter})`;
+
 }
 
 Entrypoints.add("Unit Tests/ all", function() {
