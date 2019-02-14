@@ -1,9 +1,3 @@
-/**
- * @module trycatch
- * Provides a custom implementation of trycatch, which is necessary,
- * because the language try-catch construct would break the interaction with the C++ amun.
- */
-
 /**************************************************************************
 *   Copyright 2019 Tobias Heineken,                                       *
 *   Robotics Erlangen e.V.                                                *
@@ -26,28 +20,41 @@
 
 let amunLocal = amun;
 
-type CatchFunc<T> = (error: any, e: T) => void;
+type CatchFunc<T> = (error: any, e: T) => boolean;
 type ThenFunc<T> = (e: T) => void;
 
 let log: Function;
 
-function ignore(e: any): void {
+function tryCatchThenEle<T>(tryF: () => void,  thenF: ThenFunc<T>, catchF: CatchFunc<T>, ele: T): void {
+	amunLocal.tryCatch(tryF, thenF, catchF, ele);
 }
 
-function notifyCatch(error: any, e: [boolean]): void {
+function ignoreThen(e: any): void {
+}
+
+function ignoreCatch(e: any): boolean {
+	return false; // ignore does not handle the problem
+}
+
+function notifyCatch(error: any, e: [boolean]): boolean {
 	e[0] = true;
+	return false; // notify does not handle the problem, either
+}
+
+function doCatch(catchClause: (error: any) => void): CatchFunc<any> {
+	return (err: any, e2: any) => {catchClause(err); return true;};
 }
 
 export function pcall(tryF: () => void): boolean {
 	let ele: [boolean] = [false];
-	amunLocal.tryCatch(tryF, ignore, notifyCatch, ele, true);
+	tryCatchThenEle(tryF, ignoreThen, notifyCatch, ele);
 	return ele[0];
 }
 
 export function tryCatch(tryF: () => void, catchF: (err: any) => void): void {
-	amunLocal.tryCatch(tryF, ignore, catchF, [], false);
+	tryCatchThenEle(tryF, ignoreThen, doCatch(catchF), []);
 }
 
 export function tryCatchThen(tryF: () => void, catchF: (err: any) => void, thenF: () => void): void {
-	amunLocal.tryCatch(tryF, thenF, catchF, [], false);
+	tryCatchThenEle(tryF, thenF, doCatch(catchF), []);
 }

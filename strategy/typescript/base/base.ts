@@ -50,6 +50,7 @@ import "base/debug";
 import "base/debugcommands";
 import "base/plot";
 import "base/robot";
+import "base/trycatch";
 import "base/vis";
 import "base/world";
 
