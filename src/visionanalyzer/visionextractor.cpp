@@ -60,7 +60,6 @@ int main(int argc, char* argv[])
     quint32 refereeCounter = 0;
     SSL_Referee::Command lastCommand = SSL_Referee::HALT;
 
-    qint64 lastTime = 0;
     for(int i = 0; i < logfileIn.packetCount(); ++i){
         Status current = logfileIn.readStatus(i);
 
@@ -68,7 +67,6 @@ int main(int argc, char* argv[])
             for (const auto &frame : current->world_state().vision_frames()) {
                 logfileOut.addVisionPacket(frame, current->time());
             }
-            lastTime = current->time();
         }
 
         if (current->has_game_state()) {
