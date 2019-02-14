@@ -9,7 +9,7 @@ const safeAmunFunctions : {[name: string]: boolean} = {
 	"getWorldState": true, "getGeometry": true, "getTeam": true, "isBlue": true,
 	"getGameState": true, "getUserInput": true, "getStrategyPath": true,
 	"getSelectedOptions": true, "getPerformanceMode": true, "isReplay": true,
-	"isDebug": true, "isPerformanceMode": true, "strategyPath": true, "getCurrentTime": true
+	"isDebug": true, "isPerformanceMode": true, "strategyPath": true, "getCurrentTime": true, "tryCatch": true
 };
 
 let safeAmun: {[name: string]: any} = {};
