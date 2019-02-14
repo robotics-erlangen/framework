@@ -1,3 +1,4 @@
+import { pcall, tryCatchThen } from "base/trycatch";
 import { Vector } from "base/vector";
 
 export class UnitTest {
@@ -13,21 +14,14 @@ export class UnitTest {
 		log(this.constructor.name + ":");
 		for (let [name, test] of Object.entries(this.tests)) {
 			let hasFailed = false;
-			let failMessage = "";
 			const timeBefore = amun.getCurrentTime();
-			try {
-				test.call(this);
-			} catch (e) {
-				failMessage = (<Error> e).message;
-				failedCounter += 1;
+			if (pcall(() => test.call(this))) {
 				hasFailed = true;
+				failedCounter += 1;
 			}
 			let status = hasFailed ? "<font color=\"red\">fail" : "<font color=\"darkgreen\">success";
 			// the amun module is not initialized here, so the time is a bigint
 			log(`&nbsp;&nbsp;${name} ${status} (${String(Number(amun.getCurrentTime() - timeBefore) * 1E-6).slice(0, 5)} ms) </font>`);
-			if (hasFailed) {
-				log(`&nbsp;&nbsp;&nbsp;&nbsp;${failMessage}`);
-			}
 		}
 		return failedCounter;
 	}
@@ -137,16 +131,8 @@ export class UnitTest {
 		}
 	}
 
-	protected assert_error(a: Function) {
-		let hasFailed = false;
-		try {
-			a();
-		} catch (e) {
-			hasFailed = true;
-		}
-		if (!hasFailed) {
-			throw new Error("Assert failed: function did not produce error");
-		}
+	protected assert_error(a: () => void) {
+		tryCatchThen(a, () => {}, () => {throw new Error("Assert failed: function did not produce error");});
 	}
 
 	protected assert_lte(a: number, b: number) {
