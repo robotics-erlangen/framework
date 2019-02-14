@@ -25,7 +25,8 @@
 
 // macro from https://stackoverflow.com/a/3385694
 #define STATIC_ASSERT(COND,MSG) typedef char static_assertion_##MSG[(COND)?1:-1]
-#define NRF_ADDRESS_SIZE 5
+// must match nrf24SetAddress-function in src/firmware/common/nrf.c
+#define NRF_ADDRESS_SIZE 4
 
 typedef struct
 {
@@ -78,12 +79,12 @@ static const uint16_t transceiver_frequencies[16][2] = {
 // Avoid 0xA? / 0x5? as the MSB (here: last byte in the array) of the address
 // as the NRF might confuse this with the preamble
 // Target for radio response from robot
-static const uint8_t transceiver_address[] = { 0, 0, 0, 0, 0 };
+static const uint8_t transceiver_address[] = { 0, 0, 0, 0 };
 // Target for datagram packet from robot
-static const uint8_t transceiver_datagram[] = { 0, 0, 0, 0, 0 };
+static const uint8_t transceiver_datagram[] = { 0, 0, 0, 0 };
 // Target for datagram packet sent to the robot
 // the robot id is embedded in the first byte along with a robot generation tag
-static const uint8_t robot_datagram[] = { 0, 0, 0, 0, 0 };
+static const uint8_t robot_datagram[] = { 0, 0, 0, 0 };
 
 STATIC_ASSERT(sizeof(transceiver_address) == NRF_ADDRESS_SIZE,transceiver_address_has_wrong_size);
 STATIC_ASSERT(sizeof(transceiver_datagram) == NRF_ADDRESS_SIZE,transceiver_datagram_has_wrong_size);

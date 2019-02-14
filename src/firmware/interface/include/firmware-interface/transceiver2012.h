@@ -21,8 +21,8 @@
 #ifndef TRANSCEIVER2012_H
 #define TRANSCEIVER2012_H
 
-#define TRANSCEIVER_MIN_PROTOCOL_VERSION 4
-#define TRANSCEIVER_PROTOCOL_VERSION 4
+#define TRANSCEIVER_MIN_PROTOCOL_VERSION 5
+#define TRANSCEIVER_PROTOCOL_VERSION 5
 
 enum TransceiverCommand {
     COMMAND_INIT = 0x00, // initial request
@@ -68,6 +68,8 @@ typedef struct
 // used for COMMAND_SEND_NRF24
 typedef struct
 {
+    // always transfer full 5 byte addresses, the nrf will ignore
+    // the excess bytes if shorter addresses are configured
     uint8_t address[5];
     uint8_t expectedResponseSize;
 } __attribute__ ((packed)) TransceiverSendNRF24Packet;

@@ -31,7 +31,7 @@
 static_assert(sizeof(RadioCommand2014) == 23, "Expected radio command packet of size 23");
 static_assert(sizeof(RadioResponse2014) == 10, "Expected radio response packet of size 10");
 
-const int PROTOCOL_VERSION = 4;
+const int PROTOCOL_VERSION = 5;
 
 typedef struct
 {
