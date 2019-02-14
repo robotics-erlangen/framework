@@ -601,3 +601,33 @@ void Typescript::disableTimeoutOnce()
 {
     m_timeoutCounter.store(0);
 }
+
+void Typescript::tryCatch(v8::Local<v8::Function> tryBlock, v8::Local<v8::Function> thenBlock, v8::Local<v8::Function> catchBlock, v8::Local<v8::Object> element)
+{
+    Local<Context> c = m_isolate->GetCurrentContext();
+    std::vector<Local<Value>> parameters({element});
+    Local<Object> global = c->Global();
+    {
+        TryCatch tc(m_isolate);
+        USE(tryBlock->Call(c, global, parameters.size(), parameters.data()));
+        if (tc.HasCaught() || tc.HasTerminated()) {
+            Local<Value> exception = tc.Exception();
+
+            parameters.insert(parameters.begin(), exception);
+            MaybeLocal<Value> maybeResult = catchBlock->Call(c, global, parameters.size(), parameters.data());
+            if (maybeResult.IsEmpty()) {
+                throwException("tryCatch: catch did not return a boolean");
+                return;
+            }
+            bool accept = maybeResult.ToLocalChecked()->BooleanValue();
+            if (!accept) {
+                QString output;
+                buildStackTrace(c, output, tc, m_isolate);
+                log(output);
+                return;
+            }
+            return;
+        }
+    } // close tryCatch
+    USE(thenBlock->Call(c, global, parameters.size(), parameters.data()));
+}

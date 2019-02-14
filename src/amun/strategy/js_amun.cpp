@@ -730,6 +730,25 @@ static void amunGetGameControllerMessage(const FunctionCallbackInfo<Value>& args
     }
 }
 
+static void amunTryCatch(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = args.GetIsolate();
+    Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
+    if (!checkNumberOfArguments(isolate, 4, args.Length())) {
+        return;
+    }
+
+    if (args.Length() != 4 || !args[0]->IsFunction() || !args[1]->IsFunction() || !args[2]->IsFunction()) {
+        t->throwException("tryCatch takes three functions");
+        return;
+    }
+    Local<Function> tryBlock = Local<Function>::Cast(args[0]);
+    Local<Function> thenFun = Local<Function>::Cast(args[1]);
+    Local<Function> catchBlock = Local<Function>::Cast(args[2]);
+    Local<Object> element = Local<Object>::Cast(args[3]);
+    t->tryCatch(tryBlock, thenFun, catchBlock, element);
+}
+
 struct FunctionInfo {
     const char *name;
     void(*function)(FunctionCallbackInfo<Value> const &);
@@ -771,7 +790,8 @@ void registerAmunJsCallbacks(Isolate *isolate, Local<Object> global, Typescript 
         { "disconnectDebugger", amunDisconnectDebugger},
         { "sendGameControllerMessage",   amunSendGameControllerMessage},
         { "getGameControllerMessage",    amunGetGameControllerMessage},
-        { "connectGameController",       amunConnectGameController}};
+        { "connectGameController",       amunConnectGameController},
+        { "tryCatch",       amunTryCatch}};
 
     Local<Object> amunObject = Object::New(isolate);
     Local<String> amunStr = String::NewFromUtf8(isolate, "amun", NewStringType::kNormal).ToLocalChecked();
