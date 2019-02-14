@@ -72,8 +72,9 @@ endif()
 set(CMAKE_AUTOMOC ON)
 find_package(Qt5 COMPONENTS Core Widgets Network OpenGL REQUIRED)
 
-if(NOT APPLE)
+if(UNIX AND NOT APPLE)
     # file open dialogs crash on mac
+    # memory corruption with crash on windows
     find_package(Jemalloc)
 endif()
 find_package(USB)
