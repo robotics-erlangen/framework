@@ -614,15 +614,20 @@ void Typescript::tryCatch(v8::Local<v8::Function> tryBlock, v8::Local<v8::Functi
             Local<Value> exception = tc.Exception();
 
             parameters.insert(parameters.begin(), exception);
+            QString output;
+            buildStackTrace(c, output, tc, m_isolate);
+            tc.Reset();
             MaybeLocal<Value> maybeResult = catchBlock->Call(c, global, parameters.size(), parameters.data());
+            if (tc.HasCaught() || tc.HasTerminated()) {
+                tc.ReThrow();
+                return;
+            }
             if (maybeResult.IsEmpty()) {
                 throwException("tryCatch: catch did not return a boolean");
                 return;
             }
             bool accept = maybeResult.ToLocalChecked()->BooleanValue();
             if (!accept) {
-                QString output;
-                buildStackTrace(c, output, tc, m_isolate);
                 log(output);
                 return;
             }
