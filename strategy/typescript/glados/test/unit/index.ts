@@ -42,6 +42,7 @@ const tests: {[name: string]: string} = {
 	"BaseGeom": testPrefix + "base/geom",
 	"BaseMathUtil": testPrefix + "base/mathutil",
 	"BaseProcessor": testPrefix + "base/processor",
+	"BaseTryCatch": testPrefix + "base/trycatch",
 	"BaseVector": testPrefix + "base/vector",
 	"GladosMessaging": testPrefix + "glados/messaging",
 	"GladosPools": testPrefix + "glados/pools",
