@@ -30,22 +30,32 @@ export class BaseGeom extends UnitTest {
 
 	private testIntersectCircleCircle() {
 		{
-			let [ret, r1] = geom.intersectCircleCircle(new Vector(0, 0), 1, new Vector(0, 2), 1);
-			this.assert_vector_equal(ret, new Vector(0,1));
+			let [ret, r1] = geom.intersectCircleCircle(new Vector(0, 0), 2, new Vector(0, 1), 1);
+			this.assert_vector_equal_eps(ret, new Vector(0, 2), EPS);
 			this.assert_undefined(r1);
 		}
 		{
-			// TODO: this returns a vector with nan, nan
-			// TODO: both solution in this case are x=1.25, therefore the order is undefined
-			let [ret2, l2] = geom.intersectCircleCircle(new Vector(0, 0), 2, new Vector(0, 2), 1);
+			let [ret, r1] = geom.intersectCircleCircle(new Vector(0, 0), 2, new Vector(0, -1), 1);
+			this.assert_vector_equal_eps(ret, new Vector(0, -2), EPS);
+			this.assert_undefined(r1);
+		}
+		{
+			let [ret, r1] = geom.intersectCircleCircle(new Vector(0, 0), 1, new Vector(0, 2), 1);
+			this.assert_vector_equal(ret, new Vector(0, 1));
+			this.assert_undefined(r1);
+		}
+		{
+			let [ret2, l2] = geom.intersectCircleCircle(new Vector(0, 0), 2, new Vector(2, 0), 1);
+			if (ret2!.distanceToSq(new Vector(1.75, Math.sqrt(15) / 4)) > EPS * EPS) {
+				[ret2, l2] = [l2, ret2];
+			}
 			this.assert_equal_eps(ret2!.distanceToSq(new Vector(1.75, Math.sqrt(15) / 4)), 0, EPS);
 			this.assert_equal_eps(l2!.distanceToSq(new Vector(1.75, -Math.sqrt(15) / 4)), 0, EPS);
 		}
 		{
-			// TODO: this returns a vector with nan, nan
-			let [ret3, l3] = geom.intersectCircleCircle(new Vector(0, 0), 2, new Vector(Math.sqrt(3) / 2, 0), 1);
-			this.assert_equal_eps(ret3!.distanceToSq(new Vector(1, Math.sqrt(3) / 2)), 0, EPS);
-			this.assert_equal_eps(l3!.distanceToSq(new Vector(-1, Math.sqrt(3) / 2)), 0, EPS);
+			let [ret3, l3] = geom.intersectCircleCircle(new Vector(0, 0), 2, new Vector(0, Math.sqrt(3)), 1);
+			this.assert_equal_eps(ret3!.distanceToSq(new Vector(1, Math.sqrt(3))), 0, EPS);
+			this.assert_equal_eps(l3!.distanceToSq(new Vector(-1, Math.sqrt(3))), 0, EPS);
 		}
 		{
 			let [ret4, l4] = geom.intersectCircleCircle(new Vector(0, 0), 2, new Vector(2, 2), 1);
@@ -59,7 +69,6 @@ export class BaseGeom extends UnitTest {
 			this.assert_vector_equal(ret4, new Vector(2,0));
 		}
 		{
-			// TODO: this returns a vector with nan, nan
 			let [ret6, l6] = geom.intersectCircleCircle(new Vector(0, 0), 2, new Vector(2, 0), EPS);
 			this.assert_equal_eps(ret6!.distanceToSq(new Vector(2,0)), 0, EPS * EPS);
 		}
@@ -69,7 +78,6 @@ export class BaseGeom extends UnitTest {
 			this.assert_undefined(l7);
 		}
 		{
-			// TODO: this returns a vector with nan, nan
 			let [ret8, l8] = geom.intersectCircleCircle(new Vector(0, 0), 2, new Vector(0, 0), 1);
 			this.assert_undefined(ret8);
 			this.assert_undefined(l8);
@@ -420,8 +428,8 @@ export class BaseGeom extends UnitTest {
 			[c2, c1] = [c1, c2];
 		}
 		let [r1, r2] = geom.intersectCircleCircle(new Vector(0, 0), 5, new Vector(0, 5), 5);
-		this.assert_vector_equal_eps(c1, r1, 0);
-		this.assert_vector_equal_eps(c2, r2, 0);
+		this.assert_vector_equal_eps(c1, r1, EPS);
+		this.assert_vector_equal_eps(c2, r2, EPS);
 	}
 
 	private testInsideRect() {
