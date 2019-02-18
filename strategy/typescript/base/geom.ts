@@ -36,7 +36,7 @@ import { Position, RelativePosition, Vector } from "base/vector";
 // @param r2 number - Radius of second circle
 // @return [Vector] - first intersection if exists (the one with higher x-value)
 // @return [Vector] - second intersection if exists (the one with lower x-value)
-export function intersectCircleCircle(c1: Position, r1: number, c2: Position, r2: number): [Position?, Position?] {
+function intersectCircleCircle_OLD(c1: Position, r1: number, c2: Position, r2: number): [Position?, Position?] {
 	let dist = c1.distanceTo(c2);
 	if (dist > r1 + r2) {
 		return [];
@@ -58,6 +58,28 @@ export function intersectCircleCircle(c1: Position, r1: number, c2: Position, r2
 		return [new Vector(finalX1, finalY1), new Vector(finalX2, finalY2)];
 	}
 	return [];
+}
+
+export let intersectCircleCircle = intersectCircleCircleCos;
+
+function intersectCircleCircleCos(c1: Position, r1: number, c2: Position, r2: number): [Position?, Position?] {
+	let dist = c1.distanceTo(c2);
+	// check for invalid triangles
+	if (r1 > r2 + dist || r2 > r1 + dist || dist > r1 + r2) {
+		return [];
+	}
+
+	let cosR1 = (r1 * r1 + dist * dist - r2 * r2) /  (2 * dist);
+	let M = (c2 - c1) * (cosR1 / dist);
+	let [res1, res2, l1, l2] = intersectLineCircle(c1 + M, M.perpendicular(), c1, r1);
+
+	if (res1 == undefined) {
+		throw new Error("undefined");
+	}
+	if (res2 !== undefined && res1.x < res2.x) {
+		[res1, res2] = [res2, res1];
+	}
+	return [res1, res2];
 }
 
 export function boundRect(p1: Position, pos: Position, p2: Position): Position {
