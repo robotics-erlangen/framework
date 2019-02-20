@@ -60,6 +60,24 @@ if(APPLE)
     SET(CMAKE_CXX_ARCHIVE_FINISH "<CMAKE_RANLIB> -no_warning_for_no_symbols <TARGET>")
 endif()
 
+# Find cross compilers
+macro(find_cross_compiler VARIABLE NAME)
+    find_program(${VARIABLE} NAMES ${NAME})
+    mark_as_advanced(${VARIABLE})
+
+    if("${ARGN}" STREQUAL "REQUIRED")
+        if(NOT ${VARIABLE})
+            message("${NAME} not found, some targets will not be available.")
+        endif()
+    endif()
+endmacro(find_cross_compiler)
+
+find_cross_compiler(ARM_C_CROSS_COMPILER arm-none-eabi-gcc REQUIRED)
+find_cross_compiler(ARM_CXX_CROSS_COMPILER arm-none-eabi-g++)
+
+# downloads
+add_custom_target(download)
+
 include(EnvHelper)
 
 find_package(OpenGL REQUIRED)

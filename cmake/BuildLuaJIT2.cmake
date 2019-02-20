@@ -71,3 +71,6 @@ elseif(UNIX AND NOT APPLE)
   # required for the static library
   set_property(TARGET lib::luajit PROPERTY INTERFACE_LINK_LIBRARIES m dl)
 endif()
+
+ExternalProject_Add_StepTargets(project_luajit download)
+add_dependencies(download project_luajit-download)

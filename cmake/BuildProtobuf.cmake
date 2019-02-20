@@ -70,3 +70,6 @@ set_target_properties(protobuf::protoc PROPERTIES
 )
 
 message(STATUS "Building protobuf ${PROTOBUF_VERSION}")
+
+ExternalProject_Add_StepTargets(project_protobuf download)
+add_dependencies(download project_protobuf-download)

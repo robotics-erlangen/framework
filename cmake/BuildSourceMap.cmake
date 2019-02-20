@@ -46,3 +46,6 @@ set_target_properties(lib::sourcemap PROPERTIES
     INTERFACE_LINK_LIBRARIES "Qt5::Core"
     INTERFACE_INCLUDE_DIRECTORIES "${source_dir}/src"
 )
+
+ExternalProject_Add_StepTargets(project_sourcemap download)
+add_dependencies(download project_sourcemap-download)

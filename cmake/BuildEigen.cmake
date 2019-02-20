@@ -49,3 +49,6 @@ target_compile_options(eigen INTERFACE -Wno-deprecated-declarations)
 add_dependencies(eigen project_eigen)
 target_include_directories(eigen INTERFACE "${install_dir}/include/eigen3")
 add_library(lib::eigen ALIAS eigen)
+
+ExternalProject_Add_StepTargets(project_eigen download)
+add_dependencies(download project_eigen-download)
