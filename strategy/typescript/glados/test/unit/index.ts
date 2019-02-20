@@ -1,6 +1,7 @@
 import { fullAmun, log } from "base/amun";
 import * as Entrypoints from "base/entrypoints";
 import { getOriginalPath } from "base/path";
+import { pcall } from "base/trycatch";
 
 import "glados/test/unit/tests";
 import { UnitTest } from "glados/test/unit/unittest";
@@ -61,14 +62,18 @@ function runTests(moduleNames: string[]) {
 		amun = <any> safeAmun;
 		path = safePathCopy;
 
-		let test: typeof UnitTest = require(module, true, {"base/amun": fakeAmunModule}).testClass;
-		let overlays = test.getOverlays();
-		if (Object.keys(overlays).length > 0) {
-			// if overlays are used, the environment has to be loaded again
-			test = require(module, true, {"base/amun": fakeAmunModule, ...overlays}).testClass;
+		if (pcall(() => {
+			let test: typeof UnitTest = require(module, true, {"base/amun": fakeAmunModule}).testClass;
+			let overlays = test.getOverlays();
+			if (Object.keys(overlays).length > 0) {
+				// if overlays are used, the environment has to be loaded again
+				test = require(module, true, {"base/amun": fakeAmunModule, ...overlays}).testClass;
+			}
+			let testInstance = new test();
+				failedCounter += testInstance.runTests(log);
+			})) {
+			failedCounter++;
 		}
-		let testInstance = new test();
-		failedCounter += testInstance.runTests(log);
 
 		amun = amunBefore;
 		path = pathBefore;
