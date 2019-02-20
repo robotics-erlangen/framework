@@ -1,6 +1,7 @@
 import * as Constants from "base/constants";
 import * as debug from "base/debug";
 import * as geom from "base/geom";
+import { bound } from "base/mathutil";
 import { FriendlyRobot } from "base/robot";
 import { Position, Speed, Vector } from "base/vector";
 import * as vis from "base/vis";
@@ -160,6 +161,7 @@ export class Volley {
 
 	// for extended documentation see doc/volley.txt
 	static calcVOutFromVS(v_s: number, v_in: number, phi: number, alpha: number, robotId: number | "opp"): [number, number] {
+		v_in = bound(0, v_in, Constants.maxBallSpeed);
 		let sinp = Math.sin(phi);
 		let cosp = Math.cos(phi);
 		let sinpa = Math.sin(phi - alpha);
