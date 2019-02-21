@@ -61,7 +61,7 @@ public:
     InternalDebugger *getInternalDebugger() const { return m_internalDebugger.get(); }
     lua_State*& luaState() { return m_luaState; }
     void throwException(QString text);
-    void tryCatch(v8::Local<v8::Function> tryBlock, v8::Local<v8::Function> thenBlock, v8::Local<v8::Function> catchBlock, v8::Local<v8::Object> element);
+    void tryCatch(v8::Local<v8::Function> tryBlock, v8::Local<v8::Function> thenBlock, v8::Local<v8::Function> catchBlock, v8::Local<v8::Object> element, bool printStackTrace);
 
 protected:
     bool loadScript(const QString &filename, const QString &entryPoint) override;

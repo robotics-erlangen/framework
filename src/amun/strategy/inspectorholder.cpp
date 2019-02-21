@@ -70,14 +70,18 @@ void InspectorHolder::setInspectorHandler(AbstractInspectorHandler *handler)
 // DefaultChannel
 void InspectorHolder::DefaultChannel::sendResponse(int, std::unique_ptr<v8_inspector::StringBuffer> message) {
     assert(m_inspectorHandler);
-    QString content = stringViewToQString(message->string());
-    m_inspectorHandler->inspectorResponse(content);
+    if (m_isIgnoringMessages == 0) {
+        QString content = stringViewToQString(message->string());
+        m_inspectorHandler->inspectorResponse(content);
+    }
 }
 
 void InspectorHolder::DefaultChannel::sendNotification(std::unique_ptr<v8_inspector::StringBuffer> message) {
     assert(m_inspectorHandler);
-    QString content = stringViewToQString(message->string());
-    m_inspectorHandler->inspectorNotification(content);
+    if (m_isIgnoringMessages == 0) {
+        QString content = stringViewToQString(message->string());
+        m_inspectorHandler->inspectorNotification(content);
+    }
 }
 
 void InspectorHolder::DefaultChannel::flushProtocolNotifications()

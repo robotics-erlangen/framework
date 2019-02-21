@@ -59,17 +59,27 @@ public:
     void setInspectorHandler(AbstractInspectorHandler *handler);
     bool hasInspectorHandler() { return m_inspectorHandler != nullptr; }
     AbstractInspectorHandler *getInspectorHandler() { return m_inspectorHandler; }
+    void setIsIgnoringMessages(bool ignore) { m_channel.setIsIgnoringMessages(ignore); }
 
 private:
     class DefaultChannel : public v8_inspector::V8Inspector::Channel {
     public:
         void setInspectorHandler(AbstractInspectorHandler *handler) { m_inspectorHandler = handler; }
+        void setIsIgnoringMessages(bool ignore)
+        {
+            if (ignore) {
+                m_isIgnoringMessages++;
+            } else {
+                m_isIgnoringMessages--;
+            }
+        }
         virtual void sendResponse(int, std::unique_ptr<v8_inspector::StringBuffer> message) override;
         virtual void sendNotification(std::unique_ptr<v8_inspector::StringBuffer> message) override;
         virtual void flushProtocolNotifications() override;
 
     private:
         AbstractInspectorHandler *m_inspectorHandler;
+        int m_isIgnoringMessages = 0;
     };
 
     class DefaultInspectorClient : public v8_inspector::V8InspectorClient {

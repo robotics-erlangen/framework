@@ -734,19 +734,20 @@ static void amunTryCatch(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = args.GetIsolate();
     Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
-    if (!checkNumberOfArguments(isolate, 4, args.Length())) {
+    if (!checkNumberOfArguments(isolate, 5, args.Length())) {
         return;
     }
 
-    if (args.Length() != 4 || !args[0]->IsFunction() || !args[1]->IsFunction() || !args[2]->IsFunction()) {
-        t->throwException("tryCatch takes three functions");
+    if (args.Length() != 5 || !args[0]->IsFunction() || !args[1]->IsFunction() || !args[2]->IsFunction()) {
+        t->throwException("tryCatch takes three functions, an object and a boolean");
         return;
     }
     Local<Function> tryBlock = Local<Function>::Cast(args[0]);
     Local<Function> thenFun = Local<Function>::Cast(args[1]);
     Local<Function> catchBlock = Local<Function>::Cast(args[2]);
     Local<Object> element = Local<Object>::Cast(args[3]);
-    t->tryCatch(tryBlock, thenFun, catchBlock, element);
+    bool printStackTrace = Local<Boolean>::Cast(args[4])->BooleanValue();
+    t->tryCatch(tryBlock, thenFun, catchBlock, element, printStackTrace);
 }
 
 struct FunctionInfo {

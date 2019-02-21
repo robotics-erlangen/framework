@@ -613,32 +613,34 @@ void Typescript::disableTimeoutOnce()
     m_timeoutCounter.store(0);
 }
 
-void Typescript::tryCatch(v8::Local<v8::Function> tryBlock, v8::Local<v8::Function> thenBlock, v8::Local<v8::Function> catchBlock, v8::Local<v8::Object> element)
+void Typescript::tryCatch(v8::Local<v8::Function> tryBlock, v8::Local<v8::Function> thenBlock, v8::Local<v8::Function> catchBlock, v8::Local<v8::Object> element, bool printStackTrace)
 {
     Local<Context> c = m_isolate->GetCurrentContext();
     std::vector<Local<Value>> parameters({element});
     Local<Object> global = c->Global();
     {
         TryCatch tc(m_isolate);
+        if (!printStackTrace) {
+            m_inspectorHolder->setIsIgnoringMessages(true);
+        }
         USE(tryBlock->Call(c, global, parameters.size(), parameters.data()));
+        if (!printStackTrace) {
+            m_inspectorHolder->setIsIgnoringMessages(false);
+        }
         if (tc.HasCaught() || tc.HasTerminated()) {
             Local<Value> exception = tc.Exception();
 
             parameters.insert(parameters.begin(), exception);
-            QString output;
-            buildStackTrace(c, output, tc, m_isolate);
-            tc.Reset();
-            MaybeLocal<Value> maybeResult = catchBlock->Call(c, global, parameters.size(), parameters.data());
-            if (tc.HasCaught() || tc.HasTerminated()) {
+            TryCatch catchTryCatch(m_isolate);
+            USE(catchBlock->Call(c, global, parameters.size(), parameters.data()));
+            if (catchTryCatch.HasCaught() || catchTryCatch.HasTerminated()) {
+                catchTryCatch.ReThrow();
                 tc.ReThrow();
                 return;
             }
-            if (maybeResult.IsEmpty()) {
-                throwException("tryCatch: catch did not return a boolean");
-                return;
-            }
-            bool accept = maybeResult.ToLocalChecked()->BooleanValue();
-            if (!accept) {
+            if (printStackTrace) {
+                QString output;
+                buildStackTrace(c, output, tc, m_isolate);
                 log(output);
                 return;
             }
