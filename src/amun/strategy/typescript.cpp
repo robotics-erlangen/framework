@@ -244,12 +244,14 @@ static void buildStackTrace(const Local<Context>& context, QString& errorMsg, co
 {
     if (tryCatch.HasTerminated() || tryCatch.HasCaught()) {
         errorMsg = "<font color=\"red\">";
-        Local<Message> message = tryCatch.Message();
+        Local<Value> message = tryCatch.Exception();
         if (!message.IsEmpty()) {
-           String::Utf8Value exception(isolate, tryCatch.Exception());
-           QString exceptionString(*exception);
-           exceptionString.replace("\n", "<br>");
-           errorMsg += exceptionString + "<br>";
+            String::Utf8Value exception(isolate, message);
+            QString exceptionString(*exception);
+            exceptionString.replace("\n", "<br>");
+            errorMsg += exceptionString + "<br>";
+        } else {
+            errorMsg += "has no message <br>";
         }
         Local<Value> stackTrace;
         if (tryCatch.StackTrace(context).ToLocal(&stackTrace)) {
@@ -270,10 +272,9 @@ static void buildStackTrace(const Local<Context>& context, QString& errorMsg, co
                 errorMsg = "<font color=\"red\">" + exceptionString + "</font>";
             }
         } else {
-            Local<Message> message = tryCatch.Message();
             // this will happen when an exception is created without an error object, i.e. throw "some error"
             if (!message.IsEmpty()) {
-                String::Utf8Value exception(isolate, tryCatch.Exception());
+                String::Utf8Value exception(isolate, message);
                 QString exceptionString(*exception);
                 exceptionString.replace("\n", "<br>");
                 errorMsg = "<font color=\"red\">" + exceptionString + "</font>";
