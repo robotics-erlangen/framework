@@ -33,137 +33,12 @@
  * \brief Path-planner
  */
 
-float Path::Circle::distance(const Vector &v) const
-{
-    return v.distance(center) - radius;
-}
-
-float Path::Circle::distance(const LineSegment &segment) const
-{
-    return segment.distance(center) - radius;
-}
-
-float Path::Line::distance(const Vector &v) const
-{
-    return segment.distance(v) - width;
-}
-
-float Path::Line::distance(const LineSegment &segment) const
-{
-    return segment.distance(this->segment) - width;
-}
-
-float Path::Rect::distance(const Vector &v) const
-{
-    float distX = std::max(bottom_left.x - v.x, v.x - top_right.x);
-    float distY = std::max(bottom_left.y - v.y, v.y - top_right.y);
-
-    if (distX >= 0 && distY >= 0) { // distance to corner
-        return std::sqrt(distX*distX + distY*distY);
-    } else if (distX < 0 && distY < 0) { // inside
-        return std::max(distX, distY);
-    } else if (distX < 0) {
-        return distY; // distance to nearest side of the rectangle
-    } else {
-        return distX;
-    }
-}
-
-float Path::Rect::distance(const LineSegment &segment) const
-{
-    // check if end is inside the rectangle
-    if (segment.end().x >= bottom_left.x && segment.end().x <= top_right.x
-            && segment.end().y >= bottom_left.y && segment.end().y <= top_right.y) {
-        return 0;
-    }
-    // check if start is inside the rectangle
-    if (segment.start().x >= bottom_left.x && segment.start().x <= top_right.x
-            && segment.start().y >= bottom_left.y && segment.start().y <= top_right.y) {
-        return 0;
-    }
-
-    Vector bottom_right(top_right.x, bottom_left.y);
-    Vector top_left(bottom_left.x, top_right.y);
-
-    float distTop = segment.distance(LineSegment(top_left, top_right));
-    float distBottom = segment.distance(LineSegment(bottom_left, bottom_right));
-    float distLeft = segment.distance(LineSegment(top_left, bottom_left));
-    float distRight = segment.distance(LineSegment(top_right, bottom_right));
-
-    return std::min(std::min(distTop, distBottom), std::min(distLeft, distRight));
-}
-
-float Path::Triangle::distance(const Vector &v) const
-{
-    // positive det == left, negative det == right
-    const float det1 = Vector::det(p2, p3, v) / p2.distance(p3);
-    const float det2 = Vector::det(p3, p1, v) / p3.distance(p1);
-    const float det3 = Vector::det(p1, p2, v) / p1.distance(p2);
-    float distance;
-
-    // v lies inside the triangle
-    // 3 positive dets
-    if (det1 >= 0 && det2 >= 0 && det3 >= 0) {
-        distance = -std::min(det1, std::min(det2, det3));
-    }
-
-    // v lies closest to a side
-    // 2 positive dets, 1 negative det
-    else if (det1 * det2 * det3 < 0) {
-        distance = -std::min(det1, std::min(det2, det3));
-    }
-
-    // v lies closest to a corner
-    // 1 positive det, 2 negative dets
-    else if (det1 > 0) {
-        distance = p1.distance(v);
-    }
-    else if (det2 > 0) {
-        distance = p2.distance(v);
-    }
-    else if (det3 > 0) {
-        distance = p3.distance(v);
-    }
-
-    else {
-        qDebug() << "Error in Path::Triangle::distance()" << det1 << det2 << det3;
-        return 42;
-    }
-
-    return distance - lineWidth;
-}
-
-float Path::Triangle::distance(const LineSegment &segment) const
-{
-    // at least one segment intersects a triangle side
-    const LineSegment seg1(p1, p2);
-    const LineSegment seg2(p2, p3);
-    const LineSegment seg3(p3, p1);
-    const float dseg1 = seg1.distance(segment);
-    const float dseg2 = seg2.distance(segment);
-    const float dseg3 = seg3.distance(segment);
-    if (dseg1 * dseg2 * dseg3 == 0) {
-        return 0;
-    }
-
-    // the segment lies entirely inside the triangle
-    const float dstart = distance(segment.start());
-    const float dend = distance(segment.end());
-    if (dstart < 0 && dend < 0) {
-        return 0;
-    }
-
-    // the segment lies entirely outside the triangle
-    return std::max(std::min(dseg1, std::min(dseg2, dseg3)) - lineWidth, 0.f);
-}
-
 Path::Path(uint32_t rng_seed) :
+    AbstractPath(rng_seed),
     m_p_dest(0.1),
     m_p_wp(0.4),
-    m_radius(-1.f),
     m_stepSize(0.1f),
     m_cacheSize(200),
-    m_rng(new RNG(rng_seed)),
     m_treeStart(NULL),
     m_treeEnd(NULL)
 { }
@@ -171,7 +46,6 @@ Path::Path(uint32_t rng_seed) :
 Path::~Path()
 {
     reset();
-    delete m_rng;
 }
 
 void Path::reset()
@@ -185,90 +59,15 @@ void Path::reset()
     m_waypoints.clear();
 }
 
-void Path::setRadius(float r)
-{
-    m_radius = r;
-}
-
-void Path::setBoundary(float x1, float y1, float x2, float y2)
-{
-    m_boundary.bottom_left.x = std::min(x1, x2);
-    m_boundary.bottom_left.y = std::min(y1, y2);
-    m_boundary.top_right.x = std::max(x1, x2);
-    m_boundary.top_right.y = std::max(y1, y2);
-}
-
 void Path::addSeedTarget(float x, float y)
 {
     m_seedTargets.append(Vector(x, y));
 }
 
-void Path::clearObstacles()
+void Path::clearObstaclesCustom()
 {
-    m_circleObstacles.clear();
-    m_rectObstacles.clear();
-    m_triangleObstacles.clear();
-    m_lineObstacles.clear();
-
     m_seedTargets.clear();
 }
-
-void Path::addCircle(float x, float y, float radius, const char* name, int prio)
-{
-    Circle c;
-    c.center.x = x;
-    c.center.y = y;
-    c.radius = radius;
-    c.name = name;
-    c.prio = prio;
-    m_circleObstacles.append(c);
-}
-
-void Path::addLine(float x1, float y1, float x2, float y2, float width, const char* name, int prio)
-{
-    Line l(Vector(x1, y1), Vector(x2, y2));
-    l.width = width;
-    l.name = name;
-    l.prio = prio;
-    m_lineObstacles.append(l);
-}
-
-void Path::addRect(float x1, float y1, float x2, float y2, const char* name, int prio)
-{
-    Rect r;
-    r.bottom_left.x = std::min(x1, x2);
-    r.bottom_left.y = std::min(y1, y2);
-    r.top_right.x = std::max(x1, x2);
-    r.top_right.y = std::max(y1, y2);
-    r.name = name;
-    r.prio = prio;
-    m_rectObstacles.append(r);
-}
-
-void Path::addTriangle(float x1, float y1, float x2, float y2, float x3, float y3, float lineWidth, const char *name, int prio)
-{
-    Triangle t;
-    t.lineWidth = lineWidth;
-    t.name = name;
-    t.prio = prio;
-
-    // ensure that the triangle is oriented counter-clockwise
-    const Vector a(x1, y1);
-    const Vector b(x2, y2);
-    const Vector c(x3, y3);
-    const float det = Vector::det(a, b, c);
-    if (det > 0) {
-        t.p1 = a;
-        t.p2 = b;
-        t.p3 = c;
-    } else {
-        t.p1 = a;
-        t.p2 = c;
-        t.p3 = b;
-    }
-    m_triangleObstacles.append(t);
-}
-
 
 bool Path::testSpline(const robot::Spline &spline, float radius) const
 {
@@ -312,15 +111,6 @@ Vector Path::evalSpline(const robot::Spline &spline, float t) const
     p.x = spline.x().a0() + (spline.x().a1() + (spline.x().a2() + spline.x().a3() * t) * t) * t;
     p.y = spline.y().a0() + (spline.y().a1() + (spline.y().a2() + spline.y().a3() * t) * t) * t;
     return p;
-}
-
-void Path::collectObstacles() const
-{
-    m_obstacles.clear();
-    for (const Circle &c: m_circleObstacles) { m_obstacles.append(&c); }
-    for (const Rect &r: m_rectObstacles) { m_obstacles.append(&r); }
-    for (const Triangle &t: m_triangleObstacles) { m_obstacles.append(&t); }
-    for (const Line &l: m_lineObstacles) { m_obstacles.append(&l); }
 }
 
 //! @brief calculate how far we are standing in the (multiple) obstacles

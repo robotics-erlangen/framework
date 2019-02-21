@@ -19,11 +19,13 @@
 # ***************************************************************************
 
 add_library(path
+    include/path/abstractpath.h
     include/path/kdtree.h
     include/path/linesegment.h
     include/path/path.h
     include/path/vector.h
 
+    abstractpath.cpp
     kdtree.cpp
     path.cpp
 )
