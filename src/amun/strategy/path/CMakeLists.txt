@@ -23,11 +23,13 @@ add_library(path
     include/path/kdtree.h
     include/path/linesegment.h
     include/path/path.h
+    include/path/trajectorypath.h
     include/path/vector.h
 
     abstractpath.cpp
     kdtree.cpp
     path.cpp
+    trajectorypath.cpp
 )
 target_link_libraries(path
     PRIVATE shared::core
