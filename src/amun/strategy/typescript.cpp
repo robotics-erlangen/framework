@@ -253,12 +253,22 @@ static void buildStackTrace(const Local<Context>& context, QString& errorMsg, co
         }
         Local<Value> stackTrace;
         if (tryCatch.StackTrace(context).ToLocal(&stackTrace)) {
-            Local<Array> stackArray = Local<Array>::Cast(stackTrace);
-            for (uint32_t i = 0; i < stackArray->Length(); ++i) {
-                Local<Object> callSite = stackArray->Get(i)->ToObject();
-                evaluateStackFrame(context, errorMsg, callSite, isolate);
+            if (stackTrace->IsArray()) {
+                Local<Array> stackArray = Local<Array>::Cast(stackTrace);
+                for (uint32_t i = 0; i < stackArray->Length(); ++i) {
+                    Local<Object> callSite = stackArray->Get(i)->ToObject();
+                    evaluateStackFrame(context, errorMsg, callSite, isolate);
+                }
+                errorMsg += "</font>";
+            } else {
+                // this will hapen when a strategy does not set Error.prepareStackTrace
+                // this disables the option to use sourcemaps
+                // we support it to avoid crashes when used with legacy strategy
+                String::Utf8Value stringStack(isolate, stackTrace);
+                QString exceptionString(*stringStack);
+                exceptionString.replace("\n", "<br>");
+                errorMsg = "<font color=\"red\">" + exceptionString + "</font>";
             }
-            errorMsg += "</font>";
         } else {
             Local<Message> message = tryCatch.Message();
             // this will happen when an exception is created without an error object, i.e. throw "some error"
