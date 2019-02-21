@@ -281,7 +281,7 @@ interface Amun extends AmunPublic {
 		messageLoop: () => void): boolean;
 	debuggerSend(command: string): void;
 	disconnectDebugger(): void;
-	tryCatch: <T>(tryBlock: () => void, thenBlock: (e: T) => void, catchBlock: (error: any, e: T) => boolean, e: T) => void;
+	tryCatch: <T>(tryBlock: () => void, thenBlock: (e: T) => void, catchBlock: (error: any, e: T) => void, e: T, printStackTrace: boolean) => void;
 
 	// undocumented
 	luaRandomSetSeed(seed: number): void;

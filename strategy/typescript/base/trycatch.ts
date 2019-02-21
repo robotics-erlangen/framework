@@ -20,41 +20,28 @@
 
 let amunLocal = amun;
 
-type CatchFunc<T> = (error: any, e: T) => boolean;
+type CatchFunc<T> = (error: any, e: T) => void;
 type ThenFunc<T> = (e: T) => void;
 
 let log: Function;
 
-function tryCatchThenEle<T>(tryF: () => void,  thenF: ThenFunc<T>, catchF: CatchFunc<T>, ele: T): void {
-	amunLocal.tryCatch(tryF, thenF, catchF, ele);
+function ignore(e: any): void {
 }
 
-function ignoreThen(e: any): void {
-}
-
-function ignoreCatch(e: any): boolean {
-	return false; // ignore does not handle the problem
-}
-
-function notifyCatch(error: any, e: [boolean]): boolean {
+function notifyCatch(error: any, e: [boolean]): void {
 	e[0] = true;
-	return false; // notify does not handle the problem, either
-}
-
-function doCatch(catchClause: (error: any) => void): CatchFunc<any> {
-	return (err: any, e2: any) => {catchClause(err); return true;};
 }
 
 export function pcall(tryF: () => void): boolean {
 	let ele: [boolean] = [false];
-	tryCatchThenEle(tryF, ignoreThen, notifyCatch, ele);
+	amunLocal.tryCatch(tryF, ignore, notifyCatch, ele, true);
 	return ele[0];
 }
 
 export function tryCatch(tryF: () => void, catchF: (err: any) => void): void {
-	tryCatchThenEle(tryF, ignoreThen, doCatch(catchF), []);
+	amunLocal.tryCatch(tryF, ignore, catchF, [], false);
 }
 
 export function tryCatchThen(tryF: () => void, catchF: (err: any) => void, thenF: () => void): void {
-	tryCatchThenEle(tryF, thenF, doCatch(catchF), []);
+	amunLocal.tryCatch(tryF, thenF, catchF, [], false);
 }
