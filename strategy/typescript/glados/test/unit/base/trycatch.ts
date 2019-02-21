@@ -75,6 +75,9 @@ export class BaseTryCatch extends UnitTest {
 		TryCatch.tryCatch(() => { throw o; }, (e: any) => {this.assert_equal(e, o);});
 		this.assert_error(() => TryCatch.tryCatch(fail, (e: any) => {this.assert_equal(e, o);}));
 
+		// check that the error object will arrive correctly from catch
+		TryCatch.tryCatch(() => { TryCatch.tryCatch(fail, () => { throw o;});}, (e: any) => { this.assert_equal(e, o);});
+		this.assert_error(() => { TryCatch.tryCatch(() => { TryCatch.tryCatch(fail, () => { throw o;});}, (e: any) => { this.assert_equal(e, new Object());});});
 	}
 
 	private testTryCatchThen() {
