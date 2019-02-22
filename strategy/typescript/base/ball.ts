@@ -1,7 +1,7 @@
-/*
-// Ball class.
-//module "Ball"
-*/
+/**
+ * @module ball
+ * Ball class
+ */
 
 /**************************************************************************
 *   Copyright 2018 Alexander Danzer, Michael Eischer, Andreas Wendler     *
@@ -28,28 +28,22 @@ import { Coordinates } from "base/coordinates";
 import * as plot from "base/plot";
 import { Position, Speed, Vector } from "base/vector";
 
-
-/// Values provided by Ball
-// @class table
-// @name Ball
-// @field pos Vector - Current ball position
-// @field posZ number - Ball height above the field
-// @field speed Vector - Movement direction, length is speed in m/s
-// @field speedZ number - Upwards speed in m/s
-// @field radius number - Ball radius
-// @field deceleration Vector - Current deceleration that is assumed to brake the ball
-// @field brakeTime number - Time in seconds until the ball stops moving
-// @field lostSince number - Time when the ball was lost. Only has meaning when Ball isn't visible
-
 let BALL_QUALITY_FILTER_FACTOR = 0.05;
 
 export class Ball {
+	/** Ball radius */
 	radius: number = 0.0215;
+	/** Time when the ball was lost. Only has meaning when Ball is not visible */
 	lostSince: number = 0;
+	/** Current ball position */
 	pos: Readonly<Position> = new Vector(0, 0);
+	/** Movement direction, length is speed in m/s */
 	speed: Readonly<Speed> = new Vector(0, 0);
+	/** Ball height above the field */
 	posZ: number = 0;
+	/** Upwards speed in m/s */
 	speedZ: number = 0;
+	/** Current deceleration that is assumed to break the ball */
 	deceleration: number = 0;
 	maxSpeed: number = 0;
 	initSpeedZ: number = 0;

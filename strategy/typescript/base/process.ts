@@ -1,10 +1,10 @@
-/*
-// Is run be the processor before / after each strategy run.
-// Subclass the class to create a new process
-// module "Process"
-*/
+/**
+ * @module process
+ * Is run by the processor before/after each strategy run.
+ * Subclass the class to create a new process.
+ */
 
-/************************************************************************
+/**************************************************************************
 *   Copyright 2015 Alexander Danzer, Michael Eischer, Christian Lobmeier  *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
@@ -25,13 +25,14 @@
 **************************************************************************/
 
 export interface Process {
-	/// Execute the process actions here
-	// @name run
+	/** Execute the process actions here */
 	run(): void;
 
-	/// Tells whether the process is finished.
-	// Is called after each call to run
-	// @name run
-	// @return bool - Process is removed if true
+	/**
+	 * Tells whether the process is finished.
+	 * Is called after each call to run
+	 * @return Process is removed if true
+	 */
 	isFinished(): boolean;
 }
+

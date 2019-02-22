@@ -1,7 +1,7 @@
-/*
-// Referee utility functions
-// module "Referee"
-*/
+/**
+ * @module referee
+ * Referee utility functions
+ */
 
 /**************************************************************************
 *   Copyright 2015 Alexander Danzer, Michael Eischer, Christian Lobmeier  *
@@ -110,37 +110,42 @@ const nonGameStages: {[state: string]: boolean} = {
 	PostGame: true
 };
 
-/// Check whether the stop rules apply
-// @name isStopState
-// @return boolean - True if the current referee state is considered as stop
+/**
+ * Check whether the stop rules apply
+ * @return True if the current referee state is considered as stop
+ */
 export function isStopState(): boolean {
 	return stopStates[World.RefereeState];
 }
 
-/// Check whether the robot has to drive a maximum of 1.5 m/s (slow)
-// @name isSlowDriveState
-// @return boolean - True if all robots have to drive slowly (< 1.5 m/s)
+/**
+ * Check whether the robot has to drive a maximum of 1.5 m/s (slow)
+ * @return True if all robots have to drive slowly (< 1.5 m/s)
+ */
 export function isSlowDriveState(): boolean {
 	return slowDriveStates[World.RefereeState];
 }
 
-/// Check whether we have a freekick
-// @name isFriendlyFreeKickState
-// @return boolean - True if the current referee state is a freekick for us
+/**
+ * Check whether we have a freekick
+ * @return True if the current referee state is a freekick for us
+ */
 export function isFriendlyFreeKickState(): boolean {
 	return friendlyFreeKickStates[World.RefereeState];
 }
 
-/// Check whether this is a kickoff
-// @name isKickoffState
-// @return boolean - True if the current referee state is a kickoff
+/**
+ * Check whether this is a kickoff
+ * @return True if the current referee state is a kickoff
+ */
 export function isKickoffState(): boolean {
 	return kickoffStates[World.RefereeState];
 }
 
-/// Check whether the opponent has a penalty
-// @name isOpponentPenaltyState
-// @return boolean - True if the opponent has a penalty
+/**
+ * Check whether the opponent has a penalty
+ * @return True if the opponent has a penalty
+ */
 export function isOpponentPenaltyState(): boolean {
 	return opponentPenaltyStates[World.RefereeState];
 }
@@ -161,9 +166,11 @@ let rightLine = World.Geometry.FieldWidthHalf;
 let leftLine = -rightLine;
 let goalLine = World.Geometry.FieldHeightHalf;
 let cornerDist = 0.7; // some tolerance, rules say 10cm
-/// Check whether there is a freekick in the opponent corner
-// @name isOffensiveCornerKick
-// @return boolean - True if a corner kick in the opponents corner
+
+/**
+ * Check whether there is a freekick in the opponent corner
+ * @return True if a corner kick in the opponents corner
+ */
 export function isOffensiveCornerKick(): boolean {
 	let ballPos = World.Ball.pos;
 	let refState = World.RefereeState;
@@ -173,9 +180,10 @@ export function isOffensiveCornerKick(): boolean {
 		&& (leftLine - ballPos.x > -cornerDist || rightLine - ballPos.x < cornerDist);
 }
 
-/// Check whether there is a freekick in our corner
-// @name isDefensiveCornerKick
-// @return boolean - True if a corner kick in our corner
+/**
+ * Check whether there is a freekick in our corner
+ * @return True if a corner kick in our corner
+ */
 export function isDefensiveCornerKick(): boolean {
 	let ballPos = World.Ball.pos;
 	let refState = World.RefereeState;
@@ -185,8 +193,7 @@ export function isDefensiveCornerKick(): boolean {
 		&& (leftLine - ballPos.x > -cornerDist || rightLine - ballPos.x < cornerDist);
 }
 
-/// Draw areas forbidden by the current referee command
-// @name illustrateRefereeStates
+/** Draw areas forbidden by the current referee command */
 export function illustrateRefereeStates() {
 	if (World.RefereeState === RefereeState.PenaltyDefensivePrepare || World.RefereeState === RefereeState.PenaltyDefensive) {
 		vis.addPath("penaltyDistanceAllowed", [new Vector(-2,World.Geometry.OwnPenaltyLine), new Vector(2,World.Geometry.OwnPenaltyLine)], vis.colors.red);
@@ -234,8 +241,7 @@ export function lastStateChangeTime(): AbsTime {
 	return lastChangedTime;
 }
 
-/// Update the status of which team touched the ball last
-// @name checkTouching
+/** Update the status of which team touched the ball last */
 export function checkTouching() {
 	let ballPos = World.Ball.pos;
 	// only consider touches when playing
@@ -274,3 +280,4 @@ export function opponentTouchedLast(): boolean {
 export function robotAndPosOfLastBallTouch(): [Robot, Position] {
 	return [lastRobot, lastTouchPos];
 }
+

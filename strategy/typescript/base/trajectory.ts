@@ -1,7 +1,7 @@
-/*
-/// Trajectory manager.
-module "Trajectory"
-*/
+/**
+ * @module Trajectory
+ * Trajectory manager.
+ */
 
 /**************************************************************************
 *   Copyright 2015 Alexander Danzer, Michael Eischer, Andreas Wendler     *
@@ -44,7 +44,7 @@ export interface RobotLike {
 	path: Path;
 }
 
-// base class for trajectory planning
+/** Base class for trajectory planning */
 export abstract class TrajectoryHandler {
 	protected readonly _robot: RobotLike;
 
@@ -52,14 +52,18 @@ export abstract class TrajectoryHandler {
 		this._robot = robot;
 	}
 
-	// checks whether trajectory handler is currently able to handle the new data
-	// or should be reseted
-	// canHandle is guaranteed to be called only after update was called at least once
+	/**
+	 * checks whether trajectory handler is currently able to handle the new data
+	 * or should be reseted
+	 * canHandle is guaranteed to be called only after update was called at least once
+	 */
 	abstract canHandle(...args: any[]): boolean;
 
-	// Data has to be in strategy coordinates!!! The trajectory module is responsible for the conversion
-	// between strategy and global coordinates!
-	// New data to use for updating, returns controllerInput, moveDest and moveTime
+	/**
+	 * Data has to be in strategy coordinates!!! The trajectory module is responsible for the conversion
+	 * between strategy and global coordinates!
+	 * New data to use for updating, returns controllerInput, moveDest and moveTime
+	 */
 	abstract update(...args: any[]): [any, Position, number];
 }
 
@@ -67,20 +71,24 @@ export class Trajectory {
 	private readonly _robot: any;
 	private _handler: TrajectoryHandler | undefined;
 
-	/// Initialises trajectory manager.
-	// Must only be called by robot class!;
-	// @param robot Robot - robot to handle
+	/**
+	 * Initialises trajectory manager.
+	 * Must only be called by robot class!;
+	 * @param robot - robot to handle
+	 */
 	constructor(robot: RobotLike) {
 		this._robot = robot;
 	}
 
-	/// Update trajectory.
-	// Resets handler if the trajectory type changes.
-	// Values passed to and returned from the trajectory handler <strong>must</strong> use strategy coordinates. The handler is responsible for doing any neccessary conversions!
-	// The handler has to return a protobuf.robot.Spline, Vector, number (controllerInput, moveDest, moveTime).
-	// @param handlerType Table - must be a subclass of Trajectory.Base
-	// @param ... any - passed on to trajectory handler
-	// @return Vector, number - move destination and time as returned by the trajectory handler
+	/**
+	 * Update trajectory.
+	 * Resets handler if the trajectory type changes.
+	 * Values passed to and returned from the trajectory handler <strong>must</strong> use strategy coordinates. The handler is responsible for doing any neccessary conversions!
+	 * The handler has to return a protobuf.robot.Spline, Vector, number (controllerInput, moveDest, moveTime).
+	 * @param handlerType - must be a subclass of Trajectory.Base
+	 * @param args - passed on to trajectory handler
+	 * @return move destination and time as returned by the trajectory handler
+	 */
 	update(handlerType: typeof TrajectoryHandler, ...args: any[]): [Position, number] {
 		if (this._handler == undefined || !(this._handler instanceof handlerType) || !this._handler.canHandle(...args)) {
 			this._handler = new (handlerType as any)(this._robot);
@@ -110,3 +118,4 @@ export class Trajectory {
 		return [moveDest, moveTime];
 	}
 }
+

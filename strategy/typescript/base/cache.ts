@@ -1,7 +1,7 @@
-/*
-// Provides a caching mechanism for function calls
-// module "Cache"
-*/
+/**
+ * @module cache
+ * Provides a caching mechanism for function calls
+ */
 
 /**************************************************************************
 *   Copyright 2018 Michael Eischer, Andreas Wendler                       *
@@ -113,26 +113,28 @@ function makeCached <F extends Function>(f: F, keepForever: boolean): F {
 	return cachedFunc;
 }
 
-/// Wraps a function call, the returned value is cached for this strategy run
-// @name forFrame
-// @param f function - function to wrap
-// @return function - wrapped function
+/**
+ * Wraps a function call, the returned value is cached for this strategy run
+ * @param f - function to wrap
+ * @returns wrapped function
+ */
 export function forFrame <F extends Function>(f: F): F {
 	return makeCached(f, false);
 }
 
-/// Wraps a function call, the returned value is cached until the strategy is reloaded
-// @name forever
-// @param f function - function to wrap
-// @return function - wrapped function
+/**
+ * Wraps a function call, the returned value is cached until the strategy is reloaded
+ * @param f - function to wrap
+ * @return wrapped function
+ */
 export function forever <F extends Function>(f: F): F {
 	return makeCached(f, true);
 }
 
-/// Clears the value cache for the current frame
-// @name resetFrame
+/** Clears the value cache for the current frame */
 export function resetFrame() {
 	for (let obj of cleanup) {
 		obj();
 	}
 }
+

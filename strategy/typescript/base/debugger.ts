@@ -1,3 +1,6 @@
+/**
+ * @module debugger
+ */
 import { log } from "base/amun";
 import * as debug from "base/debug";
 const connectDebugger = amun.connectDebugger;
@@ -5,7 +8,7 @@ const debuggerSend = amun.debuggerSend;
 
 declare let ___globalpleasedontuseinregularcode: any;
 
-// counts the number of exceptions every frame to improve the stacktrace
+/** counts the number of exceptions every frame to improve the stacktrace */
 let exceptionCounter = 0;
 
 // this debugger currently only supports dumping the stack on exceptions

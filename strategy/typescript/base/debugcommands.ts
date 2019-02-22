@@ -1,27 +1,27 @@
+/**
+ * @module debugcommands
+ * Some functions to modify the world during debug.
+ */
 
-///// Some functions to modify the world during debug.
-// module "debugcommands"
-////
-
-// ***********************************************************************
-// *   Copyright 2018 Alexander Danzer, Michael Eischer, Tobias Heineken     *
-// *   Robotics Erlangen e.V.                                                *
-// *   http://www.robotics-erlangen.de/                                      *
-// *   info@robotics-erlangen.de                                             *
-// *                                                                         *
-// *   This program is free software: you can redistribute it and/or modify  *
-// *   it under the terms of the GNU General Public License as published by  *
-// *   the Free Software Foundation, either version 3 of the License, or     *
-// *   any later version.                                                    *
-// *                                                                         *
-// *   This program is distributed in the hope that it will be useful,       *
-// *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
-// *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
-// *   GNU General Public License for more details.                          *
-// *                                                                         *
-// *   You should have received a copy of the GNU General Public License     *
-// *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-// *************************************************************************
+/**************************************************************************
+*   Copyright 2018 Alexander Danzer, Michael Eischer, Tobias Heineken     *
+*   Robotics Erlangen e.V.                                                *
+*   http://www.robotics-erlangen.de/                                      *
+*   info@robotics-erlangen.de                                             *
+*                                                                         *
+*   This program is free software: you can redistribute it and/or modify  *
+*   it under the terms of the GNU General Public License as published by  *
+*   the Free Software Foundation, either version 3 of the License, or     *
+*   any later version.                                                    *
+*                                                                         *
+*   This program is distributed in the hope that it will be useful,       *
+*   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+*   GNU General Public License for more details.                          *
+*                                                                         *
+*   You should have received a copy of the GNU General Public License     *
+*   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
+**************************************************************************/
 
 import { Coordinates } from "base/coordinates";
 import { FriendlyRobot, Robot } from "base/robot";
@@ -71,17 +71,17 @@ let commandNames = {
 };
 let commandUnmapping: Map<string, string> = new Map(Object.entries(commandNames));
 
-
-/// Set referee command. The new values are not visible before the next frame!
-// refereeCommand uses most values of World.RefereeState. However "Game" does not exist
-// and "Kickoff.+", "Penalty.+" are only reachable via their "+.Prepare" state followed by sending "Start"
-// @usage DebugCommands.sendRefereeCommand("GameForce", "SecondHalf")
-// @usage DebugCommands.sendRefereeCommand("DirectOffensive")
-// @param [refereeCommand string - similar to values of World.RefereeState]
-// @param [gameStage string - use value of World.GameStage]
-// @param [blueKeeperID int - yellow keeper id]
-// @param [yellowKeeperID int - blue keeper id
-// @param [pos Vector - the position for ballPlacement]
+/**
+ * Set referee command. The new values are not visible before the next frame!
+ * refereeCommand uses most values of World.RefereeState. However "Game" does not exist
+ * and "Kickoff.+", "Penalty.+" are only reachable via their "+.Prepare" state followed by sending "Start"
+ * @example sendRefereeCommand("GameForce", "SecondHalf")
+ * @example sendRefereeCommand("DirectOffensive")
+ * @param refereeCommand - similar to values of World.RefereeState
+ * @param gameStage - use World.GameStage
+ * @param blueKeeperID - blue keeper id
+ * @param yellowKeeperID - yellow keeper id
+ */
 export function sendRefereeCommand(refereeCommand: string, gameStage?: string, blueKeeperID?: number, yellowKeeperID?: number, pos?: Position) {
 	if (amunLocal.isDebug === false) {
 		throw new Error("only works in debug mode");
@@ -147,15 +147,15 @@ export function sendRefereeCommand(refereeCommand: string, gameStage?: string, b
 	amunLocal.sendRefereeCommand(state);
 }
 
-/// Move ball and robots to a given position.
-// Every parameter except posZ and speedZ in these data structures is required!
-// ball: { pos = Vector, posZ = number, speed = Vector, speedZ = number } <br/>
-// robot: { id = number, pos = Vector, dir = number, speed = Vector, angularSpeed = number }
-// @param [ball ball - ball target]
-// @param [friendlyRobots robot[] - friendly robots by id]
-// @param [opponentRobots robot[] - opponent robots by id]
-
-
+/**
+ * Move ball and robots to a given position.
+ * Every parameter except posZ and speedZ in these data structures is required!
+ * ball: { pos = Vector, posZ = number, speed = Vector, speedZ = number } <br/>
+ * robot: { id = number, pos = Vector, dir = number, speed = Vector, angularSpeed = number }
+ * @param ball - ball target
+ * @param friendlyRobots - friendly by id
+ * @param opponentRobots - opponent robots by id
+ */
 export function moveObjects(ball?: any, friendlyRobots?: FriendlyRobot[], opponentRobots?: Robot[]) {
 	if (!amun.isDebug) {
 		throw new Error("only works in debug mode");
