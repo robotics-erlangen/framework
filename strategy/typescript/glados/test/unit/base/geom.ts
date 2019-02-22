@@ -402,7 +402,9 @@ export class BaseGeom extends UnitTest {
 		// test return interval
 		MathUtil.randomseed(500);
 		for (let i = 0; i < 1000; ++i) {
-			let res = geom.getAngleDiff(MathUtil.random(), MathUtil.random());
+			let left = MathUtil.random() * 5;
+			let right = MathUtil.random() * 5;
+			let res = geom.getAngleDiff(left, right);
 			this.assert_lte(res, Math.PI);
 			this.assert_lte(-Math.PI, res);
 		}
