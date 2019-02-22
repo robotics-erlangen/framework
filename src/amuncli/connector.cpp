@@ -92,8 +92,18 @@ void Connector::dumpEntrypoints(const amun::StatusStrategy &strategy)
 
 void Connector::handleStrategyStatus(const amun::StatusStrategy &strategy)
 {
+    for (const std::string &stdOption: strategy.option()) {
+        m_options.insert({stdOption, false});
+    }
     if (strategy.state() == amun::StatusStrategy::FAILED) {
-        qApp->exit(m_exitCode);
+        const auto& it = std::find_if_not(m_options.begin(), m_options.end(), [](const std::pair<std::string, bool>& p){ return p.second; });
+        if (m_exitCode != 0 || it == m_options.end()) {
+            qApp->exit(m_exitCode);
+        } else {
+            std::cout << "Rerunning with " << it->first <<" set to true"<< std::endl;
+            it->second = true;
+            sendOptions();
+        }
     } else if (strategy.state() == amun::StatusStrategy::RUNNING) {
         if (m_entryPoint.isNull()) {
             dumpEntrypoints(strategy);
@@ -106,6 +116,25 @@ void Connector::handleStrategyStatus(const amun::StatusStrategy &strategy)
             }
         }
     }
+}
+
+void Connector::sendOptions()
+{
+    Command command(new amun::Command);
+    amun::CommandStrategySetOptions *opts =
+            command->mutable_strategy_yellow()->mutable_options();
+    for (const auto &pair: m_options) {
+        if (!pair.second) {
+            continue;
+        }
+        const std::string& option = pair.first;
+        std::string *stdopt = opts->add_option();
+        *stdopt = option;
+    }
+
+    command->mutable_strategy_blue()->CopyFrom(command->strategy_yellow());
+    command->mutable_strategy_autoref()->CopyFrom(command->strategy_yellow());
+    emit sendCommand(command);
 }
 
 void Connector::dumpLog(const amun::DebugValues &debug)

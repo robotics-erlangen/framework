@@ -58,12 +58,14 @@ private:
     void handleStrategyStatus(const amun::StatusStrategy &strategy);
     void dumpLog(const amun::DebugValues &debug);
     QString stripHTML(const QString &logText);
+    void sendOptions();
 
     QString m_initScript;
     QString m_entryPoint;
     bool m_asBlue;
     bool m_debug;
     int m_exitCode;
+    std::map<std::string, bool> m_options;
 };
 
 #endif // CONNECTOR_H
