@@ -1,7 +1,7 @@
-/*
-// Send plot data to ra
-// module "plot"
-*/
+/**
+ * @module plot
+ * Send plot data to Ra
+ */
 
 /**************************************************************************
 *   Copyright 2018 Michael Eischer, Andreas Wendler                       *
@@ -26,10 +26,11 @@
 let amunLocal = amun;
 
 
-/// Add data to a plot. Value is used to create a point at the current time
-// @name addPlot
-// @param name string - Plot name, seperated layers by '.'
-// @param value number - value for data point
+/**
+ * Add data to a plot. Value is used to create a point at the current time
+ * @param name - Plot name, seperated layers by '.'
+ * @param value - value for data point
+ */
 export function addPlot(name: string, value: number) {
 	amunLocal.addPlot(name, value);
 }
@@ -57,3 +58,4 @@ export function aggregate(key: string, value: number) {
 	}
 	aggregated[key] = aggregated[key] + value;
 }
+

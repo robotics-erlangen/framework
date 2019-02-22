@@ -1,37 +1,41 @@
+/**
+ * @module constants
+ * Contains system specific constants. THat is constants that are due to intrinsic properties of the robots/camera system/game rules.
+ * See source for constant and description
+ */
 
-///// Contains system specific constants. That is constants that are due to intrinsic properties of the robots / camera system / game rules.
-//// See source for constant and description
-// module "Constants"
-////
-
-// ***********************************************************************
-// *   Copyright 2015 Alexander Danzer, Michael Eischer, Christian Lobmeier  *
-// *   Robotics Erlangen e.V.                                                *
-// *   http://www.robotics-erlangen.de/                                      *
-// *   info@robotics-erlangen.de                                             *
-// *                                                                         *
-// *   This program is free software: you can redistribute it and/or modify  *
-// *   it under the terms of the GNU General Public License as published by  *
-// *   the Free Software Foundation, either version 3 of the License, or     *
-// *   any later version.                                                    *
-// *                                                                         *
-// *   This program is distributed in the hope that it will be useful,       *
-// *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
-// *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
-// *   GNU General Public License for more details.                          *
-// *                                                                         *
-// *   You should have received a copy of the GNU General Public License     *
-// *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-// *************************************************************************
+/**************************************************************************
+*   Copyright 2015 Alexander Danzer, Michael Eischer, Christian Lobmeier  *
+*   Robotics Erlangen e.V.                                                *
+*   http://www.robotics-erlangen.de/                                      *
+*   info@robotics-erlangen.de                                             *
+*                                                                         *
+*   This program is free software: you can redistribute it and/or modify  *
+*   it under the terms of the GNU General Public License as published by  *
+*   the Free Software Foundation, either version 3 of the License, or     *
+*   any later version.                                                    *
+*                                                                         *
+*   This program is distributed in the hope that it will be useful,       *
+*   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+*   GNU General Public License for more details.                          *
+*                                                                         *
+*   You should have received a copy of the GNU General Public License     *
+*   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
+**************************************************************************/
 
 
-export const stopBallDistance = 0.5; // distance to ball during stop [m]
+/** distance to ball during stop [m] */
+export const stopBallDistance = 0.5;
 
-export const systemLatency = 0.04; // total system latency [s]
+/** total system latency [s] */
+export const systemLatency = 0.04;
 
-export const positionError = 0.005; // possible position error from vision [m]
+/** possible position error from vision [m] */
+export const positionError = 0.005;
 
-export const maxBallSpeed = 6.3; // maximum allowed shooting speed [m/s]
+/** maximum allowed shooting speed [m/s] */
+export const maxBallSpeed = 6.3;
 
 export const maxDribbleDistance = 1;
 
@@ -39,16 +43,23 @@ export const maxRobotRadius = 0.09;
 
 export const maxRobotHeight = 0.15;
 
-export const floorDamping = 0.55; // vertical speed damping coeffient for a ball hitting the ground
+/** vertical speed damping coeffient for a ball hitting the ground */
+export const floorDamping = 0.55;
 
-export const stopSpeed = 1.5; // maximum allowed driving speed during stop states [m/s]
+/** maximum allowed driving speed during stop states [m/s] */
+export const stopSpeed = 1.5;
 
-// measured by looking at the ball speed graph in the plotter
-export let ballDeceleration: number; // acceleration which brakes the ball [m/s^2]
+/**
+ * acceleration which brakes the ball [m/s^2]
+ * measured by looking at the ball speed graph in the plotter
+ */
+export let ballDeceleration: number;
 
-export let fastBallDeceleration: number; // accerlation which brakes the ball until it is rolling [m/s^2]
+/** accerlation which brakes the ball until it is rolling [m/s^2] */
+export let fastBallDeceleration: number;
 
-export let ballSwitchRatio: number; // if ball is slower than switchRatio * shootSpeed then switch from fast to normal ball deceleration
+/** if ball is slower than switchRatio * shootSpeed then switch from fast to normal ball deceleration */
+export let ballSwitchRatio: number;
 
 export function switchSimulatorConstants(isSimulated: boolean) {
 	if (isSimulated) {
@@ -64,3 +75,4 @@ export function switchSimulatorConstants(isSimulated: boolean) {
 }
 
 switchSimulatorConstants(false);
+

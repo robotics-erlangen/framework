@@ -1,41 +1,31 @@
+/**
+ * @module geom
+ */
 
-///// Provides several useful geometric functions
-// module "geom"
-////
-
-// ***********************************************************************
-// *   Copyright 2017 Alexander Danzer, Michael Eischer, Michael Niebisch,   *
-// *                  André Pscherer, Andreas Wendler                        *
-// *   Robotics Erlangen e.V.                                                *
-// *   http://www.robotics-erlangen.de/                                      *
-// *   info@robotics-erlangen.de                                             *
-// *                                                                         *
-// *   This program is free software: you can redistribute it and/or modify  *
-// *   it under the terms of the GNU General Public License as published by  *
-// *   the Free Software Foundation, either version 3 of the License, or     *
-// *   any later version.                                                    *
-// *                                                                         *
-// *   This program is distributed in the hope that it will be useful,       *
-// *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
-// *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
-// *   GNU General Public License for more details.                          *
-// *                                                                         *
-// *   You should have received a copy of the GNU General Public License     *
-// *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-// *************************************************************************
+/**************************************************************************
+*   Copyright 2017 Alexander Danzer, Michael Eischer, Michael Niebisch,   *
+*                  André Pscherer, Andreas Wendler                        *
+*   Robotics Erlangen e.V.                                                *
+*   http://www.robotics-erlangen.de/                                      *
+*   info@robotics-erlangen.de                                             *
+*                                                                         *
+*   This program is free software: you can redistribute it and/or modify  *
+*   it under the terms of the GNU General Public License as published by  *
+*   the Free Software Foundation, either version 3 of the License, or     *
+*   any later version.                                                    *
+*                                                                         *
+*   This program is distributed in the hope that it will be useful,       *
+*   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+*   GNU General Public License for more details.                          *
+*                                                                         *
+*   You should have received a copy of the GNU General Public License     *
+*   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
+**************************************************************************/
 
 import * as MathUtil from "base/mathutil";
 import { Position, RelativePosition, Vector } from "base/vector";
 
-/// Intersects two circles.
-// Returns up to two intersections or nothing if no intersections exist.
-// @name intersectCircleCircle
-// @param c1 Vector - Center of first circle
-// @param r1 number - Radius of first circle
-// @param c2 Vector - Center of second circle
-// @param r2 number - Radius of second circle
-// @return [Vector] - first intersection if exists (the one with higher x-value)
-// @return [Vector] - second intersection if exists (the one with lower x-value)
 function intersectCircleCircle_OLD(c1: Position, r1: number, c2: Position, r2: number): [Position?, Position?] {
 	let dist = c1.distanceTo(c2);
 	if (dist > r1 + r2) {
@@ -60,6 +50,16 @@ function intersectCircleCircle_OLD(c1: Position, r1: number, c2: Position, r2: n
 	return [];
 }
 
+/**
+ * Intersects two circles.
+ * Returns up to two intersections or nothing if no intersections exist.
+ * @param c1 - Center of first circle
+ * @param r1 - Radius of first circle
+ * @param c2 - Center of second circle
+ * @param r2 - Radius of second circle
+ * @return first intersection if exists (the one with higher x-value)
+ * @return second intersection if exists (the one with lower x-value)
+ */
 export let intersectCircleCircle = intersectCircleCircleCos;
 
 function intersectCircleCircleCos(c1: Position, r1: number, c2: Position, r2: number): [Position?, Position?] {
@@ -88,17 +88,18 @@ export function boundRect(p1: Position, pos: Position, p2: Position): Position {
 	// return new Vector(MathUtil.bound(min.x, pos.x, max.x), MathUtil.bound(min.y, pos.y, max.y))
 }
 
-/// Intersects a line with a circle.
-// Returns up to two intersections or nothing if no intersections exist.
-// @name intersectLineCircle
-// @param offset Vector - Start point of the line
-// @param dir Vector - Direction of the line
-// @param center Vector - Center of circle
-// @param radius number - Radius of circle
-// @return [Vector] - first intersection if exists
-// @return [Vector] - second intersection if exists
-// @return number - first lambda
-// @return number - second lambda, which is always less then first lambda
+/**
+ * Intersects a line with a circle.
+ * Returns up to two intersections or nothing if no intersections exist.
+ * @param offset - Start point of the line
+ * @param dir - Direction of the line
+ * @param center - Center of circle
+ * @param radius - Radius of circle
+ * @return first intersection if exists
+ * @return second intersection if exists
+ * @return first lambda
+ * @return second lambda, which is always less then first lambda
+ */
 export function intersectLineCircle(offset: Position, dir: RelativePosition, center: Position, radius: number):
 		[] | [Position, undefined, number, undefined] | [Position, Position, number, number] {
 	dir = dir.copy().normalize();
@@ -128,22 +129,23 @@ export function intersectLineCircle(offset: Position, dir: RelativePosition, cen
 	return [point1, point2, lambda1, lambda2];
 }
 
-/// Calculates the intersection between a line and a corridor created by a line and a width
-// Returns two intersections and lambdas
-// @name intersectLineCorridor
-// @param offset Vector - point on the line
-// @param direction Vector - direction of the line
-// @param offsetCorridor Vector - position on the line in the middle of the corridor
-// @param directionCorridor Vector - direction of the corridor
-// @param widthHalf number - half the width of the corridor
-// @return [Vector] - first intersection if exists
-// @return [Vector] - second intersection if exists
-// @return number - lambda1, intersection1 = offset + lambda1*direction (lambda of first point on the line)
-// @return number - lambda2, intersection2 = offset + lambda2*direction (lambda of second point on the line)
-// @return number - lambda3, intersection1 = offsetCorridor + lambda3*directionCorridor (lambda in the corridor)
-// @return number - lambda4, intersection2 = offsetCorridor + lambda4*directionCorridor (lambda in the corridor)
-// lambda1, lambda2, lambda3, lambda4 can be undefined if no intersection exists or +/-Infinity if the line is inside the corridor
-// the intersection with their lambdas are sorted so that lambda1 <= lambda2
+/**
+ * Calculates the intersection between a line and a corridor created by a line and a width
+ * Returns two intersections and lambdas
+ * @param offset - point on the line
+ * @param direction - direction of the line
+ * @param offsetCorridor - position on the line in the middle of the corridor
+ * @param directionCorridor - direction of the corridor
+ * @param widthHalf - half the width of the corridor
+ * @return first intersection if exists
+ * @return second intersection if exists
+ * @return lambda1, intersection1 = offset + lambda1*direction (lambda of first point on the line)
+ * @return lambda2, intersection2 = offset + lambda2*direction (lambda of second point on the line)
+ * @return lambda3, intersection1 = offsetCorridor + lambda3*directionCorridor (lambda in the corridor)
+ * @return lambda4, intersection2 = offsetCorridor + lambda4*directionCorridor (lambda in the corridor)
+ * lambda1, lambda2, lambda3, lambda4 can be undefined if no intersection exists or +/-Infinity if the line is inside the corridor
+ * the intersection with their lambdas are sorted so that lambda1 <= lambda2
+ */
 export function intersectLineCorridor(offset : Position, direction: RelativePosition, offsetCorridor: Position,
 		directionCorridor: RelativePosition, widthHalf: number): [Position?, Position?, number?, number?, number?, number?] {
 	if (directionCorridor.equals(new Vector(0, 0))) {
@@ -172,29 +174,31 @@ export function intersectLineCorridor(offset : Position, direction: RelativePosi
 	return [intersectionLeft, intersectionRight, lambdaLeftLine, lambdaRightLine, lambdaRight, lambdaLeft];
 }
 
-/// Calcualtes tangents to circle.
-// Returns tangents on circle for point.
-// @name getTangentsToCircle
-// @param point Vector - Point for which the tangents are calculated
-// @param centerpoint Vector - Center of circle
-// @param radius number - Radius of circle
-// @return [Vector] - first tangent point on the circle if exists
-// @return [Vector] - second tangent point on the circle if exists
+/**
+ * Calcualtes tangents to circle.
+ * Returns tangents on circle for point.
+ * @param point - Vector - Point for which the tangents are calculated
+ * @param centerpoint - Center of circle
+ * @param radius - Radius of circle
+ * @return first tangent point on the circle if exists
+ * @return second tangent point on the circle if exists
+ */
 export function getTangentsToCircle(point: Position, centerpoint: Position, radius: number): [Position?, Position?] {
 	return intersectCircleCircle(centerpoint, radius, centerpoint + (point - centerpoint).scaleLength(0.5),
 		0.5 * (centerpoint).distanceTo(point));
 }
 
-/// Calculates the inner tangents of two circles.
-// Returns the point where the tangents intersect and the two points where they touch circle1. If the two circles are too close to each other, returns [].
-// @name getInnerTangentsToCircle
-// @param centerpoint1 Vector - Centerpoint of circle1
-// @param radius1 number - Radius of circle1
-// @param centerpoint2 Vector - Centerpoint of circle2
-// @param radius2 number - Radius of circle2
-// @return [intersection] Vector - The point, where the two tangents intersect
-// @return [Vector] - Point, where the first tangent touches circle1
-// @return [Vector] - Point, where the second tangent touches circle1
+/**
+ * Calculates the inner tangents of two circles.
+ * Returns the point where the tangents intersect and the two points where they touch circle1. If the two circles are too close to each other, returns [].
+ * @param centerpoint1 - Centerpoint of circle1
+ * @param radius1 - Radius of circle1
+ * @param centerpoint2 - Centerpoint of circle2
+ * @param radius2 - Radius of circle2
+ * @return The point, where the two tangents intersect
+ * @return Point, where the first tangent touches circle1
+ * @return Point, where the second tangent touches circle1
+ */
 export function getInnerTangentsToCircles(centerpoint1: Position, radius1: number, centerpoint2: Position, radius2: number):
 		[Vector?, Vector?, Vector?] {
 	let d = centerpoint2 - centerpoint1;
@@ -206,18 +210,19 @@ export function getInnerTangentsToCircles(centerpoint1: Position, radius1: numbe
 	return [];
 }
 
-/// Intersects two lines.
-// Returns intersection and lambdas for each line.
-// If no intersection exists return nothing!
-// If two lines are the same they are considered parallel, so no intersection exists
-// @name intersectLineLine
-// @param pos1 Vector - Start point of line 1
-// @param dir1 Vector - Direction of line 1
-// @param pos2 Vector - Start point of line 2
-// @param dir2 Vector - Direction of line 2
-// @return [Vector - intersection
-// @return number - lambda1, intersection = pos1 + lambda1*dir1
-// @return number] - lambda2, intersection = pos2 + lambda2*dir2
+/**
+ * Intersects two lines.
+ * Returns intersection and lambdas for each line.
+ * If no intersection exists return nothing!
+ * If two lines are the same they are considered parallel, so no intersection exists
+ * @param pos1 - Start point of line 1
+ * @param dir1 - Direction of line 1
+ * @param pos2 - Start point of line 2
+ * @param dir2 - Direction of line 2
+ * @return intersection
+ * @return lambda1, intersection = pos1 + lambda1*dir1
+ * @return lambda2, intersection = pos2 + lambda2*dir2
+ */
 export function intersectLineLine(pos1: Position, dir1: RelativePosition, pos2: Position, dir2: RelativePosition):
 		[Vector, number, number] | [] {
 	// check whether the directions are collinear
@@ -234,60 +239,65 @@ export function intersectLineLine(pos1: Position, dir1: RelativePosition, pos2: 
 	return [pos1 + (dir1 * t1), t1, t2];
 }
 
-/// Intersects two lines given as points.
-// @name intersectLinesByPoints
-// @see intersectLineLine
-// @param p1 Vector - point on line 1
-// @param p2 Vector - point on line 1
-// @param q1 Vector - point on line 2
-// @param q2 Vector - point on line 2
+/**
+ * Intersects two lines given as points.
+ * @see intersectLineLine
+ * @param p1 - point on line 1
+ * @param p2 - point on line 1
+ * @param q1 - point on line 2
+ * @param q2 - point on line 2
+ */
 export function intersectLinesByPoints(p1: Position, p2: Position, q1: Position, q2: Position):
 		[Position, number, number] | [] {
 	return intersectLineLine(p1, p2 - p1, q1, q2 - q1);
 }
 
-/// Calculates area of a triangle.
-// Using cross product.
-// @name calcTriangleArea
-// @param p1 Vector - first corner of triangle
-// @param p2 Vector - second corner of triangle
-// @param p3 Vector - third corner of triangle
-// @return number - area of triangle
+/**
+ * Calculates area of a triangle.
+ * Using cross product.
+ * @param p1 - first corner of triangle
+ * @param p2 - second corner of triangle
+ * @param p3 - third corner of triangle
+ * @return area of triangle
+ */
 export function calcTriangleArea(p1: Position, p2: Position, p3: Position): number {
 	let p21 = p2 - p1;
 	let p31 = p3 - p1;
 	return 0.5 * Math.abs(p21.x * p31.y - p21.y * p31.x);
 }
 
-/// Checks whether the points of a triangle are given clockwise or counterclockwise
-// using determinant
-// @name checkTriangleOrientation
-// @param p1 Vector - first corner of triangle
-// @param p2 Vector - second corner of triangle
-// @param p3 Vector - third corner of triangle
-// @return number - -1 for clockwise, 1 for counterclockwise, 0 for all points in a line
+/**
+ * Checks whether the points of a triangle are given clockwise or counterclockwise
+ * using determinant
+ * @param p1 - first corner of triangle
+ * @param p2 - second corner of triangle
+ * @param p3 - third corner of triangle
+ * @return -1 for clockwise, 1 for counterclockwise, 0 for all points in a line
+ */
 export function checkTriangleOrientation(p1: Position, p2: Position, p3: Position): -1 | 0 | 1 {
 	let v21 = p2 - p1;
 	let v31 = p3 - p1;
 	return MathUtil.sign(v21.x * v31.y - v21.y * v31.x);
 }
 
-/// Calculates area of a quadrangle.
-// Expects corner to be order cw or ccw. Uses calcTriangleArea.
-// @name calcQuadrangleArea
-// @param p1 Vector - first corner of quadrangle
-// @param p2 Vector - second corner of quadrangle
-// @param p3 Vector - third corner of quadrangle
-// @param p4 Vector - fourth corner of quadrangle
-// @return number - area of quadrangle
+/**
+ * Calculates area of a quadrangle.
+ * Expects corner to be order cw or ccw. Uses calcTriangleArea.
+ * @param p1 - first corner of quadrangle
+ * @param p2 - second corner of quadrangle
+ * @param p3 - third corner of quadrangle
+ * @param p4 - fourth corner of quadrangle
+ * @return area of quadrangle
+ */
 export function calcQuadrangleArea(p1: Position, p2: Position, p3: Position, p4: Position): number {
 	return calcTriangleArea(p1, p2, p3) + calcTriangleArea(p1, p3, p4);
 }
 
-/// Calculates geometric center of points in array.
-// @name center
-// @param pointArray Vector[] - points
-// @return Vector - geometric center of points
+/**
+ * Calculates geometric center of points in array.
+ * @param pointArray - points
+ * @return geometric center of points
+ */
 export function center(pointArray: Position[]): Position {
 	let pos = new Vector(0, 0);
 	for (let p of pointArray) {
@@ -296,15 +306,16 @@ export function center(pointArray: Position[]): Position {
 	return pos / pointArray.length;
 }
 
-/// Checks if p is inside the triangle defined by a b c.
-// The triangle borders are considered as inside.
-// Uses the formulas from http://www.blackpawn.com/texts/pointinpoly/
-// @name isInTriangle
-// @param a Vector - first corner of triangle
-// @param b Vector - second corner of triangle
-// @param c Vector - third corner of triangle
-// @param p Vector - point to check
-// @return bool - Is p in triangle
+/**
+ * Checks if p is inside the triangle defined by a b c.
+ * The triangle borders are considered as inside.
+ * Uses the formulas from http://www.blackpawn.com/texts/pointinpoly/
+ * @param a - first corner of triangle
+ * @param b - second corner of triangle
+ * @param c - third corner of triangle
+ * @param p - point to check
+ * @return Is p in triangle
+ */
 export function isInTriangle(a: Position, b: Position, c: Position, p: Position): boolean {
 	// convert to barycentric coordinates
 	let v0 = c - a;
@@ -327,10 +338,11 @@ export function isInTriangle(a: Position, b: Position, c: Position, p: Position)
 	return v >= 0 && u + v <= 1;
 }
 
-/// Normalizes angle to value in interval [-pi, +pi].
-// @name normalizeAngle
-// @param angle number - angle in radians
-// @return number - normalized angle
+/**
+ * Normalizes angle to value in interval [-pi, +pi].
+ * @param angle - angle in radians
+ * @return normalized angle
+ */
 export function normalizeAngle(angle: number): number {
 	while (angle > Math.PI) {
 		angle = angle - 2 * Math.PI;
@@ -341,10 +353,11 @@ export function normalizeAngle(angle: number): number {
 	return angle;
 }
 
-/// Normalizes angle to value in interval [0, +2pi]
-// @name normalizeAnglePositive
-// @param angle number - angle in radians
-// @return number - normalized angle
+/**
+ * Normalizes angle to value in interval [0, +2pi]
+ * @param angle - angle in radians
+ * @return normalized angle
+ */
 export function normalizeAnglePositive(angle: number): number {
 	while (angle > 2 * Math.PI) {
 		angle = angle - 2 * Math.PI;
@@ -355,26 +368,28 @@ export function normalizeAnglePositive(angle: number): number {
 	return angle;
 }
 
-/// Normalized difference between angles.
-// Return value is in interval [-pi, +pi].
-// angle2 = angle1 + angleDiff (normalized)
-// @name getAngleDiff
-// @param angle1 number - first angle in radians
-// @param angle2 number - second angle in radians
-// @return number - angleDiff in radians
+/**
+ * Normalized difference between angles.
+ * Return value is in interval [-pi, +pi].
+ * angle2 = angle1 + angleDiff (normalized)
+ * @param angle1 - first angle in radians
+ * @param angle2 - second angle in radians
+ * @return angleDiff in radians
+ */
 export function getAngleDiff(angle1: number, angle2: number): number {
 	let diff = angle2 - angle1;
 	return normalizeAngle(diff);
 }
 
-// Applies the inscribed angle theorem.
-// @name inscribedAngle
-// @param point1 vector - first point on cirle
-// @param point2 vector - second point on cirle
-// @param theta number - angle inside in radians
-// @return vector - center of circle one
-// @return vector - center of circle two
-// @return number - radius of circle
+/**
+ * Applies the inscribed angle theorem.
+ * @param point1 - first point on cirle
+ * @param point2 - second point on cirle
+ * @param theta - angle inside in radians
+ * @return center of circle one
+ * @return center of circle two
+ * @return radius of circle
+ */
 export function inscribedAngle(point1: Position, point2: Position, theta: number):
 		[Vector, Vector, number] {
 	let radius = point1.distanceTo(point2) / (2 * Math.sin(theta));

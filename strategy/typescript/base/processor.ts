@@ -1,7 +1,7 @@
-/*
-// Allows running an analysis module before / after each strategy run
-// module "Processor"
-*/
+/**
+ * @module processor
+ * Allows running an analysis module before/after each strategy run
+ */
 
 /**************************************************************************
 *   Copyright 2018 Michael Eischer, Christian Lobmeier, Andreas Wendler   *
@@ -29,16 +29,18 @@ import { Process } from "base/process";
 let preprocs: Process[] = [];
 let postprocs: Process[] = [];
 
-/// Adds a process for runnning before the strategy
-// @name addPre
-// @param proc Process - Process object to be run
+/**
+ * Adds a process for runnning before the strategy
+ * @param proc - Process object to be run
+ */
 export function addPre(proc: Process) {
 	preprocs.push(proc);
 }
 
-/// Adds a process for runnning after the strategy
-// @name addPost
-// @param proc Process - Process object to be run
+/**
+ * Adds a process for runnning after the strategy
+ * @param proc - Process object to be run
+ */
 export function addPost(proc: Process) {
 	postprocs.push(proc);
 }
@@ -52,16 +54,19 @@ function run(procs: Process[]) {
 	}
 }
 
-/// Runs all proccess object scheduled before the strategy.
-// Should be called by the entrypoint wrapper
-// @name pre
+/**
+ * Runs all proccess object scheduled before the strategy.
+ * Should be called by the entrypoint wrapper
+ */
 export function pre() {
 	run(preprocs);
 }
 
-/// Runs all proccess object scheduled after the strategy.
-// Should be called by the entrypoint wrapper
-// @name post
+/**
+ * Runs all proccess object scheduled after the strategy.
+ * Should be called by the entrypoint wrapper
+ */
 export function post() {
 	run(postprocs);
 }
+

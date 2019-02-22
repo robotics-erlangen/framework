@@ -1,28 +1,28 @@
+/**
+ * @module math
+ * Extensions to javascript math functions
+ */
 
-///// Extensions to lua math functions
-// module "math"
-////
-
-// ***********************************************************************
-// *   Copyright 2018 Alexander Danzer, Michael Eischer, Christian Lobmeier  *
-// *       André Pscherer, Andreas Wendler                                   *
-// *   Robotics Erlangen e.V.                                                *
-// *   http://www.robotics-erlangen.de/                                      *
-// *   info@robotics-erlangen.de                                             *
-// *                                                                         *
-// *   This program is free software: you can redistribute it and/or modify  *
-// *   it under the terms of the GNU General Public License as published by  *
-// *   the Free Software Foundation, either version 3 of the License, or     *
-// *   any later version.                                                    *
-// *                                                                         *
-// *   This program is distributed in the hope that it will be useful,       *
-// *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
-// *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
-// *   GNU General Public License for more details.                          *
-// *                                                                         *
-// *   You should have received a copy of the GNU General Public License     *
-// *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-// ************************************************************************
+/**************************************************************************
+*   Copyright 2018 Alexander Danzer, Michael Eischer, Christian Lobmeier  *
+*       André Pscherer, Andreas Wendler                                   *
+*   Robotics Erlangen e.V.                                                *
+*   http://www.robotics-erlangen.de/                                      *
+*   info@robotics-erlangen.de                                             *
+*                                                                         *
+*   This program is free software: you can redistribute it and/or modify  *
+*   it under the terms of the GNU General Public License as published by  *
+*   the Free Software Foundation, either version 3 of the License, or     *
+*   any later version.                                                    *
+*                                                                         *
+*   This program is distributed in the hope that it will be useful,       *
+*   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+*   GNU General Public License for more details.                          *
+*                                                                         *
+*   You should have received a copy of the GNU General Public License     *
+*   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
+**************************************************************************/
 
 let min = Math.min;
 let max = Math.max;
@@ -74,9 +74,8 @@ function produceRandom(seed?: number): RandomLike {
 }
 
 let _random: RandomLike | undefined = undefined;
-/**
- * seeds the PRNG with the given seed
- */
+
+/** seeds the PRNG with the given seed */
 export function randomseed(seed: number): void {
 	_random = produceRandom(seed);
 }
@@ -90,9 +89,7 @@ function initRandom(): void {
 	}
 }
 
-/**
- * generates a random number on [0,1) with 53-bit resolution
- */
+/** generates a random number on [0,1) with 53-bit resolution */
 export function random(): number {
 	initRandom();
 	return _random!.nextNumber53();
@@ -100,7 +97,7 @@ export function random(): number {
 
 /**
  * generates an int32 pseudo random number, faster than random()
- * @param range: an optional [from, to] range, if not specified the result will be in range [0,0xffffffff]
+ * @param range - an optional [from, to] range, if not specified the result will be in range [0,0xffffffff]
  *  from and to are inclusive in the range
  * @return {number}
  */
@@ -112,24 +109,26 @@ export function randomInt(range?: [number, number]): number {
 	return _random!.nextInt32(range);
 }
 
-/// Limits value to interval [min, max].
-// @name bound
-// @param min number - lower bound of interval
-// @param par number - value to limit to interval
-// @param max number - upper bound of interval
-// @return number - par limited to interval [min, max]
+/**
+ * Limits value to interval [min, max].
+ * @param min - lower bound of interval
+ * @param par - value to limit to interval
+ * @param max - upper bound of interval
+ * @return par limited to interval [min, max]
+ */
 export function bound(vmin: number, par: number, vmax: number): number {
 	return min(max(vmin, par), vmax);
 }
 
-/// Rounds value towards dest.
-// The function provides a helper to implement hysteresis for certain functions.
-// If the value is in the interval [dest-0.5-spacing/2, dest+0.5+spacing/2] then dest is returned.
-// Otherwise it behaves like Math.round.
-// @name roundTowards
-// @param val number - value to round
-// @param dest number - value to round towards, must be an integer
-// @param spacing number - spacing between to numbers where we round towards dest
+/**
+ * Rounds value towards dest.
+ * The function provides a helper to implement hysteresis for certain functions.
+ * If the value is in the interval [dest-0.5-spacing/2, dest+0.5+spacing/2] then dest is returned.
+ * Otherwise it behaves like Math.round.
+ * @param val - value to round
+ * @param dest - value to round towards, must be an integer
+ * @param spacing - spacing between to numbers where we round towards dest
+ */
 export function roundTowards(val: number, dest: number, spacing: number) {
 	if (val > dest + 0.5 + spacing / 2 || val < dest - 0.5 - spacing / 2) {
 		return Math.round(val);
@@ -138,12 +137,13 @@ export function roundTowards(val: number, dest: number, spacing: number) {
 	}
 }
 
-/// Rounds value upwards.
-// The function provides a helper to implement hysteresis for certain functions.
-// Rounds the suffixes in [0.5 - spacing, 1] upwards
-// @name roundUpwards
-// @param val number - value to round
-// @param spacing number - tolerance for rounding up
+/**
+ * Rounds value upwards.
+ * The function provides a helper to implement hysteresis for certain functions.
+ * Rounds the suffixes in [0.5 - spacing, 1] upwards
+ * @param val - value to round
+ * @param spacing - tolerance for rounding up
+ */
 export function roundUpwards(val: number, spacing: number): number {
 	if (val + spacing + 0.5 >= Math.ceil(val)) {
 		return Math.ceil(val);
@@ -152,23 +152,20 @@ export function roundUpwards(val: number, spacing: number): number {
 	}
 }
 
-/// Round value to idp digits
-// @usage round(1.23, 1) // 1.2
-// @name round
-// @param val number
-// @param digits number - digits to keep after decimal dot
-// @return number - rounded value
+/**
+ * Round value to idp digits
+ * @example round(1.23, 1) -> 1.2
+ * @param val - number
+ * @param digits - digits to keep after decimal dot
+ * @return rounded value
+ */
 export function round(val: number, digits: number = 0): number {
 	let fac = 10 ** digits;
 	return Math.floor(val * fac + 0.5) / fac;
 }
 
 
-/// Solves a*t + b for t
-// @name solveLin
-// @param a number
-// @param b number
-// @return [number]
+/** Solves a*t + b for t */
 export function solveLin(a: number, b: number): number | undefined {
 	if (a === 0) {
 		return;
@@ -185,13 +182,10 @@ function sgn(value: number): 1 | -1 {
 	}
 }
 
-/// Solves a*t^2 + b*t + c for t
-// @name solveSq
-// @param a number
-// @param b number
-// @param c number
-// @return [number - smallest positive solution or largest
-// @return [number]]
+/**
+ * Solves a*t^2 + b*t + c for t
+ * @return smallest positive solution or largest
+ */
 export function solveSq(a: number, b: number, c: number): [number, number?] | [] {
 	if (a === 0) {
 		// return Math.solveLin(b, c)
@@ -223,10 +217,10 @@ export function solveSq(a: number, b: number, c: number): [number, number?] | []
 	}
 }
 
-/// "Calculates" the signum of a number
-// @name sign
-// @param number number
-// @return number - 1 for postive number, -1 for negative number, 0 for 0
+/**
+ * Calculates" the signum of a number
+ * @return 1 for postive number, -1 for negative number, 0 for 0
+ */
 export function sign(value: number): -1 | 0 | 1 {
 	if (value > 0) {
 		return 1;
@@ -256,3 +250,4 @@ export function variance(array: number[], avg?: number, indexStart: number = 0, 
 	}
 	return variance / (indexEnd - indexStart);
 }
+

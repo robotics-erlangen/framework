@@ -1,10 +1,10 @@
-/*
- Path module provided by Ra. <br/>
- As every data value on the path object is set by the strategy, it would be possible to use strategy coordinates. This however would require further coordinate transformations as the generated controller input has to use global coordinates. <br/>
- Thus it is recommened to use global coordinates for everything stored in a path object.
- However the functions for adding obstacles require strategy coordinates and handle any neccessary conversions.
-module "path"
-*/
+/**
+ * @module path
+ *  Path module provided by Ra. <br/>
+ *  As every data value on the path object is set by the strategy, it would be possible to use strategy coordinates. This however would require further coordinate transformations as the generated controller input has to use global coordinates. <br/>
+ *  Thus it is recommened to use global coordinates for everything stored in a path object.
+ *  However the functions for adding obstacles require strategy coordinates and handle any neccessary conversions.
+ */
 
 /**************************************************************************
 *   Copyright 2018 Michael Eischer, Jan Kallwies, Philipp Nordhus,        *

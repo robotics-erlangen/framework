@@ -1,7 +1,7 @@
-/*
-/// Provides functions to set values on the debug tree
-module "debug"
-*///
+/**
+ * @module debug
+ * Provides functions to set values on the debug tree
+ */
 
 /**************************************************************************
 *   Copyright 2018 Michael Eischer, Philipp Nordhus, Andreas Wendler      *
@@ -50,10 +50,11 @@ function prefixName(name?: string): string {
 	return joined;
 }
 
-/// Pushes a new key on the debug stack.
-// @name push
-// @param name string - Name of the new subtree
-// @param [value string - Value for the subtree header]
+/**
+ * Pushes a new key on the debug stack
+ * @param name - Name of the new subtree
+ * @param value - Value for the subtree header
+ */
 export function push(name: string, value?: string) {
 	debugStack.push(prefixName(name));
 	if (value != undefined) {
@@ -61,9 +62,10 @@ export function push(name: string, value?: string) {
 	}
 }
 
-/// Pushes a root key on the debug stack.
-// @name pushtop
-// @param name string - Name of the new root tree or undefined to push root
+/**
+ * Pushes a root key on the debug stack.
+ * @param name - Name of the new root tree or undefined to push root
+ */
 export function pushtop(name?: string) {
 	if (!name) {
 		debugStack.push("");
@@ -72,33 +74,32 @@ export function pushtop(name?: string) {
 	}
 }
 
-/// Pops last key from the debug stack.
-// @name pop
+/** Pops last key from the debug stack */
 export function pop() {
 	if (debugStack.length > 0) {
 		debugStack.pop();
 	}
 }
 
-/// Get extra params for debug.set.
-// This can be used to keep the table # stable across calls to debug.set
-// Usage: let extraParams = debug.getInitialExtraParams()
-// debug.set(key, value, unpack(extraParams))
-// @name getInitialExtraParams
-// @return Initial extra params
+/**
+ * Get extra params for debug set.
+ * This can be used to keep the table # stable across calls to debug.set
+ * Usage: let extraParams = getInitialExtraParams()
+ * debug.set(key, value, unpack(extraParams))
+ */
 export function getInitialExtraParams(): object {
 	let visited = new Map<object, string>();
 	let tableCounter = [0];
 	return [ visited, tableCounter ];
 }
 
-
-/// Sets value for the given name.
-// if (value is undefined store it as text
-// For the special value undefined the value is set for the current key
-// @name set
-// @param name string - Name of the value
-// @param value string - Value to set
+/**
+ * Sets value for the given name.
+ * if (value is undefined store it as text
+ * For the special value undefined the value is set for the current key
+ * @param name Name of the value
+ * @param value Value to set
+ */
 export function set(name: string | undefined, value: any, visited: Map<object, string> = new Map(), tableCounter?: number[]) {
 	// visited and tableCounter must be compatible with getInitialExtraParams
 
@@ -168,8 +169,7 @@ export function set(name: string | undefined, value: any, visited: Map<object, s
 	addDebug(prefixName(name), result);
 }
 
-/// Clears the debug stack
-// @name resetStack
+/** Clears the debug stack */
 export function resetStack() {
 	if (debugStack.length !== 1 || debugStack[0] !== "") {
 		log("Unbalanced push/pop on debug stack");
@@ -179,3 +179,4 @@ export function resetStack() {
 	}
 	debugStack = [""];
 }
+

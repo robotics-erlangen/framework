@@ -1,28 +1,28 @@
+/**
+ * @module world
+ * Provides informations about game state
+ */
 
-///// Provides informations about game state
-// module "World"
-////
-
-// ***********************************************************************
-// *   Copyright 2018 Alexander Danzer, Michael Eischer, Tobias Heineken     *
-// *                  Christian Lobmeier, Philipp Nordhus, Andreas Wendler   *
-// *   Robotics Erlangen e.V.                                                *
-// *   http://www.robotics-erlangen.de/                                      *
-// *   info@robotics-erlangen.de                                             *
-// *                                                                         *
-// *   This program is free software: you can redistribute it and/or modify  *
-// *   it under the terms of the GNU General Public License as published by  *
-// *   the Free Software Foundation, either version 3 of the License, or     *
-// *   any later version.                                                    *
-// *                                                                         *
-// *   This program is distributed in the hope that it will be useful,       *
-// *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
-// *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
-// *   GNU General Public License for more details.                          *
-// *                                                                         *
-// *   You should have received a copy of the GNU General Public License     *
-// *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-// *************************************************************************
+/**************************************************************************
+*   Copyright 2018 Alexander Danzer, Michael Eischer, Tobias Heineken     *
+*                  Christian Lobmeier, Philipp Nordhus, Andreas Wendler   *
+*   Robotics Erlangen e.V.                                                *
+*   http://www.robotics-erlangen.de/                                      *
+*   info@robotics-erlangen.de                                             *
+*                                                                         *
+*   This program is free software: you can redistribute it and/or modify  *
+*   it under the terms of the GNU General Public License as published by  *
+*   the Free Software Foundation, either version 3 of the License, or     *
+*   any later version.                                                    *
+*                                                                         *
+*   This program is distributed in the hope that it will be useful,       *
+*   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+*   GNU General Public License for more details.                          *
+*                                                                         *
+*   You should have received a copy of the GNU General Public License     *
+*   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
+**************************************************************************/
 
 let amunLocal = amun;
 import {Ball as BallClass } from "base/ball";
@@ -34,144 +34,145 @@ import { FriendlyRobot, Robot } from "base/robot";
 import { AbsTime, RelTime } from "base/timing";
 import { Position, Vector } from "base/vector";
 
-/// Ball and team informations.
-// @class table
-// @name World
-// @field Ball Ball - current Ball
-// @field FriendlyRobots Robot[] - List of own robots in an arbitary order
-// @field FriendlyInvisibleRobots Robot[] - Own robots which currently aren't tracked
-// @field FriendlyRobotsById Map<int,Robot> - List of own robots with robot id as index
-// @field FriendlyRobotsAll Robot[] - List of all own robots in an arbitary order
-// @field FriendlyKeeper Robot - Own keeper if on field or nil
-// @field OpponentRobots Robot[] - List of opponent robots in an arbitary order
-// @field OpponentRobotsById Robot[] - List of opponent robots with robot id as index
-// @field OpponentKeeper Robot - Opponent keeper if on field or nil
-// @field Robots Robot[] - Every visible robot in an arbitary order
-// @field TeamIsBlue bool - True if we are the blue team, otherwise we're yellow
-// @field IsSimulated bool - True if the world is simulated
-// @field IsReplay bool - True if the current strategy run is a replay run
-// @field IsLargeField bool - True if playing on the large field
-// @field Time number - Current unix timestamp in seconds (with nanoseconds precision)
-// @field TimeDiff number - Time since last update
-// @field BallPlacementPos - Position where the ball has to be placed
-// @field RefereeState string - current refereestate, can be one of these:
-// Halt, Stop, Game, GameForce,
-// KickoffOffensivePrepare, KickoffDefensivePrepare, KickoffOffensive, KickoffDefensive,
-// PenaltyOffensivePrepare, PenaltyDefensivePrepare, PenaltyOffensive, PenaltyDefensive,
-// DirectOffensive, DirectDefensive, IndirectOffensive, IndirectDefensive,
-// TimeoutOffensive, TimeoutDefensive, BallPlacementOffensive, BallPlacementDefensive
-// @field GameStage string - current game stage, can be one of these:
-// FirstHalfPre, FirstHalf, HalfTime, SecondHalfPre, SecondHalf,
-// ExtraTimeBreak, ExtraFirstHalfPre, ExtraFirstHalf, ExtraHalfTime, ExtraSecondHalfPre, ExtraSecondHalf,
-// PenaltyShootoutBreak, PenaltyShootout, PostGame
-// @field MixedTeam Table[] - Mixed team data sent by partner team, indexed by robot id, only set if data was received;
-// Has the following fields: role string (values: Default, Goalie, Defense, Offense), targetPos* vector,
-// targetDir* number, shootPos* vector, * = optional
-// @field FriendlyYellowCards table - List of the remaining times for all active friendly yellow cards
-// @field OpponentYellowCards table - List of the remaining times for all active opponent yellow cards
-// @field FriendlyRedCards number - number of red cards received for the own team
-// @field OpponentRedCards number - number of red cards the opponent received
 
-
+/** Current unix timestamp in seconds (with nanoseconds precision) */
 export let Time: AbsTime = 0;
+/** Time since last update */
 export let TimeDiff: RelTime = 0;
 export let AoI = undefined;
+/** current Ball */
 export let Ball: BallClass = new BallClass();
+/** List of own robots in an arbitary order */
 export let FriendlyRobots: FriendlyRobot[] = [];
+/** Own robots which currently aren't tracked */
 export let FriendlyInvisibleRobots: FriendlyRobot[] = [];
+/** List of own robots with robot id as index */
 export let FriendlyRobotsById: {[index: number]: FriendlyRobot} = {};
+/** List of all own robots in an arbitary order */
 export let FriendlyRobotsAll: FriendlyRobot[] = [];
+/** Own keeper if on field or nil */
 export let FriendlyKeeper: FriendlyRobot | undefined;
+/** List of opponent robots in an arbitary order */
 export let OpponentRobots: Robot[] = [];
+/** List of opponent robots with robot id as index */
 export let OpponentRobotsById: {[index: number]: Robot} = {};
+/** Opponent keeper if on field or nil */
 export let OpponentKeeper: Robot | undefined;
+/** Every visible robot in an arbitary order */
 export let Robots: Robot[] = [];
+/** True if we are the blue team, otherwise we're yellow */
 export let TeamIsBlue: boolean = false;
+/** True if the world is simulated */
 export let IsSimulated: boolean = false;
+/** True if playing on the large field */
 export let IsLargeField: boolean = false;
+/** True if the current strategy run is a replay run */
 export let IsReplay: boolean = false;
+/**
+ * Mixed team data sent by partner team, indexed by robot id, only set if data was received;
+ * Has the following fields: role string (values: Default, Goalie, Defense, Offense), targetPos* vector,
+ * targetDir* number, shootPos* vector, * = optional
+ */
 export let MixedTeam: any = undefined;
 export let SelectedOptions = undefined;
 
+/**
+ * current refereestate, can be one of these:
+ * Halt, Stop, Game, GameForce,
+ * KickoffOffensivePrepare, KickoffDefensivePrepare, KickoffOffensive, KickoffDefensive,
+ * PenaltyOffensivePrepare, PenaltyDefensivePrepare, PenaltyOffensive, PenaltyDefensive,
+ * DirectOffensive, DirectDefensive, IndirectOffensive, IndirectDefensive,
+ * TimeoutOffensive, TimeoutDefensive, BallPlacementOffensive, BallPlacementDefensive
+ */
 export let RefereeState: string = "";
+/**
+ * current game stage, can be one of these:
+ * FirstHalfPre, FirstHalf, HalfTime, SecondHalfPre, SecondHalf,
+ * ExtraTimeBreak, ExtraFirstHalfPre, ExtraFirstHalf, ExtraHalfTime, ExtraSecondHalfPre, ExtraSecondHalf,
+ * PenaltyShootoutBreak, PenaltyShootout, PostGame
+ */
 export let GameStage: string = "";
+/** List of the remaining times for all active friendly yellow cards */
 export let FriendlyYellowCards: number[] = [];
+/** List of the remaining times for all active opponent yellow cards */
 export let OpponentYellowCards: number[] = [];
+/** number of red cards received for the own team */
 export let FriendlyRedCards: number = 0;
+/** number of red cards the opponent received */
 export let OpponentRedCards: number = 0;
+/** where the ball has to be placed */
 export let BallPlacementPos: Readonly<Position> | undefined;
 
 export let RULEVERSION: string = "";
 
+/** Field geometry. Lengths in meter */
 export interface GeometryType {
+	/** Width of the playing field (short side) */
 	FieldWidth: number;
+	/** Height of the playing field (long side) */
 	FieldHeight: number;
+	/** Half width of the playing field (short side) */
 	FieldWidthHalf: number;
+	/** Half height of the playing field (long side) */
 	FieldHeightHalf: number;
+	/** Quarter width of the playing field (short side) */
 	FieldWidthQuarter: number;
+	/** Quarter height of the playing field (long side) */
 	FieldHeightQuarter: number;
+	/** Inner width of the goals */
 	GoalWidth: number;
+	/** Width of the goal walls */
 	GoalWallWidth: number;
+	/** Depth of the goal */
 	GoalDepth: number;
+	/** Height of the goals */
 	GoalHeight: number;
+	/** Width of the game field lines */
 	LineWidth: number;
+	/** Radius of the center circle */
 	CenterCircleRadius: number;
+	/** Distance to keep to opponent defense area during a freekick */
 	FreeKickDefenseDist: number;
+	/** Radius of the defense area corners (pre 2018) */
 	DefenseRadius: number;
+	/** Distance between the defense areas quarter circles (pre 2018) */
 	DefenseStretch: number;
+	/** Half distance between the defense areas quarter circles (pre 2018) */
 	DefenseStretchHalf: number;
+	/** Width of the rectangular defense area (longer side) (since 2018) */
 	DefenseWidth: number;
+	/** Half width of the rectangular defense area (longer side) (since 2018) */
 	DefenseWidthHalf: number;
+	/** Height of the rectangular defense area (shorter side) (since 2018) */
 	DefenseHeight: number;
+	/** Position of our own penalty spot */
 	FriendlyPenaltySpot: Readonly<Position>;
+	/** Position of the opponent's penalty spot */
 	OpponentPenaltySpot: Readonly<Position>;
+	/** Maximal distance from centerline during an offensive penalty */
 	PenaltyLine: number;
+	/** Maximal distance from centerline during an defensive penalty */
 	OwnPenaltyLine: number;
+	/** Center point of the goal on the line */
 	FriendlyGoal: Readonly<Position>;
+	/** Left side of the goal when oriented towards the opponent goal */
 	FriendlyGoalLeft: Readonly<Position>;
+	/** Right side of the goal when oriented towards the opponent goal */
 	FriendlyGoalRight: Readonly<Position>;
+	/** Center point of the goal on the line */
 	OpponentGoal: Readonly<Position>;
+	/** Left side of the goal when oriented towards the friendly goal */
 	OpponentGoalLeft: Readonly<Position>;
+	/** Right side of the goal when oriented towards the friendly goal */
 	OpponentGoalRight: Readonly<Position>;
+	/** Free distance around the playing field */
 	BoundaryWidth: number;
+	/** Width of area reserved for referee */
 	RefereeWidth: number;
 }
 
 // it is guaranteed to be set before being read, so casting is fine
 export let Geometry: Readonly<GeometryType> = <GeometryType> {};
-/// Field geometry.
-// Lengths in meter
-// @class table
-// @name Geometry
-// @field FieldWidth number - Width of the playing field (short side)
-// @field FieldHeight number - Height of the playing field (long side)
-// @field FieldWidthHalf number - Half width of the playing field (short side)
-// @field FieldHeightHalf number - Half height of the playing field (long side)
-// @field FieldWidthQuarter number - Quarter width of the playing field (short side)
-// @field FieldHeightQuarter number - Quarter height of the playing field (long side)
-// @field GoalWidth number - Inner width of the goals
-// @field GoalWallWidth number - Width of the goal walls
-// @field GoalDepth number - Depth of the goal
-// @field GoalHeight number - Height of the goals
-// @field LineWidth number - Width of the game field lines
-// @field CenterCircleRadius number - Radius of the center circle
-// @field FreeKickDefenseDist number - Distance to keep to opponent defense area during a freekick
-// @field DefenseRadius number - Radius of the defense area corners (pre 2018)
-// @field DefenseStretch number - Distance between the defense areas quarter circles (pre 2018)
-// @field DefenseWidth number - Width of the rectangular defense area (longer side) (since 2018)
-// @field DefenseHeight number - Height of the rectangular defense area (shorter side) (since 2018)
-// @field FriendlyPenaltySpot Vector - Position of our own penalty spot
-// @field OpponentPenaltySpot Vector - Position of the opponent's penalty spot
-// @field PenaltyLine number - Maximal distance from centerline during an offensive penalty
-// @field OwnPenaltyLine number - Maximal distance from centerline during an defensive penalty
-// @field FriendlyGoal Vector - Center point of the goal on the line
-// @field FriendlyGoalLeft Vector
-// @field FriendlyGoalRight Vector
-// @field OpponentGoal Vector - Center point of the goal on the line
-// @field OpponentGoalLeft Vector
-// @field OpponentGoalRight Vector
-// @field BoundaryWidth number - Free distance around the playing field
-// @field RefereeWidth number - Width of area reserved for referee
 
 // initializes Team and Geometry data
 export function _init() {
@@ -182,10 +183,11 @@ export function _init() {
 	_updateTeam(amunLocal.getTeam());
 }
 
-/// Update world state.
-// Has to be called once each frame
-// @name update
-// @return bool - false if no vision data was received since strategy start
+/**
+ * Update world state.
+ * Has to be called once each frame
+ * @return false if no vision data was received since strategy start
+ */
 export function update() {
 	if (SelectedOptions == undefined) {
 		// TODO: getSelectedOptions is not yet implemented for typescript
@@ -198,7 +200,7 @@ export function update() {
 	return hasVisionData;
 }
 
-// Creates generation specific robot object for own team
+/** Creates generation specific robot object for own team */
 export function _updateTeam(state: any) {
 	let friendlyRobotsById: {[index: number]: FriendlyRobot} = {};
 	let friendlyRobotsAll: FriendlyRobot[] = [];
@@ -211,7 +213,7 @@ export function _updateTeam(state: any) {
 	FriendlyRobotsAll = friendlyRobotsAll;
 }
 
-// Get rule version from geometry
+/** Get rule version from geometry */
 export function _updateRuleVersion(geom: any) {
 	if (!geom.type || geom.type === "TYPE_2014") {
 		RULEVERSION = "2017";
@@ -467,7 +469,7 @@ function _updateGameState(state: any) {
 	OpponentRedCards = opponentTeamInfo.red_cards;
 }
 
-// update and handle user inputs set for own robots
+/** update and handle user inputs set for own robots */
 export function _updateUserInput(input: any) {
 	if (input.radio_command) {
 		for (let robot of FriendlyRobotsAll) {
@@ -501,8 +503,7 @@ export function _updateUserInput(input: any) {
 }
 
 
-/// Stops own robots and enables standby
-// @name haltOwnRobots
+/** Stops own robots and enables standby */
 export function haltOwnRobots() {
 	for (let robot of FriendlyRobotsAll) {
 		if (robot.moveCommand == undefined) {
@@ -512,9 +513,10 @@ export function haltOwnRobots() {
 	}
 }
 
-/// Set generated commands for our robots.
-// Robots without a command stop by default
-// @name setRobotCommands
+/**
+ * Set generated commands for our robots.
+ * Robots without a command stop by default
+ */
 export function setRobotCommands() {
 	if (amunLocal.setCommands) {
 		let commands: [number, number, any][] = [];
@@ -530,3 +532,4 @@ export function setRobotCommands() {
 }
 
 _init();
+

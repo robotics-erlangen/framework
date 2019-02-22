@@ -1,7 +1,7 @@
-/*
-/// Robot class.
-module "Robot"
-/*
+/**
+ * @module robot
+ * Robot class
+ */
 
 /**************************************************************************
 *   Copyright 2015 Alexander Danzer, Michael Eischer, Philipp Nordhus     *
@@ -75,56 +75,47 @@ enum KickStyle {
 	chip = "Chip"
 }
 
+/**
+ * Fields marked with * are only available for own robots
+ */
 export class Robot {
-	/// Values provided by a robot object.
-	/// Fields marked with * are only available for own robots
-	// @class table
-	// @name Robot
-	// @field constants table - robot specific constants *(empty for opponents)
-	// @field id number - robot id
-	// @field generation number - robot generation (-1 for unknown robots)
-	// @field year number - year robot was built in *
-	// @field pos Vector - current position
-	// @field dir number - current direction faced
-	// @field isFriendly bool - true if own robot
-	// @field speed Vector - current speed (movement direction doesn't have to match with dir)
-	// @field angularSpeed number - rotation speed of the robot
-	// @field isVisible bool - True if robot is tracked
-	// @field radius number - the robot's radius (defaults to 0.09m)
-	// @field height number - the robot's height *
-	// @field shootRadius number
-	// @field dribblerWidth number - Width of the dribbler
-	// @field maxSpeed number - maximum speed
-	// @field maxAngularSpeed number - maximum angular speed
-	// @field acceleration table - Acceleration and deceleration parameters: aSpeedupFMax, aSpeedupSMax, aSpeedupPhiMax, aBrakeFMax, aBrakeSMax, aBrakePhiMax
-	// @field lastResponseTime number - strategy time when the last radio response was handled *
-	// @field radioResponse table - response from the robot, only set if there is a current response *
-	// @field userControl table - command from input devices (fields: speed, omega, kickStyle, kickPower, dribblerSpeed) *
-	// @field moveCommand table - command used when robots are dragged with the mouse (fields: time, pos (global)) * (optional)
-	// @field prevMoveTo Vector - moveTo from previous trajectory call or undefined
 
 	readonly ALLY_GENERATION_ID: number = 9999;
 	readonly GENERATION_2014_ID: number = 3;
 
+	/** robot specific constants * (empty for opponents) */
 	constants: RobotConstants = {
 		hasBallDistance: 0.04, // 4 cm, robots where the balls distance to the dribbler is less than 2cm are considered to have the ball [m]
 		passSpeed: 3, // speed with which the ball should arrive at the pass target  [m/s]
 		shootDriveSpeed: 0.2, // how fast the shoot task drives at the ball [m/s]
 		minAngleError: 4 / 180 * Math.PI // minimal angular precision that the shoot task guarantees [in radians]
 	};
+	/** robot id */
 	id: number;
+	/** current position */
 	pos: Readonly<Position> = new Vector(0, 0);
+	/** current speed (movement direction doesn't have to match with dir) */
 	speed: Readonly<Speed> = new Vector(0, 0);
+	/** current direction faced */
 	dir: number = 0;
+	/** true if own robot */
 	isFriendly: boolean;
+	/** rotation speed of the robot */
 	angularSpeed: number = 0;
+	/** True if robot is tracked */
 	isVisible: boolean = false;
+	/** the robot's radius (defaults to 0.09m) */
 	radius: number;
 	shootRadius: number;
+	/** Width of the dribbler */
 	dribblerWidth: number;
+	/** maximum speed */
 	maxSpeed: number;
+	/** maximum angular speed */
 	maxAngularSpeed: number = 0;
+	/** Acceleration and deceleration parameters: aSpeedupFMax, aSpeedupSMax, aSpeedupPhiMax, aBrakeFMax, aBrakeSMax, aBrakePhiMax */
 	acceleration: RobotAccelerationProfile;
+	/** strategy time when the last radio response was handled * */
 	lastResponseTime: number = 0;
 	lostSince: number = 0;
 
@@ -133,9 +124,11 @@ export class Robot {
 	protected _currentTime: number = 0;
 	protected _hasBall: {[offset: number]: boolean} = {};
 
-	/// Creates a new robot object.
-	// @param data table/number - data from amun.getTeam or robot id for opponents
-	// @param isFriendly boolean - true if own robot
+	/**
+	 * Creates a new robot object.
+	 * @param data - data from amun.getTeam or robot id for opponents
+	 * @param isFriendly - true if own robot
+	 */
 	constructor(id: number) {
 		this.radius = 0.09; // set default radius if no specs are available
 		this.dribblerWidth = 0.07; // just a good default guess
@@ -186,11 +179,13 @@ export class Robot {
 		this.angularSpeed = state.omega; // do not invert!
 	}
 
-	/// Check whether the robot has the given ball.
-	// Checks whether the ball is in rectangle in front of the dribbler with hasBallDistance depth. Uses hysteresis for the left and right side of that rectangle
-	// @param ball Ball - must be World.Ball to make sure hysteresis will work
-	// @param [sideOffset number - extends the hasBall area sidewards]
-	// @return boolean - has ball
+	/**
+	 * Check whether the robot has the given ball.
+	 * Checks whether the ball is in rectangle in front of the dribbler with hasBallDistance depth. Uses hysteresis for the left and right of that rectangle.
+	 * @param ball - must be World.Ball to make sure hysteresis will work
+	 * @param sideOffset - extens the hasBall sidewards
+	 * @returns has ball
+	 */
 	hasBall(ball: BallLike, sideOffset: number = 0, manualHasBallDistance: number = this.constants.hasBallDistance) {
 		let hasBallDistance = manualHasBallDistance;
 
@@ -261,17 +256,23 @@ export class Robot {
 }
 
 export class FriendlyRobot extends Robot {
-
+	/** robot generation (-1 for unknown robots) */
 	generation: number;
+	/** year robot was built in */
 	year: number;
 	maxShotLinear: number;
 	maxShotChip: number;
+	/** the robot's height */
 	height: number;
+	/** moveTo from previous trajectory call or undefined */
 	prevMoveTo: Position | undefined;
 	path: Path;
 	trajectory: Trajectory;
+	/** response from the robot, only set if there is a current response */
 	radioResponse: any;
+	/** command from input devices (fields: speed, omega, kickStyle, kickPower, dribblerSpeed) */
 	userControl: UserControl | undefined;
+	/** command used when robots are dragged with the mouse (fields: time, pos (global)) (optional) */
 	moveCommand: {time: number, pos: Position} | undefined;
 
 	// private attributes
@@ -404,9 +405,11 @@ export class FriendlyRobot extends Robot {
 		this._updateOpponent(state, time);
 	}
 
-	/// Set output from trajectory planing on robot
-	// The robot is halted by default if no command is set for it. To tell a robot to follow its old trajectory call robot:setControllerInput(undefined)
-	// @param input Spline - Target points for the controller, in global coordinates!
+	/**
+	 * Set output from trajectory planing on robot
+	 * The robot is halted by default if no command is set for it. To tell a robot to follow its old trajectory call setControllerInput(undefined)
+	 * @param input - Target points for the controller, in global coordinates!
+	 */
 	setControllerInput(input: any) {
 		// Forbid overriding controller input except with halt
 		if (input && input.spline && (this._controllerInput === {} || (<ControllerInput> this._controllerInput).spline)) {
@@ -415,17 +418,20 @@ export class FriendlyRobot extends Robot {
 		this._controllerInput = input;
 	}
 
-	/// Disable shoot
+	/** Disable shoot */
 	shootDisable() {
 		this._kickStyle = undefined;
 		this._kickPower = 0;
 		this._forceKick = false;
 	}
 
-	/// Enable linear kick.
-	// The different kick styles are exclusive, that is only one of them can be active at a time.
-	// @param speed number - Shoot speed [m/s]
-	// @param ignoreLimit bool - Don't enforce shoot speed limit, if true
+	/**
+	 * Enable linear kick
+	 * The different kick styles are exclusive, that is only one of them can be active at a time.
+	 * @see chip
+	 * @param speed - Shoot speed [m/s]
+	 * @param ignoreLimit - Don't enforce shoot speed limit, if true
+	 */
 	shoot(speed: number, ignoreLimit: boolean = false) {
 		if (!ignoreLimit) {
 			speed = Math.min(Constants.maxBallSpeed, speed);
@@ -436,9 +442,12 @@ export class FriendlyRobot extends Robot {
 		vis.addCircle("shoot command", this.pos, this.radius + 0.04, vis.colors.mediumPurple, undefined, undefined, undefined, 0.03);
 	}
 
-	/// Enable chip kick.
-	// The different kick styles are exclusive, that is only one of them can be active at a time.
-	// @param distance number - Chip distance [m]
+	/**
+	 * Enable chip kick.
+	 * The different kick styles are exclusive, that is only one of them can be active at a time.
+	 * @see shoot
+	 * @param distance - Chip distance [m]
+	 */
 	chip(distance: number) {
 		distance = MathUtil.bound(0.05, distance, this.maxShotChip);
 		this._kickStyle = KickStyle.chip;
@@ -446,24 +455,28 @@ export class FriendlyRobot extends Robot {
 		vis.addCircle("shoot command", this.pos, this.radius + 0.04, vis.colors.darkPurple, undefined, undefined, undefined, 0.03);
 	}
 
-	/// Force the robot to shoot even if the IR isn't triggered
+	/** Force to robot to shoot, even if the IR is not triggered */
 	forceShoot() {
 		this._forceKick = true;
 	}
 
-	/// Enable dribbler
-	// (0=off, 1=on) @param power number - robotspecific value between 0 and 1
+	/**
+	 * Enable dribbler
+	 * @param speed - robotspecific value between 0 and 1 (0 = off, 1 = on)
+	 */
 	setDribblerSpeed(speed: number) {
 		this._dribblerSpeed = speed;
 	}
 
-	/// Halts robot
+	/** Halts robot */
 	halt() {
 		this.setControllerInput({});
 	}
 
-	/// Set standby
-	// @param standby boolean - enable standby for robot if true
+	/**
+	 * Set standby
+	 * @param standby - enable standby for robot if true
+	 */
 	setStandby(standby: boolean) {
 		if (standby) {
 			// start timer
@@ -480,12 +493,14 @@ export class FriendlyRobot extends Robot {
 		}
 	}
 
-	/// Calculate shoot speed neccessary for linear shoot to reach the target with a certain speed.
-	// This is limited to maxShootLinear and maxBallSpeed.
-	// @param destSpeed number - Ball speed at destination [m/s]
-	// @param distance number - Distance to chip [m]
-	// @param ignoreLimit bool - Don't enforce rule given shoot speed limit, if true
-	// @return number - Speed to shoot with [m/s]
+	/**
+	 * Calculate shoot speed neccessary for linear shoot to reach the target with a certain speed.
+	 * This is limited to maxShootLinear and maxBallSpeed.
+	 * @param destSpeed - Ball speed at destination [m/s]
+	 * @param distance - Distance to chip [m]
+	 * @param ignoreLimit - Don't enforce rule given shoot speed limit, if true
+	 * @return Speed to shoot with [m/s]
+	 */
 	calculateShootSpeed(destSpeed: number, distance: number, ignoreLimit: boolean = false): number {
 		let maxShot = ignoreLimit ? this.maxShotLinear : Math.min(this.maxShotLinear, Constants.maxBallSpeed);
 		if (destSpeed >= maxShot) {

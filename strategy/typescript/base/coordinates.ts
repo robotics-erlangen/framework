@@ -1,8 +1,8 @@
-/*
-/// Functions to convert from global to strategy let coordinates and back.
-// Only use to convert values from or for amun!
-module "Coordinates"
-*/
+/**
+ * @module coordinates
+ * Functions to convert from global to strategy let coordinates and back.
+ * Only use to convert values from or for amun!
+ */
 
 /**************************************************************************
 *   Copyright 2018 Alexander Danzer, Michael Eischer, Andreas Wendler     *
@@ -17,51 +17,61 @@ module "Coordinates"
 *                                                                         *
 *   This program is distributed in the hope that it will be useful,       *
 *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
-*   MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+*   MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.  See the        *
 *   GNU General Public License for more details.                          *
 *                                                                         *
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
 
-/// Converts global coordinates from amun to strategy let coordinates
-// @class function
-// @name toLocal
-// @param data Vector/number - vector or angle to convert
-// @return Vector/number
-
-
-// separator for luadoc//
-
-/// Converts strategy local coordinates to global coordinates for amun
-// @class function
-// @name toGlobal
-// @param data Vector/number - vector or angle to convert
-// @return Vector/number
-
-
-// separator for luadoc//
-
-/// Does toGlobal conversion for a list
-// @class function
-// @name listToGlobal
-// @param data (Vector/number)[] - list to map
-// @return (Vector/number)[]
-
-
-// separator for luadoc//
 
 import { Vector } from "base/vector";
 
 interface CoordinatesType {
+	/**
+	 * Converts strategy local coordinates to global coordinates for amun
+	 * @param data - vector to convert
+	 */
 	toGlobal(pos: Vector): Vector;
+	/**
+	 * Converts strategy local coordinates to global coordinates for amun
+	 * @param data - vector to convert
+	 */
 	toGlobal(pos: Readonly<Vector>): Readonly<Vector>;
+	/**
+	 * Converts strategy local coordinates to global coordinates for amun
+	 * @param num - angle to convert
+	 */
 	toGlobal(num: number): number;
+	/**
+	 * Converts global coordinates from amun to strategy let coordinates
+	 * @param pos - vector to convert
+	 */
 	toLocal(pos: Vector): Vector;
+	/**
+	 * Converts global coordinates from amun to strategy let coordinates
+	 * @param pos - vector to convert
+	 */
 	toLocal(pos: Readonly<Vector>): Readonly<Vector>;
+	/**
+	 * Converts global coordinates from amun to strategy let coordinates
+	 * @param num - angle to convert
+	 */
 	toLocal(num: number): number;
+	/**
+	 * Does toGlobal conversion for a list
+	 * @param data - list to map
+	 */
 	listToGlobal(pos: Vector[]): Vector[];
+	/**
+	 * Does toGlobal conversion for a list
+	 * @param data - list to map
+	 */
 	listToGlobal(pos: Readonly<Vector>[]): Readonly<Vector>[];
+	/**
+	 * Does toGlobal conversion for a list
+	 * @param data - list to map
+	 */
 	listToGlobal(num: number[]): number[];
 }
 
@@ -112,3 +122,4 @@ export function _setIsBlue(teamIsBlue: boolean) {
 		Coordinates = new Pass();
 	}
 }
+

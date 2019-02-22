@@ -54,3 +54,4 @@ export function finish(name: string, robotId: number) {
 
 	delete startTimes[key];
 }
+

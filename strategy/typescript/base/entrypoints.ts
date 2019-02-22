@@ -1,10 +1,10 @@
-/*
-/// Class to add new Entrypoints
-module "Entrypoints"
-*///
+/**
+ * @module entrypoints
+ * Class to add new Entrypoints
+ */
 
 /**************************************************************************
-*   Copyright 2018 Michael Eischer, Christian Lobmeier, Andreas Wendler   *
+*   Copyright 2015 Michael Eischer, Christian Lobmeier, Andreas Wendler   *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
 *   info@robotics-erlangen.de                                             *
@@ -21,17 +21,18 @@ module "Entrypoints"
 *                                                                         *
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program.  if not, see <http://www.gnu.org/licenses/>. *
-**************************************************************************///
+**************************************************************************/
 
 type EntryPointFunction = () => boolean;
 type EntryPointWrapper = (f: EntryPointFunction) => Function;
 
 let entries: { [name: string]: EntryPointFunction } = {};
 
-/// Adds an entrypoint
-// @name add
-// @param name string - Entrypoint name parts are separated with '/'
-// @param func function - Function to call for this entrypoint
+/**
+ * Adds an entrypoint
+ * @param name - Entrypoint name parts are seperated with '/'
+ * @param func - Function to call for this entrypoint
+ */
 export function add(name: string, func: EntryPointFunction) {
 	if (entries[name]) {
 		throw new Error(`An entrypoint with name ${name} already exists`);
@@ -39,10 +40,12 @@ export function add(name: string, func: EntryPointFunction) {
 	entries[name] = func;
 }
 
-/// Returns the entrypoint list.
-// The functions are wrapped using the wrapper function which should
-// call the basic runtime functions
-// @return table<string, function> - Entrypoints table for passing to ra
+/**
+ * Returns the entrypoint list
+ * The functions are wrapped using the wrapper function
+ * which should call the basic runtime functions
+ * @returns Entrypoints table for passing to Ra
+ */
 export function get(wrapper: EntryPointWrapper): { [name: string]: Function} {
 	let wrapped: { [name: string]: Function} = {};
 	for (let name in entries) {
@@ -50,3 +53,4 @@ export function get(wrapper: EntryPointWrapper): { [name: string]: Function} {
 	}
 	return wrapped;
 }
+

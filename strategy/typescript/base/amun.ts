@@ -1,14 +1,14 @@
-/* tslint:disable:prefer-method-signature */
+/**
+ * @module amun
+ * API for Ra.
+ * Amun offers serveral guarantees to the strategy: <br/>
+ * The values returned by getGeometry, getTeam, isBlue are guaranteed to remain constant for the whole strategy runtime.
+ * That is if any of the values changes the strategy is restarted! <br/>
+ * If coordinates are passed via the API these values are using <strong>global</strong> coordinates!
+ * This API may only be used by coded that provides a mapping between Amun and Strategy
+ */
 
-/*
-/// API for Ra. <br/>
-// Amun offers serveral guarantees to the strategy: <br/>
-// The values returned by getGeometry, getTeam, isBlue are guaranteed to remain constant for the whole strategy runtime.
-// That is if any of the values changes the strategy is restarted! <br/>
-// If coordinates are passed via the API these values are using <strong>global</strong> coordinates!
-// This API may only be used by coded that provides a mapping between Amun and Strategy
-module "amun"
-*/
+/* tslint:disable:prefer-method-signature */
 
 /**************************************************************************
 *   Copyright 2015 Alexander Danzer, Michael Eischer, Philipp Nordhus     *
@@ -30,200 +30,6 @@ module "amun"
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
 
-/// Returns world state
-// @class function
-// @name getWorldState
-// @return protobuf.world.State - converted to lua table
-
-/*
-separator for luadoc*/
-
-/// Returns world geometry
-// @class function
-// @name getGeometry
-// @return protobuf.world.Geometry - converted to lua table
-
-/*
-separator for luadoc*/
-
-/// Returns team information
-// @class function
-// @name getTeam
-// @return protobuf.robot.Team - converted to lua table
-
-/*
-separator for luadoc*/
-
-/// Query team color
-// @class function
-// @name isBlue
-// @return bool - true if this is the blue team, false otherwise
-
-/*
-separator for luadoc*/
-
-/// Add a visualization
-// @class function
-// @name addVisualization
-// @param vis protobuf.amun.Visualization as table
-
-/*
-separator for luadoc*/
-
-/*
-separator for luadoc*/
-
-/// Set commands for a robot
-// @class function
-// @name setCommand
-// @param int generation
-// @param int robotid
-// @param cmd protobuf.robot.StrategyCommand
-
-/*
-separator for luadoc*/
-
-/// Log function.
-// If data is a string use ... as parameters for format.
-// Otherweise logs tostring(data)
-// @class function
-// @name log
-// @param data any - data to log
-// @param ... any - params for format (optional)
-
-/*
-separator for luadoc*/
-
-/// Returns game state and referee information
-// @class function
-// @name getGameState
-// @return protobuf.GameState - converted to lua table
-
-/*
-separator for luadoc*/
-
-/// Returns the user input
-// @class function
-// @name getUserInput
-// @return protobuf.UserInput - converted to lua table
-
-/*
-separator for luadoc*/
-
-/// Returns current time
-// @class function
-// @name getCurrentTime
-// @return Number - time in nanoseconds (amun), seconds(strategy)
-
-/*
-separator for luadoc*/
-
-/// Returns the absolute path to the folder containing the init script
-// @class function
-// @name getStrategyPath
-// @return String - path
-
-/*
-separator for luadoc*/
-
-/// Returns list with names of enabled options
-// @class function
-// @name getSelectedOptions
-// @return String[] - options
-
-/*
-separator for luadoc*/
-
-/// Sets a value in the debug tree
-// @class function
-// @name addDebug
-// @param key string
-// @param value number|bool|string|nil
-
-/*
-separator for luadoc*/
-
-/// Add a value to the plotter
-// @class function
-// @name addPlot
-// @param name string
-// @param value number
-
-/*
-separator for luadoc*/
-
-/// Set the exchange symbol for a robot
-// @class function
-// @name setRobotExchangeSymbol
-// @param generation number
-// @param id number
-// @param exchange bool
-
-/*
-separator for luadoc*/
-
-/// Send arbitrary commands. Only works in debug mode
-// @class function
-// @name sendCommand
-// @param command amun.Command
-
-/*
-separator for luadoc*/
-
-/// Send internal referee command. Only works in debug mode. Must be fully populated
-// @class function
-// @name sendRefereeCommand
-// @param command SSL_Referee
-
-/*
-separator for luadoc*/
-
-/// Send mixed team info packet
-// @class function
-// @name sendMixedTeamInfo
-// @param data ssl::TeamPlan
-
-/*
-separator for luadoc*/
-
-/// Send referee command over network. Only works in debug mode or as autoref. Must be fully populated
-// Only sends the data passed to the last call of this function during a strategy run.
-// The command_counter must be increased for every command change
-// @class function
-// @name sendNetworkRefereeCommand
-// @param command SSL_Referee
-
-/// Check if performance mode is active
-// @class function
-// @name getPerformanceMode
-// @return mode boolean
-
-
-/// Fetch the last referee remote control request reply
-// @class function
-// @name nextRefboxReply
-// @return reply table - the last reply or nil if none is available
-
-
-/// Connect to the v8 debugger
-// this function can be called as often as one wishes, if the debugger is
-// already connected, it will do nothing and return false
-// @class function
-// @name connectDebugger
-// @param handleResponse - (message: string) => void - function to be called on a message response
-// @param handleNotification - (notification: string) => void - function to be called on a notification
-// @param messageLoop - () => void - called when regular javascript execution is blocket as the debugger is paused
-// @return success - boolean - if the connection was successfull
-
-/// Send a command to the debugger
-// only call this if the debugger is connected
-// @class function
-// @name debuggerSend
-// @param command - string
-
-/// Disconnects from the v8 debugger
-// @class function
-// @name disconnectDebugger
 
 import * as pb from "base/protobuf";
 
@@ -231,9 +37,22 @@ interface AmunPublic {
 	isDebug: boolean;
 	strategyPath: string;
 	isPerformanceMode: boolean;
-	log(data: any, ...params: any[]): void;
+	/**
+	 * Logs the equivalent of new String(data) to the log widget
+	 * @param data - The data to be logged
+	 */
+	log(data: any): void;
+	/**
+	 * Returns current time
+	 * @returns time in nanoseconds (amun), seconds(strategy)
+	 */
 	getCurrentTime(): number;
+	/** Set the exchange symbol for a robot */
 	setRobotExchangeSymbol(generation: number, id: number, exchange: boolean): void;
+	/**
+	 * Fetch the last referee remote control request reply
+	 * @returns the last reply or undefined if none is available
+	 */
 	nextRefboxReply(): pb.SSL_RefereeRemoteControlReply;
 
 	// game controller communication
@@ -246,15 +65,29 @@ interface AmunPublic {
 	getGameControllerMessage(): pb.gameController.ControllerToTeam | pb.gameController.ControllerToAutoRef;
 
 	// only in debug
+	/** Send arbitrary commands. Only works in debug mode */
 	sendCommand(command: pb.amun.Command): void;
+	/**
+	 * Send referee command over network. Only works in debug mode or as autoref. Must be fully populated.
+	 * Only sends the data passed to the last call of this function during a strategy run.
+	 * The command_counter must be increased for every command change.
+	 */
 	sendNetworkRefereeCommand(command: pb.SSL_Referee): void;
 }
 
 interface Amun extends AmunPublic {
+	/** Returns world state */
 	getWorldState(): pb.world.State;
+	/** Returns world geometry */
 	getGeometry(): pb.world.Geometry;
+	/** Returns team information */
 	getTeam(): pb.robot.Team;
+	/**
+	 * Query team color
+	 * @returns true if this is the blue team, false otherwise
+	 */
 	isBlue(): boolean;
+	/** Add a visualization */
 	addVisualization(vis: pb.amun.Visualization): void;
 	/** Adds a circle visualization, this is faster than the generic addVisualization */
 	addCircleSimple(name: string, x: number, y: number, radius: number, r: number,
@@ -265,21 +98,45 @@ interface Amun extends AmunPublic {
 	/** Adds a polygon visualization, pointCoordinates takes consecutive x and y coordinates of the points */
 	addPolygonSimple(name: string, r: number, g: number, b: number, alpha: number, filled: boolean,
 		background: boolean, pointCoordinates: number[]): void;
+	/** Set commands for a robot */
 	setCommand(generation: number, id: number, cmd: pb.robot.Command): void;
 	/** Takes an array of tuples of generation, id, and command. */
 	setCommands(commands: [number, number, pb.robot.Command][]): void;
+	/** Returns game state and referee information */
 	getGameState(): pb.amun.GameState;
+	/** Returns the user input */
 	getUserInput(): pb.amun.UserInput;
+	/** Returns the absolute path to the folder containing the init script */
 	getStrategyPath(): string;
+	/** Returns list with names of enabled options */
 	getSelectedOptions(): string[];
+	/** Sets a value in the debug tree */
 	addDebug(key: string, value?: number | boolean | string): void;
+	/** Add a value to the plotter */
 	addPlot(name: string, value: number): void;
+	/** Send internal referee command. Only works in debug mode. Must be fully populated */
 	sendRefereeCommand(command: pb.SSL_Referee): void;
+	/** Send mixed team info packet */
 	sendMixedTeamInfo(data: pb.ssl.TeamPlan): void;
+	/** Check if performance mode is active */
 	getPerformanceMode(): boolean;
+	/**
+	 * Connect to the v8 debugger
+	 * this function can be called as often as one wishes, if the debugger is
+	 * already connected, it will do nothing and return false
+	 * @param handleResponse - function to be called on a message response
+	 * @param handleNotification - function to be called on a notification
+	 * @param messageLoop - called when regular javascript is blocked as the debugger is paused
+	 * @returns success - if the connection was successfull
+	 */
 	connectDebugger(handleResponse: (message: string) => void, handleNotification: (notification: string) => void,
 		messageLoop: () => void): boolean;
+	/**
+	 * Send a command to the debugger
+	 * only call this if the debugger is connected
+	 */
 	debuggerSend(command: string): void;
+	/** Disconnects from the v8 debugger */
 	disconnectDebugger(): void;
 	tryCatch: <T>(tryBlock: () => void, thenBlock: (e: T) => void, catchBlock: (error: any, e: T) => void, e: T, printStackTrace: boolean) => void;
 

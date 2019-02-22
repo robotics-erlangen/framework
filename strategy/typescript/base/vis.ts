@@ -1,7 +1,7 @@
-/*
-/// Provides functions to draw on the game field
-module "vis"
-*/
+/**
+ * @module vis
+ * Provides functions to draw on the game field
+ */
 
 /**************************************************************************
 *   Copyright 2018 Florian Bauer, Michael Eischer, Christian Lobmeier,    *
@@ -45,23 +45,19 @@ export class Color {
 	}
 }
 
-/// Joins rgba-value to a color.
-// Values from 0 to 255
-// @name fromRGBA
-// @param red number
-// @param green number
-// @param blue number
-// @param alpha number
-// @return table color
+/**
+ * Joins rgba-value to a color.
+ * Values from 0 to 255
+ */
 export function fromRGBA(red: number, green: number, blue: number, alpha: number): Color {
 	return new Color(red, green, blue, alpha);
 }
 
-/// Implements a red-yellow-green gradient
-// @name fromTemperature
-// @param value a normalized temperature [0, 1]
-// @param alpha the alpha value, default is 127
-// @return table color
+/**
+ * Implements a red-yellow-green gradient
+ * @param value - a normalized temperature [0, 1]
+ * @param alpha - the alpha value, default is 127
+ */
 export function fromTemperature(value: number, alpha: number = 127): Color {
 	if (value < 0) {
 		throw new Error(`vis temperature too low: ${value}`);
@@ -81,35 +77,35 @@ export function fromTemperature(value: number, alpha: number = 127): Color {
 
 type Style = pb.amun.Pen.Style;
 
-/// List of predefined colors.
-// with alpha = 255. Colors ending with half have alpha = 127.
-// @class table
-// @name colors
-// @field black (0,0,0)
-// @field white (255,255,255)
-// @field red (255,0,0)
-// @field green (0,255,0)
-// @field blue (0,0,255)
-// @field yellow (255,255,0)
-// @field pink (255,0,255)
-// @field turquoise (0,255,255)
-// @field orange (255, 127, 0)
-// @field magenta (255, 0, 127)
-// @field brown (127, 63, 0)
-// @field skyBlue (127, 191, 255)
-
-// @field blackHalf (0,0,0)
-// @field whiteHalf (255,255,255)
-// @field redHalf (255,0,0)
-// @field greenHalf (0,255,0)
-// @field blueHalf (0,0,255)
-// @field yellowHalf (255,255,0)
-// @field pinkHalf (255,0,255)
-// @field turquoiseHalf (0,255,255)
-// @field orangeHalf (255, 127, 0)
-// @field magentaHalf (255, 0, 127)
-// @field brownHalf (127, 63, 0)
-// @field skyBlueHalf (127, 191, 255)
+/**
+ * List of predefined colors.
+ * with alpha = 255. Colors ending with half have alpha = 127.
+ * - black (0,0,0)
+ * - white (255,255,255)
+ * - red (255,0,0)
+ * - green (0,255,0)
+ * - blue (0,0,255)
+ * - yellow (255,255,0)
+ * - pink (255,0,255)
+ * - turquoise (0,255,255)
+ * - orange (255, 127, 0)
+ * - magenta (255, 0, 127)
+ * - brown (127, 63, 0)
+ * - skyBlue (127, 191, 255)
+ *
+ * - blackHalf (0,0,0)
+ * - whiteHalf (255,255,255)
+ * - redHalf (255,0,0)
+ * - greenHalf (0,255,0)
+ * - blueHalf (0,0,255)
+ * - yellowHalf (255,255,0)
+ * - pinkHalf (255,0,255)
+ * - turquoiseHalf (0,255,255)
+ * - orangeHalf (255, 127, 0)
+ * - magentaHalf (255, 0, 127)
+ * - brownHalf (127, 63, 0)
+ * - skyBlueHalf (127, 191, 255)
+ */
 
 export let colors: {[name: string]: Color} = {};
 
@@ -157,32 +153,33 @@ colors.darkPurpleHalf = fromRGBA(93, 71, 139, 127);
 let gcolor: Color = colors.black;
 let gisFilled: boolean = true;
 
-/// Sets line and fill color.
-// If filled is true polygons and circles are filled using color.
-// @name setColor
-// @param color table
-// @param isFilled bool
+/**
+ * Sets line and fill color.
+ * If filled is true polygons and circles are filled using color.
+ */
 export function setColor(color: Color, isFilled: boolean) {
 	gcolor = color;
 	gisFilled = isFilled;
 }
 
-/// Adds a circle.
-// If color is given use it instead of the global color and use the passed isFilled.
-// @name addCircle
-// @param name string - Visualization group
-// @param center Vector - center of the circle
-// @param radius number - radius of the circle
-// @param color table - color (optional)
-// @param isFilled bool - fill circle (optional)
+/**
+ * Adds a circle.
+ * If color is given use it instead of the global color and use the passed isFilled.
+ * @param name - Visualization group
+ * @param center - center of the circle
+ * @param radius - radius of the circle
+ * @param color - color (optional)
+ * @param isFilled - fill circle (optional)
+ */
 export function addCircle(name: string, center: Position, radius: number, color?: Color,
 		isFilled?: boolean, background?: boolean, style?: Style, lineWidth?: number) {
 	addCircleRaw(name, Coordinates.toGlobal(center), radius, color, isFilled, background, style, lineWidth);
 }
 
-/// Adds a circle. Requires global coordinates.
-// @name addCircleRaw
-// @see addCircle
+/**
+ * Adds a circle. Requires global coordinates.
+ * @see addCircle
+ */
 export function addCircleRaw(name: string, center: Position, radius: number, color?: Color,
 		isFilled: boolean = false, background: boolean = false, style?: Style, lineWidth: number = 0.01) {
 	// if color is set use passed isFilled
@@ -209,21 +206,23 @@ export function addCircleRaw(name: string, center: Position, radius: number, col
 	}
 }
 
-/// Adds a polygon.
-// If color is given use it instead of the global color and use the passed isFilled.
-// @name addPolygon
-// @param name string - Visualization group
-// @param points Vector[] - Points of the polygon
-// @param color table - color (optional)
-// @param isFilled bool - fill circle (optional)
+/**
+ * Adds a polygon.
+ * If color is given use it instead of the global color and use the passed isFilled.
+ * @param name - Visualization group
+ * @param points - Points of the polygon
+ * @param color - color (optional)
+ * @param isFilled - fill circle (optional)
+ */
 export function addPolygon(name: string, points: Position[], color?: Color,
 		isFilled?: boolean, background?: boolean, style?: Style) {
 	addPolygonRaw(name, Coordinates.listToGlobal(points), color, isFilled, background, style);
 }
 
-/// Adds a polygon. Requires global coordinates.
-// @name addPolygonRaw
-// @see addPolygon
+/**
+ * Adds a polygon. Requires global coordinates.
+ * @see addPolygon
+ */
 export function addPolygonRaw(name: string, points: Position[], color?: Color,
 		isFilled: boolean = false, background: boolean = false, style?: Style) {
 	// if color is set use passed isFilled
@@ -254,15 +253,17 @@ export function addPolygonRaw(name: string, points: Position[], color?: Color,
 }
 
 
-// Paints an axis aligned rectangle
-// @name addAxisAlignedRectangle
-// @param name string - Visualization group
-// @param corner1 Vector - One corner of the rectangle
-// @param corner2 Vector - The other corner of the rectangle
-// @param color table - see @addPolygon
-// @param isFilled bool - see @addPolygon
-// @param background - see @addPolygon
-// @param style - see @addPolygon
+/**
+ * Paints an axis aligned rectangle
+ * @name addAxisAlignedRectangle
+ * @param name - Visualization group
+ * @param corner1 - One corner of the rectangle
+ * @param corner2 - The other corner of the rectangle
+ * @param color - see @addPolygon
+ * @param isFilled - see @addPolygon
+ * @param background - see @addPolygon
+ * @param style - see @addPolygon
+ */
 export function addAxisAlignedRectangle(name: string, corner1: Position, corner2: Position,
 		color?: Color, isFilled?: boolean, background?: boolean, style?: Style) {
 	let minX, minY, maxX, maxY;
@@ -278,13 +279,15 @@ export function addAxisAlignedRectangle(name: string, corner1: Position, corner2
 	addPolygon(name, path, color, isFilled, background, style);
 }
 
-/// Paints a Pizza where everything outside of [startAngle, endAngle] is filled
-/// The shape of the pizza is approximated by a regular hexagon
-// @param name string - Name of the pizza
-// @param center Vectos - center point of the pizza
-// @param radius number - radius of the pizza
-// @param startAngle number - the starting angle of the missing pizza piece
-// @param endAngle number - the end angle of the missing pizza piece
+/**
+ * Paints a Pizza where everything outside of [startAngle, endAngle] is filled
+ * The shape of the pizza is approximated by a regular hexagon
+ * @param name - the pizza
+ * @param center - center point of the pizza
+ * @param radius - radius of the pizza
+ * @param startAngle - the starting angle of the missing pizza piece
+ * @param endAngle - the end angle of the missing pizza piece
+ */
 let N_corners = 25;
 export function addPizza(name: string, center: Position, radius: number,
 		startAngle: number, endAngle: number, color?: Color, isFilled?: boolean, background?: boolean, style?: Style) {
@@ -305,19 +308,21 @@ export function addPizza(name: string, center: Position, radius: number,
 	}
 }
 
-/// Adds a path.
-// If color is given use it instead of the global color and use the passed isFilled.
-// @name addPath
-// @param name string - Visualization group
-// @param points Vector[] - Points of the path
-// @param color table - line color (optional)
+/**
+ * Adds a path.
+ * If color is given use it instead of the global color and use the passed isFilled.
+ * @param name - Visualization group
+ * @param points - Points of the path
+ * @param color - line color (optional)
+ */
 export function addPath(name: string, points: Position[], color?: Color, background?: boolean, style?: Style, lineWidth?: number) {
 	addPathRaw(name, Coordinates.listToGlobal(points), color, background, style, lineWidth);
 }
 
-/// Adds a path. Requires global coordinates.
-// @name addPathRaw
-// @see addPath
+/**
+ * Adds a path. Requires global coordinates.
+ * @see addPath
+ */
 export function addPathRaw(name: string, points: Position[], color: Color = gcolor, background: boolean = false,
 		style?: Style, lineWidth: number = 0.01) {
 	if (style) {
@@ -336,3 +341,4 @@ export function addPathRaw(name: string, points: Position[], color: Color = gcol
 		amunLocal.addPathSimple(name, color.red, color.green, color.blue, color.alpha, lineWidth, background, pointArray);
 	}
 }
+
