@@ -32,15 +32,28 @@
 
 using namespace v8;
 
+// takes a function of the form functionName: (QTPath *wrapper, const FunctionCallbackInfo<Value>& args, int offset) -> void
+// and generates two function, functionName_new and functionName_legacy.
+// In the legacy path interface, the path instance was given as the first parameter of all function calls,
+// while in the new path interface, it is stored in the functions additional data (not modifiable by javascript code).
+#define GENERATE_FUNCTIONS(X) \
+    static void X##_new(const FunctionCallbackInfo<Value>& args) { X(static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value()), args, 0); } \
+    static void X##_legacy(const FunctionCallbackInfo<Value>& args) { X(static_cast<QTPath*>(Local<External>::Cast(args[0])->Value()), args, 1); }
+
+
 class QTPath: public QObject {
     Q_OBJECT
 public:
-    QTPath(uint32_t rng_seed, QObject* parent = nullptr):
-        QObject(parent),
-        p(rng_seed) {}
-    Path& path() { return p; }
+    QTPath(Path *p, Typescript *t):
+        QObject(t),
+        p(p),
+        t(t) {}
+    Path *path() const { return p.get(); }
+    Typescript *typescript() const { return t; }
+
 private:
-    Path p;
+    std::unique_ptr<Path> p;
+    Typescript *t;
 };
 
 // ensure that we got a valid number
@@ -57,76 +70,73 @@ static bool verifyNumber(Isolate *isolate, Local<Value> value, float &result)
     return true;
 }
 
-static void pathCreate(const FunctionCallbackInfo<Value>& args)
+static Local<String> createV8String(Isolate *isolate, const char *text)
 {
-    Isolate* isolate = args.GetIsolate();
-    Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
-    QTPath *p = new QTPath(t->time(), t);
-    args.GetReturnValue().Set(External::New(isolate, p));
+    return String::NewFromUtf8(isolate, text, String::kNormalString);
 }
 
-static void pathDestroy(const FunctionCallbackInfo<Value>& args)
+static void pathDestroy(QTPath *wrapper, const FunctionCallbackInfo<Value>&, int)
 {
-    QTPath *p = static_cast<QTPath*>(Local<External>::Cast(args[0])->Value());
-    delete p;
+    delete wrapper->path();
 }
+GENERATE_FUNCTIONS(pathDestroy);
 
-static void pathReset(const FunctionCallbackInfo<Value>& args)
+static void pathReset(QTPath *wrapper, const FunctionCallbackInfo<Value>&, int)
 {
-    Path& p = static_cast<QTPath*>(Local<External>::Cast(args[0])->Value())->path();
-    p.reset();
+    wrapper->path()->reset();
 }
+GENERATE_FUNCTIONS(pathReset);
 
-static void pathClearObstacles(const FunctionCallbackInfo<Value>& args)
+static void pathClearObstacles(QTPath *wrapper, const FunctionCallbackInfo<Value>&, int)
 {
-    Path& p = static_cast<QTPath*>(Local<External>::Cast(args[0])->Value())->path();
-    p.clearObstacles();
+    wrapper->path()->clearObstacles();
 }
+GENERATE_FUNCTIONS(pathClearObstacles);
 
-static void pathSetBoundary(const FunctionCallbackInfo<Value>& args)
+static void pathSetBoundary(QTPath *wrapper, const FunctionCallbackInfo<Value>& args, int offset)
 {
     Isolate * isolate = args.GetIsolate();
-    Path& p = static_cast<QTPath*>(Local<External>::Cast(args[0])->Value())->path();
+
     float x1, y1, x2, y2;
-    if (!verifyNumber(isolate, args[1], x1) || !verifyNumber(isolate, args[2], y1) ||
-            !verifyNumber(isolate, args[3], x2) || !verifyNumber(isolate, args[4], y2)) {
+    if (!verifyNumber(isolate, args[offset], x1) || !verifyNumber(isolate, args[1 + offset], y1) ||
+            !verifyNumber(isolate, args[2 + offset], x2) || !verifyNumber(isolate, args[3 + offset], y2)) {
         return;
     }
-    p.setBoundary(x1, y1, x2, y2);
+    wrapper->path()->setBoundary(x1, y1, x2, y2);
 }
+GENERATE_FUNCTIONS(pathSetBoundary);
 
-static void pathSetRadius(const FunctionCallbackInfo<Value>& args)
+static void pathSetRadius(QTPath *wrapper, const FunctionCallbackInfo<Value>& args, int offset)
 {
     Isolate * isolate = args.GetIsolate();
-    Path& p = static_cast<QTPath*>(Local<External>::Cast(args[0])->Value())->path();
     float r;
-    if (!verifyNumber(isolate, args[1], r)) {
+    if (!verifyNumber(isolate, args[offset], r)) {
         return;
     }
-    p.setRadius(r);
+    wrapper->path()->setRadius(r);
 }
+GENERATE_FUNCTIONS(pathSetRadius);
 
-static void pathAddCircle(const FunctionCallbackInfo<Value>& args)
+static void pathAddCircle(QTPath *wrapper, const FunctionCallbackInfo<Value>& args, int offset)
 {
     Isolate * isolate = args.GetIsolate();
-    Path& p = static_cast<QTPath*>(Local<External>::Cast(args[0])->Value())->path();
     float x, y, r, prio;
 
-    if (!verifyNumber(isolate, args[1], x) || !verifyNumber(isolate, args[2], y) ||
-            !verifyNumber(isolate, args[3], r) || !verifyNumber(isolate, args[5], prio)) {
+    if (!verifyNumber(isolate, args[offset], x) || !verifyNumber(isolate, args[1 + offset], y) ||
+            !verifyNumber(isolate, args[2 + offset], r) || !verifyNumber(isolate, args[4 + offset], prio)) {
         return;
     }
-    p.addCircle(x, y, r, nullptr, int(prio));
+    wrapper->path()->addCircle(x, y, r, nullptr, int(prio));
 }
+GENERATE_FUNCTIONS(pathAddCircle);
 
-static void pathAddLine(const FunctionCallbackInfo<Value>& args)
+static void pathAddLine(QTPath *wrapper, const FunctionCallbackInfo<Value>& args, int offset)
 {
     Isolate *isolate = args.GetIsolate();
-    Path& p = static_cast<QTPath*>(Local<External>::Cast(args[0])->Value())->path();
     float x1, y1, x2, y2, width, prio;
-    if (!verifyNumber(isolate, args[1], x1) || !verifyNumber(isolate, args[2], y1) ||
-            !verifyNumber(isolate, args[3], x2) || !verifyNumber(isolate, args[4], y2) ||
-            !verifyNumber(isolate, args[5], width) || !verifyNumber(isolate, args[7], prio)) {
+    if (!verifyNumber(isolate, args[offset], x1) || !verifyNumber(isolate, args[1 + offset], y1) ||
+            !verifyNumber(isolate, args[2 + offset], x2) || !verifyNumber(isolate, args[3 + offset], y2) ||
+            !verifyNumber(isolate, args[4 + offset], width) || !verifyNumber(isolate, args[6 + offset], prio)) {
         return;
     }
 
@@ -135,70 +145,69 @@ static void pathAddLine(const FunctionCallbackInfo<Value>& args)
         isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "line must have non zero length", String::kNormalString)));
         return;
     }
-    p.addLine(x1, y1, x2, y2, width, nullptr, int(prio));
+    wrapper->path()->addLine(x1, y1, x2, y2, width, nullptr, int(prio));
 }
+GENERATE_FUNCTIONS(pathAddLine);
 
-static void pathSetProbabilities(const FunctionCallbackInfo<Value>& args)
+static void pathSetProbabilities(QTPath *wrapper, const FunctionCallbackInfo<Value>& args, int offset)
 {
     Isolate *isolate = args.GetIsolate();
-    Path& p = static_cast<QTPath*>(Local<External>::Cast(args[0])->Value())->path();
     float pDest, pWp;
-    if (!verifyNumber(isolate, args[1], pDest) || !verifyNumber(isolate, args[2], pWp)) {
+    if (!verifyNumber(isolate, args[offset], pDest) || !verifyNumber(isolate, args[1 + offset], pWp)) {
         return;
     }
-    p.setProbabilities(pDest, pWp);
+    wrapper->path()->setProbabilities(pDest, pWp);
 }
+GENERATE_FUNCTIONS(pathSetProbabilities);
 
-static void pathAddSeedTarget(const FunctionCallbackInfo<Value>& args)
+static void pathAddSeedTarget(QTPath *wrapper, const FunctionCallbackInfo<Value>& args, int offset)
 {
     Isolate *isolate = args.GetIsolate();
-    Path& p = static_cast<QTPath*>(Local<External>::Cast(args[0])->Value())->path();
     float px, py;
-    if (!verifyNumber(isolate, args[1], px) || !verifyNumber(isolate, args[2], py)) {
+    if (!verifyNumber(isolate, args[offset], px) || !verifyNumber(isolate, args[1 + offset], py)) {
         return;
     }
-    p.addSeedTarget(px, py);
+    wrapper->path()->addSeedTarget(px, py);
 }
+GENERATE_FUNCTIONS(pathAddSeedTarget);
 
-static void pathAddRect(const FunctionCallbackInfo<Value>& args)
+static void pathAddRect(QTPath *wrapper, const FunctionCallbackInfo<Value>& args, int offset)
 {
     Isolate *isolate = args.GetIsolate();
-    Path& p = static_cast<QTPath*>(Local<External>::Cast(args[0])->Value())->path();
     float x1, y1, x2, y2, prio;
-    if (!verifyNumber(isolate, args[1], x1) || !verifyNumber(isolate, args[2], y1) ||
-            !verifyNumber(isolate, args[3], x2) || !verifyNumber(isolate, args[4], y2) ||
-            !verifyNumber(isolate, args[6], prio)) {
+    if (!verifyNumber(isolate, args[offset], x1) || !verifyNumber(isolate, args[1 + offset], y1) ||
+            !verifyNumber(isolate, args[2 + offset], x2) || !verifyNumber(isolate, args[3 + offset], y2) ||
+            !verifyNumber(isolate, args[5 + offset], prio)) {
         return;
     }
 
-    p.addRect(x1, y1, x2, y2, nullptr, int(prio));
+    wrapper->path()->addRect(x1, y1, x2, y2, nullptr, int(prio));
 }
+GENERATE_FUNCTIONS(pathAddRect);
 
-static void pathAddTriangle(const FunctionCallbackInfo<Value>& args)
+static void pathAddTriangle(QTPath *wrapper, const FunctionCallbackInfo<Value>& args, int offset)
 {
     Isolate *isolate = args.GetIsolate();
-    Path& p = static_cast<QTPath*>(Local<External>::Cast(args[0])->Value())->path();
     float x1, y1, x2, y2, x3, y3, lineWidth, prio;
-    if (!verifyNumber(isolate, args[1], x1) || !verifyNumber(isolate, args[2], y1) ||
-            !verifyNumber(isolate, args[3], x2) || !verifyNumber(isolate, args[4], y2) ||
-            !verifyNumber(isolate, args[5], x3) || !verifyNumber(isolate, args[6], y3) ||
-            !verifyNumber(isolate, args[7], lineWidth) || !verifyNumber(isolate, args[9], prio)) {
+    if (!verifyNumber(isolate, args[offset], x1) || !verifyNumber(isolate, args[1 + offset], y1) ||
+            !verifyNumber(isolate, args[2 + offset], x2) || !verifyNumber(isolate, args[3 + offset], y2) ||
+            !verifyNumber(isolate, args[4 + offset], x3) || !verifyNumber(isolate, args[5 + offset], y3) ||
+            !verifyNumber(isolate, args[6 + offset], lineWidth) || !verifyNumber(isolate, args[8 + offset], prio)) {
         return;
     }
 
-    p.addTriangle(x1, y1, x2, y2, x3, y3, lineWidth, nullptr, int(prio));
+    wrapper->path()->addTriangle(x1, y1, x2, y2, x3, y3, lineWidth, nullptr, int(prio));
 }
+GENERATE_FUNCTIONS(pathAddTriangle);
 
-static void pathTest(const FunctionCallbackInfo<Value>& args)
+static void pathTest(QTPath *wrapper, const FunctionCallbackInfo<Value>& args, int offset)
 {
     Local<Context> c = args.GetIsolate()->GetCurrentContext();
     const qint64 t = Timer::systemTime();
 
-    Path& p = static_cast<QTPath*>(Local<External>::Cast(args[0])->Value())->path();
-
     // get spline
     robot::Spline spline;
-    if (!jsToProtobuf(args.GetIsolate(), args[1], c, spline)) {
+    if (!jsToProtobuf(args.GetIsolate(), args[offset], c, spline)) {
         return;
     }
 
@@ -208,35 +217,34 @@ static void pathTest(const FunctionCallbackInfo<Value>& args)
     }
 
     float radius;
-    if (!verifyNumber(args.GetIsolate(), args[2], radius)) {
+    if (!verifyNumber(args.GetIsolate(), args[1 + offset], radius)) {
         return;
     }
-    const bool ret = p.testSpline(spline, radius);
+    const bool ret = wrapper->path()->testSpline(spline, radius);
     args.GetReturnValue().Set(Boolean::New(args.GetIsolate(), ret));
 
-    Typescript *ts = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
-    ts->addPathTime((Timer::systemTime() - t) / 1E9);
+    wrapper->typescript()->addPathTime((Timer::systemTime() - t) / 1E9);
 }
+GENERATE_FUNCTIONS(pathTest);
 
-static void pathGet(const FunctionCallbackInfo<Value>& args)
+static void pathGet(QTPath *wrapper, const FunctionCallbackInfo<Value>& args, int offset)
 {
     Isolate *isolate = args.GetIsolate();
     const qint64 t = Timer::systemTime();
 
     // robot radius must have been set before
-    Path& p = static_cast<QTPath*>(Local<External>::Cast(args[0])->Value())->path();
-    if (!p.isRadiusValid()) {
+    if (!wrapper->path()->isRadiusValid()) {
         isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "Invalid radius", String::kNormalString)));
         return;
     }
 
     float startX, startY, endX, endY;
-    if (!verifyNumber(isolate, args[1], startX) || !verifyNumber(isolate, args[2], startY) ||
-            !verifyNumber(isolate, args[3], endX) || !verifyNumber(isolate, args[4], endY)) {
+    if (!verifyNumber(isolate, args[offset], startX) || !verifyNumber(isolate, args[1 + offset], startY) ||
+            !verifyNumber(isolate, args[2 + offset], endX) || !verifyNumber(isolate, args[3 + offset], endY)) {
         return;
     }
 
-    Path::List list = p.get(startX, startY, endX, endY);
+    Path::List list = wrapper->path()->get(startX, startY, endX, endY);
 
     // convert path to js object
     unsigned int i = 0;
@@ -254,12 +262,13 @@ static void pathGet(const FunctionCallbackInfo<Value>& args)
         result->Set(i++, wayPoint);
     }
 
-    Typescript *ts = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
-    ts->addPathTime((Timer::systemTime() - t) / 1E9);
+    wrapper->typescript()->addPathTime((Timer::systemTime() - t) / 1E9);
     args.GetReturnValue().Set(result);
 }
+GENERATE_FUNCTIONS(pathGet);
 
-static void drawTree(Typescript *thread, const KdTree *tree) {
+static void drawTree(Typescript *thread, const KdTree *tree)
+{
     if (tree == nullptr) {
         return;
     }
@@ -290,43 +299,94 @@ static void drawTree(Typescript *thread, const KdTree *tree) {
     }
 }
 
-static void pathAddTreeVisualization(const FunctionCallbackInfo<Value>& args)
+static void pathAddTreeVisualization(QTPath *wrapper, const FunctionCallbackInfo<Value>&, int)
 {
-    Path& p = static_cast<QTPath*>(Local<External>::Cast(args[0])->Value())->path();
-    Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
-    drawTree(t, p.treeStart());
-    drawTree(t, p.treeEnd());
+    drawTree(wrapper->typescript(), wrapper->path()->treeStart());
+    drawTree(wrapper->typescript(), wrapper->path()->treeEnd());
 }
+GENERATE_FUNCTIONS(pathAddTreeVisualization);
 
 struct FunctionInfo {
     const char *name;
     void(*function)(FunctionCallbackInfo<Value> const &);
 };
 
+static QList<FunctionInfo> commonCallbacks = {
+    { "destroy",            pathDestroy_new},
+    { "reset",              pathReset_new},
+    { "clearObstacles",     pathClearObstacles_new},
+    { "setBoundary",        pathSetBoundary_new},
+    { "setRadius",          pathSetRadius_new},
+    { "addCircle",          pathAddCircle_new},
+    { "addLine",            pathAddLine_new},
+    { "addRect",            pathAddRect_new},
+    { "addTriangle",        pathAddTriangle_new}};
+
+static QList<FunctionInfo> rrtPathCallbacks = {
+    { "setProbabilities",   pathSetProbabilities_new},
+    { "addSeedTarget",      pathAddSeedTarget_new},
+    { "test",               pathTest_new},
+    { "getPath",            pathGet_new},
+    { "addTreeVisualization", pathAddTreeVisualization_new}};
+
+static void pathObjectAddFunctions(Isolate *isolate, const QList<FunctionInfo> &callbacks, Local<Object> &pathWrapper,
+                                   Local<External> &pathObject)
+{
+    for (auto callback : callbacks) {
+        Local<Function> function = Function::New(isolate->GetCurrentContext(), callback.function,
+                                                 pathObject).ToLocalChecked();
+        pathWrapper->Set(createV8String(isolate, callback.name), function);
+    }
+}
+
+static void pathCreateNew(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = args.GetIsolate();
+    Typescript *ts = static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value())->typescript();
+    QTPath *p = new QTPath(new Path(ts->time()), ts);
+
+    Local<Object> pathWrapper = Object::New(isolate);
+    Local<External> pathObject = External::New(isolate, p);
+    pathObjectAddFunctions(isolate, commonCallbacks, pathWrapper, pathObject);
+    pathObjectAddFunctions(isolate, rrtPathCallbacks, pathWrapper, pathObject);
+    args.GetReturnValue().Set(pathWrapper);
+}
+
+static void pathCreateOld(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = args.GetIsolate();
+    Typescript *ts = static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value())->typescript();
+    QTPath *p = new QTPath(new Path(ts->time()), ts);
+    args.GetReturnValue().Set(External::New(isolate, p));
+}
+
 void registerPathJsCallbacks(Isolate *isolate, Local<Object> global, Typescript *t)
 {
     QList<FunctionInfo> callbacks = {
-        { "create",             pathCreate},
-        { "destroy",            pathDestroy},
-        { "reset",              pathReset},
-        { "clearObstacles",     pathClearObstacles},
-        { "setBoundary",        pathSetBoundary},
-        { "setRadius",          pathSetRadius},
-        { "addCircle",          pathAddCircle},
-        { "addLine",            pathAddLine},
-        { "setProbabilities",   pathSetProbabilities},
-        { "addSeedTarget",      pathAddSeedTarget},
-        { "addRect",            pathAddRect},
-        { "addTriangle",        pathAddTriangle},
-        { "test",               pathTest},
-        { "getPath",            pathGet},
-        { "addTreeVisualization", pathAddTreeVisualization}};
+        { "createPath",         pathCreateNew},
+        // legacy functions, kept for backwards compatibility
+        { "create",             pathCreateOld},
+        { "destroy",            pathDestroy_legacy},
+        { "reset",              pathReset_legacy},
+        { "clearObstacles",     pathClearObstacles_legacy},
+        { "setBoundary",        pathSetBoundary_legacy},
+        { "setRadius",          pathSetRadius_legacy},
+        { "addCircle",          pathAddCircle_legacy},
+        { "addLine",            pathAddLine_legacy},
+        { "setProbabilities",   pathSetProbabilities_legacy},
+        { "addSeedTarget",      pathAddSeedTarget_legacy},
+        { "addRect",            pathAddRect_legacy},
+        { "addTriangle",        pathAddTriangle_legacy},
+        { "test",               pathTest_legacy},
+        { "getPath",            pathGet_legacy},
+        { "addTreeVisualization", pathAddTreeVisualization_legacy}};
 
     Local<Object> pathObject = Object::New(isolate);
     Local<String> pathStr = String::NewFromUtf8(isolate, "path", NewStringType::kNormal).ToLocalChecked();
     for (auto callback : callbacks) {
+        QTPath *path = new QTPath(nullptr, t);
         Local<String> name = String::NewFromUtf8(isolate, callback.name, NewStringType::kNormal).ToLocalChecked();
-        auto functionTemplate = FunctionTemplate::New(isolate, callback.function, External::New(isolate, t),
+        auto functionTemplate = FunctionTemplate::New(isolate, callback.function, External::New(isolate, path),
                                                       Local<Signature>(), 0, ConstructorBehavior::kThrow, SideEffectType::kHasSideEffect);
         Local<Function> function = functionTemplate->GetFunction(isolate->GetCurrentContext()).ToLocalChecked();
         function->SetName(name);
