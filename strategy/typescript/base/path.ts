@@ -194,7 +194,7 @@ export class Path {
 	private readonly _inst: any;
 	private readonly _robotId: number;
 	constructor(robotId: number) {
-		this._inst = pathLocal.create();
+		this._inst = pathLocal.createPath();
 		this._robotId = robotId;
 	}
 
@@ -203,23 +203,23 @@ export class Path {
 	}
 
 	getPath(x1: number, y1: number, x2: number, y2: number): any[] {
-		return pathLocal.getPath(this._inst, x1, y1, x2, y2);
+		return this._inst.getPath(x1, y1, x2, y2);
 	}
 
 	setProbabilities(a: number, b: number) {
-		pathLocal.setProbabilities(this._inst, a, b);
+		this._inst.setProbabilities(a, b);
 	}
 
 	setBoundary(x1: number, y1: number, x2: number, y2: number) {
-		pathLocal.setBoundary(this._inst, x1, y1, x2, y2);
+		this._inst.setBoundary(x1, y1, x2, y2);
 	}
 
 	clearObstacles() {
-		pathLocal.clearObstacles(this._inst);
+		this._inst.clearObstacles();
 	}
 
 	setRadius(radius: number) {
-		pathLocal.setRadius(this._inst, radius);
+		this._inst.setRadius(radius);
 	}
 
 	// wrap add obstacle functions for automatic strategy to global coordinates conversion
@@ -234,7 +234,7 @@ export class Path {
 			// avoid string allocations in ra
 			name = undefined;
 		}
-		pathLocal.addCircle(this._inst, x, y, radius, name, prio);
+		this._inst.addCircle(x, y, radius, name, prio);
 	}
 
 	addLine(start_x: number, start_y: number, stop_x: number, stop_y: number, radius: number, name?: string, prio: number = 0) {
@@ -255,7 +255,7 @@ export class Path {
 			// avoid string allocations in ra
 			name = undefined;
 		}
-		pathLocal.addLine(this._inst, start_x, start_y, stop_x, stop_y, radius, name, prio);
+		this._inst.addLine(start_x, start_y, stop_x, stop_y, radius, name, prio);
 	}
 
 	addRect(start_x: number, start_y: number, stop_x: number, stop_y: number, name?: string, prio: number = 0) {
@@ -273,7 +273,7 @@ export class Path {
 			// avoid string allocations in ra
 			name = undefined;
 		}
-		pathLocal.addRect(this._inst, start_x, start_y, stop_x, stop_y, name, prio);
+		this._inst.addRect(start_x, start_y, stop_x, stop_y, name, prio);
 	}
 
 	addTriangle(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number,
@@ -295,7 +295,7 @@ export class Path {
 			// avoid string allocations in ra
 			name = undefined;
 		}
-		pathLocal.addTriangle(this._inst, x1, y1, x2, y2, x3, y3, lineWidth, name, prio);
+		this._inst.addTriangle(x1, y1, x2, y2, x3, y3, lineWidth, name, prio);
 	}
 
 	addSeedTarget(x: number, y: number) {
@@ -303,7 +303,7 @@ export class Path {
 			x = -x;
 			y = -y;
 		}
-		pathLocal.addSeedTarget(this._inst, x, y);
+		this._inst.addSeedTarget(x, y);
 	}
 }
 
