@@ -10,7 +10,8 @@ const safeAmunFunctions : {[name: string]: boolean} = {
 	"getWorldState": true, "getGeometry": true, "getTeam": true, "isBlue": true,
 	"getGameState": true, "getUserInput": true, "getStrategyPath": true,
 	"getSelectedOptions": true, "getPerformanceMode": true, "isReplay": true,
-	"isDebug": true, "isPerformanceMode": true, "strategyPath": true, "getCurrentTime": true, "tryCatch": true
+	"isDebug": true, "isPerformanceMode": true, "strategyPath": true, "getCurrentTime": true, "tryCatch": true,
+	"luaRandom": true, "luaRandomSetSeed": true
 };
 
 let safeAmun: {[name: string]: any} = {};
@@ -61,7 +62,7 @@ function runTests(moduleNames: string[]) {
 		const pathBefore = path;
 		amun = <any> safeAmun;
 		path = safePathCopy;
-
+		amun.luaRandomSetSeed(4711);
 		if (pcall(() => {
 			let test: typeof UnitTest = require(module, true, {"base/amun": fakeAmunModule}).testClass;
 			let overlays = test.getOverlays();
