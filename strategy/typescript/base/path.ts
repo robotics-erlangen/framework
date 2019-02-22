@@ -27,152 +27,120 @@
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
 
-/// Creates a new path planner object
-// @class function
-// @name path:create
-// @return path - path object
+import * as pb from "base/protobuf";
 
+interface PathObjectCommon {
+	destroy(): void;
+	/** Resets path planner object. Clears obstacles and waypoints. Field boundaries won't be changed */
+	reset(): void;
+	clearObstacles(): void;
+	/**
+	 * Sets field boundaries.
+	 * The two points span up a rectangle whose borders are used as field boundaries. The boundaries must be specified in global coordinates.
+	 * @param x1 x coordinate bottom left
+	 * @param y1 y coordinate bottom left
+	 * @param x2 x coordinate top left
+	 * @param y2 y coordinate top left
+	 */
+	setBoundary(x1: number, y1: number, x2: number, y2: number): void;
+	/**
+	 * Sets robot radius for obstacle checking
+	 * @param radius minimum required corridor size
+	 */
+	setRadius(radius: number): void;
+	/**
+	 * Adds a circle as an obstacle.
+	 * The circle MUST be passed in strategy coordinates!
+	 * @param x x coordinate of circle center
+	 * @param y y coordinate of circle center
+	 * @param radius circle radius
+	 * @param name name of the obstacle
+	 * @param priority priority of the obstacle
+	 */
+	addCircle(x: number, y: number, radius: number, name: string | undefined, priority: number): void;
+	/**
+	 * Adds a line as an obstacle.
+	 * The line MUST be passed in strategy coordinates!
+	 * @param start_x x coordinate of line start point
+	 * @param start_y y coordinate of line start point
+	 * @param end_x x coordinate of line end point
+	 * @param end_y y coordinate of line end point
+	 * @param name obstacle name
+	 * @param radius line width and start/end cap radius
+	 * @param priority priority of the obstacle
+	 */
+	addLine(start_x: number, start_y: number, end_x: number, end_y: number,
+		radius: number, name: string | undefined, priority: number): void;
+	/**
+	 * Adds a rectangle as an obstacle.
+	 * The rectangle MUST be passed in strategy coordinates!
+	 * @param start_x x coordinate of bottom left corner
+	 * @param start_y y coordinate of bottom left corner
+	 * @param end_x x coordinate of upper right corner
+	 * @param end_y y coordinate of upper right corner
+	 * @param name name of the obstacle
+	 * @param priority obstacle priority
+	 */
+	addRect(start_x: number, start_y: number, end_x: number, end_y: number,
+		name: string | undefined, priority: number): void;
+	/**
+	 * Adds a triangle as an obstacle.
+	 * The triangle MUST be passed in strategy coordinates!
+	 * @param x1 x coordinate of the first point
+	 * @param y1 y coordinate of the first point
+	 * @param x2 x coordinate of the second point
+	 * @param y2 y coordinate of the second point
+	 * @param x3 x coordinate of the third point
+	 * @param y3 y coordinate of the third point
+	 * @param lineWidth extra distance
+	 * @param name name of the obstacle
+	 * @param priority obstacle priority
+	 */
+	addTriangle(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number,
+		lineWidth: number, name: string | undefined, priority: number): void;
+}
 
-// separator for luadoc//
+interface PathObjectRRT extends PathObjectCommon {
+	/**
+	 * Set probabilities. Sum should be less or equal to 1
+	 * @param p_dest probability to extend towards destination
+	 * @param p_waypoints probability to extend towards a previously generated waypoint
+	 */
+	setProbabilities(p_dest: number, p_waypoints: number): void;
+	/**
+	 * Add a new target for seeding the RRT search tree.
+	 * Seeding is done by rasterizing a path from rrt start to the given point
+	 * @param x x coordinate of seed point
+	 * @param y y coordinate of seed point
+	 */
+	addSeedTarget(x: number, y: number): void;
+	/**
+	 * Tests a given path for collisions with any obstacle.
+	 * The spline is based on the global coordinate system!
+	 * @param path minimum required corridor size
+	 * @param radius radius
+	 * @returns true if no collision is detected
+	 */
+	test(path: pb.robot.Spline, radius: number): boolean;
+	/**
+	 * Generates a new path using RRT.
+	 * Accounts for obstacles. The returned waypoints include the start point. This functions requires and returns global coordinates!
+	 * @param start_x x coordinate of start point
+	 * @param start_y y coordinate of start point
+	 * @param end_x x coordinate of end point
+	 * @param end_y y coordinate of end point
+	 * @returns [p_x, p_y, left, right][] - waypoints and corridor widths for the way to a waypoint
+	 */
+	getPath(start_x: number, start_y: number, end_x: number, end_y: number): [number, number, number, number][];
+	/** Generates a visualization of the tree. */
+	addTreeVisualization(): void;
+}
 
-/// Resets path planner object. Clears obstacles and waypoints. Field boundaries won't be changed
-// @class function
-// @name path:reset
+interface AmunPath {
+	/** Create a new RRT path planner object */
+	createPath(): PathObjectRRT;
+}
 
-
-// separator for luadoc//
-
-/// Clears obstacles
-// @class function
-// @name path:clearObstacles
-
-
-// separator for luadoc//
-
-/// Set probabilities. Sum should be less or equal to 1
-// @class function
-// @param p_dest number - probability to extend towards destination
-// @param p_waypoints numberr - probability to extend towards a previously generated waypoint
-// @name path:setProbabilities
-
-
-// separator for luadoc//
-
-/// Sets field boundaries.
-// The two points span up a rectangle whose borders are used as field boundaries. The boundaries must be specified in global coordinates.
-// @class function
-// @name path:setBoundary
-// @param x1 number - bottom left
-// @param y1 number
-// @param x2 number - top right
-// @param y2 number
-
-
-// separator for luadoc//
-
-/// Adds a circle as an obstacle.
-// The circle <strong>must</strong> be passed in strategy coordinates!
-// @class function
-// @name path:addCircle
-// @param x number - x coordinate of circle center
-// @param y number - y coordinate of circle center
-// @param radius number
-// @param name string - name of the obstacle
-// @param prio number - priority
-
-// separator for luadoc//
-
-/// Adds a line as an obstacle.
-// The line <strong>must</strong> be passed in strategy coordinates!
-// @class function
-// @name path:addLine
-// @param start_x number - x coordinate of line start point
-// @param start_y number - y coordinate of line start point
-// @param end_x number - x coordinate of line end point
-// @param end_y number - y coordinate of line end point
-// @param radius number - line width and start/end cap radius
-// @param name string - name of the obstacle
-// @param prio number - priority
-
-// separator for luadoc//
-
-/// Adds a rectangle as an obstacle.
-// The rectangle <strong>must</strong> be passed in strategy coordinates!
-// @class function
-// @name path:addRect
-// @param start_x number - x coordinate of bottom left corner
-// @param start_y number - y coordinate of bottom left corner
-// @param end_x number - x coordinate of upper right corner
-// @param end_y number - y coordinate of upper right corner
-// @param name string - name of the obstacle
-// @param prio number - priority
-
-// separator for luadoc//
-
-/// Adds a triangle as an obstacle.
-// The triangle <strong>must</strong> be passed in strategy coordinates!
-// @class function
-// @name path:addTriangle
-// @param x1 number - x coordinate of the first point
-// @param y1 number - y coordinate of the first point
-// @param x2 number - x coordinate of the second point
-// @param y2 number - y coordinate of the second point
-// @param x3 number - x coordinate of the third point
-// @param y3 number - y coordinate of the third point
-// @param lineWidth number - extra distance
-// @param name string - name of the obstacle
-// @param prio number - priority
-
-
-// separator for luadoc//
-
-/// Tests a given path for collisions with any obstacle.
-// The spline is based on the global coordinate system!
-// @class function
-// @name path:test
-// @param path protobuf.robot.Spline
-// @param radius number - minimum required corridor size
-// @return bool isOk - true if no collision is detected
-
-
-// separator for luadoc//
-
-/// Sets robot radius for obstacle checking
-// @class function
-// @name path:setRadius
-// @param radius number - minimum required corridor size
-
-
-// separator for luadoc//
-
-/// Generates a new path using RRT.
-// Accounts for obstacles. The returned waypoints include the start point. This functions requires and returns global coordinates!
-// @class function
-// @name path:get
-// @param start_x number - x coordinate of start point
-// @param start_y number - y coordinate of start point
-// @param end_x number - x coordinate of end point
-// @param end_y number - y coordinate of end point
-// @return {p_x, p_y, left, right}[] - waypoints and corridor widths for the way to a waypoint
-
-
-// separator for luadoc//
-
-/// Add a new target for seeding the RRT search tree.
-// Seeding is done by rasterizing a path from rrt start to the given point
-// @class function
-// @name path:addSeedTarget
-// @param x number - x coordinate of seed point
-// @param y number - y coordinate of seed point
-
-
-// separator for luadoc//
-
-/// Generates a visualization of the tree.
-// @class function
-// @name path:addTreeVisualization
-
-// luacheck: globals path
 declare var path: any;
 let pathLocal: any = path;
 
@@ -191,7 +159,7 @@ export function getOriginalPath(): any {
 }
 
 export class Path {
-	private readonly _inst: any;
+	private readonly _inst: PathObjectRRT;
 	private readonly _robotId: number;
 	constructor(robotId: number) {
 		this._inst = pathLocal.createPath();
@@ -202,7 +170,7 @@ export class Path {
 		return this._robotId;
 	}
 
-	getPath(x1: number, y1: number, x2: number, y2: number): any[] {
+	getPath(x1: number, y1: number, x2: number, y2: number): [number, number, number, number][] {
 		return this._inst.getPath(x1, y1, x2, y2);
 	}
 
