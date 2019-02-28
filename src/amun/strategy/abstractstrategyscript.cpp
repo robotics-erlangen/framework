@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2015 Michael Eischer                                        *
+ *   Copyright 2015 Michael Eischer, Paul Bergmann                         *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -22,8 +22,9 @@
 #include "core/timer.h"
 #include <QTcpSocket>
 #include <google/protobuf/util/delimited_message_util.h>
+#include "compilerregistry.h"
 
-AbstractStrategyScript::AbstractStrategyScript(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled) :
+AbstractStrategyScript::AbstractStrategyScript(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled, CompilerRegistry* registry) :
     m_timer(timer),
     m_type(type),
     m_debugEnabled(debugEnabled),
@@ -31,7 +32,8 @@ AbstractStrategyScript::AbstractStrategyScript(const Timer *timer, StrategyType 
     m_hasDebugger(false),
     m_debugHelper(nullptr),
     m_isInternalAutoref(false),
-    m_gameControllerSocket(new QTcpSocket(this))
+    m_gameControllerSocket(new QTcpSocket(this)),
+    m_compilerRegistry(registry)
 {
     m_gameControllerSocket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
 }

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2015 Michael Eischer, Philipp Nordhus, Paul Bergmann        *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -21,6 +21,7 @@
 #ifndef AMUN_H
 #define AMUN_H
 
+#include "strategy/compilerregistry.h"
 #include "protobuf/command.h"
 #include "protobuf/status.h"
 #include <QObject>
@@ -114,6 +115,8 @@ private:
     float m_previousSpeed;
 
     NetworkInterfaceWatcher *m_networkInterfaceWatcher;
+
+    CompilerRegistry m_compilerRegistry;
 };
 
 #endif // AMUN_H

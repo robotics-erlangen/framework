@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2015 Michael Eischer, Philipp Nordhus, Paul Bergmann        *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -40,13 +40,14 @@ namespace v8 {
 }
 class InspectorServer;
 class InspectorHandler;
+class CompilerRegistry;
 
 class Strategy : public QObject
 {
     Q_OBJECT
 
 public:
-    Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, bool internalAutoref = false, bool isLogplayer = false);
+    Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, CompilerRegistry* registry, bool internalAutoref = false, bool isLogplayer = false);
     ~Strategy() override;
     Strategy(const Strategy&) = delete;
     Strategy& operator=(const Strategy&) = delete;
@@ -124,6 +125,7 @@ private:
     QByteArray m_refboxReplyPartialPacket;
     const bool m_isInLogplayer;
 
+    CompilerRegistry* m_compilerRegistry;
 #ifdef V8_FOUND
     std::unique_ptr<InspectorServer> m_inspectorServer;
 

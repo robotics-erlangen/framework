@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2018 Andreas Wendler                                        *
+ *   Copyright 2018 Andreas Wendler, Paul Bergmann                         *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -35,13 +35,14 @@ class QThread;
 class InspectorHolder;
 class AbstractInspectorHandler;
 class InternalDebugger;
+class CompilerRegistry;
 struct lua_State;
 
 class Typescript : public AbstractStrategyScript
 {
     Q_OBJECT
 public:
-    Typescript(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled);
+    Typescript(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled, CompilerRegistry* registry);
     static bool canHandle(const QString &filename);
     ~Typescript() override;
     void addPathTime(double time);

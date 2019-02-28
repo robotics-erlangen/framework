@@ -6,13 +6,15 @@
 #include "strategy/strategy.h"
 #include "core/timer.h"
 
+class CompilerRegistry;
+
 Command createLoadCommand(bool asBlue, QString initScript, QString entryPoint, bool disablePerformanceMode);
 
 class ReplayTestRunner : public QObject
 {
     Q_OBJECT
 public:
-    explicit ReplayTestRunner(QString testFile, StrategyType type);
+    explicit ReplayTestRunner(QString testFile, StrategyType type, CompilerRegistry *compilerRegistry);
     void runFinalReplayJudgement();
 
 public slots:
@@ -27,6 +29,7 @@ private:
 
 private:
     Timer m_timer;
+    CompilerRegistry* m_compilerRegistry;
     Strategy m_testStrategy;
     int m_exitCode;
     StrategyType m_type;

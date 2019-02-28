@@ -26,6 +26,7 @@ add_library(strategy
     include/strategy/strategytype.h
     include/strategy/strategyreplayhelper.h
     include/strategy/compiler.h
+    include/strategy/compilerregistry.h
 
     abstractstrategyscript.cpp
     abstractstrategyscript.h
@@ -43,6 +44,7 @@ add_library(strategy
     strategy.cpp
     strategyreplayhelper.cpp
     compiler.cpp
+    compilerregistry.cpp
 )
 target_link_libraries(strategy
     PRIVATE lib::luajit

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2017 Alexander Danzer                                       *
+ *   Copyright 2017 Alexander Danzer, Paul Bergmann                        *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -27,6 +27,7 @@
 #include "tracking/tracker.h"
 #include "strategy/strategy.h"
 #include "strategy/strategyreplayhelper.h"
+#include "strategy/compilerregistry.h"
 #include "core/timer.h"
 #include "logfile/logfilewriter.h"
 #include "visionlog/visionlogreader.h"
@@ -80,6 +81,8 @@ int main(int argc, char* argv[])
     Timer* timer = new Timer;
     timer->setTime(receiveTimeNanos, 1.0);
 
+    CompilerRegistry compilerRegistry;
+
     qRegisterMetaType<Status>("Status");
     qRegisterMetaType<Command>("Command");
 
@@ -88,7 +91,7 @@ int main(int argc, char* argv[])
     QThread* strategyThread = nullptr;
     bool lastFlipped = false;
     if (parser.isSet(autorefDirOption)) {
-        strategy = new Strategy(timer, StrategyType::AUTOREF, nullptr);
+        strategy = new Strategy(timer, StrategyType::AUTOREF, nullptr, &compilerRegistry);
 
         strategyThread = new QThread();
         strategy->moveToThread(strategyThread);

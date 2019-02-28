@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2015 Michael Eischer, Philipp Nordhus, Paul Bergmann        *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -21,6 +21,7 @@
 #include "lua.h"
 #include "debughelper.h"
 #include "strategy.h"
+#include "compilerregistry.h"
 #include "core/timer.h"
 #include "protobuf/geometry.h"
 #include "protobuf/ssl_game_controller_team.pb.h"
@@ -87,7 +88,7 @@ void Strategy::initV8() { }
  * \param timer Timer to be used for time scaling
  * \param type can be blue or yellow team or autoref
  */
-Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, bool internalAutoref, bool isLogplayer) :
+Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, CompilerRegistry* registry, bool internalAutoref, bool isLogplayer) :
     m_p(new StrategyPrivate),
     m_timer(timer),
     m_strategy(nullptr),
@@ -106,7 +107,8 @@ Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, b
     m_isPerformanceMode(true),
     m_isFlipped(false),
     m_refboxReplyLength(-1),
-    m_isInLogplayer(isLogplayer)
+    m_isInLogplayer(isLogplayer),
+    m_compilerRegistry(registry)
 {
     initV8();
 
@@ -542,7 +544,7 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
         takeStrategyDebugStatus();
 #ifdef V8_FOUND
     } else if (Typescript::canHandle(filename)) {
-        Typescript *t = new Typescript(m_timer, m_type, m_debugEnabled, m_refboxControlEnabled);
+        Typescript *t = new Typescript(m_timer, m_type, m_debugEnabled, m_refboxControlEnabled, m_compilerRegistry);
         m_strategy = t;
         // insert m_debugStatus into m_strategy
         // this has to happen before newDebuggagleStrategy is called

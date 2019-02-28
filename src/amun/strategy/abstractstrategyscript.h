@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2015 Michael Eischer                                        *
+ *   Copyright 2015 Michael Eischer, Paul Bergmann                         *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -50,11 +50,13 @@ namespace google {
     }
 }
 
+class CompilerRegistry;
+
 class AbstractStrategyScript : public QObject
 {
     Q_OBJECT
 public:
-    AbstractStrategyScript(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled);
+    AbstractStrategyScript(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled, CompilerRegistry* registry = nullptr);
     ~AbstractStrategyScript() override {}
     AbstractStrategyScript(const AbstractStrategyScript&) = delete;
     AbstractStrategyScript& operator=(const AbstractStrategyScript&) = delete;
@@ -184,6 +186,7 @@ protected:
     unsigned int m_sizeBytesPosition = 0;
     QHostAddress m_gameControllerHost;
 
+    CompilerRegistry* m_compilerRegistry;
 private:
     amun::DebugValues* m_debugValues = nullptr;
 };

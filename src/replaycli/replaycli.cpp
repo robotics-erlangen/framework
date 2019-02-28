@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2018 Tobias Heineken, Andreas Wendler                       *
+ *   Copyright 2018 Tobias Heineken, Andreas Wendler, Paul Bergmann        *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -28,6 +28,8 @@
 
 #include "logfile/logfilereader.h"
 #include "strategy/strategy.h"
+#include "strategy/strategyreplayhelper.h"
+#include "strategy/compilerregistry.h"
 #include "timingstatistics.h"
 #include "core/timer.h"
 #include "replaytestrunner.h"
@@ -131,6 +133,7 @@ int main(int argc, char* argv[])
     const bool redirect = parser.isSet(prefix);
     const QString prefixS = parser.value(prefix);
 
+    CompilerRegistry compilerRegistry;
 
     for(unsigned int i=0; i < runsI; ++i){
         if (redirect){
@@ -149,10 +152,10 @@ int main(int argc, char* argv[])
         Timer timer;
         timer.setTime(logfile.readStatus(0)->time(), 1.0);
         StrategyType strategyColor = asBlue ? StrategyType::BLUE : StrategyType::YELLOW;
-        std::unique_ptr<Strategy> strategy(new Strategy(&timer, strategyColor, nullptr));
+        std::unique_ptr<Strategy> strategy(new Strategy(&timer, strategyColor, nullptr, &compilerRegistry));
         std::unique_ptr<ReplayTestRunner> testRunner;
         if (runAsTest) {
-            testRunner.reset(new ReplayTestRunner(currentDirectory.absoluteFilePath(parser.value(runTestScript)), strategyColor));
+            testRunner.reset(new ReplayTestRunner(currentDirectory.absoluteFilePath(parser.value(runTestScript)), strategyColor, &compilerRegistry));
             strategy->connect(strategy.get(), SIGNAL(sendStatus(Status)), testRunner.get(), SLOT(handleOriginalStatus(Status)));
         }
 

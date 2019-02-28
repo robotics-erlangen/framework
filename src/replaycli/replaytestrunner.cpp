@@ -24,8 +24,9 @@ Command createLoadCommand(bool asBlue, QString initScript, QString entryPoint, b
     return command;
 }
 
-ReplayTestRunner::ReplayTestRunner(QString testFile, StrategyType type) :
-    m_testStrategy(&m_timer, type, nullptr),
+ReplayTestRunner::ReplayTestRunner(QString testFile, StrategyType type, CompilerRegistry* compilerRegistry) :
+    m_compilerRegistry(compilerRegistry),
+    m_testStrategy(&m_timer, type, nullptr, m_compilerRegistry),
     m_exitCode(255),
     m_type(type),
     m_firstGameStateCopied(false)

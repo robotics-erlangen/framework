@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2018 Andreas Wendler                                        *
+ *   Copyright 2018 Andreas Wendler, Paul Bergmann                         *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -36,14 +36,15 @@
 #include "inspectorholder.h"
 #include "internaldebugger.h"
 #include "typescriptcompiler.h"
+#include "compilerregistry.h"
 
 using namespace v8;
 
 // use this to silence a warn_unused_result warning
 template <typename T> inline void USE(T&&) {}
 
-Typescript::Typescript(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled) :
-    AbstractStrategyScript (timer, type, debugEnabled, refboxControlEnabled),
+Typescript::Typescript(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled, CompilerRegistry* registry) :
+    AbstractStrategyScript (timer, type, debugEnabled, refboxControlEnabled, registry),
     m_requireCache({{}}),
     m_executionCounter(0),
     m_profiler (nullptr),

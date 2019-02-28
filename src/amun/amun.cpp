@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2016 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2016 Michael Eischer, Philipp Nordhus, Paul Bergmann        *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -151,7 +151,7 @@ void Amun::start()
         connect(m_debugHelperThread, SIGNAL(finished()), m_debugHelper[i], SLOT(deleteLater()));
 
         Q_ASSERT(m_strategy[i] == nullptr);
-        m_strategy[i] = new Strategy(m_timer, strategy, m_debugHelper[i], i == 2);
+        m_strategy[i] = new Strategy(m_timer, strategy, m_debugHelper[i], &m_compilerRegistry, i == 2);
         m_strategy[i]->moveToThread(m_strategyThread[i]);
         connect(m_strategyThread[i], SIGNAL(finished()), m_strategy[i], SLOT(deleteLater()));
 
@@ -183,7 +183,7 @@ void Amun::start()
     for (int i = 0;i<2;i++) {
         StrategyType strategy = i == 0 ? StrategyType::BLUE : StrategyType::YELLOW;
         Q_ASSERT(m_replayStrategy[i] == nullptr);
-        m_replayStrategy[i] = new Strategy(m_replayTimer, strategy, nullptr, false, true);
+        m_replayStrategy[i] = new Strategy(m_replayTimer, strategy, nullptr, &m_compilerRegistry, false, true);
         // re-use thread for regular and replay strategy
         m_replayStrategy[i]->moveToThread(m_strategyThread[i]);
         connect(m_strategyThread[i], SIGNAL(finished()), m_replayStrategy[i], SLOT(deleteLater()));
