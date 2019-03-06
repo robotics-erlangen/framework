@@ -5,14 +5,13 @@ import * as Referee from "base/referee";
 import { FriendlyRobot } from "base/robot";
 import { Position } from "base/vector";
 import * as World from "base/world";
-
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
 import * as Robot from "glados/observer/robot";
 import * as Shoot from "glados/observer/shoot";
 import { MoveToStaticBall } from "glados/task/attacker/movetostaticball";
 import { ShootGoal } from "glados/task/attacker/shootgoal";
-import {Pass as TaskPass } from "glados/task/shared/pass";
+import { Pass as TaskPass } from "glados/task/shared/pass";
 import * as Attack from "glados/util/attack";
 import * as ShootGoalUtil from "glados/util/shootgoal";
 

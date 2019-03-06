@@ -1,5 +1,4 @@
 import * as World from "base/world";
-
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import { Halt as HaltTask } from "glados/task/shared/halt";
 

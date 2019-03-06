@@ -1,7 +1,4 @@
 import * as MathUtil from "base/mathutil";
-
-const EPS = 1E-12;
-
 import { UnitTest } from "glados/test/unit/unittest";
 
 export class BaseMathUtil extends UnitTest {

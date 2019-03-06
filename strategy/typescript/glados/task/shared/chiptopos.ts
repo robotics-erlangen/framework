@@ -1,5 +1,4 @@
 import { Position } from "base/vector";
-
 import { Shoot } from "glados/task/ability/shoot";
 import { Agent, Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";

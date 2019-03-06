@@ -1,6 +1,5 @@
 import { FriendlyRobot } from "base/robot";
 import * as World from "base/world";
-
 import { Agent } from "glados/agent/base/agent";
 import { Behavior } from "glados/agent/base/behavior";
 import { Default } from "glados/agent/keeper/default";

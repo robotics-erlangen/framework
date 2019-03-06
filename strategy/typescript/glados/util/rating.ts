@@ -1,6 +1,5 @@
 import * as MathUtil from "base/mathutil";
 import { Position, Vector } from "base/vector";
-
 import * as Physics from "glados/observer/physics";
 
 export function timeToRating(time: number): number {

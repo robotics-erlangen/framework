@@ -1,7 +1,6 @@
 import * as geom from "base/geom";
 import { Speed, Vector } from "base/vector";
 import * as World from "base/world";
-
 import { Task } from "glados/task/base";
 import { Hidden } from "glados/trajectory/hidden";
 

@@ -1,6 +1,5 @@
 import { Position, Vector } from "base/vector";
 import * as World from "base/world";
-
 import * as Physics from "glados/observer/physics";
 import { CatchBall } from "glados/task/ability/catchball";
 import { SuggestPass } from "glados/task/ability/suggestpass";

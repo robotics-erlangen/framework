@@ -2,7 +2,6 @@ import * as Field from "base/field";
 import * as MathUtil from "base/mathutil";
 import { Vector } from "base/vector";
 import * as World from "base/world";
-
 import { Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";

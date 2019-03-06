@@ -8,7 +8,6 @@ import * as Referee from "base/referee";
 import { FriendlyRobot, Robot } from "base/robot";
 import { Position, Speed, Vector } from "base/vector";
 import * as World from "base/world";
-
 import { MessageBox, MessageType } from "glados/control/messaging";
 import * as Physics from "glados/observer/physics";
 import * as Rating from "glados/util/rating";

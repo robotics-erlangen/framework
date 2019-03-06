@@ -1,6 +1,5 @@
 import { FriendlyRobot } from "base/robot";
 import * as World from "base/world";
-
 import { Armada } from "glados/group/move/armada";
 import { Assignment, Move } from "glados/group/move/base";
 import { WindshieldWiper } from "glados/group/move/windshieldwiper";

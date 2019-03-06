@@ -1,5 +1,4 @@
 import { Position } from "base/vector";
-
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
 import { BallEvadingMoveToPos } from "glados/task/defender/ballevadingmovetopos";

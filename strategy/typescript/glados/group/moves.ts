@@ -1,7 +1,6 @@
 import * as debug from "base/debug";
 import * as MathUtil from "base/mathutil";
 import { FriendlyRobot } from "base/robot";
-
 import { MessageBox, MessageType } from "glados/control/messaging";
 import { Armada } from "glados/group/move/armada";
 import { BallPlacement } from "glados/group/move/ballplacement";

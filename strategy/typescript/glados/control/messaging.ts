@@ -1,6 +1,5 @@
 import { FriendlyRobot, Robot } from "base/robot";
 import { Position, RelativePosition } from "base/vector";
-
 import { Point as CenterBackPoint } from "glados/group/centerback";
 
 // TODO: document the messages in a more native format

@@ -1,10 +1,9 @@
 import * as debug from "base/debug";
+import * as Field from "base/field";
 import * as Referee from "base/referee";
 import { Position, Speed, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
-
-import * as Field from "base/field";
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
 import * as Goal from "glados/observer/goal";

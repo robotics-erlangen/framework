@@ -19,9 +19,8 @@
 // - We also have a module that attempts to catch balls
 // - It is located in "glados/task/ability/catchball.lua"
 
-import * as PathHelper from "glados/trajectory/pathhelper";
-
 import { Agent, Task } from "glados/task/base";
+import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
 
 export class TutorialTask extends Task {

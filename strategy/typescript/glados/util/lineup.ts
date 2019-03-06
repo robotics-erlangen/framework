@@ -3,7 +3,6 @@ import * as geom from "base/geom";
 import { Robot } from "base/robot";
 import { Position, Vector } from "base/vector";
 import * as World from "base/world";
-
 import { MoveToPos } from "glados/task/shared/movetopos";
 
 

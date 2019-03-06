@@ -3,7 +3,6 @@ import * as Referee from "base/referee";
 import { FriendlyRobot } from "base/robot";
 import { Position, Vector } from "base/vector";
 import * as World from "base/world";
-
 import { MessageType } from "glados/control/messaging";
 import * as ObserverShoot from "glados/observer/shoot";
 import { Shoot } from "glados/task/ability/shoot";

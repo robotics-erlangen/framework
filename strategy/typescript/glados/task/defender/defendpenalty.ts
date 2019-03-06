@@ -2,7 +2,6 @@ import * as geom from "base/geom";
 import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
-
 import { MessageType } from "glados/control/messaging";
 import { Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";

@@ -1,6 +1,5 @@
 import { FriendlyRobot } from "base/robot";
 import { Vector } from "base/vector";
-
 import { MessageBox, MessageType } from "glados/control/messaging";
 import { Assignment, Move } from "glados/group/move/base";
 import { MoveToPos } from "glados/task/shared/movetopos";

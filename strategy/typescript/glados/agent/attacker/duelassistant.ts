@@ -1,9 +1,8 @@
 import { FriendlyRobot } from "base/robot";
 import * as World from "base/world";
-
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
-import {DuelAssistant as TaskDuelAssistant } from "glados/task/attacker/duelassistant";
+import { DuelAssistant as TaskDuelAssistant } from "glados/task/attacker/duelassistant";
 import * as Rating from "glados/util/rating";
 
 

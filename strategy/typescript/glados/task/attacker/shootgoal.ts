@@ -2,11 +2,10 @@ import * as debug from "base/debug";
 import * as Field from "base/field";
 import * as MathUtil from "base/mathutil";
 import * as Referee from "base/referee";
-import {Robot as OpponentRobot } from "base/robot";
+import { Robot as OpponentRobot } from "base/robot";
 import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
-
 import { MessageType } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
 import * as Goal from "glados/observer/goal";

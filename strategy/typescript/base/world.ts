@@ -25,7 +25,7 @@
 **************************************************************************/
 
 let amunLocal = amun;
-import {Ball as BallClass } from "base/ball";
+import { Ball as BallClass } from "base/ball";
 import * as Constants from "base/constants";
 import { Coordinates } from "base/coordinates";
 import * as MathUtil from "base/mathutil";

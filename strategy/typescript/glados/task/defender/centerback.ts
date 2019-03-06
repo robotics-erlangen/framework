@@ -6,7 +6,6 @@ import * as Referee from "base/referee";
 import { Robot } from "base/robot";
 import { Position, Vector } from "base/vector";
 import * as World from "base/world";
-
 import { MessageType } from "glados/control/messaging";
 import * as Physics from "glados/observer/physics";
 import * as ObserverRobot from "glados/observer/robot";

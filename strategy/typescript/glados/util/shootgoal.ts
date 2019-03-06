@@ -3,8 +3,6 @@ import * as geom from "base/geom";
 import { FriendlyRobot, Robot } from "base/robot";
 import { Position, Speed, Vector } from "base/vector";
 import * as World from "base/world";
-let G = World.Geometry;
-
 import * as Ball from "glados/observer/ball";
 import * as Goal from "glados/observer/goal";
 import { Interval } from "glados/util/interval";

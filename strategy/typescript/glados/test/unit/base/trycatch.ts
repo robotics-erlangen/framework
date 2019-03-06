@@ -1,5 +1,4 @@
 import * as TryCatch from "base/trycatch";
-
 import { UnitTest } from "glados/test/unit/unittest";
 
 function fail(): void {

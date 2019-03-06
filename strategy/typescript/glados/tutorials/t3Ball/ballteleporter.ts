@@ -3,7 +3,6 @@ import * as MathUtil from "base/mathutil";
 import { FriendlyRobot } from "base/robot";
 import { Vector } from "base/vector";
 import * as World from "base/world";
-
 import { MessageBox } from "glados/control/messaging";
 import { Assignment, Move } from "glados/group/move/base";
 import { MoveToPos } from "glados/task/shared/movetopos";

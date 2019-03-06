@@ -1,7 +1,6 @@
 import * as Field from "base/field";
 import { Robot } from "base/robot";
 import * as World from "base/world";
-
 import { Agent, Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";

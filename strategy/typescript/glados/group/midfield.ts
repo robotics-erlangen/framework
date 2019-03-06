@@ -1,9 +1,8 @@
 import * as Constants from "base/constants";
 import * as debug from "base/debug";
 import { FriendlyRobot } from "base/robot";
-import * as vis from "base/vis";
-
 import { Position, Vector } from "base/vector";
+import * as vis from "base/vis";
 import * as World from "base/world";
 import { MessageBox, MessageType } from "glados/control/messaging";
 

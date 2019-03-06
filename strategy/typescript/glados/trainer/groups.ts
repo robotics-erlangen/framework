@@ -1,5 +1,4 @@
 import { FriendlyRobot } from "base/robot";
-
 import { MessageBox, MessageType } from "glados/control/messaging";
 import { CenterBack } from "glados/group/centerback";
 import { Midfield } from "glados/group/midfield";

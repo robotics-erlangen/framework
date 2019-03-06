@@ -1,10 +1,9 @@
 import { log } from "base/amun";
 import * as Referee from "base/referee";
 import * as World from "base/world";
-
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import * as ErrorObserver from "glados/observer/error";
-import {Error as ErrorTask } from "glados/task/shared/error";
+import { Error as ErrorTask } from "glados/task/shared/error";
 
 const ERROR_TOLERANCE_PER_SEC = 3; // <- [0.5,1]
 const EXCHANGE_ERROR_ROBOTS = false;

@@ -1,5 +1,4 @@
 import { FriendlyRobot } from "base/robot";
-
 import { Agent } from "glados/agent/base/agent";
 import { Messaging } from "glados/control/messaging";
 

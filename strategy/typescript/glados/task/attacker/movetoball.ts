@@ -1,7 +1,6 @@
 import { Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
-
 import { Agent, Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";

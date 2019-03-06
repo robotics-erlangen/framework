@@ -8,7 +8,6 @@ import * as Referee from "base/referee";
 import { FriendlyRobot, Robot } from "base/robot";
 import { Position, RelativePosition, Speed, Vector } from "base/vector";
 import * as World from "base/world";
-
 import * as Ball from "glados/observer/ball";
 import * as Goal from "glados/observer/goal";
 import * as Physics from "glados/observer/physics";

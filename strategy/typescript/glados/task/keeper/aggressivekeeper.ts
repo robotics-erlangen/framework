@@ -3,7 +3,6 @@ import * as geom from "base/geom";
 import { Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
-
 import * as Physics from "glados/observer/physics";
 import * as Robot from "glados/observer/robot";
 import { ForceShoot } from "glados/task/ability/forceshoot";
