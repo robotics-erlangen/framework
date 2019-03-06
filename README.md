@@ -186,6 +186,18 @@ Install _(Package Control)[https://packagecontrol.io/installation]_. Then use it
 - _SublimeLinter-luacheck_
 - _SublimeLinter-tslint_
 
+### Visual Studio Code
+1. Install NodeJS and npm and make them available in your PATH.
+2. Clone the [Typescript-/Andiscript-/Butterflyscript-/Name Following Compiler](https://project.robotics-erlangen.de/robocup/typescript-compiler) and follow the build instructions provided in the repository.
+3. In a seperate folder, run `npm install typescript tslint tslint-language-service`
+4. In this folder, overwrite `node_modules/typescript/lib` with our compiled compiler.
+5. In Visual Studio Code, open `File > Preferences > Settings`. If you opened the `strategy/typescript` folder, select `Workspace Settings`, otherwise `User Settings` are fine.
+6. Search for `typescript.tsdk` and click on `Edit in settings.json`.
+7. Add a new JSON Key `typescript.tsdk` with `npm_install_folder/node_modules/typescript/lib` as its value.
+8. Save and restart.
+9. After opening a Typescript file, click on the version number on the bottom right and select `Use workspace version`.
+
+
 # Tests
 To run the unit tests and linter, execute the following in your build folder
 ```
