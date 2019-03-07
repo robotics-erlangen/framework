@@ -1,5 +1,5 @@
 # ***************************************************************************
-# *   Copyright 2016 Michael Eischer                                        *
+# *   Copyright 2019 Andreas Wendler                                        *
 # *   Robotics Erlangen e.V.                                                *
 # *   http://www.robotics-erlangen.de/                                      *
 # *   info@robotics-erlangen.de                                             *
@@ -18,25 +18,24 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-add_subdirectory(testtools)
+add_library(testtools
+    include/testtools/testtools.h
 
-add_executable(amun-cli
-    amuncli.cpp
-    connector.cpp
-    connector.h
+    testtools.cpp
 )
-target_link_libraries(amun-cli
-    amun::amun
-    shared::protobuf
-    Qt5::Core
-    Threads::Threads
-    amuncli::testtools
+
+qt5_wrap_ui(UIC_SOURCES ${UI_SOURCES})
+target_sources(testtools PRIVATE ${UIC_SOURCES})
+
+target_link_libraries(testtools
+    PUBLIC Qt5::Core
+    PUBLIC shared::protobuf
 )
-v8_copy_deps(amun-cli)
-target_include_directories(amun-cli
+target_include_directories(testtools
+    INTERFACE include
+    PRIVATE include/testtools
     PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
     PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
 )
-if (TARGET lib::jemalloc)
-    target_link_libraries(amun-cli lib::jemalloc)
-endif()
+
+add_library(amuncli::testtools ALIAS testtools)

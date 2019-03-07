@@ -19,11 +19,10 @@
  ***************************************************************************/
 
 #include "connector.h"
+#include "testtools/testtools.h"
 #include <QCoreApplication>
 #include <QDir>
-#include <QRegExp>
 #include <iostream>
-#include <google/protobuf/text_format.h>
 
 Connector::Connector(QObject *parent) :
     QObject(parent),
@@ -83,13 +82,6 @@ void Connector::start()
     sendCommand(command);
 }
 
-void Connector::dumpEntrypoints(const amun::StatusStrategy &strategy)
-{
-    for (const auto& entrypoint: strategy.entry_point()) {
-        std::cout << "Entrypoint: '" << entrypoint << "'" << std::endl;
-    }
-}
-
 void Connector::handleStrategyStatus(const amun::StatusStrategy &strategy)
 {
     for (const std::string &stdOption: strategy.option()) {
@@ -106,7 +98,7 @@ void Connector::handleStrategyStatus(const amun::StatusStrategy &strategy)
         }
     } else if (strategy.state() == amun::StatusStrategy::RUNNING) {
         if (m_entryPoint.isNull()) {
-            dumpEntrypoints(strategy);
+            TestTools::dumpEntrypoints(strategy);
             qApp->exit(0);
         } else {
             QString currentEntryPoint = QString::fromStdString(strategy.current_entry_point());
@@ -137,51 +129,16 @@ void Connector::sendOptions()
     emit sendCommand(command);
 }
 
-void Connector::dumpLog(const amun::DebugValues &debug)
-{
-    for (const amun::StatusLog &entry: debug.log()) {
-        QString text = stripHTML(QString::fromStdString(entry.text()));
-        std::pair<int, bool> exitCodeOpt = toExitCode(text);
-        if (exitCodeOpt.second) {
-            // don't print exit codes
-            m_exitCode = exitCodeOpt.first;
-        } else {
-            std::cout << text.toStdString() << std::endl;
-        }
-    }
-}
-
-void Connector::dumpProtobuf(const google::protobuf::Message &message)
-{
-    std::string s;
-    google::protobuf::TextFormat::PrintToString(message, &s);
-    std::cout << s << std::endl;
-}
-
-std::pair<int, bool> Connector::toExitCode(const QString &str)
-{
-    auto parts = str.split("\n");
-    const QString &firstLine = parts.at(0);
-    QRegExp regex("os\\.exit\\((\\d+)\\)$");
-    if (regex.indexIn(firstLine) != -1) {
-        const QString exitCodeStr = regex.capturedTexts().at(1);
-        bool ok = false;
-        int exitCode = exitCodeStr.toInt(&ok);
-        return std::make_pair(exitCode, ok);
-    }
-    return std::make_pair(-1, false);
-}
-
 void Connector::handleStatus(const Status &status)
 {
     amun::DebugSource expectedSource = (m_asBlue) ? amun::StrategyBlue : amun::StrategyYellow;
     for (const auto& debug: status->debug()) {
         if (debug.source() == expectedSource) {
             if (m_debug) {
-                dumpProtobuf(*status);
+                TestTools::dumpProtobuf(*status);
             }
 
-            dumpLog(debug);
+            TestTools::dumpLog(debug, m_exitCode);
         }
     }
 
@@ -191,14 +148,7 @@ void Connector::handleStatus(const Status &status)
     }
 }
 
-QString Connector::stripHTML(const QString &logText)
-{
-    QString text = logText;
-    return text
-            .replace("&nbsp;", " ").replace("&gt;", ">")
-            .replace("\n", "").replace("<br>", "\n")
-            .remove(QRegExp("<[^>]*>"));
-}
+
 
 /*
 "simulator {

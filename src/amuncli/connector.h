@@ -51,13 +51,8 @@ signals:
     void sendCommand(const Command &command);
 
 private:
-    std::pair<int, bool> toExitCode(const QString &str);
     void addStrategyLoad(amun::CommandStrategy *strategy);
-    void dumpProtobuf(const google::protobuf::Message &message);
-    void dumpEntrypoints(const amun::StatusStrategy &strategy);
     void handleStrategyStatus(const amun::StatusStrategy &strategy);
-    void dumpLog(const amun::DebugValues &debug);
-    QString stripHTML(const QString &logText);
     void sendOptions();
 
     QString m_initScript;
