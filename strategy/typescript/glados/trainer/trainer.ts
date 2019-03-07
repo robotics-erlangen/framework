@@ -1,4 +1,5 @@
 import * as debug from "base/debug";
+
 import { MessageBox, MessageType, MessageTypeList, Messaging } from "glados/control/messaging";
 import { Groups } from "glados/trainer/groups";
 import { Roles } from "glados/trainer/roles";

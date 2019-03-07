@@ -2,6 +2,7 @@ import * as mathutil from "base/mathutil";
 import { FriendlyRobot, Robot } from "base/robot";
 import { Vector } from "base/vector";
 import * as World from "base/world";
+
 import { MessageType } from "glados/control/messaging";
 import { SuggestPass } from "glados/task/ability/suggestpass";
 import { Agent, Task } from "glados/task/base";

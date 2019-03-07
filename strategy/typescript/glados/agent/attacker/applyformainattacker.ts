@@ -1,5 +1,6 @@
 import * as Referee from "base/referee";
 import * as World from "base/world";
+
 import { Behavior } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
 import * as Robot from "glados/observer/robot";

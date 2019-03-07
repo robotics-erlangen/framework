@@ -4,6 +4,7 @@ import * as geom from "base/geom";
 import * as MathUtil from "base/mathutil";
 import { Position, RelativePosition, Vector } from "base/vector";
 import * as World from "base/world";
+
 import * as Physics from "glados/observer/physics";
 import { Agent, Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";

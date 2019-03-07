@@ -4,6 +4,7 @@ import * as MathUtil from "base/mathutil";
 import { FriendlyRobot } from "base/robot";
 import { Position, Vector } from "base/vector";
 import * as World from "base/world";
+
 import { FreeKick } from "glados/agent/attacker/freekick";
 import { MessageBox, MessageType } from "glados/control/messaging";
 import { Assignment, Move } from "glados/group/move/base";

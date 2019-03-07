@@ -1,5 +1,6 @@
 import { FriendlyRobot } from "base/robot";
 import { Position } from "base/vector";
+
 import { MessageBox } from "glados/control/messaging";
 
 type MainAttackerParameters = [Position, number];

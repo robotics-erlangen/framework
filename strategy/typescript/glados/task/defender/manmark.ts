@@ -3,6 +3,7 @@ import * as Field from "base/field";
 import { Robot } from "base/robot";
 import { Position } from "base/vector";
 import * as World from "base/world";
+
 import { MessageType } from "glados/control/messaging";
 import { Agent, Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";

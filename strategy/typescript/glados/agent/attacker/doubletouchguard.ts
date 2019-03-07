@@ -1,6 +1,7 @@
 import * as debug from "base/debug";
 import * as Referee from "base/referee";
 import * as World from "base/world";
+
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import * as Ball from "glados/observer/ball";
 import * as Robot from "glados/observer/robot";

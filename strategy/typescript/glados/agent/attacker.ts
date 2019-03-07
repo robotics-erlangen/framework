@@ -1,6 +1,7 @@
 import * as debug from "base/debug";
 import { FriendlyRobot } from "base/robot";
 import * as World from "base/world";
+
 import { ApplyForMainattacker } from "glados/agent/attacker/applyformainattacker";
 import { Default } from "glados/agent/attacker/default";
 import { DoubleTouchGuard } from "glados/agent/attacker/doubletouchguard";
@@ -10,7 +11,7 @@ import { FreeKick } from "glados/agent/attacker/freekick";
 import { Move } from "glados/agent/attacker/move";
 import { PassTiming } from "glados/agent/attacker/passtiming";
 import { Penalty } from "glados/agent/attacker/penalty";
-import { PenaltyShootoutDefensive as PenaltyDefensive } from "glados/agent/attacker/penaltydefensive";
+import {PenaltyShootoutDefensive as PenaltyDefensive } from "glados/agent/attacker/penaltydefensive";
 import { PenaltyShootout } from "glados/agent/attacker/penaltyshootout";
 import { Shoot } from "glados/agent/attacker/shoot";
 import { Stop } from "glados/agent/attacker/stop";

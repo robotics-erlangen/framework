@@ -1,4 +1,5 @@
 import { FriendlyRobot } from "base/robot";
+
 import { Agent } from "glados/agent/base/agent";
 import { Behavior } from "glados/agent/base/behavior";
 import { Default } from "glados/agent/hidden/default";

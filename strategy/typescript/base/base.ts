@@ -31,18 +31,26 @@
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
 
-import * as amunModule from "base/amun";
-import { _setIsBlue } from "base/coordinates";
-import "base/debug";
-import "base/debugcommands";
-import "base/debugger";
 import "base/error";
+
+import * as amunModule from "base/amun";
+
+// leave the debugger at the top so that exceptions during the initial
+// file run can dump variables
+import "base/debugger";
+
 import "base/mathutil";
 import "base/path";
+import "base/vector";
+
+// preload classes that require access to the amun API
+import { _setIsBlue } from "base/coordinates";
+_setIsBlue(amun.isBlue());
+import "base/debug";
+import "base/debugcommands";
 import "base/plot";
 import "base/robot";
 import "base/trycatch";
-import "base/vector";
 import "base/vis";
 import "base/world";
 

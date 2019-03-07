@@ -7,6 +7,7 @@ import * as MathUtil from "base/mathutil";
 import { Position, RelativePosition } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
+
 import * as BallObserver from "glados/observer/ball";
 import { Agent, Task } from "glados/task/base";
 import { Direct } from "glados/trajectory/direct";

@@ -1,24 +1,32 @@
-import { log } from "base/amun";
 import "base/base";
+
+import { log } from "base/amun";
 import * as Cache from "base/cache";
 import * as debug from "base/debug";
-import * as Debugger from "base/debugger";
 import * as Entrypoints from "base/entrypoints";
 import * as plot from "base/plot";
 import { Process } from "base/process";
 import * as Processor from "base/processor";
 import * as  Referee from "base/referee";
 import * as World from "base/world";
+
 import "glados/control/maincoordinator";
-import * as Ball from "glados/observer/ball";
-import * as ErrorObserver from "glados/observer/error";
-import * as Goal from "glados/observer/goal";
 import "glados/observer/initReplay";
-import * as Robot from "glados/observer/robot";
-import "glados/test/unit/index";
 // import "glados/test/move/index";
 import "glados/tutorials/index";
 import "glados/util/lineup";
+
+import * as Debugger from "base/debugger";
+import * as Ball from "glados/observer/ball";
+import * as ErrorObserver from "glados/observer/error";
+import * as Goal from "glados/observer/goal";
+import * as Robot from "glados/observer/robot";
+
+// require "test/observer/index";
+// require "test/situation/index";
+// require "test/task/index";
+// require "test/unit/index";
+import "glados/test/unit/index";
 
 class PreProc implements Process {
 	run() {

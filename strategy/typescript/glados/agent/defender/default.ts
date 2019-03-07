@@ -1,4 +1,5 @@
 import { Position, RelativePosition, Vector } from "base/vector";
+
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
 import { CenterBack } from "glados/task/defender/centerback";

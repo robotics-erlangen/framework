@@ -1,4 +1,5 @@
 import * as World from "base/world";
+
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import { DefendPenalty } from "glados/task/defender/defendpenalty";
 

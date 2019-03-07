@@ -2,14 +2,27 @@ import * as debug from "base/debug";
 import * as Entrypoints from "base/entrypoints";
 import { FriendlyRobot } from "base/robot";
 import * as World from "base/world";
+
+// import {Ally} from "glados/agent/ally";
 import { Attacker } from "glados/agent/attacker";
 import { Defender } from "glados/agent/defender";
 import { Hidden } from "glados/agent/hidden";
 import { Keeper } from "glados/agent/keeper";
-import { AgentPool } from "glados/control/agentpool";
 import { Coordinator } from "glados/control/coordinator";
-import { MainTrainer } from "glados/trainer/maintrainer";
 import { Trainer } from "glados/trainer/trainer";
+// import {Manual} from "glados/agent/manual";
+
+let Agents = {
+	// Ally: Ally,
+	Attacker: Attacker,
+	Defender: Defender,
+	Hidden: Hidden,
+	Keeper: Keeper,
+	// Manual: Manual
+};
+
+import { AgentPool } from "glados/control/agentpool";
+import { MainTrainer } from "glados/trainer/maintrainer";
 
 export class MainCoordinator extends Coordinator {
 	constructor(trainer: MainTrainer) {

@@ -8,6 +8,7 @@ import { FriendlyRobot, Robot } from "base/robot";
 import { Position, RelativePosition, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
+
 import { MessageBox, MessageType } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
 import * as Goal from "glados/observer/goal";

@@ -1,6 +1,7 @@
 import { FriendlyRobot } from "base/robot";
 import { Position } from "base/vector";
 import * as World from "base/world";
+
 import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 import * as Rating from "glados/util/rating";

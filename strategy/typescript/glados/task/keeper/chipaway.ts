@@ -1,5 +1,6 @@
 import * as vis from "base/vis";
 import * as World from "base/world";
+
 import { Shoot } from "glados/task/ability/shoot";
 import { Agent, Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";

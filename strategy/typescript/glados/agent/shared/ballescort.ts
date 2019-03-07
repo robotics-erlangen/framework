@@ -3,13 +3,14 @@ import * as Field from "base/field";
 import * as Referee from "base/referee";
 import { Robot } from "base/robot";
 import * as World from "base/world";
+
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 import * as RefereeObs from "glados/observer/referee";
 import * as ObserverRobot from "glados/observer/robot";
-import { BallEscort as BallEscortTask } from "glados/task/shared/ballescort";
+import {BallEscort as BallEscortTask } from "glados/task/shared/ballescort";
 
 export class BallEscort extends Behavior {
 	_minRobot: Robot | undefined = undefined;

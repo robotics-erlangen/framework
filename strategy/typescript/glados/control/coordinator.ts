@@ -1,4 +1,5 @@
 import * as World from "base/world";
+
 import { AgentPool } from "glados/control/agentpool";
 import { Messaging } from "glados/control/messaging";
 import { MainTrainer } from "glados/trainer/maintrainer";

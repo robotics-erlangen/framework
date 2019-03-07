@@ -11,6 +11,7 @@ import { TrajectoryHandler } from "base/trajectory";
 import { Position, Speed, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
+
 import * as PathHelper from "glados/trajectory/pathhelper";
 
 // preprocess the waypoints to ensure that the first corner is more or less

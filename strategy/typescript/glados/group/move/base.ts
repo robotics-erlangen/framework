@@ -1,5 +1,6 @@
 import * as Referee from "base/referee";
 import { FriendlyRobot } from "base/robot";
+
 import { Behavior } from "glados/agent/base/behavior";
 import { MessageBox, MessageType } from "glados/control/messaging";
 import { Task } from "glados/task/base";

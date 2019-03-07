@@ -10,6 +10,7 @@ import { AbsTime, RelTime } from "base/timing";
 import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
+
 import * as Physics from "glados/observer/physics";
 import * as ObserverRobot from "glados/observer/robot";
 

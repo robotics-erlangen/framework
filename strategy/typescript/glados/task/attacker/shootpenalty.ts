@@ -6,6 +6,7 @@ import * as MathUtil from "base/mathutil";
 import { Position } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
+
 import { RotateAndShoot } from "glados/task/ability/rotateandshoot";
 import { Shoot } from "glados/task/ability/shoot";
 import { Agent, Task } from "glados/task/base";

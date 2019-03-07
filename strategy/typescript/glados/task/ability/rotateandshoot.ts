@@ -2,6 +2,7 @@ import * as geom from "base/geom";
 import * as MathUtil from "base/mathutil";
 import { FriendlyRobot } from "base/robot";
 import * as World from "base/world";
+
 import { Direct } from "glados/trajectory/direct";
 
 

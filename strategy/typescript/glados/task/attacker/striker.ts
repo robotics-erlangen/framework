@@ -4,6 +4,7 @@ import * as Referee from "base/referee";
 import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
+
 import { MessageType } from "glados/control/messaging";
 import { StrikerSampling } from "glados/task/ability/strikersampling";
 import { SuggestPass } from "glados/task/ability/suggestpass";

@@ -1,10 +1,11 @@
 import * as debug from "base/debug";
 import { Robot } from "base/robot";
+
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
 import { InterceptPass } from "glados/task/defender/interceptpass";
-import { Piggy as PiggyTask } from "glados/task/defender/piggy";
+import {Piggy as PiggyTask } from "glados/task/defender/piggy";
 
 export class Piggy extends Behavior {
 	_opp: Robot | undefined = undefined;

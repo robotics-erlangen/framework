@@ -1,5 +1,6 @@
 import * as geom from "base/geom";
 import { Position, Vector } from "base/vector";
+
 import { Agent, Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";

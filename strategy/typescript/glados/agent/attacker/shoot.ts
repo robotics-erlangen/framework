@@ -4,6 +4,7 @@ import { FriendlyRobot } from "base/robot";
 import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
+
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";

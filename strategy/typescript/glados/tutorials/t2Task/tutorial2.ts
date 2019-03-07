@@ -20,8 +20,9 @@
 // 	- real-life vision is never perfectly accurate, an accuracy of 10cm is sufficient (for this case, not in general!)
 
 import * as World from "base/world";
-import { Agent, Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
+
+import { Agent, Task } from "glados/task/base";
 import { ToTarget } from "glados/trajectory/totarget";
 
 export class TutorialTask extends Task {

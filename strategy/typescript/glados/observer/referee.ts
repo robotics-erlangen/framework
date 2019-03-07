@@ -3,6 +3,7 @@ import * as Field from "base/field";
 import * as BaseRef from "base/referee";
 import { Position, Speed } from "base/vector";
 import * as World from "base/world";
+
 import * as Error from "glados/observer/error";
 
 let G = World.Geometry;

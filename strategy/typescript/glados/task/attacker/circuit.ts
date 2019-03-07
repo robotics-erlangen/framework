@@ -1,5 +1,6 @@
 import { Position, Vector } from "base/vector";
 import * as World from "base/world";
+
 import { SuggestPass } from "glados/task/ability/suggestpass";
 import { Agent, Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
