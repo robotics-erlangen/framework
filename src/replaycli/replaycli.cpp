@@ -21,7 +21,6 @@
 #include <QCoreApplication>
 #include <QCommandLineParser>
 #include <QDir>
-#include <QThread>
 #include <clocale>
 #include <QtGlobal>
 #include <iostream>
@@ -29,13 +28,13 @@
 
 #include "logfile/logfilereader.h"
 #include "strategy/strategy.h"
-#include "strategy/strategyreplayhelper.h"
 #include "timingstatistics.h"
 #include "core/timer.h"
+#include "replaytestrunner.h"
 
-std::ofstream fileStream;
+static std::ofstream fileStream;
 
-void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+void myMessageOutput(QtMsgType type, const QMessageLogContext &, const QString &msg)
 {
     QByteArray localMsg = msg.toLocal8Bit();
     switch(type) {
@@ -52,6 +51,27 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
             std::cerr << localMsg.constData() << std::endl;
             break;
     }
+}
+
+static Command createLoadCommand(bool asBlue, QString initScript, QString entryPoint, bool disablePerformanceMode)
+{
+    Command command(new amun::Command);
+    amun::CommandStrategyLoad *load;
+    amun::CommandStrategy *strategyCommand;
+    if (asBlue) {
+        load = command->mutable_strategy_blue()->mutable_load();
+        strategyCommand = command->mutable_strategy_blue();
+    } else {
+        load = command->mutable_strategy_yellow()->mutable_load();
+        strategyCommand = command->mutable_strategy_yellow();
+    }
+    load->set_filename(initScript.toStdString());
+    load->set_entry_point(entryPoint.toStdString());
+
+    if (disablePerformanceMode) {
+        strategyCommand->set_performance_mode(false);
+    }
+    return command;
 }
 
 int main(int argc, char* argv[])
@@ -81,6 +101,7 @@ int main(int argc, char* argv[])
     QCommandLineOption profileLength("profileLength", "Only has effect together with profileOutfile: for how many log frames to profile", "end frame");
     QCommandLineOption showLogOption({"l", "show-log"}, "Print log output to std::cout");
     QCommandLineOption abortExecution({"d", "die-on-error"}, "Die when a strategy problem occurs");
+    QCommandLineOption runTestScript({"t", "test-script"}, "A script to evaluate the test results", "script");
 
 
     parser.addOption(asBlueOption);
@@ -94,6 +115,7 @@ int main(int argc, char* argv[])
     parser.addOption(profileLength);
     parser.addOption(showLogOption);
     parser.addOption(abortExecution);
+    parser.addOption(runTestScript);
 
     // parse command line
     parser.process(app);
@@ -104,7 +126,13 @@ int main(int argc, char* argv[])
     }
 
     const bool asBlue = parser.isSet(asBlueOption);
+    const bool abortExec = parser.isSet(abortExecution);
     const bool showLog = parser.isSet(showLogOption);
+    const bool runAsTest = parser.isSet(runTestScript);
+
+    if (runAsTest && showLog) {
+        qFatal("Options show-log and test-script can not be combined!");
+    }
 
     qRegisterMetaType<Status>("Status");
     qRegisterMetaType<Command>("Command");
@@ -141,39 +169,23 @@ int main(int argc, char* argv[])
         }
         Timer timer;
         timer.setTime(logfile.readStatus(0)->time(), 1.0);
-        Strategy * strategy = new Strategy(&timer, asBlue ? StrategyType::BLUE : StrategyType::YELLOW, nullptr);
-
-        // load the strategy
-        Command command(new amun::Command);
-        amun::CommandStrategyLoad *load;
-        amun::CommandStrategy *strategyCommand;
-        if (asBlue) {
-            load = command->mutable_strategy_blue()->mutable_load();
-            strategyCommand = command->mutable_strategy_blue();
-        } else {
-            load = command->mutable_strategy_yellow()->mutable_load();
-            strategyCommand = command->mutable_strategy_yellow();
-        }
-        load->set_filename(initScript.toStdString());
-        load->set_entry_point(entryPoint.toStdString());
-
-        if (parser.isSet(disablePerformanceMode)) {
-            strategyCommand->set_performance_mode(false);
-        }
+        std::unique_ptr<Strategy> strategy(new Strategy(&timer, asBlue ? StrategyType::BLUE : StrategyType::YELLOW, nullptr));
 
         TimingStatistics statistics(asBlue, parser.isSet(printAllTimings), logfile.packetCount() + 1);
-        statistics.connect(strategy, &Strategy::sendStatus, &statistics, &TimingStatistics::handleStatus);
-        if (showLog)
-            strategy->connect(strategy, &Strategy::sendStatus, [](const Status& s){
-                    for(const auto& debugValues : s->debug()){
-                        for(int i=0; i < debugValues.log_size(); ++i){
+        statistics.connect(strategy.get(), &Strategy::sendStatus, &statistics, &TimingStatistics::handleStatus);
+        if (showLog) {
+            strategy->connect(strategy.get(), &Strategy::sendStatus, [](const Status& s) {
+                    for(const auto& debugValues : s->debug()) {
+                        for(int i=0; i < debugValues.log_size(); ++i) {
                             const amun::StatusLog& log = debugValues.log(i);
                             std::cout << log.text() << std::endl;
                         }
                     }
-            });
-        if (parser.isSet(abortExecution))
-            strategy->connect(strategy, &Strategy::sendStatus, [] (const Status& s) {
+                });
+        }
+
+        if (abortExec) {
+            strategy->connect(strategy.get(), &Strategy::sendStatus, [] (const Status& s) {
                     const amun::StatusStrategy* replayStatus = nullptr;
                     if (s->has_status_strategy()) {
                         replayStatus = &s->status_strategy().status();
@@ -181,9 +193,13 @@ int main(int argc, char* argv[])
                     if (replayStatus && replayStatus->state() == amun::StatusStrategy::FAILED) {
                         exit(1);
                     }
-            });
-        strategy->handleCommand(command);
-        BlockingStrategyReplay replayBlocker(strategy);
+                });
+        }
+
+
+
+        // load the strategy
+        strategy->handleCommand(createLoadCommand(asBlue, initScript, entryPoint, parser.isSet(disablePerformanceMode)));
 
         int packetCount = logfile.packetCount();
         int startPosition = parser.value(profileStart).toInt();
@@ -197,13 +213,13 @@ int main(int argc, char* argv[])
                 Command command(new amun::Command);
                 robot::Team * teamBlue = command->mutable_set_team_blue();
                 teamBlue->CopyFrom(status->team_blue());
-                emit replayBlocker.gotCommand(command);
+                strategy->handleCommand(command);
             }
             if (status->has_team_yellow()) {
                 Command command(new amun::Command);
                 robot::Team * teamYellow = command->mutable_set_team_yellow();
                 teamYellow->CopyFrom(status->team_yellow());
-                emit replayBlocker.gotCommand(command);
+                strategy->handleCommand(command);
             }
 
             if (parser.isSet(profileFile) && i == startPosition) {
@@ -213,10 +229,10 @@ int main(int argc, char* argv[])
                 } else {
                     command->mutable_strategy_yellow()->set_start_profiling(true);
                 }
-                emit replayBlocker.gotCommand(command);
+                strategy->handleCommand(command);
             }
 
-            replayBlocker.handleStatus(status);
+            strategy->handleStatus(status);
             app.processEvents();
 
             if (parser.isSet(profileFile) && i == endPosition) {
@@ -226,12 +242,11 @@ int main(int argc, char* argv[])
                 } else {
                     command->mutable_strategy_yellow()->set_finish_and_save_profile(parser.value(profileFile).toStdString());
                 }
-                emit replayBlocker.gotCommand(command);
+                strategy->handleCommand(command);
             }
         }
 
         statistics.printStatistics(parser.isSet(showHistogramOption));
-        delete strategy;
     }
     return 0;
 }
