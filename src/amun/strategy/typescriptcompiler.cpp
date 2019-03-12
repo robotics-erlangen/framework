@@ -27,6 +27,7 @@
 #include "node/path.h"
 #include "config/config.h"
 
+#include <iostream>
 #include <QCoreApplication>
 #include <QByteArray>
 #include <QDebug>
@@ -133,6 +134,18 @@ static void processCwdCallback(const FunctionCallbackInfo<Value>& args)
     args.GetReturnValue().Set(cwd);
 }
 
+static void exitCompilation(const FunctionCallbackInfo<Value>& args)
+{
+    auto isolate = args.GetIsolate();
+    int32_t exitcode;
+    if (args[0]->Int32Value(args.GetIsolate()->GetCurrentContext()).To(&exitcode)){
+        std::cout << "compilation ended with exitcode: " << exitcode << std::endl;
+    } else {
+        std::cout << "compilation ended without exitcode" << std::endl;
+    }
+    isolate->TerminateExecution();
+
+}
 void TypescriptCompiler::startCompiler(const QString &filename)
 {
     HandleScope handleScope(m_isolate);
@@ -156,6 +169,20 @@ void TypescriptCompiler::startCompiler(const QString &filename)
         argv->Set(1, scriptName);
 
         process->Set(argvName, argv);
+    }
+    {
+        Local<Function> exit = Function::New(m_isolate, &exitCompilation);
+        Local<String> exitName = String::NewFromUtf8(m_isolate, "exit", NewStringType::kNormal).ToLocalChecked();
+        process->Set(exitName, exit);
+    }
+    {
+        Local<Object> stdoutObject = Object::New(m_isolate);
+        Local<Function> write = Function::New(m_isolate, &logCallback);
+        Local<String> writeName = String::NewFromUtf8(m_isolate, "write", NewStringType::kNormal).ToLocalChecked();
+        stdoutObject->Set(writeName, write);
+
+        Local<String> stdoutName = String::NewFromUtf8(m_isolate, "stdout", NewStringType::kNormal).ToLocalChecked();
+        process->Set(stdoutName, stdoutObject);
     }
     {
         // only for compiler existence check
