@@ -64,12 +64,14 @@ TypescriptCompiler::TypescriptCompiler()
     m_requireNamespace->put("fs", std::unique_ptr<Node::fs>(new Node::fs(m_isolate, m_requireNamespace.get())));
     m_requireNamespace->put("path", std::unique_ptr<Node::path>(new Node::path(m_isolate)));
 
+    delete create_params.array_buffer_allocator;
+
     m_context.Reset(m_isolate, context);
 }
 
 TypescriptCompiler::~TypescriptCompiler()
 {
-    m_requireNamespace.release();
+    m_requireNamespace.reset();
     m_context.Reset();
     m_isolate->Exit();
     m_isolate->Dispose();
@@ -125,7 +127,8 @@ void TypescriptCompiler::requireCallback(const FunctionCallbackInfo<Value>& args
     }
 }
 
-static void processCwdCallback(const FunctionCallbackInfo<Value>& args) {
+static void processCwdCallback(const FunctionCallbackInfo<Value>& args)
+{
     Local<String> cwd = String::NewFromUtf8(args.GetIsolate(), QDir::currentPath().toUtf8().data(), NewStringType::kNormal).ToLocalChecked();
     args.GetReturnValue().Set(cwd);
 }
