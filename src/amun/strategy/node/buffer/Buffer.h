@@ -48,6 +48,7 @@ namespace Node {
             static void indexSet(quint32 index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& info);
 
             static void lengthGet(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& info);
+            static void toString(const v8::FunctionCallbackInfo<v8::Value>& args);
 
             QByteArray m_data;
             friend class Node::Buffer;

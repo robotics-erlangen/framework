@@ -54,6 +54,9 @@ Node::Buffer::Buffer(Isolate* isolate) : Node::ObjectContainer(isolate) {
     Local<String> lengthName = String::NewFromUtf8(m_isolate, "length");
     instanceTemplate->SetAccessor(lengthName, &Node::Buffer::Instance::lengthGet);
 
+    auto toStringTemplate = FunctionTemplate::New(m_isolate, &Node::Buffer::Instance::toString, External::New(m_isolate, this));
+    instanceTemplate->Set(m_isolate, "toString", toStringTemplate);
+
     setHandle(functionTemplate->GetFunction(m_isolate->GetCurrentContext()).ToLocalChecked());
 }
 
@@ -99,6 +102,37 @@ void Node::Buffer::Instance::lengthGet(Local<String> property, const PropertyCal
     auto instance = static_cast<Node::Buffer::Instance*>(wrap->Value());
 
     info.GetReturnValue().Set(instance->m_data.length());
+}
+
+void Node::Buffer::Instance::toString(const FunctionCallbackInfo<Value>& args) {
+    auto isolate = args.GetIsolate();
+    HandleScope handleScope(isolate);
+    auto buffer = static_cast<Node::Buffer*>(Local<External>::Cast(args.Data())->Value());
+    Local<External> wrap = args.Holder()->GetInternalField(Node::Buffer::Instance::OBJECT_INSTANCE_INDEX).As<External>();
+    auto instance = static_cast<Node::Buffer::Instance*>(wrap->Value());
+    QString encoding = (args.Length() >= 1 && args[0]->IsString()) ? *String::Utf8Value(args[0]) : "utf8";
+    uint32_t begin = 0, end=instance->m_data.length();
+
+    if (encoding != "utf8") {
+        buffer->throwV8Exception("invalid encoding: "+ encoding); //TODO
+        return;
+    }
+    if (args.Length() >= 2 && args[1]->IsUint32()) {
+        if(!args[1]->Uint32Value(isolate->GetCurrentContext()).To(&begin)){
+            begin = 0;
+        }
+    }
+    if (args.Length() >= 3 && args[2]->IsUint32()) {
+        if(!args[2]->Uint32Value(isolate->GetCurrentContext()).To(&end)){
+            end = instance->m_data.length();
+        }
+    }
+
+
+    QByteArray readBuffer =  instance->m_data.mid(begin, end-begin);
+    Local<String> result = String::NewFromUtf8(isolate, readBuffer.data(), NewStringType::kNormal).ToLocalChecked();
+
+    args.GetReturnValue().Set(result);
 }
 
 void Node::Buffer::from(const FunctionCallbackInfo<Value>& args) {
