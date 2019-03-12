@@ -101,5 +101,5 @@ template<> Local<FunctionTemplate> Node::ObjectContainer::createTemplateWithCall
 void Node::ObjectContainer::throwV8Exception(const QString& message) const {
     HandleScope handleScope(m_isolate);
     Local<String> exceptionText = String::NewFromUtf8(m_isolate, message.toUtf8().data(), NewStringType::kNormal).ToLocalChecked();
-    m_isolate->ThrowException(exceptionText);
+    m_isolate->ThrowException(v8::Exception::Error(exceptionText));
 }
