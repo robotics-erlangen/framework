@@ -21,6 +21,7 @@
 #include "fs.h"
 
 #include "objectcontainer.h"
+#include "buffer/Buffer.h"
 
 #include <algorithm>
 #include <cmath>
@@ -218,20 +219,10 @@ void Node::fs::readFileSync(const FunctionCallbackInfo<Value>& args) {
     QByteArray fileBytes = file.readAll();
     Local<String> dataString = String::NewFromUtf8(isolate, fileBytes.data(), NewStringType::kNormal).ToLocalChecked();
 
-    auto context = isolate->GetCurrentContext();
-    // create a buffer via JS API
-    Local<Object> Buffer = fs->m_requireNamespace
-        ->get("buffer")
-        ->get("Buffer")
-        ->getHandle();
-    Local<String> bufferFromName = String::NewFromUtf8(isolate, "from", NewStringType::kNormal).ToLocalChecked();
-    Local<Function> bufferFrom = Buffer
-        ->Get(context, bufferFromName)
-        .ToLocalChecked()
-        .As<Function>();
+    auto buffer = static_cast<Node::Buffer*>(fs->m_requireNamespace->get("buffer")->get("Buffer"));
 
-    Local<Value> argv[] = { dataString };
-    args.GetReturnValue().Set(bufferFrom->Call(context, Buffer, 1, argv).ToLocalChecked());
+    // create a buffer and return it
+    Node::Buffer::from(args, dataString, buffer);
 }
 
 void Node::fs::openSync(const FunctionCallbackInfo<Value>& args) {
