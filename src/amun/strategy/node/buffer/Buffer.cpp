@@ -145,12 +145,21 @@ void Node::Buffer::from(const FunctionCallbackInfo<Value>& args) {
         buffer->throwV8Exception(errorMessage);
         return;
     }
-    Local<Function> bufferConstructor = buffer->getHandle().As<Function>();
-    Local<Object> instance = bufferConstructor->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
 
     QString encoding = (args.Length() >= 2 && args[1]->IsString()) ? *String::Utf8Value(args[1]) : "utf8";
 
     Local<String> input = args[0].As<String>();
+    from(args, input, buffer, encoding);
+}
+
+void Node::Buffer::from(const FunctionCallbackInfo<Value>& res, Local<String> input, Node::Buffer* buffer, QString encoding)
+{
+    auto isolate = res.GetIsolate();
+    HandleScope handleScope(isolate);
+
+    Local<Function> bufferConstructor = buffer->getHandle().As<Function>();
+    Local<Object> instance = bufferConstructor->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
+
     // WriteOneByte seems to want to write a 0 Byte
     // But we dont need it so we don't add 1 to the length
     QByteArray tempHolder(input->Length(), '\0');
@@ -168,5 +177,5 @@ void Node::Buffer::from(const FunctionCallbackInfo<Value>& args) {
     }
 
     instance->SetInternalField(Node::Buffer::Instance::OBJECT_INSTANCE_INDEX, External::New(isolate, new Instance(std::move(dataHolder))));
-    args.GetReturnValue().Set(instance);
+    res.GetReturnValue().Set(instance);
 }

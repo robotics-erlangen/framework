@@ -24,9 +24,8 @@
 #include "../objectcontainer.h"
 
 #include <QByteArray>
+#include <QString>
 #include <QtGlobal>
-
-class QString;
 
 namespace v8 {
     class Isolate;
@@ -38,6 +37,7 @@ namespace Node {
     class Buffer : public Node::ObjectContainer {
     public:
         Buffer(v8::Isolate* isolate);
+        static void from(const v8::FunctionCallbackInfo<v8::Value>& res, v8::Local<v8::String> data, Buffer* buffer, QString encoding = "utf8");
     private:
         class Instance {
         public:
