@@ -236,12 +236,12 @@ void Node::fs::openSync(const v8::FunctionCallbackInfo<Value>& args) {
     QIODevice::OpenMode mode;
     if (modeString == "a") {
         mode = QIODevice::Append;
-    } else if (modeString == "ax") {
-        mode = QIODevice::Append | QIODevice::NewOnly;
+   /* } else if (modeString == "ax") {
+        mode = QIODevice::Append | QIODevice::NewOnly;*/
     } else if (modeString == "a+") {
         mode = QIODevice::ReadOnly | QIODevice::Append;
-    } else if (modeString == "ax+") {
-        mode = QIODevice::ReadOnly | QIODevice::Append | QIODevice::NewOnly;
+   /* } else if (modeString == "ax+") {
+        mode = QIODevice::ReadOnly | QIODevice::Append | QIODevice::NewOnly; */
     } else if (modeString == "as") {
         mode = QIODevice::Append | QIODevice::Unbuffered;
     } else if (modeString == "as+") {
@@ -254,12 +254,12 @@ void Node::fs::openSync(const v8::FunctionCallbackInfo<Value>& args) {
         mode = QIODevice::ReadWrite | QIODevice::Unbuffered;
     } else if (modeString == "w") {
         mode = QIODevice::WriteOnly;
-    } else if (modeString == "wx") {
-        mode = QIODevice::ReadOnly | QIODevice::NewOnly;
+   /* } else if (modeString == "wx") {
+        mode = QIODevice::WriteOnly | QIODevice::NewOnly;*/
     } else if (modeString == "w+") {
         mode = QIODevice::ReadWrite;
-    } else if (modeString == "wx+") {
-        mode = QIODevice::ReadWrite | QIODevice::NewOnly;
+   /* } else if (modeString == "wx+") {
+        mode = QIODevice::ReadWrite | QIODevice::NewOnly; */
     } else {
         fs->throwV8Exception(QString("openSync called with invalid mode flag '%1'").arg(mode));
         return;
