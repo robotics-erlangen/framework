@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2018 Andreas Wendler, Paul Bergmann                                        *
+ *   Copyright 2018 Andreas Wendler, Paul Bergmann, Tobias Heineken        *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -34,10 +34,10 @@ class QString;
 class TypescriptCompiler
 {
 public:
-    TypescriptCompiler();
+    TypescriptCompiler(const QString& filename);
     ~TypescriptCompiler();
 
-    void startCompiler(const QString &filename);
+    void startCompiler();
 private:
     void registerRequireFunction(v8::Local<v8::ObjectTemplate> global);
     static void requireCallback(const v8::FunctionCallbackInfo<v8::Value>& args);

@@ -44,7 +44,7 @@
 
 using namespace v8;
 
-TypescriptCompiler::TypescriptCompiler()
+TypescriptCompiler::TypescriptCompiler(const QString& filename)
 {
     Isolate::CreateParams create_params;
     create_params.array_buffer_allocator = ArrayBuffer::Allocator::NewDefaultAllocator();
@@ -146,7 +146,7 @@ static void exitCompilation(const FunctionCallbackInfo<Value>& args)
     isolate->TerminateExecution();
 
 }
-void TypescriptCompiler::startCompiler(const QString &filename)
+void TypescriptCompiler::startCompiler()
 {
     HandleScope handleScope(m_isolate);
     Local<Context> context = m_context.Get(m_isolate);
