@@ -37,6 +37,8 @@
 #include <string>
 #include "v8.h"
 #include <vector>
+#include <sys/types.h>
+#include <utime.h>
 
 using v8::Array;
 using v8::BigInt;
@@ -428,15 +430,19 @@ void Node::fs::utimesSync(const v8::FunctionCallbackInfo<v8::Value>& args) {
         fs->throwV8Exception("utimesSync called with invalid mtime");
         return;
     }
-
+    /*
     auto atime = QDateTime::fromMSecsSinceEpoch(args[1].As<Integer>()->Value());
     auto mtime = QDateTime::fromMSecsSinceEpoch(args[2].As<Integer>()->Value());
+    */
 
-    if (!file.setFileTime(atime, QFileDevice::FileTime::FileAccessTime)) {
-        fs->throwV8Exception(QString("utimesSync could not set atime of path '%1'").arg(path));
-        return;
-    }
-    if (!file.setFileTime(mtime, QFileDevice::FileTime::FileModificationTime)) {
+    auto atime = args[1].As<Integer>()->Value();
+    auto mtime = args[2].As<Integer>()->Value();
+
+    utimbuf timings;
+    timings.actime = atime;
+    timings.modtime = mtime;
+
+    if (utime(path.toUtf8().constData(), &timings)) {
         fs->throwV8Exception(QString("utimesSync could not set atime of path '%1'").arg(path));
         return;
     }
