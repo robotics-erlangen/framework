@@ -33,8 +33,12 @@ class QString;
 namespace Node {
     class fs : public ObjectContainer {
     public:
-        fs(v8::Isolate* isolate, const ObjectContainer* requireNamespace);
+        fs(v8::Isolate* isolate, const ObjectContainer* requireNamespace, QString path);
+        QString getPath() {
+            return m_path;
+        }
     private:
+        QString m_path;
         class FileStat {
         public:
             FileStat(const fs* fs, const QString& file);

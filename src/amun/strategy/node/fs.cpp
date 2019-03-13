@@ -59,7 +59,18 @@ using v8::PropertyCallbackInfo;
 using v8::String;
 using v8::Value;
 
-Node::fs::fs(Isolate* isolate, const ObjectContainer* requireNamespace) : ObjectContainer(isolate, requireNamespace) {
+
+static QString buildPath(QString cwd, QString path)
+{
+    QFileInfo info(path);
+    if (info.isAbsolute()) {
+        return path;
+    }
+    return cwd + path;
+}
+
+
+Node::fs::fs(Isolate* isolate, const ObjectContainer* requireNamespace, QString path) : ObjectContainer(isolate, requireNamespace), m_path(path) {
     HandleScope handleScope(m_isolate);
 
     auto objectTemplate = createTemplateWithCallbacks<ObjectTemplate>({
@@ -170,7 +181,7 @@ void Node::fs::mkdirSync(const FunctionCallbackInfo<Value>& args) {
     }
     QString name = *String::Utf8Value(args[0]);
     QDir dir;
-    dir.mkpath(name);
+    dir.mkpath(buildPath(fs->m_path, name));
 }
 
 void Node::fs::statSync(const FunctionCallbackInfo<Value>& args) {
@@ -179,7 +190,7 @@ void Node::fs::statSync(const FunctionCallbackInfo<Value>& args) {
         fs->throwV8Exception("statSync needs the first argument to be a string");
         return;
     }
-    QString name = *String::Utf8Value(args[0]);
+    QString name = buildPath(fs->m_path, *String::Utf8Value(args[0]));
 
     auto isolate = fs->m_isolate;
     Local<ObjectTemplate> fileStatTemplate = fs->m_fileStatTemplate.Get(isolate);
@@ -198,7 +209,7 @@ void Node::fs::readFileSync(const FunctionCallbackInfo<Value>& args) {
         return;
     }
 
-    QString fileName = *String::Utf8Value(args[0]);
+    QString fileName = buildPath(fs->m_path, *String::Utf8Value(args[0]));
     QFile file(fileName);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         fs->throwV8Exception(QString("file '%s' could not be opened").arg(fileName));
@@ -208,7 +219,7 @@ void Node::fs::readFileSync(const FunctionCallbackInfo<Value>& args) {
     Local<String> dataString = String::NewFromUtf8(isolate, fileBytes.data(), NewStringType::kNormal).ToLocalChecked();
 
     auto context = isolate->GetCurrentContext();
-    // how horrible
+    // create a buffer via JS API
     Local<Object> Buffer = fs->m_requireNamespace
         ->get("buffer")
         ->get("Buffer")
@@ -233,7 +244,7 @@ void Node::fs::openSync(const FunctionCallbackInfo<Value>& args) {
         fs->throwV8Exception("openSync with more than 2 arguments is not supported");
         return;
     }
-    QString fileName = *String::Utf8Value(args[0]);
+    QString fileName = buildPath(fs->m_path, *String::Utf8Value(args[0]));
     QFile file(fileName);
 
     QString modeString = args.Length() >= 2 ? *String::Utf8Value(args[1]) : "r";
@@ -365,7 +376,7 @@ void Node::fs::readdirSync(const FunctionCallbackInfo<Value>& args) {
         return;
     }
 
-    QString path = *String::Utf8Value(isolate, args[0].As<String>());
+    QString path = buildPath(fs->m_path, *String::Utf8Value(isolate, args[0].As<String>()));
     QDir dir(path);
 
     if (!dir.exists()) {
@@ -391,7 +402,7 @@ void Node::fs::realpathSync(const FunctionCallbackInfo<Value>& args) {
         return;
     }
 
-    QString path = *String::Utf8Value(isolate, args[0].As<String>());
+    QString path = buildPath(fs->m_path, *String::Utf8Value(isolate, args[0].As<String>()));
     QFileInfo info(path);
 
     if (!info.exists()) {
@@ -412,7 +423,7 @@ void Node::fs::utimesSync(const FunctionCallbackInfo<Value>& args) {
         return;
     }
 
-    QString path = *String::Utf8Value(isolate, args[0].As<String>());
+    QString path = buildPath(fs->m_path, *String::Utf8Value(isolate, args[0].As<String>()));
     QFile file(path);
 
     if (!file.exists()) {
@@ -455,7 +466,7 @@ void Node::fs::unlinkSync(const FunctionCallbackInfo<Value>& args) {
         return;
     }
 
-    QString path = *String::Utf8Value(isolate, args[0].As<String>());
+    QString path = buildPath(fs->m_path, *String::Utf8Value(isolate, args[0].As<String>()));
     QFile file(path);
 
     if (!file.remove()) {

@@ -62,7 +62,7 @@ TypescriptCompiler::TypescriptCompiler(const QString& filename)
 
     m_requireNamespace->put("os", std::unique_ptr<Node::os>(new Node::os(m_isolate)));
     m_requireNamespace->put("buffer", std::unique_ptr<Node::buffer>(new Node::buffer(m_isolate)));
-    m_requireNamespace->put("fs", std::unique_ptr<Node::fs>(new Node::fs(m_isolate, m_requireNamespace.get())));
+    m_requireNamespace->put("fs", std::unique_ptr<Node::fs>(new Node::fs(m_isolate, m_requireNamespace.get(), filename)));
     m_requireNamespace->put("path", std::unique_ptr<Node::path>(new Node::path(m_isolate)));
 
     delete create_params.array_buffer_allocator;
@@ -128,9 +128,14 @@ void TypescriptCompiler::requireCallback(const FunctionCallbackInfo<Value>& args
     }
 }
 
-static void processCwdCallback(const FunctionCallbackInfo<Value>& args)
+void TypescriptCompiler::processCwdCallback(const FunctionCallbackInfo<Value>& args)
 {
-    Local<String> cwd = String::NewFromUtf8(args.GetIsolate(), QDir::currentPath().toUtf8().data(), NewStringType::kNormal).ToLocalChecked();
+    auto data = args.Data();
+    Local<External> uncasted = Local<External>::Cast(data);
+    void* value = uncasted->Value();
+    auto tsc = static_cast<TypescriptCompiler*>(value);
+    auto fs = static_cast<Node::fs*>(tsc->m_requireNamespace->get("fs"));;
+    Local<String> cwd = String::NewFromUtf8(args.GetIsolate(), fs->getPath().toUtf8().data(), NewStringType::kNormal).ToLocalChecked();
     args.GetReturnValue().Set(cwd);
 }
 
@@ -194,7 +199,8 @@ void TypescriptCompiler::startCompiler()
         Local<String> envName = String::NewFromUtf8(m_isolate, "env", NewStringType::kNormal).ToLocalChecked();
         process->Set(envName, env);
 
-        Local<Function> cwd = Function::New(m_isolate, &processCwdCallback);
+        Local<Value> thisValue(External::New(m_isolate, this));
+        Local<Function> cwd = Function::New(m_isolate, &TypescriptCompiler::processCwdCallback, thisValue);
         Local<String> cwdName = String::NewFromUtf8(m_isolate, "cwd", NewStringType::kNormal).ToLocalChecked();
         process->Set(cwdName, cwd);
     }

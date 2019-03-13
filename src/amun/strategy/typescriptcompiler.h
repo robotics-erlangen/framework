@@ -41,6 +41,7 @@ public:
 private:
     void registerRequireFunction(v8::Local<v8::ObjectTemplate> global);
     static void requireCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void processCwdCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 private:
     v8::Isolate* m_isolate;
