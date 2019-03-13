@@ -21,10 +21,13 @@
 #ifndef TYPESCRIPTCOMPILER_H
 #define TYPESCRIPTCOMPILER_H
 
-#include "node/objectcontainer.h"
-
 #include <memory>
 #include "v8.h"
+
+namespace Node
+{
+    class ObjectContainer;
+}
 
 class QString;
 
