@@ -24,11 +24,13 @@
 #ifdef _WIN32
 static const char* const ERFORCE_DATADIR = "./data/";
 static const char* const ERFORCE_CONFDIR = "./config/";
+static const char* const ERFORCE_LIBDIR = "./libs/";
 // maybe
 static const char* const ERFORCE_STRATEGYDIR = "../software/strategy/";
 #else // _WIN32
 static const char* const ERFORCE_DATADIR = "${CMAKE_SOURCE_DIR}/data/";
 static const char* const ERFORCE_CONFDIR = "${CMAKE_SOURCE_DIR}/config/";
+static const char* const ERFORCE_LIBDIR = "${CMAKE_SOURCE_DIR}/libs/";
 static const char* const ERFORCE_STRATEGYDIR = "${CMAKE_SOURCE_DIR}/strategy/";
 #endif // _WIN32
 
