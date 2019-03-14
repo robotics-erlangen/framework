@@ -176,6 +176,7 @@ void Node::Buffer::from(const FunctionCallbackInfo<Value>& res, Local<String> in
         dataHolder = std::move(tempHolder);
     }
 
-    instance->SetInternalField(Node::Buffer::Instance::OBJECT_INSTANCE_INDEX, External::New(isolate, new Instance(std::move(dataHolder))));
+    Local<External> ex = buffer->fromRawPointer(new Instance(std::move(dataHolder)));
+    instance->SetInternalField(Node::Buffer::Instance::OBJECT_INSTANCE_INDEX, ex);
     res.GetReturnValue().Set(instance);
 }

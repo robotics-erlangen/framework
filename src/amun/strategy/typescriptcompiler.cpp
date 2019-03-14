@@ -53,6 +53,7 @@ TypescriptCompiler::TypescriptCompiler(const QString& filename) : TypescriptComp
 TypescriptCompiler::TypescriptCompiler(const QString& filename, std::function<void(int)> term): m_terminateFun(term)
 {
     Isolate::CreateParams create_params;
+    V8::SetFlagsFromString("--expose_gc", 12);
     create_params.array_buffer_allocator = ArrayBuffer::Allocator::NewDefaultAllocator();
     m_isolate = Isolate::New(create_params);
     m_isolate->SetRAILMode(PERFORMANCE_LOAD);
@@ -80,6 +81,7 @@ TypescriptCompiler::~TypescriptCompiler()
 {
     m_requireNamespace.reset();
     m_context.Reset();
+    m_isolate->RequestGarbageCollectionForTesting(v8::Isolate::GarbageCollectionType::kFullGarbageCollection);
     m_isolate->Exit();
     m_isolate->Dispose();
 }

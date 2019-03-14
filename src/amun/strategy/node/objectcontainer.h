@@ -55,6 +55,11 @@ namespace Node
 
         void setHandle(v8::Local<v8::Object> handle);
 
+        // Takes a pointer and converts it to an Local<External>.
+        // Makes sure that the pointer will be deleted as soon as the JS Object dies.
+        // reuses caller's HandleScope
+        template<typename TemplateType> v8::Local<v8::External> fromRawPointer(TemplateType* ptr);
+
         struct CallbackInfo {
             const char* name;
             void (*callback)(const v8::FunctionCallbackInfo<v8::Value>&);
@@ -67,6 +72,52 @@ namespace Node
 
         v8::Global<v8::Object> m_handle;
     };
+}
+
+
+namespace Node
+{
+    namespace ObjectContainer_internal
+    {
+
+        template<typename T>
+        struct PersistantHolder {
+            PersistantHolder(T* ptr): m_ptr(ptr) {}
+            T* m_ptr;
+            v8::Persistent<v8::External> m_pers;
+        };
+
+        template<typename T>
+        static void weakCallback2(const v8::WeakCallbackInfo<PersistantHolder<T>>& data)
+        {
+            PersistantHolder<T>* ptr = data.GetParameter();
+            delete ptr->m_ptr;
+            delete ptr;
+
+        }
+
+        template<typename T>
+        static void weakCallback(const v8::WeakCallbackInfo<PersistantHolder<T>>& data)
+        {
+            PersistantHolder<T>* ptr = data.GetParameter();
+            ptr->m_pers.Reset();
+            data.SetSecondPassCallback(weakCallback2<T>);
+        }
+    }
+}
+
+#include <functional>
+template<typename T>
+v8::Local<v8::External> Node::ObjectContainer::fromRawPointer(T* ptr)
+{
+    Node::ObjectContainer_internal::PersistantHolder<T>* ph = new Node::ObjectContainer_internal::PersistantHolder<T>(ptr);
+    {
+        v8::HandleScope hs(m_isolate);
+        ph->m_pers.Reset(m_isolate, v8::External::New(m_isolate, ptr));
+    }
+    ph->m_pers.SetWeak(ph, Node::ObjectContainer_internal::weakCallback<T>, v8::WeakCallbackType::kParameter);
+    v8::Local<v8::External> ret = ph->m_pers.Get(m_isolate);
+    return ret;
 }
 
 #endif
