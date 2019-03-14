@@ -30,7 +30,6 @@
 #include <iostream>
 #include <QCoreApplication>
 #include <QByteArray>
-#include <QDebug>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -91,7 +90,7 @@ void logCallback(const v8::FunctionCallbackInfo<v8::Value>& args) {
         String::Utf8Value str(args.GetIsolate(), args[i]);
         message += *str;
     }
-    qDebug() << message;
+    std::cout << message.toStdString() << std::endl;
 }
 
 void TypescriptCompiler::registerRequireFunction(v8::Local<v8::ObjectTemplate> global)
@@ -222,7 +221,7 @@ void TypescriptCompiler::startCompiler()
 
     QFile compilerFile(compilerPath);
     if (!compilerFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        qDebug() << "Could not open compiler";
+        std::cout << "Could not open compiler" << std::endl;
         return;
     }
     QByteArray compilerBytes = compilerFile.readAll();
@@ -233,11 +232,11 @@ void TypescriptCompiler::startCompiler()
     TryCatch tryCatch(m_isolate);
     if (!Script::Compile(context, source).ToLocal(&script)) {
         String::Utf8Value error(m_isolate, tryCatch.StackTrace(context).ToLocalChecked());
-        qDebug() << *error;
+        std::cout << *error << std::endl;
     }
     script->Run(context);
     if (tryCatch.HasTerminated() || tryCatch.HasCaught()) {
         String::Utf8Value error(m_isolate, tryCatch.StackTrace(context).ToLocalChecked());
-        qDebug() << *error;
+        std::cout << *error << std::endl;
     }
 }
