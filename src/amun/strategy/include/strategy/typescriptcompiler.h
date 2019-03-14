@@ -22,6 +22,7 @@
 #define TYPESCRIPTCOMPILER_H
 
 #include <memory>
+#include <functional>
 #include "v8.h"
 
 namespace Node
@@ -35,6 +36,7 @@ class TypescriptCompiler
 {
 public:
     TypescriptCompiler(const QString& filename);
+    TypescriptCompiler(const QString& filename, std::function<void(int)> onTermination);
     ~TypescriptCompiler();
 
     void startCompiler();
@@ -42,12 +44,15 @@ private:
     void registerRequireFunction(v8::Local<v8::ObjectTemplate> global);
     static void requireCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void processCwdCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void exitCompilation(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 private:
     v8::Isolate* m_isolate;
     v8::Global<v8::Context> m_context;
 
     std::unique_ptr<Node::ObjectContainer> m_requireNamespace;
+    std::function<void(int)> m_terminateFun;
+    bool running = false;
 };
 
 #endif // TYPESCRIPTCOMPILER_H

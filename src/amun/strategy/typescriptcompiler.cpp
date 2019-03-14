@@ -43,7 +43,14 @@
 
 using namespace v8;
 
-TypescriptCompiler::TypescriptCompiler(const QString& filename)
+static void printExitcode(int a)
+{
+    std::cout << "compilation ended with exitcode: " << a << std::endl;
+}
+
+TypescriptCompiler::TypescriptCompiler(const QString& filename) : TypescriptCompiler(filename, printExitcode) {}
+
+TypescriptCompiler::TypescriptCompiler(const QString& filename, std::function<void(int)> term): m_terminateFun(term)
 {
     Isolate::CreateParams create_params;
     create_params.array_buffer_allocator = ArrayBuffer::Allocator::NewDefaultAllocator();
@@ -138,15 +145,20 @@ void TypescriptCompiler::processCwdCallback(const FunctionCallbackInfo<Value>& a
     args.GetReturnValue().Set(cwd);
 }
 
-static void exitCompilation(const FunctionCallbackInfo<Value>& args)
+void TypescriptCompiler::exitCompilation(const FunctionCallbackInfo<Value>& args)
 {
+    auto tsc = static_cast<TypescriptCompiler*>(Local<External>::Cast(args.Data())->Value());
+    if (!tsc->running) {
+        return;
+    }
     auto isolate = args.GetIsolate();
     int32_t exitcode;
     if (args[0]->Int32Value(args.GetIsolate()->GetCurrentContext()).To(&exitcode)){
-        std::cout << "compilation ended with exitcode: " << exitcode << std::endl;
+        tsc->m_terminateFun(exitcode);
     } else {
         std::cout << "compilation ended without exitcode" << std::endl;
     }
+    tsc->running = false;
     isolate->TerminateExecution();
 
 }
@@ -162,6 +174,7 @@ void TypescriptCompiler::startCompiler()
 
     Local<Object> process = Object::New(m_isolate);
     Local<String> processName = String::NewFromUtf8(m_isolate, "process", NewStringType::kNormal).ToLocalChecked();
+    Local<Value> thisValue(External::New(m_isolate, this));
     {
         Local<Array> argv = Array::New(m_isolate, 2);
         Local<String> argvName = String::NewFromUtf8(m_isolate, "argv", NewStringType::kNormal).ToLocalChecked();
@@ -175,7 +188,7 @@ void TypescriptCompiler::startCompiler()
         process->Set(argvName, argv);
     }
     {
-        Local<Function> exit = Function::New(m_isolate, &exitCompilation);
+        Local<Function> exit = Function::New(m_isolate, &exitCompilation, thisValue);
         Local<String> exitName = String::NewFromUtf8(m_isolate, "exit", NewStringType::kNormal).ToLocalChecked();
         process->Set(exitName, exit);
     }
@@ -198,7 +211,6 @@ void TypescriptCompiler::startCompiler()
         Local<String> envName = String::NewFromUtf8(m_isolate, "env", NewStringType::kNormal).ToLocalChecked();
         process->Set(envName, env);
 
-        Local<Value> thisValue(External::New(m_isolate, this));
         Local<Function> cwd = Function::New(m_isolate, &TypescriptCompiler::processCwdCallback, thisValue);
         Local<String> cwdName = String::NewFromUtf8(m_isolate, "cwd", NewStringType::kNormal).ToLocalChecked();
         process->Set(cwdName, cwd);
@@ -234,7 +246,13 @@ void TypescriptCompiler::startCompiler()
         String::Utf8Value error(m_isolate, tryCatch.StackTrace(context).ToLocalChecked());
         std::cout << *error << std::endl;
     }
-    script->Run(context);
+    Local<Value> exitCodeValue;
+    running = true;
+    if (script->Run(context).ToLocal(&exitCodeValue) && running) {
+        m_terminateFun(exitCodeValue->Int32Value());
+    } else if (running) {
+        std::cout << "Did not return an exitcode" << std::endl;
+    }
     if (tryCatch.HasTerminated() || tryCatch.HasCaught()) {
         String::Utf8Value error(m_isolate, tryCatch.StackTrace(context).ToLocalChecked());
         std::cout << *error << std::endl;
