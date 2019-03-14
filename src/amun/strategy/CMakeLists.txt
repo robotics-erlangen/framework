@@ -43,7 +43,6 @@ add_library(strategy
     strategyreplayhelper.cpp
 )
 target_link_libraries(strategy
-    PRIVATE lib::sourcemap
     PRIVATE lib::luajit
     PRIVATE shared::core
     PRIVATE amun::path
@@ -97,6 +96,7 @@ if(V8_FOUND)
     target_link_libraries(strategy
         PRIVATE lib::v8
         PRIVATE shared::config
+        PRIVATE lib::sourcemap
     )
     target_compile_definitions(strategy PUBLIC V8_FOUND)
     target_include_directories(strategy
