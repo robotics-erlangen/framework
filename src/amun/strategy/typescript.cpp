@@ -96,6 +96,8 @@ Typescript::~Typescript()
     }
     for (auto &cache : m_requireCache) {
         for (auto element : cache.values()) {
+            // TODO: When applying tsc's memory Modell, where JS-Objects may delete C++ Objects when GC collectes them,
+            // Reset element first and delete it afterwards (Or does JS / v8 handle that itself?)
             delete element;
         }
     }
@@ -413,6 +415,10 @@ void Typescript::defineModule(const FunctionCallbackInfo<Value> &args)
 
     Local<Object> exports = Object::New(isolate);
     parameters.push_back(exports);
+    if (t->m_requireCache.back().contains(t->m_currentExecutingModule)) {
+        // TODO: See destructor
+        delete t->m_requireCache.back()[t->m_currentExecutingModule];
+    }
     t->m_requireCache.back()[t->m_currentExecutingModule] = new Global<Value>(isolate, exports);
 
 
