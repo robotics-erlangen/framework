@@ -29,43 +29,44 @@
 template<typename T> class QList;
 class QString;
 
-namespace Node {
-	// TODO maybe template this class for different kinds of v8 objects (functions, arrays, etc.)
-	class ObjectContainer {
-	public:
-		ObjectContainer(v8::Isolate* isolate, const ObjectContainer* requireNamespace = nullptr);
-		virtual ~ObjectContainer();
+namespace Node
+{
+    // TODO maybe template this class for different kinds of v8 objects (functions, arrays, etc.)
+    class ObjectContainer {
+    public:
+        ObjectContainer(v8::Isolate* isolate, const ObjectContainer* requireNamespace = nullptr);
+        virtual ~ObjectContainer();
 
-		// Copying and moving is disabled since constructors can't be virtual
-		// A childs constructor would not be used, leading to their own members not being copying/moved
-		ObjectContainer(const ObjectContainer& other) = delete;
-		ObjectContainer(ObjectContainer&& other) = delete;
-		ObjectContainer& operator=(const ObjectContainer& rhs) = delete;
-		ObjectContainer& operator=(ObjectContainer&& rhs) = delete;
+        // Copying and moving is disabled since constructors can't be virtual
+        // A childs constructor would not be used, leading to their own members not being copying/moved
+        ObjectContainer(const ObjectContainer& other) = delete;
+        ObjectContainer(ObjectContainer&& other) = delete;
+        ObjectContainer& operator=(const ObjectContainer& rhs) = delete;
+        ObjectContainer& operator=(ObjectContainer&& rhs) = delete;
 
-		v8::Local<v8::Object> getHandle();
+        v8::Local<v8::Object> getHandle();
 
-		// TODO maybe use v8::Maybe
-		ObjectContainer* get(const std::string& index) const;
-		void put(const std::string& index, std::unique_ptr<ObjectContainer> object);
-	protected:
-		v8::Isolate* m_isolate;
-		const ObjectContainer* m_requireNamespace;
+        // TODO maybe use v8::Maybe
+        ObjectContainer* get(const std::string& index) const;
+        void put(const std::string& index, std::unique_ptr<ObjectContainer> object);
+    protected:
+        v8::Isolate* m_isolate;
+        const ObjectContainer* m_requireNamespace;
 
-		void setHandle(v8::Local<v8::Object> handle);
+        void setHandle(v8::Local<v8::Object> handle);
 
-		struct CallbackInfo {
-			const char* name;
-			void (*callback)(const v8::FunctionCallbackInfo<v8::Value>&);
-		};
-		template<typename TemplateType> v8::Local<TemplateType> createTemplateWithCallbacks(const QList<CallbackInfo>& callbackInfos);
+        struct CallbackInfo {
+            const char* name;
+            void (*callback)(const v8::FunctionCallbackInfo<v8::Value>&);
+        };
+        template<typename TemplateType> v8::Local<TemplateType> createTemplateWithCallbacks(const QList<CallbackInfo>& callbackInfos);
 
-		void throwV8Exception(const QString& message) const;
-	private:
-		std::map<std::string, std::unique_ptr<ObjectContainer>> m_children;
+        void throwV8Exception(const QString& message) const;
+    private:
+        std::map<std::string, std::unique_ptr<ObjectContainer>> m_children;
 
-		v8::Global<v8::Object> m_handle;
-	};
+        v8::Global<v8::Object> m_handle;
+    };
 }
 
 #endif
