@@ -35,6 +35,7 @@
 #include "checkforscripttimeout.h"
 #include "inspectorholder.h"
 #include "internaldebugger.h"
+#include "typescriptcompiler.h"
 
 using namespace v8;
 
@@ -114,7 +115,8 @@ Typescript::~Typescript()
 bool Typescript::canHandle(const QString &filename)
 {
     QFileInfo file(filename);
-    return file.fileName() == "init.js";
+    QString fname = file.fileName();
+    return fname == "init.js" || fname == "init.ts";
 }
 
 void Typescript::setInspectorHandler(AbstractInspectorHandler *handler)
@@ -288,8 +290,25 @@ static void buildStackTrace(const Local<Context>& context, QString& errorMsg, co
     }
 }
 
-bool Typescript::loadScript(const QString &filename, const QString &entryPoint)
+bool Typescript::loadScript(const QString &fname, const QString &entryPoint)
 {
+    QString filename;
+    if (fname.endsWith(".ts")) {
+        bool compile_success = true;
+        TypescriptCompiler tsc(fname, [this, &compile_success](int exit){
+                if (exit == 0) {
+                    return;
+                }
+                m_errorMsg = "<font color=\"red\">Compilation failed with exitcode " + QString::number(exit) + "</font>";
+                compile_success = false;
+                });
+        tsc.startCompiler();
+        filename = TypescriptCompiler::outputPath(fname);
+        m_filename = QString();
+        return compile_success && AbstractStrategyScript::loadScript(filename, entryPoint, geometry(), team());
+    } else {
+        filename = fname;
+    }
     QFile file(filename);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         m_errorMsg = "<font color=\"red\">Could not open file " + filename + "</font>";

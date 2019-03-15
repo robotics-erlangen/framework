@@ -167,6 +167,7 @@ void TypescriptCompiler::exitCompilation(const FunctionCallbackInfo<Value>& args
     isolate->TerminateExecution();
 
 }
+
 void TypescriptCompiler::startCompiler()
 {
     HandleScope handleScope(m_isolate);
