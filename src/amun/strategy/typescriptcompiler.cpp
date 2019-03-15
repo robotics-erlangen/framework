@@ -263,3 +263,9 @@ void TypescriptCompiler::startCompiler()
         std::cout << *error << std::endl;
     }
 }
+
+QString TypescriptCompiler::outputPath(const QString& filename)
+{
+    QFileInfo finfo(filename);
+    return finfo.path() + "/../built/glados/init.js";
+}

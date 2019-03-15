@@ -40,6 +40,7 @@ public:
     ~TypescriptCompiler();
 
     void startCompiler();
+    static QString outputPath(const QString& input);
 private:
     void registerRequireFunction(v8::Local<v8::ObjectTemplate> global);
     static void requireCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
