@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
 
+DEPOT_TOOLS_REVISION=7b7eb8800be040d4405fe1d04f002ad1f3a5a38f
 V8_BASE_REVISION=6a41721a2889b84cb2f3b920fbdc40b96347597a
 BUILD_REVISION=adaab113d20dbac883ef911e55995fb6c8da9947
 ICU_REVISION=297a4dd02b9d36c92ab9b4f121e433c9c3bc14f8
@@ -36,6 +37,7 @@ if [[ ! -d depot_tools ]]; then
     trap depothook EXIT
 
     git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+    ( cd depot_tools && git checkout $DEPOT_TOOLS_REVISION )
 
     find depot_tools -maxdepth 1 -type f ! -iname '*.exe' ! -iname 'ninja-*' -exec  sed "${SEDI[@]}" -e "s/exec python /exec python2 /" '{}' \+
     sed "${SEDI[@]}" -e '/_PLATFORM_MAPPING = {/a\'$'\n'"  'msys': 'win'," depot_tools/gclient.py
