@@ -25,6 +25,7 @@ export class BaseGeom extends UnitTest {
 		this.addTest("normalizeAngle", this.testNormalizeAngle);
 		this.addTest("normalizeAnglePositive", this.testNormalizeAnglePositive);
 		this.addTest("angleDiff", this.testGetAngleDiff);
+		this.addTest("bisectingAngle", this.testBisectingAngle);
 		this.addTest("inscribedAngle", this.testInscribedAngle);
 		this.addTest("insideRect", this.testInsideRect);
 	}
@@ -415,6 +416,33 @@ export class BaseGeom extends UnitTest {
 		}
 
 		this.assert_equal_eps(geom.getAngleDiff(-0.5, 0.5), 1, EPS);
+	}
+
+	private testBisectingAngle() {
+		let pi = Math.PI;
+		let piHalf = Math.PI / 2;
+		this.assert_equal(geom.bisectingAngle(0, 0), 0);
+		this.assert_equal(geom.bisectingAngle(pi, pi), pi);
+		this.assert_equal(geom.bisectingAngle(-pi, -pi), -pi);
+		this.assert_equal(geom.bisectingAngle(piHalf, piHalf), piHalf);
+		this.assert_equal(geom.bisectingAngle(-piHalf, -piHalf), -piHalf);
+
+		this.assert_equal(geom.bisectingAngle(pi, -pi), pi);
+		this.assert_equal(geom.bisectingAngle(piHalf, -piHalf), 0);
+
+		this.assert_equal(geom.bisectingAngle((pi / 4), -(pi / 4)), 0);
+		this.assert_equal(geom.bisectingAngle((pi * 3  / 4), -(pi * 3 / 4)), pi);
+		this.assert_equal(geom.bisectingAngle((pi * 3 / 4), (pi / 4)), (pi / 2));
+		this.assert_equal(geom.bisectingAngle(-(pi * 3 / 4), -(pi / 4)), -(pi / 2));
+
+		this.assert_equal(geom.bisectingAngle((7 * pi / 9), -(7 * pi / 9)), pi);
+		this.assert_equal(geom.bisectingAngle(-(7 * pi / 9), (7 * pi / 9)), pi);
+
+		this.assert_equal(geom.bisectingAngle(pi / 6, pi / 8), pi * 7 / 48);
+		this.assert_equal(geom.bisectingAngle(pi / 8, pi / 6), pi * 7 / 48);
+
+		this.assert_equal(geom.bisectingAngle(pi / 8, pi / 6), pi * 7 / 48);
+		this.assert_equal(geom.bisectingAngle(pi / 8, pi / 6), pi * 7 / 48);
 	}
 
 	// This test uses geom.intersectCircleCircle to verify the results
