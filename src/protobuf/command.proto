@@ -49,6 +49,7 @@ message CommandSimulator {
     optional float stddev_robot_p = 7;
     optional float stddev_robot_phi = 8;
     optional RuleVersion rule_version = 11;
+    optional bool enable_invisible_ball = 12;
 }
 
 message CommandReferee {

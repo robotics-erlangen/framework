@@ -40,6 +40,7 @@ SimulatorWidget::SimulatorWidget(QWidget *parent) :
     connect(ui->btnStart, SIGNAL(clicked()), SLOT(start()));
     connect(ui->btnStop, SIGNAL(clicked()), SLOT(stop()));
     connect(ui->chkEnableNoise, &QCheckBox::stateChanged, this, &SimulatorWidget::setEnableNoise);
+    connect(ui->chkEnableInvisibleBall, &QCheckBox::stateChanged, this, &SimulatorWidget::setEnableInvisibleBall);
 
     connect(ui->spinStddevBall, SIGNAL(valueChanged(double)), SLOT(setStddevBall(double)));
     connect(ui->spinStddevRobotPos, SIGNAL(valueChanged(double)), SLOT(setStddevRobotPos(double)));
@@ -179,5 +180,14 @@ void SimulatorWidget::on_btnToggle_clicked()
     Command command(new amun::Command);
     command->mutable_pause_simulator()->set_reason(amun::Ui);
     command->mutable_pause_simulator()->set_toggle(true);
+    emit sendCommand(command);
+}
+
+void SimulatorWidget::setEnableInvisibleBall(int state)
+{
+    bool isEnabled = state != Qt::Unchecked;
+
+    Command command(new amun::Command);
+    command->mutable_simulator()->set_enable_invisible_ball(isEnabled);
     emit sendCommand(command);
 }

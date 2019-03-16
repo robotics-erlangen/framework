@@ -58,6 +58,7 @@ private slots:
     void setStddevBall(double stddev);
     void setStddevRobotPos(double stddev);
     void setStddevRobotPhi(double stddev);
+    void setEnableInvisibleBall(int state);
 
     void on_btnToggle_clicked();
 

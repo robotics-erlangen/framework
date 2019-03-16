@@ -41,7 +41,8 @@ public:
 
 public:
     void begin();
-    int update(SSL_DetectionBall *ball, float stddev, int numCameras, float fieldBoundaryWidth);
+    int update(SSL_DetectionBall *ball, float stddev, int numCameras, float fieldBoundaryWidth,
+               bool enableInvisibleBall);
     void move(const amun::SimulatorMoveBall &ball);
     void kick(const btVector3 &power);
     btVector3 position() const;

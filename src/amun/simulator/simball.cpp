@@ -118,7 +118,7 @@ void SimBall::begin()
 }
 
 int SimBall::update(SSL_DetectionBall *ball, float stddev, int numCameras,
-                    float fieldBoundaryWidth)
+                    float fieldBoundaryWidth, bool enableInvisibleBall)
 {
     // setup ssl-vision ball detection
     ball->set_confidence(1.0);
@@ -175,7 +175,7 @@ int SimBall::update(SSL_DetectionBall *ball, float stddev, int numCameras,
     btCollisionWorld::ClosestRayResultCallback result(transform.getOrigin(), cameraPosition);
     m_world->rayTest(transform.getOrigin(), cameraPosition, result);
     // the ball is not visible to the camera
-    if (result.hasHit()) {
+    if (enableInvisibleBall && result.hasHit()) {
         return -1;
     }
 
