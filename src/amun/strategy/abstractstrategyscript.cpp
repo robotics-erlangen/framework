@@ -213,7 +213,7 @@ bool AbstractStrategyScript::receiveGameControllerMessage(google::protobuf::Mess
         QByteArray data = m_gameControllerSocket->readAll();
         m_partialPacket.append(data);
         if (m_nextPackageSize < 0 && m_partialPacket.size() > 0) {
-            while (m_sizeBytesPosition < m_partialPacket.size()) {
+            while (m_sizeBytesPosition < static_cast<unsigned int>(m_partialPacket.size())) {
                 if ((m_partialPacket[m_sizeBytesPosition] & 0x80) == 0) {
                     const uint8_t *buffer = reinterpret_cast<unsigned char*>(data.data());
                     google::protobuf::io::CodedInputStream varIntReader(buffer, m_sizeBytesPosition + 1);
