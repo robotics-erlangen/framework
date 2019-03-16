@@ -303,7 +303,7 @@ export class Defense {
 			this._createIntersections(intersectionInfos, World.Ball.pos, World.Ball.speed, defenseExtraRadius, 1, false);
 		}
 		let [predicedPos, predicedDir, isShot, _, isDribbling] = Goal.predictShot(true);
-		if ((isShot || isDribbling) && (predicedPos !== World.Ball.pos || !predicedDir.equals(World.Ball.speed))) {
+		if ((isShot || isDribbling) && (!predicedPos.equals(World.Ball.pos) || !predicedDir.equals(World.Ball.speed))) {
 			let numBefore = intersectionInfos.length;
 			this._createIntersections(intersectionInfos, predicedPos, predicedDir, defenseExtraRadius, 2, isDribbling);
 			if (intersectionInfos.length > numBefore) {
