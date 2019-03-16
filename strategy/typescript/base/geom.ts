@@ -382,6 +382,21 @@ export function getAngleDiff(angle1: number, angle2: number): number {
 }
 
 /**
+ * Calculates the bisectrix of two angles
+ * @param angle1 - fist angle in radians (expect normalized angle)
+ * @param angle2 - second angle in radians (expect normalized angle)
+ * @return bisectingAngle in radians (value is in interval [-pi, +pi])
+ */
+export function bisectingAngle(angle1: number, angle2: number): number {
+	let bisectrix = (angle1 + angle2) / 2;
+	let piHalf = Math.PI / 2;
+	if (((angle1 < -piHalf) && (angle2 > piHalf)) || ((angle1 > piHalf) && (angle2 < -piHalf))) {
+		bisectrix = normalizeAngle(bisectrix + Math.PI);
+	}
+	return bisectrix;
+}
+
+/**
  * Applies the inscribed angle theorem.
  * @param point1 - first point on cirle
  * @param point2 - second point on cirle
