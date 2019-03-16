@@ -35,11 +35,11 @@ class QString;
 class TypescriptCompiler
 {
 public:
-    TypescriptCompiler(const QString& filename);
-    TypescriptCompiler(const QString& filename, std::function<void(int)> onTermination);
+    TypescriptCompiler();
     ~TypescriptCompiler();
 
-    void startCompiler();
+    void startCompiler(const QString& cwd);
+    void startCompiler(const QString& cwd, std::function<void(int)> onTermination);
     static QString outputPath(const QString& input);
 private:
     void registerRequireFunction(v8::Local<v8::ObjectTemplate> global);

@@ -48,9 +48,7 @@ static void printExitcode(int a)
     std::cout << "compilation ended with exitcode: " << a << std::endl;
 }
 
-TypescriptCompiler::TypescriptCompiler(const QString& filename) : TypescriptCompiler(filename, printExitcode) {}
-
-TypescriptCompiler::TypescriptCompiler(const QString& filename, std::function<void(int)> term): m_terminateFun(term)
+TypescriptCompiler::TypescriptCompiler()
 {
     Isolate::CreateParams create_params;
     V8::SetFlagsFromString("--expose_gc", 12);
@@ -65,14 +63,11 @@ TypescriptCompiler::TypescriptCompiler(const QString& filename, std::function<vo
     Local<Context> context = Context::New(m_isolate, nullptr, globalTemplate);
     Context::Scope contextScope(context);
 
-    QFileInfo finfo(filename);
-    QString path = finfo.path() + "/..";
-
     m_requireNamespace = std::unique_ptr<Node::ObjectContainer>(new Node::ObjectContainer(m_isolate));
 
     m_requireNamespace->put("os", std::unique_ptr<Node::os>(new Node::os(m_isolate)));
     m_requireNamespace->put("buffer", std::unique_ptr<Node::buffer>(new Node::buffer(m_isolate)));
-    m_requireNamespace->put("fs", std::unique_ptr<Node::fs>(new Node::fs(m_isolate, m_requireNamespace.get(), path)));
+    m_requireNamespace->put("fs", std::unique_ptr<Node::fs>(new Node::fs(m_isolate, m_requireNamespace.get(), ".")));
     m_requireNamespace->put("path", std::unique_ptr<Node::path>(new Node::path(m_isolate)));
 
     delete create_params.array_buffer_allocator;
@@ -168,8 +163,18 @@ void TypescriptCompiler::exitCompilation(const FunctionCallbackInfo<Value>& args
 
 }
 
-void TypescriptCompiler::startCompiler()
+void TypescriptCompiler::startCompiler(const QString& filename)
 {
+    startCompiler(filename, printExitcode);
+}
+
+void TypescriptCompiler::startCompiler(const QString& filename, std::function<void(int)> onTermination)
+{
+    QFileInfo finfo(filename);
+    QString cwd = finfo.path() + "/..";
+    m_terminateFun = onTermination;
+    static_cast<Node::fs*>(m_requireNamespace->get("fs"))->setPath(cwd);
+
     HandleScope handleScope(m_isolate);
     Local<Context> context = m_context.Get(m_isolate);
     Context::Scope contextScope(context);

@@ -37,6 +37,9 @@ namespace Node {
         QString getPath() {
             return m_path;
         }
+        void setPath(const QString& other) {
+            m_path = other;
+        }
     private:
         QString m_path;
         class FileStat {

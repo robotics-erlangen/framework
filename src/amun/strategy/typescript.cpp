@@ -295,14 +295,14 @@ bool Typescript::loadScript(const QString &fname, const QString &entryPoint)
     QString filename;
     if (fname.endsWith(".ts")) {
         bool compile_success = true;
-        TypescriptCompiler tsc(fname, [this, &compile_success](int exit){
+        TypescriptCompiler tsc;
+        tsc.startCompiler(fname, [this, &compile_success](int exit){
                 if (exit == 0) {
                     return;
                 }
                 m_errorMsg = "<font color=\"red\">Compilation failed with exitcode " + QString::number(exit) + "</font>";
                 compile_success = false;
                 });
-        tsc.startCompiler();
         filename = TypescriptCompiler::outputPath(fname);
         m_filename = QString();
         return compile_success && AbstractStrategyScript::loadScript(filename, entryPoint, geometry(), team());
