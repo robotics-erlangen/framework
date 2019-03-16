@@ -392,8 +392,8 @@ void Strategy::process()
         reload();
     }
 
-    Q_ASSERT(m_status->game_state().IsInitialized() || m_status->execution_state().IsInitialized());
-    Q_ASSERT(m_status->world_state().IsInitialized() || m_status->execution_game_state().IsInitialized());
+    Q_ASSERT(m_status->game_state().IsInitialized() || m_status->execution_game_state().IsInitialized());
+    Q_ASSERT(m_status->world_state().IsInitialized() || m_status->execution_state().IsInitialized());
 
     double pathPlanning = 0;
     qint64 startTime = Timer::systemTime();
