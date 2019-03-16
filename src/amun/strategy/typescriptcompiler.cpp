@@ -79,6 +79,9 @@ TypescriptCompiler::~TypescriptCompiler()
 {
     m_requireNamespace.reset();
     m_context.Reset();
+    // This is needed for a full gc as the isolate is beeing disposed.
+    // The JS memory is reclaimed easily, but its c++ callbacks are never called.
+    // This GC run makes sure all callbacks are beeing called, as m_context is reset before this.
     m_isolate->RequestGarbageCollectionForTesting(v8::Isolate::GarbageCollectionType::kFullGarbageCollection);
     m_isolate->Exit();
     m_isolate->Dispose();
