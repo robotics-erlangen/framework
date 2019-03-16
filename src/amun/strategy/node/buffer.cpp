@@ -20,7 +20,7 @@
 
 #include "buffer.h"
 
-#include "buffer/Buffer.h"
+#include "buffer/buffer.h"
 
 #include <memory>
 #include <QList>

@@ -21,7 +21,7 @@
 #include "fs.h"
 
 #include "objectcontainer.h"
-#include "buffer/Buffer.h"
+#include "buffer/buffer.h"
 
 #include <algorithm>
 #include <cmath>

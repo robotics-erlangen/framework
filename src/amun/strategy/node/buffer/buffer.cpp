@@ -18,7 +18,7 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#include "Buffer.h"
+#include "buffer.h"
 
 #include <string>
 #include <QString>

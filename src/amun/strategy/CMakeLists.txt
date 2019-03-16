@@ -80,8 +80,8 @@ if(V8_FOUND)
         websocketprotocol.cpp
         websocketprotocol.h
 
-        node/buffer/Buffer.cpp
-        node/buffer/Buffer.h
+        node/buffer/buffer.cpp
+        node/buffer/buffer.h
         node/buffer.cpp
         node/buffer.h
         node/fs.cpp
