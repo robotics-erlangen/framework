@@ -456,6 +456,13 @@ static int amunGetPerformanceMode(lua_State *state)
     return 1;
 }
 
+static int amunGetTestStatus(lua_State *state)
+{
+    Lua *thread = getStrategyThread(state);
+    protobufPushMessage(state, *thread->getCurrentStatus());
+    return 1;
+}
+
 static const luaL_Reg amunMethods[] = {
     // fixed during strategy runtime
     {"getGeometry",         amunGetGeometry},
@@ -491,6 +498,8 @@ static const luaL_Reg amunMethods[] = {
     // debugger io
     {"debuggerRead",        amunDebuggerRead},
     {"debuggerWrite",       amunDebuggerWrite},
+    // used for replay tests only
+    {"getTestStatus",       amunGetTestStatus},
     {0, 0}
 };
 

@@ -78,6 +78,8 @@ public:
     void setIsPerformanceMode(bool performance) { m_isPerformanceMode = performance; }
     void setIsReplay(bool replay) { m_isReplay = replay; }
     void setFlipped(bool flipped) { m_isFlipped = flipped; }
+    void setCurrentStatus(const Status &status) { m_currentStatus = status; }
+    const Status &getCurrentStatus() const { return m_currentStatus; }
 
     bool connectGameController();
     bool sendGameControllerMessage(const google::protobuf::Message *message);
@@ -171,6 +173,7 @@ protected:
     world::State m_worldState;
     amun::GameState m_refereeState;
     amun::UserInput m_userInput;
+    Status m_currentStatus; // used for replay tests
 
     QList<SSL_RefereeRemoteControlReply> m_refereeReplys;
 

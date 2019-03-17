@@ -191,7 +191,7 @@ void Strategy::handleStatus(const Status &status)
             reload();
         }
         m_isReplay = true;
-        if (m_strategy){
+        if (m_strategy) {
             m_strategy->setIsReplay(true);
         }
         m_status = status;
@@ -411,6 +411,7 @@ void Strategy::process()
         userInput.mutable_move_command()->CopyFrom(m_lastMoveCommand.move_command());
     }
 
+    m_strategy->setCurrentStatus(m_status);
     if (m_strategy->process(pathPlanning, m_status->execution_state().IsInitialized() ? m_status->execution_state() : m_status->world_state(),
                             m_status->execution_game_state().IsInitialized() ? m_status->execution_game_state() : m_status->game_state(), userInput)) {
         if (!m_p->mixedTeamData.isNull()) {
