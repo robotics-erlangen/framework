@@ -182,7 +182,7 @@ void TypescriptCompiler::startCompiler(const QString& filename, std::function<vo
     Local<Context> context = m_context.Get(m_isolate);
     Context::Scope contextScope(context);
 
-    QString compilerPath = QString(ERFORCE_LIBDIR) + "tsc/built/local/tsc.js";
+    QString compilerPath = QFileInfo(QString(ERFORCE_LIBDIR) + "tsc/built/local/tsc.js").canonicalFilePath();
 
     Local<Object> global = context->Global();
 
