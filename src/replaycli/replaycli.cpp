@@ -53,27 +53,6 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &, const QString &
     }
 }
 
-static Command createLoadCommand(bool asBlue, QString initScript, QString entryPoint, bool disablePerformanceMode)
-{
-    Command command(new amun::Command);
-    amun::CommandStrategyLoad *load;
-    amun::CommandStrategy *strategyCommand;
-    if (asBlue) {
-        load = command->mutable_strategy_blue()->mutable_load();
-        strategyCommand = command->mutable_strategy_blue();
-    } else {
-        load = command->mutable_strategy_yellow()->mutable_load();
-        strategyCommand = command->mutable_strategy_yellow();
-    }
-    load->set_filename(initScript.toStdString());
-    load->set_entry_point(entryPoint.toStdString());
-
-    if (disablePerformanceMode) {
-        strategyCommand->set_performance_mode(false);
-    }
-    return command;
-}
-
 int main(int argc, char* argv[])
 {
     QCoreApplication app(argc, argv);
@@ -169,7 +148,13 @@ int main(int argc, char* argv[])
         }
         Timer timer;
         timer.setTime(logfile.readStatus(0)->time(), 1.0);
-        std::unique_ptr<Strategy> strategy(new Strategy(&timer, asBlue ? StrategyType::BLUE : StrategyType::YELLOW, nullptr));
+        StrategyType strategyColor = asBlue ? StrategyType::BLUE : StrategyType::YELLOW;
+        std::unique_ptr<Strategy> strategy(new Strategy(&timer, strategyColor, nullptr));
+        std::unique_ptr<ReplayTestRunner> testRunner;
+        if (runAsTest) {
+            testRunner.reset(new ReplayTestRunner(currentDirectory.absoluteFilePath(parser.value(runTestScript)), strategyColor));
+            strategy->connect(strategy.get(), SIGNAL(sendStatus(Status)), testRunner.get(), SLOT(handleOriginalStatus(Status)));
+        }
 
         TimingStatistics statistics(asBlue, parser.isSet(printAllTimings), logfile.packetCount() + 1);
         statistics.connect(strategy.get(), &Strategy::sendStatus, &statistics, &TimingStatistics::handleStatus);
@@ -196,15 +181,13 @@ int main(int argc, char* argv[])
                 });
         }
 
-
-
         // load the strategy
         strategy->handleCommand(createLoadCommand(asBlue, initScript, entryPoint, parser.isSet(disablePerformanceMode)));
 
         int packetCount = logfile.packetCount();
         int startPosition = parser.value(profileStart).toInt();
         int endPosition = parser.isSet(profileLength) ? startPosition + parser.value(profileLength).toInt() : packetCount - 1;
-        
+
         for (int i = 0; i<packetCount; i++) {
             Status status = logfile.readStatus(i);
 
@@ -233,7 +216,6 @@ int main(int argc, char* argv[])
             }
 
             strategy->handleStatus(status);
-            app.processEvents();
 
             if (parser.isSet(profileFile) && i == endPosition) {
                 Command command(new amun::Command);
@@ -246,7 +228,12 @@ int main(int argc, char* argv[])
             }
         }
 
-        statistics.printStatistics(parser.isSet(showHistogramOption));
+        if (runAsTest) {
+            testRunner->runFinalReplayJudgement();
+        } else {
+            // no timing statistics are printed if the cli is used as a replay test runner
+            statistics.printStatistics(parser.isSet(showHistogramOption));
+        }
     }
     return 0;
 }

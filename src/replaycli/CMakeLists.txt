@@ -20,6 +20,8 @@
 
 add_executable(replay-cli
     replaycli.cpp
+    replaytestrunner.h
+    replaytestrunner.cpp
     timingstatistics.h
     timingstatistics.cpp
 )
@@ -30,6 +32,7 @@ target_link_libraries(replay-cli
     shared::core
     Qt5::Core
     Threads::Threads
+    amuncli::testtools
 )
 v8_copy_deps(replay-cli)
 target_include_directories(replay-cli
