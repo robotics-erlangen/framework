@@ -24,6 +24,7 @@ add_executable(replay-cli
     replaytestrunner.cpp
     timingstatistics.h
     timingstatistics.cpp
+    ${CMAKE_BINARY_DIR}/run_replay_tests.py
 )
 target_link_libraries(replay-cli
     amun::strategy
@@ -38,6 +39,11 @@ v8_copy_deps(replay-cli)
 target_include_directories(replay-cli
     PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
     PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
+)
+add_custom_command(
+    OUTPUT ${CMAKE_BINARY_DIR}/run_replay_tests.py
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/cmake/run_replay_tests.py ${CMAKE_BINARY_DIR}/run_replay_tests.py
+    DEPENDS ${CMAKE_SOURCE_DIR}/cmake/run_replay_tests.py
 )
 if (TARGET lib::jemalloc)
     target_link_libraries(replay-cli lib::jemalloc)
