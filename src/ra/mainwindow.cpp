@@ -504,9 +504,12 @@ void MainWindow::handleStatus(const Status &status)
         m_lastRefState = state.state();
 
         if (m_isTournamentMode && !ui->actionSimulator->isChecked()) {
-            if (state.has_blue() && state.blue().name() == TEAM_NAME) {
+            // when we are both teams (an internal test), do not modify robot colors
+            bool isTeamBlue = state.has_blue() && state.blue().name() == TEAM_NAME;
+            bool isTeamYellow = state.has_yellow() && state.yellow().name() == TEAM_NAME;
+            if (isTeamBlue && !isTeamYellow) {
                 ui->robots->setColor(true);
-            } else if (state.has_yellow() && state.yellow().name() == TEAM_NAME) {
+            } else if (isTeamYellow && !isTeamBlue) {
                 ui->robots->setColor(false);
             }
         }
