@@ -7,7 +7,7 @@ import * as MathUtil from "base/mathutil";
 import * as plot from "base/plot";
 import * as Referee from "base/referee";
 import { FriendlyRobot } from "base/robot";
-import { TrajectoryHandler } from "base/trajectory";
+import { TrajectoryHandler, TrajectoryResult } from "base/trajectory";
 import { Position, Speed, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
@@ -607,12 +607,12 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 		return [angularSpeed, angularAccel];
 	}
 
-	update(...args: [Position, number, number, Speed, number, boolean]): [any, Position, number] {
+	update(...args: [Position, number, number, Speed, number, boolean]): TrajectoryResult {
 		return this._update(args[0], args[1], args[2], args[3], args[4], args[5]);
 	}
 
 	private _update(targetPos: Position, targetDir: number, maxSpeed: number = this._robot.maxSpeed,
-			endSpeed: Speed = new Vector(0, 0), accelScale: number = 1.0, dribble: boolean): [any, Position, number] {
+			endSpeed: Speed = new Vector(0, 0), accelScale: number = 1.0, dribble: boolean): TrajectoryResult {
 
 		let directionVector = Vector.fromAngle(targetDir).scaleLength(0.09);
 		vis.addPath("MoveTo", [targetPos, targetPos + directionVector], vis.colors.yellowHalf);

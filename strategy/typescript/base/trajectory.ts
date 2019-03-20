@@ -53,6 +53,24 @@ export interface RobotLike {
 	path: Path;
 }
 
+interface Polynomial {
+	a0: number;
+	a1: number;
+	a2: number;
+	a3: number;
+}
+
+interface Spline {
+	t_start: number;
+	t_end: number;
+	x: Polynomial;
+	y: Polynomial;
+	phi: Polynomial;
+}
+
+/** Splines, target position, time to reach the target */
+export type TrajectoryResult = [{spline: Spline[]}, Position, number];
+
 /** Base class for trajectory planning */
 export abstract class TrajectoryHandler {
 	protected readonly _robot: RobotLike;
@@ -73,7 +91,7 @@ export abstract class TrajectoryHandler {
 	 * between strategy and global coordinates!
 	 * New data to use for updating, returns controllerInput, moveDest and moveTime
 	 */
-	abstract update(...args: any[]): [any, Position, number];
+	abstract update(...args: any[]): TrajectoryResult;
 }
 
 export class Trajectory {

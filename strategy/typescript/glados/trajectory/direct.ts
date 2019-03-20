@@ -1,17 +1,17 @@
 import { Coordinates } from "base/coordinates";
 import * as geom from "base/geom";
 import * as MathUtil from "base/mathutil";
-import { TrajectoryHandler } from "base/trajectory";
+import { TrajectoryHandler, TrajectoryResult } from "base/trajectory";
 import { Position, Speed, Vector } from "base/vector";
 
 export class Direct extends TrajectoryHandler {
-	update(...args: any[]): [any, Position, number] {
+	update(...args: any[]): TrajectoryResult {
 		return this._update(args[0], args[1], args[2], args[3]);
 	}
 
 	// only targetDir or rotateSpeed may be passed!
 	// accel is optional
-	_update(speed: Speed, targetDir: number | undefined, rotateSpeed: number | undefined, accel: Vector = new Vector(0, 0)): [any, Position, number] {
+	_update(speed: Speed, targetDir: number | undefined, rotateSpeed: number | undefined, accel: Vector = new Vector(0, 0)): TrajectoryResult {
 		speed = Coordinates.toGlobal(speed);
 		accel = Coordinates.toGlobal(accel);
 		// play motion controller
