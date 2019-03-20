@@ -27,7 +27,46 @@
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
 
+import { log } from "base/amun";
 import * as pb from "base/protobuf";
+import { Vector } from "base/vector";
+import * as vis from "base/vis";
+
+interface Obstacle {
+	name: string | undefined;
+	prio: number;
+}
+
+interface CircleObstacle extends Obstacle {
+	x: number;
+	y: number;
+	radius: number;
+}
+
+interface LineObstacle extends Obstacle {
+	start_x: number;
+	start_y: number;
+	stop_x: number;
+	stop_y: number;
+	radius: number;
+}
+
+interface RectObstacle extends Obstacle {
+	start_x: number;
+	start_y: number;
+	stop_x: number;
+	stop_y: number;
+}
+
+interface TriangleObstacle extends Obstacle {
+	x1: number;
+	y1: number;
+	x2: number;
+	y2: number;
+	x3: number;
+	y3: number;
+	lineWidth: number;
+}
 
 interface PathObjectCommon {
 	destroy(): void;
@@ -146,10 +185,6 @@ let pathLocal: any = path;
 
 path = undefined;
 
-import { log } from "base/amun";
-import { Vector } from "base/vector";
-import * as vis from "base/vis";
-
 let teamIsBlue = amun.isBlue();
 let isPerformanceMode = amun.getPerformanceMode();
 
@@ -161,6 +196,12 @@ export function getOriginalPath(): any {
 export class Path {
 	private readonly _inst: PathObjectRRT;
 	private readonly _robotId: number;
+
+	private circleObstacles: CircleObstacle[] = [];
+	private lineObstacles: LineObstacle[] = [];
+	private rectObstacles: RectObstacle[] = [];
+	private triangleObstacles: TriangleObstacle[] = [];
+
 	constructor(robotId: number) {
 		this._inst = pathLocal.createPath();
 		this._robotId = robotId;
@@ -170,7 +211,26 @@ export class Path {
 		return this._robotId;
 	}
 
+	private addObstaclesToPath(path: PathObjectCommon) {
+		path.clearObstacles();
+		for (let circle of this.circleObstacles) {
+			path.addCircle(circle.x, circle.y, circle.radius, circle.name, circle.prio);
+		}
+		for (let line of this.lineObstacles) {
+			path.addLine(line.start_x, line.start_y, line.stop_x, line.stop_y,
+				line.radius, line.name, line.prio);
+		}
+		for (let rect of this.rectObstacles) {
+			path.addRect(rect.start_x, rect.start_y, rect.stop_x, rect.stop_y, rect.name, rect.prio);
+		}
+		for (let tri of this.triangleObstacles) {
+			path.addTriangle(tri.x1, tri.y1, tri.x2, tri.y2, tri.x3, tri.y3, tri.lineWidth,
+				tri.name, tri.prio);
+		}
+	}
+
 	getPath(x1: number, y1: number, x2: number, y2: number): [number, number, number, number][] {
+		this.addObstaclesToPath(this._inst);
 		return this._inst.getPath(x1, y1, x2, y2);
 	}
 
@@ -183,7 +243,10 @@ export class Path {
 	}
 
 	clearObstacles() {
-		this._inst.clearObstacles();
+		this.circleObstacles.length = 0;
+		this.lineObstacles.length = 0;
+		this.rectObstacles.length = 0;
+		this.triangleObstacles.length = 0;
 	}
 
 	setRadius(radius: number) {
@@ -202,7 +265,7 @@ export class Path {
 			// avoid string allocations in ra
 			name = undefined;
 		}
-		this._inst.addCircle(x, y, radius, name, prio);
+		this.circleObstacles.push({x: x, y: y, radius: radius, name: name, prio: prio});
 	}
 
 	addLine(start_x: number, start_y: number, stop_x: number, stop_y: number, radius: number, name?: string, prio: number = 0) {
@@ -223,7 +286,8 @@ export class Path {
 			// avoid string allocations in ra
 			name = undefined;
 		}
-		this._inst.addLine(start_x, start_y, stop_x, stop_y, radius, name, prio);
+		this.lineObstacles.push({start_x: start_x, start_y: start_y, stop_x: stop_x, stop_y: stop_y,
+			radius: radius, name: name, prio: prio});
 	}
 
 	addRect(start_x: number, start_y: number, stop_x: number, stop_y: number, name?: string, prio: number = 0) {
@@ -241,7 +305,8 @@ export class Path {
 			// avoid string allocations in ra
 			name = undefined;
 		}
-		this._inst.addRect(start_x, start_y, stop_x, stop_y, name, prio);
+		this.rectObstacles.push({start_x: start_x, start_y: start_y, stop_x: stop_x, stop_y: stop_y,
+			name: name, prio: prio});
 	}
 
 	addTriangle(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number,
@@ -263,7 +328,8 @@ export class Path {
 			// avoid string allocations in ra
 			name = undefined;
 		}
-		this._inst.addTriangle(x1, y1, x2, y2, x3, y3, lineWidth, name, prio);
+		this.triangleObstacles.push({x1: x1, y1: y1, x2: x2, y2: y2, x3: x3, y3: y3,
+			lineWidth: lineWidth, name: name, prio: prio});
 	}
 
 	addSeedTarget(x: number, y: number) {
