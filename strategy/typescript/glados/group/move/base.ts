@@ -5,7 +5,7 @@ import { Behavior } from "glados/agent/base/behavior";
 import { MessageBox, MessageType } from "glados/control/messaging";
 import { Task } from "glados/task/base";
 
-export {MessageBox} from "glados/control/messaging";
+export { MessageBox } from "glados/control/messaging";
 
 export type Assignment = {
 	class: any,

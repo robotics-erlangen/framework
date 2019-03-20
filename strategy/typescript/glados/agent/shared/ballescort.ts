@@ -10,7 +10,7 @@ import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 import * as RefereeObs from "glados/observer/referee";
 import * as ObserverRobot from "glados/observer/robot";
-import {BallEscort as BallEscortTask } from "glados/task/shared/ballescort";
+import { BallEscort as BallEscortTask } from "glados/task/shared/ballescort";
 
 export class BallEscort extends Behavior {
 	_minRobot: Robot | undefined = undefined;

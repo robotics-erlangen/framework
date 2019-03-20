@@ -7,7 +7,7 @@ import { Position, Vector } from "base/vector";
 import * as World from "base/world";
 
 import { Behavior } from "glados/agent/base/behavior";
-import {Error as AgentError } from "glados/agent/shared/error";
+import { Error as AgentError } from "glados/agent/shared/error";
 import { Halt } from "glados/agent/shared/halt";
 import { MoveCommand } from "glados/agent/shared/movecommand";
 import { MessageBox, MessageType, MessageTypeList, Messaging } from "glados/control/messaging";

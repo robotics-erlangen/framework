@@ -15,7 +15,7 @@ import * as ObserverShoot from "glados/observer/shoot";
 import { CatchBall } from "glados/task/ability/catchball";
 import { ForceShoot } from "glados/task/ability/forceshoot";
 import { Volley } from "glados/task/ability/volley";
-import {Direct as TrajectoryDirect } from "glados/trajectory/direct";
+import { Direct as TrajectoryDirect } from "glados/trajectory/direct";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
 import * as Rating from "glados/util/rating";

@@ -9,7 +9,7 @@ import { MessageType } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 import { AggressiveKeeper } from "glados/task/keeper/aggressivekeeper";
-import {ChipAway as KeeperChipAway } from "glados/task/keeper/chipaway";
+import { ChipAway as KeeperChipAway } from "glados/task/keeper/chipaway";
 import { Keeper } from "glados/task/keeper/keeper";
 import { Pass } from "glados/task/shared/pass";
 import * as Attack from "glados/util/attack";

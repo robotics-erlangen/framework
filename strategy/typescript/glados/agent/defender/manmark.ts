@@ -10,7 +10,7 @@ import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
 import * as Goal from "glados/observer/goal";
 import { CenterBack } from "glados/task/defender/centerback";
-import {ManMark as ManMarkTask } from "glados/task/defender/manmark";
+import { ManMark as ManMarkTask } from "glados/task/defender/manmark";
 import { Duel } from "glados/task/shared/duel";
 import * as Defense from "glados/util/defense";
 

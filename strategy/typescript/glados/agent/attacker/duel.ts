@@ -9,7 +9,7 @@ import { MessageType } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 import * as Robot from "glados/observer/robot";
-import {Duel as TaskDuel } from "glados/task/shared/duel";
+import { Duel as TaskDuel } from "glados/task/shared/duel";
 
 
 const SAFTY_SPACE = 0.05;

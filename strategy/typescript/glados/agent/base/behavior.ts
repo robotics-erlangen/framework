@@ -4,7 +4,7 @@ import { Position } from "base/vector";
 
 import { Agent } from "glados/agent/base/agent";
 import { MessageBox, MessageType } from "glados/control/messaging";
-import {Agent as AgentForTask, Task } from "glados/task/base";
+import { Agent as AgentForTask, Task } from "glados/task/base";
 
 // this series of type expression generate all possible constructor types for a given task class as a tuple
 type AnyClass = new (...args: any[]) => any;
