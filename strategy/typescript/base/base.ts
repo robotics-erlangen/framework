@@ -31,6 +31,9 @@
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
 
+// the order of imports is important here, so proper grouping is impossible
+// tslint:disable
+
 import "base/error";
 
 import * as amunModule from "base/amun";
