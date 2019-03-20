@@ -28,7 +28,7 @@ import { Coordinates } from "base/coordinates";
 import * as MathUtil from "base/mathutil";
 import { Path } from "base/path";
 import * as pb from "base/protobuf";
-import { Trajectory } from "base/trajectory";
+import { RobotAccelerationProfile, Trajectory } from "base/trajectory";
 import { Position, Speed, Vector } from "base/vector";
 import * as vis from "base/vis";
 
@@ -40,14 +40,8 @@ interface RobotConstants {
 	minAngleError: number;
 }
 
-export interface RobotAccelerationProfile {
-	aSpeedupFMax: number;
-	aSpeedupSMax: number;
-	aSpeedupPhiMax: number;
-	aBrakeFMax: number;
-	aBrakeSMax: number;
-	aBrakePhiMax: number;
-}
+// re-export to be visible from other modules
+export { RobotAccelerationProfile };
 
 interface BallLike {
 	pos: Position;
