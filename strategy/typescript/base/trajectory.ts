@@ -28,6 +28,15 @@ import { Path } from "base/path";
 import { Position, Speed, Vector } from "base/vector";
 import * as vis from "base/vis";
 
+export interface RobotAccelerationProfile {
+	aSpeedupFMax: number;
+	aSpeedupSMax: number;
+	aSpeedupPhiMax: number;
+	aBrakeFMax: number;
+	aBrakeSMax: number;
+	aBrakePhiMax: number;
+}
+
 export interface RobotLike {
 	pos: Position;
 	speed: Speed;
@@ -38,7 +47,7 @@ export interface RobotLike {
 	dir: number;
 	maxAngularSpeed: number;
 	angularSpeed: number;
-	acceleration: any; // TODO: better types
+	acceleration: RobotAccelerationProfile;
 	prevMoveTo: Position | undefined;
 	setControllerInput(spline: any): any;
 	path: Path;
