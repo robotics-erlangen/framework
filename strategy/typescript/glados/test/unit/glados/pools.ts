@@ -2,6 +2,7 @@ import { _setIsBlue } from "base/coordinates";
 import { FriendlyRobot } from "base/robot";
 import { Vector } from "base/vector";
 import * as World from "base/world";
+
 import { MainCoordinator } from "glados/control/maincoordinator";
 import { MessageType } from "glados/control/messaging";
 import { UnitTest } from "glados/test/unit/unittest";

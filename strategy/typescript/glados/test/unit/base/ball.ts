@@ -2,6 +2,7 @@ import { Ball } from "base/ball";
 import * as Constants from "base/constants";
 import * as Coordinates from "base/coordinates";
 import { Position, Speed, Vector } from "base/vector";
+
 import { UnitTest } from "glados/test/unit/unittest";
 
 export class BaseBall extends UnitTest {

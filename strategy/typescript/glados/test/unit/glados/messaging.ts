@@ -1,5 +1,6 @@
 import { FriendlyRobot } from "base/robot";
 import { Vector } from "base/vector";
+
 import { MessageType, Messaging } from "glados/control/messaging";
 import { UnitTest } from "glados/test/unit/unittest";
 

@@ -1,5 +1,6 @@
 import { Process } from "base/process";
 import * as Processor from "base/processor";
+
 import { UnitTest } from "glados/test/unit/unittest";
 
 class SpyProcess implements Process {

@@ -1,5 +1,6 @@
 import * as C from "base/coordinates";
 import { Vector } from "base/vector";
+
 import { UnitTest } from "glados/test/unit/unittest";
 
 export class BaseCoordinates extends UnitTest {

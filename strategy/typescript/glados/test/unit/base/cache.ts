@@ -1,4 +1,5 @@
 import * as Cache from "base/cache";
+
 import { UnitTest } from "glados/test/unit/unittest";
 
 export class BaseCache extends UnitTest {

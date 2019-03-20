@@ -3,12 +3,10 @@
 // We use Vectors (among other things) as positions
 import { Vector } from "base/vector";
 
-// "PathHelper" is a class needed for pathfinding.
-import * as PathHelper from "glados/trajectory/pathhelper";
-
 // The tutorial class extends Task and the constructor of the Task-class expects an agent
 import { Agent, Task } from "glados/task/base";
-
+// "PathHelper" is a class needed for pathfinding.
+import * as PathHelper from "glados/trajectory/pathhelper";
 // "ToTarget" is a class that allows driving to a certain positions.
 import { ToTarget } from "glados/trajectory/totarget";
 

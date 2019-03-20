@@ -1,5 +1,6 @@
 import * as MathUtil from "base/mathutil";
 import { Vector } from "base/vector";
+
 import { UnitTest } from "glados/test/unit/unittest";
 
 let EPS = 1E-12;

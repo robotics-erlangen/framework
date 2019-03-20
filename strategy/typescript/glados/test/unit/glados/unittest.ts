@@ -1,4 +1,5 @@
 import { Vector } from "base/vector";
+
 import { UnitTest } from "glados/test/unit/unittest";
 
 export class GladosUnitTest extends UnitTest {

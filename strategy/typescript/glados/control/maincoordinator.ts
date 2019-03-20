@@ -8,7 +8,9 @@ import { Attacker } from "glados/agent/attacker";
 import { Defender } from "glados/agent/defender";
 import { Hidden } from "glados/agent/hidden";
 import { Keeper } from "glados/agent/keeper";
+import { AgentPool } from "glados/control/agentpool";
 import { Coordinator } from "glados/control/coordinator";
+import { MainTrainer } from "glados/trainer/maintrainer";
 import { Trainer } from "glados/trainer/trainer";
 // import {Manual} from "glados/agent/manual";
 
@@ -20,9 +22,6 @@ let Agents = {
 	Keeper: Keeper,
 	// Manual: Manual
 };
-
-import { AgentPool } from "glados/control/agentpool";
-import { MainTrainer } from "glados/trainer/maintrainer";
 
 export class MainCoordinator extends Coordinator {
 	constructor(trainer: MainTrainer) {

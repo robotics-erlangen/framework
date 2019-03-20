@@ -2,7 +2,7 @@ import * as debug from "base/debug";
 import * as Field from "base/field";
 import { FriendlyRobot } from "base/robot";
 import * as World from "base/world";
-//
+
 // import {Ally} from "glados/agent/ally";
 import { MessageBox, MessageType } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
