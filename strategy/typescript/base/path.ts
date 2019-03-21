@@ -29,7 +29,7 @@
 
 import { log } from "base/amun";
 import * as pb from "base/protobuf";
-import { Vector } from "base/vector";
+import { Position, Speed, Vector } from "base/vector";
 import * as vis from "base/vis";
 
 interface Obstacle {
@@ -175,9 +175,24 @@ interface PathObjectRRT extends PathObjectCommon {
 	addTreeVisualization(): void;
 }
 
+type TrajectoryPathResult = {
+	px: number;
+	py: number;
+	vx: number;
+	vy: number;
+	time: number;
+}[];
+
+interface PathObjectTrajectory extends PathObjectCommon {
+	calculateTrajectory(startX: number, startY: number, startSpeedX: number, startSpeedY: number,
+		endX: number, endY: number, endSpeedX: number, endSpeedY: number, maxSpeed: number): TrajectoryPathResult;
+}
+
 interface AmunPath {
 	/** Create a new RRT path planner object */
 	createPath(): PathObjectRRT;
+	/** Create a new trajectory path planner object */
+	createTrajectoryPath(): PathObjectTrajectory;
 }
 
 declare var path: any;
@@ -195,6 +210,7 @@ export function getOriginalPath(): any {
 
 export class Path {
 	private readonly _inst: PathObjectRRT;
+	private readonly _trajectoryInst: PathObjectTrajectory;
 	private readonly _robotId: number;
 
 	private circleObstacles: CircleObstacle[] = [];
@@ -204,6 +220,7 @@ export class Path {
 
 	constructor(robotId: number) {
 		this._inst = pathLocal.createPath();
+		this._trajectoryInst = pathLocal.createTrajectoryPath();
 		this._robotId = robotId;
 	}
 
@@ -227,6 +244,17 @@ export class Path {
 			path.addTriangle(tri.x1, tri.y1, tri.x2, tri.y2, tri.x3, tri.y3, tri.lineWidth,
 				tri.name, tri.prio);
 		}
+	}
+
+	getTrajectory(startPos: Position, startSpeed: Speed, endPos: Position, endSpeed: Speed, maxSpeed: number): { pos: Position, speed: Speed, time: number}[] {
+		this.addObstaclesToPath(this._trajectoryInst);
+		let t = this._trajectoryInst.calculateTrajectory(startPos.x, startPos.y, startSpeed.x,
+			startSpeed.y, endPos.x, endPos.y, endSpeed.x, endSpeed.y, maxSpeed);
+		let result: { pos: Position, speed: Speed, time: number}[] = [];
+		for (let p of t) {
+			result.push({ pos: new Vector(p.px, p.py), speed: new Vector(p.vx, p.vy), time: p.time});
+		}
+		return result;
 	}
 
 	getPath(x1: number, y1: number, x2: number, y2: number): [number, number, number, number][] {
