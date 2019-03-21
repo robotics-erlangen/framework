@@ -24,6 +24,8 @@
 #include <v8.h>
 
 #include "path/path.h"
+#include "path/trajectorypath.h"
+#include "path/vector.h"
 #include "core/timer.h"
 #include "protobuf/debug.pb.h"
 #include "protobuf/robot.pb.h"
@@ -44,15 +46,18 @@ using namespace v8;
 class QTPath: public QObject {
     Q_OBJECT
 public:
-    QTPath(Path *p, Typescript *t):
+    QTPath(Path *p, TrajectoryPath *tp, Typescript *t):
         QObject(t),
         p(p),
+        tp(tp),
         t(t) {}
     Path *path() const { return p.get(); }
+    TrajectoryPath *trajectoryPath() const { return tp.get(); }
     Typescript *typescript() const { return t; }
 
 private:
     std::unique_ptr<Path> p;
+    std::unique_ptr<TrajectoryPath> tp;
     Typescript *t;
 };
 
@@ -267,6 +272,53 @@ static void pathGet(QTPath *wrapper, const FunctionCallbackInfo<Value>& args, in
 }
 GENERATE_FUNCTIONS(pathGet);
 
+static void trajectoryPathGet(QTPath *wrapper, const FunctionCallbackInfo<Value>& args, int offset)
+{
+    Isolate *isolate = args.GetIsolate();
+    const qint64 t = Timer::systemTime();
+
+    // robot radius must have been set before
+    if (!wrapper->path()->isRadiusValid()) {
+        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "Invalid radius", String::kNormalString)));
+        return;
+    }
+
+    float startX, startY, startSpeedX, startSpeedY, endX, endY, endSpeedX, endSpeedY, maxSpeed;
+    if (!verifyNumber(isolate, args[offset], startX) || !verifyNumber(isolate, args[1 + offset], startY) ||
+            !verifyNumber(isolate, args[2 + offset], startSpeedX) || !verifyNumber(isolate, args[3 + offset], startSpeedY) ||
+            !verifyNumber(isolate, args[4 + offset], endX) || !verifyNumber(isolate, args[5 + offset], endY) ||
+            !verifyNumber(isolate, args[6 + offset], endSpeedX) || !verifyNumber(isolate, args[7 + offset], endSpeedY) ||
+            !verifyNumber(isolate, args[8 + offset], maxSpeed)) {
+        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "Invalid arguments", String::kNormalString)));
+        return;
+    }
+
+    std::vector<TrajectoryPath::Point> trajectory = wrapper->trajectoryPath()->calculateTrajectory(Vector(startX, startY), Vector(startSpeedX, startSpeedY),
+                                                     Vector(endX, endY), Vector(endSpeedX, endSpeedY), maxSpeed);
+
+    // convert path to js object
+    unsigned int i = 0;
+    Local<Array> result = Array::New(isolate, trajectory.size());
+    Local<String> pxString = String::NewFromUtf8(isolate, "px", NewStringType::kNormal).ToLocalChecked();
+    Local<String> pyString = String::NewFromUtf8(isolate, "py", NewStringType::kNormal).ToLocalChecked();
+    Local<String> vxString = String::NewFromUtf8(isolate, "vx", NewStringType::kNormal).ToLocalChecked();
+    Local<String> vyString = String::NewFromUtf8(isolate, "vy", NewStringType::kNormal).ToLocalChecked();
+    Local<String> timeString = String::NewFromUtf8(isolate, "time", NewStringType::kNormal).ToLocalChecked();
+    for (const TrajectoryPath::Point &p : trajectory) {
+        Local<Object> pathPart = Object::New(isolate);
+        pathPart->Set(pxString, Number::New(isolate, double(p.pos.x)));
+        pathPart->Set(pyString, Number::New(isolate, double(p.pos.y)));
+        pathPart->Set(vxString, Number::New(isolate, double(p.speed.x)));
+        pathPart->Set(vyString, Number::New(isolate, double(p.speed.y)));
+        pathPart->Set(timeString, Number::New(isolate, double(p.time)));
+        result->Set(i++, pathPart);
+    }
+
+    wrapper->typescript()->addPathTime((Timer::systemTime() - t) / 1E9);
+    args.GetReturnValue().Set(result);
+}
+GENERATE_FUNCTIONS(trajectoryPathGet);
+
 static void drawTree(Typescript *thread, const KdTree *tree)
 {
     if (tree == nullptr) {
@@ -329,6 +381,9 @@ static QList<FunctionInfo> rrtPathCallbacks = {
     { "getPath",            pathGet_new},
     { "addTreeVisualization", pathAddTreeVisualization_new}};
 
+static QList<FunctionInfo> trajectoryPathCallbacks = {
+    { "calculateTrajectory", trajectoryPathGet_new }};
+
 static void pathObjectAddFunctions(Isolate *isolate, const QList<FunctionInfo> &callbacks, Local<Object> &pathWrapper,
                                    Local<External> &pathObject)
 {
@@ -343,7 +398,7 @@ static void pathCreateNew(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = args.GetIsolate();
     Typescript *ts = static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value())->typescript();
-    QTPath *p = new QTPath(new Path(ts->time()), ts);
+    QTPath *p = new QTPath(new Path(ts->time()), nullptr, ts);
 
     Local<Object> pathWrapper = Object::New(isolate);
     Local<External> pathObject = External::New(isolate, p);
@@ -352,11 +407,24 @@ static void pathCreateNew(const FunctionCallbackInfo<Value>& args)
     args.GetReturnValue().Set(pathWrapper);
 }
 
+static void trajectoryPathCreateNew(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = args.GetIsolate();
+    Typescript *ts = static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value())->typescript();
+    QTPath *p = new QTPath(nullptr, new TrajectoryPath(ts->time()), ts);
+
+    Local<Object> pathWrapper = Object::New(isolate);
+    Local<External> pathObject = External::New(isolate, p);
+    pathObjectAddFunctions(isolate, commonCallbacks, pathWrapper, pathObject);
+    pathObjectAddFunctions(isolate, trajectoryPathCallbacks, pathWrapper, pathObject);
+    args.GetReturnValue().Set(pathWrapper);
+}
+
 static void pathCreateOld(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = args.GetIsolate();
     Typescript *ts = static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value())->typescript();
-    QTPath *p = new QTPath(new Path(ts->time()), ts);
+    QTPath *p = new QTPath(new Path(ts->time()), nullptr, ts);
     args.GetReturnValue().Set(External::New(isolate, p));
 }
 
@@ -364,6 +432,7 @@ void registerPathJsCallbacks(Isolate *isolate, Local<Object> global, Typescript 
 {
     QList<FunctionInfo> callbacks = {
         { "createPath",         pathCreateNew},
+        { "createTrajectoryPath", trajectoryPathCreateNew},
         // legacy functions, kept for backwards compatibility
         { "create",             pathCreateOld},
         { "destroy",            pathDestroy_legacy},
@@ -384,7 +453,7 @@ void registerPathJsCallbacks(Isolate *isolate, Local<Object> global, Typescript 
     Local<Object> pathObject = Object::New(isolate);
     Local<String> pathStr = String::NewFromUtf8(isolate, "path", NewStringType::kNormal).ToLocalChecked();
     for (auto callback : callbacks) {
-        QTPath *path = new QTPath(nullptr, t);
+        QTPath *path = new QTPath(nullptr, nullptr, t);
         Local<String> name = String::NewFromUtf8(isolate, callback.name, NewStringType::kNormal).ToLocalChecked();
         auto functionTemplate = FunctionTemplate::New(isolate, callback.function, External::New(isolate, path),
                                                       Local<Signature>(), 0, ConstructorBehavior::kThrow, SideEffectType::kHasSideEffect);
