@@ -59,7 +59,7 @@ const MIN_PRECISION = 3.5 * Math.PI / 180;
 const MIN_PRECISION_CHASE = 6 * Math.PI / 180;
 
 enum ShootState {
-	StationaryBall, ChaseBall, Volley, StopBall, Unknown
+	StationaryBall = "StationaryBall", ChaseBall = "ChaseBall", Volley = "Volley", StopBall = "StopBall", Unknown = "Unknown"
 }
 
 export class Shoot {

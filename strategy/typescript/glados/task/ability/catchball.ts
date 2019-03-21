@@ -23,9 +23,9 @@ let OBSTACLE_EPSILON = 0.001;
 let OBSTACLE_PRIORITY = 28;
 
 enum CatchMethod {
-	Around,
-	Stop,
-	Hunt
+	Around = "Around",
+	Stop = "Stop",
+	Hunt = "Hunt"
 }
 
 interface BallLike {

@@ -18,11 +18,11 @@ import * as ShootGoalUtil from "glados/util/shootgoal";
 
 
 enum State {
-	Prepare,
-	Wait,
-	ShootGoal,
-	PassPrepare,
-	Pass,
+	Prepare = "Prepare",
+	Wait = "Wait",
+	ShootGoal = "ShootGoal",
+	PassPrepare = "PassPrepare",
+	Pass = "Pass",
 }
 
 interface Pass {
