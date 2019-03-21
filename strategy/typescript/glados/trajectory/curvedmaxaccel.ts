@@ -12,6 +12,7 @@ import { Position, Speed, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
 
+import { DirectRotation } from "glados/trajectory/directrotation";
 import * as PathHelper from "glados/trajectory/pathhelper";
 
 // preprocess the waypoints to ensure that the first corner is more or less
@@ -401,80 +402,6 @@ function _injectExponentialFalloff(speedProfile: number[][], exponentialTime: nu
 	return speedProfile;
 }
 
-function _calculateRotation(currentDir: number, currentOmega: number, targetDir: number,
-		accelerate: number, brake: number, maxSpeed: number, exponentialTime: number): [number, number] {
-	let fullBrakeTime = Math.abs(currentOmega / brake);
-	// how far the robot will rotate even if it brakes with maximum speed
-	let forcedRotation = MathUtil.sign(currentOmega) * -brake * fullBrakeTime * fullBrakeTime / 2;
-
-	// FIXME assert. (maxSpeed/maxAccel)^2*maxSpeed/2 < Math.PI
-
-	// required direction change
-	let dirChange = geom.getAngleDiff(currentDir, targetDir);
-
-	// if the robot is fast enough that rotating with the opposite angle would be faster
-	if (Math.abs(dirChange - forcedRotation) >= Math.PI) {
-		if (dirChange < 0) {
-			dirChange = dirChange + 2 * Math.PI;
-		} else {
-			dirChange = dirChange - 2 * Math.PI;
-		}
-	}
-
-	// v(t) = v_0 * e^(-k*t)  <//> v(dist) = k*dist
-	// v_0 = expStartSpeed
-	// v'(0) = brake -> k = 1/exponentialTime
-	let k = 1 / exponentialTime;
-	let expStartSpeed = exponentialTime * -brake;
-	// integrate v(t) from 0 to +inf
-	let expDistance = expStartSpeed * exponentialTime;
-
-	let outSpeed;
-	let outAccel;
-
-	if (Math.abs(dirChange) <= expDistance) {
-		// exponential part
-		outSpeed = MathUtil.bound(-maxSpeed, dirChange * k, maxSpeed);
-		outAccel = 0; // FIXME
-	} else if (MathUtil.sign(currentOmega) !== MathUtil.sign(dirChange)) {
-		// robot rotates into the wrong direciton
-		outSpeed = currentOmega;
-		outAccel = MathUtil.sign(dirChange) * -brake;
-	} else if (Math.abs(currentOmega) <= expStartSpeed) {
-		// robot is slower that the exponential start speed
-		outSpeed = currentOmega;
-		outAccel = MathUtil.sign(dirChange) * accelerate;
-		if (Math.abs(outSpeed) > maxSpeed) {
-			outAccel = 0;
-		}
-	} else {
-		// check whether the robot should brake yet or keep accelerating
-		let brakeTime = (Math.abs(currentOmega) - expStartSpeed) / -brake;
-		let brakeDist = expDistance + -brake * brakeTime * brakeTime / 2 + expStartSpeed * brakeTime;
-
-		if (Math.abs(dirChange) <= brakeDist) {
-			let remainingBrakeTime = MathUtil.solveSq(-brake / 2, expStartSpeed, expDistance - brakeDist)[0];
-			if (remainingBrakeTime == undefined || remainingBrakeTime < 0) {
-				throw new Error("");
-			}
-			outSpeed = MathUtil.sign(dirChange) * (expStartSpeed + remainingBrakeTime * -brake);
-			outAccel = MathUtil.sign(dirChange) * brake;
-		} else {
-			// speed-up
-			let targetSpeed = Math.abs(currentOmega);
-			outAccel = MathUtil.sign(dirChange) * accelerate;
-			// limit to maxSpeed
-			if (targetSpeed >= maxSpeed) {
-				targetSpeed = maxSpeed;
-				outAccel = 0;
-			}
-			outSpeed = targetSpeed * MathUtil.sign(dirChange);
-		}
-	}
-
-	return [outSpeed, outAccel];
-}
-
 function _speedAtTime(speedProfile: number[][], time: number): number {
 	let endIdx = speedProfile.length;
 	for (let i = 1;i < speedProfile.length;i++) {
@@ -548,8 +475,7 @@ function _calculateSpeed(robotId: number, waypoints: Position[], maxSpeedProfile
 }
 
 export class CurvedMaxAccel extends TrajectoryHandler {
-	private _lastTargetDir: number | undefined;
-	private _lastTime: number | undefined;
+	private rotationCalculation: DirectRotation = new DirectRotation();
 
 	private _getPath(targetPos: Position): Position[] {
 		targetPos = Coordinates.toGlobal(targetPos);
@@ -590,21 +516,6 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 		}
 
 		return waypointsVector;
-	}
-
-	private _calculateRotationHysteresis(robotDir: number, currentOmega: number, targetDir: number, rotAccel: number, rotBrake: number,
-				rotSpeed: number, rotExpTime: number): [number, number] {
-		let [angularSpeed, angularAccel] = _calculateRotation(robotDir, currentOmega, targetDir,
-			rotAccel, rotBrake, rotSpeed, rotExpTime);
-		if (this._lastTime != undefined && this._lastTargetDir != undefined) {
-			// feedforward of target direction change
-			// as tracking a direction only works if it changes slow enough, using feedforwad shouldn't cause any trouble
-			let directionChange = (targetDir - this._lastTargetDir) / (World.Time - this._lastTime);
-			angularSpeed = angularSpeed + directionChange;
-		}
-		this._lastTargetDir = targetDir;
-		this._lastTime = World.Time;
-		return [angularSpeed, angularAccel];
 	}
 
 	update(...args: [Position, number, number, Speed, number, boolean]): TrajectoryResult {
@@ -652,7 +563,7 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 		let waypoints = this._getPath(targetPos);
 		if (waypoints.length === 0) { // no waypoints left, just stay here but also update the orientation
 			targetDir = Coordinates.toGlobal(targetDir);
-			let [angularSpeed, angularAccel] = this._calculateRotationHysteresis(robotDir, this._robot.angularSpeed, targetDir,
+			let [angularSpeed, angularAccel] = this.rotationCalculation.calculateRotationHysteresis(robotDir, this._robot.angularSpeed, targetDir,
 				rotAccelerate, rotBrake, rotMaxSpeed, rotationExponentialTime);
 			let spline = [ {t_start: 0, t_end: Infinity,
 				x: { a0: robotPos.x, a1: endSpeed.x, a2: 0, a3: 0 },
@@ -732,8 +643,8 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 		} else {
 			targetDir = Coordinates.toGlobal(targetDir);
 		}
-		let [angularSpeed, angularAccel] = this._calculateRotationHysteresis(robotDir, this._robot.angularSpeed, targetDir,
-				rotAccelerate, rotBrake, rotMaxSpeed, rotationExponentialTime);
+		let [angularSpeed, angularAccel] = this.rotationCalculation.calculateRotationHysteresis(robotDir,
+			this._robot.angularSpeed, targetDir, rotAccelerate, rotBrake, rotMaxSpeed, rotationExponentialTime);
 
 		let spline = [ {t_start: 0, t_end: Infinity,
 			x: { a0: robotPos.x, a1: speedVector.x, a2: accelVector.x / 2, a3: 0 },
