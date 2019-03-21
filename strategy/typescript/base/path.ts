@@ -250,7 +250,7 @@ export class Path {
 		this.addObstaclesToPath(this._trajectoryInst);
 		let t = this._trajectoryInst.calculateTrajectory(startPos.x, startPos.y, startSpeed.x,
 			startSpeed.y, endPos.x, endPos.y, endSpeed.x, endSpeed.y, maxSpeed);
-		let result: { pos: Position, speed: Speed, time: number}[] = [];
+		let result: { pos: Position, speed: Speed, time: number }[] = [];
 		for (let p of t) {
 			result.push({ pos: new Vector(p.px, p.py), speed: new Vector(p.vx, p.vy), time: p.time});
 		}
@@ -268,6 +268,7 @@ export class Path {
 
 	setBoundary(x1: number, y1: number, x2: number, y2: number) {
 		this._inst.setBoundary(x1, y1, x2, y2);
+		this._trajectoryInst.setBoundary(x1, y1, x2, y2);
 	}
 
 	clearObstacles() {
@@ -279,6 +280,7 @@ export class Path {
 
 	setRadius(radius: number) {
 		this._inst.setRadius(radius);
+		this._trajectoryInst.setRadius(radius);
 	}
 
 	// wrap add obstacle functions for automatic strategy to global coordinates conversion

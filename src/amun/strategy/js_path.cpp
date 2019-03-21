@@ -52,7 +52,7 @@ public:
         tp(tp),
         t(t) {}
     Path *path() const { return p.get(); }
-    AbstractPath *abstractPath() const { p ? static_cast<AbstractPath*>(p.get()) : tp.get(); }
+    AbstractPath *abstractPath() const { return p ? static_cast<AbstractPath*>(p.get()) : tp.get(); }
     TrajectoryPath *trajectoryPath() const { return tp.get(); }
     Typescript *typescript() const { return t; }
 
