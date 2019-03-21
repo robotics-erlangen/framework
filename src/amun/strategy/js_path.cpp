@@ -52,6 +52,7 @@ public:
         tp(tp),
         t(t) {}
     Path *path() const { return p.get(); }
+    AbstractPath *abstractPath() const { p ? static_cast<AbstractPath*>(p.get()) : tp.get(); }
     TrajectoryPath *trajectoryPath() const { return tp.get(); }
     Typescript *typescript() const { return t; }
 
@@ -82,19 +83,19 @@ static Local<String> createV8String(Isolate *isolate, const char *text)
 
 static void pathDestroy(QTPath *wrapper, const FunctionCallbackInfo<Value>&, int)
 {
-    delete wrapper->path();
+    delete wrapper->abstractPath();
 }
 GENERATE_FUNCTIONS(pathDestroy);
 
 static void pathReset(QTPath *wrapper, const FunctionCallbackInfo<Value>&, int)
 {
-    wrapper->path()->reset();
+    wrapper->abstractPath()->reset();
 }
 GENERATE_FUNCTIONS(pathReset);
 
 static void pathClearObstacles(QTPath *wrapper, const FunctionCallbackInfo<Value>&, int)
 {
-    wrapper->path()->clearObstacles();
+    wrapper->abstractPath()->clearObstacles();
 }
 GENERATE_FUNCTIONS(pathClearObstacles);
 
@@ -107,7 +108,7 @@ static void pathSetBoundary(QTPath *wrapper, const FunctionCallbackInfo<Value>& 
             !verifyNumber(isolate, args[2 + offset], x2) || !verifyNumber(isolate, args[3 + offset], y2)) {
         return;
     }
-    wrapper->path()->setBoundary(x1, y1, x2, y2);
+    wrapper->abstractPath()->setBoundary(x1, y1, x2, y2);
 }
 GENERATE_FUNCTIONS(pathSetBoundary);
 
@@ -118,7 +119,7 @@ static void pathSetRadius(QTPath *wrapper, const FunctionCallbackInfo<Value>& ar
     if (!verifyNumber(isolate, args[offset], r)) {
         return;
     }
-    wrapper->path()->setRadius(r);
+    wrapper->abstractPath()->setRadius(r);
 }
 GENERATE_FUNCTIONS(pathSetRadius);
 
@@ -131,7 +132,7 @@ static void pathAddCircle(QTPath *wrapper, const FunctionCallbackInfo<Value>& ar
             !verifyNumber(isolate, args[2 + offset], r) || !verifyNumber(isolate, args[4 + offset], prio)) {
         return;
     }
-    wrapper->path()->addCircle(x, y, r, nullptr, int(prio));
+    wrapper->abstractPath()->addCircle(x, y, r, nullptr, int(prio));
 }
 GENERATE_FUNCTIONS(pathAddCircle);
 
@@ -150,7 +151,7 @@ static void pathAddLine(QTPath *wrapper, const FunctionCallbackInfo<Value>& args
         isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "line must have non zero length", String::kNormalString)));
         return;
     }
-    wrapper->path()->addLine(x1, y1, x2, y2, width, nullptr, int(prio));
+    wrapper->abstractPath()->addLine(x1, y1, x2, y2, width, nullptr, int(prio));
 }
 GENERATE_FUNCTIONS(pathAddLine);
 
@@ -186,7 +187,7 @@ static void pathAddRect(QTPath *wrapper, const FunctionCallbackInfo<Value>& args
         return;
     }
 
-    wrapper->path()->addRect(x1, y1, x2, y2, nullptr, int(prio));
+    wrapper->abstractPath()->addRect(x1, y1, x2, y2, nullptr, int(prio));
 }
 GENERATE_FUNCTIONS(pathAddRect);
 
@@ -201,7 +202,7 @@ static void pathAddTriangle(QTPath *wrapper, const FunctionCallbackInfo<Value>& 
         return;
     }
 
-    wrapper->path()->addTriangle(x1, y1, x2, y2, x3, y3, lineWidth, nullptr, int(prio));
+    wrapper->abstractPath()->addTriangle(x1, y1, x2, y2, x3, y3, lineWidth, nullptr, int(prio));
 }
 GENERATE_FUNCTIONS(pathAddTriangle);
 
@@ -278,7 +279,7 @@ static void trajectoryPathGet(QTPath *wrapper, const FunctionCallbackInfo<Value>
     const qint64 t = Timer::systemTime();
 
     // robot radius must have been set before
-    if (!wrapper->path()->isRadiusValid()) {
+    if (!wrapper->trajectoryPath()->isRadiusValid()) {
         isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "Invalid radius", String::kNormalString)));
         return;
     }
@@ -304,7 +305,7 @@ static void trajectoryPathGet(QTPath *wrapper, const FunctionCallbackInfo<Value>
     Local<String> vxString = String::NewFromUtf8(isolate, "vx", NewStringType::kNormal).ToLocalChecked();
     Local<String> vyString = String::NewFromUtf8(isolate, "vy", NewStringType::kNormal).ToLocalChecked();
     Local<String> timeString = String::NewFromUtf8(isolate, "time", NewStringType::kNormal).ToLocalChecked();
-    for (const TrajectoryPath::Point &p : trajectory) {
+    for (const auto &p : trajectory) {
         Local<Object> pathPart = Object::New(isolate);
         pathPart->Set(pxString, Number::New(isolate, double(p.pos.x)));
         pathPart->Set(pyString, Number::New(isolate, double(p.pos.y)));
