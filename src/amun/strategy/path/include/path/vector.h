@@ -52,6 +52,7 @@ public:
     Vector operator * (float scalar) const;
     Vector operator / (float scalar) const;
     Vector& operator *= (float scalar);
+    Vector& operator += (const Vector &other);
     float operator * (const Vector &rho) const;
     bool operator == (const Vector &rho) const;
     bool operator != (const Vector &rho) const;
@@ -61,6 +62,9 @@ public:
     float length() const;
     float lengthSquared() const;
     float distance(const Vector &rho) const;
+    float dot(const Vector &other) const {
+        return x * other.x + y * other.y;
+    }
 
     static float det(const Vector &a, const Vector &b, const Vector &c) {
         return a.x * b.y + b.x * c.y + c.x * a.y - a.x * c.y - b.x * a.y - c.x * b.y;
@@ -119,6 +123,13 @@ inline bool Vector::operator == (const Vector &rho) const
 inline bool Vector::operator != (const Vector &rho) const
 {
     return x != rho.x || y != rho.y;
+}
+
+inline Vector& Vector::operator += (const Vector &other)
+{
+    x += other.x;
+    y += other.y;
+    return *this;
 }
 
 inline Vector& Vector::operator *= (float scalar)
