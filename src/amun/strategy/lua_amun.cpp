@@ -357,6 +357,13 @@ static int amunSendMixedTeamInfo(lua_State *state)
     return 0;
 }
 
+static int amunIsFlipped(lua_State *state)
+{
+    Lua *thread = getStrategyThread(state);
+    lua_pushboolean(state, thread->isFlipped());
+    return 1;
+}
+
 static int amunSendNetworkRefereeCommand(lua_State *state)
 {
     Lua *thread = getStrategyThread(state);
@@ -477,6 +484,7 @@ static const luaL_Reg amunMethods[] = {
     {"getUserInput",        amunGetUserInput},
     {"getCurrentTime",      amunGetCurrentTime},
     {"getPerformanceMode",  amunGetPerformanceMode},
+    {"isFlipped",           amunIsFlipped},
     // control + visualization
     {"setCommand",          amunSetCommand},
     {"log",                 amunLog},
