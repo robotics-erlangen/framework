@@ -51,4 +51,13 @@ message GameState {
     // even when the internal referee is enabled,
     // this value will be true when a real game is running (i.e. not in halt, timeout)
     optional bool is_real_game_running = 9;
+
+    // The time in microseconds that is remaining until the current action times out
+    // The time will not be reset. It can get negative.
+    // An autoRef would raise an appropriate event, if the time gets negative.
+    // Possible actions where this time is relevant:
+    //  * free kicks
+    //  * kickoff, penalty kick, force start
+    //  * ball placement
+    optional int32 current_action_time_remaining = 10;
 }

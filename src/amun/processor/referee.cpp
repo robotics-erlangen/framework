@@ -73,6 +73,10 @@ void Referee::handlePacket(const QByteArray &data)
         m_gameState.mutable_game_event()->CopyFrom(packet.gameevent());
     }
 
+    if (packet.has_current_action_time_remaining()) {
+        m_gameState.set_current_action_time_remaining(packet.current_action_time_remaining());
+    }
+
     if (m_isInternalReferee) {
         // the internal referee sends the counter delta since the last referee command
         // this is possible as referee packets are sent only once
