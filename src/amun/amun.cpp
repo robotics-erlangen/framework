@@ -160,8 +160,7 @@ void Amun::start()
         // forward robot commands to processor
         connect(m_strategy[i], SIGNAL(sendStrategyCommands(bool, QList<RobotCommandInfo>, qint64)),
                 m_processor, SLOT(handleStrategyCommands(bool, QList<RobotCommandInfo>, qint64)));
-        connect(m_strategy[i], SIGNAL(sendHalt(bool)),
-                m_processor, SLOT(handleStrategyHalt(bool)));
+        connect(m_strategy[i], SIGNAL(sendHalt(bool)), m_processor, SLOT(handleStrategyHalt(bool)));
         connect(this, SIGNAL(gotRefereeHost(QString)), m_strategy[i], SLOT(handleRefereeHost(QString)));
         connect(m_processor, SIGNAL(setFlipped(bool)), m_strategy[i], SLOT(setFlipped(bool)));
 

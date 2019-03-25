@@ -280,7 +280,7 @@ end
 -- @param lineStart Vector - the start point of the line
 -- @param lineEnd Vector - the end point of the line
 function vector_mt:nearestPosOnLine(lineStart, lineEnd)
-	local dir = (lineEnd - lineStart):normalize()
+	local dir = (lineEnd - lineStart)
 	if (self - lineStart):dot(dir) <= 0 then
 		return lineStart
 	elseif (self - lineEnd):dot(dir) >= 0 then

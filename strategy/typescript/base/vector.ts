@@ -300,7 +300,7 @@ export class Vector {
 	// @param lineStart Vector - the start point of the line
 	// @param lineEnd Vector - the end point of the line
 	nearestPosOnLine(lineStart: Vector, lineEnd: Vector): Vector {
-		let dir = (lineEnd - lineStart).normalize();
+		let dir = (lineEnd - lineStart);
 		if ((this - lineStart).dot(dir) <= 0) {
 			return lineStart;
 		} else if ((this - lineEnd).dot(dir) >= 0) {

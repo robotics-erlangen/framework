@@ -3,22 +3,28 @@
 
 // BlockingStrategyReplay
 BlockingStrategyReplay::BlockingStrategyReplay(Strategy * strategy, int size) :
-    cacheSize(size) {
+    cacheSize(size)
+{
     connect(strategy, SIGNAL(startReadingStatus()), this, SLOT(strategyExecute()), Qt::DirectConnection);
     connect(strategy, SIGNAL(sendStatus(Status)), this, SIGNAL(gotStatus(Status)));
     connect(this, SIGNAL(gotStatusForStrategy(Status)), strategy, SLOT(handleStatus(Status)));
+    connect(this, SIGNAL(gotCommand(Command)), strategy, SLOT(handleCommand(Command)));
 }
 
-void BlockingStrategyReplay::strategyExecute() {
+void BlockingStrategyReplay::strategyExecute()
+{
     conditionMutex.lock();
     cacheCounter--;
     if (cacheCounter < cacheSize) {
         conditionMutex.unlock();
         waitCondition.wakeOne();
+    } else {
+        conditionMutex.unlock();
     }
 }
 
-void BlockingStrategyReplay::handleStatus(const Status &status) {
+void BlockingStrategyReplay::handleStatus(const Status &status)
+{
     conditionMutex.lock();
     if (cacheCounter >= cacheSize) {
         waitCondition.wait(&conditionMutex);
@@ -29,12 +35,14 @@ void BlockingStrategyReplay::handleStatus(const Status &status) {
 }
 
 // FeedbackStrategyReplay
-FeedbackStrategyReplay::FeedbackStrategyReplay(Strategy * strategy) {
+FeedbackStrategyReplay::FeedbackStrategyReplay(Strategy * strategy)
+{
     connect(this, SIGNAL(gotStatus(Status)), strategy, SLOT(handleStatus(Status)));
     connect(strategy, SIGNAL(gotStatus(Status)), this, SLOT(handleStrategyStatus(Status)));
 }
 
-Status FeedbackStrategyReplay::executeWithFeedback(const Status &orig) {
+Status FeedbackStrategyReplay::executeWithFeedback(const Status &orig)
+{
     conditionMutex.lock();
     emit gotStatus(orig);
     waitCondition.wait(&conditionMutex);
@@ -43,7 +51,8 @@ Status FeedbackStrategyReplay::executeWithFeedback(const Status &orig) {
     return status;
 }
 
-void FeedbackStrategyReplay::handleStrategyStatus(const Status &status) {
+void FeedbackStrategyReplay::handleStrategyStatus(const Status &status)
+{
     conditionMutex.lock();
     lastStatus->CopyFrom(*status);
     conditionMutex.unlock();

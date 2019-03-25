@@ -6,6 +6,7 @@
 #include <QObject>
 
 #include "protobuf/status.h"
+#include "protobuf/command.h"
 
 class Strategy;
 
@@ -16,11 +17,11 @@ public:
 
 signals:
     void gotStatus(const Status &status);
+    void gotCommand(const Command &command);
     void gotStatusForStrategy(const Status &status);
 
 public slots:
     void strategyExecute();
-
     void handleStatus(const Status &status);
 
 private:

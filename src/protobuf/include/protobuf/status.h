@@ -36,11 +36,6 @@ public:
         m_status = QSharedPointer<amun::Status>(status);
     }
 
-    Status(amun::Status *status, google::protobuf::Arena* arena) {
-        m_arenaStatus = status;
-        m_arena = QSharedPointer<google::protobuf::Arena>(arena);
-    }
-
     void clear() {
         m_status.clear();
         m_arena.clear();
@@ -74,6 +69,11 @@ public:
     }
 
 private:
+    Status(amun::Status *status, google::protobuf::Arena* arena) {
+        m_arenaStatus = status;
+        m_arena = QSharedPointer<google::protobuf::Arena>(arena);
+    }
+
     QSharedPointer<amun::Status> m_status;
     amun::Status *m_arenaStatus = nullptr;
     QSharedPointer<google::protobuf::Arena> m_arena;

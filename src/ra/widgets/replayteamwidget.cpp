@@ -30,12 +30,6 @@ ReplayTeamWidget::ReplayTeamWidget(QWidget *parent) :
     connect(this, SIGNAL(gotStatus(Status)), ui->blue, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), ui->yellow, SLOT(handleStatus(Status)));
 
-    connect(ui->backloglog, SIGNAL(clicked()), this, SIGNAL(saveBacklog()));
-    connect(ui->loglog, SIGNAL(clicked(bool)), this, SIGNAL(enableRecording(bool)));
-    connect(this, SIGNAL(enableLogLogButton(bool)), ui->loglog, SLOT(setEnabled(bool)));
-    connect(this, SIGNAL(enableBackLogLogButton(bool)), ui->backloglog, SLOT(setEnabled(bool)));
-    connect(this, SIGNAL(setLogLogButton(bool)), ui->loglog, SLOT(setChecked(bool)));
-
     ui->blue->enableDebugger(false);
     ui->yellow->enableDebugger(false);
 }

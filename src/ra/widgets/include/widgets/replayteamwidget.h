@@ -23,12 +23,6 @@ public:
 signals:
     void gotStatus(const Status & status);
     void sendCommand(const Command &command);
-
-    void saveBacklog();
-    void enableRecording(bool enabled);
-    void enableBackLogLogButton(bool enable);
-    void enableLogLogButton(bool enable);
-    void setLogLogButton(bool on);
     void setRegularVisualizationsEnabled(bool blue, bool enabled);
     void sendResetDebugPacket(bool blue);
 

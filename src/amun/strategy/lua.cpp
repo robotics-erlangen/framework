@@ -355,18 +355,8 @@ bool Lua::loadScript(const QString &filename, const QString &entryPoint)
         return false;
     }
 
-    // cleanup entrypoints list
-    m_entryPoints.sort();
-    m_entryPoints.removeDuplicates();
-    if (m_entryPoints.isEmpty()) {
-        m_errorMsg = "<font color=\"red\">No entry points defined!</font>";
+    if (!chooseEntryPoint(entryPoint)) {
         return false;
-    }
-
-    m_entryPoint = entryPoint;
-    // use first entry point as fallback
-    if (!m_entryPoints.contains(m_entryPoint)) {
-        m_entryPoint = m_entryPoints.first();
     }
 
     // publish entry point for strategy

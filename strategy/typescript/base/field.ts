@@ -397,7 +397,7 @@ function defenseIntersectionByWay_2018(way: number, extraDistance: number, frien
 	for (let i = 0;i < 3;i++) {
 		let v = corners[i];
 		let length = (i % 2 === 1) ? G.DefenseWidth : G.DefenseHeight;
-		if (way <= length || i === 1) {
+		if (way <= length || i === 2) {
 			return (v + directions[i] * way) * f;
 		}
 		way = way - length - Math.PI / 2 * extraDistance;
