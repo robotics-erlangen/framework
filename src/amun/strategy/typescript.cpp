@@ -248,8 +248,16 @@ static void buildStackTrace(const Local<Context>& context, QString& errorMsg, co
 {
     if (tryCatch.HasTerminated() || tryCatch.HasCaught()) {
         errorMsg = "<font color=\"red\">";
+        Local<Message> checkMessage = tryCatch.Message();
         Local<Value> message = tryCatch.Exception();
-        if (!message.IsEmpty()) {
+        // When the strategy is beeing terminated by Script timeout,
+        // there is no JS representation for this exception.
+        // However, there is an exception so message.IsEmpty returns false.
+        // To check that this is happening, we use checkMessage.
+        // As .Message() returns the associated message to the exception,
+        // which is not present if the exception does not have a JS representation,
+        // this handle will be empty.
+        if (!checkMessage.IsEmpty()) {
             String::Utf8Value exception(isolate, message);
             QString exceptionString(*exception);
             exceptionString.replace("\n", "<br>");
@@ -277,7 +285,7 @@ static void buildStackTrace(const Local<Context>& context, QString& errorMsg, co
             }
         } else {
             // this will happen when an exception is created without an error object, i.e. throw "some error"
-            if (!message.IsEmpty()) {
+            if (!checkMessage.IsEmpty()) {
                 String::Utf8Value exception(isolate, message);
                 QString exceptionString(*exception);
                 exceptionString.replace("\n", "<br>");
