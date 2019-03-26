@@ -73,6 +73,10 @@ bool SeqLogFileReader::open(const QString &filename)
         return false;
     }
 
+    // packageGroupSize will be updated in readVersion, if a new Version is detected.
+    // This makes sure that m_startOffset = m_baseOffset = m_file->pos(), which is important for .reset()
+    m_packageGroupSize = 0;
+
     // check for known version
     if (!readVersion()) {
         m_file->close();
