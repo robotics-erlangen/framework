@@ -87,7 +87,13 @@ void Referee::handlePacket(const QByteArray &data)
 
     if (m_counter != packet.command_counter()) {
         m_counter = packet.command_counter();
-        handleCommand(packet.command());
+        m_gameState.set_state(processCommand(packet.command(), gameState().state()));
+    }
+
+    if (packet.has_next_command()) {
+        m_gameState.set_next_state(processCommand(packet.next_command(), gameState().state()));
+    } else {
+        m_gameState.clear_next_state();
     }
 }
 
@@ -107,7 +113,7 @@ void Referee::handleRemoteControlRequest(const SSL_RefereeRemoteControlRequest &
         }
     }
     if (request.has_command()) {
-        handleCommand(request.command());
+        m_gameState.set_state(processCommand(request.command(), m_gameState.state()));
     }
     if (request.has_stage()) {
         m_gameState.set_stage(request.stage());
@@ -165,102 +171,78 @@ void Referee::process(const world::State &worldState)
     }
 }
 
-/*!
- * \brief Handle a referee command
- * \param command Command to process
- */
-void Referee::handleCommand(SSL_Referee::Command command)
+amun::GameState::State Referee::processCommand(SSL_Referee::Command command, amun::GameState::State currentState)
 {
     switch (command) {
     case SSL_Referee::HALT:
-        m_gameState.set_state(amun::GameState::Halt);
-        break;
+        return amun::GameState::Halt;
 
     case SSL_Referee::STOP:
-        m_gameState.set_state(amun::GameState::Stop);
-        break;
+        return amun::GameState::Stop;
 
     case SSL_Referee::NORMAL_START:
-        switch (m_gameState.state()) {
+        switch (currentState) {
         case amun::GameState::KickoffYellowPrepare:
-            m_gameState.set_state(amun::GameState::KickoffYellow);
-            break;
+            return amun::GameState::KickoffYellow;
 
         case amun::GameState::KickoffBluePrepare:
-            m_gameState.set_state(amun::GameState::KickoffBlue);
-            break;
+            return amun::GameState::KickoffBlue;
 
         case amun::GameState::PenaltyYellowPrepare:
-            m_gameState.set_state(amun::GameState::PenaltyYellow);
-            break;
+            return amun::GameState::PenaltyYellow;
 
         case amun::GameState::PenaltyBluePrepare:
-            m_gameState.set_state(amun::GameState::PenaltyBlue);
-            break;
+            return amun::GameState::PenaltyBlue;
 
         default:
             // silently ignore start command
-            break;
+            return currentState;
         }
-        break;
 
     case SSL_Referee::FORCE_START:
-        m_gameState.set_state(amun::GameState::GameForce);
-        break;
+        return amun::GameState::GameForce;
 
     case SSL_Referee::PREPARE_KICKOFF_YELLOW:
-        m_gameState.set_state(amun::GameState::KickoffYellowPrepare);
-        break;
+        return amun::GameState::KickoffYellowPrepare;
 
     case SSL_Referee::PREPARE_KICKOFF_BLUE:
-        m_gameState.set_state(amun::GameState::KickoffBluePrepare);
-        break;
+        return amun::GameState::KickoffBluePrepare;
 
     case SSL_Referee::BALL_PLACEMENT_YELLOW:
-        m_gameState.set_state(amun::GameState::BallPlacementYellow);
-        break;
+        return amun::GameState::BallPlacementYellow;
 
     case SSL_Referee::BALL_PLACEMENT_BLUE:
-        m_gameState.set_state(amun::GameState::BallPlacementBlue);
-        break;
+        return amun::GameState::BallPlacementBlue;
 
     case SSL_Referee::PREPARE_PENALTY_YELLOW:
-        m_gameState.set_state(amun::GameState::PenaltyYellowPrepare);
-        break;
+        return amun::GameState::PenaltyYellowPrepare;
 
     case SSL_Referee::PREPARE_PENALTY_BLUE:
-        m_gameState.set_state(amun::GameState::PenaltyBluePrepare);
-        break;
+        return amun::GameState::PenaltyBluePrepare;
 
     case SSL_Referee::DIRECT_FREE_YELLOW:
-        m_gameState.set_state(amun::GameState::DirectYellow);
-        break;
+        return amun::GameState::DirectYellow;
 
     case SSL_Referee::DIRECT_FREE_BLUE:
-        m_gameState.set_state(amun::GameState::DirectBlue);
-        break;
+        return amun::GameState::DirectBlue;
 
     case SSL_Referee::INDIRECT_FREE_YELLOW:
-        m_gameState.set_state(amun::GameState::IndirectYellow);
-        break;
+        return amun::GameState::IndirectYellow;
 
     case SSL_Referee::INDIRECT_FREE_BLUE:
-        m_gameState.set_state(amun::GameState::IndirectBlue);
-        break;
+        return amun::GameState::IndirectBlue;
 
     case SSL_Referee::TIMEOUT_YELLOW:
-        m_gameState.set_state(amun::GameState::TimeoutYellow);
-        break;
+        return amun::GameState::TimeoutYellow;
 
     case SSL_Referee::TIMEOUT_BLUE:
-        m_gameState.set_state(amun::GameState::TimeoutBlue);
-        break;
+        return amun::GameState::TimeoutBlue;
 
     case SSL_Referee::GOAL_YELLOW:
     case SSL_Referee::GOAL_BLUE:
-        m_gameState.set_state(amun::GameState::Stop);
-        break;
+        return amun::GameState::Stop;
     }
+    return currentState;
 }
 
 bool Referee::isGameRunning()

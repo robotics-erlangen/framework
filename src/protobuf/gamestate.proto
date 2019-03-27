@@ -60,4 +60,11 @@ message GameState {
     //  * kickoff, penalty kick, force start
     //  * ball placement
     optional int32 current_action_time_remaining = 10;
+
+    // the state that is supposed to come after the current state
+    // this is important for ball placement for which it is necessary to
+    // know the state that would follow the ball placement if successfull.
+    // Note that it is not guaranteed to be the next state, since ball placement might fail
+    // or fouls might be commited
+    optional State next_state = 11;
 }

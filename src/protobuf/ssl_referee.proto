@@ -172,6 +172,13 @@ message SSL_Referee {
         // The game event that caused the referee command
         optional SSL_Referee_Game_Event gameEvent = 11 [deprecated = true];
 
+        // The command that will be issued after the current stoppage and ball placement to continue the game.
+        optional Command next_command = 12;
+
+        // All game events that were detected since the last RUNNING state.
+        // Will be cleared as soon as the game is continued.
+        repeated gameController.GameEvent game_events = 13;
+
         // All non-finished proposed game events that may be processed next.
         repeated ProposedGameEvent proposed_game_events = 14;
 

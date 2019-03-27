@@ -44,7 +44,7 @@ public:
     bool isGameRunning();
 
 private:
-    void handleCommand(SSL_Referee::Command command);
+    static amun::GameState::State processCommand(SSL_Referee::Command command, amun::GameState::State currentState);
 
 private:
     const bool m_isInternalReferee;
