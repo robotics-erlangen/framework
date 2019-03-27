@@ -152,7 +152,8 @@ int main(int argc, char* argv[])
         Timer timer;
         timer.setTime(logfile.readStatus(0)->time(), 1.0);
         StrategyType strategyColor = asBlue ? StrategyType::BLUE : StrategyType::YELLOW;
-        std::unique_ptr<Strategy> strategy(new Strategy(&timer, strategyColor, nullptr, &compilerRegistry));
+        std::shared_ptr<GameControllerConnection> connection(new GameControllerConnection(false));
+        std::unique_ptr<Strategy> strategy(new Strategy(&timer, strategyColor, nullptr, &compilerRegistry, connection));
         std::unique_ptr<ReplayTestRunner> testRunner;
         if (runAsTest) {
             testRunner.reset(new ReplayTestRunner(currentDirectory.absoluteFilePath(parser.value(runTestScript)), strategyColor, &compilerRegistry));

@@ -90,8 +90,9 @@ int main(int argc, char* argv[])
     FeedbackStrategyReplay * strategyReplay = nullptr;
     QThread* strategyThread = nullptr;
     bool lastFlipped = false;
+    std::shared_ptr<GameControllerConnection> connection(new GameControllerConnection(false));
     if (parser.isSet(autorefDirOption)) {
-        strategy = new Strategy(timer, StrategyType::AUTOREF, nullptr, &compilerRegistry);
+        strategy = new Strategy(timer, StrategyType::AUTOREF, nullptr, &compilerRegistry, connection);
 
         strategyThread = new QThread();
         strategy->moveToThread(strategyThread);

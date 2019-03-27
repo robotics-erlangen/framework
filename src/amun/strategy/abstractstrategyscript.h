@@ -21,6 +21,7 @@
 #ifndef ABSTRACTSTRATEGYSCRIPT_H
 #define ABSTRACTSTRATEGYSCRIPT_H
 
+#include "gamecontroller/gamecontrollerconnection.h"
 #include "protobuf/command.h"
 #include "protobuf/debug.pb.h"
 #include "protobuf/gamestate.pb.h"
@@ -35,20 +36,9 @@
 #include <QStringList>
 #include <QDir>
 #include <QList>
-#include <QHostAddress>
-#include <memory>
 
 class DebugHelper;
 class Timer;
-class QTcpSocket;
-class SocketAdapter;
-namespace google {
-    namespace protobuf {
-        namespace io {
-            class CopyingInputStreamAdaptor;
-        }
-    }
-}
 
 class CompilerRegistry;
 
@@ -57,7 +47,7 @@ class AbstractStrategyScript : public QObject
     Q_OBJECT
 public:
     AbstractStrategyScript(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled, CompilerRegistry* registry = nullptr);
-    ~AbstractStrategyScript() override {}
+    ~AbstractStrategyScript() override;
     AbstractStrategyScript(const AbstractStrategyScript&) = delete;
     AbstractStrategyScript& operator=(const AbstractStrategyScript&) = delete;
 
@@ -86,10 +76,8 @@ public:
     void setCurrentStatus(const Status &status) { m_currentStatus = status; }
     const Status &getCurrentStatus() const { return m_currentStatus; }
 
-    bool connectGameController();
-    bool sendGameControllerMessage(const google::protobuf::Message *message);
-    bool receiveGameControllerMessage(google::protobuf::Message *type);
-    void setGameControllerHost(QHostAddress host);
+    void setGameControllerConnection(std::shared_ptr<GameControllerConnection> &connection);
+    std::shared_ptr<GameControllerConnection> getGameControllerConnection() const { return m_gameControllerConnection; }
 
     // getter functions
     QString errorMsg() const { return m_errorMsg; }
@@ -111,9 +99,9 @@ public:
     bool isInternalAutoref() const { return m_isInternalAutoref; }
     bool isPerformanceMode() const { return m_isPerformanceMode; }
     bool isReplay() const { return m_isReplay;}
-    void addRefereeReply(SSL_RefereeRemoteControlReply reply) { m_refereeReplys.append(reply); }
-    SSL_RefereeRemoteControlReply nextRefereeReply() { return m_refereeReplys.takeFirst(); }
-    bool hasRefereeReply() const { return m_refereeReplys.size() > 0; }
+    void addRefereeReply(SSL_RefereeRemoteControlReply reply) { m_refereeReplies.append(reply); }
+    SSL_RefereeRemoteControlReply nextRefereeReply() { return m_refereeReplies.takeFirst(); }
+    bool hasRefereeReply() const { return m_refereeReplies.size() > 0; }
     bool isFlipped() const { return m_isFlipped; }
     bool isTournamentMode() const { return m_isTournamentMode; }
 
@@ -183,14 +171,9 @@ protected:
     amun::UserInput m_userInput;
     Status m_currentStatus; // used for replay tests
 
-    QList<SSL_RefereeRemoteControlReply> m_refereeReplys;
+    QList<SSL_RefereeRemoteControlReply> m_refereeReplies;
 
-    // the game controller connection should be reset as soon the strategy dies, therefore it is managed here
-    std::shared_ptr<QTcpSocket> m_gameControllerSocket;
-    int m_nextPackageSize = -1; // negative if not known yet
-    QByteArray m_partialPacket;
-    unsigned int m_sizeBytesPosition = 0;
-    QHostAddress m_gameControllerHost;
+    std::shared_ptr<GameControllerConnection> m_gameControllerConnection;
 
     CompilerRegistry* m_compilerRegistry;
 private:

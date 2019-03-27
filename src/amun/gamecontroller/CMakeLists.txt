@@ -1,5 +1,5 @@
 # ***************************************************************************
-# *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
+# *   Copyright 2019 Andreas Wendler                                        *
 # *   Robotics Erlangen e.V.                                                *
 # *   http://www.robotics-erlangen.de/                                      *
 # *   info@robotics-erlangen.de                                             *
@@ -18,39 +18,21 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-add_subdirectory(processor)
-add_subdirectory(simulator)
-add_subdirectory(strategy)
-add_subdirectory(gamecontroller)
+add_library(gamecontroller
+    include/gamecontroller/externalgamecontroller.h
+    include/gamecontroller/gamecontrollerconnection.h
 
-add_library(amun
-    include/amun/amun.h
-    include/amun/amunclient.h
-
-    amun.cpp
-    amunclient.cpp
-    networkinterfacewatcher.cpp
-    networkinterfacewatcher.h
-    receiver.cpp
-    receiver.h
+    externalgamecontroller.cpp
+    gamecontrollerconnection.cpp
 )
-target_link_libraries(amun
-    PRIVATE shared::core
-    PRIVATE amun::processor
-    PRIVATE amun::simulator
-    PRIVATE amun::strategy
+target_link_libraries(gamecontroller
     PUBLIC shared::protobuf
     PUBLIC Qt5::Core
-    PRIVATE Qt5::Network
-    PUBLIC amun::gamecontroller
+    PUBLIC Qt5::Network
 )
-target_include_directories(amun
+target_include_directories(gamecontroller
     INTERFACE include
-    PRIVATE include/amun
+    PRIVATE include/gamecontroller
 )
 
-if(WIN32)
-    target_link_libraries(amun PRIVATE wsock32)
-endif()
-
-add_library(amun::amun ALIAS amun)
+add_library(amun::gamecontroller ALIAS gamecontroller)

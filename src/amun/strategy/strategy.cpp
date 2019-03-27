@@ -88,7 +88,8 @@ void Strategy::initV8() { }
  * \param timer Timer to be used for time scaling
  * \param type can be blue or yellow team or autoref
  */
-Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, CompilerRegistry* registry, bool internalAutoref, bool isLogplayer) :
+Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, CompilerRegistry* registry,
+                   std::shared_ptr<GameControllerConnection> &gameControllerConnection, bool internalAutoref, bool isLogplayer) :
     m_p(new StrategyPrivate),
     m_timer(timer),
     m_strategy(nullptr),
@@ -109,7 +110,8 @@ Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, C
     m_isTournamentMode(false),
     m_refboxReplyLength(-1),
     m_isInLogplayer(isLogplayer),
-    m_compilerRegistry(registry)
+    m_compilerRegistry(registry),
+    m_gameControllerConnection(gameControllerConnection)
 {
     initV8();
 
@@ -372,9 +374,6 @@ void Strategy::handleRefereeHost(QString hostName)
     if (newAddress != m_p->refereeHost) {
         m_p->refereeHost = hostName;
         m_refboxSocket->close();
-        if (m_strategy) {
-            m_strategy->setGameControllerHost(newAddress);
-        }
     }
 }
 
@@ -609,7 +608,7 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
         // the debug helper doesn't know the exact moment when the strategy gets reloaded
         m_debugHelper->enableQueue();
     }
-    m_strategy->setGameControllerHost(m_p->refereeHost);
+    m_strategy->setGameControllerConnection(m_gameControllerConnection);
     m_strategy->setIsInternalAutoref(m_isInternalAutoref);
     m_strategy->setIsPerformanceMode(m_isPerformanceMode);
     m_strategy->setIsReplay(m_isReplay);

@@ -673,7 +673,7 @@ static void amunDisconnectDebugger(const FunctionCallbackInfo<Value>& args)
 static void amunConnectGameController(const FunctionCallbackInfo<Value>& args)
 {
     Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
-    bool connected = t->connectGameController();
+    bool connected = t->getGameControllerConnection()->connectGameController();
     args.GetReturnValue().Set(connected);
 }
 
@@ -701,7 +701,7 @@ static void amunSendGameControllerMessage(const FunctionCallbackInfo<Value>& arg
         return;
     }
 
-    if (!t->connectGameController()) {
+    if (!t->getGameControllerConnection()->connectGameController()) {
         t->throwException("Not connected to game controller");
         return;
     }
@@ -710,7 +710,7 @@ static void amunSendGameControllerMessage(const FunctionCallbackInfo<Value>& arg
         return;
     }
 
-    t->sendGameControllerMessage(message.get());
+    t->getGameControllerConnection()->sendGameControllerMessage(message.get());
 }
 
 static void amunGetGameControllerMessage(const FunctionCallbackInfo<Value>& args)
@@ -723,7 +723,7 @@ static void amunGetGameControllerMessage(const FunctionCallbackInfo<Value>& args
         message.reset(new gameController::ControllerToTeam);
     }
 
-    bool hasResult = t->receiveGameControllerMessage(message.get());
+    bool hasResult = t->getGameControllerConnection()->receiveGameControllerMessage(message.get());
     if (hasResult) {
         Local<Value> result = protobufToJs(args.GetIsolate(), *message.get());
         args.GetReturnValue().Set(result);

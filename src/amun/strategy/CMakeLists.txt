@@ -53,6 +53,7 @@ target_link_libraries(strategy
     PUBLIC shared::protobuf
     PUBLIC Qt5::Core
     PRIVATE Qt5::Network
+    PUBLIC amun::gamecontroller
 )
 
 target_include_directories(strategy

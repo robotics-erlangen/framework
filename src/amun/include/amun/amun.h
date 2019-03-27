@@ -22,6 +22,7 @@
 #define AMUN_H
 
 #include "strategy/compilerregistry.h"
+#include "gamecontroller/gamecontrollerconnection.h"
 #include "protobuf/command.h"
 #include "protobuf/status.h"
 #include <QObject>
@@ -98,6 +99,7 @@ private:
     Receiver *m_mixedTeam;
     Strategy *m_strategy[3];
     DebugHelper *m_debugHelper[3];
+    std::shared_ptr<GameControllerConnection> m_gameControllerConnection[3];
     Strategy *m_replayStrategy[2];
     BlockingStrategyReplay *m_strategyBlocker[2];
     qint64 m_lastTime;

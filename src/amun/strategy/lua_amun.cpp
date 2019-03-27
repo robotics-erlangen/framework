@@ -286,7 +286,7 @@ static int amunSendRefereeCommand(lua_State *state)
 static int amunConnectGameController(lua_State *state)
 {
     Lua *thread = getStrategyThread(state);
-    bool connected = thread->connectGameController();
+    bool connected = thread->getGameControllerConnection()->connectGameController();
     lua_pushboolean(state, connected);
     return 1;
 }
@@ -311,14 +311,14 @@ static int amunSendGameControllerMessage(lua_State *state)
         return 0;
     }
 
-    if (!thread->connectGameController()) {
+    if (!thread->getGameControllerConnection()->connectGameController()) {
         luaL_error(state, "Not connected to game controller");
         return 0;
     }
 
     protobufToMessage(state, 2, *message, nullptr);
 
-    thread->sendGameControllerMessage(message.get());
+    thread->getGameControllerConnection()->sendGameControllerMessage(message.get());
     return 0;
 }
 
@@ -332,7 +332,7 @@ static int amunGetGameControllerMessage(lua_State *state)
         message.reset(new gameController::ControllerToTeam);
     }
 
-    bool hasResult = thread->receiveGameControllerMessage(message.get());
+    bool hasResult = thread->getGameControllerConnection()->receiveGameControllerMessage(message.get());
     if (hasResult) {
         protobufPushMessage(state, *message);
         return 1;

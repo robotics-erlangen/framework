@@ -21,12 +21,14 @@
 #ifndef STRATEGY_H
 #define STRATEGY_H
 
+#include "gamecontroller/gamecontrollerconnection.h"
 #include "protobuf/command.h"
 #include "protobuf/robotcommand.h"
 #include "protobuf/status.h"
 #include "strategytype.h"
 #include <QString>
 #include <QStringList>
+#include <memory>
 
 class AbstractStrategyScript;
 class DebugHelper;
@@ -47,7 +49,8 @@ class Strategy : public QObject
     Q_OBJECT
 
 public:
-    Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, CompilerRegistry* registry, bool internalAutoref = false, bool isLogplayer = false);
+    Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, CompilerRegistry* registry,
+             std::shared_ptr<GameControllerConnection> &gameControllerConnection, bool internalAutoref = false, bool isLogplayer = false);
     ~Strategy() override;
     Strategy(const Strategy&) = delete;
     Strategy& operator=(const Strategy&) = delete;
@@ -128,6 +131,9 @@ private:
     const bool m_isInLogplayer;
 
     CompilerRegistry* m_compilerRegistry;
+
+    std::shared_ptr<GameControllerConnection> m_gameControllerConnection;
+
 #ifdef V8_FOUND
     std::unique_ptr<InspectorServer> m_inspectorServer;
 
