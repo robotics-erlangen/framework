@@ -388,6 +388,8 @@ export class BaseGeom extends UnitTest {
 
 		this.assert_equal_eps(geom.normalizeAngle(4), 4 - 2 * Math.PI, 0.001);
 		this.assert_equal_eps(geom.normalizeAngle(-4), -4 + 2 * Math.PI, 0.001);
+
+		this.assert_nan(geom.normalizeAngle(NaN));
 	}
 
 	private testNormalizeAnglePositive() {
@@ -397,6 +399,8 @@ export class BaseGeom extends UnitTest {
 
 		this.assert_equal_eps(geom.normalizeAnglePositive(7), 7 - 2 * Math.PI, 0.001);
 		this.assert_equal_eps(geom.normalizeAnglePositive(-1), -1 + 2 * Math.PI, 0.001);
+
+		this.assert_nan(geom.normalizeAnglePositive(NaN));
 	}
 
 	private testGetAngleDiff() {
