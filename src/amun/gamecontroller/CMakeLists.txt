@@ -19,13 +19,16 @@
 # ***************************************************************************
 
 add_library(gamecontroller
+    include/gamecontroller/internalgamecontroller.h
     include/gamecontroller/externalgamecontroller.h
     include/gamecontroller/gamecontrollerconnection.h
 
+    internalgamecontroller.cpp
     externalgamecontroller.cpp
     gamecontrollerconnection.cpp
 )
 target_link_libraries(gamecontroller
+    PUBLIC shared::core
     PUBLIC shared::protobuf
     PUBLIC Qt5::Core
     PUBLIC Qt5::Network

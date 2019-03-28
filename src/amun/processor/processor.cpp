@@ -24,6 +24,7 @@
 #include "processor.h"
 #include "referee.h"
 #include "core/timer.h"
+#include "gamecontroller/internalgamecontroller.h"
 #include "tracking/speedtracker.h"
 #include "tracking/tracker.h"
 #include <cmath>
@@ -129,6 +130,8 @@ Processor::Processor(const Timer *timer) :
     m_tracker = new Tracker;
     m_speedTracker = new SpeedTracker;
 
+    m_internalGameController.reset(new InternalGameController(timer));
+
     // start processing
     m_trigger = new QTimer(this);
     connect(m_trigger, SIGNAL(timeout()), SLOT(process()));
@@ -136,6 +139,9 @@ Processor::Processor(const Timer *timer) :
     m_trigger->start(1000/FREQUENCY);
 
     connect(timer, &Timer::scalingChanged, this, &Processor::setScaling);
+
+    connect(m_internalGameController.get(), &InternalGameController::gotPacketForReferee, m_refereeInternal, &Referee::handlePacket);
+    connect(this, &Processor::sendStatus, m_internalGameController.get(), &InternalGameController::handleStatus);
 }
 
 /*!
@@ -441,11 +447,6 @@ void Processor::handleCommand(const Command &command)
             m_refereeInternalActive = refereeCommand.active();
         }
 
-        if (refereeCommand.has_command()) {
-            const std::string &c = refereeCommand.command();
-            m_refereeInternal->handlePacket(QByteArray(c.data(), c.size()));
-        }
-
         if (refereeCommand.has_autoref_command()) {
             m_refereeInternal->handleRemoteControlRequest(refereeCommand.autoref_command());
         }
@@ -453,6 +454,8 @@ void Processor::handleCommand(const Command &command)
         if (refereeCommand.has_flipped()) {
             m_refereeInternal->setFlipped(refereeCommand.flipped());
         }
+
+        m_internalGameController->handleCommand(refereeCommand);
     }
 
     if (command->has_control()) {

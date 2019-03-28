@@ -26,9 +26,12 @@
 #include "protobuf/ssl_referee.pb.h"
 #include "protobuf/world.pb.h"
 #include <QByteArray>
+#include <QObject>
 
-class Referee
+class Referee : public QObject
 {
+    Q_OBJECT
+
 public:
     explicit Referee(bool isInternalReferee);
 
@@ -36,7 +39,7 @@ public:
     const amun::GameState& gameState() const { return m_gameState; }
     bool getFlipped() const { return m_flipped; }
 
-public:
+public slots:
     void handlePacket(const QByteArray &data);
     void handleRemoteControlRequest(const SSL_RefereeRemoteControlRequest &request);
     void process(const world::State &worldState);

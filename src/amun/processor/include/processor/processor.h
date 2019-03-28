@@ -36,6 +36,7 @@ class SpeedTracker;
 class Timer;
 class Tracker;
 class QTimer;
+class InternalGameController;
 
 class Processor : public QObject
 {
@@ -107,6 +108,8 @@ private:
     bool m_refereeInternalActive;
     bool m_simulatorEnabled;
     bool m_lastFlipped;
+
+    std::shared_ptr<InternalGameController> m_internalGameController;
 
     Team m_blueTeam;
     Team m_yellowTeam;

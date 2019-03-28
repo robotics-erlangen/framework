@@ -7,6 +7,8 @@
 
 class GameControllerConnection : public QObject
 {
+    Q_OBJECT
+
 public:
     GameControllerConnection(bool isAutoref);
     bool connectGameController();
