@@ -51,7 +51,7 @@ export class StopAttack extends Task {
 
 		// try to always be where the opponent shooter will try to shoot
 		let isOpponentFreekickState = World.RefereeState === "IndirectDefensive" || World.RefereeState === "DirectDefensive";
-		let defendOpponentPasses = World.Ball.pos.y > 0 && isOpponentFreekickState;
+		let defendOpponentPasses = (World.Ball.pos.y > 0 || World.RefereeState === "IndirectDefensive") && isOpponentFreekickState;
 
 		let passReceivers = RobotList.excludeRobots(World.OpponentRobots, [opponentShooter!, World.OpponentKeeper!]);
 		if (dist < 0.2 + this._robot.radius && defendOpponentPasses && passReceivers.length > 0) {
