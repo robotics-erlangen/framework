@@ -45,15 +45,33 @@ data/pkg/:
 data/scripts/git-color, data/udev/99-robotics-usb-devices.rules, data/gamecontrollerdb.txt:
  * Public Domain 2014 Robotics Erlangen e.V.
 
-src/protobuf/ssl_referee.proto:
+src/protobuf/ssl_refbox_remotecontrol.proto:
  * Part of SSL-Refbox
 
-src/protobuf/ssl_*.proto:
+src/protobuf/ssl_radio_protocol.proto:
+ * Part of ssl-radio-protocol
+
+src/protobuf/ssl_mixed_team.proto:
+ * Part of ssl-multi-team-communication
+
+src/protobuf/ssl_detection.proto, ssl_wrapper.proto, ssl_geometry.proto:
  * Part of SSL-Vision
+
+src/protobuf/ssl_game_controller_*.proto, ssl_referee.proto, ssl_referee_game_event.proto, ssl_game_event_2019.proto:
+ * Part of SSL-Game-Controller
+
+strategy/typescript/base/random.ts
+ * Copyright 1997 - 2002 Takuji Nishimura and Makoto Matsumoto
+ * Modified by Sean McCullough
+ * Licensed under BSD 3-Clause License (BSD New) (http://opensource.org/licenses/BSD-3-Clause)
 
 
 
 Used libraries by license:
+
+Apache License 2.0 (https://www.apache.org/licenses/LICENSE-2.0)
+    SourceMap-QT (https://github.com/hicknhack-software/SourceMap-Qt)
+    Typescript compiler (https://github.com/Microsoft/TypeScript)
 
 Lesser General Public License 2.1 (LGPL 2.1) (http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html)
     libusb (http://libusb.org/) - LGPL 2.1 or higher
