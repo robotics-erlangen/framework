@@ -71,6 +71,8 @@ if(V8_FOUND)
         js_protobuf.h
         typescript.cpp
         typescript.h
+        typescriptcompiler.h
+        typescriptcompiler.cpp
         tsc_internal.h
         tsc_internal.cpp
         inspectorholder.cpp
