@@ -62,7 +62,6 @@ target_include_directories(strategy
 
 if(V8_FOUND)
     target_sources(strategy PRIVATE
-        include/strategy/typescriptcompiler.h
         checkforscripttimeout.h
         js_amun.cpp
         js_amun.h
@@ -72,7 +71,8 @@ if(V8_FOUND)
         js_protobuf.h
         typescript.cpp
         typescript.h
-        typescriptcompiler.cpp
+        tsc_internal.h
+        tsc_internal.cpp
         inspectorholder.cpp
         inspectorholder.h
         inspectorserver.cpp

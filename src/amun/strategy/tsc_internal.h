@@ -18,8 +18,8 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef TYPESCRIPTCOMPILER_H
-#define TYPESCRIPTCOMPILER_H
+#ifndef INTERNALTYPESCRIPTCOMPILER_H
+#define INTERNALTYPESCRIPTCOMPILER_H
 
 #include <memory>
 #include <functional>
@@ -32,11 +32,11 @@ namespace Node
 
 class QString;
 
-class TypescriptCompiler
+class InternalTypescriptCompiler
 {
 public:
-    TypescriptCompiler();
-    ~TypescriptCompiler();
+    InternalTypescriptCompiler();
+    ~InternalTypescriptCompiler();
 
     void startCompiler(const QString& cwd);
     void startCompiler(const QString& cwd, std::function<void(int)> onTermination);
@@ -56,4 +56,4 @@ private:
     bool running = false;
 };
 
-#endif // TYPESCRIPTCOMPILER_H
+#endif // INTERNALTYPESCRIPTCOMPILER_H

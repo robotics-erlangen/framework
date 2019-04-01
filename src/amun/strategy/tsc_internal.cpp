@@ -18,7 +18,7 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#include "typescriptcompiler.h"
+#include "tsc_internal.h"
 
 #include "node/buffer.h"
 #include "node/fs.h"
@@ -48,7 +48,7 @@ static void printExitcode(int a)
     std::cout << "compilation ended with exitcode: " << a << std::endl;
 }
 
-TypescriptCompiler::TypescriptCompiler()
+InternalTypescriptCompiler::InternalTypescriptCompiler()
 {
     Isolate::CreateParams create_params;
     V8::SetFlagsFromString("--expose_gc", 12);
@@ -75,7 +75,7 @@ TypescriptCompiler::TypescriptCompiler()
     m_context.Reset(m_isolate, context);
 }
 
-TypescriptCompiler::~TypescriptCompiler()
+InternalTypescriptCompiler::~InternalTypescriptCompiler()
 {
     // don't use an Isolate::Scope since we need to Exit before Dispose
     m_isolate->Enter();
@@ -105,13 +105,13 @@ void logCallback(const v8::FunctionCallbackInfo<v8::Value>& args) {
     std::cout << message.toStdString() << std::endl;
 }
 
-void TypescriptCompiler::registerRequireFunction(v8::Local<v8::ObjectTemplate> global)
+void InternalTypescriptCompiler::registerRequireFunction(v8::Local<v8::ObjectTemplate> global)
 {
     global->Set(m_isolate, "log", FunctionTemplate::New(m_isolate, &logCallback, External::New(m_isolate, this)));
-    global->Set(m_isolate, "require", FunctionTemplate::New(m_isolate, &TypescriptCompiler::requireCallback, External::New(m_isolate, this)));
+    global->Set(m_isolate, "require", FunctionTemplate::New(m_isolate, &InternalTypescriptCompiler::requireCallback, External::New(m_isolate, this)));
 }
 
-void TypescriptCompiler::requireCallback(const FunctionCallbackInfo<Value>& args) {
+void InternalTypescriptCompiler::requireCallback(const FunctionCallbackInfo<Value>& args) {
     auto isolate = args.GetIsolate();
     HandleScope handleScope(isolate);
 
@@ -123,7 +123,7 @@ void TypescriptCompiler::requireCallback(const FunctionCallbackInfo<Value>& args
     }
     std::string moduleName = *String::Utf8Value(args[0]);
 
-    auto tsc = static_cast<TypescriptCompiler*>(Local<External>::Cast(args.Data())->Value());
+    auto tsc = static_cast<InternalTypescriptCompiler*>(Local<External>::Cast(args.Data())->Value());
     Node::ObjectContainer* moduleContainer = tsc->m_requireNamespace->get(moduleName);
 
     if (moduleContainer) {
@@ -139,20 +139,20 @@ void TypescriptCompiler::requireCallback(const FunctionCallbackInfo<Value>& args
     }
 }
 
-void TypescriptCompiler::processCwdCallback(const FunctionCallbackInfo<Value>& args)
+void InternalTypescriptCompiler::processCwdCallback(const FunctionCallbackInfo<Value>& args)
 {
     auto data = args.Data();
     Local<External> uncasted = Local<External>::Cast(data);
     void* value = uncasted->Value();
-    auto tsc = static_cast<TypescriptCompiler*>(value);
+    auto tsc = static_cast<InternalTypescriptCompiler*>(value);
     auto fs = static_cast<Node::fs*>(tsc->m_requireNamespace->get("fs"));;
     Local<String> cwd = String::NewFromUtf8(args.GetIsolate(), fs->getPath().toUtf8().data(), NewStringType::kNormal).ToLocalChecked();
     args.GetReturnValue().Set(cwd);
 }
 
-void TypescriptCompiler::exitCompilation(const FunctionCallbackInfo<Value>& args)
+void InternalTypescriptCompiler::exitCompilation(const FunctionCallbackInfo<Value>& args)
 {
-    auto tsc = static_cast<TypescriptCompiler*>(Local<External>::Cast(args.Data())->Value());
+    auto tsc = static_cast<InternalTypescriptCompiler*>(Local<External>::Cast(args.Data())->Value());
     if (!tsc->running) {
         return;
     }
@@ -168,12 +168,12 @@ void TypescriptCompiler::exitCompilation(const FunctionCallbackInfo<Value>& args
 
 }
 
-void TypescriptCompiler::startCompiler(const QString& filename)
+void InternalTypescriptCompiler::startCompiler(const QString& filename)
 {
     startCompiler(filename, printExitcode);
 }
 
-void TypescriptCompiler::startCompiler(const QString& filename, std::function<void(int)> onTermination)
+void InternalTypescriptCompiler::startCompiler(const QString& filename, std::function<void(int)> onTermination)
 {
     Isolate::Scope isolateScope(m_isolate);
     QFileInfo finfo(filename);
@@ -228,7 +228,7 @@ void TypescriptCompiler::startCompiler(const QString& filename, std::function<vo
         Local<String> envName = String::NewFromUtf8(m_isolate, "env", NewStringType::kNormal).ToLocalChecked();
         process->Set(envName, env);
 
-        Local<Function> cwd = Function::New(m_isolate, &TypescriptCompiler::processCwdCallback, thisValue);
+        Local<Function> cwd = Function::New(m_isolate, &InternalTypescriptCompiler::processCwdCallback, thisValue);
         Local<String> cwdName = String::NewFromUtf8(m_isolate, "cwd", NewStringType::kNormal).ToLocalChecked();
         process->Set(cwdName, cwd);
     }
@@ -276,7 +276,7 @@ void TypescriptCompiler::startCompiler(const QString& filename, std::function<vo
     }
 }
 
-QString TypescriptCompiler::outputPath(const QString& filename)
+QString InternalTypescriptCompiler::outputPath(const QString& filename)
 {
     QFileInfo finfo(filename);
     return finfo.path() + "/../built/glados/init.js";

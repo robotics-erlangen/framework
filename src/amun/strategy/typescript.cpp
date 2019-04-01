@@ -35,7 +35,7 @@
 #include "checkforscripttimeout.h"
 #include "inspectorholder.h"
 #include "internaldebugger.h"
-#include "typescriptcompiler.h"
+#include "tsc_internal.h"
 #include "compilerregistry.h"
 
 using namespace v8;
@@ -304,7 +304,7 @@ bool Typescript::loadScript(const QString &fname, const QString &entryPoint)
     QString filename;
     if (fname.endsWith(".ts")) {
         bool compile_success = true;
-        TypescriptCompiler tsc;
+        InternalTypescriptCompiler tsc;
         tsc.startCompiler(fname, [this, &compile_success](int exit){
                 if (exit == 0) {
                     return;
@@ -312,7 +312,7 @@ bool Typescript::loadScript(const QString &fname, const QString &entryPoint)
                 m_errorMsg = "<font color=\"red\">Compilation failed with exitcode " + QString::number(exit) + "</font>";
                 compile_success = false;
                 });
-        filename = TypescriptCompiler::outputPath(fname);
+        filename = InternalTypescriptCompiler::outputPath(fname);
         m_filename = QString();
         return compile_success && AbstractStrategyScript::loadScript(filename, entryPoint, geometry(), team());
     } else {
