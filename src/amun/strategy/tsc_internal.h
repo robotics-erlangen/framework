@@ -23,7 +23,13 @@
 
 #include <memory>
 #include <functional>
+#include <utility>
+#include <QByteArray>
+#include <QBuffer>
+#include <QString>
 #include "v8.h"
+
+#include "typescriptcompiler.h"
 
 namespace Node
 {
@@ -32,15 +38,11 @@ namespace Node
 
 class QString;
 
-class InternalTypescriptCompiler
+class InternalTypescriptCompiler : public TypescriptCompiler
 {
 public:
-    InternalTypescriptCompiler();
+    InternalTypescriptCompiler(const QFileInfo &tsconfig);
     ~InternalTypescriptCompiler();
-
-    void startCompiler(const QString& cwd);
-    void startCompiler(const QString& cwd, std::function<void(int)> onTermination);
-    static QString outputPath(const QString& input);
 private:
     void initializeEnvironment();
 
@@ -48,14 +50,19 @@ private:
     static void requireCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void processCwdCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void exitCompilation(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void stdoutCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
 
+    std::pair<CompileResult, QString> performCompilation() override;
+    void handleExitcode(bool exitcodeValid, int exitcode);
 private:
     v8::Isolate* m_isolate;
     v8::Global<v8::Context> m_context;
 
     std::unique_ptr<Node::ObjectContainer> m_requireNamespace;
-    std::function<void(int)> m_terminateFun;
     bool running = false;
+
+    std::pair<CompileResult, QString> m_lastResult;
+    QString m_stdout;
 };
 
 #endif // INTERNALTYPESCRIPTCOMPILER_H

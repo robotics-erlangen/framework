@@ -34,22 +34,15 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QIODevice>
-#include <QTextStream>
-#include <QTextStream>
-#include <string>
+#include <QString>
 #include <string>
 #include <utility>
 #include "v8.h"
 
 using namespace v8;
 
-static void printExitcode(int a)
-{
-    std::cout << "compilation ended with exitcode: " << a << std::endl;
-}
-
-InternalTypescriptCompiler::InternalTypescriptCompiler()
-InternalTypescriptCompiler::InternalTypescriptCompiler() :
+InternalTypescriptCompiler::InternalTypescriptCompiler(const QFileInfo &tsconfig) :
+    TypescriptCompiler(tsconfig),
     m_isolate(nullptr)
 {
 }
@@ -91,6 +84,8 @@ void InternalTypescriptCompiler::initializeEnvironment()
     m_requireNamespace->put("buffer", std::unique_ptr<Node::buffer>(new Node::buffer(m_isolate)));
     m_requireNamespace->put("fs", std::unique_ptr<Node::fs>(new Node::fs(m_isolate, m_requireNamespace.get(), ".")));
     m_requireNamespace->put("path", std::unique_ptr<Node::path>(new Node::path(m_isolate)));
+
+    static_cast<Node::fs*>(m_requireNamespace->get("fs"))->setPath(m_tsconfig.dir().absolutePath());
 
     delete create_params.array_buffer_allocator;
 
@@ -166,33 +161,46 @@ void InternalTypescriptCompiler::exitCompilation(const FunctionCallbackInfo<Valu
         return;
     }
     auto isolate = args.GetIsolate();
-    int32_t exitcode;
-    if (args[0]->Int32Value(args.GetIsolate()->GetCurrentContext()).To(&exitcode)){
-        tsc->m_terminateFun(exitcode);
-    } else {
-        std::cout << "compilation ended without exitcode" << std::endl;
-    }
+    int32_t exitcode = -1;
+    bool exitcodeValid = args[0]->Int32Value(args.GetIsolate()->GetCurrentContext()).To(&exitcode);
+    tsc->handleExitcode(exitcodeValid, exitcode);
     tsc->running = false;
     isolate->TerminateExecution();
 
 }
 
-void InternalTypescriptCompiler::startCompiler(const QString& filename)
+void InternalTypescriptCompiler::stdoutCallback(const FunctionCallbackInfo<Value>& args)
 {
-    startCompiler(filename, printExitcode);
+    auto tsc = static_cast<InternalTypescriptCompiler*>(Local<External>::Cast(args.Data())->Value());
+    HandleScope handleScope(args.GetIsolate());
+    bool first = true;
+    for (int i = 0; i < args.Length(); ++i) {
+        if (first)
+            first = false;
+        else
+            tsc->m_stdout += " ";
+        String::Utf8Value str(args.GetIsolate(), args[i]);
+        tsc->m_stdout += *str;
+    }
 }
 
-void InternalTypescriptCompiler::startCompiler(const QString& filename, std::function<void(int)> onTermination)
+static Local<Array> createStringArray(Isolate* isolate, const QList<QString>& values)
+{
+    EscapableHandleScope handleScope(isolate);
+    Local<Array> array = Array::New(isolate, values.size());
+    for (int i = 0; i < values.size(); ++i) {
+        Local<String> current = String::NewFromUtf8(isolate, values[i].toUtf8().data(), NewStringType::kNormal).ToLocalChecked();
+        array->Set(i, current);
+    }
+    return handleScope.Escape(array);
+}
+
+std::pair<InternalTypescriptCompiler::CompileResult, QString> InternalTypescriptCompiler::performCompilation()
 {
     if (!m_isolate) {
         initializeEnvironment();
     }
-
     Isolate::Scope isolateScope(m_isolate);
-    QFileInfo finfo(filename);
-    QString cwd = finfo.path() + "/..";
-    m_terminateFun = onTermination;
-    static_cast<Node::fs*>(m_requireNamespace->get("fs"))->setPath(cwd);
 
     HandleScope handleScope(m_isolate);
     Local<Context> context = m_context.Get(m_isolate);
@@ -206,15 +214,12 @@ void InternalTypescriptCompiler::startCompiler(const QString& filename, std::fun
     Local<String> processName = String::NewFromUtf8(m_isolate, "process", NewStringType::kNormal).ToLocalChecked();
     Local<Value> thisValue(External::New(m_isolate, this));
     {
-        Local<Array> argv = Array::New(m_isolate, 2);
+        Local<Array> argv = createStringArray(m_isolate, {
+            QCoreApplication::applicationFilePath(),
+            compilerPath,
+            "--pretty", "false"
+        });
         Local<String> argvName = String::NewFromUtf8(m_isolate, "argv", NewStringType::kNormal).ToLocalChecked();
-
-        Local<String> executable = String::NewFromUtf8(m_isolate, QCoreApplication::applicationFilePath().toUtf8().data(), NewStringType::kNormal).ToLocalChecked();
-        Local<String> scriptName = String::NewFromUtf8(m_isolate, compilerPath.toUtf8().data(), NewStringType::kNormal).ToLocalChecked();
-
-        argv->Set(0, executable);
-        argv->Set(1, scriptName);
-
         process->Set(argvName, argv);
     }
     {
@@ -224,7 +229,7 @@ void InternalTypescriptCompiler::startCompiler(const QString& filename, std::fun
     }
     {
         Local<Object> stdoutObject = Object::New(m_isolate);
-        Local<Function> write = Function::New(m_isolate, &logCallback);
+        Local<Function> write = Function::New(m_isolate, &stdoutCallback, thisValue);
         Local<String> writeName = String::NewFromUtf8(m_isolate, "write", NewStringType::kNormal).ToLocalChecked();
         stdoutObject->Set(writeName, write);
 
@@ -263,8 +268,7 @@ void InternalTypescriptCompiler::startCompiler(const QString& filename, std::fun
 
     QFile compilerFile(compilerPath);
     if (!compilerFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        std::cout << "Could not open compiler" << std::endl;
-        return;
+        return { CompileResult::Error, "Could not open compiler" };
     }
     QByteArray compilerBytes = compilerFile.readAll();
 
@@ -273,24 +277,45 @@ void InternalTypescriptCompiler::startCompiler(const QString& filename, std::fun
     Local<Script> script;
     TryCatch tryCatch(m_isolate);
     if (!Script::Compile(context, source).ToLocal(&script)) {
-        String::Utf8Value error(m_isolate, tryCatch.StackTrace(context).ToLocalChecked());
-        std::cout << *error << std::endl;
+        String::Utf8Value errorMsg(m_isolate, tryCatch.StackTrace(context).ToLocalChecked());
+        return { CompileResult::Error, *errorMsg };
     }
     Local<Value> exitCodeValue;
     running = true;
-    if (script->Run(context).ToLocal(&exitCodeValue) && running) {
-        m_terminateFun(exitCodeValue->Int32Value());
-    } else if (running) {
-        std::cout << "Did not return an exitcode" << std::endl;
+    bool exitcodeValid = script->Run(context).ToLocal(&exitCodeValue);
+    if (running) {
+        handleExitcode(exitcodeValid, exitcodeValid ? exitCodeValue->Int32Value() : -1);
     }
     if (tryCatch.HasTerminated() || tryCatch.HasCaught()) {
-        String::Utf8Value error(m_isolate, tryCatch.StackTrace(context).ToLocalChecked());
-        std::cout << *error << std::endl;
+        String::Utf8Value errorMsg(m_isolate, tryCatch.StackTrace(context).ToLocalChecked());
+        return { CompileResult::Error, *errorMsg };
     }
+
+    return m_lastResult;
 }
 
-QString InternalTypescriptCompiler::outputPath(const QString& filename)
+void InternalTypescriptCompiler::handleExitcode(bool exitcodeValid, int exitcode)
 {
-    QFileInfo finfo(filename);
-    return finfo.path() + "/../built/glados/init.js";
+    enum ExitCode {
+        Success = 0,
+        Warning = 1,
+        Error = 2
+    };
+    if (!exitcodeValid) {
+        m_lastResult = { CompileResult::Error, "Compiler did not return an exit code" };
+    } else switch (exitcode) {
+        case ExitCode::Success:
+            m_lastResult = { CompileResult::Success, "" };
+            break;
+        case ExitCode::Warning:
+            m_lastResult = { CompileResult::Warning, m_stdout };
+            break;
+        case ExitCode::Error:
+            m_lastResult = { CompileResult::Error, m_stdout };
+            break;
+        default:
+            m_lastResult = { CompileResult::Error, QString("Compiler returned unknown exit code '%1'").arg(exitcode) };
+            break;
+    }
+    m_stdout.clear();
 }

@@ -329,8 +329,8 @@ bool Typescript::setupCompiler(const QString &filename)
         return false;
 
     auto createCompiler = [](const QDir &baseDir) -> std::unique_ptr<Compiler> {
-        qFatal("No compiler available");
-        return nullptr;
+        auto ptr = new InternalTypescriptCompiler(baseDir.filePath("tsconfig.json"));
+        return std::unique_ptr<Compiler>(ptr);
     };
     m_compiler = m_compilerRegistry->getCompiler(*baseDir, createCompiler);
 
