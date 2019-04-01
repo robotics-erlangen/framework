@@ -97,7 +97,7 @@ Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, C
     m_debugEnabled(type == StrategyType::AUTOREF),
     m_refboxControlEnabled(false),
     m_autoReload(false),
-    m_strategyFailed(false),
+    m_strategyFailed(true),
     m_isEnabled(!isLogplayer),
     m_udpSenderSocket(new QUdpSocket(this)),
     m_refboxSocket(new QTcpSocket(this)),
@@ -527,6 +527,36 @@ void Strategy::sendCommand(const Command &command)
     }
 }
 
+void Strategy::loadStateChanged(bool success)
+{
+    if (success) {
+        m_strategyFailed = false;
+
+        m_entryPoint = m_strategy->entryPoint(); // remember loaded entrypoint
+        m_strategy->setSelectedOptions(m_selectedOptions);
+
+        // prepare strategy status message
+        Status status = takeStrategyDebugStatus();
+        setStrategyStatus(status, amun::StatusStrategy::RUNNING);
+
+        // inform about successful load
+        amun::StatusLog *log;
+        if (status->debug_size() > 0) {
+            Q_ASSERT(status->debug_size() == 1);
+            //TODO: This assumes that there is at most one debug in this status
+            log = status->mutable_debug(0)->add_log();
+        } else {
+            log = status->add_debug()->add_log();
+        }
+        log->set_timestamp(m_timer->currentTime());
+        log->set_text(QString("<font color=\"darkgreen\">Successfully loaded %1 with entry point %2!</font>").arg(m_filename, m_entryPoint).toStdString());
+
+        emit sendStatus(status);
+    } else {
+        fail(m_strategy->errorMsg());
+    }
+}
+
 void Strategy::loadScript(const QString &filename, const QString &entryPoint)
 {
     Q_ASSERT(m_geometry.IsInitialized());
@@ -539,7 +569,6 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
 #endif
     delete m_strategy;
     m_strategy = NULL;
-    m_strategyFailed = false;
 
     m_filename = filename;
 
@@ -585,31 +614,9 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
     connect(m_strategy, SIGNAL(gotCommand(Command)), SLOT(sendCommand(Command)));
     connect(m_strategy, SIGNAL(sendMixedTeamInfo(QByteArray)), SLOT(sendMixedTeamInfo(QByteArray)));
     connect(m_strategy, SIGNAL(sendNetworkRefereeCommand(QByteArray)), SLOT(sendNetworkRefereeCommand(QByteArray)));
+    connect(m_strategy, &AbstractStrategyScript::changeLoadState, this, &Strategy::loadStateChanged);
 
-    if (m_strategy->loadScript(filename, entryPoint, m_geometry, m_team)) {
-        m_entryPoint = m_strategy->entryPoint(); // remember loaded entrypoint
-        m_strategy->setSelectedOptions(m_selectedOptions);
-
-        // prepare strategy status message
-        Status status = takeStrategyDebugStatus();
-        setStrategyStatus(status, amun::StatusStrategy::RUNNING);
-
-        // inform about successful load
-        amun::StatusLog *log;
-        if (status->debug_size() > 0) {
-            Q_ASSERT(status->debug_size() == 1);
-            //TODO: This assumes that there is at most one debug in this status
-            log = status->mutable_debug(0)->add_log();
-        } else {
-            log = status->add_debug()->add_log();
-        }
-        log->set_timestamp(m_timer->currentTime());
-        log->set_text(QString("<font color=\"darkgreen\">Successfully loaded %1 with entry point %2!</font>").arg(m_filename, m_entryPoint).toStdString());
-
-        emit sendStatus(status);
-    } else {
-        fail(m_strategy->errorMsg());
-    }
+    m_strategy->loadScript(filename, entryPoint, m_geometry, m_team);
 }
 
 void Strategy::close()

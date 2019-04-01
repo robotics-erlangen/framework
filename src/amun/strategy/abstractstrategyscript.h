@@ -144,6 +144,7 @@ signals:
     void sendStrategyCommands(bool blue, const QList<RobotCommandInfo> &commands, qint64 time);
     void sendMixedTeamInfo(const QByteArray &data);
     void sendNetworkRefereeCommand(const QByteArray &data);
+    void changeLoadState(bool success);
 
 protected:
     bool chooseEntryPoint(QString entryPoint);

@@ -314,13 +314,18 @@ bool Typescript::loadScript(const QString &fname, const QString &entryPoint)
                 });
         filename = InternalTypescriptCompiler::outputPath(fname);
         m_filename = QString();
-        return compile_success && AbstractStrategyScript::loadScript(filename, entryPoint, geometry(), team());
+        if (!compile_success) {
+            emit changeLoadState(false);
+        } else {
+            return AbstractStrategyScript::loadScript(filename, entryPoint, geometry(), team());
+        }
     } else {
         filename = fname;
     }
     QFile file(filename);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         m_errorMsg = "<font color=\"red\">Could not open file " + filename + "</font>";
+        emit changeLoadState(false);
         return false;
     }
     QTextStream in(&file);
@@ -340,6 +345,7 @@ bool Typescript::loadScript(const QString &fname, const QString &entryPoint)
     if (!Script::Compile(context, source, scriptOriginFromFileName(filename)).ToLocal(&script)) {
         String::Utf8Value error(m_isolate, tryCatch.StackTrace(context).ToLocalChecked());
         m_errorMsg = "<font color=\"red\">" + QString(*error) + "</font>";
+        emit changeLoadState(false);
         return false;
     }
 
@@ -348,6 +354,7 @@ bool Typescript::loadScript(const QString &fname, const QString &entryPoint)
     USE(script->Run(context));
     if (tryCatch.HasTerminated() || tryCatch.HasCaught()) {
         buildStackTrace(context,m_errorMsg, tryCatch, m_isolate);
+        emit changeLoadState(false);
         return false;
     }
     Local<Object> initExport = Local<Value>::New(m_isolate, *m_requireCache.back()[m_filename])->ToObject(context).ToLocalChecked();
@@ -355,12 +362,14 @@ bool Typescript::loadScript(const QString &fname, const QString &entryPoint)
     if (!initExport->Has(context, scriptInfoString).ToChecked()) {
         // the script returns nothing
         m_errorMsg = "<font color=\"red\">Script must export scriptInfo object!</font>";
+        emit changeLoadState(false);
         return false;
     }
     Local<Value> result = initExport->Get(context, scriptInfoString).ToLocalChecked();
 
     if (!result->IsObject()) {
         m_errorMsg = "<font color=\"red\">scriptInfo export must be an object!</font>";
+        emit changeLoadState(false);
         return false;
     }
 
@@ -369,12 +378,14 @@ bool Typescript::loadScript(const QString &fname, const QString &entryPoint)
     Local<String> entrypointsString = String::NewFromUtf8(m_isolate, "entrypoints", NewStringType::kNormal).ToLocalChecked();
     if (!resultObject->Has(nameString) || !resultObject->Has(entrypointsString)) {
         m_errorMsg = "<font color=\"red\">scriptInfo export must be an object containing 'name' and 'entrypoints'!</font>";
+        emit changeLoadState(false);
         return false;
     }
 
     Local<Value> maybeName = resultObject->Get(nameString);
     if (!maybeName->IsString()) {
         m_errorMsg = "<font color=\"red\">Script name must be a string!</font>";
+        emit changeLoadState(false);
         return false;
     }
     Local<String> name = maybeName->ToString(context).ToLocalChecked();
@@ -383,6 +394,7 @@ bool Typescript::loadScript(const QString &fname, const QString &entryPoint)
     Local<Value> maybeEntryPoints = resultObject->Get(entrypointsString);
     if (!maybeEntryPoints->IsObject()) {
         m_errorMsg = "<font color=\"red\">Entrypoints must be an object!</font>";
+        emit changeLoadState(false);
         return false;
     }
 
@@ -395,6 +407,7 @@ bool Typescript::loadScript(const QString &fname, const QString &entryPoint)
         Local<Value> value = entrypointsObject->Get(key);
         if (!value->IsFunction()) {
             m_errorMsg = "<font color=\"red\">Entrypoints must contain functions!</font>";
+            emit changeLoadState(false);
             return false;
         }
         Local<Function> function = Local<Function>::Cast(value);
@@ -405,6 +418,7 @@ bool Typescript::loadScript(const QString &fname, const QString &entryPoint)
     }
 
     if (!chooseEntryPoint(entryPoint)) {
+        emit changeLoadState(false);
         return false;
     }
 
@@ -414,6 +428,7 @@ bool Typescript::loadScript(const QString &fname, const QString &entryPoint)
     if (resultObject->Has(optionsString)) {
         if (!resultObject->Get(optionsString)->IsArray()) {
             m_errorMsg = "<font color=\"red\">options must be an array!</font>";
+            emit changeLoadState(false);
             return false;
         }
         Local<Array> options = Local<Array>::Cast(resultObject->Get(optionsString));
@@ -425,6 +440,7 @@ bool Typescript::loadScript(const QString &fname, const QString &entryPoint)
     m_options = optionsList;
 
     m_function.Reset(m_isolate, entryPoints[m_entryPoint]);
+    emit changeLoadState(true);
     return true;
 }
 

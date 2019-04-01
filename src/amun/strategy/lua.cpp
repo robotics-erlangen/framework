@@ -352,10 +352,12 @@ bool Lua::loadScript(const QString &filename, const QString &entryPoint)
     lua_pushboolean(m_state, m_debugEnabled);
     if (lua_pcall(m_state, 5, 0, 1) != 0) {
         m_errorMsg = lua_tostring(m_state, -1);
+        emit changeLoadState(false);
         return false;
     }
 
     if (!chooseEntryPoint(entryPoint)) {
+        emit changeLoadState(false);
         return false;
     }
 
@@ -377,6 +379,7 @@ bool Lua::loadScript(const QString &filename, const QString &entryPoint)
     m_hasDebugger = lua_isfunction(m_state, -1);
     lua_pop(m_state, 1);
 
+    emit changeLoadState(true);
     return true;
 }
 

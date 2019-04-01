@@ -73,6 +73,7 @@ private slots:
     void process();
     void reload();
     void sendCommand(const Command &command);
+    void loadStateChanged(bool success);
 
 private:
     static void initV8();
