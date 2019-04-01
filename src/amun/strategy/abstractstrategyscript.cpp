@@ -32,6 +32,7 @@ AbstractStrategyScript::AbstractStrategyScript(const Timer *timer, StrategyType 
     m_hasDebugger(false),
     m_debugHelper(nullptr),
     m_isInternalAutoref(false),
+    m_isTournamentMode(false),
     m_gameControllerSocket(new QTcpSocket(this)),
     m_compilerRegistry(registry)
 {

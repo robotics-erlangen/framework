@@ -87,6 +87,7 @@ message CommandStrategy {
     optional bool performance_mode = 9;
     optional bool start_profiling = 10;
     optional string finish_and_save_profile = 11;
+    optional bool tournament_mode = 12;
 }
 
 message CommandControl {

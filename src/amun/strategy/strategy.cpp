@@ -106,6 +106,7 @@ Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, C
     m_isInternalAutoref(internalAutoref),
     m_isPerformanceMode(true),
     m_isFlipped(false),
+    m_isTournamentMode(false),
     m_refboxReplyLength(-1),
     m_isInLogplayer(isLogplayer),
     m_compilerRegistry(registry)
@@ -293,6 +294,11 @@ void Strategy::handleCommand(const Command &command)
                 m_isPerformanceMode = cmd->performance_mode();
                 reloadStrategy = true;
             }
+        }
+
+        if (cmd->has_performance_mode() && m_isTournamentMode != cmd->tournament_mode()) {
+            m_isTournamentMode = cmd->tournament_mode();
+            reloadStrategy = true;
         }
 
         if (cmd->has_load()) {
@@ -569,6 +575,7 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
     m_strategy->setIsPerformanceMode(m_isPerformanceMode);
     m_strategy->setIsReplay(m_isReplay);
     m_strategy->setFlipped(m_isFlipped);
+    m_strategy->setTournamentMode(m_isTournamentMode);
 
     // delay reload until strategy is no longer running
     connect(m_strategy, SIGNAL(requestReload()), SLOT(reload()), Qt::QueuedConnection);

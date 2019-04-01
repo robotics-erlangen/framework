@@ -277,6 +277,12 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
         ui->actionEnableTransceiver->setChecked(true);
         ui->actionSimulator->setChecked(false);
         ui->actionInternalReferee->setChecked(false);
+
+        Command cmd(new amun::Command);
+        cmd->mutable_strategy_blue()->set_tournament_mode(true);
+        cmd->mutable_strategy_yellow()->set_tournament_mode(true);
+        cmd->mutable_strategy_autoref()->set_tournament_mode(true);
+        sendCommand(cmd);
     }
 
     // logplayer mode connections

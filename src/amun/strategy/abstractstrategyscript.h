@@ -80,6 +80,7 @@ public:
     void setIsPerformanceMode(bool performance) { m_isPerformanceMode = performance; }
     void setIsReplay(bool replay) { m_isReplay = replay; }
     void setFlipped(bool flipped) { m_isFlipped = flipped; }
+    void setTournamentMode(bool isTournament) { m_isTournamentMode = isTournament; }
     void setCurrentStatus(const Status &status) { m_currentStatus = status; }
     const Status &getCurrentStatus() const { return m_currentStatus; }
 
@@ -112,6 +113,7 @@ public:
     SSL_RefereeRemoteControlReply nextRefereeReply() { return m_refereeReplys.takeFirst(); }
     bool hasRefereeReply() const { return m_refereeReplys.size() > 0; }
     bool isFlipped() const { return m_isFlipped; }
+    bool isTournamentMode() const { return m_isTournamentMode; }
 
     qint64 time() const;
 
@@ -167,6 +169,7 @@ protected:
     bool m_isPerformanceMode;
     bool m_isReplay;
     bool m_isFlipped;
+    bool m_isTournamentMode;
     QDir m_baseDir;
     QString m_filename;
 

@@ -119,6 +119,7 @@ private:
     bool m_isInternalAutoref;
     bool m_isPerformanceMode;
     bool m_isFlipped;
+    bool m_isTournamentMode;
     robot::Specs m_anyRobotSpec;
 
     qint32 m_refboxReplyLength;
