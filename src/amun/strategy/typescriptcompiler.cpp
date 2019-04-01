@@ -55,7 +55,7 @@ TypescriptCompiler::TypescriptCompiler()
     create_params.array_buffer_allocator = ArrayBuffer::Allocator::NewDefaultAllocator();
     m_isolate = Isolate::New(create_params);
     m_isolate->SetRAILMode(PERFORMANCE_LOAD);
-    m_isolate->Enter();
+    Isolate::Scope isolateScope(m_isolate);
 
     HandleScope handleScope(m_isolate);
     Local<ObjectTemplate> globalTemplate = ObjectTemplate::New(m_isolate);
@@ -77,6 +77,8 @@ TypescriptCompiler::TypescriptCompiler()
 
 TypescriptCompiler::~TypescriptCompiler()
 {
+    // don't use an Isolate::Scope since we need to Exit before Dispose
+    m_isolate->Enter();
     m_requireNamespace.reset();
     m_context.Reset();
     // This is needed for a full gc as the isolate is beeing disposed.
@@ -173,6 +175,7 @@ void TypescriptCompiler::startCompiler(const QString& filename)
 
 void TypescriptCompiler::startCompiler(const QString& filename, std::function<void(int)> onTermination)
 {
+    Isolate::Scope isolateScope(m_isolate);
     QFileInfo finfo(filename);
     QString cwd = finfo.path() + "/..";
     m_terminateFun = onTermination;
