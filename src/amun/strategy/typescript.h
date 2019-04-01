@@ -29,6 +29,9 @@
 #include <QAtomicInt>
 #include <v8.h>
 #include <v8-profiler.h>
+#include <memory>
+
+#include "compiler.h"
 
 class CheckForScriptTimeout;
 class QThread;
@@ -76,6 +79,19 @@ private:
     v8::ScriptOrigin *scriptOriginFromFileName(QString name);
     static void saveNode(QTextStream &file, const v8::CpuProfileNode *node, QString functionStack);
 
+    bool setupCompiler(const QString &filename);
+    bool loadTypescript(const QString &filename, const QString &entryPoint);
+    bool loadJavascript(const QString &filename, const QString &entryPoint);
+
+private slots:
+    void onCompileStarted();
+    void onCompileWarning(const QString &message);
+    void onCompileError(const QString &message);
+    void onCompileSuccess();
+
+signals:
+    void initialCompilation();
+
 private:
     v8::Isolate* m_isolate;
     v8::Persistent<v8::Context> m_context;
@@ -98,6 +114,7 @@ private:
     int m_scriptIdCounter;
 
     lua_State* m_luaState;
+    std::shared_ptr<CompilerThreadWrapper> m_compiler;
 };
 
 #endif // TYPESCRIPT_H

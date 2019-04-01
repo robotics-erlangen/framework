@@ -117,7 +117,7 @@ bool Typescript::canHandle(const QString &filename)
 {
     QFileInfo file(filename);
     QString fname = file.fileName();
-    return fname == "init.js" || fname == "init.ts";
+    return fname == "init.ts";
 }
 
 void Typescript::setInspectorHandler(AbstractInspectorHandler *handler)
@@ -301,36 +301,87 @@ static void buildStackTrace(const Local<Context>& context, QString& errorMsg, co
 
 bool Typescript::loadScript(const QString &fname, const QString &entryPoint)
 {
-    QString filename;
-    if (fname.endsWith(".ts")) {
-        bool compile_success = true;
-        InternalTypescriptCompiler tsc;
-        tsc.startCompiler(fname, [this, &compile_success](int exit){
-                if (exit == 0) {
-                    return;
-                }
-                m_errorMsg = "<font color=\"red\">Compilation failed with exitcode " + QString::number(exit) + "</font>";
-                compile_success = false;
-                });
-        filename = InternalTypescriptCompiler::outputPath(fname);
-        m_filename = QString();
-        if (!compile_success) {
-            emit changeLoadState(false);
-        } else {
-            return AbstractStrategyScript::loadScript(filename, entryPoint, geometry(), team());
-        }
-    } else {
-        filename = fname;
+    if (!setupCompiler(fname))
+        return false;
+
+    return loadTypescript(fname, entryPoint);
+}
+
+static std::unique_ptr<QDir> getTsconfigDir(const QString &filename)
+{
+    QDir baseDir = QFileInfo(filename).absoluteDir();
+    while (true) {
+        if (QFileInfo(baseDir, "tsconfig.json").exists())
+            break;
+        if (!baseDir.cdUp())
+            return nullptr;
     }
-    QFile file(filename);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        m_errorMsg = "<font color=\"red\">Could not open file " + filename + "</font>";
-        emit changeLoadState(false);
+    return std::unique_ptr<QDir>(new QDir(baseDir));
+}
+
+bool Typescript::setupCompiler(const QString &filename)
+{
+    if (m_compiler)
+        disconnect(m_compiler->comp(), nullptr, this, nullptr);
+
+    std::unique_ptr<QDir> baseDir = getTsconfigDir(filename);
+    if (!baseDir)
+        return false;
+
+    auto createCompiler = [](const QDir &baseDir) -> std::unique_ptr<Compiler> {
+        qFatal("No compiler available");
+        return nullptr;
+    };
+    m_compiler = m_compilerRegistry->getCompiler(*baseDir, createCompiler);
+
+    connect(m_compiler->comp(), &Compiler::started, this, &Typescript::onCompileStarted);
+    connect(m_compiler->comp(), &Compiler::warning, this, &Typescript::onCompileWarning);
+    connect(m_compiler->comp(), &Compiler::error, this, &Typescript::onCompileError);
+    connect(m_compiler->comp(), &Compiler::success, this, &Typescript::onCompileSuccess);
+
+    connect(this, &Typescript::initialCompilation, m_compiler->comp(), &Compiler::compile);
+    emit initialCompilation();
+    disconnect(this, &Typescript::initialCompilation, m_compiler->comp(), &Compiler::compile);
+
+    return true;
+}
+
+bool Typescript::loadTypescript(const QString &filename, const QString &entryPoint)
+{
+    if (!m_compiler->comp()->requestPause()) {
+        m_errorMsg = "<font color=\"red\">Could not pause compiler</font>";
         return false;
     }
+
+    bool success = false;
+    if (m_compiler->comp()->isResultAvailable()) {
+        QFileInfo jsFile = m_compiler->comp()->mapToResult(QFileInfo(filename));
+        success = loadJavascript(jsFile.absoluteFilePath(), entryPoint);
+        emit changeLoadState(success);
+    } else {
+        m_errorMsg = "<font color=\"red\">No compile result available</font>";
+    }
+    m_compiler->comp()->resume();
+    return success;
+}
+
+static QByteArray readFileContent(const QString &filename)
+{
+    QFile file(filename);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return QByteArray();
+    }
     QTextStream in(&file);
-    QString content = in.readAll();
-    QByteArray contentBytes = content.toLatin1();
+    return in.readAll().toUtf8();
+}
+
+bool Typescript::loadJavascript(const QString &filename, const QString &entryPoint)
+{
+    QByteArray contentBytes = readFileContent(filename);
+    if (contentBytes.isNull()) {
+        m_errorMsg = "<font color=\"red\">Could not open file " + filename + "</font>";
+        return false;
+    }
 
     HandleScope handleScope(m_isolate);
     Local<Context> context = Local<Context>::New(m_isolate, m_context);
@@ -345,7 +396,6 @@ bool Typescript::loadScript(const QString &fname, const QString &entryPoint)
     if (!Script::Compile(context, source, scriptOriginFromFileName(filename)).ToLocal(&script)) {
         String::Utf8Value error(m_isolate, tryCatch.StackTrace(context).ToLocalChecked());
         m_errorMsg = "<font color=\"red\">" + QString(*error) + "</font>";
-        emit changeLoadState(false);
         return false;
     }
 
@@ -354,7 +404,6 @@ bool Typescript::loadScript(const QString &fname, const QString &entryPoint)
     USE(script->Run(context));
     if (tryCatch.HasTerminated() || tryCatch.HasCaught()) {
         buildStackTrace(context,m_errorMsg, tryCatch, m_isolate);
-        emit changeLoadState(false);
         return false;
     }
     Local<Object> initExport = Local<Value>::New(m_isolate, *m_requireCache.back()[m_filename])->ToObject(context).ToLocalChecked();
@@ -362,14 +411,12 @@ bool Typescript::loadScript(const QString &fname, const QString &entryPoint)
     if (!initExport->Has(context, scriptInfoString).ToChecked()) {
         // the script returns nothing
         m_errorMsg = "<font color=\"red\">Script must export scriptInfo object!</font>";
-        emit changeLoadState(false);
         return false;
     }
     Local<Value> result = initExport->Get(context, scriptInfoString).ToLocalChecked();
 
     if (!result->IsObject()) {
         m_errorMsg = "<font color=\"red\">scriptInfo export must be an object!</font>";
-        emit changeLoadState(false);
         return false;
     }
 
@@ -378,14 +425,12 @@ bool Typescript::loadScript(const QString &fname, const QString &entryPoint)
     Local<String> entrypointsString = String::NewFromUtf8(m_isolate, "entrypoints", NewStringType::kNormal).ToLocalChecked();
     if (!resultObject->Has(nameString) || !resultObject->Has(entrypointsString)) {
         m_errorMsg = "<font color=\"red\">scriptInfo export must be an object containing 'name' and 'entrypoints'!</font>";
-        emit changeLoadState(false);
         return false;
     }
 
     Local<Value> maybeName = resultObject->Get(nameString);
     if (!maybeName->IsString()) {
         m_errorMsg = "<font color=\"red\">Script name must be a string!</font>";
-        emit changeLoadState(false);
         return false;
     }
     Local<String> name = maybeName->ToString(context).ToLocalChecked();
@@ -394,7 +439,6 @@ bool Typescript::loadScript(const QString &fname, const QString &entryPoint)
     Local<Value> maybeEntryPoints = resultObject->Get(entrypointsString);
     if (!maybeEntryPoints->IsObject()) {
         m_errorMsg = "<font color=\"red\">Entrypoints must be an object!</font>";
-        emit changeLoadState(false);
         return false;
     }
 
@@ -407,7 +451,6 @@ bool Typescript::loadScript(const QString &fname, const QString &entryPoint)
         Local<Value> value = entrypointsObject->Get(key);
         if (!value->IsFunction()) {
             m_errorMsg = "<font color=\"red\">Entrypoints must contain functions!</font>";
-            emit changeLoadState(false);
             return false;
         }
         Local<Function> function = Local<Function>::Cast(value);
@@ -418,7 +461,6 @@ bool Typescript::loadScript(const QString &fname, const QString &entryPoint)
     }
 
     if (!chooseEntryPoint(entryPoint)) {
-        emit changeLoadState(false);
         return false;
     }
 
@@ -428,7 +470,6 @@ bool Typescript::loadScript(const QString &fname, const QString &entryPoint)
     if (resultObject->Has(optionsString)) {
         if (!resultObject->Get(optionsString)->IsArray()) {
             m_errorMsg = "<font color=\"red\">options must be an array!</font>";
-            emit changeLoadState(false);
             return false;
         }
         Local<Array> options = Local<Array>::Cast(resultObject->Get(optionsString));
@@ -440,8 +481,42 @@ bool Typescript::loadScript(const QString &fname, const QString &entryPoint)
     m_options = optionsList;
 
     m_function.Reset(m_isolate, entryPoints[m_entryPoint]);
-    emit changeLoadState(true);
     return true;
+}
+
+void Typescript::onCompileStarted()
+{
+    log("<font color=\"teal\">Started compilation</font>");
+}
+
+void Typescript::onCompileWarning(const QString &message)
+{
+    log(message);
+    QString warnString = "<font color=\"khaki\">Warnings occured during compilation</font>";
+    if (isTournamentMode()) {
+        log(warnString);
+        emit requestReload();
+    } else {
+        m_errorMsg = warnString;
+        emit changeLoadState(false);
+    }
+}
+
+void Typescript::onCompileError(const QString &message)
+{
+    log(message);
+    QString errorString = "<font color=\"red\">Errors occured during compilation</font>";
+    if (isTournamentMode()) {
+        log(errorString);
+    } else {
+        m_errorMsg = errorString;
+        emit changeLoadState(false);
+    }
+}
+
+void Typescript::onCompileSuccess()
+{
+    loadTypescript(m_filename, m_name);
 }
 
 void Typescript::defineModule(const FunctionCallbackInfo<Value> &args)
@@ -510,18 +585,15 @@ void Typescript::throwException(QString text)
 bool Typescript::loadModule(QString name)
 {
     if (!m_requireCache.back().contains(name)) {
-        QFileInfo initInfo(m_filename);
-        QDir typescriptDir = initInfo.absoluteDir();
-        typescriptDir.cdUp();
-        QString filename = typescriptDir.absolutePath() + "/" + name + ".js";
-        QFile file(filename);
-        if (!file.open(QIODevice::ReadOnly)) {
-            throwException("Could not import module: " + name);
+        std::unique_ptr<QDir> baseDir = getTsconfigDir(m_filename);
+        QFileInfo jsFile = m_compiler->comp()->mapToResult(baseDir->absolutePath() + "/" + name + ".ts");
+        QString filename = jsFile.absoluteFilePath();
+
+        QByteArray contentBytes = readFileContent(filename);
+        if (contentBytes.isNull()) {
+            throwException("Could not import module:" + name);
             return false;
         }
-        QTextStream in(&file);
-        QString content = in.readAll();
-        QByteArray contentBytes = content.toLatin1();
 
         Local<String> source = String::NewFromUtf8(m_isolate,
                                             contentBytes.data(), NewStringType::kNormal).ToLocalChecked();
