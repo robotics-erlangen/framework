@@ -42,6 +42,8 @@ public:
     void startCompiler(const QString& cwd, std::function<void(int)> onTermination);
     static QString outputPath(const QString& input);
 private:
+    void initializeEnvironment();
+
     void registerRequireFunction(v8::Local<v8::ObjectTemplate> global);
     static void requireCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void processCwdCallback(const v8::FunctionCallbackInfo<v8::Value>& args);

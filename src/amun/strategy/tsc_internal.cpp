@@ -49,6 +49,28 @@ static void printExitcode(int a)
 }
 
 InternalTypescriptCompiler::InternalTypescriptCompiler()
+InternalTypescriptCompiler::InternalTypescriptCompiler() :
+    m_isolate(nullptr)
+{
+}
+
+InternalTypescriptCompiler::~InternalTypescriptCompiler()
+{
+    if (m_isolate) {
+        // don't use an Isolate::Scope since we need to Exit before Dispose
+        m_isolate->Enter();
+        m_requireNamespace.reset();
+        m_context.Reset();
+        // This is needed for a full gc as the isolate is beeing disposed.
+        // The JS memory is reclaimed easily, but its c++ callbacks are never called.
+        // This GC run makes sure all callbacks are beeing called, as m_context is reset before this.
+        m_isolate->RequestGarbageCollectionForTesting(v8::Isolate::GarbageCollectionType::kFullGarbageCollection);
+        m_isolate->Exit();
+        m_isolate->Dispose();
+    }
+}
+
+void InternalTypescriptCompiler::initializeEnvironment()
 {
     Isolate::CreateParams create_params;
     V8::SetFlagsFromString("--expose_gc", 12);
@@ -75,19 +97,6 @@ InternalTypescriptCompiler::InternalTypescriptCompiler()
     m_context.Reset(m_isolate, context);
 }
 
-InternalTypescriptCompiler::~InternalTypescriptCompiler()
-{
-    // don't use an Isolate::Scope since we need to Exit before Dispose
-    m_isolate->Enter();
-    m_requireNamespace.reset();
-    m_context.Reset();
-    // This is needed for a full gc as the isolate is beeing disposed.
-    // The JS memory is reclaimed easily, but its c++ callbacks are never called.
-    // This GC run makes sure all callbacks are beeing called, as m_context is reset before this.
-    m_isolate->RequestGarbageCollectionForTesting(v8::Isolate::GarbageCollectionType::kFullGarbageCollection);
-    m_isolate->Exit();
-    m_isolate->Dispose();
-}
 
 void logCallback(const v8::FunctionCallbackInfo<v8::Value>& args) {
     bool first = true;
@@ -175,6 +184,10 @@ void InternalTypescriptCompiler::startCompiler(const QString& filename)
 
 void InternalTypescriptCompiler::startCompiler(const QString& filename, std::function<void(int)> onTermination)
 {
+    if (!m_isolate) {
+        initializeEnvironment();
+    }
+
     Isolate::Scope isolateScope(m_isolate);
     QFileInfo finfo(filename);
     QString cwd = finfo.path() + "/..";
