@@ -37,6 +37,7 @@ private:
         float x, y;
     };
     Vector ballPlacementPosForFoul(Vector foulPosition);
+    void issueCommand(SSL_Referee::Command command);
 
 private:
     const Timer *m_timer;
@@ -44,7 +45,9 @@ private:
     world::Geometry m_geometry;
 
     SSL_Referee m_packet;
-    qint64 m_currentActionStartTime;
+    qint64 m_currentActionStartTime = -1;
+    qint64 m_currentActionAllowedTime;
+    SSL_Referee::Command m_consequence;
 
     QTimer *m_trigger;
 

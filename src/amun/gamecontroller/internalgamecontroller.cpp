@@ -25,6 +25,11 @@ void InternalGameController::sendUpdate()
     // update packet
     m_packet.set_packet_timestamp(m_timer->currentTime());
     // TODO: is stage_time_left needed?
+    if (m_currentActionStartTime > 0) {
+        m_packet.set_current_action_time_remaining(m_currentActionAllowedTime - (m_timer->currentTime() - m_currentActionStartTime));
+    } else {
+        m_packet.clear_current_action_time_remaining();
+    }
 
     // send packet to internal referee
     QByteArray packetData;
@@ -85,6 +90,19 @@ auto InternalGameController::ballPlacementPosForFoul(Vector foulPosition) -> Vec
 
 }
 
+static float sign(float x)
+{
+    return x < 0 ? -1.0f : 1.0f;
+}
+
+void InternalGameController::issueCommand(SSL_Referee::Command command)
+{
+    m_packet.set_command(command);
+    m_packet.set_command_counter(m_packet.command_counter() + 1);
+    m_packet.set_command_timestamp(m_timer->currentTime());
+    sendUpdate();
+}
+
 void InternalGameController::handleGameEvent(std::shared_ptr<gameController::AutoRefToController> message)
 {
     if (!message->has_game_event()) {
@@ -124,5 +142,52 @@ void InternalGameController::handleGameEvent(std::shared_ptr<gameController::Aut
                 }
             }
         }
+    }
+
+    const float FIELD_LINE_DISTANCE = 0.3f;
+    const float GOAL_LINE_DISTANCE = 0.35f;
+
+    // TODO: assertions for current state of the game to check the autoref working properly
+
+    Vector placementPos{0, 0};
+    bool placingTeamIsYellow = byTeamString == "BLUE";
+    bool shouldPlace = false;
+    switch (event.type()) {
+    case gameController::AIMLESS_KICK:
+    case gameController::BALL_LEFT_FIELD_GOAL_LINE:
+        placementPos.x = sign(eventLocation.x) * (m_geometry.field_height() / 2.0f - GOAL_LINE_DISTANCE);
+        placementPos.y = sign(eventLocation.y) * (m_geometry.field_width() / 2.0f - FIELD_LINE_DISTANCE);
+        m_packet.set_next_command(placingTeamIsYellow ? SSL_Referee::DIRECT_FREE_YELLOW : SSL_Referee::DIRECT_FREE_BLUE);
+        shouldPlace = true;
+        break;
+
+    case gameController::BALL_LEFT_FIELD_TOUCH_LINE:
+        placementPos.x = sign(eventLocation.x) * std::min(m_geometry.field_height() / 2.0f - GOAL_LINE_DISTANCE, std::abs(eventLocation.x));
+        placementPos.y = sign(eventLocation.y) * std::min(m_geometry.field_width() / 2.0f - FIELD_LINE_DISTANCE, std::abs(eventLocation.y));
+        m_packet.set_next_command(placingTeamIsYellow ? SSL_Referee::INDIRECT_FREE_YELLOW : SSL_Referee::INDIRECT_FREE_BLUE);
+        shouldPlace = true;
+        break;
+
+    case gameController::PLACEMENT_SUCCEEDED:
+    {
+        shouldPlace = false;
+        if (m_packet.next_command() != SSL_Referee::FORCE_START) {
+            m_currentActionStartTime = m_timer->currentTime();
+            m_currentActionAllowedTime = 5000000;
+        }
+        SSL_Referee::Command command = m_packet.next_command();
+        m_packet.clear_next_command();
+        issueCommand(command);
+        break;
+    }
+    }
+    // TODO: set current action start time to something negative if it is not needed
+    // TODO: clear next command when it is not needed
+    if (shouldPlace) {
+        m_packet.mutable_designated_position()->set_x(placementPos.x * 1000.0f);
+        m_packet.mutable_designated_position()->set_y(placementPos.y * 1000.0f);
+        m_currentActionStartTime = m_timer->currentTime();
+        m_currentActionAllowedTime = 30000000;
+        issueCommand(placingTeamIsYellow ? SSL_Referee::BALL_PLACEMENT_YELLOW : SSL_Referee::BALL_PLACEMENT_BLUE);
     }
 }
