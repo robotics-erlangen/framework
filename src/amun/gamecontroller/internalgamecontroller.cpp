@@ -92,4 +92,37 @@ void InternalGameController::handleGameEvent(std::shared_ptr<gameController::Aut
         return;
     }
     const gameController::GameEvent &event = message->game_event();
+
+    // extract location and team name
+    std::string byTeamString;
+    Vector eventLocation{0, 0};
+
+    const google::protobuf::Reflection *refl = event.GetReflection();
+    const google::protobuf::Descriptor *desc = gameController::GameEvent::descriptor();
+    // extract fields using reflection
+    for (int i = 0; i < desc->field_count(); i++) {
+        const google::protobuf::FieldDescriptor *field = desc->field(i);
+        if (field->name() == "type" || field->name() == "origin") {
+            // ignore them as they are not events
+            continue;
+        }
+        if (refl->HasField(event, field)) {
+            const google::protobuf::Message &eventMessage = refl->GetMessage(event, field);
+            const google::protobuf::Reflection *messageRefl = eventMessage.GetReflection();
+            const google::protobuf::Descriptor *messageDesc = eventMessage.GetDescriptor();
+
+            for (int b = 0;b < messageDesc->field_count(); b++) {
+                const google::protobuf::FieldDescriptor *field = messageDesc->field(b);
+                std::string fieldName = field->name();
+                if (fieldName == "by_team") {
+                    byTeamString = messageRefl->GetEnum(eventMessage, field)->name();
+                } else if (fieldName == "location") {
+                    const google::protobuf::Message &locationMessage = messageRefl->GetMessage(eventMessage, field);
+                    const gameController::Location &location = static_cast<const gameController::Location&>(locationMessage);
+                    eventLocation.x = location.x();
+                    eventLocation.y = location.y();
+                }
+            }
+        }
+    }
 }
