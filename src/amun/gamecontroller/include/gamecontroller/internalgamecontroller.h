@@ -7,7 +7,9 @@
 #include "protobuf/world.pb.h"
 #include "protobuf/status.h"
 #include "protobuf/command.h"
+
 #include <QObject>
+#include <QTimer>
 
 class InternalGameController : public QObject
 {
@@ -16,6 +18,7 @@ class InternalGameController : public QObject
 public:
     InternalGameController(const Timer *timer);
     void handleGuiCommand(const QByteArray &data);
+    void handleGameEvent(std::shared_ptr<gameController::AutoRefToController> message);
 
 public slots:
     void handleStatus(const Status& status);
@@ -23,11 +26,29 @@ public slots:
 
 signals:
     void gotPacketForReferee(const QByteArray &data);
+    void gotControllerReply(const gameController::ControllerReply &reply);
+
+private slots:
+    void sendUpdate();
+    void setScaling(double scaling);
 
 private:
+    struct Vector {
+        float x, y;
+    };
+    Vector ballPlacementPosForFoul(Vector foulPosition);
+
+private:
+    const Timer *m_timer;
+
     world::Geometry m_geometry;
 
-    const Timer *m_timer;
+    SSL_Referee m_packet;
+    qint64 m_currentActionStartTime;
+
+    QTimer *m_trigger;
+
+    const int UPDATE_INTERVAL_MS = 500;
 };
 
 #endif // INTERNALGAMECONTROLLER_H

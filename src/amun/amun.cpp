@@ -77,6 +77,7 @@ Amun::Amun(bool simulatorOnly, QObject *parent) :
     qRegisterMetaType< QList<robot::RadioCommand> >("QList<robot::RadioCommand>");
     qRegisterMetaType< QList<robot::RadioResponse> >("QList<robot::RadioResponse>");
     qRegisterMetaType<Status>("Status");
+    qRegisterMetaType<std::shared_ptr<gameController::AutoRefToController>>("std::shared_ptr<gameController::AutoRefToController>");
 
     for (int i = 0; i < 3; ++i) {
         m_strategy[i] = nullptr;
@@ -150,9 +151,10 @@ void Amun::start()
         connect(m_debugHelper[i], SIGNAL(sendStatus(Status)), SLOT(handleStatus(Status)));
         connect(m_debugHelperThread, SIGNAL(finished()), m_debugHelper[i], SLOT(deleteLater()));
 
-        m_gameControllerConnection[i].reset(new GameControllerConnection(i == 2));
+        m_gameControllerConnection[i].reset(new GameControllerConnection(m_processor->getInternalGameController(), i == 2));
         m_gameControllerConnection[i]->moveToThread(m_strategyThread[i]);
         connect(this, &Amun::gotRefereeHost, m_gameControllerConnection[i].get(), &GameControllerConnection::handleRefereeHost);
+        connect(this, &Amun::useInternalGameController, m_gameControllerConnection[i].get(), &GameControllerConnection::switchInternalGameController);
 
         Q_ASSERT(m_strategy[i] == nullptr);
         m_strategy[i] = new Strategy(m_timer, strategy, m_debugHelper[i], &m_compilerRegistry, m_gameControllerConnection[i], i == 2);
@@ -409,6 +411,7 @@ void Amun::handleCommand(const Command &command)
         bool internalAutoref = m_useInternalReferee && m_useAutoref;
         if (internalAutoref != internalAutorefBefore) {
             enableAutoref(internalAutoref);
+            emit useInternalGameController(internalAutoref);
         }
     }
 

@@ -318,7 +318,7 @@ static int amunSendGameControllerMessage(lua_State *state)
 
     protobufToMessage(state, 2, *message, nullptr);
 
-    thread->getGameControllerConnection()->sendGameControllerMessage(message.get());
+    thread->getGameControllerConnection()->sendGameControllerMessage(message.get(), type);
     return 0;
 }
 

@@ -710,7 +710,7 @@ static void amunSendGameControllerMessage(const FunctionCallbackInfo<Value>& arg
         return;
     }
 
-    t->getGameControllerConnection()->sendGameControllerMessage(message.get());
+    t->getGameControllerConnection()->sendGameControllerMessage(message.get(), type);
 }
 
 static void amunGetGameControllerMessage(const FunctionCallbackInfo<Value>& args)

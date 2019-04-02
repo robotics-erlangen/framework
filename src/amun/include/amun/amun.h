@@ -59,6 +59,7 @@ signals:
     void updateVisionPort(quint16 port);
     void updateRefereePort(quint16 port);
     void gotRefereeHost(QString hostName);
+    void useInternalGameController(bool useInternal);
 
 public:
     void start();

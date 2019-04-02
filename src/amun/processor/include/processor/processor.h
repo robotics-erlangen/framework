@@ -50,6 +50,7 @@ public:
     Processor(const Processor&) = delete;
     Processor& operator=(const Processor&) = delete;
     bool getIsFlipped() const { return m_lastFlipped; }
+    std::shared_ptr<InternalGameController> getInternalGameController() const { return m_internalGameController; }
 
 signals:
     void sendStatus(const Status &status);
