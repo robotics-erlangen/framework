@@ -22,7 +22,7 @@
 #include "visionlog/visionlogreader.h"
 
 VisionLogLiveConverter::VisionLogLiveConverter(VisionLogReader *file) :
-    m_referee(false),
+    m_referee(),
     m_lastPacket(0),
     m_lastFlipped(false)
 {

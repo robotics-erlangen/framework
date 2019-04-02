@@ -25,8 +25,6 @@ void InternalGameController::sendUpdate()
     // update packet
     m_packet.set_packet_timestamp(m_timer->currentTime());
     // TODO: is stage_time_left needed?
-    m_packet.set_command_counter(m_packet.command_counter()+1);
-    // TODO: set current_action_time_remaining
 
     // send packet to internal referee
     QByteArray packetData;
@@ -55,8 +53,10 @@ void InternalGameController::handleGuiCommand(const QByteArray &data)
     // the ui part of the internal referee will only change command, stage or goalie
     if (newState.command() != m_packet.command() || newState.stage() != m_packet.stage()) {
         // clear all internal state
-        // TODO: command_timestamp, command_counter
+        auto counterBefore = m_packet.command_counter();
         m_packet.CopyFrom(newState);
+        m_packet.set_command_timestamp(m_timer->currentTime());
+        m_packet.set_command_counter(counterBefore+1);
     } else {
         m_packet.mutable_blue()->CopyFrom(newState.blue());
         m_packet.mutable_yellow()->CopyFrom(newState.yellow());

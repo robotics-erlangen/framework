@@ -33,7 +33,7 @@ class Referee : public QObject
     Q_OBJECT
 
 public:
-    explicit Referee(bool isInternalReferee);
+    explicit Referee();
 
 public:
     const amun::GameState& gameState() const { return m_gameState; }
@@ -50,7 +50,6 @@ private:
     static amun::GameState::State processCommand(SSL_Referee::Command command, amun::GameState::State currentState);
 
 private:
-    const bool m_isInternalReferee;
     amun::GameState m_gameState;
     world::Ball m_ball;
     quint32 m_counter;

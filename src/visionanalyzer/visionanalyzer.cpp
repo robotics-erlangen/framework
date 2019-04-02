@@ -112,7 +112,7 @@ int main(int argc, char* argv[])
     LogFileWriter logFile;
     logFile.open(parser.value(outputDirOption));
 
-    Referee ref(false);
+    Referee ref;
     // if you want to execute the tracking only on a specific part of the visionlog,
     // you can set enabled to true, and insert the first and last frame that should be processed here
     int counter = 0;

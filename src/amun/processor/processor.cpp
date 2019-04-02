@@ -125,8 +125,8 @@ Processor::Processor(const Timer *timer) :
     m_transceiverEnabled(false)
 {
     // keep two separate referee states
-    m_referee = new Referee(false);
-    m_refereeInternal = new Referee(true);
+    m_referee = new Referee();
+    m_refereeInternal = new Referee();
     m_tracker = new Tracker;
     m_speedTracker = new SpeedTracker;
 

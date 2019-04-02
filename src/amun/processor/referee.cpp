@@ -30,8 +30,8 @@
 /*!
  * \brief Create a new Referee instance
  */
-Referee::Referee(bool isInternalReferee) :
-    m_isInternalReferee(isInternalReferee), m_counter(-1), m_flipped(false)
+Referee::Referee() :
+    m_counter(-1), m_flipped(false)
 {
     // initialize with first half to simplify testing
     m_gameState.set_stage(SSL_Referee::NORMAL_FIRST_HALF);
@@ -75,14 +75,6 @@ void Referee::handlePacket(const QByteArray &data)
 
     if (packet.has_current_action_time_remaining()) {
         m_gameState.set_current_action_time_remaining(packet.current_action_time_remaining());
-    }
-
-    if (m_isInternalReferee) {
-        // the internal referee sends the counter delta since the last referee command
-        // this is possible as referee packets are sent only once
-        // a referee command can originate from the GUI referee or the strategy
-        // using a delta simplifies interleaving the commands
-        packet.set_command_counter(m_counter + packet.command_counter());
     }
 
     if (m_counter != packet.command_counter()) {
