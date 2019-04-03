@@ -116,7 +116,7 @@ message RadioCommand
 {
     required uint32 generation = 1;
     required uint32 id = 2;
-    required bool is_blue = 4;
+    optional bool is_blue = 4;
     required Command command = 3;
 };
 
