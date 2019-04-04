@@ -62,6 +62,8 @@ private:
     std::unique_ptr<Node::ObjectContainer> m_requireNamespace;
     bool running = false;
 
+    const QString m_compilerPath;
+
     std::pair<CompileResult, QString> m_lastResult;
     QString m_stdout;
 };

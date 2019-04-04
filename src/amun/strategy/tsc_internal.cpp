@@ -43,7 +43,8 @@ using namespace v8;
 
 InternalTypescriptCompiler::InternalTypescriptCompiler(const QFileInfo &tsconfig) :
     TypescriptCompiler(tsconfig),
-    m_isolate(nullptr)
+    m_isolate(nullptr),
+    m_compilerPath(QFileInfo(QString(ERFORCE_LIBDIR) + "tsc/built/local/tsc.js").canonicalFilePath())
 {
 }
 
@@ -61,6 +62,24 @@ InternalTypescriptCompiler::~InternalTypescriptCompiler()
         m_isolate->Exit();
         m_isolate->Dispose();
     }
+}
+
+static Local<Array> createStringArray(Isolate* isolate, const QList<QString>& values)
+{
+    EscapableHandleScope handleScope(isolate);
+    Local<Array> array = Array::New(isolate, values.size());
+    for (int i = 0; i < values.size(); ++i) {
+        Local<String> current = String::NewFromUtf8(isolate, values[i].toUtf8().data(), NewStringType::kNormal).ToLocalChecked();
+        array->Set(i, current);
+    }
+    return handleScope.Escape(array);
+}
+
+template <typename T>
+static void addObjectField(Isolate* isolate, Local<Object> target, QString name, Local<T> value)
+{
+    Local<String> fieldName = String::NewFromUtf8(isolate, name.toUtf8().data(), NewStringType::kNormal).ToLocalChecked();
+    target->Set(fieldName, value);
 }
 
 void InternalTypescriptCompiler::initializeEnvironment()
@@ -90,6 +109,52 @@ void InternalTypescriptCompiler::initializeEnvironment()
     delete create_params.array_buffer_allocator;
 
     m_context.Reset(m_isolate, context);
+
+    Local<Object> global = context->Global();
+
+    Local<Object> process = Object::New(m_isolate);
+    Local<Value> thisValue(External::New(m_isolate, this));
+    {
+        Local<Array> argv = createStringArray(m_isolate, {
+            QCoreApplication::applicationFilePath(),
+            m_compilerPath,
+            "--pretty", "false"
+        });
+        addObjectField(m_isolate, process, "argv", argv);
+    }
+    {
+        Local<Function> exit = Function::New(m_isolate, &exitCompilation, thisValue);
+        addObjectField(m_isolate, process, "exit", exit);
+    }
+    {
+        Local<Object> stdoutObject = Object::New(m_isolate);
+        Local<Function> write = Function::New(m_isolate, &stdoutCallback, thisValue);
+        addObjectField(m_isolate, stdoutObject, "write", write);
+        addObjectField(m_isolate, process, "stdout", stdoutObject);
+    }
+    {
+        // only for compiler existence check
+        Local<Object> nextTick = Object::New(m_isolate);
+        addObjectField(m_isolate, process, "nextTick", nextTick);
+
+        Local<Object> env = Object::New(m_isolate);
+        addObjectField(m_isolate, process, "env", env);
+
+        Local<Function> cwd = Function::New(m_isolate, &InternalTypescriptCompiler::processCwdCallback, thisValue);
+        addObjectField(m_isolate, process, "cwd", cwd);
+    }
+    {
+        // TODO may needs to be implemented for watch mode
+        Local<Function> setTimeout = Function::New(m_isolate, nullptr);
+        addObjectField(m_isolate, global, "setTimeout", setTimeout);
+
+        Local<Function> clearTimeout = Function::New(m_isolate, nullptr);
+        addObjectField(m_isolate, global, "clearTimeout", clearTimeout);
+
+        Local<String> filename = String::NewFromUtf8(m_isolate, m_compilerPath.toUtf8().data(), NewStringType::kNormal).ToLocalChecked();
+        addObjectField(m_isolate, global, "__filename", filename);
+    }
+    addObjectField(m_isolate, global, "process", process);
 }
 
 
@@ -184,17 +249,6 @@ void InternalTypescriptCompiler::stdoutCallback(const FunctionCallbackInfo<Value
     }
 }
 
-static Local<Array> createStringArray(Isolate* isolate, const QList<QString>& values)
-{
-    EscapableHandleScope handleScope(isolate);
-    Local<Array> array = Array::New(isolate, values.size());
-    for (int i = 0; i < values.size(); ++i) {
-        Local<String> current = String::NewFromUtf8(isolate, values[i].toUtf8().data(), NewStringType::kNormal).ToLocalChecked();
-        array->Set(i, current);
-    }
-    return handleScope.Escape(array);
-}
-
 std::pair<InternalTypescriptCompiler::CompileResult, QString> InternalTypescriptCompiler::performCompilation()
 {
     if (!m_isolate) {
@@ -206,67 +260,7 @@ std::pair<InternalTypescriptCompiler::CompileResult, QString> InternalTypescript
     Local<Context> context = m_context.Get(m_isolate);
     Context::Scope contextScope(context);
 
-    QString compilerPath = QFileInfo(QString(ERFORCE_LIBDIR) + "tsc/built/local/tsc.js").canonicalFilePath();
-
-    Local<Object> global = context->Global();
-
-    Local<Object> process = Object::New(m_isolate);
-    Local<String> processName = String::NewFromUtf8(m_isolate, "process", NewStringType::kNormal).ToLocalChecked();
-    Local<Value> thisValue(External::New(m_isolate, this));
-    {
-        Local<Array> argv = createStringArray(m_isolate, {
-            QCoreApplication::applicationFilePath(),
-            compilerPath,
-            "--pretty", "false"
-        });
-        Local<String> argvName = String::NewFromUtf8(m_isolate, "argv", NewStringType::kNormal).ToLocalChecked();
-        process->Set(argvName, argv);
-    }
-    {
-        Local<Function> exit = Function::New(m_isolate, &exitCompilation, thisValue);
-        Local<String> exitName = String::NewFromUtf8(m_isolate, "exit", NewStringType::kNormal).ToLocalChecked();
-        process->Set(exitName, exit);
-    }
-    {
-        Local<Object> stdoutObject = Object::New(m_isolate);
-        Local<Function> write = Function::New(m_isolate, &stdoutCallback, thisValue);
-        Local<String> writeName = String::NewFromUtf8(m_isolate, "write", NewStringType::kNormal).ToLocalChecked();
-        stdoutObject->Set(writeName, write);
-
-        Local<String> stdoutName = String::NewFromUtf8(m_isolate, "stdout", NewStringType::kNormal).ToLocalChecked();
-        process->Set(stdoutName, stdoutObject);
-    }
-    {
-        // only for compiler existence check
-        Local<Object> nextTick = Object::New(m_isolate);
-        Local<String> nextTickName = String::NewFromUtf8(m_isolate, "nextTick", NewStringType::kNormal).ToLocalChecked();
-        process->Set(nextTickName, nextTick);
-
-        Local<Object> env = Object::New(m_isolate);
-        Local<String> envName = String::NewFromUtf8(m_isolate, "env", NewStringType::kNormal).ToLocalChecked();
-        process->Set(envName, env);
-
-        Local<Function> cwd = Function::New(m_isolate, &InternalTypescriptCompiler::processCwdCallback, thisValue);
-        Local<String> cwdName = String::NewFromUtf8(m_isolate, "cwd", NewStringType::kNormal).ToLocalChecked();
-        process->Set(cwdName, cwd);
-    }
-    {
-        // TODO may needs to be implemented for watch mode
-        Local<Function> setTimeout = Function::New(m_isolate, nullptr);
-        Local<String> setTimeoutName = String::NewFromUtf8(m_isolate, "setTimeout", NewStringType::kNormal).ToLocalChecked();
-        global->Set(setTimeoutName, setTimeout);
-
-        Local<Function> clearTimeout = Function::New(m_isolate, nullptr);
-        Local<String> clearTimeoutName = String::NewFromUtf8(m_isolate, "clearTimeout", NewStringType::kNormal).ToLocalChecked();
-        global->Set(clearTimeoutName, clearTimeout);
-
-        Local<String> filename = String::NewFromUtf8(m_isolate, compilerPath.toUtf8().data(), NewStringType::kNormal).ToLocalChecked();
-        Local<String> filenameName = String::NewFromUtf8(m_isolate, "__filename", NewStringType::kNormal).ToLocalChecked();
-        global->Set(filenameName, filename);
-    }
-    global->Set(processName, process);
-
-    QFile compilerFile(compilerPath);
+    QFile compilerFile(m_compilerPath);
     if (!compilerFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
         return { CompileResult::Error, "Could not open compiler" };
     }
