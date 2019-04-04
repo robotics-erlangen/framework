@@ -19,6 +19,7 @@
 # ***************************************************************************
 
 add_library(path
+    include/path/alphatimetrajectory.h
     include/path/abstractpath.h
     include/path/kdtree.h
     include/path/linesegment.h
@@ -27,6 +28,7 @@ add_library(path
     include/path/vector.h
 
     abstractpath.cpp
+    alphatimetrajectory.cpp
     kdtree.cpp
     path.cpp
     trajectorypath.cpp
