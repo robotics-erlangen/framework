@@ -100,6 +100,10 @@ export class BallPlacement extends Move {
 	_updateTasks(): [Map<FriendlyRobot, Assignment>, FriendlyRobot] {
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
 
+		if (World.BallPlacementPos) {
+			this._ballPlacementPos = World.BallPlacementPos;
+		}
+
 		const SHOOTER_OBSTACLES = [
 			{
 				type: "circle",
