@@ -191,6 +191,13 @@ bool SeqLogFileReader::readVersion()
         }
     } else {
         m_file->seek(0);
+        // try to read a Status. If the Status is unparsable, it is most likely not a logfile.
+        qint64 time = readTimestampVersion0();
+        if (time <= 0) {
+            m_errorMsg = "File format not supported!";
+            return false;
+        }
+        m_file->seek(0);
     }
     return true;
 }
