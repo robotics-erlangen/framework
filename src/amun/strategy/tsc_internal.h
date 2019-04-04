@@ -52,6 +52,7 @@ private:
     static void exitCompilation(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void stdoutCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
 
+    // WARNING: this function is NOT re-entrant
     std::pair<CompileResult, QString> performCompilation() override;
     void handleExitcode(bool exitcodeValid, int exitcode);
 private:

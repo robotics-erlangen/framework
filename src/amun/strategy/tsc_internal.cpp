@@ -285,6 +285,8 @@ std::pair<InternalTypescriptCompiler::CompileResult, QString> InternalTypescript
     bool exitcodeValid = script->Run(context).ToLocal(&exitCodeValue);
     if (running) {
         handleExitcode(exitcodeValid, exitcodeValid ? exitCodeValue->Int32Value() : -1);
+    } else {
+        m_isolate->CancelTerminateExecution();
     }
     if (tryCatch.HasTerminated() || tryCatch.HasCaught()) {
         String::Utf8Value errorMsg(m_isolate, tryCatch.StackTrace(context).ToLocalChecked());
