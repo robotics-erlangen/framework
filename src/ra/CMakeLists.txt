@@ -63,6 +63,8 @@ add_library(ra-horus
     loglabel.cpp
     loggingsuite.h
     loggingsuite.cpp
+    logfileselectiondialog.cpp
+    logfileselectiondialog.h
 )
 
 set(UI_SOURCES
@@ -77,6 +79,7 @@ set(UI_SOURCES
     simulatorconfigwidget.ui
     savedirectorydialog.ui
     teaminfowidget.ui
+    logfileselectiondialog.ui
 )
 
 qt5_wrap_ui(UIC_SOURCES ${UI_SOURCES})
