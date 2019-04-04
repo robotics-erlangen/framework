@@ -26,7 +26,7 @@ FileWatcher::FileWatcher(QObject *parent) :
     QObject(parent)
 {
     m_watcher = new QFileSystemWatcher(this);
-    connect(m_watcher, SIGNAL(fileChanged(QString)), SIGNAL(fileChanged(QString)));
+    connect(m_watcher, &QFileSystemWatcher::fileChanged, this, &FileWatcher::onFileChanged);
     connect(m_watcher, SIGNAL(directoryChanged(QString)), SLOT(handleDirectoryChange(QString)));
 }
 
@@ -60,6 +60,12 @@ bool FileWatcher::addFile(const QString &filename)
     }
 
     return isReadable;
+}
+
+void FileWatcher::onFileChanged(const QString &name)
+{
+    m_watcher->addPath(name);
+    emit fileChanged(name);
 }
 
 void FileWatcher::handleDirectoryChange(const QString &name)

@@ -40,6 +40,7 @@ public:
 signals:
     void fileChanged(const QString &name);
 private slots:
+    void onFileChanged(const QString &name);
     void handleDirectoryChange(const QString &name);
 private:
     QFileSystemWatcher* m_watcher;
