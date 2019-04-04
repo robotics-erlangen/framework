@@ -280,7 +280,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     }
 
     // logplayer mode connections
-    LogCutter *logCutter = new LogCutter();
+    LogCutter *logCutter = new LogCutter(this);
 
     m_playTimer = ui->logManager->getPlayTimer();
 
@@ -301,6 +301,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete ui;
+    delete m_plotter;
 }
 
 void MainWindow::closeEvent(QCloseEvent *e)

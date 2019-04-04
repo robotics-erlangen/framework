@@ -5,7 +5,7 @@
 #include <QFileDialog>
 
 LogCutter::LogCutter(QWidget *parent) :
-    QWidget(parent),
+    QWidget(parent, Qt::Window),
     ui(new Ui::LogCutter),
     m_processor(nullptr)
 {
