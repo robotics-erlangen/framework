@@ -149,6 +149,7 @@ Vector TrajectoryPath::randomSpeed()
 
 void TrajectoryPath::findPathAlphaT()
 {
+    collectObstacles();
     // check direct trajectory
     m_generationInfo.clear();
     float directSlowDownTime = exponentialSlowDown ? TOTAL_SLOW_DOWN_TIME : 0.0f;
