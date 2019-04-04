@@ -20,6 +20,7 @@ export class TrajectoryPath extends TrajectoryHandler {
 			endSpeed: Speed = new Vector(0, 0)): TrajectoryResult {
 
 		targetPos = Coordinates.toGlobal(targetPos);
+		endSpeed = Coordinates.toGlobal(endSpeed);
 		let robotPos = Coordinates.toGlobal(this._robot.pos);
 		let robotSpeed = Coordinates.toGlobal(this._robot.speed);
 		let robotDir = Coordinates.toGlobal(this._robot.dir);
@@ -52,8 +53,8 @@ export class TrajectoryPath extends TrajectoryHandler {
 			this._robot.angularSpeed, targetDir, rotAccelerate, rotBrake, rotMaxSpeed, rotationExponentialTime);
 
 		// finish and return trajectory
-		let speed = TrajectoryPath.speedAtTime(0.005, trajectory);
-		let acc = TrajectoryPath.accAtTime(0.005, trajectory);
+		let speed = TrajectoryPath.speedAtTime(0.12, trajectory);
+		let acc = TrajectoryPath.accAtTime(0.12, trajectory);
 		let spline = [ {t_start: 0, t_end: Infinity,
 			x: { a0: robotPos.x, a1: speed.x, a2: acc.x / 2, a3: 0 },
 			y: { a0: robotPos.y, a1: speed.y, a2: acc.y / 2, a3: 0 },
@@ -70,7 +71,7 @@ export class TrajectoryPath extends TrajectoryHandler {
 	}
 
 	private static speedAtTime(time: number, trajectory: { pos: Position, speed: Speed, time: number}[]): Speed {
-		for (let i = 0;i < trajectory.length;i++) {
+		for (let i = 0;i < trajectory.length - 1;i++) {
 			let next = trajectory[i + 1];
 			if (next.time > time) {
 				let current = trajectory[i];
@@ -79,11 +80,14 @@ export class TrajectoryPath extends TrajectoryHandler {
 				return v;
 			}
 		}
-		return trajectory[trajectory.length - 1].speed;
+		if (trajectory.length > 0) {
+			return trajectory[trajectory.length - 1].speed;
+		}
+		return new Vector(0, 0);
 	}
 
 	private static accAtTime(time: number, trajectory: { pos: Position, speed: Speed, time: number}[]): Vector {
-		for (let i = 0;i < trajectory.length;i++) {
+		for (let i = 0;i < trajectory.length - 1;i++) {
 			let next = trajectory[i + 1];
 			if (next.time > time) {
 				let current = trajectory[i];
