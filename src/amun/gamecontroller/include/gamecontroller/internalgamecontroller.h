@@ -47,11 +47,14 @@ private:
     SSL_Referee m_packet;
     qint64 m_currentActionStartTime = -1;
     qint64 m_currentActionAllowedTime;
-    SSL_Referee::Command m_consequence;
+    bool m_isFirstPlacement;
 
     QTimer *m_trigger;
 
     const int UPDATE_INTERVAL_MS = 500;
+    const float FIELD_LINE_DISTANCE = 0.3f;
+    const float GOAL_LINE_DISTANCE = 0.35f;
+    const float DEFENSE_DISTANCE = 0.5;
 };
 
 #endif // INTERNALGAMECONTROLLER_H
