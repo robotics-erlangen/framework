@@ -301,6 +301,7 @@ static void buildStackTrace(const Local<Context>& context, QString& errorMsg, co
 
 bool Typescript::loadScript(const QString &fname, const QString &entryPoint)
 {
+    m_requestedEntrypoint = entryPoint;
     if (!setupCompiler(fname))
         return false;
 
@@ -516,7 +517,7 @@ void Typescript::onCompileError(const QString &message)
 
 void Typescript::onCompileSuccess()
 {
-    loadTypescript(m_filename, m_name);
+    loadTypescript(m_filename, m_requestedEntrypoint);
 }
 
 void Typescript::defineModule(const FunctionCallbackInfo<Value> &args)

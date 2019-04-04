@@ -115,6 +115,8 @@ private:
 
     lua_State* m_luaState;
     std::shared_ptr<CompilerThreadWrapper> m_compiler;
+
+    QString m_requestedEntrypoint;
 };
 
 #endif // TYPESCRIPT_H
