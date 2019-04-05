@@ -340,9 +340,7 @@ bool Typescript::setupCompiler(const QString &filename)
     connect(m_compiler->comp(), &Compiler::error, this, &Typescript::onCompileError);
     connect(m_compiler->comp(), &Compiler::success, this, &Typescript::onCompileSuccess);
 
-    connect(this, &Typescript::initialCompilation, m_compiler->comp(), &Compiler::compile);
-    emit initialCompilation();
-    disconnect(this, &Typescript::initialCompilation, m_compiler->comp(), &Compiler::compile);
+    QMetaObject::invokeMethod(m_compiler->comp(), &Compiler::compile);
 
     return true;
 }

@@ -89,9 +89,6 @@ private slots:
     void onCompileError(const QString &message);
     void onCompileSuccess();
 
-signals:
-    void initialCompilation();
-
 private:
     v8::Isolate* m_isolate;
     v8::Persistent<v8::Context> m_context;
