@@ -72,7 +72,7 @@ void TypescriptCompiler::resume()
     QMutexLocker locker(&m_stateLock);
     if (m_state == State::PAUSED) {
         m_state = State::STANDBY;
-        m_pauseWait.notify_all();
+        m_pauseWait.wakeAll();
     }
 }
 
