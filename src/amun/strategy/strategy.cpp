@@ -296,7 +296,7 @@ void Strategy::handleCommand(const Command &command)
             }
         }
 
-        if (cmd->has_performance_mode() && m_isTournamentMode != cmd->tournament_mode()) {
+        if (cmd->has_tournament_mode() && m_isTournamentMode != cmd->tournament_mode()) {
             m_isTournamentMode = cmd->tournament_mode();
             reloadStrategy = true;
         }
