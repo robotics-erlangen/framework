@@ -68,9 +68,11 @@ Typescript::Typescript(const Timer *timer, StrategyType type, bool debugEnabled,
 
 Typescript::~Typescript()
 {
-    // must be destroyed before the isolate
-    delete m_inspectorHolder->getInspectorHandler();
-    m_inspectorHolder.reset();
+    if (m_inspectorHolder) {
+        // must be destroyed before the isolate
+        delete m_inspectorHolder->getInspectorHandler();
+        m_inspectorHolder.reset();
+    }
     m_internalDebugger.release();
     qDeleteAll(m_scriptOrigins);
     m_checkForScriptTimeout->deleteLater();
