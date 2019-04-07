@@ -99,7 +99,7 @@ private:
     void sendTeam(robot::Team *t, RobotWidget::Team team);
     void unsetTeam(uint id, uint skip_generation, RobotWidget::Team team);
     void updateGenerationTeam();
-    void searchForStrategies();
+    void searchForStrategies(const QString &languageDir, const QString &initFileName);
     void unsetAll();
 
 private:

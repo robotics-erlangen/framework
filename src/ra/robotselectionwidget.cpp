@@ -208,7 +208,8 @@ void RobotSelectionWidget::load()
     m_recentScripts = s.value("RecentScripts").toStringList();
     s.endGroup();
 
-    searchForStrategies();
+    searchForStrategies("lua", "init.lua");
+    searchForStrategies("typescript", "init.ts");
     ui->blue->setRecentScripts(&m_recentScripts);
     ui->yellow->setRecentScripts(&m_recentScripts);
     ui->autoref->setRecentScripts(&m_recentScripts);
@@ -221,9 +222,9 @@ void RobotSelectionWidget::load()
     m_isInitialized = true;
 }
 
-void RobotSelectionWidget::searchForStrategies()
+void RobotSelectionWidget::searchForStrategies(const QString &languageDir, const QString &initFileName)
 {
-    QDir strategyFolder(QString(ERFORCE_STRATEGYDIR) + "lua/");
+    QDir strategyFolder(QString(ERFORCE_STRATEGYDIR) + languageDir + "/");
     if (!strategyFolder.exists()) {
         return;
     }
@@ -231,7 +232,7 @@ void RobotSelectionWidget::searchForStrategies()
     QFileInfoList infoList = strategyFolder.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
     for (QFileInfo &dirfile: infoList) {
         QDir dir(dirfile.absoluteFilePath());
-        QString entrypoint = dir.absoluteFilePath("init.lua");
+        QString entrypoint = dir.absoluteFilePath(initFileName);
         QFileInfo file(entrypoint);
         if (!file.exists()) {
             continue;
