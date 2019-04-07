@@ -73,7 +73,7 @@ private slots:
     void process();
     void reload();
     void sendCommand(const Command &command);
-    void loadStateChanged(bool success);
+    void loadStateChanged(amun::StatusStrategy::STATE state);
 
 private:
     static void initV8();

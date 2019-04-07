@@ -146,7 +146,7 @@ signals:
     void sendStrategyCommands(bool blue, const QList<RobotCommandInfo> &commands, qint64 time);
     void sendMixedTeamInfo(const QByteArray &data);
     void sendNetworkRefereeCommand(const QByteArray &data);
-    void changeLoadState(bool success);
+    void changeLoadState(amun::StatusStrategy::STATE state);
 
 protected:
     bool chooseEntryPoint(QString entryPoint);

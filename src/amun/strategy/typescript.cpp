@@ -369,7 +369,7 @@ bool Typescript::loadTypescript(const QString &filename, const QString &entryPoi
         QFileInfo jsFile = m_compiler->comp()->mapToResult(QFileInfo(filename));
 
         success = loadJavascript(jsFile.absoluteFilePath(), entryPoint);
-        emit changeLoadState(success);
+        emit changeLoadState(amun::StatusStrategy::RUNNING);
     } else {
         m_errorMsg = "<font color=\"red\">No compile result available</font>";
     }
@@ -507,7 +507,7 @@ bool Typescript::loadJavascript(const QString &filename, const QString &entryPoi
 
 void Typescript::onCompileStarted()
 {
-    log("<font color=\"teal\">Started compilation</font>");
+    emit changeLoadState(amun::StatusStrategy::COMPILING);
 }
 
 void Typescript::onCompileWarning(const QString &message)
@@ -519,7 +519,7 @@ void Typescript::onCompileWarning(const QString &message)
         emit requestReload();
     } else {
         m_errorMsg = warnString;
-        emit changeLoadState(false);
+        emit changeLoadState(amun::StatusStrategy::FAILED);
     }
 }
 
@@ -531,7 +531,7 @@ void Typescript::onCompileError(const QString &message)
         log(errorString);
     } else {
         m_errorMsg = errorString;
-        emit changeLoadState(false);
+        emit changeLoadState(amun::StatusStrategy::FAILED);
     }
 }
 

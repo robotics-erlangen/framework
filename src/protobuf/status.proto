@@ -12,7 +12,7 @@ import "logfile.proto";
 package amun;
 
 message StatusStrategy {
-    enum STATE { CLOSED = 1; RUNNING = 3; FAILED = 4; };
+    enum STATE { CLOSED = 1; RUNNING = 3; FAILED = 4; COMPILING = 5; };
     required STATE state = 1;
     optional string filename = 2;
     optional string name = 3;

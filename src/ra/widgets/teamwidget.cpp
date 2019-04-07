@@ -34,6 +34,7 @@ TeamWidget::TeamWidget(QWidget *parent) :
     m_type(amun::StatusStrategyWrapper::BLUE),
     m_userAutoReload(false),
     m_notification(false),
+    m_compiling(false),
     m_recentScripts(NULL)
 {
 }
@@ -236,6 +237,7 @@ void TeamWidget::handleStatus(const Status &status)
         // status dependent display
         m_actionDisable->setVisible(strategy->state() != amun::StatusStrategy::CLOSED);
 
+        m_compiling = false;
         switch (strategy->state()) {
         case amun::StatusStrategy::CLOSED:
             m_btnOpen->setText("Strategy disabled");
@@ -251,6 +253,10 @@ void TeamWidget::handleStatus(const Status &status)
 
         case amun::StatusStrategy::FAILED:
             m_notification = true;
+            break;
+
+        case amun::StatusStrategy::COMPILING:
+            m_compiling = true;
             break;
         }
 
@@ -332,7 +338,7 @@ QString TeamWidget::shortenEntrypointName(const QMenu *menu, const QString &name
 
 void TeamWidget::showOpenDialog()
 {
-    QString filename = QFileDialog::getOpenFileName(this, "Open script", QString(), QString("Lua/Js script entrypoint (init.lua init.ts)"));
+    QString filename = QFileDialog::getOpenFileName(this, "Open script", QString(), QString("Lua/Ts script entrypoint (init.lua init.ts)"));
     if (filename.isNull()) {
         return;
     }
@@ -515,7 +521,7 @@ void TeamWidget::updateStyleSheet()
         color = "lightgray";
         break;
     }
-    const QColor bgColor = m_notification ? "red" : color.lighter(170);
+    const QColor bgColor = m_notification ? "red" : (m_compiling ? "gray" : color.lighter(170));
 
     QString ss("TeamWidget { background-color: %2; border: 1px solid %1; border-radius: 5px; }");
     setStyleSheet(ss.arg(color.name()).arg(bgColor.name()));

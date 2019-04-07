@@ -527,34 +527,41 @@ void Strategy::sendCommand(const Command &command)
     }
 }
 
-void Strategy::loadStateChanged(bool success)
+void Strategy::loadStateChanged(amun::StatusStrategy::STATE state)
 {
-    if (success) {
-        m_strategyFailed = false;
-
-        m_entryPoint = m_strategy->entryPoint(); // remember loaded entrypoint
-        m_strategy->setSelectedOptions(m_selectedOptions);
-
-        // prepare strategy status message
-        Status status = takeStrategyDebugStatus();
-        setStrategyStatus(status, amun::StatusStrategy::RUNNING);
-
-        // inform about successful load
-        amun::StatusLog *log;
-        if (status->debug_size() > 0) {
-            Q_ASSERT(status->debug_size() == 1);
-            //TODO: This assumes that there is at most one debug in this status
-            log = status->mutable_debug(0)->add_log();
-        } else {
-            log = status->add_debug()->add_log();
-        }
-        log->set_timestamp(m_timer->currentTime());
-        log->set_text(QString("<font color=\"darkgreen\">Successfully loaded %1 with entry point %2!</font>").arg(m_filename, m_entryPoint).toStdString());
-
-        emit sendStatus(status);
-    } else {
+    if (state == amun::StatusStrategy::FAILED) {
         fail(m_strategy->errorMsg());
+        return;
     }
+
+    if (state == amun::StatusStrategy::RUNNING) {
+        m_strategyFailed = false;
+    }
+
+    m_entryPoint = m_strategy->entryPoint(); // remember loaded entrypoint
+    m_strategy->setSelectedOptions(m_selectedOptions);
+
+    // prepare strategy status message
+    Status status = takeStrategyDebugStatus();
+    setStrategyStatus(status, state);
+
+    // inform about successful load
+    amun::StatusLog *log;
+    if (status->debug_size() > 0) {
+        Q_ASSERT(status->debug_size() == 1);
+        //TODO: This assumes that there is at most one debug in this status
+        log = status->mutable_debug(0)->add_log();
+    } else {
+        log = status->add_debug()->add_log();
+    }
+    log->set_timestamp(m_timer->currentTime());
+    if (state == amun::StatusStrategy::COMPILING) {
+        log->set_text(QString("<font color=\"teal\">Started compiling %1</font>").arg(m_filename).toStdString());
+    } else if (state == amun::StatusStrategy::RUNNING) {
+        log->set_text(QString("<font color=\"darkgreen\">Successfully loaded %1 with entry point %2!</font>").arg(m_filename, m_entryPoint).toStdString());
+    }
+
+    emit sendStatus(status);
 }
 
 void Strategy::loadScript(const QString &filename, const QString &entryPoint)

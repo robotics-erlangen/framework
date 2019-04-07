@@ -95,6 +95,7 @@ private:
     QAction *m_performanceAction;
     bool m_userAutoReload;
     bool m_notification;
+    bool m_compiling;
     QStringList *m_recentScripts;
 };
 
