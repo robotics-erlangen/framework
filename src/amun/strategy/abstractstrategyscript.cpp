@@ -152,7 +152,7 @@ void AbstractStrategyScript::sendMixedTeam(const QByteArray &info)
 
 bool AbstractStrategyScript::loadScript(const QString &filename, const QString &entryPoint, const world::Geometry &geometry, const robot::Team &team)
 {
-    Q_ASSERT(m_filename.isNull());
+    Q_ASSERT(m_filename.isNull() || canReloadInPlace());
 
     // startup strategy information
     m_filename = filename;
