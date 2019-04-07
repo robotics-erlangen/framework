@@ -78,6 +78,8 @@ private:
     bool loadModule(QString name);
     v8::ScriptOrigin *scriptOriginFromFileName(QString name);
     static void saveNode(QTextStream &file, const v8::CpuProfileNode *node, QString functionStack);
+    void clearRequireCache();
+    void createGlobalScope();
 
     bool setupCompiler(const QString &filename);
     bool loadTypescript(const QString &filename, const QString &entryPoint);

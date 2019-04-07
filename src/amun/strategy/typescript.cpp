@@ -63,22 +63,6 @@ Typescript::Typescript(const Timer *timer, StrategyType type, bool debugEnabled,
     m_timeoutCheckerThread->start();
     m_checkForScriptTimeout->moveToThread(m_timeoutCheckerThread);
 
-    HandleScope handleScope(m_isolate);
-    Local<ObjectTemplate> globalTemplate = ObjectTemplate::New(m_isolate);
-    registerDefineFunction(globalTemplate);
-    Local<Context> context = Context::New(m_isolate, nullptr, globalTemplate);
-    Context::Scope contextScope(context);
-    Local<Object> global = context->Global();
-    registerAmunJsCallbacks(m_isolate, global, this);
-    registerPathJsCallbacks(m_isolate, global, this);
-    // create an empty global variable used for debugging
-    Local<String> objectName = String::NewFromUtf8(m_isolate, "___globalpleasedontuseinregularcode", NewStringType::kNormal).ToLocalChecked();
-    global->Set(objectName, Object::New(m_isolate));
-    m_context.Reset(m_isolate, context);
-
-    m_inspectorHolder.reset(new InspectorHolder(m_isolate, m_context));
-    m_internalDebugger.reset(new InternalDebugger(m_isolate, this));
-    m_inspectorHolder->setInspectorHandler(m_internalDebugger.get());
     delete create_params.array_buffer_allocator;
 }
 
@@ -96,13 +80,7 @@ Typescript::~Typescript()
         m_profiler->Dispose();
         m_profiler = nullptr;
     }
-    for (auto &cache : m_requireCache) {
-        for (auto element : cache.values()) {
-            // TODO: When applying tsc's memory Modell, where JS-Objects may delete C++ Objects when GC collectes them,
-            // Reset element first and delete it afterwards (Or does JS / v8 handle that itself?)
-            delete element;
-        }
-    }
+    clearRequireCache();
     m_function.Reset();
     m_requireTemplate.Reset();
     m_context.Reset();
@@ -111,6 +89,38 @@ Typescript::~Typescript()
     if (m_luaState) {
         lua_close(m_luaState);
     }
+}
+
+void Typescript::clearRequireCache()
+{
+    for (auto &cache : m_requireCache) {
+        for (auto element : cache.values()) {
+            // TODO: When applying tsc's memory Modell, where JS-Objects may delete C++ Objects when GC collectes them,
+            // Reset element first and delete it afterwards (Or does JS / v8 handle that itself?)
+            delete element;
+        }
+    }
+    m_requireCache = {{}};
+}
+
+void Typescript::createGlobalScope()
+{
+    HandleScope handleScope(m_isolate);
+    Local<ObjectTemplate> globalTemplate = ObjectTemplate::New(m_isolate);
+    registerDefineFunction(globalTemplate);
+    Local<Context> context = Context::New(m_isolate, nullptr, globalTemplate);
+    Context::Scope contextScope(context);
+    Local<Object> global = context->Global();
+    registerAmunJsCallbacks(m_isolate, global, this);
+    registerPathJsCallbacks(m_isolate, global, this);
+    // create an empty global variable used for debugging
+    Local<String> objectName = String::NewFromUtf8(m_isolate, "___globalpleasedontuseinregularcode", NewStringType::kNormal).ToLocalChecked();
+    global->Set(objectName, Object::New(m_isolate));
+    m_context.Reset(m_isolate, context);
+
+    m_inspectorHolder.reset(new InspectorHolder(m_isolate, m_context));
+    m_internalDebugger.reset(new InternalDebugger(m_isolate, this));
+    m_inspectorHolder->setInspectorHandler(m_internalDebugger.get());
 }
 
 bool Typescript::canHandle(const QString &filename)
@@ -355,6 +365,7 @@ bool Typescript::loadTypescript(const QString &filename, const QString &entryPoi
     bool success = false;
     if (m_compiler->comp()->isResultAvailable()) {
         QFileInfo jsFile = m_compiler->comp()->mapToResult(QFileInfo(filename));
+
         success = loadJavascript(jsFile.absoluteFilePath(), entryPoint);
         emit changeLoadState(success);
     } else {
@@ -381,6 +392,15 @@ bool Typescript::loadJavascript(const QString &filename, const QString &entryPoi
         m_errorMsg = "<font color=\"red\">Could not open file " + filename + "</font>";
         return false;
     }
+
+    // clean up old variables and prepare new execution environment
+    // this is for the case that the strategy is reloaded in place
+    clearRequireCache();
+    qDeleteAll(m_scriptOrigins);
+    m_scriptOrigins.clear();
+    m_scriptIdCounter = 0;
+    m_entryPoints.clear();
+    createGlobalScope();
 
     HandleScope handleScope(m_isolate);
     Local<Context> context = Local<Context>::New(m_isolate, m_context);
