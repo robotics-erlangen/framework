@@ -52,6 +52,8 @@ public:
 
     void startProfiling() override;
     void endProfiling(const std::string &filename) override;
+    bool canReloadInPlace() const override { return  true; }
+    bool canHandleDynamic(const QString &filename) const override { return Typescript::canHandle(filename); }
 
     // functions used for debugging v8
     void disableTimeoutOnce(); // disables script timeout for the currently running strategy frame

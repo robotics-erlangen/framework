@@ -40,6 +40,7 @@ public:
     Lua(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled);
     static bool canHandle(const QString &filename);
     ~Lua() override;
+    bool canHandleDynamic(const QString &filename) const override { return Lua::canHandle(filename); }
 
 public:
     bool triggerDebugger() override;

@@ -73,6 +73,8 @@ public:
     virtual bool triggerDebugger();
     virtual void startProfiling() {}
     virtual void endProfiling(const std::string &filename) {}
+    virtual bool canReloadInPlace() const { return false; }
+    virtual bool canHandleDynamic(const QString &filename) const = 0;
 
     void setSelectedOptions(const QStringList &options);
     void setDebugHelper(DebugHelper *helper);

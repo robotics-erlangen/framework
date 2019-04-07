@@ -563,36 +563,39 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
     Q_ASSERT(m_team.IsInitialized());
 
     m_reloadTimer->stop();
-    // use a fresh strategy instance when strategy is started
+
+    bool createNewStrategy = !m_strategy || !m_strategy->canReloadInPlace() || !m_strategy->canHandleDynamic(filename);
+    if (createNewStrategy) {
+        // use a fresh strategy instance when strategy is started
 #ifdef V8_FOUND
-    m_inspectorServer->clearHandlers();
+        m_inspectorServer->clearHandlers();
 #endif
-    delete m_strategy;
-    m_strategy = NULL;
+        delete m_strategy;
+        m_strategy = nullptr;
 
-    m_filename = filename;
+        m_filename = filename;
 
-    // hardcoded factory pattern
-    if (Lua::canHandle(filename)) {
-        m_strategy = new Lua(m_timer, m_type, m_debugEnabled, m_refboxControlEnabled);
-        // insert m_debugStatus into m_strategy
-        takeStrategyDebugStatus();
+        // hardcoded factory pattern
+        if (Lua::canHandle(filename)) {
+            m_strategy = new Lua(m_timer, m_type, m_debugEnabled, m_refboxControlEnabled);
+            // insert m_debugStatus into m_strategy
+            takeStrategyDebugStatus();
 #ifdef V8_FOUND
-    } else if (Typescript::canHandle(filename)) {
-        Typescript *t = new Typescript(m_timer, m_type, m_debugEnabled, m_refboxControlEnabled, m_compilerRegistry);
-        m_strategy = t;
-        // insert m_debugStatus into m_strategy
-        // this has to happen before newDebuggagleStrategy is called
-        takeStrategyDebugStatus();
-        if (m_debugEnabled) {
-            m_inspectorServer->newDebuggagleStrategy(t);
+        } else if (Typescript::canHandle(filename)) {
+            Typescript *t = new Typescript(m_timer, m_type, m_debugEnabled, m_refboxControlEnabled, m_compilerRegistry);
+            m_strategy = t;
+            // insert m_debugStatus into m_strategy
+            // this has to happen before newDebuggagleStrategy is called
+            takeStrategyDebugStatus();
+            if (m_debugEnabled) {
+                m_inspectorServer->newDebuggagleStrategy(t);
+            }
+#endif
+        } else {
+            fail(QString("No strategy handler for file %1").arg(filename));
+            return;
         }
-#endif
-    } else {
-        fail(QString("No strategy handler for file %1").arg(filename));
-        return;
     }
-
 
     if (m_debugEnabled && m_debugHelper) {
         m_strategy->setDebugHelper(m_debugHelper);
@@ -606,15 +609,17 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
     m_strategy->setFlipped(m_isFlipped);
     m_strategy->setTournamentMode(m_isTournamentMode);
 
-    // delay reload until strategy is no longer running
-    connect(m_strategy, SIGNAL(requestReload()), SLOT(reload()), Qt::QueuedConnection);
-    // forward immediately
-    connect(m_strategy, SIGNAL(sendStrategyCommands(bool,QList<RobotCommandInfo>,qint64)),
-            SIGNAL(sendStrategyCommands(bool,QList<RobotCommandInfo>,qint64)));
-    connect(m_strategy, SIGNAL(gotCommand(Command)), SLOT(sendCommand(Command)));
-    connect(m_strategy, SIGNAL(sendMixedTeamInfo(QByteArray)), SLOT(sendMixedTeamInfo(QByteArray)));
-    connect(m_strategy, SIGNAL(sendNetworkRefereeCommand(QByteArray)), SLOT(sendNetworkRefereeCommand(QByteArray)));
-    connect(m_strategy, &AbstractStrategyScript::changeLoadState, this, &Strategy::loadStateChanged);
+    if (createNewStrategy) {
+        // delay reload until strategy is no longer running
+        connect(m_strategy, SIGNAL(requestReload()), SLOT(reload()), Qt::QueuedConnection);
+        // forward immediately
+        connect(m_strategy, SIGNAL(sendStrategyCommands(bool,QList<RobotCommandInfo>,qint64)),
+                SIGNAL(sendStrategyCommands(bool,QList<RobotCommandInfo>,qint64)));
+        connect(m_strategy, SIGNAL(gotCommand(Command)), SLOT(sendCommand(Command)));
+        connect(m_strategy, SIGNAL(sendMixedTeamInfo(QByteArray)), SLOT(sendMixedTeamInfo(QByteArray)));
+        connect(m_strategy, SIGNAL(sendNetworkRefereeCommand(QByteArray)), SLOT(sendNetworkRefereeCommand(QByteArray)));
+        connect(m_strategy, &AbstractStrategyScript::changeLoadState, this, &Strategy::loadStateChanged);
+    }
 
     m_strategy->loadScript(filename, entryPoint, m_geometry, m_team);
 }
