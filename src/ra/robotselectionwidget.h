@@ -101,6 +101,7 @@ private:
     void updateGenerationTeam();
     void searchForStrategies(const QString &languageDir, const QString &initFileName);
     void unsetAll();
+    void sanitizeRecentScripts();
 
 private:
     Ui::RobotSelectionWidget *ui;

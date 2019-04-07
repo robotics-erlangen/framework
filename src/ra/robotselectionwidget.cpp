@@ -208,6 +208,7 @@ void RobotSelectionWidget::load()
     m_recentScripts = s.value("RecentScripts").toStringList();
     s.endGroup();
 
+    sanitizeRecentScripts();
     searchForStrategies("lua", "init.lua");
     searchForStrategies("typescript", "init.ts");
     ui->blue->setRecentScripts(&m_recentScripts);
@@ -220,6 +221,18 @@ void RobotSelectionWidget::load()
     ui->yellow->load();
     ui->autoref->load();
     m_isInitialized = true;
+}
+
+void RobotSelectionWidget::sanitizeRecentScripts()
+{
+    QStringList recentScripts;
+    for (QString script: m_recentScripts) {
+        QFileInfo file(script);
+        if (file.exists() && (file.fileName() == "init.lua" || file.fileName() == "init.ts")) {
+            recentScripts.append(script);
+        }
+    }
+    m_recentScripts = recentScripts;
 }
 
 void RobotSelectionWidget::searchForStrategies(const QString &languageDir, const QString &initFileName)
