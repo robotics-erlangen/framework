@@ -130,6 +130,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     connect(ui->visualization, SIGNAL(itemsChanged(QStringList)), ui->field, SLOT(visualizationsChanged(QStringList)));
 
     m_plotter = new Plotter();
+    connect(m_plotter, SIGNAL(spacePressed()), this, SLOT(togglePause()));
 
     // connect the menu actions
     connect(ui->actionEnableTransceiver, SIGNAL(toggled(bool)), SLOT(setTransceiver(bool)));
@@ -324,6 +325,15 @@ void MainWindow::closeEvent(QCloseEvent *e)
     ui->robots->shutdown();
 
     QMainWindow::closeEvent(e);
+}
+
+void MainWindow::togglePause()
+{
+    if (m_currentWidgetConfiguration % 2 == 1) {
+        ui->simulator->toggleSimulatorRunning();
+    } else {
+        ui->actionTogglePause->trigger();
+    }
 }
 
 void MainWindow::showDirectoryDialog()

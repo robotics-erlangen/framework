@@ -47,6 +47,7 @@ public slots:
     void handleStatus(const Status &status);
     void stop();
     void start();
+    void toggleSimulatorRunning();
 
 private slots:
     void setEnableAutoPause(bool autoPause);
@@ -59,8 +60,6 @@ private slots:
     void setStddevRobotPos(double stddev);
     void setStddevRobotPhi(double stddev);
     void setEnableInvisibleBall(int state);
-
-    void on_btnToggle_clicked();
 
 private:
     Ui::SimulatorWidget *ui;

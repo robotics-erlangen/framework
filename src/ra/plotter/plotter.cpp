@@ -84,6 +84,11 @@ Plotter::Plotter() :
     // redirect scroll events on the widget
     ui->widget->installEventFilter(this);
 
+    QAction *actionSpacePressed = new QAction(this);
+    actionSpacePressed->setShortcut(QKeySequence(Qt::Key_Space));
+    connect(actionSpacePressed, &QAction::triggered, this,  &Plotter::spacePressed);
+    addAction(actionSpacePressed);
+
     // setup context menu for plot list
     m_plotMenu = new QMenu(this);
     QAction *actionClear = new QAction(QStringLiteral("Clear selection"), m_plotMenu);

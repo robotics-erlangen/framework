@@ -175,7 +175,7 @@ void SimulatorWidget::setStddevRobotPhi(double stddev)
     emit sendCommand(command);
 }
 
-void SimulatorWidget::on_btnToggle_clicked()
+void SimulatorWidget::toggleSimulatorRunning()
 {
     Command command(new amun::Command);
     command->mutable_pause_simulator()->set_reason(amun::Ui);

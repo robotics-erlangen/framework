@@ -85,7 +85,8 @@ private slots:
     void saveConfig();
     void switchToWidgetConfiguration(int configId);
     void showDirectoryDialog();
-    void logOpened(QString name);
+    void logOpened(QString name, bool errorOccurred);
+    void togglePause();
 
 private:
     void toggleHorusModeWidgets(bool enable);

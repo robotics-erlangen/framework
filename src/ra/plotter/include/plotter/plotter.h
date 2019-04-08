@@ -55,6 +55,7 @@ public slots:
 signals:
     void addPlot(const Plot *plot);
     void removePlot(const Plot *plot);
+    void spacePressed();
 
 protected:
     void closeEvent(QCloseEvent *event) override;
