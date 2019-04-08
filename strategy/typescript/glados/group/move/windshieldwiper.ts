@@ -89,23 +89,23 @@ export class WindshieldWiper extends Move {
 		}
 
 		let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
-		let nr: number | undefined = undefined;
 		let pos = this._positions;
 		let [center1, center2, radius] = MovesHelper.volleyCircle(World.Ball.pos, G.OpponentGoal, 55 / 180 * Math.PI);
 		let circle = center1.y < center2.y ? center1 : center2;
 		let posToShiftFrom = (World.Ball.pos + G.OpponentGoal) / 2;
+		let acceptingRobots = new Set<number>();
 		for (let i = 1;i < this._robots.length;i++) {
-			if (passInfoTable) {
-				nr = Attack.checkPassInfos(distances[i].robot, passInfoTable, false) ? i : nr;
+			if (passInfoTable && Attack.checkPassInfos(distances[i].robot, passInfoTable, false)) {
+				acceptingRobots.add(i);
 			}
 			let acceptPos = geom.intersectLineCircle(posToShiftFrom, pos[i] - posToShiftFrom, circle, radius)[0];
 			taskAssignments[distances[i].robot] = {class: Striker, params: [new Vector(-pos[i].x,pos[i].y), acceptPos]};
 		}
-		if (nr != undefined) {
-			taskAssignments[distances[nr].robot] = { class: AcceptPass};
-
+		if (acceptingRobots.size > 0) {
 			for (let i = 1;i < this._robots.length;i++) {
-				if (i !== nr) {
+				if (acceptingRobots.has(i)) {
+					taskAssignments[distances[i].robot] = { class: AcceptPass};
+				} else {
 					let acceptPos = geom.intersectLineCircle(posToShiftFrom, pos[i] - posToShiftFrom, circle, radius)[0];
 					taskAssignments[distances[i].robot] = {class: Striker, params: [pos[i], acceptPos], restart: true};
 				}
