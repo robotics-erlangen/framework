@@ -63,15 +63,19 @@ class Pass {
 let a: ExactLengthType20<typeof Pass>;
 
 export abstract class Behavior {
-	_agent: Agent;
-	_robot: FriendlyRobot;
-	_messaging: MessageBox;
-	_mainAttackerParameters: [Position | undefined, number | undefined, number | undefined] | undefined = undefined;
-	_task: Task | undefined;
-	_active: boolean = false;
-	_forceKeepingInPool: boolean = false;
-	_deferredBehavior: Behavior | undefined;
-	_deferredBehaviorRunning: boolean = false;
+	public _messaging: MessageBox;
+
+	protected _agent: Agent;
+	protected _robot: FriendlyRobot;
+	protected _task: Task | undefined;
+	protected _active: boolean = false;
+	protected _forceKeepingInPool: boolean = false;
+	// WARNING: when adding state is should be accessed by the subclass, this state has to be copied from and to
+	// the deferred behavior, see runDeferredBehavior() and run()
+
+	private _mainAttackerParameters: [Position | undefined, number | undefined, number | undefined] | undefined = undefined;
+	private _deferredBehavior: Behavior | undefined;
+	private _deferredBehaviorRunning: boolean = false;
 
 	constructor(agent: Agent) {
 		this._agent = agent;
@@ -109,7 +113,11 @@ export abstract class Behavior {
 		}
 		this._deferredBehaviorRunning = true;
 		debug.set("deferred behavior", (this._deferredBehavior as Behavior).constructor.name);
-		return (this._deferredBehavior as Behavior)._updateTask();
+		let result = (this._deferredBehavior as Behavior)._updateTask();
+
+		// transfer state from deferred behavior to main behavior
+		this._forceKeepingInPool = this._deferredBehavior!._forceKeepingInPool;
+		return result;
 	}
 
 	run() {
@@ -126,6 +134,11 @@ export abstract class Behavior {
 			} else {
 				this._task = new (bestTask as any)(this._agent);
 			}
+		}
+		if (this._deferredBehaviorRunning) {
+			// transfer state from this behavior to the deferred behavior
+			this._deferredBehavior!._task = this._task;
+			this._deferredBehavior!._active = true;
 		}
 		this._active = true;
 	}
