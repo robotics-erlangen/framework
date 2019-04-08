@@ -68,12 +68,13 @@ export function _ratePass(robot: FriendlyRobot, pass: PassObject, considerTiming
 		}
 	} else {
 		shootTime = Robot.minShootTime(robot, pass.ballPos);
-		// Infinity means that the ball can't be reached inside the field
-		if (shootTime === Infinity) {
-			vis.addCircle("u/a/ratePass: rating", pass.ballPos, 0.2, vis.fromTemperature(1, 127), true);
-			return 0;
-		}
 	}
+	// Infinity means that the ball can't be reached inside the field
+	if (shootTime === Infinity) {
+		vis.addCircle("u/a/ratePass: rating", pass.ballPos, 0.2, vis.fromTemperature(1, 127), true);
+		return 0;
+	}
+
 	let shootPos = Physics.ballAtTime(World.Ball, shootTime).pos;
 	let passTime = Shoot.ballPassTime(shootPos, pass.ballPos, pass.target, undefined, robot);
 	let ballArrivalTime = shootTime + passTime + World.Time;
