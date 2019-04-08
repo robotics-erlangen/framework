@@ -41,6 +41,7 @@ SimulatorWidget::SimulatorWidget(QWidget *parent) :
     connect(ui->btnStop, SIGNAL(clicked()), SLOT(stop()));
     connect(ui->chkEnableNoise, &QCheckBox::stateChanged, this, &SimulatorWidget::setEnableNoise);
     connect(ui->chkEnableInvisibleBall, &QCheckBox::stateChanged, this, &SimulatorWidget::setEnableInvisibleBall);
+    connect(ui->btnToggle, &QToolButton::clicked, this, &SimulatorWidget::toggleSimulatorRunning);
 
     connect(ui->spinStddevBall, SIGNAL(valueChanged(double)), SLOT(setStddevBall(double)));
     connect(ui->spinStddevRobotPos, SIGNAL(valueChanged(double)), SLOT(setStddevRobotPos(double)));
