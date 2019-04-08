@@ -292,6 +292,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
 
     setAcceptDrops(true);
 
+    ui->replay->setRecentScriptList(ui->robots->recentScriptsList());
     connect(&m_amun, SIGNAL(gotReplayStatus(Status)), ui->replay, SIGNAL(gotStatus(Status)));
     connect(ui->replay, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
 

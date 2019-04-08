@@ -34,8 +34,7 @@ TeamWidget::TeamWidget(QWidget *parent) :
     m_type(amun::StatusStrategyWrapper::BLUE),
     m_userAutoReload(false),
     m_notification(false),
-    m_compiling(false),
-    m_recentScripts(NULL)
+    m_compiling(false)
 {
 }
 
@@ -182,7 +181,7 @@ void TeamWidget::load()
     }
 }
 
-void TeamWidget::setRecentScripts(QStringList *recent)
+void TeamWidget::setRecentScripts(std::shared_ptr<QStringList> recent)
 {
     // both teamwidgets share the same string list
     // changes to the list are handled by prepareScriptMenu
@@ -378,7 +377,7 @@ void TeamWidget::open(const QString &filename)
 {
     m_filename = filename;
 
-    if (m_recentScripts != NULL) {
+    if (m_recentScripts) {
         // move script to front
         m_recentScripts->removeAll(filename);
         m_recentScripts->prepend(filename);
@@ -410,7 +409,7 @@ void TeamWidget::prepareScriptMenu()
         m_scriptMenu->removeAction(m_scriptMenu->actions().last());
     }
 
-    if (m_recentScripts == NULL || m_recentScripts->isEmpty()) {
+    if (!m_recentScripts || m_recentScripts->isEmpty()) {
         return;
     }
 

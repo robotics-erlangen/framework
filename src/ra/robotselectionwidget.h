@@ -59,6 +59,7 @@ public:
     void enableContent(bool enable);
     void resend();
     void setColor(bool blue);
+    std::shared_ptr<QStringList> recentScriptsList() const { return m_recentScripts; }
 
 signals:
     void setTeam(uint generation, uint id, RobotWidget::Team team);
@@ -107,7 +108,7 @@ private:
     Ui::RobotSelectionWidget *ui;
     QStandardItemModel *m_model;
     QMap<uint, Generation> m_generations;
-    QStringList m_recentScripts;
+    std::shared_ptr<QStringList> m_recentScripts;
     ItemDelegate *m_itemDelegate;
     bool m_contentDisabled;
     bool m_isSimulator;

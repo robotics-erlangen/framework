@@ -125,7 +125,7 @@ void RobotSelectionWidget::saveConfig(bool saveTeams)
     s.endGroup();
 
     s.beginGroup("Strategy");
-    s.setValue("RecentScripts", m_recentScripts);
+    s.setValue("RecentScripts", *m_recentScripts);
     s.endGroup();
 
     if (m_isSimulator) {
@@ -205,15 +205,15 @@ void RobotSelectionWidget::load()
 {
     QSettings s;
     s.beginGroup("Strategy");
-    m_recentScripts = s.value("RecentScripts").toStringList();
+    m_recentScripts.reset(new QStringList(s.value("RecentScripts").toStringList()));
     s.endGroup();
 
     sanitizeRecentScripts();
     searchForStrategies("lua", "init.lua");
     searchForStrategies("typescript", "init.ts");
-    ui->blue->setRecentScripts(&m_recentScripts);
-    ui->yellow->setRecentScripts(&m_recentScripts);
-    ui->autoref->setRecentScripts(&m_recentScripts);
+    ui->blue->setRecentScripts(m_recentScripts);
+    ui->yellow->setRecentScripts(m_recentScripts);
+    ui->autoref->setRecentScripts(m_recentScripts);
 
     loadRobots();
 
@@ -226,13 +226,13 @@ void RobotSelectionWidget::load()
 void RobotSelectionWidget::sanitizeRecentScripts()
 {
     QStringList recentScripts;
-    for (QString script: m_recentScripts) {
+    for (QString script: *m_recentScripts) {
         QFileInfo file(script);
         if (file.exists() && (file.fileName() == "init.lua" || file.fileName() == "init.ts")) {
             recentScripts.append(script);
         }
     }
-    m_recentScripts = recentScripts;
+    m_recentScripts.reset(new QStringList(recentScripts));
 }
 
 void RobotSelectionWidget::searchForStrategies(const QString &languageDir, const QString &initFileName)
@@ -252,8 +252,8 @@ void RobotSelectionWidget::searchForStrategies(const QString &languageDir, const
         }
 
         QString scriptPath = file.absoluteFilePath();
-        if (!m_recentScripts.contains(scriptPath)) {
-            m_recentScripts.append(scriptPath);
+        if (!m_recentScripts->contains(scriptPath)) {
+            m_recentScripts->append(scriptPath);
         }
     }
 }

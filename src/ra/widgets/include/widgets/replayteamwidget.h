@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QStringList>
+#include <memory>
 #include "protobuf/status.h"
 #include "protobuf/command.h"
 
@@ -19,6 +20,7 @@ public:
     ~ReplayTeamWidget();
     ReplayTeamWidget(const ReplayTeamWidget&) = delete;
     ReplayTeamWidget& operator=(const ReplayTeamWidget&) = delete;
+    void setRecentScriptList(const std::shared_ptr<QStringList> &list);
 
 signals:
     void gotStatus(const Status & status);
@@ -32,8 +34,6 @@ private slots:
 
 private:
     Ui::ReplayTeamWidget *ui;
-
-    QStringList m_recentScripts;
 };
 
 #endif // REPLAYTEAMWIDGET_H

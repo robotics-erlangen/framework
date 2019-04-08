@@ -1,4 +1,3 @@
-#include <QSettings>
 #include "replayteamwidget.h"
 #include "ui_replayteamwidget.h"
 #include "protobuf/status.pb.h"
@@ -10,13 +9,7 @@ ReplayTeamWidget::ReplayTeamWidget(QWidget *parent) :
     ui->setupUi(this);
     ui->blue->init(amun::StatusStrategyWrapper::REPLAY_BLUE);
     ui->yellow->init(amun::StatusStrategyWrapper::REPLAY_YELLOW);
-    QSettings s;
-    s.beginGroup("Strategy");
-    m_recentScripts = s.value("RecentScripts").toStringList();
-    s.endGroup();
 
-    ui->blue->setRecentScripts(&m_recentScripts);
-    ui->yellow->setRecentScripts(&m_recentScripts);
     ui->blue->load();
     ui->yellow->load();
 
@@ -36,11 +29,13 @@ ReplayTeamWidget::ReplayTeamWidget(QWidget *parent) :
 
 ReplayTeamWidget::~ReplayTeamWidget()
 {
-    QSettings s;
-    s.beginGroup("Strategy");
-    s.setValue("RecentScripts", m_recentScripts);
-    s.endGroup();
     delete ui;
+}
+
+void ReplayTeamWidget::setRecentScriptList(const std::shared_ptr<QStringList> &list)
+{
+    ui->blue->setRecentScripts(list);
+    ui->yellow->setRecentScripts(list);
 }
 
 void ReplayTeamWidget::strategyBlueEnabled(bool enabled)

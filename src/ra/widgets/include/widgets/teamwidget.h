@@ -46,7 +46,7 @@ signals:
 public:
     void init(amun::StatusStrategyWrapper::StrategyType type);
     void load();
-    void setRecentScripts(QStringList *recent);
+    void setRecentScripts(std::shared_ptr<QStringList> recent);
     void forceAutoReload(bool force);
     void shutdown();
     void enableContent(bool enable);
@@ -96,7 +96,7 @@ private:
     bool m_userAutoReload;
     bool m_notification;
     bool m_compiling;
-    QStringList *m_recentScripts;
+    std::shared_ptr<QStringList> m_recentScripts;
 };
 
 #endif // TEAMWIDGET_H
