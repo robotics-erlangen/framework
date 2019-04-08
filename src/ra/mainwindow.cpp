@@ -742,8 +742,13 @@ void MainWindow::dragLeaveEvent(QDragLeaveEvent *event)
 
 void MainWindow::logOpened(QString name)
 {
-    m_horusTitleString = name;
-    switchToWidgetConfiguration(static_cast<int>(m_currentWidgetConfiguration + m_currentWidgetConfiguration % 2));
+    if (!errorOccurred) {
+        m_horusTitleString = name;
+        setWindowTitle("Horus - " + name);
+        switchToWidgetConfiguration(static_cast<int>(m_currentWidgetConfiguration + m_currentWidgetConfiguration % 2));
+    } else {
+        QMessageBox::critical(this, "Logfile error", name);
+    }
 }
 
 void MainWindow::dropEvent(QDropEvent *event)
