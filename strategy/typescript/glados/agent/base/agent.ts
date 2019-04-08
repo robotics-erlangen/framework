@@ -138,11 +138,12 @@ export abstract class Agent {
 		if (messages.size > 0) {
 			debug.push(MessageType[type]);
 			for (let [sender, msg] of messages.entries()) {
-				debug.set(sender.id || sender, msg);
+				const indexValue = sender.id == undefined ? sender : sender.id;
+				debug.set(indexValue, msg);
 				if (typeof msg === "object" && msg.time != undefined) {
 					let relTime = String(msg.time - World.Time);
 					relTime = `${relTime.substring(0, 4)} (${msg.time})`;
-					debug.set((sender.id || sender) + "/time", relTime);
+					debug.set(indexValue + "/time", relTime);
 				}
 			}
 			debug.pop(); // name
