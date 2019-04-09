@@ -2,6 +2,7 @@ import * as debug from "base/debug";
 import * as Field from "base/field";
 import * as geom from "base/geom";
 import * as MathUtil from "base/mathutil";
+import * as Referee from "base/referee";
 import { Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
@@ -16,7 +17,6 @@ import { ToTarget } from "glados/trajectory/totarget";
 
 
 let G = World.Geometry;
-let KEEPER_GOAL_DISTANCE = 0.06;
 let GOAL_NORMAL = new Vector(0, 1);
 
 export class Keeper extends Task {
@@ -30,6 +30,13 @@ export class Keeper extends Task {
 
 	// moves keeper do defending possition
 	run() {
+		let keeperGoalDistance = 0.06;
+		if (Referee.isOpponentPenaltyState()) {
+			// during penalty prepare, the keeper has to touch the goal line
+			// after normal start, just keep this distance
+			keeperGoalDistance = -0.02;
+		}
+
 		let [atkPos, atkDir, isShot] = Goal.predictShot();
 		atkDir = atkDir.copy().setLength(30);
 		let side = MathUtil.sign(atkPos.x);
@@ -85,7 +92,7 @@ export class Keeper extends Task {
 			// account for robot radius
 			let goalCornerLeft = new Vector(-goalWidthHalf, G.FriendlyGoal.y);
 			let goalCornerRight = new Vector(goalWidthHalf, G.FriendlyGoal.y);
-			let goalLineY = G.FriendlyGoal.y + KEEPER_GOAL_DISTANCE + this._robot.radius;
+			let goalLineY = G.FriendlyGoal.y + keeperGoalDistance + this._robot.radius;
 			let lineDist = Math.abs(goalLineY - goalCornerLeft.y);
 
 			let leftBound = -goalWidthHalf;
@@ -160,7 +167,7 @@ export class Keeper extends Task {
 		// block estimated shoot line
 		} else if (atkDir.y < 0) {
 			let k = MathUtil.bound(0, (atkPos.y + 2) / 2 * 0.6, 0.5);
-			moveTo = intersectPos * (1 - k) + new Vector(0, -G.FieldHeightHalf + KEEPER_GOAL_DISTANCE + this._robot.radius) * k;
+			moveTo = intersectPos * (1 - k) + new Vector(0, -G.FieldHeightHalf + keeperGoalDistance + this._robot.radius) * k;
 		} else {// don't know where to go, just center in the goal / corner
 			moveTo = fallbackPos;
 		}
