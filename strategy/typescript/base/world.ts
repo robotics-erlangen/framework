@@ -406,7 +406,7 @@ function _updateGameState(state: any) {
 		RefereeState = "Halt";
 	}
 
-	if (state.designated_position && state.designated_position.x) {
+	if (state.designated_position && state.designated_position.x != undefined) {
 		BallPlacementPos = Coordinates.toLocal(Vector.createReadOnly(
 			// refbox position message uses millimeters
 			// ssl-vision's coordinate system is rotated by 90 degrees
