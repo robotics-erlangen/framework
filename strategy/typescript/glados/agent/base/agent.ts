@@ -180,8 +180,8 @@ export abstract class Agent {
 				break;
 			}
 		}
-		let overrideRating = parameters && parameters[2];
-		if (parameters && task != undefined && !overrideRating) {
+		let overrideRating = parameters != undefined ? parameters[2] : undefined;
+		if (parameters && task != undefined && overrideRating == undefined) {
 			// only use task parameters if behavior asked for main attacker application
 			parameters = task.mainAttackerParameters() || parameters;
 		}
@@ -210,11 +210,11 @@ export abstract class Agent {
 		}
 
 		let mainAttackerRating: number;
-		if (!overrideRating) {
+		if (overrideRating == undefined) {
 			let timeToBall: number;
-			if (parameters[0] || parameters[1]) {
+			if (parameters[0] != undefined || parameters[1] != undefined) {
 				let targetPos = parameters[0] || World.Geometry.OpponentGoal;
-				let endSpeedLength = parameters[1] || this._robot.maxSpeed;
+				let endSpeedLength = parameters[1] != undefined ? parameters[1] : this._robot.maxSpeed;
 				timeToBall = Physics.robotTimeToBall(this._robot,
 					World.Ball, targetPos, endSpeedLength, this._mainAttackerLastTime);
 			} else {

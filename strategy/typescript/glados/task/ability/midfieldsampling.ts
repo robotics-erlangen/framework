@@ -67,7 +67,7 @@ export class MidfieldSampling {
 		let pos = this._messaging.receiveSingleSender(MessageType.attackPosition)[1];
 		let time = this._messaging.receiveSingleSender(MessageType.attackTime)[1];
 		this._attackPosition = pos || World.Ball.pos;
-		this._attackTime = time || (this._mainAttacker ? World.Time + Robot.minTimeToBall(this._mainAttacker) : World.Time);
+		this._attackTime = time != undefined ? time : (this._mainAttacker ? World.Time + Robot.minTimeToBall(this._mainAttacker) : World.Time);
 
 		this._findStrikerPassSuggestions();
 	}

@@ -37,7 +37,7 @@ export class StrikerSampling {
 		let pos = this._messaging.receiveSingleSender(MessageType.attackPosition)[1];
 		let time = this._messaging.receiveSingleSender(MessageType.attackTime)[1];
 		this._attackPosition = pos || World.Ball.pos;
-		this._attackTime = time || (this._mainAttacker ? World.Time + Robot.minTimeToBall(this._mainAttacker) : World.Time);
+		this._attackTime = time != undefined ? time : (this._mainAttacker ? World.Time + Robot.minTimeToBall(this._mainAttacker) : World.Time);
 
 		vis.addCircle("t/a/strikersampling: attackPosition", this._attackPosition, 0.13,
 			vis.colors.orchidHalf, false, undefined, undefined, 0.02);
@@ -135,7 +135,7 @@ export class StrikerSampling {
 		let rating = 0.2 * ratingBase + 0.8 * ratingBonus;
 
 		// rating demerit for steep passes, as these often miss due to volley inaccuracy
-		if (G.DefenseWidth && Math.abs(ballPos.x) > G.DefenseWidth / 2
+		if (G.DefenseWidth != undefined && Math.abs(ballPos.x) > G.DefenseWidth / 2
 				&&  World.Ball.pos.y > 1.5 * G.DefenseHeight) {
 			let demeritWeight = 0.3;
 			let distanceRatingDemerit = Rating.valueToRating(distToGoal, G.DefenseWidth / 2, minDist * 1.2);

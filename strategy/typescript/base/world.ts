@@ -270,7 +270,7 @@ function _updateGeometry(geom: any) {
 
 export function _updateWorld(state: any) {
 	// Get time
-	if (Time) {
+	if (Time != undefined) {
 		TimeDiff = state.time * 1E-9 - Time;
 	} else {
 		TimeDiff = 0;

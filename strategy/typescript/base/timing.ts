@@ -28,7 +28,7 @@ let startTimes: {[name: string]: number} = {};
 
 export function start(name: string, robotId: number) {
 	let key = `${name}.${robotId}`;
-	if (startTimes[key]) {
+	if (startTimes[key] != undefined) {
 		throw new Error("timing: multiple start calls");
 	}
 

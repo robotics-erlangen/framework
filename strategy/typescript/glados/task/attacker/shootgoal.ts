@@ -124,7 +124,8 @@ export class ShootGoal extends Task {
 
 		if (!this._desperate) {
 			// perform a linear shot
-			this._shoot._shoot(localTarget, Infinity, undefined, ballReceiptPos, Math.min(10 * Math.PI / 180, this._shootTargetWidth || Infinity));
+			let targetWidth = this._shootTargetWidth != undefined ? this._shootTargetWidth : Infinity;
+			this._shoot._shoot(localTarget, Infinity, undefined, ballReceiptPos, Math.min(10 * Math.PI / 180, targetWidth));
 		} else {
 			let maxAngleError = 10 * Math.PI / 180;
 			// prevent icing
@@ -183,7 +184,7 @@ export class ShootGoal extends Task {
 				// state: desperate clean
 				do {
 					let selectedInterval = undefined;
-					if (this._desperateTargetID) {
+					if (this._desperateTargetID != undefined) {
 						// try to continue shooting at the same bot
 						// TODO: don't pretend its always going to be that side
 						for (let v of onlyOppOcc) {

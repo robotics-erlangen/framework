@@ -120,7 +120,7 @@ export function allFreeSectors<R extends {pos: Position, radius: number}>(viewPo
 	for (let i = 0;i < occupiedSectors.length;i++) {
 		let sector = occupiedSectors[i];
 		if (sector[0] === 0) {
-			if (matching) {
+			if (matching != undefined) {
 				occupiedSectors[matching] = [occupiedSectors[matching][0], sector[1] + 2 * Math.PI];
 				// debug.set("match "+matching+" & "+i, "{"+occupiedSectors[matching][0]+", "+occupiedSectors[matching][1]+"}")
 				matching = undefined;
@@ -131,7 +131,7 @@ export function allFreeSectors<R extends {pos: Position, radius: number}>(viewPo
 				// log("start")
 			}
 		} else if (sector[1] === 2 * Math.PI) {
-			if (matching) {
+			if (matching != undefined) {
 				occupiedSectors[matching] = [sector[0], occupiedSectors[matching][1] + 2 * Math.PI];
 				// debug.set("match "+matching+" & "+i, "{"+occupiedSectors[matching][0]+", "+occupiedSectors[matching][1]+"}")
 				matching = undefined;

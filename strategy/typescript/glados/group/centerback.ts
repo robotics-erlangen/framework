@@ -209,7 +209,7 @@ export class CenterBack {
 		// calculate the minimal time that was supplied (all other times are ignored)
 		let minTime = Infinity;
 		for (let target of robots.keys()) {
-			if (target.time && target.time < minTime) {
+			if (target.time != undefined && target.time < minTime) {
 				minTime = target.time;
 			}
 		}
@@ -232,12 +232,12 @@ export class CenterBack {
 			// check if the target is necessary but reachable
 			let idealBotPrel = <FriendlyRobot> UtilDefense.getClosestRobot(robotSet, cBPos)[0];
 			let timeAroundDefenseArea = Robot.timeAroundDefenseAreaByWay(idealBotPrel, undefined, cBPos, way, extraDistance, true);
-			let targetTime = target.time || Infinity;
+			let targetTime = target.time != undefined ? target.time : Infinity;
 			// only consider the next timestamp
 			if (targetTime > minTime) {
 				targetTime = Infinity;
 			}
-			if (adjustWay && sec) {
+			if (adjustWay && sec != undefined) {
 				way = UtilDefense.mulCornerFactor(way, sec, extraDistance);
 			}
 			let n = rlist.length;
@@ -381,7 +381,7 @@ export class CenterBack {
 						way: way,
 						time: (i.n === 1) ? i.time : Infinity
 					};
-					if (necessaryWay && Math.abs(way - necessaryWay) < EPSILON) {
+					if (necessaryWay != undefined && Math.abs(way - necessaryWay) < EPSILON) {
 						if (necessaryDefensePoint != undefined) {
 							throw new Error("two necessary Points are a problem");
 						}
@@ -433,12 +433,12 @@ export class CenterBack {
 			let targetPos = target.pos;
 			let _, target_way, target_sec, robot_way, robot_sec;
 			[_, target_way, target_sec] = UtilDefense.centerBackPos(targetPos);
-			if (adjustWay && target_sec) {
+			if (adjustWay != undefined && target_sec != undefined) {
 				target_way = UtilDefense.mulCornerFactor(target_way, target_sec, extraDistance);
 			}
 			// stay on one end of a group of CenterBacks
 			[_, robot_way, robot_sec] = UtilDefense.centerBackPos(robot.pos);
-			if (adjustWay && robot_sec) {
+			if (adjustWay != undefined && robot_sec != undefined) {
 				robot_way = UtilDefense.mulCornerFactor(robot_way, robot_sec, extraDistance);
 			}
 			for (let i of intersections) {
@@ -448,7 +448,7 @@ export class CenterBack {
 							robot_way, i.waypos + i.wayrange / 2 + robot_radius);
 				}
 			}
-			if (adjustWay && robot_sec) {
+			if (adjustWay != undefined && robot_sec != undefined) {
 				target_way = UtilDefense.divCornerFactor(target_way, extraDistance);
 			}
 			let pos = <Position> Field.defenseIntersectionByWay(target_way, extraDistance, true);

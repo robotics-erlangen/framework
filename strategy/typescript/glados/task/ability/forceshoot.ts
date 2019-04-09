@@ -31,7 +31,7 @@ export class ForceShoot {
 		if (relpos.x < this._robot.shootRadius + World.Ball.radius - 0.002 && World.Ball.isPositionValid() &&
 				this._robot.hasBall(World.Ball, -0.01)) {
 			// initialize if neccessary
-			this._forceShootTimer = this._forceShootTimer || World.Time;
+			this._forceShootTimer = this._forceShootTimer != undefined ? this._forceShootTimer : World.Time;
 			if (World.Time - this._forceShootTimer >= FORCE_SHOOT_DELAY) {
 				debug.set("force shoot", true);
 				this._robot.forceShoot();

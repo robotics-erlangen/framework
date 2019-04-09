@@ -127,7 +127,7 @@ export class Moves {
 			debug.pop();
 		}
 
-		if (this._chosenMove && n_attackers) {
+		if (this._chosenMove && n_attackers != undefined) {
 			if (n_attackers == undefined || n_attackers === 0) {
 				throw new Error();
 			}

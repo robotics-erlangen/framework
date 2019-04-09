@@ -144,7 +144,7 @@ function addBallObstacle(robot: FriendlyRobot, ignoreBall?: boolean, stopBallDis
 	// addZonedBallObstacles takes care of the undefined handling
 	let isDefensiveStopState = Referee.isStopState() && World.RefereeState !== "BallPlacementOffensive";
 	if (isDefensiveStopState) {
-		if (stopBallDistance && extraBallDistance && stopBallDistance > extraBallDistance) {
+		if (stopBallDistance != undefined && extraBallDistance != undefined && stopBallDistance > extraBallDistance) {
 			let temp = stopBallDistance;
 			stopBallDistance = extraBallDistance;
 			extraBallDistance = temp;
@@ -448,8 +448,8 @@ export function setDefaultObstaclesByTable(path: Path, robot: FriendlyRobot, par
 
 	let obst = {...params};
 	obst["path"] = path || robot.path;
-	obst["pathRadius"] = obst.pathRadius || robot.radius;
-	obst["stopBallDistance"] = obst.stopBallDistance || Constants.stopBallDistance;
+	obst["pathRadius"] = obst.pathRadius != undefined ? obst.pathRadius : robot.radius;
+	obst["stopBallDistance"] = obst.stopBallDistance != undefined ? obst.stopBallDistance : Constants.stopBallDistance;
 	obstacles.set(robot, obst);
 }
 

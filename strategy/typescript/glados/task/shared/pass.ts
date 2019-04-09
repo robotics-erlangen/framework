@@ -45,7 +45,7 @@ export class Pass extends Task {
 		this._targetTime = targetTime;
 		this._chipOverride = chip != undefined;
 		this._chip = chip === true;
-		this._passSpeed = targetSpeed || (this._targetRobot ? this._targetRobot.constants.passSpeed : DEFAULT_PASS_SPEED);
+		this._passSpeed = targetSpeed != undefined ? targetSpeed : (this._targetRobot ? this._targetRobot.constants.passSpeed : DEFAULT_PASS_SPEED);
 		this._ballReceiptPos = ballReceiptPos;
 
 		// retrieve targetPos from messages if no argument was given
@@ -73,7 +73,7 @@ export class Pass extends Task {
 			targetTime?: number, targetSpeed?: number) {
 		this._targetRobot = targetRobot;
 		this._targetPos = targetPos;
-		this._passSpeed = targetSpeed || targetRobot ? this._targetRobot.constants.passSpeed : DEFAULT_PASS_SPEED;
+		this._passSpeed = targetSpeed != undefined ? targetSpeed : targetRobot ? this._targetRobot.constants.passSpeed : DEFAULT_PASS_SPEED;
 		this._targetTime = targetTime;
 		this._chipOverride = chip != undefined;
 		this._chip = chip === true;
@@ -103,7 +103,7 @@ export class Pass extends Task {
 
 		if (!this._chipOverride) {
 			let lockTime = World.Ball.speed.length() > 0.5 ? 0.3 : 0.1;
-			let lockDecision = this._chip != undefined && attackTime && attackTime < World.Time + lockTime;
+			let lockDecision = this._chip != undefined && attackTime != undefined && attackTime < World.Time + lockTime;
 			if (!lockDecision) {
 				let corridor = ObserverShoot.evaluatePassCorridor(attackPosition,
 					this._targetPos, CHIP_PASS_DISTANCE_FACTOR, isFreekickLike);

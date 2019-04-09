@@ -173,7 +173,7 @@ export class AttackRatio {
 		debug.set("AttackRatio", attackRatio);
 
 		let moveNumAttackers = this._messaging.receiveTrainer(MessageType.moveNumAttackers);
-		if (moveNumAttackers) {
+		if (moveNumAttackers != undefined) {
 			attackers = moveNumAttackers;
 		}
 

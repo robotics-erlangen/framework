@@ -436,7 +436,7 @@ export class Shoot extends Behavior {
 			this._prevPassPos = this._decision.pos;
 
 			let attackTime = this._messaging.receiveSingleSender(MessageType.attackTime, true)[1];
-			let shootTime = attackTime ? attackTime - World.Time : Robot.minShootTime(this._robot, ballPos);
+			let shootTime = attackTime != undefined ? attackTime - World.Time : Robot.minShootTime(this._robot, ballPos);
 			let shootPos = Physics.ballAtTime(World.Ball, shootTime).pos;
 			let ballTravelTime = ObserverShoot.ballPassTime(shootPos, ballPos, target, undefined, this._robot);
 			let passReceiveTime = Math.max(suggestedTime, shootTime + ballTravelTime + World.Time);

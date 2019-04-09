@@ -93,7 +93,7 @@ export class PenaltyShootout extends Behavior {
 		}
 
 		debug.push("Shootgoal Criterias");
-		if (this._penaltyStartTime) {
+		if (this._penaltyStartTime != undefined) {
 			let timeSinceStart = World.Time - this._penaltyStartTime;
 			let criteriaTime = timeSinceStart > 8;
 			debug.push("Time Criteria (8s)", String(criteriaTime));

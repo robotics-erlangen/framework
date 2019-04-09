@@ -344,7 +344,7 @@ function intersectionsRayDefenseArea_2018(pos: Position, dir: RelativePosition, 
 		// intersections on lines
 		let length = (i % 2 === 1) ? G.DefenseWidth : G.DefenseHeight;
 		let [ipos, l1, l2] = geom.intersectLineLine(pos, dir, v * f, directions[i] * f);
-		if (l1 && l1 >= 0 && l2! >= 0 && l2! <= length) {
+		if (l1 != undefined && l1 >= 0 && l2! >= 0 && l2! <= length) {
 			// no intersections with parallel lines
 			if (!(l1 === 0 && l2 === 0) || ipos!.distanceToSq(v * f) < 0.0001) {
 				intersections.push({pos: ipos!, way: way + l2!, sec: (i + 1) * 2 - 1});

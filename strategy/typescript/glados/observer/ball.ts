@@ -194,7 +194,7 @@ function updateFriendlyBallOwnershipTime() {
 		friendlyBallOwnershipTime = 0;
 		curFriendlyBallOwnershipDuration = 0;
 	} else if (friendlyBallOwnershipTime === 0 && friendlyBallOwnerTime() > opponentBallOwnerTime()
-			&&  lastStateChangeTime && lastStateChangeTime < friendlyBallOwnerTime()) {
+			&&  lastStateChangeTime != undefined && lastStateChangeTime < friendlyBallOwnerTime()) {
 		friendlyBallOwnershipTime = friendlyBallOwnerTime();
 	} else if (friendlyBallOwnershipTime !== 0) {
 		curFriendlyBallOwnershipDuration = World.Time - friendlyBallOwnershipTime;

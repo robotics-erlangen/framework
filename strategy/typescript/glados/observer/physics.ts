@@ -372,7 +372,7 @@ export function chipPassTime(startPos: Position, endPos: Position): number {
 export function ballTravelTime(ball: BallLike & {posZ: number, initSpeedZ: number, speedZ: number}, distance: number): number {
 	if (ball.posZ > 0 || ball.initSpeedZ > 0) { // ball is flying
 		let [newBall, time, restDist] = ballFlightTime(ball, distance);
-		if (restDist) { // bouncing over
+		if (restDist != undefined) { // bouncing over
 			return time + ballRollTime(newBall, restDist);
 		} else {// ball still in the air or bouncing
 			return time;
@@ -703,7 +703,7 @@ export function robotTimeToPos(robot: RobotLike, endPos: Position, endSpeedVecto
 // Then the robot must do a full stop and return to pos with zero endSpeed!
 // @param lowAccel - assume reduced acceleration
 // @return number - the estimated time
-export function robotTimeToPosOLD(robot: Robot, pos: Position, endSpeed: Speed, brakeAndReturn: boolean, lowAccel: number): number {
+export function robotTimeToPosOLD(robot: Robot, pos: Position, endSpeed: Speed, brakeAndReturn: boolean, lowAccel: boolean): number {
 	let accelerationFactor = lowAccel ? 0.7 : 0.7; // factor for max forward speedup and braking
 	let tolerance = 0.01; // cutoff low distances to prevent instabilities
 	// forward acceleration and deceleration
@@ -1030,7 +1030,7 @@ export function robotTimeToBall(robot: Robot, ball: BallLike & {radius: number},
 
 	let specialCaseResult: number | undefined;
 	[t_max, specialCaseResult] = <[number, any]> rttbSpecialCases(robot, ball, targetPos, endSpeedLength, t_max, t_out);
-	if (specialCaseResult) {
+	if (specialCaseResult != undefined) {
 		// local time1 = amun.getCurrentTime()
 		// plot.aggregate("robotTimeToBall", time1 - time0)
 		return specialCaseResult;

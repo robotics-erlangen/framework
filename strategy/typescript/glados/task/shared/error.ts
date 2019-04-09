@@ -68,8 +68,8 @@ export class Error extends Task {
 		let toPos = new Vector(yi,xi);
 		for (let r of World.Robots) {
 			if (this._robot !== r && r.pos.distanceTo(toPos) < this._robot.radius) {
-				this._id = (this._id === EXCHANGE_TARGET[this._robot.id + 1].firstPosI)  &&
-					EXCHANGE_TARGET[this._robot.id + 1].secPosI || EXCHANGE_TARGET[this._robot.id + 1].firstPosI;
+				this._id = (this._id === EXCHANGE_TARGET[this._robot.id + 1].firstPosI) ?
+					EXCHANGE_TARGET[this._robot.id + 1].secPosI : EXCHANGE_TARGET[this._robot.id + 1].firstPosI;
 				xi = X0 + B * (this._id % 6) + B / 2;
 				yi = y0 + L * Math.floor(this._id / 6) + L / 2;
 				toPos = new Vector(yi,xi);

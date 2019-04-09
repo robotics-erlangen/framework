@@ -28,7 +28,7 @@ export class SuggestPass {
 
 		// calculate receive time
 		let extraTime = 0.0;
-		let moveTime = relativeTime || Physics.robotTimeToPos(this._robot, robotPos, new Vector(0, 0))[0] + extraTime;
+		let moveTime = relativeTime != undefined ? relativeTime : Physics.robotTimeToPos(this._robot, robotPos, new Vector(0, 0))[0] + extraTime;
 		let receiveTime = World.Time + moveTime;
 
 		vis.addCircle("t/a/suggestpass: passSuggestion", robotPos, 0.1, vis.colors.redHalf, true);

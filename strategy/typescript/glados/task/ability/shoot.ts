@@ -308,11 +308,11 @@ export class Shoot {
 			this._robot.trajectory.update(TrajectoryDirect, speed, targetDir, undefined, accel);
 			this._sendShootCommand(kickSpeed, targetPos, targetDir);
 			this._messaging.sendBroadcast(MessageType.attackPosition, futureBall.pos);
-			this._messaging.sendBroadcast(MessageType.attackTime, targetTime || World.Time);
+			this._messaging.sendBroadcast(MessageType.attackTime, targetTime != undefined ? targetTime : World.Time);
 			this._catchBallActive = false;
 		} else {
 			let attackTime = this._catchBall._catchBall(targetPos, minCatchBallDistance, targetSpeed);
-			this._messaging.sendBroadcast(MessageType.attackTime, targetTime || attackTime + World.Time);
+			this._messaging.sendBroadcast(MessageType.attackTime, targetTime != undefined ? targetTime : attackTime + World.Time);
 			this._catchBallActive = true;
 		}
 
