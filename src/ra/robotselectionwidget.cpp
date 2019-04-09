@@ -99,6 +99,7 @@ RobotSelectionWidget::RobotSelectionWidget(QWidget *parent) :
     ui->robots->setModel(m_model);
     connect(ui->robots, SIGNAL(doubleClicked(QModelIndex)), SLOT(showConfigDialog(QModelIndex)));
     connect(this, SIGNAL(enableInternalAutoref(bool)), ui->autoref, SLOT(setEnabled(bool)));
+    emit enableInternalAutoref(false);
 }
 
 RobotSelectionWidget::~RobotSelectionWidget()
