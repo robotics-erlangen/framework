@@ -131,11 +131,11 @@ export function sendRefereeCommand(refereeCommand: string, gameStage?: string, b
 		state.command_counter = 1; // trigger command update
 	}
 
-	if (blueKeeperID) {
+	if (blueKeeperID != undefined) {
 		state.blue.goalie = blueKeeperID;
 	}
 
-	if (yellowKeeperID) {
+	if (yellowKeeperID != undefined) {
 		state.yellow.goalie = yellowKeeperID;
 	}
 
