@@ -27,6 +27,7 @@ import * as Constants from "base/constants";
 import { Coordinates } from "base/coordinates";
 import * as MathUtil from "base/mathutil";
 import { Path } from "base/path";
+import * as pb from "base/protobuf";
 import { Trajectory } from "base/trajectory";
 import { Position, Speed, Vector } from "base/vector";
 import * as vis from "base/vis";
@@ -56,23 +57,24 @@ interface BallLike {
 }
 
 interface ControllerInput {
-	v_f: number;
-	v_s: number;
-	omega: number;
-	spline: any;
+	v_f?: number;
+	v_s?: number;
+	omega?: number;
+	spline?: any;
+}
+
+interface GeomType {
+	FieldWidthHalf: number;
+	FieldHeightHalf: number;
+	BoundaryWidth: number;
 }
 
 export interface UserControl {
 	speed: Speed;
 	omega: number;
-	kickStyle: KickStyle;
-	kickPower: number;
-	dribblerSpeed: number;
-}
-
-enum KickStyle {
-	linear = "Linear",
-	chip = "Chip"
+	kickStyle?: pb.robot.Command.KickStyle;
+	kickPower?: number;
+	dribblerSpeed?: number;
 }
 
 /**
@@ -153,7 +155,7 @@ export class Robot {
 			return this._toStringCache;
 		}
 		if (this.pos == undefined || this.id == undefined) {
-			this._toStringCache = `Robot(${this.id ? this.id : "?"})`;
+			this._toStringCache = `Robot(${this.id != undefined ? this.id : "?"})`;
 		} else {
 			this._toStringCache = `Robot(${this.id}, pos ${this.pos._toString()})`;
 		}
@@ -161,7 +163,7 @@ export class Robot {
 	}
 
 	// reset robot commands and update data
-	_updateOpponent(state: any, time: number) {
+	_updateOpponent(state: pb.world.Robot | undefined, time: number) {
 		// check if robot is tracked
 		if (state == undefined) {
 			if (this.isVisible !== false) {
@@ -269,14 +271,14 @@ export class FriendlyRobot extends Robot {
 	path: Path;
 	trajectory: Trajectory;
 	/** response from the robot, only set if there is a current response */
-	radioResponse: any;
+	radioResponse: pb.robot.RadioResponse  | undefined;
 	/** command from input devices (fields: speed, omega, kickStyle, kickPower, dribblerSpeed) */
 	userControl: UserControl | undefined;
 	/** command used when robots are dragged with the mouse (fields: time, pos (global)) (optional) */
 	moveCommand: {time: number, pos: Position} | undefined;
 
 	// private attributes
-	private _kickStyle?: KickStyle;
+	private _kickStyle?: pb.robot.Command.KickStyle;
 	private _kickPower: number = 0;
 	private _forceKick: boolean = false;
 	private _dribblerSpeed: number = 0;
@@ -284,23 +286,23 @@ export class FriendlyRobot extends Robot {
 	private _standbyTick: boolean = false;
 	private _controllerInput: ControllerInput | {} = {};
 
-	constructor(specs: any) {
+	constructor(specs: pb.robot.Specs) {
 		super(specs.id);
 
 		// set the robot specs
 		this.generation = specs.generation;
 		this.year = specs.year;
 		this.id = specs.id;
-		this.radius = specs.radius;
-		this.height = specs.height;
-		if (specs.shoot_radius) {
+		this.radius = specs.radius != undefined ? specs.radius : 0.08;
+		this.height = specs.height != undefined ? specs.height : 0.14;
+		if (specs.shoot_radius != undefined) {
 			this.shootRadius = specs.shoot_radius;
-		} else if (specs.angle) { // calculate shoot radius
+		} else if (specs.angle != undefined) { // calculate shoot radius
 			this.shootRadius = this.radius * Math.cos(specs.angle / 2) - 0.005;
 		} else {
 			this.shootRadius = this.radius;
 		}
-		if (specs.dribbler_width) {
+		if (specs.dribbler_width != undefined) {
 			this.dribblerWidth = specs.dribbler_width;
 		} else {// estimate dribbler width
 			this.dribblerWidth = 2 * Math.sqrt(this.radius * this.radius - this.shootRadius * this.shootRadius);
@@ -316,12 +318,12 @@ export class FriendlyRobot extends Robot {
 			};
 		} else {
 			let acc = specs.strategy;
-			this.acceleration.aSpeedupFMax = acc.a_speedup_f_max ? acc.a_speedup_f_max : 1.0;
-			this.acceleration.aSpeedupSMax = acc.a_speedup_s_max ? acc.a_speedup_s_max : 1.0;
-			this.acceleration.aSpeedupPhiMax = acc.a_speedup_phi_max ? acc.a_speedup_phi_max : 1.0;
-			this.acceleration.aBrakeFMax = acc.a_brake_f_max ? acc.a_brake_f_max : 1.0;
-			this.acceleration.aBrakeSMax = acc.a_brake_s_max ? acc.a_brake_s_max : 1.0;
-			this.acceleration.aBrakePhiMax = acc.a_brake_phi_max ? acc.a_brake_phi_max : 1.0;
+			this.acceleration.aSpeedupFMax = acc.a_speedup_f_max != undefined ? acc.a_speedup_f_max : 1.0;
+			this.acceleration.aSpeedupSMax = acc.a_speedup_s_max != undefined ? acc.a_speedup_s_max : 1.0;
+			this.acceleration.aSpeedupPhiMax = acc.a_speedup_phi_max != undefined ? acc.a_speedup_phi_max : 1.0;
+			this.acceleration.aBrakeFMax = acc.a_brake_f_max != undefined ? acc.a_brake_f_max : 1.0;
+			this.acceleration.aBrakeSMax = acc.a_brake_s_max != undefined ? acc.a_brake_s_max : 1.0;
+			this.acceleration.aBrakePhiMax = acc.a_brake_phi_max != undefined ? acc.a_brake_phi_max : 1.0;
 		}
 
 		this.isFriendly = true;
@@ -329,7 +331,7 @@ export class FriendlyRobot extends Robot {
 		this.path = new Path(this.id);
 	}
 
-	_updatePathBoundaries(geometry: any, aoi: any) {
+	_updatePathBoundaries(geometry: GeomType, aoi: pb.world.TrackingAOI | undefined) {
 		if (aoi != undefined) {
 			this.path.setBoundary(aoi.x1, aoi.y1, aoi.x2, aoi.y2);
 		} else {
@@ -341,14 +343,14 @@ export class FriendlyRobot extends Robot {
 		}
 	}
 
-	_updateUserControl(command: any) {
+	_updateUserControl(command: pb.robot.Command | undefined) {
 		if (command == undefined) {
 			this.userControl = undefined;
 			return;
 		}
 
-		let v = new Vector(command.v_s, command.v_f);
-		let omega = command.omega;
+		let v = new Vector(command.v_s || 0, command.v_f || 0);
+		let omega = command.omega || 0;
 		if (command.local) {
 			// correctly align local and strategy coordinate system
 			// this.dir can be undefined if robot was not yet visible
@@ -367,7 +369,7 @@ export class FriendlyRobot extends Robot {
 		let STANDBY_DELAY = 30;
 		let standby = this._standbyTimer >= 0 && (this._currentTime - this._standbyTimer > STANDBY_DELAY);
 
-		let result: any = {
+		let result: pb.robot.Command = {
 			kick_style: this._kickStyle,
 			kick_power: this._kickPower > 0 ? this._kickPower : undefined,
 			force_kick: this._forceKick,
@@ -384,7 +386,7 @@ export class FriendlyRobot extends Robot {
 		return result;
 	}
 
-	_update(state: any, time: number, radioResponses?: any[]) {
+	_update(state: pb.world.Robot, time: number, radioResponses?: pb.robot.RadioResponse[]) {
 		// keep current time for use by setStandby
 		this._currentTime = time;
 		// bypass override check in setControllerInput
@@ -410,7 +412,7 @@ export class FriendlyRobot extends Robot {
 	 * The robot is halted by default if no command is set for it. To tell a robot to follow its old trajectory call setControllerInput(undefined)
 	 * @param input - Target points for the controller, in global coordinates!
 	 */
-	setControllerInput(input: any) {
+	setControllerInput(input: ControllerInput) {
 		// Forbid overriding controller input except with halt
 		if (input && input.spline && (this._controllerInput === {} || (<ControllerInput> this._controllerInput).spline)) {
 			throw new Error("Setting controller input twice");
@@ -437,7 +439,7 @@ export class FriendlyRobot extends Robot {
 			speed = Math.min(Constants.maxBallSpeed, speed);
 		}
 		speed = MathUtil.bound(0.05, speed, this.maxShotLinear);
-		this._kickStyle = KickStyle.linear;
+		this._kickStyle = pb.robot.Command.KickStyle.Linear;
 		this._kickPower = speed;
 		vis.addCircle("shoot command", this.pos, this.radius + 0.04, vis.colors.mediumPurple, undefined, undefined, undefined, 0.03);
 	}
@@ -450,7 +452,7 @@ export class FriendlyRobot extends Robot {
 	 */
 	chip(distance: number) {
 		distance = MathUtil.bound(0.05, distance, this.maxShotChip);
-		this._kickStyle = KickStyle.chip;
+		this._kickStyle = pb.robot.Command.KickStyle.Chip;
 		this._kickPower = distance;
 		vis.addCircle("shoot command", this.pos, this.radius + 0.04, vis.colors.darkPurple, undefined, undefined, undefined, 0.03);
 	}

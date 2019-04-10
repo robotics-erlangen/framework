@@ -26,6 +26,7 @@
 import * as Constants from "base/constants";
 import { Coordinates } from "base/coordinates";
 import * as plot from "base/plot";
+import { world } from "base/protobuf";
 import { Position, Speed, Vector } from "base/vector";
 
 let BALL_QUALITY_FILTER_FACTOR = 0.05;
@@ -82,7 +83,7 @@ export class Ball {
 	}
 
 	// Processes ball information from amun, passed by world
-	_update(data: any, time: number) {
+	_update(data: world.Ball | undefined, time: number) {
 		this.hasRawData = false;
 		// WARNING: this is the quality BEFORE the frame
 		plot.addPlot("Ball.quality", this.detectionQuality);
@@ -107,19 +108,19 @@ export class Ball {
 		this._isVisible = true;
 		this.pos = nextPos;
 		this.speed = nextSpeed;
-		this.posZ = data.p_z;
-		this.speedZ = data.v_z;
-		if (data.touchdown_x && data.touchdown_y) {
+		this.posZ = data.p_z || 0;
+		this.speedZ = data.v_z || 0;
+		if (data.touchdown_x != undefined && data.touchdown_y != undefined) {
 			this.touchdownPos = Coordinates.toLocal(Vector.createReadOnly(data.touchdown_x, data.touchdown_y));
 		}
-		this.isBouncing = data.is_bouncing;
+		this.isBouncing = !!data.is_bouncing;
 
 		this._updateTrackedState(lastSpeedLength);
 
 		this._updateRawDetections(data.raw);
 	}
 
-	_updateRawDetections(rawData: any[] | undefined) {
+	_updateRawDetections(rawData: world.BallPosition[] | undefined) {
 		if (rawData == undefined || rawData.length === 0) {
 			return;
 		}
