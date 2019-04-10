@@ -187,13 +187,13 @@ export function addCircleRaw(name: string, center: Position, radius: number, col
 		isFilled = gisFilled;
 		color = gcolor;
 	}
-	if (style) {
+	if (style != undefined) {
 		// style is not supported by the fast specialized version
 		let brush: Color | undefined;
 		if (isFilled) {
 			brush = color;
 		}
-		let t: any = {
+		let t: pb.amun.Visualization = {
 			name: name, pen: { color: color, style: style },
 			brush: brush, width: lineWidth,
 			circle: {p_x: center.x, p_y: center.y, radius: radius},
@@ -230,7 +230,7 @@ export function addPolygonRaw(name: string, points: Position[], color?: Color,
 		isFilled = gisFilled;
 		color = gcolor;
 	}
-	if (style) {
+	if (style != undefined) {
 		let brush: Color | undefined;
 		if (isFilled) {
 			brush = color;
@@ -325,7 +325,7 @@ export function addPath(name: string, points: Position[], color?: Color, backgro
  */
 export function addPathRaw(name: string, points: Position[], color: Color = gcolor, background: boolean = false,
 		style?: Style, lineWidth: number = 0.01) {
-	if (style) {
+	if (style != undefined) {
 		amunLocal.addVisualization({
 			name: name, pen: { color: color, style: style },
 			width: lineWidth,

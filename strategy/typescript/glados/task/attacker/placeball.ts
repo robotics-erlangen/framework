@@ -419,12 +419,4 @@ export class PlaceBall extends Task {
 			this._borderOffsetAverage = geom.center(this._borderOffsets).setLength(this.OFFSET_EXTRA_LENGTH);
 		}
 	}
-
-	private _updateBallStatus() {
-		if (this._robot.radioResponse) {
-			this._barrierDetects = this._robot.radioResponse.ball_detected;
-		}
-		debug.set("barrier detects", this._barrierDetects);
-	}
-
 }

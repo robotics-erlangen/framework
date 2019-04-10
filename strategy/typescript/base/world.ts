@@ -30,6 +30,7 @@ import * as Constants from "base/constants";
 import { Coordinates } from "base/coordinates";
 import * as MathUtil from "base/mathutil";
 // let mixedTeam = require "base/mixedteam"
+import * as pb from "base/protobuf";
 import { FriendlyRobot, Robot } from "base/robot";
 import { AbsTime, RelTime } from "base/timing";
 import { Position, Vector } from "base/vector";
@@ -39,7 +40,7 @@ import { Position, Vector } from "base/vector";
 export let Time: AbsTime = 0;
 /** Time since last update */
 export let TimeDiff: RelTime = 0;
-export let AoI = undefined;
+export let AoI: pb.world.TrackingAOI | undefined = undefined;
 /** current Ball */
 export let Ball: BallClass = new BallClass();
 /** List of own robots in an arbitary order */
@@ -73,7 +74,7 @@ export let IsReplay: boolean = false;
  * Has the following fields: role string (values: Default, Goalie, Defense, Offense), targetPos* vector,
  * targetDir* number, shootPos* vector, * = optional
  */
-export let MixedTeam: any = undefined;
+export let MixedTeam: pb.ssl.TeamPlan | undefined = undefined;
 export let SelectedOptions = undefined;
 
 /**
@@ -201,10 +202,10 @@ export function update() {
 }
 
 /** Creates generation specific robot object for own team */
-export function _updateTeam(state: any) {
+export function _updateTeam(state: pb.robot.Team) {
 	let friendlyRobotsById: {[index: number]: FriendlyRobot} = {};
 	let friendlyRobotsAll: FriendlyRobot[] = [];
-	for (let rdata of state.robot) {
+	for (let rdata of state.robot || []) {
 		let robot = new FriendlyRobot(rdata); // No generation types for now
 		friendlyRobotsById[rdata.id] = robot;
 		friendlyRobotsAll.push(robot);
@@ -214,8 +215,8 @@ export function _updateTeam(state: any) {
 }
 
 /** Get rule version from geometry */
-export function _updateRuleVersion(geom: any) {
-	if (!geom.type || geom.type === "TYPE_2014") {
+export function _updateRuleVersion(geom: pb.world.Geometry) {
+	if (geom.type == undefined || geom.type === "TYPE_2014") {
 		RULEVERSION = "2017";
 	} else {
 		RULEVERSION = "2018";
@@ -223,7 +224,7 @@ export function _updateRuleVersion(geom: any) {
 }
 
 // Setup field geometry
-function _updateGeometry(geom: any) {
+function _updateGeometry(geom: pb.world.Geometry) {
 	let wgeom = <GeometryType> Geometry;
 	wgeom.FieldWidth = geom.field_width;
 	wgeom.FieldWidthHalf = geom.field_width / 2;
@@ -244,9 +245,9 @@ function _updateGeometry(geom: any) {
 	wgeom.DefenseRadius = geom.defense_radius;
 	wgeom.DefenseStretch = geom.defense_stretch;
 	wgeom.DefenseStretchHalf = geom.defense_stretch / 2;
-	wgeom.DefenseWidth = geom.defense_width || geom.defense_stretch;
-	wgeom.DefenseHeight = geom.defense_height || geom.defense_radius;
-	wgeom.DefenseWidthHalf = (geom.defense_width || geom.defense_stretch) / 2;
+	wgeom.DefenseWidth = geom.defense_width != undefined ? geom.defense_width : geom.defense_stretch;
+	wgeom.DefenseHeight = geom.defense_height != undefined ? geom.defense_height : geom.defense_radius;
+	wgeom.DefenseWidthHalf = (geom.defense_width != undefined ? geom.defense_width : geom.defense_stretch) / 2;
 
 	wgeom.FriendlyPenaltySpot = Vector.createReadOnly(0, - wgeom.FieldHeightHalf + geom.penalty_spot_from_field_line_dist);
 	wgeom.OpponentPenaltySpot = Vector.createReadOnly(0, wgeom.FieldHeightHalf - geom.penalty_spot_from_field_line_dist);
@@ -268,7 +269,7 @@ function _updateGeometry(geom: any) {
 	IsLargeField = wgeom.FieldWidth > 5 && wgeom.FieldHeight > 7;
 }
 
-export function _updateWorld(state: any) {
+export function _updateWorld(state: pb.world.State) {
 	// Get time
 	if (Time != undefined) {
 		TimeDiff = state.time * 1E-9 - Time;
@@ -281,19 +282,21 @@ export function _updateWorld(state: any) {
 		throw new Error("Invalid Time. Outdated ra version!");
 	}
 	if (IsSimulated !== state.is_simulated) {
-		IsSimulated = state.is_simulated;
+		IsSimulated = !!state.is_simulated;
 		Constants.switchSimulatorConstants(IsSimulated);
 	}
 
-	let radioResponses: any[] = state.radio_response;
+	let radioResponses: pb.robot.RadioResponse[] = state.radio_response || [];
 
 	// update ball if available
-	Ball._update(state.ball, Time);
+	if (state.ball) {
+		Ball._update(state.ball, Time);
+	}
 
 	let dataFriendly = TeamIsBlue ? state.blue : state.yellow;
 	if (dataFriendly) {
 		// sort data by robot id
-		let dataById: {[id: number]: any} = {};
+		let dataById: {[id: number]: pb.world.Robot} = {};
 		for (let rdata of dataFriendly) {
 			dataById[rdata.id] = rdata;
 		}
@@ -304,7 +307,7 @@ export function _updateWorld(state: any) {
 		for (let robot of FriendlyRobotsAll) {
 			// get responses for the current robot
 			// these are identified by the robot generation and id
-			let robotResponses: any[] = [];
+			let robotResponses: pb.robot.RadioResponse[] = [];
 			for (let response of radioResponses) {
 				if (response.generation === robot.generation
 						&&  response.id === robot.id) {
@@ -385,14 +388,14 @@ let gameStageMapping: {[name: string]: string} = {
 };
 
 // keep for use by debugcommands.sendRefereeCommand
-let fullRefereeState: any = undefined;
+let fullRefereeState: pb.amun.GameState | undefined = undefined;
 
 export function _getFullRefereeState() {
 	return fullRefereeState;
 }
 
 // updates referee command and keeper information
-function _updateGameState(state: any) {
+function _updateGameState(state: pb.amun.GameState) {
 	fullRefereeState = state;
 	let refState = state.state;
 	// map referee command to own team
@@ -458,19 +461,23 @@ function _updateGameState(state: any) {
 // 	}
 
 	FriendlyYellowCards = [];
-	for (let time of friendlyTeamInfo.yellow_card_times) {
-		FriendlyYellowCards.push(time / 1000000);
+	if (friendlyTeamInfo.yellow_card_times != undefined) {
+		for (let time of friendlyTeamInfo.yellow_card_times) {
+			FriendlyYellowCards.push(time / 1000000);
+		}
 	}
 	OpponentYellowCards = [];
-	for (let time of opponentTeamInfo.yellow_card_times) {
-		OpponentYellowCards.push(time / 1000000);
+	if (opponentTeamInfo.yellow_card_times != undefined) {
+		for (let time of opponentTeamInfo.yellow_card_times) {
+			OpponentYellowCards.push(time / 1000000);
+		}
 	}
 	FriendlyRedCards = friendlyTeamInfo.red_cards;
 	OpponentRedCards = opponentTeamInfo.red_cards;
 }
 
 /** update and handle user inputs set for own robots */
-export function _updateUserInput(input: any) {
+export function _updateUserInput(input: pb.amun.UserInput) {
 	if (input.radio_command) {
 		for (let robot of FriendlyRobotsAll) {
 			robot._updateUserControl(undefined); // clear
@@ -493,7 +500,7 @@ export function _updateUserInput(input: any) {
 		}
 		for (let cmd of input.move_command) {
 			if (FriendlyRobotsById[cmd.id]) {
-				FriendlyRobotsById[cmd.id].moveCommand = {time: Time, pos: Coordinates.toGlobal(new Vector(cmd.p_x, cmd.p_y))};
+				FriendlyRobotsById[cmd.id].moveCommand = {time: Time, pos: Coordinates.toGlobal(new Vector(cmd.p_x || 0, cmd.p_y || 0))};
 			} else {
 				let teamColorString = TeamIsBlue ? "blue" : "yellow";
 				amunLocal.log(`<font color="red">WARNING: </font>please select robot ${cmd.id} for team ${teamColorString} for pulling it`);

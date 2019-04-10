@@ -24,6 +24,7 @@
 **************************************************************************/
 
 import { Coordinates } from "base/coordinates";
+import * as pb from "base/protobuf";
 import { FriendlyRobot, Robot } from "base/robot";
 import { Position, Vector } from "base/vector";
 import * as World from "base/world";
@@ -94,21 +95,21 @@ export function sendRefereeCommand(refereeCommand: string, gameStage?: string, b
 	}
 
 	// fill message with default values
-	let state: any = {
-		state: origState.state, stage: origState.stage, // default values
+	let state: pb.SSL_Referee = {
+		stage: origState.stage, // default values
 		packet_timestamp: 0, command_timestamp: 0,
 		stage_time_left: origState.stage_time_left,
 		// internal referee uses the command counter as delta
 		// 0 = don't change command, 1 = update command
 		command_counter: 0,
 		blue: origState.blue, yellow: origState.yellow,
-		command: undefined,
+		command: <any> undefined, // ra can handle it not being there
 		designated_position: undefined
 	};
 
 	// update gamestage
 	if (gameStage != undefined) {
-		state.stage = stageUnmapping[gameStage];
+		state.stage = <pb.SSL_Referee.Stage> stageUnmapping[gameStage];
 		if (state.stage == undefined) {
 			throw new Error("Invalid game stage name: "  +  gameStage);
 		}
@@ -124,7 +125,7 @@ export function sendRefereeCommand(refereeCommand: string, gameStage?: string, b
 			command = refereeCommand.replace("Offensive", "Yellow").replace("Defensive", "Blue");
 		}
 		// map "refereeState" to command
-		state.command = commandUnmapping[command];
+		state.command = <pb.SSL_Referee.Command> commandUnmapping[command];
 		if (state.command == undefined) {
 			throw new Error("Invalid referee command name: "  +  refereeCommand);
 		}
@@ -156,14 +157,15 @@ export function sendRefereeCommand(refereeCommand: string, gameStage?: string, b
  * @param friendlyRobots - friendly by id
  * @param opponentRobots - opponent robots by id
  */
-export function moveObjects(ball?: any, friendlyRobots?: FriendlyRobot[], opponentRobots?: Robot[]) {
+type BallInfo = { pos: Vector, posZ: number, speed: Vector, speedZ: number };
+export function moveObjects(ball?: BallInfo, friendlyRobots?: FriendlyRobot[], opponentRobots?: Robot[]) {
 	if (!amun.isDebug) {
 		throw new Error("only works in debug mode");
 	}
 	if (!World.IsSimulated) {
 		throw new Error("This can only be used in the simulator!");
 	}
-	let simCommand: any = { move_ball: {}, move_blue: [], move_yellow: [], };
+	let simCommand: pb.amun.CommandSimulator = { move_ball: {}, move_blue: [], move_yellow: [], };
 	if (ball != undefined) {
 		if (ball.pos == undefined || ball.speed == undefined) {
 			throw new Error("ball parameter missing");
@@ -180,11 +182,11 @@ export function moveObjects(ball?: any, friendlyRobots?: FriendlyRobot[], oppone
 
 	let friendly, opponent; // handle blue / yellow team selection
 	if (World.TeamIsBlue) {
-		friendly = simCommand.move_blue;
-		opponent = simCommand.move_yellow;
+		friendly = simCommand.move_blue || [];
+		opponent = simCommand.move_yellow || [];
 	} else {
-		friendly = simCommand.move_yellow;
-		opponent = simCommand.move_blue;
+		friendly = simCommand.move_yellow || [];
+		opponent = simCommand.move_blue || [];
 	}
 
 	if (friendlyRobots != undefined) {

@@ -4,8 +4,8 @@ import * as World from "base/world";
 
 interface Outliers {
 	size: number;
-	next: number;
-	sum: number;
+	next?: number;
+	sum?: number;
 }
 interface RingBuffer {
 	size: number;
@@ -32,7 +32,7 @@ function initBatteryTable(robot: FriendlyRobot) {
 	batteryTable.set(robot, {size: 0, next: 1, sum: 0, outliers: {size: 0, next: 1, sum: 0}});
 }
 
-function insertRingBuffer(ringbuffer: RingBuffer | undefined, value: number) {
+function insertRingBuffer(ringbuffer: any, value: number) {
 	if (ringbuffer == undefined) {
 		return;
 	}
@@ -62,17 +62,17 @@ function addBatteryState(robot: FriendlyRobot, newBatteryState: number) {
 	if (robotBatteryTable!.size === BATTERY_TABLE_SIZE) {
 		let avg = getAverageBatterySate(robot);
 		if (Math.abs(avg - newBatteryState) > 0.2) {
-			if (robotBatteryTable.outliers.size > 15) {
-				batteryTable[robot] = robotBatteryTable.outliers;
+			if (robotBatteryTable!.outliers.size > 15) {
+				batteryTable[robot] = <any> robotBatteryTable!.outliers;
 				batteryTable[robot]!.outliers = {size: 0};
 				addBatteryState(robot, newBatteryState);
 				return;
 			}
-			insertRingBuffer(robotBatteryTable.outliers, newBatteryState);
+			insertRingBuffer(robotBatteryTable!.outliers, newBatteryState);
 			return;
 		}
 	}
-	robotBatteryTable.outliers = {size: 0};
+	robotBatteryTable!.outliers = {size: 0};
 	insertRingBuffer(robotBatteryTable, newBatteryState);
 }
 
@@ -92,7 +92,7 @@ function convertErrorTable(errorTable: ErrorTable): ErrorTable {
 	return newTable;
 }
 
-function addErrorTables(errorTable1: ErrorTable | undefined, errorTable2: ErrorTable | undefined): ErrorTable {
+function addErrorTables(errorTable1: any, errorTable2: any): ErrorTable {
 	if (errorTable1 == undefined && errorTable2 == undefined) {
 		return {};
 	}
@@ -181,12 +181,12 @@ function updateSpeedError() {
 	for (let robot of World.FriendlyRobots) {
 		if (robot.prevMoveTo && !World.IsReplay && !World.IsSimulated) {
 			if (robot.speed.lengthSq() < halfSpeed * halfSpeed && robot.pos.distanceToSq(robot.prevMoveTo) > 0.5 * 0.5) {
-				if (speedError.has(robot) && speedError[robot] <= 450) {
+				if (speedError.has(robot) && speedError[robot]! <= 450) {
 					speedError[robot] = speedError[robot]! + 1;
 				} else if (!speedError.has(robot)) {
 					speedError[robot] = 1;
 				}
-			} else if (speedError.has(robot) && speedError[robot] >= 10 && (speedError[robot] <= 300  ||
+			} else if (speedError.has(robot) && speedError[robot]! >= 10 && (speedError[robot]! <= 300  ||
 				robot.speed.lengthSq() > halfSpeed * halfSpeed)) {
 				speedError[robot] = speedError[robot]! - 10;
 			}
@@ -206,8 +206,8 @@ export function getSpeedErrorCount(robot: FriendlyRobot): number {
 export function _update() {
 	let leavingStop = isLeavingStop();
 	for (let r of World.FriendlyRobots) {
-		if (r.radioResponse && r.radioResponse.battery) {
-			addBatteryState(r,r.radioResponse.battery);
+		if (r.radioResponse && r.radioResponse.battery != undefined) {
+			addBatteryState(r, r.radioResponse.battery);
 		}
 	}
 	updateRefereeState();

@@ -1,4 +1,5 @@
 import { _setIsBlue } from "base/coordinates";
+import * as pb from "base/protobuf";
 import { FriendlyRobot } from "base/robot";
 import { Vector } from "base/vector";
 import * as World from "base/world";
@@ -10,8 +11,7 @@ import { MainTrainer } from "glados/trainer/maintrainer";
 
 
 function robotStub(id: number) {
-	let r = new FriendlyRobot(id);
-	r.id = id;
+	let r = new FriendlyRobot(<pb.robot.Specs> {id: id});
 	r.isVisible = true;
 	r.pos = new Vector(0, 0);
 	r.speed = new Vector(0, 0);

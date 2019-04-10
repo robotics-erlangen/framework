@@ -1,3 +1,4 @@
+import * as pb from "base/protobuf";
 import { FriendlyRobot } from "base/robot";
 import { Vector } from "base/vector";
 
@@ -5,7 +6,7 @@ import { MessageType, Messaging } from "glados/control/messaging";
 import { UnitTest } from "glados/test/unit/unittest";
 
 function robotStub(id: number): FriendlyRobot {
-	return new FriendlyRobot(id);
+	return new FriendlyRobot(<pb.robot.Specs> {id: id});
 }
 
 function agentStub(robotStub: FriendlyRobot) {
