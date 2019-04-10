@@ -66,9 +66,7 @@ const stopStates: {[state: string]: boolean} = {
 
 // states in which the maximum speed is 1.5 m/s
 const slowDriveStates: {[state: string]: boolean} = {
-	Stop: true,
-	BallPlacementDefensive: true,
-	BallPlacementOffensive: true
+	Stop: true
 };
 
 const friendlyFreeKickStates: {[state: string]: boolean} = {
