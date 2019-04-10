@@ -4,26 +4,26 @@
 export namespace amun {
 	export namespace GameState {
 		export const enum State {
-			Halt = 1,
-			Stop = 2,
-			Game = 3,
-			GameForce = 4,
-			KickoffYellowPrepare = 5,
-			KickoffYellow = 6,
-			PenaltyYellowPrepare = 7,
-			PenaltyYellow = 8,
-			DirectYellow = 9,
-			IndirectYellow = 10,
-			BallPlacementYellow = 19,
-			KickoffBluePrepare = 11,
-			KickoffBlue = 12,
-			PenaltyBluePrepare = 13,
-			PenaltyBlue = 14,
-			DirectBlue = 15,
-			IndirectBlue = 16,
-			BallPlacementBlue = 20,
-			TimeoutYellow = 17,
-			TimeoutBlue = 18,
+			Halt = "Halt",
+			Stop = "Stop",
+			Game = "Game",
+			GameForce = "GameForce",
+			KickoffYellowPrepare = "KickoffYellowPrepare",
+			KickoffYellow = "KickoffYellow",
+			PenaltyYellowPrepare = "PenaltyYellowPrepare",
+			PenaltyYellow = "PenaltyYellow",
+			DirectYellow = "DirectYellow",
+			IndirectYellow = "IndirectYellow",
+			BallPlacementYellow = "BallPlacementYellow",
+			KickoffBluePrepare = "KickoffBluePrepare",
+			KickoffBlue = "KickoffBlue",
+			PenaltyBluePrepare = "PenaltyBluePrepare",
+			PenaltyBlue = "PenaltyBlue",
+			DirectBlue = "DirectBlue",
+			IndirectBlue = "IndirectBlue",
+			BallPlacementBlue = "BallPlacementBlue",
+			TimeoutYellow = "TimeoutYellow",
+			TimeoutBlue = "TimeoutBlue",
 		}
 	}
 	export interface GameState {
@@ -36,6 +36,8 @@ export namespace amun {
 		game_event?: SSL_Referee_Game_Event;
 		goals_flipped?: boolean;
 		is_real_game_running?: boolean;
+		current_action_time_remaining?: number;
+		next_state?: amun.GameState.State;
 	}
 	export interface Color {
 		red?: number;
@@ -45,10 +47,10 @@ export namespace amun {
 	}
 	export namespace Pen {
 		export const enum Style {
-			DashLine = 1,
-			DotLine = 2,
-			DashDotLine = 3,
-			DashDotDotLine = 4,
+			DashLine = "DashLine",
+			DotLine = "DotLine",
+			DashDotLine = "DashDotLine",
+			DashDotDotLine = "DashDotDotLine",
 		}
 	}
 	export interface Pen {
@@ -95,14 +97,14 @@ export namespace amun {
 		value: number;
 	}
 	export const enum DebugSource {
-		StrategyBlue = 1,
-		StrategyYellow = 2,
-		Controller = 3,
-		Autoref = 4,
-		Tracking = 5,
-		RadioResponse = 6,
-		ReplayBlue = 7,
-		ReplayYellow = 8,
+		StrategyBlue = "StrategyBlue",
+		StrategyYellow = "StrategyYellow",
+		Controller = "Controller",
+		Autoref = "Autoref",
+		Tracking = "Tracking",
+		RadioResponse = "RadioResponse",
+		ReplayBlue = "ReplayBlue",
+		ReplayYellow = "ReplayYellow",
 	}
 	export interface RobotValue {
 		generation: number;
@@ -148,8 +150,8 @@ export namespace amun {
 	}
 	export namespace CommandSimulator {
 		export const enum RuleVersion {
-			RULES2017 = 1,
-			RULES2018 = 2,
+			RULES2017 = "RULES2017",
+			RULES2018 = "RULES2018",
 		}
 	}
 	export interface CommandSimulator {
@@ -163,6 +165,7 @@ export namespace amun {
 		stddev_robot_p?: number;
 		stddev_robot_phi?: number;
 		rule_version?: amun.CommandSimulator.RuleVersion;
+		enable_invisible_ball?: boolean;
 	}
 	export interface CommandReferee {
 		active?: boolean;
@@ -194,6 +197,7 @@ export namespace amun {
 		performance_mode?: boolean;
 		start_profiling?: boolean;
 		finish_and_save_profile?: string;
+		tournament_mode?: boolean;
 	}
 	export interface CommandControl {
 		commands?: robot.RadioCommand[];
@@ -234,9 +238,9 @@ export namespace amun {
 		referee_port?: number;
 	}
 	export const enum DebuggerInputTarget {
-		DITStrategyYellow = 0,
-		DITStrategyBlue = 1,
-		DITAutoref = 2,
+		DITStrategyYellow = "DITStrategyYellow",
+		DITStrategyBlue = "DITStrategyBlue",
+		DITAutoref = "DITAutoref",
 	}
 	export interface CommandDebuggerInputDisable {
 	}
@@ -249,13 +253,13 @@ export namespace amun {
 		queue_line?: amun.CommandDebuggerInputLine;
 	}
 	export const enum PauseSimulatorReason {
-		Ui = 1,
-		WindowFocus = 2,
-		DebugBlueStrategy = 3,
-		DebugYellowStrategy = 4,
-		DebugAutoref = 5,
-		Replay = 6,
-		Horus = 7,
+		Ui = "Ui",
+		WindowFocus = "WindowFocus",
+		DebugBlueStrategy = "DebugBlueStrategy",
+		DebugYellowStrategy = "DebugYellowStrategy",
+		DebugAutoref = "DebugAutoref",
+		Replay = "Replay",
+		Horus = "Horus",
 	}
 	export interface PauseSimulatorCommand {
 		reason: amun.PauseSimulatorReason;
@@ -290,15 +294,12 @@ export namespace amun {
 		pause_simulator?: amun.PauseSimulatorCommand;
 		replay?: amun.CommandReplay;
 	}
-	export interface UserInput {
-		radio_command?: robot.RadioCommand[];
-		move_command?: amun.RobotMoveCommand[];
-	}
 	export namespace StatusStrategy {
 		export const enum STATE {
-			CLOSED = 1,
-			RUNNING = 3,
-			FAILED = 4,
+			CLOSED = "CLOSED",
+			RUNNING = "RUNNING",
+			FAILED = "FAILED",
+			COMPILING = "COMPILING",
 		}
 	}
 	export interface StatusStrategy {
@@ -312,11 +313,11 @@ export namespace amun {
 	}
 	export namespace StatusStrategyWrapper {
 		export const enum StrategyType {
-			BLUE = 1,
-			YELLOW = 2,
-			AUTOREF = 3,
-			REPLAY_BLUE = 4,
-			REPLAY_YELLOW = 5,
+			BLUE = "BLUE",
+			YELLOW = "YELLOW",
+			AUTOREF = "AUTOREF",
+			REPLAY_BLUE = "REPLAY_BLUE",
+			REPLAY_YELLOW = "REPLAY_YELLOW",
 		}
 	}
 	export interface StatusStrategyWrapper {
@@ -375,6 +376,10 @@ export namespace amun {
 		original_frame_number?: number;
 		status_strategy?: amun.StatusStrategyWrapper;
 	}
+	export interface UserInput {
+		radio_command?: robot.RadioCommand[];
+		move_command?: amun.RobotMoveCommand[];
+	}
 }
 export namespace robot {
 	export interface LimitParameters {
@@ -387,8 +392,8 @@ export namespace robot {
 	}
 	export namespace Specs {
 		export const enum GenerationType {
-			Regular = 1,
-			Ally = 2,
+			Regular = "Regular",
+			Ally = "Ally",
 		}
 	}
 	export interface Specs {
@@ -442,8 +447,8 @@ export namespace robot {
 	}
 	export namespace Command {
 		export const enum KickStyle {
-			Linear = 1,
-			Chip = 2,
+			Linear = "Linear",
+			Chip = "Chip",
 		}
 	}
 	export interface Command {
@@ -470,7 +475,7 @@ export namespace robot {
 	export interface RadioCommand {
 		generation: number;
 		id: number;
-		is_blue: boolean;
+		is_blue?: boolean;
 		command: robot.Command;
 	}
 	export interface SpeedStatus {
@@ -561,41 +566,10 @@ export namespace gameController {
 		custom?: string;
 		wait_for_bots?: gameController.AutoRefMessage.WaitForBots;
 	}
-	export interface TeamRegistration {
-		team_name: string;
-		signature?: gameController.Signature;
-	}
-	export namespace TeamToController {
-		export const enum AdvantageResponse {
-			UNDECIDED = 0,
-			STOP = 0,
-			CONTINUE = 1,
-		}
-	}
-	export interface TeamToController {
-		signature?: gameController.Signature;
-		desired_keeper?: number;
-		advantage_response?: gameController.TeamToController.AdvantageResponse;
-		substitute_bot?: boolean;
-	}
-	export interface ControllerToTeam {
-		controller_reply?: gameController.ControllerReply;
-		advantage_choice?: gameController.AdvantageChoice;
-	}
-	export namespace AdvantageChoice {
-		export const enum Foul {
-			UNKNOWN = 0,
-			COLLISION = 1,
-			PUSHING = 2,
-		}
-	}
-	export interface AdvantageChoice {
-		foul: gameController.AdvantageChoice.Foul;
-	}
 	export const enum Team {
-		UNKNOWN = 0,
-		YELLOW = 1,
-		BLUE = 2,
+		UNKNOWN = "UNKNOWN",
+		YELLOW = "YELLOW",
+		BLUE = "BLUE",
 	}
 	export interface BotId {
 		id?: number;
@@ -607,14 +581,14 @@ export namespace gameController {
 	}
 	export namespace ControllerReply {
 		export const enum StatusCode {
-			UNKNOWN_STATUS_CODE = 0,
-			OK = 1,
-			REJECTED = 2,
+			UNKNOWN_STATUS_CODE = "UNKNOWN_STATUS_CODE",
+			OK = "OK",
+			REJECTED = "REJECTED",
 		}
 		export const enum Verification {
-			UNKNOWN_VERIFICATION = 0,
-			VERIFIED = 1,
-			UNVERIFIED = 2,
+			UNKNOWN_VERIFICATION = "UNKNOWN_VERIFICATION",
+			VERIFIED = "VERIFIED",
+			UNVERIFIED = "UNVERIFIED",
 		}
 	}
 	export interface ControllerReply {
@@ -632,8 +606,39 @@ export namespace gameController {
 		ball_speed: number;
 		initial_ball_speed?: number;
 	}
+	export interface TeamRegistration {
+		team_name: string;
+		signature?: gameController.Signature;
+	}
+	export namespace TeamToController {
+		export const enum AdvantageResponse {
+			UNDECIDED = "UNDECIDED",
+			STOP = "STOP",
+			CONTINUE = "CONTINUE",
+		}
+	}
+	export interface TeamToController {
+		signature?: gameController.Signature;
+		desired_keeper?: number;
+		advantage_response?: gameController.TeamToController.AdvantageResponse;
+		substitute_bot?: boolean;
+	}
+	export interface ControllerToTeam {
+		controller_reply?: gameController.ControllerReply;
+		advantage_choice?: gameController.AdvantageChoice;
+	}
+	export namespace AdvantageChoice {
+		export const enum Foul {
+			UNKNOWN = "UNKNOWN",
+			COLLISION = "COLLISION",
+			PUSHING = "PUSHING",
+		}
+	}
+	export interface AdvantageChoice {
+		foul: gameController.AdvantageChoice.Foul;
+	}
 	export namespace GameEvent {
-		export interface BallLeftFieldEvent {
+		export interface BallLeftField {
 			by_team: gameController.Team;
 			by_bot?: number;
 			location?: gameController.Location;
@@ -646,7 +651,8 @@ export namespace gameController {
 		}
 		export interface Goal {
 			by_team: gameController.Team;
-			by_bot?: number;
+			kicking_team?: gameController.Team;
+			kicking_bot?: number;
 			location?: gameController.Location;
 			kick_location?: gameController.Location;
 		}
@@ -727,7 +733,7 @@ export namespace gameController {
 			by_bot?: number;
 			location?: gameController.Location;
 			initial_ball_speed?: number;
-			max_ball_height?: number;
+			chipped?: boolean;
 		}
 		export interface BotDribbledBallTooFar {
 			by_team: gameController.Team;
@@ -773,17 +779,14 @@ export namespace gameController {
 		}
 		export interface KickTimeout {
 			by_team: gameController.Team;
+			location?: gameController.Location;
 			time?: number;
 		}
 		export interface NoProgressInGame {
 			location?: gameController.Location;
 			time?: number;
 		}
-		export interface PlacementFailedByTeamInFavor {
-			by_team: gameController.Team;
-			remaining_distance?: number;
-		}
-		export interface PlacementFailedByOpponent {
+		export interface PlacementFailed {
 			by_team: gameController.Team;
 			remaining_distance?: number;
 		}
@@ -817,15 +820,16 @@ export namespace gameController {
 		}
 	}
 	export interface GameEvent {
+		type: gameController.GameEventType;
+		origin?: string[];
 		prepared?: gameController.GameEvent.Prepared;
 		no_progress_in_game?: gameController.GameEvent.NoProgressInGame;
-		placement_failed_by_team_in_favor?: gameController.GameEvent.PlacementFailedByTeamInFavor;
-		placement_failed_by_opponent?: gameController.GameEvent.PlacementFailedByOpponent;
+		placement_failed?: gameController.GameEvent.PlacementFailed;
 		placement_succeeded?: gameController.GameEvent.PlacementSucceeded;
 		bot_substitution?: gameController.GameEvent.BotSubstitution;
 		too_many_robots?: gameController.GameEvent.TooManyRobots;
-		ball_left_field_touch_line?: gameController.GameEvent.BallLeftFieldEvent;
-		ball_left_field_goal_line?: gameController.GameEvent.BallLeftFieldEvent;
+		ball_left_field_touch_line?: gameController.GameEvent.BallLeftField;
+		ball_left_field_goal_line?: gameController.GameEvent.BallLeftField;
 		possible_goal?: gameController.GameEvent.Goal;
 		goal?: gameController.GameEvent.Goal;
 		indirect_goal?: gameController.GameEvent.IndirectGoal;
@@ -856,6 +860,47 @@ export namespace gameController {
 		multiple_fouls?: gameController.GameEvent.MultipleFouls;
 		unsporting_behavior_minor?: gameController.GameEvent.UnsportingBehaviorMinor;
 		unsporting_behavior_major?: gameController.GameEvent.UnsportingBehaviorMajor;
+	}
+	export const enum GameEventType {
+		UNKNOWN_GAME_EVENT_TYPE = "UNKNOWN_GAME_EVENT_TYPE",
+		PREPARED = "PREPARED",
+		NO_PROGRESS_IN_GAME = "NO_PROGRESS_IN_GAME",
+		PLACEMENT_FAILED = "PLACEMENT_FAILED",
+		PLACEMENT_SUCCEEDED = "PLACEMENT_SUCCEEDED",
+		BOT_SUBSTITUTION = "BOT_SUBSTITUTION",
+		TOO_MANY_ROBOTS = "TOO_MANY_ROBOTS",
+		BALL_LEFT_FIELD_TOUCH_LINE = "BALL_LEFT_FIELD_TOUCH_LINE",
+		BALL_LEFT_FIELD_GOAL_LINE = "BALL_LEFT_FIELD_GOAL_LINE",
+		POSSIBLE_GOAL = "POSSIBLE_GOAL",
+		GOAL = "GOAL",
+		INDIRECT_GOAL = "INDIRECT_GOAL",
+		CHIPPED_GOAL = "CHIPPED_GOAL",
+		AIMLESS_KICK = "AIMLESS_KICK",
+		KICK_TIMEOUT = "KICK_TIMEOUT",
+		KEEPER_HELD_BALL = "KEEPER_HELD_BALL",
+		ATTACKER_DOUBLE_TOUCHED_BALL = "ATTACKER_DOUBLE_TOUCHED_BALL",
+		ATTACKER_IN_DEFENSE_AREA = "ATTACKER_IN_DEFENSE_AREA",
+		ATTACKER_TOUCHED_KEEPER = "ATTACKER_TOUCHED_KEEPER",
+		BOT_DRIBBLED_BALL_TOO_FAR = "BOT_DRIBBLED_BALL_TOO_FAR",
+		BOT_KICKED_BALL_TOO_FAST = "BOT_KICKED_BALL_TOO_FAST",
+		ATTACKER_TOO_CLOSE_TO_DEFENSE_AREA = "ATTACKER_TOO_CLOSE_TO_DEFENSE_AREA",
+		BOT_INTERFERED_PLACEMENT = "BOT_INTERFERED_PLACEMENT",
+		BOT_CRASH_DRAWN = "BOT_CRASH_DRAWN",
+		BOT_CRASH_UNIQUE = "BOT_CRASH_UNIQUE",
+		BOT_CRASH_UNIQUE_SKIPPED = "BOT_CRASH_UNIQUE_SKIPPED",
+		BOT_PUSHED_BOT = "BOT_PUSHED_BOT",
+		BOT_PUSHED_BOT_SKIPPED = "BOT_PUSHED_BOT_SKIPPED",
+		BOT_HELD_BALL_DELIBERATELY = "BOT_HELD_BALL_DELIBERATELY",
+		BOT_TIPPED_OVER = "BOT_TIPPED_OVER",
+		BOT_TOO_FAST_IN_STOP = "BOT_TOO_FAST_IN_STOP",
+		DEFENDER_TOO_CLOSE_TO_KICK_POINT = "DEFENDER_TOO_CLOSE_TO_KICK_POINT",
+		DEFENDER_IN_DEFENSE_AREA_PARTIALLY = "DEFENDER_IN_DEFENSE_AREA_PARTIALLY",
+		DEFENDER_IN_DEFENSE_AREA = "DEFENDER_IN_DEFENSE_AREA",
+		MULTIPLE_CARDS = "MULTIPLE_CARDS",
+		MULTIPLE_PLACEMENT_FAILURES = "MULTIPLE_PLACEMENT_FAILURES",
+		MULTIPLE_FOULS = "MULTIPLE_FOULS",
+		UNSPORTING_BEHAVIOR_MINOR = "UNSPORTING_BEHAVIOR_MINOR",
+		UNSPORTING_BEHAVIOR_MAJOR = "UNSPORTING_BEHAVIOR_MAJOR",
 	}
 }
 export interface Vector2f {
@@ -912,10 +957,10 @@ export namespace ssl {
 	}
 	export namespace RobotPlan {
 		export const enum RobotRole {
-			Default = 0,
-			Goalie = 1,
-			Defense = 2,
-			Offense = 3,
+			Default = "Default",
+			Goalie = "Goalie",
+			Defense = "Defense",
+			Offense = "Offense",
 		}
 	}
 	export interface RobotPlan {
@@ -933,15 +978,27 @@ export namespace ssl {
 		heading?: number;
 	}
 }
+export interface SSL_RadioProtocolCommand {
+	robot_id: number;
+	velocity_x: number;
+	velocity_y: number;
+	velocity_r: number;
+	flat_kick?: number;
+	chip_kick?: number;
+	dribbler_spin?: number;
+}
+export interface SSL_RadioProtocolWrapper {
+	command?: SSL_RadioProtocolCommand[];
+}
 export namespace SSL_RefereeRemoteControlRequest {
 	export namespace CardInfo {
 		export const enum CardType {
-			CARD_YELLOW = 0,
-			CARD_RED = 1,
+			CARD_YELLOW = "CARD_YELLOW",
+			CARD_RED = "CARD_RED",
 		}
 		export const enum CardTeam {
-			TEAM_YELLOW = 0,
-			TEAM_BLUE = 1,
+			TEAM_YELLOW = "TEAM_YELLOW",
+			TEAM_BLUE = "TEAM_BLUE",
 		}
 	}
 	export interface CardInfo {
@@ -961,15 +1018,15 @@ export interface SSL_RefereeRemoteControlRequest {
 }
 export namespace SSL_RefereeRemoteControlReply {
 	export const enum Outcome {
-		OK = 0,
-		MULTIPLE_ACTIONS = 1,
-		BAD_STAGE = 2,
-		BAD_COMMAND = 3,
-		BAD_DESIGNATED_POSITION = 4,
-		BAD_COMMAND_COUNTER = 5,
-		BAD_CARD = 6,
-		NO_MAJORITY = 7,
-		COMMUNICATION_FAILED = 8,
+		OK = "OK",
+		MULTIPLE_ACTIONS = "MULTIPLE_ACTIONS",
+		BAD_STAGE = "BAD_STAGE",
+		BAD_COMMAND = "BAD_COMMAND",
+		BAD_DESIGNATED_POSITION = "BAD_DESIGNATED_POSITION",
+		BAD_COMMAND_COUNTER = "BAD_COMMAND_COUNTER",
+		BAD_CARD = "BAD_CARD",
+		NO_MAJORITY = "NO_MAJORITY",
+		COMMUNICATION_FAILED = "COMMUNICATION_FAILED",
 	}
 }
 export interface SSL_RefereeRemoteControlReply {
@@ -978,40 +1035,40 @@ export interface SSL_RefereeRemoteControlReply {
 }
 export namespace SSL_Referee {
 	export const enum Stage {
-		NORMAL_FIRST_HALF_PRE = 0,
-		NORMAL_FIRST_HALF = 1,
-		NORMAL_HALF_TIME = 2,
-		NORMAL_SECOND_HALF_PRE = 3,
-		NORMAL_SECOND_HALF = 4,
-		EXTRA_TIME_BREAK = 5,
-		EXTRA_FIRST_HALF_PRE = 6,
-		EXTRA_FIRST_HALF = 7,
-		EXTRA_HALF_TIME = 8,
-		EXTRA_SECOND_HALF_PRE = 9,
-		EXTRA_SECOND_HALF = 10,
-		PENALTY_SHOOTOUT_BREAK = 11,
-		PENALTY_SHOOTOUT = 12,
-		POST_GAME = 13,
+		NORMAL_FIRST_HALF_PRE = "NORMAL_FIRST_HALF_PRE",
+		NORMAL_FIRST_HALF = "NORMAL_FIRST_HALF",
+		NORMAL_HALF_TIME = "NORMAL_HALF_TIME",
+		NORMAL_SECOND_HALF_PRE = "NORMAL_SECOND_HALF_PRE",
+		NORMAL_SECOND_HALF = "NORMAL_SECOND_HALF",
+		EXTRA_TIME_BREAK = "EXTRA_TIME_BREAK",
+		EXTRA_FIRST_HALF_PRE = "EXTRA_FIRST_HALF_PRE",
+		EXTRA_FIRST_HALF = "EXTRA_FIRST_HALF",
+		EXTRA_HALF_TIME = "EXTRA_HALF_TIME",
+		EXTRA_SECOND_HALF_PRE = "EXTRA_SECOND_HALF_PRE",
+		EXTRA_SECOND_HALF = "EXTRA_SECOND_HALF",
+		PENALTY_SHOOTOUT_BREAK = "PENALTY_SHOOTOUT_BREAK",
+		PENALTY_SHOOTOUT = "PENALTY_SHOOTOUT",
+		POST_GAME = "POST_GAME",
 	}
 	export const enum Command {
-		HALT = 0,
-		STOP = 1,
-		NORMAL_START = 2,
-		FORCE_START = 3,
-		PREPARE_KICKOFF_YELLOW = 4,
-		PREPARE_KICKOFF_BLUE = 5,
-		PREPARE_PENALTY_YELLOW = 6,
-		PREPARE_PENALTY_BLUE = 7,
-		DIRECT_FREE_YELLOW = 8,
-		DIRECT_FREE_BLUE = 9,
-		INDIRECT_FREE_YELLOW = 10,
-		INDIRECT_FREE_BLUE = 11,
-		TIMEOUT_YELLOW = 12,
-		TIMEOUT_BLUE = 13,
-		GOAL_YELLOW = 14,
-		GOAL_BLUE = 15,
-		BALL_PLACEMENT_YELLOW = 16,
-		BALL_PLACEMENT_BLUE = 17,
+		HALT = "HALT",
+		STOP = "STOP",
+		NORMAL_START = "NORMAL_START",
+		FORCE_START = "FORCE_START",
+		PREPARE_KICKOFF_YELLOW = "PREPARE_KICKOFF_YELLOW",
+		PREPARE_KICKOFF_BLUE = "PREPARE_KICKOFF_BLUE",
+		PREPARE_PENALTY_YELLOW = "PREPARE_PENALTY_YELLOW",
+		PREPARE_PENALTY_BLUE = "PREPARE_PENALTY_BLUE",
+		DIRECT_FREE_YELLOW = "DIRECT_FREE_YELLOW",
+		DIRECT_FREE_BLUE = "DIRECT_FREE_BLUE",
+		INDIRECT_FREE_YELLOW = "INDIRECT_FREE_YELLOW",
+		INDIRECT_FREE_BLUE = "INDIRECT_FREE_BLUE",
+		TIMEOUT_YELLOW = "TIMEOUT_YELLOW",
+		TIMEOUT_BLUE = "TIMEOUT_BLUE",
+		GOAL_YELLOW = "GOAL_YELLOW",
+		GOAL_BLUE = "GOAL_BLUE",
+		BALL_PLACEMENT_YELLOW = "BALL_PLACEMENT_YELLOW",
+		BALL_PLACEMENT_BLUE = "BALL_PLACEMENT_BLUE",
 	}
 	export interface TeamInfo {
 		name: string;
@@ -1022,6 +1079,10 @@ export namespace SSL_Referee {
 		timeouts: number;
 		timeout_time: number;
 		goalie: number;
+		foul_counter?: number;
+		ball_placement_failures?: number;
+		can_place_ball?: boolean;
+		max_allowed_bots?: number;
 	}
 	export interface Point {
 		x: number;
@@ -1040,37 +1101,46 @@ export interface SSL_Referee {
 	designated_position?: SSL_Referee.Point;
 	blue_team_on_positive_half?: boolean;
 	game_event?: SSL_Referee_Game_Event;
+	next_command?: SSL_Referee.Command;
+	game_events?: gameController.GameEvent[];
+	proposed_game_events?: ProposedGameEvent[];
+	current_action_time_remaining?: number;
+}
+export interface ProposedGameEvent {
+	valid_until: number;
+	proposer_id: string;
+	game_event: gameController.GameEvent;
 }
 export namespace SSL_Referee_Game_Event {
 	export const enum GameEventType {
-		UNKNOWN = 0,
-		CUSTOM = 1,
-		NUMBER_OF_PLAYERS = 2,
-		BALL_LEFT_FIELD = 3,
-		GOAL = 4,
-		KICK_TIMEOUT = 5,
-		NO_PROGRESS_IN_GAME = 6,
-		BOT_COLLISION = 7,
-		MULTIPLE_DEFENDER = 8,
-		MULTIPLE_DEFENDER_PARTIALLY = 9,
-		ATTACKER_IN_DEFENSE_AREA = 10,
-		ICING = 11,
-		BALL_SPEED = 12,
-		ROBOT_STOP_SPEED = 13,
-		BALL_DRIBBLING = 14,
-		ATTACKER_TOUCH_KEEPER = 15,
-		DOUBLE_TOUCH = 16,
-		ATTACKER_TO_DEFENCE_AREA = 17,
-		DEFENDER_TO_KICK_POINT_DISTANCE = 18,
-		BALL_HOLDING = 19,
-		INDIRECT_GOAL = 20,
-		BALL_PLACEMENT_FAILED = 21,
-		CHIP_ON_GOAL = 22,
+		UNKNOWN = "UNKNOWN",
+		CUSTOM = "CUSTOM",
+		NUMBER_OF_PLAYERS = "NUMBER_OF_PLAYERS",
+		BALL_LEFT_FIELD = "BALL_LEFT_FIELD",
+		GOAL = "GOAL",
+		KICK_TIMEOUT = "KICK_TIMEOUT",
+		NO_PROGRESS_IN_GAME = "NO_PROGRESS_IN_GAME",
+		BOT_COLLISION = "BOT_COLLISION",
+		MULTIPLE_DEFENDER = "MULTIPLE_DEFENDER",
+		MULTIPLE_DEFENDER_PARTIALLY = "MULTIPLE_DEFENDER_PARTIALLY",
+		ATTACKER_IN_DEFENSE_AREA = "ATTACKER_IN_DEFENSE_AREA",
+		ICING = "ICING",
+		BALL_SPEED = "BALL_SPEED",
+		ROBOT_STOP_SPEED = "ROBOT_STOP_SPEED",
+		BALL_DRIBBLING = "BALL_DRIBBLING",
+		ATTACKER_TOUCH_KEEPER = "ATTACKER_TOUCH_KEEPER",
+		DOUBLE_TOUCH = "DOUBLE_TOUCH",
+		ATTACKER_TO_DEFENCE_AREA = "ATTACKER_TO_DEFENCE_AREA",
+		DEFENDER_TO_KICK_POINT_DISTANCE = "DEFENDER_TO_KICK_POINT_DISTANCE",
+		BALL_HOLDING = "BALL_HOLDING",
+		INDIRECT_GOAL = "INDIRECT_GOAL",
+		BALL_PLACEMENT_FAILED = "BALL_PLACEMENT_FAILED",
+		CHIP_ON_GOAL = "CHIP_ON_GOAL",
 	}
 	export const enum Team {
-		TEAM_UNKNOWN = 0,
-		TEAM_YELLOW = 1,
-		TEAM_BLUE = 2,
+		TEAM_UNKNOWN = "TEAM_UNKNOWN",
+		TEAM_YELLOW = "TEAM_YELLOW",
+		TEAM_BLUE = "TEAM_BLUE",
 	}
 	export interface Originator {
 		team: SSL_Referee_Game_Event.Team;
@@ -1089,8 +1159,8 @@ export interface SSL_WrapperPacket {
 export namespace world {
 	export namespace Geometry {
 		export const enum GeometryType {
-			TYPE_2014 = 1,
-			TYPE_2018 = 2,
+			TYPE_2014 = "TYPE_2014",
+			TYPE_2018 = "TYPE_2018",
 		}
 	}
 	export interface Geometry {
@@ -1179,18 +1249,6 @@ export namespace world {
 		tracking_aoi?: world.TrackingAOI;
 		vision_frames?: SSL_WrapperPacket[];
 	}
-}
-export interface SSL_RadioProtocolCommand {
-	robot_id: number;
-	velocity_x: number;
-	velocity_y: number;
-	velocity_r: number;
-	flat_kick?: number;
-	chip_kick?: number;
-	dribbler_spin?: number;
-}
-export interface SSL_RadioProtocolWrapper {
-	command?: SSL_RadioProtocolCommand[];
 }
 export namespace logfile {
 	export interface UidEntry {
