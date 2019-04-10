@@ -44,6 +44,8 @@ add_library(seshat
     bufferedstatussource.cpp
     timedstatussource.cpp
     visionconverter.cpp
+    logfilefinder.cpp
+    logfilefinder.h
 )
 
 target_link_libraries(seshat

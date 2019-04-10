@@ -20,3 +20,14 @@ message Uid {
 message LogRequest{
     required string path = 1;
 }
+
+message LogOfferEntry {
+    enum QUALITY { PERFECT = 1; UNKNOWN = 2; UNREADABLE = 3; };
+    required string name = 1;
+    required QUALITY quality = 2;
+    required LogRequest uri = 3;
+}
+
+message LogOffer {
+    repeated LogOfferEntry entries = 1;
+}

@@ -128,6 +128,7 @@ message UiResponse {
     optional LogfileOpenInfo log_open = 9;
     optional string export_visionlog_error = 10;
     optional string requested_log_uid = 11;
+    optional logfile.LogOffer log_offers = 12;
 }
 
 message LogPlaybackInfo {
