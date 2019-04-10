@@ -369,7 +369,7 @@ bool Typescript::loadTypescript(const QString &filename, const QString &entryPoi
         QFileInfo jsFile = m_compiler->comp()->mapToResult(QFileInfo(filename));
 
         success = loadJavascript(jsFile.absoluteFilePath(), entryPoint);
-        emit changeLoadState(amun::StatusStrategy::RUNNING);
+        emit changeLoadState(success ? amun::StatusStrategy::RUNNING : amun::StatusStrategy::FAILED);
     } else {
         m_errorMsg = "<font color=\"red\">No compile result available</font>";
     }
