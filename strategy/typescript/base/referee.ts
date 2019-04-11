@@ -112,48 +112,48 @@ const nonGameStages: {[state: string]: boolean} = {
  * Check whether the stop rules apply
  * @return True if the current referee state is considered as stop
  */
-export function isStopState(): boolean {
-	return stopStates[World.RefereeState];
+export function isStopState(state = World.RefereeState): boolean {
+	return stopStates[state];
 }
 
 /**
  * Check whether the robot has to drive a maximum of 1.5 m/s (slow)
  * @return True if all robots have to drive slowly (< 1.5 m/s)
  */
-export function isSlowDriveState(): boolean {
-	return slowDriveStates[World.RefereeState];
+export function isSlowDriveState(state = World.RefereeState): boolean {
+	return slowDriveStates[state];
 }
 
 /**
  * Check whether we have a freekick
  * @return True if the current referee state is a freekick for us
  */
-export function isFriendlyFreeKickState(): boolean {
-	return friendlyFreeKickStates[World.RefereeState];
+export function isFriendlyFreeKickState(state = World.RefereeState): boolean {
+	return friendlyFreeKickStates[state];
 }
 
 /**
  * Check whether this is a kickoff
  * @return True if the current referee state is a kickoff
  */
-export function isKickoffState(): boolean {
-	return kickoffStates[World.RefereeState];
+export function isKickoffState(state = World.RefereeState): boolean {
+	return kickoffStates[state];
 }
 
 /**
  * Check whether the opponent has a penalty
  * @return True if the opponent has a penalty
  */
-export function isOpponentPenaltyState(): boolean {
-	return opponentPenaltyStates[World.RefereeState];
+export function isOpponentPenaltyState(state = World.RefereeState): boolean {
+	return opponentPenaltyStates[state];
 }
 
-export function isFriendlyPenaltyState(): boolean {
-	return friendlyPenaltyStates[World.RefereeState];
+export function isFriendlyPenaltyState(state = World.RefereeState): boolean {
+	return friendlyPenaltyStates[state];
 }
 
-export function isGameState(): boolean {
-	return gameStates[World.RefereeState];
+export function isGameState(state = World.RefereeState): boolean {
+	return gameStates[state];
 }
 
 export function isNonGameStage(): boolean {
