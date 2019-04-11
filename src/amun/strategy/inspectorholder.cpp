@@ -106,13 +106,13 @@ void InspectorHolder::DefaultInspectorClient::runMessageLoopOnPause(int)
     while (m_runMessageLoop) {
         m_inspectorHandler->messageLoop();
     }
+    m_inspectorHandler->endMessageLoopOnPause();
 }
 
 void InspectorHolder::DefaultInspectorClient::quitMessageLoopOnPause()
 {
     assert(m_inspectorHandler);
     m_runMessageLoop = false;
-    m_inspectorHandler->endMessageLoopOnPause();
 }
 
 v8::Local<v8::Context> InspectorHolder::DefaultInspectorClient::ensureDefaultContextInGroup(int)

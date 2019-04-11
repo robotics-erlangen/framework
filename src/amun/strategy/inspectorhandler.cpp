@@ -52,10 +52,10 @@ void InspectorHandler::readData()
         ws_decode_result r =  decode_frame_hybi17(buffer, true, &bytes_consumed, &output, &compressed);
         if (compressed || r == FRAME_ERROR || r == FRAME_CLOSE) {
             // errors are handled by closing the connection
-            quitMessageLoopOnPause();
+
             // cant be removed here since we might still be in the message loop
             m_shouldResetHolder = true;
-            emit frontendDisconnected();
+            quitMessageLoopOnPause();
             bytes_consumed = 0;
             m_socket->readAll(); // just clear everything so that this function is not called anymore
             deleteLater();
@@ -75,6 +75,9 @@ void InspectorHandler::startMessageLoopOnPause()
 
 void InspectorHandler::endMessageLoopOnPause()
 {
+    if (m_shouldResetHolder) {
+        emit frontendDisconnected();
+    }
     sendPauseSimulator(false);
 }
 
