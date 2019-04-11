@@ -297,6 +297,7 @@ void InternalTypescriptCompiler::handleExitcode(bool exitcodeValid, int exitcode
         Warning = 1,
         Error = 2
     };
+    m_stdout = m_stdout.replace("\n", "<br/>");
     if (!exitcodeValid) {
         m_lastResult = { CompileResult::Error, "Compiler did not return an exit code" };
     } else switch (exitcode) {
