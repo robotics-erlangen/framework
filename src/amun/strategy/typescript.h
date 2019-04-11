@@ -97,6 +97,7 @@ private:
     v8::Isolate* m_isolate;
     v8::Persistent<v8::Context> m_context;
     v8::Persistent<v8::Function> m_function;
+    std::unique_ptr<v8::ArrayBuffer::Allocator> m_arrayAllocator;
     double m_totalPathTime;
 
     QList<QMap<QString, v8::Global<v8::Value>*>> m_requireCache;
