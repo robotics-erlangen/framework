@@ -86,6 +86,7 @@ export let SelectedOptions = undefined;
  * TimeoutOffensive, TimeoutDefensive, BallPlacementOffensive, BallPlacementDefensive
  */
 export let RefereeState: string = "";
+export let NextRefereeState: string = "";
 /**
  * current game stage, can be one of these:
  * FirstHalfPre, FirstHalf, HalfTime, SecondHalfPre, SecondHalf,
@@ -397,12 +398,15 @@ export function _getFullRefereeState() {
 // updates referee command and keeper information
 function _updateGameState(state: pb.amun.GameState) {
 	fullRefereeState = state;
-	let refState = state.state;
 	// map referee command to own team
-	if (TeamIsBlue) {
-		RefereeState = refState.replace("Blue", "Offensive").replace("Yellow", "Defensive");
-	} else {
-		RefereeState = refState.replace("Yellow", "Offensive").replace("Blue", "Defensive");
+	const replaceWithTeamColor = (val: string) => {
+		return TeamIsBlue
+			? val.replace("Blue", "Offensive").replace("Yellow", "Defensive")
+			: val.replace("Yellow", "Offensive").replace("Blue", "Defensive");
+	};
+	RefereeState = replaceWithTeamColor(state.state);
+	if (state.next_state) {
+		NextRefereeState = replaceWithTeamColor(state.next_state);
 	}
 
 	if (RefereeState === "TimeoutOffensive" || RefereeState === "TimeoutDefensive") {
