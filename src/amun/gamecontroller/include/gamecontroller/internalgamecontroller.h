@@ -16,7 +16,7 @@ class InternalGameController : public QObject
     Q_OBJECT
 
 public:
-    InternalGameController(const Timer *timer);
+    InternalGameController(const Timer *timer, QObject *parent = nullptr);
     void handleGuiCommand(const QByteArray &data);
     void handleGameEvent(std::shared_ptr<gameController::AutoRefToController> message);
 

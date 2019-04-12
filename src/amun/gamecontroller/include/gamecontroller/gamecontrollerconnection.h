@@ -14,7 +14,7 @@ class GameControllerConnection : public QObject
 
 public:
     GameControllerConnection(bool isAutoref);
-    GameControllerConnection(const std::shared_ptr<InternalGameController> &internalGameController, bool isAutoref);
+    GameControllerConnection(InternalGameController *internalGameController, bool isAutoref);
     bool connectGameController();
     void closeConnection();
     bool receiveGameControllerMessage(google::protobuf::Message *type);

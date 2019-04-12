@@ -130,7 +130,7 @@ Processor::Processor(const Timer *timer) :
     m_tracker = new Tracker;
     m_speedTracker = new SpeedTracker;
 
-    m_internalGameController.reset(new InternalGameController(timer));
+    m_internalGameController = new InternalGameController(timer, this);
 
     // start processing
     m_trigger = new QTimer(this);
@@ -140,8 +140,8 @@ Processor::Processor(const Timer *timer) :
 
     connect(timer, &Timer::scalingChanged, this, &Processor::setScaling);
 
-    connect(m_internalGameController.get(), &InternalGameController::gotPacketForReferee, m_refereeInternal, &Referee::handlePacket);
-    connect(this, &Processor::sendStatus, m_internalGameController.get(), &InternalGameController::handleStatus);
+    connect(m_internalGameController, &InternalGameController::gotPacketForReferee, m_refereeInternal, &Referee::handlePacket);
+    connect(this, &Processor::sendStatus, m_internalGameController, &InternalGameController::handleStatus);
 }
 
 /*!

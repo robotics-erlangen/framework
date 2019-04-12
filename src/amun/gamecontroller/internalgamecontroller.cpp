@@ -3,7 +3,8 @@
 #include <google/protobuf/descriptor.h>
 #include <QDebug>
 
-InternalGameController::InternalGameController(const Timer *timer) :
+InternalGameController::InternalGameController(const Timer *timer, QObject *parent) :
+    QObject(parent),
     m_timer(timer)
 {
     m_trigger = new QTimer(this);

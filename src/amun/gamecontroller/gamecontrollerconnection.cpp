@@ -1,11 +1,11 @@
 #include "gamecontrollerconnection.h"
 
-GameControllerConnection::GameControllerConnection(const std::shared_ptr<InternalGameController> &internalGameController, bool isAutoref) :
+GameControllerConnection::GameControllerConnection(InternalGameController *internalGameController, bool isAutoref) :
     m_isAutoref(isAutoref),
     m_externalGameControllerConnection(isAutoref, this)
 {
-    connect(this, &GameControllerConnection::gotMessageForInternaleGameController, internalGameController.get(), &InternalGameController::handleGameEvent);
-    connect(internalGameController.get(), &InternalGameController::gotControllerReply, this, &GameControllerConnection::handleInternalGameControllerReply);
+    connect(this, &GameControllerConnection::gotMessageForInternaleGameController, internalGameController, &InternalGameController::handleGameEvent);
+    connect(internalGameController, &InternalGameController::gotControllerReply, this, &GameControllerConnection::handleInternalGameControllerReply);
 }
 
 GameControllerConnection::GameControllerConnection(bool isAutoref) :

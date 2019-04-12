@@ -50,7 +50,7 @@ public:
     Processor(const Processor&) = delete;
     Processor& operator=(const Processor&) = delete;
     bool getIsFlipped() const { return m_lastFlipped; }
-    std::shared_ptr<InternalGameController> getInternalGameController() const { return m_internalGameController; }
+    InternalGameController *getInternalGameController() const { return m_internalGameController; }
 
 signals:
     void sendStatus(const Status &status);
@@ -110,7 +110,7 @@ private:
     bool m_simulatorEnabled;
     bool m_lastFlipped;
 
-    std::shared_ptr<InternalGameController> m_internalGameController;
+    InternalGameController *m_internalGameController;
 
     Team m_blueTeam;
     Team m_yellowTeam;
