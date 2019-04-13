@@ -573,7 +573,7 @@ void MainWindow::setInternalRefereeEnabled(bool enabled)
     referee->set_active(enabled);
     sendCommand(command);
     // show internal referee when it's activated
-    if (enabled) {
+    if (enabled && m_currentWidgetConfiguration % 2 == 1) { // ra mode
         ui->dockReferee->setVisible(true);
     }
     // force auto reload of strategies if external referee is used
