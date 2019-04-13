@@ -260,10 +260,15 @@ void InternalGameController::handleGameEvent(std::shared_ptr<gameController::Aut
     case gameController::BOT_PUSHED_BOT:
     case gameController::BOT_HELD_BALL_DELIBERATELY:
     case gameController::BOT_TOO_FAST_IN_STOP:
-    case gameController::DEFENDER_TOO_CLOSE_TO_KICK_POINT:
         shouldPlace = true;
         placementPos = ballPlacementPosForFoul(eventLocation);
         m_packet.set_next_command(placingTeamIsYellow ? SSL_Referee::DIRECT_FREE_YELLOW : SSL_Referee::DIRECT_FREE_BLUE);
+        break;
+    case gameController::DEFENDER_TOO_CLOSE_TO_KICK_POINT:
+        // TODO: give stop until all robots are far enough away
+        shouldPlace = true;
+        placementPos = ballPlacementPosForFoul(eventLocation);
+        // leave next command the same
         break;
     default:
         // do nothing here, these should not originate from the autoref
