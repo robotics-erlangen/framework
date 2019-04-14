@@ -66,7 +66,7 @@ export class Pass extends Task {
 		}
 		this._targetPos = pos;
 
-		this._shoot = new Shoot(this._robot, this._messaging, this.setMainAttackerParameters);
+		this._shoot = new Shoot(this._robot, this._messaging, this.capturedSetMAParams());
 	}
 
 	public updateTarget(targetRobot: FriendlyRobot, targetPos: Position, chip?: boolean,

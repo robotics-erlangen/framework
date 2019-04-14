@@ -41,6 +41,14 @@ export abstract class Task {
 		this._mainAttackerParameters = undefined;
 	}
 
+	capturedSetMAParams(): (target: Position, endSpeedLength: number) => void {
+		// tslint:disable-next-line
+		let outerThis = this;
+		return function(target: Position, endSpeedLength: number) {
+			outerThis.setMainAttackerParameters(target, endSpeedLength);
+		};
+	}
+
 	setMainAttackerParameters(target: Position, endSpeedLength: number) {
 		this._mainAttackerParameters = [ target, endSpeedLength ];
 	}

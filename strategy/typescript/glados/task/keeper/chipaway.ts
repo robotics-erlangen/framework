@@ -14,7 +14,7 @@ export class ChipAway extends Task {
 
 	constructor(agent: Agent) {
 		super(agent);
-		this._shoot = new Shoot(this._robot, this._messaging, this.setMainAttackerParameters);
+		this._shoot = new Shoot(this._robot, this._messaging, this.capturedSetMAParams());
 	}
 
 	run() {

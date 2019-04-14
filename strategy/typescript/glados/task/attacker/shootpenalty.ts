@@ -54,7 +54,7 @@ export class ShootPenalty extends Task {
 		}
 		this._waitTime = MathUtil.random() * 5 + 2;
 
-		this._shoot = new Shoot(this._robot, this._messaging, this.setMainAttackerParameters);
+		this._shoot = new Shoot(this._robot, this._messaging, this.capturedSetMAParams());
 		this._rotateAndShoot = new RotateAndShoot(this._robot);
 	}
 
