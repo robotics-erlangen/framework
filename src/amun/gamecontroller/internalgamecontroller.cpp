@@ -104,7 +104,7 @@ auto InternalGameController::ballPlacementPosForFoul(Vector foulPosition) -> Vec
         return result;
     }
     if (sideDist > 0 && frontDist > 0) {
-        result.x = sign(foulPosition.x) * (m_geometry.defense_height() + DEFENSE_DISTANCE);
+        result.x = sign(foulPosition.x) * std::min(m_geometry.field_height() / 2.0f - m_geometry.defense_height() - DEFENSE_DISTANCE, std::abs(foulPosition.x));
         return result;
     }
     result.x = sign(foulPosition.x) * std::min(m_geometry.field_height() / 2.0f - GOAL_LINE_DISTANCE, std::abs(foulPosition.x));
