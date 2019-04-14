@@ -285,12 +285,12 @@ function addBallPlacementObstacle(path: Path) {
 				World.Ball.pos.y,
 				World.BallPlacementPos.x,
 				World.BallPlacementPos.y,
-				Constants.stopBallDistance,
+				Constants.stopBallDistance + 0.1,
 				"BallPlacement",
 				Priorities.BALL_PLACEMENT
 			);
 		} else {
-			path.addCircle(World.Ball.pos.x, World.Ball.pos.y, Constants.stopBallDistance, "BallPlacement");
+			path.addCircle(World.Ball.pos.x, World.Ball.pos.y, Constants.stopBallDistance + 0.1, "BallPlacement");
 		}
 	}
 }
