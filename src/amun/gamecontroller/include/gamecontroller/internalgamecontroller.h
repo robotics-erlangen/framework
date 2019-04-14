@@ -48,6 +48,7 @@ private:
     qint64 m_currentActionStartTime = -1;
     qint64 m_currentActionAllowedTime;
     bool m_isFirstPlacement;
+    Vector m_lastPlacementPos = {0, 0};
 
     QTimer *m_trigger;
 

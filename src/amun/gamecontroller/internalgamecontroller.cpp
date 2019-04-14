@@ -25,7 +25,6 @@ void InternalGameController::sendUpdate()
 {
     // update packet
     m_packet.set_packet_timestamp(m_timer->currentTime() / 1000L);
-    // TODO: is stage_time_left needed?
     if (m_currentActionStartTime > 0) {
         m_packet.set_current_action_time_remaining(m_currentActionAllowedTime - (m_timer->currentTime() / 1000L - m_currentActionStartTime));
     } else {
@@ -171,8 +170,25 @@ void InternalGameController::handleGameEvent(std::shared_ptr<gameController::Aut
 
     // TODO: assertions for current state of the game to check the autoref working properly
 
-    Vector placementPos{0, 0};
+    if (event.type() != gameController::PREPARED &&
+            (m_packet.command() == SSL_Referee::PREPARE_KICKOFF_YELLOW || m_packet.command() == SSL_Referee::PREPARE_KICKOFF_BLUE ||
+            m_packet.command() == SSL_Referee::PREPARE_KICKOFF_BLUE || m_packet.command() == SSL_Referee::PREPARE_PENALTY_YELLOW)) {
+        return;
+    }
+
+    Vector placementPos = m_lastPlacementPos;
     bool placingTeamIsYellow = byTeamString == "BLUE";
+
+    // rule 8.4 simultaneous offenses
+    // TODO: only if the event would not result in a penalty kick
+    if (m_packet.next_command() && event.type() != gameController::PLACEMENT_SUCCEEDED && event.type() != gameController::PLACEMENT_FAILED &&
+            ((!placingTeamIsYellow && (m_packet.next_command() == SSL_Referee::DIRECT_FREE_BLUE ||
+                                      m_packet.next_command() == SSL_Referee::INDIRECT_FREE_BLUE)) ||
+             (placingTeamIsYellow && (m_packet.next_command() == SSL_Referee::DIRECT_FREE_YELLOW ||
+                                                   m_packet.next_command() == SSL_Referee::INDIRECT_FREE_YELLOW)))) {
+        return;
+    }
+
     bool shouldPlace = false;
     bool setIsFirstPlacement = true;
     switch (event.type()) {
@@ -230,9 +246,9 @@ void InternalGameController::handleGameEvent(std::shared_ptr<gameController::Aut
         issueCommand(SSL_Referee::NORMAL_START);
         break;
     case gameController::NO_PROGRESS_IN_GAME:
-        // TODO: issue stop for 5 second or so
-        // TODO: issue force start
-        shouldPlace = false;
+        placingTeamIsYellow = rand() % 2 == 0;
+        shouldPlace = true;
+        m_packet.set_next_command(SSL_Referee::FORCE_START);
         break;
 
     // minor offenses
@@ -253,9 +269,13 @@ void InternalGameController::handleGameEvent(std::shared_ptr<gameController::Aut
         break;
 
     // major offenses
-    case gameController::ATTACKER_TOO_CLOSE_TO_DEFENSE_AREA:
     case gameController::BOT_INTERFERED_PLACEMENT:
-    // TODO: advantage rule for pusing and crashing
+        m_currentActionStartTime = m_timer->currentTime() / 1000L;
+        m_currentActionAllowedTime = 30000000;
+        shouldPlace = false;
+        break;
+    case gameController::ATTACKER_TOO_CLOSE_TO_DEFENSE_AREA:
+    // TODO: advantage rule for pushing and crashing
     case gameController::BOT_CRASH_UNIQUE:
     case gameController::BOT_PUSHED_BOT:
     case gameController::BOT_HELD_BALL_DELIBERATELY:
@@ -265,7 +285,6 @@ void InternalGameController::handleGameEvent(std::shared_ptr<gameController::Aut
         m_packet.set_next_command(placingTeamIsYellow ? SSL_Referee::DIRECT_FREE_YELLOW : SSL_Referee::DIRECT_FREE_BLUE);
         break;
     case gameController::DEFENDER_TOO_CLOSE_TO_KICK_POINT:
-        // TODO: give stop until all robots are far enough away
         shouldPlace = true;
         placementPos = ballPlacementPosForFoul(eventLocation);
         // leave next command the same
@@ -279,6 +298,7 @@ void InternalGameController::handleGameEvent(std::shared_ptr<gameController::Aut
     // TODO: clear next command when it is not needed
     if (shouldPlace) {
         m_isFirstPlacement = setIsFirstPlacement;
+        m_lastPlacementPos = placementPos;
         m_packet.mutable_designated_position()->set_x(placementPos.x * 1000.0f);
         m_packet.mutable_designated_position()->set_y(placementPos.y * 1000.0f);
         m_currentActionStartTime = m_timer->currentTime() / 1000L;
