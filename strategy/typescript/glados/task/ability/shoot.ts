@@ -71,6 +71,7 @@ export class Shoot {
 
 	_lastTargetPos: Position | undefined;
 	_linearShoot: boolean = true;
+	targetRobotDir: number = 0;
 
 	_precision: number = 0;
 	_rightOrientation: boolean = false;
@@ -248,6 +249,7 @@ export class Shoot {
 
 	private _shootStationaryBall(targetPos: Position, targetSpeed: number, targetTime: number | undefined, futureBall: Physics.BallLike) {
 		let shootDir = (targetPos - this._robot.pos).angle();
+		this.targetRobotDir = shootDir;
 
 		let maxSidewardsAngle;
 		let maxOrientationAngle;
@@ -334,6 +336,7 @@ export class Shoot {
 		this._precision = MIN_PRECISION_CHASE;
 
 		let [targetDir, kickSpeed] = Volley.calcPhi(this._robot, futureBall.speed, futureBall.pos, targetPos, targetSpeed); // TODO: calcPhi with no relaitve speed is questionable
+		this.targetRobotDir = targetDir;
 
 		let dribblerOffset = Vector.fromAngle(targetDir) * (this._robot.shootRadius + World.Ball.radius);
 		let moveDest = futureBall.pos - dribblerOffset;
@@ -356,6 +359,7 @@ export class Shoot {
 	private static DISTRACTION_PERCENTAGE: number = 0.9;
 	private _shootVolley(targetPos: Position, targetSpeed: number, futureBall: Physics.BallLike, futureBallTime: number) {
 		let [targetDir, kickSpeed] = Volley.calcPhi(this._robot, futureBall.speed, futureBall.pos, targetPos, targetSpeed);
+		this.targetRobotDir = targetDir;
 		let dribblerOffset = Vector.fromAngle(targetDir) * (this._robot.shootRadius + World.Ball.radius);
 		let moveDest = futureBall.pos - dribblerOffset;
 
@@ -405,6 +409,7 @@ export class Shoot {
 	private _shootStopBall(futureBall: Physics.BallLike, futureBallTime: number) {
 		let ballOrigin = futureBall.pos - futureBall.speed;
 		let targetDir = (-futureBall.speed).angle();
+		this.targetRobotDir = targetDir;
 		let dribblerOffset = Vector.fromAngle(targetDir) * (this._robot.shootRadius + World.Ball.radius);
 		let moveDest = futureBall.pos - dribblerOffset;
 
@@ -436,6 +441,7 @@ export class Shoot {
 
 	_doShoot(targetPos: Position, targetSpeed: number, targetTime?: number, ballReceiptPos?: Position,
 			linearShoot: boolean = false, precision: number = MIN_PRECISION) {
+		this.targetRobotDir = (targetPos - this._robot.pos).angle();
 		let [futureBall, futureBallTime] = this._calculateFutureBall(ballReceiptPos);
 		debug.set("Shoot/futureBallTime", futureBallTime);
 		let chaseFutureBall = this._calculateChaseFutureBall(targetPos);
@@ -467,7 +473,7 @@ export class Shoot {
 
 		Shoot._visualizeShoot(futureBall, targetPos, color);
 
-		this._setMainAttackerParameters(targetPos, this._robot.maxSpeed);
+		this._setMainAttackerParameters(this._robot.pos + Vector.fromAngle(this.targetRobotDir), this._robot.maxSpeed);
 		this._messaging.sendBroadcast(MessageType.shootDestination, targetPos);
 
 		this._lastTargetPos = targetPos;
