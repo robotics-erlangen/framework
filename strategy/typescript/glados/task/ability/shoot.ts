@@ -473,7 +473,7 @@ export class Shoot {
 
 		Shoot._visualizeShoot(futureBall, targetPos, color);
 
-		this._setMainAttackerParameters(this._robot.pos + Vector.fromAngle(this.targetRobotDir), this._robot.maxSpeed);
+		this._setMainAttackerParameters(futureBall.pos + Vector.fromAngle(this.targetRobotDir), this._robot.maxSpeed);
 		this._messaging.sendBroadcast(MessageType.shootDestination, targetPos);
 
 		this._lastTargetPos = targetPos;
