@@ -101,12 +101,18 @@ export class Striker extends Task {
 						if (geom.insideRect(new Vector(left, bottom), new Vector(right, top), candidatePoint)) {
 							let score = this._strikerSampling.evalLocation(candidatePoint, bestScore);
 							let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
+							let firstHysteresis = false;
 							if (passInfoTable) {
 								for (let passInfo of passInfoTable) {
 									if (passInfo.ballPos.distanceToSq(candidatePoint) < 0.01 * 0.01) {
 										score = score + 0.1;
+										firstHysteresis = true;
 									}
 								}
+							}
+							if (!firstHysteresis && this._passDestSuggestion &&
+									this._passDestSuggestion.distanceToSq(candidatePoint) < 0.01 * 0.01) {
+								score += 0.05;
 							}
 							if (score > bestScore) {
 								bestScore = score;
@@ -143,6 +149,15 @@ export class Striker extends Task {
 			this._searchForPassDest();
 		}
 
+		// be close to the defense area to catch possible stray shots
+		let cbDistToDefenseArea = UtilDefense.centerBackDistanceToDefenseArea();
+		if (this._passDestSuggestion && !Referee.isFriendlyFreeKickState()
+				&&  Field.distanceToDefenseArea(this._passDestSuggestion, cbDistToDefenseArea, false) < 0.8) {
+
+			let intersection = Field.intersectRayDefenseArea(this._moveDest!, G.OpponentGoal - this._moveDest!, cbDistToDefenseArea + 0.3, false)[0];
+			this._moveDest = intersection || this._moveDest;
+		}
+
 		// check whether the agent would change its state to accepting an incoming pass (striker should not be active then)
 		let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
 		if (passInfoTable && Attack.checkPassInfos(this._robot, passInfoTable, false) === true) {
@@ -171,15 +186,6 @@ export class Striker extends Task {
 		// send a suggestion for a pass in the run
 		if (this._passDestSuggestion && attackPosition) {
 			this._suggestPass._suggestPass(this._passDestSuggestion, attackPosition, moveTime);
-		}
-
-		// be close to the defense area to catch possible stray shots
-		let cbDistToDefenseArea = UtilDefense.centerBackDistanceToDefenseArea();
-		if (this._passDestSuggestion && !Referee.isFriendlyFreeKickState()
-				&&  Field.distanceToDefenseArea(this._passDestSuggestion, cbDistToDefenseArea, false) < 0.8) {
-
-			let intersection = Field.intersectRayDefenseArea(this._moveDest!, G.OpponentGoal - this._moveDest!, cbDistToDefenseArea + 0.3, false)[0];
-			this._moveDest = intersection || this._moveDest;
 		}
 
 		this._robot.trajectory.update(ToTarget, this._moveDest, (World.Ball.pos - this._robot.pos).angle());
