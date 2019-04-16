@@ -50,6 +50,10 @@ export class Striker extends Task {
 			return false;
 		}
 
+		if (this._passDestSuggestion == undefined) {
+			return true;
+		}
+
 		let timestamps = this._messaging.receive(MessageType.strikerSamplingTimestamp, true);
 		let nextCandidate = undefined;
 		let nextCandidateTimestamp = Infinity;
