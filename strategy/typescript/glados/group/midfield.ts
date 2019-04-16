@@ -6,6 +6,7 @@ import * as vis from "base/vis";
 import * as World from "base/world";
 
 import { MessageBox, MessageType } from "glados/control/messaging";
+import * as Attack from "glados/util/attack";
 
 const G = World.Geometry;
 
@@ -205,7 +206,7 @@ export class Midfield {
 			let pos = r.pos;
 			if (passInfoTable) {
 				for (let passInfo of passInfoTable) {
-					if (passInfo.target === r) {
+					if (passInfo.target === r && Attack.checkPassInfos(r, passInfoTable, false)) {
 						pos = passInfo.ballPos + (passInfo.ballPos - World.Ball.pos).setLength(r.shootRadius + World.Ball.radius);
 					}
 				}
