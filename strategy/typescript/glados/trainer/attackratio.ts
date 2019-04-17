@@ -58,7 +58,7 @@ export class AttackRatio {
 		}
 
 
-		let attackRatio;
+		let attackRatio: number;
 		if (refState === "KickoffOffensivePrepare" || refState === "KickoffOffensive") {
 			attackRatio = 6;
 		} else if (refState === "KickoffDefensivePrepare" || refState === "KickoffDefensive") {
@@ -82,6 +82,10 @@ export class AttackRatio {
 			} else {
 				attackRatio = 1;
 			}
+		} else if (refState === "PenaltyDefensivePrepare" || refState === "PenaltyDefensive") {
+			attackRatio = 1;
+		} else if (refState === "PenaltyOffensivePrepare" || refState === "PenaltyOffensive") {
+			attackRatio = 7;
 		} else if (refState === "Stop") {
 			if (this._ballInOpponentFieldHalf) {
 				attackRatio = 3;
