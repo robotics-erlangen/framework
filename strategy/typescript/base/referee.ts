@@ -74,11 +74,19 @@ const friendlyFreeKickStates: {[state: string]: boolean} = {
 	IndirectOffensive: true
 };
 
-const kickoffStates: {[state: string]: boolean} = {
-	KickoffDefensivePrepare: true,
-	KickoffDefensive: true,
+const opponentFreeKickStates: {[state: string]: boolean} = {
+	DirectDefensive: true,
+	IndirectDefensive: true
+};
+
+const friendlyKickoffStates: {[state: string]: boolean} = {
 	KickoffOffensivePrepare: true,
 	KickoffOffensive: true
+};
+
+const opponentKickoffStates: {[state: string]: boolean} = {
+	KickoffDefensivePrepare: true,
+	KickoffDefensive: true
 };
 
 const opponentPenaltyStates: {[state: string]: boolean} = {
@@ -133,11 +141,35 @@ export function isFriendlyFreeKickState(state = World.RefereeState): boolean {
 }
 
 /**
+ * Check whether the opponent has a freekick
+ * @return true if the current referee state is an freekick for the opponent
+ */
+export function isOpponentFreeKickState(state = World.RefereeState): boolean {
+	return opponentFreeKickStates[state];
+}
+
+/**
+ * Check whether this is a friendly kickoff
+ * @return true if the current referee state is a friendly kickoff
+ */
+export function isFriendlyKickoffState(state = World.RefereeState): boolean {
+	return friendlyKickoffStates[state];
+}
+
+/**
+ * Check whether this is an opponent kickoff
+ * @return true if the current referee state is an opponent kickoff
+ */
+export function isOpponentKickoffState(state = World.RefereeState): boolean {
+	return opponentKickoffStates[state];
+}
+
+/**
  * Check whether this is a kickoff
  * @return True if the current referee state is a kickoff
  */
 export function isKickoffState(state = World.RefereeState): boolean {
-	return kickoffStates[state];
+	return isFriendlyKickoffState(state) || isOpponentKickoffState(state);
 }
 
 /**
