@@ -4,6 +4,7 @@ import * as debug from "base/debug";
 import * as Field from "base/field";
 import * as geom from "base/geom";
 import * as MathUtil from "base/mathutil";
+import * as Referee from "base/referee";
 import { Position, RelativePosition } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
@@ -237,7 +238,10 @@ export class PlaceBall extends Task {
 				break;
 			}
 			case State.MOVE_AWAY: {
-				let offset = (World.Geometry.FriendlyGoal - this._ball.pos).setLength(Constants.stopBallDistance + 0.1);
+				const dist = Referee.isFriendlyFreeKickState(World.NextRefereeState)
+					? 0.08 + this._robot.radius
+					: Constants.stopBallDistance + 0.05 + this._robot.radius;
+				let offset = (World.Geometry.FriendlyGoal - this._ball.pos).setLength(dist);
 				this._currentTargetPos = this._ball.pos + offset;
 				this._robot.trajectory.update(ToTarget, this._currentTargetPos, -offset.angle());
 
