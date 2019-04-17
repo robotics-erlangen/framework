@@ -290,9 +290,7 @@ export function _updateWorld(state: pb.world.State) {
 	let radioResponses: pb.robot.RadioResponse[] = state.radio_response || [];
 
 	// update ball if available
-	if (state.ball) {
-		Ball._update(state.ball, Time);
-	}
+	Ball._update(state.ball, Time);
 
 	let dataFriendly = TeamIsBlue ? state.blue : state.yellow;
 	if (dataFriendly) {
