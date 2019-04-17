@@ -26,6 +26,7 @@ export class AttackRatio {
 	attackRatio() {
 		let ball = World.Ball;
 		let refState = World.RefereeState;
+		let nextRefState = World.NextRefereeState;
 		if ((this._ballInOpponentFieldHalf && ball.pos.y < -1.5)  ||
 			(!this._ballInOpponentFieldHalf && ball.pos.y > 1.5)) {
 			this._ballInOpponentFieldHalf = !this._ballInOpponentFieldHalf;
@@ -63,14 +64,18 @@ export class AttackRatio {
 			attackRatio = 6;
 		} else if (BaseRef.isOpponentFreeKickState(refState)) {
 			attackRatio = 3;
-		} else if (BaseRef.isFriendlyFreeKickState(refState)) {
-			let friendlyCorner = Field.isInOwnCorner(ball.pos, false);
-			let opponentCorner = Field.isInOwnCorner(ball.pos, true);
+		} else if (BaseRef.isFriendlyFreeKickState(refState)
+				|| (refState === "BallPlacementOffensive" && BaseRef.isFriendlyFreeKickState(nextRefState))) {
+			let checkedPos = refState === "BallPlacementOffensive"
+				? World.BallPlacementPos!
+				: ball.pos;
+			let friendlyCorner = Field.isInOwnCorner(checkedPos, false);
+			let opponentCorner = Field.isInOwnCorner(checkedPos, true);
 			if (friendlyCorner) { // Goal-Kick Offensive
 				attackRatio = 4;
 			} else if (opponentCorner) { // Corner-Kick Offensive
 				attackRatio = 7;
-			} else if (ball.pos.y > 1.2) {
+			} else if (checkedPos.y > 1.2) {
 				attackRatio = 6; // Throw-In Offensive
 			} else {
 				attackRatio = 4; // Throw-In Offensive
