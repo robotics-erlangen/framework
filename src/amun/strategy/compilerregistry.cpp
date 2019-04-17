@@ -52,7 +52,7 @@ std::shared_ptr<CompilerThreadWrapper> CompilerRegistry::getCompiler(const QDir&
     return compiler;
 }
 
-bool CompilerRegistry::CompareQDir::operator()(const QDir& lhs, const QDir& rhs)
+bool CompilerRegistry::CompareQDir::operator()(const QDir& lhs, const QDir& rhs) const
 {
     return lhs.absolutePath() < rhs.absolutePath();
 }

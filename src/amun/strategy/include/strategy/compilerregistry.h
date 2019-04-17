@@ -39,7 +39,7 @@ public:
     std::shared_ptr<CompilerThreadWrapper> getCompiler(const QDir& baseDir, const CompilerFactory& factory);
 private:
     struct CompareQDir {
-        bool operator()(const QDir& lhs, const QDir& rhs);
+        bool operator()(const QDir& lhs, const QDir& rhs) const;
     };
     std::map<QDir, std::weak_ptr<CompilerThreadWrapper>, CompareQDir> m_registry;
 
