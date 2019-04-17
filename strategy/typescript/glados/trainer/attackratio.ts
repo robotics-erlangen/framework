@@ -1,5 +1,6 @@
 import * as debug from "base/debug";
 import * as Field from "base/field";
+import * as BaseRef from "base/referee";
 import { FriendlyRobot } from "base/robot";
 import * as World from "base/world";
 
@@ -30,7 +31,7 @@ export class AttackRatio {
 			this._ballInOpponentFieldHalf = !this._ballInOpponentFieldHalf;
 		}
 
-		if (refState === "DirectDefensive" || refState === "IndirectDefensive") {
+		if (BaseRef.isOpponentFreeKickState(refState)) {
 			this._opponentFreeKickOngoing = true;
 		} else if (refState !== "Game") {
 			this._opponentFreeKickOngoing = false;
@@ -43,8 +44,7 @@ export class AttackRatio {
 			}
 		}
 
-		if (refState === "DirectOffensive" || refState === "IndirectOffensive"
-			||  refState === "KickoffOffensive") {
+		if (BaseRef.isFriendlyFreeKickState(refState) || refState === "KickoffOffensive") {
 			this._friendlyFreeKickOngoing = true;
 		} else if (refState !== "Game") {
 			this._friendlyFreeKickOngoing = false;
@@ -59,11 +59,11 @@ export class AttackRatio {
 
 
 		let attackRatio: number;
-		if (refState === "KickoffOffensivePrepare" || refState === "KickoffOffensive") {
+		if (BaseRef.isFriendlyKickoffState(refState)) {
 			attackRatio = 6;
-		} else if (refState === "KickoffDefensivePrepare" || refState === "KickoffDefensive") {
+		} else if (BaseRef.isOpponentFreeKickState(refState)) {
 			attackRatio = 3;
-		} else if (refState === "DirectOffensive" || refState === "IndirectOffensive") {
+		} else if (BaseRef.isFriendlyFreeKickState(refState)) {
 			let friendlyCorner = Field.isInOwnCorner(ball.pos, false);
 			let opponentCorner = Field.isInOwnCorner(ball.pos, true);
 			if (friendlyCorner) { // Goal-Kick Offensive
@@ -75,16 +75,16 @@ export class AttackRatio {
 			} else {
 				attackRatio = 4; // Throw-In Offensive
 			}
-		} else if (refState === "DirectDefensive" || refState === "IndirectDefensive" || refState === "BallPlacementDefensive") {
+		} else if (BaseRef.isOpponentFreeKickState(refState) || refState === "BallPlacementDefensive") {
 			let opponentCorner = Field.isInOwnCorner(ball.pos, true);
 			if (opponentCorner) {
 				attackRatio = 2;
 			} else {
 				attackRatio = 1;
 			}
-		} else if (refState === "PenaltyDefensivePrepare" || refState === "PenaltyDefensive") {
+		} else if (BaseRef.isOpponentPenaltyState(refState)) {
 			attackRatio = 1;
-		} else if (refState === "PenaltyOffensivePrepare" || refState === "PenaltyOffensive") {
+		} else if (BaseRef.isFriendlyPenaltyState(refState)) {
 			attackRatio = 7;
 		} else if (refState === "Stop") {
 			if (this._ballInOpponentFieldHalf) {
