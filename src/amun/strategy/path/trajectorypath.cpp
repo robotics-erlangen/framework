@@ -285,6 +285,9 @@ void TrajectoryPath::findPathAlphaT()
         } else {
             // TODO: gaussian sampling
             const float RADIUS = 0.2f;
+            while (m_bestMidSpeed.lengthSquared() > MAX_SPEED_SQUARED) {
+                m_bestMidSpeed *= 0.9f;
+            }
             do {
                 speed = m_bestMidSpeed + Vector(random(-RADIUS, RADIUS), random(-RADIUS, RADIUS));
             } while (speed.lengthSquared() > MAX_SPEED_SQUARED);
