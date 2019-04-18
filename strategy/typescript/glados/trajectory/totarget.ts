@@ -1,1 +1,1 @@
-export { CurvedMaxAccel as ToTarget } from "glados/trajectory/curvedmaxaccel";
+export { TrajectoryPath as ToTarget } from "glados/trajectory/trajectorypath";
