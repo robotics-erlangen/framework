@@ -103,6 +103,10 @@ public:
     float timeWithSlowDown(float slowDownTime) const {
         return std::max(xProfile.timeWithSlowDown(slowDownTime), yProfile.timeWithSlowDown(slowDownTime));
     }
+
+    Vector continuationSpeed() const {
+        return Vector(xProfile.profile[xProfile.counter / 2].v, yProfile.profile[yProfile.counter / 2].v);
+    }
 };
 
 class AlphaTimeTrajectory
@@ -127,16 +131,25 @@ public:
     static void testSearch();
 
 private:
+    struct TrajectoryPosInfo1D {
+        float endPos;
+        float increaseAtSpeed;
+    };
+    struct TrajectoryPosInfo2D {
+        Vector endPos;
+        Vector increaseAtSpeed;
+    };
+
     // pos only
     // WARNING: assumes that the input is valid and solvable (check beforehand with isInputValidFastEndSpeed)
-    static Vector calculatePositionFastEndSpeed(Vector v0, Vector v1, float time, float angle, float acc, float vMax);
-    static Vector calculatePositionExactEndSpeed(Vector v0, Vector v1, float time, float angle, float acc, float vMax);
+    static TrajectoryPosInfo2D calculatePositionFastEndSpeed(Vector v0, Vector v1, float time, float angle, float acc, float vMax);
+    static TrajectoryPosInfo2D calculatePositionExactEndSpeed(Vector v0, Vector v1, float time, float angle, float acc, float vMax);
 
     // helper functions
     // WARNING: assumes that the input is valid and solvable
-    static float calculate1DTrajectoryFastEndSpeed(float v0, float v1, float time, bool directionPositive, float acc, float vMax);
+    static TrajectoryPosInfo1D calculate1DTrajectoryFastEndSpeed(float v0, float v1, float time, bool directionPositive, float acc, float vMax);
     static void calculate1DTrajectoryFastEndSpeed(float v0, float v1, float time, bool directionPositive, float acc, float vMax, SpeedProfile1D &profile);
-    static float calculateEndPos1D(float v0, float v1, float hintDist, float acc, float vMax);
+    static TrajectoryPosInfo1D calculateEndPos1D(float v0, float v1, float hintDist, float acc, float vMax);
     static void calculate1DSpeedProfile(float v0, float v1, float hintDist, float acc, float vMax, SpeedProfile1D &profile);
 };
 
