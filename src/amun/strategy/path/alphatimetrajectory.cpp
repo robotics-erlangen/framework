@@ -713,7 +713,10 @@ SpeedProfile AlphaTimeTrajectory::findTrajectoryFastEndSpeed(Vector v0, Vector v
     float distanceFactor = 0.8f;
     float lastCenterDistanceDiff = 0;
 
-    for (int i = 0;i<10;i++) {
+    float angleFactor = 0.8f;
+    float lastAngleDiff = 0;
+
+    for (int i = 0;i<30;i++) {
         // TODO: calculate minimum time and just dont got below that
         if (!isInputValidFastEndSpeed(v0, v1, currentTime, acc)) {
             currentTime *= 1.5f;
@@ -752,12 +755,17 @@ SpeedProfile AlphaTimeTrajectory::findTrajectoryFastEndSpeed(Vector v0, Vector v
             distanceFactor *= 1.05f;
         }
         lastCenterDistanceDiff = currentCenterDistanceDiff;
-        currentTime += currentCenterDistanceDiff * distanceFactor / assumedSpeed;
+        currentTime += currentCenterDistanceDiff * distanceFactor / std::max(0.5f, assumedSpeed);
 
         // correct angle
         float newAngle = (endPos - currentCenterTimePos).angle();
         float targetCenterAngle = (position - currentCenterTimePos).angle();
-        currentAngle += angleDiff(targetCenterAngle, newAngle) * 0.8f;
+        float currentAngleDiff = angleDiff(targetCenterAngle, newAngle);
+        if (i >= 4 && (currentAngleDiff < 0) != (lastAngleDiff < 0)) {
+            angleFactor *= 0.5f;
+        }
+        lastAngleDiff = currentAngleDiff;
+        currentAngle += currentAngleDiff * angleFactor;
         //currentAngle += vectorAngleDiff((position - currentCenterTimePos), (endPos - currentCenterTimePos));
     }
     result.valid = false;
@@ -794,7 +802,10 @@ SpeedProfile AlphaTimeTrajectory::findTrajectoryExactEndSpeed(Vector v0, Vector 
     float distanceFactor = 0.8f;
     float lastCenterDistanceDiff = 0;
 
-    for (int i = 0;i<10;i++) {
+    float angleFactor = 0.8f;
+    float lastAngleDiff = 0;
+
+    for (int i = 0;i<30;i++) {
         // TODO: calculate minimum time and just dont got below that
         if (!isInputValidExactEndSpeed(v0, v1, currentTime, acc)) {
             currentTime *= 1.5f;
@@ -833,13 +844,18 @@ SpeedProfile AlphaTimeTrajectory::findTrajectoryExactEndSpeed(Vector v0, Vector 
             distanceFactor *= 1.05f;
         }
         lastCenterDistanceDiff = currentCenterDistanceDiff;
-        currentTime += currentCenterDistanceDiff * distanceFactor / assumedSpeed;
+        currentTime += currentCenterDistanceDiff * distanceFactor / std::max(0.5f, assumedSpeed);
 
         // correct angle
         float newAngle = (endPos - currentCenterTimePos).angle();
         float targetCenterAngle = (position - currentCenterTimePos).angle();
         //currentAngle += vectorAngleDiff((position - currentCenterTimePos), (endPos - currentCenterTimePos));
-        currentAngle += angleDiff(targetCenterAngle, newAngle) * 0.8f;
+        float currentAngleDiff = angleDiff(targetCenterAngle, newAngle);
+        if (i >= 4 && (currentAngleDiff < 0) != (lastAngleDiff < 0)) {
+            angleFactor *= 0.5f;
+        }
+        lastAngleDiff = currentAngleDiff;
+        currentAngle += currentAngleDiff * angleFactor;
     }
     result.valid = false;
     return result;
