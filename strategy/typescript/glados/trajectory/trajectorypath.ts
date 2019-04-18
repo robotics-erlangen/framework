@@ -1,10 +1,15 @@
+import * as Constants from "base/constants";
 import { Coordinates } from "base/coordinates";
 import * as debug from "base/debug";
+import * as Referee from "base/referee";
+import { FriendlyRobot } from "base/robot";
 import { TrajectoryHandler, TrajectoryResult } from "base/trajectory";
 import { Position, Speed, Vector } from "base/vector";
 import * as vis from "base/vis";
+import * as World from "base/world";
 
 import { DirectRotation } from "glados/trajectory/directrotation";
+import * as PathHelper from "glados/trajectory/pathhelper";
 
 type Trajectory = { pos: Position, speed: Speed, time: number}[];
 
@@ -24,8 +29,22 @@ export class TrajectoryPath extends TrajectoryHandler {
 	private _update(targetPos: Position, targetDir: number, maxSpeed: number = this._robot.maxSpeed,
 			endSpeed: Speed = new Vector(0, 0)): TrajectoryResult {
 
+		let directionVector = Vector.fromAngle(targetDir).scaleLength(0.09);
+		vis.addPath("MoveTo", [targetPos, targetPos + directionVector], vis.colors.yellowHalf);
+		if (endSpeed != undefined && endSpeed.length() > 0.001) {
+			vis.addPath("MoveTo", [targetPos, targetPos + endSpeed], vis.colors.whiteHalf);
+		}
+
+		PathHelper.insertObstacles(this._robot as FriendlyRobot);
+
+		// insert default values
+		if (Referee.isSlowDriveState()) {
+			maxSpeed = Math.min(maxSpeed, (World.IsLargeField ? Constants.stopSpeed : 1) - 0.25);
+		}
+
 		targetPos = Coordinates.toGlobal(targetPos);
 		endSpeed = Coordinates.toGlobal(endSpeed);
+		targetDir = Coordinates.toGlobal(targetDir);
 		let robotPos = Coordinates.toGlobal(this._robot.pos);
 		let robotSpeed = Coordinates.toGlobal(this._robot.speed);
 		let robotDir = Coordinates.toGlobal(this._robot.dir);
@@ -39,7 +58,7 @@ export class TrajectoryPath extends TrajectoryHandler {
 			let [testPos, testSpeed] = TrajectoryPath.calculateClosestPoint(robotPos, robotSpeed, this.lastTrajectory);
 			// TrajectoryPath.visualizeTrajectory(this.lastTrajectory, vis.colors.green);
 			vis.addCircle("trajectory-closest", Coordinates.toLocal(testPos), 0.03, vis.colors.red);
-			if (testPos.distanceTo(robotPos) < 0.2) {
+			if (testPos.distanceTo(robotPos) < 0.1) {
 				// startPos = testPos;
 				// startSpeed = robotSpeed;
 			}
@@ -79,21 +98,22 @@ export class TrajectoryPath extends TrajectoryHandler {
 
 		// finish and return trajectory
 		let speed = TrajectoryPath.speedAtTime(0.12, trajectory);
-		// amun.log("Ist: " + speed.length());
 		let acc = TrajectoryPath.accAtTime(0.12, trajectory);
+
 		let spline = [ {t_start: 0, t_end: Infinity,
 			x: { a0: robotPos.x, a1: speed.x, a2: acc.x / 2, a3: 0 },
 			y: { a0: robotPos.y, a1: speed.y, a2: acc.y / 2, a3: 0 },
 			phi: { a0: robotDir, a1: angularSpeed, a2: angularAccel / 2, a3: 0 }
 		} ];
-		let time = 0;
-		for (let point of trajectory) {
-			// spline.push({});
-		}
 
-		// let endTime = speedProfile[speedProfile.length - 1][1];
-		return [{spline: spline}, Coordinates.toLocal(targetPos), 0];
-		// return [{spline: []}, Coordinates.toLocal(targetPos), 0];
+		return [{spline: spline}, Coordinates.toLocal(targetPos), TrajectoryPath.trajectoryTime(trajectory)];
+	}
+
+	private static trajectoryTime(trajectory: Trajectory) {
+		if (trajectory.length === 0) {
+			return 0;
+		}
+		return trajectory[trajectory.length - 1].time;
 	}
 
 	private static plotSpeed(trajectory: Trajectory) {
