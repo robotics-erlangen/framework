@@ -21,11 +21,10 @@
 include(ExternalProject)
 
 ExternalProject_Add(project_eigen
-    URL http://www.robotics-erlangen.de/downloads/libraries/eigen-3.3.3-67e894c6cd8f.tar.bz2
-    URL_HASH SHA256=a4143fc45e4454b4b98fcea3516b3a79b8cdb3bc7fadf996d088c6a0d805fea1
+    URL http://www.robotics-erlangen.de/downloads/libraries/eigen-3.3.7-323c052e1731.tar.bz2
+    URL_HASH SHA256=9f13cf90dedbe3e52a19f43000d71fdf72e986beb9a5436dddcd61ff9d77a3ce
     DOWNLOAD_NO_PROGRESS true
     BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/project_eigen-prefix/build"
-    PATCH_COMMAND cat ${CMAKE_SOURCE_DIR}/cmake/eigen.patch | patch -p1
     CMAKE_ARGS
         -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
         -DCMAKE_C_COMPILER:PATH=${CMAKE_C_COMPILER}
