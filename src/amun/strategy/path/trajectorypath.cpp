@@ -166,11 +166,13 @@ void TrajectoryPath::findPathAlphaT()
         return;
     }
 
+    float prevBestTime = m_bestTime;
     m_bestTime = std::numeric_limits<float>::infinity();
 
     // check trajectory from last iteration
-    if (m_lastResultValid && !checkMidPoint(m_bestMidSpeed, m_bestCenterTime, m_bestAngle)) {
+    if (m_lastResultValid && !checkMidPoint(m_bestMidSpeed, m_bestCenterTime, m_bestAngle, true)) {
         m_lastResultValid = false;
+        m_bestTime = prevBestTime + 0.2f;
     }
 
     // check if start point is in obstacle
@@ -184,7 +186,10 @@ void TrajectoryPath::findPathAlphaT()
     }
 
     // normal search
-    for (int i = 0;i<500;i++) {
+    for (int i = 0;i<100;i++) {
+        if (i == 30 && !m_lastResultValid) {
+            m_bestTime = std::numeric_limits<float>::infinity();
+        }
         Vector speed;
         float angle, time;
         if (i > 25 && rand() % 1024 < 300) {

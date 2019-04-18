@@ -42,7 +42,7 @@ private:
 
     // current best trajectory data
     bool m_lastResultValid = false;
-    float m_bestTime;
+    float m_bestTime = 0;
     float m_bestCenterTime;
     float m_bestAngle;
     Vector m_bestMidSpeed;
