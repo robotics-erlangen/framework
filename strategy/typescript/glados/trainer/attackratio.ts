@@ -183,7 +183,8 @@ export class AttackRatio {
 
 		let moveInfo = this._messaging.receiveTrainer(MessageType.moveInfo);
 		if (moveInfo) {
-			attackers = moveInfo.numAttackers;
+			const num = moveInfo.numAttackers;
+			attackers = moveInfo.allowExtraAttackers ? Math.max(attackers, num) : num;
 		}
 
 		let defenders = World.FriendlyRobots.length - attackers;

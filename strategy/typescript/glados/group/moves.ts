@@ -13,10 +13,6 @@ import { None } from "glados/group/move/none";
 import { WindshieldWiper } from "glados/group/move/windshieldwiper";
 // import {OverChip} from "glados/group/move/overchip";
 
-function sortById(a: {id: number}, b: {id: number}): number {
-	return a.id - b.id;
-}
-
 export class Moves {
 	readonly name: string = "moves";
 	moveList: typeof Move[];
@@ -93,12 +89,12 @@ export class Moves {
 				availableRobots.push(r);
 			}
 
-			if (availableRobots.length >= this._chosenMove.MIN_ROBOTS  &&
-					availableRobots.length <= this._chosenMove.MAX_ROBOTS  &&
-					this._numAttackersSent) {
-				availableRobots.sort(sortById);
-				this._currentMove = new (this._chosenMove as any)(availableRobots, messaging);
-				this._participatingRobots = availableRobots;
+			if (availableRobots.length >= this._chosenMove.MIN_ROBOTS
+					&& this._numAttackersSent) {
+				availableRobots.sort((a, b) => b.pos.y - a.pos.y);
+				const numAssigned = Math.min(availableRobots.length, this._chosenMove.MAX_ROBOTS);
+				this._participatingRobots = availableRobots.slice(0, numAssigned);
+				this._currentMove = new (this._chosenMove as any)(this._participatingRobots, messaging);
 			}
 		}
 
