@@ -71,7 +71,7 @@ private:
     float MAX_SPEED_SQUARED = 9.0f;
     // constants
     const float ACCELERATION = 3.0f;
-    const float TOTAL_SLOW_DOWN_TIME = 0.4f; // must be the same as in alphatimetrajectory
+    const float TOTAL_SLOW_DOWN_TIME = 0.3f; // must be the same as in alphatimetrajectory
 };
 
 #endif // TRAJECTORYPATH_H

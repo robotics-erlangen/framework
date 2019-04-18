@@ -7,8 +7,8 @@ static float sign(float x)
 }
 
 // exponential slowdown calculation
-const float SLOW_DOWN_TIME = 0.4f; // must be the same as in alphapathsearch
-const float MIN_ACC_FACTOR = 0.2f;
+const float SLOW_DOWN_TIME = 0.3f; // must be the same as in alphapathsearch
+const float MIN_ACC_FACTOR = 0.3f;
 float SpeedProfile1D::calculateSlowDownPos(float slowDownTime) const
 {
     float pos = 0;
