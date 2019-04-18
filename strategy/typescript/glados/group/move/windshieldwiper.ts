@@ -39,6 +39,7 @@ function sort(distances: {distance: number, robot: FriendlyRobot}[]) {
 export class WindshieldWiper extends Move {
 	public static MIN_ROBOTS: number = 1;
 	public static MAX_ROBOTS: number = 5;
+	public static ALLOW_EXTRA_ATTACKERS = false;
 
 
 	public static canStart(): boolean {

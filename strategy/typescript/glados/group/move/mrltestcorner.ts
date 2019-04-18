@@ -42,6 +42,7 @@ function taskAssignment(passInfoTable: any, pos1: Position, pos2: Position, robo
 export class MrlTestCorner extends Move {
 	public static MIN_ROBOTS: number = 5;
 	public static MAX_ROBOTS: number = 5;
+	public static ALLOW_EXTRA_ATTACKERS = false;
 
 	public static canStart(): boolean {
 		return  World.Ball.pos.y > 4 * G.FieldHeightHalf / 5 && MrlTestCorner.Referee.opponentTouchedLast()

@@ -10,6 +10,7 @@ let G = World.Geometry;
 export class None extends Move {
 	static MIN_ROBOTS: number = 5;
 	static MAX_ROBOTS: number = 5;
+	static ALLOW_EXTRA_ATTACKERS = false;
 
 	_updateTasks(): MoveParameters {
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();

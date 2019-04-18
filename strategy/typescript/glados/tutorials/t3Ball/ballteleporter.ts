@@ -14,6 +14,7 @@ export class BallTeleporter extends Move {
 
 	public static MIN_ROBOTS: number = 1;
 	public static MAX_ROBOTS: number = 1;
+	public static ALLOW_EXTRA_ATTACKERS: boolean = false;
 
 	private _initBall: any;
 	private _shot: boolean = false;

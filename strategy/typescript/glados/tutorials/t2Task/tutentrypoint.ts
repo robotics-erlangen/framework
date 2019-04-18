@@ -11,6 +11,7 @@ import { TutorialTask } from "glados/tutorials/t2Task/tutorial2";
 export class Tutorial2 extends Move {
 	public static MIN_ROBOTS: number = 3;
 	public static MAX_ROBOTS: number = 3;
+	public static ALLOW_EXTRA_ATTACKERS: boolean = false;
 
 	private _init: boolean;
 	constructor(robots: FriendlyRobot[], messaging: MessageBox) {

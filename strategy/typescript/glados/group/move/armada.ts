@@ -42,6 +42,7 @@ function randomExtension(min: number): number {
 export class Armada extends Move {
 	public static MIN_ROBOTS: number = 5;
 	public static MAX_ROBOTS: number = 5;
+	public static ALLOW_EXTRA_ATTACKERS = false;
 
 	_circleCenter: Position;
 	_positions: Position[];

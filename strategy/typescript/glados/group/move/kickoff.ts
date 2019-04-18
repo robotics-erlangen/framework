@@ -17,6 +17,7 @@ let G = World.Geometry;
 export class KickOff extends Move {
 	public static MIN_ROBOTS: number = 2;
 	public static MAX_ROBOTS: number = 3;
+	public static ALLOW_EXTRA_ATTACKERS = false;
 
 	static canStart() {
 		return World.RefereeState === "KickoffOffensivePrepare";

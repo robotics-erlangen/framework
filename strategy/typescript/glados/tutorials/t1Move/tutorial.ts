@@ -31,6 +31,7 @@ import { MoveToPos } from "glados/task/shared/movetopos";
 export class Tutorial extends Move {
 	public static MIN_ROBOTS: number = 3;
 	public static MAX_ROBOTS: number = 3;
+	public static ALLOW_EXTRA_ATTACKERS: boolean = false;
 
 	constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 		super(robots, messaging);

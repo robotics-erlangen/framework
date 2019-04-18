@@ -55,6 +55,7 @@ function estimateBallStopPosition(ball: Physics.BallLike): Position {
 export class BallPlacement extends Move {
 	public static MIN_ROBOTS: number = 2;
 	public static MAX_ROBOTS: number = 2;
+	public static ALLOW_EXTRA_ATTACKERS = true;
 
 	public static canStart(): boolean {
 		return World.RefereeState === "BallPlacementOffensive";

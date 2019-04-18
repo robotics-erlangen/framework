@@ -60,7 +60,7 @@ local msgDefs = {
 	moveAssignment = { behavior: "class", class = "class", params: "table", restart: "boolean", mainAttacker = "boolean" },
 
 	-- sent by gr/moves to tr/attackratio to overwrite the number of attackers
-	moveInfo = { numAttackers: "number" }
+	moveInfo = { numAttackers: "number", allowExtraAttackers: "boolean" }
 
 	-- sent by the MA to notify all agents about an upcoming pass
 	-- when the ball is actually shot, there should only be one entry in the table
@@ -188,7 +188,7 @@ export class MessageBox {
 	}
 
 	sendToTrainer(type: MessageType.poolChangeRequest, changeTo: "attacker" | "defender"): void;
-	sendToTrainer(type: MessageType.moveInfo, info: { numAttackers: number }): void;
+	sendToTrainer(type: MessageType.moveInfo, info: { numAttackers: number, allowExtraAttackers: boolean }): void;
 	sendToTrainer(type: MessageType, data?: any): void {
 		this.sendGeneric(type, "trainer", data, false);
 	}
@@ -292,7 +292,7 @@ export class MessageBox {
 
 	receiveTrainer(type: MessageType.centerBackPosTarget, broadcast?: boolean): CenterBackPoint | undefined;
 	receiveTrainer(type: MessageType.moveAssignment, broadcast?: boolean): {behavior: any, class: any, params: any, restart: boolean, mainAttacker: boolean} | undefined;
-	receiveTrainer(type: MessageType.moveInfo, broadcast?: boolean): { numAttackers: number } | undefined
+	receiveTrainer(type: MessageType.moveInfo, broadcast?: boolean): { numAttackers: number, allowExtraAttackers: boolean } | undefined;
 	receiveTrainer(type: MessageType.roleAssignment, broadcast?: boolean):
 		{ name: "CenterBack", params: {pos: Position, dir: RelativePosition, time: number} }
 		| { name: "ManMark", params: Robot[] } | { name: "ZoneDefense", params: [Position] }
