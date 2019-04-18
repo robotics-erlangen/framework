@@ -26,7 +26,9 @@ private:
     bool isInObstacle(Vector point) const;
     bool isTrajectoryInObstacle(const SpeedProfile &profile, float slowDownTime, Vector startPos);
     void findPathAlphaT();
-    bool checkMidPoint(Vector midSpeed, const float time, const float angle);
+    void findPathEndInObstacle();
+    bool testEndPoint(Vector endPoint);
+    bool checkMidPoint(Vector midSpeed, const float time, const float angle, bool debug = false);
     Vector randomSpeed();
     Vector randomPointInField();
     std::vector<Point> getResultPath() const;
@@ -43,9 +45,9 @@ private:
     // current best trajectory data
     bool m_lastResultValid = false;
     float m_bestTime = 0;
-    float m_bestCenterTime;
-    float m_bestAngle;
-    Vector m_bestMidSpeed;
+    float m_bestCenterTime = 0;
+    float m_bestAngle = 0;
+    Vector m_bestMidSpeed = Vector(0, 0);
     struct TrajectoryGenerationInfo {
         float time;
         float angle;
@@ -55,6 +57,9 @@ private:
         bool fastEndSpeed;
     };
     std::vector<TrajectoryGenerationInfo> m_generationInfo;
+    // for end point in obstacle
+    Vector m_bestEndPoint = Vector(0, 0);
+    float m_bestEndPointDistance;
 
     // buffer data
     const int POINT_BUFFER_SIZE = 50;

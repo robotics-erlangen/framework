@@ -50,10 +50,11 @@ bool TrajectoryPath::isTrajectoryInObstacle(const SpeedProfile &profile, float s
     return false;
 }
 
-bool TrajectoryPath::checkMidPoint(Vector midSpeed, const float time, const float angle)
+bool TrajectoryPath::checkMidPoint(Vector midSpeed, const float time, const float angle, bool debug)
 {
     // construct second part from mid point data
     if (!AlphaTimeTrajectory::isInputValidFastEndSpeed(midSpeed, v1, time, ACCELERATION)) {
+        if (debug) qDebug() <<"Out 0";
         return false;
     }
     SpeedProfile secondPart = AlphaTimeTrajectory::calculateTrajectoryFastEndSpeed(midSpeed, v1, time, angle, ACCELERATION, MAX_SPEED);
@@ -71,10 +72,12 @@ bool TrajectoryPath::checkMidPoint(Vector midSpeed, const float time, const floa
     }
     //drawFunction(distance - secondPartOffset);
     if (secondPartTime > m_bestTime) {
+        if (debug) qDebug() <<"Out 1";
         return false;
     }
     // TODO: calculate the offset while calculating the trajectory
     if (isTrajectoryInObstacle(secondPart, slowDownTime, s1 - secondPartOffset)) {
+        if (debug) qDebug() <<"Out 2";
         return false;
     }
 
@@ -83,6 +86,7 @@ bool TrajectoryPath::checkMidPoint(Vector midSpeed, const float time, const floa
     float firstPartSlowDownTime = exponentialSlowDown ? std::max(0.0f, TOTAL_SLOW_DOWN_TIME - secondPartTime) : 0.0f;
     SpeedProfile firstPart = AlphaTimeTrajectory::findTrajectoryExactEndSpeed(v0, midSpeed, firstPartPosition, ACCELERATION, MAX_SPEED, firstPartSlowDownTime);
     if (!firstPart.isValid()) {
+        if (debug) qDebug() <<"Out 3"<<v0.x<<v0.y<<midSpeed.x<<midSpeed.y<<firstPartPosition.x<<firstPartPosition.y<<ACCELERATION<<MAX_SPEED<<firstPartSlowDownTime;
         return false;
     }
     float firstPartTime;
@@ -91,10 +95,13 @@ bool TrajectoryPath::checkMidPoint(Vector midSpeed, const float time, const floa
     } else {
         firstPartTime = firstPart.time();
     }
-    if (firstPartTime + secondPartTime > m_bestTime - 0.1f) {
+    //qDebug() <<"test: "<<firstPartTime + secondPartTime;
+    if (firstPartTime + secondPartTime > m_bestTime) {
+        if (debug) qDebug() <<"Out 4";
         return false;
     }
     if (isTrajectoryInObstacle(firstPart, firstPartSlowDownTime, s0)) {
+        if (debug) qDebug() <<"Out 5";
         return false;
     }
 
@@ -147,6 +154,72 @@ Vector TrajectoryPath::randomSpeed()
     return testSpeed;
 }
 
+bool TrajectoryPath::testEndPoint(Vector endPoint)
+{
+    if (endPoint.distance(distance) > m_bestEndPointDistance) {
+        return false;
+    }
+
+    // no slowdown here, we are not even were we want to be
+    SpeedProfile direct = AlphaTimeTrajectory::findTrajectoryExactEndSpeed(v0, Vector(0, 0), endPoint, ACCELERATION, MAX_SPEED, 0);
+    if (!direct.isValid()) {
+        return false;
+    }
+    if (isTrajectoryInObstacle(direct, 0, s0)) {
+        return false;
+    }
+
+    m_bestEndPointDistance = endPoint.distance(distance);
+    m_lastResultValid = true;
+    m_bestEndPoint = endPoint;
+
+    m_generationInfo.clear();
+    TrajectoryGenerationInfo info;
+    info.time = direct.inputTime;
+    info.angle = direct.inputAngle;
+    info.slowDownTime = 0;
+    info.fastEndSpeed = false;
+    info.v0 = v0;
+    info.v1 = Vector(0, 0);
+    m_generationInfo.push_back(info);
+
+    return true;
+}
+
+void TrajectoryPath::findPathEndInObstacle()
+{
+    // TODO: possibly dont use search trajectory generation but time and angle directly?
+    // check last best end point
+    float prevBestDistance = m_bestEndPointDistance;
+    m_bestEndPointDistance = std::numeric_limits<float>::infinity();
+    m_lastResultValid = false;
+    if (!testEndPoint(m_bestEndPoint)) {
+        m_bestEndPointDistance = prevBestDistance * 1.3f;
+    }
+
+    const int ITERATIONS = 200;
+    for (int i = 0;i<ITERATIONS;i++) {
+        if (i == ITERATIONS / 3 && !m_lastResultValid) {
+            m_bestEndPointDistance = std::numeric_limits<float>::infinity();
+        }
+        int randVal = rand() % 1024;
+        Vector testPoint;
+        if (randVal < 300) {
+            // sample random point around actual end point
+            float testRadius = 0.3f;
+            testPoint = distance + Vector(random(-testRadius, testRadius), random(-testRadius, testRadius));
+        } else if (randVal < 800) {
+            // sample random point around last best end point
+            float testRadius = 0.3f;
+            testPoint = m_bestEndPoint + Vector(random(-testRadius, testRadius), random(-testRadius, testRadius));
+        } else {
+            // sample random point in field
+            testPoint = randomPointInField();
+        }
+        testEndPoint(testPoint);
+    }
+}
+
 void TrajectoryPath::findPathAlphaT()
 {
     collectObstacles();
@@ -170,19 +243,22 @@ void TrajectoryPath::findPathAlphaT()
     m_bestTime = std::numeric_limits<float>::infinity();
 
     // check trajectory from last iteration
-    if (m_lastResultValid && !checkMidPoint(m_bestMidSpeed, m_bestCenterTime, m_bestAngle, true)) {
+    if (m_lastResultValid && !checkMidPoint(m_bestMidSpeed, m_bestCenterTime, m_bestAngle, false)) {
         m_lastResultValid = false;
+        // TODO: mal statt +??
         m_bestTime = prevBestTime + 0.2f;
+        //qDebug() <<"Last invalid";
     }
 
     // check if start point is in obstacle
     if (isInObstacle(s0)) {
-        // TODO
+        return;
     }
 
     // check if end point is in obstacle
     if (isInObstacle(s1)) {
-        // TODO
+        findPathEndInObstacle();
+        return;
     }
 
     // normal search
