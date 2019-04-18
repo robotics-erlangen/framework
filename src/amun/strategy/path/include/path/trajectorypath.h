@@ -26,6 +26,7 @@ private:
     bool isInObstacle(Vector point) const;
     bool isTrajectoryInObstacle(const SpeedProfile &profile, float slowDownTime, Vector startPos);
     void findPathAlphaT();
+    void removeStartingObstacles();
     void findPathEndInObstacle();
     bool testEndPoint(Vector endPoint);
     bool checkMidPoint(Vector midSpeed, const float time, const float angle, bool debug = false);

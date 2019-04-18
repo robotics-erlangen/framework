@@ -220,6 +220,13 @@ void TrajectoryPath::findPathEndInObstacle()
     }
 }
 
+void TrajectoryPath::removeStartingObstacles()
+{
+    std::remove_if(m_obstacles.begin(), m_obstacles.end(), [&](const Obstacle *o) {
+        return o->distance(s0) < m_radius;
+    });
+}
+
 void TrajectoryPath::findPathAlphaT()
 {
     collectObstacles();
@@ -252,7 +259,7 @@ void TrajectoryPath::findPathAlphaT()
 
     // check if start point is in obstacle
     if (isInObstacle(s0)) {
-        return;
+        removeStartingObstacles();
     }
 
     // check if end point is in obstacle
