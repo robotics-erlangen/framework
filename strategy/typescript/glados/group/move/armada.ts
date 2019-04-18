@@ -7,7 +7,7 @@ import * as World from "base/world";
 
 import { FreeKick } from "glados/agent/attacker/freekick";
 import { MessageBox, MessageType } from "glados/control/messaging";
-import { Assignment, Move } from "glados/group/move/base";
+import { Assignment, Move, MoveParameters } from "glados/group/move/base";
 import { AcceptPass } from "glados/task/attacker/acceptpass";
 import { Circuit } from "glados/task/attacker/circuit";
 import { StopAttack } from "glados/task/attacker/stopattack";
@@ -72,7 +72,7 @@ export class Armada extends Move {
 			&&  World.RefereeState === "Stop";
 	}
 
-	_updateTasks(): [Map<FriendlyRobot, Assignment>, FriendlyRobot] {
+	_updateTasks(): MoveParameters {
 		// draw circles where robots cannot shoot a volley
 		let [center1, center2, radius] = MovesHelper.volleyCircle(World.Ball.pos, G.OpponentGoal, this._maxShootingAngle);
 		let circle = center1.y < center2.y ? center1 : center2;
@@ -134,6 +134,9 @@ export class Armada extends Move {
 			}
 			this._startedSendPassPos = true;
 		}
-		return [taskAssignments, this._robots[0]];
+		return {
+			assignments: taskAssignments,
+			mainAttacker: this._robots[0]
+		};
 	}
 }

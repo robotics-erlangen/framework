@@ -17,6 +17,11 @@ export type Assignment = {
 	restart?: boolean
 };
 
+export interface MoveParameters {
+	assignments: Map<FriendlyRobot, Assignment>;
+	mainAttacker?: FriendlyRobot;
+}
+
 export abstract class Move {
 	private _firstFrame: boolean = true;
 	protected _robots: FriendlyRobot[];
@@ -30,13 +35,13 @@ export abstract class Move {
 		this._messaging = messaging;
 	}
 
-	public updateTasks(): [Map<FriendlyRobot, Assignment>, FriendlyRobot | undefined] {
-		let [assignments, mainAttacker] = this._updateTasks();
-		for (let assignment of assignments.values()) {
+	public updateTasks(): MoveParameters {
+		let params = this._updateTasks();
+		for (let assignment of params.assignments.values()) {
 			assignment.restart = assignment.restart || this._firstFrame; // TODO: test
 		}
 		this._firstFrame = false;
-		return [assignments, mainAttacker];
+		return params;
 	}
 
 	static injectReferee(pseudoRef: typeof Referee) {
@@ -50,5 +55,5 @@ export abstract class Move {
 
 	public abstract static canStart(): boolean;
 	public abstract _canContinue(): boolean;
-	protected abstract _updateTasks(): [Map<FriendlyRobot, Assignment>, FriendlyRobot | undefined];
+	protected abstract _updateTasks(): MoveParameters;
 }

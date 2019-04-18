@@ -3,7 +3,7 @@ import { Position, Vector } from "base/vector";
 import * as World from "base/world";
 
 import { MessageBox, MessageType } from "glados/control/messaging";
-import { Assignment, Move } from "glados/group/move/base";
+import { Assignment, Move, MoveParameters } from "glados/group/move/base";
 import { StopAttack } from "glados/task/attacker/stopattack";
 import { ManMark } from "glados/task/defender/manmark";
 import { MoveToPos } from "glados/task/shared/movetopos";
@@ -80,7 +80,7 @@ export class KickOffDefensive extends Move {
 				||  World.RefereeState === "KickoffDefensive";
 	}
 
-	_updateTasks(): [Map<FriendlyRobot, Assignment>, FriendlyRobot] {
+	_updateTasks(): MoveParameters {
 		let restartLeft: boolean | undefined, restartRight: boolean | undefined;
 		[this._targetLeft, restartLeft] = getTarget(this._targetLeft, this._fallbackPos[0]);
 		[this._targetRight, restartRight] = getTarget(this._targetRight, this._fallbackPos[1]);
@@ -103,6 +103,9 @@ export class KickOffDefensive extends Move {
 			}
 		}
 
-		return [taskAssignments, this._robots[this._assignments[0]]];
+		return {
+			assignments: taskAssignments,
+			mainAttacker: this._robots[this._assignments[0]]
+		};
 	}
 }

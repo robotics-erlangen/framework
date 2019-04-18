@@ -25,7 +25,7 @@ import { FriendlyRobot } from "base/robot";
 import { Vector } from "base/vector";
 
 import { MessageBox, MessageType } from "glados/control/messaging";
-import { Assignment, Move } from "glados/group/move/base";
+import { Assignment, Move, MoveParameters } from "glados/group/move/base";
 import { MoveToPos } from "glados/task/shared/movetopos";
 
 export class Tutorial extends Move {
@@ -44,11 +44,14 @@ export class Tutorial extends Move {
 		return true;
 	}
 
-	public _updateTasks(): [Map<FriendlyRobot, Assignment>, undefined] {
+	public _updateTasks(): MoveParameters {
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
 
 		taskAssignments[this._robots[0]] = {class: MoveToPos, params: [new Vector(0,0)]};
 
-		return [taskAssignments, undefined];
+		return {
+			assignments: taskAssignments,
+			mainAttacker: undefined
+		};
 	}
 }

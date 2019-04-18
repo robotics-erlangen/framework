@@ -110,11 +110,11 @@ export class Moves {
 		// run
 		if (this._currentMove) {
 			debug.push("Move");
-			let [taskAssignments, mainAttacker] = this._currentMove.updateTasks();
+			let moveParams = this._currentMove.updateTasks();
 			for (let robot of prevParticipatingRobots) {
-				let assignment: any = taskAssignments.get(robot);
+				let assignment: any = moveParams.assignments.get(robot);
 				if (assignment != undefined) {
-					assignment.mainAttacker = robot === mainAttacker;
+					assignment.mainAttacker = robot === moveParams.mainAttacker;
 					if ((assignment.class != undefined && assignment.class !== "none") || assignment.behavior != undefined) {
 						messaging.send(MessageType.moveAssignment, robot, assignment);
 					}

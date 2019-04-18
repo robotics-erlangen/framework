@@ -8,7 +8,7 @@ import * as vis from "base/vis";
 import * as World from "base/world";
 
 import { MessageBox, MessageType } from "glados/control/messaging";
-import { Assignment, Move } from "glados/group/move/base";
+import { Assignment, Move, MoveParameters } from "glados/group/move/base";
 import * as BallObserver from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 import { PlaceBall } from "glados/task/attacker/placeball";
@@ -97,7 +97,7 @@ export class BallPlacement extends Move {
 
 	}
 
-	_updateTasks(): [Map<FriendlyRobot, Assignment>, FriendlyRobot] {
+	_updateTasks(): MoveParameters {
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
 
 		if (World.BallPlacementPos) {
@@ -288,7 +288,10 @@ export class BallPlacement extends Move {
 		if (taskAssignments[this.RECEIVER] == undefined) {
 			throw new Error("RECEIVER has not task assigned in state="  +  this._state);
 		}
-		return [taskAssignments, this._mainAttacker];
+		return {
+			assignments: taskAssignments,
+			mainAttacker: this._mainAttacker
+		};
 	}
 
 	_getNextState(currentState: string): State {

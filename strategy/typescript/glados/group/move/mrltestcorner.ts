@@ -6,7 +6,7 @@ import * as World from "base/world";
 
 import { FreeKick } from "glados/agent/attacker/freekick";
 import { MessageBox, MessageType } from "glados/control/messaging";
-import { Assignment, Move } from "glados/group/move/base";
+import { Assignment, Move, MoveParameters } from "glados/group/move/base";
 import { AcceptPass } from "glados/task/attacker/acceptpass";
 import { StopAttack } from "glados/task/attacker/stopattack";
 import { Striker } from "glados/task/attacker/striker";
@@ -82,7 +82,7 @@ export class MrlTestCorner extends Move {
 	}
 
 
-	_updateTasks(): [Map<FriendlyRobot, Assignment>, FriendlyRobot] {
+	_updateTasks(): MoveParameters {
 
 		// draw circles where robots cannot shoot a volley
 		let [center1, center2, radius] = MovesHelper.volleyCircle(World.Ball.pos, G.OpponentGoal, 55 / 180 * Math.PI);
@@ -112,6 +112,9 @@ export class MrlTestCorner extends Move {
 			taskAssignments[this._robots[i + 2]] = taskAssignment(passInfoTable, this._distractorPositions[i], this._distractorAttackPos[i], this._robots[i + 2], enemyRobots.length);
 		}
 
-		return [taskAssignments, this._robots[0]];
+		return {
+			assignments: taskAssignments,
+			mainAttacker: this._robots[0]
+		};
 	}
 }

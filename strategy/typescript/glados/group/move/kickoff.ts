@@ -4,7 +4,7 @@ import * as World from "base/world";
 
 import { FreeKick } from "glados/agent/attacker/freekick";
 import { MessageBox, MessageType } from "glados/control/messaging";
-import { Assignment, Move } from "glados/group/move/base";
+import { Assignment, Move, MoveParameters } from "glados/group/move/base";
 import { AcceptPass } from "glados/task/attacker/acceptpass";
 import { StopAttack } from "glados/task/attacker/stopattack";
 import { Striker } from "glados/task/attacker/striker";
@@ -46,7 +46,7 @@ export class KickOff extends Move {
 				||  World.RefereeState === "KickoffOffensive";
 	}
 
-	_updateTasks(): [Map<FriendlyRobot, Assignment>, FriendlyRobot] {
+	_updateTasks(): MoveParameters {
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
 
 		if (World.RefereeState === "KickoffOffensivePrepare") {
@@ -67,6 +67,9 @@ export class KickOff extends Move {
 			}
 		}
 
-		return [taskAssignments, this._robots[this._assignments[0]]];
+		return {
+			assignments: taskAssignments,
+			mainAttacker: this._robots[this._assignments[0]]
+		};
 	}
 }

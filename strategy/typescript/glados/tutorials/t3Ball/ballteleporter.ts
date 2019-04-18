@@ -5,7 +5,7 @@ import { Vector } from "base/vector";
 import * as World from "base/world";
 
 import { MessageBox } from "glados/control/messaging";
-import { Assignment, Move } from "glados/group/move/base";
+import { Assignment, Move, MoveParameters } from "glados/group/move/base";
 import { MoveToPos } from "glados/task/shared/movetopos";
 import { TutorialTask } from "glados/tutorials/t3Ball/tutorial3";
 
@@ -36,7 +36,7 @@ export class BallTeleporter extends Move {
 		return true;
 	}
 
-	public _updateTasks(): [Map<FriendlyRobot, Assignment>, undefined] {
+	public _updateTasks(): MoveParameters {
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
 		let robotPos = new Vector(0, -World.Geometry.FieldHeightHalf + World.Geometry.DefenseHeight + 0.3);
 		let ballPos = new Vector(0, World.Geometry.FieldHeightHalf - World.Geometry.DefenseHeight);
@@ -75,8 +75,10 @@ export class BallTeleporter extends Move {
 
 		}
 
-		return [taskAssignments, undefined];
-
+		return {
+			assignments: taskAssignments,
+			mainAttacker: undefined
+		};
 	}
 
 }

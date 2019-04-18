@@ -6,7 +6,7 @@ import * as World from "base/world";
 
 import { FreeKick } from "glados/agent/attacker/freekick";
 import { MessageBox, MessageType } from "glados/control/messaging";
-import { Assignment, Move } from "glados/group/move/base";
+import { Assignment, Move, MoveParameters } from "glados/group/move/base";
 import { AcceptPass } from "glados/task/attacker/acceptpass";
 import { StopAttack } from "glados/task/attacker/stopattack";
 import { Striker } from "glados/task/attacker/striker";
@@ -76,7 +76,7 @@ export class WindshieldWiper extends Move {
 	}
 
 
-	_updateTasks(): [Map<FriendlyRobot, Assignment>, FriendlyRobot] {
+	_updateTasks(): MoveParameters {
 		let distances = this._distances;
 		// sort(distances,World.Ball)
 		let mainrobot = distances[0].robot;
@@ -112,6 +112,9 @@ export class WindshieldWiper extends Move {
 			}
 		}
 
-		return [taskAssignments, mainrobot];
+		return {
+			assignments: taskAssignments,
+			mainAttacker: mainrobot
+		};
 	}
 }
