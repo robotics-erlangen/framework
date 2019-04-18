@@ -132,7 +132,7 @@ export class Moves {
 				throw new Error();
 			}
 			this._numAttackersSent = true;
-			messaging.sendToTrainer(MessageType.moveNumAttackers, n_attackers);
+			messaging.sendToTrainer(MessageType.moveInfo, { numAttackers: n_attackers });
 		}
 
 		debug.push("Move");

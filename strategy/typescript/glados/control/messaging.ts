@@ -60,7 +60,7 @@ local msgDefs = {
 	moveAssignment = { behavior: "class", class = "class", params: "table", restart: "boolean", mainAttacker = "boolean" },
 
 	-- sent by gr/moves to tr/attackratio to overwrite the number of attackers
-	moveNumAttackers = "number",
+	moveInfo = { numAttackers: "number" }
 
 	-- sent by the MA to notify all agents about an upcoming pass
 	-- when the ball is actually shot, there should only be one entry in the table
@@ -129,7 +129,7 @@ export enum MessageType {
 
 	// single sender
 	attackPosition, attackTime, centerBackPosTarget, moveAssignment,
-	moveNumAttackers, passInfo, roleAssignment, shootDestination,
+	moveInfo, passInfo, roleAssignment, shootDestination,
 	strikerZone, midfieldZone,
 
 	// exclusive roles
@@ -146,7 +146,7 @@ export const MessageTypeList = [
 	MessageType.moveDest, MessageType.passSuggestion, MessageType.poolChangeRequest, MessageType.strikerFlag,
 	MessageType.strikerSamplingTimestamp,
 	MessageType.attackPosition, MessageType.attackTime, MessageType.centerBackPosTarget, MessageType.moveAssignment,
-	MessageType.moveNumAttackers, MessageType.passInfo, MessageType.roleAssignment, MessageType.shootDestination,
+	MessageType.moveInfo, MessageType.passInfo, MessageType.roleAssignment, MessageType.shootDestination,
 	MessageType.strikerZone, MessageType.midfieldZone,
 	MessageType.mainAttacker, MessageType.duelAssistant, MessageType.interceptPass,
 	MessageType.exclusiveRole, MessageType.forcePoolChange, MessageType.groupApplication
@@ -188,7 +188,7 @@ export class MessageBox {
 	}
 
 	sendToTrainer(type: MessageType.poolChangeRequest, changeTo: "attacker" | "defender"): void;
-	sendToTrainer(type: MessageType.moveNumAttackers, count: number): void;
+	sendToTrainer(type: MessageType.moveInfo, info: { numAttackers: number }): void;
 	sendToTrainer(type: MessageType, data?: any): void {
 		this.sendGeneric(type, "trainer", data, false);
 	}
@@ -292,7 +292,7 @@ export class MessageBox {
 
 	receiveTrainer(type: MessageType.centerBackPosTarget, broadcast?: boolean): CenterBackPoint | undefined;
 	receiveTrainer(type: MessageType.moveAssignment, broadcast?: boolean): {behavior: any, class: any, params: any, restart: boolean, mainAttacker: boolean} | undefined;
-	receiveTrainer(type: MessageType.moveNumAttackers, broadcast?: boolean): number | undefined;
+	receiveTrainer(type: MessageType.moveInfo, broadcast?: boolean): { numAttackers: number } | undefined
 	receiveTrainer(type: MessageType.roleAssignment, broadcast?: boolean):
 		{ name: "CenterBack", params: {pos: Position, dir: RelativePosition, time: number} }
 		| { name: "ManMark", params: Robot[] } | { name: "ZoneDefense", params: [Position] }

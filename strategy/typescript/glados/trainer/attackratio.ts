@@ -181,9 +181,9 @@ export class AttackRatio {
 		debug.set("MainAttackerIsDefender", mainAttackerIsDefender);
 		debug.set("AttackRatio", attackRatio);
 
-		let moveNumAttackers = this._messaging.receiveTrainer(MessageType.moveNumAttackers);
-		if (moveNumAttackers != undefined) {
-			attackers = moveNumAttackers;
+		let moveInfo = this._messaging.receiveTrainer(MessageType.moveInfo);
+		if (moveInfo) {
+			attackers = moveInfo.numAttackers;
 		}
 
 		let defenders = World.FriendlyRobots.length - attackers;
