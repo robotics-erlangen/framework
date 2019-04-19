@@ -22,12 +22,12 @@ export class TrajectoryPath extends TrajectoryHandler {
 		return true;
 	}
 
-	public update(...args: [Position, number, number, Speed, number, boolean]): TrajectoryResult {
-		return this._update(args[0], args[1], args[2], args[3]);
+	public update(...args: [Position, number, number, Speed, number]): TrajectoryResult {
+		return this._update(args[0], args[1], args[2], args[3], args[4]);
 	}
 
 	private _update(targetPos: Position, targetDir: number, maxSpeed: number = this._robot.maxSpeed,
-			endSpeed: Speed = new Vector(0, 0)): TrajectoryResult {
+			endSpeed: Speed = new Vector(0, 0), accelScale: number = 1.0): TrajectoryResult {
 
 		let directionVector = Vector.fromAngle(targetDir).scaleLength(0.09);
 		vis.addPath("MoveTo", [targetPos, targetPos + directionVector], vis.colors.yellowHalf);
@@ -73,9 +73,13 @@ export class TrajectoryPath extends TrajectoryHandler {
 			endSpeed.setLength(maxSpeed - 0.1);
 		}
 
+		// calculate acceleration (also used for braking)
+		let baseAcceleration = Math.min(Math.abs(this._robot.acceleration.aSpeedupFMax), Math.abs(this._robot.acceleration.aBrakeFMax));
+		let accelerate = baseAcceleration * accelScale;
+
 		// call C++ path finding
 		let trajectory = this._robot.path.getTrajectory(startPos, startSpeed, targetPos, endSpeed,
-			maxSpeed);
+			maxSpeed, accelerate);
 		if (TRAJECTORY_PATH_DEBUG) {
 			TrajectoryPath.visualizeTrajectory(trajectory, vis.colors.orange);
 			// TrajectoryPath.plotSpeed(trajectory);
