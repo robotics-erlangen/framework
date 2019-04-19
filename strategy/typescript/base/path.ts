@@ -28,6 +28,7 @@
 **************************************************************************/
 
 import { log } from "base/amun";
+import { Coordinates } from "base/coordinates";
 import * as pb from "base/protobuf";
 import { Position, Speed, Vector } from "base/vector";
 import * as vis from "base/vis";
@@ -186,6 +187,10 @@ type TrajectoryPathResult = {
 interface PathObjectTrajectory extends PathObjectCommon {
 	calculateTrajectory(startX: number, startY: number, startSpeedX: number, startSpeedY: number,
 		endX: number, endY: number, endSpeedX: number, endSpeedY: number, maxSpeed: number, acceleration: number): TrajectoryPathResult;
+
+	// uses relative times
+	addMovingCircle(startTime: number, endTime: number, startX: number, startY: number, speedX: number,
+		speedY: number, radius: number, priority: number): void;
 }
 
 interface AmunPath {
@@ -296,6 +301,22 @@ export class Path {
 			name = undefined;
 		}
 		this.circleObstacles.push({x: x, y: y, radius: radius, name: name, prio: prio});
+	}
+
+	/** WARNING: only adds the obstacle to the trajectory path finding */
+	addMovingCircle(startTime: number, endTime: number, startPos: Position, speed: Speed, radius: number, priority: number) {
+		startPos = Coordinates.toGlobal(startPos);
+		speed = Coordinates.toGlobal(speed);
+
+		if (!isPerformanceMode) {
+			let endPos = startPos + speed * (endTime - startTime);
+			vis.addCircleRaw(`obstacles: ${this._robotId}`, startPos, radius, vis.colors.orangeHalf, true);
+			vis.addCircleRaw(`obstacles: ${this._robotId}`, endPos, radius, vis.colors.orangeHalf, true);
+			vis.addPathRaw(`obstacles: ${this._robotId}`, [startPos, endPos], vis.colors.orangeHalf);
+		}
+
+		this._trajectoryInst.addMovingCircle(startTime, endTime, startPos.x, startPos.y,
+			speed.x, speed.y, radius, priority);
 	}
 
 	addLine(start_x: number, start_y: number, stop_x: number, stop_y: number, radius: number, name?: string, prio: number = 0) {
