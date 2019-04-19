@@ -72,7 +72,6 @@ private:
     bool test(const Vector &v, float radius, const QVector<const Obstacle*> &obstacles) const;
     float calculateObstacleCoverage(const Vector &v, const QVector<const Obstacle*> &obstacles, float robotRadius) const;
     bool checkMovementRelativeToObstacles(const LineSegment &segment, const QVector<const Obstacle*> &obstacles, float radius) const;
-    bool pointInPlayfield(const Vector &point, float radius) const;
     float outsidePlayfieldCoverage(const Vector &point, float radius) const;
 
     Vector findValidPoint(const LineSegment &segment, float radius) const;

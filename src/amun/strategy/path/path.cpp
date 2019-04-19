@@ -486,16 +486,6 @@ void Path::addToWaypointCache(const Vector &pos)
     }
 }
 
-bool Path::pointInPlayfield(const Vector &point, float radius) const {
-    if (point.x - radius < m_boundary.bottom_left.x ||
-           point.x + radius > m_boundary.top_right.x ||
-           point.y - radius < m_boundary.bottom_left.y ||
-           point.y + radius > m_boundary.top_right.y) {
-        return false;
-    }
-    return true;
-}
-
 float Path::outsidePlayfieldCoverage(const Vector &point, float radius) const
 {
     return std::max(0.f,

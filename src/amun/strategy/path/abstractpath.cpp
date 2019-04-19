@@ -245,3 +245,14 @@ void AbstractPath::collectObstacles() const
     for (const Triangle &t: m_triangleObstacles) { m_obstacles.append(&t); }
     for (const Line &l: m_lineObstacles) { m_obstacles.append(&l); }
 }
+
+bool AbstractPath::pointInPlayfield(const Vector &point, float radius) const
+{
+    if (point.x - radius < m_boundary.bottom_left.x ||
+           point.x + radius > m_boundary.top_right.x ||
+           point.y - radius < m_boundary.bottom_left.y ||
+           point.y + radius > m_boundary.top_right.y) {
+        return false;
+    }
+    return true;
+}

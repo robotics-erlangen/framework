@@ -48,7 +48,9 @@ std::vector<TrajectoryPath::Point> TrajectoryPath::calculateTrajectory(Vector s0
 
 bool TrajectoryPath::isInObstacle(Vector point) const
 {
-    // TODO: check for boundary
+    if (!pointInPlayfield(point, m_radius)) {
+        return true;
+    }
     for (const auto &obstacle : m_obstacles) {
         if (obstacle->distance(point) < m_radius) {
             return true;

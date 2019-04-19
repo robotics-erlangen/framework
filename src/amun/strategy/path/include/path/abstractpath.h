@@ -104,6 +104,7 @@ public:
 
 protected:
     void collectObstacles() const;
+    bool pointInPlayfield(const Vector &point, float radius) const;
     virtual void clearObstaclesCustom() {}
 
 protected:
