@@ -253,10 +253,12 @@ void TrajectoryPath::removeStartingObstacles()
 void TrajectoryPath::findPathAlphaT()
 {
     collectObstacles();
+
     // check direct trajectory
     m_generationInfo.clear();
     float directSlowDownTime = exponentialSlowDown ? TOTAL_SLOW_DOWN_TIME : 0.0f;
-    SpeedProfile direct = AlphaTimeTrajectory::findTrajectoryFastEndSpeed(v0, v1, distance, ACCELERATION, MAX_SPEED, directSlowDownTime);
+    bool useHighPrecision = distance.length() < 0.1f && v1 == Vector(0, 0) && v0.length() < 0.2f;
+    SpeedProfile direct = AlphaTimeTrajectory::findTrajectoryFastEndSpeed(v0, v1, distance, ACCELERATION, MAX_SPEED, directSlowDownTime, useHighPrecision);
     if (direct.isValid() && !isTrajectoryInObstacle(direct, directSlowDownTime, s0)) {
         TrajectoryGenerationInfo info;
         info.time = direct.inputTime;

@@ -698,9 +698,9 @@ static float angleDiff(float a1, float a2)
     return angle;
 }
 
-SpeedProfile AlphaTimeTrajectory::findTrajectoryFastEndSpeed(Vector v0, Vector v1, Vector position, float acc, float vMax, float slowDownTime)
+SpeedProfile AlphaTimeTrajectory::findTrajectoryFastEndSpeed(Vector v0, Vector v1, Vector position, float acc, float vMax, float slowDownTime, bool highPrecision)
 {
-    if (v1.x == 0.0f && v1.y == 0.0f) {
+    if (v1.x == 0.0f && v1.y == 0.0f && !highPrecision) {
         return findTrajectoryExactEndSpeed(v0, v1, position, acc, vMax, slowDownTime);
     }
     SpeedProfile result;
@@ -736,7 +736,7 @@ SpeedProfile AlphaTimeTrajectory::findTrajectoryFastEndSpeed(Vector v0, Vector v
     float angleFactor = 0.8f;
     float lastAngleDiff = 0;
 
-    for (int i = 0;i<30;i++) {
+    for (int i = 0;i<(highPrecision ? 50 : 30);i++) {
         // TODO: calculate minimum time and just dont got below that
         if (!isInputValidFastEndSpeed(v0, v1, currentTime, acc)) {
             currentTime *= 1.5f;
@@ -756,7 +756,7 @@ SpeedProfile AlphaTimeTrajectory::findTrajectoryFastEndSpeed(Vector v0, Vector v
         }
 
         float targetDistance = position.distance(endPos);
-        if (targetDistance < 0.01f) {
+        if (targetDistance < (highPrecision ? 0.0002f : 0.01f)) {
             if (slowDownTime <= 0) {
                 result = calculateTrajectoryFastEndSpeed(v0, v1, currentTime, currentAngle, acc, vMax);
             }
@@ -1003,7 +1003,7 @@ void AlphaTimeTrajectory::testSearch()
     for (int i = 0;i<1000000;i++) {
         Vector startSpeed = randomSpeed(3), endSpeed = randomSpeed(3);
         Vector position = randomPointInField();
-        SpeedProfile p = findTrajectoryFastEndSpeed(startSpeed, endSpeed, position, 3.0f, 3.5f, 0.0f);
+        SpeedProfile p = findTrajectoryFastEndSpeed(startSpeed, endSpeed, position, 3.0f, 3.5f, 0.0f, false);
         p.positionForTime(p.time());
     }
     qDebug() <<"fast end speed no slowdown: "<<(getTime() - startTime) / 1000.0f;
