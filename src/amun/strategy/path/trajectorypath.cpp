@@ -140,6 +140,7 @@ bool TrajectoryPath::checkMidPoint(Vector midSpeed, const float time, const floa
     infoFirstPart.fastEndSpeed = false;
     infoFirstPart.v0 = v0;
     infoFirstPart.v1 = midSpeed;
+    infoFirstPart.desiredDistance = firstPartPosition;
     m_generationInfo.push_back(infoFirstPart);
 
     TrajectoryGenerationInfo infoSecondPart;
@@ -149,6 +150,7 @@ bool TrajectoryPath::checkMidPoint(Vector midSpeed, const float time, const floa
     infoSecondPart.fastEndSpeed = true;
     infoSecondPart.v0 = midSpeed;
     infoSecondPart.v1 = v1;
+    infoSecondPart.desiredDistance = Vector(0, 0); // do not use desired distance calculation
     m_generationInfo.push_back(infoSecondPart);
     return true;
 }
@@ -201,6 +203,7 @@ bool TrajectoryPath::testEndPoint(Vector endPoint)
     info.fastEndSpeed = false;
     info.v0 = v0;
     info.v1 = Vector(0, 0);
+    info.desiredDistance = endPoint;
     m_generationInfo.push_back(info);
 
     return true;
@@ -262,6 +265,7 @@ void TrajectoryPath::findPathAlphaT()
         info.fastEndSpeed = true;
         info.v0 = v0;
         info.v1 = v1;
+        info.desiredDistance = distance;
         m_generationInfo.push_back(info);
         return;
     }
@@ -333,17 +337,35 @@ std::vector<TrajectoryPath::Point> TrajectoryPath::getResultPath() const
                                                                               ACCELERATION, MAX_SPEED);
         }
         float totalTime = info.slowDownTime == 0.0f ? trajectory.time() : trajectory.timeWithSlowDown(info.slowDownTime);
+
+        // trajectory positions are not perfect, scale them slightly to reach the desired position perfectly
+        float xScale = 1, yScale = 1;
+        if (info.desiredDistance != Vector(0, 0)) {
+            Vector endPos;
+            // avoid floating point problems by using a time after the trajectory end
+            if (info.slowDownTime == 0.0f) {
+                endPos = trajectory.positionForTime(totalTime + 1.0f);
+            } else {
+                endPos = trajectory.calculateSlowDownPos(info.slowDownTime);
+            }
+            xScale = info.desiredDistance.x / endPos.x;
+            yScale = info.desiredDistance.y / endPos.y;
+            xScale = std::min(1.1f, std::max(0.9f, xScale));
+            yScale = std::min(1.1f, std::max(0.9f, yScale));
+        }
         for (int i = 0;i<40;i++) {
             float t = totalTime * i / 39.0f;
             Point p;
             p.time = timeSum + t;
+            Vector position;
             if (info.slowDownTime == 0.0f) {
-                p.pos = startPos + trajectory.positionForTime(t);
+                position = trajectory.positionForTime(t);
                 p.speed = trajectory.speedForTime(t);
             } else {
-                p.pos = startPos + trajectory.positionForTimeSlowDown(t, info.slowDownTime);
+                position = trajectory.positionForTimeSlowDown(t, info.slowDownTime);
                 p.speed = trajectory.speedForTimeSlowDown(t, info.slowDownTime);
             }
+            p.pos = startPos + Vector(position.x * xScale, position.y * yScale);
             result.push_back(p);
         }
         startPos = result.back().pos;

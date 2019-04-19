@@ -75,6 +75,7 @@ private:
         float slowDownTime;
         Vector v0;
         Vector v1;
+        Vector desiredDistance;
         bool fastEndSpeed;
     };
     std::vector<TrajectoryGenerationInfo> m_generationInfo;
