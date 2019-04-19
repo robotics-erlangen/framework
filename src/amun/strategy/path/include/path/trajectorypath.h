@@ -39,8 +39,7 @@ public:
 public:
     TrajectoryPath(uint32_t rng_seed);
     void reset() override;
-    // TODO: acceleration factor
-    std::vector<Point> calculateTrajectory(Vector s0, Vector v0, Vector s1, Vector v1, float maxSpeed);
+    std::vector<Point> calculateTrajectory(Vector s0, Vector v0, Vector s1, Vector v1, float maxSpeed, float acceleration);
 
 private:
     bool isInObstacle(Vector point) const;
@@ -90,8 +89,8 @@ private:
     // quasi constants
     float MAX_SPEED = 3.5f;
     float MAX_SPEED_SQUARED = 9.0f;
+    float ACCELERATION = 3.0f;
     // constants
-    const float ACCELERATION = 3.0f;
     const float TOTAL_SLOW_DOWN_TIME = 0.3f; // must be the same as in alphatimetrajectory
 };
 

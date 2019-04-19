@@ -31,7 +31,7 @@ void TrajectoryPath::reset()
     // TODO: reset internal state
 }
 
-std::vector<TrajectoryPath::Point> TrajectoryPath::calculateTrajectory(Vector s0, Vector v0, Vector s1, Vector v1, float maxSpeed)
+std::vector<TrajectoryPath::Point> TrajectoryPath::calculateTrajectory(Vector s0, Vector v0, Vector s1, Vector v1, float maxSpeed, float acceleration)
 {
     this->v0 = v0;
     this->v1 = v1;
@@ -41,6 +41,7 @@ std::vector<TrajectoryPath::Point> TrajectoryPath::calculateTrajectory(Vector s0
     exponentialSlowDown = v1 == Vector(0, 0);
     MAX_SPEED = maxSpeed;
     MAX_SPEED_SQUARED = maxSpeed * maxSpeed;
+    ACCELERATION = acceleration;
 
     findPathAlphaT();
     return getResultPath();

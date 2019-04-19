@@ -284,18 +284,18 @@ static void trajectoryPathGet(QTPath *wrapper, const FunctionCallbackInfo<Value>
         return;
     }
 
-    float startX, startY, startSpeedX, startSpeedY, endX, endY, endSpeedX, endSpeedY, maxSpeed;
+    float startX, startY, startSpeedX, startSpeedY, endX, endY, endSpeedX, endSpeedY, maxSpeed, acceleration;
     if (!verifyNumber(isolate, args[offset], startX) || !verifyNumber(isolate, args[1 + offset], startY) ||
             !verifyNumber(isolate, args[2 + offset], startSpeedX) || !verifyNumber(isolate, args[3 + offset], startSpeedY) ||
             !verifyNumber(isolate, args[4 + offset], endX) || !verifyNumber(isolate, args[5 + offset], endY) ||
             !verifyNumber(isolate, args[6 + offset], endSpeedX) || !verifyNumber(isolate, args[7 + offset], endSpeedY) ||
-            !verifyNumber(isolate, args[8 + offset], maxSpeed)) {
+            !verifyNumber(isolate, args[8 + offset], maxSpeed) || !verifyNumber(isolate, args[9 + offset], acceleration)) {
         isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "Invalid arguments", String::kNormalString)));
         return;
     }
 
     std::vector<TrajectoryPath::Point> trajectory = wrapper->trajectoryPath()->calculateTrajectory(Vector(startX, startY), Vector(startSpeedX, startSpeedY),
-                                                     Vector(endX, endY), Vector(endSpeedX, endSpeedY), maxSpeed);
+                                                     Vector(endX, endY), Vector(endSpeedX, endSpeedY), maxSpeed, acceleration);
 
     // convert path to js object
     unsigned int i = 0;
