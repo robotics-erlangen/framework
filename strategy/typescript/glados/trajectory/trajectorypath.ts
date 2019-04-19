@@ -97,8 +97,12 @@ export class TrajectoryPath extends TrajectoryHandler {
 			this._robot.angularSpeed, targetDir, rotAccelerate, rotBrake, rotMaxSpeed, rotationExponentialTime);
 
 		// finish and return trajectory
-		let speed = TrajectoryPath.speedAtTime(0.12, trajectory);
-		let acc = TrajectoryPath.accAtTime(0.12, trajectory);
+		let queryTime = 0.001;
+		if (robotPos.distanceTo(targetPos) < 0.1) {
+			queryTime = 0.1;
+		}
+		let speed = TrajectoryPath.speedAtTime(queryTime, trajectory);
+		let acc = TrajectoryPath.accAtTime(queryTime, trajectory);
 
 		let spline = [ {t_start: 0, t_end: Infinity,
 			x: { a0: robotPos.x, a1: speed.x, a2: acc.x / 2, a3: 0 },
