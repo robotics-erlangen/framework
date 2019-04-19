@@ -28,6 +28,18 @@
 
 class TrajectoryPath : public AbstractPath
 {
+private:
+    struct MovingCircle
+    {
+        bool intersects(Vector pos, float time) const;
+
+        Vector startPos;
+        Vector speed;
+        float startTime;
+        float endTime;
+        float radiusSq;
+    };
+
 public:
     struct Point
     {
@@ -40,6 +52,7 @@ public:
     TrajectoryPath(uint32_t rng_seed);
     void reset() override;
     std::vector<Point> calculateTrajectory(Vector s0, Vector v0, Vector s1, Vector v1, float maxSpeed, float acceleration);
+    void addMovingCircle(Vector startPos, Vector speed, float startTime, float endTime, float radius);
 
 private:
     bool isInObstacle(Vector point) const;
@@ -53,6 +66,8 @@ private:
     Vector randomPointInField();
     std::vector<Point> getResultPath() const;
 
+    void clearObstaclesCustom() override;
+
 private:
     // constant input data
     float minX, maxX, minY, maxY;
@@ -61,6 +76,7 @@ private:
     // frame input data
     Vector v0, v1, distance, s0, s1;
     bool exponentialSlowDown;
+    QVector<MovingCircle> m_movingCircles;
 
     // current best trajectory data
     bool m_lastResultValid = false;

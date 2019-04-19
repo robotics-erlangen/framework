@@ -62,6 +62,10 @@ public:
     float length() const;
     float lengthSquared() const;
     float distance(const Vector &rho) const;
+    float distanceSq(const Vector &rho) const {
+        return (*this - rho).lengthSquared();
+    }
+
     float dot(const Vector &other) const {
         return x * other.x + y * other.y;
     }

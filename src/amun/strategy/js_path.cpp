@@ -320,6 +320,21 @@ static void trajectoryPathGet(QTPath *wrapper, const FunctionCallbackInfo<Value>
 }
 GENERATE_FUNCTIONS(trajectoryPathGet);
 
+static void trajectoryAddMovingCircle(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate * isolate = args.GetIsolate();
+    float startTime, endTime, x, y, speedX, speedY, radius, priority;
+
+    if (!verifyNumber(isolate, args[0], startTime) || !verifyNumber(isolate, args[1], endTime) ||
+            !verifyNumber(isolate, args[2], x) || !verifyNumber(isolate, args[4], y) ||
+            !verifyNumber(isolate, args[4], speedX) || !verifyNumber(isolate, args[5], speedY) ||
+            !verifyNumber(isolate, args[6], radius) || !verifyNumber(isolate, args[7], priority)) {
+        return;
+    }
+    static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value())->trajectoryPath()->addMovingCircle(Vector(x, y), Vector(speedX, speedY),
+                                                                                                       startTime, endTime, radius);
+}
+
 static void drawTree(Typescript *thread, const KdTree *tree)
 {
     if (tree == nullptr) {
@@ -383,7 +398,8 @@ static QList<FunctionInfo> rrtPathCallbacks = {
     { "addTreeVisualization", pathAddTreeVisualization_new}};
 
 static QList<FunctionInfo> trajectoryPathCallbacks = {
-    { "calculateTrajectory", trajectoryPathGet_new }};
+    { "calculateTrajectory", trajectoryPathGet_new },
+    { "addMovingCircle",    trajectoryAddMovingCircle}};
 
 static void pathObjectAddFunctions(Isolate *isolate, const QList<FunctionInfo> &callbacks, Local<Object> &pathWrapper,
                                    Local<External> &pathObject)

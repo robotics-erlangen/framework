@@ -20,6 +20,16 @@
 
 #include "trajectorypath.h"
 
+bool TrajectoryPath::MovingCircle::intersects(Vector pos, float time) const
+{
+    if (time >= startTime && time <= endTime) {
+        return false;
+    }
+    Vector centerAtTime = startPos + speed * time;
+    return centerAtTime.distanceSq(pos) < radiusSq;
+}
+
+
 TrajectoryPath::TrajectoryPath(uint32_t rng_seed) :
     AbstractPath(rng_seed)
 {
@@ -45,6 +55,21 @@ std::vector<TrajectoryPath::Point> TrajectoryPath::calculateTrajectory(Vector s0
 
     findPathAlphaT();
     return getResultPath();
+}
+
+void TrajectoryPath::clearObstaclesCustom()
+{
+    m_movingCircles.clear();
+}
+
+void TrajectoryPath::addMovingCircle(Vector startPos, Vector speed, float startTime, float endTime, float radius)
+{
+    MovingCircle m;
+    m.startPos = startPos;
+    m.speed = speed;
+    m.startTime = startTime;
+    m.endTime = endTime;
+    m.radiusSq = radius * radius;
 }
 
 bool TrajectoryPath::isInObstacle(Vector point) const
