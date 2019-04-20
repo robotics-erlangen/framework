@@ -32,12 +32,13 @@ private:
     struct MovingCircle
     {
         bool intersects(Vector pos, float time) const;
+        bool intersectsAtAnyTime(Vector pos) const;
 
         Vector startPos;
         Vector speed;
         float startTime;
         float endTime;
-        float radiusSq;
+        float radius;
     };
 
 public:
@@ -55,8 +56,9 @@ public:
     void addMovingCircle(Vector startPos, Vector speed, float startTime, float endTime, float radius);
 
 private:
-    bool isInObstacle(Vector point) const;
-    bool isTrajectoryInObstacle(const SpeedProfile &profile, float slowDownTime, Vector startPos);
+    bool isInStaticObstacle(Vector point) const;
+    bool isInMovingObstacle(Vector point, float time) const;
+    bool isTrajectoryInObstacle(const SpeedProfile &profile, float timeOffset, float slowDownTime, Vector startPos);
     void findPathAlphaT();
     void removeStartingObstacles();
     void findPathEndInObstacle();

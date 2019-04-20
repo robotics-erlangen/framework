@@ -26,7 +26,12 @@ bool TrajectoryPath::MovingCircle::intersects(Vector pos, float time) const
         return false;
     }
     Vector centerAtTime = startPos + speed * time;
-    return centerAtTime.distanceSq(pos) < radiusSq;
+    return centerAtTime.distanceSq(pos) < radius * radius;
+}
+
+bool TrajectoryPath::MovingCircle::intersectsAtAnyTime(Vector pos) const
+{
+    return LineSegment(startPos, startPos + speed * (endTime - startTime)).distance(pos) < radius;
 }
 
 
@@ -69,10 +74,11 @@ void TrajectoryPath::addMovingCircle(Vector startPos, Vector speed, float startT
     m.speed = speed;
     m.startTime = startTime;
     m.endTime = endTime;
-    m.radiusSq = radius * radius;
+    m.radius = radius + m_radius;
+    m_movingCircles.push_back(m);
 }
 
-bool TrajectoryPath::isInObstacle(Vector point) const
+bool TrajectoryPath::isInStaticObstacle(Vector point) const
 {
     if (!pointInPlayfield(point, m_radius)) {
         return true;
@@ -85,13 +91,26 @@ bool TrajectoryPath::isInObstacle(Vector point) const
     return false;
 }
 
-bool TrajectoryPath::isTrajectoryInObstacle(const SpeedProfile &profile, float slowDownTime, Vector startPos)
+bool TrajectoryPath::isInMovingObstacle(Vector point, float time) const
+{
+    for (const auto &o : m_movingCircles) {
+        if (o.intersects(point, time)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool TrajectoryPath::isTrajectoryInObstacle(const SpeedProfile &profile, float timeOffset, float slowDownTime, Vector startPos)
 {
     float totalTime = slowDownTime > 0 ? profile.timeWithSlowDown(slowDownTime) : profile.time();
     for (int i = 0;i<40;i++) {
         float time = totalTime * i / 39.0f;
         Vector pos = slowDownTime > 0 ? profile.positionForTimeSlowDown(time, slowDownTime) : profile.positionForTime(time);
-        if (isInObstacle(pos + startPos)) {
+        if (isInStaticObstacle(pos + startPos)) {
+            return true;
+        }
+        if (isInMovingObstacle(pos + startPos, time + timeOffset)) {
             return true;
         }
     }
@@ -123,11 +142,6 @@ bool TrajectoryPath::checkMidPoint(Vector midSpeed, const float time, const floa
         if (debug) qDebug() <<"Out 1";
         return false;
     }
-    // TODO: calculate the offset while calculating the trajectory
-    if (isTrajectoryInObstacle(secondPart, slowDownTime, s1 - secondPartOffset)) {
-        if (debug) qDebug() <<"Out 2";
-        return false;
-    }
 
     // calculate first part trajectory
     Vector firstPartPosition = distance - secondPartOffset;
@@ -148,8 +162,13 @@ bool TrajectoryPath::checkMidPoint(Vector midSpeed, const float time, const floa
         if (debug) qDebug() <<"Out 4";
         return false;
     }
-    if (isTrajectoryInObstacle(firstPart, firstPartSlowDownTime, s0)) {
+    if (isTrajectoryInObstacle(firstPart, 0, firstPartSlowDownTime, s0)) {
         if (debug) qDebug() <<"Out 5";
+        return false;
+    }
+    // TODO: calculate the offset while calculating the trajectory
+    if (isTrajectoryInObstacle(secondPart, firstPartTime, slowDownTime, s1 - secondPartOffset)) {
+        if (debug) qDebug() <<"Out 2";
         return false;
     }
 
@@ -215,7 +234,7 @@ bool TrajectoryPath::testEndPoint(Vector endPoint)
     if (!direct.isValid()) {
         return false;
     }
-    if (isTrajectoryInObstacle(direct, 0, s0)) {
+    if (isTrajectoryInObstacle(direct, 0, 0, s0)) {
         return false;
     }
 
@@ -276,6 +295,9 @@ void TrajectoryPath::removeStartingObstacles()
     std::remove_if(m_obstacles.begin(), m_obstacles.end(), [&](const Obstacle *o) {
         return o->distance(s0) < m_radius;
     });
+    std::remove_if(m_movingCircles.begin(), m_movingCircles.end(), [&](const MovingCircle &o) {
+        return o.intersects(s0, 0);
+    });
 }
 
 void TrajectoryPath::findPathAlphaT()
@@ -287,7 +309,7 @@ void TrajectoryPath::findPathAlphaT()
     float directSlowDownTime = exponentialSlowDown ? TOTAL_SLOW_DOWN_TIME : 0.0f;
     bool useHighPrecision = distance.length() < 0.1f && v1 == Vector(0, 0) && v0.length() < 0.2f;
     SpeedProfile direct = AlphaTimeTrajectory::findTrajectoryFastEndSpeed(v0, v1, distance, ACCELERATION, MAX_SPEED, directSlowDownTime, useHighPrecision);
-    if (direct.isValid() && !isTrajectoryInObstacle(direct, directSlowDownTime, s0)) {
+    if (direct.isValid() && !isTrajectoryInObstacle(direct, 0, directSlowDownTime, s0)) {
         TrajectoryGenerationInfo info;
         info.time = direct.inputTime;
         info.angle = direct.inputAngle;
@@ -312,12 +334,12 @@ void TrajectoryPath::findPathAlphaT()
     }
 
     // check if start point is in obstacle
-    if (isInObstacle(s0)) {
+    if (isInStaticObstacle(s0) || isInMovingObstacle(s0, 0)) {
         removeStartingObstacles();
     }
 
     // check if end point is in obstacle
-    if (isInObstacle(s1)) {
+    if (isInStaticObstacle(s1)) {
         findPathEndInObstacle();
         return;
     }
