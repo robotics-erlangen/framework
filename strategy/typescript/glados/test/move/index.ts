@@ -7,11 +7,13 @@ import { Move } from "glados/group/move/base";
 import { Moves as MoveGroup } from "glados/group/moves";
 import { Striker as StrikerGroup } from "glados/group/striker";
 // test moves
+import { MovingObstacles } from "glados/test/move/movingobstacles";
 import { Victory } from "glados/test/move/victory";
 import { MainTrainer } from "glados/trainer/maintrainer";
 
 let moves: (typeof Move)[] = [
-	Victory
+	Victory,
+	MovingObstacles
 ];
 
 let coord: MainCoordinator | undefined = undefined;
