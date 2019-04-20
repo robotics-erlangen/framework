@@ -16,7 +16,8 @@ export class MoveToStaticBall extends Task {
 		super(agent);
 		this._rotation = rotation;
 		this._distanceToBall = distanceToBall;
-		this._obstacleTable = {extraBallDistance: this._distanceToBall, ignorePass: true, ignorePenaltyDistance: true};
+		// slightly smaller obstacle to avoid that the target position is in the obstacle (by float standards)
+		this._obstacleTable = {extraBallDistance: this._distanceToBall - 0.001, ignorePass: true, ignorePenaltyDistance: true};
 	}
 
 	run() {
