@@ -234,7 +234,6 @@ export class Path {
 	}
 
 	private addObstaclesToPath(path: PathObjectCommon) {
-		path.clearObstacles();
 		for (let circle of this.circleObstacles) {
 			path.addCircle(circle.x, circle.y, circle.radius, circle.name, circle.prio);
 		}
@@ -277,6 +276,8 @@ export class Path {
 	}
 
 	clearObstacles() {
+		this._inst.clearObstacles();
+		this._trajectoryInst.clearObstacles();
 		this.circleObstacles.length = 0;
 		this.lineObstacles.length = 0;
 		this.rectObstacles.length = 0;
