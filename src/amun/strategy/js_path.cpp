@@ -326,7 +326,7 @@ static void trajectoryAddMovingCircle(const FunctionCallbackInfo<Value>& args)
     float startTime, endTime, x, y, speedX, speedY, radius, priority;
 
     if (!verifyNumber(isolate, args[0], startTime) || !verifyNumber(isolate, args[1], endTime) ||
-            !verifyNumber(isolate, args[2], x) || !verifyNumber(isolate, args[4], y) ||
+            !verifyNumber(isolate, args[2], x) || !verifyNumber(isolate, args[3], y) ||
             !verifyNumber(isolate, args[4], speedX) || !verifyNumber(isolate, args[5], speedY) ||
             !verifyNumber(isolate, args[6], radius) || !verifyNumber(isolate, args[7], priority)) {
         return;

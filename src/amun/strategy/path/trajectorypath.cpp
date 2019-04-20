@@ -22,7 +22,7 @@
 
 bool TrajectoryPath::MovingCircle::intersects(Vector pos, float time) const
 {
-    if (time >= startTime && time <= endTime) {
+    if (time < startTime || time > endTime) {
         return false;
     }
     Vector centerAtTime = startPos + speed * time;
