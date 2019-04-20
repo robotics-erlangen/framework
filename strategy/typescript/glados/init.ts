@@ -16,7 +16,7 @@ import * as World from "base/world";
 
 import "glados/control/maincoordinator";
 import "glados/observer/initReplay";
-// import "glados/test/move/index";
+import "glados/test/move/index";
 import "glados/tutorials/index";
 import "glados/util/lineup";
 

@@ -7,7 +7,7 @@ let G = World.Geometry;
 import { MessageBox } from "glados/control/messaging";
 import { Assignment, Move } from "glados/group/move/base";
 import { MoveToPos } from "glados/task/shared/movetopos";
-import {Victory as VictoryTask } from "glados/task/test/victory";
+import { Victory as VictoryTask } from "glados/task/test/victory";
 
 export class Victory extends Move {
 
