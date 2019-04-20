@@ -273,8 +273,9 @@ static void pathGet(QTPath *wrapper, const FunctionCallbackInfo<Value>& args, in
 }
 GENERATE_FUNCTIONS(pathGet);
 
-static void trajectoryPathGet(QTPath *wrapper, const FunctionCallbackInfo<Value>& args, int offset)
+static void trajectoryPathGet(const FunctionCallbackInfo<Value>& args)
 {
+    QTPath *wrapper = static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value());
     Isolate *isolate = args.GetIsolate();
     const qint64 t = Timer::systemTime();
 
@@ -285,11 +286,11 @@ static void trajectoryPathGet(QTPath *wrapper, const FunctionCallbackInfo<Value>
     }
 
     float startX, startY, startSpeedX, startSpeedY, endX, endY, endSpeedX, endSpeedY, maxSpeed, acceleration;
-    if (!verifyNumber(isolate, args[offset], startX) || !verifyNumber(isolate, args[1 + offset], startY) ||
-            !verifyNumber(isolate, args[2 + offset], startSpeedX) || !verifyNumber(isolate, args[3 + offset], startSpeedY) ||
-            !verifyNumber(isolate, args[4 + offset], endX) || !verifyNumber(isolate, args[5 + offset], endY) ||
-            !verifyNumber(isolate, args[6 + offset], endSpeedX) || !verifyNumber(isolate, args[7 + offset], endSpeedY) ||
-            !verifyNumber(isolate, args[8 + offset], maxSpeed) || !verifyNumber(isolate, args[9 + offset], acceleration)) {
+    if (!verifyNumber(isolate, args[0], startX) || !verifyNumber(isolate, args[1], startY) ||
+            !verifyNumber(isolate, args[2], startSpeedX) || !verifyNumber(isolate, args[3], startSpeedY) ||
+            !verifyNumber(isolate, args[4], endX) || !verifyNumber(isolate, args[5], endY) ||
+            !verifyNumber(isolate, args[6], endSpeedX) || !verifyNumber(isolate, args[7], endSpeedY) ||
+            !verifyNumber(isolate, args[8], maxSpeed) || !verifyNumber(isolate, args[9], acceleration)) {
         isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "Invalid arguments", String::kNormalString)));
         return;
     }
@@ -318,7 +319,6 @@ static void trajectoryPathGet(QTPath *wrapper, const FunctionCallbackInfo<Value>
     wrapper->typescript()->addPathTime((Timer::systemTime() - t) / 1E9);
     args.GetReturnValue().Set(result);
 }
-GENERATE_FUNCTIONS(trajectoryPathGet);
 
 static void trajectoryAddMovingCircle(const FunctionCallbackInfo<Value>& args)
 {
@@ -398,7 +398,7 @@ static QList<FunctionInfo> rrtPathCallbacks = {
     { "addTreeVisualization", pathAddTreeVisualization_new}};
 
 static QList<FunctionInfo> trajectoryPathCallbacks = {
-    { "calculateTrajectory", trajectoryPathGet_new },
+    { "calculateTrajectory", trajectoryPathGet },
     { "addMovingCircle",    trajectoryAddMovingCircle}};
 
 static void pathObjectAddFunctions(Isolate *isolate, const QList<FunctionInfo> &callbacks, Local<Object> &pathWrapper,
