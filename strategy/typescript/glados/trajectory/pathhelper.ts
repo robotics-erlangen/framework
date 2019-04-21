@@ -331,7 +331,7 @@ function ignoreRobot(ownRobot: FriendlyRobot, robot: Robot): boolean {
 }
 
 function addRobotObstacles(path: Path, robot: FriendlyRobot, ignoreFriendlyRobots?: boolean,
-		ignoreOpponentRobots?: boolean, disableOpponentPrediction?: boolean) {
+		ignoreOpponentRobots?: boolean, disableOpponentPrediction?: boolean, useCMA?: boolean) {
 	// TODO. better robot prediction and time estimation
 	// use 1 seconds for the navigation challenge
 	let estimationTime = 0.1; // just a fixed time for now
@@ -339,16 +339,25 @@ function addRobotObstacles(path: Path, robot: FriendlyRobot, ignoreFriendlyRobot
 	if (!ignoreFriendlyRobots) {
 		for (let r of World.FriendlyRobots) {
 			if (r.id !== robot.id && !ignoreRobot(robot, r)) { // don't add current robot
-				// use speed difference to calculate the safety distance
-				let safetyDistance = MathUtil.bound(0, robot.speed.distanceTo(r.speed) * 0.05, 0.05);
-				let estimatedPosition = r.pos + r.speed * estimationTime;
-				// only use estimated position if it doesn't collide with the robot
-				if (robot.pos.distanceToLineSegment(r.pos, estimatedPosition) >= robot.radius + r.radius
-						&&  r.pos.distanceTo(estimatedPosition) > 0.0001) {
-					path.addLine(r.pos.x, r.pos.y, estimatedPosition.x, estimatedPosition.y,
-						r.radius + safetyDistance, `OwnRobot_${r.id}`, Priorities.ROBOT);
+				if (useCMA) {
+					// use speed difference to calculate the safety distance
+					let safetyDistance = MathUtil.bound(0, robot.speed.distanceTo(r.speed) * 0.05, 0.05);
+					let estimatedPosition = r.pos + r.speed * estimationTime;
+					// only use estimated position if it doesn't collide with the robot
+					if (robot.pos.distanceToLineSegment(r.pos, estimatedPosition) >= robot.radius + r.radius
+							&&  r.pos.distanceTo(estimatedPosition) > 0.0001) {
+						path.addLine(r.pos.x, r.pos.y, estimatedPosition.x, estimatedPosition.y,
+							r.radius + safetyDistance, `OwnRobot_${r.id}`, Priorities.ROBOT);
+					} else {
+						path.addCircle(r.pos.x, r.pos.y, r.radius + safetyDistance, `OwnRobot_${r.id}`, Priorities.ROBOT);
+					}
 				} else {
-					path.addCircle(r.pos.x, r.pos.y, r.radius + safetyDistance, `OwnRobot_${r.id}`, Priorities.ROBOT);
+					let safetyDistance = 0.02;
+					if (r.speed.lengthSq() < 0.2 * 0.2) {
+						path.addCircle(r.pos.x, r.pos.y, r.radius + safetyDistance, `OwnRobot_${r.id}`, Priorities.ROBOT);
+					} else {
+						path.addMovingCircle(0, 1, r.pos, r.speed, r.radius + safetyDistance * 2, Priorities.ROBOT);
+					}
 				}
 			}
 		}
@@ -359,21 +368,29 @@ function addRobotObstacles(path: Path, robot: FriendlyRobot, ignoreFriendlyRobot
 	if (!ignoreOpponentRobots) {
 		for (let r of World.OpponentRobots) {
 			if (!ignoreRobot(robot, r)) {
-				// use speed difference to calculate the safety distance
-				let safetyDistance = Math.max(0, Rating.valueToRating(robot.speed.distanceTo(r.speed), 0, 1.25) * 0.15 - 0.05);
-				if (disableOpponentPrediction) { // be more aggressive
-					safetyDistance = safetyDistance / 2;
-				} else if (robot.speed.length() < SLOW_ROBOT && r.speed.length() < SLOW_ROBOT) {
-					safetyDistance = safetyDistance - 0.02;
-				}
-				let estimatedPosition = r.pos + r.speed * estimationTime;
-				// only use estimated position if it doesn't collide with the robot
-				if (robot.pos.distanceToLineSegment(r.pos, estimatedPosition) >= robot.radius + r.radius
-						&&  r.pos.distanceTo(estimatedPosition) > 0.0001) {
-					path.addLine(r.pos.x, r.pos.y, estimatedPosition.x, estimatedPosition.y,
-							r.radius + safetyDistance, `OwnRobot_${r.id}`, Priorities.ROBOT);
+				if (useCMA) {
+					// use speed difference to calculate the safety distance
+					let safetyDistance = Math.max(0, Rating.valueToRating(robot.speed.distanceTo(r.speed), 0, 1.25) * 0.15 - 0.05);
+					if (disableOpponentPrediction) { // be more aggressive
+						safetyDistance = safetyDistance / 2;
+					} else if (robot.speed.length() < SLOW_ROBOT && r.speed.length() < SLOW_ROBOT) {
+						safetyDistance = safetyDistance - 0.02;
+					}
+					let estimatedPosition = r.pos + r.speed * estimationTime;
+					// only use estimated position if it doesn't collide with the robot
+					if (robot.pos.distanceToLineSegment(r.pos, estimatedPosition) >= robot.radius + r.radius
+							&&  r.pos.distanceTo(estimatedPosition) > 0.0001) {
+						path.addLine(r.pos.x, r.pos.y, estimatedPosition.x, estimatedPosition.y,
+								r.radius + safetyDistance, `OwnRobot_${r.id}`, Priorities.ROBOT);
+					} else {
+						path.addCircle(r.pos.x, r.pos.y, r.radius + safetyDistance, `OwnRobot_${r.id}`, Priorities.ROBOT);
+					}
 				} else {
-					path.addCircle(r.pos.x, r.pos.y, r.radius + safetyDistance, `OwnRobot_${r.id}`, Priorities.ROBOT);
+					if (r.speed.lengthSq() < 0.2 * 0.2) {
+						path.addCircle(r.pos.x, r.pos.y, r.radius + 0.01, `OppRobot_${r.id}`, Priorities.ROBOT);
+					} else {
+						path.addMovingCircle(0, 1, r.pos, r.speed, r.radius + 0.04, Priorities.ROBOT);
+					}
 				}
 			}
 		}
@@ -478,7 +495,8 @@ export function insertObstacles(robot: FriendlyRobot) {
 	if (!p.ignorePenaltyDistance) {
 		addPenaltyObstacle(p.path);
 	}
-	addRobotObstacles(p.path, robot, p.ignoreFriendlyRobots, p.ignoreOpponentRobots, p.disableOpponentPrediction);
+	addRobotObstacles(p.path, robot, p.ignoreFriendlyRobots, p.ignoreOpponentRobots, p.disableOpponentPrediction, p.useCMAPathFinding);
+
 	// Clear obstacle params because obstacles gets kept over multiple frames
 	obstacles.delete(robot);
 }
