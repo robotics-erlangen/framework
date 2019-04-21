@@ -397,6 +397,7 @@ interface PathHelperParametersRaw {
 	extraBallDistance?: number;
 	messaging?: MessageBox;
 	path?: Path;
+	useCMAPathFinding?: boolean;
 }
 export type PathHelperParameters = PathHelperParametersRaw & ({ignorePass: true} | {messaging: MessageBox});
 
@@ -406,12 +407,13 @@ export enum ParameterType {
 	ignorePass = "ignorePass", ignoreFriendlyRobots = "ignoreFriendlyRobots", ignoreOpponentRobots = "ignoreOpponentRobots",
 	ignoreBallPlacementObstacle = "ignoreBallPlacementObstacle", ignorePenaltyDistance = "ignorePenaltyDistance",
 	disableOpponentPrediction = "disableOpponentPrediction", pathRadius = "pathRadius", stopBallDistance = "stopBallDistance",
-	extraBallDistance = "extraBallDistance", messaging = "messaging"
+	extraBallDistance = "extraBallDistance", messaging = "messaging", useCMAPathFinding = "useCMAPathFinding"
 }
 
 type BooleanParameterType = ParameterType.ignoreBall | ParameterType.ignoreGoals | ParameterType.ignoreOpponentDefenseArea |
 	ParameterType.noSeedTarget | ParameterType.ignorePass | ParameterType.ignoreFriendlyRobots | ParameterType.ignoreOpponentRobots |
-	ParameterType.ignoreBallPlacementObstacle | ParameterType.ignorePenaltyDistance | ParameterType.disableOpponentPrediction;
+	ParameterType.ignoreBallPlacementObstacle | ParameterType.ignorePenaltyDistance | ParameterType.disableOpponentPrediction |
+	ParameterType.useCMAPathFinding;
 
 let obstacles: Map<FriendlyRobot, PathHelperParameters> = new Map<FriendlyRobot, PathHelperParameters>();
 

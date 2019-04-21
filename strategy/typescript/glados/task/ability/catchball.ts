@@ -11,8 +11,8 @@ import { MessageBox, MessageType } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 import { Volley } from "glados/task/ability/volley"; // only for calcPhi
+import { CurvedMaxAccel } from "glados/trajectory/curvedmaxaccel";
 import * as PathHelper from "glados/trajectory/pathhelper";
-import { ToTarget } from "glados/trajectory/totarget";
 
 
 // safety distance to ball
@@ -136,6 +136,7 @@ export class CatchBall {
 		PathHelper.setObstacleParam(this._robot, PathHelper.ParameterType.ignoreOpponentRobots, this._ignoringOpponents);
 		PathHelper.setObstacleParam(this._robot, PathHelper.ParameterType.ignoreBall, true);
 		PathHelper.setObstacleParam(this._robot, PathHelper.ParameterType.ignorePass, true);
+		PathHelper.setObstacleParam(this._robot, PathHelper.ParameterType.useCMAPathFinding, true);
 
 		let method = this._ballCatchMethod(ball, predictedBall, moveDest);
 		if (method === CatchMethod.Around) {
@@ -150,7 +151,7 @@ export class CatchBall {
 
 
 		// move to the predicted ball
-		this._robot.trajectory.update(ToTarget, moveDest, viewDir, maxSpeed);
+		this._robot.trajectory.update(CurvedMaxAccel, moveDest, viewDir, maxSpeed);
 		let time = Physics.robotTimeToPos(this._robot, moveDest, new Vector(0, 0))[0];
 		this._messaging.sendBroadcast(MessageType.moveDest, moveDest);
 		this._messaging.sendBroadcast(MessageType.attackPosition, predictedBall.pos);
