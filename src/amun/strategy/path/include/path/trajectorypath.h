@@ -39,7 +39,7 @@ private:
         float startTime;
         float endTime;
         float radius;
-        int priority;
+        int prio;
     };
 
 public:
@@ -61,18 +61,20 @@ private:
     bool isInMovingObstacle(Vector point, float time) const;
     bool isTrajectoryInObstacle(const SpeedProfile &profile, float timeOffset, float slowDownTime, Vector startPos);
     void findPathAlphaT();
-    void removeStartingObstacles();
     void findPathEndInObstacle();
     bool testEndPoint(Vector endPoint);
     bool checkMidPoint(Vector midSpeed, const float time, const float angle, bool debug = false);
     Vector randomSpeed();
     Vector randomPointInField();
     std::vector<Point> getResultPath() const;
+    void escapeObstacles();
+    std::pair<int, float> trajectoryObstacleScore(const SpeedProfile &speedProfile);
 
     void clearObstaclesCustom() override;
 
 private:
     // constant input data
+    // TODO: use variable convention
     float minX, maxX, minY, maxY;
     Vector minPoint, maxPoint, fieldSize;
 
@@ -104,10 +106,9 @@ private:
     // for end point in obstacle
     Vector m_bestEndPoint = Vector(0, 0);
     float m_bestEndPointDistance;
-
-    // buffer data
-    const int POINT_BUFFER_SIZE = 50;
-    Vector pointBuffer[50];
+    // for escaping obstacles
+    float m_bestEscapingTime = 2;
+    float m_bestEscapingAngle = 0;
 
     // quasi constants
     float MAX_SPEED = 3.5f;

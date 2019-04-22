@@ -75,7 +75,7 @@ void TrajectoryPath::addMovingCircle(Vector startPos, Vector speed, float startT
     m.startTime = startTime;
     m.endTime = endTime;
     m.radius = radius + m_radius;
-    m.priority = prio;
+    m.prio = prio;
     m_movingCircles.push_back(m);
 }
 
@@ -84,7 +84,7 @@ bool TrajectoryPath::isInStaticObstacle(Vector point) const
     if (!pointInPlayfield(point, m_radius)) {
         return true;
     }
-    for (const auto &obstacle : m_obstacles) {
+    for (const auto obstacle : m_obstacles) {
         if (obstacle->distance(point) < m_radius) {
             return true;
         }
@@ -290,16 +290,111 @@ void TrajectoryPath::findPathEndInObstacle()
         }
         testEndPoint(testPoint);
     }
+
+    if (!m_bestResultInfo.valid) {
+        escapeObstacles();
+    }
 }
 
-void TrajectoryPath::removeStartingObstacles()
+std::pair<int, float> TrajectoryPath::trajectoryObstacleScore(const SpeedProfile &speedProfile)
 {
-    std::remove_if(m_obstacles.begin(), m_obstacles.end(), [&](const Obstacle *o) {
-        return o->distance(s0) < m_radius;
-    });
-    std::remove_if(m_movingCircles.begin(), m_movingCircles.end(), [&](const MovingCircle &o) {
-        return o.intersects(s0, 0);
-    });
+    // TODO: ensure that all priorities are > 0, < FIELD_BOUNDARY_PRIO
+    const int FIELD_BOUNDARY_PRIO = 10000;
+    float totalTime = speedProfile.time();
+    const float SAMPLING_INTERVAL = 0.005f;
+    int samples = int(totalTime / SAMPLING_INTERVAL) + 1;
+
+    int currentBestObstaclePrio = 0;
+    float currentBestObstacleTime = 0;
+    for (int i = 0;i<samples;i++) {
+        float time;
+        if (i < samples-1) {
+            time = i * SAMPLING_INTERVAL;
+        } else {
+            time = totalTime;
+        }
+
+        Vector pos = speedProfile.positionForTime(time) + s0;
+        int obstaclePriority = 0;
+        if (!pointInPlayfield(pos, m_radius)) {
+            obstaclePriority = FIELD_BOUNDARY_PRIO;
+        }
+        for (const auto obstacle : m_obstacles) {
+            if (obstacle->prio > obstaclePriority && obstacle->distance(pos) < m_radius) {
+                obstaclePriority = obstacle->prio;
+            }
+        }
+        for (const auto &o : m_movingCircles) {
+            if (o.prio > obstaclePriority && o.intersects(pos, time)) {
+                obstaclePriority = o.prio;
+            }
+        }
+        if (obstaclePriority > currentBestObstaclePrio) {
+            currentBestObstaclePrio = obstaclePriority;
+            currentBestObstacleTime = 0;
+        }
+        if (obstaclePriority == currentBestObstaclePrio) {
+            if (i == samples-1) {
+                // strong penalization for stopping in an obstacle
+                currentBestObstacleTime += 10;
+            } else {
+                currentBestObstacleTime += SAMPLING_INTERVAL;
+            }
+        }
+    }
+    return {currentBestObstaclePrio, currentBestObstacleTime};
+}
+
+void TrajectoryPath::escapeObstacles()
+{
+    // try last trajectory
+    SpeedProfile p = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(v0, Vector(0, 0), m_bestEscapingTime, m_bestEscapingAngle, ACCELERATION, MAX_SPEED);
+    auto lastResult = trajectoryObstacleScore(p);
+    int bestPrio = lastResult.first;
+    float bestObstacleTime = lastResult.second;
+    float bestTotalTime = p.time();
+
+    for (int i = 0;i<100;i++) {
+        if (bestPrio == 0) {
+            // TODO: signal caller that a path can be found an sample around the found one
+            break;
+        }
+        float time, angle;
+        if (rand() % 2 == 0) {
+            // random sampling
+            time = random(0.4f, 5.0f);
+            angle = random(0, float(2 * M_PI));
+        } else {
+            // sample around current best point
+            time = std::max(0.05f, m_bestEscapingTime + random(-0.1f, 0.1f));
+            angle = m_bestEscapingAngle + random(-0.1f, 0.1f);
+        }
+        SpeedProfile p = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(v0, Vector(0, 0), time, angle, ACCELERATION, MAX_SPEED);
+        if (p.isValid()) {
+            auto result = trajectoryObstacleScore(p);
+            float trajectoryTime = p.time();
+            if (result.first < bestPrio || (result.first == bestPrio && result.second < bestObstacleTime) ||
+                    (result.first == bestPrio && result.second == bestObstacleTime && trajectoryTime < bestTotalTime)) {
+                bestPrio = result.first;
+                bestObstacleTime = result.second;
+                bestTotalTime = trajectoryTime;
+                m_bestEscapingTime = time;
+                m_bestEscapingAngle = angle;
+            }
+        }
+    }
+
+    // the result is the best trajectory found
+    m_generationInfo.clear();
+    TrajectoryGenerationInfo info;
+    info.time = m_bestEscapingTime;
+    info.angle = m_bestEscapingAngle;
+    info.slowDownTime = 0;
+    info.fastEndSpeed = false;
+    info.v0 = v0;
+    info.v1 = Vector(0, 0);
+    info.desiredDistance = Vector(0, 0);
+    m_generationInfo.push_back(info);
 }
 
 void TrajectoryPath::findPathAlphaT()
@@ -336,7 +431,8 @@ void TrajectoryPath::findPathAlphaT()
 
     // check if start point is in obstacle
     if (isInStaticObstacle(s0) || isInMovingObstacle(s0, 0)) {
-        removeStartingObstacles();
+        escapeObstacles();
+        return;
     }
 
     // check if end point is in obstacle
@@ -396,6 +492,10 @@ void TrajectoryPath::findPathAlphaT()
             time = info.centerTime + random(-0.1f, 0.1f);
         }
         checkMidPoint(speed, time, angle);
+    }
+
+    if (!m_bestResultInfo.valid) {
+        escapeObstacles();
     }
 }
 
