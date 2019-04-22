@@ -67,7 +67,7 @@ void TrajectoryPath::clearObstaclesCustom()
     m_movingCircles.clear();
 }
 
-void TrajectoryPath::addMovingCircle(Vector startPos, Vector speed, float startTime, float endTime, float radius)
+void TrajectoryPath::addMovingCircle(Vector startPos, Vector speed, float startTime, float endTime, float radius, int prio)
 {
     MovingCircle m;
     m.startPos = startPos;
@@ -75,6 +75,7 @@ void TrajectoryPath::addMovingCircle(Vector startPos, Vector speed, float startT
     m.startTime = startTime;
     m.endTime = endTime;
     m.radius = radius + m_radius;
+    m.priority = prio;
     m_movingCircles.push_back(m);
 }
 

@@ -332,7 +332,7 @@ static void trajectoryAddMovingCircle(const FunctionCallbackInfo<Value>& args)
         return;
     }
     static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value())->trajectoryPath()->addMovingCircle(Vector(x, y), Vector(speedX, speedY),
-                                                                                                       startTime, endTime, radius);
+                                                                                                       startTime, endTime, radius, priority);
 }
 
 static void drawTree(Typescript *thread, const KdTree *tree)
