@@ -138,7 +138,7 @@ bool TrajectoryPath::checkMidPoint(Vector midSpeed, const float time, const floa
         secondPartOffset = secondPart.positionForTime(secondPartTime);
     }
     //drawFunction(distance - secondPartOffset);
-    if (secondPartTime > m_bestTime) {
+    if (secondPartTime > m_bestResultInfo.time) {
         if (debug) qDebug() <<"Out 1";
         return false;
     }
@@ -158,7 +158,7 @@ bool TrajectoryPath::checkMidPoint(Vector midSpeed, const float time, const floa
         firstPartTime = firstPart.time();
     }
     //qDebug() <<"test: "<<firstPartTime + secondPartTime;
-    if (firstPartTime + secondPartTime > m_bestTime) {
+    if (firstPartTime + secondPartTime > m_bestResultInfo.time) {
         if (debug) qDebug() <<"Out 4";
         return false;
     }
@@ -173,11 +173,11 @@ bool TrajectoryPath::checkMidPoint(Vector midSpeed, const float time, const floa
     }
 
     // trajectory is possible, better than previous trajectory
-    m_bestTime = firstPartTime + secondPartTime;
-    m_bestCenterTime = time;
-    m_bestAngle = angle;
-    m_bestMidSpeed = midSpeed;
-    m_lastResultValid = true;
+    m_bestResultInfo.time = firstPartTime + secondPartTime;
+    m_bestResultInfo.centerTime = time;
+    m_bestResultInfo.angle = angle;
+    m_bestResultInfo.midSpeed = midSpeed;
+    m_bestResultInfo.valid = true;
 
     m_generationInfo.clear();
     TrajectoryGenerationInfo infoFirstPart;
@@ -225,7 +225,7 @@ Vector TrajectoryPath::randomSpeed()
 
 bool TrajectoryPath::testEndPoint(Vector endPoint)
 {
-    if (endPoint.distance(distance) > m_bestEndPointDistance) {
+    if (endPoint.distance(distance) > m_bestEndPointDistance - 0.05f) {
         return false;
     }
 
@@ -239,7 +239,7 @@ bool TrajectoryPath::testEndPoint(Vector endPoint)
     }
 
     m_bestEndPointDistance = endPoint.distance(distance);
-    m_lastResultValid = true;
+    m_bestResultInfo.valid = true;
     m_bestEndPoint = endPoint;
 
     m_generationInfo.clear();
@@ -262,25 +262,26 @@ void TrajectoryPath::findPathEndInObstacle()
     // check last best end point
     float prevBestDistance = m_bestEndPointDistance;
     m_bestEndPointDistance = std::numeric_limits<float>::infinity();
-    m_lastResultValid = false;
+    m_bestResultInfo.valid = false;
     if (!testEndPoint(m_bestEndPoint)) {
         m_bestEndPointDistance = prevBestDistance * 1.3f;
     }
 
+    // TODO: sample closer if we are already close
     const int ITERATIONS = 200;
     for (int i = 0;i<ITERATIONS;i++) {
-        if (i == ITERATIONS / 3 && !m_lastResultValid) {
+        if (i == ITERATIONS / 3 && !m_bestResultInfo.valid) {
             m_bestEndPointDistance = std::numeric_limits<float>::infinity();
         }
         int randVal = rand() % 1024;
         Vector testPoint;
         if (randVal < 300) {
             // sample random point around actual end point
-            float testRadius = 0.3f;
+            float testRadius = std::min(m_bestEndPointDistance, 0.3f);
             testPoint = distance + Vector(random(-testRadius, testRadius), random(-testRadius, testRadius));
-        } else if (randVal < 800) {
+        } else if (randVal < 800 || m_bestEndPointDistance < 0.3f) {
             // sample random point around last best end point
-            float testRadius = 0.3f;
+            float testRadius = std::min(m_bestEndPointDistance, 0.3f);
             testPoint = m_bestEndPoint + Vector(random(-testRadius, testRadius), random(-testRadius, testRadius));
         } else {
             // sample random point in field
@@ -322,15 +323,14 @@ void TrajectoryPath::findPathAlphaT()
         return;
     }
 
-    float prevBestTime = m_bestTime;
-    m_bestTime = std::numeric_limits<float>::infinity();
+    BestTrajectoryInfo lastTrajectoryInfo = m_bestResultInfo;
+
+    m_bestResultInfo.time = std::numeric_limits<float>::infinity();
+    m_bestResultInfo.valid = false;
 
     // check trajectory from last iteration
-    if (m_lastResultValid && !checkMidPoint(m_bestMidSpeed, m_bestCenterTime, m_bestAngle, false)) {
-        m_lastResultValid = false;
-        // TODO: mal statt +??
-        m_bestTime = prevBestTime + 0.2f;
-        //qDebug() <<"Last invalid";
+    if (m_bestResultInfo.valid) {
+        checkMidPoint(m_bestResultInfo.midSpeed, m_bestResultInfo.centerTime, m_bestResultInfo.angle, false);
     }
 
     // check if start point is in obstacle
@@ -346,29 +346,53 @@ void TrajectoryPath::findPathAlphaT()
 
     // normal search
     for (int i = 0;i<100;i++) {
-        if (i == 30 && !m_lastResultValid) {
-            m_bestTime = std::numeric_limits<float>::infinity();
+        // three sampling modes:
+        // - totally random configuration
+        // - around current best trajectory
+        // - around last frames best trajectory
+
+        enum SamplingMode { TOTAL_RANDOM, CURRENT_BEST, LAST_BEST };
+        SamplingMode mode;
+        // TODO: reuse random number
+        if (!m_bestResultInfo.valid) {
+            if (i < 20 || rand() % 2 == 0) {
+                mode = LAST_BEST;
+            } else {
+                mode = TOTAL_RANDOM;
+            }
+        } else {
+            if (rand() % 1024 < 150) {
+                mode = TOTAL_RANDOM;
+            } else if (m_bestResultInfo.time < lastTrajectoryInfo.time + 0.05f) {
+                mode = CURRENT_BEST;
+            } else {
+                mode = rand() % 2 == 0 ? CURRENT_BEST : LAST_BEST;
+            }
         }
+
         Vector speed;
         float angle, time;
-        if (i > 25 && rand() % 1024 < 300) {
+        if (mode == TOTAL_RANDOM) {
             speed = randomSpeed();
             angle = random(0, float(2 * M_PI));
             // TODO: adjust max time
-            float maxTime = m_lastResultValid ? std::max(0.01f, m_bestTime - 0.1f) : 5.0f;
+            float maxTime = m_bestResultInfo.valid ? std::max(0.01f, m_bestResultInfo.time - 0.1f) : 5.0f;
             // TODO: dont sample invalid times
             time = random(0, maxTime);
         } else {
+            // TODO: wenn etwas gut war weiter in die gleiche richtung gehen
             // TODO: gaussian sampling
+            const BestTrajectoryInfo &info = mode == CURRENT_BEST ? m_bestResultInfo : lastTrajectoryInfo;
             const float RADIUS = 0.2f;
-            while (m_bestMidSpeed.lengthSquared() > MAX_SPEED_SQUARED) {
-                m_bestMidSpeed *= 0.9f;
+            Vector chosenMidSpeed = info.midSpeed;
+            while (info.midSpeed.lengthSquared() > MAX_SPEED_SQUARED) {
+                chosenMidSpeed *= 0.9f;
             }
             do {
-                speed = m_bestMidSpeed + Vector(random(-RADIUS, RADIUS), random(-RADIUS, RADIUS));
-            } while (speed.lengthSquared() > MAX_SPEED_SQUARED);
-            angle = m_bestAngle + random(-0.1f, 0.1f);
-            time = m_bestCenterTime + random(-0.1f, 0.1f);
+                speed = chosenMidSpeed + Vector(random(-RADIUS, RADIUS), random(-RADIUS, RADIUS));
+            } while (speed.lengthSquared() >= MAX_SPEED_SQUARED);
+            angle = info.angle + random(-0.1f, 0.1f);
+            time = info.centerTime + random(-0.1f, 0.1f);
         }
         checkMidPoint(speed, time, angle);
     }

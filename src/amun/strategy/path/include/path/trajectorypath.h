@@ -81,11 +81,15 @@ private:
     QVector<MovingCircle> m_movingCircles;
 
     // current best trajectory data
-    bool m_lastResultValid = false;
-    float m_bestTime = 0;
-    float m_bestCenterTime = 0;
-    float m_bestAngle = 0;
-    Vector m_bestMidSpeed = Vector(0, 0);
+    struct BestTrajectoryInfo {
+        float time = 0;
+        float centerTime = 0;
+        float angle = 0;
+        Vector midSpeed = Vector(0, 0);
+        bool valid = false;
+    };
+    BestTrajectoryInfo m_bestResultInfo;
+
     struct TrajectoryGenerationInfo {
         float time;
         float angle;
