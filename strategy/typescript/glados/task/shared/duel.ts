@@ -12,9 +12,9 @@ import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 import * as ObserverRobot from "glados/observer/robot";
 import { Task } from "glados/task/base";
+import { CurvedMaxAccel } from "glados/trajectory/curvedmaxaccel";
 import { Direct } from "glados/trajectory/direct";
 import * as PathHelper from "glados/trajectory/pathhelper";
-import { ToTarget } from "glados/trajectory/totarget";
 import * as UtilDefense from "glados/util/defense";
 
 
@@ -91,10 +91,11 @@ export class Duel extends Task {
 		let obstacleTable = {
 			ignoreBall: true,
 			messaging: this._messaging,
-			ignoreOpponentRobots: true
+			ignoreOpponentRobots: true,
+			useCMAPathFinding: true
 		};
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
-		this._robot.trajectory.update(ToTarget, destinationPos, viewDir);
+		this._robot.trajectory.update(CurvedMaxAccel, destinationPos, viewDir);
 	}
 
 	private _contest() {
@@ -245,13 +246,14 @@ export class Duel extends Task {
 			messaging: this._messaging,
 			pathRadius: this._robot.shootRadius,
 			ignoreOpponentRobots: ignoreOpponents,
-			disableOpponentPrediction: true
+			disableOpponentPrediction: true,
+			useCMAPathFinding: true
 		};
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
 
 		debug.set("moveDest dribbler", moveDest);
 
-		this._robot.trajectory.update(ToTarget, moveDest, viewDir);
+		this._robot.trajectory.update(CurvedMaxAccel, moveDest, viewDir);
 		vis.addCircle("t/duel: ClearRobot", this._robot.pos, 0.15, vis.colors.redHalf, true);
 
 		// send the position of the ball
