@@ -99,6 +99,19 @@ static void pathClearObstacles(QTPath *wrapper, const FunctionCallbackInfo<Value
 }
 GENERATE_FUNCTIONS(pathClearObstacles);
 
+static void pathSeedRandom(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate * isolate = args.GetIsolate();
+    QTPath *wrapper = static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value());
+
+    Maybe<double> maybeSeed = args[0]->NumberValue(isolate->GetCurrentContext());
+    double seed = 0;
+    if (!maybeSeed.To(&seed)) {
+        return;
+    }
+    wrapper->abstractPath()->seedRandom(static_cast<uint32_t>(seed));
+}
+
 static void pathSetBoundary(QTPath *wrapper, const FunctionCallbackInfo<Value>& args, int offset)
 {
     Isolate * isolate = args.GetIsolate();
@@ -388,7 +401,8 @@ static QList<FunctionInfo> commonCallbacks = {
     { "addCircle",          pathAddCircle_new},
     { "addLine",            pathAddLine_new},
     { "addRect",            pathAddRect_new},
-    { "addTriangle",        pathAddTriangle_new}};
+    { "addTriangle",        pathAddTriangle_new},
+    { "seedRandom",         pathSeedRandom}};
 
 static QList<FunctionInfo> rrtPathCallbacks = {
     { "setProbabilities",   pathSetProbabilities_new},

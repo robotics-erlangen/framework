@@ -39,15 +39,20 @@
  * \brief Create an RNG instance
  * \param seed RNG seed
  */
-RNG::RNG(uint32_t seed)
+RNG::RNG(uint32_t s)
 {
-    if (seed == 0) {
+    if (s == 0) {
         timeval tv;
         gettimeofday(&tv, NULL);
-        seed = tv.tv_sec * 1000 * 1000 + tv.tv_usec;
+        s = tv.tv_sec * 1000 * 1000 + tv.tv_usec;
     }
 
-    m_s1 = LCG(seed);
+    seed(s);
+}
+
+void RNG::seed(uint32_t s)
+{
+    m_s1 = LCG(s);
     m_s2 = LCG(m_s1);
     m_s3 = LCG(m_s2);
 

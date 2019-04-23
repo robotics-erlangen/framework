@@ -138,6 +138,9 @@ interface PathObjectCommon {
 	 */
 	addTriangle(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number,
 		lineWidth: number, name: string | undefined, priority: number): void;
+
+	/** Seeds the random number generator used for the path finding */
+	seedRandom(seed: number): void;
 }
 
 interface PathObjectRRT extends PathObjectCommon {
@@ -231,6 +234,11 @@ export class Path {
 
 	robotId() {
 		return this._robotId;
+	}
+
+	public seedRandom(seed: number) {
+		this._inst.seedRandom(seed);
+		this._trajectoryInst.seedRandom(seed);
 	}
 
 	private addObstaclesToPath(path: PathObjectCommon) {

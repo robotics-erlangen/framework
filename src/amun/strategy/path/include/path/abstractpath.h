@@ -90,6 +90,7 @@ public:
     AbstractPath(const AbstractPath&) = delete;
     AbstractPath& operator=(const AbstractPath&) = delete;
     virtual void reset() = 0;
+    void seedRandom(uint32_t seed);
 
     // basic world parameters
     void setRadius(float r);

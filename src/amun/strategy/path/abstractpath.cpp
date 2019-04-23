@@ -158,6 +158,11 @@ AbstractPath::~AbstractPath()
     delete m_rng;
 }
 
+void AbstractPath::seedRandom(uint32_t seed)
+{
+    m_rng->seed(seed);
+}
+
 void AbstractPath::setRadius(float r)
 {
     m_radius = r;

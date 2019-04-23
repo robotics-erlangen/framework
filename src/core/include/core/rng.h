@@ -30,6 +30,7 @@ public:
     explicit RNG(uint32_t seed = 0);
 
 public:
+    void seed(uint32_t seed);
     uint32_t uniformInt();
     double uniform();
     double uniformPositive();
