@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include "trajectorypath.h"
+#include "core/rng.h"
 
 bool TrajectoryPath::MovingCircle::intersects(Vector pos, float time) const
 {
@@ -37,9 +38,7 @@ bool TrajectoryPath::MovingCircle::intersectsAtAnyTime(Vector pos) const
 
 TrajectoryPath::TrajectoryPath(uint32_t rng_seed) :
     AbstractPath(rng_seed)
-{
-
-}
+{ }
 
 void TrajectoryPath::reset()
 {
@@ -198,28 +197,23 @@ bool TrajectoryPath::checkMidPoint(Vector midSpeed, const float time, const floa
     infoSecondPart.fastEndSpeed = true;
     infoSecondPart.v0 = midSpeed;
     infoSecondPart.v1 = v1;
+    // TODO: this could go wrong if we want to stay at the current robot position
     infoSecondPart.desiredDistance = Vector(0, 0); // do not use desired distance calculation
     m_generationInfo.push_back(infoSecondPart);
     return true;
 }
 
-static float random(float min, float max)
-{
-    float range = max - min;
-    return min + float(rand()) * range / RAND_MAX;
-}
-
 Vector TrajectoryPath::randomPointInField()
 {
-    return Vector(random(minX, fieldSize.x), random(minY, fieldSize.y));
+    return Vector(m_rng->uniformFloat(minX, fieldSize.x), m_rng->uniformFloat(minY, fieldSize.y));
 }
 
 Vector TrajectoryPath::randomSpeed()
 {
     Vector testSpeed;
     do {
-        testSpeed.x = random(-MAX_SPEED, MAX_SPEED);
-        testSpeed.y = random(-MAX_SPEED, MAX_SPEED);
+        testSpeed.x = m_rng->uniformFloat(-MAX_SPEED, MAX_SPEED);
+        testSpeed.y = m_rng->uniformFloat(-MAX_SPEED, MAX_SPEED);
     } while (testSpeed.lengthSquared() > MAX_SPEED_SQUARED);
     return testSpeed;
 }
@@ -274,16 +268,16 @@ void TrajectoryPath::findPathEndInObstacle()
         if (i == ITERATIONS / 3 && !m_bestResultInfo.valid) {
             m_bestEndPointDistance = std::numeric_limits<float>::infinity();
         }
-        int randVal = rand() % 1024;
+        int randVal = m_rng->uniformInt() % 1024;
         Vector testPoint;
         if (randVal < 300) {
             // sample random point around actual end point
             float testRadius = std::min(m_bestEndPointDistance, 0.3f);
-            testPoint = distance + Vector(random(-testRadius, testRadius), random(-testRadius, testRadius));
+            testPoint = distance + Vector(m_rng->uniformFloat(-testRadius, testRadius), m_rng->uniformFloat(-testRadius, testRadius));
         } else if (randVal < 800 || m_bestEndPointDistance < 0.3f) {
             // sample random point around last best end point
             float testRadius = std::min(m_bestEndPointDistance, 0.3f);
-            testPoint = m_bestEndPoint + Vector(random(-testRadius, testRadius), random(-testRadius, testRadius));
+            testPoint = m_bestEndPoint + Vector(m_rng->uniformFloat(-testRadius, testRadius), m_rng->uniformFloat(-testRadius, testRadius));
         } else {
             // sample random point in field
             testPoint = randomPointInField();
@@ -360,14 +354,14 @@ void TrajectoryPath::escapeObstacles()
             break;
         }
         float time, angle;
-        if (rand() % 2 == 0) {
+        if (m_rng->uniformInt() % 2 == 0) {
             // random sampling
-            time = random(0.4f, 5.0f);
-            angle = random(0, float(2 * M_PI));
+            time = m_rng->uniformFloat(0.4f, 5.0f);
+            angle = m_rng->uniformFloat(0, float(2 * M_PI));
         } else {
             // sample around current best point
-            time = std::max(0.05f, m_bestEscapingTime + random(-0.1f, 0.1f));
-            angle = m_bestEscapingAngle + random(-0.1f, 0.1f);
+            time = std::max(0.05f, m_bestEscapingTime + m_rng->uniformFloat(-0.1f, 0.1f));
+            angle = m_bestEscapingAngle + m_rng->uniformFloat(-0.1f, 0.1f);
         }
         SpeedProfile p = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(v0, Vector(0, 0), time, angle, ACCELERATION, MAX_SPEED);
         if (p.isValid()) {
@@ -452,18 +446,18 @@ void TrajectoryPath::findPathAlphaT()
         SamplingMode mode;
         // TODO: reuse random number
         if (!m_bestResultInfo.valid) {
-            if (i < 20 || rand() % 2 == 0) {
+            if (i < 20 || m_rng->uniformInt() % 2 == 0) {
                 mode = LAST_BEST;
             } else {
                 mode = TOTAL_RANDOM;
             }
         } else {
-            if (rand() % 1024 < 150) {
+            if (m_rng->uniformInt() % 1024 < 150) {
                 mode = TOTAL_RANDOM;
             } else if (m_bestResultInfo.time < lastTrajectoryInfo.time + 0.05f) {
                 mode = CURRENT_BEST;
             } else {
-                mode = rand() % 2 == 0 ? CURRENT_BEST : LAST_BEST;
+                mode = m_rng->uniformInt() % 2 == 0 ? CURRENT_BEST : LAST_BEST;
             }
         }
 
@@ -471,11 +465,11 @@ void TrajectoryPath::findPathAlphaT()
         float angle, time;
         if (mode == TOTAL_RANDOM) {
             speed = randomSpeed();
-            angle = random(0, float(2 * M_PI));
+            angle = m_rng->uniformFloat(0, float(2 * M_PI));
             // TODO: adjust max time
             float maxTime = m_bestResultInfo.valid ? std::max(0.01f, m_bestResultInfo.time - 0.1f) : 5.0f;
             // TODO: dont sample invalid times
-            time = random(0, maxTime);
+            time = m_rng->uniformFloat(0, maxTime);
         } else {
             // TODO: wenn etwas gut war weiter in die gleiche richtung gehen
             // TODO: gaussian sampling
@@ -486,10 +480,10 @@ void TrajectoryPath::findPathAlphaT()
                 chosenMidSpeed *= 0.9f;
             }
             do {
-                speed = chosenMidSpeed + Vector(random(-RADIUS, RADIUS), random(-RADIUS, RADIUS));
+                speed = chosenMidSpeed + Vector(m_rng->uniformFloat(-RADIUS, RADIUS), m_rng->uniformFloat(-RADIUS, RADIUS));
             } while (speed.lengthSquared() >= MAX_SPEED_SQUARED);
-            angle = info.angle + random(-0.1f, 0.1f);
-            time = info.centerTime + random(-0.1f, 0.1f);
+            angle = info.angle + m_rng->uniformFloat(-0.1f, 0.1f);
+            time = info.centerTime + m_rng->uniformFloat(-0.1f, 0.1f);
         }
         checkMidPoint(speed, time, angle);
     }

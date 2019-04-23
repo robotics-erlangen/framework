@@ -34,6 +34,7 @@ public:
     uint32_t uniformInt();
     double uniform();
     double uniformPositive();
+    float uniformFloat(float min, float max);
     Vector2 uniformVector();
     double normal(double sigma, double mean = 0.0);
     Vector2 normalVector(double sigma, double mean = 0.0);
@@ -51,6 +52,11 @@ private:
 inline double RNG::uniform()
 {
     return uniformInt() / 4294967296.0;
+}
+
+inline float RNG::uniformFloat(float min, float max)
+{
+    return min + (uniformInt() / 4294967296.0f) * (max - min);
 }
 
 /*!
