@@ -32,6 +32,7 @@ private:
     struct MovingCircle
     {
         bool intersects(Vector pos, float time) const;
+        float distance(Vector pos, float time) const;
         bool intersectsAtAnyTime(Vector pos) const;
 
         Vector startPos;
@@ -60,10 +61,11 @@ private:
     bool isInStaticObstacle(Vector point) const;
     bool isInMovingObstacle(Vector point, float time) const;
     bool isTrajectoryInObstacle(const SpeedProfile &profile, float timeOffset, float slowDownTime, Vector startPos);
+    float minObstacleDistance(const SpeedProfile &profile, float timeOffset, float slowDownTime, Vector startPos);
     void findPathAlphaT();
     void findPathEndInObstacle();
     bool testEndPoint(Vector endPoint);
-    bool checkMidPoint(Vector midSpeed, const float time, const float angle, bool debug = false);
+    bool checkMidPoint(Vector midSpeed, const float time, const float angle);
     Vector randomSpeed();
     Vector randomPointInField();
     std::vector<Point> getResultPath() const;
@@ -116,6 +118,8 @@ private:
     float ACCELERATION = 3.0f;
     // constants
     const float TOTAL_SLOW_DOWN_TIME = 0.3f; // must be the same as in alphatimetrajectory
+    const float OBSTACLE_AVOIDANCE_RADIUS = 0.1f;
+    const float OBSTACLE_AVOIDANCE_BONUS = 1.2f;
 };
 
 #endif // TRAJECTORYPATH_H
