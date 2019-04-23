@@ -81,7 +81,12 @@ export class TrajectoryPath extends TrajectoryHandler {
 		let trajectory = this._robot.path.getTrajectory(startPos, startSpeed, targetPos, endSpeed,
 			maxSpeed, accelerate);
 		if (TRAJECTORY_PATH_DEBUG) {
-			TrajectoryPath.visualizeTrajectory(trajectory, vis.colors.orange);
+			let pathColor = vis.colors.yellow;
+			if (TrajectoryPath.endPos(robotPos, trajectory).distanceTo(targetPos) > 0.005) {
+				// orange path if target can't be reached
+				pathColor = vis.colors.orange;
+			}
+			TrajectoryPath.visualizeTrajectory(trajectory, pathColor);
 			// TrajectoryPath.plotSpeed(trajectory);
 		}
 		this.lastTrajectory = trajectory;
@@ -122,6 +127,13 @@ export class TrajectoryPath extends TrajectoryHandler {
 			return 0;
 		}
 		return trajectory[trajectory.length - 1].time;
+	}
+
+	private static endPos(robotPos: Position, trajectory: Trajectory) {
+		if (trajectory.length === 0) {
+			return robotPos;
+		}
+		return trajectory[trajectory.length - 1].pos;
 	}
 
 	private static plotSpeed(trajectory: Trajectory) {
