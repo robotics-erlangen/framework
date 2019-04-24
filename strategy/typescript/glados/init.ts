@@ -5,7 +5,9 @@ import "base/base";
 import { log } from "base/amun";
 import * as Cache from "base/cache";
 import * as debug from "base/debug";
+import * as Debugger from "base/debugger";
 import * as Entrypoints from "base/entrypoints";
+import * as GameController from "base/gamecontroller";
 import * as plot from "base/plot";
 import { Process } from "base/process";
 import * as Processor from "base/processor";
@@ -18,7 +20,6 @@ import "glados/observer/initReplay";
 import "glados/tutorials/index";
 import "glados/util/lineup";
 
-import * as Debugger from "base/debugger";
 import * as Ball from "glados/observer/ball";
 import * as ErrorObserver from "glados/observer/error";
 import * as Goal from "glados/observer/goal";
@@ -39,6 +40,7 @@ class PreProc implements Process {
 		Referee.illustrateRefereeStates();
 		ErrorObserver._update();
 		Goal._update();
+		GameController._update();
 	}
 
 	isFinished(): boolean {
