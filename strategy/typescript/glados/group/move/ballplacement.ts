@@ -147,7 +147,7 @@ export class BallPlacement extends Move {
 				};
 				taskAssignments[this.SHOOTER] = {
 					class: MoveToPos,
-					params: [ Field.limitToField(this._computedShooterPos), undefined, undefined, undefined, true, SHOOTER_OBSTACLES, true ],
+					params: [ Field.limitToField(this._computedShooterPos, -0.15), undefined, undefined, undefined, true, SHOOTER_OBSTACLES, true ],
 					restart: true
 				};
 
