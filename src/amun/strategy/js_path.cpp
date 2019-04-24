@@ -336,16 +336,17 @@ static void trajectoryPathGet(const FunctionCallbackInfo<Value>& args)
 static void trajectoryAddMovingCircle(const FunctionCallbackInfo<Value>& args)
 {
     Isolate * isolate = args.GetIsolate();
-    float startTime, endTime, x, y, speedX, speedY, radius, priority;
+    float startTime, endTime, x, y, speedX, speedY, accX, accY, radius, priority;
 
     if (!verifyNumber(isolate, args[0], startTime) || !verifyNumber(isolate, args[1], endTime) ||
             !verifyNumber(isolate, args[2], x) || !verifyNumber(isolate, args[3], y) ||
             !verifyNumber(isolate, args[4], speedX) || !verifyNumber(isolate, args[5], speedY) ||
-            !verifyNumber(isolate, args[6], radius) || !verifyNumber(isolate, args[7], priority)) {
+            !verifyNumber(isolate, args[6], accX) || !verifyNumber(isolate, args[7], accY) ||
+            !verifyNumber(isolate, args[8], radius) || !verifyNumber(isolate, args[9], priority)) {
         return;
     }
     static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value())->trajectoryPath()->addMovingCircle(Vector(x, y), Vector(speedX, speedY),
-                                                                                                       startTime, endTime, radius, priority);
+                                                                                                       Vector(accX, accY), startTime, endTime, radius, priority);
 }
 
 static void drawTree(Typescript *thread, const KdTree *tree)

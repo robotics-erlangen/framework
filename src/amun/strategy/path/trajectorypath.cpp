@@ -26,7 +26,7 @@ bool TrajectoryPath::MovingCircle::intersects(Vector pos, float time) const
     if (time < startTime || time > endTime) {
         return false;
     }
-    Vector centerAtTime = startPos + speed * time;
+    Vector centerAtTime = startPos + speed * time + acc * (0.5f * time * time);
     return centerAtTime.distanceSq(pos) < radius * radius;
 }
 
@@ -35,13 +35,8 @@ float TrajectoryPath::MovingCircle::distance(Vector pos, float time) const
     if (time < startTime || time > endTime) {
         return std::numeric_limits<float>::max();
     }
-    Vector centerAtTime = startPos + speed * time;
+    Vector centerAtTime = startPos + speed * time + acc * (0.5f * time * time);
     return centerAtTime.distance(pos) - radius;
-}
-
-bool TrajectoryPath::MovingCircle::intersectsAtAnyTime(Vector pos) const
-{
-    return LineSegment(startPos, startPos + speed * (endTime - startTime)).distance(pos) < radius;
 }
 
 
@@ -75,11 +70,12 @@ void TrajectoryPath::clearObstaclesCustom()
     m_movingCircles.clear();
 }
 
-void TrajectoryPath::addMovingCircle(Vector startPos, Vector speed, float startTime, float endTime, float radius, int prio)
+void TrajectoryPath::addMovingCircle(Vector startPos, Vector speed, Vector acc, float startTime, float endTime, float radius, int prio)
 {
     MovingCircle m;
     m.startPos = startPos;
     m.speed = speed;
+    m.acc = acc;
     m.startTime = startTime;
     m.endTime = endTime;
     m.radius = radius + m_radius;

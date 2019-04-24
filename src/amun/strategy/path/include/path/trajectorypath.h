@@ -33,10 +33,10 @@ private:
     {
         bool intersects(Vector pos, float time) const;
         float distance(Vector pos, float time) const;
-        bool intersectsAtAnyTime(Vector pos) const;
 
         Vector startPos;
         Vector speed;
+        Vector acc;
         float startTime;
         float endTime;
         float radius;
@@ -55,7 +55,7 @@ public:
     TrajectoryPath(uint32_t rng_seed);
     void reset() override;
     std::vector<Point> calculateTrajectory(Vector s0, Vector v0, Vector s1, Vector v1, float maxSpeed, float acceleration);
-    void addMovingCircle(Vector startPos, Vector speed, float startTime, float endTime, float radius, int prio);
+    void addMovingCircle(Vector startPos, Vector speed, Vector acc, float startTime, float endTime, float radius, int prio);
 
 private:
     bool isInStaticObstacle(Vector point) const;

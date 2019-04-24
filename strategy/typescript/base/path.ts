@@ -193,7 +193,7 @@ interface PathObjectTrajectory extends PathObjectCommon {
 
 	// uses relative times
 	addMovingCircle(startTime: number, endTime: number, startX: number, startY: number, speedX: number,
-		speedY: number, radius: number, priority: number): void;
+		speedY: number, accX: number, accY: number, radius: number, priority: number): void;
 }
 
 interface AmunPath {
@@ -313,19 +313,28 @@ export class Path {
 	}
 
 	/** WARNING: only adds the obstacle to the trajectory path finding */
-	addMovingCircle(startTime: number, endTime: number, startPos: Position, speed: Speed, radius: number, priority: number) {
+	addMovingCircle(startTime: number, endTime: number, startPos: Position, speed: Speed, acc: Vector, radius: number, priority: number) {
 		startPos = Coordinates.toGlobal(startPos);
 		speed = Coordinates.toGlobal(speed);
+		acc = Coordinates.toGlobal(acc);
 
 		if (!isPerformanceMode) {
 			let endPos = startPos + speed * (endTime - startTime);
+			let positions = [];
+			let SAMPLES = 15;
+			let timeStep = (endTime - startTime) / (SAMPLES - 1);
+			for (let i = 0;i < 15;i++) {
+				let time = i * timeStep;
+				let pos = startPos + speed * time + acc * (0.5 * time * time);
+				positions.push(pos);
+			}
 			vis.addCircleRaw(`obstacles: ${this._robotId}`, startPos, radius, vis.colors.orangeHalf, true);
-			vis.addCircleRaw(`obstacles: ${this._robotId}`, endPos, radius, vis.colors.orangeHalf, true);
-			vis.addPathRaw(`obstacles: ${this._robotId}`, [startPos, endPos], vis.colors.orangeHalf);
+			vis.addCircleRaw(`obstacles: ${this._robotId}`, positions[SAMPLES - 1], radius, vis.colors.orangeHalf, true);
+			vis.addPathRaw(`obstacles: ${this._robotId}`, positions, vis.colors.orangeHalf);
 		}
 
 		this._trajectoryInst.addMovingCircle(startTime, endTime, startPos.x, startPos.y,
-			speed.x, speed.y, radius, priority);
+			speed.x, speed.y, acc.x, acc.y, radius, priority);
 	}
 
 	addLine(start_x: number, start_y: number, stop_x: number, stop_y: number, radius: number, name?: string, prio: number = 0) {
