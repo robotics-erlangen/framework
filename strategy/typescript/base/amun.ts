@@ -62,7 +62,7 @@ interface AmunPublic {
 	sendGameControllerMessage(type: "TeamToController", message: pb.gameController.TeamToController): void;
 	sendGameControllerMessage(type: "AutoRefToController", message: pb.gameController.AutoRefToController): void;
 	sendGameControllerMessage(type: "AutoRefMessage", message: pb.gameController.AutoRefMessage): void;
-	getGameControllerMessage(): pb.gameController.ControllerToTeam | pb.gameController.ControllerToAutoRef;
+	getGameControllerMessage(): pb.gameController.ControllerToTeam | pb.gameController.ControllerToAutoRef | undefined;
 
 	// only in debug
 	/** Send arbitrary commands. Only works in debug mode */
