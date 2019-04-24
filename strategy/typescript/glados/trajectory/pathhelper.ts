@@ -330,6 +330,17 @@ function ignoreRobot(ownRobot: FriendlyRobot, robot: Robot): boolean {
 	return false;
 }
 
+function addMovingRobotObstacle(path: Path, otherRobot: Robot, safetyDistance: number) {
+	let ACCELERATION = 3.0;
+	let speedLength = otherRobot.speed.length();
+	let brakeTime = speedLength / ACCELERATION;
+	let brakePos = otherRobot.speed * (brakeTime * 0.5);
+	path.addMovingCircle(0, brakeTime, otherRobot.pos, otherRobot.speed, -otherRobot.speed.copy().setLength(ACCELERATION), otherRobot.radius + safetyDistance, Priorities.ROBOT);
+	if (brakeTime < 2) {
+		path.addMovingCircle(brakeTime, 2, otherRobot.pos + brakePos, new Vector(0, 0), new Vector(0, 0), otherRobot.radius + safetyDistance, Priorities.ROBOT);
+	}
+}
+
 function addRobotObstacles(path: Path, robot: FriendlyRobot, ignoreFriendlyRobots?: boolean,
 		ignoreOpponentRobots?: boolean, disableOpponentPrediction?: boolean, useCMA?: boolean) {
 	// TODO. better robot prediction and time estimation
@@ -356,7 +367,7 @@ function addRobotObstacles(path: Path, robot: FriendlyRobot, ignoreFriendlyRobot
 					if (r.speed.lengthSq() < 0.2 * 0.2) {
 						path.addCircle(r.pos.x, r.pos.y, r.radius + safetyDistance, `OwnRobot_${r.id}`, Priorities.ROBOT);
 					} else {
-						path.addMovingCircle(0, 1, r.pos, r.speed, r.radius + safetyDistance * 2, Priorities.ROBOT);
+						addMovingRobotObstacle(path, r, safetyDistance * 2);
 					}
 				}
 			}
@@ -389,7 +400,7 @@ function addRobotObstacles(path: Path, robot: FriendlyRobot, ignoreFriendlyRobot
 					if (r.speed.lengthSq() < 0.2 * 0.2) {
 						path.addCircle(r.pos.x, r.pos.y, r.radius + 0.01, `OppRobot_${r.id}`, Priorities.ROBOT);
 					} else {
-						path.addMovingCircle(0, 1, r.pos, r.speed, r.radius + 0.04, Priorities.ROBOT);
+						addMovingRobotObstacle(path, r, 0.04);
 					}
 				}
 			}

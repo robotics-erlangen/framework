@@ -41,7 +41,7 @@ class AlternatingObstacle {
 		vis.addCircle("moving obstacles test", startPos, this.radius, vis.colors.red);
 		let remainingTime = this.totalTime - (World.Time - this.startTime);
 		let speedDirection = (this.pos2 - this.pos1).setLength(this.speed);
-		robot.path.addMovingCircle(0, remainingTime, startPos, speedDirection, this.radius, 100);
+		robot.path.addMovingCircle(0, remainingTime, startPos, speedDirection, new Vector(0, 0), this.radius, 100);
 	}
 }
 
