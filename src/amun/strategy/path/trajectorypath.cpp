@@ -129,7 +129,7 @@ float TrajectoryPath::minObstacleDistance(const SpeedProfile &profile, float tim
     for (int i = 0;i<40;i++) {
         float time = totalTime * i / 39.0f;
         Vector pos = slowDownTime > 0 ? profile.positionForTimeSlowDown(time, slowDownTime) : profile.positionForTime(time);
-        if (!pointInPlayfield(pos, m_radius)) {
+        if (!pointInPlayfield(pos + startPos, m_radius)) {
             return -1.0f;
         }
         // static obstacles
