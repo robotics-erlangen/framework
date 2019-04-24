@@ -15,27 +15,6 @@ import * as MovesHelper from "glados/util/moveshelper";
 
 let G = World.Geometry;
 
-function sort(distances: {distance: number, robot: FriendlyRobot}[]) {
-		let i = 1;
-		for (let v of distances) {
-			v.distance = v.robot.pos.distanceToSq(World.Ball.pos);
-		}
-		while (distances[i + 1]) {
-			if (distances[i].distance > distances[i + 1].distance) {
-				let tmp = distances[i];
-				distances[i] = distances[i + 1];
-				distances[i + 1] = tmp;
-				if (i !== 1) {
-					i = i - 1;
-				} else {
-					i = i + 1;
-				}
-			} else {
-				i = i + 1;
-			}
-		}
-	}
-
 export class WindshieldWiper extends Move {
 	public static MIN_ROBOTS: number = 1;
 	public static MAX_ROBOTS: number = 5;
@@ -66,14 +45,17 @@ export class WindshieldWiper extends Move {
 		super(robots, messaging);
 		this._state = "init";
 		this._distances = [];
-		for (let v of this._robots) {
-			this._distances.push({distance: 0, robot: v});
+		for (let r of this._robots) {
+			this._distances.push({
+				distance: r.pos.distanceToSq(World.Ball.pos),
+				robot: r
+			});
 		}
+		this._distances.sort((a: { distance: number }, b: { distance: number }) => a.distance - b.distance);
 		this._positions = [];
 		for (let i = 0;i < this._robots.length;i++) {
 			this._positions.push(new Vector((MathUtil.sign(World.Ball.pos.x)) * (i / WindshieldWiper.MAX_ROBOTS - 0.5) * G.FieldWidth * 0.75, G.FieldHeightQuarter * (8 / (5 + i))));
 		}
-		sort(this._distances);
 	}
 
 
