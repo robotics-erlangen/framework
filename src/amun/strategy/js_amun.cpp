@@ -173,7 +173,6 @@ static void amunSetCommand(const FunctionCallbackInfo<Value>& args)
 
     // set robot movement command
     if (!checkNumberOfArguments(isolate, 3, args.Length())) {
-        t->throwException("Invalid number of arguments");
         return;
     }
     RobotCommandInfo commandInfo;
@@ -195,7 +194,6 @@ static void amunSetCommands(const FunctionCallbackInfo<Value>& args)
 
     // set robot movement command
     if (!checkNumberOfArguments(isolate, 1, args.Length()) || !args[0]->IsArray()) {
-        t->throwException("Invalid number of arguments");
         return;
     }
     Local<Array> commands = Local<Array>::Cast(args[0]);
