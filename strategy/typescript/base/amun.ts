@@ -152,7 +152,7 @@ declare global {
 
 amun = {
 	...amun,
-	isDebug: true, // TODO
+	isDebug: (<any> amun.isDebug)(),
 	isPerformanceMode: amun.getPerformanceMode!()
 };
 
