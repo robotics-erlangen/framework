@@ -583,7 +583,7 @@ void TrajectoryPath::findPathAlphaT()
             const BestTrajectoryInfo &info = mode == CURRENT_BEST ? m_bestResultInfo : lastTrajectoryInfo;
             const float RADIUS = 0.2f;
             Vector chosenMidSpeed = info.midSpeed;
-            while (info.midSpeed.lengthSquared() > MAX_SPEED_SQUARED) {
+            while (chosenMidSpeed.lengthSquared() > MAX_SPEED_SQUARED) {
                 chosenMidSpeed *= 0.9f;
             }
             do {
