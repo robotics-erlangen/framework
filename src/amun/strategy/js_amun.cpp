@@ -750,6 +750,16 @@ static void amunTryCatch(const FunctionCallbackInfo<Value>& args)
     t->tryCatch(tryBlock, thenFun, catchBlock, element, printStackTrace);
 }
 
+static void amunIsDebug(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = args.GetIsolate();
+    if (!checkNumberOfArguments(isolate, 0, args.Length())) {
+        return;
+    }
+    Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
+    args.GetReturnValue().Set(t->isDebug());
+}
+
 struct FunctionInfo {
     const char *name;
     void(*function)(FunctionCallbackInfo<Value> const &);
@@ -792,7 +802,9 @@ void registerAmunJsCallbacks(Isolate *isolate, Local<Object> global, Typescript 
         { "sendGameControllerMessage",   amunSendGameControllerMessage},
         { "getGameControllerMessage",    amunGetGameControllerMessage},
         { "connectGameController",       amunConnectGameController},
-        { "tryCatch",       amunTryCatch}};
+        { "tryCatch",       amunTryCatch},
+        { "isDebug",        amunIsDebug}
+    };
 
     Local<Object> amunObject = Object::New(isolate);
     Local<String> amunStr = String::NewFromUtf8(isolate, "amun", NewStringType::kNormal).ToLocalChecked();
