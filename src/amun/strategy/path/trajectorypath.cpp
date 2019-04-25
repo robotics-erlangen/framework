@@ -380,13 +380,12 @@ void TrajectoryPath::findPathEndInObstacle()
 
 std::pair<int, float> TrajectoryPath::trajectoryObstacleScore(const SpeedProfile &speedProfile)
 {
-    // TODO: ensure that all priorities are > 0
     const int FIELD_BOUNDARY_PRIO = 1;
     float totalTime = speedProfile.time();
     const float SAMPLING_INTERVAL = 0.005f;
     int samples = int(totalTime / SAMPLING_INTERVAL) + 1;
 
-    int currentBestObstaclePrio = 0;
+    int currentBestObstaclePrio = -1;
     float currentBestObstacleTime = 0;
     for (int i = 0;i<samples;i++) {
         float time;
@@ -397,7 +396,7 @@ std::pair<int, float> TrajectoryPath::trajectoryObstacleScore(const SpeedProfile
         }
 
         Vector pos = speedProfile.positionForTime(time) + s0;
-        int obstaclePriority = 0;
+        int obstaclePriority = -1;
         if (!pointInPlayfield(pos, m_radius)) {
             obstaclePriority = FIELD_BOUNDARY_PRIO;
         }
@@ -440,12 +439,9 @@ void TrajectoryPath::escapeObstacles()
     int bestPrio = lastResult.first;
     float bestObstacleTime = lastResult.second;
     float bestTotalTime = p.time();
+    float bestTargetDistance = p.positionForTime(bestTotalTime).distance(distance);
 
     for (int i = 0;i<100;i++) {
-        if (bestPrio == 0) {
-            // TODO: signal caller that a path can be found an sample around the found one
-            break;
-        }
         float time, angle;
         if (m_rng->uniformInt() % 2 == 0) {
             // random sampling
@@ -460,11 +456,19 @@ void TrajectoryPath::escapeObstacles()
         if (p.isValid()) {
             auto result = trajectoryObstacleScore(p);
             float trajectoryTime = p.time();
-            if (result.first < bestPrio || (result.first == bestPrio && result.second < bestObstacleTime) ||
-                    (result.first == bestPrio && result.second == bestObstacleTime && trajectoryTime < bestTotalTime)) {
+            bool isBestResult;
+            float targetDistance = p.positionForTime(trajectoryTime).distance(distance);
+            if (bestPrio < 0 && result.first < 0) {
+                isBestResult = targetDistance < bestTargetDistance;
+            } else {
+                isBestResult = result.first < bestPrio || (result.first == bestPrio && result.second < bestObstacleTime) ||
+                        (result.first == bestPrio && result.second == bestObstacleTime && trajectoryTime < bestTotalTime);
+            }
+            if (isBestResult) {
                 bestPrio = result.first;
                 bestObstacleTime = result.second;
                 bestTotalTime = trajectoryTime;
+                bestTargetDistance = targetDistance;
                 m_bestEscapingTime = time;
                 m_bestEscapingAngle = angle;
             }

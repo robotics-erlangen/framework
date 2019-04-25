@@ -127,7 +127,7 @@ private:
     // for end point in obstacle
     Vector m_bestEndPoint = Vector(0, 0);
     float m_bestEndPointDistance;
-    // for escaping obstacles
+    // for escaping obstacles (or no path is possible)
     float m_bestEscapingTime = 2;
     float m_bestEscapingAngle = 0;
 
