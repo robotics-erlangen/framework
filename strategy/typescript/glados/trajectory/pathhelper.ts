@@ -23,6 +23,7 @@ export const Priorities = {
 	ROBOT: 92,
 	// The obstacle in t/a/shoot should have the same priority as the ball obstacle here
 	BALL: 84,
+	OUT_OF_FIELD: 80,
 	EVACUATE_GOAL: 76,
 	// The obstacle in t/s/ballescort should have the same priority as the inner_ball obstacle here
 	INNER_BALL: 68,
@@ -303,6 +304,8 @@ function setDefaultObstacles(path: Path, robot: FriendlyRobot, ignoreBall?: bool
 
 	// set radius for path finding
 	path.setRadius(radius);
+
+	path.setOutOfFieldObstaclePriority(Priorities.OUT_OF_FIELD);
 
 	if (!noSeedTarget) {
 		addSeedTargets(path, robot);
