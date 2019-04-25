@@ -387,6 +387,7 @@ std::pair<int, float> TrajectoryPath::trajectoryObstacleScore(const SpeedProfile
 
     int currentBestObstaclePrio = -1;
     float currentBestObstacleTime = 0;
+    float minStaticObstacleDistance = std::numeric_limits<float>::max();
     for (int i = 0;i<samples;i++) {
         float time;
         if (i < samples-1) {
@@ -401,8 +402,12 @@ std::pair<int, float> TrajectoryPath::trajectoryObstacleScore(const SpeedProfile
             obstaclePriority = FIELD_BOUNDARY_PRIO;
         }
         for (const auto obstacle : m_obstacles) {
-            if (obstacle->prio > obstaclePriority && obstacle->distance(pos) < m_radius) {
-                obstaclePriority = obstacle->prio;
+            if (obstacle->prio > obstaclePriority) {
+                float distance = obstacle->distance(pos);
+                minStaticObstacleDistance = std::min(minStaticObstacleDistance, distance);
+                if (distance < m_radius) {
+                    obstaclePriority = obstacle->prio;
+                }
             }
         }
         for (const auto &o : m_movingCircles) {
@@ -428,7 +433,11 @@ std::pair<int, float> TrajectoryPath::trajectoryObstacleScore(const SpeedProfile
             }
         }
     }
-    return {currentBestObstaclePrio, currentBestObstacleTime};
+    if (currentBestObstaclePrio == -1) {
+        return {-1, minStaticObstacleDistance};
+    } else {
+        return {currentBestObstaclePrio, currentBestObstacleTime};
+    }
 }
 
 void TrajectoryPath::escapeObstacles()
@@ -456,9 +465,10 @@ void TrajectoryPath::escapeObstacles()
         if (p.isValid()) {
             auto result = trajectoryObstacleScore(p);
             float trajectoryTime = p.time();
-            bool isBestResult;
+            bool isBestResult = false;
             float targetDistance = p.positionForTime(trajectoryTime).distance(distance);
             if (bestPrio < 0 && result.first < 0) {
+                targetDistance += std::min(0.2f, result.second);
                 isBestResult = targetDistance < bestTargetDistance;
             } else {
                 isBestResult = result.first < bestPrio || (result.first == bestPrio && result.second < bestObstacleTime) ||
