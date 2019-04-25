@@ -198,6 +198,8 @@ interface PathObjectTrajectory extends PathObjectCommon {
 	addMovingLine(startPosX1: number, startPosY1: number, speedX1: number, speedY1: number, accX1: number,
 		accY1: number, startPosX2: number, startPosY2: number, speedX2: number, speedY2: number,
 		accX2: number, accY2: number, startTime: number, endTime: number, width: number, prio: number): void;
+
+	setOutOfFieldPrio(prio: number): void;
 }
 
 interface AmunPath {
@@ -442,6 +444,10 @@ export class Path {
 			y = -y;
 		}
 		this._inst.addSeedTarget(x, y);
+	}
+
+	setOutOfFieldObstaclePriority(prio: number) {
+		this._trajectoryInst.setOutOfFieldPrio(prio);
 	}
 }
 

@@ -370,6 +370,16 @@ static void trajectoryAddMovingLine(const FunctionCallbackInfo<Value>& args)
                                                                     startTime, endTime, width, priority);
 }
 
+static void trajectorySetOutOfFieldObstaclePriority(const FunctionCallbackInfo<Value> &args)
+{
+    Isolate * isolate = args.GetIsolate();
+    float prio;
+    if (!verifyNumber(isolate, args[0], prio)) {
+        return;
+    }
+    static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value())->trajectoryPath()->setOutOfFieldObstaclePriority(static_cast<int>(prio));
+}
+
 static void drawTree(Typescript *thread, const KdTree *tree)
 {
     if (tree == nullptr) {
@@ -436,7 +446,8 @@ static QList<FunctionInfo> rrtPathCallbacks = {
 static QList<FunctionInfo> trajectoryPathCallbacks = {
     { "calculateTrajectory", trajectoryPathGet },
     { "addMovingCircle",    trajectoryAddMovingCircle},
-    { "addMovingLine",      trajectoryAddMovingLine}};
+    { "addMovingLine",      trajectoryAddMovingLine},
+    { "setOutOfFieldPrio",  trajectorySetOutOfFieldObstaclePriority}};
 
 static void pathObjectAddFunctions(Isolate *isolate, const QList<FunctionInfo> &callbacks, Local<Object> &pathWrapper,
                                    Local<External> &pathObject)

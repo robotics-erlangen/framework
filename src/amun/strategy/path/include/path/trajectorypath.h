@@ -74,6 +74,7 @@ public:
     std::vector<Point> calculateTrajectory(Vector s0, Vector v0, Vector s1, Vector v1, float maxSpeed, float acceleration);
     void addMovingCircle(Vector startPos, Vector speed, Vector acc, float startTime, float endTime, float radius, int prio);
     void addMovingLine(Vector startPos1, Vector speed1, Vector acc1, Vector startPos2, Vector speed2, Vector acc2, float startTime, float endTime, float width, int prio);
+    void setOutOfFieldObstaclePriority(int prio) { m_outOfFieldPriority = prio; }
 
 private:
     bool isInStaticObstacle(Vector point) const;
@@ -97,6 +98,7 @@ private:
     // TODO: use variable convention
     float minX, maxX, minY, maxY;
     Vector minPoint, maxPoint, fieldSize;
+    int m_outOfFieldPriority = 1;
 
     // frame input data
     Vector v0, v1, distance, s0, s1;

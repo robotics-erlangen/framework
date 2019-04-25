@@ -380,7 +380,6 @@ void TrajectoryPath::findPathEndInObstacle()
 
 std::pair<int, float> TrajectoryPath::trajectoryObstacleScore(const SpeedProfile &speedProfile)
 {
-    const int FIELD_BOUNDARY_PRIO = 1;
     float totalTime = speedProfile.time();
     const float SAMPLING_INTERVAL = 0.005f;
     int samples = int(totalTime / SAMPLING_INTERVAL) + 1;
@@ -399,7 +398,7 @@ std::pair<int, float> TrajectoryPath::trajectoryObstacleScore(const SpeedProfile
         Vector pos = speedProfile.positionForTime(time) + s0;
         int obstaclePriority = -1;
         if (!pointInPlayfield(pos, m_radius)) {
-            obstaclePriority = FIELD_BOUNDARY_PRIO;
+            obstaclePriority = m_outOfFieldPriority;
         }
         for (const auto obstacle : m_obstacles) {
             if (obstacle->prio > obstaclePriority) {
