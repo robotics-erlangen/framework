@@ -26,7 +26,8 @@ bool TrajectoryPath::MovingCircle::intersects(Vector pos, float time) const
     if (time < startTime || time > endTime) {
         return false;
     }
-    Vector centerAtTime = startPos + speed * time + acc * (0.5f * time * time);
+    float t = time - startTime;
+    Vector centerAtTime = startPos + speed * t + acc * (0.5f * t * t);
     return centerAtTime.distanceSq(pos) < radius * radius;
 }
 
@@ -35,8 +36,30 @@ float TrajectoryPath::MovingCircle::distance(Vector pos, float time) const
     if (time < startTime || time > endTime) {
         return std::numeric_limits<float>::max();
     }
-    Vector centerAtTime = startPos + speed * time + acc * (0.5f * time * time);
+    float t = time - startTime;
+    Vector centerAtTime = startPos + speed * t + acc * (0.5f * t * t);
     return centerAtTime.distance(pos) - radius;
+}
+
+bool TrajectoryPath::MovingLine::intersects(Vector pos, float time) const
+{
+    if (time < startTime || time > endTime) {
+        return false;
+    }
+    float t = time - startTime;
+    const Vector p1 = startPos1 + speed1 * t + acc1 * (0.5f * t * t);
+    const Vector p2 = startPos2 + speed2 * t + acc2 * (0.5f * t * t);
+    return LineSegment(p1, p2).distance(pos) < width;
+}
+
+float TrajectoryPath::MovingLine::distance(Vector pos, float time) const
+{
+    if (time < startTime || time > endTime) {
+        return std::numeric_limits<float>::max();
+    }
+    const Vector p1 = startPos1 + speed1 * time;
+    const Vector p2 = startPos2 + speed2 * time;
+    return LineSegment(p1, p2).distance(pos) - width;
 }
 
 
@@ -68,6 +91,7 @@ std::vector<TrajectoryPath::Point> TrajectoryPath::calculateTrajectory(Vector s0
 void TrajectoryPath::clearObstaclesCustom()
 {
     m_movingCircles.clear();
+    m_movingLines.clear();
 }
 
 void TrajectoryPath::addMovingCircle(Vector startPos, Vector speed, Vector acc, float startTime, float endTime, float radius, int prio)
@@ -81,6 +105,23 @@ void TrajectoryPath::addMovingCircle(Vector startPos, Vector speed, Vector acc, 
     m.radius = radius + m_radius;
     m.prio = prio;
     m_movingCircles.push_back(m);
+}
+
+void TrajectoryPath::addMovingLine(Vector startPos1, Vector speed1, Vector acc1, Vector startPos2, Vector speed2,
+                                   Vector acc2, float startTime, float endTime, float width, int prio)
+{
+    MovingLine l;
+    l.startPos1 = startPos1;
+    l.speed1 = speed1;
+    l.acc1 = acc1;
+    l.startPos2 = startPos2;
+    l.speed2 = speed2;
+    l.acc2 = acc2;
+    l.startTime = startTime;
+    l.endTime = endTime;
+    l.width = width + m_radius;
+    l.prio = prio;
+    m_movingLines.push_back(l);
 }
 
 bool TrajectoryPath::isInStaticObstacle(Vector point) const
@@ -99,6 +140,11 @@ bool TrajectoryPath::isInStaticObstacle(Vector point) const
 bool TrajectoryPath::isInMovingObstacle(Vector point, float time) const
 {
     for (const auto &o : m_movingCircles) {
+        if (o.intersects(point, time)) {
+            return true;
+        }
+    }
+    for (const auto &o : m_movingLines) {
         if (o.intersects(point, time)) {
             return true;
         }
@@ -142,6 +188,13 @@ float TrajectoryPath::minObstacleDistance(const SpeedProfile &profile, float tim
         }
         // moving obstacles
         for (const auto &o : m_movingCircles) {
+            float d = o.distance(pos + startPos, time + timeOffset);
+            if (d <= 0) {
+                return d;
+            }
+            minDistance = std::min(minDistance, d);
+        }
+        for (const auto &o : m_movingLines) {
             float d = o.distance(pos + startPos, time + timeOffset);
             if (d <= 0) {
                 return d;
@@ -327,8 +380,8 @@ void TrajectoryPath::findPathEndInObstacle()
 
 std::pair<int, float> TrajectoryPath::trajectoryObstacleScore(const SpeedProfile &speedProfile)
 {
-    // TODO: ensure that all priorities are > 0, < FIELD_BOUNDARY_PRIO
-    const int FIELD_BOUNDARY_PRIO = 10000;
+    // TODO: ensure that all priorities are > 0
+    const int FIELD_BOUNDARY_PRIO = 1;
     float totalTime = speedProfile.time();
     const float SAMPLING_INTERVAL = 0.005f;
     int samples = int(totalTime / SAMPLING_INTERVAL) + 1;
@@ -354,6 +407,11 @@ std::pair<int, float> TrajectoryPath::trajectoryObstacleScore(const SpeedProfile
             }
         }
         for (const auto &o : m_movingCircles) {
+            if (o.prio > obstaclePriority && o.intersects(pos, time)) {
+                obstaclePriority = o.prio;
+            }
+        }
+        for (const auto &o : m_movingLines) {
             if (o.prio > obstaclePriority && o.intersects(pos, time)) {
                 obstaclePriority = o.prio;
             }

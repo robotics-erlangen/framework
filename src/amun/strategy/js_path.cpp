@@ -349,6 +349,27 @@ static void trajectoryAddMovingCircle(const FunctionCallbackInfo<Value>& args)
                                                                                                        Vector(accX, accY), startTime, endTime, radius, priority);
 }
 
+static void trajectoryAddMovingLine(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate * isolate = args.GetIsolate();
+    float startTime, endTime, x1, y1, speedX1, speedY1, accX1, accY1, x2, y2, speedX2, speedY2,
+            accX2, accY2, width, priority;
+
+    if (!verifyNumber(isolate, args[0], startTime) || !verifyNumber(isolate, args[1], endTime) ||
+            !verifyNumber(isolate, args[2], x1) || !verifyNumber(isolate, args[3], y1) ||
+            !verifyNumber(isolate, args[4], speedX1) || !verifyNumber(isolate, args[5], speedY1) ||
+            !verifyNumber(isolate, args[6], accX1) || !verifyNumber(isolate, args[7], accY1) ||
+            !verifyNumber(isolate, args[7], x2) || !verifyNumber(isolate, args[9], y2) ||
+            !verifyNumber(isolate, args[10], speedX2) || !verifyNumber(isolate, args[11], speedY2) ||
+            !verifyNumber(isolate, args[12], accX2) || !verifyNumber(isolate, args[13], accY2) ||
+            !verifyNumber(isolate, args[14], width) || !verifyNumber(isolate, args[15], priority)) {
+        return;
+    }
+    static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value())->trajectoryPath()->addMovingLine(Vector(x1, y1), Vector(speedX1, speedY1),
+                                                                    Vector(accX1, accY1), Vector(x2, y2), Vector(speedX2, speedY2), Vector(accX2, accY2),
+                                                                    startTime, endTime, width, priority);
+}
+
 static void drawTree(Typescript *thread, const KdTree *tree)
 {
     if (tree == nullptr) {
@@ -414,7 +435,8 @@ static QList<FunctionInfo> rrtPathCallbacks = {
 
 static QList<FunctionInfo> trajectoryPathCallbacks = {
     { "calculateTrajectory", trajectoryPathGet },
-    { "addMovingCircle",    trajectoryAddMovingCircle}};
+    { "addMovingCircle",    trajectoryAddMovingCircle},
+    { "addMovingLine",      trajectoryAddMovingLine}};
 
 static void pathObjectAddFunctions(Isolate *isolate, const QList<FunctionInfo> &callbacks, Local<Object> &pathWrapper,
                                    Local<External> &pathObject)

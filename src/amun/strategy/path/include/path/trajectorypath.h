@@ -43,6 +43,23 @@ private:
         int prio;
     };
 
+    struct MovingLine
+    {
+        bool intersects(Vector pos, float time) const;
+        float distance(Vector pos, float time) const;
+
+        Vector startPos1;
+        Vector speed1;
+        Vector acc1;
+        Vector startPos2;
+        Vector speed2;
+        Vector acc2;
+        float startTime;
+        float endTime;
+        float width;
+        int prio;
+    };
+
 public:
     struct Point
     {
@@ -56,6 +73,7 @@ public:
     void reset() override;
     std::vector<Point> calculateTrajectory(Vector s0, Vector v0, Vector s1, Vector v1, float maxSpeed, float acceleration);
     void addMovingCircle(Vector startPos, Vector speed, Vector acc, float startTime, float endTime, float radius, int prio);
+    void addMovingLine(Vector startPos1, Vector speed1, Vector acc1, Vector startPos2, Vector speed2, Vector acc2, float startTime, float endTime, float width, int prio);
 
 private:
     bool isInStaticObstacle(Vector point) const;
@@ -84,6 +102,7 @@ private:
     Vector v0, v1, distance, s0, s1;
     bool exponentialSlowDown;
     QVector<MovingCircle> m_movingCircles;
+    QVector<MovingLine> m_movingLines;
 
     // current best trajectory data
     struct BestTrajectoryInfo {

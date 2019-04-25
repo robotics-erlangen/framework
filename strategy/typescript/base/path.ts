@@ -194,6 +194,10 @@ interface PathObjectTrajectory extends PathObjectCommon {
 	// uses relative times
 	addMovingCircle(startTime: number, endTime: number, startX: number, startY: number, speedX: number,
 		speedY: number, accX: number, accY: number, radius: number, priority: number): void;
+
+	addMovingLine(startPosX1: number, startPosY1: number, speedX1: number, speedY1: number, accX1: number,
+		accY1: number, startPosX2: number, startPosY2: number, speedX2: number, speedY2: number,
+		accX2: number, accY2: number, startTime: number, endTime: number, width: number, prio: number): void;
 }
 
 interface AmunPath {
@@ -319,7 +323,6 @@ export class Path {
 		acc = Coordinates.toGlobal(acc);
 
 		if (!isPerformanceMode) {
-			let endPos = startPos + speed * (endTime - startTime);
 			let positions = [];
 			let SAMPLES = 15;
 			let timeStep = (endTime - startTime) / (SAMPLES - 1);
@@ -357,6 +360,38 @@ export class Path {
 		}
 		this.lineObstacles.push({start_x: start_x, start_y: start_y, stop_x: stop_x, stop_y: stop_y,
 			radius: radius, name: name, prio: prio});
+	}
+
+	/** WARNING: only adds the obstacle to the trajectory path finding */
+	addMovingLine(startTime: number, endTime: number, startPos1: Position, speed1: Speed, acc1: Vector,
+			startPos2: Position, speed2: Speed, acc2: Vector, width: number, priority: number) {
+		startPos1 = Coordinates.toGlobal(startPos1);
+		speed1 = Coordinates.toGlobal(speed1);
+		acc1 = Coordinates.toGlobal(acc1);
+		startPos2 = Coordinates.toGlobal(startPos2);
+		speed2 = Coordinates.toGlobal(speed2);
+		acc2 = Coordinates.toGlobal(acc2);
+
+		if (!isPerformanceMode) {
+			let positions1 = [], positions2 = [];
+			let SAMPLES = 15;
+			let timeStep = (endTime - startTime) / (SAMPLES - 1);
+			for (let i = 0;i < 15;i++) {
+				let time = i * timeStep;
+				let pos1 = startPos1 + speed1 * time + acc1 * (0.5 * time * time);
+				let pos2 = startPos2 + speed2 * time + acc2 * (0.5 * time * time);
+				positions1.push(pos1);
+				positions2.push(pos2);
+			}
+			vis.addPathRaw(`obstacles: ${this._robotId}`, [startPos1, positions1[SAMPLES - 1]], vis.colors.orangeHalf, undefined, undefined, width);
+			vis.addPathRaw(`obstacles: ${this._robotId}`, [startPos2, positions2[SAMPLES - 1]], vis.colors.orangeHalf, undefined, undefined, width);
+			vis.addPathRaw(`obstacles: ${this._robotId}`, positions1, vis.colors.orangeHalf);
+			vis.addPathRaw(`obstacles: ${this._robotId}`, positions2, vis.colors.orangeHalf);
+		}
+
+		this._trajectoryInst.addMovingLine(startTime, endTime, startPos1.x, startPos1.y,
+			speed1.x, speed1.y, acc1.x, acc1.y, startPos2.x, startPos2.y, speed2.x, speed2.y,
+			acc2.x, acc2.y, width, priority);
 	}
 
 	addRect(start_x: number, start_y: number, stop_x: number, stop_y: number, name?: string, prio: number = 0) {
