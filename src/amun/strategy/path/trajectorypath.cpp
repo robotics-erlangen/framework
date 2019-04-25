@@ -512,8 +512,8 @@ void TrajectoryPath::findPathAlphaT()
     m_bestResultInfo.valid = false;
 
     // check trajectory from last iteration
-    if (m_bestResultInfo.valid) {
-        checkMidPoint(m_bestResultInfo.midSpeed, m_bestResultInfo.centerTime, m_bestResultInfo.angle);
+    if (lastTrajectoryInfo.valid) {
+        checkMidPoint(lastTrajectoryInfo.midSpeed, lastTrajectoryInfo.centerTime, lastTrajectoryInfo.angle);
     }
 
     // check if start point is in obstacle
