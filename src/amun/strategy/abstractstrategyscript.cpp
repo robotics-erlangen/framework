@@ -24,15 +24,15 @@
 #include <google/protobuf/util/delimited_message_util.h>
 #include "compilerregistry.h"
 
-AbstractStrategyScript::AbstractStrategyScript(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled, CompilerRegistry* registry) :
+AbstractStrategyScript::AbstractStrategyScript(const Timer *timer, StrategyType type, bool refboxControlEnabled, CompilerRegistry* registry) :
     m_timer(timer),
     m_type(type),
-    m_debugEnabled(debugEnabled),
     m_refboxControlEnabled(refboxControlEnabled),
     m_hasDebugger(false),
     m_debugHelper(nullptr),
     m_isInternalAutoref(false),
     m_isTournamentMode(false),
+    m_debugEnabled(false),
     m_compilerRegistry(registry)
 { }
 

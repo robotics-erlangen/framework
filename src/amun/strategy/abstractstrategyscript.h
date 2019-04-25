@@ -46,7 +46,7 @@ class AbstractStrategyScript : public QObject
 {
     Q_OBJECT
 public:
-    AbstractStrategyScript(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled, CompilerRegistry* registry = nullptr);
+    AbstractStrategyScript(const Timer *timer, StrategyType type, bool refboxControlEnabled, CompilerRegistry* registry = nullptr);
     ~AbstractStrategyScript() override;
     AbstractStrategyScript(const AbstractStrategyScript&) = delete;
     AbstractStrategyScript& operator=(const AbstractStrategyScript&) = delete;
@@ -73,6 +73,7 @@ public:
     void setIsReplay(bool replay) { m_isReplay = replay; }
     void setFlipped(bool flipped) { m_isFlipped = flipped; }
     void setTournamentMode(bool isTournament) { m_isTournamentMode = isTournament; }
+    void setDebug(bool enableDebug) { m_debugEnabled = enableDebug; }
     void setCurrentStatus(const Status &status) { m_currentStatus = status; }
     const Status &getCurrentStatus() const { return m_currentStatus; }
 
@@ -104,6 +105,7 @@ public:
     bool hasRefereeReply() const { return m_refereeReplies.size() > 0; }
     bool isFlipped() const { return m_isFlipped; }
     bool isTournamentMode() const { return m_isTournamentMode; }
+    bool isDebug() const { return m_debugEnabled; }
 
     qint64 time() const;
 
@@ -150,7 +152,6 @@ protected:
 
     const Timer *m_timer;
     const StrategyType m_type;
-    const bool m_debugEnabled;
     const bool m_refboxControlEnabled;
 
     QString m_errorMsg;
@@ -161,6 +162,7 @@ protected:
     bool m_isReplay;
     bool m_isFlipped;
     bool m_isTournamentMode;
+    bool m_debugEnabled;
     QDir m_baseDir;
     QString m_filename;
 

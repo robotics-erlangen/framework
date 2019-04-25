@@ -588,7 +588,7 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
             takeStrategyDebugStatus();
 #ifdef V8_FOUND
         } else if (Typescript::canHandle(filename)) {
-            Typescript *t = new Typescript(m_timer, m_type, m_debugEnabled, m_refboxControlEnabled, m_compilerRegistry);
+            Typescript *t = new Typescript(m_timer, m_type, m_refboxControlEnabled, m_compilerRegistry);
             m_strategy = t;
             // insert m_debugStatus into m_strategy
             // this has to happen before newDebuggagleStrategy is called
@@ -614,6 +614,7 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
     m_strategy->setIsReplay(m_isReplay);
     m_strategy->setFlipped(m_isFlipped);
     m_strategy->setTournamentMode(m_isTournamentMode);
+    m_strategy->setDebug(m_debugEnabled);
 
     if (createNewStrategy) {
         // delay reload until strategy is no longer running
