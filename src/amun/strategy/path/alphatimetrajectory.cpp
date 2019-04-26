@@ -316,6 +316,13 @@ float AlphaTimeTrajectory::minTimeExactEndSpeed(Vector v0, Vector v1, float acc)
     }
 }
 
+float AlphaTimeTrajectory::minTimeFastEndSpeed(Vector v0, Vector v1, float acc)
+{
+    float endSpeedX = std::max(std::min(v0.x, std::max(v1.x, 0.0f)), std::min(v1.x, 0.0f));
+    float endSpeedY = std::max(std::min(v0.y, std::max(v1.y, 0.0f)), std::min(v1.y, 0.0f));
+    return minTimeExactEndSpeed(v0, Vector(endSpeedX, endSpeedY), acc);
+}
+
 
 // trajectory calculation
 static float constantDistance(float v, float time)
@@ -653,23 +660,6 @@ static Vector minTimePos(Vector startSpeed, Vector endSpeed)
     return Vector(dist(startSpeed.x, endSpeed.x, alpha), dist(startSpeed.y, endSpeed.y, std::sqrt(1 - alpha * alpha)));
 }
 
-static float minTime(Vector startSpeed, Vector endSpeed)
-{
-    // TODO: dont recalculate these vectors everywhere
-    Vector diff = endSpeed - startSpeed;
-    Vector absDiff(std::abs(diff.x), std::abs(diff.y));
-
-    if (absDiff.x == 0.0f && absDiff.y == 0.0f) {
-        return 0;
-    }
-    // tx = absDiff.x / alpha
-    // ty = absDiff.y / sqrt(1 - alpha * alpha)
-    // => Solve tx =!= ty
-    float alpha = absDiff.x / std::sqrt(absDiff.x * absDiff.x + absDiff.y * absDiff.y);
-    // TODO: this can be calculated more efficiently
-    return std::min(absDiff.x / alpha, absDiff.y / std::sqrt(1 - alpha * alpha));
-}
-
 static Vector fastEndSpeedCenterTimePos(Vector startSpeed, Vector endSpeed, float time)
 {
     float endSpeedX = std::max(std::min(startSpeed.x, std::max(endSpeed.x, 0.0f)), std::min(endSpeed.x, 0.0f));
@@ -714,9 +704,9 @@ SpeedProfile AlphaTimeTrajectory::findTrajectoryFastEndSpeed(Vector v0, Vector v
     Vector estimateCenterPos = fastEndSpeedCenterTimePos(v0, v1, estimatedTime);
 
     float estimatedAngle = normalizeAnglePositive((position - estimateCenterPos).angle());
-    // TODO: custom minTime for fast endspeed mode
     // calculate better estimate for the time
-    estimatedTime = std::max(estimatedTime, minTime(v0, v1) + 0.01f);
+    float minimumTime = minTimeFastEndSpeed(v0, v1, acc);
+    estimatedTime = std::max(estimatedTime, minimumTime + 0.01f);
 
     // TODO: can this even still occur??
     if (std::isnan(estimatedTime)) {
@@ -737,11 +727,8 @@ SpeedProfile AlphaTimeTrajectory::findTrajectoryFastEndSpeed(Vector v0, Vector v
     float lastAngleDiff = 0;
 
     for (int i = 0;i<(highPrecision ? 50 : 30);i++) {
-        // TODO: calculate minimum time and just dont got below that
-        if (!isInputValidFastEndSpeed(v0, v1, currentTime, acc)) {
-            currentTime *= 1.5f;
-            continue;
-        }
+        currentTime = std::max(currentTime, minimumTime);
+
         Vector endPos;
         float assumedSpeed;
         if (slowDownTime > 0) {
@@ -805,7 +792,8 @@ SpeedProfile AlphaTimeTrajectory::findTrajectoryExactEndSpeed(Vector v0, Vector 
 
     float estimatedAngle = normalizeAnglePositive((position - estimateCenterPos).angle());
     // calculate better estimate for the time
-    estimatedTime = std::max(estimatedTime, minTime(v0, v1) + 0.01f);
+    float minimumTime = minTimeExactEndSpeed(v0, v1, acc);
+    estimatedTime = std::max(estimatedTime, minimumTime + 0.01f);
 
     // TODO: can this even still occur??
     if (std::isnan(estimatedTime)) {
@@ -826,11 +814,8 @@ SpeedProfile AlphaTimeTrajectory::findTrajectoryExactEndSpeed(Vector v0, Vector 
     float lastAngleDiff = 0;
 
     for (int i = 0;i<30;i++) {
-        // TODO: calculate minimum time and just dont got below that
-        if (!isInputValidExactEndSpeed(v0, v1, currentTime, acc)) {
-            currentTime *= 1.5f;
-            continue;
-        }
+        currentTime = std::max(currentTime, minimumTime);
+
         Vector endPos;
         float assumedSpeed;
         if (slowDownTime > 0) {
@@ -894,7 +879,7 @@ std::vector<Vector> AlphaTimeTrajectory::searchPoints(Vector v0, Vector v1, Vect
 
     float estimatedAngle = normalizeAnglePositive((position - estimateCenterPos).angle());
     // calculate better estimate for the time
-    estimatedTime = std::max(estimatedTime, minTime(v0, v1) + 0.01f);
+    estimatedTime = std::max(estimatedTime, minTimeExactEndSpeed(v0, v1, acc) + 0.01f);
 
     // TODO: can this even still occur??
     if (std::isnan(estimatedTime)) {

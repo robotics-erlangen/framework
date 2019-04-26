@@ -136,6 +136,7 @@ public:
     static bool isInputValidExactEndSpeed(Vector v0, Vector v1, float time, float acc);
     static bool isInputValidFastEndSpeed(Vector v0, Vector v1, float time, float acc);
     static float minTimeExactEndSpeed(Vector v0, Vector v1, float acc);
+    static float minTimeFastEndSpeed(Vector v0, Vector v1, float acc);
 
     static std::vector<Vector> searchPoints(Vector v0, Vector v1, Vector position, float acc, float vMax, float slowDownTime);
 
