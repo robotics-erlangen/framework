@@ -80,7 +80,8 @@ private:
     bool isInStaticObstacle(Vector point) const;
     bool isInMovingObstacle(Vector point, float time) const;
     bool isTrajectoryInObstacle(const SpeedProfile &profile, float timeOffset, float slowDownTime, Vector startPos);
-    float minObstacleDistance(const SpeedProfile &profile, float timeOffset, float slowDownTime, Vector startPos);
+    // return {min distance of trajectory to obstacles, min distance of last point to obstacles}
+    std::pair<float, float> minObstacleDistance(const SpeedProfile &profile, float timeOffset, float slowDownTime, Vector startPos);
     void findPathAlphaT();
     void findPathEndInObstacle();
     bool testEndPoint(Vector endPoint);

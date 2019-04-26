@@ -168,21 +168,25 @@ bool TrajectoryPath::isTrajectoryInObstacle(const SpeedProfile &profile, float t
     return false;
 }
 
-float TrajectoryPath::minObstacleDistance(const SpeedProfile &profile, float timeOffset, float slowDownTime, Vector startPos)
+std::pair<float, float> TrajectoryPath::minObstacleDistance(const SpeedProfile &profile, float timeOffset, float slowDownTime, Vector startPos)
 {
     float totalTime = slowDownTime > 0 ? profile.timeWithSlowDown(slowDownTime) : profile.time();
-    float minDistance = std::numeric_limits<float>::max();
-    for (int i = 0;i<40;i++) {
-        float time = totalTime * i / 39.0f;
+    float totalMinDistance = std::numeric_limits<float>::max();
+    float lastPointDistance = 0;
+
+    const int DIVISIONS = 40;
+    for (int i = 0;i<DIVISIONS;i++) {
+        float time = totalTime * i / float(DIVISIONS);
         Vector pos = slowDownTime > 0 ? profile.positionForTimeSlowDown(time, slowDownTime) : profile.positionForTime(time);
         if (!pointInPlayfield(pos + startPos, m_radius)) {
-            return -1.0f;
+            return {-1.0f, -1.0f};
         }
+        float minDistance = std::numeric_limits<float>::max();
         // static obstacles
         for (const auto obstacle : m_obstacles) {
             float d = obstacle->distance(pos + startPos) - m_radius;
             if (d <= 0) {
-                return d;
+                return {d, d};
             }
             minDistance = std::min(minDistance, d);
         }
@@ -190,19 +194,24 @@ float TrajectoryPath::minObstacleDistance(const SpeedProfile &profile, float tim
         for (const auto &o : m_movingCircles) {
             float d = o.distance(pos + startPos, time + timeOffset);
             if (d <= 0) {
-                return d;
+                return {d, d};
             }
             minDistance = std::min(minDistance, d);
         }
         for (const auto &o : m_movingLines) {
             float d = o.distance(pos + startPos, time + timeOffset);
             if (d <= 0) {
-                return d;
+                return {d, d};
             }
             minDistance = std::min(minDistance, d);
         }
+
+        if (i == DIVISIONS-1) {
+            lastPointDistance = minDistance;
+        }
+        totalMinDistance = std::min(totalMinDistance, minDistance);
     }
-    return minDistance;
+    return {totalMinDistance, lastPointDistance};
 }
 
 bool TrajectoryPath::checkMidPoint(Vector midSpeed, const float time, const float angle)
@@ -241,18 +250,18 @@ bool TrajectoryPath::checkMidPoint(Vector midSpeed, const float time, const floa
     } else {
         firstPartTime = firstPart.time();
     }
-    float firstPartObstacleDist = minObstacleDistance(firstPart, 0, firstPartSlowDownTime, s0);
+    float firstPartObstacleDist = minObstacleDistance(firstPart, 0, firstPartSlowDownTime, s0).first;
     if (firstPartObstacleDist <= 0) {
         return false;
     }
     // TODO: calculate the offset while calculating the trajectory
-    float secondPartObstacleDist = minObstacleDistance(secondPart, firstPartTime, slowDownTime, s1 - secondPartOffset);
-    if (secondPartObstacleDist <= 0) {
+    auto secondPartObstacleDistances = minObstacleDistance(secondPart, firstPartTime, slowDownTime, s1 - secondPartOffset);
+    if (secondPartObstacleDistances.first <= 0) {
         return false;
     }
-    float minObstacleDist = std::min(firstPartObstacleDist, secondPartObstacleDist);
+    float minObstacleDist = std::min(firstPartObstacleDist, secondPartObstacleDistances.first);
     float obstacleDistExtraTime = 1;
-    if (minObstacleDist < OBSTACLE_AVOIDANCE_RADIUS) {
+    if (minObstacleDist < OBSTACLE_AVOIDANCE_RADIUS && secondPartObstacleDistances.second > OBSTACLE_AVOIDANCE_RADIUS) {
         obstacleDistExtraTime = OBSTACLE_AVOIDANCE_BONUS;
     }
     float biasedTrajectoryTime = (firstPartTime + secondPartTime) * obstacleDistExtraTime;
@@ -506,17 +515,21 @@ void TrajectoryPath::findPathAlphaT()
     float directSlowDownTime = exponentialSlowDown ? TOTAL_SLOW_DOWN_TIME : 0.0f;
     bool useHighPrecision = distance.length() < 0.1f && v1 == Vector(0, 0) && v0.length() < 0.2f;
     SpeedProfile direct = AlphaTimeTrajectory::findTrajectoryFastEndSpeed(v0, v1, distance, ACCELERATION, MAX_SPEED, directSlowDownTime, useHighPrecision);
-    if (direct.isValid() && minObstacleDistance(direct, 0, directSlowDownTime, s0) > OBSTACLE_AVOIDANCE_RADIUS) {
-        TrajectoryGenerationInfo info;
-        info.time = direct.inputTime;
-        info.angle = direct.inputAngle;
-        info.slowDownTime = directSlowDownTime;
-        info.fastEndSpeed = true;
-        info.v0 = v0;
-        info.v1 = v1;
-        info.desiredDistance = distance;
-        m_generationInfo.push_back(info);
-        return;
+    if (direct.isValid()) {
+        auto obstacleDistances = minObstacleDistance(direct, 0, directSlowDownTime, s0);
+        if (obstacleDistances.first > OBSTACLE_AVOIDANCE_RADIUS ||
+                (obstacleDistances.second > 0 && obstacleDistances.second < OBSTACLE_AVOIDANCE_RADIUS)) {
+            TrajectoryGenerationInfo info;
+            info.time = direct.inputTime;
+            info.angle = direct.inputAngle;
+            info.slowDownTime = directSlowDownTime;
+            info.fastEndSpeed = true;
+            info.v0 = v0;
+            info.v1 = v1;
+            info.desiredDistance = distance;
+            m_generationInfo.push_back(info);
+            return;
+        }
     }
 
     BestTrajectoryInfo lastTrajectoryInfo = m_bestResultInfo;
