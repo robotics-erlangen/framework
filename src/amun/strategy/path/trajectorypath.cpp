@@ -510,6 +510,28 @@ void TrajectoryPath::findPathAlphaT()
 {
     collectObstacles();
 
+    // check if start point is in obstacle
+    if (isInStaticObstacle(s0) || isInMovingObstacle(s0, 0)) {
+        escapeObstacles();
+        return;
+    }
+
+    // check if end point is in obstacle
+    if (isInStaticObstacle(s1)) {
+        for (const Obstacle *o : m_obstacles) {
+            float dist = o->distance(s1);
+            if (dist > 0.01f && dist < m_radius) {
+                s1 = o->projectOut(s1, m_radius, 0.03f);
+            }
+        }
+        distance = s1 - s0;
+        // test again, might have been moved into another obstacle
+        if (isInStaticObstacle(s1)) {
+            findPathEndInObstacle();
+            return;
+        }
+    }
+
     // check direct trajectory
     m_generationInfo.clear();
     float directSlowDownTime = exponentialSlowDown ? TOTAL_SLOW_DOWN_TIME : 0.0f;
@@ -540,18 +562,6 @@ void TrajectoryPath::findPathAlphaT()
     // check trajectory from last iteration
     if (lastTrajectoryInfo.valid) {
         checkMidPoint(lastTrajectoryInfo.midSpeed, lastTrajectoryInfo.centerTime, lastTrajectoryInfo.angle);
-    }
-
-    // check if start point is in obstacle
-    if (isInStaticObstacle(s0) || isInMovingObstacle(s0, 0)) {
-        escapeObstacles();
-        return;
-    }
-
-    // check if end point is in obstacle
-    if (isInStaticObstacle(s1)) {
-        findPathEndInObstacle();
-        return;
     }
 
     // normal search

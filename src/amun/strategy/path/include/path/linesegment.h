@@ -39,6 +39,7 @@ public:
     float distanceSigned(const Vector& pos) const;
     float distanceDirect(const Vector& pos) const;
     float distance(const LineSegment& segment) const;
+    Vector closestPoint(Vector v) const;
 
     //! Returns the start point of the line.
     const Vector& start() const { return m_start; }
@@ -141,6 +142,22 @@ inline float LineSegment::distance(const LineSegment& segment) const
     }
 
     return d;
+}
+
+inline Vector LineSegment::closestPoint(Vector v) const
+{
+    Vector dir = m_end - m_start;
+    if ((v - m_start).dot(dir) <= 0) {
+        return m_start;
+    } else if ((v - m_end).dot(dir) >= 0) {
+        return m_end;
+    }
+    float d1 = dir.x, d2 = dir.y;
+    float p1 = m_start.x, p2 = m_start.y;
+    float a1 = v.x, a2 = v.y;
+    float x1 = (d1 * d1 * a1 + d1 * d2 * (a2 - p2) + d2 * d2 * p1) / (d1 * d1 + d2 * d2);
+    float x2 = (d2 * d2 * a2 + d2 * d1 * (a1 - p1) + d1 * d1 * p2) / (d2 * d2 + d1 * d1);
+    return Vector(x1, x2);
 }
 
 #endif // LINESEGMENT_H

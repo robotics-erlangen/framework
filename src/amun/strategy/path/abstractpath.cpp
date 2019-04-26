@@ -32,6 +32,15 @@ float AbstractPath::Circle::distance(const LineSegment &segment) const
     return segment.distance(center) - radius;
 }
 
+Vector AbstractPath::Circle::projectOut(Vector v, float robotRadius, float extraDistance) const
+{
+    float dist = v.distance(center);
+    if (dist >= radius + robotRadius) {
+        return v;
+    }
+    return center + (v - center) * ((radius + extraDistance + robotRadius) / dist);
+}
+
 float AbstractPath::Line::distance(const Vector &v) const
 {
     return segment.distance(v) - width;
@@ -40,6 +49,16 @@ float AbstractPath::Line::distance(const Vector &v) const
 float AbstractPath::Line::distance(const LineSegment &segment) const
 {
     return segment.distance(this->segment) - width;
+}
+
+Vector AbstractPath::Line::projectOut(Vector v, float robotRadius, float extraDistance) const
+{
+    float dist = segment.distance(v);
+    if (dist >= width + robotRadius) {
+        return v;
+    }
+    Vector closest = segment.closestPoint(v);
+    return closest + (v - closest) * ((width + extraDistance + robotRadius) / dist);
 }
 
 float AbstractPath::Rect::distance(const Vector &v) const
