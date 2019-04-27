@@ -192,10 +192,11 @@ function _isGoalShot(): boolean {
 export let isGoalShot: () => boolean = Cache.forFrame(_isGoalShot);
 
 // @return disablePass bool - no obstacles for pass needed
-function addGoalObstacleShot(path: Path, robot: FriendlyRobot, messaging: MessageBox) {
+function addGoalObstacleShot(path: Path, robot: FriendlyRobot, messaging: MessageBox, useCMA: boolean) {
 	// let _, attackPos = next(messaging.attackPosition());
 	let attackPos = messaging.receiveSingleSender(MessageType.attackPosition)[1];
-	if (!attackPos) {
+	let attackTime = messaging.receiveSingleSender(MessageType.attackTime)[1];
+	if (!attackPos || attackTime == undefined) {
 		return;
 	}
 
@@ -216,8 +217,10 @@ function addGoalObstacleShot(path: Path, robot: FriendlyRobot, messaging: Messag
 	let shootDest = messaging.receiveSingleSender(MessageType.shootDestination)[1];
 	let disablePass = false;
 	let viewPos;
+	let shootSpeed = Constants.maxBallSpeed;
 	if (isGoalShot()) {
 		viewPos = World.Ball.pos;
+		shootSpeed = World.Ball.speed.length();
 		disablePass = true;
 	} else if (shootDest) {
 		if (G.OpponentGoal.distanceToSq(shootDest) <= G.GoalWidth * G.GoalWidth / 4) {
@@ -227,30 +230,52 @@ function addGoalObstacleShot(path: Path, robot: FriendlyRobot, messaging: Messag
 	if (viewPos) {
 		let leftGoal = G.OpponentGoalLeft;
 		let rightGoal = G.OpponentGoalRight;
-		path.addTriangle(viewPos.x, viewPos.y, leftGoal.x, leftGoal.y,
-			rightGoal.x, rightGoal.y, World.Ball.radius + 0.05, "goalShot", Priorities.GOAL_SHOT);
+		if (useCMA) {
+			path.addTriangle(viewPos.x, viewPos.y, leftGoal.x, leftGoal.y,
+				rightGoal.x, rightGoal.y, World.Ball.radius + 0.05, "goalShot", Priorities.GOAL_SHOT);
+		} else {
+			// no need to calculate the actual time, in 3 seconds it will definitively have reached the goal
+			let t = attackTime - World.Time;
+			path.addMovingLine(t, t + 3, viewPos, (leftGoal - viewPos).setLength(shootSpeed), new Vector(0, 0),
+				viewPos, (rightGoal - viewPos).setLength(shootSpeed), new Vector(0, 0), World.Ball.radius + 0.15, Priorities.GOAL_SHOT);
+		}
 	}
 	return disablePass;
 }
 
 
 let PASS_OBSTACLE_RADIUS = 0.2;
-function addFriendlyPassObstacle(path: Path, robot: FriendlyRobot, messaging: MessageBox, radius: number = PASS_OBSTACLE_RADIUS) {
+function addFriendlyPassObstacle(path: Path, robot: FriendlyRobot, messaging: MessageBox, useCMA: boolean, radius: number = PASS_OBSTACLE_RADIUS) {
 	// don't move between the ball and the main attacker
 	// relevant for incoming passes
 	let radiusRobot = robot.radius * 2 + 0.02;
 	let epsilonSq = robot.radius * robot.radius / 4;
 	let attackPosition = messaging.receiveSingleSender(MessageType.attackPosition)[1];
+	let attackTime = messaging.receiveSingleSender(MessageType.attackTime)[1];
 	let mainAttacker = messaging.receiveTrainer(MessageType.mainAttacker);
 	if (mainAttacker && robot !== mainAttacker) {
 		let dangerPos = attackPosition || mainAttacker.pos;
+		let dangerTime = attackTime != undefined ? attackTime : Physics.ballTravelTime(World.Ball, World.Ball.pos.distanceTo(dangerPos));
 		// ball - intercept
 		if (dangerPos.distanceToSq(World.Ball.pos) > epsilonSq) {
-			path.addLine(World.Ball.pos.x, World.Ball.pos.y, dangerPos.x, dangerPos.y, radius, "pass1", Priorities.PASS_MA_BALL);
+			if (useCMA) {
+				path.addLine(World.Ball.pos.x, World.Ball.pos.y, dangerPos.x, dangerPos.y, radius, "pass1", Priorities.PASS_MA_BALL);
+			} else {
+				// if the ball is currently very slow, there is no need to add a dedicated obstacle here
+				if (dangerTime < Infinity) {
+					let t = dangerTime - World.Time;
+					// TODO: add correct ball deceleration
+					path.addMovingCircle(0, t, World.Ball.pos, World.Ball.speed, new Vector(0, 0), radius, Priorities.PASS_MA_BALL);
+				}
+			}
 		}
 		// MA - intercept
 		if (attackPosition && attackPosition.distanceToSq(mainAttacker.pos) > epsilonSq) {
-			path.addLine(mainAttacker.pos.x, mainAttacker.pos.y, attackPosition.x, attackPosition.y, radiusRobot, "pass1", Priorities.PASS_MA_BALL);
+			if (useCMA) {
+				path.addLine(mainAttacker.pos.x, mainAttacker.pos.y, attackPosition.x, attackPosition.y, radiusRobot, "pass1", Priorities.PASS_MA_BALL);
+			} else {
+				// this obstacle is not necessary for trajectory path finding since robot obstacles are handled differently
+			}
 		}
 		let passInfoTable = messaging.receiveSingleSender(MessageType.passInfo)[1];
 		if (passInfoTable) {
@@ -259,8 +284,16 @@ function addFriendlyPassObstacle(path: Path, robot: FriendlyRobot, messaging: Me
 				if (passInfo.target && passInfo.target !== robot) {
 					let startPoint = passInfo.target.pos;
 					let endPoint = passInfo.ballPos;
-					path.addLine(endPoint.x, endPoint.y, dangerPos.x, dangerPos.y, radius, "pass2", Priorities.PASS_BALL_STRIKER);
-					path.addLine(startPoint.x, startPoint.y, endPoint.x, endPoint.y, radiusRobot, "pass2", Priorities.PASS_BALL_STRIKER);
+					if (useCMA) {
+						path.addLine(endPoint.x, endPoint.y, dangerPos.x, dangerPos.y, radius, "pass2", Priorities.PASS_BALL_STRIKER);
+						path.addLine(startPoint.x, startPoint.y, endPoint.x, endPoint.y, radiusRobot, "pass2", Priorities.PASS_BALL_STRIKER);
+					} else {
+						let ballTime = Physics.ballRollTime({speed: new Vector(Constants.maxBallSpeed, 0),
+							maxSpeed: Constants.maxBallSpeed}, dangerPos.distanceTo(endPoint));
+						let t = dangerTime - World.Time;
+						path.addMovingCircle(t, t + ballTime, dangerPos, (endPoint - dangerPos).setLength(Constants.maxBallSpeed),
+							new Vector(0, 0), radius, Priorities.PASS_BALL_STRIKER);
+					}
 				}
 
 			}
@@ -367,7 +400,7 @@ function addRobotObstacles(path: Path, robot: FriendlyRobot, ignoreFriendlyRobot
 					}
 				} else {
 					let safetyDistance = 0.02;
-					if (r.speed.lengthSq() < 0.2 * 0.2) {
+					if (r.speed.lengthSq() < 0.8 * 0.8) {
 						path.addCircle(r.pos.x, r.pos.y, r.radius + safetyDistance, `OwnRobot_${r.id}`, Priorities.ROBOT);
 					} else {
 						addMovingRobotObstacle(path, r, safetyDistance * 2);
@@ -400,7 +433,7 @@ function addRobotObstacles(path: Path, robot: FriendlyRobot, ignoreFriendlyRobot
 						path.addCircle(r.pos.x, r.pos.y, r.radius + safetyDistance, `OwnRobot_${r.id}`, Priorities.ROBOT);
 					}
 				} else {
-					if (r.speed.lengthSq() < 0.2 * 0.2) {
+					if (r.speed.lengthSq() < 0.8 * 0.8) {
 						path.addCircle(r.pos.x, r.pos.y, r.radius + 0.01, `OppRobot_${r.id}`, Priorities.ROBOT);
 					} else {
 						addMovingRobotObstacle(path, r, 0.04);
@@ -498,9 +531,9 @@ export function insertObstacles(robot: FriendlyRobot) {
 			throw new Error("");
 
 		}
-		let disablePass = addGoalObstacleShot(p.path, robot, p.messaging) || World.RefereeState === "Stop";
+		let disablePass = addGoalObstacleShot(p.path, robot, p.messaging, !!p.useCMAPathFinding) || World.RefereeState === "Stop";
 		if (!disablePass) {
-			addFriendlyPassObstacle(p.path, robot, p.messaging);
+			addFriendlyPassObstacle(p.path, robot, p.messaging, !!p.useCMAPathFinding);
 		}
 	}
 	if (!p.ignoreBallPlacementObstacle) {
