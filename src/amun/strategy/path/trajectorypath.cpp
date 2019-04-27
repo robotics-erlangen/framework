@@ -143,6 +143,14 @@ void TrajectoryPath::addFriendlyRobotTrajectoryObstacle(std::vector<Point> *obst
     if (obstacle->size() == 0) {
         return;
     }
+    float maxDistSq = 0;
+    for (const Point &p : *obstacle) {
+        maxDistSq = std::max(maxDistSq, p.pos.distanceSq((*obstacle)[0].pos));
+    }
+    if (maxDistSq < 0.03f * 0.03f) {
+        addCircle(obstacle->at(0).pos.x, obstacle->at(0).pos.y, radius + std::sqrt(maxDistSq), nullptr, prio);
+        return;
+    }
     FriendlyRobotObstacle o;
     o.trajectory = obstacle;
     o.radius = radius + m_radius;
