@@ -208,6 +208,44 @@ bool TrajectoryPath::isTrajectoryInObstacle(const SpeedProfile &profile, float t
     return false;
 }
 
+float TrajectoryPath::minObstacleDistance(Vector pos, float time, bool checkStatic)
+{
+    float minDistance = std::numeric_limits<float>::max();
+    // static obstacles
+    if (checkStatic) {
+        for (const auto obstacle : m_obstacles) {
+            float d = obstacle->distance(pos) - m_radius;
+            if (d <= 0) {
+                return d;
+            }
+            minDistance = std::min(minDistance, d);
+        }
+    }
+    // moving obstacles
+    for (const auto &o : m_movingCircles) {
+        float d = o.distance(pos, time);
+        if (d <= 0) {
+            return d;
+        }
+        minDistance = std::min(minDistance, d);
+    }
+    for (const auto &o : m_movingLines) {
+        float d = o.distance(pos, time);
+        if (d <= 0) {
+            return d;
+        }
+        minDistance = std::min(minDistance, d);
+    }
+    for (const auto &o : m_friendlyRobotObstacles) {
+        float d = o.distance(pos, time);
+        if (d <= 0) {
+            return d;
+        }
+        minDistance = std::min(minDistance, d);
+    }
+    return minDistance;
+}
+
 std::pair<float, float> TrajectoryPath::minObstacleDistance(const SpeedProfile &profile, float timeOffset, float slowDownTime, Vector startPos)
 {
     float totalTime = slowDownTime > 0 ? profile.timeWithSlowDown(slowDownTime) : profile.time();
@@ -215,48 +253,37 @@ std::pair<float, float> TrajectoryPath::minObstacleDistance(const SpeedProfile &
     float lastPointDistance = 0;
 
     const int DIVISIONS = 40;
+    Vector lastPos;
     for (int i = 0;i<DIVISIONS;i++) {
         float time = totalTime * i / float(DIVISIONS);
         Vector pos = slowDownTime > 0 ? profile.positionForTimeSlowDown(time, slowDownTime) : profile.positionForTime(time);
         if (!pointInPlayfield(pos + startPos, m_radius)) {
             return {-1.0f, -1.0f};
         }
-        float minDistance = std::numeric_limits<float>::max();
-        // static obstacles
-        for (const auto obstacle : m_obstacles) {
-            float d = obstacle->distance(pos + startPos) - m_radius;
-            if (d <= 0) {
-                return {d, d};
-            }
-            minDistance = std::min(minDistance, d);
-        }
-        // moving obstacles
-        for (const auto &o : m_movingCircles) {
-            float d = o.distance(pos + startPos, time + timeOffset);
-            if (d <= 0) {
-                return {d, d};
-            }
-            minDistance = std::min(minDistance, d);
-        }
-        for (const auto &o : m_movingLines) {
-            float d = o.distance(pos + startPos, time + timeOffset);
-            if (d <= 0) {
-                return {d, d};
-            }
-            minDistance = std::min(minDistance, d);
-        }
-        for (const auto &o : m_friendlyRobotObstacles) {
-            float d = o.distance(pos + startPos, time + timeOffset);
-            if (d <= 0) {
-                return {d, d};
-            }
-            minDistance = std::min(minDistance, d);
+        float minDistance = minObstacleDistance(pos + startPos, time + timeOffset, true);
+        if (minDistance < 0) {
+            return {minDistance, minDistance};
         }
 
         if (i == DIVISIONS-1) {
             lastPointDistance = minDistance;
+            lastPos = pos;
         }
         totalMinDistance = std::min(totalMinDistance, minDistance);
+    }
+
+    // try to avoid moving obstacles even when the robot reaches its goal
+    const float AFTER_STOP_AVOIDANCE_TIME = 0.5f;
+    if (totalTime < AFTER_STOP_AVOIDANCE_TIME) {
+        const float AFTER_STOP_INTERVAL = 0.03f;
+        for (int i = 0;i<int((AFTER_STOP_AVOIDANCE_TIME - totalTime) * (1.0f / AFTER_STOP_INTERVAL));i++) {
+            float t = timeOffset + totalTime + i * AFTER_STOP_INTERVAL;
+            float minDistance = minObstacleDistance(lastPos + startPos, t, false);
+            if (minDistance < 0) {
+                return {minDistance, minDistance};
+            }
+            totalMinDistance = std::min(totalMinDistance, minDistance);
+        }
     }
     return {totalMinDistance, lastPointDistance};
 }

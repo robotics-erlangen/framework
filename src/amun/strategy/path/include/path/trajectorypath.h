@@ -96,6 +96,7 @@ private:
     bool isTrajectoryInObstacle(const SpeedProfile &profile, float timeOffset, float slowDownTime, Vector startPos);
     // return {min distance of trajectory to obstacles, min distance of last point to obstacles}
     std::pair<float, float> minObstacleDistance(const SpeedProfile &profile, float timeOffset, float slowDownTime, Vector startPos);
+    float minObstacleDistance(Vector pos, float time, bool checkStatic);
     void findPathAlphaT();
     void findPathEndInObstacle();
     bool testEndPoint(Vector endPoint);
