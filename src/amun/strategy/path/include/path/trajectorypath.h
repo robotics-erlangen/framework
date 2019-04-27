@@ -72,6 +72,8 @@ public:
     TrajectoryPath(uint32_t rng_seed);
     void reset() override;
     std::vector<Point> calculateTrajectory(Vector s0, Vector v0, Vector s1, Vector v1, float maxSpeed, float acceleration);
+    // is guaranteed to be equally spaced in time
+    std::vector<Point> *getCurrentTrajectory() { return &m_currentTrajectory; }
     void addMovingCircle(Vector startPos, Vector speed, Vector acc, float startTime, float endTime, float radius, int prio);
     void addMovingLine(Vector startPos1, Vector speed1, Vector acc1, Vector startPos2, Vector speed2, Vector acc2, float startTime, float endTime, float width, int prio);
     void setOutOfFieldObstaclePriority(int prio) { m_outOfFieldPriority = prio; }
@@ -88,7 +90,7 @@ private:
     bool checkMidPoint(Vector midSpeed, const float time, const float angle);
     Vector randomSpeed();
     Vector randomPointInField();
-    std::vector<Point> getResultPath() const;
+    std::vector<Point> getResultPath();
     void escapeObstacles();
     std::pair<int, float> trajectoryObstacleScore(const SpeedProfile &speedProfile);
 
@@ -106,6 +108,9 @@ private:
     bool exponentialSlowDown;
     QVector<MovingCircle> m_movingCircles;
     QVector<MovingLine> m_movingLines;
+
+    // result trajectory (used by other robots as obstacle)
+    std::vector<Point> m_currentTrajectory;
 
     // current best trajectory data
     struct BestTrajectoryInfo {

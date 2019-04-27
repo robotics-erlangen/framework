@@ -622,11 +622,10 @@ void TrajectoryPath::findPathAlphaT()
     }
 }
 
-std::vector<TrajectoryPath::Point> TrajectoryPath::getResultPath() const
+std::vector<TrajectoryPath::Point> TrajectoryPath::getResultPath()
 {
-    std::vector<Point> result;
-    Vector startPos = s0;
-    float timeSum = 0;
+    std::vector<SpeedProfile> parts;
+    float toEndTime = 0;
     for (TrajectoryGenerationInfo info : m_generationInfo) {
         SpeedProfile trajectory;
         if (info.fastEndSpeed) {
@@ -636,7 +635,21 @@ std::vector<TrajectoryPath::Point> TrajectoryPath::getResultPath() const
             trajectory = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(info.v0, info.v1, info.time, info.angle,
                                                                               ACCELERATION, MAX_SPEED);
         }
+        parts.push_back(trajectory);
         float totalTime = info.slowDownTime == 0.0f ? trajectory.time() : trajectory.timeWithSlowDown(info.slowDownTime);
+        toEndTime += totalTime;
+    }
+
+    std::vector<Point> result;
+    Vector startPos = s0;
+    float currentTime = 0; // time in a trajectory part
+    float currentTotalTime = 0; // time from the beginning
+    const int SAMPLES_PER_TRAJECTORY = 40;
+    const float samplingInterval = toEndTime / (SAMPLES_PER_TRAJECTORY * m_generationInfo.size());
+    for (unsigned int i = 0;i<m_generationInfo.size();i++) {
+        SpeedProfile &trajectory = parts[i];
+        TrajectoryGenerationInfo &info = m_generationInfo[i];
+        float partTime = info.slowDownTime == 0.0f ? trajectory.time() : trajectory.timeWithSlowDown(info.slowDownTime);
 
         // trajectory positions are not perfect, scale them slightly to reach the desired position perfectly
         float xScale = 1, yScale = 1;
@@ -644,7 +657,7 @@ std::vector<TrajectoryPath::Point> TrajectoryPath::getResultPath() const
             Vector endPos;
             // avoid floating point problems by using a time after the trajectory end
             if (info.slowDownTime == 0.0f) {
-                endPos = trajectory.positionForTime(totalTime + 1.0f);
+                endPos = trajectory.positionForTime(partTime + 1.0f);
             } else {
                 endPos = trajectory.calculateSlowDownPos(info.slowDownTime);
             }
@@ -653,23 +666,38 @@ std::vector<TrajectoryPath::Point> TrajectoryPath::getResultPath() const
             xScale = std::min(1.1f, std::max(0.9f, xScale));
             yScale = std::min(1.1f, std::max(0.9f, yScale));
         }
-        for (int i = 0;i<40;i++) {
-            float t = totalTime * i / 39.0f;
+
+        bool wasAtEndPoint = false;
+        while (true) {
+            if (currentTime > partTime) {
+                if (i < m_generationInfo.size()-1) {
+                    currentTime -= partTime;
+                    break;
+                } else {
+                    if (wasAtEndPoint) {
+                        break;
+                    }
+                    wasAtEndPoint = true;
+                }
+            }
             Point p;
-            p.time = timeSum + t;
+            p.time = currentTotalTime;
             Vector position;
             if (info.slowDownTime == 0.0f) {
-                position = trajectory.positionForTime(t);
-                p.speed = trajectory.speedForTime(t);
+                position = trajectory.positionForTime(currentTime);
+                p.speed = trajectory.speedForTime(currentTime);
             } else {
-                position = trajectory.positionForTimeSlowDown(t, info.slowDownTime);
-                p.speed = trajectory.speedForTimeSlowDown(t, info.slowDownTime);
+                position = trajectory.positionForTimeSlowDown(currentTime, info.slowDownTime);
+                p.speed = trajectory.speedForTimeSlowDown(currentTime, info.slowDownTime);
             }
             p.pos = startPos + Vector(position.x * xScale, position.y * yScale);
             result.push_back(p);
+
+            currentTime += samplingInterval;
+            currentTotalTime += samplingInterval;
         }
         startPos = result.back().pos;
-        timeSum = result.back().time;
     }
+    m_currentTrajectory = result;
     return result;
 }
