@@ -62,6 +62,18 @@ float TrajectoryPath::MovingLine::distance(Vector pos, float time) const
     return LineSegment(p1, p2).distance(pos) - width;
 }
 
+bool TrajectoryPath::FriendlyRobotObstacle::intersects(Vector pos, float time) const
+{
+    unsigned long index = std::max(0UL, std::min(trajectory->size()-1, static_cast<unsigned long>(time / timeInterval)));
+    return (*trajectory)[index].pos.distanceSq(pos) < radius * radius;
+}
+
+float TrajectoryPath::FriendlyRobotObstacle::distance(Vector pos, float time) const
+{
+    unsigned long index = std::max(0UL, std::min(trajectory->size()-1, static_cast<unsigned long>(time / timeInterval)));
+    return (*trajectory)[index].pos.distance(pos) - radius;
+}
+
 
 TrajectoryPath::TrajectoryPath(uint32_t rng_seed) :
     AbstractPath(rng_seed)
@@ -92,6 +104,7 @@ void TrajectoryPath::clearObstaclesCustom()
 {
     m_movingCircles.clear();
     m_movingLines.clear();
+    m_friendlyRobotObstacles.clear();
 }
 
 void TrajectoryPath::addMovingCircle(Vector startPos, Vector speed, Vector acc, float startTime, float endTime, float radius, int prio)
@@ -124,6 +137,20 @@ void TrajectoryPath::addMovingLine(Vector startPos1, Vector speed1, Vector acc1,
     m_movingLines.push_back(l);
 }
 
+void TrajectoryPath::addFriendlyRobotTrajectoryObstacle(std::vector<Point> *obstacle, int prio, float radius)
+{
+    // the path finding of the other robot could not find a path
+    if (obstacle->size() == 0) {
+        return;
+    }
+    FriendlyRobotObstacle o;
+    o.trajectory = obstacle;
+    o.radius = radius + m_radius;
+    o.prio = prio;
+    o.timeInterval = obstacle->at(1).time - obstacle->at(0).time;
+    m_friendlyRobotObstacles.push_back(o);
+}
+
 bool TrajectoryPath::isInStaticObstacle(Vector point) const
 {
     if (!pointInPlayfield(point, m_radius)) {
@@ -145,6 +172,11 @@ bool TrajectoryPath::isInMovingObstacle(Vector point, float time) const
         }
     }
     for (const auto &o : m_movingLines) {
+        if (o.intersects(point, time)) {
+            return true;
+        }
+    }
+    for (const auto &o : m_friendlyRobotObstacles) {
         if (o.intersects(point, time)) {
             return true;
         }
@@ -199,6 +231,13 @@ std::pair<float, float> TrajectoryPath::minObstacleDistance(const SpeedProfile &
             minDistance = std::min(minDistance, d);
         }
         for (const auto &o : m_movingLines) {
+            float d = o.distance(pos + startPos, time + timeOffset);
+            if (d <= 0) {
+                return {d, d};
+            }
+            minDistance = std::min(minDistance, d);
+        }
+        for (const auto &o : m_friendlyRobotObstacles) {
             float d = o.distance(pos + startPos, time + timeOffset);
             if (d <= 0) {
                 return {d, d};
@@ -424,6 +463,11 @@ std::pair<int, float> TrajectoryPath::trajectoryObstacleScore(const SpeedProfile
             }
         }
         for (const auto &o : m_movingLines) {
+            if (o.prio > obstaclePriority && o.intersects(pos, time)) {
+                obstaclePriority = o.prio;
+            }
+        }
+        for (const auto &o : m_friendlyRobotObstacles) {
             if (o.prio > obstaclePriority && o.intersects(pos, time)) {
                 obstaclePriority = o.prio;
             }

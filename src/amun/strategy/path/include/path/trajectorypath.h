@@ -28,6 +28,14 @@
 
 class TrajectoryPath : public AbstractPath
 {
+public:
+    struct Point
+    {
+        Vector pos;
+        Vector speed;
+        float time;
+    };
+
 private:
     struct MovingCircle
     {
@@ -60,12 +68,15 @@ private:
         int prio;
     };
 
-public:
-    struct Point
+    struct FriendlyRobotObstacle
     {
-        Vector pos;
-        Vector speed;
-        float time;
+        bool intersects(Vector pos, float time) const;
+        float distance(Vector pos, float time) const;
+
+        std::vector<Point> *trajectory;
+        float radius;
+        int prio;
+        float timeInterval;
     };
 
 public:
@@ -76,6 +87,7 @@ public:
     std::vector<Point> *getCurrentTrajectory() { return &m_currentTrajectory; }
     void addMovingCircle(Vector startPos, Vector speed, Vector acc, float startTime, float endTime, float radius, int prio);
     void addMovingLine(Vector startPos1, Vector speed1, Vector acc1, Vector startPos2, Vector speed2, Vector acc2, float startTime, float endTime, float width, int prio);
+    void addFriendlyRobotTrajectoryObstacle(std::vector<Point> *obstacle, int prio, float radius);
     void setOutOfFieldObstaclePriority(int prio) { m_outOfFieldPriority = prio; }
 
 private:
@@ -108,6 +120,7 @@ private:
     bool exponentialSlowDown;
     QVector<MovingCircle> m_movingCircles;
     QVector<MovingLine> m_movingLines;
+    QVector<FriendlyRobotObstacle> m_friendlyRobotObstacles;
 
     // result trajectory (used by other robots as obstacle)
     std::vector<Point> m_currentTrajectory;

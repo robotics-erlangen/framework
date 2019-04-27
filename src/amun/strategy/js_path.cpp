@@ -380,6 +380,28 @@ static void trajectorySetOutOfFieldObstaclePriority(const FunctionCallbackInfo<V
     static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value())->trajectoryPath()->setOutOfFieldObstaclePriority(static_cast<int>(prio));
 }
 
+static void trajectoryGetLastTrajectoryAsRobotObstacle(const FunctionCallbackInfo<Value> &args)
+{
+    Isolate * isolate = args.GetIsolate();
+    auto trajectory = static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value())->trajectoryPath()->getCurrentTrajectory();
+    args.GetReturnValue().Set(External::New(isolate, trajectory));
+}
+
+static void trajectoryAddRobotTrajectoryObstacle(const FunctionCallbackInfo<Value> &args)
+{
+    Isolate * isolate = args.GetIsolate();
+    if (args.Length() != 3 || !args[0]->IsExternal()) {
+        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "Invalid arguments", String::kNormalString)));
+        return;
+    }
+    std::vector<TrajectoryPath::Point> *obstacle = static_cast<std::vector<TrajectoryPath::Point>*>(Local<External>::Cast(args[0])->Value());
+    float prio, radius;
+    if (!verifyNumber(isolate, args[1], prio) || !verifyNumber(isolate, args[2], radius)) {
+        return;
+    }
+    static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value())->trajectoryPath()->addFriendlyRobotTrajectoryObstacle(obstacle, prio, radius);
+}
+
 static void drawTree(Typescript *thread, const KdTree *tree)
 {
     if (tree == nullptr) {
@@ -447,7 +469,9 @@ static QList<FunctionInfo> trajectoryPathCallbacks = {
     { "calculateTrajectory", trajectoryPathGet },
     { "addMovingCircle",    trajectoryAddMovingCircle},
     { "addMovingLine",      trajectoryAddMovingLine},
-    { "setOutOfFieldPrio",  trajectorySetOutOfFieldObstaclePriority}};
+    { "setOutOfFieldPrio",  trajectorySetOutOfFieldObstaclePriority},
+    { "getTrajectoryAsObstacle", trajectoryGetLastTrajectoryAsRobotObstacle},
+    { "addRobotTrajectoryObstacle", trajectoryAddRobotTrajectoryObstacle}};
 
 static void pathObjectAddFunctions(Isolate *isolate, const QList<FunctionInfo> &callbacks, Local<Object> &pathWrapper,
                                    Local<External> &pathObject)
