@@ -30,6 +30,7 @@
 import { log } from "base/amun";
 import { Coordinates } from "base/coordinates";
 import * as pb from "base/protobuf";
+import { FriendlyRobot } from "base/robot";
 import { Position, Speed, Vector } from "base/vector";
 import * as vis from "base/vis";
 
@@ -187,6 +188,9 @@ type TrajectoryPathResult = {
 	time: number;
 }[];
 
+// just some impossible to create type, is actually a C++ external
+type TrajectoryObstacle = number & {_tag: "Trajectory obstacle"};
+
 interface PathObjectTrajectory extends PathObjectCommon {
 	calculateTrajectory(startX: number, startY: number, startSpeedX: number, startSpeedY: number,
 		endX: number, endY: number, endSpeedX: number, endSpeedY: number, maxSpeed: number, acceleration: number): TrajectoryPathResult;
@@ -200,6 +204,8 @@ interface PathObjectTrajectory extends PathObjectCommon {
 		accX2: number, accY2: number, startTime: number, endTime: number, width: number, prio: number): void;
 
 	setOutOfFieldPrio(prio: number): void;
+	getTrajectoryAsObstacle(): TrajectoryObstacle;
+	addRobotTrajectoryObstacle(obstacle: TrajectoryObstacle, priority: number, radius: number): void;
 }
 
 interface AmunPath {
@@ -436,6 +442,11 @@ export class Path {
 		}
 		this.triangleObstacles.push({x1: x1, y1: y1, x2: x2, y2: y2, x3: x3, y3: y3,
 			lineWidth: lineWidth, name: name, prio: prio});
+	}
+
+	addFriendlyRobotObstacle(robot: FriendlyRobot, radius: number, prio: number) {
+		// TODO: add some nice visualization?
+		this._trajectoryInst.addRobotTrajectoryObstacle(robot.path._trajectoryInst.getTrajectoryAsObstacle(), prio, radius);
 	}
 
 	addSeedTarget(x: number, y: number) {
