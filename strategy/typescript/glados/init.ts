@@ -23,6 +23,7 @@ import "glados/util/lineup";
 import * as Ball from "glados/observer/ball";
 import * as ErrorObserver from "glados/observer/error";
 import * as Goal from "glados/observer/goal";
+import * as ObsvReferee from "glados/observer/referee";
 import * as Robot from "glados/observer/robot";
 
 // require "test/observer/index";
@@ -50,6 +51,20 @@ class PreProc implements Process {
 Processor.addPre(new PreProc());
 // import {BallAnalyzer} from "glados/observer/ballAnalyzer";
 // Processor.addPre(new BallAnalyzer)
+
+class PostProc implements Process {
+	run() {
+		if (GameController.advantageFoulOccured() && ObsvReferee.shouldTakeAdvantage()) {
+			log("Taking advantage");
+			GameController.sendAdvantageReponse("continue");
+		}
+	}
+
+	isFinished(): boolean {
+		return false;
+	}
+}
+Processor.addPost(new PostProc());
 
 let frameCount = 0;
 function wrapper(func: () => boolean) {

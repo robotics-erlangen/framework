@@ -1,9 +1,11 @@
 import { log } from "base/amun";
 import * as Field from "base/field";
 import * as BaseRef from "base/referee";
-import { Position, Speed } from "base/vector";
+import { Robot } from "base/robot";
+import { Position, Speed, Vector } from "base/vector";
 import * as World from "base/world";
 
+import * as ObsvBall from "glados/observer/ball";
 import * as Error from "glados/observer/error";
 
 let G = World.Geometry;
@@ -80,3 +82,61 @@ export function realisticCardsOpponent() {
 	return World.OpponentYellowCards.length + World.OpponentRedCards;
 
 }
+
+/**
+ * Simple heuristic to find the robot who most likely commited pushing Actually
+ * just searches the robot closest to another robot of the opposing team.
+ * @todo parse SSL_Referee
+ * @param friendly - true iff the bully is a friendly robot
+ * @returns the bully or undefined if not both teams have robots
+ */
+export function getPushingRobot(friendly: boolean): Robot | undefined {
+	const victimRobots = friendly ? World.OpponentRobots : World.FriendlyRobots;
+	const bullyRobots = friendly ? World.FriendlyRobots : World.OpponentRobots;
+
+	let closestBully = undefined;
+	let closestDist = Infinity;
+	for (const bully of bullyRobots) {
+		for (const victim of victimRobots) {
+			const dist = bully.pos.distanceToSq(victim.pos);
+			if (closestBully == undefined || dist < closestDist) {
+				closestBully = bully;
+				closestDist = dist;
+			}
+		}
+	}
+	return closestBully;
+}
+
+export function shouldTakeAdvantage(): boolean {
+	if (ObsvBall.wasShot(1) && ObsvBall.ballHeadingForGoal(World.Ball, false)) {
+		return true;
+	}
+	if (ObsvBall.wasShot(1) && ObsvBall.ballHeadingForGoal(World.Ball, true)) {
+		return false;
+	}
+
+	const [minRobot] = ObsvBall.firstRobotAtBall(World.Robots);
+	if (minRobot && !minRobot.isFriendly) {
+		return false;
+	}
+
+	const foulingRobot = getPushingRobot(false);
+	const freeKickPos = foulingRobot ? foulingRobot.pos : undefined;
+	if (!freeKickPos) {
+		return false;
+	}
+
+	const MAX_BALL_SPEED_SQ = 3 * 3;
+	if (World.Ball.speed.lengthSq() > MAX_BALL_SPEED_SQ) {
+		return false;
+	}
+
+	const MAX_STEP_BACKWARDS = 2;
+	if (World.Ball.pos.y - freeKickPos.y > MAX_STEP_BACKWARDS) {
+		return true;
+	}
+
+	return false;
+}
+
