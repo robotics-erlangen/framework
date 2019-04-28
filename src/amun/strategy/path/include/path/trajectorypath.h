@@ -37,10 +37,17 @@ public:
     };
 
 private:
-    struct MovingCircle
-    {
-        bool intersects(Vector pos, float time) const;
-        float distance(Vector pos, float time) const;
+    struct MovingObstacle {
+        virtual ~MovingObstacle() {}
+        virtual bool intersects(Vector pos, float time) const = 0;
+        virtual float distance(Vector pos, float time) const = 0;
+
+        int prio;
+    };
+
+    struct MovingCircle : public MovingObstacle {
+        bool intersects(Vector pos, float time) const override;
+        float distance(Vector pos, float time) const override;
 
         Vector startPos;
         Vector speed;
@@ -48,13 +55,11 @@ private:
         float startTime;
         float endTime;
         float radius;
-        int prio;
     };
 
-    struct MovingLine
-    {
-        bool intersects(Vector pos, float time) const;
-        float distance(Vector pos, float time) const;
+    struct MovingLine : public MovingObstacle {
+        bool intersects(Vector pos, float time) const override;
+        float distance(Vector pos, float time) const override;
 
         Vector startPos1;
         Vector speed1;
@@ -65,17 +70,14 @@ private:
         float startTime;
         float endTime;
         float width;
-        int prio;
     };
 
-    struct FriendlyRobotObstacle
-    {
-        bool intersects(Vector pos, float time) const;
-        float distance(Vector pos, float time) const;
+    struct FriendlyRobotObstacle : public MovingObstacle {
+        bool intersects(Vector pos, float time) const override;
+        float distance(Vector pos, float time) const override;
 
         std::vector<Point> *trajectory;
         float radius;
-        int prio;
         float timeInterval;
     };
 
@@ -122,6 +124,7 @@ private:
     QVector<MovingCircle> m_movingCircles;
     QVector<MovingLine> m_movingLines;
     QVector<FriendlyRobotObstacle> m_friendlyRobotObstacles;
+    QVector<MovingObstacle*> m_movingObstacles;
 
     // result trajectory (used by other robots as obstacle)
     std::vector<Point> m_currentTrajectory;

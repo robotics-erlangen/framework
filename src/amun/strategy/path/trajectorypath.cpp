@@ -174,18 +174,8 @@ bool TrajectoryPath::isInStaticObstacle(Vector point) const
 
 bool TrajectoryPath::isInMovingObstacle(Vector point, float time) const
 {
-    for (const auto &o : m_movingCircles) {
-        if (o.intersects(point, time)) {
-            return true;
-        }
-    }
-    for (const auto &o : m_movingLines) {
-        if (o.intersects(point, time)) {
-            return true;
-        }
-    }
-    for (const auto &o : m_friendlyRobotObstacles) {
-        if (o.intersects(point, time)) {
+    for (const auto o : m_movingObstacles) {
+        if (o->intersects(point, time)) {
             return true;
         }
     }
@@ -222,22 +212,8 @@ float TrajectoryPath::minObstacleDistance(Vector pos, float time, bool checkStat
         }
     }
     // moving obstacles
-    for (const auto &o : m_movingCircles) {
-        float d = o.distance(pos, time);
-        if (d <= 0) {
-            return d;
-        }
-        minDistance = std::min(minDistance, d);
-    }
-    for (const auto &o : m_movingLines) {
-        float d = o.distance(pos, time);
-        if (d <= 0) {
-            return d;
-        }
-        minDistance = std::min(minDistance, d);
-    }
-    for (const auto &o : m_friendlyRobotObstacles) {
-        float d = o.distance(pos, time);
+    for (const auto o : m_movingObstacles) {
+        float d = o->distance(pos, time);
         if (d <= 0) {
             return d;
         }
@@ -497,19 +473,9 @@ std::pair<int, float> TrajectoryPath::trajectoryObstacleScore(const SpeedProfile
                 }
             }
         }
-        for (const auto &o : m_movingCircles) {
-            if (o.prio > obstaclePriority && o.intersects(pos, time)) {
-                obstaclePriority = o.prio;
-            }
-        }
-        for (const auto &o : m_movingLines) {
-            if (o.prio > obstaclePriority && o.intersects(pos, time)) {
-                obstaclePriority = o.prio;
-            }
-        }
-        for (const auto &o : m_friendlyRobotObstacles) {
-            if (o.prio > obstaclePriority && o.intersects(pos, time)) {
-                obstaclePriority = o.prio;
+        for (const auto o : m_movingObstacles) {
+            if (o->prio > obstaclePriority && o->intersects(pos, time)) {
+                obstaclePriority = o->prio;
             }
         }
         if (obstaclePriority > currentBestObstaclePrio) {
@@ -593,6 +559,16 @@ void TrajectoryPath::escapeObstacles()
 void TrajectoryPath::findPathAlphaT()
 {
     collectObstacles();
+    m_movingObstacles.clear();
+    for (auto &o : m_movingCircles) {
+        m_movingObstacles.append(&o);
+    }
+    for (auto &o : m_movingLines) {
+        m_movingObstacles.append(&o);
+    }
+    for (auto &o : m_friendlyRobotObstacles) {
+        m_movingObstacles.append(&o);
+    }
 
     // check if start point is in obstacle
     if (isInStaticObstacle(s0) || isInMovingObstacle(s0, 0)) {
