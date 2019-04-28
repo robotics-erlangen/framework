@@ -273,16 +273,18 @@ std::pair<float, float> TrajectoryPath::minObstacleDistance(const SpeedProfile &
     }
 
     // try to avoid moving obstacles even when the robot reaches its goal
-    const float AFTER_STOP_AVOIDANCE_TIME = 0.5f;
-    if (totalTime < AFTER_STOP_AVOIDANCE_TIME) {
-        const float AFTER_STOP_INTERVAL = 0.03f;
-        for (int i = 0;i<int((AFTER_STOP_AVOIDANCE_TIME - totalTime) * (1.0f / AFTER_STOP_INTERVAL));i++) {
-            float t = timeOffset + totalTime + i * AFTER_STOP_INTERVAL;
-            float minDistance = minObstacleDistance(lastPos + startPos, t, false);
-            if (minDistance < 0) {
-                return {minDistance, minDistance};
+    if (profile.speedForTime(totalTime * 2.0f) == Vector(0, 0)) {
+        const float AFTER_STOP_AVOIDANCE_TIME = 0.5f;
+        if (totalTime < AFTER_STOP_AVOIDANCE_TIME) {
+            const float AFTER_STOP_INTERVAL = 0.03f;
+            for (int i = 0;i<int((AFTER_STOP_AVOIDANCE_TIME - totalTime) * (1.0f / AFTER_STOP_INTERVAL));i++) {
+                float t = timeOffset + totalTime + i * AFTER_STOP_INTERVAL;
+                float minDistance = minObstacleDistance(lastPos + startPos, t, false);
+                if (minDistance < 0) {
+                    return {minDistance, minDistance};
+                }
+                totalMinDistance = std::min(totalMinDistance, minDistance);
             }
-            totalMinDistance = std::min(totalMinDistance, minDistance);
         }
     }
     return {totalMinDistance, lastPointDistance};
@@ -323,6 +325,9 @@ bool TrajectoryPath::checkMidPoint(Vector midSpeed, const float time, const floa
         firstPartTime = firstPart.timeWithSlowDown(firstPartSlowDownTime);
     } else {
         firstPartTime = firstPart.time();
+    }
+    if (firstPartTime + secondPartTime > m_bestResultInfo.time) {
+        return false;
     }
     float firstPartObstacleDist = minObstacleDistance(firstPart, 0, firstPartSlowDownTime, s0).first;
     if (firstPartObstacleDist <= 0) {
