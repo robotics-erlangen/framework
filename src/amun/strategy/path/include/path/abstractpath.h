@@ -40,21 +40,21 @@ protected:
         virtual ~Obstacle() {}
         virtual float distance(const Vector &v) const = 0;
         virtual float distance(const LineSegment &segment) const = 0;
-        virtual Vector projectOut(Vector v, float robotRadius, float extraDistance) const { return v; }
+        virtual Vector projectOut(Vector v, float extraDistance) const { return v; }
 
         QByteArray obstacleName() const { return name; }
         QByteArray name;
         int prio;
+        float radius = 0;
     };
 
     struct Circle : Obstacle
     {
         float distance(const Vector &v) const override;
         float distance(const LineSegment &segment) const override;
-        Vector projectOut(Vector v, float robotRadius, float extraDistance) const override;
+        Vector projectOut(Vector v, float extraDistance) const override;
 
         Vector center;
-        float radius;
     };
 
     struct Rect : Obstacle
@@ -72,7 +72,6 @@ protected:
         float distance(const LineSegment &segment) const override;
 
         Vector p1, p2, p3;
-        float lineWidth;
     };
 
     struct Line : Obstacle
@@ -81,10 +80,9 @@ protected:
         Line(const Vector &p1, const Vector &p2) : segment(p1, p2) {}
         float distance(const Vector &v) const override;
         float distance(const LineSegment &segment) const override;
-        Vector projectOut(Vector v, float robotRadius, float extraDistance) const override;
+        Vector projectOut(Vector v, float extraDistance) const override;
 
         LineSegment segment;
-        float width;
     };
 
 public:

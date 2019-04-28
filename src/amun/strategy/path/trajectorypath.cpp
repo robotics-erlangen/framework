@@ -165,7 +165,7 @@ bool TrajectoryPath::isInStaticObstacle(Vector point) const
         return true;
     }
     for (const auto obstacle : m_obstacles) {
-        if (obstacle->distance(point) < m_radius) {
+        if (obstacle->distance(point) < 0) {
             return true;
         }
     }
@@ -204,7 +204,7 @@ float TrajectoryPath::minObstacleDistance(Vector pos, float time, bool checkStat
     // static obstacles
     if (checkStatic) {
         for (const auto obstacle : m_obstacles) {
-            float d = obstacle->distance(pos) - m_radius;
+            float d = obstacle->distance(pos);
             if (d <= 0) {
                 return d;
             }
@@ -468,7 +468,7 @@ std::pair<int, float> TrajectoryPath::trajectoryObstacleScore(const SpeedProfile
             if (obstacle->prio > obstaclePriority) {
                 float distance = obstacle->distance(pos);
                 minStaticObstacleDistance = std::min(minStaticObstacleDistance, distance);
-                if (distance < m_radius) {
+                if (distance < 0) {
                     obstaclePriority = obstacle->prio;
                 }
             }
@@ -558,6 +558,10 @@ void TrajectoryPath::escapeObstacles()
 
 void TrajectoryPath::findPathAlphaT()
 {
+    for (Circle &c: m_circleObstacles) { c.radius += m_radius; }
+    for (Rect &r: m_rectObstacles) { r.radius += m_radius; }
+    for (Triangle &t: m_triangleObstacles) { t.radius += m_radius; }
+    for (Line &l: m_lineObstacles) { l.radius += m_radius; }
     collectObstacles();
     m_movingObstacles.clear();
     for (auto &o : m_movingCircles) {
@@ -580,8 +584,8 @@ void TrajectoryPath::findPathAlphaT()
     if (isInStaticObstacle(s1)) {
         for (const Obstacle *o : m_obstacles) {
             float dist = o->distance(s1);
-            if (dist > 0.01f && dist < m_radius) {
-                s1 = o->projectOut(s1, m_radius, 0.03f);
+            if (dist > 0.01f && dist < 0) {
+                s1 = o->projectOut(s1, 0.03f);
             }
         }
         distance = s1 - s0;

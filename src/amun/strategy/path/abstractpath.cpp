@@ -32,33 +32,33 @@ float AbstractPath::Circle::distance(const LineSegment &segment) const
     return segment.distance(center) - radius;
 }
 
-Vector AbstractPath::Circle::projectOut(Vector v, float robotRadius, float extraDistance) const
+Vector AbstractPath::Circle::projectOut(Vector v, float extraDistance) const
 {
     float dist = v.distance(center);
-    if (dist >= radius + robotRadius) {
+    if (dist >= radius) {
         return v;
     }
-    return center + (v - center) * ((radius + extraDistance + robotRadius) / dist);
+    return center + (v - center) * ((radius + extraDistance) / dist);
 }
 
 float AbstractPath::Line::distance(const Vector &v) const
 {
-    return segment.distance(v) - width;
+    return segment.distance(v) - radius;
 }
 
 float AbstractPath::Line::distance(const LineSegment &segment) const
 {
-    return segment.distance(this->segment) - width;
+    return segment.distance(this->segment) - radius;
 }
 
-Vector AbstractPath::Line::projectOut(Vector v, float robotRadius, float extraDistance) const
+Vector AbstractPath::Line::projectOut(Vector v, float extraDistance) const
 {
     float dist = segment.distance(v);
-    if (dist >= width + robotRadius) {
+    if (dist >= radius) {
         return v;
     }
     Vector closest = segment.closestPoint(v);
-    return closest + (v - closest) * ((width + extraDistance + robotRadius) / dist);
+    return closest + (v - closest) * ((radius + extraDistance) / dist);
 }
 
 float AbstractPath::Rect::distance(const Vector &v) const
@@ -67,13 +67,13 @@ float AbstractPath::Rect::distance(const Vector &v) const
     float distY = std::max(bottom_left.y - v.y, v.y - top_right.y);
 
     if (distX >= 0 && distY >= 0) { // distance to corner
-        return std::sqrt(distX*distX + distY*distY);
+        return std::sqrt(distX*distX + distY*distY) - radius;
     } else if (distX < 0 && distY < 0) { // inside
-        return std::max(distX, distY);
+        return std::max(distX, distY) - radius;
     } else if (distX < 0) {
-        return distY; // distance to nearest side of the rectangle
+        return distY - radius; // distance to nearest side of the rectangle
     } else {
-        return distX;
+        return distX - radius;
     }
 }
 
@@ -82,12 +82,12 @@ float AbstractPath::Rect::distance(const LineSegment &segment) const
     // check if end is inside the rectangle
     if (segment.end().x >= bottom_left.x && segment.end().x <= top_right.x
             && segment.end().y >= bottom_left.y && segment.end().y <= top_right.y) {
-        return 0;
+        return -radius;
     }
     // check if start is inside the rectangle
     if (segment.start().x >= bottom_left.x && segment.start().x <= top_right.x
             && segment.start().y >= bottom_left.y && segment.start().y <= top_right.y) {
-        return 0;
+        return -radius;
     }
 
     Vector bottom_right(top_right.x, bottom_left.y);
@@ -98,7 +98,7 @@ float AbstractPath::Rect::distance(const LineSegment &segment) const
     float distLeft = segment.distance(LineSegment(top_left, bottom_left));
     float distRight = segment.distance(LineSegment(top_right, bottom_right));
 
-    return std::min(std::min(distTop, distBottom), std::min(distLeft, distRight));
+    return std::min(std::min(distTop, distBottom), std::min(distLeft, distRight)) - radius;
 }
 
 float AbstractPath::Triangle::distance(const Vector &v) const
@@ -138,7 +138,7 @@ float AbstractPath::Triangle::distance(const Vector &v) const
         return 42;
     }
 
-    return distance - lineWidth;
+    return distance - radius;
 }
 
 float AbstractPath::Triangle::distance(const LineSegment &segment) const
@@ -162,7 +162,7 @@ float AbstractPath::Triangle::distance(const LineSegment &segment) const
     }
 
     // the segment lies entirely outside the triangle
-    return std::max(std::min(dseg1, std::min(dseg2, dseg3)) - lineWidth, 0.f);
+    return std::max(std::min(dseg1, std::min(dseg2, dseg3)) - radius, 0.f);
 }
 
 AbstractPath::AbstractPath(uint32_t rng_seed) :
@@ -219,7 +219,7 @@ void AbstractPath::addCircle(float x, float y, float radius, const char* name, i
 void AbstractPath::addLine(float x1, float y1, float x2, float y2, float width, const char* name, int prio)
 {
     Line l(Vector(x1, y1), Vector(x2, y2));
-    l.width = width;
+    l.radius = width;
     l.name = name;
     l.prio = prio;
     m_lineObstacles.append(l);
@@ -240,7 +240,7 @@ void AbstractPath::addRect(float x1, float y1, float x2, float y2, const char* n
 void AbstractPath::addTriangle(float x1, float y1, float x2, float y2, float x3, float y3, float lineWidth, const char *name, int prio)
 {
     Triangle t;
-    t.lineWidth = lineWidth;
+    t.radius = lineWidth;
     t.name = name;
     t.prio = prio;
 
