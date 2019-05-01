@@ -608,6 +608,7 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
         // the debug helper doesn't know the exact moment when the strategy gets reloaded
         m_debugHelper->enableQueue();
     }
+    m_strategyFailed = true;
     m_strategy->setGameControllerConnection(m_gameControllerConnection);
     m_strategy->setIsInternalAutoref(m_isInternalAutoref);
     m_strategy->setIsPerformanceMode(m_isPerformanceMode);
