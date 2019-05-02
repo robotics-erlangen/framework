@@ -22,6 +22,7 @@
 #define ALPHATIMETRAJECTORY_H
 
 #include "vector.h"
+#include "boundingbox.h"
 #include <vector>
 
 class SpeedProfile1D {
@@ -60,6 +61,8 @@ public:
         }
         return profile[counter-1].v;
     }
+
+    std::pair<float, float> calculateRange(float slowDownTime) const;
 
     float speedForTimeSlowDown(float time, float slowDownTime) const;
 
@@ -126,6 +129,12 @@ public:
 
     Vector continuationSpeed() const {
         return Vector(xProfile.profile[xProfile.counter / 2].v, yProfile.profile[yProfile.counter / 2].v);
+    }
+
+    BoundingBox calculateBoundingBox(Vector offset, float slowDownTime) const {
+        auto xRange = xProfile.calculateRange(slowDownTime);
+        auto yRange = yProfile.calculateRange(slowDownTime);
+        return BoundingBox(offset + Vector(xRange.first, yRange.first), offset + Vector(xRange.second, yRange.second));
     }
 };
 

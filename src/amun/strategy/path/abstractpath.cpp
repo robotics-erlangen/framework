@@ -41,6 +41,11 @@ Vector AbstractPath::Circle::projectOut(Vector v, float extraDistance) const
     return center + (v - center) * ((radius + extraDistance) / dist);
 }
 
+BoundingBox AbstractPath::Circle::boundingBox() const
+{
+    return BoundingBox(center - Vector(radius, radius), center + Vector(radius, radius));
+}
+
 float AbstractPath::Line::distance(const Vector &v) const
 {
     return segment.distance(v) - radius;
@@ -59,6 +64,14 @@ Vector AbstractPath::Line::projectOut(Vector v, float extraDistance) const
     }
     Vector closest = segment.closestPoint(v);
     return closest + (v - closest) * ((radius + extraDistance) / dist);
+}
+
+BoundingBox AbstractPath::Line::boundingBox() const
+{
+    BoundingBox b(segment.start() - Vector(radius, radius), segment.start() +  Vector(radius, radius));
+    b.mergePoint(segment.end() - Vector(radius, radius));
+    b.mergePoint(segment.end() + Vector(radius, radius));
+    return b;
 }
 
 float AbstractPath::Rect::distance(const Vector &v) const
@@ -99,6 +112,11 @@ float AbstractPath::Rect::distance(const LineSegment &segment) const
     float distRight = segment.distance(LineSegment(top_right, bottom_right));
 
     return std::min(std::min(distTop, distBottom), std::min(distLeft, distRight)) - radius;
+}
+
+BoundingBox AbstractPath::Rect::boundingBox() const
+{
+    return BoundingBox(bottom_left - Vector(radius, radius), top_right +  Vector(radius, radius));
 }
 
 float AbstractPath::Triangle::distance(const Vector &v) const
@@ -163,6 +181,16 @@ float AbstractPath::Triangle::distance(const LineSegment &segment) const
 
     // the segment lies entirely outside the triangle
     return std::max(std::min(dseg1, std::min(dseg2, dseg3)) - radius, 0.f);
+}
+
+BoundingBox AbstractPath::Triangle::boundingBox() const
+{
+    BoundingBox b(p1 - Vector(radius, radius), p1 +  Vector(radius, radius));
+    b.mergePoint(p2 - Vector(radius, radius));
+    b.mergePoint(p2 + Vector(radius, radius));
+    b.mergePoint(p3 - Vector(radius, radius));
+    b.mergePoint(p3 + Vector(radius, radius));
+    return b;
 }
 
 AbstractPath::AbstractPath(uint32_t rng_seed) :

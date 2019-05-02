@@ -22,6 +22,7 @@
 #define ABSTRACTPATH_H
 
 #include "vector.h"
+#include "boundingbox.h"
 #include "linesegment.h"
 #include "protobuf/robot.pb.h"
 #include <QByteArray>
@@ -41,6 +42,7 @@ protected:
         virtual float distance(const Vector &v) const = 0;
         virtual float distance(const LineSegment &segment) const = 0;
         virtual Vector projectOut(Vector v, float extraDistance) const { return v; }
+        virtual BoundingBox boundingBox() const = 0;
 
         QByteArray obstacleName() const { return name; }
         QByteArray name;
@@ -53,6 +55,7 @@ protected:
         float distance(const Vector &v) const override;
         float distance(const LineSegment &segment) const override;
         Vector projectOut(Vector v, float extraDistance) const override;
+        BoundingBox boundingBox() const override;
 
         Vector center;
     };
@@ -61,6 +64,7 @@ protected:
     {
         float distance(const Vector &v) const override;
         float distance(const LineSegment &segment) const override;
+        BoundingBox boundingBox() const override;
 
         Vector bottom_left;
         Vector top_right;
@@ -70,6 +74,7 @@ protected:
     {
         float distance(const Vector &v) const override;
         float distance(const LineSegment &segment) const override;
+        BoundingBox boundingBox() const override;
 
         Vector p1, p2, p3;
     };
@@ -81,6 +86,7 @@ protected:
         float distance(const Vector &v) const override;
         float distance(const LineSegment &segment) const override;
         Vector projectOut(Vector v, float extraDistance) const override;
+        BoundingBox boundingBox() const override;
 
         LineSegment segment;
     };

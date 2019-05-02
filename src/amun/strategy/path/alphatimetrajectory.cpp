@@ -212,6 +212,72 @@ float SpeedProfile1D::offsetForTimeSlowDown(float time, float slowDownTime) cons
     return pos;
 }
 
+std::pair<float, float> SpeedProfile1D::calculateRange(float slowDownTime) const
+{
+    float minPos = std::numeric_limits<float>::max();
+    float maxPos = -std::numeric_limits<float>::min();
+
+    float pos = 0;
+    float slowDownStartTime = profile[counter-1].t - slowDownTime;
+    unsigned int i = 0;
+    float v0, t0 = slowDownStartTime;
+    for (;i<counter-1;i++) {
+
+        if (profile[i+1].t >= slowDownStartTime) {
+            float td = slowDownStartTime;
+            float diff = profile[i+1].t == profile[i].t ? 1 : (td - profile[i].t) / (profile[i+1].t - profile[i].t);
+            float speed = profile[i].v + diff * (profile[i+1].v - profile[i].v);
+            float partDist = (profile[i].v + speed) * 0.5f * (td - profile[i].t);
+
+            pos += partDist;
+            minPos = std::min(minPos, pos);
+            maxPos = std::max(maxPos, pos);
+            v0 = speed;
+            break;
+        }
+        if ((profile[i].v > 0) != (profile[i+1].v > 0)) {
+            float proportion = std::abs(profile[i].v) / (std::abs(profile[i].v) + std::abs(profile[i+1].v));
+            float t = (profile[i+1].t - profile[i].t) * proportion;
+            float zeroPos = pos + (profile[i].v + 0) * 0.5f * t;
+            minPos = std::min(minPos, zeroPos);
+            maxPos = std::max(maxPos, zeroPos);
+        }
+        pos += (profile[i].v + profile[i+1].v) * 0.5f * (profile[i+1].t - profile[i].t);
+        minPos = std::min(minPos, pos);
+        maxPos = std::max(maxPos, pos);
+    }
+
+    float endTime = profile[counter-1].t + SLOW_DOWN_TIME - slowDownTime;
+    float totalTime = t0;
+    for (;i<counter-1;i++) {
+
+        float toEndTime0 = endTime - t0;
+        float toEndTime1 = endTime - profile[i+1].t;
+        float a0 = acc * (MIN_ACC_FACTOR + (1 - MIN_ACC_FACTOR) * toEndTime0 / SLOW_DOWN_TIME);
+        float a1 = acc * (MIN_ACC_FACTOR + (1 - MIN_ACC_FACTOR) * toEndTime1 / SLOW_DOWN_TIME);
+
+        float averageAcc = (a0 + a1) * 0.5f;
+        float v1 = profile[i+1].v;
+        float t = std::abs(v0 - v1) / averageAcc;
+
+        // a = a0 + t * (a1 - a0) / t1
+        // v = v0 + t * a0 + t^2 * 0.5 * (a1 - a0) / t1
+        // d = t * v0 + 0.5f * t * t * a0 +
+
+        //float d = t * v0 + 0.5f * t * t * sign(v1 - v0) * a1;
+        float d = t * v0 + 0.5f * t * t * sign(v1 - v0) * a0 + (1.0f / 6.0f) * t * t * sign(v1 - v0) * (a1 - a0);
+        pos += d;
+        minPos = std::min(minPos, pos);
+        maxPos = std::max(maxPos, pos);
+
+        v0 = profile[i+1].v;
+        t0 = profile[i+1].t;
+        totalTime += t;
+    }
+
+    return {minPos, maxPos};
+}
+
 // helper functions
 static float dist(float v0, float v1, float acc)
 {
