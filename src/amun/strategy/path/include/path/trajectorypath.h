@@ -116,7 +116,7 @@ private:
     Vector randomPointInField();
     std::vector<Point> getResultPath();
     void escapeObstacles();
-    std::pair<int, float> trajectoryObstacleScore(const SpeedProfile &speedProfile);
+    std::tuple<int, float, float> trajectoryObstacleScore(const SpeedProfile &speedProfile);
 
     void clearObstaclesCustom() override;
 
@@ -163,7 +163,10 @@ private:
     float m_bestEndPointDistance;
     // for escaping obstacles (or no path is possible)
     float m_bestEscapingTime = 2;
-    float m_bestEscapingAngle = 0;
+    float m_bestEscapingAngle = 0.5f;
+
+    float m_bestStoppingTime = 2;
+    float m_bestStoppingAngle = 0.5f;
 
     // quasi constants
     float MAX_SPEED = 3.5f;
