@@ -41,6 +41,10 @@ private:
         virtual ~MovingObstacle() {}
         virtual bool intersects(Vector pos, float time) const = 0;
         virtual float distance(Vector pos, float time) const = 0;
+        virtual BoundingBox boundingBox() const {
+            float max = std::numeric_limits<float>::max();
+            return BoundingBox(Vector(-max, -max), Vector(max, max));
+        }
 
         int prio;
     };
@@ -73,12 +77,16 @@ private:
     };
 
     struct FriendlyRobotObstacle : public MovingObstacle {
+        FriendlyRobotObstacle();
+        FriendlyRobotObstacle(std::vector<Point> *trajectory, float radius, int prio);
         bool intersects(Vector pos, float time) const override;
         float distance(Vector pos, float time) const override;
+        BoundingBox boundingBox() const override { return  bound; }
 
         std::vector<Point> *trajectory;
         float radius;
         float timeInterval;
+        BoundingBox bound;
     };
 
 public:
@@ -93,8 +101,9 @@ public:
     void setOutOfFieldObstaclePriority(int prio) { m_outOfFieldPriority = prio; }
 
 private:
-    bool isInStaticObstacle(Vector point) const;
-    bool isInMovingObstacle(Vector point, float time) const;
+    template<typename container>
+    bool isInStaticObstacle(const container &obstacles, Vector point) const;
+    bool isInMovingObstacle(const std::vector<MovingObstacle *> &obstacles, Vector point, float time) const;
     bool isTrajectoryInObstacle(const SpeedProfile &profile, float timeOffset, float slowDownTime, Vector startPos);
     // return {min distance of trajectory to obstacles, min distance of last point to obstacles}
     std::pair<float, float> minObstacleDistance(const SpeedProfile &profile, float timeOffset, float slowDownTime, Vector startPos);
@@ -124,7 +133,7 @@ private:
     QVector<MovingCircle> m_movingCircles;
     QVector<MovingLine> m_movingLines;
     QVector<FriendlyRobotObstacle> m_friendlyRobotObstacles;
-    QVector<MovingObstacle*> m_movingObstacles;
+    std::vector<MovingObstacle*> m_movingObstacles;
 
     // result trajectory (used by other robots as obstacle)
     std::vector<Point> m_currentTrajectory;

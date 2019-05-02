@@ -62,6 +62,19 @@ float TrajectoryPath::MovingLine::distance(Vector pos, float time) const
     return LineSegment(p1, p2).distance(pos) - width;
 }
 
+TrajectoryPath::FriendlyRobotObstacle::FriendlyRobotObstacle() :
+    bound(Vector(0, 0), Vector(0, 0))
+{ }
+
+TrajectoryPath::FriendlyRobotObstacle::FriendlyRobotObstacle(std::vector<Point> *trajectory, float radius, int prio) :
+    trajectory(trajectory),
+    radius(radius),
+    bound(trajectory->at(0).pos, trajectory->at(1).pos)
+{
+    this->prio = prio;
+    timeInterval = trajectory->at(1).time - trajectory->at(0).time;
+}
+
 bool TrajectoryPath::FriendlyRobotObstacle::intersects(Vector pos, float time) const
 {
     unsigned long index = std::max(0UL, std::min(trajectory->size()-1, static_cast<unsigned long>(time / timeInterval)));
@@ -151,20 +164,17 @@ void TrajectoryPath::addFriendlyRobotTrajectoryObstacle(std::vector<Point> *obst
         addCircle(obstacle->at(0).pos.x, obstacle->at(0).pos.y, radius + std::sqrt(maxDistSq), nullptr, prio);
         return;
     }
-    FriendlyRobotObstacle o;
-    o.trajectory = obstacle;
-    o.radius = radius + m_radius;
-    o.prio = prio;
-    o.timeInterval = obstacle->at(1).time - obstacle->at(0).time;
+    FriendlyRobotObstacle o(obstacle, radius + m_radius, prio);
     m_friendlyRobotObstacles.push_back(o);
 }
 
-bool TrajectoryPath::isInStaticObstacle(Vector point) const
+template<typename container>
+bool TrajectoryPath::isInStaticObstacle(const container &obstacles, Vector point) const
 {
     if (!pointInPlayfield(point, m_radius)) {
         return true;
     }
-    for (const auto obstacle : m_obstacles) {
+    for (const auto obstacle : obstacles) {
         if (obstacle->distance(point) < 0) {
             return true;
         }
@@ -172,9 +182,9 @@ bool TrajectoryPath::isInStaticObstacle(Vector point) const
     return false;
 }
 
-bool TrajectoryPath::isInMovingObstacle(Vector point, float time) const
+bool TrajectoryPath::isInMovingObstacle(const std::vector<MovingObstacle*> &obstacles, Vector point, float time) const
 {
-    for (const auto o : m_movingObstacles) {
+    for (const auto o : obstacles) {
         if (o->intersects(point, time)) {
             return true;
         }
@@ -184,14 +194,30 @@ bool TrajectoryPath::isInMovingObstacle(Vector point, float time) const
 
 bool TrajectoryPath::isTrajectoryInObstacle(const SpeedProfile &profile, float timeOffset, float slowDownTime, Vector startPos)
 {
+    BoundingBox trajectoryBoundingBox = profile.calculateBoundingBox(s0, 0);
+    std::vector<const Obstacle*> intersectingStaticObstacles;
+    intersectingStaticObstacles.reserve(m_obstacles.size());
+    for (const Obstacle *o : m_obstacles) {
+        if (o->boundingBox().intersects(trajectoryBoundingBox)) {
+            intersectingStaticObstacles.push_back(o);
+        }
+    }
+    std::vector<MovingObstacle*> intersectingMovingObstacles;
+    intersectingMovingObstacles.reserve(m_movingObstacles.size());
+    for (MovingObstacle *o : m_movingObstacles) {
+        if (o->boundingBox().intersects(trajectoryBoundingBox)) {
+            intersectingMovingObstacles.push_back(o);
+        }
+    }
+
     float totalTime = slowDownTime > 0 ? profile.timeWithSlowDown(slowDownTime) : profile.time();
     for (int i = 0;i<40;i++) {
         float time = totalTime * i / 39.0f;
         Vector pos = slowDownTime > 0 ? profile.positionForTimeSlowDown(time, slowDownTime) : profile.positionForTime(time);
-        if (isInStaticObstacle(pos + startPos)) {
+        if (isInStaticObstacle(intersectingStaticObstacles, pos + startPos)) {
             return true;
         }
-        if (isInMovingObstacle(pos + startPos, time + timeOffset)) {
+        if (isInMovingObstacle(intersectingMovingObstacles, pos + startPos, time + timeOffset)) {
             return true;
         }
     }
@@ -444,6 +470,7 @@ void TrajectoryPath::findPathEndInObstacle()
 
 std::pair<int, float> TrajectoryPath::trajectoryObstacleScore(const SpeedProfile &speedProfile)
 {
+    BoundingBox trajectoryBoundingBox = speedProfile.calculateBoundingBox(s0, 0);
     float totalTime = speedProfile.time();
     const float SAMPLING_INTERVAL = 0.005f;
     int samples = int(totalTime / SAMPLING_INTERVAL) + 1;
@@ -451,6 +478,20 @@ std::pair<int, float> TrajectoryPath::trajectoryObstacleScore(const SpeedProfile
     int currentBestObstaclePrio = -1;
     float currentBestObstacleTime = 0;
     float minStaticObstacleDistance = std::numeric_limits<float>::max();
+    std::vector<const Obstacle*> intersectingStaticObstacles;
+    intersectingStaticObstacles.reserve(m_obstacles.size());
+    for (const Obstacle *o : m_obstacles) {
+        if (o->boundingBox().intersects(trajectoryBoundingBox)) {
+            intersectingStaticObstacles.push_back(o);
+        }
+    }
+    std::vector<MovingObstacle*> intersectingMovingObstacles;
+    intersectingMovingObstacles.reserve(m_movingObstacles.size());
+    for (MovingObstacle *o : m_movingObstacles) {
+        if (o->boundingBox().intersects(trajectoryBoundingBox)) {
+            intersectingMovingObstacles.push_back(o);
+        }
+    }
     for (int i = 0;i<samples;i++) {
         float time;
         if (i < samples-1) {
@@ -464,7 +505,7 @@ std::pair<int, float> TrajectoryPath::trajectoryObstacleScore(const SpeedProfile
         if (!pointInPlayfield(pos, m_radius)) {
             obstaclePriority = m_outOfFieldPriority;
         }
-        for (const auto obstacle : m_obstacles) {
+        for (const auto obstacle : intersectingStaticObstacles) {
             if (obstacle->prio > obstaclePriority) {
                 float distance = obstacle->distance(pos);
                 minStaticObstacleDistance = std::min(minStaticObstacleDistance, distance);
@@ -473,7 +514,7 @@ std::pair<int, float> TrajectoryPath::trajectoryObstacleScore(const SpeedProfile
                 }
             }
         }
-        for (const auto o : m_movingObstacles) {
+        for (const auto o : intersectingMovingObstacles) {
             if (o->prio > obstaclePriority && o->intersects(pos, time)) {
                 obstaclePriority = o->prio;
             }
@@ -565,23 +606,23 @@ void TrajectoryPath::findPathAlphaT()
     collectObstacles();
     m_movingObstacles.clear();
     for (auto &o : m_movingCircles) {
-        m_movingObstacles.append(&o);
+        m_movingObstacles.push_back(&o);
     }
     for (auto &o : m_movingLines) {
-        m_movingObstacles.append(&o);
+        m_movingObstacles.push_back(&o);
     }
     for (auto &o : m_friendlyRobotObstacles) {
-        m_movingObstacles.append(&o);
+        m_movingObstacles.push_back(&o);
     }
 
     // check if start point is in obstacle
-    if (isInStaticObstacle(s0) || isInMovingObstacle(s0, 0)) {
+    if (isInStaticObstacle(m_obstacles, s0) || isInMovingObstacle(m_movingObstacles, s0, 0)) {
         escapeObstacles();
         return;
     }
 
     // check if end point is in obstacle
-    if (isInStaticObstacle(s1)) {
+    if (isInStaticObstacle(m_obstacles, s1)) {
         for (const Obstacle *o : m_obstacles) {
             float dist = o->distance(s1);
             if (dist > 0.01f && dist < 0) {
@@ -590,7 +631,7 @@ void TrajectoryPath::findPathAlphaT()
         }
         distance = s1 - s0;
         // test again, might have been moved into another obstacle
-        if (isInStaticObstacle(s1)) {
+        if (isInStaticObstacle(m_obstacles, s1)) {
             findPathEndInObstacle();
             return;
         }
@@ -689,6 +730,18 @@ void TrajectoryPath::findPathAlphaT()
 std::vector<TrajectoryPath::Point> TrajectoryPath::getResultPath()
 {
     std::vector<SpeedProfile> parts;
+    if (m_generationInfo.size() == 0) {
+        Point p1;
+        p1.pos = s0;
+        p1.time = 0;
+        p1.speed = v0;
+        Point p2;
+        p2.pos = s0;
+        p2.time = std::numeric_limits<float>::max();
+        p2.speed = Vector(0, 0);
+        return {p1, p2};
+    }
+
     float toEndTime = 0;
     for (TrajectoryGenerationInfo info : m_generationInfo) {
         SpeedProfile trajectory;
