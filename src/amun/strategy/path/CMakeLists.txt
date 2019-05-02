@@ -21,6 +21,7 @@
 add_library(path
     include/path/alphatimetrajectory.h
     include/path/abstractpath.h
+    include/path/boundingbox.h
     include/path/kdtree.h
     include/path/linesegment.h
     include/path/path.h
