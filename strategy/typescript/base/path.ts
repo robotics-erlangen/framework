@@ -238,6 +238,8 @@ export class Path {
 	private rectObstacles: RectObstacle[] = [];
 	private triangleObstacles: TriangleObstacle[] = [];
 
+	private lastWasTrajectoryPath: boolean = false;
+
 	constructor(robotId: number) {
 		this._inst = pathLocal.createPath();
 		this._trajectoryInst = pathLocal.createTrajectoryPath();
@@ -271,6 +273,7 @@ export class Path {
 	}
 
 	getTrajectory(startPos: Position, startSpeed: Speed, endPos: Position, endSpeed: Speed, maxSpeed: number, acceleration: number): { pos: Position, speed: Speed, time: number}[] {
+		this.lastWasTrajectoryPath = true;
 		this.addObstaclesToPath(this._trajectoryInst);
 		let t = this._trajectoryInst.calculateTrajectory(startPos.x, startPos.y, startSpeed.x,
 			startSpeed.y, endPos.x, endPos.y, endSpeed.x, endSpeed.y, maxSpeed, acceleration);
@@ -282,8 +285,13 @@ export class Path {
 	}
 
 	getPath(x1: number, y1: number, x2: number, y2: number): [number, number, number, number][] {
+		this.lastWasTrajectoryPath = false;
 		this.addObstaclesToPath(this._inst);
 		return this._inst.getPath(x1, y1, x2, y2);
+	}
+
+	lastFrameWasTrajectoryPath(): boolean {
+		return this.lastWasTrajectoryPath;
 	}
 
 	setProbabilities(a: number, b: number) {

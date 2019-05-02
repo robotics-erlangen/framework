@@ -386,7 +386,7 @@ function addRobotObstacles(path: Path, robot: FriendlyRobot, ignoreFriendlyRobot
 	if (!ignoreFriendlyRobots) {
 		for (let r of World.FriendlyRobots) {
 			if (r.id !== robot.id) { // don't add current robot
-				if (useCMA) {
+				if (useCMA || !r.path.lastFrameWasTrajectoryPath()) {
 					if (!ignoreRobot(robot, r)) {
 						// use speed difference to calculate the safety distance
 						let safetyDistance = MathUtil.bound(0, robot.speed.distanceTo(r.speed) * 0.05, 0.05);
