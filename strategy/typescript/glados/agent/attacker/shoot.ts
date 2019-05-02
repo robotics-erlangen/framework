@@ -403,9 +403,9 @@ export class Shoot extends Behavior {
 			if (k !== "task") {
 				let value = String(v);
 				if (k === "time") {
-					value = `${v - World.Time} (${value})`;
+					v = `${v - World.Time} (${value})`;
 				}
-				debug.set("decision/" + String(k), value);
+				debug.set("decision/" + String(k), v);
 			}
 		}
 
