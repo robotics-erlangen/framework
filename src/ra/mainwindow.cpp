@@ -667,7 +667,6 @@ void MainWindow::raMode()
     disconnect(&m_amun, SIGNAL(gotStatus(Status)), this, SLOT(handleCheckHaltStatus(Status)));
     connect(&m_amun, SIGNAL(gotStatus(Status)), SLOT(handleStatus(Status)));
     disconnect(&m_amun, SIGNAL(gotReplayStatus(Status)), this, SLOT(handleStatus(Status)));
-    disconnect(ui->logManager, SIGNAL(gotStatus(Status)), this, SLOT(handleStatus(Status)));
     disconnect(ui->logManager, SIGNAL(gotStatus(Status)), &m_amun, SIGNAL(sendReplayStatus(Status)));
     disconnect(this, SIGNAL(gotStatus(Status)), &m_logWriterHorus, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), &m_logWriterRa, SLOT(handleStatus(Status)));
@@ -696,7 +695,6 @@ void MainWindow::horusMode()
     disconnect(&m_amun, SIGNAL(gotStatus(Status)), this, SLOT(handleStatus(Status)));
     connect(&m_amun, SIGNAL(gotReplayStatus(Status)), this, SLOT(handleStatus(Status)));
     connect(&m_amun, SIGNAL(gotStatus(Status)), SLOT(handleCheckHaltStatus(Status)));
-    connect(ui->logManager, SIGNAL(gotStatus(Status)), SLOT(handleStatus(Status)));
     connect(ui->logManager, SIGNAL(gotStatus(Status)), &m_amun, SIGNAL(sendReplayStatus(Status)));
 }
 

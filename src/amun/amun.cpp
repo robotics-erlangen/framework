@@ -497,6 +497,7 @@ void Amun::handleStatus(const Status &status)
 void Amun::handleStatusForReplay(const Status &status)
 {
     m_replayTimer->setTime(status->time(), 0);
+    emit gotReplayStatus(status);
     emit sendStatusForReplay(status);
 }
 
