@@ -13,8 +13,44 @@ import * as PathHelper from "glados/trajectory/pathhelper";
 
 type Trajectory = { pos: Position, speed: Speed, time: number}[];
 
+class PID {
+	p: number;
+	i: number;
+
+	maxLength: number;
+
+	integral: Vector = new Vector(0, 0);
+
+	constructor(maxLength: number, p: number, i: number) {
+		this.maxLength = maxLength;
+		this.p = p;
+		this.i = i;
+	}
+
+	reset() {
+		this.integral = new Vector(0, 0);
+	}
+
+	update(error: Vector) {
+		let timeDiff = World.TimeDiff;
+
+		let pOut = error * this.p;
+		this.integral += error * timeDiff;
+		let iOut = this.integral * this.i;
+
+		let output = pOut + iOut;
+
+		if (output.length() > this.maxLength) {
+			output.setLength(this.maxLength);
+		}
+		return output;
+	}
+}
+
 export class TrajectoryPath extends TrajectoryHandler {
 	private rotationCalculation: DirectRotation = new DirectRotation();
+	private speedPID: PID = new PID(1.0, 3, 0.7);
+	private positionPID: PID = new PID(2.0, 13, 4.5);
 
 	private lastTrajectory: Trajectory = [];
 
@@ -54,20 +90,25 @@ export class TrajectoryPath extends TrajectoryHandler {
 		// find position and speed on last path
 		let startPos = robotPos;
 		let startSpeed = robotSpeed;
-		if (this.lastTrajectory.length > 0) {
-			let [testPos, testSpeed] = TrajectoryPath.calculateClosestPoint(robotPos, robotSpeed, this.lastTrajectory);
-			// TrajectoryPath.visualizeTrajectory(this.lastTrajectory, vis.colors.green);
+		let futureStartPos = robotPos;
+		let futureStartSpeed = robotSpeed;
+		let usePositionControl = this.lastTrajectory.length > 0 && !World.IsSimulated;
+		if (usePositionControl) {
+			let [testPos, testSpeed] = TrajectoryPath.calculateClosestPoint(robotPos, robotSpeed, this.lastTrajectory, 0);
 			vis.addCircle("trajectory-closest", Coordinates.toLocal(testPos), 0.03, vis.colors.red);
-			if (testPos.distanceTo(robotPos) < 0.1) {
-				// startPos = testPos;
-				// startSpeed = robotSpeed;
+			if (testPos.distanceTo(robotPos) < 0.1 && testSpeed.distanceTo(robotSpeed) < 0.3) {
+				startPos = testPos;
+				startSpeed = testSpeed;
+				[futureStartPos, futureStartSpeed] = TrajectoryPath.calculateClosestPoint(robotPos, robotSpeed, this.lastTrajectory, 0.01);
+			} else {
+				this.speedPID.reset();
+				this.positionPID.reset();
 			}
 		}
 
 		// correct start and end speed
 		if (startSpeed.length() > maxSpeed - 0.1) {
 			startSpeed.setLength(maxSpeed - 0.1);
-			// amun.log("ist " + (maxSpeed - 0.1) + " und " + startSpeed.length());
 		}
 		if (endSpeed.length() > maxSpeed - 0.1) {
 			endSpeed.setLength(maxSpeed - 0.1);
@@ -81,13 +122,12 @@ export class TrajectoryPath extends TrajectoryHandler {
 		let trajectory = this._robot.path.getTrajectory(startPos, startSpeed, targetPos, endSpeed,
 			maxSpeed, accelerate);
 		if (TRAJECTORY_PATH_DEBUG) {
-			let pathColor = vis.colors.yellow;
+			let pathColor = trajectory.length < 50 ? vis.colors.green : vis.colors.yellow;
 			if (TrajectoryPath.endPos(robotPos, trajectory).distanceTo(targetPos) > 0.005) {
 				// orange path if target can't be reached
 				pathColor = vis.colors.orange;
 			}
 			TrajectoryPath.visualizeTrajectory(trajectory, pathColor);
-			// TrajectoryPath.plotSpeed(trajectory);
 		}
 		this.lastTrajectory = trajectory;
 
@@ -112,6 +152,14 @@ export class TrajectoryPath extends TrajectoryHandler {
 		}
 		let speed = TrajectoryPath.speedAtTime(queryTime, trajectory);
 		let acc = TrajectoryPath.accAtTime(queryTime, trajectory);
+
+		if (usePositionControl) {
+			let posDiff = this.positionPID.update(futureStartPos - robotPos);
+			let speedDiff = this.speedPID.update(futureStartSpeed - robotSpeed);
+			speed += posDiff;
+			speed += speedDiff;
+			vis.addPathRaw("Position Control", [robotPos, robotPos + posDiff + speedDiff], vis.colors.red);
+		}
 
 		let spline = [ {t_start: 0, t_end: Infinity,
 			x: { a0: robotPos.x, a1: speed.x, a2: acc.x / 2, a3: 0 },
@@ -205,7 +253,7 @@ export class TrajectoryPath extends TrajectoryHandler {
 		vis.addPath("trajectory-fromC++", positions, color);
 	}
 
-	private static calculateClosestPoint(position: Position, speed: Speed, trajectory: Trajectory) {
+	private static calculateClosestPoint(position: Position, speed: Speed, trajectory: Trajectory, offset: number) {
 		let bestPos = position, bestSpeed = speed;
 		let bestTime = Infinity;
 		let bestDistance = Infinity;
@@ -221,7 +269,8 @@ export class TrajectoryPath extends TrajectoryHandler {
 				bestTime = time;
 			}
 		}
-		// bestSpeed = TrajectoryPath.speedAtTime(bestTime + 0.01, trajectory);
+		bestPos = TrajectoryPath.posAtTime(bestTime + offset, trajectory);
+		bestSpeed = TrajectoryPath.speedAtTime(bestTime + offset, trajectory);
 		return [bestPos, bestSpeed];
 	}
 
