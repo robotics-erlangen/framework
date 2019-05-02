@@ -314,13 +314,15 @@ function _currentPlannedMainAttacker(passInfoSender: FriendlyRobot, passInfoTabl
 		}
 	}
 
-	debug.set("plannedMA/lastCPMA", lastCPMA);
-	debug.set("plannedMA/lastPasser", lastPasser);
+	debug.pushtop("plannedMA");
+	debug.set("lastCPMA", lastCPMA);
+	debug.set("lastPasser", lastPasser);
 	if (lastPasser) {
-		debug.set("plannedMA/lastReceiver", lastReceiver || "anonymous");
+		debug.set("lastReceiver", lastReceiver || "anonymous");
 	} else {
-		debug.set("plannedMA/lastReceiver", lastReceiver);
+		debug.set("lastReceiver", lastReceiver);
 	}
+	debug.pop();
 
 	if (lastPasser && Ball.wasShot(0.5) === lastPasser
 			&&  World.Ball.speed.length() > 3 && lastReceiver && World.Ball.speed.absoluteAngleDiff(
