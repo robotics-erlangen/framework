@@ -570,6 +570,8 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
 
     m_reloadTimer->stop();
 
+    m_filename = filename;
+
     bool createNewStrategy = !m_strategy || !m_strategy->canReloadInPlace() || !m_strategy->canHandleDynamic(filename);
     if (createNewStrategy) {
         // use a fresh strategy instance when strategy is started
@@ -578,8 +580,6 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
 #endif
         delete m_strategy;
         m_strategy = nullptr;
-
-        m_filename = filename;
 
         // hardcoded factory pattern
         if (Lua::canHandle(filename)) {
