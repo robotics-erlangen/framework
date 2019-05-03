@@ -3,6 +3,8 @@
  */
 import { log } from "base/amun";
 import * as debug from "base/debug";
+import * as pb from "base/protobuf";
+
 const connectDebugger = amun.connectDebugger;
 const debuggerSend = amun.debuggerSend;
 
@@ -180,6 +182,15 @@ function handleNotification(notification: string) {
 		scriptInfos.push(notificationObject.params);
 		break;
 	case "Debugger.paused":
+		if (amun.isDebug) {
+			amun.sendCommand({
+				pause_simulator: {
+					// use UI reason to allow unpausing the simulator later
+					reason: pb.amun.PauseSimulatorReason.Ui,
+					pause: true
+				}
+			});
+		}
 		getPropertiesResponseMap.clear();
 		___globalpleasedontuseinregularcode.debugSet = debug.set;
 		___globalpleasedontuseinregularcode.debugExtraParams = debug.getInitialExtraParams();
