@@ -412,29 +412,21 @@ function addRobotObstacles(path: Path, robot: FriendlyRobot, ignoreFriendlyRobot
 	if (!ignoreOpponentRobots) {
 		for (let r of World.OpponentRobots) {
 			if (!ignoreRobot(robot, r)) {
-				if (useCMA) {
-					// use speed difference to calculate the safety distance
-					let safetyDistance = Math.max(0, Rating.valueToRating(robot.speed.distanceTo(r.speed), 0, 1.25) * 0.15 - 0.05);
-					if (disableOpponentPrediction) { // be more aggressive
-						safetyDistance = safetyDistance / 2;
-					} else if (robot.speed.length() < SLOW_ROBOT && r.speed.length() < SLOW_ROBOT) {
-						safetyDistance = safetyDistance - 0.02;
-					}
-					let estimatedPosition = r.pos + r.speed * estimationTime;
-					// only use estimated position if it doesn't collide with the robot
-					if (robot.pos.distanceToLineSegment(r.pos, estimatedPosition) >= robot.radius + r.radius
-							&&  r.pos.distanceTo(estimatedPosition) > 0.0001) {
-						path.addLine(r.pos.x, r.pos.y, estimatedPosition.x, estimatedPosition.y,
-								r.radius + safetyDistance, `OwnRobot_${r.id}`, Priorities.ROBOT);
-					} else {
-						path.addCircle(r.pos.x, r.pos.y, r.radius + safetyDistance, `OwnRobot_${r.id}`, Priorities.ROBOT);
-					}
+				// use speed difference to calculate the safety distance
+				let safetyDistance = Math.max(0, Rating.valueToRating(robot.speed.distanceTo(r.speed), 0, 1.25) * 0.15 - 0.05);
+				if (disableOpponentPrediction) { // be more aggressive
+					safetyDistance = safetyDistance / 2;
+				} else if (robot.speed.length() < SLOW_ROBOT && r.speed.length() < SLOW_ROBOT) {
+					safetyDistance = safetyDistance - 0.02;
+				}
+				let estimatedPosition = r.pos + r.speed * estimationTime;
+				// only use estimated position if it doesn't collide with the robot
+				if (robot.pos.distanceToLineSegment(r.pos, estimatedPosition) >= robot.radius + r.radius
+						&&  r.pos.distanceTo(estimatedPosition) > 0.0001) {
+					path.addLine(r.pos.x, r.pos.y, estimatedPosition.x, estimatedPosition.y,
+							r.radius + safetyDistance, `OwnRobot_${r.id}`, Priorities.ROBOT);
 				} else {
-					if (r.speed.lengthSq() < 0.8 * 0.8) {
-						path.addCircle(r.pos.x, r.pos.y, r.radius + 0.01, `OppRobot_${r.id}`, Priorities.ROBOT);
-					} else {
-						addMovingRobotObstacle(path, r, 0.04);
-					}
+					path.addCircle(r.pos.x, r.pos.y, r.radius + safetyDistance, `OwnRobot_${r.id}`, Priorities.ROBOT);
 				}
 			}
 		}
