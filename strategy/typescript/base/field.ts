@@ -288,17 +288,6 @@ export function distanceToOpponentDefenseArea(pos: Readonly<Position>, radius: n
 	return distanceToDefenseArea(pos, radius, false);
 }
 
-function insideSector(s: [Vector, Vector], a: Vector): boolean {
-	let v1 = (-s[0]).perpendicular(), v2 = s[1].perpendicular();
-	let b1 = v1.dot(a) >= 0;
-	let b2 = v2.dot(a) >= 0;
-	if (v1.dot(s[1]) >= 0) {
-		return b1 && b2;
-	} else {
-		return b1 || b2;
-	}
-}
-
 function intersectRayArc(pos: Position, dir: RelativePosition, m: Position, r: number, minangle: number, maxangle: number): [Vector, number, number][] {
 	let intersections: [Vector, number, number][] = [];
 	let [i1, i2, l1, l2] = geom.intersectLineCircle(pos, dir, m, r);
@@ -771,10 +760,10 @@ function intersectCircleDefenseArea_2018(pos: Position, radius: number, extraDis
 		// get intersections with circles
 		if (i > 0 && i < 2) {
 			[ci1, ci2] = geom.intersectCircleCircle(zero, extraDistance, pos - corners[i], radius);
-			if (ci1 && insideSector([dirPrev, -dir], ci1)) {
+			if (ci1 && ci1.insideSector(dirPrev, -dir)) {
 				intersections.push(ci1 + corners[i]);
 			}
-			if (ci2 && insideSector([dirPrev, -dir], ci2)) {
+			if (ci2 && ci2.insideSector(dirPrev, -dir)) {
 				intersections.push(ci2 + corners[i]);
 			}
 		}
