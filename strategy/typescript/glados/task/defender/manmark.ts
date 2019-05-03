@@ -1,5 +1,7 @@
+import * as Constants from "base/constants";
 import * as debug from "base/debug";
 import * as Field from "base/field";
+import * as ListUtil from "base/listutil";
 import { Robot } from "base/robot";
 import { Position } from "base/vector";
 import * as World from "base/world";
@@ -88,6 +90,12 @@ export class ManMark extends Task {
 
 		this._obstacleTable.ignoreOpponentRobots = Field.distanceToFriendlyDefenseArea(this._robot.pos, this._robot.radius)
 			< 4 * this._robot.radius + 0.13;
+		if (this._robot.speed.lengthSq() > Constants.crashingSpeedDifference ** 2) {
+			const oppDist = ListUtil.min(World.OpponentRobots, (r) => r.pos.distanceToSq(this._robot.pos))[1];
+			if (oppDist < 1) {
+				this._obstacleTable.ignoreOpponentRobots = false;
+			}
+		}
 
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, this._obstacleTable);
 
