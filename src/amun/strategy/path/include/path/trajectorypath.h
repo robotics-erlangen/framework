@@ -99,6 +99,7 @@ public:
     void addMovingLine(Vector startPos1, Vector speed1, Vector acc1, Vector startPos2, Vector speed2, Vector acc2, float startTime, float endTime, float width, int prio);
     void addFriendlyRobotTrajectoryObstacle(std::vector<Point> *obstacle, int prio, float radius);
     void setOutOfFieldObstaclePriority(int prio) { m_outOfFieldPriority = prio; }
+    int maxIntersectingObstaclePrio() const { return m_maxIntersectingObstaclePrio; }
 
 private:
     template<typename container>
@@ -167,6 +168,8 @@ private:
 
     float m_bestStoppingTime = 2;
     float m_bestStoppingAngle = 0.5f;
+
+    int m_maxIntersectingObstaclePrio = -1;
 
     // quasi constants
     float MAX_SPEED = 3.5f;

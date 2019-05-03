@@ -583,6 +583,7 @@ void TrajectoryPath::escapeObstacles()
             }
         }
         bestEndTime = endTime;
+        m_maxIntersectingObstaclePrio = bestPrio;
     }
     bestStartingEndPos += s0;
 
@@ -638,6 +639,8 @@ void TrajectoryPath::escapeObstacles()
 
 void TrajectoryPath::findPathAlphaT()
 {
+    m_maxIntersectingObstaclePrio = -1;
+
     for (Circle &c: m_circleObstacles) { c.radius += m_radius; }
     for (Rect &r: m_rectObstacles) { r.radius += m_radius; }
     for (Triangle &t: m_triangleObstacles) { t.radius += m_radius; }

@@ -402,6 +402,13 @@ static void trajectoryAddRobotTrajectoryObstacle(const FunctionCallbackInfo<Valu
     static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value())->trajectoryPath()->addFriendlyRobotTrajectoryObstacle(obstacle, prio, radius);
 }
 
+static void trajectoryMaxIntersectingObstaclePrio(const FunctionCallbackInfo<Value> &args)
+{
+    Isolate * isolate = args.GetIsolate();
+    auto p = static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value())->trajectoryPath();
+    args.GetReturnValue().Set(Number::New(isolate, p->maxIntersectingObstaclePrio()));
+}
+
 static void drawTree(Typescript *thread, const KdTree *tree)
 {
     if (tree == nullptr) {
@@ -471,7 +478,8 @@ static QList<FunctionInfo> trajectoryPathCallbacks = {
     { "addMovingLine",      trajectoryAddMovingLine},
     { "setOutOfFieldPrio",  trajectorySetOutOfFieldObstaclePriority},
     { "getTrajectoryAsObstacle", trajectoryGetLastTrajectoryAsRobotObstacle},
-    { "addRobotTrajectoryObstacle", trajectoryAddRobotTrajectoryObstacle}};
+    { "addRobotTrajectoryObstacle", trajectoryAddRobotTrajectoryObstacle},
+    { "maxIntersectingObstaclePrio", trajectoryMaxIntersectingObstaclePrio}};
 
 static void pathObjectAddFunctions(Isolate *isolate, const QList<FunctionInfo> &callbacks, Local<Object> &pathWrapper,
                                    Local<External> &pathObject)
