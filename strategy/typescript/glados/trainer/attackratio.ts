@@ -60,7 +60,10 @@ export class AttackRatio {
 
 
 		let attackRatio: number;
-		if (BaseRef.isFriendlyKickoffState(refState)) {
+		
+		if (World.GameStage === "PenaltyShootout") {
+			attackRatio = 8;
+		} else if (BaseRef.isFriendlyKickoffState(refState)) {
 			attackRatio = 6;
 		} else if (BaseRef.isOpponentFreeKickState(refState)) {
 			attackRatio = 3;
@@ -97,8 +100,6 @@ export class AttackRatio {
 			} else {
 				attackRatio = 1;
 			}
-		} else if (World.GameStage === "PenaltyShootout") {
-			attackRatio = 8;
 		} else {// Game, GameForce
 			if (this._opponentFreeKickOngoing) {
 				attackRatio = 1;
