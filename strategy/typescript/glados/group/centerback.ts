@@ -174,7 +174,7 @@ export class CenterBack {
 		if (World.RefereeState === "Stop") {
 			distanceBetweenDefenders = Math.max(distanceBetweenDefenders, 0.03);
 		}
-		let getImportant = 2 * robot_radius + 0.02 + distanceToDefenseArea;
+		let getImportant = 2 * robot_radius + 0.04 + distanceToDefenseArea;
 
 		if (Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius + 2 * robot_radius + distanceToDefenseArea + 0.4)) {
 			distanceBetweenDefenders = 0;
