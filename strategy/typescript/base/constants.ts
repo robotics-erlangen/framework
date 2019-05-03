@@ -49,6 +49,9 @@ export const floorDamping = 0.55;
 /** maximum allowed driving speed during stop states [m/s] */
 export const stopSpeed = 1.5;
 
+/** minimum speed difference with which a collision foul is considered crashing [m/s] */
+export const crashingSpeedDifference = 1.5;
+
 /**
  * acceleration which brakes the ball [m/s^2]
  * measured by looking at the ball speed graph in the plotter
