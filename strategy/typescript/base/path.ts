@@ -206,6 +206,7 @@ interface PathObjectTrajectory extends PathObjectCommon {
 	setOutOfFieldPrio(prio: number): void;
 	getTrajectoryAsObstacle(): TrajectoryObstacle;
 	addRobotTrajectoryObstacle(obstacle: TrajectoryObstacle, priority: number, radius: number): void;
+	maxIntersectingObstaclePrio(): number;
 }
 
 interface AmunPath {
@@ -467,6 +468,10 @@ export class Path {
 
 	setOutOfFieldObstaclePriority(prio: number) {
 		this._trajectoryInst.setOutOfFieldPrio(prio);
+	}
+
+	maxIntersectingObstaclePrio(): number {
+		return this._trajectoryInst.maxIntersectingObstaclePrio();
 	}
 }
 
