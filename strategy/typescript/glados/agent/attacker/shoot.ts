@@ -267,7 +267,7 @@ export class Shoot extends Behavior {
 
 		// redecide if during a pseudo pass, the ball overtakes the pass pos
 		// this is moderately likely to happen during chaseBall
-		if (ENABLE_PSEUDO_PASS && this._decision.task === "pass" && this._decision.target === this._robot) {
+		if (!Robot.isPressed(this._robot) && ENABLE_PSEUDO_PASS && this._decision.task === "pass" && this._decision.target === this._robot) {
 			let attackPosition = this._attackPosition || World.Ball.pos;
 			let passVector = (this._decision.pos - attackPosition).setLength(0.4);
 
