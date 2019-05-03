@@ -121,13 +121,15 @@ export class Ball {
 	}
 
 	_updateRawDetections(rawData: world.BallPosition[] | undefined) {
-		if (rawData == undefined || rawData.length === 0) {
-			return;
+		let count = 0;
+		if (rawData !== undefined && rawData.length > 0) {
+			this._hadRawData = true;
+			this.hasRawData = true;
+			count = Math.min(1, rawData.length);
 		}
-		let count = Math.min(1, rawData.length);
-		this._hadRawData = true;
-		this.hasRawData = true;
-		this.detectionQuality = BALL_QUALITY_FILTER_FACTOR * count + (1 - BALL_QUALITY_FILTER_FACTOR) * this.detectionQuality;
+		if(this._hadRawData === true){
+			this.detectionQuality = BALL_QUALITY_FILTER_FACTOR * count + (1 - BALL_QUALITY_FILTER_FACTOR) * this.detectionQuality;
+		}
 	}
 
 	_updateTrackedState(lastSpeedLength: number) {
