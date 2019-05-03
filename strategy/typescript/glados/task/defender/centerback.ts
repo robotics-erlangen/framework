@@ -94,6 +94,7 @@ export class CenterBack extends Task {
 		this._obstacleTable.ignoreFriendlyRobots = Field.distanceToFriendlyDefenseArea(this._robot.pos, this._robot.radius)
 			< 2 * this._robot.radius + UtilDefense.centerBackDistanceToDefenseArea() + 0.05;
 		this._obstacleTable.ignorePass = this._obstacleTable.ignoreFriendlyRobots;
+		this._obstacleTable.ignoreBall = this._obstacleTable.ignoreFriendlyRobots;
 
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, this._obstacleTable);
 
