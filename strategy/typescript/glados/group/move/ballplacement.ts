@@ -251,7 +251,7 @@ export class BallPlacement extends Move {
 				}
 				taskAssignments[this.RECEIVER] = {
 					class: MoveToPos,
-					params: [ this._computedReceiverPos, undefined, undefined, undefined, undefined, undefined, true ],
+					params: [ this._computedReceiverPos, undefined, undefined, undefined, undefined, undefined, true, true ],
 					restart: this._stateChanged
 				};
 
