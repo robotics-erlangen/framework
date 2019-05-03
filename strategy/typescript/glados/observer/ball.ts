@@ -75,7 +75,7 @@ export function ballHeadingForGoal(ball: Ball, ownGoal: boolean): boolean {
 // dist is the length of the semi-minor axis
 // @param robot robot - the robot to calculate
 // @param ballPos vector - position of the ball
-function ellipticDistance(robot: Robot, ballPos: Position): number {
+export function ellipticDistance(robot: Robot, ballPos: Position): number {
 	let dribblerPos = robot.pos + Vector.fromAngle(robot.dir).scaleLength(robot.shootRadius);
 	let dribblerWidthHalf = Vector.fromAngle(robot.dir - Math.PI / 2).scaleLength(robot.dribblerWidth / 2);
 	let leftDribblerEdge = dribblerPos + dribblerWidthHalf;
