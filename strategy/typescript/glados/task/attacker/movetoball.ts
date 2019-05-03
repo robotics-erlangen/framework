@@ -1,42 +1,53 @@
-import { Vector } from "base/vector";
-import * as vis from "base/vis";
+import { Position, Speed, Vector } from "base/vector";
 import * as World from "base/world";
 
 import { Agent, Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
 
+import * as debug from "base/debug";
+import { AbsTime, RelTime } from "base/timing";
+import * as Physics from "glados/observer/physics";
 
+
+
+const obstacleTable : PathHelper.PathHelperParameters = {
+	ignoreBall : true,
+	ignorePass : true,
+	ignoreDefenseArea: true,
+	ignoreOpponentDefenseArea: false,
+};
+interface Ball {pos: Position; radius: number; speed: Speed; maxSpeed: number;}
 export class MoveToBall extends Task {
-	private _addspeed: number;
-	private _angleWeight: number = 1;
-	private _obstacleTable: PathHelper.PathHelperParameters;
+	private _ball : Ball;
+	private _viewdir : Vector;
+	private _startTime : AbsTime;
+	private _lastTime : RelTime | undefined;
 
-	constructor(agent: Agent, ballAddSpeed: number = 0) {
+	constructor(agent: Agent, viewDir : Vector, ball : Ball = World.Ball) {
 		super(agent);
-		this._addspeed = ballAddSpeed;
-		this._obstacleTable = {
-			ignoreBall: true,
-			ignorePass: true,
-			ignoreDefenseArea: true,
-			ignoreOpponentDefenseArea: false,
-		};
+		this._ball = ball;
+		this._viewdir = viewDir.normalize();
+		this._startTime = World.Time;
 	}
 
 	run() {
-		let ball = World.Ball;
-		let offset = (this._robot.pos - ball.pos).setLength(this._robot.shootRadius + World.Ball.radius);
-		offset.y = 0;
-		let pos = ball.pos - offset;
-		// this._robot.pos * 0.5 + ball.pos/2 - new Vector(0, this._robot.radius/3) + ball.speed/10
-		vis.addCircle("toball", pos, ball.pos.distanceTo(pos), vis.colors.redHalf, true);
-		let dir = ball.pos - pos;
-		let dir2 = World.Geometry.OpponentGoal - pos;
-		dir = dir / dir2.lengthSq() + dir2 / dir.lengthSq();
-		let dirAngle = dir.angle();
+		let robot = this._robot;
+		let ball = this._ball;
+		PathHelper.setDefaultObstaclesByTable(robot.path, robot, obstacleTable);
 
-		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, this._obstacleTable);
-		this._robot.trajectory.update(ToTarget, pos, dirAngle, undefined, ball.speed * 0.98 + new Vector(dir2.setLength(0.1).x, this._addspeed));
-
+		if (robot.pos.distanceTo(ball.pos) < ball.radius + robot.radius + 0.01) {
+			let pos = ball.pos - this._viewdir * (robot.shootRadius);
+			robot.trajectory.update(ToTarget, pos, this._viewdir.angle(), undefined, ball.speed * 1.1 + this._viewdir * 0.1, undefined, true);
+		}
+		else {
+			let timeSinceStart = World.Time - this._startTime;
+			let minTime = Physics.robotTimeToBall(robot, ball, World.Geometry.OpponentGoal, ball.speed.length(), this._lastTime);
+			this._lastTime = minTime;
+			debug.set("ttb", minTime+timeSinceStart);
+			ball = Physics.ballAtTime(ball, minTime);
+			let pos = ball.pos - this._viewdir * (robot.shootRadius + ball.radius);
+			robot.trajectory.update(ToTarget, pos, this._viewdir.angle(), undefined, ball.speed * 1.2);
+		}
 	}
 }
