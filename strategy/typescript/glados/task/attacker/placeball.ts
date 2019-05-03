@@ -11,9 +11,9 @@ import * as World from "base/world";
 
 import * as BallObserver from "glados/observer/ball";
 import { Agent, Task } from "glados/task/base";
+import { CurvedMaxAccel } from "glados/trajectory/curvedmaxaccel";
 import { Direct } from "glados/trajectory/direct";
 import * as PathHelper from "glados/trajectory/pathhelper";
-import { ToTarget } from "glados/trajectory/totarget";
 
 const enum State {
 	WAIT_FOR_BALL_STOP	= "WAIT_FOR_BALL_STOP",
@@ -148,6 +148,7 @@ export class PlaceBall extends Task {
 			obstacleTable.extraBallDistance = this._robot.radius;
 		}
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
+		PathHelper.setObstacleParam(this._robot, PathHelper.ParameterType.useCMAPathFinding, true);
 
 		// Extend field boundary so that the robot can pull the ball to the field from further out
 		this._robot.path.setBoundary(
@@ -167,14 +168,14 @@ export class PlaceBall extends Task {
 				} else {
 					this._currentTargetPos = this._robot.pos - specificOffset;
 				}
-				this._robot.trajectory.update(ToTarget, this._currentTargetPos, specificOffset.angle());
+				this._robot.trajectory.update(CurvedMaxAccel, this._currentTargetPos, specificOffset.angle());
 
 				break;
 			}
 			case State.GO_TO_PULL: {
 				this._currentTargetPos = this._ball.pos - this._borderOffsetAverage;
 				// TODO max speed based on distance?
-				this._robot.trajectory.update(ToTarget, this._currentTargetPos, this._borderOffsetAverage.angle());
+				this._robot.trajectory.update(CurvedMaxAccel, this._currentTargetPos, this._borderOffsetAverage.angle());
 				this._robotStartPos = this._currentTargetPos;
 
 				break;
@@ -193,13 +194,13 @@ export class PlaceBall extends Task {
 				if (this._stateChanged) {
 					this._currentTargetPos = Field.limitToField(this._robot.pos) - this._borderOffsetAverage;
 				}
-				this._robot.trajectory.update(ToTarget, this._currentTargetPos, this._borderOffsetAverage.angle(), MAX_PULL_SPEED, undefined, MAX_PULL_ACCEL);
+				this._robot.trajectory.update(CurvedMaxAccel, this._currentTargetPos, this._borderOffsetAverage.angle(), MAX_PULL_SPEED, undefined, MAX_PULL_ACCEL);
 
 				break;
 			}
 			case State.GO_TO_PUSH: {
 				this._currentTargetPos = this._ball.pos + this._placementOffsetAverage;
-				this._robot.trajectory.update(ToTarget, this._currentTargetPos, (-this._placementOffsetAverage).angle());
+				this._robot.trajectory.update(CurvedMaxAccel, this._currentTargetPos, (-this._placementOffsetAverage).angle());
 				this._robotStartPos = this._currentTargetPos;
 
 				break;
@@ -212,7 +213,7 @@ export class PlaceBall extends Task {
 
 				let speed = this._robot.pos.distanceTo(this._currentTargetPos) > this.FAR_NEAR_CUT ? FAR_PUSH_SPEED : NEAR_PUSH_SPEED;
 
-				this._robot.trajectory.update(ToTarget, this._currentTargetPos, (-this._placementOffsetAverage).angle(), speed, undefined, PUSH_ACCEL_SCALE);
+				this._robot.trajectory.update(CurvedMaxAccel, this._currentTargetPos, (-this._placementOffsetAverage).angle(), speed, undefined, PUSH_ACCEL_SCALE);
 
 				break;
 			}
@@ -233,7 +234,7 @@ export class PlaceBall extends Task {
 					let offset = (this._robotStartPos - this._ballStartPos).setLength(this.OFFSET_EXTRA_LENGTH);
 					this._currentTargetPos = this._robot.pos + offset;
 				}
-				this._robot.trajectory.update(ToTarget, this._currentTargetPos, this._robot.dir, BACK_UP_SPEED);
+				this._robot.trajectory.update(CurvedMaxAccel, this._currentTargetPos, this._robot.dir, BACK_UP_SPEED);
 
 				break;
 			}
@@ -243,7 +244,7 @@ export class PlaceBall extends Task {
 					: Constants.stopBallDistance + 0.05 + this._robot.radius;
 				let offset = (World.Geometry.FriendlyGoal - this._ball.pos).setLength(dist);
 				this._currentTargetPos = this._ball.pos + offset;
-				this._robot.trajectory.update(ToTarget, this._currentTargetPos, -offset.angle());
+				this._robot.trajectory.update(CurvedMaxAccel, this._currentTargetPos, -offset.angle());
 
 				break;
 			}
