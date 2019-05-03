@@ -256,7 +256,8 @@ static void evaluateStackFrame(const Local<Context>& c, QString& errorMsg, Local
     errorMsg += QString::number(columnUint) + ")<br>";
 }
 
-static void buildStackTrace(const Local<Context>& context, QString& errorMsg, const TryCatch& tryCatch, Isolate* isolate)
+// returns true if a script timeout occured
+static bool buildStackTrace(const Local<Context>& context, QString& errorMsg, const TryCatch& tryCatch, Isolate* isolate)
 {
     if (tryCatch.HasTerminated() || tryCatch.HasCaught()) {
         errorMsg = "<font color=\"red\">";
@@ -305,9 +306,11 @@ static void buildStackTrace(const Local<Context>& context, QString& errorMsg, co
             } else {
                 // this will only happen if the script was terminated by CheckForScriptTimeout
                 errorMsg = "<font color=\"red\">Script timeout</font>";
+                return true;
             }
         }
     }
+    return false;
 }
 
 bool Typescript::loadScript(const QString &fname, const QString &entryPoint)
@@ -423,7 +426,9 @@ bool Typescript::loadJavascript(const QString &filename, const QString &entryPoi
     m_currentExecutingModule = m_filename;
     USE(script->Run(context));
     if (tryCatch.HasTerminated() || tryCatch.HasCaught()) {
-        buildStackTrace(context,m_errorMsg, tryCatch, m_isolate);
+        if (buildStackTrace(context,m_errorMsg, tryCatch, m_isolate)) {
+            m_isolate->CancelTerminateExecution();
+        }
         return false;
     }
     Local<Object> initExport = Local<Value>::New(m_isolate, *m_requireCache.back()[m_filename])->ToObject(context).ToLocalChecked();
@@ -742,7 +747,9 @@ bool Typescript::process(double &pathPlanning)
     TryCatch tryCatch(m_isolate);
     Local<Function> function = Local<Function>::New(m_isolate, m_function);
     USE(function->Call(context, context->Global(), 0, nullptr));
-    buildStackTrace(context, m_errorMsg, tryCatch, m_isolate);
+    if (buildStackTrace(context, m_errorMsg, tryCatch, m_isolate)) {
+        m_isolate->CancelTerminateExecution();
+    }
     if (tryCatch.HasTerminated() || tryCatch.HasCaught()) {
         return false;
     }
