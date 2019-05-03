@@ -845,9 +845,35 @@ SpeedProfile AlphaTimeTrajectory::findTrajectoryFastEndSpeed(Vector v0, Vector v
     return result;
 }
 
+static Vector necessaryAcceleration(Vector v0, Vector distance)
+{
+    // solve dist(v0, 0) == d
+    // 0.5 * v0 * abs(v0) / acc = d
+    // acc = 0.5 * v0 * abs(v0) / d = acc
+    return Vector(v0.x * std::abs(v0.x) * 0.5f / distance.x,
+                  v0.y * std::abs(v0.y) * 0.5f / distance.y);
+}
+
 SpeedProfile AlphaTimeTrajectory::findTrajectoryExactEndSpeed(Vector v0, Vector v1, Vector position, float acc, float vMax, float slowDownTime)
 {
+    const float MAX_ACCELERATION_FACTOR = 1.2f;
     SpeedProfile result;
+    if (v1 == Vector(0, 0)) {
+        Vector necessaryAcc = necessaryAcceleration(v0, position);
+        float accLength = necessaryAcc.length();
+        if (accLength > acc && accLength < acc * MAX_ACCELERATION_FACTOR) {
+            result.valid = true;
+            result.xProfile.acc = necessaryAcc.x;
+            result.xProfile.counter = 2;
+            result.xProfile.profile[0] = {v0.x, 0};
+            result.xProfile.profile[1] = {0, std::abs(v0.x) / necessaryAcc.x};
+            result.yProfile.acc = necessaryAcc.y;
+            result.yProfile.counter = 2;
+            result.yProfile.profile[0] = {v0.y, 0};
+            result.yProfile.profile[1] = {0, std::abs(v0.y) / necessaryAcc.y};
+            return result;
+        }
+    }
     float minTimeDistance = position.distance(minTimePos(v0, v1));
 
     // estimate rough time from distance

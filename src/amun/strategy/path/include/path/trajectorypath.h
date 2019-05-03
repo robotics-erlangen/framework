@@ -150,11 +150,8 @@ private:
     BestTrajectoryInfo m_bestResultInfo;
 
     struct TrajectoryGenerationInfo {
-        float time;
-        float angle;
+        SpeedProfile profile;
         float slowDownTime;
-        Vector v0;
-        Vector v1;
         Vector desiredDistance;
         bool fastEndSpeed;
     };

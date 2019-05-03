@@ -359,22 +359,16 @@ bool TrajectoryPath::checkMidPoint(Vector midSpeed, const float time, const floa
 
     m_generationInfo.clear();
     TrajectoryGenerationInfo infoFirstPart;
-    infoFirstPart.time = firstPart.inputTime;
-    infoFirstPart.angle = firstPart.inputAngle;
+    infoFirstPart.profile = firstPart;
     infoFirstPart.slowDownTime = firstPartSlowDownTime;
     infoFirstPart.fastEndSpeed = false;
-    infoFirstPart.v0 = v0;
-    infoFirstPart.v1 = midSpeed;
     infoFirstPart.desiredDistance = firstPartPosition;
     m_generationInfo.push_back(infoFirstPart);
 
     TrajectoryGenerationInfo infoSecondPart;
-    infoSecondPart.time = time;
-    infoSecondPart.angle = angle;
+    infoSecondPart.profile = secondPart;
     infoSecondPart.slowDownTime = slowDownTime;
     infoSecondPart.fastEndSpeed = true;
-    infoSecondPart.v0 = midSpeed;
-    infoSecondPart.v1 = v1;
     // TODO: this could go wrong if we want to stay at the current robot position
     infoSecondPart.desiredDistance = Vector(0, 0); // do not use desired distance calculation
     m_generationInfo.push_back(infoSecondPart);
@@ -417,12 +411,9 @@ bool TrajectoryPath::testEndPoint(Vector endPoint)
 
     m_generationInfo.clear();
     TrajectoryGenerationInfo info;
-    info.time = direct.inputTime;
-    info.angle = direct.inputAngle;
+    info.profile = direct;
     info.slowDownTime = 0;
     info.fastEndSpeed = false;
-    info.v0 = v0;
-    info.v1 = Vector(0, 0);
     info.desiredDistance = endPoint;
     m_generationInfo.push_back(info);
 
@@ -584,19 +575,17 @@ void TrajectoryPath::escapeObstacles()
         }
         bestEndTime = endTime;
         m_maxIntersectingObstaclePrio = bestPrio;
+
+        m_generationInfo.clear();
+        TrajectoryGenerationInfo info;
+        p = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(v0, bestStartingSpeed, bestEndTime + 0.02f, m_bestEscapingAngle, ACCELERATION, MAX_SPEED);
+        info.profile = p;
+        info.slowDownTime = 0;
+        info.fastEndSpeed = false;
+        info.desiredDistance = Vector(0, 0);
+        m_generationInfo.push_back(info);
     }
     bestStartingEndPos += s0;
-
-    m_generationInfo.clear();
-    TrajectoryGenerationInfo info;
-    info.time = bestEndTime + 0.02f; // add a bit for numeric stability
-    info.angle = m_bestEscapingAngle;
-    info.slowDownTime = 0;
-    info.fastEndSpeed = false;
-    info.v0 = v0;
-    info.v1 = bestStartingSpeed;
-    info.desiredDistance = Vector(0, 0);
-    m_generationInfo.push_back(info);
 
     // second stage: try to find a path to stop
     {
@@ -617,7 +606,7 @@ void TrajectoryPath::escapeObstacles()
                 angle = m_bestStoppingAngle + m_rng->uniformFloat(-0.1f, 0.1f);
             }
 
-            SpeedProfile p = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(bestStartingSpeed, Vector(0, 0), time, angle, ACCELERATION, MAX_SPEED);
+            p = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(bestStartingSpeed, Vector(0, 0), time, angle, ACCELERATION, MAX_SPEED);
             if (p.isValid() && !isTrajectoryInObstacle(p, bestEndTime, 0, bestStartingEndPos)) {
                 Vector stopPos = p.positionForTime(p.time()) + bestStartingEndPos;
                 if (stopPos.distance(s1) < closestDistance - 0.05f) {
@@ -626,15 +615,14 @@ void TrajectoryPath::escapeObstacles()
                 }
             }
         }
+
+        TrajectoryGenerationInfo info;
+        info.profile = p;
+        info.slowDownTime = 0;
+        info.fastEndSpeed = false;
+        info.desiredDistance = Vector(0, 0);
+        m_generationInfo.push_back(info);
     }
-    info.time = m_bestStoppingTime;
-    info.angle = m_bestStoppingAngle;
-    info.slowDownTime = 0;
-    info.fastEndSpeed = false;
-    info.v0 = bestStartingSpeed;
-    info.v1 = Vector(0, 0);
-    info.desiredDistance = Vector(0, 0);
-    m_generationInfo.push_back(info);
 }
 
 void TrajectoryPath::findPathAlphaT()
@@ -689,12 +677,9 @@ void TrajectoryPath::findPathAlphaT()
         if (obstacleDistances.first > OBSTACLE_AVOIDANCE_RADIUS ||
                 (obstacleDistances.second > 0 && obstacleDistances.second < OBSTACLE_AVOIDANCE_RADIUS)) {
             TrajectoryGenerationInfo info;
-            info.time = direct.inputTime;
-            info.angle = direct.inputAngle;
+            info.profile = direct;
             info.slowDownTime = directSlowDownTime;
             info.fastEndSpeed = true;
-            info.v0 = v0;
-            info.v1 = v1;
             info.desiredDistance = distance;
             m_generationInfo.push_back(info);
             return;
@@ -786,16 +771,7 @@ std::vector<TrajectoryPath::Point> TrajectoryPath::getResultPath()
 
     float toEndTime = 0;
     for (TrajectoryGenerationInfo info : m_generationInfo) {
-        SpeedProfile trajectory;
-        if (info.fastEndSpeed) {
-            trajectory = AlphaTimeTrajectory::calculateTrajectoryFastEndSpeed(info.v0, info.v1, info.time, info.angle,
-                                                                              ACCELERATION, MAX_SPEED);
-        } else {
-            trajectory = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(info.v0, info.v1, info.time, info.angle,
-                                                                              ACCELERATION, MAX_SPEED);
-        }
-        parts.push_back(trajectory);
-        float totalTime = info.slowDownTime == 0.0f ? trajectory.time() : trajectory.timeWithSlowDown(info.slowDownTime);
+        float totalTime = info.slowDownTime == 0.0f ? info.profile.time() : info.profile.timeWithSlowDown(info.slowDownTime);
         toEndTime += totalTime;
     }
 
@@ -806,8 +782,8 @@ std::vector<TrajectoryPath::Point> TrajectoryPath::getResultPath()
     const int SAMPLES_PER_TRAJECTORY = 40;
     const float samplingInterval = toEndTime / (SAMPLES_PER_TRAJECTORY * m_generationInfo.size());
     for (unsigned int i = 0;i<m_generationInfo.size();i++) {
-        SpeedProfile &trajectory = parts[i];
         TrajectoryGenerationInfo &info = m_generationInfo[i];
+        SpeedProfile &trajectory = info.profile;
         float partTime = info.slowDownTime == 0.0f ? trajectory.time() : trajectory.timeWithSlowDown(info.slowDownTime);
 
         // trajectory positions are not perfect, scale them slightly to reach the desired position perfectly
