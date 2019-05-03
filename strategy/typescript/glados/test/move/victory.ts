@@ -5,7 +5,7 @@ import * as World from "base/world";
 let G = World.Geometry;
 
 import { MessageBox } from "glados/control/messaging";
-import { Assignment, Move } from "glados/group/move/base";
+import { Assignment, Move, MoveParameters } from "glados/group/move/base";
 import { MoveToPos } from "glados/task/shared/movetopos";
 import { Victory as VictoryTask } from "glados/task/test/victory";
 
@@ -13,6 +13,7 @@ export class Victory extends Move {
 
 	public static readonly MIN_ROBOTS = 3;
 	public static readonly MAX_ROBOTS = 12;
+	public static readonly ALLOW_EXTRA_ATTACKERS = false;
 
 	_state: string;
 
@@ -30,7 +31,7 @@ export class Victory extends Move {
 		return true;
 	}
 
-	_updateTasks(): [Map<FriendlyRobot, Assignment>, FriendlyRobot | undefined] {
+	_updateTasks(): MoveParameters {
 		let taskAssignments: Map<FriendlyRobot, Assignment> = new Map<FriendlyRobot, Assignment>();
 
 		let nRobots = this._robots.length;
@@ -57,6 +58,9 @@ export class Victory extends Move {
 			}
 		}
 		let mainAttacker: FriendlyRobot | undefined = undefined;
-		return [taskAssignments, mainAttacker];
+		return {
+			assignments: taskAssignments,
+			mainAttacker: mainAttacker
+		};
 	}
 }

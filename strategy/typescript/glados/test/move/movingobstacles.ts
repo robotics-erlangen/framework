@@ -4,7 +4,7 @@ import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
 
-import { Assignment, MessageBox, Move } from "glados/group/move/base";
+import { Assignment, MessageBox, Move, MoveParameters } from "glados/group/move/base";
 import { DirectDrive } from "glados/test/task/directdrive";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { TrajectoryPath } from "glados/trajectory/trajectorypath";
@@ -48,6 +48,7 @@ class AlternatingObstacle {
 export class MovingObstacles extends Move {
 	public static MIN_ROBOTS: number = 1;
 	public static MAX_ROBOTS: number = 1;
+	public static ALLOW_EXTRA_ATTACKERS = false;
 
 	private targetPos: Position = new Vector(0, World.Geometry.FieldHeightHalf * 0.7);
 	private obstacles: AlternatingObstacle[] = [];
@@ -79,7 +80,7 @@ export class MovingObstacles extends Move {
 		return true;
 	}
 
-	_updateTasks(): [Map<FriendlyRobot, Assignment>, FriendlyRobot] {
+	_updateTasks(): MoveParameters {
 		let changed = false;
 		if (this._robots[0].pos.distanceTo(this.targetPos) < 0.05) {
 			this.targetPos *= -1;
@@ -94,6 +95,9 @@ export class MovingObstacles extends Move {
 
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
 		taskAssignments[this._robots[0]] = { class: DirectDrive, params: [ this.targetPos ], restart: changed };
-		return [taskAssignments, this._robots[0]];
+		return {
+			assignments: taskAssignments,
+			mainAttacker: this._robots[0]
+		};
 	}
 }
