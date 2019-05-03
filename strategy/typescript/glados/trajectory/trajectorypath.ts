@@ -92,7 +92,7 @@ export class TrajectoryPath extends TrajectoryHandler {
 		let startSpeed = robotSpeed;
 		let futureStartPos = robotPos;
 		let futureStartSpeed = robotSpeed;
-		let usePositionControl = this.lastTrajectory.length > 0 && !World.IsSimulated;
+		let usePositionControl = robotPos.distanceTo(targetPos) > 0.2 && this.lastTrajectory.length > 0 && !World.IsSimulated;
 		if (usePositionControl) {
 			let [testPos, testSpeed] = TrajectoryPath.calculateClosestPoint(robotPos, robotSpeed, this.lastTrajectory, 0);
 			vis.addCircle("trajectory-closest", Coordinates.toLocal(testPos), 0.03, vis.colors.red);
@@ -100,9 +100,6 @@ export class TrajectoryPath extends TrajectoryHandler {
 				startPos = testPos;
 				startSpeed = testSpeed;
 				[futureStartPos, futureStartSpeed] = TrajectoryPath.calculateClosestPoint(robotPos, robotSpeed, this.lastTrajectory, 0.01);
-			} else {
-				this.speedPID.reset();
-				this.positionPID.reset();
 			}
 		}
 
