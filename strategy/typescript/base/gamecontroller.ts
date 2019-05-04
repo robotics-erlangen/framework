@@ -31,32 +31,22 @@ import * as World from "base/world";
 type ConnectionState = "CONNECTED" | "UNCONNECTED";
 let state: ConnectionState = "UNCONNECTED";
 
-let _pushingOccured = false;
-let _collisionOccured = false;
+let message: gameController.ControllerToTeam | undefined = undefined;
 
 /**
  * Check connection to the game controller and receive new messages
  */
 export function _update() {
-	_pushingOccured = _collisionOccured = false;
+	message = undefined;
 	if (amunLocal.connectGameController()) {
 		if (state === "UNCONNECTED") {
 			state = "CONNECTED";
-			amunLocal.sendGameControllerMessage("TeamRegistration", { team_name: "ER-Force"});
+			amunLocal.sendGameControllerMessage("TeamRegistration", { team_name: World.TeamIsBlue ? "ER-Force" : "RoboTeam Twente"});
 		}
 
-		let current: gameController.ControllerToTeam | undefined;
-		while (current = amunLocal.getGameControllerMessage(), current != undefined) {
-			let adv = current.advantage_choice;
-			if (adv == undefined) {
-				continue;
-			}
-			if (adv.foul === gameController.AdvantageChoice.Foul.PUSHING) {
-				_pushingOccured = true;
-			}
-			if (adv.foul === gameController.AdvantageChoice.Foul.COLLISION) {
-				_collisionOccured = true;
-			}
+		message = amunLocal.getGameControllerMessage();
+		if (message) {
+			amun.log(message);
 		}
 	} else {
 		state = "UNCONNECTED";
@@ -74,19 +64,25 @@ export function isConnected(): boolean {
 /**
  * Check if during this frame a message indicating a pushing foul was received.
  * This implies an advantage choice.
- * @returns true if a message indicating a pushing foul was received in this frame
+ * @returns the GameEvent if pushing occured, undefined otherwise
  */
-export function pushingOccured(): boolean {
-	return _pushingOccured;
+export function getPushingEvent(): gameController.GameEvent.BotPushedBot | undefined {
+	if (!message || !message.advantage_choice || message.advantage_choice.foul !== gameController.AdvantageChoice.Foul.PUSHING) {
+		return undefined;
+	}
+	return message.advantage_choice.bot_pushed_bot;
 }
 
 /**
  * Check if during this frame a message indicating a collision foul was received.
  * This implies an advantage choice.
- * @returns true if a message indicating a collision foul was received in this frame
+ * @returns the GameEvent if a collision occured, undefined otherwise
  */
-export function collisionOccured(): boolean {
-	return _collisionOccured;
+export function getCollisionEvent(): gameController.GameEvent.BotCrashUnique | undefined {
+	if (!message || !message.advantage_choice || message.advantage_choice.foul !== gameController.AdvantageChoice.Foul.COLLISION) {
+		return undefined;
+	}
+	return message.advantage_choice.bot_crash_unique;
 }
 
 /**
@@ -94,7 +90,7 @@ export function collisionOccured(): boolean {
  * @returns true if we are allowed to make an advantage choice
  */
 export function advantageFoulOccured(): boolean {
-	return collisionOccured() || pushingOccured();
+	return getCollisionEvent() != undefined || getPushingEvent() != undefined;
 }
 
 /**
