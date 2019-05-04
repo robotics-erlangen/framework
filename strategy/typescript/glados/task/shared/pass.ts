@@ -93,7 +93,7 @@ export class Pass extends Task {
 		let maxAngleError = 3.5 * Math.PI / 180;
 		let isFreekickLike = Referee.isFriendlyFreeKickState() || World.RefereeState === "KickoffOffensive";
 		if (isFreekickLike) {
-			maxAngleError = 1.5 * Math.PI / 180;
+			maxAngleError = 2.5 * Math.PI / 180;
 		}
 
 		let attackPosition = this._messaging.receiveSingleSender(MessageType.attackPosition, true)[1] || World.Ball.pos;
