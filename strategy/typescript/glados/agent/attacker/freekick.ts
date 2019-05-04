@@ -208,6 +208,7 @@ export class FreeKick extends Behavior {
 
 
 		debug.set("state", this._state);
+		debug.set("remaining time", MAX_TIMEFRAME - (World.Time - Referee.lastStateChangeTime()))
 		let stateChanged = prevState === this._state;
 
 		if (this._pass != undefined) {
@@ -221,7 +222,7 @@ export class FreeKick extends Behavior {
 			debug.set("pass", undefined);
 		}
 
-		let PASS_TIMEFRAME = 4;
+		let PASS_TIMEFRAME = 3;
 		switch (this._state) {
 			case State.Prepare:
 				this._messaging.sendBroadcast(MessageType.attackTime, Referee.lastStateChangeTime() + PASS_TIMEFRAME);
