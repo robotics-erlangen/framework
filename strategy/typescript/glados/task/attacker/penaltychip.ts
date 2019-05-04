@@ -4,9 +4,8 @@ import * as debug from "base/debug";
 import { Robot } from "base/robot";
 import { Position, Speed, Vector } from "base/vector";
 import * as World from "base/world";
+
 import { ellipticDistance } from "glados/observer/ball";
-
-
 import { Shoot } from "glados/task/ability/shoot";
 import { Agent, Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";

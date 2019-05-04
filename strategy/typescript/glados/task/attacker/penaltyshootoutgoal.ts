@@ -1,13 +1,13 @@
+import * as Const from "base/constants";
 import * as debug from "base/debug";
 import * as Field from "base/field";
+import { normalizeAngle } from "base/geom";
 import * as MathUtil from "base/mathutil";
 import * as Referee from "base/referee";
 import { Robot as OpponentRobot } from "base/robot";
 import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
-import * as Const from "base/constants";
 import * as World from "base/world";
-import {normalizeAngle} from "base/geom";
 
 // import { MessageType } from "glados/control/messaging";
 import { Shoot } from "glados/task/ability/shoot";
@@ -43,14 +43,14 @@ export class PenaltyShootoutGoal extends Task {
 		PathHelper.setDefaultObstaclesByTable(robot.path, robot, obstacleTable);
 		let r = this._dest - robot.pos;
 		let s = r.setLength(Const.maxBallSpeed) - ball.speed;
-		if(Math.abs(normalizeAngle(s.angle() - robot.dir)) < 1*Math.PI/180){
+		if (Math.abs(normalizeAngle(s.angle() - robot.dir)) < 1 * Math.PI / 180) {
 			robot.shoot(Infinity);
 		}
 		let pos = ball.pos + ball.speed * 0.5;
 		r = this._dest - robot.pos;
 		s = r.setLength(Const.maxBallSpeed) - ball.speed;
-		pos += s.copy().setLength( - robot.shootRadius - ball.radius);
-		robot.trajectory.update(ToTarget, pos, s.angle(), undefined, ball.speed*1.1)
+		pos += s.copy().setLength(- robot.shootRadius - ball.radius);
+		robot.trajectory.update(ToTarget, pos, s.angle(), undefined, ball.speed * 1.1);
 		robot.setDribblerSpeed(0.5);
 	}
 }

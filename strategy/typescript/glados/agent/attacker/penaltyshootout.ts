@@ -1,23 +1,20 @@
+import * as Const from "base/constants";
 import * as debug from "base/debug";
+import * as Field from "base/field";
+import * as geom from "base/geom";
 import * as Referee from "base/referee";
-import { Position, Speed, Vector } from "base/vector";
+import { Robot } from "base/robot";
 import { AbsTime, RelTime } from "base/timing";
+import { Position, Speed, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
-import * as geom from "base/geom";
-import {Robot} from "base/robot";
-import * as Field from "base/field";
-
-import * as Const from "base/constants";
 
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
 import { ellipticDistance } from "glados/observer/ball";
-
 import * as Goal from "glados/observer/goal";
 import * as Physics from "glados/observer/physics";
 import * as ORobot from "glados/observer/robot";
-
 import { Dribble } from "glados/task/attacker/dribble";
 import { MoveToBall } from "glados/task/attacker/movetoball";
 import { MoveToStaticBall } from "glados/task/attacker/movetostaticball";
@@ -32,28 +29,28 @@ let G = World.Geometry;
 let DISTANCE_TO_DEFENSE_AREA = 0.6; // the furthest we'll go before we shoot
 let DRIBBLING_DISTANCE = 0.035; // Ball and Robot must be at least this far apart to reset dribbling
 
-function getKeeperTime(post: Position, turntime: RelTime, ball: {pos: Position, speed: Speed, radius: number, maxSpeed: number}, keeper: Robot ) {
+function getKeeperTime(post: Position, turntime: RelTime, ball: {pos: Position, speed: Speed, radius: number, maxSpeed: number}, keeper: Robot) {
 	let pos = ball.pos + ball.speed * turntime;
-	let startspeed = Const.maxBallSpeed - Const.fastBallDeceleration * turntime
+	let startspeed = Const.maxBallSpeed - Const.fastBallDeceleration * turntime;
 	let shootdir = (post - pos).normalize();
-	let startpos = pos - shootdir*((Const.maxBallSpeed + startspeed)/2 * turntime)
+	let startpos = pos - shootdir * ((Const.maxBallSpeed + startspeed) / 2 * turntime);
 
-	let startBall = {pos : startpos, speed : shootdir*startspeed,
+	let startBall = {pos : startpos, speed : shootdir * startspeed,
 			radius : ball.radius, maxSpeed : Const.maxBallSpeed};
-	if (ball.speed.lengthSq() > 3*3) {
+	if (ball.speed.lengthSq() > 3 * 3) {
 		startBall = ball;
 	}
 	vis.addPath("a/a/penaltyshootout: startBall", [startpos, pos], vis.colors.green);
 	vis.addPath("a/a/penaltyshootout: startBall", [pos, post], vis.colors.black);
 	let time: number = Physics.robotTimeToBall(keeper, startBall, G.OpponentGoal,0);
-	if (time != Infinity) return 0;
+	if (time !== Infinity) return 0;
 	let dir = shootdir.perpendicular();
 	let r = (keeper.pos - startpos).dot(dir);
 	let f = (r < 0 ? -1 : 1);
-	r = Math.max(f*r - Const.maxRobotRadius, 0.001);
+	r = Math.max(f * r - Const.maxRobotRadius, 0.001);
 	let v = keeper.speed.dot(dir) * f;
 	let a = - keeper.acceleration.aSpeedupSMax;
-	time = (-v+Math.sqrt(v*v-4*a*r))/(2*a);
+	time = (-v + Math.sqrt(v * v - 4 * a * r)) / (2 * a);
 	// }
 	return time;
 }
@@ -83,7 +80,7 @@ export class PenaltyShootout extends Behavior {
 		this._addPos = new Vector(0, 0);
 		this._state = undefined;
 		this._futureKeeper = {pos: G.OpponentGoal, speed: new Vector(0,0.1), radius: 0.09};
-		this._ball = {pos : World.Ball.pos, speed : World.Ball.speed, radius : World.Ball.radius, time : World.Time, maxSpeed:0, quality : 1};
+		this._ball = {pos : World.Ball.pos, speed : World.Ball.speed, radius : World.Ball.radius, time : World.Time, maxSpeed: 0, quality : 1};
 		this._dribblePos = undefined;
 	}
 
@@ -111,11 +108,11 @@ export class PenaltyShootout extends Behavior {
 		}
 	}
 
-	private angleUncertanty: number = 3 * Math.PI/180;
+	private angleUncertanty: number = 3 * Math.PI / 180;
 	private turnspeed: number = 1;
 
-	private _checkFreeGoal(){
-		if ( World.OpponentKeeper === undefined) {
+	private _checkFreeGoal() {
+		if (World.OpponentKeeper === undefined) {
 			return [0.5, 0, 0];
 		}
 		let keeper = World.OpponentKeeper;
@@ -125,27 +122,26 @@ export class PenaltyShootout extends Behavior {
 		let torightPost = (G.OpponentGoalRight - robot.pos).rotate(this.angleUncertanty);
 		let anglediffleft = geom.normalizeAngle(toleftPost.angle() - robot.dir);
 		let anglediffright = geom.normalizeAngle(torightPost.angle() - robot.dir);
-		let turntimeLeft = Math.abs(anglediffleft)/this.turnspeed;
-		let turntimeRight = Math.abs(anglediffright)/this.turnspeed;
+		let turntimeLeft = Math.abs(anglediffleft) / this.turnspeed;
+		let turntimeRight = Math.abs(anglediffright) / this.turnspeed;
 
 
-		let timeLeft = getKeeperTime(robot.pos + toleftPost, turntimeLeft, ball, keeper)
-		let timeRight = getKeeperTime(robot.pos + torightPost, turntimeRight, ball, keeper)
+		let timeLeft = getKeeperTime(robot.pos + toleftPost, turntimeLeft, ball, keeper);
+		let timeRight = getKeeperTime(robot.pos + torightPost, turntimeRight, ball, keeper);
 
 		if (timeRight === 0 && timeRight === 0) {
 			return [false, 0, 0];
 		}
 		let weightLeft = timeLeft / (turntimeLeft + 0.2);
-		let weightRight = timeRight /(turntimeRight + 0.2);
-		let weight = weightRight / (weightLeft+weightRight);
-		if (Number.isNaN(weight)){
+		let weightRight = timeRight / (turntimeRight + 0.2);
+		let weight = weightRight / (weightLeft + weightRight);
+		if (Number.isNaN(weight)) {
 			debug.set("._.", String(timeLeft));
 			debug.set("D;", String(timeRight));
 		}
-		if(weight > 0.5){
+		if (weight > 0.5) {
 			this._shootPos = robot.pos + torightPost;
-		}
-		else{
+		} else {
 			this._shootPos = robot.pos + toleftPost;
 		}
 		return [weight,timeRight,timeLeft];
@@ -187,8 +183,8 @@ export class PenaltyShootout extends Behavior {
 			debug.set("TimeLeft", String(tleft));
 			debug.pop();
 
-			if (this._shootGoalFlag  ||  criteriaPos  ||  criteriaTime  ||  //criteriaAngle ||
-					(weight && ellipticDistance(this._robot, this._ball.pos) < this._ball.radius + 0.02) ) {
+			if (this._shootGoalFlag  ||  criteriaPos  ||  criteriaTime  ||  // criteriaAngle ||
+					(weight && ellipticDistance(this._robot, this._ball.pos) < this._ball.radius + 0.02)) {
 				this._shootGoalFlag = true;
 			}
 		} else {
@@ -214,7 +210,7 @@ export class PenaltyShootout extends Behavior {
 				if (ellipticDistance(robot, ball.pos) < ball.radius + 0.01) {
 					let dribblerPos = robotPos + Vector.fromAngle(robot.dir).scaleLength(robot.shootRadius + ball.radius);
 					let a = 0.9;
-					ballPos = (ballPos*a) + (dribblerPos * (1 - a));
+					ballPos = (ballPos * a) + (dribblerPos * (1 - a));
 					// ballPos = (ballPos * a);
 				}
 				let alpha = 0.8;
@@ -237,7 +233,7 @@ export class PenaltyShootout extends Behavior {
 
 	_updateTask() : TaskAssignment<typeof ShootGoal> | TaskAssignment<typeof MoveToStaticBall> |
 			TaskAssignment<typeof MoveToBall> | TaskAssignment<typeof StopAttack> |
-			TaskAssignment<typeof PenaltyChip> | TaskAssignment<typeof Dribble>{
+			TaskAssignment<typeof PenaltyChip> | TaskAssignment<typeof Dribble> {
 		this._updateBall();
 		this._updateDribbling();
 		this._updateShootGoal();

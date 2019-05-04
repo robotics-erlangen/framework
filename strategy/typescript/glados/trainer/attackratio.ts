@@ -60,7 +60,7 @@ export class AttackRatio {
 
 
 		let attackRatio: number;
-		
+
 		if (World.GameStage === "PenaltyShootout") {
 			attackRatio = 8;
 		} else if (BaseRef.isFriendlyKickoffState(refState)) {

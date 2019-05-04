@@ -325,15 +325,14 @@ export class Vector {
 		return new Vector(this.x * other.x - this.y * other.y, this.x * other.y + this.y * other.x);
 	}
 
-	insideSector(startVector: Vector, endVector: Vector){
+	insideSector(startVector: Vector, endVector: Vector) {
 		let v1p = -startVector.perpendicular();
 		let v2p = endVector.perpendicular();
 		let b1 = this.dot(v1p) >= 0;
 		let b2 = this.dot(v2p) >= 0;
 		if (v1p.dot(endVector) >= 0) {
 			return b1 && b2;
-		}
-		else{
+		} else {
 			return b1 || b2;
 		}
 	}
