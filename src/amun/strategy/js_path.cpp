@@ -409,6 +409,26 @@ static void trajectoryMaxIntersectingObstaclePrio(const FunctionCallbackInfo<Val
     args.GetReturnValue().Set(Number::New(isolate, p->maxIntersectingObstaclePrio()));
 }
 
+static void trajectoryAddAvoidanceLine(const FunctionCallbackInfo<Value> &args)
+{
+    Isolate * isolate = args.GetIsolate();
+
+    float x1, y1, x2, y2, radius, avoidanceFactor;
+    if (!verifyNumber(isolate, args[0], x1) || !verifyNumber(isolate, args[1], y1) ||
+            !verifyNumber(isolate, args[2], x2) || !verifyNumber(isolate, args[3], y2) ||
+            !verifyNumber(isolate, args[4], radius) || !verifyNumber(isolate, args[5], avoidanceFactor)) {
+        return;
+    }
+
+    // a line musn't have length zero
+    if (x1 == x2 && y1 == y2) {
+        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "line must have non zero length", String::kNormalString)));
+        return;
+    }
+    auto p = static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value())->trajectoryPath();
+    p->addAvoidanceLine(Vector(x1, y1), Vector(x2, y2), radius, avoidanceFactor);
+}
+
 static void drawTree(Typescript *thread, const KdTree *tree)
 {
     if (tree == nullptr) {
@@ -479,7 +499,8 @@ static QList<FunctionInfo> trajectoryPathCallbacks = {
     { "setOutOfFieldPrio",  trajectorySetOutOfFieldObstaclePriority},
     { "getTrajectoryAsObstacle", trajectoryGetLastTrajectoryAsRobotObstacle},
     { "addRobotTrajectoryObstacle", trajectoryAddRobotTrajectoryObstacle},
-    { "maxIntersectingObstaclePrio", trajectoryMaxIntersectingObstaclePrio}};
+    { "maxIntersectingObstaclePrio", trajectoryMaxIntersectingObstaclePrio},
+    { "addAvoidanceLine",  trajectoryAddAvoidanceLine}};
 
 static void pathObjectAddFunctions(Isolate *isolate, const QList<FunctionInfo> &callbacks, Local<Object> &pathWrapper,
                                    Local<External> &pathObject)
