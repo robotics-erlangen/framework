@@ -16,15 +16,18 @@ type Trajectory = { pos: Position, speed: Speed, time: number}[];
 class PID {
 	p: number;
 	i: number;
+	d: number;
 
 	maxLength: number;
 
 	integral: Vector = new Vector(0, 0);
+	previousError: Vector = new Vector(0, 0);
 
-	constructor(maxLength: number, p: number, i: number) {
+	constructor(maxLength: number, p: number, i: number, d: number) {
 		this.maxLength = maxLength;
 		this.p = p;
 		this.i = i;
+		this.d = d;
 	}
 
 	reset() {
@@ -38,19 +41,24 @@ class PID {
 		this.integral += error * timeDiff;
 		let iOut = this.integral * this.i;
 
-		let output = pOut + iOut;
+		let derivative = (error - this.previousError) / timeDiff;
+		let dOut = derivative * this.d;
+
+		let output = pOut + iOut + dOut;
 
 		if (output.length() > this.maxLength) {
 			output.setLength(this.maxLength);
 		}
+
+		this.previousError = error;
 		return output;
 	}
 }
 
 export class TrajectoryPath extends TrajectoryHandler {
 	private rotationCalculation: DirectRotation = new DirectRotation();
-	private speedPID: PID = new PID(1.0, 3, 0.7);
-	private positionPID: PID = new PID(2.0, 13, 4.5);
+	private speedPID: PID = new PID(1.0, 0.3, 0.2, 0);
+	private positionPID: PID = new PID(2, 4.5, 0.6, 0.1);
 
 	private lastTrajectory: Trajectory = [];
 
@@ -164,8 +172,11 @@ export class TrajectoryPath extends TrajectoryHandler {
 		if (usePositionControl) {
 			let posDiff = this.positionPID.update(futureStartPos - robotPos);
 			let speedDiff = this.speedPID.update(futureStartSpeed - robotSpeed);
-			speed += posDiff;
-			speed += speedDiff;
+			let controlSpeed = posDiff + speedDiff;
+			speed.setLength(Math.max(0, speed.length() - controlSpeed.length()));
+			speed += controlSpeed;
+			vis.addPathRaw("Position Control", [robotPos, robotPos + posDiff + speed], vis.colors.blue);
+			vis.addPathRaw("Position Control", [robotPos, robotPos + posDiff + acc], vis.colors.orange);
 			vis.addPathRaw("Position Control", [robotPos, robotPos + posDiff + speedDiff], vis.colors.red);
 		}
 
