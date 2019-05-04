@@ -89,6 +89,10 @@ private:
         BoundingBox bound;
     };
 
+    struct AvoidanceLine : public Line {
+        float avoidanceFactor;
+    };
+
 public:
     TrajectoryPath(uint32_t rng_seed);
     void reset() override;
@@ -100,6 +104,7 @@ public:
     void addFriendlyRobotTrajectoryObstacle(std::vector<Point> *obstacle, int prio, float radius);
     void setOutOfFieldObstaclePriority(int prio) { m_outOfFieldPriority = prio; }
     int maxIntersectingObstaclePrio() const { return m_maxIntersectingObstaclePrio; }
+    void addAvoidanceLine(Vector s0, Vector s1, float radius, float avoidanceFactor);
 
 private:
     template<typename container>
@@ -135,6 +140,7 @@ private:
     QVector<MovingLine> m_movingLines;
     QVector<FriendlyRobotObstacle> m_friendlyRobotObstacles;
     std::vector<MovingObstacle*> m_movingObstacles;
+    QVector<AvoidanceLine> m_avoidanceLines;
 
     // result trajectory (used by other robots as obstacle)
     std::vector<Point> m_currentTrajectory;

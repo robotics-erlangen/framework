@@ -118,6 +118,7 @@ void TrajectoryPath::clearObstaclesCustom()
     m_movingCircles.clear();
     m_movingLines.clear();
     m_friendlyRobotObstacles.clear();
+    m_avoidanceLines.clear();
 }
 
 void TrajectoryPath::addMovingCircle(Vector startPos, Vector speed, Vector acc, float startTime, float endTime, float radius, int prio)
@@ -166,6 +167,15 @@ void TrajectoryPath::addFriendlyRobotTrajectoryObstacle(std::vector<Point> *obst
     }
     FriendlyRobotObstacle o(obstacle, radius + m_radius, prio);
     m_friendlyRobotObstacles.push_back(o);
+}
+
+void TrajectoryPath::addAvoidanceLine(Vector s0, Vector s1, float radius, float avoidanceFactor)
+{
+    AvoidanceLine line;
+    line.segment = LineSegment(s0, s1);
+    line.radius = radius;
+    line.avoidanceFactor = avoidanceFactor;
+    m_avoidanceLines.push_back(line);
 }
 
 template<typename container>
@@ -243,6 +253,11 @@ float TrajectoryPath::minObstacleDistance(Vector pos, float time, bool checkStat
         if (d <= 0) {
             return d;
         }
+        minDistance = std::min(minDistance, d);
+    }
+    // avoidance obstacles
+    for (const auto &l : m_avoidanceLines) {
+        float d = l.distance(pos);
         minDistance = std::min(minDistance, d);
     }
     return minDistance;

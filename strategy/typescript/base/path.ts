@@ -207,6 +207,7 @@ interface PathObjectTrajectory extends PathObjectCommon {
 	getTrajectoryAsObstacle(): TrajectoryObstacle;
 	addRobotTrajectoryObstacle(obstacle: TrajectoryObstacle, priority: number, radius: number): void;
 	maxIntersectingObstaclePrio(): number;
+	addAvoidanceLine(s0x: number, s0y: number, s1x: number, s1y: number, radius: number, avoidanceFactor: number): void;
 }
 
 interface AmunPath {
@@ -472,6 +473,22 @@ export class Path {
 
 	maxIntersectingObstaclePrio(): number {
 		return this._trajectoryInst.maxIntersectingObstaclePrio();
+	}
+
+	addAvoidanceLine(s0: Position, s1: Position, radius: number, avoidanceFactor: number) {
+		if (s0.equals(s1)) {
+			log("WARNING: start and end points for a line obstacle are the same!");
+			return;
+		}
+		if (teamIsBlue) {
+			s0 = Coordinates.toGlobal(s0);
+			s1 = Coordinates.toGlobal(s1);
+		}
+		if (!isPerformanceMode) {
+			vis.addPathRaw(`avoidance-obstacles: ${this._robotId}`, [s0, s1],
+					vis.colors.yellowHalf, undefined, undefined, 2 * radius);
+		}
+		this._trajectoryInst.addAvoidanceLine(s0.x, s0.y, s1.x, s1.y, radius, avoidanceFactor);
 	}
 }
 
