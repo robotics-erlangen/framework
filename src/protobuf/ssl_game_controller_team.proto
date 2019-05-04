@@ -74,3 +74,4 @@ message AdvantageChoice {
         ATTACKER_TOUCHED_OPPONENT_IN_DEFENSE_AREA = 3;
     }
 }
+

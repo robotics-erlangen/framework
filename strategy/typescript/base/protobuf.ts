@@ -2,43 +2,6 @@
 /* tslint:disable:class-name */
 
 export namespace amun {
-	export namespace GameState {
-		export const enum State {
-			Halt = "Halt",
-			Stop = "Stop",
-			Game = "Game",
-			GameForce = "GameForce",
-			KickoffYellowPrepare = "KickoffYellowPrepare",
-			KickoffYellow = "KickoffYellow",
-			PenaltyYellowPrepare = "PenaltyYellowPrepare",
-			PenaltyYellow = "PenaltyYellow",
-			DirectYellow = "DirectYellow",
-			IndirectYellow = "IndirectYellow",
-			BallPlacementYellow = "BallPlacementYellow",
-			KickoffBluePrepare = "KickoffBluePrepare",
-			KickoffBlue = "KickoffBlue",
-			PenaltyBluePrepare = "PenaltyBluePrepare",
-			PenaltyBlue = "PenaltyBlue",
-			DirectBlue = "DirectBlue",
-			IndirectBlue = "IndirectBlue",
-			BallPlacementBlue = "BallPlacementBlue",
-			TimeoutYellow = "TimeoutYellow",
-			TimeoutBlue = "TimeoutBlue",
-		}
-	}
-	export interface GameState {
-		stage: SSL_Referee.Stage;
-		stage_time_left?: number;
-		state: amun.GameState.State;
-		yellow: SSL_Referee.TeamInfo;
-		blue: SSL_Referee.TeamInfo;
-		designated_position?: SSL_Referee.Point;
-		game_event?: SSL_Referee_Game_Event;
-		goals_flipped?: boolean;
-		is_real_game_running?: boolean;
-		current_action_time_remaining?: number;
-		next_state?: amun.GameState.State;
-	}
 	export interface Color {
 		red?: number;
 		green?: number;
@@ -123,6 +86,43 @@ export namespace amun {
 		plot?: amun.PlotValue[];
 		robot?: amun.RobotValue[];
 		debugger_output?: amun.DebuggerOutput;
+	}
+	export namespace GameState {
+		export const enum State {
+			Halt = "Halt",
+			Stop = "Stop",
+			Game = "Game",
+			GameForce = "GameForce",
+			KickoffYellowPrepare = "KickoffYellowPrepare",
+			KickoffYellow = "KickoffYellow",
+			PenaltyYellowPrepare = "PenaltyYellowPrepare",
+			PenaltyYellow = "PenaltyYellow",
+			DirectYellow = "DirectYellow",
+			IndirectYellow = "IndirectYellow",
+			BallPlacementYellow = "BallPlacementYellow",
+			KickoffBluePrepare = "KickoffBluePrepare",
+			KickoffBlue = "KickoffBlue",
+			PenaltyBluePrepare = "PenaltyBluePrepare",
+			PenaltyBlue = "PenaltyBlue",
+			DirectBlue = "DirectBlue",
+			IndirectBlue = "IndirectBlue",
+			BallPlacementBlue = "BallPlacementBlue",
+			TimeoutYellow = "TimeoutYellow",
+			TimeoutBlue = "TimeoutBlue",
+		}
+	}
+	export interface GameState {
+		stage: SSL_Referee.Stage;
+		stage_time_left?: number;
+		state: amun.GameState.State;
+		yellow: SSL_Referee.TeamInfo;
+		blue: SSL_Referee.TeamInfo;
+		designated_position?: SSL_Referee.Point;
+		game_event?: SSL_Referee_Game_Event;
+		goals_flipped?: boolean;
+		is_real_game_running?: boolean;
+		current_action_time_remaining?: number;
+		next_state?: amun.GameState.State;
 	}
 	export interface SimulatorMoveBall {
 		p_x?: number;
@@ -381,6 +381,43 @@ export namespace amun {
 		move_command?: amun.RobotMoveCommand[];
 	}
 }
+export namespace logfile {
+	export interface UidEntry {
+		hash: string;
+		flags?: number;
+	}
+	export interface Uid {
+		parts?: logfile.UidEntry[];
+	}
+}
+export interface SSL_DetectionBall {
+	confidence: number;
+	area?: number;
+	x: number;
+	y: number;
+	z?: number;
+	pixel_x: number;
+	pixel_y: number;
+}
+export interface SSL_DetectionRobot {
+	confidence: number;
+	robot_id?: number;
+	x: number;
+	y: number;
+	orientation?: number;
+	pixel_x: number;
+	pixel_y: number;
+	height?: number;
+}
+export interface SSL_DetectionFrame {
+	frame_number: number;
+	t_capture: number;
+	t_sent: number;
+	camera_id: number;
+	balls?: SSL_DetectionBall[];
+	robots_yellow?: SSL_DetectionRobot[];
+	robots_blue?: SSL_DetectionRobot[];
+}
 export namespace robot {
 	export interface LimitParameters {
 		a_speedup_f_max?: number;
@@ -510,34 +547,6 @@ export namespace robot {
 		extended_error?: robot.ExtendedError;
 	}
 }
-export interface SSL_DetectionBall {
-	confidence: number;
-	area?: number;
-	x: number;
-	y: number;
-	z?: number;
-	pixel_x: number;
-	pixel_y: number;
-}
-export interface SSL_DetectionRobot {
-	confidence: number;
-	robot_id?: number;
-	x: number;
-	y: number;
-	orientation?: number;
-	pixel_x: number;
-	pixel_y: number;
-	height?: number;
-}
-export interface SSL_DetectionFrame {
-	frame_number: number;
-	t_capture: number;
-	t_sent: number;
-	camera_id: number;
-	balls?: SSL_DetectionBall[];
-	robots_yellow?: SSL_DetectionRobot[];
-	robots_blue?: SSL_DetectionRobot[];
-}
 export namespace gameController {
 	export interface AutoRefRegistration {
 		identifier: string;
@@ -622,6 +631,7 @@ export namespace gameController {
 		desired_keeper?: number;
 		advantage_response?: gameController.TeamToController.AdvantageResponse;
 		substitute_bot?: boolean;
+		ping?: boolean;
 	}
 	export interface ControllerToTeam {
 		controller_reply?: gameController.ControllerReply;
@@ -636,6 +646,8 @@ export namespace gameController {
 	}
 	export interface AdvantageChoice {
 		foul: gameController.AdvantageChoice.Foul;
+		bot_crash_unique?: gameController.GameEvent.BotCrashUnique;
+		bot_pushed_bot?: gameController.GameEvent.BotPushedBot;
 	}
 	export namespace GameEvent {
 		export interface BallLeftField {
@@ -903,6 +915,47 @@ export namespace gameController {
 		UNSPORTING_BEHAVIOR_MAJOR = "UNSPORTING_BEHAVIOR_MAJOR",
 	}
 }
+export namespace Game_Event {
+	export const enum GameEventType {
+		UNKNOWN = "UNKNOWN",
+		CUSTOM = "CUSTOM",
+		NUMBER_OF_PLAYERS = "NUMBER_OF_PLAYERS",
+		BALL_LEFT_FIELD = "BALL_LEFT_FIELD",
+		GOAL = "GOAL",
+		KICK_TIMEOUT = "KICK_TIMEOUT",
+		NO_PROGRESS_IN_GAME = "NO_PROGRESS_IN_GAME",
+		BOT_COLLISION = "BOT_COLLISION",
+		MULTIPLE_DEFENDER = "MULTIPLE_DEFENDER",
+		MULTIPLE_DEFENDER_PARTIALLY = "MULTIPLE_DEFENDER_PARTIALLY",
+		ATTACKER_IN_DEFENSE_AREA = "ATTACKER_IN_DEFENSE_AREA",
+		ICING = "ICING",
+		BALL_SPEED = "BALL_SPEED",
+		ROBOT_STOP_SPEED = "ROBOT_STOP_SPEED",
+		BALL_DRIBBLING = "BALL_DRIBBLING",
+		ATTACKER_TOUCH_KEEPER = "ATTACKER_TOUCH_KEEPER",
+		DOUBLE_TOUCH = "DOUBLE_TOUCH",
+		ATTACKER_TO_DEFENCE_AREA = "ATTACKER_TO_DEFENCE_AREA",
+		DEFENDER_TO_KICK_POINT_DISTANCE = "DEFENDER_TO_KICK_POINT_DISTANCE",
+		BALL_HOLDING = "BALL_HOLDING",
+		INDIRECT_GOAL = "INDIRECT_GOAL",
+		BALL_PLACEMENT_FAILED = "BALL_PLACEMENT_FAILED",
+		CHIP_ON_GOAL = "CHIP_ON_GOAL",
+	}
+	export const enum Team {
+		TEAM_UNKNOWN = "TEAM_UNKNOWN",
+		TEAM_YELLOW = "TEAM_YELLOW",
+		TEAM_BLUE = "TEAM_BLUE",
+	}
+	export interface Originator {
+		team: Game_Event.Team;
+		bot_id?: number;
+	}
+}
+export interface Game_Event {
+	game_event_type: Game_Event.GameEventType;
+	originator?: Game_Event.Originator;
+	message?: string;
+}
 export interface Vector2f {
 	x: number;
 	y: number;
@@ -990,6 +1043,47 @@ export interface SSL_RadioProtocolCommand {
 export interface SSL_RadioProtocolWrapper {
 	command?: SSL_RadioProtocolCommand[];
 }
+export namespace SSL_Referee_Game_Event {
+	export const enum GameEventType {
+		UNKNOWN = "UNKNOWN",
+		CUSTOM = "CUSTOM",
+		NUMBER_OF_PLAYERS = "NUMBER_OF_PLAYERS",
+		BALL_LEFT_FIELD = "BALL_LEFT_FIELD",
+		GOAL = "GOAL",
+		KICK_TIMEOUT = "KICK_TIMEOUT",
+		NO_PROGRESS_IN_GAME = "NO_PROGRESS_IN_GAME",
+		BOT_COLLISION = "BOT_COLLISION",
+		MULTIPLE_DEFENDER = "MULTIPLE_DEFENDER",
+		MULTIPLE_DEFENDER_PARTIALLY = "MULTIPLE_DEFENDER_PARTIALLY",
+		ATTACKER_IN_DEFENSE_AREA = "ATTACKER_IN_DEFENSE_AREA",
+		ICING = "ICING",
+		BALL_SPEED = "BALL_SPEED",
+		ROBOT_STOP_SPEED = "ROBOT_STOP_SPEED",
+		BALL_DRIBBLING = "BALL_DRIBBLING",
+		ATTACKER_TOUCH_KEEPER = "ATTACKER_TOUCH_KEEPER",
+		DOUBLE_TOUCH = "DOUBLE_TOUCH",
+		ATTACKER_TO_DEFENCE_AREA = "ATTACKER_TO_DEFENCE_AREA",
+		DEFENDER_TO_KICK_POINT_DISTANCE = "DEFENDER_TO_KICK_POINT_DISTANCE",
+		BALL_HOLDING = "BALL_HOLDING",
+		INDIRECT_GOAL = "INDIRECT_GOAL",
+		BALL_PLACEMENT_FAILED = "BALL_PLACEMENT_FAILED",
+		CHIP_ON_GOAL = "CHIP_ON_GOAL",
+	}
+	export const enum Team {
+		TEAM_UNKNOWN = "TEAM_UNKNOWN",
+		TEAM_YELLOW = "TEAM_YELLOW",
+		TEAM_BLUE = "TEAM_BLUE",
+	}
+	export interface Originator {
+		team: SSL_Referee_Game_Event.Team;
+		bot_id?: number;
+	}
+}
+export interface SSL_Referee_Game_Event {
+	game_event_type: SSL_Referee_Game_Event.GameEventType;
+	originator?: SSL_Referee_Game_Event.Originator;
+	message?: string;
+}
 export namespace SSL_RefereeRemoteControlRequest {
 	export namespace CardInfo {
 		export const enum CardType {
@@ -1032,6 +1126,10 @@ export namespace SSL_RefereeRemoteControlReply {
 export interface SSL_RefereeRemoteControlReply {
 	message_id: number;
 	outcome: SSL_RefereeRemoteControlReply.Outcome;
+}
+export interface SSL_WrapperPacket {
+	detection?: SSL_DetectionFrame;
+	geometry?: SSL_GeometryData;
 }
 export namespace SSL_Referee {
 	export const enum Stage {
@@ -1111,50 +1209,55 @@ export interface ProposedGameEvent {
 	proposer_id: string;
 	game_event: gameController.GameEvent;
 }
-export namespace SSL_Referee_Game_Event {
-	export const enum GameEventType {
-		UNKNOWN = "UNKNOWN",
-		CUSTOM = "CUSTOM",
-		NUMBER_OF_PLAYERS = "NUMBER_OF_PLAYERS",
-		BALL_LEFT_FIELD = "BALL_LEFT_FIELD",
-		GOAL = "GOAL",
-		KICK_TIMEOUT = "KICK_TIMEOUT",
-		NO_PROGRESS_IN_GAME = "NO_PROGRESS_IN_GAME",
-		BOT_COLLISION = "BOT_COLLISION",
-		MULTIPLE_DEFENDER = "MULTIPLE_DEFENDER",
-		MULTIPLE_DEFENDER_PARTIALLY = "MULTIPLE_DEFENDER_PARTIALLY",
-		ATTACKER_IN_DEFENSE_AREA = "ATTACKER_IN_DEFENSE_AREA",
-		ICING = "ICING",
-		BALL_SPEED = "BALL_SPEED",
-		ROBOT_STOP_SPEED = "ROBOT_STOP_SPEED",
-		BALL_DRIBBLING = "BALL_DRIBBLING",
-		ATTACKER_TOUCH_KEEPER = "ATTACKER_TOUCH_KEEPER",
-		DOUBLE_TOUCH = "DOUBLE_TOUCH",
-		ATTACKER_TO_DEFENCE_AREA = "ATTACKER_TO_DEFENCE_AREA",
-		DEFENDER_TO_KICK_POINT_DISTANCE = "DEFENDER_TO_KICK_POINT_DISTANCE",
-		BALL_HOLDING = "BALL_HOLDING",
-		INDIRECT_GOAL = "INDIRECT_GOAL",
-		BALL_PLACEMENT_FAILED = "BALL_PLACEMENT_FAILED",
-		CHIP_ON_GOAL = "CHIP_ON_GOAL",
+export namespace timeline {
+	export interface FrameLookup {
+		uid: logfile.UidEntry;
+		frame_number: number;
 	}
-	export const enum Team {
-		TEAM_UNKNOWN = "TEAM_UNKNOWN",
-		TEAM_YELLOW = "TEAM_YELLOW",
-		TEAM_BLUE = "TEAM_BLUE",
+	export interface FrameDescriptor {
+		base_hash: string;
+		base_frame_number: number;
+		frame_infos?: timeline.FrameLookup[];
 	}
-	export interface Originator {
-		team: SSL_Referee_Game_Event.Team;
-		bot_id?: number;
+	export namespace GameEvent {
+		export const enum Progress {
+			Open = "Open",
+			Closed = "Closed",
+			Postponed = "Postponed",
+			Resolved = "Resolved",
+			InProgress = "InProgress",
+			Info = "Info",
+			Merged = "Merged",
+		}
 	}
-}
-export interface SSL_Referee_Game_Event {
-	game_event_type: SSL_Referee_Game_Event.GameEventType;
-	originator?: SSL_Referee_Game_Event.Originator;
-	message?: string;
-}
-export interface SSL_WrapperPacket {
-	detection?: SSL_DetectionFrame;
-	geometry?: SSL_GeometryData;
+	export interface GameEvent {
+		location: timeline.FrameDescriptor;
+		progress: timeline.GameEvent.Progress;
+		random_id: string;
+		description?: string;
+		tag?: string[];
+		assignee?: string;
+	}
+	export namespace TimelineInit {
+		export const enum Resolved {
+			Solved = "Solved",
+			Conflicting = "Conflicting",
+		}
+	}
+	export interface TimelineInit {
+		primary: logfile.UidEntry;
+		secondary?: logfile.UidEntry[];
+		partially?: logfile.UidEntry[];
+		state: timeline.TimelineInit.Resolved;
+	}
+	export interface EventWrapper {
+		tag: string;
+		conflicting?: timeline.GameEvent[];
+	}
+	export interface Status {
+		wrapper?: timeline.EventWrapper;
+		game_event?: timeline.GameEvent;
+	}
 }
 export namespace world {
 	export namespace Geometry {
@@ -1248,15 +1351,6 @@ export namespace world {
 		mixed_team_info?: ssl.TeamPlan;
 		tracking_aoi?: world.TrackingAOI;
 		vision_frames?: SSL_WrapperPacket[];
-	}
-}
-export namespace logfile {
-	export interface UidEntry {
-		hash: string;
-		flags?: number;
-	}
-	export interface Uid {
-		parts?: logfile.UidEntry[];
 	}
 }
 
