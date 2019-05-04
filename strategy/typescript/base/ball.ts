@@ -127,7 +127,7 @@ export class Ball {
 			this.hasRawData = true;
 			count = Math.min(1, rawData.length);
 		}
-		if(this._hadRawData === true){
+		if (this._hadRawData === true) {
 			this.detectionQuality = BALL_QUALITY_FILTER_FACTOR * count + (1 - BALL_QUALITY_FILTER_FACTOR) * this.detectionQuality;
 		}
 	}
