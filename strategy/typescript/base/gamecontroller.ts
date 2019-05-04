@@ -41,13 +41,10 @@ export function _update() {
 	if (amunLocal.connectGameController()) {
 		if (state === "UNCONNECTED") {
 			state = "CONNECTED";
-			amunLocal.sendGameControllerMessage("TeamRegistration", { team_name: World.TeamIsBlue ? "ER-Force" : "RoboTeam Twente"});
+			amunLocal.sendGameControllerMessage("TeamRegistration", { team_name: "ER-Force" });
 		}
 
 		message = amunLocal.getGameControllerMessage();
-		if (message) {
-			amun.log(message);
-		}
 	} else {
 		state = "UNCONNECTED";
 	}
