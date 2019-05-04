@@ -425,6 +425,7 @@ function addRobotObstacles(path: Path, robot: FriendlyRobot, ignoreFriendlyRobot
 						&&  r.pos.distanceTo(estimatedPosition) > 0.0001) {
 					path.addLine(r.pos.x, r.pos.y, estimatedPosition.x, estimatedPosition.y,
 							r.radius + safetyDistance, `OwnRobot_${r.id}`, Priorities.ROBOT);
+					path.addAvoidanceLine(estimatedPosition, r.pos + (estimatedPosition - r.pos) * 2, r.radius * 2, 1.2);
 				} else {
 					path.addCircle(r.pos.x, r.pos.y, r.radius + safetyDistance, `OwnRobot_${r.id}`, Priorities.ROBOT);
 				}
