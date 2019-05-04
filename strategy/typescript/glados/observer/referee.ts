@@ -1,5 +1,6 @@
 import { log } from "base/amun";
 import * as Field from "base/field";
+import * as GameController from "base/gamecontroller";
 import * as BaseRef from "base/referee";
 import { Robot } from "base/robot";
 import { Position, Speed, Vector } from "base/vector";
@@ -84,28 +85,20 @@ export function realisticCardsOpponent() {
 }
 
 /**
- * Simple heuristic to find the robot who most likely commited pushing Actually
- * just searches the robot closest to another robot of the opposing team.
- * @todo parse SSL_Referee
- * @param friendly - true iff the bully is a friendly robot
- * @returns the bully or undefined if not both teams have robots
+ * Find the robot which commited collision/pushing.
+ * Uses the current frames GameController message
+ * @returns the bully or undefined if neither pushing nor collision were commited
  */
-export function getPushingRobot(friendly: boolean): Robot | undefined {
-	const victimRobots = friendly ? World.OpponentRobots : World.FriendlyRobots;
-	const bullyRobots = friendly ? World.FriendlyRobots : World.OpponentRobots;
-
-	let closestBully = undefined;
-	let closestDist = Infinity;
-	for (const bully of bullyRobots) {
-		for (const victim of victimRobots) {
-			const dist = bully.pos.distanceToSq(victim.pos);
-			if (closestBully == undefined || dist < closestDist) {
-				closestBully = bully;
-				closestDist = dist;
-			}
-		}
+export function getFoulingRobot(): Robot | undefined {
+	const pushingEvent = GameController.getPushingEvent();
+	if (pushingEvent && pushingEvent.violator) {
+		return World.OpponentRobotsById[pushingEvent.violator];
 	}
-	return closestBully;
+	const collisionEvent = GameController.getCollisionEvent();
+	if (collisionEvent && collisionEvent.violator) {
+		return World.OpponentRobotsById[collisionEvent.violator];
+	}
+	return undefined;
 }
 
 export function shouldTakeAdvantage(): boolean {
@@ -121,7 +114,7 @@ export function shouldTakeAdvantage(): boolean {
 		return false;
 	}
 
-	const foulingRobot = getPushingRobot(false);
+	const foulingRobot = getFoulingRobot();
 	const freeKickPos = foulingRobot ? foulingRobot.pos : undefined;
 	if (!freeKickPos) {
 		return false;
