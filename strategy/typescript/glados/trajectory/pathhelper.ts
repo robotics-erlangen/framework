@@ -303,8 +303,8 @@ function addFriendlyPassObstacle(path: Path, robot: FriendlyRobot, messaging: Me
 
 function addPenaltyObstacle(path: Path) {
 	if (World.RefereeState === "PenaltyOffensivePrepare" || World.RefereeState === "PenaltyOffensive") {
-		path.addRect(-G.FieldWidth / 2, G.OpponentGoalRight.y,
-			G.FieldWidth / 2, (G.OpponentGoalRight.y - (G.DefenseHeight + 0.45)));
+		path.addRect(-G.FieldWidthHalf - 1, G.OpponentGoalRight.y + 1,
+			G.FieldWidthHalf + 1, (G.OpponentGoalRight.y - (G.DefenseHeight + 0.45)));
 	}
 }
 
