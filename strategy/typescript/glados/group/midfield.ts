@@ -133,11 +133,12 @@ export class Midfield {
 		let top = isInTopHalf ? -1 : 1;
 		let verticalOffset = G.FieldWidthHalf / 4;
 		let horizontalOffset = G.FieldHeightHalf / 4;
+		let additionalOffset = G.FieldWidth / 9;
 
 		// two hardcoded zones, depending on the number of robots we have
 		if (remainingZones >= 1) {
-			let xBound1 = top * (totalLeft + robotRadius + verticalOffset) + top;
-			let xBound2 = top * (totalLeft + robotRadius + verticalOffset + zoneWidth) + top;
+			let xBound1 = top * (totalLeft + robotRadius + verticalOffset + additionalOffset);
+			let xBound2 = top * (totalLeft + robotRadius + verticalOffset + zoneWidth + additionalOffset);
 			let boundaries = {
 				bottom: -G.FieldHeightHalf * 3 / 5,
 				top: G.FieldWidthHalf / 3,
@@ -154,8 +155,8 @@ export class Midfield {
 
 		if (remainingZones >= 1) {
 			// ensure that right > left
-			let xBound1 = -top * (totalLeft + robotRadius + verticalOffset) + top;
-			let xBound2 = -top * (totalLeft + robotRadius + verticalOffset + zoneWidth) + top;
+			let xBound1 = -top * (totalLeft + robotRadius + verticalOffset - additionalOffset);
+			let xBound2 = -top * (totalLeft + robotRadius + verticalOffset + zoneWidth - additionalOffset);
 			let boundaries = {
 				bottom: -G.FieldHeightHalf * 3 / 5 + horizontalOffset,
 				top: G.FieldWidthHalf / 3 + horizontalOffset,
