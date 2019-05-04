@@ -487,6 +487,7 @@ std::tuple<int, float, float> TrajectoryPath::trajectoryObstacleScore(const Spee
 
     int goodSamples = 0;
     float fineTime = 0;
+    int lastObstaclePrio = -1;
     for (int i = 0;i<samples;i++) {
         float time;
         if (i < samples-1) {
@@ -517,7 +518,7 @@ std::tuple<int, float, float> TrajectoryPath::trajectoryObstacleScore(const Spee
         if (obstaclePriority == -1) {
             goodSamples++;
             if (goodSamples > OUT_OF_OBSTACLE_TIME / SAMPLING_INTERVAL) {
-                fineTime = time - OUT_OF_OBSTACLE_TIME * 0.8f;
+                fineTime = time;
                 break;
             }
         } else {
@@ -535,6 +536,7 @@ std::tuple<int, float, float> TrajectoryPath::trajectoryObstacleScore(const Spee
                 currentBestObstacleTime += SAMPLING_INTERVAL;
             }
         }
+        lastObstaclePrio = obstaclePriority;
     }
     if (fineTime == 0) {
         fineTime = totalTime;
@@ -542,7 +544,7 @@ std::tuple<int, float, float> TrajectoryPath::trajectoryObstacleScore(const Spee
     if (currentBestObstaclePrio == -1) {
         return {-1, minStaticObstacleDistance, fineTime};
     } else {
-        return {currentBestObstaclePrio, currentBestObstacleTime, fineTime};
+        return {currentBestObstaclePrio, currentBestObstacleTime, lastObstaclePrio == -1 ? fineTime : -1};
     }
 }
 
@@ -555,6 +557,7 @@ void TrajectoryPath::escapeObstacles()
     {
         // try last frames trajectory
         SpeedProfile p = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(v0, Vector(0, 0), m_bestEscapingTime, m_bestEscapingAngle, ACCELERATION, MAX_SPEED);
+        SpeedProfile bestProfile = p;
         int bestPrio;
         float bestObstacleTime;
         float endTime;
@@ -578,8 +581,9 @@ void TrajectoryPath::escapeObstacles()
                 int prio;
                 float obstacleTime;
                 std::tie(prio, obstacleTime, endTime) = trajectoryObstacleScore(p);
-                if (prio < bestPrio || (prio == bestPrio && obstacleTime < bestObstacleTime)) {
+                if ((prio < bestPrio || (prio == bestPrio && obstacleTime < bestObstacleTime)) && endTime >= 0) {
                     bestPrio = prio;
+                    bestProfile = p;
                     bestObstacleTime = obstacleTime;
                     bestStartingSpeed = p.speedForTime(endTime);
                     bestStartingEndPos = p.positionForTime(endTime);
@@ -594,11 +598,16 @@ void TrajectoryPath::escapeObstacles()
         m_generationInfo.clear();
         TrajectoryGenerationInfo info;
         p = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(v0, bestStartingSpeed, bestEndTime + 0.02f, m_bestEscapingAngle, ACCELERATION, MAX_SPEED);
-        info.profile = p;
+        info.profile = bestProfile;
         info.slowDownTime = 0;
         info.fastEndSpeed = false;
         info.desiredDistance = Vector(0, 0);
         m_generationInfo.push_back(info);
+
+        if (bestStartingSpeed.length() < 0.01f) {
+            // nothing to do, the robot will already standing at a safe location
+            return;
+        }
     }
     bestStartingEndPos += s0;
 
@@ -606,8 +615,10 @@ void TrajectoryPath::escapeObstacles()
     {
         float closestDistance = std::numeric_limits<float>::max();
         SpeedProfile p = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(bestStartingSpeed, Vector(0, 0), m_bestStoppingTime, m_bestStoppingAngle, ACCELERATION, MAX_SPEED);
+        SpeedProfile bestProfile;
         if (p.isValid()) {
             closestDistance = (p.positionForTime(p.time()) + bestStartingEndPos).distance(s1);
+            bestProfile = p;
         }
         for (int i = 0;i<25;i++) {
             float time, angle;
@@ -627,12 +638,13 @@ void TrajectoryPath::escapeObstacles()
                 if (stopPos.distance(s1) < closestDistance - 0.05f) {
                     m_bestStoppingTime = time;
                     m_bestStoppingAngle = angle;
+                    bestProfile = p;
                 }
             }
         }
 
         TrajectoryGenerationInfo info;
-        info.profile = p;
+        info.profile = bestProfile;
         info.slowDownTime = 0;
         info.fastEndSpeed = false;
         info.desiredDistance = Vector(0, 0);
