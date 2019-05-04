@@ -81,13 +81,11 @@ export class BallEscort extends Behavior {
 			return false;
 		}
 
-		let icing = RefereeObs.opponentIcingPredicted(World.Ball);
-		debug.set("BallEscort/icing", icing);
 
 		let distToBorder = this._active ? 0.7 : 0.5;
 
 		// If we can reach the ball we should try to if we are not already close to the field border
-		if (!icing && ownTimeToBall < Infinity && Math.abs(this._robot.pos.x) < World.Geometry.FieldWidthHalf - distToBorder && Math.abs(this._robot.pos.y) < World.Geometry.FieldHeightHalf - distToBorder) {
+		if (ownTimeToBall < Infinity && Math.abs(this._robot.pos.x) < World.Geometry.FieldWidthHalf - distToBorder && Math.abs(this._robot.pos.y) < World.Geometry.FieldHeightHalf - distToBorder) {
 			return false;
 		}
 
