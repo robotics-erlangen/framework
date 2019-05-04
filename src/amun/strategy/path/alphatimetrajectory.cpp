@@ -861,7 +861,8 @@ SpeedProfile AlphaTimeTrajectory::findTrajectoryExactEndSpeed(Vector v0, Vector 
     if (v1 == Vector(0, 0)) {
         Vector necessaryAcc = necessaryAcceleration(v0, position);
         float accLength = necessaryAcc.length();
-        if (accLength > acc && accLength < acc * MAX_ACCELERATION_FACTOR) {
+        float timeDiff = std::abs(std::abs(v0.x) / necessaryAcc.x - std::abs(v0.y) / necessaryAcc.y);
+        if (accLength > acc && accLength < acc * MAX_ACCELERATION_FACTOR && timeDiff < 0.1f) {
             result.valid = true;
             result.xProfile.acc = necessaryAcc.x;
             result.xProfile.counter = 2;
