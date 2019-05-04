@@ -257,7 +257,7 @@ float TrajectoryPath::minObstacleDistance(Vector pos, float time, bool checkStat
     }
     // avoidance obstacles
     for (const auto &l : m_avoidanceLines) {
-        float d = l.distance(pos);
+        float d = std::max(0.01f, l.distance(pos));
         minDistance = std::min(minDistance, d);
     }
     return minDistance;
