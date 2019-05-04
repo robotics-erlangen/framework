@@ -801,6 +801,11 @@ std::vector<TrajectoryPath::Point> TrajectoryPath::getResultPath()
         SpeedProfile &trajectory = info.profile;
         float partTime = info.slowDownTime == 0.0f ? trajectory.time() : trajectory.timeWithSlowDown(info.slowDownTime);
 
+        if (partTime > 20 || std::isinf(partTime) || std::isnan(partTime) || partTime < 0) {
+            qDebug() <<"Error: trying to use invalid trajectory";
+            return result;
+        }
+
         // trajectory positions are not perfect, scale them slightly to reach the desired position perfectly
         float xScale = 1, yScale = 1;
         Vector endPos;
