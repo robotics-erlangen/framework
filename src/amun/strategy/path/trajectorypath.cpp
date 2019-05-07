@@ -563,13 +563,22 @@ void TrajectoryPath::escapeObstacles()
         float bestObstacleTime;
         float endTime;
         std::tie(bestPrio, bestObstacleTime, endTime) = trajectoryObstacleScore(p);
+        bool foundValid = endTime > 0;
+        if (!foundValid) {
+            bestPrio = 10000;
+            bestObstacleTime = 10000;
+        }
         bestStartingSpeed = p.speedForTime(endTime);
         bestStartingEndPos = p.positionForTime(endTime);
         for (int i = 0;i<25;i++) {
             float time, angle;
             if (m_rng->uniformInt() % 2 == 0) {
                 // random sampling
-                time = m_rng->uniformFloat(0.2f, 2.0f);
+                if (!foundValid) {
+                    time = m_rng->uniformFloat(0.2f, 6.0f);
+                } else {
+                    time = m_rng->uniformFloat(0.2f, 2.0f);
+                }
                 angle = m_rng->uniformFloat(0, float(2 * M_PI));
             } else {
                 // sample around current best point
@@ -590,6 +599,7 @@ void TrajectoryPath::escapeObstacles()
                     bestStartingEndPos = p.positionForTime(endTime);
                     m_bestEscapingTime = time;
                     m_bestEscapingAngle = angle;
+                    foundValid = true;
                 }
             }
         }
@@ -597,6 +607,9 @@ void TrajectoryPath::escapeObstacles()
         m_maxIntersectingObstaclePrio = bestPrio;
 
         m_generationInfo.clear();
+        if (!foundValid) {
+            return;
+        }
         TrajectoryGenerationInfo info;
         p = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(v0, bestStartingSpeed, bestEndTime + 0.02f, m_bestEscapingAngle, ACCELERATION, MAX_SPEED);
         info.profile = bestProfile;
@@ -623,9 +636,9 @@ void TrajectoryPath::escapeObstacles()
         }
         for (int i = 0;i<25;i++) {
             float time, angle;
-            if (m_rng->uniformInt() % 2 == 0) {
+            if (m_rng->uniformInt() % 4 == 0) {
                 // random sampling
-                time = m_rng->uniformFloat(0.2f, 2.0f);
+                time = m_rng->uniformFloat(0.2f, 4.0f);
                 angle = m_rng->uniformFloat(0, float(2 * M_PI));
             } else {
                 // sample around current best point
