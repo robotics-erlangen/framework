@@ -208,7 +208,7 @@ export class FreeKick extends Behavior {
 
 
 		debug.set("state", this._state);
-		debug.set("remaining time", MAX_TIMEFRAME - (World.Time - Referee.lastStateChangeTime()))
+		debug.set("remaining time", MAX_TIMEFRAME - (World.Time - Referee.lastStateChangeTime()));
 		let stateChanged = prevState === this._state;
 
 		if (this._pass != undefined) {
