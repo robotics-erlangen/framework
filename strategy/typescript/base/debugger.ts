@@ -10,6 +10,11 @@ const debuggerSend = amun.debuggerSend;
 
 declare let ___globalpleasedontuseinregularcode: any;
 
+// set this to true if you want the simulator to pause on errors
+// this can not be true on master since pausing the simulator will
+// also pause the unit tests (on the second run, if the strategy sets any option)
+const pauseSimulatorOnError: boolean = false;
+
 /** counts the number of exceptions every frame to improve the stacktrace */
 let exceptionCounter = 0;
 
@@ -182,7 +187,7 @@ function handleNotification(notification: string) {
 		scriptInfos.push(notificationObject.params);
 		break;
 	case "Debugger.paused":
-		if (amun.isDebug) {
+		if (amun.isDebug && pauseSimulatorOnError) {
 			amun.sendCommand({
 				pause_simulator: {
 					// use UI reason to allow unpausing the simulator later
