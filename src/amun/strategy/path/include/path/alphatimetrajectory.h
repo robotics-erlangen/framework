@@ -80,7 +80,7 @@ public:
 
     float timeWithSlowDown(float slowDownTime) const;
 };
-#include <QDebug>
+
 class SpeedProfile
 {
 public:
@@ -94,10 +94,6 @@ public:
     bool valid = true;
 
     bool isValid() const { return valid; }
-
-    void debug() {
-        qDebug() <<"Zeiten: "<<xProfile.profile[xProfile.counter-1].t<<yProfile.profile[yProfile.counter-1].t;
-    }
 
     Vector positionForTime(float time) const {
         return Vector(xProfile.offsetForTime(time), yProfile.offsetForTime(time));
@@ -157,8 +153,6 @@ public:
     // WARNING: assumes that the input is valid and solvable (check beforehand with isInputValidFastEndSpeed)
     static SpeedProfile calculateTrajectoryFastEndSpeed(Vector v0, Vector v1, float time, float angle, float acc, float vMax);
     static SpeedProfile calculateTrajectoryExactEndSpeed(Vector v0, Vector v1, float time, float angle, float acc, float vMax);
-
-    static void testSearch();
 
 private:
     struct TrajectoryPosInfo1D {

@@ -20,6 +20,7 @@
 
 #include "trajectorypath.h"
 #include "core/rng.h"
+#include <QDebug>
 
 bool TrajectoryPath::MovingCircle::intersects(Vector pos, float time) const
 {
