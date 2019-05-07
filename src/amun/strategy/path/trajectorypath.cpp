@@ -543,9 +543,9 @@ std::tuple<int, float, float> TrajectoryPath::trajectoryObstacleScore(const Spee
         fineTime = totalTime;
     }
     if (currentBestObstaclePrio == -1) {
-        return {-1, minStaticObstacleDistance, fineTime};
+        return std::make_tuple(-1, minStaticObstacleDistance, fineTime);
     } else {
-        return {currentBestObstaclePrio, currentBestObstacleTime, lastObstaclePrio == -1 ? fineTime : -1};
+        return std::make_tuple(currentBestObstaclePrio, currentBestObstacleTime, lastObstaclePrio == -1 ? fineTime : -1);
     }
 }
 
