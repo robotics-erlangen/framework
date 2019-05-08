@@ -87,7 +87,7 @@ private:
     void processTeam(Team &team, bool isBlue, const RobotList &robots, QList<robot::RadioCommand> &radio_commands_prio,
                      QList<robot::RadioCommand> &radio_commands, Status &status, qint64 time, const RobotList &radioRobots,
                      amun::DebugValues *debug);
-    void injectRawSpeedIfAvailable(robot::RadioCommand *radioCommand, const RobotList &radioRobots);
+    void injectRawSpeedIfAvailable(robot::RadioCommand *radioCommand, const RobotList &radioRobots, const world::Robot *currentRobot);
     void handleControl(Team &team, const amun::CommandControl &control);
     const world::Robot *getWorldRobot(const RobotList &robots, uint id);
     void injectExtraData(Status &status);

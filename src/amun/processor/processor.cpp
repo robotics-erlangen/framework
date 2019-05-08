@@ -332,7 +332,7 @@ void Processor::processTeam(Team &team, bool isBlue, const RobotList &robots, QL
         const world::Robot* currentRobot = getWorldRobot(robots, robot->id);
         robot->controller.calculateCommand(currentRobot, time, command, debug);
 
-        injectRawSpeedIfAvailable(radio_command, radioRobots);
+        injectRawSpeedIfAvailable(radio_command, radioRobots, currentRobot);
 
         // Prepare radio command
         // prioritize radio commands of robots with active commands
@@ -344,11 +344,11 @@ void Processor::processTeam(Team &team, bool isBlue, const RobotList &robots, QL
     }
 }
 
-void Processor::injectRawSpeedIfAvailable(robot::RadioCommand *radioCommand, const RobotList &radioRobots) {
+void Processor::injectRawSpeedIfAvailable(robot::RadioCommand *radioCommand, const RobotList &radioRobots, const world::Robot* currentRobot) {
     robot::Command& command = *radioCommand->mutable_command();
     const world::Robot* currentRadioRobot = getWorldRobot(radioRobots, radioCommand->id());
-    if (currentRadioRobot) {
-        float robot_phi = currentRadioRobot->phi() - M_PI_2;
+    if (currentRadioRobot && currentRobot) {
+        float robot_phi = currentRobot->phi() - M_PI_2;
         GlobalSpeed currentPos(currentRadioRobot->v_x(), currentRadioRobot->v_y(), currentRadioRobot->omega());
         LocalSpeed localPos = currentPos.toLocal(robot_phi);
 
