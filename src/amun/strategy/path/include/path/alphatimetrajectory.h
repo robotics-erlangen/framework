@@ -62,6 +62,19 @@ public:
         return profile[counter-1].v;
     }
 
+    void limitToTime(float time) {
+        for (int i = 0;i<counter-1;i++) {
+            if (profile[i+1].t >= time) {
+                float diff = profile[i+1].t == profile[i].t ? 1 : (time - profile[i].t) / (profile[i+1].t - profile[i].t);
+                float speed = profile[i].v + diff * (profile[i+1].v - profile[i].v);
+                profile[i+1].v = speed;
+                profile[i+1].t = time;
+                counter = i+2;
+                return;
+            }
+        }
+    }
+
     std::pair<float, float> calculateRange(float slowDownTime) const;
 
     float speedForTimeSlowDown(float time, float slowDownTime) const;
@@ -125,6 +138,11 @@ public:
 
     Vector continuationSpeed() const {
         return Vector(xProfile.profile[xProfile.counter / 2].v, yProfile.profile[yProfile.counter / 2].v);
+    }
+
+    void limitToTime(float time) {
+        xProfile.limitToTime(time);
+        yProfile.limitToTime(time);
     }
 
     BoundingBox calculateBoundingBox(Vector offset, float slowDownTime) const {

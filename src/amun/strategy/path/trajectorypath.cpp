@@ -477,7 +477,7 @@ void TrajectoryPath::findPathEndInObstacle()
 
 std::tuple<int, float, float> TrajectoryPath::trajectoryObstacleScore(const SpeedProfile &speedProfile)
 {
-    const float OUT_OF_OBSTACLE_TIME = 0.3f;
+    const float OUT_OF_OBSTACLE_TIME = 0.1f;
     float totalTime = speedProfile.time();
     const float SAMPLING_INTERVAL = 0.03f;
     int samples = int(totalTime / SAMPLING_INTERVAL) + 1;
@@ -568,8 +568,7 @@ void TrajectoryPath::escapeObstacles()
             bestPrio = 10000;
             bestObstacleTime = 10000;
         }
-        bestStartingSpeed = p.speedForTime(endTime);
-        bestStartingEndPos = p.positionForTime(endTime);
+        bestEndTime = endTime;
         for (int i = 0;i<25;i++) {
             float time, angle;
             if (m_rng->uniformInt() % 2 == 0) {
@@ -595,15 +594,13 @@ void TrajectoryPath::escapeObstacles()
                     bestPrio = prio;
                     bestProfile = p;
                     bestObstacleTime = obstacleTime;
-                    bestStartingSpeed = p.speedForTime(endTime);
-                    bestStartingEndPos = p.positionForTime(endTime);
                     m_bestEscapingTime = time;
                     m_bestEscapingAngle = angle;
+                    bestEndTime = endTime;
                     foundValid = true;
                 }
             }
         }
-        bestEndTime = endTime;
         m_maxIntersectingObstaclePrio = bestPrio;
 
         m_generationInfo.clear();
@@ -611,12 +608,15 @@ void TrajectoryPath::escapeObstacles()
             return;
         }
         TrajectoryGenerationInfo info;
-        p = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(v0, bestStartingSpeed, bestEndTime + 0.02f, m_bestEscapingAngle, ACCELERATION, MAX_SPEED);
+        bestProfile.limitToTime(bestEndTime);
         info.profile = bestProfile;
         info.slowDownTime = 0;
         info.fastEndSpeed = false;
         info.desiredDistance = Vector(0, 0);
         m_generationInfo.push_back(info);
+
+        bestStartingEndPos = bestProfile.positionForTime(bestProfile.time());
+        bestStartingSpeed = bestProfile.speedForTime(bestProfile.time());
 
         if (bestStartingSpeed.length() < 0.01f) {
             // nothing to do, the robot will already standing at a safe location
@@ -630,9 +630,11 @@ void TrajectoryPath::escapeObstacles()
         float closestDistance = std::numeric_limits<float>::max();
         SpeedProfile p = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(bestStartingSpeed, Vector(0, 0), m_bestStoppingTime, m_bestStoppingAngle, ACCELERATION, MAX_SPEED);
         SpeedProfile bestProfile;
-        if (p.isValid()) {
+        bool foundResult = false;
+        if (p.isValid() && !isTrajectoryInObstacle(p, bestEndTime, 0, bestStartingEndPos)) {
             closestDistance = (p.positionForTime(p.time()) + bestStartingEndPos).distance(s1);
             bestProfile = p;
+            foundResult = true;
         }
         for (int i = 0;i<25;i++) {
             float time, angle;
@@ -653,8 +655,13 @@ void TrajectoryPath::escapeObstacles()
                     m_bestStoppingTime = time;
                     m_bestStoppingAngle = angle;
                     bestProfile = p;
+                    foundResult = true;
                 }
             }
+        }
+
+        if (!foundResult) {
+            return;
         }
 
         TrajectoryGenerationInfo info;
