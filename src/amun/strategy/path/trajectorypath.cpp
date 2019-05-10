@@ -205,7 +205,7 @@ bool TrajectoryPath::isInMovingObstacle(const std::vector<MovingObstacle*> &obst
 
 bool TrajectoryPath::isTrajectoryInObstacle(const SpeedProfile &profile, float timeOffset, float slowDownTime, Vector startPos)
 {
-    BoundingBox trajectoryBoundingBox = profile.calculateBoundingBox(s0, 0);
+    BoundingBox trajectoryBoundingBox = profile.calculateBoundingBox(startPos, 0);
     std::vector<const Obstacle*> intersectingStaticObstacles;
     intersectingStaticObstacles.reserve(m_obstacles.size());
     for (const Obstacle *o : m_obstacles) {
