@@ -214,8 +214,8 @@ float SpeedProfile1D::offsetForTimeSlowDown(float time, float slowDownTime) cons
 
 std::pair<float, float> SpeedProfile1D::calculateRange(float slowDownTime) const
 {
-    float minPos = std::numeric_limits<float>::max();
-    float maxPos = -std::numeric_limits<float>::min();
+    float minPos = 0;
+    float maxPos = 0;
 
     float pos = 0;
     float slowDownStartTime = profile[counter-1].t - slowDownTime;
