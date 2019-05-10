@@ -478,6 +478,7 @@ void TrajectoryPath::findPathEndInObstacle()
 std::tuple<int, float, float> TrajectoryPath::trajectoryObstacleScore(const SpeedProfile &speedProfile)
 {
     const float OUT_OF_OBSTACLE_TIME = 0.1f;
+    const float LONG_OUF_OF_OBSTACLE_TIME = 1.5f; // used when the trajectory has not yet intersected any obstacle
     float totalTime = speedProfile.time();
     const float SAMPLING_INTERVAL = 0.03f;
     int samples = int(totalTime / SAMPLING_INTERVAL) + 1;
@@ -489,6 +490,7 @@ std::tuple<int, float, float> TrajectoryPath::trajectoryObstacleScore(const Spee
     int goodSamples = 0;
     float fineTime = 0;
     int lastObstaclePrio = -1;
+    bool foundPointInObstacle = false;
     for (int i = 0;i<samples;i++) {
         float time;
         if (i < samples-1) {
@@ -518,11 +520,13 @@ std::tuple<int, float, float> TrajectoryPath::trajectoryObstacleScore(const Spee
         }
         if (obstaclePriority == -1) {
             goodSamples++;
-            if (goodSamples > OUT_OF_OBSTACLE_TIME / SAMPLING_INTERVAL) {
+            float boundaryTime = foundPointInObstacle ? OUT_OF_OBSTACLE_TIME : LONG_OUF_OF_OBSTACLE_TIME;
+            if (goodSamples > boundaryTime * (1.0f / SAMPLING_INTERVAL)) {
                 fineTime = time;
                 break;
             }
         } else {
+            foundPointInObstacle = true;
             goodSamples = 0;
         }
         if (obstaclePriority > currentBestObstaclePrio) {
