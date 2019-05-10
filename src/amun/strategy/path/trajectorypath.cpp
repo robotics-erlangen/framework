@@ -448,7 +448,7 @@ void TrajectoryPath::findPathEndInObstacle()
     }
 
     // TODO: sample closer if we are already close
-    const int ITERATIONS = 200;
+    const int ITERATIONS = 60;
     for (int i = 0;i<ITERATIONS;i++) {
         if (i == ITERATIONS / 3 && !m_bestResultInfo.valid) {
             m_bestEndPointDistance = std::numeric_limits<float>::infinity();
