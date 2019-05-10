@@ -564,7 +564,7 @@ void TrajectoryPath::escapeObstacles()
         float endTime;
         std::tie(bestPrio, bestObstacleTime, endTime) = trajectoryObstacleScore(p);
         bool foundValid = endTime > 0;
-        if (!foundValid) {
+        if (!foundValid || !AlphaTimeTrajectory::isInputValidExactEndSpeed(v0, Vector(0, 0), m_bestEscapingTime, ACCELERATION)) {
             bestPrio = 10000;
             bestObstacleTime = 10000;
         }
@@ -583,6 +583,9 @@ void TrajectoryPath::escapeObstacles()
                 // sample around current best point
                 time = std::max(0.05f, m_bestEscapingTime + m_rng->uniformFloat(-0.1f, 0.1f));
                 angle = m_bestEscapingAngle + m_rng->uniformFloat(-0.1f, 0.1f);
+            }
+            if (!AlphaTimeTrajectory::isInputValidExactEndSpeed(v0, Vector(0, 0), time, ACCELERATION)) {
+                continue;
             }
 
             p = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(v0, Vector(0, 0), time, angle, ACCELERATION, MAX_SPEED);
@@ -615,7 +618,7 @@ void TrajectoryPath::escapeObstacles()
         info.desiredDistance = Vector(0, 0);
         m_generationInfo.push_back(info);
 
-        bestStartingEndPos = bestProfile.positionForTime(bestProfile.time());
+        bestStartingEndPos = bestProfile.positionForTime(bestProfile.time()) + s0;
         bestStartingSpeed = bestProfile.speedForTime(bestProfile.time());
 
         if (bestStartingSpeed.length() < 0.01f) {
@@ -623,18 +626,19 @@ void TrajectoryPath::escapeObstacles()
             return;
         }
     }
-    bestStartingEndPos += s0;
 
     // second stage: try to find a path to stop
     {
         float closestDistance = std::numeric_limits<float>::max();
-        SpeedProfile p = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(bestStartingSpeed, Vector(0, 0), m_bestStoppingTime, m_bestStoppingAngle, ACCELERATION, MAX_SPEED);
-        SpeedProfile bestProfile;
+        SpeedProfile bestProfile, p;
         bool foundResult = false;
-        if (p.isValid() && !isTrajectoryInObstacle(p, bestEndTime, 0, bestStartingEndPos)) {
-            closestDistance = (p.positionForTime(p.time()) + bestStartingEndPos).distance(s1);
-            bestProfile = p;
-            foundResult = true;
+        if (AlphaTimeTrajectory::isInputValidExactEndSpeed(bestStartingSpeed, Vector(0, 0), m_bestStoppingTime, ACCELERATION)) {
+            p = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(bestStartingSpeed, Vector(0, 0), m_bestStoppingTime, m_bestStoppingAngle, ACCELERATION, MAX_SPEED);
+            if (p.isValid() && !isTrajectoryInObstacle(p, bestEndTime, 0, bestStartingEndPos)) {
+                closestDistance = (p.positionForTime(p.time()) + bestStartingEndPos).distance(s1);
+                bestProfile = p;
+                foundResult = true;
+            }
         }
         for (int i = 0;i<25;i++) {
             float time, angle;
@@ -647,6 +651,9 @@ void TrajectoryPath::escapeObstacles()
                 time = std::max(0.05f, m_bestStoppingTime + m_rng->uniformFloat(-0.1f, 0.1f));
                 angle = m_bestStoppingAngle + m_rng->uniformFloat(-0.1f, 0.1f);
             }
+            if (!AlphaTimeTrajectory::isInputValidExactEndSpeed(bestStartingSpeed, Vector(0, 0), time, ACCELERATION)) {
+                continue;
+            }
 
             p = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(bestStartingSpeed, Vector(0, 0), time, angle, ACCELERATION, MAX_SPEED);
             if (p.isValid() && !isTrajectoryInObstacle(p, bestEndTime, 0, bestStartingEndPos)) {
@@ -656,6 +663,7 @@ void TrajectoryPath::escapeObstacles()
                     m_bestStoppingAngle = angle;
                     bestProfile = p;
                     foundResult = true;
+                    closestDistance = stopPos.distance(s1);
                 }
             }
         }
