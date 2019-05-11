@@ -94,7 +94,7 @@ float SpeedProfile1D::timeWithSlowDown(float slowDownTime) const
 
             float averageAcc = (a0 + a1) * 0.5f;
             float v1 = profile[i+1].v;
-            float t = std::abs(v0 - v1) / averageAcc;
+            float t = std::abs(v0 - v1) / std::abs(averageAcc);
 
             time += t;
         }
@@ -867,11 +867,11 @@ SpeedProfile AlphaTimeTrajectory::findTrajectoryExactEndSpeed(Vector v0, Vector 
             result.xProfile.acc = necessaryAcc.x;
             result.xProfile.counter = 2;
             result.xProfile.profile[0] = {v0.x, 0};
-            result.xProfile.profile[1] = {0, std::abs(v0.x) / necessaryAcc.x};
+            result.xProfile.profile[1] = {0, std::abs(v0.x / necessaryAcc.x)};
             result.yProfile.acc = necessaryAcc.y;
             result.yProfile.counter = 2;
             result.yProfile.profile[0] = {v0.y, 0};
-            result.yProfile.profile[1] = {0, std::abs(v0.y) / necessaryAcc.y};
+            result.yProfile.profile[1] = {0, std::abs(v0.y / necessaryAcc.y)};
             return result;
         }
     }

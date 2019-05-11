@@ -804,7 +804,7 @@ void TrajectoryPath::findPathAlphaT()
                 speed = chosenMidSpeed + Vector(m_rng->uniformFloat(-RADIUS, RADIUS), m_rng->uniformFloat(-RADIUS, RADIUS));
             } while (speed.lengthSquared() >= MAX_SPEED_SQUARED);
             angle = info.angle + m_rng->uniformFloat(-0.1f, 0.1f);
-            time = info.centerTime + m_rng->uniformFloat(-0.1f, 0.1f);
+            time = std::max(0.0001f, info.centerTime + m_rng->uniformFloat(-0.1f, 0.1f));
         }
         checkMidPoint(speed, time, angle);
     }
