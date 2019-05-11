@@ -51,6 +51,7 @@ signals:
 public slots:
     void handleStatus(const Status &status);
     void saveConfig();
+    void setStyleSheets(bool useDark);
 
 private slots:
     void handleCommand();

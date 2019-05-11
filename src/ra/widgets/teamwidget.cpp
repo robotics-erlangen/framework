@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include "teamwidget.h"
+#include "config/include/config/config.h"
 #include "protobuf/command.pb.h"
 #include "protobuf/status.pb.h"
 #include <QAction>
@@ -510,14 +511,14 @@ void TeamWidget::updateStyleSheet()
     switch (m_type) {
     case amun::StatusStrategyWrapper::BLUE:
     case amun::StatusStrategyWrapper::REPLAY_BLUE:
-        color = "dodgerblue";
+        color = m_useDarkColors ? UI_BLUE_COLOR_DARK : UI_BLUE_COLOR_LIGHT;
         break;
     case amun::StatusStrategyWrapper::YELLOW:
     case amun::StatusStrategyWrapper::REPLAY_YELLOW:
-        color = "yellow";
+        color = m_useDarkColors ? UI_YELLOW_COLOR_DARK : UI_YELLOW_COLOR_LIGHT;
         break;
     case amun::StatusStrategyWrapper::AUTOREF:
-        color = "lightgray";
+        color = m_useDarkColors ? UI_AUTOREF_COLOR_DARK : UI_AUTOREF_COLOR_LIGHT;
         break;
     }
     const QColor bgColor = m_notification ? "red" : (m_compiling ? "gray" : color.lighter(170));

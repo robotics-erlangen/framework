@@ -40,6 +40,8 @@ const uint DEFAULT_MIXED_PORT = 10012;
 const QString DEFAULT_REMOTE_CONTROL_HOST = QStringLiteral("");
 const uint DEFAULT_REMOTE_CONTROL_PORT = 10007;
 
+const bool DEFAULT_UI_DARK_MODE_COLORS = false;
+
 ConfigDialog::ConfigDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::ConfigDialog)
@@ -82,6 +84,8 @@ void ConfigDialog::sendConfiguration()
     command->set_remote_control_port(ui->remotePort->value());
 
     emit sendCommand(command);
+
+    emit useDarkModeColors(ui->uiDarkMode->isChecked());
 }
 
 void ConfigDialog::load()
@@ -104,6 +108,8 @@ void ConfigDialog::load()
     ui->mixedPort->setValue(s.value("Mixed/Port", DEFAULT_MIXED_PORT).toUInt());
 
     ui->remotePort->setValue(s.value("RefereeRemoteControl/Port", DEFAULT_REMOTE_CONTROL_PORT).toUInt());
+
+    ui->uiDarkMode->setChecked(s.value("Ui/DarkModeColors", DEFAULT_UI_DARK_MODE_COLORS).toBool());
     sendConfiguration();
 }
 
@@ -121,6 +127,7 @@ void ConfigDialog::reset()
     ui->mixedHost->setText(DEFAULT_MIXED_HOST);
     ui->mixedPort->setValue(DEFAULT_MIXED_PORT);
     ui->remotePort->setValue(DEFAULT_REMOTE_CONTROL_PORT);
+    ui->uiDarkMode->setChecked(DEFAULT_UI_DARK_MODE_COLORS);
 }
 
 void ConfigDialog::apply()
@@ -143,6 +150,8 @@ void ConfigDialog::apply()
     s.setValue("Mixed/Port", ui->mixedPort->value());
 
     s.setValue("RefereeRemoteControl/Port", ui->remotePort->value());
+
+    s.setValue(("Ui/DarkModeColors"), ui->uiDarkMode->isChecked());
     sendConfiguration();
 }
 

@@ -327,6 +327,22 @@
     </widget>
    </item>
    <item>
+    <widget class="QGroupBox" name="uiGroupBox">
+     <property name="title">
+      <string>User Interface</string>
+     </property>
+     <layout class="QFormLayout" name="formLayout_5">
+      <item row="0" column="0" colspan="2">
+       <widget class="QCheckBox" name="uiDarkMode">
+        <property name="text">
+         <string>Use dark mode compatible colors</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>

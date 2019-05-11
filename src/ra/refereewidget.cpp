@@ -20,6 +20,7 @@
 
 #include "refereewidget.h"
 #include "ui_refereewidget.h"
+#include "config/config.h"
 #include "protobuf/command.pb.h"
 #include "protobuf/gamestate.pb.h"
 #include "protobuf/ssl_referee.pb.h"
@@ -32,26 +33,13 @@ RefereeWidget::RefereeWidget(QWidget *parent) :
     ui = new Ui::RefereeWidget;
     ui->setupUi(this);
 
-    const QString yellow = createStyleSheet("yellow");
-    const QString blue = createStyleSheet("dodgerblue");
-
     registerCommand(ui->btnRefereeHalt, SSL_Referee::HALT, QString());
     registerCommand(ui->btnRefereeStop, SSL_Referee::STOP, QString());
     registerCommand(ui->btnRefereeForceStart, SSL_Referee::FORCE_START, QString());
     registerCommand(ui->btnRefereeStart, SSL_Referee::NORMAL_START, QString());
 
-    registerCommand(ui->btnRefereeKickoffBlue, SSL_Referee::PREPARE_KICKOFF_BLUE, blue);
-    registerCommand(ui->btnRefereePenaltyBlue, SSL_Referee::PREPARE_PENALTY_BLUE, blue);
-    registerCommand(ui->btnRefereeDirectBlue, SSL_Referee::DIRECT_FREE_BLUE, blue);
-    registerCommand(ui->btnRefereeIndirectBlue, SSL_Referee::INDIRECT_FREE_BLUE, blue);
+    setStyleSheets(false);
 
-    registerCommand(ui->btnRefereeKickoffYellow, SSL_Referee::PREPARE_KICKOFF_YELLOW, yellow);
-    registerCommand(ui->btnRefereePenaltyYellow, SSL_Referee::PREPARE_PENALTY_YELLOW, yellow);
-    registerCommand(ui->btnRefereeDirectYellow, SSL_Referee::DIRECT_FREE_YELLOW, yellow);
-    registerCommand(ui->btnRefereeIndirectYellow, SSL_Referee::INDIRECT_FREE_YELLOW, yellow);
-
-    ui->keeperIdYellow->setStyleSheet(yellow);
-    ui->keeperIdBlue->setStyleSheet(blue);
     // ensure ui values match with internal defaults
     ui->keeperIdYellow->setValue(m_yellowKeeperId);
     ui->keeperIdBlue->setValue(m_blueKeeperId);
@@ -98,6 +86,31 @@ void RefereeWidget::load()
     ui->keeperIdBlue->setValue(s.value("BlueKeeper", 0).toInt());
     ui->useInternalAutoref->setChecked(s.value("useInternalAutoref", false).toBool());
     s.endGroup();
+}
+
+void RefereeWidget::setStyleSheets(bool useDark)
+{
+    QString yellow, blue;
+    if (useDark) {
+        yellow = createStyleSheet(UI_YELLOW_COLOR_DARK);
+        blue = createStyleSheet(UI_BLUE_COLOR_DARK);
+    } else {
+        yellow = createStyleSheet(UI_YELLOW_COLOR_LIGHT);
+        blue = createStyleSheet(UI_BLUE_COLOR_LIGHT);
+    }
+
+    registerCommand(ui->btnRefereeKickoffBlue, SSL_Referee::PREPARE_KICKOFF_BLUE, blue);
+    registerCommand(ui->btnRefereePenaltyBlue, SSL_Referee::PREPARE_PENALTY_BLUE, blue);
+    registerCommand(ui->btnRefereeDirectBlue, SSL_Referee::DIRECT_FREE_BLUE, blue);
+    registerCommand(ui->btnRefereeIndirectBlue, SSL_Referee::INDIRECT_FREE_BLUE, blue);
+
+    registerCommand(ui->btnRefereeKickoffYellow, SSL_Referee::PREPARE_KICKOFF_YELLOW, yellow);
+    registerCommand(ui->btnRefereePenaltyYellow, SSL_Referee::PREPARE_PENALTY_YELLOW, yellow);
+    registerCommand(ui->btnRefereeDirectYellow, SSL_Referee::DIRECT_FREE_YELLOW, yellow);
+    registerCommand(ui->btnRefereeIndirectYellow, SSL_Referee::INDIRECT_FREE_YELLOW, yellow);
+
+    ui->keeperIdYellow->setStyleSheet(yellow);
+    ui->keeperIdBlue->setStyleSheet(blue);
 }
 
 void RefereeWidget::handleStatus(const Status &status)

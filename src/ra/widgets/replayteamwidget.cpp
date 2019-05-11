@@ -22,6 +22,8 @@ ReplayTeamWidget::ReplayTeamWidget(QWidget *parent) :
     connect(ui->yellow, SIGNAL(sendCommand(Command)), this, SIGNAL(sendCommand(Command)));
     connect(this, SIGNAL(gotStatus(Status)), ui->blue, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), ui->yellow, SLOT(handleStatus(Status)));
+    connect(this, SIGNAL(setUseDarkColors(bool)), ui->blue, SLOT(setUseDarkColors(bool)));
+    connect(this, SIGNAL(setUseDarkColors(bool)), ui->yellow, SLOT(setUseDarkColors(bool)));
 
     ui->blue->enableDebugger(false);
     ui->yellow->enableDebugger(false);

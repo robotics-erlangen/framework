@@ -69,6 +69,7 @@ signals:
     void generationChanged(uint generation, RobotWidget::Team team);
     void setRobotExchangeIcon(uint generation, uint id, bool exchange);
     void enableInternalAutoref(bool enable);
+    void setUseDarkColors(bool useDark);
 
 public slots:
     void selectTeam(uint generation, uint id, RobotWidget::Team team);

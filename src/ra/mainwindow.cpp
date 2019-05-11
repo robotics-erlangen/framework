@@ -117,6 +117,9 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
 
     m_configDialog = new ConfigDialog(this);
     connect(m_configDialog, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
+    connect(m_configDialog, SIGNAL(useDarkModeColors(bool)), ui->referee, SLOT(setStyleSheets(bool)));
+    connect(m_configDialog, SIGNAL(useDarkModeColors(bool)), ui->robots, SIGNAL(setUseDarkColors(bool)));
+    connect(m_configDialog, SIGNAL(useDarkModeColors(bool)), ui->replay, SIGNAL(setUseDarkColors(bool)));
 
     connect(ui->options, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
 

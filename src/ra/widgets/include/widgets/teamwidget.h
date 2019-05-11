@@ -56,6 +56,7 @@ public slots:
     void handleStatus(const Status &status);
     void resendAll(bool send);
     void saveConfig();
+    void setUseDarkColors(bool useDark) { m_useDarkColors = useDark; updateStyleSheet(); }
 
 private slots:
     void showOpenDialog();
@@ -97,6 +98,7 @@ private:
     bool m_notification;
     bool m_compiling;
     std::shared_ptr<QStringList> m_recentScripts;
+    bool m_useDarkColors = false;
 };
 
 #endif // TEAMWIDGET_H

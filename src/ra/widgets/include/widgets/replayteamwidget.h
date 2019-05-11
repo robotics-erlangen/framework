@@ -27,6 +27,7 @@ signals:
     void sendCommand(const Command &command);
     void setRegularVisualizationsEnabled(bool blue, bool enabled);
     void sendResetDebugPacket(bool blue);
+    void setUseDarkColors(bool useDark);
 
 private slots:
     void strategyBlueEnabled(bool enabled);

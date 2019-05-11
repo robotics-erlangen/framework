@@ -42,6 +42,7 @@ public:
 
 signals:
     void sendCommand(const Command &command);
+    void useDarkModeColors(bool useDark);
 
 public slots:
     void load();
