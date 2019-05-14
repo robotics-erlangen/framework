@@ -158,7 +158,7 @@ export class PenaltyShootout extends Behavior {
 		}
 
 		debug.push("Shootgoal Criterias");
-		if (this._penaltyStartTime) {
+		if (this._penaltyStartTime != undefined) {
 			let timeSinceStart = World.Time - this._penaltyStartTime;
 			let criteriaTime = timeSinceStart > 8;
 			debug.push("Time Criteria (8s)", String(criteriaTime));
@@ -184,7 +184,7 @@ export class PenaltyShootout extends Behavior {
 			debug.pop();
 
 			if (this._shootGoalFlag  ||  criteriaPos  ||  criteriaTime  ||  // criteriaAngle ||
-					(weight && ellipticDistance(this._robot, this._ball.pos) < this._ball.radius + 0.02)) {
+					(weight != undefined && ellipticDistance(this._robot, this._ball.pos) < this._ball.radius + 0.02)) {
 				this._shootGoalFlag = true;
 			}
 		} else {
@@ -249,7 +249,7 @@ export class PenaltyShootout extends Behavior {
 			distanceToContact = 0;
 		}
 
-		if (World.RefereeState === "PenaltyOffensive"  &&  !this._penaltyStartTime) {
+		if (World.RefereeState === "PenaltyOffensive" && this._penaltyStartTime == undefined) {
 			this._penaltyStartTime = World.Time;
 		}
 		let chipMode = PenaltyChip.check(this._ball, this._robot);
@@ -257,7 +257,7 @@ export class PenaltyShootout extends Behavior {
 			return [MoveToStaticBall, [Math.PI / 2, 0.1]];
 		} else if (distanceToContact > 1 - 0.05) {
 			return [StopAttack];
-		} else if (chipMode) {
+		} else if (chipMode !== false) {
 			debug.set("chipMode", chipMode);
 			return [PenaltyChip, [this._ball, chipMode]];
 		} else if (!lastContact  ||  robotPos.distanceTo(this._ball.pos) > this._robot.radius + World.Ball.radius + freeway) {

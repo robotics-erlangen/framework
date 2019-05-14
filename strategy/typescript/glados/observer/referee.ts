@@ -91,11 +91,11 @@ export function realisticCardsOpponent() {
  */
 export function getFoulingRobot(): Robot | undefined {
 	const pushingEvent = GameController.getPushingEvent();
-	if (pushingEvent && pushingEvent.violator) {
+	if (pushingEvent && pushingEvent.violator != undefined) {
 		return World.OpponentRobotsById[pushingEvent.violator];
 	}
 	const collisionEvent = GameController.getCollisionEvent();
-	if (collisionEvent && collisionEvent.violator) {
+	if (collisionEvent && collisionEvent.violator != undefined) {
 		return World.OpponentRobotsById[collisionEvent.violator];
 	}
 	return undefined;
