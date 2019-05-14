@@ -1,4 +1,3 @@
-import { Position } from "base/vector";
 import * as World from "base/world";
 
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";

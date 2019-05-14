@@ -3,7 +3,7 @@ import * as geom from "base/geom";
 import * as MathUtil from "base/mathutil";
 import * as Referee from "base/referee";
 import { FriendlyRobot } from "base/robot";
-import { Position, Speed, Vector } from "base/vector";
+import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
 

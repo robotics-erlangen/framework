@@ -6,7 +6,7 @@ import * as MathUtil from "base/mathutil";
 import { Path } from "base/path";
 import * as Referee from "base/referee";
 import { FriendlyRobot, Robot } from "base/robot";
-import { Position, Speed, Vector } from "base/vector";
+import { Vector } from "base/vector";
 import * as World from "base/world";
 
 import { MessageBox, MessageType } from "glados/control/messaging";

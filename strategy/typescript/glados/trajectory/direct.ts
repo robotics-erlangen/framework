@@ -2,7 +2,7 @@ import { Coordinates } from "base/coordinates";
 import * as geom from "base/geom";
 import * as MathUtil from "base/mathutil";
 import { TrajectoryHandler, TrajectoryResult } from "base/trajectory";
-import { Position, Speed, Vector } from "base/vector";
+import { Speed, Vector } from "base/vector";
 
 export class Direct extends TrajectoryHandler {
 	update(...args: any[]): TrajectoryResult {

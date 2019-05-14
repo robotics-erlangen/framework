@@ -8,7 +8,6 @@ import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
-import * as RefereeObs from "glados/observer/referee";
 import * as ObserverRobot from "glados/observer/robot";
 import { BallEscort as BallEscortTask } from "glados/task/shared/ballescort";
 

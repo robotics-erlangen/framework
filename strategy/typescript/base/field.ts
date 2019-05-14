@@ -24,12 +24,10 @@
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
 
-import { log } from "base/amun";
 import * as geom from "base/geom";
 import * as MathUtil from "base/mathutil";
 import * as Referee from "base/referee";
 import { Position, RelativePosition, Vector } from "base/vector";
-import * as vis from "base/vis";
 import * as World from "base/world";
 
 let G: Readonly<World.GeometryType> = World.Geometry;

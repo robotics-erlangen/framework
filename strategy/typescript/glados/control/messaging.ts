@@ -118,9 +118,6 @@ local repeatedMessages = {
 }
 */
 
-
-type Rec = "all" | "trainer" | FriendlyRobot;
-
 export enum MessageType {
 	// multiple sender
 	allyFlag, attackerFlag, defendedOpponent, defenderFlag,

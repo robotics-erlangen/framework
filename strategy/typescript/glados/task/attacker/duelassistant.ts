@@ -1,4 +1,3 @@
-import * as mathutil from "base/mathutil";
 import { FriendlyRobot, Robot } from "base/robot";
 import { Vector } from "base/vector";
 import * as World from "base/world";

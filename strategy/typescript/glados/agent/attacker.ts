@@ -16,7 +16,6 @@ import { PenaltyShootout } from "glados/agent/attacker/penaltyshootout";
 import { Shoot } from "glados/agent/attacker/shoot";
 import { Stop } from "glados/agent/attacker/stop";
 import { Agent } from "glados/agent/base/agent";
-import { Behavior } from "glados/agent/base/behavior";
 import { BallEscort } from "glados/agent/shared/ballescort";
 import { PenaltyPassive } from "glados/agent/shared/penaltypassive";
 import { RescueFromDefenseArea } from "glados/agent/shared/rescuefromdefensearea";

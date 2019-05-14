@@ -15,7 +15,6 @@ import * as Goal from "glados/observer/goal";
 import * as Physics from "glados/observer/physics";
 import * as ObserverRobot from "glados/observer/robot";
 import * as UtilDefense from "glados/util/defense";
-import * as Rating from "glados/util/rating";
 
 let G = World.Geometry;
 

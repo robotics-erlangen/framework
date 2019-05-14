@@ -3,7 +3,6 @@ import * as Field from "base/field";
 import * as geom from "base/geom";
 import * as MathUtil from "base/mathutil";
 import * as Referee from "base/referee";
-import { Robot } from "base/robot";
 import { Position, Vector } from "base/vector";
 import * as World from "base/world";
 

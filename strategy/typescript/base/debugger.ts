@@ -174,7 +174,6 @@ interface ResponseInfo {
 let getPropertiesResponseMap: Map<number, ResponseInfo> = new Map<number, ResponseInfo>();
 
 
-let toSend: string[];
 let scriptInfos: ScriptInfo[] = [];
 function handleNotification(notification: string) {
 	let notificationObject = JSON.parse(notification);

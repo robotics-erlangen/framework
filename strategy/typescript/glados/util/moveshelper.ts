@@ -1,6 +1,4 @@
-import { log } from "base/amun";
 import * as geom from "base/geom";
-import { Robot } from "base/robot";
 import { Position } from "base/vector";
 import * as vis from "base/vis";
 

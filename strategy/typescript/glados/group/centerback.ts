@@ -1,7 +1,7 @@
 import * as Field from "base/field";
 import * as MathUtil from "base/mathutil";
 import { FriendlyRobot } from "base/robot";
-import { Position, RelativePosition, Vector } from "base/vector";
+import { Position, RelativePosition } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
 

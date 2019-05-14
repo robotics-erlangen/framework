@@ -142,7 +142,6 @@ export function set(name: string | undefined, value: any, visited: Map<object, s
 			set(undefined, friendlyName);
 			visited.set(value, friendlyName);
 
-			let entryCounter = 1;
 			if (isMap) {
 				let counter = 0;
 				for (let [k, v] of value.entries()) {

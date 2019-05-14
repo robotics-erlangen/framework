@@ -3,7 +3,7 @@ import * as Field from "base/field";
 import * as GameController from "base/gamecontroller";
 import * as BaseRef from "base/referee";
 import { Robot } from "base/robot";
-import { Position, Speed, Vector } from "base/vector";
+import { Position, Speed } from "base/vector";
 import * as World from "base/world";
 
 import * as ObsvBall from "glados/observer/ball";

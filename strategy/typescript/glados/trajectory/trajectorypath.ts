@@ -1,6 +1,5 @@
 import * as Constants from "base/constants";
 import { Coordinates } from "base/coordinates";
-import * as debug from "base/debug";
 import * as Referee from "base/referee";
 import { FriendlyRobot } from "base/robot";
 import { TrajectoryHandler, TrajectoryResult } from "base/trajectory";

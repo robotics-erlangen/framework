@@ -11,7 +11,6 @@ import { Keeper } from "glados/agent/keeper";
 import { AgentPool } from "glados/control/agentpool";
 import { Coordinator } from "glados/control/coordinator";
 import { MainTrainer } from "glados/trainer/maintrainer";
-import { Trainer } from "glados/trainer/trainer";
 // import {Manual} from "glados/agent/manual";
 
 let Agents = {

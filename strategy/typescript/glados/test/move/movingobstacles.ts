@@ -1,4 +1,3 @@
-import * as Field from "base/field";
 import { FriendlyRobot } from "base/robot";
 import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
@@ -7,7 +6,6 @@ import * as World from "base/world";
 import { Assignment, MessageBox, Move, MoveParameters } from "glados/group/move/base";
 import { DirectDrive } from "glados/test/task/directdrive";
 import * as PathHelper from "glados/trajectory/pathhelper";
-import { TrajectoryPath } from "glados/trajectory/trajectorypath";
 
 class AlternatingObstacle {
 	private pos1: Position;

@@ -1,5 +1,5 @@
 import { FriendlyRobot } from "base/robot";
-import { Position, Vector } from "base/vector";
+import { Vector } from "base/vector";
 import * as World from "base/world";
 
 import { FreeKick } from "glados/agent/attacker/freekick";

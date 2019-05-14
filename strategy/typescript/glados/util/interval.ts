@@ -1,5 +1,3 @@
-import { Position } from "base/vector";
-
 export type Interval<T> = [number, number, [T, T]?];
 type AnyInterval = Interval<any>;
 

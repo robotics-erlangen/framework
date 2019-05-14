@@ -2,7 +2,7 @@ import { FriendlyRobot, Robot } from "base/robot";
 import { Position, Vector } from "base/vector";
 import * as World from "base/world";
 
-import { MessageBox, MessageType } from "glados/control/messaging";
+import { MessageBox } from "glados/control/messaging";
 import { Assignment, Move, MoveParameters } from "glados/group/move/base";
 import { StopAttack } from "glados/task/attacker/stopattack";
 import { ManMark } from "glados/task/defender/manmark";

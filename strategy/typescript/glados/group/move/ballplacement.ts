@@ -3,11 +3,11 @@ import * as debug from "base/debug";
 import * as Field from "base/field";
 import * as geom from "base/geom";
 import { FriendlyRobot } from "base/robot";
-import { Position, RelativePosition, Vector } from "base/vector";
+import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
 
-import { MessageBox, MessageType } from "glados/control/messaging";
+import { MessageBox } from "glados/control/messaging";
 import { Assignment, Move, MoveParameters } from "glados/group/move/base";
 import * as BallObserver from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
