@@ -9,6 +9,7 @@ import { Striker as StrikerGroup } from "glados/group/striker";
 // test moves
 import { DribbleTest } from "glados/test/move/dribbletest";
 import { MovingObstacles } from "glados/test/move/movingobstacles";
+import { Race } from "glados/test/move/race";
 import { Victory } from "glados/test/move/victory";
 import { MainTrainer } from "glados/trainer/maintrainer";
 
@@ -16,7 +17,8 @@ import { MainTrainer } from "glados/trainer/maintrainer";
 let moves: (typeof Move)[] = [
 	Victory,
 	MovingObstacles,
-	DribbleTest
+	DribbleTest,
+	Race
 ];
 
 let coord: MainCoordinator | undefined = undefined;

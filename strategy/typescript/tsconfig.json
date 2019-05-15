@@ -71,7 +71,6 @@
 		"glados/test/move/interceptpass.ts",
 		"glados/test/move/keepertest.ts",
 		"glados/test/move/movesrc1.ts",
-		"glados/test/move/race.ts",
 		"glados/test/move/timetopos.ts",
 		"glados/test/move/volley.ts",
 		"glados/test/situation/duel.ts",
