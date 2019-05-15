@@ -43,9 +43,11 @@ LogFileWriter::~LogFileWriter()
 
 std::shared_ptr<StatusSource> LogFileWriter::makeStatusSource()
 {
-    m_packetOffsets.erase(m_packetOffsets.begin() + m_writtenPackages, m_packetOffsets.end());
-    m_timeStamps.erase(m_timeStamps.begin() + m_writtenPackages, m_timeStamps.end());
-    LogFileReader * reader = new LogFileReader(m_timeStamps, m_packetOffsets, GROUPED_PACKAGES);
+    auto packetOffsets(m_packetOffsets);
+    auto timeStamps(m_timeStamps);
+    packetOffsets.erase(packetOffsets.begin() + m_writtenPackages, packetOffsets.end());
+    timeStamps.erase(timeStamps.begin() + m_writtenPackages, timeStamps.end());
+    LogFileReader * reader = new LogFileReader(timeStamps, packetOffsets, GROUPED_PACKAGES);
     reader->open(m_file.fileName());
     return std::shared_ptr<StatusSource>(reader);
 }
