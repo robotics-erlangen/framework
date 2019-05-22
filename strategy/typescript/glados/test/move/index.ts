@@ -7,7 +7,7 @@ import { Move } from "glados/group/move/base";
 import { Moves as MoveGroup } from "glados/group/moves";
 import { Striker as StrikerGroup } from "glados/group/striker";
 // test moves
-import {DribbleTest} from "glados/test/move/dribbletest"
+import { DribbleTest } from "glados/test/move/dribbletest";
 import { MovingObstacles } from "glados/test/move/movingobstacles";
 import { Victory } from "glados/test/move/victory";
 import { MainTrainer } from "glados/trainer/maintrainer";
