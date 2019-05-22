@@ -1,6 +1,6 @@
 import * as World from "base/world";
 import { Agent, Task } from "glados/task/base";
-import { Vector, Position, Speed, RelativePosition } from "base/vector";
+import { Vector, Position } from "base/vector";
 
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { Direct } from "glados/trajectory/direct";
@@ -8,37 +8,34 @@ import { ToTarget } from "glados/trajectory/totarget";
 
 
 enum State {
-	GO_TO_PULL 			= "GO_TO_PULL", //START
+    GO_TO_STARTPOSITION = "GO_TO_STARTPOSITION",
+	GO_TO_PULL 			= "GO_TO_PULL",
 	ENSURE_PULL_CONTACT = "ENSURE_PULL_CONTACT",
     PULL_BACK    = "PULL_BACK",
     FINISHED            = "FINISHED",
 }
 
 const PULL_DRIBBLER_SPEED = 0.8;
-const MAX_PULL_SPEED = 0.15;
-const MAX_PULL_ACCEL = 0.15;
+const PULL_MOVEMENT_SPEED = 0.1;
 
-const ENSURE_CONTACT_TIME = 0.5;
 const ENSURE_CONTACT_MAX_TIME = 2;
 const ENSURE_CONTACT_DRIBBLER_SPEED = 0.6;
-const ENSURE_CONTACT_DIRECT_SPEED = 0.12;
 
 const PULL_BACK_MAX_TIME = 2;
 
 export class GetBallContact extends Task {
-    private readonly OFFSET_SHOOT_LENGTH: number;
-	private readonly OFFSET_EXTRA_LENGTH: number;
     
     private static _ready: boolean = false;
     private static _isInitialised = false;
+    
+    private static _staticTargetPos: Position;
 	
-	private _currentState: State = State.GO_TO_PULL;
-	private _stateChanged: boolean = false;
+	private _currentState: State;
     private _currentTargetPos: Position;
+    private _startPos: Position;
 	
 	private _stateChangeTime = World.Time;
     
-    private _borderOffsetAverage: RelativePosition;
     
     private _offset: number = this._robot.shootRadius + World.Ball.radius;
     
@@ -46,14 +43,15 @@ export class GetBallContact extends Task {
     
 	constructor(agent: Agent) {
 		super(agent);
-        this._currentState = State.GO_TO_PULL;
+        this._currentState = State.GO_TO_STARTPOSITION;
         GetBallContact._ready = false;
         
-        this.OFFSET_SHOOT_LENGTH = this._robot.shootRadius + World.Ball.radius;
-		this.OFFSET_EXTRA_LENGTH = this.OFFSET_SHOOT_LENGTH + 0.1;
+        this._currentTargetPos = World.Ball.pos.copy();
+        this._startPos = this._currentTargetPos.copy();
+        this._startPos.y = this._startPos.y - 0.5;
         
-        this._currentTargetPos = World.Ball.pos;
-        this._borderOffsetAverage = this._robot.pos.copy().setLength(this.OFFSET_EXTRA_LENGTH);
+        GetBallContact._staticTargetPos = this._currentTargetPos;
+        
         
         GetBallContact._isInitialised = true;
 	}
@@ -63,7 +61,7 @@ export class GetBallContact extends Task {
 	run() {
         
         PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, { ignorePass: true, ignoreBall: true });
-        this._currentTargetPos = World.Ball.pos;
+        this._currentTargetPos = World.Ball.pos.copy();
 		
         let currentState = this._currentState;
 		this._currentState = this._getNextState(currentState);
@@ -74,30 +72,36 @@ export class GetBallContact extends Task {
 		
         
 		switch(currentState) {
+            case State.GO_TO_STARTPOSITION:
+                if (this._robot.pos.distanceTo(World.Ball.pos) < this._offset + 0.2) {
+                    let startPos = this._currentTargetPos.copy();
+                    startPos.x = startPos.x - 0.5;
+                    this._robot.trajectory.update(ToTarget, startPos, (1/2)*Math.PI, 0.7);
+                } else {
+                    this._robot.trajectory.update(ToTarget, this._startPos, (1/2)*Math.PI, 0.7);
+                }
+                
+                break;
 			case State.GO_TO_PULL:
                 if (this._robot.pos.distanceTo(World.Ball.pos) < this._offset + 0.3) {
                     this._robot.setDribblerSpeed(ENSURE_CONTACT_DRIBBLER_SPEED);
                     this._robot.trajectory.update(ToTarget, this._currentTargetPos, (1/2)*Math.PI, 0.2);
                 } else {
                     this._robot.setDribblerSpeed(0);
-                    this._robot.trajectory.update(ToTarget, this._currentTargetPos, (1/2)*Math.PI);
+                    this._robot.trajectory.update(ToTarget, this._currentTargetPos, (1/2)*Math.PI, 0.2);
                 }
                 
                 break;
 			case State.ENSURE_PULL_CONTACT:
-                /*this._robot.setDribblerSpeed(ENSURE_CONTACT_DRIBBLER_SPEED);
-                //let speed = new Vector(0, 0); 
-				//this._robot.trajectory.update(Direct, speed, undefined, 0.5);
-                let pos = new Vector(0, 1);
-                this._robot.trajectory.update(ToTarget, pos, (1/2)*Math.PI, 0.2);*/
                 this._robot.setDribblerSpeed(ENSURE_CONTACT_DRIBBLER_SPEED);
-				let speed = this._borderOffsetAverage.copy().setLength(ENSURE_CONTACT_DIRECT_SPEED);
-				this._robot.trajectory.update(Direct, speed, speed.angle());
+                let speed = new Vector(0, 0.1);
+				this._robot.trajectory.update(Direct, speed, undefined, 0.1);//speed.angle()
 				break;
 			case State.PULL_BACK:
-                let pos = new Vector(0, 1);
+                let pos = this._robot.pos.copy();
+                pos.y = pos.y - 1;
                 this._robot.setDribblerSpeed(PULL_DRIBBLER_SPEED);
-                this._robot.trajectory.update(ToTarget, pos, (1/2)*Math.PI, 0.1);
+                this._robot.trajectory.update(ToTarget, pos, (1/2)*Math.PI, PULL_MOVEMENT_SPEED);
 				break;
             case State.FINISHED:
                 GetBallContact._ready = true;
@@ -110,11 +114,19 @@ export class GetBallContact extends Task {
 	private _getNextState(currentState: State): State {
 		let nextState: State;
         
+        
 		switch (currentState) {
+            case State.GO_TO_STARTPOSITION:
+                nextState = State.GO_TO_STARTPOSITION;
+                if (this._robot.pos.distanceTo(this._startPos) < 0.1) {
+                    nextState = State.GO_TO_PULL;
+                }
+                
+                break;
 			case State.GO_TO_PULL:
                 nextState = State.GO_TO_PULL;
 
-                if (this._robot.pos.distanceTo(<Position> this._currentTargetPos) < this._offset) {
+                if (this._robot.pos.distanceTo(this._currentTargetPos) < this._offset) {
 					nextState = State.ENSURE_PULL_CONTACT;
 				}
 				
@@ -155,4 +167,7 @@ export class GetBallContact extends Task {
     public static resetInitialisation() {
 		GetBallContact._isInitialised = false;
 	}
+	public static getTargetPos() {
+        return GetBallContact._staticTargetPos;
+    }
 }

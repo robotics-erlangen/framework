@@ -20,8 +20,6 @@ export class RotateWithBall extends Task {
 	
 	private _finishedRound : boolean = true;
 	
-	private _tryCatchBallCounter : number = 0;
-	private readonly _tryCatchBallMAX : number = 20;
 	
 	constructor(agent: Agent, rotationSpeed: number, dribblerSpeed: number) {
 		super(agent);
@@ -49,7 +47,7 @@ export class RotateWithBall extends Task {
 	public run(){
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, { ignorePass: true, ignoreBall: true });
 		
-		let targetPosition : Position = World.Ball.pos;
+		let targetPosition : Position = World.Ball.pos.copy();
 		let ownPosition: Position = this._robot.pos;
 		let offset = this._robot.shootRadius + World.Ball.radius;
 		let speed : Speed = new Vector(0, 0);
@@ -60,8 +58,9 @@ export class RotateWithBall extends Task {
 		
 		if (robotRotation > ((7/8) * Math.PI) && this._finishedRound){
 			//finished one rotation; increase rotation speed
+            log("SuccessRotate; RotationSpeed: " + this._rotationSpeed + "\tDribblerSpeed: " + this._dribblerSpeed);
 			this._rotationSpeed = this._rotationSpeed + 0.1;
-			log("increased rotation speed: "+this._rotationSpeed+" dribbler speed: "+this._dribblerSpeed);
+			//log("increased rotation speed: "+this._rotationSpeed+" dribbler speed: "+this._dribblerSpeed);
 			this._finishedRound = false;
 		} else if (robotRotation < ((7/8) * Math.PI)) {
 			//enable listening for finished round
@@ -71,27 +70,6 @@ export class RotateWithBall extends Task {
 		
 		this._robot.setDribblerSpeed(this._dribblerSpeed);
 		this._robot.trajectory.update(Direct, speed, undefined, this._rotationSpeed);
-		
-		/*if (this._robot.pos.distanceTo(targetPosition) < offset) {
-		 *            this._robot.setDribblerSpeed(this._dribblerSpeed);
-		 *            this._robot.trajectory.update(Direct, speed, undefined, this._rotationSpeed);
-	} else {
-		//robot distance to ball was greater or equal than defined offset (maximum allowed distance between robot and ball)
-		log("lost the ball; rotationSpeed : "+this._rotationSpeed+"; dribblerSpeed = "+this._dribblerSpeed);
-		//if robot couldn't catch the ball with current dribblerSpeed and allready tried a few times, increase the dribblerSpeed
-		if (this._tryCatchBallCounter == this._tryCatchBallMAX) {
-			this._tryCatchBallCounter = 0;
-			this._dribblerSpeed += 0.1;
-			log("lost ball too often! increasing dribbler speed to: "+this._dribblerSpeed);
-			this._rotationSpeed = this._initialRotationSpeed;
-			if (this._dribblerSpeed >= 1) {
-				RotateWithBall._isFinished = true;
-				log("RotateWithBall is finished!");
-	}
-	}
-	this._tryCatchBallCounter++;
-	this._robot.trajectory.update(ToTarget, targetPosition, angle, 0.2, undefined);
-	}*/
 		
 	}
 }
