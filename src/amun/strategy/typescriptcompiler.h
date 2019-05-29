@@ -57,7 +57,7 @@ private:
     FileWatcher m_watcher;
 
     enum class State {
-        PAUSED, STANDBY, COMPILING
+        PAUSED, STANDBY, RENAMING
     };
     State m_state;
     QMutex m_stateLock;

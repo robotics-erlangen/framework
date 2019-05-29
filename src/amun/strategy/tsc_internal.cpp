@@ -118,7 +118,8 @@ void InternalTypescriptCompiler::initializeEnvironment()
         Local<Array> argv = createStringArray(m_isolate, {
             QCoreApplication::applicationFilePath(),
             m_compilerPath,
-            "--pretty", "false", "--incremental", "true"
+            "--pretty", "false", "--incremental", "true",
+            "--outDir", "built-tmp/"
         });
         addObjectField(m_isolate, process, "argv", argv);
     }

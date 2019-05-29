@@ -60,7 +60,7 @@ QFileInfo TypescriptCompiler::mapToResult(const QFileInfo& src) {
 bool TypescriptCompiler::requestPause()
 {
     QMutexLocker locker(&m_stateLock);
-    bool pausable = m_state != State::COMPILING;
+    bool pausable = m_state != State::RENAMING;
     if (pausable) {
         m_state = State::PAUSED;
     }
@@ -80,31 +80,36 @@ bool TypescriptCompiler::isResultAvailable()
 {
     QMutexLocker locker(&m_stateLock);
     QFileInfo outputDir(m_tsconfig.dir().filePath("built/"));
-    return m_state != State::COMPILING && outputDir.exists() && outputDir.isDir();
+    return m_state != State::RENAMING && outputDir.exists() && outputDir.isDir();
 }
 
 void TypescriptCompiler::compile()
 {
-    QMutexLocker locker(&m_stateLock);
-    while (m_state == State::PAUSED) {
-        m_pauseWait.wait(locker.mutex());
-    }
-
-    bool compilationNeeded = isCompilationNeeded();
-    if (!compilationNeeded) {
+    if (!isCompilationNeeded()) {
         return;
     }
-    m_state = State::COMPILING;
-    locker.unlock();
+
+    QDir newResult(m_tsconfig.dir().absoluteFilePath("built-tmp"));
+    // ra may has exited before renaming the tmp folder
+    if (QFileInfo(newResult.absolutePath()).exists()) {
+        newResult.removeRecursively();
+    }
 
     emit started();
     std::pair<CompileResult, QString> result = performCompilation();
 
-    locker.relock();
-    m_state = State::STANDBY;
+    QMutexLocker locker(&m_stateLock);
+    while (m_state == State::PAUSED)
+        m_pauseWait.wait(locker.mutex());
+    m_state = State::RENAMING;
     locker.unlock();
 
-    switch (result.first) {
+    QDir oldResult(m_tsconfig.dir().absoluteFilePath("built"));
+    if (!oldResult.removeRecursively()) {
+        emit error("Could not remove old compile result");
+    } else if (!newResult.rename(newResult.absolutePath(), oldResult.absolutePath())) {
+        emit error("Could not rename new compile result");
+    } else switch (result.first) {
         case CompileResult::Success:
             emit success();
             break;
@@ -115,6 +120,9 @@ void TypescriptCompiler::compile()
             emit error(result.second);
             break;
     }
+
+    locker.relock();
+    m_state = State::STANDBY;
 }
 
 static QDateTime getLastModified(const QDir& dir)
