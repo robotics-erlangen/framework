@@ -518,13 +518,8 @@ void Typescript::onCompileWarning(const QString &message)
 {
     log(message);
     QString warnString = "<font color=\"khaki\">Warnings occured during compilation</font>";
-    if (isTournamentMode()) {
-        log(warnString);
-        emit requestReload();
-    } else {
-        m_errorMsg = warnString;
-        emit changeLoadState(amun::StatusStrategy::FAILED);
-    }
+    log(warnString);
+    emit requestReload();
 }
 
 void Typescript::onCompileError(const QString &message)
