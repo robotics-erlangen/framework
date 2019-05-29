@@ -738,13 +738,6 @@ static Vector centerTimePos(Vector startSpeed, Vector endSpeed, float time)
     return (startSpeed + endSpeed) * (0.5f * time);
 }
 
-static float vectorAngleDiff(Vector a, Vector b)
-{
-    float y = (a.x * b.y) - (b.x * a.y);
-    float x = (a.x * b.x) + (a.y * b.y);
-    return std::atan2(y, x);
-}
-
 // normalize between [-pi, pi]
 static float angleDiff(float a1, float a2)
 {

@@ -63,7 +63,7 @@ public:
     }
 
     void limitToTime(float time) {
-        for (int i = 0;i<counter-1;i++) {
+        for (unsigned int i = 0;i<counter-1;i++) {
             if (profile[i+1].t >= time) {
                 float diff = profile[i+1].t == profile[i].t ? 1 : (time - profile[i].t) / (profile[i+1].t - profile[i].t);
                 float speed = profile[i].v + diff * (profile[i+1].v - profile[i].v);
