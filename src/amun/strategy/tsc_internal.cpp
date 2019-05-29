@@ -104,7 +104,7 @@ void InternalTypescriptCompiler::initializeEnvironment()
     m_requireNamespace->put("fs", std::unique_ptr<Node::fs>(new Node::fs(m_isolate, m_requireNamespace.get(), ".")));
     m_requireNamespace->put("path", std::unique_ptr<Node::path>(new Node::path(m_isolate)));
 
-    static_cast<Node::fs*>(m_requireNamespace->get("fs"))->setPath(m_tsconfig.dir().absolutePath());
+    static_cast<Node::fs*>(m_requireNamespace->get("fs"))->setPath(m_tsconfig.dir().absolutePath() + "/");
 
     delete create_params.array_buffer_allocator;
 
