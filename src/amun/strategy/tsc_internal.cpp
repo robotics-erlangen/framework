@@ -294,8 +294,9 @@ void InternalTypescriptCompiler::handleExitcode(bool exitcodeValid, int exitcode
 {
     enum ExitCode {
         Success = 0,
-        Warning = 1,
-        Error = 2
+        Warning = 3,
+        Error = 2,
+        ErrorNoOutput = 1
     };
     m_stdout = m_stdout.replace("\n", "<br/>");
     if (!exitcodeValid) {
@@ -307,7 +308,7 @@ void InternalTypescriptCompiler::handleExitcode(bool exitcodeValid, int exitcode
         case ExitCode::Warning:
             m_lastResult = { CompileResult::Warning, m_stdout };
             break;
-        case ExitCode::Error:
+        case ExitCode::Error: case ExitCode::ErrorNoOutput:
             m_lastResult = { CompileResult::Error, m_stdout };
             break;
         default:
