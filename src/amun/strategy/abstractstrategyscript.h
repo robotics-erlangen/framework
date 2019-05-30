@@ -54,10 +54,8 @@ public:
     // simple factory to allow for different strategy handlers
     static bool canHandle(const QString &filename);
 
-    // return true on success, if false is returned the error msg can be retrieved via errorMsg()
-    // loadScript and process MUST NOT be called anymore after an error was thrown!
-    // must only be called once
-    bool loadScript(const QString &filename, const QString &entryPoint, const world::Geometry &geometry, const robot::Team &team);
+    // errors are reported via changeLoadState. If an error occured, the error msg can be retrieved via errorMsg()
+    void loadScript(const QString &filename, const QString &entryPoint, const world::Geometry &geometry, const robot::Team &team);
     // must only be called after loadScript was executed successfully
     bool process(double &pathPlanning, const world::State &worldState, const amun::GameState &refereeState, const amun::UserInput &userInput);
     virtual bool triggerDebugger();
@@ -140,7 +138,7 @@ signals:
 
 protected:
     bool chooseEntryPoint(QString entryPoint);
-    virtual bool loadScript(const QString &filename, const QString &entryPoint) = 0;
+    virtual void loadScript(const QString &filename, const QString &entryPoint) = 0;
     virtual bool process(double &pathPlanning) = 0;
 
 protected:

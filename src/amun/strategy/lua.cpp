@@ -336,7 +336,7 @@ Lua::~Lua()
     lua_close(m_state);
 }
 
-bool Lua::loadScript(const QString &filename, const QString &entryPoint)
+void Lua::loadScript(const QString &filename, const QString &entryPoint)
 {
     // start init script loader, sets strategy name and entrypoints
     lua_pushcfunction(m_state, luaLoadInitScript);
@@ -353,12 +353,12 @@ bool Lua::loadScript(const QString &filename, const QString &entryPoint)
     if (lua_pcall(m_state, 5, 0, 1) != 0) {
         m_errorMsg = lua_tostring(m_state, -1);
         emit changeLoadState(amun::StatusStrategy::FAILED);
-        return false;
+        return;
     }
 
     if (!chooseEntryPoint(entryPoint)) {
         emit changeLoadState(amun::StatusStrategy::FAILED);
-        return false;
+        return;
     }
 
     // publish entry point for strategy
@@ -380,7 +380,6 @@ bool Lua::loadScript(const QString &filename, const QString &entryPoint)
     lua_pop(m_state, 1);
 
     emit changeLoadState(amun::StatusStrategy::RUNNING);
-    return true;
 }
 
 bool Lua::process(double &pathPlanning)

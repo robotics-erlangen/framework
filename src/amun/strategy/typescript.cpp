@@ -313,13 +313,13 @@ static bool buildStackTrace(const Local<Context>& context, QString& errorMsg, co
     return false;
 }
 
-bool Typescript::loadScript(const QString &fname, const QString &entryPoint)
+void Typescript::loadScript(const QString &fname, const QString &entryPoint)
 {
     m_requestedEntrypoint = entryPoint;
     if (!setupCompiler(fname))
-        return false;
+        return;
 
-    return loadTypescript(fname, entryPoint);
+    loadTypescript(fname, entryPoint);
 }
 
 static std::unique_ptr<QDir> getTsconfigDir(const QString &filename)

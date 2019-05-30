@@ -70,7 +70,7 @@ public:
     void tryCatch(v8::Local<v8::Function> tryBlock, v8::Local<v8::Function> thenBlock, v8::Local<v8::Function> catchBlock, v8::Local<v8::Object> element, bool printStackTrace);
 
 protected:
-    bool loadScript(const QString &filename, const QString &entryPoint) override;
+    void loadScript(const QString &filename, const QString &entryPoint) override;
     bool process(double &pathPlanning) override;
 
 private:

@@ -50,7 +50,7 @@ public:
     QString debuggerRead();
     bool debuggerWrite(const QString& line);
 protected:
-    bool loadScript(const QString &filename, const QString &entryPoint) override;
+    void loadScript(const QString &filename, const QString &entryPoint) override;
     bool process(double &pathPlanning) override;
 private:
     void loadLibs();
