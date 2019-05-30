@@ -104,25 +104,33 @@ void TypescriptCompiler::compile()
     m_state = State::RENAMING;
     locker.unlock();
 
+    bool renameSucceeded = false;
     QDir oldResult(m_tsconfig.dir().absoluteFilePath("built"));
     if (!oldResult.removeRecursively()) {
         emit error("Could not remove old compile result");
     } else if (!newResult.rename(newResult.absolutePath(), oldResult.absolutePath())) {
         emit error("Could not rename new compile result");
-    } else switch (result.first) {
-        case CompileResult::Success:
-            emit success();
-            break;
-        case CompileResult::Warning:
-            emit warning(result.second);
-            break;
-        case CompileResult::Error:
-            emit error(result.second);
-            break;
+    } else {
+        renameSucceeded = true;
     }
 
     locker.relock();
     m_state = State::STANDBY;
+    locker.unlock();
+
+    if (!renameSucceeded) return;
+
+    switch (result.first) {
+    case CompileResult::Success:
+        emit success();
+        break;
+    case CompileResult::Warning:
+        emit warning(result.second);
+        break;
+    case CompileResult::Error:
+        emit error(result.second);
+        break;
+    }
 }
 
 static QDateTime getLastModified(const QDir& dir)
