@@ -332,8 +332,11 @@ static bool buildStackTrace(const Local<Context>& context, QString& errorMsg, co
 void Typescript::loadScript(const QString &fname, const QString &entryPoint)
 {
     m_requestedEntrypoint = entryPoint;
-    if (!setupCompiler(fname))
+    if (!setupCompiler(fname)) {
+        m_errorMsg = "<font color=\"red\">Failed to setup compiler (Missing tsconfig.json)</font>";
+        emit changeLoadState(amun::StatusStrategy::FAILED);
         return;
+    }
 
     loadTypescript(fname, entryPoint);
 }
