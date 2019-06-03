@@ -25,7 +25,9 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 if(POLICY CMP0071) # compatibility with CMake 3.10.0
     cmake_policy(SET CMP0071 OLD)
 endif()
-
+if(POLICY CMP0072)
+    cmake_policy(SET CMP0072 NEW)
+endif()
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG(-std=c++14 HAVE_C14)
 if (NOT HAVE_C14)
