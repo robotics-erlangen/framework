@@ -3,6 +3,7 @@ import * as Field from "base/field";
 import * as geom from "base/geom";
 import * as MathUtil from "base/mathutil";
 import { Position, RelativePosition, Vector } from "base/vector";
+import * as vis from "base/vis";
 import * as World from "base/world";
 
 import * as Physics from "glados/observer/physics";
@@ -17,9 +18,7 @@ const POSITION_PADDING = 0.2; // safety distance
 // normalize angle created by direction to be always relative to segment ball to field border
 function getNormalizedAngle(direction: RelativePosition): number {
 	let angle = direction.angle();
-	if (World.Ball.pos.x > 0) {
-		angle = geom.normalizeAnglePositive(angle);
-	}
+	angle = geom.normalizeAnglePositive(angle);
 	return angle;
 }
 
@@ -59,16 +58,46 @@ export class StopAttack extends Task {
 			let maxAngle = -Infinity;
 			for (let robot of passReceivers) {
 				let angle = getNormalizedAngle(Field.limitToAllowedField(Physics.robotBrakePos(robot), robot.radius) - World.Ball.pos);
-				if (World.Ball.pos.x > 0) {
-					angle = geom.normalizeAnglePositive(angle);
-				}
-				if (angle < minAngle) {
+				angle = geom.normalizeAnglePositive(angle);
+				if (angle < minAngle && angle > Math.PI) {
 					minAngle = angle;
 				}
 				if (angle > maxAngle) {
 					maxAngle = angle;
 				}
+
 			}
+			let maxAllowedAngle = 14;
+			let minAllowedAngle = 10;
+			const middleShift = 0;
+			const quarterShift = 1;
+			const borderShift = 2;
+			const quarterBegin = 0.7;
+			const borderBegin = 1.7;
+			// vis.addPath("stopattack: MaxAngle", [World.Ball.pos, World.Ball.pos + Vector.fromAngle(maxAngle).setLength(1)], vis.colors.red);
+			// vis.addPath("stopattack: MinAngle", [World.Ball.pos, World.Ball.pos + Vector.fromAngle(minAngle).setLength(1)], vis.colors.redHalf);
+			if (World.Ball.pos.x > quarterBegin * World.Geometry.FieldWidthQuarter && World.Ball.pos.x < (borderBegin * World.Geometry.FieldWidthQuarter)) {
+				maxAllowedAngle -= quarterShift;
+			} else if (World.Ball.pos.x < -quarterBegin * World.Geometry.FieldWidthQuarter && World.Ball.pos.x > (-borderBegin * World.Geometry.FieldWidthQuarter)) {
+				minAllowedAngle += quarterShift;
+			} else if (World.Ball.pos.x >= (borderBegin * World.Geometry.FieldWidthQuarter)) {
+				maxAllowedAngle -= borderShift;
+			} else if (World.Ball.pos.x <= (-borderBegin * World.Geometry.FieldWidthQuarter)) {
+				minAllowedAngle += borderShift;
+			} else {
+				maxAllowedAngle -= middleShift;
+				minAllowedAngle += middleShift;
+			}
+			maxAllowedAngle = maxAllowedAngle * Math.PI / 8;
+			minAllowedAngle = minAllowedAngle * Math.PI / 8;
+			// vis.addPath("stopattack: MaxAllowedAngle", [World.Ball.pos, World.Ball.pos + Vector.fromAngle(maxAllowedAngle).setLength(1)], vis.colors.green);
+			// vis.addPath("stopattack: MinAllowedAngle", [World.Ball.pos, World.Ball.pos + Vector.fromAngle(minAllowedAngle).setLength(1)], vis.colors.greenHalf);
+
+			maxAngle = MathUtil.bound(minAllowedAngle, maxAngle, maxAllowedAngle);
+			minAngle = MathUtil.bound(minAllowedAngle, minAngle, maxAllowedAngle);
+			// vis.addPath("stopattack: MaxAngleBounded", [World.Ball.pos, World.Ball.pos + Vector.fromAngle(maxAngle).setLength(1)], vis.colors.black);
+			// vis.addPath("stopattack: MinAngleBounded", [World.Ball.pos, World.Ball.pos + Vector.fromAngle(minAngle).setLength(1)], vis.colors.blackHalf);
+
 			let relativeAngle = getNormalizedAngle(World.Ball.pos - opponentShooter!.pos);
 			let boundedAngle = MathUtil.bound(minAngle, relativeAngle, maxAngle);
 			let opponentDirection = getNormalizedAngle(Vector.fromAngle(opponentShooter!.dir));
@@ -85,8 +114,7 @@ export class StopAttack extends Task {
 			// position between ball and goal
 			this._defenseHysteresis = false;
 			if (Field.isInFriendlyDefenseArea(pos, 4 * this._robot.radius + 0.05)) {
-				let intersections = Field.intersectCircleDefenseArea(World.Ball.pos,
-						stopRadius, 4 * this._robot.radius + 0.05, true);
+				let intersections = Field.intersectCircleDefenseArea(World.Ball.pos, stopRadius, 4 * this._robot.radius + 0.05, true);
 				if (intersections.length > 0) {
 					// pos = undefined;
 					let distanceToSqMin = Infinity;
@@ -97,11 +125,11 @@ export class StopAttack extends Task {
 							distanceToSqMin = distanceToSqCur;
 						}
 
-	// 					TODO: Think!
-	// 					if not pos or (this._side == "left" and p.x < pos.x) or
-	// 							(this._side == "right" and p.x > pos.x) then
-	// 						pos = p
-	// 					end
+						// TODO: Think!
+						// if not pos or (this._side == "left" and p.x < pos.x) or
+						// 	(this._side == "right" and p.x > pos.x) then
+						// 		pos = p
+						// end
 					}
 				}
 			}
