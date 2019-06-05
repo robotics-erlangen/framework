@@ -4,7 +4,7 @@ import { Robot } from "base/robot";
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
-import { InterceptPass } from "glados/task/defender/interceptpass";
+import { BreakPass } from "glados/task/defender/breakpass";
 import { Piggy as PiggyTask } from "glados/task/defender/piggy";
 
 export class Piggy extends Behavior {
@@ -19,7 +19,7 @@ export class Piggy extends Behavior {
 		return role != undefined && role.name === "Piggy";
 	}
 
-	_updateTask(): TaskAssignment<typeof InterceptPass> | TaskAssignment<typeof PiggyTask> {
+	_updateTask(): TaskAssignment<typeof BreakPass> | TaskAssignment<typeof PiggyTask> {
 		let assignment = this._messaging.receiveTrainer(MessageType.roleAssignment);
 		if (assignment == undefined || assignment.name !== "Piggy") {
 			throw new Error();
@@ -30,8 +30,14 @@ export class Piggy extends Behavior {
 
 		debug.set("target", this._opp.id);
 
-		if (Ball.receivesPass(this._opp)) {
-			return [InterceptPass];
+		let [moveDest, endSpeed, waitingTime] = BreakPass.calculateBreakPos(this._robot);
+		let breakPassThreshold = 0;
+		if (this._task instanceof BreakPass) {
+			breakPassThreshold = 0.1;
+		}
+
+		if ((Ball.receivesPass(this._opp)) && (breakPassThreshold >= waitingTime)) {
+			return [BreakPass, [ this._opp ], false];
 		} else {
 			return [PiggyTask, [ this._opp ], restartTask];
 		}
