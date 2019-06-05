@@ -43,15 +43,25 @@ int main(int argc, char* argv[])
     parser.addPositionalArgument("logfile", "Log files to read (repeated)", "logfile ...");
 
     QCommandLineOption outputLog({"o", "output"}, "Location to output the resulting log file","outputFile", "lc_out.log");
-    QCommandLineOption flags({"f", "flags"}, "Flags for the logprocessor", "flags", "0");
     QCommandLineOption abortExecution({"d", "die-on-error"}, "Die when a problem occurs");
     QCommandLineOption noHash("no-hash", "Do not insert any hash into the resulting logfile");
 
     parser.addOption(outputLog);
     parser.addOption(abortExecution);
-    parser.addOption(flags);
     parser.addOption(noHash);
 
+    QCommandLineOption flags({"f", "flags"}, "Flags for the logprocessor. This overwrites the other cut options", "flags", "0");
+    QCommandLineOption cutHalt("cut-halt", "Remove halt sections");
+    QCommandLineOption cutNonGame("cut-non-game", "Remove non game sections");
+    QCommandLineOption cutStop("cut-stop", "Remove stop sections");
+    QCommandLineOption cutBallPlacement("cut-ball-placement", "Remove ball placement sections");
+    QCommandLineOption cutSimulated("cut-simulated", "Remove simulated sections");
+    parser.addOption(flags);
+    parser.addOption(cutHalt);
+    parser.addOption(cutNonGame);
+    parser.addOption(cutStop);
+    parser.addOption(cutBallPlacement);
+    parser.addOption(cutSimulated);
     // parse command line
     parser.process(app);
 
@@ -60,8 +70,29 @@ int main(int argc, char* argv[])
         parser.showHelp(1);
     }
 
+    LogProcessor::Options options = LogProcessor::Option::NoOptions;
+    if (parser.isSet(flags)) {
+        options = LogProcessor::Options(parser.value(flags).toInt());
+    } else {
+        using O = LogProcessor::Option;
+        if (parser.isSet(cutHalt))
+            options |= O::CutHalt;
+        if (parser.isSet(cutNonGame))
+            options |= O::CutNonGame;
+        if (parser.isSet(cutStop))
+            options |= O::CutStop;
+        if (parser.isSet(cutBallPlacement))
+            options |= O::CutBallplacement;
+        if (parser.isSet(cutSimulated))
+            options |= O::CutSimulated;
     std::cout << "[ DEBUG] " << parser.value(outputLog).toStdString() << std::endl;
-    LogProcessor lp(parser.positionalArguments(), parser.value(outputLog), LogProcessor::Options(parser.value(flags).toInt()), nullptr, parser.isSet(noHash));
+    LogProcessor lp(
+        parser.positionalArguments(),
+        parser.value(outputLog),
+        options,
+        nullptr,
+        parser.isSet(noHash)
+    );
     QObject::connect(&lp, &LogProcessor::progressUpdate, [](const QString& progress){
             std::cout << "[STATUS] " << progress.toStdString() << std::endl;
     });
