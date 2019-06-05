@@ -157,9 +157,9 @@ export abstract class Agent {
 
 		debug.push("Task");
 		if (task != undefined) {
+			debug.set(undefined, task.constructor.name);
 			task.clearMainAttackerParameters();
 			task.run();
-			debug.set(undefined, task.constructor.name);
 		} else {
 			debug.set(undefined, "none");
 		}
