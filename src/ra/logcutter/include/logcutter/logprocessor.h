@@ -27,7 +27,11 @@ public:
         CutNonGame = 0x2,
         CutStop = 0x4,
         CutBallplacement = 0x8,
-        CutSimulated = 0x10
+        CutSimulated = 0x10,
+        CutDebugTree = 0x20,
+        CutLogOutput = 0x40,
+        CutVisualizations = 0x80,
+        CutPlot = 0x100
     };
     Q_DECLARE_FLAGS(Options, Option)
 
@@ -49,6 +53,7 @@ private:
     qint64 filterLog(SeqLogFileReader &reader, Exchanger *writer, Exchanger *dump, qint64 lastTime, logfile::Uid& uid);
     void signalFrames(QString prefix, int currentFrame, double percent) { emit progressUpdate((prefix+" %1 frames (%2%) in logfile %3 of %4").arg(currentFrame).arg(((int)(percent*100)), 2).arg(m_currentLog).arg(m_inputFiles.size())); }
     bool skipStatus(const amun::GameState& lastGameState, bool isSimulated) const;
+    void removeDebugOutput(Status& status);
     void changeTimestamps(Status& status, qint64 timeRemoved, bool& isSimulated) const;
     void collectHashes(QList<SeqLogFileReader*> reader, Exchanger* writer);
     void reencode(SeqLogFileReader* reader, Exchanger* writer);

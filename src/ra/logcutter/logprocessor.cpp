@@ -329,6 +329,8 @@ qint64 LogProcessor::filterLog(SeqLogFileReader &reader, Exchanger *writer, Exch
             dump->transfer(status);
             continue;
         }
+        removeDebugOutput(status);
+
         insertHashInfo(status, loguid, currentFrame - 1);
 
         if (!modStatus.isNull()) {
@@ -342,6 +344,30 @@ qint64 LogProcessor::filterLog(SeqLogFileReader &reader, Exchanger *writer, Exch
     }
 
     return lastWrittenTime;
+}
+
+void LogProcessor::removeDebugOutput(Status& status)
+{
+    if (m_options & CutVisualizations) {
+        for (auto& debug : *status->mutable_debug()) {
+            debug.clear_visualization();
+        }
+    }
+    if (m_options & CutDebugTree) {
+        for (auto& debug : *status->mutable_debug()) {
+            debug.clear_value();
+        }
+    }
+    if (m_options & CutLogOutput) {
+        for (auto& debug : *status->mutable_debug()) {
+            debug.clear_log();
+        }
+    }
+    if (m_options & CutPlot) {
+        for (auto& debug : *status->mutable_debug()) {
+            debug.clear_plot();
+        }
+    }
 }
 
 void LogProcessor::sendOutputSelected(LogFileWriter* writer)
