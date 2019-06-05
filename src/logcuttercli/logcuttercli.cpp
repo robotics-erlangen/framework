@@ -56,12 +56,24 @@ int main(int argc, char* argv[])
     QCommandLineOption cutStop("cut-stop", "Remove stop sections");
     QCommandLineOption cutBallPlacement("cut-ball-placement", "Remove ball placement sections");
     QCommandLineOption cutSimulated("cut-simulated", "Remove simulated sections");
+    QCommandLineOption cutDebugTree("cut-debug-tree", "Remove debug tree output");
+    QCommandLineOption cutLogOutput("cut-log-output", "Remove log text output");
+    QCommandLineOption cutVisualizations("cut-visualizations", "Remove visualizations");
+    QCommandLineOption cutPlot("cut-plot", "Remove plotted values");
+    QCommandLineOption removeDebugValues("remove-debug-values", "Remove all debug values. This is equivalent to setting cut-debug-tree, cut-visualizations, cut-plot and cut-log-output");
+
     parser.addOption(flags);
     parser.addOption(cutHalt);
     parser.addOption(cutNonGame);
     parser.addOption(cutStop);
     parser.addOption(cutBallPlacement);
     parser.addOption(cutSimulated);
+    parser.addOption(cutDebugTree);
+    parser.addOption(cutLogOutput);
+    parser.addOption(cutVisualizations);
+    parser.addOption(cutPlot);
+    parser.addOption(removeDebugValues);
+
     // parse command line
     parser.process(app);
 
@@ -85,6 +97,18 @@ int main(int argc, char* argv[])
             options |= O::CutBallplacement;
         if (parser.isSet(cutSimulated))
             options |= O::CutSimulated;
+        if (parser.isSet(cutDebugTree))
+            options |= O::CutDebugTree;
+        if (parser.isSet(cutLogOutput))
+            options |= O::CutLogOutput;
+        if (parser.isSet(cutVisualizations))
+            options |= O::CutVisualizations;
+        if (parser.isSet(cutPlot))
+            options |= O::CutPlot;
+        if (parser.isSet(removeDebugValues))
+            options |= O::CutDebugTree | O::CutLogOutput | O::CutVisualizations | O::CutPlot;
+    }
+
     std::cout << "[ DEBUG] " << parser.value(outputLog).toStdString() << std::endl;
     LogProcessor lp(
         parser.positionalArguments(),
