@@ -169,6 +169,18 @@ static MaybeLocal<Value> callFunction(const Local<Context>& c, QString& errorMsg
     return maybeResult;
 }
 
+static std::unique_ptr<QDir> getTsconfigDir(const QString &filename)
+{
+    QDir baseDir = QFileInfo(filename).absoluteDir();
+    while (true) {
+        if (QFileInfo(baseDir, "tsconfig.json").exists())
+            break;
+        if (!baseDir.cdUp())
+            return nullptr;
+    }
+    return std::unique_ptr<QDir>(new QDir(baseDir));
+}
+
 static void evaluateStackFrame(const Local<Context>& c, QString& errorMsg, Local<Object> callSite, Isolate* isolate)
 {
     errorMsg += "at ";
@@ -251,6 +263,10 @@ static void evaluateStackFrame(const Local<Context>& c, QString& errorMsg, Local
             }
         }
     }
+    auto basePath = getTsconfigDir(fileQString);
+    if (basePath) {
+        fileQString = fileQString.replace(basePath->absolutePath() + "/", "");
+    }
     errorMsg = errorMsg + " (" + fileQString + ":";
     errorMsg += QString::number(lineUint) + ":";
     errorMsg += QString::number(columnUint) + ")<br>";
@@ -320,18 +336,6 @@ void Typescript::loadScript(const QString &fname, const QString &entryPoint)
         return;
 
     loadTypescript(fname, entryPoint);
-}
-
-static std::unique_ptr<QDir> getTsconfigDir(const QString &filename)
-{
-    QDir baseDir = QFileInfo(filename).absoluteDir();
-    while (true) {
-        if (QFileInfo(baseDir, "tsconfig.json").exists())
-            break;
-        if (!baseDir.cdUp())
-            return nullptr;
-    }
-    return std::unique_ptr<QDir>(new QDir(baseDir));
 }
 
 bool Typescript::setupCompiler(const QString &filename)
