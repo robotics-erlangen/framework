@@ -749,6 +749,7 @@ bool Typescript::process(double &pathPlanning)
     TryCatch tryCatch(m_isolate);
     Local<Function> function = Local<Function>::New(m_isolate, m_function);
     USE(function->Call(context, context->Global(), 0, nullptr));
+    m_timeoutCounter.store(0);
     if (buildStackTrace(context, m_errorMsg, tryCatch, m_isolate)) {
         m_isolate->CancelTerminateExecution();
     }
@@ -756,7 +757,6 @@ bool Typescript::process(double &pathPlanning)
         return false;
     }
     pathPlanning = m_totalPathTime;
-    m_timeoutCounter.store(0);
     return true;
 }
 
