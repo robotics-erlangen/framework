@@ -39,7 +39,7 @@ export class StopAttack extends Task {
 
 	run() {
 		let stopRadius = this._minDistToBall + this._robot.radius + POSITION_PADDING;
-		let pos: Position | undefined = World.Ball.pos + (this._focusPoint - World.Ball.pos).setLength(stopRadius);
+		let pos: Position = World.Ball.pos + (this._focusPoint - World.Ball.pos).setLength(stopRadius);
 		let driveAngle = (World.Ball.pos - pos).angle();
 
 		let [opponentShooter, dist] = UtilDefense.getClosestRobot(World.OpponentRobots, World.Ball.pos);
@@ -88,7 +88,7 @@ export class StopAttack extends Task {
 				let intersections = Field.intersectCircleDefenseArea(World.Ball.pos,
 						stopRadius, 4 * this._robot.radius + 0.05, true);
 				if (intersections.length > 0) {
-					pos = undefined;
+					// pos = undefined;
 					let distanceToSqMin = Infinity;
 					for (let p of intersections) {
 						let distanceToSqCur = p.distanceToSq(World.Geometry.FriendlyGoal);

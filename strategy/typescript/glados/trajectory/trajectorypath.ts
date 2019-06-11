@@ -58,6 +58,7 @@ export class TrajectoryPath extends TrajectoryHandler {
 	private rotationCalculation: DirectRotation = new DirectRotation();
 	private speedPID: PID = new PID(1.0, 0.3, 0.2, 0);
 	private positionPID: PID = new PID(2, 4.5, 0.6, 0.1);
+	private dribbleWarning = true;
 
 	private lastTrajectory: Trajectory = [];
 
@@ -70,7 +71,12 @@ export class TrajectoryPath extends TrajectoryHandler {
 	}
 
 	public _update(targetPos: Position, targetDir: number = 0, maxSpeed: number = this._robot.maxSpeed,
-			endSpeed: Speed = new Vector(0, 0), accelScale: number = 1.0): TrajectoryResult {
+			endSpeed: Speed = new Vector(0, 0), accelScale: number = 1.0, dribble: boolean = false): TrajectoryResult {
+
+		if (this.dribbleWarning && dribble) {
+			this.dribbleWarning = false;
+			amun.log("TrajectoryPath does not implement dribble = true right now");
+		}
 
 		let directionVector = Vector.fromAngle(targetDir).scaleLength(0.09);
 		vis.addPath("MoveTo", [targetPos, targetPos + directionVector], vis.colors.yellowHalf);

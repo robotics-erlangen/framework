@@ -194,7 +194,7 @@ export class PlaceBall extends Task {
 				if (this._stateChanged) {
 					this._currentTargetPos = Field.limitToField(this._robot.pos) - this._borderOffsetAverage;
 				}
-				this._robot.trajectory.update(CurvedMaxAccel, this._currentTargetPos, this._borderOffsetAverage.angle(), MAX_PULL_SPEED, undefined, MAX_PULL_ACCEL);
+				this._robot.trajectory.update(CurvedMaxAccel, this._currentTargetPos!, this._borderOffsetAverage.angle(), MAX_PULL_SPEED, undefined, MAX_PULL_ACCEL);
 
 				break;
 			}
@@ -234,7 +234,7 @@ export class PlaceBall extends Task {
 					let offset = (this._robotStartPos - this._ballStartPos).setLength(this.OFFSET_EXTRA_LENGTH);
 					this._currentTargetPos = this._robot.pos + offset;
 				}
-				this._robot.trajectory.update(CurvedMaxAccel, this._currentTargetPos, this._robot.dir, BACK_UP_SPEED);
+				this._robot.trajectory.update(CurvedMaxAccel, this._currentTargetPos!, this._robot.dir, BACK_UP_SPEED);
 
 				break;
 			}
