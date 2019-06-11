@@ -91,12 +91,12 @@ export abstract class TrajectoryHandler {
 	 * between strategy and global coordinates!
 	 * New data to use for updating, returns controllerInput, moveDest and moveTime
 	 */
-	abstract _update(...args: any[]): TrajectoryResult;
+	abstract update(...args: any[]): TrajectoryResult;
 }
 
 
 interface TrajH<T extends any[]> {
-	_update(...args: T): TrajectoryResult;
+	update(...args: T): TrajectoryResult;
 }
 export class Trajectory {
 	private readonly _robot: any;
@@ -128,7 +128,7 @@ export class Trajectory {
 				throw new Error("Malformed trajectory handler constructor!");
 			}
 		}
-		let [splines, moveDest, moveTime] = this._handler._update(...args);
+		let [splines, moveDest, moveTime] = this._handler.update(...args);
 
 		let splin: any;
 		if (splines.spline != undefined) {
