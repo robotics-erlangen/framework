@@ -69,7 +69,7 @@ export class TrajectoryPath extends TrajectoryHandler {
 		return this._update(args[0], args[1], args[2], args[3], args[4]);
 	}
 
-	private _update(targetPos: Position, targetDir: number = 0, maxSpeed: number = this._robot.maxSpeed,
+	public _update(targetPos: Position, targetDir: number = 0, maxSpeed: number = this._robot.maxSpeed,
 			endSpeed: Speed = new Vector(0, 0), accelScale: number = 1.0): TrajectoryResult {
 
 		let directionVector = Vector.fromAngle(targetDir).scaleLength(0.09);
