@@ -5,9 +5,6 @@ import { TrajectoryHandler, TrajectoryResult } from "base/trajectory";
 import { Speed, Vector } from "base/vector";
 
 export class Direct extends TrajectoryHandler {
-	update(...args: any[]): TrajectoryResult {
-		return this._update(args[0], args[1], args[2], args[3]);
-	}
 
 	// only targetDir or rotateSpeed may be passed!
 	// accel is optional

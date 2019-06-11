@@ -518,10 +518,6 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 		return waypointsVector;
 	}
 
-	update(...args: [Position, number, number, Speed, number, boolean]): TrajectoryResult {
-		return this._update(args[0], args[1], args[2], args[3], args[4], args[5]);
-	}
-
 	public _update(targetPos: Position, targetDir: number, maxSpeed: number = this._robot.maxSpeed,
 			endSpeed: Speed = new Vector(0, 0), accelScale: number = 1.0, dribble: boolean = false): TrajectoryResult {
 
