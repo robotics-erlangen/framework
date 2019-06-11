@@ -8,7 +8,7 @@ export class Direct extends TrajectoryHandler {
 
 	// only targetDir or rotateSpeed may be passed!
 	// accel is optional
-	_update(speed: Speed, targetDir?: number, rotateSpeed?: number, accel: Vector = new Vector(0, 0)): TrajectoryResult {
+	update(speed: Speed, targetDir?: number, rotateSpeed?: number, accel: Vector = new Vector(0, 0)): TrajectoryResult {
 		speed = Coordinates.toGlobal(speed);
 		accel = Coordinates.toGlobal(accel);
 		// play motion controller
