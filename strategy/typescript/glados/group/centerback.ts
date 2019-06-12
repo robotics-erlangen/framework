@@ -32,14 +32,14 @@ function lessthan_robots(r1: {pos: Position}, r2: {pos: Position}): number {
 	return a2 - a1;
 }
 
-let privateCenterBackPositions: Map<FriendlyRobot, {pos: Position, target: any, way: number}> = new Map();
-let centerBackPositions: Map<FriendlyRobot, {pos: Position, target: any, way: number}> = new Map();
-
 interface Target {
 	pos: Position;
 	time: number;
 	dir: RelativePosition;
 }
+
+let privateCenterBackPositions: Map<FriendlyRobot, {pos: Position, target: Target, way: number}> = new Map();
+let centerBackPositions: Map<FriendlyRobot, {pos: Position, target: Target, way: number}> = new Map();
 
 				// 	["pos"] = final_pos,
 				// 	["target"] = t.target,
@@ -48,7 +48,7 @@ interface Target {
 				// }
 export interface Point {
 	pos: Position;
-	target: any;
+	target: Target;
 	way: number;
 	time?: number;
 }
