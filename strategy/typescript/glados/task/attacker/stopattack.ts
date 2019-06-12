@@ -3,7 +3,7 @@ import * as Field from "base/field";
 import * as geom from "base/geom";
 import * as MathUtil from "base/mathutil";
 import { Position, RelativePosition, Vector } from "base/vector";
-import * as vis from "base/vis";
+// import * as vis from "base/vis";
 import * as World from "base/world";
 
 import * as Physics from "glados/observer/physics";
@@ -59,14 +59,21 @@ export class StopAttack extends Task {
 			for (let robot of passReceivers) {
 				let angle = getNormalizedAngle(Field.limitToAllowedField(Physics.robotBrakePos(robot), robot.radius) - World.Ball.pos);
 				angle = geom.normalizeAnglePositive(angle);
-				if (angle < minAngle && angle > Math.PI) {
+				if (angle < minAngle && angle >= Math.PI) {
 					minAngle = angle;
 				}
-				if (angle > maxAngle) {
+				if (angle > maxAngle && angle >= Math.PI) {
 					maxAngle = angle;
 				}
 
 			}
+			if (minAngle === Infinity) {
+				minAngle = Math.PI;
+			}
+			if (maxAngle === -Infinity) {
+				maxAngle = 2 * Math.PI;
+			}
+
 			let maxAllowedAngle = 14;
 			let minAllowedAngle = 10;
 			const middleShift = 0;
@@ -76,18 +83,32 @@ export class StopAttack extends Task {
 			const borderBegin = 1.7;
 			// vis.addPath("stopattack: MaxAngle", [World.Ball.pos, World.Ball.pos + Vector.fromAngle(maxAngle).setLength(1)], vis.colors.red);
 			// vis.addPath("stopattack: MinAngle", [World.Ball.pos, World.Ball.pos + Vector.fromAngle(minAngle).setLength(1)], vis.colors.redHalf);
-			if (World.Ball.pos.x > quarterBegin * World.Geometry.FieldWidthQuarter && World.Ball.pos.x < (borderBegin * World.Geometry.FieldWidthQuarter)) {
+			if (World.Ball.pos.x > (quarterBegin * World.Geometry.FieldWidthQuarter) && World.Ball.pos.x < (borderBegin * World.Geometry.FieldWidthQuarter)) {
 				maxAllowedAngle -= quarterShift;
-			} else if (World.Ball.pos.x < -quarterBegin * World.Geometry.FieldWidthQuarter && World.Ball.pos.x > (-borderBegin * World.Geometry.FieldWidthQuarter)) {
+				minAllowedAngle -= quarterShift;
+			} else if (World.Ball.pos.x < (-quarterBegin * World.Geometry.FieldWidthQuarter) && World.Ball.pos.x > (-borderBegin * World.Geometry.FieldWidthQuarter)) {
+				maxAllowedAngle += quarterShift;
 				minAllowedAngle += quarterShift;
 			} else if (World.Ball.pos.x >= (borderBegin * World.Geometry.FieldWidthQuarter)) {
 				maxAllowedAngle -= borderShift;
+				minAllowedAngle -= borderShift;
 			} else if (World.Ball.pos.x <= (-borderBegin * World.Geometry.FieldWidthQuarter)) {
+				maxAllowedAngle += borderShift;
 				minAllowedAngle += borderShift;
 			} else {
 				maxAllowedAngle -= middleShift;
 				minAllowedAngle += middleShift;
 			}
+			if (World.Ball.pos.y < -World.Geometry.FieldHeightQuarter) {
+				if (World.Ball.pos.x > quarterBegin) {
+					maxAllowedAngle = 10;
+					minAllowedAngle = 8;
+				} else if (World.Ball.pos.x < -quarterBegin) {
+					maxAllowedAngle = 16;
+					minAllowedAngle = 14;
+				}
+			}
+
 			maxAllowedAngle = maxAllowedAngle * Math.PI / 8;
 			minAllowedAngle = minAllowedAngle * Math.PI / 8;
 			// vis.addPath("stopattack: MaxAllowedAngle", [World.Ball.pos, World.Ball.pos + Vector.fromAngle(maxAllowedAngle).setLength(1)], vis.colors.green);
