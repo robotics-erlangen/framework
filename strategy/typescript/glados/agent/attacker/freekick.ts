@@ -103,7 +103,7 @@ export class FreeKick extends Behavior {
 			if (shootgoalPossible) {
 				this._state = State.ShootGoal;
 				this._passList = undefined;
-			} else if (timeRunningOut && Referee.isFriendlyFreeKickState()) {
+			} else if (timeRunningOut)  {
 				this._state = State.ShootGoal;
 			} else if (World.Time - <number> this._waitStartTime > MIN_WAIT_TIME) {
 				this._passList = Attack.sortPassesFromSuggestions(this._robot, this._messaging.receive(MessageType.passSuggestion), undefined, false);
