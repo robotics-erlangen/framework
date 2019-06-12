@@ -28,17 +28,21 @@ export class Default extends Behavior {
 		return true;
 	}
 
-	_updateTask(): TaskAssignment<typeof SideStep> | TaskAssignment<typeof AcceptPass> | TaskAssignment<typeof Freebreaker> {
+	_updateTask(): TaskAssignment<typeof SideStep> | TaskAssignment<typeof AcceptPass> | TaskAssignment<typeof Midfield> | TaskAssignment<typeof Striker> {
 		let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
 		let relevantPassInfo = passInfoTable ? Attack.relevantPassInfoMessage(this._robot, passInfoTable) : undefined;
 		let acceptingPass = passInfoTable ? Attack.checkPassInfos(this._robot, passInfoTable, false) : false;
 
-		let midfieldZone = this._messaging.receiveTrainer(MessageType.midfieldZone);
-		let Freebreaker = midfieldZone ? Midfield : Striker;
-
 		if (relevantPassInfo && acceptingPass == undefined) {
 			return [SideStep, [relevantPassInfo]];
 		}
-		return acceptingPass ? [AcceptPass] : [Freebreaker];
+		if (acceptingPass) {
+			return [AcceptPass];
+		}
+		let midfieldZone = this._messaging.receiveTrainer(MessageType.midfieldZone);
+		if (midfieldZone) {
+			return [Midfield];
+		}
+		return [Striker];
 	}
 }

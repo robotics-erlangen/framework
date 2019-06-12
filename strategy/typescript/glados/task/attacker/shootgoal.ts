@@ -36,7 +36,7 @@ export class ShootGoal extends Task {
 
 	private _shoot: Shoot;
 
-	constructor(agent: Agent, ballReceiptPos: Position | undefined, forceDesperate: boolean = false) {
+	constructor(agent: Agent, ballReceiptPos?: Position, forceDesperate: boolean = false) {
 		super(agent);
 		this._desperate = forceDesperate;
 

@@ -16,7 +16,7 @@ export class AcceptPass extends Task {
 
 	private _suggestPass: SuggestPass;
 
-	constructor(agent: Agent, manualPassPos: Position | undefined, manualDistance: number = 0.1) {
+	constructor(agent: Agent, manualPassPos?: Position, manualDistance: number = 0.1) {
 		super(agent);
 		this._passPos = manualPassPos;
 		this._distance = manualDistance;
