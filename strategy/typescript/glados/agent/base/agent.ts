@@ -43,12 +43,12 @@ export abstract class Agent {
 			new MoveCommand(this),
 			new Halt(this),
 			new AgentError(this),
-			...this.getBehaviors().map((B: any) => new B(this)),
+			...this.getBehaviors().map((B: new (a: Agent) => Behavior) => new B(this)),
 		];
 		this._debugIdStr = "Agent " + this._robot.id;
 	}
 
-	abstract getBehaviors(): any[];
+	abstract getBehaviors(): (new (a: Agent) => Behavior)[];
 
 	_run() { }
 

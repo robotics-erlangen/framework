@@ -15,7 +15,7 @@ import { MessageType } from "glados/control/messaging";
 
 export class Defender extends Agent {
 
-	public getBehaviors(): any[] {
+	public getBehaviors(): (new (a: Agent) => Behavior)[] {
 		return [
 			RescueFromDefenseArea,
 			Penalty,
