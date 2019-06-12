@@ -8,10 +8,10 @@ import { ToTarget } from "glados/trajectory/totarget";
 
 
 export class BallEscort extends Task {
-	private _opponentRobot: Robot;
+	private _opponentRobot: Robot | undefined;
 	private _obstacleTable: PathHelper.PathHelperParameters;
 
-	constructor(agent: Agent, opponentRobot: Robot) {
+	constructor(agent: Agent, opponentRobot: Robot | undefined) {
 		super(agent);
 		this._opponentRobot = opponentRobot;
 		this._obstacleTable = {

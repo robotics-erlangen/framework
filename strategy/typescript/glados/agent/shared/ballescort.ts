@@ -97,6 +97,6 @@ export class BallEscort extends Behavior {
 	}
 
 	_updateTask(): TaskAssignment<typeof BallEscortTask> {
-		return [BallEscortTask, this._minRobot ? [this._minRobot] : undefined];
+		return [BallEscortTask, [this._minRobot ? this._minRobot : undefined]];
 	}
 }
