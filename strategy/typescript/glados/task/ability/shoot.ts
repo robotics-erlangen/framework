@@ -1,4 +1,5 @@
 import * as debug from "base/debug";
+import * as Field from "base/field";
 import * as geom from "base/geom";
 import * as MathUtil from "base/mathutil";
 import * as Referee from "base/referee";
@@ -177,7 +178,8 @@ export class Shoot {
 		if (chaseFutureBall.speed.length() > restingBallSpeed
 				&& angleDiff < chaseBallAngle && (World.Ball.speed.dot(relativeBallPos) > 0 || World.Ball.posZ > 0)
 				&& World.Ball.speed.dot(chaseFutureBall.pos - this._robot.pos) > 0
-				&& sidewardsBallSpeed < sidewardsSpeedLimit) {
+				&& sidewardsBallSpeed < sidewardsSpeedLimit
+				&& !Field.isInOpponentDefenseArea(World.Ball.pos, 0)) {
 			return ShootState.ChaseBall;
 		}
 
