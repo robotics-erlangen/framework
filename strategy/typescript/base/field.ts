@@ -246,7 +246,9 @@ if (World.RULEVERSION === "2018") {
 export function isInAllowedField(pos: Readonly<Position>, boundaryWidth: number): boolean {
 	return isInField(pos, boundaryWidth)  &&
 		!isInDefenseArea(pos, -boundaryWidth, true)  &&
-		!isInDefenseArea(pos, -boundaryWidth, false);
+		!isInDefenseArea(pos, -boundaryWidth, false) &&
+		!isInFriendlyGoal(pos) &&
+		!isInOpponentGoal(pos);
 }
 
 /**
