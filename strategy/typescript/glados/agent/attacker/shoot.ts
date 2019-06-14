@@ -12,6 +12,7 @@ import * as Physics from "glados/observer/physics";
 import * as Robot from "glados/observer/robot";
 import * as ObserverShoot from "glados/observer/shoot";
 import { ShootGoal } from "glados/task/attacker/shootgoal";
+import { StopAttack } from "glados/task/attacker/stopattack";
 import { ChipToPos } from "glados/task/shared/chiptopos";
 import { Pass } from "glados/task/shared/pass";
 import * as Attack from "glados/util/attack";
@@ -364,7 +365,7 @@ export class Shoot extends Behavior {
 		return false;
 	}
 
-	_updateTask(): TaskAssignment<typeof Pass> | TaskAssignment<typeof ShootGoal> | TaskAssignment<typeof ChipToPos> {
+	_updateTask(): TaskAssignment<typeof Pass> | TaskAssignment<typeof ShootGoal> | TaskAssignment<typeof ChipToPos> | TaskAssignment<typeof StopAttack> {
 		let pressed = Robot.isPressed(this._robot);
 		let color = pressed ? vis.colors.redHalf : vis.colors.greenHalf;
 		vis.addCircle("a/a/shoot: pressed", this._robot.pos, 0.3, color, true);
@@ -431,6 +432,13 @@ export class Shoot extends Behavior {
 
 			let attackTime = this._messaging.receiveSingleSender(MessageType.attackTime, true)[1];
 			let shootTime = attackTime != undefined ? attackTime - World.Time : Robot.minShootTime(this._robot, ballPos);
+
+			// don't start a new pass when unable to reach ball in time
+			// ongoing passes have attackTime
+			if (shootTime === Infinity) {
+				return [StopAttack];
+			}
+
 			let shootPos = Physics.ballAtTime(World.Ball, shootTime).pos;
 			let ballTravelTime = ObserverShoot.ballPassTime(shootPos, ballPos, target, undefined, this._robot);
 			let passReceiveTime = Math.max(suggestedTime, shootTime + ballTravelTime + World.Time);
