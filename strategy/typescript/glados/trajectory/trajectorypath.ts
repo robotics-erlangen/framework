@@ -59,6 +59,7 @@ export class TrajectoryPath extends TrajectoryHandler {
 	private speedPID: PID = new PID(1.0, 0.3, 0.2, 0);
 	private positionPID: PID = new PID(2, 4.5, 0.6, 0.1);
 	private dribbleWarning = true;
+	private slowSpeedHysteresis: boolean = false;
 
 	private lastTrajectory: Trajectory = [];
 
@@ -166,6 +167,16 @@ export class TrajectoryPath extends TrajectoryHandler {
 		let queryTime = 0.001;
 		if (robotPos.distanceTo(targetPos) < 0.1) {
 			queryTime = 0.1;
+		} else {
+			const QUERY_OFFSET = 0.2;
+			let nextSpeed = TrajectoryPath.speedAtTime(QUERY_OFFSET, trajectory);
+
+			let slowSpeedLimit = this.slowSpeedHysteresis ? 0.4 : 0.2;
+			this.slowSpeedHysteresis = false;
+			if (nextSpeed.length() > startSpeed.length() + 0.02 && robotSpeed.length() < slowSpeedLimit) {
+				queryTime = QUERY_OFFSET;
+				this.slowSpeedHysteresis = true;
+			}
 		}
 		let speed = TrajectoryPath.speedAtTime(queryTime, trajectory);
 		let acc = TrajectoryPath.accAtTime(queryTime, trajectory);
