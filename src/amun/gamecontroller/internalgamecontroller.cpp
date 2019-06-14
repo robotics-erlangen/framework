@@ -2,6 +2,7 @@
 #include "protobuf/ssl_referee.h"
 #include <google/protobuf/descriptor.h>
 #include <QDebug>
+#include <cmath>
 
 InternalGameController::InternalGameController(const Timer *timer, QObject *parent) :
     QObject(parent),
