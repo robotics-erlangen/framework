@@ -98,6 +98,10 @@ export function getFoulingRobot(): Robot | undefined {
 	if (collisionEvent && collisionEvent.violator != undefined) {
 		return World.OpponentRobotsById[collisionEvent.violator];
 	}
+	const touchOpponentEvent = GameController.getTouchOpponentInDefenseAreaEvent();
+	if (touchOpponentEvent && touchOpponentEvent.by_bot != undefined) {
+		return World.OpponentRobotsById[touchOpponentEvent.by_bot];
+	}
 	return undefined;
 }
 
