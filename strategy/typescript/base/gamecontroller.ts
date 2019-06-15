@@ -83,11 +83,23 @@ export function getCollisionEvent(): gameController.GameEvent.BotCrashUnique | u
 }
 
 /**
+ * Check if during this frame a message indicating a touch opponent in defense area foul was received.
+ * This implies an advantage choice.
+ * @returns the GameEvent if a touch opponent in defense area event occured, undefined otherwise
+ */
+export function getTouchOpponentInDefenseAreaEvent(): gameController.GameEvent.AttackerTouchedOpponentInDefenseArea | undefined {
+	if (!message || !message.advantage_choice || message.advantage_choice.foul !== gameController.AdvantageChoice.Foul.ATTACKER_TOUCHED_OPPONENT_IN_DEFENSE_AREA) {
+		return undefined;
+	}
+	return message.advantage_choice.attacker_touched_opponent_in_defense_area;
+}
+
+/**
  * Check if we are allowed to make an advantage choice
  * @returns true if we are allowed to make an advantage choice
  */
 export function advantageFoulOccured(): boolean {
-	return getCollisionEvent() != undefined || getPushingEvent() != undefined;
+	return getCollisionEvent() != undefined || getPushingEvent() != undefined || getTouchOpponentInDefenseAreaEvent() != undefined;
 }
 
 /**
