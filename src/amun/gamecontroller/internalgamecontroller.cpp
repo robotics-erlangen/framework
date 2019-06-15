@@ -128,6 +128,9 @@ void InternalGameController::handleGameEvent(std::shared_ptr<gameController::Aut
     }
     const gameController::GameEvent &event = message->game_event();
 
+    m_packet.clear_game_events();
+    m_packet.add_game_events()->CopyFrom(event);
+
     // extract location and team name
     std::string byTeamString;
     Vector eventLocation{0, 0};
