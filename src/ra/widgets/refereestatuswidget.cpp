@@ -45,6 +45,85 @@ QString RefereeStatusWidget::formatTime(int time)
             .arg(std::abs(time) % 60, 2, 10, QChar('0'));
 }
 
+QString RefereeStatusWidget::gameEvent2019Message(const gameController::GameEvent &event)
+{
+    QString byTeamString = "unknown", kickingTeamString = "unknown";
+    unsigned int botId = 99;
+
+    const google::protobuf::Reflection *refl = event.GetReflection();
+    const google::protobuf::Descriptor *desc = gameController::GameEvent::descriptor();
+    // extract fields using reflection
+    for (int i = 0; i < desc->field_count(); i++) {
+        const google::protobuf::FieldDescriptor *field = desc->field(i);
+        if (field->name() == "type" || field->name() == "origin") {
+            // ignore them as they are not events
+            continue;
+        }
+        if (refl->HasField(event, field)) {
+            const google::protobuf::Message &eventMessage = refl->GetMessage(event, field);
+            const google::protobuf::Reflection *messageRefl = eventMessage.GetReflection();
+            const google::protobuf::Descriptor *messageDesc = eventMessage.GetDescriptor();
+
+            for (int b = 0;b < messageDesc->field_count(); b++) {
+                const google::protobuf::FieldDescriptor *field = messageDesc->field(b);
+                std::string fieldName = field->name();
+                if (fieldName == "by_team") {
+                    byTeamString = QString::fromStdString(messageRefl->GetEnum(eventMessage, field)->name()).toLower();
+                } else if (fieldName == "by_bot") {
+                    botId = messageRefl->GetUInt32(eventMessage, field);
+                } else if (fieldName == "kicking_team") {
+                    kickingTeamString = QString::fromStdString(messageRefl->GetEnum(eventMessage, field)->name()).toLower();
+                } else if (fieldName == "kicking_bot") {
+                    botId = messageRefl->GetUInt32(eventMessage, field);
+                }
+            }
+        }
+    }
+
+    std::map<gameController::GameEventType, QString> eventTypeFormatString =
+        {{gameController::UNKNOWN_GAME_EVENT_TYPE, "unknown"},
+         {gameController::PREPARED, "normal start, teams are prepared"},
+         {gameController::PLACEMENT_FAILED, "placement failure by %1"},
+         {gameController::PLACEMENT_SUCCEEDED, "%1 team successfully placed the ball"},
+         {gameController::BOT_SUBSTITUTION, "%1 bot substitution"},
+         {gameController::TOO_MANY_ROBOTS, "%1 team has too many robots"},
+         {gameController::BALL_LEFT_FIELD_TOUCH_LINE, "ball left field (touch line), shot by %1 %2"},
+         {gameController::BALL_LEFT_FIELD_GOAL_LINE, "ball left field (goal line), shot by %1 %2"},
+         {gameController::POSSIBLE_GOAL, "possible goal for %1, shot by %3 %2"},
+         {gameController::GOAL, "goal for %1, shot by %3 %2"},
+         {gameController::INDIRECT_GOAL, "indirect goal by %1"},
+         {gameController::CHIPPED_GOAL, "chip goal by %1 %2"},
+         {gameController::AIMLESS_KICK, "aimless kick by %1 %2"},
+         {gameController::KICK_TIMEOUT, "kick timeout for %1 team"},
+         {gameController::KEEPER_HELD_BALL, "%1 keeper held the ball too long"},
+         {gameController::ATTACKER_DOUBLE_TOUCHED_BALL, "double touch by %1 %2"},
+         {gameController::ATTACKER_TOUCHED_BALL_IN_DEFENSE_AREA, "%1 %2 touched the ball in the opponent defense area"},
+         {gameController::ATTACKER_TOUCHED_OPPONENT_IN_DEFENSE_AREA, "%1 %2 touched in opponent robot in its deffense area"},
+         {gameController::ATTACKER_TOUCHED_OPPONENT_IN_DEFENSE_AREA_SKIPPED, "skipped: %1 %2  touched in opponent robot in its deffense area"},
+         {gameController::BOT_DRIBBLED_BALL_TOO_FAR, "%1 %2 dribbeled the ball too far"},
+         {gameController::BOT_KICKED_BALL_TOO_FAST, "%1 %2 kicked the ball too fast"},
+         {gameController::ATTACKER_TOO_CLOSE_TO_DEFENSE_AREA, "%1 %2 too close to opponent defense area"},
+         {gameController::BOT_INTERFERED_PLACEMENT, "%1 %2 interferred ball placement"},
+         {gameController::BOT_CRASH_DRAWN, "bot crash drawn"},
+         {gameController::BOT_CRASH_UNIQUE, "a %1 robot crashed into an opponent"},
+         {gameController::BOT_CRASH_UNIQUE_SKIPPED, "skipped: a %1 robot crashed into an opponent"},
+         {gameController::BOT_PUSHED_BOT, "a %1 robot pushed an opponent"},
+         {gameController::BOT_PUSHED_BOT_SKIPPED, "skipped: a %1 robot pushed an opponent"},
+         {gameController::BOT_HELD_BALL_DELIBERATELY, "%1 %2 held the ball"},
+         {gameController::BOT_TIPPED_OVER, "a %1 robot tipped over"},
+         {gameController::BOT_TOO_FAST_IN_STOP, "%1 %2 was too fast in stop"},
+         {gameController::DEFENDER_TOO_CLOSE_TO_KICK_POINT, "%1 %2 too close to kick point"},
+         {gameController::DEFENDER_IN_DEFENSE_AREA_PARTIALLY, "%1 %2 touched the ball while partially in its defense area"},
+         {gameController::DEFENDER_IN_DEFENSE_AREA, "1 %2 touched the ball while fully in its defense area"},
+         {gameController::MULTIPLE_CARDS, "multiple cards for %1"},
+         {gameController::MULTIPLE_PLACEMENT_FAILURES, "multiple placement failures by %1"},
+         {gameController::MULTIPLE_FOULS, "multiple fouls by %1"},
+         {gameController::UNSPORTING_BEHAVIOR_MINOR, "minor unsporting behavior by %1"},
+         {gameController::UNSPORTING_BEHAVIOR_MAJOR, "major unsporting behavior by %1"}};
+
+    return QString(eventTypeFormatString[event.type()]).arg(byTeamString).arg(botId).arg(kickingTeamString);
+}
+
 QString RefereeStatusWidget::gameEventMessage(const SSL_Referee_Game_Event &event)
 {
     std::map<SSL_Referee_Game_Event_GameEventType, QString> eventTypeFormatString =
@@ -129,7 +208,10 @@ void RefereeStatusWidget::handleStatus(const Status &status)
             timeout = formatTime(timeoutLeft);
         }
 
-        if (game_state.has_game_event()) {
+        if (game_state.has_game_event_2019()) {
+            QString text = gameEvent2019Message(game_state.game_event_2019());
+            ui->gameEvent->setText(text);
+        } else if (game_state.has_game_event()) {
             QString text = gameEventMessage(game_state.game_event());
             ui->gameEvent->setText(text);
         }
