@@ -611,7 +611,7 @@ export function allowedLineSegments(pos: Position, dir: RelativePosition, maxLen
 		lambdas.push(0);
 	}
 
-	lambdas.sort();
+	lambdas.sort((a, b) => a - b);
 
 	let result: [Position, Position][] = [];
 	for (let i = 0;i < Math.floor(lambdas.length / 2);i++) {
