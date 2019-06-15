@@ -3,6 +3,7 @@ option cc_enable_arenas = true;
 
 import "ssl_referee.proto";
 import "ssl_referee_game_event.proto";
+import "ssl_game_event_2019.proto";
 package amun;
 
 message GameState {
@@ -44,7 +45,7 @@ message GameState {
     required .SSL_Referee.TeamInfo blue = 5;
 
     optional .SSL_Referee.Point designated_position = 6;
-    optional SSL_Referee_Game_Event game_event = 7;
+    optional SSL_Referee_Game_Event game_event = 7 [deprecated = true];
 
     optional bool goals_flipped = 8;
 
@@ -67,4 +68,8 @@ message GameState {
     // Note that it is not guaranteed to be the next state, since ball placement might fail
     // or fouls might be commited
     optional State next_state = 11;
+
+    // the last game event that was sent by the game controller
+    // it replaces the field game_event
+    optional gameController.GameEvent game_event_2019 = 12;
 }

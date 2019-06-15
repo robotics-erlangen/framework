@@ -72,6 +72,9 @@ void Referee::handlePacket(const QByteArray &data)
     if (packet.has_gameevent()) {
         m_gameState.mutable_game_event()->CopyFrom(packet.gameevent());
     }
+    if (packet.game_events_size() > 0) {
+        m_gameState.mutable_game_event_2019()->CopyFrom(packet.game_events(packet.game_events_size()-1));
+    }
 
     if (packet.has_current_action_time_remaining()) {
         m_gameState.set_current_action_time_remaining(packet.current_action_time_remaining());
