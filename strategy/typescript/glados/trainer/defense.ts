@@ -103,9 +103,15 @@ export class Defense {
 				continue;
 			}
 
-			// otherwise, target the opponent
-			// rate as not dangerous if UtilDefense did not give a value
-			this._manmarkTargets.set(robot, dangerousness.get(robot) || 0);
+			/*
+			 * otherwise, target the opponent.
+			 * rate as not dangerous if UtilDefense did note give a value
+			 */
+			let targetRating = dangerousness.get(robot) || 0;
+			if (alreadyTargeted) {
+				targetRating += 0.1;
+			}
+			this._manmarkTargets.set(robot, targetRating);
 		}
 	}
 
@@ -205,6 +211,13 @@ export class Defense {
 		let passViability = UtilDefense.rateOpponentPassViability(); // opponent -> rating
 		for (let [robot, rating] of passViability.entries()) {
 			vis.addCircle("tr/defense: passViability", robot.pos, 0.2, vis.fromTemperature(rating), true);
+		}
+
+		for (let [opp, rating] of passViability.entries()) {
+			if (this._previousPiggyAssignments.has(opp)) {
+				rating += 0.1;
+				passViability[opp] = rating;
+			}
 		}
 
 		let scrappedTargets: Robot[] = [];
@@ -437,8 +450,10 @@ function determineNumberOfPiggies(defenderCount: number, manmarkTargets: Map<Rob
 	let dangerousnessThreshold: number;
 	let viabilityThreshold: number;
 
-	// prioritize manmarks over piggies when in own field half
-	// TODO hysteresis
+	/*
+	 * Prioritize manmarks over piggies when in own field half.
+	 * Rating hysteresis is applied during target updating
+	 */
 	if (World.Ball.pos.y < 0) {
 		dangerousnessThreshold = 0.3;
 		viabilityThreshold = 0.8;
