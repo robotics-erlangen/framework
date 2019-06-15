@@ -260,8 +260,7 @@ void InternalGameController::handleGameEvent(std::shared_ptr<gameController::Aut
     case gameController::KICK_TIMEOUT:
     case gameController::KEEPER_HELD_BALL:
     case gameController::ATTACKER_DOUBLE_TOUCHED_BALL:
-    case gameController::ATTACKER_IN_DEFENSE_AREA:
-    case gameController::ATTACKER_TOUCHED_KEEPER:
+    case gameController::ATTACKER_TOUCHED_OPPONENT_IN_DEFENSE_AREA:
     case gameController::BOT_KICKED_BALL_TOO_FAST:
         shouldPlace = true;
         placementPos = ballPlacementPosForFoul(eventLocation);
