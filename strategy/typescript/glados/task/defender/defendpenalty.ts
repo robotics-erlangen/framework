@@ -52,7 +52,7 @@ export class DefendPenalty extends Task {
 
 		let targetPos: number | undefined;
 		// preference one: next to an opponent on the penaltyLine
-		occupiedSpotsOpp.sort();
+		occupiedSpotsOpp.sort((a, b) => a - b);
 		for (let i = 0;i < occupiedSpotsOpp.length;i++) {
 			// ignore if other defender is there
 			let alreadyMarked = false;
