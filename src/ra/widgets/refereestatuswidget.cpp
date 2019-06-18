@@ -121,7 +121,17 @@ QString RefereeStatusWidget::gameEvent2019Message(const gameController::GameEven
          {gameController::UNSPORTING_BEHAVIOR_MINOR, "minor unsporting behavior by %1"},
          {gameController::UNSPORTING_BEHAVIOR_MAJOR, "major unsporting behavior by %1"}};
 
-    return QString(eventTypeFormatString[event.type()]).arg(byTeamString).arg(botId).arg(kickingTeamString);
+    QString result = eventTypeFormatString[event.type()];
+    if (result.contains('%')) {
+        result = result.arg(byTeamString);
+    }
+    if (result.contains('%')) {
+        result = result.arg(botId);
+    }
+    if (result.contains('%')) {
+        result = result.arg(kickingTeamString);
+    }
+    return result;
 }
 
 QString RefereeStatusWidget::gameEventMessage(const SSL_Referee_Game_Event &event)
