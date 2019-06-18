@@ -127,7 +127,7 @@ export enum MessageType {
 	// single sender
 	attackPosition, attackTime, centerBackPosTarget, moveAssignment,
 	moveInfo, passInfo, roleAssignment, shootDestination,
-	strikerZone, midfieldZone,
+	strikerZone, midfieldZone, placingRobot,
 
 	// exclusive roles
 	mainAttacker, duelAssistant, interceptPass,
@@ -146,7 +146,7 @@ export const MessageTypeList = [
 	MessageType.moveInfo, MessageType.passInfo, MessageType.roleAssignment, MessageType.shootDestination,
 	MessageType.strikerZone, MessageType.midfieldZone,
 	MessageType.mainAttacker, MessageType.duelAssistant, MessageType.interceptPass,
-	MessageType.exclusiveRole, MessageType.forcePoolChange, MessageType.groupApplication
+	MessageType.exclusiveRole, MessageType.forcePoolChange, MessageType.groupApplication, MessageType.placingRobot
 ];
 
 type MessageOrigin = "trainer" | FriendlyRobot;
@@ -210,6 +210,7 @@ export class MessageBox {
 	sendBroadcast(type: MessageType.passInfo, info: {target: FriendlyRobot, ballPos: Position, time: number}[]): void;
 	sendBroadcast(type: MessageType.shootDestination, dest: Position): void;
 	sendBroadcast(type: ExclusiveRole, dest: FriendlyRobot | undefined): void;
+	sendBroadcast(type: MessageType.placingRobot, data? : undefined): void;
 	sendBroadcast(type: MessageType, data?: any): void {
 		this.sendGeneric(type, "all", data, false);
 	}
@@ -269,6 +270,7 @@ export class MessageBox {
 	receiveSingleSender(type: MessageType.attackTime, broadcast?: boolean): [FriendlyRobot, number] | [];
 	receiveSingleSender(type: MessageType.passInfo, broadcast?: boolean): [FriendlyRobot, {target: FriendlyRobot, ballPos: Position, time: number}[]] | [];
 	receiveSingleSender(type: MessageType.shootDestination, broadcast?: boolean): [FriendlyRobot, Position] | [];
+	receiveSingleSender(type: MessageType.placingRobot, broadcast?: boolean): [FriendlyRobot, undefined] | [];
 	receiveSingleSender(type: MessageType, broadcast?: boolean): [FriendlyRobot, any] | [] {
 		let map: Map<FriendlyRobot, any> = this.receiveGeneric(type, broadcast);
 		if (map.size > 1) {

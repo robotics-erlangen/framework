@@ -9,6 +9,7 @@ import { Position, RelativePosition } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
 
+import { MessageType } from "glados/control/messaging";
 import * as BallObserver from "glados/observer/ball";
 import { Agent, Task } from "glados/task/base";
 import { CurvedMaxAccel } from "glados/trajectory/curvedmaxaccel";
@@ -248,6 +249,10 @@ export class PlaceBall extends Task {
 
 				break;
 			}
+		}
+
+		if (this._state !== State.WAIT_FOR_BALL_STOP) {
+			this._messaging.sendBroadcast(MessageType.placingRobot);
 		}
 	}
 

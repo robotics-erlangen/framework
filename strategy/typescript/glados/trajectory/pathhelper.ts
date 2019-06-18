@@ -308,7 +308,7 @@ function addPenaltyObstacle(path: Path) {
 	}
 }
 
-function addBallPlacementObstacle(path: Path) {
+function addBallPlacementObstacle(path: Path, messaging: MessageBox | undefined) {
 	if (World.RefereeState === "BallPlacementOffensive" || World.RefereeState === "BallPlacementDefensive") {
 		if (!World.BallPlacementPos) {
 			throw new Error("Referee state ball placement without ballPlacementPos");
@@ -325,6 +325,24 @@ function addBallPlacementObstacle(path: Path) {
 			);
 		} else {
 			path.addCircle(World.Ball.pos.x, World.Ball.pos.y, Constants.stopBallDistance + 0.1, "BallPlacement");
+		}
+		if (messaging) {
+			let ballplacementRobot = messaging.receiveSingleSender(MessageType.placingRobot)[0];
+			if (ballplacementRobot) {
+				if (ballplacementRobot.pos.distanceTo(World.BallPlacementPos) > ballplacementRobot.radius) {
+					path.addLine(
+						ballplacementRobot.pos.x,
+						ballplacementRobot.pos.y,
+						World.BallPlacementPos.x,
+						World.BallPlacementPos.y,
+						Constants.stopBallDistance + 0.1,
+						"BallPlacement",
+						Priorities.BALL_PLACEMENT
+					);
+				} else {
+					path.addCircle(ballplacementRobot.pos.x, ballplacementRobot.pos.y, Constants.stopBallDistance + 0.1, "BallPlacement", Priorities.BALL_PLACEMENT);
+				}
+			}
 		}
 	}
 }
@@ -527,7 +545,7 @@ export function insertObstacles(robot: FriendlyRobot) {
 		}
 	}
 	if (!p.ignoreBallPlacementObstacle) {
-		addBallPlacementObstacle(p.path);
+		addBallPlacementObstacle(p.path, p.messaging);
 	}
 	if (!p.ignorePenaltyDistance) {
 		addPenaltyObstacle(p.path);
