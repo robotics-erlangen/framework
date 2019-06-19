@@ -4,7 +4,7 @@ FROM ubuntu:bionic
 RUN set -xe; apt-get update; \
     DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
         protobuf-compiler libprotobuf-dev qtbase5-dev libqt5opengl5-dev libsdl2-dev libusb-1.0-0-dev \
-	cmake ninja-build ccache g++ gcc-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib \
+	cmake ninja-build ccache g++ \
 	luarocks unzip \
 	npm ca-certificates \
 	git git-lfs; \
