@@ -7,7 +7,7 @@ RUN set -xe; apt-get update; \
 	cmake ninja-build ccache g++ gcc-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib \
 	luarocks unzip \
 	npm ca-certificates \
-	git; \
+	git git-lfs; \
     apt-get clean; \
     rm -rf /var/lib/apt/lists/* ; \
 	luarocks install luacheck; \
@@ -29,7 +29,8 @@ RUN set -xe; \
 # also wrap cc and c++ with ccache as cmake uses those
 RUN set -xe; \
 	ln -s ../../bin/ccache /usr/lib/ccache/cc ; \
-	ln -s ../../bin/ccache /usr/lib/ccache/c++
+	ln -s ../../bin/ccache /usr/lib/ccache/c++ ; \
+	git lfs install
 
 ENV V8_INCLUDE_DIR=/libs/v8-build/include
 ENV V8_OUTPUT_DIR=/libs/v8-build/out/x64.release

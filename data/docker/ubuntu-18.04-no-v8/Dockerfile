@@ -7,7 +7,7 @@ RUN set -xe; apt-get update; \
 	cmake ninja-build ccache g++ gcc-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib \
 	luarocks unzip \
 	npm ca-certificates \
-	git; \
+	git git-lfs; \
     apt-get clean; \
     rm -rf /var/lib/apt/lists/* ; \
 	luarocks install luacheck; \
@@ -18,7 +18,8 @@ RUN set -xe; apt-get update; \
 	tar -xf gcc-arm.tbz2 -C /usr/local ; \
 	rm gcc-arm.tbz2 arm.md5 ; \
 	ln -s ../../bin/ccache /usr/lib/ccache/cc ; \
-	ln -s ../../bin/ccache /usr/lib/ccache/c++
+	ln -s ../../bin/ccache /usr/lib/ccache/c++ ; \
+	git lfs install
 
 ENV PATH="/usr/lib/ccache:/usr/local/gcc-arm-none-eabi-7-2018-q2-update/bin:$PATH"
 ENV CCACHE_DIR="/ccache/ubuntu-18.04-no-v8"
