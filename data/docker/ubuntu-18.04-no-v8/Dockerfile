@@ -9,21 +9,14 @@ RUN set -xe; apt-get update; \
 	npm ca-certificates \
 	git; \
     apt-get clean; \
-    rm -rf /var/lib/apt/lists/*
-
-RUN set -xe; \
+    rm -rf /var/lib/apt/lists/* ; \
 	luarocks install luacheck; \
-	npm -g install tslint typescript
-
-RUN set -xe; \
+	npm -g install tslint typescript ; \
 	wget -q https://developer.arm.com/-/media/Files/downloads/gnu-rm/7-2018q2/gcc-arm-none-eabi-7-2018-q2-update-linux.tar.bz2 -O gcc-arm.tbz2; \
 	echo 299ebd3f1c2c90930d28ab82e5d8d6c0 gcc-arm.tbz2 > arm.md5; \
 	md5sum -c arm.md5; \
 	tar -xf gcc-arm.tbz2 -C /usr/local ; \
-	rm gcc-arm.tbz2 arm.md5
-
-# also wrap cc and c++ with ccache as cmake uses those
-RUN set -xe; \
+	rm gcc-arm.tbz2 arm.md5 ; \
 	ln -s ../../bin/ccache /usr/lib/ccache/cc ; \
 	ln -s ../../bin/ccache /usr/lib/ccache/c++
 

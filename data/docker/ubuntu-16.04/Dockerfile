@@ -9,9 +9,7 @@ RUN set -xe; apt-get update; \
 	npm ca-certificates \
 	git; \
     apt-get clean; \
-    rm -rf /var/lib/apt/lists/*
-
-RUN set -xe; \
+    rm -rf /var/lib/apt/lists/* ; \
 	luarocks install luacheck; \
 	npm -g install tslint typescript; \
 	ln -s /usr/bin/nodejs /usr/bin/node
