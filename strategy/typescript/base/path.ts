@@ -455,8 +455,10 @@ export class Path {
 	}
 
 	addFriendlyRobotObstacle(robot: FriendlyRobot, radius: number, prio: number) {
-		// TODO: add some nice visualization?
 		this._trajectoryInst.addRobotTrajectoryObstacle(robot.path._trajectoryInst.getTrajectoryAsObstacle(), prio, radius);
+		if (!isPerformanceMode) {
+			vis.addCircle(`obstacles: ${this._robotId}`, robot.pos, 2 * robot.radius, vis.colors.goldHalf, false, undefined, undefined, robot.radius);
+		}
 	}
 
 	addSeedTarget(x: number, y: number) {
