@@ -19,6 +19,8 @@ RUN set -xe; apt-get update; \
 	rm gcc-arm.tbz2 arm.md5 ; \
 	ln -s ../../bin/ccache /usr/lib/ccache/cc ; \
 	ln -s ../../bin/ccache /usr/lib/ccache/c++ ; \
+	ln -s ../../bin/ccache /usr/lib/ccache/arm-none-eabi-gcc ; \
+	ln -s ../../bin/ccache /usr/lib/ccache/arm-none-eabi-g++ ; \
 	git lfs install
 
 ENV PATH="/usr/lib/ccache:/usr/local/gcc-arm-none-eabi-7-2018-q2-update/bin:$PATH"

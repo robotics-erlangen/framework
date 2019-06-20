@@ -30,6 +30,8 @@ RUN set -xe; \
 RUN set -xe; \
 	ln -s ../../bin/ccache /usr/lib/ccache/cc ; \
 	ln -s ../../bin/ccache /usr/lib/ccache/c++ ; \
+	ln -s ../../bin/ccache /usr/lib/ccache/arm-none-eabi-gcc ; \
+	ln -s ../../bin/ccache /usr/lib/ccache/arm-none-eabi-g++ ; \
 	git lfs install
 
 ENV V8_INCLUDE_DIR=/libs/v8-build/include
