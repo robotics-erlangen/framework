@@ -33,7 +33,7 @@ export class Default extends Behavior {
 		let relevantPassInfo = passInfoTable ? Attack.relevantPassInfoMessage(this._robot, passInfoTable) : undefined;
 		let acceptingPass = passInfoTable ? Attack.checkPassInfos(this._robot, passInfoTable, false) : false;
 
-		if (relevantPassInfo && acceptingPass == undefined) {
+		if (relevantPassInfo && !acceptingPass) {
 			return [SideStep, [relevantPassInfo]];
 		}
 		if (acceptingPass) {
