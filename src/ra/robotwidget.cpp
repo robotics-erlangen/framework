@@ -524,7 +524,7 @@ void RobotWidget::updateRobotStatus()
             errorMsg += "One or multiple motors have broken hall sensors\n";
         }
         if (extendedError.main_sensor_error()) {
-            errorMsg += "Gryoscope or accelerometer not working\n";
+            errorMsg += "Gyroscope or accelerometer not working\n";
         }
         m_warning->setVisible(!errorMsg.isEmpty());
         m_warning->setToolTip(errorMsg);
