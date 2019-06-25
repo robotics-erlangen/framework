@@ -78,13 +78,13 @@ TrajectoryPath::FriendlyRobotObstacle::FriendlyRobotObstacle(std::vector<Point> 
 
 bool TrajectoryPath::FriendlyRobotObstacle::intersects(Vector pos, float time) const
 {
-    unsigned long index = std::max(0UL, std::min(trajectory->size()-1, static_cast<unsigned long>(time / timeInterval)));
+    unsigned long index = std::max(0UL, std::min(static_cast<unsigned long>(trajectory->size()-1), static_cast<unsigned long>(time / timeInterval)));
     return (*trajectory)[index].pos.distanceSq(pos) < radius * radius;
 }
 
 float TrajectoryPath::FriendlyRobotObstacle::distance(Vector pos, float time) const
 {
-    unsigned long index = std::max(0UL, std::min(trajectory->size()-1, static_cast<unsigned long>(time / timeInterval)));
+    unsigned long index = std::max(0UL, std::min(static_cast<unsigned long>(trajectory->size()-1), static_cast<unsigned long>(time / timeInterval)));
     return (*trajectory)[index].pos.distance(pos) - radius;
 }
 
