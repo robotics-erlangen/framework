@@ -16,6 +16,7 @@ export class AcceptPass extends Task {
 
 	private _suggestPass: SuggestPass;
 	private _lastTime: number | undefined;
+	private _runCounter: number;
 
 	constructor(agent: Agent, manualPassPos?: Position, manualDistance: number = 0.1) {
 		super(agent);
@@ -27,6 +28,7 @@ export class AcceptPass extends Task {
 		};
 		this._suggestPass = new SuggestPass(this._robot, this._messaging);
 		this._lastTime = undefined;
+		this._runCounter = 0;
 	}
 
 	run() {
@@ -58,6 +60,11 @@ export class AcceptPass extends Task {
 		let dir = (World.Ball.pos - ballPos).angle();
 		let robotPos = ballPos - Vector.fromAngle(dir) * (this._robot.shootRadius + World.Ball.radius);
 		let moveTime = this._robot.trajectory.update(ToTarget, robotPos, dir)[1];
+		if (this._runCounter < 5) {
+			// in the first 5 runs, the time from trajectory/update is unreliable. Just pretend we will be just in time
+			moveTime = passInfo.time - World.Time;
+			this._runCounter++;
+		}
 		this._lastTime = moveTime + World.Time;
 		if (attackPosition) {
 			this._suggestPass._suggestPass(ballPos, attackPosition, moveTime);
