@@ -136,14 +136,23 @@ export abstract class Agent {
 
 	private static _dumpMessages(messages: any, type: MessageType) {
 		if (messages.size > 0) {
-			debug.push(MessageType[type]);
+			let name = MessageType[type];
+			debug.push(name);
 			for (let [sender, msg] of messages.entries()) {
 				const indexValue = sender.id == undefined ? sender : sender.id;
-				debug.set(indexValue, msg);
-				if (typeof msg === "object" && msg.time != undefined) {
-					let relTime = String(msg.time - World.Time);
-					relTime = `${relTime.substring(0, 4)} (${msg.time})`;
-					debug.set(indexValue + "/time", relTime);
+				if (name.toLowerCase().indexOf("time") === -1) {
+					debug.set(indexValue, msg);
+					if (typeof msg === "object" && msg.time != undefined) {
+						let relTime = String(msg.time - World.Time);
+						relTime = `${relTime.substring(0, 4)} (${msg.time})`;
+						debug.set(indexValue + "/time", relTime);
+					}
+				} else {
+					debug.set(indexValue, msg);
+					if (typeof msg === "number") {
+						let relTime = String(msg - World.Time);
+						debug.set(indexValue + "/relative", relTime);
+					}
 				}
 			}
 			debug.pop(); // name
