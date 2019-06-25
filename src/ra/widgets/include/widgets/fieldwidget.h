@@ -87,6 +87,7 @@ public:
 signals:
     void sendCommand(const Command &command);
     void fileDropped(const QString &fileName);
+    void selectRobotVisualizations(int id);
 
 public slots:
     void handleStatus(const Status &status);
@@ -104,6 +105,7 @@ protected:
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
+    void mouseDoubleClickEvent(QMouseEvent *event) override;
     void wheelEvent(QWheelEvent *) override;
     void resizeEvent(QResizeEvent *event) override;
     bool gestureEvent(QGestureEvent *event);

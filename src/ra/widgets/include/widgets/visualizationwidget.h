@@ -64,6 +64,7 @@ private slots:
     void saveConfig();
     void filterTextChanged(QString text);
     void enableFilteredVisualizations(bool enable);
+    void selectRobotVisualizations(int id);
 
 private:
     void clearForeground(QStandardItem *item) const;

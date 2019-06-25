@@ -247,3 +247,13 @@ void VisualizationWidget::filterTextChanged(QString text)
     m_proxy->invalidate();
     m_proxy->sort(0);
 }
+
+void VisualizationWidget::selectRobotVisualizations(int id)
+{
+    QString idString = QString::number(id);
+    for (auto entry : m_items) {
+        if (entry.first->text().split(" ").last() == idString) {
+            entry.first->setCheckState(entry.first->checkState() == Qt::Checked ? Qt::Unchecked : Qt::Checked);
+        }
+    }
+}

@@ -114,6 +114,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
 
     connect(ui->simulator, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
     connect(ui->field, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
+    connect(ui->field, SIGNAL(selectRobotVisualizations(int)), ui->visualization, SLOT(selectRobotVisualizations(int)));
 
     m_configDialog = new ConfigDialog(this);
     connect(m_configDialog, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));

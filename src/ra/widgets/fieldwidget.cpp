@@ -1219,6 +1219,28 @@ void FieldWidget::keyPressEvent(QKeyEvent *event)
     }
 }
 
+void FieldWidget::mouseDoubleClickEvent(QMouseEvent *event)
+{
+    const QPointF p = mapToScene(event->pos());
+    for (RobotMap::iterator it = m_robotsBlue.begin(); it != m_robotsBlue.end() && m_dragType == DragNone; ++it) {
+        QPointF mapped = it.value().robot->mapFromScene(p);
+        QGraphicsPathItem *robot = it.value().robot;
+        if (robot->path().contains(mapped)) {
+            emit selectRobotVisualizations(it->id->text().toInt());
+            break;
+        }
+    }
+
+    for (RobotMap::iterator it = m_robotsYellow.begin(); it != m_robotsYellow.end() && m_dragType == DragNone; ++it) {
+        QPointF mapped = it.value().robot->mapFromScene(p);
+        QGraphicsPathItem *robot = it.value().robot;
+        if (robot->path().contains(mapped)) {
+            emit selectRobotVisualizations(it->id->text().toInt());
+            break;
+        }
+    }
+}
+
 void FieldWidget::mousePressEvent(QMouseEvent *event)
 {
     const QPointF p = mapToScene(event->pos());
