@@ -31,7 +31,8 @@ export class Default extends Behavior {
 	_updateTask(): TaskAssignment<typeof SideStep> | TaskAssignment<typeof AcceptPass> | TaskAssignment<typeof Midfield> | TaskAssignment<typeof Striker> {
 		let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
 		let relevantPassInfo = passInfoTable ? Attack.relevantPassInfoMessage(this._robot, passInfoTable) : undefined;
-		let acceptingPass = passInfoTable ? Attack.checkPassInfos(this._robot, passInfoTable, false) : false;
+		let prevRobotTime = (this._task instanceof AcceptPass) ? (this._task as AcceptPass).getLastTime() : undefined;
+		let acceptingPass = passInfoTable ? Attack.checkPassInfos(this._robot, passInfoTable, false, prevRobotTime) : false;
 
 		if (relevantPassInfo && !acceptingPass) {
 			return [SideStep, [relevantPassInfo]];

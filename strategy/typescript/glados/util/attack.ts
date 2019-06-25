@@ -398,10 +398,10 @@ function printPassInfo(robot: {shootRadius: number} & Physics.RobotLike, passInf
 }
 
 // the time between the arrival of the robot and the ball
-function calculatePassInfoTiming(robot: {shootRadius: number} & Physics.RobotLike, passInfo: PassInfo | undefined, passIncoming?: boolean): number {
+function calculatePassInfoTiming(robot: {shootRadius: number} & Physics.RobotLike, passInfo: PassInfo | undefined, passIncoming?: boolean, absRobotTime?: number): number {
 	if (passInfo != undefined) {
 		let robotPos = passInfo.ballPos + (passInfo.ballPos - World.Ball.pos).setLength(robot.shootRadius + World.Ball.radius);
-		let robotTime = Math.max(Physics.robotTimeToPos(robot, robotPos, new Vector(0, 0))[0], 0.5);
+		let robotTime = Math.max(Physics.robotTimeToPos(robot, robotPos, new Vector(0, 0))[0], 0.5, (absRobotTime != undefined ? (absRobotTime - World.Time) : 0));
 		let ballTime = passIncoming ? Physics.ballTravelTime(World.Ball, World.Ball.pos.distanceTo(passInfo.ballPos)) : Infinity;
 		let messageTime = passInfo.time - World.Time;
 		let isInOpponentFieldHalf = passInfo.ballPos.y > 0;
@@ -415,26 +415,27 @@ function calculatePassInfoTiming(robot: {shootRadius: number} & Physics.RobotLik
 // @param robot Robot
 // @param passInfoTable table - all of the passInfos currently being sent out
 // @param lastResult bool - the return value of the last call to this function, or false
+// @param absRobotTime number - an alternative time that this robot will take to reach lastPassInfo.pos //TODO: this is used incorrectly when passInfo changes
 // @return bool - if we have to start to move
 function _checkPassInfos(robot: FriendlyRobot, passInfoTable: PassInfo[], lastResult: boolean | undefined, lastPassInfo: PassInfo | undefined,
-		passIncoming?: boolean): [PassInfo | undefined, boolean] {
+		passIncoming?: boolean, absRobotTime?: number): [PassInfo | undefined, boolean] {
 	let _relevantPassInfoMessage = relevantPassInfoMessage(robot, passInfoTable);
 	printPassInfo(robot, _relevantPassInfoMessage, lastResult, lastPassInfo);
 	if (_relevantPassInfoMessage == undefined) {
 		return [undefined, false];
 	} else {
-		let timeLeft = calculatePassInfoTiming(robot, _relevantPassInfoMessage, passIncoming);
+		let timeLeft = calculatePassInfoTiming(robot, _relevantPassInfoMessage, passIncoming, absRobotTime);
 		return [_relevantPassInfoMessage, lastResult ? timeLeft < 0.5 : timeLeft < 0];
 	}
 }
 
 let checkedPassInfoPerRobot = new Map<FriendlyRobot, {result: boolean, message: PassInfo | undefined}>();
 
-export function checkPassInfos(robot: FriendlyRobot, passInfoTable: PassInfo[], passIncoming?: boolean): boolean {
+export function checkPassInfos(robot: FriendlyRobot, passInfoTable: PassInfo[], passIncoming?: boolean, absRobotTime?: number): boolean {
 	let cachedPassInfo = checkedPassInfoPerRobot[robot];
 	let preResult = cachedPassInfo ? cachedPassInfo.result : undefined;
 	let preMessage = cachedPassInfo ? cachedPassInfo.message : undefined;
-	let [message, result] = _checkPassInfos(robot, passInfoTable, preResult, preMessage, passIncoming);
+	let [message, result] = _checkPassInfos(robot, passInfoTable, preResult, preMessage, passIncoming, absRobotTime);
 	checkedPassInfoPerRobot[robot] = {message: message, result: result};
 	return result;
 }

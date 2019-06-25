@@ -15,6 +15,7 @@ export class AcceptPass extends Task {
 	private _obstacleTable: PathHelper.PathHelperParameters;
 
 	private _suggestPass: SuggestPass;
+	private _lastTime: number | undefined;
 
 	constructor(agent: Agent, manualPassPos?: Position, manualDistance: number = 0.1) {
 		super(agent);
@@ -25,6 +26,7 @@ export class AcceptPass extends Task {
 			messaging: this._messaging,
 		};
 		this._suggestPass = new SuggestPass(this._robot, this._messaging);
+		this._lastTime = undefined;
 	}
 
 	run() {
@@ -56,11 +58,16 @@ export class AcceptPass extends Task {
 		let dir = (World.Ball.pos - ballPos).angle();
 		let robotPos = ballPos - Vector.fromAngle(dir) * (this._robot.shootRadius + World.Ball.radius);
 		let moveTime = this._robot.trajectory.update(ToTarget, robotPos, dir)[1];
+		this._lastTime = moveTime + World.Time;
 		if (attackPosition) {
 			this._suggestPass._suggestPass(ballPos, attackPosition, moveTime);
 		}
 
 
 		this.setMainAttackerParameters(World.Ball.pos, this._robot.maxSpeed);
+	}
+
+	getLastTime(): number | undefined {
+		return this._lastTime;
 	}
 }
