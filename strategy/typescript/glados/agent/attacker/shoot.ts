@@ -53,6 +53,7 @@ export class Shoot extends Behavior {
 	private _touchedBall: boolean = false;
 	private _wasPressed: boolean = false;
 	private _manualFlag: boolean = false;
+	private _prevTime: number = 0;
 
 	_stop() {
 		this._nextDecisionTime = World.Time;
@@ -427,13 +428,6 @@ export class Shoot extends Behavior {
 				targetSpeed = 0.1;
 			}
 
-			// update target if the decision changed
-			// creating a new task instance would mess up catchBall
-			if (this._task != undefined && this._task instanceof Pass
-					&&  this._decision.pos !== this._prevPassPos) {
-				this._task.updateTarget(this._decision.target, this._decision.pos, chipOverride, this._decision.time, targetSpeed);
-			}
-			this._prevPassPos = this._decision.pos;
 
 			let attackTime = this._messaging.receiveSingleSender(MessageType.attackTime, true)[1];
 			let shootTime = attackTime != undefined ? attackTime - World.Time : Robot.minShootTime(this._robot, ballPos);
@@ -443,6 +437,15 @@ export class Shoot extends Behavior {
 
 			// save time for future use:
 			this._decision.time = passReceiveTime;
+
+			// update target if the decision changed
+			// creating a new task instance would mess up catchBall
+			if (this._task != undefined && this._task instanceof Pass
+			&&  (this._decision.pos !== this._prevPassPos || Math.abs(this._decision.time - this._prevTime) > 0.5)) {
+				this._task.updateTarget(this._decision.target, this._decision.pos, chipOverride, this._decision.time, targetSpeed);
+				this._prevTime = this._decision.time;
+			}
+			this._prevPassPos = this._decision.pos;
 
 			this._messaging.sendBroadcast(MessageType.passInfo, [{ target: target,
 				ballPos: ballPos, time: passReceiveTime }]);
