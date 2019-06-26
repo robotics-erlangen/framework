@@ -507,7 +507,7 @@ export class Shoot {
 	// and ignoreOpponentRobots obstacle parameters
 	// @param rollingBallPos Vector - where the ball is starting to roll
 	// @param ballReceiptPos Vector - in case of incoming passes, where to shoot from (optional)
-	_chipPass(rollingBallPos: Position, ballReceiptPos?: Position, targetTime?: number,
+	_chipPass(rollingBallPos: Position, ballReceiptPos?: Position, targetTime?: undefined,
 			precision?: number, manualChipDistFactor: number = CHIP_PASS_DISTANCE_FACTOR) {
 		let origin: Position;
 		if (ballReceiptPos != undefined && (ballReceiptPos - World.Ball.pos).dot(World.Ball.speed) > 0
@@ -517,7 +517,7 @@ export class Shoot {
 			origin = World.Ball.pos;
 		}
 		let firstContactPos = origin + (rollingBallPos - origin).scaleLength(manualChipDistFactor);
-		this._chipToPos(firstContactPos, targetTime, ballReceiptPos, precision); // TODO: This is buggy as s****: We do not modify targetTime, but we do modify pos. This cannot go well.
+		this._chipToPos(firstContactPos, undefined, ballReceiptPos, precision); // as we cannot time the chip anyways, we ignore the targetTime
 	}
 
 	_shootFreeKick(targetPos: Position, targetSpeed: number, targetTime?: number, precision: number = MIN_PRECISION) {

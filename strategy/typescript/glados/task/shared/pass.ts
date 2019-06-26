@@ -128,7 +128,7 @@ export class Pass extends Task {
 		}
 
 		if (this._chip) {
-			this._shoot._chipPass(targetPos, this._ballReceiptPos, this._targetTime, maxAngleError);
+			this._shoot._chipPass(targetPos, this._ballReceiptPos, undefined, maxAngleError);
 		} else {
 			if (Referee.isFriendlyFreeKickState() || World.RefereeState === "KickoffOffensive") {
 				this._shoot._shootFreeKick(targetPos, this._passSpeed, this._targetTime, maxAngleError);
