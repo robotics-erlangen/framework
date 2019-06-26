@@ -448,6 +448,46 @@ function updateIsSlowBall() {
 	slowBall = World.Ball.speed.lengthSq() < hysteresisSpeed * hysteresisSpeed;
 }
 
+let ballPlacementRobots: Robot[];
+
+export function getBallPlacementRobots(): Robot[] {
+	return ballPlacementRobots;
+}
+
+// removes an element from an array, if the array contains the element, does not do anything otherwise
+function deleteElement<T>(element: T, array: T[]) {
+	const index = array.indexOf(element, 0);
+	if (index > -1) {
+		array.splice(index, 1);
+	}
+}
+
+function insertElement<T>(element: T, array: T[]) {
+	const index = array.indexOf(element, 0);
+	if (index === -1) {
+		array.push(element);
+	}
+}
+
+const BP_FAST_SPEED_SQ = 3 * 3;
+const BP_SLOW_SPEED_SQ = 2 * 2;
+const BP_CLOSE_DIS = 0.1;
+const BP_FAR_DIS_SQ = 2 * 2;
+function updateBallPlacementRobots() {
+	if (World.RefereeState !== "BallPlacementDefensive") {
+		ballPlacementRobots = [];
+		return;
+	}
+	for (let r of World.OpponentRobots) {
+		if (r.pos.distanceTo(getRealisticBallPos()) < (BP_CLOSE_DIS + World.Ball.radius + r.radius)  && r.speed.lengthSq() < BP_SLOW_SPEED_SQ) {
+			insertElement(r, ballPlacementRobots);
+		}
+		if (r.pos.distanceToSq(getRealisticBallPos()) > BP_FAR_DIS_SQ || r.speed.lengthSq() > BP_FAST_SPEED_SQ) {
+			deleteElement(r, ballPlacementRobots);
+		}
+	}
+}
+
 export function _update() {
 	updateReceivesPass();
 	updateIsAccelerating();
@@ -459,4 +499,5 @@ export function _update() {
 	updateOpponentBallOwner();
 	updateFriendlyBallOwner();
 	updateFriendlyBallOwnershipTime();
+	updateBallPlacementRobots();
 }
