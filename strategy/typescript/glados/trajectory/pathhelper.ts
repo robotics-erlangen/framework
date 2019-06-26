@@ -10,6 +10,7 @@ import { Vector } from "base/vector";
 import * as World from "base/world";
 
 import { MessageBox, MessageType } from "glados/control/messaging";
+import * as OBall from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 import * as Rating from "glados/util/rating";
 
@@ -343,6 +344,9 @@ function addBallPlacementObstacle(path: Path, messaging: MessageBox | undefined)
 					path.addCircle(ballplacementRobot.pos.x, ballplacementRobot.pos.y, Constants.stopBallDistance + 0.1, "BallPlacement", Priorities.BALL_PLACEMENT);
 				}
 			}
+		}
+		for (let r of OBall.getBallPlacementRobots()) {
+			path.addCircle(r.pos.x, r.pos.y, Constants.stopBallDistance + 0.1, "BallPlacement", Priorities.BALL_PLACEMENT);
 		}
 	}
 }
