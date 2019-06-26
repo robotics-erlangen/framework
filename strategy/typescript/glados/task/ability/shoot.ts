@@ -288,13 +288,15 @@ export class Shoot {
 		debug.set("Shoot/AngleError", geom.normalizeAngle(Math.abs(this._robot.dir - shootDir)) * 180 / Math.PI);
 
 		let [targetDir, kickSpeed] = Volley.calcPhi(this._robot, futureBall.speed, futureBall.pos, targetPos, targetSpeed); // TODO: calcPhi with stopped ball is questionable
+		let ballTravelTime = undefined;
 		if (targetTime != undefined) {
 			let kickSpeedVector = (targetPos - futureBall.pos).setLength(kickSpeed);
 			let shootBall = { maxSpeed: kickSpeed, speed: kickSpeedVector };
-			let ballTime = Physics.ballRollTime(shootBall, futureBall.pos.distanceTo(targetPos));
+			let ballTime: number = Physics.ballRollTime(shootBall, futureBall.pos.distanceTo(targetPos));
 			if (World.Time + 0.2 + ballTime < targetTime) {
 				this._directMovement = false;
 			}
+			ballTravelTime = ballTime;
 		}
 
 		if (this._directMovement) {
@@ -312,11 +314,11 @@ export class Shoot {
 			this._robot.trajectory.update(TrajectoryDirect, speed, targetDir, undefined, accel);
 			this._sendShootCommand(kickSpeed, targetPos, targetDir);
 			this._messaging.sendBroadcast(MessageType.attackPosition, futureBall.pos);
-			this._messaging.sendBroadcast(MessageType.attackTime, targetTime != undefined ? targetTime : World.Time);
+			this._messaging.sendBroadcast(MessageType.attackTime, targetTime != undefined ? targetTime - ballTravelTime! : World.Time);
 			this._catchBallActive = false;
 		} else {
 			let attackTime = this._catchBall._catchBall(targetPos, minCatchBallDistance, targetSpeed);
-			this._messaging.sendBroadcast(MessageType.attackTime, targetTime != undefined ? targetTime : attackTime + World.Time);
+			this._messaging.sendBroadcast(MessageType.attackTime, targetTime != undefined ? targetTime - ballTravelTime! : attackTime + World.Time);
 			this._catchBallActive = true;
 		}
 
@@ -515,7 +517,7 @@ export class Shoot {
 			origin = World.Ball.pos;
 		}
 		let firstContactPos = origin + (rollingBallPos - origin).scaleLength(manualChipDistFactor);
-		this._chipToPos(firstContactPos, targetTime, ballReceiptPos, precision);
+		this._chipToPos(firstContactPos, targetTime, ballReceiptPos, precision); // TODO: This is buggy as s****: We do not modify targetTime, but we do modify pos. This cannot go well.
 	}
 
 	_shootFreeKick(targetPos: Position, targetSpeed: number, targetTime?: number, precision: number = MIN_PRECISION) {
