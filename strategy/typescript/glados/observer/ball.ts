@@ -448,7 +448,7 @@ function updateIsSlowBall() {
 	slowBall = World.Ball.speed.lengthSq() < hysteresisSpeed * hysteresisSpeed;
 }
 
-let ballPlacementRobots: Robot[];
+let ballPlacementRobots: Robot[] = [];
 
 export function getBallPlacementRobots(): Robot[] {
 	return ballPlacementRobots;
