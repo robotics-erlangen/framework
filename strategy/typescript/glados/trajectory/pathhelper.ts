@@ -346,7 +346,15 @@ function addBallPlacementObstacle(path: Path, messaging: MessageBox | undefined)
 			}
 		}
 		for (let r of OBall.getBallPlacementRobots()) {
-			path.addCircle(r.pos.x, r.pos.y, Constants.stopBallDistance + 0.1, "BallPlacement", Priorities.BALL_PLACEMENT);
+			path.addLine(
+				r.pos.x,
+				r.pos.y,
+				World.BallPlacementPos.x,
+				World.BallPlacementPos.y,
+				Constants.stopBallDistance + 0.1,
+				"BallPlacement",
+				Priorities.BALL_PLACEMENT
+			);
 		}
 	}
 }
