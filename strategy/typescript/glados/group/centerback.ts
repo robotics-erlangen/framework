@@ -38,8 +38,8 @@ interface Target {
 	dir: RelativePosition;
 }
 
-let privateCenterBackPositions: Map<FriendlyRobot, {pos: Position, target: Target, way: number}> = new Map();
-let centerBackPositions: Map<FriendlyRobot, {pos: Position, target: Target, way: number}> = new Map();
+let privateCenterBackPositions: Map<FriendlyRobot, {pos: Position, target: Target | undefined, way: number}> = new Map();
+let centerBackPositions: Map<FriendlyRobot, {pos: Position, target: Target | undefined, way: number}> = new Map();
 
 				// 	["pos"] = final_pos,
 				// 	["target"] = t.target,
@@ -48,7 +48,7 @@ let centerBackPositions: Map<FriendlyRobot, {pos: Position, target: Target, way:
 				// }
 export interface Point {
 	pos: Position;
-	target: Target;
+	target: Target | undefined;
 	way: number;
 	time?: number;
 }
