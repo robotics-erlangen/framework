@@ -202,7 +202,10 @@ export class BallPlacement extends Move {
 			}
 			case State.ACCEPT_PASS: {
 				this._mainAttacker = this.RECEIVER;
-				taskAssignments[this.SHOOTER] = { class: Halt, restart: this._stateChanged };
+				if (this._stateChanged) {
+					this._calculateEvadingPos();
+				}
+				taskAssignments[this.SHOOTER] = { class: MoveToPos, params: [this._selectedEvadingPos] };
 
 				this.RECEIVER.setDribblerSpeed(MAX_DRIBBLER_SPEED);
 
@@ -238,14 +241,20 @@ export class BallPlacement extends Move {
 			}
 			case State.WAIT_FOR_SET_BACK: {
 				this._mainAttacker = this.RECEIVER;
-				taskAssignments[this.SHOOTER] = { class: Halt, restart: this._stateChanged };
+				if (this._stateChanged) {
+					this._calculateEvadingPos();
+				}
+				taskAssignments[this.SHOOTER] = { class: MoveToPos, params: [this._selectedEvadingPos] };
 				taskAssignments[this.RECEIVER] = { class: Halt, restart: this._stateChanged };
 
 				break;
 			}
 			case State.SET_BACK: {
 				this._mainAttacker = this.RECEIVER;
-				taskAssignments[this.SHOOTER] = { class: Halt, restart: this._stateChanged };
+				if (this._stateChanged) {
+					this._calculateEvadingPos();
+				}
+				taskAssignments[this.SHOOTER] = { class: MoveToPos, params: [this._selectedEvadingPos] };
 				if (this._stateChanged) {
 					this._computedReceiverPos = this.RECEIVER.pos + (this.RECEIVER.pos - World.Ball.pos).setLength(2 * this.RECEIVER.radius);
 				}
@@ -264,14 +273,7 @@ export class BallPlacement extends Move {
 					restart: this._stateChanged
 				};
 				if (this._stateChanged) {
-					// Simple sampling from some preselected positions
-					// If no fitting position could be found (because the field is too small) the last used position is chosen as fallback
-					for (let pos of SHOOTER_EVADING_POSITIONS) {
-						if (pos.distanceTo(this._ballPlacementPos) > FINE_ADJUST_ZONE) {
-							this._selectedEvadingPos = pos;
-							break;
-						}
-					}
+					this._calculateEvadingPos();
 				}
 				taskAssignments[this.SHOOTER] = {
 					class: MoveToPos,
@@ -293,6 +295,17 @@ export class BallPlacement extends Move {
 			assignments: taskAssignments,
 			mainAttacker: this._mainAttacker
 		};
+	}
+
+	_calculateEvadingPos() {
+		// Simple sampling from some preselected positions
+		// If no fitting position could be found (because the field is too small) the last used position is chosen as fallback
+		for (let pos of SHOOTER_EVADING_POSITIONS) {
+			if (pos.distanceTo(this._ballPlacementPos) > FINE_ADJUST_ZONE) {
+				this._selectedEvadingPos = pos;
+				break;
+			}
+		}
 	}
 
 	_getNextState(currentState: string): State {
