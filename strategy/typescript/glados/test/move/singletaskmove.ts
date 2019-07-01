@@ -9,6 +9,8 @@ export function makeSingleTaskMove(task: any): typeof Move {
 		public static MAX_ROBOTS: number = 1;
 		public static ALLOW_EXTRA_ATTACKERS: boolean = false;
 
+		public static NAME: string = task.name;
+
 		constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 			super(robots, messaging);
 		}

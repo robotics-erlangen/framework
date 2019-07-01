@@ -44,5 +44,6 @@ function createEntrypoint(move: typeof Move) {
 }
 
 for (let move of moves) {
-	Entrypoints.add("MoveTest/"  + move.name, createEntrypoint(move));
+	let name = move.NAME === "" ? move.name : move.NAME;
+	Entrypoints.add("MoveTest/"  + name, createEntrypoint(move));
 }

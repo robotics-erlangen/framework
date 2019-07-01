@@ -51,6 +51,7 @@ export abstract class Move {
 	public abstract static MAX_ROBOTS: number;
 	public abstract static MIN_ROBOTS: number;
 	public abstract static ALLOW_EXTRA_ATTACKERS: boolean;
+	public static NAME: string = "";
 
 	public abstract static canStart(): boolean;
 	public abstract _canContinue(): boolean;
