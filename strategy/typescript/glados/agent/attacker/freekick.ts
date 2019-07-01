@@ -108,11 +108,24 @@ export class FreeKick extends Behavior {
 			} else if (World.Time - <number> this._waitStartTime > MIN_WAIT_TIME) {
 				this._passList = Attack.sortPassesFromSuggestions(this._robot, this._messaging.receive(MessageType.passSuggestion), undefined, false);
 				if (this._passList != undefined) {
-					this._pass = this._passList.values().next().value;
-					if (this._pass != undefined) {
-						this._state = State.PassPrepare;
-						// make sure that timing is not an issue for the strikers
-						this._pass.time = this._pass.time + 1.5;
+					for (let pass of this._passList.values()) {
+						// check this pass for timing-posibilities
+						let timeDiff = pass.time - Referee.lastStateChangeTime() - Shoot.ballPassTime(World.Ball.pos, pass.ballPos, pass.target, undefined, this._robot);
+
+						if (timeDiff < MAX_TIMEFRAME - 1.5) {
+							this._pass = pass;
+							this._pass.time = this._pass.time + 1.5;
+							this._state = State.PassPrepare;
+							break;
+						}
+
+						if (timeDiff < MAX_TIMEFRAME) {
+							this._pass = pass;
+							this._state = State.PassPrepare;
+						}
+					}
+					if (this._pass === undefined) {
+						this._passList = undefined;
 					}
 				}
 			}
