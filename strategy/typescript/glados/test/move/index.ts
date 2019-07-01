@@ -7,10 +7,11 @@ import { Move } from "glados/group/move/base";
 import { Moves as MoveGroup } from "glados/group/moves";
 import { Striker as StrikerGroup } from "glados/group/striker";
 // test moves
+import { TrajectoryTiming as TrajectoryTimingTask } from "glados/task/test/trajectorytiming";
 import { DribbleTest } from "glados/test/move/dribbletest";
 import { MovingObstacles } from "glados/test/move/movingobstacles";
 import { Race } from "glados/test/move/race";
-import { TrajectoryTiming } from "glados/test/move/trajectorytiming";
+import { makeSingleTaskMove } from "glados/test/move/singletaskmove";
 import { Victory } from "glados/test/move/victory";
 import { MainTrainer } from "glados/trainer/maintrainer";
 
@@ -20,7 +21,7 @@ let moves: (typeof Move)[] = [
 	MovingObstacles,
 	DribbleTest,
 	Race,
-	TrajectoryTiming
+	makeSingleTaskMove(TrajectoryTimingTask)
 ];
 
 let coord: MainCoordinator | undefined = undefined;
