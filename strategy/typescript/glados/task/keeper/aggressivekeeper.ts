@@ -8,8 +8,8 @@ import * as Physics from "glados/observer/physics";
 import * as Robot from "glados/observer/robot";
 import { ForceShoot } from "glados/task/ability/forceshoot";
 import { Agent, Task } from "glados/task/base";
+import { CurvedMaxAccel } from "glados/trajectory/curvedmaxaccel";
 import * as PathHelper from "glados/trajectory/pathhelper";
-import { ToTarget } from "glados/trajectory/totarget";
 
 
 const POSITION_PADDING = 0.02; // safety distance
@@ -59,7 +59,7 @@ export class AggressiveKeeper extends Task {
 		};
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
 		let viewDir = World.Ball.pos - safeGoalMid;
-		this._robot.trajectory.update(ToTarget, moveDest, viewDir.angle(), undefined, viewDir * 0.5);
+		this._robot.trajectory.update(CurvedMaxAccel, moveDest, viewDir.angle(), undefined, viewDir * 0.5);
 	}
 
 	_chipToBorderIfSafe() {
