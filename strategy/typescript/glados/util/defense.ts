@@ -271,12 +271,6 @@ function _rateOpponentPassViability(): Map<Robot, number> {
 			continue;
 		}
 
-		// ignore opponents that are too close to the defense area
-		if (Field.distanceToDefenseAreaSq(opp.pos, true) < 1.5 * 1.5) {
-			passViability.set(opp, 0);
-			continue;
-		}
-
 		// ignore opponents that are behind the ball
 		if (opp.pos.y - World.Ball.pos.y > 2 * Constants.maxRobotRadius) {
 			passViability.set(opp, 0);
