@@ -51,16 +51,6 @@ export class BreakPass extends Task {
 
 	run() {
 
-		// Gegner bewegt sich / bewegt sich nicht
-		/// Unterscheidung ..
-		// Ball bewegt sich / bewegt sich nicht
-		/// nicht: ausgehen
-		// Ball wird zu targetRobot geschossen
-		/// nicht: ausgehen
-		if (World.Ball.speed.length() < 0.5) {
-			// todo: abbrechen
-		}
-
 		let [moveDest, endSpeed, waitingTime] = BreakPass.calculateBreakPos(this._robot);
 		let robotEndDir = -World.Ball.speed;
 
