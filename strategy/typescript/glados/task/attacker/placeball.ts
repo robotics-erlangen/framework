@@ -149,7 +149,6 @@ export class PlaceBall extends Task {
 			obstacleTable.extraBallDistance = this._robot.radius;
 		}
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
-		PathHelper.setObstacleParam(this._robot, PathHelper.ParameterType.useCMAPathFinding, true);
 
 		// Extend field boundary so that the robot can pull the ball to the field from further out
 		this._robot.path.setBoundary(

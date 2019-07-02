@@ -136,7 +136,6 @@ export class CatchBall {
 		PathHelper.setObstacleParam(this._robot, PathHelper.ParameterType.ignoreOpponentRobots, this._ignoringOpponents);
 		PathHelper.setObstacleParam(this._robot, PathHelper.ParameterType.ignoreBall, true);
 		PathHelper.setObstacleParam(this._robot, PathHelper.ParameterType.ignorePass, true);
-		PathHelper.setObstacleParam(this._robot, PathHelper.ParameterType.useCMAPathFinding, true);
 
 		let method = this._ballCatchMethod(ball, predictedBall, moveDest);
 		if (method === CatchMethod.Around) {

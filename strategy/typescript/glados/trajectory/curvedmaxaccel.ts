@@ -482,7 +482,7 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 		let robotPos = Coordinates.toGlobal(this._robot.pos);
 
 		this._robot.path.setProbabilities(0.15, 0.65);
-		PathHelper.insertObstacles(this._robot as FriendlyRobot);
+		PathHelper.insertObstacles(this._robot as FriendlyRobot, true);
 		// first waypoint is the current robot position
 		// if reaching the end is possible there's a waypoint at the end
 		let waypoints: any[] = this._robot.path.getPath(robotPos.x, robotPos.y, targetPos.x, targetPos.y);

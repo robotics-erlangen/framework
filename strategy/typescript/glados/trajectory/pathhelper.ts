@@ -481,7 +481,6 @@ interface PathHelperParametersRaw {
 	extraBallDistance?: number;
 	messaging?: MessageBox;
 	path?: Path;
-	useCMAPathFinding?: boolean;
 }
 export type PathHelperParameters = PathHelperParametersRaw & ({ignorePass: true} | {messaging: MessageBox});
 
@@ -491,13 +490,12 @@ export enum ParameterType {
 	ignorePass = "ignorePass", ignoreFriendlyRobots = "ignoreFriendlyRobots", ignoreOpponentRobots = "ignoreOpponentRobots",
 	ignoreBallPlacementObstacle = "ignoreBallPlacementObstacle", ignorePenaltyDistance = "ignorePenaltyDistance",
 	disableOpponentPrediction = "disableOpponentPrediction", pathRadius = "pathRadius", stopBallDistance = "stopBallDistance",
-	extraBallDistance = "extraBallDistance", messaging = "messaging", useCMAPathFinding = "useCMAPathFinding"
+	extraBallDistance = "extraBallDistance", messaging = "messaging"
 }
 
 type BooleanParameterType = ParameterType.ignoreBall | ParameterType.ignoreGoals | ParameterType.ignoreOpponentDefenseArea |
 	ParameterType.noSeedTarget | ParameterType.ignorePass | ParameterType.ignoreFriendlyRobots | ParameterType.ignoreOpponentRobots |
-	ParameterType.ignoreBallPlacementObstacle | ParameterType.ignorePenaltyDistance | ParameterType.disableOpponentPrediction |
-	ParameterType.useCMAPathFinding;
+	ParameterType.ignoreBallPlacementObstacle | ParameterType.ignorePenaltyDistance | ParameterType.disableOpponentPrediction;
 
 let obstacles: Map<FriendlyRobot, PathHelperParameters> = new Map<FriendlyRobot, PathHelperParameters>();
 
@@ -539,7 +537,7 @@ export function setDefaultObstaclesByTable(path: Path, robot: FriendlyRobot, par
 	obstacles.set(robot, obst);
 }
 
-export function insertObstacles(robot: FriendlyRobot) {
+export function insertObstacles(robot: FriendlyRobot, isCMA: boolean) {
 	if (!obstacles.has(robot)) {
 		throw new Error("insertObstacles called without setDefaultObstacles");
 	}
@@ -549,11 +547,10 @@ export function insertObstacles(robot: FriendlyRobot) {
 	if (!p.ignorePass) {
 		if (p.messaging == undefined) {
 			throw new Error("");
-
 		}
-		let disablePass = addGoalObstacleShot(p.path, robot, p.messaging, !!p.useCMAPathFinding) || World.RefereeState === "Stop";
+		let disablePass = addGoalObstacleShot(p.path, robot, p.messaging, isCMA) || World.RefereeState === "Stop";
 		if (!disablePass) {
-			addFriendlyPassObstacle(p.path, robot, p.messaging, !!p.useCMAPathFinding);
+			addFriendlyPassObstacle(p.path, robot, p.messaging, isCMA);
 		}
 	}
 	if (!p.ignoreBallPlacementObstacle) {
@@ -562,7 +559,7 @@ export function insertObstacles(robot: FriendlyRobot) {
 	if (!p.ignorePenaltyDistance) {
 		addPenaltyObstacle(p.path);
 	}
-	addRobotObstacles(p.path, robot, p.ignoreFriendlyRobots, p.ignoreOpponentRobots, p.disableOpponentPrediction, p.useCMAPathFinding);
+	addRobotObstacles(p.path, robot, p.ignoreFriendlyRobots, p.ignoreOpponentRobots, p.disableOpponentPrediction, isCMA);
 
 	// Clear obstacle params because obstacles gets kept over multiple frames
 	obstacles.delete(robot);
