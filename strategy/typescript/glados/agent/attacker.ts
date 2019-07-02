@@ -18,6 +18,7 @@ import { Stop } from "glados/agent/attacker/stop";
 import { Agent } from "glados/agent/base/agent";
 import { Behavior } from "glados/agent/base/behavior";
 import { BallEscort } from "glados/agent/shared/ballescort";
+import { BreakPass } from "glados/agent/shared/breakpass";
 import { PenaltyPassive } from "glados/agent/shared/penaltypassive";
 import { RescueFromDefenseArea } from "glados/agent/shared/rescuefromdefensearea";
 import { MessageType } from "glados/control/messaging";
@@ -51,6 +52,7 @@ export class Attacker extends Agent {
 			BallEscort,
 			PassTiming,
 			Shoot,
+			BreakPass,
 			Default
 		];
 	}

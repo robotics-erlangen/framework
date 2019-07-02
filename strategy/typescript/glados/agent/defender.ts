@@ -11,6 +11,7 @@ import { Penalty } from "glados/agent/defender/penalty";
 import { Piggy } from "glados/agent/defender/piggy";
 import { ZoneDefense } from "glados/agent/defender/zonedefense";
 import { BallEscort } from "glados/agent/shared/ballescort";
+import { BreakPass } from "glados/agent/shared/breakpass";
 import { RescueFromDefenseArea } from "glados/agent/shared/rescuefromdefensearea";
 import { MessageType } from "glados/control/messaging";
 
@@ -24,6 +25,7 @@ export class Defender extends Agent {
 			HandleBall,
 			ManMark,
 			CenterBack,
+			BreakPass,
 			Piggy,
 			ZoneDefense,
 			Default

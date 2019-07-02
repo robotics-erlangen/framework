@@ -1,0 +1,114 @@
+import * as debug from "base/debug";
+import * as Field from "base/field";
+import * as Referee from "base/referee";
+import * as World from "base/world";
+
+import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
+import { MessageType } from "glados/control/messaging";
+import * as Ball from "glados/observer/ball";
+import { BreakPass as BreakPassTask } from "glados/task/defender/breakpass";
+
+export class BreakPass extends Behavior {
+
+	_stop() {
+
+	}
+
+	check(): boolean {
+		// ballplacement
+		if (!Referee.isGameState(World.RefereeState)) {
+			debug.set("breakpass check", "ballplacement");
+			return false;
+		}
+
+		// no pass
+		if (World.Ball.speed.lengthSq() < 2 * 2) {
+			debug.set("breakpass check", "no pass");
+			return false;
+		}
+
+		// this robots own pass
+		if (Ball.friendlyBallOwner() === this._robot) {
+			debug.set("breakpass check", "pass of own robot");
+			return false;
+		}
+
+		// ball is to close to friendly defense area
+		if (World.Ball.pos.y < -World.Geometry.FieldHeightQuarter) {
+			debug.set("breakpass check", "ball is to close to our defense area");
+			return false;
+		}
+
+		let [moveDest, endSpeed, waitingTime] = BreakPassTask.calculateBreakPos(this._robot);
+		let breakPassThreshold = 0;
+		if (this._active) {
+			breakPassThreshold = 0.1;
+		}
+		// pass is not breakable
+		if (waitingTime < 0) {
+			debug.set("breakpass check", "pass is not breakable");
+			return false;
+		}
+
+		// moveDest is to close to friendly defense area
+		if (moveDest.y < -World.Geometry.FieldHeightQuarter) {
+			debug.set("breakpass check", "moveDest is to close to our defense area");
+			return false;
+		}
+
+		// moveDest is not in allowed field
+		if (!Field.isInAllowedField(moveDest, -World.Ball.radius)) {
+			debug.set("breakpass check", "not in allowed field");
+			return false;
+		}
+
+		// moveDest is in friendly goal
+		if (Field.isInFriendlyGoal(moveDest)) {
+			debug.set("breakpass check", "is in friendly goal");
+			return false;
+		}
+
+		// moveDest is in opponent goal
+		if (Field.isInOpponentGoal(moveDest)) {
+			debug.set("breakpass check", "is in opponent goal");
+			return false;
+		}
+
+		// moveDest is behind the ball/pass
+		let toPos = moveDest - World.Ball.pos;
+		if (World.Ball.speed.dot(toPos) <= 0) {
+			debug.set("breakpass check", "moveDest is behind the pass");
+			return false;
+		}
+
+		// waiting time is not over
+		if (breakPassThreshold < (waitingTime - BreakPassTask.BUFFER_TIME)) {
+			debug.set("breakpass check", "waiting time is not over");
+			return false;
+		}
+
+		// main attacker will receive the pass
+		let attackPosition = this._messaging.receiveSingleSender(MessageType.attackPosition)[1];
+		if (attackPosition != undefined) {
+			let oppInPassZone = false;
+			for (let robot of World.OpponentRobots) {
+				if ((this._robot.pos.orthogonalProjection(World.Ball.pos, World.Ball.pos + attackPosition)[1] < 0.3) && (robot.speed.lengthSq() < 0.5 * 0.5)) {
+					oppInPassZone = true;
+					break;
+				}
+			}
+			if (!oppInPassZone) {
+				debug.set("breakpass check", "main attacker will receive the ball");
+				return false;
+			}
+		}
+
+		debug.set("breakpass check", "true");
+		return true;
+	}
+
+	_updateTask(): TaskAssignment<typeof BreakPassTask> {
+		return [BreakPassTask];
+	}
+
+}
