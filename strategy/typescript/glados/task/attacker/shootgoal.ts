@@ -40,7 +40,7 @@ export class ShootGoal extends Task {
 	private lastWasChip: boolean = false;
 	private lastMode: string = "";
 	private lastShootInfo: [Position, number, number?, Position?, number?] | undefined;
-	private lastChipInfo: [Position, Position?, number?, number?, number?] | undefined;
+	private lastChipInfo: [Position, Position?, undefined?, number?, number?] | undefined;
 	private localTarget: Position | undefined;
 
 	private _shoot: Shoot;
