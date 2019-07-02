@@ -56,6 +56,11 @@ export class BreakPass extends Task {
 
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
 
+		if (this._robot.pos.distanceTo(World.Ball.pos) < 0.5) {
+			this.setMainAttackerParameters(robotEndDir, 0);
+			this._agent._activeBehavior._applyForMainAttacker();
+		}
+
 		this._robot.trajectory.update(ToTarget, moveDest, robotEndDir.angle(), undefined, endSpeed);
 	}
 }
