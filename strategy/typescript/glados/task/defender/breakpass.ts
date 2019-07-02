@@ -36,8 +36,7 @@ function calculateBreakPos(robot: FriendlyRobot): [Position, Speed, number] {
 
 const obstacleTable: PathHelper.PathHelperParameters = {
 	ignoreBall: true,
-	ignorePass: true,
-	ignoreOpponentRobots: true,
+	ignorePass: true
 };
 
 
