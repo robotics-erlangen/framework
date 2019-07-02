@@ -11,6 +11,7 @@ import * as Physics from "glados/observer/physics";
 import * as ObserverRobot from "glados/observer/robot";
 import { ForceShoot } from "glados/task/ability/forceshoot";
 import { Agent, Task } from "glados/task/base";
+import { CurvedMaxAccel } from "glados/trajectory/curvedmaxaccel";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
 import * as UtilDefense from "glados/util/defense";
@@ -94,6 +95,7 @@ export class CenterBack extends Task {
 			< 2 * this._robot.radius + UtilDefense.centerBackDistanceToDefenseArea() + 0.05;
 		this._obstacleTable.ignorePass = this._obstacleTable.ignoreFriendlyRobots;
 		this._obstacleTable.ignoreBall = this._obstacleTable.ignoreFriendlyRobots;
+		let trajModule = (this._obstacleTable.ignoreOpponentRobots) ? CurvedMaxAccel : ToTarget;
 
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, this._obstacleTable);
 
@@ -104,7 +106,7 @@ export class CenterBack extends Task {
 			this._robot.path.addLine(startPos.x, startPos.y, endPos.x, endPos.y, mainAttacker.radius * 2 + 0.1, "", 100);
 		}
 
-		this._robot.trajectory.update(ToTarget, destinationPos, dir, undefined,
+		this._robot.trajectory.update(trajModule, destinationPos, dir, undefined,
 				Physics.robotMinEndspeed(this._robot, destinationPos, destinationTime));
 		this._messaging.sendBroadcast(MessageType.moveDest, destinationPos);
 	}
