@@ -260,7 +260,7 @@ function addFriendlyPassObstacle(path: Path, robot: FriendlyRobot, messaging: Me
 	let mainAttacker = messaging.receiveTrainer(MessageType.mainAttacker);
 	if (mainAttacker && robot !== mainAttacker) {
 		let dangerPos = attackPosition || mainAttacker.pos;
-		let dangerTime = attackTime != undefined ? attackTime : Physics.ballTravelTime(World.Ball, World.Ball.pos.distanceTo(dangerPos));
+		let dangerTime = attackTime != undefined ? attackTime : Physics.ballTravelTime(World.Ball, World.Ball.pos.distanceTo(dangerPos)) + World.Time;
 		// ball - intercept
 		if (dangerPos.distanceToSq(World.Ball.pos) > epsilonSq) {
 			if (useCMA) {
