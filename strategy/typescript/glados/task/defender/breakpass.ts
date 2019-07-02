@@ -52,15 +52,6 @@ const obstacleTable: PathHelper.PathHelperParameters = {
 
 
 export class BreakPass extends Task {
-	private _targetRobot: Robot;
-
-	constructor(agent: Agent, targetRobot: Robot) {
-		super(agent);
-		if (targetRobot == undefined) {
-			throw new Error("BreakPas task needs a piggy robot");
-		}
-		this._targetRobot = targetRobot;
-	}
 
 	static calculateBreakPos: (robot: FriendlyRobot) => [Position, Speed, number] =
 		Cache.forFrame(calculateBreakPos);
