@@ -756,6 +756,8 @@ void TrajectoryPath::findPathAlphaT()
         checkMidPoint(lastTrajectoryInfo.midSpeed, lastTrajectoryInfo.centerTime, lastTrajectoryInfo.angle);
     }
 
+    Vector defaultSpeed = distance * (std::max(2.5f, distance.length() / 2) / distance.length());
+
     // normal search
     for (int i = 0;i<100;i++) {
         // three sampling modes:
@@ -785,14 +787,17 @@ void TrajectoryPath::findPathAlphaT()
         Vector speed;
         float angle, time;
         if (mode == TOTAL_RANDOM) {
-            speed = randomSpeed();
+            if (rand() % 2 == 0) {
+                speed = defaultSpeed;
+            } else {
+                speed = randomSpeed();
+            }
             angle = m_rng->uniformFloat(0, float(2 * M_PI));
             // TODO: adjust max time
             float maxTime = m_bestResultInfo.valid ? std::max(0.01f, m_bestResultInfo.time - 0.1f) : 5.0f;
             // TODO: dont sample invalid times
             time = m_rng->uniformFloat(0, maxTime);
         } else {
-            // TODO: wenn etwas gut war weiter in die gleiche richtung gehen
             // TODO: gaussian sampling
             const BestTrajectoryInfo &info = mode == CURRENT_BEST ? m_bestResultInfo : lastTrajectoryInfo;
             const float RADIUS = 0.2f;
