@@ -299,6 +299,10 @@ export class Shoot {
 			ballTravelTime = ballTime;
 		}
 
+		let attackTime: number = 0;
+		if (targetTime != undefined) {
+			attackTime = targetTime - ballTravelTime!;
+		}
 		if (this._directMovement) {
 			let accelerate = this._robot.acceleration.aSpeedupFMax * speedupFactor;
 			this._directExtraSpeed = Math.min(this._directExtraSpeed + accelerate * World.TimeDiff, EXTRA_MOVE_SPEED_LIMIT);
@@ -314,13 +318,19 @@ export class Shoot {
 			this._robot.trajectory.update(TrajectoryDirect, speed, targetDir, undefined, accel);
 			this._sendShootCommand(kickSpeed, targetPos, targetDir);
 			this._messaging.sendBroadcast(MessageType.attackPosition, futureBall.pos);
+			if (attackTime < World.Time) {
+				attackTime = World.Time;
+			}
 			this._messaging.sendBroadcast(MessageType.attackTime, targetTime != undefined ? targetTime - ballTravelTime! : World.Time);
 			this._catchBallActive = false;
 		} else {
-			let attackTime = this._catchBall._catchBall(targetPos, minCatchBallDistance, targetSpeed);
-			this._messaging.sendBroadcast(MessageType.attackTime, targetTime != undefined ? targetTime - ballTravelTime! : attackTime + World.Time);
+			let cBTime = this._catchBall._catchBall(targetPos, minCatchBallDistance, targetSpeed);
+			if (attackTime < World.Time + cBTime) {
+				attackTime = World.Time + cBTime;
+			}
 			this._catchBallActive = true;
 		}
+		this._messaging.sendBroadcast(MessageType.attackTime, attackTime);
 
 		debug.set("Shoot/DirectMovement", this._directMovement);
 	}
