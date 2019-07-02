@@ -212,6 +212,7 @@ export class MessageBox {
 	sendBroadcast(type: ExclusiveRole, dest: FriendlyRobot | undefined): void;
 	sendBroadcast(type: MessageType.placingRobot, data? : undefined): void;
 	sendBroadcast(type: MessageType, data?: any): void {
+		if (type === MessageType.attackTime && (data === -Infinity || data === Infinity)) throw new Error("Invalid AttackTime");
 		this.sendGeneric(type, "all", data, false);
 	}
 
