@@ -28,6 +28,8 @@ import { Coordinates } from "base/coordinates";
 import * as plot from "base/plot";
 import { world } from "base/protobuf";
 import { Position, Speed, Vector } from "base/vector";
+import { GeometryType } from "base/world";
+
 
 let BALL_QUALITY_FILTER_FACTOR = 0.05;
 
@@ -83,7 +85,7 @@ export class Ball {
 	}
 
 	// Processes ball information from amun, passed by world
-	_update(data: world.Ball | undefined, time: number) {
+	_update(data: world.Ball | undefined, time: number, geom?: GeometryType) {
 		this.hasRawData = false;
 		// WARNING: this is the quality BEFORE the frame
 		plot.addPlot("Ball.quality", this.detectionQuality);
@@ -96,9 +98,21 @@ export class Ball {
 		// check if the ball pos or speed are invalid (might result from tracking) -> then ignore the update
 		let nextPos = Coordinates.toLocal(Vector.createReadOnly(data.p_x, data.p_y));
 		let nextSpeed = Coordinates.toLocal(Vector.createReadOnly(data.v_x, data.v_y));
+		let extraDist = 2;
 		let SIZE_LIMIT = 1000;
 		if (nextPos.isNan() || nextSpeed.isNan() || Math.abs(nextPos.x) > SIZE_LIMIT  ||
 			Math.abs(nextPos.y) > SIZE_LIMIT || Math.abs(nextSpeed.x) > SIZE_LIMIT || Math.abs(nextSpeed.y) > SIZE_LIMIT) {
+			this._updateLostBall(time);
+			return;
+		}
+
+		if (geom && ((Math.abs(nextPos.y) > geom.FieldHeightHalf + extraDist) || Math.abs(nextPos.x) > geom.FieldWidthHalf + extraDist)) {
+			this._updateLostBall(time);
+			return;
+		}
+
+		let speedLimit = 10;
+		if (nextSpeed.lengthSq() > speedLimit * speedLimit) {
 			this._updateLostBall(time);
 			return;
 		}
