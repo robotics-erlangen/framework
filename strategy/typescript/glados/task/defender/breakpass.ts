@@ -1,12 +1,10 @@
 import * as Cache from "base/cache";
-import { FriendlyRobot, Robot } from "base/robot";
+import { FriendlyRobot } from "base/robot";
 import { Position, Speed, Vector } from "base/vector";
 import * as World from "base/world";
 
-import * as Piggy from "glados/agent/defender/piggy";
-import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
-import { Agent, Task } from "glados/task/base";
+import { Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
 
