@@ -18,9 +18,6 @@ import { ToTarget } from "glados/trajectory/totarget";
 // @return number - time to wait for break the pass (waitingTime)
 function calculateBreakPos(robot: FriendlyRobot): [Position, Speed, number] {
 
-	const BUFFER_TIME = 0.7;
-
-
 	// ToDo: Unterscheidung zwischen stehenden Gegener und sich bewegenden
 
 
@@ -34,11 +31,6 @@ function calculateBreakPos(robot: FriendlyRobot): [Position, Speed, number] {
 	// calculate waiting time
 	let timeToPos = Physics.robotTimeToPos(robot, breakPos, minEndSpeed)[0];
 	let waitingTime = ballTimeToPos - timeToPos;
-	if (waitingTime > BUFFER_TIME) {
-		waitingTime = waitingTime - BUFFER_TIME;
-	} else {
-		waitingTime = 0;
-	}
 
 	return [breakPos, minEndSpeed, waitingTime];
 }
@@ -52,6 +44,7 @@ const obstacleTable: PathHelper.PathHelperParameters = {
 
 
 export class BreakPass extends Task {
+	static BUFFER_TIME = 0.7;
 
 	static calculateBreakPos: (robot: FriendlyRobot) => [Position, Speed, number] =
 		Cache.forFrame(calculateBreakPos);
