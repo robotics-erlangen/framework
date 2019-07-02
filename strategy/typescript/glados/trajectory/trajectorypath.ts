@@ -81,7 +81,7 @@ export class TrajectoryPath extends TrajectoryHandler {
 			vis.addPath("MoveTo", [targetPos, targetPos + endSpeed], vis.colors.whiteHalf);
 		}
 
-		PathHelper.insertObstacles(this._robot as FriendlyRobot, false);
+		PathHelper.insertObstacles(this._robot as FriendlyRobot, false, targetPos);
 
 		// insert default values
 		if (Referee.isSlowDriveState()) {

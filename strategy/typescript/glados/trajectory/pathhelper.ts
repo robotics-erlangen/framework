@@ -6,7 +6,7 @@ import * as MathUtil from "base/mathutil";
 import { Path } from "base/path";
 import * as Referee from "base/referee";
 import { FriendlyRobot, Robot } from "base/robot";
-import { Vector } from "base/vector";
+import { Position, Vector } from "base/vector";
 import * as World from "base/world";
 
 import { MessageBox, MessageType } from "glados/control/messaging";
@@ -81,9 +81,13 @@ function addFriendlyDefenseAreaObstacle(path: Path, robot: FriendlyRobot) {
 	}
 }
 
-function addOpponentDefenseAreaObstacle(path: Path, robot: FriendlyRobot) {
+function addOpponentDefenseAreaObstacle(path: Path, robot: FriendlyRobot, targetPosition: Position) {
 	// don't add obstacles for opponent defense area if the robot is in the friendly half
 	let oppDefAreaDist = Referee.isFriendlyFreeKickState() || Referee.isStopState() ? G.FreeKickDefenseDist + 0.05 : 0;
+	let defenseDistance = Math.min(Field.distanceToOpponentDefenseArea(robot.pos, robot.radius),
+		Field.distanceToOpponentDefenseArea(targetPosition, robot.radius));
+	let extraRadius = Math.min(defenseDistance - 0.05, robot.radius * 2 + 0.02);
+	oppDefAreaDist = Math.max(oppDefAreaDist, extraRadius);
 	// TODO: adjust to rect with distance instead of larger rect
 	let distance = oppDefAreaDist + POSITION_PADDING;
 	if (robot.pos.y > 0 && (!Referee.isFriendlyPenaltyState()) &&
@@ -362,7 +366,7 @@ function addBallPlacementObstacle(path: Path, messaging: MessageBox | undefined)
 	}
 }
 
-function setDefaultObstacles(path: Path, robot: FriendlyRobot, ignoreBall?: boolean, ignoreGoals?: boolean,
+function setDefaultObstacles(path: Path, robot: FriendlyRobot, targetPosition: Position, ignoreBall?: boolean, ignoreGoals?: boolean,
 		ignoreDefenseArea?: boolean, radius: number = robot.radius, stopBallDistance: number = Constants.stopBallDistance + 0.05,
 		noSeedTarget?: boolean, ignoreOpponentDefenseArea?: boolean, extraBallDistance?: number) {
 
@@ -380,7 +384,7 @@ function setDefaultObstacles(path: Path, robot: FriendlyRobot, ignoreBall?: bool
 		addFriendlyDefenseAreaObstacle(path, robot);
 	}
 	if (!ignoreOpponentDefenseArea) {
-		addOpponentDefenseAreaObstacle(path, robot);
+		addOpponentDefenseAreaObstacle(path, robot, targetPosition);
 	}
 	if (forbidOppFieldHalf) {
 		addOpponentFieldHalfObstacle(path);
@@ -540,12 +544,12 @@ export function setDefaultObstaclesByTable(path: Path, robot: FriendlyRobot, par
 	obstacles.set(robot, obst);
 }
 
-export function insertObstacles(robot: FriendlyRobot, isCMA: boolean) {
+export function insertObstacles(robot: FriendlyRobot, isCMA: boolean, targetPosition: Position) {
 	if (!obstacles.has(robot)) {
 		throw new Error("insertObstacles called without setDefaultObstacles");
 	}
 	let p = obstacles.get(robot) as PathHelperParameters & {path: Path};
-	setDefaultObstacles(p.path, robot, p.ignoreBall, p.ignoreGoals, p.ignoreDefenseArea,
+	setDefaultObstacles(p.path, robot, targetPosition, p.ignoreBall, p.ignoreGoals, p.ignoreDefenseArea,
 		p.pathRadius, p.stopBallDistance, p.noSeedTarget, p.ignoreOpponentDefenseArea, p.extraBallDistance);
 	if (!p.ignorePass) {
 		if (p.messaging == undefined) {
