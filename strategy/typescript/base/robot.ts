@@ -114,6 +114,8 @@ export class Robot {
 	/** strategy time when the last radio response was handled * */
 	lastResponseTime: number = 0;
 	lostSince: number = 0;
+	/** poition of the robots dribbler */
+	readonly dribblerPos: Readonly<Position> = new Vector(0, 0);
 
 	// private attributes
 	private _toStringCache: string = "";
@@ -173,6 +175,7 @@ export class Robot {
 		this.dir = Coordinates.toLocal(state.phi as number);
 		this.speed = Coordinates.toLocal(Vector.createReadOnly(state.v_x, state.v_y));
 		this.angularSpeed = state.omega; // do not invert!
+		(this.dribblerPos as Vector) = this.pos + Vector.fromAngle(this.dir) * this.shootRadius;
 	}
 
 	/**
