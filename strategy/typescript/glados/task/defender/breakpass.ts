@@ -1,6 +1,6 @@
 import * as Cache from "base/cache";
 import { FriendlyRobot, Robot } from "base/robot";
-import { Position, Vector } from "base/vector";
+import { Position, Speed, Vector } from "base/vector";
 import * as World from "base/world";
 
 import * as Piggy from "glados/agent/defender/piggy";
@@ -14,9 +14,9 @@ import { ToTarget } from "glados/trajectory/totarget";
 /// Calculates the position to break the pass
 // @param robot FriendlyRobot - the robot that should break the pass
 // @return Position - position to break the pass (breakPos)
-// @return Vector - endspeed of the roboter (endSpeed)
+// @return Speed - endspeed of the roboter (endSpeed)
 // @return number - time to wait for break the pass (waitingTime)
-function calculateBreakPos(robot: FriendlyRobot): [Position, Vector, number] {
+function calculateBreakPos(robot: FriendlyRobot): [Position, Speed, number] {
 
 	const BUFFER_TIME = 0.7;
 
@@ -62,7 +62,7 @@ export class BreakPass extends Task {
 		this._targetRobot = targetRobot;
 	}
 
-	static calculateBreakPos: (robot: FriendlyRobot) => [Position, Vector, number] =
+	static calculateBreakPos: (robot: FriendlyRobot) => [Position, Speed, number] =
 		Cache.forFrame(calculateBreakPos);
 
 	run() {
