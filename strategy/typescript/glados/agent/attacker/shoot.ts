@@ -55,6 +55,7 @@ export class Shoot extends Behavior {
 	private _wasPressed: boolean = false;
 	private _manualFlag: boolean = false;
 	private _prevTime: number = 0;
+	private _passFrames: number = 0;
 
 	_stop() {
 		this._nextDecisionTime = World.Time;
@@ -75,6 +76,7 @@ export class Shoot extends Behavior {
 		this._wasPressed = false;
 
 		this._manualFlag = false;
+		this._passFrames = 0;
 	}
 
 	public check(): boolean {
@@ -117,6 +119,7 @@ export class Shoot extends Behavior {
 	}
 
 	private _decide(): Decision {
+		this._passFrames = 0;
 		this._wasPressed = Robot.isPressed(this._robot);
 
 		// perform clean goal shots if possible
@@ -317,8 +320,14 @@ export class Shoot extends Behavior {
 			let oldTarget = this._decision.target;
 			let newSug = this._messaging.receive(MessageType.passSuggestion).get(oldTarget);
 			if (newSug && newSug.time > oldTime + 0.2) {
-				debug.set("redeciding", "TRUE(passTiming)");
+				debug.set("redeciding", "TRUE (passTiming)");
 				return true;
+			}
+
+			// redecide if the passReciever no longer offers that pass
+
+			if (!newSug && this._passFrames > 2) {
+				debug.set("redeciding", "TRUE (dropped suggestion)");
 			}
 		}
 
@@ -418,6 +427,7 @@ export class Shoot extends Behavior {
 
 		// time the pass
 		if (this._decision.task === "pass") {
+			this._passFrames++;
 			let suggestedTime = this._decision.time;
 			let target = this._decision.target;
 			let ballPos = this._decision.pos;
