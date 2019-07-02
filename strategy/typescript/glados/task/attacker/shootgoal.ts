@@ -105,7 +105,7 @@ export class ShootGoal extends Task {
 	private canRedecide(): boolean {
 		let firstFrame = this.isFirstFrame;
 		this.isFirstFrame = false;
-		if (this.isFirstFrame) {
+		if (firstFrame) {
 			return true;
 		}
 		if (Referee.isFriendlyFreeKickState() || Referee.isFriendlyKickoffState()) {
