@@ -178,7 +178,7 @@ export class FreeKick extends Behavior {
 			}
 
 			// redecide if beneficial
-			let enoughTime = World.Time - Referee.lastStateChangeTime() <= 5;
+			let enoughTime = World.Time - Referee.lastStateChangeTime() <= MAX_TIMEFRAME - 1.5;
 			if (enoughTime) {
 				let hysteresis = 0.05;
 				let newPass = Attack.choosePassFromSuggestions(this._robot, this._messaging.receive(MessageType.passSuggestion),
