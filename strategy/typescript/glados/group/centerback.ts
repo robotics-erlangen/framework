@@ -1,12 +1,12 @@
 import * as Field from "base/field";
 import * as MathUtil from "base/mathutil";
-import { FriendlyRobot } from "base/robot";
+import { FriendlyRobot, Robot } from "base/robot";
 import { Position, RelativePosition } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
 
 import { MessageBox, MessageType } from "glados/control/messaging";
-import * as Robot from "glados/observer/robot";
+import * as ObserverRobot from "glados/observer/robot";
 import * as UtilDefense from "glados/util/defense";
 import * as Rating from "glados/util/rating";
 
@@ -36,6 +36,7 @@ interface Target {
 	pos: Position;
 	time: number;
 	dir: RelativePosition;
+	targetRobot?: Robot;
 }
 
 let privateCenterBackPositions: Map<FriendlyRobot, {pos: Position, target: Target | undefined, way: number}> = new Map();
@@ -231,7 +232,7 @@ export class CenterBack {
 			[cBPos, way, sec] = UtilDefense.centerBackPos(targetPos, target.dir);
 			// check if the target is necessary but reachable
 			let idealBotPrel = <FriendlyRobot> UtilDefense.getClosestRobot(robotSet, cBPos)[0];
-			let timeAroundDefenseArea = Robot.timeAroundDefenseAreaByWay(idealBotPrel, undefined, cBPos, way, extraDistance, true);
+			let timeAroundDefenseArea = ObserverRobot.timeAroundDefenseAreaByWay(idealBotPrel, undefined, cBPos, way, extraDistance, true);
 			let targetTime = target.time != undefined ? target.time : Infinity;
 			// only consider the next timestamp
 			if (targetTime > minTime) {
