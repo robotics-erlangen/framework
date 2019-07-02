@@ -114,7 +114,9 @@ export class CatchBall {
 				&&  !Field.isInAllowedField(predictedBall.pos, World.Ball.radius)
 				&&  this._robot !== World.FriendlyKeeper
 				&&  World.RefereeState !== "BallPlacementOffensive") {
-			predictedBall.pos = Field.limitToAllowedField(predictedBall.pos, World.Ball.radius);
+			// t/a/shoot for example does some calculations on the position that might move it out somewhat,
+			// therefore an extra buffer is needed
+			predictedBall.pos = Field.limitToAllowedField(predictedBall.pos, World.Ball.radius + 0.05);
 		}
 		let moveDest = predictedBall.pos - Vector.fromAngle(viewDir).scaleLength(
 					this._robot.radius + distanceToBall + ball.radius);

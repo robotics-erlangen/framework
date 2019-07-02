@@ -127,6 +127,8 @@ export class Shoot {
 			futureBallPos = World.Ball.pos;
 		}
 
+		futureBallPos = Field.limitToAllowedField(futureBallPos, World.Ball.radius + 0.05);
+
 		let ballTime = Math.max(0, Physics.checkedBallTravelTime(World.Ball, <Position> futureBallPos));
 		let futureBall = Physics.ballAtTime(World.Ball, ballTime);
 
