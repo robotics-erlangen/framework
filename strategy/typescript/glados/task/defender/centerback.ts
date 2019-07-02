@@ -51,7 +51,8 @@ export class CenterBack extends Task {
 		let destinationTime = (pos_target != undefined && pos_target.time != undefined) ? pos_target.time : Infinity;
 
 		let ignoreDefenseArea = false;
-		if (pos_target && pos_target.target && pos_target.target.targetRobot) {
+		if (pos_target && pos_target.target && pos_target.target.targetRobot &&
+				(World.RefereeState === "Game" || World.RefereeState === "Stop")) {
 			let attacker = pos_target.target.targetRobot;
 			let defenseDistance = Field.distanceToFriendlyDefenseArea(attacker.pos, attacker.radius);
 			if (destinationPos.distanceTo(World.Ball.pos) > 1 && (World.Ball.speed.length() < 0.5 ||
