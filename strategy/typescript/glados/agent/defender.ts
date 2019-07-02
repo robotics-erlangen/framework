@@ -3,6 +3,7 @@ import * as World from "base/world";
 
 import { Agent } from "glados/agent/base/agent";
 import { Behavior } from "glados/agent/base/behavior";
+import { CenterBack } from "glados/agent/defender/centerback";
 import { Default } from "glados/agent/defender/default";
 import { HandleBall } from "glados/agent/defender/handleball";
 import { ManMark } from "glados/agent/defender/manmark";
@@ -22,6 +23,7 @@ export class Defender extends Agent {
 			BallEscort,
 			HandleBall,
 			ManMark,
+			CenterBack,
 			Piggy,
 			ZoneDefense,
 			Default
