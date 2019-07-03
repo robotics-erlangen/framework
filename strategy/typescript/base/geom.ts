@@ -428,3 +428,16 @@ export function insideRect(corner1: Position, corner2: Position, x: Position): b
 	return minCornerX < x.x && x.x < maxCornerX &&
 			minCornerY < x.y && x.y < maxCornerY;
 }
+
+export function isInStadium(a: Position, b: Position, radius: number, p: Position) {
+	const radiusSq = radius ** 2;
+	if (p.distanceToSq(a) < radiusSq) {
+		return true;
+	}
+	if (p.distanceToSq(b) < radiusSq) {
+		return true;
+	}
+	const offset = (b - a).perpendicular();
+	return insideRect(a - offset, b + offset, p);
+}
+

@@ -28,6 +28,7 @@ export class BaseGeom extends UnitTest {
 		this.addTest("bisectingAngle", this.testBisectingAngle);
 		this.addTest("inscribedAngle", this.testInscribedAngle);
 		this.addTest("insideRect", this.testInsideRect);
+		this.addTest("isInStadium", this.testIsInStadium);
 	}
 
 	private testIntersectCircleCircle() {
@@ -480,6 +481,15 @@ export class BaseGeom extends UnitTest {
 		// lines and corners are considered outside
 		this.assert_false(geom.insideRect(new Vector(0, 0), new Vector(1, 1), new Vector(1, 0.5)));
 		this.assert_false(geom.insideRect(new Vector(0, 0), new Vector(1, 1), new Vector(1, 1)));
+	}
+
+	private testIsInStadium() {
+		this.assert_true(geom.isInStadium(new Vector(0, 0), new Vector(1, 0), 0.5, new Vector(0, 0)));
+		this.assert_true(geom.isInStadium(new Vector(0, 0), new Vector(1, 0), 0.5, new Vector(1, 0)));
+		this.assert_true(geom.isInStadium(new Vector(0, 0), new Vector(1, 0), 0.5, new Vector(0.5, 0)));
+
+		this.assert_false(geom.isInStadium(new Vector(0, 0), new Vector(1, 0), 0.5, new Vector(-0.5, -0.5)));
+		this.assert_false(geom.isInStadium(new Vector(0, 0), new Vector(1, 0), 0.5, new Vector(1.5, 0.5)));
 	}
 }
 export let testClass = BaseGeom;
