@@ -4,7 +4,7 @@ import { Assignment, MessageBox, Move, MoveParameters } from "glados/group/move/
 import { Task } from "glados/task/base";
 
 export function makeSingleTaskMove(task: any): typeof Move {
-	class SimgleTaskMove extends Move {
+	class SingleTaskMove extends Move {
 		public static MIN_ROBOTS: number = 1;
 		public static MAX_ROBOTS: number = 1;
 		public static ALLOW_EXTRA_ATTACKERS: boolean = false;
@@ -34,5 +34,5 @@ export function makeSingleTaskMove(task: any): typeof Move {
 			};
 		}
 	}
-	return SimgleTaskMove;
+	return SingleTaskMove;
 }
