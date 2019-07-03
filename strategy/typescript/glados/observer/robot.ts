@@ -279,6 +279,9 @@ export function timeAroundDefenseAreaByWay(robot: Robot, robotWay: number | unde
 
 
 function _isPressed(robot: Robot, attackPos?: Position): boolean {
+	if (!Referee.isGameState()) {
+		return false;
+	}
 	let directionOffset = (World.Geometry.OpponentGoal - robot.pos).setLength(robot.shootRadius + World.Ball.radius);
 	let ballPos = attackPos || robot.pos + directionOffset;
 	let blockPos = ballPos + directionOffset;
