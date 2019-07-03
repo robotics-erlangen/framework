@@ -1,5 +1,6 @@
 import * as Constants from "base/constants";
 import { Coordinates } from "base/coordinates";
+import * as Field from "base/field";
 import * as Referee from "base/referee";
 import { FriendlyRobot } from "base/robot";
 import { TrajectoryHandler, TrajectoryResult } from "base/trajectory";
@@ -92,7 +93,12 @@ export class TrajectoryPath extends TrajectoryHandler {
 		endSpeed = Coordinates.toGlobal(endSpeed);
 		targetDir = Coordinates.toGlobal(targetDir);
 		let robotPos = Coordinates.toGlobal(this._robot.pos);
-		let robotSpeed = Coordinates.toGlobal(this._robot.speed);
+		let rSpeed = this._robot.speed;
+		// check if the robot is outside the field and the speed points further outside the field
+		if (!Field.isInField(this._robot.pos) && this._robot.pos.dot(this._robot.speed) > 0) {
+			rSpeed = new Vector(0, 0);
+		}
+		let robotSpeed = Coordinates.toGlobal(rSpeed);
 		let robotDir = Coordinates.toGlobal(this._robot.dir);
 
 		const TRAJECTORY_PATH_DEBUG = true;
