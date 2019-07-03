@@ -31,7 +31,7 @@ class LogWidget : public QPlainTextEdit
 public:
     explicit LogWidget(QWidget *parent = 0);
     void hideLogToggles();
-    
+
 public slots:
     void handleStatus(const Status &status);
 
@@ -40,7 +40,10 @@ protected:
 
 private slots:
     void setLogVisibility(bool visible);
-    
+
+private:
+    QString fromTime(qint64 time, QString prefix);
+
 private:
     QContiguousCache<qint64> m_lastTimes;
     qint64 m_lastDate;
@@ -48,6 +51,7 @@ private:
     bool m_logBlueStrategy;
     bool m_logYellowStrategy;
     bool m_logAutoref;
+    QString m_lastAutorefOutput;
 };
 
 #endif // LOGWIDGET_H

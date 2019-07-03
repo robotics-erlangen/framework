@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include "logwidget.h"
+#include "refereestatuswidget.h"
 
 #include <QDateTime>
 #include <QMenu>
@@ -30,7 +31,8 @@ LogWidget::LogWidget(QWidget *parent) :
     m_hideLogToggles(false),
     m_logBlueStrategy(true),
     m_logYellowStrategy(true),
-    m_logAutoref(true)
+    m_logAutoref(true),
+    m_lastAutorefOutput("")
 {
     const int MAX_BLOCKS = 1000;
     this->setMaximumBlockCount(MAX_BLOCKS);
@@ -43,8 +45,24 @@ void LogWidget::hideLogToggles()
     m_hideLogToggles = true;
 }
 
+QString LogWidget::fromTime(qint64 time, QString prefix) {
+    qint64 ltime = time / 1000000000L / 60; // divide down to minutes
+    QString ret;
+    if (ltime != m_lastDate) {
+        m_lastDate = ltime;
+        QDateTime dt;
+        dt.setTime_t(time * 1E-9);
+        ret += QString("<div><small><tt>%1</tt></small></div>\n").arg(dt.toString("hh:mm"));
+    }
+    const QString stime = QString("%1.%2").arg((time / 1000000000L) % 60, 2, 10, QChar('0'))
+            .arg((time / 1000000L) % 1000, 3, 10, QChar('0'));
+    QString str = QString("<div><small><tt><font color=gray>[%1]</font><b> %2 </b></tt></small>").arg(stime, prefix);
+    return ret+str;
+}
+
 void LogWidget::handleStatus(const Status &status)
 {
+    QString logAppend;
     for (const amun::DebugValues& debug : status->debug()) {
         while (m_lastTimes.size() > 0 && m_lastTimes.last() >= status->time()) {
             m_lastTimes.removeLast();
@@ -54,7 +72,6 @@ void LogWidget::handleStatus(const Status &status)
             cursor.removeSelectedText();
         }
 
-        QString logAppend;
         for (int i = 0; i < debug.log_size(); i++) {
             const amun::StatusLog &log = debug.log(i);
 
@@ -95,25 +112,28 @@ void LogWidget::handleStatus(const Status &status)
                 prefix = "YR";
                 break;
             }
-
-            qint64 ldate = log.timestamp() / 1000000000L / 60; // divide down to minutes
-            if (ldate != m_lastDate) {
-                m_lastDate = ldate;
-                QDateTime dt;
-                dt.setTime_t(log.timestamp() * 1E-9);
-                logAppend += QString("<div><small><tt>%1</tt></small</div>\n").arg(dt.toString("hh:mm"));
+            logAppend += fromTime(log.timestamp(), prefix) + QString::fromStdString(log.text()) + "</div>\n";
+        }
+    }
+    if (logAppend.size() > 0) {
+        appendHtml(logAppend);
+        m_lastTimes.append(status->time());
+    }
+    logAppend = QString();
+    if (status->has_game_state()) {
+        const amun::GameState &game_state = status->game_state();
+        if (game_state.has_game_event_2019()) {
+            QString text = RefereeStatusWidget::gameEvent2019Message(game_state.game_event_2019())+"</div>";
+            if (text != m_lastAutorefOutput) {
+                m_lastAutorefOutput = text;
+                text = fromTime(status->time(), QString("REF")) + text;
+                logAppend = text;
             }
-
-            // extract seconds and milliseconds (these are completely locale independent)
-            const QString time = QString("%1.%2").arg((log.timestamp() / 1000000000L) % 60, 2, 10, QChar('0'))
-                    .arg((log.timestamp() / 1000000L) % 1000, 3, 10, QChar('0'));
-            QString str = QString("<div><small><tt><font color=gray>[%1]</font><b> %2 </b></tt></small>").arg(time, prefix);
-            logAppend += str + QString::fromStdString(log.text()) + "</div>\n";
         }
-        if (logAppend.size() > 0) {
-            appendHtml(logAppend);
-            m_lastTimes.append(status->time());
-        }
+    }
+    if (logAppend.size() > 0) {
+        appendHtml(logAppend);
+        m_lastTimes.append(status->time());
     }
 }
 
