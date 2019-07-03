@@ -152,7 +152,12 @@ export class FreeKick extends Behavior {
 		}
 
 		let pass: Pass = <Pass> this._pass;
-		if ((this._state === State.PassPrepare || this._state === State.Pass && pass.time - World.Time > 0.5) && !timeRunningOut) {
+		let adjustTiming = this._state === State.PassPrepare;
+		if (this._state === State.Pass) {
+			let passShootTime = pass.time - Shoot.ballPassTime(World.Ball.pos, pass.ballPos, pass.target, undefined, this._robot);
+			adjustTiming = adjustTiming || (passShootTime - World.Time > 0.5);
+		}
+		if (adjustTiming && !timeRunningOut) {
 			let suggestion = this._messaging.receive(MessageType.passSuggestion).get(pass.target!);
 			if (suggestion && suggestion.ballPos.distanceTo(pass.ballPos) < 0.01) {
 				let bufferTime = 0.1;
