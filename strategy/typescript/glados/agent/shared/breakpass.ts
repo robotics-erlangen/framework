@@ -1,3 +1,4 @@
+import * as Constants from "base/constants";
 import * as debug from "base/debug";
 import * as Field from "base/field";
 import * as Referee from "base/referee";
@@ -53,6 +54,13 @@ export class BreakPass extends Behavior {
 		// moveDest is to close to friendly defense area
 		if (moveDest.y < -World.Geometry.FieldHeightQuarter) {
 			debug.set("breakpass check", "moveDest is to close to our defense area");
+			return false;
+		}
+
+		// moveDest is too close to opposing defense area
+		if (moveDest.y > World.Geometry.FieldHeightHalf - World.Geometry.DefenseHeight - 4 * Constants.maxRobotRadius
+			&& Math.abs(moveDest.x) < World.Geometry.DefenseWidthHalf + 4 * Constants.maxRobotRadius) {
+			debug.set("breakpass check", "moveDest is to close to opposing defense area");
 			return false;
 		}
 
