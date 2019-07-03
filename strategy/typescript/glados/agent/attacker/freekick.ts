@@ -197,8 +197,13 @@ export class FreeKick extends Behavior {
 		if (this._state === State.Pass) {
 			let passSuggestion = this._messaging.receive(MessageType.passSuggestion).get(pass.target!);
 			if (passSuggestion && passSuggestion.ballPos === pass.ballPos) {
-				if (pass.time < passSuggestion.time) {
-					pass.time = passSuggestion.time;
+				let timeDiff = passSuggestion.time - Referee.lastStateChangeTime() - Shoot.ballPassTime(World.Ball.pos, pass.ballPos, pass.target, undefined, this._robot);
+				if (pass.time < passSuggestion.time && timeDiff < MAX_TIMEFRAME) {
+					if (timeDiff < MAX_TIMEFRAME) {
+						pass.time = passSuggestion.time;
+					} else {
+						this._state = State.Wait; // this pass will exceed the time we have for an freekick
+					}
 				}
 			}
 		}
