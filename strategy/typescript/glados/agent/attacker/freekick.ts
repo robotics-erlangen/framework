@@ -184,7 +184,11 @@ export class FreeKick extends Behavior {
 				let newPass = Attack.choosePassFromSuggestions(this._robot, this._messaging.receive(MessageType.passSuggestion),
 						pass.ballPos, false, hysteresis)[0];
 				if (newPass != undefined && newPass.ballPos.distanceTo(pass.ballPos) > 0.2) {
-					this._state = State.Wait; // wait state will deal with setting up a new pass
+					// check if the pass is valid, i.e. in time.
+					let timeDiff = newPass.time - Referee.lastStateChangeTime() - Shoot.ballPassTime(World.Ball.pos, newPass.ballPos, newPass.target, undefined, this._robot);
+					if (timeDiff < MAX_TIMEFRAME) {
+						this._state = State.Wait; // wait state will deal with setting up a new pass
+					}
 				}
 			}
 		}
