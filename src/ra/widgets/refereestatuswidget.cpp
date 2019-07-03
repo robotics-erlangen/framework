@@ -47,6 +47,20 @@ QString RefereeStatusWidget::formatTime(int time)
 
 QString RefereeStatusWidget::gameEvent2019Message(const gameController::GameEvent &event)
 {
+    QString autorefsString;
+    if (event.origin_size() > 0) {
+        autorefsString = "[";
+        for (const auto &ref : event.origin()) {
+            autorefsString += QString::fromStdString(ref);
+        }
+        autorefsString += "]";
+
+    }
+    if (event.has_bot_crash_unique()) {
+        const auto &e = event.bot_crash_unique();
+        return QString("%1 %2 crashed into %3 %4 %5").arg(e.by_team() == gameController::BLUE ? "blue" : "yellow")
+                .arg(e.violator()).arg(e.by_team() == gameController::BLUE ? "yellow" : "blue").arg(e.victim()).arg(autorefsString);
+    }
     QString byTeamString = "unknown", kickingTeamString = "unknown";
     unsigned int botId = 99;
 
@@ -131,7 +145,7 @@ QString RefereeStatusWidget::gameEvent2019Message(const gameController::GameEven
     if (result.contains('%')) {
         result = result.arg(kickingTeamString);
     }
-    return result;
+    return result + " " + autorefsString;
 }
 
 QString RefereeStatusWidget::gameEventMessage(const SSL_Referee_Game_Event &event)
