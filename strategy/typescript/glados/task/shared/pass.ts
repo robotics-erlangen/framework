@@ -103,7 +103,8 @@ export class Pass extends Task {
 
 		if (!this._chipOverride) {
 			let lockTime = World.Ball.speed.length() > 0.5 ? 0.3 : 0.1;
-			let lockDecision = this._chip != undefined && attackTime != undefined && attackTime < World.Time + lockTime;
+			let lockDecision = this._chip != undefined && attackTime != undefined && attackTime < World.Time + lockTime
+				&& !Referee.isFriendlyFreeKickState();
 			if (!lockDecision) {
 				let corridor = ObserverShoot.evaluatePassCorridor(attackPosition,
 					this._targetPos, CHIP_PASS_DISTANCE_FACTOR, isFreekickLike);
