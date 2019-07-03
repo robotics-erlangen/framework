@@ -120,7 +120,8 @@ export class CenterBack extends Task {
 			< 4 * this._robot.radius + UtilDefense.centerBackDistanceToDefenseArea() + 0.05;
 
 		this._obstacleTable.ignoreFriendlyRobots = Field.distanceToFriendlyDefenseArea(this._robot.pos, this._robot.radius)
-			< 2 * this._robot.radius + UtilDefense.centerBackDistanceToDefenseArea() + 0.05;
+			< 2 * this._robot.radius + UtilDefense.centerBackDistanceToDefenseArea() + 0.05
+			&& this._robot.pos.distanceTo(destinationPos) < 0.5;
 		this._obstacleTable.ignorePass = this._obstacleTable.ignoreFriendlyRobots;
 		this._obstacleTable.ignoreBall = this._obstacleTable.ignoreFriendlyRobots;
 		let trajModule = (this._obstacleTable.ignoreOpponentRobots) ? CurvedMaxAccel : ToTarget;
