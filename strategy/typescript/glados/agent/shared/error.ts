@@ -14,7 +14,8 @@ const EXCHANGE_ERROR_ROBOTS_SPEED = false;
 
 export class Error extends Behavior {
 	check(): boolean {
-		let errorTable = ErrorObserver.getErrorTable(this._robot);
+		return false;
+		/*let errorTable = ErrorObserver.getErrorTable(this._robot);
 		if (this._active && World.RefereeState === "Stop") {
 			return true;
 		} else if (this._active && ErrorObserver.getSpeedErrorCount(this._robot) > 100) {
@@ -51,7 +52,7 @@ export class Error extends Behavior {
 				}
 			}
 		}
-		return false;
+		return false;*/
 	}
 
 	start() {
