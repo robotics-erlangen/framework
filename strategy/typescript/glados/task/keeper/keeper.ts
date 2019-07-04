@@ -151,8 +151,11 @@ export class Keeper extends Task {
 				Field.isInFriendlyDefenseArea(this._robot.pos, this._robot.radius)) {
 			// nearest pos on the ball trajectory
 			moveTo = this._robot.pos.nearestPosOnLine(atkPos, atkPos + atkDir);
-			// prevent moving into the goal
-			if (moveTo.y < defenseLineStart.y) {
+			if (Referee.isOpponentPenaltyState()) {
+				// during penalty the keeper has to touch the goalline
+				moveTo = intersectPos;
+			} else if (moveTo.y < defenseLineStart.y) {
+				// prevent moving into the goal
 				moveTo = intersectPos;
 			}
 
