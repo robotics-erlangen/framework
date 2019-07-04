@@ -170,11 +170,15 @@ export class TrajectoryPath extends TrajectoryHandler {
 			this._robot.angularSpeed, targetDir, rotAccelerate, rotBrake, rotMaxSpeed, rotationExponentialTime);
 
 		// finish and return trajectory
-		let queryTime = 0.001;
+		let queryTime = 0.08;
+		let testSpeed = TrajectoryPath.speedAtTime(queryTime, trajectory);
+		if (robotSpeed.length() > testSpeed.length()) {
+			queryTime = 0.03;
+		}
 		if (robotPos.distanceTo(targetPos) < 0.1) {
 			queryTime = 0.1;
 		} else {
-			const QUERY_OFFSET = 0.2;
+			const QUERY_OFFSET = 0.3;
 			let nextSpeed = TrajectoryPath.speedAtTime(QUERY_OFFSET, trajectory);
 
 			let slowSpeedLimit = this.slowSpeedHysteresis ? 0.4 : 0.2;
