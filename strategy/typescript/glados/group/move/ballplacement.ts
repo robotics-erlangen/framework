@@ -69,7 +69,7 @@ export class BallPlacement extends Move {
 	private _stateChanged: boolean = true;
 	private _stateChangeTime: number = World.Time;
 
-	private _ballStartPos: Position = World.Ball.pos;
+	private _ballStartPos: Position = BallObserver.getRealisticBallPos();
 	private _ballTeleportTime: number | undefined;
 
 	private _ballReceiverIntersects: boolean = false;
@@ -108,8 +108,8 @@ export class BallPlacement extends Move {
 		const SHOOTER_OBSTACLES = [
 			{
 				type: "circle",
-				x: World.Ball.pos.x,
-				y: World.Ball.pos.y,
+				x: BallObserver.getRealisticBallPos().x,
+				y: BallObserver.getRealisticBallPos().y,
 				radius: World.Ball.radius,
 				name: "g/m/ballplacement Ball"
 			},
@@ -162,7 +162,7 @@ export class BallPlacement extends Move {
 				};
 				taskAssignments[this.SHOOTER] = {
 					class: PlaceBall,
-					params: [ Field.limitToField(World.Ball.pos, -TOLERANCE) ],
+					params: [ Field.limitToField(BallObserver.getRealisticBallPos(), -TOLERANCE) ],
 					restart: this._stateChanged
 				};
 
@@ -210,26 +210,26 @@ export class BallPlacement extends Move {
 				this.RECEIVER.setDribblerSpeed(MAX_DRIBBLER_SPEED);
 
 				let ballSpeed = World.Ball.speed;
-				let [intersection, ballLambda] = geom.intersectLineLine(World.Ball.pos, ballSpeed, this.RECEIVER.pos, ballSpeed.perpendicular());
+				let [intersection, ballLambda] = geom.intersectLineLine(BallObserver.getRealisticBallPos(), ballSpeed, this.RECEIVER.pos, ballSpeed.perpendicular());
 				this._ballReceiverIntersects = ballLambda != undefined && ballLambda > 0;
 
 				// We don't want to receive a pass out of field because setback may not be possible there
 				if (intersection == undefined || !Field.isInField(intersection)) {
-					intersection = Field.nextLineCut(World.Ball.pos, ballSpeed) || World.Ball.pos;
+					intersection = Field.nextLineCut(BallObserver.getRealisticBallPos(), ballSpeed) || BallObserver.getRealisticBallPos();
 				}
 
-				vis.addPath("g/m/ballplacement", [ this.RECEIVER.pos, intersection, World.Ball.pos ], vis.colors.red);
+				vis.addPath("g/m/ballplacement", [ this.RECEIVER.pos, intersection, BallObserver.getRealisticBallPos() ], vis.colors.red);
 
 				// Stop moving if the ball is near the receiver
 				// We don't use halt because Halt could possibly stop the dribbler from spinning
-				if (World.Ball.pos.distanceTo(this.RECEIVER.pos) < World.Ball.radius + this.RECEIVER.shootRadius + 0.1) {
+				if (BallObserver.getRealisticBallPos().distanceTo(this.RECEIVER.pos) < World.Ball.radius + this.RECEIVER.shootRadius + 0.1) {
 					taskAssignments[this.RECEIVER] = {
 						class: MoveToPos,
 						params: [ this.RECEIVER.pos, this._receiverBallDirection, undefined, undefined, undefined, undefined, true, true ],
 						restart: true
 					};
 				} else {
-					this._receiverBallDirection = (World.Ball.pos - this.RECEIVER.pos).angle();
+					this._receiverBallDirection = (BallObserver.getRealisticBallPos() - this.RECEIVER.pos).angle();
 					taskAssignments[this.RECEIVER] = {
 						class: MoveToPos,
 						params: [ intersection, undefined, undefined, undefined, undefined, undefined, true ],
@@ -256,7 +256,7 @@ export class BallPlacement extends Move {
 				}
 				taskAssignments[this.SHOOTER] = { class: MoveToPos, params: [this._selectedEvadingPos] };
 				if (this._stateChanged) {
-					this._computedReceiverPos = this.RECEIVER.pos + (this.RECEIVER.pos - World.Ball.pos).setLength(2 * this.RECEIVER.radius);
+					this._computedReceiverPos = this.RECEIVER.pos + (this.RECEIVER.pos - BallObserver.getRealisticBallPos()).setLength(2 * this.RECEIVER.radius);
 				}
 				taskAssignments[this.RECEIVER] = {
 					class: MoveToPos,
@@ -364,7 +364,7 @@ export class BallPlacement extends Move {
 			}
 			case State.ACCEPT_PASS: {
 				nextState = State.ACCEPT_PASS;
-				let ballDist = World.Ball.pos.distanceTo(this.RECEIVER.pos);
+				let ballDist = BallObserver.getRealisticBallPos().distanceTo(this.RECEIVER.pos);
 				if (World.Ball.speed.length() < BALL_STOP_SPEED) {
 					nextState = ballDist > MAX_BALL_DISTANCE ? State.WAIT_FOR_BALL_STOP : State.WAIT_FOR_SET_BACK;
 				}
@@ -428,8 +428,8 @@ export class BallPlacement extends Move {
 	}
 
 	private _determinePositions() {
-		let offset = (World.Ball.pos - this._ballPlacementPos).setLength(this.RECEIVER.shootRadius + World.Ball.radius + 0.05);
-		this._computedShooterPos = World.Ball.pos + offset;
+		let offset = (BallObserver.getRealisticBallPos() - this._ballPlacementPos).setLength(this.RECEIVER.shootRadius + World.Ball.radius + 0.05);
+		this._computedShooterPos = BallObserver.getRealisticBallPos() + offset;
 		this._computedReceiverPos = this._ballPlacementPos - offset;
 	}
 }
