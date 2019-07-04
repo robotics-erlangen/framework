@@ -123,10 +123,11 @@ void LogWidget::handleStatus(const Status &status)
     if (status->has_game_state()) {
         const amun::GameState &game_state = status->game_state();
         if (game_state.has_game_event_2019()) {
-            QString text = RefereeStatusWidget::gameEvent2019Message(game_state.game_event_2019())+"</div>";
-            if (text != m_lastAutorefOutput) {
-                m_lastAutorefOutput = text;
-                text = fromTime(status->time(), QString("REF")) + text;
+            QString text = RefereeStatusWidget::gameEvent2019Message(game_state.game_event_2019());
+	    QString splittedText = text.split("[")[0];
+            if (splittedText != m_lastAutorefOutput) {
+                m_lastAutorefOutput = splittedText;
+                text = fromTime(status->time(), QString("REF")) + text + "</div>";
                 logAppend = text;
             }
         }
