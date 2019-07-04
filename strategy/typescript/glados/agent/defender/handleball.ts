@@ -57,6 +57,10 @@ export class HandleBall extends Behavior {
 			if (assignment !== undefined && assignment.name === "CenterBack") {
 				return true;
 			}
+			let cbGroup = this._messaging.receiveTrainer(MessageType.centerBackPosTarget);
+			if (cbGroup !== undefined) {
+				return true;
+			}
 		}
 
 		return false;
