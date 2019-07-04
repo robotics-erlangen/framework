@@ -71,8 +71,8 @@ export function switchSimulatorConstants(isSimulated: boolean) {
 		ballSwitchRatio = 0.69;
 	} else {
 
-		ballDeceleration = -0.3;
-		fastBallDeceleration = -2.5;
+		ballDeceleration = -0.55;
+		fastBallDeceleration = -4;
 		ballSwitchRatio = 0.6;
 	}
 }
