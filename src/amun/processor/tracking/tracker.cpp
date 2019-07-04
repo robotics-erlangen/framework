@@ -377,14 +377,6 @@ void Tracker::updateCamera(const SSL_GeometryCameraCalibration &c, QString sende
             || !c.has_derived_camera_world_tz()) {
         return;
     }
-    // remove any camera that has a distortion of 0 or 1
-    // these are impossible values that come from being the
-    // default (at least 0) in the vision software.
-    // This might happen when the camera ids are poorly
-    // calibrated in the vision when using multiple vision pcs
-    if (c.has_distortion() && (c.distortion() == 0.0f || c.distortion() == 1.0f)) {
-        return;
-    }
 
     auto lastSender = m_cameraInfo->cameraSender.find(c.camera_id());
     if (lastSender != m_cameraInfo->cameraSender.end() && *lastSender != sender) {
