@@ -14,15 +14,14 @@ export class MainTrainer extends Trainer {
 
 		this._defense = new Defense(this._messaging);
 		this._attackRatio = new AttackRatio(this._messaging);
+		this.fixAttackRatio();
 	}
 
-	attackRatio(): number {
+	fixAttackRatio() {
 		if (this._mode === "passive") {
-			return 0;
+			this._attackRatio.attackRatio = () => 0;
 		} else if (this._mode === "aggressive") {
-			return 8;
-		} else {
-			return this._attackRatio.attackRatio();
+			this._attackRatio.attackRatio = () => 8;
 		}
 	}
 
