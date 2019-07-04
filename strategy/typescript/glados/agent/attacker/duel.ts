@@ -28,6 +28,12 @@ export class Duel extends Behavior {
 	}
 
 	private genericCheck(): boolean {
+		// only duel while its rational to touch the ball
+		if (!Field.isInAllowedField(World.Ball.pos, 0)) {
+			debug.set("duel check", "allowed field");
+			return false;
+		}
+
 		// if we receive the ball first, try shootgoal or something
 		let receivesPass = Ball.receivesPass(this._robot);
 		if (receivesPass) {
