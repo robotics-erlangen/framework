@@ -197,7 +197,7 @@ export class Shoot {
 		}
 
 		// don't redecide if the ball is very close
-		if (this._state != undefined && futureBallTime < 0.3) {
+		if (this._state !== ShootState.Unknown && futureBallTime < 0.3) {
 			return this._state;
 		}
 
