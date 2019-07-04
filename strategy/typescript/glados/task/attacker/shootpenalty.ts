@@ -46,6 +46,9 @@ export class ShootPenalty extends Task {
 	private _shoot: Shoot;
 	private _rotateAndShoot: RotateAndShoot;
 
+	private collectedBallPosition: Position;
+	private ballCounter: number = 0;
+
 	constructor(agent: Agent) {
 		super(agent);
 		this._lookDir = "Right";
@@ -56,9 +59,20 @@ export class ShootPenalty extends Task {
 
 		this._shoot = new Shoot(this._robot, this._messaging, this.capturedSetMAParams());
 		this._rotateAndShoot = new RotateAndShoot(this._robot);
+
+		this.collectedBallPosition = World.Ball.pos;
+		this.ballCounter = 1;
 	}
 
 	run() {
+		if (World.Ball.isPositionValid() && World.Ball.detectionQuality > 0.4) {
+			this.collectedBallPosition += World.Ball.pos;
+			this.ballCounter += 1;
+		}
+
+		let assumedBallPos = this.collectedBallPosition / this.ballCounter;
+		vis.addCircle("assumed ball", assumedBallPos, 0.03, vis.colors.red);
+
 		const DIST_TO_BALL = 0.015;
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
 		if (this._targetPos == undefined) {
@@ -97,7 +111,7 @@ export class ShootPenalty extends Task {
 		} else {
 			vis.addCircle("t/shootpenalty: PenaltyTargetPos", this._targetPos, 0.02, vis.colors.blue, true);
 			if (this._cornerChange) {
-				this._rotateAndShoot._rotateAndShoot((this._targetPos - World.Ball.pos).angle());
+				this._rotateAndShoot._rotateAndShoot((this._targetPos - assumedBallPos).angle(), assumedBallPos);
 			} else {
 				this._shoot._shoot(this._targetPos, Infinity, undefined, undefined, shootErrorThreshold);
 			}
