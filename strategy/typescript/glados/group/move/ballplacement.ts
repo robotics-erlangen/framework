@@ -111,7 +111,7 @@ export class BallPlacement extends Move {
 				type: "circle",
 				x: BallObserver.getRealisticBallPos().x,
 				y: BallObserver.getRealisticBallPos().y,
-				radius: World.Ball.radius,
+				radius: 3 * World.Ball.radius,
 				name: "g/m/ballplacement Ball"
 			},
 			{
