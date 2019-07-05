@@ -1,4 +1,5 @@
 import { log } from "base/amun";
+import * as debug from "base/debug";
 import * as Field from "base/field";
 import * as GameController from "base/gamecontroller";
 import * as BaseRef from "base/referee";
@@ -107,33 +108,40 @@ export function getFoulingRobot(): Robot | undefined {
 
 export function shouldTakeAdvantage(): boolean {
 	if (ObsvBall.wasShot(1) && ObsvBall.ballHeadingForGoal(World.Ball, false)) {
+		debug.set("advantage check", "own goal shot");
 		return true;
 	}
 	if (ObsvBall.wasShot(1) && ObsvBall.ballHeadingForGoal(World.Ball, true)) {
+		debug.set("advantage check", "opponent goal shot");
 		return false;
 	}
 
 	const [minRobot] = ObsvBall.firstRobotAtBall(World.Robots);
 	if (minRobot && !minRobot.isFriendly) {
+		debug.set("advantage check", "opponent first");
 		return false;
 	}
 
 	const foulingRobot = getFoulingRobot();
 	const freeKickPos = foulingRobot ? foulingRobot.pos : undefined;
 	if (!freeKickPos) {
+		debug.set("advantage check", "no freekick pos");
 		return false;
 	}
 
 	const MAX_BALL_SPEED_SQ = 3 * 3;
 	if (World.Ball.speed.lengthSq() > MAX_BALL_SPEED_SQ) {
+		debug.set("advantage check", "fast ball");
 		return false;
 	}
 
 	const MAX_STEP_BACKWARDS = 2;
 	if (World.Ball.pos.y - freeKickPos.y > MAX_STEP_BACKWARDS) {
+		debug.set("advantage check", "big step backwards");
 		return true;
 	}
 
+	debug.set("advantage check", "default");
 	return false;
 }
 
