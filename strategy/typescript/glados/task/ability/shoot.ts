@@ -388,7 +388,7 @@ export class Shoot {
 		// don't look in the correct direction from the beginning
 		let distance = World.Ball.pos.distanceTo(futureBall.pos);
 		let ballTravelTime = Physics.ballTravelTime(World.Ball, distance);
-		if (this._robot.pos.distanceTo(moveDest) < 0.05 && ballTravelTime > Shoot.MIN_TIME) {
+		if (this._robot.pos.distanceTo(moveDest) < 0.05 && ballTravelTime > Shoot.MIN_TIME && ballTravelTime !== Infinity) {
 			let [clockwiseRotation, counterClockwiseRotation] = Physics.robotRotationRangeForTime(this._robot,
 					Shoot.DISTRACTION_PERCENTAGE * ballTravelTime);
 			let shootVector = targetPos - moveDest;
