@@ -142,7 +142,8 @@ export class ShootGoal extends Task {
 		let maxDistance = 0.75 * G.FieldHeight;
 		let minDistance = 0.25 * G.FieldHeight;
 		let distance = this._robot.pos.distanceTo(this._shootTargetPoint!);
-		let localTargetX = Rating.valueToRating(distance, maxDistance, minDistance) * this._shootTargetPoint!.x;
+		// TODO fix volley model
+		let localTargetX = (Rating.valueToRating(distance, maxDistance, minDistance) * (2 / 3)) * this._shootTargetPoint!.x;
 		this.localTarget = new Vector(localTargetX, this._shootTargetPoint!.y);
 
 		if (!this._desperate) {
