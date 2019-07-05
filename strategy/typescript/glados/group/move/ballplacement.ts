@@ -32,13 +32,14 @@ const enum State {
 // Tolerance according to the rules
 const TOLERANCE = 0.1;
 
-const ARRIVED_DISTANCE = 0.05;
+const ARRIVED_DISTANCE = 0.25;
 const BALL_STOP_SPEED = 0.2;
 const MAX_BALL_DISTANCE = 0.25;
 const FINE_ADJUST_ZONE = 1.5;
 const MAX_DRIBBLER_SPEED = 0.8;
-const SETBACK_WAIT_TIME = 0.4;
+const SETBACK_WAIT_TIME = 1.2;
 const PASS_TARGET_SPEED = 1;
+const SET_BACK_MIN_WAIT_TIME = 0.5;
 
 const SHOOTER_EVADING_POSITIONS = [
 	new Vector(0.5 * World.Geometry.FieldWidthHalf, 0.5 * World.Geometry.FieldHeightHalf),
@@ -139,7 +140,8 @@ export class BallPlacement extends Move {
 
 		switch (this._state) {
 			case State.WAIT_FOR_BALL_STOP: {
-				this._determinePositions();
+				let extraDistance = 0.05 + (Math.min(0.4, World.Ball.speed.length()) - BALL_STOP_SPEED);
+				this._determinePositions(extraDistance);
 				taskAssignments[this.RECEIVER] = {
 					class: MoveToPos,
 					params: [ this._computedReceiverPos, undefined, undefined, undefined, undefined, undefined, true ],
@@ -170,7 +172,7 @@ export class BallPlacement extends Move {
 			}
 			case State.GET_INTO_POSITION: {
 				this._mainAttacker = this.SHOOTER;
-				this._determinePositions();
+				this._determinePositions(0.15);
 				taskAssignments[this.RECEIVER] = {
 					class: MoveToPos,
 					params: [ this._computedReceiverPos, undefined, undefined, undefined, undefined, undefined, true ],
@@ -384,8 +386,10 @@ export class BallPlacement extends Move {
 			}
 			case State.SET_BACK: {
 				nextState = State.SET_BACK;
-				if (this.RECEIVER.pos.distanceTo(this._computedReceiverPos) < ARRIVED_DISTANCE) {
-					nextState = State.WAIT_FOR_BALL_STOP;
+				if (World.Time - this._stateChangeTime > SET_BACK_MIN_WAIT_TIME) {
+					if (this.RECEIVER.pos.distanceTo(this._computedReceiverPos) < ARRIVED_DISTANCE) {
+						nextState = State.WAIT_FOR_BALL_STOP;
+					}
 				}
 
 				break;
@@ -427,8 +431,8 @@ export class BallPlacement extends Move {
 		}
 	}
 
-	private _determinePositions() {
-		let offset = (BallObserver.getRealisticBallPos() - this._ballPlacementPos).setLength(this.RECEIVER.shootRadius + World.Ball.radius + 0.05);
+	private _determinePositions(extraDistance: number = 0.05) {
+		let offset = (BallObserver.getRealisticBallPos() - this._ballPlacementPos).setLength(this.RECEIVER.shootRadius + World.Ball.radius + extraDistance);
 		this._computedShooterPos = BallObserver.getRealisticBallPos() + offset;
 		this._computedReceiverPos = this._ballPlacementPos - offset;
 	}
