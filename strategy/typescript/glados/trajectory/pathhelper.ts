@@ -451,6 +451,9 @@ function addRobotObstacles(path: Path, robot: FriendlyRobot, ignoreFriendlyRobot
 			if (!ignoreRobot(robot, r)) {
 				// use speed difference to calculate the safety distance
 				let safetyDistance = Math.max(0, Rating.valueToRating(robot.speed.distanceTo(r.speed), 0, 1.25) * 0.15 - 0.05);
+				if (robot.speed.length() < 0.5) {
+					safetyDistance = Math.min(safetyDistance, 0.02);
+				}
 				if (disableOpponentPrediction) { // be more aggressive
 					safetyDistance = safetyDistance / 2;
 				} else if (robot.speed.length() < SLOW_ROBOT && r.speed.length() < SLOW_ROBOT) {
