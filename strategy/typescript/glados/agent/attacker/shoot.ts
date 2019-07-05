@@ -56,6 +56,7 @@ export class Shoot extends Behavior {
 	private _manualFlag: boolean = false;
 	private _prevTime: number = 0;
 	private _passFrames: number = 0;
+	private _decisionFrames: number = 0;
 
 	_stop() {
 		this._nextDecisionTime = World.Time;
@@ -77,6 +78,7 @@ export class Shoot extends Behavior {
 
 		this._manualFlag = false;
 		this._passFrames = 0;
+		this._decisionFrames = 0;
 	}
 
 	public check(): boolean {
@@ -120,6 +122,7 @@ export class Shoot extends Behavior {
 
 	private _decide(): Decision {
 		this._passFrames = 0;
+		this._decisionFrames = 0;
 		this._wasPressed = Robot.isPressed(this._robot);
 
 		// perform clean goal shots if possible
@@ -332,8 +335,9 @@ export class Shoot extends Behavior {
 		}
 
 		// redecide if the attackPosition changed a lot
+		// don't if it is the first frame after a suggestion, as this is a valid situation for CB to change the attack Position a lot
 		if (this._attackPosition && this._prevAttackPosition
-				&&  this._attackPosition.distanceTo(this._prevAttackPosition) > 0.3) {
+				&&  this._attackPosition.distanceTo(this._prevAttackPosition) > 0.3 && this._decisionFrames > 1) {
 			debug.set("redeciding", "TRUE (attackPosition)");
 			return true;
 		}
@@ -402,6 +406,7 @@ export class Shoot extends Behavior {
 			this._decision = this._decide();
 			this._nextDecisionTime = World.Time + 1.5;
 		}
+		this._decisionFrames++;
 
 		// visualize decision
 		if ((this._decision as any).pos != undefined) {
