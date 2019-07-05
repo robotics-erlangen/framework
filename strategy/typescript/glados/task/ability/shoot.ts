@@ -424,7 +424,8 @@ export class Shoot {
 
 	private _shootStopBall(futureBall: Physics.BallLike, futureBallTime: number) {
 		let ballOrigin = futureBall.pos - futureBall.speed;
-		let targetDir = (-futureBall.speed).angle();
+		// the future ball might be standing still, so use the current ball speed. The direction is the same
+		let targetDir = (-World.Ball.speed).angle();
 		this.targetRobotDir = targetDir;
 		let dribblerOffset = Vector.fromAngle(targetDir) * (this._robot.shootRadius + World.Ball.radius);
 		let moveDest = futureBall.pos - dribblerOffset;
