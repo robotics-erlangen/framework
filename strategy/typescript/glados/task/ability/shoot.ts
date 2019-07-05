@@ -261,7 +261,7 @@ export class Shoot {
 		let hasBallDistance;
 		let speedupFactor;
 
-		if (Referee.isFriendlyFreeKickState() || World.RefereeState === "BallPlacementOffensive") {
+		if (Referee.isFriendlyFreeKickState() || Referee.isFriendlyKickoffState() || World.RefereeState === "BallPlacementOffensive") {
 			maxSidewardsAngle = 30 * Math.PI / 180;
 			maxOrientationAngle = 2 * Math.PI / 180;
 			minCatchBallDistance = 0.01;
