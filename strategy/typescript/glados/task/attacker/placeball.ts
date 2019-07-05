@@ -15,6 +15,7 @@ import { Agent, Task } from "glados/task/base";
 import { CurvedMaxAccel } from "glados/trajectory/curvedmaxaccel";
 import { Direct } from "glados/trajectory/direct";
 import * as PathHelper from "glados/trajectory/pathhelper";
+import { ToTarget } from "glados/trajectory/totarget";
 
 const enum State {
 	WAIT_FOR_BALL_STOP	= "WAIT_FOR_BALL_STOP",
@@ -200,7 +201,7 @@ export class PlaceBall extends Task {
 			}
 			case State.GO_TO_PUSH: {
 				this._currentTargetPos = this._ball.pos + this._placementOffsetAverage;
-				this._robot.trajectory.update(CurvedMaxAccel, this._currentTargetPos, (-this._placementOffsetAverage).angle());
+				this._robot.trajectory.update(ToTarget, this._currentTargetPos, (-this._placementOffsetAverage).angle());
 				this._robotStartPos = this._currentTargetPos;
 
 				break;
