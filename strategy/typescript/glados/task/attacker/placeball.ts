@@ -201,7 +201,7 @@ export class PlaceBall extends Task {
 			}
 			case State.GO_TO_PUSH: {
 				this._currentTargetPos = this._ball.pos + this._placementOffsetAverage;
-				this._robot.trajectory.update(ToTarget, this._currentTargetPos, (-this._placementOffsetAverage).angle());
+				this._robot.trajectory.update(CurvedMaxAccel, this._currentTargetPos, (-this._placementOffsetAverage).angle());
 				this._robotStartPos = this._currentTargetPos;
 
 				break;
