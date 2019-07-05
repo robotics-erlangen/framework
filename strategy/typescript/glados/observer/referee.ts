@@ -106,6 +106,8 @@ export function getFoulingRobot(): Robot | undefined {
 	return undefined;
 }
 
+const NEAR_OPPONENT_DEFENSE = 1;
+
 export function shouldTakeAdvantage(): boolean {
 	if (ObsvBall.wasShot(1) && ObsvBall.ballHeadingForGoal(World.Ball, false)) {
 		debug.set("advantage check", "own goal shot");
@@ -114,6 +116,11 @@ export function shouldTakeAdvantage(): boolean {
 	if (ObsvBall.wasShot(1) && ObsvBall.ballHeadingForGoal(World.Ball, true)) {
 		debug.set("advantage check", "opponent goal shot");
 		return false;
+	}
+
+	if (Field.distanceToDefenseArea(ObsvBall.getRealisticBallPos(), World.Ball.radius, false) < NEAR_OPPONENT_DEFENSE) {
+		debug.set("advantage check", "close to opponent defense");
+		return true;
 	}
 
 	const [minRobot] = ObsvBall.firstRobotAtBall(World.Robots);
