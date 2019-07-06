@@ -38,15 +38,18 @@ let message: gameController.ControllerToTeam | undefined = undefined;
  */
 export function _update() {
 	message = undefined;
-	if (amunLocal.connectGameController()) {
-		if (state === "UNCONNECTED") {
-			state = "CONNECTED";
-			amunLocal.sendGameControllerMessage("TeamRegistration", { team_name: "ER-Force" });
-		}
+	if (World.TeamName === "ER-Force") {
+		if (amunLocal.connectGameController()) {
+			if (state === "UNCONNECTED") {
+				state = "CONNECTED";
+				amun.log("Connect to gameController");
+				amunLocal.sendGameControllerMessage("TeamRegistration", { team_name: "ER-Force" });
+			}
 
-		message = amunLocal.getGameControllerMessage();
-	} else {
-		state = "UNCONNECTED";
+			message = amunLocal.getGameControllerMessage();
+		} else {
+			state = "UNCONNECTED";
+		}
 	}
 }
 
