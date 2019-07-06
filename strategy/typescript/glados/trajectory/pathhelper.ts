@@ -21,6 +21,8 @@ let SEED_PREDICT_TIME = 0.5;
 
 export const Priorities = {
 	GOAL: 100,
+	STOP_EVACUATE_GOAL: 96,
+	STOP_DEFENSE_AREA: 95,
 	ROBOT: 92,
 	// The obstacle in t/a/shoot should have the same priority as the ball obstacle here
 	BALL: 84,
@@ -84,6 +86,7 @@ function addFriendlyDefenseAreaObstacle(path: Path, robot: FriendlyRobot) {
 function addOpponentDefenseAreaObstacle(path: Path, robot: FriendlyRobot, targetPosition: Position) {
 	// don't add obstacles for opponent defense area if the robot is in the friendly half
 	let oppDefAreaDist = Referee.isFriendlyFreeKickState() || Referee.isStopState() ? G.FreeKickDefenseDist + 0.05 : 0;
+	const priority = oppDefAreaDist === 0 ? Priorities.DEFENSE_AREA : Priorities.STOP_DEFENSE_AREA;
 	let defenseDistance = Math.min(Field.distanceToOpponentDefenseArea(robot.pos, robot.radius),
 		Field.distanceToOpponentDefenseArea(targetPosition, robot.radius));
 	let extraRadius = Math.min(defenseDistance - 0.05, robot.radius * 2 + 0.02);
@@ -97,14 +100,14 @@ function addOpponentDefenseAreaObstacle(path: Path, robot: FriendlyRobot, target
 					G.OpponentGoal.y - G.DefenseHeight - distance,
 					G.OpponentGoal.x + G.DefenseWidthHalf + distance,
 					G.OpponentGoal.y,
-					"DefenseArea", Priorities.DEFENSE_AREA);
+					"DefenseArea", priority);
 		} else {
 			path.addLine(G.OpponentGoal.x - G.DefenseStretch / 2, G.OpponentGoal.y,
 					G.OpponentGoal.x + G.DefenseStretch / 2, G.OpponentGoal.y,
-					G.DefenseRadius + POSITION_PADDING, "DefenseArea", Priorities.DEFENSE_AREA);
+					G.DefenseRadius + POSITION_PADDING, "DefenseArea", priority);
 		}
 		if (geom.insideRect(_GoalArea[0], _GoalArea[1], robot.pos) || Field.isInOpponentDefenseArea(robot.pos, robot.radius * 2)) {
-			path.addRect(_GoalArea[0].x, _GoalArea[0].y, _GoalArea[1].x, _GoalArea[1].y, "EvacuateGoal", Priorities.EVACUATE_GOAL);
+			path.addRect(_GoalArea[0].x, _GoalArea[0].y, _GoalArea[1].x, _GoalArea[1].y, "EvacuateGoal", priority === Priorities.DEFENSE_AREA ? Priorities.EVACUATE_GOAL : Priorities.STOP_EVACUATE_GOAL);
 		}
 	}
 }
