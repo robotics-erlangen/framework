@@ -77,6 +77,7 @@ export let IsReplay: boolean = false;
 export let MixedTeam: pb.ssl.TeamPlan | undefined = undefined;
 export let SelectedOptions = undefined;
 
+export let TeamName: string = "";
 /**
  * current refereestate, can be one of these:
  * Halt, Stop, Game, GameForce,
@@ -479,6 +480,7 @@ function _updateGameState(state: pb.amun.GameState) {
 	}
 	FriendlyRedCards = friendlyTeamInfo.red_cards;
 	OpponentRedCards = opponentTeamInfo.red_cards;
+	TeamName = friendlyTeamInfo.name;
 }
 
 /** update and handle user inputs set for own robots */
