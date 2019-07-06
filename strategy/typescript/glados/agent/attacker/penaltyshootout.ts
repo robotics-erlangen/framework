@@ -184,7 +184,7 @@ export class PenaltyShootout extends Behavior {
 			debug.pop();
 
 			if (this._shootGoalFlag  ||  criteriaPos  ||  criteriaTime  ||  // criteriaAngle ||
-					(weight != undefined && ellipticDistance(this._robot, this._ball.pos) < this._ball.radius + 0.02)) {
+					(weight !== false && ellipticDistance(this._robot, this._ball.pos) < this._ball.radius + 0.02)) {
 				this._shootGoalFlag = true;
 			}
 		} else {
