@@ -219,6 +219,12 @@ export class Duel extends Task {
 														defenseIntersectionRadius, false)[0];
 				moveDest = opponentDefenseIntersection || moveDest;
 			}
+			if (closestOpponentRobot && moveDest.distanceToSq(closestOpponentRobot.pos) < this._robot.shootRadius * this._robot.shootRadius * 2 * 2) {
+				let res = geom.intersectLineCircle(moveDest, intersectionDefenseArea - moveDest, closestOpponentRobot.pos, 2 * this._robot.shootRadius)[0];
+				if (res) {
+					moveDest = res;
+				}
+			}
 			moveDest = UtilDefense.fastestPointInInterval(this._robot, moveDest, intersectionDefenseArea,
 							this._oldPosition, BLOCK_POS_PRECISION, BLOCK_POS_ALPHA);
 		} else {
