@@ -11,7 +11,7 @@ import * as World from "base/world";
 
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
-import { ellipticDistance } from "glados/observer/ball";
+import { ellipticDistance, getRealisticBallPos  } from "glados/observer/ball";
 import * as Goal from "glados/observer/goal";
 import * as Physics from "glados/observer/physics";
 import * as ORobot from "glados/observer/robot";
@@ -65,7 +65,7 @@ export class PenaltyShootout extends Behavior {
 	private _addPos: Position = new Vector(0, 0);
 	private _state: string | undefined;
 	private _futureKeeper: {pos: Position, speed: Speed, radius: number} = {pos: G.OpponentGoal, speed: new Vector(0,0.1), radius: 0.09};
-	private _ball = {pos : World.Ball.pos, speed : World.Ball.speed, radius : World.Ball.radius, time : World.Time, maxSpeed: 0, quality : 1};
+	private _ball = {pos : getRealisticBallPos(), speed : World.Ball.speed, radius : World.Ball.radius, time : World.Time, maxSpeed: 0, quality : 1};
 	private _dribblePos: Position | undefined = undefined;
 	private _shootPos: Position = G.OpponentGoal;
 
@@ -80,7 +80,7 @@ export class PenaltyShootout extends Behavior {
 		this._addPos = new Vector(0, 0);
 		this._state = undefined;
 		this._futureKeeper = {pos: G.OpponentGoal, speed: new Vector(0,0.1), radius: 0.09};
-		this._ball = {pos : World.Ball.pos, speed : World.Ball.speed, radius : World.Ball.radius, time : World.Time, maxSpeed: 0, quality : 1};
+		this._ball = {pos : getRealisticBallPos(), speed : World.Ball.speed, radius : World.Ball.radius, time : World.Time, maxSpeed: 0, quality : 1};
 		this._dribblePos = undefined;
 	}
 
@@ -100,7 +100,7 @@ export class PenaltyShootout extends Behavior {
 			this._contactPoint = this._robot.pos;
 			this._changeContact = true;
 		} else if (this._contactPoint != undefined &&
-				World.Ball.pos.distanceTo(this._robot.pos) > DRIBBLING_DISTANCE + this._robot.radius + World.Ball.radius) {
+				getRealisticBallPos().distanceTo(this._robot.pos) > DRIBBLING_DISTANCE + this._robot.radius + World.Ball.radius) {
 			this._contactPoint = undefined;
 			this._changeContact = true;
 		} else {
@@ -151,7 +151,7 @@ export class PenaltyShootout extends Behavior {
 			this._futureKeeper = {pos : World.OpponentKeeper.pos, speed: World.OpponentKeeper.speed, radius : World.OpponentKeeper.radius};
 		}
 		let lastContact = this._contactPoint;
-		let addDistance = lastContact ? Math.max(0, lastContact.distanceTo(World.Ball.pos) - 0.5) * 3 : 0.2;
+		let addDistance = lastContact ? Math.max(0, lastContact.distanceTo(getRealisticBallPos()) - 0.5) * 3 : 0.2;
 			this._futureKeeper.pos = this._futureKeeper.pos + (World.OpponentKeeper || this._futureKeeper).speed * 0.4;
 		if (this._state === "pass") {
 			this._futureKeeper.pos = this._futureKeeper.pos + (this._robot.pos - this._futureKeeper.pos).setLength(this._robot.speed.length() / 3);
@@ -165,7 +165,7 @@ export class PenaltyShootout extends Behavior {
 			debug.set("timeSinceStart", timeSinceStart);
 			debug.pop();
 
-			let ballPosY = World.Ball.pos.y;
+			let ballPosY = getRealisticBallPos().y;
 			let distanceToGoalLine = (World.RULEVERSION === "2017" ? G.DefenseRadius : G.DefenseHeight) + DISTANCE_TO_DEFENSE_AREA;
 			let criticalMark = G.FieldHeightHalf - distanceToGoalLine;
 			let criteriaPos = ballPosY + addDistance > criticalMark;
@@ -206,7 +206,7 @@ export class PenaltyShootout extends Behavior {
 		debug.set(".ballVisible", World.Ball.isPositionValid());
 		debug.set(".ballQuality", String(World.Ball.detectionQuality));
 		if (World.Ball.isPositionValid()) {
-			if (robotPos.distanceToSq(World.Ball.pos) < minDistance * minDistance || quality < 0) {
+			if (robotPos.distanceToSq(getRealisticBallPos()) < minDistance * minDistance || quality < 0) {
 				if (ellipticDistance(robot, ball.pos) < ball.radius + 0.01) {
 					let dribblerPos = robotPos + Vector.fromAngle(robot.dir).scaleLength(robot.shootRadius + ball.radius);
 					let a = 0.9;
@@ -220,7 +220,7 @@ export class PenaltyShootout extends Behavior {
 				ball.pos = ball.speed * (t_now - ball.time) + ballPos;
 				ball.quality = World.Ball.detectionQuality * 0.5 + ball.quality * 0.5;
 			} else {
-				ball.pos = World.Ball.pos;
+				ball.pos = getRealisticBallPos();
 				ball.speed = World.Ball.speed;
 				ball.quality = World.Ball.detectionQuality;
 			}
