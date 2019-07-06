@@ -80,14 +80,14 @@ export class Duel extends Task {
 		let intersection = geom.intersectLineLine(
 				this._robot.pos, toOpponentDir, World.Geometry.FriendlyGoal, new Vector(1, 0))[0];
 		let ccw = intersection ? -MathUtil.sign(intersection.x) : -1; // negative = ccw, positive = cw
-		let toBall = World.Ball.speed + (World.Ball.pos - this._robot.pos).setLength(0.4);
+		let toBall = World.Ball.speed + (Ball.getRealisticBallPos() - this._robot.pos).setLength(0.4);
 		this._robot.setDribblerSpeed(0.8);
 		this._robot.trajectory.update(Direct, toBall, undefined, ccw * 2 * Math.PI); // 1 turn per second
 	}
 
 	private _contestPush() {
-		let viewDir = (World.Ball.pos - World.Geometry.FriendlyGoal).angle();
-		let destinationPos = World.Ball.pos - Vector.fromAngle(viewDir) * this._robot.shootRadius;
+		let viewDir = (Ball.getRealisticBallPos() - World.Geometry.FriendlyGoal).angle();
+		let destinationPos = Ball.getRealisticBallPos() - Vector.fromAngle(viewDir) * this._robot.shootRadius;
 		let obstacleTable = {
 			ignoreBall: true,
 			messaging: this._messaging,
@@ -99,8 +99,8 @@ export class Duel extends Task {
 	}
 
 	private _contest() {
-		this._rotating = this._rotating && World.Ball.pos.y > -World.Geometry.FieldHeightHalf / 3
-			||  World.Ball.pos.y > -World.Geometry.FieldHeightHalf / 6;
+		this._rotating = this._rotating && Ball.getRealisticBallPos().y > -World.Geometry.FieldHeightHalf / 3
+			||  Ball.getRealisticBallPos().y > -World.Geometry.FieldHeightHalf / 6;
 
 		if (this._rotating) {
 			this._contestRotate();
@@ -108,14 +108,14 @@ export class Duel extends Task {
 			this._contestPush();
 		}
 
-		if (this._robot.dir > 0 && this._robot.dir < Math.PI && World.Ball.pos.y > 0.2
+		if (this._robot.dir > 0 && this._robot.dir < Math.PI && Ball.getRealisticBallPos().y > 0.2
 				&&  !ObserverRobot.hadBall(<Robot> this._opposer, 0)) {
 			this._robot.shoot(7.5);
 		}
 
 		// send the position of the ball
 		if (this._isMainAttacker) {
-			this._messaging.sendBroadcast(MessageType.attackPosition, World.Ball.pos);
+			this._messaging.sendBroadcast(MessageType.attackPosition, Ball.getRealisticBallPos());
 		}
 		this._checkBlockingBall();
 	}
@@ -205,7 +205,7 @@ export class Duel extends Task {
 		let minTime = Math.min(moveTime, shortestTimeToBall);
 
 		if (minTime === Infinity) {
-			this._futureBall = World.Ball.pos;
+			this._futureBall = Ball.getRealisticBallPos();
 		}
 		let viewDir = (futureBall - this._robot.pos).angle();
 
@@ -240,7 +240,7 @@ export class Duel extends Task {
 			}
 		}
 
-		let ignoreOpponents = World.Ball.pos.distanceTo(this._robot.pos) < World.Ball.radius + 2 * this._robot.radius + 0.1;
+		let ignoreOpponents = Ball.getRealisticBallPos().distanceTo(this._robot.pos) < World.Ball.radius + 2 * this._robot.radius + 0.1;
 		let obstacleTable = {
 			ignoreBall: this._blockingBall,
 			messaging: this._messaging,
