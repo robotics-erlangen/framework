@@ -5,8 +5,8 @@ import * as Physics from "glados/observer/physics";
 import { CatchBall } from "glados/task/ability/catchball";
 import { SuggestPass } from "glados/task/ability/suggestpass";
 import { Agent, Task } from "glados/task/base";
+import { CurvedMaxAccel } from "glados/trajectory/curvedmaxaccel";
 import * as PathHelper from "glados/trajectory/pathhelper";
-import { ToTarget } from "glados/trajectory/totarget";
 
 // Warning: This task has some very strict precoditions.
 // 1. It will only work if you have the ball in the dribbler at the start
@@ -47,7 +47,7 @@ export class Dribble extends Task {
 			time = catchTime + Physics.robotTimeToPos(this._robot, this._pos, new Vector(0, 0))[0];
 		} else {
 			let endSpeed = (this._pos - this._robot.pos).setLength(this._endSpeedLength);
-			time = this._robot.trajectory.update(ToTarget, this._pos, this._dir, 1.0, endSpeed, undefined, true)[1];
+			time = this._robot.trajectory.update(CurvedMaxAccel, this._pos, this._dir, 1.0, endSpeed, undefined, true)[1];
 		}
 
 

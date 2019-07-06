@@ -22,6 +22,7 @@ import { PenaltyChip } from "glados/task/attacker/penaltychip";
 // import { PenaltyShootout as Pass } from "glados/task/attacker/penaltyshootout";
 import { PenaltyShootoutGoal as ShootGoal } from "glados/task/attacker/penaltyshootoutgoal";
 import { StopAttack } from "glados/task/attacker/stopattack";
+import { MoveToPos } from "glados/task/shared/movetopos";
 
 
 let G = World.Geometry;
@@ -233,7 +234,8 @@ export class PenaltyShootout extends Behavior {
 
 	_updateTask() : TaskAssignment<typeof ShootGoal> | TaskAssignment<typeof MoveToStaticBall> |
 			TaskAssignment<typeof MoveToBall> | TaskAssignment<typeof StopAttack> |
-			TaskAssignment<typeof PenaltyChip> | TaskAssignment<typeof Dribble> {
+			TaskAssignment<typeof PenaltyChip> | TaskAssignment<typeof Dribble> |
+			TaskAssignment<typeof MoveToPos> {
 		this._updateBall();
 		this._updateDribbling();
 		this._updateShootGoal();
@@ -256,7 +258,9 @@ export class PenaltyShootout extends Behavior {
 		if (World.RefereeState === "PenaltyOffensivePrepare") {
 			return [MoveToStaticBall, [Math.PI / 2, 0.1]];
 		} else if (distanceToContact > 1 - 0.05) {
-			return [StopAttack];
+			// return [StopAttack];
+			return [ MoveToPos, [World.Ball.pos - new Vector(0, 0.5), (new Vector(0, -1)).angle(),
+				undefined, undefined, undefined, undefined, undefined, undefined, true]];
 		} else if (chipMode !== false) {
 			debug.set("chipMode", chipMode);
 			return [PenaltyChip, [this._ball, chipMode]];

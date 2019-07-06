@@ -3,6 +3,7 @@ import * as World from "base/world";
 
 import { SuggestPass } from "glados/task/ability/suggestpass";
 import { Agent, Task } from "glados/task/base";
+import { CurvedMaxAccel } from "glados/trajectory/curvedmaxaccel";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
 
@@ -50,13 +51,14 @@ export class MoveToPos extends Task {
 	private _obstacleTable: PathHelper.PathHelperParameters;
 	private _customObstacles: Obstacle[];
 	private _suggestPass: SuggestPass | undefined;
+	private useCMA: boolean;
 
 	// customObstacles is a table of obstacle tables
 	// An obstacle table contains a string field called type and parameters relevant for Path:addX
 	// Type can be "circle", "line", "rect" and "triangle"
 	constructor(agent: Agent, pos: Position, dir: number = (World.Ball.pos - pos).angle(), suggestPass: boolean = false,
 			endSpeedLength: number = 0, ignoreDefaultObstacles: boolean = false, customObstacles: Obstacle[] = [],
-			ignoreBallPlacement: boolean = false, ignoreBall: boolean = false) {
+			ignoreBallPlacement: boolean = false, ignoreBall: boolean = false, useCMA: boolean = false) {
 		super(agent);
 		this._pos = pos;
 		this._dir = dir;
@@ -76,6 +78,7 @@ export class MoveToPos extends Task {
 		if (suggestPass) {
 			this._suggestPass = new SuggestPass(this._robot, this._messaging);
 		}
+		this.useCMA = useCMA;
 	}
 
 	public run() {
@@ -86,7 +89,12 @@ export class MoveToPos extends Task {
 		}
 
 		let endSpeed = (this._pos - this._robot.pos).setLength(this._endSpeedLength);
-		let time = this._robot.trajectory.update(ToTarget, this._pos, this._dir, undefined, endSpeed)[1];
+		let time;
+		if (this.useCMA) {
+			time = this._robot.trajectory.update(CurvedMaxAccel, this._pos, this._dir, undefined, endSpeed)[1];
+		} else {
+			time = this._robot.trajectory.update(ToTarget, this._pos, this._dir, undefined, endSpeed)[1];
+		}
 
 		if (this._suggestPass != undefined) {
 			this._suggestPass._suggestPassRobotPosition(this._pos, undefined, time);
