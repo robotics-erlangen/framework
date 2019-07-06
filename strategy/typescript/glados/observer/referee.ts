@@ -118,7 +118,8 @@ export function shouldTakeAdvantage(): boolean {
 		return false;
 	}
 
-	if (Field.distanceToDefenseArea(ObsvBall.getRealisticBallPos(), World.Ball.radius, false) < NEAR_OPPONENT_DEFENSE) {
+	if (Field.distanceToDefenseArea(ObsvBall.getRealisticBallPos(), World.Ball.radius, false) < NEAR_OPPONENT_DEFENSE
+			&& Field.isInAllowedField(ObsvBall.getRealisticBallPos(), 0)) {
 		debug.set("advantage check", "close to opponent defense");
 		return true;
 	}
