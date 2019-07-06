@@ -3,8 +3,8 @@ import * as World from "base/world";
 
 import { MessageType } from "glados/control/messaging";
 import { Agent, Task } from "glados/task/base";
+import { CurvedMaxAccel as ToTarget } from "glados/trajectory/curvedmaxaccel";
 import * as PathHelper from "glados/trajectory/pathhelper";
-import { ToTarget } from "glados/trajectory/totarget";
 
 
 export class MoveToStaticBall extends Task {
