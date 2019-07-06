@@ -175,6 +175,7 @@ export class TrajectoryPath extends TrajectoryHandler {
 		if (robotSpeed.length() > testSpeed.length()) {
 			queryTime = 0.03;
 		}
+		let startDriving = false;
 		if (robotPos.distanceTo(targetPos) < 0.1) {
 			queryTime = 0.1;
 		} else {
@@ -186,10 +187,16 @@ export class TrajectoryPath extends TrajectoryHandler {
 			if (nextSpeed.length() > startSpeed.length() + 0.02 && robotSpeed.length() < slowSpeedLimit) {
 				queryTime = QUERY_OFFSET;
 				this.slowSpeedHysteresis = true;
+				startDriving = true;
 			}
 		}
 		let speed = TrajectoryPath.speedAtTime(queryTime, trajectory);
 		let acc = TrajectoryPath.accAtTime(queryTime, trajectory);
+		if (startDriving) {
+			speed *= 1.5;
+			acc *= 1.5;
+			vis.addCircle("Position Control", this._robot.pos, 0.2, vis.colors.red);
+		}
 
 		if (usePositionControl) {
 			let posDiff = this.positionPID.update(futureStartPos - robotPos);
