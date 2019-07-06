@@ -466,7 +466,9 @@ function addRobotObstacles(path: Path, robot: FriendlyRobot, ignoreFriendlyRobot
 					path.addLine(r.pos.x, r.pos.y, estimatedPosition.x, estimatedPosition.y,
 							r.radius + safetyDistance, `OwnRobot_${r.id}`, Priorities.ROBOT);
 					// path.addAvoidanceLine(estimatedPosition, r.pos + (estimatedPosition - r.pos) * 2, r.radius * 2, 1.2);
-					path.addMovingCircle(0, 0.8, r.pos, r.speed, new Vector(0, 0), r.radius + safetyDistance, Priorities.ROBOT);
+					if (robot.speed.length() > 0.5) {
+						path.addMovingCircle(0, 0.8, r.pos, r.speed, new Vector(0, 0), r.radius + safetyDistance, Priorities.ROBOT);
+					}
 				} else {
 					path.addCircle(r.pos.x, r.pos.y, r.radius + safetyDistance, `OwnRobot_${r.id}`, Priorities.ROBOT);
 				}
