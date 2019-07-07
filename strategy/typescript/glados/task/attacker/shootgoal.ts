@@ -35,6 +35,7 @@ export class ShootGoal extends Task {
 	private _lastReceivesPassTime: number = 0;
 	private alreadyTouchedBall: boolean = false;
 	private isFirstFrame: boolean = true;
+	private _forceFast: boolean;
 
 	// last frames shoot information
 	private lastWasChip: boolean = false;
@@ -45,11 +46,12 @@ export class ShootGoal extends Task {
 
 	private _shoot: Shoot;
 
-	constructor(agent: Agent, ballReceiptPos?: Position, forceDesperate: boolean = false) {
+	constructor(agent: Agent, ballReceiptPos?: Position, forceDesperate: boolean = false, forceFast: boolean = false) {
 		super(agent);
 		this._desperate = forceDesperate;
 
 		this._ballReceiptPos = ballReceiptPos;
+		this._forceFast = forceFast;
 
 		this._shoot = new Shoot(this._robot, this._messaging, this.capturedSetMAParams());
 	}
@@ -57,6 +59,10 @@ export class ShootGoal extends Task {
 	private _lockTarget(ballReceiptPos?: Position): boolean {
 		if (this._shootTargetPoint == undefined) {
 			return false;
+		}
+
+		if (this._forceFast) {
+			return true;
 		}
 
 		if (Ball.receivesPass(this._robot)) {

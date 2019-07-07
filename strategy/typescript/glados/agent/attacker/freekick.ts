@@ -255,7 +255,7 @@ export class FreeKick extends Behavior {
 				this._messaging.sendBroadcast(MessageType.attackTime, Referee.lastStateChangeTime() + PASS_TIMEFRAME);
 				return [MoveToStaticBall, [ Math.PI / 2, distanceToBall ], stateChanged];
 			case State.ShootGoal:
-				return [ShootGoal];
+				return [ShootGoal, [ undefined, undefined, timeRunningOut]];
 			case State.Wait:
 			case State.PassPrepare:
 				this._messaging.sendBroadcast(MessageType.attackTime, Referee.lastStateChangeTime() + PASS_TIMEFRAME);
