@@ -111,9 +111,10 @@ export class CatchBall {
 
 		// QUICKFIX to prevent hish speed movement towards defenseArea
 		if (predictedBall.pos
-				&&  !Field.isInAllowedField(predictedBall.pos, World.Ball.radius)
-				&&  this._robot !== World.FriendlyKeeper
-				&&  World.RefereeState !== "BallPlacementOffensive") {
+				&& !Field.isInAllowedField(predictedBall.pos, World.Ball.radius)
+				&& this._robot !== World.FriendlyKeeper
+				&& World.RefereeState !== "BallPlacementOffensive"
+				&& World.RefereeState !== "PenaltyOffensive") {
 			// t/a/shoot for example does some calculations on the position that might move it out somewhat,
 			// therefore an extra buffer is needed
 			predictedBall.pos = Field.limitToAllowedField(predictedBall.pos, World.Ball.radius + 0.05);
