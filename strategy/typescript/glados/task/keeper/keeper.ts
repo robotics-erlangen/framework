@@ -12,8 +12,8 @@ import * as Physics from "glados/observer/physics";
 import * as Robot from "glados/observer/robot";
 import { ForceShoot } from "glados/task/ability/forceshoot";
 import { Agent, Task } from "glados/task/base";
+import { CurvedMaxAccel as ToTarget } from "glados/trajectory/curvedmaxaccel";
 import * as PathHelper from "glados/trajectory/pathhelper";
-import { ToTarget } from "glados/trajectory/totarget";
 
 
 let G = World.Geometry;
