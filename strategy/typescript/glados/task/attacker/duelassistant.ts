@@ -27,7 +27,8 @@ export class DuelAssistant extends Task {
 
 	private _update() {
 		let duelist, opponent;
-		let messages = this._messaging.receive(MessageType.defendedOpponent);
+		// let messages = this._messaging.receive(MessageType.defendedOpponent);
+		let messages = this._messaging.receive(MessageType.dueledOpponent, true);
 		if (messages.size > 0) {
 			[duelist, opponent] = messages.entries().next().value;
 		}

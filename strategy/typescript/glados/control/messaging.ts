@@ -120,7 +120,7 @@ local repeatedMessages = {
 
 export enum MessageType {
 	// multiple sender
-	allyFlag, attackerFlag, defendedOpponent, defenderFlag,
+	allyFlag, attackerFlag, defendedOpponent, dueledOpponent, defenderFlag,
 	moveDest, passSuggestion, poolChangeRequest, strikerFlag,
 	strikerSamplingTimestamp,
 
@@ -139,7 +139,7 @@ export enum MessageType {
 export type ExclusiveRole = MessageType.mainAttacker | MessageType.duelAssistant | MessageType.interceptPass;
 
 export const MessageTypeList = [
-	MessageType.allyFlag, MessageType.attackerFlag, MessageType.defendedOpponent, MessageType.defenderFlag,
+	MessageType.allyFlag, MessageType.attackerFlag, MessageType.defendedOpponent, MessageType.dueledOpponent, MessageType.defenderFlag,
 	MessageType.moveDest, MessageType.passSuggestion, MessageType.poolChangeRequest, MessageType.strikerFlag,
 	MessageType.strikerSamplingTimestamp,
 	MessageType.attackPosition, MessageType.attackTime, MessageType.centerBackPosTarget, MessageType.moveAssignment,
@@ -200,6 +200,7 @@ export class MessageBox {
 	sendBroadcast(type: MessageType.allyFlag, data?: undefined): void;
 	sendBroadcast(type: MessageType.attackerFlag, data?: undefined): void;
 	sendBroadcast(type: MessageType.defendedOpponent, data: Robot): void;
+	sendBroadcast(type: MessageType.dueledOpponent, data: Robot): void;
 	sendBroadcast(type: MessageType.defenderFlag, data?: undefined): void;
 	sendBroadcast(type: MessageType.moveDest, pos: Position): void;
 	sendBroadcast(type: MessageType.passSuggestion, suggestion: {ballPos: Position, time: number, anonymous: boolean, chip: boolean, manual: boolean}): void;
@@ -257,6 +258,7 @@ export class MessageBox {
 	receive(type: MessageType.allyFlag, broadcast?: boolean): Map<FriendlyRobot, true>;
 	receive(type: MessageType.attackerFlag, broadcast?: boolean): Map<FriendlyRobot, true>;
 	receive(type: MessageType.defendedOpponent, ownMessage?: boolean): Map<FriendlyRobot, Robot>;
+	receive(type: MessageType.dueledOpponent, ownMessage?: boolean): Map<FriendlyRobot, Robot>;
 	receive(type: MessageType.defenderFlag, broadcast?: boolean): Map<FriendlyRobot, true>;
 	receive(type: MessageType.moveDest, broadcast?: boolean): Map<FriendlyRobot, Position>;
 	receive(type: MessageType.passSuggestion, broadcast?: boolean): Map<FriendlyRobot, {ballPos: Position, time: number, anonymous: boolean, chip: boolean, manual: boolean}>;
