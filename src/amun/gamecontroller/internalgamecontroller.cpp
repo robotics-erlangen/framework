@@ -240,6 +240,7 @@ void InternalGameController::handleGameEvent(std::shared_ptr<gameController::Aut
             // TODO: teleport ball
         }
         break;
+    case gameController::POSSIBLE_GOAL:
     case gameController::GOAL:
         shouldPlace = true;
         placementPos = {0, 0};
