@@ -13,55 +13,62 @@ import * as Physics from "glados/observer/physics";
 import * as Robot from "glados/observer/robot";
 import { ToTarget } from "glados/trajectory/totarget";
 
-// mu_x and mu_y are the default values for muXByID and muYByID, that are choosen if no additional information is available
-let mu_x = 0.70;
-let mu_y = 0.05;
-
-// See eveything in robot coordinates,
-// vectical / y beeing the component towards the robot and horizontal / x beeing the other component.
-// muX describes the damping factor in x for sidewards reflection, as described in d/volley.txt ln. 30-32 & 38
-// muY describes the damping factor in y for horizontal reflection, as described in d/volley.txt ln. 30-32 & 39
-
-// ById is used to use different parameters for different robots. The table has to be indexed by the robot id or the string "opp"
-// "opp" is used, when information about an opposing robot is needed, where no further damping values are known.
-let muXById: Map<number | "opp", number>;
-let muYById: Map<number | "opp", number>;
-
-function setMuValues() {
-	muXById = new Map<number | "opp", number>([[0, mu_x], [1, mu_x], [2, 0.60], [3, mu_x],
-		[4, mu_x], [5, 0.60], [6, mu_x], [7, 0.70], [8, mu_x], [9, mu_x], [10, mu_x],
-		[11, 0.50], [12, mu_x], [13, mu_x], [14, mu_x], [15, mu_x], ["opp", mu_x]]);
-	muYById = new Map<number | "opp", number>([[0, mu_y], [1, mu_y], [2, 0.03], [3, mu_y],
-		[4, mu_y], [5, 0.04], [6, mu_y], [7, 0.05], [8, mu_y], [9, mu_y], [10, mu_y],
-		[11, 0.04], [12, mu_y], [13, mu_y], [14, mu_y], [15, mu_y], ["opp", mu_y]]);
+interface DampingFactor {
+	mu_x: number;
+	mu_y: number;
 }
-setMuValues();
 
-let paramsUpdated = false;
+/**
+ * These are the default values for muById, that are choosen if no additional information is available
+ */
+const DEFAULT_DAMPING_FACTOR: DampingFactor = Object.freeze(
+	World.IsSimulated
+	? { mu_x: 0.93, mu_y: 0.26 }
+	: { mu_x: 0.70, mu_y: 0.05 }
+);
 
-function setSimulatorParams() {
-	if (!World.IsSimulated || paramsUpdated) {
-		return;
-	}
-	mu_x = 0.93;
-	mu_y = 0.26;
-	setMuValues();
-	paramsUpdated = true;
+type DampingIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | "opp";
+
+/**
+ * See everything in robot coordinates.
+ * vertical / y beeing the component towards the robot and horizontal / x beeing the other component.
+ * mu_x describes the damping in x for sidewards reflection, as described in d/volley.yxt ln 30-32 & 38
+ * mu_y describes the damping in y for horizontal reflection, as described in d/volley.txt ln 30-32 & 39
+ *
+ * Index by robot id as number or by "opp" if information about an opposing robot is needed.
+ */
+const mus = new Map<DampingIndex, DampingFactor>([
+	[0, DEFAULT_DAMPING_FACTOR],
+	[1, DEFAULT_DAMPING_FACTOR],
+	[2, { mu_x: 0.6, mu_y: 0.03 }],
+	[3, DEFAULT_DAMPING_FACTOR],
+	[4, DEFAULT_DAMPING_FACTOR],
+	[5, { mu_x: 0.6, mu_y: 0.04 }],
+	[6, DEFAULT_DAMPING_FACTOR],
+	[7, { mu_x: 0.7, mu_y: 0.05 }],
+	[8, DEFAULT_DAMPING_FACTOR],
+	[9, DEFAULT_DAMPING_FACTOR],
+	[10, DEFAULT_DAMPING_FACTOR],
+	[11, { mu_x: 0.5, mu_y: 0.04}],
+	[12, DEFAULT_DAMPING_FACTOR],
+	[13, DEFAULT_DAMPING_FACTOR],
+	[14, DEFAULT_DAMPING_FACTOR],
+	[15, DEFAULT_DAMPING_FACTOR],
+	["opp", DEFAULT_DAMPING_FACTOR]
+]);
+
+export function setDampingParam(id: DampingIndex, param: DampingFactor) {
+	mus[id] = param;
+}
+
+export function getDampingParam(id: DampingIndex | "default"): Readonly<DampingFactor> {
+	return id === "default" ? DEFAULT_DAMPING_FACTOR : mus[id]!;
 }
 
 type VolleyObserver = (ballSpeed: Speed, viewPos: Position, targetPos: Position,
 		expectedTargetSpeed: number) => void;
 
 export class Volley {
-	static getParams() {
-		return [mu_x, mu_y];
-	}
-
-	static setParams(new_mu_x: number, new_mu_y: number) {
-		mu_x = new_mu_x;
-		mu_y = new_mu_y;
-	}
-
 	_ballIncoming: boolean = true;
 	_shooting: boolean = false;
 	_ball_in: Speed | undefined;
@@ -71,7 +78,6 @@ export class Volley {
 	_messaging: MessageBox;
 
 	constructor(robot: FriendlyRobot, messaging: MessageBox, setMaParams: (p: Position, n: number) => void) {
-		setSimulatorParams();
 		this._robot = robot;
 		this._messaging = messaging;
 		this._setMainAttackerParameters = setMaParams;
@@ -161,29 +167,37 @@ export class Volley {
 
 	// for extended documentation see doc/volley.txt
 	static calcVOutFromVS(v_s: number, v_in: number, phi: number, alpha: number, robotId: number | "opp"): [number, number] {
+		if (robotId < 0 || robotId > 15) {
+			throw new Error("Invalid robot id");
+		}
 		v_in = bound(0, v_in, Constants.maxBallSpeed);
 		let sinp = Math.sin(phi);
 		let cosp = Math.cos(phi);
 		let sinpa = Math.sin(phi - alpha);
 		let cospa = Math.cos(phi - alpha);
 
-		let x = cosp * v_s + sinp * sinpa * <number> muXById.get(robotId) * v_in - cosp * cospa * <number> muYById.get(robotId) * v_in;
-		let y = sinp * v_s - cosp * sinpa * <number> muXById.get(robotId) * v_in - sinp * cospa * <number> muYById.get(robotId) * v_in;
+		const damping = getDampingParam(<DampingIndex> robotId);
+		let x = cosp * v_s + sinp * sinpa * damping.mu_x * v_in - cosp * cospa * damping.mu_y * v_in;
+		let y = sinp * v_s - cosp * sinpa * damping.mu_x * v_in - sinp * cospa * damping.mu_y * v_in;
 
 		return [x, y];
 	}
 
 	private static volley_Jf(v_s: number, phi: number, alpha: number, v_in: number,
 			robotId: number | "opp"): [number, number, number, number] {
+		if (robotId < 0 || robotId > 15) {
+			throw new Error("Invalid robot id");
+		}
 		let sinp = Math.sin(phi);
 		let cosp = Math.cos(phi);
 		let sinpa = Math.sin(phi - alpha);
 		let cospa = Math.cos(phi - alpha);
 
+		const damping = getDampingParam(<DampingIndex> robotId);
 		let xdv_s = cosp;
-		let xdphi = -sinp * v_s + (<number> muXById.get(robotId) + <number> muYById.get(robotId)) * v_in * (cosp * sinpa + sinp * cospa);
+		let xdphi = -sinp * v_s + (damping.mu_x + damping.mu_y) * v_in * (cosp * sinpa + sinp * cospa);
 		let ydv_s = sinp;
-		let ydphi = cosp * v_s - (<number> muXById.get(robotId) + <number> muYById.get(robotId)) * v_in * (cosp * cospa - sinp * sinpa);
+		let ydphi = cosp * v_s - (damping.mu_x + damping.mu_y) * v_in * (cosp * cospa - sinp * sinpa);
 
 		return [xdv_s, xdphi, ydv_s, ydphi];
 	}
@@ -207,7 +221,7 @@ export class Volley {
 		let dist = targetPos.distanceTo(viewPos);
 		let abs_v_out = robot.calculateShootSpeed(targetSpeed, dist);
 		if (targetSpeed === Infinity) { // FIXME: Robocup HACK. Necessary would be a detection that increases abs_v_out by a value, because we can rely on some reflection-speed. Only v_s is limited by this._robot.maxShotLinear.
-			abs_v_out = robot.maxShotLinear + mu_y * v_in; // FIXME: This calculation is bullshit
+			abs_v_out = robot.maxShotLinear + DEFAULT_DAMPING_FACTOR.mu_y * v_in; // FIXME: This calculation is bullshit
 		}
 		abs_v_out = Math.min(Constants.maxBallSpeed, abs_v_out);
 		if (volleyObserver != undefined) {
