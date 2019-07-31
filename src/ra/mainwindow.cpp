@@ -434,13 +434,14 @@ void MainWindow::switchToWidgetConfiguration(int configId)
     unsigned int id = static_cast<unsigned int>(configId);
     if (id != m_currentWidgetConfiguration) {
         saveConfig();
+        unsigned int previousId = m_currentWidgetConfiguration;
         m_currentWidgetConfiguration = id;
         loadConfig(false);
 
         // Horus mode
-        if (configId % 2 == 0) {
+        if (configId % 2 == 0 && previousId % 2 == 1) {
             horusMode();
-        } else {
+        } else if (previousId % 2 == 0){
             raMode();
         }
     }
