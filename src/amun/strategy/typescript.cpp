@@ -52,8 +52,7 @@ Typescript::Typescript(const Timer *timer, StrategyType type, bool refboxControl
     m_luaState(nullptr)
 {
     Isolate::CreateParams create_params;
-    m_arrayAllocator.reset(ArrayBuffer::Allocator::NewDefaultAllocator());
-    create_params.array_buffer_allocator = m_arrayAllocator.get();
+    create_params.array_buffer_allocator = ArrayBuffer::Allocator::NewDefaultAllocator();
     m_isolate = Isolate::New(create_params);
     m_isolate->SetRAILMode(PERFORMANCE_LOAD);
     m_isolate->Enter();
