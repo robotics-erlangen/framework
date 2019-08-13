@@ -30,14 +30,15 @@ add_library(strategy
     strategyreplayhelper.cpp
 )
 target_link_libraries(strategy
-    PRIVATE shared::core
-    PRIVATE amun::path
-    PRIVATE amun::strategy::lua
-    PUBLIC amun::strategy::script
     PUBLIC shared::protobuf
-    PUBLIC Qt5::Core
-    PRIVATE Qt5::Network
+
     PUBLIC amun::gamecontroller
+    PUBLIC amun::strategy::script
+
+    PRIVATE Qt5::Network
+    PUBLIC Qt5::Core
+
+    PRIVATE amun::strategy::lua
 )
 
 target_include_directories(strategy
