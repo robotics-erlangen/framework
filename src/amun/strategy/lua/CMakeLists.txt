@@ -1,5 +1,5 @@
 # ***************************************************************************
-# *   Copyright 2015 Alexander Danzer, Michael Eischer, Philipp Nordhus     *
+# *   Copyright 2019 Paul Bergmann                                          *
 # *   Robotics Erlangen e.V.                                                *
 # *   http://www.robotics-erlangen.de/                                      *
 # *   info@robotics-erlangen.de                                             *
@@ -18,40 +18,30 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-add_subdirectory(path)
-add_subdirectory(script)
-add_subdirectory(lua)
+add_library(lua
+    include/strategy/lua/lua.h
 
-add_library(strategy
-    include/strategy/strategy.h
-    include/strategy/strategyreplayhelper.h
-
-    strategy.cpp
-    strategyreplayhelper.cpp
-)
-target_link_libraries(strategy
-    PRIVATE shared::core
-    PRIVATE amun::path
-    PRIVATE amun::strategy::lua
-    PUBLIC amun::strategy::script
-    PUBLIC shared::protobuf
-    PUBLIC Qt5::Core
-    PRIVATE Qt5::Network
-    PUBLIC amun::gamecontroller
+    lua.cpp
+    lua_amun.cpp
+    lua_amun.h
+    lua_path.cpp
+    lua_path.h
+    lua_protobuf.cpp
+    lua_protobuf.h
 )
 
-target_include_directories(strategy
+target_include_directories(lua
     INTERFACE include
-    PRIVATE include/strategy
+    PRIVATE include/strategy/lua
 )
 
-if(V8_FOUND)
-    target_compile_definitions(strategy PUBLIC V8_FOUND)
-    add_subdirectory(typescript)
-    target_link_libraries(strategy
-        PRIVATE lib::v8
-        PRIVATE amun::strategy::typescript
-    )
-endif()
+target_link_libraries(lua
+    PUBLIC lib::luajit
 
-add_library(amun::strategy ALIAS strategy)
+    PUBLIC Qt5::Core
+
+    PRIVATE amun::path
+    PUBLIC amun::strategy::script
+)
+
+add_library(amun::strategy::lua ALIAS lua)

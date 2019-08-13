@@ -18,7 +18,7 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#include "lua.h"
+#include "strategy/lua/lua.h"
 #include "strategy.h"
 #include "strategy/script/debughelper.h"
 #include "strategy/script/compilerregistry.h"
