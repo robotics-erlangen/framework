@@ -25,7 +25,7 @@
 #include "protobuf/command.h"
 #include "protobuf/robotcommand.h"
 #include "protobuf/status.h"
-#include "strategytype.h"
+#include "strategy/script/strategytype.h"
 #include <QString>
 #include <QStringList>
 #include <memory>

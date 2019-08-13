@@ -19,9 +19,9 @@
  ***************************************************************************/
 
 #include "lua.h"
-#include "debughelper.h"
 #include "strategy.h"
-#include "compilerregistry.h"
+#include "strategy/script/debughelper.h"
+#include "strategy/script/compilerregistry.h"
 #include "core/timer.h"
 #include "protobuf/geometry.h"
 #include "protobuf/ssl_game_controller_team.pb.h"

@@ -29,7 +29,7 @@
 #include "logfile/logfilereader.h"
 #include "strategy/strategy.h"
 #include "strategy/strategyreplayhelper.h"
-#include "strategy/compilerregistry.h"
+#include "strategy/script/compilerregistry.h"
 #include "timingstatistics.h"
 #include "core/timer.h"
 #include "replaytestrunner.h"

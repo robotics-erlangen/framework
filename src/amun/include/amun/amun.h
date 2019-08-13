@@ -21,7 +21,7 @@
 #ifndef AMUN_H
 #define AMUN_H
 
-#include "strategy/compilerregistry.h"
+#include "strategy/script/compilerregistry.h"
 #include "gamecontroller/gamecontrollerconnection.h"
 #include "protobuf/command.h"
 #include "protobuf/status.h"

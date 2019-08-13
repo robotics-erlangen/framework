@@ -21,8 +21,8 @@
 #ifndef TYPESCRIPTCOMPILER_H
 #define TYPESCRIPTCOMPILER_H
 
-#include "compiler.h"
-#include "filewatcher.h"
+#include "strategy/script/compiler.h"
+#include "strategy/script/filewatcher.h"
 
 #include <QDir>
 #include <QMutex>

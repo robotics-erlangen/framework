@@ -27,7 +27,7 @@
 #include "tracking/tracker.h"
 #include "strategy/strategy.h"
 #include "strategy/strategyreplayhelper.h"
-#include "strategy/compilerregistry.h"
+#include "strategy/script/compilerregistry.h"
 #include "core/timer.h"
 #include "logfile/logfilewriter.h"
 #include "visionlog/visionlogreader.h"

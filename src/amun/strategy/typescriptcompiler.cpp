@@ -20,7 +20,7 @@
 
 #include "typescriptcompiler.h"
 
-#include "filewatcher.h"
+#include "strategy/script/filewatcher.h"
 
 #include <QDateTime>
 #include <QDirIterator>

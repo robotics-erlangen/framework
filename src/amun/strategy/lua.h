@@ -24,8 +24,8 @@
 #include <lua.hpp>
 #include <QString>
 #include <QStringList>
-#include "abstractstrategyscript.h"
-#include "strategytype.h"
+#include "strategy/script/abstractstrategyscript.h"
+#include "strategy/script/strategytype.h"
 
 class DebugHelper;
 class FileWatcher;

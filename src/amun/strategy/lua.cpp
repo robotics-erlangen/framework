@@ -23,8 +23,8 @@
 #include "lua_path.h"
 #include "lua_protobuf.h"
 #include "core/timer.h"
-#include "debughelper.h"
-#include "filewatcher.h"
+#include "strategy/script/debughelper.h"
+#include "strategy/script/filewatcher.h"
 
 Lua *getStrategyThread(lua_State *state)
 {

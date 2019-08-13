@@ -26,7 +26,7 @@
 #include "processor/networktransceiver.h"
 #include "processor/integrator.h"
 #include "simulator/simulator.h"
-#include "strategy/debughelper.h"
+#include "strategy/script/debughelper.h"
 #include "strategy/strategyreplayhelper.h"
 #include "strategy/strategy.h"
 #include "networkinterfacewatcher.h"

@@ -19,20 +19,12 @@
 # ***************************************************************************
 
 add_subdirectory(path)
+add_subdirectory(script)
 
 add_library(strategy
-    include/strategy/debughelper.h
     include/strategy/strategy.h
-    include/strategy/strategytype.h
     include/strategy/strategyreplayhelper.h
-    include/strategy/compiler.h
-    include/strategy/compilerregistry.h
 
-    abstractstrategyscript.cpp
-    abstractstrategyscript.h
-    debughelper.cpp
-    filewatcher.cpp
-    filewatcher.h
     lua.cpp
     lua.h
     lua_amun.cpp
@@ -43,13 +35,12 @@ add_library(strategy
     lua_protobuf.h
     strategy.cpp
     strategyreplayhelper.cpp
-    compiler.cpp
-    compilerregistry.cpp
 )
 target_link_libraries(strategy
     PRIVATE lib::luajit
     PRIVATE shared::core
     PRIVATE amun::path
+    PUBLIC amun::strategy::script
     PUBLIC shared::protobuf
     PUBLIC Qt5::Core
     PRIVATE Qt5::Network

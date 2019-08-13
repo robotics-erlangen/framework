@@ -21,7 +21,7 @@
 #ifndef TYPESCRIPT_H
 #define TYPESCRIPT_H
 
-#include "abstractstrategyscript.h"
+#include "strategy/script/abstractstrategyscript.h"
 
 #include <QString>
 #include <QMap>
@@ -31,7 +31,7 @@
 #include <v8-profiler.h>
 #include <memory>
 
-#include "compiler.h"
+#include "strategy/script/compiler.h"
 
 class CheckForScriptTimeout;
 class QThread;

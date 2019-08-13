@@ -36,7 +36,7 @@
 #include "inspectorholder.h"
 #include "internaldebugger.h"
 #include "tsc_internal.h"
-#include "compilerregistry.h"
+#include "strategy/script/compilerregistry.h"
 
 using namespace v8;
 
