@@ -1,5 +1,5 @@
 # ***************************************************************************
-# *   Copyright 2015 Alexander Danzer, Michael Eischer, Philipp Nordhus     *
+# *   Copyright 2019 Paul Bergmann                                          *
 # *   Robotics Erlangen e.V.                                                *
 # *   http://www.robotics-erlangen.de/                                      *
 # *   info@robotics-erlangen.de                                             *
@@ -18,47 +18,67 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-add_subdirectory(path)
-add_subdirectory(script)
+add_library(typescript
+    include/strategy/typescript/inspectorserver.h
+    include/strategy/typescript/typescript.h
 
-add_library(strategy
-    include/strategy/strategy.h
-    include/strategy/strategyreplayhelper.h
+    checkforscripttimeout.h
+    inspectorhandler.cpp
+    inspectorhandler.h
+    inspectorholder.cpp
+    inspectorholder.h
+    inspectorserver.cpp
+    internaldebugger.cpp
+    internaldebugger.h
+    js_amun.cpp
+    js_amun.h
+    js_path.cpp
+    js_path.h
+    js_protobuf.cpp
+    js_protobuf.h
+    tsc_internal.cpp
+    tsc_internal.h
+    typescriptcompiler.cpp
+    typescriptcompiler.h
+    typescript.cpp
+    websocketprotocol.cpp
+    websocketprotocol.h
 
-    lua.cpp
-    lua.h
-    lua_amun.cpp
-    lua_amun.h
-    lua_path.cpp
-    lua_path.h
-    lua_protobuf.cpp
-    lua_protobuf.h
-    strategy.cpp
-    strategyreplayhelper.cpp
+    node/buffer/buffer.cpp
+    node/buffer/buffer.h
+    node/buffer.cpp
+    node/buffer.h
+    node/fs.cpp
+    node/fs.h
+    node/objectcontainer.cpp
+    node/objectcontainer.h
+    node/os.cpp
+    node/os.h
+    node/path.cpp
+    node/path.h
 )
-target_link_libraries(strategy
+
+target_link_libraries(typescript
+    PUBLIC Qt5::Core
+    PUBLIC Qt5::Network
+
     PRIVATE lib::luajit
-    PRIVATE shared::core
+    PRIVATE lib::sourcemap
+    PUBLIC lib::v8
+
     PRIVATE amun::path
     PUBLIC amun::strategy::script
-    PUBLIC shared::protobuf
-    PUBLIC Qt5::Core
-    PRIVATE Qt5::Network
-    PUBLIC amun::gamecontroller
+
+    PRIVATE shared::config
+    PRIVATE shared::core
+    PRIVATE shared::protobuf
 )
 
-target_include_directories(strategy
+target_include_directories(typescript
     INTERFACE include
-    PRIVATE include/strategy
+    PRIVATE include/strategy/typescript
+    # older cmake versions don't add includes for automoc generated sources
+    PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
 )
 
-if(V8_FOUND)
-    target_compile_definitions(strategy PUBLIC V8_FOUND)
-    add_subdirectory(typescript)
-    target_link_libraries(strategy
-        PRIVATE lib::v8
-        PRIVATE amun::strategy::typescript
-    )
-endif()
-
-add_library(amun::strategy ALIAS strategy)
+add_library(amun::strategy::typescript ALIAS typescript)

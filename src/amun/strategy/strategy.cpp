@@ -38,8 +38,8 @@
 #include <QtGlobal>
 
 #ifdef V8_FOUND
-#include "typescript.h"
-#include "inspectorserver.h"
+#include "strategy/typescript/typescript.h"
+#include "strategy/typescript/inspectorserver.h"
 #include <v8.h>
 #include <libplatform/libplatform.h>
 #endif
