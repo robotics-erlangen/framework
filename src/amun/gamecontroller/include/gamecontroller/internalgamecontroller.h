@@ -55,7 +55,7 @@ private:
     const int UPDATE_INTERVAL_MS = 500;
     const float FIELD_LINE_DISTANCE = 0.3f;
     const float GOAL_LINE_DISTANCE = 0.35f;
-    const float DEFENSE_DISTANCE = 0.5;
+    const float DEFENSE_DISTANCE = 1;
 };
 
 #endif // INTERNALGAMECONTROLLER_H
