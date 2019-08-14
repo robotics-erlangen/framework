@@ -81,19 +81,28 @@ void DebugModel::clearData()
     }
 }
 
-void DebugModel::setDebug(const amun::DebugValues &debug, const QSet<QString> &debug_expanded)
+void DebugModel::setDebugIfCurrent(const amun::DebugValues &debug, const QSet<QString> &debug_expanded)
 {
-    m_debugSourceCounter[debug.source()] = 0;
+    if (m_debugSourceCounter[debug.source()] >= 0) {
+        setDebug(debug, debug_expanded);
+    }
+}
+
+void DebugModel::setDebug(const amun::DebugValues &debug, const QSet<QString> &debug_expanded, bool content)
+{
+    if (content) {
+        m_debugSourceCounter[debug.source()] = 0;
+    }
     for (auto it = m_debugSourceCounter.begin(); it != m_debugSourceCounter.end(); it++) {
         // don't try to clear multiple times
         if (it.value() >= 0) {
             it.value()++;
         }
-        if (it.value() > 50) {
+        if (it.value() > DEBUG_SOURCE_TIMEOUT) {
             it.value() = -1;
             amun::DebugValues debug;
             debug.set_source((amun::DebugSource)it.key());
-            setDebug(debug, QSet<QString>());
+            setDebug(debug, QSet<QString>(), false);
         }
     }
 

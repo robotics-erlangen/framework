@@ -40,7 +40,8 @@ signals:
 
 public:
     void clearData();
-    void setDebug(const amun::DebugValues &debug, const QSet<QString> &debug_expanded);
+    void setDebugIfCurrent(const amun::DebugValues &debug, const QSet<QString> &debug_expanded);
+    void setDebug(const amun::DebugValues &debug, const QSet<QString> &debug_expanded, bool content = true);
     void setFilterRegEx(const QString &filterKey, const QString &filterValue);
 
 private:
@@ -57,6 +58,8 @@ private:
     bool m_filterKey, m_filterValue;
     QRegularExpression m_filterKeyExpression;
     QRegularExpression m_filterValueExpression;
+
+    const int DEBUG_SOURCE_TIMEOUT = 50;
 };
 
 #endif // DEBUGMODEL_H
