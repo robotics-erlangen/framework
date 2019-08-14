@@ -20,7 +20,6 @@
 
 add_library(tracking
     include/tracking/tracker.h
-    include/tracking/speedtracker.h
 
     abstractballfilter.h
     balltracker.cpp
@@ -37,7 +36,6 @@ add_library(tracking
     robotfilter.cpp
     robotfilter.h
     tracker.cpp
-    speedtracker.cpp
 )
 target_link_libraries(tracking
     PRIVATE shared::core

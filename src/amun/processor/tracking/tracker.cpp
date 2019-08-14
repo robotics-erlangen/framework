@@ -29,7 +29,7 @@
 #include <iostream>
 #include <limits>
 
-Tracker::Tracker() :
+Tracker::Tracker(bool robotsOnly, bool isSpeedTracker) :
     m_cameraInfo(new CameraInfo),
     m_systemDelay(0),
     m_resetTime(0),
@@ -43,7 +43,10 @@ Tracker::Tracker() :
     m_aoi_y1(0.0f),
     m_aoi_x2(0.0f),
     m_aoi_y2(0.0f),
-    m_fieldTransform(new FieldTransform)
+    m_fieldTransform(new FieldTransform),
+    m_robotsOnly(robotsOnly),
+    m_resetTimeout(isSpeedTracker ? 100*1000*1000 : 500*1000*1000),
+    m_maxTimeLast(isSpeedTracker ? .2E9 : 1E9)
 {
     geometrySetDefault(&m_geometry, true);
     geometrySetDefault(&m_virtualFieldGeometry, true);
@@ -112,7 +115,7 @@ void Tracker::process(qint64 currentTime)
             continue;
         }
 
-        if (wrapper.has_geometry()) {
+        if (wrapper.has_geometry() && !m_robotsOnly) {
             updateGeometry(wrapper.geometry().field());
             for (int i = 0; i < wrapper.geometry().calib_size(); ++i) {
                 updateCamera(wrapper.geometry().calib(i), p.sender);
@@ -125,7 +128,9 @@ void Tracker::process(qint64 currentTime)
         }
 
         const SSL_DetectionFrame &detection = wrapper.detection();
-        m_detectionWrappers.append(wrapper);
+        if (!m_robotsOnly) {
+            m_detectionWrappers.append(wrapper);
+        }
         const qint64 visionProcessingTime = (detection.t_sent() - detection.t_capture()) * 1E9;
         // time on the field for which the frame was captured
         // with Timer::currentTime being now
@@ -144,12 +149,14 @@ void Tracker::process(qint64 currentTime)
             trackRobot(m_robotFilterBlue, detection.robots_blue(i), sourceTime, detection.camera_id(), visionProcessingTime);
         }
 
-        QList<RobotFilter *> bestRobots = getBestRobots(sourceTime);
-        for (int i = 0; i < detection.balls_size(); i++) {
-            trackBall(detection.balls(i), sourceTime, detection.camera_id(), bestRobots, visionProcessingTime);
-        }
-        for (BallTracker * filter : m_ballFilter) {
-            filter->updateConfidence();
+        if (!m_robotsOnly) {
+            QList<RobotFilter *> bestRobots = getBestRobots(sourceTime);
+            for (int i = 0; i < detection.balls_size(); i++) {
+                trackBall(detection.balls(i), sourceTime, detection.camera_id(), bestRobots, visionProcessingTime);
+            }
+            for (BallTracker * filter : m_ballFilter) {
+                filter->updateConfidence();
+            }
         }
 
         m_lastUpdateTime = sourceTime;
@@ -230,10 +237,9 @@ static amun::DebugValues* mutable_debug(amun::DebugValues** adv, Status s)
 
 Status Tracker::worldState(qint64 currentTime, bool resetRaw)
 {
-    const qint64 resetTimeout = 500*1000*1000;
     // only return objects which have been tracked for more than minFrameCount frames
     // if the tracker was reset recently, allow for fast repopulation
-    const int minFrameCount = (currentTime > m_resetTime + resetTimeout) ? 5: 0;
+    const int minFrameCount = (currentTime > m_resetTime + m_resetTimeout) ? 5: 0;
 
     // create world state for the given time
     Status status(new amun::Status);
@@ -241,16 +247,18 @@ Status Tracker::worldState(qint64 currentTime, bool resetRaw)
     worldState->set_time(currentTime);
     worldState->set_has_vision_data(m_hasVisionData);
 
-    for (SSL_WrapperPacket &wrapper : m_detectionWrappers) {
-        worldState->add_vision_frames()->CopyFrom(wrapper);
-    }
-    m_detectionWrappers.clear();
+    if (!m_robotsOnly) {
+        for (SSL_WrapperPacket &wrapper : m_detectionWrappers) {
+            worldState->add_vision_frames()->CopyFrom(wrapper);
+        }
+        m_detectionWrappers.clear();
 
-    BallTracker *ball = bestBallFilter();
+        BallTracker *ball = bestBallFilter();
 
-    if (ball != NULL) {
-        ball->update(currentTime);
-        ball->get(worldState->mutable_ball(), *m_fieldTransform, resetRaw);
+        if (ball != NULL) {
+            ball->update(currentTime);
+            ball->get(worldState->mutable_ball(), *m_fieldTransform, resetRaw);
+        }
     }
 
 
@@ -270,7 +278,7 @@ Status Tracker::worldState(qint64 currentTime, bool resetRaw)
         }
     }
 
-    if (m_geometryUpdated) {
+    if (m_geometryUpdated && !m_robotsOnly) {
         if (m_virtualFieldEnabled) {
             status->mutable_geometry()->CopyFrom(m_virtualFieldGeometry);
         } else {
@@ -300,7 +308,7 @@ Status Tracker::worldState(qint64 currentTime, bool resetRaw)
         filter->clearDebugValues();
     }
 #endif
-    if (m_errorMessages.size() > 0) {
+    if (m_errorMessages.size() > 0 && !m_robotsOnly) {
         for (QString message : m_errorMessages) {
             amun::StatusLog *log = mutable_debug(&debug, status)->add_log();
             log->set_timestamp(currentTime);
@@ -415,11 +423,11 @@ void Tracker::invalidate(QList<Filter*> &filters, const qint64 maxTime, const qi
 void Tracker::invalidateBall(qint64 currentTime)
 {
     // Maximum tracking time if multiple balls are visible
-    const qint64 maxTime = .1E9; // 0.1 s
+    const qint64 maxTimeBall = .1E9; // 0.1 s
     // Maximum tracking time for last ball
-    const qint64 maxTimeLast = 1E9; // 1 s
+    const qint64 maxTimeLastBall = 1E9; // 1 s
     // remove outdated balls
-    invalidate(m_ballFilter, maxTime, maxTimeLast, currentTime);
+    invalidate(m_ballFilter, maxTimeBall, maxTimeLastBall, currentTime);
 }
 
 void Tracker::invalidateRobots(RobotMap &map, qint64 currentTime)
@@ -428,13 +436,11 @@ void Tracker::invalidateRobots(RobotMap &map, qint64 currentTime)
     // Usually only one robot with a given id is visible, so this value
     // is hardly ever used
     const qint64 maxTime = .2E9; // 0.2 s
-    // Maximum tracking time for last robot
-    const qint64 maxTimeLast = 1E9; // 1 s
 
     // iterate over team
     for(RobotMap::iterator it = map.begin(); it != map.end(); ++it) {
         // remove outdated robots
-        invalidate(*it, maxTime, maxTimeLast, currentTime);
+        invalidate(*it, maxTime, m_maxTimeLast, currentTime);
     }
 }
 

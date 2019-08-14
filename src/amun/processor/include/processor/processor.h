@@ -99,8 +99,8 @@ private:
     QTimer* m_trigger;
     Referee *m_referee;
     Referee *m_refereeInternal;
-    Tracker *m_tracker;
-    SpeedTracker *m_speedTracker;
+    std::unique_ptr<Tracker> m_tracker;
+    std::unique_ptr<Tracker> m_speedTracker;
     QList<robot::RadioResponse> m_responses;
     QMap<uint, SSL_RadioProtocolCommand> m_networkCommand;
     ssl::TeamPlan m_mixedTeamInfo;

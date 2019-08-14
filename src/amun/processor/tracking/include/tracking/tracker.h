@@ -52,7 +52,7 @@ private:
     };
 
 public:
-    Tracker();
+    Tracker(bool robotsOnly, bool isSpeedTracker);
     ~Tracker();
     Tracker(const Tracker&) = delete;
     Tracker& operator=(const Tracker&) = delete;
@@ -76,7 +76,7 @@ private:
     template<class Filter>
     static void invalidate(QList<Filter*> &filters, const qint64 maxTime, const qint64 maxTimeLast, qint64 currentTime);
     void invalidateBall(qint64 currentTime);
-    static void invalidateRobots(RobotMap &map, qint64 currentTime);
+    void invalidateRobots(RobotMap &map, qint64 currentTime);
 
     QList<RobotFilter *> getBestRobots(qint64 currentTime);
     void trackBall(const SSL_DetectionBall &ball, qint64 receiveTime, quint32 cameraId, const QList<RobotFilter *> &bestRobots, qint64 visionProcessingDelay);
@@ -116,6 +116,12 @@ private:
     QList<QString> m_errorMessages;
     QList<SSL_WrapperPacket> m_detectionWrappers;
     std::unique_ptr<FieldTransform> m_fieldTransform;
+
+    // differences between tracker and speedtracker
+    const bool m_robotsOnly;
+    const qint64 m_resetTimeout;
+    // Maximum tracking time for last robot
+    const qint64 m_maxTimeLast;
 };
 
 #endif // TRACKER_H

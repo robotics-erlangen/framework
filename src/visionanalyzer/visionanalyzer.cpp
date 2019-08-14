@@ -75,7 +75,7 @@ int main(int argc, char* argv[])
     qint64 receiveTimeNanos = packet.first;
     VisionLog::MessageType msg_type = packet.second;
 
-    Tracker tracker;
+    Tracker tracker(false, false);
     tracker.reset();
 
     Timer* timer = new Timer;

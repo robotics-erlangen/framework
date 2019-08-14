@@ -25,7 +25,6 @@
 #include "referee.h"
 #include "core/timer.h"
 #include "gamecontroller/internalgamecontroller.h"
-#include "tracking/speedtracker.h"
 #include "tracking/tracker.h"
 #include <cmath>
 #include <QTimer>
@@ -117,6 +116,8 @@ const int Processor::FREQUENCY(100);
  */
 Processor::Processor(const Timer *timer) :
     m_timer(timer),
+    m_tracker(new Tracker(false, false)),
+    m_speedTracker(new Tracker(true, true)),
     m_mixedTeamInfoSet(false),
     m_networkCommandTime(0),
     m_refereeInternalActive(false),
@@ -127,8 +128,6 @@ Processor::Processor(const Timer *timer) :
     // keep two separate referee states
     m_referee = new Referee();
     m_refereeInternal = new Referee();
-    m_tracker = new Tracker;
-    m_speedTracker = new SpeedTracker;
 
     m_internalGameController = new InternalGameController(timer, this);
 
@@ -149,10 +148,8 @@ Processor::Processor(const Timer *timer) :
  */
 Processor::~Processor()
 {
-    delete m_tracker;
     delete m_refereeInternal;
     delete m_referee;
-    delete m_speedTracker;
 
     qDeleteAll(m_blueTeam.robots);
     qDeleteAll(m_yellowTeam.robots);
@@ -170,7 +167,7 @@ void Processor::process()
     m_tracker->process(current_time);
     m_speedTracker->process(current_time);
     Status status = m_tracker->worldState(current_time, false);
-    Status radioStatus = m_speedTracker->worldState(current_time);
+    Status radioStatus = m_speedTracker->worldState(current_time, false);
 
     // add information, about whether the world state is from the simulator or not
     status->mutable_world_state()->set_is_simulated(m_simulatorEnabled);
@@ -372,7 +369,7 @@ void Processor::handleRefereePacket(const QByteArray &data, qint64 /*time*/)
 void Processor::handleVisionPacket(const QByteArray &data, qint64 time, QString sender)
 {
     m_tracker->queuePacket(data, time, sender);
-    m_speedTracker->queuePacket(data, time);
+    m_speedTracker->queuePacket(data, time, sender);
 }
 
 void Processor::handleNetworkCommand(const QByteArray &data, qint64 time)

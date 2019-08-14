@@ -23,6 +23,7 @@
 
 VisionLogLiveConverter::VisionLogLiveConverter(VisionLogReader *file) :
     m_referee(),
+    m_tracker(false, false),
     m_lastPacket(0),
     m_lastFlipped(false)
 {
