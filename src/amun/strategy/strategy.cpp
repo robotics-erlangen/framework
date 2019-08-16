@@ -372,7 +372,7 @@ void Strategy::handleRefereeHost(QString hostName)
 {
     QHostAddress newAddress(hostName);
     if (newAddress != m_p->refereeHost) {
-        m_p->refereeHost = hostName;
+        m_p->refereeHost = QHostAddress(hostName);
         m_refboxSocket->close();
     }
 }
