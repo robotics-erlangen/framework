@@ -38,9 +38,11 @@ add_library(typescript
     js_protobuf.h
     tsc_internal.cpp
     tsc_internal.h
+    typescript.cpp
     typescriptcompiler.cpp
     typescriptcompiler.h
-    typescript.cpp
+    v8utility.cpp
+    v8utility.h
     websocketprotocol.cpp
     websocketprotocol.h
 

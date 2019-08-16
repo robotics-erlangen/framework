@@ -26,6 +26,7 @@
 #include "node/os.h"
 #include "node/path.h"
 #include "config/config.h"
+#include "v8utility.h"
 
 #include <iostream>
 #include <QCoreApplication>
@@ -40,6 +41,7 @@
 #include "v8.h"
 
 using namespace v8;
+using namespace v8helper;
 
 InternalTypescriptCompiler::InternalTypescriptCompiler(const QFileInfo &tsconfig) :
     TypescriptCompiler(tsconfig),
@@ -69,7 +71,7 @@ static Local<Array> createStringArray(Isolate* isolate, const QList<QString>& va
     EscapableHandleScope handleScope(isolate);
     Local<Array> array = Array::New(isolate, values.size());
     for (int i = 0; i < values.size(); ++i) {
-        Local<String> current = String::NewFromUtf8(isolate, values[i].toUtf8().data(), NewStringType::kNormal).ToLocalChecked();
+        Local<String> current = v8string(isolate, values[i]);
         array->Set(i, current);
     }
     return handleScope.Escape(array);
@@ -78,7 +80,7 @@ static Local<Array> createStringArray(Isolate* isolate, const QList<QString>& va
 template <typename T>
 static void addObjectField(Isolate* isolate, Local<Object> target, QString name, Local<T> value)
 {
-    Local<String> fieldName = String::NewFromUtf8(isolate, name.toUtf8().data(), NewStringType::kNormal).ToLocalChecked();
+    Local<String> fieldName = v8string(isolate, name);
     target->Set(fieldName, value);
 }
 
@@ -152,7 +154,7 @@ void InternalTypescriptCompiler::initializeEnvironment()
         Local<Function> clearTimeout = Function::New(m_isolate, nullptr);
         addObjectField(m_isolate, global, "clearTimeout", clearTimeout);
 
-        Local<String> filename = String::NewFromUtf8(m_isolate, m_compilerPath.toUtf8().data(), NewStringType::kNormal).ToLocalChecked();
+        Local<String> filename = v8string(m_isolate, m_compilerPath);
         addObjectField(m_isolate, global, "__filename", filename);
     }
     addObjectField(m_isolate, global, "process", process);
@@ -186,8 +188,7 @@ void InternalTypescriptCompiler::requireCallback(const FunctionCallbackInfo<Valu
     HandleScope handleScope(isolate);
 
     if (args.Length() != 1 || !args[0]->IsString()) {
-        Local<String> exceptionText = String::NewFromUtf8(isolate, "require needs exactly one string argument",
-                NewStringType::kNormal).ToLocalChecked();
+        Local<String> exceptionText = v8string(isolate, "require needs exactly one string argument");
         isolate->ThrowException(exceptionText);
         return;
     }
@@ -203,7 +204,7 @@ void InternalTypescriptCompiler::requireCallback(const FunctionCallbackInfo<Valu
         errorMessage += moduleName;
         errorMessage += "' not found";
 
-        Local<String> exceptionText = String::NewFromUtf8(isolate, errorMessage.c_str(), NewStringType::kNormal).ToLocalChecked();
+        Local<String> exceptionText = v8string(isolate, errorMessage);
         isolate->ThrowException(exceptionText);
         return;
     }
@@ -216,7 +217,7 @@ void InternalTypescriptCompiler::processCwdCallback(const FunctionCallbackInfo<V
     void* value = uncasted->Value();
     auto tsc = static_cast<InternalTypescriptCompiler*>(value);
     auto fs = static_cast<Node::fs*>(tsc->m_requireNamespace->get("fs"));;
-    Local<String> cwd = String::NewFromUtf8(args.GetIsolate(), fs->getPath().toUtf8().data(), NewStringType::kNormal).ToLocalChecked();
+    Local<String> cwd = v8string(args.GetIsolate(), fs->getPath());
     args.GetReturnValue().Set(cwd);
 }
 
@@ -268,7 +269,7 @@ std::pair<InternalTypescriptCompiler::CompileResult, QString> InternalTypescript
     QByteArray compilerBytes = compilerFile.readAll();
 
 
-    Local<String> source = String::NewFromUtf8(m_isolate, compilerBytes.data(), NewStringType::kNormal).ToLocalChecked();
+    Local<String> source = v8string(m_isolate, compilerBytes);
     Local<Script> script;
     TryCatch tryCatch(m_isolate);
     if (!Script::Compile(context, source).ToLocal(&script)) {

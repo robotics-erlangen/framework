@@ -32,8 +32,10 @@
 #include "internaldebugger.h"
 #include "protobuf/ssl_game_controller_team.pb.h"
 #include "protobuf/ssl_game_controller_auto_ref.pb.h"
+#include "v8utility.h"
 
 using namespace v8;
+using namespace v8helper;
 
 static void amunGetGeometry(const FunctionCallbackInfo<Value>& args)
 {
@@ -55,8 +57,7 @@ static void amunGetStrategyPath(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = args.GetIsolate();
     Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
-    Local<String> result = String::NewFromUtf8(isolate, qPrintable(t->baseDir().absolutePath()),
-                                               NewStringType::kNormal).ToLocalChecked();
+    Local<String> result = v8string(isolate, qPrintable(t->baseDir().absolutePath()));
     args.GetReturnValue().Set(result);
 }
 
@@ -83,7 +84,7 @@ static void amunGetSelectedOptions(const FunctionCallbackInfo<Value>& args)
     Local<Array> result = Array::New(isolate, t->selectedOptions().length());
     unsigned int ctr = 0;
     for (const QString &option: t->selectedOptions()) {
-        Local<String> opt = String::NewFromUtf8(isolate, option.toUtf8().constData(), String::kNormalString);
+        Local<String> opt = v8string(isolate, option);
         result->Set(Integer::NewFromUnsigned(isolate, ctr++), opt);
     }
     args.GetReturnValue().Set(result);
@@ -124,7 +125,7 @@ static bool toUintChecked(Isolate *isolate, Local<Value> value, uint &result)
 {
     Maybe<uint> maybeValue = value->Uint32Value(isolate->GetCurrentContext());
     if (!maybeValue.To(&result)) {
-        Local<String> errorMessage = String::NewFromUtf8(isolate, "Argument has to be an integer", String::kNormalString);
+        Local<String> errorMessage = v8string(isolate, "Argument has to be an integer");
         isolate->ThrowException(Exception::Error(errorMessage));
         return false;
     }
@@ -135,7 +136,7 @@ static bool toBoolChecked(Isolate *isolate, Local<Value> value, bool &result)
 {
     Maybe<bool> maybeValue = value->BooleanValue(isolate->GetCurrentContext());
     if (!maybeValue.To(&result)) {
-        Local<String> errorMessage = String::NewFromUtf8(isolate, "Argument has to be a boolean", String::kNormalString);
+        Local<String> errorMessage = v8string(isolate, "Argument has to be a boolean");
         isolate->ThrowException(Exception::Error(errorMessage));
         return false;
     }
@@ -147,7 +148,7 @@ static bool verifyNumber(Isolate *isolate, Local<Value> value, float &result)
     Maybe<double> maybeValue = value->NumberValue(isolate->GetCurrentContext());
     double v = 0.0;
     if (!maybeValue.To(&v) || std::isnan(v) || std::isinf(v)) {
-        Local<String> errorMessage = String::NewFromUtf8(isolate, "Invalid argument", String::kNormalString);
+        Local<String> errorMessage = v8string(isolate, "Invalid argument");
         isolate->ThrowException(Exception::Error(errorMessage));
         return false;
     }
@@ -159,7 +160,7 @@ static bool checkNumberOfArguments(Isolate *isolate, int expected, int got)
 {
     if (got < expected) {
         QString errorMessage = QString("Expected %1 arguments, but got %2").arg(expected).arg(got);
-        Local<String> message = String::NewFromUtf8(isolate, errorMessage.toUtf8().constData(), String::kNormalString);
+        Local<String> message = v8string(isolate, errorMessage);
         isolate->ThrowException(Exception::Error(message));
         return false;
     }
@@ -576,7 +577,7 @@ static void handleLuaError(const char* prefix, Isolate* isolate, lua_State* luaS
 {
     std::string message(prefix);
     message.append(lua_tostring(luaState, -1));
-    Local<String> errorMessage = String::NewFromUtf8(isolate, message.c_str(), String::kNormalString);
+    Local<String> errorMessage = v8string(isolate, message);
     isolate->ThrowException(Exception::Error(errorMessage));
 }
 
@@ -805,9 +806,9 @@ void registerAmunJsCallbacks(Isolate *isolate, Local<Object> global, Typescript 
     };
 
     Local<Object> amunObject = Object::New(isolate);
-    Local<String> amunStr = String::NewFromUtf8(isolate, "amun", NewStringType::kNormal).ToLocalChecked();
+    Local<String> amunStr = v8string(isolate, "amun");
     for (auto callback : callbacks) {
-        Local<String> name = String::NewFromUtf8(isolate, callback.name, NewStringType::kNormal).ToLocalChecked();
+        Local<String> name = v8string(isolate, callback.name);
         auto functionTemplate = FunctionTemplate::New(isolate, callback.function, External::New(isolate, t), Local<Signature>(),
                                                       0, ConstructorBehavior::kThrow, SideEffectType::kHasSideEffect);
         Local<Function> function = functionTemplate->GetFunction(isolate->GetCurrentContext()).ToLocalChecked();

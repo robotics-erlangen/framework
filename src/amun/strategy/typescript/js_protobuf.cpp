@@ -22,7 +22,10 @@
 
 #include <QDebug>
 
+#include "v8utility.h"
+
 using namespace v8;
+using namespace v8helper;
 
 // protobuf to js
 
@@ -54,12 +57,10 @@ static Local<Value> protobufFieldToJs(Isolate *isolate, const google::protobuf::
         return Boolean::New(isolate, refl->GetBool(message, field));
 
     case google::protobuf::FieldDescriptor::CPPTYPE_STRING:
-        return String::NewFromUtf8(isolate, refl->GetString(message, field).c_str(),
-                                   NewStringType::kNormal).ToLocalChecked();
+        return v8string(isolate, refl->GetString(message, field));
 
     case google::protobuf::FieldDescriptor::CPPTYPE_ENUM:
-        return String::NewFromUtf8(isolate, refl->GetEnum(message, field)->name().c_str(),
-                                   NewStringType::kNormal).ToLocalChecked();
+        return v8string(isolate, refl->GetEnum(message, field)->name());
 
     case google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE:
         return protobufToJs(isolate, refl->GetMessage(message, field));
@@ -94,12 +95,10 @@ static Local<Value> repeatedFieldToJs(Isolate *isolate, const google::protobuf::
         return Boolean::New(isolate, refl->GetRepeatedBool(message, field, index));
 
     case google::protobuf::FieldDescriptor::CPPTYPE_STRING:
-        return String::NewFromUtf8(isolate, refl->GetRepeatedString(message, field, index).c_str(),
-                                   NewStringType::kNormal).ToLocalChecked();
+        return v8string(isolate, refl->GetRepeatedString(message, field, index));
 
     case google::protobuf::FieldDescriptor::CPPTYPE_ENUM:
-        return String::NewFromUtf8(isolate, refl->GetRepeatedEnum(message, field, index)->name().c_str(),
-                                   NewStringType::kNormal).ToLocalChecked();
+        return v8string(isolate, refl->GetRepeatedEnum(message, field, index)->name());
 
     case google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE:
         return protobufToJs(isolate, refl->GetRepeatedMessage(message, field, index));
@@ -118,8 +117,7 @@ Local<Value> protobufToJs(Isolate *isolate, const google::protobuf::Message &mes
     for (int i = 0; i < message.GetDescriptor()->field_count(); i++) {
         const google::protobuf::FieldDescriptor *field = message.GetDescriptor()->field(i);
 
-        Local<String> name = String::NewFromUtf8(isolate, field->name().c_str(),
-                                                 NewStringType::kNormal).ToLocalChecked();
+        Local<String> name = v8string(isolate, field->name());
         if (field->is_repeated()) {
             const google::protobuf::Reflection *refl = message.GetReflection();
             int fieldSize = refl->FieldSize(message, field);
@@ -361,7 +359,7 @@ static bool jsPartToProtobuf(Isolate *isolate, Local<Value> value, Local<Context
         const google::protobuf::FieldDescriptor *field = message.GetDescriptor()->field(i);
 
         // get value from table and check its existence
-        Local<String> name = String::NewFromUtf8(isolate, field->name().c_str(), NewStringType::kNormal).ToLocalChecked();
+        Local<String> name = v8string(isolate, field->name());
         if (object->Has(c, name).ToChecked()) {
             Local<Value> v = object->Get(name);
             if (field->is_repeated()) {
@@ -391,11 +389,11 @@ bool jsToProtobuf(Isolate *isolate, Local<Value> value, Local<Context> c, google
 {
     bool good = jsPartToProtobuf(isolate, value, c, message);
     if (!good) {
-        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "Invalid object, can't convert to protobuf", String::kNormalString)));
+        isolate->ThrowException(Exception::Error(v8string(isolate, "Invalid object")));
         return false;
     }
     if (!message.IsInitialized()) {
-        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "Invalid or incomplete object", String::kNormalString)));
+        isolate->ThrowException(Exception::Error(v8string(isolate, "Invalid or incomplete object")));
         return false;
     }
     return true;

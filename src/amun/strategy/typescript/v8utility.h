@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2018 Paul Bergmann                                          *
+ *   Copyright 2019 Paul Bergmann                                          *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,53 +18,31 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#include "os.h"
+#ifndef V8UTILITY_H
+#define V8UTILITY_H
 
-#include <QList>
-#include "v8.h"
-
-#include "../v8utility.h"
-
-using v8::FunctionCallbackInfo;
-using v8::HandleScope;
-using v8::Isolate;
-using v8::Local;
-using v8::NewStringType;
-using v8::ObjectTemplate;
-using v8::String;
-using v8::Value;
-
-using namespace v8helper;
-
-Node::os::os(Isolate* isolate) : ObjectContainer(isolate) {
-    HandleScope handleScope(m_isolate);
-
-    auto objectTemplate = createTemplateWithCallbacks<ObjectTemplate>({
-        { "platform", &Node::os::platform }
-    });
-
-    #ifdef Q_OS_WIN32
-        Local<String> eolString = v8string(m_isolate, "\r\n");
-    #else
-        Local<String> eolString = v8string(m_isolate, "\n");
-    #endif
-    objectTemplate->Set(m_isolate, "EOL", eolString);
-
-    setHandle(objectTemplate->NewInstance(m_isolate->GetCurrentContext()).ToLocalChecked());
+namespace v8 {
+    class Isolate;
+    class String;
+    template <class T> class Local;
 }
 
-void Node::os::platform(const FunctionCallbackInfo<Value>& args) {
-    #if defined Q_OS_LINUX
-        const char* platform = "linux";
-    #elif defined Q_OS_WIN32
-        const char* platform = "win32";
-    #elif defined Q_OS_DARWIN
-        const char* platform = "darwin";
-    #else
-        #error Unsupported Platform
-    #endif
+namespace v8helper {
 
-    auto isolate = args.GetIsolate();
-    Local<String> platformHandle = v8string(isolate, platform);
-    args.GetReturnValue().Set(platformHandle);
+    /**
+      * Convert a C++ to a V8 string.
+      * Using this with QT StringTypes (QString, QByteArray) is preferred over
+      * std::string since these are implicitly shared and the function takes its
+      * input string by value.
+      * This is implemented for
+      * - QString
+      * - QByteArray
+      * - std::string
+      * - const char *
+      */
+    template<typename StringType>
+    v8::Local<v8::String> v8string(v8::Isolate* isolate, StringType str);
+
 }
+
+#endif // V8UTILITY_H

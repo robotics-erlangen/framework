@@ -22,6 +22,7 @@
 
 #include "objectcontainer.h"
 #include "buffer/buffer.h"
+#include "../v8utility.h"
 
 #include <algorithm>
 #include <cmath>
@@ -60,6 +61,7 @@ using v8::PropertyCallbackInfo;
 using v8::String;
 using v8::Value;
 
+using namespace v8helper;
 
 static QString buildPath(QString cwd, QString path)
 {
@@ -95,8 +97,8 @@ Node::fs::fs(Isolate* isolate, const ObjectContainer* requireNamespace, QString 
         { "isFile", &FileStat::isFile }
     });
     fileStatTemplate->SetInternalFieldCount(1);
-    fileStatTemplate->SetAccessor(String::NewFromUtf8(m_isolate, "size"), &FileStat::sizeGetter, &FileStat::sizeSetter);
-    fileStatTemplate->SetAccessor(String::NewFromUtf8(m_isolate, "mtime"), &FileStat::mtimeGetter, &FileStat::mtimeSetter);
+    fileStatTemplate->SetAccessor(v8string(m_isolate, "size"), &FileStat::sizeGetter, &FileStat::sizeSetter);
+    fileStatTemplate->SetAccessor(v8string(m_isolate, "mtime"), &FileStat::mtimeGetter, &FileStat::mtimeSetter);
     m_fileStatTemplate.Reset(m_isolate, fileStatTemplate);
 
     setHandle(objectTemplate->NewInstance(m_isolate->GetCurrentContext()).ToLocalChecked());
@@ -218,7 +220,7 @@ void Node::fs::readFileSync(const FunctionCallbackInfo<Value>& args) {
         return;
     }
     QByteArray fileBytes = file.readAll();
-    Local<String> dataString = String::NewFromUtf8(isolate, fileBytes.data(), NewStringType::kNormal).ToLocalChecked();
+    Local<String> dataString = v8string(isolate, fileBytes);
 
     auto buffer = static_cast<Node::Buffer*>(fs->m_requireNamespace->get("buffer")->get("Buffer"));
 
@@ -380,7 +382,7 @@ void Node::fs::readdirSync(const FunctionCallbackInfo<Value>& args) {
     Local<Array> result = Array::New(isolate, entries.length());
     for (int i = 0; i < entries.length(); ++i) {
         const QString& entry = entries[i];
-        Local<String> entryConverted = String::NewFromUtf8(isolate, entry.toUtf8().data(), NewStringType::kNormal).ToLocalChecked();
+        Local<String> entryConverted = v8string(isolate, entry);
         result->Set(i, entryConverted);
     }
     args.GetReturnValue().Set(result);
@@ -402,7 +404,7 @@ void Node::fs::realpathSync(const FunctionCallbackInfo<Value>& args) {
         return;
     }
 
-    Local<String> result = String::NewFromUtf8(isolate, info.canonicalFilePath().toUtf8().data(), NewStringType::kNormal).ToLocalChecked();
+    Local<String> result = v8string(isolate, info.canonicalFilePath());
     args.GetReturnValue().Set(result);
 }
 

@@ -28,6 +28,8 @@
 #include <utility>
 #include "v8.h"
 
+#include "../v8utility.h"
+
 template <typename T> inline void USE(T&&) {}
 
 using v8::EscapableHandleScope;
@@ -40,6 +42,8 @@ using v8::NewStringType;
 using v8::Object;
 using v8::ObjectTemplate;
 using v8::String;
+
+using namespace v8helper;
 
 namespace Node {
 
@@ -68,7 +72,7 @@ ObjectContainer* ObjectContainer::get(const std::string& index) const {
 void ObjectContainer::put(const std::string& index, std::unique_ptr<ObjectContainer> object) {
     if (!m_handle.IsEmpty()) {
         Local<Object> ownObject = m_handle.Get(m_isolate);
-        Local<String> propertyName = String::NewFromUtf8(m_isolate, index.c_str(), NewStringType::kNormal).ToLocalChecked();
+        Local<String> propertyName = v8string(m_isolate, index);
         // what does the return value even mean?
         USE(ownObject->Set(m_isolate->GetCurrentContext(), propertyName, object->getHandle()));
     }
@@ -102,7 +106,7 @@ template<> Local<FunctionTemplate> ObjectContainer::createTemplateWithCallbacks(
 
 void ObjectContainer::throwV8Exception(const QString& message) const {
     HandleScope handleScope(m_isolate);
-    Local<String> exceptionText = String::NewFromUtf8(m_isolate, message.toUtf8().data(), NewStringType::kNormal).ToLocalChecked();
+    Local<String> exceptionText = v8string(m_isolate, message);
     m_isolate->ThrowException(v8::Exception::Error(exceptionText));
 }
 

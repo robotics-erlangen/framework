@@ -20,8 +20,10 @@
 
 #include "internaldebugger.h"
 #include "typescript.h"
+#include "v8utility.h"
 
 using namespace v8;
+using namespace v8helper;
 
 template <typename T> inline void USE(T&&) {}
 
@@ -75,8 +77,7 @@ void InternalDebugger::handleStringContent(QString content, v8::Persistent<v8::F
         return;
     }
     m_strategy->disableTimeoutOnce();
-    QByteArray utf8Content = content.toUtf8();
-    Local<String> contentString = String::NewFromUtf8(m_isolate, utf8Content.data(), String::kNormalString, utf8Content.length());
+    Local<String> contentString = v8string(m_isolate, content);
     Local<Value> arguments[] = {contentString};
     Local<Context> context = m_isolate->GetCurrentContext();
     Local<Function> localFunction = Local<Function>::New(m_isolate, function);

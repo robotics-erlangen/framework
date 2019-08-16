@@ -31,8 +31,10 @@
 #include "protobuf/robot.pb.h"
 #include "js_protobuf.h"
 #include "typescript.h"
+#include "v8utility.h"
 
 using namespace v8;
+using namespace v8helper;
 
 // takes a function of the form functionName: (QTPath *wrapper, const FunctionCallbackInfo<Value>& args, int offset) -> void
 // and generates two function, functionName_new and functionName_legacy.
@@ -68,17 +70,12 @@ static bool verifyNumber(Isolate *isolate, Local<Value> value, float &result)
     Maybe<double> maybeValue = value->NumberValue(isolate->GetCurrentContext());
     double v = 0.0;
     if (!maybeValue.To(&v) || std::isnan(v) || std::isinf(v)) {
-        Local<String> errorMessage = String::NewFromUtf8(isolate, "Invalid argument", String::kNormalString);
+        Local<String> errorMessage = v8string(isolate, "Invalid argument");
         isolate->ThrowException(Exception::Error(errorMessage));
         return false;
     }
     result = float(v);
     return true;
-}
-
-static Local<String> createV8String(Isolate *isolate, const char *text)
-{
-    return String::NewFromUtf8(isolate, text, String::kNormalString);
 }
 
 static void pathDestroy(QTPath *wrapper, const FunctionCallbackInfo<Value>&, int)
@@ -161,7 +158,7 @@ static void pathAddLine(QTPath *wrapper, const FunctionCallbackInfo<Value>& args
 
     // a line musn't have length zero
     if (x1 == x2 && y1 == y2) {
-        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "line must have non zero length", String::kNormalString)));
+        isolate->ThrowException(Exception::Error(v8string(isolate, "line must have non zero length")));
         return;
     }
     wrapper->abstractPath()->addLine(x1, y1, x2, y2, width, nullptr, int(prio));
@@ -231,7 +228,7 @@ static void pathTest(QTPath *wrapper, const FunctionCallbackInfo<Value>& args, i
     }
 
     if (spline.t_start() >= spline.t_end()) {
-        args.GetIsolate()->ThrowException(Exception::Error(String::NewFromUtf8(args.GetIsolate(), "spline.t_start must be smaller than spline.t_end", String::kNormalString)));
+        args.GetIsolate()->ThrowException(Exception::Error(v8string(args.GetIsolate(), "spline.t_start must be smaller than spline.t_end")));
         return;
     }
 
@@ -253,7 +250,7 @@ static void pathGet(QTPath *wrapper, const FunctionCallbackInfo<Value>& args, in
 
     // robot radius must have been set before
     if (!wrapper->path()->isRadiusValid()) {
-        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "Invalid radius", String::kNormalString)));
+        isolate->ThrowException(Exception::Error(v8string(isolate, "Invalid radius")));
         return;
     }
 
@@ -268,10 +265,10 @@ static void pathGet(QTPath *wrapper, const FunctionCallbackInfo<Value>& args, in
     // convert path to js object
     unsigned int i = 0;
     Local<Array> result = Array::New(isolate, list.size());
-    Local<String> pxString = String::NewFromUtf8(isolate, "p_x", NewStringType::kNormal).ToLocalChecked();
-    Local<String> pyString = String::NewFromUtf8(isolate, "p_y", NewStringType::kNormal).ToLocalChecked();
-    Local<String> leftString = String::NewFromUtf8(isolate, "left", NewStringType::kNormal).ToLocalChecked();
-    Local<String> rightString = String::NewFromUtf8(isolate, "right", NewStringType::kNormal).ToLocalChecked();
+    Local<String> pxString = v8string(isolate, "p_x");
+    Local<String> pyString = v8string(isolate, "p_y");
+    Local<String> leftString = v8string(isolate, "left");
+    Local<String> rightString = v8string(isolate, "right");
     for (const Path::Waypoint &wp : list) {
         Local<Object> wayPoint = Object::New(isolate);
         wayPoint->Set(pxString, Number::New(isolate, double(wp.x)));
@@ -294,7 +291,7 @@ static void trajectoryPathGet(const FunctionCallbackInfo<Value>& args)
 
     // robot radius must have been set before
     if (!wrapper->trajectoryPath()->isRadiusValid()) {
-        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "Invalid radius", String::kNormalString)));
+        isolate->ThrowException(Exception::Error(v8string(isolate, "Invalid radius")));
         return;
     }
 
@@ -304,7 +301,7 @@ static void trajectoryPathGet(const FunctionCallbackInfo<Value>& args)
             !verifyNumber(isolate, args[4], endX) || !verifyNumber(isolate, args[5], endY) ||
             !verifyNumber(isolate, args[6], endSpeedX) || !verifyNumber(isolate, args[7], endSpeedY) ||
             !verifyNumber(isolate, args[8], maxSpeed) || !verifyNumber(isolate, args[9], acceleration)) {
-        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "Invalid arguments", String::kNormalString)));
+        isolate->ThrowException(Exception::Error(v8string(isolate, "Invalid arguments")));
         return;
     }
 
@@ -314,11 +311,11 @@ static void trajectoryPathGet(const FunctionCallbackInfo<Value>& args)
     // convert path to js object
     unsigned int i = 0;
     Local<Array> result = Array::New(isolate, trajectory.size());
-    Local<String> pxString = String::NewFromUtf8(isolate, "px", NewStringType::kNormal).ToLocalChecked();
-    Local<String> pyString = String::NewFromUtf8(isolate, "py", NewStringType::kNormal).ToLocalChecked();
-    Local<String> vxString = String::NewFromUtf8(isolate, "vx", NewStringType::kNormal).ToLocalChecked();
-    Local<String> vyString = String::NewFromUtf8(isolate, "vy", NewStringType::kNormal).ToLocalChecked();
-    Local<String> timeString = String::NewFromUtf8(isolate, "time", NewStringType::kNormal).ToLocalChecked();
+    Local<String> pxString = v8string(isolate, "px");
+    Local<String> pyString = v8string(isolate, "py");
+    Local<String> vxString = v8string(isolate, "vx");
+    Local<String> vyString = v8string(isolate, "vy");
+    Local<String> timeString = v8string(isolate, "time");
     for (const auto &p : trajectory) {
         Local<Object> pathPart = Object::New(isolate);
         pathPart->Set(pxString, Number::New(isolate, double(p.pos.x)));
@@ -391,7 +388,7 @@ static void trajectoryAddRobotTrajectoryObstacle(const FunctionCallbackInfo<Valu
 {
     Isolate * isolate = args.GetIsolate();
     if (args.Length() != 3 || !args[0]->IsExternal()) {
-        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "Invalid arguments", String::kNormalString)));
+        isolate->ThrowException(Exception::Error(v8string(isolate, "Invalid arguments")));
         return;
     }
     std::vector<TrajectoryPath::Point> *obstacle = static_cast<std::vector<TrajectoryPath::Point>*>(Local<External>::Cast(args[0])->Value());
@@ -422,7 +419,7 @@ static void trajectoryAddAvoidanceLine(const FunctionCallbackInfo<Value> &args)
 
     // a line musn't have length zero
     if (x1 == x2 && y1 == y2) {
-        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "line must have non zero length", String::kNormalString)));
+        isolate->ThrowException(Exception::Error(v8string(isolate, "line must have non zero length")));
         return;
     }
     auto p = static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value())->trajectoryPath();
@@ -508,7 +505,7 @@ static void pathObjectAddFunctions(Isolate *isolate, const QList<FunctionInfo> &
     for (auto callback : callbacks) {
         Local<Function> function = Function::New(isolate->GetCurrentContext(), callback.function,
                                                  pathObject).ToLocalChecked();
-        pathWrapper->Set(createV8String(isolate, callback.name), function);
+        pathWrapper->Set(v8string(isolate, callback.name), function);
     }
 }
 
@@ -569,10 +566,10 @@ void registerPathJsCallbacks(Isolate *isolate, Local<Object> global, Typescript 
         { "addTreeVisualization", pathAddTreeVisualization_legacy}};
 
     Local<Object> pathObject = Object::New(isolate);
-    Local<String> pathStr = String::NewFromUtf8(isolate, "path", NewStringType::kNormal).ToLocalChecked();
+    Local<String> pathStr = v8string(isolate, "path");
     for (auto callback : callbacks) {
         QTPath *path = new QTPath(nullptr, nullptr, t);
-        Local<String> name = String::NewFromUtf8(isolate, callback.name, NewStringType::kNormal).ToLocalChecked();
+        Local<String> name = v8string(isolate, callback.name);
         auto functionTemplate = FunctionTemplate::New(isolate, callback.function, External::New(isolate, path),
                                                       Local<Signature>(), 0, ConstructorBehavior::kThrow, SideEffectType::kHasSideEffect);
         Local<Function> function = functionTemplate->GetFunction(isolate->GetCurrentContext()).ToLocalChecked();

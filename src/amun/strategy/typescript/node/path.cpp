@@ -27,6 +27,8 @@
 #include <QDir>
 #include <QFileInfo>
 
+#include "../v8utility.h"
+
 using v8::FunctionCallbackInfo;
 using v8::HandleScope;
 using v8::Isolate;
@@ -36,6 +38,8 @@ using v8::ObjectTemplate;
 using v8::Value;
 using v8::External;
 using v8::NewStringType;
+
+using namespace v8helper;
 
 Node::path::path(Isolate* isolate) : ObjectContainer(isolate) {
     HandleScope handleScope(m_isolate);
@@ -82,6 +86,6 @@ void Node::path::resolve(const FunctionCallbackInfo<Value>& args) {
     }
 
     QString absolutePath = QFileInfo(constructedPath).absoluteFilePath();
-    Local<String> absolutePathHandle = String::NewFromUtf8(isolate, absolutePath.toUtf8().data(), NewStringType::kNormal).ToLocalChecked();
+    Local<String> absolutePathHandle = v8string(isolate, absolutePath);
     args.GetReturnValue().Set(absolutePathHandle);
 }

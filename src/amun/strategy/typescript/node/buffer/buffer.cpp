@@ -24,6 +24,8 @@
 #include <QString>
 #include <QList>
 
+#include "../../v8utility.h"
+
 using v8::External;
 using v8::Function;
 using v8::FunctionCallbackInfo;
@@ -40,6 +42,8 @@ using v8::PropertyCallbackInfo;
 using v8::String;
 using v8::Value;
 
+using namespace v8helper;
+
 Node::Buffer::Buffer(Isolate* isolate) : Node::ObjectContainer(isolate) {
     HandleScope handleScope(m_isolate);
 
@@ -51,7 +55,7 @@ Node::Buffer::Buffer(Isolate* isolate) : Node::ObjectContainer(isolate) {
     instanceTemplate->SetHandler(IndexedPropertyHandlerConfiguration {
         &Node::Buffer::Instance::indexGet, &Node::Buffer::Instance::indexSet
     });
-    Local<String> lengthName = String::NewFromUtf8(m_isolate, "length");
+    Local<String> lengthName = v8string(m_isolate, "length");
     instanceTemplate->SetAccessor(lengthName, &Node::Buffer::Instance::lengthGet);
 
     auto toStringTemplate = FunctionTemplate::New(m_isolate, &Node::Buffer::Instance::toString, External::New(m_isolate, this));
@@ -130,7 +134,7 @@ void Node::Buffer::Instance::toString(const FunctionCallbackInfo<Value>& args) {
 
 
     QByteArray readBuffer =  instance->m_data.mid(begin, end-begin);
-    Local<String> result = String::NewFromUtf8(isolate, readBuffer.data(), NewStringType::kNormal).ToLocalChecked();
+    Local<String> result = v8string(isolate, readBuffer);
 
     args.GetReturnValue().Set(result);
 }

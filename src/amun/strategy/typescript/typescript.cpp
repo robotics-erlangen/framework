@@ -37,8 +37,10 @@
 #include "internaldebugger.h"
 #include "tsc_internal.h"
 #include "strategy/script/compilerregistry.h"
+#include "v8utility.h"
 
 using namespace v8;
+using namespace v8helper;
 
 // use this to silence a warn_unused_result warning
 template <typename T> inline void USE(T&&) {}
@@ -114,7 +116,7 @@ void Typescript::createGlobalScope()
     registerAmunJsCallbacks(m_isolate, global, this);
     registerPathJsCallbacks(m_isolate, global, this);
     // create an empty global variable used for debugging
-    Local<String> objectName = String::NewFromUtf8(m_isolate, "___globalpleasedontuseinregularcode", NewStringType::kNormal).ToLocalChecked();
+    Local<String> objectName = v8string(m_isolate, "___globalpleasedontuseinregularcode");
     global->Set(objectName, Object::New(m_isolate));
     m_context.Reset(m_isolate, context);
 
@@ -159,7 +161,7 @@ bool Typescript::canConnectInternalDebugger() const
 
 static MaybeLocal<Value> callFunction(const Local<Context>& c, QString& errorMsg, Local<Object>& object, const char* funName, Isolate* isolate, std::vector<Local<Value>>&& parameters = {})
 {
-    Local<String> funNameString = String::NewFromUtf8(isolate, funName, NewStringType::kNormal).ToLocalChecked();
+    Local<String> funNameString = v8string(isolate, funName);
     Local<Function> fun(Local<Function>::Cast(object->Get(funNameString)));
     MaybeLocal<Value> maybeResult = fun->Call(c, object, parameters.size(), parameters.data());
     if (maybeResult.IsEmpty()) {
@@ -416,8 +418,7 @@ bool Typescript::loadJavascript(const QString &filename, const QString &entryPoi
     Local<Context> context = Local<Context>::New(m_isolate, m_context);
     Context::Scope contextScope(context);
 
-    Local<String> source = String::NewFromUtf8(m_isolate,
-                                        contentBytes.data(), NewStringType::kNormal).ToLocalChecked();
+    Local<String> source = v8string(m_isolate, contentBytes);
 
     // Compile the source code.
     Local<Script> script;
@@ -438,7 +439,7 @@ bool Typescript::loadJavascript(const QString &filename, const QString &entryPoi
         return false;
     }
     Local<Object> initExport = Local<Value>::New(m_isolate, *m_requireCache.back()[m_filename])->ToObject(context).ToLocalChecked();
-    Local<String> scriptInfoString = String::NewFromUtf8(m_isolate, "scriptInfo", NewStringType::kNormal).ToLocalChecked();
+    Local<String> scriptInfoString = v8string(m_isolate, "scriptInfo");
     if (!initExport->Has(context, scriptInfoString).ToChecked()) {
         // the script returns nothing
         m_errorMsg = "<font color=\"red\">Script must export scriptInfo object!</font>";
@@ -452,8 +453,8 @@ bool Typescript::loadJavascript(const QString &filename, const QString &entryPoi
     }
 
     Local<Object> resultObject = result->ToObject(context).ToLocalChecked();
-    Local<String> nameString = String::NewFromUtf8(m_isolate, "name", NewStringType::kNormal).ToLocalChecked();
-    Local<String> entrypointsString = String::NewFromUtf8(m_isolate, "entrypoints", NewStringType::kNormal).ToLocalChecked();
+    Local<String> nameString = v8string(m_isolate, "name");
+    Local<String> entrypointsString = v8string(m_isolate, "entrypoints");
     if (!resultObject->Has(nameString) || !resultObject->Has(entrypointsString)) {
         m_errorMsg = "<font color=\"red\">scriptInfo export must be an object containing 'name' and 'entrypoints'!</font>";
         return false;
@@ -496,7 +497,7 @@ bool Typescript::loadJavascript(const QString &filename, const QString &entryPoi
     }
 
     // handle strategy options
-    Local<String> optionsString = String::NewFromUtf8(m_isolate, "options", NewStringType::kNormal).ToLocalChecked();
+    Local<String> optionsString = v8string(m_isolate, "options");
     QStringList optionsList;
     if (resultObject->Has(optionsString)) {
         if (!resultObject->Get(optionsString)->IsArray()) {
@@ -586,7 +587,7 @@ void Typescript::defineModule(const FunctionCallbackInfo<Value> &args)
 
 void Typescript::registerDefineFunction(Local<ObjectTemplate> global)
 {
-    Local<String> name = String::NewFromUtf8(m_isolate, "define", NewStringType::kNormal).ToLocalChecked();
+    Local<String> name = v8string(m_isolate, "define");
     global->Set(name, FunctionTemplate::New(m_isolate, defineModule, External::New(m_isolate, this)));
 
     Local<FunctionTemplate> requireTemplate = FunctionTemplate::New(m_isolate, performRequire, External::New(m_isolate, this));
@@ -595,7 +596,7 @@ void Typescript::registerDefineFunction(Local<ObjectTemplate> global)
 
 ScriptOrigin *Typescript::scriptOriginFromFileName(QString name)
 {
-    ScriptOrigin *origin = new ScriptOrigin(String::NewFromUtf8(m_isolate, name.toStdString().c_str(), NewStringType::kNormal).ToLocalChecked(),
+    ScriptOrigin *origin = new ScriptOrigin(v8string(m_isolate, name),
                                             Local<Integer>(), Local<Integer>(), Local<Boolean>(), Integer::New(m_isolate, m_scriptIdCounter));
     m_scriptIdCounter++;
     m_scriptOrigins.push_back(origin);
@@ -604,7 +605,7 @@ ScriptOrigin *Typescript::scriptOriginFromFileName(QString name)
 
 void Typescript::throwException(QString text)
 {
-    Local<String> exception = String::NewFromUtf8(m_isolate, text.toStdString().c_str(), NewStringType::kNormal).ToLocalChecked();
+    Local<String> exception = v8string(m_isolate, text);
     m_isolate->ThrowException(Exception::Error(exception));
 }
 
@@ -621,8 +622,7 @@ bool Typescript::loadModule(QString name)
             return false;
         }
 
-        Local<String> source = String::NewFromUtf8(m_isolate,
-                                            contentBytes.data(), NewStringType::kNormal).ToLocalChecked();
+        Local<String> source = v8string(m_isolate, contentBytes);
         Local<Context> context = m_isolate->GetCurrentContext();
 
         // Compile the source code.
@@ -715,7 +715,7 @@ void Typescript::startProfiling()
     HandleScope handleScope(m_isolate);
     m_profiler = CpuProfiler::New(m_isolate);
     m_profiler->SetSamplingInterval(200);
-    m_profiler->StartProfiling(String::NewFromUtf8(m_isolate, "profile", NewStringType::kNormal).ToLocalChecked());
+    m_profiler->StartProfiling(v8string(m_isolate, "profile"));
 }
 
 void Typescript::endProfiling(const std::string &filename)
@@ -724,7 +724,7 @@ void Typescript::endProfiling(const std::string &filename)
     if (m_profiler == nullptr) {
         qFatal("Stopped typescript profiling before being started");
     }
-    CpuProfile *profile = m_profiler->StopProfiling(String::NewFromUtf8(m_isolate, "profile", NewStringType::kNormal).ToLocalChecked());
+    CpuProfile *profile = m_profiler->StopProfiling(v8string(m_isolate, "profile"));
     QFile file(filename.c_str());
     if (file.open(QFile::WriteOnly)) {
         QTextStream stream(&file);
