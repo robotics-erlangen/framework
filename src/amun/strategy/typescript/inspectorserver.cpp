@@ -25,6 +25,37 @@
 #include <QTcpSocket>
 #include <QCryptographicHash>
 
+static QString mapToString(const QMap<QString, QString> &map)
+{
+    QString result = "{\n";
+    bool first = true;
+    for (QString key : map.keys()) {
+        if (!first) {
+            result += ",\n";
+        }
+        first = false;
+        result += "    \"" + key + "\": \"" + map[key] + "\"";
+    }
+    result += "\n}";
+    return result;
+}
+
+static QString mapsToString(const QList<QMap<QString, QString>> &list)
+{
+    bool first = true;
+    QString result;
+    result += "[ ";
+    for (const auto& object : list) {
+        if (!first) {
+          result += ", ";
+        }
+        first = false;
+        result += mapToString(object);
+    }
+    result += "]\n\n";
+    return result;
+}
+
 InspectorServer::InspectorServer(int port, QObject *parent) :
     QObject(parent),
     m_server(this),
@@ -128,37 +159,6 @@ void InspectorServer::sendVersionResponse()
     response["Browser"] = "ra 1.0";
     response["Protocol-Version"] = "1.1";
     sendHttpResponse(mapToString(response));
-}
-
-QString InspectorServer::mapToString(const QMap<QString, QString> &map)
-{
-    QString result = "{\n";
-    bool first = true;
-    for (QString key : map.keys()) {
-        if (!first) {
-            result += ",\n";
-        }
-        first = false;
-        result += "    \"" + key + "\": \"" + map[key] + "\"";
-    }
-    result += "\n}";
-    return result;
-}
-
-QString InspectorServer::mapsToString(const QList<QMap<QString, QString>> &list)
-{
-    bool first = true;
-    QString result;
-    result += "[ ";
-    for (const auto& object : list) {
-        if (!first) {
-          result += ", ";
-        }
-        first = false;
-        result += mapToString(object);
-    }
-    result += "]\n\n";
-    return result;
 }
 
 void InspectorServer::acceptConnections()

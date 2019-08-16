@@ -47,8 +47,6 @@ private slots:
     void acceptConnections();
 
 private:
-    QString mapToString(const QMap<QString, QString> &map);
-    QString mapsToString(const QList<QMap<QString, QString>> &list);
     void sendListResponse();
     void sendVersionResponse();
     void sendHttpResponse(QString response);
