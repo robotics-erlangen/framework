@@ -25,10 +25,9 @@
 
 #include <memory>
 #include <QFile>
+#include <QString>
 #include "v8.h"
-#include <vector>
-
-class QString;
+#include <QMap>
 
 namespace Node {
     class fs : public ObjectContainer {
@@ -62,9 +61,9 @@ namespace Node {
         static const int OBJECT_FILESTAT_INDEX = 0;
         v8::Global<v8::ObjectTemplate> m_fileStatTemplate;
 
-        std::vector<std::shared_ptr<QFile>> m_fileDescriptors;
+        QMap<QString, std::shared_ptr<QFile>> m_fileDescriptors;
 
-        std::shared_ptr<QFile> extractFD(v8::Local<v8::Number> fdAsNumber);
+        std::shared_ptr<QFile> extractFD(v8::Local<v8::String> fd);
 
         static void mkdirSync(const v8::FunctionCallbackInfo<v8::Value>& args);
         static void statSync(const v8::FunctionCallbackInfo<v8::Value>& args);

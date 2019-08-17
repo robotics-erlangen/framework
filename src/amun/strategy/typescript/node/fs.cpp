@@ -164,16 +164,11 @@ void Node::fs::FileStat::isFile(const FunctionCallbackInfo<Value>& info) {
     info.GetReturnValue().Set(fileStat->type == FileStat::Type::File);
 }
 
-std::shared_ptr<QFile> Node::fs::extractFD(Local<Number> fdAsNumber) {
-    double fdAsDouble = fdAsNumber->Value();
-    // wtf
-    QFile* fdRaw = *reinterpret_cast<QFile**>(&fdAsDouble);
-    auto fdIt = std::find_if(m_fileDescriptors.begin(), m_fileDescriptors.end(),
-            [fdRaw](const std::shared_ptr<QFile>& val) { return val.get() == fdRaw; });
-    if (fdIt == m_fileDescriptors.end()) {
+std::shared_ptr<QFile> Node::fs::extractFD(Local<String> fd) {
+    auto fdIt = m_fileDescriptors.find(*String::Utf8Value(fd));
+    if (fdIt == m_fileDescriptors.end())
         return std::shared_ptr<QFile>();
-    }
-    return *fdIt;
+    return fdIt.value();
 }
 
 void Node::fs::mkdirSync(const FunctionCallbackInfo<Value>& args) {
@@ -279,12 +274,9 @@ void Node::fs::openSync(const FunctionCallbackInfo<Value>& args) {
         fs->throwV8Exception(QString("openSync could not open file '%1' because of '%2'").arg(fileName).arg(fileHandle->errorString()));
         return;
     }
+    fs->m_fileDescriptors.insert(fileName, fileHandle);
 
-    QFile* fd = fileHandle.get();
-    fs->m_fileDescriptors.push_back(fileHandle);
-
-    Local<Number> fdAsNumber = Number::New(isolate, *reinterpret_cast<double*>(&fd));
-    args.GetReturnValue().Set(fdAsNumber);
+    args.GetReturnValue().Set(v8string(isolate, fileName));
 }
 
 void Node::fs::writeSync(const FunctionCallbackInfo<Value>& args) {
@@ -293,13 +285,13 @@ void Node::fs::writeSync(const FunctionCallbackInfo<Value>& args) {
     if (args.Length() < 2) {
         fs->throwV8Exception("writeSync needs at least 2 arguments");
         return;
-    } else if (!args[0]->IsNumber()) {
-        fs->throwV8Exception("writeSync needs the first argument to be a number");
+    } else if (!args[0]->IsString()) {
+        fs->throwV8Exception("writeSync needs the first argument to be a string");
         return;
     }
     // TODO check if used with buffer or string
 
-    std::shared_ptr<QFile> fd = fs->extractFD(args[0].As<Number>());
+    std::shared_ptr<QFile> fd = fs->extractFD(args[0].As<String>());
     if (!fd) {
         fs->throwV8Exception("writeSync called with invalid file descriptor");
         return;
@@ -348,11 +340,11 @@ void Node::fs::writeSync(const FunctionCallbackInfo<Value>& args) {
 
 void Node::fs::closeSync(const FunctionCallbackInfo<Value>& args) {
     auto fs = static_cast<Node::fs*>(Local<External>::Cast(args.Data())->Value());
-    if (args.Length() != 1 || !args[0]->IsNumber()) {
-        fs->throwV8Exception("closeSync needs exactly one number argument");
+    if (args.Length() != 1 || !args[0]->IsString()) {
+        fs->throwV8Exception("closeSync needs exactly one string argument");
         return;
     }
-    std::shared_ptr<QFile> fd = fs->extractFD(args[0].As<Number>());
+    std::shared_ptr<QFile> fd = fs->extractFD(args[0].As<String>());
     if (!fd) {
         fs->throwV8Exception("closeSync called with invalid file descriptor");
         return;
