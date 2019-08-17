@@ -95,19 +95,12 @@ Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, C
     m_strategy(nullptr),
     m_debugStatus(Status::createArena()),
     m_type(type),
-    m_debugEnabled(type == StrategyType::AUTOREF),
     m_refboxControlEnabled(false),
     m_autoReload(false),
     m_strategyFailed(true),
     m_isEnabled(!isLogplayer),
     m_udpSenderSocket(new QUdpSocket(this)),
     m_refboxSocket(new QTcpSocket(this)),
-    m_isReplay(false),
-    m_debugHelper(helper),
-    m_isInternalAutoref(internalAutoref),
-    m_isPerformanceMode(true),
-    m_isFlipped(false),
-    m_isTournamentMode(false),
     m_refboxReplyLength(-1),
     m_isInLogplayer(isLogplayer),
     m_compilerRegistry(registry),
@@ -130,6 +123,10 @@ Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, C
     }
     m_inspectorServer = std::unique_ptr<InspectorServer>(new InspectorServer(inspectorPort, this));
 #endif
+
+    m_scriptState.debugHelper = helper;
+    m_scriptState.isInternalAutoref = internalAutoref;
+    m_scriptState.isDebugEnabled = type == StrategyType::AUTOREF;
 
     m_refboxSocket->setSocketOption(QAbstractSocket::LowDelayOption,1);
 
@@ -179,8 +176,8 @@ void Strategy::handleStatus(const Status &status)
         return;
     }
 
-    if (status->has_world_state() && status->has_game_state() && !m_isReplay) {
-        m_status = status;
+    if (status->has_world_state() && status->has_game_state() && !m_scriptState.isReplay) {
+        m_scriptState.currentStatus = status;
 
         // This timer delays execution of the entrypoint (executeScript) until all currently
         // pending messages in the event loop have been processed.
@@ -192,14 +189,11 @@ void Strategy::handleStatus(const Status &status)
     if ((status->has_blue_running() && status->blue_running() && m_type == StrategyType::BLUE)
             || (status->has_yellow_running() && status->yellow_running() && m_type == StrategyType::YELLOW)) {
         m_idleTimer->stop();
-        if (!m_isReplay) {
+        if (!m_scriptState.isReplay) {
             reload();
         }
-        m_isReplay = true;
-        if (m_strategy) {
-            m_strategy->setIsReplay(true);
-        }
-        m_status = status;
+        m_scriptState.isReplay = true;
+        m_scriptState.currentStatus = status;
         process();
     }
 }
@@ -253,8 +247,8 @@ void Strategy::handleCommand(const Command &command)
     if (cmd) {
         if (cmd->has_enable_debug()) {
             // only reload on change
-            if (m_debugEnabled != cmd->enable_debug()) {
-                m_debugEnabled = cmd->enable_debug();
+            if (m_scriptState.isDebugEnabled != cmd->enable_debug()) {
+                m_scriptState.isDebugEnabled = cmd->enable_debug();
                 reloadStrategy = true;
             }
         }
@@ -285,21 +279,21 @@ void Strategy::handleCommand(const Command &command)
                 options.append(QString::fromStdString(str));
             }
             options.sort();
-            if (m_selectedOptions != options) {
-                m_selectedOptions = options;
+            if (m_scriptState.selectedOptions != options) {
+                m_scriptState.selectedOptions = options;
                 reloadStrategy = true;
             }
         }
 
         if (cmd->has_performance_mode()) {
-            if (m_isPerformanceMode != cmd->performance_mode()) {
-                m_isPerformanceMode = cmd->performance_mode();
+            if (m_scriptState.isPerformanceMode != cmd->performance_mode()) {
+                m_scriptState.isPerformanceMode = cmd->performance_mode();
                 reloadStrategy = true;
             }
         }
 
-        if (cmd->has_tournament_mode() && m_isTournamentMode != cmd->tournament_mode()) {
-            m_isTournamentMode = cmd->tournament_mode();
+        if (cmd->has_tournament_mode() && m_scriptState.isTournamentMode != cmd->tournament_mode()) {
+            m_scriptState.isTournamentMode = cmd->tournament_mode();
             reloadStrategy = true;
         }
 
@@ -350,7 +344,9 @@ bool Strategy::updateTeam(const robot::Team &team, StrategyType teamType)
     if (team.robot_size() > 0) {
         m_anyRobotSpec.CopyFrom(team.robot(0));
     }
-    if ((team.robot_size() != 0 || !m_isReplay) && m_type == teamType && team.SerializeAsString() != m_team.SerializeAsString()) {
+    if ((team.robot_size() != 0 || !m_scriptState.isReplay)
+            && m_type == teamType
+            && team.SerializeAsString() != m_team.SerializeAsString()) {
         m_team.CopyFrom(team);
         return true;
     }
@@ -392,10 +388,10 @@ world::State Strategy::assembleWorldState()
     // assemble world state for this strategy
     // depending on the strategy type, the tracking with or without trajectory information is used for robots
     world::State worldState;
-    if (m_status->execution_state().IsInitialized()) {
-        worldState = m_status->execution_state();
+    if (m_scriptState.currentStatus->execution_state().IsInitialized()) {
+        worldState = m_scriptState.currentStatus->execution_state();
     } else {
-        worldState = m_status->world_state();
+        worldState = m_scriptState.currentStatus->world_state();
         if (m_type != StrategyType::YELLOW && worldState.simple_tracking_yellow_size() > 0) {
             worldState.clear_yellow();
             worldState.mutable_yellow()->CopyFrom(worldState.simple_tracking_yellow());
@@ -415,25 +411,27 @@ void Strategy::process()
     }
 
     // create a dummy team with 16 robots if replaying with no team information
-    if ((m_isInLogplayer || m_isReplay) && m_team.robot_size() == 0) {
+    if ((m_isInLogplayer || m_scriptState.isReplay) && m_team.robot_size() == 0) {
         createDummyTeam();
         reload();
     }
 
-    Q_ASSERT(m_status->game_state().IsInitialized() || m_status->execution_game_state().IsInitialized());
-    Q_ASSERT(m_status->world_state().IsInitialized() || m_status->execution_state().IsInitialized());
+    Q_ASSERT(m_scriptState.currentStatus->game_state().IsInitialized()
+            || m_scriptState.currentStatus->execution_game_state().IsInitialized());
+    Q_ASSERT(m_scriptState.currentStatus->world_state().IsInitialized()
+            || m_scriptState.currentStatus->execution_state().IsInitialized());
 
     double pathPlanning = 0;
     qint64 startTime = Timer::systemTime();
 
     amun::UserInput userInput;
-    if (m_status->has_execution_user_input()) {
-        userInput.CopyFrom(m_status->execution_user_input());
+    if (m_scriptState.currentStatus->has_execution_user_input()) {
+        userInput.CopyFrom(m_scriptState.currentStatus->execution_user_input());
     } else {
         if (m_type == StrategyType::BLUE) {
-            userInput.CopyFrom(m_status->user_input_blue());
+            userInput.CopyFrom(m_scriptState.currentStatus->user_input_blue());
         } else if (m_type == StrategyType::YELLOW) {
-            userInput.CopyFrom(m_status->user_input_yellow());
+            userInput.CopyFrom(m_scriptState.currentStatus->user_input_yellow());
         }
         // autoref has no user input
         userInput.mutable_move_command()->CopyFrom(m_lastMoveCommand.move_command());
@@ -443,9 +441,10 @@ void Strategy::process()
     // depending on the strategy type, the tracking with or without trajectory information is used for robots
     world::State worldState = assembleWorldState();
 
-    m_strategy->setCurrentStatus(m_status);
     if (m_strategy->process(pathPlanning, worldState,
-                            m_status->execution_game_state().IsInitialized() ? m_status->execution_game_state() : m_status->game_state(), userInput)) {
+                            m_scriptState.currentStatus->execution_game_state().IsInitialized()
+                                ? m_scriptState.currentStatus->execution_game_state()
+                                : m_scriptState.currentStatus->game_state(), userInput)) {
         if (!m_p->mixedTeamData.isNull()) {
             int bytesSent = m_udpSenderSocket->writeDatagram(m_p->mixedTeamData, m_p->mixedTeamHost, m_p->mixedTeamPort);
             int origSize = m_p->mixedTeamData.size();
@@ -498,8 +497,9 @@ void Strategy::process()
         }
         status->mutable_execution_state()->CopyFrom(worldState);
         status->mutable_execution_state()->clear_vision_frames();
-        status->mutable_execution_game_state()->CopyFrom(m_status->execution_game_state().IsInitialized() ?
-                                                             m_status->execution_game_state() : m_status->game_state());
+        status->mutable_execution_game_state()->CopyFrom(m_scriptState.currentStatus->execution_game_state().IsInitialized()
+                                                            ? m_scriptState.currentStatus->execution_game_state()
+                                                            : m_scriptState.currentStatus->game_state());
         status->mutable_execution_user_input()->CopyFrom(userInput);
         emit sendStatus(status);
     } else {
@@ -528,10 +528,7 @@ void Strategy::handleRefboxReply(const QByteArray &data)
 
 void Strategy::setFlipped(bool flipped)
 {
-    m_isFlipped = flipped;
-    if (m_strategy) {
-        m_strategy->setFlipped(flipped);
-    }
+    m_scriptState.isFlipped = flipped;
 }
 
 void Strategy::reload()
@@ -543,7 +540,7 @@ void Strategy::reload()
 
 void Strategy::sendCommand(const Command &command)
 {
-    if (m_debugEnabled) {
+    if (m_scriptState.isDebugEnabled) {
         emit gotCommand(command);
     } else {
         fail("sendCommand is only allowed in debug mode!");
@@ -562,7 +559,6 @@ void Strategy::loadStateChanged(amun::StatusStrategy::STATE state)
     }
 
     m_entryPoint = m_strategy->entryPoint(); // remember loaded entrypoint
-    m_strategy->setSelectedOptions(m_selectedOptions);
 
     // prepare strategy status message
     Status status = takeStrategyDebugStatus();
@@ -607,17 +603,17 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
 
         // hardcoded factory pattern
         if (Lua::canHandle(filename)) {
-            m_strategy = new Lua(m_timer, m_type, m_debugEnabled, m_refboxControlEnabled);
+            m_strategy = new Lua(m_timer, m_type, m_scriptState, m_scriptState.isDebugEnabled, m_refboxControlEnabled);
             // insert m_debugStatus into m_strategy
             takeStrategyDebugStatus();
 #ifdef V8_FOUND
         } else if (Typescript::canHandle(filename)) {
-            Typescript *t = new Typescript(m_timer, m_type, m_refboxControlEnabled, m_compilerRegistry);
+            Typescript *t = new Typescript(m_timer, m_type, m_scriptState, m_refboxControlEnabled, m_compilerRegistry);
             m_strategy = t;
             // insert m_debugStatus into m_strategy
             // this has to happen before newDebuggagleStrategy is called
             takeStrategyDebugStatus();
-            if (m_debugEnabled) {
+            if (m_scriptState.isDebugEnabled) {
                 m_inspectorServer->newDebuggagleStrategy(t);
             }
 #endif
@@ -627,19 +623,11 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
         }
     }
 
-    if (m_debugEnabled && m_debugHelper) {
-        m_strategy->setDebugHelper(m_debugHelper);
-        // the debug helper doesn't know the exact moment when the strategy gets reloaded
-        m_debugHelper->enableQueue();
+    if (m_scriptState.isDebugEnabled && m_scriptState.debugHelper) {
+        m_scriptState.debugHelper->enableQueue();
     }
     m_strategyFailed = true;
     m_strategy->setGameControllerConnection(m_gameControllerConnection);
-    m_strategy->setIsInternalAutoref(m_isInternalAutoref);
-    m_strategy->setIsPerformanceMode(m_isPerformanceMode);
-    m_strategy->setIsReplay(m_isReplay);
-    m_strategy->setFlipped(m_isFlipped);
-    m_strategy->setTournamentMode(m_isTournamentMode);
-    m_strategy->setDebug(m_debugEnabled);
 
     if (createNewStrategy) {
         // delay reload until strategy is no longer running
@@ -690,8 +678,8 @@ void Strategy::fail(const QString &error, const amun::UserInput & userInput)
     // update status
     Status status = takeStrategyDebugStatus();
     setStrategyStatus(status, amun::StatusStrategy::FAILED);
-    if (!m_status.isNull()) {
-        status->mutable_execution_game_state()->CopyFrom(m_status->game_state());
+    if (!m_scriptState.currentStatus.isNull()) {
+        status->mutable_execution_game_state()->CopyFrom(m_scriptState.currentStatus->game_state());
         status->mutable_execution_state()->CopyFrom(assembleWorldState());
         status->mutable_execution_user_input()->CopyFrom(userInput);
     }
@@ -779,9 +767,11 @@ Status Strategy::takeStrategyDebugStatus()
         return Status(new amun::Status);
     }
     debugValues->set_source(debugSource());
-    if (!m_status.isNull()) {
-        out->set_time(m_status->time());
-        debugValues->set_time(m_status->execution_state().IsInitialized() ? m_status->execution_state().time() : m_status->world_state().time());
+    if (!m_scriptState.currentStatus.isNull()) {
+        out->set_time(m_scriptState.currentStatus->time());
+        debugValues->set_time(m_scriptState.currentStatus->execution_state().IsInitialized()
+                ? m_scriptState.currentStatus->execution_state().time()
+                : m_scriptState.currentStatus->world_state().time());
     }
     return out;
 }

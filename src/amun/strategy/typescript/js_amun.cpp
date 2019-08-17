@@ -33,6 +33,7 @@
 #include "protobuf/ssl_game_controller_team.pb.h"
 #include "protobuf/ssl_game_controller_auto_ref.pb.h"
 #include "v8utility.h"
+#include "strategy/script/scriptstate.h"
 
 using namespace v8;
 using namespace v8helper;
@@ -73,7 +74,7 @@ static void amunIsReplay(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = args.GetIsolate();
     Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
-    Local<Boolean> result = Boolean::New(isolate, t->isReplay());
+    Local<Boolean> result = Boolean::New(isolate, t->scriptState().isReplay);
     args.GetReturnValue().Set(result);
 }
 
@@ -81,9 +82,9 @@ static void amunGetSelectedOptions(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = args.GetIsolate();
     Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
-    Local<Array> result = Array::New(isolate, t->selectedOptions().length());
+    Local<Array> result = Array::New(isolate, t->scriptState().selectedOptions.length());
     unsigned int ctr = 0;
-    for (const QString &option: t->selectedOptions()) {
+    for (const QString &option: t->scriptState().selectedOptions) {
         Local<String> opt = v8string(isolate, option);
         result->Set(Integer::NewFromUnsigned(isolate, ctr++), opt);
     }
@@ -480,7 +481,7 @@ static void amunSendNetworkRefereeCommand(const FunctionCallbackInfo<Value>& arg
     Isolate* isolate = args.GetIsolate();
     Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
 
-    if (t->isInternalAutoref()) {
+    if (t->scriptState().isInternalAutoref) {
         Command command(new amun::Command);
         SSL_RefereeRemoteControlRequest * request = command->mutable_referee()->mutable_autoref_command();
         if (!jsToProtobuf(isolate, args[0], isolate->GetCurrentContext(), *request)) {
@@ -488,7 +489,7 @@ static void amunSendNetworkRefereeCommand(const FunctionCallbackInfo<Value>& arg
         }
 
         // flip position if necessary
-        if (t->isFlipped() && request->has_designated_position()) {
+        if (t->scriptState().isFlipped && request->has_designated_position()) {
             auto *pos = request->mutable_designated_position();
             pos->set_x(-pos->x());
             pos->set_y(-pos->y());
@@ -508,7 +509,7 @@ static void amunSendNetworkRefereeCommand(const FunctionCallbackInfo<Value>& arg
         }
 
         // flip position if necessary
-        if (t->isFlipped() && request.has_designated_position()) {
+        if (t->scriptState().isFlipped && request.has_designated_position()) {
             auto *pos = request.mutable_designated_position();
             pos->set_x(pos->x());
             pos->set_y(pos->y());
@@ -561,7 +562,7 @@ static void amunGetPerformanceMode(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = args.GetIsolate();
     Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
-    Local<Boolean> result = Boolean::New(isolate, t->isPerformanceMode());
+    Local<Boolean> result = Boolean::New(isolate, t->scriptState().isPerformanceMode);
     args.GetReturnValue().Set(result);
 }
 
@@ -756,7 +757,7 @@ static void amunIsDebug(const FunctionCallbackInfo<Value>& args)
         return;
     }
     Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
-    args.GetReturnValue().Set(t->isDebug());
+    args.GetReturnValue().Set(t->scriptState().isDebugEnabled);
 }
 
 struct FunctionInfo {

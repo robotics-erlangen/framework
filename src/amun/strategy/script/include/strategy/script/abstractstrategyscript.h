@@ -41,12 +41,13 @@ class DebugHelper;
 class Timer;
 
 class CompilerRegistry;
+class ScriptState;
 
 class AbstractStrategyScript : public QObject
 {
     Q_OBJECT
 public:
-    AbstractStrategyScript(const Timer *timer, StrategyType type, bool refboxControlEnabled, CompilerRegistry* registry = nullptr);
+    AbstractStrategyScript(const Timer *timer, StrategyType type, ScriptState& scriptState, bool refboxControlEnabled, CompilerRegistry* registry = nullptr);
     ~AbstractStrategyScript() override;
     AbstractStrategyScript(const AbstractStrategyScript&) = delete;
     AbstractStrategyScript& operator=(const AbstractStrategyScript&) = delete;
@@ -64,16 +65,8 @@ public:
     virtual bool canReloadInPlace() const { return false; }
     virtual bool canHandleDynamic(const QString &filename) const = 0;
 
-    void setSelectedOptions(const QStringList &options);
-    void setDebugHelper(DebugHelper *helper);
-    void setIsInternalAutoref(bool internal) { m_isInternalAutoref = internal; }
-    void setIsPerformanceMode(bool performance) { m_isPerformanceMode = performance; }
-    void setIsReplay(bool replay) { m_isReplay = replay; }
-    void setFlipped(bool flipped) { m_isFlipped = flipped; }
-    void setTournamentMode(bool isTournament) { m_isTournamentMode = isTournament; }
-    void setDebug(bool enableDebug) { m_debugEnabled = enableDebug; }
-    void setCurrentStatus(const Status &status) { m_currentStatus = status; }
-    const Status &getCurrentStatus() const { return m_currentStatus; }
+    const ScriptState& state() const { return m_scriptState; };
+    ScriptState& state() { return m_scriptState; };
 
     void setGameControllerConnection(std::shared_ptr<GameControllerConnection> &connection);
     std::shared_ptr<GameControllerConnection> getGameControllerConnection() const { return m_gameControllerConnection; }
@@ -93,17 +86,12 @@ public:
     QString entryPoint() const { return m_entryPoint; }
     QString name() const { return m_name; }
     QStringList options() const { return m_options; }
-    QStringList selectedOptions() const { return m_selectedOptions; }
     bool hasDebugger() const { return m_hasDebugger; }
-    bool isInternalAutoref() const { return m_isInternalAutoref; }
-    bool isPerformanceMode() const { return m_isPerformanceMode; }
-    bool isReplay() const { return m_isReplay;}
     void addRefereeReply(SSL_RefereeRemoteControlReply reply) { m_refereeReplies.append(reply); }
     SSL_RefereeRemoteControlReply nextRefereeReply() { return m_refereeReplies.takeFirst(); }
     bool hasRefereeReply() const { return m_refereeReplies.size() > 0; }
-    bool isFlipped() const { return m_isFlipped; }
-    bool isTournamentMode() const { return m_isTournamentMode; }
-    bool isDebug() const { return m_debugEnabled; }
+    ScriptState& scriptState() { return m_scriptState; }
+    const ScriptState& scriptState() const { return m_scriptState; }
 
     qint64 time() const;
 
@@ -146,7 +134,7 @@ protected:
     QString m_entryPoint;
     QString m_name;
     QStringList m_options;
-    QStringList m_selectedOptions;
+    ScriptState& m_scriptState;
 
     const Timer *m_timer;
     const StrategyType m_type;
@@ -154,13 +142,6 @@ protected:
 
     QString m_errorMsg;
     bool m_hasDebugger;
-    DebugHelper *m_debugHelper;
-    bool m_isInternalAutoref;
-    bool m_isPerformanceMode;
-    bool m_isReplay;
-    bool m_isFlipped;
-    bool m_isTournamentMode;
-    bool m_debugEnabled;
     QDir m_baseDir;
     QString m_filename;
 
@@ -169,7 +150,6 @@ protected:
     world::State m_worldState;
     amun::GameState m_refereeState;
     amun::UserInput m_userInput;
-    Status m_currentStatus; // used for replay tests
 
     QList<SSL_RefereeRemoteControlReply> m_refereeReplies;
 

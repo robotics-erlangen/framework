@@ -25,6 +25,7 @@ add_library(script
     include/strategy/script/compilerregistry.h
     include/strategy/script/debughelper.h
     include/strategy/script/filewatcher.h
+    include/strategy/script/scriptstate.h
     include/strategy/script/strategytype.h
 
     abstractstrategyscript.cpp

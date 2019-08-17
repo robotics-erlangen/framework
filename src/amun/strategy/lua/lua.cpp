@@ -25,6 +25,7 @@
 #include "core/timer.h"
 #include "strategy/script/debughelper.h"
 #include "strategy/script/filewatcher.h"
+#include "strategy/script/scriptstate.h"
 
 Lua *getStrategyThread(lua_State *state)
 {
@@ -291,8 +292,8 @@ static int luaInstallKillHook(lua_State* state)
     return 0;
 }
 
-Lua::Lua(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled) :
-    AbstractStrategyScript (timer, type, refboxControlEnabled)
+Lua::Lua(const Timer *timer, StrategyType type, ScriptState& scriptState, bool debugEnabled, bool refboxControlEnabled) :
+    AbstractStrategyScript (timer, type, scriptState, refboxControlEnabled)
 {
     // create lua instance and load libraries
     m_state = luaL_newstate();
@@ -349,7 +350,7 @@ void Lua::loadScript(const QString &filename, const QString &entryPoint)
     lua_pushlightuserdata(m_state, &m_name);
     lua_pushlightuserdata(m_state, &m_entryPoints);
     lua_pushlightuserdata(m_state, &m_options);
-    lua_pushboolean(m_state, m_debugEnabled);
+    lua_pushboolean(m_state, m_scriptState.isDebugEnabled);
     if (lua_pcall(m_state, 5, 0, 1) != 0) {
         m_errorMsg = lua_tostring(m_state, -1);
         emit changeLoadState(amun::StatusStrategy::FAILED);
@@ -408,7 +409,7 @@ bool Lua::process(double &pathPlanning)
 
 bool Lua::triggerDebugger()
 {
-    if (!m_hasDebugger || !m_debugEnabled) {
+    if (!m_hasDebugger || !m_scriptState.isDebugEnabled) {
         return false;
     }
 
@@ -427,18 +428,18 @@ void Lua::watch(const QString &filename)
 
 QString Lua::debuggerRead()
 {
-    if (!m_debugEnabled) {
+    if (!m_scriptState.isDebugEnabled) {
         return QString();
     }
-    return m_debugHelper->takeInput();
+    return m_scriptState.debugHelper->takeInput();
 }
 
 bool Lua::debuggerWrite(const QString &line)
 {
-    if (!m_debugEnabled) {
+    if (!m_scriptState.isDebugEnabled) {
         return false;
     }
-    m_debugHelper->sendOutput(line);
+    m_scriptState.debugHelper->sendOutput(line);
     return true;
 }
 

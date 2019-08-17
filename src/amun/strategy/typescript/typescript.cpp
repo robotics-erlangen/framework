@@ -37,6 +37,7 @@
 #include "internaldebugger.h"
 #include "tsc_internal.h"
 #include "strategy/script/compilerregistry.h"
+#include "strategy/script/scriptstate.h"
 #include "v8utility.h"
 
 using namespace v8;
@@ -45,8 +46,8 @@ using namespace v8helper;
 // use this to silence a warn_unused_result warning
 template <typename T> inline void USE(T&&) {}
 
-Typescript::Typescript(const Timer *timer, StrategyType type, bool refboxControlEnabled, CompilerRegistry* registry) :
-    AbstractStrategyScript (timer, type, refboxControlEnabled, registry),
+Typescript::Typescript(const Timer *timer, StrategyType type, ScriptState& scriptState, bool refboxControlEnabled, CompilerRegistry* registry) :
+    AbstractStrategyScript (timer, type, scriptState, refboxControlEnabled, registry),
     m_requireCache({{}}),
     m_executionCounter(0),
     m_profiler (nullptr),
@@ -533,7 +534,7 @@ void Typescript::onCompileError(const QString &message)
 {
     log(message);
     QString errorString = "<font color=\"red\">Errors occured during compilation</font>";
-    if (isTournamentMode()) {
+    if (m_scriptState.isTournamentMode) {
         log(errorString);
     } else {
         m_errorMsg = errorString;

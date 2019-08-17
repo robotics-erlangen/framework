@@ -23,16 +23,14 @@
 #include <QTcpSocket>
 #include <google/protobuf/util/delimited_message_util.h>
 #include "compilerregistry.h"
+#include "scriptstate.h"
 
-AbstractStrategyScript::AbstractStrategyScript(const Timer *timer, StrategyType type, bool refboxControlEnabled, CompilerRegistry* registry) :
+AbstractStrategyScript::AbstractStrategyScript(const Timer *timer, StrategyType type, ScriptState& scriptState, bool refboxControlEnabled, CompilerRegistry* registry) :
+    m_scriptState(scriptState),
     m_timer(timer),
     m_type(type),
     m_refboxControlEnabled(refboxControlEnabled),
     m_hasDebugger(false),
-    m_debugHelper(nullptr),
-    m_isInternalAutoref(false),
-    m_isTournamentMode(false),
-    m_debugEnabled(false),
     m_compilerRegistry(registry)
 { }
 
@@ -57,15 +55,6 @@ amun::DebugValues* AbstractStrategyScript::setDebugValues(amun::DebugValues* dV)
     amun::DebugValues* out = m_debugValues;
     m_debugValues = dV;
     return out;
-}
-
-void AbstractStrategyScript::setSelectedOptions(const QStringList &options)
-{
-    m_selectedOptions = options;
-}
-
-void AbstractStrategyScript::setDebugHelper(DebugHelper *helper) {
-    m_debugHelper = helper;
 }
 
 bool AbstractStrategyScript::chooseEntryPoint(QString entryPoint)
@@ -136,7 +125,7 @@ void AbstractStrategyScript::setCommands(const QList<RobotCommandInfo> &commands
 
 bool AbstractStrategyScript::sendCommand(const Command &command)
 {
-    if (!m_debugEnabled) {
+    if (!m_scriptState.isDebugEnabled) {
         return false;
     }
     emit gotCommand(command);
@@ -145,7 +134,7 @@ bool AbstractStrategyScript::sendCommand(const Command &command)
 
 bool AbstractStrategyScript::sendNetworkReferee(const QByteArray &referee)
 {
-    if (!m_debugEnabled || !m_refboxControlEnabled) {
+    if (!m_scriptState.isDebugEnabled || !m_refboxControlEnabled) {
         return false;
     }
     emit sendNetworkRefereeCommand(referee);

@@ -25,6 +25,7 @@
 #include "protobuf/ssl_game_controller_auto_ref.pb.h"
 #include "protobuf/ssl_refbox_remotecontrol.pb.h"
 #include <QtEndian>
+#include "strategy/script/scriptstate.h"
 
 static int amunGetGeometry(lua_State *state)
 {
@@ -57,7 +58,7 @@ static int amunIsBlue(lua_State *state)
 static int amunIsReplay(lua_State *state)
 {
     Lua *thread = getStrategyThread(state);
-    lua_pushboolean(state, thread->isReplay());
+    lua_pushboolean(state, thread->scriptState().isReplay);
     return 1;
 }
 static int amunGetSelectedOptions(lua_State *state)
@@ -65,7 +66,7 @@ static int amunGetSelectedOptions(lua_State *state)
     Lua *thread = getStrategyThread(state);
     lua_newtable(state);
     int ctr = 1;
-    for (const QString &option: thread->selectedOptions()) {
+    for (const QString &option: thread->scriptState().selectedOptions) {
         lua_pushinteger(state, ctr++);
         lua_pushstring(state, option.toUtf8().constData());
         lua_settable(state, -3);
@@ -360,7 +361,7 @@ static int amunSendMixedTeamInfo(lua_State *state)
 static int amunIsFlipped(lua_State *state)
 {
     Lua *thread = getStrategyThread(state);
-    lua_pushboolean(state, thread->isFlipped());
+    lua_pushboolean(state, thread->scriptState().isFlipped);
     return 1;
 }
 
@@ -368,13 +369,13 @@ static int amunSendNetworkRefereeCommand(lua_State *state)
 {
     Lua *thread = getStrategyThread(state);
 
-    if (thread->isInternalAutoref()) {
+    if (thread->scriptState().isInternalAutoref) {
         Command command(new amun::Command);
         SSL_RefereeRemoteControlRequest * request = command->mutable_referee()->mutable_autoref_command();
         protobufToMessage(state, 1, *request, NULL);
 
         // flip position if necessary
-        if (thread->isFlipped() && request->has_designated_position()) {
+        if (thread->scriptState().isFlipped && request->has_designated_position()) {
             auto *pos = request->mutable_designated_position();
             pos->set_x(-pos->x());
             pos->set_y(-pos->y());
@@ -392,7 +393,7 @@ static int amunSendNetworkRefereeCommand(lua_State *state)
         protobufToMessage(state, 1, request, NULL);
 
         // flip position if necessary
-        if (thread->isFlipped() && request.has_designated_position()) {
+        if (thread->scriptState().isFlipped && request.has_designated_position()) {
             auto *pos = request.mutable_designated_position();
             pos->set_x(pos->x());
             pos->set_y(pos->y());
@@ -459,7 +460,7 @@ static int amunDebuggerWrite(lua_State *state)
 static int amunGetPerformanceMode(lua_State *state)
 {
     Lua *thread = getStrategyThread(state);
-    lua_pushboolean(state, thread->isPerformanceMode());
+    lua_pushboolean(state, thread->scriptState().isPerformanceMode);
     return 1;
 }
 
@@ -467,7 +468,7 @@ static int amunGetTestStatus(lua_State *state)
 {
     // NOTE: the world state in this status packet is not the same as the one returned by amunGetWorldState
     Lua *thread = getStrategyThread(state);
-    protobufPushMessage(state, *thread->getCurrentStatus());
+    protobufPushMessage(state, *thread->scriptState().currentStatus);
     return 1;
 }
 

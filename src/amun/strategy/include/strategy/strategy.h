@@ -21,10 +21,12 @@
 #ifndef STRATEGY_H
 #define STRATEGY_H
 
+
 #include "gamecontroller/gamecontrollerconnection.h"
 #include "protobuf/command.h"
 #include "protobuf/robotcommand.h"
 #include "protobuf/status.h"
+#include "strategy/script/scriptstate.h"
 #include "strategy/script/strategytype.h"
 #include <QString>
 #include <QStringList>
@@ -54,7 +56,7 @@ public:
     ~Strategy() override;
     Strategy(const Strategy&) = delete;
     Strategy& operator=(const Strategy&) = delete;
-    void resetIsReplay() { m_isReplay = false; }
+    void resetIsReplay() { m_scriptState.isReplay = false; }
     void setEnabled(bool enable) { m_isEnabled = enable; }
 
 signals:
@@ -99,14 +101,12 @@ private:
     std::string m_geometryString;
     world::Geometry m_geometry;
     robot::Team m_team;
-    Status m_status;
     Status m_debugStatus;
     const StrategyType m_type;
-    QStringList m_selectedOptions;
+    ScriptState m_scriptState;
 
     QString m_filename;
     QString m_entryPoint;
-    bool m_debugEnabled;
     bool m_refboxControlEnabled;
 
     QTimer *m_idleTimer;
@@ -119,12 +119,6 @@ private:
     std::unique_ptr<QTcpSocket> m_refboxSocket;
 
     amun::UserInput m_lastMoveCommand;
-    bool m_isReplay;
-    DebugHelper *m_debugHelper;
-    bool m_isInternalAutoref;
-    bool m_isPerformanceMode;
-    bool m_isFlipped;
-    bool m_isTournamentMode;
     robot::Specs m_anyRobotSpec;
 
     qint32 m_refboxReplyLength;

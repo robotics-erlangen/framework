@@ -40,12 +40,14 @@ class AbstractInspectorHandler;
 class InternalDebugger;
 class CompilerRegistry;
 struct lua_State;
+class ScriptState;
 
 class Typescript : public AbstractStrategyScript
 {
     Q_OBJECT
 public:
-    Typescript(const Timer *timer, StrategyType type, bool refboxControlEnabled, CompilerRegistry* registry);
+    Typescript(const Timer *timer, StrategyType type, ScriptState& scriptState, bool refboxControlEnabled, CompilerRegistry* registry);
+
     static bool canHandle(const QString &filename);
     ~Typescript() override;
     void addPathTime(double time);
