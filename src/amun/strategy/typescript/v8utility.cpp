@@ -83,13 +83,21 @@ Local<Target> installCallbacks(Isolate* isolate, Local<Target> target, const QLi
     return installCallbacks(isolate, target, callbacks, [data](auto _) { return data; });
 }
 
+template<typename TargetType>
+Local<TargetType> createWithCallbacks(Isolate* isolate, const QList<CallbackInfo>& callbacks, Local<Value> data)
+{
+    Local<TargetType> target = TargetType::New(isolate);
+    return installCallbacks(isolate, target, callbacks, data);
+}
+
 template void throwError(Isolate*, QByteArray);
 template void throwError(Isolate*, QString);
 template void throwError(Isolate*, const char*);
 template void throwError(Isolate*, std::string);
 
-
 template Local<Object> installCallbacks(Isolate*, Local<Object>, const QList<CallbackInfo>&, const CallbackDataMapper&);
 template Local<Object> installCallbacks(Isolate*, Local<Object>, const QList<CallbackInfo>&, Local<Value>);
+
+template Local<ObjectTemplate> createWithCallbacks(Isolate*, const QList<CallbackInfo>&, Local<Value>);
 
 }
