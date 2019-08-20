@@ -465,12 +465,7 @@ static void pathAddTreeVisualization(QTPath *wrapper, const FunctionCallbackInfo
 }
 GENERATE_FUNCTIONS(pathAddTreeVisualization);
 
-struct FunctionInfo {
-    const char *name;
-    void(*function)(FunctionCallbackInfo<Value> const &);
-};
-
-static QList<FunctionInfo> commonCallbacks = {
+static QList<CallbackInfo> commonCallbacks = {
     { "destroy",            pathDestroy_new},
     { "reset",              pathReset_new},
     { "clearObstacles",     pathClearObstacles_new},
@@ -482,14 +477,14 @@ static QList<FunctionInfo> commonCallbacks = {
     { "addTriangle",        pathAddTriangle_new},
     { "seedRandom",         pathSeedRandom}};
 
-static QList<FunctionInfo> rrtPathCallbacks = {
+static QList<CallbackInfo> rrtPathCallbacks = {
     { "setProbabilities",   pathSetProbabilities_new},
     { "addSeedTarget",      pathAddSeedTarget_new},
     { "test",               pathTest_new},
     { "getPath",            pathGet_new},
     { "addTreeVisualization", pathAddTreeVisualization_new}};
 
-static QList<FunctionInfo> trajectoryPathCallbacks = {
+static QList<CallbackInfo> trajectoryPathCallbacks = {
     { "calculateTrajectory", trajectoryPathGet },
     { "addMovingCircle",    trajectoryAddMovingCircle},
     { "addMovingLine",      trajectoryAddMovingLine},
@@ -499,16 +494,6 @@ static QList<FunctionInfo> trajectoryPathCallbacks = {
     { "maxIntersectingObstaclePrio", trajectoryMaxIntersectingObstaclePrio},
     { "addAvoidanceLine",  trajectoryAddAvoidanceLine}};
 
-static void pathObjectAddFunctions(Isolate *isolate, const QList<FunctionInfo> &callbacks, Local<Object> &pathWrapper,
-                                   Local<External> &pathObject)
-{
-    for (auto callback : callbacks) {
-        Local<Function> function = Function::New(isolate->GetCurrentContext(), callback.function,
-                                                 pathObject).ToLocalChecked();
-        pathWrapper->Set(v8string(isolate, callback.name), function);
-    }
-}
-
 static void pathCreateNew(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = args.GetIsolate();
@@ -517,8 +502,8 @@ static void pathCreateNew(const FunctionCallbackInfo<Value>& args)
 
     Local<Object> pathWrapper = Object::New(isolate);
     Local<External> pathObject = External::New(isolate, p);
-    pathObjectAddFunctions(isolate, commonCallbacks, pathWrapper, pathObject);
-    pathObjectAddFunctions(isolate, rrtPathCallbacks, pathWrapper, pathObject);
+    installCallbacks(isolate, pathWrapper, commonCallbacks, pathObject);
+    installCallbacks(isolate, pathWrapper, rrtPathCallbacks, pathObject);
     args.GetReturnValue().Set(pathWrapper);
 }
 
@@ -530,8 +515,8 @@ static void trajectoryPathCreateNew(const FunctionCallbackInfo<Value>& args)
 
     Local<Object> pathWrapper = Object::New(isolate);
     Local<External> pathObject = External::New(isolate, p);
-    pathObjectAddFunctions(isolate, commonCallbacks, pathWrapper, pathObject);
-    pathObjectAddFunctions(isolate, trajectoryPathCallbacks, pathWrapper, pathObject);
+    installCallbacks(isolate, pathWrapper, commonCallbacks, pathObject);
+    installCallbacks(isolate, pathWrapper, trajectoryPathCallbacks, pathObject);
     args.GetReturnValue().Set(pathWrapper);
 }
 
@@ -545,7 +530,7 @@ static void pathCreateOld(const FunctionCallbackInfo<Value>& args)
 
 void registerPathJsCallbacks(Isolate *isolate, Local<Object> global, Typescript *t)
 {
-    QList<FunctionInfo> callbacks = {
+    QList<CallbackInfo> callbacks = {
         { "createPath",         pathCreateNew},
         { "createTrajectoryPath", trajectoryPathCreateNew},
         // legacy functions, kept for backwards compatibility
@@ -566,16 +551,11 @@ void registerPathJsCallbacks(Isolate *isolate, Local<Object> global, Typescript 
         { "addTreeVisualization", pathAddTreeVisualization_legacy}};
 
     Local<Object> pathObject = Object::New(isolate);
+    installCallbacks(isolate, pathObject, callbacks, [isolate, t](auto _) {
+            return External::New(isolate, new QTPath(nullptr, nullptr, t));
+    });
+
     Local<String> pathStr = v8string(isolate, "path");
-    for (auto callback : callbacks) {
-        QTPath *path = new QTPath(nullptr, nullptr, t);
-        Local<String> name = v8string(isolate, callback.name);
-        auto functionTemplate = FunctionTemplate::New(isolate, callback.function, External::New(isolate, path),
-                                                      Local<Signature>(), 0, ConstructorBehavior::kThrow, SideEffectType::kHasSideEffect);
-        Local<Function> function = functionTemplate->GetFunction(isolate->GetCurrentContext()).ToLocalChecked();
-        function->SetName(name);
-        pathObject->Set(name, function);
-    }
     global->Set(pathStr, pathObject);
 }
 #include "js_path.moc"

@@ -23,6 +23,12 @@
 
 #include "v8.h"
 
+template<class T> class QList;
+
+namespace std {
+    template <typename T> class function;
+}
+
 namespace v8helper {
 
     /**
@@ -41,6 +47,17 @@ namespace v8helper {
 
     template<typename StringType>
     void throwError(v8::Isolate* isolate, StringType text);
+
+    struct CallbackInfo {
+        const char *name;
+        void (*function)(const v8::FunctionCallbackInfo<v8::Value>&);
+    };
+
+    using CallbackDataMapper = std::function<v8::Local<v8::Value>(const CallbackInfo&)>;
+    template<typename Target>
+    v8::Local<Target> installCallbacks(v8::Isolate* isolate, v8::Local<Target> target, const QList<CallbackInfo>& callbacks, const CallbackDataMapper& dataMapper);
+    template<typename Target>
+    v8::Local<Target> installCallbacks(v8::Isolate* isolate, v8::Local<Target> target, const QList<CallbackInfo>& callbacks, v8::Local<v8::Value> data);
 
 }
 

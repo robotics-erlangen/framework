@@ -20,10 +20,12 @@
 
 #include "v8utility.h"
 
-#include <QByteArray>
-#include <QString>
-#include <string>
 #include "v8.h"
+#include <QByteArray>
+#include <QList>
+#include <QString>
+#include <functional>
+#include <string>
 
 using namespace v8;
 
@@ -60,9 +62,34 @@ void throwError(Isolate* isolate, StringType text)
     isolate->ThrowException(Exception::Error(exceptionText));
 }
 
+template<typename Target>
+Local<Target> installCallbacks(Isolate* isolate, Local<Target> target, const QList<CallbackInfo>& callbacks, const CallbackDataMapper& dataMapper)
+{
+    for (const auto& callback : callbacks) {
+        auto functionTemplate = FunctionTemplate::New(isolate, callback.function, dataMapper(callback),
+                Local<Signature>(), 0, ConstructorBehavior::kThrow, SideEffectType::kHasSideEffect);
+        Local<Function> function = functionTemplate->GetFunction(isolate->GetCurrentContext()).ToLocalChecked();
+
+        auto name = v8string(isolate, callback.name);
+        function->SetName(name);
+        target->Set(name, function);
+    }
+    return target;
+}
+
+template<typename Target>
+Local<Target> installCallbacks(Isolate* isolate, Local<Target> target, const QList<CallbackInfo>& callbacks, Local<Value> data)
+{
+    return installCallbacks(isolate, target, callbacks, [data](auto _) { return data; });
+}
+
 template void throwError(Isolate*, QByteArray);
 template void throwError(Isolate*, QString);
 template void throwError(Isolate*, const char*);
 template void throwError(Isolate*, std::string);
+
+
+template Local<Object> installCallbacks(Isolate*, Local<Object>, const QList<CallbackInfo>&, const CallbackDataMapper&);
+template Local<Object> installCallbacks(Isolate*, Local<Object>, const QList<CallbackInfo>&, Local<Value>);
 
 }

@@ -759,14 +759,9 @@ static void amunIsDebug(const FunctionCallbackInfo<Value>& args)
     args.GetReturnValue().Set(t->scriptState().isDebugEnabled);
 }
 
-struct FunctionInfo {
-    const char *name;
-    void(*function)(FunctionCallbackInfo<Value> const &);
-};
-
 void registerAmunJsCallbacks(Isolate *isolate, Local<Object> global, Typescript *t)
 {
-    QList<FunctionInfo> callbacks = {
+    QList<CallbackInfo> callbacks = {
         { "getGeometry",        amunGetGeometry},
         { "getTeam",            amunGetTeam},
         { "getStrategyPath",    amunGetStrategyPath},
@@ -806,14 +801,9 @@ void registerAmunJsCallbacks(Isolate *isolate, Local<Object> global, Typescript 
     };
 
     Local<Object> amunObject = Object::New(isolate);
+    auto data = External::New(isolate, t);
+    installCallbacks(isolate, amunObject, callbacks, data);
+
     Local<String> amunStr = v8string(isolate, "amun");
-    for (auto callback : callbacks) {
-        Local<String> name = v8string(isolate, callback.name);
-        auto functionTemplate = FunctionTemplate::New(isolate, callback.function, External::New(isolate, t), Local<Signature>(),
-                                                      0, ConstructorBehavior::kThrow, SideEffectType::kHasSideEffect);
-        Local<Function> function = functionTemplate->GetFunction(isolate->GetCurrentContext()).ToLocalChecked();
-        function->SetName(name);
-        amunObject->Set(name, function);
-    }
     global->Set(amunStr, amunObject);
 }
