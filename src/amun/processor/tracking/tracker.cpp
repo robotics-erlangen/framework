@@ -45,7 +45,7 @@ Tracker::Tracker(bool robotsOnly, bool isSpeedTracker) :
     m_aoi_y2(0.0f),
     m_fieldTransform(new FieldTransform),
     m_robotsOnly(robotsOnly),
-    m_resetTimeout(isSpeedTracker ? 100*1000*1000 : 500*1000*1000),
+    m_resetTimeout(isSpeedTracker ? .1E9 : .5E9),
     m_maxTimeLast(isSpeedTracker ? .2E9 : 1E9)
 {
     geometrySetDefault(&m_geometry, true);

@@ -95,6 +95,7 @@ message State {
     required int64 time = 1;
     optional Ball ball = 2;
     repeated Robot yellow = 3;
+    // robot states predicted with help of the desired trajectory (if available)
     repeated Robot blue = 4;
     repeated robot.RadioResponse radio_response = 5;
     optional bool is_simulated = 6;
@@ -102,4 +103,7 @@ message State {
     optional ssl.TeamPlan mixed_team_info = 8;
     optional TrackingAOI tracking_aoi = 9;
     repeated SSL_WrapperPacket vision_frames = 10;
+    // robot states predicted without trajectories, only from vision data
+    repeated Robot simple_tracking_yellow = 11;
+    repeated Robot simple_tracking_blue = 12;
 }

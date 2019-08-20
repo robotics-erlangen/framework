@@ -118,6 +118,7 @@ Processor::Processor(const Timer *timer) :
     m_timer(timer),
     m_tracker(new Tracker(false, false)),
     m_speedTracker(new Tracker(true, true)),
+    m_simpleTracker(new Tracker(true, false)),
     m_mixedTeamInfoSet(false),
     m_networkCommandTime(0),
     m_refereeInternalActive(false),
@@ -155,6 +156,15 @@ Processor::~Processor()
     qDeleteAll(m_yellowTeam.robots);
 }
 
+Status Processor::assembleStatus(qint64 time, bool resetRaw)
+{
+    Status status = m_tracker->worldState(time, resetRaw);
+    Status simplePredictionStatus = m_simpleTracker->worldState(time, resetRaw);
+    status->mutable_world_state()->mutable_simple_tracking_blue()->CopyFrom(simplePredictionStatus->world_state().blue());
+    status->mutable_world_state()->mutable_simple_tracking_yellow()->CopyFrom(simplePredictionStatus->world_state().yellow());
+    return status;
+}
+
 void Processor::process()
 {
     const qint64 tracker_start = Timer::systemTime();
@@ -166,7 +176,8 @@ void Processor::process()
     // run tracking
     m_tracker->process(current_time);
     m_speedTracker->process(current_time);
-    Status status = m_tracker->worldState(current_time, false);
+    m_simpleTracker->process(current_time);
+    Status status = assembleStatus(current_time, false);
     Status radioStatus = m_speedTracker->worldState(current_time, false);
 
     // add information, about whether the world state is from the simulator or not
@@ -179,6 +190,7 @@ void Processor::process()
         m_lastFlipped = activeReferee->getFlipped();
         m_tracker->setFlip(m_lastFlipped);
         m_speedTracker->setFlip(m_lastFlipped);
+        m_simpleTracker->setFlip(m_lastFlipped);
         emit setFlipped(m_lastFlipped);
     }
     status->mutable_game_state()->CopyFrom(activeReferee->gameState());
@@ -223,7 +235,7 @@ void Processor::process()
 
     // prediction which accounts for the strategy runtime
     // depends on the just created radio command
-    Status strategyStatus = m_tracker->worldState(current_time + tickDuration, true);
+    Status strategyStatus = assembleStatus(current_time + tickDuration, true);
     strategyStatus->mutable_world_state()->set_is_simulated(m_simulatorEnabled);
     strategyStatus->mutable_game_state()->CopyFrom(activeReferee->gameState());
     injectExtraData(strategyStatus);
@@ -254,7 +266,7 @@ const world::Robot* Processor::getWorldRobot(const RobotList &robots, uint id) {
         }
     }
     // If no robot was found return null
-    return NULL;
+    return nullptr;
 }
 
 void Processor::injectExtraData(Status &status)
@@ -370,6 +382,7 @@ void Processor::handleVisionPacket(const QByteArray &data, qint64 time, QString 
 {
     m_tracker->queuePacket(data, time, sender);
     m_speedTracker->queuePacket(data, time, sender);
+    m_simpleTracker->queuePacket(data, time, sender);
 }
 
 void Processor::handleNetworkCommand(const QByteArray &data, qint64 time)
@@ -418,23 +431,31 @@ void Processor::handleCommand(const Command &command)
 
     if (command->has_set_team_blue()) {
         setTeam(command->set_team_blue(), m_blueTeam);
+        m_tracker->updateTeam(command->set_team_blue(), true);
+        m_speedTracker->updateTeam(command->set_team_blue(), true);
+        m_simpleTracker->updateTeam(command->set_team_blue(), true);
         teamsChanged = true;
     }
 
     if (command->has_set_team_yellow()) {
         setTeam(command->set_team_yellow(), m_yellowTeam);
+        m_tracker->updateTeam(command->set_team_yellow(), false);
+        m_speedTracker->updateTeam(command->set_team_yellow(), false);
+        m_simpleTracker->updateTeam(command->set_team_yellow(), false);
         teamsChanged = true;
     }
 
     if (command->has_simulator() && command->simulator().has_enable()) {
         m_tracker->reset();
         m_speedTracker->reset();
+        m_simpleTracker->reset();
         m_simulatorEnabled = command->simulator().enable();
     }
 
     if (teamsChanged) {
         m_tracker->reset();
         m_speedTracker->reset();
+        m_simpleTracker->reset();
         sendTeams();
     }
 
@@ -463,6 +484,7 @@ void Processor::handleCommand(const Command &command)
     if (command->has_tracking()) {
         m_tracker->handleCommand(command->tracking());
         m_speedTracker->handleCommand(command->tracking());
+        m_simpleTracker->handleCommand(command->tracking());
     }
 
     if (command->has_transceiver()) {

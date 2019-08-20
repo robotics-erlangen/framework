@@ -465,6 +465,7 @@ static int amunGetPerformanceMode(lua_State *state)
 
 static int amunGetTestStatus(lua_State *state)
 {
+    // NOTE: the world state in this status packet is not the same as the one returned by amunGetWorldState
     Lua *thread = getStrategyThread(state);
     protobufPushMessage(state, *thread->getCurrentStatus());
     return 1;

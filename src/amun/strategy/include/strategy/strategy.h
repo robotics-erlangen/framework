@@ -90,6 +90,7 @@ private:
     void createDummyTeam();
     bool updateTeam(const robot::Team &team, StrategyType teamType);
     void handleRefboxReply(const QByteArray &data);
+    world::State assembleWorldState();
 
 private:
     StrategyPrivate * const m_p;

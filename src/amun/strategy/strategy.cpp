@@ -387,6 +387,27 @@ void Strategy::sendNetworkRefereeCommand(const QByteArray &data)
     m_p->remoteControlData = data;
 }
 
+world::State Strategy::assembleWorldState()
+{
+    // assemble world state for this strategy
+    // depending on the strategy type, the tracking with or without trajectory information is used for robots
+    world::State worldState;
+    if (m_status->execution_state().IsInitialized()) {
+        worldState = m_status->execution_state();
+    } else {
+        worldState = m_status->world_state();
+        if (m_type != StrategyType::YELLOW && worldState.simple_tracking_yellow_size() > 0) {
+            worldState.clear_yellow();
+            worldState.mutable_yellow()->CopyFrom(worldState.simple_tracking_yellow());
+        }
+        if (m_type != StrategyType::BLUE && worldState.simple_tracking_blue_size() > 0) {
+            worldState.clear_blue();
+            worldState.mutable_blue()->CopyFrom(worldState.simple_tracking_blue());
+        }
+    }
+    return worldState;
+}
+
 void Strategy::process()
 {
     if (!m_strategy || m_strategyFailed) {
@@ -418,8 +439,12 @@ void Strategy::process()
         userInput.mutable_move_command()->CopyFrom(m_lastMoveCommand.move_command());
     }
 
+    // assemble world state for this strategy
+    // depending on the strategy type, the tracking with or without trajectory information is used for robots
+    world::State worldState = assembleWorldState();
+
     m_strategy->setCurrentStatus(m_status);
-    if (m_strategy->process(pathPlanning, m_status->execution_state().IsInitialized() ? m_status->execution_state() : m_status->world_state(),
+    if (m_strategy->process(pathPlanning, worldState,
                             m_status->execution_game_state().IsInitialized() ? m_status->execution_game_state() : m_status->game_state(), userInput)) {
         if (!m_p->mixedTeamData.isNull()) {
             int bytesSent = m_udpSenderSocket->writeDatagram(m_p->mixedTeamData, m_p->mixedTeamHost, m_p->mixedTeamPort);
@@ -471,8 +496,7 @@ void Strategy::process()
             timing->set_autoref_total(totalTime);
             status->set_autoref_running(true);
         }
-        status->mutable_execution_state()->CopyFrom(m_status->execution_state().IsInitialized() ?
-                                                        m_status->execution_state() : m_status->world_state());
+        status->mutable_execution_state()->CopyFrom(worldState);
         status->mutable_execution_state()->clear_vision_frames();
         status->mutable_execution_game_state()->CopyFrom(m_status->execution_game_state().IsInitialized() ?
                                                              m_status->execution_game_state() : m_status->game_state());
@@ -668,7 +692,7 @@ void Strategy::fail(const QString &error, const amun::UserInput & userInput)
     setStrategyStatus(status, amun::StatusStrategy::FAILED);
     if (!m_status.isNull()) {
         status->mutable_execution_game_state()->CopyFrom(m_status->game_state());
-        status->mutable_execution_state()->CopyFrom(m_status->world_state());
+        status->mutable_execution_state()->CopyFrom(assembleWorldState());
         status->mutable_execution_user_input()->CopyFrom(userInput);
     }
 
@@ -757,8 +781,7 @@ Status Strategy::takeStrategyDebugStatus()
     debugValues->set_source(debugSource());
     if (!m_status.isNull()) {
         out->set_time(m_status->time());
-        auto &worldState = m_status->execution_state().IsInitialized() ? m_status->execution_state() : m_status->world_state();
-        debugValues->set_time(worldState.time());
+        debugValues->set_time(m_status->execution_state().IsInitialized() ? m_status->execution_state().time() : m_status->world_state().time());
     }
     return out;
 }
