@@ -22,6 +22,8 @@
 #define V8UTILITY_H
 
 #include "v8.h"
+#include <memory>
+#include <utility>
 
 template<class T> class QList;
 
@@ -30,6 +32,30 @@ namespace std {
 }
 
 namespace v8helper {
+    namespace internal {
+        template<typename T>
+        struct PersistentHolder {
+            PersistentHolder(T* ptr) : m_ptr(ptr) {}
+            T* m_ptr;
+            v8::Persistent<v8::External> m_v8handle;
+        };
+
+        template<typename T>
+        void weakCallback2(const v8::WeakCallbackInfo<PersistentHolder<T>>& data)
+        {
+            PersistentHolder<T>* ptr = data.GetParameter();
+            delete ptr->m_ptr;
+            delete ptr;
+        }
+
+        template<typename T>
+        void weakCallback(const v8::WeakCallbackInfo<PersistentHolder<T>>& data)
+        {
+            PersistentHolder<T>* ptr = data.GetParameter();
+            ptr->m_v8handle.Reset();
+            data.SetSecondPassCallback(weakCallback2<T>);
+        }
+    }
 
     /**
       * Convert a C++ to a V8 string.
@@ -62,6 +88,28 @@ namespace v8helper {
     template<typename TargetType>
     v8::Local<TargetType> createWithCallbacks(v8::Isolate* isolate, const QList<CallbackInfo>& callbacks, v8::Local<v8::Value> data);
 
+    /**
+     * Embed a pointer into an external. The pointer will be free'd once the JS
+     * GC collects the embedding JS object.
+     *
+     * To ensure that the C++-memory is freed, one has to call V8;s GC before
+     * terminating the isolate. This needs the --expose-gc option in V8 to be
+     * set.
+     *
+     * This reuses the callers HandleScope
+     */
+    template<typename T>
+    v8::Local<v8::External> embedToExternal(v8::Isolate* isolate, std::unique_ptr<T> ptr)
+    {
+        auto released = ptr.release();
+        auto holder = new internal::PersistentHolder<T>(released);
+        {
+            v8::HandleScope handleScope(isolate);
+            holder->m_v8handle.Reset(isolate, v8::External::New(isolate, released));
+        }
+        holder->m_v8handle.SetWeak(holder, internal::weakCallback<T>, v8::WeakCallbackType::kParameter);
+        return holder->m_v8handle.Get(isolate);
+    }
 }
 
 #endif // V8UTILITY_H

@@ -194,7 +194,7 @@ void Node::fs::statSync(const FunctionCallbackInfo<Value>& args) {
     Local<ObjectTemplate> fileStatTemplate = fs->m_fileStatTemplate.Get(isolate);
     Local<Object> obj = fileStatTemplate->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
     // TODO handle if FileStat constructor throws v8 Exception
-    Local<External> ex = fs->fromRawPointer(new FileStat(fs, name));
+    Local<External> ex = embedToExternal(isolate, std::make_unique<FileStat>(fs, name));
     obj->SetInternalField(OBJECT_FILESTAT_INDEX, ex);
 
     args.GetReturnValue().Set(obj);

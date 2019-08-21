@@ -180,7 +180,7 @@ void Node::Buffer::from(const FunctionCallbackInfo<Value>& res, Local<String> in
         dataHolder = std::move(tempHolder);
     }
 
-    Local<External> ex = buffer->fromRawPointer(new Instance(std::move(dataHolder)));
+    Local<External> ex = embedToExternal(isolate, std::make_unique<Instance>(std::move(dataHolder)));
     instance->SetInternalField(Node::Buffer::Instance::OBJECT_INSTANCE_INDEX, ex);
     res.GetReturnValue().Set(instance);
 }
