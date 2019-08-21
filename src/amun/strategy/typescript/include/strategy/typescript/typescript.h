@@ -59,7 +59,6 @@ public:
 
     // functions used for debugging v8
     void disableTimeoutOnce(); // disables script timeout for the currently running strategy frame
-    v8::Isolate *getIsolate() const { return m_isolate; }
     const v8::Persistent<v8::Context> &getContext() const { return m_context; }
     // gives ownership of the handler to this class
     void setInspectorHandler(AbstractInspectorHandler *handler);
