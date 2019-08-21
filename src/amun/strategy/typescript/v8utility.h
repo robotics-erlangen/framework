@@ -21,11 +21,7 @@
 #ifndef V8UTILITY_H
 #define V8UTILITY_H
 
-namespace v8 {
-    class Isolate;
-    class String;
-    template <class T> class Local;
-}
+#include "v8.h"
 
 namespace v8helper {
 
@@ -42,6 +38,9 @@ namespace v8helper {
       */
     template<typename StringType>
     v8::Local<v8::String> v8string(v8::Isolate* isolate, StringType str);
+
+    template<typename StringType>
+    void throwError(v8::Isolate* isolate, StringType text);
 
 }
 

@@ -65,8 +65,6 @@ namespace Node
             void (*callback)(const v8::FunctionCallbackInfo<v8::Value>&);
         };
         template<typename TemplateType> v8::Local<TemplateType> createTemplateWithCallbacks(const QList<CallbackInfo>& callbackInfos);
-
-        void throwV8Exception(const QString& message) const;
     private:
         std::map<std::string, std::unique_ptr<ObjectContainer>> m_children;
 

@@ -104,10 +104,4 @@ template<> Local<FunctionTemplate> ObjectContainer::createTemplateWithCallbacks(
     return handleScope.Escape(resultingTemplate);
 }
 
-void ObjectContainer::throwV8Exception(const QString& message) const {
-    HandleScope handleScope(m_isolate);
-    Local<String> exceptionText = v8string(m_isolate, message);
-    m_isolate->ThrowException(v8::Exception::Error(exceptionText));
-}
-
 }

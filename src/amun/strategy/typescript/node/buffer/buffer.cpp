@@ -118,7 +118,7 @@ void Node::Buffer::Instance::toString(const FunctionCallbackInfo<Value>& args) {
     uint32_t begin = 0, end=instance->m_data.length();
 
     if (encoding != "utf8") {
-        buffer->throwV8Exception("invalid encoding: "+ encoding); //TODO
+        throwError(buffer->m_isolate, "invalid encoding: "+ encoding); //TODO
         return;
     }
     if (args.Length() >= 2 && args[1]->IsUint32()) {
@@ -146,7 +146,7 @@ void Node::Buffer::from(const FunctionCallbackInfo<Value>& args) {
 
     if (args.Length() < 1 || !args[0]->IsString()) {
         QString errorMessage = "Buffer.from needs the first argument to be a string";
-        buffer->throwV8Exception(errorMessage);
+        throwError(buffer->m_isolate, errorMessage);
         return;
     }
 

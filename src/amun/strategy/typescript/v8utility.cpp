@@ -53,5 +53,16 @@ Local<String> v8string(Isolate* isolate, QString str)
     return v8string(isolate, str.toUtf8());
 }
 
+template<typename StringType>
+void throwError(Isolate* isolate, StringType text)
+{
+    auto exceptionText = v8string(isolate, text);
+    isolate->ThrowException(Exception::Error(exceptionText));
 }
 
+template void throwError(Isolate*, QByteArray);
+template void throwError(Isolate*, QString);
+template void throwError(Isolate*, const char*);
+template void throwError(Isolate*, std::string);
+
+}

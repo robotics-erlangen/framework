@@ -60,7 +60,7 @@ void Node::path::resolve(const FunctionCallbackInfo<Value>& args) {
 
     for (int currentArg = args.Length() - 1; currentArg >= 0; --currentArg) {
         if (!args[currentArg]->IsString()) {
-            path->throwV8Exception("The path arguments must be of type string");
+            throwError(path->m_isolate, "The path arguments must be of type string");
             return;
         }
         if (args[currentArg].As<String>()->Length() == 0) {

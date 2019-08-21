@@ -126,8 +126,7 @@ static bool toUintChecked(Isolate *isolate, Local<Value> value, uint &result)
 {
     Maybe<uint> maybeValue = value->Uint32Value(isolate->GetCurrentContext());
     if (!maybeValue.To(&result)) {
-        Local<String> errorMessage = v8string(isolate, "Argument has to be an integer");
-        isolate->ThrowException(Exception::Error(errorMessage));
+        throwError(isolate, "Argument has to be an integer");
         return false;
     }
     return true;
@@ -203,7 +202,7 @@ static void amunSetCommands(const FunctionCallbackInfo<Value>& args)
     for (unsigned int i = 0;i<commands->Length();i++) {
         Local<Value> commandObject = commands->Get(i);
         if (!commandObject->IsArray()) {
-            t->throwException("Argument is not an array");
+            throwError(isolate, "Argument is not an array");
             return;
         }
         Local<Array> commandArray = Local<Array>::Cast(commandObject);
@@ -307,20 +306,20 @@ static void amunAddPathSimple(const FunctionCallbackInfo<Value>& args)
     vis->set_name(name);
 
     if (!args[7]->IsArray()) {
-        t->throwException("Argument is not an array");
+        throwError(isolate, "Argument is not an array");
         return;
     }
     Local<Array> points = Local<Array>::Cast(args[7]);
     auto path = vis->mutable_path();
     // TODO: pre-allocate the array size
     if (points->Length() % 2 == 1) {
-        t->throwException("Invalid array length");
+        throwError(isolate, "Invalid array length");
         return;
     }
     for (unsigned int i = 0;i<points->Length();i+=2) {
         float x, y;
         if (!verifyNumber(isolate, points->Get(i), x) || !verifyNumber(isolate, points->Get(i+1), y)) {
-            t->throwException("Array has to contain numbers");
+            throwError(isolate, "Array has to contain numbers");
             return;
         }
         auto point = path->add_point();
@@ -360,19 +359,19 @@ static void amunAddPolygonSimple(const FunctionCallbackInfo<Value>& args)
     vis->set_width(0.01f);
 
     if (!args[7]->IsArray()) {
-        t->throwException("Argument is not an array");
+        throwError(isolate, "Argument is not an array");
         return;
     }
     Local<Array> points = Local<Array>::Cast(args[7]);
     auto polygon = vis->mutable_polygon();
     if (points->Length() % 2 == 1) {
-        t->throwException("Invalid array length");
+        throwError(isolate, "Invalid array length");
         return;
     }
     for (unsigned int i = 0;i<points->Length();i+=2) {
         float x, y;
         if (!verifyNumber(isolate, points->Get(i), x) || !verifyNumber(isolate, points->Get(i+1), y)) {
-            t->throwException("Array has to contain numbers");
+            throwError(isolate, "Array has to contain numbers");
             return;
         }
         auto point = polygon->add_point();
@@ -412,7 +411,7 @@ static void amunAddPlot(const FunctionCallbackInfo<Value>& args)
     value->set_name(*String::Utf8Value(isolate, args[0]));
     double number = 0.0;
     if (!args[1]->NumberValue(isolate->GetCurrentContext()).To(&number)) {
-        t->throwException("invalid number to plot");
+        throwError(isolate, "invalid number to plot");
         return;
     }
     value->set_value(float(number));
@@ -428,7 +427,7 @@ static void amunSendCommand(const FunctionCallbackInfo<Value>& args)
         return;
     }
     if (!t->sendCommand(command)) {
-        t->throwException("This function is only allowed in debug mode!");
+        throwError(isolate, "This function is only allowed in debug mode!");
     }
 }
 
@@ -444,7 +443,7 @@ static void amunSendRefereeCommand(const FunctionCallbackInfo<Value>& args)
 
     std::string refereeStr;
     if (!referee.SerializeToString(&refereeStr)) {
-        t->throwException("Invalid referee command packet!");
+        throwError(isolate, "Invalid referee command packet!");
         return;
     }
 
@@ -452,7 +451,7 @@ static void amunSendRefereeCommand(const FunctionCallbackInfo<Value>& args)
     command->mutable_referee()->set_command(refereeStr);
 
     if (!t->sendCommand(command)) {
-        t->throwException("This function is only allowed in debug mode!");
+        throwError(isolate, "This function is only allowed in debug mode!");
     }
 }
 
@@ -469,7 +468,7 @@ static void amunSendMixedTeamInfo(const FunctionCallbackInfo<Value>& args)
     QByteArray data;
     data.resize(mixedTeamInfo.ByteSize());
     if (!mixedTeamInfo.SerializeToArray(data.data(), data.size())) {
-        t->throwException("Invalid mixed team information packet!");
+        throwError(isolate, "Invalid mixed team information packet!");
         return;
     }
 
@@ -496,7 +495,7 @@ static void amunSendNetworkRefereeCommand(const FunctionCallbackInfo<Value>& arg
         }
 
         if (!t->sendCommand(command)) {
-            t->throwException("This function is only allowed in debug mode!");
+            throwError(isolate, "This function is only allowed in debug mode!");
         }
     } else {
         if (!t->refboxControlEnabled()) {
@@ -520,11 +519,11 @@ static void amunSendNetworkRefereeCommand(const FunctionCallbackInfo<Value>& arg
         data.resize(request.ByteSize()+4);
         qToBigEndian<quint32>(request.ByteSize(), (uchar*)data.data());
         if (!request.SerializeToArray(data.data()+4, request.ByteSize())) {
-            t->throwException("Invalid referee packet!");
+            throwError(isolate, "Invalid referee packet!");
         }
 
         if (!t->sendNetworkReferee(data)) {
-            t->throwException("This function is only allowed in debug mode!");
+            throwError(isolate, "This function is only allowed in debug mode!");
         }
     }
 }
@@ -596,7 +595,7 @@ static void amunLuaRandom(const FunctionCallbackInfo<Value>& args)
         return;
     }
     if (!lua_isnumber(luaState, -1)) {
-        t->throwException("lua random did not return a number");
+        throwError(isolate, "lua random did not return a number");
         return;
     }
     double res = lua_tonumber(luaState, -1);
@@ -640,7 +639,7 @@ static void amunConnectDebugger(const FunctionCallbackInfo<Value>& args)
     }
 
     if (args.Length() != 3 || !args[0]->IsFunction() || !args[1]->IsFunction() || !args[2]->IsFunction()) {
-        t->throwException("connectDebugger takes three functions");
+        throwError(isolate, "connectDebugger takes three functions");
         return;
     }
     Local<Function> handleResponse = Local<Function>::Cast(args[0]);
@@ -657,7 +656,7 @@ static void amunDebuggerSend(const FunctionCallbackInfo<Value>& args)
     Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
     InternalDebugger *d = t->getInternalDebugger();
     if (args.Length() != 1 || !args[0]->IsString()) {
-        t->throwException("debuggerSend takes one string");
+        throwError(isolate, "debuggerSend takes one string");
         return;
     }
     Local<String> message = args[0]->ToString(isolate->GetCurrentContext()).ToLocalChecked();
@@ -697,12 +696,12 @@ static void amunSendGameControllerMessage(const FunctionCallbackInfo<Value>& arg
     } else if (type == "AutoRefMessage") {
         message.reset(new gameController::AutoRefMessage);
     } else {
-        t->throwException("Unknown game controller message type");
+        throwError(isolate, "Unknown game controller message type");
         return;
     }
 
     if (!t->getGameControllerConnection()->connectGameController()) {
-        t->throwException("Not connected to game controller");
+        throwError(isolate, "Not connected to game controller");
         return;
     }
 
@@ -739,7 +738,7 @@ static void amunTryCatch(const FunctionCallbackInfo<Value>& args)
     }
 
     if (args.Length() != 5 || !args[0]->IsFunction() || !args[1]->IsFunction() || !args[2]->IsFunction()) {
-        t->throwException("tryCatch takes three functions, an object and a boolean");
+        throwError(isolate, "tryCatch takes three functions, an object and a boolean");
         return;
     }
     Local<Function> tryBlock = Local<Function>::Cast(args[0]);

@@ -604,12 +604,6 @@ ScriptOrigin *Typescript::scriptOriginFromFileName(QString name)
     return origin;
 }
 
-void Typescript::throwException(QString text)
-{
-    Local<String> exception = v8string(m_isolate, text);
-    m_isolate->ThrowException(Exception::Error(exception));
-}
-
 bool Typescript::loadModule(QString name)
 {
     if (!m_requireCache.back().contains(name)) {
@@ -619,7 +613,7 @@ bool Typescript::loadModule(QString name)
 
         QByteArray contentBytes = readFileContent(filename);
         if (contentBytes.isNull()) {
-            throwException("Could not import module:" + name);
+            throwError(m_isolate, "Could not import module:" + name);
             return false;
         }
 
@@ -666,7 +660,7 @@ void Typescript::performRequire(const FunctionCallbackInfo<Value> &args)
     }
     if (args.Length() > 2) {
         if (!cleanRequire || !args[2]->IsObject()) {
-            t->throwException("Overlays can only be used with a clean require and must be an object!");
+            throwError(t->m_isolate, "Overlays can only be used with a clean require and must be an object!");
             return;
         }
         Local<Object> overlays = args[2]->ToObject(context).ToLocalChecked();

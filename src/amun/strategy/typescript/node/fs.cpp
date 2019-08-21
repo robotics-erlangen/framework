@@ -108,7 +108,7 @@ Node::fs::FileStat::FileStat(const fs* fs, const QString& info) {
     QFileInfo fileInfo(info);
     if (!fileInfo.exists()) {
         QString errorText = QString("file '%1' does not exist").arg(info);
-        fs->throwV8Exception(errorText);
+        throwError(fs->m_isolate, errorText);
         return;
     }
     size = static_cast<double>(fileInfo.size());
@@ -174,7 +174,7 @@ std::shared_ptr<QFile> Node::fs::extractFD(Local<String> fd) {
 void Node::fs::mkdirSync(const FunctionCallbackInfo<Value>& args) {
     auto fs = static_cast<Node::fs*>(Local<External>::Cast(args.Data())->Value());
     if (args.Length() < 1 || !args[0]->IsString()) {
-        fs->throwV8Exception("mkdirSync needs the first argument to be a string");
+        throwError(fs->m_isolate, "mkdirSync needs the first argument to be a string");
         return;
     }
     QString name = *String::Utf8Value(args[0]);
@@ -185,7 +185,7 @@ void Node::fs::mkdirSync(const FunctionCallbackInfo<Value>& args) {
 void Node::fs::statSync(const FunctionCallbackInfo<Value>& args) {
     auto fs = static_cast<Node::fs*>(Local<External>::Cast(args.Data())->Value());
     if (args.Length() < 1 || !args[0]->IsString()) {
-        fs->throwV8Exception("statSync needs the first argument to be a string");
+        throwError(fs->m_isolate, "statSync needs the first argument to be a string");
         return;
     }
     QString name = buildPath(fs->m_path, *String::Utf8Value(args[0]));
@@ -204,14 +204,14 @@ void Node::fs::readFileSync(const FunctionCallbackInfo<Value>& args) {
     auto isolate = args.GetIsolate();
     auto fs = static_cast<Node::fs*>(Local<External>::Cast(args.Data())->Value());
     if (args.Length() < 1 || !args[0]->IsString()) {
-        fs->throwV8Exception("readFileSync needs the first argument to be a string");
+        throwError(fs->m_isolate, "readFileSync needs the first argument to be a string");
         return;
     }
 
     QString fileName = buildPath(fs->m_path, *String::Utf8Value(args[0]));
     QFile file(fileName);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        fs->throwV8Exception(QString("file '%s' could not be opened").arg(fileName));
+        throwError(fs->m_isolate, QString("file '%s' could not be opened").arg(fileName));
         return;
     }
     QByteArray fileBytes = file.readAll();
@@ -227,10 +227,10 @@ void Node::fs::openSync(const FunctionCallbackInfo<Value>& args) {
     auto isolate = args.GetIsolate();
     auto fs = static_cast<Node::fs*>(Local<External>::Cast(args.Data())->Value());
     if (args.Length() < 1 || !args[0]->IsString()) {
-        fs->throwV8Exception("openSync needs the first argument to be a string");
+        throwError(fs->m_isolate, "openSync needs the first argument to be a string");
         return;
     } else if (args.Length() > 2) {
-        fs->throwV8Exception("openSync with more than 2 arguments is not supported");
+        throwError(fs->m_isolate, "openSync with more than 2 arguments is not supported");
         return;
     }
     QString fileName = buildPath(fs->m_path, *String::Utf8Value(args[0]));
@@ -265,13 +265,13 @@ void Node::fs::openSync(const FunctionCallbackInfo<Value>& args) {
    /* } else if (modeString == "wx+") {
         mode = QIODevice::ReadWrite | QIODevice::NewOnly; */
     } else {
-        fs->throwV8Exception(QString("openSync called with invalid mode flag '%1'").arg(mode));
+        throwError(fs->m_isolate, QString("openSync called with invalid mode flag '%1'").arg(mode));
         return;
     }
 
     std::shared_ptr<QFile> fileHandle = std::make_shared<QFile>(fileName);
     if (!fileHandle->open(mode)) {
-        fs->throwV8Exception(QString("openSync could not open file '%1' because of '%2'").arg(fileName).arg(fileHandle->errorString()));
+        throwError(fs->m_isolate, QString("openSync could not open file '%1' because of '%2'").arg(fileName).arg(fileHandle->errorString()));
         return;
     }
     fs->m_fileDescriptors.insert(fileName, fileHandle);
@@ -283,29 +283,29 @@ void Node::fs::writeSync(const FunctionCallbackInfo<Value>& args) {
     auto isolate = args.GetIsolate();
     auto fs = static_cast<Node::fs*>(Local<External>::Cast(args.Data())->Value());
     if (args.Length() < 2) {
-        fs->throwV8Exception("writeSync needs at least 2 arguments");
+        throwError(fs->m_isolate, "writeSync needs at least 2 arguments");
         return;
     } else if (!args[0]->IsString()) {
-        fs->throwV8Exception("writeSync needs the first argument to be a string");
+        throwError(fs->m_isolate, "writeSync needs the first argument to be a string");
         return;
     }
     // TODO check if used with buffer or string
 
     std::shared_ptr<QFile> fd = fs->extractFD(args[0].As<String>());
     if (!fd) {
-        fs->throwV8Exception("writeSync called with invalid file descriptor");
+        throwError(fs->m_isolate, "writeSync called with invalid file descriptor");
         return;
     }
 
     if ((fd->openMode() & QIODevice::WriteOnly) == 0 && (fd->openMode() & QIODevice::Append) == 0) {
-        fs->throwV8Exception("writeSync called on file not opened for writing or appending");
+        throwError(fs->m_isolate, "writeSync called on file not opened for writing or appending");
         return;
     }
 
     if (args.Length() >= 3 && args[2]->IsNumber()) {
         qint64 position = args[2].As<Number>()->Value();
         if (!fd->seek(position)) {
-            fs->throwV8Exception(QString("Could not seek to position %1: %2").arg(position).arg(fd->errorString()));
+            throwError(fs->m_isolate, QString("Could not seek to position %1: %2").arg(position).arg(fd->errorString()));
             return;
         }
     }
@@ -331,7 +331,7 @@ void Node::fs::writeSync(const FunctionCallbackInfo<Value>& args) {
 
     qint64 bytesWritten = fd->write(dataHolder);
     if (bytesWritten < 0) {
-        fs->throwV8Exception(QString("writeSync write error occured: %1").arg(fd->errorString()));
+        throwError(fs->m_isolate, QString("writeSync write error occured: %1").arg(fd->errorString()));
         return;
     }
     // this will break if you write more than 4GiB at once
@@ -341,12 +341,12 @@ void Node::fs::writeSync(const FunctionCallbackInfo<Value>& args) {
 void Node::fs::closeSync(const FunctionCallbackInfo<Value>& args) {
     auto fs = static_cast<Node::fs*>(Local<External>::Cast(args.Data())->Value());
     if (args.Length() != 1 || !args[0]->IsString()) {
-        fs->throwV8Exception("closeSync needs exactly one string argument");
+        throwError(fs->m_isolate, "closeSync needs exactly one string argument");
         return;
     }
     std::shared_ptr<QFile> fd = fs->extractFD(args[0].As<String>());
     if (!fd) {
-        fs->throwV8Exception("closeSync called with invalid file descriptor");
+        throwError(fs->m_isolate, "closeSync called with invalid file descriptor");
         return;
     }
 
@@ -358,7 +358,7 @@ void Node::fs::readdirSync(const FunctionCallbackInfo<Value>& args) {
     auto isolate = args.GetIsolate();
     auto fs = static_cast<Node::fs*>(Local<External>::Cast(args.Data())->Value());
     if (args.Length() != 1 || !args[0]->IsString()) {
-        fs->throwV8Exception("readdirSync needs exactly 1 string argument");
+        throwError(fs->m_isolate, "readdirSync needs exactly 1 string argument");
         return;
     }
 
@@ -366,7 +366,7 @@ void Node::fs::readdirSync(const FunctionCallbackInfo<Value>& args) {
     QDir dir(path);
 
     if (!dir.exists()) {
-        fs->throwV8Exception(QString("directory '%1' does not exist").arg(path));
+        throwError(fs->m_isolate, QString("directory '%1' does not exist").arg(path));
         return;
     }
 
@@ -384,7 +384,7 @@ void Node::fs::realpathSync(const FunctionCallbackInfo<Value>& args) {
     auto isolate = args.GetIsolate();
     auto fs = static_cast<Node::fs*>(Local<External>::Cast(args.Data())->Value());
     if (args.Length() != 1 || !args[0]->IsString()) {
-        fs->throwV8Exception("realpathSync needs exactly 1 string argument");
+        throwError(fs->m_isolate, "realpathSync needs exactly 1 string argument");
         return;
     }
 
@@ -392,7 +392,7 @@ void Node::fs::realpathSync(const FunctionCallbackInfo<Value>& args) {
     QFileInfo info(path);
 
     if (!info.exists()) {
-        fs->throwV8Exception(QString("realpathSync called on non existing path '%1'").arg(path));
+        throwError(fs->m_isolate, QString("realpathSync called on non existing path '%1'").arg(path));
         return;
     }
 
@@ -405,7 +405,7 @@ void Node::fs::utimesSync(const FunctionCallbackInfo<Value>& args) {
     auto fs = static_cast<Node::fs*>(Local<External>::Cast(args.Data())->Value());
     // TODO what do negative epoch values mean?
     if (args.Length() != 3 || !args[0]->IsString() || !args[1]->IsNumber() || !args[2]->IsNumber()) {
-        fs->throwV8Exception("utimesSync needs exactly 3 arguments (string, int, int)");
+        throwError(fs->m_isolate, "utimesSync needs exactly 3 arguments (string, int, int)");
         return;
     }
 
@@ -413,17 +413,17 @@ void Node::fs::utimesSync(const FunctionCallbackInfo<Value>& args) {
     QFile file(path);
 
     if (!file.exists()) {
-        fs->throwV8Exception(QString("utimesSync called on non existing path '%1'").arg(path));
+        throwError(fs->m_isolate, QString("utimesSync called on non existing path '%1'").arg(path));
         return;
     }
 
     // technically not exactly like node
     if (!std::isnormal(args[1].As<Number>()->Value())) {
-        fs->throwV8Exception("utimesSync called with invalid atime");
+        throwError(fs->m_isolate, "utimesSync called with invalid atime");
         return;
     }
     if (!std::isnormal(args[2].As<Number>()->Value())) {
-        fs->throwV8Exception("utimesSync called with invalid mtime");
+        throwError(fs->m_isolate, "utimesSync called with invalid mtime");
         return;
     }
     /*
@@ -439,7 +439,7 @@ void Node::fs::utimesSync(const FunctionCallbackInfo<Value>& args) {
     timings.modtime = mtime;
 
     if (utime(path.toUtf8().constData(), &timings)) {
-        fs->throwV8Exception(QString("utimesSync could not set atime of path '%1'").arg(path));
+        throwError(fs->m_isolate, QString("utimesSync could not set atime of path '%1'").arg(path));
         return;
     }
 }
@@ -448,7 +448,7 @@ void Node::fs::unlinkSync(const FunctionCallbackInfo<Value>& args) {
     auto isolate = args.GetIsolate();
     auto fs = static_cast<Node::fs*>(Local<External>::Cast(args.Data())->Value());
     if (args.Length() != 1 || !args[0]->IsString()) {
-        fs->throwV8Exception("unlinkSync needs exactly 1 string argument");
+        throwError(fs->m_isolate, "unlinkSync needs exactly 1 string argument");
         return;
     }
 
@@ -456,7 +456,7 @@ void Node::fs::unlinkSync(const FunctionCallbackInfo<Value>& args) {
     QFile file(path);
 
     if (!file.remove()) {
-        fs->throwV8Exception(QString("Could not unlink file at '%1': %2").arg(path).arg(file.errorString()));
+        throwError(fs->m_isolate, QString("Could not unlink file at '%1': %2").arg(path).arg(file.errorString()));
         return;
     }
 }
