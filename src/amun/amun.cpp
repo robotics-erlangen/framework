@@ -25,6 +25,7 @@
 #include "processor/transceiver.h"
 #include "processor/networktransceiver.h"
 #include "processor/integrator.h"
+#include "protobuf/geometry.h"
 #include "simulator/simulator.h"
 #include "strategy/script/debughelper.h"
 #include "strategy/strategyreplayhelper.h"
@@ -231,7 +232,11 @@ void Amun::start()
 
     // create simulator
     Q_ASSERT(m_simulator == nullptr);
-    createSimulator(amun::CommandSimulator::RULES2018);
+    amun::SimulatorSetup defaultSimulatorSetup;
+    geometrySetDefault(defaultSimulatorSetup.mutable_geometry(), true);
+    defaultSimulatorSetup.mutable_camera_setup()->set_num_cameras(2);
+    defaultSimulatorSetup.mutable_camera_setup()->set_camera_height(4.5f);
+    createSimulator(defaultSimulatorSetup);
     connect(m_processor, SIGNAL(setFlipped(bool)), m_simulator, SLOT(setFlipped(bool)));
 
     if (!m_simulatorOnly) {
@@ -328,9 +333,9 @@ void Amun::setupReceiver(Receiver *&receiver, const QHostAddress &address, quint
     connect(m_networkInterfaceWatcher, &NetworkInterfaceWatcher::interfaceUpdated, receiver, &Receiver::updateInterface);
 }
 
-void Amun::createSimulator(amun::CommandSimulator::RuleVersion ruleVersion)
+void Amun::createSimulator(const amun::SimulatorSetup &setup)
 {
-    m_simulator = new Simulator(m_timer, ruleVersion);
+    m_simulator = new Simulator(m_timer, setup);
     m_simulator->moveToThread(m_simulatorThread);
     connect(m_simulatorThread, SIGNAL(finished()), m_simulator, SLOT(deleteLater()));
     // pass on simulator and team settings
@@ -360,11 +365,11 @@ void Amun::handleCommand(const Command &command)
             }
         }
 
-        if (sim.has_rule_version()) {
+        if (sim.has_simulator_setup()) {
             m_simulator->blockSignals(true);
             m_simulator->deleteLater();
             m_timer->reset();
-            createSimulator(sim.rule_version());
+            createSimulator(sim.simulator_setup());
             setSimulatorEnabled(m_simulatorEnabled, m_useNetworkTransceiver);
         }
     }

@@ -41,8 +41,8 @@ public:
 
 public:
     void begin();
-    int update(SSL_DetectionBall *ball, float stddev, int numCameras, float fieldBoundaryWidth,
-               bool enableInvisibleBall);
+    int update(SSL_DetectionBall *ball, float stddev, unsigned int numCameras, float fieldBoundaryWidth,
+               bool enableInvisibleBall, float cameraHeight);
     void move(const amun::SimulatorMoveBall &ball);
     void kick(const btVector3 &power);
     btVector3 position() const;
@@ -59,9 +59,6 @@ private:
     amun::SimulatorMoveBall m_move;
     const float m_fieldWidth;
     const float m_fieldHeight;
-
-    // must always be lower than the room height in simfield.cpp
-    const float CAMERA_HEIGHT = 4.f;
 };
 
 #endif // SIMBALL_H

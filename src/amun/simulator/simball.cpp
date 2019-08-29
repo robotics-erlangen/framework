@@ -117,8 +117,8 @@ void SimBall::begin()
     }
 }
 
-int SimBall::update(SSL_DetectionBall *ball, float stddev, int numCameras,
-                    float fieldBoundaryWidth, bool enableInvisibleBall)
+int SimBall::update(SSL_DetectionBall *ball, float stddev, unsigned int numCameras,
+                    float fieldBoundaryWidth, bool enableInvisibleBall, float cameraHeight)
 {
     // setup ssl-vision ball detection
     ball->set_confidence(1.0);
@@ -129,8 +129,19 @@ int SimBall::update(SSL_DetectionBall *ball, float stddev, int numCameras,
     m_motionState->getWorldTransform(transform);
     const btVector3 p = transform.getOrigin() / SIMULATOR_SCALE;
 
-    int cameraId;
-    if (numCameras == 4) {
+    unsigned int cameraId;
+    if (numCameras == 1) {
+        cameraId = 0;
+    } else if (numCameras == 2) {
+        // setup may differ from ssl-vision!
+        //  +y
+        // |-G-|
+        // | 1 |
+        // |---| +x
+        // | 0 |
+        // |-G-|
+        cameraId = p.y() > 0 ? 1 : 0;
+    } else if (numCameras == 4) {
         // setup differs from ssl-vision!
         //    +y
         // |---G---|
@@ -168,7 +179,7 @@ int SimBall::update(SSL_DetectionBall *ball, float stddev, int numCameras,
     const float cameraHalfAreaY = m_fieldHeight / numCameras;
     const float cameraX = cameraHalfAreaX * signX;
     const float cameraY = cameraHalfAreaY * partsY;
-    const float cameraZ = CAMERA_HEIGHT;
+    const float cameraZ = cameraHeight;
 
     const btVector3 cameraPosition = btVector3(cameraX, cameraY, cameraZ) * SIMULATOR_SCALE;
 

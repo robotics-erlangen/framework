@@ -49,7 +49,7 @@ class Simulator : public QObject
 public:
     typedef QMap<QPair<unsigned int, unsigned int>, SimRobot *> RobotMap;
 
-    explicit Simulator(const Timer *timer, amun::CommandSimulator::RuleVersion ruleVersion);
+    explicit Simulator(const Timer *timer, const amun::SimulatorSetup &setup);
     ~Simulator() override;
     Simulator(const Simulator&) = delete;
     Simulator& operator=(const Simulator&) = delete;
@@ -96,7 +96,6 @@ private:
     // systemDelay + visionProcessingTime = visionDelay
     qint64 m_visionDelay;
     qint64 m_visionProcessingTime;
-    amun::CommandSimulator::RuleVersion m_currentRuleVersion;
 };
 
 #endif // SIMULATOR_H

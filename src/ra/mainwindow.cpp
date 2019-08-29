@@ -24,11 +24,14 @@
 #include "input/inputmanager.h"
 #include "internalreferee.h"
 #include "plotter/plotter.h"
+#include "config/config.h"
 #include "widgets/debuggerconsole.h"
 #include "widgets/refereestatuswidget.h"
 #include "savedirectorydialog.h"
 #include "logcutter/logcutter.h"
+#include "protobuf/geometry.h"
 #include "logopener.h"
+#include <google/protobuf/text_format.h>
 #include <QFile>
 #include <QFileDialog>
 #include <QLabel>
@@ -36,6 +39,7 @@
 #include <QSettings>
 #include <QThread>
 #include <QSignalMapper>
+#include <QDirIterator>
 #include <QDragEnterEvent>
 #include <QDragLeaveEvent>
 #include <QDragMoveEvent>
@@ -202,12 +206,31 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     // start amun
     m_amun.start();
 
-    QActionGroup* rulesActionGroup = new QActionGroup(this);
-    ui->rules2017->setActionGroup(rulesActionGroup);
-    ui->rules2018->setActionGroup(rulesActionGroup);
-    connect(ui->actionSimulator, SIGNAL(toggled(bool)), ui->rules2017, SLOT(setEnabled(bool)));
-    connect(ui->actionSimulator, SIGNAL(toggled(bool)), ui->rules2018, SLOT(setEnabled(bool)));
-    connect(rulesActionGroup, SIGNAL(triggered(QAction*)), this, SLOT(ruleVersionChanged(QAction*)));
+    QSettings s;
+
+    // find all simulator configuration files
+    QDirIterator dirIterator(QString(ERFORCE_CONFDIR) + "simulator", {"*.txt"}, QDir::AllEntries | QDir::NoSymLinks | QDir::NoDotAndDotDot);
+    m_simulatorSetupGroup = new QActionGroup(this);
+    QString selectedFile = s.value("Simulator/SetupFile").toString();
+    QAction *selectedAction = nullptr;
+    while (dirIterator.hasNext()) {
+        QFileInfo file(dirIterator.next());
+        QString shownFilename = file.fileName().split(".").first();
+        QAction *setupAction = new QAction(shownFilename);
+        setupAction->setCheckable(true);
+        setupAction->setEnabled(false);
+        setupAction->setActionGroup(m_simulatorSetupGroup);
+        ui->simulatorSetup->addAction(setupAction);
+        connect(ui->actionSimulator, SIGNAL(toggled(bool)), setupAction, SLOT(setEnabled(bool)));
+        if (selectedFile == shownFilename || selectedFile.isEmpty()) {
+            selectedAction = setupAction;
+        }
+    }
+    connect(m_simulatorSetupGroup, SIGNAL(triggered(QAction*)), this, SLOT(simulatorSetupChanged(QAction*)));
+    if (selectedAction) {
+        selectedAction->setChecked(true);
+        simulatorSetupChanged(selectedAction);
+    }
 
     // restore configuration and initialize everything
     ui->input->load();
@@ -231,7 +254,6 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     }
     connect(switchConfigMapper, SIGNAL(mapped(int)), SLOT(switchToWidgetConfiguration(int)));
 
-    QSettings s;
     ui->actionSimulator->setChecked(s.value("Simulator/Enabled").toBool());
     ui->actionInternalReferee->setChecked(s.value("Referee/Internal").toBool());
     if (!ui->actionInternalReferee->isChecked()) {
@@ -391,6 +413,8 @@ void MainWindow::saveConfig()
     s.setValue("SplitterV", ui->splitterV->saveState());
     s.endGroup();
 
+    QString simulatorSetupFile = m_simulatorSetupGroup->checkedAction() ? m_simulatorSetupGroup->checkedAction()->text().replace("&", "") : "";
+    s.setValue("Simulator/SetupFile", simulatorSetupFile);
     s.setValue("Simulator/AutoPause", ui->actionAutoPause->isChecked());
     s.setValue("Simulator/Enabled", ui->actionSimulator->isChecked());
     s.setValue("Referee/Internal", ui->actionInternalReferee->isChecked());
@@ -448,15 +472,18 @@ void MainWindow::switchToWidgetConfiguration(int configId)
 
 }
 
-void MainWindow::ruleVersionChanged(QAction * action)
+void MainWindow::simulatorSetupChanged(QAction * action)
 {
+    QFile file(QString(ERFORCE_CONFDIR) + "simulator/" + action->text().replace("&", "") + ".txt");
+    file.open(QFile::ReadOnly);
+    QString str = file.readAll();
+    file.close();
+    std::string s = qPrintable(str);
+
     Command command(new amun::Command);
-    amun::CommandSimulator *sim = command->mutable_simulator();
-    if (action == ui->rules2017) {
-        sim->set_rule_version(amun::CommandSimulator::RULES2017);
-    } else if (action == ui->rules2018) {
-        sim->set_rule_version(amun::CommandSimulator::RULES2018);
-    }
+    google::protobuf::TextFormat::Parser parser;
+    parser.AllowPartialMessage(false);
+    parser.ParseFromString(s, command->mutable_simulator()->mutable_simulator_setup());
 
     // reload the strategies / autoref
     sendCommand(command);

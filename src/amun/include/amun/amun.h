@@ -78,7 +78,7 @@ private:
     void setupReceiver(Receiver *&receiver, const QHostAddress &address, quint16 port);
     void setSimulatorEnabled(bool enabled, bool useNetworkTransceiver);
     void updateScaling(float scaling);
-    void createSimulator(amun::CommandSimulator::RuleVersion ruleVersion);
+    void createSimulator(const amun::SimulatorSetup &setup);
     void enableAutoref(bool enable);
     void pauseSimulator(const amun::PauseSimulatorCommand &pauseCommand);
 

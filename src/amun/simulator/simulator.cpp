@@ -21,7 +21,6 @@
 #include "simulator.h"
 #include "core/rng.h"
 #include "core/timer.h"
-#include "protobuf/geometry.h"
 #include "protobuf/ssl_wrapper.pb.h"
 #include "simball.h"
 #include "simfield.h"
@@ -65,6 +64,7 @@ struct SimulatorData
     btSequentialImpulseConstraintSolver *solver;
     btDiscreteDynamicsWorld *dynamicsWorld;
     world::Geometry geometry;
+    amun::CameraSetup cameraSetup;
     SimField *field;
     SimBall *ball;
     Simulator::RobotMap robotsBlue;
@@ -88,7 +88,7 @@ static void simulatorTickCallback(btDynamicsWorld *world, btScalar timeStep)
  * \brief %Simulator interface
  */
 
-Simulator::Simulator(const Timer *timer, amun::CommandSimulator::RuleVersion ruleVersion) :
+Simulator::Simulator(const Timer *timer, const amun::SimulatorSetup &setup) :
     m_timer(timer),
     m_time(0),
     m_lastSentStatusTime(0),
@@ -96,8 +96,7 @@ Simulator::Simulator(const Timer *timer, amun::CommandSimulator::RuleVersion rul
     m_enabled(false),
     m_charge(false),
     m_visionDelay(35 * 1000 * 1000),
-    m_visionProcessingTime(5 * 1000 * 1000),
-    m_currentRuleVersion(ruleVersion)
+    m_visionProcessingTime(5 * 1000 * 1000)
 {
     // triggers by default every 5 milliseconds if simulator is enabled
     // timing may change if time is scaled
@@ -115,7 +114,8 @@ Simulator::Simulator(const Timer *timer, amun::CommandSimulator::RuleVersion rul
     m_data->dynamicsWorld->setGravity(btVector3(0.0f, 0.0f, -9.81f * SIMULATOR_SCALE));
     m_data->dynamicsWorld->setInternalTickCallback(simulatorTickCallback, this, true);
 
-    geometrySetDefault(&m_data->geometry, ruleVersion == amun::CommandSimulator::RULES2018);
+    m_data->geometry.CopyFrom(setup.geometry());
+    m_data->cameraSetup.CopyFrom(setup.camera_setup());
 
     // add field and ball
     m_data->field = new SimField(m_data->dynamicsWorld, m_data->geometry);
@@ -286,13 +286,6 @@ void Simulator::fieldAddCircularArc(SSL_GeometryFieldSize *field, std::string na
 
 QByteArray Simulator::createVisionPacket()
 {
-    int numCameras;
-    if (m_currentRuleVersion == amun::CommandSimulator::RULES2018) {
-        numCameras = 8;
-    } else {
-        numCameras = 4;
-    }
-
     // setup vision packet
     SSL_WrapperPacket packet;
     SSL_DetectionFrame *detection = packet.mutable_detection();
@@ -303,8 +296,8 @@ QByteArray Simulator::createVisionPacket()
 
     // get ball and robot position
     const float totalBoundaryWidth = m_data->geometry.boundary_width() + m_data->geometry.referee_width();
-    int cameraId = m_data->ball->update(detection->add_balls(), m_data->stddevBall, numCameras,
-                                        totalBoundaryWidth, m_data->enableInvisibleBall);
+    int cameraId = m_data->ball->update(detection->add_balls(), m_data->stddevBall, m_data->cameraSetup.num_cameras(),
+                                        totalBoundaryWidth, m_data->enableInvisibleBall, m_data->cameraSetup.camera_height());
     if (cameraId >= 0) {
         // just move everything to the ball camera
         detection->set_camera_id(cameraId);
@@ -338,7 +331,7 @@ QByteArray Simulator::createVisionPacket()
     fieldAddLine(field, "CenterLine", -fieldLengthHalf, 0, fieldLengthHalf, 0);
     fieldAddCircularArc(field, "CenterCircle", 0, 0, m_data->geometry.center_circle_radius() * 1000.0f, 0, 2.0f * M_PI);
 
-    if (m_currentRuleVersion == amun::CommandSimulator::RULES2018) {
+    if (m_data->geometry.type() == world::Geometry::TYPE_2018) {
         float defenseDistance = m_data->geometry.defense_height() * 1000.0f;
         float defensePos = -fieldLengthHalf + defenseDistance;
         float defenseWidthHalf = m_data->geometry.defense_width() * 1000.0f / 2.0f;
@@ -361,6 +354,7 @@ QByteArray Simulator::createVisionPacket()
         fieldAddCircularArc(field, "RightFieldRightPenaltyArc", fieldLengthHalf, defenseStretchHalf, defenseDistance, 0.5f * M_PI, M_PI);
     }
 
+    int numCameras = m_data->cameraSetup.num_cameras();
     for (int i = 0; i < numCameras; ++i) {
         // camera position calculation must match SimBall
         int signX = (i >= numCameras / 2) ? 1 : -1;

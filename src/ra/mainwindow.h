@@ -36,6 +36,7 @@ class InternalReferee;
 class LogFileWriter;
 class Plotter;
 class RefereeStatusWidget;
+class QActionGroup;
 class QLabel;
 class QModelIndex;
 class QThread;
@@ -81,7 +82,7 @@ private slots:
     void showConfigDialog();
     void liveMode();
     void showBacklogMode();
-    void ruleVersionChanged(QAction * action);
+    void simulatorSetupChanged(QAction * action);
     void saveConfig();
     void switchToWidgetConfiguration(int configId);
     void showDirectoryDialog();
@@ -116,6 +117,7 @@ private:
     Timer *m_playTimer;
     LogOpener * m_logOpener;
     QString m_horusTitleString;
+    QActionGroup* m_simulatorSetupGroup;
 
     const std::string TEAM_NAME = "Replace with your own team name!";
 };
