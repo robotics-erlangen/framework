@@ -123,14 +123,15 @@ void Tracker::process(qint64 currentTime)
             m_geometryUpdated = true;
         }
 
+        if (!m_robotsOnly) {
+            m_detectionWrappers.append(wrapper);
+        }
+
         if (!wrapper.has_detection()) {
             continue;
         }
 
         const SSL_DetectionFrame &detection = wrapper.detection();
-        if (!m_robotsOnly) {
-            m_detectionWrappers.append(wrapper);
-        }
         const qint64 visionProcessingTime = (detection.t_sent() - detection.t_capture()) * 1E9;
         // time on the field for which the frame was captured
         // with Timer::currentTime being now
