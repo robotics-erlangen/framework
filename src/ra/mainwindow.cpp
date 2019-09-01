@@ -216,7 +216,8 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     while (dirIterator.hasNext()) {
         QFileInfo file(dirIterator.next());
         QString shownFilename = file.fileName().split(".").first();
-        QAction *setupAction = new QAction(shownFilename);
+        QAction *setupAction = new QAction(this);
+        setupAction->setText(shownFilename);
         setupAction->setCheckable(true);
         setupAction->setEnabled(false);
         setupAction->setActionGroup(m_simulatorSetupGroup);
