@@ -58,6 +58,7 @@ public:
     Strategy& operator=(const Strategy&) = delete;
     void resetIsReplay() { m_scriptState.isReplay = false; }
     void setEnabled(bool enable) { m_isEnabled = enable; }
+    void tryProcess();
 
 signals:
     void gotCommand(const Command &command);

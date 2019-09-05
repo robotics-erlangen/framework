@@ -135,13 +135,13 @@ int main(int argc, char* argv[])
 
     CompilerRegistry compilerRegistry;
 
-    for(unsigned int i=0; i < runsI; ++i){
-        if (redirect){
+    for (unsigned int i=0; i < runsI; ++i) {
+        if (redirect) {
             //keep the reference to filename bytes alive
             QByteArray filenameBytes = (prefixS + QString::number(i)).toUtf8();
             const char* filename = filenameBytes.constData();
             std::ifstream infile(filename);
-            if (infile.good()){
+            if (infile.good()) {
                 qFatal("Filename is in use: %s \n", filename);
             }
             fileStream.close();
@@ -192,8 +192,14 @@ int main(int argc, char* argv[])
         int startPosition = parser.value(profileStart).toInt();
         int endPosition = parser.isSet(profileLength) ? startPosition + parser.value(profileLength).toInt() : packetCount - 1;
 
+        bool hasExecutionState = false;
+        qint64 lastExecutionTime = 0;
         for (int i = 0; i<packetCount; i++) {
             Status status = logfile.readStatus(i);
+
+            if ((status->has_blue_running() && asBlue) || (status->has_yellow_running() && !asBlue)) {
+                hasExecutionState = true;
+            }
 
             // give the team information to the strategy
             if (status->has_team_blue()) {
@@ -220,6 +226,15 @@ int main(int argc, char* argv[])
             }
 
             strategy->handleStatus(status);
+
+            if (lastExecutionTime == 0) {
+                lastExecutionTime = status->time();
+            }
+            // every 10 ms
+            if (!hasExecutionState && status->time() - lastExecutionTime > 10000000) {
+                strategy->tryProcess();
+                lastExecutionTime = status->time();
+            }
 
             if (parser.isSet(profileFile) && i == endPosition) {
                 Command command(new amun::Command);

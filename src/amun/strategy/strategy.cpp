@@ -404,6 +404,14 @@ world::State Strategy::assembleWorldState()
     return worldState;
 }
 
+void Strategy::tryProcess()
+{
+    if (!m_scriptState.currentStatus.isNull() && m_scriptState.currentStatus->game_state().IsInitialized()
+            && m_scriptState.currentStatus->world_state().IsInitialized()) {
+        process();
+    }
+}
+
 void Strategy::process()
 {
     if (!m_strategy || m_strategyFailed) {
