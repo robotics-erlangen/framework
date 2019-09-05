@@ -27,7 +27,8 @@
 
 class DebugHelper;
 
-struct ScriptState {
+class ScriptState {
+public:
     QStringList selectedOptions;
     DebugHelper* debugHelper = nullptr;
     bool isInternalAutoref = false;
