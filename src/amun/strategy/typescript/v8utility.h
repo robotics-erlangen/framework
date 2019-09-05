@@ -22,14 +22,11 @@
 #define V8UTILITY_H
 
 #include "v8.h"
+#include <functional>
 #include <memory>
 #include <utility>
 
 template<class T> class QList;
-
-namespace std {
-    template <typename T> class function;
-}
 
 namespace v8helper {
     namespace internal {
