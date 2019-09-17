@@ -129,9 +129,11 @@ int SimBall::update(SSL_DetectionBall *ball, float stddev, unsigned int numCamer
     m_motionState->getWorldTransform(transform);
     const btVector3 p = transform.getOrigin() / SIMULATOR_SCALE;
 
-    unsigned int cameraId;
+    unsigned int cameraId, camerasX, camerasY;
     if (numCameras == 1) {
         cameraId = 0;
+        camerasX = 1;
+        camerasY = 1;
     } else if (numCameras == 2) {
         // setup may differ from ssl-vision!
         //  +y
@@ -141,6 +143,8 @@ int SimBall::update(SSL_DetectionBall *ball, float stddev, unsigned int numCamer
         // | 0 |
         // |-G-|
         cameraId = p.y() > 0 ? 1 : 0;
+        camerasX = 1;
+        camerasY = 2;
     } else if (numCameras == 4) {
         // setup differs from ssl-vision!
         //    +y
@@ -150,6 +154,8 @@ int SimBall::update(SSL_DetectionBall *ball, float stddev, unsigned int numCamer
         // | 0 | 2 |
         // |---G---|
         cameraId = ((p.y() > 0) ? 1 : 0) + ((p.x() > 0) ? 2 : 0);
+        camerasX = 2;
+        camerasY = 2;
     } else if (numCameras == 8) {
         // setup differs from ssl-vision!
         //      +y
@@ -166,6 +172,8 @@ int SimBall::update(SSL_DetectionBall *ball, float stddev, unsigned int numCamer
         float normalizedY = ((p.y() <= 0) ? m_fieldHeight/2 : 0) + p.y();
         cameraId = ((normalizedY > m_fieldHeight/4) ? 1 : 0)
                 + ((p.y() > 0) ? 2 : 0) + ((p.x() > 0) ? 4 : 0);
+        camerasX = 2;
+        camerasY = 4;
     } else {
         qDebug() << "SimBall: Unsupported number of cameras" << numCameras;
         return -1;
@@ -173,11 +181,11 @@ int SimBall::update(SSL_DetectionBall *ball, float stddev, unsigned int numCamer
 
     // must match simulator camera geometry!!!
     int signX = (cameraId >= numCameras / 2) ? 1 : -1;
-    int partsY = 2 * (cameraId % (numCameras / 2)) - (numCameras / 2 - 1);
+    int partsY = 2 * (cameraId % (numCameras / camerasX)) - (numCameras / camerasX - 1);
 
-    const float cameraHalfAreaX = m_fieldWidth / 4;
-    const float cameraHalfAreaY = m_fieldHeight / numCameras;
-    const float cameraX = cameraHalfAreaX * signX;
+    const float cameraHalfAreaX = m_fieldWidth / (2 * camerasX);
+    const float cameraHalfAreaY = m_fieldHeight / (2 * camerasY);
+    const float cameraX = camerasX == 1 ? 0 : cameraHalfAreaX * signX;
     const float cameraY = cameraHalfAreaY * partsY;
     const float cameraZ = cameraHeight;
 
