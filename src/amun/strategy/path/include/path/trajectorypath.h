@@ -129,7 +129,7 @@ private:
 private:
     // constant input data
     // TODO: use variable convention
-    float minX, maxX, minY, maxY;
+    float minX, minY;
     Vector minPoint, maxPoint, fieldSize;
     int m_outOfFieldPriority = 1;
 
