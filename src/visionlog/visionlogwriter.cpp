@@ -41,7 +41,11 @@ VisionLogWriter::VisionLogWriter(const QString& filename):
 
     VisionLog::FileHeader fileHeader;
     fileHeader.version = 1;
+    // length of struct fileHeader and char[12] fileHeader.name is known: write ... sizeof
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wstringop-truncation"
     strncpy(fileHeader.name, VisionLog::DEFAULT_FILE_HEADER_NAME, sizeof(fileHeader.name));
+    #pragma GCC diagnostic pop
     // Log data is stored big endian, convert from host byte order
     fileHeader.version = qToBigEndian(fileHeader.version);
 
