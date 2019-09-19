@@ -79,8 +79,9 @@ bool ExternalGameController::sendGameControllerMessage(const google::protobuf::M
 
 void ExternalGameController::setRefereeHost(QString host)
 {
-    if (QHostAddress(host) != m_gameControllerHost) {
-        m_gameControllerHost = host;
+    QHostAddress hostAddress(host);
+    if (hostAddress != m_gameControllerHost) {
+        m_gameControllerHost = hostAddress;
         m_gameControllerSocket.close();
     }
 }
