@@ -56,6 +56,8 @@ public:
     int packetCount() const override { return m_packets.size(); }
     Status readStatus(int packet) override;
 
+    qint32 groupSize() const { return m_reader.groupSize(); }
+
 public slots:
     void readPackets(int startPacket, int count) override;
 

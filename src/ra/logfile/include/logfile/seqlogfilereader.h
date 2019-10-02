@@ -70,6 +70,8 @@ public:
     void applyMemento(const Memento& m);
     static QList<Memento> createMementos(const QList<qint64>& offsets, qint32 groupedPackages);
 
+    qint32 groupSize() const { return m_packageGroupSize; }
+
 private:
     bool readVersion();
     qint64 readTimestampVersion0();

@@ -1,5 +1,5 @@
 # ***************************************************************************
-# *   Copyright 2015 Michael Bleier, Philipp Nordhus                        *
+# *   Copyright 2019 Andreas Wendler                                        *
 # *   Robotics Erlangen e.V.                                                *
 # *   http://www.robotics-erlangen.de/                                      *
 # *   info@robotics-erlangen.de                                             *
@@ -18,22 +18,19 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-# firmware
-add_subdirectory(firmware)
+add_executable(loganalyzer
+    loganalyzer.cpp
+)
+target_link_libraries(loganalyzer
+    shared::protobuf
+    ra::logfile
+)
 
-# libs
-add_subdirectory(config)
-add_subdirectory(core)
-add_subdirectory(protobuf)
-add_subdirectory(amun)
-add_subdirectory(visionlog)
-add_subdirectory(timeline)
+target_include_directories(loganalyzer
+    PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
+)
 
-# apps
-add_subdirectory(ra)
-add_subdirectory(logplayer)
-add_subdirectory(amuncli)
-add_subdirectory(replaycli)
-add_subdirectory(visionanalyzer)
-add_subdirectory(logcuttercli)
-add_subdirectory(loganalyzer)
+if (TARGET lib::jemalloc)
+    target_link_libraries(loganalyzer lib::jemalloc)
+endif()
