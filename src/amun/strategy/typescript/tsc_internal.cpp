@@ -87,8 +87,9 @@ static void addObjectField(Isolate* isolate, Local<Object> target, QString name,
 void InternalTypescriptCompiler::initializeEnvironment()
 {
     Isolate::CreateParams create_params;
+    m_arrayAllocator.reset(ArrayBuffer::Allocator::NewDefaultAllocator());
+    create_params.array_buffer_allocator = m_arrayAllocator.get();
     V8::SetFlagsFromString("--expose_gc", 12);
-    create_params.array_buffer_allocator = ArrayBuffer::Allocator::NewDefaultAllocator();
     m_isolate = Isolate::New(create_params);
     m_isolate->SetRAILMode(PERFORMANCE_LOAD);
     Isolate::Scope isolateScope(m_isolate);
@@ -107,8 +108,6 @@ void InternalTypescriptCompiler::initializeEnvironment()
     m_requireNamespace->put("path", std::unique_ptr<Node::path>(new Node::path(m_isolate)));
 
     static_cast<Node::fs*>(m_requireNamespace->get("fs"))->setPath(m_tsconfig.dir().absolutePath() + "/");
-
-    delete create_params.array_buffer_allocator;
 
     m_context.Reset(m_isolate, context);
 

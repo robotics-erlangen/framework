@@ -95,6 +95,14 @@ private slots:
 
 private:
     v8::Isolate* m_isolate;
+    // The isolate does not take ownership of the allocator.
+    // Hence it needs to be stored and deleted manually.
+    // Especially this class needs the allocator while the isolate is in use to
+    // allow external debuggers to connect. If it were deleted earlier, this
+    // would rise a use-after-free.
+    // It is uncertain, apart from the above, if the isolate actually needs the
+    // allocator after initialization.
+    std::unique_ptr<v8::ArrayBuffer::Allocator> m_arrayAllocator;
     v8::Persistent<v8::Context> m_context;
     v8::Persistent<v8::Function> m_function;
     double m_totalPathTime;

@@ -57,6 +57,9 @@ private:
     void handleExitcode(bool exitcodeValid, int exitcode);
 private:
     v8::Isolate* m_isolate;
+    // The isolate does not take ownership of the allocator.
+    // Hence it needs to be stored and deleted manually.
+    std::unique_ptr<v8::ArrayBuffer::Allocator> m_arrayAllocator;
     v8::Global<v8::Context> m_context;
 
     std::unique_ptr<Node::ObjectContainer> m_requireNamespace;
