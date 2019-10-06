@@ -106,9 +106,9 @@ static void saveResults(QString filename, const QMap<QString, double> &fieldSize
     QTextStream stream(&file);
     for (QString key : fieldSizes.keys()) {
         QStringList parts = key.split("/");
-        for (auto it = parts.rbegin();it != parts.rend();it++) {
-            if (!it->isEmpty()) {
-                stream <<*it<<endl;
+        for (auto i = parts.size()-1;i>=0;i--) {
+            if (!parts[i].isEmpty()) {
+                stream <<parts[i]<<endl;
             }
         }
         stream <<"\t"<<static_cast<long>(fieldSizes[key])<<endl;
