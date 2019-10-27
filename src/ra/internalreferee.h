@@ -41,6 +41,7 @@ public slots:
     void changeYellowKeeper(uint id);
     void changeBlueKeeper(uint id);
     void enableInternalAutoref(bool enable);
+    void setSidesFlipped(bool flipped);
 
     void handleStatus(const Status &status);
 

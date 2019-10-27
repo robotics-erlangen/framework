@@ -68,7 +68,6 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
 
     // setup icons
     ui->actionEnableTransceiver->setIcon(QIcon("icon:32/network-wireless.png"));
-    ui->actionSidesFlipped->setIcon(QIcon("icon:32/change-ends.png"));
     ui->actionRecord->setIcon(QIcon("icon:32/media-record.png"));
     ui->actionRecordLogLog->setIcon(QIcon("icon:32/media-record.png"));
     ui->actionChargeKicker->setIcon(QIcon("icon:32/capacitor.png"));
@@ -105,6 +104,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     connect(ui->referee, SIGNAL(changeYellowKeeper(uint)), m_internalReferee, SLOT(changeYellowKeeper(uint)));
     connect(ui->referee, SIGNAL(changeBlueKeeper(uint)), m_internalReferee, SLOT(changeBlueKeeper(uint)));
     connect(ui->referee, SIGNAL(enableInternalAutoref(bool)), m_internalReferee, SLOT(enableInternalAutoref(bool)));
+    connect(ui->referee, SIGNAL(changeSidesFlipped(bool)), m_internalReferee, SLOT(setSidesFlipped(bool)));
 
     m_inputManager = new InputManager(this);
     connect(m_inputManager, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
@@ -145,7 +145,6 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     connect(ui->actionDisableTransceiver, SIGNAL(triggered(bool)), SLOT(disableTransceiver()));
     addAction(ui->actionDisableTransceiver); // only actions that are used somewhere are triggered
     connect(ui->actionChargeKicker, SIGNAL(toggled(bool)), SLOT(setCharge(bool)));
-    connect(ui->actionSidesFlipped, SIGNAL(toggled(bool)), SLOT(setFlipped(bool)));
 
     connect(ui->actionSimulator, SIGNAL(toggled(bool)), SLOT(setSimulatorEnabled(bool)));
     connect(ui->actionInternalReferee, SIGNAL(toggled(bool)), SLOT(setInternalRefereeEnabled(bool)));
@@ -264,8 +263,6 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     ui->actionInputDevices->setChecked(s.value("InputDevices/Enabled").toBool());
     ui->actionAutoPause->setChecked(s.value("Simulator/AutoPause", true).toBool());
     ui->actionUseLocation->setChecked(s.value("LogWriter/UseLocation", true).toBool());
-
-    ui->actionSidesFlipped->setChecked(s.value("Flipped", false).toBool());
 
     ui->actionEnableTransceiver->setChecked(ui->actionSimulator->isChecked() ? m_transceiverSimulator : m_transceiverRealWorld);
     ui->actionChargeKicker->setChecked(ui->actionSimulator->isChecked() ? m_chargeSimulator : m_chargeRealWorld);
@@ -436,7 +433,6 @@ void MainWindow::saveConfig()
     s.setValue("Simulator/Enabled", ui->actionSimulator->isChecked());
     s.setValue("Referee/Internal", ui->actionInternalReferee->isChecked());
     s.setValue("InputDevices/Enabled", ui->actionInputDevices->isChecked());
-    s.setValue("Flipped", ui->actionSidesFlipped->isChecked());
     s.setValue("LogWriter/UseLocation", ui->actionUseLocation->isChecked());
 
     m_logOpener->saveConfig();
@@ -555,10 +551,6 @@ void MainWindow::handleStatus(const Status &status)
             m_lastStageTime = state.stage_time_left();
         }
 
-        if (state.has_goals_flipped()) {
-            ui->actionSidesFlipped->setChecked(state.goals_flipped());
-        }
-
         if (m_isTournamentMode && state.has_is_real_game_running()
                 && state.is_real_game_running()) {
             ui->actionSimulator->setChecked(false);
@@ -661,14 +653,6 @@ void MainWindow::setCharge(bool charge)
     Command command(new amun::Command);
     amun::CommandTransceiver *t = command->mutable_transceiver();
     t->set_charge(charge);
-    sendCommand(command);
-}
-
-void MainWindow::setFlipped(bool flipped)
-{
-    Command command(new amun::Command);
-    amun::CommandReferee *referee = command->mutable_referee();
-    referee->set_flipped(flipped);
     sendCommand(command);
 }
 

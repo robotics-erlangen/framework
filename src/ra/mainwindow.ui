@@ -109,7 +109,6 @@
     </widget>
     <addaction name="actionEnableTransceiver"/>
     <addaction name="actionChargeKicker"/>
-    <addaction name="actionSidesFlipped"/>
     <addaction name="separator"/>
     <addaction name="simulatorSetup"/>
    </widget>
@@ -192,7 +191,6 @@
    </attribute>
    <addaction name="actionEnableTransceiver"/>
    <addaction name="actionChargeKicker"/>
-   <addaction name="actionSidesFlipped"/>
   </widget>
   <widget class="QDockWidget" name="dockReferee">
    <property name="enabled">
@@ -349,17 +347,6 @@
    </property>
    <property name="shortcut">
     <string>Esc</string>
-   </property>
-  </action>
-  <action name="actionSidesFlipped">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>&amp;Flip sides</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+E</string>
    </property>
   </action>
   <action name="actionRecord">

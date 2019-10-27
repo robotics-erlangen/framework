@@ -60,6 +60,7 @@ RefereeWidget::RefereeWidget(QWidget *parent) :
     ui->gameStage->setCurrentIndex(activeStage); // select default value
     connect(ui->gameStage, SIGNAL(currentIndexChanged(int)), SLOT(handleStage(int)));
     connect(ui->useInternalAutoref, SIGNAL(toggled(bool)), this, SIGNAL(enableInternalAutoref(bool)));
+    connect(ui->sidesFlipped, SIGNAL(toggled(bool)), this, SIGNAL(changeSidesFlipped(bool)));
 }
 
 RefereeWidget::~RefereeWidget()
@@ -75,6 +76,7 @@ void RefereeWidget::saveConfig()
     s.setValue("YellowKeeper", ui->keeperIdYellow->value());
     s.setValue("BlueKeeper", ui->keeperIdBlue->value());
     s.setValue("useInternalAutoref", ui->useInternalAutoref->isChecked());
+    s.setValue("SidesFlipped", ui->sidesFlipped->isChecked());
     s.endGroup();
 }
 
@@ -85,6 +87,7 @@ void RefereeWidget::load()
     ui->keeperIdYellow->setValue(s.value("YellowKeeper", 0).toInt());
     ui->keeperIdBlue->setValue(s.value("BlueKeeper", 0).toInt());
     ui->useInternalAutoref->setChecked(s.value("useInternalAutoref", false).toBool());
+    ui->sidesFlipped->setChecked(s.value("SidesFlipped", false).toBool());
     s.endGroup();
 }
 

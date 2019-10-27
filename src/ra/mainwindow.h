@@ -77,7 +77,6 @@ private slots:
     void setInternalRefereeEnabled(bool enabled);
     void setTransceiver(bool enabled);
     void disableTransceiver();
-    void setFlipped(bool flipped);
     void setCharge(bool charge);
     void showConfigDialog();
     void liveMode();

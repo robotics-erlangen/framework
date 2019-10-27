@@ -47,6 +47,7 @@ signals:
     void changeYellowKeeper(uint id);
     void changeBlueKeeper(uint id);
     void enableInternalAutoref(bool enable);
+    void changeSidesFlipped(bool flipped);
 
 public slots:
     void handleStatus(const Status &status);

@@ -90,3 +90,11 @@ void InternalReferee::handleStatus(const Status &status)
         // don't copy command as it is only updated when changeCommand is used
     }
 }
+
+void InternalReferee::setSidesFlipped(bool flipped)
+{
+    Command command(new amun::Command);
+    amun::CommandReferee *referee = command->mutable_referee();
+    referee->set_flipped(flipped);
+    emit sendCommand(command);
+}
