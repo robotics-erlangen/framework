@@ -294,9 +294,20 @@ export class TrajectoryPath extends TrajectoryHandler {
 	}
 
 	private static visualizeTrajectory(trajectory: Trajectory, color: any) {
+
+		const MIN_POINT_DISTANCE = 0.1; // minimum distance between points to draw both
+
+		if (trajectory.length === 0) {
+			return;
+		}
+
 		let positions: Position[] = [];
-		for (let part of trajectory) {
-			positions.push(Coordinates.toLocal(part.pos));
+		let lastDrawn = trajectory[0].pos;
+		for (let i = 0;i < trajectory.length;i++) {
+			if (i === 0 || i === trajectory.length - 1 || trajectory[i].pos.distanceTo(lastDrawn) > MIN_POINT_DISTANCE) {
+				positions.push(Coordinates.toLocal(trajectory[i].pos));
+				lastDrawn = trajectory[i].pos;
+			}
 		}
 		vis.addPath("trajectory-fromC++", positions, color);
 	}
