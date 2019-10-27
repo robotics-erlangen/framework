@@ -119,6 +119,9 @@ private:
     QString m_horusTitleString;
     QActionGroup* m_simulatorSetupGroup;
 
+    bool m_transceiverRealWorld = false, m_transceiverSimulator = true;
+    bool m_chargeRealWorld = false, m_chargeSimulator = true;
+
     const std::string TEAM_NAME = "Replace with your own team name!";
 };
 

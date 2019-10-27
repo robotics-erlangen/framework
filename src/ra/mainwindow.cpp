@@ -267,6 +267,9 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
 
     ui->actionSidesFlipped->setChecked(s.value("Flipped", false).toBool());
 
+    ui->actionEnableTransceiver->setChecked(ui->actionSimulator->isChecked() ? m_transceiverSimulator : m_transceiverRealWorld);
+    ui->actionChargeKicker->setChecked(ui->actionSimulator->isChecked() ? m_chargeSimulator : m_chargeRealWorld);
+
     // playback speed shortcuts
     QSignalMapper *mapper = new QSignalMapper(this);
     connect(mapper, SIGNAL(mapped(int)), ui->logManager, SIGNAL(setSpeed(int)));
@@ -591,6 +594,9 @@ void MainWindow::sendCommand(const Command &command)
 
 void MainWindow::setSimulatorEnabled(bool enabled)
 {
+    ui->actionEnableTransceiver->setChecked(ui->actionSimulator->isChecked() ? m_transceiverSimulator : m_transceiverRealWorld);
+    ui->actionChargeKicker->setChecked(ui->actionSimulator->isChecked() ? m_chargeSimulator : m_chargeRealWorld);
+
     m_transceiverStatus->setVisible(!enabled);
 
     Command command(new amun::Command);
@@ -615,6 +621,11 @@ void MainWindow::setInternalRefereeEnabled(bool enabled)
 
 void MainWindow::setTransceiver(bool enabled)
 {
+    if (ui->actionSimulator->isChecked()) {
+        m_transceiverSimulator = enabled;
+    } else {
+        m_transceiverRealWorld = enabled;
+    }
     Command command(new amun::Command);
     amun::CommandTransceiver *transceiver = command->mutable_transceiver();
     transceiver->set_enable(enabled);
@@ -628,6 +639,12 @@ void MainWindow::disableTransceiver()
 
 void MainWindow::setCharge(bool charge)
 {
+    if (ui->actionSimulator->isChecked()) {
+        m_chargeSimulator = charge;
+    } else {
+        m_chargeRealWorld = charge;
+    }
+
     Command command(new amun::Command);
     amun::CommandTransceiver *t = command->mutable_transceiver();
     t->set_charge(charge);
