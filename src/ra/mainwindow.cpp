@@ -152,7 +152,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     connect(ui->actionInputDevices, SIGNAL(toggled(bool)), m_inputManager, SLOT(setEnabled(bool)));
 
     connect(ui->actionConfiguration, SIGNAL(triggered()), SLOT(showConfigDialog()));
-    connect(ui->actionPlotter, SIGNAL(triggered()), m_plotter, SLOT(show()));
+    connect(ui->actionPlotter, SIGNAL(triggered()), this, SLOT(showPlotter()));
     connect(ui->actionAutoPause, SIGNAL(toggled(bool)), ui->simulator, SLOT(setEnableAutoPause(bool)));
     connect(ui->actionUseLocation, SIGNAL(toggled(bool)), &m_logWriterRa, SLOT(useLogfileLocation(bool)));
     connect(ui->actionUseLocation, SIGNAL(toggled(bool)), &m_logWriterHorus, SLOT(useLogfileLocation(bool)));
@@ -356,6 +356,19 @@ void MainWindow::closeEvent(QCloseEvent *e)
     ui->robots->shutdown();
 
     QMainWindow::closeEvent(e);
+}
+
+void MainWindow::showPlotter()
+{
+    m_plotter->show();
+
+    // no need to preload all 20 seconds
+    const int PRELOAD_PACKETS = 5000;
+    if (m_currentWidgetConfiguration % 2 == 1) { // ra mode
+        m_plotter->handleBacklogStatus(m_logWriterRa.getBacklogStatus(PRELOAD_PACKETS));
+    } else {
+        m_plotter->handleBacklogStatus(m_logWriterHorus.getBacklogStatus(PRELOAD_PACKETS));
+    }
 }
 
 void MainWindow::togglePause()

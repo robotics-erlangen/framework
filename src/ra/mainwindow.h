@@ -88,6 +88,7 @@ private slots:
     void showDirectoryDialog();
     void logOpened(QString name, bool errorOccurred);
     void togglePause();
+    void showPlotter();
 
 private:
     void toggleHorusModeWidgets(bool enable);
