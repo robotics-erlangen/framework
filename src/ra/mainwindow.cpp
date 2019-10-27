@@ -756,9 +756,6 @@ void MainWindow::toggleHorusModeWidgets(bool enable)
     ui->actionRecord->setEnabled(!enable);
     ui->actionRecord->setVisible(!enable);
     ui->actionSave20s->setEnabled(!enable);
-    ui->actionSave20s->setVisible(!enable);
-    ui->actionSaveBacklog->setEnabled(!enable);
-    ui->actionSaveBacklog->setVisible(!enable);
     ui->goToLastPosition->setVisible(enable && m_logOpener->showGoToLastPositionButton());
 }
 
