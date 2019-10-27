@@ -195,6 +195,9 @@ bool TrajectoryPath::isInStaticObstacle(const container &obstacles, Vector point
 
 bool TrajectoryPath::isInMovingObstacle(const std::vector<MovingObstacle*> &obstacles, Vector point, float time) const
 {
+    if (time >= IGNORE_MOVING_OBSTACLE_THRESHOLD) {
+        return false;
+    }
     for (const auto o : obstacles) {
         if (o->intersects(point, time)) {
             return true;
@@ -249,12 +252,14 @@ float TrajectoryPath::minObstacleDistance(Vector pos, float time, bool checkStat
         }
     }
     // moving obstacles
-    for (const auto o : m_movingObstacles) {
-        float d = o->distance(pos, time);
-        if (d <= 0) {
-            return d;
+    if (time < IGNORE_MOVING_OBSTACLE_THRESHOLD) {
+        for (const auto o : m_movingObstacles) {
+            float d = o->distance(pos, time);
+            if (d <= 0) {
+                return d;
+            }
+            minDistance = std::min(minDistance, d);
         }
-        minDistance = std::min(minDistance, d);
     }
     // avoidance obstacles
     for (const auto &l : m_avoidanceLines) {

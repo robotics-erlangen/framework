@@ -182,6 +182,8 @@ private:
     const float TOTAL_SLOW_DOWN_TIME = 0.3f; // must be the same as in alphatimetrajectory
     const float OBSTACLE_AVOIDANCE_RADIUS = 0.1f;
     const float OBSTACLE_AVOIDANCE_BONUS = 1.2f;
+
+    const float IGNORE_MOVING_OBSTACLE_THRESHOLD = 3.0f; // ignore all moving obstacles more than this number of seconds in the future
 };
 
 #endif // TRAJECTORYPATH_H
