@@ -1,205 +1,168 @@
 # Ra
-This is the framework of the SSL-Team ER-Force named "Ra". In addition it
-includes a log player which replays games recorded by Ra.
+This is the framework of the SSL-Team ER-Force named *Ra*. Its main features are:
+- simulate a SSL game with a varying number of robots on different possible field sizes
+- control robots, either autonomously with a Typescript/Lua AI script or manually
+- create a recording of the game and play it using our logplayer *Horus*
 
-The autoref is found at https://github.com/robotics-erlangen/autoref .
+The **autoref** is found at https://github.com/robotics-erlangen/autoref .
 
-This document will explain some basic functions of Ra, ball speed measurement
-using the plotter built into Ra and usage of the log player.
+## Getting started
+See [COMPILE.md](COMPILE.md) for instructions on how to build Ra.
+On Windows, the bin folder containing Ra and all other components can be moved
+freely to any location. On Linux and MacOS systems, it is required to leave the
+source folder at its current location since the generated binaries require the
+`config/` and `data/` folder to be located there.
 
+The autoref is included as a git submodule. It is not necessary for using Ra
+unless you want to use the internal autoref. To get it, either clone the whole
+repository with the `--recurse-submodules` flag or, if you already cloned the
+repo, use `git submodule init && git submodule update --recursive`
 
-## Building Ra
-See [COMPILE.md](COMPILE.md) for instructions on how to build Ra. On Windows the bin folder
-containing Ra and all other components can be move to any location. For Linux
-and macOS it is required to leave the source folder in its current location
-as the generated binaries required the `config/` and `data/` folder located there.
-In order to remove this dependencies modify the config file `src/config.h.in`
-The log player is always built alongside Ra.
+----
 
-
-## Starting Ra
-Execute the ra executable
-> ./ra
-
-The vision port can be configured in the settings dialog.
-
-
-## Basic usage of Ra
+## Usage
 Ra can either use the builtin simulator or use the data provided by SSL-Vision.
-There's also small builtin refbox, which can be enabled.
+Theres also a small builtin refbox which can be used in place of a network
+referee.
 
-The main window of Ra shows the playing field in the center. The field can be
-moved by holding down the right mouse button and moving the mouse cursor.
-Zooming is possible by scrolling. On Mac there's also support for the usual
-gestures. Right clicking brings up a menu that allows to show the field in a
-default "vertical" or "horizontal" orientation.
-Left of the field is the "debug tree" which can display debug information
-provided by the loaded AI modules. Below the playing field is a textbox
-containing log output of the AIs. This is also the place where the Autoref
-decisions are displayed.
+### Widgets
+The GUI is made up of various widgets which can (for the most part) be freely
+moved inside the window. To open the menu used to hide or show widgets, make a
+middle mouse click in the toolbar on the top.
 
-On the left and right side of the window are several docked subwindows which
-will only be partially explained.
+#### Field widget
+Located in the center and can't be disabled. The field can be moved around by
+holding down the right mouse button and moving the cursor. Zooming is possible
+by scrolling. On MacOS, theres support for the usual gestures. While the
+simulator is active, the ball can be moved around with the left mouse button
+and teleported using the Control key and the left mouse button. Robots can be
+moved around by left clicking them and dragging the mouse. Use the context menu
+to change various settings:
+- field orientation
+- whether visualizations should be drawn
+- give ball placement commands
 
-The "Robots" subwindow (initially in the top left corner) allows loading an
-AI module for each team.
-Beneath the AI selection is the robot list. In there you can configure which
-robot is assigned to which team. (-> See Autoref explanation)
+#### Debug tree
+Located on the left of the field widget and can't be disabled. Can show debug
+information provided by the loaded AI modules. Its possible to filter the shown
+output using the search bar on the top. Hover over it for further information.
 
-On the top of the window is the toolbar providing some central configuration
-switches.
+#### Visualizations
+Located on the right of the field widget by default. Allows drawing various
+visualizations on the field widget. The AI script base library contains a
+module `vis` which has a high level interface that can be used to draw common
+shapes. Double clicking a robot in the field widget toggles all visualizations
+whose name ends in "`: <robot id>`".
+
+#### Log widget
+Located below the field widget and can't be disabled. Will show text output by
+the loaded AI modules alongside a timestamp. This is also the place where
+autoref decisions are displayed.
+
+#### Robots
+This widget allows loading an AI script for each team, for the internal autoref
+and to assign robots to a team. Ra will only try to send radio commands
+generated by an AI script if the robot is set to be part of the corresponding
+team. Its also possible to select a robot for manual control.
+
+#### Internal RefBox
+Allows sending referee commands which is useful during simulator play and test
+games. In order to allow an autoref script to be loaded in the Robots widget,
+tick the "Internal Autoref" checkbox.
+
+#### Toolbar
+Found on the top of the window and provides some central configuration
+switches. The toolbar is filled by the "Commands", the "Testing" and the
+"Configuration" widget. The following order only applies if all of them are
+enabled (which they are by default).
 
 The first button shows a radio antenna which enables the transceiver for robot
 communication. In the context of this release it is only important while the
-simulator is active. The capacitor next to it allows to enable charging in
-order to allow the robots to kick the ball.
+simulator is active. The capacitor next to it enables charging in order to
+allow robots to kick the ball.
 
-The fourth button which shows a computer display is used to switch between the
-internal simulator and SSL-Vision. While the simulator is enabled it's possible
-to move the robots and the ball by left clicking on them and dragging them
-around.
+The fourth button, showing a computer display, is used to to switch between the
+internal simulator and SSl-Vision.
 
-The whistle button is used to disable and enable the "Internal RefBox" subwindow.
-The plotter can be started using the button representing two plots on a white
-background.
-The red circle starts recording of everything display in Ra into a logfile
-which can be viewed using the log player. The logfile (.log) is placed into the
-current working directory of Ra using.
+The whistle button is used to disable and enable the "Internal RefBox" widget.
 
+Pressing the gamepad button allows robots to be controlled manually. They also
+have to be selected for manual control in the Robots widget.
 
-## Ball speed measurement
-Open the plotter (white icon with two plot lines).
-Select Ball/v_global (only available if a ball is/was visible). This will
-display the absolute ball speed.
-Set the Y axis to min: 0, max: 10
-When the ball is shot check whether its speed is higher than about 8,5 m/s.
-In order to take a clear look at the speed curve the plotter display can be
-freezed by pressing the "Freeze" button. The plot display keeps the last 60
-seconds.
+The vision port can be configured in the settings dialog.
 
+### Analysis
+Ra provides various tools used to analyze games.
 
-## Feature list
-Nearly everything is internally passed as a protobuf object, these are dumped
-for replay in the log player.
+#### Ra and Horus
+Ra can be either in *normal* mode or in logplayer/*Horus* mode. In Horus mode,
+the field widget will transform to show a progress bar and will allow to load
+logfiles. There are multiple *workspaces* available. To switch between them type
+`Alt-1`, `Alt-2`, `Alt-3`... Odd numbered workspaces are in normal mode, even
+numbered in Horus mode. These workspaces have their own widget configuration.
 
-Processing pipeline:
-* Receive SSL-Vision data / Internal simulator
-* RefBox input processing
-* Data association and Tracking with an Extended Kalman filter
-* Pass process data to controller and AI modules
+While in Horus mode, the search bar allows seeking to an arbitrary position in
+the logfile. The playback speed can be changed by changing the 100% scroll box.
+The playback can be controlled using shortcuts. Look at the menu items under
+`Logging` and `Instant Replay` for a complete list. Playback can be
+paused/continue by pressing `Space`.
 
-Controller:
-* Use input from AI to generate robot commands
-* Send commands to robots / simulator
+#### Logging and Instant Replay
+To start recording a game press the red button on the toolbar. Logs will be
+saved in the Ra process working directory by default, but another location can
+be set using `Select logfile default locations` item of the logging menu.
 
-AI modules:
-* Basic runtime is included along the Autoref (see strategy/base/)
-* Protobuf-to-LUA and vice versa conversion
+Ra automatically records the last 20s played. To save this as a log, use the
+20s *backlog* button on the toolbar.
 
-GUI:
-* Debug tree + log
-* AI control
-* Robot configuration (double click on robot in list for parameters)
-* Field display + AI visualizations
-* Simple internal RefBox
-* Plotter
+While in Horus mode, a new button 20s (log) *backloglog* button will appear.
+While *backlog* will save the last real 20s of playtime, *backloglog* will save
+the last 20s of a replay (see next section).
 
+Ra also supports *Instant Replay*. Pressing `Ctrl-A` will switch to a Horus
+workspace with a log of the last 20s played. If the simulator is not active,
+this is only possible during halt. To exit Instant Replay, either type `Return`
+or switch to a workspace in normal mode.
 
-# Log player
-The log player is built alongside Ra. Start it by running the logplayer binary.
-Then open a logfile recorded by Ra. (Log files from the SSL-LogTools can't be
-used).
+Its possible to merge together multiple logfiles into one and remove unwanted
+sections like halt. To do so, select the `Log Cutter` item in the File menu.
 
-The log player window contains most subwindows also present in Ra, except the
-robot and AI configuration. In addition it contains controls to allow seeking
-to an arbitrary position in the logfile. The playback speed can be changed by
-changing the 100% scroll box. The playback can be controlled using shortcuts,
-look at the menu entries for a complete list. Toggling play/pause is possible
-by pressing Space.
+Ra allows opening SSL Vision logs. They will be converted to our own log format
+on the fly.
 
-The plotter and the log window is also included. As both require continuous
-data their data is deleted when restarting playback after seeking. Thus only
-the last timespan which was played back without interim seeking is displayed.
+#### Replay
+Ra allows re-running an AI script on a log. This is called *Replay* (not to be
+confused with *Instant Replay*). To do so load a logfile and load an AI script
+in the replay widget. The replay scripts output will be tagged, e.g. when you
+replay a yellow strategy, the output in the debug tree will be prefixed by
+"Yellow Replay".
 
-# Linting
-Both Lua and Typescript strategy scripts are linted to perform some basic validity and style checks.
-For Lua, this is done by _luacheck_, for Typescript by _tslint_.
-Both are best run by using the _check_ target. Inside your build folder execute `make check`
+#### Plotter
+Ra has a plotter that can either plot values provided by an AI script or
+information about robots and the ball. To access it, click the button with the
+red and blue line in the toolbar. You can adjust the scale of inputs and
+outputs using the input fields on the top and stop displaying new data using
+the "Freeze" button.
 
-## tslint installation
+You can calculate slopes by clicking in the output window and dragging the
+mouse.
 
-_tslint_ should be installed with _npm_. To use _npm_ you first need
-to install (NodeJS)[https://nodejs.org]. (On most modern Linux Systems
-it should also be possible to install it with your distributions respective
-package manager).
-If you choose to install manually, it is necessary to add _Node_'s binary folder to your PATH
+To perform a **ball speed measurement** set `Y Max` to 10 and `Y Min` to 0 and
+select `Ball/v_global` (only available if the ball is/was visible). When the
+ball is shot check whether its speed is higher than about 8,5 m/s.
 
-Now you can install tslint
-```
-npm -g install typescript tslint
-```
-Depending on where you installed _Node_, you may need administrative/root rights.
+## Other utilities
+This repo also contains various utilities:
+- `amun-cli` - run an AI script from the command line.
+- `loganalyzer` - analayze the memory usage of a log file.
+- `logcutter-cli` - merge together multiple logs and remove unwanted sections.
+- `replay-cli` - replay a log with an AI script. Can also be used for profiling.
+- `visionanalyzer` - convert a SSL vision log to our own format and run the autoref on it.
+- `visionextractor` - extract a SSL vision log from our own log format.
 
-## Luacheck installation
+These executables are found alongside the Ra executable. Run them with `-h` for further usage information.
 
-Install according to the following platform dependent instructions.
-Alternatively, the source files are available at
-https://github.com/mpeterv/luacheck .
-
-### Linux
-Install luarocks and use it to install luacheck
-```
-sudo apt-get install luarocks
-sudo luarocks install luacheck
-```
-
-On Ubuntu 14.04 it may be necessary to use
-```
-luacheck -q **/*.lua
-```
-
-### macOS
-Install luarocks and use it to install luacheck
-```
-brew install lua
-luarocks install luacheck
-```
-
-### Windows
-- Download the prebuilt luacheck package from
-https://www.robotics-erlangen.de/downloads/libraries/luacheck-0.18.7z .
-- Extract the contained luacheck folder and move it to `%APPDATA%` (enter path in Explorer). The luacheck.bat in the _bin_ folder should now be located at
-`<USER>\AppData\Roaming\luacheck\bin\luacheck.bat`.
-- Open the _Control Panel_ (Systemsteuerung), open _User Account_ (Benutzerkonten), then _Change own Environment Variables_.
-Add to *User* variables:
-`PATH` = `%APPDATA%\luacheck\bin`
-
-
-## Editor integration
-
-### Atom
-Install the _linter-luacheck_ package.
-
-### Sublime Text 3
-Install _(Package Control)[https://packagecontrol.io/installation]_. Then use it to install
-- _SublimeLinter_
-- _SublimeLinter-luacheck_
-- _SublimeLinter-tslint_
-
-### Visual Studio Code
-1. Install NodeJS and npm and make them available in your PATH.
-2. Clone the [Typescript-/Andiscript-/Butterflyscript-/Name Following Compiler](https://project.robotics-erlangen.de/robocup/typescript-compiler) and follow the build instructions provided in the repository.
-3. In a seperate folder, run `npm install typescript tslint tslint-language-service`
-4. In this folder, overwrite `node_modules/typescript/lib` with our compiled compiler.
-5. In Visual Studio Code, open `File > Preferences > Settings`. If you opened the `strategy/typescript` folder, select `Workspace Settings`, otherwise `User Settings` are fine.
-6. Search for `typescript.tsdk` and click on `Edit in settings.json`.
-7. Add a new JSON Key `typescript.tsdk` with `npm_install_folder/node_modules/typescript/lib` as its value.
-8. Save and restart.
-9. After opening a Typescript file, click on the version number on the bottom right and select `Use workspace version`.
-
-
-# Tests
-To run the unit tests and linter, execute the following in your build folder
-```
-make check
-```
+## Language services and Tests
+A guide for setting up linting services and editor integration is provided at
+[docs/language-services.md](docs/language-services.md). This is mostly for
+internal usage but may be interesting if you wish to contribute.
