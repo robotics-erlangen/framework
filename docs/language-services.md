@@ -17,7 +17,7 @@ to your PATH.
 
 You can now install tslint.
 ```
-npm -g install typecript tslint
+npm -g install typescript tslint
 ```
 
 Depending on where you installed *Node*, you may need administrative/root rights.
