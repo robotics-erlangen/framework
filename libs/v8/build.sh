@@ -63,7 +63,21 @@ if [[ ! -d v8 ]]; then
     }
     trap v8hook EXIT
 
-    fetch --nohooks v8
+    cat >.gclient <<"EOF"
+solutions = [
+  {
+    "url": "https://chromium.googlesource.com/v8/v8.git",
+    "managed": False,
+    "name": "v8",
+    "deps_file": "DEPS",
+    "custom_deps": {},
+  },
+]
+EOF
+
+    ( mkdir v8 && cd v8 && git init && git remote add origin https://chromium.googlesource.com/v8/v8.git && git fetch --depth 1 origin $V8_BASE_REVISION && git checkout FETCH_HEAD )
+
+    gclient sync --nohooks
 
     trap '-' EXIT
 fi
