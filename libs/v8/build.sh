@@ -36,9 +36,9 @@ if [[ ! -d depot_tools ]]; then
     }
     trap depothook EXIT
 
-    git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
-    ( cd depot_tools && git checkout $DEPOT_TOOLS_REVISION )
+    ( mkdir depot_tools && cd depot_tools && git init && git remote add origin https://chromium.googlesource.com/chromium/tools/depot_tools.git && git fetch --depth 1 origin $DEPOT_TOOLS_REVISION && git checkout FETCH_HEAD )
 
+    touch depot_tools/.disable_auto_update
     find depot_tools -maxdepth 1 -type f ! -iname '*.exe' ! -iname 'ninja-*' -exec  sed "${SEDI[@]}" -e "s/exec python /exec python2 /" '{}' \+
     sed "${SEDI[@]}" -e '/_PLATFORM_MAPPING = {/a\'$'\n'"  'msys': 'win'," depot_tools/gclient.py
     sed "${SEDI[@]}" -e '/_PLATFORM_MAPPING = {/a\'$'\n'"  'msys': 'win'," depot_tools/gclient.py
@@ -51,7 +51,7 @@ if [[ ! -d depot_tools ]]; then
     cd depot_tools
     ./gclient > /dev/null
     cd ..
-    
+
     trap '-' EXIT
 fi
 
