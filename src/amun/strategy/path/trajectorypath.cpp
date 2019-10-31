@@ -332,7 +332,8 @@ bool TrajectoryPath::checkMidPoint(Vector midSpeed, const float time, const floa
 
 Vector TrajectoryPath::randomPointInField()
 {
-    return Vector(m_rng->uniformFloat(m_minX, m_fieldSize.x), m_rng->uniformFloat(m_minY, m_fieldSize.y));
+    return Vector(m_rng->uniformFloat(m_boundary.bottom_left.x, m_boundary.top_right.x),
+                  m_rng->uniformFloat(m_boundary.bottom_left.y, m_boundary.top_right.y));
 }
 
 Vector TrajectoryPath::randomSpeed()

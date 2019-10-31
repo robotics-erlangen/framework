@@ -62,12 +62,6 @@ private:
     void clearObstaclesCustom() override;
 
 private:
-    // constant input data
-    float m_minX, m_minY;
-    Vector m_minPoint;
-    Vector m_maxPoint;
-    Vector m_fieldSize;
-    int m_outOfFieldPriority = 1;
 
     // frame input data
     Vector v0, v1, distance, s0, s1;
@@ -81,6 +75,8 @@ private:
     float m_maxSpeed;
     float m_maxSpeedSquared;
     float m_acceleration;
+
+    int m_outOfFieldPriority = 1;
 
     // result trajectory (used by other robots as obstacle)
     std::vector<TrajectoryPoint> m_currentTrajectory;
