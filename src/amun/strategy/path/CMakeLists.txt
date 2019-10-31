@@ -27,12 +27,14 @@ add_library(path
     include/path/path.h
     include/path/trajectorypath.h
     include/path/vector.h
+    include/path/obstacles.h
 
     abstractpath.cpp
     alphatimetrajectory.cpp
     kdtree.cpp
     path.cpp
     trajectorypath.cpp
+    obstacles.cpp
 )
 target_link_libraries(path
     PRIVATE shared::core

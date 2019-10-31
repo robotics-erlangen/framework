@@ -29,79 +29,14 @@
 class TrajectoryPath : public AbstractPath
 {
 public:
-    struct Point
-    {
-        Vector pos;
-        Vector speed;
-        float time;
-    };
-
-private:
-    struct MovingObstacle {
-        virtual ~MovingObstacle() {}
-        virtual bool intersects(Vector pos, float time) const = 0;
-        virtual float distance(Vector pos, float time) const = 0;
-        virtual BoundingBox boundingBox() const {
-            float max = std::numeric_limits<float>::max();
-            return BoundingBox(Vector(-max, -max), Vector(max, max));
-        }
-
-        int prio;
-    };
-
-    struct MovingCircle : public MovingObstacle {
-        bool intersects(Vector pos, float time) const override;
-        float distance(Vector pos, float time) const override;
-
-        Vector startPos;
-        Vector speed;
-        Vector acc;
-        float startTime;
-        float endTime;
-        float radius;
-    };
-
-    struct MovingLine : public MovingObstacle {
-        bool intersects(Vector pos, float time) const override;
-        float distance(Vector pos, float time) const override;
-
-        Vector startPos1;
-        Vector speed1;
-        Vector acc1;
-        Vector startPos2;
-        Vector speed2;
-        Vector acc2;
-        float startTime;
-        float endTime;
-        float width;
-    };
-
-    struct FriendlyRobotObstacle : public MovingObstacle {
-        FriendlyRobotObstacle();
-        FriendlyRobotObstacle(std::vector<Point> *trajectory, float radius, int prio);
-        bool intersects(Vector pos, float time) const override;
-        float distance(Vector pos, float time) const override;
-        BoundingBox boundingBox() const override { return  bound; }
-
-        std::vector<Point> *trajectory;
-        float radius;
-        float timeInterval;
-        BoundingBox bound;
-    };
-
-    struct AvoidanceLine : public Line {
-        float avoidanceFactor;
-    };
-
-public:
     TrajectoryPath(uint32_t rng_seed);
     void reset() override;
-    std::vector<Point> calculateTrajectory(Vector s0, Vector v0, Vector s1, Vector v1, float maxSpeed, float acceleration);
+    std::vector<TrajectoryPoint> calculateTrajectory(Vector s0, Vector v0, Vector s1, Vector v1, float maxSpeed, float acceleration);
     // is guaranteed to be equally spaced in time
-    std::vector<Point> *getCurrentTrajectory() { return &m_currentTrajectory; }
+    std::vector<TrajectoryPoint> *getCurrentTrajectory() { return &m_currentTrajectory; }
     void addMovingCircle(Vector startPos, Vector speed, Vector acc, float startTime, float endTime, float radius, int prio);
     void addMovingLine(Vector startPos1, Vector speed1, Vector acc1, Vector startPos2, Vector speed2, Vector acc2, float startTime, float endTime, float width, int prio);
-    void addFriendlyRobotTrajectoryObstacle(std::vector<Point> *obstacle, int prio, float radius);
+    void addFriendlyRobotTrajectoryObstacle(std::vector<TrajectoryPoint> *obstacle, int prio, float radius);
     void setOutOfFieldObstaclePriority(int prio) { m_outOfFieldPriority = prio; }
     int maxIntersectingObstaclePrio() const { return m_maxIntersectingObstaclePrio; }
     void addAvoidanceLine(Vector s0, Vector s1, float radius, float avoidanceFactor);
@@ -109,7 +44,7 @@ public:
 private:
     template<typename container>
     bool isInStaticObstacle(const container &obstacles, Vector point) const;
-    bool isInMovingObstacle(const std::vector<MovingObstacle *> &obstacles, Vector point, float time) const;
+    bool isInMovingObstacle(const std::vector<MovingObstacles::MovingObstacle *> &obstacles, Vector point, float time) const;
     bool isTrajectoryInObstacle(const SpeedProfile &profile, float timeOffset, float slowDownTime, Vector startPos);
     // return {min distance of trajectory to obstacles, min distance of last point to obstacles}
     std::pair<float, float> minObstacleDistance(const SpeedProfile &profile, float timeOffset, float slowDownTime, Vector startPos);
@@ -120,7 +55,7 @@ private:
     bool checkMidPoint(Vector midSpeed, const float time, const float angle);
     Vector randomSpeed();
     Vector randomPointInField();
-    std::vector<Point> getResultPath();
+    std::vector<TrajectoryPoint> getResultPath();
     void escapeObstacles();
     std::tuple<int, float, float> trajectoryObstacleScore(const SpeedProfile &speedProfile);
 
@@ -136,14 +71,14 @@ private:
     // frame input data
     Vector v0, v1, distance, s0, s1;
     bool exponentialSlowDown;
-    QVector<MovingCircle> m_movingCircles;
-    QVector<MovingLine> m_movingLines;
-    QVector<FriendlyRobotObstacle> m_friendlyRobotObstacles;
-    std::vector<MovingObstacle*> m_movingObstacles;
-    QVector<AvoidanceLine> m_avoidanceLines;
+    QVector<MovingObstacles::MovingCircle> m_movingCircles;
+    QVector<MovingObstacles::MovingLine> m_movingLines;
+    QVector<MovingObstacles::FriendlyRobotObstacle> m_friendlyRobotObstacles;
+    std::vector<MovingObstacles::MovingObstacle*> m_movingObstacles;
+    QVector<StaticObstacles::AvoidanceLine> m_avoidanceLines;
 
     // result trajectory (used by other robots as obstacle)
-    std::vector<Point> m_currentTrajectory;
+    std::vector<TrajectoryPoint> m_currentTrajectory;
 
     // current best trajectory data
     struct BestTrajectoryInfo {

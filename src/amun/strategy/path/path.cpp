@@ -26,6 +26,7 @@
 #include <sys/time.h>
 #include <QDebug>
 
+using namespace StaticObstacles;
 
 /*!
  * \class Path

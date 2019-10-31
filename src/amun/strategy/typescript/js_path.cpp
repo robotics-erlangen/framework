@@ -307,7 +307,7 @@ static void trajectoryPathGet(const FunctionCallbackInfo<Value>& args)
         return;
     }
 
-    std::vector<TrajectoryPath::Point> trajectory = wrapper->trajectoryPath()->calculateTrajectory(Vector(startX, startY), Vector(startSpeedX, startSpeedY),
+    std::vector<TrajectoryPoint> trajectory = wrapper->trajectoryPath()->calculateTrajectory(Vector(startX, startY), Vector(startSpeedX, startSpeedY),
                                                      Vector(endX, endY), Vector(endSpeedX, endSpeedY), maxSpeed, acceleration);
 
     // convert path to js object
@@ -393,7 +393,7 @@ static void trajectoryAddRobotTrajectoryObstacle(const FunctionCallbackInfo<Valu
         isolate->ThrowException(Exception::Error(v8string(isolate, "Invalid arguments")));
         return;
     }
-    std::vector<TrajectoryPath::Point> *obstacle = static_cast<std::vector<TrajectoryPath::Point>*>(Local<External>::Cast(args[0])->Value());
+    std::vector<TrajectoryPoint> *obstacle = static_cast<std::vector<TrajectoryPoint>*>(Local<External>::Cast(args[0])->Value());
     float prio, radius;
     if (!verifyNumber(isolate, args[1], prio) || !verifyNumber(isolate, args[2], radius)) {
         return;
