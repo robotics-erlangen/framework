@@ -427,57 +427,8 @@ void TrajectoryPath::escapeObstacles()
     }
 }
 
-void TrajectoryPath::findPathAlphaT()
+void TrajectoryPath::searchFullTrajectory()
 {
-    const auto &obstacles = m_world.obstacles();
-
-    m_maxIntersectingObstaclePrio = -1;
-
-    m_world.addToAllStaticObstacleRadius(-m_world.radius());
-    m_world.collectObstacles();
-    m_world.collectMovingObstacles();
-
-    // check if start point is in obstacle
-    if (m_world.isInStaticObstacle(obstacles, s0) || m_world.isInMovingObstacle(m_world.movingObstacles(), s0, 0)) {
-        escapeObstacles();
-        return;
-    }
-
-    // check if end point is in obstacle
-    if (m_world.isInStaticObstacle(obstacles, s1)) {
-        for (const StaticObstacles::Obstacle *o : obstacles) {
-            float dist = o->distance(s1);
-            if (dist > 0.01f && dist < 0) {
-                s1 = o->projectOut(s1, 0.03f);
-            }
-        }
-        distance = s1 - s0;
-        // test again, might have been moved into another obstacle
-        if (m_world.isInStaticObstacle(obstacles, s1)) {
-            findPathEndInObstacle();
-            return;
-        }
-    }
-
-    // check direct trajectory
-    m_generationInfo.clear();
-    float directSlowDownTime = m_exponentialSlowDown ? TOTAL_SLOW_DOWN_TIME : 0.0f;
-    bool useHighPrecision = distance.length() < 0.1f && v1 == Vector(0, 0) && v0.length() < 0.2f;
-    SpeedProfile direct = AlphaTimeTrajectory::findTrajectoryFastEndSpeed(v0, v1, distance, m_acceleration, m_maxSpeed, directSlowDownTime, useHighPrecision);
-    if (direct.isValid()) {
-        auto obstacleDistances = m_world.minObstacleDistance(direct, 0, directSlowDownTime, s0);
-        if (obstacleDistances.first > OBSTACLE_AVOIDANCE_RADIUS ||
-                (obstacleDistances.second > 0 && obstacleDistances.second < OBSTACLE_AVOIDANCE_RADIUS)) {
-            TrajectoryGenerationInfo info;
-            info.profile = direct;
-            info.slowDownTime = directSlowDownTime;
-            info.fastEndSpeed = true;
-            info.desiredDistance = distance;
-            m_generationInfo.push_back(info);
-            return;
-        }
-    }
-
     BestTrajectoryInfo lastTrajectoryInfo = m_bestResultInfo;
 
     m_bestResultInfo.time = std::numeric_limits<float>::infinity();
@@ -545,6 +496,60 @@ void TrajectoryPath::findPathAlphaT()
         }
         checkMidPoint(speed, time, angle);
     }
+}
+
+void TrajectoryPath::findPathAlphaT()
+{
+    const auto &obstacles = m_world.obstacles();
+
+    m_maxIntersectingObstaclePrio = -1;
+
+    m_world.addToAllStaticObstacleRadius(-m_world.radius());
+    m_world.collectObstacles();
+    m_world.collectMovingObstacles();
+
+    // check if start point is in obstacle
+    if (m_world.isInStaticObstacle(obstacles, s0) || m_world.isInMovingObstacle(m_world.movingObstacles(), s0, 0)) {
+        escapeObstacles();
+        return;
+    }
+
+    // check if end point is in obstacle
+    if (m_world.isInStaticObstacle(obstacles, s1)) {
+        for (const StaticObstacles::Obstacle *o : obstacles) {
+            float dist = o->distance(s1);
+            if (dist > 0.01f && dist < 0) {
+                s1 = o->projectOut(s1, 0.03f);
+            }
+        }
+        distance = s1 - s0;
+        // test again, might have been moved into another obstacle
+        if (m_world.isInStaticObstacle(obstacles, s1)) {
+            findPathEndInObstacle();
+            return;
+        }
+    }
+
+    // check direct trajectory
+    m_generationInfo.clear();
+    float directSlowDownTime = m_exponentialSlowDown ? TOTAL_SLOW_DOWN_TIME : 0.0f;
+    bool useHighPrecision = distance.length() < 0.1f && v1 == Vector(0, 0) && v0.length() < 0.2f;
+    SpeedProfile direct = AlphaTimeTrajectory::findTrajectoryFastEndSpeed(v0, v1, distance, m_acceleration, m_maxSpeed, directSlowDownTime, useHighPrecision);
+    if (direct.isValid()) {
+        auto obstacleDistances = m_world.minObstacleDistance(direct, 0, directSlowDownTime, s0);
+        if (obstacleDistances.first > OBSTACLE_AVOIDANCE_RADIUS ||
+                (obstacleDistances.second > 0 && obstacleDistances.second < OBSTACLE_AVOIDANCE_RADIUS)) {
+            TrajectoryGenerationInfo info;
+            info.profile = direct;
+            info.slowDownTime = directSlowDownTime;
+            info.fastEndSpeed = true;
+            info.desiredDistance = distance;
+            m_generationInfo.push_back(info);
+            return;
+        }
+    }
+
+    searchFullTrajectory();
 
     if (!m_bestResultInfo.valid) {
         findPathEndInObstacle();

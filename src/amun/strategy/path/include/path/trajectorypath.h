@@ -92,6 +92,7 @@ private:
     const float TOTAL_SLOW_DOWN_TIME = 0.3f; // must be the same as in alphatimetrajectory
     const float OBSTACLE_AVOIDANCE_RADIUS = 0.1f;
     const float OBSTACLE_AVOIDANCE_BONUS = 1.2f;
+    void searchFullTrajectory();
 };
 
 #endif // TRAJECTORYPATH_H
