@@ -47,6 +47,7 @@ if [[ ! -d depot_tools ]]; then
     sed "${SEDI[@]}" -e "s/  if sys.platform.startswith(('cygwin', 'win')):/  if sys.platform.startswith(('cygwin', 'win', 'msys')):/" depot_tools/gclient_utils.py
     # prevent git update of depot_tools
     sed "${SEDI[@]}" -e "s/    update_git_repo/    #update_git_repo/" depot_tools/update_depot_tools
+    sed "${SEDI[@]}" -e 's|  $COMSPEC /c `cygpath -w "$base_dir/bootstrap/win/win_tools.bat"`|  "$base_dir/bootstrap/win/win_tools.bat"|' depot_tools/update_depot_tools
 
     # initialize depot_tools checkout
     ( cd depot_tools && ./gclient > /dev/null )
