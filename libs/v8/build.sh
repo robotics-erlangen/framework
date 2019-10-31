@@ -38,7 +38,6 @@ if [[ ! -d depot_tools ]]; then
 
     ( mkdir depot_tools && cd depot_tools && git init && git remote add origin https://chromium.googlesource.com/chromium/tools/depot_tools.git && git fetch --depth 1 origin $DEPOT_TOOLS_REVISION && git checkout FETCH_HEAD )
 
-    touch depot_tools/.disable_auto_update
     find depot_tools -maxdepth 1 -type f ! -iname '*.exe' ! -iname 'ninja-*' -exec  sed "${SEDI[@]}" -e "s/exec python /exec python2 /" '{}' \+
     sed "${SEDI[@]}" -e '/_PLATFORM_MAPPING = {/a\'$'\n'"  'msys': 'win'," depot_tools/gclient.py
     sed "${SEDI[@]}" -e '/_PLATFORM_MAPPING = {/a\'$'\n'"  'msys': 'win'," depot_tools/gclient.py
@@ -46,11 +45,15 @@ if [[ ! -d depot_tools ]]; then
     sed "${SEDI[@]}" -e '/PLATFORM_MAPPING = {/a\'$'\n'"    'msys': 'win'," depot_tools/download_from_google_storage.py
     sed "${SEDI[@]}" -e "s/  if sys.platform == 'cygwin':/  if sys.platform in ('cygwin', 'msys'):/" depot_tools/download_from_google_storage.py
     sed "${SEDI[@]}" -e "s/  if sys.platform.startswith(('cygwin', 'win')):/  if sys.platform.startswith(('cygwin', 'win', 'msys')):/" depot_tools/gclient_utils.py
+    # prevent git update of depot_tools
+    sed "${SEDI[@]}" -e "s/    update_git_repo/    #update_git_repo/" depot_tools/update_depot_tools
 
     # initialize depot_tools checkout
-    cd depot_tools
-    ./gclient > /dev/null
-    cd ..
+    ( cd depot_tools && ./gclient > /dev/null )
+
+    # permanently disable depot tools update
+    # Note: the update must be able to run once to properly setup python and git!
+    touch depot_tools/.disable_auto_update
 
     trap '-' EXIT
 fi
