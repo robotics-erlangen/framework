@@ -50,11 +50,14 @@ private:
 private:
 
     // frame input data
-    Vector v0, v1, distance, s0, s1;
-    bool m_exponentialSlowDown;
-    float m_maxSpeed;
-    float m_maxSpeedSquared;
-    float m_acceleration;
+    struct TrajectoryInput {
+        Vector v0, v1, distance, s0, s1;
+        bool exponentialSlowDown;
+        float maxSpeed;
+        float maxSpeedSquared;
+        float acceleration;
+    };
+    TrajectoryInput m_input;
 
     // result trajectory (used by other robots as obstacle)
     std::vector<TrajectoryPoint> m_currentTrajectory;
