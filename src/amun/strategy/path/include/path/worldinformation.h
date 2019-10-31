@@ -23,6 +23,7 @@
 
 #include "vector.h"
 #include "obstacles.h"
+#include "alphatimetrajectory.h"
 #include <QVector>
 
 class WorldInformation
@@ -34,12 +35,15 @@ public:
     void setBoundary(float x1, float y1, float x2, float y2);
     float radius() const { return m_radius; }
     const StaticObstacles::Rect &boundary() const { return m_boundary; }
+    void setOutOfFieldObstaclePriority(int prio) { m_outOfFieldPriority = prio; }
+    int outOfFieldPriority() const { return m_outOfFieldPriority; }
 
     // world obstacles
     void clearObstacles();
     // only valid after a call to collectObstacles, may become invalid after the calling function returns!
     QVector<const StaticObstacles::Obstacle*> &obstacles() const { return m_obstacles; }
-    void addToAllObstacleRadius(float additionalRadius);
+    void addToAllStaticObstacleRadius(float additionalRadius);
+    const std::vector<MovingObstacles::MovingObstacle*> &movingObstacles() const { return m_movingObstacles; }
 
     // static obstacles
     void addCircle(float x, float y, float radius, const char *name, int prio);
@@ -50,6 +54,34 @@ public:
     void collectObstacles() const;
     bool pointInPlayfield(const Vector &point, float radius) const;
 
+    // moving obstacles
+    void addMovingCircle(Vector startPos, Vector speed, Vector acc, float startTime, float endTime, float radius, int prio);
+    void addMovingLine(Vector startPos1, Vector speed1, Vector acc1, Vector startPos2, Vector speed2, Vector acc2, float startTime, float endTime, float width, int prio);
+    void addFriendlyRobotTrajectoryObstacle(std::vector<TrajectoryPoint> *obstacle, int prio, float radius);
+    void addAvoidanceLine(Vector s0, Vector s1, float radius, float avoidanceFactor);
+
+    void collectMovingObstacles();
+
+    // obstacle checking for points and trajectories
+    template<typename container>
+    bool isInStaticObstacle(const container &obstacles, Vector point) const {
+        if (!pointInPlayfield(point, m_radius)) {
+            return true;
+        }
+        for (const auto obstacle : obstacles) {
+            if (obstacle->distance(point) < 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    bool isInMovingObstacle(const std::vector<MovingObstacles::MovingObstacle *> &obstacles, Vector point, float time) const;
+    bool isTrajectoryInObstacle(const SpeedProfile &profile, float timeOffset, float slowDownTime, Vector startPos) const;
+    // return {min distance of trajectory to obstacles, min distance of last point to obstacles}
+    std::pair<float, float> minObstacleDistance(const SpeedProfile &profile, float timeOffset, float slowDownTime, Vector startPos) const;
+    float minObstacleDistance(Vector pos, float time, bool checkStatic) const;
+
 private:
     mutable QVector<const StaticObstacles::Obstacle*> m_obstacles;
 
@@ -58,8 +90,18 @@ private:
     QVector<StaticObstacles::Triangle> m_triangleObstacles;
     QVector<StaticObstacles::Line> m_lineObstacles;
 
+    QVector<MovingObstacles::MovingCircle> m_movingCircles;
+    QVector<MovingObstacles::MovingLine> m_movingLines;
+    QVector<MovingObstacles::FriendlyRobotObstacle> m_friendlyRobotObstacles;
+    std::vector<MovingObstacles::MovingObstacle*> m_movingObstacles;
+    QVector<StaticObstacles::AvoidanceLine> m_avoidanceLines;
+
+    int m_outOfFieldPriority = 1;
+
     StaticObstacles::Rect m_boundary;
     float m_radius = -1.0f;
+
+    const float IGNORE_MOVING_OBSTACLE_THRESHOLD = 3.0f; // ignore all moving obstacles more than this number of seconds in the future
 };
 
 #endif // WORLDINFORMATION_H

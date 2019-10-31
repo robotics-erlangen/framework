@@ -34,21 +34,9 @@ public:
     std::vector<TrajectoryPoint> calculateTrajectory(Vector s0, Vector v0, Vector s1, Vector v1, float maxSpeed, float acceleration);
     // is guaranteed to be equally spaced in time
     std::vector<TrajectoryPoint> *getCurrentTrajectory() { return &m_currentTrajectory; }
-    void addMovingCircle(Vector startPos, Vector speed, Vector acc, float startTime, float endTime, float radius, int prio);
-    void addMovingLine(Vector startPos1, Vector speed1, Vector acc1, Vector startPos2, Vector speed2, Vector acc2, float startTime, float endTime, float width, int prio);
-    void addFriendlyRobotTrajectoryObstacle(std::vector<TrajectoryPoint> *obstacle, int prio, float radius);
-    void setOutOfFieldObstaclePriority(int prio) { m_outOfFieldPriority = prio; }
     int maxIntersectingObstaclePrio() const { return m_maxIntersectingObstaclePrio; }
-    void addAvoidanceLine(Vector s0, Vector s1, float radius, float avoidanceFactor);
 
 private:
-    template<typename container>
-    bool isInStaticObstacle(const container &obstacles, Vector point) const;
-    bool isInMovingObstacle(const std::vector<MovingObstacles::MovingObstacle *> &obstacles, Vector point, float time) const;
-    bool isTrajectoryInObstacle(const SpeedProfile &profile, float timeOffset, float slowDownTime, Vector startPos);
-    // return {min distance of trajectory to obstacles, min distance of last point to obstacles}
-    std::pair<float, float> minObstacleDistance(const SpeedProfile &profile, float timeOffset, float slowDownTime, Vector startPos);
-    float minObstacleDistance(Vector pos, float time, bool checkStatic);
     void findPathAlphaT();
     void findPathEndInObstacle();
     bool testEndPoint(Vector endPoint);
@@ -59,24 +47,14 @@ private:
     void escapeObstacles();
     std::tuple<int, float, float> trajectoryObstacleScore(const SpeedProfile &speedProfile);
 
-    void clearObstaclesCustom() override;
-
 private:
 
     // frame input data
     Vector v0, v1, distance, s0, s1;
     bool m_exponentialSlowDown;
-    QVector<MovingObstacles::MovingCircle> m_movingCircles;
-    QVector<MovingObstacles::MovingLine> m_movingLines;
-    QVector<MovingObstacles::FriendlyRobotObstacle> m_friendlyRobotObstacles;
-    std::vector<MovingObstacles::MovingObstacle*> m_movingObstacles;
-    QVector<StaticObstacles::AvoidanceLine> m_avoidanceLines;
-
     float m_maxSpeed;
     float m_maxSpeedSquared;
     float m_acceleration;
-
-    int m_outOfFieldPriority = 1;
 
     // result trajectory (used by other robots as obstacle)
     std::vector<TrajectoryPoint> m_currentTrajectory;
@@ -114,8 +92,6 @@ private:
     const float TOTAL_SLOW_DOWN_TIME = 0.3f; // must be the same as in alphatimetrajectory
     const float OBSTACLE_AVOIDANCE_RADIUS = 0.1f;
     const float OBSTACLE_AVOIDANCE_BONUS = 1.2f;
-
-    const float IGNORE_MOVING_OBSTACLE_THRESHOLD = 3.0f; // ignore all moving obstacles more than this number of seconds in the future
 };
 
 #endif // TRAJECTORYPATH_H

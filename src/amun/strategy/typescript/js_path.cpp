@@ -344,7 +344,7 @@ static void trajectoryAddMovingCircle(const FunctionCallbackInfo<Value>& args)
             !verifyNumber(isolate, args[8], radius) || !verifyNumber(isolate, args[9], priority)) {
         return;
     }
-    static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value())->trajectoryPath()->addMovingCircle(Vector(x, y), Vector(speedX, speedY),
+    static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value())->trajectoryPath()->world().addMovingCircle(Vector(x, y), Vector(speedX, speedY),
                                                                                                        Vector(accX, accY), startTime, endTime, radius, priority);
 }
 
@@ -364,7 +364,7 @@ static void trajectoryAddMovingLine(const FunctionCallbackInfo<Value>& args)
             !verifyNumber(isolate, args[14], width) || !verifyNumber(isolate, args[15], priority)) {
         return;
     }
-    static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value())->trajectoryPath()->addMovingLine(Vector(x1, y1), Vector(speedX1, speedY1),
+    static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value())->trajectoryPath()->world().addMovingLine(Vector(x1, y1), Vector(speedX1, speedY1),
                                                                     Vector(accX1, accY1), Vector(x2, y2), Vector(speedX2, speedY2), Vector(accX2, accY2),
                                                                     startTime, endTime, width, priority);
 }
@@ -376,7 +376,7 @@ static void trajectorySetOutOfFieldObstaclePriority(const FunctionCallbackInfo<V
     if (!verifyNumber(isolate, args[0], prio)) {
         return;
     }
-    static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value())->trajectoryPath()->setOutOfFieldObstaclePriority(static_cast<int>(prio));
+    static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value())->trajectoryPath()->world().setOutOfFieldObstaclePriority(static_cast<int>(prio));
 }
 
 static void trajectoryGetLastTrajectoryAsRobotObstacle(const FunctionCallbackInfo<Value> &args)
@@ -398,7 +398,7 @@ static void trajectoryAddRobotTrajectoryObstacle(const FunctionCallbackInfo<Valu
     if (!verifyNumber(isolate, args[1], prio) || !verifyNumber(isolate, args[2], radius)) {
         return;
     }
-    static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value())->trajectoryPath()->addFriendlyRobotTrajectoryObstacle(obstacle, prio, radius);
+    static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value())->trajectoryPath()->world().addFriendlyRobotTrajectoryObstacle(obstacle, prio, radius);
 }
 
 static void trajectoryMaxIntersectingObstaclePrio(const FunctionCallbackInfo<Value> &args)
@@ -425,7 +425,7 @@ static void trajectoryAddAvoidanceLine(const FunctionCallbackInfo<Value> &args)
         return;
     }
     auto p = static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value())->trajectoryPath();
-    p->addAvoidanceLine(Vector(x1, y1), Vector(x2, y2), radius, avoidanceFactor);
+    p->world().addAvoidanceLine(Vector(x1, y1), Vector(x2, y2), radius, avoidanceFactor);
 }
 
 static void drawTree(Typescript *thread, const KdTree *tree)
