@@ -63,19 +63,24 @@ private:
 
 private:
     // constant input data
-    // TODO: use variable convention
-    float minX, minY;
-    Vector minPoint, maxPoint, fieldSize;
+    float m_minX, m_minY;
+    Vector m_minPoint;
+    Vector m_maxPoint;
+    Vector m_fieldSize;
     int m_outOfFieldPriority = 1;
 
     // frame input data
     Vector v0, v1, distance, s0, s1;
-    bool exponentialSlowDown;
+    bool m_exponentialSlowDown;
     QVector<MovingObstacles::MovingCircle> m_movingCircles;
     QVector<MovingObstacles::MovingLine> m_movingLines;
     QVector<MovingObstacles::FriendlyRobotObstacle> m_friendlyRobotObstacles;
     std::vector<MovingObstacles::MovingObstacle*> m_movingObstacles;
     QVector<StaticObstacles::AvoidanceLine> m_avoidanceLines;
+
+    float m_maxSpeed;
+    float m_maxSpeedSquared;
+    float m_acceleration;
 
     // result trajectory (used by other robots as obstacle)
     std::vector<TrajectoryPoint> m_currentTrajectory;
@@ -109,10 +114,6 @@ private:
 
     int m_maxIntersectingObstaclePrio = -1;
 
-    // quasi constants
-    float MAX_SPEED = 3.5f;
-    float MAX_SPEED_SQUARED = 9.0f;
-    float ACCELERATION = 3.0f;
     // constants
     const float TOTAL_SLOW_DOWN_TIME = 0.3f; // must be the same as in alphatimetrajectory
     const float OBSTACLE_AVOIDANCE_RADIUS = 0.1f;

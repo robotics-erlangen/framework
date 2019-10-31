@@ -39,10 +39,10 @@ std::vector<TrajectoryPoint> TrajectoryPath::calculateTrajectory(Vector s0, Vect
     this->distance = s1 - s0;
     this->s0 = s0;
     this->s1 = s1;
-    exponentialSlowDown = v1 == Vector(0, 0);
-    MAX_SPEED = maxSpeed;
-    MAX_SPEED_SQUARED = maxSpeed * maxSpeed;
-    ACCELERATION = acceleration;
+    m_exponentialSlowDown = v1 == Vector(0, 0);
+    m_maxSpeed = maxSpeed;
+    m_maxSpeedSquared = maxSpeed * maxSpeed;
+    m_acceleration = acceleration;
 
     findPathAlphaT();
     return getResultPath();
@@ -250,15 +250,15 @@ std::pair<float, float> TrajectoryPath::minObstacleDistance(const SpeedProfile &
 bool TrajectoryPath::checkMidPoint(Vector midSpeed, const float time, const float angle)
 {
     // construct second part from mid point data
-    if (!AlphaTimeTrajectory::isInputValidFastEndSpeed(midSpeed, v1, time, ACCELERATION)) {
+    if (!AlphaTimeTrajectory::isInputValidFastEndSpeed(midSpeed, v1, time, m_acceleration)) {
         return false;
     }
-    SpeedProfile secondPart = AlphaTimeTrajectory::calculateTrajectoryFastEndSpeed(midSpeed, v1, time, angle, ACCELERATION, MAX_SPEED);
+    SpeedProfile secondPart = AlphaTimeTrajectory::calculateTrajectoryFastEndSpeed(midSpeed, v1, time, angle, m_acceleration, m_maxSpeed);
     float secondPartTime;
     Vector secondPartOffset;
     // TODO: this code duplication is not good
-    const float slowDownTime = exponentialSlowDown ? TOTAL_SLOW_DOWN_TIME : 0;
-    if (exponentialSlowDown) {
+    const float slowDownTime = m_exponentialSlowDown ? TOTAL_SLOW_DOWN_TIME : 0;
+    if (m_exponentialSlowDown) {
         secondPartTime = secondPart.timeWithSlowDown(TOTAL_SLOW_DOWN_TIME);
         // TODO: specialized method for this
         secondPartOffset = secondPart.positionForTimeSlowDown(secondPartTime, TOTAL_SLOW_DOWN_TIME);
@@ -272,13 +272,13 @@ bool TrajectoryPath::checkMidPoint(Vector midSpeed, const float time, const floa
 
     // calculate first part trajectory
     Vector firstPartPosition = distance - secondPartOffset;
-    float firstPartSlowDownTime = exponentialSlowDown ? std::max(0.0f, TOTAL_SLOW_DOWN_TIME - secondPartTime) : 0.0f;
-    SpeedProfile firstPart = AlphaTimeTrajectory::findTrajectoryExactEndSpeed(v0, midSpeed, firstPartPosition, ACCELERATION, MAX_SPEED, firstPartSlowDownTime);
+    float firstPartSlowDownTime = m_exponentialSlowDown ? std::max(0.0f, TOTAL_SLOW_DOWN_TIME - secondPartTime) : 0.0f;
+    SpeedProfile firstPart = AlphaTimeTrajectory::findTrajectoryExactEndSpeed(v0, midSpeed, firstPartPosition, m_acceleration, m_maxSpeed, firstPartSlowDownTime);
     if (!firstPart.isValid()) {
         return false;
     }
     float firstPartTime;
-    if (exponentialSlowDown && firstPartSlowDownTime > 0) {
+    if (m_exponentialSlowDown && firstPartSlowDownTime > 0) {
         firstPartTime = firstPart.timeWithSlowDown(firstPartSlowDownTime);
     } else {
         firstPartTime = firstPart.time();
@@ -332,16 +332,16 @@ bool TrajectoryPath::checkMidPoint(Vector midSpeed, const float time, const floa
 
 Vector TrajectoryPath::randomPointInField()
 {
-    return Vector(m_rng->uniformFloat(minX, fieldSize.x), m_rng->uniformFloat(minY, fieldSize.y));
+    return Vector(m_rng->uniformFloat(m_minX, m_fieldSize.x), m_rng->uniformFloat(m_minY, m_fieldSize.y));
 }
 
 Vector TrajectoryPath::randomSpeed()
 {
     Vector testSpeed;
     do {
-        testSpeed.x = m_rng->uniformFloat(-MAX_SPEED, MAX_SPEED);
-        testSpeed.y = m_rng->uniformFloat(-MAX_SPEED, MAX_SPEED);
-    } while (testSpeed.lengthSquared() > MAX_SPEED_SQUARED);
+        testSpeed.x = m_rng->uniformFloat(-m_maxSpeed, m_maxSpeed);
+        testSpeed.y = m_rng->uniformFloat(-m_maxSpeed, m_maxSpeed);
+    } while (testSpeed.lengthSquared() > m_maxSpeedSquared);
     return testSpeed;
 }
 
@@ -352,7 +352,7 @@ bool TrajectoryPath::testEndPoint(Vector endPoint)
     }
 
     // no slowdown here, we are not even were we want to be
-    SpeedProfile direct = AlphaTimeTrajectory::findTrajectoryExactEndSpeed(v0, Vector(0, 0), endPoint, ACCELERATION, MAX_SPEED, 0);
+    SpeedProfile direct = AlphaTimeTrajectory::findTrajectoryExactEndSpeed(v0, Vector(0, 0), endPoint, m_acceleration, m_maxSpeed, 0);
     if (!direct.isValid()) {
         return false;
     }
@@ -500,14 +500,14 @@ void TrajectoryPath::escapeObstacles()
     float bestEndTime;
     {
         // try last frames trajectory
-        SpeedProfile p = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(v0, Vector(0, 0), m_bestEscapingTime, m_bestEscapingAngle, ACCELERATION, MAX_SPEED);
+        SpeedProfile p = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(v0, Vector(0, 0), m_bestEscapingTime, m_bestEscapingAngle, m_acceleration, m_maxSpeed);
         SpeedProfile bestProfile = p;
         int bestPrio;
         float bestObstacleTime;
         float endTime;
         std::tie(bestPrio, bestObstacleTime, endTime) = trajectoryObstacleScore(p);
         bool foundValid = endTime > 0;
-        if (!foundValid || !AlphaTimeTrajectory::isInputValidExactEndSpeed(v0, Vector(0, 0), m_bestEscapingTime, ACCELERATION)) {
+        if (!foundValid || !AlphaTimeTrajectory::isInputValidExactEndSpeed(v0, Vector(0, 0), m_bestEscapingTime, m_acceleration)) {
             bestPrio = 10000;
             bestObstacleTime = 10000;
         }
@@ -527,11 +527,11 @@ void TrajectoryPath::escapeObstacles()
                 time = std::max(0.05f, m_bestEscapingTime + m_rng->uniformFloat(-0.1f, 0.1f));
                 angle = m_bestEscapingAngle + m_rng->uniformFloat(-0.1f, 0.1f);
             }
-            if (!AlphaTimeTrajectory::isInputValidExactEndSpeed(v0, Vector(0, 0), time, ACCELERATION)) {
+            if (!AlphaTimeTrajectory::isInputValidExactEndSpeed(v0, Vector(0, 0), time, m_acceleration)) {
                 continue;
             }
 
-            p = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(v0, Vector(0, 0), time, angle, ACCELERATION, MAX_SPEED);
+            p = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(v0, Vector(0, 0), time, angle, m_acceleration, m_maxSpeed);
             if (p.isValid()) {
                 int prio;
                 float obstacleTime;
@@ -575,8 +575,8 @@ void TrajectoryPath::escapeObstacles()
         float closestDistance = std::numeric_limits<float>::max();
         SpeedProfile bestProfile, p;
         bool foundResult = false;
-        if (AlphaTimeTrajectory::isInputValidExactEndSpeed(bestStartingSpeed, Vector(0, 0), m_bestStoppingTime, ACCELERATION)) {
-            p = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(bestStartingSpeed, Vector(0, 0), m_bestStoppingTime, m_bestStoppingAngle, ACCELERATION, MAX_SPEED);
+        if (AlphaTimeTrajectory::isInputValidExactEndSpeed(bestStartingSpeed, Vector(0, 0), m_bestStoppingTime, m_acceleration)) {
+            p = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(bestStartingSpeed, Vector(0, 0), m_bestStoppingTime, m_bestStoppingAngle, m_acceleration, m_maxSpeed);
             if (p.isValid() && !isTrajectoryInObstacle(p, bestEndTime, 0, bestStartingEndPos)) {
                 closestDistance = (p.positionForTime(p.time()) + bestStartingEndPos).distance(s1);
                 bestProfile = p;
@@ -594,11 +594,11 @@ void TrajectoryPath::escapeObstacles()
                 time = std::max(0.05f, m_bestStoppingTime + m_rng->uniformFloat(-0.1f, 0.1f));
                 angle = m_bestStoppingAngle + m_rng->uniformFloat(-0.1f, 0.1f);
             }
-            if (!AlphaTimeTrajectory::isInputValidExactEndSpeed(bestStartingSpeed, Vector(0, 0), time, ACCELERATION)) {
+            if (!AlphaTimeTrajectory::isInputValidExactEndSpeed(bestStartingSpeed, Vector(0, 0), time, m_acceleration)) {
                 continue;
             }
 
-            p = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(bestStartingSpeed, Vector(0, 0), time, angle, ACCELERATION, MAX_SPEED);
+            p = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(bestStartingSpeed, Vector(0, 0), time, angle, m_acceleration, m_maxSpeed);
             if (p.isValid() && !isTrajectoryInObstacle(p, bestEndTime, 0, bestStartingEndPos)) {
                 Vector stopPos = p.positionForTime(p.time()) + bestStartingEndPos;
                 if (stopPos.distance(s1) < closestDistance - 0.05f) {
@@ -668,9 +668,9 @@ void TrajectoryPath::findPathAlphaT()
 
     // check direct trajectory
     m_generationInfo.clear();
-    float directSlowDownTime = exponentialSlowDown ? TOTAL_SLOW_DOWN_TIME : 0.0f;
+    float directSlowDownTime = m_exponentialSlowDown ? TOTAL_SLOW_DOWN_TIME : 0.0f;
     bool useHighPrecision = distance.length() < 0.1f && v1 == Vector(0, 0) && v0.length() < 0.2f;
-    SpeedProfile direct = AlphaTimeTrajectory::findTrajectoryFastEndSpeed(v0, v1, distance, ACCELERATION, MAX_SPEED, directSlowDownTime, useHighPrecision);
+    SpeedProfile direct = AlphaTimeTrajectory::findTrajectoryFastEndSpeed(v0, v1, distance, m_acceleration, m_maxSpeed, directSlowDownTime, useHighPrecision);
     if (direct.isValid()) {
         auto obstacleDistances = minObstacleDistance(direct, 0, directSlowDownTime, s0);
         if (obstacleDistances.first > OBSTACLE_AVOIDANCE_RADIUS ||
@@ -741,12 +741,12 @@ void TrajectoryPath::findPathAlphaT()
             const BestTrajectoryInfo &info = mode == CURRENT_BEST ? m_bestResultInfo : lastTrajectoryInfo;
             const float RADIUS = 0.2f;
             Vector chosenMidSpeed = info.midSpeed;
-            while (chosenMidSpeed.lengthSquared() > MAX_SPEED_SQUARED) {
+            while (chosenMidSpeed.lengthSquared() > m_maxSpeedSquared) {
                 chosenMidSpeed *= 0.9f;
             }
             do {
                 speed = chosenMidSpeed + Vector(m_rng->uniformFloat(-RADIUS, RADIUS), m_rng->uniformFloat(-RADIUS, RADIUS));
-            } while (speed.lengthSquared() >= MAX_SPEED_SQUARED);
+            } while (speed.lengthSquared() >= m_maxSpeedSquared);
             angle = info.angle + m_rng->uniformFloat(-0.1f, 0.1f);
             time = std::max(0.0001f, info.centerTime + m_rng->uniformFloat(-0.1f, 0.1f));
         }
