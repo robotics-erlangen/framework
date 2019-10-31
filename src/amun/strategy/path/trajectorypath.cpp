@@ -64,7 +64,7 @@ void TrajectoryPath::addMovingCircle(Vector startPos, Vector speed, Vector acc, 
     m.acc = acc;
     m.startTime = startTime;
     m.endTime = endTime;
-    m.radius = radius + m_radius;
+    m.radius = radius + m_world.radius();
     m.prio = prio;
     m_movingCircles.push_back(m);
 }
@@ -81,7 +81,7 @@ void TrajectoryPath::addMovingLine(Vector startPos1, Vector speed1, Vector acc1,
     l.acc2 = acc2;
     l.startTime = startTime;
     l.endTime = endTime;
-    l.width = width + m_radius;
+    l.width = width + m_world.radius();
     l.prio = prio;
     m_movingLines.push_back(l);
 }
@@ -97,10 +97,10 @@ void TrajectoryPath::addFriendlyRobotTrajectoryObstacle(std::vector<TrajectoryPo
         maxDistSq = std::max(maxDistSq, p.pos.distanceSq((*obstacle)[0].pos));
     }
     if (maxDistSq < 0.03f * 0.03f) {
-        addCircle(obstacle->at(0).pos.x, obstacle->at(0).pos.y, radius + std::sqrt(maxDistSq), nullptr, prio);
+        m_world.addCircle(obstacle->at(0).pos.x, obstacle->at(0).pos.y, radius + std::sqrt(maxDistSq), nullptr, prio);
         return;
     }
-    MovingObstacles::FriendlyRobotObstacle o(obstacle, radius + m_radius, prio);
+    MovingObstacles::FriendlyRobotObstacle o(obstacle, radius + m_world.radius(), prio);
     m_friendlyRobotObstacles.push_back(o);
 }
 
@@ -116,7 +116,7 @@ void TrajectoryPath::addAvoidanceLine(Vector s0, Vector s1, float radius, float 
 template<typename container>
 bool TrajectoryPath::isInStaticObstacle(const container &obstacles, Vector point) const
 {
-    if (!pointInPlayfield(point, m_radius)) {
+    if (!m_world.pointInPlayfield(point, m_world.radius())) {
         return true;
     }
     for (const auto obstacle : obstacles) {
@@ -144,8 +144,8 @@ bool TrajectoryPath::isTrajectoryInObstacle(const SpeedProfile &profile, float t
 {
     BoundingBox trajectoryBoundingBox = profile.calculateBoundingBox(startPos, 0);
     std::vector<const StaticObstacles::Obstacle*> intersectingStaticObstacles;
-    intersectingStaticObstacles.reserve(m_obstacles.size());
-    for (const StaticObstacles::Obstacle *o : m_obstacles) {
+    intersectingStaticObstacles.reserve(m_world.obstacles().size());
+    for (const StaticObstacles::Obstacle *o : m_world.obstacles()) {
         if (o->boundingBox().intersects(trajectoryBoundingBox)) {
             intersectingStaticObstacles.push_back(o);
         }
@@ -177,7 +177,7 @@ float TrajectoryPath::minObstacleDistance(Vector pos, float time, bool checkStat
     float minDistance = std::numeric_limits<float>::max();
     // static obstacles
     if (checkStatic) {
-        for (const auto obstacle : m_obstacles) {
+        for (const auto obstacle : m_world.obstacles()) {
             float d = obstacle->distance(pos);
             if (d <= 0) {
                 return d;
@@ -214,7 +214,7 @@ std::pair<float, float> TrajectoryPath::minObstacleDistance(const SpeedProfile &
     for (int i = 0;i<DIVISIONS;i++) {
         float time = totalTime * i / float(DIVISIONS);
         Vector pos = slowDownTime > 0 ? profile.positionForTimeSlowDown(time, slowDownTime) : profile.positionForTime(time);
-        if (!pointInPlayfield(pos + startPos, m_radius)) {
+        if (!m_world.pointInPlayfield(pos + startPos, m_world.radius())) {
             return {-1.0f, -1.0f};
         }
         float minDistance = minObstacleDistance(pos + startPos, time + timeOffset, true);
@@ -332,8 +332,9 @@ bool TrajectoryPath::checkMidPoint(Vector midSpeed, const float time, const floa
 
 Vector TrajectoryPath::randomPointInField()
 {
-    return Vector(m_rng->uniformFloat(m_boundary.bottom_left.x, m_boundary.top_right.x),
-                  m_rng->uniformFloat(m_boundary.bottom_left.y, m_boundary.top_right.y));
+    auto bound = m_world.boundary();
+    return Vector(m_rng->uniformFloat(bound.bottom_left.x, bound.top_right.x),
+                  m_rng->uniformFloat(bound.bottom_left.y, bound.top_right.y));
 }
 
 Vector TrajectoryPath::randomSpeed()
@@ -441,10 +442,10 @@ std::tuple<int, float, float> TrajectoryPath::trajectoryObstacleScore(const Spee
 
         Vector pos = speedProfile.positionForTime(time) + s0;
         int obstaclePriority = -1;
-        if (!pointInPlayfield(pos, m_radius)) {
+        if (!m_world.pointInPlayfield(pos, m_world.radius())) {
             obstaclePriority = m_outOfFieldPriority;
         }
-        for (const auto obstacle : m_obstacles) {
+        for (const auto obstacle : m_world.obstacles()) {
             if (obstacle->prio > obstaclePriority) {
                 float distance = obstacle->distance(pos);
                 minStaticObstacleDistance = std::min(minStaticObstacleDistance, distance);
@@ -627,13 +628,13 @@ void TrajectoryPath::escapeObstacles()
 
 void TrajectoryPath::findPathAlphaT()
 {
+    const auto &obstacles = m_world.obstacles();
+
     m_maxIntersectingObstaclePrio = -1;
 
-    for (StaticObstacles::Circle &c: m_circleObstacles) { c.radius += m_radius; }
-    for (StaticObstacles::Rect &r: m_rectObstacles) { r.radius += m_radius; }
-    for (StaticObstacles::Triangle &t: m_triangleObstacles) { t.radius += m_radius; }
-    for (StaticObstacles::Line &l: m_lineObstacles) { l.radius += m_radius; }
-    collectObstacles();
+    m_world.addToAllObstacleRadius(-m_world.radius());
+    m_world.collectObstacles();
+
     m_movingObstacles.clear();
     for (auto &o : m_movingCircles) {
         m_movingObstacles.push_back(&o);
@@ -646,14 +647,14 @@ void TrajectoryPath::findPathAlphaT()
     }
 
     // check if start point is in obstacle
-    if (isInStaticObstacle(m_obstacles, s0) || isInMovingObstacle(m_movingObstacles, s0, 0)) {
+    if (isInStaticObstacle(obstacles, s0) || isInMovingObstacle(m_movingObstacles, s0, 0)) {
         escapeObstacles();
         return;
     }
 
     // check if end point is in obstacle
-    if (isInStaticObstacle(m_obstacles, s1)) {
-        for (const StaticObstacles::Obstacle *o : m_obstacles) {
+    if (isInStaticObstacle(obstacles, s1)) {
+        for (const StaticObstacles::Obstacle *o : obstacles) {
             float dist = o->distance(s1);
             if (dist > 0.01f && dist < 0) {
                 s1 = o->projectOut(s1, 0.03f);
@@ -661,7 +662,7 @@ void TrajectoryPath::findPathAlphaT()
         }
         distance = s1 - s0;
         // test again, might have been moved into another obstacle
-        if (isInStaticObstacle(m_obstacles, s1)) {
+        if (isInStaticObstacle(obstacles, s1)) {
             findPathEndInObstacle();
             return;
         }

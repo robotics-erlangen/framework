@@ -40,8 +40,8 @@ Path::Path(uint32_t rng_seed) :
     m_p_wp(0.4),
     m_stepSize(0.1f),
     m_cacheSize(200),
-    m_treeStart(NULL),
-    m_treeEnd(NULL)
+    m_treeStart(nullptr),
+    m_treeEnd(nullptr)
 { }
 
 Path::~Path()
@@ -52,9 +52,9 @@ Path::~Path()
 void Path::reset()
 {
     delete m_treeStart;
-    m_treeStart = NULL;
+    m_treeStart = nullptr;
     delete m_treeEnd;
-    m_treeEnd = NULL;
+    m_treeEnd = nullptr;
 
     clearObstacles();
     m_waypoints.clear();
@@ -92,7 +92,7 @@ bool Path::testSpline(const robot::Spline &spline, float radius) const
         t += step_size;
     }
 
-    collectObstacles();
+    m_world.collectObstacles();
     for (int i = 1; i < points.size(); i++) {
         if (points[i - 1] == points[i]) {
             continue;
@@ -230,20 +230,23 @@ Path::List Path::get(float start_x, float start_y, float end_x, float end_y)
 {
     const int extendMultiSteps = 4;
 
-    collectObstacles();
+    m_world.collectObstacles();
+
+    const float radius = m_world.radius();
 
     const Vector start(start_x, start_y);
     const Vector end(end_x, end_y);
 
     const Vector middle = (start + end) / 2;
     // symmetric sampling around middle between start and end, that includes the complete field
-    const float x_half = std::max(middle.x - m_boundary.bottom_left.x, m_boundary.top_right.x - middle.x);
-    const float y_half = std::max(middle.y - m_boundary.bottom_left.y, m_boundary.top_right.y - middle.y);
+    auto bound = m_world.boundary();
+    const float x_half = std::max(middle.x - bound.bottom_left.x, bound.top_right.x - middle.x);
+    const float y_half = std::max(middle.y - bound.bottom_left.y, bound.top_right.y - middle.y);
     m_sampleRect.bottom_left = Vector(middle.x - x_half, middle.y - y_half);
     m_sampleRect.top_right = Vector(middle.x + x_half, middle.y + y_half);
 
-    bool startingInObstacle = !pointInPlayfield(start, m_radius) || !test(start, m_radius, m_obstacles);
-    bool endingInObstacle = !pointInPlayfield(end, m_radius) || !test(end, m_radius, m_obstacles);
+    bool startingInObstacle = !m_world.pointInPlayfield(start, radius) || !test(start, radius, m_world.obstacles());
+    bool endingInObstacle = !m_world.pointInPlayfield(end, radius) || !test(end, radius, m_world.obstacles());
 
     // setup tree rooted at the start
     delete m_treeStart;
@@ -260,7 +263,7 @@ Path::List Path::get(float start_x, float start_y, float end_x, float end_y)
         if (start == end) {
             pathCompleted = true;
         // otherwise we have to test if the direct way is free
-        } else if (test(LineSegment(start, end), m_radius)) {
+        } else if (test(LineSegment(start, end), radius)) {
             pathCompleted = true;
             const KdTree::Node *nearestNode = m_treeStart->nearest(start);
             // raster path for usage as waypoint cache
@@ -270,7 +273,7 @@ Path::List Path::get(float start_x, float start_y, float end_x, float end_y)
 
     KdTree *treeA = m_treeStart;
     KdTree *treeB = m_treeEnd;
-    const KdTree::Node *mergerNode = NULL; // node where both trees have met
+    const KdTree::Node *mergerNode = nullptr; // node where both trees have met
 
     if (!pathCompleted && m_seedTargets.size() > 0) {
         for (Vector seedTarget: m_seedTargets) {
@@ -289,19 +292,19 @@ Path::List Path::get(float start_x, float start_y, float end_x, float end_y)
         const KdTree::Node *nearestNode = treeA->nearest(target);
 
         // extend towards the target
-        nearestNode = extend(treeA, nearestNode, target, m_radius, m_stepSize);
+        nearestNode = extend(treeA, nearestNode, target, radius, m_stepSize);
 
-        if (nearestNode != NULL) {
+        if (nearestNode != nullptr) {
             // extend the other tree towards the new point
             target = treeA->position(nearestNode);
             nearestNode = treeB->nearest(target);
         }
 
         // extend for extendMultiSteps or until an obstacle is hit
-        for (int i = 0; i < extendMultiSteps && nearestNode != NULL; ++i) {
+        for (int i = 0; i < extendMultiSteps && nearestNode != nullptr; ++i) {
             // Extend path towards the target by a short distance
-            nearestNode = extend(treeB, nearestNode, target, m_radius, m_stepSize);
-            if (nearestNode == NULL) {
+            nearestNode = extend(treeB, nearestNode, target, radius, m_stepSize);
+            if (nearestNode == nullptr) {
                 break;
             }
 
@@ -321,7 +324,7 @@ Path::List Path::get(float start_x, float start_y, float end_x, float end_y)
 
     Vector mid;
     const KdTree::Node *nearestNode;
-    if (mergerNode != NULL) {
+    if (mergerNode != nullptr) {
         // both trees have touched
         mid = m_treeStart->position(mergerNode);
         nearestNode = m_treeStart->nearest(mid);
@@ -347,7 +350,7 @@ Path::List Path::get(float start_x, float start_y, float end_x, float end_y)
 
     nearestNode = m_treeEnd->nearest(mid);
     // don't add the end tree if the trees aren't connected
-    if (mergerNode != NULL) {
+    if (mergerNode != nullptr) {
         // traverse the end tree, but skip the merger node
         nearestNode = m_treeEnd->previous(nearestNode);
         // add all nodes until entering an obstacle
@@ -356,12 +359,12 @@ Path::List Path::get(float start_x, float start_y, float end_x, float end_y)
             nearestNode = m_treeEnd->previous(nearestNode);
         }
         // try to get as close to the target as possible if it's not reached yet
-        if (nearestNode != NULL) {
+        if (nearestNode != nullptr) {
             const Vector lineStart = points.last();
             Vector bestPos = findValidPoint(
-                        LineSegment(lineStart, m_treeEnd->position(nearestNode)), m_radius);
-            if (lineStart != bestPos && pointInPlayfield(bestPos, m_radius)
-                    && test(LineSegment(lineStart, bestPos), m_radius)) {
+                        LineSegment(lineStart, m_treeEnd->position(nearestNode)), radius);
+            if (lineStart != bestPos && m_world.pointInPlayfield(bestPos, radius)
+                    && test(LineSegment(lineStart, bestPos), radius)) {
                 points.append(bestPos);
             }
         }
@@ -387,11 +390,11 @@ Path::List Path::get(float start_x, float start_y, float end_x, float end_y)
 
     // cut corners serveral times
     for (int i = 0; i < 3; ++i) {
-        simplify(points, m_radius);
-        cutCorners(points, m_radius);
+        simplify(points, radius);
+        cutCorners(points, radius);
     }
     // final cleanup
-    simplify(points, m_radius);
+    simplify(points, radius);
 
     Path::List list;
     list.reserve(points.size());
@@ -409,8 +412,8 @@ const KdTree::Node * Path::rasterPath(const LineSegment &segment, const KdTree::
     // assumes that the collision check for segment was successfull
     const int steps = ceil(segment.start().distance(segment.end()) / step_size);
     for (int i = 0; i < steps; ++i) {
-        lastNode = extend(m_treeStart, lastNode, segment.end(), m_radius, step_size);
-        if (lastNode == NULL) { // target not reachable
+        lastNode = extend(m_treeStart, lastNode, segment.end(), m_world.radius(), step_size);
+        if (lastNode == nullptr) { // target not reachable
             return lastNode;
         }
     }
@@ -422,7 +425,7 @@ void Path::simplify(QVector<Vector> &points, float radius)
     // every point before this index is inside the start obstacles
     int split = points.size();
     for (int i = 0; i < points.size(); ++i) {
-        if (pointInPlayfield(points[i], m_radius) && test(points[i], radius, m_obstacles)) {
+        if (m_world.pointInPlayfield(points[i], m_world.radius()) && test(points[i], radius, m_world.obstacles())) {
             split = i;
             break;
         }
@@ -441,7 +444,7 @@ void Path::simplify(QVector<Vector> &points, float radius)
             // if start point is in obstacle check that the robot leaves the obstacles
             // otherwise use the default check
             LineSegment seg(points[start_index], points[end_index]);
-            if ((start_index < split && checkMovementRelativeToObstacles(seg, m_obstacles, radius))
+            if ((start_index < split && checkMovementRelativeToObstacles(seg, m_world.obstacles(), radius))
                     || (start_index >= split && test(seg, radius))) {
                 split -= std::min(std::max(0, split - start_index - 1), end_index - start_index - 1);
                 for (int i = 0; i < end_index - start_index - 1; i++) {
@@ -489,10 +492,11 @@ void Path::addToWaypointCache(const Vector &pos)
 
 float Path::outsidePlayfieldCoverage(const Vector &point, float radius) const
 {
+    auto bound = m_world.boundary();
     return std::max(0.f,
         std::max(
-            std::max(m_boundary.bottom_left.x - point.x + radius, point.x + radius - m_boundary.top_right.x),
-            std::max(m_boundary.bottom_left.y - point.y + radius, point.y + radius - m_boundary.top_right.y)
+            std::max(bound.bottom_left.x - point.x + radius, point.x + radius - bound.top_right.x),
+            std::max(bound.bottom_left.y - point.y + radius, point.y + radius - bound.top_right.y)
     ));
 }
 
@@ -503,7 +507,7 @@ const KdTree::Node * Path::extend(KdTree *tree, const KdTree::Node *fromNode, co
     Vector d = to - from;
     const float l = d.length();
     if (l == 0) { // point already reached
-        return NULL;
+        return nullptr;
     } else if (l > stepSize) { // can't reach in one step
         d *= stepSize / l;
     }
@@ -518,28 +522,28 @@ const KdTree::Node * Path::extend(KdTree *tree, const KdTree::Node *fromNode, co
         // The new point is only valid if its farther away from the obstacles than right now
         // checking for outsidePlayfieldCoverage is not neccessary as target is always inside the playfield
         // and thus extended can't leave it
-        success = checkMovementRelativeToObstacles(LineSegment(from, extended), m_obstacles, radius);
+        success = checkMovementRelativeToObstacles(LineSegment(from, extended), m_world.obstacles(), radius);
     } else { // otherwise test the new path for obstacles
-        success = pointInPlayfield(extended, m_radius) && test(LineSegment(from, extended), radius);
+        success = m_world.pointInPlayfield(extended, m_world.radius()) && test(LineSegment(from, extended), radius);
     }
 
     // No valid path
     if (!success) {
-        return NULL;
+        return nullptr;
     }
 
     bool newInObstacle = false;
     // once every obstacle was left, reentering one is impossible
     // thus only test obstacleCoverage if we're currently in an obstacle
     if (inObstacle) {
-        newInObstacle = !pointInPlayfield(extended, m_radius) || !test(extended, radius, m_obstacles);
+        newInObstacle = !m_world.pointInPlayfield(extended, m_world.radius()) || !test(extended, radius, m_world.obstacles());
     }
     // Extend tree
     return tree->insert(extended, newInObstacle, fromNode);
 }
 
 bool Path::test(const Vector &v, float radius, const QVector<const Obstacle*> &obstacles) const {
-    if (!pointInPlayfield(v, radius)) {
+    if (!m_world.pointInPlayfield(v, radius)) {
         return false;
     }
     for(QVector<const Obstacle*>::const_iterator it = obstacles.constBegin();
@@ -566,7 +570,7 @@ bool Path::test(const LineSegment &segment, float radius, const QVector<const Ob
 
 bool Path::test(const LineSegment &segment, float radius) const
 {
-    return test(segment, radius, m_obstacles);
+    return test(segment, radius, m_world.obstacles());
 }
 
 Vector Path::findValidPoint(const LineSegment &segment, float radius) const
@@ -579,7 +583,7 @@ Vector Path::findValidPoint(const LineSegment &segment, float radius) const
 
     while (dist > 0.001f) {
         Vector mid = (end + start) / 2;
-        if (pointInPlayfield(mid, m_radius) && test(LineSegment(lineStart, mid), radius)) {
+        if (m_world.pointInPlayfield(mid, m_world.radius()) && test(LineSegment(lineStart, mid), radius)) {
             start = mid;
         } else {
             end = mid;

@@ -120,7 +120,7 @@ static void pathSetBoundary(QTPath *wrapper, const FunctionCallbackInfo<Value>& 
             !verifyNumber(isolate, args[2 + offset], x2) || !verifyNumber(isolate, args[3 + offset], y2)) {
         return;
     }
-    wrapper->abstractPath()->setBoundary(x1, y1, x2, y2);
+    wrapper->abstractPath()->world().setBoundary(x1, y1, x2, y2);
 }
 GENERATE_FUNCTIONS(pathSetBoundary);
 
@@ -131,7 +131,7 @@ static void pathSetRadius(QTPath *wrapper, const FunctionCallbackInfo<Value>& ar
     if (!verifyNumber(isolate, args[offset], r)) {
         return;
     }
-    wrapper->abstractPath()->setRadius(r);
+    wrapper->abstractPath()->world().setRadius(r);
 }
 GENERATE_FUNCTIONS(pathSetRadius);
 
@@ -144,7 +144,7 @@ static void pathAddCircle(QTPath *wrapper, const FunctionCallbackInfo<Value>& ar
             !verifyNumber(isolate, args[2 + offset], r) || !verifyNumber(isolate, args[4 + offset], prio)) {
         return;
     }
-    wrapper->abstractPath()->addCircle(x, y, r, nullptr, int(prio));
+    wrapper->abstractPath()->world().addCircle(x, y, r, nullptr, int(prio));
 }
 GENERATE_FUNCTIONS(pathAddCircle);
 
@@ -163,7 +163,7 @@ static void pathAddLine(QTPath *wrapper, const FunctionCallbackInfo<Value>& args
         isolate->ThrowException(Exception::Error(v8string(isolate, "line must have non zero length")));
         return;
     }
-    wrapper->abstractPath()->addLine(x1, y1, x2, y2, width, nullptr, int(prio));
+    wrapper->abstractPath()->world().addLine(x1, y1, x2, y2, width, nullptr, int(prio));
 }
 GENERATE_FUNCTIONS(pathAddLine);
 
@@ -199,7 +199,7 @@ static void pathAddRect(QTPath *wrapper, const FunctionCallbackInfo<Value>& args
         return;
     }
 
-    wrapper->abstractPath()->addRect(x1, y1, x2, y2, nullptr, int(prio));
+    wrapper->abstractPath()->world().addRect(x1, y1, x2, y2, nullptr, int(prio));
 }
 GENERATE_FUNCTIONS(pathAddRect);
 
@@ -214,7 +214,7 @@ static void pathAddTriangle(QTPath *wrapper, const FunctionCallbackInfo<Value>& 
         return;
     }
 
-    wrapper->abstractPath()->addTriangle(x1, y1, x2, y2, x3, y3, lineWidth, nullptr, int(prio));
+    wrapper->abstractPath()->world().addTriangle(x1, y1, x2, y2, x3, y3, lineWidth, nullptr, int(prio));
 }
 GENERATE_FUNCTIONS(pathAddTriangle);
 
@@ -251,7 +251,7 @@ static void pathGet(QTPath *wrapper, const FunctionCallbackInfo<Value>& args, in
     const qint64 t = Timer::systemTime();
 
     // robot radius must have been set before
-    if (!wrapper->path()->isRadiusValid()) {
+    if (!wrapper->path()->world().isRadiusValid()) {
         isolate->ThrowException(Exception::Error(v8string(isolate, "Invalid radius")));
         return;
     }
@@ -292,7 +292,7 @@ static void trajectoryPathGet(const FunctionCallbackInfo<Value>& args)
     const qint64 t = Timer::systemTime();
 
     // robot radius must have been set before
-    if (!wrapper->trajectoryPath()->isRadiusValid()) {
+    if (!wrapper->trajectoryPath()->world().isRadiusValid()) {
         isolate->ThrowException(Exception::Error(v8string(isolate, "Invalid radius")));
         return;
     }

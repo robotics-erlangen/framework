@@ -18,36 +18,48 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef ABSTRACTPATH_H
-#define ABSTRACTPATH_H
+#ifndef WORLDINFORMATION_H
+#define WORLDINFORMATION_H
 
 #include "vector.h"
-#include "protobuf/robot.pb.h"
 #include "obstacles.h"
-#include "worldinformation.h"
-#include <QByteArray>
 #include <QVector>
 
-class RNG;
-
-class AbstractPath
+class WorldInformation
 {
 public:
-    AbstractPath(uint32_t rng_seed);
-    virtual ~AbstractPath();
-    AbstractPath(const AbstractPath&) = delete;
-    AbstractPath& operator=(const AbstractPath&) = delete;
-    virtual void reset() = 0;
-    void seedRandom(uint32_t seed);
-    WorldInformation &world() { return m_world; }
-    const WorldInformation &world() const { return m_world; }
+    // basic world parameters
+    void setRadius(float r);
+    bool isRadiusValid() { return m_radius >= 0.f; }
+    void setBoundary(float x1, float y1, float x2, float y2);
+    float radius() const { return m_radius; }
+    const StaticObstacles::Rect &boundary() const { return m_boundary; }
 
+    // world obstacles
     void clearObstacles();
-    virtual void clearObstaclesCustom() {}
+    // only valid after a call to collectObstacles, may become invalid after the calling function returns!
+    QVector<const StaticObstacles::Obstacle*> &obstacles() const { return m_obstacles; }
+    void addToAllObstacleRadius(float additionalRadius);
 
-protected:
-    mutable RNG *m_rng; // allow using from const functions
-    WorldInformation m_world;
+    // static obstacles
+    void addCircle(float x, float y, float radius, const char *name, int prio);
+    void addLine(float x1, float y1, float x2, float y2, float width, const char *name, int prio);
+    void addRect(float x1, float y1, float x2, float y2, const char *name, int prio);
+    void addTriangle(float x1, float y1, float x2, float y2, float x3, float y3, float lineWidth, const char *name, int prio);
+
+    void collectObstacles() const;
+    bool pointInPlayfield(const Vector &point, float radius) const;
+
+private:
+    mutable QVector<const StaticObstacles::Obstacle*> m_obstacles;
+
+    QVector<StaticObstacles::Circle> m_circleObstacles;
+    QVector<StaticObstacles::Rect> m_rectObstacles;
+    QVector<StaticObstacles::Triangle> m_triangleObstacles;
+    QVector<StaticObstacles::Line> m_lineObstacles;
+
+    StaticObstacles::Rect m_boundary;
+    float m_radius = -1.0f;
 };
 
-#endif // ABSTRACTPATH_H
+#endif // WORLDINFORMATION_H

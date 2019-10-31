@@ -41,7 +41,7 @@ static Path *checkPath(lua_State *L, int index)
 {
     Path **p;
     p = (Path **) luaL_checkudata(L, index, "path");
-    if (p == NULL) {
+    if (p == nullptr) {
         luaL_typerror(L, index, "path");
         qFatal("This must never be reached!");
     }
@@ -97,7 +97,7 @@ static int pathSetBoundary(lua_State *L)
     const float y1 = verifyNumber(L, 3);
     const float x2 = verifyNumber(L, 4);
     const float y2 = verifyNumber(L, 5);
-    p->setBoundary(x1, y1, x2, y2);
+    p->world().setBoundary(x1, y1, x2, y2);
     return 0;
 }
 
@@ -105,7 +105,7 @@ static int pathSetRadius(lua_State *L)
 {
     Path *p = checkPath(L, 1);
     const float r = verifyNumber(L, 2);
-    p->setRadius(r);
+    p->world().setRadius(r);
     return 0;
 }
 
@@ -118,7 +118,7 @@ static int pathAddCircle(lua_State *L)
     const char* name = nullptr;
     name = luaL_optstring(L,5, nullptr);
     const int prio = luaL_optint(L, 6, 0);
-    p->addCircle(x, y, r, name, prio);
+    p->world().addCircle(x, y, r, name, prio);
     return 0;
 }
 
@@ -139,7 +139,7 @@ static int pathAddLine(lua_State *L)
     if (x1 == x2 && y1 == y2) {
         luaL_error(L, "Points are identical");
     }
-    p->addLine(x1, y1, x2, y2, width, name, prio);
+    p->world().addLine(x1, y1, x2, y2, width, name, prio);
     return 0;
 }
 
@@ -173,7 +173,7 @@ static int pathAddRect(lua_State *L)
     name = luaL_optstring(L,6, nullptr);
     const int prio = luaL_optint(L, 7, 0);
 
-    p->addRect(x1, y1, x2, y2, name, prio);
+    p->world().addRect(x1, y1, x2, y2, name, prio);
     return 0;
 }
 
@@ -192,7 +192,7 @@ static int pathAddTriangle(lua_State *L)
     name = luaL_optstring(L, 9, nullptr);
     const int prio = luaL_optint(L, 10, 0);
 
-    p->addTriangle(x1, y1, x2, y2, x3, y3, lineWidth, name, prio);
+    p->world().addTriangle(x1, y1, x2, y2, x3, y3, lineWidth, name, prio);
     return 0;
 }
 
@@ -204,7 +204,7 @@ static int pathTest(lua_State *L)
 
     // get spline
     robot::Spline spline;
-    protobufToMessage(L, 2, spline, NULL);
+    protobufToMessage(L, 2, spline, nullptr);
 
     if (spline.t_start() >= spline.t_end()) {
         luaL_error(L, "t_start (%f) has to be less than t_end (%f)", spline.t_start(), spline.t_end());
@@ -225,7 +225,7 @@ static int pathGet(lua_State *L)
 
     // robot radius must have been set before
     Path *p = checkPath(L, 1);
-    if (!p->isRadiusValid()) {
+    if (!p->world().isRadiusValid()) {
         luaL_error(L, "No valid radius set for path object");
         return 0;
     }
@@ -263,7 +263,7 @@ static int pathGet(lua_State *L)
 }
 
 static void drawTree(Lua *thread, const KdTree *tree) {
-    if (tree == NULL) {
+    if (tree == nullptr) {
         return;
     }
     const QList<const KdTree::Node *> nodes = tree->getChildren();
@@ -317,20 +317,20 @@ static const luaL_Reg pathMethods[] = {
     {"test",            pathTest},
     {"get",             pathGet},
     {"addTreeVisualization", pathAddTreeVisualization},
-    {0, 0}
+    {nullptr, nullptr}
 };
 
 static const luaL_Reg pathMeta[] = {
     // ensure the path object is deleted
     {"__gc", pathDestroy},
-    {0, 0}
+    {nullptr, nullptr}
 };
 
 int pathRegister(lua_State *L)
 {
     luaL_register(L, "path", pathMethods);
     luaL_newmetatable(L, "path");
-    luaL_register(L, 0, pathMeta);
+    luaL_register(L, nullptr, pathMeta);
     lua_pushliteral(L, "__index");
     lua_pushvalue(L, -3);
     lua_rawset(L, -3);
