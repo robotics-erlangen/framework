@@ -18,43 +18,28 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef TRAJECTORYPATH_H
-#define TRAJECTORYPATH_H
+#ifndef ENDINOBSTACLESAMPLER_H
+#define ENDINOBSTACLESAMPLER_H
 
-#include "abstractpath.h"
-#include "alphatimetrajectory.h"
 #include "trajectorysampler.h"
-#include "endinobstaclesampler.h"
-#include "escapeobstaclesampler.h"
-#include "standardsampler.h"
-#include "vector.h"
-#include <vector>
 
-class TrajectoryPath : public AbstractPath
+class EndInObstacleSampler : public TrajectorySampler
 {
 public:
-    TrajectoryPath(uint32_t rng_seed);
-    void reset() override;
-    std::vector<TrajectoryPoint> calculateTrajectory(Vector s0, Vector v0, Vector s1, Vector v1, float maxSpeed, float acceleration);
-    // is guaranteed to be equally spaced in time
-    std::vector<TrajectoryPoint> *getCurrentTrajectory() { return &m_currentTrajectory; }
-    int maxIntersectingObstaclePrio() const { return m_escapeObstacleSampler.m_maxIntersectingObstaclePrio; }
+    EndInObstacleSampler(RNG *rng, const WorldInformation &world) : TrajectorySampler(rng, world) {}
+    bool compute(const TrajectoryInput &input) override;
+    const std::vector<TrajectoryGenerationInfo> &getResult() const override { return result; }
 
 private:
-    std::vector<TrajectorySampler::TrajectoryGenerationInfo> findPath();
-    bool checkMidPoint(Vector midSpeed, const float time, const float angle);
-    std::vector<TrajectoryPoint> getResultPath(const std::vector<TrajectorySampler::TrajectoryGenerationInfo> &generationInfo);
-    void searchFullTrajectory();
+    bool testEndPoint(const TrajectoryInput &input, Vector endPoint);
+    Vector randomPointInField();
 
 private:
-    TrajectoryInput m_input;
+    Vector m_bestEndPoint = Vector(0, 0);
+    float m_bestEndPointDistance;
 
-    StandardSampler m_standardSampler;
-    EndInObstacleSampler m_endInObstacleSampler;
-    EscapeObstacleSampler m_escapeObstacleSampler;
-
-    // result trajectory (used by other robots as obstacle)
-    std::vector<TrajectoryPoint> m_currentTrajectory;
+    bool isValid;
+    std::vector<TrajectoryGenerationInfo> result;
 };
 
-#endif // TRAJECTORYPATH_H
+#endif // ENDINOBSTACLESAMPLER_H

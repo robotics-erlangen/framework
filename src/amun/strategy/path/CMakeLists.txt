@@ -29,6 +29,10 @@ add_library(path
     include/path/vector.h
     include/path/obstacles.h
     include/path/worldinformation.h
+    include/path/trajectorysampler.h
+    include/path/endinobstaclesampler.h
+    include/path/escapeobstaclesampler.h
+    include/path/standardsampler.h
 
     abstractpath.cpp
     alphatimetrajectory.cpp
@@ -37,6 +41,9 @@ add_library(path
     trajectorypath.cpp
     obstacles.cpp
     worldinformation.cpp
+    endinobstaclesampler.cpp
+    escapeobstaclesampler.cpp
+    standardsampler.cpp
 )
 target_link_libraries(path
     PRIVATE shared::core

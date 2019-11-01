@@ -18,43 +18,46 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef TRAJECTORYPATH_H
-#define TRAJECTORYPATH_H
+#ifndef TRAJECTORYSAMPLER_H
+#define TRAJECTORYSAMPLER_H
 
-#include "abstractpath.h"
 #include "alphatimetrajectory.h"
-#include "trajectorysampler.h"
-#include "endinobstaclesampler.h"
-#include "escapeobstaclesampler.h"
-#include "standardsampler.h"
+#include "worldinformation.h"
 #include "vector.h"
 #include <vector>
 
-class TrajectoryPath : public AbstractPath
-{
-public:
-    TrajectoryPath(uint32_t rng_seed);
-    void reset() override;
-    std::vector<TrajectoryPoint> calculateTrajectory(Vector s0, Vector v0, Vector s1, Vector v1, float maxSpeed, float acceleration);
-    // is guaranteed to be equally spaced in time
-    std::vector<TrajectoryPoint> *getCurrentTrajectory() { return &m_currentTrajectory; }
-    int maxIntersectingObstaclePrio() const { return m_escapeObstacleSampler.m_maxIntersectingObstaclePrio; }
+class RNG;
 
-private:
-    std::vector<TrajectorySampler::TrajectoryGenerationInfo> findPath();
-    bool checkMidPoint(Vector midSpeed, const float time, const float angle);
-    std::vector<TrajectoryPoint> getResultPath(const std::vector<TrajectorySampler::TrajectoryGenerationInfo> &generationInfo);
-    void searchFullTrajectory();
-
-private:
-    TrajectoryInput m_input;
-
-    StandardSampler m_standardSampler;
-    EndInObstacleSampler m_endInObstacleSampler;
-    EscapeObstacleSampler m_escapeObstacleSampler;
-
-    // result trajectory (used by other robots as obstacle)
-    std::vector<TrajectoryPoint> m_currentTrajectory;
+struct TrajectoryInput {
+    Vector v0, v1, distance, s0, s1;
+    bool exponentialSlowDown;
+    float maxSpeed;
+    float maxSpeedSquared;
+    float acceleration;
 };
 
-#endif // TRAJECTORYPATH_H
+class TrajectorySampler {
+public:
+
+    struct TrajectoryGenerationInfo {
+        SpeedProfile profile;
+        float slowDownTime;
+        Vector desiredDistance;
+        bool fastEndSpeed;
+    };
+
+    TrajectorySampler(RNG *rng, const WorldInformation &world) : m_rng(rng), m_world(world) {}
+    TrajectorySampler(const TrajectorySampler &) = delete;
+    TrajectorySampler& operator=(const TrajectorySampler&) = delete;
+
+    virtual ~TrajectorySampler() {}
+    // returns true on finding a valid trajectory
+    virtual bool compute(const TrajectoryInput &input) = 0;
+    virtual const std::vector<TrajectoryGenerationInfo> &getResult() const = 0;
+
+protected:
+    RNG *m_rng;
+    const WorldInformation &m_world;
+};
+
+#endif // TRAJECTORYSAMPLER_H

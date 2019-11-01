@@ -18,43 +18,33 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef TRAJECTORYPATH_H
-#define TRAJECTORYPATH_H
+#ifndef ESCAPEOBSTACLESAMPLER_H
+#define ESCAPEOBSTACLESAMPLER_H
 
-#include "abstractpath.h"
-#include "alphatimetrajectory.h"
 #include "trajectorysampler.h"
-#include "endinobstaclesampler.h"
-#include "escapeobstaclesampler.h"
-#include "standardsampler.h"
-#include "vector.h"
+#include <tuple>
 #include <vector>
 
-class TrajectoryPath : public AbstractPath
+class EscapeObstacleSampler : public TrajectorySampler
 {
 public:
-    TrajectoryPath(uint32_t rng_seed);
-    void reset() override;
-    std::vector<TrajectoryPoint> calculateTrajectory(Vector s0, Vector v0, Vector s1, Vector v1, float maxSpeed, float acceleration);
-    // is guaranteed to be equally spaced in time
-    std::vector<TrajectoryPoint> *getCurrentTrajectory() { return &m_currentTrajectory; }
-    int maxIntersectingObstaclePrio() const { return m_escapeObstacleSampler.m_maxIntersectingObstaclePrio; }
+    EscapeObstacleSampler(RNG *rng, const WorldInformation &world) : TrajectorySampler(rng, world) {}
+    bool compute(const TrajectoryInput &input) override;
+    const std::vector<TrajectoryGenerationInfo> &getResult() const override { return m_generationInfo; }
+
+    int m_maxIntersectingObstaclePrio = -1;
 
 private:
-    std::vector<TrajectorySampler::TrajectoryGenerationInfo> findPath();
-    bool checkMidPoint(Vector midSpeed, const float time, const float angle);
-    std::vector<TrajectoryPoint> getResultPath(const std::vector<TrajectorySampler::TrajectoryGenerationInfo> &generationInfo);
-    void searchFullTrajectory();
+    std::tuple<int, float, float> trajectoryObstacleScore(const TrajectoryInput &input, const SpeedProfile &speedProfile);
 
 private:
-    TrajectoryInput m_input;
+    float m_bestEscapingTime = 2;
+    float m_bestEscapingAngle = 0.5f;
 
-    StandardSampler m_standardSampler;
-    EndInObstacleSampler m_endInObstacleSampler;
-    EscapeObstacleSampler m_escapeObstacleSampler;
+    float m_bestStoppingTime = 2;
+    float m_bestStoppingAngle = 0.5f;
 
-    // result trajectory (used by other robots as obstacle)
-    std::vector<TrajectoryPoint> m_currentTrajectory;
+    std::vector<TrajectoryGenerationInfo> m_generationInfo;
 };
 
-#endif // TRAJECTORYPATH_H
+#endif // ESCAPEOBSTACLESAMPLER_H

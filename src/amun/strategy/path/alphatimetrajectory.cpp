@@ -27,13 +27,12 @@ static float sign(float x)
 }
 
 // exponential slowdown calculation
-const float SLOW_DOWN_TIME = 0.3f; // must be the same as in alphapathsearch
 const float MIN_ACC_FACTOR = 0.3f;
 float SpeedProfile1D::calculateSlowDownPos(float slowDownTime) const
 {
     float pos = 0;
     float slowDownStartTime = profile[counter-1].t - slowDownTime;
-    float endTime = profile[counter-1].t + SLOW_DOWN_TIME - slowDownTime;
+    float endTime = profile[counter-1].t + AlphaTimeTrajectory::SLOW_DOWN_TIME - slowDownTime;
     for (unsigned int i = 0;i<counter-1;i++) {
         if (profile[i+1].t < slowDownStartTime || profile[i].v == profile[i+1].v) {
             pos += (profile[i].v + profile[i+1].v) * 0.5f * (profile[i+1].t - profile[i].t);
@@ -52,8 +51,8 @@ float SpeedProfile1D::calculateSlowDownPos(float slowDownTime) const
             }
             float toEndTime0 = endTime - t0;
             float toEndTime1 = endTime - profile[i+1].t;
-            float a0 = acc * (MIN_ACC_FACTOR + (1 - MIN_ACC_FACTOR) * toEndTime0 / SLOW_DOWN_TIME);
-            float a1 = acc * (MIN_ACC_FACTOR + (1 - MIN_ACC_FACTOR) * toEndTime1 / SLOW_DOWN_TIME);
+            float a0 = acc * (MIN_ACC_FACTOR + (1 - MIN_ACC_FACTOR) * toEndTime0 / AlphaTimeTrajectory::SLOW_DOWN_TIME);
+            float a1 = acc * (MIN_ACC_FACTOR + (1 - MIN_ACC_FACTOR) * toEndTime1 / AlphaTimeTrajectory::SLOW_DOWN_TIME);
 
             float averageAcc = (a0 + a1) * 0.5f;
             float v1 = profile[i+1].v;
@@ -71,7 +70,7 @@ float SpeedProfile1D::timeWithSlowDown(float slowDownTime) const
 {
     float time = 0;
     float slowDownStartTime = profile[counter-1].t - slowDownTime;
-    float endTime = profile[counter-1].t + SLOW_DOWN_TIME - slowDownTime;
+    float endTime = profile[counter-1].t + AlphaTimeTrajectory::SLOW_DOWN_TIME - slowDownTime;
     for (unsigned int i = 0;i<counter-1;i++) {
         if (profile[i+1].t < slowDownStartTime || profile[i].v == profile[i+1].v) {
             time += profile[i+1].t - profile[i].t;
@@ -89,8 +88,8 @@ float SpeedProfile1D::timeWithSlowDown(float slowDownTime) const
             }
             float toEndTime0 = endTime - t0;
             float toEndTime1 = endTime - profile[i+1].t;
-            float a0 = acc * (MIN_ACC_FACTOR + (1 - MIN_ACC_FACTOR) * toEndTime0 / SLOW_DOWN_TIME);
-            float a1 = acc * (MIN_ACC_FACTOR + (1 - MIN_ACC_FACTOR) * toEndTime1 / SLOW_DOWN_TIME);
+            float a0 = acc * (MIN_ACC_FACTOR + (1 - MIN_ACC_FACTOR) * toEndTime0 / AlphaTimeTrajectory::SLOW_DOWN_TIME);
+            float a1 = acc * (MIN_ACC_FACTOR + (1 - MIN_ACC_FACTOR) * toEndTime1 / AlphaTimeTrajectory::SLOW_DOWN_TIME);
 
             float averageAcc = (a0 + a1) * 0.5f;
             float v1 = profile[i+1].v;
@@ -121,14 +120,14 @@ float SpeedProfile1D::speedForTimeSlowDown(float time, float slowDownTime) const
         }
     }
 
-    float endTime = profile[counter-1].t + SLOW_DOWN_TIME - slowDownTime;
+    float endTime = profile[counter-1].t + AlphaTimeTrajectory::SLOW_DOWN_TIME - slowDownTime;
     float totalTime = t0;
     for (;i<counter-1;i++) {
 
         float toEndTime0 = endTime - t0;
         float toEndTime1 = endTime - profile[i+1].t;
-        float a0 = acc * (MIN_ACC_FACTOR + (1 - MIN_ACC_FACTOR) * toEndTime0 / SLOW_DOWN_TIME);
-        float a1 = acc * (MIN_ACC_FACTOR + (1 - MIN_ACC_FACTOR) * toEndTime1 / SLOW_DOWN_TIME);
+        float a0 = acc * (MIN_ACC_FACTOR + (1 - MIN_ACC_FACTOR) * toEndTime0 / AlphaTimeTrajectory::SLOW_DOWN_TIME);
+        float a1 = acc * (MIN_ACC_FACTOR + (1 - MIN_ACC_FACTOR) * toEndTime1 / AlphaTimeTrajectory::SLOW_DOWN_TIME);
 
         float averageAcc = (a0 + a1) * 0.5f;
         float v1 = profile[i+1].v;
@@ -177,14 +176,14 @@ float SpeedProfile1D::offsetForTimeSlowDown(float time, float slowDownTime) cons
         pos += (profile[i].v + profile[i+1].v) * 0.5f * (profile[i+1].t - profile[i].t);
     }
 
-    float endTime = profile[counter-1].t + SLOW_DOWN_TIME - slowDownTime;
+    float endTime = profile[counter-1].t + AlphaTimeTrajectory::SLOW_DOWN_TIME - slowDownTime;
     float totalTime = t0;
     for (;i<counter-1;i++) {
 
         float toEndTime0 = endTime - t0;
         float toEndTime1 = endTime - profile[i+1].t;
-        float a0 = acc * (MIN_ACC_FACTOR + (1 - MIN_ACC_FACTOR) * toEndTime0 / SLOW_DOWN_TIME);
-        float a1 = acc * (MIN_ACC_FACTOR + (1 - MIN_ACC_FACTOR) * toEndTime1 / SLOW_DOWN_TIME);
+        float a0 = acc * (MIN_ACC_FACTOR + (1 - MIN_ACC_FACTOR) * toEndTime0 / AlphaTimeTrajectory::SLOW_DOWN_TIME);
+        float a1 = acc * (MIN_ACC_FACTOR + (1 - MIN_ACC_FACTOR) * toEndTime1 / AlphaTimeTrajectory::SLOW_DOWN_TIME);
 
         float averageAcc = (a0 + a1) * 0.5f;
         float v1 = profile[i+1].v;
@@ -247,14 +246,14 @@ std::pair<float, float> SpeedProfile1D::calculateRange(float slowDownTime) const
         maxPos = std::max(maxPos, pos);
     }
 
-    float endTime = profile[counter-1].t + SLOW_DOWN_TIME - slowDownTime;
+    float endTime = profile[counter-1].t + AlphaTimeTrajectory::SLOW_DOWN_TIME - slowDownTime;
     float totalTime = t0;
     for (;i<counter-1;i++) {
 
         float toEndTime0 = endTime - t0;
         float toEndTime1 = endTime - profile[i+1].t;
-        float a0 = acc * (MIN_ACC_FACTOR + (1 - MIN_ACC_FACTOR) * toEndTime0 / SLOW_DOWN_TIME);
-        float a1 = acc * (MIN_ACC_FACTOR + (1 - MIN_ACC_FACTOR) * toEndTime1 / SLOW_DOWN_TIME);
+        float a0 = acc * (MIN_ACC_FACTOR + (1 - MIN_ACC_FACTOR) * toEndTime0 / AlphaTimeTrajectory::SLOW_DOWN_TIME);
+        float a1 = acc * (MIN_ACC_FACTOR + (1 - MIN_ACC_FACTOR) * toEndTime1 / AlphaTimeTrajectory::SLOW_DOWN_TIME);
 
         float averageAcc = (a0 + a1) * 0.5f;
         float v1 = profile[i+1].v;

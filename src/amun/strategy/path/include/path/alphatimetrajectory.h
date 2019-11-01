@@ -155,6 +155,8 @@ public:
 class AlphaTimeTrajectory
 {
 public:
+    static constexpr float SLOW_DOWN_TIME = 0.2f;
+
     // validity checks
     static bool isInputValidExactEndSpeed(Vector v0, Vector v1, float time, float acc);
     static bool isInputValidFastEndSpeed(Vector v0, Vector v1, float time, float acc);
