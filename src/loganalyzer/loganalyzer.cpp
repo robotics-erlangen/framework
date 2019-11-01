@@ -23,6 +23,7 @@
 #include <QMap>
 #include <QString>
 #include <QDebug>
+#include <clocale>
 
 #include "logfile/logfilereader.h"
 
