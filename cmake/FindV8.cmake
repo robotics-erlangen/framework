@@ -160,8 +160,8 @@ if(V8_FOUND)
             -ldbghelp
             -lshlwapi
             -lssp
-            # strip binary to keep file size below 1,2GB
-            -Wl,-s
+            # strip binary in release mode to keep file size below 1,2GB
+            $<$<CONFIG:Release>:-Wl,-s>
         )
     elseif(LINUX)
         set_property(TARGET lib::v8 APPEND PROPERTY INTERFACE_LINK_LIBRARIES
