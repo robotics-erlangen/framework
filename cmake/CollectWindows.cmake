@@ -65,6 +65,7 @@ add_custom_target(assemble
 		$ENV{MINGW_PREFIX}/bin/libgcc_s_dw2-1.dll
 		$ENV{MINGW_PREFIX}/bin/libstdc++-6.dll
 		$ENV{MINGW_PREFIX}/bin/libwinpthread-1.dll
+		$ENV{MINGW_PREFIX}/bin/libssp-0.dll
             ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
 )
 

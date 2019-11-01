@@ -1,19 +1,19 @@
-From eee5345fd42778dd4a2403ba6f2216510223527a Mon Sep 17 00:00:00 2001
+From e486ce56ce86a503fce8f200764bc05ba384b816 Mon Sep 17 00:00:00 2001
 From: Michael Eischer <michael.eischer@robotics-erlangen.de>
 Date: Wed, 22 Aug 2018 00:41:18 +0200
 Subject: [PATCH] mingw-build
 
 ---
  .patched                             |  1 +
- config/BUILD.gn                      | 48 ++++++++++++------------
+ config/BUILD.gn                      | 51 ++++++++++++++-----------
  config/BUILDCONFIG.gn                |  1 +
- config/compiler/BUILD.gn             | 55 +++++++++++++++-------------
- config/win/BUILD.gn                  | 31 +++++++++++++++-
+ config/compiler/BUILD.gn             | 57 ++++++++++++++++------------
+ config/win/BUILD.gn                  | 31 ++++++++++++++-
  config/win/manifest.gni              |  2 +-
  config/win/visual_studio_version.gni |  2 +
  toolchain/win/BUILD.gn               | 22 +++++++++++
  win/BUILD.gn                         |  2 +-
- 9 files changed, 113 insertions(+), 51 deletions(-)
+ 9 files changed, 118 insertions(+), 51 deletions(-)
  create mode 100644 .patched
 
 diff --git a/.patched b/.patched
@@ -25,7 +25,7 @@ index 000000000..e1e8f4b04
 +6a41721a2889b84cb2f3b920fbdc40b96347597a
 \ No newline at end of file
 diff --git a/config/BUILD.gn b/config/BUILD.gn
-index 997cdc85e..65317a980 100644
+index 997cdc85e..5869adfac 100644
 --- a/config/BUILD.gn
 +++ b/config/BUILD.gn
 @@ -209,32 +209,34 @@ config("default_libs") {
@@ -83,7 +83,7 @@ index 997cdc85e..65317a980 100644
      if (current_os == "winuwp") {
        # These libraries are needed for Windows UWP (i.e. store apps).
        libs += [
-@@ -244,9 +246,9 @@ config("default_libs") {
+@@ -244,11 +246,14 @@ config("default_libs") {
      } else {
        # These libraries are not compatible with Windows UWP (i.e. store apps.)
        libs += [
@@ -95,7 +95,12 @@ index 997cdc85e..65317a980 100644
 +        "ole32",
        ]
      }
++    if (is_mingw) {
++        libs += [ "ssp" ]
++    }
    } else if (is_android) {
+     libs = [
+       "dl",
 diff --git a/config/BUILDCONFIG.gn b/config/BUILDCONFIG.gn
 index 0c1b861fb..561e201bb 100644
 --- a/config/BUILDCONFIG.gn
@@ -109,7 +114,7 @@ index 0c1b861fb..561e201bb 100644
    is_aix = false
    is_android = false
 diff --git a/config/compiler/BUILD.gn b/config/compiler/BUILD.gn
-index 24bf37b2c..7a60de3f1 100644
+index 24bf37b2c..77007bd37 100644
 --- a/config/compiler/BUILD.gn
 +++ b/config/compiler/BUILD.gn
 @@ -233,7 +233,7 @@ config("compiler") {
@@ -121,7 +126,16 @@ index 24bf37b2c..7a60de3f1 100644
      # Common POSIX compiler flags setup.
      # --------------------------------
      cflags += [ "-fno-strict-aliasing" ]  # See http://crbug.com/32204
-@@ -284,7 +284,7 @@ config("compiler") {
+@@ -259,6 +259,8 @@ config("compiler") {
+         # Not available on aix.
+         cflags += [ "-fstack-protector" ]
+       }
++    } else if (is_mingw) {
++        cflags += [ "-fstack-protector" ]
+     }
+ 
+     # Linker warnings.
+@@ -284,7 +286,7 @@ config("compiler") {
    # Eliminate build metadata (__DATE__, __TIME__ and __TIMESTAMP__) for
    # deterministic build.  See https://crbug.com/314403
    if (!is_official_build) {
@@ -130,7 +144,7 @@ index 24bf37b2c..7a60de3f1 100644
        cflags += [
          "/wd4117",  # Trying to define or undefine a predefined macro.
          "/D__DATE__=",
-@@ -364,7 +364,7 @@ config("compiler") {
+@@ -364,7 +366,7 @@ config("compiler") {
  
    # Linux/Android/Fuchsia common flags setup.
    # ---------------------------------
@@ -139,7 +153,7 @@ index 24bf37b2c..7a60de3f1 100644
      if (use_pic) {
        cflags += [ "-fPIC" ]
        ldflags += [ "-fPIC" ]
-@@ -376,6 +376,7 @@ config("compiler") {
+@@ -376,6 +378,7 @@ config("compiler") {
        cflags += [ "-pipe" ]
      }
  
@@ -147,7 +161,7 @@ index 24bf37b2c..7a60de3f1 100644
      ldflags += [
        "-Wl,-z,noexecstack",
        "-Wl,-z,now",
-@@ -387,6 +388,7 @@ config("compiler") {
+@@ -387,6 +390,7 @@ config("compiler") {
          "-Wl,--as-needed",
        ]
      }
@@ -155,7 +169,7 @@ index 24bf37b2c..7a60de3f1 100644
    }
  
    # Linux-specific compiler flags setup.
-@@ -480,7 +482,7 @@ config("compiler") {
+@@ -480,7 +484,7 @@ config("compiler") {
      # TODO(thakis): Make the driver pass --color-diagnostics to the linker
      # if -fcolor-diagnostics is passed to it, and pass -fcolor-diagnostics
      # in ldflags instead.
@@ -164,7 +178,7 @@ index 24bf37b2c..7a60de3f1 100644
        # On Windows, we call the linker directly, instead of calling it through
        # the driver.
        ldflags += [ "--color-diagnostics" ]
-@@ -540,7 +542,7 @@ config("compiler") {
+@@ -540,7 +544,7 @@ config("compiler") {
  
    # C11/C++11 compiler flags setup.
    # ---------------------------
@@ -173,7 +187,7 @@ index 24bf37b2c..7a60de3f1 100644
      if (target_os == "android") {
        cxx11_override = use_cxx11_on_android
      } else {
-@@ -715,7 +717,7 @@ config("compiler_cpu_abi") {
+@@ -715,7 +719,7 @@ config("compiler_cpu_abi") {
    ldflags = []
    defines = []
  
@@ -182,7 +196,7 @@ index 24bf37b2c..7a60de3f1 100644
      # CPU architecture. We may or may not be doing a cross compile now, so for
      # simplicity we always explicitly set the architecture.
      if (current_cpu == "x64") {
-@@ -1183,7 +1185,7 @@ config("default_warnings") {
+@@ -1183,7 +1187,7 @@ config("default_warnings") {
    cflags_cc = []
    ldflags = []
  
@@ -191,7 +205,7 @@ index 24bf37b2c..7a60de3f1 100644
      if (treat_warnings_as_errors) {
        cflags += [ "/WX" ]
      }
-@@ -1401,11 +1403,14 @@ config("default_warnings") {
+@@ -1401,11 +1405,14 @@ config("default_warnings") {
        # comments
        # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=61638
        cflags += [ "-Wno-comments" ]
@@ -207,7 +221,7 @@ index 24bf37b2c..7a60de3f1 100644
      cflags += [
        # Disables.
        "-Wno-missing-field-initializers",  # "struct foo f = {0};"
-@@ -1489,7 +1494,7 @@ config("default_warnings") {
+@@ -1489,7 +1496,7 @@ config("default_warnings") {
  # part of Chromium.
  
  config("chromium_code") {
@@ -216,7 +230,7 @@ index 24bf37b2c..7a60de3f1 100644
      cflags = [ "/W4" ]  # Warning level 4.
  
      if (is_clang) {
-@@ -1561,7 +1566,7 @@ config("no_chromium_code") {
+@@ -1561,7 +1568,7 @@ config("no_chromium_code") {
    cflags_cc = []
    defines = []
  
@@ -225,7 +239,7 @@ index 24bf37b2c..7a60de3f1 100644
      cflags += [
        "/W3",  # Warning level 3.
        "/wd4800",  # Disable warning when forcing value to bool.
-@@ -1614,7 +1619,7 @@ config("noshadowing") {
+@@ -1614,7 +1621,7 @@ config("noshadowing") {
  # Allows turning Run-Time Type Identification on or off.
  
  config("rtti") {
@@ -234,7 +248,7 @@ index 24bf37b2c..7a60de3f1 100644
      cflags_cc = [ "/GR" ]
    } else {
      cflags_cc = [ "-frtti" ]
-@@ -1624,7 +1629,7 @@ config("rtti") {
+@@ -1624,7 +1631,7 @@ config("rtti") {
  config("no_rtti") {
    # Some sanitizer configs may require RTTI to be left enabled globally
    if (!use_rtti) {
@@ -243,7 +257,7 @@ index 24bf37b2c..7a60de3f1 100644
        cflags_cc = [ "/GR-" ]
      } else {
        cflags_cc = [ "-fno-rtti" ]
-@@ -1661,7 +1666,7 @@ config("thin_archive") {
+@@ -1661,7 +1668,7 @@ config("thin_archive") {
  # Note: exceptions are disallowed in Google code.
  
  config("exceptions") {
@@ -252,7 +266,7 @@ index 24bf37b2c..7a60de3f1 100644
      # Enables exceptions in the STL.
      if (!use_custom_libcxx) {
        defines = [ "_HAS_EXCEPTIONS=1" ]
-@@ -1674,7 +1679,7 @@ config("exceptions") {
+@@ -1674,7 +1681,7 @@ config("exceptions") {
  }
  
  config("no_exceptions") {
@@ -261,7 +275,7 @@ index 24bf37b2c..7a60de3f1 100644
      # Disables exceptions in the STL.
      # libc++ uses the __has_feature macro to control whether to use exceptions,
      # so defining this macro is unnecessary. Defining _HAS_EXCEPTIONS to 0 also
-@@ -1713,7 +1718,7 @@ config("wexit_time_destructors") {
+@@ -1713,7 +1720,7 @@ config("wexit_time_destructors") {
  #
  # TODO(jschuh): crbug.com/167187 fix this and delete this config.
  config("no_size_t_to_int_warning") {
@@ -270,7 +284,7 @@ index 24bf37b2c..7a60de3f1 100644
      cflags = [ "/wd4267" ]
    }
  }
-@@ -1748,7 +1753,7 @@ config("no_incompatible_pointer_warnings") {
+@@ -1748,7 +1755,7 @@ config("no_incompatible_pointer_warnings") {
  
  # Shared settings for both "optimize" and "optimize_max" configs.
  # IMPORTANT: On Windows "/O1" and "/O2" must go before the common flags.
@@ -279,7 +293,7 @@ index 24bf37b2c..7a60de3f1 100644
    common_optimize_on_cflags = [
      "/Ob2",  # Both explicit and auto inlining.
      "/Oy-",  # Disable omitting frame pointers, must be after /O2.
-@@ -1844,7 +1849,7 @@ if (is_win) {
+@@ -1844,7 +1851,7 @@ if (is_win) {
  }
  
  config("default_stack_frames") {
@@ -288,7 +302,7 @@ index 24bf37b2c..7a60de3f1 100644
      if (enable_frame_pointers) {
        cflags = [ "-fno-omit-frame-pointer" ]
      } else {
-@@ -1864,7 +1869,7 @@ config("default_stack_frames") {
+@@ -1864,7 +1871,7 @@ config("default_stack_frames") {
  
  # Default "optimization on" config.
  config("optimize") {
@@ -297,7 +311,7 @@ index 24bf37b2c..7a60de3f1 100644
      # TODO(thakis): Remove is_clang here, https://crbug.com/598772
      if (is_official_build && full_wpo_on_official && !is_clang) {
        common_optimize_on_cflags += [
-@@ -1898,7 +1903,7 @@ config("optimize") {
+@@ -1898,7 +1905,7 @@ config("optimize") {
  
  # Same config as 'optimize' but without the WPO flag.
  config("optimize_no_wpo") {
@@ -306,7 +320,7 @@ index 24bf37b2c..7a60de3f1 100644
      # Favor size over speed, /O1 must be before the common flags. The GYP
      # build also specifies /Os and /GF but these are implied by /O1.
      cflags = [ "/O1" ] + common_optimize_on_cflags + [ "/Oi" ]
-@@ -1921,7 +1926,7 @@ config("optimize_no_wpo") {
+@@ -1921,7 +1928,7 @@ config("optimize_no_wpo") {
  
  # Turn off optimizations.
  config("no_optimize") {
@@ -315,7 +329,7 @@ index 24bf37b2c..7a60de3f1 100644
      cflags = [
        "/Od",  # Disable optimization.
        "/Ob0",  # Disable all inlining (on by default).
-@@ -1957,7 +1962,7 @@ config("optimize_max") {
+@@ -1957,7 +1964,7 @@ config("optimize_max") {
      configs = [ "//build/config/nacl:irt_optimize" ]
    } else {
      ldflags = common_optimize_on_ldflags
@@ -324,7 +338,7 @@ index 24bf37b2c..7a60de3f1 100644
        # Favor speed over size, /O2 must be before the common flags. The GYP
        # build also specifies /Ot, /Oi, and /GF, but these are implied by /O2.
        cflags = [ "/O2" ] + common_optimize_on_cflags
-@@ -2004,7 +2009,7 @@ config("optimize_speed") {
+@@ -2004,7 +2011,7 @@ config("optimize_speed") {
      configs = [ "//build/config/nacl:irt_optimize" ]
    } else {
      ldflags = common_optimize_on_ldflags
@@ -333,7 +347,7 @@ index 24bf37b2c..7a60de3f1 100644
        # Favor speed over size, /O2 must be before the common flags. The GYP
        # build also specifies /Ot, /Oi, and /GF, but these are implied by /O2.
        cflags = [ "/O2" ] + common_optimize_on_cflags
-@@ -2116,7 +2121,7 @@ config("afdo") {
+@@ -2116,7 +2123,7 @@ config("afdo") {
  
  # Full symbols.
  config("symbols") {
@@ -342,7 +356,7 @@ index 24bf37b2c..7a60de3f1 100644
      if (use_goma || is_clang) {
        # Note that with VC++ this requires is_win_fastlink, enforced elsewhere.
        cflags = [ "/Z7" ]  # Debug information in the .obj files.
-@@ -2214,7 +2219,7 @@ config("symbols") {
+@@ -2214,7 +2221,7 @@ config("symbols") {
  # This config guarantees to hold symbol for stack trace which are shown to user
  # when crash happens in unittests running on buildbot.
  config("minimal_symbols") {
@@ -351,7 +365,7 @@ index 24bf37b2c..7a60de3f1 100644
      # Linker symbols for backtraces only.
      cflags = []
      ldflags = [ "/DEBUG" ]
-@@ -2245,7 +2250,7 @@ config("minimal_symbols") {
+@@ -2245,7 +2252,7 @@ config("minimal_symbols") {
  
  # No symbols.
  config("no_symbols") {
@@ -589,5 +603,5 @@ index 12d61c86b..65e962366 100644
      script = "//build/win/copy_cdb_to_output.py"
      inputs = [
 -- 
-2.18.0
+2.23.0
 

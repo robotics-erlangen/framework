@@ -159,6 +159,7 @@ if(V8_FOUND)
             -lwinmm
             -ldbghelp
             -lshlwapi
+            -lssp
             # strip binary to keep file size below 1,2GB
             -Wl,-s
         )
