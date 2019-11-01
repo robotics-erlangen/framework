@@ -58,7 +58,7 @@ if(V8_INCLUDE_DIR AND EXISTS "${V8_INCLUDE_DIR}/v8-version.h")
     unset(V8_VERSION_PATCH)
 endif()
 
-if(MINGW)
+if(MINGW AND CMAKE_SIZEOF_VOID_P EQUAL 4)
     set(V8_ARCHITECTURE x86)
 else()
     set(V8_ARCHITECTURE x64)

@@ -1,7 +1,7 @@
-From e486ce56ce86a503fce8f200764bc05ba384b816 Mon Sep 17 00:00:00 2001
+From 02e4535b87ee7748179c12b9a9f9a1bb0a234dcb Mon Sep 17 00:00:00 2001
 From: Michael Eischer <michael.eischer@robotics-erlangen.de>
 Date: Wed, 22 Aug 2018 00:41:18 +0200
-Subject: [PATCH] mingw-build
+Subject: [PATCH] build-mingw-build
 
 ---
  .patched                             |  1 +
@@ -11,9 +11,9 @@ Subject: [PATCH] mingw-build
  config/win/BUILD.gn                  | 31 ++++++++++++++-
  config/win/manifest.gni              |  2 +-
  config/win/visual_studio_version.gni |  2 +
- toolchain/win/BUILD.gn               | 22 +++++++++++
+ toolchain/win/BUILD.gn               | 41 ++++++++++++++++++++
  win/BUILD.gn                         |  2 +-
- 9 files changed, 118 insertions(+), 51 deletions(-)
+ 9 files changed, 137 insertions(+), 51 deletions(-)
  create mode 100644 .patched
 
 diff --git a/.patched b/.patched
@@ -546,7 +546,7 @@ index 982fbe8d3..a2b717107 100644
  }
 +}
 diff --git a/toolchain/win/BUILD.gn b/toolchain/win/BUILD.gn
-index eb3e2b2b3..eb19c7856 100644
+index eb3e2b2b3..30c4af89b 100644
 --- a/toolchain/win/BUILD.gn
 +++ b/toolchain/win/BUILD.gn
 @@ -9,6 +9,7 @@ import("//build/config/win/visual_studio_version.gni")
@@ -565,7 +565,7 @@ index eb3e2b2b3..eb19c7856 100644
  # This tool will is used as a wrapper for various commands below.
  tool_wrapper_path = rebase_path("tool_wrapper.py", root_build_dir)
  
-@@ -502,3 +504,23 @@ if (target_os == "winuwp") {
+@@ -502,3 +504,42 @@ if (target_os == "winuwp") {
      }
    }
  }
@@ -585,6 +585,25 @@ index eb3e2b2b3..eb19c7856 100644
 +
 +  toolchain_args = {
 +    current_cpu = "x86"
++    current_os = "win"
++    is_clang = false
++  }
++}
++
++gcc_toolchain("gcc_x64") {
++  cc = "gcc"
++  cxx = "g++"
++
++  readelf = "readelf"
++  nm = "nm"
++  ar = "ar"
++  ld = cxx
++
++  # Output linker map files for binary size analysis.
++  enable_linker_map = true
++
++  toolchain_args = {
++    current_cpu = "x64"
 +    current_os = "win"
 +    is_clang = false
 +  }

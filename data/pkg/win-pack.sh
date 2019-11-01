@@ -35,6 +35,7 @@ find_gitrev() {
 cmake="$1"
 repo="$2"
 shortrev=""
+suffix="$3"
 
 if [[ ! -e "$cmake" ]] ; then
 	echo "Usage: win-pack.sh /path/to/cmake [/path/to/software/repository]"
@@ -51,6 +52,6 @@ if [[ -n "$repo" ]]; then
 	fi
 fi
 
-outfile="ra-win${shortrev}.7z"
+outfile="ra-win${shortrev}${suffix}.7z"
 "${cmake}" -E tar cf "${outfile}" --format=7zip -- *.dll *.exe icudtl.dat *_blob.bin config data platforms libs
 echo "Packed ra as $outfile"

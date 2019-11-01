@@ -1,11 +1,11 @@
-From 2f56c5f30b3827e0c7dc689439a907e5fdf732ce Mon Sep 17 00:00:00 2001
+From 1014cead5906e4354efe0b1b3b5ad10f424af77a Mon Sep 17 00:00:00 2001
 From: Michael Eischer <michael.eischer@robotics-erlangen.de>
 Date: Wed, 22 Aug 2018 00:23:06 +0200
 Subject: [PATCH] mingw-build
 
 ---
  .patched                            |  1 +
- BUILD.gn                            | 22 +++++++++++++---------
+ BUILD.gn                            | 24 ++++++++++++++----------
  DEPS                                | 15 ---------------
  src/base/export-template.h          |  1 -
  src/base/platform/platform-win32.cc |  3 +--
@@ -13,22 +13,22 @@ Subject: [PATCH] mingw-build
  test/cctest/BUILD.gn                |  2 +-
  test/unittests/BUILD.gn             |  2 +-
  third_party/googletest/BUILD.gn     |  2 +-
- 9 files changed, 28 insertions(+), 33 deletions(-)
+ 9 files changed, 29 insertions(+), 34 deletions(-)
  create mode 100644 .patched
 
 diff --git a/.patched b/.patched
 new file mode 100644
-index 0000000000..e1e8f4b048
+index 0000000..e1e8f4b
 --- /dev/null
 +++ b/.patched
 @@ -0,0 +1 @@
 +6a41721a2889b84cb2f3b920fbdc40b96347597a
 \ No newline at end of file
 diff --git a/BUILD.gn b/BUILD.gn
-index 01308b852a..e01cc33702 100644
+index 01308b8..cdcbda5 100644
 --- a/BUILD.gn
 +++ b/BUILD.gn
-@@ -522,7 +522,10 @@ config("toolchain") {
+@@ -522,14 +522,17 @@ config("toolchain") {
  
    if (v8_current_cpu == "x86") {
      defines += [ "V8_TARGET_ARCH_IA32" ]
@@ -40,6 +40,14 @@ index 01308b852a..e01cc33702 100644
        # Ensure no surprising artifacts from 80bit double math with x86.
        cflags += [ "/arch:SSE2" ]
      }
+   }
+   if (v8_current_cpu == "x64") {
+     defines += [ "V8_TARGET_ARCH_X64" ]
+-    if (is_win) {
++    if (is_win && !is_mingw) {
+       # Increase the initial stack size. The default is 1MB, this is 2MB. This
+       # applies only to executables and shared libraries produced by V8 since
+       # ldflags are not pushed to dependants.
 @@ -590,7 +593,7 @@ config("toolchain") {
      }
    }
@@ -88,7 +96,7 @@ index 01308b852a..e01cc33702 100644
  
    if (is_tsan && !build_with_chromium) {
 diff --git a/DEPS b/DEPS
-index 08153b8c5e..05b0cfef05 100644
+index 08153b8..05b0cfe 100644
 --- a/DEPS
 +++ b/DEPS
 @@ -327,13 +327,6 @@ hooks = [
@@ -121,7 +129,7 @@ index 08153b8c5e..05b0cfef05 100644
      'name': 'fuchsia_sdk',
      'pattern': '.',
 diff --git a/src/base/export-template.h b/src/base/export-template.h
-index 861cfe4027..0211fd522e 100644
+index 861cfe4..0211fd5 100644
 --- a/src/base/export-template.h
 +++ b/src/base/export-template.h
 @@ -153,7 +153,6 @@
@@ -133,7 +141,7 @@ index 861cfe4027..0211fd522e 100644
  
  #undef EXPORT_TEMPLATE_TEST
 diff --git a/src/base/platform/platform-win32.cc b/src/base/platform/platform-win32.cc
-index f618c65fb6..8907ab719f 100644
+index f618c65..8907ab7 100644
 --- a/src/base/platform/platform-win32.cc
 +++ b/src/base/platform/platform-win32.cc
 @@ -46,8 +46,6 @@ inline void MemoryFence() {
@@ -154,7 +162,7 @@ index f618c65fb6..8907ab719f 100644
  int fopen_s(FILE** pFile, const char* filename, const char* mode) {
    *pFile = fopen(filename, mode);
 diff --git a/src/base/platform/time.cc b/src/base/platform/time.cc
-index 1ab56f42b5..30d070b315 100644
+index 1ab56f4..30d070b 100644
 --- a/src/base/platform/time.cc
 +++ b/src/base/platform/time.cc
 @@ -48,7 +48,7 @@ int64_t ComputeThreadTicks() {
@@ -200,7 +208,7 @@ index 1ab56f42b5..30d070b315 100644
    DCHECK(IsSupported());
  
 diff --git a/test/cctest/BUILD.gn b/test/cctest/BUILD.gn
-index 175ac3d6ba..c353864c05 100644
+index 175ac3d..c353864 100644
 --- a/test/cctest/BUILD.gn
 +++ b/test/cctest/BUILD.gn
 @@ -418,7 +418,7 @@ v8_source_set("cctest_sources") {
@@ -213,7 +221,7 @@ index 175ac3d6ba..c353864c05 100644
      # bytecode-utils.h.
      # C4309: 'static_cast': truncation of constant value
 diff --git a/test/unittests/BUILD.gn b/test/unittests/BUILD.gn
-index df71c9f6fd..b0aa93d1f5 100644
+index df71c9f..b0aa93d 100644
 --- a/test/unittests/BUILD.gn
 +++ b/test/unittests/BUILD.gn
 @@ -273,7 +273,7 @@ v8_source_set("unittests_sources") {
@@ -226,7 +234,7 @@ index df71c9f6fd..b0aa93d1f5 100644
      # bytecode-utils.h.
      # C4309: 'static_cast': truncation of constant value
 diff --git a/third_party/googletest/BUILD.gn b/third_party/googletest/BUILD.gn
-index 1c761a7620..6b34533837 100644
+index 1c761a7..6b34533 100644
 --- a/third_party/googletest/BUILD.gn
 +++ b/third_party/googletest/BUILD.gn
 @@ -31,7 +31,7 @@ config("gtest_config") {
@@ -239,5 +247,5 @@ index 1c761a7620..6b34533837 100644
  }
  
 -- 
-2.18.0
+2.23.0
 

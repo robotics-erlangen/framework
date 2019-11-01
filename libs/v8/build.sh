@@ -12,6 +12,8 @@ cd "$(dirname "$0")"
 IS_LINUX=0
 IS_MAC=0
 IS_MINGW=0
+IS_MINGW32=0
+IS_MINGW64=0
 unamestr="$(uname)"
 if [[ "$unamestr" == 'Darwin' ]]; then
     IS_MAC=1
@@ -19,6 +21,14 @@ elif [[ "$unamestr" == 'Linux' ]]; then
     IS_LINUX=1
 elif [[ "$unamestr" =~ MINGW ]]; then
     IS_MINGW=1
+    if [[ "$unamestr" =~ MINGW32 ]]; then
+        IS_MINGW32=1
+    elif [[ "$unamestr" =~ MINGW64 ]]; then
+        IS_MINGW64=1
+    else
+        echo "16-bit systems are not supported ;-)"
+        exit 1
+    fi
 else
     echo "Unsupported operating system"
     exit 1
@@ -137,10 +147,14 @@ else
     gclient sync
 fi
 
-if [[ "$IS_MINGW" == 1 ]]; then
+if [[ "$IS_MINGW32" == 1 ]]; then
     mkdir -p out/x86.release
     gn gen out/x86.release --args="is_debug=false target_cpu=\"x86\" is_component_build=false v8_static_library=true use_custom_libcxx=false use_custom_libcxx_for_host=false custom_toolchain=\"//build/toolchain/win:gcc_x86\" is_clang=false treat_warnings_as_errors=false"
     ninja -C out/x86.release
+elif [[ "$IS_MINGW64" == 1 ]]; then
+    mkdir -p out/x64.release
+    gn gen out/x64.release --args="is_debug=false target_cpu=\"x64\" is_component_build=false v8_static_library=true use_custom_libcxx=false use_custom_libcxx_for_host=false custom_toolchain=\"//build/toolchain/win:gcc_x64\" is_clang=false treat_warnings_as_errors=false"
+    ninja -C out/x64.release
 else
     mkdir -p out/x64.release
     gn gen out/x64.release --args="is_debug=false target_cpu=\"x64\" is_component_build=true v8_static_library=false use_custom_libcxx=false use_custom_libcxx_for_host=false"

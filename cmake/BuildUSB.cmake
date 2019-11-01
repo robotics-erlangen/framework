@@ -21,6 +21,12 @@
 if(MINGW)
     # use prebuilt binaries on windows
     set(LIBUSB_SUBPATH "bin/libusb-1.0${CMAKE_SHARED_LIBRARY_SUFFIX}")
+
+    set(BITS 32)
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+        set(BITS 64)
+    endif()
+
 	include(ExternalProject)
 	ExternalProject_Add(project_usb
 		EXCLUDE_FROM_ALL true
@@ -30,8 +36,8 @@ if(MINGW)
 		CONFIGURE_COMMAND ""
 		BUILD_COMMAND ""
 		BUILD_IN_SOURCE true
-		INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/MinGW32/dll/libusb-1.0.dll <INSTALL_DIR>/bin
-		COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/MinGW32/dll/libusb-1.0.dll.a <INSTALL_DIR>/bin
+		INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/MinGW${BITS}/dll/libusb-1.0.dll <INSTALL_DIR>/bin
+		COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/MinGW${BITS}/dll/libusb-1.0.dll.a <INSTALL_DIR>/bin
 		COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include <INSTALL_DIR>/include
         BUILD_BYPRODUCTS
             "<INSTALL_DIR>/${LIBUSB_SUBPATH}"
