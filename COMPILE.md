@@ -53,8 +53,8 @@ cmake -DCMAKE_PREFIX_PATH=~/Qt/5.6/gcc_64/lib/cmake ..
 
 ## Windows
 Get dependencies (tested using the given versions):
-* cmake 3.9.2 - https://cmake.org/files/v3.9/cmake-3.9.2-win32-x86.msi
-* MSYS2 - http://repo.msys2.org/distrib/x86_64/msys2-x86_64-20180531.exe
+* cmake 3.15.5 - https://github.com/Kitware/CMake/releases/download/v3.15.5/cmake-3.15.5-win64-x64.msi
+* MSYS2 - http://repo.msys2.org/distrib/x86_64/msys2-x86_64-20190524.exe
 * Qt 5 - http://download.qt.io/official_releases/online_installers/qt-unified-windows-x86-online.exe
 
 ### install compiler environment
@@ -63,8 +63,8 @@ Get dependencies (tested using the given versions):
 use the installer, select add to PATH
 
 #### install qt
-Use the online installer! run installer (use default install path! ), install "Qt 5.11.1 > MinGW 5.3.0" and "Tools > MinGW 5.3.0". Qt 5.11.1 is a LTS release and thus should stay supported for some time.
-In case you use the offline installer, change to install path such that Qt 5.11.1 ends up in `c:\Qt\5.11.1`
+Use the online installer! run installer (use default install path! ), install "Qt 5.13.2 > MinGW 7.3.0 32-bit".
+In case you use the offline installer, change to install path such that Qt 5.13.2 ends up in `c:\Qt\5.13.2`
 
 #### install MSYS2
 Run installer (use default path C:\msys64 !)
@@ -80,6 +80,8 @@ pacman -S patch make mingw-w64-i686-gcc mingw-w64-i686-cmake mingw-w64-i686-ninj
 # dependencies for v8
 pacman -S python2 git
 ```
+Close the MSYS console.
+
 
 ### compile ra
 *Do:*
@@ -94,7 +96,7 @@ pacman -S python2 git
 ```
 libs/v8/build.sh
 mkdir build-win && cd build-win
-cmake -GNinja -DCMAKE_PREFIX_PATH=/c/Qt/5.11.1/mingw53_32/lib/cmake -DCMAKE_BUILD_TYPE=Release ..
+cmake -GNinja -DCMAKE_PREFIX_PATH=/c/Qt/5.13.2/mingw73_32/lib/cmake -DCMAKE_BUILD_TYPE=Release ..
 cmake --build .
 cmake --build . --target assemble
 ```
