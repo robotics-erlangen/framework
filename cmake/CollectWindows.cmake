@@ -62,6 +62,7 @@ add_custom_target(assemble
 		$<TARGET_FILE:Qt5::OpenGL>
 		$<TARGET_FILE:Qt5::Widgets>
 		${Protobuf_DLL}
+		${V8_DLL}
             ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/platforms
 	COMMAND ${CMAKE_COMMAND} -E copy_if_different

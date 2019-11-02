@@ -149,11 +149,11 @@ fi
 
 if [[ "$IS_MINGW32" == 1 ]]; then
     mkdir -p out/x86.release
-    gn gen out/x86.release --args="is_debug=false target_cpu=\"x86\" is_component_build=false v8_static_library=true use_custom_libcxx=false use_custom_libcxx_for_host=false custom_toolchain=\"//build/toolchain/win:gcc_x86\" is_clang=false treat_warnings_as_errors=false"
+    gn gen out/x86.release --args="is_debug=false target_cpu=\"x86\" is_component_build=true v8_static_library=false use_custom_libcxx=false use_custom_libcxx_for_host=false custom_toolchain=\"//build/toolchain/win:gcc_x86\" is_clang=false treat_warnings_as_errors=false"
     ninja -C out/x86.release
 elif [[ "$IS_MINGW64" == 1 ]]; then
     mkdir -p out/x64.release
-    gn gen out/x64.release --args="is_debug=false target_cpu=\"x64\" is_component_build=false v8_static_library=true use_custom_libcxx=false use_custom_libcxx_for_host=false custom_toolchain=\"//build/toolchain/win:gcc_x64\" is_clang=false treat_warnings_as_errors=false"
+    gn gen out/x64.release --args="is_debug=false target_cpu=\"x64\" is_component_build=true v8_static_library=false use_custom_libcxx=false use_custom_libcxx_for_host=false custom_toolchain=\"//build/toolchain/win:gcc_x64\" is_clang=false treat_warnings_as_errors=false"
     ninja -C out/x64.release
 else
     mkdir -p out/x64.release

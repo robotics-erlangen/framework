@@ -131,11 +131,16 @@ if(V8_FOUND)
     endif()
 
     if(V8_IS_DYNAMIC)
-        set_property(TARGET lib::v8 APPEND PROPERTY INTERFACE_LINK_LIBRARIES
+        set(V8_LIBS
             ${V8_OUTPUT_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}icui18n${CMAKE_SHARED_LIBRARY_SUFFIX}
             ${V8_OUTPUT_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}icuuc${CMAKE_SHARED_LIBRARY_SUFFIX}
             ${V8_OUTPUT_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}v8_libbase${CMAKE_SHARED_LIBRARY_SUFFIX}
             ${V8_OUTPUT_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}v8_libplatform${CMAKE_SHARED_LIBRARY_SUFFIX}
+        )
+        set_property(TARGET lib::v8 APPEND PROPERTY INTERFACE_LINK_LIBRARIES ${V8_LIBS})
+        set(V8_DLL
+		    $<TARGET_FILE:lib::v8>
+            ${V8_LIBS}
         )
     else()
         set_property(TARGET lib::v8 APPEND PROPERTY INTERFACE_LINK_LIBRARIES
@@ -148,6 +153,7 @@ if(V8_FOUND)
             ${V8_OUTPUT_DIR}/obj/third_party/icu/${CMAKE_STATIC_LIBRARY_PREFIX}icui18n${CMAKE_STATIC_LIBRARY_SUFFIX}
             ${V8_OUTPUT_DIR}/obj/third_party/icu/${CMAKE_STATIC_LIBRARY_PREFIX}icuuc${CMAKE_STATIC_LIBRARY_SUFFIX}
         )
+        set(V8_DLL)
     endif()
 
     if(USING_GCC)
@@ -160,9 +166,13 @@ if(V8_FOUND)
             -ldbghelp
             -lshlwapi
             -lssp
-            # strip binary in release mode to keep file size below 1,2GB
-            $<$<CONFIG:Release>:-Wl,-s>
         )
+        if(NOT V8_IS_DYNAMIC)
+            set_property(TARGET lib::v8 APPEND PROPERTY INTERFACE_LINK_LIBRARIES
+                # strip binary in release mode to keep file size below 1,2GB
+                $<$<CONFIG:Release>:-Wl,-s>
+            )
+        endif()
     elseif(LINUX)
         set_property(TARGET lib::v8 APPEND PROPERTY INTERFACE_LINK_LIBRARIES
             -lrt
