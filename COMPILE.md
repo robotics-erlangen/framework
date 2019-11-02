@@ -51,7 +51,7 @@ In order to select which Qt-Installation to use specify it using a similar comma
 cmake -DCMAKE_PREFIX_PATH=~/Qt/5.6/gcc_64/lib/cmake ..
 ```
 
-## Windows
+## Windows 32bit
 Get dependencies (tested using the given versions):
 * cmake 3.15.5 - https://github.com/Kitware/CMake/releases/download/v3.15.5/cmake-3.15.5-win64-x64.msi
 * MSYS2 - http://repo.msys2.org/distrib/x86_64/msys2-x86_64-20190524.exe
@@ -107,6 +107,67 @@ cmake --build . --target pack
 ```
 
 Finished!
+
+
+
+## Windows 64bit
+Get dependencies (tested using the given versions):
+* cmake 3.15.5 - https://github.com/Kitware/CMake/releases/download/v3.15.5/cmake-3.15.5-win64-x64.msi
+* MSYS2 - http://repo.msys2.org/distrib/x86_64/msys2-x86_64-20190524.exe
+* Qt 5 - http://download.qt.io/official_releases/online_installers/qt-unified-windows-x86-online.exe
+
+### install compiler environment
+
+#### install cmake
+use the installer, select add to PATH
+
+#### install qt
+Use the online installer! run installer (use default install path! ), install "Qt 5.13.2 > MinGW 7.3.0 64-bit".
+In case you use the offline installer, change to install path such that Qt 5.13.2 ends up in `c:\Qt\5.13.2`
+
+#### install MSYS2
+Run installer (use default path C:\msys64 !)
+Open `MSYS2 MSYS` and run the following commands
+```
+pacman -Syu
+```
+Close the console when promted and open it again
+```
+pacman -Su
+# dependencies for ra
+pacman -S patch make mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja
+# dependencies for v8
+pacman -S python2 git
+```
+Close the MSYS console.
+
+
+### compile ra
+*Do:*
+- **!!! USE THE `MSYS2 MinGW 64-bit` CONSOLE TO COMPILE EVERYTHING !!!**
+- Use a folder with a short path like `C:\Robocup` as base folder
+- Recreate the build folder after updating Qt or the Compiler
+
+*Don't:*
+- Use a folder whose path contains whitespace
+- Use a base folder with a path name longer than 30 characters
+
+```
+export PATH=/c/Qt/Tools/mingw730_64/bin:$PATH
+libs/v8/build.sh
+mkdir build-win && cd build-win
+cmake -GNinja -DCMAKE_PREFIX_PATH=/c/Qt/5.13.2/mingw73_64/lib/cmake -DCMAKE_BUILD_TYPE=Release ..
+cmake --build .
+cmake --build . --target assemble
+```
+
+Automatic packing of ra is possible with (Note that the other calls to `cmake --build` are **not** necessary):
+```
+cmake --build . --target pack
+```
+
+Finished!
+
 
 
 #### Windows 7 - problems with usb driver installation
