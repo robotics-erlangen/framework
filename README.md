@@ -6,6 +6,14 @@ This is the framework of the SSL-Team ER-Force named *Ra*. Its main features are
 
 The **autoref** is found at https://github.com/robotics-erlangen/autoref .
 
+## Table of Contents
+- [Getting Started](#getting-started)
+- [Usage](#usage)
+  * [Widgets](#widgets)
+  * [Analysis](#analysis)
+- [Other utilities](#other-utilities)
+- [Language services and Tests](#language-services-and-tests)
+
 ## Getting started
 See [COMPILE.md](COMPILE.md) for instructions on how to build Ra.
 On Windows, the bin folder containing Ra and all other components can be moved
@@ -17,8 +25,6 @@ The autoref is included as a git submodule. It is not necessary for using Ra
 unless you want to use the internal autoref. To get it, either clone the whole
 repository with the `--recurse-submodules` flag or, if you already cloned the
 repo, use `git submodule init && git submodule update --recursive`
-
-----
 
 ## Usage
 Ra can either use the builtin simulator or use the data provided by SSL-Vision.
