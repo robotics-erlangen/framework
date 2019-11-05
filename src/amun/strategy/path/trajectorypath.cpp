@@ -37,6 +37,12 @@ void TrajectoryPath::reset()
 
 std::vector<TrajectoryPoint> TrajectoryPath::calculateTrajectory(Vector s0, Vector v0, Vector s1, Vector v1, float maxSpeed, float acceleration)
 {
+    // sanity checks
+    if (maxSpeed < 0.01f || acceleration < 0.01f) {
+        qDebug() <<"Invalid trajectory input!";
+        return {};
+    }
+
     m_input.v0 = v0;
     m_input.v1 = v1;
     m_input.distance = s1 - s0;
