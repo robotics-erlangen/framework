@@ -56,7 +56,7 @@ std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPat
 
     m_escapeObstacleSampler.m_maxIntersectingObstaclePrio = -1;
 
-    m_world.addToAllStaticObstacleRadius(-m_world.radius());
+    m_world.addToAllStaticObstacleRadius(m_world.radius());
     m_world.collectObstacles();
     m_world.collectMovingObstacles();
 
