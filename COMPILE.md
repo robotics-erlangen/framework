@@ -122,13 +122,14 @@ the following steps:
 ## Mac OS X
 Get dependencies using [Homebrew](http://brew.sh):
 ```
-brew install cmake git sdl2 protobuf libusb
+brew install cmake git sdl2 protobuf libusb python@2
 ```
-Run the following command and install Xcode and/or the Command Line Developer Tools if prompted to do so.
+Install Xcode from the macOS App Store.
+Then run the following command to install the Command Line Developer Tools if prompted to do so.
 ```
 xcode-select --install
 ```
-Start Xcode once afterwards to ensure that everything gets setup. Starting Xcode may also be necessary after an update.
+Run Xcode once afterwards to ensure that everything gets setup. Starting Xcode may also be necessary after an update.
 
 Download Qt 5 from http://qt-project.org and install it.
 WARNING: DO NOT install Qt 5.4.0-5.5.0; Qt 5.5.1 is ok
