@@ -83,7 +83,7 @@ private slots:
     void showBacklogMode();
     void simulatorSetupChanged(QAction * action);
     void saveConfig();
-    void switchToWidgetConfiguration(int configId);
+    void switchToWidgetConfiguration(int configId, bool forceUpdate = false);
     void showDirectoryDialog();
     void logOpened(QString name, bool errorOccurred);
     void togglePause();

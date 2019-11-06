@@ -331,7 +331,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     // setup data distribution
     connect(this, SIGNAL(gotStatus(Status)), m_logOpener, SLOT(handleStatus(Status)));
 
-    switchToWidgetConfiguration(isRa ? 1 : 2);
+    switchToWidgetConfiguration(isRa ? 1 : 2, true);
 }
 
 MainWindow::~MainWindow()
@@ -466,7 +466,7 @@ void MainWindow::loadConfig(bool doRestoreGeometry)
     s.endGroup();
 }
 
-void MainWindow::switchToWidgetConfiguration(int configId)
+void MainWindow::switchToWidgetConfiguration(int configId, bool forceUpdate)
 {
     unsigned int id = static_cast<unsigned int>(configId);
     if (id != m_currentWidgetConfiguration) {
@@ -476,9 +476,9 @@ void MainWindow::switchToWidgetConfiguration(int configId)
         loadConfig(false);
 
         // Horus mode
-        if (configId % 2 == 0 && previousId % 2 == 1) {
+        if (configId % 2 == 0 && (forceUpdate || previousId % 2 == 1)) {
             horusMode();
-        } else if (previousId % 2 == 0){
+        } else if (forceUpdate || previousId % 2 == 1){
             raMode();
         }
     }
