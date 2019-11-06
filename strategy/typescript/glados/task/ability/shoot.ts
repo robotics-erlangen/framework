@@ -404,22 +404,26 @@ export class Shoot {
 			targetPos = moveDest + shootVector;
 		}
 
+		let visBallStartPos: Position;
 		if (!this._catchBallNecessary(moveDest, futureBallTime)) {
 			this._setObstacles(moveDest);
 			this._robot.trajectory.update(ToTarget, moveDest, targetDir);
 			this._messaging.sendBroadcast(MessageType.attackPosition, futureBall.pos);
 			this._messaging.sendBroadcast(MessageType.attackTime, futureBallTime + World.Time);
 			this._catchBallActive = false;
+			visBallStartPos = futureBall.pos;
 		} else {
-			this._catchBall._catchBall(targetPos, 0, targetSpeed);
+			let catchTime = this._catchBall._catchBall(targetPos, 0, targetSpeed);
 			this._messaging.sendBroadcast(MessageType.attackTime, futureBallTime + World.Time);
 			this._catchBallActive = true;
+			visBallStartPos = Physics.ballAtTime(World.Ball, catchTime).pos;
 		}
 
 		let currentDribblerPos = this._robot.pos + dribblerOffset;
 		if (World.Ball.pos.distanceTo(currentDribblerPos) < 0.35) {
 			this._sendShootCommand(kickSpeed, targetPos, targetDir);
 		}
+		return visBallStartPos;
 	}
 
 	private _shootStopBall(futureBall: Physics.BallLike, futureBallTime: number) {
@@ -430,16 +434,19 @@ export class Shoot {
 		let dribblerOffset = Vector.fromAngle(targetDir) * (this._robot.shootRadius + World.Ball.radius);
 		let moveDest = futureBall.pos - dribblerOffset;
 
+		let visBallStartPos: Position;
 		if (!this._catchBallNecessary(moveDest, futureBallTime)) {
 			this._setObstacles(moveDest);
 			this._robot.trajectory.update(ToTarget, moveDest, targetDir, undefined, undefined);
 			this._messaging.sendBroadcast(MessageType.attackPosition, futureBall.pos);
 			this._messaging.sendBroadcast(MessageType.attackTime, Physics.robotTimeToPos(this._robot, moveDest, new Vector(0, 0))[0] + World.Time);
 			this._catchBallActive = false;
+			visBallStartPos = futureBall.pos;
 		} else {
 			let attackTime = this._catchBall._catchBall(ballOrigin, 0, undefined);
 			this._messaging.sendBroadcast(MessageType.attackTime, attackTime + World.Time);
 			this._catchBallActive = true;
+			visBallStartPos = Physics.ballAtTime(World.Ball, attackTime).pos;
 		}
 
 		// activate dribbler to stop the ball
@@ -448,12 +455,13 @@ export class Shoot {
 		}
 
 		this._rightOrientation = false;
+		return visBallStartPos;
 	}
 
-	private static _visualizeShoot(futureBall: Physics.BallLike, targetPos: Position, color: vis.Color) {
-		vis.addCircle("t/a/shoot: State", futureBall.pos, 0.07, color, true);
+	private static _visualizeShoot(futureBallPos: Position, targetPos: Position, color: vis.Color) {
+		vis.addCircle("t/a/shoot: State", futureBallPos, 0.07, color, true);
 		vis.addCircle("t/a/shoot: State", targetPos, 0.07, color, true);
-		vis.addPath("t/a/shoot: State", [futureBall.pos, targetPos], color, undefined, undefined, 0.03);
+		vis.addPath("t/a/shoot: State", [futureBallPos, targetPos], color, undefined, undefined, 0.03);
 	}
 
 	_doShoot(targetPos: Position, targetSpeed: number, targetTime?: number, ballReceiptPos?: Position,
@@ -470,17 +478,20 @@ export class Shoot {
 		this._precision = precision;
 
 		let color: vis.Color;
+		let visBallStartPos: Position;
 		if (this._state === ShootState.StationaryBall) {
 			this._shootStationaryBall(targetPos, targetSpeed, targetTime, futureBall);
 			color = vis.colors.whiteHalf;
+			visBallStartPos = futureBall.pos;
 		} else if (this._state === ShootState.ChaseBall) {
 			this._shootChaseBall(targetPos, targetSpeed, chaseFutureBall);
 			color = vis.colors.skyBlueHalf;
+			visBallStartPos = futureBall.pos;
 		} else if (this._state === ShootState.Volley) {
-			this._shootVolley(targetPos, targetSpeed, futureBall, futureBallTime);
+			visBallStartPos = this._shootVolley(targetPos, targetSpeed, futureBall, futureBallTime);
 			color = vis.colors.greenHalf;
 		} else {// "StopBall"
-			this._shootStopBall(futureBall, futureBallTime);
+			visBallStartPos = this._shootStopBall(futureBall, futureBallTime);
 			color = vis.colors.redHalf;
 		}
 
@@ -488,7 +499,7 @@ export class Shoot {
 			this._directMovement = false;
 		}
 
-		Shoot._visualizeShoot(futureBall, targetPos, color);
+		Shoot._visualizeShoot(visBallStartPos, targetPos, color);
 
 		this._setMainAttackerParameters(futureBall.pos + Vector.fromAngle(this.targetRobotDir), this._robot.maxSpeed);
 		this._messaging.sendBroadcast(MessageType.shootDestination, targetPos);
@@ -538,7 +549,7 @@ export class Shoot {
 		this._precision = precision;
 		this._shootStationaryBall(targetPos, targetSpeed, targetTime, World.Ball);
 
-		Shoot._visualizeShoot(World.Ball, targetPos, vis.colors.whiteHalf);
+		Shoot._visualizeShoot(World.Ball.pos, targetPos, vis.colors.whiteHalf);
 
 		this._lastTargetPos = targetPos;
 	}
