@@ -106,7 +106,7 @@ static void pathSeedRandom(const FunctionCallbackInfo<Value>& args)
     if (!maybeSeed.To(&seed)) {
         return;
     }
-    wrapper->abstractPath()->seedRandom(static_cast<uint32_t>(seed));
+    wrapper->abstractPath()->seedRandom(static_cast<uint32_t>(std::fmod(seed, std::numeric_limits<uint32_t>::max())));
 }
 
 static void pathSetBoundary(QTPath *wrapper, const FunctionCallbackInfo<Value>& args, int offset)
