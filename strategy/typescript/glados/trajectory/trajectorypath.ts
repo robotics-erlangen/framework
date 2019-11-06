@@ -170,28 +170,34 @@ export class TrajectoryPath extends TrajectoryHandler {
 			this._robot.angularSpeed, targetDir, rotAccelerate, rotBrake, rotMaxSpeed, rotationExponentialTime);
 
 		// finish and return trajectory
-		let queryTime = 0.08;
-		let testSpeed = TrajectoryPath.speedAtTime(queryTime, trajectory);
-		if (robotSpeed.length() > testSpeed.length()) {
-			queryTime = 0.03;
-		}
+		let queryTime;
 		let startDriving = false;
-		if (robotPos.distanceTo(targetPos) < 0.1) {
-			queryTime = 0.1;
+		if (World.IsSimulated) {
+			queryTime = 0;
 		} else {
-			const QUERY_OFFSET = 0.3;
-			let nextSpeed = TrajectoryPath.speedAtTime(QUERY_OFFSET, trajectory);
+			queryTime = 0.08;
+			let testSpeed = TrajectoryPath.speedAtTime(queryTime, trajectory);
+			if (robotSpeed.length() > testSpeed.length()) {
+				queryTime = 0.03;
+			}
+			if (robotPos.distanceTo(targetPos) < 0.1) {
+				queryTime = 0.1;
+			} else {
+				const QUERY_OFFSET = 0.3;
+				let nextSpeed = TrajectoryPath.speedAtTime(QUERY_OFFSET, trajectory);
 
-			let slowSpeedLimit = this.slowSpeedHysteresis ? 0.4 : 0.2;
-			this.slowSpeedHysteresis = false;
-			if (nextSpeed.length() > startSpeed.length() + 0.02 && robotSpeed.length() < slowSpeedLimit) {
-				queryTime = QUERY_OFFSET;
-				this.slowSpeedHysteresis = true;
-				startDriving = true;
+				let slowSpeedLimit = this.slowSpeedHysteresis ? 0.4 : 0.2;
+				this.slowSpeedHysteresis = false;
+				if (nextSpeed.length() > startSpeed.length() + 0.02 && robotSpeed.length() < slowSpeedLimit) {
+					queryTime = QUERY_OFFSET;
+					this.slowSpeedHysteresis = true;
+					startDriving = true;
+				}
 			}
 		}
 		let speed = TrajectoryPath.speedAtTime(queryTime, trajectory);
 		let acc = TrajectoryPath.accAtTime(queryTime, trajectory);
+
 		if (startDriving) {
 			speed *= 1.5;
 			acc *= 1.5;
