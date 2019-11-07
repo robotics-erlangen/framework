@@ -33,6 +33,8 @@ ExternalProject_Add(project_sourcemap
         "<BINARY_DIR>/${LIBSM_SUBPATH}"
     INSTALL_COMMAND ""
 )
+EPHelper_Add_Cleanup(project_sourcemap bin include lib share)
+EPHelper_Add_Clobber(project_sourcemap ${CMAKE_CURRENT_LIST_DIR}/stub.patch)
 
 externalproject_get_property(project_sourcemap binary_dir source_dir)
 set_target_properties(project_sourcemap PROPERTIES EXCLUDE_FROM_ALL true)

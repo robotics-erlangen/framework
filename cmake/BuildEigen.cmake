@@ -33,6 +33,7 @@ ExternalProject_Add(project_eigen
         -DCMAKE_INSTALL_MESSAGE:STRING=NEVER
 )
 EPHelper_Add_Cleanup(project_eigen bin include lib share)
+EPHelper_Add_Clobber(project_eigen ${CMAKE_CURRENT_LIST_DIR}/stub.patch)
 
 externalproject_get_property(project_eigen install_dir)
 set_target_properties(project_eigen PROPERTIES EXCLUDE_FROM_ALL true)

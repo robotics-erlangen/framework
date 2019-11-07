@@ -52,6 +52,7 @@ ExternalProject_Add(project_luajit
 	${LUAJIT_EXTRA_COMMANDS}
 )
 EPHelper_Add_Cleanup(project_luajit bin include lib share)
+EPHelper_Add_Clobber(project_luajit ${CMAKE_CURRENT_LIST_DIR}/stub.patch)
 
 externalproject_get_property(project_luajit install_dir)
 set_target_properties(project_luajit PROPERTIES EXCLUDE_FROM_ALL true)
