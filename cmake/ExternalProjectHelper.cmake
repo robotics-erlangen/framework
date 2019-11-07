@@ -1,5 +1,5 @@
 # ***************************************************************************
-# *   Copyright 2016 Michael Eischer, Philipp Nordhus                       *
+# *   Copyright 2019 Michael Eischer                                        *
 # *   Robotics Erlangen e.V.                                                *
 # *   http://www.robotics-erlangen.de/                                      *
 # *   info@robotics-erlangen.de                                             *
@@ -20,28 +20,30 @@
 
 include(ExternalProject)
 
-ExternalProject_Add(project_eigen
-    URL http://www.robotics-erlangen.de/downloads/libraries/eigen-3.3.7-323c052e1731.tar.bz2
-    URL_HASH SHA256=9f13cf90dedbe3e52a19f43000d71fdf72e986beb9a5436dddcd61ff9d77a3ce
-    DOWNLOAD_NO_PROGRESS true
-    BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/project_eigen-prefix/build"
-    CMAKE_ARGS
-        -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
-        -DCMAKE_C_COMPILER:PATH=${CMAKE_C_COMPILER}
-        -DCMAKE_CXX_COMPILER:PATH=${CMAKE_CXX_COMPILER}
-        -DCMAKE_MAKE_PROGRAM:PATH=${CMAKE_MAKE_PROGRAM}
-        -DCMAKE_INSTALL_MESSAGE:STRING=NEVER
-)
-EPHelper_Add_Cleanup(project_eigen bin include lib share)
+# make sure to remove installation remainders after a new download
+function(EPHelper_Add_Cleanup target)
+    externalproject_get_property(${target} install_dir)
+    ExternalProject_Add_Step(${target} cleanup
+        COMMAND rm -rf ${ARGN} || true
+        WORKING_DIRECTORY "${install_dir}"
+        COMMENT "Cleanup old install"
+        DEPENDEES download
+        DEPENDERS configure
+    )
+endfunction(EPHelper_Add_Cleanup)
 
-externalproject_get_property(project_eigen install_dir)
-set_target_properties(project_eigen PROPERTIES EXCLUDE_FROM_ALL true)
-add_library(eigen INTERFACE)
-
-target_compile_options(eigen INTERFACE -Wno-deprecated-declarations)
-add_dependencies(eigen project_eigen)
-target_include_directories(eigen INTERFACE "${install_dir}/include/eigen3")
-add_library(lib::eigen ALIAS eigen)
-
-ExternalProject_Add_StepTargets(project_eigen download)
-add_dependencies(download project_eigen-download)
+# CMake does not undo an already applied patch before applying another one
+# The clobber step depends on the patch file or a stub patch to ensure that
+# it is triggered whenever the patch file changed
+# Warning: cmake fails to undo the patch when switching to a branch without PATCH_COMMAND!
+# therefore always add the clobber step with the stub patch even when no PATCH_COMMAND is
+# currently necessary
+function(EPHelper_Add_Clobber target patch)
+    externalproject_get_property(${target} install_dir)
+    ExternalProject_Add_Step(${target} clobber
+        COMMAND true
+        WORKING_DIRECTORY "${install_dir}"
+        DEPENDERS download
+        DEPENDS ${patch}
+    )
+endfunction(EPHelper_Add_Clobber)

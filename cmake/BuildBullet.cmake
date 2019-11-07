@@ -19,14 +19,14 @@
 # ***************************************************************************
 
 include(ExternalProject)
+include(ExternalProjectHelper)
 
+set(BULLET_PATCH_FILE ${CMAKE_CURRENT_LIST_DIR}/bullet.patch)
 ExternalProject_Add(project_bullet
     URL http://www.robotics-erlangen.de/downloads/libraries/bullet3-2.83.6.tar.gz
     URL_HASH SHA256=dcd5448f31ded71c7bd22fddd7d816ac590ae7b97e1fdda8d1253f8ff3655571
     DOWNLOAD_NO_PROGRESS true
-    # Keep patch file name in sync with clobber step
-    # Warning: cmake fails to undo the patch when switching to a branch without PATCH_COMMAND!
-    PATCH_COMMAND cat ${CMAKE_CURRENT_LIST_DIR}/bullet.patch | patch -p1
+    PATCH_COMMAND cat ${BULLET_PATCH_FILE} | patch -p1
     CMAKE_ARGS
         -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
         -DCMAKE_C_COMPILER:PATH=${CMAKE_C_COMPILER}
@@ -50,22 +50,10 @@ ExternalProject_Add(project_bullet
         "<INSTALL_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}BulletCollision${CMAKE_STATIC_LIBRARY_SUFFIX}"
         "<INSTALL_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}LinearMath${CMAKE_STATIC_LIBRARY_SUFFIX}"
 )
+EPHelper_Add_Cleanup(project_bullet bin include lib share)
+EPHelper_Add_Clobber(project_bullet ${BULLET_PATCH_FILE})
+
 externalproject_get_property(project_bullet install_dir)
-ExternalProject_Add_Step(project_bullet cleanup
-  COMMAND rm -rf bin include lib share || true
-  WORKING_DIRECTORY "${install_dir}"
-  COMMENT "Cleanup old install"
-  DEPENDEES download
-  DEPENDERS configure
-)
-ExternalProject_Add_Step(project_bullet clobber
-  COMMAND true
-  WORKING_DIRECTORY "${install_dir}"
-  DEPENDERS download
-  DEPENDS ${CMAKE_CURRENT_LIST_DIR}/bullet.patch
-)
-
-
 set_target_properties(project_bullet PROPERTIES EXCLUDE_FROM_ALL true)
 add_library(lib::bullet STATIC IMPORTED)
 add_dependencies(lib::bullet project_bullet)

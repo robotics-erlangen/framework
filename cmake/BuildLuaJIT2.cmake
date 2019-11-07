@@ -51,15 +51,9 @@ ExternalProject_Add(project_luajit
     INSTALL_COMMAND make install ${LUAJIT_FLAGS} PREFIX=${SPACE_FREE_INSTALL_DIR}
 	${LUAJIT_EXTRA_COMMANDS}
 )
-externalproject_get_property(project_luajit install_dir)
-ExternalProject_Add_Step(project_luajit cleanup
-  COMMAND rm -rf bin include lib share || true
-  WORKING_DIRECTORY "${install_dir}"
-  COMMENT "Cleanup old install"
-  DEPENDEES download
-  DEPENDERS configure
-)
+EPHelper_Add_Cleanup(project_luajit bin include lib share)
 
+externalproject_get_property(project_luajit install_dir)
 set_target_properties(project_luajit PROPERTIES EXCLUDE_FROM_ALL true)
 add_library(lib::luajit UNKNOWN IMPORTED)
 add_dependencies(lib::luajit project_luajit)
