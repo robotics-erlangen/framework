@@ -17,7 +17,7 @@ InternalGameController::InternalGameController(const Timer *timer, QObject *pare
     m_packet.set_stage(SSL_Referee::NORMAL_FIRST_HALF);
     m_packet.set_command(SSL_Referee::HALT);
     m_packet.set_command_counter(0);
-    m_packet.set_command_timestamp(timer->currentTime() / 1000L);
+    m_packet.set_command_timestamp(timer->currentTime() / 1000LL);
     teamInfoSetDefault(m_packet.mutable_blue());
     teamInfoSetDefault(m_packet.mutable_yellow());
 }
@@ -25,9 +25,9 @@ InternalGameController::InternalGameController(const Timer *timer, QObject *pare
 void InternalGameController::sendUpdate()
 {
     // update packet
-    m_packet.set_packet_timestamp(m_timer->currentTime() / 1000L);
+    m_packet.set_packet_timestamp(m_timer->currentTime() / 1000LL);
     if (m_currentActionStartTime > 0) {
-        m_packet.set_current_action_time_remaining(m_currentActionAllowedTime - (m_timer->currentTime() / 1000L - m_currentActionStartTime));
+        m_packet.set_current_action_time_remaining(m_currentActionAllowedTime - (m_timer->currentTime() / 1000LL - m_currentActionStartTime));
     } else {
         m_packet.clear_current_action_time_remaining();
     }

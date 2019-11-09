@@ -46,7 +46,7 @@ void LogWidget::hideLogToggles()
 }
 
 QString LogWidget::fromTime(qint64 time, QString prefix) {
-    qint64 ltime = time / 1000000000L / 60; // divide down to minutes
+    qint64 ltime = time / 1000000000LL / 60; // divide down to minutes
     QString ret;
     if (ltime != m_lastDate) {
         m_lastDate = ltime;
@@ -54,8 +54,8 @@ QString LogWidget::fromTime(qint64 time, QString prefix) {
         dt.setTime_t(time * 1E-9);
         ret += QString("<div><small><tt>%1</tt></small></div>\n").arg(dt.toString("hh:mm"));
     }
-    const QString stime = QString("%1.%2").arg((time / 1000000000L) % 60, 2, 10, QChar('0'))
-            .arg((time / 1000000L) % 1000, 3, 10, QChar('0'));
+    const QString stime = QString("%1.%2").arg((time / 1000000000LL) % 60, 2, 10, QChar('0'))
+            .arg((time / 1000000LL) % 1000, 3, 10, QChar('0'));
     QString str = QString("<div><small><tt><font color=gray>[%1]</font><b> %2 </b></tt></small>").arg(stime, prefix);
     return ret+str;
 }
