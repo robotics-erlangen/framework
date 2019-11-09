@@ -33,10 +33,7 @@
 
 #define LCG(n) ((69069 * n) & 0xffffffffUL)
 #define MASK 0xffffffffUL
-
-static inline uint32_t TAUSWORTHE(uint64_t s, uint64_t a, uint64_t b, uint64_t c, uint64_t d) {
-	return static_cast<uint32_t>((((s&c)<<d)&MASK)^(((s<<a)&MASK)^s)>>b);
-}
+#define TAUSWORTHE(s,a,b,c,d) (((s &c) <<d) &MASK) ^ ((((s <<a) &MASK)^s) >>b)
 
 /*!
  * \brief Create an RNG instance
