@@ -55,6 +55,11 @@ RNG::RNG(uint32_t s)
 
 void RNG::seed(uint32_t s)
 {
+    if (s == 0) {
+        // The RNG breaks if it is seeded with 0, replace the seed with a legitimate value
+        s = -1;
+    }
+
     m_s1 = LCG(s);
     m_s2 = LCG(m_s1);
     m_s3 = LCG(m_s2);
