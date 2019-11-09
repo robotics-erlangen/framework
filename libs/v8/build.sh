@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-DEPOT_TOOLS_REVISION=7b7eb8800be040d4405fe1d04f002ad1f3a5a38f
+DEPOT_TOOLS_REVISION=41be80f6159c6c91914dbfc4dcd6b59d183f9f3b
 V8_BASE_REVISION=6a41721a2889b84cb2f3b920fbdc40b96347597a
 BUILD_REVISION=adaab113d20dbac883ef911e55995fb6c8da9947
 ICU_REVISION=297a4dd02b9d36c92ab9b4f121e433c9c3bc14f8
@@ -50,14 +50,14 @@ if [[ ! -d depot_tools ]]; then
 
     find depot_tools -maxdepth 1 -type f ! -iname '*.exe' ! -iname 'ninja-*' -exec  sed "${SEDI[@]}" -e "s/exec python /exec python2 /" '{}' \+
     sed "${SEDI[@]}" -e '/_PLATFORM_MAPPING = {/a\'$'\n'"  'msys': 'win'," depot_tools/gclient.py
-    sed "${SEDI[@]}" -e '/_PLATFORM_MAPPING = {/a\'$'\n'"  'msys': 'win'," depot_tools/gclient.py
     sed "${SEDI[@]}" -e '/ DEPS_OS_CHOICES = {/a\'$'\n'"    'msys': 'win'," depot_tools/gclient.py
     sed "${SEDI[@]}" -e '/PLATFORM_MAPPING = {/a\'$'\n'"    'msys': 'win'," depot_tools/download_from_google_storage.py
     sed "${SEDI[@]}" -e "s/  if sys.platform == 'cygwin':/  if sys.platform in ('cygwin', 'msys'):/" depot_tools/download_from_google_storage.py
     sed "${SEDI[@]}" -e "s/  if sys.platform.startswith(('cygwin', 'win')):/  if sys.platform.startswith(('cygwin', 'win', 'msys')):/" depot_tools/gclient_utils.py
+    sed "${SEDI[@]}" -e "s/  if sys.platform.startswith(('cygwin', 'win')):/  if sys.platform.startswith(('cygwin', 'win', 'msys')):/" depot_tools/gclient_paths.py
     # prevent git update of depot_tools
     sed "${SEDI[@]}" -e "s/    update_git_repo/    #update_git_repo/" depot_tools/update_depot_tools
-    sed "${SEDI[@]}" -e 's|  $COMSPEC /c `cygpath -w "$base_dir/bootstrap/win/win_tools.bat"`|  "$base_dir/bootstrap/win/win_tools.bat"|' depot_tools/update_depot_tools
+    sed "${SEDI[@]}" -e 's|  $COMSPEC /c `cygpath -w "$base_dir/bootstrap/win_tools.bat"`|  "$base_dir/bootstrap/win_tools.bat"|' depot_tools/update_depot_tools
 
     # initialize depot_tools checkout
     ( cd depot_tools && ./gclient > /dev/null )
@@ -66,10 +66,17 @@ if [[ ! -d depot_tools ]]; then
     # Note: the update must be able to run once to properly setup python and git!
     touch depot_tools/.disable_auto_update
 
+    if [[ "$IS_MINGW" == 1 ]]; then
+        # make sure to shadow the msys python2 binaries
+        cp depot_tools/python.bat depot_tools/python2.bat
+        cp depot_tools/python.bat depot_tools/python2.7.bat
+    fi
+
     trap '-' EXIT
 fi
 
-export PATH=$PATH:$PWD/depot_tools
+# use depot_tools binaries if there are multiple options
+export PATH=$PWD/depot_tools:$PATH
 
 if [[ ! -d v8 ]]; then
     function v8hook {
