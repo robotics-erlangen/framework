@@ -31,9 +31,12 @@
  * http://www.iro.umontreal.ca/~lecuyer/myftp/papers/tausme.ps
  */
 
-#define LCG(n) ((69069 * n) & 0xffffffffUL)
-#define MASK 0xffffffffUL
-#define TAUSWORTHE(s,a,b,c,d) (((s &c) <<d) &MASK) ^ ((((s <<a) &MASK)^s) >>b)
+#define LCG(n) ((69069 * n) & 0xffffffffU)
+#define MASK 0xffffffffU
+
+static inline uint32_t TAUSWORTHE(uint32_t s, int a, int b, uint32_t c, int d) {
+	return (((s&c)<<d)&MASK)^(((s<<a)&MASK)^s)>>b;
+}
 
 /*!
  * \brief Create an RNG instance
@@ -67,9 +70,9 @@ void RNG::seed(uint32_t s)
  */
 uint32_t RNG::uniformInt()
 {
-    m_s1 = TAUSWORTHE(m_s1, 13, 19, 4294967294UL, 12);
-    m_s2 = TAUSWORTHE(m_s2,  2, 25, 4294967288UL,  4);
-    m_s3 = TAUSWORTHE(m_s3,  3, 11, 4294967280UL, 17);
+    m_s1 = TAUSWORTHE(m_s1, 13, 19, 4294967294U, 12);
+    m_s2 = TAUSWORTHE(m_s2,  2, 25, 4294967288U,  4);
+    m_s3 = TAUSWORTHE(m_s3,  3, 11, 4294967280U, 17);
 
     return (m_s1 ^ m_s2 ^ m_s3);
 }
