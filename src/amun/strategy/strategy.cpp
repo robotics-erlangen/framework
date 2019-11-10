@@ -39,7 +39,6 @@
 
 #ifdef V8_FOUND
 #include "strategy/typescript/typescript.h"
-#include "strategy/typescript/inspectorserver.h"
 #include <v8.h>
 #include <libplatform/libplatform.h>
 #endif
@@ -107,22 +106,6 @@ Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, C
     m_gameControllerConnection(gameControllerConnection)
 {
     initV8();
-
-#ifdef V8_FOUND
-    int inspectorPort = 0;
-    switch (m_type) {
-    case StrategyType::BLUE:
-        inspectorPort = 3415;
-        break;
-    case StrategyType::YELLOW:
-        inspectorPort = 3416;
-        break;
-    case StrategyType::AUTOREF:
-        inspectorPort = 3417;
-        break;
-    }
-    m_inspectorServer = std::unique_ptr<InspectorServer>(new InspectorServer(inspectorPort, this));
-#endif
 
     m_scriptState.debugHelper = helper;
     m_scriptState.isInternalAutoref = internalAutoref;
@@ -603,9 +586,6 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
     bool createNewStrategy = !m_strategy || !m_strategy->canReloadInPlace() || !m_strategy->canHandleDynamic(filename);
     if (createNewStrategy) {
         // use a fresh strategy instance when strategy is started
-#ifdef V8_FOUND
-        m_inspectorServer->clearHandlers();
-#endif
         delete m_strategy;
         m_strategy = nullptr;
 
@@ -621,9 +601,6 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
             // insert m_debugStatus into m_strategy
             // this has to happen before newDebuggagleStrategy is called
             takeStrategyDebugStatus();
-            if (m_scriptState.isDebugEnabled) {
-                m_inspectorServer->newDebuggagleStrategy(t);
-            }
 #endif
         } else {
             fail(QString("No strategy handler for file %1").arg(filename));

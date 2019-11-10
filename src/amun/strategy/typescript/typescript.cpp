@@ -35,6 +35,7 @@
 #include "checkforscripttimeout.h"
 #include "inspectorholder.h"
 #include "internaldebugger.h"
+#include "inspectorserver.h"
 #include "tsc_internal.h"
 #include "strategy/script/compilerregistry.h"
 #include "strategy/script/scriptstate.h"
@@ -66,6 +67,21 @@ Typescript::Typescript(const Timer *timer, StrategyType type, ScriptState& scrip
     m_timeoutCheckerThread = new QThread(this);
     m_timeoutCheckerThread->start();
     m_checkForScriptTimeout->moveToThread(m_timeoutCheckerThread);
+
+    // construct inspector server
+    int inspectorPort = 0;
+    switch (m_type) {
+    case StrategyType::BLUE:
+        inspectorPort = 3415;
+        break;
+    case StrategyType::YELLOW:
+        inspectorPort = 3416;
+        break;
+    case StrategyType::AUTOREF:
+        inspectorPort = 3417;
+        break;
+    }
+    m_inspectorServer = std::unique_ptr<InspectorServer>(new InspectorServer(inspectorPort, this));
 }
 
 Typescript::~Typescript()
@@ -341,17 +357,24 @@ void Typescript::loadScript(const QString &fname, const QString &entryPoint)
         return;
     }
 
+    m_inspectorServer->clearHandlers();
+    if (m_scriptState.isDebugEnabled) {
+        m_inspectorServer->newDebuggagleStrategy(this);
+    }
+
     loadTypescript(fname, entryPoint);
 }
 
 bool Typescript::setupCompiler(const QString &filename)
 {
-    if (m_compiler)
+    if (m_compiler) {
         disconnect(m_compiler->comp(), nullptr, this, nullptr);
+    }
 
     std::unique_ptr<QDir> baseDir = getTsconfigDir(filename);
-    if (!baseDir)
+    if (!baseDir) {
         return false;
+    }
 
     auto createCompiler = [](const QDir &baseDir) -> std::unique_ptr<Compiler> {
         auto ptr = new InternalTypescriptCompiler(baseDir.filePath("tsconfig.json"));

@@ -41,6 +41,7 @@ class InternalDebugger;
 class CompilerRegistry;
 struct lua_State;
 class ScriptState;
+class InspectorServer;
 
 class Typescript : public AbstractStrategyScript
 {
@@ -126,6 +127,8 @@ private:
     std::shared_ptr<CompilerThreadWrapper> m_compiler;
 
     QString m_requestedEntrypoint;
+
+    std::unique_ptr<InspectorServer> m_inspectorServer;
 };
 
 #endif // TYPESCRIPT_H

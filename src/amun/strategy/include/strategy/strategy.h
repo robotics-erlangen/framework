@@ -42,7 +42,6 @@ class QUdpSocket;
 namespace v8 {
     class Platform;
 }
-class InspectorServer;
 class InspectorHandler;
 class CompilerRegistry;
 
@@ -131,8 +130,6 @@ private:
     std::shared_ptr<GameControllerConnection> m_gameControllerConnection;
 
 #ifdef V8_FOUND
-    std::unique_ptr<InspectorServer> m_inspectorServer;
-
     static std::unique_ptr<v8::Platform> static_platform;
 #endif
 };
