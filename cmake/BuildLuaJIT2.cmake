@@ -41,11 +41,13 @@ set(LUAJIT_FLAGS "XCFLAGS=${LUAJIT_XCFLAGS}" "MACOSX_DEPLOYMENT_TARGET=")
 set(SPACE_FREE_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/project_luajit-prefix")
 string(REPLACE " " "\\ " SPACE_FREE_INSTALL_DIR "${SPACE_FREE_INSTALL_DIR}")
 
+set(LUAJIT_PATCH_FILE ${CMAKE_CURRENT_LIST_DIR}/luajit.patch)
 ExternalProject_Add(project_luajit
     URL http://www.robotics-erlangen.de/downloads/libraries/LuaJIT-2.0.5.tar.gz
     URL_HASH SHA256=874b1f8297c697821f561f9b73b57ffd419ed8f4278c82e05b48806d30c1e979
     DOWNLOAD_NO_PROGRESS true
     BUILD_IN_SOURCE true
+    PATCH_COMMAND cat ${LUAJIT_PATCH_FILE} | patch -p1
     CONFIGURE_COMMAND ""
     BUILD_COMMAND make clean && make amalg ${LUAJIT_FLAGS}
     BUILD_BYPRODUCTS "<INSTALL_DIR>/${LUAJIT_SUBPATH}"
@@ -53,7 +55,7 @@ ExternalProject_Add(project_luajit
 	${LUAJIT_EXTRA_COMMANDS}
 )
 EPHelper_Add_Cleanup(project_luajit bin include lib share)
-EPHelper_Add_Clobber(project_luajit ${CMAKE_CURRENT_LIST_DIR}/stub.patch)
+EPHelper_Add_Clobber(project_luajit ${LUAJIT_PATCH_FILE})
 
 externalproject_get_property(project_luajit install_dir)
 set_target_properties(project_luajit PROPERTIES EXCLUDE_FROM_ALL true)
