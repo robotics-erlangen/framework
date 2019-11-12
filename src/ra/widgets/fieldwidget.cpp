@@ -278,6 +278,7 @@ FieldWidget::FieldWidget(QWidget *parent) :
 FieldWidget::~FieldWidget()
 {
     saveConfig();
+    ungrabGesture(m_touchStatusType);
     QGestureRecognizer::unregisterRecognizer(m_touchStatusType);
 }
 
