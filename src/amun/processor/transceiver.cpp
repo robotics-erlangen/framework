@@ -23,6 +23,7 @@
 #include "firmware-interface/radiocommand.h"
 #include "firmware-interface/transceiver2012.h"
 #include "firmware-interface/radiocommand2014.h"
+#include "firmware-interface/radiocommand2018.h"
 #include "transceiver.h"
 #include "usbthread.h"
 #include "usbdevice.h"
@@ -30,6 +31,8 @@
 
 static_assert(sizeof(RadioCommand2014) == 23, "Expected radio command packet of size 23");
 static_assert(sizeof(RadioResponse2014) == 10, "Expected radio response packet of size 10");
+static_assert(sizeof(RadioCommand2018) == 23, "Expected radio command packet of size 23");
+static_assert(sizeof(RadioResponse2018) == 10, "Expected radio response packet of size 10");
 
 const int PROTOCOL_VERSION = 5;
 
@@ -403,7 +406,7 @@ float Transceiver::calculateDroppedFramesRatio(uint generation, uint id, uint8_t
     }
 
     if (c.lastDroppedFrames >= 0 && skipedFrames >= 0) {
-        // as the robot can only reply if it got a frame, skip the frames it didn't get (only 2014)
+        // as the robot can only reply if it got a frame, skip the frames it didn't get (only 2014 / 2018)
         c.droppedFramesRatio = (c.lastDroppedFrames - skipedFrames)
                 / (256.f - c.startValue - skipedFrames);
         c.startValue = 0;
@@ -431,6 +434,55 @@ void Transceiver::handleResponsePacket(QList<robot::RadioResponse> &responses, c
 
         int packet_loss = (packet->extension_id == EXTENSION_BASIC_STATUS) ? packet->packet_loss : -1;
         float df = calculateDroppedFramesRatio(3, packet->id, packet->counter, packet_loss);
+        switch (packet->extension_id) {
+        case EXTENSION_BASIC_STATUS:
+            r.set_battery(packet->battery / 255.0f);
+            r.set_packet_loss_rx(packet->packet_loss / 256.0f);
+            r.set_packet_loss_tx(df);
+            break;
+        case EXTENSION_EXTENDED_ERROR:
+        {
+            robot::ExtendedError *e = r.mutable_extended_error();
+            e->set_motor_1_error(packet->motor_1_error);
+            e->set_motor_2_error(packet->motor_2_error);
+            e->set_motor_3_error(packet->motor_3_error);
+            e->set_motor_4_error(packet->motor_4_error);
+            e->set_dribbler_error(packet->dribler_error);
+            e->set_kicker_error(packet->kicker_error);
+            e->set_kicker_break_beam_error(packet->kicker_break_beam_error);
+            e->set_motor_encoder_error(packet->motor_encoder_error);
+            e->set_main_sensor_error(packet->main_sensor_error);
+            e->set_temperature(packet->temperature);
+            break;
+        }
+        default:
+            break;
+        }
+
+        if (packet->power_enabled) {
+            robot::SpeedStatus *speedStatus = r.mutable_estimated_speed();
+            speedStatus->set_v_f(packet->v_f / 1000.f);
+            speedStatus->set_v_s(packet->v_s / 1000.f);
+            speedStatus->set_omega(packet->omega / 1000.f);
+            r.set_error_present(packet->error_present);
+
+            r.set_ball_detected(packet->ball_detected);
+            r.set_cap_charged(packet->cap_charged);
+        }
+        if (m_frameTimes.contains(packet->counter)) {
+            r.set_radio_rtt((time - m_frameTimes[packet->counter]) * 1E-9f);
+        }
+        responses.append(r);
+    } else if (header->command == RESPONSE_2018_DEFAULT && size == sizeof(RadioResponse2018)) {
+        const RadioResponse2018 *packet = (const RadioResponse2018 *)data;
+
+        robot::RadioResponse r;
+        r.set_time(time);
+        r.set_generation(4);
+        r.set_id(packet->id);
+
+        int packet_loss = (packet->extension_id == EXTENSION_BASIC_STATUS) ? packet->packet_loss : -1;
+        float df = calculateDroppedFramesRatio(4, packet->id, packet->counter, packet_loss);
         switch (packet->extension_id) {
         case EXTENSION_BASIC_STATUS:
             r.set_battery(packet->battery / 255.0f);
@@ -578,6 +630,115 @@ void Transceiver::addRobot2014Sync(qint64 processingDelay, quint8 packetCounter,
     usb_packet.append((const char*) &data, sizeof(data));
 }
 
+void Transceiver::addRobot2018Command(int id, const robot::Command &command, bool charge, quint8 packetCounter, QByteArray &usb_packet)
+{
+    // copy command
+    RadioCommand2018 data;
+    data.charge = charge;
+    data.standby = command.standby();
+    data.counter = packetCounter;
+    data.dribbler = qBound<qint32>(-RADIOCOMMAND2018_DRIBBLER_MAX, command.dribbler() * RADIOCOMMAND2018_DRIBBLER_MAX, RADIOCOMMAND2018_DRIBBLER_MAX);
+    data.chip = command.kick_style() == robot::Command::Chip;
+    if (data.chip) {
+        data.shot_power = qMin<quint32>(command.kick_power() / RADIOCOMMAND2018_CHIP_MAX * RADIOCOMMAND2018_KICK_MAX, RADIOCOMMAND2018_KICK_MAX);
+    } else {
+        data.shot_power = qMin<quint32>(command.kick_power() / RADIOCOMMAND2018_LINEAR_MAX * RADIOCOMMAND2018_KICK_MAX, RADIOCOMMAND2018_KICK_MAX);
+    }
+    data.v_s = qBound<qint32>(-RADIOCOMMAND2018_V_MAX, command.output0().v_s() * 1000.0f, RADIOCOMMAND2018_V_MAX);
+    data.v_f = qBound<qint32>(-RADIOCOMMAND2018_V_MAX, command.output0().v_f() * 1000.0f, RADIOCOMMAND2018_V_MAX);
+    data.omega = qBound<qint32>(-RADIOCOMMAND2018_OMEGA_MAX, command.output0().omega() * 1000.0f, RADIOCOMMAND2018_OMEGA_MAX);
+
+    const int OMEGA_QUANTIZATION = 5;
+    const int V_QUANTIZATION = 2;
+    const float delta1_v_s = command.output1().v_s() - command.output0().v_s();
+    const float delta1_v_f = command.output1().v_f() - command.output0().v_f();
+    const float delta1_omega = command.output1().omega() - command.output0().omega();
+    data.delta1_v_s = qBound<qint32>(-RADIOCOMMAND2018_DELTA_V_MAX, delta1_v_s * 1000.0f / V_QUANTIZATION, RADIOCOMMAND2018_DELTA_V_MAX);
+    data.delta1_v_f = qBound<qint32>(-RADIOCOMMAND2018_DELTA_V_MAX, delta1_v_f * 1000.0f / V_QUANTIZATION, RADIOCOMMAND2018_DELTA_V_MAX);
+    data.delta1_omega = qBound<qint32>(-RADIOCOMMAND2018_DELTA_OMEGA_MAX, delta1_omega * (1000.0f / OMEGA_QUANTIZATION), RADIOCOMMAND2018_DELTA_OMEGA_MAX);
+
+    const float delta2_v_s = command.output2().v_s() - command.output1().v_s();
+    const float delta2_v_f = command.output2().v_f() - command.output1().v_f();
+    // compensate for possible quantization errors
+    const float sent_delta1_omega = data.delta1_omega * (OMEGA_QUANTIZATION / 1000.0f);
+    const float omegaWithDelta1 = command.output0().omega() + sent_delta1_omega;
+    const float delta2_omega = command.output2().omega() - omegaWithDelta1;
+    data.delta2_v_s = qBound<qint32>(-RADIOCOMMAND2018_DELTA_V_MAX, delta2_v_s * 1000.0f / V_QUANTIZATION, RADIOCOMMAND2018_DELTA_V_MAX);
+    data.delta2_v_f = qBound<qint32>(-RADIOCOMMAND2018_DELTA_V_MAX, delta2_v_f * 1000.0f / V_QUANTIZATION, RADIOCOMMAND2018_DELTA_V_MAX);
+    data.delta2_omega = qBound<qint32>(-RADIOCOMMAND2018_DELTA_OMEGA_MAX, delta2_omega * (1000.0f / OMEGA_QUANTIZATION), RADIOCOMMAND2018_DELTA_OMEGA_MAX);
+
+    data.id = id;
+    data.force_kick = command.force_kick();
+    data.ir_param = qBound<quint8>(0, m_ir_param[qMakePair(4, id)], 63);
+    data.eject_sdcard = command.eject_sdcard();
+    data.unused = 0;
+
+    if (command.has_cur_v_s()) {
+        data.cur_v_s = qBound<qint32>(-RADIOCOMMAND2018_V_MAX, command.cur_v_s() * 1000.0f, RADIOCOMMAND2018_V_MAX);
+        data.cur_v_f = qBound<qint32>(-RADIOCOMMAND2018_V_MAX, command.cur_v_f() * 1000.0f, RADIOCOMMAND2018_V_MAX);
+        data.cur_omega = qBound<qint32>(-RADIOCOMMAND2018_OMEGA_MAX, command.cur_omega() * 1000.0f, RADIOCOMMAND2018_OMEGA_MAX);
+    } else {
+        data.cur_v_s = RADIOCOMMAND2018_INVALID_SPEED;
+        data.cur_v_f = RADIOCOMMAND2018_INVALID_SPEED;
+        data.cur_omega = RADIOCOMMAND2018_INVALID_SPEED;
+    }
+
+    // set address
+    TransceiverCommandPacket senderCommand;
+    senderCommand.command = COMMAND_SEND_NRF24;
+    senderCommand.size = sizeof(data) + sizeof(TransceiverSendNRF24Packet);
+
+    TransceiverSendNRF24Packet targetAddress;
+    memcpy(targetAddress.address, robot2018_address, sizeof(robot2018_address));
+    targetAddress.address[0] |= id;
+    targetAddress.expectedResponseSize = sizeof(RadioResponseHeader) + sizeof(RadioResponse2018);
+
+    usb_packet.append((const char*) &senderCommand, sizeof(senderCommand));
+    usb_packet.append((const char*) &targetAddress, sizeof(targetAddress));
+    usb_packet.append((const char*) &data, sizeof(data));
+}
+
+void Transceiver::addRobot2018Sync(qint64 processingDelay, quint8 packetCounter, QByteArray &usb_packet)
+{
+    // processing usually takes a few hundred microseconds, bound to 2ms to avoid outliers
+    processingDelay = qMin((qint64)2*1000*1000, processingDelay);
+
+    // times are in nanoseconds
+    qint64 US_TO_NS = 1000;
+    // just an estimate
+    qint64 usbTransferTime = 250 * US_TO_NS;
+    qint64 nrfRadioStartupTime = 130 * US_TO_NS;
+    int nrfPacketHeaderBits = 65;
+    int syncPacketPayloadBytes = sizeof(RadioSync2018);
+    int BITS_PER_BYTE = 8;
+    // transfer rate: 1MBit/s
+    int BIT_TRANSFER_TIME = 1 * US_TO_NS;
+    qint64 syncPacketTransmissionTime = (nrfPacketHeaderBits + BITS_PER_BYTE * syncPacketPayloadBytes) * BIT_TRANSFER_TIME;
+    qint64 syncPacketDelay = usbTransferTime + nrfRadioStartupTime + syncPacketTransmissionTime;
+
+    RadioSync2018 data;
+    data.counter = packetCounter;
+    data.time_offset = (processingDelay + syncPacketDelay) / 1000;
+
+    TransceiverCommandPacket senderCommand;
+    senderCommand.command = COMMAND_SEND_NRF24;
+    senderCommand.size = sizeof(data) + sizeof(TransceiverSendNRF24Packet);
+
+    TransceiverSendNRF24Packet targetAddress;
+    memcpy(targetAddress.address, robot_datagram, sizeof(robot_datagram));
+    // broadcast (0x1f) to generation 2018
+    targetAddress.address[0] = 0x1f | robot2018_address[0];
+    // add a delay of 240 us to workaround reception issues
+    // our custom built nrf receivers fail to receive their command packet
+    // if it immediatelly follows the sync packet
+    // adding the delay fixes the problem reliably
+    targetAddress.expectedResponseSize = 1;
+
+    usb_packet.append((const char*) &senderCommand, sizeof(senderCommand));
+    usb_packet.append((const char*) &targetAddress, sizeof(targetAddress));
+    usb_packet.append((const char*) &data, sizeof(data));
+}
+
 void Transceiver::addPingPacket(qint64 time, QByteArray &usb_packet)
 {
     // Append ping packet with current timestamp
@@ -629,14 +790,21 @@ void Transceiver::sendCommand(const QList<robot::RadioCommand> &commands, bool c
         const qint64 completionTime = m_timer->currentTime();
         addRobot2014Sync(processingStart - completionTime, m_packetCounter, usb_packet);
     }
+    bool hasRobot2018Commands = generations.keys().contains(4);
+    if (hasRobot2018Commands) {
+        const qint64 completionTime = m_timer->currentTime();
+        addRobot2018Sync(processingStart - completionTime, m_packetCounter, usb_packet);
+    }
 
     QMapIterator<uint, RobotList> it(generations);
     while (it.hasNext()) {
         it.next();
 
         foreach (const robot::RadioCommand &radio_command, it.value()) {
-            if (it.key() == 3) {
+            if (it.key() == 3) { // 2014 generation
                 addRobot2014Command(radio_command.id(), radio_command.command(), charge, m_packetCounter, usb_packet);
+            } else if (it.key() == 4) { // 2018 / 2020 generation
+                addRobot2018Command(radio_command.id(), radio_command.command(), charge, m_packetCounter, usb_packet);
             }
         }
     }

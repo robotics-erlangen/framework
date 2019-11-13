@@ -89,8 +89,14 @@ private:
 
     void sendInitPacket();
     void sendTransceiverConfiguration();
+
     void addRobot2014Command(int id, const robot::Command &command, bool charge, quint8 packetCounter, QByteArray &usb_packet);
     void addRobot2014Sync(qint64 processingDelay, quint8 packetCounter, QByteArray &usb_packet);
+
+    // for now the 2018 functions mostly copy paste of the 2014 functions
+    void addRobot2018Command(int id, const robot::Command &command, bool charge, quint8 packetCounter, QByteArray &usb_packet);
+    void addRobot2018Sync(qint64 processingDelay, quint8 packetCounter, QByteArray &usb_packet);
+
     void addPingPacket(qint64 time, QByteArray &usb_packet);
     void addStatusPacket(QByteArray &usb_packet);
     void sendCommand(const QList<robot::RadioCommand> &commands, bool charge, qint64 processingStart);

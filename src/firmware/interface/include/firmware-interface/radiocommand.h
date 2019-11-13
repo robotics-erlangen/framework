@@ -36,7 +36,8 @@ typedef struct
 // The command id includes both the robot generation and the data type
 enum ResponseCommand {
     // RESPONSE_2012_DEFAULT = 0x01,
-    RESPONSE_2014_DEFAULT = 0x02
+    RESPONSE_2014_DEFAULT = 0x02,
+    RESPONSE_2018_DEFAULT = 0x03
 };
 
 // Radiodatagrams are merged into a data stream
