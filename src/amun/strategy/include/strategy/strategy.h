@@ -90,7 +90,7 @@ private:
     Status takeStrategyDebugStatus();
     amun::DebugSource debugSource() const;
     void createDummyTeam();
-    bool updateTeam(const robot::Team &team, StrategyType teamType);
+    bool updateTeam(const robot::Team &team, StrategyType teamType, bool isReplayTeam);
     void handleRefboxReply(const QByteArray &data);
     world::State assembleWorldState();
 

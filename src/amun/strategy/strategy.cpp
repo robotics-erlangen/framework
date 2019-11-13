@@ -175,6 +175,14 @@ void Strategy::handleStatus(const Status &status)
         if (!m_scriptState.isReplay) {
             reload();
         }
+
+        // copy team from status
+        if (status->has_team_blue()) {
+            updateTeam(status->team_blue(), StrategyType::BLUE, true);
+        } else if (status->has_team_yellow()) {
+            updateTeam(status->team_yellow(), StrategyType::YELLOW, true);
+        }
+
         m_scriptState.isReplay = true;
         m_scriptState.currentStatus = status;
         process();
@@ -220,10 +228,10 @@ void Strategy::handleCommand(const Command &command)
 
     // update team robots, but only if something has changed
     if (command->has_set_team_blue()) {
-        reloadStrategy |= updateTeam(command->set_team_blue(), StrategyType::BLUE);
+        reloadStrategy |= updateTeam(command->set_team_blue(), StrategyType::BLUE, false);
     }
     if (command->has_set_team_yellow()) {
-        reloadStrategy |= updateTeam(command->set_team_yellow(), StrategyType::YELLOW);
+        reloadStrategy |= updateTeam(command->set_team_yellow(), StrategyType::YELLOW, false);
     }
     // autoref has no robots
 
@@ -322,12 +330,12 @@ void Strategy::handleCommand(const Command &command)
     }
 }
 
-bool Strategy::updateTeam(const robot::Team &team, StrategyType teamType)
+bool Strategy::updateTeam(const robot::Team &team, StrategyType teamType, bool isReplayTeam)
 {
     if (team.robot_size() > 0) {
         m_anyRobotSpec.CopyFrom(team.robot(0));
     }
-    if ((team.robot_size() != 0 || !m_scriptState.isReplay)
+    if (team.robot_size() != 0 && (!m_isInLogplayer || isReplayTeam)
             && m_type == teamType
             && team.SerializeAsString() != m_team.SerializeAsString()) {
         m_team.CopyFrom(team);
@@ -340,7 +348,7 @@ void Strategy::createDummyTeam()
 {
     // when replaying a game that we played, there will always be robot specs for some team, so m_anyRobotSpec will be written properly
     m_team.clear_robot();
-    for (int i = 0;i<16;i++) {
+    for (unsigned int i = 0;i<16;i++) {
         robot::Specs * robot = m_team.add_robot();
         robot->CopyFrom(m_anyRobotSpec);
         robot->set_id(i);
@@ -637,7 +645,7 @@ void Strategy::close()
     }
 
     delete m_strategy;
-    m_strategy = NULL;
+    m_strategy = nullptr;
 
     Status status(new amun::Status);
     setStrategyStatus(status, amun::StatusStrategy::CLOSED);
