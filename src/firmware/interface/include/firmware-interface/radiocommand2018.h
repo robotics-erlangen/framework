@@ -22,6 +22,7 @@
 #define COMMON_RADIOCOMMAND2018_H
 
 #include "radiocommand.h"
+#include "radiocommand2014.h"
 #include <stdint.h>
 
 static const uint8_t robot2018_address[] = { 0x60, 0xE8, 0xE4, 0xC7 };
@@ -65,11 +66,8 @@ typedef struct
     int8_t delta2_omega; // 5 mrad/s
 } __attribute__ ((packed)) RadioCommand2018;
 
-enum RadioExtension2018 {
-    EXTENSION_BASIC_STATUS,
-    EXTENSION_EXTENDED_ERROR,
-    EXTENSION_MAX_VALUE
-};
+// cannot be easily defined by typedef as it must be valid in pure C
+#define RadioExtension2018 RadioExtension2014
 
 typedef struct
 {
