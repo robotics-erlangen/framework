@@ -64,7 +64,7 @@ void LogWidget::handleStatus(const Status &status)
 {
     QString logAppend;
     for (const amun::DebugValues& debug : status->debug()) {
-        while (m_lastTimes.size() > 0 && m_lastTimes.last() >= status->time()) {
+        while (m_lastTimes.size() > 0 && m_lastTimes.last() > status->time()) {
             m_lastTimes.removeLast();
             QTextBlock block = document()->lastBlock();
             QTextCursor cursor(block);
