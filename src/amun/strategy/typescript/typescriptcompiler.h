@@ -28,6 +28,7 @@
 #include <QMutex>
 #include <QString>
 #include <QWaitCondition>
+#include <memory>
 #include <utility>
 
 class QFileInfo;
@@ -43,6 +44,7 @@ public:
     void resume() override;
     bool isResultAvailable() override;
 public slots:
+    void init() override;
     void compile() override;
 protected:
     enum class CompileResult {
@@ -54,7 +56,7 @@ protected:
 private:
     bool isCompilationNeeded();
 
-    FileWatcher m_watcher;
+    std::unique_ptr<FileWatcher> m_watcher;
 
     enum class State {
         PAUSED, STANDBY, RENAMING

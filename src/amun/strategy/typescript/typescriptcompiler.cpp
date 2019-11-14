@@ -30,20 +30,23 @@
 #include <utility>
 
 TypescriptCompiler::TypescriptCompiler(const QFileInfo &tsconfig)
-    : m_tsconfig(tsconfig), m_watcher(this), m_state(State::STANDBY)
+    : m_tsconfig(tsconfig), m_state(State::STANDBY)
 {
     Q_ASSERT(m_tsconfig.isFile());
+}
 
+void TypescriptCompiler::init() {
+	m_watcher = std::unique_ptr<FileWatcher>(new FileWatcher(this));
     int baseDirLength = m_tsconfig.dir().absolutePath().length();
     QDirIterator it(m_tsconfig.dir().absolutePath(), QDir::Files | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
     while (it.hasNext()) {
         it.next();
         if (it.filePath().mid(baseDirLength).startsWith("/built"))
             continue;
-        m_watcher.addFile(it.filePath());
+        m_watcher->addFile(it.filePath());
     }
 
-    connect(&m_watcher, &FileWatcher::fileChanged, this, &TypescriptCompiler::compile);
+    connect(m_watcher.get(), &FileWatcher::fileChanged, this, &TypescriptCompiler::compile);
 }
 
 QFileInfo TypescriptCompiler::mapToResult(const QFileInfo& src) {

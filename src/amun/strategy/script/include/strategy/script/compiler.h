@@ -40,6 +40,7 @@ public:
     virtual void resume() = 0;
     virtual bool isResultAvailable() = 0;
 public slots:
+    virtual void init() = 0;
     virtual void compile() = 0;
 signals:
     void started();
