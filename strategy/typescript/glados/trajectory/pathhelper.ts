@@ -417,7 +417,7 @@ function addMovingRobotObstacle(path: Path, otherRobot: Robot, safetyDistance: n
 	}
 }
 
-function addRobotObstacles(path: Path, robot: FriendlyRobot, ignoreFriendlyRobots?: boolean,
+function addRobotObstacles(path: Path, robot: FriendlyRobot, targetPosition: Position, ignoreFriendlyRobots?: boolean,
 		ignoreOpponentRobots?: boolean, disableOpponentPrediction?: boolean, useCMA?: boolean) {
 	// TODO. better robot prediction and time estimation
 	// use 1 seconds for the navigation challenge
@@ -451,6 +451,11 @@ function addRobotObstacles(path: Path, robot: FriendlyRobot, ignoreFriendlyRobot
 	}
 	if (!ignoreOpponentRobots) {
 		for (let r of World.OpponentRobots) {
+			const MAX_NO_FOULD_SPEED = 0.5;
+			if (robot.speed.lengthSq() < MAX_NO_FOULD_SPEED * MAX_NO_FOULD_SPEED /*we cannot collide and invoke a foul if where slower than 0.5 m/s*/ &&
+				robot.pos.distanceTo(targetPosition) < MAX_NO_FOULD_SPEED / robot.acceleration.aBrakeFMax * 0.5 * MAX_NO_FOULD_SPEED /*We may not use this if we're going to accelerate again */) {
+				break;
+				}
 			if (!ignoreRobot(robot, r)) {
 				// use speed difference to calculate the safety distance
 				let safetyDistance = Math.max(0, Rating.valueToRating(robot.speed.distanceTo(r.speed), 0, 1.25) * 0.15 - 0.05);
@@ -575,7 +580,7 @@ export function insertObstacles(robot: FriendlyRobot, isCMA: boolean, targetPosi
 	if (!p.ignorePenaltyDistance) {
 		addPenaltyObstacle(p.path);
 	}
-	addRobotObstacles(p.path, robot, p.ignoreFriendlyRobots, p.ignoreOpponentRobots, p.disableOpponentPrediction, isCMA);
+	addRobotObstacles(p.path, robot, targetPosition, p.ignoreFriendlyRobots, p.ignoreOpponentRobots, p.disableOpponentPrediction, isCMA);
 
 	// Clear obstacle params because obstacles gets kept over multiple frames
 	obstacles.delete(robot);
