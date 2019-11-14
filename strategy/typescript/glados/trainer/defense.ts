@@ -137,7 +137,7 @@ export class Defense {
 			let bestDefender = targetBot;
 			let intersectionDefenseArea = Field.intersectRayDefenseArea(
 				targetBot.pos,
-				targetBot.pos,
+				G.FriendlyGoal - targetBot.pos,
 				0.2,
 				true
 			)[0];
