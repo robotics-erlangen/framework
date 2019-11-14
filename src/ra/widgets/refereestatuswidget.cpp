@@ -229,7 +229,13 @@ void RefereeStatusWidget::handleStatus(const Status &status)
             } else {
                 timeoutLeft = game_state.yellow().timeout_time() / 1000000;
             }
-            timeout = formatTime(timeoutLeft);
+            timeout = QString(" ") + formatTime(timeoutLeft);
+        } else if (state != amun::GameState::Halt && state != amun::GameState::Stop &&
+                   state != amun::GameState::Game && state != amun::GameState::GameForce) {
+            if (game_state.has_current_action_time_remaining()) {
+                int time = game_state.current_action_time_remaining() / 1000000;
+                timeout = QString(" ") + formatTime(time);
+            }
         }
 
         if (game_state.has_game_event_2019()) {
