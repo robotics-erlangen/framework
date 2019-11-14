@@ -147,13 +147,8 @@ export class Defense {
 				// whichever robot is close to the goalline and close to the defense area is preferred
 				let bestDistance = Infinity;
 				defenders.forEach((bot) => {
-					let [posOnGoalLine, distanceToGoalLine] = bot.pos.orthogonalProjection(intersectionDefenseArea!, targetBot.pos);
-					distanceToGoalLine = Math.abs(distanceToGoalLine);
-
-					if (Field.isInDefenseArea(posOnGoalLine, 0.05, true)) {
-						posOnGoalLine = Field.intersectRayDefenseArea(posOnGoalLine, targetBot.pos - posOnGoalLine, 0.2, true)[0]
-							|| posOnGoalLine;
-					}
+					let posOnGoalLine = bot.pos.nearestPosOnLine(intersectionDefenseArea!, targetBot.pos);
+					let distanceToGoalLine = posOnGoalLine.distanceTo(bot.pos);
 
 					// a figurative distance, the distance to the goalline is weighted more than the distance to the manMarkPos
 					// this is because a manMark will first try to intercept the goal line
