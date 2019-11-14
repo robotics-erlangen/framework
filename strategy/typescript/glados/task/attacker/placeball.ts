@@ -245,7 +245,7 @@ export class PlaceBall extends Task {
 					: Constants.stopBallDistance + 0.05 + this._robot.radius;
 				let offset = (World.Geometry.FriendlyGoal - this._ball.pos).setLength(dist);
 				this._currentTargetPos = this._ball.pos + offset;
-				this._robot.trajectory.update(CurvedMaxAccel, this._currentTargetPos, -offset.angle());
+				this._robot.trajectory.update(CurvedMaxAccel, this._currentTargetPos, (-offset).angle());
 
 				break;
 			}
