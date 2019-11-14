@@ -1,3 +1,4 @@
+import * as Constants from "base/constants";
 import * as debug from "base/debug";
 import * as Field from "base/field";
 import * as geom from "base/geom";
@@ -175,12 +176,16 @@ export class Keeper extends Task {
 			moveTo = fallbackPos;
 		}
 
+		// use the large stop ball obstacle if we are not in our defense area yet
+		let stopBallRadius = Field.isInFriendlyDefenseArea(this._robot.pos, this._robot.radius)
+			? 0.05 : Constants.stopBallDistance;
+
 		// ignore goal walls if ball is shot
 		let obstacleTable: PathHelper.PathHelperParameters = {
 			ignoreBall: true,
 			ignoreGoals: isShot,
 			ignoreDefenseArea: true,
-			stopBallDistance: 0.05,
+			stopBallDistance: stopBallRadius,
 			ignorePass: true
 		};
 		// don't add obstacles if inside keeper area, when drivin to goal initially
