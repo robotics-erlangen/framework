@@ -13,6 +13,7 @@ import * as Ball from "glados/observer/ball";
 import * as Goal from "glados/observer/goal";
 import * as Physics from "glados/observer/physics";
 import * as ObserverRobot from "glados/observer/robot";
+import { CenterBack } from "glados/task/defender/centerback";
 import { InterceptPass } from "glados/task/defender/interceptpass";
 import { Duel } from "glados/task/shared/duel";
 import * as Attack from "glados/util/attack";
@@ -179,7 +180,6 @@ export class HandleBall extends Behavior {
 		if (Math.abs(World.Ball.speed.x) > 2) {
 			return false;
 		}
-
 		return true;
 	}
 
@@ -217,11 +217,19 @@ export class HandleBall extends Behavior {
 		return (mainAttacker === this._robot) || (this._messaging.receiveTrainer(MessageType.interceptPass) === this._robot);
 	}
 
-	_updateTask(): TaskAssignment<typeof InterceptPass> | TaskAssignment<typeof Duel> {
+	_updateTask(): TaskAssignment<typeof InterceptPass> | TaskAssignment<typeof Duel> |
+			TaskAssignment<typeof CenterBack> {
 		let selfDefenseDist = Field.distanceToFriendlyDefenseArea(this._robot.pos, this._robot.radius);
 		if (selfDefenseDist < DefUtil.centerBackDistanceToDefenseArea() + this._robot.radius + 0.03) {
 			// TODO: EVACUATE or EVACUATING
 			// this._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: "centerback", payload: {} });
+		}
+
+		// handle the case that we decided forcedefender and want to be centerback but are still mainAttacker
+		// if we do not do this, Duel is run but without applying for mainAttacker which creates a cycle
+		let cbGroup = this._messaging.receiveTrainer(MessageType.centerBackPosTarget);
+		if (cbGroup !== undefined && cbGroup.target && this._taskDecision === "forcedefender") {
+			return [CenterBack, [cbGroup.target]];
 		}
 
 		if (this._taskDecision === "attacker"  ||
