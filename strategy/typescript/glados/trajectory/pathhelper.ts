@@ -298,12 +298,14 @@ function addFriendlyPassObstacle(path: Path, robot: FriendlyRobot, messaging: Me
 					} else {
 						let ballTime = Physics.ballRollTime({speed: new Vector(Constants.maxBallSpeed, 0),
 							maxSpeed: Constants.maxBallSpeed}, dangerPos.distanceTo(endPoint));
+						let shortEndPoint = dangerPos + (endPoint - dangerPos).setLength(1);
 						if (ballTime > 5) {
 							ballTime = 5;
 						}
 						let t = dangerTime - World.Time;
 						path.addMovingCircle(t, t + ballTime, dangerPos, (endPoint - dangerPos).setLength(Constants.maxBallSpeed),
 							new Vector(0, 0), radius, Priorities.PASS_BALL_STRIKER);
+						path.addLine(dangerPos.x, dangerPos.y, shortEndPoint.x, shortEndPoint.y, radiusRobot, "pass2", Priorities.PASS_BALL_STRIKER);
 					}
 				}
 
