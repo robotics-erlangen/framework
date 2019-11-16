@@ -72,19 +72,20 @@ private slots:
 
 private:
     void resetFlipped(RobotMap &robots, float side);
-    QByteArray createVisionPacket();
+    QList<QByteArray> createVisionPacket();
     void resetVisionPackets();
     void setTeam(RobotMap &list, float side, const robot::Team &team);
     void moveBall(const amun::SimulatorMoveBall &ball);
     void moveRobot(const RobotMap &list, const amun::SimulatorMoveRobot &robot);
     void fieldAddLine(SSL_GeometryFieldSize *field, std::string name, float x1, float y1, float x2, float y2) const;
     void fieldAddCircularArc(SSL_GeometryFieldSize *field, std::string name, float x, float y, float radius, float a1, float a2) const;
+    void populateFieldPacket(SSL_GeometryFieldSize *field);
 
 private:
     typedef QPair<QList<robot::RadioCommand>, qint64> RadioCommand;
     SimulatorData *m_data;
     QQueue<RadioCommand> m_radioCommands;
-    QQueue<QByteArray> m_visionPackets;
+    QQueue<QList<QByteArray>> m_visionPackets;
     QQueue<QTimer *> m_visionTimers;
     const Timer *m_timer;
     QTimer *m_trigger;

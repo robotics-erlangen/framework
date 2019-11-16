@@ -23,6 +23,8 @@
 
 #include "protobuf/command.pb.h"
 #include <btBulletDynamicsCommon.h>
+#include "simulator.h"
+#include "simfield.h"
 
 static const float BALL_RADIUS = 0.0215f;
 static const float BALL_MASS = 0.046f;
@@ -41,7 +43,7 @@ public:
 
 public:
     void begin();
-    int update(SSL_DetectionBall *ball, float stddev, unsigned int numCameras, float fieldBoundaryWidth,
+    bool update(SSL_DetectionBall *ball, float stddev, const CameraInfo& cameraInfo, float fieldBoundaryWidth,
                bool enableInvisibleBall, float visibilityThreshold, float cameraHeight);
     void move(const amun::SimulatorMoveBall &ball);
     void kick(const btVector3 &power);

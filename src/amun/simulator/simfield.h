@@ -44,4 +44,11 @@ private:
     QList<btCollisionObject*> m_objects;
 };
 
+// maybe needs a better home than this header
+struct CameraInfo {
+    btVector3 position;
+    float halfAreaX;
+    float halfAreaY;
+};
+
 #endif // SIMFIELD_H

@@ -27,6 +27,7 @@
 #include "simrobot.h"
 #include <QTimer>
 #include <algorithm>
+#include <QtDebug>
 
 /* Friction and restitution between robots, ball and field: (empirical measurments)
  * Ball vs. Robot:
@@ -76,6 +77,7 @@ struct SimulatorData
     bool enableInvisibleBall;
     float ballVisibilityThreshold;
 };
+
 
 static void simulatorTickCallback(btDynamicsWorld *world, btScalar timeStep)
 {
@@ -174,11 +176,11 @@ void Simulator::process()
                 }
             }
             if (m_data->robotsYellow.contains(id)) {
-               robot::RadioResponse response = m_data->robotsYellow[id]->setCommand(command.command(), m_data->ball, m_charge);
-               response.set_time(m_time);
-               if (response.IsInitialized()) {
-                   responses.append(response);
-               }
+                robot::RadioResponse response = m_data->robotsYellow[id]->setCommand(command.command(), m_data->ball, m_charge);
+                response.set_time(m_time);
+                if (response.IsInitialized()) {
+                    responses.append(response);
+                }
             }
         }
     }
@@ -195,7 +197,8 @@ void Simulator::process()
     // only send a vision packet every third frame = 15 ms - epsilon (=half frame)
     // gives a vision frequency of 66.67Hz
     if (m_lastSentStatusTime + 12500000 <= m_time) {
-        QByteArray data = createVisionPacket();
+        QList<QByteArray> data = createVisionPacket();
+
         m_visionPackets.enqueue(data);
 
         // timeout is in milliseconds
@@ -286,37 +289,143 @@ void Simulator::fieldAddCircularArc(SSL_GeometryFieldSize *field, std::string na
     arc->set_thickness(m_data->geometry.line_width() * 1000.0f);
 }
 
-QByteArray Simulator::createVisionPacket()
+static bool checkCameraID(const int cameraId, const unsigned int numCameras, const btVector3& p, const float fieldHeight, const float overlap)
 {
-    // setup vision packet
-    SSL_WrapperPacket packet;
-    SSL_DetectionFrame *detection = packet.mutable_detection();
-    detection->set_frame_number(0);
-    detection->set_camera_id(0);
-    detection->set_t_capture((m_time + m_visionDelay - m_visionProcessingTime)*1E-9);
-    detection->set_t_sent((m_time + m_visionDelay)*1E-9);
+    if (numCameras == 1) {
+        return true;
+    } else if (numCameras == 2) {
+        // setup may differ from ssl-vision!
+        //  +y
+        // |-G-|
+        // | 1 |
+        // |---| +x
+        // | 0 |
+        // |-G-|
+        if (cameraId == 0) {
+            return p.y() < overlap;
+        } else {
+            return p.y() > -overlap;
+        }
+        // cameraId = p.y() > 0 ? 1 : 0;
+    } else if (numCameras == 4) {
+        // setup differs from ssl-vision!
+        //    +y
+        // |---G---|
+        // | 1 | 3 |
+        // |---o---| +x
+        // | 0 | 2 |
+        // |---G---|
+        switch(cameraId) {
+            case 0:
+                return p.y() < overlap && p.x() < overlap;
+            case 1:
+                return p.y() > -overlap && p.x() < overlap;
+            case 2:
+                return p.y() < overlap && p.x() > -overlap;
+            case 3:
+                return p.y() > -overlap && p.x() > -overlap;
+        }
+        // cameraId = ((p.y() > 0) ? 1 : 0) + ((p.x() > 0) ? 2 : 0);
+    } else if (numCameras == 8) {
+        // setup differs from ssl-vision!
+        //      +y
+        // |-----G-----|
+        // |  3  |  7  |
+        // |----- -----|
+        // |  2  |  6  |
+        // |-----o-----| +x
+        // |  1  |  5  |
+        // |----- -----|
+        // |  0  |  4  |
+        // |-----G-----|
+        // avoid duplicate check for positive and negative p.x
+        // float normalizedY = ((p.y() <= 0) ? fieldHeight/2 : 0) + p.y();
+        // cameraId = ((normalizedY > fieldHeight/4) ? 1 : 0)
+        //         + ((p.y() > 0) ? 2 : 0) + ((p.x() > 0) ? 4 : 0);
+        switch(cameraId) {
+            case 0:
+                return p.y() < overlap-fieldHeight/4 && p.x() < overlap;
+            case 1:
+                return p.y() > -overlap-fieldHeight/4 && p.y() < overlap && p.x() < overlap;
+            case 2:
+                return p.y() < overlap+fieldHeight/4 && p.y() > -overlap && p.x() < overlap;
+            case 3:
+                return p.y() > -overlap+fieldHeight/4 && p.x() < overlap;
+            case 4:
+                return p.y() < overlap-fieldHeight/4 && p.x() > -overlap;
+            case 5:
+                return p.y() > -overlap-fieldHeight/4 && p.y() < overlap && p.x() > -overlap;
+            case 6:
+                return p.y() < overlap+fieldHeight/4 && p.y() > -overlap && p.x() > -overlap;
+            case 7:
+                return p.y() > -overlap+fieldHeight/4 && p.x() > -overlap;
+        }
+    }
 
-    // get ball and robot position
-    const float totalBoundaryWidth = m_data->geometry.boundary_width() + m_data->geometry.referee_width();
-    int cameraId = m_data->ball->update(detection->add_balls(), m_data->stddevBall, m_data->cameraSetup.num_cameras(),
-                                        totalBoundaryWidth, m_data->enableInvisibleBall, m_data->ballVisibilityThreshold, m_data->cameraSetup.camera_height());
-    if (cameraId >= 0) {
-        // just move everything to the ball camera
-        detection->set_camera_id(cameraId);
-    } else {
-        // ball not visible
-        detection->clear_balls();
-    }
-    foreach (SimRobot *robot, m_data->robotsBlue) {
-        robot->update(detection->add_robots_blue(), m_data->stddevRobot, m_data->stddevRobotPhi);
-    }
-    foreach (SimRobot *robot, m_data->robotsYellow) {
-        robot->update(detection->add_robots_yellow(), m_data->stddevRobot, m_data->stddevRobotPhi);
+    qDebug() << "SimBall: Unsupported number of cameras" << numCameras;
+    return -1;
+}
+
+
+static std::vector<CameraInfo> getCameraInfos(const std::size_t numCameras, const float fieldWidth, const float fieldHeight, const float cameraHeight)
+{
+    unsigned int camerasX = 0, camerasY = 0;
+    if (numCameras == 1) {
+        camerasX = 1;
+        camerasY = 1;
+    } else if (numCameras == 2) {
+        // setup may differ from ssl-vision!
+        //  +y
+        // |-G-|
+        // | 1 |
+        // |---| +x
+        // | 0 |
+        // |-G-|
+        camerasX = 1;
+        camerasY = 2;
+    } else if (numCameras == 4) {
+        // setup differs from ssl-vision!
+        //    +y
+        // |---G---|
+        // | 1 | 3 |
+        // |---o---| +x
+        // | 0 | 2 |
+        // |---G---|
+        camerasX = 2;
+        camerasY = 2;
+    } else if (numCameras == 8) {
+        // setup differs from ssl-vision!
+        //      +y
+        // |-----G-----|
+        // |  3  |  7  |
+        // |----- -----|
+        // |  2  |  6  |
+        // |-----o-----| +x
+        // |  1  |  5  |
+        // |----- -----|
+        // |  0  |  4  |
+        // |-----G-----|
+        camerasX = 2;
+        camerasY = 4;
     }
 
-    // add field geometry
-    SSL_GeometryData *geometry = packet.mutable_geometry();
-    SSL_GeometryFieldSize *field = geometry->mutable_field();
+    std::vector<CameraInfo> cameraInfos(numCameras);
+    for (std::size_t cameraId = 0; cameraId < numCameras; ++cameraId) {
+        int signX = (cameraId >= numCameras / 2) ? 1 : -1;
+        int partsY = 2 * (cameraId % (numCameras / camerasX)) - (numCameras / camerasX - 1);
+
+        const float cameraHalfAreaX = fieldWidth / (2 * camerasX);
+        const float cameraHalfAreaY = fieldHeight / (2 * camerasY);
+        const float cameraX = camerasX == 1 ? 0 : cameraHalfAreaX * signX;
+        const float cameraY = cameraHalfAreaY * partsY;
+        const float cameraZ = cameraHeight;
+        cameraInfos[cameraId] = {btVector3(cameraX, cameraY, cameraZ), cameraHalfAreaX, cameraHalfAreaY};
+    }
+    return cameraInfos;
+}
+
+void Simulator::populateFieldPacket(SSL_GeometryFieldSize *field)
+{
     field->set_field_width(m_data->geometry.field_width() * 1000.0f);
     field->set_field_length(m_data->geometry.field_height() * 1000.0f);
     field->set_boundary_width(m_data->geometry.boundary_width() * 1000.0f);
@@ -355,21 +464,13 @@ QByteArray Simulator::createVisionPacket()
         fieldAddCircularArc(field, "RightFieldLeftPenaltyArc", fieldLengthHalf, -defenseStretchHalf, defenseDistance, M_PI, 1.5f * M_PI);
         fieldAddCircularArc(field, "RightFieldRightPenaltyArc", fieldLengthHalf, defenseStretchHalf, defenseDistance, 0.5f * M_PI, M_PI);
     }
+}
 
-    int numCameras = m_data->cameraSetup.num_cameras();
-    for (int i = 0; i < numCameras; ++i) {
-        // camera position calculation must match SimBall
-        int signX = (i >= numCameras / 2) ? 1 : -1;
-        int partsY = 2 * (i % (numCameras / 2)) - (numCameras / 2 - 1);
-
-        const float cameraHalfAreaX = m_data->geometry.field_width() / 4;
-        const float cameraHalfAreaY = m_data->geometry.field_height() / numCameras;
-        const float cameraX = cameraHalfAreaX * signX;
-        const float cameraY = cameraHalfAreaY * partsY;
-        const float cameraZ = 4.f;
-
+static void addCameraCalibrations(SSL_GeometryData *geometry, const std::size_t& numCameras, const std::vector<CameraInfo>& cameraInfos)
+{
+    for (std::size_t cameraId = 0; cameraId < numCameras; ++cameraId) {
         SSL_GeometryCameraCalibration *calib = geometry->add_calib();
-        calib->set_camera_id(i);
+        calib->set_camera_id(cameraId);
         // DUMMY VALUES
         calib->set_distortion(0.2);
         calib->set_focal_length(FOCAL_LENGTH);
@@ -383,26 +484,89 @@ QByteArray Simulator::createVisionPacket()
         calib->set_ty(0);
         calib->set_tz(3500);
 
-        calib->set_derived_camera_world_tx(cameraY * 1000);
-        calib->set_derived_camera_world_ty(-cameraX * 1000);
-        calib->set_derived_camera_world_tz(cameraZ * 1000);
+        calib->set_derived_camera_world_tx(cameraInfos[cameraId].position.x() * 1000);
+        calib->set_derived_camera_world_ty(-cameraInfos[cameraId].position.y() * 1000);
+        calib->set_derived_camera_world_tz(cameraInfos[cameraId].position.z() * 1000);
+    }
+}
+
+QList<QByteArray> Simulator::createVisionPacket()
+{
+    const std::size_t numCameras = m_data->cameraSetup.num_cameras();
+
+    std::vector<SSL_WrapperPacket> packets;
+    packets.reserve(numCameras);
+
+    const float overlap = 0.3;
+
+    const btVector3 ballPosition = m_data->ball->position() / SIMULATOR_SCALE;
+
+    const float totalBoundaryWidth = m_data->geometry.boundary_width() + m_data->geometry.referee_width();
+
+    std::vector<CameraInfo> cameraInfos = getCameraInfos(numCameras, m_data->geometry.field_width(), m_data->geometry.field_height(), m_data->cameraSetup.camera_height());
+
+    for (std::size_t cameraId = 0; cameraId < numCameras; ++cameraId) {
+        if (!checkCameraID(cameraId, numCameras, ballPosition, m_data->geometry.field_height(), overlap)) {
+            continue;
+        }
+
+        // setup vision packet
+        packets.push_back(SSL_WrapperPacket());
+        SSL_DetectionFrame *detection = packets.back().mutable_detection();
+        detection->set_frame_number(0);
+        detection->set_camera_id(cameraId);
+        detection->set_t_capture((m_time + m_visionDelay - m_visionProcessingTime)*1E-9);
+        detection->set_t_sent((m_time + m_visionDelay)*1E-9);
+
+        // get ball position
+        bool visible = m_data->ball->update(detection->add_balls(), m_data->stddevBall, cameraInfos[cameraId],
+                totalBoundaryWidth, m_data->enableInvisibleBall, m_data->ballVisibilityThreshold, m_data->cameraSetup.camera_height());
+        if (!visible) {
+            detection->clear_balls();
+        }
     }
 
-    // serialize "vision packet"
-    QByteArray data;
-    data.resize(packet.ByteSize());
-    if (packet.SerializeToArray(data.data(), data.size())) {
-        return data;
+    // put robots and geometry in the first packet
+    SSL_DetectionFrame *detection = packets[0].mutable_detection();
+
+    // get robot positions
+    for (SimRobot *robot : m_data->robotsBlue) {
+        robot->update(detection->add_robots_blue(), m_data->stddevRobot, m_data->stddevRobotPhi);
     }
-    return QByteArray();
+    for (SimRobot *robot : m_data->robotsYellow) {
+        robot->update(detection->add_robots_yellow(), m_data->stddevRobot, m_data->stddevRobotPhi);
+    }
+
+    // add field geometry
+    SSL_GeometryData *geometry = packets[0].mutable_geometry();
+    SSL_GeometryFieldSize *field = geometry->mutable_field();
+    populateFieldPacket(field);
+
+    addCameraCalibrations(geometry, numCameras, cameraInfos);
+
+    // serialize "vision packet"
+    QList<QByteArray> data;
+    for (std::size_t i = 0; i < packets.size(); ++i) {
+        QByteArray d;
+        d.resize(packets[i].ByteSize());
+        if (packets[i].SerializeToArray(d.data(), d.size())) {
+            data.push_back(d);
+        } else {
+            data.push_back(QByteArray());
+        }
+    }
+
+    return data;
 }
 
 void Simulator::sendVisionPacket()
 {
-    QByteArray data = m_visionPackets.dequeue();
-    emit gotPacket(data, m_timer->currentTime(), "simulator"); // send "vision packet" and assume instant receiving
-    // the receive time may be a bit jittered just like a real transmission
+    QList<QByteArray> currentVisionPackets = m_visionPackets.dequeue();
+    for (const QByteArray &data : currentVisionPackets) {
+        emit gotPacket(data, m_timer->currentTime(), "simulator"); // send "vision packet" and assume instant receiving
+        // the receive time may be a bit jittered just like a real transmission
 
+    }
     QTimer *timer = m_visionTimers.dequeue();
     timer->deleteLater();
 }

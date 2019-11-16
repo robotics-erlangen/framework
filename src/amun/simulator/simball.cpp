@@ -25,6 +25,7 @@
 #include <cmath>
 #include <QDebug>
 
+
 SimBall::SimBall(RNG *rng, btDiscreteDynamicsWorld *world, float fieldWidth, float fieldHeight) :
     m_rng(rng),
     m_world(world),
@@ -118,12 +119,13 @@ void SimBall::begin()
 }
 
 // samples a plane rotated towards the camera, sets p to the average position of the visible points and returns the relative amount of visible pixels
-static float positionOfVisiblePixels(btVector3& p, const btVector3& midPoint, const btVector3& cameraPosition, const btCollisionWorld* const m_world) {
+static float positionOfVisiblePixels(btVector3& p, const btVector3& simulatorBallPosition, const btVector3& simulatorCameraPosition, const btCollisionWorld* const m_world)
+{
 
     const float simulatorBallRadius = BALL_RADIUS * SIMULATOR_SCALE;
 
     // axis and angle for rotating the plane towards the camera
-    btVector3 cameraDirection = (cameraPosition - midPoint).normalize();
+    btVector3 cameraDirection = (simulatorCameraPosition - simulatorBallPosition).normalize();
 
     const btVector3 up = btVector3(0, 0, 1);
 
@@ -136,30 +138,30 @@ static float positionOfVisiblePixels(btVector3& p, const btVector3& midPoint, co
 
     btVector3 newPos = btVector3(0, 0, 0);
 
-    for(int x = -sampleRadius; x <= sampleRadius; ++x) {
-        for(int y = -sampleRadius; y <= sampleRadius; ++y) {
+    for (int x = -sampleRadius; x <= sampleRadius; ++x) {
+        for (int y = -sampleRadius; y <= sampleRadius; ++y) {
             // create offset to the midpoint of the plane
             btVector3 offset(x, y, 0);
             offset *= simulatorBallRadius / sampleRadius;
 
             // ignore samples outside the ball
-            if(offset.length() >= simulatorBallRadius) {
+            if (offset.length() >= simulatorBallRadius) {
                 --maxHits;
                 continue;
             }
 
             // rotate the plane/offset
             offset.rotate(axis, angle);
-            btVector3 samplePoint = midPoint + offset;
+            btVector3 samplePoint = simulatorBallPosition + offset;
 
-            btCollisionWorld::ClosestRayResultCallback sampleResult(samplePoint, cameraPosition);
-            m_world->rayTest(samplePoint, cameraPosition, sampleResult);
+            btCollisionWorld::ClosestRayResultCallback sampleResult(samplePoint, simulatorCameraPosition);
+            m_world->rayTest(samplePoint, simulatorCameraPosition, sampleResult);
 
-            if(!sampleResult.hasHit()) {
+            if (!sampleResult.hasHit()) {
                 // transform point back to plane with upwards normal to ensure unchanged height
-                samplePoint -= midPoint;
+                samplePoint -= simulatorBallPosition;
                 samplePoint.rotate(axis, -angle);
-                samplePoint += midPoint;
+                samplePoint += simulatorBallPosition;
 
                 newPos += samplePoint;
 
@@ -168,7 +170,7 @@ static float positionOfVisiblePixels(btVector3& p, const btVector3& midPoint, co
         }
     }
 
-    if(cameraHitCounter > 0) {
+    if (cameraHitCounter > 0) {
         // return average position of samples transformed to real world space
         newPos /= cameraHitCounter;
         p = newPos / SIMULATOR_SCALE;
@@ -177,7 +179,7 @@ static float positionOfVisiblePixels(btVector3& p, const btVector3& midPoint, co
     return static_cast<float>(cameraHitCounter) / static_cast<float>(maxHits);
 }
 
-int SimBall::update(SSL_DetectionBall *ball, float stddev, unsigned int numCameras,
+bool SimBall::update(SSL_DetectionBall *ball, float stddev, const CameraInfo& cameraInfo,
                     float fieldBoundaryWidth, bool enableInvisibleBall, float visibilityThreshold, float cameraHeight)
 {
     // setup ssl-vision ball detection
@@ -190,95 +192,35 @@ int SimBall::update(SSL_DetectionBall *ball, float stddev, unsigned int numCamer
 
     btVector3 p = transform.getOrigin() / SIMULATOR_SCALE;
 
-    unsigned int cameraId, camerasX, camerasY;
-    if (numCameras == 1) {
-        cameraId = 0;
-        camerasX = 1;
-        camerasY = 1;
-    } else if (numCameras == 2) {
-        // setup may differ from ssl-vision!
-        //  +y
-        // |-G-|
-        // | 1 |
-        // |---| +x
-        // | 0 |
-        // |-G-|
-        cameraId = p.y() > 0 ? 1 : 0;
-        camerasX = 1;
-        camerasY = 2;
-    } else if (numCameras == 4) {
-        // setup differs from ssl-vision!
-        //    +y
-        // |---G---|
-        // | 1 | 3 |
-        // |---o---| +x
-        // | 0 | 2 |
-        // |---G---|
-        cameraId = ((p.y() > 0) ? 1 : 0) + ((p.x() > 0) ? 2 : 0);
-        camerasX = 2;
-        camerasY = 2;
-    } else if (numCameras == 8) {
-        // setup differs from ssl-vision!
-        //      +y
-        // |-----G-----|
-        // |  3  |  7  |
-        // |----- -----|
-        // |  2  |  6  |
-        // |-----o-----| +x
-        // |  1  |  5  |
-        // |----- -----|
-        // |  0  |  4  |
-        // |-----G-----|
-        // avoid duplicate check for positive and negative p.x
-        float normalizedY = ((p.y() <= 0) ? m_fieldHeight/2 : 0) + p.y();
-        cameraId = ((normalizedY > m_fieldHeight/4) ? 1 : 0)
-                + ((p.y() > 0) ? 2 : 0) + ((p.x() > 0) ? 4 : 0);
-        camerasX = 2;
-        camerasY = 4;
-    } else {
-        qDebug() << "SimBall: Unsupported number of cameras" << numCameras;
-        return -1;
-    }
-
-    // must match simulator camera geometry!!!
-    int signX = (cameraId >= numCameras / 2) ? 1 : -1;
-    int partsY = 2 * (cameraId % (numCameras / camerasX)) - (numCameras / camerasX - 1);
-
-    const float cameraHalfAreaX = m_fieldWidth / (2 * camerasX);
-    const float cameraHalfAreaY = m_fieldHeight / (2 * camerasY);
-    const float cameraX = camerasX == 1 ? 0 : cameraHalfAreaX * signX;
-    const float cameraY = cameraHalfAreaY * partsY;
-    const float cameraZ = cameraHeight;
-
-    const btVector3 cameraPosition = btVector3(cameraX, cameraY, cameraZ) * SIMULATOR_SCALE;
+    const btVector3 simulatorCameraPosition = btVector3(cameraInfo.position.x(), cameraInfo.position.y(), cameraInfo.position.z()) * SIMULATOR_SCALE;
 
     // the camera uses the mid point of the visible pixels as the mid point of the ball
     // if some parts of the ball aren't visible the position this function adjusts the position accordingly (hopefully)
     if (enableInvisibleBall) {
         //if the visibility is lower than the threshold the ball disappears
-        float visibility = positionOfVisiblePixels(p, transform.getOrigin(), cameraPosition, m_world);
+        float visibility = positionOfVisiblePixels(p, transform.getOrigin(), simulatorCameraPosition, m_world);
         if (visibility < visibilityThreshold) {
-            return -1;
+            return false;
         }
     }
 
     const float SCALING_LIMIT = 0.9f;
     const float MAX_EXTRA_OVERLAP = 0.05f;
 
-    float modZ = std::min(SCALING_LIMIT * cameraZ, std::max(0.f, p.z() - BALL_RADIUS));
-    float modX = (p.x() - cameraX) * (cameraZ / (cameraZ - modZ)) + cameraX;
-    float modY = (p.y() - cameraY) * (cameraZ / (cameraZ - modZ)) + cameraY;
+    float modZ = std::min(SCALING_LIMIT * cameraInfo.position.z(), std::max(0.f, p.z() - BALL_RADIUS));
+    float modX = (p.x() - cameraInfo.position.x()) * (cameraInfo.position.z() / (cameraInfo.position.z() - modZ)) + cameraInfo.position.x();
+    float modY = (p.y() - cameraInfo.position.y()) * (cameraInfo.position.z() / (cameraInfo.position.z() - modZ)) + cameraInfo.position.y();
 
-    float distBallCam = std::sqrt((cameraZ-modZ)*(cameraZ-modZ)+
-        (cameraX-p.x())*(cameraX-p.x())+(cameraY-p.y())*(cameraY-p.y()));
+    float distBallCam = std::sqrt((cameraInfo.position.z()-modZ)*(cameraInfo.position.z()-modZ)+
+        (cameraInfo.position.x()-p.x())*(cameraInfo.position.x()-p.x())+(cameraInfo.position.y()-p.y())*(cameraInfo.position.y()-p.y()));
     float denomSqrt = (distBallCam*1000)/FOCAL_LENGTH - 1;
     float area = (BALL_RADIUS*BALL_RADIUS*1000000*M_PI) / (denomSqrt*denomSqrt);
     ball->set_area(area);
 
-    if (std::abs(modX - cameraX) > cameraHalfAreaX + fieldBoundaryWidth + MAX_EXTRA_OVERLAP
-            || std::abs(modY - cameraY) > cameraHalfAreaY + fieldBoundaryWidth + MAX_EXTRA_OVERLAP) {
+    if (std::abs(modX - cameraInfo.position.x()) > cameraInfo.halfAreaX + fieldBoundaryWidth + MAX_EXTRA_OVERLAP
+            || std::abs(modY - cameraInfo.position.y()) > cameraInfo.halfAreaY + fieldBoundaryWidth + MAX_EXTRA_OVERLAP) {
         // invalid
-        return -1;
+        return false;
     }
 
     // if (height > 0.1f) {
@@ -290,7 +232,7 @@ int SimBall::update(SSL_DetectionBall *ball, float stddev, unsigned int numCamer
     const Vector2 noise = m_rng->normalVector(stddev);
     ball->set_x((modY + noise.x) * 1000.0f);
     ball->set_y(-(modX + noise.y) * 1000.0f);
-    return cameraId;
+    return true;
 }
 
 
