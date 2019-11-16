@@ -60,6 +60,7 @@ private slots:
     void setStddevRobotPos(double stddev);
     void setStddevRobotPhi(double stddev);
     void setEnableInvisibleBall(int state);
+    void setBallVisibilityThreshold(int threshold);
 
 private:
     Ui::SimulatorWidget *ui;

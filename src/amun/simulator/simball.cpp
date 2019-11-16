@@ -117,17 +117,19 @@ void SimBall::begin()
     }
 }
 
-// samples a plane rotated towards the camera and returns the average position of the visible points
-static btVector3 positionOfVisiblePixels(const btVector3& p, const btVector3& midPoint, const btVector3& cameraPosition, const btCollisionWorld* const m_world) {
+// samples a plane rotated towards the camera, sets p to the average position of the visible points and returns the relative amount of visible pixels
+static float positionOfVisiblePixels(btVector3& p, const btVector3& midPoint, const btVector3& cameraPosition, const btCollisionWorld* const m_world) {
 
     // axis and angle for rotating the plane towards the camera
     btVector3 cameraDirection = (cameraPosition - midPoint).normalize();
     btVector3 axis = btVector3(0, 0, 1).cross(cameraDirection).normalize();
-    btScalar angle = btVector3(0, 0, 1).angle(cameraDirection);
+    btScalar angle = -btVector3(0, 0, 1).angle(cameraDirection);
 
 
     const int sampleRadius = 7;
+    std::size_t maxHits = pow((2*sampleRadius+1), 2);
     std::size_t cameraHitCounter = 0;
+
     btVector3 newPos = btVector3(0, 0, 0);
 
     for(int x = -sampleRadius; x <= sampleRadius; ++x) {
@@ -138,6 +140,7 @@ static btVector3 positionOfVisiblePixels(const btVector3& p, const btVector3& mi
 
             // ignore samples outside the ball
             if(offset.length() >= BALL_RADIUS) {
+                --maxHits;
                 continue;
             }
 
@@ -165,14 +168,14 @@ static btVector3 positionOfVisiblePixels(const btVector3& p, const btVector3& mi
     if(cameraHitCounter > 0) {
         // return average position of samples adjusted by the simulatorscale
         newPos /= cameraHitCounter;
-        return newPos / SIMULATOR_SCALE;
-    } else {
-        return p;
+        p = newPos / SIMULATOR_SCALE;
     }
+
+    return static_cast<float>(cameraHitCounter) / static_cast<float>(maxHits);
 }
 
 int SimBall::update(SSL_DetectionBall *ball, float stddev, unsigned int numCameras,
-                    float fieldBoundaryWidth, bool enableInvisibleBall, float cameraHeight)
+                    float fieldBoundaryWidth, bool enableInvisibleBall, float visibilityThreshold, float cameraHeight)
 {
     // setup ssl-vision ball detection
     ball->set_confidence(1.0);
@@ -246,17 +249,14 @@ int SimBall::update(SSL_DetectionBall *ball, float stddev, unsigned int numCamer
 
     const btVector3 cameraPosition = btVector3(cameraX, cameraY, cameraZ) * SIMULATOR_SCALE;
 
-    btCollisionWorld::ClosestRayResultCallback result(transform.getOrigin(), cameraPosition);
-    m_world->rayTest(transform.getOrigin(), cameraPosition, result);
-
-    // the ball is not visible to the camera
-    if (enableInvisibleBall && result.hasHit()) {
-        return -1;
-    }
-
     // the camera uses the mid point of the visible pixels as the mid point of the ball
-    // if some parts of the ball aren't visible the position this function adjusts the position accordingly (hopefully)
-    p = positionOfVisiblePixels(p, transform.getOrigin(), cameraPosition, m_world);
+    // if some parts of the ball aren't visible the position this function adjusts the position accordingly (hopefully) and if the visibility is lower than the threshold the ball disappears
+    if (enableInvisibleBall) {
+        float visibility = positionOfVisiblePixels(p, transform.getOrigin(), cameraPosition, m_world);
+        if (visibility < visibilityThreshold) {
+            return -1;
+        }
+    }
 
     const float SCALING_LIMIT = 0.9f;
     const float MAX_EXTRA_OVERLAP = 0.05f;

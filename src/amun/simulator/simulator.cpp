@@ -74,6 +74,7 @@ struct SimulatorData
     float stddevRobot;
     float stddevRobotPhi;
     bool enableInvisibleBall;
+    float ballVisibilityThreshold;
 };
 
 static void simulatorTickCallback(btDynamicsWorld *world, btScalar timeStep)
@@ -125,6 +126,7 @@ Simulator::Simulator(const Timer *timer, const amun::SimulatorSetup &setup) :
     m_data->stddevRobot = 0.0f;
     m_data->stddevRobotPhi = 0.0f;
     m_data->enableInvisibleBall = true;
+    m_data->ballVisibilityThreshold = 0.4;
 
     // no robots after initialisation
 
@@ -297,7 +299,7 @@ QByteArray Simulator::createVisionPacket()
     // get ball and robot position
     const float totalBoundaryWidth = m_data->geometry.boundary_width() + m_data->geometry.referee_width();
     int cameraId = m_data->ball->update(detection->add_balls(), m_data->stddevBall, m_data->cameraSetup.num_cameras(),
-                                        totalBoundaryWidth, m_data->enableInvisibleBall, m_data->cameraSetup.camera_height());
+                                        totalBoundaryWidth, m_data->enableInvisibleBall, m_data->ballVisibilityThreshold, m_data->cameraSetup.camera_height());
     if (cameraId >= 0) {
         // just move everything to the ball camera
         detection->set_camera_id(cameraId);
@@ -539,6 +541,10 @@ void Simulator::handleCommand(const Command &command)
 
         if (sim.has_enable_invisible_ball()) {
             m_data->enableInvisibleBall = sim.enable_invisible_ball();
+        }
+
+        if ( sim.has_ball_visibility_threshold()) {
+            m_data->ballVisibilityThreshold = sim.ball_visibility_threshold();
         }
     }
 

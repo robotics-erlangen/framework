@@ -41,6 +41,9 @@ SimulatorWidget::SimulatorWidget(QWidget *parent) :
     connect(ui->btnStop, SIGNAL(clicked()), SLOT(stop()));
     connect(ui->chkEnableNoise, &QCheckBox::stateChanged, this, &SimulatorWidget::setEnableNoise);
     connect(ui->chkEnableInvisibleBall, &QCheckBox::stateChanged, this, &SimulatorWidget::setEnableInvisibleBall);
+    connect(ui->chkEnableInvisibleBall, SIGNAL(toggled(bool)), ui->spinBallVisibilityThreshold, SLOT(setEnabled(bool)));
+    connect(ui->chkEnableInvisibleBall, SIGNAL(toggled(bool)), ui->ballVisibilityThresholdLabel, SLOT(setEnabled(bool)));
+    connect(ui->spinBallVisibilityThreshold, SIGNAL(valueChanged(int)), SLOT(setBallVisibilityThreshold(int)));
     connect(ui->btnToggle, &QToolButton::clicked, this, &SimulatorWidget::toggleSimulatorRunning);
 
     connect(ui->spinStddevBall, SIGNAL(valueChanged(double)), SLOT(setStddevBall(double)));
@@ -190,5 +193,12 @@ void SimulatorWidget::setEnableInvisibleBall(int state)
 
     Command command(new amun::Command);
     command->mutable_simulator()->set_enable_invisible_ball(isEnabled);
+    emit sendCommand(command);
+}
+
+void SimulatorWidget::setBallVisibilityThreshold(int threshold)
+{
+    Command command(new amun::Command);
+    command->mutable_simulator()->set_ball_visibility_threshold(threshold / 100.0f);
     emit sendCommand(command);
 }
