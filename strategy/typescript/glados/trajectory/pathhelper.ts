@@ -131,13 +131,20 @@ function addZonedBallObstacles(robot: FriendlyRobot, innerBallDistance?: number,
 	let distSq = robot.pos.distanceToSq(ball.pos);
 	let outermost = Infinity;
 
+
 	if (outerBallDistance != undefined) {
 		outermost = outerBallDistance * outerBallDistance;
 		robot.path.addCircle(ball.pos.x, ball.pos.y, ball.radius + outerBallDistance, "OuterBallObstacle", Priorities.OUTER_BALL);
 	}
 	if (distSq < outermost && innerBallDistance != undefined) {
 		outermost = innerBallDistance * innerBallDistance;
-		robot.path.addCircle(ball.pos.x, ball.pos.y, ball.radius + innerBallDistance, "InnerBallObstacle", Priorities.INNER_BALL);
+		if (ball.speed.length() >= 0.3) {
+			let ballSpeedScale = ball.speed * 0.4;
+			robot.path.addLine(ball.pos.x, ball.pos.y, ball.pos.x + ballSpeedScale.x, ball.pos.y + ballSpeedScale.y, ball.radius + innerBallDistance,
+				"InnerBallObstacle", Priorities.INNER_BALL);
+		} else {
+			robot.path.addCircle(ball.pos.x, ball.pos.y, ball.radius + innerBallDistance, "InnerBallObstacle", Priorities.INNER_BALL);
+		}
 	}
 	if (distSq < outermost) {
 		robot.path.addCircle(ball.pos.x, ball.pos.y, ball.radius, "Ball", Priorities.BALL);
