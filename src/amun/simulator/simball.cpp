@@ -194,11 +194,12 @@ bool SimBall::update(SSL_DetectionBall *ball, float stddev, const CameraInfo& ca
 
     const btVector3 simulatorCameraPosition = btVector3(cameraInfo.position.x(), cameraInfo.position.y(), cameraInfo.position.z()) * SIMULATOR_SCALE;
 
+    float visibility = 1;
     // the camera uses the mid point of the visible pixels as the mid point of the ball
     // if some parts of the ball aren't visible the position this function adjusts the position accordingly (hopefully)
     if (enableInvisibleBall) {
         //if the visibility is lower than the threshold the ball disappears
-        float visibility = positionOfVisiblePixels(p, transform.getOrigin(), simulatorCameraPosition, m_world);
+        visibility = positionOfVisiblePixels(p, transform.getOrigin(), simulatorCameraPosition, m_world);
         if (visibility < visibilityThreshold) {
             return false;
         }
@@ -214,7 +215,7 @@ bool SimBall::update(SSL_DetectionBall *ball, float stddev, const CameraInfo& ca
     float distBallCam = std::sqrt((cameraInfo.position.z()-modZ)*(cameraInfo.position.z()-modZ)+
         (cameraInfo.position.x()-p.x())*(cameraInfo.position.x()-p.x())+(cameraInfo.position.y()-p.y())*(cameraInfo.position.y()-p.y()));
     float denomSqrt = (distBallCam*1000)/FOCAL_LENGTH - 1;
-    float area = (BALL_RADIUS*BALL_RADIUS*1000000*M_PI) / (denomSqrt*denomSqrt);
+    float area = visibility * (BALL_RADIUS*BALL_RADIUS*1000000*M_PI) / (denomSqrt*denomSqrt);
     ball->set_area(area);
 
     if (std::abs(modX - cameraInfo.position.x()) > cameraInfo.halfAreaX + fieldBoundaryWidth + MAX_EXTRA_OVERLAP
