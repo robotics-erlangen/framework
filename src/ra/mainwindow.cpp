@@ -99,6 +99,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     // setup ui parts that send commands
     m_internalReferee = new InternalReferee(this);
     connect(m_internalReferee, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
+    connect(ui->referee, &RefereeWidget::sendCommand, this, &MainWindow::sendCommand);
     connect(ui->referee, SIGNAL(changeCommand(SSL_Referee::Command)), m_internalReferee, SLOT(changeCommand(SSL_Referee::Command)));
     connect(ui->referee, SIGNAL(changeStage(SSL_Referee::Stage)), m_internalReferee, SLOT(changeStage(SSL_Referee::Stage)));
     connect(ui->referee, SIGNAL(changeYellowKeeper(uint)), m_internalReferee, SLOT(changeYellowKeeper(uint)));
@@ -622,6 +623,7 @@ void MainWindow::setInternalRefereeEnabled(bool enabled)
     }
     // force auto reload of strategies if external referee is used
     ui->robots->forceAutoReload(!enabled);
+    ui->referee->forceAutoReload(!enabled);
 }
 
 void MainWindow::setTransceiver(bool enabled)

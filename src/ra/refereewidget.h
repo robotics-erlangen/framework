@@ -24,6 +24,8 @@
 #include "protobuf/command.h"
 #include "protobuf/ssl_referee.pb.h"
 #include "protobuf/status.h"
+#include <memory>
+#include <QStringList>
 #include <QWidget>
 
 namespace Ui {
@@ -40,6 +42,7 @@ public:
     RefereeWidget(const RefereeWidget&) = delete;
     RefereeWidget& operator=(const RefereeWidget&) = delete;
     void load();
+    void forceAutoReload(bool force);
 
 signals:
     void changeCommand(SSL_Referee::Command command);
@@ -48,6 +51,7 @@ signals:
     void changeBlueKeeper(uint id);
     void enableInternalAutoref(bool enable);
     void changeSidesFlipped(bool flipped);
+    void sendCommand(const Command& command);
 
 public slots:
     void handleStatus(const Status &status);
@@ -69,6 +73,8 @@ private:
     uint m_yellowKeeperId;
     uint m_blueKeeperId;
     SSL_Referee::Stage m_stage;
+
+    std::shared_ptr<QStringList> m_recentScripts;
 };
 
 #endif // REFEREEWIDGET_H

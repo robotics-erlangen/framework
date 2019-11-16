@@ -6,14 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>222</width>
-    <height>361</height>
+    <width>251</width>
+    <height>401</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Referee</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_4">
+  <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <layout class="QGridLayout" name="stateCommands">
      <item row="0" column="0">
@@ -346,6 +346,9 @@
     </layout>
    </item>
    <item>
+    <widget class="TeamWidget" name="autoref" native="true"/>
+   </item>
+   <item>
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -353,13 +356,21 @@
      <property name="sizeHint" stdset="0">
       <size>
        <width>20</width>
-       <height>22</height>
+       <height>46</height>
       </size>
      </property>
     </spacer>
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>TeamWidget</class>
+   <extends>QWidget</extends>
+   <header>widgets/teamwidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>btnRefereeHalt</tabstop>
   <tabstop>btnRefereeStop</tabstop>

@@ -99,12 +99,10 @@ RobotSelectionWidget::RobotSelectionWidget(QWidget *parent) :
     m_model = new QStandardItemModel(this);
     ui->robots->setModel(m_model);
     connect(ui->robots, SIGNAL(doubleClicked(QModelIndex)), SLOT(showConfigDialog(QModelIndex)));
-    connect(this, SIGNAL(enableInternalAutoref(bool)), ui->autoref, SLOT(setEnabled(bool)));
     emit enableInternalAutoref(false);
 
     connect(this, SIGNAL(setUseDarkColors(bool)), ui->blue, SLOT(setUseDarkColors(bool)));
     connect(this, SIGNAL(setUseDarkColors(bool)), ui->yellow, SLOT(setUseDarkColors(bool)));
-    connect(this, SIGNAL(setUseDarkColors(bool)), ui->autoref, SLOT(setUseDarkColors(bool)));
 }
 
 RobotSelectionWidget::~RobotSelectionWidget()
@@ -145,7 +143,6 @@ void RobotSelectionWidget::saveConfig(bool saveTeams)
     if (saveTeams) {
         ui->blue->saveConfig();
         ui->yellow->saveConfig();
-        ui->autoref->saveConfig();
     }
 }
 
@@ -176,14 +173,12 @@ void RobotSelectionWidget::shutdown()
 {
     ui->yellow->shutdown();
     ui->blue->shutdown();
-    ui->autoref->shutdown();
 }
 
 void RobotSelectionWidget::enableContent(bool enable)
 {
     ui->blue->enableContent(enable);
     ui->yellow->enableContent(enable);
-    ui->autoref->enableContent(enable);
     ui->robots->viewport()->setEnabled(enable);
     m_contentDisabled = !enable;
 }
@@ -196,12 +191,9 @@ void RobotSelectionWidget::init(QWidget *window, InputManager *inputManager)
     connect(ui->blue, SIGNAL(sendCommand(Command)), window, SLOT(sendCommand(Command)));
     connect(window, SIGNAL(gotStatus(Status)), ui->yellow, SLOT(handleStatus(Status)));
     connect(ui->yellow, SIGNAL(sendCommand(Command)), window, SLOT(sendCommand(Command)));
-    connect(window, SIGNAL(gotStatus(Status)), ui->autoref, SLOT(handleStatus(Status)));
-    connect(ui->autoref, SIGNAL(sendCommand(Command)), window, SLOT(sendCommand(Command)));
 
     ui->blue->init(amun::StatusStrategyWrapper::BLUE);
     ui->yellow->init(amun::StatusStrategyWrapper::YELLOW);
-    ui->autoref->init(amun::StatusStrategyWrapper::AUTOREF);
 
     m_itemDelegate = new ItemDelegate(inputManager, this);
     ui->robots->setItemDelegate(m_itemDelegate);
@@ -221,13 +213,11 @@ void RobotSelectionWidget::load()
 
     ui->blue->setRecentScripts(m_recentScripts);
     ui->yellow->setRecentScripts(m_recentScripts);
-    ui->autoref->setRecentScripts(m_recentScripts);
 
     loadRobots();
 
     ui->blue->load();
     ui->yellow->load();
-    ui->autoref->load();
     m_isInitialized = true;
 }
 
@@ -468,7 +458,6 @@ void RobotSelectionWidget::forceAutoReload(bool force)
 {
     ui->blue->forceAutoReload(force);
     ui->yellow->forceAutoReload(force);
-    ui->autoref->forceAutoReload(force);
 }
 
 robot::Specs RobotSelectionWidget::specs(const QModelIndex &index) const

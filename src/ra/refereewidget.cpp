@@ -20,12 +20,14 @@
 
 #include "refereewidget.h"
 #include "ui_refereewidget.h"
+#include "strategysearch.h"
 #include "config/config.h"
 #include "protobuf/command.pb.h"
 #include "protobuf/gamestate.pb.h"
 #include "protobuf/ssl_referee.pb.h"
 #include <google/protobuf/descriptor.h>
 #include <QSettings>
+#include <memory>
 
 RefereeWidget::RefereeWidget(QWidget *parent) :
     QWidget(parent), m_yellowKeeperId(0), m_blueKeeperId(0), m_stage(SSL_Referee::NORMAL_FIRST_HALF)
@@ -60,12 +62,18 @@ RefereeWidget::RefereeWidget(QWidget *parent) :
     ui->gameStage->setCurrentIndex(activeStage); // select default value
     connect(ui->gameStage, SIGNAL(currentIndexChanged(int)), SLOT(handleStage(int)));
     connect(ui->useInternalAutoref, SIGNAL(toggled(bool)), this, SIGNAL(enableInternalAutoref(bool)));
+    connect(this, &RefereeWidget::enableInternalAutoref, ui->autoref, &TeamWidget::setEnabled);
     connect(ui->sidesFlipped, SIGNAL(toggled(bool)), this, SIGNAL(changeSidesFlipped(bool)));
+
+    connect(ui->autoref, &TeamWidget::sendCommand, this, &RefereeWidget::sendCommand);
+
+    ui->autoref->init(amun::StatusStrategyWrapper::AUTOREF);
 }
 
 RefereeWidget::~RefereeWidget()
 {
     saveConfig();
+    ui->autoref->shutdown();
     delete ui;
 }
 
@@ -78,6 +86,12 @@ void RefereeWidget::saveConfig()
     s.setValue("useInternalAutoref", ui->useInternalAutoref->isChecked());
     s.setValue("SidesFlipped", ui->sidesFlipped->isChecked());
     s.endGroup();
+
+    s.beginGroup("Autoref");
+    s.setValue("RecentScript", *m_recentScripts);
+    s.endGroup();
+
+    ui->autoref->saveConfig();
 }
 
 void RefereeWidget::load()
@@ -89,10 +103,28 @@ void RefereeWidget::load()
     ui->useInternalAutoref->setChecked(s.value("useInternalAutoref", false).toBool());
     ui->sidesFlipped->setChecked(s.value("SidesFlipped", false).toBool());
     s.endGroup();
+
+    s.beginGroup("Autoref");
+    QStringList recent = s.value("RecentScripts").toStringList();
+    s.endGroup();
+
+    recent = ra::sanitizeRecentScripts(recent, { "init.lua" });
+    ra::searchForStrategies(recent, ERFORCE_AUTOREFDIR, "init.lua");
+    m_recentScripts = std::make_shared<QStringList>(recent);
+
+    ui->autoref->setRecentScripts(m_recentScripts);
+    ui->autoref->load();
+}
+
+void RefereeWidget::forceAutoReload(bool force)
+{
+    ui->autoref->forceAutoReload(force);
 }
 
 void RefereeWidget::setStyleSheets(bool useDark)
 {
+    ui->autoref->setUseDarkColors(useDark);
+
     QString yellow, blue;
     if (useDark) {
         yellow = createStyleSheet(UI_YELLOW_COLOR_DARK);
@@ -118,6 +150,7 @@ void RefereeWidget::setStyleSheets(bool useDark)
 
 void RefereeWidget::handleStatus(const Status &status)
 {
+    ui->autoref->handleStatus(status);
     if (status->has_game_state()) {
         // just update the GUI!, prevents sending referee packets
         blockSignals(true);
