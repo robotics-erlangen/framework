@@ -76,7 +76,13 @@ export class CatchBall {
 		}
 
 		// limit catch time to be inside the field
-		let timeLimit = Physics.ballOutTime(ball, -0.02);
+		const BALL_RADIUS_OFFSET = -0.02;
+		let timeLimit = Physics.ballOutTime(ball, BALL_RADIUS_OFFSET);
+		// if the ball is outside of the field, ballOutTime returns Infinity. if catchball was just initialised this._catchTime is also set to Infinity form Physics.robotTimeToBall
+		// In this special case catchTime will stay Infinity and the strategy will crash.
+		if (timeLimit === Infinity && !Field.isInField(World.Ball.pos, BALL_RADIUS_OFFSET)) {
+			timeLimit = 0;
+		}
 		this._catchTime = Math.min(timeLimit, this._catchTime);
 
 		// check for fast ball and that it moves towards the robot
