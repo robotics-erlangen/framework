@@ -117,6 +117,60 @@ void SimBall::begin()
     }
 }
 
+// samples a plane rotated towards the camera and returns the average position of the visible points
+static btVector3 positionOfVisiblePixels(const btVector3& p, const btVector3& midPoint, const btVector3& cameraPosition, const btCollisionWorld* const m_world) {
+
+    // axis and angle for rotating the plane towards the camera
+    btVector3 cameraDirection = (cameraPosition - midPoint).normalize();
+    btVector3 axis = btVector3(0, 0, 1).cross(cameraDirection).normalize();
+    btScalar angle = btVector3(0, 0, 1).angle(cameraDirection);
+
+
+    const int sampleRadius = 7;
+    std::size_t cameraHitCounter = 0;
+    btVector3 newPos = btVector3(0, 0, 0);
+
+    for(int x = -sampleRadius; x <= sampleRadius; ++x) {
+        for(int y = -sampleRadius; y <= sampleRadius; ++y) {
+            // create offset to the midpoint of the plane
+            btVector3 offset(x, y, 0);
+            offset *= BALL_RADIUS / sampleRadius;
+
+            // ignore samples outside the ball
+            if(offset.length() >= BALL_RADIUS) {
+                continue;
+            }
+
+
+            // rotate the plane/offset
+            offset.rotate(axis, angle);
+            btVector3 samplePoint = midPoint + offset;
+
+            btCollisionWorld::ClosestRayResultCallback sampleResult(samplePoint, cameraPosition);
+            m_world->rayTest(samplePoint, cameraPosition, sampleResult);
+
+            if(!sampleResult.hasHit()) {
+                // transform point back to plane with upwards normal to ensure unchanged height
+                samplePoint -= midPoint;
+                samplePoint.rotate(axis, -angle);
+                samplePoint += midPoint;
+
+                newPos += samplePoint;
+
+                ++cameraHitCounter;
+            }
+        }
+    }
+
+    if(cameraHitCounter > 0) {
+        // return average position of samples adjusted by the simulatorscale
+        newPos /= cameraHitCounter;
+        return newPos / SIMULATOR_SCALE;
+    } else {
+        return p;
+    }
+}
+
 int SimBall::update(SSL_DetectionBall *ball, float stddev, unsigned int numCameras,
                     float fieldBoundaryWidth, bool enableInvisibleBall, float cameraHeight)
 {
@@ -127,7 +181,8 @@ int SimBall::update(SSL_DetectionBall *ball, float stddev, unsigned int numCamer
 
     btTransform transform;
     m_motionState->getWorldTransform(transform);
-    const btVector3 p = transform.getOrigin() / SIMULATOR_SCALE;
+
+    btVector3 p = transform.getOrigin() / SIMULATOR_SCALE;
 
     unsigned int cameraId, camerasX, camerasY;
     if (numCameras == 1) {
@@ -193,10 +248,15 @@ int SimBall::update(SSL_DetectionBall *ball, float stddev, unsigned int numCamer
 
     btCollisionWorld::ClosestRayResultCallback result(transform.getOrigin(), cameraPosition);
     m_world->rayTest(transform.getOrigin(), cameraPosition, result);
+
     // the ball is not visible to the camera
     if (enableInvisibleBall && result.hasHit()) {
         return -1;
     }
+
+    // the camera uses the mid point of the visible pixels as the mid point of the ball
+    // if some parts of the ball aren't visible the position this function adjusts the position accordingly (hopefully)
+    p = positionOfVisiblePixels(p, transform.getOrigin(), cameraPosition, m_world);
 
     const float SCALING_LIMIT = 0.9f;
     const float MAX_EXTRA_OVERLAP = 0.05f;
@@ -228,6 +288,7 @@ int SimBall::update(SSL_DetectionBall *ball, float stddev, unsigned int numCamer
     ball->set_y(-(modX + noise.y) * 1000.0f);
     return cameraId;
 }
+
 
 void SimBall::move(const amun::SimulatorMoveBall &ball)
 {
