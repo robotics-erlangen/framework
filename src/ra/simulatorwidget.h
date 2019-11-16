@@ -61,6 +61,7 @@ private slots:
     void setStddevRobotPhi(double stddev);
     void setEnableInvisibleBall(int state);
     void setBallVisibilityThreshold(int threshold);
+    void setCameraOverlap(int overlap);
 
 private:
     Ui::SimulatorWidget *ui;

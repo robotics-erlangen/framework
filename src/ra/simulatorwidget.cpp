@@ -44,6 +44,7 @@ SimulatorWidget::SimulatorWidget(QWidget *parent) :
     connect(ui->chkEnableInvisibleBall, SIGNAL(toggled(bool)), ui->spinBallVisibilityThreshold, SLOT(setEnabled(bool)));
     connect(ui->chkEnableInvisibleBall, SIGNAL(toggled(bool)), ui->ballVisibilityThresholdLabel, SLOT(setEnabled(bool)));
     connect(ui->spinBallVisibilityThreshold, SIGNAL(valueChanged(int)), SLOT(setBallVisibilityThreshold(int)));
+    connect(ui->spinCameraOverlap, SIGNAL(valueChanged(int)), SLOT(setCameraOverlap(int)));
     connect(ui->btnToggle, &QToolButton::clicked, this, &SimulatorWidget::toggleSimulatorRunning);
 
     connect(ui->spinStddevBall, SIGNAL(valueChanged(double)), SLOT(setStddevBall(double)));
@@ -200,5 +201,12 @@ void SimulatorWidget::setBallVisibilityThreshold(int threshold)
 {
     Command command(new amun::Command);
     command->mutable_simulator()->set_ball_visibility_threshold(threshold / 100.0f);
+    emit sendCommand(command);
+}
+
+void SimulatorWidget::setCameraOverlap(int overlap)
+{
+    Command command(new amun::Command);
+    command->mutable_simulator()->set_camera_overlap(overlap / 100.0f);
     emit sendCommand(command);
 }

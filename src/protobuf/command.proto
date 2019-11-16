@@ -58,6 +58,7 @@ message CommandSimulator {
     optional SimulatorSetup simulator_setup = 11;
     optional bool enable_invisible_ball = 12;
     optional float ball_visibility_threshold = 13;
+    optional float camera_overlap = 14;
 }
 
 message CommandReferee {

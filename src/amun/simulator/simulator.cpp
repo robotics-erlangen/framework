@@ -76,6 +76,7 @@ struct SimulatorData
     float stddevRobotPhi;
     bool enableInvisibleBall;
     float ballVisibilityThreshold;
+    float cameraOverlap;
 };
 
 
@@ -129,6 +130,7 @@ Simulator::Simulator(const Timer *timer, const amun::SimulatorSetup &setup) :
     m_data->stddevRobotPhi = 0.0f;
     m_data->enableInvisibleBall = true;
     m_data->ballVisibilityThreshold = 0.4;
+    m_data->cameraOverlap = 0.3;
 
     // no robots after initialisation
 
@@ -497,8 +499,6 @@ QList<QByteArray> Simulator::createVisionPacket()
     std::vector<SSL_WrapperPacket> packets;
     packets.reserve(numCameras);
 
-    const float overlap = 0.3;
-
     const btVector3 ballPosition = m_data->ball->position() / SIMULATOR_SCALE;
 
     const float totalBoundaryWidth = m_data->geometry.boundary_width() + m_data->geometry.referee_width();
@@ -506,7 +506,7 @@ QList<QByteArray> Simulator::createVisionPacket()
     std::vector<CameraInfo> cameraInfos = getCameraInfos(numCameras, m_data->geometry.field_width(), m_data->geometry.field_height(), m_data->cameraSetup.camera_height());
 
     for (std::size_t cameraId = 0; cameraId < numCameras; ++cameraId) {
-        if (!checkCameraID(cameraId, numCameras, ballPosition, m_data->geometry.field_height(), overlap)) {
+        if (!checkCameraID(cameraId, numCameras, ballPosition, m_data->geometry.field_height(), m_data->cameraOverlap)) {
             continue;
         }
 
@@ -707,8 +707,12 @@ void Simulator::handleCommand(const Command &command)
             m_data->enableInvisibleBall = sim.enable_invisible_ball();
         }
 
-        if ( sim.has_ball_visibility_threshold()) {
+        if (sim.has_ball_visibility_threshold()) {
             m_data->ballVisibilityThreshold = sim.ball_visibility_threshold();
+        }
+
+        if (sim.has_camera_overlap()) {
+            m_data->cameraOverlap = sim.camera_overlap();
         }
     }
 
