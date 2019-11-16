@@ -50,6 +50,8 @@ add_library(ra-horus
     simulatorwidget.h
     savedirectorydialog.cpp
     savedirectorydialog.h
+    strategysearch.cpp
+    strategysearch.h
     logopener.cpp
     logopener.h
 )

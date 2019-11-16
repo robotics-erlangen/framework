@@ -41,7 +41,7 @@ class Specs;
 class RobotSelectionWidget : public QWidget
 {
     Q_OBJECT
-    
+
 public:
     struct Generation;
     struct Robot
@@ -101,9 +101,7 @@ private:
     void sendTeam(robot::Team *t, RobotWidget::Team team);
     void unsetTeam(uint id, uint skip_generation, RobotWidget::Team team);
     void updateGenerationTeam();
-    void searchForStrategies(const QString &languageDir, const QString &initFileName);
     void unsetAll();
-    void sanitizeRecentScripts();
 
 private:
     Ui::RobotSelectionWidget *ui;
