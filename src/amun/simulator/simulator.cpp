@@ -304,9 +304,9 @@ static bool checkCameraID(const int cameraId, const unsigned int numCameras, con
         // | 0 |
         // |-G-|
         if (cameraId == 0) {
-            return p.y() < overlap;
+            return p.y() <= overlap;
         } else {
-            return p.y() > -overlap;
+            return p.y() >= -overlap;
         }
         // cameraId = p.y() > 0 ? 1 : 0;
     } else if (numCameras == 4) {
@@ -319,13 +319,13 @@ static bool checkCameraID(const int cameraId, const unsigned int numCameras, con
         // |---G---|
         switch(cameraId) {
             case 0:
-                return p.y() < overlap && p.x() < overlap;
+                return p.y() <= overlap && p.x() <= overlap;
             case 1:
-                return p.y() > -overlap && p.x() < overlap;
+                return p.y() >= -overlap && p.x() <= overlap;
             case 2:
-                return p.y() < overlap && p.x() > -overlap;
+                return p.y() <= overlap && p.x() >= -overlap;
             case 3:
-                return p.y() > -overlap && p.x() > -overlap;
+                return p.y() >= -overlap && p.x() >= -overlap;
         }
         // cameraId = ((p.y() > 0) ? 1 : 0) + ((p.x() > 0) ? 2 : 0);
     } else if (numCameras == 8) {
@@ -346,21 +346,21 @@ static bool checkCameraID(const int cameraId, const unsigned int numCameras, con
         //         + ((p.y() > 0) ? 2 : 0) + ((p.x() > 0) ? 4 : 0);
         switch(cameraId) {
             case 0:
-                return p.y() < overlap-fieldHeight/4 && p.x() < overlap;
+                return p.y() <= overlap-fieldHeight/4 && p.x() <= overlap;
             case 1:
-                return p.y() > -overlap-fieldHeight/4 && p.y() < overlap && p.x() < overlap;
+                return p.y() >= -overlap-fieldHeight/4 && p.y() <= overlap && p.x() <= overlap;
             case 2:
-                return p.y() < overlap+fieldHeight/4 && p.y() > -overlap && p.x() < overlap;
+                return p.y() <= overlap+fieldHeight/4 && p.y() >= -overlap && p.x() <= overlap;
             case 3:
-                return p.y() > -overlap+fieldHeight/4 && p.x() < overlap;
+                return p.y() >= -overlap+fieldHeight/4 && p.x() <= overlap;
             case 4:
-                return p.y() < overlap-fieldHeight/4 && p.x() > -overlap;
+                return p.y() <= overlap-fieldHeight/4 && p.x() >= -overlap;
             case 5:
-                return p.y() > -overlap-fieldHeight/4 && p.y() < overlap && p.x() > -overlap;
+                return p.y() >= -overlap-fieldHeight/4 && p.y() <= overlap && p.x() >= -overlap;
             case 6:
-                return p.y() < overlap+fieldHeight/4 && p.y() > -overlap && p.x() > -overlap;
+                return p.y() <= overlap+fieldHeight/4 && p.y() >= -overlap && p.x() >= -overlap;
             case 7:
-                return p.y() > -overlap+fieldHeight/4 && p.x() > -overlap;
+                return p.y() >= -overlap+fieldHeight/4 && p.x() >= -overlap;
         }
     }
 
@@ -506,6 +506,7 @@ QList<QByteArray> Simulator::createVisionPacket()
     std::vector<CameraInfo> cameraInfos = getCameraInfos(numCameras, m_data->geometry.field_width(), m_data->geometry.field_height(), m_data->cameraSetup.camera_height());
 
     for (std::size_t cameraId = 0; cameraId < numCameras; ++cameraId) {
+        // at least one id is always valid
         if (!checkCameraID(cameraId, numCameras, ballPosition, m_data->geometry.field_height(), m_data->cameraOverlap)) {
             continue;
         }
