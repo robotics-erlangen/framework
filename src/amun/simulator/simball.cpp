@@ -120,11 +120,15 @@ void SimBall::begin()
 // samples a plane rotated towards the camera, sets p to the average position of the visible points and returns the relative amount of visible pixels
 static float positionOfVisiblePixels(btVector3& p, const btVector3& midPoint, const btVector3& cameraPosition, const btCollisionWorld* const m_world) {
 
+    const float simulatorBallRadius = BALL_RADIUS * SIMULATOR_SCALE;
+
     // axis and angle for rotating the plane towards the camera
     btVector3 cameraDirection = (cameraPosition - midPoint).normalize();
-    btVector3 axis = btVector3(0, 0, 1).cross(cameraDirection).normalize();
-    btScalar angle = -btVector3(0, 0, 1).angle(cameraDirection);
 
+    const btVector3 up = btVector3(0, 0, 1);
+
+    btVector3 axis = up.cross(cameraDirection).normalize();
+    btScalar angle = up.angle(cameraDirection);
 
     const int sampleRadius = 7;
     std::size_t maxHits = pow((2*sampleRadius+1), 2);
@@ -136,14 +140,13 @@ static float positionOfVisiblePixels(btVector3& p, const btVector3& midPoint, co
         for(int y = -sampleRadius; y <= sampleRadius; ++y) {
             // create offset to the midpoint of the plane
             btVector3 offset(x, y, 0);
-            offset *= BALL_RADIUS / sampleRadius;
+            offset *= simulatorBallRadius / sampleRadius;
 
             // ignore samples outside the ball
-            if(offset.length() >= BALL_RADIUS) {
+            if(offset.length() >= simulatorBallRadius) {
                 --maxHits;
                 continue;
             }
-
 
             // rotate the plane/offset
             offset.rotate(axis, angle);
@@ -166,7 +169,7 @@ static float positionOfVisiblePixels(btVector3& p, const btVector3& midPoint, co
     }
 
     if(cameraHitCounter > 0) {
-        // return average position of samples adjusted by the simulatorscale
+        // return average position of samples transformed to real world space
         newPos /= cameraHitCounter;
         p = newPos / SIMULATOR_SCALE;
     }
@@ -250,8 +253,9 @@ int SimBall::update(SSL_DetectionBall *ball, float stddev, unsigned int numCamer
     const btVector3 cameraPosition = btVector3(cameraX, cameraY, cameraZ) * SIMULATOR_SCALE;
 
     // the camera uses the mid point of the visible pixels as the mid point of the ball
-    // if some parts of the ball aren't visible the position this function adjusts the position accordingly (hopefully) and if the visibility is lower than the threshold the ball disappears
+    // if some parts of the ball aren't visible the position this function adjusts the position accordingly (hopefully)
     if (enableInvisibleBall) {
+        //if the visibility is lower than the threshold the ball disappears
         float visibility = positionOfVisiblePixels(p, transform.getOrigin(), cameraPosition, m_world);
         if (visibility < visibilityThreshold) {
             return -1;
