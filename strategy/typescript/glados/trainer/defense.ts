@@ -328,6 +328,7 @@ export class Defense {
 		this._centerbackAssignments = [];
 		let timeSum = 0;
 		let currentBall: Physics.BallLike & { posZ: number, initSpeedZ: number, speedZ: number } = World.Ball;
+		let didBallCB = false;
 		for (let info of intersectionInfos) {
 			let intersection = geom.intersectLineLine(World.Geometry.FriendlyGoal, new Vector(1, 0), info.startPos, info.startDirection);
 			let intersectsGoal = intersection[0] != undefined && Math.abs(intersection[0].x) < World.Geometry.GoalWidth / 2 + 0.1;
@@ -363,6 +364,7 @@ export class Defense {
 				let closestAsFriendly = <FriendlyRobot> closestRobot;
 				this._centerbackAssignments.push(closestAsFriendly);
 				defenders.splice(defenders.indexOf(closestAsFriendly), 1);
+				didBallCB = true;
 				this._messaging.send(
 					MessageType.roleAssignment,
 					closestAsFriendly,
@@ -377,7 +379,7 @@ export class Defense {
 		}
 
 		// assign default centerbacks
-		if (intersectionInfos.length === 0 && defenders.length > 0) {
+		if (!didBallCB && defenders.length > 0) {
 			// not in opponent corner attacks: assign a ball centerback
 			let needDefaultDB = !Referee.isDefensiveCornerKick() && !Referee.isFriendlyFreeKickState();
 			if (needDefaultDB) {
