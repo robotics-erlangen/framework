@@ -51,3 +51,10 @@ function(EPHelper_Add_Clobber target patch)
         DEPENDS ${clobber_patch_copy}
     )
 endfunction(EPHelper_Add_Clobber)
+
+function(EPHelper_Mark_For_Download target)
+    if (NOT TARGET ${target}-download)
+        ExternalProject_Add_StepTargets(${target} download)
+    endif()
+    add_dependencies(download ${target}-download)
+endfunction(EPHelper_Mark_For_Download)

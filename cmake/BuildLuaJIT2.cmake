@@ -63,6 +63,7 @@ ExternalProject_Add(project_luajit
 )
 EPHelper_Add_Cleanup(project_luajit bin include lib share)
 EPHelper_Add_Clobber(project_luajit ${LUAJIT_PATCH_FILE})
+EPHelper_Mark_For_Download(project_luajit)
 
 externalproject_get_property(project_luajit install_dir)
 set_target_properties(project_luajit PROPERTIES EXCLUDE_FROM_ALL true)
@@ -82,6 +83,3 @@ elseif(UNIX AND NOT APPLE)
   # required for the static library
   set_property(TARGET lib::luajit PROPERTY INTERFACE_LINK_LIBRARIES m dl)
 endif()
-
-ExternalProject_Add_StepTargets(project_luajit download)
-add_dependencies(download project_luajit-download)

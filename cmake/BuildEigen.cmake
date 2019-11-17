@@ -35,6 +35,7 @@ ExternalProject_Add(project_eigen
 )
 EPHelper_Add_Cleanup(project_eigen bin include lib share)
 EPHelper_Add_Clobber(project_eigen ${CMAKE_CURRENT_LIST_DIR}/stub.patch)
+EPHelper_Mark_For_Download(project_eigen)
 
 externalproject_get_property(project_eigen install_dir)
 set_target_properties(project_eigen PROPERTIES EXCLUDE_FROM_ALL true)
@@ -44,6 +45,3 @@ target_compile_options(eigen INTERFACE -Wno-deprecated-declarations)
 add_dependencies(eigen project_eigen)
 target_include_directories(eigen INTERFACE "${install_dir}/include/eigen3")
 add_library(lib::eigen ALIAS eigen)
-
-ExternalProject_Add_StepTargets(project_eigen download)
-add_dependencies(download project_eigen-download)

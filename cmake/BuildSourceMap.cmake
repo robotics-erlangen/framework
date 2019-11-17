@@ -36,6 +36,7 @@ ExternalProject_Add(project_sourcemap
 )
 EPHelper_Add_Cleanup(project_sourcemap bin include lib share)
 EPHelper_Add_Clobber(project_sourcemap ${CMAKE_CURRENT_LIST_DIR}/stub.patch)
+EPHelper_Mark_For_Download(project_sourcemap)
 
 externalproject_get_property(project_sourcemap binary_dir source_dir)
 set_target_properties(project_sourcemap PROPERTIES EXCLUDE_FROM_ALL true)
@@ -49,6 +50,3 @@ set_target_properties(lib::sourcemap PROPERTIES
     INTERFACE_LINK_LIBRARIES "Qt5::Core"
     INTERFACE_INCLUDE_DIRECTORIES "${source_dir}/src"
 )
-
-ExternalProject_Add_StepTargets(project_sourcemap download)
-add_dependencies(download project_sourcemap-download)

@@ -28,6 +28,7 @@ if(MINGW)
     endif()
 
 	include(ExternalProject)
+	include(ExternalProjectHelper)
 	ExternalProject_Add(project_usb
 		EXCLUDE_FROM_ALL true
 		URL http://www.robotics-erlangen.de/downloads/libraries/libusb-1.0.21.7z
@@ -43,6 +44,7 @@ if(MINGW)
             "<INSTALL_DIR>/${LIBUSB_SUBPATH}"
             "<INSTALL_DIR>/${LIBUSB_SUBPATH}.a"
 	)
+	EPHelper_Mark_For_Download(project_usb)
 
 	externalproject_get_property(project_usb install_dir)
 	add_library(lib::usb UNKNOWN IMPORTED)
@@ -56,9 +58,6 @@ if(MINGW)
 	add_dependencies(lib::usb project_usb)
 	set(USB_FOUND true)
 	message(STATUS "Building libusb 1.0.21")
-
-	ExternalProject_Add_StepTargets(project_usb download)
-	add_dependencies(download project_usb-download)
 else()
     message(WARNING "Get libusb for transmitter support")
     set(USB_FOUND false)

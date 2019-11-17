@@ -19,6 +19,7 @@
 # ***************************************************************************
 
 include(ExternalProject)
+include(ExternalProjectHelper)
 
 if (UNIX AND NOT APPLE)
     include(CheckIncludeFile)
@@ -34,6 +35,7 @@ if (UNIX AND NOT APPLE)
             CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
             BUILD_BYPRODUCTS "<INSTALL_DIR>/${LIBSDL_SUBPATH}"
         )
+        EPHelper_Mark_For_Download(project_sdl2)
 
         externalproject_get_property(project_sdl2 install_dir)
         add_library(lib::sdl2 UNKNOWN IMPORTED)
@@ -47,8 +49,6 @@ if (UNIX AND NOT APPLE)
         set(SDL2_FOUND true)
         set(SDL2_VERSION "2.0.7")
         message(STATUS "Building SDL ${SDL2_VERSION}")
-        ExternalProject_Add_StepTargets(project_sdl2 download)
-        add_dependencies(download project_sdl2-download)
     else()
         # actually just for plug & play, but it won't work without ...
         message(WARNING "SDL2 requires libudev for game controller support")
@@ -79,6 +79,7 @@ elseif(MINGW)
             "<INSTALL_DIR>/${LIBSDL_SUBPATH}"
             "<INSTALL_DIR>/${LIBSDL_LIBSUBPATH}"
 	)
+    EPHelper_Mark_For_Download(project_sdl2)
 
 	externalproject_get_property(project_sdl2 install_dir)
 	add_library(lib::sdl2 UNKNOWN IMPORTED)
@@ -92,9 +93,7 @@ elseif(MINGW)
 	add_dependencies(lib::sdl2 project_sdl2)
 	set(SDL2_FOUND true)
 	set(SDL2_VERSION "2.0.7")
-	message(STATUS "Building SDL 2.0.7")
-	ExternalProject_Add_StepTargets(project_sdl2 download)
-	add_dependencies(download project_sdl2-download)
+	message(STATUS "Building ${SDL2_VERSION}")
 else()
     message(WARNING "Get libsdl2 with version >= 2.0.2 for game controller support")
     set(SDL2_FOUND false)

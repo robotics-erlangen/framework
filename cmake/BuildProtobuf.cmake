@@ -22,6 +22,7 @@ set(PROTOBUF_SUBPATH "lib/${CMAKE_STATIC_LIBRARY_PREFIX}protobuf${CMAKE_STATIC_L
 set(PROTOC_SUBPATH "bin/protoc${CMAKE_EXECUTABLE_SUFFIX}")
 
 include(ExternalProject)
+include(ExternalProjectHelper)
 
 ExternalProject_Add(project_protobuf
     URL http://www.robotics-erlangen.de/downloads/libraries/protobuf-cpp-3.6.1.tar.gz
@@ -47,6 +48,7 @@ ExternalProject_Add_Step(project_protobuf out
         "<INSTALL_DIR>/${PROTOBUF_SUBPATH}"
         "<INSTALL_DIR>/${PROTOC_SUBPATH}"
 )
+EPHelper_Mark_For_Download(project_protobuf)
 
 externalproject_get_property(project_protobuf install_dir)
 set_target_properties(project_protobuf PROPERTIES EXCLUDE_FROM_ALL true)
@@ -71,6 +73,3 @@ set_target_properties(protobuf::protoc PROPERTIES
 )
 
 message(STATUS "Building protobuf ${PROTOBUF_VERSION}")
-
-ExternalProject_Add_StepTargets(project_protobuf download)
-add_dependencies(download project_protobuf-download)

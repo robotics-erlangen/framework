@@ -52,6 +52,7 @@ ExternalProject_Add(project_bullet
 )
 EPHelper_Add_Cleanup(project_bullet bin include lib share)
 EPHelper_Add_Clobber(project_bullet ${BULLET_PATCH_FILE})
+EPHelper_Mark_For_Download(project_bullet)
 
 externalproject_get_property(project_bullet install_dir)
 set_target_properties(project_bullet PROPERTIES EXCLUDE_FROM_ALL true)
@@ -68,6 +69,3 @@ set_property(TARGET lib::bullet PROPERTY INTERFACE_LINK_LIBRARIES
     "${install_dir}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}BulletCollision${CMAKE_STATIC_LIBRARY_SUFFIX}"
     "${install_dir}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}LinearMath${CMAKE_STATIC_LIBRARY_SUFFIX}"
 )
-
-ExternalProject_Add_StepTargets(project_bullet download)
-add_dependencies(download project_bullet-download)
