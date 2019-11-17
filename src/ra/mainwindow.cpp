@@ -55,7 +55,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     m_logWriterRa(false, 20),
     m_logWriterHorus(true, 20),
     m_isTournamentMode(tournamentMode),
-    m_currentWidgetConfiguration(0)
+    m_currentWidgetConfiguration(1)
 {
     qRegisterMetaType<SSL_Referee::Command>("SSL_Referee::Command");
     qRegisterMetaType<SSL_Referee::Stage>("SSL_Referee::Stage");
