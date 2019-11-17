@@ -19,6 +19,7 @@
 # ***************************************************************************
 
 include(ExternalProject)
+include(ExternalProjectHelper)
 
 set(LIBSM_SUBPATH "bin/${CMAKE_STATIC_LIBRARY_PREFIX}SourceMap${CMAKE_STATIC_LIBRARY_SUFFIX}")
 find_package(Qt5 COMPONENTS Core REQUIRED)

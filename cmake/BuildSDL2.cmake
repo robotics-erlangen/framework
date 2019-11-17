@@ -18,13 +18,14 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
+include(ExternalProject)
+
 if (UNIX AND NOT APPLE)
     include(CheckIncludeFile)
     check_include_file("libudev.h" LIBUDEV_FOUND)
     if (LIBUDEV_FOUND)
         set(LIBSDL_SUBPATH "lib/${CMAKE_SHARED_LIBRARY_PREFIX}SDL2${CMAKE_SHARED_LIBRARY_SUFFIX}")
 
-        include(ExternalProject)
         ExternalProject_Add(project_sdl2
 			EXCLUDE_FROM_ALL true
             URL http://www.robotics-erlangen.de/downloads/libraries/SDL2-2.0.7.tar.gz
@@ -57,7 +58,6 @@ elseif(MINGW)
     # use prebuilt binaries on windows
 	set(LIBSDL_SUBPATH "bin/SDL2${CMAKE_SHARED_LIBRARY_SUFFIX}")
     set(LIBSDL_LIBSUBPATH "lib/libSDL2${CMAKE_SHARED_LIBRARY_SUFFIX}.a")
-	include(ExternalProject)
   set(SPACE_FREE_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/project_sdl2-prefix")
   string(REPLACE " " "\\ " SPACE_FREE_INSTALL_DIR "${SPACE_FREE_INSTALL_DIR}")
 

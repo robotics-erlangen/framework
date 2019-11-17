@@ -19,6 +19,7 @@
 # ***************************************************************************
 
 include(ExternalProject)
+include(ExternalProjectHelper)
 
 ExternalProject_Add(project_eigen
     URL http://www.robotics-erlangen.de/downloads/libraries/eigen-3.3.7-323c052e1731.tar.bz2
