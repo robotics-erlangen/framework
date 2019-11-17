@@ -42,6 +42,7 @@ public:
     RefereeWidget(const RefereeWidget&) = delete;
     RefereeWidget& operator=(const RefereeWidget&) = delete;
     void load();
+    void shutdownInternalAutoref();
     void forceAutoReload(bool force);
 
 signals:

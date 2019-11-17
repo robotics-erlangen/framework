@@ -73,7 +73,6 @@ RefereeWidget::RefereeWidget(QWidget *parent) :
 RefereeWidget::~RefereeWidget()
 {
     saveConfig();
-    ui->autoref->shutdown();
     delete ui;
 }
 
@@ -114,6 +113,11 @@ void RefereeWidget::load()
 
     ui->autoref->setRecentScripts(m_recentScripts);
     ui->autoref->load();
+}
+
+void RefereeWidget::shutdownInternalAutoref()
+{
+    ui->autoref->close();
 }
 
 void RefereeWidget::forceAutoReload(bool force)

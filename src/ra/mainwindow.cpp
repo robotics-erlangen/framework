@@ -352,6 +352,7 @@ void MainWindow::closeEvent(QCloseEvent *e)
 
     // unblock stopped strategies
     ui->robots->shutdown();
+    ui->referee->shutdownInternalAutoref();
 
     QMainWindow::closeEvent(e);
 }
