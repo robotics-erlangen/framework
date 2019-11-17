@@ -27,7 +27,7 @@ import { ToTarget } from "glados/trajectory/totarget";
 
 export class TutorialTask extends Task {
 
-	constructor(agent: Agent, dir: number) {
+	constructor(agent: Agent) {
 
 		super(agent);
 
