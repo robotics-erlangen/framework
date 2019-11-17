@@ -40,10 +40,14 @@ endfunction(EPHelper_Add_Cleanup)
 # currently necessary
 function(EPHelper_Add_Clobber target patch)
     externalproject_get_property(${target} install_dir)
+    set(clobber_patch_copy ${install_dir}/patch.copy)
+    add_custom_command(OUTPUT ${clobber_patch_copy}
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${patch} ${clobber_patch_copy}
+        DEPENDS ${patch})
     ExternalProject_Add_Step(${target} clobber
         COMMAND true
         WORKING_DIRECTORY "${install_dir}"
         DEPENDERS download
-        DEPENDS ${patch}
+        DEPENDS ${clobber_patch_copy}
     )
 endfunction(EPHelper_Add_Clobber)
