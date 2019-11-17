@@ -78,7 +78,7 @@ export class BallTeleporter extends Move {
 
 		return {
 			assignments: taskAssignments,
-			mainAttacker: undefined
+			mainAttacker: this._robots[0]
 		};
 	}
 
