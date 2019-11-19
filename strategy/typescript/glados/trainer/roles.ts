@@ -4,6 +4,7 @@ import * as vis from "base/vis";
 import * as World from "base/world";
 
 import { ExclusiveRole, MessageBox, MessageType } from "glados/control/messaging";
+import { LeveledRating } from "glados/util/rating";
 
 
 const ROLE_HYSTERESIS = 0.05;
@@ -24,11 +25,11 @@ export class Roles {
 		}
 
 		let roleMsgs = this._messaging.receiveRepeated(MessageType.exclusiveRole);
-		let roleApplications: Map<ExclusiveRole, Map<FriendlyRobot, number>> = new Map<ExclusiveRole, Map<FriendlyRobot, number>>();
+		let roleApplications: Map<ExclusiveRole, Map<FriendlyRobot, LeveledRating>> = new Map<ExclusiveRole, Map<FriendlyRobot, LeveledRating>>();
 		for (let [robot, applications] of roleMsgs.entries()) {
 			for (let [role, rating] of applications) {
 				if (!roleApplications.has(role)) {
-					roleApplications[role] = new Map<FriendlyRobot, number>();
+					roleApplications[role] = new Map<FriendlyRobot, LeveledRating>();
 				}
 				roleApplications[role]!.set(robot, rating);
 			}
@@ -36,17 +37,13 @@ export class Roles {
 
 		let exclusiveRoles: Map<ExclusiveRole, FriendlyRobot> = new Map<ExclusiveRole, FriendlyRobot>(); // ensure that special roles are removed if no one applies
 		for (let [role, applications] of roleApplications.entries()) {
-			let bestRobot = undefined;
-			let bestRating = -Infinity;
-			for (let [robot, rating] of applications.entries()) {
-				if (this._exclusiveRoles[role] === robot) {
-					rating += roleHysteresis;
-				}
-				if (rating > bestRating) {
-					bestRobot = robot;
-					bestRating = rating;
+			if (this._exclusiveRoles.has(role) && applications.has(this._exclusiveRoles[role]!)) {
+				let v = applications[this._exclusiveRoles[role]!]!;
+				for (let x of v._ratingArray) {
+					if (x != undefined) x += roleHysteresis;
 				}
 			}
+			let bestRobot = LeveledRating.findBestRating(applications);
 			if (bestRobot) {
 				exclusiveRoles[role] = bestRobot;
 				this._messaging.sendBroadcast(role, bestRobot);

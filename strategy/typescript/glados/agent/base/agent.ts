@@ -218,16 +218,15 @@ export abstract class Agent {
 			}
 		}
 
+		let ratingArg = new Rating.LeveledRating(MessageType.mainAttacker);
 		let mainAttackerRating: number;
 		if (overrideRating == undefined) {
-			let timeToBall: number;
+			let timeToBall = Robot.minTimeToBall(this._robot);
 			if (parameters[0] != undefined || parameters[1] != undefined) {
 				let targetPos = parameters[0] || World.Geometry.OpponentGoal;
 				let endSpeedLength = parameters[1] != undefined ? parameters[1] : this._robot.maxSpeed;
-				timeToBall = Physics.robotTimeToBall(this._robot,
-					World.Ball, targetPos, endSpeedLength, this._mainAttackerLastTime);
-			} else {
-				timeToBall = Robot.minTimeToBall(this._robot);
+				ratingArg.setRating(1, Rating.timeToRating(Physics.robotTimeToBall(this._robot,
+					World.Ball, targetPos, endSpeedLength, this._mainAttackerLastTime)));
 			}
 
 			// if we have the ball, the time is 0
@@ -256,8 +255,8 @@ export abstract class Agent {
 			} else {
 				// fast ball: being in the direction of the ball is better
 				let ballToRobot = this._robot.pos - World.Ball.pos;
-				let ballToRobotLength = ballToRobot.length();
-				let cosAngle = World.Ball.speed.dot(ballToRobot) / ballToRobotLength / ballSpeedLength;
+				let ballToRobotLengthSq = ballToRobot.lengthSq();
+				let cosAngle = World.Ball.speed.dot(ballToRobot) / ballToRobotLengthSq;
 				ratingBoost = cosAngle * cosAngle * cosAngle * ballSpeedLength * 0.5;
 			}
 			debug.set("slowBall", Ball.isSlowBall());
@@ -265,16 +264,18 @@ export abstract class Agent {
 			timeToBall = timeToBall - ratingBoost;
 
 			mainAttackerRating = Rating.timeToRating(timeToBall);
+			ratingArg.setRating(0, mainAttackerRating);
 
 		} else {
 			mainAttackerRating = overrideRating;
+			ratingArg.setRating(2, overrideRating);
 		}
 		// debug.push("Locals dump")
 		// //debugger.dumpLocals(0)
 		// debug.pop()
-		debug.set("mainAttackerRating", mainAttackerRating);
+		debug.set("mainAttackerRating", ratingArg._ratingArray);
 		debug.pop();
-		this._messaging.sendToTrainerRepeated(MessageType.exclusiveRole, [ MessageType.mainAttacker, mainAttackerRating]);
+		this._messaging.sendToTrainerRepeated(MessageType.exclusiveRole, [ MessageType.mainAttacker, ratingArg]);
 	}
 
 	// controls whether the robot may be kept in its pool

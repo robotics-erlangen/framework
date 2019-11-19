@@ -161,7 +161,9 @@ export class HandleBall extends Behavior {
 		}
 
 		let rating = rateRobot(this._robot);
-		this._messaging.sendToTrainerRepeated(MessageType.exclusiveRole, [ MessageType.interceptPass, rating ]);
+		let ratingArg: Rating.LeveledRating = new Rating.LeveledRating(MessageType.interceptPass);
+		ratingArg.setRating(0, rating);
+		this._messaging.sendToTrainerRepeated(MessageType.exclusiveRole, [ MessageType.interceptPass, ratingArg ]);
 		return (this._messaging.receiveTrainer(MessageType.interceptPass) === this._robot);
 
 	}

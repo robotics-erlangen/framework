@@ -58,7 +58,9 @@ export class DuelAssistant extends Behavior {
 				return false;
 			}
 			let rating = this.rateRobot(duellingRobot);
-			this._messaging.sendToTrainerRepeated(MessageType.exclusiveRole, [ MessageType.duelAssistant, rating ]);
+			let ratingArg: Rating.LeveledRating = new Rating.LeveledRating(MessageType.duelAssistant);
+			ratingArg.setRating(0,rating);
+			this._messaging.sendToTrainerRepeated(MessageType.exclusiveRole, [ MessageType.duelAssistant, ratingArg ]);
 		}
 
 		let isDuelAssistant = (this._messaging.receiveTrainer(MessageType.duelAssistant) === this._robot);

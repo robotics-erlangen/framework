@@ -2,6 +2,7 @@ import { FriendlyRobot, Robot } from "base/robot";
 import { Position, RelativePosition } from "base/vector";
 
 import { Point as CenterBackPoint } from "glados/group/centerback";
+import { LeveledRating } from "glados/util/rating";
 
 // TODO: document the messages in a more native format
 /*
@@ -190,7 +191,7 @@ export class MessageBox {
 		this.sendGeneric(type, "trainer", data, false);
 	}
 
-	sendToTrainerRepeated(type: MessageType.exclusiveRole, role: [ExclusiveRole, number]): void;
+	sendToTrainerRepeated(type: MessageType.exclusiveRole, role: [ExclusiveRole, LeveledRating]): void;
 	sendToTrainerRepeated(type: MessageType.forcePoolChange, info: { robot: FriendlyRobot, destPool: "manual" | "ally" | "keeper" | "defender" | "attacker" | "hidden" }): void;
 	sendToTrainerRepeated(type: MessageType.groupApplication, group: { name: "centerback" | "moves" | "striker" | "midfield", payload: any }): void;
 	sendToTrainerRepeated(type: MessageType, data?: any): void {
@@ -286,7 +287,7 @@ export class MessageBox {
 		return it.value;
 	}
 
-	receiveRepeated(type: MessageType.exclusiveRole, broadcast?: boolean): Map<FriendlyRobot, [ExclusiveRole, number][]>;
+	receiveRepeated(type: MessageType.exclusiveRole, broadcast?: boolean): Map<FriendlyRobot, [ExclusiveRole, LeveledRating][]>;
 	receiveRepeated(type: MessageType.groupApplication, broadcast?: boolean): Map<FriendlyRobot, { name: "centerback" | "moves" | "striker" | "midfield", payload: any }[]>;
 	receiveRepeated(type: MessageType, broadcast?: boolean): Map<FriendlyRobot, any[]> {
 		return this.receiveGeneric(type, broadcast);

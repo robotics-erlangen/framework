@@ -4,6 +4,7 @@ import { Vector } from "base/vector";
 
 import { MessageType, Messaging } from "glados/control/messaging";
 import { UnitTest } from "glados/test/unit/unittest";
+import { LeveledRating } from "glados/util/rating";
 
 function robotStub(id: number): FriendlyRobot {
 	return new FriendlyRobot(<pb.robot.Specs> {id: id});
@@ -48,12 +49,16 @@ export class BaseMessaging extends UnitTest {
 		this.assert_undefined(agent2Box.receive(MessageType.moveDest).get(agent1.robot()));
 		this.assert_not_undefined(agent2Box.receive(MessageType.moveDest).get(agent3.robot()));
 
-		agent2Box.sendToTrainerRepeated(MessageType.exclusiveRole, [MessageType.mainAttacker, 1]);
-		agent1Box.sendToTrainerRepeated(MessageType.exclusiveRole, [MessageType.mainAttacker, 0.5]);
+		let rating2 = new LeveledRating(MessageType.mainAttacker);
+		rating2.setRating(0,1);
+		let rating1 = new LeveledRating(MessageType.mainAttacker);
+		rating1.setRating(0,0.5);
+		agent2Box.sendToTrainerRepeated(MessageType.exclusiveRole, [MessageType.mainAttacker, rating2]);
+		agent1Box.sendToTrainerRepeated(MessageType.exclusiveRole, [MessageType.mainAttacker, rating1]);
 
 		// note that trainer can receive without calling deliverMessages() before
 		let applications = trainerBox.receiveRepeated(MessageType.exclusiveRole);
-		this.assert_equal(applications.get(agent1.robot())![0][1], 0.5);
+		this.assert_equal(applications.get(agent1.robot())![0][1]._ratingArray[0], 0.5);
 
 		trainerBox.sendBroadcast(MessageType.mainAttacker, agent2.robot());
 		this.assert_equal(trainerBox.receiveTrainer(MessageType.mainAttacker), agent2.robot());
