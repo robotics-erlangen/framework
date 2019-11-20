@@ -78,6 +78,7 @@ export let MixedTeam: pb.ssl.TeamPlan | undefined = undefined;
 export let SelectedOptions = undefined;
 
 export let TeamName: string = "";
+export let OpponentTeamName: string = "";
 /**
  * current refereestate, can be one of these:
  * Halt, Stop, Game, GameForce,
@@ -481,6 +482,7 @@ function _updateGameState(state: pb.amun.GameState) {
 	FriendlyRedCards = friendlyTeamInfo.red_cards;
 	OpponentRedCards = opponentTeamInfo.red_cards;
 	TeamName = friendlyTeamInfo.name;
+	OpponentTeamName = opponentTeamInfo.name;
 }
 
 /** update and handle user inputs set for own robots */
