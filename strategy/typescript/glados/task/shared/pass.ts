@@ -35,11 +35,12 @@ export class Pass extends Task {
 	private _chip: boolean;
 	private _passSpeed: number;
 	private _ballReceiptPos: Position | undefined;
+	private _highPrecision: boolean;
 
 	private _shoot: Shoot;
 
 	constructor(agent: Agent, targetRobot?: FriendlyRobot, targetPos?: Position, chip?: boolean,
-			ballReceiptPos?: Position, targetTime?: number, targetSpeed?: number) {
+			ballReceiptPos?: Position, targetTime?: number, targetSpeed?: number, highPrecision: boolean = false) {
 		super(agent);
 		this._targetRobot = targetRobot;
 		this._targetTime = targetTime;
@@ -47,6 +48,7 @@ export class Pass extends Task {
 		this._chip = chip === true;
 		this._passSpeed = targetSpeed != undefined ? targetSpeed : (this._targetRobot ? this._targetRobot.constants.passSpeed : DEFAULT_PASS_SPEED);
 		this._ballReceiptPos = ballReceiptPos;
+		this._highPrecision = highPrecision;
 
 		// retrieve targetPos from messages if no argument was given
 		let pos: Position;
@@ -91,7 +93,7 @@ export class Pass extends Task {
 		debug.set("targetPos", this._targetPos);
 
 		let maxAngleError = 3.5 * Math.PI / 180;
-		let isFreekickLike = Referee.isFriendlyFreeKickState() || World.RefereeState === "KickoffOffensive";
+		let isFreekickLike = Referee.isFriendlyFreeKickState() || World.RefereeState === "KickoffOffensive" || this._highPrecision;
 		if (isFreekickLike) {
 			maxAngleError = 2.5 * Math.PI / 180;
 		}
@@ -131,7 +133,7 @@ export class Pass extends Task {
 		if (this._chip) {
 			this._shoot._chipPass(targetPos, this._ballReceiptPos, undefined, maxAngleError);
 		} else {
-			if (Referee.isFriendlyFreeKickState() || World.RefereeState === "KickoffOffensive") {
+			if (isFreekickLike) {
 				this._shoot._shootFreeKick(targetPos, this._passSpeed, this._targetTime, maxAngleError);
 			} else {
 				this._shoot._shoot(targetPos, this._passSpeed, this._targetTime, this._ballReceiptPos, maxAngleError);
