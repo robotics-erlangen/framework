@@ -55,7 +55,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     m_logWriterRa(false, 20),
     m_logWriterHorus(true, 20),
     m_isTournamentMode(tournamentMode),
-    m_currentWidgetConfiguration(1)
+    m_currentWidgetConfiguration(0)
 {
     qRegisterMetaType<SSL_Referee::Command>("SSL_Referee::Command");
     qRegisterMetaType<SSL_Referee::Stage>("SSL_Referee::Stage");
@@ -243,7 +243,8 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     // hide options dock by default
     ui->dockOptions->hide();
 
-    loadConfig(true);
+    const uint INITIAL_CONFIG_ID = isRa ? 1 : 2;
+    loadConfig(true, INITIAL_CONFIG_ID);
     // switch configuration keys
     QSignalMapper *switchConfigMapper = new QSignalMapper(this);
     for (uint i = 0;i<10;i++) {
@@ -332,7 +333,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     // setup data distribution
     connect(this, SIGNAL(gotStatus(Status)), m_logOpener, SLOT(handleStatus(Status)));
 
-    switchToWidgetConfiguration(isRa ? 1 : 2, true);
+    switchToWidgetConfiguration(INITIAL_CONFIG_ID, true);
 }
 
 MainWindow::~MainWindow()
@@ -419,10 +420,13 @@ void MainWindow::createLogWriterConnections(CombinedLogWriter &writer, QAction *
 
 void MainWindow::saveConfig()
 {
+    // Don't save for invalid default widget config
+    if (m_currentWidgetConfiguration == 0)
+        return;
+
     QSettings s;
 
-    s.beginGroup("MainWindow" + (m_currentWidgetConfiguration == 0 ? "" :
-                                    QString::number(m_currentWidgetConfiguration)));
+    s.beginGroup("MainWindow" + QString::number(m_currentWidgetConfiguration));
     s.setValue("Geometry", saveGeometry());
     s.setValue("State", saveState());
     s.setValue("SplitterH", ui->splitterH->saveState());
@@ -440,7 +444,7 @@ void MainWindow::saveConfig()
     m_logOpener->saveConfig();
 }
 
-void MainWindow::loadConfig(bool doRestoreGeometry)
+void MainWindow::loadConfig(bool doRestoreGeometry, uint configId)
 {
     QSettings s;
     if (!s.isWritable()) {
@@ -448,8 +452,7 @@ void MainWindow::loadConfig(bool doRestoreGeometry)
         label->setText("<font color=\"red\">Can not save config! Check permissions of config file.</font>");
         statusBar()->addPermanentWidget(label);
     }
-    s.beginGroup("MainWindow" + (m_currentWidgetConfiguration == 0 ? "" :
-                                    QString::number(m_currentWidgetConfiguration)));
+    s.beginGroup("MainWindow" + QString::number(configId));
     if (doRestoreGeometry) {
         restoreGeometry(s.value("Geometry").toByteArray());
     }
@@ -475,7 +478,7 @@ void MainWindow::switchToWidgetConfiguration(int configId, bool forceUpdate)
         saveConfig();
         unsigned int previousId = m_currentWidgetConfiguration;
         m_currentWidgetConfiguration = id;
-        loadConfig(false);
+        loadConfig(false, m_currentWidgetConfiguration);
 
         // Horus mode
         if (configId % 2 == 0 && (forceUpdate || previousId % 2 == 1)) {

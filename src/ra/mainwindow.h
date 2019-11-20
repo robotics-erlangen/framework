@@ -91,7 +91,7 @@ private slots:
 
 private:
     void toggleHorusModeWidgets(bool enable);
-    void loadConfig(bool doRestoreGeometry);
+    void loadConfig(bool doRestoreGeometry, uint configId);
     void raMode();
     void horusMode();
     void createLogWriterConnections(CombinedLogWriter &writer, QAction *record, QAction *backlog1, QAction *backlog2);
