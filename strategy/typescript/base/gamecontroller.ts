@@ -38,7 +38,7 @@ let message: gameController.ControllerToTeam | undefined = undefined;
  */
 export function _update() {
 	message = undefined;
-	if (World.TeamName === "ER-Force") {
+	if (World.TeamName === "ER-Force" && (World.OpponentTeamName !== "ER-Force" || World.TeamIsBlue)) {
 		if (amunLocal.connectGameController()) {
 			if (state === "UNCONNECTED") {
 				state = "CONNECTED";
