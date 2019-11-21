@@ -25,7 +25,7 @@ public slots:
     void switchInternalGameController(bool isInternal);
 
 signals:
-    void gotMessageForInternaleGameController(std::shared_ptr<gameController::AutoRefToController> message);
+    void gotMessageForInternalGameController(std::shared_ptr<gameController::AutoRefToController> message);
 
 private slots:
     void handleInternalGameControllerReply(const gameController::ControllerReply &reply);

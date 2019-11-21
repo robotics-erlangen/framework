@@ -46,6 +46,7 @@ public:
     void update(SSL_DetectionRobot *robot, float stddev_p, float stddev_phi);
     void move(const amun::SimulatorMoveRobot &robot);
     bool isFlipped();
+    btVector3 position() const;
 
     const robot::Specs& specs() const { return m_specs; }
 

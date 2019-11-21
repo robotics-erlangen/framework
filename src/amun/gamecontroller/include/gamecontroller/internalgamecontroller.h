@@ -27,6 +27,7 @@ public slots:
 signals:
     void gotPacketForReferee(const QByteArray &data);
     void gotControllerReply(const gameController::ControllerReply &reply);
+    void sendCommand(Command command);
 
 private slots:
     void sendUpdate();

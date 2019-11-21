@@ -415,3 +415,9 @@ bool SimRobot::isFlipped()
     t.setOrigin(btVector3(0, 0, 0));
     return ((t * btVector3(0, 0, 1)).z() < 0) || isNan;
 }
+
+btVector3 SimRobot::position() const
+{
+    const btTransform transform = m_body->getWorldTransform();
+    return btVector3(transform.getOrigin().x(), transform.getOrigin().y(), 0);
+}

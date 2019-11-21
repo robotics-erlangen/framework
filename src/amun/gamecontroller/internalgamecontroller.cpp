@@ -227,7 +227,7 @@ void InternalGameController::handleGameEvent(std::shared_ptr<gameController::Aut
     }
     case gameController::PLACEMENT_FAILED:
         setIsFirstPlacement = false;
-        shouldPlace = m_isFirstPlacement;
+        shouldPlace = true;
         if (m_isFirstPlacement) {
             bool isDirect = m_packet.next_command() == SSL_Referee::DIRECT_FREE_BLUE || m_packet.next_command() == SSL_Referee::DIRECT_FREE_YELLOW;
             if (isDirect) {
@@ -237,7 +237,13 @@ void InternalGameController::handleGameEvent(std::shared_ptr<gameController::Aut
             }
         } else {
             // both teams failed placing the ball, teleport it instead
-            // TODO: teleport ball
+            Command ballCommand(new amun::Command);
+            ballCommand->mutable_simulator()->mutable_move_ball()->set_teleport_safely(true);
+            ballCommand->mutable_simulator()->mutable_move_ball()->set_position(true);
+            // use correct coordinates
+            ballCommand->mutable_simulator()->mutable_move_ball()->set_p_x(-placementPos.y);
+            ballCommand->mutable_simulator()->mutable_move_ball()->set_p_y(placementPos.x);
+            emit sendCommand(ballCommand);
         }
         break;
     case gameController::POSSIBLE_GOAL:

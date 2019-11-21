@@ -239,6 +239,8 @@ void Amun::start()
     createSimulator(defaultSimulatorSetup);
     connect(m_processor, SIGNAL(setFlipped(bool)), m_simulator, SLOT(setFlipped(bool)));
 
+    connect(m_processor->getInternalGameController(), SIGNAL(sendCommand(Command)), SLOT(handleCommand(Command)));
+
     if (!m_simulatorOnly) {
         Q_ASSERT(m_transceiver == nullptr);
         m_transceiver = new Transceiver(m_timer);

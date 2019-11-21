@@ -65,6 +65,9 @@ public slots:
     void handleRadioCommands(const QList<robot::RadioCommand> &commands, qint64 processingDelay);
     void setScaling(double scaling);
     void setFlipped(bool flipped);
+    // checks for possible collisions with the robots on the target position of the ball
+    // calls teleportRobotToFreePosition to move robots out of the way
+    void safelyTeleportBall(const float x, const float y);
 
 private slots:
     void process();
@@ -80,6 +83,7 @@ private:
     void fieldAddLine(SSL_GeometryFieldSize *field, std::string name, float x1, float y1, float x2, float y2) const;
     void fieldAddCircularArc(SSL_GeometryFieldSize *field, std::string name, float x, float y, float radius, float a1, float a2) const;
     void populateFieldPacket(SSL_GeometryFieldSize *field);
+    void teleportRobotToFreePosition(SimRobot *robot);
 
 private:
     typedef QPair<QList<robot::RadioCommand>, qint64> RadioCommand;

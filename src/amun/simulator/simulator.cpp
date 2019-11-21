@@ -629,6 +629,10 @@ void Simulator::moveBall(const amun::SimulatorMoveBall &ball)
         }
     }
 
+    if (b.has_teleport_safely() && b.teleport_safely()) {
+        safelyTeleportBall(b.p_x(), b.p_y());
+    }
+
     m_data->ball->move(b);
 }
 
@@ -753,4 +757,63 @@ void Simulator::setScaling(double scaling)
     }
     // needed if scaling is set before simulator was enabled
     m_timeScaling = scaling;
+}
+
+static bool overlapCheck(const btVector3& p0, const float& r0, const btVector3& p1, const float& r1)
+{
+    const float distance = (p1 - p0).length();
+    return distance <= r0+r1;
+}
+
+// uses the real world scale
+void Simulator::teleportRobotToFreePosition(SimRobot *robot)
+{
+    btVector3 robotPos = robot->position() / SIMULATOR_SCALE;
+    btVector3 direction = (robotPos - m_data->ball->position() / SIMULATOR_SCALE).normalize();
+    float distance = 2 * (BALL_RADIUS + robot->specs().radius());
+    bool valid = true;
+    do {
+        valid = true;
+        robotPos = robotPos + 2 * direction*distance;
+
+        for (const auto& robotList : {m_data->robotsBlue, m_data->robotsYellow}) {
+            for (SimRobot *robot2 : robotList) {
+                if (robot == robot2) {
+                    continue;
+                }
+
+                btVector3 tmp = robot2->position() / SIMULATOR_SCALE;
+                if (overlapCheck(robotPos, robot->specs().radius(), tmp, robot2->specs().radius())) {
+                    valid = false;
+                    break;
+                }
+            }
+            if (!valid) {
+                break;
+            }
+        }
+    } while(!valid);
+
+    amun::SimulatorMoveRobot robotCommand;
+    robotCommand.set_id(robot->specs().id());
+    robotCommand.set_position(true);
+    robotCommand.set_p_x(robotPos.x());
+    robotCommand.set_p_y(robotPos.y());
+
+    robotCommand.set_v_x(0);
+    robotCommand.set_v_y(0);
+    robot->move(robotCommand);
+}
+
+void Simulator::safelyTeleportBall(const float x, const float y)
+{
+    btVector3 newBallPos(x, y, 0);
+    for (const auto& robotList : {m_data->robotsBlue, m_data->robotsYellow}) {
+        for (SimRobot *robot : robotList) {
+            btVector3 robotPos = robot->position() / SIMULATOR_SCALE;
+            if (overlapCheck(newBallPos, BALL_RADIUS, robotPos, robot->specs().radius())) {
+                teleportRobotToFreePosition(robot);
+            }
+        }
+    }
 }

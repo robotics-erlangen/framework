@@ -4,7 +4,7 @@ GameControllerConnection::GameControllerConnection(InternalGameController *inter
     m_isAutoref(isAutoref),
     m_externalGameControllerConnection(isAutoref, this)
 {
-    connect(this, &GameControllerConnection::gotMessageForInternaleGameController, internalGameController, &InternalGameController::handleGameEvent);
+    connect(this, &GameControllerConnection::gotMessageForInternalGameController, internalGameController, &InternalGameController::handleGameEvent);
     connect(internalGameController, &InternalGameController::gotControllerReply, this, &GameControllerConnection::handleInternalGameControllerReply);
 }
 
@@ -72,7 +72,7 @@ bool GameControllerConnection::sendGameControllerMessage(const google::protobuf:
         }
         std::shared_ptr<gameController::AutoRefToController> messageCopy(new gameController::AutoRefToController);
         messageCopy->CopyFrom(*static_cast<const gameController::AutoRefToController*>(message));
-        emit gotMessageForInternaleGameController(messageCopy);
+        emit gotMessageForInternalGameController(messageCopy);
         return true;
     } else {
         return m_externalGameControllerConnection.sendGameControllerMessage(message);
