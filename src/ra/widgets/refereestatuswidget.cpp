@@ -231,7 +231,9 @@ void RefereeStatusWidget::handleStatus(const Status &status)
             }
             timeout = QString(" ") + formatTime(timeoutLeft);
         } else if (state != amun::GameState::Halt && state != amun::GameState::Stop &&
-                   state != amun::GameState::Game && state != amun::GameState::GameForce) {
+                   state != amun::GameState::Game && state != amun::GameState::GameForce &&
+                   state != amun::GameState::KickoffBluePrepare && state != amun::GameState::KickoffYellowPrepare &&
+                   state != amun::GameState::PenaltyBluePrepare && state != amun::GameState::PenaltyYellowPrepare) {
             if (game_state.has_current_action_time_remaining()) {
                 int time = game_state.current_action_time_remaining() / 1000000;
                 timeout = QString(" ") + formatTime(time);
