@@ -35,20 +35,30 @@ endfunction(EPHelper_Add_Cleanup)
 # CMake does not undo an already applied patch before applying another one
 # The clobber step depends on the patch file or a stub patch to ensure that
 # it is triggered whenever the patch file changed
-# Warning: cmake fails to undo the patch when switching to a branch without PATCH_COMMAND!
-# therefore always add the clobber step with the stub patch even when no PATCH_COMMAND is
-# currently necessary
 function(EPHelper_Add_Clobber target patch)
     externalproject_get_property(${target} install_dir)
     set(clobber_patch_copy ${install_dir}/patch.copy)
+    # cmake tracks changes to commands and recreates the command output if the command has changed
+    # Changes to dependencies are NOT checked. The following custom command will therefore always
+    # be run when the patch filename changes. In case the patch itself is changed and thus gets
+    # a recent modification timestamp, the usual make dependency handling applies.
     add_custom_command(OUTPUT ${clobber_patch_copy}
         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${patch} ${clobber_patch_copy}
         DEPENDS ${patch})
-    ExternalProject_Add_Step(${target} clobber
-        COMMAND true
-        WORKING_DIRECTORY "${install_dir}"
-        DEPENDERS download
+
+    # patch cmake download step. This ensures that the download step command changes when
+    # switching to a non-clobber branch which in turn retriggers the download step. Without
+    # this switching to a branch without the clobber step and building the code will not undo
+    # the effects of the patch. In addition when switching back the clobber_patch_copy will
+    # already exist causing the download steps to be skipped which in turn can cause a build
+    # failure. Depend on the clobber_patch_copy to trigger a download run whenever the patch
+    # file has changed.
+    _ep_get_step_stampfile(${target} download stamp_file)
+    add_custom_command(
+        OUTPUT ${stamp_file}
+        COMMAND ${CMAKE_COMMAND} -E echo ${patch}
         DEPENDS ${clobber_patch_copy}
+        APPEND
     )
 endfunction(EPHelper_Add_Clobber)
 
