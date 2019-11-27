@@ -176,7 +176,7 @@ export class FreeKick extends Behavior {
 		if (this._state === State.PassPrepare) {
 			let shootPos = pass.ballPos;
 			let ballTime = Shoot.ballPassTime(World.Ball.pos, shootPos, pass.target, undefined, this._robot);
-			let extraTime = Math.abs(Math.abs(geom.getAngleDiff(this._robot.dir, (shootPos - this._robot.pos).angle()))) / Math.PI * 1.3 + 0.2;
+			let extraTime = Math.abs(geom.getAngleDiff(this._robot.dir, (shootPos - this._robot.pos).angle())) / Math.PI * 1.3 + 0.2;
 			let robotTime = Robot.minShootTime(this._robot, shootPos) + extraTime;
 			if (World.Time + robotTime + ballTime >= pass.time) {
 				this._state = State.Pass;
