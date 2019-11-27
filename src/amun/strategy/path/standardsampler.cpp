@@ -34,6 +34,10 @@ bool StandardSampler::compute(const TrajectoryInput &input)
     }
 
     Vector defaultSpeed = input.distance * (std::max(2.5f, input.distance.length() / 2) / input.distance.length());
+    // limit default speed to allowed speed
+    if (defaultSpeed.lengthSquared() > input.maxSpeedSquared) {
+        defaultSpeed = defaultSpeed / defaultSpeed.length();
+    }
 
     // normal search
     for (int i = 0;i<100;i++) {
