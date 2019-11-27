@@ -160,7 +160,7 @@ bool FlyFilter::collision() {
     }
     float height = predictTrajectory(m_lastPredictionTime).pos(2);
 
-    float collision = (angle < 0.86*M_PI || angle > 1.14*M_PI) && height < 0.15 && robotDist < 0.18;
+    bool collision = (angle < 0.86*M_PI || angle > 1.14*M_PI) && height < 0.15f && robotDist < 0.18f;
     if (collision) {
         debugCircle("coll 1", first.ballPos(0), first.ballPos(1), 0.02);
         debugCircle("coll 2", second.ballPos(0), second.ballPos(1), 0.02);
