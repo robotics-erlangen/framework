@@ -24,6 +24,9 @@
 bool StandardSampler::compute(const TrajectoryInput &input)
 {
     BestTrajectoryInfo lastTrajectoryInfo = m_bestResultInfo;
+    if (lastTrajectoryInfo.midSpeed.lengthSquared() > input.maxSpeedSquared) {
+        lastTrajectoryInfo.valid = false;
+    }
 
     m_bestResultInfo.time = std::numeric_limits<float>::infinity();
     m_bestResultInfo.valid = false;
