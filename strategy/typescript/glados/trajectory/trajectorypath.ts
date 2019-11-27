@@ -169,11 +169,17 @@ export class TrajectoryPath extends TrajectoryHandler {
 		let [angularSpeed, angularAccel] = this.rotationCalculation.calculateRotationHysteresis(robotDir,
 			this._robot.angularSpeed, targetDir, rotAccelerate, rotBrake, rotMaxSpeed, rotationExponentialTime);
 
+		let timeToEnd =	TrajectoryPath.trajectoryTime(trajectory);
+
 		// finish and return trajectory
 		let queryTime;
 		let startDriving = false;
 		if (World.IsSimulated) {
-			queryTime = 0;
+			if (robotPos.distanceTo(targetPos) < 0.1 && robotSpeed.length() < 0.1) {
+				queryTime = Math.min(0.05, timeToEnd / 2);
+			} else {
+				queryTime = 0;
+			}
 		} else {
 			queryTime = 0.08;
 			let testSpeed = TrajectoryPath.speedAtTime(queryTime, trajectory);
@@ -221,7 +227,7 @@ export class TrajectoryPath extends TrajectoryHandler {
 			phi: { a0: robotDir, a1: angularSpeed, a2: angularAccel / 2, a3: 0 }
 		} ];
 
-		return [{spline: spline}, Coordinates.toLocal(targetPos), TrajectoryPath.trajectoryTime(trajectory)];
+		return [{spline: spline}, Coordinates.toLocal(targetPos), timeToEnd];
 	}
 
 	private static trajectoryTime(trajectory: Trajectory) {
