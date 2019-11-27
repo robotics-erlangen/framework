@@ -66,7 +66,6 @@ export class MoveToPos extends Task {
 		let ignore = ignoreDefaultObstacles;
 		this._obstacleTable = {
 			ignoreBall: ignore || ignoreBall,
-			ignoreGoals: ignore,
 			ignoreDefenseArea: ignore,
 			ignoreOpponentDefenseArea: ignore,
 			messaging: this._messaging,
