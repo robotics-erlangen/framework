@@ -118,7 +118,9 @@ export class ShootGoal extends Task {
 			if (this._robot.hasBall(World.Ball, undefined, 0)) {
 				this.alreadyTouchedBall = true;
 			}
-			return !this.alreadyTouchedBall;
+			const MAX_TIMEFRAME = Referee.isFriendlyFreeKickState() ? 4.3 : 8.5; // has to be larger than freekick::MAX_TIMEFRAME
+			let timeRunningOut = World.Time - Referee.lastStateChangeTime() >= MAX_TIMEFRAME;
+			return !this.alreadyTouchedBall && !timeRunningOut;
 		}
 		return true;
 	}
