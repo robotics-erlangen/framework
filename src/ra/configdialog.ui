@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>331</width>
-    <height>708</height>
+    <height>644</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,345 +15,360 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QGroupBox" name="groupBox_4">
-     <property name="title">
-      <string>Amun</string>
+    <widget class="QScrollArea" name="scrollArea">
+     <property name="widgetResizable">
+      <bool>true</bool>
      </property>
-     <layout class="QFormLayout" name="formLayout_4">
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_5">
-        <property name="text">
-         <string>Vision port</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QSpinBox" name="visionPort">
-        <property name="minimum">
-         <number>1</number>
-        </property>
-        <property name="maximum">
-         <number>65535</number>
-        </property>
-        <property name="value">
-         <number>10002</number>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_6">
-        <property name="text">
-         <string>Ref Port</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QSpinBox" name="refPort">
-        <property name="minimum">
-         <number>1</number>
-        </property>
-        <property name="maximum">
-         <number>65535</number>
-        </property>
-        <property name="value">
-         <number>99</number>
-        </property>
-       </widget>
-      </item>
-     </layout>
+     <property name="alignment">
+      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+     </property>
+     <widget class="QWidget" name="scrollAreaWidgetContents">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>297</width>
+        <height>764</height>
+       </rect>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>297</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <widget class="QGroupBox" name="groupBox_4">
+         <property name="title">
+          <string>Amun</string>
+         </property>
+         <layout class="QFormLayout" name="formLayout_4">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_5">
+            <property name="text">
+             <string>Vision port</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QSpinBox" name="visionPort">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>65535</number>
+            </property>
+            <property name="value">
+             <number>10002</number>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_6">
+            <property name="text">
+             <string>Ref Port</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QSpinBox" name="refPort">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>65535</number>
+            </property>
+            <property name="value">
+             <number>99</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox">
+         <property name="title">
+          <string>Radio</string>
+         </property>
+         <layout class="QFormLayout" name="formLayout_2">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>Channel</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="comboChannel">
+            <item>
+             <property name="text">
+              <string>Channel 0</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Channel 1</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Channel 2</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Channel 3</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Channel 4</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Channel 5</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Channel 6</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Channel 7</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Channel 8</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Channel 9</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Channel A</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Channel B</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Channel C</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Channel D</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Channel E</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Channel F</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_5">
+         <property name="title">
+          <string>Network Radio</string>
+         </property>
+         <layout class="QFormLayout" name="formLayout_5">
+          <item row="1" column="0">
+           <widget class="QLineEdit" name="networkHost">
+            <property name="placeholderText">
+             <string>Hostname</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QSpinBox" name="networkPort">
+            <property name="maximum">
+             <number>65535</number>
+            </property>
+            <property name="value">
+             <number>10010</number>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0" colspan="2">
+           <widget class="QCheckBox" name="networkUse">
+            <property name="text">
+             <string>Enable network radio</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_6">
+         <property name="title">
+          <string>Mixed team</string>
+         </property>
+         <layout class="QFormLayout" name="formLayout_6">
+          <item row="1" column="1">
+           <widget class="QSpinBox" name="mixedPort">
+            <property name="maximum">
+             <number>65535</number>
+            </property>
+            <property name="value">
+             <number>10012</number>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLineEdit" name="mixedHost">
+            <property name="placeholderText">
+             <string>Hostname</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_7">
+         <property name="title">
+          <string>Remote Refbox Control</string>
+         </property>
+         <layout class="QFormLayout" name="formLayout_7">
+          <item row="0" column="0" colspan="2">
+           <widget class="QCheckBox" name="refboxControlUse">
+            <property name="text">
+             <string>Enable refbox control</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QSpinBox" name="remotePort">
+            <property name="maximum">
+             <number>65535</number>
+            </property>
+            <property name="value">
+             <number>10007</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_3">
+         <property name="title">
+          <string>Simulator</string>
+         </property>
+         <layout class="QFormLayout" name="formLayout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_3">
+            <property name="toolTip">
+             <string>System delay + processing time should equal vision delay!</string>
+            </property>
+            <property name="text">
+             <string>Vision delay</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_4">
+            <property name="text">
+             <string>Processing time</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QSpinBox" name="simVisionDelay">
+            <property name="suffix">
+             <string> ms</string>
+            </property>
+            <property name="value">
+             <number>35</number>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QSpinBox" name="simProcessingTime">
+            <property name="suffix">
+             <string> ms</string>
+            </property>
+            <property name="value">
+             <number>5</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_2">
+         <property name="title">
+          <string>Tracking</string>
+         </property>
+         <layout class="QFormLayout" name="formLayout_3">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>System delay</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QSpinBox" name="systemDelayBox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="suffix">
+             <string> ms</string>
+            </property>
+            <property name="value">
+             <number>30</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="uiGroupBox">
+         <property name="title">
+          <string>User Interface</string>
+         </property>
+         <layout class="QFormLayout" name="formLayout_8">
+          <item row="0" column="0" colspan="2">
+           <widget class="QCheckBox" name="uiDarkMode">
+            <property name="text">
+             <string>Use dark mode compatible colors</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
     </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="groupBox">
-     <property name="title">
-      <string>Radio</string>
-     </property>
-     <layout class="QFormLayout" name="formLayout_2">
-      <item row="0" column="0">
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>Channel</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QComboBox" name="comboChannel">
-        <item>
-         <property name="text">
-          <string>Channel 0</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Channel 1</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Channel 2</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Channel 3</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Channel 4</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Channel 5</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Channel 6</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Channel 7</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Channel 8</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Channel 9</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Channel A</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Channel B</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Channel C</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Channel D</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Channel E</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Channel F</string>
-         </property>
-        </item>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="groupBox_5">
-     <property name="title">
-      <string>Network Radio</string>
-     </property>
-     <layout class="QFormLayout" name="formLayout_5">
-      <item row="1" column="0">
-       <widget class="QLineEdit" name="networkHost">
-        <property name="placeholderText">
-         <string>Hostname</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QSpinBox" name="networkPort">
-        <property name="maximum">
-         <number>65535</number>
-        </property>
-        <property name="value">
-         <number>10010</number>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0" colspan="2">
-       <widget class="QCheckBox" name="networkUse">
-        <property name="text">
-         <string>Enable network radio</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="groupBox_6">
-     <property name="title">
-      <string>Mixed team</string>
-     </property>
-     <layout class="QFormLayout" name="formLayout_6">
-      <item row="1" column="1">
-       <widget class="QSpinBox" name="mixedPort">
-        <property name="maximum">
-         <number>65535</number>
-        </property>
-        <property name="value">
-         <number>10012</number>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLineEdit" name="mixedHost">
-        <property name="placeholderText">
-         <string>Hostname</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="groupBox_7">
-     <property name="title">
-      <string>Remote Refbox Control</string>
-     </property>
-     <layout class="QFormLayout" name="formLayout_7">
-      <item row="0" column="0" colspan="2">
-       <widget class="QCheckBox" name="refboxControlUse">
-        <property name="text">
-         <string>Enable refbox control</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QSpinBox" name="remotePort">
-        <property name="maximum">
-         <number>65535</number>
-        </property>
-        <property name="value">
-         <number>10007</number>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="groupBox_3">
-     <property name="title">
-      <string>Simulator</string>
-     </property>
-     <layout class="QFormLayout" name="formLayout">
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_3">
-        <property name="toolTip">
-         <string>System delay + processing time should equal vision delay!</string>
-        </property>
-        <property name="text">
-         <string>Vision delay</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_4">
-        <property name="text">
-         <string>Processing time</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QSpinBox" name="simVisionDelay">
-        <property name="suffix">
-         <string> ms</string>
-        </property>
-        <property name="value">
-         <number>35</number>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QSpinBox" name="simProcessingTime">
-        <property name="suffix">
-         <string> ms</string>
-        </property>
-        <property name="value">
-         <number>5</number>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="groupBox_2">
-     <property name="title">
-      <string>Tracking</string>
-     </property>
-     <layout class="QFormLayout" name="formLayout_3">
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_2">
-        <property name="text">
-         <string>System delay</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QSpinBox" name="systemDelayBox">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="suffix">
-         <string> ms</string>
-        </property>
-        <property name="value">
-         <number>30</number>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="uiGroupBox">
-     <property name="title">
-      <string>User Interface</string>
-     </property>
-     <layout class="QFormLayout" name="formLayout_8">
-      <item row="0" column="0" colspan="2">
-       <widget class="QCheckBox" name="uiDarkMode">
-        <property name="text">
-         <string>Use dark mode compatible colors</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
-     </property>
-    </spacer>
    </item>
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
