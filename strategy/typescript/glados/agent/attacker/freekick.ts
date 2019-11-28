@@ -153,6 +153,7 @@ export class FreeKick extends Behavior {
 
 		let pass: Pass = <Pass> this._pass;
 		let adjustTiming = this._state === State.PassPrepare;
+		let remainingTime = MAX_TIMEFRAME - (World.Time - Referee.lastStateChangeTime());
 		if (this._state === State.Pass) {
 			let passShootTime = pass.time - Shoot.ballPassTime(World.Ball.pos, pass.ballPos, pass.target, undefined, this._robot);
 			adjustTiming = adjustTiming || (passShootTime - World.Time > 0.5);
@@ -161,7 +162,7 @@ export class FreeKick extends Behavior {
 			let suggestion = this._messaging.receive(MessageType.passSuggestion).get(pass.target!);
 			if (suggestion && suggestion.ballPos.distanceTo(pass.ballPos) < 0.01) {
 				let bufferTime = 0.1;
-				if (suggestion.time - pass.time > bufferTime * 0.5) {
+				if (suggestion.time - pass.time > bufferTime * 0.5 && suggestion.time + bufferTime < World.Time + remainingTime) {
 					pass.time = suggestion.time + bufferTime;
 					restartTask = true;
 				}
@@ -235,7 +236,7 @@ export class FreeKick extends Behavior {
 
 
 		debug.set("state", this._state);
-		debug.set("remaining time", MAX_TIMEFRAME - (World.Time - Referee.lastStateChangeTime()));
+		debug.set("remaining time", remainingTime);
 		let stateChanged = prevState === this._state;
 
 		if (this._pass != undefined) {
