@@ -486,8 +486,8 @@ static void addCameraCalibrations(SSL_GeometryData *geometry, const std::size_t&
         calib->set_ty(0);
         calib->set_tz(3500);
 
-        calib->set_derived_camera_world_tx(cameraInfos[cameraId].position.x() * 1000);
-        calib->set_derived_camera_world_ty(-cameraInfos[cameraId].position.y() * 1000);
+        calib->set_derived_camera_world_tx(cameraInfos[cameraId].position.y() * 1000);
+        calib->set_derived_camera_world_ty(-cameraInfos[cameraId].position.x() * 1000);
         calib->set_derived_camera_world_tz(cameraInfos[cameraId].position.z() * 1000);
     }
 }
