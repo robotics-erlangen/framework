@@ -663,6 +663,11 @@ static void amunDebuggerSend(const FunctionCallbackInfo<Value>& args)
     d->dispatchProtocolMessage((uint8_t*)*String::Utf8Value(isolate, message), message->Utf8Length());
 }
 
+static void amunTerminateExecution(const FunctionCallbackInfo<Value>& args)
+{
+    args.GetIsolate()->TerminateExecution();
+}
+
 static void amunDisconnectDebugger(const FunctionCallbackInfo<Value>& args)
 {
     Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
@@ -797,7 +802,8 @@ void registerAmunJsCallbacks(Isolate *isolate, Local<Object> global, Typescript 
         { "getGameControllerMessage",    amunGetGameControllerMessage},
         { "connectGameController",       amunConnectGameController},
         { "tryCatch",       amunTryCatch},
-        { "isDebug",        amunIsDebug}
+        { "isDebug",        amunIsDebug},
+        { "terminateExecution", amunTerminateExecution}
     };
 
     Local<Object> amunObject = Object::New(isolate);

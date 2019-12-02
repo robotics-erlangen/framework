@@ -60,6 +60,7 @@ public:
     bool hasInspectorHandler() { return m_inspectorHandler != nullptr; }
     AbstractInspectorHandler *getInspectorHandler() { return m_inspectorHandler; }
     void setIsIgnoringMessages(bool ignore) { m_channel.setIsIgnoringMessages(ignore); }
+    void breakProgram(QString reason);
 
 private:
     class DefaultChannel : public v8_inspector::V8Inspector::Channel {

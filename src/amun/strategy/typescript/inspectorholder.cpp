@@ -66,6 +66,13 @@ void InspectorHolder::setInspectorHandler(AbstractInspectorHandler *handler)
     m_client.setInspectorHandler(handler);
 }
 
+void InspectorHolder::breakProgram(QString reason)
+{
+    std::string stdReason = reason.toStdString();
+    StringView t = StringView((uint8_t*)stdReason.c_str(), reason.length());
+    m_session->breakProgram(t, t);
+}
+
 
 // DefaultChannel
 void InspectorHolder::DefaultChannel::sendResponse(int, std::unique_ptr<v8_inspector::StringBuffer> message) {

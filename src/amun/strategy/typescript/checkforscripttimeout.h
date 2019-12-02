@@ -36,11 +36,20 @@ public:
         connect(this, SIGNAL(timeout()), SLOT(timeoutCallback()));
     }
 
+    void setTimeoutCallback(v8::InterruptCallback holder, void *extraData) {
+        m_timeoutCallback = holder;
+        m_timeoutCallbackData = extraData;
+    }
+
 public slots:
     void timeoutCallback() {
         int counter = m_executionCounter.load();
         if (counter == m_lastCounter && counter != 0) {
-            m_isolate->TerminateExecution();
+            if (m_timeoutCallback != nullptr) {
+                m_isolate->RequestInterrupt(m_timeoutCallback, m_timeoutCallbackData);
+            } else {
+                m_isolate->TerminateExecution();
+            }
         }
         m_lastCounter = counter;
     }
@@ -49,6 +58,8 @@ private:
     v8::Isolate *m_isolate;
     QAtomicInt &m_executionCounter;
     int m_lastCounter;
+    v8::InterruptCallback m_timeoutCallback = nullptr;
+    void *m_timeoutCallbackData;
 };
 
 #endif // CHECKFORSCRIPTTIMEOUT_H

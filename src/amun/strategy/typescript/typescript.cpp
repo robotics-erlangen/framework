@@ -123,6 +123,10 @@ void Typescript::clearRequireCache()
     m_requireCache = {{}};
 }
 
+static void scriptTimeoutCallback(v8::Isolate*, void* data) {
+    static_cast<InspectorHolder*>(data)->breakProgram("Script timeout");
+}
+
 void Typescript::createGlobalScope()
 {
     HandleScope handleScope(m_isolate);
@@ -139,6 +143,7 @@ void Typescript::createGlobalScope()
     m_context.Reset(m_isolate, context);
 
     m_inspectorHolder.reset(new InspectorHolder(m_isolate, m_context));
+    m_checkForScriptTimeout->setTimeoutCallback(scriptTimeoutCallback, m_inspectorHolder.get());
     m_internalDebugger.reset(new InternalDebugger(m_isolate, this));
     m_inspectorHolder->setInspectorHandler(m_internalDebugger.get());
 }
@@ -154,6 +159,7 @@ void Typescript::setInspectorHandler(AbstractInspectorHandler *handler)
 {
     if (m_inspectorHolder->hasInspectorHandler()) {
         m_inspectorHolder.reset(new InspectorHolder(m_isolate, m_context));
+        m_checkForScriptTimeout->setTimeoutCallback(scriptTimeoutCallback, m_inspectorHolder.get());
     }
     m_inspectorHolder->setInspectorHandler(handler);
 }
@@ -161,6 +167,7 @@ void Typescript::setInspectorHandler(AbstractInspectorHandler *handler)
 void Typescript::removeInspectorHandler()
 {
     m_inspectorHolder.reset(new InspectorHolder(m_isolate, m_context));
+    m_checkForScriptTimeout->setTimeoutCallback(scriptTimeoutCallback, m_inspectorHolder.get());
     m_internalDebugger.reset(new InternalDebugger(m_isolate, this));
     m_inspectorHolder->setInspectorHandler(m_internalDebugger.get());
 }
