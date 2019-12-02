@@ -7,6 +7,7 @@ import * as pb from "base/protobuf";
 
 const connectDebugger = amun.connectDebugger;
 const debuggerSend = amun.debuggerSend;
+const terminateExecution = amun.terminateExecution;
 
 declare let ___globalpleasedontuseinregularcode: any;
 
@@ -195,6 +196,7 @@ function handleNotification(notification: string) {
 				}
 			});
 		}
+
 		getPropertiesResponseMap.clear();
 		___globalpleasedontuseinregularcode.debugSet = debug.set;
 		___globalpleasedontuseinregularcode.debugExtraParams = debug.getInitialExtraParams();
@@ -256,6 +258,10 @@ function handleNotification(notification: string) {
 				}
 			}
 			level++;
+		}
+
+		if (notificationObject.params.reason === "Script timeout") {
+			terminateExecution();
 		}
 		sendMessage("Debugger.resume");
 		break;
