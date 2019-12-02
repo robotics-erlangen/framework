@@ -70,6 +70,8 @@ public:
     lua_State*& luaState() { return m_luaState; }
     void tryCatch(v8::Local<v8::Function> tryBlock, v8::Local<v8::Function> thenBlock, v8::Local<v8::Function> catchBlock, v8::Local<v8::Object> element, bool printStackTrace);
 
+    QString resolveJsToTs(QString fileQString, uint32_t lineUint, uint32_t columnUint);
+
 protected:
     void loadScript(const QString &filename, const QString &entryPoint) override;
     bool process(double &pathPlanning) override;
@@ -83,6 +85,10 @@ private:
     static void saveNode(QTextStream &file, const v8::CpuProfileNode *node, QString functionStack);
     void clearRequireCache();
     void createGlobalScope();
+
+    // returns true if a script timeout occured
+    bool buildStackTrace(const v8::Local<v8::Context>& context, QString& errorMsg, const v8::TryCatch& tryCatch);
+    void evaluateStackFrame(const v8::Local<v8::Context>& c, QString& errorMsg, v8::Local<v8::Object> callSite);
 
     bool setupCompiler(const QString &filename);
     bool loadTypescript(const QString &filename, const QString &entryPoint);

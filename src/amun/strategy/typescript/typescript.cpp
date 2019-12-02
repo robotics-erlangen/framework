@@ -207,54 +207,12 @@ static std::unique_ptr<QDir> getTsconfigDir(const QString &filename)
     return std::unique_ptr<QDir>(new QDir(baseDir));
 }
 
-static void evaluateStackFrame(const Local<Context>& c, QString& errorMsg, Local<Object> callSite, Isolate* isolate)
+QString Typescript::resolveJsToTs(QString fileQString, uint32_t lineUint, uint32_t columnUint)
 {
-    errorMsg += "at ";
-    MaybeLocal<Value> funName = callFunction(c, errorMsg, callSite, "getFunctionName", isolate);
-    String::Utf8Value funString(isolate, funName.ToLocalChecked());
-    QString funQString(*funString);
-    if (!callFunction(c, errorMsg, callSite, "isConstructor", isolate).ToLocalChecked()->ToBoolean()->Value()) {
-        MaybeLocal<Value> toplevelOpt = callFunction(c, errorMsg, callSite, "isToplevel", isolate);
-        if (!toplevelOpt.ToLocalChecked()->ToBoolean()->Value()) {
-            //Find Typename
-            MaybeLocal<Value> typeName = callFunction(c, errorMsg, callSite, "getTypeName", isolate);
-            String::Utf8Value nameString(isolate, typeName.ToLocalChecked());
-            errorMsg += QString(*nameString) + ".";
-        }
-        errorMsg += funQString;
-        MaybeLocal<Value> methodName = callFunction(c, errorMsg, callSite, "getMethodName", isolate);
-
-        Local<Value> methName = methodName.ToLocalChecked();
-        if (!methName->IsNull()) {
-            String::Utf8Value methString(isolate, methName);
-            QString methQString(*methString);
-            if (methQString != funQString) {
-                errorMsg = errorMsg + " [as " + methQString + "]";
-            }
-        }
-    } else {
-        errorMsg += "new "+funQString;
-    }
-
-    MaybeLocal<Value> isEval = callFunction(c, errorMsg, callSite, "isEval", isolate);
-    if (isEval.ToLocalChecked()->ToBoolean()->Value()) {
-        MaybeLocal<Value> evalOrig = callFunction(c, errorMsg, callSite, "getEvalOrigin", isolate);
-        String::Utf8Value evalOrigString(isolate, evalOrig.ToLocalChecked());
-        errorMsg = errorMsg + " (" + QString(*evalOrigString) + ")<br>";
-        return;
-    }
-    // No eval
-    MaybeLocal<Value> fileName = callFunction(c, errorMsg, callSite, "getFileName", isolate);
-    String::Utf8Value fileString(isolate, fileName.ToLocalChecked());
-    QString fileQString(*fileString);
     QFile jsfile(fileQString);
     QString tsSourcemapQString;
     QFileInfo jsInfo(jsfile);
     QDir absJSDir = jsInfo.absoluteDir();
-    MaybeLocal<Value> lineNumber = callFunction(c, errorMsg, callSite, "getLineNumber", isolate);
-    uint32_t lineUint = lineNumber.ToLocalChecked()->Uint32Value();
-    MaybeLocal<Value> columnNumber = callFunction(c, errorMsg, callSite, "getColumnNumber", isolate);
-    uint32_t columnUint = columnNumber.ToLocalChecked()->Uint32Value();
     if (jsfile.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QList<QByteArray> jsLineList = QByteArray(jsfile.readAll()).split('\n');
 #if QT_VERSION >= QT_VERSION_CHECK(5,6,0)
@@ -293,13 +251,59 @@ static void evaluateStackFrame(const Local<Context>& c, QString& errorMsg, Local
     if (basePath) {
         fileQString = fileQString.replace(basePath->absolutePath() + "/", "");
     }
-    errorMsg = errorMsg + " (" + fileQString + ":";
-    errorMsg += QString::number(lineUint) + ":";
-    errorMsg += QString::number(columnUint) + ")<br>";
+
+    return fileQString + ":" + QString::number(lineUint) + ":" + QString::number(columnUint);
 }
 
-// returns true if a script timeout occured
-static bool buildStackTrace(const Local<Context>& context, QString& errorMsg, const TryCatch& tryCatch, Isolate* isolate)
+void Typescript::evaluateStackFrame(const Local<Context>& c, QString& errorMsg, Local<Object> callSite)
+{
+    errorMsg += "at ";
+    MaybeLocal<Value> funName = callFunction(c, errorMsg, callSite, "getFunctionName", m_isolate);
+    String::Utf8Value funString(m_isolate, funName.ToLocalChecked());
+    QString funQString(*funString);
+    if (!callFunction(c, errorMsg, callSite, "isConstructor", m_isolate).ToLocalChecked()->ToBoolean()->Value()) {
+        MaybeLocal<Value> toplevelOpt = callFunction(c, errorMsg, callSite, "isToplevel", m_isolate);
+        if (!toplevelOpt.ToLocalChecked()->ToBoolean()->Value()) {
+            //Find Typename
+            MaybeLocal<Value> typeName = callFunction(c, errorMsg, callSite, "getTypeName", m_isolate);
+            String::Utf8Value nameString(m_isolate, typeName.ToLocalChecked());
+            errorMsg += QString(*nameString) + ".";
+        }
+        errorMsg += funQString;
+        MaybeLocal<Value> methodName = callFunction(c, errorMsg, callSite, "getMethodName", m_isolate);
+
+        Local<Value> methName = methodName.ToLocalChecked();
+        if (!methName->IsNull()) {
+            String::Utf8Value methString(m_isolate, methName);
+            QString methQString(*methString);
+            if (methQString != funQString) {
+                errorMsg = errorMsg + " [as " + methQString + "]";
+            }
+        }
+    } else {
+        errorMsg += "new "+funQString;
+    }
+
+    MaybeLocal<Value> isEval = callFunction(c, errorMsg, callSite, "isEval", m_isolate);
+    if (isEval.ToLocalChecked()->ToBoolean()->Value()) {
+        MaybeLocal<Value> evalOrig = callFunction(c, errorMsg, callSite, "getEvalOrigin", m_isolate);
+        String::Utf8Value evalOrigString(m_isolate, evalOrig.ToLocalChecked());
+        errorMsg = errorMsg + " (" + QString(*evalOrigString) + ")<br>";
+        return;
+    }
+    // No eval
+    MaybeLocal<Value> fileName = callFunction(c, errorMsg, callSite, "getFileName", m_isolate);
+    MaybeLocal<Value> lineNumber = callFunction(c, errorMsg, callSite, "getLineNumber", m_isolate);
+    uint32_t lineUint = lineNumber.ToLocalChecked()->Uint32Value();
+    MaybeLocal<Value> columnNumber = callFunction(c, errorMsg, callSite, "getColumnNumber", m_isolate);
+    uint32_t columnUint = columnNumber.ToLocalChecked()->Uint32Value();
+    String::Utf8Value fileString(m_isolate, fileName.ToLocalChecked());
+    QString fileQString(*fileString);
+
+    errorMsg += " (" + resolveJsToTs(fileQString, lineUint, columnUint) + ")<br>";
+}
+
+bool Typescript::buildStackTrace(const Local<Context>& context, QString& errorMsg, const TryCatch& tryCatch)
 {
     if (tryCatch.HasTerminated() || tryCatch.HasCaught()) {
         errorMsg = "<font color=\"red\">";
@@ -313,7 +317,7 @@ static bool buildStackTrace(const Local<Context>& context, QString& errorMsg, co
         // which is not present if the exception does not have a JS representation,
         // this handle will be empty.
         if (!checkMessage.IsEmpty()) {
-            String::Utf8Value exception(isolate, message);
+            String::Utf8Value exception(m_isolate, message);
             QString exceptionString(*exception);
             exceptionString.replace("\n", "<br>");
             errorMsg += exceptionString + "<br>";
@@ -326,14 +330,14 @@ static bool buildStackTrace(const Local<Context>& context, QString& errorMsg, co
                 Local<Array> stackArray = Local<Array>::Cast(stackTrace);
                 for (uint32_t i = 0; i < stackArray->Length(); ++i) {
                     Local<Object> callSite = stackArray->Get(i)->ToObject();
-                    evaluateStackFrame(context, errorMsg, callSite, isolate);
+                    evaluateStackFrame(context, errorMsg, callSite);
                 }
                 errorMsg += "</font>";
             } else {
                 // this will hapen when a strategy does not set Error.prepareStackTrace
                 // this disables the option to use sourcemaps
                 // we support it to avoid crashes when used with legacy strategy
-                String::Utf8Value stringStack(isolate, stackTrace);
+                String::Utf8Value stringStack(m_isolate, stackTrace);
                 QString exceptionString(*stringStack);
                 exceptionString.replace("\n", "<br>");
                 errorMsg = "<font color=\"red\">" + exceptionString + "</font>";
@@ -341,7 +345,7 @@ static bool buildStackTrace(const Local<Context>& context, QString& errorMsg, co
         } else {
             // this will happen when an exception is created without an error object, i.e. throw "some error"
             if (!checkMessage.IsEmpty()) {
-                String::Utf8Value exception(isolate, message);
+                String::Utf8Value exception(m_isolate, message);
                 QString exceptionString(*exception);
                 exceptionString.replace("\n", "<br>");
                 errorMsg = "<font color=\"red\">" + exceptionString + "</font>";
@@ -465,7 +469,7 @@ bool Typescript::loadJavascript(const QString &filename, const QString &entryPoi
     m_currentExecutingModule = m_filename;
     USE(script->Run(context));
     if (tryCatch.HasTerminated() || tryCatch.HasCaught()) {
-        if (buildStackTrace(context,m_errorMsg, tryCatch, m_isolate)) {
+        if (buildStackTrace(context, m_errorMsg, tryCatch)) {
             m_isolate->CancelTerminateExecution();
         }
         return false;
@@ -775,7 +779,7 @@ bool Typescript::process(double &pathPlanning)
     Local<Function> function = Local<Function>::New(m_isolate, m_function);
     USE(function->Call(context, context->Global(), 0, nullptr));
     m_timeoutCounter.store(0);
-    if (buildStackTrace(context, m_errorMsg, tryCatch, m_isolate)) {
+    if (buildStackTrace(context, m_errorMsg, tryCatch)) {
         m_isolate->CancelTerminateExecution();
     }
     if (tryCatch.HasTerminated() || tryCatch.HasCaught()) {
@@ -817,7 +821,7 @@ void Typescript::tryCatch(v8::Local<v8::Function> tryBlock, v8::Local<v8::Functi
             }
             if (printStackTrace) {
                 QString output;
-                buildStackTrace(c, output, tc, m_isolate);
+                buildStackTrace(c, output, tc);
                 log(output);
                 return;
             }
