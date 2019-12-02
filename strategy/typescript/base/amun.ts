@@ -141,6 +141,11 @@ interface Amun extends AmunPublic {
 	tryCatch: <T>(tryBlock: () => void, thenBlock: (e: T) => void, catchBlock: (error: any, e: T) => void, e: T, printStackTrace: boolean) => void;
 	/** Terminates the javascript execution immediately. Should only be used for script timeout or debugging */
 	terminateExecution(): void;
+	/**
+	 * Resolve a javascript file, line and column number to the corresponding values in the typescript file
+	 * The result is given as a string that is nicely human readable
+	 */
+	resolveJsToTs(filename: string, line: number, column: number): string;
 
 	// undocumented
 	luaRandomSetSeed(seed: number): void;
@@ -219,6 +224,7 @@ export function _hideFunctions() {
 		debuggerSend: makeDisabledFunction("debuggerSend"),
 		disconnectDebugger: makeDisabledFunction("disconnectDebugger"),
 		terminateExecution: makeDisabledFunction("terminateExecution"),
+		resolveJsToTs: makeDisabledFunction("resolveJsToTs"),
 
 		luaRandomSetSeed: makeDisabledFunction("luaRandomSetSeed"),
 		luaRandom: makeDisabledFunction("luaRandom"),

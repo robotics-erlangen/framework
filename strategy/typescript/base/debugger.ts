@@ -8,6 +8,7 @@ import * as pb from "base/protobuf";
 const connectDebugger = amun.connectDebugger;
 const debuggerSend = amun.debuggerSend;
 const terminateExecution = amun.terminateExecution;
+const resolveJsToTs = amun.resolveJsToTs;
 
 declare let ___globalpleasedontuseinregularcode: any;
 
@@ -261,6 +262,13 @@ function handleNotification(notification: string) {
 		}
 
 		if (notificationObject.params.reason === "Script timeout") {
+			// in case of a script timeout, print the stack trace here instead of in c++,
+			// as the termination must be executed and the stack trace is unreachable afterwards
+			amun.log("<font color=\"red\">Script timeout</font>");
+			for (let callFrame of pausedInfo.callFrames) {
+				let resolved = resolveJsToTs(callFrame.url, callFrame.location.lineNumber, callFrame.location.columnNumber);
+				amun.log(`<font color=\"red\">at ${callFrame.functionName} (${resolved})</font>`);
+			}
 			terminateExecution();
 		}
 		sendMessage("Debugger.resume");

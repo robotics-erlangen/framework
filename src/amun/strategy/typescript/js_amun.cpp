@@ -764,6 +764,22 @@ static void amunIsDebug(const FunctionCallbackInfo<Value>& args)
     args.GetReturnValue().Set(t->scriptState().isDebugEnabled);
 }
 
+static void amunResolveJsToTs(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = args.GetIsolate();
+    if (!checkNumberOfArguments(isolate, 3, args.Length())) {
+        return;
+    }
+    QString file(*String::Utf8Value(isolate, args[0]));
+    uint32_t line, column;
+    if (!toUintChecked(isolate, args[1], line) || !toUintChecked(isolate, args[2], column)) {
+        return;
+    }
+    Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
+    QString result = t->resolveJsToTs(file, line, column);
+    args.GetReturnValue().Set(v8string(isolate, result));
+}
+
 void registerAmunJsCallbacks(Isolate *isolate, Local<Object> global, Typescript *t)
 {
     QList<CallbackInfo> callbacks = {
@@ -803,7 +819,8 @@ void registerAmunJsCallbacks(Isolate *isolate, Local<Object> global, Typescript 
         { "connectGameController",       amunConnectGameController},
         { "tryCatch",       amunTryCatch},
         { "isDebug",        amunIsDebug},
-        { "terminateExecution", amunTerminateExecution}
+        { "terminateExecution", amunTerminateExecution},
+        { "resolveJsToTs",  amunResolveJsToTs}
     };
 
     Local<Object> amunObject = Object::New(isolate);
