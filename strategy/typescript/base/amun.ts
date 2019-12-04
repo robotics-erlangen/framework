@@ -136,8 +136,6 @@ interface Amun extends AmunPublic {
 	 * only call this if the debugger is connected
 	 */
 	debuggerSend(command: string): void;
-	/** Disconnects from the v8 debugger */
-	disconnectDebugger(): void;
 	tryCatch: <T>(tryBlock: () => void, thenBlock: (e: T) => void, catchBlock: (error: any, e: T) => void, e: T, printStackTrace: boolean) => void;
 	/** Terminates the javascript execution immediately. Should only be used for script timeout or debugging */
 	terminateExecution(): void;
@@ -222,7 +220,6 @@ export function _hideFunctions() {
 		getPerformanceMode: makeDisabledFunction("getPerformanceMode"),
 		connectDebugger: makeDisabledFunction("connectDebugger"),
 		debuggerSend: makeDisabledFunction("debuggerSend"),
-		disconnectDebugger: makeDisabledFunction("disconnectDebugger"),
 		terminateExecution: makeDisabledFunction("terminateExecution"),
 		resolveJsToTs: makeDisabledFunction("resolveJsToTs"),
 

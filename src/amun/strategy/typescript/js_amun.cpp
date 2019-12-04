@@ -668,12 +668,6 @@ static void amunTerminateExecution(const FunctionCallbackInfo<Value>& args)
     args.GetIsolate()->TerminateExecution();
 }
 
-static void amunDisconnectDebugger(const FunctionCallbackInfo<Value>& args)
-{
-    Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
-    t->getInternalDebugger()->clearFunctions();
-}
-
 static void amunConnectGameController(const FunctionCallbackInfo<Value>& args)
 {
     Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
@@ -813,7 +807,6 @@ void registerAmunJsCallbacks(Isolate *isolate, Local<Object> global, Typescript 
         { "luaRandomSetSeed",   amunLuaRandomSeed},
         { "connectDebugger",    amunConnectDebugger},
         { "debuggerSend",       amunDebuggerSend},
-        { "disconnectDebugger", amunDisconnectDebugger},
         { "sendGameControllerMessage",   amunSendGameControllerMessage},
         { "getGameControllerMessage",    amunGetGameControllerMessage},
         { "connectGameController",       amunConnectGameController},
