@@ -19,7 +19,6 @@
 # ***************************************************************************
 
 add_library(typescript
-    include/strategy/typescript/inspectorserver.h
     include/strategy/typescript/typescript.h
 
     checkforscripttimeout.h
@@ -28,6 +27,7 @@ add_library(typescript
     inspectorholder.cpp
     inspectorholder.h
     inspectorserver.cpp
+    inspectorserver.h
     internaldebugger.cpp
     internaldebugger.h
     js_amun.cpp
