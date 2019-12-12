@@ -85,7 +85,7 @@ private:
     void loadScript(const QString &filename, const QString &entryPoint);
     void close();
     void triggerDebugger();
-    void fail(const QString &error, const amun::UserInput &userInput = amun::UserInput());
+    void fail(const QString &error, const amun::UserInput & userInput = amun::UserInput(), double pathPlanning = 0, double totalTime = 0);
     void setStrategyStatus(Status &status, amun::StatusStrategy::STATE state);
     Status takeStrategyDebugStatus();
     amun::DebugSource debugSource() const;

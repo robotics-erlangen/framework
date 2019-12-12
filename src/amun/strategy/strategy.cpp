@@ -1,5 +1,6 @@
 /***************************************************************************
- *   Copyright 2015 Michael Eischer, Philipp Nordhus, Paul Bergmann        *
+ *   Copyright 2019 Paul Bergmann, Michael Eischer, Tobias Heineken,       *
+ *   Philipp Nordhus, Andreas Wendler                                      *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -403,6 +404,23 @@ void Strategy::tryProcess()
     }
 }
 
+static void addTimingInfos(Status& s, double pathPlanning, double totalTime, StrategyType type) {
+    // publish timings and debug output
+    amun::Timing *timing = s->mutable_timing();
+    if (type == StrategyType::BLUE) {
+        timing->set_blue_total(totalTime);
+        timing->set_blue_path(pathPlanning);
+        s->set_blue_running(true);
+    } else if (type == StrategyType::YELLOW) {
+        timing->set_yellow_total(totalTime);
+        timing->set_yellow_path(pathPlanning);
+        s->set_yellow_running(true);
+    } else if (type == StrategyType::AUTOREF) {
+        timing->set_autoref_total(totalTime);
+        s->set_autoref_running(true);
+    }
+}
+
 void Strategy::process()
 {
     if (!m_strategy || m_strategyFailed) {
@@ -481,19 +499,7 @@ void Strategy::process()
 
         // publish timings and debug output
         Status status = takeStrategyDebugStatus();
-        amun::Timing *timing = status->mutable_timing();
-        if (m_type == StrategyType::BLUE) {
-            timing->set_blue_total(totalTime);
-            timing->set_blue_path(pathPlanning);
-            status->set_blue_running(true);
-        } else if (m_type == StrategyType::YELLOW) {
-            timing->set_yellow_total(totalTime);
-            timing->set_yellow_path(pathPlanning);
-            status->set_yellow_running(true);
-        } else if (m_type == StrategyType::AUTOREF) {
-            timing->set_autoref_total(totalTime);
-            status->set_autoref_running(true);
-        }
+        addTimingInfos(status, pathPlanning, totalTime, m_type);
         status->mutable_execution_state()->CopyFrom(worldState);
         status->mutable_execution_state()->clear_vision_frames();
         status->mutable_execution_game_state()->CopyFrom(m_scriptState.currentStatus->execution_game_state().IsInitialized()
@@ -502,7 +508,8 @@ void Strategy::process()
         status->mutable_execution_user_input()->CopyFrom(userInput);
         emit sendStatus(status);
     } else {
-        fail(m_strategy->errorMsg(), userInput);
+        double totalTime = (Timer::systemTime() - startTime) * 1E-9;
+        fail(m_strategy->errorMsg(), userInput, pathPlanning, totalTime);
     }
 }
 
@@ -662,7 +669,7 @@ void Strategy::triggerDebugger()
     }
 }
 
-void Strategy::fail(const QString &error, const amun::UserInput & userInput)
+void Strategy::fail(const QString &error, const amun::UserInput & userInput, double pathPlanning, double totalTime)
 {
     if (m_type == StrategyType::BLUE || m_type == StrategyType::YELLOW) {
         emit sendHalt(m_type == StrategyType::BLUE);
@@ -670,6 +677,7 @@ void Strategy::fail(const QString &error, const amun::UserInput & userInput)
 
     // update status
     Status status = takeStrategyDebugStatus();
+    addTimingInfos(status, pathPlanning, totalTime, m_type);
     setStrategyStatus(status, amun::StatusStrategy::FAILED);
     if (!m_scriptState.currentStatus.isNull()) {
         status->mutable_execution_game_state()->CopyFrom(m_scriptState.currentStatus->game_state());
