@@ -76,6 +76,9 @@ export class Pass extends Task {
 		this._targetRobot = targetRobot;
 		this._targetPos = targetPos;
 		this._passSpeed = targetSpeed != undefined ? targetSpeed : targetRobot ? this._targetRobot.constants.passSpeed : DEFAULT_PASS_SPEED;
+		if (targetTime === Infinity) {
+			throw new Error("targetTime Infinity will result in a crash next frame");
+		}
 		this._targetTime = targetTime;
 		this._chipOverride = chip != undefined;
 		this._chip = chip === true;
