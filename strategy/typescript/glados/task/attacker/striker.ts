@@ -37,7 +37,7 @@ export class Striker extends Task {
 		this._passDestSuggestion = manualPassDest;
 
 		this._obstacleTable  = {
-			ignoreBall: true,
+			ignoreBall: false,
 			messaging: this._messaging
 		};
 
