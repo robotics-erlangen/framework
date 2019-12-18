@@ -6,6 +6,7 @@ import { MessageBox, MessageType } from "glados/control/messaging";
 import { Armada } from "glados/group/move/armada";
 import { BallPlacement } from "glados/group/move/ballplacement";
 import { Move } from "glados/group/move/base";
+import { CrossShoot } from "glados/group/move/crossshoot";
 import { KickOff } from "glados/group/move/kickoff";
 import { KickOffDefensive } from "glados/group/move/kickoffdefensive";
 import { MrlTestCorner } from "glados/group/move/mrltestcorner";
@@ -29,6 +30,7 @@ export class Moves {
 			Armada,
 			BallPlacement,
 			WindshieldWiper,
+			CrossShoot,
 			None
 		];
 
