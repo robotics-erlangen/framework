@@ -7,7 +7,7 @@ import * as plot from "base/plot";
 import * as Referee from "base/referee";
 import { Robot } from "base/robot";
 import { AbsTime, RelTime } from "base/timing";
-import { Position, Vector } from "base/vector";
+import { Position, Speed, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
 
@@ -488,6 +488,91 @@ function updateBallPlacementRobots() {
 	}
 }
 
+let lastIsStanding = false;
+export function isStanding() {
+	return lastIsStanding;
+}
+
+// Threshold for how long a shot is allowed to be past for the ball to be considered as recently shot.
+const shootDeltaTime = 0.20;
+
+// Threshold for the mean speed
+const speedMeanThreshold = 0.2;
+
+// Threshold for the local speed
+const speedThreshold = 0.50;
+
+// Threshold for standard deviation of positions
+const deviationThreshold = 0.020;
+
+// How many positions to compare to each other
+const numberOfMeasurements = 6;
+
+// Used to index the last <numberOfMeasurements> measured positions and speeds
+let lastIndex = 0;
+let standardVector = new Vector(0, 0);
+let lastBallPositions : Vector[] = new Array(numberOfMeasurements);
+let lastSpeedVectors: Vector[] = new Array(numberOfMeasurements);
+for (let i = 0; i < numberOfMeasurements; i++) {
+	lastBallPositions[i] = standardVector;
+	lastSpeedVectors[i] = standardVector;
+}
+
+function updateIsStanding() {
+	// Calculate the mean of the last <numberOfMeasurements> speed Vectors and check it's length
+	// Randomly generarted noise speeds will statistically cancel each other out
+	// Speed vectors which point in the general same direction will add up
+	let condSameDirection = true;
+	let speedMean = new Vector(0,0);
+	for (let i = 0; i < lastSpeedVectors.length; i++) {
+		speedMean += lastSpeedVectors[i];
+	}
+
+	speedMean += World.Ball.speed;
+	speedMean /= lastSpeedVectors.length;
+
+	condSameDirection = speedMean.length() > speedMeanThreshold;
+
+	lastSpeedVectors[lastIndex] = World.Ball.speed;
+
+	// Calculate standard deviation between last ball positions and their mean value
+	lastBallPositions[lastIndex] = World.Ball.pos;
+	lastIndex = (lastIndex + 1) % numberOfMeasurements;
+
+	// mean position
+	let positionMean = new Vector(0,0);
+	for (let i = 0; i < lastBallPositions.length; i++) {
+		positionMean += lastBallPositions[i];
+	}
+
+	positionMean = positionMean / lastBallPositions.length;
+
+	// calculate standard deviation
+	let sum = 0;
+	for (let i = 0; i < lastBallPositions.length; i++) {
+		sum += (lastBallPositions[i] - positionMean).lengthSq();
+	}
+	sum = (sum / (lastBallPositions.length - 1));
+	let standardDeviation = Math.sqrt(sum);
+	let condDeviation = standardDeviation > deviationThreshold;
+
+	// check for absolute local speed
+	let condSpeed = World.Ball.speed.length() > speedThreshold;
+
+	// check if ball was recently shot
+	let condWasShot = wasShot(shootDeltaTime) != undefined;
+
+	// log evaluation
+	debug.pushtop("Ball.isStanding");
+	debug.set("sameDirection", condSameDirection);
+	debug.set("Deviation", condDeviation);
+	debug.set("Speed", condSpeed);
+	debug.set("wasShot", condWasShot);
+	debug.pop();
+
+	lastIsStanding = !(condSameDirection || condSpeed || condDeviation || condWasShot);
+}
+
 export function _update() {
 	updateReceivesPass();
 	updateIsAccelerating();
@@ -500,4 +585,5 @@ export function _update() {
 	updateFriendlyBallOwner();
 	updateFriendlyBallOwnershipTime();
 	updateBallPlacementRobots();
+	updateIsStanding();
 }
