@@ -222,7 +222,7 @@ export class Volley {
 	static calcPhi(robot: FriendlyRobot, ballSpeed: Speed, viewPos: Position, targetPos: Position,
 			targetSpeed: number, volleyObserver?: VolleyObserver): [number, number] {
 		// relative ball speed
-		ballSpeed -= robot.speed; // FIXME: future robot speed not current robot speed
+		ballSpeed =  ballSpeed - robot.speed; // FIXME: future robot speed not current robot speed
 		let v_in = ballSpeed.length();
 		let alpha = ballSpeed.angle();
 
