@@ -57,25 +57,9 @@ export class Vector {
 		return new Vector(-this.x, -this.y);
 	}
 
-	addEq(other: Vector) {
-		this.x += other.x;
-		this.y += other.y;
-	}
-
-	subEq(other: Vector) {
-		this.x -= other.x;
-		this.y -= other.y;
-	}
-
-	mulEq(factor: number) {
-		this.x *= factor;
-		this.y *= factor;
-	}
-
-	divEq(factor: number) {
-		this.x /= factor;
-		this.y /= factor;
-	}
+	// WARNING: do not implement operators like +=, -=, *=, /=
+	// This can create subtle bugs in which vectors are modified on accident as vectors are
+	// given as references to functions
 
 	/**
 	 * Creates a copy of the current vector.
