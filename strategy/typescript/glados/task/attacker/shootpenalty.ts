@@ -66,7 +66,7 @@ export class ShootPenalty extends Task {
 
 	run() {
 		if (World.Ball.isPositionValid() && World.Ball.detectionQuality > 0.4) {
-			this.collectedBallPosition += World.Ball.pos;
+			this.collectedBallPosition = this.collectedBallPosition + World.Ball.pos;
 			this.ballCounter += 1;
 		}
 

@@ -49,7 +49,7 @@ export class PenaltyShootoutGoal extends Task {
 		let pos = ball.pos + ball.speed * 0.5;
 		r = this._dest - robot.pos;
 		s = r.setLength(Const.maxBallSpeed) - ball.speed;
-		pos += s.copy().setLength(- robot.shootRadius - ball.radius);
+		pos = pos + s.copy().setLength(- robot.shootRadius - ball.radius);
 		robot.trajectory.update(ToTarget, pos, s.angle(), undefined, ball.speed * 1.1);
 		robot.setDribblerSpeed(0.5);
 	}

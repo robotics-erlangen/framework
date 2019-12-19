@@ -81,7 +81,7 @@ export class MovingObstacles extends Move {
 	_updateTasks(): MoveParameters {
 		let changed = false;
 		if (this._robots[0].pos.distanceTo(this.targetPos) < 0.05) {
-			this.targetPos *= -1;
+			this.targetPos = this.targetPos * -1;
 			changed = true;
 		}
 

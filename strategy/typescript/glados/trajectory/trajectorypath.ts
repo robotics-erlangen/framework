@@ -38,7 +38,7 @@ class PID {
 		let timeDiff = World.TimeDiff;
 
 		let pOut = error * this.p;
-		this.integral += error * timeDiff;
+		this.integral = this.integral + error * timeDiff;
 		let iOut = this.integral * this.i;
 
 		let derivative = (error - this.previousError) / timeDiff;
@@ -205,8 +205,8 @@ export class TrajectoryPath extends TrajectoryHandler {
 		let acc = TrajectoryPath.accAtTime(queryTime, trajectory);
 
 		if (startDriving) {
-			speed *= 1.5;
-			acc *= 1.5;
+			speed = speed * 1.5;
+			acc = acc * 1.5;
 			vis.addCircle("Position Control", this._robot.pos, 0.2, vis.colors.red);
 		}
 
@@ -215,7 +215,7 @@ export class TrajectoryPath extends TrajectoryHandler {
 			let speedDiff = this.speedPID.update(futureStartSpeed - robotSpeed);
 			let controlSpeed = posDiff + speedDiff;
 			speed.setLength(Math.max(0, speed.length() - controlSpeed.length()));
-			speed += controlSpeed;
+			speed = speed + controlSpeed;
 			vis.addPathRaw("Position Control", [robotPos, robotPos + posDiff + speed], vis.colors.blue);
 			vis.addPathRaw("Position Control", [robotPos, robotPos + posDiff + acc], vis.colors.orange);
 			vis.addPathRaw("Position Control", [robotPos, robotPos + posDiff + speedDiff], vis.colors.red);
