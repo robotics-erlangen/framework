@@ -358,7 +358,7 @@ static void trajectoryAddMovingLine(const FunctionCallbackInfo<Value>& args)
             !verifyNumber(isolate, args[2], x1) || !verifyNumber(isolate, args[3], y1) ||
             !verifyNumber(isolate, args[4], speedX1) || !verifyNumber(isolate, args[5], speedY1) ||
             !verifyNumber(isolate, args[6], accX1) || !verifyNumber(isolate, args[7], accY1) ||
-            !verifyNumber(isolate, args[7], x2) || !verifyNumber(isolate, args[9], y2) ||
+            !verifyNumber(isolate, args[8], x2) || !verifyNumber(isolate, args[9], y2) ||
             !verifyNumber(isolate, args[10], speedX2) || !verifyNumber(isolate, args[11], speedY2) ||
             !verifyNumber(isolate, args[12], accX2) || !verifyNumber(isolate, args[13], accY2) ||
             !verifyNumber(isolate, args[14], width) || !verifyNumber(isolate, args[15], priority)) {
