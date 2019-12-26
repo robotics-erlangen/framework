@@ -200,8 +200,10 @@ std::tuple<int, float, float> EscapeObstacleSampler::trajectoryObstacleScore(con
         if (obstaclePriority == -1) {
             goodSamples++;
             float boundaryTime = foundPointInObstacle ? OUT_OF_OBSTACLE_TIME : LONG_OUF_OF_OBSTACLE_TIME;
-            if (goodSamples > boundaryTime * (1.0f / SAMPLING_INTERVAL)) {
+            if (goodSamples > boundaryTime * (1.0f / SAMPLING_INTERVAL) && fineTime == 0) {
                 fineTime = time;
+            }
+            if (goodSamples > LONG_OUF_OF_OBSTACLE_TIME * (1.0f / SAMPLING_INTERVAL)) {
                 break;
             }
         } else {
