@@ -104,6 +104,12 @@ endif()
 set(CMAKE_AUTOMOC ON)
 find_package(Qt5 COMPONENTS Core Widgets Network OpenGL REQUIRED)
 
+
+find_package(Qt5 COMPONENTS Svg OPTIONAL)
+if (NOT TARGET Qt5::Svg)
+    message(STATUS "Qt svg component not found. Svg screenshots will not be supported.")
+endif()
+
 if(UNIX AND NOT APPLE)
     # file open dialogs crash on mac
     # memory corruption with crash on windows

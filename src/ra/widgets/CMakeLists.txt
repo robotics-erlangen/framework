@@ -81,4 +81,11 @@ target_include_directories(widgets
     PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
+if (TARGET Qt5::Svg)
+    target_compile_definitions(widgets PUBLIC QTSVG_FOUND)
+    target_link_libraries(widgets
+        PRIVATE Qt5::Svg
+    )
+endif()
+
 add_library(ra::widgets ALIAS widgets)

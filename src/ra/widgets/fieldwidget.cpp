@@ -43,6 +43,10 @@
 #include "fieldwidget.h"
 #include "virtualfieldsetupdialog.h"
 
+#ifdef QTSVG_FOUND
+#include <QSvgGenerator>
+#endif //QTSVG_FOUND
+
 class TouchStatusGesture : public QGesture
 {
 public:
@@ -1673,12 +1677,18 @@ void FieldWidget::drawGoal(QPainter *painter, float side, bool cosmetic)
 
 void FieldWidget::takeScreenshot()
 {
+#ifdef QTSVG_FOUND
+    QString fileFilter = "SVG files (*.svg);;PNG files (*.png)";
+#else
+    QString fileFilter = "PNG files (*.png)";
+#endif
+
     QString filename = QFileDialog::getSaveFileName(NULL, "Save Screenshot...",
-        QString(), "PNG files (*.png)");
+        QString(), fileFilter);
     if (filename.isNull()) {
         return;
     }
-    if (!filename.endsWith(".png")){
+    if (!filename.endsWith(".png") && !filename.endsWith(".svg")) {
         filename += ".png";
     }
 
@@ -1693,10 +1703,40 @@ void FieldWidget::takeScreenshot()
     QPoint bottomRight = mapFromScene(m_fieldRect.bottomRight());
     QRect drawRect(topLeft, bottomRight);
 
-    QImage img(4000, 4000, QImage::Format_ARGB32);
-    QPainter painter(&img);
-    render(&painter, QRectF(), drawRect);
-    img.save(filename);
+    bool hasSvgSupport = false;
+#ifdef QTSVG_FOUND
+    hasSvgSupport = true;
+#endif
+
+    if (!hasSvgSupport || filename.endsWith(".png")) {
+        QImage img(4000, 4000, QImage::Format_ARGB32);
+        QPainter painter(&img);
+        render(&painter, QRectF(), drawRect);
+        img.save(filename);
+    } else {
+#ifdef QTSVG_FOUND
+        // disable caching of text elements. Otherwise they are present as (low resolution) pixel graphics in the result
+        for (auto &team : {m_robotsBlue, m_robotsYellow}) {
+            for (auto &r : team) {
+                r.id->setCacheMode(QGraphicsItem::NoCache);
+            }
+        }
+
+        QSvgGenerator file;
+        file.setFileName(filename);
+        file.setSize(QSize(drawRect.width(), drawRect.height()));
+        file.setTitle("Ra screenshot");
+        QPainter painter(&file);
+        render(&painter, QRectF(), drawRect);
+
+        // reset cache mode of text elements
+        for (auto &team : {m_robotsBlue, m_robotsYellow}) {
+            for (auto &r : team) {
+                r.id->setCacheMode(QGraphicsItem::DeviceCoordinateCache);
+            }
+        }
+#endif
+    }
 
     if (disableAntialiasing) {
         m_actionAntialiasing->setChecked(false);
