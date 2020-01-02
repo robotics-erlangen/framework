@@ -75,6 +75,46 @@ export function fromTemperature(value: number, alpha: number = 127): Color {
 	return new Color(255 * red, 255 * green, 0, alpha);
 }
 
+/**
+ * Joins rgba-value to a color.
+ * Values from 0 to 1
+ */
+export function fromHSVA(hue: number, saturation: number, value: number, alpha: number = 127): Color {
+	let c = value * saturation;
+	let x = c * (1 - Math.abs((hue * 6) % 2 - 1));
+	let m = value - c;
+	let r_, g_, b_ : number;
+	r_ = c;
+	g_ = x;
+	b_ = 0;
+	if (hue * 6 > 1) {
+		r_ = x;
+		g_ = c;
+		b_ = 0;
+	}
+	if (hue * 6 > 2) {
+		r_ = 0;
+		g_ = c;
+		b_ = x;
+	}
+	if (hue * 6 > 3) {
+		r_ = 0;
+		g_ = x;
+		b_ = c;
+	}
+	if (hue * 6 > 4) {
+		r_ = x;
+		g_ = 0;
+		b_ = c;
+	}
+	if (hue * 6 > 5) {
+		r_ = c;
+		g_ = 0;
+		b_ = x;
+	}
+	return fromRGBA((r_ + m) * 255, (g_ + m) * 255, (b_ + m) * 255, alpha);
+}
+
 type Style = pb.amun.Pen.Style;
 
 /**
