@@ -7,6 +7,7 @@ import { Position, RelativePosition, Vector } from "base/vector";
 import * as World from "base/world";
 
 import * as Physics from "glados/observer/physics";
+import { Volley } from "glados/task/ability/volley";
 import { Agent, Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
@@ -126,8 +127,15 @@ export class StopAttack extends Task {
 			let middleAngle = (boundedAngle + boundedOppDirection) / 2;
 
 			pos = World.Ball.pos + Vector.fromAngle(middleAngle).setLength(stopRadius);
-			// try to hit the side of the opponent robot to reflect the ball out of the field
-			driveAngle = (opponentShooter!.pos - pos).angle() + 0.02;
+			// try to reflect the ball to the opponents goal
+			let hypotheticalBall = {pos: World.Ball.pos, speed: (pos - World.Ball.pos).setLength(Constants.maxBallSpeed), maxSpeed: Constants.maxBallSpeed, posZ: 0, initSpeedZ: 0, speedZ: 0};
+			let time = Physics.ballTravelTime(hypotheticalBall, (World.Ball.pos - pos).length());
+			let futureBall = Physics.ballAtTime(hypotheticalBall, time);
+			driveAngle = Volley.calcPhi(this._robot, futureBall.speed, pos, World.Geometry.OpponentGoal, Infinity)[0];
+			// vis.addPath("t/a/stopattack: reflectionNormal", [World.Ball.pos, pos, pos + Vector.fromAngle(driveAngle), pos, pos + ((World.Geometry.OpponentGoal - pos).setLength(1))]);
+
+			// Go back a little so the ball will hit the front side of the robot
+			pos = pos - Vector.fromAngle(driveAngle).setLength(this._robot.shootRadius);
 
 			this._defenseHysteresis = true;
 			this._robot.setDribblerSpeed(0.8); // might be quite loud
