@@ -710,6 +710,8 @@ SpeedProfile AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(Vector v0, Ve
 // functions for position search
 static Vector minTimePos(Vector startSpeed, Vector endSpeed)
 {
+    const float EPSILON = 0.00001f;
+
     // TODO: dont recalculate these vectors everywhere
     Vector diff = endSpeed - startSpeed;
     Vector absDiff(std::abs(diff.x), std::abs(diff.y));
@@ -721,6 +723,11 @@ static Vector minTimePos(Vector startSpeed, Vector endSpeed)
     // ty = absDiff.y / sqrt(1 - alpha * alpha)
     // => Solve tx =!= ty
     float alpha = absDiff.x / std::sqrt(absDiff.x * absDiff.x + absDiff.y * absDiff.y);
+
+    // prevent floating points issues when for example absDiff.x = 1 and absDiff.y = 1e-15, then alpha will evaluate to exactly 1
+    // which causes -inf in the dist() calculation for the result
+    alpha = std::min(1.0f - EPSILON, std::max(EPSILON, alpha));
+
     // TODO: this can be calculated more efficiently
     return Vector(dist(startSpeed.x, endSpeed.x, alpha), dist(startSpeed.y, endSpeed.y, std::sqrt(1 - alpha * alpha)));
 }
