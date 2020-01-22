@@ -74,7 +74,7 @@ static void amunIsReplay(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = args.GetIsolate();
     Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
-    Local<Boolean> result = Boolean::New(isolate, t->scriptState().isReplay);
+    Local<Boolean> result = Boolean::New(isolate, t->scriptState().isRunningInLogplayer);
     args.GetReturnValue().Set(result);
 }
 

@@ -126,7 +126,6 @@ private:
 
     qint32 m_refboxReplyLength;
     QByteArray m_refboxReplyPartialPacket;
-    const bool m_isInLogplayer;
 
     CompilerRegistry* m_compilerRegistry;
 

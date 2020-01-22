@@ -37,6 +37,7 @@ public:
     bool isFlipped = false;
     bool isTournamentMode = false;
     bool isDebugEnabled = false;
+    bool isRunningInLogplayer = false;
     Status currentStatus; // used for replay tests
 };
 

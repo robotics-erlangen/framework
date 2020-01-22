@@ -102,7 +102,6 @@ Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, C
     m_udpSenderSocket(new QUdpSocket(this)),
     m_refboxSocket(new QTcpSocket(this)),
     m_refboxReplyLength(-1),
-    m_isInLogplayer(isLogplayer),
     m_compilerRegistry(registry),
     m_gameControllerConnection(gameControllerConnection)
 {
@@ -111,6 +110,7 @@ Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, C
     m_scriptState.debugHelper = helper;
     m_scriptState.isInternalAutoref = internalAutoref;
     m_scriptState.isDebugEnabled = type == StrategyType::AUTOREF;
+    m_scriptState.isRunningInLogplayer = isLogplayer;
 
     m_refboxSocket->setSocketOption(QAbstractSocket::LowDelayOption,1);
 
@@ -195,7 +195,7 @@ void Strategy::handleCommand(const Command &command)
     const amun::CommandStrategy *cmd = nullptr;
 
     // get commands for own team color
-    if (m_isInLogplayer) {
+    if (m_scriptState.isRunningInLogplayer) {
         if (command->has_replay()) {
             const auto &replay = command->replay();
             if (m_type == StrategyType::BLUE && replay.has_blue_strategy()) {
@@ -336,7 +336,7 @@ bool Strategy::updateTeam(const robot::Team &team, StrategyType teamType, bool i
     if (team.robot_size() > 0) {
         m_anyRobotSpec.CopyFrom(team.robot(0));
     }
-    if (team.robot_size() != 0 && (!m_isInLogplayer || isReplayTeam)
+    if (team.robot_size() != 0 && (!m_scriptState.isRunningInLogplayer || isReplayTeam)
             && m_type == teamType
             && team.SerializeAsString() != m_team.SerializeAsString()) {
         m_team.CopyFrom(team);
@@ -428,7 +428,7 @@ void Strategy::process()
     }
 
     // create a dummy team with 16 robots if replaying with no team information
-    if ((m_isInLogplayer || m_scriptState.isReplay) && m_team.robot_size() == 0) {
+    if ((m_scriptState.isRunningInLogplayer || m_scriptState.isReplay) && m_team.robot_size() == 0) {
         createDummyTeam();
         reload();
     }
@@ -729,10 +729,10 @@ void Strategy::setStrategyStatus(Status &status, amun::StatusStrategy::STATE sta
     amun::StatusStrategyWrapper::StrategyType type = amun::StatusStrategyWrapper::BLUE;
     switch (m_type) {
     case StrategyType::BLUE:
-        type = m_isInLogplayer ? amun::StatusStrategyWrapper::REPLAY_BLUE : amun::StatusStrategyWrapper::BLUE;
+        type = m_scriptState.isRunningInLogplayer ? amun::StatusStrategyWrapper::REPLAY_BLUE : amun::StatusStrategyWrapper::BLUE;
         break;
     case StrategyType::YELLOW:
-        type = m_isInLogplayer ? amun::StatusStrategyWrapper::REPLAY_YELLOW : amun::StatusStrategyWrapper::YELLOW;
+        type = m_scriptState.isRunningInLogplayer ? amun::StatusStrategyWrapper::REPLAY_YELLOW : amun::StatusStrategyWrapper::YELLOW;
         break;
     case StrategyType::AUTOREF:
         type = amun::StatusStrategyWrapper::AUTOREF;
@@ -784,9 +784,9 @@ Status Strategy::takeStrategyDebugStatus()
 
 amun::DebugSource Strategy::debugSource() const
 {
-    if (m_isInLogplayer && m_type == StrategyType::BLUE) {
+    if (m_scriptState.isRunningInLogplayer && m_type == StrategyType::BLUE) {
         return amun::ReplayBlue;
-    } else if (m_isInLogplayer && m_type == StrategyType::YELLOW) {
+    } else if (m_scriptState.isRunningInLogplayer && m_type == StrategyType::YELLOW) {
         return amun::ReplayYellow;
     }
     switch (m_type) {
