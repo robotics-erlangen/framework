@@ -483,7 +483,7 @@ function addRobotObstacles(path: Path, robot: FriendlyRobot, targetPosition: Pos
 
 					let absSpeed = r.speed.length();
 					let breakTime = absSpeed / r.acceleration.aBrakeFMax;
-					if (breakTime < estimationTime) {
+					if (breakTime < estimationTime || useCMA) {
 						// They can break in the estimation. This means that leavingTime would be INF.
 						// TODO: we can trim the obstacle
 						// For now, we keep the fixed obstacle
@@ -495,7 +495,7 @@ function addRobotObstacles(path: Path, robot: FriendlyRobot, targetPosition: Pos
 						path.addMovingLine(0, leavingTime, r.pos, new Vector(0, 0), new Vector(0, 0), estimatedPosition, new Vector(0, 0), new Vector(0, 0), r.radius + safetyDistance, Priorities.ROBOT);
 					}
 					// path.addAvoidanceLine(estimatedPosition, r.pos + (estimatedPosition - r.pos) * 2, r.radius * 2, 1.2);
-					if (robot.speed.length() > 0.5) {
+					if ((robot.speed.length() > 0.5) && !useCMA) {
 						path.addMovingCircle(0, 0.8, r.pos, r.speed, new Vector(0, 0), r.radius + safetyDistance, Priorities.ROBOT);
 					}
 				} else {
