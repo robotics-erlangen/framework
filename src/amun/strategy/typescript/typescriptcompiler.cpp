@@ -99,6 +99,13 @@ void TypescriptCompiler::compile()
         return;
     }
 
+    doCompile();
+}
+
+void TypescriptCompiler::doCompile()
+{
+    QDateTime lastStrategyModification = lastModifications().first;
+
     QDir newResult(m_tsconfig.dir().absoluteFilePath("built-tmp"));
     // ra may has exited before renaming the tmp folder
     if (QFileInfo(newResult.absolutePath()).exists()) {
@@ -141,6 +148,12 @@ void TypescriptCompiler::compile()
         emit error(result.second);
         break;
     }
+
+    QDateTime newStrategyModification = lastModifications().first;
+    // the strategy was changed while compiling, this can not properly be checked with the modification time of the build folder
+    if (newStrategyModification > lastStrategyModification) {
+        doCompile();
+    }
 }
 
 static QDateTime getLastModified(const QDir& dir)
@@ -157,13 +170,8 @@ static QDateTime getLastModified(const QDir& dir)
     return lastModified;
 }
 
-bool TypescriptCompiler::isCompilationNeeded()
+QPair<QDateTime, QDateTime> TypescriptCompiler::lastModifications()
 {
-    QFileInfo buildDir(m_tsconfig.dir().absolutePath() + "/built");
-    if (!buildDir.exists()) {
-        return true;
-    }
-
     QDateTime lastModifiedSource, lastModifiedResult;
 
     QDirIterator it(m_tsconfig.dir().absolutePath(), QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);
@@ -183,6 +191,18 @@ bool TypescriptCompiler::isCompilationNeeded()
         }
     }
 
-    return lastModifiedResult.isNull() || lastModifiedSource > lastModifiedResult;
+    return {lastModifiedSource, lastModifiedResult};
+}
+
+bool TypescriptCompiler::isCompilationNeeded()
+{
+    QFileInfo buildDir(m_tsconfig.dir().absolutePath() + "/built");
+    if (!buildDir.exists()) {
+        return true;
+    }
+
+    auto modificationDates = lastModifications();
+
+    return modificationDates.second.isNull() || modificationDates.first > modificationDates.second;
 }
 

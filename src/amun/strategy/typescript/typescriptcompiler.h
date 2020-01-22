@@ -58,6 +58,9 @@ protected:
     QFileInfo m_tsconfig;
 private:
     bool isCompilationNeeded();
+    // last source and build directory modification
+    QPair<QDateTime, QDateTime> lastModifications();
+    void doCompile();
 
     std::unique_ptr<FileWatcher> m_watcher;
 
