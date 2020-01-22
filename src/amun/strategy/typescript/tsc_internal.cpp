@@ -120,7 +120,7 @@ void InternalTypescriptCompiler::initializeEnvironment()
             QCoreApplication::applicationFilePath(),
             m_compilerPath,
             "--pretty", "false", "--incremental", "true",
-            "--outDir", "built-tmp/"
+            "--outDir", "built/built-tmp/"
         });
         addObjectField(m_isolate, process, "argv", argv);
     }

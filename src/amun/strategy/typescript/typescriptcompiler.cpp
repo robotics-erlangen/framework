@@ -28,6 +28,7 @@
 #include <QString>
 #include <QtGlobal>
 #include <utility>
+#include <QDebug>
 
 TypescriptCompiler::TypescriptCompiler(const QFileInfo &tsconfig)
     : m_tsconfig(tsconfig), m_state(State::STANDBY)
@@ -56,7 +57,7 @@ QFileInfo TypescriptCompiler::mapToResult(const QFileInfo& src) {
     QString subdir = src.dir().absolutePath().mid(sourceBaseDir.length());
     QString basename = src.completeBaseName();
 
-    QFileInfo result(sourceBaseDir + "/built" + subdir + "/" + basename + ".js");
+    QFileInfo result(sourceBaseDir + "/built/built" + subdir + "/" + basename + ".js");
     return result;
 }
 
@@ -82,7 +83,7 @@ void TypescriptCompiler::resume()
 bool TypescriptCompiler::isResultAvailable()
 {
     QMutexLocker locker(&m_stateLock);
-    QFileInfo outputDir(m_tsconfig.dir().filePath("built/"));
+    QFileInfo outputDir(m_tsconfig.dir().filePath("built/built"));
     return m_state != State::RENAMING && outputDir.exists() && outputDir.isDir();
 }
 
@@ -102,15 +103,32 @@ void TypescriptCompiler::compile()
     doCompile();
 }
 
+static bool copyDirectory(const QString &source, const QString &destination)
+{
+    QDir destDir(destination);
+    destDir.removeRecursively();
+    QDir parentDir(QFileInfo(destination).path());
+    if (!parentDir.mkdir(QFileInfo(destination).fileName())) {
+        return false;
+    }
+
+    for (auto info :  QDir(source).entryInfoList(QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot)) {
+        if (info.isFile()) {
+            if (!QFile::copy(info.absoluteFilePath(), destDir.filePath(info.fileName()))) {
+                return false;
+            }
+        } else if (info.isDir()) {
+            if (!copyDirectory(info.absoluteFilePath(), destDir.filePath(info.fileName()))) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 void TypescriptCompiler::doCompile()
 {
     QDateTime lastStrategyModification = lastModifications().first;
-
-    QDir newResult(m_tsconfig.dir().absoluteFilePath("built-tmp"));
-    // ra may has exited before renaming the tmp folder
-    if (QFileInfo(newResult.absolutePath()).exists()) {
-        newResult.removeRecursively();
-    }
 
     emit started();
     std::pair<CompileResult, QString> result = performCompilation();
@@ -122,10 +140,14 @@ void TypescriptCompiler::doCompile()
     locker.unlock();
 
     bool renameSucceeded = false;
-    QDir oldResult(m_tsconfig.dir().absoluteFilePath("built"));
+    QDir newResult(m_tsconfig.dir().absoluteFilePath("built/built-tmp"));
+    QDir oldResult(m_tsconfig.dir().absoluteFilePath("built/built"));
+    QDir copyTemp(m_tsconfig.dir().absoluteFilePath("built/built-tmp2"));
     if (!oldResult.removeRecursively()) {
         emit error("Could not remove old compile result");
-    } else if (!newResult.rename(newResult.absolutePath(), oldResult.absolutePath())) {
+    } else if (!copyDirectory(newResult.absolutePath(), copyTemp.absolutePath())) {
+        emit error("Could not copy temporary result");
+    } else if (!copyTemp.rename(copyTemp.absolutePath(), oldResult.absolutePath())) {
         emit error("Could not rename new compile result");
     } else {
         renameSucceeded = true;
@@ -196,7 +218,7 @@ QPair<QDateTime, QDateTime> TypescriptCompiler::lastModifications()
 
 bool TypescriptCompiler::isCompilationNeeded()
 {
-    QFileInfo buildDir(m_tsconfig.dir().absolutePath() + "/built");
+    QFileInfo buildDir(m_tsconfig.dir().absolutePath() + "/built/built");
     if (!buildDir.exists()) {
         return true;
     }

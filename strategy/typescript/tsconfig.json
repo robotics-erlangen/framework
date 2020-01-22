@@ -17,7 +17,7 @@
 		"removeComments": true,
 		"sourceMap": true,
 
-		"outDir": "built",
+		"outDir": "built/built",
 		"baseUrl": ".",
 
 		"plugins": [
