@@ -1,3 +1,4 @@
+import * as Geom from "base/geom";
 import { FriendlyRobot, Robot } from "base/robot";
 import { Vector } from "base/vector";
 import * as World from "base/world";
@@ -13,7 +14,7 @@ export class DuelAssistant extends Task {
 	private _duelist: FriendlyRobot | undefined = undefined;
 	private _opponent: Robot | undefined = undefined;
 	private _hyst: number = 0;
-
+	private _lastPositionMode = false;
 	private _suggestPass: SuggestPass;
 
 	constructor(agent: Agent) {
@@ -38,6 +39,7 @@ export class DuelAssistant extends Task {
 
 	run() {
 		const HYSTERESIS_DISTANCE = 0.3;
+		const HYSTERESIS_BASELINE = 0.5;
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, {messaging: this._messaging});
 		this._update();
 		let angleOffset = Math.PI / 2;
@@ -47,11 +49,35 @@ export class DuelAssistant extends Task {
 			let sign = ballPos.x > 0 ? 1 : -1;
 			angleOffset = sign * (Math.PI / 2);
 		}
-		let friendlyPos = this._duelist!.pos;
-		let opponentPos = this._opponent!.pos;
-		let duelVector = opponentPos - friendlyPos;
-		let totalOffset = duelVector.complexMultiplication(Vector.fromAngle(angleOffset)).setLength(3 * this._robot.radius);
-		let pos = friendlyPos + totalOffset;
+		let friendlyPos : Vector = this._duelist!.pos;
+		let opponentPos : Vector = this._opponent!.pos;
+		let opponentDir : number = this._opponent!.dir;
+		let duelVector : Vector = opponentPos - friendlyPos;
+		let totalOffset : Vector = duelVector.complexMultiplication(Vector.fromAngle(angleOffset)).scaleLength(3 * this._robot.radius);
+
+		let agressivePositionMode = this._lastPositionMode;
+		let angleDiff = Math.abs(Geom.normalizeAngle(World.Geometry.FriendlyGoal.angle() - opponentDir));
+
+		if (angleDiff < Math.PI / 2) {
+			let intersection = Geom.intersectLineLine(friendlyPos, Vector.fromAngle(opponentDir), World.Geometry.FriendlyGoal, new Vector(1,0))[0];
+			if (Math.abs(intersection!.x) > World.Geometry.FieldWidthHalf + HYSTERESIS_BASELINE) {
+				agressivePositionMode = true;
+			} else if (Math.abs(intersection!.x) < World.Geometry.FieldWidthHalf - HYSTERESIS_BASELINE) {
+				agressivePositionMode = false;
+			}
+		} else {
+			agressivePositionMode = true;
+		}
+
+		this._lastPositionMode = agressivePositionMode;
+
+		let pos : Vector;
+		if (agressivePositionMode) {
+			pos = opponentPos + (Vector.fromAngle(opponentDir)).scaleLength(3 * this._robot.radius);
+		} else {
+			pos = friendlyPos + totalOffset;
+		}
+
 		let viewDir = duelVector.angle();
 		this._suggestPass._suggestPassRobotPosition(pos + duelVector);
 		this._robot.trajectory.update(ToTarget, pos, viewDir);
