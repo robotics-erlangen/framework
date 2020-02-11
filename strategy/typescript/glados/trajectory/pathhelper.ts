@@ -67,7 +67,7 @@ function addFriendlyDefenseAreaObstacle(path: Path, robot: FriendlyRobot) {
 			&& World.RefereeState !== "BallPlacementOffensive") {
 		if (World.RULEVERSION === "2018") {
 			path.addRect(G.FriendlyGoal.x - G.DefenseWidthHalf - POSITION_PADDING,
-					G.FriendlyGoal.y,
+					G.FriendlyGoal.y - 1,
 					G.FriendlyGoal.x + G.DefenseWidthHalf + POSITION_PADDING,
 					G.FriendlyGoal.y + G.DefenseHeight + POSITION_PADDING,
 					"DefenseArea", Priorities.DEFENSE_AREA);
@@ -99,7 +99,7 @@ function addOpponentDefenseAreaObstacle(path: Path, robot: FriendlyRobot, target
 			path.addRect(G.OpponentGoal.x - G.DefenseWidthHalf - distance,
 					G.OpponentGoal.y - G.DefenseHeight - distance,
 					G.OpponentGoal.x + G.DefenseWidthHalf + distance,
-					G.OpponentGoal.y,
+					G.OpponentGoal.y + 1,
 					"DefenseArea", priority);
 		} else {
 			path.addLine(G.OpponentGoal.x - G.DefenseStretch / 2, G.OpponentGoal.y,
@@ -172,17 +172,20 @@ function addBallObstacle(robot: FriendlyRobot, ignoreBall?: boolean, stopBallDis
 	}
 }
 
-function addGoalObstacle(path: Path, robot: FriendlyRobot) {
+function addGoalObstacle(path: Path, robot: FriendlyRobot, ignoreDefense: boolean, ignoreOppDefense: boolean) {
 	let gw = G.GoalWallWidth / 2;
 	// add goal obstacles for the field half the robot is in
+	// TODO: wenn nicht keeper: eine fette linie oder so
 	if (robot.pos.y < 0) {
-		path.addLine(G.FriendlyGoalLeft.x - gw, G.FriendlyGoalLeft.y - gw,
-				G.FriendlyGoalLeft.x - gw, G.FriendlyGoalLeft.y - G.GoalDepth - gw, gw, "OwnGoal_Left", Priorities.GOAL);
-		path.addLine(G.FriendlyGoalRight.x + gw, G.FriendlyGoalRight.y - gw,
-				G.FriendlyGoalRight.x + gw, G.FriendlyGoalRight.y - G.GoalDepth - gw, gw, "OwnGoal_Right", Priorities.GOAL);
-		path.addLine(G.FriendlyGoalLeft.x - gw, G.FriendlyGoalLeft.y - G.GoalDepth - gw,
-				G.FriendlyGoalRight.x + gw, G.FriendlyGoalRight.y - G.GoalDepth - gw, gw, "OwnGoal_Back", Priorities.GOAL);
-	} else {
+		if (ignoreDefense) {
+			path.addLine(G.FriendlyGoalLeft.x - gw, G.FriendlyGoalLeft.y - gw,
+					G.FriendlyGoalLeft.x - gw, G.FriendlyGoalLeft.y - G.GoalDepth - gw, gw, "OwnGoal_Left", Priorities.GOAL);
+			path.addLine(G.FriendlyGoalRight.x + gw, G.FriendlyGoalRight.y - gw,
+					G.FriendlyGoalRight.x + gw, G.FriendlyGoalRight.y - G.GoalDepth - gw, gw, "OwnGoal_Right", Priorities.GOAL);
+			path.addLine(G.FriendlyGoalLeft.x - gw, G.FriendlyGoalLeft.y - G.GoalDepth - gw,
+					G.FriendlyGoalRight.x + gw, G.FriendlyGoalRight.y - G.GoalDepth - gw, gw, "OwnGoal_Back", Priorities.GOAL);
+		}
+	} else if (ignoreOppDefense) {
 		path.addLine(G.OpponentGoalLeft.x - gw, G.OpponentGoalLeft.y + gw,
 				G.OpponentGoalLeft.x - gw, G.OpponentGoalLeft.y + G.GoalDepth + gw, gw, "OppGoal_Left", Priorities.GOAL);
 		path.addLine(G.OpponentGoalRight.x + gw, G.OpponentGoalRight.y + gw,
@@ -405,7 +408,7 @@ function setDefaultObstacles(path: Path, robot: FriendlyRobot, targetPosition: P
 	addBallObstacle(robot, ignoreBall, stopBallDistance, extraBallDistance);
 
 	if (!ignoreGoals) {
-		addGoalObstacle(path, robot);
+		addGoalObstacle(path, robot, ignoreDefenseArea || false, ignoreOpponentDefenseArea || false);
 	}
 }
 
