@@ -48,7 +48,7 @@ void TimingStatistics::handleStatus(const Status &status)
     }
 }
 
-void TimingStatistics::printStatistics(bool showHistogram)
+void TimingStatistics::printStatistics(bool showHistogram, bool showCumulativeHistogram)
 {
     if (m_saveAllData) {
         for (float time : m_timings) {
@@ -61,6 +61,15 @@ void TimingStatistics::printStatistics(bool showHistogram)
             qDebug() <<endl<<"Histogram:";
             for (int i = 0;i<m_timeHistogram.size();i++) {
                 qDebug() <<i<<"ms:"<<m_timeHistogram[i];
+            }
+        }
+        if (showCumulativeHistogram) {
+            qDebug() <<endl<<"Histogram (cumulative):";
+            int total = 0;
+            int totalFrames = std::accumulate(m_timeHistogram.begin(), m_timeHistogram.end(), 0);
+            for (int i = 0;i<m_timeHistogram.size();i++) {
+                total += m_timeHistogram[i];
+                qDebug() <<fixed<<qSetRealNumberPrecision(2)<<i<<"ms:"<<100.0 * double(total) / double(totalFrames); // show in percent
             }
         }
     }

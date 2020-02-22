@@ -73,6 +73,7 @@ int main(int argc, char* argv[])
 
     QCommandLineOption asBlueOption({"b", "as-blue"}, "Run as blue strategy, defaults to yellow");
     QCommandLineOption showHistogramOption("hist", "Show a histogram of the strategy timings");
+    QCommandLineOption showHistogramCumulativeOption("histCumulative", "Show a cumulative histogram of the strategy timings in percent of total frames");
     QCommandLineOption printAllTimings({"a", "all"}, "Print all timings for every frame");
     QCommandLineOption runs({"r", "runs"}, "Ammount of runs, optional. Uses 1 if missing", "numRuns", "1");
     QCommandLineOption prefix({"p", "prefix"}, "Prefix for outputFiles. Uses std::cout for output if missing", "prefix");
@@ -87,6 +88,7 @@ int main(int argc, char* argv[])
 
     parser.addOption(asBlueOption);
     parser.addOption(showHistogramOption);
+    parser.addOption(showHistogramCumulativeOption);
     parser.addOption(runs);
     parser.addOption(prefix);
     parser.addOption(printAllTimings);
@@ -255,7 +257,7 @@ int main(int argc, char* argv[])
             testRunner->runFinalReplayJudgement();
         } else {
             // no timing statistics are printed if the cli is used as a replay test runner
-            statistics.printStatistics(parser.isSet(showHistogramOption));
+            statistics.printStatistics(parser.isSet(showHistogramOption), parser.isSet(showHistogramCumulativeOption));
         }
     }
     return 0;

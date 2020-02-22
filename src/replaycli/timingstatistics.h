@@ -33,7 +33,7 @@ class TimingStatistics : public QObject
 public:
     TimingStatistics(bool isBlue, bool saveAllData = false, int frames = 0) :
         m_isBlue(isBlue), m_saveAllData(saveAllData) { m_timings.reserve(frames); }
-    void printStatistics(bool showHistogram);
+    void printStatistics(bool showHistogram, bool showCumulativeHistogram);
 
 public slots:
     void handleStatus(const Status &status);
