@@ -368,7 +368,7 @@ void Tracker::updateGeometry(const SSL_GeometryFieldSize &g)
 
     // fill out the other required fields
     m_geometry.set_referee_width((is2014Geometry) ? 0.425f : 0.40f);
-    m_geometry.set_penalty_spot_from_field_line_dist((is2014Geometry) ? 1.00f : 1.20f);
+    m_geometry.set_penalty_spot_from_field_line_dist((is2014Geometry) ? m_geometry.defense_radius() : m_geometry.defense_height());
     if (!m_geometry.has_defense_radius()) {
         m_geometry.set_defense_radius(m_geometry.defense_height());
     }
