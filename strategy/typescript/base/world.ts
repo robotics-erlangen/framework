@@ -171,8 +171,6 @@ export interface GeometryType {
 	OpponentGoalRight: Readonly<Position>;
 	/** Free distance around the playing field */
 	BoundaryWidth: number;
-	/** Width of area reserved for referee */
-	RefereeWidth: number;
 }
 
 // it is guaranteed to be set before being read, so casting is fine
@@ -267,7 +265,6 @@ function _updateGeometry(geom: pb.world.Geometry) {
 	wgeom.OpponentGoalRight = Vector.createReadOnly(wgeom.GoalWidth / 2, wgeom.OpponentGoal.y);
 
 	wgeom.BoundaryWidth = geom.boundary_width;
-	wgeom.RefereeWidth = geom.referee_width;
 
 	IsLargeField = wgeom.FieldWidth > 5 && wgeom.FieldHeight > 7;
 }

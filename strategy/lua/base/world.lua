@@ -124,7 +124,6 @@ World.Geometry = {}
 -- @field OpponentGoalLeft Vector
 -- @field OpponentGoalRight Vector
 -- @field BoundaryWidth number - Free distance around the playing field
--- @field RefereeWidth number - Width of area reserved for referee
 
 -- initializes Team and Geometry data
 function World._init()
@@ -213,7 +212,6 @@ function World._updateGeometry(geom)
 	wgeom.OpponentGoalRight = Vector.createReadOnly(wgeom.GoalWidth / 2, wgeom.OpponentGoal.y)
 
 	wgeom.BoundaryWidth = geom.boundary_width
-	wgeom.RefereeWidth = geom.referee_width
 
 	World.Geometry = table.readonlytable(World.Geometry)
 
