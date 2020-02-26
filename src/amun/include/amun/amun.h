@@ -32,7 +32,6 @@ class DebugHelper;
 class NetworkInterfaceWatcher;
 class Processor;
 class Receiver;
-class Simulator;
 class Strategy;
 class Timer;
 class Transceiver;
@@ -40,6 +39,12 @@ class NetworkTransceiver;
 class QHostAddress;
 class Integrator;
 class BlockingStrategyReplay;
+
+namespace camun {
+    namespace simulator {
+        class Simulator;
+    }
+}
 
 class Amun : public QObject
 {
@@ -93,7 +98,7 @@ private:
     Processor *m_processor;
     Transceiver *m_transceiver;
     NetworkTransceiver *m_networkTransceiver;
-    Simulator *m_simulator;
+    camun::simulator::Simulator *m_simulator;
     Receiver *m_referee;
     Receiver *m_vision;
     Receiver *m_networkCommand;

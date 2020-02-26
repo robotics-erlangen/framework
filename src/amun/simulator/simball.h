@@ -32,7 +32,13 @@ static const float BALL_DECELERATION = 0.5f;
 class RNG;
 class SSL_DetectionBall;
 
-class SimBall
+namespace camun {
+    namespace simulator {
+        class SimBall;
+    }
+}
+
+class camun::simulator::SimBall
 {
 public:
     SimBall(RNG *rng, btDiscreteDynamicsWorld *world, float fieldWidth, float fieldHeight);

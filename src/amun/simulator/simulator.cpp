@@ -29,6 +29,8 @@
 #include <algorithm>
 #include <QtDebug>
 
+using namespace camun::simulator;
+
 /* Friction and restitution between robots, ball and field: (empirical measurments)
  * Ball vs. Robot:
  * Restitution: about 0.60
@@ -56,7 +58,7 @@
  * => f_b = 1; f_f = 0.35; f_r = 0.22
  */
 
-struct SimulatorData
+struct camun::simulator::SimulatorData
 {
     RNG rng;
     btDefaultCollisionConfiguration *collision;
@@ -78,7 +80,6 @@ struct SimulatorData
     float ballVisibilityThreshold;
     float cameraOverlap;
 };
-
 
 static void simulatorTickCallback(btDynamicsWorld *world, btScalar timeStep)
 {

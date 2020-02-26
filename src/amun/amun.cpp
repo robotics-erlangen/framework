@@ -35,6 +35,8 @@
 #include <QThread>
 #include <QList>
 
+using namespace camun::simulator;
+
 /*!
  * \class Amun
  * \ingroup amun

@@ -25,6 +25,7 @@
 #include <cmath>
 #include <QDebug>
 
+using namespace camun::simulator;
 
 SimBall::SimBall(RNG *rng, btDiscreteDynamicsWorld *world, float fieldWidth, float fieldHeight) :
     m_rng(rng),

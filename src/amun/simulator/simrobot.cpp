@@ -26,6 +26,8 @@
 #include "simulator.h"
 #include <cmath>
 
+using namespace camun::simulator;
+
 const float MAX_SPEED = 1000;
 
 float boundSpeed(float speed)

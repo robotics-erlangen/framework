@@ -37,12 +37,18 @@ const unsigned FOCAL_LENGTH = 390;
 
 class QByteArray;
 class QTimer;
-class SimRobot;
-struct SimulatorData;
 class Timer;
 class SSL_GeometryFieldSize;
 
-class Simulator : public QObject
+namespace camun {
+    namespace simulator {
+        class SimRobot;
+        class Simulator;
+        struct SimulatorData;
+    }
+}
+
+class camun::simulator::Simulator : public QObject
 {
     Q_OBJECT
 

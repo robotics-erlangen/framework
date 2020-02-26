@@ -21,6 +21,8 @@
 #include "simfield.h"
 #include "simulator.h"
 
+using namespace camun::simulator;
+
 SimField::SimField(btDiscreteDynamicsWorld *world, const world::Geometry &geometry) :
     m_world(world)
 {

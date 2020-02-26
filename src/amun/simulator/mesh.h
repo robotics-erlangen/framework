@@ -26,7 +26,13 @@
 #include <QVector3D>
 #include <QString>
 
-class Mesh
+namespace camun {
+    namespace simulator {
+        class Mesh;
+    }
+}
+
+class camun::simulator::Mesh
 {
 public:
     Mesh(float radius, float height, float angle, float holeSize, float boxHeight);

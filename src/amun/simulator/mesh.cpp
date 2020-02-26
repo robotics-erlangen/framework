@@ -21,6 +21,8 @@
 #include "mesh.h"
 #include <cmath>
 
+using namespace camun::simulator;
+
 /*!
  * \class Mesh
  * \ingroup simulator

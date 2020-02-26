@@ -25,7 +25,14 @@
 #include <QList>
 #include <btBulletDynamicsCommon.h>
 
-class SimField
+namespace camun {
+    namespace simulator {
+        class SimField;
+        struct CameraInfo;
+    }
+}
+
+class camun::simulator::SimField
 {
 public:
     SimField(btDiscreteDynamicsWorld *world, const world::Geometry &geometry);
@@ -45,7 +52,7 @@ private:
 };
 
 // maybe needs a better home than this header
-struct CameraInfo {
+struct camun::simulator::CameraInfo {
     btVector3 position;
     float halfAreaX;
     float halfAreaY;

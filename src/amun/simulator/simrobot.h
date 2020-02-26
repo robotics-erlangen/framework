@@ -27,10 +27,16 @@
 #include <btBulletDynamicsCommon.h>
 
 class RNG;
-class SimBall;
 class SSL_DetectionRobot;
 
-class SimRobot
+namespace camun {
+    namespace simulator {
+        class SimBall;
+        class SimRobot;
+    }
+}
+
+class camun::simulator::SimRobot
 {
 public:
     SimRobot(RNG *rng, const robot::Specs &specs, btDiscreteDynamicsWorld *world, const btVector3 &pos, float dir);
