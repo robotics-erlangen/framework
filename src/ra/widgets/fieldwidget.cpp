@@ -934,7 +934,7 @@ void FieldWidget::updateGeometry()
         m_geometryString = geometry;
 
         // add some space around the field
-        const float offset = g.referee_width() + g.boundary_width() + 0.1f;
+        const float offset = g.boundary_width();
 
         QRectF rect;
         rect.setLeft(-g.field_width() / 2.0f - offset);
@@ -1537,7 +1537,7 @@ void FieldWidget::drawBackground(QPainter *painter, const QRectF &rect)
     rect1.setWidth(geometry.field_width());
     rect1.setHeight(geometry.field_height());
 
-    const float offset = geometry.referee_width() + geometry.boundary_width() + 0.025f;
+    const float offset = geometry.boundary_width() + 0.025f;
     const QRectF rect2 = rect1.adjusted(-offset, -offset, offset, offset);
 
     if (m_actionAntialiasing->isChecked()) {

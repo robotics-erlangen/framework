@@ -502,7 +502,7 @@ QList<QByteArray> Simulator::createVisionPacket()
 
     const btVector3 ballPosition = m_data->ball->position() / SIMULATOR_SCALE;
 
-    const float totalBoundaryWidth = m_data->geometry.boundary_width() + m_data->geometry.referee_width();
+    const float totalBoundaryWidth = m_data->geometry.boundary_width();
 
     std::vector<CameraInfo> cameraInfos = getCameraInfos(numCameras, m_data->geometry.field_width(), m_data->geometry.field_height(), m_data->cameraSetup.camera_height());
 

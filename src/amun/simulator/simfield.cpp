@@ -26,8 +26,8 @@ using namespace camun::simulator;
 SimField::SimField(btDiscreteDynamicsWorld *world, const world::Geometry &geometry) :
     m_world(world)
 {
-    const float totalWidth = geometry.field_width() / 2.0f + geometry.boundary_width() + geometry.referee_width();
-    const float totalHeight = geometry.field_height() / 2.0f + geometry.boundary_width() + geometry.referee_width();
+    const float totalWidth = geometry.field_width() / 2.0f + geometry.boundary_width();
+    const float totalHeight = geometry.field_height() / 2.0f + geometry.boundary_width();
     // upper boundary
     const float roomHeight = 8.0f;
     const float height = geometry.field_height() / 2.0f - geometry.line_width();

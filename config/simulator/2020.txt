@@ -3,7 +3,6 @@ geometry {
 	field_width: 9.02
 	field_height: 12.04
 	boundary_width: 0.25
-	referee_width: 0.4
 	goal_width: 1.8
 	goal_depth: 0.18
 	goal_wall_width: 0.02
