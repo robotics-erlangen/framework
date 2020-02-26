@@ -90,6 +90,7 @@ private:
     void fieldAddCircularArc(SSL_GeometryFieldSize *field, std::string name, float x, float y, float radius, float a1, float a2) const;
     void populateFieldPacket(SSL_GeometryFieldSize *field);
     void teleportRobotToFreePosition(SimRobot *robot);
+    void initializeDetection(SSL_DetectionFrame *detection, std::size_t cameraId);
 
 private:
     typedef QPair<QList<robot::RadioCommand>, qint64> RadioCommand;
@@ -107,6 +108,10 @@ private:
     // systemDelay + visionProcessingTime = visionDelay
     qint64 m_visionDelay;
     qint64 m_visionProcessingTime;
+
+    qint64 m_minRobotDetectionTime = 0;
+    qint64 m_minBallDetectionTime = 0;
+    qint64 m_lastBallSendTime = 0;
 };
 
 #endif // SIMULATOR_H

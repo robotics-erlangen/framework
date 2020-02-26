@@ -49,10 +49,11 @@ public:
     bool canKickBall(SimBall *ball) const;
     void tryKick(SimBall *ball, float power, double time);
     robot::RadioResponse setCommand(const robot::Command &command, SimBall *ball, bool charge);
-    void update(SSL_DetectionRobot *robot, float stddev_p, float stddev_phi);
+    void update(SSL_DetectionRobot *robot, float stddev_p, float stddev_phi, qint64 time);
     void move(const amun::SimulatorMoveRobot &robot);
     bool isFlipped();
     btVector3 position() const;
+    qint64 getLastSendTime() const { return m_lastSendTime; }
 
     const robot::Specs& specs() const { return m_specs; }
 
@@ -89,6 +90,8 @@ private:
     float error_sum_v_s;
     float error_sum_v_f;
     float error_sum_omega;
+
+    qint64 m_lastSendTime = 0;
 };
 
 #endif // SIMROBOT_H

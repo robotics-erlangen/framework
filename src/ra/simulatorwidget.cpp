@@ -51,6 +51,10 @@ SimulatorWidget::SimulatorWidget(QWidget *parent) :
     connect(ui->spinStddevRobotPos, SIGNAL(valueChanged(double)), SLOT(setStddevRobotPos(double)));
     connect(ui->spinStddevRobotPhi, SIGNAL(valueChanged(double)), SLOT(setStddevRobotPhi(double)));
 
+    connect(ui->enableWorstCaseVision, SIGNAL(toggled(bool)), this, SLOT(updateWorstCaseVision()));
+    connect(ui->worstCaseBallDetections, SIGNAL(valueChanged(double)), this, SLOT(updateWorstCaseVision()));
+    connect(ui->worstCaseRobotDetections, SIGNAL(valueChanged(double)), this, SLOT(updateWorstCaseVision()));
+
     QAction *actionSpeedIncrease = new QAction(this);
     actionSpeedIncrease->setShortcut(QKeySequence("+"));
     connect(actionSpeedIncrease, SIGNAL(triggered()), SLOT(increaseSpeed()));
@@ -208,5 +212,15 @@ void SimulatorWidget::setCameraOverlap(int overlap)
 {
     Command command(new amun::Command);
     command->mutable_simulator()->set_camera_overlap(overlap / 100.0f);
+    emit sendCommand(command);
+}
+
+void SimulatorWidget::updateWorstCaseVision()
+{
+    Command command(new amun::Command);
+    command->mutable_simulator()->mutable_vision_worst_case()->set_min_ball_detection_time(
+                ui->enableWorstCaseVision->isChecked() ? ui->worstCaseBallDetections->value() : 0);
+    command->mutable_simulator()->mutable_vision_worst_case()->set_min_robot_detection_time(
+                ui->enableWorstCaseVision->isChecked() ? ui->worstCaseRobotDetections->value() : 0);
     emit sendCommand(command);
 }

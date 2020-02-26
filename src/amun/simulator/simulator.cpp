@@ -493,6 +493,14 @@ static void addCameraCalibrations(SSL_GeometryData *geometry, const std::size_t&
     }
 }
 
+void Simulator::initializeDetection(SSL_DetectionFrame *detection, std::size_t cameraId)
+{
+    detection->set_frame_number(0);
+    detection->set_camera_id(cameraId);
+    detection->set_t_capture((m_time + m_visionDelay - m_visionProcessingTime)*1E-9);
+    detection->set_t_sent((m_time + m_visionDelay)*1E-9);
+}
+
 QList<QByteArray> Simulator::createVisionPacket()
 {
     const std::size_t numCameras = m_data->cameraSetup.num_cameras();
@@ -500,43 +508,52 @@ QList<QByteArray> Simulator::createVisionPacket()
     std::vector<SSL_WrapperPacket> packets;
     packets.reserve(numCameras);
 
-    const btVector3 ballPosition = m_data->ball->position() / SIMULATOR_SCALE;
-
-    const float totalBoundaryWidth = m_data->geometry.boundary_width();
-
     std::vector<CameraInfo> cameraInfos = getCameraInfos(numCameras, m_data->geometry.field_width(), m_data->geometry.field_height(), m_data->cameraSetup.camera_height());
 
-    for (std::size_t cameraId = 0; cameraId < numCameras; ++cameraId) {
-        // at least one id is always valid
-        if (!checkCameraID(cameraId, numCameras, ballPosition, m_data->geometry.field_height(), m_data->cameraOverlap)) {
-            continue;
-        }
+    if (m_time - m_lastBallSendTime >= m_minBallDetectionTime) {
+        m_lastBallSendTime = m_time;
 
-        // setup vision packet
-        packets.push_back(SSL_WrapperPacket());
-        SSL_DetectionFrame *detection = packets.back().mutable_detection();
-        detection->set_frame_number(0);
-        detection->set_camera_id(cameraId);
-        detection->set_t_capture((m_time + m_visionDelay - m_visionProcessingTime)*1E-9);
-        detection->set_t_sent((m_time + m_visionDelay)*1E-9);
+        const btVector3 ballPosition = m_data->ball->position() / SIMULATOR_SCALE;
 
-        // get ball position
-        bool visible = m_data->ball->update(detection->add_balls(), m_data->stddevBall, cameraInfos[cameraId],
-                totalBoundaryWidth, m_data->enableInvisibleBall, m_data->ballVisibilityThreshold, m_data->cameraSetup.camera_height());
-        if (!visible) {
-            detection->clear_balls();
+        const float totalBoundaryWidth = m_data->geometry.boundary_width();
+
+        for (std::size_t cameraId = 0; cameraId < numCameras; ++cameraId) {
+            // at least one id is always valid
+            if (!checkCameraID(cameraId, numCameras, ballPosition, m_data->geometry.field_height(), m_data->cameraOverlap)) {
+                continue;
+            }
+
+            // setup vision packet
+            packets.push_back(SSL_WrapperPacket());
+            SSL_DetectionFrame *detection = packets.back().mutable_detection();
+            initializeDetection(detection, cameraId);
+
+            // get ball position
+            bool visible = m_data->ball->update(detection->add_balls(), m_data->stddevBall, cameraInfos[cameraId],
+                    totalBoundaryWidth, m_data->enableInvisibleBall, m_data->ballVisibilityThreshold, m_data->cameraSetup.camera_height());
+            if (!visible) {
+                detection->clear_balls();
+            }
         }
     }
 
     // put robots and geometry in the first packet
+    if (packets.size() == 0) {
+        packets.push_back(SSL_WrapperPacket());
+        initializeDetection(packets[0].mutable_detection(), 0);
+    }
     SSL_DetectionFrame *detection = packets[0].mutable_detection();
 
     // get robot positions
     for (SimRobot *robot : m_data->robotsBlue) {
-        robot->update(detection->add_robots_blue(), m_data->stddevRobot, m_data->stddevRobotPhi);
+        if (m_time - robot->getLastSendTime() >= m_minRobotDetectionTime) {
+            robot->update(detection->add_robots_blue(), m_data->stddevRobot, m_data->stddevRobotPhi, m_time);
+        }
     }
     for (SimRobot *robot : m_data->robotsYellow) {
-        robot->update(detection->add_robots_yellow(), m_data->stddevRobot, m_data->stddevRobotPhi);
+        if (m_time - robot->getLastSendTime() >= m_minRobotDetectionTime) {
+            robot->update(detection->add_robots_yellow(), m_data->stddevRobot, m_data->stddevRobotPhi, m_time);
+        }
     }
 
     // add field geometry
@@ -719,6 +736,15 @@ void Simulator::handleCommand(const Command &command)
 
         if (sim.has_camera_overlap()) {
             m_data->cameraOverlap = sim.camera_overlap();
+        }
+
+        if (sim.has_vision_worst_case()) {
+            if (sim.vision_worst_case().has_min_ball_detection_time()) {
+                m_minBallDetectionTime = sim.vision_worst_case().min_ball_detection_time() * 1E9;
+            }
+            if (sim.vision_worst_case().has_min_robot_detection_time()) {
+                m_minRobotDetectionTime = sim.vision_worst_case().min_robot_detection_time() * 1E9;
+            }
         }
     }
 

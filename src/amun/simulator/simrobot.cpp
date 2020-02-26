@@ -382,7 +382,7 @@ robot::RadioResponse SimRobot::setCommand(const robot::Command &command, SimBall
     return response;
 }
 
-void SimRobot::update(SSL_DetectionRobot *robot, float stddev_p, float stddev_phi)
+void SimRobot::update(SSL_DetectionRobot *robot, float stddev_p, float stddev_phi, qint64 time)
 {
     // setup vision packet
     robot->set_robot_id(m_specs.id());
@@ -401,6 +401,8 @@ void SimRobot::update(SSL_DetectionRobot *robot, float stddev_p, float stddev_ph
     const btQuaternion q = transform.getRotation();
     const btVector3 dir = btMatrix3x3(q).getColumn(0);
     robot->set_orientation(atan2(dir.y(), dir.x()) + m_rng->normal(stddev_phi));
+
+    m_lastSendTime = time;
 }
 
 void SimRobot::move(const amun::SimulatorMoveRobot &robot)

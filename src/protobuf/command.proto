@@ -46,6 +46,13 @@ message SimulatorSetup {
     optional CameraSetup camera_setup = 2;
 }
 
+message SimulatorWorstCaseVision {
+    // minimum time between two detections of one robot or ball (in seconds)
+    // when the feature is disabled, zero may be set here
+    optional float min_robot_detection_time = 1;
+    optional float min_ball_detection_time = 2;
+}
+
 message CommandSimulator {
     optional bool enable = 1;
     optional int64 vision_delay = 9;
@@ -60,6 +67,7 @@ message CommandSimulator {
     optional bool enable_invisible_ball = 12;
     optional float ball_visibility_threshold = 13;
     optional float camera_overlap = 14;
+    optional SimulatorWorstCaseVision vision_worst_case = 15;
 }
 
 message CommandReferee {

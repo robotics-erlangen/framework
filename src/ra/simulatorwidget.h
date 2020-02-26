@@ -62,6 +62,7 @@ private slots:
     void setEnableInvisibleBall(int state);
     void setBallVisibilityThreshold(int threshold);
     void setCameraOverlap(int overlap);
+    void updateWorstCaseVision();
 
 private:
     Ui::SimulatorWidget *ui;
