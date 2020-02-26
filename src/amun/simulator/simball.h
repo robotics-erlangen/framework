@@ -23,7 +23,6 @@
 
 #include "protobuf/command.pb.h"
 #include <btBulletDynamicsCommon.h>
-#include "simulator.h"
 #include "simfield.h"
 
 static const float BALL_RADIUS = 0.0215f;
