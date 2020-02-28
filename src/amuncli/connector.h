@@ -39,7 +39,7 @@ public:
 
     void setInitScript(const QString &initScript);
     void setEntryPoint(const QString &entryPoint);
-    void setStrategyColor(bool asBlue);
+    void setStrategyColors(bool runBlue, bool runYellow);
     void setDebug(bool debug);
     void setSimulatorConfigFile(const QString &shortFile);
 
@@ -58,9 +58,10 @@ private:
 
     QString m_initScript;
     QString m_entryPoint;
-    bool m_asBlue;
-    bool m_debug;
-    int m_exitCode;
+    bool m_runBlue = false;
+    bool m_runYellow = false;
+    bool m_debug = false;
+    int m_exitCode = 255;
     std::map<std::string, bool> m_options;
 
     QString m_simulatorConfigurationFile;

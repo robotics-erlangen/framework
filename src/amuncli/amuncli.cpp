@@ -38,10 +38,10 @@ int main(int argc, char* argv[])
     parser.addPositionalArgument("strategy_file", "Strategy init script");
     parser.addPositionalArgument("entrypoint", "Entrypoint, optional. Prints all entrypoints if missing", "[entrypoint]");
 
-    QCommandLineOption asBlueOption({"b", "as-blue"}, "Run as blue strategy, defaults to yellow");
+    QCommandLineOption strategyColorConfig({"c", "strategy-color"}, "Color(s) of the strategy to run, eighter yellow, blue or both, defaults to yellow", "color", "yellow");
     QCommandLineOption debugOption({"v", "verbose"}, "Dump raw strategy output");
     QCommandLineOption simulatorConfig({"s", "simulator-config"}, "Which simulator config to use (field size etc.), loaded from the config directory", "file");
-    parser.addOption(asBlueOption);
+    parser.addOption(strategyColorConfig);
     parser.addOption(debugOption);
     parser.addOption(simulatorConfig);
     // parse command line, handles --version
@@ -55,8 +55,15 @@ int main(int argc, char* argv[])
     const QStringList args = parser.positionalArguments();
     const QString initScript = args.at(0);
     const QString entryPoint = (argCount > 1) ? args.at(1) : QString();
+    const QString strategyColor = parser.value(strategyColorConfig);
 
-    bool asBlue = parser.isSet(asBlueOption);
+    if (strategyColor != "yellow" && strategyColor != "blue" && strategyColor != "both") {
+        std::cerr <<"Invalid strategy color configuration "<<strategyColor.toStdString()<<std::endl;
+        exit(1);
+    }
+
+    bool runBlueStrategy = strategyColor == "blue" || strategyColor == "both";
+    bool runYellowStrategy = strategyColor == "yellow" || strategyColor == "both";
     bool debug = parser.isSet(debugOption);
 
     AmunClient amun;
@@ -71,7 +78,7 @@ int main(int argc, char* argv[])
     }
     connector.setInitScript(initScript);
     connector.setEntryPoint(entryPoint);
-    connector.setStrategyColor(asBlue);
+    connector.setStrategyColors(runBlueStrategy, runYellowStrategy);
     connector.setDebug(debug);
     connector.start();
 

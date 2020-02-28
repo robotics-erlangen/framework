@@ -25,13 +25,11 @@
 #include <google/protobuf/text_format.h>
 #include <QCoreApplication>
 #include <QDir>
+#include <QSet>
 #include <iostream>
 
 Connector::Connector(QObject *parent) :
-    QObject(parent),
-    m_asBlue(false),
-    m_debug(false),
-    m_exitCode(255)
+    QObject(parent)
 {
 }
 
@@ -50,9 +48,10 @@ void Connector::setEntryPoint(const QString &entryPoint)
     m_entryPoint = entryPoint;
 }
 
-void Connector::setStrategyColor(bool asBlue)
+void Connector::setStrategyColors(bool runBlue, bool runYellow)
 {
-    m_asBlue = asBlue;
+    m_runBlue = runBlue;
+    m_runYellow = runYellow;
 }
 
 void Connector::setDebug(bool debug)
@@ -100,8 +99,12 @@ void Connector::start()
     command->mutable_simulator()->set_enable(true);
     command->mutable_referee()->set_active(true);
 
-    auto *strategy = (m_asBlue) ? command->mutable_strategy_blue() : command->mutable_strategy_yellow();
-    addStrategyLoad(strategy);
+    if (m_runBlue) {
+        addStrategyLoad(command->mutable_strategy_blue());
+    }
+    if (m_runYellow) {
+        addStrategyLoad(command->mutable_strategy_yellow());
+    }
     sendCommand(command);
 }
 
@@ -154,9 +157,15 @@ void Connector::sendOptions()
 
 void Connector::handleStatus(const Status &status)
 {
-    amun::DebugSource expectedSource = (m_asBlue) ? amun::StrategyBlue : amun::StrategyYellow;
+    QSet<amun::DebugSource> expectedSources;
+    if (m_runBlue) {
+        expectedSources.insert(amun::StrategyBlue);
+    }
+    if (m_runYellow) {
+        expectedSources.insert(amun::StrategyYellow);
+    }
     for (const auto& debug: status->debug()) {
-        if (debug.source() == expectedSource) {
+        if (expectedSources.contains(debug.source())) {
             if (m_debug) {
                 TestTools::dumpProtobuf(*status);
             }
