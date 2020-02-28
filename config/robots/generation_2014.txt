@@ -98,3 +98,45 @@ robot {
   strategy {
   }
 }
+robot {
+  id: 16
+  acceleration {
+  }
+  strategy {
+  }
+}
+robot {
+  id: 17
+  acceleration {
+  }
+  strategy {
+  }
+}
+robot {
+  id: 18
+  acceleration {
+  }
+  strategy {
+  }
+}
+robot {
+  id: 19
+  acceleration {
+  }
+  strategy {
+  }
+}
+robot {
+  id: 20
+  acceleration {
+  }
+  strategy {
+  }
+}
+robot {
+  id: 21
+  acceleration {
+  }
+  strategy {
+  }
+}
