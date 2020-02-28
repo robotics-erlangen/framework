@@ -62,7 +62,9 @@ export function setDampingParam(id: DampingIndex, param: DampingFactor) {
 }
 
 export function getDampingParam(id: DampingIndex | "default"): Readonly<DampingFactor> {
-	return id === "default" ? DEFAULT_DAMPING_FACTOR : mus[id]!;
+	return World.IsSimulated || id === "default"
+		? DEFAULT_DAMPING_FACTOR
+		: mus[id]!;
 }
 
 type VolleyObserver = (ballSpeed: Speed, viewPos: Position, targetPos: Position,
@@ -190,7 +192,7 @@ export class Volley {
 
 	private static volley_Jf(v_s: number, phi: number, alpha: number, v_in: number,
 			robotId: number | "opp"): [number, number, number, number] {
-		if (robotId < 0 || robotId > 15) {
+		if (!World.IsSimulated && (robotId < 0 || robotId > 15)) {
 			throw new Error("Invalid robot id");
 		}
 		let sinp = Math.sin(phi);
