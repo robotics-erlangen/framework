@@ -31,6 +31,7 @@ target_link_libraries(amun-cli
     Qt5::Core
     Threads::Threads
     amuncli::testtools
+    shared::config
 )
 v8_copy_deps(amun-cli)
 target_include_directories(amun-cli

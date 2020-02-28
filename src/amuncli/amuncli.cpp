@@ -40,8 +40,10 @@ int main(int argc, char* argv[])
 
     QCommandLineOption asBlueOption({"b", "as-blue"}, "Run as blue strategy, defaults to yellow");
     QCommandLineOption debugOption({"v", "verbose"}, "Dump raw strategy output");
+    QCommandLineOption simulatorConfig({"s", "simulator-config"}, "Which simulator config to use (field size etc.), loaded from the config directory", "file");
     parser.addOption(asBlueOption);
     parser.addOption(debugOption);
+    parser.addOption(simulatorConfig);
     // parse command line, handles --version
     parser.process(app);
 
@@ -64,6 +66,9 @@ int main(int argc, char* argv[])
     connector.connect(&connector, &Connector::sendCommand, &amun, &AmunClient::sendCommand);
     connector.connect(&amun, &AmunClient::gotStatus, &connector, &Connector::handleStatus);
 
+    if (parser.isSet(simulatorConfig)) {
+        connector.setSimulatorConfigFile(parser.value(simulatorConfig));
+    }
     connector.setInitScript(initScript);
     connector.setEntryPoint(entryPoint);
     connector.setStrategyColor(asBlue);

@@ -41,6 +41,7 @@ public:
     void setEntryPoint(const QString &entryPoint);
     void setStrategyColor(bool asBlue);
     void setDebug(bool debug);
+    void setSimulatorConfigFile(const QString &shortFile);
 
     void start();
 
@@ -61,6 +62,8 @@ private:
     bool m_debug;
     int m_exitCode;
     std::map<std::string, bool> m_options;
+
+    QString m_simulatorConfigurationFile;
 };
 
 #endif // CONNECTOR_H

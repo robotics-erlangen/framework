@@ -20,6 +20,9 @@
 
 #include "connector.h"
 #include "testtools/testtools.h"
+#include "config/config.h"
+
+#include <google/protobuf/text_format.h>
 #include <QCoreApplication>
 #include <QDir>
 #include <iostream>
@@ -55,6 +58,26 @@ void Connector::setStrategyColor(bool asBlue)
 void Connector::setDebug(bool debug)
 {
     m_debug = debug;
+}
+
+void Connector::setSimulatorConfigFile(const QString &shortFile)
+{
+    QString fullFilename = QString(ERFORCE_CONFDIR) + "simulator/" + shortFile + ".txt";
+    QFile file(fullFilename);
+    if (!file.open(QFile::ReadOnly)) {
+        std::cout <<"Could not open simulator configuration file "<<fullFilename.toStdString()<<std::endl;
+        qApp->exit(1);
+    }
+    QString str = file.readAll();
+    file.close();
+    std::string s = qPrintable(str);
+
+    Command command(new amun::Command);
+    google::protobuf::TextFormat::Parser parser;
+    parser.AllowPartialMessage(false);
+    parser.ParseFromString(s, command->mutable_simulator()->mutable_simulator_setup());
+
+    sendCommand(command);
 }
 
 void Connector::addStrategyLoad(amun::CommandStrategy *strategy)
