@@ -104,8 +104,7 @@ endif()
 set(CMAKE_AUTOMOC ON)
 find_package(Qt5 COMPONENTS Core Widgets Network OpenGL REQUIRED)
 
-
-find_package(Qt5 COMPONENTS Svg OPTIONAL)
+find_package(Qt5 COMPONENTS Svg)
 if (NOT TARGET Qt5::Svg)
     message(STATUS "Qt svg component not found. Svg screenshots will not be supported.")
 endif()
