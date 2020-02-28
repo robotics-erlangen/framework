@@ -42,10 +42,14 @@ int main(int argc, char* argv[])
     QCommandLineOption debugOption({"v", "verbose"}, "Dump raw strategy output");
     QCommandLineOption simulatorConfig({"s", "simulator-config"}, "Which simulator config to use (field size etc.), loaded from the config directory", "file");
     QCommandLineOption simulationTime({"t", "simulation-time"}, "Number of seconds to simulator, infinite running if missing", "seconds", "-1");
+    QCommandLineOption numberOfRobots({"n", "num-robots"}, "Number of robots to load per team. Defaults to zero", "num-robots", "0");
+    QCommandLineOption robotGenerationFile("robot-generation", "Robot generation to create the robots of", "generation");
     parser.addOption(strategyColorConfig);
     parser.addOption(debugOption);
     parser.addOption(simulatorConfig);
     parser.addOption(simulationTime);
+    parser.addOption(numberOfRobots);
+    parser.addOption(robotGenerationFile);
     // parse command line, handles --version
     parser.process(app);
 
@@ -68,6 +72,7 @@ int main(int argc, char* argv[])
     bool runYellowStrategy = strategyColor == "yellow" || strategyColor == "both";
     bool debug = parser.isSet(debugOption);
     int simulationRunningTime = parser.value(simulationTime).toInt();
+    int numRobots = parser.value(numberOfRobots).toInt();
 
     AmunClient amun;
     amun.start(true);
@@ -78,6 +83,12 @@ int main(int argc, char* argv[])
 
     if (parser.isSet(simulatorConfig)) {
         connector.setSimulatorConfigFile(parser.value(simulatorConfig));
+    }
+    if (parser.isSet(robotGenerationFile)) {
+        connector.setRobotConfiguration(numRobots, parser.value(robotGenerationFile));
+    } else if (numRobots > 0) {
+        std::cerr <<"Option robot-generation must be specified with a non-zero robot count"<<std::endl;
+        exit(1);
     }
     connector.setInitScript(initScript);
     connector.setEntryPoint(entryPoint);

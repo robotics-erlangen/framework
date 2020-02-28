@@ -43,6 +43,7 @@ public:
     void setDebug(bool debug);
     void setSimulatorConfigFile(const QString &shortFile);
     void setSimulationRunningTime(int seconds);
+    void setRobotConfiguration(int numRobots, const QString &generation);
 
     void start();
 
@@ -56,6 +57,7 @@ private:
     void addStrategyLoad(amun::CommandStrategy *strategy);
     void handleStrategyStatus(const amun::StatusStrategy &strategy);
     void sendOptions();
+    void loadConfiguration(const QString &configFile, google::protobuf::Message *message, bool allowPartial);
 
     QString m_initScript;
     QString m_entryPoint;

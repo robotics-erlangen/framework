@@ -64,22 +64,27 @@ void Connector::setSimulationRunningTime(int seconds)
     m_simulationRunningTime = seconds * 1E9;
 }
 
-void Connector::setSimulatorConfigFile(const QString &shortFile)
+void Connector::loadConfiguration(const QString &configFile, google::protobuf::Message *message, bool allowPartial)
 {
-    QString fullFilename = QString(ERFORCE_CONFDIR) + "simulator/" + shortFile + ".txt";
+    QString fullFilename = QString(ERFORCE_CONFDIR) + configFile + ".txt";
     QFile file(fullFilename);
     if (!file.open(QFile::ReadOnly)) {
-        std::cout <<"Could not open simulator configuration file "<<fullFilename.toStdString()<<std::endl;
+        std::cout <<"Could not open configuration file "<<fullFilename.toStdString()<<std::endl;
         qApp->exit(1);
     }
     QString str = file.readAll();
     file.close();
     std::string s = qPrintable(str);
 
-    Command command(new amun::Command);
     google::protobuf::TextFormat::Parser parser;
-    parser.AllowPartialMessage(false);
-    parser.ParseFromString(s, command->mutable_simulator()->mutable_simulator_setup());
+    parser.AllowPartialMessage(allowPartial);
+    parser.ParseFromString(s, message);
+}
+
+void Connector::setSimulatorConfigFile(const QString &shortFile)
+{
+    Command command(new amun::Command);
+    loadConfiguration("simulator/" + shortFile, command->mutable_simulator()->mutable_simulator_setup(), false);
 
     sendCommand(command);
 }
@@ -94,9 +99,31 @@ void Connector::addStrategyLoad(amun::CommandStrategy *strategy)
     }
 }
 
+void Connector::setRobotConfiguration(int numRobots, const QString &generation)
+{
+    if (numRobots == 0) {
+        return;
+    }
+    robot::Generation gen;
+    loadConfiguration("robots/" + generation, &gen, true);
+
+    robot::Team yellow;
+    robot::Team blue;
+    for (int i = 0;i<numRobots;i++) {
+        yellow.add_robot()->CopyFrom(gen.default_());
+        yellow.mutable_robot(i)->set_id(i);
+        blue.add_robot()->CopyFrom(gen.default_());
+        blue.mutable_robot(i)->set_id(i);
+    }
+
+    Command command(new amun::Command);
+    command->mutable_set_team_yellow()->CopyFrom(yellow);
+    command->mutable_set_team_blue()->CopyFrom(blue);
+    sendCommand(command);
+}
+
 void Connector::start()
 {
-    // FIXME: send load robots
     // FIXME: send config
     // FIXME: send referee?
 
