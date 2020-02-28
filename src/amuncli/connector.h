@@ -42,6 +42,7 @@ public:
     void setStrategyColors(bool runBlue, bool runYellow);
     void setDebug(bool debug);
     void setSimulatorConfigFile(const QString &shortFile);
+    void setSimulationRunningTime(int seconds);
 
     void start();
 
@@ -65,6 +66,9 @@ private:
     std::map<std::string, bool> m_options;
 
     QString m_simulatorConfigurationFile;
+    qint64 m_simulationRunningTime = std::numeric_limits<qint64>::max();
+
+    qint64 m_simulationStartTime = 0;
 };
 
 #endif // CONNECTOR_H

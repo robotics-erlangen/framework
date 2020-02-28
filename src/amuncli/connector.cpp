@@ -59,6 +59,11 @@ void Connector::setDebug(bool debug)
     m_debug = debug;
 }
 
+void Connector::setSimulationRunningTime(int seconds)
+{
+    m_simulationRunningTime = seconds * 1E9;
+}
+
 void Connector::setSimulatorConfigFile(const QString &shortFile)
 {
     QString fullFilename = QString(ERFORCE_CONFDIR) + "simulator/" + shortFile + ".txt";
@@ -177,6 +182,13 @@ void Connector::handleStatus(const Status &status)
     if (status->has_status_strategy()) {
         const auto& strategy = status->status_strategy().status();
         handleStrategyStatus(strategy);
+    }
+
+    if (m_simulationStartTime == 0) {
+        m_simulationStartTime = status->time();
+    }
+    if (status->time() - m_simulationStartTime >= m_simulationRunningTime) {
+        qApp->exit(0);
     }
 }
 

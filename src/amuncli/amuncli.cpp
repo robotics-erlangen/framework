@@ -41,9 +41,11 @@ int main(int argc, char* argv[])
     QCommandLineOption strategyColorConfig({"c", "strategy-color"}, "Color(s) of the strategy to run, eighter yellow, blue or both, defaults to yellow", "color", "yellow");
     QCommandLineOption debugOption({"v", "verbose"}, "Dump raw strategy output");
     QCommandLineOption simulatorConfig({"s", "simulator-config"}, "Which simulator config to use (field size etc.), loaded from the config directory", "file");
+    QCommandLineOption simulationTime({"t", "simulation-time"}, "Number of seconds to simulator, infinite running if missing", "seconds", "-1");
     parser.addOption(strategyColorConfig);
     parser.addOption(debugOption);
     parser.addOption(simulatorConfig);
+    parser.addOption(simulationTime);
     // parse command line, handles --version
     parser.process(app);
 
@@ -65,6 +67,7 @@ int main(int argc, char* argv[])
     bool runBlueStrategy = strategyColor == "blue" || strategyColor == "both";
     bool runYellowStrategy = strategyColor == "yellow" || strategyColor == "both";
     bool debug = parser.isSet(debugOption);
+    int simulationRunningTime = parser.value(simulationTime).toInt();
 
     AmunClient amun;
     amun.start(true);
@@ -80,6 +83,7 @@ int main(int argc, char* argv[])
     connector.setEntryPoint(entryPoint);
     connector.setStrategyColors(runBlueStrategy, runYellowStrategy);
     connector.setDebug(debug);
+    connector.setSimulationRunningTime(simulationRunningTime < 0 ? std::numeric_limits<int>::max() : simulationRunningTime);
     connector.start();
 
     return app.exec();
