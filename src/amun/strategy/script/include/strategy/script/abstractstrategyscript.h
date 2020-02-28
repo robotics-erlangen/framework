@@ -64,6 +64,8 @@ public:
     virtual void endProfiling(const std::string &filename) {}
     virtual bool canReloadInPlace() const { return false; }
     virtual bool canHandleDynamic(const QString &filename) const = 0;
+    // may not be called before calling loadScript at least once
+    virtual void waitForCompileFinished() {}
 
     const ScriptState& state() const { return m_scriptState; };
     ScriptState& state() { return m_scriptState; };

@@ -553,6 +553,11 @@ void Strategy::sendCommand(const Command &command)
     }
 }
 
+void Strategy::waitForCompilationFinish()
+{
+    m_strategy->waitForCompileFinished();
+}
+
 void Strategy::loadStateChanged(amun::StatusStrategy::STATE state)
 {
     if (state == amun::StatusStrategy::FAILED) {

@@ -188,6 +188,11 @@ int main(int argc, char* argv[])
         // load the strategy
         strategy->handleCommand(createLoadCommand(asBlue, initScript, entryPoint, parser.isSet(disablePerformanceMode)));
 
+        // wait for any comilation to finish before executing the strategy
+        strategy->waitForCompilationFinish();
+        // process all outstanding events before executing the strategy to avoid race conditions (otherwise, the compiler output may not be visible)
+        app.processEvents();
+
         int packetCount = logfile.packetCount();
         int startPosition = parser.value(profileStart).toInt();
         int endPosition = parser.isSet(profileLength) ? startPosition + parser.value(profileLength).toInt() : packetCount - 1;

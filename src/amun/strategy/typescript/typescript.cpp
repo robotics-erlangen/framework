@@ -376,6 +376,11 @@ void Typescript::loadScript(const QString &fname, const QString &entryPoint)
     loadTypescript(fname, entryPoint);
 }
 
+void Typescript::waitForCompileFinished()
+{
+    m_compiler->comp()->waitForCompileFinished();
+}
+
 bool Typescript::setupCompiler(const QString &filename)
 {
     if (m_compiler) {

@@ -59,6 +59,9 @@ public:
     void setEnabled(bool enable) { m_isEnabled = enable; }
     void tryProcess();
 
+    // the strategy must have been loaded with an entrypoint at least once before calling this function
+    void waitForCompilationFinish();
+
 signals:
     void gotCommand(const Command &command);
     void sendStatus(const Status &status);

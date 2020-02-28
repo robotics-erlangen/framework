@@ -39,6 +39,7 @@ public:
     virtual bool requestPause() = 0;
     virtual void resume() = 0;
     virtual bool isResultAvailable() = 0;
+    virtual void waitForCompileFinished() = 0;
 public slots:
     virtual void init() = 0;
     virtual void compile() = 0;
