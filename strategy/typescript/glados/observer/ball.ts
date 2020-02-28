@@ -525,11 +525,11 @@ function updateIsStanding() {
 	let condSameDirection = true;
 	let speedMean = new Vector(0,0);
 	for (let i = 0; i < lastSpeedVectors.length; i++) {
-		speedMean += lastSpeedVectors[i];
+		speedMean = speedMean + lastSpeedVectors[i];
 	}
 
-	speedMean += World.Ball.speed;
-	speedMean /= lastSpeedVectors.length;
+	speedMean = speedMean + World.Ball.speed;
+	speedMean = speedMean / lastSpeedVectors.length;
 
 	condSameDirection = speedMean.length() > speedMeanThreshold;
 
@@ -542,7 +542,7 @@ function updateIsStanding() {
 	// mean position
 	let positionMean = new Vector(0,0);
 	for (let i = 0; i < lastBallPositions.length; i++) {
-		positionMean += lastBallPositions[i];
+		positionMean = positionMean + lastBallPositions[i];
 	}
 
 	positionMean = positionMean / lastBallPositions.length;
@@ -550,7 +550,7 @@ function updateIsStanding() {
 	// calculate standard deviation
 	let sum = 0;
 	for (let i = 0; i < lastBallPositions.length; i++) {
-		sum += (lastBallPositions[i] - positionMean).lengthSq();
+		sum = sum + (lastBallPositions[i] - positionMean).lengthSq();
 	}
 	sum = (sum / (lastBallPositions.length - 1));
 	let standardDeviation = Math.sqrt(sum);
