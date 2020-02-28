@@ -174,7 +174,7 @@ export class Volley {
 	 * @return x,y - the velocity of the shot ball relative to the robot's velocity is Vector(x,y)
 	 */
 	static calcVOutFromVS(v_s: number, v_in: number, phi: number, alpha: number, robotId: number | "opp"): [number, number] {
-		if (robotId < 0 || robotId > 15) {
+		if (!World.IsSimulated && (robotId < 0 || robotId > 15)) {
 			throw new Error("Invalid robot id");
 		}
 		v_in = bound(0, v_in, Constants.maxBallSpeed);
