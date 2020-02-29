@@ -21,6 +21,7 @@
 #ifndef CONNECTOR_H
 #define CONNECTOR_H
 
+#include "internalreferee.h"
 #include "protobuf/command.h"
 #include "protobuf/status.h"
 #include <QObject>
@@ -37,6 +38,7 @@ public:
     Connector(const Connector&) = delete;
     Connector& operator=(const Connector&) = delete;
 
+    void setAutorefInitScript(const QString &initScript);
     void setInitScript(const QString &initScript);
     void setEntryPoint(const QString &entryPoint);
     void setStrategyColors(bool runBlue, bool runYellow);
@@ -54,13 +56,14 @@ signals:
     void sendCommand(const Command &command);
 
 private:
-    void addStrategyLoad(amun::CommandStrategy *strategy);
+    void addStrategyLoad(amun::CommandStrategy *strategy, const QString &initScript, const QString &entryPoint);
     void handleStrategyStatus(const amun::StatusStrategy &strategy);
     void sendOptions();
     void loadConfiguration(const QString &configFile, google::protobuf::Message *message, bool allowPartial);
 
     QString m_initScript;
     QString m_entryPoint;
+    QString m_autorefInitScript = "";
     bool m_runBlue = false;
     bool m_runYellow = false;
     bool m_debug = false;
@@ -71,6 +74,8 @@ private:
     qint64 m_simulationRunningTime = std::numeric_limits<qint64>::max();
 
     qint64 m_simulationStartTime = 0;
+
+    InternalReferee m_referee;
 };
 
 #endif // CONNECTOR_H

@@ -44,12 +44,14 @@ int main(int argc, char* argv[])
     QCommandLineOption simulationTime({"t", "simulation-time"}, "Number of seconds to simulator, infinite running if missing", "seconds", "-1");
     QCommandLineOption numberOfRobots({"n", "num-robots"}, "Number of robots to load per team. Defaults to zero", "num-robots", "0");
     QCommandLineOption robotGenerationFile("robot-generation", "Robot generation to create the robots of", "generation");
+    QCommandLineOption autorefInitScript({"a", "autoref"}, "Autoref init script (not executed when missing)", "file");
     parser.addOption(strategyColorConfig);
     parser.addOption(debugOption);
     parser.addOption(simulatorConfig);
     parser.addOption(simulationTime);
     parser.addOption(numberOfRobots);
     parser.addOption(robotGenerationFile);
+    parser.addOption(autorefInitScript);
     // parse command line, handles --version
     parser.process(app);
 
@@ -90,6 +92,7 @@ int main(int argc, char* argv[])
         std::cerr <<"Option robot-generation must be specified with a non-zero robot count"<<std::endl;
         exit(1);
     }
+    connector.setAutorefInitScript(parser.value(autorefInitScript));
     connector.setInitScript(initScript);
     connector.setEntryPoint(entryPoint);
     connector.setStrategyColors(runBlueStrategy, runYellowStrategy);

@@ -31,10 +31,19 @@
 Connector::Connector(QObject *parent) :
     QObject(parent)
 {
+    connect(&m_referee, SIGNAL(sendCommand(Command)), this, SIGNAL(sendCommand(Command)));
 }
 
 Connector::~Connector()
 {
+}
+
+void Connector::setAutorefInitScript(const QString &initScript)
+{
+    if (!initScript.isEmpty()) {
+        QDir currentDirectory(".");
+        m_autorefInitScript = currentDirectory.absoluteFilePath(initScript);
+    }
 }
 
 void Connector::setInitScript(const QString &initScript)
@@ -89,13 +98,13 @@ void Connector::setSimulatorConfigFile(const QString &shortFile)
     sendCommand(command);
 }
 
-void Connector::addStrategyLoad(amun::CommandStrategy *strategy)
+void Connector::addStrategyLoad(amun::CommandStrategy *strategy, const QString &initScript, const QString &entryPoint)
 {
     strategy->set_enable_debug(true);
     auto *load = strategy->mutable_load();
-    load->set_filename(m_initScript.toStdString());
-    if (!m_entryPoint.isNull()) {
-        load->set_entry_point(m_entryPoint.toStdString());
+    load->set_filename(initScript.toStdString());
+    if (!entryPoint.isEmpty()) {
+        load->set_entry_point(entryPoint.toStdString());
     }
 }
 
@@ -125,17 +134,36 @@ void Connector::setRobotConfiguration(int numRobots, const QString &generation)
 void Connector::start()
 {
     // FIXME: send config
-    // FIXME: send referee?
 
     Command command(new amun::Command);
     command->mutable_simulator()->set_enable(true);
     command->mutable_referee()->set_active(true);
 
+    // enable transceiver in the simulator
+    command->mutable_transceiver()->set_enable(true);
+    command->mutable_transceiver()->set_charge(true);
+
     if (m_runBlue) {
-        addStrategyLoad(command->mutable_strategy_blue());
+        addStrategyLoad(command->mutable_strategy_blue(), m_initScript, m_entryPoint);
     }
     if (m_runYellow) {
-        addStrategyLoad(command->mutable_strategy_yellow());
+        addStrategyLoad(command->mutable_strategy_yellow(), m_initScript, m_entryPoint);
+    }
+    if (!m_autorefInitScript.isEmpty()) {
+        addStrategyLoad(command->mutable_strategy_autoref(), m_autorefInitScript, {});
+
+        command->mutable_referee()->set_active(true);
+
+        m_referee.changeStage(SSL_Referee::NORMAL_FIRST_HALF);
+        m_referee.changeBlueKeeper(0);
+        m_referee.changeYellowKeeper(0);
+        m_referee.enableInternalAutoref(true);
+        if (m_runBlue) {
+            m_referee.changeCommand(SSL_Referee::PREPARE_KICKOFF_BLUE);
+        } else if (m_runYellow) {
+            m_referee.changeCommand(SSL_Referee::PREPARE_KICKOFF_YELLOW);
+        }
+
     }
     sendCommand(command);
 }
@@ -155,13 +183,13 @@ void Connector::handleStrategyStatus(const amun::StatusStrategy &strategy)
             sendOptions();
         }
     } else if (strategy.state() == amun::StatusStrategy::RUNNING) {
-        if (m_entryPoint.isNull()) {
+        if (m_entryPoint.isEmpty()) {
             TestTools::dumpEntrypoints(strategy);
             qApp->exit(0);
         } else {
             QString currentEntryPoint = QString::fromStdString(strategy.current_entry_point());
-            if (currentEntryPoint != m_entryPoint) {
-                std::cout << "Invalid entrypoint" << std::endl;
+            if (currentEntryPoint != m_entryPoint && strategy.filename() != m_autorefInitScript.toStdString()) {
+                std::cout << "Invalid entrypoint " << std::endl;
                 qApp->exit(1);
             }
         }
@@ -195,6 +223,9 @@ void Connector::handleStatus(const Status &status)
     }
     if (m_runYellow) {
         expectedSources.insert(amun::StrategyYellow);
+    }
+    if (!m_autorefInitScript.isEmpty()) {
+        expectedSources.insert(amun::Autoref);
     }
     for (const auto& debug: status->debug()) {
         if (expectedSources.contains(debug.source())) {
