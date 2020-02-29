@@ -25,9 +25,11 @@
 #include "logfile/logfilewriter.h"
 #include "protobuf/command.h"
 #include "protobuf/status.h"
+#include "protobuf/ssl_referee_game_event.pb.h"
 #include <QObject>
 #include <QString>
 #include <utility>
+#include <map>
 
 class Connector : public QObject
 {
@@ -48,6 +50,7 @@ public:
     void setSimulationRunningTime(int seconds);
     void setRobotConfiguration(int numRobots, const QString &generation);
     void setRecordLogfile(const QString &filename);
+    void setReportEvents(bool report) { m_reportEvents = report; }
 
     void start();
 
@@ -71,6 +74,7 @@ private:
     bool m_debug = false;
     int m_exitCode = 255;
     std::map<std::string, bool> m_options;
+    bool m_reportEvents = false;
 
     QString m_simulatorConfigurationFile;
     qint64 m_simulationRunningTime = std::numeric_limits<qint64>::max();
@@ -82,6 +86,9 @@ private:
     InternalReferee m_referee;
     LogFileWriter m_logfile;
     bool m_recordLogfile = false;
+
+    std::map<gameController::GameEventType, std::size_t> m_eventCounter;
+    gameController::GameEvent m_lastGameEvent;
 };
 
 #endif // CONNECTOR_H

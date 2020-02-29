@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2016 Michael Eischer                                        *
+ *   Copyright 2016 Michael Eischer, 2020 Andreas Wendler                  *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -46,6 +46,7 @@ int main(int argc, char* argv[])
     QCommandLineOption robotGenerationFile("robot-generation", "Robot generation to create the robots of", "generation");
     QCommandLineOption autorefInitScript({"a", "autoref"}, "Autoref init script (not executed when missing)", "file");
     QCommandLineOption recordLog({"r", "record"}, "Record the game to the specified log file", "file");
+    QCommandLineOption reportEvents({"e", "report-events"}, "Report the number of events (fouls, goals etc.)");
     parser.addOption(strategyColorConfig);
     parser.addOption(debugOption);
     parser.addOption(simulatorConfig);
@@ -54,6 +55,7 @@ int main(int argc, char* argv[])
     parser.addOption(robotGenerationFile);
     parser.addOption(autorefInitScript);
     parser.addOption(recordLog);
+    parser.addOption(reportEvents);
     // parse command line, handles --version
     parser.process(app);
 
@@ -104,6 +106,7 @@ int main(int argc, char* argv[])
     connector.setStrategyColors(runBlueStrategy, runYellowStrategy);
     connector.setDebug(debug);
     connector.setSimulationRunningTime(simulationRunningTime < 0 ? std::numeric_limits<int>::max() : simulationRunningTime);
+    connector.setReportEvents(parser.isSet(reportEvents));
     connector.start();
 
     return app.exec();

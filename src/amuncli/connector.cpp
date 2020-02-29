@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2016 Michael Eischer                                        *
+ *   Copyright 2016 Michael Eischer, 2020 Andreas Wendler                  *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -23,6 +23,7 @@
 #include "config/config.h"
 
 #include <google/protobuf/text_format.h>
+#include <google/protobuf/util/message_differencer.h>
 #include <QCoreApplication>
 #include <QDir>
 #include <QSet>
@@ -256,51 +257,32 @@ void Connector::handleStatus(const Status &status)
         m_simulationStartTime = status->time();
     }
     if (status->time() - m_simulationStartTime >= m_simulationRunningTime) {
+
+        if (m_reportEvents) {
+            std::cout <<std::endl<<"Events:"<<std::endl;
+            auto eventTypeDesc = gameController::GameEventType_descriptor();
+            for (auto el : m_eventCounter) {
+                std::cout <<eventTypeDesc->FindValueByNumber(el.first)->name()<<": "<<el.second<<std::endl;
+            }
+            m_reportEvents = false;
+        }
+
         qApp->exit(0);
+    }
+
+    if (status->has_game_state() && status->game_state().has_game_event_2019()) {
+        auto event = status->game_state().game_event_2019();
+        if (!google::protobuf::util::MessageDifferencer::Equals(event, m_lastGameEvent)) {
+            m_eventCounter[event.type()]++;
+            m_lastGameEvent = event;
+        }
     }
 }
 
 
 
 /*
-"simulator {
-  vision_delay: 35000000
-  vision_processing_time: 5000000
-}
-strategy_yellow {
-  enable_refbox_control: false
-}
-transceiver {
-  configuration {
-    channel: 11
-  }
-  network_configuration {
-    host: \"\"
-    port: 10010
-  }
-  use_network: false
-}
 tracking {
   system_delay: 30000000
 }
-amun {
-  vision_port: 10005
-}
-mixed_team_destination {
-  host: \"\"
-  port: 10012
-}
-"
-"referee {
-  command: \"\\010\\000\\020\\001\\030\\000 \\000(\\0000\\000:\\022\
-\\000\\020\\000\\030\\000(\\0000\\0048\\200\\306\\206\\217\\001@\\005B\\022\
-\\000\\020\\000\\030\\000(\\0000\\0048\\200\\306\\206\\217\\001@\\000\"
-}
-"
-"referee {
-  command: \"\\010\\000\\020\\001\\030\\000 \\000(\\0000\\000:\\022\
-\\000\\020\\000\\030\\000(\\0000\\0048\\200\\306\\206\\217\\001@\\005B\\022\
-\\000\\020\\000\\030\\000(\\0000\\0048\\200\\306\\206\\217\\001@\\007\"
-}
-"
 */
