@@ -73,6 +73,12 @@ void Connector::setSimulationRunningTime(int seconds)
     m_simulationRunningTime = seconds * 1E9;
 }
 
+void Connector::setRecordLogfile(const QString &filename)
+{
+    m_logfile.open(filename);
+    m_recordLogfile = true;
+}
+
 void Connector::loadConfiguration(const QString &configFile, google::protobuf::Message *message, bool allowPartial)
 {
     QString fullFilename = QString(ERFORCE_CONFDIR) + configFile + ".txt";
@@ -217,6 +223,8 @@ void Connector::sendOptions()
 
 void Connector::handleStatus(const Status &status)
 {
+    m_logfile.writeStatus(status);
+
     QSet<amun::DebugSource> expectedSources;
     if (m_runBlue) {
         expectedSources.insert(amun::StrategyBlue);

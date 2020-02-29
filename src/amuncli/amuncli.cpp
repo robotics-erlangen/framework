@@ -45,6 +45,7 @@ int main(int argc, char* argv[])
     QCommandLineOption numberOfRobots({"n", "num-robots"}, "Number of robots to load per team. Defaults to zero", "num-robots", "0");
     QCommandLineOption robotGenerationFile("robot-generation", "Robot generation to create the robots of", "generation");
     QCommandLineOption autorefInitScript({"a", "autoref"}, "Autoref init script (not executed when missing)", "file");
+    QCommandLineOption recordLog({"r", "record"}, "Record the game to the specified log file", "file");
     parser.addOption(strategyColorConfig);
     parser.addOption(debugOption);
     parser.addOption(simulatorConfig);
@@ -52,6 +53,7 @@ int main(int argc, char* argv[])
     parser.addOption(numberOfRobots);
     parser.addOption(robotGenerationFile);
     parser.addOption(autorefInitScript);
+    parser.addOption(recordLog);
     // parse command line, handles --version
     parser.process(app);
 
@@ -82,6 +84,10 @@ int main(int argc, char* argv[])
     Connector connector;
     connector.connect(&connector, &Connector::sendCommand, &amun, &AmunClient::sendCommand);
     connector.connect(&amun, &AmunClient::gotStatus, &connector, &Connector::handleStatus);
+
+    if (parser.isSet(recordLog)) {
+        connector.setRecordLogfile(parser.value(recordLog));
+    }
 
     if (parser.isSet(simulatorConfig)) {
         connector.setSimulatorConfigFile(parser.value(simulatorConfig));

@@ -22,6 +22,7 @@
 #define CONNECTOR_H
 
 #include "internalreferee.h"
+#include "logfile/logfilewriter.h"
 #include "protobuf/command.h"
 #include "protobuf/status.h"
 #include <QObject>
@@ -46,6 +47,7 @@ public:
     void setSimulatorConfigFile(const QString &shortFile);
     void setSimulationRunningTime(int seconds);
     void setRobotConfiguration(int numRobots, const QString &generation);
+    void setRecordLogfile(const QString &filename);
 
     void start();
 
@@ -76,6 +78,8 @@ private:
     qint64 m_simulationStartTime = 0;
 
     InternalReferee m_referee;
+    LogFileWriter m_logfile;
+    bool m_recordLogfile = false;
 };
 
 #endif // CONNECTOR_H

@@ -33,6 +33,7 @@ target_link_libraries(amun-cli
     amuncli::testtools
     shared::config
     ra::ra-horus
+    ra::logfile
 )
 v8_copy_deps(amun-cli)
 target_include_directories(amun-cli
