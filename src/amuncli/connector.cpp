@@ -116,6 +116,7 @@ void Connector::addStrategyLoad(amun::CommandStrategy *strategy, const QString &
 
 void Connector::setRobotConfiguration(int numRobots, const QString &generation)
 {
+    m_numRobots = numRobots;
     if (numRobots == 0) {
         return;
     }
@@ -128,7 +129,8 @@ void Connector::setRobotConfiguration(int numRobots, const QString &generation)
         yellow.add_robot()->CopyFrom(gen.default_());
         yellow.mutable_robot(i)->set_id(i);
         blue.add_robot()->CopyFrom(gen.default_());
-        blue.mutable_robot(i)->set_id(i);
+        // do not duplicate IDs, amun can not control two robots with the same id
+        blue.mutable_robot(i)->set_id(i + numRobots);
     }
 
     Command command(new amun::Command);
@@ -161,7 +163,7 @@ void Connector::start()
         command->mutable_referee()->set_active(true);
 
         m_referee.changeStage(SSL_Referee::NORMAL_FIRST_HALF);
-        m_referee.changeBlueKeeper(0);
+        m_referee.changeBlueKeeper(m_numRobots);
         m_referee.changeYellowKeeper(0);
         m_referee.enableInternalAutoref(true);
         if (m_runBlue) {

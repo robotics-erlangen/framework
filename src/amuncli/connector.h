@@ -77,6 +77,8 @@ private:
 
     qint64 m_simulationStartTime = 0;
 
+    int m_numRobots = 0;
+
     InternalReferee m_referee;
     LogFileWriter m_logfile;
     bool m_recordLogfile = false;
