@@ -20,7 +20,8 @@ export class KickOff extends Move {
 	public static ALLOW_EXTRA_ATTACKERS = false;
 
 	static canStart() {
-		return World.RefereeState === "KickoffOffensivePrepare";
+		return World.RefereeState === "KickoffOffensivePrepare"
+			|| World.RefereeState === "KickoffOffensive";
 	}
 
 	private _assistantPos = [
