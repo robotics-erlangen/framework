@@ -255,8 +255,8 @@ export abstract class Agent {
 			} else {
 				// fast ball: being in the direction of the ball is better
 				let ballToRobot = this._robot.pos - World.Ball.pos;
-				let ballToRobotLengthSq = ballToRobot.lengthSq();
-				let cosAngle = World.Ball.speed.dot(ballToRobot) / ballToRobotLengthSq;
+				let ballToRobotLength = ballToRobot.length();
+				let cosAngle = World.Ball.speed.dot(ballToRobot) / ballToRobotLength / ballSpeedLength;
 				ratingBoost = cosAngle * cosAngle * cosAngle * ballSpeedLength * 0.5;
 			}
 			debug.set("slowBall", Ball.isSlowBall());
