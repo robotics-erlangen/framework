@@ -99,7 +99,7 @@ Status VisionLogLiveConverter::readStatus(int packet)
         m_tracker.reset();
         startPacket = std::max(0, packet - PRELOAD_PACKETS);
     }
-    for (int p = m_timeIndex[startPacket]+1;p < m_timeIndex[packet];p++) {
+    for (int p = m_timeIndex[startPacket];p < m_timeIndex[packet];p++) {
         qint64 time = processPacket(p, m_timings[startPacket]);
         if (time > m_timings[startPacket]) {
             startPacket++;
