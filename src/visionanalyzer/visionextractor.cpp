@@ -59,6 +59,7 @@ int main(int argc, char* argv[])
     qint64 gameStateChangeTime = logfileIn.readStatus(0)->time();
     quint32 refereeCounter = 0;
     SSL_Referee::Command lastCommand = SSL_Referee::HALT;
+    qint32 remainingActionTime = 0;
 
     for(int i = 0; i < logfileIn.packetCount(); ++i){
         Status current = logfileIn.readStatus(i);
@@ -119,6 +120,10 @@ int main(int argc, char* argv[])
             if (gameState.has_game_event()) {
                 refereePacket.mutable_gameevent()->CopyFrom(gameState.game_event());
             }
+            if (gameState.has_current_action_time_remaining()) {
+                remainingActionTime = gameState.current_action_time_remaining();
+            }
+            refereePacket.set_current_action_time_remaining(remainingActionTime);
             logfileOut.addRefereePacket(refereePacket, current->time());
         }
     }
