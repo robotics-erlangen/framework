@@ -253,6 +253,7 @@ void InternalGameController::handleGameEvent(std::shared_ptr<gameController::Aut
         break;
     case gameController::PREPARED:
         shouldPlace = false;
+        m_currentActionStartTime = m_timer->currentTime() / 1000L;
         m_currentActionAllowedTime = 5000000;
         issueCommand(SSL_Referee::NORMAL_START);
         break;
