@@ -192,10 +192,8 @@ void InternalGameController::handleGameEvent(std::shared_ptr<gameController::Aut
     // rule 8.4 simultaneous offenses
     // TODO: only if the event would not result in a penalty kick
     if (m_packet.next_command() && event.type() != gameController::PLACEMENT_SUCCEEDED && event.type() != gameController::PLACEMENT_FAILED &&
-            ((!placingTeamIsYellow && (m_packet.next_command() == SSL_Referee::DIRECT_FREE_BLUE ||
-                                      m_packet.next_command() == SSL_Referee::INDIRECT_FREE_BLUE)) ||
-             (placingTeamIsYellow && (m_packet.next_command() == SSL_Referee::DIRECT_FREE_YELLOW ||
-                                                   m_packet.next_command() == SSL_Referee::INDIRECT_FREE_YELLOW)))) {
+            ((!placingTeamIsYellow && m_packet.next_command() == SSL_Referee::DIRECT_FREE_BLUE) ||
+             (placingTeamIsYellow && m_packet.next_command() == SSL_Referee::DIRECT_FREE_YELLOW))) {
         return;
     }
 
@@ -215,7 +213,7 @@ void InternalGameController::handleGameEvent(std::shared_ptr<gameController::Aut
     case gameController::BALL_LEFT_FIELD_TOUCH_LINE:
         placementPos.x = sign(eventLocation.x) * std::min(m_geometry.field_height() / 2.0f - GOAL_LINE_DISTANCE, std::abs(eventLocation.x));
         placementPos.y = sign(eventLocation.y) * std::min(m_geometry.field_width() / 2.0f - FIELD_LINE_DISTANCE, std::abs(eventLocation.y));
-        m_packet.set_next_command(placingTeamIsYellow ? SSL_Referee::INDIRECT_FREE_YELLOW : SSL_Referee::INDIRECT_FREE_BLUE);
+        m_packet.set_next_command(placingTeamIsYellow ? SSL_Referee::DIRECT_FREE_YELLOW : SSL_Referee::DIRECT_FREE_BLUE);
         shouldPlace = true;
         break;
 
@@ -235,12 +233,7 @@ void InternalGameController::handleGameEvent(std::shared_ptr<gameController::Aut
         setIsFirstPlacement = false;
         shouldPlace = true;
         if (m_isFirstPlacement) {
-            bool isDirect = m_packet.next_command() == SSL_Referee::DIRECT_FREE_BLUE || m_packet.next_command() == SSL_Referee::DIRECT_FREE_YELLOW;
-            if (isDirect) {
-                m_packet.set_next_command(placingTeamIsYellow ? SSL_Referee::DIRECT_FREE_YELLOW : SSL_Referee::DIRECT_FREE_BLUE);
-            } else {
-                m_packet.set_next_command(placingTeamIsYellow ? SSL_Referee::INDIRECT_FREE_YELLOW : SSL_Referee::INDIRECT_FREE_BLUE);
-            }
+            m_packet.set_next_command(placingTeamIsYellow ? SSL_Referee::DIRECT_FREE_YELLOW : SSL_Referee::DIRECT_FREE_BLUE);
         } else {
             // both teams failed placing the ball, teleport it instead
             Command ballCommand(new amun::Command);
@@ -273,7 +266,7 @@ void InternalGameController::handleGameEvent(std::shared_ptr<gameController::Aut
     case gameController::BOT_DRIBBLED_BALL_TOO_FAR:
         shouldPlace = true;
         placementPos = ballPlacementPosForFoul(eventEnd);
-        m_packet.set_next_command(placingTeamIsYellow ? SSL_Referee::INDIRECT_FREE_YELLOW : SSL_Referee::INDIRECT_FREE_BLUE);
+        m_packet.set_next_command(placingTeamIsYellow ? SSL_Referee::DIRECT_FREE_YELLOW : SSL_Referee::DIRECT_FREE_BLUE);
         break;
     case gameController::KICK_TIMEOUT:
     case gameController::KEEPER_HELD_BALL:
@@ -282,7 +275,7 @@ void InternalGameController::handleGameEvent(std::shared_ptr<gameController::Aut
     case gameController::BOT_KICKED_BALL_TOO_FAST:
         shouldPlace = true;
         placementPos = ballPlacementPosForFoul(eventLocation);
-        m_packet.set_next_command(placingTeamIsYellow ? SSL_Referee::INDIRECT_FREE_YELLOW : SSL_Referee::INDIRECT_FREE_BLUE);
+        m_packet.set_next_command(placingTeamIsYellow ? SSL_Referee::DIRECT_FREE_YELLOW : SSL_Referee::DIRECT_FREE_BLUE);
         break;
 
     // major offenses
