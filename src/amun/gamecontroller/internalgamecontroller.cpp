@@ -65,6 +65,12 @@ void InternalGameController::handleGuiCommand(const QByteArray &data)
         m_packet.CopyFrom(newState);
         m_packet.set_command_timestamp(m_timer->currentTime() / 1000L);
         m_packet.set_command_counter(counterBefore+1);
+
+        // start timeout for ball placement once the command is issued from the ui
+        if (m_packet.command() == SSL_Referee::BALL_PLACEMENT_BLUE || m_packet.command() == SSL_Referee::BALL_PLACEMENT_YELLOW) {
+            m_currentActionStartTime = m_timer->currentTime() / 1000L;
+            m_currentActionAllowedTime = BALL_PLACEMENT_TIME;
+        }
     } else {
         m_packet.mutable_blue()->CopyFrom(newState.blue());
         m_packet.mutable_yellow()->CopyFrom(newState.yellow());
@@ -282,7 +288,7 @@ void InternalGameController::handleGameEvent(std::shared_ptr<gameController::Aut
     // major offenses
     case gameController::BOT_INTERFERED_PLACEMENT:
         m_currentActionStartTime = m_timer->currentTime() / 1000L;
-        m_currentActionAllowedTime = 30000000;
+        m_currentActionAllowedTime = BALL_PLACEMENT_TIME;
         shouldPlace = false;
         break;
     case gameController::ATTACKER_TOO_CLOSE_TO_DEFENSE_AREA:
@@ -313,7 +319,7 @@ void InternalGameController::handleGameEvent(std::shared_ptr<gameController::Aut
         m_packet.mutable_designated_position()->set_x(placementPos.x * 1000.0f);
         m_packet.mutable_designated_position()->set_y(placementPos.y * 1000.0f);
         m_currentActionStartTime = m_timer->currentTime() / 1000L;
-        m_currentActionAllowedTime = 30000000;
+        m_currentActionAllowedTime = BALL_PLACEMENT_TIME;
         issueCommand(placingTeamIsYellow ? SSL_Referee::BALL_PLACEMENT_YELLOW : SSL_Referee::BALL_PLACEMENT_BLUE);
     }
 }

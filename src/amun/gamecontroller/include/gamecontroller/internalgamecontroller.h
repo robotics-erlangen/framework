@@ -57,6 +57,9 @@ private:
     const float FIELD_LINE_DISTANCE = 0.3f;
     const float GOAL_LINE_DISTANCE = 0.35f;
     const float DEFENSE_DISTANCE = 1;
+
+    // constants from the rules
+    const int BALL_PLACEMENT_TIME = 30000000;
 };
 
 #endif // INTERNALGAMECONTROLLER_H
