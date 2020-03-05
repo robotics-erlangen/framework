@@ -93,7 +93,7 @@ int main(int argc, char* argv[])
                 case amun::GameState::DirectYellow: lastCommand = SSL_Referee::DIRECT_FREE_YELLOW; break;
                 case amun::GameState::IndirectYellow: lastCommand = SSL_Referee::INDIRECT_FREE_YELLOW; break;
                 case amun::GameState::BallPlacementYellow: lastCommand = SSL_Referee::BALL_PLACEMENT_YELLOW; break;
-                case amun::GameState::KickoffBluePrepare: lastCommand = SSL_Referee::PREPARE_PENALTY_BLUE; break;
+                case amun::GameState::KickoffBluePrepare: lastCommand = SSL_Referee::PREPARE_KICKOFF_BLUE; break;
                 case amun::GameState::KickoffBlue: lastCommand = SSL_Referee::NORMAL_START; break;
                 case amun::GameState::PenaltyBluePrepare: lastCommand = SSL_Referee::PREPARE_PENALTY_BLUE; break;
                 case amun::GameState::PenaltyBlue: lastCommand = SSL_Referee::NORMAL_START; break;
