@@ -51,6 +51,7 @@ public:
     void setRobotConfiguration(int numRobots, const QString &generation);
     void setRecordLogfile(const QString &filename);
     void setReportEvents(bool report) { m_reportEvents = report; }
+    void setSimulationSpeed(int speed) { m_simulationSpeed = speed; }
 
     void start();
 
@@ -75,6 +76,7 @@ private:
     int m_exitCode = 255;
     std::map<std::string, bool> m_options;
     bool m_reportEvents = false;
+    int m_simulationSpeed = 100;
 
     QString m_simulatorConfigurationFile;
     qint64 m_simulationRunningTime = std::numeric_limits<qint64>::max();

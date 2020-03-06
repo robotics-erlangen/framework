@@ -152,6 +152,9 @@ void Connector::start()
     command->mutable_transceiver()->set_enable(true);
     command->mutable_transceiver()->set_charge(true);
 
+    // set simulation speed
+    command->set_speed(m_simulationSpeed / 100.0f);
+
     if (m_runBlue) {
         addStrategyLoad(command->mutable_strategy_blue(), m_initScript, m_entryPoint);
     }

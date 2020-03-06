@@ -47,6 +47,7 @@ int main(int argc, char* argv[])
     QCommandLineOption autorefInitScript({"a", "autoref"}, "Autoref init script (not executed when missing)", "file");
     QCommandLineOption recordLog({"r", "record"}, "Record the game to the specified log file", "file");
     QCommandLineOption reportEvents({"e", "report-events"}, "Report the number of events (fouls, goals etc.)");
+    QCommandLineOption simulationSpeed("simulation-speed", "Speed in percent to run the simulator at. Defaults to 100%", "speed", "100");
     parser.addOption(strategyColorConfig);
     parser.addOption(debugOption);
     parser.addOption(simulatorConfig);
@@ -56,6 +57,8 @@ int main(int argc, char* argv[])
     parser.addOption(autorefInitScript);
     parser.addOption(recordLog);
     parser.addOption(reportEvents);
+    parser.addOption(simulationSpeed);
+
     // parse command line, handles --version
     parser.process(app);
 
@@ -99,6 +102,14 @@ int main(int argc, char* argv[])
     } else if (numRobots > 0) {
         std::cerr <<"Option robot-generation must be specified with a non-zero robot count"<<std::endl;
         exit(1);
+    }
+    if (parser.isSet(simulationSpeed)) {
+        int speed = parser.value(simulationSpeed).toInt();
+        if (speed <= 0) {
+            std::cerr <<"Simulation speed must be positive!"<<std::endl;
+            exit(1);
+        }
+        connector.setSimulationSpeed(speed);
     }
     connector.setAutorefInitScript(parser.value(autorefInitScript));
     connector.setInitScript(initScript);
