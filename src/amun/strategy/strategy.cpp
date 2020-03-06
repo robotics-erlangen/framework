@@ -553,9 +553,10 @@ void Strategy::sendCommand(const Command &command)
     }
 }
 
-void Strategy::waitForCompilationFinish()
+void Strategy::compileIfNecessary(const QString &initFile)
 {
-    m_strategy->waitForCompileFinished();
+    loadScript(initFile, "", false);
+    m_strategy->compileIfNecessary();
 }
 
 void Strategy::loadStateChanged(amun::StatusStrategy::STATE state)
@@ -594,7 +595,7 @@ void Strategy::loadStateChanged(amun::StatusStrategy::STATE state)
     emit sendStatus(status);
 }
 
-void Strategy::loadScript(const QString &filename, const QString &entryPoint)
+void Strategy::loadScript(const QString &filename, const QString &entryPoint, bool loadUnderlying)
 {
     Q_ASSERT(m_geometry.IsInitialized());
     Q_ASSERT(m_team.IsInitialized());
@@ -646,7 +647,7 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
         connect(m_strategy, &AbstractStrategyScript::changeLoadState, this, &Strategy::loadStateChanged);
     }
 
-    m_strategy->loadScript(filename, entryPoint, m_geometry, m_team);
+    m_strategy->loadScript(filename, entryPoint, m_geometry, m_team, loadUnderlying);
 }
 
 void Strategy::close()

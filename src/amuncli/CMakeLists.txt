@@ -34,6 +34,7 @@ target_link_libraries(amun-cli
     shared::config
     ra::ra-horus
     ra::logfile
+    amun::strategy
 )
 v8_copy_deps(amun-cli)
 target_include_directories(amun-cli

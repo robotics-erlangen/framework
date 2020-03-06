@@ -59,8 +59,7 @@ public:
     void setEnabled(bool enable) { m_isEnabled = enable; }
     void tryProcess();
 
-    // the strategy must have been loaded with an entrypoint at least once before calling this function
-    void waitForCompilationFinish();
+    void compileIfNecessary(const QString &initFile);
 
 signals:
     void gotCommand(const Command &command);
@@ -85,7 +84,7 @@ private slots:
 
 private:
     static void initV8();
-    void loadScript(const QString &filename, const QString &entryPoint);
+    void loadScript(const QString &filename, const QString &entryPoint, bool loadUnderlying = true);
     void close();
     void triggerDebugger();
     void fail(const QString &error, const amun::UserInput & userInput = amun::UserInput(), double pathPlanning = 0, double totalTime = 0);

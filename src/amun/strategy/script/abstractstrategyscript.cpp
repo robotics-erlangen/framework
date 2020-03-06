@@ -146,7 +146,7 @@ void AbstractStrategyScript::sendMixedTeam(const QByteArray &info)
     emit sendMixedTeamInfo(info);
 }
 
-void AbstractStrategyScript::loadScript(const QString &filename, const QString &entryPoint, const world::Geometry &geometry, const robot::Team &team)
+void AbstractStrategyScript::loadScript(const QString &filename, const QString &entryPoint, const world::Geometry &geometry, const robot::Team &team, bool loadUnderlying)
 {
     Q_ASSERT(m_filename.isNull() || canReloadInPlace());
 
@@ -159,7 +159,9 @@ void AbstractStrategyScript::loadScript(const QString &filename, const QString &
     m_geometry.CopyFrom(geometry);
     m_team.CopyFrom(team);
 
-    loadScript(filename, entryPoint);
+    if (loadUnderlying) {
+        loadScript(filename, entryPoint);
+    }
 }
 
 bool AbstractStrategyScript::process(double &pathPlanning, const world::State &worldState, const amun::GameState &refereeState, const amun::UserInput &userInput)

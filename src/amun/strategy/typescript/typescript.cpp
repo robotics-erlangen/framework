@@ -362,7 +362,7 @@ bool Typescript::buildStackTrace(const Local<Context>& context, QString& errorMs
 void Typescript::loadScript(const QString &fname, const QString &entryPoint)
 {
     m_requestedEntrypoint = entryPoint;
-    if (!setupCompiler(fname)) {
+    if (!setupCompiler(fname, false)) {
         m_errorMsg = "<font color=\"red\">Failed to setup compiler (Missing tsconfig.json)</font>";
         emit changeLoadState(amun::StatusStrategy::FAILED);
         return;
@@ -376,12 +376,12 @@ void Typescript::loadScript(const QString &fname, const QString &entryPoint)
     loadTypescript(fname, entryPoint);
 }
 
-void Typescript::waitForCompileFinished()
+void Typescript::compileIfNecessary()
 {
-    m_compiler->comp()->waitForCompileFinished();
+    setupCompiler(m_filename, true);
 }
 
-bool Typescript::setupCompiler(const QString &filename)
+bool Typescript::setupCompiler(const QString &filename, bool compileBlocking)
 {
     if (m_compiler) {
         disconnect(m_compiler->comp(), nullptr, this, nullptr);
@@ -403,7 +403,7 @@ bool Typescript::setupCompiler(const QString &filename)
     connect(m_compiler->comp(), &Compiler::error, this, &Typescript::onCompileError);
     connect(m_compiler->comp(), &Compiler::success, this, &Typescript::onCompileSuccess);
 
-    QMetaObject::invokeMethod(m_compiler->comp(), "compile");
+    QMetaObject::invokeMethod(m_compiler->comp(), "compile", compileBlocking ? Qt::BlockingQueuedConnection : Qt::AutoConnection);
 
     return true;
 }

@@ -87,15 +87,8 @@ bool TypescriptCompiler::isResultAvailable()
     return m_state != State::RENAMING && outputDir.exists() && outputDir.isDir();
 }
 
-void TypescriptCompiler::waitForCompileFinished()
-{
-    QMutexLocker compileLocker(&m_compileMutex);
-}
-
 void TypescriptCompiler::compile()
 {
-    QMutexLocker compileLocker(&m_compileMutex);
-
     if (!isCompilationNeeded()) {
         return;
     }

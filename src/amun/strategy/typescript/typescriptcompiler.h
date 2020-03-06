@@ -44,8 +44,6 @@ public:
     void resume() override;
     bool isResultAvailable() override;
 
-    // may be called from another thread, will wait for the typescriptcompiler to change state to STANDBY
-    void waitForCompileFinished() override;
 public slots:
     void init() override;
     void compile() override;
@@ -70,9 +68,6 @@ private:
     State m_state;
     QMutex m_stateLock;
     QWaitCondition m_pauseWait;
-
-    // held during the whole compilation procedure
-    QMutex m_compileMutex;
 };
 
 #endif // TYPESCRIPTCOMPILER_H

@@ -56,7 +56,7 @@ public:
     static bool canHandle(const QString &filename);
 
     // errors are reported via changeLoadState. If an error occured, the error msg can be retrieved via errorMsg()
-    void loadScript(const QString &filename, const QString &entryPoint, const world::Geometry &geometry, const robot::Team &team);
+    void loadScript(const QString &filename, const QString &entryPoint, const world::Geometry &geometry, const robot::Team &team, bool loadUnderlying);
     // must only be called after loadScript was executed successfully
     bool process(double &pathPlanning, const world::State &worldState, const amun::GameState &refereeState, const amun::UserInput &userInput);
     virtual bool triggerDebugger();
@@ -65,7 +65,7 @@ public:
     virtual bool canReloadInPlace() const { return false; }
     virtual bool canHandleDynamic(const QString &filename) const = 0;
     // may not be called before calling loadScript at least once
-    virtual void waitForCompileFinished() {}
+    virtual void compileIfNecessary() {}
 
     const ScriptState& state() const { return m_scriptState; };
     ScriptState& state() { return m_scriptState; };

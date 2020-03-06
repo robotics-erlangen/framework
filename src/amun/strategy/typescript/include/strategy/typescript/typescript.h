@@ -57,7 +57,7 @@ public:
     void endProfiling(const std::string &filename) override;
     bool canReloadInPlace() const override { return  true; }
     bool canHandleDynamic(const QString &filename) const override { return Typescript::canHandle(filename); }
-    void waitForCompileFinished() override;
+    void compileIfNecessary() override;
 
     // functions used for debugging v8
     void disableTimeoutOnce(); // disables script timeout for the currently running strategy frame
@@ -91,7 +91,7 @@ private:
     bool buildStackTrace(const v8::Local<v8::Context>& context, QString& errorMsg, const v8::TryCatch& tryCatch);
     void evaluateStackFrame(const v8::Local<v8::Context>& c, QString& errorMsg, v8::Local<v8::Object> callSite);
 
-    bool setupCompiler(const QString &filename);
+    bool setupCompiler(const QString &filename, bool compileBlocking);
     bool loadTypescript(const QString &filename, const QString &entryPoint);
     bool loadJavascript(const QString &filename, const QString &entryPoint);
 

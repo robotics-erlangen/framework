@@ -194,7 +194,7 @@ void Connector::handleStrategyStatus(const amun::StatusStrategy &strategy)
             it->second = true;
             sendOptions();
         }
-    } else if (strategy.state() == amun::StatusStrategy::RUNNING) {
+    } else if (strategy.state() == amun::StatusStrategy::RUNNING && !m_isInCompileMode) {
         if (m_entryPoint.isEmpty()) {
             TestTools::dumpEntrypoints(strategy);
             qApp->exit(0);
@@ -232,10 +232,10 @@ void Connector::handleStatus(const Status &status)
     m_logfile.writeStatus(status);
 
     QSet<amun::DebugSource> expectedSources;
-    if (m_runBlue) {
+    if (m_runBlue || m_isInCompileMode) {
         expectedSources.insert(amun::StrategyBlue);
     }
-    if (m_runYellow) {
+    if (m_runYellow || m_isInCompileMode) {
         expectedSources.insert(amun::StrategyYellow);
     }
     if (!m_autorefInitScript.isEmpty()) {

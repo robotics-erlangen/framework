@@ -185,13 +185,12 @@ int main(int argc, char* argv[])
                 });
         }
 
-        // load the strategy
-        strategy->handleCommand(createLoadCommand(asBlue, initScript, entryPoint, parser.isSet(disablePerformanceMode)));
-
-        // wait for any comilation to finish before executing the strategy
-        strategy->waitForCompilationFinish();
+        strategy->compileIfNecessary(initScript);
         // process all outstanding events before executing the strategy to avoid race conditions (otherwise, the compiler output may not be visible)
         app.processEvents();
+
+        // load the strategy
+        strategy->handleCommand(createLoadCommand(asBlue, initScript, entryPoint, parser.isSet(disablePerformanceMode)));
 
         int packetCount = logfile.packetCount();
         int startPosition = parser.value(profileStart).toInt();

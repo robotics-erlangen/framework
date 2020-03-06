@@ -52,6 +52,7 @@ public:
     void setRecordLogfile(const QString &filename);
     void setReportEvents(bool report) { m_reportEvents = report; }
     void setSimulationSpeed(int speed) { m_simulationSpeed = speed; }
+    void setIsInCompileMode(bool isCompile) { m_isInCompileMode = isCompile; }
 
     void start();
 
@@ -77,6 +78,7 @@ private:
     std::map<std::string, bool> m_options;
     bool m_reportEvents = false;
     int m_simulationSpeed = 100;
+    bool m_isInCompileMode = false;
 
     QString m_simulatorConfigurationFile;
     qint64 m_simulationRunningTime = std::numeric_limits<qint64>::max();
