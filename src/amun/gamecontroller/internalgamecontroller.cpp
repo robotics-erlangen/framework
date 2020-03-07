@@ -287,6 +287,8 @@ void InternalGameController::handleGameEvent(std::shared_ptr<gameController::Aut
         break;
     case gameController::ATTACKER_TOO_CLOSE_TO_DEFENSE_AREA:
     // TODO: advantage rule for pushing and crashing
+    case gameController::DEFENDER_IN_DEFENSE_AREA_PARTIALLY:
+    case gameController::DEFENDER_IN_DEFENSE_AREA:
     case gameController::BOT_CRASH_UNIQUE:
     case gameController::BOT_PUSHED_BOT:
     case gameController::BOT_HELD_BALL_DELIBERATELY:
