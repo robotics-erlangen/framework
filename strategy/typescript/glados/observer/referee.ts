@@ -68,7 +68,7 @@ let cntO = 0;
 // Tries to accept that not every signal by the refbox is correct
 // has to be called once and only once a frame
 export function realisticCardsOpponent() {
-	if (World.OpponentRobots.length <= 8 - World.OpponentYellowCards.length - World.OpponentRedCards) {
+	if (World.OpponentRobots.length <= 11 - World.OpponentYellowCards.length - World.OpponentRedCards) {
 		cntO = 0;
 	} else if (World.RefereeState !== "Stop" && World.Time - Error.getLastRefChange() > 0.5) {
 		cntO = cntO + 1;
