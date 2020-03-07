@@ -60,9 +60,9 @@ export class DuelAssistant extends Task {
 
 		if (angleDiff < Math.PI / 2) {
 			let intersection = Geom.intersectLineLine(friendlyPos, Vector.fromAngle(opponentDir), World.Geometry.FriendlyGoal, new Vector(1,0))[0];
-			if (Math.abs(intersection!.x) > World.Geometry.FieldWidthHalf + HYSTERESIS_BASELINE) {
+			if (intersection === undefined || Math.abs(intersection.x) > World.Geometry.FieldWidthHalf + HYSTERESIS_BASELINE) {
 				agressivePositionMode = true;
-			} else if (Math.abs(intersection!.x) < World.Geometry.FieldWidthHalf - HYSTERESIS_BASELINE) {
+			} else if (Math.abs(intersection.x) < World.Geometry.FieldWidthHalf - HYSTERESIS_BASELINE) {
 				agressivePositionMode = false;
 			}
 		} else {
