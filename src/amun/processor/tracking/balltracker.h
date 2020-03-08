@@ -49,7 +49,7 @@ public:
     void calcDistToCamera(bool flying);
     float cachedDistToCamera();
     bool isFlying() const;
-    const qint64 initTime() const { return m_initTime; }
+    qint64 initTime() const { return m_initTime; }
     bool isShot() const;
     double confidence() const { return m_confidence; }
 #ifdef ENABLE_TRACKING_DEBUG
@@ -64,7 +64,6 @@ public:
 
 private:  
     qint64 m_lastUpdateTime;
-    AbstractBallFilter* m_activeFilter;
     GroundFilter* m_groundFilter;
     FlyFilter *m_flyFilter;
     QList<VisionFrame> m_visionFrames;

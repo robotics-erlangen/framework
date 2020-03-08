@@ -38,8 +38,6 @@ BallTracker::BallTracker(const SSL_DetectionBall &ball, qint64 last_time, qint32
     m_groundFilter = new GroundFilter(frame, cameraInfo);
     // TODO collision filter
     m_flyFilter = new FlyFilter(frame, cameraInfo);
-
-    m_activeFilter = m_groundFilter;
 }
 
 BallTracker::BallTracker(const BallTracker& previousFilter, qint32 primaryCamera) :
@@ -57,11 +55,6 @@ BallTracker::BallTracker(const BallTracker& previousFilter, qint32 primaryCamera
 
     m_flyFilter = new FlyFilter(*previousFilter.m_flyFilter, primaryCamera);
     m_groundFilter = new GroundFilter(*previousFilter.m_groundFilter, primaryCamera);
-    if (dynamic_cast<FlyFilter*>(previousFilter.m_activeFilter)) {
-        m_activeFilter = m_flyFilter;
-    } else {
-        m_activeFilter = m_groundFilter;
-    }
 }
 
 BallTracker::~BallTracker()
@@ -153,17 +146,13 @@ void BallTracker::update(qint64 time)
 void BallTracker::get(world::Ball *ball, const FieldTransform &transform, bool resetRaw)
 {
     ball->set_is_bouncing(false); // fly filter overwrites if appropriate
-    if (m_flyFilter->isActive()) {
-        debug("active", "fly filter");
-        m_activeFilter = m_flyFilter;
-    } else {
-        debug("active", "ground filter");
-        m_activeFilter = m_groundFilter;
-    }
 
     m_groundFilter->writeBallState(ball, m_lastUpdateTime);
-    if (m_activeFilter == m_flyFilter) {
-        m_activeFilter->writeBallState(ball, m_lastUpdateTime);
+    if (m_flyFilter->isActive()) {
+        debug("active", "fly filter");
+        m_flyFilter->writeBallState(ball, m_lastUpdateTime);
+    } else {
+        debug("active", "ground filter");
     }
 
     float transformedPX = transform.applyPosX(ball->p_x(), ball->p_y());
