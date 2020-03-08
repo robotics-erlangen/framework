@@ -31,6 +31,7 @@ import * as Robot from "glados/observer/robot";
 // require "test/task/index";
 // require "test/unit/index";
 import "glados/test/unit/index";
+import "glados/observer/modificationchecker";
 // tslint:enable
 
 class PreProc implements Process {
