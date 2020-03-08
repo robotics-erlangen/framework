@@ -244,30 +244,32 @@ function ballFlightTime(ball: BallLike & {initSpeedZ: number, speedZ: number, po
 	let flightDistDone = 0;
 	let timePassed = 0;
 
+	let result = {pos: ball.pos, speedZ: ball.speedZ, posZ: ball.posZ, initSpeedZ: ball.initSpeedZ!, speed: ball.speed, radius: ball.radius, maxSpeed: ball.maxSpeed};
+
 	while (flightDist < distance) { // subsequent bouncing
 		timePassed = timePassed + flightTime;
-		ball.initSpeedZ = ball.initSpeedZ * Constants.floorDamping;
-		liftTime = ball.initSpeedZ / 9.81;
-		let flightHeight = ball.initSpeedZ * liftTime - (9.81 / 2) * liftTime * liftTime;
+		result.initSpeedZ = result.initSpeedZ * Constants.floorDamping;
+		liftTime = result.initSpeedZ / 9.81;
+		let flightHeight = result.initSpeedZ * liftTime - (9.81 / 2) * liftTime * liftTime;
 		if (flightHeight < 0.03) { // consider ball rolling
 			break;
 		}
 		flightTime = 2 * liftTime;
 		flightDistDone = flightDist;
-		flightDist = flightDist + ball.speed.length() * flightTime;
+		flightDist = flightDist + result.speed.length() * flightTime;
 	}
 
 	if (flightDist > distance) { // flight or bouncing not finished
-		let t = (distance - flightDistDone) / ball.speed.length();
-		ball.pos = ball.pos + ball.speed.copy().setLength(distance);
-		ball.posZ = ball.posZ + ball.initSpeedZ * t - 0.5 * 9.81 * t * t;
-		ball.speedZ = ball.speedZ - t * 9.81;
-		return [ball, timePassed, 0];
+		let t = (distance - flightDistDone) / result.speed.length();
+		result.pos = result.pos + result.speed.copy().setLength(distance);
+		result.posZ = result.posZ + result.initSpeedZ * t - 0.5 * 9.81 * t * t;
+		result.speedZ = result.speedZ - t * 9.81;
+		return [result, timePassed, 0];
 	} else {// ball is rolling
-		ball.pos = ball.pos + ball.speed * timePassed;
-		ball.posZ = 0;
-		ball.speedZ = 0;
-		return [ball, timePassed, distance - flightDistDone];
+		result.pos = result.pos + result.speed * timePassed;
+		result.posZ = 0;
+		result.speedZ = 0;
+		return [result, timePassed, distance - flightDistDone];
 	}
 }
 
