@@ -121,10 +121,10 @@ export class TrajectoryPath extends TrajectoryHandler {
 
 		// correct start and end speed
 		if (startSpeed.length() > maxSpeed - 0.1) {
-			startSpeed.setLength(maxSpeed - 0.1);
+			startSpeed = startSpeed.copy().setLength(maxSpeed - 0.1);
 		}
 		if (endSpeed.length() > maxSpeed - 0.1) {
-			endSpeed.setLength(maxSpeed - 0.1);
+			endSpeed = endSpeed.copy().setLength(maxSpeed - 0.1);
 		}
 
 		// calculate acceleration (also used for braking)
