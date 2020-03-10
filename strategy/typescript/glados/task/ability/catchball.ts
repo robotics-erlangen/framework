@@ -116,14 +116,15 @@ export class CatchBall {
 		}
 
 		// QUICKFIX to prevent hish speed movement towards defenseArea
+		const EXTRA_DISTANCE = 0.05;
 		if (predictedBall.pos
-				&& !Field.isInAllowedField(predictedBall.pos, World.Ball.radius)
+				&& !Field.isInAllowedField(predictedBall.pos, World.Ball.radius - EXTRA_DISTANCE)
 				&& this._robot !== World.FriendlyKeeper
 				&& World.RefereeState !== "BallPlacementOffensive"
 				&& World.RefereeState !== "PenaltyOffensive") {
 			// t/a/shoot for example does some calculations on the position that might move it out somewhat,
 			// therefore an extra buffer is needed
-			predictedBall.pos = Field.limitToAllowedField(predictedBall.pos, World.Ball.radius + 0.05);
+			predictedBall.pos = Field.limitToAllowedField(predictedBall.pos, World.Ball.radius - EXTRA_DISTANCE);
 		}
 		let moveDest = predictedBall.pos - Vector.fromAngle(viewDir).scaleLength(
 					this._robot.radius + distanceToBall + ball.radius);
