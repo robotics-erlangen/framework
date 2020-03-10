@@ -36,6 +36,8 @@ class QMenu;
 class QGestureEvent;
 struct VirtualFieldConfiguration;
 
+enum class TrackingFrom{BOTH, REFEREE, YELLOW, BLUE};
+
 class FieldWidget : public QGraphicsView
 {
     Q_OBJECT
@@ -134,6 +136,8 @@ private slots:
     void saveSituation();
     void ballPlacementBlue();
     void ballPlacementYellow();
+
+    void setTrackingFrom(int newViewPoint);
 
 private:
     void addToggleVisAction();
@@ -247,6 +251,8 @@ private:
     SSL_Referee m_referee;
     std::unique_ptr<VirtualFieldConfiguration> m_virtualFieldConfiguration;
     FieldTransform m_virtualFieldTransform;
+
+    TrackingFrom m_trackingFrom;
 };
 
 #endif // FIELDWIDGET_H

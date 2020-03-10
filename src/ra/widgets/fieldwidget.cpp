@@ -40,6 +40,7 @@
 #include <QDropEvent>
 #include <QMimeData>
 #include <QUrl>
+#include <QSignalMapper>
 #include "fieldwidget.h"
 #include "virtualfieldsetupdialog.h"
 
@@ -203,6 +204,46 @@ FieldWidget::FieldWidget(QWidget *parent) :
     connect(actionScreenshot, SIGNAL(triggered()), SLOT(takeScreenshot()));
     QAction *actionSaveSituation = m_contextMenu->addAction("Save Situation");
     connect(actionSaveSituation, SIGNAL(triggered()), SLOT(saveSituation()));
+
+    // different points of view
+    m_contextMenu->addSeparator();
+    QMenu *trackingFromMenu = m_contextMenu->addMenu("Use tracking from");
+    trackingFromMenu->setToolTip("Changes point of view of the robot position tracking.");
+    m_contextMenu->setToolTipsVisible(true);
+
+    QAction *actionTrackingFromBoth = trackingFromMenu->addAction("Both");
+    actionTrackingFromBoth->setCheckable(true);
+
+    QAction *actionTrackingFromRef = trackingFromMenu->addAction("Autoref");
+    actionTrackingFromRef->setCheckable(true);
+
+    QAction *actionTrackingFromYellow = trackingFromMenu->addAction("Yellow");
+    actionTrackingFromYellow->setCheckable(true);
+
+    QAction *actionTrackingFromBlue = trackingFromMenu->addAction("Blue");
+    actionTrackingFromBlue->setCheckable(true);
+
+    QSignalMapper *trackingMapper = new QSignalMapper(m_contextMenu);
+    connect(actionTrackingFromBoth, SIGNAL(triggered()), trackingMapper, SLOT(map()));
+    trackingMapper->setMapping(actionTrackingFromBoth, static_cast<int>(TrackingFrom::BOTH));
+    connect(actionTrackingFromRef, SIGNAL(triggered()), trackingMapper, SLOT(map()));
+    trackingMapper->setMapping(actionTrackingFromRef, static_cast<int>(TrackingFrom::REFEREE));
+    connect(actionTrackingFromYellow, SIGNAL(triggered()), trackingMapper, SLOT(map()));
+    trackingMapper->setMapping(actionTrackingFromBlue, static_cast<int>(TrackingFrom::BLUE));
+    connect(actionTrackingFromBlue, SIGNAL(triggered()), trackingMapper, SLOT(map()));
+    trackingMapper->setMapping(actionTrackingFromYellow, static_cast<int>(TrackingFrom::YELLOW));
+
+    connect(trackingMapper, SIGNAL(mapped(int)), SLOT(setTrackingFrom(int)));
+
+    QActionGroup *trackingGroup = new QActionGroup(trackingFromMenu);
+    trackingGroup->setExclusive(true);
+    trackingGroup->addAction(actionTrackingFromBoth);
+    trackingGroup->addAction(actionTrackingFromRef);
+    trackingGroup->addAction(actionTrackingFromYellow);
+    trackingGroup->addAction(actionTrackingFromBlue);
+
+    m_trackingFrom = TrackingFrom::BOTH;
+    actionTrackingFromBoth->setChecked(true);
 
     // create graphics scene
     m_scene = new QGraphicsScene(this);
@@ -761,8 +802,9 @@ void FieldWidget::updateDetection()
         }
 
         // update the individual robots
+        bool useSimpleBlueTracking = worldState.simple_tracking_blue_size() > 0 && (m_trackingFrom == TrackingFrom::REFEREE || m_trackingFrom == TrackingFrom::YELLOW);
         for (int i = 0; i < worldState.blue_size(); i++) {
-            const world::Robot &robot = worldState.blue(i);
+            const world::Robot &robot = useSimpleBlueTracking ? worldState.simple_tracking_blue(i) : worldState.blue(i);
             const robot::Specs &specs = m_teamBlue[robot.id()];
             if (isLast) {
                 setRobot(robot, specs, m_robotsBlue, Qt::blue);
@@ -770,8 +812,9 @@ void FieldWidget::updateDetection()
             addRobotTrace(worldState.time(), robot, m_robotBlueTrace, m_robotBlueRawTrace);
         }
 
+        bool useSimpleYellowTracking = worldState.simple_tracking_yellow_size() > 0 && (m_trackingFrom == TrackingFrom::REFEREE || m_trackingFrom == TrackingFrom::BLUE);
         for (int i = 0; i < worldState.yellow_size(); i++) {
-            const world::Robot &robot = worldState.yellow(i);
+            const world::Robot &robot = useSimpleYellowTracking ? worldState.simple_tracking_yellow(i) : worldState.yellow(i);
             const robot::Specs &specs = m_teamYellow[robot.id()];
             if (isLast) {
                 setRobot(robot, specs, m_robotsYellow, Qt::yellow);
@@ -1792,4 +1835,11 @@ void FieldWidget::Robot::show()
     robot->show();
     id->show();
     visible = true;
+}
+
+void FieldWidget::setTrackingFrom(int newViewPoint)
+{
+    m_trackingFrom = static_cast<TrackingFrom>(newViewPoint);
+    m_worldState.append(m_lastWorldState);
+    updateDetection();
 }
