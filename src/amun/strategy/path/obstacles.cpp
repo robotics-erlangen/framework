@@ -237,6 +237,10 @@ float MovingObstacles::MovingLine::distance(Vector pos, float time) const
     }
     const Vector p1 = startPos1 + speed1 * time;
     const Vector p2 = startPos2 + speed2 * time;
+    if (p1 == p2) {
+        // this happens for example for time = 0
+        return p1.distance(pos) - width;
+    }
     return LineSegment(p1, p2).distance(pos) - width;
 }
 
