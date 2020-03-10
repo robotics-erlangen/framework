@@ -464,7 +464,7 @@ export class Shoot extends Behavior {
 			// update target if the decision changed
 			// creating a new task instance would mess up catchBall
 			if (this._task != undefined && this._task instanceof Pass
-			&&  (this._decision.pos !== this._prevPassPos || Math.abs(this._decision.time - this._prevTime) > 0.5)) {
+			&&  (this._decision.pos !== this._prevPassPos || Math.abs(this._decision.time - this._prevTime) > 0.1)) {
 				this._task.updateTarget(this._decision.target, this._decision.pos, chipOverride, this._decision.time, targetSpeed);
 				this._prevTime = this._decision.time;
 			}
