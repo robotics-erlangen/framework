@@ -445,7 +445,7 @@ export class Shoot extends Behavior {
 			}
 
 
-			let attackTime = this._messaging.receiveSingleSender(MessageType.attackTime, true)[1];
+			let attackTime = this._messaging.receiveSingleSender(MessageType.earliestAttackTime, true)[1];
 			let shootTime = attackTime != undefined ? attackTime - World.Time : Robot.minShootTime(this._robot, ballPos);
 
 			// don't start a new pass when unable to reach ball in time

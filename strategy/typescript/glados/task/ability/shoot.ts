@@ -301,7 +301,7 @@ export class Shoot {
 			ballTravelTime = ballTime;
 		}
 
-		let attackTime: number = 0;
+		let attackTime: number = 0; // Will be overridden.
 		if (targetTime != undefined) {
 			attackTime = targetTime - ballTravelTime!;
 		}
@@ -323,16 +323,17 @@ export class Shoot {
 			if (attackTime < World.Time) {
 				attackTime = World.Time;
 			}
-			this._messaging.sendBroadcast(MessageType.attackTime, targetTime != undefined ? targetTime - ballTravelTime! : World.Time);
 			this._catchBallActive = false;
+			this._messaging.sendBroadcast(MessageType.earliestAttackTime, World.Time);
 		} else {
 			let cBTime = this._catchBall._catchBall(targetPos, minCatchBallDistance, targetSpeed);
+			this._messaging.sendBroadcast(MessageType.earliestAttackTime, World.Time + cBTime);
 			if (attackTime < World.Time + cBTime) {
 				attackTime = World.Time + cBTime;
 			}
 			this._catchBallActive = true;
 		}
-		this._messaging.sendBroadcast(MessageType.attackTime, attackTime);
+		this._messaging.sendBroadcast(MessageType.plannedAttackTime, attackTime);
 
 		debug.set("Shoot/DirectMovement", this._directMovement);
 	}
@@ -363,7 +364,9 @@ export class Shoot {
 		this._setObstacles(moveDest);
 		this._robot.trajectory.update(ToTarget, moveDest, targetDir, undefined, endSpeed);
 		this._messaging.sendBroadcast(MessageType.attackPosition, futureBall.pos);
-		this._messaging.sendBroadcast(MessageType.attackTime, Physics.robotTimeToPos(this._robot, moveDest, endSpeed)[0] + World.Time);
+		let attackTime = Physics.robotTimeToPos(this._robot, moveDest, endSpeed)[0] + World.Time;
+		this._messaging.sendBroadcast(MessageType.plannedAttackTime, attackTime);
+		this._messaging.sendBroadcast(MessageType.earliestAttackTime, attackTime);
 
 		let currentDribblerPos = this._robot.pos + dribblerOffset;
 		if (World.Ball.pos.distanceTo(currentDribblerPos) < 0.35) {
@@ -409,12 +412,14 @@ export class Shoot {
 			this._setObstacles(moveDest);
 			this._robot.trajectory.update(ToTarget, moveDest, targetDir);
 			this._messaging.sendBroadcast(MessageType.attackPosition, futureBall.pos);
-			this._messaging.sendBroadcast(MessageType.attackTime, futureBallTime + World.Time);
+			this._messaging.sendBroadcast(MessageType.earliestAttackTime, futureBallTime + World.Time);
+			this._messaging.sendBroadcast(MessageType.plannedAttackTime, futureBallTime + World.Time);
 			this._catchBallActive = false;
 			visBallStartPos = futureBall.pos;
 		} else {
 			let catchTime = this._catchBall._catchBall(targetPos, 0, targetSpeed);
-			this._messaging.sendBroadcast(MessageType.attackTime, futureBallTime + World.Time);
+			this._messaging.sendBroadcast(MessageType.earliestAttackTime, catchTime + World.Time);
+			this._messaging.sendBroadcast(MessageType.plannedAttackTime, catchTime + World.Time);
 			this._catchBallActive = true;
 			visBallStartPos = Physics.ballAtTime(World.Ball, catchTime).pos;
 		}
@@ -439,12 +444,12 @@ export class Shoot {
 			this._setObstacles(moveDest);
 			this._robot.trajectory.update(ToTarget, moveDest, targetDir, undefined, undefined);
 			this._messaging.sendBroadcast(MessageType.attackPosition, futureBall.pos);
-			this._messaging.sendBroadcast(MessageType.attackTime, Physics.robotTimeToPos(this._robot, moveDest, new Vector(0, 0))[0] + World.Time);
+			this._messaging.sendBroadcast(MessageType.earliestAttackTime, Physics.robotTimeToPos(this._robot, moveDest, new Vector(0, 0))[0] + World.Time);
 			this._catchBallActive = false;
 			visBallStartPos = futureBall.pos;
 		} else {
 			let attackTime = this._catchBall._catchBall(ballOrigin, 0, undefined);
-			this._messaging.sendBroadcast(MessageType.attackTime, attackTime + World.Time);
+			this._messaging.sendBroadcast(MessageType.earliestAttackTime, attackTime + World.Time);
 			this._catchBallActive = true;
 			visBallStartPos = Physics.ballAtTime(World.Ball, attackTime).pos;
 		}

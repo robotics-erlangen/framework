@@ -103,7 +103,7 @@ export class Pass extends Task {
 
 		let attackPosition = this._messaging.receiveSingleSender(MessageType.attackPosition, true)[1] || World.Ball.pos;
 
-		let attackTime = this._messaging.receiveSingleSender(MessageType.attackTime, true)[1];
+		let attackTime = this._messaging.receiveSingleSender(MessageType.plannedAttackTime, true)[1];
 
 
 		if (!this._chipOverride) {

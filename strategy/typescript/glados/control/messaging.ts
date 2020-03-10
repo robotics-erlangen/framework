@@ -126,7 +126,7 @@ export enum MessageType {
 	strikerSamplingTimestamp,
 
 	// single sender
-	attackPosition, attackTime, centerBackPosTarget, moveAssignment,
+	attackPosition, plannedAttackTime, centerBackPosTarget, earliestAttackTime, moveAssignment,
 	moveInfo, passInfo, roleAssignment, shootDestination,
 	strikerZone, midfieldZone, placingRobot,
 
@@ -143,7 +143,7 @@ export const MessageTypeList = [
 	MessageType.allyFlag, MessageType.attackerFlag, MessageType.defendedOpponent, MessageType.dueledOpponent, MessageType.defenderFlag,
 	MessageType.moveDest, MessageType.passSuggestion, MessageType.poolChangeRequest, MessageType.strikerFlag,
 	MessageType.strikerSamplingTimestamp,
-	MessageType.attackPosition, MessageType.attackTime, MessageType.centerBackPosTarget, MessageType.moveAssignment,
+	MessageType.attackPosition, MessageType.earliestAttackTime, MessageType.centerBackPosTarget, MessageType.plannedAttackTime, MessageType.moveAssignment,
 	MessageType.moveInfo, MessageType.passInfo, MessageType.roleAssignment, MessageType.shootDestination,
 	MessageType.strikerZone, MessageType.midfieldZone,
 	MessageType.mainAttacker, MessageType.duelAssistant, MessageType.interceptPass,
@@ -208,13 +208,15 @@ export class MessageBox {
 	sendBroadcast(type: MessageType.strikerFlag, data?: undefined): void;
 	sendBroadcast(type: MessageType.strikerSamplingTimestamp, time: number): void;
 	sendBroadcast(type: MessageType.attackPosition, pos: Position): void;
-	sendBroadcast(type: MessageType.attackTime, time: number): void;
+	sendBroadcast(type: MessageType.plannedAttackTime, time: number): void;
+	sendBroadcast(type: MessageType.earliestAttackTime, time: number): void;
 	sendBroadcast(type: MessageType.passInfo, info: {target: FriendlyRobot, ballPos: Position, time: number}[]): void;
 	sendBroadcast(type: MessageType.shootDestination, dest: Position): void;
 	sendBroadcast(type: ExclusiveRole, dest: FriendlyRobot | undefined): void;
 	sendBroadcast(type: MessageType.placingRobot, data? : undefined): void;
 	sendBroadcast(type: MessageType, data?: any): void {
-		if (type === MessageType.attackTime && (data === -Infinity || data === Infinity)) throw new Error("Invalid AttackTime");
+		if (type === MessageType.plannedAttackTime && (data === -Infinity || data === Infinity)) throw new Error("Invalid PAttackTime");
+		if (type === MessageType.earliestAttackTime && (data === -Infinity || data === Infinity)) throw new Error("Invalid EAttackTime");
 		this.sendGeneric(type, "all", data, false);
 	}
 
@@ -271,7 +273,8 @@ export class MessageBox {
 	}
 
 	receiveSingleSender(type: MessageType.attackPosition, broadcast?: boolean): [FriendlyRobot, Position] | [];
-	receiveSingleSender(type: MessageType.attackTime, broadcast?: boolean): [FriendlyRobot, number] | [];
+	receiveSingleSender(type: MessageType.earliestAttackTime, broadcast?: boolean): [FriendlyRobot, number] | [];
+	receiveSingleSender(type: MessageType.plannedAttackTime, broadcast?: boolean): [FriendlyRobot, number] | [];
 	receiveSingleSender(type: MessageType.passInfo, broadcast?: boolean): [FriendlyRobot, {target: FriendlyRobot, ballPos: Position, time: number}[]] | [];
 	receiveSingleSender(type: MessageType.shootDestination, broadcast?: boolean): [FriendlyRobot, Position] | [];
 	receiveSingleSender(type: MessageType.placingRobot, broadcast?: boolean): [FriendlyRobot, undefined] | [];

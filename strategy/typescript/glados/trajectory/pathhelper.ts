@@ -210,7 +210,7 @@ export let isGoalShot: () => boolean = Cache.forFrame(_isGoalShot);
 function addGoalObstacleShot(path: Path, robot: FriendlyRobot, messaging: MessageBox, useCMA: boolean) {
 	// let _, attackPos = next(messaging.attackPosition());
 	let attackPos = messaging.receiveSingleSender(MessageType.attackPosition)[1];
-	let attackTime = messaging.receiveSingleSender(MessageType.attackTime)[1];
+	let attackTime = messaging.receiveSingleSender(MessageType.plannedAttackTime)[1];
 	if (!attackPos || attackTime == undefined) {
 		return;
 	}
@@ -266,7 +266,7 @@ function addFriendlyPassObstacle(path: Path, robot: FriendlyRobot, messaging: Me
 	let radiusRobot = robot.radius * 2 + 0.02;
 	let epsilonSq = robot.radius * robot.radius / 4;
 	let attackPosition = messaging.receiveSingleSender(MessageType.attackPosition)[1];
-	let attackTime = messaging.receiveSingleSender(MessageType.attackTime)[1];
+	let attackTime = messaging.receiveSingleSender(MessageType.plannedAttackTime)[1];
 	let mainAttacker = messaging.receiveTrainer(MessageType.mainAttacker);
 	if (mainAttacker && robot !== mainAttacker) {
 		let dangerPos = attackPosition || mainAttacker.pos;
@@ -293,7 +293,8 @@ function addFriendlyPassObstacle(path: Path, robot: FriendlyRobot, messaging: Me
 			}
 		}
 		let passInfoTable = messaging.receiveSingleSender(MessageType.passInfo)[1];
-		if (passInfoTable) {
+		if (passInfoTable && dangerTime !== Infinity) { // dangerTime === Infinity will be true if stop ball hit (therefore no plannedAttackTime exists), while beeing totally unreasonable (like on the other edge of the field)
+														// FIXME: Why are we still calling shoot in this situation?
 			for (let passInfo of passInfoTable) {
 				// don't block the pass receiver
 				if (passInfo.target && passInfo.target !== robot) {

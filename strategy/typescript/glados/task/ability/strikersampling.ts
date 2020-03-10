@@ -35,7 +35,7 @@ export class StrikerSampling {
 	precalculate() {
 		this._mainAttacker = this._messaging.receiveTrainer(MessageType.mainAttacker);
 		let pos = this._messaging.receiveSingleSender(MessageType.attackPosition)[1];
-		let time = this._messaging.receiveSingleSender(MessageType.attackTime)[1];
+		let time = this._messaging.receiveSingleSender(MessageType.plannedAttackTime)[1];
 		this._attackPosition = pos || World.Ball.pos;
 		this._attackTime = time != undefined ? time : (this._mainAttacker ? World.Time + Robot.minTimeToBall(this._mainAttacker) : World.Time);
 
