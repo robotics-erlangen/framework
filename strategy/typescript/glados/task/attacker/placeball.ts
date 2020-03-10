@@ -114,8 +114,9 @@ export class PlaceBall extends Task {
 		this._ballStartPos = this._ball.pos;
 		this._robotStartPos = this._robot.pos;
 
-		this._placementOffsetAverage = -this._robot.pos.copy().setLength(this.OFFSET_EXTRA_LENGTH);
-		this._borderOffsetAverage = this._robot.pos.copy().setLength(this.OFFSET_EXTRA_LENGTH);
+		this._placementOffsetAverage = undefined;
+		this._borderOffsetAverage = undefined;
+		this.wallKickDir = new Vector(0,0);
 	}
 
 	run() {
@@ -412,8 +413,8 @@ export class PlaceBall extends Task {
 		let usedBallPos = BallObserver.getRealisticBallPos();
 		this._nearestFieldPos = Field.limitToField(usedBallPos);
 
-		if ((this._placementOffsetAverage == undefined || usedBallPos.distanceTo(this._placementPos) > OFFSET_DISTANCE)
-				&& ballVisible) {
+		if (this._placementOffsetAverage == undefined || (usedBallPos.distanceTo(this._placementPos) > OFFSET_DISTANCE
+				&& ballVisible)) {
 			let currentOffset = (usedBallPos - this._placementPos).normalize();
 			if (currentOffset.lengthSq() > 1e-9) {
 				this._placementOffsets[this._placementOffsetFrame] = currentOffset;
@@ -422,8 +423,8 @@ export class PlaceBall extends Task {
 			}
 		}
 
-		if ((this._borderOffsetAverage == undefined || usedBallPos.distanceTo(this._nearestFieldPos) > OFFSET_DISTANCE)
-				&& ballVisible) {
+		if (this._borderOffsetAverage == undefined || (usedBallPos.distanceTo(this._nearestFieldPos) > OFFSET_DISTANCE
+				&& ballVisible)) {
 			this._borderOffsets[this._borderOffsetFrame] = (usedBallPos - this._nearestFieldPos).normalize();
 			this._borderOffsetFrame = (this._borderOffsetFrame + 1) % OFFSET_FRAME_COUNT;
 			this._borderOffsetAverage = geom.center(this._borderOffsets).setLength(this.OFFSET_EXTRA_LENGTH);
