@@ -21,7 +21,7 @@ export class MainTrainer extends Trainer {
 		if (this._mode === "passive") {
 			this._attackRatio.attackRatio = () => 0;
 		} else if (this._mode === "aggressive") {
-			this._attackRatio.attackRatio = () => 8;
+			this._attackRatio.attackRatio = () => 11;
 		}
 	}
 
