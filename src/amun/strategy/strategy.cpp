@@ -156,6 +156,14 @@ void Strategy::handleStatus(const Status &status)
         }
     }
 
+    // copy team from status
+    if (status->has_team_blue()) {
+        updateTeam(status->team_blue(), StrategyType::BLUE, true);
+    }
+    if (status->has_team_yellow()) {
+        updateTeam(status->team_yellow(), StrategyType::YELLOW, true);
+    }
+
     if (!m_isEnabled) {
         return;
     }
@@ -175,13 +183,6 @@ void Strategy::handleStatus(const Status &status)
         m_idleTimer->stop();
         if (!m_scriptState.isReplay) {
             reload();
-        }
-
-        // copy team from status
-        if (status->has_team_blue()) {
-            updateTeam(status->team_blue(), StrategyType::BLUE, true);
-        } else if (status->has_team_yellow()) {
-            updateTeam(status->team_yellow(), StrategyType::YELLOW, true);
         }
 
         m_scriptState.isReplay = true;
