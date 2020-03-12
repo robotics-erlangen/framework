@@ -170,7 +170,6 @@ void LogOpener::openFile(const QString &filename)
                 m_logFile = logfile;
 
                 m_openFileName = filename;
-                ui->logManager->setStatusSource(logfile);
 
                 // move the file to the end of the recent files list
                 m_recentFiles.removeAll(filename);
@@ -190,7 +189,11 @@ void LogOpener::openFile(const QString &filename)
                 }
                 m_packetsSinceOpened = 0;
 
-                emit logOpened(QFileInfo(filename).fileName());
+                emit logOpened(QFileInfo(filename).fileName(), false);
+
+                // setStatusSource has to be after sending the logOpened signal
+                // otherwise the first frame might not be visible to replays, since logOpened() will result in preloading the first package
+                ui->logManager->setStatusSource(logfile);
                 return;
 
             } else if (!openResult.second.isEmpty()) {
