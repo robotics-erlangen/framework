@@ -349,7 +349,7 @@ void Strategy::createDummyTeam()
 {
     // when replaying a game that we played, there will always be robot specs for some team, so m_anyRobotSpec will be written properly
     m_team.clear_robot();
-    for (unsigned int i = 0;i<16;i++) {
+    for (unsigned int i = 0;i<22;i++) {
         robot::Specs * robot = m_team.add_robot();
         robot->CopyFrom(m_anyRobotSpec);
         robot->set_id(i);
@@ -427,7 +427,7 @@ void Strategy::process()
         return;
     }
 
-    // create a dummy team with 16 robots if replaying with no team information
+    // create a dummy team with 22 robots if replaying with no team information
     if ((m_scriptState.isRunningInLogplayer || m_scriptState.isReplay) && m_team.robot_size() == 0) {
         createDummyTeam();
         reload();
