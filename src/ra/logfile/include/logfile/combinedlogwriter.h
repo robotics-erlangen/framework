@@ -25,6 +25,7 @@ public:
     CombinedLogWriter& operator=(const CombinedLogWriter&) = delete;
     std::shared_ptr<StatusSource> makeStatusSource();
     QList<Status> getBacklogStatus(int lastNPackets);
+    Status getTeamStatus();
 
 signals:
     void setRecordButton(bool on);

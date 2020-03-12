@@ -187,13 +187,18 @@ QString CombinedLogWriter::createLogFilename() const
     }
 }
 
-void CombinedLogWriter::startLogfile()
+Status CombinedLogWriter::getTeamStatus()
 {
     Status status(new amun::Status);
     status->set_time(m_lastTime);
     status->mutable_team_yellow()->CopyFrom(m_yellowTeam);
     status->mutable_team_blue()->CopyFrom(m_blueTeam);
-    m_logFile->writeStatus(status);
+    return status;
+}
+
+void CombinedLogWriter::startLogfile()
+{
+    m_logFile->writeStatus(getTeamStatus());
     m_logStartTime = m_lastTime;
     emit showLogTimeLabel(true);
 }

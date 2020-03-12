@@ -675,6 +675,8 @@ void MainWindow::showBacklogMode()
         m_logOpener->saveCurrentPosition();
         ui->logManager->setStatusSource(m_logWriterRa.makeStatusSource());
         ui->logManager->goToEnd();
+        // send the current team status so that replays can use it
+        emit m_amun.sendReplayStatus(m_logWriterRa.getTeamStatus());
     }
 }
 
