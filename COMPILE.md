@@ -17,6 +17,7 @@ Certain features require additional libraries:
  * libusb-1.0 - USB communication (version >= 1.0.9)
  * libsdl2 - Joystick support (version >= 2.0.2)
  * libudev - Required for joystick support (only required if libsdl2 is not available via the package manager)
+ * libqt5svg5 - Required for taking SVG screenshots of the fieldwidget
 
 ## Linux
 Names of required package for Ubuntu 16.04: `cmake protobuf-compiler libprotobuf-dev qtbase5-dev libqt5opengl5-dev libsdl2-dev libusb-1.0-0-dev g++`
