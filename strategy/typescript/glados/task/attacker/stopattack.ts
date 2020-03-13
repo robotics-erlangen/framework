@@ -15,6 +15,7 @@ import * as UtilDefense from "glados/util/defense";
 import * as RobotList from "glados/util/robotlist";
 
 const POSITION_PADDING = 0.2; // safety distance
+const DEFEND_GOAL_HYSTERESIS = 0.1;
 
 // normalize angle created by direction to be always relative to segment ball to field border
 function getNormalizedAngle(direction: RelativePosition): number {
@@ -27,6 +28,7 @@ export class StopAttack extends Task {
 	private _focusPoint: Position;
 	private _side: "left" | "right";
 	private _defenseHysteresis: boolean;
+	private _defendGoalHysteresis: boolean;
 	private _minDistToBall: number;
 
 	constructor(agent: Agent, minDistToBall: number = Constants.stopBallDistance) {
@@ -34,7 +36,9 @@ export class StopAttack extends Task {
 		this._focusPoint = new Vector(0, -World.Geometry.FieldHeightHalf + 4 * this._robot.radius);
 		this._side = World.Ball.pos.x < 0 ? "left" : "right";
 		this._defenseHysteresis = false;
+		this._defendGoalHysteresis = false;
 		this._minDistToBall = minDistToBall;
+
 	}
 
 	run() {
@@ -50,8 +54,11 @@ export class StopAttack extends Task {
 		}
 
 		// try to always be where the opponent shooter will try to shoot
-		let isOpponentFreekickState = World.RefereeState === "IndirectDefensive" || World.RefereeState === "DirectDefensive";
-		let defendOpponentPasses = (World.Ball.pos.y > 0 || World.RefereeState === "IndirectDefensive") && isOpponentFreekickState;
+		let isOpponentFreekickState = World.RefereeState === "DirectDefensive";
+		let defendGoalDistance = 4;
+		defendGoalDistance = this._defendGoalHysteresis ? defendGoalDistance + DEFEND_GOAL_HYSTERESIS : defendGoalDistance - DEFEND_GOAL_HYSTERESIS;
+		let defendOpponentPasses = ((World.Ball.pos - World.Geometry.FriendlyGoal).length() > defendGoalDistance) && isOpponentFreekickState;
+		this._defendGoalHysteresis = !defendOpponentPasses;
 
 		let passReceivers = RobotList.excludeRobots(World.OpponentRobots, [opponentShooter!, World.OpponentKeeper!]);
 		if (dist < 0.2 + this._robot.radius && defendOpponentPasses && passReceivers.length > 0) {
