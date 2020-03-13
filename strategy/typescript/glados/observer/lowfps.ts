@@ -1,0 +1,35 @@
+import * as World from "base/world";
+
+const ALPHA: number = 0.1;
+// normaliy 10 milli seconds per frame
+const MAX_FRAME_TIME_DIFF: number = 0.02;
+const DEACTIVATE: boolean = false;
+
+class LowFPS {
+	private frameTimeOne: number = 0;
+	private prognosis: number = 0;
+
+	public update() {
+		if (DEACTIVATE) {
+			return;
+		}
+		if (this.frameTimeOne === 0) {
+			this.frameTimeOne = World.Time;
+		} else {
+			let frameTimeTwo = World.Time;
+			let frameTimeDiff = frameTimeTwo - this.frameTimeOne;
+			if (this.prognosis === 0) {
+				this.prognosis = frameTimeDiff;
+			}
+			this.calculateExponentialSmoothing(frameTimeDiff);
+			this.frameTimeOne = frameTimeTwo;
+		}
+	}
+	private calculateExponentialSmoothing(frameTimeDiff: number) {
+		this.prognosis = ALPHA * frameTimeDiff + (1 - ALPHA) * this.prognosis;
+		if (this.prognosis > MAX_FRAME_TIME_DIFF) {
+			amun.log("<font color =red>run time too heigh!</font>");
+		}
+	}
+}
+export let lowFPSObserver = new LowFPS();

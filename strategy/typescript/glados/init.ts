@@ -25,6 +25,7 @@ import * as ErrorObserver from "glados/observer/error";
 import * as Goal from "glados/observer/goal";
 import * as ObsvReferee from "glados/observer/referee";
 import * as Robot from "glados/observer/robot";
+import { lowFPSObserver } from "glados/observer/lowfps"
 
 // require "test/observer/index";
 // require "test/situation/index";
@@ -43,6 +44,7 @@ class PreProc implements Process {
 		ErrorObserver._update();
 		Goal._update();
 		GameController._update();
+		lowFPSObserver.update();
 	}
 
 	isFinished(): boolean {
