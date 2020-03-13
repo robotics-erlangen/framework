@@ -317,20 +317,26 @@ export class Shoot extends Behavior {
 			return true;
 		}
 
+		let suffixDebugString = "";
 		// redecide if passTiming changed a lot
 		if (this._decision.task === "pass") {
 			let oldTime = this._decision.time;
 			let oldTarget = this._decision.target;
 			let newSug = this._messaging.receive(MessageType.passSuggestion).get(oldTarget);
-			if (newSug && newSug.time > oldTime + 0.2) {
+			if (newSug && newSug.time > oldTime + 0.2 && this._passFrames > 2) {
 				debug.set("redeciding", "TRUE (passTiming)");
 				return true;
+			}
+			if (newSug && newSug.time < oldTime - 0.1 && this._passFrames > 2) {
+				suffixDebugString = ` + (earlyPassTiming (${newSug.time - oldTime}))`;
+				this._decision.time = newSug.time;
+				this._passFrames = 0;
 			}
 
 			// redecide if the passReciever no longer offers that pass
 
 			if (!newSug && this._passFrames > 2) {
-				debug.set("redeciding", "TRUE (dropped suggestion)");
+				debug.set("redeciding", "TRUE (dropped suggestion)" + suffixDebugString);
 			}
 		}
 
@@ -338,43 +344,43 @@ export class Shoot extends Behavior {
 		// don't if it is the first frame after a suggestion, as this is a valid situation for CB to change the attack Position a lot
 		if (this._attackPosition && this._prevAttackPosition
 				&&  this._attackPosition.distanceTo(this._prevAttackPosition) > 0.3 && this._decisionFrames > 1) {
-			debug.set("redeciding", "TRUE (attackPosition)");
+			debug.set("redeciding", "TRUE (attackPosition)" + suffixDebugString);
 			return true;
 		}
 
 		// redecide if the last decision was the fallback one
 		if (this._decision.quality === "fallback") {
-			debug.set("redeciding", "TRUE (fallback)");
+			debug.set("redeciding", "TRUE (fallback)" + suffixDebugString);
 			return true;
 		}
 
 		if (!this._wasPressed && Robot.isPressed(this._robot)) {
-			debug.set("redeciding", "TRUE (pressed)");
+			debug.set("redeciding", "TRUE (pressed)" + suffixDebugString);
 			return true;
 		}
 
 		// don't redecide if we are close to shoot a stationary ball
 		if (World.Ball.speed.lengthSq() < 0.5 * 0.5 && World.Ball.pos.distanceToSq(this._robot.pos) < (0.2 + this._robot.radius) * (0.2 + this._robot.radius)) {
-			debug.set("redeciding", "FALSE (stationary)");
+			debug.set("redeciding", "FALSE (stationary)" + suffixDebugString);
 			return false;
 		}
 
 		// redecide if after a certain time
 		if (World.Time >= this._nextDecisionTime) {
-			debug.set("redeciding", "TRUE (nextDecisionTime)");
+			debug.set("redeciding", "TRUE (nextDecisionTime)" + suffixDebugString);
 			return true;
 		}
 
 		if (this._decision.pos != undefined && Ball.receivesPass(this._robot)) {
 			let shootAngle = World.Ball.speed.absoluteAngleDiff(this._robot.pos - this._decision.pos);
 			if (shootAngle > 75 * Math.PI / 180) {
-				debug.set("redeciding", "TRUE (large angle)");
+				debug.set("redeciding", "TRUE (large angle)" + suffixDebugString);
 				return true;
 			}
 		}
 
 
-		debug.set("redeciding", "FALSE (default)");
+		debug.set("redeciding", "FALSE (default)" + suffixDebugString);
 		return false;
 	}
 
