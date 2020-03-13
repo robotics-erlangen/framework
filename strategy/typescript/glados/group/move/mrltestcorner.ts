@@ -29,7 +29,7 @@ function getRobotsInRect(c1: Position, c2: Position, robots: Robot[], buffer: nu
 
 function taskAssignment(passInfoTable: any, pos1: Position, pos2: Position, robot: FriendlyRobot, enemyAmm: number): Assignment {
 	let ballSide = (World.Ball.pos.x > 0) ? 1 : -1;
-	let acceptPass = Attack.checkPassInfos(robot, passInfoTable, false);
+	let acceptPass = Attack.checkPassInfos(robot, passInfoTable, false)[0];
 	if (acceptPass) {
 		return { class: AcceptPass };
 	} else if (enemyAmm > 0) {

@@ -39,7 +39,7 @@ function Volley:_updateTasks () {
 	}
 
 	let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
-	let startMoving = Attack.checkPassInfos(this._robots[1], passInfoTable, false)
+	let startMoving = Attack.checkPassInfos(this._robots[1], passInfoTable, false)[0]
 	if (startMoving) {
 		taskAssignments[this._robots[1]] = { class: AcceptPass }
 	} else {

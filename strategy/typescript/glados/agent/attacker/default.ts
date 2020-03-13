@@ -32,10 +32,13 @@ export class Default extends Behavior {
 		let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
 		let relevantPassInfo = passInfoTable ? Attack.relevantPassInfoMessage(this._robot, passInfoTable) : undefined;
 		let prevRobotTime = (this._task instanceof AcceptPass) ? (this._task as AcceptPass).getLastTime() : undefined;
-		let acceptingPass = passInfoTable ? Attack.checkPassInfos(this._robot, passInfoTable, false, prevRobotTime) : false;
+		let [acceptingPass, timeLeft] = passInfoTable ? Attack.checkPassInfos(this._robot, passInfoTable, false, prevRobotTime) : [false, undefined];
 
 		if (relevantPassInfo && !acceptingPass) {
-			return [SideStep, [relevantPassInfo]];
+			if (this._task instanceof SideStep) {
+				(this._task as SideStep).updateTime(timeLeft);
+			}
+			return [SideStep, [relevantPassInfo, timeLeft]];
 		}
 		if (acceptingPass) {
 			return [AcceptPass];

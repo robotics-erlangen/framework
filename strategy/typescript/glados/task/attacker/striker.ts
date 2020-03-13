@@ -164,7 +164,7 @@ export class Striker extends Task {
 
 		// check whether the agent would change its state to accepting an incoming pass (striker should not be active then)
 		let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
-		if (passInfoTable && Attack.checkPassInfos(this._robot, passInfoTable, false) === true) {
+		if (passInfoTable && Attack.checkPassInfos(this._robot, passInfoTable, false)[0] === true) {
 			throw new Error("Striker shouldn't accept passes");
 		}
 

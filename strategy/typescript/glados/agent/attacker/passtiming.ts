@@ -5,6 +5,7 @@ import * as Attack from "glados/util/attack";
 
 
 export class PassTiming extends Behavior {
+	private _remainingTime: number | undefined;
 	check(): boolean {
 		let lastIncomingPassInfo = Attack.lastIncomingPassInfo(this._robot, this._messaging.receiveSingleSender(MessageType.passInfo));
 
@@ -18,14 +19,21 @@ export class PassTiming extends Behavior {
 			lastIncomingPassInfoPos = lastIncomingPassInfo.ballPos;
 		}
 
-		if (lastIncomingPassInfoPos != undefined && !Attack.checkPassInfos(this._robot, [lastIncomingPassInfo!], true)) {
-			return true;
+		if (lastIncomingPassInfoPos != undefined) {
+			let [startAccept, timeToStart] = Attack.checkPassInfos(this._robot, [lastIncomingPassInfo!], true);
+			if (!startAccept) {
+				this._remainingTime = timeToStart;
+				return true;
+			}
 		}
 
 		return false;
 	}
 
 	_updateTask(): TaskAssignment<typeof SideStep> {
-		return [SideStep, [Attack.lastIncomingPassInfo(this._robot, this._messaging.receiveSingleSender(MessageType.passInfo))!]];
+		if (this._task instanceof SideStep) {
+			(this._task as SideStep).updateTime(this._remainingTime);
+		}
+		return [SideStep, [Attack.lastIncomingPassInfo(this._robot, this._messaging.receiveSingleSender(MessageType.passInfo))!, this._remainingTime]];
 	}
 }

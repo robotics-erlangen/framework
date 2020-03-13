@@ -207,7 +207,7 @@ export class Midfield {
 			let pos = r.pos;
 			if (passInfoTable) {
 				for (let passInfo of passInfoTable) {
-					if (passInfo.target === r && Attack.checkPassInfos(r, passInfoTable, false)) {
+					if (passInfo.target === r && Attack.checkPassInfos(r, passInfoTable, false)[0]) {
 						pos = passInfo.ballPos + (passInfo.ballPos - World.Ball.pos).setLength(r.shootRadius + World.Ball.radius);
 					}
 				}

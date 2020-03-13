@@ -416,28 +416,30 @@ function calculatePassInfoTiming(robot: {shootRadius: number} & Physics.RobotLik
 // @param passInfoTable table - all of the passInfos currently being sent out
 // @param lastResult bool - the return value of the last call to this function, or false
 // @param absRobotTime number - an alternative time that this robot will take to reach lastPassInfo.pos //TODO: this is used incorrectly when passInfo changes
+// @return message - the relevantPassInfoMessage for this robot
 // @return bool - if we have to start to move
+// @return number - time until we have to start moving
 function _checkPassInfos(robot: FriendlyRobot, passInfoTable: PassInfo[], lastResult: boolean | undefined, lastPassInfo: PassInfo | undefined,
-		passIncoming?: boolean, absRobotTime?: number): [PassInfo | undefined, boolean] {
+		passIncoming?: boolean, absRobotTime?: number): [PassInfo | undefined, boolean, number | undefined] {
 	let _relevantPassInfoMessage = relevantPassInfoMessage(robot, passInfoTable);
 	printPassInfo(robot, _relevantPassInfoMessage, lastResult, lastPassInfo);
 	if (_relevantPassInfoMessage == undefined) {
-		return [undefined, false];
+		return [undefined, false, undefined];
 	} else {
 		let timeLeft = calculatePassInfoTiming(robot, _relevantPassInfoMessage, passIncoming, absRobotTime);
-		return [_relevantPassInfoMessage, lastResult ? timeLeft < 0.5 : timeLeft < 0];
+		return [_relevantPassInfoMessage, lastResult ? timeLeft < 0.5 : timeLeft < 0, timeLeft];
 	}
 }
 
 let checkedPassInfoPerRobot = new Map<FriendlyRobot, {result: boolean, message: PassInfo | undefined}>();
 
-export function checkPassInfos(robot: FriendlyRobot, passInfoTable: PassInfo[], passIncoming?: boolean, absRobotTime?: number): boolean {
+export function checkPassInfos(robot: FriendlyRobot, passInfoTable: PassInfo[], passIncoming?: boolean, absRobotTime?: number): [boolean, number | undefined] {
 	let cachedPassInfo = checkedPassInfoPerRobot[robot];
 	let preResult = cachedPassInfo ? cachedPassInfo.result : undefined;
 	let preMessage = cachedPassInfo ? cachedPassInfo.message : undefined;
-	let [message, result] = _checkPassInfos(robot, passInfoTable, preResult, preMessage, passIncoming, absRobotTime);
+	let [message, result, time] = _checkPassInfos(robot, passInfoTable, preResult, preMessage, passIncoming, absRobotTime);
 	checkedPassInfoPerRobot[robot] = {message: message, result: result};
-	return result;
+	return [result, time];
 }
 
 // checks if an attacker has to start to move towards its pass

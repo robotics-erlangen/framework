@@ -49,8 +49,9 @@ export class SideStep extends Task {
 	private _passInfo: PassInfo;
 
 	private _suggestPass: SuggestPass;
+	private _remainingTime: number | undefined;
 
-	constructor(agent: Agent, passInfo: PassInfo) {
+	constructor(agent: Agent, passInfo: PassInfo, remainingFreeTime: number | undefined) {
 		super(agent);
 		this._passInfo = passInfo;
 		let passBlocked = this._projectBotsOnLine(this._robot.pos, passInfo.ballPos) > MANMARK_DISTANCE_THRESHOLD;
@@ -83,6 +84,7 @@ export class SideStep extends Task {
 		};
 
 		this._suggestPass = new SuggestPass(this._robot, this._messaging);
+		this._remainingTime = remainingFreeTime;
 	}
 
 	private _projectBotsOnLine(point1: Position, point2: Position): number {
@@ -118,7 +120,17 @@ export class SideStep extends Task {
 
 		let attackPosition = this._messaging.receiveSingleSender(MessageType.attackPosition)[1];
 		if (attackPosition) {
-			this._suggestPass._suggestPass(this._passInfo.ballPos, attackPosition, this._passInfo.time - World.Time);
+			let earlyAttackTime = this._messaging.receiveSingleSender(MessageType.earliestAttackTime)[1];
+			let plannedAttackTime = this._messaging.receiveSingleSender(MessageType.plannedAttackTime)[1];
+			let offeredTime = this._passInfo.time - World.Time;
+			if (earlyAttackTime != undefined && plannedAttackTime != undefined && this._remainingTime != undefined) {
+				let delay = plannedAttackTime - earlyAttackTime;
+				if (delay > this._remainingTime) {
+					delay = this._remainingTime;
+				}
+				offeredTime = offeredTime - delay;
+			}
+			this._suggestPass._suggestPass(this._passInfo.ballPos, attackPosition, offeredTime);
 		}
 
 		let obstacleTable: PathHelper.PathHelperParameters = {
@@ -129,5 +141,9 @@ export class SideStep extends Task {
 		let viewPos = attackPosition || World.Geometry.OpponentGoal;
 		let dir = (viewPos - this._robot.pos).angle();
 		this._robot.trajectory.update(ToTarget, this._feintPos, dir);
+	}
+
+	updateTime(newTime: number | undefined) {
+		this._remainingTime = newTime;
 	}
 }
