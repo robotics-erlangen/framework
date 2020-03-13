@@ -222,19 +222,24 @@ export abstract class Agent {
 		let mainAttackerRating: number;
 		if (overrideRating == undefined) {
 			let timeToBall = Robot.minTimeToBall(this._robot);
+			let timeToBallDetailed: number | undefined = undefined;
 			if (parameters[0] != undefined || parameters[1] != undefined) {
 				let targetPos = parameters[0] || World.Geometry.OpponentGoal;
 				let endSpeedLength = parameters[1] != undefined ? parameters[1] : this._robot.maxSpeed;
-				ratingArg.setRating(1, Rating.timeToRating(Physics.robotTimeToBall(this._robot,
-					World.Ball, targetPos, endSpeedLength, this._mainAttackerLastTime)));
+				timeToBallDetailed = Physics.robotTimeToBall(this._robot, World.Ball, targetPos, endSpeedLength, this._mainAttackerLastTime);
 			}
 
 			// if we have the ball, the time is 0
-			if (timeToBall === Infinity) {
+			if (timeToBall === Infinity || (timeToBallDetailed != undefined && timeToBallDetailed === Infinity)) {
 				let dribblerPos = this._robot.pos + Vector.fromAngle(this._robot.dir) * this._robot.shootRadius;
 				if (World.Ball.pos.distanceTo(dribblerPos) < 0.15) {
 					if (World.Ball.speed.dot(this._robot.pos - World.Ball.pos) > 0) {
-						timeToBall = 0;
+						if (timeToBall === Infinity) {
+							timeToBall = 0;
+						}
+						if (timeToBallDetailed != undefined && timeToBallDetailed === Infinity) {
+							timeToBallDetailed = 0;
+						}
 					}
 				}
 			}
@@ -262,6 +267,10 @@ export abstract class Agent {
 			debug.set("slowBall", Ball.isSlowBall());
 			debug.set("ratingBoost", ratingBoost);
 			timeToBall = timeToBall - ratingBoost;
+			if (timeToBallDetailed != undefined) {
+				timeToBallDetailed = timeToBallDetailed - ratingBoost;
+				ratingArg.setRating(1, Rating.timeToRating(timeToBallDetailed));
+			}
 
 			mainAttackerRating = Rating.timeToRating(timeToBall);
 			ratingArg.setRating(0, mainAttackerRating);
