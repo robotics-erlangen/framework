@@ -67,6 +67,8 @@ private:
     void handleStrategyStatus(const amun::StatusStrategy &strategy);
     void sendOptions();
     void loadConfiguration(const QString &configFile, google::protobuf::Message *message, bool allowPartial);
+    void delayedExit(int exitCode);
+    void performExit(int exit);
 
     QString m_initScript;
     QString m_entryPoint;

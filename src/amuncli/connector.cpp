@@ -26,6 +26,7 @@
 #include <google/protobuf/util/message_differencer.h>
 #include <QCoreApplication>
 #include <QDir>
+#include <QTimer>
 #include <QSet>
 #include <iostream>
 
@@ -37,6 +38,14 @@ Connector::Connector(QObject *parent) :
 
 Connector::~Connector()
 {
+}
+
+void Connector::delayedExit(int exitCode) {
+    QTimer::singleShot(0, qApp, [exitCode, this]{performExit(exitCode);});
+}
+
+void Connector::performExit(int exitCode) {
+    qApp->exit(exitCode);
 }
 
 void Connector::setAutorefInitScript(const QString &initScript)
@@ -86,7 +95,7 @@ void Connector::loadConfiguration(const QString &configFile, google::protobuf::M
     QFile file(fullFilename);
     if (!file.open(QFile::ReadOnly)) {
         std::cout <<"Could not open configuration file "<<fullFilename.toStdString()<<std::endl;
-        qApp->exit(1);
+        delayedExit(1);
     }
     QString str = file.readAll();
     file.close();
@@ -188,7 +197,7 @@ void Connector::handleStrategyStatus(const amun::StatusStrategy &strategy)
     if (strategy.state() == amun::StatusStrategy::FAILED) {
         const auto& it = std::find_if_not(m_options.begin(), m_options.end(), [](const std::pair<std::string, bool>& p){ return p.second; });
         if (m_exitCode != 0 || it == m_options.end()) {
-            qApp->exit(m_exitCode);
+            delayedExit(m_exitCode);
         } else {
             std::cout << "Rerunning with " << it->first <<" set to true"<< std::endl;
             it->second = true;
@@ -197,12 +206,12 @@ void Connector::handleStrategyStatus(const amun::StatusStrategy &strategy)
     } else if (strategy.state() == amun::StatusStrategy::RUNNING && !m_isInCompileMode) {
         if (m_entryPoint.isEmpty()) {
             TestTools::dumpEntrypoints(strategy);
-            qApp->exit(0);
+            delayedExit(0);
         } else {
             QString currentEntryPoint = QString::fromStdString(strategy.current_entry_point());
             if (currentEntryPoint != m_entryPoint && strategy.filename() != m_autorefInitScript.toStdString()) {
                 std::cout << "Invalid entrypoint " << std::endl;
-                qApp->exit(1);
+                delayedExit(1);
             }
         }
     }
@@ -270,7 +279,7 @@ void Connector::handleStatus(const Status &status)
             m_reportEvents = false;
         }
 
-        qApp->exit(0);
+        delayedExit(0);
     }
 
     if (status->has_game_state() && status->game_state().has_game_event_2019()) {
