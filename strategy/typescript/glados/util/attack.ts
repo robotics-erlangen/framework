@@ -301,7 +301,17 @@ let lastCPMA: FriendlyRobot | undefined = undefined;
 let lastPasser: FriendlyRobot | undefined = undefined;
 let lastReceiver: FriendlyRobot | undefined = undefined;
 let lastCPMATime = 0;
-function _currentPlannedMainAttacker(passInfoSender: FriendlyRobot, passInfoTable: PassInfo[]): FriendlyRobot | undefined {
+function _currentPlannedMainAttacker(passInfoSender: FriendlyRobot | undefined, passInfoTable: PassInfo[]): FriendlyRobot | undefined {
+
+	if (World.Time - lastCPMATime > 0.2) {
+		lastCPMA = undefined;
+		// lastCPMATime only gets set if the pass is on the way.
+		// at that point lastPasser won't get set -> don't delete lastPasser
+		if (lastPasser && !Robot.hadBall(lastPasser,0.2)) {
+			lastPasser = undefined;
+		}
+	}
+
 	let passInfoMessage;
 	if (passInfoTable) {
 		if (passInfoTable.length > 1) {
@@ -338,9 +348,6 @@ function _currentPlannedMainAttacker(passInfoSender: FriendlyRobot, passInfoTabl
 		return lastCPMA;
 	}
 
-	if (World.Time - lastCPMATime > 0.2) {
-		lastCPMA = undefined;
-	}
 	return undefined;
 }
 export let currentPlannedMainAttacker = Cache.forFrame(_currentPlannedMainAttacker);

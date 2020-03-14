@@ -27,8 +27,8 @@ export class ApplyForMainattacker extends Behavior {
 		}
 
 		let applying = false;
-		let [sender, passInfoTable] = this._messaging.receiveSingleSender(MessageType.passInfo);
-		if (sender && Attack.currentPlannedMainAttacker(sender, passInfoTable!) === this._robot) {
+		let [sender, passInfoTable] = this._messaging.receiveSingleSender(MessageType.passInfo, true);
+		if (Attack.currentPlannedMainAttacker(sender, passInfoTable!) === this._robot) {
 			this._applyForMainAttacker(undefined, undefined, 2);
 			(this._agent as any).beOffensive = true;
 			applying = true;
