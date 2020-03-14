@@ -61,6 +61,7 @@ add_custom_target(assemble
 		$<TARGET_FILE:Qt5::Network>
 		$<TARGET_FILE:Qt5::OpenGL>
 		$<TARGET_FILE:Qt5::Widgets>
+		$<$<BOOL:$<TARGET_NAME_IF_EXISTS:Qt5::Svg>>:$<TARGET_FILE:Qt5::Svg>>
 		${Protobuf_DLL}
 		${V8_DLL}
             ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
