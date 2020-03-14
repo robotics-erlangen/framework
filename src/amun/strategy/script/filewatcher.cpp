@@ -64,8 +64,7 @@ bool FileWatcher::addFile(const QString &filename)
 
 void FileWatcher::onFileChanged(const QString &name)
 {
-    QFileInfo info(name);
-    if (!info.exists())
+    if (!m_watcher->files().contains(name))
         addFile(name);
     emit fileChanged(name);
 }
