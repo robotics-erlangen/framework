@@ -227,7 +227,7 @@ bool MovingObstacles::MovingLine::intersects(Vector pos, float time) const
     float t = time - startTime;
     const Vector p1 = startPos1 + speed1 * t + acc1 * (0.5f * t * t);
     const Vector p2 = startPos2 + speed2 * t + acc2 * (0.5f * t * t);
-    return LineSegment(p1, p2).distance(pos) < width;
+    return LineSegment(p1, p2).distance(pos) < radius;
 }
 
 float MovingObstacles::MovingLine::distance(Vector pos, float time) const
@@ -239,9 +239,9 @@ float MovingObstacles::MovingLine::distance(Vector pos, float time) const
     const Vector p2 = startPos2 + speed2 * time;
     if (p1 == p2) {
         // this happens for example for time = 0
-        return p1.distance(pos) - width;
+        return p1.distance(pos) - radius;
     }
-    return LineSegment(p1, p2).distance(pos) - width;
+    return LineSegment(p1, p2).distance(pos) - radius;
 }
 
 MovingObstacles::FriendlyRobotObstacle::FriendlyRobotObstacle() :
@@ -250,10 +250,10 @@ MovingObstacles::FriendlyRobotObstacle::FriendlyRobotObstacle() :
 
 MovingObstacles::FriendlyRobotObstacle::FriendlyRobotObstacle(std::vector<TrajectoryPoint> *trajectory, float radius, int prio) :
     trajectory(trajectory),
-    radius(radius),
     bound(trajectory->at(0).pos, trajectory->at(1).pos)
 {
     this->prio = prio;
+    this->radius = radius;
     timeInterval = trajectory->at(1).time - trajectory->at(0).time;
 }
 

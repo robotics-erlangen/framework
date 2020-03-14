@@ -171,7 +171,7 @@ void WorldInformation::addMovingLine(Vector startPos1, Vector speed1, Vector acc
     l.acc2 = acc2;
     l.startTime = startTime;
     l.endTime = endTime;
-    l.width = width + m_radius;
+    l.radius = width + m_radius;
     l.prio = prio;
     m_movingLines.push_back(l);
 }

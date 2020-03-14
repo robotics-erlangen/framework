@@ -111,6 +111,7 @@ namespace MovingObstacles {
         }
 
         int prio;
+        float radius;
     };
 
     struct MovingCircle : public MovingObstacle {
@@ -122,7 +123,6 @@ namespace MovingObstacles {
         Vector acc;
         float startTime;
         float endTime;
-        float radius;
     };
 
     struct MovingLine : public MovingObstacle {
@@ -137,7 +137,6 @@ namespace MovingObstacles {
         Vector acc2;
         float startTime;
         float endTime;
-        float width;
     };
 
     struct FriendlyRobotObstacle : public MovingObstacle {
@@ -148,7 +147,6 @@ namespace MovingObstacles {
         BoundingBox boundingBox() const override { return  bound; }
 
         std::vector<TrajectoryPoint> *trajectory;
-        float radius;
         float timeInterval;
         BoundingBox bound;
     };
