@@ -78,11 +78,9 @@ export class CrossShoot extends Move {
 		let receiverPos = geom.intersectLineLine(World.Ball.pos, firstContactPos - World.Ball.pos,
 			new Vector(G.DefenseWidthHalf, G.OpponentGoal.y - G.DefenseHeight - RECIEVER_POS_Y), new Vector(1, 0));
 
-		let multiplier = 0;
 		for (let i = 0; i < 4; i++) {
-			this.pos[i] = new Vector(Math.sign(World.Ball.pos.x) * (G.DefenseWidthHalf + START_POS_WALL + multiplier * WALL_SPACE),
+			this.pos[i] = new Vector(Math.sign(World.Ball.pos.x) * (G.DefenseWidthHalf + START_POS_WALL + i * WALL_SPACE),
 				G.OpponentGoal.y - G.DefenseHeight);
-			multiplier += 1;
 		}
 		for (let i = 0; i < this.pos.length; i++) {
 			taskAssignments[this._robots[i + 1]] = { class: MoveToPos, params: [this.pos[i]] };
@@ -92,8 +90,7 @@ export class CrossShoot extends Move {
 
 		if (World.RefereeState === "Stop") {
 			taskAssignments[this._robots[0]] = { class: StopAttack, params: [] };
-		}
-		if (Referee.isFriendlyFreeKickState()) {
+		} else if (Referee.isFriendlyFreeKickState()) {
 			taskAssignments[this._robots[0]] = { class: ChipToPos, params: [firstContactPos, World.Time] };
 		}
 		return {
