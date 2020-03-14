@@ -62,11 +62,11 @@ export class AttackRatio {
 		let attackRatio: number;
 
 		if (World.GameStage === "PenaltyShootout") {
-			attackRatio = 8;
+			attackRatio = 11;
 		} else if (BaseRef.isFriendlyKickoffState(refState)) {
-			attackRatio = 6;
+			attackRatio = 8;
 		} else if (BaseRef.isOpponentFreeKickState(refState)) {
-			attackRatio = 3;
+			attackRatio = 4;
 		} else if (BaseRef.isFriendlyFreeKickState(refState)
 				|| (refState === "BallPlacementOffensive" && BaseRef.isFriendlyFreeKickState(nextRefState))) {
 			let checkedPos = refState === "BallPlacementOffensive"
@@ -75,13 +75,13 @@ export class AttackRatio {
 			let friendlyCorner = Field.isInOwnCorner(checkedPos, false);
 			let opponentCorner = Field.isInOwnCorner(checkedPos, true);
 			if (friendlyCorner) { // Goal-Kick Offensive
-				attackRatio = 4;
+				attackRatio = 5;
 			} else if (opponentCorner) { // Corner-Kick Offensive
-				attackRatio = 7;
+				attackRatio = 9;
 			} else if (checkedPos.y > 1.2) {
-				attackRatio = 6; // Throw-In Offensive
+				attackRatio = 8; // Throw-In Offensive
 			} else {
-				attackRatio = 4; // Throw-In Offensive
+				attackRatio = 5; // Throw-In Offensive
 			}
 		} else if (BaseRef.isOpponentFreeKickState(refState) || refState === "BallPlacementDefensive") {
 			let opponentCorner = Field.isInOwnCorner(ball.pos, true);
@@ -93,10 +93,10 @@ export class AttackRatio {
 		} else if (BaseRef.isOpponentPenaltyState(refState)) {
 			attackRatio = 1;
 		} else if (BaseRef.isFriendlyPenaltyState(refState)) {
-			attackRatio = 7;
+			attackRatio = 10;
 		} else if (refState === "Stop") {
 			if (this._ballInOpponentFieldHalf) {
-				attackRatio = 3;
+				attackRatio = 4;
 			} else {
 				attackRatio = 1;
 			}
@@ -104,7 +104,7 @@ export class AttackRatio {
 			if (this._opponentFreeKickOngoing) {
 				attackRatio = 1;
 			} else {
-				attackRatio = this._ballInOpponentFieldHalf ? 4 : 3;
+				attackRatio = this._ballInOpponentFieldHalf ? 5 : 4;
 				if (this._friendlyFreeKickOngoing) {
 					attackRatio = attackRatio + 1;
 				}
@@ -112,9 +112,9 @@ export class AttackRatio {
 		}
 
 		// increase attackRatio if we have more robots
-		let enemies = 8 - Referee.realisticCardsOpponent();
-		if (enemies < Math.min(8, World.FriendlyRobots.length)) {
-			attackRatio = Math.max(attackRatio, Math.min(attackRatio + 1 , 6));
+		let enemies = 11 - Referee.realisticCardsOpponent();
+		if (enemies < Math.min(11, World.FriendlyRobots.length)) {
+			attackRatio = Math.max(attackRatio, Math.min(attackRatio + 1 , 8));
 		}
 
 		return attackRatio;
