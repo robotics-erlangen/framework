@@ -1,3 +1,4 @@
+import * as debug from "base/debug";
 import * as Geom from "base/geom";
 import { FriendlyRobot, Robot } from "base/robot";
 import { Vector } from "base/vector";
@@ -40,6 +41,8 @@ export class DuelAssistant extends Task {
 	run() {
 		const HYSTERESIS_DISTANCE = 0.3;
 		const HYSTERESIS_BASELINE = 0.5;
+		const HYSTERESIS_ORTHOGONAL_DISTANCE = 0.2 * this._robot.radius;
+		const HYSTERESIS_ANGLE = 7 * Math.PI / 180;
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, {messaging: this._messaging});
 		this._update();
 		let angleOffset = Math.PI / 2;
@@ -53,13 +56,13 @@ export class DuelAssistant extends Task {
 		let opponentPos : Vector = this._opponent!.pos;
 		let opponentDir : number = this._opponent!.dir;
 		let duelVector : Vector = opponentPos - friendlyPos;
-		let totalOffset : Vector = duelVector.complexMultiplication(Vector.fromAngle(angleOffset)).scaleLength(3 * this._robot.radius);
+		let totalOffset : Vector = duelVector.complexMultiplication(Vector.fromAngle(angleOffset)).setLength(3 * this._robot.radius);
 
 		let agressivePositionMode = this._lastPositionMode;
 		let angleDiff = Math.abs(Geom.normalizeAngle(World.Geometry.FriendlyGoal.angle() - opponentDir));
 
 		if (angleDiff < Math.PI / 2) {
-			let intersection = Geom.intersectLineLine(friendlyPos, Vector.fromAngle(opponentDir), World.Geometry.FriendlyGoal, new Vector(1,0))[0];
+			let intersection = Geom.intersectLineLine(opponentPos, Vector.fromAngle(opponentDir), World.Geometry.FriendlyGoal, new Vector(1,0))[0];
 			if (intersection === undefined || Math.abs(intersection.x) > World.Geometry.FieldWidthHalf + HYSTERESIS_BASELINE) {
 				agressivePositionMode = true;
 			} else if (Math.abs(intersection.x) < World.Geometry.FieldWidthHalf - HYSTERESIS_BASELINE) {
@@ -69,7 +72,24 @@ export class DuelAssistant extends Task {
 			agressivePositionMode = true;
 		}
 
+		for (let robot of World.FriendlyRobots) {
+			let robotPos = robot.pos;
+			let orthogonalDistance = robotPos.orthogonalDistance(opponentPos, opponentPos + Vector.fromAngle(opponentDir));
+			orthogonalDistance += this._lastPositionMode ? HYSTERESIS_ORTHOGONAL_DISTANCE : -HYSTERESIS_ORTHOGONAL_DISTANCE;
+			let distance = robotPos.distanceTo(opponentPos);
+			distance += this._lastPositionMode ? HYSTERESIS_ORTHOGONAL_DISTANCE : -HYSTERESIS_ORTHOGONAL_DISTANCE;
+			let duelAngleDiff = Math.abs((-duelVector).angle() - opponentDir);
+			duelAngleDiff += this._lastPositionMode ? HYSTERESIS_ANGLE : -HYSTERESIS_ANGLE;
+			if (orthogonalDistance <= robot.radius && distance <= 5 * robot.radius && duelAngleDiff <= 70 * Math.PI / 180) {
+				agressivePositionMode = false;
+			}
+		}
+
 		this._lastPositionMode = agressivePositionMode;
+
+		debug.push("duelAssistant");
+		debug.set("agressivePositionMode", agressivePositionMode);
+		debug.pop();
 
 		let pos : Vector;
 		if (agressivePositionMode) {
