@@ -292,7 +292,6 @@ void Amun::stop()
     for (int i = 0;i<3;i++) {
         m_strategyThread[i]->quit();
     }
-    m_debugHelperThread->quit();
 
     // wait for threads
     m_processorThread->wait();
@@ -302,6 +301,9 @@ void Amun::stop()
     for (int i = 0;i<3;i++) {
         m_strategyThread[i]->wait();
     }
+
+    // As the strategy may still be writing to debugHelper, we can only start quitting as soon as the starategy is dead for sure.
+    m_debugHelperThread->quit();
     m_debugHelperThread->wait();
 
     // worker objects are destroyed on thread shutdown
