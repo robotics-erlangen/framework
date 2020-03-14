@@ -7,6 +7,7 @@ import { Default } from "glados/agent/attacker/default";
 import { DoubleTouchGuard } from "glados/agent/attacker/doubletouchguard";
 import { Duel } from "glados/agent/attacker/duel";
 import { DuelAssistant } from "glados/agent/attacker/duelassistant";
+import { Exchange } from "glados/agent/attacker/exchange";
 import { FreeKick } from "glados/agent/attacker/freekick";
 import { Move } from "glados/agent/attacker/move";
 import { PassTiming } from "glados/agent/attacker/passtiming";
@@ -41,6 +42,7 @@ export class Attacker extends Agent {
 			PenaltyShootout,
 			PenaltyDefensive,
 			PenaltyPassive,
+			Exchange,
 			FreeKick,
 			DoubleTouchGuard,
 			Duel,

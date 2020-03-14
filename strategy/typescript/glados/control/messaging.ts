@@ -132,13 +132,13 @@ export enum MessageType {
 	strikerZone, midfieldZone, placingRobot,
 
 	// exclusive roles
-	mainAttacker, duelAssistant, interceptPass,
+	mainAttacker, duelAssistant, interceptPass, exchangeRobot,
 
 	// repeated messages
 	exclusiveRole, forcePoolChange, groupApplication
 }
 
-export type ExclusiveRole = MessageType.mainAttacker | MessageType.duelAssistant | MessageType.interceptPass;
+export type ExclusiveRole = MessageType.mainAttacker | MessageType.duelAssistant | MessageType.interceptPass | MessageType.exchangeRobot;
 
 export const MessageTypeList = [
 	MessageType.allyFlag, MessageType.attackerFlag, MessageType.defendedOpponent, MessageType.dueledOpponent, MessageType.defenderFlag,
@@ -147,7 +147,7 @@ export const MessageTypeList = [
 	MessageType.attackPosition, MessageType.earliestAttackTime, MessageType.centerBackPosTarget, MessageType.plannedAttackTime, MessageType.moveAssignment,
 	MessageType.moveInfo, MessageType.passInfo, MessageType.roleAssignment, MessageType.shootDestination,
 	MessageType.strikerZone, MessageType.midfieldZone,
-	MessageType.mainAttacker, MessageType.duelAssistant, MessageType.interceptPass,
+	MessageType.mainAttacker, MessageType.duelAssistant, MessageType.interceptPass, MessageType.exchangeRobot,
 	MessageType.exclusiveRole, MessageType.forcePoolChange, MessageType.groupApplication, MessageType.placingRobot
 ];
 
@@ -306,6 +306,7 @@ export class MessageBox {
 	receiveTrainer(type: MessageType.mainAttacker, broadcast?: boolean): FriendlyRobot | undefined;
 	receiveTrainer(type: MessageType.duelAssistant, broadcast?: boolean): FriendlyRobot | undefined;
 	receiveTrainer(type: MessageType.interceptPass, broadcast?: boolean): FriendlyRobot | undefined;
+	receiveTrainer(type: MessageType.exchangeRobot, broadcast?: boolean): FriendlyRobot | undefined;
 	receiveTrainer(type: MessageType, broadcast?: boolean): any {
 		return this.receiveGeneric(type, broadcast).get("trainer");
 	}

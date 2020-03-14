@@ -24,7 +24,8 @@ export function valueToRating(value: number, zero: number, one: number): number 
 const Levels : Map<MessageType, number> = new Map([
 	[MessageType.mainAttacker, 3],
 	[MessageType.duelAssistant, 1],
-	[MessageType.interceptPass, 1]
+	[MessageType.interceptPass, 1],
+	[MessageType.exchangeRobot, 1],
 ]);
 
 export class LeveledRating {

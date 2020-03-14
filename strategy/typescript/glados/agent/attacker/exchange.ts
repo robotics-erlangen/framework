@@ -1,0 +1,60 @@
+import { FriendlyRobot } from "base/robot";
+import { Vector } from "base/vector";
+import * as World from "base/world";
+
+import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
+import { MessageBox, MessageType } from "glados/control/messaging";
+import { MoveToPos } from "glados/task/shared/movetopos";
+import * as Rating from "glados/util/rating";
+
+const USE_EXCHANGE_POS_UP =  true;
+const EXCHANGE_POSITION_DOWN = new Vector(World.Geometry.FieldWidthHalf, 0); // false
+const EXCHANGE_POS_UP = new Vector(-World.Geometry.FieldWidthHalf, 0); // true
+
+function rateRobot(robot: FriendlyRobot, messaging: MessageBox): number {
+	// chosen one should be choosen the whole time
+	if (messaging.receiveTrainer(MessageType.exchangeRobot) === robot) {
+		return 1;
+	}
+	// otherwise: distance to goal
+	let distance = robot.pos.distanceToSq(World.Geometry.OpponentGoal);
+	return Rating.valueToRating(distance, 0, World.Geometry.FieldHeight ** 2);
+
+}
+export class Exchange extends Behavior {
+	check(): boolean {
+		// check if too many robots
+		if (World.FriendlyRobots.length <= (11 - World.FriendlyYellowCards.length - World.FriendlyRedCards)) {
+			return false;
+		}
+		if (this._messaging.receiveTrainer(MessageType.mainAttacker) === this._robot) {
+			return false;
+		}
+		// apply for exchange robot
+		let rating = rateRobot(this._robot, this._messaging);
+		let ratingArg: Rating.LeveledRating = new Rating.LeveledRating(MessageType.exchangeRobot);
+		ratingArg.setRating(0, rating);
+		this._messaging.sendToTrainerRepeated(MessageType.exclusiveRole, [ MessageType.exchangeRobot, ratingArg ]);
+
+		return this._messaging.receiveTrainer(MessageType.exchangeRobot) === this._robot;
+	}
+
+	_updateTask(): TaskAssignment<typeof MoveToPos> {
+
+		let exchangePos = USE_EXCHANGE_POS_UP ? EXCHANGE_POS_UP : EXCHANGE_POSITION_DOWN;
+		if (this._robot.pos.distanceToSq(exchangePos) < 1) {
+
+			/*
+			 * prevent robot to be choosen as defender
+			 * or main Attacker after being ready for exchange
+			 * to be sure the robot remains at the exchange pos
+			 * and does not change while the robot handler takes it
+			 */
+
+			this._forceKeepingInPool = true;
+			this._applyForMainAttacker(undefined, undefined, -Infinity);
+		}
+		amun.setRobotExchangeSymbol(this._robot.generation, this._robot.id,true);
+		return [MoveToPos, [exchangePos]];
+	}
+}
