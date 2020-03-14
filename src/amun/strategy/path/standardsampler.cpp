@@ -21,6 +21,10 @@
 #include "standardsampler.h"
 #include "core/rng.h"
 
+StandardSampler::StandardSampler(RNG *rng, const WorldInformation &world, PathDebug &debug) :
+    TrajectorySampler(rng, world, debug)
+{ }
+
 bool StandardSampler::compute(const TrajectoryInput &input)
 {
     BestTrajectoryInfo lastTrajectoryInfo = m_bestResultInfo;

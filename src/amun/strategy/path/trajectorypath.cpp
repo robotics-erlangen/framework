@@ -25,9 +25,9 @@
 
 TrajectoryPath::TrajectoryPath(uint32_t rng_seed) :
     AbstractPath(rng_seed),
-    m_standardSampler(m_rng, m_world),
-    m_endInObstacleSampler(m_rng, m_world),
-    m_escapeObstacleSampler(m_rng, m_world)
+    m_standardSampler(m_rng, m_world, m_debug),
+    m_endInObstacleSampler(m_rng, m_world, m_debug),
+    m_escapeObstacleSampler(m_rng, m_world, m_debug)
 { }
 
 void TrajectoryPath::reset()

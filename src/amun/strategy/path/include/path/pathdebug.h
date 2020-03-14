@@ -18,44 +18,52 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef ABSTRACTPATH_H
-#define ABSTRACTPATH_H
+#ifndef PATHDEBUG_H
+#define PATHDEBUG_H
 
+#include "protobuf/debug.pb.h"
 #include "vector.h"
-#include "protobuf/robot.pb.h"
-#include "obstacles.h"
-#include "worldinformation.h"
-#include "pathdebug.h"
-#include <QByteArray>
-#include <QVector>
+#include "alphatimetrajectory.h"
 #include <QObject>
+#include <QVector>
+#include <QString>
 
-class RNG;
+enum class PathDebugColor {
+    BLACK,
+    RED,
+    GREEN,
+    BLUE,
+    YELLOW,
+    PURPLE,
+    TURQUOISE
+};
 
-class AbstractPath : public QObject
+class PathDebug : public QObject
 {
     Q_OBJECT
 public:
-    AbstractPath(uint32_t rng_seed);
-    virtual ~AbstractPath();
-    AbstractPath(const AbstractPath&) = delete;
-    AbstractPath& operator=(const AbstractPath&) = delete;
-    virtual void reset() = 0;
-    void seedRandom(uint32_t seed);
-    WorldInformation &world() { return m_world; }
-    const WorldInformation &world() const { return m_world; }
-
-    void clearObstacles();
-    virtual void clearObstaclesCustom() {}
+#ifdef PATHFINDING_DEBUG
+    void debug(const QString &key, float value);
+    void debug(const QString &key, const QString &value);
+    void debugCircle(const QString &name, Vector center, float radius, PathDebugColor color = PathDebugColor::BLACK);
+    void debugPath(const QString &name, const QVector<Vector> &points, PathDebugColor color = PathDebugColor::BLACK);
+    void debugLine(const QString &name, Vector start, Vector end, PathDebugColor color = PathDebugColor::BLACK);
+    void debugTrajectory(const QString &name, const SpeedProfile &trajectory, float slowDown, Vector offset, PathDebugColor color = PathDebugColor::BLACK);
+#else
+    void debug(const QString&, float) {}
+    void debug(const QString&, const QString&) {}
+    void debugCircle(const QString&, Vector, float, PathDebugColor = PathDebugColor::BLACK) {}
+    void debugPath(const QString&, const QVector<Vector>&, PathDebugColor = PathDebugColor::BLACK) {}
+    void debugLine(const QString&, Vector, Vector, PathDebugColor = PathDebugColor::BLACK) {}
+    void debugTrajectory(const QString&, const SpeedProfile&, float, Vector, PathDebugColor = PathDebugColor::BLACK) {}
+#endif
 
 signals:
     void gotDebug(const amun::DebugValue &debug);
     void gotVisualization(const amun::Visualization &vis);
 
-protected:
-    mutable RNG *m_rng; // allow using from const functions
-    WorldInformation m_world;
-    PathDebug m_debug;
+private:
+    void setColor(amun::Pen *pen, PathDebugColor color);
 };
 
-#endif // ABSTRACTPATH_H
+#endif // PATHDEBUG_H

@@ -26,7 +26,7 @@
 class StandardSampler : public TrajectorySampler
 {
 public:
-    StandardSampler(RNG *rng, const WorldInformation &world) : TrajectorySampler(rng, world) {}
+    StandardSampler(RNG *rng, const WorldInformation &world, PathDebug &debug);
     bool compute(const TrajectoryInput &input) override;
     const std::vector<TrajectoryGenerationInfo> &getResult() const override { return m_generationInfo; }
 

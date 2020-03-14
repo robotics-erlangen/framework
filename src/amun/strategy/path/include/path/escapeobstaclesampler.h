@@ -28,7 +28,7 @@
 class EscapeObstacleSampler : public TrajectorySampler
 {
 public:
-    EscapeObstacleSampler(RNG *rng, const WorldInformation &world) : TrajectorySampler(rng, world) {}
+    EscapeObstacleSampler(RNG *rng, const WorldInformation &world, PathDebug &debug) : TrajectorySampler(rng, world, debug) {}
     bool compute(const TrajectoryInput &input) override;
     const std::vector<TrajectoryGenerationInfo> &getResult() const override { return m_generationInfo; }
 

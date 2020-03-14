@@ -81,6 +81,8 @@ Amun::Amun(bool simulatorOnly, QObject *parent) :
     qRegisterMetaType< QList<robot::RadioResponse> >("QList<robot::RadioResponse>");
     qRegisterMetaType<Status>("Status");
     qRegisterMetaType<std::shared_ptr<gameController::AutoRefToController>>("std::shared_ptr<gameController::AutoRefToController>");
+    qRegisterMetaType<amun::DebugValue>("amun::DebugValue");
+    qRegisterMetaType<amun::Visualization>("amun::Visualization");
 
     for (int i = 0; i < 3; ++i) {
         m_strategy[i] = nullptr;

@@ -52,7 +52,13 @@ public:
         QObject(t),
         p(p),
         tp(tp),
-        t(t) {}
+        t(t)
+    {
+        if (tp != nullptr) {
+            connect(tp, SIGNAL(gotDebug(amun::DebugValue)), t, SLOT(handleDebug(amun::DebugValue)));
+            connect(tp, SIGNAL(gotVisualization(amun::Visualization)), t, SLOT(handleVisualization(amun::Visualization)));
+        }
+    }
     Path *path() const { return p.get(); }
     AbstractPath *abstractPath() const { return p ? static_cast<AbstractPath*>(p.get()) : tp.get(); }
     TrajectoryPath *trajectoryPath() const { return tp.get(); }

@@ -18,6 +18,9 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
+
+#add_compile_definitions(PATHFINDING_DEBUG)
+
 add_library(path
     include/path/alphatimetrajectory.h
     include/path/abstractpath.h
@@ -33,6 +36,7 @@ add_library(path
     include/path/endinobstaclesampler.h
     include/path/escapeobstaclesampler.h
     include/path/standardsampler.h
+    include/path/pathdebug.h
 
     abstractpath.cpp
     alphatimetrajectory.cpp
@@ -44,6 +48,7 @@ add_library(path
     endinobstaclesampler.cpp
     escapeobstaclesampler.cpp
     standardsampler.cpp
+    pathdebug.cpp
 )
 target_link_libraries(path
     PRIVATE shared::core

@@ -303,6 +303,16 @@ void Typescript::evaluateStackFrame(const Local<Context>& c, QString& errorMsg, 
     errorMsg += " (" + resolveJsToTs(fileQString, lineUint, columnUint) + ")<br>";
 }
 
+void Typescript::handleDebug(const amun::DebugValue &debug)
+{
+    addDebug()->CopyFrom(debug);
+}
+
+void Typescript::handleVisualization(const amun::Visualization &vis)
+{
+    addVisualization()->CopyFrom(vis);
+}
+
 bool Typescript::buildStackTrace(const Local<Context>& context, QString& errorMsg, const TryCatch& tryCatch)
 {
     if (tryCatch.HasTerminated() || tryCatch.HasCaught()) {

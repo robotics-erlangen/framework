@@ -23,6 +23,7 @@
 
 #include "alphatimetrajectory.h"
 #include "worldinformation.h"
+#include "pathdebug.h"
 #include "vector.h"
 #include <vector>
 
@@ -46,7 +47,10 @@ public:
         bool fastEndSpeed;
     };
 
-    TrajectorySampler(RNG *rng, const WorldInformation &world) : m_rng(rng), m_world(world) {}
+    TrajectorySampler(RNG *rng, const WorldInformation &world, PathDebug &debug) :
+        m_rng(rng),
+        m_world(world),
+        m_debug(debug) {}
     TrajectorySampler(const TrajectorySampler &) = delete;
     TrajectorySampler& operator=(const TrajectorySampler&) = delete;
 
@@ -58,6 +62,7 @@ public:
 protected:
     RNG *m_rng;
     const WorldInformation &m_world;
+    PathDebug &m_debug;
 };
 
 #endif // TRAJECTORYSAMPLER_H

@@ -26,7 +26,7 @@
 class EndInObstacleSampler : public TrajectorySampler
 {
 public:
-    EndInObstacleSampler(RNG *rng, const WorldInformation &world) : TrajectorySampler(rng, world) {}
+    EndInObstacleSampler(RNG *rng, const WorldInformation &world, PathDebug &debug) : TrajectorySampler(rng, world, debug) {}
     bool compute(const TrajectoryInput &input) override;
     const std::vector<TrajectoryGenerationInfo> &getResult() const override { return result; }
 

@@ -101,6 +101,9 @@ private slots:
     void onCompileError(const QString &message);
     void onCompileSuccess();
 
+    void handleDebug(const amun::DebugValue &debug);
+    void handleVisualization(const amun::Visualization &vis);
+
 private:
     v8::Isolate* m_isolate;
     // The isolate does not take ownership of the allocator.
