@@ -24,7 +24,7 @@ CombinedLogWriter::CombinedLogWriter(bool replay, int backlogLength) :
 
     connect(m_backlogWriter, SIGNAL(enableBacklogSave(bool)), this, SLOT(enableLogging(bool)));
     connect(this, SIGNAL(gotStatusForBacklog(Status)), m_backlogWriter, SLOT(handleStatus(Status)));
-    connect(this, SIGNAL(saveBacklogFile(QString,Status)), m_backlogWriter, SLOT(saveBacklog(QString,Status)));
+    connect(this, SIGNAL(saveBacklogFile(QString,Status,bool)), m_backlogWriter, SLOT(saveBacklog(QString,Status,bool)));
     connect(this, SIGNAL(resetBacklog()), m_backlogWriter, SLOT(clear()));
 }
 
@@ -135,7 +135,7 @@ void CombinedLogWriter::backLogButtonClicked()
     status->mutable_team_yellow()->CopyFrom(m_yellowTeam);
     status->mutable_team_blue()->CopyFrom(m_blueTeam);
 
-    emit saveBacklogFile(filename, status);
+    emit saveBacklogFile(filename, status, true);
 }
 
 QString CombinedLogWriter::dateTimeToString(const QDateTime & dt)

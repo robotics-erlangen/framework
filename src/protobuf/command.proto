@@ -180,6 +180,7 @@ enum PauseSimulatorReason {
     DebugAutoref = 5;
     Replay = 6;
     Horus = 7;
+    Logging = 8;
 }
 
 message PauseSimulatorCommand {

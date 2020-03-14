@@ -19,8 +19,12 @@
  ***************************************************************************/
 
 #include "connector.h"
+#include "protobuf/command.pb.h"
+#include "protobuf/gamestate.pb.h"
+#include "protobuf/ssl_game_event_2019.pb.h"
 #include "testtools/testtools.h"
 #include "config/config.h"
+#include "logfile/combinedlogwriter.h"
 
 #include <google/protobuf/text_format.h>
 #include <google/protobuf/util/message_differencer.h>
@@ -28,11 +32,19 @@
 #include <QDir>
 #include <QTimer>
 #include <QSet>
+#include <QTimer>
+#include <QDateTime>
+#include <QDebug>
 #include <iostream>
+#include <memory>
 
 Connector::Connector(QObject *parent) :
-    QObject(parent)
+    QObject(parent),
+    m_backlogWriter(20)
 {
+    connect(this, SIGNAL(saveBacklogFile(QString, Status, bool)), &m_backlogWriter, SLOT(saveBacklog(QString, Status, bool)));
+    connect(this, SIGNAL(backlogStatus(Status)), &m_backlogWriter, SLOT(handleStatus(Status)));
+    connect(&m_backlogWriter, SIGNAL(finishedBacklogSave()), this, SLOT(continueAmun()));
     connect(&m_referee, SIGNAL(sendCommand(Command)), this, SIGNAL(sendCommand(Command)));
 }
 
@@ -87,6 +99,18 @@ void Connector::setRecordLogfile(const QString &filename)
 {
     m_logfile.open(filename);
     m_recordLogfile = true;
+}
+
+void Connector::setBacklogDirectory(const QString &directory) {
+    QDir logdir(directory);
+    if (!logdir.exists()) {
+        QDir(".").mkdir(directory);
+    }
+    m_backlogDir = directory;
+}
+
+void Connector::setMaxBacklog(size_t newMax) {
+    m_maxBacklogFiles = newMax;
 }
 
 void Connector::loadConfiguration(const QString &configFile, google::protobuf::Message *message, bool allowPartial)
@@ -147,6 +171,10 @@ void Connector::setRobotConfiguration(int numRobots, const QString &generation)
     command->mutable_set_team_yellow()->CopyFrom(yellow);
     command->mutable_set_team_blue()->CopyFrom(blue);
     sendCommand(command);
+
+    m_teamStatus = Status(new amun::Status);
+    m_teamStatus->mutable_team_yellow()->CopyFrom(yellow);
+    m_teamStatus->mutable_team_blue()->CopyFrom(blue);
 }
 
 void Connector::start()
@@ -238,6 +266,8 @@ void Connector::sendOptions()
 
 void Connector::handleStatus(const Status &status)
 {
+    emit backlogStatus(status);
+
     m_logfile.writeStatus(status);
 
     QSet<amun::DebugSource> expectedSources;
@@ -287,10 +317,52 @@ void Connector::handleStatus(const Status &status)
         if (!google::protobuf::util::MessageDifferencer::Equals(event, m_lastGameEvent)) {
             m_eventCounter[event.type()]++;
             m_lastGameEvent = event;
+
+            const std::array<gameController::GameEventType, 4> excludedEvents = {gameController::PREPARED, gameController::PLACEMENT_SUCCEEDED, gameController::BALL_LEFT_FIELD_GOAL_LINE, gameController::BALL_LEFT_FIELD_TOUCH_LINE};
+            if (m_backlogDir != "" && std::find(excludedEvents.begin(), excludedEvents.end(), event.type()) == excludedEvents.end()) {
+                auto eventTypeDesc = gameController::GameEventType_descriptor();
+                QString eventName = QString::fromStdString(eventTypeDesc->FindValueByNumber(event.type())->name());
+                m_backlogList.push_back({status->time(), eventName});
+            }
         }
+    }
+
+    // triggers saving the backlog when 1s (=1E9) passed since the event
+    while (!m_backlogList.empty() && (status->time() - m_backlogList.first().first) >= 1E9) {
+        auto p = m_backlogList.first();
+        m_backlogList.pop_front();
+        stopAmunAndSaveBacklog(p.second);
     }
 }
 
+void Connector::stopAmunAndSaveBacklog(QString directory) {
+    QDir logdir(m_backlogDir);
+    if (!logdir.exists(directory)) {
+        logdir.mkdir(directory);
+    } else if (m_maxBacklogFiles > 0 && logdir.count() >= m_maxBacklogFiles) {
+        qDebug() << "Maximum backlogs reached in directory: " + directory;
+        return;
+    }
+
+    Command command(new amun::Command);
+    amun::PauseSimulatorReason reason = amun::Logging;
+    command->mutable_pause_simulator()->set_reason(reason);
+    command->mutable_pause_simulator()->set_pause(true);
+    emit sendCommand(command);
+
+    const QString date = CombinedLogWriter::dateTimeToString(QDateTime::currentDateTime()).replace(":", "");
+    QString pathName = logdir.path() + "/" + directory + QString("/backlog%1.log").arg(date);
+    emit saveBacklogFile(pathName, m_teamStatus, false);
+}
+
+void Connector::continueAmun()
+{
+    Command command(new amun::Command);
+    amun::PauseSimulatorReason reason = amun::Logging;
+    command->mutable_pause_simulator()->set_reason(reason);
+    command->mutable_pause_simulator()->set_pause(false);
+    emit sendCommand(command);
+}
 
 
 /*

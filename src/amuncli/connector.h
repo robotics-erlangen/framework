@@ -23,11 +23,15 @@
 
 #include "internalreferee.h"
 #include "logfile/logfilewriter.h"
+#include "logfile/backlogwriter.h"
 #include "protobuf/command.h"
 #include "protobuf/status.h"
 #include "protobuf/ssl_referee_game_event.pb.h"
 #include <QObject>
 #include <QString>
+#include <QDir>
+#include <memory>
+#include <string>
 #include <utility>
 #include <map>
 
@@ -53,14 +57,20 @@ public:
     void setReportEvents(bool report) { m_reportEvents = report; }
     void setSimulationSpeed(int speed) { m_simulationSpeed = speed; }
     void setIsInCompileMode(bool isCompile) { m_isInCompileMode = isCompile; }
+    void setBacklogDirectory(const QString &directoryName);
+    void setMaxBacklog(size_t newMax);
+
 
     void start();
 
 public slots:
     void handleStatus(const Status &status);
+    void continueAmun();
 
 signals:
     void sendCommand(const Command &command);
+    void saveBacklogFile(QString filename, Status teamStatus, bool processEvents);
+    void backlogStatus(Status);
 
 private:
     void addStrategyLoad(amun::CommandStrategy *strategy, const QString &initScript, const QString &entryPoint);
@@ -69,6 +79,7 @@ private:
     void loadConfiguration(const QString &configFile, google::protobuf::Message *message, bool allowPartial);
     void delayedExit(int exitCode);
     void performExit(int exit);
+    void stopAmunAndSaveBacklog(QString directory);
 
     QString m_initScript;
     QString m_entryPoint;
@@ -95,6 +106,12 @@ private:
 
     std::map<gameController::GameEventType, std::size_t> m_eventCounter;
     gameController::GameEvent m_lastGameEvent;
+
+    BacklogWriter m_backlogWriter;
+    Status m_teamStatus;
+    QList<std::pair<uint64_t, QString>> m_backlogList;
+    QString m_backlogDir = "";
+    size_t m_maxBacklogFiles = 20;
 };
 
 #endif // CONNECTOR_H

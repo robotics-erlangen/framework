@@ -61,12 +61,13 @@ public:
 signals:
     void enableBacklogSave(bool enabled);
     void clearData();
+    void finishedBacklogSave();
 
 private slots:
     // these slots must be called in the same thread
     void clear();
     void handleStatus(const Status &status);
-    void saveBacklog(QString filename, Status teamStatus);
+    void saveBacklog(QString filename, Status teamStatus, bool processEvents);
 
 private:
     Status packetFromByteArray(QByteArray packetData);

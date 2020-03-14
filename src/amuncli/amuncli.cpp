@@ -52,6 +52,8 @@ int main(int argc, char* argv[])
     QCommandLineOption recordLog({"r", "record"}, "Record the game to the specified log file", "file");
     QCommandLineOption reportEvents({"e", "report-events"}, "Report the number of events (fouls, goals etc.)");
     QCommandLineOption simulationSpeed("simulation-speed", "Speed in percent to run the simulator at. Defaults to 100%", "speed", "100");
+    QCommandLineOption backlog({"b", "backlog-directory"}, "Directory for backlogging of events.", "directory");
+    QCommandLineOption maxBacklog("max-backlog", "Maximum of backlog files in a category. 0 removes limit. Default 20.", "count");
     parser.addOption(strategyColorConfig);
     parser.addOption(debugOption);
     parser.addOption(simulatorConfig);
@@ -62,6 +64,8 @@ int main(int argc, char* argv[])
     parser.addOption(recordLog);
     parser.addOption(reportEvents);
     parser.addOption(simulationSpeed);
+    parser.addOption(backlog);
+    parser.addOption(maxBacklog);
 
     // parse command line, handles --version
     parser.process(app);
@@ -141,6 +145,20 @@ int main(int argc, char* argv[])
     connector.setDebug(debug);
     connector.setSimulationRunningTime(simulationRunningTime < 0 ? std::numeric_limits<int>::max() : simulationRunningTime);
     connector.setReportEvents(parser.isSet(reportEvents));
+
+    if (parser.isSet(backlog)) {
+        connector.setBacklogDirectory(parser.value(backlog));
+    }
+    if (parser.isSet(maxBacklog)) {
+        bool conversionSucceeded;
+        size_t maxBl = parser.value(maxBacklog).toUInt(&conversionSucceeded);
+        if (!conversionSucceeded) {
+            std::cerr <<"Maximum of backlog files must be a positive integer!"<<std::endl;
+            exit(1);
+        }
+        connector.setMaxBacklog(maxBl);
+    }
+
     connector.start();
 
     return app.exec();

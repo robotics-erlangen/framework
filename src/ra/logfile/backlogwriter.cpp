@@ -82,7 +82,7 @@ Status BacklogWriter::packetFromByteArray(QByteArray packetData)
     return status;
 }
 
-void BacklogWriter::saveBacklog(QString filename, Status teamStatus)
+void BacklogWriter::saveBacklog(QString filename, Status teamStatus, bool processEvents)
 {
     if (m_packets.size() == 0) {
         return;
@@ -100,7 +100,7 @@ void BacklogWriter::saveBacklog(QString filename, Status teamStatus)
             writer.writeStatus(status);
 
             // process incoming status packages to avoid building up memory
-            if (i % 100 == 0) {
+            if (i % 100 == 0 && processEvents) {
                 QCoreApplication::processEvents();
             }
         }
@@ -108,6 +108,7 @@ void BacklogWriter::saveBacklog(QString filename, Status teamStatus)
         writer.close();
     }
     emit enableBacklogSave(true);
+    emit finishedBacklogSave();
 }
 
 void BacklogWriter::clear()

@@ -26,12 +26,13 @@ public:
     std::shared_ptr<StatusSource> makeStatusSource();
     QList<Status> getBacklogStatus(int lastNPackets);
     Status getTeamStatus();
+    static QString dateTimeToString(const QDateTime & dt);
 
 signals:
     void setRecordButton(bool on);
     void enableRecordButton(bool enable);
     void enableBacklogButton(bool enable);
-    void saveBacklogFile(QString filename, const Status &status);
+    void saveBacklogFile(QString filename, const Status &status, bool processEvents);
     void gotStatusForRecording(const Status &status);
     void gotStatusForBacklog(const Status &status);
     void changeLogTimeLabel(QString text);
@@ -48,7 +49,6 @@ public slots:
 
 private:
     QString createLogFilename() const;
-    static QString dateTimeToString(const QDateTime & dt);
     void startLogfile();
 
 private:
