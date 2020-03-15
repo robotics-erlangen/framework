@@ -20,14 +20,16 @@
 
 #include "trajectorypath.h"
 #include "core/rng.h"
+#include "core/protobuffilesaver.h"
 #include <QDebug>
 
 
-TrajectoryPath::TrajectoryPath(uint32_t rng_seed) :
+TrajectoryPath::TrajectoryPath(uint32_t rng_seed, ProtobufFileSaver *inputSaver) :
     AbstractPath(rng_seed),
     m_standardSampler(m_rng, m_world, m_debug),
     m_endInObstacleSampler(m_rng, m_world, m_debug),
-    m_escapeObstacleSampler(m_rng, m_world, m_debug)
+    m_escapeObstacleSampler(m_rng, m_world, m_debug),
+    m_inputSaver(inputSaver)
 { }
 
 void TrajectoryPath::reset()
@@ -54,6 +56,23 @@ std::vector<TrajectoryPoint> TrajectoryPath::calculateTrajectory(Vector s0, Vect
     m_input.acceleration = acceleration;
 
     return getResultPath(findPath());
+}
+
+static void setVector(Vector v, pathfinding::Vector *out)
+{
+    out->set_x(v.x);
+    out->set_y(v.y);
+}
+
+static void serializeTrajectoryInput(const TrajectoryInput &input, pathfinding::TrajectoryInput *result)
+{
+    setVector(input.v0, result->mutable_v0());
+    setVector(input.v1, result->mutable_v1());
+    setVector(input.distance, result->mutable_distance());
+    setVector(input.s0, result->mutable_s0());
+    setVector(input.s1, result->mutable_s1());
+    result->set_max_speed(input.maxSpeed);
+    result->set_acceleration(input.acceleration);
 }
 
 std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPath()
@@ -111,6 +130,13 @@ std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPat
             info.desiredDistance = m_input.distance;
             return {info};
         }
+    }
+
+    if (m_inputSaver != nullptr) {
+        pathfinding::PathFindingTask task;
+        serializeTrajectoryInput(m_input, task.mutable_input());
+        m_world.serialize(task.mutable_state());
+        m_inputSaver->saveMessage(task);
     }
 
     if (m_standardSampler.compute(m_input)) {

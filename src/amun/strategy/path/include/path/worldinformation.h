@@ -24,6 +24,7 @@
 #include "vector.h"
 #include "obstacles.h"
 #include "alphatimetrajectory.h"
+#include "protobuf/pathfinding.pb.h"
 #include <QVector>
 
 class WorldInformation
@@ -81,6 +82,9 @@ public:
     // return {min distance of trajectory to obstacles, min distance of last point to obstacles}
     std::pair<float, float> minObstacleDistance(const SpeedProfile &profile, float timeOffset, float slowDownTime, Vector startPos) const;
     float minObstacleDistance(Vector pos, float time, bool checkStatic) const;
+
+    // collectobstacles must have been called before calling this function
+    void serialize(pathfinding::WorldState *state) const;
 
 private:
     mutable QVector<const StaticObstacles::Obstacle*> m_obstacles;

@@ -23,6 +23,7 @@
 
 #include "boundingbox.h"
 #include "linesegment.h"
+#include "protobuf/pathfinding.pb.h"
 #include <QByteArray>
 #include <vector>
 
@@ -39,6 +40,14 @@ namespace StaticObstacles {
         virtual Vector projectOut(Vector v, float extraDistance) const { return v; }
         virtual BoundingBox boundingBox() const = 0;
 
+        void serialize(pathfinding::Obstacle *obstacle) const {
+            obstacle->set_name(name.toStdString());
+            obstacle->set_prio(prio);
+            obstacle->set_radius(radius);
+            serializeChild(obstacle);
+        }
+        virtual void serializeChild(pathfinding::Obstacle *obstacle) const = 0;
+
         QByteArray obstacleName() const { return name; }
         QByteArray name;
         int prio;
@@ -52,6 +61,8 @@ namespace StaticObstacles {
         Vector projectOut(Vector v, float extraDistance) const override;
         BoundingBox boundingBox() const override;
 
+        void serializeChild(pathfinding::Obstacle *obstacle) const override;
+
         Vector center;
     };
 
@@ -60,6 +71,8 @@ namespace StaticObstacles {
         float distance(const Vector &v) const override;
         float distance(const LineSegment &segment) const override;
         BoundingBox boundingBox() const override;
+
+        void serializeChild(pathfinding::Obstacle *obstacle) const override;
 
         Vector bottom_left;
         Vector top_right;
@@ -70,6 +83,8 @@ namespace StaticObstacles {
         float distance(const Vector &v) const override;
         float distance(const LineSegment &segment) const override;
         BoundingBox boundingBox() const override;
+
+        void serializeChild(pathfinding::Obstacle *obstacle) const override;
 
         Vector p1, p2, p3;
     };
@@ -83,10 +98,14 @@ namespace StaticObstacles {
         Vector projectOut(Vector v, float extraDistance) const override;
         BoundingBox boundingBox() const override;
 
+        void serializeChild(pathfinding::Obstacle *obstacle) const override;
+
         LineSegment segment;
     };
 
     struct AvoidanceLine : public Line {
+        void serializeChild(pathfinding::Obstacle *obstacle) const override;
+
         float avoidanceFactor;
     };
 
@@ -110,6 +129,13 @@ namespace MovingObstacles {
             return BoundingBox(Vector(-max, -max), Vector(max, max));
         }
 
+        void serialize(pathfinding::Obstacle *obstacle) const {
+            obstacle->set_prio(prio);
+            obstacle->set_radius(radius);
+            serializeChild(obstacle);
+        }
+        virtual void serializeChild(pathfinding::Obstacle *obstacle) const = 0;
+
         int prio;
         float radius;
     };
@@ -117,6 +143,8 @@ namespace MovingObstacles {
     struct MovingCircle : public MovingObstacle {
         bool intersects(Vector pos, float time) const override;
         float distance(Vector pos, float time) const override;
+
+        void serializeChild(pathfinding::Obstacle *obstacle) const override;
 
         Vector startPos;
         Vector speed;
@@ -128,6 +156,8 @@ namespace MovingObstacles {
     struct MovingLine : public MovingObstacle {
         bool intersects(Vector pos, float time) const override;
         float distance(Vector pos, float time) const override;
+
+        void serializeChild(pathfinding::Obstacle *obstacle) const override;
 
         Vector startPos1;
         Vector speed1;
@@ -145,6 +175,8 @@ namespace MovingObstacles {
         bool intersects(Vector pos, float time) const override;
         float distance(Vector pos, float time) const override;
         BoundingBox boundingBox() const override { return  bound; }
+
+        void serializeChild(pathfinding::Obstacle *obstacle) const override;
 
         std::vector<TrajectoryPoint> *trajectory;
         float timeInterval;

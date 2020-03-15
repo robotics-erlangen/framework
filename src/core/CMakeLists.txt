@@ -19,17 +19,20 @@
 # ***************************************************************************
 
 add_library(core
-	include/core/fieldtransform.h
+    include/core/fieldtransform.h
     include/core/rng.h
     include/core/timer.h
     include/core/vector2.h
+    include/core/protobuffilesaver.h
 
-	fieldtransform.cpp
+    fieldtransform.cpp
     rng.cpp
     timer.cpp
+    protobuffilesaver.cpp
 )
 target_link_libraries(core
     PUBLIC Qt5::Core
+    PUBLIC shared::protobuf
 )
 target_include_directories(core
     INTERFACE include

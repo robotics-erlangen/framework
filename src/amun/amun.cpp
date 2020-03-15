@@ -21,6 +21,7 @@
 #include "amun.h"
 #include "receiver.h"
 #include "core/timer.h"
+#include "core/protobuffilesaver.h"
 #include "processor/processor.h"
 #include "processor/transceiver.h"
 #include "processor/networktransceiver.h"
@@ -108,6 +109,8 @@ Amun::Amun(bool simulatorOnly, QObject *parent) :
     m_debugHelperThread = new QThread(this);
 
     m_networkInterfaceWatcher = (!m_simulatorOnly) ? new NetworkInterfaceWatcher(this) : nullptr;
+
+    m_pathInputSaver = new ProtobufFileSaver("pathinput.pathlog", "KHONSU PATHFINDING LOG", this);
 }
 
 /*!
@@ -162,7 +165,7 @@ void Amun::start()
         connect(this, &Amun::useInternalGameController, m_gameControllerConnection[i].get(), &GameControllerConnection::switchInternalGameController);
 
         Q_ASSERT(m_strategy[i] == nullptr);
-        m_strategy[i] = new Strategy(m_timer, strategy, m_debugHelper[i], &m_compilerRegistry, m_gameControllerConnection[i], i == 2);
+        m_strategy[i] = new Strategy(m_timer, strategy, m_debugHelper[i], &m_compilerRegistry, m_gameControllerConnection[i], i == 2, false, m_pathInputSaver);
         m_strategy[i]->moveToThread(m_strategyThread[i]);
         connect(m_strategyThread[i], SIGNAL(finished()), m_strategy[i], SLOT(deleteLater()));
 

@@ -53,6 +53,7 @@ set(PROTO_FILES
     userinput.proto
     world.proto
     timeline.proto
+    pathfinding.proto
 )
 protobuf_generate_cpp(PROTO_SOURCES PROTO_HEADERS ${PROTO_FILES})
 target_sources(protobuf PRIVATE ${PROTO_SOURCES} ${PROTO_HEADERS} ${PROTO_FILES})

@@ -39,6 +39,7 @@ target_link_libraries(strategy
     PUBLIC Qt5::Core
 
     PRIVATE amun::strategy::lua
+    PRIVATE shared::config
 )
 
 target_include_directories(strategy

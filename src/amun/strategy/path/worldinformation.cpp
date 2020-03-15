@@ -324,3 +324,15 @@ std::pair<float, float> WorldInformation::minObstacleDistance(const SpeedProfile
     }
     return {totalMinDistance, lastPointDistance};
 }
+
+void WorldInformation::serialize(pathfinding::WorldState *state) const
+{
+    for (auto obstacle : m_obstacles) {
+        obstacle->serialize(state->add_obstacles());
+    }
+    state->set_out_of_field_priority(outOfFieldPriority());
+    pathfinding::Obstacle o;
+    m_boundary.serialize(&o);
+    state->mutable_boundary()->CopyFrom(o.rectangle());
+    state->set_radius(m_radius);
+}

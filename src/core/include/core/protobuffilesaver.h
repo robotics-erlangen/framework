@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2019 Paul Bergmann                                          *
+ *   Copyright 2020 Andreas Wendler                                        *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,29 +18,35 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef SCRIPTSTATE_H
-#define SCRIPTSTATE_H
+#ifndef PROTOBUFFILESAVER_H
+#define PROTOBUFFILESAVER_H
 
-#include <QStringList>
+#include <google/protobuf/message.h>
+#include <QDataStream>
+#include <QFile>
+#include <QMutex>
+#include <QObject>
+#include <QString>
 
-#include "protobuf/status.h"
-
-class DebugHelper;
-class ProtobufFileSaver;
-
-class ScriptState {
+class ProtobufFileSaver : QObject
+{
+    Q_OBJECT
 public:
-    QStringList selectedOptions;
-    DebugHelper* debugHelper = nullptr;
-    bool isInternalAutoref = false;
-    bool isPerformanceMode = false;
-    bool isReplay = false;
-    bool isFlipped = false;
-    bool isTournamentMode = false;
-    bool isDebugEnabled = false;
-    bool isRunningInLogplayer = false;
-    Status currentStatus; // used for replay tests
-    ProtobufFileSaver *pathInputSaver = nullptr;
+    // The file is created once saveMessage is called for the first time
+    ProtobufFileSaver(QString filename, QString filePrefix, QObject *parent = nullptr);
+
+    // may be called from any thread
+    void saveMessage(const google::protobuf::Message &message);
+
+private:
+    void open();
+
+private:
+    QString m_filename;
+    QString m_filePrefix;
+    QFile m_file;
+    QDataStream m_stream;
+    QMutex m_mutex;
 };
 
-#endif // SCRIPTSTATE_H
+#endif // PROTOBUFFILESAVER_H

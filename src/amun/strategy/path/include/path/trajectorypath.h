@@ -30,10 +30,12 @@
 #include "vector.h"
 #include <vector>
 
+class ProtobufFileSaver;
+
 class TrajectoryPath : public AbstractPath
 {
 public:
-    TrajectoryPath(uint32_t rng_seed);
+    TrajectoryPath(uint32_t rng_seed, ProtobufFileSaver *inputSaver);
     void reset() override;
     std::vector<TrajectoryPoint> calculateTrajectory(Vector s0, Vector v0, Vector s1, Vector v1, float maxSpeed, float acceleration);
     // is guaranteed to be equally spaced in time
@@ -55,6 +57,8 @@ private:
 
     // result trajectory (used by other robots as obstacle)
     std::vector<TrajectoryPoint> m_currentTrajectory;
+
+    ProtobufFileSaver *m_inputSaver;
 };
 
 #endif // TRAJECTORYPATH_H

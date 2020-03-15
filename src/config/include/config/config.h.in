@@ -44,4 +44,7 @@ static const char* const UI_BLUE_COLOR_DARK = "#05223d";
 static const char* const UI_AUTOREF_COLOR_LIGHT = "lightgray";
 static const char* const UI_AUTOREF_COLOR_DARK = "#161616";
 
+// pathfinding
+static const char* const DO_NOT_SAVE_PATHFINDING_INPUT = "Do not save pathfinding input";
+
 #endif // CONFIG_H

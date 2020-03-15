@@ -54,6 +54,7 @@ target_link_libraries(path
     PRIVATE shared::core
     PUBLIC shared::protobuf
     PUBLIC Qt5::Core
+    PRIVATE shared::config
 )
 target_include_directories(path
     INTERFACE include

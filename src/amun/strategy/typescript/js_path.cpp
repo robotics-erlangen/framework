@@ -22,11 +22,12 @@
 
 #include <QList>
 #include <v8.h>
-
+#include "strategy/script/scriptstate.h"
 #include "path/path.h"
 #include "path/trajectorypath.h"
 #include "path/vector.h"
 #include "core/timer.h"
+#include "config/config.h"
 #include "protobuf/debug.pb.h"
 #include "protobuf/robot.pb.h"
 #include "js_protobuf.h"
@@ -519,7 +520,12 @@ static void trajectoryPathCreateNew(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = args.GetIsolate();
     Typescript *ts = static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value())->typescript();
-    QTPath *p = new QTPath(nullptr, new TrajectoryPath(ts->time()), ts);
+
+    ProtobufFileSaver *inputSaver = nullptr;
+    if (!ts->scriptState().selectedOptions.contains(DO_NOT_SAVE_PATHFINDING_INPUT)) {
+        inputSaver = ts->scriptState().pathInputSaver;
+    }
+    QTPath *p = new QTPath(nullptr, new TrajectoryPath(ts->time(), inputSaver), ts);
 
     Local<Object> pathWrapper = Object::New(isolate);
     Local<External> pathObject = External::New(isolate, p);

@@ -44,6 +44,7 @@ namespace v8 {
 }
 class InspectorHandler;
 class CompilerRegistry;
+class ProtobufFileSaver;
 
 class Strategy : public QObject
 {
@@ -51,7 +52,8 @@ class Strategy : public QObject
 
 public:
     Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, CompilerRegistry* registry,
-             std::shared_ptr<GameControllerConnection> &gameControllerConnection, bool internalAutoref = false, bool isLogplayer = false);
+             std::shared_ptr<GameControllerConnection> &gameControllerConnection, bool internalAutoref = false,
+             bool isLogplayer = false, ProtobufFileSaver *pathInputSaver = nullptr);
     ~Strategy() override;
     Strategy(const Strategy&) = delete;
     Strategy& operator=(const Strategy&) = delete;

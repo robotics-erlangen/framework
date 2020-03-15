@@ -24,6 +24,7 @@
 #include "strategy/script/debughelper.h"
 #include "strategy/script/compilerregistry.h"
 #include "core/timer.h"
+#include "config/config.h"
 #include "protobuf/geometry.h"
 #include "protobuf/ssl_game_controller_team.pb.h"
 #include "protobuf/robot.h"
@@ -89,7 +90,8 @@ void Strategy::initV8() { }
  * \param type can be blue or yellow team or autoref
  */
 Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, CompilerRegistry* registry,
-                   std::shared_ptr<GameControllerConnection> &gameControllerConnection, bool internalAutoref, bool isLogplayer) :
+                   std::shared_ptr<GameControllerConnection> &gameControllerConnection, bool internalAutoref,
+                   bool isLogplayer, ProtobufFileSaver *pathInputSaver) :
     m_p(new StrategyPrivate),
     m_timer(timer),
     m_strategy(nullptr),
@@ -111,6 +113,7 @@ Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, C
     m_scriptState.isInternalAutoref = internalAutoref;
     m_scriptState.isDebugEnabled = type == StrategyType::AUTOREF;
     m_scriptState.isRunningInLogplayer = isLogplayer;
+    m_scriptState.pathInputSaver = pathInputSaver;
 
     m_refboxSocket->setSocketOption(QAbstractSocket::LowDelayOption,1);
 
@@ -751,6 +754,7 @@ void Strategy::setStrategyStatus(Status &status, amun::StatusStrategy::STATE sta
             std::string *ep = strategy->add_entry_point();
             *ep = name.toStdString();
         }
+        strategy->add_option(DO_NOT_SAVE_PATHFINDING_INPUT);
         strategy->set_current_entry_point(m_strategy->entryPoint().toStdString());
         for (const QString &option: m_strategy->options()) {
             std::string *opt = strategy->add_option();

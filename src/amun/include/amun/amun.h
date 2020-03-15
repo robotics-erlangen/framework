@@ -39,6 +39,7 @@ class NetworkTransceiver;
 class QHostAddress;
 class Integrator;
 class BlockingStrategyReplay;
+class ProtobufFileSaver;
 
 namespace camun {
     namespace simulator {
@@ -125,6 +126,8 @@ private:
     NetworkInterfaceWatcher *m_networkInterfaceWatcher;
 
     CompilerRegistry m_compilerRegistry;
+
+    ProtobufFileSaver *m_pathInputSaver;
 };
 
 #endif // AMUN_H

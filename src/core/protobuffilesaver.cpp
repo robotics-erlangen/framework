@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2019 Paul Bergmann                                          *
+ *   Copyright 2020 Andreas Wendler                                        *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,29 +18,46 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef SCRIPTSTATE_H
-#define SCRIPTSTATE_H
+#include "protobuffilesaver.h"
 
-#include <QStringList>
+#include <QDebug>
 
-#include "protobuf/status.h"
+ProtobufFileSaver::ProtobufFileSaver(QString filename, QString filePrefix, QObject *parent) :
+    QObject(parent),
+    m_filename(filename),
+    m_filePrefix(filePrefix),
+    m_stream(&m_file),
+    m_mutex(QMutex::Recursive)
+{ }
 
-class DebugHelper;
-class ProtobufFileSaver;
+void ProtobufFileSaver::open()
+{
+    if (m_file.isOpen()) {
+        return;
+    }
+    m_file.setFileName(m_filename);
+    if (!m_file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        qDebug() <<"Could not open path input file for saving";
+        return;
+    }
 
-class ScriptState {
-public:
-    QStringList selectedOptions;
-    DebugHelper* debugHelper = nullptr;
-    bool isInternalAutoref = false;
-    bool isPerformanceMode = false;
-    bool isReplay = false;
-    bool isFlipped = false;
-    bool isTournamentMode = false;
-    bool isDebugEnabled = false;
-    bool isRunningInLogplayer = false;
-    Status currentStatus; // used for replay tests
-    ProtobufFileSaver *pathInputSaver = nullptr;
-};
+    // ensure compatibility across qt versions
+    m_stream.setVersion(QDataStream::Qt_4_6);
 
-#endif // SCRIPTSTATE_H
+    m_stream << QString(m_filePrefix);
+    m_stream << (int) 0; // file version
+}
+
+void ProtobufFileSaver::saveMessage(const google::protobuf::Message &message)
+{   
+    QByteArray data;
+    data.resize(message.ByteSize());
+    if (!message.IsInitialized() || !message.SerializeToArray(data.data(), data.size())) {
+        return;
+    }
+
+    QMutexLocker locker(&m_mutex);
+    open();
+
+    m_stream << data;
+}

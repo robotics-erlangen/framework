@@ -22,6 +22,13 @@
 #include <QDebug>
 
 
+static void setVector(Vector v, pathfinding::Vector *out)
+{
+    out->set_x(v.x);
+    out->set_y(v.y);
+}
+
+
 // static obstacles
 
 float StaticObstacles::Circle::distance(const Vector &v) const
@@ -46,6 +53,11 @@ Vector StaticObstacles::Circle::projectOut(Vector v, float extraDistance) const
 BoundingBox StaticObstacles::Circle::boundingBox() const
 {
     return BoundingBox(center - Vector(radius, radius), center + Vector(radius, radius));
+}
+
+void StaticObstacles::Circle::serializeChild(pathfinding::Obstacle *obstacle) const
+{
+    setVector(center, obstacle->mutable_circle()->mutable_center());
 }
 
 float StaticObstacles::Line::distance(const Vector &v) const
@@ -74,6 +86,21 @@ BoundingBox StaticObstacles::Line::boundingBox() const
     b.mergePoint(segment.end() - Vector(radius, radius));
     b.mergePoint(segment.end() + Vector(radius, radius));
     return b;
+}
+
+void StaticObstacles::Line::serializeChild(pathfinding::Obstacle *obstacle) const
+{
+    auto line = obstacle->mutable_line();
+    setVector(segment.start(), line->mutable_start());
+    setVector(segment.end(), line->mutable_end());
+}
+
+void StaticObstacles::AvoidanceLine::serializeChild(pathfinding::Obstacle *obstacle) const
+{
+    auto line = obstacle->mutable_avoidance_line();
+    setVector(segment.start(), line->mutable_start());
+    setVector(segment.end(), line->mutable_end());
+    line->set_avoidance_factor(avoidanceFactor);
 }
 
 float StaticObstacles::Rect::distance(const Vector &v) const
@@ -119,6 +146,13 @@ float StaticObstacles::Rect::distance(const LineSegment &segment) const
 BoundingBox StaticObstacles::Rect::boundingBox() const
 {
     return BoundingBox(bottom_left - Vector(radius, radius), top_right +  Vector(radius, radius));
+}
+
+void StaticObstacles::Rect::serializeChild(pathfinding::Obstacle *obstacle) const
+{
+    auto rect = obstacle->mutable_rectangle();
+    setVector(top_right, rect->mutable_top_right());
+    setVector(bottom_left, rect->mutable_bottom_left());
 }
 
 float StaticObstacles::Triangle::distance(const Vector &v) const
@@ -195,6 +229,14 @@ BoundingBox StaticObstacles::Triangle::boundingBox() const
     return b;
 }
 
+void StaticObstacles::Triangle::serializeChild(pathfinding::Obstacle *obstacle) const
+{
+    auto tri = obstacle->mutable_triangle();
+    setVector(p1, tri->mutable_p1());
+    setVector(p2, tri->mutable_p2());
+    setVector(p3, tri->mutable_p3());
+}
+
 
 
 // moving obstacles
@@ -217,6 +259,16 @@ float MovingObstacles::MovingCircle::distance(Vector pos, float time) const
     float t = time - startTime;
     Vector centerAtTime = startPos + speed * t + acc * (0.5f * t * t);
     return centerAtTime.distance(pos) - radius;
+}
+
+void MovingObstacles::MovingCircle::serializeChild(pathfinding::Obstacle *obstacle) const
+{
+    auto circle = obstacle->mutable_moving_circle();
+    setVector(startPos, circle->mutable_start_pos());
+    setVector(speed, circle->mutable_speed());
+    setVector(acc, circle->mutable_acc());
+    circle->set_start_time(startTime);
+    circle->set_end_time(endTime);
 }
 
 bool MovingObstacles::MovingLine::intersects(Vector pos, float time) const
@@ -244,6 +296,19 @@ float MovingObstacles::MovingLine::distance(Vector pos, float time) const
     return LineSegment(p1, p2).distance(pos) - radius;
 }
 
+void MovingObstacles::MovingLine::serializeChild(pathfinding::Obstacle *obstacle) const
+{
+    auto circle = obstacle->mutable_moving_circle();
+    setVector(startPos1, circle->mutable_start_pos());
+    setVector(speed1, circle->mutable_speed());
+    setVector(acc1, circle->mutable_acc());
+    setVector(startPos2, circle->mutable_start_pos());
+    setVector(speed2, circle->mutable_speed());
+    setVector(acc2, circle->mutable_acc());
+    circle->set_start_time(startTime);
+    circle->set_end_time(endTime);
+}
+
 MovingObstacles::FriendlyRobotObstacle::FriendlyRobotObstacle() :
     bound(Vector(0, 0), Vector(0, 0))
 { }
@@ -267,4 +332,15 @@ float MovingObstacles::FriendlyRobotObstacle::distance(Vector pos, float time) c
 {
     unsigned long index = std::min(static_cast<unsigned long>(trajectory->size()-1), static_cast<unsigned long>(time / timeInterval));
     return (*trajectory)[index].pos.distance(pos) - radius;
+}
+
+void MovingObstacles::FriendlyRobotObstacle::serializeChild(pathfinding::Obstacle *obstacle) const
+{
+    auto robot = obstacle->mutable_friendly_robot();
+    for (TrajectoryPoint p : *trajectory) {
+        auto point = robot->add_robot_trajectory();
+        setVector(p.pos, point->mutable_pos());
+        setVector(p.speed, point->mutable_speed());
+        point->set_time(p.time);
+    }
 }
