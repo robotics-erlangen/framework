@@ -24,11 +24,13 @@ add_library(core
     include/core/timer.h
     include/core/vector2.h
     include/core/protobuffilesaver.h
+    include/core/protobuffilereader.h
 
     fieldtransform.cpp
     rng.cpp
     timer.cpp
     protobuffilesaver.cpp
+    protobuffilereader.cpp
 )
 target_link_libraries(core
     PUBLIC Qt5::Core
