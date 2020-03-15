@@ -96,7 +96,7 @@ void BacklogWriter::saveBacklog(QString filename, Status teamStatus)
         QContiguousCache<QByteArray> packetCopy = m_packets;
         packetCopy.normalizeIndexes();
         for (int i = 0;i<packetCopy.size();i++) {
-            Status status = packetFromByteArray(packetCopy.at((packetCopy.firstIndex() + i) % packetCopy.size()));
+            Status status = packetFromByteArray(packetCopy.at(packetCopy.firstIndex() + i));
             writer.writeStatus(status);
 
             // process incoming status packages to avoid building up memory
