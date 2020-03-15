@@ -52,10 +52,8 @@ void BacklogStatusSource::readPackets(int startPacket, int count)
 }
 
 
-BacklogWriter::BacklogWriter(unsigned seconds)
+BacklogWriter::BacklogWriter(unsigned seconds) : m_packets(BACKLOG_SIZE_PER_SECOND * seconds), m_timings(BACKLOG_SIZE_PER_SECOND * seconds)
 {
-    m_packets.setCapacity(BACKLOG_SIZE_PER_SECOND * seconds);
-    m_timings.setCapacity(BACKLOG_SIZE_PER_SECOND * seconds);
     connect(this, SIGNAL(clearData()), this, SLOT(clear()), Qt::QueuedConnection);
 }
 
