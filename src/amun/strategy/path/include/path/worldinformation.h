@@ -85,6 +85,8 @@ public:
 
     // collectobstacles must have been called before calling this function
     void serialize(pathfinding::WorldState *state) const;
+    // collect obstacles must be called after calling this and before using it
+    void deserialize(const pathfinding::WorldState &state);
 
 private:
     mutable QVector<const StaticObstacles::Obstacle*> m_obstacles;

@@ -29,6 +29,48 @@
 #include "core/protobuffilereader.h"
 #include "protobuf/pathfinding.pb.h"
 
+struct Situation {
+    WorldInformation world;
+    TrajectoryInput input;
+};
+
+static Vector deserializeVector(const pathfinding::Vector &v)
+{
+    Vector result(0, 0);
+    if (v.has_x()) result.x = v.x();
+    if (v.has_y()) result.y = v.y();
+    return result;
+}
+
+static TrajectoryInput deserializeTrajectoryInput(const pathfinding::TrajectoryInput &input)
+{
+    TrajectoryInput result;
+    if (input.has_v0()) {
+        result.v0 = deserializeVector(input.v0());
+    }
+    if (input.has_v1()) {
+        result.v1 = deserializeVector(input.v1());
+    }
+    if (input.has_s0()) {
+        result.s0 = deserializeVector(input.s0());
+    }
+    if (input.has_s1()) {
+        result.s1 = deserializeVector(input.s1());
+    }
+    if (input.has_max_speed()) {
+        result.maxSpeed = input.max_speed();
+    }
+    if (input.has_acceleration()) {
+        result.acceleration = input.acceleration();
+    }
+
+    result.distance = result.s1 - result.s0;
+    result.exponentialSlowDown = result.v1 == Vector(0, 0);
+    result.maxSpeedSquared = result.maxSpeed * result.maxSpeed;
+
+    return result;
+}
+
 
 int main(int argc, char* argv[])
 {
@@ -56,7 +98,7 @@ int main(int argc, char* argv[])
 
     QString path = parser.positionalArguments().first();
 
-    QList<pathfinding::PathFindingTask> situations;
+    QList<Situation> situations;
 
     ProtobufFileReader reader;
     if (!reader.open(path, "KHONSU PATHFINDING LOG")) {
@@ -66,7 +108,14 @@ int main(int argc, char* argv[])
 
     pathfinding::PathFindingTask situation;
     while (reader.readNext(situation)) {
-        situations.append(situation);
+        Situation s;
+        if (situation.has_state()) {
+            s.world.deserialize(situation.state());
+        }
+        if (situation.has_input()) {
+            s.input = deserializeTrajectoryInput(situation.input());
+        }
+        situations.append(s);
         situation.Clear();
     }
 

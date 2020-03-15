@@ -20,6 +20,8 @@
 
 #include "worldinformation.h"
 
+#include <QDebug>
+
 void WorldInformation::setRadius(float r)
 {
     m_radius = r;
@@ -330,9 +332,74 @@ void WorldInformation::serialize(pathfinding::WorldState *state) const
     for (auto obstacle : m_obstacles) {
         obstacle->serialize(state->add_obstacles());
     }
+    for (auto obstacle : m_movingObstacles) {
+        obstacle->serialize(state->add_obstacles());
+    }
     state->set_out_of_field_priority(outOfFieldPriority());
     pathfinding::Obstacle o;
     m_boundary.serialize(&o);
     state->mutable_boundary()->CopyFrom(o.rectangle());
     state->set_radius(m_radius);
+}
+
+void WorldInformation::deserialize(const pathfinding::WorldState &state)
+{
+    clearObstacles();
+
+    for (const auto &obstacle : state.obstacles()) {
+        if (obstacle.has_circle()) {
+            StaticObstacles::Circle circle;
+            circle.deserialize(obstacle.circle());
+            circle.deserializeCommon(obstacle);
+            m_circleObstacles.push_back(circle);
+        } else if (obstacle.has_triangle()) {
+            StaticObstacles::Triangle triangle;
+            triangle.deserialize(obstacle.triangle());
+            triangle.deserializeCommon(obstacle);
+            m_triangleObstacles.push_back(triangle);
+        } else if (obstacle.has_line()) {
+            StaticObstacles::Line line;
+            line.deserialize(obstacle.line());
+            line.deserializeCommon(obstacle);
+            m_lineObstacles.push_back(line);
+        } else if (obstacle.has_rectangle()) {
+            StaticObstacles::Rect rect;
+            rect.deserialize(obstacle.rectangle());
+            rect.deserializeCommon(obstacle);
+            m_rectObstacles.push_back(rect);
+        } else if (obstacle.has_avoidance_line()) {
+            StaticObstacles::AvoidanceLine line;
+            line.deserialize(obstacle.avoidance_line());
+            line.deserializeCommon(obstacle);
+            m_avoidanceLines.push_back(line);
+        } else if (obstacle.has_moving_circle()) {
+            MovingObstacles::MovingCircle circle;
+            circle.deserialize(obstacle.moving_circle());
+            circle.deserializeCommon(obstacle);
+            m_movingCircles.push_back(circle);
+        } else if (obstacle.has_moving_line()) {
+            MovingObstacles::MovingLine line;
+            line.deserialize(obstacle.moving_line());
+            line.deserializeCommon(obstacle);
+            m_movingLines.push_back(line);
+        } else if (obstacle.has_friendly_robot()) {
+            MovingObstacles::FriendlyRobotObstacle robot;
+            robot.deserialize(obstacle.friendly_robot());
+            robot.deserializeCommon(obstacle);
+            m_friendlyRobotObstacles.push_back(robot);
+        } else {
+            qDebug() <<"Invalid or unknown obstacle";
+        }
+    }
+
+    if (state.has_out_of_field_priority()) {
+        m_outOfFieldPriority = state.out_of_field_priority();
+    }
+    if (state.has_radius()) {
+        m_radius = state.radius();
+    }
+
+    if (state.has_boundary()) {
+        m_boundary.deserialize(state.boundary());
+    }
 }

@@ -28,6 +28,23 @@ static void setVector(Vector v, pathfinding::Vector *out)
     out->set_y(v.y);
 }
 
+static Vector deserializeVector(const pathfinding::Vector &v)
+{
+    Vector result(0, 0);
+    if (v.has_x()) result.x = v.x();
+    if (v.has_y()) result.y = v.y();
+    return result;
+}
+
+void StaticObstacles::Obstacle::deserializeCommon(const pathfinding::Obstacle &obstacle)
+{
+    if (obstacle.has_name()) {
+        name = QByteArray::fromStdString(obstacle.name());
+    }
+    prio = obstacle.has_prio() ? obstacle.prio() : 0;
+    radius = obstacle.has_radius() ? obstacle.radius() : 0;
+}
+
 
 // static obstacles
 
@@ -58,6 +75,13 @@ BoundingBox StaticObstacles::Circle::boundingBox() const
 void StaticObstacles::Circle::serializeChild(pathfinding::Obstacle *obstacle) const
 {
     setVector(center, obstacle->mutable_circle()->mutable_center());
+}
+
+void StaticObstacles::Circle::deserialize(const pathfinding::CircleObstacle &obstacle)
+{
+    if (obstacle.has_center()) {
+        center = deserializeVector(obstacle.center());
+    }
 }
 
 float StaticObstacles::Line::distance(const Vector &v) const
@@ -95,12 +119,39 @@ void StaticObstacles::Line::serializeChild(pathfinding::Obstacle *obstacle) cons
     setVector(segment.end(), line->mutable_end());
 }
 
+void StaticObstacles::Line::deserialize(const pathfinding::LineObstacle &obstacle)
+{
+    Vector start, end;
+    if (obstacle.has_start()) {
+        start = deserializeVector(obstacle.start());
+    }
+    if (obstacle.has_end()) {
+        end = deserializeVector(obstacle.end());
+    }
+    segment = LineSegment(start, end);
+}
+
 void StaticObstacles::AvoidanceLine::serializeChild(pathfinding::Obstacle *obstacle) const
 {
     auto line = obstacle->mutable_avoidance_line();
     setVector(segment.start(), line->mutable_start());
     setVector(segment.end(), line->mutable_end());
     line->set_avoidance_factor(avoidanceFactor);
+}
+
+void StaticObstacles::AvoidanceLine::deserialize(const pathfinding::AvoidanceLineObstacle &obstacle)
+{
+    Vector start, end;
+    if (obstacle.has_start()) {
+        start = deserializeVector(obstacle.start());
+    }
+    if (obstacle.has_end()) {
+        end = deserializeVector(obstacle.end());
+    }
+    segment = LineSegment(start, end);
+    if (obstacle.has_avoidance_factor()) {
+        avoidanceFactor = obstacle.avoidance_factor();
+    }
 }
 
 float StaticObstacles::Rect::distance(const Vector &v) const
@@ -153,6 +204,16 @@ void StaticObstacles::Rect::serializeChild(pathfinding::Obstacle *obstacle) cons
     auto rect = obstacle->mutable_rectangle();
     setVector(top_right, rect->mutable_top_right());
     setVector(bottom_left, rect->mutable_bottom_left());
+}
+
+void StaticObstacles::Rect::deserialize(const pathfinding::RectObstacle &obstacle)
+{
+    if (obstacle.has_top_right()) {
+        top_right = deserializeVector(obstacle.top_right());
+    }
+    if (obstacle.has_bottom_left()) {
+        bottom_left = deserializeVector(obstacle.bottom_left());
+    }
 }
 
 float StaticObstacles::Triangle::distance(const Vector &v) const
@@ -237,9 +298,28 @@ void StaticObstacles::Triangle::serializeChild(pathfinding::Obstacle *obstacle) 
     setVector(p3, tri->mutable_p3());
 }
 
+void StaticObstacles::Triangle::deserialize(const pathfinding::TriangleObstacle &obstacle)
+{
+    if (obstacle.has_p1()) {
+        p1 = deserializeVector(obstacle.p1());
+    }
+    if (obstacle.has_p2()) {
+        p2 = deserializeVector(obstacle.p2());
+    }
+    if (obstacle.has_p3()) {
+        p3 = deserializeVector(obstacle.p3());
+    }
+}
+
 
 
 // moving obstacles
+
+void MovingObstacles::MovingObstacle::deserializeCommon(const pathfinding::Obstacle &obstacle)
+{
+    prio = obstacle.has_prio() ? obstacle.prio() : 0;
+    radius = obstacle.has_radius() ? obstacle.radius() : 0;
+}
 
 bool MovingObstacles::MovingCircle::intersects(Vector pos, float time) const
 {
@@ -269,6 +349,25 @@ void MovingObstacles::MovingCircle::serializeChild(pathfinding::Obstacle *obstac
     setVector(acc, circle->mutable_acc());
     circle->set_start_time(startTime);
     circle->set_end_time(endTime);
+}
+
+void MovingObstacles::MovingCircle::deserialize(const pathfinding::MovingCircleObstacle &obstacle)
+{
+    if (obstacle.has_start_pos()) {
+        startPos = deserializeVector(obstacle.start_pos());
+    }
+    if (obstacle.has_speed()) {
+        speed = deserializeVector(obstacle.speed());
+    }
+    if (obstacle.has_acc()) {
+        acc = deserializeVector(obstacle.acc());
+    }
+    if (obstacle.has_start_time()) {
+        startTime = obstacle.start_time();
+    }
+    if (obstacle.has_end_time()) {
+        endTime = obstacle.end_time();
+    }
 }
 
 bool MovingObstacles::MovingLine::intersects(Vector pos, float time) const
@@ -309,6 +408,34 @@ void MovingObstacles::MovingLine::serializeChild(pathfinding::Obstacle *obstacle
     circle->set_end_time(endTime);
 }
 
+void MovingObstacles::MovingLine::deserialize(const pathfinding::MovingLineObstacle &obstacle)
+{
+    if (obstacle.has_start_pos1()) {
+        startPos1 = deserializeVector(obstacle.start_pos1());
+    }
+    if (obstacle.has_speed1()) {
+        speed1 = deserializeVector(obstacle.speed1());
+    }
+    if (obstacle.has_acc1()) {
+        acc1 = deserializeVector(obstacle.acc1());
+    }
+    if (obstacle.has_start_pos2()) {
+        startPos2 = deserializeVector(obstacle.start_pos2());
+    }
+    if (obstacle.has_speed2()) {
+        speed2 = deserializeVector(obstacle.speed2());
+    }
+    if (obstacle.has_acc2()) {
+        acc2 = deserializeVector(obstacle.acc2());
+    }
+    if (obstacle.has_start_time()) {
+        startTime = obstacle.start_time();
+    }
+    if (obstacle.has_end_time()) {
+        endTime = obstacle.end_time();
+    }
+}
+
 MovingObstacles::FriendlyRobotObstacle::FriendlyRobotObstacle() :
     bound(Vector(0, 0), Vector(0, 0))
 { }
@@ -320,6 +447,60 @@ MovingObstacles::FriendlyRobotObstacle::FriendlyRobotObstacle(std::vector<Trajec
     this->prio = prio;
     this->radius = radius;
     timeInterval = trajectory->at(1).time - trajectory->at(0).time;
+}
+
+MovingObstacles::FriendlyRobotObstacle::FriendlyRobotObstacle(const MovingObstacles::FriendlyRobotObstacle &other) :
+    MovingObstacles::MovingObstacle(other),
+    trajectory(other.trajectory),
+    timeInterval(other.timeInterval),
+    bound(other.bound),
+    ownData(other.ownData)
+{
+    if (trajectory == &other.ownData) {
+        trajectory = &ownData;
+    }
+}
+
+MovingObstacles::FriendlyRobotObstacle::FriendlyRobotObstacle(MovingObstacles::FriendlyRobotObstacle &&other) :
+    MovingObstacles::MovingObstacle(other),
+    trajectory(std::move(other.trajectory)),
+    timeInterval(other.timeInterval),
+    bound(other.bound),
+    ownData(std::move(other.ownData))
+{
+    if (trajectory == &other.ownData) {
+        trajectory = &ownData;
+    }
+}
+
+MovingObstacles::FriendlyRobotObstacle &MovingObstacles::FriendlyRobotObstacle::operator=(const FriendlyRobotObstacle &other)
+{
+    prio = other.prio;
+    radius = other.radius;
+    trajectory = other.trajectory;
+    timeInterval = other.timeInterval;
+    bound = other.bound;
+    ownData = other.ownData;
+
+    if (trajectory == &other.ownData) {
+        trajectory = &ownData;
+    }
+    return *this;
+}
+
+MovingObstacles::FriendlyRobotObstacle &MovingObstacles::FriendlyRobotObstacle::operator=(FriendlyRobotObstacle &&other)
+{
+    prio = other.prio;
+    radius = other.radius;
+    trajectory = std::move(other.trajectory);
+    timeInterval = other.timeInterval;
+    bound = other.bound;
+    ownData = std::move(other.ownData);
+
+    if (trajectory == &other.ownData) {
+        trajectory = &ownData;
+    }
+    return *this;
 }
 
 bool MovingObstacles::FriendlyRobotObstacle::intersects(Vector pos, float time) const
@@ -343,4 +524,24 @@ void MovingObstacles::FriendlyRobotObstacle::serializeChild(pathfinding::Obstacl
         setVector(p.speed, point->mutable_speed());
         point->set_time(p.time);
     }
+}
+
+void MovingObstacles::FriendlyRobotObstacle::deserialize(const pathfinding::FriendlyRobotObstacle &obstacle)
+{
+    ownData.clear();
+    for (const pathfinding::TrajectoryPoint &point : obstacle.robot_trajectory()) {
+        TrajectoryPoint p;
+        if (point.has_pos()) {
+            p.pos = deserializeVector(point.pos());
+        }
+        if (point.has_speed()) {
+            p.speed = deserializeVector(point.speed());
+        }
+        if (point.has_time()) {
+            p.time = point.time();
+        }
+        ownData.push_back(p);
+    }
+    trajectory = &ownData;
+    timeInterval = trajectory->size() > 1 ? trajectory->at(1).time - trajectory->at(0).time : 1;
 }
