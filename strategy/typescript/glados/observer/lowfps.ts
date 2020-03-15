@@ -4,12 +4,15 @@ const ALPHA: number = 0.1;
 // normaliy 10 milli seconds per frame
 const MAX_FRAME_TIME_DIFF: number = 0.02;
 const DEACTIVATE: boolean = false;
+const START_FRAME_NUMBER: number = 100;
 
 class LowFPS {
 	private frameTimeOne: number = 0;
 	private prognosis: number = 0;
+	private frameCounter: number = 0;
 
 	public update() {
+		this.frameCounter += 1;
 		if (DEACTIVATE) {
 			return;
 		}
@@ -27,8 +30,8 @@ class LowFPS {
 	}
 	private calculateExponentialSmoothing(frameTimeDiff: number) {
 		this.prognosis = ALPHA * frameTimeDiff + (1 - ALPHA) * this.prognosis;
-		if (this.prognosis > MAX_FRAME_TIME_DIFF) {
-			amun.log("<font color =red>run time too heigh!</font>");
+		if (this.prognosis > MAX_FRAME_TIME_DIFF && this.frameCounter > START_FRAME_NUMBER) {
+			amun.log("<font color =red>run time too high!</font>");
 		}
 	}
 }
