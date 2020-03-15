@@ -72,11 +72,12 @@ private:
     Status packetFromByteArray(QByteArray packetData);
 
 private:
+    // approximately, with both strategys running
+    const int BACKLOG_SIZE_PER_SECOND = 570;
+
     QContiguousCache<QByteArray> m_packets;
     QContiguousCache<qint64> m_timings;
 
-    // approximately, with both strategys running
-    const int BACKLOG_SIZE_PER_SECOND = 570;
 };
 
 #endif // BACKLOGWRITER_H
