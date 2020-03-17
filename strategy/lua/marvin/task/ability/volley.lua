@@ -48,6 +48,13 @@ function Volley.setParams(new_mu_x, new_mu_y)
 	mu_y = new_mu_y
 end
 
+function Volley.getParam(id)
+	if World.IsSimulated then
+		return mu_x, mu_y
+	end
+	return muXById[id], muYById[id]
+end
+
 
 function Volley:init()
 	setSimulatorParams()
@@ -143,9 +150,10 @@ function Volley.calcVOutFromVS(v_s, v_in, phi, alpha, robotId)
 	local cosp = math.cos(phi)
 	local sinpa = math.sin(phi - alpha)
 	local cospa = math.cos(phi - alpha)
+	local mux, muy = Volley.getParam(robotId)
 
-	local x = cosp * v_s + sinp * sinpa * muXById[robotId] * v_in - cosp * cospa * muYById[robotId] * v_in
-	local y = sinp * v_s - cosp * sinpa * muXById[robotId] * v_in - sinp * cospa * muYById[robotId] * v_in
+	local x = cosp * v_s + sinp * sinpa * mux * v_in - cosp * cospa * muy * v_in
+	local y = sinp * v_s - cosp * sinpa * mux * v_in - sinp * cospa * muy * v_in
 
 	return x, y
 end
@@ -155,11 +163,12 @@ local function volley_Jf(v_s, phi, alpha, v_in, robotId)
 	local cosp = math.cos(phi)
 	local sinpa = math.sin(phi - alpha)
 	local cospa = math.cos(phi - alpha)
+	local mux, muy = Volley.getParam(robotId)
 
 	local xdv_s = cosp
-	local xdphi = -sinp * v_s + (muXById[robotId] + muYById[robotId]) * v_in * (cosp * sinpa + sinp * cospa)
+	local xdphi = -sinp * v_s + (mux + muy) * v_in * (cosp * sinpa + sinp * cospa)
 	local ydv_s = sinp
-	local ydphi = cosp * v_s - (muXById[robotId] + muYById[robotId]) * v_in * (cosp * cospa - sinp * sinpa)
+	local ydphi = cosp * v_s - (mux + muy) * v_in * (cosp * cospa - sinp * sinpa)
 
 	return xdv_s, xdphi, ydv_s, ydphi
 end
