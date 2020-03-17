@@ -198,7 +198,7 @@ local messageMT = {
 	__pairs = function(messageTable)
 		local function pairs_it(t, lastRobot)
 			local minRobot = nil
-			local minID = 17
+			local minID = 22
 			for robot, _ in next, t do
 				if robot.id < minID and robot.id > lastRobot.id then
 					minRobot = robot
