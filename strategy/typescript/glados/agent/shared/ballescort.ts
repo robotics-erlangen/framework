@@ -1,5 +1,6 @@
 import * as debug from "base/debug";
 import * as Field from "base/field";
+import * as Geom from "base/geom";
 import * as Referee from "base/referee";
 import { Robot } from "base/robot";
 import * as World from "base/world";
@@ -88,6 +89,16 @@ export class BallEscort extends Behavior {
 			return false;
 		}
 
+		let intersection = Geom.intersectLineCircle(World.Ball.pos, World.Ball.speed, this._robot.pos, this._robot.radius * 1.5);
+
+		// Check if ball is between outline and robot
+		let behindRobot: boolean = ballOutPos.distanceToSq(World.Ball.pos) < ballOutPos.distanceToSq(this._robot.pos);
+
+		if (intersection.length !== 0 && !behindRobot) {
+			// The ball is moving directly towards the robot
+			return false;
+		}
+
 		this._applyForMainAttacker();
 		if (this._messaging.receiveTrainer(MessageType.mainAttacker) !== this._robot) {
 			return false;
@@ -97,6 +108,6 @@ export class BallEscort extends Behavior {
 	}
 
 	_updateTask(): TaskAssignment<typeof BallEscortTask> {
-		return [BallEscortTask, [this._minRobot ? this._minRobot : undefined]];
+		return [BallEscortTask, [this._minRobot]];
 	}
 }
