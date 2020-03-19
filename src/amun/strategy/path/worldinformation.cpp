@@ -64,7 +64,7 @@ void WorldInformation::addCircle(float x, float y, float radius, const char* nam
     c.radius = radius;
     c.name = name;
     c.prio = prio;
-    m_circleObstacles.append(c);
+    m_circleObstacles.push_back(c);
 }
 
 void WorldInformation::addLine(float x1, float y1, float x2, float y2, float width, const char* name, int prio)
@@ -73,7 +73,7 @@ void WorldInformation::addLine(float x1, float y1, float x2, float y2, float wid
     l.radius = width;
     l.name = name;
     l.prio = prio;
-    m_lineObstacles.append(l);
+    m_lineObstacles.push_back(l);
 }
 
 void WorldInformation::addRect(float x1, float y1, float x2, float y2, const char* name, int prio)
@@ -85,7 +85,7 @@ void WorldInformation::addRect(float x1, float y1, float x2, float y2, const cha
     r.top_right.y = std::max(y1, y2);
     r.name = name;
     r.prio = prio;
-    m_rectObstacles.append(r);
+    m_rectObstacles.push_back(r);
 }
 
 void WorldInformation::addTriangle(float x1, float y1, float x2, float y2, float x3, float y3, float lineWidth, const char *name, int prio)
@@ -109,7 +109,7 @@ void WorldInformation::addTriangle(float x1, float y1, float x2, float y2, float
         t.p2 = c;
         t.p3 = b;
     }
-    m_triangleObstacles.append(t);
+    m_triangleObstacles.push_back(t);
 }
 
 void WorldInformation::collectObstacles() const
@@ -198,10 +198,8 @@ void WorldInformation::addFriendlyRobotTrajectoryObstacle(std::vector<Trajectory
 
 void WorldInformation::addAvoidanceLine(Vector s0, Vector s1, float radius, float avoidanceFactor)
 {
-    StaticObstacles::AvoidanceLine line;
-    line.segment = LineSegment(s0, s1);
+    StaticObstacles::AvoidanceLine line(s0, s1, avoidanceFactor);
     line.radius = radius;
-    line.avoidanceFactor = avoidanceFactor;
     m_avoidanceLines.push_back(line);
 }
 
@@ -358,7 +356,7 @@ void WorldInformation::deserialize(const pathfinding::WorldState &state)
             triangle.deserializeCommon(obstacle);
             m_triangleObstacles.push_back(triangle);
         } else if (obstacle.has_line()) {
-            StaticObstacles::Line line;
+            StaticObstacles::Line line(Vector(0, 0), Vector(1, 1)); // some random default values
             line.deserialize(obstacle.line());
             line.deserializeCommon(obstacle);
             m_lineObstacles.push_back(line);
@@ -368,7 +366,7 @@ void WorldInformation::deserialize(const pathfinding::WorldState &state)
             rect.deserializeCommon(obstacle);
             m_rectObstacles.push_back(rect);
         } else if (obstacle.has_avoidance_line()) {
-            StaticObstacles::AvoidanceLine line;
+            StaticObstacles::AvoidanceLine line(Vector(0, 0), Vector(1, 1), 0);
             line.deserialize(obstacle.avoidance_line());
             line.deserializeCommon(obstacle);
             m_avoidanceLines.push_back(line);

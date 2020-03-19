@@ -96,7 +96,6 @@ namespace StaticObstacles {
 
     struct Line : Obstacle
     {
-        Line() : segment(Vector(0,0), Vector(0,0)) {}
         Line(const Vector &p1, const Vector &p2) : segment(p1, p2) {}
         float distance(const Vector &v) const override;
         float distance(const LineSegment &segment) const override;
@@ -110,6 +109,7 @@ namespace StaticObstacles {
     };
 
     struct AvoidanceLine : public Line {
+        AvoidanceLine(const Vector &p1, const Vector &p2, float avoidanceFactor) : Line(p1, p2), avoidanceFactor(avoidanceFactor) {}
         void serializeChild(pathfinding::Obstacle *obstacle) const override;
         void deserialize(const pathfinding::AvoidanceLineObstacle &obstacle);
 

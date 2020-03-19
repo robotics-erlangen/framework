@@ -91,16 +91,16 @@ public:
 private:
     mutable QVector<const StaticObstacles::Obstacle*> m_obstacles;
 
-    QVector<StaticObstacles::Circle> m_circleObstacles;
-    QVector<StaticObstacles::Rect> m_rectObstacles;
-    QVector<StaticObstacles::Triangle> m_triangleObstacles;
-    QVector<StaticObstacles::Line> m_lineObstacles;
+    std::vector<StaticObstacles::Circle> m_circleObstacles;
+    std::vector<StaticObstacles::Rect> m_rectObstacles;
+    std::vector<StaticObstacles::Triangle> m_triangleObstacles;
+    std::vector<StaticObstacles::Line> m_lineObstacles;
 
-    QVector<MovingObstacles::MovingCircle> m_movingCircles;
-    QVector<MovingObstacles::MovingLine> m_movingLines;
-    QVector<MovingObstacles::FriendlyRobotObstacle> m_friendlyRobotObstacles;
+    std::vector<MovingObstacles::MovingCircle> m_movingCircles;
+    std::vector<MovingObstacles::MovingLine> m_movingLines;
+    std::vector<MovingObstacles::FriendlyRobotObstacle> m_friendlyRobotObstacles;
     std::vector<MovingObstacles::MovingObstacle*> m_movingObstacles;
-    QVector<StaticObstacles::AvoidanceLine> m_avoidanceLines;
+    std::vector<StaticObstacles::AvoidanceLine> m_avoidanceLines;
 
     int m_outOfFieldPriority = 1;
 
