@@ -112,19 +112,12 @@ void CombinedLogWriter::handleStatus(const Status &status)
 
     m_lastTime = status->time();
 
+    amun::UiResponse response;
     if (m_logStartTime == 0 && m_isRecording) {
         startLogfile();
+        response.set_is_logging(true);
     }
-    if (m_logStartTime != 0) {
-        qint64 timeDelta = m_lastTime - m_logStartTime;
-        const double dtime = timeDelta * 1E-9;
-        QString logLabel = "Log time: " + QString("%1:%2").arg((int) dtime / 60)
-                .arg((int) dtime % 60, 2, 10, QChar('0'));
-        if (m_lastLogTimeLabel != logLabel) {
-            m_lastLogTimeLabel = logLabel;
-            emit changeLogTimeLabel(logLabel);
-        }
-    }
+    emit sendUiResponse(response, m_lastTime);
 
     if (m_isLoggingEnabled && m_isRecording) {
         emit gotStatusForRecording(status);
@@ -220,7 +213,6 @@ void CombinedLogWriter::startLogfile()
 {
     m_logFile->writeStatus(getTeamStatus());
     m_logStartTime = m_lastTime;
-    emit showLogTimeLabel(true);
 }
 
 void CombinedLogWriter::recordButtonToggled(bool enabled)
@@ -249,11 +241,6 @@ void CombinedLogWriter::recordButtonToggled(bool enabled)
             m_logFileThread->start();
         }
         m_logFile->moveToThread(m_logFileThread);
-
-        // add the current team settings to the logfile
-        if (m_lastTime != 0) {
-            startLogfile();
-        }
     } else {
         // defer log file deletion to happen in its thread
         if (m_logFile != nullptr) {
@@ -261,7 +248,8 @@ void CombinedLogWriter::recordButtonToggled(bool enabled)
             m_logFile = nullptr;
         }
         m_logStartTime = 0;
-        emit changeLogTimeLabel("");
-        emit showLogTimeLabel(false);
+        amun::UiResponse response;
+        response.set_is_logging(false);
+        emit sendUiResponse(response, m_lastTime);
     }
 }

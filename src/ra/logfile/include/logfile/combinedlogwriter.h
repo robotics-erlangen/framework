@@ -55,8 +55,7 @@ signals:
     void saveBacklogFile(QString filename, const Status &status, bool processEvents);
     void gotStatusForRecording(const Status &status);
     void gotStatusForBacklog(const Status &status);
-    void changeLogTimeLabel(QString text);
-    void showLogTimeLabel(bool show);
+    void sendUiResponse(amun::UiResponse response, qint64 time);
     void resetBacklog();
     void disableSkipping(bool disable);
 
@@ -86,7 +85,6 @@ private:
 
     qint64 m_lastTime;
     qint64 m_logStartTime;
-    QString m_lastLogTimeLabel;
 
     bool m_isLoggingEnabled;
     bool m_isRecording;

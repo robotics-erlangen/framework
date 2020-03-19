@@ -32,6 +32,7 @@
 #include "logcutter/logcutter.h"
 #include "protobuf/geometry.h"
 #include "logopener.h"
+#include "loglabel.h"
 #include <google/protobuf/text_format.h>
 #include <QFile>
 #include <QFileDialog>
@@ -88,7 +89,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     m_transceiverStatus->setPalette(p);
     statusBar()->addWidget(m_transceiverStatus);
 
-    m_logTimeLabel = new QLabel();
+    m_logTimeLabel = new LogLabel();
     statusBar()->addPermanentWidget(m_logTimeLabel);
     m_logTimeLabel->hide();
 
@@ -448,8 +449,7 @@ void MainWindow::createLogWriterConnections(CombinedLogWriter &writer, QAction *
     connect(&writer, SIGNAL(enableRecordButton(bool)), record, SLOT(setEnabled(bool)));
     connect(&writer, SIGNAL(enableBacklogButton(bool)), backlog1, SLOT(setEnabled(bool)));
     connect(&writer, SIGNAL(enableBacklogButton(bool)), backlog2, SLOT(setEnabled(bool)));
-    connect(&writer, SIGNAL(changeLogTimeLabel(QString)), m_logTimeLabel, SLOT(setText(QString)));
-    connect(&writer, SIGNAL(showLogTimeLabel(bool)), m_logTimeLabel, SLOT(setVisible(bool)));
+    connect(&writer, &CombinedLogWriter::sendUiResponse, m_logTimeLabel, &LogLabel::handleUiResponse);
 }
 
 void MainWindow::saveConfig()

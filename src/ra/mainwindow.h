@@ -44,6 +44,7 @@ class QString;
 class Timer;
 class LogOpener;
 class RobotUIAction;
+class LogLabel;
 namespace Ui {
     class MainWindow;
 }
@@ -110,7 +111,7 @@ private:
     QLabel *m_transceiverStatus;
     bool m_transceiverActive;
     qint32 m_lastStageTime;
-    QLabel *m_logTimeLabel;
+    LogLabel *m_logTimeLabel;
     CombinedLogWriter m_logWriterRa, m_logWriterHorus;
     amun::GameState::State m_lastRefState;
     QList<Status> m_horusStrategyBuffer;
