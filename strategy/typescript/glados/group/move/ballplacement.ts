@@ -24,7 +24,6 @@ const enum State {
 	EXECUTE_PASS = "EXECUTE_PASS",
 	ACCEPT_PASS = "ACCEPT_PASS",
 	WAIT_FOR_SET_BACK = "WAIT_FOR_SET_BACK",
-	SET_BACK = "SET_BACK",
 	FINE_ADJUST = "FINE_ADJUST",
 	INVALID = "INVALID",
 	SET_BACK_INVISIBLE = "SET_BACK_INVISIBLE"
@@ -41,6 +40,7 @@ const MAX_DRIBBLER_SPEED = 0.8;
 const SETBACK_WAIT_TIME = 1.2;
 const PASS_TARGET_SPEED = 1;
 const SET_BACK_MIN_WAIT_TIME = 0.5;
+const SET_BACK_INVISIBLE_LENGTH = 0.1;
 
 const SHOOTER_EVADING_POSITIONS = [
 	new Vector(0.5 * World.Geometry.FieldWidthHalf, 0.5 * World.Geometry.FieldHeightHalf),
@@ -88,8 +88,7 @@ export class BallPlacement extends Move {
 	private _ballPlacementPos: Readonly<Position>;
 
 	private invisible: boolean = false;
-	private invisibleValue: boolean = false;
-	private forceSetBack: boolean = false;
+	private forceSetBackInvisible: boolean = false;
 	private setBackPosInvisible: Position = new Vector(0,0);
 
 
@@ -240,8 +239,7 @@ export class BallPlacement extends Move {
 					};
 				} else {
 					if (this.invisible) {
-						this.invisibleValue = true;
-						this.forceSetBack = true;
+						this.forceSetBackInvisible = true;
 					}
 					this._receiverBallDirection = (BallObserver.getRealisticBallPos() - this.RECEIVER.pos).angle();
 					taskAssignments[this.RECEIVER] = {
@@ -263,7 +261,7 @@ export class BallPlacement extends Move {
 
 				break;
 			}
-			case State.SET_BACK: {
+			case State.SET_BACK_INVISIBLE: {
 				this._mainAttacker = this.RECEIVER;
 				if (this._stateChanged) {
 					this._calculateEvadingPos();
@@ -272,13 +270,20 @@ export class BallPlacement extends Move {
 				if (this._stateChanged) {
 					this._computedReceiverPos = this.RECEIVER.pos + (this.RECEIVER.pos - BallObserver.getRealisticBallPos()).setLength(2 * this.RECEIVER.radius);
 				}
-				taskAssignments[this.RECEIVER] = {
-					class: MoveToPos,
-					params: [ this._computedReceiverPos, undefined, undefined, undefined, undefined, undefined, true, true ],
-					restart: this._stateChanged
-				};
-				//vis.addCircle("setbackpos", this._computedReceiverPos, 0.05);
-
+				if (this.forceSetBackInvisible) {
+					this.setBackPosInvisible = this.RECEIVER.pos - (this._ballPlacementPos - this.RECEIVER.pos).setLength(SET_BACK_INVISIBLE_LENGTH);
+					taskAssignments[this.RECEIVER] = {
+						class: MoveToPos,
+						params: [ this.setBackPosInvisible, (this._ballPlacementPos - this.RECEIVER.pos).angle(), undefined, undefined, undefined, undefined, true, true ],
+						restart: this._stateChanged
+					};
+				} else {
+					taskAssignments[this.RECEIVER] = {
+						class: MoveToPos,
+						params: [ this._computedReceiverPos, undefined, undefined, undefined, undefined, undefined, true, true ],
+						restart: this._stateChanged
+					};
+				}
 				break;
 			}
 			case State.FINE_ADJUST: {
@@ -296,26 +301,6 @@ export class BallPlacement extends Move {
 					restart: this._stateChanged
 				};
 
-				break;
-			}
-			case State.SET_BACK_INVISIBLE: {
-				amun.log("set back invisible");
-				this._mainAttacker = this.RECEIVER;
-				if (this._stateChanged) {
-					this._calculateEvadingPos();
-				}
-				taskAssignments[this.SHOOTER] = { class: MoveToPos, params: [this._selectedEvadingPos] };
-				if (this._stateChanged) {
-					this._computedReceiverPos = this.RECEIVER.pos + (this.RECEIVER.pos - BallObserver.getRealisticBallPos()).setLength(2 * this.RECEIVER.radius);
-				}
-				this.setBackPosInvisible = (this._ballPlacementPos - BallObserver.getRealisticBallPos()).copy().setLength(0.1);
-				vis.addCircle("setbackinvibible", new Vector(3.987, 0.594), 0.05);
-
-				taskAssignments[this.RECEIVER] = {
-					class: MoveToPos,
-					params: [ new Vector(3.987, 0.594), -new Vector(3.987, 0.594).angle(), undefined, undefined, undefined, undefined, true, true ],
-					restart: this._stateChanged
-				};
 				break;
 			}
 		}
@@ -349,6 +334,8 @@ export class BallPlacement extends Move {
 		let usedBallPos = BallObserver.getRealisticBallPos();
 		switch (currentState) {
 			case State.WAIT_FOR_BALL_STOP: {
+				this.forceSetBackInvisible = false;
+				this.invisible = false;
 				nextState = State.WAIT_FOR_BALL_STOP;
 				if (World.Ball.speed.length() < BALL_STOP_SPEED) {
 					this._ballStartPos = usedBallPos;
@@ -404,7 +391,7 @@ export class BallPlacement extends Move {
 					nextState = ballDist > MAX_BALL_DISTANCE ? State.WAIT_FOR_BALL_STOP : State.WAIT_FOR_SET_BACK;
 				}
 				if (!this._ballReceiverIntersects && ballDist > MAX_BALL_DISTANCE) {
-					if (this.forceSetBack) {
+					if (this.forceSetBackInvisible) {
 						nextState = State.WAIT_FOR_SET_BACK;
 					} else {
 					nextState = State.WAIT_FOR_BALL_STOP;
@@ -415,22 +402,8 @@ export class BallPlacement extends Move {
 			}
 			case State.WAIT_FOR_SET_BACK: {
 				nextState = State.WAIT_FOR_SET_BACK;
-				/*if (this.forceSetBack) {
-					nextState = State.SET_BACK_INVISIBLE;// State.SET_BACK;// State.SET_BACK_INVISIBLE;
-				}*/
 				if (World.Time - this._stateChangeTime > SETBACK_WAIT_TIME) {
-					nextState = State.SET_BACK_INVISIBLE;// State.SET_BACK;
-				}
-
-				break;
-			}
-			case State.SET_BACK: {
-				nextState = State.SET_BACK;
-				if (World.Time - this._stateChangeTime > SET_BACK_MIN_WAIT_TIME) {
-					if (this.RECEIVER.pos.distanceTo(this._computedReceiverPos) < ARRIVED_DISTANCE) {
-						nextState = State.WAIT_FOR_BALL_STOP;
-						//this.forceSetBack = false;
-					}
+					nextState = State.SET_BACK_INVISIBLE;
 				}
 				break;
 			}
@@ -444,11 +417,8 @@ export class BallPlacement extends Move {
 			}
 			case State.SET_BACK_INVISIBLE: {
 				nextState = State.SET_BACK_INVISIBLE;
-				if (World.Time - this._stateChangeTime > SET_BACK_MIN_WAIT_TIME + 0.5) {
-					//if (this.RECEIVER.pos.distanceTo(this._computedReceiverPos) < ARRIVED_DISTANCE) {
-						nextState = State.WAIT_FOR_BALL_STOP;
-						//this.forceSetBack = false;
-					//}
+				if (World.Time - this._stateChangeTime > SET_BACK_MIN_WAIT_TIME) {
+					nextState = State.WAIT_FOR_BALL_STOP;
 				}
 				break;
 			}
