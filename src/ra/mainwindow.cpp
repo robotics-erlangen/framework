@@ -443,8 +443,8 @@ void MainWindow::showDirectoryDialog()
 void MainWindow::createLogWriterConnections(CombinedLogWriter &writer, QAction *record, QAction *backlog1, QAction *backlog2)
 {
     connect(record, SIGNAL(toggled(bool)), &writer, SLOT(recordButtonToggled(bool)));
-    connect(backlog1, SIGNAL(triggered(bool)), &writer, SLOT(backLogButtonClicked()));
-    connect(backlog2, SIGNAL(triggered(bool)), &writer, SLOT(backLogButtonClicked()));
+    connect(backlog1, SIGNAL(triggered(bool)), &writer, SLOT(saveBackLog()));
+    connect(backlog2, SIGNAL(triggered(bool)), &writer, SLOT(saveBackLog()));
     connect(&writer, SIGNAL(setRecordButton(bool)), record, SLOT(setChecked(bool)));
     connect(&writer, SIGNAL(enableRecordButton(bool)), record, SLOT(setEnabled(bool)));
     connect(&writer, SIGNAL(enableBacklogButton(bool)), backlog1, SLOT(setEnabled(bool)));

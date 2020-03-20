@@ -140,7 +140,7 @@ void CombinedLogWriter::enableLogging(bool enable)
     emit enableBacklogButton(enable);
 }
 
-void CombinedLogWriter::backLogButtonClicked()
+void CombinedLogWriter::saveBackLog()
 {
     const QString filename = createLogFilename();
 
