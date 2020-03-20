@@ -530,7 +530,7 @@ QList<QByteArray> Simulator::createVisionPacket()
 
             // get ball position
             bool visible = m_data->ball->update(detection->add_balls(), m_data->stddevBall, cameraInfos[cameraId],
-                    totalBoundaryWidth, m_data->enableInvisibleBall, m_data->ballVisibilityThreshold, m_data->cameraSetup.camera_height());
+                    totalBoundaryWidth, m_data->enableInvisibleBall, m_data->ballVisibilityThreshold);
             if (!visible) {
                 detection->clear_balls();
             }

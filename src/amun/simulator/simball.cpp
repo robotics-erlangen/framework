@@ -181,7 +181,7 @@ static float positionOfVisiblePixels(btVector3& p, const btVector3& simulatorBal
 }
 
 bool SimBall::update(SSL_DetectionBall *ball, float stddev, const CameraInfo& cameraInfo,
-                    float fieldBoundaryWidth, bool enableInvisibleBall, float visibilityThreshold, float cameraHeight)
+                    float fieldBoundaryWidth, bool enableInvisibleBall, float visibilityThreshold)
 {
     // setup ssl-vision ball detection
     ball->set_confidence(1.0);
