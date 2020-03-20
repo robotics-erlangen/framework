@@ -27,11 +27,12 @@ import * as Constants from "base/constants";
 import { Coordinates } from "base/coordinates";
 import * as plot from "base/plot";
 import { world } from "base/protobuf";
+import { Robot } from "base/robot";
 import { Position, Speed, Vector } from "base/vector";
 import { GeometryType } from "base/world";
 
-
-let BALL_QUALITY_FILTER_FACTOR = 0.05;
+const BALL_QUALITY_FILTER_FACTOR = 0.05;
+const MAXSPEED_MIN_ROBOT_DIST = 0.1;
 
 export class Ball {
 	/** Ball radius */
@@ -60,7 +61,9 @@ export class Ball {
 	// private attributes
 	private _isVisible: boolean = false;
 	private _hadRawData: boolean = false; // used for detecting old simulator logs with no recoded ball raw data
-
+	private ballPosInFrame: Position[] = [];
+	private counter: number = 0;
+	private ballIsNearToRobot: boolean = false;
 	// constructor must only be called by world!
 	constructor() {
 		//
@@ -89,7 +92,7 @@ export class Ball {
 	}
 
 	// Processes ball information from amun, passed by world
-	_update(data: world.Ball | undefined, time: number, geom?: GeometryType) {
+	_update(data: world.Ball | undefined, time: number, geom?: GeometryType, robots?: Robot[]) {
 		this.hasRawData = false;
 		// WARNING: this is the quality BEFORE the frame
 		plot.addPlot("Ball.quality", this.detectionQuality);
@@ -104,7 +107,7 @@ export class Ball {
 		let nextSpeed = Coordinates.toLocal(new Vector(data.v_x, data.v_y));
 		let extraDist = 2;
 		let SIZE_LIMIT = 1000;
-		if (nextPos.isNan() || nextSpeed.isNan() || Math.abs(nextPos.x) > SIZE_LIMIT  ||
+		if (nextPos.isNan() || nextSpeed.isNan() || Math.abs(nextPos.x) > SIZE_LIMIT ||
 			Math.abs(nextPos.y) > SIZE_LIMIT || Math.abs(nextSpeed.x) > SIZE_LIMIT || Math.abs(nextSpeed.y) > SIZE_LIMIT) {
 			this._updateLostBall(time);
 			return;
@@ -133,7 +136,7 @@ export class Ball {
 		}
 		this.isBouncing = !!data.is_bouncing;
 
-		this._updateTrackedState(lastSpeedLength);
+		this._updateTrackedState(lastSpeedLength, robots);
 
 		this._updateRawDetections(data.raw);
 	}
@@ -150,19 +153,36 @@ export class Ball {
 		}
 	}
 
-	_updateTrackedState(lastSpeedLength: number) {
+	_updateTrackedState(lastSpeedLength: number, robots?: Robot[]) {
 		// speed tracking
 		// framesDecelerating counts the number of frames since the last extreme acceleration
 		// so even if the ball slowly accelerates, framesDecelerating will not reset
 		if (this.speed.length() - lastSpeedLength > 0.2) {
 			this.framesDecelerating = 0;
 		} else {
+			this.ballPosInFrame[this.counter] = this.pos;
+			this.counter += 1;
 			this.framesDecelerating = this.framesDecelerating + 1;
 		}
 		// if the ball does not accelerate extremely for 3 frames straight, the current velocity
 		// is taken as the maximum ball speed
-		if (this.framesDecelerating === 3) {
+		if (robots != undefined) {
+			for (let framepos of this.ballPosInFrame) {
+				for (let r of robots) {
+					if (r.pos.distanceToSq(framepos) < MAXSPEED_MIN_ROBOT_DIST * MAXSPEED_MIN_ROBOT_DIST) {
+						this.ballIsNearToRobot = true;
+						break;
+					}
+				}
+			}
+		}
+		if (this.framesDecelerating === 3 && this.ballIsNearToRobot) {
+			this.ballIsNearToRobot = false;
+			this.counter = 0;
 			this.maxSpeed = this.speed.length();
+		}
+		if (this.counter === 3) {
+			this.counter = 0;
 		}
 		if (this.maxSpeed < this.speed.length()) {
 			this.maxSpeed = this.maxSpeed + 0.3 * (this.speed.length() - this.maxSpeed);
