@@ -155,6 +155,9 @@ void Referee::process(const world::State &worldState)
                 }
             }
         }
+        if (m_gameState.has_current_action_time_remaining() && m_gameState.current_action_time_remaining() < 0) {
+            m_gameState.set_state(amun::GameState::Game);
+        }
         break;
 
     default:
