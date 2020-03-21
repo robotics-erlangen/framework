@@ -37,6 +37,13 @@ public:
     void setAngle(float a) { angle = a; }
     void setMidSpeed(Vector speed) { midSpeed = speed; }
 
+    void serialize(pathfinding::StandardSamplerPoint *point) const {
+        point->set_time(getTime());
+        point->set_angle(getAngle());
+        point->set_mid_speed_x(getMidSpeed().x);
+        point->set_mid_speed_y(getMidSpeed().y);
+    }
+
     float time = 0;
     float angle = 0;
     Vector midSpeed = Vector(0, 0);

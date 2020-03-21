@@ -103,3 +103,21 @@ message PathFindingTask {
 	optional WorldState state = 1;
 	optional TrajectoryInput input = 2;
 }
+
+// these messages are for defining the pre-computed values to use during run-time
+message StandardSamplerPoint {
+    optional float time = 1;
+    optional float angle = 2;
+    optional float mid_speed_x = 3;
+    optional float mid_speed_y = 4;
+};
+
+message StandardSamplerPrecomputationSegment {
+    repeated StandardSamplerPoint precomputed_points = 1;
+    optional float min_distance = 2;
+    optional float max_distance = 3;
+};
+
+message StandardSamplerPrecomputation {
+    repeated StandardSamplerPrecomputationSegment segments = 1;
+};
