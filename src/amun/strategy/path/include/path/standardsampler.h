@@ -23,6 +23,25 @@
 
 #include "trajectorysampler.h"
 
+class StandardTrajectorySample
+{
+public:
+    StandardTrajectorySample() {}
+    StandardTrajectorySample(float time, float angle, Vector midSpeed) : time(time), angle(angle), midSpeed(midSpeed) {}
+
+    float getTime() const { return time; }
+    float getAngle() const { return angle; }
+    Vector getMidSpeed() const { return midSpeed; }
+
+    void setTime(float t) { time = t; }
+    void setAngle(float a) { angle = a; }
+    void setMidSpeed(Vector speed) { midSpeed = speed; }
+
+    float time = 0;
+    float angle = 0;
+    Vector midSpeed = Vector(0, 0);
+};
+
 class StandardSampler : public TrajectorySampler
 {
 public:
@@ -33,19 +52,22 @@ public:
     static constexpr float OBSTACLE_AVOIDANCE_RADIUS = 0.1f;
     static constexpr float OBSTACLE_AVOIDANCE_BONUS = 1.2f;
 
-private:
-    bool checkMidPoint(const TrajectoryInput &input, Vector midSpeed, const float time, const float angle);
-    Vector randomSpeed(float maxSpeed);
+    // a negative return value indicates that the input was invalid or worse and a positive value is the score of the successfull check
+    float checkSample(const TrajectoryInput &input, const StandardTrajectorySample &sample, const float currentBestTime);
 
 private:
-    struct BestTrajectoryInfo {
+    struct StandardSamplerBestTrajectoryInfo {
         float time = 0;
-        float centerTime = 0;
-        float angle = 0;
-        Vector midSpeed = Vector(0, 0);
         bool valid = false;
+        StandardTrajectorySample sample;
     };
-    BestTrajectoryInfo m_bestResultInfo;
+
+private:
+    Vector randomSpeed(float maxSpeed);
+    void computeLive(const TrajectoryInput &input, const StandardSamplerBestTrajectoryInfo &lastFrameInfo);
+
+private:
+    StandardSamplerBestTrajectoryInfo m_bestResultInfo;
 
     std::vector<TrajectoryGenerationInfo> m_generationInfo;
 };

@@ -27,8 +27,8 @@ StandardSampler::StandardSampler(RNG *rng, const WorldInformation &world, PathDe
 
 bool StandardSampler::compute(const TrajectoryInput &input)
 {
-    BestTrajectoryInfo lastTrajectoryInfo = m_bestResultInfo;
-    if (lastTrajectoryInfo.midSpeed.lengthSquared() > input.maxSpeedSquared) {
+    StandardSamplerBestTrajectoryInfo lastTrajectoryInfo = m_bestResultInfo;
+    if (lastTrajectoryInfo.sample.getMidSpeed().lengthSquared() > input.maxSpeedSquared) {
         lastTrajectoryInfo.valid = false;
     }
 
@@ -37,9 +37,16 @@ bool StandardSampler::compute(const TrajectoryInput &input)
 
     // check trajectory from last iteration
     if (lastTrajectoryInfo.valid) {
-        checkMidPoint(input, lastTrajectoryInfo.midSpeed, lastTrajectoryInfo.centerTime, lastTrajectoryInfo.angle);
+        checkSample(input, lastTrajectoryInfo.sample, m_bestResultInfo.time);
     }
 
+    computeLive(input, lastTrajectoryInfo);
+
+    return m_bestResultInfo.valid;
+}
+
+void StandardSampler::computeLive(const TrajectoryInput &input, const StandardSamplerBestTrajectoryInfo &lastFrameInfo)
+{
     Vector defaultSpeed = input.distance * (std::max(2.5f, input.distance.length() / 2) / input.distance.length());
     // limit default speed to allowed speed
     if (defaultSpeed.lengthSquared() > input.maxSpeedSquared) {
@@ -65,7 +72,7 @@ bool StandardSampler::compute(const TrajectoryInput &input)
         } else {
             if (m_rng->uniformInt() % 1024 < 150) {
                 mode = TOTAL_RANDOM;
-            } else if (m_bestResultInfo.time < lastTrajectoryInfo.time + 0.05f) {
+            } else if (m_bestResultInfo.time < lastFrameInfo.time + 0.05f) {
                 mode = CURRENT_BEST;
             } else {
                 mode = m_rng->uniformInt() % 2 == 0 ? CURRENT_BEST : LAST_BEST;
@@ -87,21 +94,20 @@ bool StandardSampler::compute(const TrajectoryInput &input)
             time = m_rng->uniformFloat(0, maxTime);
         } else {
             // TODO: gaussian sampling
-            const BestTrajectoryInfo &info = mode == CURRENT_BEST ? m_bestResultInfo : lastTrajectoryInfo;
+            const StandardSamplerBestTrajectoryInfo &info = mode == CURRENT_BEST ? m_bestResultInfo : lastFrameInfo;
             const float RADIUS = 0.2f;
-            Vector chosenMidSpeed = info.midSpeed;
+            Vector chosenMidSpeed = info.sample.getMidSpeed();
             while (chosenMidSpeed.lengthSquared() > input.maxSpeedSquared) {
                 chosenMidSpeed *= 0.9f;
             }
             do {
                 speed = chosenMidSpeed + Vector(m_rng->uniformFloat(-RADIUS, RADIUS), m_rng->uniformFloat(-RADIUS, RADIUS));
             } while (speed.lengthSquared() >= input.maxSpeedSquared);
-            angle = info.angle + m_rng->uniformFloat(-0.1f, 0.1f);
-            time = std::max(0.0001f, info.centerTime + m_rng->uniformFloat(-0.1f, 0.1f));
+            angle = info.sample.getAngle() + m_rng->uniformFloat(-0.1f, 0.1f);
+            time = std::max(0.0001f, info.sample.getTime() + m_rng->uniformFloat(-0.1f, 0.1f));
         }
-        checkMidPoint(input, speed, time, angle);
+        checkSample(input, StandardTrajectorySample(time, angle, speed), m_bestResultInfo.time);
     }
-    return m_bestResultInfo.valid;
 }
 
 Vector StandardSampler::randomSpeed(float maxSpeed)
@@ -114,13 +120,14 @@ Vector StandardSampler::randomSpeed(float maxSpeed)
     return testSpeed;
 }
 
-bool StandardSampler::checkMidPoint(const TrajectoryInput &input, Vector midSpeed, const float time, const float angle)
+float StandardSampler::checkSample(const TrajectoryInput &input, const StandardTrajectorySample &sample, const float currentBestTime)
 {
     // construct second part from mid point data
-    if (!AlphaTimeTrajectory::isInputValidFastEndSpeed(midSpeed, input.v1, time, input.acceleration)) {
-        return false;
+    if (!AlphaTimeTrajectory::isInputValidFastEndSpeed(sample.getMidSpeed(), input.v1, sample.getTime(), input.acceleration)) {
+        return -1;
     }
-    SpeedProfile secondPart = AlphaTimeTrajectory::calculateTrajectoryFastEndSpeed(midSpeed, input.v1, time, angle, input.acceleration, input.maxSpeed);
+    SpeedProfile secondPart = AlphaTimeTrajectory::calculateTrajectoryFastEndSpeed(sample.getMidSpeed(), input.v1, sample.getTime(),
+                                                                                   sample.getAngle(), input.acceleration, input.maxSpeed);
     float secondPartTime;
     Vector secondPartOffset;
     // TODO: this code duplication is not good
@@ -133,16 +140,17 @@ bool StandardSampler::checkMidPoint(const TrajectoryInput &input, Vector midSpee
         secondPartTime = secondPart.time();
         secondPartOffset = secondPart.positionForTime(secondPartTime);
     }
-    if (secondPartTime > m_bestResultInfo.time) {
-        return false;
+    if (secondPartTime > currentBestTime) {
+        return -1;
     }
 
     // calculate first part trajectory
     Vector firstPartPosition = input.distance - secondPartOffset;
     float firstPartSlowDownTime = input.exponentialSlowDown ? std::max(0.0f, AlphaTimeTrajectory::SLOW_DOWN_TIME - secondPartTime) : 0.0f;
-    SpeedProfile firstPart = AlphaTimeTrajectory::findTrajectoryExactEndSpeed(input.v0, midSpeed, firstPartPosition, input.acceleration, input.maxSpeed, firstPartSlowDownTime);
+    SpeedProfile firstPart = AlphaTimeTrajectory::findTrajectoryExactEndSpeed(input.v0, sample.getMidSpeed(), firstPartPosition, input.acceleration,
+                                                                              input.maxSpeed, firstPartSlowDownTime);
     if (!firstPart.isValid()) {
-        return false;
+        return -1;
     }
     float firstPartTime;
     if (input.exponentialSlowDown && firstPartSlowDownTime > 0) {
@@ -150,17 +158,17 @@ bool StandardSampler::checkMidPoint(const TrajectoryInput &input, Vector midSpee
     } else {
         firstPartTime = firstPart.time();
     }
-    if (firstPartTime + secondPartTime > m_bestResultInfo.time) {
-        return false;
+    if (firstPartTime + secondPartTime > currentBestTime) {
+        return -1;
     }
     float firstPartObstacleDist = m_world.minObstacleDistance(firstPart, 0, firstPartSlowDownTime, input.s0).first;
     if (firstPartObstacleDist <= 0) {
-        return false;
+        return -1;
     }
     // TODO: calculate the offset while calculating the trajectory
     auto secondPartObstacleDistances = m_world.minObstacleDistance(secondPart, firstPartTime, slowDownTime, input.s1 - secondPartOffset);
     if (secondPartObstacleDistances.first <= 0) {
-        return false;
+        return -1;
     }
     float minObstacleDist = std::min(firstPartObstacleDist, secondPartObstacleDistances.first);
     float obstacleDistExtraTime = 1;
@@ -168,16 +176,14 @@ bool StandardSampler::checkMidPoint(const TrajectoryInput &input, Vector midSpee
         obstacleDistExtraTime = OBSTACLE_AVOIDANCE_BONUS;
     }
     float biasedTrajectoryTime = (firstPartTime + secondPartTime) * obstacleDistExtraTime;
-    if (biasedTrajectoryTime > m_bestResultInfo.time) {
-        return false;
+    if (biasedTrajectoryTime > currentBestTime) {
+        return -1;
     }
 
     // trajectory is possible, better than previous trajectory
     m_bestResultInfo.time = biasedTrajectoryTime;
-    m_bestResultInfo.centerTime = time;
-    m_bestResultInfo.angle = angle;
-    m_bestResultInfo.midSpeed = midSpeed;
     m_bestResultInfo.valid = true;
+    m_bestResultInfo.sample = sample;
 
     m_generationInfo.clear();
     TrajectoryGenerationInfo infoFirstPart;
@@ -194,5 +200,5 @@ bool StandardSampler::checkMidPoint(const TrajectoryInput &input, Vector midSpee
     // TODO: this could go wrong if we want to stay at the current robot position
     infoSecondPart.desiredDistance = Vector(0, 0); // do not use desired distance calculation
     m_generationInfo.push_back(infoSecondPart);
-    return true;
+    return biasedTrajectoryTime;
 }
