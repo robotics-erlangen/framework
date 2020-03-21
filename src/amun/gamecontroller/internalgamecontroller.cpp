@@ -158,6 +158,13 @@ void InternalGameController::handleGameEvent(std::shared_ptr<gameController::Aut
         // TODO: emit reply message
         return;
     }
+
+    // convert aimless kick events to ball left field goal line events (since we use the division a rules)
+    // this must be done before copying the message to m_packet
+    if (message->game_event().type() == gameController::AIMLESS_KICK) {
+        message->mutable_game_event()->set_type(gameController::BALL_LEFT_FIELD_GOAL_LINE);
+    }
+
     const gameController::GameEvent &event = message->game_event();
 
     m_packet.clear_game_events();
@@ -227,7 +234,6 @@ void InternalGameController::handleGameEvent(std::shared_ptr<gameController::Aut
     switch (event.type()) {
     case gameController::CHIPPED_GOAL:
     case gameController::INDIRECT_GOAL:
-    case gameController::AIMLESS_KICK:
     case gameController::BALL_LEFT_FIELD_GOAL_LINE:
         placementPos.x = sign(eventLocation.x) * (m_geometry.field_height() / 2.0f - GOAL_LINE_DISTANCE);
         placementPos.y = sign(eventLocation.y) * (m_geometry.field_width() / 2.0f - FIELD_LINE_DISTANCE);
