@@ -1,3 +1,23 @@
+/***************************************************************************
+ *   Copyright 2020 Andreas Wendler                                        *
+ *   Robotics Erlangen e.V.                                                *
+ *   http://www.robotics-erlangen.de/                                      *
+ *   info@robotics-erlangen.de                                             *
+ *                                                                         *
+ *   This program is free software: you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation, either version 3 of the License, or     *
+ *   any later version.                                                    *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
+ ***************************************************************************/
+
 #include "internalgamecontroller.h"
 #include "protobuf/ssl_referee.h"
 #include <google/protobuf/descriptor.h>
@@ -66,10 +86,15 @@ void InternalGameController::handleGuiCommand(const QByteArray &data)
         m_packet.set_command_timestamp(m_timer->currentTime() / 1000L);
         m_packet.set_command_counter(counterBefore+1);
 
-        // start timeout for ball placement once the command is issued from the ui
+        // start timeout for ball placement and freekicks once the command is issued from the ui
         if (m_packet.command() == SSL_Referee::BALL_PLACEMENT_BLUE || m_packet.command() == SSL_Referee::BALL_PLACEMENT_YELLOW) {
             m_currentActionStartTime = m_timer->currentTime() / 1000L;
             m_currentActionAllowedTime = BALL_PLACEMENT_TIME;
+        }
+        if (m_packet.command() == SSL_Referee::DIRECT_FREE_BLUE || m_packet.command() == SSL_Referee::DIRECT_FREE_YELLOW ||
+                m_packet.command() == SSL_Referee::INDIRECT_FREE_BLUE || m_packet.command() == SSL_Referee::INDIRECT_FREE_YELLOW) {
+            m_currentActionStartTime = m_timer->currentTime() / 1000L;
+            m_currentActionAllowedTime = FREEKICK_TIME;
         }
     } else {
         m_packet.mutable_blue()->CopyFrom(newState.blue());
@@ -222,7 +247,7 @@ void InternalGameController::handleGameEvent(std::shared_ptr<gameController::Aut
         shouldPlace = false;
         if (m_packet.next_command() != SSL_Referee::FORCE_START) {
             m_currentActionStartTime = m_timer->currentTime() / 1000L;
-            m_currentActionAllowedTime = 5000000;
+            m_currentActionAllowedTime = FREEKICK_TIME;
         }
         SSL_Referee::Command command = m_packet.next_command();
         m_packet.clear_next_command();
@@ -298,13 +323,14 @@ void InternalGameController::handleGameEvent(std::shared_ptr<gameController::Aut
         m_packet.set_next_command(placingTeamIsYellow ? SSL_Referee::DIRECT_FREE_YELLOW : SSL_Referee::DIRECT_FREE_BLUE);
         break;
     case gameController::DEFENDER_TOO_CLOSE_TO_KICK_POINT:
+        // this is not according to the official rules, but better for automatic testing as the ball may have been moved
         shouldPlace = true;
         placementPos = ballPlacementPosForFoul(eventLocation);
         // leave next command the same
         break;
     default:
         // do nothing here, these should not originate from the autoref
-        // (or we dont care, i.e. for crash_drawn
+        // (or we dont care, i.e. for crash_drawn)
         break;
     }
     // TODO: set current action start time to something negative if it is not needed
