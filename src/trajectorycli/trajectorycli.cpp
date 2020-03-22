@@ -76,19 +76,6 @@ static TrajectoryInput deserializeTrajectoryInput(const pathfinding::TrajectoryI
     return result;
 }
 
-static StandardTrajectorySample normalizeSituation(const StandardTrajectorySample &denorm, const Situation &situation)
-{
-    StandardTrajectorySample normalized = denorm;
-    Vector toTarget = (situation.input.s1 - situation.input.s0).normalized();
-    Vector sideWays = toTarget.perpendicular();
-    normalized.setMidSpeed(toTarget * denorm.getMidSpeed().x + sideWays * denorm.getMidSpeed().y);
-    normalized.setAngle(normalized.getAngle() + toTarget.angle());
-    while (normalized.getAngle() > 2.0 * M_PI) normalized.setAngle(normalized.getAngle() - 2.0 * M_PI);
-    while (normalized.getAngle() < 0) normalized.setAngle(normalized.getAngle() + 2 * M_PI);
-
-    return normalized;
-}
-
 static StandardTrajectorySample randomSample(RNG &rng, float maxSpeed, float maxDistance)
 {
     Vector currentMidSpeed = Vector(rng.uniformFloat(-maxSpeed, maxSpeed),
@@ -119,13 +106,14 @@ static std::vector<float> evaluateSample(RNG &rng, const std::vector<Situation> 
 {
     std::vector<float> result;
     for (const auto &s : scenarios) {
-        StandardTrajectorySample normalized = normalizeSituation(sample, s);
+        StandardTrajectorySample normalized = sample.denormalize(s.input);
 
         if (normalized.getMidSpeed().length() > s.input.maxSpeed) {
             continue;
         }
         PathDebug debug;
-        StandardSampler sampler(&rng, s.world, debug);
+        // do not load the precomputation file every time for this
+        StandardSampler sampler(&rng, s.world, debug, false);
 
         float sampleResult = sampler.checkSample(s.input, normalized, std::numeric_limits<float>::max());
         if (sampleResult >= 0) {
@@ -263,21 +251,7 @@ static std::pair<std::vector<Situation>, std::vector<Situation>> checkPossible(c
     return {possible, impossible};
 }
 
-struct SegmentInfo {
-    float minDistance;
-    float maxDistance;
-    std::vector<StandardTrajectorySample> precomputedPoints;
-
-    void serialize(pathfinding::StandardSamplerPrecomputationSegment *segment) const {
-        segment->set_min_distance(minDistance);
-        segment->set_max_distance(maxDistance);
-        for (const auto &sample : precomputedPoints) {
-            sample.serialize(segment->add_precomputed_points());
-        }
-    }
-};
-
-static void saveResult(const std::vector<SegmentInfo> &segments, const QString &outFilename)
+static void saveResult(const std::vector<PrecomputationSegmentInfo> &segments, const QString &outFilename)
 {
     pathfinding::StandardSamplerPrecomputation data;
     for (auto point : segments) {
@@ -296,7 +270,7 @@ static void runOptimization(const std::vector<Situation> &situations, const QStr
     RNG rng;
 
     std::size_t i = 0;
-    std::vector<SegmentInfo> result;
+    std::vector<PrecomputationSegmentInfo> result;
     for (auto &sc : segmentedSituations) {
 
         // collect obstacles, do this as late as possible to avoid changes to the memory where obstacles are stored (due to copying situations)
@@ -310,7 +284,7 @@ static void runOptimization(const std::vector<Situation> &situations, const QStr
         std::cout <<"Compute segment "<<minDist<<" -> "<<maxDist<<", size "<<sc.size()<<std::endl;
         auto points = optimize(rng, sc, maxDist);
 
-        SegmentInfo segmentResult;
+        PrecomputationSegmentInfo segmentResult;
         segmentResult.minDistance = minDist;
         segmentResult.maxDistance = i == SCENARIO_SEGMENTS-1 ? std::numeric_limits<float>::max() : maxDist;
         segmentResult.precomputedPoints = points;

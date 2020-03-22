@@ -22,6 +22,7 @@
 #define STANDARDSAMPLER_H
 
 #include "trajectorysampler.h"
+#include "protobuf/pathfinding.pb.h"
 
 class StandardTrajectorySample
 {
@@ -37,22 +38,29 @@ public:
     void setAngle(float a) { angle = a; }
     void setMidSpeed(Vector speed) { midSpeed = speed; }
 
-    void serialize(pathfinding::StandardSamplerPoint *point) const {
-        point->set_time(getTime());
-        point->set_angle(getAngle());
-        point->set_mid_speed_x(getMidSpeed().x);
-        point->set_mid_speed_y(getMidSpeed().y);
-    }
+    void serialize(pathfinding::StandardSamplerPoint *point) const;
+    void deserialize(const pathfinding::StandardSamplerPoint &point);
+
+    StandardTrajectorySample denormalize(const TrajectoryInput &input) const;
 
     float time = 0;
     float angle = 0;
     Vector midSpeed = Vector(0, 0);
 };
 
+struct PrecomputationSegmentInfo {
+    float minDistance;
+    float maxDistance;
+    std::vector<StandardTrajectorySample> precomputedPoints;
+
+    void serialize(pathfinding::StandardSamplerPrecomputationSegment *segment) const;
+    void deserialize(const pathfinding::StandardSamplerPrecomputationSegment &segment);
+};
+
 class StandardSampler : public TrajectorySampler
 {
 public:
-    StandardSampler(RNG *rng, const WorldInformation &world, PathDebug &debug);
+    StandardSampler(RNG *rng, const WorldInformation &world, PathDebug &debug, bool usePrecomputation = true);
     bool compute(const TrajectoryInput &input) override;
     const std::vector<TrajectoryGenerationInfo> &getResult() const override { return m_generationInfo; }
 
@@ -72,11 +80,15 @@ private:
 private:
     Vector randomSpeed(float maxSpeed);
     void computeLive(const TrajectoryInput &input, const StandardSamplerBestTrajectoryInfo &lastFrameInfo);
+    void computePrecomputed(const TrajectoryInput &input);
 
 private:
     StandardSamplerBestTrajectoryInfo m_bestResultInfo;
 
     std::vector<TrajectoryGenerationInfo> m_generationInfo;
+
+    // precomputation
+    std::vector<PrecomputationSegmentInfo> m_precomputedPoints;
 };
 
 #endif // STANDARDSAMPLER_H

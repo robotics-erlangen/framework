@@ -20,10 +20,26 @@
 
 #include "standardsampler.h"
 #include "core/rng.h"
+#include "core/protobuffilereader.h"
+#include "config/config.h"
+#include <QDebug>
 
-StandardSampler::StandardSampler(RNG *rng, const WorldInformation &world, PathDebug &debug) :
+StandardSampler::StandardSampler(RNG *rng, const WorldInformation &world, PathDebug &debug, bool usePrecomputation) :
     TrajectorySampler(rng, world, debug)
-{ }
+{
+    if (usePrecomputation) {
+        // load precomputed points
+        ProtobufFileReader reader;
+        reader.open(QString(ERFORCE_DATADIR) + "precomputation/standardsampler.prec", "KHONSU PRECOMPUTATION");
+        pathfinding::StandardSamplerPrecomputation precomp;
+        reader.readNext(precomp);
+        for (const auto &a : precomp.segments()) {
+            PrecomputationSegmentInfo segment;
+            segment.deserialize(a);
+            m_precomputedPoints.push_back(segment);
+        }
+    }
+}
 
 bool StandardSampler::compute(const TrajectoryInput &input)
 {
@@ -40,7 +56,13 @@ bool StandardSampler::compute(const TrajectoryInput &input)
         checkSample(input, lastTrajectoryInfo.sample, m_bestResultInfo.time);
     }
 
-    computeLive(input, lastTrajectoryInfo);
+    // if no precomputation is found, fall back to live sampling
+    if (m_precomputedPoints.size() == 0) {
+        computeLive(input, lastTrajectoryInfo);
+    } else {
+        computePrecomputed(input);
+    }
+
 
     return m_bestResultInfo.valid;
 }
@@ -107,6 +129,19 @@ void StandardSampler::computeLive(const TrajectoryInput &input, const StandardSa
             time = std::max(0.0001f, info.sample.getTime() + m_rng->uniformFloat(-0.1f, 0.1f));
         }
         checkSample(input, StandardTrajectorySample(time, angle, speed), m_bestResultInfo.time);
+    }
+}
+
+void StandardSampler::computePrecomputed(const TrajectoryInput &input)
+{
+    float distance = input.distance.length();
+    for (const auto &segment : m_precomputedPoints) {
+        if (segment.minDistance <= distance && segment.maxDistance >= distance) {
+            for (const auto &sample : segment.precomputedPoints) {
+                checkSample(input, sample.denormalize(input), m_bestResultInfo.time);
+            }
+            break;
+        }
     }
 }
 
@@ -201,4 +236,64 @@ float StandardSampler::checkSample(const TrajectoryInput &input, const StandardT
     infoSecondPart.desiredDistance = Vector(0, 0); // do not use desired distance calculation
     m_generationInfo.push_back(infoSecondPart);
     return biasedTrajectoryTime;
+}
+
+void PrecomputationSegmentInfo::serialize(pathfinding::StandardSamplerPrecomputationSegment *segment) const
+{
+    segment->set_min_distance(minDistance);
+    segment->set_max_distance(maxDistance);
+    for (const auto &sample : precomputedPoints) {
+        sample.serialize(segment->add_precomputed_points());
+    }
+}
+
+void PrecomputationSegmentInfo::deserialize(const pathfinding::StandardSamplerPrecomputationSegment &segment)
+{
+    if (segment.has_min_distance()) {
+        minDistance = segment.min_distance();
+    }
+    if (segment.has_max_distance()) {
+        maxDistance = segment.max_distance();
+    }
+    for (const auto &point : segment.precomputed_points()) {
+        StandardTrajectorySample s;
+        s.deserialize(point);
+        precomputedPoints.push_back(s);
+    }
+}
+
+void StandardTrajectorySample::serialize(pathfinding::StandardSamplerPoint *point) const {
+    point->set_time(getTime());
+    point->set_angle(getAngle());
+    point->set_mid_speed_x(getMidSpeed().x);
+    point->set_mid_speed_y(getMidSpeed().y);
+}
+
+void StandardTrajectorySample::deserialize(const pathfinding::StandardSamplerPoint &point)
+{
+    if (point.has_time()) {
+        setTime(point.time());
+    }
+    if (point.has_angle()) {
+        setAngle(point.angle());
+    }
+    if (point.has_mid_speed_x()) {
+        midSpeed.x = point.mid_speed_x();
+    }
+    if (point.has_mid_speed_y()) {
+        midSpeed.y = point.mid_speed_y();
+    }
+}
+
+StandardTrajectorySample StandardTrajectorySample::denormalize(const TrajectoryInput &input) const
+{
+    StandardTrajectorySample normalized = *this;
+    Vector toTarget = (input.s1 - input.s0).normalized();
+    Vector sideWays = toTarget.perpendicular();
+    normalized.setMidSpeed(toTarget * getMidSpeed().x + sideWays * getMidSpeed().y);
+    normalized.setAngle(normalized.getAngle() + toTarget.angle());
+    while (normalized.getAngle() > 2.0 * M_PI) normalized.setAngle(normalized.getAngle() - 2.0 * M_PI);
+    while (normalized.getAngle() < 0) normalized.setAngle(normalized.getAngle() + 2 * M_PI);
+
+    return normalized;
 }
