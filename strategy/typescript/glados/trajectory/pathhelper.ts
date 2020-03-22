@@ -464,7 +464,7 @@ function addRobotObstacles(path: Path, robot: FriendlyRobot, targetPosition: Pos
 			if (robot.speed.lengthSq() < MAX_NO_FOULD_SPEED * MAX_NO_FOULD_SPEED /*we cannot collide and invoke a foul if where slower than 0.5 m/s*/ &&
 				robot.pos.distanceTo(targetPosition) < MAX_NO_FOULD_SPEED / robot.acceleration.aBrakeFMax * 0.5 * MAX_NO_FOULD_SPEED /*We may not use this if we're going to accelerate again */) {
 				break;
-				}
+			}
 			if (!ignoreRobot(robot, r)) {
 				// use speed difference to calculate the safety distance
 				let safetyDistance = Math.max(0, Rating.valueToRating(robot.speed.distanceTo(r.speed), 0, 1.25) * 0.15 - 0.05);

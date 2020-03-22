@@ -27,7 +27,7 @@ export function centerBackDistanceToDefenseArea() {
 	return 0.08;
 }
 
-export let centerBackDefaultPos = new Vector(0, -World.Geometry.FieldHeightHalf + World.Geometry.DefenseRadius + 0.09 + 0.02);
+export let centerBackDefaultPos = new Vector(0, -World.Geometry.FieldHeightHalf + World.Geometry.DefenseHeight + 0.09 + 0.02);
 
 export let POSITION_PADDING = 0.02; // safety distance
 export let PENALTY_LINE_DISTANCE = 0.35; // prevent robots from crossing the penalty line

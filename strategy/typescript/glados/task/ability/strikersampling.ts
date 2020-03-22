@@ -129,7 +129,7 @@ export class StrikerSampling {
 		let minRating = World.Ball.speed.length() < 1 ? 0.3 : 0.1;
 
 		let distToGoal = ballPos.distanceTo(World.Geometry.OpponentGoal);
-		let minDist = World.Geometry.DefenseRadius + 0.7;
+		let minDist = World.Geometry.DefenseHeight + 0.7;
 		let ratingBase = Rating.valueToRating(distToGoal, World.Geometry.FieldHeight * 0.7, minDist);
 		let ratingBonus = Rating.valueToRating(distToGoal, minDist + 2, minDist);
 		let rating = 0.2 * ratingBase + 0.8 * ratingBonus;

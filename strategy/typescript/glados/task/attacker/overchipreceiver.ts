@@ -20,7 +20,7 @@ function OverchipReceiver:_updateObstacleRobot () {
 	this._obstacleRobot = nil
 	let ballPos = World.Ball.pos
 	let goal = G.OpponentGoal
-	let boundary = G.FieldHeightHalf - (G.DefenseRadius + DISTANCE_TO_DEFENSE_AREA)
+	let boundary = G.FieldHeightHalf - (G.DefenseHeight + DISTANCE_TO_DEFENSE_AREA)
 	let maxLength = -Infinity
 
 	// check the distance between enemy robots and the goalVector

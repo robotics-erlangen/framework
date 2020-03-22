@@ -35,7 +35,7 @@ export class Victory extends Move {
 		let taskAssignments: Map<FriendlyRobot, Assignment> = new Map<FriendlyRobot, Assignment>();
 
 		let nRobots = this._robots.length;
-		let radius = (G.FieldHeightHalf - G.DefenseRadius) / 2;
+		let radius = (G.FieldHeightHalf - G.DefenseHeight) / 2;
 		let center: Position = new Vector(0, -radius - 0.75);
 		radius = radius - 0.5;
 		vis.addCircle("test", center, 0.05, vis.colors.yellow, true);

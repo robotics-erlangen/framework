@@ -58,7 +58,7 @@ export class MrlTestCorner extends Move {
 
 	constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 		super(robots, messaging);
-		let goalDist = G.DefenseRadius + 0.4;
+		let goalDist = G.DefenseHeight + 0.4;
 		this._distractorPositions = [
 			new Vector(0.3, G.OpponentGoal.y - goalDist),
 			new Vector(0.0, G.OpponentGoal.y - goalDist),

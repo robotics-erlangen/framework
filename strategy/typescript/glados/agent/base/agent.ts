@@ -246,7 +246,7 @@ export abstract class Agent {
 
 			if (timeToBall === Infinity) {
 				let ballOutPos = Field.nextLineCut(World.Ball.pos, World.Ball.speed);
-				if (ballOutPos && Math.abs(ballOutPos.x) > World.Geometry.DefenseStretch / 2  + World.Geometry.DefenseRadius) {
+				if (ballOutPos && Math.abs(ballOutPos.x) > World.Geometry.DefenseWidthHalf  + World.Geometry.DefenseHeight) {
 					timeToBall = Physics.robotTimeToPos(this._robot, ballOutPos, new Vector(0, 0))[0];
 				}
 			}
