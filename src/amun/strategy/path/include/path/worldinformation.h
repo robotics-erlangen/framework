@@ -107,7 +107,9 @@ private:
     StaticObstacles::Rect m_boundary;
     float m_radius = -1.0f;
 
-    static constexpr float IGNORE_MOVING_OBSTACLE_THRESHOLD = 300.0f; // ignore all moving obstacles more than this number of seconds in the future
+    // ignore all moving obstacles more than this number of seconds in the future
+    // disabled for now
+    static constexpr float IGNORE_MOVING_OBSTACLE_THRESHOLD = std::numeric_limits<float>::max();
 };
 
 #endif // WORLDINFORMATION_H
