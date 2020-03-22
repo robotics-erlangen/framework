@@ -7,8 +7,8 @@ geometry {
 	goal_depth: 0.18
 	goal_wall_width: 0.02
 	center_circle_radius: 0.5
-	defense_radius: 1.2
-	defense_stretch: 2.35
+	defense_radius: 1.8
+	defense_stretch: 3.6
 	free_kick_from_defense_dist: 0.2
 	penalty_spot_from_field_line_dist: 1.8
 	penalty_line_from_spot_dist: 0.4
