@@ -290,7 +290,7 @@ std::pair<float, float> WorldInformation::minObstacleDistance(const SpeedProfile
     const int DIVISIONS = 40;
     Vector lastPos;
     for (int i = 0;i<DIVISIONS;i++) {
-        float time = totalTime * i / float(DIVISIONS);
+        float time = totalTime * i / float(DIVISIONS-1);
         Vector pos = slowDownTime > 0 ? profile.positionForTimeSlowDown(time, slowDownTime) : profile.positionForTime(time);
         if (!pointInPlayfield(pos + startPos, m_radius)) {
             return {-1.0f, -1.0f};
