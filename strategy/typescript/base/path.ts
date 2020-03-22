@@ -208,6 +208,7 @@ interface PathObjectTrajectory extends PathObjectCommon {
 	addRobotTrajectoryObstacle(obstacle: TrajectoryObstacle, priority: number, radius: number): void;
 	maxIntersectingObstaclePrio(): number;
 	addAvoidanceLine(s0x: number, s0y: number, s1x: number, s1y: number, radius: number, avoidanceFactor: number): void;
+	setRobotId?(id: number): void;
 }
 
 interface AmunPath {
@@ -245,6 +246,9 @@ export class Path {
 	constructor(robotId: number) {
 		this._inst = pathLocal.createPath();
 		this._trajectoryInst = pathLocal.createTrajectoryPath();
+		if (this._trajectoryInst.setRobotId) {
+			this._trajectoryInst.setRobotId(robotId);
+		}
 		this._robotId = robotId;
 	}
 

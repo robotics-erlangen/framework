@@ -38,6 +38,8 @@ public:
     const StaticObstacles::Rect &boundary() const { return m_boundary; }
     void setOutOfFieldObstaclePriority(int prio) { m_outOfFieldPriority = prio; }
     int outOfFieldPriority() const { return m_outOfFieldPriority; }
+    void setRobotId(int id) { m_robotId = id; }
+    int robotId() const { return m_robotId; }
 
     // world obstacles
     void clearObstacles();
@@ -106,6 +108,7 @@ private:
 
     StaticObstacles::Rect m_boundary;
     float m_radius = -1.0f;
+    int m_robotId = 0;
 
     // ignore all moving obstacles more than this number of seconds in the future
     // disabled for now

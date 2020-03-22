@@ -435,6 +435,18 @@ static void trajectoryAddAvoidanceLine(const FunctionCallbackInfo<Value> &args)
     p->world().addAvoidanceLine(Vector(x1, y1), Vector(x2, y2), radius, avoidanceFactor);
 }
 
+static void trajectorySetRobotId(const FunctionCallbackInfo<Value> &args)
+{
+    Isolate * isolate = args.GetIsolate();
+
+    float id;
+    if (!verifyNumber(isolate, args[0], id)) {
+        return;
+    }
+    auto p = static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value())->trajectoryPath();
+    p->world().setRobotId(static_cast<int>(id));
+}
+
 static void drawTree(Typescript *thread, const KdTree *tree)
 {
     if (tree == nullptr) {
@@ -501,7 +513,8 @@ static QList<CallbackInfo> trajectoryPathCallbacks = {
     { "getTrajectoryAsObstacle", trajectoryGetLastTrajectoryAsRobotObstacle},
     { "addRobotTrajectoryObstacle", trajectoryAddRobotTrajectoryObstacle},
     { "maxIntersectingObstaclePrio", trajectoryMaxIntersectingObstaclePrio},
-    { "addAvoidanceLine",  trajectoryAddAvoidanceLine}};
+    { "addAvoidanceLine",   trajectoryAddAvoidanceLine},
+    { "setRobotId",         trajectorySetRobotId}};
 
 static void pathCreateNew(const FunctionCallbackInfo<Value>& args)
 {
