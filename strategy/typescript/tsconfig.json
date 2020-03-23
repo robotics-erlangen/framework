@@ -16,6 +16,7 @@
 		"preserveConstEnums": true,
 		"removeComments": true,
 		"sourceMap": true,
+		"allowJs": true,
 
 		"outDir": "built/built",
 		"baseUrl": ".",
