@@ -98,7 +98,7 @@ std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPat
     if (m_world.isInStaticObstacle(obstacles, m_input.s1)) {
         for (const StaticObstacles::Obstacle *o : obstacles) {
             float dist = o->distance(m_input.s1);
-            if (dist > 0.01f && dist < 0) {
+            if (dist > -0.2 && dist < 0) {
                 m_input.s1 = o->projectOut(m_input.s1, 0.03f);
             }
         }
