@@ -43,7 +43,7 @@ bool EndInObstacleSampler::compute(const TrajectoryInput &input)
         if (randVal < 300) {
             // sample random point around actual end point
             float testRadius = std::min(m_bestEndPointDistance, 0.3f);
-            testPoint = input.distance + Vector(m_rng->uniformFloat(-testRadius, testRadius), m_rng->uniformFloat(-testRadius, testRadius));
+            testPoint = input.s1 + Vector(m_rng->uniformFloat(-testRadius, testRadius), m_rng->uniformFloat(-testRadius, testRadius));
         } else if (randVal < 800 || m_bestEndPointDistance < 0.3f) {
             // sample random point around last best end point
             float testRadius = std::min(m_bestEndPointDistance, 0.3f);
@@ -59,12 +59,13 @@ bool EndInObstacleSampler::compute(const TrajectoryInput &input)
 
 bool EndInObstacleSampler::testEndPoint(const TrajectoryInput &input, Vector endPoint)
 {
-    if (endPoint.distance(input.distance) > m_bestEndPointDistance - 0.05f) {
+    float targetDistance = endPoint.distance(input.s1);
+    if (targetDistance > m_bestEndPointDistance - 0.01f) {
         return false;
     }
 
     // no slowdown here, we are not even were we want to be
-    SpeedProfile direct = AlphaTimeTrajectory::findTrajectoryExactEndSpeed(input.v0, Vector(0, 0), endPoint, input.acceleration, input.maxSpeed, 0);
+    SpeedProfile direct = AlphaTimeTrajectory::findTrajectoryExactEndSpeed(input.v0, Vector(0, 0), endPoint - input.s0, input.acceleration, input.maxSpeed, 0);
     if (!direct.isValid()) {
         return false;
     }
@@ -72,7 +73,7 @@ bool EndInObstacleSampler::testEndPoint(const TrajectoryInput &input, Vector end
         return false;
     }
 
-    m_bestEndPointDistance = endPoint.distance(input.distance);
+    m_bestEndPointDistance = targetDistance;
     isValid = true;
     m_bestEndPoint = endPoint;
 
@@ -80,7 +81,7 @@ bool EndInObstacleSampler::testEndPoint(const TrajectoryInput &input, Vector end
     result[0].profile = direct;
     result[0].slowDownTime = 0;
     result[0].fastEndSpeed = false;
-    result[0].desiredDistance = endPoint;
+    result[0].desiredDistance = endPoint - input.s0;
 
     return true;
 }
