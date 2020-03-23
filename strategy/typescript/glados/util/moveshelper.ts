@@ -28,13 +28,15 @@ function createOptionsTableRec(options: number): number[][] {
 	return resultTable;
 }
 
-// this function performs a least squares optimization of the distance
-// between each robot and the assigned position
-// as it uses brute force, it should not be called with more than 4 positions
-// @param robots table - list of robots to assign. the first ignoreFirstNRobots are assigned to their index
-// @param positions table - list of positions to assign the remaining robots to
-// @param ignoreFirstNRobots number - ignore the first n robots in robots during assignment
-// @return table - assignments. use like this: robots[assignment[i]] -> assign to positions[i]
+/**
+ * This functions performs a least squares optimization of the distance between
+ * each robot and the assigned position. As it uses brute force, it should not
+ * be called with more than 4 positions.
+ * @param robot - list of robots to assign. the first ignoreFirstNRobots are assigned to their index
+ * @param positions - list of positions to assign the remaining robots to
+ * @param ignoreFirstNRobots - ignore the first n robots in robots during assignment
+ * @returns the assignments. Use like this: robots[assignment[i]] -> assign to positions[i]
+ */
 export function assignRobots(robots: {pos: Position}[], positions: Position[], ignoreFirstNRobots: number): number[] {
 	if (robots.length - ignoreFirstNRobots !== positions.length) {
 		throw new Error("Moveshelper: unmatching number of robots and positions!");
