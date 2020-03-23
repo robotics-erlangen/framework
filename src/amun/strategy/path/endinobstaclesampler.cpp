@@ -64,6 +64,11 @@ bool EndInObstacleSampler::testEndPoint(const TrajectoryInput &input, Vector end
         return false;
     }
 
+    // try to keep at least 3 cm distance to static obstacles
+    if (m_world.minObstacleDistance(endPoint, 0, true, false) < 0.03f) {
+        return false;
+    }
+
     // no slowdown here, we are not even were we want to be
     SpeedProfile direct = AlphaTimeTrajectory::findTrajectoryExactEndSpeed(input.v0, Vector(0, 0), endPoint - input.s0, input.acceleration, input.maxSpeed, 0);
     if (!direct.isValid()) {

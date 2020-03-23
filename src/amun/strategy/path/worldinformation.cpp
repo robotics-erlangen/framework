@@ -250,7 +250,7 @@ bool WorldInformation::isTrajectoryInObstacle(const SpeedProfile &profile, float
     return false;
 }
 
-float WorldInformation::minObstacleDistance(Vector pos, float time, bool checkStatic) const
+float WorldInformation::minObstacleDistance(Vector pos, float time, bool checkStatic, bool checkDynamic) const
 {
     float minDistance = std::numeric_limits<float>::max();
     // static obstacles
@@ -264,7 +264,7 @@ float WorldInformation::minObstacleDistance(Vector pos, float time, bool checkSt
         }
     }
     // moving obstacles
-    if (time < IGNORE_MOVING_OBSTACLE_THRESHOLD) {
+    if (time < IGNORE_MOVING_OBSTACLE_THRESHOLD && checkDynamic) {
         for (const auto o : m_movingObstacles) {
             float d = o->distance(pos, time);
             if (d <= 0) {
@@ -295,7 +295,7 @@ std::pair<float, float> WorldInformation::minObstacleDistance(const SpeedProfile
         if (!pointInPlayfield(pos + startPos, m_radius)) {
             return {-1.0f, -1.0f};
         }
-        float minDistance = minObstacleDistance(pos + startPos, time + timeOffset, true);
+        float minDistance = minObstacleDistance(pos + startPos, time + timeOffset, true, true);
         if (minDistance < 0) {
             return {minDistance, minDistance};
         }
@@ -314,7 +314,7 @@ std::pair<float, float> WorldInformation::minObstacleDistance(const SpeedProfile
             const float AFTER_STOP_INTERVAL = 0.03f;
             for (int i = 0;i<int((AFTER_STOP_AVOIDANCE_TIME - totalTime) * (1.0f / AFTER_STOP_INTERVAL));i++) {
                 float t = timeOffset + totalTime + i * AFTER_STOP_INTERVAL;
-                float minDistance = minObstacleDistance(lastPos + startPos, t, false);
+                float minDistance = minObstacleDistance(lastPos + startPos, t, false, true);
                 if (minDistance < 0) {
                     return {minDistance, minDistance};
                 }

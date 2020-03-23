@@ -83,7 +83,7 @@ public:
     bool isTrajectoryInObstacle(const SpeedProfile &profile, float timeOffset, float slowDownTime, Vector startPos) const;
     // return {min distance of trajectory to obstacles, min distance of last point to obstacles}
     std::pair<float, float> minObstacleDistance(const SpeedProfile &profile, float timeOffset, float slowDownTime, Vector startPos) const;
-    float minObstacleDistance(Vector pos, float time, bool checkStatic) const;
+    float minObstacleDistance(Vector pos, float time, bool checkStatic, bool checkDynamic) const;
 
     // collectobstacles must have been called before calling this function
     void serialize(pathfinding::WorldState *state) const;
