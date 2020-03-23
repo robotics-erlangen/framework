@@ -131,7 +131,7 @@ export class AttackRatio {
 	attackerDefenderDistribution(): [number, number] {
 		let attackRatio = this.attackRatio();
 
-		let attackers = attackRatio > 0 ? Math.max(1, Math.floor(attackRatio / 8 * World.FriendlyRobots.length)) : 0;
+		let attackers = attackRatio > 0 ? Math.max(1, Math.floor(attackRatio / 11 * World.FriendlyRobots.length)) : 0;
 
 		let mainAttacker = this._messaging.receiveTrainer(MessageType.mainAttacker);
 
