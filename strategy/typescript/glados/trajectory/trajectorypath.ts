@@ -146,7 +146,9 @@ export class TrajectoryPath extends TrajectoryHandler {
 			maxSpeed, accelerate);
 
 		// if the trajectory intersects a robot obstacle, brake as fast as possible
-		if (robotSpeed.length() > 1 && this._robot.path.maxIntersectingObstaclePrio() === PathHelper.Priorities.ROBOT) {
+		// same thing if no trajectory was found (to prevent driving further into obstacles)
+		if ((robotSpeed.length() > 1 && this._robot.path.maxIntersectingObstaclePrio() === PathHelper.Priorities.ROBOT) ||
+				trajectory.length === 0) {
 			let spline = [ {t_start: 0, t_end: Infinity,
 				x: { a0: robotPos.x, a1: 0, a2: 0, a3: 0 },
 				y: { a0: robotPos.y, a1: 0, a2: 0, a3: 0 },
