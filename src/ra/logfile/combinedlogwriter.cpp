@@ -136,8 +136,9 @@ void CombinedLogWriter::enableLogging(bool enable)
         }
     }
     m_isLoggingEnabled = enable;
-    emit enableRecordButton(enable);
-    emit enableBacklogButton(enable);
+    amun::UiResponse response;
+    response.set_enable_logging(enable);
+    emit sendUiResponse(response, m_lastTime);
 }
 
 void CombinedLogWriter::saveBackLog()
@@ -217,8 +218,6 @@ void CombinedLogWriter::startLogfile()
 
 void CombinedLogWriter::recordButtonToggled(bool enabled)
 {
-    emit enableBacklogButton(!enabled);
-    emit disableSkipping(enabled);
     if (enabled) {
         Q_ASSERT(!m_logFile);
         emit resetBacklog();

@@ -50,14 +50,11 @@ public:
 
 signals:
     void setRecordButton(bool on);
-    void enableRecordButton(bool enable);
-    void enableBacklogButton(bool enable);
     void saveBacklogFile(QString filename, const Status &status, bool processEvents);
     void gotStatusForRecording(const Status &status);
     void gotStatusForBacklog(const Status &status);
     void sendUiResponse(amun::UiResponse response, qint64 time);
     void resetBacklog();
-    void disableSkipping(bool disable);
 
 public slots:
     void handleStatus(const Status &status);
@@ -76,7 +73,7 @@ private:
         LOGGING,
         BACKLOG
     } m_logState;
-    bool m_isReplay;
+    const bool m_isReplay;
     bool m_useSettingLocation = false;
     BacklogWriter *m_backlogWriter;
     QThread *m_backlogThread;

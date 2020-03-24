@@ -23,6 +23,7 @@
 
 #include "amun/amunclient.h"
 #include "logfile/combinedlogwriter.h"
+#include "loggingsuite.h"
 #include <QMainWindow>
 #include <QSet>
 #include <QList>
@@ -98,7 +99,7 @@ private:
     void loadConfig(bool doRestoreGeometry, uint configId);
     void raMode();
     void horusMode();
-    void createLogWriterConnections(CombinedLogWriter &writer, QAction *record, QAction *backlog1, QAction *backlog2);
+    void createLogWriterConnections(CombinedLogWriter &writer, QAction *record, QAction *backlog1, QAction *backlog2, Logsuite *suite);
 
 private:
     Ui::MainWindow *ui;
@@ -112,6 +113,7 @@ private:
     bool m_transceiverActive;
     qint32 m_lastStageTime;
     LogLabel *m_logTimeLabel;
+    Logsuite *m_loggingUiRa, *m_loggingUiHorus;
     CombinedLogWriter m_logWriterRa, m_logWriterHorus;
     amun::GameState::State m_lastRefState;
     QList<Status> m_horusStrategyBuffer;

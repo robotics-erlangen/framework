@@ -115,6 +115,6 @@ message Status {
 // can be done without breaking log compatibility.
 // DO NOT use this message for information that could be useful in a logfile!
 message UiResponse {
-    optional bool enable_backlog = 1;
+    optional bool enable_logging = 1;
     optional bool is_logging = 2;
 }

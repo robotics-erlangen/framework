@@ -62,6 +62,8 @@ add_library(ra-horus
     teaminfowidget.h
     loglabel.h
     loglabel.cpp
+    loggingsuite.h
+    loggingsuite.cpp
 )
 
 set(UI_SOURCES
