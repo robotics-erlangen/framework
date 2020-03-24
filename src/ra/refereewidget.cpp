@@ -95,7 +95,7 @@ void RefereeWidget::saveConfig()
     s.endGroup();
 
     s.beginGroup("Autoref");
-    s.setValue("RecentScript", *m_recentScripts);
+    s.setValue("RecentScripts", *m_recentScripts);
     s.endGroup();
 
     ui->autoref->saveConfig();
