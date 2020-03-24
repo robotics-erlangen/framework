@@ -36,7 +36,7 @@ export class Defender extends Agent {
 	}
 
 	public _run() {
-		this._activeBehavior!._messaging.sendBroadcast(MessageType.defenderFlag);
+		this._messaging.sendBroadcast(MessageType.defenderFlag);
 	}
 
 	public static takeRobot(robots: FriendlyRobot[]): FriendlyRobot | undefined {

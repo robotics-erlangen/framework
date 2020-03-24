@@ -25,7 +25,7 @@ export type TaskAssignment<T extends TaskConstructor> =
 export type BehaviorConstructor = new (agent: Agent) => Behavior;
 
 export abstract class Behavior {
-	public _messaging: MessageBox;
+	protected _messaging: MessageBox;
 
 	protected _agent: Agent;
 	protected _robot: FriendlyRobot;

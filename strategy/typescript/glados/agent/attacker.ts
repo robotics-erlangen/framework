@@ -27,8 +27,8 @@ export class Attacker extends Agent {
 
 	_run() {
 		if (this._activeBehavior) {
-			this._activeBehavior._messaging.sendBroadcast(MessageType.attackerFlag);
-			this._activeBehavior._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: "moves" });
+			this._messaging.sendBroadcast(MessageType.attackerFlag);
+			this._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: "moves" });
 		}
 
 		debug.set("pool rating", this.rateRobot());
