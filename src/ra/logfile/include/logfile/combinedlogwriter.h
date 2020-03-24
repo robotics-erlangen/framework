@@ -71,6 +71,11 @@ private:
     void startLogfile();
 
 private:
+    enum class LogState {
+        PENDING,
+        LOGGING,
+        BACKLOG
+    } m_logState;
     bool m_isReplay;
     bool m_useSettingLocation = false;
     BacklogWriter *m_backlogWriter;
@@ -84,10 +89,8 @@ private:
     QString m_blueTeamName;
 
     qint64 m_lastTime;
-    qint64 m_logStartTime;
 
     bool m_isLoggingEnabled;
-    bool m_isRecording;
 };
 
 #endif // COMBINEDLOGWRITER_H

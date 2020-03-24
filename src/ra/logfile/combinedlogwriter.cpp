@@ -28,16 +28,16 @@
 #include <QSettings>
 
 CombinedLogWriter::CombinedLogWriter(bool replay, int backlogLength) :
+    m_logState(LogState::BACKLOG),
     m_isReplay(replay),
     m_logFile(NULL),
     m_logFileThread(NULL),
     m_lastTime(0),
-    m_logStartTime(0),
-    m_isLoggingEnabled(true),
-    m_isRecording(false)
+    m_isLoggingEnabled(true)
 {
     // start backlog writer thread
     m_backlogThread = new QThread();
+    m_backlogThread->setObjectName("Seshat Backlog");
     m_backlogThread->start();
     m_backlogWriter = new BacklogWriter(backlogLength);
     m_backlogWriter->moveToThread(m_backlogThread);
@@ -64,7 +64,7 @@ CombinedLogWriter::~CombinedLogWriter()
 
 QList<Status> CombinedLogWriter::getBacklogStatus(int lastNPackets)
 {
-    if (m_isRecording) {
+    if (m_logState != LogState::BACKLOG) {
         return QList<Status>();
     }
     // source is located in another thread, but when no signals/slots are used this is fine
@@ -79,9 +79,9 @@ QList<Status> CombinedLogWriter::getBacklogStatus(int lastNPackets)
 
 std::shared_ptr<StatusSource> CombinedLogWriter::makeStatusSource()
 {
-    if (m_isRecording) {
+    if (m_logState == LogState::LOGGING) {
         return m_logFile->makeStatusSource();
-    } else {
+    } else { // While PENDING we use the (soon to be outdated) backlog source as m_logFile will still be the nullptr
         return m_backlogWriter->makeStatusSource();
     }
 }
@@ -113,16 +113,16 @@ void CombinedLogWriter::handleStatus(const Status &status)
     m_lastTime = status->time();
 
     amun::UiResponse response;
-    if (m_logStartTime == 0 && m_isRecording) {
+    if (m_logState == LogState::PENDING) {
         startLogfile();
         response.set_is_logging(true);
     }
     emit sendUiResponse(response, m_lastTime);
 
-    if (m_isLoggingEnabled && m_isRecording) {
+    if (m_isLoggingEnabled && m_logState == LogState::LOGGING) {
         emit gotStatusForRecording(status);
     }
-    if (!m_isRecording) {
+    if (m_logState == LogState::BACKLOG) {
         emit gotStatusForBacklog(status);
     }
 }
@@ -212,14 +212,13 @@ Status CombinedLogWriter::getTeamStatus()
 void CombinedLogWriter::startLogfile()
 {
     m_logFile->writeStatus(getTeamStatus());
-    m_logStartTime = m_lastTime;
+    m_logState = LogState::LOGGING;
 }
 
 void CombinedLogWriter::recordButtonToggled(bool enabled)
 {
     emit enableBacklogButton(!enabled);
     emit disableSkipping(enabled);
-    m_isRecording = enabled;
     if (enabled) {
         Q_ASSERT(!m_logFile);
         emit resetBacklog();
@@ -241,15 +240,16 @@ void CombinedLogWriter::recordButtonToggled(bool enabled)
             m_logFileThread->start();
         }
         m_logFile->moveToThread(m_logFileThread);
+        m_logState = LogState::PENDING;
     } else {
         // defer log file deletion to happen in its thread
         if (m_logFile != nullptr) {
             m_logFile->deleteLater();
             m_logFile = nullptr;
         }
-        m_logStartTime = 0;
         amun::UiResponse response;
         response.set_is_logging(false);
         emit sendUiResponse(response, m_lastTime);
+        m_logState = LogState::BACKLOG;
     }
 }
