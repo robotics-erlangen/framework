@@ -10,6 +10,7 @@ class LowFPS {
 	private frameTimeOne: number = 0;
 	private prognosis: number = 0;
 	private frameCounter: number = 0;
+	private lastTime: number = 0;
 
 	public update() {
 		this.frameCounter += 1;
@@ -30,8 +31,10 @@ class LowFPS {
 	}
 	private calculateExponentialSmoothing(frameTimeDiff: number) {
 		this.prognosis = ALPHA * frameTimeDiff + (1 - ALPHA) * this.prognosis;
-		if (this.prognosis > MAX_FRAME_TIME_DIFF && this.frameCounter > START_FRAME_NUMBER) {
+		if (this.prognosis > MAX_FRAME_TIME_DIFF && this.frameCounter > START_FRAME_NUMBER
+			&& World.Time - this.lastTime > 5) {
 			amun.log("<font color =red>run time too high!</font>");
+			this.lastTime = World.Time;
 		}
 	}
 }
