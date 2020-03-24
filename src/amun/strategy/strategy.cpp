@@ -604,6 +604,10 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint, bo
     Q_ASSERT(m_geometry.IsInitialized());
     Q_ASSERT(m_team.IsInitialized());
 
+    if (m_type == StrategyType::BLUE || m_type == StrategyType::YELLOW) {
+        emit sendHalt(m_type == StrategyType::BLUE);
+    }
+
     m_reloadTimer->stop();
 
     m_filename = filename;
