@@ -81,7 +81,10 @@ export class StopAttack extends Task {
 			if (maxAngle === -Infinity) {
 				maxAngle = 2 * Math.PI;
 			}
-
+			// used coordinate system from the attacker's point of view
+			// in this calculation 12 corresponds to 1.5 Pi (angle to opp Goal)
+			// 10 corresponds to 1.5 Pi - Pi/4 = 5/4 Pi
+			// 14 corresponds to 1.5 Pi + PI/4 = 7/4 Pi
 			let maxAllowedAngle = 14;
 			let minAllowedAngle = 10;
 			const middleShift = 0;
@@ -109,14 +112,17 @@ export class StopAttack extends Task {
 			}
 			if (World.Ball.pos.y < -World.Geometry.FieldHeightQuarter) {
 				if (World.Ball.pos.x > quarterBegin) {
-					maxAllowedAngle = 10;
-					minAllowedAngle = 8;
+					maxAllowedAngle = ((World.Geometry.FriendlyGoalRight - World.Ball.pos).angle());
+					minAllowedAngle = (maxAllowedAngle - Math.PI / 4);
+					minAllowedAngle = minAllowedAngle / Math.PI * 8;
+					maxAllowedAngle = maxAllowedAngle / Math.PI * 8;
 				} else if (World.Ball.pos.x < -quarterBegin) {
-					maxAllowedAngle = 16;
-					minAllowedAngle = 14;
+					minAllowedAngle = ((World.Geometry.FriendlyGoalLeft - World.Ball.pos).angle());
+					maxAllowedAngle = (minAllowedAngle + Math.PI / 4);
+					minAllowedAngle = minAllowedAngle / Math.PI * 8;
+					maxAllowedAngle = maxAllowedAngle / Math.PI * 8;
 				}
 			}
-
 			maxAllowedAngle = maxAllowedAngle * Math.PI / 8;
 			minAllowedAngle = minAllowedAngle * Math.PI / 8;
 			// vis.addPath("stopattack: MaxAllowedAngle", [World.Ball.pos, World.Ball.pos + Vector.fromAngle(maxAllowedAngle).setLength(1)], vis.colors.green);
@@ -132,7 +138,6 @@ export class StopAttack extends Task {
 			let opponentDirection = getNormalizedAngle(Vector.fromAngle(opponentShooter!.dir));
 			let boundedOppDirection = MathUtil.bound(minAngle, opponentDirection, maxAngle);
 			let middleAngle = (boundedAngle + boundedOppDirection) / 2;
-
 			pos = World.Ball.pos + Vector.fromAngle(middleAngle).setLength(stopRadius);
 			// try to reflect the ball to the opponents goal
 			let hypotheticalBall = {pos: World.Ball.pos, speed: (pos - World.Ball.pos).setLength(Constants.maxBallSpeed), maxSpeed: Constants.maxBallSpeed, posZ: 0, initSpeedZ: 0, speedZ: 0};
@@ -143,7 +148,6 @@ export class StopAttack extends Task {
 
 			// Go back a little so the ball will hit the front side of the robot
 			pos = pos - Vector.fromAngle(driveAngle).setLength(this._robot.shootRadius);
-
 			this._defenseHysteresis = true;
 			this._robot.setDribblerSpeed(0.8); // might be quite loud
 		} else {
