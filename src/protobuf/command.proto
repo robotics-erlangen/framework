@@ -15,7 +15,7 @@ message SimulatorMoveBall {
     optional float v_x = 4;
     optional float v_y = 5;
     optional float v_z = 7;
-    optional bool teleport_safely = 8 [default = false]; // move robots out of the way in case of collision
+    optional bool teleport_safely = 8 [default = false]; // move robots out of the way in case of collision and set speed of robots closeby to zero
 }
 
 message SimulatorMoveRobot {

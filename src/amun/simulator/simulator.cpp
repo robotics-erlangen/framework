@@ -834,12 +834,25 @@ void Simulator::teleportRobotToFreePosition(SimRobot *robot)
 
 void Simulator::safelyTeleportBall(const float x, const float y)
 {
+    // remove the speed of all robots in this radius to avoid them running over the ball
+    const float STOP_ROBOTS_RADIUS = 1.5f;
+
     btVector3 newBallPos(x, y, 0);
     for (const auto& robotList : {m_data->robotsBlue, m_data->robotsYellow}) {
         for (SimRobot *robot : robotList) {
             btVector3 robotPos = robot->position() / SIMULATOR_SCALE;
             if (overlapCheck(newBallPos, BALL_RADIUS, robotPos, robot->specs().radius())) {
                 teleportRobotToFreePosition(robot);
+            } else if (overlapCheck(newBallPos, STOP_ROBOTS_RADIUS, robotPos, robot->specs().radius())) {
+                // set the speed to zero but keep the robot where it is
+                amun::SimulatorMoveRobot robotCommand;
+                robotCommand.set_id(robot->specs().id());
+                robotCommand.set_position(true);
+                robotCommand.set_p_x(robotPos.x());
+                robotCommand.set_p_y(robotPos.y());
+                robotCommand.set_v_x(0);
+                robotCommand.set_v_y(0);
+                robot->move(robotCommand);
             }
         }
     }
