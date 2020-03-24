@@ -112,11 +112,14 @@ void CombinedLogWriter::handleStatus(const Status &status)
 
     m_lastTime = status->time();
 
-    amun::UiResponse response;
     if (m_logState == LogState::PENDING) {
         startLogfile();
-        response.set_is_logging(true);
     }
+    // send a UIResponse to make sure Loglabel can update the time information
+    // the UIResponse itself is useless, only m_lastTime is used currently.
+    // This will change as soon as the UIResponse is embedded in Status
+    // and the Loglabel will be able to use the timing in Status to calculate it's information
+    amun::UiResponse response;
     emit sendUiResponse(response, m_lastTime);
 
     if (m_isLoggingEnabled && m_logState == LogState::LOGGING) {
@@ -246,9 +249,16 @@ void CombinedLogWriter::recordButtonToggled(bool enabled)
             m_logFile->deleteLater();
             m_logFile = nullptr;
         }
-        amun::UiResponse response;
-        response.set_is_logging(false);
-        emit sendUiResponse(response, m_lastTime);
         m_logState = LogState::BACKLOG;
     }
+    // Just tell the UI that we already started to log.
+    // In Horus mode, this disables the ability to move in the logfile.
+    // This is done to increase reponsibility for the user.
+    // The user doesn't need to know that the file is not yet beeing created.
+    // The rare case where a user (most likely via loglog) produces a log without any status
+    // and wounders why he cannot find the log was considered but deemed not important
+    // and the responsivness of the UI was considered more useful.
+    amun::UiResponse response;
+    response.set_is_logging(enabled);
+    emit sendUiResponse(response, m_lastTime);
 }
