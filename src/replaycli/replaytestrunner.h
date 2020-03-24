@@ -8,7 +8,7 @@
 
 class CompilerRegistry;
 
-Command createLoadCommand(bool asBlue, QString initScript, QString entryPoint, bool disablePerformanceMode);
+Command createLoadCommand(bool asBlue, QString initScript, QString entryPoint, bool enablePerformanceMode);
 
 class ReplayTestRunner : public QObject
 {

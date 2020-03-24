@@ -77,7 +77,7 @@ int main(int argc, char* argv[])
     QCommandLineOption printAllTimings({"a", "all"}, "Print all timings for every frame");
     QCommandLineOption runs({"r", "runs"}, "Ammount of runs, optional. Uses 1 if missing", "numRuns", "1");
     QCommandLineOption prefix({"p", "prefix"}, "Prefix for outputFiles. Uses std::cout for output if missing", "prefix");
-    QCommandLineOption disablePerformanceMode("disable-performance-mode", "Disable performance mode for the strategy.");
+    QCommandLineOption enablePerformanceMode("enable-performance-mode", "Disable performance mode for the strategy.");
     QCommandLineOption profileFile("profileOutfile", "Perform profiling and output the the result to the specified file", "filename");
     QCommandLineOption profileStart("profileStart", "Only has effect together with profileOutfile: in which log frame to start profiling", "start frame", "0");
     QCommandLineOption profileLength("profileLength", "Only has effect together with profileOutfile: for how many log frames to profile", "end frame");
@@ -92,7 +92,7 @@ int main(int argc, char* argv[])
     parser.addOption(runs);
     parser.addOption(prefix);
     parser.addOption(printAllTimings);
-    parser.addOption(disablePerformanceMode);
+    parser.addOption(enablePerformanceMode);
     parser.addOption(profileFile);
     parser.addOption(profileStart);
     parser.addOption(profileLength);
@@ -192,7 +192,7 @@ int main(int argc, char* argv[])
         app.processEvents();
 
         // load the strategy
-        strategy->handleCommand(createLoadCommand(asBlue, initScript, entryPoint, parser.isSet(disablePerformanceMode)));
+        strategy->handleCommand(createLoadCommand(asBlue, initScript, entryPoint, parser.isSet(enablePerformanceMode)));
 
         int packetCount = logfile.packetCount();
         int startPosition = parser.value(profileStart).toInt();

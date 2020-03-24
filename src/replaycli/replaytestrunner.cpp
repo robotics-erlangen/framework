@@ -4,7 +4,7 @@
 #include <QCoreApplication>
 #include <iostream>
 
-Command createLoadCommand(bool asBlue, QString initScript, QString entryPoint, bool disablePerformanceMode)
+Command createLoadCommand(bool asBlue, QString initScript, QString entryPoint, bool enablePerformanceMode)
 {
     Command command(new amun::Command);
     amun::CommandStrategyLoad *load;
@@ -19,9 +19,7 @@ Command createLoadCommand(bool asBlue, QString initScript, QString entryPoint, b
     load->set_filename(initScript.toStdString());
     load->set_entry_point(entryPoint.toStdString());
 
-    if (disablePerformanceMode) {
-        strategyCommand->set_performance_mode(false);
-    }
+    strategyCommand->set_performance_mode(enablePerformanceMode);
     return command;
 }
 
