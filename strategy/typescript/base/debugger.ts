@@ -4,6 +4,7 @@
 import { log } from "base/amun";
 import * as debug from "base/debug";
 import * as pb from "base/protobuf";
+import * as World from "base/world";
 
 const connectDebugger = amun.connectDebugger;
 const debuggerSend = amun.debuggerSend;
@@ -196,6 +197,10 @@ function handleNotification(notification: string) {
 					pause: true
 				}
 			});
+		} else {
+			// since dumping out all variables take some time, we stop all robots  so that they do not crash into things
+			World.haltOwnRobots();
+			World.setRobotCommands();
 		}
 
 		getPropertiesResponseMap.clear();
