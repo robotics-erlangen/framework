@@ -24,7 +24,7 @@
 #include <QByteArray>
 #include <QCoreApplication>
 
-BacklogStatusSource::BacklogStatusSource(QContiguousCache<QByteArray> &backlog, QContiguousCache<qint64> &timings)
+BacklogStatusSource::BacklogStatusSource(const QContiguousCache<QByteArray> &backlog, const QContiguousCache<qint64> &timings)
     : m_packets(backlog)
 {
     m_timings.reserve(timings.size());

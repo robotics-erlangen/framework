@@ -33,7 +33,7 @@ class BacklogStatusSource : public StatusSource
 {
     Q_OBJECT
 public:
-    BacklogStatusSource(QContiguousCache<QByteArray> &backlog, QContiguousCache<qint64> &timings);
+    BacklogStatusSource(const QContiguousCache<QByteArray> &backlog, const QContiguousCache<qint64> &timings);
     ~BacklogStatusSource() override {}
     bool isOpen() const override { return true; }
 
