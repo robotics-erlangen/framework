@@ -23,12 +23,13 @@ export class Default extends Behavior {
 				}
 			}
 		}
-		this._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: "midfield", payload: {} });
 
 		return true;
 	}
 
 	_updateTask(): TaskAssignment<typeof SideStep> | TaskAssignment<typeof AcceptPass> | TaskAssignment<typeof Midfield> | TaskAssignment<typeof Striker> {
+		this._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: "midfield", payload: {} });
+
 		let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
 		let relevantPassInfo = passInfoTable ? Attack.relevantPassInfoMessage(this._robot, passInfoTable) : undefined;
 		let prevRobotTime = (this._task instanceof AcceptPass) ? (this._task as AcceptPass).getLastTime() : undefined;
