@@ -487,7 +487,7 @@ void MainWindow::switchToWidgetConfiguration(int configId, bool forceUpdate)
         // Horus mode
         if (configId % 2 == 0 && (forceUpdate || previousId % 2 == 1)) {
             horusMode();
-        } else if (forceUpdate || previousId % 2 == 0) {
+        } else if (configId % 2 == 1 && (forceUpdate || previousId % 2 == 0)) {
             raMode();
         }
     }
