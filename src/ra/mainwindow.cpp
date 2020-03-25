@@ -212,8 +212,8 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     connect(this, SIGNAL(gotStatus(Status)), ui->simulator, SLOT(handleStatus(Status)));
 
     // set up log connections
-    createLogWriterConnections(m_logWriterRa, ui->actionRecord, ui->actionSave20s, ui->actionSaveBacklog, m_loggingUiRa);
-    createLogWriterConnections(m_logWriterHorus, ui->actionRecordLogLog, ui->actionBackloglog, ui->actionSaveBackloglog, m_loggingUiHorus);
+    createLogWriterConnections(m_logWriterRa, m_loggingUiRa);
+    createLogWriterConnections(m_logWriterHorus, m_loggingUiHorus);
 
     // disable all possibilities of skipping / going back packets when recording
     connect(m_loggingUiHorus, SIGNAL(isLogging(bool)), ui->logManager, SIGNAL(disableSkipping(bool)));
@@ -443,11 +443,12 @@ void MainWindow::showDirectoryDialog()
     s.endGroup();
 }
 
-void MainWindow::createLogWriterConnections(CombinedLogWriter &writer, QAction *record, QAction *backlog1, QAction *backlog2, Logsuite* suite)
+void MainWindow::createLogWriterConnections(CombinedLogWriter &writer, Logsuite* suite)
 {
-    connect(record, SIGNAL(toggled(bool)), &writer, SLOT(recordButtonToggled(bool)));
+    connect(suite->getLogAction(), SIGNAL(toggled(bool)), &writer, SLOT(recordButtonToggled(bool)));
+
     connect(suite, &Logsuite::triggeredBacklog, &writer, &CombinedLogWriter::saveBackLog);
-    connect(&writer, SIGNAL(setRecordButton(bool)), record, SLOT(setChecked(bool)));
+    connect(&writer, SIGNAL(setRecordButton(bool)), suite->getLogAction(), SLOT(setChecked(bool)));
     connect(&writer, &CombinedLogWriter::sendUiResponse, m_logTimeLabel, &LogLabel::handleUiResponse);
     connect(&writer, &CombinedLogWriter::sendUiResponse, suite, &Logsuite::handleUiResponse);
 }

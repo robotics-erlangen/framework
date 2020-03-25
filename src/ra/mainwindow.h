@@ -99,7 +99,7 @@ private:
     void loadConfig(bool doRestoreGeometry, uint configId);
     void raMode();
     void horusMode();
-    void createLogWriterConnections(CombinedLogWriter &writer, QAction *record, QAction *backlog1, QAction *backlog2, Logsuite *suite);
+    void createLogWriterConnections(CombinedLogWriter &writer, Logsuite *suite);
 
 private:
     Ui::MainWindow *ui;

@@ -30,6 +30,7 @@ class Logsuite: public QObject {
 
 public:
     Logsuite(QAction* logAction, QAction* backlogMenu, QAction* backlogButton, QObject* parent = nullptr);
+    QAction* getLogAction() { return m_logAction; }
 
 public slots:
 //    void handleStatus(const Status &status); //TODO: to be implemented as soon as UiResponse is used via status
