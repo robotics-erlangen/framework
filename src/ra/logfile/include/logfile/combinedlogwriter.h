@@ -34,6 +34,9 @@ class QThread;
 class QDateTime;
 class QLabel;
 class StatusSource;
+namespace CombinedLogWriterInternal {
+    class SignalSource;
+}
 
 class CombinedLogWriter : public QObject
 {
@@ -50,9 +53,6 @@ public:
 
 signals:
     void setRecordButton(bool on);
-    void saveBacklogFile(QString filename, const Status &status, bool processEvents);
-    void gotStatusForRecording(const Status &status);
-    void gotStatusForBacklog(const Status &status);
     void sendUiResponse(amun::UiResponse response, qint64 time);
     void resetBacklog();
 
@@ -88,6 +88,8 @@ private:
     qint64 m_lastTime;
 
     bool m_isLoggingEnabled;
+
+    CombinedLogWriterInternal::SignalSource *m_signalSource;
 };
 
 #endif // COMBINEDLOGWRITER_H

@@ -27,13 +27,47 @@
 #include <QDateTime>
 #include <QSettings>
 
+namespace CombinedLogWriterInternal {
+    class SignalSource: public QObject {
+        Q_OBJECT
+
+    public:
+        SignalSource(QObject* parent = nullptr) : QObject(parent) {}
+
+    signals:
+        void saveBacklogFile(QString filename, const Status &status, bool processEvents);
+        void gotStatusForRecording(const Status &status);
+        void gotStatusForBacklog(const Status &status);
+
+    public:
+        void emitSaveBacklog(QString filename, const Status &status, bool processEvents);
+        void emitStatusToRecording(const Status &status);
+        void emitStatusToBacklog(const Status &status);
+    };
+
+    void SignalSource::emitSaveBacklog(QString filename, const Status &status, bool b) {
+        emit saveBacklogFile(filename, status,b);
+    }
+
+    void SignalSource::emitStatusToRecording(const Status &status) {
+        emit gotStatusForRecording(status);
+    }
+
+    void SignalSource::emitStatusToBacklog(const Status & status) {
+        emit gotStatusForBacklog(status);
+    }
+}
+
+using CombinedLogWriterInternal::SignalSource;
+
 CombinedLogWriter::CombinedLogWriter(bool replay, int backlogLength) :
     m_logState(LogState::BACKLOG),
     m_isReplay(replay),
     m_logFile(NULL),
     m_logFileThread(NULL),
     m_lastTime(0),
-    m_isLoggingEnabled(true)
+    m_isLoggingEnabled(true),
+    m_signalSource(new SignalSource(this))
 {
     // start backlog writer thread
     m_backlogThread = new QThread();
@@ -43,8 +77,8 @@ CombinedLogWriter::CombinedLogWriter(bool replay, int backlogLength) :
     m_backlogWriter->moveToThread(m_backlogThread);
 
     connect(m_backlogWriter, SIGNAL(enableBacklogSave(bool)), this, SLOT(enableLogging(bool)));
-    connect(this, SIGNAL(gotStatusForBacklog(Status)), m_backlogWriter, SLOT(handleStatus(Status)));
-    connect(this, SIGNAL(saveBacklogFile(QString,Status,bool)), m_backlogWriter, SLOT(saveBacklog(QString,Status,bool)));
+    connect(m_signalSource, SIGNAL(gotStatusForBacklog(Status)), m_backlogWriter, SLOT(handleStatus(Status)));
+    connect(m_signalSource, SIGNAL(saveBacklogFile(QString,Status,bool)), m_backlogWriter, SLOT(saveBacklog(QString,Status,bool)));
     connect(this, SIGNAL(resetBacklog()), m_backlogWriter, SLOT(clear()));
 }
 
@@ -123,10 +157,10 @@ void CombinedLogWriter::handleStatus(const Status &status)
     emit sendUiResponse(response, m_lastTime);
 
     if (m_isLoggingEnabled && m_logState == LogState::LOGGING) {
-        emit gotStatusForRecording(status);
+        m_signalSource->emitStatusToRecording(status);
     }
     if (m_logState == LogState::BACKLOG) {
-        emit gotStatusForBacklog(status);
+        m_signalSource->emitStatusToBacklog(status);
     }
 }
 
@@ -152,7 +186,7 @@ void CombinedLogWriter::saveBackLog()
     status->mutable_team_yellow()->CopyFrom(m_yellowTeam);
     status->mutable_team_blue()->CopyFrom(m_blueTeam);
 
-    emit saveBacklogFile(filename, status, true);
+    m_signalSource->emitSaveBacklog(filename, status, true);
 }
 
 QString CombinedLogWriter::dateTimeToString(const QDateTime & dt)
@@ -234,7 +268,7 @@ void CombinedLogWriter::recordButtonToggled(bool enabled)
             delete m_logFile;
             return;
         }
-        connect(this, SIGNAL(gotStatusForRecording(Status)), m_logFile, SLOT(writeStatus(Status)));
+        connect(m_signalSource, SIGNAL(gotStatusForRecording(Status)), m_logFile, SLOT(writeStatus(Status)));
 
         // create thread if not done yet and move to seperate thread
         if (m_logFileThread == NULL) {
@@ -262,3 +296,5 @@ void CombinedLogWriter::recordButtonToggled(bool enabled)
     response.set_is_logging(enabled);
     emit sendUiResponse(response, m_lastTime);
 }
+
+#include "combinedlogwriter.moc"
