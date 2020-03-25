@@ -446,8 +446,7 @@ void MainWindow::showDirectoryDialog()
 void MainWindow::createLogWriterConnections(CombinedLogWriter &writer, QAction *record, QAction *backlog1, QAction *backlog2, Logsuite* suite)
 {
     connect(record, SIGNAL(toggled(bool)), &writer, SLOT(recordButtonToggled(bool)));
-    connect(backlog1, SIGNAL(triggered(bool)), &writer, SLOT(saveBackLog()));
-    connect(backlog2, SIGNAL(triggered(bool)), &writer, SLOT(saveBackLog()));
+    connect(suite, &Logsuite::triggeredBacklog, &writer, &CombinedLogWriter::saveBackLog);
     connect(&writer, SIGNAL(setRecordButton(bool)), record, SLOT(setChecked(bool)));
     connect(&writer, &CombinedLogWriter::sendUiResponse, m_logTimeLabel, &LogLabel::handleUiResponse);
     connect(&writer, &CombinedLogWriter::sendUiResponse, suite, &Logsuite::handleUiResponse);

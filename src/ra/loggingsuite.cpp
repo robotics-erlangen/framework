@@ -19,6 +19,16 @@
  ***************************************************************************/
 #include "loggingsuite.h"
 
+Logsuite::Logsuite(QAction* logAction, QAction* backlogMenu, QAction* backlogButton, QObject* parent) :
+    QObject(parent),
+    m_logAction(logAction),
+    m_backlogActionMenu(backlogMenu),
+    m_backlogButton(backlogButton)
+{
+    connect(m_backlogActionMenu, SIGNAL(triggered(bool)), this, SIGNAL(triggeredBacklog()));
+    connect(m_backlogButton, SIGNAL(triggered(bool)), this, SIGNAL(triggeredBacklog()));
+}
+
 void Logsuite::handleUiResponse(amun::UiResponse response, qint64 time) {
     if (response.has_is_logging()) {
         bool log = response.is_logging();

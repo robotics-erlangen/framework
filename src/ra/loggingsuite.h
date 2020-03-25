@@ -29,16 +29,14 @@ class Logsuite: public QObject {
     Q_OBJECT
 
 public:
-    Logsuite(QAction* logAction, QAction* backlogMenu, QAction* backlogButton, QObject* parent = nullptr) :
-    QObject(parent),
-    m_logAction(logAction),
-    m_backlogActionMenu(backlogMenu),
-    m_backlogButton(backlogButton) {}
+    Logsuite(QAction* logAction, QAction* backlogMenu, QAction* backlogButton, QObject* parent = nullptr);
+
 public slots:
 //    void handleStatus(const Status &status); //TODO: to be implemented as soon as UiResponse is used via status
     void handleUiResponse(amun::UiResponse response, qint64 time);
 signals:
     void isLogging(bool logging);
+    void triggeredBacklog();
 
 private:
     QAction* m_logAction;
