@@ -448,7 +448,6 @@ void MainWindow::createLogWriterConnections(CombinedLogWriter &writer, Logsuite*
     connect(suite->getLogAction(), SIGNAL(toggled(bool)), &writer, SLOT(recordButtonToggled(bool)));
 
     connect(suite, &Logsuite::triggeredBacklog, &writer, &CombinedLogWriter::saveBackLog);
-    connect(&writer, SIGNAL(setRecordButton(bool)), suite->getLogAction(), SLOT(setChecked(bool)));
     connect(&writer, &CombinedLogWriter::sendUiResponse, m_logTimeLabel, &LogLabel::handleUiResponse);
     connect(&writer, &CombinedLogWriter::sendUiResponse, suite, &Logsuite::handleUiResponse);
 }

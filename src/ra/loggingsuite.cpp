@@ -34,6 +34,9 @@ void Logsuite::handleUiResponse(amun::UiResponse response, qint64 time) {
         bool log = response.is_logging();
         m_backlogActionMenu->setEnabled(!log);
         m_backlogButton->setEnabled(!log);
+        if (!log) {
+            m_logAction->setChecked(false);
+        }
         emit isLogging(log);
     }
     if (response.has_enable_logging()){

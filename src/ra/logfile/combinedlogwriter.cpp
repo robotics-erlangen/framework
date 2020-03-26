@@ -171,7 +171,6 @@ void CombinedLogWriter::handleStatus(const Status &status)
 void CombinedLogWriter::enableLogging(bool enable)
 {
     if (!enable) {
-        emit setRecordButton(false);
         if (m_isLoggingEnabled) {
             recordButtonToggled(false);
         }
@@ -268,8 +267,12 @@ void CombinedLogWriter::recordButtonToggled(bool enabled)
         // create log file and forward status
         m_logFile = new LogFileWriter();
         if (!m_logFile->open(filename)) {
-            emit setRecordButton(false);
             delete m_logFile;
+            m_logFile = nullptr;
+            // show in the ui that the recording failed by informing it that the recording finished.
+            amun::UiResponse response;
+            response.set_is_logging(false);
+            emit sendUiResponse(response, m_lastTime);
             return;
         }
         connect(m_signalSource, SIGNAL(gotStatusForRecording(Status)), m_logFile, SLOT(writeStatus(Status)));
