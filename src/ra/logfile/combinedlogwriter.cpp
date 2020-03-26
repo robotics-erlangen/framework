@@ -115,7 +115,7 @@ std::shared_ptr<StatusSource> CombinedLogWriter::makeStatusSource()
 {
     if (m_logState == LogState::LOGGING) {
         return m_logFile->makeStatusSource();
-    } else { // While PENDING we use the (soon to be outdated) backlog source as m_logFile will still be the nullptr
+    } else { // While PENDING we use the (soon to be outdated) backlog source as m_logFile will still be empty
         return m_backlogWriter->makeStatusSource();
     }
 }
@@ -144,7 +144,6 @@ void CombinedLogWriter::handleStatus(const Status &status)
         m_yellowTeamName = QString::fromStdString(teamYellow.name());
     }
 
-    m_lastTime = status->time();
 
     if (m_logState == LogState::PENDING) {
         startLogfile();
@@ -154,6 +153,11 @@ void CombinedLogWriter::handleStatus(const Status &status)
     // This will change as soon as the UIResponse is embedded in Status
     // and the Loglabel will be able to use the timing in Status to calculate it's information
     amun::UiResponse response;
+    if (m_lastTime == 0 && m_logState == LogState::LOGGING) {
+        // If we didn't tell the UI because we didn't know what time is it, we have to send this information here.
+        response.set_is_logging(true);
+    }
+    m_lastTime = status->time();
     emit sendUiResponse(response, m_lastTime);
 
     if (m_isLoggingEnabled && m_logState == LogState::LOGGING) {
@@ -285,16 +289,18 @@ void CombinedLogWriter::recordButtonToggled(bool enabled)
         }
         m_logState = LogState::BACKLOG;
     }
-    // Just tell the UI that we already started to log.
-    // In Horus mode, this disables the ability to move in the logfile.
-    // This is done to increase reponsibility for the user.
-    // The user doesn't need to know that the file is not yet beeing created.
-    // The rare case where a user (most likely via loglog) produces a log without any status
-    // and wounders why he cannot find the log was considered but deemed not important
-    // and the responsivness of the UI was considered more useful.
-    amun::UiResponse response;
-    response.set_is_logging(enabled);
-    emit sendUiResponse(response, m_lastTime);
+    if (m_lastTime != 0) {
+        // Just tell the UI that we already started to log.
+        // In Horus mode, this disables the ability to move in the logfile.
+        // This is done to increase reponsiveness for the user.
+        // The user doesn't need to know that the file is not yet being created.
+        // The rare case where a user (most likely via loglog) produces a log without any status
+        // and wonders why he cannot open the log was considered but deemed not important
+        // and the responsiveness of the UI was considered more useful.
+        amun::UiResponse response;
+        response.set_is_logging(enabled);
+        emit sendUiResponse(response, m_lastTime);
+    }
 }
 
 #include "combinedlogwriter.moc"
