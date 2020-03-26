@@ -52,7 +52,7 @@ public:
     static QString dateTimeToString(const QDateTime & dt);
 
 signals:
-    void sendUiResponse(amun::UiResponse response, qint64 time);
+    void sendUiResponse(const amun::UiResponse& response, qint64 time);
     void resetBacklog();
 
 public slots:

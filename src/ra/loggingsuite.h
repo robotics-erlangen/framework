@@ -34,7 +34,7 @@ public:
 
 public slots:
 //    void handleStatus(const Status &status); //TODO: to be implemented as soon as UiResponse is used via status
-    void handleUiResponse(amun::UiResponse response, qint64 time);
+    void handleUiResponse(const amun::UiResponse& response, qint64 time);
 signals:
     void isLogging(bool logging);
     void triggeredBacklog();
