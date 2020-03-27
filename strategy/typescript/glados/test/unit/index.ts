@@ -47,6 +47,7 @@ const tests: {[name: string]: string} = {
 	"BaseTryCatch": testPrefix + "base/trycatch",
 	"BaseVector": testPrefix + "base/vector",
 	"GladosMessaging": testPrefix + "glados/messaging",
+	"GladosMoveshelper": testPrefix + "glados/moveshelper",
 	"GladosPools": testPrefix + "glados/pools",
 	"GladosUnitTest": testPrefix + "glados/unittest",
 	"GladosPhysics": testPrefix + "glados/physics"
