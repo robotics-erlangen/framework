@@ -188,21 +188,16 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Tra
             return result;
         }
 
-        // trajectory positions are not perfect, scale them slightly to reach the desired position perfectly
-        float xScale = 1, yScale = 1;
+        // trajectory positions are not perfect, move them slightly to reach the desired position perfectly
         Vector endPos;
         if (info.slowDownTime == 0.0f) {
             endPos = trajectory.positionForTime(partTime);
         } else {
             endPos = trajectory.calculateSlowDownPos(info.slowDownTime);
         }
+        Vector correctionOffset(0, 0);
         if (info.desiredDistance != Vector(0, 0)) {
-            xScale = info.desiredDistance.x / endPos.x;
-            yScale = info.desiredDistance.y / endPos.y;
-            xScale = std::min(1.1f, std::max(0.9f, xScale));
-            yScale = std::min(1.1f, std::max(0.9f, yScale));
-            endPos.x *= xScale;
-            endPos.y *= yScale;
+            correctionOffset = info.desiredDistance - endPos;
         }
 
         bool wasAtEndPoint = false;
@@ -228,7 +223,7 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Tra
                 position = trajectory.positionForTimeSlowDown(currentTime, info.slowDownTime);
                 p.speed = trajectory.speedForTimeSlowDown(currentTime, info.slowDownTime);
             }
-            p.pos = startPos + Vector(position.x * xScale, position.y * yScale);
+            p.pos = startPos + position + correctionOffset * (currentTime / partTime);
             result.push_back(p);
 
             currentTime += samplingInterval;
