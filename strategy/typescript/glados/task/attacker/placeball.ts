@@ -124,7 +124,7 @@ export class PlaceBall extends Task {
 		vis.addCircle("PlaceBall/Placement Pos", this._placementPos, OFFSET_DISTANCE, vis.colors.orange);
 		vis.addPath("PlaceBall/Placement Pos", [ this._placementPos, this._placementPos + this._placementOffsetAverage! ], vis.colors.black);
 		vis.addCircle("PlaceBall/Border Pos", this._nearestFieldPos!, OFFSET_DISTANCE, vis.colors.orange);
-		vis.addPath("PlaceBall Border Pos", [ this._nearestFieldPos!, this._nearestFieldPos! + this._borderOffsetAverage! ], vis.colors.black);
+		vis.addPath("PlaceBall/Border Pos", [ this._nearestFieldPos!, this._nearestFieldPos! + this._borderOffsetAverage! ], vis.colors.black);
 
 		let oldState = this._state;
 		this._state = this._getNextState(this._state);
