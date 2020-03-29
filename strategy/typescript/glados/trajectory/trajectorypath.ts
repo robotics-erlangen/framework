@@ -326,11 +326,16 @@ export class TrajectoryPath extends TrajectoryHandler {
 		}
 
 		let positions: Position[] = [];
+		let totalTime = TrajectoryPath.trajectoryTime(trajectory);
 		let lastDrawn = trajectory[0].pos;
-		for (let i = 0;i < trajectory.length;i++) {
-			if (i === 0 || i === trajectory.length - 1 || trajectory[i].pos.distanceTo(lastDrawn) > MIN_POINT_DISTANCE) {
-				positions.push(Coordinates.toLocal(trajectory[i].pos));
-				lastDrawn = trajectory[i].pos;
+
+		const SAMPLES = 20;
+		for (let i = 0;i < SAMPLES;i++) {
+			let time = i * totalTime / (SAMPLES - 1);
+			let pos = TrajectoryPath.posAtTime(time, trajectory);
+			if (i === 0 || i === SAMPLES - 1 || pos.distanceTo(lastDrawn) > MIN_POINT_DISTANCE) {
+				positions.push(Coordinates.toLocal(pos));
+				lastDrawn = pos;
 			}
 		}
 		vis.addPath("trajectory-fromC++", positions, color);
