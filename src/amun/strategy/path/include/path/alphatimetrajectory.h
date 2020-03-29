@@ -23,6 +23,7 @@
 
 #include "vector.h"
 #include "boundingbox.h"
+#include "obstacles.h" // for TrajectoryPoint
 #include <vector>
 
 class SpeedProfile1D {
@@ -150,6 +151,9 @@ public:
         auto yRange = yProfile.calculateRange(slowDownTime);
         return BoundingBox(offset + Vector(xRange.first, yRange.first), offset + Vector(xRange.second, yRange.second));
     }
+
+    // WARNING: this function does NOT create points for the slow down time. Use other functions if that is necessary
+    std::vector<TrajectoryPoint> getTrajectoryPoints(float slowDownTime) const;
 };
 
 class AlphaTimeTrajectory
