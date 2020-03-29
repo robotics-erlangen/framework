@@ -293,11 +293,14 @@ std::pair<InternalTypescriptCompiler::CompileResult, QString> InternalTypescript
 
 void InternalTypescriptCompiler::handleExitcode(bool exitcodeValid, int exitcode)
 {
+    // see tsc/src/compiler/types.ts - ExitStatus
     enum ExitCode {
         Success = 0,
-        Warning = 3,
+        ErrorNoOutput = 1,
         Error = 2,
-        ErrorNoOutput = 1
+        InvalidProject = 3,
+        ProjectReferenceCycle = 4,
+        Warning = 5,
     };
     m_stdout = m_stdout.replace("\n", "<br/>");
     if (!exitcodeValid) {
@@ -309,7 +312,10 @@ void InternalTypescriptCompiler::handleExitcode(bool exitcodeValid, int exitcode
         case ExitCode::Warning:
             m_lastResult = { CompileResult::Warning, m_stdout };
             break;
-        case ExitCode::Error: case ExitCode::ErrorNoOutput:
+        case ExitCode::Error:
+        case ExitCode::ErrorNoOutput:
+        case ExitCode::InvalidProject:
+        case ExitCode::ProjectReferenceCycle:
             m_lastResult = { CompileResult::Error, m_stdout };
             break;
         default:
