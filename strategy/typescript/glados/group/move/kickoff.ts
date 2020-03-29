@@ -40,7 +40,7 @@ export class KickOff extends Move {
 		for (let i = 0;i < this._robots.length - 1;i++) {
 			positions.push(this._assistantPos[i]);
 		}
-		this._assignments = MovesHelper.assignRobots(this._robots, positions, 0);
+		this._assignments = MovesHelper.assignRobots(this._robots, positions);
 	}
 
 	_canContinue(): boolean {

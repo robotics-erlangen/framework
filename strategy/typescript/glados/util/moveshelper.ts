@@ -19,22 +19,17 @@ export function volleyCircle(point1: Position, point2: Position, theta: number):
  * each robot to the assigned position. O(n^3)
  * @param robot - list of robots to assign. the first ignoreFirstNRobots are assigned to their index
  * @param positions - list of positions to assign the remaining robots to
- * @param ignoreFirstNRobots - ignore the first n robots in robots during assignment
  * @returns the assignments. Use like this: robots[assignment[i]] -> assign to positions[i]
  */
-export function assignRobots(robots: {pos: Position}[], positions: Position[], ignoreFirstNRobots: number): number[] {
-	if (robots.length - ignoreFirstNRobots !== positions.length) {
+export function assignRobots(robots: {pos: Position}[], positions: Position[]): number[] {
+	if (robots.length !== positions.length) {
 		throw new Error("Moveshelper: unmatching number of robots and positions!");
-	}
-	let assignment: number[] = [];
-	for (let i = 1; i < ignoreFirstNRobots;i++) {
-		assignment.push(i);
 	}
 
 	let mat: Matrix = [];
 
 	// create a squared matrix for robots and their distance to the positions
-	for (let i = 0; i < robots.length - ignoreFirstNRobots; i++) {
+	for (let i = 0; i < robots.length; i++) {
 		mat.push([]);
 		for (let j = 0; j < positions.length; j++) {
 			// filling the mat with all distances between a robot and a position
@@ -46,8 +41,9 @@ export function assignRobots(robots: {pos: Position}[], positions: Position[], i
 	// use the munkres algorithm
 	let indices = computeMunkres(mat);
 
+	const assignment: number[] = [];
 	for (let a = 0; a < indices.length; a++) {
-		assignment[indices[a][0] + ignoreFirstNRobots] = indices[a][1];
+		assignment[indices[a][0]] = indices[a][1];
 	}
 
 	return assignment;

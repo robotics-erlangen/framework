@@ -105,7 +105,7 @@ export class Armada extends Move {
 		}
 		if (startMoving && this._assignment == undefined) {
 			// assign robots to positions
-			this._assignment = MovesHelper.assignRobots(this._robots, this._positions, 1);
+			this._assignment = MovesHelper.assignRobots(this._robots.slice(1), this._positions);
 		}
 
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
@@ -118,12 +118,13 @@ export class Armada extends Move {
 			this._startedSendPassPos = false;
 		} else if (startMoving && this._assignment != undefined) {
 			taskAssignments[this._robots[0]] = { behavior: FreeKick, params: [] };
+
 			for (let i = 1;i < 5;i++) {
 				if (passInfo != undefined && this._positions[i - 1].distanceTo(passInfo.ballPos) < 0.1) {
-					taskAssignments[this._robots[this._assignment[i]]]
+					taskAssignments[this._robots[this._assignment[i - 1]]]
 						= {class: AcceptPass, params: [this._positions[i - 1], 0.1]};
 				} else {
-					taskAssignments[this._robots[this._assignment[i]]]
+					taskAssignments[this._robots[this._assignment[i - 1]]]
 						= {class: MoveToPos, params: [ this._positions[i - 1], undefined, true ] }; // offer other positions for redeciding
 				}
 			}

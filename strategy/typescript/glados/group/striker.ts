@@ -59,7 +59,7 @@ function assignRobotsToZones(robotPositions: Map<FriendlyRobot, Position>, zones
 	for (let zone of zones) {
 		zonePositions.push(zone.defaultPos);
 	}
-	let assignment = MovesHelper.assignRobots(positions, zonePositions, 0);
+	let assignment = MovesHelper.assignRobots(positions, zonePositions);
 
 	let zoneAssignment: Map<Zone, FriendlyRobot> = new Map<Zone, FriendlyRobot>();
 	for (let i = 0;i < zones.length;i++) {
