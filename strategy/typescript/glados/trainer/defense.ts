@@ -14,6 +14,7 @@ import * as Ball from "glados/observer/ball";
 import * as Goal from "glados/observer/goal";
 import * as Physics from "glados/observer/physics";
 import * as ObserverRobot from "glados/observer/robot";
+import { head } from "glados/util/collections";
 import * as UtilDefense from "glados/util/defense";
 
 let G = World.Geometry;
@@ -81,10 +82,10 @@ export class Defense {
 			// if we are already dueling the robot
 			// the duel robot has to block the shot already
 			// TODO shouldn't all defended opponents be checked? Did not change while porting but why wouldn't we?
-			let defendedOpponentMessages = this._messaging.receive(MessageType.defendedOpponent);
 
-			if (defendedOpponentMessages.size > 0) {
-				let [sender, opponent] = defendedOpponentMessages.entries().next().value;
+			const defendedOpponentMessage = head(this._messaging.receive(MessageType.defendedOpponent));
+			if (defendedOpponentMessage) {
+				const [sender, opponent] = defendedOpponentMessage;
 				if (opponent === robot && sender.pos.distanceToLineSegment(opponent.pos + Vector.fromAngle(opponent.dir) * (opponent.shootRadius + World.Ball.radius), G.FriendlyGoal) < sender.radius) {
 					continue;
 				}

@@ -9,6 +9,7 @@ import { SuggestPass } from "glados/task/ability/suggestpass";
 import { Agent, Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
+import { head } from "glados/util/collections";
 
 
 export class DuelAssistant extends Task {
@@ -28,14 +29,14 @@ export class DuelAssistant extends Task {
 	}
 
 	private _update() {
-		let duelist, opponent;
 		// let messages = this._messaging.receive(MessageType.defendedOpponent);
 		let messages = this._messaging.receive(MessageType.dueledOpponent, true);
-		if (messages.size > 0) {
-			[duelist, opponent] = messages.entries().next().value;
+		const duelInfo = head(messages);
+		if (duelInfo) {
+			const [duelist, opponent] = duelInfo;
+			this._duelist = duelist;
+			this._opponent = opponent;
 		}
-		this._duelist = duelist || this._duelist;
-		this._opponent = opponent || this._opponent;
 	}
 
 	run() {

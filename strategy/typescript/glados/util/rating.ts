@@ -3,6 +3,7 @@ import { Position, Vector } from "base/vector";
 
 import { MessageType } from "glados/control/messaging";
 import * as Physics from "glados/observer/physics";
+import { head } from "glados/util/collections";
 
 export function timeToRating(time: number): number {
 	if (time < 0) {
@@ -54,8 +55,11 @@ export class LeveledRating {
 	}
 
 	public static findBestRating<T>(ratings: Map<T, LeveledRating>) : T | undefined {
-		if (ratings.size === 0) return undefined;
-		let first = ratings.entries().next().value;
+		const first = head(ratings);
+		if (!first) {
+			return undefined;
+		}
+
 		let best : [[T, LeveledRating], number | undefined ] = [first,first[1]._ratingArray[0]];
 		let levels = first[1]._ratingArray.length;
 		for (let level = 0; level < levels; level++) {

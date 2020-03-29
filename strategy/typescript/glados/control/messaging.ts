@@ -2,6 +2,7 @@ import { FriendlyRobot, Robot } from "base/robot";
 import { Position, RelativePosition } from "base/vector";
 
 import { Point as CenterBackPoint } from "glados/group/centerback";
+import { head } from "glados/util/collections";
 import { LeveledRating } from "glados/util/rating";
 
 // TODO: document the messages in a more native format
@@ -283,11 +284,8 @@ export class MessageBox {
 		if (map.size > 1) {
 			throw new Error(`Single sender message ${MessageType[type]} sent by ${map.size} robots!`);
 		}
-		let it = map.entries().next();
-		if (it.done) {
-			return [];
-		}
-		return it.value;
+		const it = head(map);
+		return it ? it : [];
 	}
 
 	receiveRepeated(type: MessageType.exclusiveRole, broadcast?: boolean): Map<FriendlyRobot, [ExclusiveRole, LeveledRating][]>;
