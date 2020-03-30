@@ -46,6 +46,9 @@ interface PassObject {
 // @param considerTiming bool - true if the pass is given as soon as possible, false if we can wait
 // @return number - a rating between 0 and 1 (1 = perfect, 0 = poor)
 export function _ratePass(robot: FriendlyRobot, pass: PassObject, considerTiming: boolean): number {
+	if (robot === World.FriendlyKeeper && G.FieldHeightHalf - Math.abs(pass.ballPos.y) < 4) {
+		return 0;
+	}
 	let rating = 1;
 
 	// if the robot is controlled manually
