@@ -50,34 +50,6 @@ export class CenterBack extends Task {
 		let destinationPos = pos_target ? pos_target.pos : UtilDefense.centerBackDefaultPos;
 		let destinationTime = (pos_target != undefined && pos_target.time != undefined) ? pos_target.time : Infinity;
 
-		let ignoreDefenseArea = false;
-		if (pos_target && pos_target.target && pos_target.target.targetRobot &&
-				(World.RefereeState === "Game" || World.RefereeState === "Stop")) {
-			let attacker = pos_target.target.targetRobot;
-			let defenseDistance = Field.distanceToFriendlyDefenseArea(attacker.pos, attacker.radius);
-			if (destinationPos.distanceTo(World.Ball.pos) > 1 && (World.Ball.speed.length() < 0.5 ||
-					Math.abs(destinationPos.orthogonalProjection(World.Ball.pos, World.Ball.pos + World.Ball.speed)[1]) > 0.3) &&
-					defenseDistance < 2 * this._robot.radius + 0.02) {
-				let dist = this._robot.radius - 0.01;
-				let dir = attacker.pos - World.Geometry.FriendlyGoal;
-				let projectedPos = Field.intersectRayDefenseArea(World.Geometry.FriendlyGoal, dir, dist, true)[0];
-				let driveInDefenseArea = projectedPos && (projectedPos.distanceTo(this._robot.pos) < 0.2 ||
-					Field.isInFriendlyDefenseArea(this._robot.pos, this._robot.radius));
-				if (defenseDistance <= 0) {
-					if (driveInDefenseArea) {
-						destinationPos = attacker.pos + (this._robot.pos - attacker.pos).setLength(attacker.radius * 2 - 0.02);
-					} else if (projectedPos) {
-						destinationPos = projectedPos;
-					}
-				} else if (projectedPos) { // opponent might be in the off behind our goal
-					destinationPos = attacker.pos + (World.Geometry.FriendlyGoal - attacker.pos).setLength(attacker.radius * 2);
-				}
-				if (driveInDefenseArea) {
-					ignoreDefenseArea = true;
-				}
-			}
-		}
-
 		let toBallAngle = (World.Ball.pos - this._robot.pos).angle();
 		let toGoalAngle = (World.Geometry.OpponentGoal - this._robot.pos).angle();
 		let toCornerLeftAngle = (new Vector(-World.Geometry.FieldWidthHalf,
@@ -129,7 +101,6 @@ export class CenterBack extends Task {
 		this._obstacleTable.ignorePass = this._obstacleTable.ignoreFriendlyRobots;
 		this._obstacleTable.ignoreBall = this._obstacleTable.ignoreFriendlyRobots;
 		let trajModule = (this._obstacleTable.ignoreOpponentRobots) ? CurvedMaxAccel : ToTarget;
-		this._obstacleTable.ignoreDefenseArea = ignoreDefenseArea;
 
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, this._obstacleTable);
 

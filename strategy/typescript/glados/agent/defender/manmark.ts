@@ -19,7 +19,7 @@ export class ManMark extends Behavior {
 	_opp: Robot | undefined = undefined;
 	_restartTask: boolean = true;
 	_wasCenterback: boolean = false;
-	_manmarkInfo: {pos: Position, id: number, targetRobot?: Robot} = {pos: new Vector(0, 0), id: 0};
+	_manmarkInfo: {pos: Position, id: number} = {pos: new Vector(0, 0), id: 0};
 
 	_stop() {
 		this._opp = undefined;
@@ -78,7 +78,6 @@ export class ManMark extends Behavior {
 			// for interpreting debug outputs
 			this._manmarkInfo.id = this._opp.id;
 			this._manmarkInfo.pos = dest;
-			this._manmarkInfo.targetRobot = this._opp;
 			return [CenterBack, [ this._manmarkInfo ], this._restartTask];
 		}
 
