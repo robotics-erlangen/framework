@@ -344,6 +344,10 @@ export class Path {
 		speed = Coordinates.toGlobal(speed);
 		acc = Coordinates.toGlobal(acc);
 
+		if (endTime < 0 || endTime < startTime) {
+			return;
+		}
+
 		if (!isPerformanceMode) {
 			let positions = [];
 			let SAMPLES = (acc.x === 0 && acc.y === 0) ? 2 : 10;
@@ -393,6 +397,10 @@ export class Path {
 		startPos2 = Coordinates.toGlobal(startPos2);
 		speed2 = Coordinates.toGlobal(speed2);
 		acc2 = Coordinates.toGlobal(acc2);
+
+		if (endTime < 0 || endTime < startTime) {
+			return;
+		}
 
 		if (!isPerformanceMode) {
 			let positions1 = [], positions2 = [];
