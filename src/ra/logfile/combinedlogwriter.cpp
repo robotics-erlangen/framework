@@ -145,7 +145,7 @@ void CombinedLogWriter::handleStatus(const Status &status)
     }
 
 
-    if (m_logState == LogState::PENDING) {
+    if (m_isLoggingEnabled && m_logState == LogState::PENDING) {
         startLogfile();
     }
     // send a UIResponse to make sure Loglabel can update the time information
