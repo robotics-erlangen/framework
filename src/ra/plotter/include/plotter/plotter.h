@@ -47,10 +47,10 @@ public:
     Plotter& operator=(const Plotter&) = delete;
 
 public slots:
+    void handleUiResponse(const amun::UiResponse& response, qint64 time);
     void setScaling(float min, float max, float timespan);
     void handleStatus(const Status &status, bool backlogStatus = false);
     void clearData();
-    void handleBacklogStatus(QList<Status> backlog);
 
 signals:
     void addPlot(const Plot *plot);

@@ -47,7 +47,7 @@ public:
     CombinedLogWriter(const CombinedLogWriter&) = delete;
     CombinedLogWriter& operator=(const CombinedLogWriter&) = delete;
     std::shared_ptr<StatusSource> makeStatusSource();
-    QList<Status> getBacklogStatus(int lastNPackets);
+    void sendBacklogStatus(int lastNPackets);
     Status getTeamStatus();
     static QString dateTimeToString(const QDateTime & dt);
 

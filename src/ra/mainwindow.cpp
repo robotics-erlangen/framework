@@ -394,9 +394,9 @@ void MainWindow::showPlotter()
     // no need to preload all 20 seconds
     const int PRELOAD_PACKETS = 5000;
     if (m_currentWidgetConfiguration % 2 == 1) { // ra mode
-        m_plotter->handleBacklogStatus(m_logWriterRa.getBacklogStatus(PRELOAD_PACKETS));
+        m_logWriterRa.sendBacklogStatus(PRELOAD_PACKETS);
     } else {
-        m_plotter->handleBacklogStatus(m_logWriterHorus.getBacklogStatus(PRELOAD_PACKETS));
+        m_logWriterHorus.sendBacklogStatus(PRELOAD_PACKETS);
     }
 }
 
@@ -450,6 +450,7 @@ void MainWindow::createLogWriterConnections(CombinedLogWriter &writer, Logsuite*
     connect(suite, &Logsuite::triggeredBacklog, &writer, &CombinedLogWriter::saveBackLog);
     connect(&writer, &CombinedLogWriter::sendUiResponse, m_logTimeLabel, &LogLabel::handleUiResponse);
     connect(&writer, &CombinedLogWriter::sendUiResponse, suite, &Logsuite::handleUiResponse);
+    connect(&writer, &CombinedLogWriter::sendUiResponse, m_plotter, &Plotter::handleUiResponse);
 }
 
 void MainWindow::saveConfig()

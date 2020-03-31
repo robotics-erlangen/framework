@@ -117,4 +117,5 @@ message Status {
 message UiResponse {
     optional bool enable_logging = 1;
     optional bool is_logging = 2;
+    repeated Status logger_status = 3;
 }

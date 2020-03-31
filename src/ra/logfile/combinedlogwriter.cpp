@@ -96,19 +96,21 @@ CombinedLogWriter::~CombinedLogWriter()
     delete m_backlogWriter;
 }
 
-QList<Status> CombinedLogWriter::getBacklogStatus(int lastNPackets)
+void CombinedLogWriter::sendBacklogStatus(int lastNPackets)
 {
     if (m_logState != LogState::BACKLOG) {
-        return QList<Status>();
+        return;
     }
     // source is located in another thread, but when no signals/slots are used this is fine
     std::shared_ptr<StatusSource> source = m_backlogWriter->makeStatusSource();
     QList<Status> packets;
     packets.reserve(source->packetCount());
+    amun::UiResponse response;
     for (int i = std::max(0, source->packetCount() - lastNPackets);i<source->packetCount();i++) {
-        packets.append(source->readStatus(i));
+        response.add_logger_status()->CopyFrom(*source->readStatus(i)); // TODO: this might be too slow and require some additional handling to make sure signals are still handled correctly.
     }
-    return packets;
+    emit sendUiResponse(response, m_lastTime);
+    return;
 }
 
 std::shared_ptr<StatusSource> CombinedLogWriter::makeStatusSource()

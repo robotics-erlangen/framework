@@ -252,10 +252,15 @@ void Plotter::setFreeze(bool freeze)
     ui->btnFreeze->setChecked(freeze); // update button
 }
 
-void Plotter::handleBacklogStatus(QList<Status> backlog)
+void Plotter::handleUiResponse(const amun::UiResponse& response, qint64 time)
 {
     m_playingBacklog = true;
-    m_backlog.append(backlog);
+    for (const amun::Status& st : response.logger_status()) {
+        Status s = Status::createArena();
+        s->CopyFrom(st);
+        handleStatus(s, true);
+        QCoreApplication::processEvents();
+    }
     for (int i = 0;i<m_backlog.size();i++) {
         handleStatus(m_backlog[i], true);
         QCoreApplication::processEvents();
