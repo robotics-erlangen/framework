@@ -26,6 +26,7 @@
 #include <QThread>
 #include <QDateTime>
 #include <QSettings>
+#include <QCoreApplication>
 
 namespace CombinedLogWriterInternal {
     class SignalSource: public QObject {
@@ -100,16 +101,28 @@ void CombinedLogWriter::sendBacklogStatus(int lastNPackets)
 {
     if (m_logState != LogState::BACKLOG) {
         return;
+//        return QList<Status>();
     }
     // source is located in another thread, but when no signals/slots are used this is fine
     std::shared_ptr<StatusSource> source = m_backlogWriter->makeStatusSource();
     QList<Status> packets;
     packets.reserve(source->packetCount());
-    amun::UiResponse response;
     for (int i = std::max(0, source->packetCount() - lastNPackets);i<source->packetCount();i++) {
-        response.add_logger_status()->CopyFrom(*source->readStatus(i)); // TODO: this might be too slow and require some additional handling to make sure signals are still handled correctly.
+        packets.append(source->readStatus(i));
     }
-    emit sendUiResponse(response, m_lastTime);
+    // copy the response afterwards in one large UI-Response:
+    Status s = Status::createArena();
+    amun::UiResponse* response = s->mutable_pure_ui_response();
+    {
+        int i = 0;
+        for (const auto& status: packets) {
+            response->add_logger_status()->CopyFrom(*status);
+            if (++i % 10 == 0) {
+                QCoreApplication::processEvents();
+            }
+        }
+    }
+    emit sendStatus(s);
     return;
 }
 

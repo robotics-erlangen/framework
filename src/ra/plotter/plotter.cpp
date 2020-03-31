@@ -276,6 +276,11 @@ void Plotter::handleStatus(const Status &status, bool backlogStatus)
         return;
     }
 
+    if (status->has_pure_ui_response()) {
+        handleUiResponse(status->pure_ui_response(), status->time());
+        return;
+    }
+
     // don't discard newer packets when handling backlog status
     if (m_playingBacklog && !backlogStatus) {
         m_backlog.append(status);

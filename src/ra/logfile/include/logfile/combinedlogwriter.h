@@ -53,6 +53,7 @@ public:
 
 signals:
     void sendUiResponse(const amun::UiResponse& response, qint64 time);
+    void sendStatus(const Status& s);
     void resetBacklog();
 
 public slots:

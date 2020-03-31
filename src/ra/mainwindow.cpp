@@ -450,7 +450,7 @@ void MainWindow::createLogWriterConnections(CombinedLogWriter &writer, Logsuite*
     connect(suite, &Logsuite::triggeredBacklog, &writer, &CombinedLogWriter::saveBackLog);
     connect(&writer, &CombinedLogWriter::sendUiResponse, m_logTimeLabel, &LogLabel::handleUiResponse);
     connect(&writer, &CombinedLogWriter::sendUiResponse, suite, &Logsuite::handleUiResponse);
-    connect(&writer, &CombinedLogWriter::sendUiResponse, m_plotter, &Plotter::handleUiResponse);
+    connect(&writer, SIGNAL(sendStatus(Status)), m_plotter, SLOT(handleStatus(Status)));
 }
 
 void MainWindow::saveConfig()
