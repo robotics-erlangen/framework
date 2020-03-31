@@ -1,7 +1,7 @@
 # Tests and linting
 Both Lua and Typescript strategy scripts are linted and tested to perform some
 basic validity and style checks. For Lua, linting is done by *luacheck*, for
-Typescript by *tslint*.
+Typescript by *tslint*. *python2* is required for some additional checks.
 
 To run the unit tests and linter, execute the following in your build folder
 ```
