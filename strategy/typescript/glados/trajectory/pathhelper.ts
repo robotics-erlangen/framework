@@ -87,10 +87,6 @@ function addOpponentDefenseAreaObstacle(path: Path, robot: FriendlyRobot, target
 	// don't add obstacles for opponent defense area if the robot is in the friendly half
 	let oppDefAreaDist = Referee.isFriendlyFreeKickState() || Referee.isStopState() ? G.FreeKickDefenseDist + 0.05 : 0;
 	const priority = oppDefAreaDist === 0 ? Priorities.DEFENSE_AREA : Priorities.STOP_DEFENSE_AREA;
-	let defenseDistance = Math.min(Field.distanceToOpponentDefenseArea(robot.pos, robot.radius),
-		Field.distanceToOpponentDefenseArea(targetPosition, robot.radius));
-	let extraRadius = Math.min(defenseDistance - 0.05, robot.radius * 2 + 0.02);
-	oppDefAreaDist = Math.max(oppDefAreaDist, extraRadius);
 	// TODO: adjust to rect with distance instead of larger rect
 	let distance = oppDefAreaDist + POSITION_PADDING;
 	if (robot.pos.y > 0 && (!Referee.isFriendlyPenaltyState()) &&
