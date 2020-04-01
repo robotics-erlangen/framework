@@ -13,7 +13,7 @@ export class Default extends Behavior {
 		this._forceKeepingInPool = false;
 	}
 
-	check(): boolean {
+	check(): Behavior {
 		this._forceKeepingInPool = false;
 		let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
 		if (passInfoTable) {
@@ -24,7 +24,7 @@ export class Default extends Behavior {
 			}
 		}
 
-		return true;
+		return this;
 	}
 
 	_updateTask(): TaskAssignment<typeof SideStep> | TaskAssignment<typeof AcceptPass> | TaskAssignment<typeof Midfield> | TaskAssignment<typeof Striker> {

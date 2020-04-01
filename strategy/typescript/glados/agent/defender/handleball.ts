@@ -183,10 +183,10 @@ export class HandleBall extends Behavior {
 		return true;
 	}
 
-	check(): boolean {
+	check(): Behavior | undefined {
 		if (Referee.isFriendlyFreeKickState() || Referee.isStopState() || Referee.isKickoffState()
 				||  Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius)) {
-			return false;
+			return undefined;
 		}
 
 		let mainAttacker = this._messaging.receiveTrainer(MessageType.mainAttacker);
@@ -214,7 +214,9 @@ export class HandleBall extends Behavior {
 			}
 		}
 
-		return (mainAttacker === this._robot) || (this._messaging.receiveTrainer(MessageType.interceptPass) === this._robot);
+		return (mainAttacker === this._robot) || (this._messaging.receiveTrainer(MessageType.interceptPass) === this._robot)
+			? this
+			: undefined;
 	}
 
 	_updateTask(): TaskAssignment<typeof InterceptPass> | TaskAssignment<typeof Duel> |

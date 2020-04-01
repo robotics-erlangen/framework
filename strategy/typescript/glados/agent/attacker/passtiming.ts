@@ -6,11 +6,11 @@ import * as Attack from "glados/util/attack";
 
 export class PassTiming extends Behavior {
 	private _remainingTime: number | undefined;
-	check(): boolean {
+	check(): Behavior | undefined {
 		let lastIncomingPassInfo = Attack.lastIncomingPassInfo(this._robot, this._messaging.receiveSingleSender(MessageType.passInfo));
 
 		if (this._messaging.receiveTrainer(MessageType.mainAttacker) !== this._robot) {
-			return false;
+			return undefined;
 		}
 
 		let lastIncomingPassInfoPos = undefined;
@@ -23,11 +23,11 @@ export class PassTiming extends Behavior {
 			let [startAccept, timeToStart] = Attack.checkPassInfos(this._robot, [lastIncomingPassInfo!], true);
 			if (!startAccept) {
 				this._remainingTime = timeToStart;
-				return true;
+				return this;
 			}
 		}
 
-		return false;
+		return undefined;
 	}
 
 	_updateTask(): TaskAssignment<typeof SideStep> {

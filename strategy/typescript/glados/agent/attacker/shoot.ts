@@ -83,8 +83,10 @@ export class Shoot extends Behavior {
 		this._decisionFrames = 0;
 	}
 
-	public check(): boolean {
-		return this._messaging.receiveTrainer(MessageType.mainAttacker) === this._robot;
+	public check(): Behavior | undefined {
+		return this._messaging.receiveTrainer(MessageType.mainAttacker) === this._robot
+			? this
+			: undefined;
 	}
 
 	private static _shootGoalPossible(robot: FriendlyRobot, attackPosition: Position | undefined): [boolean, number | undefined] {

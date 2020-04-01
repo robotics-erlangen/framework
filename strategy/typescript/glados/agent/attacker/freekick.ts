@@ -56,24 +56,24 @@ export class FreeKick extends Behavior {
 		this._startTime = World.Time;
 	}
 
-	check(): boolean {
+	check(): Behavior | undefined {
 		// we have to be main attacker
 		if (this._messaging.receiveTrainer(MessageType.mainAttacker) !== this._robot) {
-			return false;
+			return undefined;
 		}
 
 		if (Referee.isFriendlyFreeKickState()) {
 			this._forceKeepingInPool = true;
-			return true;
+			return this;
 		}
 
 		// stay active for one additional frame to avoid flickering to a different task
 		// rely on being killed by applyForMainAttacker
 		if (Robot.ownStandardShooter() === this._robot) {
-			return true;
+			return this;
 		}
 
-		return false;
+		return undefined;
 	}
 
 	_updateTask(): TaskAssignment<typeof TaskPass> | TaskAssignment<typeof ShootGoal> | TaskAssignment<typeof MoveToStaticBall> {

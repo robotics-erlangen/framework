@@ -147,7 +147,7 @@ export class Duel extends Behavior {
 	}
 
 
-	check() {
+	check(): Behavior | undefined {
 		let isMainAttacker = (this._messaging.receiveTrainer(MessageType.mainAttacker) === this._robot);
 		this._forceKeepingInPool = isMainAttacker;
 
@@ -157,7 +157,9 @@ export class Duel extends Behavior {
 		} else {
 			this._active = this.genericCheck();
 		}
-		return this._active;
+		return this._active
+			? this
+			: undefined;
 	}
 
 

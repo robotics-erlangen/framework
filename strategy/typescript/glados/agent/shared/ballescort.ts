@@ -48,13 +48,13 @@ export class BallEscort extends Behavior {
 		return oppTime - ownTime > 1;
 	}
 
-	check(): boolean {
+	check(): Behavior | undefined {
 		let shotHysteresis = this._active ? 0.075 : 0.15;
 
 		if (!(World.RefereeState === "Game" || World.RefereeState === "GameForce")
 				||  !Referee.opponentTouchedLast()
 				||  Ball.wasShot(shotHysteresis)) {
-			return false;
+			return undefined;
 		}
 
 		let ballOutPos = Field.nextLineCut(World.Ball.pos, World.Ball.speed);
@@ -63,7 +63,7 @@ export class BallEscort extends Behavior {
 
 		// ballOutPos should not be in defense area
 		if (ballOutPos == undefined || Math.abs(ballOutPos.x) <= Field.defenseBaselineIntersectionDistance()) {
-			return false;
+			return undefined;
 		}
 
 		let [minOppRobot, minOppTime] = this._checkOpponentTimings();
@@ -78,7 +78,7 @@ export class BallEscort extends Behavior {
 		}
 
 		if (!this._isReachabilityOk(minOppTime, ownTimeToBall)) {
-			return false;
+			return undefined;
 		}
 
 		// we do not want to execute ballescort when the ball interception position is close to the opponent defense area
@@ -86,7 +86,7 @@ export class BallEscort extends Behavior {
 		let futureBallPos = Physics.ballAtTime(World.Ball, ownTimeToBall).pos;
 		let defenseDist = this._active ? 1.2 : 1;
 		if (Field.distanceToOpponentDefenseArea(futureBallPos, 0) < defenseDist) {
-			return false;
+			return undefined;
 		}
 
 
@@ -94,7 +94,7 @@ export class BallEscort extends Behavior {
 
 		// If we can reach the ball we should try to if we are not already close to the field border
 		if (ownTimeToBall < Infinity && Math.abs(this._robot.pos.x) < World.Geometry.FieldWidthHalf - distToBorder && Math.abs(this._robot.pos.y) < World.Geometry.FieldHeightHalf - distToBorder) {
-			return false;
+			return undefined;
 		}
 
 		let intersection = Geom.intersectLineCircle(World.Ball.pos, World.Ball.speed, this._robot.pos, this._robot.radius * 1.5);
@@ -104,15 +104,15 @@ export class BallEscort extends Behavior {
 
 		if (intersection.length !== 0 && !behindRobot) {
 			// The ball is moving directly towards the robot
-			return false;
+			return undefined;
 		}
 
 		this._applyForMainAttacker();
 		if (this._messaging.receiveTrainer(MessageType.mainAttacker) !== this._robot) {
-			return false;
+			return undefined;
 		}
 
-		return true;
+		return this;
 	}
 
 	_updateTask(): TaskAssignment<typeof BallEscortTask> {

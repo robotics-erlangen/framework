@@ -12,8 +12,8 @@ export class Default extends Behavior {
 		this._customBall = {pos: new Vector(0, 0), dir: new Vector(1, 0)};
 	}
 
-	check(): boolean {
-		return true;
+	check(): Behavior | undefined {
+		return this;
 	}
 
 	_updateTask(): TaskAssignment<typeof CenterBack> {

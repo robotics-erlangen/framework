@@ -31,9 +31,9 @@ export class HandleBall extends Behavior {
 		return Field.distanceToFriendlyDefenseArea(object.pos, object.radius) < defenseDistance;
 	}
 
-	check(): boolean {
+	check(): Behavior | undefined {
 		if (Referee.isStopState() || Referee.isOpponentPenaltyState() || World.GameStage === "PenaltyShootout") {
-			return false;
+			return undefined;
 		}
 		// if a slow ball enters the defense area
 		let active = this.behindCenterbacks(World.Ball) && Ball.isSlowBall();
@@ -46,7 +46,9 @@ export class HandleBall extends Behavior {
 		}
 
 		let mainAttackerFlag = this._messaging.receiveTrainer(MessageType.mainAttacker) === this._robot;
-		return mainAttackerFlag;
+		return mainAttackerFlag
+			? this
+			: undefined;
 	}
 
 	_updateTask(): TaskAssignment<typeof Keeper> | TaskAssignment<typeof Pass> | TaskAssignment<typeof KeeperChipAway>

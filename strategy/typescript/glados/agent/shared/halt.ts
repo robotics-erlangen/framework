@@ -4,8 +4,10 @@ import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import { Halt as HaltTask } from "glados/task/shared/halt";
 
 export class Halt extends Behavior {
-	check(): boolean {
-		return World.RefereeState === "Halt";
+	check(): Behavior | undefined {
+		return World.RefereeState === "Halt"
+			? this
+			: undefined;
 	}
 
 	_updateTask(): TaskAssignment<typeof HaltTask> {

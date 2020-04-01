@@ -28,9 +28,11 @@ export class ManMark extends Behavior {
 		this._manmarkInfo = {pos: new Vector(0, 0), id: 0};
 	}
 
-	check(): boolean {
+	check(): Behavior | undefined {
 		let role = this._messaging.receiveTrainer(MessageType.roleAssignment);
-		return role != undefined && role.name === "ManMark";
+		return role != undefined && role.name === "ManMark"
+			? this
+			: undefined;
 	}
 
 	_updateTask(): TaskAssignment<typeof ManMarkTask> | TaskAssignment<typeof CenterBack> | TaskAssignment<typeof Duel> {

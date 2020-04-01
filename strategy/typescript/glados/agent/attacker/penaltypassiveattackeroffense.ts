@@ -1,6 +1,7 @@
 import * as Referee from "base/referee";
 import * as World from "base/world";
 
+import { Behavior } from "glados/agent/base/behavior";
 import { PenaltyPassiveDefense } from "glados/agent/shared/penaltypassivedefense";
 
 const G = World.Geometry;
@@ -14,7 +15,7 @@ export class PenaltyPassiveAttackerOffense extends PenaltyPassiveDefense {
 	// min 1.0m behind ball, 1.5 just in case
 	yOffset = -1.5;
 
-	check(): boolean {
-		return Referee.isFriendlyPenaltyState();
+	check(): Behavior | undefined {
+		return Referee.isFriendlyPenaltyState() ? this : undefined;
 	}
 }

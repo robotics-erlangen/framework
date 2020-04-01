@@ -4,8 +4,10 @@ import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import { MoveToPos } from "glados/task/shared/movetopos";
 
 export class MoveCommand extends Behavior {
-	check() {
-		return this._robot.moveCommand != undefined && !World.IsSimulated;
+	check(): Behavior | undefined {
+		return this._robot.moveCommand != undefined && !World.IsSimulated
+			? this
+			: undefined;
 	}
 
 	_updateTask(): TaskAssignment<typeof MoveToPos> {

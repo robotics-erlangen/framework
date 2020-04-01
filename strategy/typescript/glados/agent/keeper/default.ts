@@ -5,8 +5,8 @@ import { Keeper } from "glados/task/keeper/keeper";
 // import {RandomKeeper} from "glados/task/keeper/randomkeeper";
 
 export class Default extends Behavior {
-	check(): boolean {
-		return true;
+	check(): Behavior {
+		return this;
 	}
 
 	_updateTask(): TaskAssignment<typeof Keeper> { // | TaskAssignment<typeof RandomKeeper> {

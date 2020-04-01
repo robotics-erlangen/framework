@@ -83,9 +83,9 @@ export class PenaltyShootout extends Behavior {
 		this._dribblePos = undefined;
 	}
 
-	public check(): boolean {
+	public check(): Behavior | undefined {
 		let mainAttacker = this._messaging.receiveTrainer(MessageType.mainAttacker) === this._robot;
-		return mainAttacker && Referee.isFriendlyPenaltyState();
+		return mainAttacker && Referee.isFriendlyPenaltyState() ? this : undefined;
 	}
 
 	private _updateDribbling() {

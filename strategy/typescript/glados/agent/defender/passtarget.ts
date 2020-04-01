@@ -6,13 +6,13 @@ import { MessageType } from "glados/control/messaging";
 
 export class PassTarget extends Behavior {
 
-	check(): boolean {
+	check(): undefined {
 		let cbGroup = this._messaging.receiveTrainer(MessageType.centerBackPosTarget);
 		if (cbGroup !== undefined && cbGroup.target) {
 			// TODO: we might need to stop a pass
 			// For now: do nothing
 			debug.set("PassTarget", "Centerback");
-			return false;
+			return undefined;
 		}
 		let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
 		if (passInfoTable) {
@@ -20,12 +20,12 @@ export class PassTarget extends Behavior {
 				if (passInfo && passInfo.target === this._robot) {
 					this._messaging.sendToTrainer(MessageType.poolChangeRequest, "attacker");
 					debug.set("PassTarget", "Attacker");
-					return false;
+					return undefined;
 				}
 			}
 		}
 		debug.set("PassTarget", "None");
-		return false;
+		return undefined;
 	}
 
 	_updateTask(): any {

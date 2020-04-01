@@ -11,9 +11,11 @@ export class CenterBack extends Behavior {
 		this._lastTarget = undefined;
 	}
 
-	check(): boolean {
+	check(): Behavior | undefined {
 		let role = this._messaging.receiveTrainer(MessageType.roleAssignment);
-		return role != undefined && role.name === "CenterBack";
+		return role != undefined && role.name === "CenterBack"
+			? this
+			: undefined;
 	}
 
 	_updateTask(): TaskAssignment<typeof CenterBackTask> {

@@ -3,8 +3,8 @@ import { RescueRobot } from "glados/task/hidden/rescuerobot";
 
 
 export class Default extends Behavior {
-	check(): boolean {
-		return true;
+	check(): Behavior {
+		return this;
 	}
 
 	_updateTask(): TaskAssignment<typeof RescueRobot> {

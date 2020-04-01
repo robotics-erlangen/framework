@@ -15,16 +15,16 @@ export class ApplyForMainattacker extends Behavior {
 		this._applying = false;
 	}
 
-	check(): boolean {
+	check(): undefined {
 		if (Referee.isOpponentPenaltyState()) {
 			this._applying = false;
-			return false;
+			return undefined;
 		}
 
 		// prevent double touches after a failed freekick by preventing the freekicking robot as mainattacker
 		if (!Referee.isFriendlyFreeKickState() && Robot.ownStandardShooter() === this._robot) {
 			this._applying = false;
-			return false;
+			return undefined;
 		}
 
 		let applying = false;
@@ -50,7 +50,7 @@ export class ApplyForMainattacker extends Behavior {
 			}
 		}
 		this._applying = applying;
-		return false;
+		return undefined;
 	}
 
 	_updateTask(): any {

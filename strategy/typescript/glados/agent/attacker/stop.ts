@@ -8,8 +8,10 @@ import { StopAttack } from "glados/task/attacker/stopattack";
 
 
 export class Stop extends Behavior {
-	check(): boolean {
-		return Referee.isStopState() && this._messaging.receiveTrainer(MessageType.mainAttacker) === this._robot;
+	check(): Behavior | undefined {
+		return Referee.isStopState() && this._messaging.receiveTrainer(MessageType.mainAttacker) === this._robot
+			? this
+			: undefined;
 	}
 
 	_updateTask(): TaskAssignment<typeof PlaceBall> | TaskAssignment<typeof StopAttack> {

@@ -11,9 +11,11 @@ export class ZoneDefense extends Behavior {
 		this._movePos = undefined;
 	}
 
-	check(): boolean {
+	check(): Behavior | undefined {
 		let role = this._messaging.receiveTrainer(MessageType.roleAssignment);
-		return role != undefined && role.name === "ZoneDefense";
+		return role != undefined && role.name === "ZoneDefense"
+			? this
+			: undefined;
 	}
 
 	_updateTask(): TaskAssignment<typeof BallEvadingMoveToPos> {

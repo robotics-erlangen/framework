@@ -2,8 +2,10 @@ import { BaseTaskAssignment, Behavior } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
 
 export class Move extends Behavior {
-	check(): boolean {
-		return this._messaging.receiveTrainer(MessageType.moveAssignment) != undefined;
+	check(): Behavior | undefined {
+		return this._messaging.receiveTrainer(MessageType.moveAssignment) != undefined
+			? this
+			: undefined;
 	}
 
 	_updateTask(): BaseTaskAssignment {

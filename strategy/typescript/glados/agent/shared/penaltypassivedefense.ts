@@ -17,8 +17,8 @@ export class PenaltyPassiveDefense extends Behavior {
 	// min 1.0m behind ball, 1.5 just in case
 	protected yOffset: number = 1.5;
 
-	check(): boolean {
-		return Referee.isOpponentPenaltyState();
+	check(): Behavior | undefined {
+		return Referee.isOpponentPenaltyState() ? this : undefined;
 	}
 
 	_updateTask(): TaskAssignment<typeof MoveToPos> {

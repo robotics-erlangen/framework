@@ -23,12 +23,12 @@ function rateRobot(robot: FriendlyRobot, messaging: MessageBox): number {
 
 }
 export class Exchange extends Behavior {
-	check(): boolean {
+	check(): Behavior | undefined {
 		if (!BaseRef.hasTooManyFriendlyRobots()) {
-			return false;
+			return undefined;
 		}
 		if (this._messaging.receiveTrainer(MessageType.mainAttacker) === this._robot) {
-			return false;
+			return undefined;
 		}
 		// apply for exchange robot
 		let rating = rateRobot(this._robot, this._messaging);
@@ -36,7 +36,9 @@ export class Exchange extends Behavior {
 		ratingArg.setRating(0, rating);
 		this._messaging.sendToTrainerRepeated(MessageType.exclusiveRole, [ MessageType.exchangeRobot, ratingArg ]);
 
-		return this._messaging.receiveTrainer(MessageType.exchangeRobot) === this._robot;
+		return this._messaging.receiveTrainer(MessageType.exchangeRobot) === this._robot
+			? this
+			: undefined;
 	}
 
 	_updateTask(): TaskAssignment<typeof MoveToPos> {

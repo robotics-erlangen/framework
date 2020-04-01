@@ -13,33 +13,33 @@ const EXCHANGE_LOW_BAT_DURING_GAME = false;
 const EXCHANGE_ERROR_ROBOTS_SPEED = false;
 
 export class Error extends Behavior {
-	check(): boolean {
-		return false;
+	check(): Behavior | undefined {
+		return undefined;
 		/* let errorTable = ErrorObserver.getErrorTable(this._robot);
 		if (this._active && World.RefereeState === "Stop") {
-			return true;
+			return this;
 		} else if (this._active && ErrorObserver.getSpeedErrorCount(this._robot) > 100) {
-			return true;
+			return this;
 		} else if (ErrorObserver.getSpeedErrorCount(this._robot) >= 300 && this._robot !== World.FriendlyKeeper) {
-			return EXCHANGE_ERROR_ROBOTS_SPEED;
+			return EXCHANGE_ERROR_ROBOTS_SPEED ? this : undefined;
 		} else if (ErrorObserver.getAverageBatterySate(this._robot) < 0.11 && this._robot !== World.FriendlyKeeper) {
-			return EXCHANGE_LOW_BAT_DURING_GAME;
+			return EXCHANGE_LOW_BAT_DURING_GAME ? this : undefined;
 		} else if (ErrorObserver.getAverageBatterySate(this._robot) < 0.20
 			&&  World.RefereeState === "Stop") {
 			if (this._robot === World.FriendlyKeeper) {
 				if (Referee.lastStateChangeTime() === World.Time) {
 					log("keeper " +  this.errorMsg());
 				}
-				return false;
+				return undefined;
 			}
-			return EXCHANGE_LOW_BAT_ROBOTS;
+			return EXCHANGE_LOW_BAT_ROBOTS ? this : undefined;
 		} else if (errorTable == undefined) {
-			return false;
+			return undefined;
 		} else if (this._robot === World.FriendlyKeeper) {
 			if (Referee.lastStateChangeTime() === World.Time) {
 				log("keeper "  +  this.errorMsg());
 			}
-			return false;
+			return undefined;
 		}
 		let gameTimespan = World.Time - ErrorObserver.getLastStopTime();
 
@@ -48,11 +48,11 @@ export class Error extends Behavior {
 					&&  k !== "temperature" && k !== "main_sensor_error") {
 				if (World.RefereeState === "Stop") {
 					// log(this._robot.id .. " ////////   " .. k ..  "  //////////////  " .. v)
-					return EXCHANGE_ERROR_ROBOTS;
+					return EXCHANGE_ERROR_ROBOTS ? this : undefined;
 				}
 			}
 		}
-		return false;*/
+		return undefined;*/
 	}
 
 	start() {

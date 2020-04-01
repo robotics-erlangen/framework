@@ -80,7 +80,7 @@ export abstract class Agent {
 			behavior.clearMainAttackerParameters();
 			let result = behavior.check();
 			if (result) {
-				bestBehavior = behavior;
+				bestBehavior = result;
 				break;
 			}
 		}

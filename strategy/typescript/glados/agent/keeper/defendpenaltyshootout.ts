@@ -12,8 +12,8 @@ const CRITICAL_DISTANCE = 4;
 
 export class DefendPenaltyShootout extends Behavior {
 
-	check() {
-		return Referee.isOpponentPenaltyState();
+	check(): Behavior | undefined {
+		return Referee.isOpponentPenaltyState() ? this : undefined;
 	}
 
 	_updateTask(): TaskAssignment<typeof ShootoutKeeper> | TaskAssignment<typeof Keeper> {

@@ -36,10 +36,10 @@ export class DuelAssistant extends Behavior {
 
 	}
 
-	check(): boolean {
+	check(): Behavior | undefined {
 		if (this._robot === this._messaging.receiveTrainer(MessageType.mainAttacker)) {
 			this._lastTrue = undefined;
-			return false;
+			return undefined;
 		}
 
 		let sender: FriendlyRobot | undefined;
@@ -49,13 +49,13 @@ export class DuelAssistant extends Behavior {
 			sender = messages.keys().next().value;
 		}
 		if (sender == undefined && this._lastTrue == undefined) {
-			return false;
+			return undefined;
 		}
 		if (sender != undefined) {
 			let duellingRobot = sender;
 			if (duellingRobot.pos.distanceTo(World.Ball.pos) > 1) {
 				this._lastTrue = undefined;
-				return false;
+				return undefined;
 			}
 			let rating = this.rateRobot(duellingRobot);
 			let ratingArg: Rating.LeveledRating = new Rating.LeveledRating(MessageType.duelAssistant);
@@ -71,7 +71,9 @@ export class DuelAssistant extends Behavior {
 			this._lastTrue = undefined;
 		}
 
-		return this._lastTrue != undefined;
+		return this._lastTrue != undefined
+			? this
+			: undefined;
 	}
 
 

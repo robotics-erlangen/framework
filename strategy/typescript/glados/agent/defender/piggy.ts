@@ -12,9 +12,11 @@ export class Piggy extends Behavior {
 		this._opp = undefined;
 	}
 
-	check(): boolean {
+	check(): Behavior | undefined {
 		let role = this._messaging.receiveTrainer(MessageType.roleAssignment);
-		return role != undefined && role.name === "Piggy";
+		return role != undefined && role.name === "Piggy"
+			? this
+			: undefined;
 	}
 
 	_updateTask(): TaskAssignment<typeof PiggyTask> {

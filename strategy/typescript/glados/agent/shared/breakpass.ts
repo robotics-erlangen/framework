@@ -18,28 +18,28 @@ export class BreakPass extends Behavior {
 
 	}
 
-	check(): boolean {
+	check(): Behavior | undefined {
 		if (!Referee.isGameState(World.RefereeState)) {
 			debug.set("breakpass check", "non game state");
-			return false;
+			return undefined;
 		}
 
 		// no pass
 		if (World.Ball.speed.lengthSq() < 2 * 2) {
 			debug.set("breakpass check", "no pass");
-			return false;
+			return undefined;
 		}
 
 		// this robots own pass
 		if (Ball.friendlyBallOwner() === this._robot) {
 			debug.set("breakpass check", "pass of own robot");
-			return false;
+			return undefined;
 		}
 
 		// ball is to close to friendly defense area
 		if (World.Ball.pos.y < -World.Geometry.FieldHeightQuarter) {
 			debug.set("breakpass check", "ball is to close to our defense area");
-			return false;
+			return undefined;
 		}
 
 		let [moveDest, endSpeed, waitingTime] = BreakPassTask.calculateBreakPos(this._robot);
@@ -50,44 +50,44 @@ export class BreakPass extends Behavior {
 		// pass is not breakable
 		if (waitingTime < (this._active ? -0.1 : 0)) {
 			debug.set("breakpass check", "pass is not breakable");
-			return false;
+			return undefined;
 		}
 
 		// moveDest is to close to friendly defense area
 		if (moveDest.y < -World.Geometry.FieldHeightQuarter) {
 			debug.set("breakpass check", "moveDest is to close to our defense area");
-			return false;
+			return undefined;
 		}
 
 		// moveDest is not in allowed field
 		if (!Field.isInAllowedField(moveDest, -World.Ball.radius)) {
 			debug.set("breakpass check", "not in allowed field");
-			return false;
+			return undefined;
 		}
 
 		// moveDest is in friendly goal
 		if (Field.isInFriendlyGoal(moveDest)) {
 			debug.set("breakpass check", "is in friendly goal");
-			return false;
+			return undefined;
 		}
 
 		// moveDest is in opponent goal
 		if (Field.isInOpponentGoal(moveDest)) {
 			debug.set("breakpass check", "is in opponent goal");
-			return false;
+			return undefined;
 		}
 
 		// moveDest is behind the ball/pass
 		let toPos = moveDest - World.Ball.pos;
 		if (World.Ball.speed.dot(toPos) <= 0) {
 			debug.set("breakpass check", "moveDest is behind the pass");
-			return false;
+			return undefined;
 		}
 
 		// waiting time is not over
 		if (breakPassThreshold < (waitingTime - BreakPassTask.BUFFER_TIME)) {
 			debug.set("breakpass check", "waiting time is not over");
-			return false;
+			return undefined;
 		}
 
 		// main attacker will receive the pass
@@ -101,12 +101,12 @@ export class BreakPass extends Behavior {
 			});
 			if (!oppInPassZone) {
 				debug.set("breakpass check", "main attacker will receive the ball");
-				return false;
+				return undefined;
 			}
 		}
 
 		debug.set("breakpass check", "true");
-		return true;
+		return this;
 	}
 
 	_updateTask(): TaskAssignment<typeof BreakPassTask> {

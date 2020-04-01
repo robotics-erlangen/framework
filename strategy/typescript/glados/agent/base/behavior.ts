@@ -105,9 +105,11 @@ export abstract class Behavior {
 		this._active = true;
 	}
 
-	// is called on every run, if no higher prioritized behavior is chosen
-	// return true if behavior is appropriate
-	abstract check(): boolean;
+	/**
+	 * Is called on every run, if no higher prioritized behavior is chosen
+	 * @returns the Behavior which should be run or undefined if this Behavior is unfit for execution
+	 */
+	abstract check(): Behavior | undefined;
 
 	protected forceDeferredKeepingInPool() {
 		if (this._deferredBehavior) {
