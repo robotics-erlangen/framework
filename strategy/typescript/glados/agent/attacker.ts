@@ -20,7 +20,6 @@ import { Behavior } from "glados/agent/base/behavior";
 import { BallEscort } from "glados/agent/shared/ballescort";
 import { BreakPass } from "glados/agent/shared/breakpass";
 import { PenaltyPassive } from "glados/agent/shared/penaltypassive";
-import { RescueFromDefenseArea } from "glados/agent/shared/rescuefromdefensearea";
 import { MessageType } from "glados/control/messaging";
 
 export class Attacker extends Agent {
@@ -38,7 +37,6 @@ export class Attacker extends Agent {
 	getBehaviors(): (new (a: Agent) => Behavior)[] {
 		return [
 			ApplyForMainattacker,
-			RescueFromDefenseArea,
 			Move,
 			Stop,
 			PenaltyShootout,
