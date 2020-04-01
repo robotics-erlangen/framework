@@ -26,7 +26,8 @@
 
 typedef google::protobuf::RepeatedPtrField<world::Robot> RobotPtr;
 
-void writeRobots(QTextStream& situation, const RobotPtr& robots){
+static void writeRobots(QTextStream& situation, const RobotPtr& robots)
+{
     for(RobotPtr::const_iterator iter = robots.begin(); iter != robots.end(); ++iter){
         situation << "\t\t[" << iter->id() << "] = {\n\t\t\tpos = Vector("
                   << iter->p_x() << "," << iter->p_y() << "),\n\t\t\tdir = Vector.fromAngle("
@@ -36,9 +37,12 @@ void writeRobots(QTextStream& situation, const RobotPtr& robots){
     }
 }
 
-void saveSituation(const world::State &worldState, const amun::GameState& gameState){
+void saveSituation(world::State worldState, amun::GameState gameState)
+{
+
     QString filename = QFileDialog::getSaveFileName(NULL, "Save File...",
         QString(), "Lua files (*.lua)");
+
     if(!filename.endsWith(".lua")){
         filename += ".lua";
     }

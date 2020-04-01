@@ -23,6 +23,6 @@
 
 #include "protobuf/status.h"
 
-void saveSituation(const world::State &worldState, const amun::GameState& gameState);
+void saveSituation(world::State worldState, amun::GameState gameState);
 
 #endif // SAVESITUATION_H
