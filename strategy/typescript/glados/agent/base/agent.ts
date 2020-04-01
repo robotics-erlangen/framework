@@ -26,7 +26,6 @@ export abstract class Agent {
 	_messaging: MessageBox;
 	_behaviors: Behavior[] = [];
 	_activeBehavior: Behavior | undefined;
-	_mainAttackerParameters: [Position, number, number | undefined] | undefined;
 	_mainAttackerLastTime: number | undefined = undefined;
 	_debugIdStr: string;
 
