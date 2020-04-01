@@ -24,6 +24,7 @@
 
 #include "logfile/logfilereader.h"
 #include "visionlog/visionlogwriter.h"
+#include "protobuf/ssl_referee.h"
 
 int main(int argc, char* argv[])
 {
@@ -83,27 +84,8 @@ int main(int argc, char* argv[])
                 gameStateChangeTime = current->time();
                 refereeCounter++;
 
-                switch (gameState.state()) {
-                case amun::GameState::Halt: lastCommand = SSL_Referee::HALT; break;
-                case amun::GameState::Stop: lastCommand = SSL_Referee::STOP; break;
-                case amun::GameState::GameForce: lastCommand = SSL_Referee::FORCE_START; break;
-                case amun::GameState::KickoffYellowPrepare: lastCommand = SSL_Referee::PREPARE_KICKOFF_YELLOW; break;
-                case amun::GameState::KickoffYellow: lastCommand = SSL_Referee::NORMAL_START; break;
-                case amun::GameState::PenaltyYellowPrepare: lastCommand = SSL_Referee::PREPARE_PENALTY_YELLOW; break;
-                case amun::GameState::PenaltyYellow: lastCommand = SSL_Referee::NORMAL_START; break;
-                case amun::GameState::DirectYellow: lastCommand = SSL_Referee::DIRECT_FREE_YELLOW; break;
-                case amun::GameState::IndirectYellow: lastCommand = SSL_Referee::INDIRECT_FREE_YELLOW; break;
-                case amun::GameState::BallPlacementYellow: lastCommand = SSL_Referee::BALL_PLACEMENT_YELLOW; break;
-                case amun::GameState::KickoffBluePrepare: lastCommand = SSL_Referee::PREPARE_KICKOFF_BLUE; break;
-                case amun::GameState::KickoffBlue: lastCommand = SSL_Referee::NORMAL_START; break;
-                case amun::GameState::PenaltyBluePrepare: lastCommand = SSL_Referee::PREPARE_PENALTY_BLUE; break;
-                case amun::GameState::PenaltyBlue: lastCommand = SSL_Referee::NORMAL_START; break;
-                case amun::GameState::DirectBlue: lastCommand = SSL_Referee::DIRECT_FREE_BLUE; break;
-                case amun::GameState::IndirectBlue: lastCommand = SSL_Referee::INDIRECT_FREE_BLUE; break;
-                case amun::GameState::BallPlacementBlue: lastCommand = SSL_Referee::BALL_PLACEMENT_BLUE; break;
-                case amun::GameState::TimeoutYellow: lastCommand = SSL_Referee::TIMEOUT_YELLOW; break;
-                case amun::GameState::TimeoutBlue: lastCommand = SSL_Referee::TIMEOUT_BLUE; break;
-                default: break;
+                if (gameState.state() != amun::GameState::Game) {
+                    lastCommand = commandFromGameState(gameState.state());
                 }
             }
             refereePacket.set_command(lastCommand);

@@ -22,7 +22,9 @@
 #define SSL_REFEREE_H
 
 #include "protobuf/ssl_referee.pb.h"
+#include "protobuf/gamestate.pb.h"
 
 void teamInfoSetDefault(SSL_Referee::TeamInfo *teamInfo);
+SSL_Referee::Command commandFromGameState(amun::GameState::State state);
 
 #endif // SSL_REFEREE_H
