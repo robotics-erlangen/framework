@@ -43,7 +43,7 @@ export function assignRobots(robots: {pos: Position}[], positions: Position[]): 
 
 	const assignment: number[] = [];
 	for (let a = 0; a < indices.length; a++) {
-		assignment[indices[a][0]] = indices[a][1];
+		assignment[indices[a][1]] = indices[a][0];
 	}
 
 	return assignment;

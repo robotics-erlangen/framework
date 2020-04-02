@@ -31,10 +31,11 @@ export class MovesHelper extends UnitTest {
 	}
 	private testAssignRobotsNoCrossing() {
 		// check if someone is using distanceToSq instead of distanceTo
+		// this order of points also checks if the assignment is in the correct order (position -> robot vs robot -> position)
 		let robots = [{ pos: new Vector(0.45,2.4) }, { pos: new Vector(0.45,2.06) },  { pos: new Vector(0.65, 0.75) }];
-		let positions = [new Vector(4,-2), new Vector(3,-2), new Vector(2,-2)];
+		let positions = [new Vector(2,-2), new Vector(4,-2), new Vector(3,-2)];
 		let assignments = assignRobots(robots, positions);
-		this.assert_deep_equal(assignments, [0, 1, 2]);
+		this.assert_deep_equal(assignments, [2, 0, 1]);
 	}
 
 }
