@@ -39,8 +39,10 @@ export class Roles {
 		for (let [role, applications] of roleApplications.entries()) {
 			if (this._exclusiveRoles.has(role) && applications.has(this._exclusiveRoles[role]!)) {
 				let v = applications[this._exclusiveRoles[role]!]!;
-				for (let x of v._ratingArray) {
-					if (x != undefined) x += roleHysteresis;
+				for (let i = 0;i < v._ratingArray.length;i++) {
+					if (v._ratingArray[i] != undefined) {
+						v._ratingArray[i]! += roleHysteresis;
+					}
 				}
 			}
 			let bestRobot = LeveledRating.findBestRating(applications);
