@@ -4,7 +4,7 @@ import * as Physics from "glados/observer/physics";
 import { UnitTest } from "glados/test/unit/unittest";
 
 
-export class BaseMessaging extends UnitTest {
+export class GladosPhysics extends UnitTest {
 	constructor() {
 		super();
 		this.addTest("not modifying", this.notModifying);
@@ -62,4 +62,4 @@ export class BaseMessaging extends UnitTest {
 		Physics.ballLandPos(ball);
 	}
 }
-export let testClass = BaseMessaging;
+export let testClass = GladosPhysics;

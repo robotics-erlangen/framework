@@ -19,7 +19,7 @@ function robotStub(id: number) {
 	return r;
 }
 
-export class BasePools extends UnitTest {
+export class GladosPools extends UnitTest {
 	constructor() {
 		super();
 		this.addTest("all", this.testAll);
@@ -81,4 +81,4 @@ export class BasePools extends UnitTest {
 		mainTrainer._attackRatio.attackerDefenderDistribution = mainTrainerAttackerDefenderDistribution;
 	}
 }
-export let testClass = BasePools;
+export let testClass = GladosPools;

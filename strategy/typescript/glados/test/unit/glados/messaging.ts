@@ -18,7 +18,7 @@ function agentStub(robotStub: FriendlyRobot) {
 	return agent;
 }
 
-export class BaseMessaging extends UnitTest {
+export class GladosMessaging extends UnitTest {
 	constructor() {
 		super();
 		this.addTest("all", this.testAll);
@@ -74,4 +74,4 @@ export class BaseMessaging extends UnitTest {
 		this.assert_deep_equal(groupApplications.get(agent1.robot())![1].payload, ["payload_B"]);
 	}
 }
-export let testClass = BaseMessaging;
+export let testClass = GladosMessaging;
