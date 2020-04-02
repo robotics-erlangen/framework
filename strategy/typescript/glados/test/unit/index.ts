@@ -50,7 +50,8 @@ const tests: {[name: string]: string} = {
 	"GladosMoveshelper": testPrefix + "glados/moveshelper",
 	"GladosPools": testPrefix + "glados/pools",
 	"GladosUnitTest": testPrefix + "glados/unittest",
-	"GladosPhysics": testPrefix + "glados/physics"
+	"GladosPhysics": testPrefix + "glados/physics",
+	"GladosRoles": testPrefix + "glados/roles"
 };
 
 function runTests(moduleNames: string[]) {
