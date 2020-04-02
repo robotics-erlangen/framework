@@ -159,28 +159,6 @@
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QToolButton" name="btnRefereeIndirectYellow">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>Indirect</string>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>36</width>
-           <height>12</height>
-          </size>
-         </property>
-         <property name="shortcut">
-          <string>4</string>
-         </property>
-        </widget>
-       </item>
       </layout>
      </item>
      <item>
@@ -248,28 +226,6 @@
          </property>
          <property name="shortcut">
           <string>9</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QToolButton" name="btnRefereeIndirectBlue">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>Indirect</string>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>36</width>
-           <height>12</height>
-          </size>
-         </property>
-         <property name="shortcut">
-          <string>6</string>
          </property>
         </widget>
        </item>
@@ -432,11 +388,9 @@
   <tabstop>btnRefereeKickoffYellow</tabstop>
   <tabstop>btnRefereePenaltyYellow</tabstop>
   <tabstop>btnRefereeDirectYellow</tabstop>
-  <tabstop>btnRefereeIndirectYellow</tabstop>
   <tabstop>btnRefereeKickoffBlue</tabstop>
   <tabstop>btnRefereePenaltyBlue</tabstop>
   <tabstop>btnRefereeDirectBlue</tabstop>
-  <tabstop>btnRefereeIndirectBlue</tabstop>
  </tabstops>
  <resources/>
  <connections/>

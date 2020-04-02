@@ -149,12 +149,10 @@ void RefereeWidget::setStyleSheets(bool useDark)
     registerCommand(ui->btnRefereeKickoffBlue, SSL_Referee::PREPARE_KICKOFF_BLUE, blue);
     registerCommand(ui->btnRefereePenaltyBlue, SSL_Referee::PREPARE_PENALTY_BLUE, blue);
     registerCommand(ui->btnRefereeDirectBlue, SSL_Referee::DIRECT_FREE_BLUE, blue);
-    registerCommand(ui->btnRefereeIndirectBlue, SSL_Referee::INDIRECT_FREE_BLUE, blue);
 
     registerCommand(ui->btnRefereeKickoffYellow, SSL_Referee::PREPARE_KICKOFF_YELLOW, yellow);
     registerCommand(ui->btnRefereePenaltyYellow, SSL_Referee::PREPARE_PENALTY_YELLOW, yellow);
     registerCommand(ui->btnRefereeDirectYellow, SSL_Referee::DIRECT_FREE_YELLOW, yellow);
-    registerCommand(ui->btnRefereeIndirectYellow, SSL_Referee::INDIRECT_FREE_YELLOW, yellow);
 
     ui->keeperIdYellow->setStyleSheet(yellow);
     ui->keeperIdBlue->setStyleSheet(blue);
