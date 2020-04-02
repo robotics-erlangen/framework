@@ -35,6 +35,8 @@ namespace Ui {
 class LogManager;
 }
 
+class BufferedStatusSource;
+
 class LogManager : public QWidget
 {
     Q_OBJECT
@@ -57,7 +59,6 @@ public slots:
 signals:
     void gotStatus(const Status &status);
     void gotPlayStatus(const Status &status);
-    void triggerRead(int startFrame, int count);
     void clearPlayConsumers();
     void clearAll();
     void disableSkipping(bool disable);
@@ -68,12 +69,12 @@ signals:
 
 private slots:
     void seekFrame(int frame);
-    void addStatus(int packet, const Status &status);
     void playNext();
     void togglePaused();
     void handlePlaySpeed(int value);
     void previousFrame();
     void nextFrame();
+    void handleNewData();
 
 private:
     QString formatTime(qint64 time);
@@ -87,7 +88,7 @@ private:
 
     QThread *m_logthread;
 
-    std::shared_ptr<StatusSource> m_statusSource;
+    BufferedStatusSource* m_statusSource = nullptr;
 
     QList<int> m_frames;
     qint64 m_startTime;
@@ -102,10 +103,7 @@ private:
 
     int m_playEnd;
 
-    QQueue<QPair<int,Status> > m_nextPackets;
     int m_nextPacket;
-    int m_nextRequestPacket;
-    int m_preloadedPackets;
     int m_spoolCounter;
 };
 

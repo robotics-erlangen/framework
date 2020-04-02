@@ -20,6 +20,7 @@
 
 #include "logmanager.h"
 #include "ui_logmanager.h"
+#include "logfile/bufferedstatussource.h"
 
 #include <QThread>
 #include <QStyleOptionButton>
@@ -71,11 +72,12 @@ LogManager::~LogManager()
 void LogManager::setStatusSource(std::shared_ptr<StatusSource> source)
 {
     ui->btnPlay->setEnabled(true);
-    if (source != m_statusSource) {
-        m_statusSource = source;
-        m_statusSource->moveToThread(m_logthread);
-        connect(m_statusSource.get(), SIGNAL(gotStatus(int,Status)), this, SLOT(addStatus(int,Status)));
-        connect(this, SIGNAL(triggerRead(int,int)), m_statusSource.get(), SLOT(readPackets(int,int)));
+    if (!m_statusSource  ||  m_statusSource->getStatusSource() != source) {
+        delete m_statusSource;
+        m_statusSource = new BufferedStatusSource(source, this);
+        source->moveToThread(m_logthread);
+        connect(ui->spinSpeed, SIGNAL(valueChanged(int)), m_statusSource, SLOT(updateBufferSize(int)));
+        connect(m_statusSource, SIGNAL(gotNewData()), this, SLOT(handleNewData()));
     }
     resetVariables();
     indexLogFile();
@@ -120,21 +122,26 @@ void LogManager::seekPacket(int packet)
         return;
     }
 
+    // do not start the (imprecise) process of jumping to the packet if we can simply spool ahead a little instead
+    bool canSpool = packet >= m_nextPacket && packet <= m_nextPacket + m_statusSource->requestedBufferSize();
+    if (canSpool) {
+        m_spoolCounter = packet - m_nextPacket;
+        return;
+    }
+
     // read a few packets before the new one to have a complete up-to-date status
-    // except if we just move to the next packet
-    int preloadCount = (packet == m_nextRequestPacket) ? 1 : 10;
+    int preloadCount =  10;
     const int preloadPacket = std::max(0, packet - preloadCount + 1);
     preloadCount = packet - preloadPacket + 1; // allow playback of the first frames
 
-    // fast forward unwanted packets and the preload
-    m_spoolCounter += preloadCount + m_preloadedPackets; // playback without time checks
-    m_preloadedPackets = 0; // the preloaded frames for normal playback are skipped
-    m_nextRequestPacket = packet + 1;
 
-    emit triggerRead(preloadPacket, preloadCount); // load the required packets
+    // fast forward unwanted packets and the preload
+    m_spoolCounter = preloadCount; // playback without time checks
+
+    m_statusSource->requestPackets(preloadPacket, preloadCount); // load the required packets
 }
 
-void LogManager::addStatus(int packet, const Status &status)
+void LogManager::handleNewData()
 {
     // trigger playing if the buffer ran empty and we should play or after seeking
     if (!m_timer.isActive() && (!m_paused || m_spoolCounter > 0)) {
@@ -142,7 +149,6 @@ void LogManager::addStatus(int packet, const Status &status)
         m_nextPacket = -1;
         m_timer.start(0);
     }
-    m_nextPackets.enqueue(qMakePair(packet, status));
 }
 
 void LogManager::playNext()
@@ -150,9 +156,9 @@ void LogManager::playNext()
     const double scaling = m_playTimer.scaling();
     qint64 timeCurrent = 0;
     bool hasChanged = false;
-    while (!m_nextPackets.isEmpty()) {
+    while (m_statusSource->hasData()) {
         // peek next packet
-        QPair<int, Status> p = m_nextPackets.head();
+        QPair<int, Status> p = m_statusSource->peek();
         int currentPacket = p.first;
         Status status = p.second;
 
@@ -186,19 +192,17 @@ void LogManager::playNext()
         m_nextPacket = currentPacket + 1;
         if (m_spoolCounter > 0) { // passthrough a certain amount of packets
             m_spoolCounter--;
-        } else if (m_preloadedPackets > 0) {
-            // precached frames for normal playback, tracking is required for accurate seeking
-            m_preloadedPackets--;
         }
         // remove from queue
-        m_nextPackets.dequeue();
+        m_statusSource->pop();
         hasChanged = true;
 
         // stop after last packet
-        if (m_nextPacket == m_statusSource->packetCount()) {
+        if (m_nextPacket == m_statusSource->getStatusSource()->packetCount()) {
             setPaused(true);
         }
     }
+
 
     // only update sliders if something changed and only once
     // spooled packets are ignored as these weren't explicitly requested by the user
@@ -225,17 +229,8 @@ void LogManager::playNext()
         m_scroll = true;
     }
 
-    // about 500 status per second, prefetch 0.1 seconds
-    int bufferLimit = 50 * qMax(1., scaling);
-    // if the buffer starts to become empty, request further packets
-    // but only if these should be played and we didn't reach the end yet
-    if (!m_paused && m_preloadedPackets < bufferLimit && m_nextRequestPacket < m_statusSource->packetCount()) {
-        int lastRequest = m_nextRequestPacket;
-        m_nextRequestPacket = std::min(m_nextRequestPacket + bufferLimit/5, m_statusSource->packetCount());
-        // track requested packet count
-        int packetCount = m_nextRequestPacket - lastRequest;
-        m_preloadedPackets += packetCount;
-        emit triggerRead(lastRequest, packetCount);
+    if (!m_paused) {
+        m_statusSource->checkBuffer();
     }
 }
 
@@ -259,7 +254,7 @@ void LogManager::setPaused(bool p)
 {
     m_paused = p;
     // pause if playback has reached the end
-    if (m_statusSource && m_nextPacket == m_statusSource->packetCount()) {
+    if (m_statusSource && m_nextPacket == m_statusSource->getStatusSource()->packetCount()) {
         m_paused = true;
     }
 
@@ -315,7 +310,7 @@ void LogManager::handlePlaySpeed(int value)
 void LogManager::indexLogFile()
 {
     // get start time and duration
-    const QList<qint64> &timings = m_statusSource->timings();
+    const QList<qint64> &timings = m_statusSource->getStatusSource()->timings();
     if (!timings.isEmpty()) {
         m_startTime = timings.first();
         m_duration = timings.last() - m_startTime;
@@ -349,11 +344,8 @@ void LogManager::resetVariables()
     m_duration = 0;
     m_exactSliderValue = 0;
 
-    // clear buffer and invalidate play timer
-    m_nextPackets.clear();
+    // invalidate play timer
     m_nextPacket = -1;
-    m_nextRequestPacket = 0;
-    m_preloadedPackets = 0;
     m_spoolCounter = 0;
     m_playEnd = -1;
 
@@ -367,12 +359,12 @@ void LogManager::initializeLabels()
 {
     m_scroll = false; // disable scrolling, can be triggered by maximum updates
     // play button if file is loaded
-    ui->btnPlay->setEnabled(m_statusSource ? m_statusSource->isOpen() : false);
+    ui->btnPlay->setEnabled(m_statusSource ? m_statusSource->getStatusSource()->isOpen() : false);
 
     // set log information
     ui->spinPacketCurrent->setMinimum(0);
-    ui->spinPacketCurrent->setMaximum(m_statusSource ? m_statusSource->packetCount() - 1 : -1);
-    ui->lblPacketMax->setText(QString::number(m_statusSource ? m_statusSource->packetCount() - 1 : -1));
+    ui->spinPacketCurrent->setMaximum(m_statusSource ? m_statusSource->getStatusSource()->packetCount() - 1 : -1);
+    ui->lblPacketMax->setText(QString::number(m_statusSource ? m_statusSource->getStatusSource()->packetCount() - 1 : -1));
     ui->lblTimeMax->setText(formatTime(m_duration));
     ui->horizontalSlider->setMaximum(m_frames.size() - 1);
 
