@@ -100,7 +100,7 @@ Amun::Amun(bool simulatorOnly, QObject *parent) :
     m_transceiverThread = new QThread(this);
     m_networkThread = new QThread(this);
     m_simulatorThread = new QThread(this);
-    for (int i = 0;i<3;i++) {
+    for (int i = 0;i<5;i++) {
         m_strategyThread[i] = new QThread(this);
     }
     m_debugHelperThread = new QThread(this);
@@ -194,8 +194,8 @@ void Amun::start()
         Q_ASSERT(m_replayStrategy[i] == nullptr);
         m_replayStrategy[i] = new Strategy(m_replayTimer, strategy, nullptr, &m_compilerRegistry, m_gameControllerConnection[i], false, true);
         // re-use thread for regular and replay strategy
-        m_replayStrategy[i]->moveToThread(m_strategyThread[i]);
-        connect(m_strategyThread[i], SIGNAL(finished()), m_replayStrategy[i], SLOT(deleteLater()));
+        m_replayStrategy[i]->moveToThread(m_strategyThread[i + 3]);
+        connect(m_strategyThread[i + 3], SIGNAL(finished()), m_replayStrategy[i], SLOT(deleteLater()));
 
         // use a rather large queue to make replay faster
         m_strategyBlocker[i] = new BlockingStrategyReplay(m_replayStrategy[i], 20);
@@ -271,7 +271,7 @@ void Amun::start()
     m_transceiverThread->start();
     m_networkThread->start();
     m_simulatorThread->start();
-    for (int i = 0;i<3;i++) {
+    for (int i = 0;i<5;i++) {
         m_strategyThread[i]->start();
     }
     m_debugHelperThread->start();
@@ -289,7 +289,7 @@ void Amun::stop()
     m_transceiverThread->quit();
     m_networkThread->quit();
     m_simulatorThread->quit();
-    for (int i = 0;i<3;i++) {
+    for (int i = 0;i<5;i++) {
         m_strategyThread[i]->quit();
     }
 

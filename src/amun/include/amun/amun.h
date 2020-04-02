@@ -92,7 +92,7 @@ private:
     QThread *m_transceiverThread;
     QThread *m_networkThread;
     QThread *m_simulatorThread;
-    QThread *m_strategyThread[3];
+    QThread *m_strategyThread[5];
     QThread *m_debugHelperThread;
 
     Processor *m_processor;
