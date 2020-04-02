@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2020 Michel Schmid
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,65 +18,41 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef REFEREEWIDGET_H
-#define REFEREEWIDGET_H
+#ifndef TEAMINFOWIDGET_H
+#define TEAMINFOWIDGET_H
 
-#include "protobuf/command.h"
-#include "protobuf/ssl_referee.pb.h"
 #include "protobuf/status.h"
-#include <memory>
 #include <QStringList>
 #include <QWidget>
 
 namespace Ui {
-    class RefereeWidget;
+    class TeaminfoWidget;
 }
 
-class RefereeWidget : public QWidget
+class TeamInfoWidget : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit RefereeWidget(QWidget *parent = 0);
-    ~RefereeWidget() override;
-    RefereeWidget(const RefereeWidget&) = delete;
-    RefereeWidget& operator=(const RefereeWidget&) = delete;
-    void load();
-    void shutdownInternalAutoref();
-    void forceAutoReload(bool force);
-
-signals:
-    void changeCommand(SSL_Referee::Command command);
-    void changeStage(SSL_Referee::Stage stage);
-    void changeYellowKeeper(uint id);
-    void changeBlueKeeper(uint id);
-    void enableInternalAutoref(bool enable);
-    void changeSidesFlipped(bool flipped);
-    void sendCommand(const Command& command);
-    void sendYellowCard(int forTeamYellow);
+    explicit TeamInfoWidget(QWidget *parent = 0);
+    ~TeamInfoWidget() override;
+    TeamInfoWidget(const TeamInfoWidget&) = delete;
+    TeamInfoWidget& operator=(const TeamInfoWidget&) = delete;
 
 public slots:
     void handleStatus(const Status &status);
-    void saveConfig();
-    void setStyleSheets(bool useDark);
-
-private slots:
-    void handleCommand();
-    void handleStage(int index);
-    void handleYellowKeeper(int id);
-    void handleBlueKeeper(int id);
 
 private:
-    void registerCommand(QWidget *button, SSL_Referee::Command c, const QString &stylesheet);
-    static QString createStyleSheet(const QColor &color);
+    Ui::TeaminfoWidget *ui;
 
-private:
-    Ui::RefereeWidget *ui;
-    uint m_yellowKeeperId;
-    uint m_blueKeeperId;
-    SSL_Referee::Stage m_stage;
+    uint m_yellowKeeperId = 0;
+    uint m_blueKeeperId = 0;
 
-    std::shared_ptr<QStringList> m_recentScripts;
+    uint m_yellowYellowCards = 0;
+    uint m_blueYellowCards = 0;
+
+    bool m_yellowTimerZero = true;
+    bool m_blueTimerZero = true;
 };
 
-#endif // REFEREEWIDGET_H
+#endif // TEAMINFOWIDGET_H

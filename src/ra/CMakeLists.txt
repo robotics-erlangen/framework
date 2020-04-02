@@ -54,6 +54,8 @@ add_library(ra-horus
     strategysearch.h
     logopener.cpp
     logopener.h
+    teaminfowidget.cpp
+    teaminfowidget.h
 )
 
 set(UI_SOURCES
@@ -66,6 +68,7 @@ set(UI_SOURCES
     optionswidget.ui
     simulatorwidget.ui
     savedirectorydialog.ui
+    teaminfowidget.ui
 )
 
 qt5_wrap_ui(UIC_SOURCES ${UI_SOURCES})

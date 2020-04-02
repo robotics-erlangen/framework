@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>264</width>
-    <height>427</height>
+    <width>374</width>
+    <height>566</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -285,6 +285,59 @@
     </widget>
    </item>
    <item>
+    <layout class="QHBoxLayout" name="yellowCards">
+     <item>
+      <layout class="QVBoxLayout" name="yellowCardsYellow">
+       <item>
+        <widget class="QToolButton" name="btnRefereeAddCardYellow">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::TabFocus</enum>
+         </property>
+         <property name="text">
+          <string>Add Card</string>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>36</width>
+           <height>12</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="yellowCardsBlue">
+       <item>
+        <widget class="QToolButton" name="btnRefereeAddCardBlue">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Add Card</string>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>36</width>
+           <height>12</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+   <item>
     <layout class="QHBoxLayout" name="keeperSettings">
      <item>
       <widget class="QSpinBox" name="keeperIdYellow">
@@ -298,7 +351,7 @@
         <number>21</number>
        </property>
        <property name="value">
-        <number>8</number>
+        <number>11</number>
        </property>
       </widget>
      </item>

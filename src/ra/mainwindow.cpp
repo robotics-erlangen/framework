@@ -106,6 +106,8 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     connect(ui->referee, SIGNAL(changeBlueKeeper(uint)), m_internalReferee, SLOT(changeBlueKeeper(uint)));
     connect(ui->referee, SIGNAL(enableInternalAutoref(bool)), m_internalReferee, SLOT(enableInternalAutoref(bool)));
     connect(ui->referee, SIGNAL(changeSidesFlipped(bool)), m_internalReferee, SLOT(setSidesFlipped(bool)));
+    connect(ui->referee, SIGNAL(sendYellowCard(int)), m_internalReferee, SLOT(setYellowCard(int)));
+
 
     m_inputManager = new InputManager(this);
     connect(m_inputManager, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
@@ -177,6 +179,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     connect(this, SIGNAL(gotStatus(Status)), ui->debugTree, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), m_internalReferee, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), ui->referee, SLOT(handleStatus(Status)));
+    connect(this, SIGNAL(gotStatus(Status)), ui->teaminfo, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), ui->timing, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), m_refereeStatus, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), ui->log, SLOT(handleStatus(Status)));

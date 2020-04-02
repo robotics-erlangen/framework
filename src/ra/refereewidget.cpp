@@ -27,6 +27,7 @@
 #include "protobuf/ssl_referee.pb.h"
 #include <google/protobuf/descriptor.h>
 #include <QSettings>
+#include <QSignalMapper>
 #include <memory>
 
 RefereeWidget::RefereeWidget(QWidget *parent) :
@@ -68,6 +69,13 @@ RefereeWidget::RefereeWidget(QWidget *parent) :
     connect(ui->autoref, &TeamWidget::sendCommand, this, &RefereeWidget::sendCommand);
 
     ui->autoref->init(amun::StatusStrategyWrapper::AUTOREF);
+
+    QSignalMapper *signalMapper = new QSignalMapper(this);
+    connect(ui->btnRefereeAddCardBlue, SIGNAL(clicked()), signalMapper, SLOT(map()));
+    signalMapper->setMapping(ui->btnRefereeAddCardBlue, false);
+    connect(ui->btnRefereeAddCardYellow, SIGNAL(clicked()), signalMapper, SLOT(map()));
+    signalMapper->setMapping(ui->btnRefereeAddCardYellow, true);
+    connect(signalMapper, SIGNAL(mapped(int)), this, SIGNAL(sendYellowCard(int)));
 }
 
 RefereeWidget::~RefereeWidget()
@@ -150,6 +158,9 @@ void RefereeWidget::setStyleSheets(bool useDark)
 
     ui->keeperIdYellow->setStyleSheet(yellow);
     ui->keeperIdBlue->setStyleSheet(blue);
+
+    ui->btnRefereeAddCardYellow->setStyleSheet(yellow);
+    ui->btnRefereeAddCardBlue->setStyleSheet(blue);
 }
 
 void RefereeWidget::handleStatus(const Status &status)

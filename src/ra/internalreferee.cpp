@@ -88,6 +88,9 @@ void InternalReferee::handleStatus(const Status &status)
         m_referee.mutable_yellow()->CopyFrom(state.yellow());
         m_referee.mutable_blue()->CopyFrom(state.blue());
         // don't copy command as it is only updated when changeCommand is used
+
+        checkYellowCards(status);
+        m_lastStatusTime = status->time();
     }
 }
 
@@ -97,4 +100,54 @@ void InternalReferee::setSidesFlipped(bool flipped)
     amun::CommandReferee *referee = command->mutable_referee();
     referee->set_flipped(flipped);
     emit sendCommand(command);
+}
+
+void InternalReferee::setYellowCard(int forTeamYellow)
+{
+    if (forTeamYellow) {
+        ++m_yellowCardsYellow;
+    } else {
+        ++m_yellowCardsBlue;
+    }
+}
+
+void InternalReferee::checkYellowCards(const Status &status)
+{
+    if (m_yellowCardsYellow > m_referee.yellow().yellow_cards()) {
+        m_referee.mutable_yellow()->set_yellow_cards(m_referee.yellow().yellow_cards() + 1);
+        m_referee.mutable_yellow()->add_yellow_card_times(120E6); // 2min in microseconds
+    }
+
+    if (m_yellowCardsBlue > m_referee.blue().yellow_cards()){
+        m_referee.mutable_blue()->set_yellow_cards(m_referee.blue().yellow_cards() + 1);
+        m_referee.mutable_blue()->add_yellow_card_times(120E6); // 2min in microseconds
+    }
+
+    if (m_yellowCardsBlue > 0 || m_yellowCardsYellow > 0) {
+        adjustCardTimer(status->time());
+    }
+}
+
+static void adjustCardTimerForOneTeam(SSL_Referee::TeamInfo *status, uint32_t deltaTime, uint8_t &yellowCardCounter)
+{
+    for (int i = 0; i < status->yellow_card_times_size(); ++i) {
+        uint32_t currentTime = status->yellow_card_times(i);
+        status->set_yellow_card_times(i, currentTime - std::min(currentTime, deltaTime));
+    }
+
+    while (status->yellow_card_times_size() > 0 && status->yellow_card_times(0) == 0) {
+        --yellowCardCounter;
+        status->set_yellow_cards(status->yellow_cards()-1);
+        status->mutable_yellow_card_times()->erase(status->yellow_card_times().begin());
+    }
+}
+
+void InternalReferee::adjustCardTimer(uint64_t statusTime)
+{
+    uint32_t deltaTime = static_cast<uint32_t>((statusTime - m_lastStatusTime)/1E3);
+    m_lastStatusTime = statusTime;
+
+    adjustCardTimerForOneTeam(m_referee.mutable_blue(), deltaTime, m_yellowCardsBlue);
+    adjustCardTimerForOneTeam(m_referee.mutable_yellow(), deltaTime, m_yellowCardsYellow);
+    sendRefereePacket(false);
 }
