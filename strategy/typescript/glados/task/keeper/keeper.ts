@@ -23,6 +23,7 @@ let GOAL_NORMAL = new Vector(0, 1);
 export class Keeper extends Task {
 	private _defendCorner: boolean = false;
 	private _forceShoot: ForceShoot;
+	private lastBallBehindKeeper: boolean = false;
 
 	constructor(agent: Agent) {
 		super(agent);
@@ -141,17 +142,29 @@ export class Keeper extends Task {
 			intersectPos = fallbackPos;
 		}
 
-		vis.addPath("t/keeper: KeeperShotPrediction", [atkPos,atkPos + atkDir], vis.colors.green);
+		vis.addPath("t/keeper: KeeperShotPrediction", [atkPos, atkPos + atkDir], vis.colors.green);
 		vis.addCircle("t/keeper: KeeperDefenseLineIntersect", intersectPos, 0.03, vis.colors.green);
 		vis.addPath("t/keeper: KeeperDefenseLine", [defenseLineStart, defenseLineEnd], vis.colors.green);
 
 		let moveTo;
 		let endSpeed;
+		let ignoreBall = true;
 		// ball is shot at the goal: take the shortest way to stop the ball
 		if (isShot && atkDir.y < 0 && successfulIntersection &&
 				Field.isInFriendlyDefenseArea(this._robot.pos, this._robot.radius)) {
-			// nearest pos on the ball trajectory
-			moveTo = this._robot.pos.nearestPosOnLine(atkPos, atkPos + atkDir);
+			let ballDist = Field.distanceToFriendlyGoalLine(World.Ball.pos, 0);
+			let robotDist = Field.distanceToFriendlyGoalLine(this._robot.pos, 0);
+			let hysteresisDist = this.lastBallBehindKeeper ? 0.15 : 0;
+			let ballBehindKeeper = ballDist - hysteresisDist < robotDist;
+			this.lastBallBehindKeeper = ballBehindKeeper;
+			if (ballBehindKeeper) {
+				ignoreBall = false;
+				moveTo = intersectPos;
+			} else {
+				// nearest pos on the ball trajectory
+				ignoreBall = true;
+				moveTo = this._robot.pos.nearestPosOnLine(atkPos, atkPos + atkDir);
+			}
 			if (Referee.isOpponentPenaltyState()) {
 				// during penalty the keeper has to touch the goalline
 				moveTo = intersectPos;
@@ -182,7 +195,7 @@ export class Keeper extends Task {
 
 		// ignore goal walls if ball is shot
 		let obstacleTable: PathHelper.PathHelperParameters = {
-			ignoreBall: true,
+			ignoreBall: ignoreBall,
 			ignoreGoals: isShot,
 			ignoreDefenseArea: true,
 			stopBallDistance: stopBallRadius,
