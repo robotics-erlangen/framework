@@ -39,13 +39,14 @@ interface PassObject {
 	manual?: boolean;
 }
 
-/// evaluates a given pass object
-// @name ratePass
-// @param robot Robot - the pass sender / main attacker
-// @param pass table - a pass object (target: Robot, ballPos: Vector, time: number)
-// @param earliestAttackTime - the value of the earliestAttackTime message
-// @param considerTiming bool - true if the pass is given as soon as possible, false if we can wait
-// @return number - a rating between 0 and 1 (1 = perfect, 0 = poor)
+/**
+ * evaluates a given pass object
+ * @param robot the pass sender / main attacker
+ * @param pass a pass object (target: Robot, ballPos: Vector, time: number)
+ * @param earliestAttackTime the value of the earliestAttackTime message
+ * @param considerTiming true if the pass is given as soon as possible, false if we can wait
+ * @returns - a rating between 0 and 1 (1 = perfect, 0 = poor)
+ */
 export function _ratePass(robot: FriendlyRobot, pass: PassObject, earliestAttackTime: number | undefined, considerTiming: boolean): number {
 	if (robot === World.FriendlyKeeper && G.FieldHeightHalf - Math.abs(pass.ballPos.y) < 4) {
 		return 0;
@@ -187,15 +188,16 @@ export function _ratePass(robot: FriendlyRobot, pass: PassObject, earliestAttack
 }
 export let ratePass = Cache.forFrame(_ratePass);
 
-/// chooses a pass from a list of pass objects using Attack.ratePass
-// @name choosePass
-// @param robot Robot - the pass sender / main attacker
-// @param passes table - a list of pass objects
-// @param earliestAttackTime - the value of the earliestAttackTime message
-// @param currentPassPos - the ballPos of the last frame, used for stability
-// @param considerTiming bool - true if the pass is given as soon as possible, false if we can wait
-// @param customHysteresis number - optional: sets the hysteresis bonus, defaults to 0.1
-// @return table - the best pass object
+/**
+ * chooses a pass from a list of pass objects using Attack.ratePass
+ * @param robot the pass sender / main attacker
+ * @param passes a list of pass objects
+ * @param earliestAttackTime the value of the earliestAttackTime message
+ * @param currentPassPos the ballPos of the last frame, used for stability
+ * @param considerTiming true if the pass is given as soon as possible, false if we can wait
+ * @param customHysteresis optional: sets the hysteresis bonus, defaults to 0.1
+ * @returns the best pass object
+ */
 export function choosePass(robot: FriendlyRobot, passes: PassObject[], earliestAttackTime: number | undefined,
 		currentPassPos?: Position, considerTiming: boolean = false,
 		customHysteresis: number = 0.1): [PassObject | undefined, number] {
@@ -222,15 +224,16 @@ export function choosePass(robot: FriendlyRobot, passes: PassObject[], earliestA
 	return [bestPass, bestPassRating];
 }
 
-/// chooses a pass from a list of pass suggestions using Attack.ratePass
-// @name choosePassFromSuggestions
-// @param robot Robot - the pass sender / main attacker
-// @param passSuggestions table - all incoming passSuggestion messages
-// @param earliestAttackTime - the value of the earliestAttackTime message
-// @param currentPassPos - the ballPos of the last frame, used for stability
-// @param considerTiming bool - true if the pass is given as soon as possible, false if we can wait
-// @param customHysteresis number - optional: sets the hysteresis bonus, defaults to 0.1
-// @return table - the best pass object
+/**
+ * chooses a pass from a list of pass suggestions using Attack.ratePass
+ * @param robot the pass sender / main attacker
+ * @param passSuggestions all incoming passSuggestion messages
+ * @param earliestAttackTime the value of the earliestAttackTime message
+ * @param currentPassPos the ballPos of the last frame, used for stability
+ * @param considerTiming true if the pass is given as soon as possible, false if we can wait
+ * @param customHysteresis optional: sets the hysteresis bonus, defaults to 0.1
+ * @returns the best pass object
+ */
 export function choosePassFromSuggestions(robot: FriendlyRobot, passSuggestions: Map<FriendlyRobot, PassSuggestion>,
 		earliestAttackTime: number | undefined, currentPassPos?: Position,
 		considerTiming?: boolean, customHysteresis?: number): [PassObject | undefined, number] {
@@ -249,16 +252,17 @@ function sortByRating(a: {rating: number}, b: {rating: number}): number {
 	return b.rating - a.rating;
 }
 
-/// sorts the passes by their rating
-// @name sortPassesFromSuggestions
-// @param robot Robot - the pass sender / main attacker
-// @param passSuggestions table - all incoming passSuggestion messages
-// @param earliestAttackTime - the value of the earliestAttackTime message
-// @param currentPassPositions table - the ballPositions of the last frame, used for stability
-// @param considerTiming bool - true if the pass is given as soon as possible, false if we can wait
-// @param threshold - number between 0 and 1, ratings lower than the threshold won't be included (unless we would have none otherwise)
-// @param customHysteresis number - optional: sets the hysteresis bonus, defaults to 0.1
-// @return table - list of passes, sorted by their rating
+/**
+ * sorts the passes by their rating
+ * @param robot the pass sender / main attacker
+ * @param passSuggestions all incoming passSuggestion messages
+ * @param earliestAttackTime the value of the earliestAttackTime message
+ * @param currentPassPositions the ballPositions of the last frame, used for stability
+ * @param considerTiming true if the pass is given as soon as possible, false if we can wait
+ * @param threshold number between 0 and 1, ratings lower than the threshold won't be included (unless we would have none otherwise)
+ * @param customHysteresis optional: sets the hysteresis bonus, defaults to 0.1
+ * @returns list of passes, sorted by their rating
+ */
 export function sortPassesFromSuggestions(robot: FriendlyRobot, passSuggestions: Map<FriendlyRobot, PassSuggestion>,
 		earliestAttackTime: number | undefined, currentPassPositions: Position[] | undefined,
 		considerTiming: boolean, threshold: number = 0.5, customHysteresis: number = 0.1) {
@@ -298,24 +302,27 @@ export function sortPassesFromSuggestions(robot: FriendlyRobot, passSuggestions:
 	return passes.length > 0 ? passes : undefined;
 }
 
-/// draws a broad line beween the main attacker (robotPos) and the next attack destination (shootDest)
-// @name visualizeAttack
-// @param robotPos Vector - the position of the main attacker
-// @param shootDest Vector - the position of the next shoot destination
+/**
+ * draws a broad line beween the main attacker (robotPos) and the next attack destination (shootDest)
+ * @param robotPos the position of the main attacker
+ * @param shootDest the position of the next shoot destination
+ */
 export function visualizeAttack(robotPos: Position, shootDest: Position) {
 	let color = World.TeamIsBlue ? vis.fromRGBA(38, 48, 217, 63) : vis.fromRGBA(244, 214, 31, 63);
 	vis.addPath("u/a/Attack", [robotPos, shootDest], color, undefined, undefined, 0.1);
 }
 
-/// decides whether a robot has to be a main attacker because it will receive a pass
-// used in a/a/applyformainattacker
-// @param passInfoSender Robot - the sender of the passInfo message
-// @param passInfoMessage table - passInfo, for format details see messaging.ts
-// @return Robot - the main attacker that receives a pass, or nil
 let lastCPMA: FriendlyRobot | undefined = undefined;
 let lastPasser: FriendlyRobot | undefined = undefined;
 let lastReceiver: FriendlyRobot | undefined = undefined;
 let lastCPMATime = 0;
+/**
+ * decides whether a robot has to be a main attacker because it will receive a pass
+ * used in a/a/applyformainattacker
+ * @param passInfoSender the sender of the passInfo message
+ * @param passInfoTable passInfo, for format details see messaging.ts
+ * @returns the main attacker that receives a pass, or undefined
+ */
 function _currentPlannedMainAttacker(passInfoSender: FriendlyRobot | undefined, passInfoTable: PassInfo[]): FriendlyRobot | undefined {
 
 	if (World.Time - lastCPMATime > 0.2) {
@@ -367,10 +374,12 @@ function _currentPlannedMainAttacker(passInfoSender: FriendlyRobot | undefined, 
 }
 export let currentPlannedMainAttacker = Cache.forFrame(_currentPlannedMainAttacker);
 
-/// checks whether we are shooting a goal and returns a position for a path obstacle, or nil
-// @param shootDest Vector - the content of the shootDestination message
-// @param attackPos Vector - the content of the attackPosition message
-// @return Vector - robots should not move between the returned position and the opponent goal
+/**
+ * checks whether we are shooting a goal and returns a position for a path obstacle, or undefined
+ * @param shootDest the content of the shootDestination message
+ * @param attackPos the content of the attackPosition message
+ * @returns robots should not move between the returned position and the opponent goal
+ */
 export function shootGoalViewPos(shootDest: Position, attackPos: Position): Position | undefined {
 	// if we want to shoot a goal
 	if (shootDest) {
@@ -433,14 +442,16 @@ function calculatePassInfoTiming(robot: {shootRadius: number} & Physics.RobotLik
 	return Infinity;
 }
 
-// checks if an attacker has to start to move towards its pass
-// @param robot Robot
-// @param passInfoTable table - all of the passInfos currently being sent out
-// @param lastResult bool - the return value of the last call to this function, or false
-// @param absRobotTime number - an alternative time that this robot will take to reach lastPassInfo.pos //TODO: this is used incorrectly when passInfo changes
-// @return message - the relevantPassInfoMessage for this robot
-// @return bool - if we have to start to move
-// @return number - time until we have to start moving
+/**
+ * checks if an attacker has to start to move towards its pass
+ * @param robot Robot
+ * @param passInfoTable all of the passInfos currently being sent out
+ * @param lastResult the return value of the last call to this function, or false
+ * @param lastPassInfo an alternative time that this robot will take to reach lastPassInfo.pos //TODO: this is used incorrectly when passInfo changes
+ * @param passIncoming the relevantPassInfoMessage for this robot
+ * @param absRobotTime if we have to start to move
+ * @returns time until we have to start moving
+ */
 function _checkPassInfos(robot: FriendlyRobot, passInfoTable: PassInfo[], lastResult: boolean | undefined, lastPassInfo: PassInfo | undefined,
 		passIncoming?: boolean, absRobotTime?: number): [PassInfo | undefined, boolean, number | undefined] {
 	let _relevantPassInfoMessage = relevantPassInfoMessage(robot, passInfoTable);
@@ -464,12 +475,15 @@ export function checkPassInfos(robot: FriendlyRobot, passInfoTable: PassInfo[], 
 	return [result, time];
 }
 
-// checks if an attacker has to start to move towards its pass
-// @param robot Robot - to copy its specs
-// @param passInfo Message - the passInfo-Message
-// @param position Vector - an alternative starting position for the timing calculations
-// @param speed Vector - an alternative starting speed for timing, or Vector(0,0)
-// @return bool - if we have to start to move
+/**
+ * checks if an attacker has to start to move towards its pass
+ * @param robot to copy its specs
+ * @param passInfo the passInfo-Message
+ * @param position an alternative starting position for the timing calculations
+ * @param speed an alternative starting speed for timing, or Vector(0,0)
+ * @param passIncoming
+ * @returns if we have to start to move
+ */
 export function checkPassInfoFromPosition(robot: FriendlyRobot, passInfo: PassInfo | undefined, position: Position,
 		speed: Speed = new Vector(0,0), passIncoming?: boolean) {
 	if (position) {
@@ -486,10 +500,12 @@ export function checkPassInfoFromPosition(robot: FriendlyRobot, passInfo: PassIn
 	return false;
 }
 
-// returns the passInfo that targets the robot
-// @param robot Robot
-// @param passInfoTable table - all of the passInfos currently being sent out
-// @return Message relevantPassInfoMessage (the passInfo message that targets the robot), undefined if there isn't one
+/**
+ * returns the passInfo that targets the robot
+ * @param robot Robot
+ * @param passInfoTable all of the passInfos currently being sent out
+ * @returns Message relevantPassInfoMessage (the passInfo message that targets the robot), undefined if there isn't one
+ */
 export function relevantPassInfoMessage(robot: FriendlyRobot, passInfoTable: PassInfo[]): PassInfo | undefined {
 	let relevantPassInfoMessage = undefined;
 	if (passInfoTable != undefined) {
@@ -519,14 +535,16 @@ export function isPassAllowed(startPos: Position, endPos: Position): boolean {
 	return true;
 }
 
-/// returns last incoming passInfo for each robot
-// @param robot Robot
-// @param passInfo Message - passInfo-Message
-// @return passInfo Message - last passInfo-Message
 let InvalidationCounter = new Map<FriendlyRobot, number>();
 let _lastIncomingPassInfo = new Map<FriendlyRobot, PassInfo>();
 let lastIPIUpdateTime = new Map<FriendlyRobot, number>();
 
+/**
+ * returns last incoming passInfo for each robot
+ * @param robot Robot
+ * @param passInfo passInfo-Message
+ * @returns last passInfo-Message
+ */
 export function lastIncomingPassInfo(robot: FriendlyRobot, passInfo: [FriendlyRobot, PassInfo[]] | []) {
 	let incomingPassInfo = undefined;
 	let passInfoTable = passInfo[1];
