@@ -73,7 +73,9 @@ export class HandleBall extends Behavior {
 			if (this._timeBegin == undefined) {
 				this._timeBegin = World.Time;
 			}
-			this._pass = Attack.choosePassFromSuggestions(this._robot, suggestions, this._pass && this._pass.ballPos, false)[0];
+			let attackTime = this._messaging.receiveSingleSender(MessageType.earliestAttackTime, true)[1];
+			this._pass = Attack.choosePassFromSuggestions(this._robot, suggestions, attackTime,
+				this._pass && this._pass.ballPos, false)[0];
 			if (this._pass != undefined) { // check if there is a good pass, else chip away
 				return [Pass, [ this._pass.target, this._pass.ballPos, true, undefined, undefined, undefined, true]];
 			}

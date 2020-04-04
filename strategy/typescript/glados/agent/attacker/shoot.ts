@@ -134,11 +134,13 @@ export class Shoot extends Behavior {
 			};
 		}
 
+		let attackTime = this._messaging.receiveSingleSender(MessageType.earliestAttackTime, true)[1];
+		let passSuggestions = this._messaging.receive(MessageType.passSuggestion);
 		let pass = Attack.choosePassFromSuggestions(this._robot,
-			this._messaging.receive(MessageType.passSuggestion), this._prevPassPos, true)[0];
+			passSuggestions, attackTime, this._prevPassPos, true)[0];
 
 		// consider chipping forward
-		let passRating = pass ? Attack.ratePass(this._robot, pass, true) : 0;
+		let passRating = pass ? Attack.ratePass(this._robot, pass, attackTime, true) : 0;
 		if (ENABLE_PSEUDO_PASS && this._attackPosition && passRating < MIN_PASS_RATING
 				&&  Field.distanceToDefenseAreaSq(this._attackPosition, false) > 2
 				&&  World.Ball.speed.length() < 1
@@ -182,8 +184,8 @@ export class Shoot extends Behavior {
 
 						// look for better pass opportunities
 						let newPass = Attack.choosePassFromSuggestions(this._robot,
-							this._messaging.receive(MessageType.passSuggestion), this._prevPassPos, true)[0];
-						let newPassRating = newPass ? Attack.ratePass(this._robot, newPass, true) : 0;
+							passSuggestions, attackTime, this._prevPassPos, true)[0];
+						let newPassRating = newPass ? Attack.ratePass(this._robot, newPass, attackTime, true) : 0;
 
 						if (newPassRating > bestRating && newPassRating > MIN_PASS_RATING) {
 							bestRating = newPassRating;
@@ -207,7 +209,7 @@ export class Shoot extends Behavior {
 				}
 
 				// short chip forward
-				if (pass == undefined || Attack.ratePass(this._robot, pass, true) < MIN_PASS_RATING) {
+				if (pass == undefined || Attack.ratePass(this._robot, pass, attackTime, true) < MIN_PASS_RATING) {
 					let newAttackPosition = this._attackPosition + Vector.fromAngle(attackAngle).setLength((MAX_DISTANCE - MIN_DISTANCE) / 2 + MIN_DISTANCE);
 					let passVector = newAttackPosition - this._attackPosition;
 					if (Attack.isPassAllowed(this._attackPosition, this._attackPosition + passVector.setLength(0.5))) {
