@@ -707,6 +707,8 @@ void MainWindow::handleCheckHaltStatus(const Status &status)
 
 void MainWindow::raMode()
 {
+    m_plotter->clearData();
+
     setWindowIcon(QIcon("icon:ra.svg"));
     setWindowTitle("Ra");
     ui->field->enableDragMeasure(false);
@@ -733,6 +735,8 @@ void MainWindow::raMode()
 
 void MainWindow::horusMode()
 {
+    m_plotter->clearData();
+
     setWindowIcon(QIcon("icon:logplayer.svg"));
     setWindowTitle(m_horusTitleString.isEmpty() ? "Horus" : "Horus - " + m_horusTitleString);
     ui->field->enableDragMeasure(true);
@@ -808,6 +812,7 @@ void MainWindow::dragLeaveEvent(QDragLeaveEvent *event)
 void MainWindow::logOpened(QString name)
 {
     if (!errorOccurred) {
+        m_plotter->clearData();
         m_horusTitleString = name;
         setWindowTitle("Horus - " + name);
         switchToWidgetConfiguration(static_cast<int>(m_currentWidgetConfiguration + m_currentWidgetConfiguration % 2));
