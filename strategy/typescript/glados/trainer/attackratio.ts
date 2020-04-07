@@ -65,7 +65,7 @@ export class AttackRatio {
 			attackRatio = 11;
 		} else if (BaseRef.isFriendlyKickoffState(refState)) {
 			attackRatio = 8;
-		} else if (BaseRef.isOpponentFreeKickState(refState)) {
+		} else if (BaseRef.isOpponentKickoffState(refState)) {
 			attackRatio = 4;
 		} else if (BaseRef.isFriendlyFreeKickState(refState)
 				|| (refState === "BallPlacementOffensive" && BaseRef.isFriendlyFreeKickState(nextRefState))) {
