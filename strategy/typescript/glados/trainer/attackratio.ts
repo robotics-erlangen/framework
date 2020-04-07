@@ -117,6 +117,14 @@ export class AttackRatio {
 			attackRatio = Math.max(attackRatio, Math.min(attackRatio + 1 , 8));
 		}
 
+		// allow a defender to promote if a pass is ongoing.
+		// The increased attackRatio will result in one defender promoting.
+		// a/defender adjust its rating to "I'm a bad defender" if recieving a pass,
+		// so the correct robot will be promoted.
+		let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
+		if (passInfoTable && attackRatio < 2) {
+			attackRatio = 2;
+		}
 		return attackRatio;
 	}
 

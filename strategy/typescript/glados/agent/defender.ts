@@ -55,6 +55,15 @@ export class Defender extends Agent {
 		if (this._activeBehavior != undefined && this._activeBehavior.forceKeepingInPool()) {
 			return Infinity;
 		}
+		let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
+		if (passInfoTable) {
+			for (let pass of passInfoTable) {
+				if (pass.target === this._robot) {
+					// We are a very bad defender if we want to accept this pass :O
+					return -Infinity;
+				}
+			}
+		}
 		return -World.Geometry.FriendlyGoal.distanceTo(this._robot.pos);
 	}
 }
