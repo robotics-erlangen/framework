@@ -3,7 +3,7 @@ import { Position } from "base/vector";
 
 import { MessageBox } from "glados/control/messaging";
 
-type MainAttackerParameters = [Position, number];
+export type MainAttackerParameters = [Position, number];
 
 /**
  * A constructor that creates a task.

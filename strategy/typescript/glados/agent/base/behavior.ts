@@ -164,3 +164,53 @@ export abstract class Behavior implements Checkable {
 	// can be overwritten for custom cleanups
 	_stop() { }
 }
+
+/**
+ * A list of checkables. Forwards `Checkable` operations to the underlying
+ * collection
+ */
+export class CheckableList implements Checkable {
+	private _checkables: Checkable[];
+
+	constructor(agent: Agent, checkables: CheckableConstructor[]) {
+		this._checkables = checkables.map((ctor) => new ctor(agent));
+	}
+
+	/**
+	 * Checks a bunch of sub-checkables in the order supplied in the
+	 * constructor and returns the first result different from `undefined`
+	 *
+	 * @returns the return value of the first checkable, that did not return
+	 *          `undefined`, or `undefined` if there is no such checkable
+	 */
+	check(): Behavior | undefined {
+		for (const checkable of this._checkables) {
+			const result = checkable.check();
+			if (result) {
+				return result;
+			}
+		}
+		return undefined;
+	}
+
+	mainAttackerParameters(activeBehavior?: Behavior): [MainAttackerParameters | undefined, boolean] {
+		let params = undefined;
+		let active = false;
+		for (const checkable of this._checkables) {
+			const [checkableParams, isActive] = checkable.mainAttackerParameters(activeBehavior);
+			params = checkableParams || params;
+			if (isActive) {
+				active = true;
+				break;
+			}
+		}
+		return [params, active];
+	}
+
+	clearMainAttackerParameters() {
+		for (const checkable of this._checkables) {
+			checkable.clearMainAttackerParameters();
+		}
+	}
+}
+

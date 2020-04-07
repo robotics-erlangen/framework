@@ -6,7 +6,7 @@ import * as timing from "base/timing";
 import { Position, Vector } from "base/vector";
 import * as World from "base/world";
 
-import { Behavior, Checkable, CheckableConstructor } from "glados/agent/base/behavior";
+import { Behavior, CheckableConstructor, CheckableList, MainAttackerParameters as BehaviorMAParams } from "glados/agent/base/behavior";
 import { Error as AgentError } from "glados/agent/shared/error";
 import { Halt } from "glados/agent/shared/halt";
 import { MoveCommand } from "glados/agent/shared/movecommand";
@@ -14,7 +14,7 @@ import { dumpMessages, MessageBox, MessageType, MessageTypeList, Messaging } fro
 import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 import * as Robot from "glados/observer/robot";
-import { Task } from "glados/task/base";
+import { MainAttackerParameters as TaskMAParams, Task } from "glados/task/base";
 import * as UtilDefense from "glados/util/defense";
 import * as Rating from "glados/util/rating";
 
@@ -24,7 +24,7 @@ let MAX_RATING_TIME_BOOST = 0.1;
 export abstract class Agent {
 	_robot: FriendlyRobot;
 	_messaging: MessageBox;
-	_behaviors: Checkable[] = [];
+	_behaviors: CheckableList;
 	_activeBehavior: Behavior | undefined;
 	_mainAttackerLastTime: number | undefined = undefined;
 	_debugIdStr: string;
@@ -38,12 +38,12 @@ export abstract class Agent {
 		this._robot = robot;
 		this._messaging = messaging.registerAgent(this);
 		// behaviors are ordered by decreasing priority
-		this._behaviors = [
-			new MoveCommand(this),
-			new Halt(this),
-			new AgentError(this),
-			...this.getBehaviors().map((ctor) => new ctor(this)),
-		];
+		this._behaviors = new CheckableList(this, [
+			MoveCommand,
+			Halt,
+			AgentError,
+			...this.getBehaviors(),
+		]);
 		this._debugIdStr = "Agent " + this._robot.id;
 	}
 
@@ -75,15 +75,9 @@ export abstract class Agent {
 		}
 
 		// choose best behavior, that is the behavior with the highest priority of all useable ones
-		let bestBehavior = undefined;
-		for (let behavior of this._behaviors) {
-			behavior.clearMainAttackerParameters();
-			let result = behavior.check();
-			if (result) {
-				bestBehavior = result;
-				break;
-			}
-		}
+		this._behaviors.clearMainAttackerParameters();
+		const bestBehavior = this._behaviors.check();
+
 		// check if the behavior has changed
 		if (bestBehavior !== this._activeBehavior) {
 			if (this._activeBehavior) {
@@ -153,14 +147,8 @@ export abstract class Agent {
 
 	_applyForMainAttacker = debug.wrap("mainAttackerRating", (task: Task | undefined) => {
 		// the keeper just overrides this
-		let parameters = undefined;
-		for (let behavior of this._behaviors) {
-			const [behaviorParams, isActive] = behavior.mainAttackerParameters(this._activeBehavior);
-			parameters = behaviorParams || parameters;
-			if (isActive) {
-				break;
-			}
-		}
+		let parameters: BehaviorMAParams | TaskMAParams | undefined = this._behaviors.mainAttackerParameters(this._activeBehavior)[0];
+
 		let overrideRating = parameters != undefined ? parameters[2] : undefined;
 		if (parameters && task != undefined && overrideRating == undefined) {
 			// only use task parameters if behavior asked for main attacker application
