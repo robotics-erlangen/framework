@@ -37,6 +37,7 @@
 #include <QDebug>
 #include <iostream>
 #include <memory>
+#include <array>
 
 Connector::Connector(QObject *parent) :
     QObject(parent),
