@@ -24,6 +24,8 @@ export type TaskAssignment<T extends TaskConstructor> =
  */
 export type BehaviorConstructor = new (agent: Agent) => Behavior;
 
+export type MainAttackerParameters = [Position | undefined, number | undefined, number | undefined];
+
 export abstract class Behavior {
 	protected _messaging: MessageBox;
 
@@ -35,7 +37,7 @@ export abstract class Behavior {
 	// WARNING: when adding state is should be accessed by the subclass, this state has to be copied from and to
 	// the deferred behavior, see runDeferredBehavior() and run()
 
-	private _mainAttackerParameters: [Position | undefined, number | undefined, number | undefined] | undefined = undefined;
+	private _mainAttackerParameters: MainAttackerParameters | undefined = undefined;
 	private _deferredBehavior: Behavior | undefined;
 	private _deferredBehaviorRunning: boolean = false;
 
@@ -137,8 +139,14 @@ export abstract class Behavior {
 		this._mainAttackerParameters = [ target, endSpeedLength, overrideRating ];
 	}
 
-	mainAttackerParameters(): [Position | undefined, number | undefined, number | undefined] | undefined {
-		return this._mainAttackerParameters;
+	/**
+	 * Get this behaviors mainAttackerParameters
+	 * @returns a tuple
+	 * @returns tuple[0] the actual parameters or undefined if this behavior has not applied
+	 * @returns tuple[1] whether this behavior is the active one
+	 */
+	mainAttackerParameters(activeBehavior?: Behavior): [MainAttackerParameters | undefined, boolean] {
+		return [this._mainAttackerParameters, this === activeBehavior];
 	}
 
 	clearMainAttackerParameters() {

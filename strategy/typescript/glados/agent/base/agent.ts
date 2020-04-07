@@ -155,8 +155,9 @@ export abstract class Agent {
 		// the keeper just overrides this
 		let parameters = undefined;
 		for (let behavior of this._behaviors) {
-			parameters = behavior.mainAttackerParameters() || parameters;
-			if (behavior === this._activeBehavior) {
+			const [behaviorParams, isActive] = behavior.mainAttackerParameters(this._activeBehavior);
+			parameters = behaviorParams || parameters;
+			if (isActive) {
 				break;
 			}
 		}
