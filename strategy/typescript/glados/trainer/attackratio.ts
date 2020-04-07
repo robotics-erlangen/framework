@@ -12,7 +12,7 @@ import * as Robot from "glados/observer/robot";
 
 export class AttackRatio {
 	_friendlyFreeKickOngoing: boolean = false;
-	_opponentFreeKickOngoing: boolean = false;
+	_opponentFreeKickAT: number | undefined = undefined;
 	_ballInOpponentFieldHalf: boolean = false; // remember for hysteresis
 	_dangerousDuelSituation: boolean = false;
 	_previousMainAttacker: FriendlyRobot | undefined;
@@ -33,13 +33,13 @@ export class AttackRatio {
 		}
 
 		if (BaseRef.isOpponentFreeKickState(refState)) {
-			this._opponentFreeKickOngoing = true;
+			this._opponentFreeKickAT = 0;
 		} else if (refState !== "Game") {
-			this._opponentFreeKickOngoing = false;
+			this._opponentFreeKickAT = undefined;
 		} else {
 			for (let robot of World.FriendlyRobots) {
 				if (Robot.hadBall(robot, 0)) {
-					this._opponentFreeKickOngoing = false;
+					this._opponentFreeKickAT = undefined;
 					break;
 				}
 			}
@@ -90,6 +90,9 @@ export class AttackRatio {
 			} else {
 				attackRatio = 1;
 			}
+			if (this._opponentFreeKickAT != undefined) {
+				this._opponentFreeKickAT = attackRatio;
+			}
 		} else if (BaseRef.isOpponentPenaltyState(refState)) {
 			attackRatio = 1;
 		} else if (BaseRef.isFriendlyPenaltyState(refState)) {
@@ -101,8 +104,8 @@ export class AttackRatio {
 				attackRatio = 1;
 			}
 		} else {// Game, GameForce
-			if (this._opponentFreeKickOngoing) {
-				attackRatio = 1;
+			if (this._opponentFreeKickAT != undefined) {
+				attackRatio = this._opponentFreeKickAT;
 			} else {
 				attackRatio = this._ballInOpponentFieldHalf ? 5 : 4;
 				if (this._friendlyFreeKickOngoing) {
