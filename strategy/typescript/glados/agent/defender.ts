@@ -2,7 +2,7 @@ import { FriendlyRobot } from "base/robot";
 import * as World from "base/world";
 
 import { Agent } from "glados/agent/base/agent";
-import { BehaviorConstructor } from "glados/agent/base/behavior";
+import { CheckableConstructor } from "glados/agent/base/behavior";
 import { CenterBack } from "glados/agent/defender/centerback";
 import { Default } from "glados/agent/defender/default";
 import { HandleBall } from "glados/agent/defender/handleball";
@@ -19,7 +19,7 @@ import { MessageType } from "glados/control/messaging";
 
 export class Defender extends Agent {
 
-	public getBehaviors(): BehaviorConstructor[] {
+	public getBehaviors(): CheckableConstructor[] {
 		return [
 			PenaltyPassiveDefenderOffense,
 			PenaltyPassiveDefense,

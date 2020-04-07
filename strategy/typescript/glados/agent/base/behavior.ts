@@ -26,7 +26,25 @@ export type BehaviorConstructor = new (agent: Agent) => Behavior;
 
 export type MainAttackerParameters = [Position | undefined, number | undefined, number | undefined];
 
-export abstract class Behavior {
+export type CheckableConstructor = new(a: Agent) => Checkable;
+
+export interface Checkable {
+	/**
+	 * Is called on every run, if no higher prioritized behavior is chosen
+	 * @returns the Behavior which should be run or undefined if this Behavior is unfit for execution
+	 */
+	check(): Behavior | undefined;
+	/**
+	 * Get this checkable's mainAttackerParameters
+	 * @returns a tuple
+	 * @returns tuple[0] the actual parameters or undefined if this behavior has not applied
+	 * @returns tuple[1] whether this behavior is or contains the active one
+	 */
+	mainAttackerParameters(activeBehavior?: Behavior): [MainAttackerParameters | undefined, boolean];
+	clearMainAttackerParameters(): void;
+}
+
+export abstract class Behavior implements Checkable {
 	protected _messaging: MessageBox;
 
 	protected _agent: Agent;
@@ -107,10 +125,6 @@ export abstract class Behavior {
 		this._active = true;
 	}
 
-	/**
-	 * Is called on every run, if no higher prioritized behavior is chosen
-	 * @returns the Behavior which should be run or undefined if this Behavior is unfit for execution
-	 */
 	abstract check(): Behavior | undefined;
 
 	protected forceDeferredKeepingInPool() {
@@ -139,12 +153,6 @@ export abstract class Behavior {
 		this._mainAttackerParameters = [ target, endSpeedLength, overrideRating ];
 	}
 
-	/**
-	 * Get this behaviors mainAttackerParameters
-	 * @returns a tuple
-	 * @returns tuple[0] the actual parameters or undefined if this behavior has not applied
-	 * @returns tuple[1] whether this behavior is the active one
-	 */
 	mainAttackerParameters(activeBehavior?: Behavior): [MainAttackerParameters | undefined, boolean] {
 		return [this._mainAttackerParameters, this === activeBehavior];
 	}

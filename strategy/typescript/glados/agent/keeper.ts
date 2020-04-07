@@ -2,14 +2,14 @@ import { FriendlyRobot } from "base/robot";
 import * as World from "base/world";
 
 import { Agent } from "glados/agent/base/agent";
-import { BehaviorConstructor } from "glados/agent/base/behavior";
+import { CheckableConstructor } from "glados/agent/base/behavior";
 import { Default } from "glados/agent/keeper/default";
 import { DefendPenaltyShootout } from "glados/agent/keeper/defendpenaltyshootout";
 import { HandleBall } from "glados/agent/keeper/handleball";
 
 export class Keeper extends Agent {
 
-	getBehaviors(): BehaviorConstructor[] {
+	getBehaviors(): CheckableConstructor[] {
 		return [
 			DefendPenaltyShootout,
 			HandleBall,

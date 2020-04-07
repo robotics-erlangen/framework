@@ -6,7 +6,7 @@ import * as timing from "base/timing";
 import { Position, Vector } from "base/vector";
 import * as World from "base/world";
 
-import { Behavior, BehaviorConstructor } from "glados/agent/base/behavior";
+import { Behavior, Checkable, CheckableConstructor } from "glados/agent/base/behavior";
 import { Error as AgentError } from "glados/agent/shared/error";
 import { Halt } from "glados/agent/shared/halt";
 import { MoveCommand } from "glados/agent/shared/movecommand";
@@ -24,7 +24,7 @@ let MAX_RATING_TIME_BOOST = 0.1;
 export abstract class Agent {
 	_robot: FriendlyRobot;
 	_messaging: MessageBox;
-	_behaviors: Behavior[] = [];
+	_behaviors: Checkable[] = [];
 	_activeBehavior: Behavior | undefined;
 	_mainAttackerLastTime: number | undefined = undefined;
 	_debugIdStr: string;
@@ -47,7 +47,7 @@ export abstract class Agent {
 		this._debugIdStr = "Agent " + this._robot.id;
 	}
 
-	abstract getBehaviors(): BehaviorConstructor[];
+	abstract getBehaviors(): CheckableConstructor[];
 
 	_run() { }
 
