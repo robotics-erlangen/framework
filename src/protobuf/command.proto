@@ -86,10 +86,6 @@ message CommandStrategyLoad {
 message CommandStrategyClose {
 }
 
-message CommandStrategySetOptions {
-    repeated string option = 1;
-}
-
 message CommandStrategyTriggerDebugger {
 }
 
@@ -100,12 +96,11 @@ message CommandStrategy {
     optional bool auto_reload = 4;
     optional bool enable_debug = 5;
     optional bool enable_refbox_control = 6;
-    optional CommandStrategySetOptions options = 7;
-    optional CommandStrategyTriggerDebugger debug = 8;
-    optional bool performance_mode = 9;
-    optional bool start_profiling = 10;
-    optional string finish_and_save_profile = 11;
-    optional bool tournament_mode = 12;
+    optional CommandStrategyTriggerDebugger debug = 7;
+    optional bool performance_mode = 8;
+    optional bool start_profiling = 9;
+    optional string finish_and_save_profile = 10;
+    optional bool tournament_mode = 11;
 }
 
 message CommandControl {
@@ -148,9 +143,16 @@ message CommandTracking {
     optional world.Geometry virtual_geometry = 7;
 }
 
+// the UI may not store the option state, therefore only single values will be changed (by hand)
+message CommandStrategyChangeOption {
+    required string name = 1;
+    required bool value = 2;
+}
+
 message CommandAmun {
     optional uint32 vision_port = 1;
     optional uint32 referee_port = 2;
+    optional CommandStrategyChangeOption change_option = 3;
 }
 
 enum DebuggerInputTarget {

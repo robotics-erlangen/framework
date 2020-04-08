@@ -11,6 +11,12 @@ import "logfile.proto";
 
 package amun;
 
+// sent out by the strategy to tell that it offers this option
+message StrategyOption {
+    required string name = 1;
+    optional bool default_value = 2;
+}
+
 message StatusStrategy {
     enum STATE { CLOSED = 1; RUNNING = 3; FAILED = 4; COMPILING = 5; };
     required STATE state = 1;
@@ -18,8 +24,9 @@ message StatusStrategy {
     optional string name = 3;
     optional string current_entry_point = 4;
     repeated string entry_point = 5;
-    repeated string option = 6;
+    // deprecated = 6
     optional bool has_debugger = 7;
+    repeated StrategyOption options = 8;
 }
 
 message StatusStrategyWrapper {
@@ -58,8 +65,15 @@ message PortBindError {
     required uint32 port = 1;
 }
 
+// tells the strategy and ui if an option is enabled or not
+message OptionStatus {
+    required string name = 2;
+    required bool value = 3;
+}
+
 message StatusAmun {
     optional PortBindError port_bind_error = 1;
+    repeated OptionStatus options = 2;
 }
 
 // The status message is dumped for log replay

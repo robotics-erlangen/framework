@@ -20,6 +20,7 @@
 
 #include "amun.h"
 #include "receiver.h"
+#include "optionsmanager.h"
 #include "core/timer.h"
 #include "core/protobuffilesaver.h"
 #include "processor/processor.h"
@@ -142,6 +143,11 @@ void Amun::start()
     // relay tracking, geometry, referee, controller and accelerator information
     connect(m_processor, SIGNAL(sendStatus(Status)), SLOT(handleStatus(Status)));
 
+    m_optionsManager = new OptionsManager;
+    m_optionsManager->moveToThread(thread());
+    connect(this, SIGNAL(gotCommand(Command)), m_optionsManager, SLOT(handleCommand(Command)));
+    connect(m_optionsManager, SIGNAL(sendStatus(Status)), SLOT(handleStatus(Status)));
+
     // start strategy threads
     for (int i = 0; i < 3; i++) {
         StrategyType strategy = StrategyType::BLUE;
@@ -171,6 +177,7 @@ void Amun::start()
 
         // send tracking, geometry and referee to strategy
         connect(m_processor, SIGNAL(sendStrategyStatus(Status)), m_strategy[i], SLOT(handleStatus(Status)));
+        connect(m_optionsManager, SIGNAL(sendStatus(Status)), m_strategy[i], SLOT(handleStatus(Status)));
         // forward robot commands to processor
         connect(m_strategy[i], SIGNAL(sendStrategyCommands(bool, QList<RobotCommandInfo>, qint64)),
                 m_processor, SLOT(handleStrategyCommands(bool, QList<RobotCommandInfo>, qint64)));
@@ -184,6 +191,7 @@ void Amun::start()
                 m_strategy[i], SLOT(handleCommand(Command)));
         // relay status and debug information of strategy
         connect(m_strategy[i], SIGNAL(sendStatus(Status)), SLOT(handleStatus(Status)));
+        connect(m_strategy[i], SIGNAL(sendStatus(Status)), m_optionsManager, SLOT(handleStatus(Status)));
     }
 
     // replay strategies and connections
@@ -206,9 +214,11 @@ void Amun::start()
         m_strategyBlocker[i] = new BlockingStrategyReplay(m_replayStrategy[i], 20);
 
         connect(m_integrator, SIGNAL(sendReplayStatus(Status)), m_strategyBlocker[i], SLOT(handleStatus(Status)));
+        connect(m_optionsManager, SIGNAL(sendStatus(Status)), m_strategyBlocker[i], SLOT(handleStatus(Status)));
 
         connect(this, SIGNAL(gotCommand(Command)), m_replayStrategy[i], SLOT(handleCommand(Command)));
         connect(m_replayStrategy[i], SIGNAL(sendStatus(Status)), SLOT(handleReplayStatus(Status)));
+        connect(m_replayStrategy[i], SIGNAL(sendStatus(Status)), m_optionsManager, SLOT(handleStatus(Status)));
     }
 
     if (!m_simulatorOnly) {
@@ -311,6 +321,8 @@ void Amun::stop()
     m_debugHelperThread->quit();
     m_debugHelperThread->wait();
 
+    delete m_optionsManager;
+
     // worker objects are destroyed on thread shutdown
     m_transceiver = nullptr;
     m_networkTransceiver = nullptr;
@@ -319,6 +331,7 @@ void Amun::stop()
     m_vision = nullptr;
     m_referee = nullptr;
     m_mixedTeam = nullptr;
+    m_optionsManager = nullptr;
     for (int i = 0; i < 3; i++) {
         m_strategy[i] = nullptr;
         m_debugHelper[i] = nullptr;

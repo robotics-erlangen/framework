@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2016 Michael Eischer                                        *
+ *   Copyright 2020 Andreas Wendler                                        *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,49 +18,35 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef OPTIONSWIDGET_H
-#define OPTIONSWIDGET_H
+#ifndef OPTIONSMANAGER_H
+#define OPTIONSMANAGER_H
 
-#include <QSet>
-#include <QWidget>
+#include <QObject>
+#include <QMap>
+#include <string>
+
 #include "protobuf/command.h"
 #include "protobuf/status.h"
 
-class QStandardItem;
-class QStandardItemModel;
-
-namespace Ui {
-class OptionsWidget;
-}
-
-class OptionsWidget : public QWidget
+class OptionsManager : public QObject
 {
     Q_OBJECT
-
 public:
-    explicit OptionsWidget(QWidget *parent = 0);
-    ~OptionsWidget() override;
-    OptionsWidget(const OptionsWidget&) = delete;
-    OptionsWidget& operator=(const OptionsWidget&) = delete;
-
-signals:
-    void sendCommand(const Command &command);
+    OptionsManager(QObject *parent = nullptr);
 
 public slots:
     void handleStatus(const Status &status);
+    void handleCommand(const Command &command);
 
-private slots:
-    void itemChanged(QStandardItem *item);
+signals:
+    void sendStatus(const Status &status);
 
 private:
-    void sendItemChanged(const QString &name, bool value);
-    void handleAmunState(const amun::StatusAmun &strategy);
+    void handleStrategyStatus(const amun::StatusStrategy &strategy);
+    void sendOptions();
 
-    typedef QHash<QByteArray, QStandardItem*> HashMap;
-    Ui::OptionsWidget *ui;
-    QStandardItemModel *m_model;
-    HashMap m_items;
-    QSet<QString> m_selection;
+private:
+    QMap<std::string, bool> m_currentOptions;
 };
 
-#endif // OPTIONSWIDGET_H
+#endif // OPTIONSMANAGER_H

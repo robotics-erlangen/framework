@@ -220,17 +220,14 @@ void Connector::start()
 
 void Connector::handleStrategyStatus(const amun::StatusStrategy &strategy)
 {
-    for (const std::string &stdOption: strategy.option()) {
-        m_options.insert({stdOption, false});
-    }
     if (strategy.state() == amun::StatusStrategy::FAILED) {
-        const auto& it = std::find_if_not(m_options.begin(), m_options.end(), [](const std::pair<std::string, bool>& p){ return p.second; });
+        const auto& it = std::find_if_not(m_options.begin(), m_options.end(), [](const std::pair<std::string, OptionInfo>& p){ return p.second.hasBeenFlipped; });
         if (m_exitCode != 0 || it == m_options.end()) {
             delayedExit(m_exitCode);
         } else {
-            std::cout << "Rerunning with " << it->first <<" set to true"<< std::endl;
-            it->second = true;
-            sendOptions();
+            std::cout << "Rerunning with option \"" << it->first <<"\" set to "<<(!it->second.value ? "true" : "false")<< std::endl;
+            it->second.hasBeenFlipped = true;
+            sendFlipOption(it->first);
         }
     } else if (strategy.state() == amun::StatusStrategy::RUNNING && !m_isInCompileMode) {
         if (m_entryPoint.isEmpty()) {
@@ -246,22 +243,13 @@ void Connector::handleStrategyStatus(const amun::StatusStrategy &strategy)
     }
 }
 
-void Connector::sendOptions()
+void Connector::sendFlipOption(const std::string &name)
 {
     Command command(new amun::Command);
-    amun::CommandStrategySetOptions *opts =
-            command->mutable_strategy_yellow()->mutable_options();
-    for (const auto &pair: m_options) {
-        if (!pair.second) {
-            continue;
-        }
-        const std::string& option = pair.first;
-        std::string *stdopt = opts->add_option();
-        *stdopt = option;
-    }
+    auto *optionChange = command->mutable_amun()->mutable_change_option();
+    optionChange->set_name(name);
+    optionChange->set_value(!m_options[name].value);
 
-    command->mutable_strategy_blue()->CopyFrom(command->strategy_yellow());
-    command->mutable_strategy_autoref()->CopyFrom(command->strategy_yellow());
     emit sendCommand(command);
 }
 
@@ -288,6 +276,17 @@ void Connector::handleStatus(const Status &status)
             }
 
             TestTools::dumpLog(debug, m_exitCode);
+        }
+    }
+
+    if (status->has_amun_state()) {
+        for (const auto &option : status->amun_state().options()) {
+            auto it = m_options.find(option.name());
+            if (it == m_options.end()) {
+                m_options.insert({option.name(), {option.value(), false}});
+            } else {
+                it->second.value = option.value();
+            }
         }
     }
 

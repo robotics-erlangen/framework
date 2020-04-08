@@ -171,6 +171,23 @@ void Strategy::handleStatus(const Status &status)
         return;
     }
 
+
+    if (status->has_amun_state() && status->amun_state().options_size() > 0) {
+        QStringList options;
+        for (const auto &option : status->amun_state().options()) {
+            if (option.value() == true) {
+                options.append(QString::fromStdString(option.name()));
+            }
+        }
+        options.sort();
+        if (m_scriptState.selectedOptions != options) {
+            m_scriptState.selectedOptions = options;
+            reload();
+        }
+    }
+
+
+
     if (status->has_world_state() && status->has_game_state() && !m_scriptState.isReplay) {
         m_scriptState.currentStatus = status;
 
@@ -267,18 +284,6 @@ void Strategy::handleCommand(const Command &command)
 
         if (cmd->reload()) {
             reloadStrategy = true;
-        }
-
-        if (cmd->has_options()) {
-            QStringList options;
-            for (const std::string &str: cmd->options().option()) {
-                options.append(QString::fromStdString(str));
-            }
-            options.sort();
-            if (m_scriptState.selectedOptions != options) {
-                m_scriptState.selectedOptions = options;
-                reloadStrategy = true;
-            }
         }
 
         if (cmd->has_performance_mode()) {
@@ -758,12 +763,19 @@ void Strategy::setStrategyStatus(Status &status, amun::StatusStrategy::STATE sta
             std::string *ep = strategy->add_entry_point();
             *ep = name.toStdString();
         }
-        strategy->add_option(DO_NOT_SAVE_PATHFINDING_INPUT);
         strategy->set_current_entry_point(m_strategy->entryPoint().toStdString());
+
+        QList<QPair<std::string, bool>> options;
+        options.push_back({ DO_NOT_SAVE_PATHFINDING_INPUT, true });
         for (const QString &option: m_strategy->options()) {
-            std::string *opt = strategy->add_option();
-            *opt = option.toStdString();
+            options.push_back({ option.toStdString(), true });
         }
+        for (const auto &option : options) {
+            auto *opt = strategy->add_options();
+            opt->set_name(option.first);
+            opt->set_default_value(option.second);
+        }
+
         if (m_strategy->hasDebugger()) {
             strategy->set_has_debugger(true);
         }

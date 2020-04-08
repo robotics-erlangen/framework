@@ -75,11 +75,16 @@ signals:
 private:
     void addStrategyLoad(amun::CommandStrategy *strategy, const QString &initScript, const QString &entryPoint);
     void handleStrategyStatus(const amun::StatusStrategy &strategy);
-    void sendOptions();
+    void sendFlipOption(const std::string &name);
     void loadConfiguration(const QString &configFile, google::protobuf::Message *message, bool allowPartial);
     void delayedExit(int exitCode);
     void performExit(int exit);
     void stopAmunAndSaveBacklog(QString directory);
+
+    struct OptionInfo {
+        bool value;
+        bool hasBeenFlipped;
+    };
 
     QString m_initScript;
     QString m_entryPoint;
@@ -88,7 +93,7 @@ private:
     bool m_runYellow = false;
     bool m_debug = false;
     int m_exitCode = 255;
-    std::map<std::string, bool> m_options;
+    std::map<std::string, OptionInfo> m_options;
     bool m_reportEvents = false;
     int m_simulationSpeed = 100;
     bool m_isInCompileMode = false;

@@ -33,6 +33,8 @@ add_library(amun
     networkinterfacewatcher.h
     receiver.cpp
     receiver.h
+    optionsmanager.cpp
+    optionsmanager.h
 )
 target_link_libraries(amun
     PRIVATE shared::core

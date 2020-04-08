@@ -41,70 +41,58 @@ OptionsWidget::~OptionsWidget()
     delete ui;
 }
 
-void OptionsWidget::handleStrategyStatus(const amun::StatusStrategy &strategy)
+void OptionsWidget::handleAmunState(const amun::StatusAmun &strategy)
 {
-    bool changed = false;
-    for (const std::string &stdOption: strategy.option()) {
+    for (const auto &option: strategy.options()) {
         // avoid conversion to QString if not really neccessary
-        const QByteArray option(stdOption.data(), stdOption.size());
+        const QByteArray optionName(option.name().data(), option.name().size());
 
-        QStandardItem *&item = m_items[option];
+        QStandardItem *&item = m_items[optionName];
         // add item if neccessary
         if (item == NULL) {
-            changed = true;
-            item = new QStandardItem(QString::fromStdString(stdOption));
+            item = new QStandardItem(QString::fromStdString(option.name()));
             item->setCheckable(true);
-            m_selection.insert(item->text());
-            item->setCheckState(Qt::Checked);
+            if (option.value()) {
+                m_selection.insert(item->text());
+            }
+            item->setCheckState(option.value() ? Qt::Checked : Qt::Unchecked);
             m_model->appendRow(item);
             // new options are rarely added, just sort everything
             m_model->sort(0);
         }
     }
-    if (changed) {
-        sendItemsChanged();
-    }
 }
 
 void OptionsWidget::handleStatus(const Status &status)
 {
-    if (status->has_status_strategy()) {
-        handleStrategyStatus(status->status_strategy().status());
+    if (status->has_amun_state()) {
+        handleAmunState(status->amun_state());
     }
 }
 
-void OptionsWidget::sendItemsChanged()
+void OptionsWidget::sendItemChanged(const QString &name, bool value)
 {
     Command command(new amun::Command);
-    amun::CommandStrategySetOptions *opts =
-            command->mutable_strategy_yellow()->mutable_options();
-    for (const QString &option: m_selection) {
-        std::string *stdopt = opts->add_option();
-        *stdopt = option.toStdString();
-    }
 
-    command->mutable_strategy_blue()->CopyFrom(command->strategy_yellow());
-    command->mutable_strategy_autoref()->CopyFrom(command->strategy_yellow());
+    auto *optionChange = command->mutable_amun()->mutable_change_option();
+    optionChange->set_name(name.toStdString());
+    optionChange->set_value(value);
+
     emit sendCommand(command);
 }
 
 void OptionsWidget::itemChanged(QStandardItem *item)
 {
-    bool changed = false;
     const QString name = item->text();
     // update selection
     if (item->checkState() == Qt::Checked) {
         if (!m_selection.contains(name)) {
             m_selection.insert(name);
-            changed = true;
+            sendItemChanged(name, true);
         }
     } else {
         if (m_selection.remove(name)) {
-            changed = true;
+            sendItemChanged(name, false);
         }
-    }
-
-    if (changed) {
-        sendItemsChanged();
     }
 }

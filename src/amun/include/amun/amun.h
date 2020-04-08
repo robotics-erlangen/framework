@@ -40,6 +40,7 @@ class QHostAddress;
 class Integrator;
 class BlockingStrategyReplay;
 class ProtobufFileSaver;
+class OptionsManager;
 
 namespace camun {
     namespace simulator {
@@ -108,6 +109,7 @@ private:
     DebugHelper *m_debugHelper[3];
     std::shared_ptr<GameControllerConnection> m_gameControllerConnection[3];
     Strategy *m_replayStrategy[2];
+    OptionsManager *m_optionsManager = nullptr;
     BlockingStrategyReplay *m_strategyBlocker[2];
     qint64 m_lastTime;
     Timer *m_timer;
