@@ -46,6 +46,8 @@ public:
     Plotter(const Plotter&) = delete;
     Plotter& operator=(const Plotter&) = delete;
 
+    void showPlotter();
+
 public slots:
     void handleUiResponse(const amun::UiResponse& response, qint64 time);
     void setScaling(float min, float max, float timespan);

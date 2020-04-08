@@ -269,6 +269,13 @@ void Plotter::handleUiResponse(const amun::UiResponse& response, qint64 time)
     m_playingBacklog = false;
 }
 
+void Plotter::showPlotter()
+{
+    // all incoming data has to wait until the backlog-status are consumed
+    m_playingBacklog = true;
+    show();
+}
+
 void Plotter::handleStatus(const Status &status, bool backlogStatus)
 {
     // don't consume cpu while closed

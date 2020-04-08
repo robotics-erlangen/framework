@@ -389,7 +389,7 @@ void MainWindow::closeEvent(QCloseEvent *e)
 
 void MainWindow::showPlotter()
 {
-    m_plotter->show();
+    m_plotter->showPlotter();
 
     // no need to preload all 20 seconds
     const int PRELOAD_PACKETS = 5000;
