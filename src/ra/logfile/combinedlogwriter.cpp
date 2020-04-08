@@ -135,7 +135,7 @@ std::shared_ptr<StatusSource> CombinedLogWriter::makeStatusSource()
     }
 }
 
-void CombinedLogWriter::handleStatus(const Status &status)
+void CombinedLogWriter::handleStatus(Status status)
 {
     if (!status->has_time()) {
         status->set_time(m_lastTime);
@@ -174,6 +174,14 @@ void CombinedLogWriter::handleStatus(const Status &status)
     }
     m_lastTime = status->time();
     emit sendUiResponse(response, m_lastTime);
+
+    Status copy;
+    if (status->has_pure_ui_response()) {
+        copy = Status::createArena();
+        copy->CopyFrom(*status);
+        copy->clear_pure_ui_response();
+        status = copy;
+    }
 
     if (m_isLoggingEnabled && m_logState == LogState::LOGGING) {
         m_signalSource->emitStatusToRecording(status);

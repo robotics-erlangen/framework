@@ -57,7 +57,7 @@ signals:
     void resetBacklog();
 
 public slots:
-    void handleStatus(const Status &status);
+    void handleStatus(Status status);
     void enableLogging(bool enable); // enables or disables both record and backlog
     void saveBackLog();
     void recordButtonToggled(bool enabled);
