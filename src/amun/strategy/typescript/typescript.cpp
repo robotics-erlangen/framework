@@ -549,8 +549,27 @@ bool Typescript::loadJavascript(const QString &filename, const QString &entryPoi
 
     // handle strategy options
     Local<String> optionsString = v8string(m_isolate, "options");
-    QStringList optionsList;
-    if (resultObject->Has(optionsString)) {
+    Local<String> optionsWithDefaultString = v8string(m_isolate, "optionsWithDefault");
+
+    m_options.clear();
+    if (resultObject->Has(optionsWithDefaultString)) {
+        if (!resultObject->Get(optionsWithDefaultString)->IsArray()) {
+            m_errorMsg = "<font color=\"red\">options must be an array!</font>";
+            return false;
+        }
+        Local<Array> options = Local<Array>::Cast(resultObject->Get(optionsWithDefaultString));
+        for (unsigned int i = 0;i<options->Length();i++) {
+            if (!options->Get(i)->IsArray()) {
+                m_errorMsg = "<font color=\"red\">options must contain arrays!</font>";
+                return false;
+            }
+            Local<Array> option = Local<Array>::Cast(options->Get(i));
+            QString optionName(*String::Utf8Value(option->Get(0)));
+            bool optionDefault = Local<Boolean>::Cast(option->Get(1))->Value();
+            m_options[optionName] = optionDefault;
+        }
+
+    } else if (resultObject->Has(optionsString)) {
         if (!resultObject->Get(optionsString)->IsArray()) {
             m_errorMsg = "<font color=\"red\">options must be an array!</font>";
             return false;
@@ -558,10 +577,9 @@ bool Typescript::loadJavascript(const QString &filename, const QString &entryPoi
         Local<Array> options = Local<Array>::Cast(resultObject->Get(optionsString));
         for (unsigned int i = 0;i<options->Length();i++) {
             QString option(*String::Utf8Value(options->Get(i)));
-            optionsList.append(option);
+            m_options[option] = true;
         }
     }
-    m_options = optionsList;
 
     m_function.Reset(m_isolate, entryPoints[m_entryPoint]);
     return true;

@@ -767,8 +767,9 @@ void Strategy::setStrategyStatus(Status &status, amun::StatusStrategy::STATE sta
 
         QList<QPair<std::string, bool>> options;
         options.push_back({ DO_NOT_SAVE_PATHFINDING_INPUT, true });
-        for (const QString &option: m_strategy->options()) {
-            options.push_back({ option.toStdString(), true });
+        const QMap<QString, bool> &strategyOptions = m_strategy->options();
+        for (const QString &option: m_strategy->options().keys()) {
+            options.push_back({ option.toStdString(), strategyOptions[option] });
         }
         for (const auto &option : options) {
             auto *opt = strategy->add_options();

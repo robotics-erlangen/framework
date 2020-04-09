@@ -820,6 +820,10 @@ void registerAmunJsCallbacks(Isolate *isolate, Local<Object> global, Typescript 
     auto data = External::New(isolate, t);
     installCallbacks(isolate, amunObject, callbacks, data);
 
+    // add a field to tell the strategy that this ra instance supports option default values
+    Local<String> optionDefaultSupport = v8string(isolate, "SUPPORTS_OPTION_DEFAULT");
+    amunObject->Set(optionDefaultSupport, Boolean::New(isolate, true));
+
     Local<String> amunStr = v8string(isolate, "amun");
     global->Set(amunStr, amunObject);
 }

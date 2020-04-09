@@ -45,7 +45,7 @@ static QDir *getBaseDir(lua_State *state)
     return baseDir;
 }
 
-static void luaGetOptions(lua_State *state, QStringList& options)
+static void luaGetOptions(lua_State *state, QMap<QString, bool>& options)
 {
     lua_getfield(state, -1, "options");
     if (lua_istable(state, -1)) {
@@ -56,7 +56,7 @@ static void luaGetOptions(lua_State *state, QStringList& options)
                 luaL_error(state, "Option name is not a string!");
             }
             const char *name = lua_tostring(state, -1);
-            options.append(QString::fromUtf8(name));
+            options[QString::fromUtf8(name)] = true;
             lua_pop(state, 1);
         }
     }
@@ -134,7 +134,7 @@ static int luaLoadInitScript(lua_State *state)
     // pop entrypoints tables
     lua_pop(state, 2);
 
-    QStringList *options = reinterpret_cast<QStringList*>(lua_touserdata(state, 4));
+    QMap<QString, bool> *options = reinterpret_cast<QMap<QString, bool>*>(lua_touserdata(state, 4));
     luaGetOptions(state, *options);
     // pop table returned by strategy
     lua_pop(state, 1);

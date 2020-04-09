@@ -87,7 +87,7 @@ public:
     QStringList entryPoints() const { return m_entryPoints; }
     QString entryPoint() const { return m_entryPoint; }
     QString name() const { return m_name; }
-    QStringList options() const { return m_options; }
+    const QMap<QString, bool> &options() const { return m_options; }
     bool hasDebugger() const { return m_hasDebugger; }
     void addRefereeReply(SSL_RefereeRemoteControlReply reply) { m_refereeReplies.append(reply); }
     SSL_RefereeRemoteControlReply nextRefereeReply() { return m_refereeReplies.takeFirst(); }
@@ -135,7 +135,7 @@ protected:
     QStringList m_entryPoints;
     QString m_entryPoint;
     QString m_name;
-    QStringList m_options;
+    QMap<QString, bool> m_options;
     ScriptState& m_scriptState;
 
     const Timer *m_timer;
