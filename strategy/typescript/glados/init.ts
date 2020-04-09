@@ -8,6 +8,7 @@ import * as debug from "base/debug";
 import * as Debugger from "base/debugger";
 import * as Entrypoints from "base/entrypoints";
 import * as GameController from "base/gamecontroller";
+import * as Option from "base/option";
 import * as plot from "base/plot";
 import { Process } from "base/process";
 import * as Processor from "base/processor";
@@ -97,7 +98,7 @@ function wrapper(func: () => boolean) {
 		plot._plotAggregated();
 	};
 }
-let option: string[] = ["Disable Lua PRNG"];
 
-let result = {name: "GLaDOS", entrypoints: Entrypoints.get(wrapper), options: option};
+let result: any = {name: "GLaDOS", entrypoints: Entrypoints.get(wrapper)};
+result[Option.getExportName()] = Option.getExportedOptions();
 export const scriptInfo = result;

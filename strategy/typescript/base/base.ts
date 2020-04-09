@@ -51,6 +51,7 @@ import { _setIsBlue } from "base/coordinates";
 _setIsBlue(amun.isBlue());
 import "base/debug";
 import "base/debugcommands";
+import "base/option";
 import "base/plot";
 import "base/robot";
 import "base/trycatch";

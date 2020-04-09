@@ -73,6 +73,9 @@ interface AmunPublic {
 	 * The command_counter must be increased for every command change.
 	 */
 	sendNetworkRefereeCommand(command: pb.SSL_Referee): void;
+
+	// ra version/feature tags
+	SUPPORTS_OPTION_DEFAULT: boolean | undefined;
 }
 
 interface Amun extends AmunPublic {
@@ -175,6 +178,7 @@ export function _hideFunctions() {
 	let log = amun.log;
 	let sendCommand = amun.sendCommand;
 	let sendNetworkRefereeCommand = amun.sendNetworkRefereeCommand;
+	let supportsOptionDefault = amun.SUPPORTS_OPTION_DEFAULT;
 
 	const makeDisabledFunction = function(name: string) {
 		function DISABLED_FUNCTION(..._: any[]): any {
@@ -225,7 +229,9 @@ export function _hideFunctions() {
 
 		luaRandomSetSeed: makeDisabledFunction("luaRandomSetSeed"),
 		luaRandom: makeDisabledFunction("luaRandom"),
-		tryCatch: makeDisabledFunction("tryCatch")
+		tryCatch: makeDisabledFunction("tryCatch"),
+
+		SUPPORTS_OPTION_DEFAULT: supportsOptionDefault
 	};
 }
 
