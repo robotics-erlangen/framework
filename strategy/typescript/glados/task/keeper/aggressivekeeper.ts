@@ -35,6 +35,8 @@ export class AggressiveKeeper extends Task {
 	}
 
 	run() {
+		const MAX_DIST_TO_DEFENSE_AREA = 0.3;
+
 		let safeGoalMid = World.Geometry.FriendlyGoal - new Vector(0, 0.05);
 		let moveDest;
 		let ignoreBall;
@@ -52,9 +54,15 @@ export class AggressiveKeeper extends Task {
 
 		this._chipToBorderIfSafe();
 
+		let ignoreFriendlyRobots = false;
+		if (Field.distanceToFriendlyDefenseArea(this._robot.pos, this._robot.radius) < MAX_DIST_TO_DEFENSE_AREA) {
+			ignoreFriendlyRobots = true;
+		}
 		let obstacleTable = {
 			ignoreBall: ignoreBall,
 			ignorePass: true,
+			ignoreFriendlyRobots: ignoreFriendlyRobots,
+			disableOpponentPrediction: true,
 			messaging: this._messaging
 		};
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
