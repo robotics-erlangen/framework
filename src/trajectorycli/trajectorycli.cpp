@@ -106,16 +106,16 @@ static std::vector<float> evaluateSample(RNG &rng, const std::vector<Situation> 
 {
     std::vector<float> result;
     for (const auto &s : scenarios) {
-        StandardTrajectorySample normalized = sample.denormalize(s.input);
+        StandardTrajectorySample denormalized = sample.denormalize(s.input);
 
-        if (normalized.getMidSpeed().length() > s.input.maxSpeed) {
-            continue;
+        if (denormalized.getMidSpeed().lengthSquared() >= s.input.maxSpeedSquared) {
+            denormalized.setMidSpeed(denormalized.getMidSpeed().normalized() * s.input.maxSpeed);
         }
         PathDebug debug;
         // do not load the precomputation file every time for this
         StandardSampler sampler(&rng, s.world, debug, false);
 
-        float sampleResult = sampler.checkSample(s.input, normalized, std::numeric_limits<float>::max());
+        float sampleResult = sampler.checkSample(s.input, denormalized, std::numeric_limits<float>::max());
         if (sampleResult >= 0) {
             result.push_back(sampleResult);
         } else {

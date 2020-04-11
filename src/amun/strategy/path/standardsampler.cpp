@@ -138,7 +138,11 @@ void StandardSampler::computePrecomputed(const TrajectoryInput &input)
     for (const auto &segment : m_precomputedPoints) {
         if (segment.minDistance <= distance && segment.maxDistance >= distance) {
             for (const auto &sample : segment.precomputedPoints) {
-                checkSample(input, sample.denormalize(input), m_bestResultInfo.time);
+                StandardTrajectorySample denormalized = sample.denormalize(input);
+                if (denormalized.getMidSpeed().lengthSquared() >= input.maxSpeedSquared) {
+                    denormalized.setMidSpeed(denormalized.getMidSpeed().normalized() * input.maxSpeed);
+                }
+                checkSample(input, denormalized, m_bestResultInfo.time);
             }
             break;
         }
