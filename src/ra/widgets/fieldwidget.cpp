@@ -1274,7 +1274,7 @@ void FieldWidget::mouseDoubleClickEvent(QMouseEvent *event)
         QPointF mapped = it.value().robot->mapFromScene(p);
         QGraphicsPathItem *robot = it.value().robot;
         if (robot->path().contains(mapped)) {
-            emit selectRobotVisualizations(it->id->text().toInt());
+            emit robotDoubleClicked(true, it->id->text().toInt());
             break;
         }
     }
@@ -1283,7 +1283,7 @@ void FieldWidget::mouseDoubleClickEvent(QMouseEvent *event)
         QPointF mapped = it.value().robot->mapFromScene(p);
         QGraphicsPathItem *robot = it.value().robot;
         if (robot->path().contains(mapped)) {
-            emit selectRobotVisualizations(it->id->text().toInt());
+            emit robotDoubleClicked(false, it->id->text().toInt());
             break;
         }
     }
@@ -1297,7 +1297,26 @@ void FieldWidget::mousePressEvent(QMouseEvent *event)
 
     if (event->button() == Qt::LeftButton) {
         if (event->modifiers().testFlag(Qt::ControlModifier)) {
-            sendSimulatorTeleportBall(selectedPos);
+
+            bool wasOverRobot = false;
+            for (bool teamIsBlue : {false, true}) {
+                auto &team = teamIsBlue ? m_robotsBlue : m_robotsYellow;
+                for (RobotMap::iterator it = team.begin(); it != team.end(); ++it) {
+                    QPointF mapped = it.value().robot->mapFromScene(p);
+                    QGraphicsPathItem *robot = it.value().robot;
+                    if (robot->path().contains(mapped)) {
+                        emit robotCtrlClicked(teamIsBlue, it.key());
+                        wasOverRobot = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!wasOverRobot) {
+                // click was to somewhere in the field
+                sendSimulatorTeleportBall(selectedPos);
+            }
+
             return;
         }
 

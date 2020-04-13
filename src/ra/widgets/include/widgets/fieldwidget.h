@@ -45,7 +45,7 @@ class FieldWidget : public QGraphicsView
 private:
     struct Robot
     {
-        Robot() : robot(NULL), id(NULL) {}
+        Robot() : robot(nullptr), id(nullptr) {}
         QGraphicsPathItem *robot;
         QGraphicsSimpleTextItem *id;
         bool visible;
@@ -79,7 +79,7 @@ private:
     };
 
 public:
-    explicit FieldWidget(QWidget *parent = 0);
+    explicit FieldWidget(QWidget *parent = nullptr);
     ~FieldWidget() override;
     FieldWidget(const FieldWidget&) = delete;
     FieldWidget& operator=(const FieldWidget&) = delete;
@@ -89,7 +89,8 @@ public:
 signals:
     void sendCommand(const Command &command);
     void fileDropped(const QString &fileName);
-    void selectRobotVisualizations(int id);
+    void robotDoubleClicked(bool teamIsBlue, int robotId);
+    void robotCtrlClicked(bool teamIsBlue, int robotId);
 
 public slots:
     void handleStatus(const Status &status);

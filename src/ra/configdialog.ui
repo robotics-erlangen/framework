@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>331</width>
+    <width>343</width>
     <height>644</height>
    </rect>
   </property>
@@ -26,9 +26,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>0</y>
+        <y>-360</y>
         <width>297</width>
-        <height>764</height>
+        <height>952</height>
        </rect>
       </property>
       <property name="maximumSize">
@@ -360,6 +360,73 @@
            <widget class="QCheckBox" name="uiDarkMode">
             <property name="text">
              <string>Use dark mode compatible colors</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_8">
+         <property name="title">
+          <string>Fieldwidget Actions</string>
+         </property>
+         <layout class="QFormLayout" name="formLayout_9">
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_7">
+            <property name="text">
+             <string>Robot double click</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QComboBox" name="doubleClickAction"/>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="doubleClickLabel">
+            <property name="text">
+             <string>Search string</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="doubleClickSearch">
+            <property name="toolTip">
+             <string>Any usage of &lt;id&gt; will be replaced with the robots id and any usage of &lt;team&gt; with the robots team color (either yellow or blue)</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0" colspan="2">
+           <widget class="Line" name="line_2">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_8">
+            <property name="text">
+             <string>Robot ctrl + click</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QComboBox" name="ctrlClickAction"/>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="label_9">
+            <property name="text">
+             <string>Search string</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QLineEdit" name="ctrlClickSearch">
+            <property name="toolTip">
+             <string>Any usage of &lt;id&gt; will be replaced with the robots id and any usage of &lt;team&gt; with the robots team color (either yellow or blue)</string>
             </property>
            </widget>
           </item>

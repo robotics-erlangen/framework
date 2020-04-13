@@ -43,6 +43,7 @@ class QThread;
 class QString;
 class Timer;
 class LogOpener;
+class RobotUIAction;
 namespace Ui {
     class MainWindow;
 }
@@ -118,6 +119,8 @@ private:
     LogOpener * m_logOpener;
     QString m_horusTitleString;
     QActionGroup* m_simulatorSetupGroup;
+    RobotUIAction *m_robotDoubleClickAction;
+    RobotUIAction *m_robotCtrlClickAction;
 
     bool m_transceiverRealWorld = false, m_transceiverSimulator = true;
     bool m_chargeRealWorld = false, m_chargeSimulator = true;

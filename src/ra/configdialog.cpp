@@ -42,6 +42,12 @@ const uint DEFAULT_REMOTE_CONTROL_PORT = 10007;
 
 const bool DEFAULT_UI_DARK_MODE_COLORS = false;
 
+const FieldWidgetAction DEFAULT_ROBOT_DOUBLE_CLICK_ACTION = FieldWidgetAction::ToggleVisualization;
+const QString DEFAULT_ROBOT_DOUBLE_CLICK_SEARCH_STRING = ".*: <id>";
+
+const FieldWidgetAction DEFAULT_ROBOT_CTRL_CLICK_ACTION = FieldWidgetAction::None;
+const QString DEFAULT_ROBOT_CTRL_CLICK_SEARCH_STRING = "";
+
 ConfigDialog::ConfigDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::ConfigDialog)
@@ -49,6 +55,11 @@ ConfigDialog::ConfigDialog(QWidget *parent) :
     ui->setupUi(this);
     connect(ui->buttonBox, SIGNAL(clicked(QAbstractButton*)), SLOT(clicked(QAbstractButton*)));
     connect(this, SIGNAL(rejected()), SLOT(load()));
+
+    for (FieldWidgetAction action : {FieldWidgetAction::None, FieldWidgetAction::SetDebugSearch, FieldWidgetAction::ToggleVisualization}) {
+        ui->doubleClickAction->addItem(robotActionString(action), static_cast<int>(action));
+        ui->ctrlClickAction->addItem(robotActionString(action), static_cast<int>(action));
+    }
 }
 
 ConfigDialog::~ConfigDialog()
@@ -86,6 +97,11 @@ void ConfigDialog::sendConfiguration()
     emit sendCommand(command);
 
     emit useDarkModeColors(ui->uiDarkMode->isChecked());
+
+    emit setRobotDoubleClickAction(static_cast<FieldWidgetAction>(ui->doubleClickAction->currentData().toInt()),
+                                   ui->doubleClickSearch->text());
+    emit setRobotCtrlClickAction(static_cast<FieldWidgetAction>(ui->ctrlClickAction->currentData().toInt()),
+                                 ui->ctrlClickSearch->text());
 }
 
 void ConfigDialog::load()
@@ -110,6 +126,15 @@ void ConfigDialog::load()
     ui->remotePort->setValue(s.value("RefereeRemoteControl/Port", DEFAULT_REMOTE_CONTROL_PORT).toUInt());
 
     ui->uiDarkMode->setChecked(s.value("Ui/DarkModeColors", DEFAULT_UI_DARK_MODE_COLORS).toBool());
+
+    FieldWidgetAction robotDoubleClick = static_cast<FieldWidgetAction>(s.value("Ui/RobotDoubleClickAction", static_cast<int>(DEFAULT_ROBOT_DOUBLE_CLICK_ACTION)).toInt());
+    ui->doubleClickAction->setCurrentText(robotActionString(robotDoubleClick));
+    ui->doubleClickSearch->setText(s.value("Ui/RobotDoubleClickSearch", DEFAULT_ROBOT_DOUBLE_CLICK_SEARCH_STRING).toString());
+
+    FieldWidgetAction robotCtrlClick = static_cast<FieldWidgetAction>(s.value("Ui/RobotCtrlClickAction", static_cast<int>(DEFAULT_ROBOT_CTRL_CLICK_ACTION)).toInt());
+    ui->ctrlClickAction->setCurrentText(robotActionString(robotCtrlClick));
+    ui->ctrlClickSearch->setText(s.value("Ui/RobotCtrlClickSearch", DEFAULT_ROBOT_CTRL_CLICK_SEARCH_STRING).toString());
+
     sendConfiguration();
 }
 
@@ -128,6 +153,12 @@ void ConfigDialog::reset()
     ui->mixedPort->setValue(DEFAULT_MIXED_PORT);
     ui->remotePort->setValue(DEFAULT_REMOTE_CONTROL_PORT);
     ui->uiDarkMode->setChecked(DEFAULT_UI_DARK_MODE_COLORS);
+    ui->doubleClickAction->setCurrentText(robotActionString(DEFAULT_ROBOT_DOUBLE_CLICK_ACTION));
+    ui->doubleClickSearch->setText(DEFAULT_ROBOT_DOUBLE_CLICK_SEARCH_STRING);
+    ui->ctrlClickAction->setCurrentText(robotActionString(DEFAULT_ROBOT_CTRL_CLICK_ACTION));
+    ui->ctrlClickSearch->setText(DEFAULT_ROBOT_CTRL_CLICK_SEARCH_STRING);
+
+    sendConfiguration();
 }
 
 void ConfigDialog::apply()
@@ -152,7 +183,26 @@ void ConfigDialog::apply()
     s.setValue("RefereeRemoteControl/Port", ui->remotePort->value());
 
     s.setValue(("Ui/DarkModeColors"), ui->uiDarkMode->isChecked());
+
+    s.setValue("Ui/RobotDoubleClickAction", ui->doubleClickAction->currentData().toInt());
+    s.setValue("Ui/RobotDoubleClickSearch", ui->doubleClickSearch->text());
+    s.setValue("Ui/RobotCtrlClickAction", ui->ctrlClickAction->currentData().toInt());
+    s.setValue("Ui/RobotCtrlClickSearch", ui->ctrlClickSearch->text());
+
     sendConfiguration();
+}
+
+QString ConfigDialog::robotActionString(FieldWidgetAction action)
+{
+    switch (action) {
+    case FieldWidgetAction::None:
+        return "None";
+    case FieldWidgetAction::SetDebugSearch:
+        return "Set Debug Search";
+    case FieldWidgetAction::ToggleVisualization:
+        return "Toogle Visualization";
+    }
+    return "";
 }
 
 void ConfigDialog::clicked(QAbstractButton *button)

@@ -248,11 +248,11 @@ void VisualizationWidget::filterTextChanged(QString text)
     m_proxy->sort(0);
 }
 
-void VisualizationWidget::selectRobotVisualizations(int id)
+void VisualizationWidget::toggleVisualization(QString filterRegex)
 {
-    QString idString = QString::number(id);
+    QRegExp regex(filterRegex);
     for (auto entry : m_items) {
-        if (entry.first->text().split(" ").last() == idString) {
+        if (regex.exactMatch(entry.first->text())) {
             entry.first->setCheckState(entry.first->checkState() == Qt::Checked ? Qt::Unchecked : Qt::Checked);
         }
     }

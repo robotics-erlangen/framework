@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2018 Andreas Wendler                                        *
+ *   Copyright 2020 Andreas Wendler                                        *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,38 +18,30 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef DEBUGWIDGET_H
-#define DEBUGWIDGET_H
+#include "robotuiaction.h"
 
-#include <QWidget>
+RobotUIAction::RobotUIAction(QObject *parent) : QObject(parent)
+{ }
 
-#include "protobuf/status.h"
+void RobotUIAction::actionInvoced(bool teamIsBlue, int robotId)
+{
+    QString filter = m_searchString;
+    filter.replace("<id>", QString::number(robotId));
+    filter.replace("<team>", teamIsBlue ? "blue" : "yellow");
 
-namespace Ui {
-class DebugWidget;
+    switch (m_action) {
+    case FieldWidgetAction::None: break;
+    case FieldWidgetAction::SetDebugSearch:
+        emit setDebugFilterString(filter);
+        break;
+    case FieldWidgetAction::ToggleVisualization:
+        emit toggleVisualization(filter);
+        break;
+    }
 }
 
-class DebugWidget : public QWidget
+void RobotUIAction::setActionType(FieldWidgetAction action, QString searchString)
 {
-    Q_OBJECT
-
-public:
-    explicit DebugWidget(QWidget *parent = 0);
-    ~DebugWidget();
-    DebugWidget(const DebugWidget&) = delete;
-    DebugWidget& operator=(const DebugWidget&) = delete;
-
-public slots:
-    void clearData();
-    void setFilter(const QString &filter); // for setting the filter externally
-
-private slots:
-    void handleStatus(const Status &status);
-    void filterChanged(const QString &filter);
-
-private:
-    Ui::DebugWidget *ui;
-    QString m_filterDefaultStyleSheet;
-};
-
-#endif // DEBUGWIDGET_H
+    m_action = action;
+    m_searchString = searchString;
+}

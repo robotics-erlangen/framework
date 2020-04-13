@@ -22,6 +22,7 @@
 #define CONFIGDIALOG_H
 
 #include "protobuf/command.h"
+#include "robotuiaction.h"
 #include <QDialog>
 
 class QAbstractButton;
@@ -35,7 +36,7 @@ class ConfigDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit ConfigDialog(QWidget *parent = 0);
+    explicit ConfigDialog(QWidget *parent = nullptr);
     ~ConfigDialog() override;
     ConfigDialog(const ConfigDialog&) = delete;
     ConfigDialog& operator=(const ConfigDialog&) = delete;
@@ -43,6 +44,8 @@ public:
 signals:
     void sendCommand(const Command &command);
     void useDarkModeColors(bool useDark);
+    void setRobotDoubleClickAction(FieldWidgetAction action, QString searchString);
+    void setRobotCtrlClickAction(FieldWidgetAction action, QString searchString);
 
 public slots:
     void load();
@@ -54,6 +57,7 @@ private:
     void sendConfiguration();
     void reset();
     void apply();
+    static QString robotActionString(FieldWidgetAction action);
 
     Ui::ConfigDialog *ui;
 };

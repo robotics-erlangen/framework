@@ -23,6 +23,7 @@
 #include "configdialog.h"
 #include "input/inputmanager.h"
 #include "internalreferee.h"
+#include "robotuiaction.h"
 #include "plotter/plotter.h"
 #include "config/config.h"
 #include "widgets/debuggerconsole.h"
@@ -121,7 +122,6 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
 
     connect(ui->simulator, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
     connect(ui->field, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
-    connect(ui->field, SIGNAL(selectRobotVisualizations(int)), ui->visualization, SLOT(selectRobotVisualizations(int)));
 
     m_configDialog = new ConfigDialog(this);
     connect(m_configDialog, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
@@ -137,6 +137,21 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
 
     ui->yellowDebugger->setStrategy(amun::DebugSource::StrategyYellow);
     connect(ui->yellowDebugger, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
+
+    m_robotDoubleClickAction = new RobotUIAction(this);
+    m_robotCtrlClickAction = new RobotUIAction(this);
+
+    connect(m_configDialog, SIGNAL(setRobotDoubleClickAction(FieldWidgetAction, QString)),
+            m_robotDoubleClickAction, SLOT(setActionType(FieldWidgetAction, QString)));
+    connect(ui->field, SIGNAL(robotDoubleClicked(bool, int)), m_robotDoubleClickAction, SLOT(actionInvoced(bool, int)));
+    connect(m_robotDoubleClickAction, SIGNAL(setDebugFilterString(QString)), ui->debugTree, SLOT(setFilter(QString)));
+    connect(m_robotDoubleClickAction, SIGNAL(toggleVisualization(QString)), ui->visualization, SLOT(toggleVisualization(QString)));
+
+    connect(m_configDialog, SIGNAL(setRobotCtrlClickAction(FieldWidgetAction, QString)),
+            m_robotCtrlClickAction, SLOT(setActionType(FieldWidgetAction, QString)));
+    connect(ui->field, SIGNAL(robotCtrlClicked(bool, int)), m_robotCtrlClickAction, SLOT(actionInvoced(bool, int)));
+    connect(m_robotCtrlClickAction, SIGNAL(setDebugFilterString(QString)), ui->debugTree, SLOT(setFilter(QString)));
+    connect(m_robotCtrlClickAction, SIGNAL(toggleVisualization(QString)), ui->visualization, SLOT(toggleVisualization(QString)));
 
     // setup visualization only parts of the ui
     connect(ui->visualization, SIGNAL(itemsChanged(QStringList)), ui->field, SLOT(visualizationsChanged(QStringList)));

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2018 Andreas Wendler                                        *
+ *   Copyright 2020 Andreas Wendler                                        *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,38 +18,35 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef DEBUGWIDGET_H
-#define DEBUGWIDGET_H
+#ifndef ROBOTUIACTION_H
+#define ROBOTUIACTION_H
 
-#include <QWidget>
+#include <QObject>
 
-#include "protobuf/status.h"
-
-namespace Ui {
-class DebugWidget;
-}
-
-class DebugWidget : public QWidget
-{
-    Q_OBJECT
-
-public:
-    explicit DebugWidget(QWidget *parent = 0);
-    ~DebugWidget();
-    DebugWidget(const DebugWidget&) = delete;
-    DebugWidget& operator=(const DebugWidget&) = delete;
-
-public slots:
-    void clearData();
-    void setFilter(const QString &filter); // for setting the filter externally
-
-private slots:
-    void handleStatus(const Status &status);
-    void filterChanged(const QString &filter);
-
-private:
-    Ui::DebugWidget *ui;
-    QString m_filterDefaultStyleSheet;
+enum class FieldWidgetAction {
+    None = 0,
+    ToggleVisualization = 1,
+    SetDebugSearch = 2
 };
 
-#endif // DEBUGWIDGET_H
+class RobotUIAction : public QObject
+{
+    Q_OBJECT
+public:
+    explicit RobotUIAction(QObject *parent = nullptr);
+
+signals:
+    void setDebugFilterString(QString filter);
+    void toggleVisualization(QString regexMatch);
+
+public slots:
+    void actionInvoced(bool teamIsBlue, int robotId);
+    void setActionType(FieldWidgetAction action, QString searchString);
+
+private:
+    FieldWidgetAction m_action = FieldWidgetAction::None;
+    QString m_searchString;
+
+};
+
+#endif // ROBOTUIACTION_H

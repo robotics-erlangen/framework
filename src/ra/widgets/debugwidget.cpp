@@ -57,6 +57,11 @@ void DebugWidget::handleStatus(const Status &status)
     ui->tree->handleStatus(status);
 }
 
+void DebugWidget::setFilter(const QString &filter)
+{
+    ui->filter->setText(filter);
+}
+
 void DebugWidget::filterChanged(const QString &filter)
 {
     const QChar FULL_REGEX_CHAR = '#';

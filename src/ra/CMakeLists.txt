@@ -42,6 +42,8 @@ add_library(ra-horus
     robotselectionwidget.h
     robotspecsdialog.cpp
     robotspecsdialog.h
+    robotuiaction.cpp
+    robotuiaction.h
     robotwidget.cpp
     robotwidget.h
     optionswidget.cpp
