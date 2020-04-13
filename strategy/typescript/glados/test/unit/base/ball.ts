@@ -1,6 +1,7 @@
 import { Ball } from "base/ball";
 import * as Constants from "base/constants";
 import * as Coordinates from "base/coordinates";
+import { Robot } from "base/robot";
 import { Position, Speed, Vector } from "base/vector";
 
 import { UnitTest } from "glados/test/unit/unittest";
@@ -12,6 +13,7 @@ export class BaseBall extends UnitTest {
 		this.addTest("toString", this.testToString);
 		this.addTest("update", this.testUpdate);
 		this.addTest("speed tracking", this.testSpeedTracking);
+		this.addTest("speed tracking without robot", this.testSpeedTrackingWithoutRobot);
 	}
 
 	public static getOverlays() {
@@ -64,14 +66,17 @@ export class BaseBall extends UnitTest {
 
 	private testSpeedTracking() {
 		let ball = new Ball();
+		let robot = new Robot(3);
 		// just a random value
 		let time = 1234;
 		this.assert_equal(ball.maxSpeed, 0);
 
 		let ballPos = new Vector(0, 0);
+		let robotPos = new Vector(0, 0);
+		robot.pos = robotPos;
 		let ballSpeed = new Vector(2, 0.0);
 		for (let i = 0;i < 4;i++) {
-			ball._update(this.ballData(ballPos, ballSpeed, 0, 0), time);
+			ball._update(this.ballData(ballPos, ballSpeed, 0, 0), time, undefined, [robot]);
 		}
 		this.assert_equal(ball.framesDecelerating, 3);
 		this.assert_equal(ball.maxSpeed, ballSpeed.length());
@@ -83,7 +88,7 @@ export class BaseBall extends UnitTest {
 
 		ballSpeed = new Vector(0.5, 0);
 		for (let i = 0;i < 4;i++) {
-			ball._update(this.ballData(ballPos, ballSpeed, 0, 0), time);
+			ball._update(this.ballData(ballPos, ballSpeed, 0, 0), time, undefined, [robot]);
 		}
 		this.assert_equal(ball.framesDecelerating, 3);
 		this.assert_equal(ball.maxSpeed, ballSpeed.length());
@@ -94,6 +99,24 @@ export class BaseBall extends UnitTest {
 		ballSpeed = ballSpeed.withX(ballSpeed.x * Constants.ballSwitchRatio - 0.01);
 		ball._update(this.ballData(ballPos, ballSpeed, 0, 0), time);
 		this.assert_equal(ball.deceleration, Constants.ballDeceleration);
+	}
+
+	private testSpeedTrackingWithoutRobot() {
+		let ball = new Ball();
+		let robot = new Robot(3);
+		// just a random value
+		let time = 1234;
+		this.assert_equal(ball.maxSpeed, 0);
+
+		let ballPos = new Vector(0, 0);
+		let robotPos = new Vector(2, 3);
+		robot.pos = robotPos;
+		let ballSpeed = new Vector(2, 0.0);
+		for (let i = 0;i < 4;i++) {
+			ball._update(this.ballData(ballPos, ballSpeed, 0, 0), time, undefined, [robot]);
+		}
+		this.assert_equal(ball.framesDecelerating, 3);
+		this.assert_not_equal(ball.maxSpeed, ballSpeed.length());
 	}
 }
 export let testClass = BaseBall;
