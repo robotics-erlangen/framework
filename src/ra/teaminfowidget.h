@@ -41,6 +41,10 @@ public:
 
 public slots:
     void handleStatus(const Status &status);
+    void setStyleSheets(bool useDark);
+
+private:
+    static QString createStyleSheet(const QColor &color);
 
 private:
     Ui::TeaminfoWidget *ui;

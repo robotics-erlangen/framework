@@ -20,11 +20,13 @@
 
 #include "teaminfowidget.h"
 #include "ui_teaminfowidget.h"
+#include "config/config.h"
 
 TeamInfoWidget::TeamInfoWidget(QWidget *parent) :
     QWidget(parent), ui(new Ui::TeaminfoWidget)
 {
     ui->setupUi(this);
+    setStyleSheets(false);
 }
 
 TeamInfoWidget::~TeamInfoWidget()
@@ -76,4 +78,30 @@ void TeamInfoWidget::handleStatus(const Status &status)
             ui->timeLeftOnYellowCardBlue->setValue(0);
         }
     }
+}
+
+QString TeamInfoWidget::createStyleSheet(const QColor &color)
+{
+    const QString f("QLabel { background-color: %1; border: 1px solid %2; border-radius: 3px; }");
+    return f.arg(color.lighter(180).name(), color.darker(140).name());
+}
+
+void TeamInfoWidget::setStyleSheets(bool useDark) {
+    QString yellow, blue;
+    if (useDark) {
+        yellow = createStyleSheet(UI_YELLOW_COLOR_DARK);
+        blue = createStyleSheet(UI_BLUE_COLOR_DARK);
+    } else {
+        yellow = createStyleSheet(UI_YELLOW_COLOR_LIGHT);
+        blue = createStyleSheet(UI_BLUE_COLOR_LIGHT);
+    }
+    ui->keeperIdBlue->setStyleSheet(blue);
+    ui->keeperTextLabelBlue->setStyleSheet(blue);
+    ui->numberOfCardsBlue->setStyleSheet(blue);
+    ui->cardTextLabelBlue->setStyleSheet(blue);
+
+    ui->keeperIdYellow->setStyleSheet(yellow);
+    ui->keeperTextLabelYellow->setStyleSheet(yellow);
+    ui->numberOfCardsYellow->setStyleSheet(yellow);
+    ui->cardTextLabelYellow->setStyleSheet(yellow);
 }

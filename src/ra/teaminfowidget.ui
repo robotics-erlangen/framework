@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>352</width>
-    <height>104</height>
+    <width>386</width>
+    <height>106</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -48,7 +48,7 @@
              <enum>QLayout::SetMinimumSize</enum>
             </property>
             <item>
-             <widget class="QLabel" name="label">
+             <widget class="QLabel" name="cardTextLabelYellow">
               <property name="text">
                <string>Current Yellow Cards:</string>
               </property>
@@ -91,7 +91,7 @@
        <item>
         <layout class="QHBoxLayout" name="keeperIdDisplayYellow">
          <item>
-          <widget class="QLabel" name="keeperTextLabel">
+          <widget class="QLabel" name="keeperTextLabelYellow">
            <property name="text">
             <string>Goalie:</string>
            </property>
@@ -140,7 +140,7 @@
              <number>0</number>
             </property>
             <item>
-             <widget class="QLabel" name="label_2">
+             <widget class="QLabel" name="cardTextLabelBlue">
               <property name="text">
                <string>Current Yellow Cards:</string>
               </property>
@@ -189,7 +189,7 @@
        <item>
         <layout class="QHBoxLayout" name="keeperIdDisplayBlue">
          <item>
-          <widget class="QLabel" name="keeperTextLabel_2">
+          <widget class="QLabel" name="keeperTextLabelBlue">
            <property name="text">
             <string>Goalie:</string>
            </property>
