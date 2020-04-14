@@ -70,7 +70,8 @@ bool EndInObstacleSampler::testEndPoint(const TrajectoryInput &input, Vector end
     }
 
     // no slowdown here, we are not even were we want to be
-    SpeedProfile direct = AlphaTimeTrajectory::findTrajectoryExactEndSpeed(input.v0, Vector(0, 0), endPoint - input.s0, input.acceleration, input.maxSpeed, 0);
+    SpeedProfile direct = AlphaTimeTrajectory::findTrajectoryExactEndSpeed(input.v0, Vector(0, 0), endPoint - input.s0,
+                                                                           input.acceleration, input.maxSpeed, 0, false);
     if (!direct.isValid()) {
         return false;
     }

@@ -167,7 +167,7 @@ public:
 
     // search for position
     static SpeedProfile findTrajectoryFastEndSpeed(Vector v0, Vector v1, Vector position, float acc, float vMax, float slowDownTime, bool highPrecision);
-    static SpeedProfile findTrajectoryExactEndSpeed(Vector v0, Vector v1, Vector position, float acc, float vMax, float slowDownTime);
+    static SpeedProfile findTrajectoryExactEndSpeed(Vector v0, Vector v1, Vector position, float acc, float vMax, float slowDownTime, bool highPrecision);
 
     // speed profile output
     // any input is valid as long as time is not negative
@@ -197,6 +197,13 @@ private:
     static void calculate1DTrajectoryFastEndSpeed(float v0, float v1, float time, bool directionPositive, float acc, float vMax, SpeedProfile1D &profile);
     static TrajectoryPosInfo1D calculateEndPos1D(float v0, float v1, float hintDist, float acc, float vMax);
     static void calculate1DSpeedProfile(float v0, float v1, float hintDist, float acc, float vMax, SpeedProfile1D &profile);
+
+    static constexpr float REGULAR_TARGET_PRECISION = 0.01f;
+    static constexpr float HIGH_QUALITY_TARGET_PRECISION = 0.0002f;
+
+    static constexpr int MAX_SEARCH_ITERATIONS = 30;
+    static constexpr int HIGH_PRECISION_ITERATIONS = 50;
+
 };
 
 #endif // ALPHATIMETRAJECTORY_H

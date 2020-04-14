@@ -780,8 +780,8 @@ static float angleDiff(float a1, float a2)
 
 SpeedProfile AlphaTimeTrajectory::findTrajectoryFastEndSpeed(Vector v0, Vector v1, Vector position, float acc, float vMax, float slowDownTime, bool highPrecision)
 {
-    if (v1.x == 0.0f && v1.y == 0.0f && !highPrecision) {
-        return findTrajectoryExactEndSpeed(v0, v1, position, acc, vMax, slowDownTime);
+    if (v1.x == 0.0f && v1.y == 0.0f) {
+        return findTrajectoryExactEndSpeed(v0, v1, position, acc, vMax, slowDownTime, highPrecision);
     }
     SpeedProfile result;
     // TODO: custom minTimePos for fast endspeed mode
@@ -818,7 +818,8 @@ SpeedProfile AlphaTimeTrajectory::findTrajectoryFastEndSpeed(Vector v0, Vector v
     float angleFactor = 0.8f;
     float lastAngleDiff = 0;
 
-    for (int i = 0;i<(highPrecision ? 50 : 30);i++) {
+    const int ITERATIONS = highPrecision ? HIGH_PRECISION_ITERATIONS : MAX_SEARCH_ITERATIONS;
+    for (int i = 0;i<ITERATIONS;i++) {
         currentTime = std::max(currentTime, 0.0f);
 
         Vector endPos;
@@ -835,7 +836,7 @@ SpeedProfile AlphaTimeTrajectory::findTrajectoryFastEndSpeed(Vector v0, Vector v
         }
 
         float targetDistance = position.distance(endPos);
-        if (targetDistance < (highPrecision ? 0.0002f : 0.01f)) {
+        if (targetDistance < (highPrecision ? HIGH_QUALITY_TARGET_PRECISION : REGULAR_TARGET_PRECISION)) {
             if (slowDownTime <= 0) {
                 result = calculateTrajectoryFastEndSpeed(v0, v1, currentTime, currentAngle, acc, vMax, minimumTime);
             }
@@ -880,7 +881,7 @@ static Vector necessaryAcceleration(Vector v0, Vector distance)
                   v0.y * std::abs(v0.y) * 0.5f / distance.y);
 }
 
-SpeedProfile AlphaTimeTrajectory::findTrajectoryExactEndSpeed(Vector v0, Vector v1, Vector position, float acc, float vMax, float slowDownTime)
+SpeedProfile AlphaTimeTrajectory::findTrajectoryExactEndSpeed(Vector v0, Vector v1, Vector position, float acc, float vMax, float slowDownTime, bool highPrecision)
 {
     const float MAX_ACCELERATION_FACTOR = 1.2f;
     SpeedProfile result;
@@ -934,7 +935,8 @@ SpeedProfile AlphaTimeTrajectory::findTrajectoryExactEndSpeed(Vector v0, Vector 
     float angleFactor = 0.8f;
     float lastAngleDiff = 0;
 
-    for (int i = 0;i<30;i++) {
+    const int ITERATIONS = highPrecision ? HIGH_PRECISION_ITERATIONS : MAX_SEARCH_ITERATIONS;
+    for (int i = 0;i<ITERATIONS;i++) {
         currentTime = std::max(currentTime, 0.0f);
 
         Vector endPos;
@@ -951,7 +953,7 @@ SpeedProfile AlphaTimeTrajectory::findTrajectoryExactEndSpeed(Vector v0, Vector 
         }
 
         float targetDistance = position.distance(endPos);
-        if (targetDistance < 0.01f) {
+        if (targetDistance < (highPrecision ? HIGH_QUALITY_TARGET_PRECISION : REGULAR_TARGET_PRECISION)) {
             if (slowDownTime <= 0) {
                 result = calculateTrajectoryExactEndSpeed(v0, v1, currentTime, currentAngle, acc, vMax, minimumTime);
             }
