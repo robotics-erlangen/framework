@@ -167,8 +167,6 @@ public:
     static float minTimeExactEndSpeed(Vector v0, Vector v1, float acc);
     static float minTimeFastEndSpeed(Vector v0, Vector v1, float acc);
 
-    static std::vector<Vector> searchPoints(Vector v0, Vector v1, Vector position, float acc, float vMax, float slowDownTime);
-
     // search for position
     static SpeedProfile findTrajectoryFastEndSpeed(Vector v0, Vector v1, Vector position, float acc, float vMax, float slowDownTime, bool highPrecision);
     static SpeedProfile findTrajectoryExactEndSpeed(Vector v0, Vector v1, Vector position, float acc, float vMax, float slowDownTime);
