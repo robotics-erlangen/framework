@@ -426,7 +426,7 @@ static float freeExtraTimeDistance(float v, float time, float acc, float vMax, f
     }
 }
 
-AlphaTimeTrajectory::TrajectoryPosInfo1D AlphaTimeTrajectory::calculateEndPos1D(float v0, float v1, float hintDist, float acc, float vMax)
+SpeedProfile1D::TrajectoryPosInfo1D SpeedProfile1D::calculateEndPos1D(float v0, float v1, float hintDist, float acc, float vMax)
 {
     // TODO: this can be optimized
     float topSpeed;
@@ -554,7 +554,7 @@ static void adjustEndSpeed(float v0, const float v1, float time, bool directionP
     }
 }
 
-AlphaTimeTrajectory::TrajectoryPosInfo1D AlphaTimeTrajectory::calculate1DTrajectoryFastEndSpeed(float v0, float v1, float time, bool directionPositive, float acc, float vMax)
+SpeedProfile1D::TrajectoryPosInfo1D SpeedProfile1D::calculateEndPos1DFastSpeed(float v0, float v1, float time, bool directionPositive, float acc, float vMax)
 {
     // TODO: simple case with v1 = 0 seperately?
     float realV1, extraTime;
@@ -574,8 +574,8 @@ AlphaTimeTrajectory::TrajectoryPosInfo2D AlphaTimeTrajectory::calculatePositionF
     float alphaX = std::sin(angle);
     float alphaY = std::cos(angle);
 
-    TrajectoryPosInfo1D xInfo = calculate1DTrajectoryFastEndSpeed(v0.x, v1.x, time, alphaX > 0, acc * std::abs(alphaX), vMax * std::abs(alphaX));
-    TrajectoryPosInfo1D yInfo = calculate1DTrajectoryFastEndSpeed(v0.y, v1.y, time, alphaY > 0, acc * std::abs(alphaY), vMax * std::abs(alphaY));
+    auto xInfo = SpeedProfile1D::calculateEndPos1DFastSpeed(v0.x, v1.x, time, alphaX > 0, acc * std::abs(alphaX), vMax * std::abs(alphaX));
+    auto yInfo = SpeedProfile1D::calculateEndPos1DFastSpeed(v0.y, v1.y, time, alphaY > 0, acc * std::abs(alphaY), vMax * std::abs(alphaY));
     return {Vector(xInfo.endPos, yInfo.endPos), Vector(xInfo.increaseAtSpeed, yInfo.increaseAtSpeed)};
 }
 
@@ -590,8 +590,8 @@ AlphaTimeTrajectory::TrajectoryPosInfo2D AlphaTimeTrajectory::calculatePositionE
     float restTimeY = (time - std::abs(diff.y) / (acc * std::abs(alphaY)));
 
     // calculate position for x and y
-    auto xInfo = calculateEndPos1D(v0.x, v1.x, sign(alphaX) * restTimeX, acc * std::abs(alphaX), vMax * std::abs(alphaX));
-    auto yInfo = calculateEndPos1D(v0.y, v1.y, sign(alphaY) * restTimeY, acc * std::abs(alphaY), vMax * std::abs(alphaY));
+    auto xInfo = SpeedProfile1D::calculateEndPos1D(v0.x, v1.x, sign(alphaX) * restTimeX, acc * std::abs(alphaX), vMax * std::abs(alphaX));
+    auto yInfo = SpeedProfile1D::calculateEndPos1D(v0.y, v1.y, sign(alphaY) * restTimeY, acc * std::abs(alphaY), vMax * std::abs(alphaY));
     return {Vector(xInfo.endPos, yInfo.endPos), Vector(xInfo.increaseAtSpeed, yInfo.increaseAtSpeed)};
 }
 
@@ -613,76 +613,76 @@ static void createFreeExtraTimeSegment(float beforeSpeed, float v, float nextSpe
     }
 }
 
-void AlphaTimeTrajectory::calculate1DSpeedProfile(float v0, float v1, float hintDist, float acc, float vMax, SpeedProfile1D &p)
+void SpeedProfile1D::calculate1DTrajectory(float v0, float v1, float hintDist, float acc, float vMax)
 {
-    p.acc = acc;
-    p.profile[0] = {v0, 0};
+    this->acc = acc;
+    profile[0] = {v0, 0};
 
     if (hintDist == 0.0f) {
-        p.profile[1] = {v1, std::abs(v0 - v1) / acc};
-        p.counter = 2;
+        profile[1] = {v1, std::abs(v0 - v1) / acc};
+        counter = 2;
     } else if (hintDist < 0 && v0 <= v1) {
         if (v0 >= -vMax) {
-            createFreeExtraTimeSegment(v0, v0, v1, hintDist, acc, vMax, p);
+            createFreeExtraTimeSegment(v0, v0, v1, hintDist, acc, vMax, *this);
         } else if (v0 < -vMax && v1 >= -vMax) {
-            p.profile[1] = {-vMax, std::abs(v0 + vMax) / acc};
-            p.profile[2] = {-vMax, -hintDist};
-            p.profile[3] = {v1, std::abs(v1 + vMax) / acc};
-            p.counter = 4;
+            profile[1] = {-vMax, std::abs(v0 + vMax) / acc};
+            profile[2] = {-vMax, -hintDist};
+            profile[3] = {v1, std::abs(v1 + vMax) / acc};
+            counter = 4;
         } else {
-            createFreeExtraTimeSegment(v0, v1, v1, hintDist, acc, vMax, p);
+            createFreeExtraTimeSegment(v0, v1, v1, hintDist, acc, vMax, *this);
         }
     } else if (hintDist < 0 && v0 > v1) {
         if (v1 >= -vMax) {
-            createFreeExtraTimeSegment(v0, v1, v1, hintDist, acc, vMax, p);
+            createFreeExtraTimeSegment(v0, v1, v1, hintDist, acc, vMax, *this);
         } else if (v1 < -vMax && v0 >= -vMax) {
-            p.profile[1] = {-vMax, std::abs(v0 + vMax) / acc};
-            p.profile[2] = {-vMax, -hintDist};
-            p.profile[3] = {v1, std::abs(v1 + vMax) / acc};
-            p.counter = 4;
+            profile[1] = {-vMax, std::abs(v0 + vMax) / acc};
+            profile[2] = {-vMax, -hintDist};
+            profile[3] = {v1, std::abs(v1 + vMax) / acc};
+            counter = 4;
         } else {
-            createFreeExtraTimeSegment(v0, v0, v1, hintDist, acc, vMax, p);
+            createFreeExtraTimeSegment(v0, v0, v1, hintDist, acc, vMax, *this);
         }
     } else if (hintDist > 0 && v0 <= v1) {
         if (v1 <= vMax) {
-            createFreeExtraTimeSegment(v0, v1, v1, hintDist, acc, vMax, p);
+            createFreeExtraTimeSegment(v0, v1, v1, hintDist, acc, vMax, *this);
         } else if (v1 > vMax && v0 <= vMax) {
-            p.profile[1] = {vMax, std::abs(v0 - vMax) / acc};
-            p.profile[2] = {vMax, hintDist};
-            p.profile[3] = {v1, std::abs(v1 - vMax) / acc};
-            p.counter = 4;
+            profile[1] = {vMax, std::abs(v0 - vMax) / acc};
+            profile[2] = {vMax, hintDist};
+            profile[3] = {v1, std::abs(v1 - vMax) / acc};
+            counter = 4;
         } else {
-            createFreeExtraTimeSegment(v0, v0, v1, hintDist, acc, vMax, p);
+            createFreeExtraTimeSegment(v0, v0, v1, hintDist, acc, vMax, *this);
         }
     } else { // hintDist > 0, v0 > v1
         //assert(hintDist > 0 && v0 > v1);
         if (v0 <= vMax) {
-            createFreeExtraTimeSegment(v0, v0, v1, hintDist, acc, vMax, p);
+            createFreeExtraTimeSegment(v0, v0, v1, hintDist, acc, vMax, *this);
         } else if (v0 > vMax && v1 <= vMax) {
-            p.profile[1] = {vMax, std::abs(v0 - vMax) / acc};
-            p.profile[2] = {vMax, hintDist};
-            p.profile[3] = {v1, std::abs(v1 - vMax) / acc};
-            p.counter = 4;
+            profile[1] = {vMax, std::abs(v0 - vMax) / acc};
+            profile[2] = {vMax, hintDist};
+            profile[3] = {v1, std::abs(v1 - vMax) / acc};
+            counter = 4;
         } else {
-            createFreeExtraTimeSegment(v0, v1, v1, hintDist, acc, vMax, p);
+            createFreeExtraTimeSegment(v0, v1, v1, hintDist, acc, vMax, *this);
         }
     }
 }
 
-void AlphaTimeTrajectory::calculate1DTrajectoryFastEndSpeed(float v0, float v1, float time, bool directionPositive, float acc, float vMax, SpeedProfile1D &profile)
+void SpeedProfile1D::calculate1DTrajectoryFastEndSpeed(float v0, float v1, float time, bool directionPositive, float acc, float vMax)
 {
     // TODO: simple case with v1 = 0 seperately?
     float realV1, extraTime;
     adjustEndSpeed(v0, v1, time, directionPositive, acc, extraTime, realV1);
 
     if (extraTime == 0.0f) {
-        profile.acc = acc;
-        profile.profile[0] = {v0, 0};
-        profile.profile[1] = {realV1, std::abs(realV1 - v0) / acc};
-        profile.counter = 2;
+        this->acc = acc;
+        profile[0] = {v0, 0};
+        profile[1] = {realV1, std::abs(realV1 - v0) / acc};
+        counter = 2;
     } else {
         // TODO: remove the negative time in calculateEndPos1D
-        calculate1DSpeedProfile(v0, realV1, directionPositive ? extraTime : -extraTime, acc, vMax, profile);
+        calculate1DTrajectory(v0, realV1, directionPositive ? extraTime : -extraTime, acc, vMax);
     }
 }
 
@@ -698,8 +698,8 @@ SpeedProfile AlphaTimeTrajectory::calculateTrajectoryFastEndSpeed(Vector v0, Vec
     float alphaY = std::cos(angle);
 
     SpeedProfile result;
-    calculate1DTrajectoryFastEndSpeed(v0.x, v1.x, time, alphaX > 0, acc * std::abs(alphaX), vMax * std::abs(alphaX), result.xProfile);
-    calculate1DTrajectoryFastEndSpeed(v0.y, v1.y, time, alphaY > 0, acc * std::abs(alphaY), vMax * std::abs(alphaY), result.yProfile);
+    result.xProfile.calculate1DTrajectoryFastEndSpeed(v0.x, v1.x, time, alphaX > 0, acc * std::abs(alphaX), vMax * std::abs(alphaX));
+    result.yProfile.calculate1DTrajectoryFastEndSpeed(v0.y, v1.y, time, alphaY > 0, acc * std::abs(alphaY), vMax * std::abs(alphaY));
     result.xProfile.integrateTime();
     result.yProfile.integrateTime();
     return result;
@@ -721,8 +721,8 @@ SpeedProfile AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(Vector v0, Ve
     float restTimeY = (time - std::abs(diff.y) / (acc * std::abs(alphaY)));
 
     SpeedProfile result;
-    calculate1DSpeedProfile(v0.x, v1.x, alphaX > 0 ? restTimeX : -restTimeX, acc * std::abs(alphaX), vMax * std::abs(alphaX), result.xProfile);
-    calculate1DSpeedProfile(v0.y, v1.y, alphaY > 0 ? restTimeY : -restTimeY, acc * std::abs(alphaY), vMax * std::abs(alphaY), result.yProfile);
+    result.xProfile.calculate1DTrajectory(v0.x, v1.x, alphaX > 0 ? restTimeX : -restTimeX, acc * std::abs(alphaX), vMax * std::abs(alphaX));
+    result.yProfile.calculate1DTrajectory(v0.y, v1.y, alphaY > 0 ? restTimeY : -restTimeY, acc * std::abs(alphaY), vMax * std::abs(alphaY));
     result.xProfile.integrateTime();
     result.yProfile.integrateTime();
     return result;

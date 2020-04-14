@@ -93,6 +93,19 @@ public:
     }
 
     float timeWithSlowDown(float slowDownTime) const;
+
+    struct TrajectoryPosInfo1D {
+        float endPos;
+        float increaseAtSpeed;
+    };
+
+    // helper functions
+    // WARNING: assumes that the input is valid and solvable
+    static TrajectoryPosInfo1D calculateEndPos1DFastSpeed(float v0, float v1, float time, bool directionPositive, float acc, float vMax);
+    void calculate1DTrajectoryFastEndSpeed(float v0, float v1, float time, bool directionPositive, float acc, float vMax);
+
+    static TrajectoryPosInfo1D calculateEndPos1D(float v0, float v1, float hintDist, float acc, float vMax);
+    void calculate1DTrajectory(float v0, float v1, float hintDist, float acc, float vMax);
 };
 
 class SpeedProfile
@@ -174,10 +187,6 @@ public:
     static SpeedProfile calculateTrajectoryExactEndSpeed(Vector v0, Vector v1, float time, float angle, float acc, float vMax, float minTime = -1);
 
 private:
-    struct TrajectoryPosInfo1D {
-        float endPos;
-        float increaseAtSpeed;
-    };
     struct TrajectoryPosInfo2D {
         Vector endPos;
         Vector increaseAtSpeed;
@@ -187,13 +196,6 @@ private:
     // WARNING: assumes that the input is valid and solvable (minimumTime must be included)
     static TrajectoryPosInfo2D calculatePositionFastEndSpeed(Vector v0, Vector v1, float time, float angle, float acc, float vMax);
     static TrajectoryPosInfo2D calculatePositionExactEndSpeed(Vector v0, Vector v1, float time, float angle, float acc, float vMax);
-
-    // helper functions
-    // WARNING: assumes that the input is valid and solvable
-    static TrajectoryPosInfo1D calculate1DTrajectoryFastEndSpeed(float v0, float v1, float time, bool directionPositive, float acc, float vMax);
-    static void calculate1DTrajectoryFastEndSpeed(float v0, float v1, float time, bool directionPositive, float acc, float vMax, SpeedProfile1D &profile);
-    static TrajectoryPosInfo1D calculateEndPos1D(float v0, float v1, float hintDist, float acc, float vMax);
-    static void calculate1DSpeedProfile(float v0, float v1, float hintDist, float acc, float vMax, SpeedProfile1D &profile);
 
     static constexpr float REGULAR_TARGET_PRECISION = 0.01f;
     static constexpr float HIGH_QUALITY_TARGET_PRECISION = 0.0002f;
