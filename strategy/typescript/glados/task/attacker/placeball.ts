@@ -30,13 +30,22 @@ const enum State {
 	INVALID				= "INVALID",
 }
 
-// Maximum final distance from ball to placement pos
+/** Maximum final distance from the ball to placement position */
 const END_DISTANCE = 0.1;
 const BALL_STOP_SPEED = 0.2;
 const MAX_BALL_DISTANCE = 0.25;
 
-// If ball distance is larger than this, the corresponding offset gets recalculated
+/**
+ * If the ball's distance to a target position (nearest position in the field
+ * or final target pos) is larger than this, the corresponding offset gets
+ * recalculated
+ * @see PlaceBall._calculateOffsets
+ */
 const OFFSET_DISTANCE = 0.07;
+/**
+ * The number of kept directions from the ball to a target position
+ * @see PlaceBall._calculateOffsets
+ */
 const OFFSET_FRAME_COUNT = 50;
 
 const ENSURE_CONTACT_TIME = 0.5;
@@ -81,14 +90,44 @@ export class PlaceBall extends Task {
 
 	private _currentTargetPos: Position | undefined = undefined;
 
+	/**
+	 * The last OFFSET_FRAME_COUNT directions from the ball to the placement target position
+	 * @see _calculateOffsets
+	 */
 	private _placementOffsets: RelativePosition[] = [];
+	/**
+	 * The direction from the ball to the placement target position
+	 * @see _calculateOffsets
+	 */
 	private _placementOffsetAverage: RelativePosition | undefined;
+	/**
+	 * Current frame used in the placement offset average calculation
+	 * @see _placementOffsetAverage
+	 * @see _calculateOffsets
+	 */
 	private _placementOffsetFrame = 0;
 
+	/**
+	 * The position inside the field, nearest to the ball
+	 * @see _calculateOffsets
+	 */
 	private _nearestFieldPos: Position | undefined = undefined;
 
+	/**
+	 * The last OFFSET_FRAME_COUNT directions from the ball to it's nearest field pos
+	 * @see _calculateOffsets
+	 */
 	private _borderOffsets: RelativePosition[] = [];
+	/**
+	 * The offset between the ball and the ball's nearest field pos
+	 * @see _calculateOffsets
+	 */
 	private _borderOffsetAverage: RelativePosition | undefined;
+	/**
+	 * Current frame used in the border offset average calculation
+	 * @see _borderOffsetAverage
+	 * @see _calculateOffsets
+	 */
 	private _borderOffsetFrame = 0;
 
 	private _barrierDetects = false;
