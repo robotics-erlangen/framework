@@ -73,6 +73,18 @@ export class AgentPool {
 		return false;
 	}
 
+	hasExchangeableRobot(): boolean {
+		if (this._agents.length < this._robotLimit) {
+			return true;
+		}
+		for (let agent of this._agents) {
+			if (agent._activeBehavior && !agent._activeBehavior.forceKeepingInPool()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	setRobotLimit(robotLimit: number) {
 		this._robotLimit = robotLimit;
 	}
