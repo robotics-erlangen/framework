@@ -408,26 +408,7 @@ bool AlphaTimeTrajectory::isInputValidFastEndSpeed(Vector v0, Vector v1, float t
 float AlphaTimeTrajectory::minTimeExactEndSpeed(Vector v0, Vector v1, float acc)
 {
     Vector diff = v1 - v0;
-    Vector absDiff(std::abs(diff.x), std::abs(diff.y));
-
-    if (absDiff.x == 0.0f && absDiff.y == 0.0f) {
-        return 0;
-    } else if (absDiff.x == 0.0f) {
-        return absDiff.y / acc;
-    } else if (absDiff.y == 0.0f) {
-        return absDiff.x / acc;
-    }
-    // tx = absDiff.x / alpha
-    // ty = absDiff.y / sqrt(1 - alpha * alpha)
-    // => Solve tx =!= ty
-    float alpha = absDiff.x / std::sqrt(absDiff.x * absDiff.x + absDiff.y * absDiff.y);
-    // TODO: this can be calculated more efficiently
-    // but is is floating point stable this way
-    if (absDiff.x > absDiff.y) {
-        return absDiff.x / (acc * alpha);
-    } else {
-        return absDiff.y / (acc * std::sqrt(1 - alpha * alpha));
-    }
+    return diff.length() / acc;
 }
 
 float AlphaTimeTrajectory::minTimeFastEndSpeed(Vector v0, Vector v1, float acc)
