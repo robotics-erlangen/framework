@@ -58,9 +58,6 @@ public slots:
 
 signals:
     void gotStatus(const Status &status);
-    void gotPlayStatus(const Status &status);
-    void clearPlayConsumers();
-    void clearAll();
     void disableSkipping(bool disable);
     void resetBacklog();
     void setSpeed(int speed);
@@ -100,8 +97,6 @@ private:
     QTimer m_timer;
     bool m_paused;
     Timer m_playTimer;
-
-    int m_playEnd;
 
     int m_nextPacket;
     int m_spoolCounter;

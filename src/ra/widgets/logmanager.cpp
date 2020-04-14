@@ -183,9 +183,6 @@ void LogManager::playNext()
             }
 
             emit gotStatus(status);
-            if (m_spoolCounter == 0) {
-                emit gotPlayStatus(status);
-            }
             timeCurrent = packetTime;
         }
 
@@ -282,18 +279,12 @@ void LogManager::setPaused(bool p)
         m_scroll = false;
         ui->horizontalSlider->setValue(m_exactSliderValue);
         m_scroll = true;
-        m_playEnd = ui->spinPacketCurrent->value();
     } else {
         ui->btnPlay->setText(pauseText);
         ui->btnPlay->setIcon(QIcon::fromTheme("media-playback-pause"));
         // the play timer has to be reset after a pause to match the timings again
         m_nextPacket = -1; // trigger play timer reset
         m_timer.start(0);
-
-        // clear if any seeking was done
-        if (ui->spinPacketCurrent->value() != m_playEnd) {
-            emit clearPlayConsumers();
-        }
     }
 }
 
@@ -347,12 +338,9 @@ void LogManager::resetVariables()
     // invalidate play timer
     m_nextPacket = -1;
     m_spoolCounter = 0;
-    m_playEnd = -1;
 
     // pause playback
     setPaused(true);
-    emit clearAll();
-    emit clearPlayConsumers();
 }
 
 void LogManager::initializeLabels()
