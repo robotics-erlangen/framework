@@ -702,8 +702,6 @@ SpeedProfile AlphaTimeTrajectory::calculateTrajectoryFastEndSpeed(Vector v0, Vec
     calculate1DTrajectoryFastEndSpeed(v0.y, v1.y, time, alphaY > 0, acc * std::abs(alphaY), vMax * std::abs(alphaY), result.yProfile);
     result.xProfile.integrateTime();
     result.yProfile.integrateTime();
-    result.inputTime = time;
-    result.inputAngle = angle;
     return result;
 }
 
@@ -727,8 +725,6 @@ SpeedProfile AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(Vector v0, Ve
     calculate1DSpeedProfile(v0.y, v1.y, alphaY > 0 ? restTimeY : -restTimeY, acc * std::abs(alphaY), vMax * std::abs(alphaY), result.yProfile);
     result.xProfile.integrateTime();
     result.yProfile.integrateTime();
-    result.inputTime = time;
-    result.inputAngle = angle;
     return result;
 }
 
@@ -840,8 +836,6 @@ SpeedProfile AlphaTimeTrajectory::findTrajectoryFastEndSpeed(Vector v0, Vector v
             if (slowDownTime <= 0) {
                 result = calculateTrajectoryFastEndSpeed(v0, v1, currentTime, currentAngle, acc, vMax, minimumTime);
             }
-            result.inputTime = currentTime;
-            result.inputAngle = currentAngle;
             return result;
         }
 
@@ -957,8 +951,6 @@ SpeedProfile AlphaTimeTrajectory::findTrajectoryExactEndSpeed(Vector v0, Vector 
             if (slowDownTime <= 0) {
                 result = calculateTrajectoryExactEndSpeed(v0, v1, currentTime, currentAngle, acc, vMax, minimumTime);
             }
-            result.inputTime = currentTime;
-            result.inputAngle = currentAngle;
             return result;
         }
 

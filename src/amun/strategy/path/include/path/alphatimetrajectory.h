@@ -102,9 +102,6 @@ public:
     SpeedProfile1D xProfile;
     SpeedProfile1D yProfile;
 
-    float inputTime;
-    float inputAngle;
-
     bool valid = true;
 
     bool isValid() const { return valid; }
