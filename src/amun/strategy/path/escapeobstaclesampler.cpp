@@ -29,14 +29,17 @@ bool EscapeObstacleSampler::compute(const TrajectoryInput &input)
     float bestEndTime;
     {
         // try last frames trajectory
-        SpeedProfile p = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(input.v0, Vector(0, 0), m_bestEscapingTime, m_bestEscapingAngle, input.acceleration, input.maxSpeed);
+        // TODO: potentiell jetzt wegen der anfangsgeschwindigkeit ungueltig
+        SpeedProfile p = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(input.v0, Vector(0, 0), m_bestEscapingTime, m_bestEscapingAngle,
+                                                                               input.acceleration, input.maxSpeed);
         SpeedProfile bestProfile = p;
         int bestPrio;
         float bestObstacleTime;
         float endTime;
         std::tie(bestPrio, bestObstacleTime, endTime) = trajectoryObstacleScore(input, p);
         bool foundValid = endTime > 0;
-        if (!foundValid || !AlphaTimeTrajectory::isInputValidExactEndSpeed(input.v0, Vector(0, 0), m_bestEscapingTime, input.acceleration)) {
+
+        if (!foundValid) {
             bestPrio = 10000;
             bestObstacleTime = 10000;
         }
@@ -46,18 +49,15 @@ bool EscapeObstacleSampler::compute(const TrajectoryInput &input)
             if (m_rng->uniformInt() % 2 == 0) {
                 // random sampling
                 if (!foundValid) {
-                    time = m_rng->uniformFloat(0.2f, 6.0f);
+                    time = m_rng->uniformFloat(0.001f, 6.0f);
                 } else {
-                    time = m_rng->uniformFloat(0.2f, 2.0f);
+                    time = m_rng->uniformFloat(0.001f, 2.0f);
                 }
                 angle = m_rng->uniformFloat(0, float(2 * M_PI));
             } else {
                 // sample around current best point
-                time = std::max(0.05f, m_bestEscapingTime + m_rng->uniformFloat(-0.1f, 0.1f));
+                time = std::max(0.001f, m_bestEscapingTime + m_rng->uniformFloat(-0.1f, 0.1f));
                 angle = m_bestEscapingAngle + m_rng->uniformFloat(-0.1f, 0.1f);
-            }
-            if (!AlphaTimeTrajectory::isInputValidExactEndSpeed(input.v0, Vector(0, 0), time, input.acceleration)) {
-                continue;
             }
 
             p = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(input.v0, Vector(0, 0), time, angle, input.acceleration, input.maxSpeed);
@@ -102,29 +102,28 @@ bool EscapeObstacleSampler::compute(const TrajectoryInput &input)
     // second stage: try to find a path to stop
     {
         float closestDistance = std::numeric_limits<float>::max();
-        SpeedProfile bestProfile, p;
+        SpeedProfile bestProfile;
         bool foundResult = false;
-        if (AlphaTimeTrajectory::isInputValidExactEndSpeed(bestStartingSpeed, Vector(0, 0), m_bestStoppingTime, input.acceleration)) {
-            p = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(bestStartingSpeed, Vector(0, 0), m_bestStoppingTime, m_bestStoppingAngle, input.acceleration, input.maxSpeed);
-            if (p.isValid() && !m_world.isTrajectoryInObstacle(p, bestEndTime, 0, bestStartingEndPos)) {
-                closestDistance = (p.positionForTime(p.time()) + bestStartingEndPos).distance(input.s1);
-                bestProfile = p;
-                foundResult = true;
-            }
+
+        SpeedProfile p = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(bestStartingSpeed, Vector(0, 0), m_bestStoppingTime,
+                                                                               m_bestStoppingAngle, input.acceleration, input.maxSpeed);
+
+        if (p.isValid() && !m_world.isTrajectoryInObstacle(p, bestEndTime, 0, bestStartingEndPos)) {
+            closestDistance = (p.positionForTime(p.time()) + bestStartingEndPos).distance(input.s1);
+            bestProfile = p;
+            foundResult = true;
         }
+
         for (int i = 0;i<25;i++) {
             float time, angle;
             if (m_rng->uniformInt() % 4 == 0) {
                 // random sampling
-                time = m_rng->uniformFloat(0.2f, 4.0f);
+                time = m_rng->uniformFloat(0.001f, 4.0f);
                 angle = m_rng->uniformFloat(0, float(2 * M_PI));
             } else {
                 // sample around current best point
-                time = std::max(0.05f, m_bestStoppingTime + m_rng->uniformFloat(-0.1f, 0.1f));
+                time = std::max(0.001f, m_bestStoppingTime + m_rng->uniformFloat(-0.1f, 0.1f));
                 angle = m_bestStoppingAngle + m_rng->uniformFloat(-0.1f, 0.1f);
-            }
-            if (!AlphaTimeTrajectory::isInputValidExactEndSpeed(bestStartingSpeed, Vector(0, 0), time, input.acceleration)) {
-                continue;
             }
 
             p = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(bestStartingSpeed, Vector(0, 0), time, angle, input.acceleration, input.maxSpeed);

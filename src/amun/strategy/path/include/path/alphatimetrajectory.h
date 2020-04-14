@@ -161,9 +161,7 @@ class AlphaTimeTrajectory
 public:
     static constexpr float SLOW_DOWN_TIME = 0.2f;
 
-    // validity checks
-    static bool isInputValidExactEndSpeed(Vector v0, Vector v1, float time, float acc);
-    static bool isInputValidFastEndSpeed(Vector v0, Vector v1, float time, float acc);
+    // helper functions
     static float minTimeExactEndSpeed(Vector v0, Vector v1, float acc);
     static float minTimeFastEndSpeed(Vector v0, Vector v1, float acc);
 
@@ -172,9 +170,11 @@ public:
     static SpeedProfile findTrajectoryExactEndSpeed(Vector v0, Vector v1, Vector position, float acc, float vMax, float slowDownTime);
 
     // speed profile output
-    // WARNING: assumes that the input is valid and solvable (check beforehand with isInputValidFastEndSpeed)
-    static SpeedProfile calculateTrajectoryFastEndSpeed(Vector v0, Vector v1, float time, float angle, float acc, float vMax);
-    static SpeedProfile calculateTrajectoryExactEndSpeed(Vector v0, Vector v1, float time, float angle, float acc, float vMax);
+    // any input is valid as long as time is not negative
+    // if minTime is given, it must be the value of minTimeFastEndSped(v0, v1, acc)
+    static SpeedProfile calculateTrajectoryFastEndSpeed(Vector v0, Vector v1, float time, float angle, float acc, float vMax, float minTime = -1);
+    // if minTime is given, it must be the value of minTimeExactEndSped(v0, v1, acc)
+    static SpeedProfile calculateTrajectoryExactEndSpeed(Vector v0, Vector v1, float time, float angle, float acc, float vMax, float minTime = -1);
 
 private:
     struct TrajectoryPosInfo1D {
@@ -187,7 +187,7 @@ private:
     };
 
     // pos only
-    // WARNING: assumes that the input is valid and solvable (check beforehand with isInputValidFastEndSpeed)
+    // WARNING: assumes that the input is valid and solvable (minimumTime must be included)
     static TrajectoryPosInfo2D calculatePositionFastEndSpeed(Vector v0, Vector v1, float time, float angle, float acc, float vMax);
     static TrajectoryPosInfo2D calculatePositionExactEndSpeed(Vector v0, Vector v1, float time, float angle, float acc, float vMax);
 

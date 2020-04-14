@@ -83,7 +83,7 @@ static StandardTrajectorySample randomSample(RNG &rng, float maxSpeed, float max
     while (currentMidSpeed.length() > maxSpeed) {
         currentMidSpeed *= 0.9f;
     }
-    float currentTime = rng.uniformFloat(0.03f, std::min(6.0f, 2.0f * maxDistance));
+    float currentTime = rng.uniformFloat(0.001f, std::min(6.0f, 2.0f * maxDistance));
     float currentAngle = rng.uniformFloat(0, 7);
 
     return StandardTrajectorySample(currentTime, currentAngle, currentMidSpeed);
@@ -96,7 +96,7 @@ static StandardTrajectorySample modifySample(const StandardTrajectorySample &inp
     while (point.getMidSpeed().length() > maxSpeed) {
         point.setMidSpeed(point.getMidSpeed() * 0.95f);
     }
-    point.setTime(std::max(0.03f, point.getTime() + rng.uniformFloat(-0.1f, 0.1f)));
+    point.setTime(std::max(0.001f, point.getTime() + rng.uniformFloat(-0.1f, 0.1f)));
     point.setAngle(point.getAngle() + rng.uniformFloat(-0.1f, 0.1f));
     return point;
 }

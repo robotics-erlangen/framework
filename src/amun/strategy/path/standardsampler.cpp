@@ -27,7 +27,7 @@
 StandardSampler::StandardSampler(RNG *rng, const WorldInformation &world, PathDebug &debug, bool usePrecomputation) :
     TrajectorySampler(rng, world, debug)
 {
-    if (usePrecomputation) {
+    if (false) {
         // load precomputed points
         ProtobufFileReader reader;
         reader.open(QString(ERFORCE_DATADIR) + "precomputation/standardsampler.prec", "KHONSU PRECOMPUTATION");
@@ -112,7 +112,7 @@ void StandardSampler::computeLive(const TrajectoryInput &input, const StandardSa
             angle = m_rng->uniformFloat(0, float(2 * M_PI));
             // TODO: adjust max time
             float maxTime = m_bestResultInfo.valid ? std::max(0.01f, m_bestResultInfo.time - 0.1f) : 5.0f;
-            // TODO: dont sample invalid times
+
             time = m_rng->uniformFloat(0, maxTime);
         } else {
             // TODO: gaussian sampling
@@ -128,6 +128,7 @@ void StandardSampler::computeLive(const TrajectoryInput &input, const StandardSa
             angle = info.sample.getAngle() + m_rng->uniformFloat(-0.1f, 0.1f);
             time = std::max(0.0001f, info.sample.getTime() + m_rng->uniformFloat(-0.1f, 0.1f));
         }
+        time = std::max(0.0f, time);
         checkSample(input, StandardTrajectorySample(time, angle, speed), m_bestResultInfo.time);
     }
 }
@@ -144,6 +145,7 @@ void StandardSampler::computePrecomputed(const TrajectoryInput &input)
                 }
                 checkSample(input, denormalized, m_bestResultInfo.time);
             }
+            m_debug.debug(QString("trajectory/%1/time").arg(m_world.robotId()), m_bestResultInfo.time);
             break;
         }
     }
@@ -161,8 +163,11 @@ Vector StandardSampler::randomSpeed(float maxSpeed)
 
 float StandardSampler::checkSample(const TrajectoryInput &input, const StandardTrajectorySample &sample, const float currentBestTime)
 {
+    // do not use this minimum time improvement for very low distances
+    const float MINIMUM_TIME_IMPROVEMENT = input.distance.lengthSquared() > 1 ? 0.05f : 0.0f;
+
     // construct second part from mid point data
-    if (!AlphaTimeTrajectory::isInputValidFastEndSpeed(sample.getMidSpeed(), input.v1, sample.getTime(), input.acceleration)) {
+    if (sample.getTime() < 0) {
         return -1;
     }
     SpeedProfile secondPart = AlphaTimeTrajectory::calculateTrajectoryFastEndSpeed(sample.getMidSpeed(), input.v1, sample.getTime(),
@@ -179,7 +184,7 @@ float StandardSampler::checkSample(const TrajectoryInput &input, const StandardT
         secondPartTime = secondPart.time();
         secondPartOffset = secondPart.positionForTime(secondPartTime);
     }
-    if (secondPartTime > currentBestTime) {
+    if (secondPartTime > currentBestTime - MINIMUM_TIME_IMPROVEMENT) {
         return -1;
     }
 
@@ -191,13 +196,14 @@ float StandardSampler::checkSample(const TrajectoryInput &input, const StandardT
     if (!firstPart.isValid()) {
         return -1;
     }
+
     float firstPartTime;
     if (input.exponentialSlowDown && firstPartSlowDownTime > 0) {
         firstPartTime = firstPart.timeWithSlowDown(firstPartSlowDownTime);
     } else {
         firstPartTime = firstPart.time();
     }
-    if (firstPartTime + secondPartTime > currentBestTime) {
+    if (firstPartTime + secondPartTime > currentBestTime - MINIMUM_TIME_IMPROVEMENT) {
         return -1;
     }
     float firstPartObstacleDist = m_world.minObstacleDistance(firstPart, 0, firstPartSlowDownTime, input.s0).first;
@@ -215,7 +221,7 @@ float StandardSampler::checkSample(const TrajectoryInput &input, const StandardT
         obstacleDistExtraTime = OBSTACLE_AVOIDANCE_BONUS;
     }
     float biasedTrajectoryTime = (firstPartTime + secondPartTime) * obstacleDistExtraTime;
-    if (biasedTrajectoryTime > currentBestTime) {
+    if (biasedTrajectoryTime > currentBestTime - MINIMUM_TIME_IMPROVEMENT) {
         return -1;
     }
 
