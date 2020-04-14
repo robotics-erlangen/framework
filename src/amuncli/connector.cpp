@@ -340,7 +340,10 @@ void Connector::stopAmunAndSaveBacklog(QString directory) {
     QDir logdir(m_backlogDir);
     if (!logdir.exists(directory)) {
         logdir.mkdir(directory);
-    } else if (m_maxBacklogFiles > 0 && logdir.count() >= m_maxBacklogFiles) {
+    }
+
+    const QDir fullDir(logdir.path() + "/" + directory);
+    if (m_maxBacklogFiles > 0 && fullDir.count() >= m_maxBacklogFiles + 2) {
         qDebug() << "Maximum backlogs reached in directory: " + directory;
         return;
     }
@@ -352,7 +355,7 @@ void Connector::stopAmunAndSaveBacklog(QString directory) {
     emit sendCommand(command);
 
     const QString date = CombinedLogWriter::dateTimeToString(QDateTime::currentDateTime()).replace(":", "");
-    QString pathName = logdir.path() + "/" + directory + QString("/backlog%1.log").arg(date);
+    QString pathName = fullDir.path() + QString("/backlog%1.log").arg(date);
     emit saveBacklogFile(pathName, m_teamStatus, false);
 }
 
