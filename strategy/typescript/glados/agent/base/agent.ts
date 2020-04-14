@@ -263,4 +263,8 @@ export abstract class Agent {
 	robot(): FriendlyRobot {
 		return this._robot;
 	}
+
+	messaging(): MessageBox {
+		return this._messaging;
+	}
 }

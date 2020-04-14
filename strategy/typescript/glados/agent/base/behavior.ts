@@ -42,7 +42,7 @@ export abstract class Behavior {
 	constructor(agent: Agent) {
 		this._agent = agent;
 		this._robot = this._agent.robot();
-		this._messaging = agent._messaging;
+		this._messaging = this._agent.messaging();
 		this.stop();
 	}
 
