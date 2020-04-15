@@ -73,6 +73,8 @@ const MIN_TIME_IN_STATE = 0.1;
 
 export class PlaceBall extends Task {
 
+	private _firstFrame: boolean;
+
 	private readonly OFFSET_SHOOT_LENGTH: number;
 	private readonly OFFSET_EXTRA_LENGTH: number;
 	private readonly FAR_NEAR_CUT: number;
@@ -142,6 +144,8 @@ export class PlaceBall extends Task {
 
 	constructor(agent: Agent, placementPos?: Position) {
 		super(agent);
+
+		this._firstFrame = true;
 
 		this.OFFSET_SHOOT_LENGTH = this._robot.shootRadius + World.Ball.radius;
 		this.OFFSET_EXTRA_LENGTH = this.OFFSET_SHOOT_LENGTH + 0.1;
@@ -290,7 +294,15 @@ export class PlaceBall extends Task {
 			}
 		}
 
-		if (this._state !== State.WAIT_FOR_BALL_STOP) {
+		/*
+		 * In the first frame, the main attacker is not set by
+		 * g/m/ballplacement yet. This means two robots try to place the ball.
+		 * To prevent two robots from sending placingRobot, which is an
+		 * exclusive role, we start at the second frame.
+		 */
+		if (this._firstFrame) {
+			this._firstFrame = false;
+		} else {
 			this._messaging.sendBroadcast(MessageType.placingRobot);
 		}
 	}
