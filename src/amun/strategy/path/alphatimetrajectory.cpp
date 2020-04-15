@@ -895,7 +895,10 @@ SpeedProfile AlphaTimeTrajectory::findTrajectoryExactEndSpeed(Vector v0, Vector 
         }
     }
 
-    float minTimeDistance = position.distance(minTimePos(v0, v1, acc, 0));
+    Vector minPos = minTimePos(v0, v1, acc, slowDownTime);
+    float minTimeDistance = position.distance(minPos);
+
+    const bool useMinTimePosForCenterPos = minTimeDistance < 0.1f;
 
     // estimate rough time from distance
     // TODO: improve this estimate?
@@ -953,7 +956,7 @@ SpeedProfile AlphaTimeTrajectory::findTrajectoryExactEndSpeed(Vector v0, Vector 
             return result;
         }
 
-        Vector currentCenterTimePos = centerTimePos(v0, v1, currentTime + minimumTime);
+        Vector currentCenterTimePos = useMinTimePosForCenterPos ? minPos : centerTimePos(v0, v1, currentTime + minimumTime);
         float newDistance = endPos.distance(currentCenterTimePos);
         float targetCenterDistance = currentCenterTimePos.distance(position);
         float currentCenterDistanceDiff = targetCenterDistance - newDistance;
