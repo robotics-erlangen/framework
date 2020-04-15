@@ -73,7 +73,7 @@ function produceRandom(seed?: number): RandomLike {
 
 let _random: RandomLike | undefined = undefined;
 
-/** seeds the PRNG with the given seed */
+/** Seeds the PRNG with the given seed */
 export function randomseed(seed: number): void {
 	_random = produceRandom(seed);
 }
@@ -87,17 +87,16 @@ function initRandom(): void {
 	}
 }
 
-/** generates a random number on [0,1) with 53-bit resolution */
+/** Generates a random number on [0,1) with 53-bit resolution */
 export function random(): number {
 	initRandom();
 	return _random!.nextNumber53();
 }
 
 /**
- * generates an int32 pseudo random number, faster than random()
- * @param range - an optional [from, to] range, if not specified the result will be in range [0,0xffffffff]
- *  from and to are inclusive in the range
- * @return {number}
+ * Generates an int32 pseudo random number, faster than random()
+ * @param range - An optional [from, to] range, if not specified the result will be in range [0,0xffffffff]
+ * from and to are inclusive in the range
  */
 export function randomInt(range?: [number, number]): number {
 	if (range != undefined && range[1] - range[0] < 0) {
@@ -109,10 +108,10 @@ export function randomInt(range?: [number, number]): number {
 
 /**
  * Limits value to interval [min, max].
- * @param min - lower bound of interval
- * @param par - value to limit to interval
- * @param max - upper bound of interval
- * @return par limited to interval [min, max]
+ * @param vmin - Lower bound of interval
+ * @param par - Value to limit to interval
+ * @param vmax - Upper bound of interval
+ * @returns par limited to interval [min, max]
  */
 export function bound(vmin: number, par: number, vmax: number): number {
 	return min(max(vmin, par), vmax);
@@ -139,8 +138,8 @@ export function roundTowards(val: number, dest: number, spacing: number) {
  * Rounds value upwards.
  * The function provides a helper to implement hysteresis for certain functions.
  * Rounds the suffixes in [0.5 - spacing, 1] upwards
- * @param val - value to round
- * @param spacing - tolerance for rounding up
+ * @param val - Value to round
+ * @param spacing - Tolerance for rounding up
  */
 export function roundUpwards(val: number, spacing: number): number {
 	if (val + spacing + 0.5 >= Math.ceil(val)) {
@@ -153,9 +152,9 @@ export function roundUpwards(val: number, spacing: number): number {
 /**
  * Round value to idp digits
  * @example round(1.23, 1) -> 1.2
- * @param val - number
- * @param digits - digits to keep after decimal dot
- * @return rounded value
+ * @param val - Number
+ * @param digits - Digits to keep after decimal dot
+ * @returns The rounded value
  */
 export function round(val: number, digits: number = 0): number {
 	let fac = 10 ** digits;
@@ -182,7 +181,7 @@ function sgn(value: number): 1 | -1 {
 
 /**
  * Solves a*t^2 + b*t + c for t
- * @return smallest positive solution or largest
+ * @returns The smallest positive solution or largest
  */
 export function solveSq(a: number, b: number, c: number): [number, number?] | [] {
 	if (a === 0) {
@@ -217,7 +216,7 @@ export function solveSq(a: number, b: number, c: number): [number, number?] | []
 
 /**
  * Calculates" the signum of a number
- * @return 1 for postive number, -1 for negative number, 0 for 0
+ * @returns 1 for postive number, -1 for negative number, 0 for 0
  */
 export function sign(value: number): -1 | 0 | 1 {
 	if (value > 0) {

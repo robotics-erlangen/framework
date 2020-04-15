@@ -118,7 +118,7 @@ export class Trajectory {
 	 * The handler has to return a protobuf.robot.Spline, Vector, number (controllerInput, moveDest, moveTime).
 	 * @param handlerType - must be a subclass of Trajectory.Base
 	 * @param args - passed on to trajectory handler
-	 * @return move destination and time as returned by the trajectory handler
+	 * @returns move destination and time as returned by the trajectory handler
 	 */
 	update<T extends any[]>(handlerType: new (...a: any[]) => TrajH<T>, ...args: T): [Position, number] {
 		if (this._handler == undefined || !(this._handler instanceof handlerType) || !this._handler.canHandle(...args)) {

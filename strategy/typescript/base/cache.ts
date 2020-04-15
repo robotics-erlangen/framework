@@ -115,8 +115,8 @@ function makeCached <F extends Function>(f: F, keepForever: boolean): F {
 
 /**
  * Wraps a function call, the returned value is cached for this strategy run
- * @param f - function to wrap
- * @returns wrapped function
+ * @param f - The function to wrap
+ * @returns The wrapped function
  */
 export function forFrame <F extends Function>(f: F): F {
 	return makeCached(f, false);
@@ -124,8 +124,8 @@ export function forFrame <F extends Function>(f: F): F {
 
 /**
  * Wraps a function call, the returned value is cached until the strategy is reloaded
- * @param f - function to wrap
- * @return wrapped function
+ * @param f - The function to wrap
+ * @returns The wrapped function
  */
 export function forever <F extends Function>(f: F): F {
 	return makeCached(f, true);

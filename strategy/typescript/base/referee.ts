@@ -118,7 +118,7 @@ const nonGameStages: {[state: string]: boolean} = {
 
 /**
  * Check whether the stop rules apply
- * @return True if the current referee state is considered as stop
+ * @returns True if the current referee state is considered as stop
  */
 export function isStopState(state = World.RefereeState): boolean {
 	return stopStates[state];
@@ -126,7 +126,7 @@ export function isStopState(state = World.RefereeState): boolean {
 
 /**
  * Check whether the robot has to drive a maximum of 1.5 m/s (slow)
- * @return True if all robots have to drive slowly (< 1.5 m/s)
+ * @returns True if all robots have to drive slowly (< 1.5 m/s)
  */
 export function isSlowDriveState(state = World.RefereeState): boolean {
 	return slowDriveStates[state];
@@ -134,7 +134,7 @@ export function isSlowDriveState(state = World.RefereeState): boolean {
 
 /**
  * Check whether we have a freekick
- * @return True if the current referee state is a freekick for us
+ * @returns True if the current referee state is a freekick for us
  */
 export function isFriendlyFreeKickState(state = World.RefereeState): boolean {
 	return friendlyFreeKickStates[state];
@@ -142,7 +142,7 @@ export function isFriendlyFreeKickState(state = World.RefereeState): boolean {
 
 /**
  * Check whether the opponent has a freekick
- * @return true if the current referee state is an freekick for the opponent
+ * @returns true if the current referee state is an freekick for the opponent
  */
 export function isOpponentFreeKickState(state = World.RefereeState): boolean {
 	return opponentFreeKickStates[state];
@@ -150,7 +150,7 @@ export function isOpponentFreeKickState(state = World.RefereeState): boolean {
 
 /**
  * Check whether this is a friendly kickoff
- * @return true if the current referee state is a friendly kickoff
+ * @returns true if the current referee state is a friendly kickoff
  */
 export function isFriendlyKickoffState(state = World.RefereeState): boolean {
 	return friendlyKickoffStates[state];
@@ -158,7 +158,7 @@ export function isFriendlyKickoffState(state = World.RefereeState): boolean {
 
 /**
  * Check whether this is an opponent kickoff
- * @return true if the current referee state is an opponent kickoff
+ * @returns true if the current referee state is an opponent kickoff
  */
 export function isOpponentKickoffState(state = World.RefereeState): boolean {
 	return opponentKickoffStates[state];
@@ -166,7 +166,7 @@ export function isOpponentKickoffState(state = World.RefereeState): boolean {
 
 /**
  * Check whether this is a kickoff
- * @return True if the current referee state is a kickoff
+ * @returns True if the current referee state is a kickoff
  */
 export function isKickoffState(state = World.RefereeState): boolean {
 	return isFriendlyKickoffState(state) || isOpponentKickoffState(state);
@@ -174,7 +174,7 @@ export function isKickoffState(state = World.RefereeState): boolean {
 
 /**
  * Check whether the opponent has a penalty
- * @return True if the opponent has a penalty
+ * @returns True if the opponent has a penalty
  */
 export function isOpponentPenaltyState(state = World.RefereeState): boolean {
 	return opponentPenaltyStates[state];
@@ -199,7 +199,7 @@ let cornerDist = 0.7; // some tolerance, rules say 10cm
 
 /**
  * Check whether there is a freekick in the opponent corner
- * @return True if a corner kick in the opponents corner
+ * @returns True if a corner kick in the opponents corner
  */
 export function isOffensiveCornerKick(): boolean {
 	let ballPos = World.Ball.pos;
@@ -212,7 +212,7 @@ export function isOffensiveCornerKick(): boolean {
 
 /**
  * Check whether there is a freekick in our corner
- * @return True if a corner kick in our corner
+ * @returns True if a corner kick in our corner
  */
 export function isDefensiveCornerKick(): boolean {
 	let ballPos = World.Ball.pos;

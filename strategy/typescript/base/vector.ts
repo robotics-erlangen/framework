@@ -71,7 +71,7 @@ export class Vector {
 
 	/**
 	 * Checks for invalid vector
-	 * @return True if a coordinate is NaN
+	 * @returns True if a coordinate is NaN
 	 */
 	isNan(): boolean {
 		return isNaN(this.x) || isNaN(this.y);
@@ -99,7 +99,7 @@ export class Vector {
 	 * Normalizes current vector.
 	 * A normalized vector has the length 1.
 	 * Null vector won't be modified
-	 * @return reference to this
+	 * @returns reference to this
 	 */
 	normalize(): Vector {
 		let x = this.x;
@@ -116,7 +116,7 @@ export class Vector {
 	/**
 	 * Change length of current vector to given value
 	 * @param len - New length of current vector
-	 * @return reference to this
+	 * @returns reference to this
 	 */
 	setLength(len: number): Vector {
 		if (len === 0) {
@@ -138,7 +138,7 @@ export class Vector {
 	/**
 	 * Scale the current vectors length
 	 * @param scale - factor to scale vector length with
-	 * @return reference to this
+	 * @returns reference to this
 	 */
 	scaleLength(scale: number) {
 		this.x *= scale;
@@ -173,7 +173,7 @@ export class Vector {
 
 	/**
 	 * Vector direction in radians
-	 * @return angle in interval [-pi, +pi]
+	 * @returns angle in interval [-pi, +pi]
 	 */
 	angle(): number {
 		return Math.atan2(this.y, this.x);
@@ -181,7 +181,7 @@ export class Vector {
 
 	/**
 	 * Angle from current to other vector
-	 * @return angle in interval [-pi, +pi]
+	 * @returns angle in interval [-pi, +pi]
 	 */
 	angleDiff(other: Vector): number {
 		if (this.lengthSq() === 0 || other.lengthSq() === 0) {
@@ -192,7 +192,7 @@ export class Vector {
 
 	/**
 	 * Absolute angle between current and other vector
-	 * @return absolute angle in interval [0, +pi]
+	 * @returns absolute angle in interval [0, +pi]
 	 */
 	absoluteAngleDiff(other: Vector): number {
 		let thisLength = this.lengthSq();
@@ -233,8 +233,8 @@ export class Vector {
 	 * Distance as seen from line when linePoint1 is on the left and linePoint2 on the right
 	 * @param linePoint1 - point of line
 	 * @param linePoint2 - point of line
-	 * @return projected point
-	 * @return (signed) distance to line
+	 * @returns projected point
+	 * @returns (signed) distance to line
 	 */
 	orthogonalProjection(linePoint1: Vector, linePoint2: Vector): [Vector, number] {
 		let rv = linePoint2 - linePoint1;
@@ -254,7 +254,7 @@ export class Vector {
 	 * @see orthogonalProjection
 	 * @param linePoint1 - point of line
 	 * @param linePoint2 - point of line
-	 * @return distance to line
+	 * @returns distance to line
 	 */
 	orthogonalDistance(linePoint1: Vector, linePoint2: Vector): number {
 		let [_, dist] = this.orthogonalProjection(linePoint1, linePoint2);
@@ -352,7 +352,7 @@ export class Vector {
 	 * Creates a random point around mean with a normal distribution
 	 * @param sigma - the sigma of the distribution
 	 * @param mean - the middle point of the distribution
-	 * @return the random point
+	 * @returns the random point
 	 */
 	static random(sigma: number, mean: Vector = new Vector(0, 0)): Vector {
 		let u: number, v: number, s: number;
@@ -373,7 +373,7 @@ export class Vector {
 	/**
 	 * Check whether a given value is a vector
 	 * @param data - The value to test
-	 * @return True, if data is a vector
+	 * @returns True, if data is a vector
 	 */
 	static isVector(data: any): boolean {
 		return typeof(data) === "object" && data.constructor.name === "Vector";

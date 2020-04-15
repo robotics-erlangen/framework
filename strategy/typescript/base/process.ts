@@ -31,7 +31,7 @@ export interface Process {
 	/**
 	 * Tells whether the process is finished.
 	 * Is called after each call to run
-	 * @return Process is removed if true
+	 * @returns Process is removed if true
 	 */
 	isFinished(): boolean;
 }

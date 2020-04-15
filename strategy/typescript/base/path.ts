@@ -78,64 +78,64 @@ interface PathObjectCommon {
 	/**
 	 * Sets field boundaries.
 	 * The two points span up a rectangle whose borders are used as field boundaries. The boundaries must be specified in global coordinates.
-	 * @param x1 x coordinate bottom left
-	 * @param y1 y coordinate bottom left
-	 * @param x2 x coordinate top left
-	 * @param y2 y coordinate top left
+	 * @param x1 - x coordinate bottom left
+	 * @param y1 - y coordinate bottom left
+	 * @param x2 - x coordinate top left
+	 * @param y2 - y coordinate top left
 	 */
 	setBoundary(x1: number, y1: number, x2: number, y2: number): void;
 	/**
 	 * Sets robot radius for obstacle checking
-	 * @param radius minimum required corridor size
+	 * @param radius - minimum required corridor size
 	 */
 	setRadius(radius: number): void;
 	/**
 	 * Adds a circle as an obstacle.
 	 * The circle MUST be passed in strategy coordinates!
-	 * @param x x coordinate of circle center
-	 * @param y y coordinate of circle center
-	 * @param radius circle radius
-	 * @param name name of the obstacle
-	 * @param priority priority of the obstacle
+	 * @param x - x coordinate of circle center
+	 * @param y - y coordinate of circle center
+	 * @param radius - circle radius
+	 * @param name - name of the obstacle
+	 * @param priority - priority of the obstacle
 	 */
 	addCircle(x: number, y: number, radius: number, name: string | undefined, priority: number): void;
 	/**
 	 * Adds a line as an obstacle.
 	 * The line MUST be passed in strategy coordinates!
-	 * @param start_x x coordinate of line start point
-	 * @param start_y y coordinate of line start point
-	 * @param end_x x coordinate of line end point
-	 * @param end_y y coordinate of line end point
-	 * @param name obstacle name
-	 * @param radius line width and start/end cap radius
-	 * @param priority priority of the obstacle
+	 * @param start_x - x coordinate of line start point
+	 * @param start_y - y coordinate of line start point
+	 * @param end_x - x coordinate of line end point
+	 * @param end_y - y coordinate of line end point
+	 * @param name - obstacle name
+	 * @param radius - line width and start/end cap radius
+	 * @param priority - priority of the obstacle
 	 */
 	addLine(start_x: number, start_y: number, end_x: number, end_y: number,
 		radius: number, name: string | undefined, priority: number): void;
 	/**
 	 * Adds a rectangle as an obstacle.
 	 * The rectangle MUST be passed in strategy coordinates!
-	 * @param start_x x coordinate of bottom left corner
-	 * @param start_y y coordinate of bottom left corner
-	 * @param end_x x coordinate of upper right corner
-	 * @param end_y y coordinate of upper right corner
-	 * @param name name of the obstacle
-	 * @param priority obstacle priority
+	 * @param start_x - x coordinate of bottom left corner
+	 * @param start_y - y coordinate of bottom left corner
+	 * @param end_x - x coordinate of upper right corner
+	 * @param end_y - y coordinate of upper right corner
+	 * @param name - name of the obstacle
+	 * @param priority - obstacle priority
 	 */
 	addRect(start_x: number, start_y: number, end_x: number, end_y: number,
 		name: string | undefined, priority: number): void;
 	/**
 	 * Adds a triangle as an obstacle.
 	 * The triangle MUST be passed in strategy coordinates!
-	 * @param x1 x coordinate of the first point
-	 * @param y1 y coordinate of the first point
-	 * @param x2 x coordinate of the second point
-	 * @param y2 y coordinate of the second point
-	 * @param x3 x coordinate of the third point
-	 * @param y3 y coordinate of the third point
-	 * @param lineWidth extra distance
-	 * @param name name of the obstacle
-	 * @param priority obstacle priority
+	 * @param x1 - x coordinate of the first point
+	 * @param y1 - y coordinate of the first point
+	 * @param x2 - x coordinate of the second point
+	 * @param y2 - y coordinate of the second point
+	 * @param x3 - x coordinate of the third point
+	 * @param y3 - y coordinate of the third point
+	 * @param lineWidth - extra distance
+	 * @param name - name of the obstacle
+	 * @param priority - obstacle priority
 	 */
 	addTriangle(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number,
 		lineWidth: number, name: string | undefined, priority: number): void;
@@ -147,32 +147,32 @@ interface PathObjectCommon {
 interface PathObjectRRT extends PathObjectCommon {
 	/**
 	 * Set probabilities. Sum should be less or equal to 1
-	 * @param p_dest probability to extend towards destination
-	 * @param p_waypoints probability to extend towards a previously generated waypoint
+	 * @param p_dest - probability to extend towards destination
+	 * @param p_waypoints - probability to extend towards a previously generated waypoint
 	 */
 	setProbabilities(p_dest: number, p_waypoints: number): void;
 	/**
 	 * Add a new target for seeding the RRT search tree.
 	 * Seeding is done by rasterizing a path from rrt start to the given point
-	 * @param x x coordinate of seed point
-	 * @param y y coordinate of seed point
+	 * @param x - x coordinate of seed point
+	 * @param y - y coordinate of seed point
 	 */
 	addSeedTarget(x: number, y: number): void;
 	/**
 	 * Tests a given path for collisions with any obstacle.
 	 * The spline is based on the global coordinate system!
-	 * @param path minimum required corridor size
-	 * @param radius radius
+	 * @param path - minimum required corridor size
+	 * @param radius - radius
 	 * @returns true if no collision is detected
 	 */
 	test(path: pb.robot.Spline, radius: number): boolean;
 	/**
 	 * Generates a new path using RRT.
 	 * Accounts for obstacles. The returned waypoints include the start point. This functions requires and returns global coordinates!
-	 * @param start_x x coordinate of start point
-	 * @param start_y y coordinate of start point
-	 * @param end_x x coordinate of end point
-	 * @param end_y y coordinate of end point
+	 * @param start_x - x coordinate of start point
+	 * @param start_y - y coordinate of start point
+	 * @param end_x - x coordinate of end point
+	 * @param end_y - y coordinate of end point
 	 * @returns [p_x, p_y, left, right][] - waypoints and corridor widths for the way to a waypoint
 	 */
 	getPath(start_x: number, start_y: number, end_x: number, end_y: number): [number, number, number, number][];

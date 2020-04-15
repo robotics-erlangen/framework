@@ -177,8 +177,10 @@ export class Ball {
 		}
 	}
 
-	/// Checks whether the ball position is valid
-	// @return boolean - True if ball is visible and position and speed are not NaN
+	/**
+	 * Checks whether the ball position is valid
+	 * @returns True if ball is visible and position and speed are not NaN
+	 */
 	isPositionValid() {
 		if (!this._isVisible) {
 			return false;

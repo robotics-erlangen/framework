@@ -124,8 +124,7 @@ export class Robot {
 
 	/**
 	 * Creates a new robot object.
-	 * @param data - data from amun.getTeam or robot id for opponents
-	 * @param isFriendly - true if own robot
+	 * @param id - The robot's id
 	 */
 	constructor(id: number) {
 		this.radius = 0.09; // set default radius if no specs are available
@@ -162,7 +161,7 @@ export class Robot {
 		return this._toString();
 	}
 
-	// reset robot commands and update data
+	/** Reset robot commands and update data */
 	_updateOpponent(state: pb.world.Robot | undefined, time: number) {
 		// check if robot is tracked
 		if (state == undefined) {
@@ -185,9 +184,9 @@ export class Robot {
 	/**
 	 * Check whether the robot has the given ball.
 	 * Checks whether the ball is in rectangle in front of the dribbler with hasBallDistance depth. Uses hysteresis for the left and right of that rectangle.
-	 * @param ball - must be World.Ball to make sure hysteresis will work
-	 * @param sideOffset - extens the hasBall sidewards
-	 * @returns has ball
+	 * @param ball - Must be World.Ball to make sure hysteresis will work
+	 * @param sideOffset - Extends the hasBall sidewards
+	 * @returns Has ball
 	 */
 	hasBall(ball: BallLike, sideOffset: number = 0, manualHasBallDistance: number = this.constants.hasBallDistance) {
 		let hasBallDistance = manualHasBallDistance;
@@ -502,7 +501,7 @@ export class FriendlyRobot extends Robot {
 	 * @param destSpeed - Ball speed at destination [m/s]
 	 * @param distance - Distance to chip [m]
 	 * @param ignoreLimit - Don't enforce rule given shoot speed limit, if true
-	 * @return Speed to shoot with [m/s]
+	 * @returns Speed to shoot with [m/s]
 	 */
 	calculateShootSpeed(destSpeed: number, distance: number, ignoreLimit: boolean = false): number {
 		let maxShot = ignoreLimit ? this.maxShotLinear : Math.min(this.maxShotLinear, Constants.maxBallSpeed);
