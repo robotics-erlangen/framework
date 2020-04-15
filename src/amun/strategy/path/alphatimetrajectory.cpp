@@ -729,30 +729,6 @@ SpeedProfile AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(Vector v0, Ve
 }
 
 // functions for position search
-static Vector minTimePos(Vector startSpeed, Vector endSpeed)
-{
-    const float EPSILON = 0.00001f;
-
-    // TODO: dont recalculate these vectors everywhere
-    Vector diff = endSpeed - startSpeed;
-    Vector absDiff(std::abs(diff.x), std::abs(diff.y));
-
-    if (absDiff.x == 0.0f && absDiff.y == 0.0f) {
-        return Vector(0, 0);
-    }
-    // tx = absDiff.x / alpha
-    // ty = absDiff.y / sqrt(1 - alpha * alpha)
-    // => Solve tx =!= ty
-    float alpha = absDiff.x / std::sqrt(absDiff.x * absDiff.x + absDiff.y * absDiff.y);
-
-    // prevent floating points issues when for example absDiff.x = 1 and absDiff.y = 1e-15, then alpha will evaluate to exactly 1
-    // which causes -inf in the dist() calculation for the result
-    alpha = std::min(1.0f - EPSILON, std::max(EPSILON, alpha));
-
-    // TODO: this can be calculated more efficiently
-    return Vector(dist(startSpeed.x, endSpeed.x, alpha), dist(startSpeed.y, endSpeed.y, std::sqrt(1 - alpha * alpha)));
-}
-
 static Vector fastEndSpeedCenterTimePos(Vector startSpeed, Vector endSpeed, float time)
 {
     float endSpeedX = std::max(std::min(startSpeed.x, std::max(endSpeed.x, 0.0f)), std::min(endSpeed.x, 0.0f));
@@ -763,6 +739,28 @@ static Vector fastEndSpeedCenterTimePos(Vector startSpeed, Vector endSpeed, floa
 static Vector centerTimePos(Vector startSpeed, Vector endSpeed, float time)
 {
     return (startSpeed + endSpeed) * (0.5f * time);
+}
+
+Vector AlphaTimeTrajectory::minTimePos(Vector v0, Vector v1, float acc, float slowDownTime)
+{
+    float minTime = minTimeExactEndSpeed(v0, v1, acc);
+    if (slowDownTime == 0.0f) {
+        return (v0 + v1) * (minTime * 0.5f);
+    } else {
+        // construct speed profile for slowing down to zero
+        SpeedProfile profile;
+        profile.xProfile.counter = 2;
+        profile.xProfile.profile[0] = {v0.x, 0};
+        profile.xProfile.profile[1] = {v1.x, minTime};
+        profile.xProfile.acc = std::abs(v0.x - v1.x) / minTime;
+
+        profile.yProfile.counter = 2;
+        profile.yProfile.profile[0] = {v0.y, 0};
+        profile.yProfile.profile[1] = {v1.y, minTime};
+        profile.yProfile.acc = std::abs(v0.y - v1.y) / minTime;
+
+        return profile.calculateSlowDownPos(slowDownTime);
+    }
 }
 
 // normalize between [-pi, pi]
@@ -781,7 +779,7 @@ SpeedProfile AlphaTimeTrajectory::findTrajectoryFastEndSpeed(Vector v0, Vector v
     }
     SpeedProfile result;
     // TODO: custom minTimePos for fast endspeed mode
-    float minTimeDistance = position.distance(minTimePos(v0, v1));
+    float minTimeDistance = position.distance(minTimePos(v0, v1, acc, 0));
 
     // estimate rough time from distance
     // TODO: improve this estimate?
@@ -896,7 +894,8 @@ SpeedProfile AlphaTimeTrajectory::findTrajectoryExactEndSpeed(Vector v0, Vector 
             return result;
         }
     }
-    float minTimeDistance = position.distance(minTimePos(v0, v1));
+
+    float minTimeDistance = position.distance(minTimePos(v0, v1, acc, 0));
 
     // estimate rough time from distance
     // TODO: improve this estimate?
