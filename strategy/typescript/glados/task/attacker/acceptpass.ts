@@ -39,16 +39,34 @@ export class AcceptPass extends Task {
 		if (passInfoTable == undefined) {
 			throw new Error("AcceptPass runs although there is no passInfo message");
 		}
+
+		let directPass: boolean = false;
+		let throwErrorAcceptPass: boolean = false;
+
 		for (let pass of passInfoTable) {
-			if (pass.target === this._robot || pass.target == undefined) {
+			if (pass.target === this._robot) {
+				passInfo = pass;
+				if (directPass) {
+					throwErrorAcceptPass = true;
+					directPass = false;
+					break;
+				} else {
+					directPass = true;
+				}
+			} else if (pass.target == undefined) {
 				if (this._passPos == undefined || this._passPos.distanceTo(pass.ballPos) < this._distance) {
 					if (passInfo != undefined) {
-						throw new Error("AcceptPass doesn't know which pass to accept");
+						throwErrorAcceptPass = true;
 					}
 					passInfo = pass;
 				}
 			}
 		}
+
+		if (!directPass && throwErrorAcceptPass) {
+			throw new Error("AcceptPass doesn't know which pass to accept");
+		}
+
 		if (passInfo == undefined) {
 			throw new Error("AcceptPass runs despite not being a target");
 		}
