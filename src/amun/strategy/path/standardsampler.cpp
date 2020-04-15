@@ -27,7 +27,7 @@
 StandardSampler::StandardSampler(RNG *rng, const WorldInformation &world, PathDebug &debug, bool usePrecomputation) :
     TrajectorySampler(rng, world, debug)
 {
-    if (false) {
+    if (usePrecomputation) {
         // load precomputed points
         ProtobufFileReader reader;
         reader.open(QString(ERFORCE_DATADIR) + "precomputation/standardsampler.prec", "KHONSU PRECOMPUTATION");
