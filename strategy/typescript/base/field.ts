@@ -33,10 +33,10 @@ import * as World from "base/world";
 let G: Readonly<World.GeometryType> = World.Geometry;
 
 /**
- * returns the nearest position inside the field (extended by boundaryWidth)
- * @param pos - the position to limit
- * @param boundaryWidth - how much the field should be extended beyond the borders
- * @returns limited Vector
+ * Returns the nearest position inside the field (extended by boundaryWidth)
+ * @param pos - The position to limit
+ * @param boundaryWidth - How much the field should be extended beyond the borders
+ * @returns The limited Vector
  */
 export function limitToField(pos: Readonly<Position>, boundaryWidth: number = 0) {
 
@@ -109,9 +109,9 @@ function limitToAllowedField_2018(pos: Readonly<Position>, extraLimit: number = 
 
 /**
  * Check if pos is inside the field (extended by boundaryWidth)
- * @param pos - the position to limit
- * @param boundaryWidth - how much the field should be extended beyond the borders
- * @return is in field
+ * @param pos - The position to limit
+ * @param boundaryWidth - How much the field should be extended beyond the borders
+ * @returns Is in field
  */
 export function isInField(pos: Readonly<Position>, boundaryWidth: number = 0): boolean {
 	let allowedHeight = G.FieldHeightHalf + boundaryWidth; // limit height to field
@@ -130,9 +130,9 @@ export function isInField(pos: Readonly<Position>, boundaryWidth: number = 0): b
 
 /**
  * Returns the minimum distance to the field borders (extended by boundaryWidth)
- * @param pos - the position to limit
- * @param boundaryWidth - how much the field should be extended beyond the borders
- * @return distance to field borders
+ * @param pos - The position to limit
+ * @param boundaryWidth - How much the field should be extended beyond the borders
+ * @returns The distance to field borders
  */
 export function distanceToFieldBorder(pos: Readonly<Position>, boundaryWidth: number = 0): number {
 	let allowedWidth = G.FieldWidthHalf + boundaryWidth;
@@ -217,10 +217,10 @@ function isInDefenseArea_2017(pos: Readonly<Position>, radius: number, friendly:
 export let distanceToDefenseAreaSq: (pos: Readonly<Position>, friendly: boolean) => number;
 export let distanceToDefenseArea: (pos: Readonly<Position>, radius: number, friendly: boolean) => number;
 /**
- * check if position is inside/touching the (friendly) defense area
- * @param pos - the position to check
+ * Check if position is inside/touching the (friendly) defense area
+ * @param pos - The position to check
  * @param radius - Radius of object to check
- * @param friendly - selection of Own/Opponent area
+ * @param friendly - Selection of Own/Opponent area
  */
 export let isInDefenseArea: (pos: Readonly<Position>, radius: number, friendly: boolean) => boolean;
 export let limitToAllowedField: (pos: Readonly<Position>, radius?: number) => Position;
@@ -238,10 +238,10 @@ if (World.RULEVERSION === "2018") {
 
 
 /**
- * check if pos is inside the field (extended by boundaryWidth)
- * @param pos - the position to check
- * @param boundaryWidth - how much the field should be extended beyond the borders
- * @return is in field
+ * Check if pos is inside the field (extended by boundaryWidth)
+ * @param pos - The position to check
+ * @param boundaryWidth - How much the field should be extended beyond the borders
+ * @returns Is in field
  */
 export function isInAllowedField(pos: Readonly<Position>, boundaryWidth: number): boolean {
 	return isInField(pos, boundaryWidth)  &&
@@ -253,7 +253,7 @@ export function isInAllowedField(pos: Readonly<Position>, boundaryWidth: number)
 
 /**
  * Returns true if the position is inside/touching the friendly defense area
- * @param pos - the position to check
+ * @param pos - The position to check
  * @param radius - Radius of object to check
  */
 export function isInFriendlyDefenseArea(pos: Readonly<Position>, radius: number): boolean {
@@ -262,7 +262,7 @@ export function isInFriendlyDefenseArea(pos: Readonly<Position>, radius: number)
 
 /**
  * Returns true if the position is inside/touching the opponent defense area
- * @param pos - the position to check
+ * @param pos - The position to check
  * @param radius - Radius of object to check
  */
 export function isInOpponentDefenseArea(pos: Readonly<Position>, radius: number): boolean {
@@ -271,7 +271,7 @@ export function isInOpponentDefenseArea(pos: Readonly<Position>, radius: number)
 
 /**
  * Calculates the distance (between robot hull and field line) to the friendly defense area
- * @param pos - the position to check
+ * @param pos - The position to check
  * @param radius - Radius of object to check
  */
 export function distanceToFriendlyDefenseArea(pos: Readonly<Position>, radius: number) {
@@ -280,9 +280,9 @@ export function distanceToFriendlyDefenseArea(pos: Readonly<Position>, radius: n
 
 /**
  * Calculates the distance (between robot hull and field line) to the opponent defense area
- * @param pos - the position to check
+ * @param pos - The position to check
  * @param radius - Radius of object to check
- * @return distance
+ * @returns Distance
  */
 export function distanceToOpponentDefenseArea(pos: Readonly<Position>, radius: number) {
 	return distanceToDefenseArea(pos, radius, false);
@@ -474,13 +474,13 @@ function intersectRayDefenseArea_2017(pos: Position, dir: RelativePosition, extr
  * the sectors are ordered as followes:
  * 2  3  4
  * 1     5
- * @param pos - starting point of the line
- * @param dir - the direction of the line
- * @param extraDistance - gets added to G.DefenseRadius
- * @param opp - whether the opponent or the friendly defense area is considered
- * @return the intersection position (May also be behind the goalline)
- * @return the length of the way from the very left of the defense area to the
- * @return sector in which the intersection lies, left to right
+ * @param pos - Starting point of the line
+ * @param dir - The direction of the line
+ * @param extraDistance - Gets added to G.DefenseRadius
+ * @param opp - Whether the opponent or the friendly defense area is considered
+ * @returns The intersection position (May also be behind the goalline)
+ * @returns The length of the way from the very left of the defense area to the
+ * @returns Sector in which the intersection lies, left to right
  */
 export let intersectRayDefenseArea: (pos: Position, dir: RelativePosition, extraDist: number, friendly: boolean, invertedPos?: boolean) => [Position | undefined, number, number?];
 export let intersectionsRayDefenseArea: (pos: Position, dir: RelativePosition, extraDist: number, friendly: boolean) => IntersectionsType[];
@@ -525,14 +525,14 @@ function cornerPointsBetweenWays2017() {
 }
 
 /**
- * return a list of all cornerpoints between the given ways
+ * Return a list of all cornerpoints between the given ways
  * note that the radius has to be the same as with which the ways were calculated
  * the resulting points are ordered in the same way as the in put ways
- * @param way1 - the first way, doesn't have to be the lower one
- * @param way2 - the second way
- * @param radius - the radius of the defense area to be considered
- * @param friendly - whether to use the friendly or the opponent defense area
- * @return list of all corner points between the two ways the resulting points are radius away from the defense area
+ * @param way1 - The first way, doesn't have to be the lower one
+ * @param way2 - The second way
+ * @param radius - The radius of the defense area to be considered
+ * @param friendly - Whether to use the friendly or the opponent defense area
+ * @returns A list of all corner points between the two ways the resulting points are radius away from the defense area
  */
 export let cornerPointsBetweenWays: (way1: number, way2: number, radius: number, friendly: boolean) => Position[];
 if (World.RULEVERSION === "2018") {
@@ -551,9 +551,9 @@ function maxWay2017(radius: number): number {
 }
 
 /**
- * return the maximum way that can be reached on the defense area with a given radius
- * @param radius - the radius for the defense area
- * @return the maximum way
+ * Return the maximum way that can be reached on the defense area with a given radius
+ * @param radius - The radius for the defense area
+ * @returns The maximum way
  */
 export let maxWay: (radius: number) => number;
 if (World.RULEVERSION === "2018") {
@@ -564,10 +564,10 @@ if (World.RULEVERSION === "2018") {
 
 /**
  * Return all line segments of the line segment pos to pos + dir * maxLength which are in the allowed field part
- * @param pos - starting point of the line
- * @param dir - the direction of the line
- * @param maxLength - length of the line segment, optional
- * @return contains n {pos1, pos2} tables representing the resulting line segments
+ * @param pos - Starting point of the line
+ * @param dir - The direction of the line
+ * @param maxLength - Length of the line segment, optional
+ * @returns Contains n {pos1, pos2} tables representing the resulting line segments
  */
 export function allowedLineSegments(pos: Position, dir: RelativePosition, maxLength: number = Infinity): [Position, Position][] {
 	let direction = dir.copy();
@@ -670,10 +670,10 @@ function defenseIntersectionByWay_2017(way: number, extraDistance: number = 0, f
 
 /**
  * Calculates the point on the (extended) defense area when given the way along its border
- * @param way - the way along the border
- * @param extraDistance - gets added to G.DefenseRadius
- * @param friendly - whether the opponent or the friendly defense area is considered
- * @return the position
+ * @param way - The way along the border
+ * @param extraDistance - Gets added to G.DefenseRadius
+ * @param friendly - Whether the opponent or the friendly defense area is considered
+ * @returns The position
  */
 export let defenseIntersectionByWay: (way: number, extraDistance: number, friendly: boolean) => Position | undefined;
 if (World.RULEVERSION === "2018") {
@@ -789,11 +789,11 @@ function intersectCircleDefenseArea_2018(pos: Position, radius: number, extraDis
 
 /**
  * Calculates all intersections (0 to 4) of a given circle with the (extended) defense area
- * @param pos - center point of the circle
- * @param radius - radius of the circle
- * @param extraDistance - gets added to G.DefenseRadius
- * @param friendly - whether the opponent or the friendly defense area is considered
- * @return a list of intersection points, not sorted
+ * @param pos - Center point of the circle
+ * @param radius - Radius of the circle
+ * @param extraDistance - Gets added to G.DefenseRadius
+ * @param friendly - Whether the opponent or the friendly defense area is considered
+ * @returns A list of intersection points, not sorted
  */
 export let intersectCircleDefenseArea: (pos: Position, radius: number, extraDistance: number, friendly: boolean) => Position[];
 if (World.RULEVERSION === "2018") {
@@ -804,9 +804,9 @@ if (World.RULEVERSION === "2018") {
 
 /**
  * Calculates the distance (between robot hull and field line) to the own goal line
- * @param pos - the position to check
+ * @param pos - The position to check
  * @param radius - Radius of object to check
- * @return distance
+ * @returns distance
  */
 export function distanceToFriendlyGoalLine(pos: Position, radius: number): number {
 	if (Math.abs(pos.x) < G.GoalWidth / 2) {
@@ -818,7 +818,7 @@ export function distanceToFriendlyGoalLine(pos: Position, radius: number): numbe
 
 /**
  * Check whether to position is in the teams own corner
- * @param pos - the position to check
+ * @param pos - The position to check
  * @param opp - Do the check from the opponents point of view
  */
 export function isInOwnCorner(pos: Position, opp: boolean): boolean {
@@ -830,9 +830,9 @@ export function isInOwnCorner(pos: Position, opp: boolean): boolean {
 
 /**
  * The position, where the half-line given by startPos and dir intersects the next field boundary
- * @param startPos - the initial point of the half-line
- * @param dir - the direction of the half-line
- * @param offset - additional offset to move field lines further outwards]
+ * @param startPos - The initial point of the half-line
+ * @param dir - The direction of the half-line
+ * @param offset - Additional offset to move field lines further outwards]
  */
 export function nextLineCut(startPos: Position, dir: RelativePosition, offset: number = 0): Position | undefined {
 	if (dir.x === 0 && dir.y === 0) {
@@ -860,11 +860,11 @@ export function nextLineCut(startPos: Position, dir: RelativePosition, offset: n
 
 /**
  * Calculates the next intersection with the field boundaries or the defense areas
- * @param startPos - the initial point of the half-line
- * @param dir - the direction of the half-line
- * @param extraDistance - the radius of the object (gets added to G.DefenseRadius)
- * @return minLineCut
- * @return the lambda for the line cut
+ * @param startPos - The initial point of the half-line
+ * @param dir - The direction of the half-line
+ * @param extraDistance - The radius of the object (gets added to G.DefenseRadius)
+ * @returns minLineCut
+ * @returns The lambda for the line cut
  */
 export function nextAllowedFieldLineCut(startPos: Position, dir: RelativePosition, extraDistance: number): [Position, number] | [] {
 	let normalizedDir = dir.copy().normalize();
@@ -903,8 +903,8 @@ export function nextAllowedFieldLineCut(startPos: Position, dir: RelativePositio
 
 /**
  * Checks wether a position lies inside the friendly goal
- * @param pos - the position to check
- * @return is in friendly goal
+ * @param pos - The position to check
+ * @returns Is in friendly goal
  */
 export function isInFriendlyGoal(pos: Position): boolean {
 	return geom.insideRect(
@@ -915,9 +915,9 @@ export function isInFriendlyGoal(pos: Position): boolean {
 }
 
 /**
- * Checks wether a position lies inside the opponent goal
- * @param pos - the position to check
- * @return is in friendly goal
+ * Checks whether a position lies inside the opponent goal
+ * @param pos - The position to check
+ * @returns is in friendly goal
  */
 export function isInOpponentGoal(pos: Position): boolean {
 	return geom.insideRect(

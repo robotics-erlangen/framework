@@ -9,11 +9,13 @@ import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
 
 
-/// Calculates the position to break the pass
-// @param robot FriendlyRobot - the robot that should break the pass
-// @return Position - position to break the pass (breakPos)
-// @return Speed - endspeed of the roboter (endSpeed)
-// @return number - time to wait for break the pass (waitingTime)
+/**
+ * Calculates the position to break the pass
+ * @param robot - The robot that should break the pass
+ * @returns Position to break the pass (breakPos)
+ * @returns Endspeed of the roboter (endSpeed)
+ * @returns Time to wait for break the pass (waitingTime)
+ */
 function calculateBreakPos(robot: FriendlyRobot): [Position, Speed, number] {
 
 	// ToDo: Unterscheidung zwischen stehenden Gegener und sich bewegenden

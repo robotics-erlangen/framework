@@ -16,15 +16,17 @@ import * as Rating from "glados/util/rating";
 
 let G = World.Geometry;
 
-/// returns a list of all non-free sectors
-// the non-free sectors are not merged and not sorted
-// the interval has to be oriented counter-clockwise
-// @param viewPos vector - usually Ball.pos
-// @param robotList list - all robots that may block the sight
-// @param startAngle number - start angle of the sector to scan
-// @param endAngle number - end angle of the sector to scan
-// @param insertRobots - set to true iff you want the robots included in its sector
-// @return occupiedSectors list - all unsorted, unmerged occupied sectors
+/**
+ * Returns a list of all non-free sectors.
+ * The non-free sectors are not merged and not sorted.
+ * The interval has to be oriented counter-clockwise.
+ * @param viewPos - Usually Ball.pos
+ * @param robotList - All robots that may block the sight
+ * @param startAngle - Start angle of the sector to scan
+ * @param endAngle - End angle of the sector to scan
+ * @param insertRobots - Set to true iff you want the robots included in its sector
+ * @returns occupiedSectors All unsorted, unmerged occupied sectors
+ */
 export function getOccupiedSectors<R extends {pos: Position, radius: number}>(viewPos: Position, robotList: R[],
 		startAngle: number, endAngle: number, insertRobots: boolean = false): Interval.Interval<R>[] {
 	if (endAngle < startAngle) { // normalize angles
@@ -77,11 +79,13 @@ export function getFreeSectors<R extends {pos: Position, radius: number}>(viewPo
 	return Interval.negate(occupiedSectors, startAngle, endAngle);
 }
 
-/// Returns a list of all free sectors
-// @param viewPos vector - position from which the free angles should be found
-// @param robotList list - all robot objects that should be considered
-// @param opp boolean - true for opponent goal, false for friendly goal
-// @return list - list of free sectors [startAngle, endAngle] ascending by start angle
+/**
+ * Returns a list of all free sectors
+ * @param viewPos - Position from which the free angles should be found
+ * @param robotList - All robot objects that should be considered
+ * @param opp - True for opponent goal, false for friendly goal
+ * @returns a List of free sectors [startAngle, endAngle] ascending by start angle
+ */
 export function freeSectors<R extends {pos: Position, radius: number}>(viewPos: Position, robotList: R[], opp: boolean): Interval.Interval<R>[] {
 	if ((opp ? 1 : -1) * viewPos.y > G.FieldHeightHalf) {
 		// log("viewPos is behind the goal.")
@@ -97,19 +101,23 @@ export function freeSectors<R extends {pos: Position, radius: number}>(viewPos: 
 	return unoccupiedSectors;
 }
 
-/// Returns the largest free sector and its width (angle difference)
-// @param viewPos vector - position from which the free angles should be found
-// @param robotList list - all robot objects that should be considered
-// @param opp boolean - true for opponent goal, false for friendly goal
-// @return largestFreeSector interval - the largest free sector
+/**
+ * Returns the largest free sector and its width (angle difference)
+ * @param viewPos - Position from which the free angles should be found
+ * @param robotList - All robot objects that should be considered
+ * @param opp - True for opponent goal, false for friendly goal
+ * @returns The largest free sector
+ */
 export function largestFreeSector<R extends {pos: Position, radius: number}>(viewPos: Position, robotList: R[], opp: boolean): Interval.Interval<R> | undefined {
 	let unoccupiedSectors = freeSectors(viewPos, robotList, opp); // get list of all unoccupied sectors
 	return Interval.getLargest(unoccupiedSectors);
 }
 
-/// Returns a list of all sectors not covered by any robot from robotList (not limited to the goal)
-// @param viewPos vector - position from which the free angles should be found
-// @param robotList list - all robot objects that should be considered
+/**
+ * Returns a list of all sectors not covered by any robot from robotList (not limited to the goal)
+ * @param viewPos - Position from which the free angles should be found
+ * @param robotList - All robot objects that should be considered
+ */
 export function allFreeSectors<R extends {pos: Position, radius: number}>(viewPos: Position, robotList: R[]): Interval.Interval<R>[] {
 	let occupiedSectors = getOccupiedSectors(viewPos, robotList, 0, 2 * Math.PI);
 	// for i,sector in ipairs(occupiedSectors) do
@@ -251,13 +259,6 @@ function getInvisibleBallPrediction(): [Position | undefined, Speed | undefined,
 	return [];
 }
 
-/// Predicts the direction the ball will be shot into.
-// Checks for ball movement, opponents near the ball, tries to predict passes
-// @param allShots bool - whether or not to only count shots that can volley onto the goal and might hit the goal
-// @return pos Vector - origin of movement
-// @return dir Vector - ball movement direction and speed
-// @return isShot bool - if the ball is fast (and should be considered as a threat)
-// @return passReceivers list - list of all robots that could receive the pass
 let BEST_ROBOT_HYSTERESIS = 1.1;
 let lastBestRobotId: number | undefined = undefined;
 interface PassReceiver {
@@ -412,6 +413,16 @@ function _predictShot(allShots: boolean = false, includeInvisible: boolean = tru
 
 	return [pos, ballSpeed, isShot, passReceivers, isDribbling];
 }
+/**
+ * Predicts the direction the ball will be shot into.
+ * Checks for ball movement, opponents near the ball, tries to predict passes
+ * @param allShots - Whether or not to only count shots that can volley onto the goal and might hit the goal
+ * @param includeInvisible
+ * @returns pos Origin of movement
+ * @returns dir Ball movement direction and speed
+ * @returns isShot If the ball is fast (and should be considered as a threat)
+ * @returns passReceivers List of all robots that could receive the pass
+ */
 export let predictShot = Cache.forFrame(_predictShot);
 
 export function _update() {

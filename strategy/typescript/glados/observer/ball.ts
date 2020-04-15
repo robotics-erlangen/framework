@@ -14,10 +14,6 @@ import * as World from "base/world";
 import * as Physics from "glados/observer/physics";
 import * as ObserverRobot from "glados/observer/robot";
 
-/// Returns the first robot that can reach the ball, along with the estimated time
-// @param robotlist Robot[] - all robots that should be considered (e.g. World.FriendlyRobots)
-// @return Robot - the fastest robot
-// @return number - the estimated time (the robot will look towards its opponent goal)
 function _firstRobotAtBall(robotlist: Robot[]): [Robot | undefined, RelTime] {
 	let minTime: RelTime = Infinity;
 	let minRobot: Robot | undefined = undefined;
@@ -30,6 +26,12 @@ function _firstRobotAtBall(robotlist: Robot[]): [Robot | undefined, RelTime] {
 	}
 	return [minRobot, minTime];
 }
+/**
+ * Returns the first robot that can reach the ball, along with the estimated time
+ * @param robotlist - All robots that should be considered (e.g. World.FriendlyRobots)
+ * @returns The fastest robot
+ * @returns The estimated time (the robot will look towards its opponent goal)
+ */
 export let firstRobotAtBall: ((robotlist: Robot[]) => [Robot | undefined, RelTime]) = Cache.forFrame(_firstRobotAtBall);
 
 function _opponentBallDribbler(): Robot | undefined {
@@ -56,11 +58,13 @@ function _opponentBallDribbler(): Robot | undefined {
 }
 export let opponentBallDribbler: (() => Robot | undefined) = Cache.forFrame(_opponentBallDribbler);
 
-/// Returns wether or not the ball is heading for a goal
-// WARNING: this function has no hysteresis and must be used with care
-// @param ball - a ball like structure
-// @param ownGoal - wether to use the friendly goal or the opponent goal
-// @return bool - wether or not the ball is heading for the goal
+/**
+ * Returns wether or not the ball is heading for a goal
+ * WARNING: this function has no hysteresis and must be used with care
+ * @param ball - A ball like structure
+ * @param ownGoal - Whether to use the friendly goal or the opponent goal
+ * @returns Whether or not the ball is heading for the goal
+ */
 export function ballHeadingForGoal(ball: Ball, ownGoal: boolean): boolean {
 	let friendlyFactor = ownGoal ? 1 : -1;
 	let goalCenter = ownGoal ? World.Geometry.FriendlyGoal : World.Geometry.OpponentGoal;
@@ -70,11 +74,13 @@ export function ballHeadingForGoal(ball: Ball, ownGoal: boolean): boolean {
 
 
 
-/// Calculates the effective distance between ball and dribbler
-// find an ellipsis with the left and right dribbler edge points as focal points
-// dist is the length of the semi-minor axis
-// @param robot robot - the robot to calculate
-// @param ballPos vector - position of the ball
+/**
+ * Calculates the effective distance between ball and dribbler
+ * find an ellipsis with the left and right dribbler edge points as focal points
+ * dist is the length of the semi-minor axis
+ * @param robot - The robot to calculate
+ * @param ballPos - Position of the ball
+ */
 export function ellipticDistance(robot: Robot, ballPos: Position): number {
 	let dribblerPos = robot.pos + Vector.fromAngle(robot.dir).scaleLength(robot.shootRadius);
 	let dribblerWidthHalf = Vector.fromAngle(robot.dir - Math.PI / 2).scaleLength(robot.dribblerWidth / 2);
@@ -83,10 +89,12 @@ export function ellipticDistance(robot: Robot, ballPos: Position): number {
 	return 0.5 * Math.sqrt((leftDribblerEdge.distanceTo(ballPos) + rightDribblerEdge.distanceTo(ballPos)) ** 2 - robot.dribblerWidth * robot.dribblerWidth);
 }
 
-/// Returns the ball owner or null if no one is nearer than Settings.ballOwnDistance(hysteresis)
-// @param robotlist robot[] - the robots which are qualified for being a ball owner (default: World.Robots)
-// @param lastBallOwner - the robot that was the ball owner before, used for hysteresis
-// @return ballOwner robot - the robot that can be seen as ball owner, or null, if no robot is near the ball
+/**
+ * Returns the ball owner or null if no one is nearer than Settings.ballOwnDistance(hysteresis)
+ * @param robotlist - robot[] - the robots which are qualified for being a ball owner (default: World.Robots)
+ * @param lastBallOwner - the robot that was the ball owner before, used for hysteresis
+ * @returns ballOwner robot - the robot that can be seen as ball owner, or null, if no robot is near the ball
+ */
 const BALL_OWN_HYSTERESIS = 0.03;
 let ballOwnerEllipticCache: Map<string | Robot, number> = new Map<string | Robot, number>();
 function getBallOwner(robotlist: Robot[], lastBallOwner?: Robot) {
@@ -499,22 +507,22 @@ export function isStanding() {
 	return lastIsStanding;
 }
 
-// Threshold for how long a shot is allowed to be past for the ball to be considered as recently shot.
+/** Threshold for how long a shot is allowed to be past for the ball to be considered as recently shot. */
 const shootDeltaTime = 0.20;
 
-// Threshold for the mean speed
+/** Threshold for the mean speed */
 const speedMeanThreshold = 0.2;
 
-// Threshold for the local speed
+/** Threshold for the local speed */
 const speedThreshold = 0.50;
 
-// Threshold for standard deviation of positions
+/** Threshold for standard deviation of positions */
 const deviationThreshold = 0.020;
 
-// How many positions to compare to each other
+/** How many positions to compare to each other */
 const numberOfMeasurements = 6;
 
-// Used to index the last <numberOfMeasurements> measured positions and speeds
+/** Used to index the last <numberOfMeasurements> measured positions and speeds */
 let lastIndex = 0;
 let standardVector = new Vector(0, 0);
 let lastBallPositions : Vector[] = new Array(numberOfMeasurements);

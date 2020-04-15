@@ -97,8 +97,8 @@ export function getInitialExtraParams(): object {
  * Sets value for the given name.
  * if (value is undefined store it as text
  * For the special value undefined the value is set for the current key
- * @param name Name of the value
- * @param value Value to set
+ * @param name - Name of the value
+ * @param value - Value to set
  */
 export function set(name: string | undefined, value: any, visited: Map<object, string> = new Map(), tableCounter?: number[]) {
 	// visited and tableCounter must be compatible with getInitialExtraParams

@@ -57,8 +57,8 @@ function intersectCircleCircle_OLD(c1: Position, r1: number, c2: Position, r2: n
  * @param r1 - Radius of first circle
  * @param c2 - Center of second circle
  * @param r2 - Radius of second circle
- * @return first intersection if exists (the one with higher x-value)
- * @return second intersection if exists (the one with lower x-value)
+ * @returns first intersection if exists (the one with higher x-value)
+ * @returns second intersection if exists (the one with lower x-value)
  */
 export let intersectCircleCircle = intersectCircleCircleCos;
 
@@ -95,10 +95,10 @@ export function boundRect(p1: Position, pos: Position, p2: Position): Position {
  * @param dir - Direction of the line
  * @param center - Center of circle
  * @param radius - Radius of circle
- * @return first intersection if exists
- * @return second intersection if exists
- * @return first lambda
- * @return second lambda, which is always less then first lambda
+ * @returns first intersection if exists
+ * @returns second intersection if exists
+ * @returns first lambda
+ * @returns second lambda, which is always less then first lambda
  */
 export function intersectLineCircle(offset: Position, dir: RelativePosition, center: Position, radius: number):
 		[] | [Position, undefined, number, undefined] | [Position, Position, number, number] {
@@ -137,12 +137,12 @@ export function intersectLineCircle(offset: Position, dir: RelativePosition, cen
  * @param offsetCorridor - position on the line in the middle of the corridor
  * @param directionCorridor - direction of the corridor
  * @param widthHalf - half the width of the corridor
- * @return first intersection if exists
- * @return second intersection if exists
- * @return lambda1, intersection1 = offset + lambda1*direction (lambda of first point on the line)
- * @return lambda2, intersection2 = offset + lambda2*direction (lambda of second point on the line)
- * @return lambda3, intersection1 = offsetCorridor + lambda3*directionCorridor (lambda in the corridor)
- * @return lambda4, intersection2 = offsetCorridor + lambda4*directionCorridor (lambda in the corridor)
+ * @returns first intersection if exists
+ * @returns second intersection if exists
+ * @returns lambda1, intersection1 = offset + lambda1*direction (lambda of first point on the line)
+ * @returns lambda2, intersection2 = offset + lambda2*direction (lambda of second point on the line)
+ * @returns lambda3, intersection1 = offsetCorridor + lambda3*directionCorridor (lambda in the corridor)
+ * @returns lambda4, intersection2 = offsetCorridor + lambda4*directionCorridor (lambda in the corridor)
  * lambda1, lambda2, lambda3, lambda4 can be undefined if no intersection exists or +/-Infinity if the line is inside the corridor
  * the intersection with their lambdas are sorted so that lambda1 <= lambda2
  */
@@ -180,8 +180,8 @@ export function intersectLineCorridor(offset : Position, direction: RelativePosi
  * @param point - Vector - Point for which the tangents are calculated
  * @param centerpoint - Center of circle
  * @param radius - Radius of circle
- * @return first tangent point on the circle if exists
- * @return second tangent point on the circle if exists
+ * @returns first tangent point on the circle if exists
+ * @returns second tangent point on the circle if exists
  */
 export function getTangentsToCircle(point: Position, centerpoint: Position, radius: number): [Position?, Position?] {
 	return intersectCircleCircle(centerpoint, radius, centerpoint + (point - centerpoint).scaleLength(0.5),
@@ -195,9 +195,9 @@ export function getTangentsToCircle(point: Position, centerpoint: Position, radi
  * @param radius1 - Radius of circle1
  * @param centerpoint2 - Centerpoint of circle2
  * @param radius2 - Radius of circle2
- * @return The point, where the two tangents intersect
- * @return Point, where the first tangent touches circle1
- * @return Point, where the second tangent touches circle1
+ * @returns The point, where the two tangents intersect
+ * @returns Point, where the first tangent touches circle1
+ * @returns Point, where the second tangent touches circle1
  */
 export function getInnerTangentsToCircles(centerpoint1: Position, radius1: number, centerpoint2: Position, radius2: number):
 		[Vector?, Vector?, Vector?] {
@@ -219,9 +219,9 @@ export function getInnerTangentsToCircles(centerpoint1: Position, radius1: numbe
  * @param dir1 - Direction of line 1
  * @param pos2 - Start point of line 2
  * @param dir2 - Direction of line 2
- * @return intersection
- * @return lambda1, intersection = pos1 + lambda1*dir1
- * @return lambda2, intersection = pos2 + lambda2*dir2
+ * @returns intersection
+ * @returns lambda1, intersection = pos1 + lambda1*dir1
+ * @returns lambda2, intersection = pos2 + lambda2*dir2
  */
 export function intersectLineLine(pos1: Position, dir1: RelativePosition, pos2: Position, dir2: RelativePosition):
 		[Vector, number, number] | [] {
@@ -258,7 +258,7 @@ export function intersectLinesByPoints(p1: Position, p2: Position, q1: Position,
  * @param p1 - first corner of triangle
  * @param p2 - second corner of triangle
  * @param p3 - third corner of triangle
- * @return area of triangle
+ * @returns area of triangle
  */
 export function calcTriangleArea(p1: Position, p2: Position, p3: Position): number {
 	let p21 = p2 - p1;
@@ -272,7 +272,7 @@ export function calcTriangleArea(p1: Position, p2: Position, p3: Position): numb
  * @param p1 - first corner of triangle
  * @param p2 - second corner of triangle
  * @param p3 - third corner of triangle
- * @return -1 for clockwise, 1 for counterclockwise, 0 for all points in a line
+ * @returns -1 for clockwise, 1 for counterclockwise, 0 for all points in a line
  */
 export function checkTriangleOrientation(p1: Position, p2: Position, p3: Position): -1 | 0 | 1 {
 	let v21 = p2 - p1;
@@ -287,7 +287,7 @@ export function checkTriangleOrientation(p1: Position, p2: Position, p3: Positio
  * @param p2 - second corner of quadrangle
  * @param p3 - third corner of quadrangle
  * @param p4 - fourth corner of quadrangle
- * @return area of quadrangle
+ * @returns area of quadrangle
  */
 export function calcQuadrangleArea(p1: Position, p2: Position, p3: Position, p4: Position): number {
 	return calcTriangleArea(p1, p2, p3) + calcTriangleArea(p1, p3, p4);
@@ -296,7 +296,7 @@ export function calcQuadrangleArea(p1: Position, p2: Position, p3: Position, p4:
 /**
  * Calculates geometric center of points in array.
  * @param pointArray - points
- * @return geometric center of points
+ * @returns geometric center of points
  */
 export function center(pointArray: Position[]): Position {
 	let pos = new Vector(0, 0);
@@ -314,7 +314,7 @@ export function center(pointArray: Position[]): Position {
  * @param b - second corner of triangle
  * @param c - third corner of triangle
  * @param p - point to check
- * @return Is p in triangle
+ * @returns Is p in triangle
  */
 export function isInTriangle(a: Position, b: Position, c: Position, p: Position): boolean {
 	// convert to barycentric coordinates
@@ -341,7 +341,7 @@ export function isInTriangle(a: Position, b: Position, c: Position, p: Position)
 /**
  * Normalizes angle to value in interval [-pi, +pi].
  * @param angle - angle in radians
- * @return normalized angle
+ * @returns normalized angle
  */
 export function normalizeAngle(angle: number): number {
 	while (angle > Math.PI) {
@@ -356,7 +356,7 @@ export function normalizeAngle(angle: number): number {
 /**
  * Normalizes angle to value in interval [0, +2pi]
  * @param angle - angle in radians
- * @return normalized angle
+ * @returns normalized angle
  */
 export function normalizeAnglePositive(angle: number): number {
 	while (angle > 2 * Math.PI) {
@@ -374,7 +374,7 @@ export function normalizeAnglePositive(angle: number): number {
  * angle2 = angle1 + angleDiff (normalized)
  * @param angle1 - first angle in radians
  * @param angle2 - second angle in radians
- * @return angleDiff in radians
+ * @returns angleDiff in radians
  */
 export function getAngleDiff(angle1: number, angle2: number): number {
 	let diff = angle2 - angle1;
@@ -385,7 +385,7 @@ export function getAngleDiff(angle1: number, angle2: number): number {
  * Calculates the bisectrix of two angles
  * @param angle1 - fist angle in radians (expect normalized angle)
  * @param angle2 - second angle in radians (expect normalized angle)
- * @return bisectingAngle in radians (value is in interval [-pi, +pi])
+ * @returns bisectingAngle in radians (value is in interval [-pi, +pi])
  */
 export function bisectingAngle(angle1: number, angle2: number): number {
 	let bisectrix = (angle1 + angle2) / 2;
@@ -401,9 +401,9 @@ export function bisectingAngle(angle1: number, angle2: number): number {
  * @param point1 - first point on cirle
  * @param point2 - second point on cirle
  * @param theta - angle inside in radians
- * @return center of circle one
- * @return center of circle two
- * @return radius of circle
+ * @returns center of circle one
+ * @returns center of circle two
+ * @returns radius of circle
  */
 export function inscribedAngle(point1: Position, point2: Position, theta: number):
 		[Vector, Vector, number] {

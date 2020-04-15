@@ -188,7 +188,7 @@ export function _init() {
 /**
  * Update world state.
  * Has to be called once each frame
- * @return false if no vision data was received since strategy start
+ * @returns false if no vision data was received since strategy start
  */
 export function update() {
 	if (SelectedOptions == undefined) {

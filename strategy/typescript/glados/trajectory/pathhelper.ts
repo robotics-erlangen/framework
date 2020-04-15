@@ -205,7 +205,9 @@ function _isGoalShot(): boolean {
 }
 export let isGoalShot: () => boolean = Cache.forFrame(_isGoalShot);
 
-// @return disablePass bool - no obstacles for pass needed
+/**
+ * @returns Whether to disable pass obstacles
+ */
 function addGoalObstacleShot(path: Path, robot: FriendlyRobot, messaging: MessageBox, useCMA: boolean) {
 	// let _, attackPos = next(messaging.attackPosition());
 	let attackPos = messaging.receiveSingleSender(MessageType.attackPosition)[1];
@@ -469,9 +471,9 @@ function addRobotObstacles(path: Path, robot: FriendlyRobot, targetPosition: Pos
 		robotWasSlowHysteresis[robot] = robotIsSlow;
 
 		for (let r of World.OpponentRobots) {
-
-			if (robotIsSlow /*we cannot collide and invoke a foul if where slower than 0.5 m/s*/ &&
-					robot.pos.distanceTo(targetPosition) < MAX_NO_FOUL_SPEED / robot.acceleration.aBrakeFMax * 0.5 * MAX_NO_FOUL_SPEED /*We may not use this if we're going to accelerate again */) {
+			/** We may not use this if we're going to accelerate again */
+			const willAccelerate = robot.pos.distanceTo(targetPosition) < MAX_NO_FOUL_SPEED / robot.acceleration.aBrakeFMax * 0.5 * MAX_NO_FOUL_SPEED;
+			if (robotIsSlow && willAccelerate) {
 				break;
 			}
 			if (!ignoreRobot(robot, r)) {

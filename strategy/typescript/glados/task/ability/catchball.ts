@@ -15,10 +15,10 @@ import { CurvedMaxAccel } from "glados/trajectory/curvedmaxaccel";
 import * as PathHelper from "glados/trajectory/pathhelper";
 
 
-// safety distance to ball
+/** Safety distance to ball */
 let DIST_ERROR = 0.025;
 let SIDE_DEPTH = 0.015;
-// reduce obstacle size by one millimeter to avoid collisions
+/** Reduce obstacle size by one millimeter to avoid collisions */
 let OBSTACLE_EPSILON = 0.001;
 let OBSTACLE_PRIORITY = 28;
 
@@ -48,14 +48,16 @@ export class CatchBall {
 		this._messaging = messaging;
 	}
 
-	/// Tries to catch the ball, is designed for catching a moving ball
-	// This ability will overwrite the ignoreBall, ignorePass, ignoreOpponentRobots
-	// and disableOpponentPrediction obstacle parameters.
-	// @param targetPos Vector - point to look at when having caught the ball
-	// @param distanceToBall number - distance the robot should keep to the ball, only sensible for a stopped ball, defaults to 0
-	// @param [targetSpeed number - intended ball speed at target]
-	// @param [maxSpeed number - maximum speed of the robot]
-	// @return catchTime - when we will catch the ball (relative Time)
+	/**
+	 * Tries to catch the ball, is designed for catching a moving ball
+	 * This ability will overwrite the ignoreBall, ignorePass, ignoreOpponentRobots
+	 * and disableOpponentPrediction obstacle parameters.
+	 * @param targetPos - Point to look at when having caught the ball
+	 * @param distanceToBall - Distance the robot should keep to the ball, only sensible for a stopped ball, defaults to 0
+	 * @param targetSpeed - Intended ball speed at target
+	 * @param maxSpeed - Maximum speed of the robot
+	 * @returns catchTime - When we will catch the ball (relative Time)
+	 */
 	_catchBall(targetPos: Position, distanceToBall: number, targetSpeed?: number, maxSpeed?: number): number {
 		let ball = World.Ball;
 		// update catch time

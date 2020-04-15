@@ -1,8 +1,10 @@
 export type Interval<T> = [number, number, [T, T]?];
 type AnyInterval = Interval<any>;
 
-/// Merges a list of intervals
-// @param sortedIntervals list (by reference) - the initial intervals ordered by increasing interval start
+/**
+ * Merges a list of intervals
+ * @param sortedIntervals - By reference. The initial intervals ordered by increasing interval start
+ */
 export function merge(sortedIntervals: AnyInterval[]) {
 	if (sortedIntervals.length === 0) {
 		return;
@@ -34,10 +36,12 @@ export function merge(sortedIntervals: AnyInterval[]) {
 	sortedIntervals.splice(n, sortedIntervals.length - n);
 }
 
-/// Negates a list of intervals
-// @param mergedIntervals interval[] - list of intervals as returned by merge
-// @param outerStart number - start of the outer limit of the result
-// @param outerEnd number - end of the outer limit of the result
+/**
+ * Negates a list of intervals
+ * @param mergedIntervals - List of intervals returned by {@link merge}
+ * @param outerStart - Start of the outer limit of the result
+ * @param outerEnd - End of the outer limit of the result
+ */
 export function negate<T>(mergedIntervals: Interval<T>[], outerStart: number, outerEnd: number): Interval<T>[] {
 	let chunkStart = outerStart; // end of previous sector
 	let negated: Interval<T>[] = [];
@@ -64,15 +68,19 @@ function intervalOrder(t1: AnyInterval, t2: AnyInterval): number {
 	return t1[0] - t2[0];
 }
 
-/// Sorts the given list of intervals, by increasing interval start
-// @param intervals interval[] - list of intervals (by reference)
+/**
+ * Sorts the given list of intervals, by increasing interval start
+ * @param intervals - List of intervals (by reference)
+ */
 export function sort(intervals: AnyInterval[]) {
 	intervals.sort(intervalOrder);
 }
 
-/// Returns the largest interval
-// @param intervals interval[] - list of intervals
-// @return [interval - largest interval, if one exists]
+/**
+ * Returns the largets interval
+ * @param intervals - List of intervals
+ * @returns Largest interval, if one exists
+ */
 export function getLargest<T>(intervals: Interval<T>[]): Interval<T> | undefined {
 	let largestInterval = undefined;
 	let valueLargest = -1; // size of the largest interval
@@ -86,11 +94,13 @@ export function getLargest<T>(intervals: Interval<T>[]): Interval<T> | undefined
 	return largestInterval;
 }
 
-/// Finds the closest point in an array of intervals with a given distance to its interval boarders
-// @param mergedIntervals interval[] - list of intervals as returned by merge
-// @param Q number - point to which the distance of the searched point is minimal
-// @param D number - minimum distance of the searched point to its nearest boarder.
-// This means that it can only lie in an interval with size 2*D or bigger
+/**
+ * Finds the closest point in an array of intervals with a given distance to its interval boarders
+ * @param mergedIntervals - List of intervals as returned by merge
+ * @param Q - Point to which the distance of the searched point is minimal
+ * @param D - Minimum distance of the searched point to its nearest boarder.
+ * This means that it can only lie in an interval with size 2*D or bigger
+ */
 export function getClosestPoint(mergedIntervals: AnyInterval[], Q: number, D: number): number | undefined {
 	let biggestSector = undefined;
 	let bestMinDist = Infinity;
@@ -118,11 +128,13 @@ export function getClosestPoint(mergedIntervals: AnyInterval[], Q: number, D: nu
 	}
 }
 
-/// Finds the furthest point in an array of intervals with a given distance to its interval boarders
-// @param mergedIntervals interval[] - list of intervals as returned by merge
-// @param Q number - point to which the distance of the searched point is maximal
-// @param D number - minimum distance of the searched point to its nearest boarder.
-// This means that it can only lie in an interval with size 2*D or bigger
+/**
+ * Finds the furthest point in an array of intervals with a given distance to its interval boarders
+ * @param mergedIntervals - List of intervals as returned by merge
+ * @param Q - Point to which the distance of the searched point is maximal
+ * @param D - Minimum distance of the searched point to its nearest boarder.
+ * This means that it can only lie in an interval with size 2*D or bigger
+ */
 export function getFurthestPoint(mergedIntervals: AnyInterval[], Q: number, D: number): number | undefined {
 	let nearestSector = undefined;
 	let bestMaxDist = -Infinity;

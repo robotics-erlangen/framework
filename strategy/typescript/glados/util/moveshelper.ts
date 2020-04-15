@@ -4,9 +4,11 @@ import * as vis from "base/vis";
 
 import { computeMunkres, Matrix } from "glados/lib/munkres";
 
-// this function draws the two circles, in which a volley pass is not possible
-// it also returns the values from the indiscribed angle theorem
-// this MUST be considered in every static freekick
+/**
+ * This functions draws the two circles, in which a volley pass it not possible.
+ * It also returns the values from the indiscribed angle theorem.
+ * This MUST be considered in every static freekick
+ */
 export function volleyCircle(point1: Position, point2: Position, theta: number): [Position, Position, number] {
 	let [center1, center2, radius] = geom.inscribedAngle(point1, point2, theta);
 	vis.addCircle("volleyCycle", center1, radius, vis.colors.redHalf, true);
@@ -17,8 +19,8 @@ export function volleyCircle(point1: Position, point2: Position, theta: number):
 /**
  * This function uses the munkres algorithm to optimize the sum of distances from
  * each robot to the assigned position. O(n^3)
- * @param robot - list of robots to assign. the first ignoreFirstNRobots are assigned to their index
- * @param positions - list of positions to assign the remaining robots to
+ * @param robots - List of robots to assign. the first ignoreFirstNRobots are assigned to their index
+ * @param positions - List of positions to assign the remaining robots to
  * @returns the assignments. Use like this: robots[assignment[i]] -> assign to positions[i]
  */
 export function assignRobots(robots: {pos: Position}[], positions: Position[]): number[] {

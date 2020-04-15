@@ -186,6 +186,13 @@ export function _ratePass(robot: FriendlyRobot, pass: PassObject, earliestAttack
 
 	return rating;
 }
+/**
+ * Evaluates a given pass object
+ * @param robot - The pass sender / main attacker
+ * @param pass - A pass object containing target information
+ * @param considerTiming - true, if the pass is given as soon as possible, false if we can wait
+ * @returns a rating between 0 and 1 (1 = perfect, 0 = poor)
+ */
 export let ratePass = Cache.forFrame(_ratePass);
 
 /**
@@ -303,9 +310,9 @@ export function sortPassesFromSuggestions(robot: FriendlyRobot, passSuggestions:
 }
 
 /**
- * draws a broad line beween the main attacker (robotPos) and the next attack destination (shootDest)
- * @param robotPos the position of the main attacker
- * @param shootDest the position of the next shoot destination
+ * Draws a broad line beween the main attacker (robotPos) and the next attack destination (shootDest)
+ * @param robotPos - The position of the main attacker
+ * @param shootDest - The position of the next shoot destination
  */
 export function visualizeAttack(robotPos: Position, shootDest: Position) {
 	let color = World.TeamIsBlue ? vis.fromRGBA(38, 48, 217, 63) : vis.fromRGBA(244, 214, 31, 63);
@@ -372,6 +379,13 @@ function _currentPlannedMainAttacker(passInfoSender: FriendlyRobot | undefined, 
 
 	return undefined;
 }
+/**
+ * Decides whether a robot has to be a main attacker because it will receive a pass.
+ * used in a/a/applyformainattacker
+ * @param passInfoSender - The sender of the passInfo message
+ * @param passInfoMessage - PassInfo, for format details see messaging.ts
+ * @returns The main attacker that receives a pass, or undefined
+ */
 export let currentPlannedMainAttacker = Cache.forFrame(_currentPlannedMainAttacker);
 
 /**
@@ -428,7 +442,7 @@ function printPassInfo(robot: {shootRadius: number} & Physics.RobotLike, passInf
 	}
 }
 
-// the time between the arrival of the robot and the ball
+/** The time between the arrival of the robot and the ball */
 function calculatePassInfoTiming(robot: {shootRadius: number} & Physics.RobotLike, passInfo: PassInfo | undefined, passIncoming?: boolean, absRobotTime?: number): number {
 	if (passInfo != undefined) {
 		let robotPos = passInfo.ballPos + (passInfo.ballPos - World.Ball.pos).setLength(robot.shootRadius + World.Ball.radius);
@@ -466,6 +480,9 @@ function _checkPassInfos(robot: FriendlyRobot, passInfoTable: PassInfo[], lastRe
 
 let checkedPassInfoPerRobot = new Map<FriendlyRobot, {result: boolean, message: PassInfo | undefined}>();
 
+/**
+ * {@link _checkPassInfos }
+ */
 export function checkPassInfos(robot: FriendlyRobot, passInfoTable: PassInfo[], passIncoming?: boolean, absRobotTime?: number): [boolean, number | undefined] {
 	let cachedPassInfo = checkedPassInfoPerRobot[robot];
 	let preResult = cachedPassInfo ? cachedPassInfo.result : undefined;

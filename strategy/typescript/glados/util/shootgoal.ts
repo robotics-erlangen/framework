@@ -16,11 +16,6 @@ interface FutureRobot {
 	isFriendly: boolean;
 }
 
-/// returns the lists of interfering robots (with and without the keeper)
-// @name getRobotLists
-// @param ownRobot Robot - the robot that will shoot the ball
-// @return { Robot } - the list of all interfering robots
-// @return { Robot } - the above list without the opponent keeper
 function _getRobotLists(ownRobot: FriendlyRobot): [FutureRobot[], FutureRobot[]] {
 	// constant extrapolation time
 	// after this reaction time the robots tend to block the shot
@@ -48,13 +43,21 @@ function _getRobotLists(ownRobot: FriendlyRobot): [FutureRobot[], FutureRobot[]]
 	}
 	return [robotList, robotListWithoutKeeper];
 }
+/**
+ * Returns the lists of interfering robots (with and without the keeper)
+ * @see _getRobotLists
+ * @param ownRobot - The robot that will shoot the ball
+ * @returns The list of all interfering robots
+ * @returns The above list without the opponent keeper
+ */
 export let getRobotLists: (ownRobot: FriendlyRobot) => [FutureRobot[], FutureRobot[]] = Cache.forFrame(_getRobotLists);
 
-/// returns a rating for a given sector, prioritizing already chosen ones
-// @name rateSector
-// @param sector { number } - the sector to rate
-// @param oldSectorMid number - the position that was chosen in the last frame
-// @return number - rating
+/**
+ * Returns a rating for a given sector, prioritizing already chosen ones
+ * @param sector - The sector to rate
+ * @param oldSectorMid - The position that was chosen in the last frame
+ * @returns The rating
+ */
 export function rateSector(sector: Interval<any>, oldSectorMid?: number): number {
 	let sectorWidth = sector[1] - sector[0];
 
@@ -66,14 +69,15 @@ export function rateSector(sector: Interval<any>, oldSectorMid?: number): number
 	return sectorWidth * hysteresisFactor;
 }
 
-/// looks for an optimal target in the opponent goal
-// @name findTarget
-// @param ownRobot Robot - the robot that will shoot the ball
-// @param viewPos Vector - the position the ball is shot from
-// @param ignoreGoalie bool - whether the keeper should be ignored
-// @param oldTarget Vector - the target position that was chosen in the last frame
-// @return Vector - the midpoint of the chosen sector
-// @return angle - the witdh of the chosen sector
+/**
+ * looks for an optimal target in the opponent goal
+ * @param ownRobot - The robot that will shoot the ball
+ * @param viewPos - The position the ball is shot from
+ * @param ignoreGoalie - Whether the keeper should be ignored
+ * @param oldTarget - The target position that was chosen in the last frame
+ * @returns The midpoint of the chosen sector
+ * @returns The witdh of the chosen sector
+ */
 export function findTarget(ownRobot: FriendlyRobot, viewPos: Position, ignoreGoalie: boolean,
 		oldTarget?: Position): [Position, number] {
 	let goalStart = (G.OpponentGoalRight - viewPos).angle();
@@ -128,14 +132,6 @@ export function findTarget(ownRobot: FriendlyRobot, viewPos: Position, ignoreGoa
 	return [targetPoint, bestSectorWidth];
 }
 
-/// decides on where to shoot
-// @name ownRobot Robot - the robot that will shoot the ball
-// @param oldTarget Vector - the target position that was chosen in the last frame
-// @param oldDirty bool - whether the dirty flag was set in the last frame
-// @param attackPosition Vector - optional, if set, use this position instead of robot dribbler
-// @return Vector - the midpoint of the chosen sector
-// @return angle - the witdh of the chosen sector
-// @return bool - the dirty flag
 let TIME_UNTIL_MIN_ANGLE = 5;
 function _updateTarget(ownRobot: FriendlyRobot, oldTarget: Position | undefined, oldDirty: boolean,
 		attackPosition?: Position): [Position, number, boolean] {
@@ -166,5 +162,15 @@ function _updateTarget(ownRobot: FriendlyRobot, oldTarget: Position | undefined,
 
 	return [targetPoint, targetWidth, dirty];
 }
+/**
+ * Decides on where to shoot
+ * @param ownRobot - The robot that will shoot the ball
+ * @param oldTarget - The target position that was chosen in the last frame
+ * @param oldDirty - Whether the dirty flag was set in the last frame
+ * @param attackPosition - If set, use this position instead of robot dribbler
+ * @returns The midpoint of the chosen sector
+ * @returns The width of the chosen sector
+ * @returns The dirty flag
+ */
 export let updateTarget: (ownRobot: FriendlyRobot, oldTarget: Position | undefined, oldDirty: boolean,
 		attackPosition?: Position) => [Position, number, boolean] = Cache.forFrame(_updateTarget);

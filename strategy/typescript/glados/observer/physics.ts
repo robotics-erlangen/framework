@@ -19,11 +19,13 @@ export interface BallLike {
 }
 
 
-/// Calculates the parameters for the switch between sliding and rolling
-// @param ball Ball - a ball-like structure, must contail the fields pos, speed and maxSpeed
-// @return number - the switch time
-// @return number - the absolute ball speed at switch time
-// @return number - the distance the ball travels until switch time
+/**
+ * Calculates the parameters for the switch between sliding and rolling
+ * @param ball - A ball-like structure, must contail the fields pos, speed and maxSpeed
+ * @returns The switch time
+ * @returns The absolute ball speed at switch time
+ * @returns The distance the ball travels until switch time
+ */
 export function ballSwitchParameters(ball: BallLike): [number, number, number] {
 	let a_slide = Constants.fastBallDeceleration;
 	let a_roll = Constants.ballDeceleration;
@@ -41,10 +43,12 @@ export function ballSwitchParameters(ball: BallLike): [number, number, number] {
 	return [t_switch, v_switch, s_switch];
 }
 
-/// predicts the ball
-// @param ball Ball - a ball-like structure, must contain the fields pos, speed, maxSpeed and radius
-// @param time number - the number of seconds from now on
-// @return Ball - the predicted ball as a ball-like structure
+/**
+ * Predicts the ball
+ * @param ball - A ball-like structure, must contain the fields pos, speed, maxSpeed and radius
+ * @param time - The number of seconds from now on
+ * @returns The predicted ball as a ball-like structure
+ */
 export function ballAtTime(ball: BallLike, time: number): BallLike & {radius: number} {
 	// formulas used:
 	// v = a * t + v0
@@ -112,10 +116,12 @@ export function ballAtTime(ball: BallLike, time: number): BallLike & {radius: nu
 	return result;
 }
 
-/// predicts the ball
-// @param ball Ball - a ball-like structure, must contain the fields pos, speed, maxSpeed, posZ, speedZ and radius
-// @param time number - the number of seconds from now on
-// @return Ball - the predicted ball as a ball-like structure
+/**
+ * Predicts the ball
+ * @param ball - A ball-like structure, must contain the fields pos, speed, maxSpeed, posZ, speedZ and radius
+ * @param time - The number of seconds from now on
+ * @returns The predicted ball as a ball-like structure
+ */
 export function ballAtTimeExperimental(ball: BallLike & {posZ: number, speedZ: number}, time: number): BallLike {
 	// formulas used:
 	// v = a * t + v0
@@ -231,11 +237,13 @@ export function ballAtTimeExperimental(ball: BallLike & {posZ: number, speedZ: n
 	return result;
 }
 
-/// Estimates how long a ball will be flying or subsequently bouncing for a given distance
-// @param ball Ball - a ball-like structure
-// @param distance number - the distance in meter
-// @return Ball, number, number - predicted ball, time, distance left
-// The third return value indicates how much distance is left when the ball stopped bouncing
+/**
+ * Estimates how long a ball will be flying or subsequently bouncing for a given distance
+ * @param ball - A ball-like structure
+ * @param distance - The distance in meter
+ * @returns Ball, number, number - predicted ball, time, distance left
+ * The third return value indicates how much distance is left when the ball stopped bouncing
+ */
 function ballFlightTime(ball: BallLike & {initSpeedZ: number, speedZ: number, posZ: number}, distance: number): [BallLike, number, number] {
 	let liftTime = ball.initSpeedZ / 9.81;
 	let timeAlreadyFlying = (ball.initSpeedZ - ball.speedZ) / 9.81;
@@ -274,11 +282,13 @@ function ballFlightTime(ball: BallLike & {initSpeedZ: number, speedZ: number, po
 }
 
 
-/// predicts how far the ball will travel in the given time
-// this is almost the same as ballAtTime, but it's a bit faster as it doesn't have to care about vectors and end speed
-// @param ball Ball - a ball-like structure, must contain the fields pos, speed, maxSpeed and radius
-// @param time number - the number of seconds from now on
-// @return number - the predicted ball travel distance
+/**
+ * Predicts how far the ball will travel in the given time
+ * this is almost the same as ballAtTime, but it's a bit faster as it doesn't have to care about vectors and end speed
+ * @param ball - A ball-like structure, must contain the fields pos, speed, maxSpeed and radius
+ * @param time - The number of seconds from now on
+ * @returns The predicted ball travel distance
+ */
 export function ballTravelledDistance(ball: BallLike, time: number): number {
 	// formulas used:
 	// v = a * t + v0
@@ -351,7 +361,7 @@ export function robotBrakePos(robot: {pos: Position, speed: Speed, acceleration?
 	return robot.pos + robot.speed.copy().normalize().scaleLength(brkLength);
 }
 
-/// estimates the time the ball needs to travel for a chip pass from startPos to endPos
+/** Estimates the time the ball needs to travel for a chip pass from startPos to endPos */
 export function chipPassTime(startPos: Position, endPos: Position): number {
 	let dist = endPos.distanceTo(startPos);
 	let zSpeed = calculateChipSpeed(dist);
@@ -367,10 +377,12 @@ export function chipPassTime(startPos: Position, endPos: Position): number {
 	return ballTravelTime(ball, dist);
 }
 
-/// estimates the time the ball needs to travel a given distance
-// @param ball Ball - a ball-like structure
-// @param distance number - the distance in meter
-// @return number - the estimated time
+/**
+ * Estimates the time the ball needs to travel a given distance
+ * @param ball - A ball-like structure
+ * @param distance - The distance in meter
+ * @returns The estimated time
+ */
 export function ballTravelTime(ball: BallLike & {posZ: number, initSpeedZ: number, speedZ: number}, distance: number): number {
 	if (ball.posZ > 0 || ball.initSpeedZ > 0) { // ball is flying
 		let [newBall, time, restDist] = ballFlightTime(ball, distance);
@@ -384,9 +396,11 @@ export function ballTravelTime(ball: BallLike & {posZ: number, initSpeedZ: numbe
 	}
 }
 
-/// estimates the time the ball needs to travel to a given position
-// checks if the position lies in front of the ball +- 90 degrees
-// if the pos is behind the ball, negative infinity is returned
+/**
+ * Estimates the time the ball needs to travel to a given position.
+ * Checks if the position lies in front of the ball +- 90 degrees
+ * If the pos is behind the ball, negative infinity is returned
+ */
 export function checkedBallTravelTime(ball: BallLike & {posZ: number, initSpeedZ: number, speedZ: number}, pos: Position): number {
 	let toPos = pos - ball.pos;
 	if (ball.speed.dot(toPos) > 0) {
@@ -397,11 +411,14 @@ export function checkedBallTravelTime(ball: BallLike & {posZ: number, initSpeedZ
 }
 
 
-/// estimates the time the ball needs to travel a given distance on the floor
-// the estimation does not exceed ballStopTime() unless the distance is too large, then it returns Infinity
-// @param ball Ball - a ball-like structure
-// @param distance number - the distance in meter
-// @return number - the estimated time
+/**
+ * Estimates the time the ball needs to travel a given distance on the floor.
+ * The estimation does not exceed ballStopTime() unless the distance is too
+ * large, then it returns Infinity
+ * @param ball - A ball-like structure
+ * @param distance - The distance in meter
+ * @returns The estimated time
+ */
 export function ballRollTime(ball: {speed: Speed, maxSpeed: number}, distance: number): number {
 	// a_slide: the negative acceleration while the ball is sliding [m/s^2]
 	// a_roll: the negative acceleration while the ball is rolling [m/s^2]
@@ -452,9 +469,11 @@ export function ballRollTime(ball: {speed: Speed, maxSpeed: number}, distance: n
 	return t_result;
 }
 
-/// estimates the time the ball needs to travel to a given position
-// checks if the position lies in front of the ball +- 90 degrees
-// if the pos is behind the ball, negative infinity is returned
+/**
+ * Estimates the time the ball needs to travel to a given position
+ * checks if the position lies in front of the ball +- 90 degrees
+ * if the pos is behind the ball, negative infinity is returned
+ */
 export function checkedBallRollTime(ball: BallLike, pos: Position): number {
 	let toPos = pos - ball.pos;
 	if (ball.speed.dot(toPos) > 0) {
@@ -465,9 +484,11 @@ export function checkedBallRollTime(ball: BallLike, pos: Position): number {
 }
 
 
-/// calculates the time the ball needs to fully stop
-// @param ball Ball - a ball-like structure
-// @return number - the estimated stop time
+/**
+ * Calculates the time the ball needs to fully stop
+ * @param ball - A ball-like structure
+ * @returns The estimated stop time
+ */
 export function ballStopTime(ball: {speed: Speed, maxSpeed: number}): number {
 	// a_slide: the negative acceleration while the ball is sliding [m/s^2]
 	// a_roll: the negative acceleration while the ball is rolling [m/s^2]
@@ -493,10 +514,12 @@ export function ballStopTime(ball: {speed: Speed, maxSpeed: number}): number {
 	return t_slide + t_roll;
 }
 
-/// calculates the time the ball needs to cross the field border
-// @param ball Ball - a ball-like structure
-// @param [offset number - additional offset to move field lines further outwards]
-// @return number - the estimated out time
+/**
+ * Calculates the time the ball needs to cross the field border
+ * @param ball - A ball-like structure
+ * @param offset - Additional offset to move field lines further outwards
+ * @returns The estimated out time
+ */
 function _ballOutTime(ball: BallLike, offset?: number): number {
 	if (ball.speed.length() < 0.01) {
 		return Infinity;
@@ -511,9 +534,11 @@ function _ballOutTime(ball: BallLike, offset?: number): number {
 export const ballOutTime: ((ball: BallLike, offset?: number) => number) = Cache.forFrame(_ballOutTime);
 
 
-/// first position where the ball will hit the ground again
-// @param ball Ball - a ball-like structure
-// @return Vector - the estimated landing position
+/**
+ * First position where the ball will hit the ground again
+ * @param ball - A ball-like structure
+ * @returns The estimated landing position
+ */
 export function ballLandPos(ball: BallLike & {speedZ: number, posZ: number}): Position {
 	let topHeight = Math.max(0, ball.posZ + ball.speedZ * ball.speedZ / (2 * 9.81));
 	let timeToTop = ball.speedZ / 9.81;
@@ -531,7 +556,7 @@ export interface RobotLike {
 }
 
 
-// assumes that the path is a direct line from robot.pos to endPos
+/** Assumes that the path is a direct line from robot.pos to endPos */
 export function robotTimeToPos(robot: RobotLike, endPos: Position, endSpeedVector: Speed): [number, number] { // , debugFlag)
 	// acceleration parameters
 	let hardBrakeAccel = 4.7;
@@ -694,17 +719,19 @@ export function robotTimeToPos(robot: RobotLike, endPos: Position, endSpeedVecto
 	return [currentTime + timeDiff + timeSym + expBrakeExtraTime, currentTime];
 }
 
-/// approximates the time the given robot needs to pos for a given endSpeed
-// uses a bang-bang motion profile
-// calculations are done in 1D (along the line from robot.pos to pos)
-// @param robot Robot
-// @param pos Vector - the destination
-// @param endSpeed Vector - the maximal velocity the robot is allowed to have in the given direction
-// @param brakeAndReturn - setting this to true, the robot will brake to stop and return to pos, if it would be faster than endSpeed.
-// Warning! This can cause severe numerical instabilities if endSpeed points from robot.pos to pos and the robot is a bit too fast
-// Then the robot must do a full stop and return to pos with zero endSpeed!
-// @param lowAccel - assume reduced acceleration
-// @return number - the estimated time
+/**
+ * Approximates the time the given robot needs to pos for a given endSpeed.
+ * Uses a bang-bang motion profile
+ * Calculations are done in 1D (along the line from robot.pos to pos)
+ * @param robot
+ * @param pos - The destination
+ * @param endSpeed - The maximal velocity the robot is allowed to have in the given direction
+ * @param brakeAndReturn - Setting this to true, the robot will brake to stop and return to pos, if it would be faster than endSpeed.
+ * Warning! This can cause severe numerical instabilities if endSpeed points from robot.pos to pos and the robot is a bit too fast
+ * Then the robot must do a full stop and return to pos with zero endSpeed!
+ * @param lowAccel - Assume reduced acceleration
+ * @returns The estimated time
+ */
 export function robotTimeToPosOLD(robot: Robot, pos: Position, endSpeed: Speed, brakeAndReturn: boolean, lowAccel: boolean): number {
 	let accelerationFactor = lowAccel ? 0.7 : 0.7; // factor for max forward speedup and braking
 	let tolerance = 0.01; // cutoff low distances to prevent instabilities
@@ -774,11 +801,13 @@ export function robotTimeToPosOLD(robot: Robot, pos: Position, endSpeed: Speed, 
 }
 
 
-/// calculates the min endspeed for the robot to reach pos in the given time
-// @param robot Robot
-// @param pos Vector
-// @param time number
-// @return Vector - the endspeed vector (in the direction from robot to pos)
+/**
+ * Calculates the min endspeed for the robot to reach pos in the given time
+ * @param robot
+ * @param pos
+ * @param time
+ * @returns The endspeed vector (in the direction from robot to pos)
+ */
 export function robotMinEndspeed(robot: Robot, pos: Position, time: number): Speed {
 	let direction = (pos - robot.pos).normalize();
 	let maxSpeed = robot.maxSpeed;
@@ -818,7 +847,7 @@ export function robotMinEndspeed(robot: Robot, pos: Position, time: number): Spe
 }
 
 
-/// calculates the time the robot needs to move to the position next to the ball at given t_ball
+/** Calculates the time the robot needs to move to the position next to the ball at given t_ball */
 export function robotTimeForBallTime(robot: Robot, ball: BallLike & {radius: number}, targetPos: Position,
 		endSpeedLength: number, t_ball: number): number {
 	let x_ball = ballAtTime(ball, t_ball).pos;
@@ -851,11 +880,13 @@ function angleForTime(accA: number, accB: number, time: number, startSpeed: numb
 }
 
 
-// calculates the degrees that a robot can turn in a given timespan
-// @param robot Robot
-// @param time Number - how much time (in seconds) the robot has to turn
-// @return dist1 Number - the angle the robot can turn clockwise
-// @return dist2 Number - the angle the robot can turn counter-clockwise
+/**
+ * Calculates the degrees that a robot can turn in a given timespan
+ * @param robot
+ * @param time - How much time (in seconds) the robot has to turn
+ * @returns dist1 The angle the robot can turn clockwise
+ * @returns dist2 The angle the robot can turn counter-clockwise
+ */
 export function robotRotationRangeForTime(robot: Robot, time: number): [number, number] {
 	let angularSpeed = robot.angularSpeed;
 	let maxAccel = robot.acceleration.aSpeedupPhiMax;
@@ -899,7 +930,7 @@ function rttbSpecialCases(robot: Robot, ball: BallLike & {radius: number}, targe
 	let relpos = (ball.pos - robot.pos).rotate(-robot.dir);
 	relpos.x = relpos.x - robot.shootRadius - ball.radius;
 	let sidewardsOffset = Math.abs(relpos.y);
-	/*if (Roboobserver.touchedBall(robot, 0.15) && relpos.x > -0.25 && relpos.x <= 0.05 && sidewardsOffset < 0.2) {
+	/* if (Roboobserver.touchedBall(robot, 0.15) && relpos.x > -0.25 && relpos.x <= 0.05 && sidewardsOffset < 0.2) {
 		return [undefined, 0];
 	}*/
 
@@ -1005,13 +1036,15 @@ function rttbBinarySearch(robot: Robot, ball: BallLike & {radius: number}, targe
 }
 
 
-/// calculates the time the robot takes to reach the ball (in a controlled fashion)
-// @param robot Robot - the robot
-// @param ball Ball - a ball-like structure
-// @param targetPos - the position the robot will look at
-// @param endSpeedLength - the maximal velocity of the robot when reaching the destination
-// @param lastTime - last result of robotTimeToBall for the given parameters
-// @return number - the estimated time
+/**
+ * Calculates the time the robot takes to reach the ball (in a controlled fashion)
+ * @param robot - The robot
+ * @param ball - A ball-like structure
+ * @param targetPos - The position the robot will look at
+ * @param endSpeedLength - The maximal velocity of the robot when reaching the destination
+ * @param lastTime - Last result of robotTimeToBall for the given parameters
+ * @returns The estimated time
+ */
 export function robotTimeToBall(robot: Robot, ball: BallLike & {radius: number}, targetPos: Position,
 		endSpeedLength: number, lastTime?: number): number {
 	// local time0 = amun.getCurrentTime()

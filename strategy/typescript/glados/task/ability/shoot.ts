@@ -23,25 +23,33 @@ import { ToTarget } from "glados/trajectory/totarget";
 import * as Rating from "glados/util/rating";
 
 
-// if the ball speed is lower than RESTING_BALL_SPEED
-// the ball is resting or at least very slow
+/**
+ * If the ball speed is lower than RESTING_BALL_SPEED
+ * the ball is resting or at least very slow
+ */
 const RESTING_BALL_SPEED = 0.2;
 const RESTING_BALL_SPEED_HYST = 0.1;
 
-// if the ball speed is lower than WOBBLING_BALL_SPEED
-// the ball is probably resting
+/**
+ * If the ball speed is lower than WOBBLING_BALL_SPEED
+ * the ball is probably resting
+ */
 const WOBBLING_BALL_SPEED = 0.4;
 const WOBBLING_BALL_SPEED_HYST = 0.2;
 
-// if the ball movement direction and the shoot direction differ less than CHASE_BALL_ANGLE
-// we chase the ball instead of stopping it
+/*
+ * If the ball movement direction and the shoot direction differ less than CHASE_BALL_ANGLE
+ * we chase the ball instead of stopping it
+ */
 const CHASE_BALL_ANGLE = 70 * Math.PI / 180;
 const CHASE_BALL_ANGLE_HYST = 5 * Math.PI / 180;
 const CHASE_BALL_SIDE_SPEED = 1.25;
 const CHASE_BALL_SIDE_SPEED_HYST = 0.25;
 
-// if inverse ball movement direction and the shoot direction differ less than VOLLEY_ANGLE
-// we can shoot the ball as soon as it touches the dribbler instead of stopping it
+/**
+ * if inverse ball movement direction and the shoot direction differ less than VOLLEY_ANGLE
+ * we can shoot the ball as soon as it touches the dribbler instead of stopping it
+ */
 const VOLLEY_ANGLE = 70 * Math.PI / 180;
 const VOLLEY_ANGLE_HYST = 5 * Math.PI / 180;
 const VOLLEY_ENABLED = true;
@@ -52,11 +60,13 @@ const SIDEWARDS_KP = 9;
 const SIDEWARDS_KI = 2.4;
 const SIDEWARDS_SPEED_LIMIT = 0.5;
 
-// chip distance scaling factor for passes
+/** chip distance scaling factor for passes */
 const CHIP_PASS_DISTANCE_FACTOR = 0.4;
 
-// if the robot view direction and the shoot direction differ less than MIN_PRECISION
-// the robot is allowed to shoot the ball
+/**
+ * if the robot view direction and the shoot direction differ less than MIN_PRECISION
+ * the robot is allowed to shoot the ball
+ */
 const MIN_PRECISION = 3.5 * Math.PI / 180;
 const MIN_PRECISION_CHASE = 6 * Math.PI / 180;
 
@@ -520,30 +530,43 @@ export class Shoot {
 		this._lastTargetPos = targetPos;
 	}
 
-	/// shoot the ball such that it reaches targetPos with a speed of targetSpeed
-	// This ability will overwrite the ignoreBall, ignorePass, ignoreFriendlyRobots
-	// and ignoreOpponentRobots obstacle parameters
-	// @param targetPos Vector - where to shoot at
-	// @param targetSpeed number - the velocity of the ball when it reaches targetPos
-	// @param ballReceiptPos Vector - in case of incoming passes, where to shoot from (optional)
+	/**
+	 * Shoot the ball such that it reaches targetPos with a speed of targetSpeed
+	 * This ability will overwrite the ignoreBall, ignorePass, ignoreFriendlyRobots
+	 * and ignoreOpponentRobots obstacle parameters
+	 * @param targetPos - Where to shoot at
+	 * @param targetSpeed - The velocity of the ball when it reaches targetPos
+	 * @param targetTime
+	 * @param ballReceiptPos - In case of incoming passes, where to shoot from
+	 * @param precision
+	 */
 	_shoot(targetPos: Position, targetSpeed: number, targetTime?: number, ballReceiptPos?: Position, precision?: number) {
 		this._doShoot(targetPos, targetSpeed, targetTime, ballReceiptPos, true, precision);
 	}
 
-	/// chips the ball such that it hits the ground at firstContactPos
-	// This ability will overwrite the ignoreBall, ignorePass, ignoreFriendlyRobots
-	// and ignoreOpponentRobots obstacle parameters
-	// @param firstContactPos Vector - where the ball hits the ground the first time
-	// @param ballReceiptPos Vector - in case of incoming passes, where to shoot from (optional)
+	/**
+	 * Chips the ball such that it hits the ground at firstContactPos
+	 * This ability will overwrite the ignoreBall, ignorePass, ignoreFriendlyRobots
+	 * and ignoreOpponentRobots obstacle parameters
+	 * @param firstContactPos - Where the ball hits the ground the first time
+	 * @param targetTime
+	 * @param ballReceiptPos - In case of incoming passes, where to shoot from
+	 * @param precision
+	 */
 	_chipToPos(firstContactPos: Position, targetTime?: number, ballReceiptPos?: Position, precision?: number) {
 		this._doShoot(firstContactPos, 8, targetTime, ballReceiptPos, false, precision);
 	}
 
-	/// chips the ball such that it can be accepted at rollingBallPos
-	// This ability will overwrite the ignoreBall, ignorePass, ignoreFriendlyRobots
-	// and ignoreOpponentRobots obstacle parameters
-	// @param rollingBallPos Vector - where the ball is starting to roll
-	// @param ballReceiptPos Vector - in case of incoming passes, where to shoot from (optional)
+	/**
+	 * Chips the ball such that it can be accepted at rollingBallPos
+	 * This ability will overwrite the ignoreBall, ignorePass, ignoreFriendlyRobots
+	 * and ignoreOpponentRobots obstacle parameters
+	 * @param rollingBallPos - Where the ball is starting to roll
+	 * @param ballReceiptPos - In case of incoming passes, where to shoot from
+	 * @param targetTime
+	 * @param precision
+	 * @param manualChipDistFactor
+	 */
 	_chipPass(rollingBallPos: Position, ballReceiptPos?: Position, targetTime?: undefined,
 			precision?: number, manualChipDistFactor: number = CHIP_PASS_DISTANCE_FACTOR) {
 		let origin: Position;

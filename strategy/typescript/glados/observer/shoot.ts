@@ -33,12 +33,13 @@ export function volleyPossible(passRobot: FriendlyRobot, targetPos: Position): b
 	return false;
 }
 
-/// checks if the line between shootPos and destPos is blocked by opponent robots
-// @param shootPos Vector - the start point of the pass line
-// @param endPos Vector - the end point of the pass line
-// @param chipDistanceFactor number - the percentage of the pass distance at which the chipkick reaches the ground
-// @param isFreekickLike bool - in a freekick like state, the beginning of the corridor is wider
-// @return string {"linear", "chip", "blocked"}
+/**
+ * Checks if the line between shootPos and destPos is blocked by opponent robots
+ * @param shootPos - The start point of the pass line
+ * @param destPos - The end point of the pass line
+ * @param chipDistanceFactor - The percentage of the pass distance at which the chipkick reaches the ground
+ * @param isFreekickLike - In a freekick like state, the beginning of the corridor is wider
+ */
 export function evaluatePassCorridor(shootPos: Position, destPos: Position, chipDistanceFactor: number = 0.55,
 		isFreekickLike: boolean): "linear" | "chip" | "blocked" {
 	let corridorFree = true;

@@ -87,13 +87,13 @@ export class Volley {
 
 
 	/**
-	 * calculates vOut from known (team coordinates) v_out_length, orientation, future ball and future robot speed vector
-	 * @param v_out_length how fast the ball will be after the shot in team coordinates
-	 * @param ballSpeed how fast the ball will be when hitting the robot (futureBall.speed)
-	 * @param phi orientation of the robot
-	 * @param robotSpeed velocity of the robot when hitting the ball
-	 * @param robotId the robot that is going to shoot or "opp" for opponent / unknown robots
-	 * @return x,y - the velocity of the shot ball is Vector(x,y) (in team coordinates)
+	 * Calculates vOut from known (team coordinates) v_out_length, orientation, future ball and future robot speed vector
+	 * @param v_out_length - How fast the ball will be after the shot in team coordinates
+	 * @param ballSpeed - How fast the ball will be when hitting the robot (futureBall.speed)
+	 * @param phi - Orientation of the robot
+	 * @param robotSpeed - Velocity of the robot when hitting the ball
+	 * @param robotId - The robot that is going to shoot or "opp" for opponent / unknown robots
+	 * @returns x,y - The velocity of the shot ball is Vector(x,y) (in team coordinates)
 	 */
 	static calcVOutTeamCoordinates(v_out_length: number, ballSpeed: Speed, phi: number,
 			robotSpeed: Speed, robotId: number | "opp"): [number, number] {
@@ -136,13 +136,13 @@ export class Volley {
 	}
 
 	/**
-	 * calculates vOut from known v_out_length, orientation and future ball.
-	 * @param v_out_length how fast the ball will be after the shot
-	 * @param v_in how fast the ball approaches the robot (futureBall.relativeSpeed.length())
-	 * @param phi orientation of the robot
-	 * @param alpha angle of relative ball speed (futureBall.relativeSpeed.angle())
-	 * @param robotId the robot that is going to shoot or "opp" for opponent / unknown robots
-	 * @return x,y - the velocity of the shot ball relative to the robot's velocity is Vector(x,y)
+	 * Calculates vOut from known v_out_length, orientation and future ball.
+	 * @param v_out_length - How fast the ball will be after the shot
+	 * @param v_in - How fast the ball approaches the robot (futureBall.relativeSpeed.length())
+	 * @param phi - Orientation of the robot
+	 * @param alpha - Angle of relative ball speed (futureBall.relativeSpeed.angle())
+	 * @param robotId - The robot that is going to shoot or "opp" for opponent / unknown robots
+	 * @returns x,y - The velocity of the shot ball relative to the robot's velocity is Vector(x,y)
 	 */
 	static calcVOutFromVOutAbs(v_out_length: number, v_in: number, phi: number, alpha: number, robotId: number | "opp"): [number, number] {
 		let [v_refl_x, v_refl_y] = Volley.calcVOutFromVS(0, v_in, phi, alpha, robotId);
@@ -164,14 +164,14 @@ export class Volley {
 	}
 
 	/**
-	 * calculates vOut from known v_s, orientation and future ball.
+	 * Calculates vOut from known v_s, orientation and future ball.
 	 * @see doc/volley.txt for extended documentation
-	 * @param v_s how fast would the ball be if shot while resting relative to the robot(shotBall.relativeSpeed.length())
-	 * @param v_in how fast the ball approches the robot (futureBall.relativeSpeed.length())
-	 * @param phi orientation of the robot
-	 * @param alpha angle of relative ball speed (futureBall.relativeSpeed.angle())
-	 * @param robotId the robot that is going to shoot or "opp" for opponent / unknown robots
-	 * @return x,y - the velocity of the shot ball relative to the robot's velocity is Vector(x,y)
+	 * @param v_s - How fast would the ball be if shot while resting relative to the robot(shotBall.relativeSpeed.length())
+	 * @param v_in - How fast the ball approches the robot (futureBall.relativeSpeed.length())
+	 * @param phi - Orientation of the robot
+	 * @param alpha - Angle of relative ball speed (futureBall.relativeSpeed.angle())
+	 * @param robotId - The robot that is going to shoot or "opp" for opponent / unknown robots
+	 * @returns x,y - The velocity of the shot ball relative to the robot's velocity is Vector(x,y)
 	 */
 	static calcVOutFromVS(v_s: number, v_in: number, phi: number, alpha: number, robotId: number | "opp"): [number, number] {
 		if (!World.IsSimulated && (robotId < 0 || robotId > 15)) {
@@ -211,13 +211,14 @@ export class Volley {
 
 	/**
 	 * Calculates robot orientation and v_s, given a futurBall and a target and targetSpeed
-	 * @param ballSpeed the ball's speed when it touches the dribbler (global speed)
-	 * @param viewPos the ball's position when it touches the dribbler
-	 * @param targetPos the desired position to shoot at
-	 * @param targetSpeed the desired speed for the ball when reaching targetPos
-	 * @return phi, v_s
-	 * @return phi the orientation of the robot to perform that shot
-	 * @return v_s see calcVOutFromVS
+	 * @param robot
+	 * @param ballSpeed - The ball's speed when it touches the dribbler (global speed)
+	 * @param viewPos - The ball's position when it touches the dribbler
+	 * @param targetPos - The desired position to shoot at
+	 * @param targetSpeed - The desired speed for the ball when reaching targetPos
+	 * @returns phi, v_s
+	 * @returns phi The orientation of the robot to perform that shot
+	 * @returns v_s @see calcVOutFromVS
 	 */
 	static calcPhi(robot: FriendlyRobot, ballSpeed: Speed, viewPos: Position, targetPos: Position,
 			targetSpeed: number, volleyObserver?: VolleyObserver): [number, number] {
@@ -302,10 +303,10 @@ export class Volley {
 	}
 
 	/**
-	 * performs a volley shot without actively catching the ball
-	 * @param viewPos the ball's position when it touches the dribbler
-	 * @param targetPos where to shoot at
-	 * @param targetSpeed how fast the Ball should arrive at targetPos
+	 * Performs a volley shot without actively catching the ball
+	 * @param viewPos - The ball's position when it touches the dribbler
+	 * @param targetPos - Where to shoot at
+	 * @param targetSpeed - How fast the Ball should arrive at targetPos
 	 */
 	_volley(viewPos: Position, targetPos: Position, targetSpeed: number) {
 		this._setMainAttackerParameters(targetPos, this._robot.maxSpeed);
