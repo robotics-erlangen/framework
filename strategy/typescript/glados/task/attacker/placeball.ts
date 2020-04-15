@@ -35,6 +35,8 @@ const END_DISTANCE = 0.1;
 const BALL_STOP_SPEED = 0.2;
 const MAX_BALL_DISTANCE = 0.25;
 
+const DISTANCE_END_PLACING = 1;
+
 /**
  * If the ball's distance to a target position (nearest position in the field
  * or final target pos) is larger than this, the corresponding offset gets
@@ -165,9 +167,13 @@ export class PlaceBall extends Task {
 		this._calculateOffsets();
 
 		vis.addCircle("PlaceBall/Placement Pos", this._placementPos, OFFSET_DISTANCE, vis.colors.orange);
-		vis.addPath("PlaceBall/Placement Pos", [ this._placementPos, this._placementPos + this._placementOffsetAverage! ], vis.colors.black);
+		if (this._placementOffsetAverage != undefined) {
+			vis.addPath("PlaceBall/Placement Pos", [ this._placementPos, this._placementPos + this._placementOffsetAverage ], vis.colors.black);
+		}
 		vis.addCircle("PlaceBall/Border Pos", this._nearestFieldPos!, OFFSET_DISTANCE, vis.colors.orange);
-		vis.addPath("PlaceBall/Border Pos", [ this._nearestFieldPos!, this._nearestFieldPos! + this._borderOffsetAverage! ], vis.colors.black);
+		if (this._borderOffsetAverage != undefined) {
+			vis.addPath("PlaceBall/Border Pos", [ this._nearestFieldPos!, this._nearestFieldPos! + this._borderOffsetAverage ], vis.colors.black);
+		}
 
 		let oldState = this._state;
 		this._state = this._getNextState(this._state);
@@ -204,15 +210,44 @@ export class PlaceBall extends Task {
 
 		switch (this._state) {
 			case State.WAIT_FOR_BALL_STOP: {
-				let ballVisible = this._ball.isPositionValid();
+				if (BallObserver.getRealisticBallPos().distanceTo(this._robot.pos) < DISTANCE_END_PLACING) {
+					/*
+					 * If the ball was invisible or near it's target positions,
+					 * a good offset to use is the direction from the robot to
+					 * the center of the field
+					 *
+					 */
+					if (this._placementOffsetAverage == undefined) {
+						this._placementOffsetAverage = this._robot.pos.copy().setLength(this.OFFSET_EXTRA_LENGTH);
+					}
+					if (this._borderOffsetAverage == undefined) {
+						this._borderOffsetAverage = this._robot.pos.copy().setLength(this.OFFSET_EXTRA_LENGTH);
+					}
 
-				let specificOffset = this._placementOffsetAverage!.copy().setLength(0.5);
-				if (ballVisible) {
-					this._currentTargetPos = this._ball.pos - specificOffset;
+					let ballVisible = this._ball.isPositionValid();
+					let specificOffset = this._placementOffsetAverage!.copy().setLength(0.5);
+					if (ballVisible) {
+						this._currentTargetPos = this._ball.pos - specificOffset;
+					} else {
+						this._currentTargetPos = this._robot.pos - specificOffset;
+					}
+
+					this._robot.trajectory.update(CurvedMaxAccel, this._currentTargetPos, specificOffset.angle());
 				} else {
-					this._currentTargetPos = this._robot.pos - specificOffset;
+					/*
+					 * It the Robot is too far away to calculate a useful Offset
+					 * he should move directly towards the ball.
+					 */
+					let ballToRobot = BallObserver.getRealisticBallPos() - this._robot.pos;
+					ballToRobot.setLength(ballToRobot.length() - DISTANCE_END_PLACING + 0.4);
+					this._currentTargetPos = this._robot.pos + ballToRobot;
+					this._robot.trajectory.update(ToTarget, this._currentTargetPos, ballToRobot.angle());
+					/*
+					 * Reset the offsets to prevent wrong results in a large distance between robot and ball
+					 */
+					this._placementOffsetAverage = undefined;
+					this._borderOffsetAverage = undefined;
 				}
-				this._robot.trajectory.update(CurvedMaxAccel, this._currentTargetPos, specificOffset.angle());
 
 				break;
 			}
@@ -317,8 +352,9 @@ export class PlaceBall extends Task {
 		switch (currentState) {
 			case State.WAIT_FOR_BALL_STOP: {
 				nextState = State.WAIT_FOR_BALL_STOP;
-
-				if (this._ball.speed.length() < BALL_STOP_SPEED) {
+				if (this._ball.speed.length() < BALL_STOP_SPEED
+						&& this._borderOffsetAverage != undefined
+						&& this._placementOffsetAverage != undefined) {
 					this._ballStartPos = this._ball.pos;
 
 					if (this._ball.pos.distanceTo(this._placementPos) < END_DISTANCE) {
@@ -463,18 +499,16 @@ export class PlaceBall extends Task {
 		let usedBallPos = BallObserver.getRealisticBallPos();
 		this._nearestFieldPos = Field.limitToField(usedBallPos);
 
-		if (this._placementOffsetAverage == undefined || (usedBallPos.distanceTo(this._placementPos) > OFFSET_DISTANCE
-				&& ballVisible)) {
+		if (usedBallPos.distanceTo(this._placementPos) > OFFSET_DISTANCE
+				&& ballVisible) {
 			let currentOffset = (usedBallPos - this._placementPos).normalize();
-			if (currentOffset.lengthSq() > 1e-9) {
-				this._placementOffsets[this._placementOffsetFrame] = currentOffset;
-				this._placementOffsetFrame = (this._placementOffsetFrame + 1) % OFFSET_FRAME_COUNT;
-				this._placementOffsetAverage = geom.center(this._placementOffsets).setLength(this.OFFSET_EXTRA_LENGTH);
-			}
+			this._placementOffsets[this._placementOffsetFrame] = currentOffset;
+			this._placementOffsetFrame = (this._placementOffsetFrame + 1) % OFFSET_FRAME_COUNT;
+			this._placementOffsetAverage = geom.center(this._placementOffsets).setLength(this.OFFSET_EXTRA_LENGTH);
 		}
 
-		if (this._borderOffsetAverage == undefined || (usedBallPos.distanceTo(this._nearestFieldPos) > OFFSET_DISTANCE
-				&& ballVisible)) {
+		if (usedBallPos.distanceTo(this._nearestFieldPos) > OFFSET_DISTANCE
+				&& ballVisible) {
 			this._borderOffsets[this._borderOffsetFrame] = (usedBallPos - this._nearestFieldPos).normalize();
 			this._borderOffsetFrame = (this._borderOffsetFrame + 1) % OFFSET_FRAME_COUNT;
 			this._borderOffsetAverage = geom.center(this._borderOffsets).setLength(this.OFFSET_EXTRA_LENGTH);
