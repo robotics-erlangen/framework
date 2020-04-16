@@ -135,6 +135,28 @@ void StandardSampler::computeLive(const TrajectoryInput &input, const StandardSa
 
 void StandardSampler::computePrecomputed(const TrajectoryInput &input)
 {
+    // check points randomly around the last frames result to improve it
+    for (int i = 0;i<20;i++) {
+        float angle, time;
+        Vector speed;
+
+        const StandardSamplerBestTrajectoryInfo &info = m_bestResultInfo;
+        const float RADIUS = 0.2f;
+        Vector chosenMidSpeed = info.sample.getMidSpeed();
+        while (chosenMidSpeed.lengthSquared() > input.maxSpeedSquared) {
+            chosenMidSpeed *= 0.9f;
+        }
+        do {
+            speed = chosenMidSpeed + Vector(m_rng->uniformFloat(-RADIUS, RADIUS), m_rng->uniformFloat(-RADIUS, RADIUS));
+        } while (speed.lengthSquared() >= input.maxSpeedSquared);
+        angle = info.sample.getAngle() + m_rng->uniformFloat(-0.1f, 0.1f);
+        time = std::max(0.0001f, info.sample.getTime() + m_rng->uniformFloat(-0.1f, 0.1f));
+
+
+        checkSample(input, StandardTrajectorySample(time, angle, speed), m_bestResultInfo.time);
+    }
+
+    // check pre-computed points
     float distance = input.distance.length();
     for (const auto &segment : m_precomputedPoints) {
         if (segment.minDistance <= distance && segment.maxDistance >= distance) {
