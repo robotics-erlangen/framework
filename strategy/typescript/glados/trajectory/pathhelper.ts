@@ -426,6 +426,7 @@ function addMovingRobotObstacle(path: Path, otherRobot: Robot, safetyDistance: n
 	}
 }
 
+let robotWasSlowHysteresis = new Map<FriendlyRobot, boolean>();
 function addRobotObstacles(path: Path, robot: FriendlyRobot, targetPosition: Position, ignoreFriendlyRobots?: boolean,
 		ignoreOpponentRobots?: boolean, disableOpponentPrediction?: boolean, useCMA?: boolean) {
 	// TODO. better robot prediction and time estimation
@@ -459,10 +460,18 @@ function addRobotObstacles(path: Path, robot: FriendlyRobot, targetPosition: Pos
 		estimationTime = 0;
 	}
 	if (!ignoreOpponentRobots) {
+
+		const MAX_NO_FOUL_SPEED = 0.5;
+		const FOUL_SPEED_HYSTERESIS = 0.1;
+
+		let hystValue = robotWasSlowHysteresis[robot] ? FOUL_SPEED_HYSTERESIS : 0;
+		let robotIsSlow = robot.speed.length() < MAX_NO_FOUL_SPEED + hystValue;
+		robotWasSlowHysteresis[robot] = robotIsSlow;
+
 		for (let r of World.OpponentRobots) {
-			const MAX_NO_FOULD_SPEED = 0.5;
-			if (robot.speed.lengthSq() < MAX_NO_FOULD_SPEED * MAX_NO_FOULD_SPEED /*we cannot collide and invoke a foul if where slower than 0.5 m/s*/ &&
-				robot.pos.distanceTo(targetPosition) < MAX_NO_FOULD_SPEED / robot.acceleration.aBrakeFMax * 0.5 * MAX_NO_FOULD_SPEED /*We may not use this if we're going to accelerate again */) {
+
+			if (robotIsSlow /*we cannot collide and invoke a foul if where slower than 0.5 m/s*/ &&
+					robot.pos.distanceTo(targetPosition) < MAX_NO_FOUL_SPEED / robot.acceleration.aBrakeFMax * 0.5 * MAX_NO_FOUL_SPEED /*We may not use this if we're going to accelerate again */) {
 				break;
 			}
 			if (!ignoreRobot(robot, r)) {
@@ -495,7 +504,7 @@ function addRobotObstacles(path: Path, robot: FriendlyRobot, targetPosition: Pos
 						path.addMovingLine(0, leavingTime, r.pos, new Vector(0, 0), new Vector(0, 0), estimatedPosition, new Vector(0, 0), new Vector(0, 0), r.radius + safetyDistance, Priorities.ROBOT);
 					}
 					// path.addAvoidanceLine(estimatedPosition, r.pos + (estimatedPosition - r.pos) * 2, r.radius * 2, 1.2);
-					if ((robot.speed.length() > 0.5) && !useCMA) {
+					if (!robotIsSlow && !useCMA) {
 						path.addMovingCircle(0, 0.8, r.pos, r.speed, new Vector(0, 0), r.radius + safetyDistance, Priorities.ROBOT);
 					}
 				} else {
