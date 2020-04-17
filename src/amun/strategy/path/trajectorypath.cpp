@@ -75,6 +75,15 @@ static void serializeTrajectoryInput(const TrajectoryInput &input, pathfinding::
     result->set_acceleration(input.acceleration);
 }
 
+static std::vector<TrajectorySampler::TrajectoryGenerationInfo> concat(const std::vector<TrajectorySampler::TrajectoryGenerationInfo> &a,
+                                                                        const std::vector<TrajectorySampler::TrajectoryGenerationInfo> &b) {
+
+    std::vector<TrajectorySampler::TrajectoryGenerationInfo> result;
+    result.insert(result.end(), a.begin(), a.end());
+    result.insert(result.end(), b.begin(), b.end());
+    return result;
+}
+
 std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPath()
 {
     const auto &obstacles = m_world.obstacles();
@@ -85,30 +94,51 @@ std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPat
     m_world.collectObstacles();
     m_world.collectMovingObstacles();
 
+    // copy input so that the modification does not affect the getResultPath function
+    TrajectoryInput input = m_input;
+
     // check if start point is in obstacle
-    if (m_world.isInStaticObstacle(obstacles, m_input.s0) || m_world.isInMovingObstacle(m_world.movingObstacles(), m_input.s0, 0)) {
-        if (m_escapeObstacleSampler.compute(m_input)) {
-            return m_escapeObstacleSampler.getResult();
+    std::vector<TrajectorySampler::TrajectoryGenerationInfo> escapeObstacle;
+    if (m_world.isInStaticObstacle(obstacles, input.s0) || m_world.isInMovingObstacle(m_world.movingObstacles(), input.s0, 0)) {
+        if (!m_escapeObstacleSampler.compute(input)) {
+            // no fallback for now
+            return {};
         }
-        // no fallback for now
-        return {};
+
+        // the endpoint of the computed trajectory is now a safe start point
+        // so just continue with the regular computation
+        escapeObstacle = m_escapeObstacleSampler.getResult();
+
+        // assume no slowDownTime
+        float partTime = escapeObstacle[0].profile.time();
+        Vector startOffset = escapeObstacle[0].profile.positionForTime(partTime);
+        Vector startSpeed = escapeObstacle[0].profile.speedForTime(partTime);
+
+        input.s0 += startOffset;
+        input.distance = input.s1 - input.s0;
+        input.v0 = startSpeed;
     }
 
     // check if end point is in obstacle
-    if (m_world.isInStaticObstacle(obstacles, m_input.s1)) {
+    if (m_world.isInStaticObstacle(obstacles, input.s1)) {
         for (const StaticObstacles::Obstacle *o : obstacles) {
-            float dist = o->distance(m_input.s1);
+            float dist = o->distance(input.s1);
             if (dist > -0.2 && dist < 0) {
-                m_input.s1 = o->projectOut(m_input.s1, 0.03f);
+                input.s1 = o->projectOut(input.s1, 0.03f);
             }
         }
-        m_input.distance = m_input.s1 - m_input.s0;
+        input.distance = input.s1 - input.s0;
         // test again, might have been moved into another obstacle
-        if (m_world.isInStaticObstacle(obstacles, m_input.s1)) {
-            if (m_endInObstacleSampler.compute(m_input)) {
-                return m_endInObstacleSampler.getResult();
+        // TODO: check moving obstacles with minimum
+        if (m_world.isInStaticObstacle(obstacles, input.s1)) {
+            if (m_endInObstacleSampler.compute(input)) {
+                return concat(escapeObstacle, m_endInObstacleSampler.getResult());
             }
-            if (m_escapeObstacleSampler.compute(m_input)) {
+            if (escapeObstacle.size() > 0) {
+                // we have already run the escape obstacle sampler, no need to do it again
+                return escapeObstacle;
+            }
+            if (m_escapeObstacleSampler.compute(input)) {
                 return m_escapeObstacleSampler.getResult();
             }
             return {};
@@ -116,36 +146,41 @@ std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPat
     }
 
     // check direct trajectory
-    float directSlowDownTime = m_input.exponentialSlowDown ? AlphaTimeTrajectory::SLOW_DOWN_TIME : 0.0f;
-    bool useHighPrecision = m_input.distance.length() < 0.1f && m_input.v1 == Vector(0, 0) && m_input.v0.length() < 0.2f;
-    SpeedProfile direct = AlphaTimeTrajectory::findTrajectoryFastEndSpeed(m_input.v0, m_input.v1, m_input.distance, m_input.acceleration, m_input.maxSpeed, directSlowDownTime, useHighPrecision);
+    float directSlowDownTime = input.exponentialSlowDown ? AlphaTimeTrajectory::SLOW_DOWN_TIME : 0.0f;
+    bool useHighPrecision = input.distance.length() < 0.1f && input.v1 == Vector(0, 0) && input.v0.length() < 0.2f;
+    SpeedProfile direct = AlphaTimeTrajectory::findTrajectoryFastEndSpeed(input.v0, input.v1, input.distance, input.acceleration, input.maxSpeed, directSlowDownTime, useHighPrecision);
     if (direct.isValid()) {
-        auto obstacleDistances = m_world.minObstacleDistance(direct, 0, directSlowDownTime, m_input.s0);
+        auto obstacleDistances = m_world.minObstacleDistance(direct, 0, directSlowDownTime, input.s0);
         if (obstacleDistances.first > StandardSampler::OBSTACLE_AVOIDANCE_RADIUS ||
                 (obstacleDistances.second > 0 && obstacleDistances.second < StandardSampler::OBSTACLE_AVOIDANCE_RADIUS)) {
             TrajectorySampler::TrajectoryGenerationInfo info;
             info.profile = direct;
             info.slowDownTime = directSlowDownTime;
             info.fastEndSpeed = true;
-            info.desiredDistance = m_input.distance;
-            return {info};
+            info.desiredDistance = input.distance;
+            return concat(escapeObstacle, {info});
         }
     }
 
     if (m_inputSaver != nullptr) {
         pathfinding::PathFindingTask task;
-        serializeTrajectoryInput(m_input, task.mutable_input());
+        serializeTrajectoryInput(input, task.mutable_input());
         m_world.serialize(task.mutable_state());
         m_inputSaver->saveMessage(task);
     }
 
-    if (m_standardSampler.compute(m_input)) {
-        return m_standardSampler.getResult();
+    if (m_standardSampler.compute(input)) {
+        return concat(escapeObstacle, m_standardSampler.getResult());
     }
-    if (m_endInObstacleSampler.compute(m_input)) {
-        return m_endInObstacleSampler.getResult();
+    if (m_endInObstacleSampler.compute(input)) {
+        return concat(escapeObstacle, m_endInObstacleSampler.getResult());
     }
-    if (m_escapeObstacleSampler.compute(m_input)) {
+
+    if (escapeObstacle.size() > 0) {
+        // we have already run the escape obstacle sampler, no need to do it again
+        return escapeObstacle;
+    }
+    if (m_escapeObstacleSampler.compute(input)) {
         return m_escapeObstacleSampler.getResult();
     }
     return {};

@@ -24,12 +24,9 @@
 bool EscapeObstacleSampler::compute(const TrajectoryInput &input)
 {
     // first stage: find a path that quickly exists all obstacles
-    Vector bestStartingSpeed;
-    Vector bestStartingEndPos;
-    float bestEndTime;
+    // the second stage is executed by the regular standard sampler
     {
         // try last frames trajectory
-        // TODO: potentiell jetzt wegen der anfangsgeschwindigkeit ungueltig
         SpeedProfile p = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(input.v0, Vector(0, 0), m_bestEscapingTime, m_bestEscapingAngle,
                                                                                input.acceleration, input.maxSpeed);
         SpeedProfile bestProfile = p;
@@ -43,7 +40,7 @@ bool EscapeObstacleSampler::compute(const TrajectoryInput &input)
             bestPrio = 10000;
             bestObstacleTime = 10000;
         }
-        bestEndTime = endTime;
+        float bestEndTime = endTime;
         for (int i = 0;i<25;i++) {
             float time, angle;
             if (m_rng->uniformInt() % 2 == 0) {
@@ -84,66 +81,6 @@ bool EscapeObstacleSampler::compute(const TrajectoryInput &input)
         }
         TrajectoryGenerationInfo info;
         bestProfile.limitToTime(bestEndTime);
-        info.profile = bestProfile;
-        info.slowDownTime = 0;
-        info.fastEndSpeed = false;
-        info.desiredDistance = Vector(0, 0);
-        m_generationInfo.push_back(info);
-
-        bestStartingEndPos = bestProfile.positionForTime(bestProfile.time()) + input.s0;
-        bestStartingSpeed = bestProfile.speedForTime(bestProfile.time());
-
-        if (bestStartingSpeed.length() < 0.01f) {
-            // nothing to do, the robot is already standing at a safe location
-            return true;
-        }
-    }
-
-    // second stage: try to find a path to stop
-    {
-        float closestDistance = std::numeric_limits<float>::max();
-        SpeedProfile bestProfile;
-        bool foundResult = false;
-
-        SpeedProfile p = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(bestStartingSpeed, Vector(0, 0), m_bestStoppingTime,
-                                                                               m_bestStoppingAngle, input.acceleration, input.maxSpeed);
-
-        if (p.isValid() && !m_world.isTrajectoryInObstacle(p, bestEndTime, 0, bestStartingEndPos)) {
-            closestDistance = (p.positionForTime(p.time()) + bestStartingEndPos).distance(input.s1);
-            bestProfile = p;
-            foundResult = true;
-        }
-
-        for (int i = 0;i<25;i++) {
-            float time, angle;
-            if (m_rng->uniformInt() % 4 == 0) {
-                // random sampling
-                time = m_rng->uniformFloat(0.001f, 4.0f);
-                angle = m_rng->uniformFloat(0, float(2 * M_PI));
-            } else {
-                // sample around current best point
-                time = std::max(0.001f, m_bestStoppingTime + m_rng->uniformFloat(-0.1f, 0.1f));
-                angle = m_bestStoppingAngle + m_rng->uniformFloat(-0.1f, 0.1f);
-            }
-
-            p = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(bestStartingSpeed, Vector(0, 0), time, angle, input.acceleration, input.maxSpeed);
-            if (p.isValid() && !m_world.isTrajectoryInObstacle(p, bestEndTime, 0, bestStartingEndPos)) {
-                Vector stopPos = p.positionForTime(p.time()) + bestStartingEndPos;
-                if (stopPos.distance(input.s1) < closestDistance - 0.05f) {
-                    m_bestStoppingTime = time;
-                    m_bestStoppingAngle = angle;
-                    bestProfile = p;
-                    foundResult = true;
-                    closestDistance = stopPos.distance(input.s1);
-                }
-            }
-        }
-
-        if (!foundResult) {
-            return false;
-        }
-
-        TrajectoryGenerationInfo info;
         info.profile = bestProfile;
         info.slowDownTime = 0;
         info.fastEndSpeed = false;
