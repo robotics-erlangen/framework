@@ -348,8 +348,6 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     // logplayer mode connections
     LogCutter *logCutter = new LogCutter(this);
 
-    m_playTimer = ui->logManager->getPlayTimer();
-
     setAcceptDrops(true);
 
     ui->replay->setRecentScriptList(ui->robots->recentScriptsList());

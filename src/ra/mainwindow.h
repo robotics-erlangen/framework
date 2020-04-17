@@ -120,7 +120,6 @@ private:
     DebuggerConsole *m_console;
     bool m_isTournamentMode;
     uint m_currentWidgetConfiguration;
-    Timer *m_playTimer;
     LogOpener * m_logOpener;
     QString m_horusTitleString;
     QActionGroup* m_simulatorSetupGroup;
