@@ -29,7 +29,11 @@ Logsuite::Logsuite(QAction* logAction, QAction* backlogMenu, QAction* backlogBut
     connect(m_backlogButton, SIGNAL(triggered(bool)), this, SIGNAL(triggeredBacklog()));
 }
 
-void Logsuite::handleUiResponse(const amun::UiResponse& response, qint64 time) {
+void Logsuite::handleStatus(const Status& status) {
+    if (!status->has_pure_ui_response()) {
+        return;
+    }
+    const amun::UiResponse& response = status->pure_ui_response();
     if (response.has_is_logging()) {
         bool log = response.is_logging();
         m_backlogActionMenu->setEnabled(!log);

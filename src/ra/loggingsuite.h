@@ -22,7 +22,7 @@
 #define LOGSUITE_H
 
 #include <QObject>
-#include "protobuf/status.pb.h"
+#include "protobuf/status.h"
 #include <QAction>
 
 class Logsuite: public QObject {
@@ -33,8 +33,7 @@ public:
     QAction* getLogAction() { return m_logAction; }
 
 public slots:
-//    void handleStatus(const Status &status); //TODO: to be implemented as soon as UiResponse is used via status
-    void handleUiResponse(const amun::UiResponse& response, qint64 time);
+    void handleStatus(const Status &status);
 signals:
     void isLogging(bool logging);
     void triggeredBacklog();

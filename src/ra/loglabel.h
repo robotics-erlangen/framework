@@ -20,7 +20,7 @@
 #ifndef RALOGLABEL_H
 #define RALOGLABEL_H
 
-#include "protobuf/status.pb.h"
+#include "protobuf/status.h"
 #include <QLabel>
 #include <QString>
 
@@ -28,8 +28,7 @@ class LogLabel: public QLabel {
     Q_OBJECT
 
 public slots:
-//    void handleStatus(const Status &status); //TODO: to be implemented as soon as UiResponse is used via status
-    void handleUiResponse(amun::UiResponse response, qint64 time);
+    void handleStatus(const Status &status);
 
 private:
     qint64 m_logStartTime;

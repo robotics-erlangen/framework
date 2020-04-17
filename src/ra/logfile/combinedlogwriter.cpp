@@ -163,17 +163,17 @@ void CombinedLogWriter::handleStatus(Status status)
     if (m_isLoggingEnabled && m_logState == LogState::PENDING) {
         startLogfile();
     }
-    // send a UIResponse to make sure Loglabel can update the time information
-    // the UIResponse itself is useless, only m_lastTime is used currently.
-    // This will change as soon as the UIResponse is embedded in Status
-    // and the Loglabel will be able to use the timing in Status to calculate it's information
-    amun::UiResponse response;
+
+    // If we didn't tell the UI because we didn't know what time is it, we have to send this information here.
     if (m_lastTime == 0 && m_logState == LogState::LOGGING) {
-        // If we didn't tell the UI because we didn't know what time is it, we have to send this information here.
-        response.set_is_logging(true);
+        Status s = Status::createArena();
+        s->set_time(status->time());
+        amun::UiResponse* response = s->mutable_pure_ui_response();
+        response->set_is_logging(true);
+        emit sendStatus(s);
     }
+
     m_lastTime = status->time();
-    emit sendUiResponse(response, m_lastTime);
 
     Status copy;
     if (status->has_pure_ui_response()) {
@@ -199,9 +199,11 @@ void CombinedLogWriter::enableLogging(bool enable)
         }
     }
     m_isLoggingEnabled = enable;
-    amun::UiResponse response;
-    response.set_enable_logging(enable);
-    emit sendUiResponse(response, m_lastTime);
+    Status s = Status::createArena();
+    s->set_time(m_lastTime);
+    amun::UiResponse* response = s->mutable_pure_ui_response();
+    response->set_enable_logging(enable);
+    emit sendStatus(s);
 }
 
 void CombinedLogWriter::saveBackLog()
@@ -293,9 +295,11 @@ void CombinedLogWriter::recordButtonToggled(bool enabled)
             delete m_logFile;
             m_logFile = nullptr;
             // show in the ui that the recording failed by informing it that the recording finished.
-            amun::UiResponse response;
-            response.set_is_logging(false);
-            emit sendUiResponse(response, m_lastTime);
+            Status s = Status::createArena();
+            s->set_time(m_lastTime);
+            amun::UiResponse* response = s->mutable_pure_ui_response();
+            response->set_is_logging(false);
+            emit sendStatus(s);
             return;
         }
         connect(m_signalSource, SIGNAL(gotStatusForRecording(Status)), m_logFile, SLOT(writeStatus(Status)));
@@ -323,9 +327,11 @@ void CombinedLogWriter::recordButtonToggled(bool enabled)
         // The rare case where a user (most likely via loglog) produces a log without any status
         // and wonders why he cannot open the log was considered but deemed not important
         // and the responsiveness of the UI was considered more useful.
-        amun::UiResponse response;
-        response.set_is_logging(enabled);
-        emit sendUiResponse(response, m_lastTime);
+        Status s = Status::createArena();
+        s->set_time(m_lastTime);
+        amun::UiResponse* response = s->mutable_pure_ui_response();
+        response->set_is_logging(enabled);
+        emit sendStatus(s);
     }
 }
 

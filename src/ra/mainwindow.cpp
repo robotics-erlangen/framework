@@ -210,6 +210,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     connect(this, SIGNAL(gotStatus(Status)), ui->blueDebugger, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), ui->yellowDebugger, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), ui->simulator, SLOT(handleStatus(Status)));
+    connect(this, SIGNAL(gotStatus(Status)), m_logTimeLabel, SLOT(handleStatus(Status)));
 
     // set up log connections
     createLogWriterConnections(m_logWriterRa, m_loggingUiRa);
@@ -448,8 +449,8 @@ void MainWindow::createLogWriterConnections(CombinedLogWriter &writer, Logsuite*
     connect(suite->getLogAction(), SIGNAL(toggled(bool)), &writer, SLOT(recordButtonToggled(bool)));
 
     connect(suite, &Logsuite::triggeredBacklog, &writer, &CombinedLogWriter::saveBackLog);
-    connect(&writer, &CombinedLogWriter::sendUiResponse, m_logTimeLabel, &LogLabel::handleUiResponse);
-    connect(&writer, &CombinedLogWriter::sendUiResponse, suite, &Logsuite::handleUiResponse);
+    connect(&writer, &CombinedLogWriter::sendStatus, m_logTimeLabel, &LogLabel::handleStatus);
+    connect(&writer, &CombinedLogWriter::sendStatus, suite, &Logsuite::handleStatus);
     connect(&writer, SIGNAL(sendStatus(Status)), m_plotter, SLOT(handleStatus(Status)));
 }
 
