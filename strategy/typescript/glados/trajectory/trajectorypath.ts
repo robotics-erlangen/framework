@@ -187,8 +187,8 @@ export class TrajectoryPath extends TrajectoryHandler {
 		let queryTime;
 		let startDriving = false;
 		if (World.IsSimulated) {
-			if (robotPos.distanceTo(targetPos) < 0.1 && robotSpeed.length() < 0.1) {
-				queryTime = Math.min(0.05, timeToEnd / 2);
+			if (timeToEnd < 0.4) {
+				queryTime = Math.min(0.1, (0.4 - timeToEnd) / 4);
 			} else {
 				queryTime = 0;
 			}
