@@ -62,50 +62,6 @@ export function isConnected(): boolean {
 }
 
 /**
- * Check if during this frame a message indicating a pushing foul was received.
- * This implies an advantage choice.
- * @returns the GameEvent if pushing occured, undefined otherwise
- */
-export function getPushingEvent(): gameController.GameEvent.BotPushedBot | undefined {
-	if (!message || !message.advantage_choice || message.advantage_choice.foul !== gameController.AdvantageChoice.Foul.PUSHING) {
-		return undefined;
-	}
-	return message.advantage_choice.bot_pushed_bot;
-}
-
-/**
- * Check if during this frame a message indicating a collision foul was received.
- * This implies an advantage choice.
- * @returns the GameEvent if a collision occured, undefined otherwise
- */
-export function getCollisionEvent(): gameController.GameEvent.BotCrashUnique | undefined {
-	if (!message || !message.advantage_choice || message.advantage_choice.foul !== gameController.AdvantageChoice.Foul.COLLISION) {
-		return undefined;
-	}
-	return message.advantage_choice.bot_crash_unique;
-}
-
-/**
- * Check if during this frame a message indicating a touch opponent in defense area foul was received.
- * This implies an advantage choice.
- * @returns the GameEvent if a touch opponent in defense area event occured, undefined otherwise
- */
-export function getTouchOpponentInDefenseAreaEvent(): gameController.GameEvent.AttackerTouchedOpponentInDefenseArea | undefined {
-	if (!message || !message.advantage_choice || message.advantage_choice.foul !== gameController.AdvantageChoice.Foul.ATTACKER_TOUCHED_OPPONENT_IN_DEFENSE_AREA) {
-		return undefined;
-	}
-	return message.advantage_choice.attacker_touched_opponent_in_defense_area;
-}
-
-/**
- * Check if we are allowed to make an advantage choice
- * @returns true if we are allowed to make an advantage choice
- */
-export function advantageFoulOccured(): boolean {
-	return getCollisionEvent() != undefined || getPushingEvent() != undefined || getTouchOpponentInDefenseAreaEvent() != undefined;
-}
-
-/**
  * Request to change the keeper to the desired robot.
  * Will crash in debug while not in STOP
  * @param id - the id of the desired new keeper

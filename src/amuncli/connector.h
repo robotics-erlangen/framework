@@ -109,7 +109,7 @@ private:
     LogFileWriter m_logfile;
     bool m_recordLogfile = false;
 
-    std::map<gameController::GameEventType, std::size_t> m_eventCounter;
+    std::map<gameController::GameEvent::Type, std::size_t> m_eventCounter;
     gameController::GameEvent m_lastGameEvent;
 
     BacklogWriter m_backlogWriter;

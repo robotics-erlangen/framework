@@ -40,6 +40,7 @@ set(PROTO_FILES
     ssl_detection.proto
     ssl_game_controller_auto_ref.proto
     ssl_game_controller_common.proto
+    ssl_game_controller_geometry.proto
     ssl_game_controller_team.proto
     ssl_game_event_2019.proto
     ssl_geometry.proto

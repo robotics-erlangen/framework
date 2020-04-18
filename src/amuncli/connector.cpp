@@ -302,7 +302,7 @@ void Connector::handleStatus(const Status &status)
 
         if (m_reportEvents) {
             std::cout <<std::endl<<"Events:"<<std::endl;
-            auto eventTypeDesc = gameController::GameEventType_descriptor();
+            auto eventTypeDesc = gameController::GameEvent::Type_descriptor();
             for (auto el : m_eventCounter) {
                 std::cout <<eventTypeDesc->FindValueByNumber(el.first)->name()<<": "<<el.second<<std::endl;
             }
@@ -318,9 +318,12 @@ void Connector::handleStatus(const Status &status)
             m_eventCounter[event.type()]++;
             m_lastGameEvent = event;
 
-            const std::array<gameController::GameEventType, 4> excludedEvents = {gameController::PREPARED, gameController::PLACEMENT_SUCCEEDED, gameController::BALL_LEFT_FIELD_GOAL_LINE, gameController::BALL_LEFT_FIELD_TOUCH_LINE};
+            const std::array<gameController::GameEvent::Type, 4> excludedEvents = {gameController::GameEvent::PREPARED,
+                                                                                   gameController::GameEvent::PLACEMENT_SUCCEEDED,
+                                                                                   gameController::GameEvent::BALL_LEFT_FIELD_GOAL_LINE,
+                                                                                   gameController::GameEvent::BALL_LEFT_FIELD_TOUCH_LINE};
             if (m_backlogDir != "" && std::find(excludedEvents.begin(), excludedEvents.end(), event.type()) == excludedEvents.end()) {
-                auto eventTypeDesc = gameController::GameEventType_descriptor();
+                auto eventTypeDesc = gameController::GameEvent::Type_descriptor();
                 QString eventName = QString::fromStdString(eventTypeDesc->FindValueByNumber(event.type())->name());
                 m_backlogList.push_back({status->time(), eventName});
             }

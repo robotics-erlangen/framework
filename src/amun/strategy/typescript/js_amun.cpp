@@ -692,8 +692,6 @@ static void amunSendGameControllerMessage(const FunctionCallbackInfo<Value>& arg
         message.reset(new gameController::TeamToController);
     } else if (type == "AutoRefToController") {
         message.reset(new gameController::AutoRefToController);
-    } else if (type == "AutoRefMessage") {
-        message.reset(new gameController::AutoRefMessage);
     } else {
         throwError(isolate, "Unknown game controller message type");
         return;

@@ -305,8 +305,6 @@ static int amunSendGameControllerMessage(lua_State *state)
         message.reset(new gameController::TeamToController);
     } else if (type == "AutoRefToController") {
         message.reset(new gameController::AutoRefToController);
-    } else if (type == "AutoRefMessage") {
-        message.reset(new gameController::AutoRefMessage);
     } else {
         luaL_error(state, "Unknown game controller message type");
         return 0;
