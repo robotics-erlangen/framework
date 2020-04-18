@@ -1,13 +1,9 @@
 import { log } from "base/amun";
-import * as debug from "base/debug";
 import * as Field from "base/field";
-import * as GameController from "base/gamecontroller";
 import * as BaseRef from "base/referee";
-import { Robot } from "base/robot";
 import { Position, Speed } from "base/vector";
 import * as World from "base/world";
 
-import * as ObsvBall from "glados/observer/ball";
 import * as Error from "glados/observer/error";
 
 let G = World.Geometry;
@@ -84,76 +80,3 @@ export function realisticCardsOpponent() {
 	return World.OpponentYellowCards.length + World.OpponentRedCards;
 
 }
-
-/**
- * Find the robot which commited collision/pushing.
- * Uses the current frames GameController message
- * @returns the bully or undefined if neither pushing nor collision were commited
- */
-export function getFoulingRobot(): Robot | undefined {
-	const pushingEvent = GameController.getPushingEvent();
-	if (pushingEvent && pushingEvent.violator != undefined) {
-		return World.OpponentRobotsById[pushingEvent.violator];
-	}
-	const collisionEvent = GameController.getCollisionEvent();
-	if (collisionEvent && collisionEvent.violator != undefined) {
-		return World.OpponentRobotsById[collisionEvent.violator];
-	}
-	const touchOpponentEvent = GameController.getTouchOpponentInDefenseAreaEvent();
-	if (touchOpponentEvent && touchOpponentEvent.by_bot != undefined) {
-		return World.OpponentRobotsById[touchOpponentEvent.by_bot];
-	}
-	return undefined;
-}
-
-const MIN_DEFENSE_DISTANCE = 1;
-
-export function shouldTakeAdvantage(): boolean {
-	if (Field.distanceToDefenseArea(ObsvBall.getRealisticBallPos(), World.Ball.radius, true) < MIN_DEFENSE_DISTANCE) {
-		return false;
-	}
-
-	if (ObsvBall.wasShot(1) && ObsvBall.ballHeadingForGoal(World.Ball, false)) {
-		debug.set("advantage check", "own goal shot");
-		return true;
-	}
-	if (ObsvBall.wasShot(1) && ObsvBall.ballHeadingForGoal(World.Ball, true)) {
-		debug.set("advantage check", "opponent goal shot");
-		return false;
-	}
-
-	if (Field.distanceToDefenseArea(ObsvBall.getRealisticBallPos(), World.Ball.radius, false) < MIN_DEFENSE_DISTANCE
-			&& Field.isInAllowedField(ObsvBall.getRealisticBallPos(), 0)) {
-		debug.set("advantage check", "close to opponent defense");
-		return true;
-	}
-
-	const [minRobot] = ObsvBall.firstRobotAtBall(World.Robots);
-	if (minRobot && !minRobot.isFriendly) {
-		debug.set("advantage check", "opponent first");
-		return false;
-	}
-
-	const foulingRobot = getFoulingRobot();
-	const freeKickPos = foulingRobot ? foulingRobot.pos : undefined;
-	if (!freeKickPos) {
-		debug.set("advantage check", "no freekick pos");
-		return false;
-	}
-
-	const MAX_BALL_SPEED_SQ = 3 * 3;
-	if (World.Ball.speed.lengthSq() > MAX_BALL_SPEED_SQ) {
-		debug.set("advantage check", "fast ball");
-		return false;
-	}
-
-	const MAX_STEP_BACKWARDS = 2;
-	if (World.Ball.pos.y - freeKickPos.y > MAX_STEP_BACKWARDS) {
-		debug.set("advantage check", "big step backwards");
-		return true;
-	}
-
-	debug.set("advantage check", "default");
-	return false;
-}
-
