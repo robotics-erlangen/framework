@@ -1,5 +1,6 @@
 // automatically generated, do not edit
 /* tslint:disable:class-name */
+// automatically generated, do not edit
 
 export namespace amun {
 	export namespace GameState {
@@ -38,6 +39,7 @@ export namespace amun {
 		is_real_game_running?: boolean;
 		current_action_time_remaining?: number;
 		next_state?: amun.GameState.State;
+		game_event_2019?: gameController.GameEvent;
 	}
 	export interface SimulatorMoveBall {
 		p_x?: number;
@@ -47,6 +49,7 @@ export namespace amun {
 		v_x?: number;
 		v_y?: number;
 		v_z?: number;
+		teleport_safely?: boolean;
 	}
 	export interface SimulatorMoveRobot {
 		id: number;
@@ -63,11 +66,17 @@ export namespace amun {
 		p_x?: number;
 		p_y?: number;
 	}
-	export namespace CommandSimulator {
-		export const enum RuleVersion {
-			RULES2017 = "RULES2017",
-			RULES2018 = "RULES2018",
-		}
+	export interface CameraSetup {
+		num_cameras: number;
+		camera_height: number;
+	}
+	export interface SimulatorSetup {
+		geometry?: world.Geometry;
+		camera_setup?: amun.CameraSetup;
+	}
+	export interface SimulatorWorstCaseVision {
+		min_robot_detection_time?: number;
+		min_ball_detection_time?: number;
 	}
 	export interface CommandSimulator {
 		enable?: boolean;
@@ -79,8 +88,11 @@ export namespace amun {
 		stddev_ball_p?: number;
 		stddev_robot_p?: number;
 		stddev_robot_phi?: number;
-		rule_version?: amun.CommandSimulator.RuleVersion;
+		simulator_setup?: amun.SimulatorSetup;
 		enable_invisible_ball?: boolean;
+		ball_visibility_threshold?: number;
+		camera_overlap?: number;
+		vision_worst_case?: amun.SimulatorWorstCaseVision;
 	}
 	export interface CommandReferee {
 		active?: boolean;
@@ -95,9 +107,6 @@ export namespace amun {
 	}
 	export interface CommandStrategyClose {
 	}
-	export interface CommandStrategySetOptions {
-		option?: string[];
-	}
 	export interface CommandStrategyTriggerDebugger {
 	}
 	export interface CommandStrategy {
@@ -107,7 +116,6 @@ export namespace amun {
 		auto_reload?: boolean;
 		enable_debug?: boolean;
 		enable_refbox_control?: boolean;
-		options?: amun.CommandStrategySetOptions;
 		debug?: amun.CommandStrategyTriggerDebugger;
 		performance_mode?: boolean;
 		start_profiling?: boolean;
@@ -148,9 +156,14 @@ export namespace amun {
 		field_transform?: amun.VirtualFieldTransform;
 		virtual_geometry?: world.Geometry;
 	}
+	export interface CommandStrategyChangeOption {
+		name: string;
+		value: boolean;
+	}
 	export interface CommandAmun {
 		vision_port?: number;
 		referee_port?: number;
+		change_option?: amun.CommandStrategyChangeOption;
 	}
 	export const enum DebuggerInputTarget {
 		DITStrategyYellow = "DITStrategyYellow",
@@ -175,6 +188,7 @@ export namespace amun {
 		DebugAutoref = "DebugAutoref",
 		Replay = "Replay",
 		Horus = "Horus",
+		Logging = "Logging",
 	}
 	export interface PauseSimulatorCommand {
 		reason: amun.PauseSimulatorReason;
@@ -294,6 +308,10 @@ export namespace amun {
 		robot?: amun.RobotValue[];
 		debugger_output?: amun.DebuggerOutput;
 	}
+	export interface StrategyOption {
+		name: string;
+		default_value?: boolean;
+	}
 	export namespace StatusStrategy {
 		export const enum STATE {
 			CLOSED = "CLOSED",
@@ -308,8 +326,8 @@ export namespace amun {
 		name?: string;
 		current_entry_point?: string;
 		entry_point?: string[];
-		option?: string[];
 		has_debugger?: boolean;
+		options?: amun.StrategyOption[];
 	}
 	export namespace StatusStrategyWrapper {
 		export const enum StrategyType {
@@ -345,8 +363,13 @@ export namespace amun {
 	export interface PortBindError {
 		port: number;
 	}
+	export interface OptionStatus {
+		name: string;
+		value: boolean;
+	}
 	export interface StatusAmun {
 		port_bind_error?: amun.PortBindError;
+		options?: amun.OptionStatus[];
 	}
 	export interface Status {
 		time: number;
@@ -379,388 +402,6 @@ export namespace amun {
 	export interface UserInput {
 		radio_command?: robot.RadioCommand[];
 		move_command?: amun.RobotMoveCommand[];
-	}
-}
-export namespace gameController {
-	export interface AutoRefRegistration {
-		identifier: string;
-		signature?: gameController.Signature;
-	}
-	export interface AutoRefToController {
-		signature?: gameController.Signature;
-		game_event?: gameController.GameEvent;
-		auto_ref_message?: gameController.AutoRefMessage;
-	}
-	export interface ControllerToAutoRef {
-		controller_reply?: gameController.ControllerReply;
-	}
-	export namespace AutoRefMessage {
-		export namespace WaitForBots {
-			export interface Violator {
-				bot_id: gameController.BotId;
-				distance: number;
-			}
-		}
-		export interface WaitForBots {
-			violators?: gameController.AutoRefMessage.WaitForBots.Violator[];
-		}
-	}
-	export interface AutoRefMessage {
-		custom?: string;
-		wait_for_bots?: gameController.AutoRefMessage.WaitForBots;
-	}
-	export const enum Team {
-		UNKNOWN = "UNKNOWN",
-		YELLOW = "YELLOW",
-		BLUE = "BLUE",
-	}
-	export interface BotId {
-		id?: number;
-		team?: gameController.Team;
-	}
-	export interface Location {
-		x: number;
-		y: number;
-	}
-	export namespace ControllerReply {
-		export const enum StatusCode {
-			UNKNOWN_STATUS_CODE = "UNKNOWN_STATUS_CODE",
-			OK = "OK",
-			REJECTED = "REJECTED",
-		}
-		export const enum Verification {
-			UNKNOWN_VERIFICATION = "UNKNOWN_VERIFICATION",
-			VERIFIED = "VERIFIED",
-			UNVERIFIED = "UNVERIFIED",
-		}
-	}
-	export interface ControllerReply {
-		status_code?: gameController.ControllerReply.StatusCode;
-		reason?: string;
-		next_token?: string;
-		verification?: gameController.ControllerReply.Verification;
-	}
-	export interface Signature {
-		token: string;
-		pkcs1v15: ArrayBuffer;
-	}
-	export interface BallSpeedMeasurement {
-		timestamp: number;
-		ball_speed: number;
-		initial_ball_speed?: number;
-	}
-	export interface TeamRegistration {
-		team_name: string;
-		signature?: gameController.Signature;
-	}
-	export namespace TeamToController {
-		export const enum AdvantageResponse {
-			STOP = "STOP",
-			CONTINUE = "CONTINUE",
-			UNDECIDED = "UNDECIDED",
-		}
-	}
-	export interface TeamToController {
-		signature?: gameController.Signature;
-		desired_keeper?: number;
-		advantage_response?: gameController.TeamToController.AdvantageResponse;
-		substitute_bot?: boolean;
-		ping?: boolean;
-	}
-	export interface ControllerToTeam {
-		controller_reply?: gameController.ControllerReply;
-		advantage_choice?: gameController.AdvantageChoice;
-	}
-	export namespace AdvantageChoice {
-		export const enum Foul {
-			UNKNOWN = "UNKNOWN",
-			COLLISION = "COLLISION",
-			PUSHING = "PUSHING",
-			ATTACKER_TOUCHED_OPPONENT_IN_DEFENSE_AREA = "ATTACKER_TOUCHED_OPPONENT_IN_DEFENSE_AREA",
-		}
-	}
-	export interface AdvantageChoice {
-		foul: gameController.AdvantageChoice.Foul;
-		bot_crash_unique?: gameController.GameEvent.BotCrashUnique;
-		bot_pushed_bot?: gameController.GameEvent.BotPushedBot;
-		attacker_touched_opponent_in_defense_area?: gameController.GameEvent.AttackerTouchedOpponentInDefenseArea;
-	}
-	export namespace GameEvent {
-		export interface BallLeftField {
-			by_team: gameController.Team;
-			by_bot?: number;
-			location?: gameController.Location;
-		}
-		export interface AimlessKick {
-			by_team: gameController.Team;
-			by_bot?: number;
-			location?: gameController.Location;
-			kick_location?: gameController.Location;
-		}
-		export interface Goal {
-			by_team: gameController.Team;
-			kicking_team?: gameController.Team;
-			kicking_bot?: number;
-			location?: gameController.Location;
-			kick_location?: gameController.Location;
-		}
-		export interface IndirectGoal {
-			by_team: gameController.Team;
-			by_bot?: number;
-			location?: gameController.Location;
-			kick_location?: gameController.Location;
-		}
-		export interface ChippedGoal {
-			by_team: gameController.Team;
-			by_bot?: number;
-			location?: gameController.Location;
-			kick_location?: gameController.Location;
-			max_ball_height?: number;
-		}
-		export interface BotTooFastInStop {
-			by_team: gameController.Team;
-			by_bot?: number;
-			location?: gameController.Location;
-			speed?: number;
-		}
-		export interface DefenderTooCloseToKickPoint {
-			by_team: gameController.Team;
-			by_bot?: number;
-			location?: gameController.Location;
-			distance?: number;
-		}
-		export interface BotCrashDrawn {
-			bot_yellow?: number;
-			bot_blue?: number;
-			location?: gameController.Location;
-			crash_speed?: number;
-			speed_diff?: number;
-			crash_angle?: number;
-		}
-		export interface BotCrashUnique {
-			by_team: gameController.Team;
-			violator?: number;
-			victim?: number;
-			location?: gameController.Location;
-			crash_speed?: number;
-			speed_diff?: number;
-			crash_angle?: number;
-		}
-		export interface BotPushedBot {
-			by_team: gameController.Team;
-			violator?: number;
-			victim?: number;
-			location?: gameController.Location;
-			pushed_distance?: number;
-		}
-		export interface BotTippedOver {
-			by_team: gameController.Team;
-			by_bot?: number;
-			location?: gameController.Location;
-		}
-		export interface DefenderInDefenseArea {
-			by_team: gameController.Team;
-			by_bot?: number;
-			location?: gameController.Location;
-			distance?: number;
-		}
-		export interface DefenderInDefenseAreaPartially {
-			by_team: gameController.Team;
-			by_bot?: number;
-			location?: gameController.Location;
-			distance?: number;
-		}
-		export interface AttackerTouchedBallInDefenseArea {
-			by_team: gameController.Team;
-			by_bot?: number;
-			location?: gameController.Location;
-			distance?: number;
-		}
-		export interface BotKickedBallTooFast {
-			by_team: gameController.Team;
-			by_bot?: number;
-			location?: gameController.Location;
-			initial_ball_speed?: number;
-			chipped?: boolean;
-		}
-		export interface BotDribbledBallTooFar {
-			by_team: gameController.Team;
-			by_bot?: number;
-			start?: gameController.Location;
-			end?: gameController.Location;
-		}
-		export interface AttackerTouchedOpponentInDefenseArea {
-			by_team: gameController.Team;
-			by_bot?: number;
-			victim?: number;
-			location?: gameController.Location;
-		}
-		export interface AttackerDoubleTouchedBall {
-			by_team: gameController.Team;
-			by_bot?: number;
-			location?: gameController.Location;
-		}
-		export interface AttackerTooCloseToDefenseArea {
-			by_team: gameController.Team;
-			by_bot?: number;
-			location?: gameController.Location;
-			distance?: number;
-		}
-		export interface BotHeldBallDeliberately {
-			by_team: gameController.Team;
-			by_bot?: number;
-			location?: gameController.Location;
-			duration?: number;
-		}
-		export interface BotInterferedPlacement {
-			by_team: gameController.Team;
-			by_bot?: number;
-			location?: gameController.Location;
-		}
-		export interface MultipleCards {
-			by_team: gameController.Team;
-		}
-		export interface MultipleFouls {
-			by_team: gameController.Team;
-		}
-		export interface MultiplePlacementFailures {
-			by_team: gameController.Team;
-		}
-		export interface KickTimeout {
-			by_team: gameController.Team;
-			location?: gameController.Location;
-			time?: number;
-		}
-		export interface NoProgressInGame {
-			location?: gameController.Location;
-			time?: number;
-		}
-		export interface PlacementFailed {
-			by_team: gameController.Team;
-			remaining_distance?: number;
-		}
-		export interface UnsportingBehaviorMinor {
-			by_team: gameController.Team;
-			reason: string;
-		}
-		export interface UnsportingBehaviorMajor {
-			by_team: gameController.Team;
-			reason: string;
-		}
-		export interface KeeperHeldBall {
-			by_team: gameController.Team;
-			location?: gameController.Location;
-			duration?: number;
-		}
-		export interface PlacementSucceeded {
-			by_team: gameController.Team;
-			time_taken?: number;
-			precision?: number;
-			distance?: number;
-		}
-		export interface Prepared {
-			time_taken?: number;
-		}
-		export interface BotSubstitution {
-			by_team: gameController.Team;
-		}
-		export interface TooManyRobots {
-			by_team: gameController.Team;
-		}
-	}
-	export interface GameEvent {
-		type: gameController.GameEventType;
-		origin?: string[];
-		prepared?: gameController.GameEvent.Prepared;
-		no_progress_in_game?: gameController.GameEvent.NoProgressInGame;
-		placement_failed?: gameController.GameEvent.PlacementFailed;
-		placement_succeeded?: gameController.GameEvent.PlacementSucceeded;
-		bot_substitution?: gameController.GameEvent.BotSubstitution;
-		too_many_robots?: gameController.GameEvent.TooManyRobots;
-		ball_left_field_touch_line?: gameController.GameEvent.BallLeftField;
-		ball_left_field_goal_line?: gameController.GameEvent.BallLeftField;
-		possible_goal?: gameController.GameEvent.Goal;
-		goal?: gameController.GameEvent.Goal;
-		indirect_goal?: gameController.GameEvent.IndirectGoal;
-		chipped_goal?: gameController.GameEvent.ChippedGoal;
-		aimless_kick?: gameController.GameEvent.AimlessKick;
-		kick_timeout?: gameController.GameEvent.KickTimeout;
-		keeper_held_ball?: gameController.GameEvent.KeeperHeldBall;
-		attacker_double_touched_ball?: gameController.GameEvent.AttackerDoubleTouchedBall;
-		attacker_touched_ball_in_defense_area?: gameController.GameEvent.AttackerTouchedBallInDefenseArea;
-		attacker_touched_opponent_in_defense_area?: gameController.GameEvent.AttackerTouchedOpponentInDefenseArea;
-		attacker_touched_opponent_in_defense_area_skipped?: gameController.GameEvent.AttackerTouchedOpponentInDefenseArea;
-		bot_dribbled_ball_too_far?: gameController.GameEvent.BotDribbledBallTooFar;
-		bot_kicked_ball_too_fast?: gameController.GameEvent.BotKickedBallTooFast;
-		attacker_too_close_to_defense_area?: gameController.GameEvent.AttackerTooCloseToDefenseArea;
-		bot_interfered_placement?: gameController.GameEvent.BotInterferedPlacement;
-		bot_crash_drawn?: gameController.GameEvent.BotCrashDrawn;
-		bot_crash_unique?: gameController.GameEvent.BotCrashUnique;
-		bot_crash_unique_skipped?: gameController.GameEvent.BotCrashUnique;
-		bot_pushed_bot?: gameController.GameEvent.BotPushedBot;
-		bot_pushed_bot_skipped?: gameController.GameEvent.BotPushedBot;
-		bot_held_ball_deliberately?: gameController.GameEvent.BotHeldBallDeliberately;
-		bot_tipped_over?: gameController.GameEvent.BotTippedOver;
-		bot_too_fast_in_stop?: gameController.GameEvent.BotTooFastInStop;
-		defender_too_close_to_kick_point?: gameController.GameEvent.DefenderTooCloseToKickPoint;
-		defender_in_defense_area_partially?: gameController.GameEvent.DefenderInDefenseAreaPartially;
-		defender_in_defense_area?: gameController.GameEvent.DefenderInDefenseArea;
-		multiple_cards?: gameController.GameEvent.MultipleCards;
-		multiple_placement_failures?: gameController.GameEvent.MultiplePlacementFailures;
-		multiple_fouls?: gameController.GameEvent.MultipleFouls;
-		unsporting_behavior_minor?: gameController.GameEvent.UnsportingBehaviorMinor;
-		unsporting_behavior_major?: gameController.GameEvent.UnsportingBehaviorMajor;
-	}
-	export const enum GameEventType {
-		UNKNOWN_GAME_EVENT_TYPE = "UNKNOWN_GAME_EVENT_TYPE",
-		PREPARED = "PREPARED",
-		NO_PROGRESS_IN_GAME = "NO_PROGRESS_IN_GAME",
-		PLACEMENT_FAILED = "PLACEMENT_FAILED",
-		PLACEMENT_SUCCEEDED = "PLACEMENT_SUCCEEDED",
-		BOT_SUBSTITUTION = "BOT_SUBSTITUTION",
-		TOO_MANY_ROBOTS = "TOO_MANY_ROBOTS",
-		BALL_LEFT_FIELD_TOUCH_LINE = "BALL_LEFT_FIELD_TOUCH_LINE",
-		BALL_LEFT_FIELD_GOAL_LINE = "BALL_LEFT_FIELD_GOAL_LINE",
-		POSSIBLE_GOAL = "POSSIBLE_GOAL",
-		GOAL = "GOAL",
-		INDIRECT_GOAL = "INDIRECT_GOAL",
-		CHIPPED_GOAL = "CHIPPED_GOAL",
-		AIMLESS_KICK = "AIMLESS_KICK",
-		KICK_TIMEOUT = "KICK_TIMEOUT",
-		KEEPER_HELD_BALL = "KEEPER_HELD_BALL",
-		ATTACKER_DOUBLE_TOUCHED_BALL = "ATTACKER_DOUBLE_TOUCHED_BALL",
-		ATTACKER_TOUCHED_BALL_IN_DEFENSE_AREA = "ATTACKER_TOUCHED_BALL_IN_DEFENSE_AREA",
-		ATTACKER_TOUCHED_OPPONENT_IN_DEFENSE_AREA = "ATTACKER_TOUCHED_OPPONENT_IN_DEFENSE_AREA",
-		ATTACKER_TOUCHED_OPPONENT_IN_DEFENSE_AREA_SKIPPED = "ATTACKER_TOUCHED_OPPONENT_IN_DEFENSE_AREA_SKIPPED",
-		BOT_DRIBBLED_BALL_TOO_FAR = "BOT_DRIBBLED_BALL_TOO_FAR",
-		BOT_KICKED_BALL_TOO_FAST = "BOT_KICKED_BALL_TOO_FAST",
-		ATTACKER_TOO_CLOSE_TO_DEFENSE_AREA = "ATTACKER_TOO_CLOSE_TO_DEFENSE_AREA",
-		BOT_INTERFERED_PLACEMENT = "BOT_INTERFERED_PLACEMENT",
-		BOT_CRASH_DRAWN = "BOT_CRASH_DRAWN",
-		BOT_CRASH_UNIQUE = "BOT_CRASH_UNIQUE",
-		BOT_CRASH_UNIQUE_SKIPPED = "BOT_CRASH_UNIQUE_SKIPPED",
-		BOT_PUSHED_BOT = "BOT_PUSHED_BOT",
-		BOT_PUSHED_BOT_SKIPPED = "BOT_PUSHED_BOT_SKIPPED",
-		BOT_HELD_BALL_DELIBERATELY = "BOT_HELD_BALL_DELIBERATELY",
-		BOT_TIPPED_OVER = "BOT_TIPPED_OVER",
-		BOT_TOO_FAST_IN_STOP = "BOT_TOO_FAST_IN_STOP",
-		DEFENDER_TOO_CLOSE_TO_KICK_POINT = "DEFENDER_TOO_CLOSE_TO_KICK_POINT",
-		DEFENDER_IN_DEFENSE_AREA_PARTIALLY = "DEFENDER_IN_DEFENSE_AREA_PARTIALLY",
-		DEFENDER_IN_DEFENSE_AREA = "DEFENDER_IN_DEFENSE_AREA",
-		MULTIPLE_CARDS = "MULTIPLE_CARDS",
-		MULTIPLE_PLACEMENT_FAILURES = "MULTIPLE_PLACEMENT_FAILURES",
-		MULTIPLE_FOULS = "MULTIPLE_FOULS",
-		UNSPORTING_BEHAVIOR_MINOR = "UNSPORTING_BEHAVIOR_MINOR",
-		UNSPORTING_BEHAVIOR_MAJOR = "UNSPORTING_BEHAVIOR_MAJOR",
-	}
-}
-export namespace logfile {
-	export interface UidEntry {
-		hash: string;
-		flags?: number;
-	}
-	export interface Uid {
-		parts?: logfile.UidEntry[];
 	}
 }
 export namespace robot {
@@ -920,120 +561,363 @@ export interface SSL_DetectionFrame {
 	robots_yellow?: SSL_DetectionRobot[];
 	robots_blue?: SSL_DetectionRobot[];
 }
-export namespace Game_Event {
-	export const enum GameEventType {
-		UNKNOWN = "UNKNOWN",
-		CUSTOM = "CUSTOM",
-		NUMBER_OF_PLAYERS = "NUMBER_OF_PLAYERS",
-		BALL_LEFT_FIELD = "BALL_LEFT_FIELD",
-		GOAL = "GOAL",
-		KICK_TIMEOUT = "KICK_TIMEOUT",
-		NO_PROGRESS_IN_GAME = "NO_PROGRESS_IN_GAME",
-		BOT_COLLISION = "BOT_COLLISION",
-		MULTIPLE_DEFENDER = "MULTIPLE_DEFENDER",
-		MULTIPLE_DEFENDER_PARTIALLY = "MULTIPLE_DEFENDER_PARTIALLY",
-		ATTACKER_IN_DEFENSE_AREA = "ATTACKER_IN_DEFENSE_AREA",
-		ICING = "ICING",
-		BALL_SPEED = "BALL_SPEED",
-		ROBOT_STOP_SPEED = "ROBOT_STOP_SPEED",
-		BALL_DRIBBLING = "BALL_DRIBBLING",
-		ATTACKER_TOUCH_KEEPER = "ATTACKER_TOUCH_KEEPER",
-		DOUBLE_TOUCH = "DOUBLE_TOUCH",
-		ATTACKER_TO_DEFENCE_AREA = "ATTACKER_TO_DEFENCE_AREA",
-		DEFENDER_TO_KICK_POINT_DISTANCE = "DEFENDER_TO_KICK_POINT_DISTANCE",
-		BALL_HOLDING = "BALL_HOLDING",
-		INDIRECT_GOAL = "INDIRECT_GOAL",
-		BALL_PLACEMENT_FAILED = "BALL_PLACEMENT_FAILED",
-		CHIP_ON_GOAL = "CHIP_ON_GOAL",
+export namespace gameController {
+	export interface AutoRefRegistration {
+		identifier: string;
+		signature?: gameController.Signature;
+	}
+	export interface AutoRefToController {
+		signature?: gameController.Signature;
+		game_event?: gameController.GameEvent;
+	}
+	export interface ControllerToAutoRef {
+		controller_reply?: gameController.ControllerReply;
 	}
 	export const enum Team {
-		TEAM_UNKNOWN = "TEAM_UNKNOWN",
-		TEAM_YELLOW = "TEAM_YELLOW",
-		TEAM_BLUE = "TEAM_BLUE",
+		UNKNOWN = "UNKNOWN",
+		YELLOW = "YELLOW",
+		BLUE = "BLUE",
 	}
-	export interface Originator {
-		team: Game_Event.Team;
-		bot_id?: number;
-	}
-}
-export interface Game_Event {
-	game_event_type: Game_Event.GameEventType;
-	originator?: Game_Event.Originator;
-	message?: string;
-}
-export interface Vector2f {
-	x: number;
-	y: number;
-}
-export interface SSL_FieldLineSegment {
-	name: string;
-	p1: Vector2f;
-	p2: Vector2f;
-	thickness: number;
-}
-export interface SSL_FieldCircularArc {
-	name: string;
-	center: Vector2f;
-	radius: number;
-	a1: number;
-	a2: number;
-	thickness: number;
-}
-export interface SSL_GeometryFieldSize {
-	field_length: number;
-	field_width: number;
-	goal_width: number;
-	goal_depth: number;
-	boundary_width: number;
-	field_lines?: SSL_FieldLineSegment[];
-	field_arcs?: SSL_FieldCircularArc[];
-}
-export interface SSL_GeometryCameraCalibration {
-	camera_id: number;
-	focal_length: number;
-	principal_point_x: number;
-	principal_point_y: number;
-	distortion: number;
-	q0: number;
-	q1: number;
-	q2: number;
-	q3: number;
-	tx: number;
-	ty: number;
-	tz: number;
-	derived_camera_world_tx?: number;
-	derived_camera_world_ty?: number;
-	derived_camera_world_tz?: number;
-}
-export interface SSL_GeometryData {
-	field: SSL_GeometryFieldSize;
-	calib?: SSL_GeometryCameraCalibration[];
-}
-export namespace ssl {
-	export interface TeamPlan {
-		plans?: ssl.RobotPlan[];
-	}
-	export namespace RobotPlan {
-		export const enum RobotRole {
-			Default = "Default",
-			Goalie = "Goalie",
-			Defense = "Defense",
-			Offense = "Offense",
-		}
-	}
-	export interface RobotPlan {
-		robot_id: number;
-		role?: ssl.RobotPlan.RobotRole;
-		nav_target?: ssl.Pose;
-		shot_target?: ssl.Location;
+	export interface BotId {
+		id?: number;
+		team?: gameController.Team;
 	}
 	export interface Location {
 		x: number;
 		y: number;
 	}
-	export interface Pose {
-		loc?: ssl.Location;
-		heading?: number;
+	export namespace ControllerReply {
+		export const enum StatusCode {
+			UNKNOWN_STATUS_CODE = "UNKNOWN_STATUS_CODE",
+			OK = "OK",
+			REJECTED = "REJECTED",
+		}
+		export const enum Verification {
+			UNKNOWN_VERIFICATION = "UNKNOWN_VERIFICATION",
+			VERIFIED = "VERIFIED",
+			UNVERIFIED = "UNVERIFIED",
+		}
+	}
+	export interface ControllerReply {
+		status_code?: gameController.ControllerReply.StatusCode;
+		reason?: string;
+		next_token?: string;
+		verification?: gameController.ControllerReply.Verification;
+	}
+	export interface Signature {
+		token: string;
+		pkcs1v15: ArrayBuffer;
+	}
+	export interface BallSpeedMeasurement {
+		timestamp: number;
+		ball_speed: number;
+		initial_ball_speed?: number;
+	}
+	export interface Vector2 {
+		x: number;
+		y: number;
+	}
+	export interface Vector3 {
+		x: number;
+		y: number;
+		z: number;
+	}
+	export namespace GameEvent {
+		export interface BallLeftField {
+			by_team: gameController.Team;
+			by_bot?: number;
+			location?: gameController.Vector2;
+		}
+		export interface AimlessKick {
+			by_team: gameController.Team;
+			by_bot?: number;
+			location?: gameController.Vector2;
+			kick_location?: gameController.Vector2;
+		}
+		export interface Goal {
+			by_team: gameController.Team;
+			kicking_team?: gameController.Team;
+			kicking_bot?: number;
+			location?: gameController.Vector2;
+			kick_location?: gameController.Vector2;
+			kick_speed?: number;
+			max_ball_height?: number;
+		}
+		export interface IndirectGoal {
+			by_team: gameController.Team;
+			by_bot?: number;
+			location?: gameController.Vector2;
+			kick_location?: gameController.Vector2;
+		}
+		export interface ChippedGoal {
+			by_team: gameController.Team;
+			by_bot?: number;
+			location?: gameController.Vector2;
+			kick_location?: gameController.Vector2;
+			max_ball_height?: number;
+		}
+		export interface BotTooFastInStop {
+			by_team: gameController.Team;
+			by_bot?: number;
+			location?: gameController.Vector2;
+			speed?: number;
+		}
+		export interface DefenderTooCloseToKickPoint {
+			by_team: gameController.Team;
+			by_bot?: number;
+			location?: gameController.Vector2;
+			distance?: number;
+		}
+		export interface BotCrashDrawn {
+			bot_yellow?: number;
+			bot_blue?: number;
+			location?: gameController.Vector2;
+			crash_speed?: number;
+			speed_diff?: number;
+			crash_angle?: number;
+		}
+		export interface BotCrashUnique {
+			by_team: gameController.Team;
+			violator?: number;
+			victim?: number;
+			location?: gameController.Vector2;
+			crash_speed?: number;
+			speed_diff?: number;
+			crash_angle?: number;
+		}
+		export interface BotPushedBot {
+			by_team: gameController.Team;
+			violator?: number;
+			victim?: number;
+			location?: gameController.Vector2;
+			pushed_distance?: number;
+		}
+		export interface BotTippedOver {
+			by_team: gameController.Team;
+			by_bot?: number;
+			location?: gameController.Vector2;
+			ball_location?: gameController.Vector2;
+		}
+		export interface DefenderInDefenseArea {
+			by_team: gameController.Team;
+			by_bot?: number;
+			location?: gameController.Vector2;
+			distance?: number;
+		}
+		export interface DefenderInDefenseAreaPartially {
+			by_team: gameController.Team;
+			by_bot?: number;
+			location?: gameController.Vector2;
+			distance?: number;
+			ball_location?: gameController.Vector2;
+		}
+		export interface AttackerTouchedBallInDefenseArea {
+			by_team: gameController.Team;
+			by_bot?: number;
+			location?: gameController.Vector2;
+			distance?: number;
+		}
+		export interface BotKickedBallTooFast {
+			by_team: gameController.Team;
+			by_bot?: number;
+			location?: gameController.Vector2;
+			initial_ball_speed?: number;
+			chipped?: boolean;
+		}
+		export interface BotDribbledBallTooFar {
+			by_team: gameController.Team;
+			by_bot?: number;
+			start?: gameController.Vector2;
+			end?: gameController.Vector2;
+		}
+		export interface AttackerTouchedOpponentInDefenseArea {
+			by_team: gameController.Team;
+			by_bot?: number;
+			victim?: number;
+			location?: gameController.Vector2;
+		}
+		export interface AttackerDoubleTouchedBall {
+			by_team: gameController.Team;
+			by_bot?: number;
+			location?: gameController.Vector2;
+		}
+		export interface AttackerTooCloseToDefenseArea {
+			by_team: gameController.Team;
+			by_bot?: number;
+			location?: gameController.Vector2;
+			distance?: number;
+			ball_location?: gameController.Vector2;
+		}
+		export interface BotHeldBallDeliberately {
+			by_team: gameController.Team;
+			by_bot?: number;
+			location?: gameController.Vector2;
+			duration?: number;
+		}
+		export interface BotInterferedPlacement {
+			by_team: gameController.Team;
+			by_bot?: number;
+			location?: gameController.Vector2;
+		}
+		export interface MultipleCards {
+			by_team: gameController.Team;
+		}
+		export interface MultipleFouls {
+			by_team: gameController.Team;
+		}
+		export interface MultiplePlacementFailures {
+			by_team: gameController.Team;
+		}
+		export interface KickTimeout {
+			by_team: gameController.Team;
+			location?: gameController.Vector2;
+			time?: number;
+		}
+		export interface NoProgressInGame {
+			location?: gameController.Vector2;
+			time?: number;
+		}
+		export interface PlacementFailed {
+			by_team: gameController.Team;
+			remaining_distance?: number;
+		}
+		export interface UnsportingBehaviorMinor {
+			by_team: gameController.Team;
+			reason: string;
+		}
+		export interface UnsportingBehaviorMajor {
+			by_team: gameController.Team;
+			reason: string;
+		}
+		export interface KeeperHeldBall {
+			by_team: gameController.Team;
+			location?: gameController.Vector2;
+			duration?: number;
+		}
+		export interface PlacementSucceeded {
+			by_team: gameController.Team;
+			time_taken?: number;
+			precision?: number;
+			distance?: number;
+		}
+		export interface Prepared {
+			time_taken?: number;
+		}
+		export interface BotSubstitution {
+			by_team: gameController.Team;
+		}
+		export interface TooManyRobots {
+			by_team: gameController.Team;
+			num_robots_allowed?: number;
+			num_robots_on_field?: number;
+			ball_location?: gameController.Vector2;
+		}
+		export interface BoundaryCrossing {
+			by_team: gameController.Team;
+			location?: gameController.Vector2;
+		}
+		export const enum Type {
+			UNKNOWN_GAME_EVENT_TYPE = "UNKNOWN_GAME_EVENT_TYPE",
+			BALL_LEFT_FIELD_TOUCH_LINE = "BALL_LEFT_FIELD_TOUCH_LINE",
+			BALL_LEFT_FIELD_GOAL_LINE = "BALL_LEFT_FIELD_GOAL_LINE",
+			AIMLESS_KICK = "AIMLESS_KICK",
+			POSSIBLE_GOAL = "POSSIBLE_GOAL",
+			NO_PROGRESS_IN_GAME = "NO_PROGRESS_IN_GAME",
+			ATTACKER_DOUBLE_TOUCHED_BALL = "ATTACKER_DOUBLE_TOUCHED_BALL",
+			ATTACKER_TOO_CLOSE_TO_DEFENSE_AREA = "ATTACKER_TOO_CLOSE_TO_DEFENSE_AREA",
+			DEFENDER_IN_DEFENSE_AREA = "DEFENDER_IN_DEFENSE_AREA",
+			BOUNDARY_CROSSING = "BOUNDARY_CROSSING",
+			KEEPER_HELD_BALL = "KEEPER_HELD_BALL",
+			BOT_DRIBBLED_BALL_TOO_FAR = "BOT_DRIBBLED_BALL_TOO_FAR",
+			ATTACKER_TOUCHED_BALL_IN_DEFENSE_AREA = "ATTACKER_TOUCHED_BALL_IN_DEFENSE_AREA",
+			BOT_KICKED_BALL_TOO_FAST = "BOT_KICKED_BALL_TOO_FAST",
+			BOT_CRASH_UNIQUE = "BOT_CRASH_UNIQUE",
+			BOT_CRASH_DRAWN = "BOT_CRASH_DRAWN",
+			DEFENDER_TOO_CLOSE_TO_KICK_POINT = "DEFENDER_TOO_CLOSE_TO_KICK_POINT",
+			BOT_TOO_FAST_IN_STOP = "BOT_TOO_FAST_IN_STOP",
+			BOT_INTERFERED_PLACEMENT = "BOT_INTERFERED_PLACEMENT",
+			GOAL = "GOAL",
+			INVALID_GOAL = "INVALID_GOAL",
+			PLACEMENT_FAILED = "PLACEMENT_FAILED",
+			PLACEMENT_SUCCEEDED = "PLACEMENT_SUCCEEDED",
+			MULTIPLE_CARDS = "MULTIPLE_CARDS",
+			MULTIPLE_FOULS = "MULTIPLE_FOULS",
+			BOT_SUBSTITUTION = "BOT_SUBSTITUTION",
+			TOO_MANY_ROBOTS = "TOO_MANY_ROBOTS",
+			UNSPORTING_BEHAVIOR_MINOR = "UNSPORTING_BEHAVIOR_MINOR",
+			UNSPORTING_BEHAVIOR_MAJOR = "UNSPORTING_BEHAVIOR_MAJOR",
+			BOT_PUSHED_BOT = "BOT_PUSHED_BOT",
+			BOT_HELD_BALL_DELIBERATELY = "BOT_HELD_BALL_DELIBERATELY",
+			BOT_TIPPED_OVER = "BOT_TIPPED_OVER",
+			PREPARED = "PREPARED",
+			INDIRECT_GOAL = "INDIRECT_GOAL",
+			CHIPPED_GOAL = "CHIPPED_GOAL",
+			KICK_TIMEOUT = "KICK_TIMEOUT",
+			ATTACKER_TOUCHED_OPPONENT_IN_DEFENSE_AREA = "ATTACKER_TOUCHED_OPPONENT_IN_DEFENSE_AREA",
+			ATTACKER_TOUCHED_OPPONENT_IN_DEFENSE_AREA_SKIPPED = "ATTACKER_TOUCHED_OPPONENT_IN_DEFENSE_AREA_SKIPPED",
+			BOT_CRASH_UNIQUE_SKIPPED = "BOT_CRASH_UNIQUE_SKIPPED",
+			BOT_PUSHED_BOT_SKIPPED = "BOT_PUSHED_BOT_SKIPPED",
+			DEFENDER_IN_DEFENSE_AREA_PARTIALLY = "DEFENDER_IN_DEFENSE_AREA_PARTIALLY",
+			MULTIPLE_PLACEMENT_FAILURES = "MULTIPLE_PLACEMENT_FAILURES",
+		}
+	}
+	export interface GameEvent {
+		type: gameController.GameEvent.Type;
+		origin?: string[];
+		ball_left_field_touch_line?: gameController.GameEvent.BallLeftField;
+		ball_left_field_goal_line?: gameController.GameEvent.BallLeftField;
+		aimless_kick?: gameController.GameEvent.AimlessKick;
+		possible_goal?: gameController.GameEvent.Goal;
+		no_progress_in_game?: gameController.GameEvent.NoProgressInGame;
+		attacker_double_touched_ball?: gameController.GameEvent.AttackerDoubleTouchedBall;
+		attacker_too_close_to_defense_area?: gameController.GameEvent.AttackerTooCloseToDefenseArea;
+		defender_in_defense_area?: gameController.GameEvent.DefenderInDefenseArea;
+		boundary_crossing?: gameController.GameEvent.BoundaryCrossing;
+		keeper_held_ball?: gameController.GameEvent.KeeperHeldBall;
+		bot_dribbled_ball_too_far?: gameController.GameEvent.BotDribbledBallTooFar;
+		attacker_touched_ball_in_defense_area?: gameController.GameEvent.AttackerTouchedBallInDefenseArea;
+		bot_kicked_ball_too_fast?: gameController.GameEvent.BotKickedBallTooFast;
+		bot_crash_unique?: gameController.GameEvent.BotCrashUnique;
+		bot_crash_drawn?: gameController.GameEvent.BotCrashDrawn;
+		defender_too_close_to_kick_point?: gameController.GameEvent.DefenderTooCloseToKickPoint;
+		bot_too_fast_in_stop?: gameController.GameEvent.BotTooFastInStop;
+		bot_interfered_placement?: gameController.GameEvent.BotInterferedPlacement;
+		goal?: gameController.GameEvent.Goal;
+		invalid_goal?: gameController.GameEvent.Goal;
+		placement_failed?: gameController.GameEvent.PlacementFailed;
+		placement_succeeded?: gameController.GameEvent.PlacementSucceeded;
+		multiple_cards?: gameController.GameEvent.MultipleCards;
+		multiple_fouls?: gameController.GameEvent.MultipleFouls;
+		bot_substitution?: gameController.GameEvent.BotSubstitution;
+		too_many_robots?: gameController.GameEvent.TooManyRobots;
+		unsporting_behavior_minor?: gameController.GameEvent.UnsportingBehaviorMinor;
+		unsporting_behavior_major?: gameController.GameEvent.UnsportingBehaviorMajor;
+		bot_pushed_bot?: gameController.GameEvent.BotPushedBot;
+		bot_held_ball_deliberately?: gameController.GameEvent.BotHeldBallDeliberately;
+		bot_tipped_over?: gameController.GameEvent.BotTippedOver;
+		prepared?: gameController.GameEvent.Prepared;
+		indirect_goal?: gameController.GameEvent.IndirectGoal;
+		chipped_goal?: gameController.GameEvent.ChippedGoal;
+		kick_timeout?: gameController.GameEvent.KickTimeout;
+		attacker_touched_opponent_in_defense_area?: gameController.GameEvent.AttackerTouchedOpponentInDefenseArea;
+		attacker_touched_opponent_in_defense_area_skipped?: gameController.GameEvent.AttackerTouchedOpponentInDefenseArea;
+		bot_crash_unique_skipped?: gameController.GameEvent.BotCrashUnique;
+		bot_pushed_bot_skipped?: gameController.GameEvent.BotPushedBot;
+		defender_in_defense_area_partially?: gameController.GameEvent.DefenderInDefenseAreaPartially;
+		multiple_placement_failures?: gameController.GameEvent.MultiplePlacementFailures;
+	}
+	export interface TeamRegistration {
+		team_name: string;
+		signature?: gameController.Signature;
+	}
+	export interface TeamToController {
+		signature?: gameController.Signature;
+		desired_keeper?: number;
+		substitute_bot?: boolean;
+		ping?: boolean;
+	}
+	export interface ControllerToTeam {
+		controller_reply?: gameController.ControllerReply;
 	}
 }
 export namespace SSL_Referee {
@@ -1114,155 +998,9 @@ export interface ProposedGameEvent {
 	proposer_id: string;
 	game_event: gameController.GameEvent;
 }
-export interface SSL_RadioProtocolCommand {
-	robot_id: number;
-	velocity_x: number;
-	velocity_y: number;
-	velocity_r: number;
-	flat_kick?: number;
-	chip_kick?: number;
-	dribbler_spin?: number;
-}
-export interface SSL_RadioProtocolWrapper {
-	command?: SSL_RadioProtocolCommand[];
-}
-export namespace SSL_RefereeRemoteControlRequest {
-	export namespace CardInfo {
-		export const enum CardType {
-			CARD_YELLOW = "CARD_YELLOW",
-			CARD_RED = "CARD_RED",
-		}
-		export const enum CardTeam {
-			TEAM_YELLOW = "TEAM_YELLOW",
-			TEAM_BLUE = "TEAM_BLUE",
-		}
-	}
-	export interface CardInfo {
-		type: SSL_RefereeRemoteControlRequest.CardInfo.CardType;
-		team: SSL_RefereeRemoteControlRequest.CardInfo.CardTeam;
-	}
-}
-export interface SSL_RefereeRemoteControlRequest {
-	message_id: number;
-	stage?: SSL_Referee.Stage;
-	command?: SSL_Referee.Command;
-	designated_position?: SSL_Referee.Point;
-	card?: SSL_RefereeRemoteControlRequest.CardInfo;
-	last_command_counter?: number;
-	implementation_id?: string;
-	game_event?: SSL_Referee_Game_Event;
-}
-export namespace SSL_RefereeRemoteControlReply {
-	export const enum Outcome {
-		OK = "OK",
-		MULTIPLE_ACTIONS = "MULTIPLE_ACTIONS",
-		BAD_STAGE = "BAD_STAGE",
-		BAD_COMMAND = "BAD_COMMAND",
-		BAD_DESIGNATED_POSITION = "BAD_DESIGNATED_POSITION",
-		BAD_COMMAND_COUNTER = "BAD_COMMAND_COUNTER",
-		BAD_CARD = "BAD_CARD",
-		NO_MAJORITY = "NO_MAJORITY",
-		COMMUNICATION_FAILED = "COMMUNICATION_FAILED",
-	}
-}
-export interface SSL_RefereeRemoteControlReply {
-	message_id: number;
-	outcome: SSL_RefereeRemoteControlReply.Outcome;
-}
-export namespace SSL_Referee_Game_Event {
-	export const enum GameEventType {
-		UNKNOWN = "UNKNOWN",
-		CUSTOM = "CUSTOM",
-		NUMBER_OF_PLAYERS = "NUMBER_OF_PLAYERS",
-		BALL_LEFT_FIELD = "BALL_LEFT_FIELD",
-		GOAL = "GOAL",
-		KICK_TIMEOUT = "KICK_TIMEOUT",
-		NO_PROGRESS_IN_GAME = "NO_PROGRESS_IN_GAME",
-		BOT_COLLISION = "BOT_COLLISION",
-		MULTIPLE_DEFENDER = "MULTIPLE_DEFENDER",
-		MULTIPLE_DEFENDER_PARTIALLY = "MULTIPLE_DEFENDER_PARTIALLY",
-		ATTACKER_IN_DEFENSE_AREA = "ATTACKER_IN_DEFENSE_AREA",
-		ICING = "ICING",
-		BALL_SPEED = "BALL_SPEED",
-		ROBOT_STOP_SPEED = "ROBOT_STOP_SPEED",
-		BALL_DRIBBLING = "BALL_DRIBBLING",
-		ATTACKER_TOUCH_KEEPER = "ATTACKER_TOUCH_KEEPER",
-		DOUBLE_TOUCH = "DOUBLE_TOUCH",
-		ATTACKER_TO_DEFENCE_AREA = "ATTACKER_TO_DEFENCE_AREA",
-		DEFENDER_TO_KICK_POINT_DISTANCE = "DEFENDER_TO_KICK_POINT_DISTANCE",
-		BALL_HOLDING = "BALL_HOLDING",
-		INDIRECT_GOAL = "INDIRECT_GOAL",
-		BALL_PLACEMENT_FAILED = "BALL_PLACEMENT_FAILED",
-		CHIP_ON_GOAL = "CHIP_ON_GOAL",
-	}
-	export const enum Team {
-		TEAM_UNKNOWN = "TEAM_UNKNOWN",
-		TEAM_YELLOW = "TEAM_YELLOW",
-		TEAM_BLUE = "TEAM_BLUE",
-	}
-	export interface Originator {
-		team: SSL_Referee_Game_Event.Team;
-		bot_id?: number;
-	}
-}
-export interface SSL_Referee_Game_Event {
-	game_event_type: SSL_Referee_Game_Event.GameEventType;
-	originator?: SSL_Referee_Game_Event.Originator;
-	message?: string;
-}
 export interface SSL_WrapperPacket {
 	detection?: SSL_DetectionFrame;
 	geometry?: SSL_GeometryData;
-}
-export namespace timeline {
-	export interface FrameLookup {
-		uid: logfile.UidEntry;
-		frame_number: number;
-	}
-	export interface FrameDescriptor {
-		base_hash: string;
-		base_frame_number: number;
-		frame_infos?: timeline.FrameLookup[];
-	}
-	export namespace GameEvent {
-		export const enum Progress {
-			Open = "Open",
-			Closed = "Closed",
-			Postponed = "Postponed",
-			Resolved = "Resolved",
-			InProgress = "InProgress",
-			Info = "Info",
-			Merged = "Merged",
-		}
-	}
-	export interface GameEvent {
-		location: timeline.FrameDescriptor;
-		progress: timeline.GameEvent.Progress;
-		random_id: string;
-		description?: string;
-		tag?: string[];
-		assignee?: string;
-	}
-	export namespace TimelineInit {
-		export const enum Resolved {
-			Solved = "Solved",
-			Conflicting = "Conflicting",
-		}
-	}
-	export interface TimelineInit {
-		primary: logfile.UidEntry;
-		secondary?: logfile.UidEntry[];
-		partially?: logfile.UidEntry[];
-		state: timeline.TimelineInit.Resolved;
-	}
-	export interface EventWrapper {
-		tag: string;
-		conflicting?: timeline.GameEvent[];
-	}
-	export interface Status {
-		wrapper?: timeline.EventWrapper;
-		game_event?: timeline.GameEvent;
-	}
 }
 export namespace world {
 	export namespace Geometry {
@@ -1276,7 +1014,6 @@ export namespace world {
 		field_width: number;
 		field_height: number;
 		boundary_width: number;
-		referee_width: number;
 		goal_width: number;
 		goal_depth: number;
 		goal_wall_width: number;
@@ -1356,5 +1093,176 @@ export namespace world {
 		mixed_team_info?: ssl.TeamPlan;
 		tracking_aoi?: world.TrackingAOI;
 		vision_frames?: SSL_WrapperPacket[];
+		simple_tracking_yellow?: world.Robot[];
+		simple_tracking_blue?: world.Robot[];
 	}
 }
+export namespace SSL_Referee_Game_Event {
+	export const enum GameEventType {
+		UNKNOWN = "UNKNOWN",
+		CUSTOM = "CUSTOM",
+		NUMBER_OF_PLAYERS = "NUMBER_OF_PLAYERS",
+		BALL_LEFT_FIELD = "BALL_LEFT_FIELD",
+		GOAL = "GOAL",
+		KICK_TIMEOUT = "KICK_TIMEOUT",
+		NO_PROGRESS_IN_GAME = "NO_PROGRESS_IN_GAME",
+		BOT_COLLISION = "BOT_COLLISION",
+		MULTIPLE_DEFENDER = "MULTIPLE_DEFENDER",
+		MULTIPLE_DEFENDER_PARTIALLY = "MULTIPLE_DEFENDER_PARTIALLY",
+		ATTACKER_IN_DEFENSE_AREA = "ATTACKER_IN_DEFENSE_AREA",
+		ICING = "ICING",
+		BALL_SPEED = "BALL_SPEED",
+		ROBOT_STOP_SPEED = "ROBOT_STOP_SPEED",
+		BALL_DRIBBLING = "BALL_DRIBBLING",
+		ATTACKER_TOUCH_KEEPER = "ATTACKER_TOUCH_KEEPER",
+		DOUBLE_TOUCH = "DOUBLE_TOUCH",
+		ATTACKER_TO_DEFENCE_AREA = "ATTACKER_TO_DEFENCE_AREA",
+		DEFENDER_TO_KICK_POINT_DISTANCE = "DEFENDER_TO_KICK_POINT_DISTANCE",
+		BALL_HOLDING = "BALL_HOLDING",
+		INDIRECT_GOAL = "INDIRECT_GOAL",
+		BALL_PLACEMENT_FAILED = "BALL_PLACEMENT_FAILED",
+		CHIP_ON_GOAL = "CHIP_ON_GOAL",
+	}
+	export const enum Team {
+		TEAM_UNKNOWN = "TEAM_UNKNOWN",
+		TEAM_YELLOW = "TEAM_YELLOW",
+		TEAM_BLUE = "TEAM_BLUE",
+	}
+	export interface Originator {
+		team: SSL_Referee_Game_Event.Team;
+		bot_id?: number;
+	}
+}
+export interface SSL_Referee_Game_Event {
+	game_event_type: SSL_Referee_Game_Event.GameEventType;
+	originator?: SSL_Referee_Game_Event.Originator;
+	message?: string;
+}
+export namespace SSL_RefereeRemoteControlRequest {
+	export namespace CardInfo {
+		export const enum CardType {
+			CARD_YELLOW = "CARD_YELLOW",
+			CARD_RED = "CARD_RED",
+		}
+		export const enum CardTeam {
+			TEAM_YELLOW = "TEAM_YELLOW",
+			TEAM_BLUE = "TEAM_BLUE",
+		}
+	}
+	export interface CardInfo {
+		type: SSL_RefereeRemoteControlRequest.CardInfo.CardType;
+		team: SSL_RefereeRemoteControlRequest.CardInfo.CardTeam;
+	}
+}
+export interface SSL_RefereeRemoteControlRequest {
+	message_id: number;
+	stage?: SSL_Referee.Stage;
+	command?: SSL_Referee.Command;
+	designated_position?: SSL_Referee.Point;
+	card?: SSL_RefereeRemoteControlRequest.CardInfo;
+	last_command_counter?: number;
+	implementation_id?: string;
+	game_event?: SSL_Referee_Game_Event;
+}
+export namespace SSL_RefereeRemoteControlReply {
+	export const enum Outcome {
+		OK = "OK",
+		MULTIPLE_ACTIONS = "MULTIPLE_ACTIONS",
+		BAD_STAGE = "BAD_STAGE",
+		BAD_COMMAND = "BAD_COMMAND",
+		BAD_DESIGNATED_POSITION = "BAD_DESIGNATED_POSITION",
+		BAD_COMMAND_COUNTER = "BAD_COMMAND_COUNTER",
+		BAD_CARD = "BAD_CARD",
+		NO_MAJORITY = "NO_MAJORITY",
+		COMMUNICATION_FAILED = "COMMUNICATION_FAILED",
+	}
+}
+export interface SSL_RefereeRemoteControlReply {
+	message_id: number;
+	outcome: SSL_RefereeRemoteControlReply.Outcome;
+}
+export interface Vector2f {
+	x: number;
+	y: number;
+}
+export interface SSL_FieldLineSegment {
+	name: string;
+	p1: Vector2f;
+	p2: Vector2f;
+	thickness: number;
+}
+export interface SSL_FieldCircularArc {
+	name: string;
+	center: Vector2f;
+	radius: number;
+	a1: number;
+	a2: number;
+	thickness: number;
+}
+export interface SSL_GeometryFieldSize {
+	field_length: number;
+	field_width: number;
+	goal_width: number;
+	goal_depth: number;
+	boundary_width: number;
+	field_lines?: SSL_FieldLineSegment[];
+	field_arcs?: SSL_FieldCircularArc[];
+}
+export interface SSL_GeometryCameraCalibration {
+	camera_id: number;
+	focal_length: number;
+	principal_point_x: number;
+	principal_point_y: number;
+	distortion: number;
+	q0: number;
+	q1: number;
+	q2: number;
+	q3: number;
+	tx: number;
+	ty: number;
+	tz: number;
+	derived_camera_world_tx?: number;
+	derived_camera_world_ty?: number;
+	derived_camera_world_tz?: number;
+}
+export interface SSL_GeometryData {
+	field: SSL_GeometryFieldSize;
+	calib?: SSL_GeometryCameraCalibration[];
+}
+export namespace logfile {
+	export interface UidEntry {
+		hash: string;
+		flags?: number;
+	}
+	export interface Uid {
+		parts?: logfile.UidEntry[];
+	}
+}
+export namespace ssl {
+	export interface TeamPlan {
+		plans?: ssl.RobotPlan[];
+	}
+	export namespace RobotPlan {
+		export const enum RobotRole {
+			Default = "Default",
+			Goalie = "Goalie",
+			Defense = "Defense",
+			Offense = "Offense",
+		}
+	}
+	export interface RobotPlan {
+		robot_id: number;
+		role?: ssl.RobotPlan.RobotRole;
+		nav_target?: ssl.Pose;
+		shot_target?: ssl.Location;
+	}
+	export interface Location {
+		x: number;
+		y: number;
+	}
+	export interface Pose {
+		loc?: ssl.Location;
+		heading?: number;
+	}
+}
+
