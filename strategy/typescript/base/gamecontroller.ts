@@ -123,24 +123,3 @@ export function requestDesiredKeeper(id: number) {
 export function requestSubstitution() {
 	amunLocal.sendGameControllerMessage("TeamToController", { substitute_bot: true });
 }
-
-// use a custom type instead of the protobuf one because this is nicer
-type AdvantageReponse = "stop" | "continue";
-
-/**
- * Respond to an advantage choice.
- * Will crash in debug if we are not allowed to make this choice.
- * @see advantageFoulOccured
- * @param resp - "continue" if we wish to continue playing after the foul, "stop" otherwise
- */
-export function sendAdvantageReponse(resp: AdvantageReponse) {
-	if (amunLocal.isDebug && !advantageFoulOccured()) {
-		throw new Error("Trying to send advantage reponse while no foul occured. This will be rejected");
-	}
-	amunLocal.sendGameControllerMessage("TeamToController", {
-		advantage_response: resp === "continue"
-			? gameController.TeamToController.AdvantageResponse.CONTINUE
-			: gameController.TeamToController.AdvantageResponse.STOP
-	});
-}
-
