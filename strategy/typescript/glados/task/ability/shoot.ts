@@ -16,6 +16,7 @@ import * as ObserverShoot from "glados/observer/shoot";
 import { CatchBall } from "glados/task/ability/catchball";
 import { ForceShoot } from "glados/task/ability/forceshoot";
 import { Volley } from "glados/task/ability/volley";
+import { CurvedMaxAccel } from "glados/trajectory/curvedmaxaccel";
 import { Direct as TrajectoryDirect } from "glados/trajectory/direct";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
@@ -410,7 +411,8 @@ export class Shoot {
 		let visBallStartPos: Position;
 		if (!this._catchBallNecessary(moveDest, futureBallTime)) {
 			this._setObstacles(moveDest);
-			this._robot.trajectory.update(ToTarget, moveDest, targetDir);
+			// must use the same pathfinding as catchball
+			this._robot.trajectory.update(CurvedMaxAccel, moveDest, targetDir);
 			this._messaging.sendBroadcast(MessageType.attackPosition, futureBall.pos);
 			this._messaging.sendBroadcast(MessageType.earliestAttackTime, futureBallTime + World.Time);
 			this._messaging.sendBroadcast(MessageType.plannedAttackTime, futureBallTime + World.Time);
