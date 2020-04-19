@@ -92,7 +92,7 @@ void InternalGameController::handleGuiCommand(const QByteArray &data)
             m_currentActionAllowedTime = BALL_PLACEMENT_TIME;
         }
         if (m_packet.command() == SSL_Referee::DIRECT_FREE_BLUE || m_packet.command() == SSL_Referee::DIRECT_FREE_YELLOW ||
-                m_packet.command() == SSL_Referee::INDIRECT_FREE_BLUE || m_packet.command() == SSL_Referee::INDIRECT_FREE_YELLOW) {
+            m_packet.command() == SSL_Referee::INDIRECT_FREE_BLUE || m_packet.command() == SSL_Referee::INDIRECT_FREE_YELLOW) {
             m_currentActionStartTime = m_timer->currentTime() / 1000L;
             m_currentActionAllowedTime = FREEKICK_TIME;
         }
@@ -124,13 +124,14 @@ static float sign(float x)
     return x < 0 ? -1.0f : 1.0f;
 }
 
+// take care when modifying: the positions are in the vision coordinate system (x and y are swapped)
 auto InternalGameController::ballPlacementPosForFoul(Vector foulPosition) -> Vector
 {
     Vector result = foulPosition;
     float sideDist = m_geometry.defense_width() + DEFENSE_DISTANCE - std::abs(foulPosition.y);
     float frontDist = std::abs(foulPosition.x) - (m_geometry.defense_height() + DEFENSE_DISTANCE);
     if (std::abs(foulPosition.x) > m_geometry.field_height() / 2.0f - GOAL_LINE_DISTANCE ||
-            (sideDist > 0 && frontDist > 0 && sideDist > frontDist)) {
+        (sideDist > 0 && frontDist > 0 && sideDist > frontDist)) {
         result.x = sign(foulPosition.x) * (m_geometry.field_height() / 2.0f - GOAL_LINE_DISTANCE);
         result.y = sign(foulPosition.y) * (m_geometry.field_width() / 2.0f - FIELD_LINE_DISTANCE);
         return result;
@@ -213,8 +214,8 @@ void InternalGameController::handleGameEvent(std::shared_ptr<gameController::Aut
     // TODO: assertions for current state of the game to check the autoref working properly
 
     if (event.type() != gameController::GameEvent::PREPARED &&
-            (m_packet.command() == SSL_Referee::PREPARE_KICKOFF_YELLOW || m_packet.command() == SSL_Referee::PREPARE_KICKOFF_BLUE ||
-            m_packet.command() == SSL_Referee::PREPARE_KICKOFF_BLUE || m_packet.command() == SSL_Referee::PREPARE_PENALTY_YELLOW)) {
+        (m_packet.command() == SSL_Referee::PREPARE_KICKOFF_YELLOW || m_packet.command() == SSL_Referee::PREPARE_KICKOFF_BLUE ||
+         m_packet.command() == SSL_Referee::PREPARE_PENALTY_BLUE || m_packet.command() == SSL_Referee::PREPARE_PENALTY_YELLOW)) {
         return;
     }
 
@@ -225,17 +226,16 @@ void InternalGameController::handleGameEvent(std::shared_ptr<gameController::Aut
     // TODO: only if the event would not result in a penalty kick
     if (m_packet.next_command() && event.type() != gameController::GameEvent::PLACEMENT_SUCCEEDED &&
         event.type() != gameController::GameEvent::PLACEMENT_FAILED &&
-            ((!placingTeamIsYellow && m_packet.next_command() == SSL_Referee::DIRECT_FREE_BLUE) ||
-             (placingTeamIsYellow && m_packet.next_command() == SSL_Referee::DIRECT_FREE_YELLOW))) {
+        ((!placingTeamIsYellow && m_packet.next_command() == SSL_Referee::DIRECT_FREE_BLUE) ||
+         (placingTeamIsYellow && m_packet.next_command() == SSL_Referee::DIRECT_FREE_YELLOW))) {
         return;
     }
 
     bool shouldPlace = false;
     bool setIsFirstPlacement = true;
     switch (event.type()) {
-    case gameController::GameEvent::CHIPPED_GOAL:
-    case gameController::GameEvent::INDIRECT_GOAL:
     case gameController::GameEvent::BALL_LEFT_FIELD_GOAL_LINE:
+        // TODO: goal kicks vs. corner kicks
         placementPos.x = sign(eventLocation.x) * (m_geometry.field_height() / 2.0f - GOAL_LINE_DISTANCE);
         placementPos.y = sign(eventLocation.y) * (m_geometry.field_width() / 2.0f - FIELD_LINE_DISTANCE);
         m_packet.set_next_command(placingTeamIsYellow ? SSL_Referee::DIRECT_FREE_YELLOW : SSL_Referee::DIRECT_FREE_BLUE);
@@ -278,7 +278,6 @@ void InternalGameController::handleGameEvent(std::shared_ptr<gameController::Aut
         }
         break;
     case gameController::GameEvent::POSSIBLE_GOAL:
-    case gameController::GameEvent::GOAL:
         shouldPlace = true;
         placementPos = {0, 0};
         m_packet.set_next_command(placingTeamIsYellow ? SSL_Referee::PREPARE_KICKOFF_YELLOW : SSL_Referee::PREPARE_KICKOFF_BLUE);
@@ -286,45 +285,35 @@ void InternalGameController::handleGameEvent(std::shared_ptr<gameController::Aut
     case gameController::GameEvent::PREPARED:
         shouldPlace = false;
         m_currentActionStartTime = m_timer->currentTime() / 1000L;
-        m_currentActionAllowedTime = 5000000;
+        m_currentActionAllowedTime = 10000000;
         issueCommand(SSL_Referee::NORMAL_START);
         break;
+
+    // minor offenses
     case gameController::GameEvent::NO_PROGRESS_IN_GAME:
         placingTeamIsYellow = rand() % 2 == 0;
         shouldPlace = true;
         m_packet.set_next_command(SSL_Referee::FORCE_START);
         break;
-
-    // minor offenses
-    case gameController::GameEvent::BOT_DRIBBLED_BALL_TOO_FAR:
-        shouldPlace = true;
-        placementPos = ballPlacementPosForFoul(eventEnd);
-        m_packet.set_next_command(placingTeamIsYellow ? SSL_Referee::DIRECT_FREE_YELLOW : SSL_Referee::DIRECT_FREE_BLUE);
-        break;
-    case gameController::GameEvent::KICK_TIMEOUT:
-    case gameController::GameEvent::KEEPER_HELD_BALL:
     case gameController::GameEvent::ATTACKER_DOUBLE_TOUCHED_BALL:
-    case gameController::GameEvent::ATTACKER_TOUCHED_OPPONENT_IN_DEFENSE_AREA:
-    case gameController::GameEvent::BOT_KICKED_BALL_TOO_FAST:
         shouldPlace = true;
         placementPos = ballPlacementPosForFoul(eventLocation);
         m_packet.set_next_command(placingTeamIsYellow ? SSL_Referee::DIRECT_FREE_YELLOW : SSL_Referee::DIRECT_FREE_BLUE);
         break;
 
-    // major offenses
+    // major offenses (for these, the foul counter is increased)
+    // the next are stopping fouls
+    case gameController::GameEvent::BOT_DRIBBLED_BALL_TOO_FAR:
+        shouldPlace = true;
+        placementPos = ballPlacementPosForFoul(eventEnd);
+        m_packet.set_next_command(placingTeamIsYellow ? SSL_Referee::DIRECT_FREE_YELLOW : SSL_Referee::DIRECT_FREE_BLUE);
+        break;
     case gameController::GameEvent::BOT_INTERFERED_PLACEMENT:
-        m_currentActionStartTime = m_timer->currentTime() / 1000L;
-        m_currentActionAllowedTime = BALL_PLACEMENT_TIME;
+        m_currentActionAllowedTime += 10000000; // 10 seconds
         shouldPlace = false;
         break;
-    case gameController::GameEvent::ATTACKER_TOO_CLOSE_TO_DEFENSE_AREA:
-    // TODO: advantage rule for pushing and crashing
-    case gameController::GameEvent::DEFENDER_IN_DEFENSE_AREA_PARTIALLY:
-    case gameController::GameEvent::DEFENDER_IN_DEFENSE_AREA:
-    case gameController::GameEvent::BOT_CRASH_UNIQUE:
-    case gameController::GameEvent::BOT_PUSHED_BOT:
-    case gameController::GameEvent::BOT_HELD_BALL_DELIBERATELY:
-    case gameController::GameEvent::BOT_TOO_FAST_IN_STOP:
+    case gameController::GameEvent::KEEPER_HELD_BALL:
+    case gameController::GameEvent::DEFENDER_IN_DEFENSE_AREA: // in a real game, this event causes a penalty shot, but the game controller can not perform those
         shouldPlace = true;
         placementPos = ballPlacementPosForFoul(eventLocation);
         m_packet.set_next_command(placingTeamIsYellow ? SSL_Referee::DIRECT_FREE_YELLOW : SSL_Referee::DIRECT_FREE_BLUE);
@@ -335,9 +324,13 @@ void InternalGameController::handleGameEvent(std::shared_ptr<gameController::Aut
         placementPos = ballPlacementPosForFoul(eventLocation);
         // leave next command the same
         break;
+    // these events do not cause the game to stop and are therefore ignored
+    case gameController::GameEvent::BOT_KICKED_BALL_TOO_FAST:
+    case gameController::GameEvent::ATTACKER_TOO_CLOSE_TO_DEFENSE_AREA:
+    case gameController::GameEvent::BOT_CRASH_UNIQUE:
+    case gameController::GameEvent::BOT_TOO_FAST_IN_STOP:
     default:
-        // do nothing here, these should not originate from the autoref
-        // (or we dont care, i.e. for crash_drawn)
+        // do nothing here, these do not stop the game or should not originate from the autoref
         break;
     }
     // TODO: set current action start time to something negative if it is not needed
