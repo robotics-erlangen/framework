@@ -73,6 +73,10 @@ export class Ball {
 		return `Ball(pos = (${this.pos.x}, ${this.pos.y}), speed = ${this.speed.length()})`;
 	}
 
+	toString() {
+		return this._toString();
+	}
+
 	_updateLostBall(time: number) {
 		// set lost timer
 		if (this._isVisible) {
