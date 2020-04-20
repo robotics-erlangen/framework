@@ -26,7 +26,12 @@ export class Move extends Behavior {
 			this._applyForMainAttacker(undefined, undefined, 2);
 		}
 		if (assignment.behavior) {
-			return this.runDeferredBehavior(assignment.behavior, assignment.restart);
+			let deferredResult = this.runDeferredBehavior(assignment.behavior, assignment.restart);
+			// override force keeping in pool from the deferred behavior,
+			// otherwise the only robot in a move not running force keeping in pool will be the one
+			// running a deferred behavior, usually the mainattacker (not good)
+			this.forceDeferredKeepingInPool();
+			return deferredResult;
 		}
 
 		return [assignment.class, assignment.params, assignment.restart];

@@ -96,6 +96,13 @@ export abstract class Behavior {
 	// return true if behavior is appropriate
 	abstract check(): boolean;
 
+	protected forceDeferredKeepingInPool() {
+		if (this._deferredBehavior) {
+			this._deferredBehavior._forceKeepingInPool = true;
+		}
+		this._forceKeepingInPool = true;
+	}
+
 	forceKeepingInPool(): boolean {
 		return this._deferredBehavior ? this._deferredBehavior.forceKeepingInPool() : this._forceKeepingInPool;
 	}
