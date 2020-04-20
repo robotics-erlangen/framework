@@ -95,7 +95,7 @@
      <x>0</x>
      <y>0</y>
      <width>842</width>
-     <height>24</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_Game">
@@ -157,7 +157,7 @@
    </widget>
    <widget class="QMenu" name="menuPlaySpeed">
     <property name="enabled">
-     <bool>false</bool>
+     <bool>true</bool>
     </property>
     <property name="title">
      <string>Play Speed</string>

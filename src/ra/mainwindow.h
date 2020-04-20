@@ -89,6 +89,8 @@ private slots:
     void logOpened(QString name, bool errorOccurred);
     void togglePause();
     void showPlotter();
+    void setSpeed(int speed);
+    void udpateSpeedActionsEnabled();
 
 private:
     void toggleHorusModeWidgets(bool enable);

@@ -114,6 +114,11 @@ void SimulatorWidget::handleAppState(Qt::ApplicationState state)
 
 void SimulatorWidget::setSpeed(int speed)
 {
+    if (speed != ui->spinSpeed->value()) {
+        ui->spinSpeed->setValue(speed);
+        // called again by the value change
+        return;
+    }
     Command command(new amun::Command);
     command->set_speed(speed / 100.0f);
     emit sendCommand(command);

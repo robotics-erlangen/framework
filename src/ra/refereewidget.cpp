@@ -123,6 +123,25 @@ void RefereeWidget::load()
     ui->autoref->load();
 }
 
+void RefereeWidget::enableNumberShortcuts(bool enable)
+{
+    if (enable) {
+        ui->btnRefereeStop->setShortcut(Qt::Key_0);
+        ui->btnRefereeForceStart->setShortcut(Qt::Key_5);
+        ui->btnRefereeKickoffYellow->setShortcut(Qt::Key_1);
+        ui->btnRefereeKickoffBlue->setShortcut(Qt::Key_3);
+        ui->btnRefereeDirectYellow->setShortcut(Qt::Key_7);
+        ui->btnRefereeDirectBlue->setShortcut(Qt::Key_9);
+    } else {
+        ui->btnRefereeStop->setShortcut(Qt::Key_0 + Qt::KeypadModifier);
+        ui->btnRefereeForceStart->setShortcut(Qt::Key_5 + Qt::KeypadModifier);
+        ui->btnRefereeKickoffYellow->setShortcut(Qt::Key_1 + Qt::KeypadModifier);
+        ui->btnRefereeKickoffBlue->setShortcut(Qt::Key_3 + Qt::KeypadModifier);
+        ui->btnRefereeDirectYellow->setShortcut(Qt::Key_7 + Qt::KeypadModifier);
+        ui->btnRefereeDirectBlue->setShortcut(Qt::Key_9 + Qt::KeypadModifier);
+    }
+}
+
 void RefereeWidget::shutdownInternalAutoref()
 {
     ui->autoref->close();

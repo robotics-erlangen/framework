@@ -48,6 +48,8 @@ const QString DEFAULT_ROBOT_DOUBLE_CLICK_SEARCH_STRING = ".*: <id>";
 const FieldWidgetAction DEFAULT_ROBOT_CTRL_CLICK_ACTION = FieldWidgetAction::None;
 const QString DEFAULT_ROBOT_CTRL_CLICK_SEARCH_STRING = "";
 
+const QString DEFAULT_NUMBER_KEYS_USAGE = "Internal Referee";
+
 ConfigDialog::ConfigDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::ConfigDialog)
@@ -97,6 +99,7 @@ void ConfigDialog::sendConfiguration()
     emit sendCommand(command);
 
     emit useDarkModeColors(ui->uiDarkMode->isChecked());
+    emit useNumKeysForReferee(ui->numKeyUsage->currentText() == DEFAULT_NUMBER_KEYS_USAGE);
 
     emit setRobotDoubleClickAction(static_cast<FieldWidgetAction>(ui->doubleClickAction->currentData().toInt()),
                                    ui->doubleClickSearch->text());
@@ -126,6 +129,7 @@ void ConfigDialog::load()
     ui->remotePort->setValue(s.value("RefereeRemoteControl/Port", DEFAULT_REMOTE_CONTROL_PORT).toUInt());
 
     ui->uiDarkMode->setChecked(s.value("Ui/DarkModeColors", DEFAULT_UI_DARK_MODE_COLORS).toBool());
+    ui->numKeyUsage->setCurrentText(s.value("Ui/NumKeyUsage", DEFAULT_NUMBER_KEYS_USAGE).toString());
 
     FieldWidgetAction robotDoubleClick = static_cast<FieldWidgetAction>(s.value("Ui/RobotDoubleClickAction", static_cast<int>(DEFAULT_ROBOT_DOUBLE_CLICK_ACTION)).toInt());
     ui->doubleClickAction->setCurrentText(robotActionString(robotDoubleClick));
@@ -157,6 +161,7 @@ void ConfigDialog::reset()
     ui->doubleClickSearch->setText(DEFAULT_ROBOT_DOUBLE_CLICK_SEARCH_STRING);
     ui->ctrlClickAction->setCurrentText(robotActionString(DEFAULT_ROBOT_CTRL_CLICK_ACTION));
     ui->ctrlClickSearch->setText(DEFAULT_ROBOT_CTRL_CLICK_SEARCH_STRING);
+    ui->numKeyUsage->setCurrentText(DEFAULT_NUMBER_KEYS_USAGE);
 
     sendConfiguration();
 }
@@ -189,7 +194,14 @@ void ConfigDialog::apply()
     s.setValue("Ui/RobotCtrlClickAction", ui->ctrlClickAction->currentData().toInt());
     s.setValue("Ui/RobotCtrlClickSearch", ui->ctrlClickSearch->text());
 
+    s.setValue("Ui/NumKeyUsage", ui->numKeyUsage->currentText());
+
     sendConfiguration();
+}
+
+bool ConfigDialog::numKeysUsedForReferee() const
+{
+    return ui->numKeyUsage->currentText() == DEFAULT_NUMBER_KEYS_USAGE;
 }
 
 QString ConfigDialog::robotActionString(FieldWidgetAction action)

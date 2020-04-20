@@ -48,11 +48,11 @@ public slots:
     void stop();
     void start();
     void toggleSimulatorRunning();
+    void setSpeed(int speed);
 
 private slots:
     void setEnableAutoPause(bool autoPause);
     void handleAppState(Qt::ApplicationState state);
-    void setSpeed(int speed);
     void increaseSpeed();
     void decreaseSpeed();
     void setEnableNoise(int state);

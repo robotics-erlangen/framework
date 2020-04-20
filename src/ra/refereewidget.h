@@ -59,6 +59,7 @@ public slots:
     void handleStatus(const Status &status);
     void saveConfig();
     void setStyleSheets(bool useDark);
+    void enableNumberShortcuts(bool enable);
 
 private slots:
     void handleCommand();

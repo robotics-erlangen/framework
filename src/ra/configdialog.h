@@ -40,10 +40,12 @@ public:
     ~ConfigDialog() override;
     ConfigDialog(const ConfigDialog&) = delete;
     ConfigDialog& operator=(const ConfigDialog&) = delete;
+    bool numKeysUsedForReferee() const;
 
 signals:
     void sendCommand(const Command &command);
     void useDarkModeColors(bool useDark);
+    void useNumKeysForReferee(bool forReferee); // simulator speed otherwise
     void setRobotDoubleClickAction(FieldWidgetAction action, QString searchString);
     void setRobotCtrlClickAction(FieldWidgetAction action, QString searchString);
 

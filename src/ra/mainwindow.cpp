@@ -129,6 +129,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     connect(m_configDialog, SIGNAL(useDarkModeColors(bool)), ui->teaminfo, SLOT(setStyleSheets(bool)));
     connect(m_configDialog, SIGNAL(useDarkModeColors(bool)), ui->robots, SIGNAL(setUseDarkColors(bool)));
     connect(m_configDialog, SIGNAL(useDarkModeColors(bool)), ui->replay, SIGNAL(setUseDarkColors(bool)));
+    connect(m_configDialog, SIGNAL(useNumKeysForReferee(bool)), this, SLOT(udpateSpeedActionsEnabled()));
 
     connect(ui->options, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
 
@@ -290,7 +291,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
 
     // playback speed shortcuts
     QSignalMapper *mapper = new QSignalMapper(this);
-    connect(mapper, SIGNAL(mapped(int)), ui->logManager, SIGNAL(setSpeed(int)));
+    connect(mapper, SIGNAL(mapped(int)), this, SLOT(setSpeed(int)));
     QAction *speedActions[] = { ui->actionSpeed1, ui->actionSpeed5, ui->actionSpeed10, ui->actionSpeed20,
                               ui->actionSpeed50, ui->actionSpeed100, ui->actionSpeed200, ui->actionSpeed1000 };
     int playSpeeds[] = { 1, 5, 10, 20, 50, 100, 200, 1000 };
@@ -353,6 +354,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     connect(this, SIGNAL(gotStatus(Status)), m_logOpener, SLOT(handleStatus(Status)));
 
     switchToWidgetConfiguration(INITIAL_CONFIG_ID, true);
+    udpateSpeedActionsEnabled();
 }
 
 MainWindow::~MainWindow()
@@ -396,6 +398,15 @@ void MainWindow::togglePause()
         ui->simulator->toggleSimulatorRunning();
     } else {
         ui->actionTogglePause->trigger();
+    }
+}
+
+void MainWindow::setSpeed(int speed)
+{
+    if (m_currentWidgetConfiguration % 2 == 1) {
+        ui->simulator->setSpeed(speed);
+    } else {
+        ui->logManager->setSpeed(speed);
     }
 }
 
@@ -626,6 +637,8 @@ void MainWindow::setSimulatorEnabled(bool enabled)
     ui->actionEnableTransceiver->setChecked(ui->actionSimulator->isChecked() ? m_transceiverSimulator : m_transceiverRealWorld);
     ui->actionChargeKicker->setChecked(ui->actionSimulator->isChecked() ? m_chargeSimulator : m_chargeRealWorld);
 
+    udpateSpeedActionsEnabled();
+
     m_transceiverStatus->setVisible(!enabled);
 
     Command command(new amun::Command);
@@ -785,10 +798,6 @@ void MainWindow::toggleHorusModeWidgets(bool enable)
     ui->actionStepForward->setEnabled(enable);
     ui->actionTogglePause->setEnabled(enable);
     ui->actionShowBacklog->setEnabled(!enable);
-    ui->menuPlaySpeed->setEnabled(enable);
-    for (auto speedAction : ui->menuPlaySpeed->actions()) {
-        speedAction->setEnabled(enable);
-    }
     ui->referee->setEnabled(!enable);
     ui->simulator->setEnabled(!enable);
     ui->robots->enableContent(!enable);
@@ -802,6 +811,18 @@ void MainWindow::toggleHorusModeWidgets(bool enable)
     ui->actionRecord->setVisible(!enable);
     ui->actionSave20s->setEnabled(!enable);
     ui->goToLastPosition->setVisible(enable && m_logOpener->showGoToLastPositionButton());
+
+    udpateSpeedActionsEnabled();
+}
+
+void MainWindow::udpateSpeedActionsEnabled()
+{
+    bool enable = ui->actionSimulator->isChecked() && !m_configDialog->numKeysUsedForReferee();
+    ui->menuPlaySpeed->setEnabled(enable);
+    for (auto speedAction : ui->menuPlaySpeed->actions()) {
+        speedAction->setEnabled(enable);
+    }
+    ui->referee->enableNumberShortcuts(!enable);
 }
 
 void MainWindow::showConfigDialog()
