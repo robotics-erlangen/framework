@@ -239,17 +239,23 @@ function updateReceivesPass() {
 		} else {
 			robotTime = MathUtil.bound(0, ObserverRobot.minTimeToBall(robot), maxRobotTime);
 		}
+
+		// consider both the robot center and the dribbler position for the angle calculation
+		// there can be a difference when the ball is very close to the robot (but not quite close enough to disable the condition)
+		// this makes receivesPass more stable for shooting robots
 		let extrapolatedRobotPos = robot.pos + robot.speed * robotTime;
+		let extrapolatedDribblerPos = extrapolatedRobotPos + Vector.fromAngle(robot.dir) * robot.shootRadius;
 		let toRobotAngle = (extrapolatedRobotPos - World.Ball.pos).angle();
+		let toDribblerAngle = (extrapolatedDribblerPos - World.Ball.pos).angle();
 		if (robotBallDistance > World.Ball.radius + robot.shootRadius
-				&&  geom.normalizeAnglePositive(toRobotAngle - coneAngleMin) > coneWidth) {
+				&& geom.normalizeAnglePositive(toRobotAngle - coneAngleMin) > coneWidth
+				&& geom.normalizeAnglePositive(toDribblerAngle - coneAngleMin) > coneWidth) {
 			continue;
 		}
 
 		// check if the arriving ball is fast enough (hysteresis)
 		let minBallSpeed = ballRecipients.has(robot) ? 0.5 : 1.0;
-		let dribblerPos = extrapolatedRobotPos + Vector.fromAngle(robot.dir) * robot.shootRadius;
-		let distanceToRobot = World.Ball.pos.distanceTo(dribblerPos);
+		let distanceToRobot = World.Ball.pos.distanceTo(extrapolatedDribblerPos);
 		if (Physics.ballAtTime(World.Ball, Physics.ballRollTime(
 				World.Ball, distanceToRobot)).speed.length() < minBallSpeed) {
 			continue;
