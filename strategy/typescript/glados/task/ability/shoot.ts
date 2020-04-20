@@ -283,10 +283,16 @@ export class Shoot {
 			hasBallDistance = hasBallDistance * 1.5;
 		}
 
+		let ballInDefense = Field.isInOpponentDefenseArea(World.Ball.pos, World.Ball.radius +
+				(this._directMovement ? 0.01 : 0.03)) &&
+			World.RefereeState !== "BallPlacementOffensive" &&
+			this._robot !== World.FriendlyKeeper;
+
 		let hasBallSideOffset = this._directMovement ? 0.02 : 0;
 		this._directMovement = this._robot.hasBall(World.Ball, hasBallSideOffset, hasBallDistance)
 			&&  Math.abs(geom.normalizeAngle((World.Ball.pos - this._robot.pos).angle() - shootDir)) < maxSidewardsAngle
-			&&  Math.abs(geom.normalizeAngle(this._robot.dir - shootDir)) < maxOrientationAngle;
+			&&  Math.abs(geom.normalizeAngle(this._robot.dir - shootDir)) < maxOrientationAngle
+			&& !ballInDefense;
 
 		debug.set("Shoot/AngleError", geom.normalizeAngle(Math.abs(this._robot.dir - shootDir)) * 180 / Math.PI);
 
