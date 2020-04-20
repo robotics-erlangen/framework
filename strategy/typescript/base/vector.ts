@@ -326,6 +326,10 @@ export class Vector {
 		return `Vector(${this.x.toFixed(2)}, ${this.y.toFixed(2)})`;
 	}
 
+	toString() {
+		return this._toString();
+	}
+
 	/**
 	 * Creates a new read-only vector
 	 * @see Vector.create

@@ -158,6 +158,10 @@ export class Robot {
 		return this._toStringCache;
 	}
 
+	toString() {
+		return this._toString();
+	}
+
 	// reset robot commands and update data
 	_updateOpponent(state: pb.world.Robot | undefined, time: number) {
 		// check if robot is tracked
