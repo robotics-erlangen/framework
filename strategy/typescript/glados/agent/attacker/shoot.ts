@@ -343,9 +343,10 @@ export class Shoot extends Behavior {
 		}
 
 		// redecide if the attackPosition changed a lot
-		// don't if it is the first frame after a suggestion, as this is a valid situation for CB to change the attack Position a lot
+		// don't if it is the first or second frame after a suggestion, as this is a valid situation for CB to change the attack Position a lot
+		// two frames are necessary since prevAttackPosition is the attackposition from two frames ago, so the old executed task
 		if (this._attackPosition && this._prevAttackPosition
-				&&  this._attackPosition.distanceTo(this._prevAttackPosition) > 0.3 && this._decisionFrames > 1) {
+				&&  this._attackPosition.distanceTo(this._prevAttackPosition) > 0.3 && this._decisionFrames > 2) {
 			debug.set("redeciding", "TRUE (attackPosition)" + suffixDebugString);
 			return true;
 		}
