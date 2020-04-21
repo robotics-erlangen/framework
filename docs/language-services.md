@@ -8,43 +8,35 @@ To run the unit tests and linter, execute the following in your build folder
 make check
 ```
 
-## tslint
-*tslint* should be installed with *npm*. To use *npm* you first need to install
-[NodeJS](https://nodejs.org). On most modern Linux Systems it should be
-possible to install it with your distributions respective package manager. If
-you choose to install manually, it is necessary to add *Node*'s binary folder
-to your PATH.
+## Typescript
+Typescript linting is done with a project local installation of *tslint*. IntelliSense is provided by *tsserver*.
 
-You can now install tslint.
-```
-npm -g install typescript tslint
-```
+To make use of those, you first need to install *npm* which is usually distributed
+alongside [NodeJS](https://nodejs.org). On most modern Linux Systems, it should
+be possible to insall it with your distributions respective package manager. If
+you choose to install it manually, it is necessary to add *Node*'s binary
+folder to your `PATH`.
 
-Depending on where you installed *Node*, you may need administrative/root rights.
+- Linux & MacOS: Run the `setup.sh` script located at `strategy/typescript`
+
+Windows:
+1. Open a Command Line and change directory to `strategy/typescript`
+2. Run `npm install`
+3. Copy the contents of `libs/tsc/built/local` to `strategy/typescript/node_modules/typescript/lib` and overwrite the existing files
 
 ### Editor integration
-Typescript provides language services through *tsserver*. Linting is performed
-by a tsserver plugin called *tslint-language-service*. Since we extended the
-language and the compiler, it is not possible to use your global Typescript
-installation for this purpose.
-
-#### General setup
-The general setup (independent of your editor) is to install Typescript and its
-plugins to a seperate `node_modules` folder and point your editors Typescript
-plugin to this folder.
-1. Install NodeJS and npm and make them available in your PATH
-2. Clone our [modified Typescript Compiler](https://project.robotics-erlangen.de/robocup/typescript-compiler) and follow the build instructions provided in the repository.
-3. In a seperate folder `/path/to/langservices` run `npm install typescript tslint tslint-language-service`
-4. Overwrite `/path/to/langservices/node_modules/typescript/lib` with our compiled compiler.
 
 #### Visual Studio Code
-Visual Studio Code has a Typescript plugin installed by default. You'll need to
-point it to the folder you setup before.
-1. Open `File > Preferences > Settings`. If you opened the `strategy/typescript` folder, select `Workspace Settings`, otherwise `User Settings` are find.
-2. Search for `typescript.tsdk` and click on `Edit in settings.json`.
-3. Add a new JSON Key `typescript.tsdk` with `/path/to/langservices/node_modules/typescript/lib` as its value.
-4. Save and restart.
-5. After opening a Typescript file, click on the Typescript version number on the bottom right and select `Use workspace version`.
+Visual Studio Code has a Typescript plugin installed by default. You'll need
+You will also need [Microsoft's `tslint` plugin](https://marketplace.visualstudio.com/items?itemName=ms-vscode.vscode-typescript-tslint-plugin).
+If you make sure to open the `strategy/typescript` folder (not the base
+`software` folder) in VS Code, it should automatically use the project-local
+`node_modules` folder. You can verify this, check [the Microsoft docs](https://code.visualstudio.com/docs/typescript/typescript-compiling#_using-the-workspace-version-of-typescript)
+
+#### Vim8/Neovim
+There are multiple plugins providing language server integration for Vim but I use and recommend [`coc.nvim`](https://github.com/neoclide/coc.nvim). For the setup:
+1. Install [`coc.nvim`](https://github.com/neoclide/coc.nvim)
+2. Run `:CocInstall coc-tsserver coc-tslint-plugin coc-json`
 
 ## Luacheck
 Install according to the following platform dependent instructions.
