@@ -21,7 +21,7 @@
 #ifndef ALPHATIMETRAJECTORY_H
 #define ALPHATIMETRAJECTORY_H
 
-#include "vector.h"
+#include "core/vector.h"
 #include "boundingbox.h"
 #include "obstacles.h" // for TrajectoryPoint
 #include <vector>

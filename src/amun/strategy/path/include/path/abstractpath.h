@@ -21,7 +21,7 @@
 #ifndef ABSTRACTPATH_H
 #define ABSTRACTPATH_H
 
-#include "vector.h"
+#include "core/vector.h"
 #include "protobuf/robot.pb.h"
 #include "obstacles.h"
 #include "worldinformation.h"

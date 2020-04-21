@@ -21,7 +21,7 @@
 #ifndef BOUNDINGBOX_H
 #define BOUNDINGBOX_H
 
-#include "vector.h"
+#include "core/vector.h"
 #include <algorithm>
 
 class BoundingBox {

@@ -24,7 +24,7 @@
 #include "alphatimetrajectory.h"
 #include "worldinformation.h"
 #include "pathdebug.h"
-#include "vector.h"
+#include "core/vector.h"
 #include <vector>
 
 class RNG;

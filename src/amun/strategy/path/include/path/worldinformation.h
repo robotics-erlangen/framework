@@ -21,7 +21,7 @@
 #ifndef WORLDINFORMATION_H
 #define WORLDINFORMATION_H
 
-#include "vector.h"
+#include "core/vector.h"
 #include "obstacles.h"
 #include "alphatimetrajectory.h"
 #include "protobuf/pathfinding.pb.h"

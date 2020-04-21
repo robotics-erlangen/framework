@@ -21,7 +21,7 @@
 #ifndef KDTREE_H
 #define KDTREE_H
 
-#include "vector.h"
+#include "core/vector.h"
 #include <QList>
 
 class KdTree

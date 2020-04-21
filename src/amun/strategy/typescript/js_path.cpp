@@ -25,7 +25,7 @@
 #include "strategy/script/scriptstate.h"
 #include "path/path.h"
 #include "path/trajectorypath.h"
-#include "path/vector.h"
+#include "core/vector.h"
 #include "core/timer.h"
 #include "config/config.h"
 #include "protobuf/debug.pb.h"

@@ -22,7 +22,7 @@ add_library(core
     include/core/fieldtransform.h
     include/core/rng.h
     include/core/timer.h
-    include/core/vector2.h
+    include/core/vector.h
     include/core/protobuffilesaver.h
     include/core/protobuffilereader.h
 

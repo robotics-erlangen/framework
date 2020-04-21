@@ -231,7 +231,7 @@ bool SimBall::update(SSL_DetectionBall *ball, float stddev, const CameraInfo& ca
 
     // add noise to coordinates
     // to convert from bullet coordinate system to ssl-vision rotate by 90 degree ccw
-    const Vector2 noise = m_rng->normalVector(stddev);
+    const Vector noise = m_rng->normalVector(stddev);
     ball->set_x((modY + noise.x) * 1000.0f);
     ball->set_y(-(modX + noise.y) * 1000.0f);
     return true;

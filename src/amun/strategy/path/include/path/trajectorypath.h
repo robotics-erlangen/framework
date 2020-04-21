@@ -27,7 +27,7 @@
 #include "endinobstaclesampler.h"
 #include "escapeobstaclesampler.h"
 #include "standardsampler.h"
-#include "vector.h"
+#include "core/vector.h"
 #include <vector>
 
 class ProtobufFileSaver;

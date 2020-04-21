@@ -21,7 +21,7 @@
 #ifndef RNG_H
 #define RNG_H
 
-#include "vector2.h"
+#include "vector.h"
 #include <inttypes.h>
 
 class RNG
@@ -35,9 +35,9 @@ public:
     double uniform();
     double uniformPositive();
     float uniformFloat(float min, float max);
-    Vector2 uniformVector();
+    Vector uniformVector();
     double normal(double sigma, double mean = 0.0);
-    Vector2 normalVector(double sigma, double mean = 0.0);
+    Vector normalVector(double sigma, double mean = 0.0);
 
 private:
     uint32_t m_s1;
@@ -65,9 +65,9 @@ inline float RNG::uniformFloat(float min, float max)
  * \sa uniform
  * \return A random vector drawn from a uniform distribution
  */
-inline Vector2 RNG::uniformVector()
+inline Vector RNG::uniformVector()
 {
-    return Vector2(uniform(), uniform());
+    return Vector(uniform(), uniform());
 }
 
 /*!

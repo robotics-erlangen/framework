@@ -29,7 +29,6 @@ add_library(path
     include/path/linesegment.h
     include/path/path.h
     include/path/trajectorypath.h
-    include/path/vector.h
     include/path/obstacles.h
     include/path/worldinformation.h
     include/path/trajectorysampler.h
