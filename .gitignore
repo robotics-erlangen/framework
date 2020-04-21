@@ -9,3 +9,4 @@ error.html
 /libs/v8/v8
 /libs/v8/.gclient
 /libs/v8/.gclient_entries
+node_modules/
