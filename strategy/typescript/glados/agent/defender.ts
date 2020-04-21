@@ -8,11 +8,11 @@ import { Default } from "glados/agent/defender/default";
 import { HandleBall } from "glados/agent/defender/handleball";
 import { ManMark } from "glados/agent/defender/manmark";
 import { PassTarget } from "glados/agent/defender/passtarget";
-import { Penalty } from "glados/agent/defender/penalty";
 import { Piggy } from "glados/agent/defender/piggy";
 import { ZoneDefense } from "glados/agent/defender/zonedefense";
 import { BallEscort } from "glados/agent/shared/ballescort";
 import { BreakPass } from "glados/agent/shared/breakpass";
+import { PenaltyPassive } from "glados/agent/shared/penaltypassive";
 import { MessageType } from "glados/control/messaging";
 
 
@@ -20,7 +20,7 @@ export class Defender extends Agent {
 
 	public getBehaviors(): (new (a: Agent) => Behavior)[] {
 		return [
-			Penalty,
+			PenaltyPassive,
 			PassTarget,
 			BallEscort,
 			HandleBall,

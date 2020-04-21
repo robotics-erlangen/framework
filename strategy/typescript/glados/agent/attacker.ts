@@ -10,7 +10,6 @@ import { DuelAssistant } from "glados/agent/attacker/duelassistant";
 import { FreeKick } from "glados/agent/attacker/freekick";
 import { Move } from "glados/agent/attacker/move";
 import { PassTiming } from "glados/agent/attacker/passtiming";
-import { Penalty } from "glados/agent/attacker/penalty";
 import { PenaltyShootoutDefensive as PenaltyDefensive } from "glados/agent/attacker/penaltydefensive";
 import { PenaltyShootout } from "glados/agent/attacker/penaltyshootout";
 import { Shoot } from "glados/agent/attacker/shoot";
@@ -42,7 +41,6 @@ export class Attacker extends Agent {
 			PenaltyShootout,
 			PenaltyDefensive,
 			PenaltyPassive,
-			Penalty,
 			FreeKick,
 			DoubleTouchGuard,
 			Duel,

@@ -4,7 +4,7 @@ import * as Field from "base/field";
 import * as geom from "base/geom";
 import * as Referee from "base/referee";
 import { Robot } from "base/robot";
-import { AbsTime, RelTime } from "base/timing";
+import { RelTime } from "base/timing";
 import { Position, Speed, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
@@ -12,14 +12,12 @@ import * as World from "base/world";
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
 import { ellipticDistance, getRealisticBallPos  } from "glados/observer/ball";
-import * as Goal from "glados/observer/goal";
 import * as Physics from "glados/observer/physics";
 import * as ORobot from "glados/observer/robot";
 import { Dribble } from "glados/task/attacker/dribble";
 import { MoveToBall } from "glados/task/attacker/movetoball";
 import { MoveToStaticBall } from "glados/task/attacker/movetostaticball";
 import { PenaltyChip } from "glados/task/attacker/penaltychip";
-// import { PenaltyShootout as Pass } from "glados/task/attacker/penaltyshootout";
 import { PenaltyShootoutGoal as ShootGoal } from "glados/task/attacker/penaltyshootoutgoal";
 import { StopAttack } from "glados/task/attacker/stopattack";
 import { MoveToPos } from "glados/task/shared/movetopos";
@@ -87,13 +85,7 @@ export class PenaltyShootout extends Behavior {
 
 	public check(): boolean {
 		let mainAttacker = this._messaging.receiveTrainer(MessageType.mainAttacker) === this._robot;
-		let isPenalty = World.RefereeState === "PenaltyOffensivePrepare" || World.RefereeState === "PenaltyOffensive";
-		let isShootout = World.GameStage === "PenaltyShootout";
-		return mainAttacker && isShootout && (isPenalty || this._checkPenaltyOngoing());
-	}
-
-	private _checkPenaltyOngoing(): boolean {
-		return this._penaltyStartTime != undefined && World.Time - this._penaltyStartTime < 15 && !Referee.isStopState();
+		return mainAttacker && Referee.isFriendlyPenaltyState();
 	}
 
 	private _updateDribbling() {
@@ -236,6 +228,10 @@ export class PenaltyShootout extends Behavior {
 			TaskAssignment<typeof MoveToBall> | TaskAssignment<typeof StopAttack> |
 			TaskAssignment<typeof PenaltyChip> | TaskAssignment<typeof Dribble> |
 			TaskAssignment<typeof MoveToPos> {
+
+		// keep the attacking robot as MainAttacker
+		this._applyForMainAttacker(undefined, undefined, 2);
+
 		this._updateBall();
 		this._updateDribbling();
 		this._updateShootGoal();
