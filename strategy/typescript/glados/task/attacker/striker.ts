@@ -78,8 +78,8 @@ export class Striker extends Task {
 	private _searchForPassDest() {
 		this._strikerSampling.precalculate();
 
-		let grid_point_count_x = 6;
-		let grid_point_count_y = 10;
+		let grid_point_count_x = 16;
+		let grid_point_count_y = 14;
 
 		let grid_point_dist_x = G.FieldWidth / grid_point_count_x;
 		let grid_point_dist_y = G.FieldHeight / grid_point_count_y;
