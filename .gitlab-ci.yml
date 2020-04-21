@@ -30,6 +30,7 @@ compile-ra:
 
 .test: &test_template
   script:
+    - "sh strategy/typescript/setup.sh"
     - "echo running test \"$TEST_PATTERN\""
     - "cd build"
     - "cmake -GNinja .."

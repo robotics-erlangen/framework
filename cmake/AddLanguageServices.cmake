@@ -3,7 +3,7 @@ add_test(NAME lua-luacheck-base
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/strategy/lua/base")
 
 add_test(NAME typescript-tslint
-    COMMAND tslint -p tsconfig.json -c tslint.yaml
+    COMMAND npm run lint
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/strategy/typescript")
 
 
@@ -17,5 +17,5 @@ add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
 add_dependencies(check amun-cli)
 
 add_custom_target(tsfix
-    COMMAND tslint --fix -p tsconfig.json -c tslint.yaml
+    COMMAND npm run lint-fix
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/strategy/typescript")
