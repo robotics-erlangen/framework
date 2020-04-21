@@ -92,7 +92,7 @@ export class BallEscort extends Behavior {
 		let intersection = Geom.intersectLineCircle(World.Ball.pos, World.Ball.speed, this._robot.pos, this._robot.radius * 1.5);
 
 		// Check if ball is between outline and robot
-		let behindRobot: boolean = ballOutPos.distanceToSq(World.Ball.pos) < ballOutPos.distanceToSq(this._robot.pos);
+		let behindRobot: boolean = ballOutPos.distanceToSq(World.Ball.pos) < ballOutPos.distanceToSq(this._robot.dribblerPos);
 
 		if (intersection.length !== 0 && !behindRobot) {
 			// The ball is moving directly towards the robot
