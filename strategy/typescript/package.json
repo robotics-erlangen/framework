@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "lint": "tslint -p tsconfig.json -c tslint.yaml",
+    "lint-fix": "tslint -p tsconfig.json -c tslint.yaml --fix"
+  },
+  "devDependencies": {
+    "tslint": "6.1.1",
+    "typescript-tslint-plugin": "^0.5.5"
+  },
+  "dependencies": {
+    "typescript": "3.8.3"
+  }
+}
