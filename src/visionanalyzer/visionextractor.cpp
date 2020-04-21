@@ -52,7 +52,10 @@ int main(int argc, char* argv[])
     }
 
     LogFileReader logfileIn;
-    logfileIn.open(parser.positionalArguments().first());
+    if (!logfileIn.open(parser.positionalArguments().first())) {
+        std::cerr <<"Could not open file: "<<parser.positionalArguments().first().toStdString()<<std::endl;
+        exit(1);
+    }
 
     VisionLogWriter logfileOut(parser.value(outputDirOption));
 
