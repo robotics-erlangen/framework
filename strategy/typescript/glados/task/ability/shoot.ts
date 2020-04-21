@@ -450,7 +450,7 @@ export class Shoot {
 		let visBallStartPos: Position;
 		if (!this._catchBallNecessary(moveDest, futureBallTime)) {
 			this._setObstacles(moveDest);
-			this._robot.trajectory.update(ToTarget, moveDest, targetDir, undefined, undefined);
+			this._robot.trajectory.update(CurvedMaxAccel, moveDest, targetDir, undefined, undefined);
 			this._messaging.sendBroadcast(MessageType.attackPosition, futureBall.pos);
 			this._messaging.sendBroadcast(MessageType.earliestAttackTime, Physics.robotTimeToPos(this._robot, moveDest, new Vector(0, 0))[0] + World.Time);
 			this._catchBallActive = false;
