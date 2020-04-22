@@ -36,6 +36,7 @@ add_library(path
     include/path/escapeobstaclesampler.h
     include/path/standardsampler.h
     include/path/pathdebug.h
+    include/path/speedprofile.h
 
     abstractpath.cpp
     alphatimetrajectory.cpp
@@ -48,6 +49,7 @@ add_library(path
     escapeobstaclesampler.cpp
     standardsampler.cpp
     pathdebug.cpp
+    speedprofile.cpp
 )
 target_link_libraries(path
     PRIVATE shared::core

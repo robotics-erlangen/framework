@@ -146,7 +146,7 @@ std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPat
     }
 
     // check direct trajectory
-    float directSlowDownTime = input.exponentialSlowDown ? AlphaTimeTrajectory::SLOW_DOWN_TIME : 0.0f;
+    float directSlowDownTime = input.exponentialSlowDown ? SpeedProfile::SLOW_DOWN_TIME : 0.0f;
     bool useHighPrecision = input.distance.length() < 0.1f && input.v1 == Vector(0, 0) && input.v0.length() < 0.2f;
     SpeedProfile direct = AlphaTimeTrajectory::findTrajectoryFastEndSpeed(input.v0, input.v1, input.distance, input.acceleration, input.maxSpeed, directSlowDownTime, useHighPrecision);
     if (direct.isValid()) {

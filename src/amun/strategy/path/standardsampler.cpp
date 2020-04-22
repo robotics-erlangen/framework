@@ -197,11 +197,11 @@ float StandardSampler::checkSample(const TrajectoryInput &input, const StandardT
     float secondPartTime;
     Vector secondPartOffset;
     // TODO: this code duplication is not good
-    const float slowDownTime = input.exponentialSlowDown ? AlphaTimeTrajectory::SLOW_DOWN_TIME : 0;
+    const float slowDownTime = input.exponentialSlowDown ? SpeedProfile::SLOW_DOWN_TIME : 0;
     if (input.exponentialSlowDown) {
-        secondPartTime = secondPart.timeWithSlowDown(AlphaTimeTrajectory::SLOW_DOWN_TIME);
+        secondPartTime = secondPart.timeWithSlowDown(SpeedProfile::SLOW_DOWN_TIME);
         // TODO: specialized method for this
-        secondPartOffset = secondPart.positionForTimeSlowDown(secondPartTime, AlphaTimeTrajectory::SLOW_DOWN_TIME);
+        secondPartOffset = secondPart.positionForTimeSlowDown(secondPartTime, SpeedProfile::SLOW_DOWN_TIME);
     } else {
         secondPartTime = secondPart.time();
         secondPartOffset = secondPart.positionForTime(secondPartTime);
@@ -212,7 +212,7 @@ float StandardSampler::checkSample(const TrajectoryInput &input, const StandardT
 
     // calculate first part trajectory
     Vector firstPartPosition = input.distance - secondPartOffset;
-    float firstPartSlowDownTime = input.exponentialSlowDown ? std::max(0.0f, AlphaTimeTrajectory::SLOW_DOWN_TIME - secondPartTime) : 0.0f;
+    float firstPartSlowDownTime = input.exponentialSlowDown ? std::max(0.0f, SpeedProfile::SLOW_DOWN_TIME - secondPartTime) : 0.0f;
     SpeedProfile firstPart = AlphaTimeTrajectory::findTrajectoryExactEndSpeed(input.v0, sample.getMidSpeed(), firstPartPosition, input.acceleration,
                                                                               input.maxSpeed, firstPartSlowDownTime, false);
     if (!firstPart.isValid()) {
