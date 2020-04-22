@@ -725,7 +725,7 @@ void MainWindow::handleCheckHaltStatus(const Status &status)
     if (status->has_game_state()) {
         const amun::GameState &gameState = status->game_state();
         if (gameState.state() != amun::GameState::Halt) {
-            ui->logManager->setPaused(true);
+            ui->logManager->setPaused(true); // TODO: this is a bug. This only modifies the UI and does not stop playback!
             liveMode();
         }
     }
