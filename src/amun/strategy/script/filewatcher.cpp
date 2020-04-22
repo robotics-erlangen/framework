@@ -71,6 +71,8 @@ void FileWatcher::onFileChanged(const QString &name)
 
 void FileWatcher::handleDirectoryChange(const QString &name)
 {
+    emit directoryChanged(name);
+
     if (!m_missingFiles.contains(name)) {
         return;
     }

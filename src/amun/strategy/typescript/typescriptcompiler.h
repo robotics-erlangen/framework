@@ -47,6 +47,10 @@ public:
 public slots:
     void init() override;
     void compile() override;
+
+private slots:
+    void indexFiles(const QString &path);
+
 protected:
     enum class CompileResult {
         Success, Warning, Error
@@ -54,6 +58,7 @@ protected:
     virtual std::pair<CompileResult, QString> performCompilation() = 0;
 
     QFileInfo m_tsconfig;
+
 private:
     bool isCompilationNeeded();
     // last source and build directory modification

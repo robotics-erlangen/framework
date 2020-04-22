@@ -38,16 +38,24 @@ TypescriptCompiler::TypescriptCompiler(const QFileInfo &tsconfig)
 
 void TypescriptCompiler::init() {
 	m_watcher = std::unique_ptr<FileWatcher>(new FileWatcher(this));
+
+    indexFiles(m_tsconfig.dir().absolutePath());
+
+    connect(m_watcher.get(), &FileWatcher::fileChanged, this, &TypescriptCompiler::compile);
+    connect(m_watcher.get(), &FileWatcher::directoryChanged, this, &TypescriptCompiler::indexFiles);
+}
+
+void TypescriptCompiler::indexFiles(const QString &path)
+{
     int baseDirLength = m_tsconfig.dir().absolutePath().length();
-    QDirIterator it(m_tsconfig.dir().absolutePath(), QDir::Files | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+    // also watch directories so that additional files can be properly watched
+    QDirIterator it(path, QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
     while (it.hasNext()) {
         it.next();
         if (it.filePath().mid(baseDirLength).startsWith("/built"))
             continue;
         m_watcher->addFile(it.filePath());
     }
-
-    connect(m_watcher.get(), &FileWatcher::fileChanged, this, &TypescriptCompiler::compile);
 }
 
 QFileInfo TypescriptCompiler::mapToResult(const QFileInfo& src) {

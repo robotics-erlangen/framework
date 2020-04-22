@@ -37,8 +37,11 @@ public:
     FileWatcher& operator=(const FileWatcher&) = delete;
     bool addFile(const QString &filename);
 
+
 signals:
     void fileChanged(const QString &name);
+    void directoryChanged(const QString &name);
+
 private slots:
     void onFileChanged(const QString &name);
     void handleDirectoryChange(const QString &name);
