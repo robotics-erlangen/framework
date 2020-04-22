@@ -28,6 +28,7 @@ add_library(logfile
     include/logfile/visionlogliveconverter.h
     include/logfile/logfilehasher.h
     include/logfile/bufferedstatussource.h
+    include/logfile/timedstatussource.h
 
     backlogwriter.cpp
     combinedlogwriter.cpp
@@ -37,9 +38,11 @@ add_library(logfile
     visionlogliveconverter.cpp
     logfilehasher.cpp
     bufferedstatussource.cpp
+    timedstatussource.cpp
 )
 target_link_libraries(logfile
     PUBLIC shared::protobuf
+    PUBLIC shared::core
     PUBLIC amun::processor
     PUBLIC visionlog
 )

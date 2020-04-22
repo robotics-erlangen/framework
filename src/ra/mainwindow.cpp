@@ -190,7 +190,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     connect(ui->actionFrameForward, SIGNAL(triggered()), ui->logManager, SLOT(nextFrame()));
     connect(ui->actionStepBack, SIGNAL(triggered()), ui->logManager, SIGNAL(stepBackward()));
     connect(ui->actionStepForward, SIGNAL(triggered()), ui->logManager, SIGNAL(stepForward()));
-    connect(ui->actionTogglePause, SIGNAL(triggered()), ui->logManager, SLOT(togglePaused()));
+    connect(ui->actionTogglePause, SIGNAL(triggered()), ui->logManager, SIGNAL(togglePaused()));
 
     connect(ui->referee, SIGNAL(enableInternalAutoref(bool)), ui->robots, SIGNAL(enableInternalAutoref(bool)));
     connect(ui->actionInternalReferee, SIGNAL(toggled(bool)), ui->robots, SIGNAL(enableInternalAutoref(bool)));

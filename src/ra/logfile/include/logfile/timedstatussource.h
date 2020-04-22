@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2017 Andreas Wendler                                        *
+ *   Copyright 2020 Tobias Heineken, Andreas Wendler                       *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,82 +18,64 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef LOGMANAGER_H
-#define LOGMANAGER_H
+#ifndef TIMEDSTATUSSOURCE_H
+#define TIMEDSTATUSSOURCE_H
 
-#include <QWidget>
-#include <QQueue>
+#include <QObject>
 #include <QTimer>
 #include <memory>
+
+#include "statussource.h"
+#include "bufferedstatussource.h"
 #include "protobuf/status.h"
 #include "core/timer.h"
-#include "logfile/statussource.h"
 
-class Timer;
-
-namespace Ui {
-class LogManager;
-}
-
-class TimedStatusSource;
-
-namespace LogManagerInternal {
-class SignalSource;
-}
-
-class LogManager : public QWidget
+class TimedStatusSource : public QObject
 {
     Q_OBJECT
 
-public:
-    explicit LogManager(QWidget *parent = 0);
-    ~LogManager();
-    LogManager(const LogManager&) = delete;
-    LogManager& operator=(const LogManager&) = delete;
-    void setStatusSource(std::shared_ptr<StatusSource> source);
-    void goToEnd();
-    void setPaused(bool p);
-    int getLastFrame();
-    uint getFrame();
-
 public slots:
-    void seekPacket(int packet);
-
-signals:
-    void gotStatus(const Status &status);
-    void disableSkipping(bool disable);
-    void resetBacklog();
-    void setSpeed(int speed);
-    void stepBackward();
-    void stepForward();
+    // Frame is timed, time in 0.1s (resolution for TimedStatusSource)
+    void seekFrame(int time);
+    // Packet is part of the log.
+    void seekPacket(int frame);
+    // seeks the frame by a given time, but moves backwards in time instead of forwards in case no packet with the supplied time could be found
+    void seekFrameBackwards(int time);
+    void handlePlaySpeed(int speed);
     void togglePaused();
 
+public:
+    TimedStatusSource(std::shared_ptr<StatusSource> source, QObject* parent = nullptr);
+    // checks if this TimedStatusSource manages the supplied StatusSource source
+    bool manages(const std::shared_ptr<StatusSource>& source) const{
+        return m_statusSource.getStatusSource() == source;
+    }
+    // has to be called once and only once
+    void start();
+
 private slots:
-    void seekFrame(int frame);
-    void previousFrame();
-    void nextFrame();
-    void handleStatus(const Status &status);
+    void playNext();
+    void handleNewData();
+
+signals:
+    void gotStatus(Status s);
 
 private:
-    QString formatTime(qint64 time);
-    void resetVariables();
-    void initializeLabels(int64_t packetCount = 0);
-    void connectStatusSource();
+    void indexLogFile();
+    void setPaused(bool pause);
 
 private:
-    Ui::LogManager *ui;
+    QTimer m_timer;
+    Timer m_playTimer;
 
-    QThread *m_logthread;
+    BufferedStatusSource m_statusSource;
+    // time -> frame
+    QList<int> m_frames;
 
-    LogManagerInternal::SignalSource* m_signalSource;
+    int m_nextPacket;
+    int m_spoolCounter;
 
-    TimedStatusSource* m_statusSource = nullptr;
-
-    qint64 m_startTime;
-    qint64 m_duration;
-
-    int m_exactSliderValue;
-    bool m_scroll;
+    bool m_paused;
 };
 
-#endif // LOGMANAGER_H
+#endif

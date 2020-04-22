@@ -118,5 +118,15 @@ message Status {
 message UiResponse {
     optional bool enable_logging = 1;
     optional bool is_logging = 2;
-    repeated Status logger_status = 3;
+    repeated Status logger_status = 3; // used for the plotter right now
+    optional bool playback_burst_end = 4; // used to notify logslider to update its position to Status::time
+    optional bool playback_paused = 5;
+    optional LogPlaybackInfo log_info = 6;
+    optional int64 frame_number = 7;
+}
+
+message LogPlaybackInfo {
+    required int64 start_time = 1;
+    required int64 duration = 2;
+    required int64 packet_count = 3;
 }
