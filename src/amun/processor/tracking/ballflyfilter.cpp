@@ -29,6 +29,7 @@
 static const float floorDamping = 0.55; // robocup 2016: 0.67
 static const int MAX_FRAMES_PER_FLIGHT = 200; // 60Hz, 3 seconds in the air
 static const float ACCEPT_DIST = 0.35;
+static const float ACTIVE_DIST = 0.5; // must be greater or equal to accept dist
 static const int APPROACH_SWITCH_FRAMENO = 16;
 
 FlyFilter::FlyFilter(VisionFrame& frame, CameraInfo* cameraInfo) :
@@ -95,6 +96,10 @@ static bool monotonicRisingOneException(const QList<float>& points)
         }
     }
     return exceptions < 2;
+}
+
+bool FlyFilter::isActive() {
+    return m_isActive && m_acceptDist < ACTIVE_DIST;
 }
 
 bool FlyFilter::checkIsShot()
@@ -985,9 +990,9 @@ bool FlyFilter::acceptDetection(const VisionFrame& frame)
 
     debugCircle((QString("cam"+QString::number(m_primaryCamera))).toStdString().c_str(), cam(0), cam(1), 0.04);
 
-    auto acceptDist = (ball - predGround).norm();
-    debug("accept dist", acceptDist);
-    return acceptDist < ACCEPT_DIST;
+    m_acceptDist = (ball - predGround).norm();
+    debug("accept dist", m_acceptDist);
+    return m_acceptDist < ACCEPT_DIST;
 }
 
 

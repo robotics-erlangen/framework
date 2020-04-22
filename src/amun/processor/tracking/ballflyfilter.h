@@ -53,7 +53,7 @@ public:
     void writeBallState(world::Ball *ball, qint64 predictionTime) override;
     float distToStartPos() { return m_distToStartPos; }
 
-    bool isActive() { return m_isActive; }
+    bool isActive();
     bool isBouncing() { return m_bouncing; }
     bool isShot();
 
@@ -149,6 +149,8 @@ private:
     bool collision();
     bool m_wasDetectedBefore;
     qint64 m_lastPredictionTime;
+
+    float m_acceptDist = 0;
 };
 
 #endif // BALLFLYFILTER_H
