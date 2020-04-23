@@ -63,6 +63,7 @@ LogManager::LogManager(QWidget *parent) :
     //connect buttons
     connect(ui->horizontalSlider, SIGNAL(valueChanged(int)), SLOT(seekFrame(int)));
     connect(ui->spinPacketCurrent, SIGNAL(valueChanged(int)), SLOT(seekPacket(int)));
+    connect(ui->btnPlay, SIGNAL(clicked()), this, SIGNAL(togglePaused()));
 
     //connect other signals
     connect(this, SIGNAL(disableSkipping(bool)), ui->spinPacketCurrent, SLOT(setDisabled(bool)));
@@ -89,7 +90,6 @@ void LogManager::setStatusSource(std::shared_ptr<StatusSource> source)
         m_statusSource = new TimedStatusSource(source, this);
         source->moveToThread(m_logthread);
         connect(ui->spinSpeed, SIGNAL(valueChanged(int)), m_statusSource, SLOT(handlePlaySpeed(int)));
-        connect(ui->btnPlay, SIGNAL(clicked()), m_statusSource, SLOT(togglePaused()));
         connect(m_signalSource, SIGNAL(requestFrame(int)), m_statusSource, SLOT(seekFrame(int)));
         connect(m_signalSource, SIGNAL(requestPacket(int)), m_statusSource, SLOT(seekPacket(int)));
         connect(m_signalSource, SIGNAL(requestPrevFrame(int)), m_statusSource, SLOT(seekFrameBackwards(int)));
