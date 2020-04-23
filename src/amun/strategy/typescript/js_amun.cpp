@@ -225,8 +225,14 @@ static void amunLog(const FunctionCallbackInfo<Value>& args)
     Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
 
     // returns the string undefined if no argument is given
-    String::Utf8Value value(isolate, args[0]);
-    t->log(*value);
+    QString text;
+    for (int i = 0;i<args.Length();i++) {
+        text += *String::Utf8Value(isolate, args[i]);
+        if (i < args.Length()-1) {
+            text += " ";
+        }
+    }
+    t->log(text);
 }
 
 static void amunAddVisualization(const FunctionCallbackInfo<Value>& args)
