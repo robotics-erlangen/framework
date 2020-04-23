@@ -46,7 +46,7 @@ export class BreakPass extends Behavior {
 			breakPassThreshold = 0.1;
 		}
 		// pass is not breakable
-		if (waitingTime < 0) {
+		if (waitingTime < (this._active ? -0.1 : 0)) {
 			debug.set("breakpass check", "pass is not breakable");
 			return false;
 		}
