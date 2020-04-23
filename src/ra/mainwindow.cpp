@@ -817,7 +817,8 @@ void MainWindow::toggleHorusModeWidgets(bool enable)
 
 void MainWindow::udpateSpeedActionsEnabled()
 {
-    bool enable = ui->actionSimulator->isChecked() && !m_configDialog->numKeysUsedForReferee();
+    bool enable = (ui->actionSimulator->isChecked() && !m_configDialog->numKeysUsedForReferee()) ||
+        m_currentWidgetConfiguration % 2 == 0; // horus mode
     ui->menuPlaySpeed->setEnabled(enable);
     for (auto speedAction : ui->menuPlaySpeed->actions()) {
         speedAction->setEnabled(enable);
