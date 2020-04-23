@@ -209,6 +209,22 @@ message CommandReplay {
     optional CommandStrategy yellow_strategy = 5;
 }
 
+message Flag {} // empty message
+
+message CommandPlayback {
+    optional int32 seek_time = 1;
+    optional int32 seek_packet = 2;
+    optional int32 seek_time_backwards = 3;
+    optional int32 playback_speed = 4;
+    optional Flag toggle_paused = 5;
+}
+
+message CommandRecord {
+    optional bool use_logfile_location = 1;
+    optional Flag save_backlog = 2;
+    optional bool run_logging = 3;
+}
+
 message Command {
     optional CommandSimulator simulator = 1;
     optional CommandReferee referee = 2;
@@ -228,4 +244,6 @@ message Command {
     optional CommandDebuggerInput debugger_input = 16;
     optional PauseSimulatorCommand pause_simulator = 17;
     optional CommandReplay replay = 18;
+    optional CommandPlayback playback = 19;
+    optional CommandRecord record = 20;
 }

@@ -23,6 +23,7 @@
 
 #include "protobuf/robot.pb.h"
 #include "protobuf/status.h"
+#include "protobuf/command.h"
 
 #include <QString>
 #include <QObject>
@@ -58,13 +59,14 @@ signals:
 public slots:
     void handleStatus(Status status);
     void enableLogging(bool enable); // enables or disables both record and backlog
-    void saveBackLog();
-    void recordButtonToggled(bool enabled);
-    void useLogfileLocation(bool enabled);
+    void handleCommand(Command command);
 
 private:
     QString createLogFilename() const;
     void startLogfile();
+    void saveBackLog();
+    void recordButtonToggled(bool enabled);
+    void useLogfileLocation(bool enabled);
 
 private:
     enum class LogState {

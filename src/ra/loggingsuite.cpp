@@ -25,8 +25,9 @@ Logsuite::Logsuite(QAction* logAction, QAction* backlogMenu, QAction* backlogBut
     m_backlogActionMenu(backlogMenu),
     m_backlogButton(backlogButton)
 {
-    connect(m_backlogActionMenu, SIGNAL(triggered(bool)), this, SIGNAL(triggeredBacklog()));
-    connect(m_backlogButton, SIGNAL(triggered(bool)), this, SIGNAL(triggeredBacklog()));
+    connect(m_backlogActionMenu, &QAction::triggered, this, &Logsuite::triggeredBacklog);
+    connect(m_backlogButton, &QAction::triggered, this, &Logsuite::triggeredBacklog);
+    connect(m_logAction, &QAction::toggled, this, &Logsuite::triggeredLog);
 }
 
 void Logsuite::handleStatus(const Status& status) {
@@ -49,4 +50,18 @@ void Logsuite::handleStatus(const Status& status) {
         m_backlogButton->setEnabled(enabled);
         m_logAction->setEnabled(enabled);
     }
+}
+
+void Logsuite::triggeredBacklog()
+{
+    Command c(new amun::Command());
+    c->mutable_record()->mutable_save_backlog();
+    emit sendCommand(c);
+}
+
+void Logsuite::triggeredLog(bool enable)
+{
+    Command c(new amun::Command());
+    c->mutable_record()->set_run_logging(enable);
+    emit sendCommand(c);
 }

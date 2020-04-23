@@ -64,6 +64,7 @@ public:
 
 signals:
     void gotStatus(const Status &status);
+    void sendCommandDirect(const Command &command);
 
 protected:
     void closeEvent(QCloseEvent *e) override;
@@ -93,6 +94,7 @@ private slots:
     void showPlotter();
     void setSpeed(int speed);
     void udpateSpeedActionsEnabled();
+    void useLogfileLocation(bool enable);
 
 private:
     void toggleHorusModeWidgets(bool enable);

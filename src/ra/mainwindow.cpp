@@ -179,8 +179,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     connect(ui->actionConfiguration, SIGNAL(triggered()), SLOT(showConfigDialog()));
     connect(ui->actionPlotter, SIGNAL(triggered()), this, SLOT(showPlotter()));
     connect(ui->actionAutoPause, SIGNAL(toggled(bool)), ui->simulator, SLOT(setEnableAutoPause(bool)));
-    connect(ui->actionUseLocation, SIGNAL(toggled(bool)), &m_logWriterRa, SLOT(useLogfileLocation(bool)));
-    connect(ui->actionUseLocation, SIGNAL(toggled(bool)), &m_logWriterHorus, SLOT(useLogfileLocation(bool)));
+    connect(ui->actionUseLocation, SIGNAL(toggled(bool)), this, SLOT(useLogfileLocation(bool)));
     connect(ui->actionUseLocation, SIGNAL(toggled(bool)), m_logOpener, SLOT(useLogfileLocation(bool)));
     connect(ui->actionChangeLocation, SIGNAL(triggered()), SLOT(showDirectoryDialog()));
 
@@ -444,12 +443,11 @@ void MainWindow::showDirectoryDialog()
 
 void MainWindow::createLogWriterConnections(CombinedLogWriter &writer, Logsuite* suite)
 {
-    connect(suite->getLogAction(), SIGNAL(toggled(bool)), &writer, SLOT(recordButtonToggled(bool)));
-
-    connect(suite, &Logsuite::triggeredBacklog, &writer, &CombinedLogWriter::saveBackLog);
+    connect(suite, &Logsuite::sendCommand, &writer, &CombinedLogWriter::handleCommand);
     connect(&writer, &CombinedLogWriter::sendStatus, m_logTimeLabel, &LogLabel::handleStatus);
     connect(&writer, &CombinedLogWriter::sendStatus, suite, &Logsuite::handleStatus);
     connect(&writer, SIGNAL(sendStatus(Status)), m_plotter, SLOT(handleStatus(Status)));
+    connect(this, &MainWindow::sendCommandDirect, &writer, &CombinedLogWriter::handleCommand); // TODO: this is WIP until seshat is in amun
 }
 
 void MainWindow::saveConfig()
@@ -629,6 +627,13 @@ void MainWindow::handleStatus(const Status &status)
     }
 
     emit gotStatus(status);
+}
+
+void MainWindow::useLogfileLocation(bool enable)
+{
+    Command command(new amun::Command);
+    command->mutable_record()->set_use_logfile_location(enable);
+    emit sendCommandDirect(command);
 }
 
 void MainWindow::sendCommand(const Command &command)

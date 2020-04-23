@@ -23,6 +23,7 @@
 
 #include <QObject>
 #include "protobuf/status.h"
+#include "protobuf/command.h"
 #include <QAction>
 
 class Logsuite: public QObject {
@@ -34,9 +35,14 @@ public:
 
 public slots:
     void handleStatus(const Status &status);
+
 signals:
     void isLogging(bool logging);
+    void sendCommand(const Command& command);
+
+private slots:
     void triggeredBacklog();
+    void triggeredLog(bool enable);
 
 private:
     QAction* m_logAction;

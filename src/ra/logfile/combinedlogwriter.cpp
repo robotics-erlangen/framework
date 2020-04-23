@@ -126,6 +126,22 @@ void CombinedLogWriter::sendBacklogStatus(int lastNPackets)
     return;
 }
 
+void CombinedLogWriter::handleCommand(Command comm) {
+    if (!comm->has_record()) {
+        return;
+    }
+    const amun::CommandRecord& recordCommand = comm->record();
+    if (recordCommand.has_use_logfile_location()) {
+        useLogfileLocation(recordCommand.use_logfile_location());
+    }
+    if (recordCommand.has_run_logging()) {
+        recordButtonToggled(recordCommand.run_logging());
+    }
+    if (recordCommand.has_save_backlog()) {
+        saveBackLog();
+    }
+}
+
 std::shared_ptr<StatusSource> CombinedLogWriter::makeStatusSource()
 {
     if (m_logState == LogState::LOGGING) {
