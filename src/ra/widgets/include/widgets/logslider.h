@@ -32,24 +32,24 @@
 class Timer;
 
 namespace Ui {
-class LogManager;
+class LogSlider;
 }
 
 class TimedStatusSource;
 
-namespace LogManagerInternal {
+namespace LogSliderInternal {
 class SignalSource;
 }
 
-class LogManager : public QWidget
+class LogSlider : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit LogManager(QWidget *parent = 0);
-    ~LogManager();
-    LogManager(const LogManager&) = delete;
-    LogManager& operator=(const LogManager&) = delete;
+    explicit LogSlider(QWidget *parent = 0);
+    ~LogSlider();
+    LogSlider(const LogSlider&) = delete;
+    LogSlider& operator=(const LogSlider&) = delete;
     void setStatusSource(std::shared_ptr<StatusSource> source);
     void goToEnd();
     void setPaused(bool p);
@@ -81,11 +81,11 @@ private:
     void connectStatusSource();
 
 private:
-    Ui::LogManager *ui;
+    Ui::LogSlider *ui;
 
     QThread *m_logthread;
 
-    LogManagerInternal::SignalSource* m_signalSource;
+    LogSliderInternal::SignalSource* m_signalSource;
 
     TimedStatusSource* m_statusSource = nullptr;
 

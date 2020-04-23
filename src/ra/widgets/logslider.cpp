@@ -18,14 +18,14 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#include "logmanager.h"
-#include "ui_logmanager.h"
+#include "logslider.h"
+#include "ui_logslider.h"
 #include "logfile/timedstatussource.h"
 
 #include <QThread>
 #include <QStyleOptionButton>
 
-namespace LogManagerInternal {
+namespace LogSliderInternal {
     class SignalSource: public QObject {
         Q_OBJECT
 
@@ -39,12 +39,12 @@ namespace LogManagerInternal {
     };
 }
 
-using LogManagerInternal::SignalSource;
+using LogSliderInternal::SignalSource;
 
 
-LogManager::LogManager(QWidget *parent) :
+LogSlider::LogSlider(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::LogManager),
+    ui(new Ui::LogSlider),
     m_signalSource(new SignalSource(this)),
     m_scroll(true)
 {
@@ -77,12 +77,12 @@ LogManager::LogManager(QWidget *parent) :
     connect(this, SIGNAL(stepForward()), ui->spinPacketCurrent, SLOT(stepUp()));
 }
 
-LogManager::~LogManager()
+LogSlider::~LogSlider()
 {
     delete ui;
 }
 
-void LogManager::setStatusSource(std::shared_ptr<StatusSource> source)
+void LogSlider::setStatusSource(std::shared_ptr<StatusSource> source)
 {
     ui->btnPlay->setEnabled(true);
     if (!m_statusSource  ||  !m_statusSource->manages(source)) {
@@ -100,7 +100,8 @@ void LogManager::setStatusSource(std::shared_ptr<StatusSource> source)
     }
 }
 
-void LogManager::handleStatus(const Status& status) {
+void LogSlider::handleStatus(const Status& status)
+{
     if(status->has_pure_ui_response()) {
         const amun::UiResponse& response = status->pure_ui_response();
         if (response.has_playback_burst_end() && response.playback_burst_end()) {
@@ -143,28 +144,28 @@ void LogManager::handleStatus(const Status& status) {
     emit gotStatus(status);
 }
 
-void LogManager::goToEnd()
+void LogSlider::goToEnd()
 {
     seekPacket(getLastFrame());
 }
 
-int LogManager::getLastFrame()
+int LogSlider::getLastFrame()
 {
     return ui->spinPacketCurrent->maximum();
 }
 
-void LogManager::previousFrame()
+void LogSlider::previousFrame()
 {
     int frame = ui->horizontalSlider->value();
     emit m_signalSource->requestPrevFrame(std::max(0, frame - 1));
 }
 
-void LogManager::nextFrame()
+void LogSlider::nextFrame()
 {
     ui->horizontalSlider->setValue(ui->horizontalSlider->value() + 1);
 }
 
-void LogManager::seekFrame(int frame)
+void LogSlider::seekFrame(int frame)
 {
     if (!m_scroll) { // don't trigger for updates of the horizontal slider
         return;
@@ -172,7 +173,7 @@ void LogManager::seekFrame(int frame)
     emit m_signalSource->requestFrame(frame);
 }
 
-void LogManager::seekPacket(int packet)
+void LogSlider::seekPacket(int packet)
 {
     if (!m_scroll) { // don't trigger for updates of spinPacketCurrent
         return;
@@ -181,7 +182,8 @@ void LogManager::seekPacket(int packet)
     emit m_signalSource->requestPacket(packet);
 }
 
-QString LogManager::formatTime(qint64 time) {
+QString LogSlider::formatTime(qint64 time)
+{
     // nanoseconds to mm:ss.MMMM time stamp (M = milliseconds)
     const double dtime = time * 1E-9;
     return QString("%1:%2.%3")
@@ -190,7 +192,7 @@ QString LogManager::formatTime(qint64 time) {
            .arg((int) (dtime * 1000) % 1000, 3, 10, QChar('0'));
 }
 
-void LogManager::setPaused(bool p)
+void LogSlider::setPaused(bool p)
 {
     bool hasIcon = !QIcon::fromTheme("media-playback-start").isNull();
     const QString playText("Play");
@@ -221,7 +223,7 @@ void LogManager::setPaused(bool p)
     }
 }
 
-void LogManager::resetVariables()
+void LogSlider::resetVariables()
 {
     // delete index
     m_startTime = 0;
@@ -232,7 +234,7 @@ void LogManager::resetVariables()
     setPaused(true);
 }
 
-void LogManager::initializeLabels(int64_t packetCount)
+void LogSlider::initializeLabels(int64_t packetCount)
 {
     m_scroll = false; // disable scrolling, can be triggered by maximum updates
     // play button if file is loaded
@@ -256,9 +258,9 @@ void LogManager::initializeLabels(int64_t packetCount)
     m_scroll = true;
 }
 
-uint LogManager::getFrame()
+uint LogSlider::getFrame()
 {
     return ui->spinPacketCurrent->value();
 }
 
-#include "logmanager.moc"
+#include "logslider.moc"

@@ -67,7 +67,7 @@
             </layout>
            </item>
            <item>
-            <widget class="LogManager" name="logManager" native="true">
+            <widget class="LogSlider" name="logManager" native="true">
              <property name="enabled">
               <bool>false</bool>
              </property>
@@ -761,9 +761,9 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>LogManager</class>
+   <class>LogSlider</class>
    <extends>QWidget</extends>
-   <header>widgets/logmanager.h</header>
+   <header>widgets/logslider.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>

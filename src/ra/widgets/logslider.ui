@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>LogManager</class>
- <widget class="QWidget" name="LogManager">
+ <class>LogSlider</class>
+ <widget class="QWidget" name="LogSlider">
   <property name="geometry">
    <rect>
     <x>0</x>

@@ -23,7 +23,7 @@ add_library(widgets
     include/widgets/debugwidget.h
     include/widgets/fieldwidget.h
     include/widgets/logwidget.h
-    include/widgets/logmanager.h
+    include/widgets/logslider.h
     include/widgets/refereestatuswidget.h
     include/widgets/timingwidget.h
     include/widgets/visualizationproxymodel.h
@@ -40,7 +40,7 @@ add_library(widgets
     fieldwidget.cpp
     goalselectionwidget.h
     goalselectionwidget.cpp
-    logmanager.cpp
+    logslider.cpp
     logwidget.cpp
     refereestatuswidget.cpp
     savesituation.cpp
@@ -56,7 +56,7 @@ add_library(widgets
 
 set(UI_SOURCES
     debugwidget.ui
-    logmanager.ui
+    logslider.ui
     refereestatuswidget.ui
     timingwidget.ui
     virtualfieldsetupdialog.ui
