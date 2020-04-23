@@ -27,7 +27,7 @@ function calculateBreakPos(robot: FriendlyRobot): [Position, Speed, number] {
 	let minEndSpeed = Physics.robotMinEndspeed(robot, breakPos, ballTimeToPos);
 
 	// calculate waiting time
-	let timeToPos = Physics.robotTimeToPos(robot, breakPos, new Vector(0, 0))[0];
+	let timeToPos = Physics.robotTimeToPos(robot, breakPos, minEndSpeed)[0];
 	let waitingTime = ballTimeToPos - timeToPos;
 
 	return [breakPos, minEndSpeed, waitingTime];
