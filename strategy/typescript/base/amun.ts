@@ -38,10 +38,10 @@ interface AmunPublic {
 	strategyPath: string;
 	isPerformanceMode: boolean;
 	/**
-	 * Logs the equivalent of new String(data) to the log widget
-	 * @param data - The data to be logged
+	 * Logs the equivalent of new String(value) to the log widget for each value of data, seperated by spaces
+	 * @param data - The data to be logged, will be printed seperated by a space
 	 */
-	log(data: any): void;
+	log(...data: any[]): void;
 	/**
 	 * Returns current time
 	 * @returns time in nanoseconds (amun), seconds(strategy)
