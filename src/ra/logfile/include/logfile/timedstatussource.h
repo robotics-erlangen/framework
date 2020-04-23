@@ -28,6 +28,7 @@
 #include "statussource.h"
 #include "bufferedstatussource.h"
 #include "protobuf/status.h"
+#include "protobuf/command.h"
 #include "core/timer.h"
 
 class TimedStatusSource : public QObject
@@ -35,14 +36,7 @@ class TimedStatusSource : public QObject
     Q_OBJECT
 
 public slots:
-    // Frame is timed, time in 0.1s (resolution for TimedStatusSource)
-    void seekFrame(int time);
-    // Packet is part of the log.
-    void seekPacket(int frame);
-    // seeks the frame by a given time, but moves backwards in time instead of forwards in case no packet with the supplied time could be found
-    void seekFrameBackwards(int time);
-    void handlePlaySpeed(int speed);
-    void togglePaused();
+    void handleCommand(const Command& command);
 
 public:
     TimedStatusSource(std::shared_ptr<StatusSource> source, QObject* parent = nullptr);
@@ -63,6 +57,14 @@ signals:
 private:
     void indexLogFile();
     void setPaused(bool pause);
+    // Frame is timed, time in 0.1s (resolution for TimedStatusSource)
+    void seekFrame(int time);
+    // Packet is part of the log.
+    void seekPacket(int frame);
+    // seeks the frame by a given time, but moves backwards in time instead of forwards in case no packet with the supplied time could be found
+    void seekFrameBackwards(int time);
+    void handlePlaySpeed(int speed);
+    void togglePaused();
 
 private:
     QTimer m_timer;

@@ -42,6 +42,30 @@ void TimedStatusSource::start()
    indexLogFile();
 }
 
+void TimedStatusSource::handleCommand(const Command& command)
+{
+    if (!command->has_playback()) {
+        return;
+    }
+    const amun::CommandPlayback& playback = command->playback();
+    if (playback.has_seek_time()) {
+        seekFrame(playback.seek_time());
+    }
+    else if (playback.has_seek_packet()) {
+        seekPacket(playback.seek_packet());
+    }
+    else if (playback.has_seek_time_backwards()) {
+        seekFrameBackwards(playback.seek_time_backwards());
+    }
+    if (playback.has_playback_speed()) {
+        handlePlaySpeed(playback.playback_speed());
+    }
+    if (playback.has_toggle_paused()) {
+        togglePaused();
+    }
+
+}
+
 void TimedStatusSource::indexLogFile()
 {
     const QList<qint64> &timings = m_statusSource.getStatusSource()->timings();

@@ -21,6 +21,7 @@
 #include "logslider.h"
 #include "ui_logslider.h"
 #include "logfile/timedstatussource.h"
+#include "protobuf/command.h"
 
 #include <QThread>
 #include <QStyleOptionButton>
@@ -31,12 +32,52 @@ namespace LogSliderInternal {
 
     public:
         SignalSource(QObject* parent = nullptr) : QObject(parent) {}
-
-    signals:
         void requestFrame(int time);
         void requestPrevFrame(int time);
         void requestPacket(int packet);
+
+    public slots:
+        void handlePlaySpeed(int speed);
+        void togglePaused();
+
+    signals:
+        void sendCommand(const Command& command);
     };
+
+    void SignalSource::requestFrame(int time)
+    {
+        Command command(new amun::Command);
+        command->mutable_playback()->set_seek_time(time);
+        emit sendCommand(command);
+    }
+
+    void SignalSource::requestPrevFrame(int time)
+    {
+        Command command(new amun::Command);
+        command->mutable_playback()->set_seek_time_backwards(time);
+        emit sendCommand(command);
+    }
+
+    void SignalSource::requestPacket(int packet)
+    {
+        Command command(new amun::Command);
+        command->mutable_playback()->set_seek_packet(packet);
+        emit sendCommand(command);
+    }
+
+    void SignalSource::togglePaused()
+    {
+        Command command(new amun::Command);
+        command->mutable_playback()->mutable_toggle_paused();
+        emit sendCommand(command);
+    }
+
+    void SignalSource::handlePlaySpeed(int speed)
+    {
+        Command command(new amun::Command);
+        command->mutable_playback()->set_playback_speed(speed);
+        emit sendCommand(command);
+    }
 }
 
 using LogSliderInternal::SignalSource;
@@ -64,6 +105,8 @@ LogSlider::LogSlider(QWidget *parent) :
     connect(ui->horizontalSlider, SIGNAL(valueChanged(int)), SLOT(seekFrame(int)));
     connect(ui->spinPacketCurrent, SIGNAL(valueChanged(int)), SLOT(seekPacket(int)));
     connect(ui->btnPlay, SIGNAL(clicked()), this, SIGNAL(togglePaused()));
+    connect(ui->spinSpeed, SIGNAL(valueChanged(int)), m_signalSource, SLOT(handlePlaySpeed(int)));
+    connect(this, &LogSlider::togglePaused, m_signalSource, &SignalSource::togglePaused);
 
     //connect other signals
     connect(this, SIGNAL(disableSkipping(bool)), ui->spinPacketCurrent, SLOT(setDisabled(bool)));
@@ -89,12 +132,8 @@ void LogSlider::setStatusSource(std::shared_ptr<StatusSource> source)
         delete m_statusSource;
         m_statusSource = new TimedStatusSource(source, this);
         source->moveToThread(m_logthread);
-        connect(ui->spinSpeed, SIGNAL(valueChanged(int)), m_statusSource, SLOT(handlePlaySpeed(int)));
-        connect(m_signalSource, SIGNAL(requestFrame(int)), m_statusSource, SLOT(seekFrame(int)));
-        connect(m_signalSource, SIGNAL(requestPacket(int)), m_statusSource, SLOT(seekPacket(int)));
-        connect(m_signalSource, SIGNAL(requestPrevFrame(int)), m_statusSource, SLOT(seekFrameBackwards(int)));
+        connect(m_signalSource, &SignalSource::sendCommand, m_statusSource, &TimedStatusSource::handleCommand);
         connect(m_statusSource, SIGNAL(gotStatus(Status)), this, SLOT(handleStatus(Status)));
-        connect(this, SIGNAL(togglePaused()), m_statusSource, SLOT(togglePaused()));
         resetVariables();
         m_statusSource->start();
     }
@@ -157,7 +196,7 @@ int LogSlider::getLastFrame()
 void LogSlider::previousFrame()
 {
     int frame = ui->horizontalSlider->value();
-    emit m_signalSource->requestPrevFrame(std::max(0, frame - 1));
+    m_signalSource->requestPrevFrame(std::max(0, frame - 1));
 }
 
 void LogSlider::nextFrame()
@@ -170,7 +209,7 @@ void LogSlider::seekFrame(int frame)
     if (!m_scroll) { // don't trigger for updates of the horizontal slider
         return;
     }
-    emit m_signalSource->requestFrame(frame);
+    m_signalSource->requestFrame(frame);
 }
 
 void LogSlider::seekPacket(int packet)
@@ -179,7 +218,7 @@ void LogSlider::seekPacket(int packet)
         return;
     }
 
-    emit m_signalSource->requestPacket(packet);
+    m_signalSource->requestPacket(packet);
 }
 
 QString LogSlider::formatTime(qint64 time)
