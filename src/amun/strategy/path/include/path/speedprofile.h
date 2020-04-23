@@ -114,39 +114,43 @@ class SpeedProfile
 public:
     static constexpr float SLOW_DOWN_TIME = 0.2f;
 
+    SpeedProfile(float slowDownTime) : slowDownTime(slowDownTime) {}
+
     SpeedProfile1D xProfile;
     SpeedProfile1D yProfile;
 
     bool valid = true;
 
+    float slowDownTime;
+
     bool isValid() const { return valid; }
 
-    Vector positionForTime(float time) const {
-        return Vector(xProfile.offsetForTime(time), yProfile.offsetForTime(time));
-    }
-
-    Vector speedForTime(float time) const {
-        return Vector(xProfile.speedForTime(time), yProfile.speedForTime(time));
-    }
-
-    Vector speedForTimeSlowDown(float time, float slowDownTime) const {
-        return Vector(xProfile.speedForTimeSlowDown(time, slowDownTime), yProfile.speedForTimeSlowDown(time, slowDownTime));
-    }
-
-    Vector calculateSlowDownPos(float slowDownTime) const {
+    Vector calculateSlowDownPos() const {
         return Vector(xProfile.calculateSlowDownPos(slowDownTime), yProfile.calculateSlowDownPos(slowDownTime));
     }
 
-    Vector positionForTimeSlowDown(float time, float slowDownTime) const {
-        return Vector(xProfile.offsetForTimeSlowDown(time, slowDownTime), yProfile.offsetForTimeSlowDown(time, slowDownTime));
+    Vector positionForTime(float time) const {
+        if (slowDownTime == 0.0f) {
+            return Vector(xProfile.offsetForTime(time), yProfile.offsetForTime(time));
+        } else {
+            return Vector(xProfile.offsetForTimeSlowDown(time, slowDownTime), yProfile.offsetForTimeSlowDown(time, slowDownTime));
+        }
+    }
+
+    Vector speedForTime(float time) const {
+        if (slowDownTime == 0.0f) {
+            return Vector(xProfile.speedForTime(time), yProfile.speedForTime(time));
+        } else {
+            return Vector(xProfile.speedForTimeSlowDown(time, slowDownTime), yProfile.speedForTimeSlowDown(time, slowDownTime));
+        }
     }
 
     float time() const {
-        return std::max(xProfile.profile[xProfile.counter-1].t, yProfile.profile[yProfile.counter-1].t);
-    }
-
-    float timeWithSlowDown(float slowDownTime) const {
-        return std::max(xProfile.timeWithSlowDown(slowDownTime), yProfile.timeWithSlowDown(slowDownTime));
+        if (slowDownTime == 0.0f) {
+            return std::max(xProfile.profile[xProfile.counter-1].t, yProfile.profile[yProfile.counter-1].t);
+        } else {
+            return std::max(xProfile.timeWithSlowDown(slowDownTime), yProfile.timeWithSlowDown(slowDownTime));
+        }
     }
 
     Vector continuationSpeed() const {
@@ -158,14 +162,14 @@ public:
         yProfile.limitToTime(time);
     }
 
-    BoundingBox calculateBoundingBox(Vector offset, float slowDownTime) const {
+    BoundingBox calculateBoundingBox(Vector offset) const {
         auto xRange = xProfile.calculateRange(slowDownTime);
         auto yRange = yProfile.calculateRange(slowDownTime);
         return BoundingBox(offset + Vector(xRange.first, yRange.first), offset + Vector(xRange.second, yRange.second));
     }
 
     // WARNING: this function does NOT create points for the slow down time. Use other functions if that is necessary
-    std::vector<TrajectoryPoint> getTrajectoryPoints(float slowDownTime) const;
+    std::vector<TrajectoryPoint> getTrajectoryPoints() const;
 };
 
 #endif // SPEEDPROFILE_H

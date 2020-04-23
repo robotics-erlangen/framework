@@ -48,14 +48,14 @@ public:
     void debugCircle(const QString &name, Vector center, float radius, PathDebugColor color = PathDebugColor::BLACK);
     void debugPath(const QString &name, const QVector<Vector> &points, PathDebugColor color = PathDebugColor::BLACK);
     void debugLine(const QString &name, Vector start, Vector end, PathDebugColor color = PathDebugColor::BLACK);
-    void debugTrajectory(const QString &name, const SpeedProfile &trajectory, float slowDown, Vector offset, PathDebugColor color = PathDebugColor::BLACK);
+    void debugTrajectory(const QString &name, const SpeedProfile &trajectory, Vector offset, PathDebugColor color = PathDebugColor::BLACK);
 #else
     void debug(const QString&, float) {}
     void debug(const QString&, const QString&) {}
     void debugCircle(const QString&, Vector, float, PathDebugColor = PathDebugColor::BLACK) {}
     void debugPath(const QString&, const QVector<Vector>&, PathDebugColor = PathDebugColor::BLACK) {}
     void debugLine(const QString&, Vector, Vector, PathDebugColor = PathDebugColor::BLACK) {}
-    void debugTrajectory(const QString&, const SpeedProfile&, float, Vector, PathDebugColor = PathDebugColor::BLACK) {}
+    void debugTrajectory(const QString&, const SpeedProfile&, Vector, PathDebugColor = PathDebugColor::BLACK) {}
 #endif
 
 signals:

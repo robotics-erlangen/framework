@@ -41,9 +41,9 @@ public:
     // speed profile output
     // any input is valid as long as time is not negative
     // if minTime is given, it must be the value of minTimeFastEndSped(v0, v1, acc)
-    static SpeedProfile calculateTrajectoryFastEndSpeed(Vector v0, Vector v1, float time, float angle, float acc, float vMax, float minTime = -1);
+    static SpeedProfile calculateTrajectoryFastEndSpeed(Vector v0, Vector v1, float time, float angle, float acc, float vMax, float slowDownTime, float minTime = -1);
     // if minTime is given, it must be the value of minTimeExactEndSped(v0, v1, acc)
-    static SpeedProfile calculateTrajectoryExactEndSpeed(Vector v0, Vector v1, float time, float angle, float acc, float vMax, float minTime = -1);
+    static SpeedProfile calculateTrajectoryExactEndSpeed(Vector v0, Vector v1, float time, float angle, float acc, float vMax, float slowDownTime, float minTime = -1);
 
 private:
     struct TrajectoryPosInfo2D {

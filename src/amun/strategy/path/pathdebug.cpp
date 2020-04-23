@@ -115,13 +115,13 @@ void PathDebug::debugLine(const QString &name, Vector start, Vector end, PathDeb
     emit gotVisualization(vis);
 }
 
-void PathDebug::debugTrajectory(const QString &name, const SpeedProfile &trajectory, float slowDown, Vector offset, PathDebugColor color)
+void PathDebug::debugTrajectory(const QString &name, const SpeedProfile &trajectory, Vector offset, PathDebugColor color)
 {
     QVector<Vector> points;
     const int VIS_POINTS = 35;
-    float time = slowDown == 0 ? trajectory.time() : trajectory.timeWithSlowDown(slowDown);
+    float time = trajectory.time();
     for (int i = 0;i<VIS_POINTS;i++) {
-        points.push_back(trajectory.positionForTimeSlowDown(float(i) * time / float(VIS_POINTS-1), slowDown) + offset);
+        points.push_back(trajectory.positionForTime(float(i) * time / float(VIS_POINTS-1)) + offset);
     }
     debugPath(name, points, color);
 }

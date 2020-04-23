@@ -75,7 +75,7 @@ bool EndInObstacleSampler::testEndPoint(const TrajectoryInput &input, Vector end
     if (!direct.isValid()) {
         return false;
     }
-    if (m_world.isTrajectoryInObstacle(direct, 0, 0, input.s0)) {
+    if (m_world.isTrajectoryInObstacle(direct, 0, input.s0)) {
         return false;
     }
 
@@ -85,7 +85,6 @@ bool EndInObstacleSampler::testEndPoint(const TrajectoryInput &input, Vector end
 
     result.resize(1);
     result[0].profile = direct;
-    result[0].slowDownTime = 0;
     result[0].fastEndSpeed = false;
     result[0].desiredDistance = endPoint - input.s0;
 

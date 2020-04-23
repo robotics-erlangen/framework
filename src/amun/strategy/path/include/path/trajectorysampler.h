@@ -41,8 +41,7 @@ class TrajectorySampler {
 public:
 
     struct TrajectoryGenerationInfo {
-        SpeedProfile profile;
-        float slowDownTime;
+        SpeedProfile profile = SpeedProfile(0);
         Vector desiredDistance;
         bool fastEndSpeed;
     };

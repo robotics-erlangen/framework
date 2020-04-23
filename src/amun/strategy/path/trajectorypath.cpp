@@ -150,12 +150,11 @@ std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPat
     bool useHighPrecision = input.distance.length() < 0.1f && input.v1 == Vector(0, 0) && input.v0.length() < 0.2f;
     SpeedProfile direct = AlphaTimeTrajectory::findTrajectoryFastEndSpeed(input.v0, input.v1, input.distance, input.acceleration, input.maxSpeed, directSlowDownTime, useHighPrecision);
     if (direct.isValid()) {
-        auto obstacleDistances = m_world.minObstacleDistance(direct, 0, directSlowDownTime, input.s0);
+        auto obstacleDistances = m_world.minObstacleDistance(direct, 0, input.s0);
         if (obstacleDistances.first > StandardSampler::OBSTACLE_AVOIDANCE_RADIUS ||
                 (obstacleDistances.second > 0 && obstacleDistances.second < StandardSampler::OBSTACLE_AVOIDANCE_RADIUS)) {
             TrajectorySampler::TrajectoryGenerationInfo info;
             info.profile = direct;
-            info.slowDownTime = directSlowDownTime;
             info.fastEndSpeed = true;
             info.desiredDistance = input.distance;
             return concat(escapeObstacle, {info});
@@ -188,7 +187,6 @@ std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPat
 
 std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<TrajectorySampler::TrajectoryGenerationInfo> &generationInfo)
 {
-    std::vector<SpeedProfile> parts;
     if (generationInfo.size() == 0) {
         TrajectoryPoint p1;
         p1.pos = m_input.s0;
@@ -203,8 +201,7 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Tra
 
     float toEndTime = 0;
     for (auto info : generationInfo) {
-        float totalTime = info.slowDownTime == 0.0f ? info.profile.time() : info.profile.timeWithSlowDown(info.slowDownTime);
-        toEndTime += totalTime;
+        toEndTime += info.profile.time();
     }
 
     // sample the resulting trajectories in equal time intervals for friendly robot obstacles
@@ -219,7 +216,7 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Tra
         for (unsigned int i = 0;i<generationInfo.size();i++) {
             const auto &info = generationInfo[i];
             const SpeedProfile &trajectory = info.profile;
-            float partTime = info.slowDownTime == 0.0f ? trajectory.time() : trajectory.timeWithSlowDown(info.slowDownTime);
+            float partTime = trajectory.time();
 
             if (partTime > 20 || std::isinf(partTime) || std::isnan(partTime) || partTime < 0) {
                 qDebug() <<"Error: trying to use invalid trajectory";
@@ -227,12 +224,7 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Tra
             }
 
             // trajectory positions are not perfect, move them slightly to reach the desired position perfectly
-            Vector endPos;
-            if (info.slowDownTime == 0.0f) {
-                endPos = trajectory.positionForTime(partTime);
-            } else {
-                endPos = trajectory.calculateSlowDownPos(info.slowDownTime);
-            }
+            Vector endPos = trajectory.positionForTime(partTime);
             Vector correctionOffset(0, 0);
             if (info.desiredDistance != Vector(0, 0)) {
                 correctionOffset = info.desiredDistance - endPos;
@@ -253,14 +245,9 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Tra
                 }
                 TrajectoryPoint p;
                 p.time = currentTotalTime;
-                Vector position;
-                if (info.slowDownTime == 0.0f) {
-                    position = trajectory.positionForTime(currentTime);
-                    p.speed = trajectory.speedForTime(currentTime);
-                } else {
-                    position = trajectory.positionForTimeSlowDown(currentTime, info.slowDownTime);
-                    p.speed = trajectory.speedForTimeSlowDown(currentTime, info.slowDownTime);
-                }
+                p.speed = trajectory.speedForTime(currentTime);
+
+                Vector position = trajectory.positionForTime(currentTime);
                 p.pos = startPos + position + correctionOffset * (currentTime / partTime);
                 m_currentTrajectory.push_back(p);
 
@@ -279,12 +266,12 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Tra
         for (unsigned int i = 0;i<generationInfo.size();i++) {
             const auto &info = generationInfo[i];
             const SpeedProfile &trajectory = info.profile;
-            float partTime = info.slowDownTime == 0.0f ? trajectory.time() : trajectory.timeWithSlowDown(info.slowDownTime);
+            float partTime = trajectory.time();
 
             std::vector<TrajectoryPoint> newPoints;
-            if (partTime > info.slowDownTime * 1.5f) {
+            if (partTime > info.profile.slowDownTime * 1.5f) {
                 // when the trajectory is far longer than the exponential slow down part, omit it from the result (to minimize it)
-                newPoints = trajectory.getTrajectoryPoints(info.slowDownTime);
+                newPoints = trajectory.getTrajectoryPoints();
 
             } else {
                 // we are close to, or in the exponential slow down phase
@@ -295,24 +282,14 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Tra
                 for (std::size_t i = 0;i<EXPONENTIAL_SLOW_DOWN_SAMPLE_COUNT;i++) {
                     TrajectoryPoint p;
                     p.time = i * partTime / float(EXPONENTIAL_SLOW_DOWN_SAMPLE_COUNT - 1);
-                    if (info.slowDownTime == 0.0f) {
-                        p.pos = trajectory.positionForTime(p.time);
-                        p.speed = trajectory.speedForTime(p.time);
-                    } else {
-                        p.pos = trajectory.positionForTimeSlowDown(p.time, info.slowDownTime);
-                        p.speed = trajectory.speedForTimeSlowDown(p.time, info.slowDownTime);
-                    }
+                    p.pos = trajectory.positionForTime(p.time);
+                    p.speed = trajectory.speedForTime(p.time);
                     newPoints.push_back(p);
                 }
             }
 
             // trajectory positions are not perfect, move them slightly to reach the desired position perfectly
-            Vector endPos;
-            if (info.slowDownTime == 0.0f) {
-                endPos = trajectory.positionForTime(partTime);
-            } else {
-                endPos = trajectory.calculateSlowDownPos(info.slowDownTime);
-            }
+            Vector endPos = trajectory.positionForTime(partTime);
             Vector correctionOffset(0, 0);
             if (info.desiredDistance != Vector(0, 0)) {
                 correctionOffset = info.desiredDistance - endPos;

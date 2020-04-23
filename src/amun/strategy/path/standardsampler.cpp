@@ -192,20 +192,13 @@ float StandardSampler::checkSample(const TrajectoryInput &input, const StandardT
     if (sample.getTime() < 0) {
         return -1;
     }
-    SpeedProfile secondPart = AlphaTimeTrajectory::calculateTrajectoryFastEndSpeed(sample.getMidSpeed(), input.v1, sample.getTime(),
-                                                                                   sample.getAngle(), input.acceleration, input.maxSpeed);
-    float secondPartTime;
-    Vector secondPartOffset;
-    // TODO: this code duplication is not good
+
     const float slowDownTime = input.exponentialSlowDown ? SpeedProfile::SLOW_DOWN_TIME : 0;
-    if (input.exponentialSlowDown) {
-        secondPartTime = secondPart.timeWithSlowDown(SpeedProfile::SLOW_DOWN_TIME);
-        // TODO: specialized method for this
-        secondPartOffset = secondPart.positionForTimeSlowDown(secondPartTime, SpeedProfile::SLOW_DOWN_TIME);
-    } else {
-        secondPartTime = secondPart.time();
-        secondPartOffset = secondPart.positionForTime(secondPartTime);
-    }
+    SpeedProfile secondPart = AlphaTimeTrajectory::calculateTrajectoryFastEndSpeed(sample.getMidSpeed(), input.v1, sample.getTime(),
+                                                                                   sample.getAngle(), input.acceleration, input.maxSpeed, slowDownTime);
+
+    float secondPartTime = secondPart.time();
+    Vector secondPartOffset = secondPart.positionForTime(secondPartTime);
     if (secondPartTime > currentBestTime - MINIMUM_TIME_IMPROVEMENT) {
         return -1;
     }
@@ -219,21 +212,16 @@ float StandardSampler::checkSample(const TrajectoryInput &input, const StandardT
         return -1;
     }
 
-    float firstPartTime;
-    if (input.exponentialSlowDown && firstPartSlowDownTime > 0) {
-        firstPartTime = firstPart.timeWithSlowDown(firstPartSlowDownTime);
-    } else {
-        firstPartTime = firstPart.time();
-    }
+    float firstPartTime = firstPart.time();
     if (firstPartTime + secondPartTime > currentBestTime - MINIMUM_TIME_IMPROVEMENT) {
         return -1;
     }
-    float firstPartObstacleDist = m_world.minObstacleDistance(firstPart, 0, firstPartSlowDownTime, input.s0).first;
+    float firstPartObstacleDist = m_world.minObstacleDistance(firstPart, 0, input.s0).first;
     if (firstPartObstacleDist <= 0) {
         return -1;
     }
     // TODO: calculate the offset while calculating the trajectory
-    auto secondPartObstacleDistances = m_world.minObstacleDistance(secondPart, firstPartTime, slowDownTime, input.s1 - secondPartOffset);
+    auto secondPartObstacleDistances = m_world.minObstacleDistance(secondPart, firstPartTime, input.s1 - secondPartOffset);
     if (secondPartObstacleDistances.first <= 0) {
         return -1;
     }
@@ -255,14 +243,12 @@ float StandardSampler::checkSample(const TrajectoryInput &input, const StandardT
     m_generationInfo.clear();
     TrajectoryGenerationInfo infoFirstPart;
     infoFirstPart.profile = firstPart;
-    infoFirstPart.slowDownTime = firstPartSlowDownTime;
     infoFirstPart.fastEndSpeed = false;
     infoFirstPart.desiredDistance = firstPartPosition;
     m_generationInfo.push_back(infoFirstPart);
 
     TrajectoryGenerationInfo infoSecondPart;
     infoSecondPart.profile = secondPart;
-    infoSecondPart.slowDownTime = slowDownTime;
     infoSecondPart.fastEndSpeed = true;
     // TODO: this could go wrong if we want to stay at the current robot position
     infoSecondPart.desiredDistance = Vector(0, 0); // do not use desired distance calculation

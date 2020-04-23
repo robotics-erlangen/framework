@@ -28,7 +28,7 @@ bool EscapeObstacleSampler::compute(const TrajectoryInput &input)
     {
         // try last frames trajectory
         SpeedProfile p = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(input.v0, Vector(0, 0), m_bestEscapingTime, m_bestEscapingAngle,
-                                                                               input.acceleration, input.maxSpeed);
+                                                                               input.acceleration, input.maxSpeed, 0);
         SpeedProfile bestProfile = p;
         int bestPrio;
         float bestObstacleTime;
@@ -57,7 +57,7 @@ bool EscapeObstacleSampler::compute(const TrajectoryInput &input)
                 angle = m_bestEscapingAngle + m_rng->uniformFloat(-0.1f, 0.1f);
             }
 
-            p = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(input.v0, Vector(0, 0), time, angle, input.acceleration, input.maxSpeed);
+            p = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(input.v0, Vector(0, 0), time, angle, input.acceleration, input.maxSpeed, 0);
             if (p.isValid()) {
                 int prio;
                 float obstacleTime;
@@ -82,7 +82,6 @@ bool EscapeObstacleSampler::compute(const TrajectoryInput &input)
         TrajectoryGenerationInfo info;
         bestProfile.limitToTime(bestEndTime);
         info.profile = bestProfile;
-        info.slowDownTime = 0;
         info.fastEndSpeed = false;
         info.desiredDistance = Vector(0, 0);
         m_generationInfo.push_back(info);

@@ -218,9 +218,9 @@ bool WorldInformation::isInMovingObstacle(const std::vector<MovingObstacles::Mov
     return false;
 }
 
-bool WorldInformation::isTrajectoryInObstacle(const SpeedProfile &profile, float timeOffset, float slowDownTime, Vector startPos) const
+bool WorldInformation::isTrajectoryInObstacle(const SpeedProfile &profile, float timeOffset, Vector startPos) const
 {
-    BoundingBox trajectoryBoundingBox = profile.calculateBoundingBox(startPos, 0);
+    BoundingBox trajectoryBoundingBox = profile.calculateBoundingBox(startPos);
     std::vector<const StaticObstacles::Obstacle*> intersectingStaticObstacles;
     intersectingStaticObstacles.reserve(m_obstacles.size());
     for (const StaticObstacles::Obstacle *o : m_obstacles) {
@@ -236,10 +236,10 @@ bool WorldInformation::isTrajectoryInObstacle(const SpeedProfile &profile, float
         }
     }
 
-    float totalTime = slowDownTime > 0 ? profile.timeWithSlowDown(slowDownTime) : profile.time();
+    float totalTime = profile.time();
     for (int i = 0;i<40;i++) {
         float time = totalTime * i / 39.0f;
-        Vector pos = slowDownTime > 0 ? profile.positionForTimeSlowDown(time, slowDownTime) : profile.positionForTime(time);
+        Vector pos = profile.positionForTime(time);
         if (isInStaticObstacle(intersectingStaticObstacles, pos + startPos)) {
             return true;
         }
@@ -281,9 +281,9 @@ float WorldInformation::minObstacleDistance(Vector pos, float time, bool checkSt
     return minDistance;
 }
 
-std::pair<float, float> WorldInformation::minObstacleDistance(const SpeedProfile &profile, float timeOffset, float slowDownTime, Vector startPos) const
+std::pair<float, float> WorldInformation::minObstacleDistance(const SpeedProfile &profile, float timeOffset, Vector startPos) const
 {
-    float totalTime = slowDownTime > 0 ? profile.timeWithSlowDown(slowDownTime) : profile.time();
+    float totalTime = profile.time();
     float totalMinDistance = std::numeric_limits<float>::max();
     float lastPointDistance = 0;
 
@@ -291,7 +291,7 @@ std::pair<float, float> WorldInformation::minObstacleDistance(const SpeedProfile
     Vector lastPos;
     for (int i = 0;i<DIVISIONS;i++) {
         float time = totalTime * i / float(DIVISIONS-1);
-        Vector pos = slowDownTime > 0 ? profile.positionForTimeSlowDown(time, slowDownTime) : profile.positionForTime(time);
+        Vector pos = profile.positionForTime(time);
         if (!pointInPlayfield(pos + startPos, m_radius)) {
             return {-1.0f, -1.0f};
         }

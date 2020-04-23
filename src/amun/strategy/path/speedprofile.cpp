@@ -282,7 +282,7 @@ std::pair<float, float> SpeedProfile1D::calculateRange(float slowDownTime) const
     return {minPos, maxPos};
 }
 
-std::vector<TrajectoryPoint> SpeedProfile::getTrajectoryPoints(float slowDownTime) const
+std::vector<TrajectoryPoint> SpeedProfile::getTrajectoryPoints() const
 {
     if (!isValid()) {
         return {};
@@ -304,18 +304,18 @@ std::vector<TrajectoryPoint> SpeedProfile::getTrajectoryPoints(float slowDownTim
 
         if (std::abs(xNext - yNext) < SAME_POINT_EPSILON) {
             float time = (xNext + yNext) / 2.0f;
-            Vector pos = slowDownTime == 0.0f ? positionForTime(time) : positionForTimeSlowDown(time, slowDownTime);
+            Vector pos = positionForTime(time);
             Vector speed(xProfile.profile[xIndex + 1].v, yProfile.profile[yIndex + 1].v);
             result.push_back({pos, speed, time});
             xIndex++;
             yIndex++;
         } else if (xNext < yNext) {
-            Vector pos = slowDownTime == 0.0f ? positionForTime(xNext) : positionForTimeSlowDown(xNext, slowDownTime);
+            Vector pos = positionForTime(xNext);
             Vector speed(xProfile.profile[xIndex + 1].v, slowDownTime == 0.0f ? yProfile.speedForTime(xNext) : yProfile.speedForTimeSlowDown(xNext, slowDownTime));
             result.push_back({pos, speed, xNext});
             xIndex++;
         } else {
-            Vector pos = slowDownTime == 0.0f ? positionForTime(yNext) : positionForTimeSlowDown(yNext, slowDownTime);
+            Vector pos = positionForTime(yNext);
             Vector speed(slowDownTime == 0.0f ? xProfile.speedForTime(yNext) : xProfile.speedForTimeSlowDown(yNext, slowDownTime), yProfile.profile[yIndex + 1].v);
             result.push_back({pos, speed, yNext});
             yIndex++;
@@ -324,8 +324,8 @@ std::vector<TrajectoryPoint> SpeedProfile::getTrajectoryPoints(float slowDownTim
 
     // compensate for the missing exponential slowdown by adding a segment with zero speed
     if (slowDownTime != 0.0f) {
-        float endTime = timeWithSlowDown(slowDownTime);
-        result.push_back({positionForTimeSlowDown(endTime, slowDownTime), result.back().speed, endTime});
+        float endTime = time();
+        result.push_back({positionForTime(endTime), result.back().speed, endTime});
     }
 
     return result;
