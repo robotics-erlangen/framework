@@ -247,7 +247,7 @@ function updateReceivesPass() {
 		let extrapolatedDribblerPos = extrapolatedRobotPos + Vector.fromAngle(robot.dir) * robot.shootRadius;
 		let toRobotAngle = (extrapolatedRobotPos - World.Ball.pos).angle();
 		let toDribblerAngle = (extrapolatedDribblerPos - World.Ball.pos).angle();
-		if (robotBallDistance > World.Ball.radius + robot.shootRadius
+		if (robotBallDistance > World.Ball.radius + robot.radius
 				&& geom.normalizeAnglePositive(toRobotAngle - coneAngleMin) > coneWidth
 				&& geom.normalizeAnglePositive(toDribblerAngle - coneAngleMin) > coneWidth) {
 			continue;
