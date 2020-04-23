@@ -175,12 +175,8 @@ void CombinedLogWriter::handleStatus(Status status)
 
     m_lastTime = status->time();
 
-    Status copy;
     if (status->has_pure_ui_response()) {
-        copy = Status::createArena();
-        copy->CopyFrom(*status);
-        copy->clear_pure_ui_response();
-        status = copy;
+        return;
     }
 
     if (m_isLoggingEnabled && m_logState == LogState::LOGGING) {

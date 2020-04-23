@@ -108,13 +108,14 @@ message Status {
     optional logfile.Uid log_id = 27;
     optional uint64 original_frame_number = 28;
     optional StatusStrategyWrapper status_strategy = 29;
-    optional UiResponse pure_ui_response = 30; // NOTE: this message will not be serialized in a log.
+    optional UiResponse pure_ui_response = 30; // NOTE: ANY STATUS containing this message will not be serialized in a log.
 }
 
 // This message can be used for pure user-ui-response.
 // It will be cut out when writing to log, therefore modifications
 // can be done without breaking log compatibility.
 // DO NOT use this message for information that could be useful in a logfile!
+// DO NOT add a UIResponse to a normal Status, send a NEW STATUS instead.
 message UiResponse {
     optional bool enable_logging = 1;
     optional bool is_logging = 2;
