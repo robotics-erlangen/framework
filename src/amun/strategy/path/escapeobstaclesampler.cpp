@@ -27,8 +27,8 @@ bool EscapeObstacleSampler::compute(const TrajectoryInput &input)
     // the second stage is executed by the regular standard sampler
     {
         // try last frames trajectory
-        SpeedProfile p = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(input.v0, Vector(0, 0), m_bestEscapingTime, m_bestEscapingAngle,
-                                                                               input.acceleration, input.maxSpeed, 0);
+        SpeedProfile p = AlphaTimeTrajectory::calculateTrajectory(input.v0, Vector(0, 0), m_bestEscapingTime, m_bestEscapingAngle,
+                                                                  input.acceleration, input.maxSpeed, 0, false);
         SpeedProfile bestProfile = p;
         int bestPrio;
         float bestObstacleTime;
@@ -57,7 +57,7 @@ bool EscapeObstacleSampler::compute(const TrajectoryInput &input)
                 angle = m_bestEscapingAngle + m_rng->uniformFloat(-0.1f, 0.1f);
             }
 
-            p = AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(input.v0, Vector(0, 0), time, angle, input.acceleration, input.maxSpeed, 0);
+            p = AlphaTimeTrajectory::calculateTrajectory(input.v0, Vector(0, 0), time, angle, input.acceleration, input.maxSpeed, 0, false);
             if (p.isValid()) {
                 int prio;
                 float obstacleTime;

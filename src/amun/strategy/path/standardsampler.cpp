@@ -194,8 +194,8 @@ float StandardSampler::checkSample(const TrajectoryInput &input, const StandardT
     }
 
     const float slowDownTime = input.exponentialSlowDown ? SpeedProfile::SLOW_DOWN_TIME : 0;
-    SpeedProfile secondPart = AlphaTimeTrajectory::calculateTrajectoryFastEndSpeed(sample.getMidSpeed(), input.v1, sample.getTime(),
-                                                                                   sample.getAngle(), input.acceleration, input.maxSpeed, slowDownTime);
+    SpeedProfile secondPart = AlphaTimeTrajectory::calculateTrajectory(sample.getMidSpeed(), input.v1, sample.getTime(),
+                                                                       sample.getAngle(), input.acceleration, input.maxSpeed, slowDownTime, true);
 
     float secondPartTime = secondPart.time();
     Vector secondPartOffset = secondPart.positionForTime(secondPartTime);
