@@ -76,12 +76,17 @@ static float adjustAngle(Vector startSpeed, Vector endSpeed, float time, float a
     return angle;
 }
 
-static float adjustAngleFastEndSpeed(Vector startSpeed, Vector endSpeed, float time, float angle, float acc)
+// returns endspeed as the closest value of startSpeed on [0, endSpeed]
+static Vector minTimeEndSpeed(Vector startSpeed, Vector endSpeed)
 {
-    // use endspeed as the closest value of startSpeed on [0, endSpeed]
     float endSpeedX = std::max(std::min(startSpeed.x, std::max(endSpeed.x, 0.0f)), std::min(endSpeed.x, 0.0f));
     float endSpeedY = std::max(std::min(startSpeed.y, std::max(endSpeed.y, 0.0f)), std::min(endSpeed.y, 0.0f));
-    return adjustAngle(startSpeed, Vector(endSpeedX, endSpeedY), time, angle, acc);
+    return Vector(endSpeedX, endSpeedY);
+}
+
+static float adjustAngleFastEndSpeed(Vector startSpeed, Vector endSpeed, float time, float angle, float acc)
+{
+    return adjustAngle(startSpeed, minTimeEndSpeed(startSpeed, endSpeed), time, angle, acc);
 }
 
 float AlphaTimeTrajectory::minTimeExactEndSpeed(Vector v0, Vector v1, float acc)
@@ -90,13 +95,10 @@ float AlphaTimeTrajectory::minTimeExactEndSpeed(Vector v0, Vector v1, float acc)
     return diff.length() / acc;
 }
 
-float AlphaTimeTrajectory::minTimeFastEndSpeed(Vector v0, Vector v1, float acc)
+float AlphaTimeTrajectory::minTimeFastEndSpeed(Vector startSpeed, Vector endSpeed, float acc)
 {
-    float endSpeedX = std::max(std::min(v0.x, std::max(v1.x, 0.0f)), std::min(v1.x, 0.0f));
-    float endSpeedY = std::max(std::min(v0.y, std::max(v1.y, 0.0f)), std::min(v1.y, 0.0f));
-    return minTimeExactEndSpeed(v0, Vector(endSpeedX, endSpeedY), acc);
+    return minTimeExactEndSpeed(startSpeed, minTimeEndSpeed(startSpeed, endSpeed), acc);
 }
-
 
 
 
@@ -172,9 +174,7 @@ SpeedProfile AlphaTimeTrajectory::calculateTrajectoryExactEndSpeed(Vector v0, Ve
 // functions for position search
 static Vector fastEndSpeedCenterTimePos(Vector startSpeed, Vector endSpeed, float time)
 {
-    float endSpeedX = std::max(std::min(startSpeed.x, std::max(endSpeed.x, 0.0f)), std::min(endSpeed.x, 0.0f));
-    float endSpeedY = std::max(std::min(startSpeed.y, std::max(endSpeed.y, 0.0f)), std::min(endSpeed.y, 0.0f));
-    return (startSpeed + Vector(endSpeedX, endSpeedY)) * (0.5f * time);
+    return (startSpeed + minTimeEndSpeed(startSpeed, endSpeed)) * (0.5f * time);
 }
 
 static Vector centerTimePos(Vector startSpeed, Vector endSpeed, float time)

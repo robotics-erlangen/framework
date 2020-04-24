@@ -31,7 +31,7 @@ class AlphaTimeTrajectory
 public:
     // helper functions
     static float minTimeExactEndSpeed(Vector v0, Vector v1, float acc);
-    static float minTimeFastEndSpeed(Vector v0, Vector v1, float acc);
+    static float minTimeFastEndSpeed(Vector startSpeed, Vector endSpeed, float acc);
     static Vector minTimePos(Vector v0, Vector v1, float acc, float slowDownTime);
 
     // search for position
