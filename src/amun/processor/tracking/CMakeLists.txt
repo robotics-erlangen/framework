@@ -28,6 +28,8 @@ add_library(tracking
     ballflyfilter.cpp
     ballgroundfilter.h
     ballgroundfilter.cpp
+    balldribblefilter.cpp
+    balldribblefilter.h
     filter.cpp
     filter.h
     kalmanfilter.h

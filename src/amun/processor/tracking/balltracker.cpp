@@ -21,9 +21,11 @@
 #include "balltracker.h"
 #include "ballflyfilter.h"
 #include "ballgroundfilter.h"
+#include "balldribblefilter.h"
 #include <random>
 
-BallTracker::BallTracker(const SSL_DetectionBall &ball, qint64 last_time, qint32 primaryCamera, CameraInfo *cameraInfo, RobotInfo robotInfo, qint64 visionProcessingTime) :
+BallTracker::BallTracker(const SSL_DetectionBall &ball, qint64 last_time, qint32 primaryCamera, CameraInfo *cameraInfo,
+                         RobotInfo robotInfo, qint64 visionProcessingTime) :
     Filter(last_time),
     m_lastUpdateTime(last_time),
     m_cameraInfo(cameraInfo),
@@ -38,6 +40,7 @@ BallTracker::BallTracker(const SSL_DetectionBall &ball, qint64 last_time, qint32
     m_groundFilter = new GroundFilter(frame, cameraInfo);
     // TODO collision filter
     m_flyFilter = new FlyFilter(frame, cameraInfo);
+    m_dribbleFilter = new DribbleFilter(frame, cameraInfo);
 }
 
 BallTracker::BallTracker(const BallTracker& previousFilter, qint32 primaryCamera) :
@@ -55,18 +58,20 @@ BallTracker::BallTracker(const BallTracker& previousFilter, qint32 primaryCamera
 
     m_flyFilter = new FlyFilter(*previousFilter.m_flyFilter, primaryCamera);
     m_groundFilter = new GroundFilter(*previousFilter.m_groundFilter, primaryCamera);
+    m_dribbleFilter = new DribbleFilter(*previousFilter.m_dribbleFilter, primaryCamera);
 }
 
 BallTracker::~BallTracker()
 {
     delete m_flyFilter;
     delete m_groundFilter;
+    delete m_dribbleFilter;
 }
 
 bool BallTracker::acceptDetection(const SSL_DetectionBall& ball, qint64 time, qint32 cameraId, RobotInfo robotInfo, qint64 visionProcessingTime)
 {
     VisionFrame frame(ball, time, cameraId, robotInfo, visionProcessingTime);
-    bool accept = m_flyFilter->acceptDetection(frame) || m_groundFilter->acceptDetection(frame);
+    bool accept = m_flyFilter->acceptDetection(frame) || m_groundFilter->acceptDetection(frame) || m_dribbleFilter->acceptDetection(frame);
     debug("accept", accept);
     debug("acceptId", cameraId);
     debug("age", std::to_string(initTime()).c_str());
@@ -125,6 +130,7 @@ void BallTracker::update(qint64 time)
 
         m_flyFilter->processVisionFrame(frame);
         m_groundFilter->processVisionFrame(frame);
+        m_dribbleFilter->processVisionFrame(frame);
         m_rawMeasurements.append(frame);
 
         m_lastFrameTime = frame.time;
@@ -140,6 +146,8 @@ void BallTracker::update(qint64 time)
     m_groundFilter->clearDebugValues();
     m_debug.MergeFrom(m_flyFilter->debugValues());
     m_flyFilter->clearDebugValues();
+    m_debug.MergeFrom(m_dribbleFilter->debugValues());
+    m_dribbleFilter->clearDebugValues();
 #endif
 }
 
@@ -151,6 +159,9 @@ void BallTracker::get(world::Ball *ball, const FieldTransform &transform, bool r
     if (m_flyFilter->isActive()) {
         debug("active", "fly filter");
         m_flyFilter->writeBallState(ball, m_lastUpdateTime);
+    } else if (m_dribbleFilter->isActive()) {
+        debug("active", "dribble filter");
+        m_dribbleFilter->writeBallState(ball, m_lastUpdateTime);
     } else {
         debug("active", "ground filter");
     }

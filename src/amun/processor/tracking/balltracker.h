@@ -30,6 +30,7 @@
 
 class FlyFilter;
 class GroundFilter;
+class DribbleFilter;
 
 class BallTracker : public Filter
 {
@@ -66,6 +67,7 @@ private:
     qint64 m_lastUpdateTime;
     GroundFilter* m_groundFilter;
     FlyFilter *m_flyFilter;
+    DribbleFilter *m_dribbleFilter;
     QList<VisionFrame> m_visionFrames;
     QList<VisionFrame> m_rawMeasurements;
     CameraInfo* m_cameraInfo;
