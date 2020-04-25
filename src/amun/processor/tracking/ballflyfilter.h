@@ -32,7 +32,7 @@ struct ChipDetection{
     ChipDetection(){} // make QVector happy
     float dribblerSpeed;
     float absSpeed;
-    float time;
+    double time; // in ns
     Eigen::Vector2f ballPos;
     Eigen::Vector2f dribblerPos;
     Eigen::Vector2f robotPos;
