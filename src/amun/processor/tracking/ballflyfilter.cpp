@@ -991,12 +991,22 @@ bool FlyFilter::acceptDetection(const VisionFrame& frame)
     return m_acceptDist < ACCEPT_DIST;
 }
 
+static float dist(float v0, float v1, float acc)
+{
+    float time = std::abs(v0 - v1) / acc;
+    return 0.5f * (v0 + v1) * time;
+}
 
 void FlyFilter::writeBallState(world::Ball *ball, qint64 predictionTime)
 {
     const Prediction& p = predictTrajectory(predictionTime);
+
+    // maximum height that will be reached in the future by the ball
+    // assume no floor damping for this approximation, therefore it can be handled in one case
+    float topHeight = p.pos.z() + dist(std::abs(p.speed.z()), 0, GRAVITY);
+
     // leave prediction to kalman filter for low flying balls
-    if ((m_isActive && !m_bouncing) || p.pos(2) > 0.05) {
+    if ((m_isActive && !m_bouncing) || topHeight > 0.05f) {
         ball->set_p_x(p.pos(0));
         ball->set_p_y(p.pos(1));
         ball->set_v_x(p.speed(0));
