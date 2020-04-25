@@ -33,17 +33,17 @@ static const float ACTIVE_DIST = 0.5; // must be greater or equal to accept dist
 static const int APPROACH_SWITCH_FRAMENO = 16;
 
 FlyFilter::FlyFilter(VisionFrame& frame, CameraInfo* cameraInfo) :
+    AbstractBallFilter(frame, cameraInfo),
     m_shotDetected(false),
     m_initTime(frame.time),
     m_flyFitter(MAX_FRAMES_PER_FLIGHT),
     m_wasDetectedBefore(false)
 {
-    m_cameraInfo = cameraInfo;
-    m_primaryCamera = -1; // is set with first frame processing
     resetFlightReconstruction();
 }
 
 FlyFilter::FlyFilter(const FlyFilter& f, qint32 primaryCamera):
+    AbstractBallFilter(f, primaryCamera),
     m_shotDetected(f.m_shotDetected),
     m_chipDetected(f.m_chipDetected),
     m_isActive(f.m_isActive),
@@ -72,10 +72,7 @@ FlyFilter::FlyFilter(const FlyFilter& f, qint32 primaryCamera):
     m_D_coarseControl(f.m_D_coarseControl),
     m_wasDetectedBefore(f.m_wasDetectedBefore),
     m_lastPredictionTime(f.m_lastPredictionTime)
-{
-    m_primaryCamera = primaryCamera;
-    m_cameraInfo = f.m_cameraInfo;
-}
+{ }
 
 Eigen::Vector3f FlyFilter::unproject(const ChipDetection& detection, float ballRadius) {
     float f = m_cameraInfo->focalLength.value(detection.cameraId);
@@ -770,10 +767,6 @@ bool FlyFilter::detectionPinv(const FlyFilter::PinvResult &pinvRes)
 
 void FlyFilter::processVisionFrame(const VisionFrame& frame)
 {
-    if (frame.cameraId != m_primaryCamera) {
-        m_primaryCamera = frame.cameraId;
-    }
-
     Eigen::Vector2f reportedBallPos(frame.x, frame.y);
     float timeSinceInit = (frame.time-m_initTime);
     float dribblerSpeed = 0;

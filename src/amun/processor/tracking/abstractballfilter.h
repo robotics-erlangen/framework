@@ -66,9 +66,10 @@ typedef KalmanFilter<6, 3> Kalman;
 
 class AbstractBallFilter {
 public:
-    AbstractBallFilter(VisionFrame& frame, CameraInfo& cameraInfo);
     AbstractBallFilter(const AbstractBallFilter&) = delete;
+    AbstractBallFilter(AbstractBallFilter&&) = delete;
     AbstractBallFilter& operator=(const AbstractBallFilter&) = delete;
+    AbstractBallFilter& operator=(AbstractBallFilter&&) = delete;
 
     virtual void processVisionFrame(VisionFrame const& frame)=0;
     virtual bool acceptDetection(const VisionFrame& frame)=0;
@@ -84,8 +85,15 @@ public:
 #endif
 
 protected:
-    AbstractBallFilter() {}
-    virtual ~AbstractBallFilter(){}
+    // initial filter construction
+    AbstractBallFilter(VisionFrame& frame, CameraInfo* cameraInfo) : m_cameraInfo(cameraInfo), m_primaryCamera(frame.cameraId) {}
+
+    // create a copy of the filter in a different camera for border crossing
+    AbstractBallFilter(const AbstractBallFilter& filter, qint32 primaryCamera) : m_cameraInfo(filter.m_cameraInfo), m_primaryCamera(primaryCamera) {}
+
+    virtual ~AbstractBallFilter() {}
+
+
     CameraInfo* m_cameraInfo;
     int m_primaryCamera;
 

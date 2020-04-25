@@ -22,10 +22,10 @@
 
 // TODO maybe exclude z axis from kalman filter
 
-GroundFilter::GroundFilter(VisionFrame& frame, CameraInfo* cameraInfo) : m_lastUpdate(frame.time)
+GroundFilter::GroundFilter(VisionFrame& frame, CameraInfo* cameraInfo) :
+    AbstractBallFilter(frame, cameraInfo),
+    m_lastUpdate(frame.time)
 {
-    m_cameraInfo = cameraInfo;
-
     Kalman::Vector x(Kalman::Vector::Zero());
     x(0) = frame.x;
     x(1) = frame.y;
@@ -33,13 +33,11 @@ GroundFilter::GroundFilter(VisionFrame& frame, CameraInfo* cameraInfo) : m_lastU
     m_kalman->H = Kalman::MatrixM::Identity();
 }
 
-GroundFilter::GroundFilter(const GroundFilter& g, qint32 primaryCamera):
-    m_kalman(new Kalman(*g.m_kalman)),
-    m_lastUpdate(g.m_lastUpdate)
-{
-    m_primaryCamera = primaryCamera;
-    m_cameraInfo = g.m_cameraInfo;
-}
+GroundFilter::GroundFilter(const GroundFilter& groundFilter, qint32 primaryCamera) :
+    AbstractBallFilter(groundFilter, primaryCamera),
+    m_kalman(new Kalman(*groundFilter.m_kalman)),
+    m_lastUpdate(groundFilter.m_lastUpdate)
+{ }
 
 GroundFilter::~GroundFilter()
 {
