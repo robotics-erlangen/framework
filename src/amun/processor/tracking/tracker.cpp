@@ -298,10 +298,10 @@ Status Tracker::worldState(qint64 currentTime, bool resetRaw)
     amun::DebugValues *debug = nullptr;
 #ifdef ENABLE_TRACKING_DEBUG
     for (auto& filter : m_ballFilter) {
-        if (filter == ball) {
+        if (filter == m_currentBallFilter) {
             amun::DebugValue *debugValue = mutable_debug(&debug, status)->add_value();
             debugValue->set_key("active cam");
-            debugValue->set_float_value(ball->primaryCamera());
+            debugValue->set_float_value(m_currentBallFilter->primaryCamera());
             debug->MergeFrom(filter->debugValues());
         } else {
             mutable_debug(&debug, status)->MergeFrom(filter->debugValues());
