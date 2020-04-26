@@ -208,6 +208,8 @@ bool SimBall::update(SSL_DetectionBall *ball, float stddev, const CameraInfo& ca
 
     const float SCALING_LIMIT = 0.9f;
     const float MAX_EXTRA_OVERLAP = 0.05f;
+    // reflects the cameras resolution
+    const unsigned PIXEL_PER_AREA = 10; // i do not know in what unit area is, just make it similar to a real game
 
     float modZ = std::min(SCALING_LIMIT * cameraInfo.position.z(), std::max(0.f, p.z() - BALL_RADIUS));
     float modX = (p.x() - cameraInfo.position.x()) * (cameraInfo.position.z() / (cameraInfo.position.z() - modZ)) + cameraInfo.position.x();
@@ -217,7 +219,7 @@ bool SimBall::update(SSL_DetectionBall *ball, float stddev, const CameraInfo& ca
         (cameraInfo.position.x()-p.x())*(cameraInfo.position.x()-p.x())+(cameraInfo.position.y()-p.y())*(cameraInfo.position.y()-p.y()));
     float denomSqrt = (distBallCam*1000)/FOCAL_LENGTH - 1;
     float area = visibility * (BALL_RADIUS*BALL_RADIUS*1000000*M_PI) / (denomSqrt*denomSqrt);
-    ball->set_area(area);
+    ball->set_area(area * PIXEL_PER_AREA);
 
     if (std::abs(modX - cameraInfo.position.x()) > cameraInfo.halfAreaX + fieldBoundaryWidth + MAX_EXTRA_OVERLAP
             || std::abs(modY - cameraInfo.position.y()) > cameraInfo.halfAreaY + fieldBoundaryWidth + MAX_EXTRA_OVERLAP) {
