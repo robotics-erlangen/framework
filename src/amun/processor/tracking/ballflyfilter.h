@@ -26,10 +26,11 @@
 #include "protobuf/ssl_detection.pb.h"
 #include "protobuf/world.pb.h"
 
-struct ChipDetection{
+struct ChipDetection {
     ChipDetection(float s, float as, float t, Eigen::Vector2f bp, Eigen::Vector2f dp,  float a, Eigen::Vector2f r, quint32 cid, bool cc, bool lc)
         :  dribblerSpeed(s), absSpeed(as), time(t), ballPos(bp), dribblerPos(dp), robotPos(r), cameraId(cid), ballArea(a), chipCommand(cc), linearCommand(lc)  {}
     ChipDetection(){} // make QVector happy
+
     float dribblerSpeed;
     float absSpeed;
     double time; // in ns
@@ -54,15 +55,9 @@ public:
     float distToStartPos() { return m_distToStartPos; }
 
     bool isActive();
-    bool isBouncing() { return m_bouncing; }
     bool isShot();
 
 private:
-    bool m_shotDetected;
-    bool m_chipDetected;
-    bool m_isActive;
-    QMap<int, world::BallPosition> m_lastRaw;
-
     struct PinvResult {
         float x0;
         float y0;
@@ -77,10 +72,6 @@ private:
         Eigen::Vector2f intersection;
         Eigen::Vector2f intersectionGroundSpeed;
         float intersectionZSpeed;
-        qint64 intersectionStartTime;
-        float projToV;
-        float camToV;
-        float vControlDiff;
     };
 
     bool detectionCurviness(const PinvResult& pinvRes);
@@ -88,6 +79,7 @@ private:
     bool detectionSpeed();
     bool detectionPinv(const PinvResult &pinvRes);
     bool checkIsShot();
+    bool collision();
     unsigned numMeasurementsWithOwnCamera();
     Eigen::Vector3f unproject(const ChipDetection& detection, float ballRadius);
 
@@ -99,20 +91,24 @@ private:
 
     bool approachPinvApplicable(const PinvResult& pinvRes);
     bool approachIntersectApplicable(const PinvResult& pinvRes);
-    bool approachAreaApplicable();
 
     void parabolicFlightReconstruct(const PinvResult &pinvRes);
     void resetFlightReconstruction();
 
     struct Prediction {
-        Prediction(const Eigen::Vector3f& p, const Eigen::Vector3f& s, double y) : pos(p), speed(s) {}
         Prediction(float x, float y, float z, float vx, float vy, float vz) :
             pos(Eigen::Vector3f(x,y,z)), speed(Eigen::Vector3f(vx,vy,vz)) {}
+
         Eigen::Vector3f pos;
         Eigen::Vector3f speed;
     };
 
     Prediction predictTrajectory(qint64 time);
+
+private:
+    bool m_shotDetected;
+    bool m_chipDetected;
+    bool m_isActive;
 
     QVector<ChipDetection> m_shotDetectionWindow; // sliding window of size 5
     QVector<ChipDetection> m_kickFrames;
@@ -121,7 +117,6 @@ private:
     qint64 m_chipStartTime;
     Eigen::Vector2f m_groundSpeed;
     float m_zSpeed;
-    float m_z0;
 
     Eigen::Vector2f m_touchdownPos;
 
@@ -131,7 +126,6 @@ private:
     Eigen::Vector2f m_bounceStartPos;
     Eigen::Vector2f m_bounceGroundSpeed;
 
-    Eigen::Vector3f m_shotCamPos;
     int m_shotStartFrame;
 
     float m_distToStartPos;
@@ -146,8 +140,6 @@ private:
     Eigen::VectorXf m_d_coarseControl;
     Eigen::MatrixXf m_D_coarseControl;
 
-    bool collision();
-    bool m_wasDetectedBefore;
     qint64 m_lastPredictionTime;
 
     float m_acceptDist = 0;

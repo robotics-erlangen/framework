@@ -39,8 +39,7 @@ FlyFilter::FlyFilter(VisionFrame& frame, CameraInfo* cameraInfo) :
     AbstractBallFilter(frame, cameraInfo),
     m_shotDetected(false),
     m_initTime(frame.time),
-    m_flyFitter(MAX_FRAMES_PER_FLIGHT),
-    m_wasDetectedBefore(false)
+    m_flyFitter(MAX_FRAMES_PER_FLIGHT)
 {
     resetFlightReconstruction();
 }
@@ -56,14 +55,12 @@ FlyFilter::FlyFilter(const FlyFilter& f, qint32 primaryCamera):
     m_chipStartTime(f.m_chipStartTime),
     m_groundSpeed(f.m_groundSpeed),
     m_zSpeed(f.m_zSpeed),
-    m_z0(f.m_z0),
     m_touchdownPos(f.m_touchdownPos),
     m_bouncing(f.m_bouncing),
     m_bounceStartTime(f.m_bounceStartTime),
     m_bounceZSpeed(f.m_bounceZSpeed),
     m_bounceStartPos(f.m_bounceStartPos),
     m_bounceGroundSpeed(f.m_bounceGroundSpeed),
-    m_shotCamPos(f.m_shotCamPos),
     m_shotStartFrame(f.m_shotStartFrame),
     m_distToStartPos(f.m_distToStartPos),
     m_initTime(f.m_initTime),
@@ -73,7 +70,6 @@ FlyFilter::FlyFilter(const FlyFilter& f, qint32 primaryCamera):
     m_D_detailed(f.m_D_detailed),
     m_d_coarseControl(f.m_d_coarseControl),
     m_D_coarseControl(f.m_D_coarseControl),
-    m_wasDetectedBefore(f.m_wasDetectedBefore),
     m_lastPredictionTime(f.m_lastPredictionTime)
 { }
 
@@ -350,8 +346,6 @@ FlyFilter::PinvResult FlyFilter::calcPinvAndIntersection()
     Eigen::Vector2f VP = S + vGroundPinv;
     float vControlDiff = fabs(atan2(VP(1)-S(1), VP(0)-S(0)) - atan2(VC(1)-S(1), VC(0)-S(0)));
     debug("approx/vControlDiff", vControlDiff);
-    res.vControlDiff = vControlDiff;
-
 
     if (firstInTheAir.cameraId != m_kickFrames.back().cameraId) {
         // for a correct refSpeed, search first measurement from current camera
@@ -446,11 +440,9 @@ bool FlyFilter::approachAreaApply()
         debug(QString("ball radius")+QString::number(i), r);
         ballRadius += r;
     }
+
     ballRadius /= (endR-startR);
     debug("ball radius", ballRadius);
-    if (ballRadius == 0) { // happens in the simulator
-        return false;
-    }
 
     double speedXSum = 0.0;
     double speedYSum = 0.0;
@@ -794,8 +786,6 @@ void FlyFilter::processVisionFrame(const VisionFrame& frame)
 
     debug("chip measurements", m_kickFrames.size());
     if (m_kickFrames.empty() && checkIsShot()) {
-        m_shotCamPos = m_cameraInfo->cameraPosition.value(frame.cameraId);
-
         m_kickFrames.append(m_shotDetectionWindow.at(0));
         m_kickFrames.append(m_shotDetectionWindow.at(1));
         m_kickFrames.append(m_shotDetectionWindow.at(2));
@@ -816,7 +806,7 @@ void FlyFilter::processVisionFrame(const VisionFrame& frame)
             resetFlightReconstruction();
             return;
         }
-        if(!m_bouncing){
+        if (!m_bouncing) {
             debug("chip detected", m_chipDetected);
             PinvResult pinvRes = calcPinvAndIntersection();
             if(m_kickFrames.front().linearCommand) {
@@ -844,21 +834,26 @@ void FlyFilter::processVisionFrame(const VisionFrame& frame)
                     }
                     debug("angle to cam", angleToCam);
                     if (angleToCam > 0.45 ) { // MAGIC
-                        if (isCurvy){
+                        if (isCurvy) {
                             debug("detection/angle", true);                                                        
                             m_chipDetected = true;
                         }
-                    } else {
-                        if (heightSaysChip) {
-                            debug("detection/height", true);                                                      
-                            m_chipDetected = true;
-                        }
+                    } else if (heightSaysChip) {
+                        debug("detection/height", true);
+                        m_chipDetected = true;
                     }
                 }
                 if (detectionPinv(pinvRes)) {
                     debug("detection/pinv", true);
                     m_chipDetected = true;
                 }
+
+#ifdef ENABLE_TRACKING_DEBUG
+                if (m_chipDetected) {
+                    std::cout << "chip detected " << m_primaryCamera << " " << m_kickFrames.size() << std::endl;
+                }
+#endif
+
             }
             if (m_chipDetected) {
                 parabolicFlightReconstruct(pinvRes);
@@ -873,13 +868,6 @@ void FlyFilter::processVisionFrame(const VisionFrame& frame)
     if (m_kickFrames.size() >= MAX_FRAMES_PER_FLIGHT) {
         resetFlightReconstruction();
     }
-
-#ifdef ENABLE_TRACKING_DEBUG
-    if (!m_wasDetectedBefore && m_chipDetected) {
-        std::cout << "chip detected " << m_primaryCamera << " " << m_kickFrames.size() << std::endl;
-    }
-    m_wasDetectedBefore = m_chipDetected;
-#endif
 }
 
 FlyFilter::Prediction FlyFilter::predictTrajectory(qint64 time)
