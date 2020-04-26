@@ -190,7 +190,7 @@ bool FlyFilter::collision() {
     return collision;
 }
 
-FlyFilter::PinvResult FlyFilter::calcPinvAndIntersection()
+FlyFilter::PinvResult FlyFilter::calcPinv()
 {
     ChipDetection firstInTheAir = m_kickFrames.at(m_shotStartFrame);
 
@@ -286,6 +286,25 @@ FlyFilter::PinvResult FlyFilter::calcPinvAndIntersection()
     debug("pinv_params/ground speed pinv control", vGroundPinvControl.norm());
     debug("pinv_params/ground speed pinv", vGroundPinv.norm());
 
+    if (firstInTheAir.cameraId != m_kickFrames.back().cameraId) {
+        // for a correct refSpeed, search first measurement from current camera
+        for (auto& m: m_kickFrames) {
+            if (m.cameraId == m_kickFrames.back().cameraId && m.ballPos(0) != m_kickFrames.back().ballPos(0)) {
+                firstInTheAir = m;
+                break;
+            }
+        }
+    }
+    float refSpeed = (firstInTheAir.ballPos - m_kickFrames.back().ballPos).norm()
+                     / ((m_kickFrames.back().time - firstInTheAir.time)/NS_PER_SEC);
+    debug("pinv_params/ground speed raw", refSpeed);
+    res.refSpeed = refSpeed;
+
+    return res;
+}
+
+FlyFilter::IntersectionResult FlyFilter::calcIntersection(const PinvResult &pinvRes)
+{
     // intersection approach
     Eigen::Vector2f vGround;
     if (m_kickFrames.size() < 10 && m_kickFrames.at(m_shotStartFrame).absSpeed < 1) {
@@ -293,9 +312,9 @@ FlyFilter::PinvResult FlyFilter::calcPinvAndIntersection()
         debug("intersection dir", "ball to robot");
     } else {
         debug("intersection dir", "pinv");
-        vGround = Eigen::Vector2f(res.vx, res.vy);
-        if (res.vx*res.vxControl < 0 && res.vy*res.vyControl < 0) {
-            vGround = Eigen::Vector2f(res.vxControl, res.vyControl);
+        vGround = Eigen::Vector2f(pinvRes.vx, pinvRes.vy);
+        if (pinvRes.vx*pinvRes.vxControl < 0 && pinvRes.vy*pinvRes.vyControl < 0) {
+            vGround = Eigen::Vector2f(pinvRes.vxControl, pinvRes.vyControl);
             debug("correction", true);
         }
     }
@@ -338,28 +357,18 @@ FlyFilter::PinvResult FlyFilter::calcPinvAndIntersection()
     groundSpeedLength /= (m_kickFrames.size()-m_shotStartFrame-1);
     zSpeed /= numZSpeeds;
 
+    IntersectionResult res;
     res.intersectionGroundSpeed = vGround.normalized() * groundSpeedLength;
     res.intersectionZSpeed = zSpeed;
     debug("approx/z speed", res.intersectionZSpeed);
+
+    Eigen::Vector2f vGroundPinv(pinvRes.vx, pinvRes.vy);
+    Eigen::Vector2f vGroundPinvControl(pinvRes.vxControl, pinvRes.vyControl);
 
     Eigen::Vector2f VC = S + vGroundPinvControl;
     Eigen::Vector2f VP = S + vGroundPinv;
     float vControlDiff = fabs(atan2(VP(1)-S(1), VP(0)-S(0)) - atan2(VC(1)-S(1), VC(0)-S(0)));
     debug("approx/vControlDiff", vControlDiff);
-
-    if (firstInTheAir.cameraId != m_kickFrames.back().cameraId) {
-        // for a correct refSpeed, search first measurement from current camera
-        for (auto& m: m_kickFrames) {
-            if (m.cameraId == m_kickFrames.back().cameraId && m.ballPos(0) != m_kickFrames.back().ballPos(0)) {
-                firstInTheAir = m;
-                break;
-            }
-        }
-    }
-    float refSpeed = (firstInTheAir.ballPos - m_kickFrames.back().ballPos).norm()
-                / ((m_kickFrames.back().time - firstInTheAir.time)/NS_PER_SEC);
-    debug("pinv_params/ground speed raw", refSpeed);
-    res.refSpeed = refSpeed;
 
     return res;
 }
@@ -408,15 +417,15 @@ void FlyFilter::approachPinvApply(const PinvResult &pinvRes)
     }
 }
 
-void FlyFilter::approachIntersectApply(const FlyFilter::PinvResult &pinvRes)
+void FlyFilter::approachIntersectApply(const FlyFilter::IntersectionResult &intRes)
 {
     ChipDetection firstInTheAir = m_kickFrames.at(m_shotStartFrame);
     m_chipStartPos = m_kickFrames.at(m_shotStartFrame).ballPos;
     m_chipStartTime = firstInTheAir.time-10000000.0; // -10ms, actual kick was before
-    m_groundSpeed = pinvRes.intersectionGroundSpeed;
-    m_zSpeed = pinvRes.intersectionZSpeed;
+    m_groundSpeed = intRes.intersectionGroundSpeed;
+    m_zSpeed = intRes.intersectionZSpeed;
     debug("method intersect", true);
-    debug("approx/speed length", pinvRes.intersectionGroundSpeed.norm());
+    debug("approx/speed length", intRes.intersectionGroundSpeed.norm());
 }
 
 bool FlyFilter::approachAreaApply()
@@ -517,17 +526,17 @@ bool FlyFilter::approachPinvApplicable(const FlyFilter::PinvResult &pinvRes)
     return false;
 }
 
-bool FlyFilter::approachIntersectApplicable(const FlyFilter::PinvResult &pinvRes)
+bool FlyFilter::approachIntersectApplicable(const FlyFilter::IntersectionResult &intRes)
 {
     // the calulated speed direction should not differ to much from the projection
     Eigen::Vector2f center = m_kickFrames.first().ballPos;
-    auto vToProj = innerAngle(center, m_kickFrames.back().ballPos, center+pinvRes.intersectionGroundSpeed);
+    auto vToProj = innerAngle(center, m_kickFrames.back().ballPos, center + intRes.intersectionGroundSpeed);
     debug("vToProjIntersection", vToProj);
 
     // calculated direction has to lie between projection and camera
     Eigen::Vector3f cam3d = m_cameraInfo->cameraPosition.value(m_kickFrames.back().cameraId);
     Eigen::Vector2f cam(cam3d(0), cam3d(1));
-    auto angleSpeed = innerAngle(center, cam, center+pinvRes.intersectionGroundSpeed);
+    auto angleSpeed = innerAngle(center, cam, center + intRes.intersectionGroundSpeed);
     auto angleProjection = innerAngle(center, cam, m_kickFrames.back().ballPos);
     debug("angle v", angleSpeed);
     debug("angle proj", angleProjection);
@@ -535,7 +544,7 @@ bool FlyFilter::approachIntersectApplicable(const FlyFilter::PinvResult &pinvRes
     return angleSpeed < angleProjection && vToProj < 0.7;
 }
 
-void FlyFilter::parabolicFlightReconstruct(const PinvResult& pinvRes)
+void FlyFilter::parabolicFlightReconstruct(const PinvResult& pinvRes, const IntersectionResult &intRes)
 {
     if (approachPinvApplicable(pinvRes) && m_kickFrames.size() > APPROACH_SWITCH_FRAMENO) {
         debug("chip approach", "pinv");
@@ -553,9 +562,9 @@ void FlyFilter::parabolicFlightReconstruct(const PinvResult& pinvRes)
             debug("chip approach", "height");
             approachAreaApply();
             m_isActive = true;
-        } else if (approachIntersectApplicable(pinvRes)) {
+        } else if (approachIntersectApplicable(intRes)) {
             debug("chip approach", "intersection");
-            approachIntersectApply(pinvRes);
+            approachIntersectApply(intRes);
             m_isActive = true;
         } else {
             debug("chip approach", "unavailable");
@@ -808,8 +817,9 @@ void FlyFilter::processVisionFrame(const VisionFrame& frame)
         }
         if (!m_bouncing) {
             debug("chip detected", m_chipDetected);
-            PinvResult pinvRes = calcPinvAndIntersection();
-            if(m_kickFrames.front().linearCommand) {
+            PinvResult pinvRes = calcPinv();
+            IntersectionResult intRes = calcIntersection(pinvRes);
+            if (m_kickFrames.front().linearCommand) {
                 resetFlightReconstruction();
                 debug("kick command", "linear");
                 return; // no detection for linear kicks
@@ -856,7 +866,7 @@ void FlyFilter::processVisionFrame(const VisionFrame& frame)
 
             }
             if (m_chipDetected) {
-                parabolicFlightReconstruct(pinvRes);
+                parabolicFlightReconstruct(pinvRes, intRes);
             }
         }
     }

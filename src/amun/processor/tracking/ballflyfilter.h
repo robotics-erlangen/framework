@@ -69,6 +69,9 @@ private:
         float vxControl;
         float vyControl;
         float refSpeed;
+    };
+
+    struct IntersectionResult {
         Eigen::Vector2f intersection;
         Eigen::Vector2f intersectionGroundSpeed;
         float intersectionZSpeed;
@@ -83,16 +86,17 @@ private:
     unsigned numMeasurementsWithOwnCamera();
     Eigen::Vector3f unproject(const ChipDetection& detection, float ballRadius);
 
-    PinvResult calcPinvAndIntersection();
+    PinvResult calcPinv();
+    IntersectionResult calcIntersection(const PinvResult &pinvRes);
 
     void approachPinvApply(const PinvResult& pinvRes);
-    void approachIntersectApply(const PinvResult& pinvRes);
+    void approachIntersectApply(const IntersectionResult &intRes);
     bool approachAreaApply();
 
     bool approachPinvApplicable(const PinvResult& pinvRes);
-    bool approachIntersectApplicable(const PinvResult& pinvRes);
+    bool approachIntersectApplicable(const IntersectionResult &intRes);
 
-    void parabolicFlightReconstruct(const PinvResult &pinvRes);
+    void parabolicFlightReconstruct(const PinvResult &pinvRes, const IntersectionResult &intRes);
     void resetFlightReconstruction();
 
     struct Prediction {
