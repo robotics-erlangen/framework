@@ -34,8 +34,7 @@ public:
     static Vector minTimePos(Vector v0, Vector v1, float acc, float slowDownTime);
 
     // search for position
-    static SpeedProfile findTrajectoryFastEndSpeed(Vector v0, Vector v1, Vector position, float acc, float vMax, float slowDownTime, bool highPrecision);
-    static SpeedProfile findTrajectoryExactEndSpeed(Vector v0, Vector v1, Vector position, float acc, float vMax, float slowDownTime, bool highPrecision);
+    static SpeedProfile findTrajectory(Vector v0, Vector v1, Vector position, float acc, float vMax, float slowDownTime, bool highPrecision, bool fastEndSpeed);
 
     // speed profile output
     // any input is valid as long as time is not negative

@@ -194,98 +194,6 @@ static float angleDiff(float a1, float a2)
     return angle;
 }
 
-SpeedProfile AlphaTimeTrajectory::findTrajectoryFastEndSpeed(Vector v0, Vector v1, Vector position, float acc, float vMax, float slowDownTime, bool highPrecision)
-{
-    if (v1.x == 0.0f && v1.y == 0.0f) {
-        return findTrajectoryExactEndSpeed(v0, v1, position, acc, vMax, slowDownTime, highPrecision);
-    }
-    SpeedProfile result(slowDownTime);
-    // TODO: custom minTimePos for fast endspeed mode
-    float minTimeDistance = position.distance(minTimePos(v0, v1, acc, 0));
-
-    // estimate rough time from distance
-    // TODO: improve this estimate?
-    float estimatedTime = minTimeDistance / acc;
-
-    Vector estimateCenterPos = centerTimePos(v0, v1, estimatedTime, true);
-
-    float estimatedAngle = normalizeAnglePositive((position - estimateCenterPos).angle());
-    // calculate better estimate for the time
-    estimatedTime = std::max(estimatedTime, 0.001f);
-
-    // TODO: can this even still occur??
-    if (std::isnan(estimatedTime)) {
-        estimatedTime = 3;
-    }
-    if (std::isnan(estimatedAngle)) {
-        // 0 is floating point instable, dont use that
-        estimatedAngle = 0.05f;
-    }
-
-    // cache for usage in calculateTrajectory
-    float minTime = minimumTime(v0, v1, acc, true);
-
-    float currentTime = estimatedTime;
-    float currentAngle = estimatedAngle;
-
-    float distanceFactor = 0.8f;
-    float lastCenterDistanceDiff = 0;
-
-    float angleFactor = 0.8f;
-    float lastAngleDiff = 0;
-
-    const int ITERATIONS = highPrecision ? HIGH_PRECISION_ITERATIONS : MAX_SEARCH_ITERATIONS;
-    for (int i = 0;i<ITERATIONS;i++) {
-        currentTime = std::max(currentTime, 0.0f);
-
-        Vector endPos;
-        float assumedSpeed;
-        if (slowDownTime > 0) {
-            result = calculateTrajectory(v0, v1, currentTime, currentAngle, acc, vMax, slowDownTime, true, minTime);
-            endPos = result.calculateSlowDownPos();
-            Vector continuationSpeed = result.continuationSpeed();
-            assumedSpeed = std::max(std::abs(continuationSpeed.x), std::abs(continuationSpeed.y));
-        } else {
-            auto trajectoryInfo = calculatePosition(v0, v1, currentTime + minTime, currentAngle, acc, vMax, true);
-            endPos = trajectoryInfo.endPos;
-            assumedSpeed = std::max(std::abs(trajectoryInfo.increaseAtSpeed.x), std::abs(trajectoryInfo.increaseAtSpeed.y));
-        }
-
-        float targetDistance = position.distance(endPos);
-        if (targetDistance < (highPrecision ? HIGH_QUALITY_TARGET_PRECISION : REGULAR_TARGET_PRECISION)) {
-            if (slowDownTime <= 0) {
-                result = calculateTrajectory(v0, v1, currentTime, currentAngle, acc, vMax, slowDownTime, true, minTime);
-            }
-            return result;
-        }
-
-        Vector currentCenterTimePos = centerTimePos(v0, v1, currentTime + minTime, true);
-        float newDistance = endPos.distance(currentCenterTimePos);
-        float targetCenterDistance = currentCenterTimePos.distance(position);
-        float currentCenterDistanceDiff = targetCenterDistance - newDistance;
-        if ((lastCenterDistanceDiff < 0) != (currentCenterDistanceDiff < 0)) {
-            distanceFactor *= 0.9f;
-        } else {
-            distanceFactor *= 1.05f;
-        }
-        lastCenterDistanceDiff = currentCenterDistanceDiff;
-        currentTime += currentCenterDistanceDiff * distanceFactor / std::max(0.5f, assumedSpeed);
-
-        // correct angle
-        float newAngle = (endPos - currentCenterTimePos).angle();
-        float targetCenterAngle = (position - currentCenterTimePos).angle();
-        float currentAngleDiff = angleDiff(targetCenterAngle, newAngle);
-        if (i >= 4 && (currentAngleDiff < 0) != (lastAngleDiff < 0)) {
-            angleFactor *= 0.5f;
-        }
-        lastAngleDiff = currentAngleDiff;
-        currentAngle += currentAngleDiff * angleFactor;
-        //currentAngle += vectorAngleDiff((position - currentCenterTimePos), (endPos - currentCenterTimePos));
-    }
-    result.valid = false;
-    return result;
-}
-
 static Vector necessaryAcceleration(Vector v0, Vector distance)
 {
     // solve dist(v0, 0) == d
@@ -295,11 +203,14 @@ static Vector necessaryAcceleration(Vector v0, Vector distance)
                   v0.y * std::abs(v0.y) * 0.5f / distance.y);
 }
 
-SpeedProfile AlphaTimeTrajectory::findTrajectoryExactEndSpeed(Vector v0, Vector v1, Vector position, float acc, float vMax, float slowDownTime, bool highPrecision)
+SpeedProfile AlphaTimeTrajectory::findTrajectory(Vector v0, Vector v1, Vector position, float acc, float vMax,
+                                                 float slowDownTime, bool highPrecision, bool fastEndSpeed)
 {
     const float MAX_ACCELERATION_FACTOR = 1.2f;
     SpeedProfile result(slowDownTime);
     if (v1 == Vector(0, 0)) {
+        fastEndSpeed = false; // using fast end speed is more computationally intensive
+
         Vector necessaryAcc = necessaryAcceleration(v0, position);
         float accLength = necessaryAcc.length();
         float timeDiff = std::abs(std::abs(v0.x) / necessaryAcc.x - std::abs(v0.y) / necessaryAcc.y);
@@ -318,6 +229,7 @@ SpeedProfile AlphaTimeTrajectory::findTrajectoryExactEndSpeed(Vector v0, Vector 
         }
     }
 
+    // TODO: custom minTimePos for fast endspeed mode
     Vector minPos = minTimePos(v0, v1, acc, slowDownTime);
     float minTimeDistance = position.distance(minPos);
 
@@ -327,11 +239,11 @@ SpeedProfile AlphaTimeTrajectory::findTrajectoryExactEndSpeed(Vector v0, Vector 
     // TODO: improve this estimate?
     float estimatedTime = minTimeDistance / acc;
 
-    Vector estimateCenterPos = centerTimePos(v0, v1, estimatedTime, false);
+    Vector estimateCenterPos = centerTimePos(v0, v1, estimatedTime, fastEndSpeed);
 
     float estimatedAngle = normalizeAnglePositive((position - estimateCenterPos).angle());
     // calculate better estimate for the time
-    estimatedTime = std::max(estimatedTime, 0.01f);
+    estimatedTime = std::max(estimatedTime, 0.001f);
 
     // TODO: can this even still occur??
     if (std::isnan(estimatedTime)) {
@@ -343,7 +255,7 @@ SpeedProfile AlphaTimeTrajectory::findTrajectoryExactEndSpeed(Vector v0, Vector 
     }
 
     // cached for usage in calculateTrajectory
-    float minTime = minimumTime(v0, v1, acc, false);
+    float minTime = minimumTime(v0, v1, acc, fastEndSpeed);
 
     float currentTime = estimatedTime;
     float currentAngle = estimatedAngle;
@@ -361,12 +273,12 @@ SpeedProfile AlphaTimeTrajectory::findTrajectoryExactEndSpeed(Vector v0, Vector 
         Vector endPos;
         float assumedSpeed;
         if (slowDownTime > 0) {
-            result = calculateTrajectory(v0, v1, currentTime, currentAngle, acc, vMax, slowDownTime, false, minTime);
+            result = calculateTrajectory(v0, v1, currentTime, currentAngle, acc, vMax, slowDownTime, fastEndSpeed, minTime);
             endPos = result.calculateSlowDownPos();
             Vector continuationSpeed = result.continuationSpeed();
             assumedSpeed = std::max(std::abs(continuationSpeed.x), std::abs(continuationSpeed.y));
         } else {
-            auto trajectoryInfo = calculatePosition(v0, v1, currentTime + minTime, currentAngle, acc, vMax, false);
+            auto trajectoryInfo = calculatePosition(v0, v1, currentTime + minTime, currentAngle, acc, vMax, fastEndSpeed);
             endPos = trajectoryInfo.endPos;
             assumedSpeed = std::max(std::abs(trajectoryInfo.increaseAtSpeed.x), std::abs(trajectoryInfo.increaseAtSpeed.y));
         }
@@ -374,12 +286,12 @@ SpeedProfile AlphaTimeTrajectory::findTrajectoryExactEndSpeed(Vector v0, Vector 
         float targetDistance = position.distance(endPos);
         if (targetDistance < (highPrecision ? HIGH_QUALITY_TARGET_PRECISION : REGULAR_TARGET_PRECISION)) {
             if (slowDownTime <= 0) {
-                result = calculateTrajectory(v0, v1, currentTime, currentAngle, acc, vMax, slowDownTime, false, minTime);
+                result = calculateTrajectory(v0, v1, currentTime, currentAngle, acc, vMax, slowDownTime, fastEndSpeed, minTime);
             }
             return result;
         }
 
-        Vector currentCenterTimePos = useMinTimePosForCenterPos ? minPos : centerTimePos(v0, v1, currentTime + minTime, false);
+        Vector currentCenterTimePos = useMinTimePosForCenterPos ? minPos : centerTimePos(v0, v1, currentTime + minTime, fastEndSpeed);
         float newDistance = endPos.distance(currentCenterTimePos);
         float targetCenterDistance = currentCenterTimePos.distance(position);
         float currentCenterDistanceDiff = targetCenterDistance - newDistance;
@@ -394,7 +306,6 @@ SpeedProfile AlphaTimeTrajectory::findTrajectoryExactEndSpeed(Vector v0, Vector 
         // correct angle
         float newAngle = (endPos - currentCenterTimePos).angle();
         float targetCenterAngle = (position - currentCenterTimePos).angle();
-        //currentAngle += vectorAngleDiff((position - currentCenterTimePos), (endPos - currentCenterTimePos));
         float currentAngleDiff = angleDiff(targetCenterAngle, newAngle);
         if (i >= 4 && (currentAngleDiff < 0) != (lastAngleDiff < 0)) {
             angleFactor *= 0.5f;

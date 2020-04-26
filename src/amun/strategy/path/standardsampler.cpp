@@ -206,8 +206,8 @@ float StandardSampler::checkSample(const TrajectoryInput &input, const StandardT
     // calculate first part trajectory
     Vector firstPartPosition = input.distance - secondPartOffset;
     float firstPartSlowDownTime = input.exponentialSlowDown ? std::max(0.0f, SpeedProfile::SLOW_DOWN_TIME - secondPartTime) : 0.0f;
-    SpeedProfile firstPart = AlphaTimeTrajectory::findTrajectoryExactEndSpeed(input.v0, sample.getMidSpeed(), firstPartPosition, input.acceleration,
-                                                                              input.maxSpeed, firstPartSlowDownTime, false);
+    SpeedProfile firstPart = AlphaTimeTrajectory::findTrajectory(input.v0, sample.getMidSpeed(), firstPartPosition, input.acceleration,
+                                                                 input.maxSpeed, firstPartSlowDownTime, false, false);
     if (!firstPart.isValid()) {
         return -1;
     }
