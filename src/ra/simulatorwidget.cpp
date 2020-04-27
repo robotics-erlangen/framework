@@ -50,6 +50,7 @@ SimulatorWidget::SimulatorWidget(QWidget *parent) :
     connect(ui->spinStddevBall, SIGNAL(valueChanged(double)), SLOT(setStddevBall(double)));
     connect(ui->spinStddevRobotPos, SIGNAL(valueChanged(double)), SLOT(setStddevRobotPos(double)));
     connect(ui->spinStddevRobotPhi, SIGNAL(valueChanged(double)), SLOT(setStddevRobotPhi(double)));
+    connect(ui->spinStdDevBallArea, SIGNAL(valueChanged(double)), SLOT(setStddevBallArea(double)));
 
     connect(ui->enableWorstCaseVision, SIGNAL(toggled(bool)), this, SLOT(updateWorstCaseVision()));
     connect(ui->worstCaseBallDetections, SIGNAL(valueChanged(double)), this, SLOT(updateWorstCaseVision()));
@@ -156,6 +157,7 @@ void SimulatorWidget::setEnableNoise(int state)
     command->mutable_simulator()->set_stddev_ball_p(isEnabled ? ui->spinStddevBall->value() : 0);
     command->mutable_simulator()->set_stddev_robot_p(isEnabled ? ui->spinStddevRobotPos->value() : 0);
     command->mutable_simulator()->set_stddev_robot_phi(isEnabled ? ui->spinStddevRobotPhi->value(): 0);
+    command->mutable_simulator()->set_stddev_ball_area(isEnabled ? ui->spinStdDevBallArea->value(): 0);
     emit sendCommand(command);
 }
 
@@ -166,6 +168,16 @@ void SimulatorWidget::setStddevBall(double stddev)
     }
     Command command(new amun::Command);
     command->mutable_simulator()->set_stddev_ball_p(stddev);
+    emit sendCommand(command);
+}
+
+void SimulatorWidget::setStddevBallArea(double stddev)
+{
+    if (ui->chkEnableNoise->checkState() == Qt::Unchecked) {
+        return;
+    }
+    Command command(new amun::Command);
+    command->mutable_simulator()->set_stddev_ball_area(stddev);
     emit sendCommand(command);
 }
 

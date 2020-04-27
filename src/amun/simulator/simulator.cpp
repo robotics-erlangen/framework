@@ -74,6 +74,7 @@ struct camun::simulator::SimulatorData
     Simulator::RobotMap robotsYellow;
     bool flip;
     float stddevBall;
+    float stddevBallArea;
     float stddevRobot;
     float stddevRobotPhi;
     bool enableInvisibleBall;
@@ -127,6 +128,7 @@ Simulator::Simulator(const Timer *timer, const amun::SimulatorSetup &setup) :
     m_data->ball = new SimBall(&m_data->rng, m_data->dynamicsWorld, m_data->geometry.field_width(), m_data->geometry.field_height());
     m_data->flip = false;
     m_data->stddevBall = 0.0f;
+    m_data->stddevBallArea = 0.0f;
     m_data->stddevRobot = 0.0f;
     m_data->stddevRobotPhi = 0.0f;
     m_data->enableInvisibleBall = true;
@@ -529,7 +531,7 @@ QList<QByteArray> Simulator::createVisionPacket()
             initializeDetection(detection, cameraId);
 
             // get ball position
-            bool visible = m_data->ball->update(detection->add_balls(), m_data->stddevBall, cameraInfos[cameraId],
+            bool visible = m_data->ball->update(detection->add_balls(), m_data->stddevBall, m_data->stddevBallArea, cameraInfos[cameraId],
                     totalBoundaryWidth, m_data->enableInvisibleBall, m_data->ballVisibilityThreshold);
             if (!visible) {
                 detection->clear_balls();
@@ -709,6 +711,10 @@ void Simulator::handleCommand(const Command &command)
 
         if (sim.has_stddev_robot_phi()) {
             m_data->stddevRobotPhi = sim.stddev_robot_phi();
+        }
+
+        if (sim.has_stddev_ball_area()) {
+            m_data->stddevBallArea = sim.stddev_ball_area();
         }
 
         if (sim.has_move_ball()) {

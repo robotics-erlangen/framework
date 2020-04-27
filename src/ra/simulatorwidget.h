@@ -57,6 +57,7 @@ private slots:
     void decreaseSpeed();
     void setEnableNoise(int state);
     void setStddevBall(double stddev);
+    void setStddevBallArea(double stddev);
     void setStddevRobotPos(double stddev);
     void setStddevRobotPhi(double stddev);
     void setEnableInvisibleBall(int state);
