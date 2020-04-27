@@ -507,8 +507,10 @@ QList<QByteArray> Simulator::createVisionPacket()
 {
     const std::size_t numCameras = m_data->cameraSetup.num_cameras();
 
-    std::vector<SSL_WrapperPacket> packets;
-    packets.reserve(numCameras);
+    std::vector<SSL_DetectionFrame> detections(numCameras);
+    for (std::size_t i = 0;i<numCameras;i++) {
+        initializeDetection(&detections[i], i);
+    }
 
     std::vector<CameraInfo> cameraInfos = getCameraInfos(numCameras, m_data->geometry.field_width(), m_data->geometry.field_height(), m_data->cameraSetup.camera_height());
 
@@ -525,37 +527,57 @@ QList<QByteArray> Simulator::createVisionPacket()
                 continue;
             }
 
-            // setup vision packet
-            packets.push_back(SSL_WrapperPacket());
-            SSL_DetectionFrame *detection = packets.back().mutable_detection();
-            initializeDetection(detection, cameraId);
-
             // get ball position
-            bool visible = m_data->ball->update(detection->add_balls(), m_data->stddevBall, m_data->stddevBallArea, cameraInfos[cameraId],
+            bool visible = m_data->ball->update(detections[cameraId].add_balls(), m_data->stddevBall, m_data->stddevBallArea, cameraInfos[cameraId],
                     totalBoundaryWidth, m_data->enableInvisibleBall, m_data->ballVisibilityThreshold);
             if (!visible) {
-                detection->clear_balls();
+                detections[cameraId].clear_balls();
             }
         }
     }
 
-    // put robots and geometry in the first packet
-    if (packets.size() == 0) {
-        packets.push_back(SSL_WrapperPacket());
-        initializeDetection(packets[0].mutable_detection(), 0);
-    }
-    SSL_DetectionFrame *detection = packets[0].mutable_detection();
-
     // get robot positions
     for (SimRobot *robot : m_data->robotsBlue) {
         if (m_time - robot->getLastSendTime() >= m_minRobotDetectionTime) {
-            robot->update(detection->add_robots_blue(), m_data->stddevRobot, m_data->stddevRobotPhi, m_time);
+            for (std::size_t cameraId = 0; cameraId < numCameras; ++cameraId) {
+
+                const btVector3 robotPos = robot->position() / SIMULATOR_SCALE;
+
+                if (!checkCameraID(cameraId, numCameras, robotPos, m_data->geometry.field_height(), m_data->cameraOverlap)) {
+                    continue;
+                }
+
+                robot->update(detections[cameraId].add_robots_blue(), m_data->stddevRobot, m_data->stddevRobotPhi, m_time);
+            }
         }
     }
     for (SimRobot *robot : m_data->robotsYellow) {
         if (m_time - robot->getLastSendTime() >= m_minRobotDetectionTime) {
-            robot->update(detection->add_robots_yellow(), m_data->stddevRobot, m_data->stddevRobotPhi, m_time);
+            for (std::size_t cameraId = 0; cameraId < numCameras; ++cameraId) {
+
+                const btVector3 robotPos = robot->position() / SIMULATOR_SCALE;
+
+                if (!checkCameraID(cameraId, numCameras, robotPos, m_data->geometry.field_height(), m_data->cameraOverlap)) {
+                    continue;
+                }
+
+                robot->update(detections[cameraId].add_robots_yellow(), m_data->stddevRobot, m_data->stddevRobotPhi, m_time);
+            }
         }
+    }
+
+    std::vector<SSL_WrapperPacket> packets;
+    packets.reserve(numCameras);
+
+    // add a wrapper packet for all detections that contain the ball or a robot
+    for (const auto &frame : detections) {
+        if (frame.balls_size() == 0 && frame.robots_blue_size() == 0 && frame.robots_yellow_size() == 0) {
+            continue;
+        }
+
+        SSL_WrapperPacket packet;
+        packet.mutable_detection()->CopyFrom(frame);
+        packets.push_back(packet);
     }
 
     // add field geometry
