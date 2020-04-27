@@ -25,7 +25,8 @@ VisionLogLiveConverter::VisionLogLiveConverter(VisionLogReader *file) :
     m_referee(),
     m_tracker(false, false),
     m_lastPacket(0),
-    m_lastFlipped(false)
+    m_lastFlipped(false),
+    m_packetCache(2000) // the packets produced by the tracking are very small, many can be cached
 {
     m_logFile = file;
     m_tracker.reset();
@@ -91,6 +92,13 @@ Status VisionLogLiveConverter::readStatus(int packet)
     if (packet < 0 || packet >= packetCount()) {
         return Status();
     }
+
+    // check if the packet was cached before
+    Status *cached = m_packetCache.object(packet);
+    if (cached != nullptr) {
+        return *cached;
+    }
+
     qint64 requestedTime = m_timings[packet];
     // if the time difference is short, process all packets in between
     int startPacket = m_lastPacket;
@@ -113,6 +121,9 @@ Status VisionLogLiveConverter::readStatus(int packet)
 
     m_referee.process(status->world_state());
     status->mutable_game_state()->CopyFrom(m_referee.gameState());
+
+    // yes, it is really uncomfortable to use smart pointers this way
+    m_packetCache.insert(packet, new Status(status));
     return status;
 }
 

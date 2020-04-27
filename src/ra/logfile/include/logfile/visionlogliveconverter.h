@@ -29,6 +29,7 @@
 #include <QString>
 #include <QMap>
 #include <QByteArray>
+#include <QCache>
 
 class VisionLogReader;
 
@@ -64,6 +65,8 @@ private:
     QByteArray m_visionFrame;
     bool m_lastFlipped;
     QString m_indexError;
+
+    QCache<int, Status> m_packetCache;
 };
 
 #endif // VISIONLOGLIVECONVERTER_H
