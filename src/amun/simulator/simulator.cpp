@@ -77,6 +77,7 @@ struct camun::simulator::SimulatorData
     float stddevBallArea;
     float stddevRobot;
     float stddevRobotPhi;
+    float ballDetectionsAtDribbler; // per robot per second
     bool enableInvisibleBall;
     float ballVisibilityThreshold;
     float cameraOverlap;
@@ -131,6 +132,7 @@ Simulator::Simulator(const Timer *timer, const amun::SimulatorSetup &setup) :
     m_data->stddevBallArea = 0.0f;
     m_data->stddevRobot = 0.0f;
     m_data->stddevRobotPhi = 0.0f;
+    m_data->ballDetectionsAtDribbler = 0.0f;
     m_data->enableInvisibleBall = true;
     m_data->ballVisibilityThreshold = 0.4;
     m_data->cameraOverlap = 0.3;
@@ -514,12 +516,12 @@ QList<QByteArray> Simulator::createVisionPacket()
 
     std::vector<CameraInfo> cameraInfos = getCameraInfos(numCameras, m_data->geometry.field_width(), m_data->geometry.field_height(), m_data->cameraSetup.camera_height());
 
+    const float totalBoundaryWidth = m_data->geometry.boundary_width();
+
     if (m_time - m_lastBallSendTime >= m_minBallDetectionTime) {
         m_lastBallSendTime = m_time;
 
         const btVector3 ballPosition = m_data->ball->position() / SIMULATOR_SCALE;
-
-        const float totalBoundaryWidth = m_data->geometry.boundary_width();
 
         for (std::size_t cameraId = 0; cameraId < numCameras; ++cameraId) {
             // at least one id is always valid
@@ -537,31 +539,39 @@ QList<QByteArray> Simulator::createVisionPacket()
     }
 
     // get robot positions
-    for (SimRobot *robot : m_data->robotsBlue) {
-        if (m_time - robot->getLastSendTime() >= m_minRobotDetectionTime) {
-            for (std::size_t cameraId = 0; cameraId < numCameras; ++cameraId) {
+    for (bool teamIsBlue : {true, false}) {
+        auto &team = teamIsBlue ? m_data->robotsBlue : m_data->robotsYellow;
 
-                const btVector3 robotPos = robot->position() / SIMULATOR_SCALE;
+        for (SimRobot *robot : team) {
+            if (m_time - robot->getLastSendTime() >= m_minRobotDetectionTime) {
+                const float timeDiff = (m_time - robot->getLastSendTime()) * 1E-9;
 
-                if (!checkCameraID(cameraId, numCameras, robotPos, m_data->geometry.field_height(), m_data->cameraOverlap)) {
-                    continue;
+                for (std::size_t cameraId = 0; cameraId < numCameras; ++cameraId) {
+
+                    const btVector3 robotPos = robot->position() / SIMULATOR_SCALE;
+
+                    if (!checkCameraID(cameraId, numCameras, robotPos, m_data->geometry.field_height(), m_data->cameraOverlap)) {
+                        continue;
+                    }
+
+                    if (teamIsBlue) {
+                        robot->update(detections[cameraId].add_robots_blue(), m_data->stddevRobot, m_data->stddevRobotPhi, m_time);
+                    } else {
+                        robot->update(detections[cameraId].add_robots_yellow(), m_data->stddevRobot, m_data->stddevRobotPhi, m_time);
+                    }
+
+
+                    // once in a while, add a ball mis-detection at a corner of the dribbler
+                    // in real games, this happens because the ball detection light beam used by many teams is red
+                    float detectionProb = timeDiff * m_data->ballDetectionsAtDribbler;
+                    if (m_data->ballDetectionsAtDribbler > 0 && m_data->rng.uniformFloat(0, 1) < detectionProb) {
+                        // always on the right side of the dribbler for now
+                        if (!m_data->ball->addDetection(detections[cameraId].add_balls(), robot->dribblerCorner(false) / SIMULATOR_SCALE,
+                                                        m_data->stddevRobot, 0, cameraInfos[cameraId], totalBoundaryWidth, false, 0)) {
+                            detections[cameraId].mutable_balls()->DeleteSubrange(detections[cameraId].balls_size()-1, 1);
+                        }
+                    }
                 }
-
-                robot->update(detections[cameraId].add_robots_blue(), m_data->stddevRobot, m_data->stddevRobotPhi, m_time);
-            }
-        }
-    }
-    for (SimRobot *robot : m_data->robotsYellow) {
-        if (m_time - robot->getLastSendTime() >= m_minRobotDetectionTime) {
-            for (std::size_t cameraId = 0; cameraId < numCameras; ++cameraId) {
-
-                const btVector3 robotPos = robot->position() / SIMULATOR_SCALE;
-
-                if (!checkCameraID(cameraId, numCameras, robotPos, m_data->geometry.field_height(), m_data->cameraOverlap)) {
-                    continue;
-                }
-
-                robot->update(detections[cameraId].add_robots_yellow(), m_data->stddevRobot, m_data->stddevRobotPhi, m_time);
             }
         }
     }
@@ -570,9 +580,14 @@ QList<QByteArray> Simulator::createVisionPacket()
     packets.reserve(numCameras);
 
     // add a wrapper packet for all detections that contain the ball or a robot
-    for (const auto &frame : detections) {
+    for (auto &frame : detections) {
         if (frame.balls_size() == 0 && frame.robots_blue_size() == 0 && frame.robots_yellow_size() == 0) {
             continue;
+        }
+
+        // if multiple balls are reported, shuffle them randomly (the tracking might have systematic errors depending on the ball order)
+        if (frame.balls_size() > 1) {
+            std::random_shuffle(frame.mutable_balls()->begin(), frame.mutable_balls()->end());
         }
 
         SSL_WrapperPacket packet;
@@ -737,6 +752,10 @@ void Simulator::handleCommand(const Command &command)
 
         if (sim.has_stddev_ball_area()) {
             m_data->stddevBallArea = sim.stddev_ball_area();
+        }
+
+        if (sim.has_dribbler_ball_detections()) {
+            m_data->ballDetectionsAtDribbler = sim.dribbler_ball_detections();
         }
 
         if (sim.has_move_ball()) {

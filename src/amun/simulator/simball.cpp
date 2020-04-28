@@ -181,7 +181,17 @@ static float positionOfVisiblePixels(btVector3& p, const btVector3& simulatorBal
 }
 
 bool SimBall::update(SSL_DetectionBall *ball, float stddev, float stddevArea, const CameraInfo& cameraInfo,
-                    float fieldBoundaryWidth, bool enableInvisibleBall, float visibilityThreshold)
+                     float fieldBoundaryWidth, bool enableInvisibleBall, float visibilityThreshold)
+{
+    btTransform transform;
+    m_motionState->getWorldTransform(transform);
+    btVector3 pos = transform.getOrigin() / SIMULATOR_SCALE;
+
+    return addDetection(ball, pos, stddev, stddevArea, cameraInfo, fieldBoundaryWidth, enableInvisibleBall, visibilityThreshold);
+}
+
+bool SimBall::addDetection(SSL_DetectionBall *ball, btVector3 pos, float stddev, float stddevArea, const CameraInfo& cameraInfo,
+                            float fieldBoundaryWidth, bool enableInvisibleBall, float visibilityThreshold)
 {
     // setup ssl-vision ball detection
     ball->set_confidence(1.0);
@@ -191,8 +201,6 @@ bool SimBall::update(SSL_DetectionBall *ball, float stddev, float stddevArea, co
     btTransform transform;
     m_motionState->getWorldTransform(transform);
 
-    btVector3 p = transform.getOrigin() / SIMULATOR_SCALE;
-
     const btVector3 simulatorCameraPosition = btVector3(cameraInfo.position.x(), cameraInfo.position.y(), cameraInfo.position.z()) * SIMULATOR_SCALE;
 
     float visibility = 1;
@@ -200,7 +208,7 @@ bool SimBall::update(SSL_DetectionBall *ball, float stddev, float stddevArea, co
     // if some parts of the ball aren't visible the position this function adjusts the position accordingly (hopefully)
     if (enableInvisibleBall) {
         //if the visibility is lower than the threshold the ball disappears
-        visibility = positionOfVisiblePixels(p, transform.getOrigin(), simulatorCameraPosition, m_world);
+        visibility = positionOfVisiblePixels(pos, transform.getOrigin(), simulatorCameraPosition, m_world);
         if (visibility < visibilityThreshold) {
             return false;
         }
@@ -211,12 +219,12 @@ bool SimBall::update(SSL_DetectionBall *ball, float stddev, float stddevArea, co
     // reflects the cameras resolution
     const unsigned PIXEL_PER_AREA = 10; // i do not know in what unit area is, just make it similar to a real game
 
-    float modZ = std::min(SCALING_LIMIT * cameraInfo.position.z(), std::max(0.f, p.z() - BALL_RADIUS));
-    float modX = (p.x() - cameraInfo.position.x()) * (cameraInfo.position.z() / (cameraInfo.position.z() - modZ)) + cameraInfo.position.x();
-    float modY = (p.y() - cameraInfo.position.y()) * (cameraInfo.position.z() / (cameraInfo.position.z() - modZ)) + cameraInfo.position.y();
+    float modZ = std::min(SCALING_LIMIT * cameraInfo.position.z(), std::max(0.f, pos.z() - BALL_RADIUS));
+    float modX = (pos.x() - cameraInfo.position.x()) * (cameraInfo.position.z() / (cameraInfo.position.z() - modZ)) + cameraInfo.position.x();
+    float modY = (pos.y() - cameraInfo.position.y()) * (cameraInfo.position.z() / (cameraInfo.position.z() - modZ)) + cameraInfo.position.y();
 
     float distBallCam = std::sqrt((cameraInfo.position.z()-modZ)*(cameraInfo.position.z()-modZ)+
-        (cameraInfo.position.x()-p.x())*(cameraInfo.position.x()-p.x())+(cameraInfo.position.y()-p.y())*(cameraInfo.position.y()-p.y()));
+        (cameraInfo.position.x()-pos.x())*(cameraInfo.position.x()-pos.x())+(cameraInfo.position.y()-pos.y())*(cameraInfo.position.y()-pos.y()));
     float denomSqrt = (distBallCam*1000)/FOCAL_LENGTH - 1;
     float basePixelArea = (BALL_RADIUS*BALL_RADIUS*1000000*M_PI) / (denomSqrt*denomSqrt);
     float area = visibility * std::max(0.0f, (basePixelArea + static_cast<float>(m_rng->normal(stddevArea)) / PIXEL_PER_AREA));

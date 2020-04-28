@@ -425,3 +425,11 @@ btVector3 SimRobot::position() const
     const btTransform transform = m_body->getWorldTransform();
     return btVector3(transform.getOrigin().x(), transform.getOrigin().y(), 0);
 }
+
+btVector3 SimRobot::dribblerCorner(bool left) const
+{
+    const btVector3 sideOffset = btVector3(m_specs.dribbler_width() / 2, 0, 0) * SIMULATOR_SCALE;
+    const btVector3 corner = m_dribblerCenter + btVector3(0, 0.03, 0) * SIMULATOR_SCALE + (left ? -sideOffset : sideOffset);
+    const btTransform transform = m_body->getWorldTransform();
+    return transform * corner;
+}

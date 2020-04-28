@@ -69,6 +69,7 @@ message CommandSimulator {
     optional float ball_visibility_threshold = 13;
     optional float camera_overlap = 14;
     optional SimulatorWorstCaseVision vision_worst_case = 15;
+    optional float dribbler_ball_detections = 17;
 }
 
 message CommandReferee {

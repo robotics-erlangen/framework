@@ -55,11 +55,7 @@ private slots:
     void handleAppState(Qt::ApplicationState state);
     void increaseSpeed();
     void decreaseSpeed();
-    void setEnableNoise(int state);
-    void setStddevBall(double stddev);
-    void setStddevBallArea(double stddev);
-    void setStddevRobotPos(double stddev);
-    void setStddevRobotPhi(double stddev);
+    void sendSimulatorNoiseConfig();
     void setEnableInvisibleBall(int state);
     void setBallVisibilityThreshold(int threshold);
     void setCameraOverlap(int overlap);

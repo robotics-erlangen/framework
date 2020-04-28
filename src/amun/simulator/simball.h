@@ -57,6 +57,10 @@ public:
     const btRigidBody *body() const { return m_body; }
     bool isInvalid() const;
 
+    // can be used to add ball mis-detections
+    bool addDetection(SSL_DetectionBall *ball, btVector3 pos, float stddev, float stddevArea, const CameraInfo& cameraInfo,
+                      float fieldBoundaryWidth, bool enableInvisibleBall, float visibilityThreshold);
+
 private:
     RNG *m_rng;
     btDiscreteDynamicsWorld *m_world;

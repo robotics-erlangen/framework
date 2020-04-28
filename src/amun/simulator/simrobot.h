@@ -53,6 +53,7 @@ public:
     void move(const amun::SimulatorMoveRobot &robot);
     bool isFlipped();
     btVector3 position() const;
+    btVector3 dribblerCorner(bool left) const;
     qint64 getLastSendTime() const { return m_lastSendTime; }
 
     const robot::Specs& specs() const { return m_specs; }

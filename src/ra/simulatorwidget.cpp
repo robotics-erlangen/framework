@@ -39,7 +39,7 @@ SimulatorWidget::SimulatorWidget(QWidget *parent) :
     connect(ui->spinSpeed, SIGNAL(valueChanged(int)), SLOT(setSpeed(int)));
     connect(ui->btnStart, SIGNAL(clicked()), SLOT(start()));
     connect(ui->btnStop, SIGNAL(clicked()), SLOT(stop()));
-    connect(ui->chkEnableNoise, &QCheckBox::stateChanged, this, &SimulatorWidget::setEnableNoise);
+    connect(ui->chkEnableNoise, &QCheckBox::stateChanged, this, &SimulatorWidget::sendSimulatorNoiseConfig);
     connect(ui->chkEnableInvisibleBall, &QCheckBox::stateChanged, this, &SimulatorWidget::setEnableInvisibleBall);
     connect(ui->chkEnableInvisibleBall, SIGNAL(toggled(bool)), ui->spinBallVisibilityThreshold, SLOT(setEnabled(bool)));
     connect(ui->chkEnableInvisibleBall, SIGNAL(toggled(bool)), ui->ballVisibilityThresholdLabel, SLOT(setEnabled(bool)));
@@ -47,10 +47,11 @@ SimulatorWidget::SimulatorWidget(QWidget *parent) :
     connect(ui->spinCameraOverlap, SIGNAL(valueChanged(int)), SLOT(setCameraOverlap(int)));
     connect(ui->btnToggle, &QToolButton::clicked, this, &SimulatorWidget::toggleSimulatorRunning);
 
-    connect(ui->spinStddevBall, SIGNAL(valueChanged(double)), SLOT(setStddevBall(double)));
-    connect(ui->spinStddevRobotPos, SIGNAL(valueChanged(double)), SLOT(setStddevRobotPos(double)));
-    connect(ui->spinStddevRobotPhi, SIGNAL(valueChanged(double)), SLOT(setStddevRobotPhi(double)));
-    connect(ui->spinStdDevBallArea, SIGNAL(valueChanged(double)), SLOT(setStddevBallArea(double)));
+    connect(ui->spinStddevBall, SIGNAL(valueChanged(double)), SLOT(sendSimulatorNoiseConfig()));
+    connect(ui->spinStddevRobotPos, SIGNAL(valueChanged(double)), SLOT(sendSimulatorNoiseConfig()));
+    connect(ui->spinStddevRobotPhi, SIGNAL(valueChanged(double)), SLOT(sendSimulatorNoiseConfig()));
+    connect(ui->spinStdDevBallArea, SIGNAL(valueChanged(double)), SLOT(sendSimulatorNoiseConfig()));
+    connect(ui->spinDribblerBallDetections, SIGNAL(valueChanged(double)), SLOT(sendSimulatorNoiseConfig()));
 
     connect(ui->enableWorstCaseVision, SIGNAL(toggled(bool)), this, SLOT(updateWorstCaseVision()));
     connect(ui->worstCaseBallDetections, SIGNAL(valueChanged(double)), this, SLOT(updateWorstCaseVision()));
@@ -149,55 +150,17 @@ void SimulatorWidget::decreaseSpeed()
     ui->spinSpeed->setValue(ui->spinSpeed->value() - 10);
 }
 
-void SimulatorWidget::setEnableNoise(int state)
+void SimulatorWidget::sendSimulatorNoiseConfig()
 {
-    bool isEnabled = state != Qt::Unchecked;
+    bool isEnabled = ui->chkEnableNoise->checkState() != Qt::Unchecked;
 
     Command command(new amun::Command);
-    command->mutable_simulator()->set_stddev_ball_p(isEnabled ? ui->spinStddevBall->value() : 0);
-    command->mutable_simulator()->set_stddev_robot_p(isEnabled ? ui->spinStddevRobotPos->value() : 0);
-    command->mutable_simulator()->set_stddev_robot_phi(isEnabled ? ui->spinStddevRobotPhi->value(): 0);
-    command->mutable_simulator()->set_stddev_ball_area(isEnabled ? ui->spinStdDevBallArea->value(): 0);
-    emit sendCommand(command);
-}
-
-void SimulatorWidget::setStddevBall(double stddev)
-{
-    if (ui->chkEnableNoise->checkState() == Qt::Unchecked) {
-        return;
-    }
-    Command command(new amun::Command);
-    command->mutable_simulator()->set_stddev_ball_p(stddev);
-    emit sendCommand(command);
-}
-
-void SimulatorWidget::setStddevBallArea(double stddev)
-{
-    if (ui->chkEnableNoise->checkState() == Qt::Unchecked) {
-        return;
-    }
-    Command command(new amun::Command);
-    command->mutable_simulator()->set_stddev_ball_area(stddev);
-    emit sendCommand(command);
-}
-
-void SimulatorWidget::setStddevRobotPos(double stddev)
-{
-    if (ui->chkEnableNoise->checkState() == Qt::Unchecked) {
-        return;
-    }
-    Command command(new amun::Command);
-    command->mutable_simulator()->set_stddev_robot_p(stddev);
-    emit sendCommand(command);
-}
-
-void SimulatorWidget::setStddevRobotPhi(double stddev)
-{
-    if (ui->chkEnableNoise->checkState() == Qt::Unchecked) {
-        return;
-    }
-    Command command(new amun::Command);
-    command->mutable_simulator()->set_stddev_robot_phi(stddev);
+    auto sim = command->mutable_simulator();
+    sim->set_stddev_ball_p(isEnabled ? ui->spinStddevBall->value() : 0);
+    sim->set_stddev_robot_p(isEnabled ? ui->spinStddevRobotPos->value() : 0);
+    sim->set_stddev_robot_phi(isEnabled ? ui->spinStddevRobotPhi->value(): 0);
+    sim->set_stddev_ball_area(isEnabled ? ui->spinStdDevBallArea->value(): 0);
+    sim->set_dribbler_ball_detections(isEnabled ? ui->spinDribblerBallDetections->value() : 0);
     emit sendCommand(command);
 }
 
