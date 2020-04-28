@@ -143,11 +143,11 @@ void Tracker::process(qint64 currentTime)
         }
 
         for (int i = 0; i < detection.robots_yellow_size(); i++) {
-            trackRobot(m_robotFilterYellow, detection.robots_yellow(i), sourceTime, detection.camera_id(), visionProcessingTime);
+            trackRobot(m_robotFilterYellow, detection.robots_yellow(i), sourceTime, detection.camera_id(), visionProcessingTime, m_yellowTeam, true);
         }
 
         for (int i = 0; i < detection.robots_blue_size(); i++) {
-            trackRobot(m_robotFilterBlue, detection.robots_blue(i), sourceTime, detection.camera_id(), visionProcessingTime);
+            trackRobot(m_robotFilterBlue, detection.robots_blue(i), sourceTime, detection.camera_id(), visionProcessingTime, m_blueTeam, false);
         }
 
         if (!m_robotsOnly) {
@@ -473,21 +473,20 @@ QList<RobotFilter *> Tracker::getBestRobots(qint64 currentTime)
 static RobotInfo nearestRobotInfo(const QList<RobotFilter *> &robots, const SSL_DetectionBall &b) {
     Eigen::Vector2f ball(-b.y()/1000, b.x()/1000); // convert from ssl vision coordinates
 
-    RobotInfo rInfo{Eigen::Vector2f(0,0), Eigen::Vector2f(0,0), false, false};
+    RobotInfo nearestRobot;
 
-    float minDist = 10000; // big enough for the ball filter
+    float minDist = std::numeric_limits<float>::max();
 
-    RobotFilter *best = nullptr;
     for (RobotFilter *filter : robots) {
-        Eigen::Vector2f dribbler = filter->dribblerPos();
+        RobotInfo info = filter->getRobotInfo();
+        Eigen::Vector2f dribbler = info.dribblerPos;
         const float dist = (ball - dribbler).norm();
-        if (dist < minDist || best == nullptr) {
+        if (dist < minDist) {
             minDist = dist;
-            best = filter;
-            rInfo = {filter->robotPos(), filter->dribblerPos(), filter->kickIsChip(), filter->kickIsLinear()};
+            nearestRobot = info;
         }
     }
-    return rInfo;
+    return nearestRobot;
 }
 
 void Tracker::trackBall(const SSL_DetectionBall &ball, qint64 receiveTime, quint32 cameraId, const QList<RobotFilter *> &bestRobots, qint64 visionProcessingDelay)
@@ -535,7 +534,8 @@ void Tracker::trackBall(const SSL_DetectionBall &ball, qint64 receiveTime, quint
     }
 }
 
-void Tracker::trackRobot(RobotMap &robotMap, const SSL_DetectionRobot &robot, qint64 receiveTime, qint32 cameraId, qint64 visionProcessingDelay)
+void Tracker::trackRobot(RobotMap &robotMap, const SSL_DetectionRobot &robot, qint64 receiveTime, qint32 cameraId,
+                         qint64 visionProcessingDelay, const robot::Team &team, bool teamIsYellow)
 {
     if (!robot.has_robot_id()) {
         return;
@@ -564,7 +564,7 @@ void Tracker::trackRobot(RobotMap &robotMap, const SSL_DetectionRobot &robot, qi
     }
 
     if (!nearestFilter) {
-        nearestFilter = new RobotFilter(robot, receiveTime);
+        nearestFilter = new RobotFilter(robot, receiveTime, teamIsYellow);
         list.append(nearestFilter);
     }
 

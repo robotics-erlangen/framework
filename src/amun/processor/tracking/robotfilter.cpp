@@ -26,9 +26,10 @@ const float MAX_LINEAR_ACCELERATION = 10.;
 const float MAX_ROTATION_ACCELERATION = 60.;
 const float OMEGA_MAX = 10 * 2 * M_PI;
 
-RobotFilter::RobotFilter(const SSL_DetectionRobot &robot, qint64 last_time) :
-    Filter(last_time),
+RobotFilter::RobotFilter(const SSL_DetectionRobot &robot, qint64 lastTime, bool teamIsYellow) :
+    Filter(lastTime),
     m_id(robot.robot_id()),
+    m_teamIsYellow(teamIsYellow),
     m_futureTime(0)
 {
     // translate from sslvision coordinate system
@@ -383,31 +384,6 @@ float RobotFilter::distanceTo(const SSL_DetectionRobot &robot) const
     return (b - p).norm();
 }
 
-bool RobotFilter::kickIsChip()
-{
-    const auto& cmd = m_lastRadioCommand.first;
-    return cmd.has_kick_style() && cmd.kick_style() == robot::Command::Chip;
-}
-
-bool RobotFilter::kickIsLinear()
-{
-    const auto& cmd = m_lastRadioCommand.first;
-    return cmd.has_kick_style() && cmd.kick_style() == robot::Command::Linear;
-}
-
-Eigen::Vector2f RobotFilter::dribblerPos() const
-{
-    Eigen::Vector2f robotMiddle(m_kalman->state()(0), m_kalman->state()(1));
-    float phi = limitAngle(m_kalman->state()(2));
-    return robotMiddle + 0.08*Eigen::Vector2f(cos(phi), sin(phi));
-}
-
-Eigen::Vector2f RobotFilter::robotPos() const
-{
-    return Eigen::Vector2f(m_kalman->state()(0), m_kalman->state()(1));
-}
-
-
 void RobotFilter::addVisionFrame(qint32 cameraId, const SSL_DetectionRobot &robot, qint64 time, qint64 visionProcessingTime)
 {
     m_visionFrames.append(VisionFrame(cameraId, robot, time, visionProcessingTime));
@@ -420,4 +396,20 @@ void RobotFilter::addVisionFrame(qint32 cameraId, const SSL_DetectionRobot &robo
 void RobotFilter::addRadioCommand(const robot::Command &radioCommand, qint64 time)
 {
     m_radioCommands.append(qMakePair(radioCommand, time));
+}
+
+RobotInfo RobotFilter::getRobotInfo() const
+{
+    RobotInfo result;
+    result.robotPos = Eigen::Vector2f(m_kalman->state()(0), m_kalman->state()(1));
+    float phi = limitAngle(m_kalman->state()(2));
+    result.dribblerPos = result.robotPos + 0.08*Eigen::Vector2f(cos(phi), sin(phi));
+
+    const auto& cmd = m_lastRadioCommand.first;
+    result.chipCommand = cmd.has_kick_style() && cmd.kick_style() == robot::Command::Chip;;
+    result.linearCommand = cmd.has_kick_style() && cmd.kick_style() == robot::Command::Linear;
+
+    result.identifier = m_id + (m_teamIsYellow ? 0 : 100);
+
+    return result;
 }

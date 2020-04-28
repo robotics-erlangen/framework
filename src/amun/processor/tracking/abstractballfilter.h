@@ -25,17 +25,11 @@
 #include "protobuf/debug.pb.h"
 #include "protobuf/world.pb.h"
 #include "kalmanfilter.h"
+#include "robotfilter.h"
 
 #include <QList>
 #include <QMap>
 #include <QString>
-
-struct RobotInfo {
-    Eigen::Vector2f robotPos;
-    Eigen::Vector2f dribblerPos;
-    bool chipCommand;
-    bool linearCommand;
-};
 
 struct VisionFrame
 {
