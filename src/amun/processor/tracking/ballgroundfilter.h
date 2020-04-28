@@ -29,13 +29,15 @@
 class GroundFilter : public AbstractBallFilter
 {
 public:
-    explicit GroundFilter(VisionFrame& frame, CameraInfo* cameraInfo);
+    explicit GroundFilter(const VisionFrame &frame, CameraInfo* cameraInfo);
     GroundFilter(const GroundFilter& groundFilter, qint32 primaryCamera);
     ~GroundFilter() override;
 
     void processVisionFrame(const VisionFrame& frame) override;
     bool acceptDetection(const VisionFrame& frame) override;
     void writeBallState(world::Ball *ball, qint64 time) override;
+    std::size_t chooseBall(const std::vector<VisionFrame> &frames) override;
+
     float distanceTo(Eigen::Vector2f objPos);
 
 private:

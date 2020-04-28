@@ -20,7 +20,7 @@
 
 #include "balldribblefilter.h"
 
-DribbleFilter::DribbleFilter(VisionFrame& frame, CameraInfo* cameraInfo) :
+DribbleFilter::DribbleFilter(const VisionFrame& frame, CameraInfo* cameraInfo) :
     AbstractBallFilter(frame, cameraInfo)
 { }
 

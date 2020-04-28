@@ -68,6 +68,9 @@ public:
     virtual void processVisionFrame(VisionFrame const& frame)=0;
     virtual bool acceptDetection(const VisionFrame& frame)=0;
     virtual void writeBallState(world::Ball *ball, qint64 predictionTime)=0;
+    // this function is called when multiple mutually exclusive balls are available. Return the id of the best matching visionframe
+    virtual std::size_t chooseBall(const std::vector<VisionFrame> &frames) { return 0; }
+
 #ifdef ENABLE_TRACKING_DEBUG
     virtual const amun::DebugValues &debugValues() const { return m_debug; }
     virtual void clearDebugValues() {
@@ -80,7 +83,7 @@ public:
 
 protected:
     // initial filter construction
-    AbstractBallFilter(VisionFrame& frame, CameraInfo* cameraInfo) : m_cameraInfo(cameraInfo), m_primaryCamera(frame.cameraId) {}
+    AbstractBallFilter(const VisionFrame& frame, CameraInfo* cameraInfo) : m_cameraInfo(cameraInfo), m_primaryCamera(frame.cameraId) {}
 
     // create a copy of the filter in a different camera for border crossing
     AbstractBallFilter(const AbstractBallFilter& filter, qint32 primaryCamera) : m_cameraInfo(filter.m_cameraInfo), m_primaryCamera(primaryCamera) {}

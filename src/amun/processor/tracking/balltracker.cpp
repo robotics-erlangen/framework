@@ -116,29 +116,31 @@ void BallTracker::update(qint64 time)
 {
     // apply new vision frames
     while (!m_visionFrames.isEmpty()) {
-        VisionFrame &frame = m_visionFrames.first();
-        if (frame.time == m_lastFrameTime) {
-            // TODO how does this happen?
-            //qDebug() << m_lastFrameTime;
-            m_visionFrames.removeFirst();
-            continue;
 
-        }
-        if (frame.time > time) {
+        if (m_visionFrames.first().time > time) {
             break; // try again later
         }
 
-        m_flyFilter->processVisionFrame(frame);
-        m_groundFilter->processVisionFrame(frame);
-        m_dribbleFilter->processVisionFrame(frame);
-        m_rawMeasurements.append(frame);
-
-        m_lastFrameTime = frame.time;
-        m_lastTime = time;
-        m_lastBallPos = Eigen::Vector2f(frame.x, frame.y);
-
-        // remove invalidates the reference to frame
+        // collect all frames with the same time, originating from the same camera image
+        // only one of these can be the real ball, so let the filters choose which one to use
+        std::vector<VisionFrame> sameTimeFrames;
+        sameTimeFrames.push_back(m_visionFrames.first());
         m_visionFrames.removeFirst();
+        m_rawMeasurements.append(sameTimeFrames.back());
+        while (m_visionFrames.size() > 0 && m_visionFrames.first().time == sameTimeFrames.back().time) {
+            sameTimeFrames.push_back(m_visionFrames.first());
+            m_visionFrames.removeFirst();
+            m_rawMeasurements.append(sameTimeFrames.back());
+        }
+
+        m_flyFilter->processVisionFrame(sameTimeFrames[m_flyFilter->chooseBall(sameTimeFrames)]);
+        std::size_t chosenGroundFrame = m_groundFilter->chooseBall(sameTimeFrames);
+        m_groundFilter->processVisionFrame(sameTimeFrames[chosenGroundFrame]);
+        m_dribbleFilter->processVisionFrame(sameTimeFrames[m_dribbleFilter->chooseBall(sameTimeFrames)]);
+
+        m_lastFrameTime = sameTimeFrames[0].time;
+        m_lastTime = time;
+        m_lastBallPos = Eigen::Vector2f(sameTimeFrames[chosenGroundFrame].x, sameTimeFrames[chosenGroundFrame].y);
     }
     m_lastUpdateTime = time;
 #ifdef ENABLE_TRACKING_DEBUG
@@ -155,6 +157,7 @@ void BallTracker::get(world::Ball *ball, const FieldTransform &transform, bool r
 {
     ball->set_is_bouncing(false); // fly filter overwrites if appropriate
 
+    // IMPORTANT: the ground filter must be written to ball before the fly filter is executed (it sometimes uses parts of the ground filter results)
     m_groundFilter->writeBallState(ball, m_lastUpdateTime);
     if (m_flyFilter->isActive()) {
         debug("active", "fly filter");

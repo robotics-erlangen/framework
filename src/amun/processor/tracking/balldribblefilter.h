@@ -26,7 +26,7 @@
 class DribbleFilter : public AbstractBallFilter
 {
 public:
-    explicit DribbleFilter(VisionFrame& frame, CameraInfo* cameraInfo);
+    explicit DribbleFilter(const VisionFrame &frame, CameraInfo* cameraInfo);
     DribbleFilter(const DribbleFilter& dribbleFilter, qint32 primaryCamera);
 
     void processVisionFrame(VisionFrame const& frame) override;

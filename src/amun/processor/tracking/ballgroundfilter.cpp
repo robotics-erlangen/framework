@@ -19,10 +19,11 @@
  ***************************************************************************/
 
 #include "ballgroundfilter.h"
+#include <QDebug>
 
 // TODO maybe exclude z axis from kalman filter
 
-GroundFilter::GroundFilter(VisionFrame& frame, CameraInfo* cameraInfo) :
+GroundFilter::GroundFilter(const VisionFrame& frame, CameraInfo* cameraInfo) :
     AbstractBallFilter(frame, cameraInfo),
     m_lastUpdate(frame.time)
 {
@@ -162,6 +163,20 @@ bool GroundFilter::acceptDetection(const VisionFrame& frame)
 {
     Eigen::Vector2f reportedPos(frame.x, frame.y);
     return distanceTo(reportedPos) < ACCEPT_DIST;
+}
+
+std::size_t GroundFilter::chooseBall(const std::vector<VisionFrame> &frames)
+{
+    float minDistance = std::numeric_limits<float>::max();
+    std::size_t minIndex = 0;
+    for (std::size_t i = 0;i<frames.size();i++) {
+        float dist = distanceTo(Eigen::Vector2f(frames[i].x, frames[i].y));
+        if (dist < minDistance) {
+            minDistance = dist;
+            minIndex = i;
+        }
+    }
+    return minIndex;
 }
 
 float GroundFilter::distanceTo(Eigen::Vector2f objPos)
