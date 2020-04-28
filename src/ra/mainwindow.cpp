@@ -66,8 +66,8 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
 
     ui->setupUi(this);
 
-    m_loggingUiRa = new Logsuite(ui->actionRecord, ui->actionSave20s, ui->actionSaveBacklog, this);
-    m_loggingUiHorus = new Logsuite(ui->actionRecordLogLog, ui->actionBackloglog, ui->actionSaveBackloglog, this);
+    m_loggingUiRa = new Logsuite(ui->actionRecord, ui->actionSave20s, ui->actionSaveBacklog, false, this);
+    m_loggingUiHorus = new Logsuite(ui->actionRecordLogLog, ui->actionBackloglog, ui->actionSaveBackloglog, true, this);
 
     ui->logManager->hide();
     ui->btnOpen->setVisible(false);

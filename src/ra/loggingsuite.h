@@ -30,7 +30,7 @@ class Logsuite: public QObject {
     Q_OBJECT
 
 public:
-    Logsuite(QAction* logAction, QAction* backlogMenu, QAction* backlogButton, QObject* parent = nullptr);
+    Logsuite(QAction* logAction, QAction* backlogMenu, QAction* backlogButton, bool isReplay, QObject* parent = nullptr);
     QAction* getLogAction() { return m_logAction; }
 
 public slots:
@@ -48,6 +48,7 @@ private:
     QAction* m_logAction;
     QAction* m_backlogActionMenu;
     QAction* m_backlogButton;
+    bool m_isReplay;
 };
 
 #endif

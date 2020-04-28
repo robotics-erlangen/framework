@@ -19,11 +19,12 @@
  ***************************************************************************/
 #include "loggingsuite.h"
 
-Logsuite::Logsuite(QAction* logAction, QAction* backlogMenu, QAction* backlogButton, QObject* parent) :
+Logsuite::Logsuite(QAction* logAction, QAction* backlogMenu, QAction* backlogButton, bool isReplay, QObject* parent) :
     QObject(parent),
     m_logAction(logAction),
     m_backlogActionMenu(backlogMenu),
-    m_backlogButton(backlogButton)
+    m_backlogButton(backlogButton),
+    m_isReplay(isReplay)
 {
     connect(m_backlogActionMenu, &QAction::triggered, this, &Logsuite::triggeredBacklog);
     connect(m_backlogButton, &QAction::triggered, this, &Logsuite::triggeredBacklog);
@@ -55,13 +56,17 @@ void Logsuite::handleStatus(const Status& status) {
 void Logsuite::triggeredBacklog()
 {
     Command c(new amun::Command());
-    c->mutable_record()->mutable_save_backlog();
+    amun::CommandRecord* record = c->mutable_record();
+    record->mutable_save_backlog();
+    record->set_for_replay(m_isReplay);
     emit sendCommand(c);
 }
 
 void Logsuite::triggeredLog(bool enable)
 {
     Command c(new amun::Command());
-    c->mutable_record()->set_run_logging(enable);
+    amun::CommandRecord* record = c->mutable_record();
+    record->set_run_logging(enable);
+    record->set_for_replay(m_isReplay);
     emit sendCommand(c);
 }
