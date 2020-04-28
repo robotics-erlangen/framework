@@ -77,7 +77,7 @@ private slots:
 private:
     QString formatTime(qint64 time);
     void resetVariables();
-    void initializeLabels(int64_t packetCount = 0);
+    void initializeLabels(int64_t packetCount = 0, bool enable = false);
     void connectStatusSource();
 
 private:

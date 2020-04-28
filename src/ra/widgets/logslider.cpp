@@ -127,7 +127,6 @@ LogSlider::~LogSlider()
 
 void LogSlider::setStatusSource(std::shared_ptr<StatusSource> source)
 {
-    ui->btnPlay->setEnabled(true);
     if (!m_statusSource  ||  !m_statusSource->manages(source)) {
         delete m_statusSource;
         m_statusSource = new TimedStatusSource(source, this);
@@ -176,7 +175,7 @@ void LogSlider::handleStatus(const Status& status)
         if (response.has_log_info()) {
             m_startTime = response.log_info().start_time();
             m_duration = response.log_info().duration();
-            initializeLabels(response.log_info().packet_count());
+            initializeLabels(response.log_info().packet_count(), true);
             return;
         }
     }
@@ -273,11 +272,11 @@ void LogSlider::resetVariables()
     setPaused(true);
 }
 
-void LogSlider::initializeLabels(int64_t packetCount)
+void LogSlider::initializeLabels(int64_t packetCount, bool enable)
 {
     m_scroll = false; // disable scrolling, can be triggered by maximum updates
     // play button if file is loaded
-    ui->btnPlay->setEnabled(m_statusSource ? true : false);
+    ui->btnPlay->setEnabled(enable);
 
     // set log information
     ui->spinPacketCurrent->setMinimum(0);
