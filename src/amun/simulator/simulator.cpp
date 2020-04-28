@@ -596,6 +596,9 @@ QList<QByteArray> Simulator::createVisionPacket()
     }
 
     // add field geometry
+    if (packets.size() == 0) {
+        packets.push_back(SSL_WrapperPacket());
+    }
     SSL_GeometryData *geometry = packets[0].mutable_geometry();
     SSL_GeometryFieldSize *field = geometry->mutable_field();
     populateFieldPacket(field);
