@@ -260,6 +260,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     ui->visualization->load();
     m_configDialog->load();
     ui->referee->load();
+    ui->simulatorConfig->load();
 
     // hide options dock by default
     ui->dockOptions->hide();
@@ -320,6 +321,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     connect(ui->actionSaveConfiguration, SIGNAL(triggered(bool)), ui->field, SLOT(saveConfig()));
     connect(ui->actionSaveConfiguration, SIGNAL(triggered(bool)), ui->timing, SLOT(saveConfig()));
     connect(ui->actionSaveConfiguration, SIGNAL(triggered(bool)), ui->visualization, SLOT(saveConfig()));
+    connect(ui->actionSaveConfiguration, SIGNAL(triggered(bool)), ui->simulatorConfig, SLOT(save()));
 
     ui->field->setFocus();
 

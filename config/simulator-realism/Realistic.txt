@@ -1,0 +1,8 @@
+stddev_ball_p: 0.0014
+stddev_robot_p: 0.0013
+stddev_robot_phi: 0.01
+stddev_ball_area: 6.5
+enable_invisible_ball: true
+ball_visibility_threshold: 40
+camera_overlap: 100
+dribbler_ball_detections: 0.05

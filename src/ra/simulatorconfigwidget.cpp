@@ -21,9 +21,13 @@
 #include "simulatorconfigwidget.h"
 #include "ui_simulatorconfigwidget.h"
 #include "protobuf/command.pb.h"
+#include "config/config.h"
 #include <QCheckBox>
 #include <QDoubleSpinBox>
 #include <QAction>
+#include <QSettings>
+#include <QDirIterator>
+#include <google/protobuf/text_format.h>
 
 SimulatorConfigWidget::SimulatorConfigWidget(QWidget *parent) :
     QWidget(parent),
@@ -47,11 +51,67 @@ SimulatorConfigWidget::SimulatorConfigWidget(QWidget *parent) :
     connect(ui->enableWorstCaseVision, &QCheckBox::toggled, this, &SimulatorConfigWidget::updateWorstCaseVision);
     connect(ui->worstCaseBallDetections, SIGNAL(valueChanged(double)), this, SLOT(updateWorstCaseVision()));
     connect(ui->worstCaseRobotDetections, SIGNAL(valueChanged(double)), this, SLOT(updateWorstCaseVision()));
+
+    connect(ui->realismPreset, &QComboBox::currentTextChanged, this, &SimulatorConfigWidget::realismPresetChanged);
 }
 
 SimulatorConfigWidget::~SimulatorConfigWidget()
 {
+    save();
     delete ui;
+}
+
+void SimulatorConfigWidget::load()
+{
+    ui->realismPreset->clear();
+
+    // find all configuration files
+    QDirIterator dirIterator(QString(ERFORCE_CONFDIR) + "simulator-realism", {"*.txt"}, QDir::AllEntries | QDir::NoSymLinks | QDir::NoDotAndDotDot);
+    while (dirIterator.hasNext()) {
+        QFileInfo file(dirIterator.next());
+        QString shownFilename = file.fileName().split(".").first();
+        ui->realismPreset->addItem(shownFilename);
+    }
+
+    QSettings s;
+    QString selectedFile = s.value("SimulatorConfig/RealismPreset", "Realistic").toString();
+
+    ui->realismPreset->setCurrentText(selectedFile);
+}
+
+void SimulatorConfigWidget::save()
+{
+    QSettings s;
+    s.setValue("SimulatorConfig/RealismPreset", ui->realismPreset->currentText());
+}
+
+void SimulatorConfigWidget::realismPresetChanged(QString name)
+{
+    // load preset from file
+    QFile file(QString(ERFORCE_CONFDIR) + "simulator-realism/" + name.replace("&", "") + ".txt");
+    file.open(QFile::ReadOnly);
+    QString str = file.readAll();
+    file.close();
+    std::string s = qPrintable(str);
+
+    amun::SimulatorRealismConfig config;
+    google::protobuf::TextFormat::Parser parser;
+    parser.AllowPartialMessage(false);
+    parser.ParseFromString(s, &config);
+
+    ui->spinStddevBall->setValue(config.stddev_ball_p());
+    ui->spinStddevRobotPos->setValue(config.stddev_robot_p());
+    ui->spinStddevRobotPhi->setValue(config.stddev_robot_phi());
+    ui->spinStdDevBallArea->setValue(config.stddev_ball_area());
+    ui->spinDribblerBallDetections->setValue(config.dribbler_ball_detections());
+    ui->chkEnableInvisibleBall->setChecked(config.enable_invisible_ball());
+    ui->spinBallVisibilityThreshold->setValue(config.ball_visibility_threshold());
+    ui->spinCameraOverlap->setValue(config.camera_overlap());
+
+    bool enableNoise = ui->spinStddevBall->value() != 0 && ui->spinStddevRobotPos->value() != 0 &&
+                       ui->spinStddevRobotPhi->value() != 0 && ui->spinStdDevBallArea->value() != 0 &&
+                       ui->spinDribblerBallDetections->value() != 0;
+    ui->chkEnableNoise->setChecked(enableNoise);
 }
 
 void SimulatorConfigWidget::sendSimulatorNoiseConfig()
@@ -59,12 +119,12 @@ void SimulatorConfigWidget::sendSimulatorNoiseConfig()
     bool isEnabled = ui->chkEnableNoise->checkState() != Qt::Unchecked;
 
     Command command(new amun::Command);
-    auto sim = command->mutable_simulator();
-    sim->set_stddev_ball_p(isEnabled ? ui->spinStddevBall->value() : 0);
-    sim->set_stddev_robot_p(isEnabled ? ui->spinStddevRobotPos->value() : 0);
-    sim->set_stddev_robot_phi(isEnabled ? ui->spinStddevRobotPhi->value(): 0);
-    sim->set_stddev_ball_area(isEnabled ? ui->spinStdDevBallArea->value(): 0);
-    sim->set_dribbler_ball_detections(isEnabled ? ui->spinDribblerBallDetections->value() : 0);
+    auto realism = command->mutable_simulator()->mutable_realism_config();
+    realism->set_stddev_ball_p(isEnabled ? ui->spinStddevBall->value() : 0);
+    realism->set_stddev_robot_p(isEnabled ? ui->spinStddevRobotPos->value() : 0);
+    realism->set_stddev_robot_phi(isEnabled ? ui->spinStddevRobotPhi->value(): 0);
+    realism->set_stddev_ball_area(isEnabled ? ui->spinStdDevBallArea->value(): 0);
+    realism->set_dribbler_ball_detections(isEnabled ? ui->spinDribblerBallDetections->value() : 0);
     emit sendCommand(command);
 }
 
@@ -73,21 +133,21 @@ void SimulatorConfigWidget::setEnableInvisibleBall(int state)
     bool isEnabled = state != Qt::Unchecked;
 
     Command command(new amun::Command);
-    command->mutable_simulator()->set_enable_invisible_ball(isEnabled);
+    command->mutable_simulator()->mutable_realism_config()->set_enable_invisible_ball(isEnabled);
     emit sendCommand(command);
 }
 
 void SimulatorConfigWidget::setBallVisibilityThreshold(int threshold)
 {
     Command command(new amun::Command);
-    command->mutable_simulator()->set_ball_visibility_threshold(threshold / 100.0f);
+    command->mutable_simulator()->mutable_realism_config()->set_ball_visibility_threshold(threshold / 100.0f);
     emit sendCommand(command);
 }
 
 void SimulatorConfigWidget::setCameraOverlap(int overlap)
 {
     Command command(new amun::Command);
-    command->mutable_simulator()->set_camera_overlap(overlap / 100.0f);
+    command->mutable_simulator()->mutable_realism_config()->set_camera_overlap(overlap / 100.0f);
     emit sendCommand(command);
 }
 

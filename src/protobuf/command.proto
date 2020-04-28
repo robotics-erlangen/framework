@@ -53,23 +53,29 @@ message SimulatorWorstCaseVision {
     optional float min_ball_detection_time = 2;
 }
 
+// this message is stored in human readable form for saved ui settings
+// therefore do NOT modify field names without changing them in the config files
+message SimulatorRealismConfig {
+    optional float stddev_ball_p = 1;
+    optional float stddev_robot_p = 2;
+    optional float stddev_robot_phi = 3;
+    optional float stddev_ball_area = 4;
+    optional bool enable_invisible_ball = 5;
+    optional float ball_visibility_threshold = 6;
+    optional float camera_overlap = 7;
+    optional float dribbler_ball_detections = 8;
+}
+
 message CommandSimulator {
     optional bool enable = 1;
-    optional int64 vision_delay = 9;
-    optional int64 vision_processing_time = 10;
-    optional SimulatorMoveBall move_ball = 3;
-    repeated SimulatorMoveRobot move_blue = 4;
-    repeated SimulatorMoveRobot move_yellow = 5;
-    optional float stddev_ball_p = 6;
-    optional float stddev_robot_p = 7;
-    optional float stddev_robot_phi = 8;
-    optional float stddev_ball_area = 16;
-    optional SimulatorSetup simulator_setup = 11;
-    optional bool enable_invisible_ball = 12;
-    optional float ball_visibility_threshold = 13;
-    optional float camera_overlap = 14;
-    optional SimulatorWorstCaseVision vision_worst_case = 15;
-    optional float dribbler_ball_detections = 17;
+    optional int64 vision_delay = 2;
+    optional int64 vision_processing_time = 3;
+    optional SimulatorMoveBall move_ball = 4;
+    repeated SimulatorMoveRobot move_blue = 5;
+    repeated SimulatorMoveRobot move_yellow = 6;
+    optional SimulatorSetup simulator_setup = 7;
+    optional SimulatorWorstCaseVision vision_worst_case = 8;
+    optional SimulatorRealismConfig realism_config = 9;
 }
 
 message CommandReferee {

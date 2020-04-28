@@ -38,6 +38,11 @@ public:
     SimulatorConfigWidget(const SimulatorConfigWidget&) = delete;
     SimulatorConfigWidget& operator=(const SimulatorConfigWidget&) = delete;
 
+    void load();
+
+public slots:
+    void save();
+
 signals:
     void sendCommand(const Command &command);
 
@@ -47,6 +52,7 @@ private slots:
     void setBallVisibilityThreshold(int threshold);
     void setCameraOverlap(int overlap);
     void updateWorstCaseVision();
+    void realismPresetChanged(QString name);
 
 private:
     Ui::SimulatorConfigWidget *ui;

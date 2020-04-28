@@ -741,24 +741,39 @@ void Simulator::handleCommand(const Command &command)
             m_visionProcessingTime = std::max((qint64)0, (qint64)sim.vision_processing_time());
         }
 
-        if (sim.has_stddev_ball_p()) {
-            m_data->stddevBall = sim.stddev_ball_p();
-        }
+        if (sim.has_realism_config()) {
+            auto realism = sim.realism_config();
+            if (realism.has_stddev_ball_p()) {
+                m_data->stddevBall = realism.stddev_ball_p();
+            }
 
-        if (sim.has_stddev_robot_p()) {
-            m_data->stddevRobot = sim.stddev_robot_p();
-        }
+            if (realism.has_stddev_robot_p()) {
+                m_data->stddevRobot = realism.stddev_robot_p();
+            }
 
-        if (sim.has_stddev_robot_phi()) {
-            m_data->stddevRobotPhi = sim.stddev_robot_phi();
-        }
+            if (realism.has_stddev_robot_phi()) {
+                m_data->stddevRobotPhi = realism.stddev_robot_phi();
+            }
 
-        if (sim.has_stddev_ball_area()) {
-            m_data->stddevBallArea = sim.stddev_ball_area();
-        }
+            if (realism.has_stddev_ball_area()) {
+                m_data->stddevBallArea = realism.stddev_ball_area();
+            }
 
-        if (sim.has_dribbler_ball_detections()) {
-            m_data->ballDetectionsAtDribbler = sim.dribbler_ball_detections();
+            if (realism.has_dribbler_ball_detections()) {
+                m_data->ballDetectionsAtDribbler = realism.dribbler_ball_detections();
+            }
+
+            if (realism.has_enable_invisible_ball()) {
+                m_data->enableInvisibleBall = realism.enable_invisible_ball();
+            }
+
+            if (realism.has_ball_visibility_threshold()) {
+                m_data->ballVisibilityThreshold = realism.ball_visibility_threshold();
+            }
+
+            if (realism.has_camera_overlap()) {
+                m_data->cameraOverlap = realism.camera_overlap();
+            }
         }
 
         if (sim.has_move_ball()) {
@@ -774,18 +789,6 @@ void Simulator::handleCommand(const Command &command)
         for (int i = 0; i < sim.move_yellow_size(); i++) {
             const amun::SimulatorMoveRobot &robot = sim.move_yellow(i);
             moveRobot(m_data->robotsYellow, robot);
-        }
-
-        if (sim.has_enable_invisible_ball()) {
-            m_data->enableInvisibleBall = sim.enable_invisible_ball();
-        }
-
-        if (sim.has_ball_visibility_threshold()) {
-            m_data->ballVisibilityThreshold = sim.ball_visibility_threshold();
-        }
-
-        if (sim.has_camera_overlap()) {
-            m_data->cameraOverlap = sim.camera_overlap();
         }
 
         if (sim.has_vision_worst_case()) {
