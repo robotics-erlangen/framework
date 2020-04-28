@@ -12,6 +12,7 @@ import { Assignment, Move, MoveParameters } from "glados/group/move/base";
 import * as BallObserver from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 import { PlaceBall } from "glados/task/attacker/placeball";
+import { Wallkick } from "glados/task/attacker/wallkick";
 import { Halt } from "glados/task/shared/halt";
 import { MoveToPos, Obstacle } from "glados/task/shared/movetopos";
 import { Pass } from "glados/task/shared/pass";
@@ -26,7 +27,8 @@ const enum State {
 	WAIT_FOR_SET_BACK = "WAIT_FOR_SET_BACK",
 	FINE_ADJUST = "FINE_ADJUST",
 	INVALID = "INVALID",
-	SET_BACK_INVISIBLE = "SET_BACK_INVISIBLE"
+	SET_BACK_INVISIBLE = "SET_BACK_INVISIBLE",
+	WALLKICK = "WALLKICK"
 }
 
 // Tolerance according to the rules
@@ -41,6 +43,10 @@ const SETBACK_WAIT_TIME = 1.2;
 const PASS_TARGET_SPEED = 1;
 const SET_BACK_MIN_WAIT_TIME = 0.5;
 const SET_BACK_INVISIBLE_LENGTH = 0.1;
+
+const MIN_BOUNDARY_DIST = 0.09;
+const BOUNDARY_WIDTH = World.Geometry.BoundaryWidth;
+const MIN_GOAL_LINE_DIST = 0.03;
 
 const SHOOTER_EVADING_POSITIONS = [
 	new Vector(0.5 * World.Geometry.FieldWidthHalf, 0.5 * World.Geometry.FieldHeightHalf),
@@ -91,7 +97,8 @@ export class BallPlacement extends Move {
 	private forceSetBackInvisible: boolean = false;
 	private setBackPosInvisible: Position = new Vector(0,0);
 
-
+	private _wallKickTryTime: number | undefined = undefined;
+	private _firstPosWallkick: Vector = new Vector(0,0);
 
 	constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 		super(robots, messaging);
@@ -324,6 +331,22 @@ export class BallPlacement extends Move {
 
 				break;
 			}
+			case State.WALLKICK: {
+				this._mainAttacker = this.SHOOTER;
+
+				taskAssignments[this.SHOOTER] = Assignment.create({
+					class: Wallkick,
+					params: [ this._ballPlacementPos],
+					restart: this._stateChanged
+				});
+				taskAssignments[this.RECEIVER] = Assignment.create({
+					class: MoveToPos,
+					params: [{ pos: this._computedReceiverPos, ignoreBallPlacement: true }],
+					restart: this._stateChanged
+				});
+
+				break;
+			}
 		}
 
 		if (taskAssignments[this.SHOOTER] == undefined) {
@@ -363,12 +386,34 @@ export class BallPlacement extends Move {
 					if (usedBallPos.distanceTo(this._ballPlacementPos) < FINE_ADJUST_ZONE) {
 						nextState = State.FINE_ADJUST;
 					} else if (!Field.isInField(usedBallPos)
+							&& (((BOUNDARY_WIDTH + World.Geometry.FieldWidthHalf) - Math.abs(World.Ball.pos.x)) > MIN_BOUNDARY_DIST)
+							&& (Math.abs(World.Ball.pos.y) < World.Geometry.FieldHeightHalf - MIN_GOAL_LINE_DIST)) {
+						nextState = State.WALLKICK;
+					} else if (!Field.isInField(usedBallPos)
 							|| Field.isInFriendlyGoal(usedBallPos)
 							|| Field.isInOpponentGoal(usedBallPos)) {
 						nextState = State.PULL_TO_FIELD;
 					} else {
 						nextState = State.GET_INTO_POSITION;
 					}
+				}
+
+				break;
+			}
+			// same case as in t/a/placeball if you change something make sure to change it also in placeball
+			case State.WALLKICK: {
+				nextState = State.WALLKICK;
+				if (this._wallKickTryTime === undefined) {
+					this._firstPosWallkick = usedBallPos;
+					this._wallKickTryTime = World.Time;
+				}
+				if (World.Time - this._wallKickTryTime > 6) {
+					this._wallKickTryTime = undefined;
+					nextState = State.PULL_TO_FIELD;
+				}
+				if (World.Ball.speed.length() > 0.3 && usedBallPos.distanceTo(this._firstPosWallkick) > 0.3) {
+					this._wallKickTryTime = undefined;
+					nextState = State.WAIT_FOR_BALL_STOP;
 				}
 
 				break;

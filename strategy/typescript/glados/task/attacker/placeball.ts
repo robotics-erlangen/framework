@@ -5,18 +5,20 @@ import * as Field from "base/field";
 import * as geom from "base/geom";
 import * as MathUtil from "base/mathutil";
 import * as Referee from "base/referee";
-import { Position, RelativePosition } from "base/vector";
+import { Position, RelativePosition, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
 
 import { MessageType } from "glados/control/messaging";
 import * as BallObserver from "glados/observer/ball";
+import { WallkickAbility } from "glados/task/ability/wallkickability";
 import { Agent, Task } from "glados/task/base";
 import { CurvedMaxAccel } from "glados/trajectory/curvedmaxaccel";
 import { Direct } from "glados/trajectory/direct";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
 
+const G = World.Geometry;
 const enum State {
 	WAIT_FOR_BALL_STOP	= "WAIT_FOR_BALL_STOP",
 	GO_TO_PULL 			= "GO_TO_PULL",
@@ -28,6 +30,7 @@ const enum State {
 	BACK_UP 			= "BACK_UP",
 	MOVE_AWAY 			= "MOVE_AWAY",
 	INVALID				= "INVALID",
+	WALLKICK 			= "WALLKICK"
 }
 
 /** Maximum final distance from the ball to placement position */
@@ -72,6 +75,10 @@ const BACK_UP_SPEED = 0.4;
 
 const MIN_TIME_IN_STATE = 0.1;
 
+// for wallkick
+const MIN_BOUNDARY_DIST = 0.09;
+const BOUNDARY_WIDTH = G.BoundaryWidth;
+const MIN_GOAL_LINE_DIST = 0.03;
 
 export class PlaceBall extends Task {
 
@@ -138,6 +145,11 @@ export class PlaceBall extends Task {
 	private _hasBallTime: number | undefined = undefined;
 	private _lostBallTime: number | undefined = undefined;
 
+	private _wallKickTryTime: number | undefined = undefined;
+	private _wallkick: WallkickAbility;
+	private _restartWallkick: boolean = false;
+	private _firstPosWallkick: Vector = new Vector(0,0);
+
 	// Needed for back up
 	// True if the previous ball moving state was PUSH_TO_POS, false otherwise
 	// If additional ball moving states are to be added in the future, this boolean probably won't be enough
@@ -161,6 +173,8 @@ export class PlaceBall extends Task {
 
 		this._placementOffsetAverage = undefined;
 		this._borderOffsetAverage = undefined;
+
+		this._wallkick = new WallkickAbility(this._robot, this._placementPos);
 	}
 
 	run() {
@@ -267,6 +281,12 @@ export class PlaceBall extends Task {
 
 				break;
 			}
+			case State.WALLKICK: {
+				this._wallkick._wallkick(this._restartWallkick);
+
+				break;
+
+			}
 			case State.PULL_TO_FIELD: {
 				this._robot.setDribblerSpeed(PULL_DRIBBLER_SPEED);
 				// For _nearestFieldPos, see in calculateOffset
@@ -360,6 +380,10 @@ export class PlaceBall extends Task {
 					if (this._ball.pos.distanceTo(this._placementPos) < END_DISTANCE) {
 						nextState = State.MOVE_AWAY;
 					} else if (!Field.isInField(this._ball.pos)
+							&& (((BOUNDARY_WIDTH + G.FieldWidthHalf) - Math.abs(World.Ball.pos.x)) > MIN_BOUNDARY_DIST)
+							&& (Math.abs(World.Ball.pos.y) < G.FieldHeightHalf - MIN_GOAL_LINE_DIST)) {
+						nextState = State.WALLKICK;
+					} else if (!Field.isInField(this._ball.pos)
 							|| Field.isInFriendlyGoal(this._ball.pos)
 							|| Field.isInOpponentGoal(this._ball.pos)) {
 						nextState = State.GO_TO_PULL;
@@ -419,6 +443,25 @@ export class PlaceBall extends Task {
 					}
 				}
 
+				break;
+			}
+			// same case as in g/m/ballplacement if you change something make sure to change it also in ballplacement
+			case State.WALLKICK: {
+				nextState = State.WALLKICK;
+				if (this._wallKickTryTime === undefined) {
+					this._firstPosWallkick = this._ball.pos;
+					this._wallKickTryTime = World.Time;
+				}
+				if (World.Time - this._wallKickTryTime > 6) {
+					this._wallKickTryTime = undefined;
+					this._restartWallkick = !this._restartWallkick;
+					nextState = State.GO_TO_PULL;
+				}
+				if (World.Ball.speed.length() > 0.3 && this._ball.pos.distanceTo(this._firstPosWallkick) > 0.3) {
+					this._wallKickTryTime = undefined;
+					this._restartWallkick = !this._restartWallkick;
+					nextState = State.BACK_UP_WAIT;
+				}
 				break;
 			}
 			case State.GO_TO_PUSH: {
