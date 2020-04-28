@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2015 Philipp Nordhus                                        *
+ *   Copyright 2020 Philipp Nordhus, Andreas Wendler                       *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,48 +18,38 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef SIMULATORWIDGET_H
-#define SIMULATORWIDGET_H
+#ifndef SIMULATORCONFIGWIDGET_H
+#define SIMULATORCONFIGWIDGET_H
 
 #include "protobuf/command.h"
-#include "protobuf/status.h"
 #include <QWidget>
 
 namespace Ui {
-    class SimulatorWidget;
+    class SimulatorConfigWidget;
 }
 
-class SimulatorWidget : public QWidget
+class SimulatorConfigWidget : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit SimulatorWidget(QWidget *parent = 0);
-    ~SimulatorWidget() override;
-    SimulatorWidget(const SimulatorWidget&) = delete;
-    SimulatorWidget& operator=(const SimulatorWidget&) = delete;
-    void sendPauseSimulator(amun::PauseSimulatorReason reason, bool pause);
+    explicit SimulatorConfigWidget(QWidget *parent = 0);
+    ~SimulatorConfigWidget() override;
+    SimulatorConfigWidget(const SimulatorConfigWidget&) = delete;
+    SimulatorConfigWidget& operator=(const SimulatorConfigWidget&) = delete;
 
 signals:
     void sendCommand(const Command &command);
 
-public slots:
-    void handleStatus(const Status &status);
-    void stop();
-    void start();
-    void toggleSimulatorRunning();
-    void setSpeed(int speed);
-
 private slots:
-    void setEnableAutoPause(bool autoPause);
-    void handleAppState(Qt::ApplicationState state);
-    void increaseSpeed();
-    void decreaseSpeed();
+    void sendSimulatorNoiseConfig();
+    void setEnableInvisibleBall(int state);
+    void setBallVisibilityThreshold(int threshold);
+    void setCameraOverlap(int overlap);
+    void updateWorstCaseVision();
 
 private:
-    Ui::SimulatorWidget *ui;
-    bool m_enableAutoPause;
-    bool m_paused;
+    Ui::SimulatorConfigWidget *ui;
 };
 
-#endif // SIMULATORWIDGET_H
+#endif // SIMULATORCONFIGWIDGET_H

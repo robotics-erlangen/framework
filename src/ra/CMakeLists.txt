@@ -50,6 +50,8 @@ add_library(ra-horus
     optionswidget.h
     simulatorwidget.cpp
     simulatorwidget.h
+    simulatorconfigwidget.cpp
+    simulatorconfigwidget.h
     savedirectorydialog.cpp
     savedirectorydialog.h
     strategysearch.cpp
@@ -69,6 +71,7 @@ set(UI_SOURCES
     robotspecsdialog.ui
     optionswidget.ui
     simulatorwidget.ui
+    simulatorconfigwidget.ui
     savedirectorydialog.ui
     teaminfowidget.ui
 )

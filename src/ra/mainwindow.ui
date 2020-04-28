@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>842</width>
-    <height>407</height>
+    <width>905</width>
+    <height>485</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -94,7 +94,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>842</width>
+     <width>905</width>
      <height>23</height>
     </rect>
    </property>
@@ -333,6 +333,15 @@
     <number>1</number>
    </attribute>
    <widget class="ReplayTeamWidget" name="replay"/>
+  </widget>
+  <widget class="QDockWidget" name="dockWidget">
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <property name="windowTitle">
+    <string>Simulator Config</string>
+   </property>
+   <widget class="SimulatorConfigWidget" name="simulatorConfig"/>
   </widget>
   <action name="actionPlotter">
    <property name="text">
@@ -808,6 +817,12 @@
    <class>TeamInfoWidget</class>
    <extends>QWidget</extends>
    <header>teaminfowidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>SimulatorConfigWidget</class>
+   <extends>QWidget</extends>
+   <header>simulatorconfigwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

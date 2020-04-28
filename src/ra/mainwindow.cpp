@@ -121,6 +121,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     ui->robots->init(this, m_inputManager);
 
     connect(ui->simulator, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
+    connect(ui->simulatorConfig, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
     connect(ui->field, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
 
     m_configDialog = new ConfigDialog(this);
@@ -800,6 +801,7 @@ void MainWindow::toggleHorusModeWidgets(bool enable)
     ui->actionShowBacklog->setEnabled(!enable);
     ui->referee->setEnabled(!enable);
     ui->simulator->setEnabled(!enable);
+    ui->simulatorConfig->setEnabled(!enable);
     ui->robots->enableContent(!enable);
     ui->actionRecordLogLog->setEnabled(enable);
     ui->actionRecordLogLog->setVisible(enable);

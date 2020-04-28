@@ -39,23 +39,7 @@ SimulatorWidget::SimulatorWidget(QWidget *parent) :
     connect(ui->spinSpeed, SIGNAL(valueChanged(int)), SLOT(setSpeed(int)));
     connect(ui->btnStart, SIGNAL(clicked()), SLOT(start()));
     connect(ui->btnStop, SIGNAL(clicked()), SLOT(stop()));
-    connect(ui->chkEnableNoise, &QCheckBox::stateChanged, this, &SimulatorWidget::sendSimulatorNoiseConfig);
-    connect(ui->chkEnableInvisibleBall, &QCheckBox::stateChanged, this, &SimulatorWidget::setEnableInvisibleBall);
-    connect(ui->chkEnableInvisibleBall, SIGNAL(toggled(bool)), ui->spinBallVisibilityThreshold, SLOT(setEnabled(bool)));
-    connect(ui->chkEnableInvisibleBall, SIGNAL(toggled(bool)), ui->ballVisibilityThresholdLabel, SLOT(setEnabled(bool)));
-    connect(ui->spinBallVisibilityThreshold, SIGNAL(valueChanged(int)), SLOT(setBallVisibilityThreshold(int)));
-    connect(ui->spinCameraOverlap, SIGNAL(valueChanged(int)), SLOT(setCameraOverlap(int)));
     connect(ui->btnToggle, &QToolButton::clicked, this, &SimulatorWidget::toggleSimulatorRunning);
-
-    connect(ui->spinStddevBall, SIGNAL(valueChanged(double)), SLOT(sendSimulatorNoiseConfig()));
-    connect(ui->spinStddevRobotPos, SIGNAL(valueChanged(double)), SLOT(sendSimulatorNoiseConfig()));
-    connect(ui->spinStddevRobotPhi, SIGNAL(valueChanged(double)), SLOT(sendSimulatorNoiseConfig()));
-    connect(ui->spinStdDevBallArea, SIGNAL(valueChanged(double)), SLOT(sendSimulatorNoiseConfig()));
-    connect(ui->spinDribblerBallDetections, SIGNAL(valueChanged(double)), SLOT(sendSimulatorNoiseConfig()));
-
-    connect(ui->enableWorstCaseVision, SIGNAL(toggled(bool)), this, SLOT(updateWorstCaseVision()));
-    connect(ui->worstCaseBallDetections, SIGNAL(valueChanged(double)), this, SLOT(updateWorstCaseVision()));
-    connect(ui->worstCaseRobotDetections, SIGNAL(valueChanged(double)), this, SLOT(updateWorstCaseVision()));
 
     QAction *actionSpeedIncrease = new QAction(this);
     actionSpeedIncrease->setShortcut(QKeySequence("+"));
@@ -150,57 +134,10 @@ void SimulatorWidget::decreaseSpeed()
     ui->spinSpeed->setValue(ui->spinSpeed->value() - 10);
 }
 
-void SimulatorWidget::sendSimulatorNoiseConfig()
-{
-    bool isEnabled = ui->chkEnableNoise->checkState() != Qt::Unchecked;
-
-    Command command(new amun::Command);
-    auto sim = command->mutable_simulator();
-    sim->set_stddev_ball_p(isEnabled ? ui->spinStddevBall->value() : 0);
-    sim->set_stddev_robot_p(isEnabled ? ui->spinStddevRobotPos->value() : 0);
-    sim->set_stddev_robot_phi(isEnabled ? ui->spinStddevRobotPhi->value(): 0);
-    sim->set_stddev_ball_area(isEnabled ? ui->spinStdDevBallArea->value(): 0);
-    sim->set_dribbler_ball_detections(isEnabled ? ui->spinDribblerBallDetections->value() : 0);
-    emit sendCommand(command);
-}
-
 void SimulatorWidget::toggleSimulatorRunning()
 {
     Command command(new amun::Command);
     command->mutable_pause_simulator()->set_reason(amun::Ui);
     command->mutable_pause_simulator()->set_toggle(true);
-    emit sendCommand(command);
-}
-
-void SimulatorWidget::setEnableInvisibleBall(int state)
-{
-    bool isEnabled = state != Qt::Unchecked;
-
-    Command command(new amun::Command);
-    command->mutable_simulator()->set_enable_invisible_ball(isEnabled);
-    emit sendCommand(command);
-}
-
-void SimulatorWidget::setBallVisibilityThreshold(int threshold)
-{
-    Command command(new amun::Command);
-    command->mutable_simulator()->set_ball_visibility_threshold(threshold / 100.0f);
-    emit sendCommand(command);
-}
-
-void SimulatorWidget::setCameraOverlap(int overlap)
-{
-    Command command(new amun::Command);
-    command->mutable_simulator()->set_camera_overlap(overlap / 100.0f);
-    emit sendCommand(command);
-}
-
-void SimulatorWidget::updateWorstCaseVision()
-{
-    Command command(new amun::Command);
-    command->mutable_simulator()->mutable_vision_worst_case()->set_min_ball_detection_time(
-                ui->enableWorstCaseVision->isChecked() ? ui->worstCaseBallDetections->value() : 0);
-    command->mutable_simulator()->mutable_vision_worst_case()->set_min_robot_detection_time(
-                ui->enableWorstCaseVision->isChecked() ? ui->worstCaseRobotDetections->value() : 0);
     emit sendCommand(command);
 }
