@@ -481,68 +481,6 @@ static void amunSendMixedTeamInfo(const FunctionCallbackInfo<Value>& args)
     t->sendMixedTeam(data);
 }
 
-static void amunSendNetworkRefereeCommand(const FunctionCallbackInfo<Value>& args)
-{
-    Isolate* isolate = args.GetIsolate();
-    Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
-
-    if (t->scriptState().isInternalAutoref) {
-        Command command(new amun::Command);
-        SSL_RefereeRemoteControlRequest * request = command->mutable_referee()->mutable_autoref_command();
-        if (!jsToProtobuf(isolate, args[0], isolate->GetCurrentContext(), *request)) {
-            return;
-        }
-
-        // flip position if necessary
-        if (t->scriptState().isFlipped && request->has_designated_position()) {
-            auto *pos = request->mutable_designated_position();
-            pos->set_x(-pos->x());
-            pos->set_y(-pos->y());
-        }
-
-        if (!t->sendCommand(command)) {
-            throwError(isolate, "This function is only allowed in debug mode!");
-        }
-    } else {
-        if (!t->refboxControlEnabled()) {
-            return;
-        }
-
-        SSL_RefereeRemoteControlRequest request;
-        if (!jsToProtobuf(isolate, args[0], isolate->GetCurrentContext(), request)) {
-            return;
-        }
-
-        // flip position if necessary
-        if (t->scriptState().isFlipped && request.has_designated_position()) {
-            auto *pos = request.mutable_designated_position();
-            pos->set_x(pos->x());
-            pos->set_y(pos->y());
-        }
-
-        QByteArray data;
-        // the first 4 bytes denote the packet's size in big endian
-        data.resize(request.ByteSize()+4);
-        qToBigEndian<quint32>(request.ByteSize(), (uchar*)data.data());
-        if (!request.SerializeToArray(data.data()+4, request.ByteSize())) {
-            throwError(isolate, "Invalid referee packet!");
-        }
-
-        if (!t->sendNetworkReferee(data)) {
-            throwError(isolate, "This function is only allowed in debug mode!");
-        }
-    }
-}
-
-static void amunNextRefboxReply(const FunctionCallbackInfo<Value>& args)
-{
-    Isolate* isolate = args.GetIsolate();
-    Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
-    if (t->hasRefereeReply()) {
-        args.GetReturnValue().Set(protobufToJs(isolate, t->nextRefereeReply()));
-    }
-}
-
 static void amunSetRobotExchangeSymbol(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = args.GetIsolate();
@@ -804,8 +742,6 @@ void registerAmunJsCallbacks(Isolate *isolate, Local<Object> global, Typescript 
         { "sendCommand",        amunSendCommand},
         { "sendRefereeCommand", amunSendRefereeCommand},
         { "sendMixedTeamInfo",  amunSendMixedTeamInfo},
-        { "sendNetworkRefereeCommand", amunSendNetworkRefereeCommand},
-        { "nextRefboxReply",    amunNextRefboxReply},
         { "setRobotExchangeSymbol", amunSetRobotExchangeSymbol},
         { "luaRandom",          amunLuaRandom},
         { "luaRandomSetSeed",   amunLuaRandomSeed},

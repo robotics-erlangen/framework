@@ -25,11 +25,10 @@
 #include "compilerregistry.h"
 #include "scriptstate.h"
 
-AbstractStrategyScript::AbstractStrategyScript(const Timer *timer, StrategyType type, ScriptState& scriptState, bool refboxControlEnabled, CompilerRegistry* registry) :
+AbstractStrategyScript::AbstractStrategyScript(const Timer *timer, StrategyType type, ScriptState& scriptState, CompilerRegistry* registry) :
     m_scriptState(scriptState),
     m_timer(timer),
     m_type(type),
-    m_refboxControlEnabled(refboxControlEnabled),
     m_hasDebugger(false),
     m_compilerRegistry(registry)
 { }
@@ -129,15 +128,6 @@ bool AbstractStrategyScript::sendCommand(const Command &command)
         return false;
     }
     emit gotCommand(command);
-    return true;
-}
-
-bool AbstractStrategyScript::sendNetworkReferee(const QByteArray &referee)
-{
-    if (!m_scriptState.isDebugEnabled || !m_refboxControlEnabled) {
-        return false;
-    }
-    emit sendNetworkRefereeCommand(referee);
     return true;
 }
 

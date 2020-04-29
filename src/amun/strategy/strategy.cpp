@@ -56,12 +56,6 @@ public:
     QHostAddress mixedTeamHost;
     quint16 mixedTeamPort;
     QByteArray mixedTeamData;
-
-    QHostAddress refereeHost;
-
-    quint16 remoteControlPort;
-    QByteArray remoteControlData;
-
 };
 
 #ifdef V8_FOUND
@@ -97,13 +91,9 @@ Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, C
     m_strategy(nullptr),
     m_debugStatus(Status::createArena()),
     m_type(type),
-    m_refboxControlEnabled(false),
     m_autoReload(false),
     m_strategyFailed(true),
     m_isEnabled(!isLogplayer),
-    m_udpSenderSocket(new QUdpSocket(this)),
-    m_refboxSocket(new QTcpSocket(this)),
-    m_refboxReplyLength(-1),
     m_compilerRegistry(registry),
     m_gameControllerConnection(gameControllerConnection)
 {
@@ -114,11 +104,6 @@ Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, C
     m_scriptState.isDebugEnabled = type == StrategyType::AUTOREF;
     m_scriptState.isRunningInLogplayer = isLogplayer;
     m_scriptState.pathInputSaver = pathInputSaver;
-
-    m_refboxSocket->setSocketOption(QAbstractSocket::LowDelayOption,1);
-
-    m_p->refereeHost = QHostAddress("localhost");
-    m_p->remoteControlPort = 10007;
 
     // used to delay processing until all status packets are processed
     m_idleTimer = new QTimer(this);
@@ -266,14 +251,6 @@ void Strategy::handleCommand(const Command &command)
             }
         }
 
-        if (cmd->has_enable_refbox_control()) {
-            // only reload on change
-            if (m_refboxControlEnabled != cmd->enable_refbox_control()) {
-                m_refboxControlEnabled = cmd->enable_refbox_control();
-                reloadStrategy = true;
-            }
-        }
-
         if (cmd->has_auto_reload()) {
             m_autoReload = cmd->auto_reload();
             // trigger reload if strategy has already crashed
@@ -331,10 +308,6 @@ void Strategy::handleCommand(const Command &command)
         m_p->mixedTeamPort = command->mixed_team_destination().port();
     }
 
-    if (command->has_remote_control_port()) {
-        m_p->remoteControlPort = command->remote_control_port();
-    }
-
     if (reloadStrategy && m_strategy) {
         reload();
     }
@@ -365,23 +338,9 @@ void Strategy::createDummyTeam()
     }
 }
 
-void Strategy::handleRefereeHost(QString hostName)
-{
-    QHostAddress newAddress(hostName);
-    if (newAddress != m_p->refereeHost) {
-        m_p->refereeHost = QHostAddress(hostName);
-        m_refboxSocket->close();
-    }
-}
-
 void Strategy::sendMixedTeamInfo(const QByteArray &data)
 {
     m_p->mixedTeamData = data;
-}
-
-void Strategy::sendNetworkRefereeCommand(const QByteArray &data)
-{
-    m_p->remoteControlData = data;
 }
 
 world::State Strategy::assembleWorldState()
@@ -482,28 +441,6 @@ void Strategy::process()
             }
         }
 
-        if (!m_p->remoteControlData.isNull()) {
-            if (m_refboxSocket->state() != QAbstractSocket::ConnectedState) {
-                m_refboxSocket->connectToHost(m_p->refereeHost, m_p->remoteControlPort);
-                if (!m_refboxSocket->waitForConnected(1000)) {
-                    m_p->remoteControlData = QByteArray(); // reset
-                    fail("Failed to connect to refbox");
-                    return;
-                }
-            }
-            int origSize = m_p->remoteControlData.size();
-            int bytesSent = m_refboxSocket->write(m_p->remoteControlData, origSize);
-
-            m_p->remoteControlData = QByteArray(); // reset
-            if (bytesSent != origSize) {
-                fail("Failed to send referee command over network");
-                return;
-            }
-        }
-        if (m_refboxSocket->state() == QAbstractSocket::ConnectedState) {
-            handleRefboxReply(m_refboxSocket->readAll());
-        }
-
         double totalTime = (Timer::systemTime() - startTime) * 1E-9;
 
         // publish timings and debug output
@@ -519,25 +456,6 @@ void Strategy::process()
     } else {
         double totalTime = (Timer::systemTime() - startTime) * 1E-9;
         fail(m_strategy->errorMsg(), userInput, pathPlanning, totalTime);
-    }
-}
-
-void Strategy::handleRefboxReply(const QByteArray &data)
-{
-    m_refboxReplyPartialPacket.append(data);
-    if (m_refboxReplyLength == -1 && m_refboxReplyPartialPacket.size() >= 4) {
-        m_refboxReplyLength = qFromBigEndian<qint32>((unsigned char*)m_refboxReplyPartialPacket.data());
-        m_refboxReplyPartialPacket.remove(0, 4);
-    }
-    if (m_refboxReplyLength != -1 && m_refboxReplyPartialPacket.size() >= m_refboxReplyLength) {
-        SSL_RefereeRemoteControlReply  packet;
-        if (packet.ParseFromArray(m_refboxReplyPartialPacket.data(), m_refboxReplyLength)) {
-            if (m_strategy) {
-                m_strategy->addRefereeReply(packet);
-            }
-        }
-        m_refboxReplyPartialPacket.remove(0, m_refboxReplyLength);
-        m_refboxReplyLength = -1;
     }
 }
 
@@ -625,12 +543,12 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint, bo
 
         // hardcoded factory pattern
         if (Lua::canHandle(filename)) {
-            m_strategy = new Lua(m_timer, m_type, m_scriptState, m_scriptState.isDebugEnabled, m_refboxControlEnabled);
+            m_strategy = new Lua(m_timer, m_type, m_scriptState, m_scriptState.isDebugEnabled);
             // insert m_debugStatus into m_strategy
             takeStrategyDebugStatus();
 #ifdef V8_FOUND
         } else if (Typescript::canHandle(filename)) {
-            Typescript *t = new Typescript(m_timer, m_type, m_scriptState, m_refboxControlEnabled, m_compilerRegistry);
+            Typescript *t = new Typescript(m_timer, m_type, m_scriptState, m_compilerRegistry);
             m_strategy = t;
             // insert m_debugStatus into m_strategy
             // this has to happen before newDebuggagleStrategy is called
@@ -656,7 +574,6 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint, bo
                 SIGNAL(sendStrategyCommands(bool,QList<RobotCommandInfo>,qint64)));
         connect(m_strategy, SIGNAL(gotCommand(Command)), SLOT(sendCommand(Command)));
         connect(m_strategy, SIGNAL(sendMixedTeamInfo(QByteArray)), SLOT(sendMixedTeamInfo(QByteArray)));
-        connect(m_strategy, SIGNAL(sendNetworkRefereeCommand(QByteArray)), SLOT(sendNetworkRefereeCommand(QByteArray)));
         connect(m_strategy, &AbstractStrategyScript::changeLoadState, this, &Strategy::loadStateChanged);
     }
 

@@ -49,11 +49,6 @@ interface AmunPublic {
 	getCurrentTime(): number;
 	/** Set the exchange symbol for a robot */
 	setRobotExchangeSymbol(generation: number, id: number, exchange: boolean): void;
-	/**
-	 * Fetch the last referee remote control request reply
-	 * @returns the last reply or undefined if none is available
-	 */
-	nextRefboxReply(): pb.SSL_RefereeRemoteControlReply;
 
 	// game controller communication
 	connectGameController(): boolean;
@@ -66,12 +61,6 @@ interface AmunPublic {
 	// only in debug
 	/** Send arbitrary commands. Only works in debug mode */
 	sendCommand(command: pb.amun.Command): void;
-	/**
-	 * Send referee command over network. Only works in debug mode or as autoref. Must be fully populated.
-	 * Only sends the data passed to the last call of this function during a strategy run.
-	 * The command_counter must be increased for every command change.
-	 */
-	sendNetworkRefereeCommand(command: pb.SSL_Referee): void;
 
 	// ra version/feature tags
 	SUPPORTS_OPTION_DEFAULT: boolean | undefined;
@@ -173,10 +162,8 @@ export function _hideFunctions() {
 	let strategyPath = amun.getStrategyPath!();
 	let getCurrentTime = amun.getCurrentTime;
 	let setRobotExchangeSymbol = amun.setRobotExchangeSymbol;
-	let nextRefboxReply = amun.nextRefboxReply;
 	let log = amun.log;
 	let sendCommand = amun.sendCommand;
-	let sendNetworkRefereeCommand = amun.sendNetworkRefereeCommand;
 	let supportsOptionDefault = amun.SUPPORTS_OPTION_DEFAULT;
 
 	const makeDisabledFunction = function(name: string) {
@@ -194,13 +181,11 @@ export function _hideFunctions() {
 			return getCurrentTime() * 1E-9;
 		},
 		setRobotExchangeSymbol: setRobotExchangeSymbol,
-		nextRefboxReply: nextRefboxReply,
 		log: log,
 		connectGameController: amun.connectGameController,
 		sendGameControllerMessage: amun.sendGameControllerMessage,
 		getGameControllerMessage: amun.getGameControllerMessage,
 		sendCommand: isDebug ? sendCommand : makeDisabledFunction("sendCommand"),
-		sendNetworkRefereeCommand: isDebug ? sendNetworkRefereeCommand : makeDisabledFunction("sendNetworkRefereeCommand"),
 
 		getWorldState: makeDisabledFunction("getWorldState"),
 		getGeometry: makeDisabledFunction("getGeometry"),

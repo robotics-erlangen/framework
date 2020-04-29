@@ -47,7 +47,7 @@ class AbstractStrategyScript : public QObject
 {
     Q_OBJECT
 public:
-    AbstractStrategyScript(const Timer *timer, StrategyType type, ScriptState& scriptState, bool refboxControlEnabled, CompilerRegistry* registry = nullptr);
+    AbstractStrategyScript(const Timer *timer, StrategyType type, ScriptState& scriptState, CompilerRegistry* registry = nullptr);
     ~AbstractStrategyScript() override;
     AbstractStrategyScript(const AbstractStrategyScript&) = delete;
     AbstractStrategyScript& operator=(const AbstractStrategyScript&) = delete;
@@ -89,9 +89,6 @@ public:
     QString name() const { return m_name; }
     const QMap<QString, bool> &options() const { return m_options; }
     bool hasDebugger() const { return m_hasDebugger; }
-    void addRefereeReply(SSL_RefereeRemoteControlReply reply) { m_refereeReplies.append(reply); }
-    SSL_RefereeRemoteControlReply nextRefereeReply() { return m_refereeReplies.takeFirst(); }
-    bool hasRefereeReply() const { return m_refereeReplies.size() > 0; }
     ScriptState& scriptState() { return m_scriptState; }
     const ScriptState& scriptState() const { return m_scriptState; }
 
@@ -103,7 +100,6 @@ public:
     amun::DebugValue *addDebug();
     amun::PlotValue *addPlot();
     amun::RobotValue *addRobotValue();
-    bool refboxControlEnabled() const { return m_refboxControlEnabled; }
     void setCommands(const QList<RobotCommandInfo> &commands);
     bool sendCommand(const Command &command);
     bool sendNetworkReferee(const QByteArray &referee);
@@ -123,7 +119,6 @@ signals:
     void gotCommand(const Command &command);
     void sendStrategyCommands(bool blue, const QList<RobotCommandInfo> &commands, qint64 time);
     void sendMixedTeamInfo(const QByteArray &data);
-    void sendNetworkRefereeCommand(const QByteArray &data);
     void changeLoadState(amun::StatusStrategy::STATE state);
 
 protected:
@@ -140,7 +135,6 @@ protected:
 
     const Timer *m_timer;
     const StrategyType m_type;
-    const bool m_refboxControlEnabled;
 
     QString m_errorMsg;
     bool m_hasDebugger;
@@ -152,8 +146,6 @@ protected:
     world::State m_worldState;
     amun::GameState m_refereeState;
     amun::UserInput m_userInput;
-
-    QList<SSL_RefereeRemoteControlReply> m_refereeReplies;
 
     std::shared_ptr<GameControllerConnection> m_gameControllerConnection;
 

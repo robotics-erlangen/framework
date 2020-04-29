@@ -38,7 +38,7 @@ class Lua : public AbstractStrategyScript
 {
     Q_OBJECT
 public:
-    Lua(const Timer *timer, StrategyType type, ScriptState& scriptState, bool debugEnabled, bool refboxControlEnabled);
+    Lua(const Timer *timer, StrategyType type, ScriptState& scriptState, bool debugEnabled);
     static bool canHandle(const QString &filename);
     ~Lua() override;
     bool canHandleDynamic(const QString &filename) const override { return Lua::canHandle(filename); }

@@ -98,7 +98,6 @@ export namespace amun {
 		active?: boolean;
 		command?: ArrayBuffer;
 		use_internal_autoref?: boolean;
-		autoref_command?: SSL_RefereeRemoteControlRequest;
 		flipped?: boolean;
 	}
 	export interface CommandStrategyLoad {
@@ -1137,49 +1136,6 @@ export interface SSL_Referee_Game_Event {
 	game_event_type: SSL_Referee_Game_Event.GameEventType;
 	originator?: SSL_Referee_Game_Event.Originator;
 	message?: string;
-}
-export namespace SSL_RefereeRemoteControlRequest {
-	export namespace CardInfo {
-		export const enum CardType {
-			CARD_YELLOW = "CARD_YELLOW",
-			CARD_RED = "CARD_RED",
-		}
-		export const enum CardTeam {
-			TEAM_YELLOW = "TEAM_YELLOW",
-			TEAM_BLUE = "TEAM_BLUE",
-		}
-	}
-	export interface CardInfo {
-		type: SSL_RefereeRemoteControlRequest.CardInfo.CardType;
-		team: SSL_RefereeRemoteControlRequest.CardInfo.CardTeam;
-	}
-}
-export interface SSL_RefereeRemoteControlRequest {
-	message_id: number;
-	stage?: SSL_Referee.Stage;
-	command?: SSL_Referee.Command;
-	designated_position?: SSL_Referee.Point;
-	card?: SSL_RefereeRemoteControlRequest.CardInfo;
-	last_command_counter?: number;
-	implementation_id?: string;
-	game_event?: SSL_Referee_Game_Event;
-}
-export namespace SSL_RefereeRemoteControlReply {
-	export const enum Outcome {
-		OK = "OK",
-		MULTIPLE_ACTIONS = "MULTIPLE_ACTIONS",
-		BAD_STAGE = "BAD_STAGE",
-		BAD_COMMAND = "BAD_COMMAND",
-		BAD_DESIGNATED_POSITION = "BAD_DESIGNATED_POSITION",
-		BAD_COMMAND_COUNTER = "BAD_COMMAND_COUNTER",
-		BAD_CARD = "BAD_CARD",
-		NO_MAJORITY = "NO_MAJORITY",
-		COMMUNICATION_FAILED = "COMMUNICATION_FAILED",
-	}
-}
-export interface SSL_RefereeRemoteControlReply {
-	message_id: number;
-	outcome: SSL_RefereeRemoteControlReply.Outcome;
 }
 export interface Vector2f {
 	x: number;

@@ -363,67 +363,6 @@ static int amunIsFlipped(lua_State *state)
     return 1;
 }
 
-static int amunSendNetworkRefereeCommand(lua_State *state)
-{
-    Lua *thread = getStrategyThread(state);
-
-    if (thread->scriptState().isInternalAutoref) {
-        Command command(new amun::Command);
-        SSL_RefereeRemoteControlRequest * request = command->mutable_referee()->mutable_autoref_command();
-        protobufToMessage(state, 1, *request, NULL);
-
-        // flip position if necessary
-        if (thread->scriptState().isFlipped && request->has_designated_position()) {
-            auto *pos = request->mutable_designated_position();
-            pos->set_x(-pos->x());
-            pos->set_y(-pos->y());
-        }
-
-        if (!thread->sendCommand(command)) {
-            luaL_error(state, "This function is only allowed in debug mode!");
-        }
-    } else {
-        if (!thread->refboxControlEnabled()) {
-            return 0;
-        }
-
-        SSL_RefereeRemoteControlRequest request;
-        protobufToMessage(state, 1, request, NULL);
-
-        // flip position if necessary
-        if (thread->scriptState().isFlipped && request.has_designated_position()) {
-            auto *pos = request.mutable_designated_position();
-            pos->set_x(pos->x());
-            pos->set_y(pos->y());
-        }
-
-        QByteArray data;
-        // the first 4 bytes denote the packet's size in big endian
-        data.resize(request.ByteSize()+4);
-        qToBigEndian<quint32>(request.ByteSize(), (uchar*)data.data());
-        if (!request.SerializeToArray(data.data()+4, request.ByteSize())) {
-            luaL_error(state, "Invalid referee packet!");
-        }
-
-        if (!thread->sendNetworkReferee(data)) {
-            luaL_error(state, "This function is only allowed in debug mode!");
-        }
-    }
-
-    return 0;
-}
-
-static int amunNextRefboxReply(lua_State *state)
-{
-    Lua *thread = getStrategyThread(state);
-    if (thread->hasRefereeReply()) {
-        protobufPushMessage(state, thread->nextRefereeReply());
-    } else {
-        lua_pushnil(state);
-    }
-    return 1;
-}
-
 static int amunSetRobotExchangeSymbol(lua_State *state)
 {
     Lua *thread = getStrategyThread(state);
@@ -500,9 +439,6 @@ static const luaL_Reg amunMethods[] = {
     {"sendCommand",         amunSendCommand},
     {"sendRefereeCommand",  amunSendRefereeCommand},
     {"sendMixedTeamInfo",   amunSendMixedTeamInfo},
-    // autoref
-    {"sendNetworkRefereeCommand",  amunSendNetworkRefereeCommand},
-    {"nextRefboxReply",     amunNextRefboxReply},
     // debugger io
     {"debuggerRead",        amunDebuggerRead},
     {"debuggerWrite",       amunDebuggerWrite},

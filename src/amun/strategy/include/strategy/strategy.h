@@ -74,8 +74,6 @@ public slots:
     void handleStatus(const Status &status);
     void handleCommand(const Command &command);
     void sendMixedTeamInfo(const QByteArray &data);
-    void sendNetworkRefereeCommand(const QByteArray &data);
-    void handleRefereeHost(QString hostName);
     void setFlipped(bool flipped);
 
 private slots:
@@ -95,7 +93,6 @@ private:
     amun::DebugSource debugSource() const;
     void createDummyTeam();
     bool updateTeam(const robot::Team &team, StrategyType teamType, bool isReplayTeam);
-    void handleRefboxReply(const QByteArray &data);
     world::State assembleWorldState();
 
 private:
@@ -111,7 +108,6 @@ private:
 
     QString m_filename;
     QString m_entryPoint;
-    bool m_refboxControlEnabled;
 
     QTimer *m_idleTimer;
     QTimer *m_reloadTimer;
@@ -120,13 +116,9 @@ private:
     bool m_isEnabled;
 
     std::unique_ptr<QUdpSocket> m_udpSenderSocket;
-    std::unique_ptr<QTcpSocket> m_refboxSocket;
 
     amun::UserInput m_lastMoveCommand;
     robot::Specs m_anyRobotSpec;
-
-    qint32 m_refboxReplyLength;
-    QByteArray m_refboxReplyPartialPacket;
 
     CompilerRegistry* m_compilerRegistry;
 

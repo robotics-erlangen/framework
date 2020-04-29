@@ -22,7 +22,6 @@
 #define REFEREE_H
 
 #include "protobuf/gamestate.pb.h"
-#include "protobuf/ssl_refbox_remotecontrol.pb.h"
 #include "protobuf/ssl_referee.pb.h"
 #include "protobuf/world.pb.h"
 #include <QByteArray>
@@ -41,7 +40,6 @@ public:
 
 public slots:
     void handlePacket(const QByteArray &data);
-    void handleRemoteControlRequest(const SSL_RefereeRemoteControlRequest &request);
     void process(const world::State &worldState);
     void setFlipped(bool flipped);
     bool isGameRunning();

@@ -48,7 +48,6 @@ set(PROTO_FILES
     ssl_radio_protocol.proto
     ssl_referee.proto
     ssl_referee_game_event.proto
-    ssl_refbox_remotecontrol.proto
     ssl_wrapper.proto
     status.proto
     userinput.proto

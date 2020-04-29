@@ -47,8 +47,8 @@ using namespace v8helper;
 // use this to silence a warn_unused_result warning
 template <typename T> inline void USE(T&&) {}
 
-Typescript::Typescript(const Timer *timer, StrategyType type, ScriptState& scriptState, bool refboxControlEnabled, CompilerRegistry* registry) :
-    AbstractStrategyScript (timer, type, scriptState, refboxControlEnabled, registry),
+Typescript::Typescript(const Timer *timer, StrategyType type, ScriptState& scriptState, CompilerRegistry* registry) :
+    AbstractStrategyScript (timer, type, scriptState, registry),
     m_requireCache({{}}),
     m_executionCounter(0),
     m_profiler (nullptr),

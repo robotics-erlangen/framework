@@ -199,16 +199,6 @@ separator for luadoc]]--
 --[[
 separator for luadoc]]--
 
---- Send referee command over network. Only works in debug mode or as autoref. Must be fully populated
--- Only sends the data passed to the last call of this function during a strategy run.
--- The command_counter must be increased for every command change
--- @class function
--- @name sendNetworkRefereeCommand
--- @param command SSL_Referee
-
---[[
-separator for luadoc]]--
-
 --- Write output to debugger console
 -- @class function
 -- @name debuggerWrite
@@ -230,12 +220,6 @@ separator for luadoc]]--
 -- @name getPerformanceMode
 -- @return mode boolean
 
-
---- Fetch the last referee remote control request reply
--- @class function
--- @name nextRefboxReply
--- @return reply table - the last reply or nil if none is available
-
 -- luacheck: globals amun log
 require "amun"
 log = amun.log
@@ -253,8 +237,6 @@ function amun._hideFunctions()
 	local strategyPath = amun.getStrategyPath()
 	local getCurrentTime = amun.getCurrentTime
 	local sendCommand = amun.sendCommand
-	local sendNetworkRefereeCommand = amun.sendNetworkRefereeCommand
-	local nextRefboxReply = amun.nextRefboxReply
 	local performanceMode = amun.isPerformanceMode
 	local connectGameController = amun.connectGameController
 	local sendGameController = amun.sendGameControllerMessage
@@ -264,7 +246,6 @@ function amun._hideFunctions()
 	amun = {
 		isDebug = isDebug,
 		strategyPath = strategyPath,
-		nextRefboxReply = nextRefboxReply,
 		getCurrentTime = function ()
 			return getCurrentTime() * 1E-9
 		end,
@@ -276,11 +257,6 @@ function amun._hideFunctions()
 	}
 	if isDebug then
 		amun.sendCommand = sendCommand
-		amun.sendNetworkRefereeCommand = sendNetworkRefereeCommand
-	else
-		amun.sendNetworkRefereeCommand = function()
-			error "you must enable debug in order to send referee commands"
-		end
 	end
 
 	-- prevent reloading original api

@@ -292,8 +292,8 @@ static int luaInstallKillHook(lua_State* state)
     return 0;
 }
 
-Lua::Lua(const Timer *timer, StrategyType type, ScriptState& scriptState, bool debugEnabled, bool refboxControlEnabled) :
-    AbstractStrategyScript (timer, type, scriptState, refboxControlEnabled)
+Lua::Lua(const Timer *timer, StrategyType type, ScriptState& scriptState, bool debugEnabled) :
+    AbstractStrategyScript (timer, type, scriptState)
 {
     // create lua instance and load libraries
     m_state = luaL_newstate();

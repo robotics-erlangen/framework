@@ -3,7 +3,6 @@ option cc_enable_arenas = true;
 
 import "world.proto";
 import "robot.proto";
-import "ssl_refbox_remotecontrol.proto";
 
 package amun;
 
@@ -82,8 +81,7 @@ message CommandReferee {
     optional bool active = 1;
     optional bytes command = 2;
     optional bool use_internal_autoref = 3;
-    optional SSL_RefereeRemoteControlRequest autoref_command = 4;
-    optional bool flipped = 5;
+    optional bool flipped = 4;
 }
 
 message CommandStrategyLoad {
@@ -103,12 +101,11 @@ message CommandStrategy {
     optional bool reload = 3;
     optional bool auto_reload = 4;
     optional bool enable_debug = 5;
-    optional bool enable_refbox_control = 6;
-    optional CommandStrategyTriggerDebugger debug = 7;
-    optional bool performance_mode = 8;
-    optional bool start_profiling = 9;
-    optional string finish_and_save_profile = 10;
-    optional bool tournament_mode = 11;
+    optional CommandStrategyTriggerDebugger debug = 6;
+    optional bool performance_mode = 7;
+    optional bool start_profiling = 8;
+    optional string finish_and_save_profile = 9;
+    optional bool tournament_mode = 10;
 }
 
 message CommandControl {
@@ -225,7 +222,6 @@ message Command {
     repeated RobotMoveCommand robot_move_blue = 14;
     repeated RobotMoveCommand robot_move_yellow = 15;
     optional CommandDebuggerInput debugger_input = 16;
-    optional uint32 remote_control_port = 17;
-    optional PauseSimulatorCommand pause_simulator = 18;
-    optional CommandReplay replay = 19;
+    optional PauseSimulatorCommand pause_simulator = 17;
+    optional CommandReplay replay = 18;
 }

@@ -465,10 +465,6 @@ void Processor::handleCommand(const Command &command)
             m_refereeInternalActive = refereeCommand.active();
         }
 
-        if (refereeCommand.has_autoref_command()) {
-            m_refereeInternal->handleRemoteControlRequest(refereeCommand.autoref_command());
-        }
-
         if (refereeCommand.has_flipped()) {
             m_refereeInternal->setFlipped(refereeCommand.flipped());
         }

@@ -98,27 +98,6 @@ void Referee::setFlipped(bool flipped)
     m_gameState.set_goals_flipped(m_flipped);
 }
 
-void Referee::handleRemoteControlRequest(const SSL_RefereeRemoteControlRequest &request)
-{
-    if (request.has_designated_position()) {
-        m_gameState.mutable_designated_position()->CopyFrom(request.designated_position());
-        if (m_flipped) {
-            m_gameState.mutable_designated_position()->set_x(-m_gameState.designated_position().x());
-            m_gameState.mutable_designated_position()->set_y(-m_gameState.designated_position().y());
-        }
-    }
-    if (request.has_command()) {
-        m_gameState.set_state(processCommand(request.command(), m_gameState.state()));
-    }
-    if (request.has_stage()) {
-        m_gameState.set_stage(request.stage());
-    }
-    if (request.has_gameevent()) {
-        m_gameState.mutable_game_event()->CopyFrom(request.gameevent());
-    }
-    // ignore yellow, red cards for now
-}
-
 /*!
  * \brief Update referee state
  * \param worldState Current world state, used to identify ball movement

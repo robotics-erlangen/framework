@@ -37,9 +37,6 @@ const uint DEFAULT_NETWORK_PORT = 10010;
 const QString DEFAULT_MIXED_HOST = QStringLiteral("");
 const uint DEFAULT_MIXED_PORT = 10012;
 
-const QString DEFAULT_REMOTE_CONTROL_HOST = QStringLiteral("");
-const uint DEFAULT_REMOTE_CONTROL_PORT = 10007;
-
 const bool DEFAULT_UI_DARK_MODE_COLORS = false;
 
 const FieldWidgetAction DEFAULT_ROBOT_DOUBLE_CLICK_ACTION = FieldWidgetAction::ToggleVisualization;
@@ -89,12 +86,8 @@ void ConfigDialog::sendConfiguration()
     nc->set_host(ui->networkHost->text().toStdString());
     nc->set_port(ui->networkPort->value());
 
-    command->mutable_strategy_yellow()->set_enable_refbox_control(ui->refboxControlUse->isChecked());
-
     command->mutable_mixed_team_destination()->set_host(ui->mixedHost->text().toStdString());
     command->mutable_mixed_team_destination()->set_port(ui->mixedPort->value());
-
-    command->set_remote_control_port(ui->remotePort->value());
 
     emit sendCommand(command);
 
@@ -126,8 +119,6 @@ void ConfigDialog::load()
     ui->mixedHost->setText(s.value("Mixed/Host", DEFAULT_MIXED_HOST).toString());
     ui->mixedPort->setValue(s.value("Mixed/Port", DEFAULT_MIXED_PORT).toUInt());
 
-    ui->remotePort->setValue(s.value("RefereeRemoteControl/Port", DEFAULT_REMOTE_CONTROL_PORT).toUInt());
-
     ui->uiDarkMode->setChecked(s.value("Ui/DarkModeColors", DEFAULT_UI_DARK_MODE_COLORS).toBool());
     ui->numKeyUsage->setCurrentText(s.value("Ui/NumKeyUsage", DEFAULT_NUMBER_KEYS_USAGE).toString());
 
@@ -155,7 +146,6 @@ void ConfigDialog::reset()
     ui->networkPort->setValue(DEFAULT_NETWORK_PORT);
     ui->mixedHost->setText(DEFAULT_MIXED_HOST);
     ui->mixedPort->setValue(DEFAULT_MIXED_PORT);
-    ui->remotePort->setValue(DEFAULT_REMOTE_CONTROL_PORT);
     ui->uiDarkMode->setChecked(DEFAULT_UI_DARK_MODE_COLORS);
     ui->doubleClickAction->setCurrentText(robotActionString(DEFAULT_ROBOT_DOUBLE_CLICK_ACTION));
     ui->doubleClickSearch->setText(DEFAULT_ROBOT_DOUBLE_CLICK_SEARCH_STRING);
@@ -184,8 +174,6 @@ void ConfigDialog::apply()
 
     s.setValue("Mixed/Host", ui->mixedHost->text());
     s.setValue("Mixed/Port", ui->mixedPort->value());
-
-    s.setValue("RefereeRemoteControl/Port", ui->remotePort->value());
 
     s.setValue(("Ui/DarkModeColors"), ui->uiDarkMode->isChecked());
 
