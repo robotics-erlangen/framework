@@ -55,7 +55,7 @@ void InputWidget::init(InputManager *inputManager)
     connect(ui->dribblerPower, SIGNAL(valueChanged(double)), inputManager, SLOT(setDribblerPower(double)));
     connect(ui->shootPower, SIGNAL(valueChanged(double)), inputManager, SLOT(setShootPower(double)));
 #ifdef SDL2_FOUND
-    connect(ui->gamepadDeadzone, qOverload<double>(&QDoubleSpinBox::valueChanged), inputManager, &InputManager::setDeadzone);
+    connect(ui->gamepadDeadzone, SIGNAL(valueChanged(double)), inputManager, SLOT(setDeadzone(double)));
 #else
     ui->gamepadDeadzone->setHidden(true);
     ui->label_5->setHidden(true);
