@@ -197,11 +197,11 @@ FlyFilter::PinvResult FlyFilter::calcPinv()
 
     double lowerTimeBound = firstInTheAir.time;
     if (m_pinvDataInserted == 0) {
-        m_pinvDataInserted = m_shotStartFrame;
+        m_pinvDataInserted = m_shotStartFrame-1;
     }
     const float x0 = firstInTheAir.ballPos(0);
     const float y0 = firstInTheAir.ballPos(1);
-    for (int i=m_pinvDataInserted; i<m_kickFrames.size(); i++) {
+    for (int i=m_pinvDataInserted+1; i<m_kickFrames.size(); i++) {
         Eigen::Vector3f cam = m_cameraInfo->cameraPosition.value(m_kickFrames.at(i).cameraId);
         double time = m_kickFrames.at(i).time - lowerTimeBound;
         double x = m_kickFrames.at(i).ballPos(0);
