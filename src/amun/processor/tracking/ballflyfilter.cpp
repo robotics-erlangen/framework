@@ -73,7 +73,8 @@ FlyFilter::FlyFilter(const FlyFilter& f, qint32 primaryCamera):
     m_lastPredictionTime(f.m_lastPredictionTime)
 { }
 
-Eigen::Vector3f FlyFilter::unproject(const ChipDetection& detection, float ballRadius) {
+Eigen::Vector3f FlyFilter::unproject(const ChipDetection& detection, float ballRadius)
+{
     float f = m_cameraInfo->focalLength.value(detection.cameraId);
     float a = detection.ballArea;
     float distInferred = f * (ballRadius/sqrt(a/M_PI) + 1) / 1000.0;
@@ -198,10 +199,10 @@ FlyFilter::PinvResult FlyFilter::calcPinv()
     if (m_pinvDataInserted == 0) {
         m_pinvDataInserted = m_shotStartFrame;
     }
+    const float x0 = firstInTheAir.ballPos(0);
+    const float y0 = firstInTheAir.ballPos(1);
     for (int i=m_pinvDataInserted; i<m_kickFrames.size(); i++) {
         Eigen::Vector3f cam = m_cameraInfo->cameraPosition.value(m_kickFrames.at(i).cameraId);
-        float x0 = cam(0) - firstInTheAir.ballPos(0);
-        float y0 = cam(1) - firstInTheAir.ballPos(1);
         double time = m_kickFrames.at(i).time - lowerTimeBound;
         double x = m_kickFrames.at(i).ballPos(0);
         double y = m_kickFrames.at(i).ballPos(1);
@@ -227,15 +228,15 @@ FlyFilter::PinvResult FlyFilter::calcPinv()
 
         m_D_coarseControl(i*2, 0) = alpha; //z0
         m_D_coarseControl(i*2, 1) = alpha*t_i; // vz
-        m_D_coarseControl(i*2, 2) = -t_i; // vx
+        m_D_coarseControl(i*2, 2) = t_i; // vx
         m_D_coarseControl(i*2, 3) = 0; // vy
-        m_d_coarseControl(i*2) = 0.5*GRAVITY*alpha*t_i*t_i - x0;
+        m_d_coarseControl(i*2) = 0.5*GRAVITY*alpha*t_i*t_i + x - x0;
 
         m_D_coarseControl(i*2+1, 0) = beta; // z0
         m_D_coarseControl(i*2+1, 1) = beta*t_i; // vz
         m_D_coarseControl(i*2+1, 2) = 0; //vx
-        m_D_coarseControl(i*2+1, 3) = -t_i; // vy
-        m_d_coarseControl(i*2+1) = 0.5*GRAVITY*beta*t_i*t_i - y0;
+        m_D_coarseControl(i*2+1, 3) = t_i; // vy
+        m_d_coarseControl(i*2+1) = 0.5*GRAVITY*beta*t_i*t_i + y - y0;
         m_pinvDataInserted = i;
     }
 
@@ -670,7 +671,7 @@ bool FlyFilter::detectionHeight()
 
     debug("detection height/high", high);
     debug("detection height/diff", high-low);
-    if (m_kickFrames.size() > 6 && monotonicRisingOneException(heights)){
+    if (m_kickFrames.size() > 6 && monotonicRisingOneException(heights)) {
         debug("detection height/mon", true);
         return high > 0.5 && high-low > 0.5;
     }
@@ -934,7 +935,7 @@ FlyFilter::Prediction FlyFilter::predictTrajectory(qint64 time)
 
     if (m_bouncing) {
         double groundSpeed = 0;
-        int num=0;
+        int num = 0;
         for (int i=m_kickFrames.size()-1; i>0 && i>m_kickFrames.size()-5; i--) {
             auto& fst = m_kickFrames.at(i);
             auto& snd = m_kickFrames.front();
