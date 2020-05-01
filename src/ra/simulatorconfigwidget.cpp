@@ -42,6 +42,8 @@ SimulatorConfigWidget::SimulatorConfigWidget(QWidget *parent) :
     connect(ui->spinBallVisibilityThreshold, SIGNAL(valueChanged(int)), SLOT(setBallVisibilityThreshold(int)));
     connect(ui->spinCameraOverlap, SIGNAL(valueChanged(int)), SLOT(setCameraOverlap(int)));
     connect(ui->spinCameraPositionError, SIGNAL(valueChanged(int)), this, SLOT(setCameraPositionError(int)));
+    connect(ui->spinPacketLoss, SIGNAL(valueChanged(int)), this, SLOT(updateRobotRealism()));
+    connect(ui->spinReplyLoss, SIGNAL(valueChanged(int)), this, SLOT(updateRobotRealism()));
 
     connect(ui->spinStddevBall, SIGNAL(valueChanged(double)), SLOT(sendSimulatorNoiseConfig()));
     connect(ui->spinStddevRobotPos, SIGNAL(valueChanged(double)), SLOT(sendSimulatorNoiseConfig()));
@@ -106,14 +108,24 @@ void SimulatorConfigWidget::realismPresetChanged(QString name)
     ui->spinStdDevBallArea->setValue(config.stddev_ball_area());
     ui->spinDribblerBallDetections->setValue(config.dribbler_ball_detections());
     ui->chkEnableInvisibleBall->setChecked(config.enable_invisible_ball());
-    ui->spinBallVisibilityThreshold->setValue(config.ball_visibility_threshold());
-    ui->spinCameraOverlap->setValue(config.camera_overlap());
-    ui->spinCameraPositionError->setValue(config.camera_position_error());
+    ui->spinBallVisibilityThreshold->setValue(config.ball_visibility_threshold() * 100.0f);
+    ui->spinCameraOverlap->setValue(config.camera_overlap() * 100.0f);
+    ui->spinCameraPositionError->setValue(config.camera_position_error() * 100.0f);
+    ui->spinPacketLoss->setValue(config.robot_command_loss() * 100.0f);
+    ui->spinReplyLoss->setValue(config.robot_response_loss() * 100.0f);
 
     bool enableNoise = ui->spinStddevBall->value() != 0 && ui->spinStddevRobotPos->value() != 0 &&
                        ui->spinStddevRobotPhi->value() != 0 && ui->spinStdDevBallArea->value() != 0 &&
                        ui->spinDribblerBallDetections->value() != 0;
     ui->chkEnableNoise->setChecked(enableNoise);
+}
+
+void SimulatorConfigWidget::updateRobotRealism()
+{
+    Command command(new amun::Command);
+    command->mutable_simulator()->mutable_realism_config()->set_robot_command_loss(ui->spinPacketLoss->value() / 100.0f);
+    command->mutable_simulator()->mutable_realism_config()->set_robot_response_loss(ui->spinReplyLoss->value() / 100.0f);
+    emit sendCommand(command);
 }
 
 void SimulatorConfigWidget::sendSimulatorNoiseConfig()

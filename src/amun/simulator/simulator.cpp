@@ -82,6 +82,8 @@ struct camun::simulator::SimulatorData
     float ballVisibilityThreshold;
     float cameraOverlap;
     float cameraPositionError;
+    float robotCommandPacketLoss;
+    float robotReplyPacketLoss;
 };
 
 static void simulatorTickCallback(btDynamicsWorld *world, btScalar timeStep)
@@ -138,6 +140,8 @@ Simulator::Simulator(const Timer *timer, const amun::SimulatorSetup &setup) :
     m_data->ballVisibilityThreshold = 0.4;
     m_data->cameraOverlap = 0.3;
     m_data->cameraPositionError = 0;
+    m_data->robotCommandPacketLoss = 0;
+    m_data->robotReplyPacketLoss = 0;
 
     // no robots after initialisation
 
@@ -174,21 +178,32 @@ void Simulator::process()
     while (m_radioCommands.size() > 0 && m_radioCommands.head().second < m_time) {
         RadioCommand commands = m_radioCommands.dequeue();
         foreach (const robot::RadioCommand &command, commands.first) {
+
+            if (m_data->robotCommandPacketLoss > 0 && m_data->rng.uniformFloat(0, 1) <= m_data->robotCommandPacketLoss) {
+                continue;
+            }
+
             // pass radio command to robot that matches the generation and id
             const QPair<uint, uint> id(command.generation(), command.id());
             if (m_data->robotsBlue.contains(id)) {
-                robot::RadioResponse response = m_data->robotsBlue[id]->setCommand(command.command(), m_data->ball, m_charge);
+                robot::RadioResponse response = m_data->robotsBlue[id]->setCommand(command.command(), m_data->ball, m_charge,
+                                                                                   m_data->robotCommandPacketLoss, m_data->robotReplyPacketLoss);
                 response.set_time(m_time);
                 // only collect valid responses
                 if (response.IsInitialized()) {
-                    responses.append(response);
+                    if (m_data->robotReplyPacketLoss == 0 || m_data->rng.uniformFloat(0, 1) > m_data->robotReplyPacketLoss) {
+                        responses.append(response);
+                    }
                 }
             }
             if (m_data->robotsYellow.contains(id)) {
-                robot::RadioResponse response = m_data->robotsYellow[id]->setCommand(command.command(), m_data->ball, m_charge);
+                robot::RadioResponse response = m_data->robotsYellow[id]->setCommand(command.command(), m_data->ball, m_charge,
+                                                                                     m_data->robotCommandPacketLoss, m_data->robotReplyPacketLoss);
                 response.set_time(m_time);
                 if (response.IsInitialized()) {
-                    responses.append(response);
+                    if (m_data->robotReplyPacketLoss == 0 || m_data->rng.uniformFloat(0, 1) > m_data->robotReplyPacketLoss) {
+                        responses.append(response);
+                    }
                 }
             }
         }
@@ -783,6 +798,14 @@ void Simulator::handleCommand(const Command &command)
 
             if (realism.has_camera_position_error()) {
                 m_data->cameraPositionError = realism.camera_position_error();
+            }
+
+            if (realism.has_robot_command_loss()) {
+                m_data->robotCommandPacketLoss = realism.robot_command_loss();
+            }
+
+            if (realism.has_robot_response_loss()) {
+                m_data->robotReplyPacketLoss = realism.robot_response_loss();
             }
         }
 

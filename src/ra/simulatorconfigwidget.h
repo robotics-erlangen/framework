@@ -54,6 +54,7 @@ private slots:
     void updateWorstCaseVision();
     void realismPresetChanged(QString name);
     void setCameraPositionError(int error);
+    void updateRobotRealism();
 
 private:
     Ui::SimulatorConfigWidget *ui;

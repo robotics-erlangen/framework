@@ -64,6 +64,8 @@ message SimulatorRealismConfig {
     optional float camera_overlap = 7;
     optional float dribbler_ball_detections = 8;
     optional float camera_position_error = 9;
+    optional float robot_command_loss = 10;
+    optional float robot_response_loss = 11;
 }
 
 message CommandSimulator {

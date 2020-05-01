@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>274</width>
-    <height>614</height>
+    <height>680</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -346,7 +346,7 @@
      </layout>
     </widget>
    </item>
-   <item row="9" column="0" colspan="2">
+   <item row="10" column="0" colspan="2">
     <widget class="QGroupBox" name="groupBox_3">
      <property name="title">
       <string>Worst Case Vision</string>
@@ -440,6 +440,61 @@
          </layout>
         </item>
        </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="9" column="0" colspan="2">
+    <widget class="QGroupBox" name="groupBox_5">
+     <property name="title">
+      <string>Robots</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_4">
+      <property name="leftMargin">
+       <number>3</number>
+      </property>
+      <property name="topMargin">
+       <number>3</number>
+      </property>
+      <property name="rightMargin">
+       <number>3</number>
+      </property>
+      <property name="bottomMargin">
+       <number>3</number>
+      </property>
+      <item row="0" column="1">
+       <widget class="QSpinBox" name="spinPacketLoss">
+        <property name="toolTip">
+         <string>The percentage of command packets sent by the strategy that disappear in the ether</string>
+        </property>
+        <property name="suffix">
+         <string>%</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_11">
+        <property name="text">
+         <string>Command loss:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_12">
+        <property name="text">
+         <string>Reply loss:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QSpinBox" name="spinReplyLoss">
+        <property name="toolTip">
+         <string>The percentage of radio reply packets sent by the robots that get lost on the way to the computer</string>
+        </property>
+        <property name="suffix">
+         <string>%</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>

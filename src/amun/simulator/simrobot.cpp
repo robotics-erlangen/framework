@@ -155,7 +155,7 @@ void SimRobot::begin(SimBall *ball, double time)
         m_inStandby = true;
     }
 
-    //enable dribbler if necessary
+    // enable dribbler if necessary
     if (!m_inStandby && m_command.has_dribbler() && m_command.dribbler() > 0) {
         float boundedDribbler = qBound(0.0f, m_command.dribbler(), 1.0f);
         m_constraint->enableAngularMotor(true, 150 * boundedDribbler, 20 * boundedDribbler);
@@ -351,7 +351,7 @@ bool SimRobot::canKickBall(SimBall *ball) const
     return false;
 }
 
-robot::RadioResponse SimRobot::setCommand(const robot::Command &command, SimBall *ball, bool charge)
+robot::RadioResponse SimRobot::setCommand(const robot::Command &command, SimBall *ball, bool charge, float rxLoss, float txLoss)
 {
     m_command = command;
     m_commandTime = 0.0f;
@@ -361,8 +361,9 @@ robot::RadioResponse SimRobot::setCommand(const robot::Command &command, SimBall
     response.set_generation(m_specs.generation());
     response.set_id(m_specs.id());
     response.set_battery(1);
-    response.set_packet_loss_rx(0);
-    response.set_packet_loss_tx(0);
+    // TODO: actually compute the packet loss
+    response.set_packet_loss_rx(rxLoss);
+    response.set_packet_loss_tx(txLoss);
     response.set_ball_detected(canKickBall(ball));
     response.set_cap_charged(m_isCharged);
 
