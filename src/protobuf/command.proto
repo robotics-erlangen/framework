@@ -63,6 +63,7 @@ message SimulatorRealismConfig {
     optional float ball_visibility_threshold = 6;
     optional float camera_overlap = 7;
     optional float dribbler_ball_detections = 8;
+    optional float camera_position_error = 9;
 }
 
 message CommandSimulator {

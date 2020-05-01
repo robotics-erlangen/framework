@@ -81,6 +81,7 @@ struct camun::simulator::SimulatorData
     bool enableInvisibleBall;
     float ballVisibilityThreshold;
     float cameraOverlap;
+    float cameraPositionError;
 };
 
 static void simulatorTickCallback(btDynamicsWorld *world, btScalar timeStep)
@@ -136,6 +137,7 @@ Simulator::Simulator(const Timer *timer, const amun::SimulatorSetup &setup) :
     m_data->enableInvisibleBall = true;
     m_data->ballVisibilityThreshold = 0.4;
     m_data->cameraOverlap = 0.3;
+    m_data->cameraPositionError = 0;
 
     // no robots after initialisation
 
@@ -473,8 +475,12 @@ void Simulator::populateFieldPacket(SSL_GeometryFieldSize *field)
     }
 }
 
-static void addCameraCalibrations(SSL_GeometryData *geometry, const std::size_t& numCameras, const std::vector<CameraInfo>& cameraInfos)
+static void addCameraCalibrations(SSL_GeometryData *geometry, const std::size_t& numCameras, const std::vector<CameraInfo>& cameraInfos,
+                                  float positionError)
 {
+    // the exact direction is not really important, but it should stay constant
+    const btVector3 CAMERA_POSITION_ERROR = btVector3(0.3f, 0.7f, 0.05f).normalized() * positionError;
+
     for (std::size_t cameraId = 0; cameraId < numCameras; ++cameraId) {
         SSL_GeometryCameraCalibration *calib = geometry->add_calib();
         calib->set_camera_id(cameraId);
@@ -491,9 +497,9 @@ static void addCameraCalibrations(SSL_GeometryData *geometry, const std::size_t&
         calib->set_ty(0);
         calib->set_tz(3500);
 
-        calib->set_derived_camera_world_tx(cameraInfos[cameraId].position.y() * 1000);
-        calib->set_derived_camera_world_ty(-cameraInfos[cameraId].position.x() * 1000);
-        calib->set_derived_camera_world_tz(cameraInfos[cameraId].position.z() * 1000);
+        calib->set_derived_camera_world_tx((cameraInfos[cameraId].position.y() + CAMERA_POSITION_ERROR.y()) * 1000);
+        calib->set_derived_camera_world_ty(-(cameraInfos[cameraId].position.x() + CAMERA_POSITION_ERROR.x()) * 1000);
+        calib->set_derived_camera_world_tz((cameraInfos[cameraId].position.z() + CAMERA_POSITION_ERROR.z()) * 1000);
     }
 }
 
@@ -603,7 +609,7 @@ QList<QByteArray> Simulator::createVisionPacket()
     SSL_GeometryFieldSize *field = geometry->mutable_field();
     populateFieldPacket(field);
 
-    addCameraCalibrations(geometry, numCameras, cameraInfos);
+    addCameraCalibrations(geometry, numCameras, cameraInfos, m_data->cameraPositionError);
 
     // serialize "vision packet"
     QList<QByteArray> data;
@@ -773,6 +779,10 @@ void Simulator::handleCommand(const Command &command)
 
             if (realism.has_camera_overlap()) {
                 m_data->cameraOverlap = realism.camera_overlap();
+            }
+
+            if (realism.has_camera_position_error()) {
+                m_data->cameraPositionError = realism.camera_position_error();
             }
         }
 

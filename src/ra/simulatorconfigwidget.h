@@ -53,6 +53,7 @@ private slots:
     void setCameraOverlap(int overlap);
     void updateWorstCaseVision();
     void realismPresetChanged(QString name);
+    void setCameraPositionError(int error);
 
 private:
     Ui::SimulatorConfigWidget *ui;

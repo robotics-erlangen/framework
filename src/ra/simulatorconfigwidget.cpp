@@ -41,6 +41,7 @@ SimulatorConfigWidget::SimulatorConfigWidget(QWidget *parent) :
     connect(ui->chkEnableInvisibleBall, &QCheckBox::toggled, ui->ballVisibilityThresholdLabel, &QSpinBox::setEnabled);
     connect(ui->spinBallVisibilityThreshold, SIGNAL(valueChanged(int)), SLOT(setBallVisibilityThreshold(int)));
     connect(ui->spinCameraOverlap, SIGNAL(valueChanged(int)), SLOT(setCameraOverlap(int)));
+    connect(ui->spinCameraPositionError, SIGNAL(valueChanged(int)), this, SLOT(setCameraPositionError(int)));
 
     connect(ui->spinStddevBall, SIGNAL(valueChanged(double)), SLOT(sendSimulatorNoiseConfig()));
     connect(ui->spinStddevRobotPos, SIGNAL(valueChanged(double)), SLOT(sendSimulatorNoiseConfig()));
@@ -107,6 +108,7 @@ void SimulatorConfigWidget::realismPresetChanged(QString name)
     ui->chkEnableInvisibleBall->setChecked(config.enable_invisible_ball());
     ui->spinBallVisibilityThreshold->setValue(config.ball_visibility_threshold());
     ui->spinCameraOverlap->setValue(config.camera_overlap());
+    ui->spinCameraPositionError->setValue(config.camera_position_error());
 
     bool enableNoise = ui->spinStddevBall->value() != 0 && ui->spinStddevRobotPos->value() != 0 &&
                        ui->spinStddevRobotPhi->value() != 0 && ui->spinStdDevBallArea->value() != 0 &&
@@ -148,6 +150,13 @@ void SimulatorConfigWidget::setCameraOverlap(int overlap)
 {
     Command command(new amun::Command);
     command->mutable_simulator()->mutable_realism_config()->set_camera_overlap(overlap / 100.0f);
+    emit sendCommand(command);
+}
+
+void SimulatorConfigWidget::setCameraPositionError(int error)
+{
+    Command command(new amun::Command);
+    command->mutable_simulator()->mutable_realism_config()->set_camera_position_error(error / 100.0f);
     emit sendCommand(command);
 }
 

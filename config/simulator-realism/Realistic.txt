@@ -6,3 +6,4 @@ enable_invisible_ball: true
 ball_visibility_threshold: 40
 camera_overlap: 100
 dribbler_ball_detections: 0.05
+camera_position_error: 25
