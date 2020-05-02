@@ -59,7 +59,7 @@ public:
     void setIsInCompileMode(bool isCompile) { m_isInCompileMode = isCompile; }
     void setBacklogDirectory(const QString &directoryName);
     void setMaxBacklog(size_t newMax);
-
+    void setRealismConfig(const QString &shortFile);
 
     void start();
 

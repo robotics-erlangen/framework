@@ -139,6 +139,14 @@ void Connector::setSimulatorConfigFile(const QString &shortFile)
     sendCommand(command);
 }
 
+void Connector::setRealismConfig(const QString &shortFile)
+{
+    Command command(new amun::Command);
+    loadConfiguration("simulator-realism/" + shortFile, command->mutable_simulator()->mutable_realism_config(), true);
+
+    sendCommand(command);
+}
+
 void Connector::addStrategyLoad(amun::CommandStrategy *strategy, const QString &initScript, const QString &entryPoint)
 {
     strategy->set_enable_debug(true);

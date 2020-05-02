@@ -54,6 +54,7 @@ int main(int argc, char* argv[])
     QCommandLineOption simulationSpeed("simulation-speed", "Speed in percent to run the simulator at. Defaults to 100%", "speed", "100");
     QCommandLineOption backlog({"b", "backlog-directory"}, "Directory for backlogging of events.", "directory");
     QCommandLineOption maxBacklog("max-backlog", "Maximum of backlog files in a category. 0 removes limit. Default 20.", "count");
+    QCommandLineOption realismConfig("realism", "Simulator realism configuration (short file name without the .txt)", "realism");
     parser.addOption(strategyColorConfig);
     parser.addOption(debugOption);
     parser.addOption(simulatorConfig);
@@ -66,6 +67,7 @@ int main(int argc, char* argv[])
     parser.addOption(simulationSpeed);
     parser.addOption(backlog);
     parser.addOption(maxBacklog);
+    parser.addOption(realismConfig);
 
     // parse command line, handles --version
     parser.process(app);
@@ -129,6 +131,9 @@ int main(int argc, char* argv[])
     } else if (numRobots > 0) {
         std::cerr <<"Option robot-generation must be specified with a non-zero robot count"<<std::endl;
         exit(1);
+    }
+    if (parser.isSet(realismConfig)) {
+        connector.setRealismConfig(parser.value(realismConfig));
     }
     if (parser.isSet(simulationSpeed)) {
         int speed = parser.value(simulationSpeed).toInt();
