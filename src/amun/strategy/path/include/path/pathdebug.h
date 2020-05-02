@@ -23,6 +23,7 @@
 
 #include "protobuf/debug.pb.h"
 #include "core/vector.h"
+#include "boundingbox.h"
 #include "alphatimetrajectory.h"
 #include <QObject>
 #include <QVector>
@@ -49,6 +50,7 @@ public:
     void debugPath(const QString &name, const QVector<Vector> &points, PathDebugColor color = PathDebugColor::BLACK);
     void debugLine(const QString &name, Vector start, Vector end, PathDebugColor color = PathDebugColor::BLACK);
     void debugTrajectory(const QString &name, const SpeedProfile &trajectory, Vector offset, PathDebugColor color = PathDebugColor::BLACK);
+    void debugBoundingBox(const QString &name, const BoundingBox &boundingBox, PathDebugColor color = PathDebugColor::BLACK);
 #else
     void debug(const QString&, float) {}
     void debug(const QString&, const QString&) {}
@@ -56,6 +58,7 @@ public:
     void debugPath(const QString&, const QVector<Vector>&, PathDebugColor = PathDebugColor::BLACK) {}
     void debugLine(const QString&, Vector, Vector, PathDebugColor = PathDebugColor::BLACK) {}
     void debugTrajectory(const QString&, const SpeedProfile&, Vector, PathDebugColor = PathDebugColor::BLACK) {}
+    void debugBoundingBox(const QString &, const BoundingBox &, PathDebugColor = PathDebugColor::BLACK) {}
 #endif
 
 signals:

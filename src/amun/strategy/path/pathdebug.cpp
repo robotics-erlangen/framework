@@ -125,4 +125,16 @@ void PathDebug::debugTrajectory(const QString &name, const SpeedProfile &traject
     }
     debugPath(name, points, color);
 }
+
+void PathDebug::debugBoundingBox(const QString &name, const BoundingBox &boundingBox, PathDebugColor color)
+{
+    QVector<Vector> points(5);
+    points[0] = {boundingBox.left, boundingBox.top};
+    points[1] = {boundingBox.right, boundingBox.top};
+    points[2] = {boundingBox.right, boundingBox.bottom};
+    points[3] = {boundingBox.left, boundingBox.bottom};
+    points[4] = {boundingBox.left, boundingBox.top};
+
+    debugPath(name, points, color);
+}
 #endif
