@@ -341,6 +341,31 @@ float MovingObstacles::MovingCircle::distance(Vector pos, float time) const
     return centerAtTime.distance(pos) - radius;
 }
 
+static std::pair<float, float> range1D(float p0, float speed, float acc, float startTime, float endTime)
+{
+    float timeDiff = endTime - startTime;
+    float endPos = p0 + speed * timeDiff + acc * (0.5f * timeDiff * timeDiff);
+
+    if (acc == 0.0f) {
+        return {std::min(p0, endPos), std::max(p0, endPos)};
+    }
+    float zeroSpeedTime = speed / acc;
+    if (zeroSpeedTime > 0 && zeroSpeedTime <= endTime) {
+        float zeroSpeedPos = p0 + speed * zeroSpeedTime + acc * (0.5f * zeroSpeedTime * zeroSpeedTime);
+        return {std::min({p0, endPos, zeroSpeedPos}), std::max({p0, endPos, zeroSpeedPos})};
+    }
+    return {std::min(p0, endPos), std::max(p0, endPos)};
+}
+
+BoundingBox MovingObstacles::MovingCircle::boundingBox() const
+{
+    auto xRange = range1D(startPos.x, speed.x, acc.x, startTime, endTime);
+    auto yRange = range1D(startPos.y, speed.y, acc.y, startTime, endTime);
+    BoundingBox result({xRange.first, yRange.first}, {xRange.second, yRange.second});
+    result.addExtraRadius(radius);
+    return result;
+}
+
 void MovingObstacles::MovingCircle::serializeChild(pathfinding::Obstacle *obstacle) const
 {
     auto circle = obstacle->mutable_moving_circle();
@@ -396,6 +421,19 @@ float MovingObstacles::MovingLine::distance(Vector pos, float time) const
     return LineSegment(p1, p2).distance(pos) - radius;
 }
 
+BoundingBox MovingObstacles::MovingLine::boundingBox() const
+{
+    auto xRange1 = range1D(startPos1.x, speed1.x, acc1.x, startTime, endTime);
+    auto yRange1 = range1D(startPos1.y, speed1.y, acc1.y, startTime, endTime);
+    BoundingBox result({xRange1.first, yRange1.first}, {xRange1.second, yRange1.second});
+    auto xRange2 = range1D(startPos2.x, speed2.x, acc2.x, startTime, endTime);
+    auto yRange2 = range1D(startPos2.y, speed2.y, acc2.y, startTime, endTime);
+    result.mergePoint({xRange2.first, yRange2.first});
+    result.mergePoint({xRange2.second, yRange2.first});
+    result.addExtraRadius(radius);
+    return result;
+}
+
 void MovingObstacles::MovingLine::serializeChild(pathfinding::Obstacle *obstacle) const
 {
     auto circle = obstacle->mutable_moving_circle();
@@ -448,6 +486,10 @@ MovingObstacles::FriendlyRobotObstacle::FriendlyRobotObstacle(std::vector<Trajec
     this->prio = prio;
     this->radius = radius;
     timeInterval = trajectory->at(1).time - trajectory->at(0).time;
+    for (std::size_t i = 2;i<trajectory->size();i++) {
+        bound.mergePoint(trajectory->at(i).pos);
+    }
+    bound.addExtraRadius(radius);
 }
 
 MovingObstacles::FriendlyRobotObstacle::FriendlyRobotObstacle(const MovingObstacles::FriendlyRobotObstacle &other) :

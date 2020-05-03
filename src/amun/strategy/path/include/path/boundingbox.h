@@ -31,6 +31,7 @@ public:
     bool intersects(const BoundingBox &other);
     void scaleSize(float scale);
     void mergePoint(Vector p);
+    void addExtraRadius(float radius);
 
     float top; // y maximum
     float bottom; // y minimum
@@ -80,6 +81,14 @@ inline void BoundingBox::mergePoint(Vector p)
     right = std::max(right, p.x);
     bottom = std::min(bottom, p.y);
     top = std::max(top, p.y);
+}
+
+inline void BoundingBox::addExtraRadius(float radius)
+{
+    left -= radius;
+    right += radius;
+    bottom -= radius;
+    top += radius;
 }
 
 #endif // BOUNDINGBOX_H

@@ -131,10 +131,8 @@ namespace MovingObstacles {
         virtual ~MovingObstacle() {}
         virtual bool intersects(Vector pos, float time) const = 0;
         virtual float distance(Vector pos, float time) const = 0;
-        virtual BoundingBox boundingBox() const {
-            float max = std::numeric_limits<float>::max();
-            return BoundingBox(Vector(-max, -max), Vector(max, max));
-        }
+        // TODO: it might be possible to also use the trajectory max. time to make the obstacles smaller
+        virtual BoundingBox boundingBox() const = 0;
 
         void serialize(pathfinding::Obstacle *obstacle) const {
             obstacle->set_prio(prio);
@@ -152,6 +150,7 @@ namespace MovingObstacles {
     struct MovingCircle : public MovingObstacle {
         bool intersects(Vector pos, float time) const override;
         float distance(Vector pos, float time) const override;
+        BoundingBox boundingBox() const override;
 
         void serializeChild(pathfinding::Obstacle *obstacle) const override;
         void deserialize(const pathfinding::MovingCircleObstacle &obstacle);
@@ -166,6 +165,7 @@ namespace MovingObstacles {
     struct MovingLine : public MovingObstacle {
         bool intersects(Vector pos, float time) const override;
         float distance(Vector pos, float time) const override;
+        BoundingBox boundingBox() const override;
 
         void serializeChild(pathfinding::Obstacle *obstacle) const override;
         void deserialize(const pathfinding::MovingLineObstacle &obstacle);
