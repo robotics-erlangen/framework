@@ -84,6 +84,7 @@ struct camun::simulator::SimulatorData
     float cameraPositionError;
     float robotCommandPacketLoss;
     float robotReplyPacketLoss;
+    float missingBallDetections;
 };
 
 static void simulatorTickCallback(btDynamicsWorld *world, btScalar timeStep)
@@ -142,6 +143,7 @@ Simulator::Simulator(const Timer *timer, const amun::SimulatorSetup &setup) :
     m_data->cameraPositionError = 0;
     m_data->robotCommandPacketLoss = 0;
     m_data->robotReplyPacketLoss = 0;
+    m_data->missingBallDetections = 0;
 
     // no robots after initialisation
 
@@ -539,7 +541,8 @@ QList<QByteArray> Simulator::createVisionPacket()
 
     const float totalBoundaryWidth = m_data->geometry.boundary_width();
 
-    if (m_time - m_lastBallSendTime >= m_minBallDetectionTime) {
+    bool missingBall = m_data->missingBallDetections > 0 && m_data->rng.uniformFloat(0, 1) <= m_data->missingBallDetections;
+    if (m_time - m_lastBallSendTime >= m_minBallDetectionTime && !missingBall) {
         m_lastBallSendTime = m_time;
 
         const btVector3 ballPosition = m_data->ball->position() / SIMULATOR_SCALE;
@@ -806,6 +809,10 @@ void Simulator::handleCommand(const Command &command)
 
             if (realism.has_robot_response_loss()) {
                 m_data->robotReplyPacketLoss = realism.robot_response_loss();
+            }
+
+            if (realism.has_missing_ball_detections()) {
+                m_data->missingBallDetections = realism.missing_ball_detections();
             }
         }
 

@@ -50,6 +50,7 @@ SimulatorConfigWidget::SimulatorConfigWidget(QWidget *parent) :
     connect(ui->spinStddevRobotPhi, SIGNAL(valueChanged(double)), SLOT(sendSimulatorNoiseConfig()));
     connect(ui->spinStdDevBallArea, SIGNAL(valueChanged(double)), SLOT(sendSimulatorNoiseConfig()));
     connect(ui->spinDribblerBallDetections, SIGNAL(valueChanged(double)), SLOT(sendSimulatorNoiseConfig()));
+    connect(ui->spinMissingDetections, SIGNAL(valueChanged(double)), SLOT(sendSimulatorNoiseConfig()));
 
     connect(ui->enableWorstCaseVision, &QCheckBox::toggled, this, &SimulatorConfigWidget::updateWorstCaseVision);
     connect(ui->worstCaseBallDetections, SIGNAL(valueChanged(double)), this, SLOT(updateWorstCaseVision()));
@@ -113,10 +114,11 @@ void SimulatorConfigWidget::realismPresetChanged(QString name)
     ui->spinCameraPositionError->setValue(config.camera_position_error() * 100.0f);
     ui->spinPacketLoss->setValue(config.robot_command_loss() * 100.0f);
     ui->spinReplyLoss->setValue(config.robot_response_loss() * 100.0f);
+    ui->spinMissingDetections->setValue(config.missing_ball_detections() * 100.0f);
 
-    bool enableNoise = ui->spinStddevBall->value() != 0 && ui->spinStddevRobotPos->value() != 0 &&
-                       ui->spinStddevRobotPhi->value() != 0 && ui->spinStdDevBallArea->value() != 0 &&
-                       ui->spinDribblerBallDetections->value() != 0;
+    bool enableNoise = ui->spinStddevBall->value() != 0 || ui->spinStddevRobotPos->value() != 0 ||
+                       ui->spinStddevRobotPhi->value() != 0 || ui->spinStdDevBallArea->value() != 0 ||
+                       ui->spinDribblerBallDetections->value() != 0 || ui->spinMissingDetections->value() != 0;
     ui->chkEnableNoise->setChecked(enableNoise);
 }
 
@@ -139,6 +141,7 @@ void SimulatorConfigWidget::sendSimulatorNoiseConfig()
     realism->set_stddev_robot_phi(isEnabled ? ui->spinStddevRobotPhi->value(): 0);
     realism->set_stddev_ball_area(isEnabled ? ui->spinStdDevBallArea->value(): 0);
     realism->set_dribbler_ball_detections(isEnabled ? ui->spinDribblerBallDetections->value() : 0);
+    realism->set_missing_ball_detections(isEnabled ? ui->spinMissingDetections->value() / 100.0f : 0);
     emit sendCommand(command);
 }
 

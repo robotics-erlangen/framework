@@ -37,8 +37,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>254</width>
-        <height>727</height>
+        <width>244</width>
+        <height>734</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_5">
@@ -72,6 +72,20 @@
           <property name="bottomMargin">
            <number>3</number>
           </property>
+          <item row="2" column="0">
+           <widget class="Line" name="line">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_9">
+            <property name="text">
+             <string>Erroneous Ball Detections</string>
+            </property>
+           </widget>
+          </item>
           <item row="1" column="0">
            <layout class="QHBoxLayout" name="horizontalLayout_3">
             <item>
@@ -221,19 +235,26 @@
             </item>
            </layout>
           </item>
-          <item row="2" column="0">
-           <widget class="Line" name="line">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="label_9">
-            <property name="text">
-             <string>Erroneous Ball Detections</string>
-            </property>
-           </widget>
+          <item row="5" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout">
+            <item>
+             <widget class="QLabel" name="label_13">
+              <property name="text">
+               <string>Missing Detections:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QDoubleSpinBox" name="spinMissingDetections">
+              <property name="suffix">
+               <string>%</string>
+              </property>
+              <property name="singleStep">
+               <double>0.500000000000000</double>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </widget>

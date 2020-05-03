@@ -9,3 +9,4 @@ dribbler_ball_detections: 0
 camera_position_error: 0
 robot_command_loss: 0
 robot_response_loss: 0
+missing_ball_detections: 0
