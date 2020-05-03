@@ -386,8 +386,9 @@ float MovingObstacles::MovingLine::distance(Vector pos, float time) const
     if (time < startTime || time > endTime) {
         return std::numeric_limits<float>::max();
     }
-    const Vector p1 = startPos1 + speed1 * time;
-    const Vector p2 = startPos2 + speed2 * time;
+    float t = time - startTime;
+    const Vector p1 = startPos1 + speed1 * t + acc1 * (0.5f * t * t);
+    const Vector p2 = startPos2 + speed2 * t + acc2 * (0.5f * t * t);
     if (p1 == p2) {
         // this happens for example for time = 0
         return p1.distance(pos) - radius;
