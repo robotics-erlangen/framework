@@ -1,3 +1,4 @@
+import * as Field from "base/field";
 import * as geom from "base/geom";
 import * as MathUtil from "base/mathutil";
 import { FriendlyRobot } from "base/robot";
@@ -58,6 +59,19 @@ export class WindshieldWiper extends Move {
 		}
 	}
 
+	calcAcceptPos(pos: Vector, robotRadius: number): Vector | undefined {
+		let [center1, center2, radius] = MovesHelper.volleyCircle(World.Ball.pos, G.OpponentGoal, 55 / 180 * Math.PI);
+		let circle = center1.y < center2.y ? center1 : center2;
+		let posToShiftFrom = (World.Ball.pos + G.OpponentGoal) / 2;
+		let acceptPos = geom.intersectLineCircle(posToShiftFrom, pos - posToShiftFrom, circle, radius)[0];
+		if (acceptPos != undefined) {
+			if (Field.isInOpponentDefenseArea(acceptPos, 1.5 * robotRadius)) {
+				acceptPos = Field.intersectRayDefenseArea(pos, posToShiftFrom - pos, 1.5 * robotRadius, false)[0];
+			}
+		}
+		return acceptPos;
+	}
+
 
 	_updateTasks(): MoveParameters {
 		let distances = this._distances;
@@ -73,15 +87,12 @@ export class WindshieldWiper extends Move {
 
 		let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
 		let pos = this._positions;
-		let [center1, center2, radius] = MovesHelper.volleyCircle(World.Ball.pos, G.OpponentGoal, 55 / 180 * Math.PI);
-		let circle = center1.y < center2.y ? center1 : center2;
-		let posToShiftFrom = (World.Ball.pos + G.OpponentGoal) / 2;
 		let acceptingRobots = new Set<number>();
 		for (let i = 1;i < this._robots.length;i++) {
 			if (passInfoTable && Attack.checkPassInfos(distances[i].robot, passInfoTable, false)[0]) {
 				acceptingRobots.add(i);
 			}
-			let acceptPos = geom.intersectLineCircle(posToShiftFrom, pos[i] - posToShiftFrom, circle, radius)[0];
+			let acceptPos = this.calcAcceptPos(pos[i], this._robots[i].radius);
 			taskAssignments[distances[i].robot] = {class: Striker, params: [new Vector(-pos[i].x,pos[i].y), acceptPos]};
 		}
 		if (acceptingRobots.size > 0) {
@@ -89,7 +100,7 @@ export class WindshieldWiper extends Move {
 				if (acceptingRobots.has(i)) {
 					taskAssignments[distances[i].robot] = { class: AcceptPass};
 				} else {
-					let acceptPos = geom.intersectLineCircle(posToShiftFrom, pos[i] - posToShiftFrom, circle, radius)[0];
+					let acceptPos = this.calcAcceptPos(pos[i], this._robots[i].radius);
 					taskAssignments[distances[i].robot] = {class: Striker, params: [pos[i], acceptPos], restart: true};
 				}
 			}
