@@ -25,8 +25,6 @@
 
 const uint DEFAULT_SYSTEM_DELAY = 30; // in ms
 const uint DEFAULT_TRANSCEIVER_CHANNEL = 11;
-const uint DEFAULT_SIM_VISION_DELAY = 35; // in ms
-const uint DEFAULT_SIM_PROCESSING_TIME = 5; // in ms
 const uint DEFAULT_VISION_PORT = 10006;
 const uint DEFAULT_REFEREE_PORT = 10003;
 
@@ -75,9 +73,6 @@ void ConfigDialog::sendConfiguration()
     // from ms to ns
     command->mutable_tracking()->set_system_delay(ui->systemDelayBox->value() * 1000 * 1000);
 
-    command->mutable_simulator()->set_vision_delay(ui->simVisionDelay->value() * 1000 * 1000);
-    command->mutable_simulator()->set_vision_processing_time(ui->simProcessingTime->value() * 1000 * 1000);
-
     command->mutable_amun()->set_vision_port(ui->visionPort->value());
     command->mutable_amun()->set_referee_port(ui->refPort->value());
 
@@ -105,9 +100,6 @@ void ConfigDialog::load()
     QSettings s;
     ui->comboChannel->setCurrentIndex(s.value("Transceiver/Channel", DEFAULT_TRANSCEIVER_CHANNEL).toUInt());
     ui->systemDelayBox->setValue(s.value("Tracking/SystemDelay", DEFAULT_SYSTEM_DELAY).toUInt()); // in ms
-
-    ui->simVisionDelay->setValue(s.value("Simulator/VisionDelay", DEFAULT_SIM_VISION_DELAY).toUInt());
-    ui->simProcessingTime->setValue(s.value("Simulator/ProcessingTime", DEFAULT_SIM_PROCESSING_TIME).toUInt());
 
     ui->visionPort->setValue(s.value("Amun/VisionPort2018", DEFAULT_VISION_PORT).toUInt());
     ui->refPort->setValue(s.value("Amun/RefereePort", DEFAULT_REFEREE_PORT).toUInt());
@@ -137,8 +129,6 @@ void ConfigDialog::reset()
 {
     ui->comboChannel->setCurrentIndex(DEFAULT_TRANSCEIVER_CHANNEL);
     ui->systemDelayBox->setValue(DEFAULT_SYSTEM_DELAY);
-    ui->simVisionDelay->setValue(DEFAULT_SIM_VISION_DELAY);
-    ui->simProcessingTime->setValue(DEFAULT_SIM_PROCESSING_TIME);
     ui->visionPort->setValue(DEFAULT_VISION_PORT);
     ui->refPort->setValue(DEFAULT_REFEREE_PORT);
     ui->networkUse->setChecked(DEFAULT_NETWORK_ENABLE);
@@ -161,9 +151,6 @@ void ConfigDialog::apply()
     QSettings s;
     s.setValue("Transceiver/Channel", ui->comboChannel->currentIndex());
     s.setValue("Tracking/SystemDelay", ui->systemDelayBox->value());
-
-    s.setValue("Simulator/VisionDelay", ui->simVisionDelay->value());
-    s.setValue("Simulator/ProcessingTime", ui->simProcessingTime->value());
 
     s.setValue("Amun/VisionPort2018", ui->visionPort->value());
     s.setValue("Amun/RefereePort", ui->refPort->value());

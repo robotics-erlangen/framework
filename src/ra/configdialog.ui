@@ -26,9 +26,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-284</y>
+        <y>0</y>
         <width>297</width>
-        <height>876</height>
+        <height>765</height>
        </rect>
       </property>
       <property name="maximumSize">
@@ -240,52 +240,6 @@
            <widget class="QLineEdit" name="mixedHost">
             <property name="placeholderText">
              <string>Hostname</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBox_3">
-         <property name="title">
-          <string>Simulator</string>
-         </property>
-         <layout class="QFormLayout" name="formLayout">
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_3">
-            <property name="toolTip">
-             <string>System delay + processing time should equal vision delay!</string>
-            </property>
-            <property name="text">
-             <string>Vision delay</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_4">
-            <property name="text">
-             <string>Processing time</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QSpinBox" name="simVisionDelay">
-            <property name="suffix">
-             <string> ms</string>
-            </property>
-            <property name="value">
-             <number>35</number>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QSpinBox" name="simProcessingTime">
-            <property name="suffix">
-             <string> ms</string>
-            </property>
-            <property name="value">
-             <number>5</number>
             </property>
            </widget>
           </item>

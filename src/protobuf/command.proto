@@ -67,18 +67,18 @@ message SimulatorRealismConfig {
     optional float robot_command_loss = 10;
     optional float robot_response_loss = 11;
     optional float missing_ball_detections = 12;
+    optional int64 vision_delay = 13;
+    optional int64 vision_processing_time = 14;
 }
 
 message CommandSimulator {
     optional bool enable = 1;
-    optional int64 vision_delay = 2;
-    optional int64 vision_processing_time = 3;
-    optional SimulatorMoveBall move_ball = 4;
-    repeated SimulatorMoveRobot move_blue = 5;
-    repeated SimulatorMoveRobot move_yellow = 6;
-    optional SimulatorSetup simulator_setup = 7;
-    optional SimulatorWorstCaseVision vision_worst_case = 8;
-    optional SimulatorRealismConfig realism_config = 9;
+    optional SimulatorMoveBall move_ball = 2;
+    repeated SimulatorMoveRobot move_blue = 3;
+    repeated SimulatorMoveRobot move_yellow = 4;
+    optional SimulatorSetup simulator_setup = 5;
+    optional SimulatorWorstCaseVision vision_worst_case = 6;
+    optional SimulatorRealismConfig realism_config = 7;
 }
 
 message CommandReferee {

@@ -52,6 +52,9 @@ SimulatorConfigWidget::SimulatorConfigWidget(QWidget *parent) :
     connect(ui->spinDribblerBallDetections, SIGNAL(valueChanged(double)), SLOT(sendSimulatorNoiseConfig()));
     connect(ui->spinMissingDetections, SIGNAL(valueChanged(double)), SLOT(sendSimulatorNoiseConfig()));
 
+    connect(ui->spinVisionDelay, SIGNAL(valueChanged(int)), SLOT(updateDelays()));
+    connect(ui->spinProcessingTime, SIGNAL(valueChanged(int)), SLOT(updateDelays()));
+
     connect(ui->enableWorstCaseVision, &QCheckBox::toggled, this, &SimulatorConfigWidget::updateWorstCaseVision);
     connect(ui->worstCaseBallDetections, SIGNAL(valueChanged(double)), this, SLOT(updateWorstCaseVision()));
     connect(ui->worstCaseRobotDetections, SIGNAL(valueChanged(double)), this, SLOT(updateWorstCaseVision()));
@@ -115,6 +118,8 @@ void SimulatorConfigWidget::realismPresetChanged(QString name)
     ui->spinPacketLoss->setValue(config.robot_command_loss() * 100.0f);
     ui->spinReplyLoss->setValue(config.robot_response_loss() * 100.0f);
     ui->spinMissingDetections->setValue(config.missing_ball_detections() * 100.0f);
+    ui->spinVisionDelay->setValue(config.vision_delay() / 1000000LL); // from ns to ms
+    ui->spinProcessingTime->setValue(config.vision_processing_time() / 1000000LL);
 
     bool enableNoise = ui->spinStddevBall->value() != 0 || ui->spinStddevRobotPos->value() != 0 ||
                        ui->spinStddevRobotPhi->value() != 0 || ui->spinStdDevBallArea->value() != 0 ||
@@ -127,6 +132,15 @@ void SimulatorConfigWidget::updateRobotRealism()
     Command command(new amun::Command);
     command->mutable_simulator()->mutable_realism_config()->set_robot_command_loss(ui->spinPacketLoss->value() / 100.0f);
     command->mutable_simulator()->mutable_realism_config()->set_robot_response_loss(ui->spinReplyLoss->value() / 100.0f);
+    emit sendCommand(command);
+}
+
+void SimulatorConfigWidget::updateDelays()
+{
+    Command command(new amun::Command);
+    // from ms to ns
+    command->mutable_simulator()->mutable_realism_config()->set_vision_delay(ui->spinVisionDelay->value() * 1000 * 1000);
+    command->mutable_simulator()->mutable_realism_config()->set_vision_processing_time(ui->spinProcessingTime->value() * 1000 * 1000);
     emit sendCommand(command);
 }
 

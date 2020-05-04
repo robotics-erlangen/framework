@@ -55,6 +55,7 @@ private slots:
     void realismPresetChanged(QString name);
     void setCameraPositionError(int error);
     void updateRobotRealism();
+    void updateDelays();
 
 private:
     Ui::SimulatorConfigWidget *ui;

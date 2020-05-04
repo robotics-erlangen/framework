@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2020 Michael Eischer, Philipp Nordhus, Andreas Wendler      *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -757,14 +757,6 @@ void Simulator::handleCommand(const Command &command)
             setScaling(m_timeScaling);
         }
 
-        if (sim.has_vision_delay()) {
-            m_visionDelay = std::max((qint64)0, (qint64)sim.vision_delay());
-        }
-
-        if (sim.has_vision_processing_time()) {
-            m_visionProcessingTime = std::max((qint64)0, (qint64)sim.vision_processing_time());
-        }
-
         if (sim.has_realism_config()) {
             auto realism = sim.realism_config();
             if (realism.has_stddev_ball_p()) {
@@ -813,6 +805,14 @@ void Simulator::handleCommand(const Command &command)
 
             if (realism.has_missing_ball_detections()) {
                 m_data->missingBallDetections = realism.missing_ball_detections();
+            }
+
+            if (realism.has_vision_delay()) {
+                m_visionDelay = std::max((qint64)0, (qint64)realism.vision_delay());
+            }
+
+            if (realism.has_vision_processing_time()) {
+                m_visionProcessingTime = std::max((qint64)0, (qint64)realism.vision_processing_time());
             }
         }
 
