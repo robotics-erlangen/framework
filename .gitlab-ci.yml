@@ -3,6 +3,7 @@ stages:
   - test
   - memcheck
 
+
 .compile-ra-template:
   script:
     - mkdir -p build
@@ -23,11 +24,6 @@ stages:
       - build/bin/
     expire_in: 1 day
 
-compile-ra:
-  extends: .compile-ra-template
-  except:
-    - schedules
-
 .test-template:
   script:
     - "sh strategy/typescript/setup.sh"
@@ -46,7 +42,7 @@ compile-ra:
   variables:
     TEST_PATTERN: "."
 
-sanitize:
+.sanitize-template:
   script:
     - "mkdir -p build"
     - "cd build"
@@ -60,9 +56,18 @@ sanitize:
     key: "$CI_JOB_NAME"
     paths:
       - build/
+  dependencies: []
+
+
+compile-ra:
+  extends: .compile-ra-template
   except:
     - schedules
-  dependencies: []
+
+sanitize:
+  extends: .sanitize-template
+  except:
+    - schedules
 
 tests:
   extends: .test-template
@@ -70,6 +75,7 @@ tests:
     - compile-ra
   except:
     - schedules
+
 
 .compile-ra-schedule:
   extends: .compile-ra-template
@@ -111,3 +117,21 @@ tests-18.04-no-v8:
   image: ubuntu-18.04-no-v8
   dependencies:
     - compile-ra-18.04-no-v8
+
+
+.sanitize-schedule:
+  extends: .sanitize-template
+  only:
+    - schedules
+
+sanitize-16.04:
+  extends: .test-schedule
+  image: ubuntu-16.04
+
+sanitize-18.04:
+  extends: .test-schedule
+  image: ubuntu-18.04
+
+sanitize-18.04-no-v8:
+  extends: .test-schedule
+  image: ubuntu-18.04-no-v8
