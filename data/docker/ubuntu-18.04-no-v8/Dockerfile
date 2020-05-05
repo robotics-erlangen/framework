@@ -1,15 +1,16 @@
 FROM ubuntu:bionic
 
 # unzip is required for luarocks
-RUN set -xe; apt-get update; \
-    DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
-        protobuf-compiler libprotobuf-dev qtbase5-dev libqt5opengl5-dev libsdl2-dev libusb-1.0-0-dev \
-	cmake ninja-build ccache g++ \
-	luarocks unzip \
-	npm ca-certificates \
-	git git-lfs; \
-    apt-get clean; \
-    rm -rf /var/lib/apt/lists/* ; \
+RUN set -xe; \
+	apt-get update;\
+	DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
+		protobuf-compiler libprotobuf-dev qtbase5-dev libqt5opengl5-dev libsdl2-dev libusb-1.0-0-dev \
+		cmake ninja-build ccache g++ \
+		luarocks unzip \
+		npm ca-certificates \
+		git git-lfs; \
+	apt-get clean; \
+	rm -rf /var/lib/apt/lists/* ; \
 	luarocks install luacheck; \
 	npm -g install tslint typescript ; \
 	wget -q https://developer.arm.com/-/media/Files/downloads/gnu-rm/7-2018q2/gcc-arm-none-eabi-7-2018-q2-update-linux.tar.bz2 -O gcc-arm.tbz2; \

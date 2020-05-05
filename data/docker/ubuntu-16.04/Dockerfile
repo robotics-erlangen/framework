@@ -1,15 +1,16 @@
 FROM ubuntu:xenial
 
 # unzip is required for luarocks
-RUN set -xe; apt-get update; \
-    DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
-        protobuf-compiler libprotobuf-dev qtbase5-dev libqt5opengl5-dev libsdl2-dev libusb-1.0-0-dev \
-	cmake ninja-build ccache g++ gcc-arm-none-eabi gdb-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib \
-	luarocks unzip \
-	npm ca-certificates \
-	git; \
-    apt-get clean; \
-    rm -rf /var/lib/apt/lists/* ; \
+RUN set -xe; \
+	apt-get update; \
+	DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
+		protobuf-compiler libprotobuf-dev qtbase5-dev libqt5opengl5-dev libsdl2-dev libusb-1.0-0-dev \
+		cmake ninja-build ccache g++ gcc-arm-none-eabi gdb-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib \
+		luarocks unzip \
+		npm ca-certificates \
+		git; \
+	apt-get clean; \
+	rm -rf /var/lib/apt/lists/* ; \
 	luarocks install luacheck; \
 	npm -g install tslint typescript; \
 	ln -s /usr/bin/nodejs /usr/bin/node
