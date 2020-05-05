@@ -7,13 +7,16 @@ RUN set -xe; \
 		protobuf-compiler libprotobuf-dev qtbase5-dev libqt5opengl5-dev libsdl2-dev libusb-1.0-0-dev \
 		cmake ninja-build ccache g++ gcc-arm-none-eabi gdb-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib \
 		luarocks unzip \
-		npm ca-certificates \
+		ca-certificates curl apt-transport-https \
 		git; \
+	curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -; \
+	echo 'deb https://deb.nodesource.com/node_12.x xenial main' > /etc/apt/sources.list.d/nodesource.list; \
+	echo 'deb-src https://deb.nodesource.com/node_12.x xenial main' >> /etc/apt/sources.list.d/nodesource.list; \
+	apt-get update; \
+	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends nodejs; \
 	apt-get clean; \
 	rm -rf /var/lib/apt/lists/* ; \
-	luarocks install luacheck; \
-	npm -g install tslint typescript; \
-	ln -s /usr/bin/nodejs /usr/bin/node
+	luarocks install luacheck;
 
 COPY libs /libs
 RUN set -xe; \

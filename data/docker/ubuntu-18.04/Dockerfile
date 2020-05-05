@@ -5,14 +5,18 @@ RUN set -xe; \
 	apt-get update; \
 	DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
 		protobuf-compiler libprotobuf-dev qtbase5-dev libqt5opengl5-dev libsdl2-dev libusb-1.0-0-dev \
-		cmake ninja-build ccache g++ \
+		cmake ninja-build ccache g++ python \
 		luarocks unzip \
-		npm ca-certificates \
+		ca-certificates curl apt-transport-https gnupg \
 		git git-lfs; \
+	curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -; \
+	echo 'deb https://deb.nodesource.com/node_12.x bionic main' > /etc/apt/sources.list.d/nodesource.list; \
+	echo 'deb-src https://deb.nodesource.com/node_12.x bionic main' >> /etc/apt/sources.list.d/nodesource.list; \
+	apt-get update; \
+	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends nodejs; \
 	apt-get clean; \
 	rm -rf /var/lib/apt/lists/* ; \
 	luarocks install luacheck; \
-	npm -g install tslint typescript ; \
 	wget -q https://developer.arm.com/-/media/Files/downloads/gnu-rm/7-2018q2/gcc-arm-none-eabi-7-2018-q2-update-linux.tar.bz2 -O gcc-arm.tbz2; \
 	echo 299ebd3f1c2c90930d28ab82e5d8d6c0 gcc-arm.tbz2 > arm.md5; \
 	md5sum -c arm.md5; \
