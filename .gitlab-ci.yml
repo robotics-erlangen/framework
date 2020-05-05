@@ -3,7 +3,7 @@ stages:
   - test
   - memcheck
 
-.compile-ra: &compile_template
+.compile-ra-template:
   script:
     - mkdir -p build
     - cd build
@@ -24,11 +24,11 @@ stages:
     expire_in: 1 day
 
 compile-ra:
-  <<: *compile_template
+  extends: .compile-ra-template
   except:
     - schedules
 
-.test: &test_template
+.test-template:
   script:
     - "sh strategy/typescript/setup.sh"
     - "echo running test \"$TEST_PATTERN\""
@@ -64,52 +64,50 @@ sanitize:
     - schedules
   dependencies: []
 
-
 tests:
-  <<: *test_template
+  extends: .test-template
   dependencies:
     - compile-ra
   except:
     - schedules
 
-
-.compile-ra-schedule: &compile_schedule
-  <<: *compile_template
+.compile-ra-schedule:
+  extends: .compile-ra-template
   only:
     - schedules
 
 compile-ra-16.04:
-  <<: *compile_schedule
+  extends: .compile-ra-schedule
   image: ubuntu-16.04
 
 compile-ra-18.04:
-  <<: *compile_schedule
+  extends: .compile-ra-schedule
   image: ubuntu-18.04
 
 compile-ra-18.04-no-v8:
-  <<: *compile_schedule
+  extends: .compile-ra-schedule
   image: ubuntu-18.04-no-v8
 
 
-.test-schedule: &test_schedule
-  <<: *test_template
+.test-schedule:
+  extends: .test-template
   only:
     - schedules
 
 tests-16.04:
-  <<: *test_schedule
+  extends: .test-schedule
   image: ubuntu-16.04
   dependencies:
     - compile-ra-16.04
 
 tests-18.04:
-  <<: *test_schedule
+  extends: .test-schedule
   image: ubuntu-18.04
   dependencies:
     - compile-ra-18.04
 
 tests-18.04-no-v8:
-  <<: *test_schedule
+  extends: .test-schedule
   image: ubuntu-18.04-no-v8
   dependencies:
     - compile-ra-18.04-no-v8
