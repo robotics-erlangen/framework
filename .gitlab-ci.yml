@@ -126,13 +126,13 @@ tests-18.04-no-v8:
     - schedules
 
 sanitize-16.04:
-  extends: .test-schedule
+  extends: .sanitize-schedule
   image: ubuntu-16.04
 
 sanitize-18.04:
-  extends: .test-schedule
+  extends: .sanitize-schedule
   image: ubuntu-18.04
 
 sanitize-18.04-no-v8:
-  extends: .test-schedule
+  extends: .sanitize-schedule
   image: ubuntu-18.04-no-v8
