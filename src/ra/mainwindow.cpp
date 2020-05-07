@@ -410,7 +410,7 @@ void MainWindow::setSpeed(int speed)
     if (m_currentWidgetConfiguration % 2 == 1) {
         ui->simulator->setSpeed(speed);
     } else {
-        ui->logManager->setSpeed(speed);
+        emit ui->logManager->setSpeed(speed);
     }
 }
 
@@ -633,7 +633,7 @@ void MainWindow::handleStatus(const Status &status)
 
 void MainWindow::sendCommand(const Command &command)
 {
-    m_amun.sendCommand(command);
+    emit m_amun.sendCommand(command);
 }
 
 void MainWindow::setSimulatorEnabled(bool enabled)

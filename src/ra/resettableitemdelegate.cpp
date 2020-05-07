@@ -73,8 +73,8 @@ bool ResettableItemDelegate::eventFilter(QObject *object, QEvent *event)
 
     if (event->type() == QEvent::Hide) {
         // properly close the editor if the dialog gets hidden
-        commitData(editor);
-        closeEditor(editor);
+        emit commitData(editor);
+        emit closeEditor(editor);
         // don't swallow the hide event
         return false;
     }
@@ -109,7 +109,7 @@ void ResettableItemDelegate::setModelData(QWidget *editor, QAbstractItemModel *m
 void ResettableItemDelegate::resetValue() {
     WidgetResetWrapper *wrapper = qobject_cast<WidgetResetWrapper*>(sender());
     if (wrapper != NULL) {
-        commitData(wrapper); // trigger setModelData
-        closeEditor(wrapper, NoHint);
+        emit commitData(wrapper); // trigger setModelData
+        emit closeEditor(wrapper, NoHint);
     }
 }

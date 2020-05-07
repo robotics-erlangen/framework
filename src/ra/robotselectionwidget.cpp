@@ -502,7 +502,7 @@ void RobotSelectionWidget::handleStatus(const Status &status)
     if (status->has_world_state()) {
         const world::State &state = status->world_state();
         for (int i = 0; i < state.radio_response_size(); ++i) {
-            sendRadioResponse(state.radio_response(i));
+            emit sendRadioResponse(state.radio_response(i));
         }
     }
 

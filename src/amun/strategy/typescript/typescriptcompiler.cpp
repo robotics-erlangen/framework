@@ -113,7 +113,7 @@ static bool copyDirectory(const QString &source, const QString &destination)
         return false;
     }
 
-    for (auto info :  QDir(source).entryInfoList(QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot)) {
+    for (const auto &info :  QDir(source).entryInfoList(QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot)) {
         if (info.isFile()) {
             if (!QFile::copy(info.absoluteFilePath(), destDir.filePath(info.fileName()))) {
                 return false;

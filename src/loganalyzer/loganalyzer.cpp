@@ -51,7 +51,7 @@ static void ablateStatusRecursive(google::protobuf::Message *message, QList<int>
 static unsigned long multipleStatusSize(QList<Status> &packets)
 {
     QByteArray buffer;
-    for (Status status : packets) {
+    for (const Status &status : packets) {
         QByteArray onePacket;
         onePacket.resize(status->ByteSize());
         status->SerializeToArray(onePacket.data(), onePacket.size());
@@ -63,7 +63,7 @@ static unsigned long multipleStatusSize(QList<Status> &packets)
 static unsigned long ablateMultipleStatus(const QList<Status> &statusList, QList<int> &ablationInfo)
 {
     QList<Status> temp;
-    for (Status status : statusList) {
+    for (const Status &status : statusList) {
         Status statusCopy(new amun::Status(*status));
         ablateStatusRecursive(&*statusCopy, ablationInfo, 0);
         temp.push_back(statusCopy);
@@ -90,7 +90,7 @@ static QMap<QString, double> testAblations(const QList<Status> &packets, QList<i
             for (double size : partAblations) {
                 partSum += size;
             }
-            for (QString key : partAblations.keys()) {
+            for (const QString &key : partAblations.keys()) {
                 result[key] = partSum == 0.0 ? 0.0 : directAblationSize * partAblations[key] / partSum;
             }
         } else {
@@ -105,7 +105,7 @@ static void saveResults(QString filename, const QMap<QString, double> &fieldSize
     QFile file(filename);
     file.open(QFile::WriteOnly);
     QTextStream stream(&file);
-    for (QString key : fieldSizes.keys()) {
+    for (const QString &key : fieldSizes.keys()) {
         QStringList parts = key.split("/");
         for (auto i = parts.size()-1;i>=0;i--) {
             if (!parts[i].isEmpty()) {

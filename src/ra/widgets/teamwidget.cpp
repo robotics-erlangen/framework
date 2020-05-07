@@ -177,7 +177,7 @@ void TeamWidget::load()
     }
     s.endGroup();
 
-    if (QFileInfo(m_filename).exists()) {
+    if (QFileInfo::exists(m_filename)) {
         selectEntryPoint(m_entryPoint);
     }
 }
@@ -483,7 +483,7 @@ void TeamWidget::sendEnableDebug(bool enable)
     amun::CommandStrategy *strategy = commandStrategyFromType(command);
 
     strategy->set_enable_debug(enable);
-    sendCommand(command);
+    emit sendCommand(command);
 }
 
 void TeamWidget::sendTriggerDebug()
@@ -492,7 +492,7 @@ void TeamWidget::sendTriggerDebug()
     amun::CommandStrategy *strategy = commandStrategyFromType(command);
 
     strategy->mutable_debug();
-    sendCommand(command);
+    emit sendCommand(command);
 }
 
 void TeamWidget::sendPerformanceDebug(bool enable)
@@ -501,7 +501,7 @@ void TeamWidget::sendPerformanceDebug(bool enable)
     amun::CommandStrategy *strategy = commandStrategyFromType(command);
 
     strategy->set_performance_mode(enable);
-    sendCommand(command);
+    emit sendCommand(command);
 }
 
 void TeamWidget::updateStyleSheet()

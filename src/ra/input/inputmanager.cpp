@@ -129,8 +129,8 @@ void InputManager::update()
 
     // only fill in if enabled
     if (m_enabled) {
-        for(BindingsMap::const_iterator it = m_bindings.begin();
-                it != m_bindings.end(); ++it) {
+        for(BindingsMap::const_iterator it = m_bindings.cbegin();
+                it != m_bindings.cend(); ++it) {
             robot::RadioCommand *radio_command = control->add_commands();
             radio_command->set_generation(it.key().first);
             radio_command->set_id(it.key().second);
@@ -149,8 +149,8 @@ void InputManager::update()
             command->set_dribbler(command->dribbler() * m_dribblerPower);
             command->set_kick_power(command->kick_power() * m_shootPower);
         }
-        for(NetworkControlMap::const_iterator it = m_networkControl.begin();
-                it != m_networkControl.end(); ++it) {
+        for(NetworkControlMap::const_iterator it = m_networkControl.cbegin();
+                it != m_networkControl.cend(); ++it) {
             robot::RadioCommand *radio_command = control->add_commands();
             radio_command->set_generation(it.key().first);
             radio_command->set_id(it.key().second);
@@ -212,8 +212,9 @@ Joystick *InputManager::openJoystick(int deviceId) {
 
     if (m_joysticks.contains(joystick->getId())) {
         // joystick is already setup
+        auto id = joystick->getId();
         delete joystick;
-        return m_joysticks[joystick->getId()];
+        return m_joysticks[id];
     }
     // register for event passing
     m_joysticks.insert(joystick->getId(), joystick);

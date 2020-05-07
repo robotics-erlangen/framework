@@ -213,7 +213,7 @@ void Simulator::process()
 
     // radio responses are sent when a robot gets his command
     // thus send the responses immediatelly
-    sendRadioResponses(responses);
+    emit sendRadioResponses(responses);
 
     // simulate to current strategy time
     double timeDelta = (current_time - m_time) * 1E-9;

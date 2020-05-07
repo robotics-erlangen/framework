@@ -557,7 +557,7 @@ void Plotter::addPoint(const std::string &name, const QString &parent, float tim
         plot = new Plot(fullName, this);
         item->setCheckable(true);
         if (m_selection.contains(fullName)) {
-            addPlot(plot); // manually add plot as itemChanged won't add it
+            emit addPlot(plot); // manually add plot as itemChanged won't add it
             item->setCheckState(Qt::Checked);
         } else {
             item->setCheckState(Qt::Unchecked);
@@ -604,13 +604,13 @@ void Plotter::itemChanged(QStandardItem *item)
         if (item->checkState() == Qt::Checked) {
             // only add plot if it isn't in our selection yet
             if (!m_selection.contains(name)) {
-                addPlot(plot);
+                emit addPlot(plot);
                 m_selection.insert(name);
             }
         } else {
             // same for remove
             if (m_selection.remove(name)) {
-                removePlot(plot);
+                emit removePlot(plot);
             }
         }
     }

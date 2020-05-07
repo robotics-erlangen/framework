@@ -29,7 +29,7 @@ static QString mapToString(const QMap<QString, QString> &map)
 {
     QString result = "{\n";
     bool first = true;
-    for (QString key : map.keys()) {
+    for (const QString &key : map.keys()) {
         if (!first) {
             result += ",\n";
         }

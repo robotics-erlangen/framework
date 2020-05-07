@@ -136,7 +136,7 @@ void Connector::setSimulatorConfigFile(const QString &shortFile)
     Command command(new amun::Command);
     loadConfiguration("simulator/" + shortFile, command->mutable_simulator()->mutable_simulator_setup(), false);
 
-    sendCommand(command);
+    emit sendCommand(command);
 }
 
 void Connector::setRealismConfig(const QString &shortFile)
@@ -144,7 +144,7 @@ void Connector::setRealismConfig(const QString &shortFile)
     Command command(new amun::Command);
     loadConfiguration("simulator-realism/" + shortFile, command->mutable_simulator()->mutable_realism_config(), true);
 
-    sendCommand(command);
+    emit sendCommand(command);
 }
 
 void Connector::addStrategyLoad(amun::CommandStrategy *strategy, const QString &initScript, const QString &entryPoint)
@@ -179,7 +179,7 @@ void Connector::setRobotConfiguration(int numRobots, const QString &generation)
     Command command(new amun::Command);
     command->mutable_set_team_yellow()->CopyFrom(yellow);
     command->mutable_set_team_blue()->CopyFrom(blue);
-    sendCommand(command);
+    emit sendCommand(command);
 
     m_teamStatus = Status(new amun::Status);
     m_teamStatus->mutable_team_yellow()->CopyFrom(yellow);
@@ -223,7 +223,7 @@ void Connector::start()
         }
 
     }
-    sendCommand(command);
+    emit sendCommand(command);
 }
 
 void Connector::handleStrategyStatus(const amun::StatusStrategy &strategy)

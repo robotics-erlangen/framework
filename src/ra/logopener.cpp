@@ -91,7 +91,7 @@ void LogOpener::saveConfig()
 
     s.beginWriteArray("last positions", m_lastFilePositions.size());
     int i = 0;
-    for (QString filename : m_lastFilePositions.keys()) {
+    for (const QString &filename : m_lastFilePositions.keys()) {
         s.setArrayIndex(i++);
         s.setValue("filename", filename);
         s.setValue("position", m_lastFilePositions[filename]);
@@ -156,7 +156,7 @@ void LogOpener::openFile(const QString &filename)
     if (!filename.isEmpty()) {
         QList<std::function<QPair<std::shared_ptr<StatusSource>, QString>(QString)>> openFunctions =
             { &VisionLogLiveConverter::tryOpen, &LogFileReader::tryOpen};
-        for (auto openFunction : openFunctions) {
+        for (const auto &openFunction : openFunctions) {
             auto openResult = openFunction(filename);
 
             if (openResult.first != nullptr) {

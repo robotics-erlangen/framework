@@ -785,12 +785,12 @@ void Transceiver::sendCommand(const QList<robot::RadioCommand> &commands, bool c
     // used for packet assembly
     QByteArray usb_packet;
 
-    bool hasRobot2014Commands = generations.keys().contains(3);
+    bool hasRobot2014Commands = generations.contains(3);
     if (hasRobot2014Commands) {
         const qint64 completionTime = m_timer->currentTime();
         addRobot2014Sync(processingStart - completionTime, m_packetCounter, usb_packet);
     }
-    bool hasRobot2018Commands = generations.keys().contains(4);
+    bool hasRobot2018Commands = generations.contains(4);
     if (hasRobot2018Commands) {
         const qint64 completionTime = m_timer->currentTime();
         addRobot2018Sync(processingStart - completionTime, m_packetCounter, usb_packet);
