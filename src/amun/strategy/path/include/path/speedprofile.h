@@ -39,50 +39,17 @@ public:
     float acc;
 
 public:
-    float offsetForTime(float time) const {
-        float offset = 0;
-        for (unsigned int i = 0;i<counter-1;i++) {
-            if (profile[i+1].t >= time) {
-                float diff = profile[i+1].t == profile[i].t ? 1 : (time - profile[i].t) / (profile[i+1].t - profile[i].t);
-                float speed = profile[i].v + diff * (profile[i+1].v - profile[i].v);
-                float partDist = (profile[i].v + speed) * 0.5f * (time - profile[i].t);
-                return offset + partDist;
-            }
-            offset += (profile[i].v + profile[i+1].v) * 0.5f * (profile[i+1].t - profile[i].t);
-        }
-        return offset;
-    }
 
-    float speedForTime(float time) const {
-        for (unsigned int i = 0;i<counter-1;i++) {
-            if (profile[i+1].t >= time) {
-                float diff = profile[i+1].t == profile[i].t ? 1 : (time - profile[i].t) / (profile[i+1].t - profile[i].t);
-                float speed = profile[i].v + diff * (profile[i+1].v - profile[i].v);
-                return speed;
-            }
-        }
-        return profile[counter-1].v;
-    }
-
-    void limitToTime(float time) {
-        for (unsigned int i = 0;i<counter-1;i++) {
-            if (profile[i+1].t >= time) {
-                float diff = profile[i+1].t == profile[i].t ? 1 : (time - profile[i].t) / (profile[i+1].t - profile[i].t);
-                float speed = profile[i].v + diff * (profile[i+1].v - profile[i].v);
-                profile[i+1].v = speed;
-                profile[i+1].t = time;
-                counter = i+2;
-                return;
-            }
-        }
-    }
+    void limitToTime(float time);
 
     std::pair<float, float> calculateRange(float slowDownTime) const;
 
+    float speedForTime(float time) const;
     float speedForTimeSlowDown(float time, float slowDownTime) const;
 
     float calculateSlowDownPos(float slowDownTime) const;
 
+    float offsetForTime(float time) const;
     float offsetForTimeSlowDown(float time, float slowDownTime) const;
 
     void integrateTime() {
@@ -157,6 +124,7 @@ public:
         return Vector(xProfile.profile[xProfile.counter / 2].v, yProfile.profile[yProfile.counter / 2].v);
     }
 
+    // only works properly for trajectories without slowdown
     void limitToTime(float time) {
         xProfile.limitToTime(time);
         yProfile.limitToTime(time);

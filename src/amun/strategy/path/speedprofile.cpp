@@ -106,6 +106,18 @@ float SpeedProfile1D::timeWithSlowDown(float slowDownTime) const
     return time;
 }
 
+float SpeedProfile1D::speedForTime(float time) const
+{
+    for (unsigned int i = 0;i<counter-1;i++) {
+        if (profile[i+1].t >= time) {
+            float diff = profile[i+1].t == profile[i].t ? 1 : (time - profile[i].t) / (profile[i+1].t - profile[i].t);
+            float speed = profile[i].v + diff * (profile[i+1].v - profile[i].v);
+            return speed;
+        }
+    }
+    return profile[counter-1].v;
+}
+
 float SpeedProfile1D::speedForTimeSlowDown(float time, float slowDownTime) const
 {
     float slowDownStartTime = profile[counter-1].t - slowDownTime;
@@ -153,6 +165,21 @@ float SpeedProfile1D::speedForTimeSlowDown(float time, float slowDownTime) const
         }
     }
     return profile[counter-1].v;
+}
+
+float SpeedProfile1D::offsetForTime(float time) const
+{
+    float offset = 0;
+    for (unsigned int i = 0;i<counter-1;i++) {
+        if (profile[i+1].t >= time) {
+            float diff = profile[i+1].t == profile[i].t ? 1 : (time - profile[i].t) / (profile[i+1].t - profile[i].t);
+            float speed = profile[i].v + diff * (profile[i+1].v - profile[i].v);
+            float partDist = (profile[i].v + speed) * 0.5f * (time - profile[i].t);
+            return offset + partDist;
+        }
+        offset += (profile[i].v + profile[i+1].v) * 0.5f * (profile[i+1].t - profile[i].t);
+    }
+    return offset;
 }
 
 float SpeedProfile1D::offsetForTimeSlowDown(float time, float slowDownTime) const
@@ -280,6 +307,20 @@ std::pair<float, float> SpeedProfile1D::calculateRange(float slowDownTime) const
     }
 
     return {minPos, maxPos};
+}
+
+void SpeedProfile1D::limitToTime(float time)
+{
+    for (unsigned int i = 0;i<counter-1;i++) {
+        if (profile[i+1].t >= time) {
+            float diff = profile[i+1].t == profile[i].t ? 1 : (time - profile[i].t) / (profile[i+1].t - profile[i].t);
+            float speed = profile[i].v + diff * (profile[i+1].v - profile[i].v);
+            profile[i+1].v = speed;
+            profile[i+1].t = time;
+            counter = i+2;
+            return;
+        }
+    }
 }
 
 std::vector<TrajectoryPoint> SpeedProfile::getTrajectoryPoints() const
