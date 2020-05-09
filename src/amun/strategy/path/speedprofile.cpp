@@ -243,6 +243,103 @@ float SpeedProfile1D::offsetForTimeSlowDown(float time, float slowDownTime) cons
     return pos;
 }
 
+void SpeedProfile1D::trajectoryPositions(std::vector<Vector> &outPoints, std::size_t outIndex, float timeInterval, float positionOffset, std::size_t desiredCount) const
+{
+    std::size_t segment = 0; // where in the profile we currently are
+    float currentTime = 0; // the time for the next point to compute the offset of
+    float currentOffset = positionOffset; // the offset up to the profile segment with index 'counter', not up to the current time!
+
+    for (std::size_t i = 0;i<desiredCount;i++) {
+
+        while (profile[segment+1].t < currentTime) { // over a profile segment boundary
+            currentOffset += (profile[segment].v + profile[segment+1].v) * 0.5f * (profile[segment+1].t - profile[segment].t);
+            segment++;
+
+            // if we are at the end of the profile, add the current point the desired number of times
+            if (segment == counter-1) {
+                while (i < desiredCount) {
+                    outPoints[i][outIndex] = currentOffset;
+                    i++;
+                }
+                return;
+            }
+        }
+
+        // the desired time is in the current segment
+        float diff = profile[segment+1].t == profile[segment].t ? 1 : (currentTime - profile[segment].t) / (profile[segment+1].t - profile[segment].t);
+        float speed = profile[segment].v + diff * (profile[segment+1].v - profile[segment].v);
+        float partDist = (profile[segment].v + speed) * 0.5f * (currentTime - profile[segment].t);
+        outPoints[i][outIndex] = currentOffset + partDist;
+
+        currentTime += timeInterval;
+    }
+}
+
+void SpeedProfile1D::trajectoryPositionsSlowDown(std::vector<Vector> &outPoints, std::size_t outIndex, float timeInterval,
+                                                 float positionOffset, float slowDownTime) const
+{
+    float slowDownStartTime = profile[counter-1].t - slowDownTime;
+
+    // the first points can be handled by the regular trajectory positions calculation
+    std::size_t simplePositionCount = static_cast<std::size_t>(std::max(0.0f, slowDownStartTime / timeInterval));
+    trajectoryPositions(outPoints, outIndex, timeInterval, positionOffset, simplePositionCount);
+
+    // find current segment
+    std::size_t segment = 0;
+    float currentOffset = positionOffset;
+    while (profile[segment+1].t < slowDownStartTime) {
+        currentOffset += (profile[segment].v + profile[segment+1].v) * 0.5f * (profile[segment+1].t - profile[segment].t);
+        segment++;
+    }
+
+    // compute start position and speed
+    float t0 = slowDownStartTime;
+    float diff = profile[segment+1].t == profile[segment].t ? 1 : (t0 - profile[segment].t) / (profile[segment+1].t - profile[segment].t);
+    float v0 = profile[segment].v + diff * (profile[segment+1].v - profile[segment].v);
+    currentOffset += (profile[segment].v + v0) * 0.5f * (t0 - profile[segment].t);
+
+    // go through the remainder of the trajectory and compute the positions
+    float endTime = profile[counter-1].t + SpeedProfile::SLOW_DOWN_TIME - slowDownTime;
+    float totalTime = t0;
+    float currentTime = simplePositionCount * timeInterval;
+    for (std::size_t i = simplePositionCount;i<outPoints.size();i++) {
+
+        float toEndTime0 = endTime - t0;
+        float toEndTime1 = endTime - profile[segment+1].t;
+        float a0 = acc * (MIN_ACC_FACTOR + (1 - MIN_ACC_FACTOR) * toEndTime0 / SpeedProfile::SLOW_DOWN_TIME);
+        float a1 = acc * (MIN_ACC_FACTOR + (1 - MIN_ACC_FACTOR) * toEndTime1 / SpeedProfile::SLOW_DOWN_TIME);
+
+        float averageAcc = (a0 + a1) * 0.5f;
+        float v1 = profile[segment+1].v;
+        float t = std::abs(v0 - v1) / averageAcc;
+
+        if (totalTime + t < currentTime) { // over a profile segment boundary
+            float d = t * v0 + 0.5f * t * t * sign(v1 - v0) * a0 + (1.0f / 6.0f) * t * t * sign(v1 - v0) * (a1 - a0);
+            currentOffset += d;
+            v0 = profile[segment+1].v;
+            t0 = profile[segment+1].t;
+            totalTime += t;
+            segment++;
+
+            // if we are at the end of the profile, add the current point the desired number of times
+            if (segment == counter-1) {
+                while (i < outPoints.size()) {
+                    outPoints[i][outIndex] = currentOffset;
+                    i++;
+                }
+                return;
+            }
+        }
+
+        // the desired time is in the current segment
+        float tm = currentTime - totalTime;
+        float d = tm * v0 + 0.5f * tm * tm * sign(v1 - v0) * a0 + (1.0f / 6.0f) * tm * tm * tm * sign(v1 - v0) * (a1 - a0) / t;
+        outPoints[i][outIndex] = currentOffset + d;
+
+        currentTime += timeInterval;
+    }
+}
+
 std::pair<float, float> SpeedProfile1D::calculateRange(float slowDownTime) const
 {
     float minPos = 0;

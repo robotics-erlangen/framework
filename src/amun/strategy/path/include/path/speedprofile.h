@@ -52,6 +52,10 @@ public:
     float offsetForTime(float time) const;
     float offsetForTimeSlowDown(float time, float slowDownTime) const;
 
+    // outIndex can be 0 or 1, writing the result to the x or y coordinate of the vectors
+    void trajectoryPositions(std::vector<Vector> &outPoints, std::size_t outIndex, float timeInterval, float positionOffset, std::size_t desiredCount) const;
+    void trajectoryPositionsSlowDown(std::vector<Vector> &outPoints, std::size_t outIndex, float timeInterval, float positionOffset, float slowDownTime) const;
+
     void integrateTime() {
         float totalTime = 0;
         for (unsigned int i = 0;i<counter;i++) {
@@ -102,6 +106,18 @@ public:
         } else {
             return Vector(xProfile.offsetForTimeSlowDown(time, slowDownTime), yProfile.offsetForTimeSlowDown(time, slowDownTime));
         }
+    }
+
+    std::vector<Vector> trajectoryPositions(Vector offset, std::size_t count, float timeInterval) const {
+        std::vector<Vector> result(count);
+        if (slowDownTime == 0.0f) {
+            xProfile.trajectoryPositions(result, 0, timeInterval, offset.x, count);
+            yProfile.trajectoryPositions(result, 1, timeInterval, offset.y, count);
+        } else {
+            xProfile.trajectoryPositionsSlowDown(result, 0, timeInterval, offset.x, slowDownTime);
+            yProfile.trajectoryPositionsSlowDown(result, 1, timeInterval, offset.y, slowDownTime);
+        }
+        return result;
     }
 
     Vector speedForTime(float time) const {
