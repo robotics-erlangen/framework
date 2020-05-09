@@ -281,47 +281,83 @@ float WorldInformation::minObstacleDistance(Vector pos, float time, bool checkSt
     return minDistance;
 }
 
-std::pair<float, float> WorldInformation::minObstacleDistance(const SpeedProfile &profile, float timeOffset, Vector startPos) const
+std::pair<float, float> WorldInformation::minObstacleDistance(const SpeedProfile &profile, float timeOffset, Vector startPos, float safetyMargin) const
 {
     float totalTime = profile.time();
     float totalMinDistance = std::numeric_limits<float>::max();
     float lastPointDistance = 0;
 
     const int DIVISIONS = 40;
-    Vector lastPos;
+
+    std::vector<Vector> trajectoryPoints(DIVISIONS);
+    std::vector<float> trajectoryTimes(DIVISIONS);
+
     for (int i = 0;i<DIVISIONS;i++) {
-        float time = totalTime * i / float(DIVISIONS-1);
-        Vector pos = profile.positionForTime(time);
-        if (!pointInPlayfield(pos + startPos, m_radius)) {
+        float time = totalTime * i * (1.0f / float(DIVISIONS-1));
+        Vector pos = profile.positionForTime(time) + startPos;
+        if (!pointInPlayfield(pos, m_radius)) {
             return {-1.0f, -1.0f};
         }
-        float minDistance = minObstacleDistance(pos + startPos, time + timeOffset, true, true);
-        if (minDistance < 0) {
-            return {minDistance, minDistance};
-        }
+
+        trajectoryPoints[i] = pos;
+        trajectoryTimes[i] = time + timeOffset;
 
         if (i == DIVISIONS-1) {
+            float minDistance = minObstacleDistance(pos, time + timeOffset, true, true);
+            if (minDistance < 0) {
+                return {minDistance, minDistance};
+            }
             lastPointDistance = minDistance;
-            lastPos = pos;
         }
-        totalMinDistance = std::min(totalMinDistance, minDistance);
     }
 
-    // try to avoid moving obstacles even when the robot reaches its goal
-    if (profile.speedForTime(totalTime * 2.0f) == Vector(0, 0)) {
-        const float AFTER_STOP_AVOIDANCE_TIME = 0.5f;
-        if (totalTime < AFTER_STOP_AVOIDANCE_TIME) {
-            const float AFTER_STOP_INTERVAL = 0.03f;
-            for (int i = 0;i<int((AFTER_STOP_AVOIDANCE_TIME - totalTime) * (1.0f / AFTER_STOP_INTERVAL));i++) {
-                float t = timeOffset + totalTime + i * AFTER_STOP_INTERVAL;
-                float minDistance = minObstacleDistance(lastPos + startPos, t, false, true);
-                if (minDistance < 0) {
-                    return {minDistance, minDistance};
+    BoundingBox trajectoryBox(trajectoryPoints[0], trajectoryPoints[1]);
+    for (int i = 2;i<DIVISIONS;i++) {
+        trajectoryBox.mergePoint(trajectoryPoints[i]);
+    }
+
+    trajectoryBox.addExtraRadius(safetyMargin);
+
+    for (auto obstacle : m_obstacles) {
+        if (obstacle->boundingBox().intersects(trajectoryBox)) {
+            for (std::size_t i = 0;i<DIVISIONS;i++) {
+                float d = obstacle->distance(trajectoryPoints[i]);
+                if (d <= 0) {
+                    return {d, d};
                 }
-                totalMinDistance = std::min(totalMinDistance, minDistance);
+                totalMinDistance = std::min(totalMinDistance, d);
             }
         }
     }
+
+    for (auto obstacle : m_movingObstacles) {
+        if (obstacle->boundingBox().intersects(trajectoryBox)) {
+            for (std::size_t i = 0;i<DIVISIONS;i++) {
+                float d = obstacle->distance(trajectoryPoints[i], trajectoryTimes[i]);
+                if (d <= 0) {
+                    return {d, d};
+                }
+                totalMinDistance = std::min(totalMinDistance, d);
+            }
+
+            // try to avoid moving obstacles even when the robot reaches its goal
+            if (profile.speedForTime(totalTime * 2.0f) == Vector(0, 0)) {
+                const float AFTER_STOP_AVOIDANCE_TIME = 0.5f;
+                if (totalTime < AFTER_STOP_AVOIDANCE_TIME) {
+                    const float AFTER_STOP_INTERVAL = 0.03f;
+                    for (std::size_t i = 0;i<std::size_t((AFTER_STOP_AVOIDANCE_TIME - totalTime) * (1.0f / AFTER_STOP_INTERVAL));i++) {
+                        float t = timeOffset + totalTime + i * AFTER_STOP_INTERVAL;
+                        float d = obstacle->distance(trajectoryPoints.back(), t);
+                        if (d < 0) {
+                            return {d, d};
+                        }
+                        totalMinDistance = std::min(totalMinDistance, d);
+                    }
+                }
+            }
+        }
+    }
+
     return {totalMinDistance, lastPointDistance};
 }
 

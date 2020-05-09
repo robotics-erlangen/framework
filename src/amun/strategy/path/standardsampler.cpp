@@ -216,12 +216,13 @@ float StandardSampler::checkSample(const TrajectoryInput &input, const StandardT
     if (firstPartTime + secondPartTime > currentBestTime - MINIMUM_TIME_IMPROVEMENT) {
         return -1;
     }
-    float firstPartObstacleDist = m_world.minObstacleDistance(firstPart, 0, input.s0).first;
+    // TODO: end point might also be close to the target?
+    float firstPartObstacleDist = m_world.minObstacleDistance(firstPart, 0, input.s0, OBSTACLE_AVOIDANCE_RADIUS).first;
     if (firstPartObstacleDist <= 0) {
         return -1;
     }
     // TODO: calculate the offset while calculating the trajectory
-    auto secondPartObstacleDistances = m_world.minObstacleDistance(secondPart, firstPartTime, input.s1 - secondPartOffset);
+    auto secondPartObstacleDistances = m_world.minObstacleDistance(secondPart, firstPartTime, input.s1 - secondPartOffset, OBSTACLE_AVOIDANCE_RADIUS);
     if (secondPartObstacleDistances.first <= 0) {
         return -1;
     }

@@ -152,7 +152,7 @@ std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPat
                                                               directSlowDownTime, useHighPrecision, true);
 
     if (direct.isValid()) {
-        auto obstacleDistances = m_world.minObstacleDistance(direct, 0, input.s0);
+        auto obstacleDistances = m_world.minObstacleDistance(direct, 0, input.s0, StandardSampler::OBSTACLE_AVOIDANCE_RADIUS);
         if (obstacleDistances.first > StandardSampler::OBSTACLE_AVOIDANCE_RADIUS ||
                 (obstacleDistances.second > 0 && obstacleDistances.second < StandardSampler::OBSTACLE_AVOIDANCE_RADIUS)) {
             TrajectorySampler::TrajectoryGenerationInfo info;
