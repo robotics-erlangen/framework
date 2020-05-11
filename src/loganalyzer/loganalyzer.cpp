@@ -54,7 +54,7 @@ static unsigned long multipleStatusSize(QList<Status> &packets)
     for (const Status &status : packets) {
         QByteArray onePacket;
         onePacket.resize(status->ByteSize());
-        status->SerializeToArray(onePacket.data(), onePacket.size());
+        status->SerializePartialToArray(onePacket.data(), onePacket.size());
         buffer.append(onePacket);
     }
     return qCompress(buffer).size();
