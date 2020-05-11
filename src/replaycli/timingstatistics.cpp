@@ -20,7 +20,7 @@
 
 #include "timingstatistics.h"
 
-#include <QDebug>
+#include <iomanip>
 
 void TimingStatistics::handleStatus(const Status &status)
 {
@@ -52,24 +52,24 @@ void TimingStatistics::printStatistics(bool showHistogram, bool showCumulativeHi
 {
     if (m_saveAllData) {
         for (float time : m_timings) {
-            qDebug() <<time;
+            std::cout <<time<<std::endl;
         }
     } else {
-        qDebug() <<"Total:"<<m_totalTime<<"s";
-        qDebug() <<"Average:"<<1000.0 * m_totalTime / m_counter<<"ms";
+        std::cout <<"Total: "<<m_totalTime<<" s"<<std::endl;
+        std::cout <<"Average: "<<1000.0 * m_totalTime / m_counter<<" ms"<<std::endl;
         if (showHistogram) {
-            qDebug() <<endl<<"Histogram:";
+            std::cout <<std::endl<<"Histogram:"<<std::endl;
             for (int i = 0;i<m_timeHistogram.size();i++) {
-                qDebug() <<i<<"ms:"<<m_timeHistogram[i];
+                std::cout <<i<<" ms: "<<m_timeHistogram[i]<<std::endl;
             }
         }
         if (showCumulativeHistogram) {
-            qDebug() <<endl<<"Histogram (cumulative):";
+            std::cout <<std::endl<<"Histogram (cumulative):"<<std::endl;
             int total = 0;
             int totalFrames = std::accumulate(m_timeHistogram.begin(), m_timeHistogram.end(), 0);
             for (int i = 0;i<m_timeHistogram.size();i++) {
                 total += m_timeHistogram[i];
-                qDebug() <<fixed<<qSetRealNumberPrecision(2)<<i<<"ms:"<<100.0 * double(total) / double(totalFrames); // show in percent
+                std::cout <<std::setprecision(4)<<i<<" ms: "<<100.0 * double(total) / double(totalFrames)<<std::endl; // show in percent
             }
         }
     }
