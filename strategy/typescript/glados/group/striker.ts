@@ -6,6 +6,7 @@ import * as vis from "base/vis";
 import * as World from "base/world";
 
 import { MessageBox, MessageType } from "glados/control/messaging";
+import { Group } from "glados/trainer/groups";
 import * as MovesHelper from "glados/util/moveshelper";
 
 let G = World.Geometry;
@@ -76,8 +77,8 @@ function assignRobotsToZones(robotPositions: Map<FriendlyRobot, Position>, zones
 	return zoneAssignment;
 }
 
-export class Striker {
-	name: string = "striker";
+export class Striker implements Group {
+	readonly name = "striker";
 
 	_strikerCount: number = 0;
 

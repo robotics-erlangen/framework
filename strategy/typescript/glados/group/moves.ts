@@ -12,10 +12,11 @@ import { KickOffDefensive } from "glados/group/move/kickoffdefensive";
 import { MrlTestCorner } from "glados/group/move/mrltestcorner";
 import { None } from "glados/group/move/none";
 import { WindshieldWiper } from "glados/group/move/windshieldwiper";
+import { Group } from "glados/trainer/groups";
 // import {OverChip} from "glados/group/move/overchip";
 
-export class Moves {
-	readonly name: string = "moves";
+export class Moves implements Group {
+	readonly name = "moves";
 	moveList: typeof Move[];
 	_numAttackersSent: boolean = false;
 	_chosenMove: typeof Move | undefined;

@@ -8,13 +8,12 @@ import { Striker } from "glados/group/striker";
 
 type GroupName = "centerback" | "moves" | "striker" | "midfield";
 
-/* tslint:disable:no-misused-new */
 export interface Group {
-	name: GroupName;
-	new(): Group;
+	readonly name: GroupName;
 	run(messaging: MessageBox, messages: Map<FriendlyRobot, any>): void;
 }
-/* tslint:enable:no-misused-new */
+
+export type GroupConstructor = new() => Group;
 
 interface Application {
 	name: GroupName;
@@ -27,7 +26,7 @@ export class Groups {
 	_messaging: MessageBox;
 
 	constructor(messaging: MessageBox) {
-		let groupClasses = [
+		const groupClasses: GroupConstructor[] = [
 			CenterBack,
 			Moves,
 			Striker,
@@ -35,8 +34,8 @@ export class Groups {
 		];
 
 		this._groupList = [];
-		for (let group of groupClasses) {
-			this._groupList.push(new (group as any)());
+		for (const group of groupClasses) {
+			this._groupList.push(new group());
 		}
 
 		this._messaging = messaging;

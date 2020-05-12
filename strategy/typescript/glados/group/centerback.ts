@@ -7,6 +7,7 @@ import * as World from "base/world";
 
 import { MessageBox, MessageType } from "glados/control/messaging";
 import * as Robot from "glados/observer/robot";
+import { Group } from "glados/trainer/groups";
 import * as UtilDefense from "glados/util/defense";
 import * as Rating from "glados/util/rating";
 
@@ -140,8 +141,8 @@ function assignRobotsToPoints(robotList: FriendlyRobot[], pointList: Point[], re
 	}
 }
 
-export class CenterBack {
-	public readonly name: string = "centerback";
+export class CenterBack implements Group {
+	public readonly name = "centerback";
 	private _lastLocked: boolean = false;
 
 	// TODO: Target are at the moment defined as table that contains a Vector (pos).

@@ -6,6 +6,7 @@ import * as vis from "base/vis";
 import * as World from "base/world";
 
 import { MessageBox, MessageType } from "glados/control/messaging";
+import { Group } from "glados/trainer/groups";
 import * as Attack from "glados/util/attack";
 
 const G = World.Geometry;
@@ -75,8 +76,8 @@ function assignRobotsToZones(robotPositions: Map<FriendlyRobot, Position>, zones
 	return zoneAssignment;
 }
 
-export class Midfield {
-	public name: string = "midfield";
+export class Midfield implements Group {
+	readonly name = "midfield";
 	private _farAwayHyst: boolean = false; // the ball is far in our own half and we need midfielders to move forward
 	private _noMidfielderHyst: boolean = false; // we are attacking the goal and dont want midfielders at all
 
