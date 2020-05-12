@@ -26,6 +26,7 @@
 #include <functional>
 #include <v8.h>
 #include <cmath>
+#include <algorithm>
 
 #include "js_protobuf.h"
 #include "typescript.h"
@@ -95,7 +96,24 @@ static void amunGetWorldState(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = args.GetIsolate();
     Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
-    Local<Value> result = protobufToJs(isolate, t->worldState());
+    world::State state(t->worldState());
+    // transfering data between C++ and typescript is costly
+    // remove all fields that the strategy does not need
+    state.clear_vision_frames();
+    state.clear_simple_tracking_blue();
+    state.clear_simple_tracking_yellow();
+    state.clear_radio_response();
+    // collect ids of own robots and only give those to the strategy
+    std::vector<int> ownTeamIds;
+    for (const auto &robot : (t->isBlue() ? state.blue() : state.yellow())) {
+        ownTeamIds.push_back(robot.id());
+    }
+    for (const auto response : t->worldState().radio_response()) {
+        if (std::find(ownTeamIds.begin(), ownTeamIds.end(), response.id()) != ownTeamIds.end()) {
+            state.add_radio_response()->CopyFrom(response);
+        }
+    }
+    Local<Value> result = protobufToJs(isolate, state);
     args.GetReturnValue().Set(result);
 }
 
