@@ -295,9 +295,6 @@ std::pair<float, float> WorldInformation::minObstacleDistance(const SpeedProfile
     for (int i = 0;i<DIVISIONS;i++) {
         float time = totalTime * i * (1.0f / float(DIVISIONS-1));
         Vector pos = trajectoryPoints[i];
-        if (!pointInPlayfield(pos, m_radius)) {
-            return {-1.0f, -1.0f};
-        }
 
         trajectoryPoints[i] = pos;
         trajectoryTimes[i] = time + timeOffset;
@@ -314,6 +311,13 @@ std::pair<float, float> WorldInformation::minObstacleDistance(const SpeedProfile
     BoundingBox trajectoryBox(trajectoryPoints[0], trajectoryPoints[1]);
     for (int i = 2;i<DIVISIONS;i++) {
         trajectoryBox.mergePoint(trajectoryPoints[i]);
+    }
+
+    // check if the trajectory is in the playing field
+    // this must be done before adding the safety margin to the trajectory bounding box
+    if (!pointInPlayfield(Vector(trajectoryBox.left, trajectoryBox.top), m_radius) ||
+            !pointInPlayfield(Vector(trajectoryBox.right, trajectoryBox.bottom), m_radius)) {
+        return {-1.0f, -1.0f};
     }
 
     trajectoryBox.addExtraRadius(safetyMargin);
