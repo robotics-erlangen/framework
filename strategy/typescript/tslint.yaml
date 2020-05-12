@@ -57,7 +57,6 @@ rules:
   object-literal-key-quotes: [ true, consistent ]
   one-line: [ true, check-catch, check-finally, check-else, check-open-brace, check-whitespace ]
   ordered-imports: [ true, { grouped-imports: true, groups: ["^base", "^glados"], module-source-path: full } ]
-  prefer-method-signature: true
   prefer-switch: [ true, { min-cases: 5 } ]
   prefer-template: [ true, allow-single-concat ]
   prefer-while: true
