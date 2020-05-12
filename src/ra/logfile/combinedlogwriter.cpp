@@ -134,10 +134,10 @@ void CombinedLogWriter::handleCommand(Command comm) {
     if (recordCommand.has_use_logfile_location()) {
         useLogfileLocation(recordCommand.use_logfile_location());
     }
-    if (recordCommand.has_run_logging()) {
+    if (recordCommand.has_run_logging() && recordCommand.for_replay() == m_isReplay) {
         recordButtonToggled(recordCommand.run_logging());
     }
-    if (recordCommand.has_save_backlog()) {
+    if (recordCommand.has_save_backlog() && recordCommand.for_replay() == m_isReplay) {
         saveBackLog();
     }
 }
