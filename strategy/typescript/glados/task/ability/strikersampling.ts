@@ -13,6 +13,7 @@ import * as Rating from "glados/util/rating";
 
 let G = World.Geometry;
 
+const VISUALIZE_SAMPLING = false;
 
 function visualizeRating(name: string, pos: Position, rating: number) {
 	vis.addCircle("t/a/strikersampling: " + name, pos, 0.06,
@@ -57,7 +58,7 @@ export class StrikerSampling {
 
 		let rating = Rating.valueToRating(shootTime + ballTime - robotTime, 0.2, 0.5);
 
-		if (!amun.isPerformanceMode) {
+		if (!amun.isPerformanceMode && VISUALIZE_SAMPLING) {
 			visualizeRating("canReachInTime", ballPos, rating);
 		}
 
@@ -67,7 +68,7 @@ export class StrikerSampling {
 	passTooShort(ballPos: Position): number {
 		let rating = Rating.valueToRating(ballPos.distanceTo(this._attackPosition), 3, 5);
 
-		if (!amun.isPerformanceMode) {
+		if (!amun.isPerformanceMode && VISUALIZE_SAMPLING) {
 			visualizeRating("passTooShort", ballPos, rating);
 		}
 
@@ -84,7 +85,7 @@ export class StrikerSampling {
 		let volleySuccessProbability = Rating.valueToRating(volleyAngle, 65 / 180 * Math.PI, 50 / 180 * Math.PI);
 		let rating = volleySuccessProbability * (1 - minRating) + minRating;
 
-		if (!amun.isPerformanceMode) {
+		if (!amun.isPerformanceMode && VISUALIZE_SAMPLING) {
 			visualizeRating("volleyPass", ballPos, rating);
 		}
 
@@ -96,7 +97,7 @@ export class StrikerSampling {
 		let angle = (World.Geometry.OpponentGoalRight - ballPos).absoluteAngleDiff(World.Geometry.OpponentGoalLeft - ballPos);
 		let rating = Rating.valueToRating(angle, 0, 20 / 180 * Math.PI) * (1 - minRating) + minRating;
 
-		if (!amun.isPerformanceMode) {
+		if (!amun.isPerformanceMode && VISUALIZE_SAMPLING) {
 			visualizeRating("goalAngle", ballPos, rating);
 		}
 		return rating;
@@ -118,7 +119,7 @@ export class StrikerSampling {
 			this._attackPosition - World.Geometry.OpponentGoal);
 		let rating = Rating.valueToRating(angleAttackGoalBall, 0, Math.PI * 0.5);
 
-		if (!amun.isPerformanceMode) {
+		if (!amun.isPerformanceMode && VISUALIZE_SAMPLING) {
 			visualizeRating("crossPass", ballPos, rating);
 		}
 
@@ -142,7 +143,7 @@ export class StrikerSampling {
 			rating = (1 - demeritWeight) * rating + demeritWeight * distanceRatingDemerit;
 		}
 
-		if (!amun.isPerformanceMode) {
+		if (!amun.isPerformanceMode && VISUALIZE_SAMPLING) {
 			visualizeRating("distToGoal", ballPos, rating);
 		}
 
