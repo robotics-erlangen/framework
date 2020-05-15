@@ -58,6 +58,31 @@ float StaticObstacles::Circle::distance(const LineSegment &segment) const
     return segment.distance(center) - radius;
 }
 
+inline static ZonedIntersection computeZonedIntersection(float distSq, float radius, float nearRadius)
+{
+    if (distSq <= radius * radius) {
+        return ZonedIntersection::IN_OBSTACLE;
+    } else if (distSq <= (radius + nearRadius) * (radius + nearRadius)) {
+        return ZonedIntersection::NEAR_OBSTACLE;
+    }
+    return ZonedIntersection::FAR_AWAY;
+}
+
+inline static ZonedIntersection computeZonedIntersectionLinear(float dist, float radius, float nearRadius)
+{
+    if (dist < radius) {
+        return ZonedIntersection::IN_OBSTACLE;
+    } else if (dist <= radius + nearRadius) {
+        return ZonedIntersection::NEAR_OBSTACLE;
+    }
+    return ZonedIntersection::FAR_AWAY;
+}
+
+ZonedIntersection StaticObstacles::Circle::zonedDistance(const Vector &v, float nearRadius) const
+{
+    return computeZonedIntersection(v.distanceSq(center), radius, nearRadius);
+}
+
 Vector StaticObstacles::Circle::projectOut(Vector v, float extraDistance) const
 {
     float dist = v.distance(center);
@@ -87,6 +112,11 @@ void StaticObstacles::Circle::deserialize(const pathfinding::CircleObstacle &obs
 float StaticObstacles::Line::distance(const Vector &v) const
 {
     return segment.distance(v) - radius;
+}
+
+ZonedIntersection StaticObstacles::Line::zonedDistance(const Vector &v, float nearRadius) const
+{
+    return computeZonedIntersection(segment.distanceSq(v), radius, nearRadius);
 }
 
 float StaticObstacles::Line::distance(const LineSegment &segment) const
@@ -167,6 +197,22 @@ float StaticObstacles::Rect::distance(const Vector &v) const
         return distY - radius; // distance to nearest side of the rectangle
     } else {
         return distX - radius;
+    }
+}
+
+ZonedIntersection StaticObstacles::Rect::zonedDistance(const Vector &v, float nearRadius) const
+{
+    float distX = std::max(bottom_left.x - v.x, v.x - top_right.x);
+    float distY = std::max(bottom_left.y - v.y, v.y - top_right.y);
+
+    if (distX >= 0 && distY >= 0) { // distance to corner
+        return computeZonedIntersection(distX*distX + distY*distY, radius, nearRadius);
+    } else if (distX < 0 && distY < 0) { // inside
+        return computeZonedIntersectionLinear(std::max(distX, distY), radius, nearRadius);
+    } else if (distX < 0) { // distance to nearest side of the rectangle
+        return computeZonedIntersectionLinear(distY, radius, nearRadius);
+    } else {
+        return computeZonedIntersectionLinear(distX, radius, nearRadius);
     }
 }
 
@@ -256,6 +302,12 @@ float StaticObstacles::Triangle::distance(const Vector &v) const
     return distance - radius;
 }
 
+ZonedIntersection StaticObstacles::Triangle::zonedDistance(const Vector &v, float nearRadius) const
+{
+    // TODO: optimize this code, but it would result in quite a lot of code duplication
+    return computeZonedIntersectionLinear(distance(v), radius, nearRadius);
+}
+
 float StaticObstacles::Triangle::distance(const LineSegment &segment) const
 {
     // at least one segment intersects a triangle side
@@ -341,6 +393,16 @@ float MovingObstacles::MovingCircle::distance(Vector pos, float time) const
     return centerAtTime.distance(pos) - radius;
 }
 
+ZonedIntersection MovingObstacles::MovingCircle::zonedDistance(const Vector &pos, float time, float nearRadius) const
+{
+    if (time < startTime || time > endTime) {
+        return ZonedIntersection::FAR_AWAY;
+    }
+    float t = time - startTime;
+    Vector centerAtTime = startPos + speed * t + acc * (0.5f * t * t);
+    return computeZonedIntersection(centerAtTime.distanceSq(pos), radius, nearRadius);
+}
+
 static std::pair<float, float> range1D(float p0, float speed, float acc, float startTime, float endTime)
 {
     float timeDiff = endTime - startTime;
@@ -403,7 +465,7 @@ bool MovingObstacles::MovingLine::intersects(Vector pos, float time) const
     float t = time - startTime;
     const Vector p1 = startPos1 + speed1 * t + acc1 * (0.5f * t * t);
     const Vector p2 = startPos2 + speed2 * t + acc2 * (0.5f * t * t);
-    return LineSegment(p1, p2).distance(pos) < radius;
+    return LineSegment(p1, p2).distanceSq(pos) < radius * radius;
 }
 
 float MovingObstacles::MovingLine::distance(Vector pos, float time) const
@@ -419,6 +481,21 @@ float MovingObstacles::MovingLine::distance(Vector pos, float time) const
         return p1.distance(pos) - radius;
     }
     return LineSegment(p1, p2).distance(pos) - radius;
+}
+
+ZonedIntersection MovingObstacles::MovingLine::zonedDistance(const Vector &pos, float time, float nearRadius) const
+{
+    if (time < startTime || time > endTime) {
+        return ZonedIntersection::FAR_AWAY;
+    }
+    float t = time - startTime;
+    const Vector p1 = startPos1 + speed1 * t + acc1 * (0.5f * t * t);
+    const Vector p2 = startPos2 + speed2 * t + acc2 * (0.5f * t * t);
+    if (p1 == p2) {
+        // this happens for example for time = 0
+        return computeZonedIntersection(p1.distanceSq(pos), radius, nearRadius);
+    }
+    return computeZonedIntersection(LineSegment(p1, p2).distanceSq(pos), radius, nearRadius);
 }
 
 BoundingBox MovingObstacles::MovingLine::boundingBox() const
@@ -556,6 +633,12 @@ float MovingObstacles::FriendlyRobotObstacle::distance(Vector pos, float time) c
 {
     unsigned long index = std::min(static_cast<unsigned long>(trajectory->size()-1), static_cast<unsigned long>(time / timeInterval));
     return (*trajectory)[index].pos.distance(pos) - radius;
+}
+
+ZonedIntersection MovingObstacles::FriendlyRobotObstacle::zonedDistance(const Vector &pos, float time, float nearRadius) const
+{
+    unsigned long index = std::min(static_cast<unsigned long>(trajectory->size()-1), static_cast<unsigned long>(time / timeInterval));
+    return computeZonedIntersection((*trajectory)[index].pos.distanceSq(pos), radius, nearRadius);
 }
 
 void MovingObstacles::FriendlyRobotObstacle::serializeChild(pathfinding::Obstacle *obstacle) const

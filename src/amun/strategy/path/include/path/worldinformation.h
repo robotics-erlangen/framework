@@ -82,8 +82,8 @@ public:
     bool isInMovingObstacle(const std::vector<MovingObstacles::MovingObstacle *> &obstacles, Vector point, float time) const;
     bool isTrajectoryInObstacle(const SpeedProfile &profile, float timeOffset, Vector startPos) const;
     // return {min distance of trajectory to obstacles, min distance of last point to obstacles}
-    std::pair<float, float> minObstacleDistance(const SpeedProfile &profile, float timeOffset, Vector startPos, float safetyMargin) const;
-    float minObstacleDistance(Vector pos, float time, bool checkStatic, bool checkDynamic) const;
+    std::pair<ZonedIntersection, ZonedIntersection> minObstacleDistance(const SpeedProfile &profile, float timeOffset, Vector startPos, float safetyMargin) const;
+    float minObstacleDistancePoint(Vector pos, float time, bool checkStatic, bool checkDynamic) const;
 
     // collectobstacles must have been called before calling this function
     void serialize(pathfinding::WorldState *state) const;

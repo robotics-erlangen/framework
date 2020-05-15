@@ -153,8 +153,8 @@ std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPat
 
     if (direct.isValid()) {
         auto obstacleDistances = m_world.minObstacleDistance(direct, 0, input.s0, StandardSampler::OBSTACLE_AVOIDANCE_RADIUS);
-        if (obstacleDistances.first > StandardSampler::OBSTACLE_AVOIDANCE_RADIUS ||
-                (obstacleDistances.second > 0 && obstacleDistances.second < StandardSampler::OBSTACLE_AVOIDANCE_RADIUS)) {
+        if (obstacleDistances.first == ZonedIntersection::FAR_AWAY ||
+                (obstacleDistances.first == ZonedIntersection::NEAR_OBSTACLE && obstacleDistances.second == ZonedIntersection::NEAR_OBSTACLE)) {
             TrajectorySampler::TrajectoryGenerationInfo info;
             info.profile = direct;
             info.fastEndSpeed = true;

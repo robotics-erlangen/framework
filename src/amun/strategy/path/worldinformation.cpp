@@ -250,7 +250,7 @@ bool WorldInformation::isTrajectoryInObstacle(const SpeedProfile &profile, float
     return false;
 }
 
-float WorldInformation::minObstacleDistance(Vector pos, float time, bool checkStatic, bool checkDynamic) const
+float WorldInformation::minObstacleDistancePoint(Vector pos, float time, bool checkStatic, bool checkDynamic) const
 {
     float minDistance = std::numeric_limits<float>::max();
     // static obstacles
@@ -281,10 +281,10 @@ float WorldInformation::minObstacleDistance(Vector pos, float time, bool checkSt
     return minDistance;
 }
 
-std::pair<float, float> WorldInformation::minObstacleDistance(const SpeedProfile &profile, float timeOffset, Vector startPos, float safetyMargin) const
+std::pair<ZonedIntersection, ZonedIntersection> WorldInformation::minObstacleDistance(const SpeedProfile &profile, float timeOffset, Vector startPos, float safetyMargin) const
 {
     float totalTime = profile.time();
-    float totalMinDistance = std::numeric_limits<float>::max();
+    ZonedIntersection totalIntersection = ZonedIntersection::FAR_AWAY;
     float lastPointDistance = 0;
 
     const int DIVISIONS = 40;
@@ -300,9 +300,9 @@ std::pair<float, float> WorldInformation::minObstacleDistance(const SpeedProfile
         trajectoryTimes[i] = time + timeOffset;
 
         if (i == DIVISIONS-1) {
-            float minDistance = minObstacleDistance(pos, time + timeOffset, true, true);
+            float minDistance = minObstacleDistancePoint(pos, time + timeOffset, true, true);
             if (minDistance < 0) {
-                return {minDistance, minDistance};
+                return {ZonedIntersection::IN_OBSTACLE, ZonedIntersection::IN_OBSTACLE};
             }
             lastPointDistance = minDistance;
         }
@@ -317,7 +317,7 @@ std::pair<float, float> WorldInformation::minObstacleDistance(const SpeedProfile
     // this must be done before adding the safety margin to the trajectory bounding box
     if (!pointInPlayfield(Vector(trajectoryBox.left, trajectoryBox.top), m_radius) ||
             !pointInPlayfield(Vector(trajectoryBox.right, trajectoryBox.bottom), m_radius)) {
-        return {-1.0f, -1.0f};
+        return {ZonedIntersection::IN_OBSTACLE, ZonedIntersection::IN_OBSTACLE};
     }
 
     trajectoryBox.addExtraRadius(safetyMargin);
@@ -325,11 +325,12 @@ std::pair<float, float> WorldInformation::minObstacleDistance(const SpeedProfile
     for (auto obstacle : m_obstacles) {
         if (obstacle->boundingBox().intersects(trajectoryBox)) {
             for (std::size_t i = 0;i<DIVISIONS;i++) {
-                float d = obstacle->distance(trajectoryPoints[i]);
-                if (d <= 0) {
-                    return {d, d};
+                ZonedIntersection intersection = obstacle->zonedDistance(trajectoryPoints[i], safetyMargin);
+                if (intersection == ZonedIntersection::IN_OBSTACLE) {
+                    return {intersection, intersection};
+                } else if (intersection == ZonedIntersection::NEAR_OBSTACLE) {
+                    totalIntersection = intersection;
                 }
-                totalMinDistance = std::min(totalMinDistance, d);
             }
         }
     }
@@ -337,11 +338,12 @@ std::pair<float, float> WorldInformation::minObstacleDistance(const SpeedProfile
     for (auto obstacle : m_movingObstacles) {
         if (obstacle->boundingBox().intersects(trajectoryBox)) {
             for (std::size_t i = 0;i<DIVISIONS;i++) {
-                float d = obstacle->distance(trajectoryPoints[i], trajectoryTimes[i]);
-                if (d <= 0) {
-                    return {d, d};
+                ZonedIntersection intersection = obstacle->zonedDistance(trajectoryPoints[i], trajectoryTimes[i], safetyMargin);
+                if (intersection == ZonedIntersection::IN_OBSTACLE) {
+                    return {intersection, intersection};
+                } else if (intersection == ZonedIntersection::NEAR_OBSTACLE) {
+                    totalIntersection = intersection;
                 }
-                totalMinDistance = std::min(totalMinDistance, d);
             }
 
             // try to avoid moving obstacles even when the robot reaches its goal
@@ -351,18 +353,20 @@ std::pair<float, float> WorldInformation::minObstacleDistance(const SpeedProfile
                     const float AFTER_STOP_INTERVAL = 0.03f;
                     for (std::size_t i = 0;i<std::size_t((AFTER_STOP_AVOIDANCE_TIME - totalTime) * (1.0f / AFTER_STOP_INTERVAL));i++) {
                         float t = timeOffset + totalTime + i * AFTER_STOP_INTERVAL;
-                        float d = obstacle->distance(trajectoryPoints.back(), t);
-                        if (d < 0) {
-                            return {d, d};
+                        ZonedIntersection intersection = obstacle->zonedDistance(trajectoryPoints.back(), t, safetyMargin);
+                        if (intersection == ZonedIntersection::IN_OBSTACLE) {
+                            return {intersection, intersection};
+                        } else if (intersection == ZonedIntersection::NEAR_OBSTACLE) {
+                            totalIntersection = intersection;
                         }
-                        totalMinDistance = std::min(totalMinDistance, d);
                     }
                 }
             }
         }
     }
 
-    return {totalMinDistance, lastPointDistance};
+    ZonedIntersection lastPointIntersection = lastPointDistance < safetyMargin ? ZonedIntersection::NEAR_OBSTACLE : ZonedIntersection::FAR_AWAY;
+    return {totalIntersection, lastPointIntersection};
 }
 
 void WorldInformation::serialize(pathfinding::WorldState *state) const

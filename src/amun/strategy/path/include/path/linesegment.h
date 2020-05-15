@@ -36,6 +36,7 @@ public:
 
 public:
     float distance(const Vector& pos) const;
+    float distanceSq(const Vector& pos) const;
     float distanceSigned(const Vector& pos) const;
     float distanceDirect(const Vector& pos) const;
     float distance(const LineSegment& segment) const;
@@ -82,6 +83,23 @@ inline LineSegment::LineSegment(const Vector& start, const Vector& end) :
 inline float LineSegment::distance(const Vector& pos) const
 {
     return std::abs(distanceSigned(pos));
+}
+
+inline float LineSegment::distanceSq(const Vector& pos) const
+{
+    Vector d;
+
+    d = pos - m_start;
+    if (d * m_dir < 0.0f) {
+        return d.lengthSquared();
+    }
+
+    d = pos - m_end;
+    if (d * m_dir > 0.0f) {
+        return d.lengthSquared();
+    }
+
+    return (d * m_normal) * (d * m_normal);
 }
 
 // end caps are not signed!
