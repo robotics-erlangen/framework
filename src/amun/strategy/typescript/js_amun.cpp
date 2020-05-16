@@ -312,14 +312,68 @@ static void amunAddPathSimple(const FunctionCallbackInfo<Value>& args)
 
     float r, g, b, alpha, width;
     bool background;
-    if (!checkNumberOfArguments(isolate, 7, args.Length()) || !verifyNumber(isolate, args[1], r) ||
-            !verifyNumber(isolate, args[2], g) || !verifyNumber(isolate, args[3], b) ||
-            !verifyNumber(isolate, args[4], alpha) || !verifyNumber(isolate, args[5], width) ||
-            !toBoolChecked(isolate, args[6], background)) {
-        return;
-    }
+
     std::string name(*String::Utf8Value(isolate, args[0]));
     auto vis = t->addVisualization();
+
+    if (args.Length() == 2) { // new, more efficient version
+        Local<Float32Array> values = Local<Float32Array>::Cast(args[1]);
+        std::vector<float> ownValues(values->Length());
+        static_assert (sizeof(float) == 4, "addPath only works for 32 bit floating point numbers");
+        values->CopyContents(ownValues.data(), ownValues.size() * 4);
+        r = ownValues[0];
+        g = ownValues[1];
+        b = ownValues[2];
+        alpha = ownValues[3];
+        width = ownValues[4];
+        background = ownValues[5] != 0;
+
+        auto path = vis->mutable_path();
+        // TODO: pre-allocate the array size
+        if (ownValues.size() % 2 == 1) {
+            throwError(isolate, "Invalid array length");
+            return;
+        }
+        path->mutable_point()->Reserve((ownValues.size()-6) / 2);
+        for (unsigned int i = 0;i<(ownValues.size()-6);i+=2) {
+            auto point = path->add_point();
+            point->set_x(ownValues[i + 6]);
+            point->set_y(ownValues[i + 6 + 1]);
+        }
+
+
+    } else { // the old, less efficient version
+        if (!checkNumberOfArguments(isolate, 7, args.Length()) || !verifyNumber(isolate, args[1], r) ||
+                !verifyNumber(isolate, args[2], g) || !verifyNumber(isolate, args[3], b) ||
+                !verifyNumber(isolate, args[4], alpha) || !verifyNumber(isolate, args[5], width) ||
+                !toBoolChecked(isolate, args[6], background)) {
+            return;
+        }
+
+        if (!args[7]->IsArray()) {
+            throwError(isolate, "Argument is not an array");
+            return;
+        }
+        Local<Array> points = Local<Array>::Cast(args[7]);
+
+        auto path = vis->mutable_path();
+        // TODO: pre-allocate the array size
+        if (points->Length() % 2 == 1) {
+            throwError(isolate, "Invalid array length");
+            return;
+        }
+        for (unsigned int i = 0;i<points->Length();i+=2) {
+            float x, y;
+            if (!verifyNumber(isolate, points->Get(i), x) || !verifyNumber(isolate, points->Get(i+1), y)) {
+                throwError(isolate, "Array has to contain numbers");
+                return;
+            }
+            auto point = path->add_point();
+            point->set_x(x);
+            point->set_y(y);
+        }
+    }
+
     auto color = vis->mutable_pen()->mutable_color();
     color->set_red(r);
     color->set_green(g);
@@ -328,28 +382,6 @@ static void amunAddPathSimple(const FunctionCallbackInfo<Value>& args)
     vis->set_width(width);
     vis->set_background(background);
     vis->set_name(name);
-
-    if (!args[7]->IsArray()) {
-        throwError(isolate, "Argument is not an array");
-        return;
-    }
-    Local<Array> points = Local<Array>::Cast(args[7]);
-    auto path = vis->mutable_path();
-    // TODO: pre-allocate the array size
-    if (points->Length() % 2 == 1) {
-        throwError(isolate, "Invalid array length");
-        return;
-    }
-    for (unsigned int i = 0;i<points->Length();i+=2) {
-        float x, y;
-        if (!verifyNumber(isolate, points->Get(i), x) || !verifyNumber(isolate, points->Get(i+1), y)) {
-            throwError(isolate, "Array has to contain numbers");
-            return;
-        }
-        auto point = path->add_point();
-        point->set_x(x);
-        point->set_y(y);
-    }
 }
 
 static void amunAddPolygonSimple(const FunctionCallbackInfo<Value>& args)
@@ -778,9 +810,10 @@ void registerAmunJsCallbacks(Isolate *isolate, Local<Object> global, Typescript 
     auto data = External::New(isolate, t);
     installCallbacks(isolate, amunObject, callbacks, data);
 
-    // add a field to tell the strategy that this ra instance supports option default values
+    // add a field to tell the strategy that this ra instance supports option default values and other features
     Local<String> optionDefaultSupport = v8string(isolate, "SUPPORTS_OPTION_DEFAULT");
     amunObject->Set(optionDefaultSupport, Boolean::New(isolate, true));
+    amunObject->Set(v8string(isolate, "SUPPORTS_EFFICIENT_PATHVIS"), Boolean::New(isolate, true));
 
     Local<String> amunStr = v8string(isolate, "amun");
     global->Set(amunStr, amunObject);

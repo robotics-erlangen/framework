@@ -373,12 +373,27 @@ export function addPathRaw(name: string, points: Position[], color: Color = gcol
 			background: background
 		});
 	} else {
-		let pointArray: number[] = [];
-		for (let pos of points) {
-			pointArray.push(pos.x);
-			pointArray.push(pos.y);
+		if (amun.SUPPORTS_EFFICIENT_PATHVIS) {
+			let allData = new Float32Array(6 + 2 * points.length);
+			allData[0] = color.red;
+			allData[1] = color.green;
+			allData[2] = color.blue;
+			allData[3] = color.alpha;
+			allData[4] = lineWidth;
+			allData[5] = background ? 1 : 0;
+			for (let i = 0;i < points.length;i++) {
+				allData[6 + i * 2] = points[i].x;
+				allData[6 + i * 2 + 1] = points[i].y;
+			}
+			amunLocal.addPathSimple(name, allData);
+		} else {
+			let pointArray: number[] = [];
+			for (let pos of points) {
+				pointArray.push(pos.x);
+				pointArray.push(pos.y);
+			}
+			amunLocal.addPathSimple(name, color.red, color.green, color.blue, color.alpha, lineWidth, background, pointArray);
 		}
-		amunLocal.addPathSimple(name, color.red, color.green, color.blue, color.alpha, lineWidth, background, pointArray);
 	}
 }
 
