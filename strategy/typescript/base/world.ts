@@ -532,7 +532,7 @@ export function haltOwnRobots() {
  */
 export function setRobotCommands() {
 	if (amunLocal.setCommands) {
-		let commands: [number, number, any][] = [];
+		let commands: [number, number, pb.robot.Command][] = [];
 		for (let robot of FriendlyRobotsAll) {
 			commands.push([robot.generation, robot.id, robot._command()]);
 		}

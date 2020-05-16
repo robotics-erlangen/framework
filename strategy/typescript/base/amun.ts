@@ -63,7 +63,8 @@ interface AmunPublic {
 	sendCommand(command: pb.amun.Command): void;
 
 	// ra version/feature tags
-	SUPPORTS_OPTION_DEFAULT: boolean | undefined;
+	readonly SUPPORTS_OPTION_DEFAULT: boolean | undefined;
+	readonly SUPPORTS_EFFICIENT_PATHVIS: boolean | undefined;
 }
 
 interface Amun extends AmunPublic {
@@ -83,7 +84,13 @@ interface Amun extends AmunPublic {
 	/** Adds a circle visualization, this is faster than the generic addVisualization */
 	addCircleSimple(name: string, x: number, y: number, radius: number, r: number,
 		g: number, b: number, alpha: number, filled: boolean, background: boolean, lineWidth: number): void;
-	/** Adds a path visualization, pointCoordinates takes consecutive x and y coordinates of the points */
+	/**
+	 * Adds a path visualization, pointCoordinates takes consecutive x and y coordinates of the points
+	 * Two different version depending on what features the amun instance supports
+	 * The one using the Float32Array is only available if amun.SUPPORTS_EFFICIENT_PATHVIS is true
+	 * In that case, the values have to be given in the exact same order as the parameters for the second version
+	 */
+	addPathSimple(name: string, data: Float32Array): void;
 	addPathSimple(name: string, r: number, g: number, b: number, alpha: number, width: number, background: boolean,
 		pointCoordinates: number[]): void;
 	/** Adds a polygon visualization, pointCoordinates takes consecutive x and y coordinates of the points */
@@ -165,6 +172,7 @@ export function _hideFunctions() {
 	let log = amun.log;
 	let sendCommand = amun.sendCommand;
 	let supportsOptionDefault = amun.SUPPORTS_OPTION_DEFAULT;
+	let supportsEfficientPath = amun.SUPPORTS_EFFICIENT_PATHVIS;
 
 	const makeDisabledFunction = function(name: string) {
 		function DISABLED_FUNCTION(..._: any[]): any {
@@ -215,7 +223,8 @@ export function _hideFunctions() {
 		luaRandom: makeDisabledFunction("luaRandom"),
 		tryCatch: makeDisabledFunction("tryCatch"),
 
-		SUPPORTS_OPTION_DEFAULT: supportsOptionDefault
+		SUPPORTS_OPTION_DEFAULT: supportsOptionDefault,
+		SUPPORTS_EFFICIENT_PATHVIS: supportsEfficientPath
 	};
 }
 
