@@ -124,6 +124,7 @@ void TimedStatusSource::seekPacket(int packet)
         m_spoolCounter = packet - m_nextPacket;
         return;
     }
+    emit jumped();
 
     // read a few packets before the new one to have a complete up-to-date status
     int preloadCount =  10;

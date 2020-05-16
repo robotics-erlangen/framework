@@ -53,6 +53,7 @@ private slots:
 
 signals:
     void gotStatus(Status s);
+    void jumped();
 
 private:
     void indexLogFile();
