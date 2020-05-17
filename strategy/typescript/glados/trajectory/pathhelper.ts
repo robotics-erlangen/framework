@@ -505,7 +505,6 @@ function addRobotObstacles(path: Path, robot: FriendlyRobot, targetPosition: Pos
 						let leavingTime = (-absSpeed + Math.sqrt(absSpeed * absSpeed + 2 * r.acceleration.aBrakeFMax * (absSpeed * estimationTime + r.radius))) / r.acceleration.aBrakeFMax;
 						path.addMovingLine(0, leavingTime, r.pos, new Vector(0, 0), new Vector(0, 0), estimatedPosition, new Vector(0, 0), new Vector(0, 0), r.radius + safetyDistance, Priorities.ROBOT);
 					}
-					// path.addAvoidanceLine(estimatedPosition, r.pos + (estimatedPosition - r.pos) * 2, r.radius * 2, 1.2);
 					if (!robotIsSlow && !useCMA) {
 						path.addMovingCircle(0, 0.8, r.pos, r.speed, new Vector(0, 0), r.radius + safetyDistance, Priorities.ROBOT);
 					}
