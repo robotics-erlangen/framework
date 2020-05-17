@@ -415,26 +415,6 @@ static void trajectoryMaxIntersectingObstaclePrio(const FunctionCallbackInfo<Val
     args.GetReturnValue().Set(Number::New(isolate, p->maxIntersectingObstaclePrio()));
 }
 
-static void trajectoryAddAvoidanceLine(const FunctionCallbackInfo<Value> &args)
-{
-    Isolate * isolate = args.GetIsolate();
-
-    float x1, y1, x2, y2, radius, avoidanceFactor;
-    if (!verifyNumber(isolate, args[0], x1) || !verifyNumber(isolate, args[1], y1) ||
-            !verifyNumber(isolate, args[2], x2) || !verifyNumber(isolate, args[3], y2) ||
-            !verifyNumber(isolate, args[4], radius) || !verifyNumber(isolate, args[5], avoidanceFactor)) {
-        return;
-    }
-
-    // a line musn't have length zero
-    if (x1 == x2 && y1 == y2) {
-        isolate->ThrowException(Exception::Error(v8string(isolate, "line must have non zero length")));
-        return;
-    }
-    auto p = static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value())->trajectoryPath();
-    p->world().addAvoidanceLine(Vector(x1, y1), Vector(x2, y2), radius, avoidanceFactor);
-}
-
 static void trajectorySetRobotId(const FunctionCallbackInfo<Value> &args)
 {
     Isolate * isolate = args.GetIsolate();
@@ -513,7 +493,6 @@ static QList<CallbackInfo> trajectoryPathCallbacks = {
     { "getTrajectoryAsObstacle", trajectoryGetLastTrajectoryAsRobotObstacle},
     { "addRobotTrajectoryObstacle", trajectoryAddRobotTrajectoryObstacle},
     { "maxIntersectingObstaclePrio", trajectoryMaxIntersectingObstaclePrio},
-    { "addAvoidanceLine",   trajectoryAddAvoidanceLine},
     { "setRobotId",         trajectorySetRobotId}};
 
 static void pathCreateNew(const FunctionCallbackInfo<Value>& args)

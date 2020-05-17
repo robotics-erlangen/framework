@@ -28,12 +28,6 @@ message LineObstacle {
     optional Vector end = 2;
 };
 
-message AvoidanceLineObstacle {
-    optional Vector start = 1;
-    optional Vector end = 2;
-    optional float avoidance_factor = 3;
-};
-
 
 // moving obstacles
 message MovingCircleObstacle {
@@ -75,7 +69,7 @@ message Obstacle {
         RectObstacle rectangle = 5;
         TriangleObstacle triangle = 6;
         LineObstacle line = 7;
-        AvoidanceLineObstacle avoidance_line = 8;
+        // reserved: 8
         MovingCircleObstacle moving_circle = 9;
         MovingLineObstacle moving_line = 10;
         FriendlyRobotObstacle friendly_robot = 11;

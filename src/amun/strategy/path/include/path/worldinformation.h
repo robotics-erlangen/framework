@@ -61,7 +61,6 @@ public:
     void addMovingCircle(Vector startPos, Vector speed, Vector acc, float startTime, float endTime, float radius, int prio);
     void addMovingLine(Vector startPos1, Vector speed1, Vector acc1, Vector startPos2, Vector speed2, Vector acc2, float startTime, float endTime, float width, int prio);
     void addFriendlyRobotTrajectoryObstacle(std::vector<TrajectoryPoint> *obstacle, int prio, float radius);
-    void addAvoidanceLine(Vector s0, Vector s1, float radius, float avoidanceFactor);
 
     void collectMovingObstacles();
 
@@ -102,7 +101,6 @@ private:
     std::vector<MovingObstacles::MovingLine> m_movingLines;
     std::vector<MovingObstacles::FriendlyRobotObstacle> m_friendlyRobotObstacles;
     std::vector<MovingObstacles::MovingObstacle*> m_movingObstacles;
-    std::vector<StaticObstacles::AvoidanceLine> m_avoidanceLines;
 
     int m_outOfFieldPriority = 1;
 

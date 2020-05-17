@@ -122,14 +122,6 @@ namespace StaticObstacles {
         LineSegment segment;
     };
 
-    struct AvoidanceLine : public Line {
-        AvoidanceLine(const Vector &p1, const Vector &p2, float avoidanceFactor) : Line(p1, p2), avoidanceFactor(avoidanceFactor) {}
-        void serializeChild(pathfinding::Obstacle *obstacle) const override;
-        void deserialize(const pathfinding::AvoidanceLineObstacle &obstacle);
-
-        float avoidanceFactor;
-    };
-
 }
 
 struct TrajectoryPoint

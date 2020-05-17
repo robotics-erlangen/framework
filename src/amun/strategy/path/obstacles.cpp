@@ -161,29 +161,6 @@ void StaticObstacles::Line::deserialize(const pathfinding::LineObstacle &obstacl
     segment = LineSegment(start, end);
 }
 
-void StaticObstacles::AvoidanceLine::serializeChild(pathfinding::Obstacle *obstacle) const
-{
-    auto line = obstacle->mutable_avoidance_line();
-    setVector(segment.start(), line->mutable_start());
-    setVector(segment.end(), line->mutable_end());
-    line->set_avoidance_factor(avoidanceFactor);
-}
-
-void StaticObstacles::AvoidanceLine::deserialize(const pathfinding::AvoidanceLineObstacle &obstacle)
-{
-    Vector start, end;
-    if (obstacle.has_start()) {
-        start = deserializeVector(obstacle.start());
-    }
-    if (obstacle.has_end()) {
-        end = deserializeVector(obstacle.end());
-    }
-    segment = LineSegment(start, end);
-    if (obstacle.has_avoidance_factor()) {
-        avoidanceFactor = obstacle.avoidance_factor();
-    }
-}
-
 float StaticObstacles::Rect::distance(const Vector &v) const
 {
     float distX = std::max(bottom_left.x - v.x, v.x - top_right.x);

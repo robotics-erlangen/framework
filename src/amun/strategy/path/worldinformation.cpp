@@ -45,7 +45,6 @@ void WorldInformation::clearObstacles()
     m_movingCircles.clear();
     m_movingLines.clear();
     m_friendlyRobotObstacles.clear();
-    m_avoidanceLines.clear();
 }
 
 void WorldInformation::addToAllStaticObstacleRadius(float additionalRadius)
@@ -178,14 +177,6 @@ void WorldInformation::addFriendlyRobotTrajectoryObstacle(std::vector<Trajectory
     m_friendlyRobotObstacles.push_back(o);
 }
 
-void WorldInformation::addAvoidanceLine(Vector s0, Vector s1, float radius, float avoidanceFactor)
-{
-    StaticObstacles::AvoidanceLine line(s0, s1, avoidanceFactor);
-    line.radius = radius;
-    m_avoidanceLines.push_back(line);
-}
-
-
 // obstacle checking
 bool WorldInformation::isInMovingObstacle(const std::vector<MovingObstacles::MovingObstacle*> &obstacles, Vector point, float time) const
 {
@@ -254,11 +245,6 @@ float WorldInformation::minObstacleDistancePoint(Vector pos, float time, bool ch
             }
             minDistance = std::min(minDistance, d);
         }
-    }
-    // avoidance obstacles
-    for (const auto &l : m_avoidanceLines) {
-        float d = std::max(0.01f, l.distance(pos));
-        minDistance = std::min(minDistance, d);
     }
     return minDistance;
 }
@@ -391,11 +377,6 @@ void WorldInformation::deserialize(const pathfinding::WorldState &state)
             rect.deserialize(obstacle.rectangle());
             rect.deserializeCommon(obstacle);
             m_rectObstacles.push_back(rect);
-        } else if (obstacle.has_avoidance_line()) {
-            StaticObstacles::AvoidanceLine line(Vector(0, 0), Vector(1, 1), 0);
-            line.deserialize(obstacle.avoidance_line());
-            line.deserializeCommon(obstacle);
-            m_avoidanceLines.push_back(line);
         } else if (obstacle.has_moving_circle()) {
             MovingObstacles::MovingCircle circle(obstacle, obstacle.moving_circle());
             m_movingCircles.push_back(circle);
