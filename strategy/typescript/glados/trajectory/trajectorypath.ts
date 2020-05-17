@@ -319,7 +319,8 @@ export class TrajectoryPath extends TrajectoryHandler {
 
 	private static visualizeTrajectory(trajectory: Trajectory, color: any) {
 
-		const MIN_POINT_DISTANCE = 0.1; // minimum distance between points to draw both
+		const DETAILED_TRAJECTORY = false;
+		const MIN_POINT_DISTANCE = DETAILED_TRAJECTORY ? 0.005 : 0.1; // minimum distance between points to draw both
 
 		if (trajectory.length === 0) {
 			return;
@@ -329,7 +330,7 @@ export class TrajectoryPath extends TrajectoryHandler {
 		let totalTime = TrajectoryPath.trajectoryTime(trajectory);
 		let lastDrawn = trajectory[0].pos;
 
-		const SAMPLES = 20;
+		const SAMPLES = DETAILED_TRAJECTORY ? 40 : 20;
 		for (let i = 0;i < SAMPLES;i++) {
 			let time = i * totalTime / (SAMPLES - 1);
 			let pos = TrajectoryPath.posAtTime(time, trajectory);
