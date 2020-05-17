@@ -367,11 +367,23 @@ void StaticObstacles::Triangle::deserialize(const pathfinding::TriangleObstacle 
 
 // moving obstacles
 
-void MovingObstacles::MovingObstacle::deserializeCommon(const pathfinding::Obstacle &obstacle)
-{
-    prio = obstacle.has_prio() ? obstacle.prio() : 0;
-    radius = obstacle.has_radius() ? obstacle.radius() : 0;
-}
+MovingObstacles::MovingCircle::MovingCircle(int prio, float radius, Vector start, Vector speed, Vector acc, float t0, float t1) :
+    MovingObstacle(prio, radius),
+    startPos(start),
+    speed(speed),
+    acc(acc),
+    startTime(t0),
+    endTime(t1)
+{ }
+
+MovingObstacles::MovingCircle::MovingCircle(const pathfinding::Obstacle &obstacle, const pathfinding::MovingCircleObstacle &circle) :
+    MovingObstacle(obstacle),
+    startPos(deserializeVector(circle.start_pos())),
+    speed(deserializeVector(circle.speed())),
+    acc(deserializeVector(circle.acc())),
+    startTime(circle.start_time()),
+    endTime(circle.end_time())
+{ }
 
 bool MovingObstacles::MovingCircle::intersects(Vector pos, float time) const
 {
@@ -438,24 +450,30 @@ void MovingObstacles::MovingCircle::serializeChild(pathfinding::Obstacle *obstac
     circle->set_end_time(endTime);
 }
 
-void MovingObstacles::MovingCircle::deserialize(const pathfinding::MovingCircleObstacle &obstacle)
-{
-    if (obstacle.has_start_pos()) {
-        startPos = deserializeVector(obstacle.start_pos());
-    }
-    if (obstacle.has_speed()) {
-        speed = deserializeVector(obstacle.speed());
-    }
-    if (obstacle.has_acc()) {
-        acc = deserializeVector(obstacle.acc());
-    }
-    if (obstacle.has_start_time()) {
-        startTime = obstacle.start_time();
-    }
-    if (obstacle.has_end_time()) {
-        endTime = obstacle.end_time();
-    }
-}
+MovingObstacles::MovingLine::MovingLine(int prio, float radius, Vector start1, Vector speed1, Vector acc1,
+           Vector start2, Vector speed2, Vector acc2, float t0, float t1) :
+    MovingObstacle(prio, radius),
+    startPos1(start1),
+    speed1(speed1),
+    acc1(acc1),
+    startPos2(start2),
+    speed2(speed2),
+    acc2(acc2),
+    startTime(t0),
+    endTime(t1)
+{ }
+
+MovingObstacles::MovingLine::MovingLine(const pathfinding::Obstacle &obstacle, const pathfinding::MovingLineObstacle &line) :
+    MovingObstacle(obstacle),
+    startPos1(deserializeVector(line.start_pos1())),
+    speed1(deserializeVector(line.speed1())),
+    acc1(deserializeVector(line.acc1())),
+    startPos2(deserializeVector(line.start_pos2())),
+    speed2(deserializeVector(line.speed2())),
+    acc2(deserializeVector(line.acc2())),
+    startTime(line.start_time()),
+    endTime(line.end_time())
+{ }
 
 bool MovingObstacles::MovingLine::intersects(Vector pos, float time) const
 {
@@ -524,49 +542,45 @@ void MovingObstacles::MovingLine::serializeChild(pathfinding::Obstacle *obstacle
     circle->set_end_time(endTime);
 }
 
-void MovingObstacles::MovingLine::deserialize(const pathfinding::MovingLineObstacle &obstacle)
-{
-    if (obstacle.has_start_pos1()) {
-        startPos1 = deserializeVector(obstacle.start_pos1());
-    }
-    if (obstacle.has_speed1()) {
-        speed1 = deserializeVector(obstacle.speed1());
-    }
-    if (obstacle.has_acc1()) {
-        acc1 = deserializeVector(obstacle.acc1());
-    }
-    if (obstacle.has_start_pos2()) {
-        startPos2 = deserializeVector(obstacle.start_pos2());
-    }
-    if (obstacle.has_speed2()) {
-        speed2 = deserializeVector(obstacle.speed2());
-    }
-    if (obstacle.has_acc2()) {
-        acc2 = deserializeVector(obstacle.acc2());
-    }
-    if (obstacle.has_start_time()) {
-        startTime = obstacle.start_time();
-    }
-    if (obstacle.has_end_time()) {
-        endTime = obstacle.end_time();
-    }
-}
-
 MovingObstacles::FriendlyRobotObstacle::FriendlyRobotObstacle() :
+    MovingObstacle(0, 0),
     bound(Vector(0, 0), Vector(0, 0))
 { }
 
 MovingObstacles::FriendlyRobotObstacle::FriendlyRobotObstacle(std::vector<TrajectoryPoint> *trajectory, float radius, int prio) :
+    MovingObstacle(prio, radius),
     trajectory(trajectory),
     bound(trajectory->at(0).pos, trajectory->at(1).pos)
 {
-    this->prio = prio;
-    this->radius = radius;
     timeInterval = trajectory->at(1).time - trajectory->at(0).time;
     for (std::size_t i = 2;i<trajectory->size();i++) {
         bound.mergePoint(trajectory->at(i).pos);
     }
     bound.addExtraRadius(radius);
+}
+
+MovingObstacles::FriendlyRobotObstacle::FriendlyRobotObstacle(const pathfinding::Obstacle &obstacle, const pathfinding::FriendlyRobotObstacle &line) :
+    MovingObstacle(obstacle),
+    bound(Vector(1000, 1000), Vector(1000, 1000)) // outside of the field
+{
+    for (const pathfinding::TrajectoryPoint &point : line.robot_trajectory()) {
+        TrajectoryPoint p;
+        p.pos = deserializeVector(point.pos());
+        p.speed = deserializeVector(point.speed());
+        p.time = point.time();
+        ownData.push_back(p);
+    }
+    trajectory = &ownData;
+    timeInterval = trajectory->size() > 1 ? trajectory->at(1).time - trajectory->at(0).time : 1;
+
+    // compute bound from trajectory
+    if (trajectory->size() > 1) {
+        bound = BoundingBox(trajectory->at(0).pos, trajectory->at(1).pos);
+        for (std::size_t i = 2;i<trajectory->size();i++) {
+            bound.mergePoint(trajectory->at(i).pos);
+        }
+        bound.addExtraRadius(radius);
+    }
 }
 
 MovingObstacles::FriendlyRobotObstacle::FriendlyRobotObstacle(const MovingObstacles::FriendlyRobotObstacle &other) :
@@ -650,24 +664,4 @@ void MovingObstacles::FriendlyRobotObstacle::serializeChild(pathfinding::Obstacl
         setVector(p.speed, point->mutable_speed());
         point->set_time(p.time);
     }
-}
-
-void MovingObstacles::FriendlyRobotObstacle::deserialize(const pathfinding::FriendlyRobotObstacle &obstacle)
-{
-    ownData.clear();
-    for (const pathfinding::TrajectoryPoint &point : obstacle.robot_trajectory()) {
-        TrajectoryPoint p;
-        if (point.has_pos()) {
-            p.pos = deserializeVector(point.pos());
-        }
-        if (point.has_speed()) {
-            p.speed = deserializeVector(point.speed());
-        }
-        if (point.has_time()) {
-            p.time = point.time();
-        }
-        ownData.push_back(p);
-    }
-    trajectory = &ownData;
-    timeInterval = trajectory->size() > 1 ? trajectory->at(1).time - trajectory->at(0).time : 1;
 }

@@ -60,6 +60,7 @@ namespace StaticObstacles {
         void deserializeCommon(const pathfinding::Obstacle &obstacle);
 
         QByteArray obstacleName() const { return name; }
+
         QByteArray name;
         int prio;
         float radius = 0;
@@ -141,7 +142,10 @@ struct TrajectoryPoint
 namespace MovingObstacles {
 
     struct MovingObstacle {
+        MovingObstacle(int prio, float radius) : prio(prio), radius(radius) {}
+        MovingObstacle(const pathfinding::Obstacle &obstacle) : prio(obstacle.prio()), radius(obstacle.radius()) {}
         virtual ~MovingObstacle() {}
+
         virtual bool intersects(Vector pos, float time) const = 0;
         virtual float distance(Vector pos, float time) const = 0;
         virtual ZonedIntersection zonedDistance(const Vector &pos, float time, float nearRadius) const = 0;
@@ -154,22 +158,22 @@ namespace MovingObstacles {
             serializeChild(obstacle);
         }
         virtual void serializeChild(pathfinding::Obstacle *obstacle) const = 0;
-        // handles only the values of this upper class
-        void deserializeCommon(const pathfinding::Obstacle &obstacle);
 
         int prio;
         float radius;
     };
 
     struct MovingCircle : public MovingObstacle {
+        MovingCircle(int prio, float radius, Vector start, Vector speed, Vector acc, float t0, float t1);
+        MovingCircle(const pathfinding::Obstacle &obstacle, const pathfinding::MovingCircleObstacle &circle);
         bool intersects(Vector pos, float time) const override;
         float distance(Vector pos, float time) const override;
         ZonedIntersection zonedDistance(const Vector &pos, float time, float nearRadius) const override;
         BoundingBox boundingBox() const override;
 
         void serializeChild(pathfinding::Obstacle *obstacle) const override;
-        void deserialize(const pathfinding::MovingCircleObstacle &obstacle);
 
+    private:
         Vector startPos;
         Vector speed;
         Vector acc;
@@ -178,14 +182,18 @@ namespace MovingObstacles {
     };
 
     struct MovingLine : public MovingObstacle {
+        MovingLine(int prio, float radius, Vector start1, Vector speed1, Vector acc1,
+                   Vector start2, Vector speed2, Vector acc2, float t0, float t1);
+        MovingLine(const pathfinding::Obstacle &obstacle, const pathfinding::MovingLineObstacle &line);
+
         bool intersects(Vector pos, float time) const override;
         float distance(Vector pos, float time) const override;
         ZonedIntersection zonedDistance(const Vector &pos, float time, float nearRadius) const override;
         BoundingBox boundingBox() const override;
 
         void serializeChild(pathfinding::Obstacle *obstacle) const override;
-        void deserialize(const pathfinding::MovingLineObstacle &obstacle);
 
+    private:
         Vector startPos1;
         Vector speed1;
         Vector acc1;
@@ -199,6 +207,7 @@ namespace MovingObstacles {
     struct FriendlyRobotObstacle : public MovingObstacle {
         FriendlyRobotObstacle();
         FriendlyRobotObstacle(std::vector<TrajectoryPoint> *trajectory, float radius, int prio);
+        FriendlyRobotObstacle(const pathfinding::Obstacle &obstacle, const pathfinding::FriendlyRobotObstacle &line);
         FriendlyRobotObstacle(const FriendlyRobotObstacle &other);
         FriendlyRobotObstacle(FriendlyRobotObstacle &&other);
         FriendlyRobotObstacle &operator=(const FriendlyRobotObstacle &other);
@@ -210,8 +219,8 @@ namespace MovingObstacles {
         BoundingBox boundingBox() const override { return bound; }
 
         void serializeChild(pathfinding::Obstacle *obstacle) const override;
-        void deserialize(const pathfinding::FriendlyRobotObstacle &obstacle);
 
+    private:
         std::vector<TrajectoryPoint> *trajectory;
         float timeInterval;
         BoundingBox bound;

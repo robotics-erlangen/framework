@@ -150,32 +150,14 @@ bool WorldInformation::pointInPlayfield(const Vector &point, float radius) const
 // moving obstacles
 void WorldInformation::addMovingCircle(Vector startPos, Vector speed, Vector acc, float startTime, float endTime, float radius, int prio)
 {
-    MovingObstacles::MovingCircle m;
-    m.startPos = startPos;
-    m.speed = speed;
-    m.acc = acc;
-    m.startTime = startTime;
-    m.endTime = endTime;
-    m.radius = radius + m_radius;
-    m.prio = prio;
-    m_movingCircles.push_back(m);
+    m_movingCircles.emplace_back(prio, radius + m_radius, startPos, speed, acc, startTime, endTime);
 }
 
 void WorldInformation::addMovingLine(Vector startPos1, Vector speed1, Vector acc1, Vector startPos2, Vector speed2,
                                    Vector acc2, float startTime, float endTime, float width, int prio)
 {
-    MovingObstacles::MovingLine l;
-    l.startPos1 = startPos1;
-    l.speed1 = speed1;
-    l.acc1 = acc1;
-    l.startPos2 = startPos2;
-    l.speed2 = speed2;
-    l.acc2 = acc2;
-    l.startTime = startTime;
-    l.endTime = endTime;
-    l.radius = width + m_radius;
-    l.prio = prio;
-    m_movingLines.push_back(l);
+    m_movingLines.emplace_back(prio, width + m_radius, startPos1, speed1, acc1,
+                               startPos2, speed2, acc2, startTime, endTime);
 }
 
 void WorldInformation::addFriendlyRobotTrajectoryObstacle(std::vector<TrajectoryPoint> *obstacle, int prio, float radius)
@@ -415,19 +397,13 @@ void WorldInformation::deserialize(const pathfinding::WorldState &state)
             line.deserializeCommon(obstacle);
             m_avoidanceLines.push_back(line);
         } else if (obstacle.has_moving_circle()) {
-            MovingObstacles::MovingCircle circle;
-            circle.deserialize(obstacle.moving_circle());
-            circle.deserializeCommon(obstacle);
+            MovingObstacles::MovingCircle circle(obstacle, obstacle.moving_circle());
             m_movingCircles.push_back(circle);
         } else if (obstacle.has_moving_line()) {
-            MovingObstacles::MovingLine line;
-            line.deserialize(obstacle.moving_line());
-            line.deserializeCommon(obstacle);
+            MovingObstacles::MovingLine line(obstacle, obstacle.moving_line());
             m_movingLines.push_back(line);
         } else if (obstacle.has_friendly_robot()) {
-            MovingObstacles::FriendlyRobotObstacle robot;
-            robot.deserialize(obstacle.friendly_robot());
-            robot.deserializeCommon(obstacle);
+            MovingObstacles::FriendlyRobotObstacle robot(obstacle, obstacle.friendly_robot());
             m_friendlyRobotObstacles.push_back(robot);
         } else {
             qDebug() <<"Invalid or unknown obstacle";
