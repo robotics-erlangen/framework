@@ -36,7 +36,7 @@ static Vector deserializeVector(const pathfinding::Vector &v)
     return result;
 }
 
-void StaticObstacles::Obstacle::deserializeCommon(const pathfinding::Obstacle &obstacle)
+StaticObstacles::Obstacle::Obstacle(const pathfinding::Obstacle &obstacle)
 {
     if (obstacle.has_name()) {
         name = QByteArray::fromStdString(obstacle.name());
@@ -47,6 +47,10 @@ void StaticObstacles::Obstacle::deserializeCommon(const pathfinding::Obstacle &o
 
 
 // static obstacles
+StaticObstacles::Circle::Circle(const pathfinding::Obstacle &obstacle, const pathfinding::CircleObstacle &circle) :
+    Obstacle(obstacle),
+    center(deserializeVector(circle.center()))
+{ }
 
 float StaticObstacles::Circle::distance(const Vector &v) const
 {
@@ -102,12 +106,10 @@ void StaticObstacles::Circle::serializeChild(pathfinding::Obstacle *obstacle) co
     setVector(center, obstacle->mutable_circle()->mutable_center());
 }
 
-void StaticObstacles::Circle::deserialize(const pathfinding::CircleObstacle &obstacle)
-{
-    if (obstacle.has_center()) {
-        center = deserializeVector(obstacle.center());
-    }
-}
+StaticObstacles::Line::Line(const pathfinding::Obstacle &obstacle, const pathfinding::LineObstacle &line) :
+    Obstacle(obstacle),
+    segment(deserializeVector(line.start()), deserializeVector(line.end()))
+{ }
 
 float StaticObstacles::Line::distance(const Vector &v) const
 {
@@ -149,17 +151,26 @@ void StaticObstacles::Line::serializeChild(pathfinding::Obstacle *obstacle) cons
     setVector(segment.end(), line->mutable_end());
 }
 
-void StaticObstacles::Line::deserialize(const pathfinding::LineObstacle &obstacle)
+StaticObstacles::Rect::Rect() :
+    Obstacle(nullptr, 0, 0),
+    bottom_left(Vector(0, 0)),
+    top_right(Vector(0, 0))
+{ }
+
+StaticObstacles::Rect::Rect(const char* name, int prio, float x1, float y1, float x2, float y2) :
+    Obstacle(name, prio, 0)
 {
-    Vector start, end;
-    if (obstacle.has_start()) {
-        start = deserializeVector(obstacle.start());
-    }
-    if (obstacle.has_end()) {
-        end = deserializeVector(obstacle.end());
-    }
-    segment = LineSegment(start, end);
+    bottom_left.x = std::min(x1, x2);
+    bottom_left.y = std::min(y1, y2);
+    top_right.x = std::max(x1, x2);
+    top_right.y = std::max(y1, y2);
 }
+
+StaticObstacles::Rect::Rect(const pathfinding::Obstacle &obstacle, const pathfinding::RectObstacle &rect) :
+    Obstacle(obstacle),
+    bottom_left(deserializeVector(rect.bottom_left())),
+    top_right(deserializeVector(rect.top_right()))
+{ }
 
 float StaticObstacles::Rect::distance(const Vector &v) const
 {
@@ -229,15 +240,28 @@ void StaticObstacles::Rect::serializeChild(pathfinding::Obstacle *obstacle) cons
     setVector(bottom_left, rect->mutable_bottom_left());
 }
 
-void StaticObstacles::Rect::deserialize(const pathfinding::RectObstacle &obstacle)
+StaticObstacles::Triangle::Triangle(const char *name, int prio, float radius, Vector a, Vector b, Vector c) :
+    Obstacle(name, prio, radius)
 {
-    if (obstacle.has_top_right()) {
-        top_right = deserializeVector(obstacle.top_right());
-    }
-    if (obstacle.has_bottom_left()) {
-        bottom_left = deserializeVector(obstacle.bottom_left());
+    // ensure that the triangle is oriented counter-clockwise
+    const float det = Vector::det(a, b, c);
+    if (det > 0) {
+        p1 = a;
+        p2 = b;
+        p3 = c;
+    } else {
+        p1 = a;
+        p2 = c;
+        p3 = b;
     }
 }
+
+StaticObstacles::Triangle::Triangle(const pathfinding::Obstacle &obstacle, const pathfinding::TriangleObstacle &tri) :
+    Obstacle(obstacle),
+    p1(deserializeVector(tri.p1())),
+    p2(deserializeVector(tri.p2())),
+    p3(deserializeVector(tri.p3()))
+{ }
 
 float StaticObstacles::Triangle::distance(const Vector &v) const
 {
@@ -325,19 +349,6 @@ void StaticObstacles::Triangle::serializeChild(pathfinding::Obstacle *obstacle) 
     setVector(p1, tri->mutable_p1());
     setVector(p2, tri->mutable_p2());
     setVector(p3, tri->mutable_p3());
-}
-
-void StaticObstacles::Triangle::deserialize(const pathfinding::TriangleObstacle &obstacle)
-{
-    if (obstacle.has_p1()) {
-        p1 = deserializeVector(obstacle.p1());
-    }
-    if (obstacle.has_p2()) {
-        p2 = deserializeVector(obstacle.p2());
-    }
-    if (obstacle.has_p3()) {
-        p3 = deserializeVector(obstacle.p3());
-    }
 }
 
 
@@ -536,11 +547,11 @@ MovingObstacles::FriendlyRobotObstacle::FriendlyRobotObstacle(std::vector<Trajec
     bound.addExtraRadius(radius);
 }
 
-MovingObstacles::FriendlyRobotObstacle::FriendlyRobotObstacle(const pathfinding::Obstacle &obstacle, const pathfinding::FriendlyRobotObstacle &line) :
+MovingObstacles::FriendlyRobotObstacle::FriendlyRobotObstacle(const pathfinding::Obstacle &obstacle, const pathfinding::FriendlyRobotObstacle &robot) :
     MovingObstacle(obstacle),
     bound(Vector(1000, 1000), Vector(1000, 1000)) // outside of the field
 {
-    for (const pathfinding::TrajectoryPoint &point : line.robot_trajectory()) {
+    for (const pathfinding::TrajectoryPoint &point : robot.robot_trajectory()) {
         TrajectoryPoint p;
         p.pos = deserializeVector(point.pos());
         p.speed = deserializeVector(point.speed());

@@ -42,7 +42,10 @@ namespace StaticObstacles {
         // check for compatibility with checkMovementRelativeToObstacles optimization
         // the obstacle is assumed to be convex and that distance inside an obstacle
         // is calculated as the distance to the closest point on the obstacle border
+        Obstacle(const char *name, int prio, float radius) : name(name), prio(prio), radius(radius) {}
+        Obstacle(const pathfinding::Obstacle &obstacle);
         virtual ~Obstacle() {}
+
         virtual float distance(const Vector &v) const = 0;
         virtual float distance(const LineSegment &segment) const = 0;
         virtual ZonedIntersection zonedDistance(const Vector &v, float nearRadius) const = 0;
@@ -56,18 +59,19 @@ namespace StaticObstacles {
             serializeChild(obstacle);
         }
         virtual void serializeChild(pathfinding::Obstacle *obstacle) const = 0;
-        // handles only the values of this upper class
-        void deserializeCommon(const pathfinding::Obstacle &obstacle);
 
         QByteArray obstacleName() const { return name; }
 
         QByteArray name;
         int prio;
-        float radius = 0;
+        float radius;
     };
 
     struct Circle : Obstacle
     {
+        Circle(const char* name, int prio, float radius, Vector center) : Obstacle(name, prio, radius), center(center) {}
+        Circle(const pathfinding::Obstacle &obstacle, const pathfinding::CircleObstacle &circle);
+
         float distance(const Vector &v) const override;
         float distance(const LineSegment &segment) const override;
         ZonedIntersection zonedDistance(const Vector &v, float nearRadius) const override;
@@ -75,20 +79,24 @@ namespace StaticObstacles {
         BoundingBox boundingBox() const override;
 
         void serializeChild(pathfinding::Obstacle *obstacle) const override;
-        void deserialize(const pathfinding::CircleObstacle &obstacle);
 
+    private:
         Vector center;
     };
 
     struct Rect : Obstacle
     {
+        // gets a default constructor since it is also used for boundary checking
+        Rect();
+        Rect(const char* name, int prio, float x1, float y1, float x2, float y2);
+        Rect(const pathfinding::Obstacle &obstacle, const pathfinding::RectObstacle &rect);
+
         float distance(const Vector &v) const override;
         float distance(const LineSegment &segment) const override;
         ZonedIntersection zonedDistance(const Vector &v, float nearRadius) const override;
         BoundingBox boundingBox() const override;
 
         void serializeChild(pathfinding::Obstacle *obstacle) const override;
-        void deserialize(const pathfinding::RectObstacle &obstacle);
 
         Vector bottom_left;
         Vector top_right;
@@ -96,20 +104,26 @@ namespace StaticObstacles {
 
     struct Triangle : Obstacle
     {
+        // the points can be given in any order
+        Triangle(const char *name, int prio, float radius, Vector a, Vector b, Vector c);
+        Triangle(const pathfinding::Obstacle &obstacle, const pathfinding::TriangleObstacle &tri);
+
         float distance(const Vector &v) const override;
         float distance(const LineSegment &segment) const override;
         ZonedIntersection zonedDistance(const Vector &v, float nearRadius) const override;
         BoundingBox boundingBox() const override;
 
         void serializeChild(pathfinding::Obstacle *obstacle) const override;
-        void deserialize(const pathfinding::TriangleObstacle &obstacle);
 
+    private:
         Vector p1, p2, p3;
     };
 
     struct Line : Obstacle
     {
-        Line(const Vector &p1, const Vector &p2) : segment(p1, p2) {}
+        Line(const char *name, int prio, float radius, const Vector &p1, const Vector &p2) : Obstacle(name, prio, radius), segment(p1, p2) {}
+        Line(const pathfinding::Obstacle &obstacle, const pathfinding::LineObstacle &line);
+
         float distance(const Vector &v) const override;
         float distance(const LineSegment &segment) const override;
         ZonedIntersection zonedDistance(const Vector &v, float nearRadius) const override;
@@ -117,8 +131,8 @@ namespace StaticObstacles {
         BoundingBox boundingBox() const override;
 
         void serializeChild(pathfinding::Obstacle *obstacle) const override;
-        void deserialize(const pathfinding::LineObstacle &obstacle);
 
+    private:
         LineSegment segment;
     };
 
@@ -199,7 +213,7 @@ namespace MovingObstacles {
     struct FriendlyRobotObstacle : public MovingObstacle {
         FriendlyRobotObstacle();
         FriendlyRobotObstacle(std::vector<TrajectoryPoint> *trajectory, float radius, int prio);
-        FriendlyRobotObstacle(const pathfinding::Obstacle &obstacle, const pathfinding::FriendlyRobotObstacle &line);
+        FriendlyRobotObstacle(const pathfinding::Obstacle &obstacle, const pathfinding::FriendlyRobotObstacle &robot);
         FriendlyRobotObstacle(const FriendlyRobotObstacle &other);
         FriendlyRobotObstacle(FriendlyRobotObstacle &&other);
         FriendlyRobotObstacle &operator=(const FriendlyRobotObstacle &other);

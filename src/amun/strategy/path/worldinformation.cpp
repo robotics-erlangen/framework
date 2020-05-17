@@ -57,58 +57,23 @@ void WorldInformation::addToAllStaticObstacleRadius(float additionalRadius)
 
 void WorldInformation::addCircle(float x, float y, float radius, const char* name, int prio)
 {
-    StaticObstacles::Circle c;
-    c.center.x = x;
-    c.center.y = y;
-    c.radius = radius;
-    c.name = name;
-    c.prio = prio;
-    m_circleObstacles.push_back(c);
+    m_circleObstacles.emplace_back(name, prio, radius, Vector(x, y));
 }
 
 void WorldInformation::addLine(float x1, float y1, float x2, float y2, float width, const char* name, int prio)
 {
-    StaticObstacles::Line l(Vector(x1, y1), Vector(x2, y2));
-    l.radius = width;
-    l.name = name;
-    l.prio = prio;
-    m_lineObstacles.push_back(l);
+    m_lineObstacles.emplace_back(name, prio, width, Vector(x1, y1), Vector(x2, y2));
 }
 
 void WorldInformation::addRect(float x1, float y1, float x2, float y2, const char* name, int prio)
 {
-    StaticObstacles::Rect r;
-    r.bottom_left.x = std::min(x1, x2);
-    r.bottom_left.y = std::min(y1, y2);
-    r.top_right.x = std::max(x1, x2);
-    r.top_right.y = std::max(y1, y2);
-    r.name = name;
-    r.prio = prio;
+    StaticObstacles::Rect r(name, prio, x1, y1, x2, y2);
     m_rectObstacles.push_back(r);
 }
 
 void WorldInformation::addTriangle(float x1, float y1, float x2, float y2, float x3, float y3, float lineWidth, const char *name, int prio)
 {
-    StaticObstacles::Triangle t;
-    t.radius = lineWidth;
-    t.name = name;
-    t.prio = prio;
-
-    // ensure that the triangle is oriented counter-clockwise
-    const Vector a(x1, y1);
-    const Vector b(x2, y2);
-    const Vector c(x3, y3);
-    const float det = Vector::det(a, b, c);
-    if (det > 0) {
-        t.p1 = a;
-        t.p2 = b;
-        t.p3 = c;
-    } else {
-        t.p1 = a;
-        t.p2 = c;
-        t.p3 = b;
-    }
-    m_triangleObstacles.push_back(t);
+    m_triangleObstacles.emplace_back(name, prio, lineWidth, Vector(x1, y1), Vector(x2, y2), Vector(x3, y3));
 }
 
 void WorldInformation::collectObstacles() const
@@ -358,24 +323,16 @@ void WorldInformation::deserialize(const pathfinding::WorldState &state)
 
     for (const auto &obstacle : state.obstacles()) {
         if (obstacle.has_circle()) {
-            StaticObstacles::Circle circle;
-            circle.deserialize(obstacle.circle());
-            circle.deserializeCommon(obstacle);
+            StaticObstacles::Circle circle(obstacle, obstacle.circle());
             m_circleObstacles.push_back(circle);
         } else if (obstacle.has_triangle()) {
-            StaticObstacles::Triangle triangle;
-            triangle.deserialize(obstacle.triangle());
-            triangle.deserializeCommon(obstacle);
+            StaticObstacles::Triangle triangle(obstacle, obstacle.triangle());
             m_triangleObstacles.push_back(triangle);
         } else if (obstacle.has_line()) {
-            StaticObstacles::Line line(Vector(0, 0), Vector(1, 1)); // some random default values
-            line.deserialize(obstacle.line());
-            line.deserializeCommon(obstacle);
+            StaticObstacles::Line line(obstacle, obstacle.line());
             m_lineObstacles.push_back(line);
         } else if (obstacle.has_rectangle()) {
-            StaticObstacles::Rect rect;
-            rect.deserialize(obstacle.rectangle());
-            rect.deserializeCommon(obstacle);
+            StaticObstacles::Rect rect(obstacle, obstacle.rectangle());
             m_rectObstacles.push_back(rect);
         } else if (obstacle.has_moving_circle()) {
             MovingObstacles::MovingCircle circle(obstacle, obstacle.moving_circle());
@@ -399,6 +356,6 @@ void WorldInformation::deserialize(const pathfinding::WorldState &state)
     }
 
     if (state.has_boundary()) {
-        m_boundary.deserialize(state.boundary());
+        m_boundary = StaticObstacles::Rect(pathfinding::Obstacle(), state.boundary());
     }
 }
