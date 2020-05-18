@@ -33,7 +33,7 @@ static float dist(float v0, float v1, float acc)
 
 // exponential slowdown calculation
 const float MIN_ACC_FACTOR = 0.3f;
-float SpeedProfile1D::calculateSlowDownPos(float slowDownTime) const
+float SpeedProfile1D::endOffsetSlowDown(float slowDownTime) const
 {
     float pos = 0;
     float slowDownStartTime = profile[counter-1].t - slowDownTime;
@@ -69,6 +69,15 @@ float SpeedProfile1D::calculateSlowDownPos(float slowDownTime) const
         }
     }
     return pos;
+}
+
+float SpeedProfile1D::endOffset() const
+{
+    float offset = 0;
+    for (unsigned int i = 0;i<counter-1;i++) {
+        offset += (profile[i].v + profile[i+1].v) * 0.5f * (profile[i+1].t - profile[i].t);
+    }
+    return offset;
 }
 
 float SpeedProfile1D::timeWithSlowDown(float slowDownTime) const

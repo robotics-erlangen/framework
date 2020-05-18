@@ -110,9 +110,8 @@ std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPat
         escapeObstacle = m_escapeObstacleSampler.getResult();
 
         // assume no slowDownTime
-        float partTime = escapeObstacle[0].profile.time();
-        Vector startOffset = escapeObstacle[0].profile.positionForTime(partTime);
-        Vector startSpeed = escapeObstacle[0].profile.speedForTime(partTime);
+        Vector startOffset = escapeObstacle[0].profile.endPos();
+        Vector startSpeed = escapeObstacle[0].profile.endSpeed();
 
         input.s0 += startOffset;
         input.distance = input.s1 - input.s0;
@@ -226,7 +225,7 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Tra
             }
 
             // trajectory positions are not perfect, move them slightly to reach the desired position perfectly
-            Vector endPos = trajectory.positionForTime(partTime);
+            Vector endPos = trajectory.endPos();
             Vector correctionOffset(0, 0);
             if (info.desiredDistance != Vector(0, 0)) {
                 correctionOffset = info.desiredDistance - endPos;
@@ -291,7 +290,7 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Tra
             }
 
             // trajectory positions are not perfect, move them slightly to reach the desired position perfectly
-            Vector endPos = trajectory.positionForTime(partTime);
+            Vector endPos = trajectory.endPos();
             Vector correctionOffset(0, 0);
             if (info.desiredDistance != Vector(0, 0)) {
                 correctionOffset = info.desiredDistance - endPos;

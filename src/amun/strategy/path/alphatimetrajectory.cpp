@@ -181,7 +181,7 @@ Vector AlphaTimeTrajectory::minTimePos(Vector v0, Vector v1, float acc, float sl
         profile.yProfile.profile[1] = {v1.y, minTime};
         profile.yProfile.acc = std::abs(v0.y - v1.y) / minTime;
 
-        return profile.calculateSlowDownPos();
+        return profile.endPos();
     }
 }
 
@@ -274,7 +274,7 @@ SpeedProfile AlphaTimeTrajectory::findTrajectory(Vector v0, Vector v1, Vector po
         float assumedSpeed;
         if (slowDownTime > 0) {
             result = calculateTrajectory(v0, v1, currentTime, currentAngle, acc, vMax, slowDownTime, fastEndSpeed, minTime);
-            endPos = result.calculateSlowDownPos();
+            endPos = result.endPos();
             Vector continuationSpeed = result.continuationSpeed();
             assumedSpeed = std::max(std::abs(continuationSpeed.x), std::abs(continuationSpeed.y));
         } else {

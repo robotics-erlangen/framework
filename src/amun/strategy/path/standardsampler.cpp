@@ -198,7 +198,7 @@ float StandardSampler::checkSample(const TrajectoryInput &input, const StandardT
                                                                        sample.getAngle(), input.acceleration, input.maxSpeed, slowDownTime, true);
 
     float secondPartTime = secondPart.time();
-    Vector secondPartOffset = secondPart.positionForTime(secondPartTime);
+    Vector secondPartOffset = secondPart.endPos();
     if (secondPartTime > currentBestTime - MINIMUM_TIME_IMPROVEMENT) {
         return -1;
     }

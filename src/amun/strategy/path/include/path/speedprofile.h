@@ -47,7 +47,8 @@ public:
     float speedForTime(float time) const;
     float speedForTimeSlowDown(float time, float slowDownTime) const;
 
-    float calculateSlowDownPos(float slowDownTime) const;
+    float endOffset() const;
+    float endOffsetSlowDown(float slowDownTime) const;
 
     float offsetForTime(float time) const;
     float offsetForTimeSlowDown(float time, float slowDownTime) const;
@@ -96,8 +97,12 @@ public:
 
     bool isValid() const { return valid; }
 
-    Vector calculateSlowDownPos() const {
-        return Vector(xProfile.calculateSlowDownPos(slowDownTime), yProfile.calculateSlowDownPos(slowDownTime));
+    Vector endPos() const {
+        if (slowDownTime > 0) {
+            return Vector(xProfile.endOffsetSlowDown(slowDownTime), yProfile.endOffsetSlowDown(slowDownTime));
+        } else {
+            return Vector(xProfile.endOffset(), yProfile.endOffset());
+        }
     }
 
     Vector positionForTime(float time) const {
