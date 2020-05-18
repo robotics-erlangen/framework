@@ -174,14 +174,17 @@ bool WorldInformation::isTrajectoryInObstacle(const SpeedProfile &profile, float
         }
     }
 
+    const int DIVISIONS = 40;
+
     float totalTime = profile.time();
-    for (int i = 0;i<40;i++) {
-        float time = totalTime * i / 39.0f;
-        Vector pos = profile.positionForTime(time);
-        if (isInStaticObstacle(intersectingStaticObstacles, pos + startPos)) {
+    std::vector<Vector> trajectoryPoints = profile.trajectoryPositions(startPos, DIVISIONS, totalTime * (1.0f / (DIVISIONS-1)));
+
+    for (int i = 0;i<DIVISIONS;i++) {
+        float time = totalTime * i / float(DIVISIONS-1);
+        if (isInStaticObstacle(intersectingStaticObstacles, trajectoryPoints[i])) {
             return true;
         }
-        if (isInMovingObstacle(intersectingMovingObstacles, pos + startPos, time + timeOffset)) {
+        if (isInMovingObstacle(intersectingMovingObstacles, trajectoryPoints[i], time + timeOffset)) {
             return true;
         }
     }

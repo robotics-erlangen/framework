@@ -84,7 +84,7 @@ void PathDebug::debugCircle(const QString &name, Vector center, float radius, Pa
     emit gotVisualization(vis);
 }
 
-void PathDebug::debugPath(const QString &name, const QVector<Vector> &points, PathDebugColor color)
+void PathDebug::debugPath(const QString &name, const std::vector<Vector> &points, PathDebugColor color)
 {
     amun::Visualization vis;
     vis.set_name(name.toStdString().c_str());
@@ -117,18 +117,16 @@ void PathDebug::debugLine(const QString &name, Vector start, Vector end, PathDeb
 
 void PathDebug::debugTrajectory(const QString &name, const SpeedProfile &trajectory, Vector offset, PathDebugColor color)
 {
-    QVector<Vector> points;
     const int VIS_POINTS = 35;
-    float time = trajectory.time();
-    for (int i = 0;i<VIS_POINTS;i++) {
-        points.push_back(trajectory.positionForTime(float(i) * time / float(VIS_POINTS-1)) + offset);
-    }
+    float timeInterval = trajectory.time() / float(VIS_POINTS-1);
+
+    std::vector<Vector> points = trajectory.trajectoryPositions(offset, VIS_POINTS, timeInterval);
     debugPath(name, points, color);
 }
 
 void PathDebug::debugBoundingBox(const QString &name, const BoundingBox &boundingBox, PathDebugColor color)
 {
-    QVector<Vector> points(5);
+    std::vector<Vector> points(5);
     points[0] = {boundingBox.left, boundingBox.top};
     points[1] = {boundingBox.right, boundingBox.top};
     points[2] = {boundingBox.right, boundingBox.bottom};

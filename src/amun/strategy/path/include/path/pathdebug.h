@@ -47,7 +47,7 @@ public:
     void debug(const QString &key, float value);
     void debug(const QString &key, const QString &value);
     void debugCircle(const QString &name, Vector center, float radius, PathDebugColor color = PathDebugColor::BLACK);
-    void debugPath(const QString &name, const QVector<Vector> &points, PathDebugColor color = PathDebugColor::BLACK);
+    void debugPath(const QString &name, const std::vector<Vector> &points, PathDebugColor color = PathDebugColor::BLACK);
     void debugLine(const QString &name, Vector start, Vector end, PathDebugColor color = PathDebugColor::BLACK);
     void debugTrajectory(const QString &name, const SpeedProfile &trajectory, Vector offset, PathDebugColor color = PathDebugColor::BLACK);
     void debugBoundingBox(const QString &name, const BoundingBox &boundingBox, PathDebugColor color = PathDebugColor::BLACK);
