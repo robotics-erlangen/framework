@@ -458,7 +458,7 @@ function _calculateSpeed(robotId: number, waypoints: Position[], maxSpeedProfile
 	if (speedVector.length() >= 0.0001) {
 		// check if the robot is on a curve segment
 		if (maxSpeedProfile.length >= 2 && maxSpeedProfile[1][3]) {
-			let forwardDir = moveDir.copy().normalize().dot(robotSpeed);
+			let forwardDir = moveDir.normalized().dot(robotSpeed);
 			// add acceleration towards the curve center, reduce accerlation if the robot is slower than expected
 			let angle = (waypoints[1] - waypoints[0]).angleDiff(waypoints[2] - waypoints[1]);
 			let scale = MathUtil.bound(0.02, Math.min(forwardDir, speed) / Math.max(maxSpeedProfile[1][0], maxSpeedProfile[1][1]), 1);
@@ -466,7 +466,7 @@ function _calculateSpeed(robotId: number, waypoints: Position[], maxSpeedProfile
 		}
 		// calculate how fast the robot is moving perpendicular to the speedVector
 		// add acceleration in the opposite direction
-		let sidewardSpeed = moveDir.perpendicular().normalize();
+		let sidewardSpeed = moveDir.perpendicular().normalized();
 		sidewardSpeed.setLength(-sidewardSpeed.dot(robotSpeed) * sidewardsErrorFactor);
 		accelVector = accelVector + sidewardSpeed;
 	}
@@ -597,10 +597,10 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 		// calculate robot speed in target direction
 		// unexpected sidewards speed is handled in _calculateSpeed
 		// handling it here doesn't work as this adds a phantom speed
-		let startSpeed = (waypoints[1] - waypoints[0]).normalize().dot(robotSpeed);
+		let startSpeed = (waypoints[1] - waypoints[0]).normalized().dot(robotSpeed);
 		// debug.set("startSpeed", startSpeed);
 		// handle endSpeed
-		let endSpeedLen = Math.max(0, (waypoints[waypoints.length - 1] - waypoints[waypoints.length - 2]).normalize().dot(endSpeed));
+		let endSpeedLen = Math.max(0, (waypoints[waypoints.length - 1] - waypoints[waypoints.length - 2]).normalized().dot(endSpeed));
 		// calculate speed limits for curve segments based on sidewards acceleration limits while driving curves
 		let maxSpeedProfile = _calculateCurveSpeedLimits(waypoints, accelLimit, maxSpeed, maxError, startSpeed, endSpeedLen);
 		// debug.set("maxSpeedProfile", maxSpeedProfile)

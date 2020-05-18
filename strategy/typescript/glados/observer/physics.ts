@@ -358,7 +358,7 @@ export function robotBrakePos(robot: {pos: Position, speed: Speed, acceleration?
 	let brkAcc = robot.acceleration ? robot.acceleration.aBrakeFMax : BREAK_DEFAULT;
 	let robotSpeed = robot.speed.length();
 	let brkLength = 0.5 * robotSpeed * robotSpeed / brkAcc;
-	return robot.pos + robot.speed.copy().normalize().scaleLength(brkLength);
+	return robot.pos + robot.speed.normalized().scaleLength(brkLength);
 }
 
 /** Estimates the time the ball needs to travel for a chip pass from startPos to endPos */
@@ -740,7 +740,7 @@ export function robotTimeToPosOLD(robot: Robot, pos: Position, endSpeed: Speed, 
 	let brake = Math.abs(robot.acceleration ? robot.acceleration.aBrakeFMax : 1.0) * accelerationFactor;
 
 	let lineDist = Math.max(pos.distanceTo(robot.pos) - tolerance, 0);
-	let lineDir = (pos - robot.pos).normalize();
+	let lineDir = (pos - robot.pos).normalized();
 	let robotSpeed = Math.min(lineDir.dot(robot.speed), robot.maxSpeed);
 	let destSpeed = Math.min(Math.max(0, lineDir.dot(endSpeed)), robot.maxSpeed);
 
@@ -809,7 +809,7 @@ export function robotTimeToPosOLD(robot: Robot, pos: Position, endSpeed: Speed, 
  * @returns The endspeed vector (in the direction from robot to pos)
  */
 export function robotMinEndspeed(robot: Robot, pos: Position, time: number): Speed {
-	let direction = (pos - robot.pos).normalize();
+	let direction = (pos - robot.pos).normalized();
 	let maxSpeed = robot.maxSpeed;
 
 	// as slow as possible
@@ -851,7 +851,7 @@ export function robotMinEndspeed(robot: Robot, pos: Position, time: number): Spe
 export function robotTimeForBallTime(robot: Robot, ball: BallLike & {radius: number}, targetPos: Position,
 		endSpeedLength: number, t_ball: number): number {
 	let x_ball = ballAtTime(ball, t_ball).pos;
-	let axis = (x_ball - targetPos).normalize();
+	let axis = (x_ball - targetPos).normalized();
 	let offset = axis * (ball.radius + robot.shootRadius);
 	let x_robot = x_ball + offset;
 
@@ -914,7 +914,7 @@ function rttbSpecialCases(robot: Robot, ball: BallLike & {radius: number}, targe
 	// calculate time required when the robot is directly hit by the ball
 	let frontOffset = (targetPos - robot.pos).setLength(ball.radius + robot.shootRadius);
 	let [ballHitPos, _, lambda] = geom.intersectLineLine(ball.pos, ball.speed,
-			robot.pos + frontOffset, ball.speed.perpendicular().normalize());
+			robot.pos + frontOffset, ball.speed.perpendicular().normalized());
 	let ballTimeToHitPos = ballRollTime(ball, ball.pos.distanceTo(ballHitPos!));
 	let robotTimeToHitPos = robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, ballTimeToHitPos);
 

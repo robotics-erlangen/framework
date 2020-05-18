@@ -14,7 +14,7 @@ export class BaseVector extends UnitTest {
 		this.addTest("copy", this.testCopy);
 		this.addTest("isNan", this.testIsNan);
 		this.addTest("length", this.testLength);
-		this.addTest("normalize", this.testNormalize);
+		this.addTest("normalized", this.testNormalized);
 		this.addTest("setLength", this.testSetLength);
 		this.addTest("scaleLength", this.testScaleLength);
 		this.addTest("distanceTo", this.testDistanceTo);
@@ -128,20 +128,20 @@ export class BaseVector extends UnitTest {
 		this.assert_equal(vecLen3.length(), vecLen3.length());
 	}
 
-	private testNormalize() {
+	private testNormalized() {
 		let vec = new Vector(2, 0);
-		let ret = vec.normalize();
-		this.assert_equal(vec, ret);
-		this.assert_equal(vec.x, 1);
+		let res = vec.normalized();
+		this.assert_equal(vec.x, 2); // check non-modifying
 		this.assert_equal(vec.y, 0);
+		this.assert_equal(res.x, 1);
+		this.assert_equal(res.y, 0);
 
 		let vec2 = new Vector(0.5, 0.5);
-		vec2.normalize();
+		vec2 = vec2.normalized();
 		this.assert_equal_eps(vec2.length(), 1, EPS);
 
 		let nullVec = new Vector(0, 0);
-		let nullRet = nullVec.normalize();
-		this.assert_equal(nullVec, nullRet);
+		nullVec = nullVec.normalized();
 		this.assert_equal(nullVec.x, 0);
 		this.assert_equal(nullVec.y, 0);
 	}

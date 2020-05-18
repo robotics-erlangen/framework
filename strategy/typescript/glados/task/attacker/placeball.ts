@@ -501,7 +501,7 @@ export class PlaceBall extends Task {
 
 		if (usedBallPos.distanceTo(this._placementPos) > OFFSET_DISTANCE
 				&& ballVisible) {
-			let currentOffset = (usedBallPos - this._placementPos).normalize();
+			let currentOffset = (usedBallPos - this._placementPos).normalized();
 			this._placementOffsets[this._placementOffsetFrame] = currentOffset;
 			this._placementOffsetFrame = (this._placementOffsetFrame + 1) % OFFSET_FRAME_COUNT;
 			this._placementOffsetAverage = geom.center(this._placementOffsets).setLength(this.OFFSET_EXTRA_LENGTH);
@@ -509,7 +509,7 @@ export class PlaceBall extends Task {
 
 		if (usedBallPos.distanceTo(this._nearestFieldPos) > OFFSET_DISTANCE
 				&& ballVisible) {
-			this._borderOffsets[this._borderOffsetFrame] = (usedBallPos - this._nearestFieldPos).normalize();
+			this._borderOffsets[this._borderOffsetFrame] = (usedBallPos - this._nearestFieldPos).normalized();
 			this._borderOffsetFrame = (this._borderOffsetFrame + 1) % OFFSET_FRAME_COUNT;
 			this._borderOffsetAverage = geom.center(this._borderOffsets).setLength(this.OFFSET_EXTRA_LENGTH);
 		}

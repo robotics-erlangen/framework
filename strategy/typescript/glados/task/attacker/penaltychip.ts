@@ -199,7 +199,7 @@ function checkShot(distance: number, robot: Robot, ball: {pos: Position}, keeper
 	if ((minDist + robotRadius) * 2 +  bufferTime * robot.speed.length() > distance) {
 		return "fail min distance";
 	}
-	let toGoal = (G.OpponentGoal - robot.pos).normalize();
+	let toGoal = (G.OpponentGoal - robot.pos).normalized();
 	let bufferKeeper = keeper.pos + keeper.speed * bufferTime;
 	let bufferSelf = robot.pos + robot.speed * bufferTime;
 	let keeperOnLine = (bufferKeeper - bufferSelf).dot(toGoal);

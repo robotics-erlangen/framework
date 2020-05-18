@@ -27,7 +27,7 @@ const obstacleTable: PathHelper.PathHelperParameters = {
 	ignorePenaltyDistance: true
 };
 
-const goalLine = (G.OpponentGoalLeft - G.OpponentGoalRight).normalize();
+const goalLine = (G.OpponentGoalLeft - G.OpponentGoalRight).normalized();
 function cornerPoint(corner: "Left" | "Right") {
 	if (corner === "Left") {
 		return G.OpponentGoalLeft - (goalLine * distToPost);

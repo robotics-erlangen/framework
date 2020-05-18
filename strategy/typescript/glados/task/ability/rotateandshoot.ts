@@ -24,7 +24,7 @@ export class RotateAndShoot {
 
 		// 1 when rotating ccw, -1 when rotating cw
 		let invert = this._robot.dir < destAngle ? 1 : -1;
-		let toBall = (customPos - this._robot.pos).normalize();
+		let toBall = (customPos - this._robot.pos).normalized();
 		let sidewards = toBall.perpendicular() * invert;
 
 

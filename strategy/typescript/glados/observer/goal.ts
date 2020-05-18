@@ -298,7 +298,7 @@ function _predictShot(allShots: boolean = false, includeInvisible: boolean = tru
 		// NOTE: use World.Ball instead of futureBall is fine, as the shot is assumed to be imminent.
 		let relativeSpeedLength = World.Ball.speed - oppBallDribbler.speed;
 		let [dirx, diry] = Volley.calcVOutFromVOutAbs(Constants.maxBallSpeed, relativeSpeedLength.length(), oppBallDribbler.dir, relativeSpeedLength.angle(), "opp");
-		ballSpeed = (new Vector(dirx, diry) + oppBallDribbler.speed).normalize();
+		ballSpeed = (new Vector(dirx, diry) + oppBallDribbler.speed).normalized();
 		if (!allShots) {
 			vis.addCircle("o/goal: predictShot: dribbling robot", oppBallDribbler.pos, oppBallDribbler.radius, vis.colors.blue, false);
 			vis.addPath("o/goal: predictShot: dribbling robot", [oppBallDribbler.pos, oppBallDribbler.pos + ballSpeed * 10], vis.colors.blue);
@@ -394,7 +394,7 @@ function _predictShot(allShots: boolean = false, includeInvisible: boolean = tru
 				let robotAngle = passReceiver.robot.dir;
 				let [dirx, diry] = Volley.calcVOutTeamCoordinates(Constants.maxBallSpeed, futureBallSpeed, robotAngle,
 					minRobotSpeed, "opp");
-				ballSpeed = new Vector(dirx, diry).normalize();
+				ballSpeed = new Vector(dirx, diry).normalized();
 				if (!allShots) {
 					vis.addPath("o/goal: predictShot: receives pass", [passReceiver.robot.pos, pos], vis.colors.pink);
 					vis.addCircle("o/goal: predictShot: receives pass", pos, passReceiver.robot.radius, vis.colors.pink, false);
@@ -406,8 +406,8 @@ function _predictShot(allShots: boolean = false, includeInvisible: boolean = tru
 	} else {
 		// otherwise use center of directions to goal posts
 		// FIXME: check
-		let left = (World.Geometry.FriendlyGoalLeft - World.Ball.pos).normalize();
-		let right = (World.Geometry.FriendlyGoalRight - World.Ball.pos).normalize();
+		let left = (World.Geometry.FriendlyGoalLeft - World.Ball.pos).normalized();
+		let right = (World.Geometry.FriendlyGoalRight - World.Ball.pos).normalized();
 		ballSpeed = left + right;
 	}
 

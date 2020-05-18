@@ -23,10 +23,10 @@ export class MoveToBall extends Task {
 	private _startTime : AbsTime;
 	private _lastTime : RelTime | undefined;
 
-	constructor(agent: Agent, viewDir : Vector, ball : Ball = World.Ball) {
+	constructor(agent: Agent, viewDir: Vector, ball : Ball = World.Ball) {
 		super(agent);
 		this._ball = ball;
-		this._viewdir = viewDir.normalize();
+		this._viewdir = viewDir.normalized();
 		this._startTime = World.Time;
 	}
 
