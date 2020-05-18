@@ -102,7 +102,7 @@ export function boundRect(p1: Position, pos: Position, p2: Position): Position {
  */
 export function intersectLineCircle(offset: Position, dir: RelativePosition, center: Position, radius: number):
 		[] | [Position, undefined, number, undefined] | [Position, Position, number, number] {
-	dir = dir.copy().normalize();
+	dir = dir.normalized();
 	let constPart = offset - center;
 	// |offset + lambda*dir - center| = radius
 	// l^2 VxV + l 2(CxV) + CxC == R^2

@@ -867,7 +867,7 @@ export function nextLineCut(startPos: Position, dir: RelativePosition, offset: n
  * @returns The lambda for the line cut
  */
 export function nextAllowedFieldLineCut(startPos: Position, dir: RelativePosition, extraDistance: number): [Position, number] | [] {
-	let normalizedDir = dir.copy().normalize();
+	let normalizedDir = dir.normalized();
 	let perpendicularDir = normalizedDir.perpendicular();
 
 	let boundaryLineCut = nextLineCut(startPos, normalizedDir, -extraDistance);

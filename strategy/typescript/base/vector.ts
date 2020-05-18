@@ -96,21 +96,23 @@ export class Vector {
 	}
 
 	/**
-	 * Normalizes current vector.
+	 * Returns the normalized version of this vector
 	 * A normalized vector has the length 1.
-	 * Null vector won't be modified
+	 * The current vector is not changed,
+	 * only a normalized version is computed
+	 * Null vector will not be changed
 	 * @returns reference to this
 	 */
-	normalize(): Vector {
+	normalized(): Vector {
 		let x = this.x;
 		let y = this.y;
 		let l = Math.sqrt(x * x + y * y);
 		if (l > 0) {
 			let invLen = 1 / l;
-			this.x = x * invLen;
-			this.y = y * invLen;
+			x = x * invLen;
+			y = y * invLen;
 		}
-		return this;
+		return new Vector(x, y);
 	}
 
 	/**
@@ -268,7 +270,7 @@ export class Vector {
 	 * @param lineEnd - end of line
 	 */
 	distanceToLineSegment(lineStart: Vector, lineEnd: Vector): number {
-		let dir = (lineEnd - lineStart).normalize();
+		let dir = (lineEnd - lineStart).normalized();
 		let d = this - lineStart;
 		if (d.dot(dir) < 0) {
 			return d.length();
