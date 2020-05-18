@@ -280,7 +280,7 @@ std::pair<ZonedIntersection, ZonedIntersection> WorldInformation::minObstacleDis
             }
 
             // try to avoid moving obstacles even when the robot reaches its goal
-            if (profile.speedForTime(totalTime * 2.0f) == Vector(0, 0)) {
+            if (profile.endSpeed() == Vector(0, 0)) {
                 const float AFTER_STOP_AVOIDANCE_TIME = 0.5f;
                 if (totalTime < AFTER_STOP_AVOIDANCE_TIME) {
                     const float AFTER_STOP_INTERVAL = 0.03f;

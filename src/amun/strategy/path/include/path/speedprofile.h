@@ -128,6 +128,10 @@ public:
         }
     }
 
+    Vector endSpeed() const {
+        return Vector(xProfile.profile[xProfile.counter-1].v, yProfile.profile[yProfile.counter-1].v);
+    }
+
     float time() const {
         if (slowDownTime == 0.0f) {
             return std::max(xProfile.profile[xProfile.counter-1].t, yProfile.profile[yProfile.counter-1].t);
