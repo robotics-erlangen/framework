@@ -115,68 +115,7 @@ float SpeedProfile1D::timeWithSlowDown(float slowDownTime) const
     return time;
 }
 
-float SpeedProfile1D::speedForTime(float time) const
-{
-    for (unsigned int i = 0;i<counter-1;i++) {
-        if (profile[i+1].t >= time) {
-            float diff = profile[i+1].t == profile[i].t ? 1 : (time - profile[i].t) / (profile[i+1].t - profile[i].t);
-            float speed = profile[i].v + diff * (profile[i+1].v - profile[i].v);
-            return speed;
-        }
-    }
-    return profile[counter-1].v;
-}
-
-float SpeedProfile1D::speedForTimeSlowDown(float time, float slowDownTime) const
-{
-    float slowDownStartTime = profile[counter-1].t - slowDownTime;
-    unsigned int i = 0;
-    float v0, t0 = slowDownStartTime;
-    for (;i<counter-1;i++) {
-        if (profile[i+1].t >= time || profile[i+1].t >= slowDownStartTime) {
-            float td = std::min(time, slowDownStartTime);
-            float diff = profile[i+1].t == profile[i].t ? 1 : (td - profile[i].t) / (profile[i+1].t - profile[i].t);
-            float speed = profile[i].v + diff * (profile[i+1].v - profile[i].v);
-            if (time < slowDownStartTime) {
-                return speed;
-            } else {
-                v0 = speed;
-                break;
-            }
-        }
-    }
-
-    float endTime = profile[counter-1].t + SpeedProfile::SLOW_DOWN_TIME - slowDownTime;
-    float totalTime = t0;
-    for (;i<counter-1;i++) {
-
-        float toEndTime0 = endTime - t0;
-        float toEndTime1 = endTime - profile[i+1].t;
-        float a0 = acc * (MIN_ACC_FACTOR + (1 - MIN_ACC_FACTOR) * toEndTime0 / SpeedProfile::SLOW_DOWN_TIME);
-        float a1 = acc * (MIN_ACC_FACTOR + (1 - MIN_ACC_FACTOR) * toEndTime1 / SpeedProfile::SLOW_DOWN_TIME);
-
-        float averageAcc = (a0 + a1) * 0.5f;
-        float v1 = profile[i+1].v;
-        float t = std::abs(v0 - v1) / averageAcc;
-
-        // a = a0 + t * (a1 - a0) / t1
-        // v = v0 + t * a0 + t^2 * 0.5 * (a1 - a0) / t1
-        // d = t * v0 + 0.5f * t * t * a0 +
-
-        if (totalTime + t < time) {
-            v0 = profile[i+1].v;
-            t0 = profile[i+1].t;
-            totalTime += t;
-        } else {
-            float tm = time - totalTime;
-            float speed = v0 + tm * sign(v1 - v0) * a0 + 0.5f * tm * tm * sign(v1 - v0) * (a1 - a0) / t;
-            return speed;
-        }
-    }
-    return profile[counter-1].v;
-}
-
-float SpeedProfile1D::offsetForTime(float time) const
+std::pair<float, float> SpeedProfile1D::offsetAndSpeedForTime(float time) const
 {
     float offset = 0;
     for (unsigned int i = 0;i<counter-1;i++) {
@@ -184,18 +123,15 @@ float SpeedProfile1D::offsetForTime(float time) const
             float diff = profile[i+1].t == profile[i].t ? 1 : (time - profile[i].t) / (profile[i+1].t - profile[i].t);
             float speed = profile[i].v + diff * (profile[i+1].v - profile[i].v);
             float partDist = (profile[i].v + speed) * 0.5f * (time - profile[i].t);
-            return offset + partDist;
+            return {offset + partDist, speed};
         }
         offset += (profile[i].v + profile[i+1].v) * 0.5f * (profile[i+1].t - profile[i].t);
     }
-    return offset;
+    return {offset, profile[counter-1].v};
 }
 
-float SpeedProfile1D::offsetForTimeSlowDown(float time, float slowDownTime) const
+std::pair<float, float> SpeedProfile1D::offsetAndSpeedForTimeSlowDown(float time, float slowDownTime) const
 {
-    if (slowDownTime <= 0) {
-        return offsetForTime(time);
-    }
     float pos = 0;
     float slowDownStartTime = profile[counter-1].t - slowDownTime;
     unsigned int i = 0;
@@ -207,7 +143,7 @@ float SpeedProfile1D::offsetForTimeSlowDown(float time, float slowDownTime) cons
             float speed = profile[i].v + diff * (profile[i+1].v - profile[i].v);
             float partDist = (profile[i].v + speed) * 0.5f * (td - profile[i].t);
             if (time < slowDownStartTime) {
-                return pos + partDist;
+                return {pos + partDist, speed};
             } else {
                 pos += partDist;
                 v0 = speed;
@@ -244,12 +180,12 @@ float SpeedProfile1D::offsetForTimeSlowDown(float time, float slowDownTime) cons
             totalTime += t;
         } else {
             float tm = time - totalTime;
+            float speed = v0 + tm * sign(v1 - v0) * a0 + 0.5f * tm * tm * sign(v1 - v0) * (a1 - a0) / t;
             float d = tm * v0 + 0.5f * tm * tm * sign(v1 - v0) * a0 + (1.0f / 6.0f) * tm * tm * tm * sign(v1 - v0) * (a1 - a0) / t;
-            pos += d;
-            break;
+            return {pos + d, speed};
         }
     }
-    return pos;
+    return {pos, profile[counter-1].v};
 }
 
 void SpeedProfile1D::trajectoryPositions(std::vector<Vector> &outPoints, std::size_t outIndex, float timeInterval, float positionOffset, std::size_t desiredCount) const
@@ -451,20 +387,17 @@ std::vector<TrajectoryPoint> SpeedProfile::getTrajectoryPoints() const
 
         if (std::abs(xNext - yNext) < SAME_POINT_EPSILON) {
             float time = (xNext + yNext) / 2.0f;
-            Vector pos = positionForTime(time);
-            Vector speed(xProfile.profile[xIndex + 1].v, yProfile.profile[yIndex + 1].v);
-            result.push_back({pos, speed, time});
+            auto posSpeed = positionAndSpeedForTime(time);
+            result.push_back({posSpeed.first, posSpeed.second, time});
             xIndex++;
             yIndex++;
         } else if (xNext < yNext) {
-            Vector pos = positionForTime(xNext);
-            Vector speed(xProfile.profile[xIndex + 1].v, slowDownTime == 0.0f ? yProfile.speedForTime(xNext) : yProfile.speedForTimeSlowDown(xNext, slowDownTime));
-            result.push_back({pos, speed, xNext});
+            auto posSpeed = positionAndSpeedForTime(xNext);
+            result.push_back({posSpeed.first, posSpeed.second, xNext});
             xIndex++;
         } else {
-            Vector pos = positionForTime(yNext);
-            Vector speed(slowDownTime == 0.0f ? xProfile.speedForTime(yNext) : xProfile.speedForTimeSlowDown(yNext, slowDownTime), yProfile.profile[yIndex + 1].v);
-            result.push_back({pos, speed, yNext});
+            auto posSpeed = positionAndSpeedForTime(yNext);
+            result.push_back({posSpeed.first, posSpeed.second, yNext});
             yIndex++;
         }
     }
@@ -472,7 +405,7 @@ std::vector<TrajectoryPoint> SpeedProfile::getTrajectoryPoints() const
     // compensate for the missing exponential slowdown by adding a segment with zero speed
     if (slowDownTime != 0.0f) {
         float endTime = time();
-        result.push_back({positionForTime(endTime), result.back().speed, endTime});
+        result.push_back({positionAndSpeedForTime(endTime).first, result.back().speed, endTime});
     }
 
     return result;

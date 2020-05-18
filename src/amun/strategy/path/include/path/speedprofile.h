@@ -44,14 +44,12 @@ public:
 
     std::pair<float, float> calculateRange(float slowDownTime) const;
 
-    float speedForTime(float time) const;
-    float speedForTimeSlowDown(float time, float slowDownTime) const;
-
     float endOffset() const;
     float endOffsetSlowDown(float slowDownTime) const;
 
-    float offsetForTime(float time) const;
-    float offsetForTimeSlowDown(float time, float slowDownTime) const;
+    // returns {offset, speed}
+    std::pair<float, float> offsetAndSpeedForTime(float time) const;
+    std::pair<float, float> offsetAndSpeedForTimeSlowDown(float time, float slowDownTime) const;
 
     // outIndex can be 0 or 1, writing the result to the x or y coordinate of the vectors
     void trajectoryPositions(std::vector<Vector> &outPoints, std::size_t outIndex, float timeInterval, float positionOffset, std::size_t desiredCount) const;
@@ -105,11 +103,16 @@ public:
         }
     }
 
-    Vector positionForTime(float time) const {
+    // returns {position, speed}
+    std::pair<Vector, Vector> positionAndSpeedForTime(float time) const {
         if (slowDownTime == 0.0f) {
-            return Vector(xProfile.offsetForTime(time), yProfile.offsetForTime(time));
+            auto x = xProfile.offsetAndSpeedForTime(time);
+            auto y = yProfile.offsetAndSpeedForTime(time);
+            return {Vector(x.first, y.first), Vector(x.second, y.second)};
         } else {
-            return Vector(xProfile.offsetForTimeSlowDown(time, slowDownTime), yProfile.offsetForTimeSlowDown(time, slowDownTime));
+            auto x = xProfile.offsetAndSpeedForTimeSlowDown(time, slowDownTime);
+            auto y = yProfile.offsetAndSpeedForTimeSlowDown(time, slowDownTime);
+            return {Vector(x.first, y.first), Vector(x.second, y.second)};
         }
     }
 
@@ -123,14 +126,6 @@ public:
             yProfile.trajectoryPositionsSlowDown(result, 1, timeInterval, offset.y, slowDownTime);
         }
         return result;
-    }
-
-    Vector speedForTime(float time) const {
-        if (slowDownTime == 0.0f) {
-            return Vector(xProfile.speedForTime(time), yProfile.speedForTime(time));
-        } else {
-            return Vector(xProfile.speedForTimeSlowDown(time, slowDownTime), yProfile.speedForTimeSlowDown(time, slowDownTime));
-        }
     }
 
     Vector endSpeed() const {

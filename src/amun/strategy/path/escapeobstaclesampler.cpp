@@ -113,7 +113,7 @@ std::tuple<int, float, float> EscapeObstacleSampler::trajectoryObstacleScore(con
             time = totalTime;
         }
 
-        Vector pos = speedProfile.positionForTime(time) + input.s0;
+        Vector pos = speedProfile.positionAndSpeedForTime(time).first + input.s0;
         int obstaclePriority = -1;
         if (!m_world.pointInPlayfield(pos, m_world.radius())) {
             obstaclePriority = m_world.outOfFieldPriority();
