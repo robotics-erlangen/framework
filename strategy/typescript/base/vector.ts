@@ -28,8 +28,8 @@ import * as geom from "base/geom";
 import * as MathUtil from "base/mathutil";
 
 export class Vector {
-	public x: number;
-	public y: number;
+	public readonly x: number;
+	public readonly y: number;
 
 	constructor(x: number, y: number) {
 		this.x = x;
@@ -67,6 +67,22 @@ export class Vector {
 	 */
 	copy(): Vector {
 		return new Vector(this.x, this.y);
+	}
+
+	/**
+	 * Creates a vector with the given x value
+	 * and the y value of the current vector
+	 */
+	withX(newX: number): Vector {
+		return new Vector(newX, this.y);
+	}
+
+	/**
+	 * Creates a vector with the given y value
+	 * and the x value of the current vector
+	 */
+	withY(newY: number): Vector {
+		return new Vector(this.x, newY);
 	}
 
 	/**
