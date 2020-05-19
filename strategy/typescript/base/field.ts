@@ -391,7 +391,7 @@ function defenseIntersectionByWay_2018(way: number, extraDistance: number, frien
 		way = way - length - Math.PI / 2 * extraDistance;
 		if (way < 0) {
 			let corner = new Vector((3 - (i + 1) * 2) * G.DefenseWidthHalf, G.FieldHeightHalf - G.DefenseHeight) * f;
-			let dir = Vector.fromAngle(-Math.PI / 2 * (i + 1) - way / extraDistance) * f;
+			let dir = Vector.fromPolar(-Math.PI / 2 * (i + 1) - way / extraDistance, f);
 			return corner + dir * extraDistance;
 		}
 	}
@@ -650,13 +650,13 @@ function defenseIntersectionByWay_2017(way: number, extraDistance: number = 0, f
 	let intersection;
 	if (way < arcway) {
 		let angle = way / radius;
-		intersection = Vector.fromAngle(- angle) * radius +
+		intersection = Vector.fromPolar(- angle, radius) +
 			new Vector(G.DefenseStretchHalf, G.FieldHeightHalf);
 	} else if (way <= arcway + lineway) {
 		intersection = new Vector(-way + arcway + G.DefenseStretchHalf, G.FieldHeightHalf - radius);
 	} else {
 		let angle = (way - arcway - lineway) / radius;
-		intersection = Vector.fromAngle(- Math.PI / 2 - angle) * radius +
+		intersection = Vector.fromPolar(- Math.PI / 2 - angle, radius) +
 			new Vector(-G.DefenseStretchHalf, G.FieldHeightHalf);
 	}
 

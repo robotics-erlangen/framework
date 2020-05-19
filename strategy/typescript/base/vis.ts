@@ -331,7 +331,7 @@ export function addAxisAlignedRectangle(name: string, corner1: Position, corner2
 let N_corners = 25;
 export function addPizza(name: string, center: Position, radius: number,
 		startAngle: number, endAngle: number, color?: Color, isFilled?: boolean, background?: boolean, style?: Style) {
-	let points = [center + Vector.fromAngle(startAngle) * radius, center, center + Vector.fromAngle(endAngle) * radius];
+	let points = [center + Vector.fromPolar(startAngle, radius), center, center + Vector.fromPolar(endAngle, radius)];
 	if ((startAngle - endAngle) % (2 * Math.PI) < 2 * Math.PI / N_corners) {
 		addPolygon(name, points, color, isFilled, background, style);
 	} else {
@@ -342,7 +342,7 @@ export function addPizza(name: string, center: Position, radius: number,
 		}
 		for (let w = wStart; w < wEnd; w++) {
 			let angle = w * Math.PI * 2 / N_corners;
-			points.push(center + Vector.fromAngle(angle) * radius);
+			points.push(center + Vector.fromPolar(angle, radius));
 		}
 		addPolygon(name, points, color, isFilled, background, style);
 	}

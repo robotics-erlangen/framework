@@ -350,6 +350,15 @@ export class Vector {
 	}
 
 	/**
+	 * Creates a vector with given direction and length
+	 * @param angle - Direction in radians
+	 * @param length - Length of the desired vector
+	 */
+	static fromPolar(angle: number, length: number): Vector {
+		return new Vector(Math.cos(angle) * length, Math.sin(angle) * length);
+	}
+
+	/**
 	 * Creates a random point around mean with a normal distribution
 	 * @param sigma - the sigma of the distribution
 	 * @param mean - the middle point of the distribution
