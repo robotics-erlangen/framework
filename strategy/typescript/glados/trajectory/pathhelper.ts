@@ -44,7 +44,7 @@ function addSeedTargets(path: Path, robot: FriendlyRobot) {
 	if (path.addSeedTarget && robot.speed.length() > 0.1) {
 		let angleMod = [ -SEED_ANGLE_MOD, 0, SEED_ANGLE_MOD ];
 		for (let angle of angleMod) {
-			let seedTarget = robot.pos + (robot.speed * SEED_PREDICT_TIME).rotate(angle);
+			let seedTarget = robot.pos + (robot.speed * SEED_PREDICT_TIME).rotated(angle);
 			path.addSeedTarget(seedTarget.x, seedTarget.y);
 			// vis.addPath("traj/pathhelper: seedTarget", { robot.pos, seedTarget }, vis.colors.blue)
 		}

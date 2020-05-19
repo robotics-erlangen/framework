@@ -228,7 +228,7 @@ export class Shoot {
 	}
 
 	private _correctSidewardsOffset(): Vector {
-		let distToBall = (World.Ball.pos - this._robot.pos).rotate(-this._robot.dir);
+		let distToBall = (World.Ball.pos - this._robot.pos).rotated(-this._robot.dir);
 		distToBall.x = distToBall.x - this._robot.shootRadius - World.Ball.radius - 0.01;
 
 		let p_out = SIDEWARDS_KP * -distToBall.y;
@@ -416,9 +416,9 @@ export class Shoot {
 
 			let rotateClockwise = moveDest.x > 0;
 			if (rotateClockwise && counterClockwiseRotation > angleDiff) {
-				shootVector.rotate(-clockwiseRotation);
+				shootVector = shootVector.rotated(-clockwiseRotation);
 			} else if (!rotateClockwise && clockwiseRotation > angleDiff) {
-				shootVector.rotate(counterClockwiseRotation);
+				shootVector = shootVector.rotated(counterClockwiseRotation);
 			}
 			targetPos = moveDest + shootVector;
 		}

@@ -650,7 +650,7 @@ export function robotTimeToPos(robot: RobotLike, endPos: Position, endSpeedVecto
 
 
 		let curvePathVec = new Vector(Math.sin(rawAngleDiff), Math.cos(rawAngleDiff) - 1) * radius;
-		curvePathVec.rotate(startSpeed.angle());
+		curvePathVec = curvePathVec.rotated(startSpeed.angle());
 		currentPos = currentPos + linearPathVec + curvePathVec;
 	}
 
@@ -927,7 +927,7 @@ function rttbSpecialCases(robot: Robot, ball: BallLike & {radius: number}, targe
 
 	// Special case: Ball seems to be a bit inside the robot
 	// This happens because the tracking doesn't implement a ball collision modell
-	let relpos = (ball.pos - robot.pos).rotate(-robot.dir);
+	let relpos = (ball.pos - robot.pos).rotated(-robot.dir);
 	relpos.x = relpos.x - robot.shootRadius - ball.radius;
 	let sidewardsOffset = Math.abs(relpos.y);
 	/* if (Roboobserver.touchedBall(robot, 0.15) && relpos.x > -0.25 && relpos.x <= 0.05 && sidewardsOffset < 0.2) {

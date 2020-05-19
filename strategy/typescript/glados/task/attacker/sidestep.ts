@@ -61,8 +61,8 @@ export class SideStep extends Task {
 		} else {
 			line = (G.OpponentGoal - passInfo.ballPos).normalized();
 		}
-		let clockwise = line.copy().perpendicular();
-		let counterClockwise = line.copy().rotate(Math.PI / 2);
+		let clockwise = line.perpendicular();
+		let counterClockwise = line.rotated(Math.PI / 2);
 		let [ccwDist, ccwRating] = this._rateLine(counterClockwise);
 		let [cwDist, cwRating] = this._rateLine(clockwise);
 		if (cwRating > ccwRating) {

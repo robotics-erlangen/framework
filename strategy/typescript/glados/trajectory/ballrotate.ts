@@ -23,7 +23,7 @@ function BallRotate:update (speedForward, radius, turnRight) {
 
 	let robotPos = Coordinates.toGlobal(this._robot.pos)
 	let robotDir = Coordinates.toGlobal(this._robot.dir)
-	let speed = letSpeed.copy().rotate(robotDir + Math.PI/2)
+	let speed = letSpeed.rotated(robotDir + Math.PI/2)
 
 	let spline = { {t_start = 0, t_end = Infinity,
 		x = { a0 = robotPos.x, a1 = speed.x, a2 = 0, a3 = 0 },

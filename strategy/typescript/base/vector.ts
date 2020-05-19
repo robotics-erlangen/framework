@@ -196,7 +196,7 @@ export class Vector {
 	/**
 	 * Perpendicular to current vector.
 	 * Returns perpendicular which is reached first when rotating clockwise.
-	 * Equals rotate(-Math.PI/2)
+	 * Equals rotated(-Math.PI/2)
 	 */
 	perpendicular(): Vector {
 		// rotate by 90 degree cw
@@ -204,17 +204,17 @@ export class Vector {
 	}
 
 	/**
-	 * Rotate this vector.
+	 * Returns a rotated version of this vector
 	 * Angles are oriented counterclockwise
 	 * @param angle - angle in radians
 	 */
-	rotate(angle: number): Vector {
+	rotated(angle: number): Vector {
 		let x = this.x;
 		let y = this.y;
 
-		this.y = Math.sin(angle) * x + Math.cos(angle) * y;
-		this.x = Math.cos(angle) * x - Math.sin(angle) * y;
-		return this;
+		let ry = Math.sin(angle) * x + Math.cos(angle) * y;
+		let rx = Math.cos(angle) * x - Math.sin(angle) * y;
+		return new Vector(rx, ry);
 	}
 
 	/**

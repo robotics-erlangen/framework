@@ -68,12 +68,12 @@ export class DribbleCircle extends Task {
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, { ignorePass: true, ignoreBall: true, ignoreDefenseArea: true, ignoreOpponentDefenseArea: true });
 
 		if (World.Time - this._lastTime >= ROTATION_STEP_TIME) {
-			this._speed.rotate(Math.PI / 16);
+			this._speed = this._speed.rotated(Math.PI / 16);
 			this._lastTime = World.Time;
 		}
 
 		let angle = (World.Ball.pos - this._robot.pos).angle();
-		this._speed.rotate((World.Time % 1000) % (Math.PI * 2));
+		this._speed = this._speed.rotated((World.Time % 1000) % (Math.PI * 2));
 
 		this._robot.setDribblerSpeed(1);
 		this._robot.trajectory.update(Direct, this._speed, this._speed.angle());

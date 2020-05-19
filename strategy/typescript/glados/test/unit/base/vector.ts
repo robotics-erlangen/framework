@@ -22,7 +22,7 @@ export class BaseVector extends UnitTest {
 		this.addTest("fromAngle", this.testFromAngle);
 		this.addTest("fromPolar", this.testFromPolar);
 		this.addTest("perpendicular", this.testPerpendicular);
-		this.addTest("rotate", this.testRotate);
+		this.addTest("rotated", this.testRotated);
 		this.addTest("orthogonalProjection", this.testOrthogonalProjection);
 		this.addTest("nearestPosOnLine+distanceToLineSegment", this.testNearestPosOnLineAndDistanceToLineSegment);
 		this.addTest("random", this.testRandom);
@@ -298,16 +298,15 @@ export class BaseVector extends UnitTest {
 		this.assert_equal(perp2.y, -2);
 	}
 
-	private testRotate() {
+	private testRotated() {
 		let vec = new Vector(1, 0);
-		let rot0 = vec.rotate(0);
+		let rot0 = vec.rotated(0);
 		this.assert_equal(rot0.x, 1);
 		this.assert_equal(rot0.y, 0);
-		this.assert_vector_equal(vec, rot0);
 
-		let rot1 = vec.copy().rotate(Math.PI);
-		let rot2 = vec.copy().rotate(Math.PI / 2);
-		let rot3 = vec.copy().rotate(-Math.PI / 2);
+		let rot1 = vec.copy().rotated(Math.PI);
+		let rot2 = vec.copy().rotated(Math.PI / 2);
+		let rot3 = vec.copy().rotated(-Math.PI / 2);
 		this.assert_equal_eps(rot1.x, -1, EPS);
 		this.assert_equal_eps(rot1.y, 0, EPS);
 		this.assert_equal_eps(rot2.x, 0, EPS);
@@ -315,10 +314,11 @@ export class BaseVector extends UnitTest {
 		this.assert_equal_eps(rot3.x, 0, EPS);
 		this.assert_equal_eps(rot3.y, -1, EPS);
 
-		let rot4 = vec.rotate(Math.PI / 4);
+		let rot4 = vec.rotated(Math.PI / 4);
 		this.assert_equal_eps(rot4.length(), 1, EPS);
 		this.assert_equal_eps(rot4.angle(), Math.PI / 4, EPS);
-		this.assert_vector_equal(vec, rot4);
+		this.assert_equal(vec.x, 1);
+		this.assert_equal(vec.y, 0);
 	}
 
 	private testOrthogonalProjection() {

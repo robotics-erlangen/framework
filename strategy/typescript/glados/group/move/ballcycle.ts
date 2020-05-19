@@ -37,7 +37,7 @@ let getRandomPosition = function (positions, maxShootingAngle) {
 	let circle = center1.y < center2.y ? center1 : center2
 	let angle = World.Ball.pos.x < 0 ? Math.PI / 4 : - Math.PI / 4
 	// position close to current ball pos
-	let firstPointNearBall = circle + (World.Ball.pos - circle).rotate(angle).withLength(randomExtension(radius + extraDistForRobotToShoot))
+	let firstPointNearBall = circle + (World.Ball.pos - circle).rotated(angle).withLength(randomExtension(radius + extraDistForRobotToShoot))
 	// position close to opponent defence area with some distance
 	let intersections = Field.intersectCircleDefenseArea(circle, radius, 0.75, false)
 	let lastPointNearOppDefenseArea = nil
@@ -59,7 +59,7 @@ let getRandomPosition = function (positions, maxShootingAngle) {
 	table.insert(positions, lastPointNearOppDefenseArea)
 	// find positions for the other robots
 	for (i = 1, (BallCycle.MIN_ROBOTS - 3)) {
-		let pos = circle + (firstPointNearBall - circle).rotate(i * angleDiff).withLength(randomExtension(radius + extraDistForRobotToShoot))
+		let pos = circle + (firstPointNearBall - circle).rotated(i * angleDiff).withLength(randomExtension(radius + extraDistForRobotToShoot))
 		table.insert(positions, Field.limitToAllowedField(pos, 0.3))
 	}
 	return

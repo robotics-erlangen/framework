@@ -119,8 +119,8 @@ export class PenaltyShootout extends Behavior {
 		let keeper = World.OpponentKeeper;
 		let robot = this._robot;
 		let ball = this._ball;
-		let toleftPost = (G.OpponentGoalLeft - robot.pos).rotate(-this.angleUncertanty);
-		let torightPost = (G.OpponentGoalRight - robot.pos).rotate(this.angleUncertanty);
+		let toleftPost = (G.OpponentGoalLeft - robot.pos).rotated(-this.angleUncertanty);
+		let torightPost = (G.OpponentGoalRight - robot.pos).rotated(this.angleUncertanty);
 		let anglediffleft = geom.normalizeAngle(toleftPost.angle() - robot.dir);
 		let anglediffright = geom.normalizeAngle(torightPost.angle() - robot.dir);
 		let turntimeLeft = Math.abs(anglediffleft) / this.turnspeed;

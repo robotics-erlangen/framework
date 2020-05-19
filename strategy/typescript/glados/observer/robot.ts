@@ -57,7 +57,7 @@ export function estimateRobotDynamics() {
 	let currentRotation: Map<Robot, number> = new Map<Robot, number>();
 
 	for (let robot of World.Robots) {
-		let letRobotSpeed = robot.speed.copy().rotate(-robot.dir);
+		let letRobotSpeed = robot.speed.rotated(-robot.dir);
 		letRobotSpeed.x = Math.abs(letRobotSpeed.x);
 		letRobotSpeed.y = Math.abs(letRobotSpeed.y);
 		let letRobotDir = Math.abs(robot.angularSpeed);

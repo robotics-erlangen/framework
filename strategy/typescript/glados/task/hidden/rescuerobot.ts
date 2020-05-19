@@ -51,7 +51,7 @@ export class RescueRobot extends Task {
 		let speed = this._speeds[idx];
 
 		if (speed) {
-			speed = speed.copy().rotate(this._rotation);
+			speed = speed.rotated(this._rotation);
 			this._robot.trajectory.update(Hidden, speed.x, speed.y, 0);
 		}
 	}

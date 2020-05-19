@@ -26,7 +26,7 @@ export class ForceShoot {
 			return;
 		}
 		// Ignore the IR if the robot has the ball
-		let relpos = (World.Ball.pos - this._robot.pos).rotate(-this._robot.dir);
+		let relpos = (World.Ball.pos - this._robot.pos).rotated(-this._robot.dir);
 		// assume the ball is "pushed" into the robot due to tracking latency
 		if (relpos.x < this._robot.shootRadius + World.Ball.radius - 0.002 && World.Ball.isPositionValid() &&
 				this._robot.hasBall(World.Ball, -0.01)) {
