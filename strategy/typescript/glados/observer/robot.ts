@@ -57,12 +57,11 @@ export function estimateRobotDynamics() {
 	let currentRotation: Map<Robot, number> = new Map<Robot, number>();
 
 	for (let robot of World.Robots) {
-		let letRobotSpeed = robot.speed.rotated(-robot.dir);
-		letRobotSpeed.x = Math.abs(letRobotSpeed.x);
-		letRobotSpeed.y = Math.abs(letRobotSpeed.y);
+		let thisRobotSpeed = robot.speed.rotated(-robot.dir);
+		thisRobotSpeed = new Vector(Math.abs(thisRobotSpeed.x), Math.abs(thisRobotSpeed.y));
 		let letRobotDir = Math.abs(robot.angularSpeed);
 		if (lastLocalSpeed.has(robot)) {
-			let accel = (letRobotSpeed - <Speed> lastLocalSpeed.get(robot)) * invTimeDiff;  // classic derivative without smoothing
+			let accel = (thisRobotSpeed - <Speed> lastLocalSpeed.get(robot)) * invTimeDiff;  // classic derivative without smoothing
 			accelerationSmoothed.set(robot, accel * alpha + (accelerationSmoothed.get(robot) || nullVector) * (1 - alpha)); // smoothed acceleration curve
 		}
 		if (lastRotation.has(robot)) {
@@ -71,7 +70,7 @@ export function estimateRobotDynamics() {
 		}
 		speedSmoothed.set(robot, robot.speed.length() * alpha + (speedSmoothed.get(robot) || 0) * (1 - alpha));
 		rotationSmoothed.set(robot, letRobotDir * alpha + (rotationSmoothed.get(robot) || 0) * (1 - alpha));
-		currentLocalSpeed.set(robot, letRobotSpeed);
+		currentLocalSpeed.set(robot, thisRobotSpeed);
 		currentRotation.set(robot, letRobotDir);
 
 		let dynamics = robot.isFriendly ? friendlyDynamics : opponentDynamics;

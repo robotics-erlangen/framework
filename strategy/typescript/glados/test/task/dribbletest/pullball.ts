@@ -21,7 +21,7 @@ export class PullBall extends Task {
 	private _acceleration : number;
 
 	private _startPos : Position;
-	private _Target : Position;
+	private _target : Position;
 
 	private _curTarget : Position;
 	private _curMovementSpeed : number;
@@ -38,8 +38,8 @@ export class PullBall extends Task {
 
 		PullBall._isInitialised = true;
 
-		this._Target = this._robot.pos.copy();
-		this._Target.y = this._Target.y - 1;
+		this._target = this._robot.pos.copy();
+		this._target = this._target.withY(this._target.y - 1);
 
 		this._startPos = this._robot.pos.copy();
 
@@ -77,11 +77,11 @@ export class PullBall extends Task {
 						break;
 					}
 
-					this._curTarget = this._Target;
+					this._curTarget = this._target;
 					this._movementSpeed += 0.1;
 					this._curMovementSpeed = this._movementSpeed;
 					break;
-				case this._Target:
+				case this._target:
 					this._startArrivalFlag = true;
 					this._curTarget = this._startPos;
 					log(`SuccessPull; MovementSpeed: ${this._movementSpeed}\tDribblerSpeed: ${this._dribblerSpeed}`);

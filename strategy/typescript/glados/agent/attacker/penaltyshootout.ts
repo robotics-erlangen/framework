@@ -63,7 +63,7 @@ export class PenaltyShootout extends Behavior {
 	private _forceDesperate: boolean = false;
 	private _changeContact: boolean = false;
 	private _baseDribblePos: Position = new Vector(0, G.FieldHeightHalf);
-	private _addPos: Position = new Vector(0, 0);
+	private _addX: number = 0;
 	private _state: string | undefined;
 	private _futureKeeper: {pos: Position, speed: Speed, radius: number} = {pos: G.OpponentGoal, speed: new Vector(0,0.1), radius: 0.09};
 	private _ball = {pos : getRealisticBallPos(), speed : World.Ball.speed, radius : World.Ball.radius, time : World.Time, maxSpeed: 0, quality : 1};
@@ -78,7 +78,7 @@ export class PenaltyShootout extends Behavior {
 		this._forceDesperate = false;
 		this._changeContact = false;
 		this._baseDribblePos = new Vector(0, G.FieldHeightHalf);
-		this._addPos = new Vector(0, 0);
+		this._addX = 0;
 		this._state = undefined;
 		this._futureKeeper = {pos: G.OpponentGoal, speed: new Vector(0,0.1), radius: 0.09};
 		this._ball = {pos : getRealisticBallPos(), speed : World.Ball.speed, radius : World.Ball.radius, time : World.Time, maxSpeed: 0, quality : 1};
@@ -274,21 +274,16 @@ export class PenaltyShootout extends Behavior {
 			let keeperPos = (World.OpponentKeeper || this._robot).pos;
 			let rate = 0.02 * robotPos.distanceTo(keeperPos);
 			if (keeperPos.x < 0) {
-				this._addPos.x = (this._addPos.x + rate) / (1 + Math.abs(robotPos.x - keeperPos.x));
+				this._addX = (this._addX + rate) / (1 + Math.abs(robotPos.x - keeperPos.x));
 			} else {
-				this._addPos.x = (this._addPos.x - rate) / (1 + Math.abs(robotPos.x - keeperPos.x));
+				this._addX = (this._addX - rate) / (1 + Math.abs(robotPos.x - keeperPos.x));
 			}
-			let dribblePoint = this._baseDribblePos + this._addPos;
+			let dribblePoint = this._baseDribblePos + new Vector(this._addX, 0);
 			let intersection = Field.intersectRayDefenseArea(dribblePoint, robotPos - dribblePoint, 0.2, false)[0];
 			if (intersection) {
 				dribblePoint = intersection;
 			}
-			if (this._dribblePos == undefined) {
-				this._dribblePos = dribblePoint;
-			} else {
-				this._dribblePos.x = dribblePoint.x;
-				this._dribblePos.y = dribblePoint.y;
-			}
+			this._dribblePos = dribblePoint;
 			return [Dribble, [this._dribblePos]];
 		}
 	}

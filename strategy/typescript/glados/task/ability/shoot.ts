@@ -229,7 +229,7 @@ export class Shoot {
 
 	private _correctSidewardsOffset(): Vector {
 		let distToBall = (World.Ball.pos - this._robot.pos).rotated(-this._robot.dir);
-		distToBall.x = distToBall.x - this._robot.shootRadius - World.Ball.radius - 0.01;
+		distToBall = distToBall.withX(distToBall.x - this._robot.shootRadius - World.Ball.radius - 0.01);
 
 		let p_out = SIDEWARDS_KP * -distToBall.y;
 		let errorMax = MathUtil.bound(0, SIDEWARDS_SPEED_LIMIT - p_out, SIDEWARDS_SPEED_LIMIT);

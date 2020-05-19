@@ -12,6 +12,8 @@ export class BaseVector extends UnitTest {
 		this.addTest("attributes", this.testAttributes);
 		this.addTest("operators", this.testOperators);
 		this.addTest("copy", this.testCopy);
+		this.addTest("withX", this.testWithX);
+		this.addTest("withY", this.testWithY);
 		this.addTest("isNan", this.testIsNan);
 		this.addTest("length", this.testLength);
 		this.addTest("normalized", this.testNormalized);
@@ -37,12 +39,8 @@ export class BaseVector extends UnitTest {
 
 	private testAttributes() {
 		let vec = new Vector(1, 2);
-		vec.x = 3;
-		this.assert_equal(vec.x, 3);
+		this.assert_equal(vec.x, 1);
 		this.assert_equal(vec.y, 2);
-		vec.y = 4;
-		this.assert_equal(vec.x, 3);
-		this.assert_equal(vec.y, 4);
 	}
 
 	private testOperators() {
@@ -100,17 +98,29 @@ export class BaseVector extends UnitTest {
 		this.assert_vector_equal(vec_copy, vec);
 	}
 
+	private testWithX() {
+		let vec = new Vector(4, 5);
+		let vec_copy = vec.withX(1);
+		this.assert_equal(vec_copy.x, 1);
+		this.assert_equal(vec_copy.y, 5);
+	}
+
+	private testWithY() {
+		let vec = new Vector(4, 5);
+		let vec_copy = vec.withY(1);
+		this.assert_equal(vec_copy.x, 4);
+		this.assert_equal(vec_copy.y, 1);
+	}
+
 	private testIsNan() {
 		let vec = new Vector(0, 0);
 		this.assert_false(vec.isNan());
-		vec.x = 0 / 0;
+		vec = new Vector(0 / 0, 0);
 		this.assert_true(vec.isNan());
-		vec.y = 0 / 0;
+		vec = new Vector(0 / 0, 0 / 0);
 		this.assert_true(vec.isNan());
-		vec.x = 0;
+		vec = new Vector(0, 0 / 0);
 		this.assert_true(vec.isNan());
-		vec.y = 0;
-		this.assert_false(vec.isNan());
 	}
 
 	private testLength() {

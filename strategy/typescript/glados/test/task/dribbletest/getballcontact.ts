@@ -52,7 +52,7 @@ export class GetBallContact extends Task {
 
 		this._currentTargetPos = World.Ball.pos.copy();
 		this._startPos = this._currentTargetPos.copy();
-		this._startPos.y = this._startPos.y - 0.3;
+		this._startPos = this._startPos.withY(this._startPos.y - 0.3);
 
 		this._initDribblerSpeed = dribblerSpeed;
 
@@ -95,8 +95,8 @@ export class GetBallContact extends Task {
 
 				break;
 			case State.PULL_BACK:
-				let pos = this._robot.pos.copy();
-				pos.y = pos.y - 1;
+				let pos = this._robot.pos;
+				pos = pos.withY(pos.y - 1);
 				this._robot.setDribblerSpeed(PULL_DRIBBLER_SPEED);
 				this._robot.trajectory.update(ToTarget, pos, (1 / 2) * Math.PI, PULL_MOVEMENT_SPEED, undefined, PULL_ACCELERATION);
 

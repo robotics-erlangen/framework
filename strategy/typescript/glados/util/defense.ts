@@ -79,7 +79,7 @@ function _manMarkPos(opponent: { pos: Position, radius: number, speed: Speed }):
 	}
 
 	if (World.RefereeState === "PenaltyOffensivePrepare" || World.RefereeState === "PenaltyOffensive") {
-		targetPos.y = Math.min(targetPos.y, G.PenaltyLine - PENALTY_LINE_DISTANCE);
+		targetPos = targetPos.withY(Math.min(targetPos.y, G.PenaltyLine - PENALTY_LINE_DISTANCE));
 	}
 
 	return targetPos;

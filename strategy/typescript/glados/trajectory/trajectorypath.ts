@@ -99,13 +99,13 @@ export class TrajectoryPath extends TrajectoryHandler {
 			// remove speed component that points further outside the field, but keep the remaining component
 			// this ensures that we do not get stuck trying to drive parallel to the field border (but close to it)
 			if (this._robot.pos.x > World.Geometry.FieldWidthHalf) {
-				rSpeed.x = Math.min(0, rSpeed.x);
+				rSpeed = rSpeed.withX(Math.min(0, rSpeed.x));
 			} else if (this._robot.pos.x < -World.Geometry.FieldWidthHalf) {
-				rSpeed.x = Math.max(0, rSpeed.x);
+				rSpeed = rSpeed.withX(Math.max(0, rSpeed.x));
 			} else if (this._robot.pos.y > World.Geometry.FieldHeightHalf) {
-				rSpeed.y = Math.min(0, rSpeed.y);
+				rSpeed = rSpeed.withY(Math.min(0, rSpeed.y));
 			} else if (this._robot.pos.y < -World.Geometry.FieldHeightHalf) {
-				rSpeed.y = Math.max(0, rSpeed.y);
+				rSpeed = rSpeed.withY(Math.max(0, rSpeed.y));
 			}
 		}
 		let robotSpeed = Coordinates.toGlobal(rSpeed);

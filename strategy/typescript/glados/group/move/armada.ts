@@ -28,9 +28,8 @@ const POSITIONS_ORIG: Position[] = [
 const MAX_RANDOM_POSITION_OFFSET = 0.8;
 
 function getRandomOffsetVector(): Vector {
-	let result = new Vector(0,0);
-	result.x = (MathUtil.random() - 0.5) * 2 * (MAX_RANDOM_POSITION_OFFSET - 0.5);
-	result.y = (MathUtil.random() - 0.5) * 2 * (MAX_RANDOM_POSITION_OFFSET - 0.5);
+	let result = new Vector((MathUtil.random() - 0.5) * 2 * (MAX_RANDOM_POSITION_OFFSET - 0.5),
+							(MathUtil.random() - 0.5) * 2 * (MAX_RANDOM_POSITION_OFFSET - 0.5));
 	return result;
 }
 
@@ -89,9 +88,9 @@ export class Armada extends Move {
 		} else if (Armada.Referee.isFriendlyFreeKickState() && this._positions.length === 0) {
 			// calculate position
 			for (let i = 0;i < 4;i++) {
-				let pos = POSITIONS_ORIG[i].copy();
+				let pos = POSITIONS_ORIG[i];
 				if (World.Ball.pos.x > 0) {
-					pos.x = -pos.x;
+					pos = new Vector(-pos.x, pos.x);
 				}
 				pos = pos + getRandomOffsetVector();
 				// shift positions to make volley possible

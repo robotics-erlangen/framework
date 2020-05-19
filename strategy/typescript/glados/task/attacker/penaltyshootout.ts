@@ -27,7 +27,7 @@ export class PenaltyShootout extends Task {
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
 		let shootlength = (0.2 + this._robot.speed.length() * 0.4);
 		let shootpos = new Vector(0, shootlength) * 0.7 + this._ball.speed / 3 * 0.3;
-		shootpos.x = -shootpos.x / 2;
+		shootpos = shootpos.withX(-shootpos.x / 2);
 		this._shoot._shoot(shootpos + this._robot.pos, shootlength);
 	}
 }

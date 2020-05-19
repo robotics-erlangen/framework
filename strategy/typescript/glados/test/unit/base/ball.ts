@@ -91,7 +91,7 @@ export class BaseBall extends UnitTest {
 		this.assert_equal(ball.deceleration, Constants.fastBallDeceleration);
 
 		// stop ball
-		ballSpeed.x = ballSpeed.x * Constants.ballSwitchRatio - 0.01;
+		ballSpeed = ballSpeed.withX(ballSpeed.x * Constants.ballSwitchRatio - 0.01);
 		ball._update(this.ballData(ballPos, ballSpeed, 0, 0), time);
 		this.assert_equal(ball.deceleration, Constants.ballDeceleration);
 	}
