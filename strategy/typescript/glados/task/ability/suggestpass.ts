@@ -24,7 +24,7 @@ export class SuggestPass {
 		}
 
 		let currentBallPos = attackPos;
-		let robotPos = destBallPos + (destBallPos - currentBallPos).setLength(this._robot.shootRadius + World.Ball.radius);
+		let robotPos = destBallPos + (destBallPos - currentBallPos).withLength(this._robot.shootRadius + World.Ball.radius);
 
 		// calculate receive time
 		let extraTime = 0.0;
@@ -41,7 +41,7 @@ export class SuggestPass {
 
 	_suggestPassRobotPosition(destRobotPos: Position, attackPos: Position = World.Ball.pos, relativeTime?: number,
 			anonymous?: boolean) {
-		let destBallPos = destRobotPos + (attackPos - destRobotPos).setLength(this._robot.shootRadius + World.Ball.radius);
+		let destBallPos = destRobotPos + (attackPos - destRobotPos).withLength(this._robot.shootRadius + World.Ball.radius);
 		this._suggestPass(destBallPos, attackPos, relativeTime, anonymous);
 	}
 }

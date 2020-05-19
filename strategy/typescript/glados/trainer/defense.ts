@@ -266,7 +266,7 @@ export class Defense {
 				intersections[1] = temp;
 			}
 			let maxDistance = lastRemoved ? 0.3 : 0.2;
-			let value = direction.copy().setLength(1).y;
+			let value = direction.normalized().y;
 			let minFlatness = lastRemoved ? 0.3 : 0.2;
 			if (intersections[0].pos.distanceToSq(intersections[1].pos) < maxDistance ** 2 || value < minFlatness && intersections[1].sec === 3) {
 				intersections.splice(1, 1);
@@ -290,7 +290,7 @@ export class Defense {
 
 		if (intersections[1] != undefined) {
 			let toDefenseDist = pos.distanceTo(intersections[0].pos);
-			let insidePos = pos + direction.copy().setLength(toDefenseDist + 0.03);
+			let insidePos = pos + direction.withLength(toDefenseDist + 0.03);
 			result.push({ startPos: insidePos, startDirection: direction, pos: intersections[1].pos, way: intersections[1].way });
 		}
 	}

@@ -87,7 +87,7 @@ export class MoveToPos extends Task {
 			this._addCustomObstacle(obstacle);
 		}
 
-		let endSpeed = (this._pos - this._robot.pos).setLength(this._endSpeedLength);
+		let endSpeed = (this._pos - this._robot.pos).withLength(this._endSpeedLength);
 		let time;
 		if (this.useCMA) {
 			time = this._robot.trajectory.update(CurvedMaxAccel, this._pos, this._dir, undefined, endSpeed)[1];

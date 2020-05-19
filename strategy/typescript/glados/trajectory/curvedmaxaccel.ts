@@ -21,7 +21,7 @@ function _preprocessPath(waypoints: Position[], maxError: number, robotPos: Posi
 	// move the next waypoint inwards if we will miss it
 	let startDir = waypoints[1] - waypoints[0];
 	if (startDir.dot(robotSpeed) > 0 && robotSpeed.length() > 0.1 && waypoints.length >= 3) {
-		let perpendicular = robotSpeed.perpendicular().setLength(1);
+		let perpendicular = robotSpeed.perpendicular().normalized();
 		let [cornerPos, lambda1, lambda2] = geom.intersectLineLine(robotPos, robotSpeed, waypoints[1], perpendicular);
 		let angleDiff = startDir.angleDiff(waypoints[2] - waypoints[0]);
 		// only move the cornerPos inwards
@@ -100,12 +100,12 @@ function _calculateCurveSpeedLimits(waypoints: Position[], accelLimit: number, m
 			let actualDist = angleDiff * (startRadius + endRadius) * 0.5;
 			if (xRemaining > startDist) {
 				maxSpeedProfile.push([maxSpeed, maxSpeed, xRemaining - startDist]); // straight line segment
-				// vis.addPathRaw("waypoints"+tostring(i), {prev - lastPathDir.copy().setLength(xRemaining), prev - lastPathDir.copy().setLength(startDist)}, vis.colors.blue)
+				// vis.addPathRaw("waypoints"+tostring(i), {prev - lastPathDir.withLength(xRemaining), prev - lastPathDir.withLength(startDist)}, vis.colors.blue)
 			}
 			maxSpeedProfile.push([maxStartSpeed, maxEndSpeed, actualDist, true]); // curved part
 			vis.addPathRaw("waypoints"
 // ..tostring(i)
-, [prev - lastPathDir.copy().setLength(startDist), prev + newPathDir.copy().setLength(endDist)], vis.colors.blue);
+, [prev - lastPathDir.withLength(startDist), prev + newPathDir.withLength(endDist)], vis.colors.blue);
 			xRemaining = newPathDir.length() - endDist; // >= newPathDir.length() / 2
 		}
 		// update path segments
@@ -115,7 +115,7 @@ function _calculateCurveSpeedLimits(waypoints: Position[], accelLimit: number, m
 
 	if (xRemaining > 0) {
 		maxSpeedProfile.push([maxSpeed, endSpeed, xRemaining]); // end segment
-		// vis.addPathRaw("waypoints"+"End", {prev - lastPathDir.copy().setLength(xRemaining), prev}, vis.colors.blue)
+		// vis.addPathRaw("waypoints"+"End", {prev - lastPathDir.withLength(xRemaining), prev}, vis.colors.blue)
 	}
 
 	return maxSpeedProfile;
@@ -448,8 +448,8 @@ function _calculateSpeed(robotId: number, waypoints: Position[], maxSpeedProfile
 	// don't drive backwards, just brake as fast as possible
 	speed = Math.max(0, speed);
 	let moveDir = waypoints[1] - waypoints[0];
-	let speedVector = moveDir.copy().setLength(speed);
-	let accelVector = moveDir.copy().setLength(accel);
+	let speedVector = moveDir.withLength(speed);
+	let accelVector = moveDir.withLength(accel);
 
 	plot.addPlot(String(robotId)  +  ".speed", speed);
 	// debug.set("speed", speedVector)
@@ -462,12 +462,12 @@ function _calculateSpeed(robotId: number, waypoints: Position[], maxSpeedProfile
 			// add acceleration towards the curve center, reduce accerlation if the robot is slower than expected
 			let angle = (waypoints[1] - waypoints[0]).angleDiff(waypoints[2] - waypoints[1]);
 			let scale = MathUtil.bound(0.02, Math.min(forwardDir, speed) / Math.max(maxSpeedProfile[1][0], maxSpeedProfile[1][1]), 1);
-			accelVector = accelVector - moveDir.perpendicular().setLength(MathUtil.sign(angle) * accelLimit * scale * scale);
+			accelVector = accelVector - moveDir.perpendicular().withLength(MathUtil.sign(angle) * accelLimit * scale * scale);
 		}
 		// calculate how fast the robot is moving perpendicular to the speedVector
 		// add acceleration in the opposite direction
 		let sidewardSpeed = moveDir.perpendicular().normalized();
-		sidewardSpeed.setLength(-sidewardSpeed.dot(robotSpeed) * sidewardsErrorFactor);
+		sidewardSpeed.withLength(-sidewardSpeed.dot(robotSpeed) * sidewardsErrorFactor);
 		accelVector = accelVector + sidewardSpeed;
 	}
 

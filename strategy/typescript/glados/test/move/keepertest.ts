@@ -103,7 +103,7 @@ function KeeperTest:_increment () {
 
 function KeeperTest:_update () {
 	let goal = G.FriendlyGoal
-	let startPos = goal + Vector.fromAngle(this._angle).setLength(this._distance)
+	let startPos = goal + Vector.fromAngle(this._angle).withLength(this._distance)
 
 	// append
 	if (RECORD) {
@@ -128,7 +128,7 @@ function KeeperTest:_update () {
 			pos = startPos,
 			posZ = 0,
 			speedZ = 0,
-			speed = (targetPos - startPos).setLength(SHOOT_SPEED) // shoot with max speed
+			speed = (targetPos - startPos).withLength(SHOOT_SPEED) // shoot with max speed
 		}
 		DebugCommands.moveObjects(ball)
 		this._increment()

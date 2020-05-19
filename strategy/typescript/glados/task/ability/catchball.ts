@@ -261,7 +261,7 @@ export class CatchBall {
 				endSpeedLength = Math.min(Math.sqrt(2 * this._robot.acceleration.aBrakeFMax * nextLineCutLambda!), endSpeedLength);
 			}
 		}
-		return endSpeed.copy().setLength(endSpeedLength);
+		return endSpeed.withLength(endSpeedLength);
 	}
 
 	_updateReasonableBallPos(ball: BallLike, ballInsideRobot: boolean) {
@@ -321,15 +321,15 @@ export class CatchBall {
 			let robotDistToPredictedBall = this._robot.pos.distanceTo(predictedBall.pos);
 			let ballDistToPredictedBall = ball.pos.distanceTo(predictedBall.pos);
 
-			let lineDir = (minBall.pos - predictedBall.pos).setLength(extraDist);
+			let lineDir = (minBall.pos - predictedBall.pos).withLength(extraDist);
 			let minBallShift = minBall.pos - lineDir;
 			// predictedBallShift should be tangential to the ball in the direction where the robot will be
-			let predictedBallShift = predictedBall.pos + (predictedBall.pos - moveDest).setLength(extraDist);
+			let predictedBallShift = predictedBall.pos + (predictedBall.pos - moveDest).withLength(extraDist);
 
 			// if the robot is closer to the predicted ball then the ball I can shorten the obstacle
 			if ((robotDistToPredictedBall + 2 * this._robot.radius + ball.radius) < ballDistToPredictedBall
 				||  robotDistToPredictedBall < 2 * this._robot.radius + minBall.radius) {
-				predictedBallShift = minBall.pos - (minBall.pos - predictedBall.pos).setLength(ball.radius + 0.02);
+				predictedBallShift = minBall.pos - (minBall.pos - predictedBall.pos).withLength(ball.radius + 0.02);
 			}
 
 			path.addLine(predictedBallShift.x, predictedBallShift.y, minBallShift.x, minBallShift.y,

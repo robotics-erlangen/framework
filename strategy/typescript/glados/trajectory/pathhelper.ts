@@ -252,8 +252,8 @@ function addGoalObstacleShot(path: Path, robot: FriendlyRobot, messaging: Messag
 		} else {
 			// no need to calculate the actual time, in 3 seconds it will definitively have reached the goal
 			let t = attackTime - World.Time;
-			path.addMovingLine(t, t + 3, viewPos, (leftGoal - viewPos).setLength(shootSpeed), new Vector(0, 0),
-				viewPos, (rightGoal - viewPos).setLength(shootSpeed), new Vector(0, 0), World.Ball.radius + 0.15, Priorities.GOAL_SHOT);
+			path.addMovingLine(t, t + 3, viewPos, (leftGoal - viewPos).withLength(shootSpeed), new Vector(0, 0),
+				viewPos, (rightGoal - viewPos).withLength(shootSpeed), new Vector(0, 0), World.Ball.radius + 0.15, Priorities.GOAL_SHOT);
 		}
 	}
 	return disablePass;
@@ -307,12 +307,12 @@ function addFriendlyPassObstacle(path: Path, robot: FriendlyRobot, messaging: Me
 					} else {
 						let ballTime = Physics.ballRollTime({speed: new Vector(Constants.maxBallSpeed, 0),
 							maxSpeed: Constants.maxBallSpeed}, dangerPos.distanceTo(endPoint));
-						let shortEndPoint = dangerPos + (endPoint - dangerPos).setLength(1);
+						let shortEndPoint = dangerPos + (endPoint - dangerPos).normalized();
 						if (ballTime > 5) {
 							ballTime = 5;
 						}
 						let t = dangerTime - World.Time;
-						path.addMovingCircle(t, t + ballTime, dangerPos, (endPoint - dangerPos).setLength(Constants.maxBallSpeed),
+						path.addMovingCircle(t, t + ballTime, dangerPos, (endPoint - dangerPos).withLength(Constants.maxBallSpeed),
 							new Vector(0, 0), radius, Priorities.PASS_BALL_STRIKER);
 						path.addLine(dangerPos.x, dangerPos.y, shortEndPoint.x, shortEndPoint.y, radiusRobot, "pass2", Priorities.PASS_BALL_STRIKER);
 					}
@@ -422,7 +422,7 @@ function addMovingRobotObstacle(path: Path, otherRobot: Robot, safetyDistance: n
 	let speedLength = otherRobot.speed.length();
 	let brakeTime = speedLength / ACCELERATION;
 	let brakePos = otherRobot.speed * (brakeTime * 0.5);
-	path.addMovingCircle(0, brakeTime, otherRobot.pos, otherRobot.speed, -otherRobot.speed.copy().setLength(ACCELERATION), otherRobot.radius + safetyDistance, Priorities.ROBOT);
+	path.addMovingCircle(0, brakeTime, otherRobot.pos, otherRobot.speed, -otherRobot.speed.withLength(ACCELERATION), otherRobot.radius + safetyDistance, Priorities.ROBOT);
 	if (brakeTime < 2) {
 		path.addMovingCircle(brakeTime, 2, otherRobot.pos + brakePos, new Vector(0, 0), new Vector(0, 0), otherRobot.radius + safetyDistance, Priorities.ROBOT);
 	}

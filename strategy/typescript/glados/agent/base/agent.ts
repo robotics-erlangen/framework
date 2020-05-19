@@ -231,8 +231,7 @@ export abstract class Agent {
 
 			// if we have the ball, the time is 0
 			if (timeToBall === Infinity || (timeToBallDetailed != undefined && timeToBallDetailed === Infinity)) {
-				let dribblerPos = this._robot.pos + Vector.fromAngle(this._robot.dir) * this._robot.shootRadius;
-				if (World.Ball.pos.distanceTo(dribblerPos) < 0.15) {
+				if (World.Ball.pos.distanceTo(this._robot.dribblerPos) < 0.15) {
 					if (World.Ball.speed.dot(this._robot.pos - World.Ball.pos) > 0) {
 						if (timeToBall === Infinity) {
 							timeToBall = 0;

@@ -198,7 +198,7 @@ export class Striker implements Group {
 			if (passInfoTable) {
 				for (let passInfo of passInfoTable) {
 					if (passInfo.target === r) {
-						pos = passInfo.ballPos + (passInfo.ballPos - World.Ball.pos).setLength(r.shootRadius + World.Ball.radius);
+						pos = passInfo.ballPos + (passInfo.ballPos - World.Ball.pos).withLength(r.shootRadius + World.Ball.radius);
 					}
 				}
 			}

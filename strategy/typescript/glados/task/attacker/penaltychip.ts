@@ -78,7 +78,7 @@ export class PenaltyChip extends Task {
 		let dir = this._robot.dir - aim / 10;
 
 
-		let pos = this._robot.pos + (G.OpponentGoal - this._robot.pos).setLength(0.7);
+		let pos = this._robot.pos + (G.OpponentGoal - this._robot.pos).withLength(0.7);
 		this._robot.trajectory.update(ToTarget, pos, dir);
 	}
 
@@ -152,7 +152,7 @@ function checkAngle(ball: {speed: Vector}, robot: Robot) {
 	let minchipDistance = 1;
 	let speedSq = g * minchipDistance / chipGradient;
 	let shotSpeedSq = speedSq - ball.speed.lengthSq();
-	let shotVector = Vector.fromAngle(robot.dir).setLength(Math.sqrt(shotSpeedSq));
+	let shotVector = Vector.fromAngle(robot.dir).withLength(Math.sqrt(shotSpeedSq));
 	let result = ball.speed + shotVector;
 	if (!result.insideSector(toRightPost, toLeftPost)) {
 		return "fail angle";
@@ -224,6 +224,6 @@ function getShotVector(ball: {speed: Vector}, robot: Robot) {
 	let minchipDistance = 1;
 	let speedSq = g * minchipDistance / chipGradient;
 	let shotSpeedSq = speedSq - ball.speed.lengthSq();
-	let shotVector = Vector.fromAngle(robot.dir).setLength(Math.sqrt(shotSpeedSq));
+	let shotVector = Vector.fromAngle(robot.dir).withLength(Math.sqrt(shotSpeedSq));
 	return ball.speed + shotVector;
 }

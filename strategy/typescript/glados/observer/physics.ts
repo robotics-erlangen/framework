@@ -85,8 +85,8 @@ export function ballAtTime(ball: BallLike, time: number): BallLike & {radius: nu
 		if (time <= t_switch) {
 			let v_result = a_slide * time + v_current;
 			let s_result = a_slide / 2 * time * time + v_current * time;
-			result.speed = ball.speed.copy().setLength(v_result);
-			result.pos = ball.pos + ball.speed.copy().setLength(s_result);
+			result.speed = ball.speed.withLength(v_result);
+			result.pos = ball.pos + ball.speed.withLength(s_result);
 			return result;
 		}
 	} else {
@@ -102,7 +102,7 @@ export function ballAtTime(ball: BallLike, time: number): BallLike & {radius: nu
 	if (time >= t_switch + t_roll) {
 		let s_result = a_roll / 2 * t_roll * t_roll + v_switch * t_roll + s_switch;
 		result.speed = new Vector(0, 0);
-		result.pos = ball.pos + ball.speed.copy().setLength(s_result);
+		result.pos = ball.pos + ball.speed.withLength(s_result);
 		return result;
 	}
 
@@ -111,8 +111,8 @@ export function ballAtTime(ball: BallLike, time: number): BallLike & {radius: nu
 
 	let v_result = a_roll * t_roll + v_switch;
 	let s_result = a_roll / 2 * t_roll * t_roll + v_switch * t_roll + s_switch;
-	result.speed = ball.speed.copy().setLength(v_result);
-	result.pos = ball.pos + ball.speed.copy().setLength(s_result);
+	result.speed = ball.speed.withLength(v_result);
+	result.pos = ball.pos + ball.speed.withLength(s_result);
 	return result;
 }
 
@@ -206,8 +206,8 @@ export function ballAtTimeExperimental(ball: BallLike & {posZ: number, speedZ: n
 		if (time <= t_switch) {
 			let v_result = a_slide * time + v_current;
 			let s_result = a_slide / 2 * time * time + v_current * time;
-			result.speed = ball.speed.copy().setLength(v_result);
-			result.pos = result.pos + ball.speed.copy().setLength(s_result);
+			result.speed = ball.speed.withLength(v_result);
+			result.pos = result.pos + ball.speed.withLength(s_result);
 			return result;
 		}
 	} else {
@@ -223,7 +223,7 @@ export function ballAtTimeExperimental(ball: BallLike & {posZ: number, speedZ: n
 	if (time >= t_switch + t_roll) {
 		let s_result = a_roll / 2 * t_roll * t_roll + v_switch * t_roll + s_switch;
 		result.speed = new Vector(0, 0);
-		result.pos = result.pos + ball.speed.copy().setLength(s_result);
+		result.pos = result.pos + ball.speed.withLength(s_result);
 		return result;
 	}
 
@@ -232,8 +232,8 @@ export function ballAtTimeExperimental(ball: BallLike & {posZ: number, speedZ: n
 
 	let v_result = a_roll * t_roll + v_switch;
 	let s_result = a_roll / 2 * t_roll * t_roll + v_switch * t_roll + s_switch;
-	result.speed = ball.speed.copy().setLength(v_result);
-	result.pos = result.pos + ball.speed.copy().setLength(s_result);
+	result.speed = ball.speed.withLength(v_result);
+	result.pos = result.pos + ball.speed.withLength(s_result);
 	return result;
 }
 
@@ -269,7 +269,7 @@ function ballFlightTime(ball: BallLike & {initSpeedZ: number, speedZ: number, po
 
 	if (flightDist > distance) { // flight or bouncing not finished
 		let t = (distance - flightDistDone) / result.speed.length();
-		result.pos = result.pos + result.speed.copy().setLength(distance);
+		result.pos = result.pos + result.speed.withLength(distance);
 		result.posZ = result.posZ + result.initSpeedZ * t - 0.5 * 9.81 * t * t;
 		result.speedZ = result.speedZ - t * 9.81;
 		return [result, timePassed, 0];
@@ -371,7 +371,7 @@ export function chipPassTime(startPos: Position, endPos: Position): number {
 		speedZ: zSpeed,
 		pos: startPos,
 		// assume 45 degree chip angle => xySpeed = zSpeed
-		speed: (endPos - startPos).setLength(zSpeed),
+		speed: (endPos - startPos).withLength(zSpeed),
 		maxSpeed: zSpeed
 	};
 	return ballTravelTime(ball, dist);
@@ -630,7 +630,7 @@ export function robotTimeToPos(robot: RobotLike, endPos: Position, endSpeedVecto
 	// TODO: model system delay
 	// local reactionTime = 0
 	// local reactionDist = reactionTime * currentSpeed
-	// local reactionPathVec = startSpeed.copy().setLength(reactionDist)
+	// local reactionPathVec = startSpeed.withLength(reactionDist)
 	// currentTime = currentTime + reactionTime
 	// currentPos = currentPos + reactionPathVec
 
@@ -640,7 +640,7 @@ export function robotTimeToPos(robot: RobotLike, endPos: Position, endSpeedVecto
 	if (currentSpeed > maxCurveSpeed) {
 		let brakeTime = (currentSpeed - maxCurveSpeed) / hardBrakeAccel;
 		let brakeDist = 0.5 * hardBrakeAccel * brakeTime * brakeTime + maxCurveSpeed * brakeTime;
-		let linearPathVec = startSpeed.copy().setLength(brakeDist);
+		let linearPathVec = startSpeed.withLength(brakeDist);
 
 		let curveDist = absAngleDiff * radius;
 		let curveTime = curveDist / maxCurveSpeed;
@@ -860,7 +860,7 @@ export function robotTimeForBallTime(robot: Robot, ball: BallLike & {radius: num
 	x_robot = robot.pos.nearestPosOnLine(x_robot + dribblerHalf, x_robot - dribblerHalf);
 
 	// calculate and save the robot time
-	let endSpeed = (x_robot - robot.pos).setLength(endSpeedLength);
+	let endSpeed = (x_robot - robot.pos).withLength(endSpeedLength);
 	return robotTimeToPos(robot, x_robot, endSpeed)[0];
 }
 
@@ -912,7 +912,7 @@ export function robotRotationRangeForTime(robot: Robot, time: number): [number, 
 function rttbSpecialCases(robot: Robot, ball: BallLike & {radius: number}, targetPos: Position, endSpeedLength: number,
 		t_max: number, t_out: number): [number | undefined, number | undefined] {
 	// calculate time required when the robot is directly hit by the ball
-	let frontOffset = (targetPos - robot.pos).setLength(ball.radius + robot.shootRadius);
+	let frontOffset = (targetPos - robot.pos).withLength(ball.radius + robot.shootRadius);
 	let [ballHitPos, _, lambda] = geom.intersectLineLine(ball.pos, ball.speed,
 			robot.pos + frontOffset, ball.speed.perpendicular().normalized());
 	let ballTimeToHitPos = ballRollTime(ball, ball.pos.distanceTo(ballHitPos!));

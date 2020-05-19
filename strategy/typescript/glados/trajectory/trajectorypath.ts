@@ -47,7 +47,7 @@ class PID {
 		let output = pOut + iOut + dOut;
 
 		if (output.length() > this.maxLength) {
-			output.setLength(this.maxLength);
+			output = output.withLength(this.maxLength);
 		}
 
 		this.previousError = error;
@@ -131,10 +131,10 @@ export class TrajectoryPath extends TrajectoryHandler {
 
 		// correct start and end speed
 		if (startSpeed.length() > maxSpeed - 0.1) {
-			startSpeed = startSpeed.copy().setLength(maxSpeed - 0.1);
+			startSpeed = startSpeed.withLength(maxSpeed - 0.1);
 		}
 		if (endSpeed.length() > maxSpeed - 0.1) {
-			endSpeed = endSpeed.copy().setLength(maxSpeed - 0.1);
+			endSpeed = endSpeed.withLength(maxSpeed - 0.1);
 		}
 
 		// calculate acceleration (also used for braking)
@@ -226,7 +226,7 @@ export class TrajectoryPath extends TrajectoryHandler {
 			let posDiff = this.positionPID.update(futureStartPos - robotPos);
 			let speedDiff = this.speedPID.update(futureStartSpeed - robotSpeed);
 			let controlSpeed = posDiff + speedDiff;
-			speed.setLength(Math.max(0, speed.length() - controlSpeed.length()));
+			speed = speed.withLength(Math.max(0, speed.length() - controlSpeed.length()));
 			speed = speed + controlSpeed;
 			vis.addPathRaw("Position Control", [robotPos, robotPos + posDiff + speed], vis.colors.blue);
 			vis.addPathRaw("Position Control", [robotPos, robotPos + posDiff + acc], vis.colors.orange);

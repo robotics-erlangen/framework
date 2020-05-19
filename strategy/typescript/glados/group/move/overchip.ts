@@ -58,9 +58,9 @@ function Overchip:_canContinue () {
 function Overchip._runwayObstructed () {
 	// if there are robots in the way that we can't overchip
 	let goalVector = G.OpponentGoal - World.Ball.pos
-	let criticalStart = World.Ball.pos + goalVector.copy().setLength(MAX_CHIP_DISTANCE)
+	let criticalStart = World.Ball.pos + goalVector.withLength(MAX_CHIP_DISTANCE)
 	let distToGoal = G.DefenseRadius + DISTANCE_TO_DEFENSE_AREA
-	let criticalEnd = World.Ball.pos + goalVector.copy().setLength(goalVector.length() - distToGoal)
+	let criticalEnd = World.Ball.pos + goalVector.withLength(goalVector.length() - distToGoal)
 	vis.addCircle("g/m/overchip: critical area", criticalStart, 0.05, vis.colors.red, true)
 	vis.addCircle("g/m/overchip: critical area", criticalEnd, 0.05, vis.colors.red, true)
 	vis.addPath("g/m/overchip: critical area", {criticalStart, criticalEnd}, vis.colors.red)

@@ -268,10 +268,10 @@ export class BallPlacement extends Move {
 				}
 				taskAssignments[this.SHOOTER] = { class: MoveToPos, params: [this._selectedEvadingPos] };
 				if (this._stateChanged) {
-					this._computedReceiverPos = this.RECEIVER.pos + (this.RECEIVER.pos - BallObserver.getRealisticBallPos()).setLength(2 * this.RECEIVER.radius);
+					this._computedReceiverPos = this.RECEIVER.pos + (this.RECEIVER.pos - BallObserver.getRealisticBallPos()).withLength(2 * this.RECEIVER.radius);
 				}
 				if (this.forceSetBackInvisible) {
-					this.setBackPosInvisible = this.RECEIVER.pos - (this._ballPlacementPos - this.RECEIVER.pos).setLength(SET_BACK_INVISIBLE_LENGTH);
+					this.setBackPosInvisible = this.RECEIVER.pos - (this._ballPlacementPos - this.RECEIVER.pos).withLength(SET_BACK_INVISIBLE_LENGTH);
 					taskAssignments[this.RECEIVER] = {
 						class: MoveToPos,
 						params: [ this.setBackPosInvisible, (this._ballPlacementPos - this.RECEIVER.pos).angle(), undefined, undefined, undefined, undefined, true, true ],
@@ -452,7 +452,7 @@ export class BallPlacement extends Move {
 	}
 
 	private _determinePositions(extraDistance: number = 0.05) {
-		let offset = (BallObserver.getRealisticBallPos() - this._ballPlacementPos).setLength(this.RECEIVER.shootRadius + World.Ball.radius + extraDistance);
+		let offset = (BallObserver.getRealisticBallPos() - this._ballPlacementPos).withLength(this.RECEIVER.shootRadius + World.Ball.radius + extraDistance);
 		this._computedShooterPos = BallObserver.getRealisticBallPos() + offset;
 		this._computedReceiverPos = this._ballPlacementPos - offset;
 	}

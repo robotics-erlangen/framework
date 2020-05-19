@@ -69,7 +69,7 @@ export class Default extends Behavior {
 		}
 
 		if (requestBallFlag) {
-			let ballPos = this._robot.pos + (World.Ball.pos - this._robot.pos).setLength(World.Ball.radius + this._robot.shootRadius);
+			let ballPos = this._robot.pos + (World.Ball.pos - this._robot.pos).withLength(World.Ball.radius + this._robot.shootRadius);
 			this._messaging.sendBroadcast(MessageType.passSuggestion, { ballPos: ballPos, time: 0 , manual: true, chip: false, anonymous: false });
 		}
 

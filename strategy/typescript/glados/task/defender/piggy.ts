@@ -33,7 +33,7 @@ export class Piggy extends Task {
 		this._messaging.sendBroadcast(MessageType.moveDest, piggyPos);
 
 		// Request pass to position opposite of you
-		let requestedPassPos = piggyPos + (piggyPos - this._targetRobot.pos).setLength(0.3);
+		let requestedPassPos = piggyPos + (piggyPos - this._targetRobot.pos).withLength(0.3);
 
 		vis.addCircle("piggy/requestedPass", requestedPassPos, 0.1);
 

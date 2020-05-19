@@ -35,11 +35,11 @@ export class DirtyManMarker extends Task {
 
 		if (this.targetRobot.speed.length() < 0.2) {
 			this.direction = World.Ball.pos - this.targetRobot.pos;
-			pos = this.targetRobot.pos + this.direction.copy().setLength(MANMARKDISTANCE);
+			pos = this.targetRobot.pos + this.direction.withLength(MANMARKDISTANCE);
 
 		} else {
-			let boundaryOne = this.targetRobot.pos + this.targetRobot.speed.copy().setLength(MANMARKDISTANCE + this.targetRobot.speed.length() * SPEEDOFFSET);
-			let boundaryTwo = this.targetRobot.pos + this.targetRobot.speed.copy().setLength(3 + this.targetRobot.speed.length() * SPEEDOFFSET);
+			let boundaryOne = this.targetRobot.pos + this.targetRobot.speed.withLength(MANMARKDISTANCE + this.targetRobot.speed.length() * SPEEDOFFSET);
+			let boundaryTwo = this.targetRobot.pos + this.targetRobot.speed.withLength(3 + this.targetRobot.speed.length() * SPEEDOFFSET);
 			let blockalpha;
 			if (this.oldpos == undefined) {
 				blockalpha = 1;

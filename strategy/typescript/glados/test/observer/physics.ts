@@ -27,8 +27,8 @@ function PhysicsTest.testBallVsRobotTime () {
 	vis.addCircle("BallVsRobotTime", robot.pos, robot.shootRadius, vis.colors.blue)
 	vis.addPath("BallVsRobotTime", {ball.pos, ball.pos+ ball.speed}, vis.colors.orange)
 	vis.addPath("BallVsRobotTime", {robot.pos, robot.pos+ robot.speed}, vis.colors.blue)
-	let dribblerMid = robot.pos + (targetPos - robot.pos).setLength(robot.shootRadius)
-	let dribblerPerp = (targetPos - robot.pos).perpendicular().setLength(robot.dribblerWidth/2)
+	let dribblerMid = robot.pos + (targetPos - robot.pos).withLength(robot.shootRadius)
+	let dribblerPerp = (targetPos - robot.pos).perpendicular().withLength(robot.dribblerWidth/2)
 	vis.addPath("BallVsRobotTime", {dribblerMid-dribblerPerp, dribblerMid+dribblerPerp}, vis.colors.blue)
 
 	let s_max = 4

@@ -76,7 +76,7 @@ function HallucinatingKeeper:_update () {
 	if (not this._hit && this._ball.pos.distanceTo(this._robot.pos) < this._ball.radius+this._robot.radius) {
 		this._hit = (this._ball.pos-this._robot.pos).angle() - this._robot.dir
 	} else if (this._hit) {
-		vis.addCircle("test/move/keepertest: Hit", this._robot.pos + Vector.fromAngle(this._hit+this._robot.dir).setLength(this._robot.radius), 0.015, vis.colors.red, true)
+		vis.addCircle("test/move/keepertest: Hit", this._robot.pos + Vector.fromAngle(this._hit+this._robot.dir).withLength(this._robot.radius), 0.015, vis.colors.red, true)
 	}
 
 	this._line = (this._line % #this._ballData) + 1
@@ -87,7 +87,7 @@ function HallucinatingKeeper:run () {
 	this._update()
 
 	let atkPos, atkDir, isShot = this._predictShot.atkPos, this._predictShot.atkDir, this._predictShot.isShot
-	atkDir = atkDir.copy().setLength(30)
+	atkDir = atkDir.withLength(30)
 	let side = MathUtil.sign(atkPos.x)
 
 	// check if opponent would shoot at the goal from somewhere near the field corners

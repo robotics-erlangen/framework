@@ -46,7 +46,7 @@ export class Dribble extends Task {
 			let catchTime = this._catchBall._catchBall(this._pos, 0);
 			time = catchTime + Physics.robotTimeToPos(this._robot, this._pos, new Vector(0, 0))[0];
 		} else {
-			let endSpeed = (this._pos - this._robot.pos).setLength(this._endSpeedLength);
+			let endSpeed = (this._pos - this._robot.pos).withLength(this._endSpeedLength);
 			time = this._robot.trajectory.update(CurvedMaxAccel, this._pos, this._dir, 1.0, endSpeed, undefined, true)[1];
 		}
 

@@ -53,13 +53,13 @@ export class ManMark extends Task {
 		let basePos;
 		if (intersectionDefenseArea) {
 			// calculate new position between ball (regarding robot shootRadius) and the intersection with defense area
-			moveDest = preferredPos; // + (intersectionDefenseArea - preferredPos).setLength(0)//this._robot.shootRadius + World.Ball.radius)
+			moveDest = preferredPos; // + (intersectionDefenseArea - preferredPos).withLength(0)//this._robot.shootRadius + World.Ball.radius)
 			moveDest = Defense.fastestPointInInterval(this._robot, moveDest, intersectionDefenseArea,
 								this._oldPosition, BLOCK_POS_PRECISION, BLOCK_POS_ALPHA);
 			basePos = intersectionDefenseArea;
 		} else {
 			// case if there isn't an intersection with the defense area
-			moveDest = preferredPos + (this._robot.pos - preferredPos).setLength(this._robot.shootRadius + World.Ball.radius);
+			moveDest = preferredPos + (this._robot.pos - preferredPos).withLength(this._robot.shootRadius + World.Ball.radius);
 			basePos = this._robot.pos;
 		}
 
@@ -83,7 +83,7 @@ export class ManMark extends Task {
 			// 	moveDest = this._moveToNearBlock(futureBall, closestOpponentRobot)
 			// else
 			// 	ignoreBall = true
-				moveDest = preferredPos + (World.Geometry.FriendlyGoal - preferredPos).setLength(
+				moveDest = preferredPos + (World.Geometry.FriendlyGoal - preferredPos).withLength(
 							World.Ball.radius + this._robot.shootRadius);
 			// end
 		}

@@ -24,7 +24,7 @@ function BallTest.testBallOwner () {
 function BallTest.testBallCatchProbability () {
 	if (World.Ball.speed.length() > 0.1) {
 		let endOfField = Field.nextLineCut(World.Ball.pos, World.Ball.speed)
-		let corridorHalf = World.Ball.speed.perpendicular().setLength(World.Ball.radius + Constants.positionError) * 2
+		let corridorHalf = World.Ball.speed.perpendicular().withLength(World.Ball.radius + Constants.positionError) * 2
 		for (_,robot in ipairs(World.OpponentRobots)) {
 			let pointOnLine = robot.pos.nearestPosOnLine(World.Ball.pos, endOfField)
 			let ballRollTime = Physics.ballRollTime(World.Ball, pointOnLine.distanceTo(World.Ball.pos))

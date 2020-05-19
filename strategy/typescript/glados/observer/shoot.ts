@@ -16,7 +16,7 @@ export function ballPassTime(shootPos: Position, passPos: Position, targetRobot:
 	let shootSpeed = shootRobot.calculateShootSpeed(destSpeedLength, dist, false);
 	let shootBall = {
 		pos: shootPos,
-		speed: (passPos - shootPos).setLength(shootSpeed),
+		speed: (passPos - shootPos).withLength(shootSpeed),
 		maxSpeed: shootSpeed,
 		radius: World.Ball.radius
 	};

@@ -40,7 +40,7 @@ function _manMarkPos(opponent: { pos: Position, radius: number, speed: Speed }):
 	let targetPos = Physics.robotBrakePos({pos: opponent.pos, speed: opponent.speed});
 	if (World.Ball.pos.y > G.FieldHeightHalf * 0.7 && World.Ball.speed.length() < 0.5 && Referee.isStopState()) {
 		let dist = opponent.radius + Constants.maxRobotRadius + OFFENSIVE_MARKING_DISTANCE;
-		targetPos = targetPos + (World.Ball.pos - targetPos).setLength(dist);
+		targetPos = targetPos + (World.Ball.pos - targetPos).withLength(dist);
 	} else {
 		let oppDistToGoal = targetPos.distanceTo(G.FriendlyGoal);
 		let markingDistance = MARKING_DISTANCE + Math.max(0, (oppDistToGoal - G.FieldHeightHalf * 0.8) * 0.5);
@@ -49,7 +49,7 @@ function _manMarkPos(opponent: { pos: Position, radius: number, speed: Speed }):
 		}
 		let dist = opponent.radius + Constants.maxRobotRadius + markingDistance;
 		dist = Math.min(oppDistToGoal - 0.01, dist);
-		targetPos = targetPos + (G.FriendlyGoal - targetPos).setLength(dist);
+		targetPos = targetPos + (G.FriendlyGoal - targetPos).withLength(dist);
 	}
 
 	if (Field.isInFriendlyDefenseArea(targetPos, Constants.maxRobotRadius)) {
@@ -89,10 +89,10 @@ export let manMarkPos: (opponent: { pos: Position, radius: number, speed: Speed 
 function _piggyPos(opponent: Robot): Position {
 	let passLine = World.Ball.pos - opponent.pos;
 
-	let perpendicularOffset = passLine.perpendicular().setLength(0.3);
+	let perpendicularOffset = passLine.perpendicular().withLength(0.3);
 
 
-	let offset = passLine.setLength(0.3) + perpendicularOffset;
+	let offset = passLine.withLength(0.3) + perpendicularOffset;
 
 	return opponent.pos + offset;
 }

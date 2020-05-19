@@ -158,7 +158,7 @@ export class Shoot extends Behavior {
 			// look for close opponents
 			let closestOppDist = Infinity;
 			for (let opp of World.OpponentRobots) {
-				let toGoal = (G.OpponentGoal - this._attackPosition).setLength((MAX_DISTANCE - MIN_DISTANCE) / 2 + MIN_DISTANCE);
+				let toGoal = (G.OpponentGoal - this._attackPosition).withLength((MAX_DISTANCE - MIN_DISTANCE) / 2 + MIN_DISTANCE);
 				let newAttackPosition = this._attackPosition + toGoal;
 				let oppDist = opp.pos.distanceToSq(newAttackPosition);
 				if (oppDist < closestOppDist) {
@@ -175,7 +175,7 @@ export class Shoot extends Behavior {
 				for (let dist = MIN_DISTANCE;dist <= MAX_DISTANCE;dist += DISTANCE_STEP) {
 					for (let angle = -CONE_WIDTH / 2;angle <= CONE_WIDTH / 2;angle += ANGLE_STEP) {
 						// check for possible goalshot opportunity
-						let newAttackPosition = this._attackPosition + Vector.fromAngle(attackAngle + angle).setLength(dist);
+						let newAttackPosition = this._attackPosition + Vector.fromAngle(attackAngle + angle).withLength(dist);
 						let [possible, freeAngle] = Shoot._shootGoalPossible(this._robot, newAttackPosition);
 						if (possible && freeAngle != undefined && freeAngle > bestFreeAngle) {
 							bestFreeAngle = freeAngle;
@@ -196,12 +196,12 @@ export class Shoot extends Behavior {
 
 				// goalshot opportunity
 				if (bestAttackPosition != undefined) {
-					let passVector = bestAttackPosition - this._attackPosition;
-					if (Attack.isPassAllowed(this._attackPosition, this._attackPosition + passVector.setLength(0.5))) {
+					let passVector = (bestAttackPosition - this._attackPosition).withLength(0.5);
+					if (Attack.isPassAllowed(this._attackPosition, this._attackPosition + passVector)) {
 						return {
 							task: "pass",
 							target: this._robot,
-							pos: this._attackPosition + passVector.setLength(0.5),
+							pos: this._attackPosition + passVector,
 							time: World.Time,
 							quality: "clean"
 						};
@@ -210,13 +210,13 @@ export class Shoot extends Behavior {
 
 				// short chip forward
 				if (pass == undefined || Attack.ratePass(this._robot, pass, attackTime, true) < MIN_PASS_RATING) {
-					let newAttackPosition = this._attackPosition + Vector.fromAngle(attackAngle).setLength((MAX_DISTANCE - MIN_DISTANCE) / 2 + MIN_DISTANCE);
-					let passVector = newAttackPosition - this._attackPosition;
-					if (Attack.isPassAllowed(this._attackPosition, this._attackPosition + passVector.setLength(0.5))) {
+					let newAttackPosition = this._attackPosition + Vector.fromAngle(attackAngle).withLength((MAX_DISTANCE - MIN_DISTANCE) / 2 + MIN_DISTANCE);
+					let passVector = (newAttackPosition - this._attackPosition).withLength(0.5);
+					if (Attack.isPassAllowed(this._attackPosition, this._attackPosition + passVector)) {
 						return {
 							task: "pass",
 							target: this._robot,
-							pos: this._attackPosition + passVector.setLength(0.5),
+							pos: this._attackPosition + passVector,
 							time: World.Time,
 							quality: "clean"
 						};
@@ -279,7 +279,7 @@ export class Shoot extends Behavior {
 		// this is moderately likely to happen during chaseBall
 		if (!Robot.isPressed(this._robot) && ENABLE_PSEUDO_PASS && this._decision.task === "pass" && this._decision.target === this._robot) {
 			let attackPosition = this._attackPosition || World.Ball.pos;
-			let passVector = (this._decision.pos - attackPosition).setLength(0.4);
+			let passVector = (this._decision.pos - attackPosition).withLength(0.4);
 
 			let upperAngle = (new Vector(-G.FieldWidthHalf, G.FieldHeightHalf) - attackPosition).angle();
 			let lowerAngle = (new Vector(G.FieldWidthHalf, G.FieldHeightHalf) - attackPosition).angle();
@@ -292,7 +292,7 @@ export class Shoot extends Behavior {
 		}
 
 		// never redecide if the ball is imminent
-		let dribblerPos = this._robot.pos + (World.Ball.pos - this._robot.pos).setLength(
+		let dribblerPos = this._robot.pos + (World.Ball.pos - this._robot.pos).withLength(
 			World.Ball.radius + this._robot.shootRadius);
 		if (Physics.checkedBallRollTime(World.Ball, dribblerPos) < 0.5) {
 			debug.set("redeciding", "FALSE (imminent)");

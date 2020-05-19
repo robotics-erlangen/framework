@@ -166,9 +166,9 @@ export class MidfieldSampling {
 			return 1;
 		}
 
-		let robotPos = ballPos + (ballPos - this._attackPosition).setLength(this._robot.shootRadius + World.Ball.radius);
+		let robotPos = ballPos + (ballPos - this._attackPosition).withLength(this._robot.shootRadius + World.Ball.radius);
 		let robotTime = Physics.robotTimeToPos(this._robot, robotPos,
-			(robotPos - this._robot.pos).setLength(this._robot.maxSpeed))[0];
+			(robotPos - this._robot.pos).withLength(this._robot.maxSpeed))[0];
 		let shootTime = this._attackTime - World.Time;
 		let ballTime = ObserverShoot.ballPassTime(this._attackPosition, ballPos, this._robot, undefined, this._mainAttacker);
 

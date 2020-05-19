@@ -15,7 +15,7 @@ export class BaseVector extends UnitTest {
 		this.addTest("isNan", this.testIsNan);
 		this.addTest("length", this.testLength);
 		this.addTest("normalized", this.testNormalized);
-		this.addTest("setLength", this.testSetLength);
+		this.addTest("withLength", this.testWithLength);
 		this.addTest("scaleLength", this.testScaleLength);
 		this.addTest("distanceTo", this.testDistanceTo);
 		this.addTest("dot", this.testDot);
@@ -146,25 +146,27 @@ export class BaseVector extends UnitTest {
 		this.assert_equal(nullVec.y, 0);
 	}
 
-	private testSetLength() {
+	private testWithLength() {
 		let vec = new Vector(2, 0);
-		let ret = vec.setLength(1.5);
-		this.assert_equal(vec, ret);
-		this.assert_equal(vec.x, 1.5);
+		let ret = vec.withLength(1.5);
+		this.assert_equal(vec.x, 2);
 		this.assert_equal(vec.y, 0);
+		this.assert_equal(ret.x, 1.5);
+		this.assert_equal(ret.y, 0);
 
 		let vec2 = new Vector(0.5, 0.5);
-		vec2.setLength(2);
+		vec2 = vec2.withLength(2);
 		this.assert_equal_eps(vec2.length(), 2, EPS);
-		vec2.setLength(0);
+		vec2 = vec2.withLength(0);
 		this.assert_equal(vec2.x, 0);
 		this.assert_equal(vec2.y, 0);
 
 		let nullVec = new Vector(0, 0);
-		let nullRet = nullVec.setLength(3);
-		this.assert_equal(nullVec, nullRet);
+		let nullRet = nullVec.withLength(3);
 		this.assert_equal(nullVec.x, 0);
 		this.assert_equal(nullVec.y, 0);
+		this.assert_equal(nullRet.x, 0);
+		this.assert_equal(nullRet.y, 0);
 	}
 
 	private testScaleLength() {

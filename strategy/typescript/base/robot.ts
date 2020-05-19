@@ -229,7 +229,7 @@ export class Robot {
 		if (lclen <= 0.001) {
 			latencyCompensation = new Vector(hasBallDistance, 0);
 		} else {
-			latencyCompensation = latencyCompensation.setLength(lclen + hasBallDistance);
+			latencyCompensation = latencyCompensation.withLength(lclen + hasBallDistance);
 		}
 
 		// Ball position relative to dribbler mid

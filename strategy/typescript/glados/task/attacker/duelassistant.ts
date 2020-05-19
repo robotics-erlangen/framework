@@ -57,7 +57,7 @@ export class DuelAssistant extends Task {
 		let opponentPos : Vector = this._opponent!.pos;
 		let opponentDir : number = this._opponent!.dir;
 		let duelVector : Vector = opponentPos - friendlyPos;
-		let totalOffset : Vector = duelVector.complexMultiplication(Vector.fromAngle(angleOffset)).setLength(3 * this._robot.radius);
+		let totalOffset : Vector = duelVector.complexMultiplication(Vector.fromAngle(angleOffset)).withLength(3 * this._robot.radius);
 
 		let agressivePositionMode = this._lastPositionMode;
 		let angleDiff = Math.abs(Geom.normalizeAngle(World.Geometry.FriendlyGoal.angle() - opponentDir));

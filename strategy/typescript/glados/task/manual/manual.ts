@@ -45,7 +45,7 @@ export class Manual extends Task {
 
 		let vlimited = v;
 		if (v.length() > vmax) {
-			vlimited = v.copy().setLength(vmax);
+			vlimited = v.withLength(vmax);
 		}
 		return vlimited;
 	}
@@ -71,7 +71,7 @@ export class Manual extends Task {
 		} else if (!this._robot.isVisible) {
 			let limitedSpeed = input.speed;
 			if (limitedSpeed.length() > 0.3) {
-				limitedSpeed = limitedSpeed.copy().setLength(0.3);
+				limitedSpeed = limitedSpeed.withLength(0.3);
 			}
 			let omegamax = Math.PI / 2;
 			let omega = MathUtil.bound(-omegamax, input.omega, omegamax);

@@ -155,7 +155,7 @@ export class PenaltyShootout extends Behavior {
 		let addDistance = lastContact ? Math.max(0, lastContact.distanceTo(getRealisticBallPos()) - 0.5) * 3 : 0.2;
 			this._futureKeeper.pos = this._futureKeeper.pos + (World.OpponentKeeper || this._futureKeeper).speed * 0.4;
 		if (this._state === "pass") {
-			this._futureKeeper.pos = this._futureKeeper.pos + (this._robot.pos - this._futureKeeper.pos).setLength(this._robot.speed.length() / 3);
+			this._futureKeeper.pos = this._futureKeeper.pos + (this._robot.pos - this._futureKeeper.pos).withLength(this._robot.speed.length() / 3);
 		}
 
 		debug.push("Shootgoal Criterias");

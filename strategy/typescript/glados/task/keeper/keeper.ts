@@ -40,7 +40,7 @@ export class Keeper extends Task {
 		}
 
 		let [atkPos, atkDir, isShot] = Goal.predictShot();
-		atkDir = atkDir.copy().setLength(30);
+		atkDir = atkDir.withLength(30);
 		let side = MathUtil.sign(atkPos.x);
 
 		// check if opponent would shoot at the goal from somewhere near the field corners

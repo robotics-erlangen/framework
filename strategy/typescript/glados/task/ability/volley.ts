@@ -235,14 +235,14 @@ export class Volley {
 		}
 		abs_v_out = Math.min(Constants.maxBallSpeed, abs_v_out);
 		if (volleyObserver != undefined) {
-			let ball = { pos: viewPos, speed: (targetPos - viewPos).setLength(abs_v_out), radius: World.Ball.radius,
+			let ball = { pos: viewPos, speed: (targetPos - viewPos).withLength(abs_v_out), radius: World.Ball.radius,
 				maxSpeed: abs_v_out };
 			let expectedTargetSpeed = Physics.ballAtTime(ball, Physics.ballRollTime(ball, dist)).speed.length();
 			volleyObserver(ballSpeed, viewPos, targetPos, expectedTargetSpeed);
 		}
 
 		// relative output speed
-		let v_out = (targetPos - viewPos).setLength(abs_v_out) - robot.speed;
+		let v_out = (targetPos - viewPos).withLength(abs_v_out) - robot.speed;
 
 		// guess initial values for v_s and phi
 		let v_s = abs_v_out;

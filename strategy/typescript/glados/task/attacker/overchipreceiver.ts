@@ -13,7 +13,7 @@ let DISTANCE_TO_DEFENSE_AREA = 1 // faraway robots and goalie don't interfere wi
 function OverchipReceiver:_init () {
 	let goalVector = G.OpponentGoal - World.Ball.pos
 	this._obstacleRobot = nil
-	this._pos = goalVector.setLength(0.5 + 3 * this._robot.radius)
+	this._pos = goalVector.withLength(0.5 + 3 * this._robot.radius)
 }
 
 function OverchipReceiver:_updateObstacleRobot () {
@@ -43,9 +43,9 @@ function OverchipReceiver:_updatePos () {
 	let goalVector = goal - ballPos
 	if (this._obstacleRobot) {
 		let orthogonalProjection = this._obstacleRobot.pos.orthogonalProjection(ballPos, goal)
-		this._pos = orthogonalProjection + goalVector.setLength(3 * this._robot.radius)
+		this._pos = orthogonalProjection + goalVector.withLength(3 * this._robot.radius)
 	} else {
-		this._pos = World.Ball.pos + goalVector.setLength(0.5 + 3 * this._robot.radius)
+		this._pos = World.Ball.pos + goalVector.withLength(0.5 + 3 * this._robot.radius)
 	}
 }
 
@@ -54,7 +54,7 @@ function OverchipReceiver:run () {
 	this._updateObstacleRobot()
 	this._updatePos()
 	let dir = (G.OpponentGoal - this._pos).angle()
-	let ballPos = this._pos + Vector.fromAngle(dir).setLength(DISTANCE_FACTOR * this._robot.radius)
+	let ballPos = this._pos + Vector.fromAngle(dir).withLength(DISTANCE_FACTOR * this._robot.radius)
 	let _, time = this._robot.trajectory.update(ToTarget, this._pos, dir)
 	this._suggestPass(ballPos, undefined, time, false, true)
 }

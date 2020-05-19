@@ -57,10 +57,10 @@ export class ShootoutKeeper extends Task {
 		if (ballCloserToGoal) {
 			// get between ball and goal
 			let ballDist = this._robot.radius + World.Ball.radius;
-			moveDest = World.Ball.pos + (SAFE_GOAL_MID - World.Ball.pos).setLength(ballDist) + new Vector(0, -POSITION_PADDING);
+			moveDest = World.Ball.pos + (SAFE_GOAL_MID - World.Ball.pos).withLength(ballDist) + new Vector(0, -POSITION_PADDING);
 		} else {
 			moveDest = Physics.ballAtTime(World.Ball, ballTime).pos;
-			moveDest = moveDest + (this._robot.pos - moveDest).setLength(World.Ball.radius + this._robot.radius);
+			moveDest = moveDest + (this._robot.pos - moveDest).withLength(World.Ball.radius + this._robot.radius);
 		}
 
 		if (ballSpeed.y < 0) {
@@ -84,7 +84,7 @@ export class ShootoutKeeper extends Task {
 
 			// If the ball was shot and we probably wont reach it in time, we go rambo
 			if (ballSpeed.y < -2 && ballTime === 1) {
-				endspeed = (interceptPos - this._robot.pos).setLength(2) + this._robot.speed;
+				endspeed = (interceptPos - this._robot.pos).withLength(2) + this._robot.speed;
 				moveDest = this._robot.pos + (this._robot.speed + endspeed) * ballTime / 2;
 			} else {
 				moveDest = moveDest * (1 - alpha) + interceptPos * alpha;
@@ -123,7 +123,7 @@ export class ShootoutKeeper extends Task {
 				chipDist = chipDist * CHIP_DIST_FACTOR;
 			}
 
-			vis.addCircle("t/a/chipToBorder", ballPos + robotDir.copy().setLength(chipDist), 0.1, vis.colors.blue, true);
+			vis.addCircle("t/a/chipToBorder", ballPos + robotDir.withLength(chipDist), 0.1, vis.colors.blue, true);
 			if (!Robot.hadBall(this._robot, 0)) {
 				this._forceShoot._forceShootTimer = undefined;
 			}

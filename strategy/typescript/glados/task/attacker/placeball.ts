@@ -218,14 +218,14 @@ export class PlaceBall extends Task {
 					 *
 					 */
 					if (this._placementOffsetAverage == undefined) {
-						this._placementOffsetAverage = this._robot.pos.copy().setLength(this.OFFSET_EXTRA_LENGTH);
+						this._placementOffsetAverage = this._robot.pos.withLength(this.OFFSET_EXTRA_LENGTH);
 					}
 					if (this._borderOffsetAverage == undefined) {
-						this._borderOffsetAverage = this._robot.pos.copy().setLength(this.OFFSET_EXTRA_LENGTH);
+						this._borderOffsetAverage = this._robot.pos.withLength(this.OFFSET_EXTRA_LENGTH);
 					}
 
 					let ballVisible = this._ball.isPositionValid();
-					let specificOffset = this._placementOffsetAverage!.copy().setLength(0.5);
+					let specificOffset = this._placementOffsetAverage!.withLength(0.5);
 					if (ballVisible) {
 						this._currentTargetPos = this._ball.pos - specificOffset;
 					} else {
@@ -239,7 +239,7 @@ export class PlaceBall extends Task {
 					 * he should move directly towards the ball.
 					 */
 					let ballToRobot = BallObserver.getRealisticBallPos() - this._robot.pos;
-					ballToRobot.setLength(ballToRobot.length() - DISTANCE_END_PLACING + 0.4);
+					ballToRobot = ballToRobot.withLength(ballToRobot.length() - DISTANCE_END_PLACING + 0.4);
 					this._currentTargetPos = this._robot.pos + ballToRobot;
 					this._robot.trajectory.update(ToTarget, this._currentTargetPos, ballToRobot.angle());
 					/*
@@ -262,7 +262,7 @@ export class PlaceBall extends Task {
 			case State.ENSURE_PULL_CONTACT: {
 				this._robot.setDribblerSpeed(ENSURE_CONTACT_DRIBBLER_SPEED);
 
-				let speed = this._borderOffsetAverage!.copy().setLength(ENSURE_CONTACT_DIRECT_SPEED);
+				let speed = this._borderOffsetAverage!.withLength(ENSURE_CONTACT_DIRECT_SPEED);
 				this._robot.trajectory.update(Direct, speed, speed.angle());
 
 				break;
@@ -288,7 +288,7 @@ export class PlaceBall extends Task {
 
 				// TODO faster push at higher distance
 				this._robot.setDribblerSpeed(PUSH_DRIBBLER_SPEED);
-				this._currentTargetPos = this._placementPos + this._placementOffsetAverage!.copy().setLength(this.OFFSET_SHOOT_LENGTH);
+				this._currentTargetPos = this._placementPos + this._placementOffsetAverage!.withLength(this.OFFSET_SHOOT_LENGTH);
 
 				let speed = this._robot.pos.distanceTo(this._currentTargetPos) > this.FAR_NEAR_CUT ? FAR_PUSH_SPEED : NEAR_PUSH_SPEED;
 
@@ -310,7 +310,7 @@ export class PlaceBall extends Task {
 			case State.BACK_UP: {
 				// Ever making the the offset dependent on something near the target position was a mistake
 				if (this._stateChanged) {
-					let offset = (this._robotStartPos - this._ballStartPos).setLength(this.OFFSET_EXTRA_LENGTH);
+					let offset = (this._robotStartPos - this._ballStartPos).withLength(this.OFFSET_EXTRA_LENGTH);
 					this._currentTargetPos = this._robot.pos + offset;
 				}
 				this._robot.trajectory.update(CurvedMaxAccel, this._currentTargetPos!, this._robot.dir, BACK_UP_SPEED);
@@ -321,7 +321,7 @@ export class PlaceBall extends Task {
 				const dist = Referee.isFriendlyFreeKickState(World.NextRefereeState)
 					? 0.08 + this._robot.radius
 					: Constants.stopBallDistance + 0.05 + this._robot.radius;
-				let offset = (World.Geometry.FriendlyGoal - this._ball.pos).setLength(dist);
+				let offset = (World.Geometry.FriendlyGoal - this._ball.pos).withLength(dist);
 				this._currentTargetPos = this._ball.pos + offset;
 				this._robot.trajectory.update(CurvedMaxAccel, this._currentTargetPos, (-offset).angle());
 
@@ -504,14 +504,14 @@ export class PlaceBall extends Task {
 			let currentOffset = (usedBallPos - this._placementPos).normalized();
 			this._placementOffsets[this._placementOffsetFrame] = currentOffset;
 			this._placementOffsetFrame = (this._placementOffsetFrame + 1) % OFFSET_FRAME_COUNT;
-			this._placementOffsetAverage = geom.center(this._placementOffsets).setLength(this.OFFSET_EXTRA_LENGTH);
+			this._placementOffsetAverage = geom.center(this._placementOffsets).withLength(this.OFFSET_EXTRA_LENGTH);
 		}
 
 		if (usedBallPos.distanceTo(this._nearestFieldPos) > OFFSET_DISTANCE
 				&& ballVisible) {
 			this._borderOffsets[this._borderOffsetFrame] = (usedBallPos - this._nearestFieldPos).normalized();
 			this._borderOffsetFrame = (this._borderOffsetFrame + 1) % OFFSET_FRAME_COUNT;
-			this._borderOffsetAverage = geom.center(this._borderOffsets).setLength(this.OFFSET_EXTRA_LENGTH);
+			this._borderOffsetAverage = geom.center(this._borderOffsets).withLength(this.OFFSET_EXTRA_LENGTH);
 		}
 	}
 }

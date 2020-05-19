@@ -239,7 +239,7 @@ function getInvisibleBallPrediction(): [Position | undefined, Speed | undefined,
 				// robot.speed as param for ballspeed is choosen, because that is the best estimate if there is no visible ball
 				let [dirx, diry] = Volley.calcVOutTeamCoordinates(Constants.maxBallSpeed, robot.speed, robot.dir, robot.speed, "opp");
 				let ballSpeed = new Vector(dirx, diry);
-				let dribblerPos = robot.pos + robotDir.copy().setLength(robot.shootRadius);
+				let dribblerPos = robot.pos + robotDir.withLength(robot.shootRadius);
 				let intersection = geom.intersectLineLine(G.FriendlyGoal, new Vector(1, 0),
 					dribblerPos, ballSpeed)[0];
 				if (intersection && Math.abs(intersection.x) < G.GoalWidth / 2 + 0.3) {
@@ -320,8 +320,7 @@ function _predictShot(allShots: boolean = false, includeInvisible: boolean = tru
 		let ballLineDistance = Math.abs(usedGoalPost.orthogonalDistance(pos, pos + ballSpeed));
 		let ballLinePos = usedGoalPost.orthogonalProjection(pos, pos + ballSpeed)[0];
 		let volleyPosDistance = ballLineDistance / Math.tan(Math.PI * 75 / 180);
-		let ballSpeedCopy = ballSpeed.copy();
-		let volleyPos = ballLinePos + ballSpeedCopy.setLength(volleyPosDistance);
+		let volleyPos = ballLinePos + ballSpeed.withLength(volleyPosDistance);
 		if (!allShots) {
 			vis.addCircle("o/goal: predictShot: last volley pos", volleyPos, 0.1);
 		}
@@ -351,7 +350,7 @@ function _predictShot(allShots: boolean = false, includeInvisible: boolean = tru
 				}
 				let ballRollTime = Physics.checkedBallRollTime(World.Ball, bestPointOnLine);
 				let offsetLength = Math.min(robot.shootRadius + World.Ball.radius, robot.pos.distanceTo(bestPointOnLine));
-				let catchPos = bestPointOnLine + (robot.pos - bestPointOnLine).setLength(offsetLength);
+				let catchPos = bestPointOnLine + (robot.pos - bestPointOnLine).withLength(offsetLength);
 
 				// calculate chance of the robot reaching catchPos before the ball
 				let weightedDistance;
@@ -388,7 +387,7 @@ function _predictShot(allShots: boolean = false, includeInvisible: boolean = tru
 				// assume that the opponent will try to stop for the volley and brake from now
 				// TODO: Don't use 4 m/s*s as constant, at least not hidden like this
 				let oppBrakeSpeed = Math.max(0, passReceiver.robot.speed.length() - 4 * ballRollTime);
-				let minRobotSpeed = passReceiver.robot.speed.copy().setLength(oppBrakeSpeed);
+				let minRobotSpeed = passReceiver.robot.speed.withLength(oppBrakeSpeed);
 				let futureBallSpeed = Physics.ballAtTime(World.Ball, ballRollTime).speed;
 				// TODO: Check what happens if futureBallSpeed.length() is zero
 				let robotAngle = passReceiver.robot.dir;

@@ -26,13 +26,13 @@ function evaluateInterceptPos(robot: FriendlyRobot, pos: Position): [number, num
 		return [-Infinity, Infinity, undefined];
 	}
 
-	let ownTime = Physics.robotTimeToPos(robot, pos, (pos - robot.pos).setLength(robot.maxSpeed))[0];
+	let ownTime = Physics.robotTimeToPos(robot, pos, (pos - robot.pos).withLength(robot.maxSpeed))[0];
 	let bestOppTime = Infinity;
 
 	// search the closest opponent
 	for (let oppRobot of World.OpponentRobots) {
 		if (oppRobot.pos.distanceTo(pos) < 3 * robot.pos.distanceTo(pos)) {
-			let oppTime = Physics.robotTimeToPos(oppRobot, pos, (pos - oppRobot.pos).setLength(robot.maxSpeed))[0];
+			let oppTime = Physics.robotTimeToPos(oppRobot, pos, (pos - oppRobot.pos).withLength(robot.maxSpeed))[0];
 			if (oppTime < ownTime + OPP_EXTRA_TIME) {
 				return [-Infinity, ownTime, bestOppTime];
 			}
@@ -137,7 +137,7 @@ export class InterceptPass extends Task {
 			let dribblerPos = this._robot.pos + Vector.fromAngle(this._robot.dir).scaleLength(
 					this._robot.shootRadius + World.Ball.radius);
 			moveDest = dribblerPos.nearestPosOnLine(World.Ball.pos, World.Ball.pos + World.Ball.speed * 3);
-			time = Physics.robotTimeToPos(this._robot, moveDest, moveDest.copy().setLength(this._robot.maxSpeed * 0.5))[0];
+			time = Physics.robotTimeToPos(this._robot, moveDest, moveDest.withLength(this._robot.maxSpeed * 0.5))[0];
 			let firstEnemy = Ball.firstRobotAtBall(World.OpponentRobots)[0];
 			if (firstEnemy == undefined) {
 				oppTime = Infinity;

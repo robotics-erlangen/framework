@@ -68,7 +68,7 @@ export function _ratePass(robot: FriendlyRobot, pass: PassObject, earliestAttack
 		shootTime = earliestAttackTime - World.Time;
 	} else {
 		if (Ball.receivesPass(robot)) {
-			let dribblerPos = robot.pos + (World.Ball.pos - robot.pos).setLength(
+			let dribblerPos = robot.pos + (World.Ball.pos - robot.pos).withLength(
 				robot.shootRadius + World.Ball.radius);
 			shootTime = Physics.checkedBallRollTime(World.Ball, dribblerPos);
 			if (shootTime === -Infinity) {
@@ -143,7 +143,7 @@ export function _ratePass(robot: FriendlyRobot, pass: PassObject, earliestAttack
 			}
 
 			// calculate the time the ball needs to arrive at the intersection point
-			let shootSpeed = new Vector(1,1).setLength(robot.calculateShootSpeed(3, shootPos.distanceTo(pass.ballPos))); // direction doesn't actually matter
+			let shootSpeed = new Vector(1,1).withLength(robot.calculateShootSpeed(3, shootPos.distanceTo(pass.ballPos))); // direction doesn't actually matter
 			let fakeBall = {speed: shootSpeed, maxSpeed: shootSpeed.length()};
 			let ballRollTime = Physics.ballRollTime(fakeBall, passInterception.distanceTo(shootPos) - World.Ball.radius - opp.shootRadius);
 			if (ballRollTime === Infinity) {
@@ -161,7 +161,7 @@ export function _ratePass(robot: FriendlyRobot, pass: PassObject, earliestAttack
 			let timeToPos = 0;
 			let minDist = World.Ball.radius + opp.radius;
 			if (opp.pos.distanceTo(passInterception) > minDist) {
-				let hitPoint = passInterception + (opp.pos - passInterception).setLength(minDist);
+				let hitPoint = passInterception + (opp.pos - passInterception).withLength(minDist);
 				timeToPos = Physics.robotTimeToPos(fakeRobot, hitPoint, new Vector(0,0))[0];
 			}
 
@@ -420,7 +420,7 @@ const BUFFER_TIME = 0.8;
 function printPassInfo(robot: {shootRadius: number} & Physics.RobotLike, passInfo: PassInfo | undefined, hysteresis: boolean | undefined,
 		hysteresisPassInfo: PassInfo | undefined) {
 	if (passInfo) {
-		let robotPos = passInfo.ballPos + (passInfo.ballPos - World.Ball.pos).setLength(robot.shootRadius + World.Ball.radius);
+		let robotPos = passInfo.ballPos + (passInfo.ballPos - World.Ball.pos).withLength(robot.shootRadius + World.Ball.radius);
 		let robotTime = Math.max(Physics.robotTimeToPos(robot, robotPos, new Vector(0, 0))[0], 0.5);
 		let isInOpponentFieldHalf = passInfo.ballPos.y > 0;
 		let bufferTime = isInOpponentFieldHalf ? BUFFER_TIME : 1.5 * BUFFER_TIME;
@@ -445,7 +445,7 @@ function printPassInfo(robot: {shootRadius: number} & Physics.RobotLike, passInf
 /** The time between the arrival of the robot and the ball */
 function calculatePassInfoTiming(robot: {shootRadius: number} & Physics.RobotLike, passInfo: PassInfo | undefined, passIncoming?: boolean, absRobotTime?: number): number {
 	if (passInfo != undefined) {
-		let robotPos = passInfo.ballPos + (passInfo.ballPos - World.Ball.pos).setLength(robot.shootRadius + World.Ball.radius);
+		let robotPos = passInfo.ballPos + (passInfo.ballPos - World.Ball.pos).withLength(robot.shootRadius + World.Ball.radius);
 		let robotTime = Math.max(Physics.robotTimeToPos(robot, robotPos, new Vector(0, 0))[0], 0.5, (absRobotTime != undefined ? (absRobotTime - World.Time) : 0));
 		let ballTime = passIncoming ? Physics.ballTravelTime(World.Ball, World.Ball.pos.distanceTo(passInfo.ballPos)) : Infinity;
 		let messageTime = passInfo.time - World.Time;

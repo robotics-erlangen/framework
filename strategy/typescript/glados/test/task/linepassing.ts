@@ -70,7 +70,7 @@ function MoveToRandom:run () {
 	// position where the robot wants the ball
 	let passPos = new Vector(RETURN_LINES[idx], this._ypos)
 	let timeOnPos = Physics.robotTimeToPos(this._robot, passPos,
-			(passPos - this._robot.pos).setLength(this._robot.maxSpeed)) + World.Time
+			(passPos - this._robot.pos).withLength(this._robot.maxSpeed)) + World.Time
 
 	// move to pass pos
 	let targetPos = passPos

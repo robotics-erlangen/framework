@@ -239,7 +239,7 @@ export class Shoot {
 		debug.set("Shoot/sideIntegral", this._sideOffsetErrorSum);
 
 		// correct sidewards pos error
-		return Vector.fromAngle(this._robot.dir).perpendicular().setLength(
+		return Vector.fromAngle(this._robot.dir).perpendicular().withLength(
 				MathUtil.bound(-SIDEWARDS_SPEED_LIMIT, p_out + this._sideOffsetErrorSum, SIDEWARDS_SPEED_LIMIT));
 	}
 
@@ -309,7 +309,7 @@ export class Shoot {
 		let [targetDir, kickSpeed] = Volley.calcPhi(this._robot, futureBall.speed, futureBall.pos, targetPos, targetSpeed); // TODO: calcPhi with stopped ball is questionable
 		let ballTravelTime = undefined;
 		if (targetTime != undefined) {
-			let kickSpeedVector = (targetPos - futureBall.pos).setLength(kickSpeed);
+			let kickSpeedVector = (targetPos - futureBall.pos).withLength(kickSpeed);
 			let shootBall = { maxSpeed: kickSpeed, speed: kickSpeedVector };
 			let ballTime: number = Physics.ballRollTime(shootBall, futureBall.pos.distanceTo(targetPos));
 			if (World.Time + 0.2 + ballTime < targetTime) {
@@ -356,7 +356,7 @@ export class Shoot {
 	}
 
 	private _calculateChaseFutureBall(targetPos: Position) {
-		let dribblerOffset = (targetPos - World.Ball.pos).setLength(this._robot.shootRadius + World.Ball.radius);
+		let dribblerOffset = (targetPos - World.Ball.pos).withLength(this._robot.shootRadius + World.Ball.radius);
 		let moveDest = World.Ball.pos - dribblerOffset;
 		let moveTime = moveDest.distanceTo(this._robot.pos) / Math.min(this._robot.speed.length(), 1);
 		let futureBall =  Physics.ballAtTime(World.Ball, moveTime);
@@ -374,7 +374,7 @@ export class Shoot {
 
 		let dribblerOffset = Vector.fromAngle(targetDir) * (this._robot.shootRadius + World.Ball.radius);
 		let moveDest = futureBall.pos - dribblerOffset;
-		let endSpeed = futureBall.speed.copy().setLength(futureBall.speed.length() + relativeEndSpeed);
+		let endSpeed = futureBall.speed.withLength(futureBall.speed.length() + relativeEndSpeed);
 
 		endSpeed = this._catchBall.limitEndSpeedToField(moveDest, endSpeed);
 

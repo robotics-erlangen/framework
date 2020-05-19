@@ -37,8 +37,8 @@ function draw(table: DebugTable) {
 	debug.pop();
 	vis.addCircle("sideStep", t.startingPoint, 0.05, vis.colors.blue, true);
 	vis.addCircle("sideStep", t.feintPos, 0.05, vis.colors.red, true);
-	vis.addPath("sideStep", [t.ballPos, t.ballPos + t.cw.setLength(t.cwDist)], vis.fromTemperature(t.cwRating));
-	vis.addPath("sideStep", [t.ballPos, t.ballPos + t.ccw.setLength(t.ccwDist)], vis.fromTemperature(t.ccwRating));
+	vis.addPath("sideStep", [t.ballPos, t.ballPos + t.cw.withLength(t.cwDist)], vis.fromTemperature(t.cwRating));
+	vis.addPath("sideStep", [t.ballPos, t.ballPos + t.ccw.withLength(t.ccwDist)], vis.fromTemperature(t.ccwRating));
 }
 
 type PassInfo = {target: FriendlyRobot, ballPos: Position, time: number};
@@ -57,18 +57,18 @@ export class SideStep extends Task {
 		let passBlocked = this._projectBotsOnLine(this._robot.pos, passInfo.ballPos) > MANMARK_DISTANCE_THRESHOLD;
 		let line;
 		if (passBlocked) {
-			line = (passInfo.ballPos - World.Ball.pos).setLength(1);
+			line = (passInfo.ballPos - World.Ball.pos).normalized();
 		} else {
-			line = (G.OpponentGoal - passInfo.ballPos).setLength(1);
+			line = (G.OpponentGoal - passInfo.ballPos).normalized();
 		}
 		let clockwise = line.copy().perpendicular();
 		let counterClockwise = line.copy().rotate(Math.PI / 2);
 		let [ccwDist, ccwRating] = this._rateLine(counterClockwise);
 		let [cwDist, cwRating] = this._rateLine(clockwise);
 		if (cwRating > ccwRating) {
-			this._feintPos = passInfo.ballPos + clockwise.setLength(cwDist);
+			this._feintPos = passInfo.ballPos + clockwise.withLength(cwDist);
 		} else {
-			this._feintPos = passInfo.ballPos + counterClockwise.setLength(ccwDist);
+			this._feintPos = passInfo.ballPos + counterClockwise.withLength(ccwDist);
 		}
 		this._debugTable = {
 			startingPoint: this._passInfo.ballPos,

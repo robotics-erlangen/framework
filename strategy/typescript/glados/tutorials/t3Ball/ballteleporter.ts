@@ -55,7 +55,7 @@ export class BallTeleporter extends Move {
 			let diff = angleRV - angleLV;
 			let ang = angleLV + (diff * MathUtil.random());
 			let dir = Vector.fromAngle(ang);
-			dir.setLength(4.5);
+			dir = dir.withLength(4.5);
 
 			this._initBall = {
 				pos: ballPos,

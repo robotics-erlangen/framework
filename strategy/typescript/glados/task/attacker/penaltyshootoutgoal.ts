@@ -42,14 +42,14 @@ export class PenaltyShootoutGoal extends Task {
 		};
 		PathHelper.setDefaultObstaclesByTable(robot.path, robot, obstacleTable);
 		let r = this._dest - robot.pos;
-		let s = r.setLength(Const.maxBallSpeed) - ball.speed;
+		let s = r.withLength(Const.maxBallSpeed) - ball.speed;
 		if (Math.abs(normalizeAngle(s.angle() - robot.dir)) < 1 * Math.PI / 180) {
 			robot.shoot(Infinity);
 		}
 		let pos = ball.pos + ball.speed * 0.5;
 		r = this._dest - robot.pos;
-		s = r.setLength(Const.maxBallSpeed) - ball.speed;
-		pos = pos + s.copy().setLength(- robot.shootRadius - ball.radius);
+		s = r.withLength(Const.maxBallSpeed) - ball.speed;
+		pos = pos + s.withLength(- robot.shootRadius - ball.radius);
 		robot.trajectory.update(ToTarget, pos, s.angle(), undefined, ball.speed * 1.1);
 		robot.setDribblerSpeed(0.5);
 	}

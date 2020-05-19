@@ -24,7 +24,7 @@ export class BallEscort extends Task {
 
 	public run() {
 		let target = this._opponentRobot ? this._opponentRobot.pos : World.Geometry.FriendlyGoal;
-		let pos = World.Ball.pos + (target - World.Ball.pos).setLength(0.3 + this._robot.radius);
+		let pos = World.Ball.pos + (target - World.Ball.pos).withLength(0.3 + this._robot.radius);
 
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, this._obstacleTable);
 		let ballOutPos = Field.nextLineCut(World.Ball.pos, World.Ball.speed);

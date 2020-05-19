@@ -21,7 +21,7 @@ export class ChipAway extends Task {
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
 		// chip to opponent's defense line, so that the ball would roll into the goal's center
 		let oppGoal = World.Geometry.OpponentGoal;
-		let chipPos = oppGoal + (this._robot.pos - oppGoal).setLength(World.Geometry.DefenseHeight);
+		let chipPos = oppGoal + (this._robot.pos - oppGoal).withLength(World.Geometry.DefenseHeight);
 		this._shoot._chipToPos(chipPos);
 		vis.addCircle("t/chipaway: target", chipPos, 0.05, vis.colors.orangeHalf, true);
 	}

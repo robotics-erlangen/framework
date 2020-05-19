@@ -51,7 +51,7 @@ export class StopAttack extends Task {
 		}
 
 		let stopRadius = this._minDistToBall + this._robot.radius + POSITION_PADDING;
-		let pos: Position = ballPos + (this._focusPoint - ballPos).setLength(stopRadius);
+		let pos: Position = ballPos + (this._focusPoint - ballPos).withLength(stopRadius);
 		let driveAngle = (ballPos - pos).angle();
 
 		let [opponentShooter, dist] = UtilDefense.getClosestRobot(World.OpponentRobots, ballPos);
@@ -100,8 +100,8 @@ export class StopAttack extends Task {
 			const borderShift = 2;
 			const quarterBegin = 0.7;
 			const borderBegin = 1.7;
-			// vis.addPath("stopattack: MaxAngle", [ballPos, ballPos + Vector.fromAngle(maxAngle).setLength(1)], vis.colors.red);
-			// vis.addPath("stopattack: MinAngle", [ballPos, ballPos + Vector.fromAngle(minAngle).setLength(1)], vis.colors.redHalf);
+			// vis.addPath("stopattack: MaxAngle", [ballPos, ballPos + Vector.fromAngle(maxAngle).normalized()], vis.colors.red);
+			// vis.addPath("stopattack: MinAngle", [ballPos, ballPos + Vector.fromAngle(minAngle).normalized()], vis.colors.redHalf);
 			if (ballPos.x > (quarterBegin * World.Geometry.FieldWidthQuarter) && ballPos.x < (borderBegin * World.Geometry.FieldWidthQuarter)) {
 				maxAllowedAngle -= quarterShift;
 				minAllowedAngle -= quarterShift;
@@ -133,29 +133,29 @@ export class StopAttack extends Task {
 			}
 			maxAllowedAngle = maxAllowedAngle * Math.PI / 8;
 			minAllowedAngle = minAllowedAngle * Math.PI / 8;
-			// vis.addPath("stopattack: MaxAllowedAngle", [ballPos, ballPos + Vector.fromAngle(maxAllowedAngle).setLength(1)], vis.colors.green);
-			// vis.addPath("stopattack: MinAllowedAngle", [ballPos, ballPos + Vector.fromAngle(minAllowedAngle).setLength(1)], vis.colors.greenHalf);
+			// vis.addPath("stopattack: MaxAllowedAngle", [ballPos, ballPos + Vector.fromAngle(maxAllowedAngle).normalized()], vis.colors.green);
+			// vis.addPath("stopattack: MinAllowedAngle", [ballPos, ballPos + Vector.fromAngle(minAllowedAngle).normalized()], vis.colors.greenHalf);
 
 			maxAngle = MathUtil.bound(minAllowedAngle, maxAngle, maxAllowedAngle);
 			minAngle = MathUtil.bound(minAllowedAngle, minAngle, maxAllowedAngle);
-			// vis.addPath("stopattack: MaxAngleBounded", [ballPos, ballPos + Vector.fromAngle(maxAngle).setLength(1)], vis.colors.black);
-			// vis.addPath("stopattack: MinAngleBounded", [ballPos, ballPos + Vector.fromAngle(minAngle).setLength(1)], vis.colors.blackHalf);
+			// vis.addPath("stopattack: MaxAngleBounded", [ballPos, ballPos + Vector.fromAngle(maxAngle).normalized()], vis.colors.black);
+			// vis.addPath("stopattack: MinAngleBounded", [ballPos, ballPos + Vector.fromAngle(minAngle).normalized()], vis.colors.blackHalf);
 
 			let relativeAngle = getNormalizedAngle(ballPos - opponentShooter!.pos);
 			let boundedAngle = MathUtil.bound(minAngle, relativeAngle, maxAngle);
 			let opponentDirection = getNormalizedAngle(Vector.fromAngle(opponentShooter!.dir));
 			let boundedOppDirection = MathUtil.bound(minAngle, opponentDirection, maxAngle);
 			let middleAngle = (boundedAngle + boundedOppDirection) / 2;
-			pos = ballPos + Vector.fromAngle(middleAngle).setLength(stopRadius);
+			pos = ballPos + Vector.fromAngle(middleAngle).withLength(stopRadius);
 			// try to reflect the ball to the opponents goal
-			let hypotheticalBall = {pos: ballPos, speed: (pos - ballPos).setLength(Constants.maxBallSpeed), maxSpeed: Constants.maxBallSpeed, posZ: 0, initSpeedZ: 0, speedZ: 0};
+			let hypotheticalBall = {pos: ballPos, speed: (pos - ballPos).withLength(Constants.maxBallSpeed), maxSpeed: Constants.maxBallSpeed, posZ: 0, initSpeedZ: 0, speedZ: 0};
 			let time = Physics.ballTravelTime(hypotheticalBall, (ballPos - pos).length());
 			let futureBall = Physics.ballAtTime(hypotheticalBall, time);
 			driveAngle = Volley.calcPhi(this._robot, futureBall.speed, pos, World.Geometry.OpponentGoal, Infinity)[0];
-			// vis.addPath("t/a/stopattack: reflectionNormal", [ballPos, pos, pos + Vector.fromAngle(driveAngle), pos, pos + ((World.Geometry.OpponentGoal - pos).setLength(1))]);
+			// vis.addPath("t/a/stopattack: reflectionNormal", [ballPos, pos, pos + Vector.fromAngle(driveAngle), pos, pos + ((World.Geometry.OpponentGoal - pos).normalized())]);
 
 			// Go back a little so the ball will hit the front side of the robot
-			pos = pos - Vector.fromAngle(driveAngle).setLength(this._robot.shootRadius);
+			pos = pos - Vector.fromAngle(driveAngle).withLength(this._robot.shootRadius);
 			this._defenseHysteresis = true;
 			this._robot.setDribblerSpeed(0.8); // might be quite loud
 		} else {

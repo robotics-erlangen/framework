@@ -46,7 +46,7 @@ export class Duel extends Behavior {
 						let pointOnBallLine = opp.pos.orthogonalProjection(World.Ball.pos, World.Ball.pos + World.Ball.speed)[0];
 						if (opp.pos.distanceTo(pointOnBallLine) < 0.5) {
 							let robotTime = Physics.robotTimeToPos(opp, pointOnBallLine, new Vector(0, 0))[0];
-							let ballOffset = World.Ball.speed.copy().setLength(World.Ball.radius + opp.shootRadius);
+							let ballOffset = World.Ball.speed.withLength(World.Ball.radius + opp.shootRadius);
 							let ballTime = Physics.checkedBallRollTime(World.Ball, pointOnBallLine - ballOffset);
 							if (ballTime > robotTime + 0.1) {
 								firstAtBall = false;

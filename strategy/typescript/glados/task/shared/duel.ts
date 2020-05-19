@@ -83,7 +83,7 @@ export class Duel extends Task {
 		let intersection = geom.intersectLineLine(
 				this._robot.pos, toOpponentDir, World.Geometry.FriendlyGoal, new Vector(1, 0))[0];
 		let ccw = intersection ? -MathUtil.sign(intersection.x) : -1; // negative = ccw, positive = cw
-		let toBall = World.Ball.speed + (Ball.getRealisticBallPos() - this._robot.pos).setLength(0.4);
+		let toBall = World.Ball.speed + (Ball.getRealisticBallPos() - this._robot.pos).withLength(0.4);
 		this._robot.setDribblerSpeed(0.8);
 		this._robot.trajectory.update(Direct, toBall, undefined, ccw * 2 * Math.PI); // 1 turn per second
 	}
@@ -215,7 +215,7 @@ export class Duel extends Task {
 		let moveDest: Position;
 		if (intersectionDefenseArea != undefined) {
 			// calculate new position between ball (regarding robot shootRadius) and the intersection with defense area
-			moveDest = futureBall + (intersectionDefenseArea - futureBall).setLength(this._robot.shootRadius + World.Ball.radius);
+			moveDest = futureBall + (intersectionDefenseArea - futureBall).withLength(this._robot.shootRadius + World.Ball.radius);
 			let defenseIntersectionRadius = this._robot.radius * 3 +  OPPONENT_DEFENSE_AREA_MIN_DISTANCE;
 			if (Field.isInOpponentDefenseArea(moveDest, defenseIntersectionRadius)) {
 				let opponentDefenseIntersection = Field.intersectRayDefenseArea(moveDest, World.Geometry.FriendlyGoal - moveDest,
@@ -232,7 +232,7 @@ export class Duel extends Task {
 							this._oldPosition, BLOCK_POS_PRECISION, BLOCK_POS_ALPHA);
 		} else {
 			// case if there isn't an intersection with the defense area
-			moveDest = futureBall + (this._robot.pos - futureBall).setLength(this._robot.shootRadius + World.Ball.radius);
+			moveDest = futureBall + (this._robot.pos - futureBall).withLength(this._robot.shootRadius + World.Ball.radius);
 		}
 
 		// remember position for the next iteration
@@ -244,7 +244,7 @@ export class Duel extends Task {
 			if (closestOpponentRobot) {
 				moveDest = this._moveToNearBlock(closestOpponentRobot);
 			} else {
-				moveDest = futureBall + (World.Geometry.FriendlyGoal - futureBall).setLength(
+				moveDest = futureBall + (World.Geometry.FriendlyGoal - futureBall).withLength(
 					World.Ball.radius + this._robot.shootRadius);
 			}
 		}

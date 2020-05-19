@@ -29,7 +29,7 @@ function DebugChip:run () {
 		this._wasShot = true
 	}
 
-	let target = this._robot.pos + World.Ball.pos.copy().setLength(this._distance) * -1
+	let target = this._robot.pos + World.Ball.pos.withLength(this._distance) * -1
 	if (this._wasShot || this._timer > 0) {//this._robot.pos.distanceTo(this._pos) > 0.15 then
 		this._robot.trajectory.update(ToTarget, this._pos, Math.PI/2, undefined, new Vector(0,0))
 		this._timer = this._timer - 1

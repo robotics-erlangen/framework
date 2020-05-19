@@ -92,7 +92,7 @@ export class MrlTestCorner extends Move {
 		if (this._activeRobotShootPos.distanceTo(circle) <= radius) {
 			let posToShiftFrom = (World.Ball.pos + G.OpponentGoal) / 2;
 			let intersectionWithCircle = geom.intersectLineCircle(posToShiftFrom, this._activeRobotShootPos - posToShiftFrom, circle, radius)[0]!;
-			this._activeRobotShootPos = posToShiftFrom + (intersectionWithCircle - posToShiftFrom).setLength(intersectionWithCircle.distanceTo(posToShiftFrom) + 0.1);
+			this._activeRobotShootPos = posToShiftFrom + (intersectionWithCircle - posToShiftFrom).withLength(intersectionWithCircle.distanceTo(posToShiftFrom) + 0.1);
 		}
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
 

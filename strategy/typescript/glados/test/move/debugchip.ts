@@ -25,7 +25,7 @@ function DebugChip:_init () {
 
 	this._idlePos = new Vector(1, -2)
 	this._initBall = {
-		pos = this._idlePos + (this._idlePos * -1).setLength(this._robots[0].radius + this._robots[0].shootRadius),
+		pos = this._idlePos + (this._idlePos * -1).withLength(this._robots[0].radius + this._robots[0].shootRadius),
 		posZ = 0,
 		speed = new Vector(0,0),
 		speedZ = 0
@@ -56,7 +56,7 @@ let resetChip = function (self) {
 			this._angle = 0
 		}
 		this._idlePos = new Vector(0, -2) + Vector.fromAngle(this._angle + Math.PI)
-		this._initBall.pos = this._idlePos + (this._idlePos * -1).setLength(this._robots[0].radius + this._robots[0].shootRadius)
+		this._initBall.pos = this._idlePos + (this._idlePos * -1).withLength(this._robots[0].radius + this._robots[0].shootRadius)
 	} else {
 		this._distance = this._distance + 0.25
 	}

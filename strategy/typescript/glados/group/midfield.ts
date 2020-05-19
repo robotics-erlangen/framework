@@ -209,7 +209,7 @@ export class Midfield implements Group {
 			if (passInfoTable) {
 				for (let passInfo of passInfoTable) {
 					if (passInfo.target === r && Attack.checkPassInfos(r, passInfoTable, false)[0]) {
-						pos = passInfo.ballPos + (passInfo.ballPos - World.Ball.pos).setLength(r.shootRadius + World.Ball.radius);
+						pos = passInfo.ballPos + (passInfo.ballPos - World.Ball.pos).withLength(r.shootRadius + World.Ball.radius);
 					}
 				}
 			}

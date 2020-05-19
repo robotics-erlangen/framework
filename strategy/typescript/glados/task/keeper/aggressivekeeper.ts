@@ -43,12 +43,12 @@ export class AggressiveKeeper extends Task {
 		if (World.Ball.pos.y < this._robot.pos.y + POSITION_PADDING) {
 			// get between ball and goal
 			let ballDist = this._robot.radius + World.Ball.radius;
-			moveDest = World.Ball.pos + (safeGoalMid - World.Ball.pos).setLength(ballDist) + new Vector(0, -POSITION_PADDING);
+			moveDest = World.Ball.pos + (safeGoalMid - World.Ball.pos).withLength(ballDist) + new Vector(0, -POSITION_PADDING);
 			ignoreBall = false;
 		} else {
 			let ballTime = Robot.minTimeToBall(this._robot);
 			moveDest = Physics.ballAtTime(World.Ball, ballTime).pos;
-			moveDest = moveDest + (this._robot.pos - moveDest).setLength(World.Ball.radius);
+			moveDest = moveDest + (this._robot.pos - moveDest).withLength(World.Ball.radius);
 			ignoreBall = true;
 		}
 
@@ -95,7 +95,7 @@ export class AggressiveKeeper extends Task {
 				chipDist = chipDist * CHIP_DIST_FACTOR;
 			}
 
-			vis.addCircle("t/a/chipToBorder", ballPos + robotDir.copy().setLength(chipDist), 0.1, vis.colors.blue, true);
+			vis.addCircle("t/a/chipToBorder", ballPos + robotDir.withLength(chipDist), 0.1, vis.colors.blue, true);
 			if (!Robot.hadBall(this._robot, 0)) {
 				this._forceShoot._forceShootTimer = undefined;
 			}
