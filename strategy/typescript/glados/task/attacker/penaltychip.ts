@@ -152,7 +152,7 @@ function checkAngle(ball: {speed: Vector}, robot: Robot) {
 	let minchipDistance = 1;
 	let speedSq = g * minchipDistance / chipGradient;
 	let shotSpeedSq = speedSq - ball.speed.lengthSq();
-	let shotVector = Vector.fromAngle(robot.dir).withLength(Math.sqrt(shotSpeedSq));
+	let shotVector = Vector.fromPolar(robot.dir, Math.sqrt(shotSpeedSq));
 	let result = ball.speed + shotVector;
 	if (!result.insideSector(toRightPost, toLeftPost)) {
 		return "fail angle";
@@ -224,6 +224,6 @@ function getShotVector(ball: {speed: Vector}, robot: Robot) {
 	let minchipDistance = 1;
 	let speedSq = g * minchipDistance / chipGradient;
 	let shotSpeedSq = speedSq - ball.speed.lengthSq();
-	let shotVector = Vector.fromAngle(robot.dir).withLength(Math.sqrt(shotSpeedSq));
+	let shotVector = Vector.fromPolar(robot.dir, Math.sqrt(shotSpeedSq));
 	return ball.speed + shotVector;
 }

@@ -30,7 +30,7 @@ export class Circuit extends Task {
 
 	run() {
 		let angle = (World.Time % 1000) % (Math.PI * 2) + this._angleOffset;
-		let pos = this._center + Vector.fromAngle(angle) * this._radius;
+		let pos = this._center + Vector.fromPolar(angle, this._radius);
 		let dir = (World.Ball.pos - pos).angle();
 
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, this._obstacleTable);

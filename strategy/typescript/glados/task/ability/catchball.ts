@@ -128,8 +128,7 @@ export class CatchBall {
 			// therefore an extra buffer is needed
 			predictedBall.pos = Field.limitToAllowedField(predictedBall.pos, World.Ball.radius - EXTRA_DISTANCE);
 		}
-		let moveDest = predictedBall.pos - Vector.fromAngle(viewDir).scaleLength(
-					this._robot.radius + distanceToBall + ball.radius);
+		let moveDest = predictedBall.pos - Vector.fromPolar(viewDir, this._robot.radius + distanceToBall + ball.radius);
 
 		if (World.Ball.pos.distanceTo(this._robot.pos) < World.Ball.radius + this._robot.radius + 0.1) {
 			this._ignoringOpponents = true;
@@ -224,9 +223,9 @@ export class CatchBall {
 		if (Math.abs(geom.getAngleDiff((hitPoint - this._robot.pos).angle(), this._robot.dir)) < dribberAngleHalf) {
 			// calculate where the ball would hit the dribbler
 			// just use the current robot dir as any prediction will be just as wrong
-			let dribblerMid = this._robot.pos + Vector.fromAngle(this._robot.dir).scaleLength(this._robot.shootRadius);
+			let dribblerMid = this._robot.dribblerPos;
 			// points along the dribbler
-			let dribblerDir = Vector.fromAngle(this._robot.dir).perpendicular().scaleLength(this._robot.dribblerWidth / 2 - ball.radius);
+			let dribblerDir = Vector.fromPolar(this._robot.dir, this._robot.dribblerWidth / 2 - ball.radius).perpendicular();
 			let [intersection, _, lambda2] = geom.intersectLineLine(ball.pos, ball.speed, dribblerMid, dribblerDir);
 			// abs(lambda2) <= 1 if intersection is inside the dribbler width
 			if (intersection != undefined && Math.abs(lambda2!) <= 1) {
@@ -361,7 +360,7 @@ export class CatchBall {
 		path.addCircle(predictedBall.pos.x, predictedBall.pos.y, predictedBall.radius - OBSTACLE_EPSILON, "ball", OBSTACLE_PRIORITY);
 		vis.addCircle("t/a/catchball: CatchBall", predictedBall.pos, predictedBall.radius, vis.colors.skyBlueHalf);
 
-		let frontEnd = predictedBall.pos + Vector.fromAngle(viewDir) * 0.3;
+		let frontEnd = predictedBall.pos + Vector.fromPolar(viewDir, 0.3);
 		path.addLine(predictedBall.pos.x, predictedBall.pos.y, frontEnd.x, frontEnd.y, predictedBall.radius - OBSTACLE_EPSILON, "ballForward", OBSTACLE_PRIORITY);
 		vis.addPath("t/a/catchball: CatchBall", [predictedBall.pos, frontEnd], vis.colors.skyBlueHalf, undefined, undefined, 2 * (predictedBall.radius - OBSTACLE_EPSILON));
 	}
@@ -373,8 +372,8 @@ export class CatchBall {
 
 		// create a bracket that ensures a minimum distance of obstacleErroDist to the ball
 		// except on the side indicated by viewDir
-		let rightOfs = Vector.fromAngle(viewDir).perpendicular().scaleLength(obstacleErrorDist);
-		let depthOfs = Vector.fromAngle(viewDir).scaleLength(obstacleErrorDist);
+		let rightOfs = Vector.fromPolar(viewDir, obstacleErrorDist).perpendicular();
+		let depthOfs = Vector.fromPolar(viewDir, obstacleErrorDist);
 
 		let corridorLeftNear = predictedBall.pos - rightOfs;
 		let corridorLeftFar = corridorLeftNear + depthOfs;
@@ -395,8 +394,8 @@ export class CatchBall {
 		let negativeRadius = - this._robot.radius + effectiveObstacleRadius;
 		let moveWidth = this._robot.dribblerWidth + 2 * SIDE_DEPTH;
 
-		let negRightOfs = Vector.fromAngle(viewDir).perpendicular().scaleLength(moveWidth / 2);
-		let negBaseDepthOfs = Vector.fromAngle(viewDir).scaleLength(negativeRadius - predictedBall.radius + 0.005);
+		let negRightOfs = Vector.fromPolar(viewDir, moveWidth / 2).perpendicular();
+		let negBaseDepthOfs = Vector.fromPolar(viewDir, negativeRadius - predictedBall.radius + 0.005);
 
 		let negLeftFar = predictedBall.pos - negRightOfs + negBaseDepthOfs;
 		let negRightFar = predictedBall.pos + negRightOfs + negBaseDepthOfs;

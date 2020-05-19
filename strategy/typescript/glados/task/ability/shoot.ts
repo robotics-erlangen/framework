@@ -130,8 +130,7 @@ export class Shoot {
 			if (ballReceiptPos != undefined && (ballReceiptPos - World.Ball.pos).dot(World.Ball.speed) > 0) {
 				futureBallPos = ballReceiptPos.orthogonalProjection(World.Ball.pos, World.Ball.pos + World.Ball.speed)[0];
 			} else {
-				let dribblerPos = this._robot.pos + Vector.fromAngle(this._robot.dir).scaleLength(
-					this._robot.shootRadius + World.Ball.radius);
+				let dribblerPos = this._robot.pos + Vector.fromPolar(this._robot.dir, this._robot.shootRadius + World.Ball.radius);
 				futureBallPos = dribblerPos.nearestPosOnLine(World.Ball.pos, World.Ball.pos + World.Ball.speed * 3);
 			}
 		} else {
@@ -147,7 +146,7 @@ export class Shoot {
 		// end
 
 		if (World.Ball.pos.distanceTo(this._robot.pos) < this._robot.shootRadius + World.Ball.radius) {
-			futureBall.pos = this._robot.pos + Vector.fromAngle(this._robot.dir) * (this._robot.shootRadius + World.Ball.radius);
+			futureBall.pos = this._robot.pos + Vector.fromPolar(this._robot.dir, this._robot.shootRadius + World.Ball.radius);
 			this._lastBallInsideRobotTime = World.Time;
 		}
 
@@ -239,8 +238,8 @@ export class Shoot {
 		debug.set("Shoot/sideIntegral", this._sideOffsetErrorSum);
 
 		// correct sidewards pos error
-		return Vector.fromAngle(this._robot.dir).perpendicular().withLength(
-				MathUtil.bound(-SIDEWARDS_SPEED_LIMIT, p_out + this._sideOffsetErrorSum, SIDEWARDS_SPEED_LIMIT));
+		let resLength = MathUtil.bound(-SIDEWARDS_SPEED_LIMIT, p_out + this._sideOffsetErrorSum, SIDEWARDS_SPEED_LIMIT);
+		return Vector.fromPolar(this._robot.dir, resLength).perpendicular();
 	}
 
 	private _sendShootCommand(kickSpeed: number, targetPos: Position, targetDir: number) {
@@ -325,8 +324,8 @@ export class Shoot {
 		if (this._directMovement) {
 			let accelerate = this._robot.acceleration.aSpeedupFMax * speedupFactor;
 			this._directExtraSpeed = Math.min(this._directExtraSpeed + accelerate * World.TimeDiff, EXTRA_MOVE_SPEED_LIMIT);
-			let accel = Vector.fromAngle(targetDir) * accelerate;
-			let speed = Vector.fromAngle(targetDir) * this._directExtraSpeed;
+			let accel = Vector.fromPolar(targetDir, accelerate);
+			let speed = Vector.fromPolar(targetDir, this._directExtraSpeed);
 
 			speed = speed + this._correctSidewardsOffset();
 
@@ -372,7 +371,7 @@ export class Shoot {
 		let [targetDir, kickSpeed] = Volley.calcPhi(this._robot, futureBall.speed, futureBall.pos, targetPos, targetSpeed); // TODO: calcPhi with no relaitve speed is questionable
 		this.targetRobotDir = targetDir;
 
-		let dribblerOffset = Vector.fromAngle(targetDir) * (this._robot.shootRadius + World.Ball.radius);
+		let dribblerOffset = Vector.fromPolar(targetDir, this._robot.shootRadius + World.Ball.radius);
 		let moveDest = futureBall.pos - dribblerOffset;
 		let endSpeed = futureBall.speed.withLength(futureBall.speed.length() + relativeEndSpeed);
 
@@ -396,7 +395,7 @@ export class Shoot {
 	private _shootVolley(targetPos: Position, targetSpeed: number, futureBall: Physics.BallLike, futureBallTime: number) {
 		let [targetDir, kickSpeed] = Volley.calcPhi(this._robot, futureBall.speed, futureBall.pos, targetPos, targetSpeed);
 		this.targetRobotDir = targetDir;
-		let dribblerOffset = Vector.fromAngle(targetDir) * (this._robot.shootRadius + World.Ball.radius);
+		let dribblerOffset = Vector.fromPolar(targetDir, this._robot.shootRadius + World.Ball.radius);
 		let moveDest = futureBall.pos - dribblerOffset;
 
 		// don't follow the ball if it is inside the robot (because of the ball extrapolation)
@@ -454,7 +453,7 @@ export class Shoot {
 		// the future ball might be standing still, so use the current ball speed. The direction is the same
 		let targetDir = (-World.Ball.speed).angle();
 		this.targetRobotDir = targetDir;
-		let dribblerOffset = Vector.fromAngle(targetDir) * (this._robot.shootRadius + World.Ball.radius);
+		let dribblerOffset = Vector.fromPolar(targetDir, this._robot.shootRadius + World.Ball.radius);
 		let moveDest = futureBall.pos - dribblerOffset;
 
 		let visBallStartPos: Position;

@@ -76,7 +76,7 @@ function HallucinatingKeeper:_update () {
 	if (not this._hit && this._ball.pos.distanceTo(this._robot.pos) < this._ball.radius+this._robot.radius) {
 		this._hit = (this._ball.pos-this._robot.pos).angle() - this._robot.dir
 	} else if (this._hit) {
-		vis.addCircle("test/move/keepertest: Hit", this._robot.pos + Vector.fromAngle(this._hit+this._robot.dir).withLength(this._robot.radius), 0.015, vis.colors.red, true)
+		vis.addCircle("test/move/keepertest: Hit", this._robot.pos + Vector.fromPolar(this._hit+this._robot.dir, this._robot.radius), 0.015, vis.colors.red, true)
 	}
 
 	this._line = (this._line % #this._ballData) + 1

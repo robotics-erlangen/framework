@@ -86,7 +86,8 @@ export class Defense {
 			const defendedOpponentMessage = head(this._messaging.receive(MessageType.defendedOpponent));
 			if (defendedOpponentMessage) {
 				const [sender, opponent] = defendedOpponentMessage;
-				if (opponent === robot && sender.pos.distanceToLineSegment(opponent.pos + Vector.fromAngle(opponent.dir) * (opponent.shootRadius + World.Ball.radius), G.FriendlyGoal) < sender.radius) {
+				const oppDribblerPos = opponent.pos + Vector.fromPolar(opponent.dir, opponent.shootRadius + World.Ball.radius);
+				if (opponent === robot && sender.pos.distanceToLineSegment(oppDribblerPos, G.FriendlyGoal) < sender.radius) {
 					continue;
 				}
 			}

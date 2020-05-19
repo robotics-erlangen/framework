@@ -82,10 +82,9 @@ export function ballHeadingForGoal(ball: Ball, ownGoal: boolean): boolean {
  * @param ballPos - Position of the ball
  */
 export function ellipticDistance(robot: Robot, ballPos: Position): number {
-	let dribblerPos = robot.pos + Vector.fromAngle(robot.dir).scaleLength(robot.shootRadius);
-	let dribblerWidthHalf = Vector.fromAngle(robot.dir - Math.PI / 2).scaleLength(robot.dribblerWidth / 2);
-	let leftDribblerEdge = dribblerPos + dribblerWidthHalf;
-	let rightDribblerEdge = dribblerPos - dribblerWidthHalf;
+	let dribblerWidthHalf = Vector.fromPolar(robot.dir - Math.PI / 2, robot.dribblerWidth / 2);
+	let leftDribblerEdge = robot.dribblerPos + dribblerWidthHalf;
+	let rightDribblerEdge = robot.dribblerPos - dribblerWidthHalf;
 	return 0.5 * Math.sqrt((leftDribblerEdge.distanceTo(ballPos) + rightDribblerEdge.distanceTo(ballPos)) ** 2 - robot.dribblerWidth * robot.dribblerWidth);
 }
 
@@ -252,7 +251,7 @@ function updateReceivesPass() {
 		// there can be a difference when the ball is very close to the robot (but not quite close enough to disable the condition)
 		// this makes receivesPass more stable for shooting robots
 		let extrapolatedRobotPos = robot.pos + robot.speed * robotTime;
-		let extrapolatedDribblerPos = extrapolatedRobotPos + Vector.fromAngle(robot.dir) * robot.shootRadius;
+		let extrapolatedDribblerPos = extrapolatedRobotPos + Vector.fromPolar(robot.dir, robot.shootRadius);
 		let toRobotAngle = (extrapolatedRobotPos - World.Ball.pos).angle();
 		let toDribblerAngle = (extrapolatedDribblerPos - World.Ball.pos).angle();
 		if (robotBallDistance > World.Ball.radius + robot.radius

@@ -60,8 +60,7 @@ export class Pass extends Task {
 			if (sugg != undefined) {
 				pos = sugg.ballPos;
 			} else {
-				pos = targetRobot.pos +
-					Vector.fromAngle(targetRobot.dir) * targetRobot.shootRadius;
+				pos = targetRobot.dribblerPos;
 			}
 		} else {
 			pos = targetPos;

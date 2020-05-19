@@ -76,7 +76,7 @@ export class TrajectoryPath extends TrajectoryHandler {
 			amun.log("TrajectoryPath does not implement dribble = true right now");
 		}
 
-		let directionVector = Vector.fromAngle(targetDir).scaleLength(0.09);
+		let directionVector = Vector.fromPolar(targetDir, 0.09);
 		vis.addPath("MoveTo", [targetPos, targetPos + directionVector], vis.colors.yellowHalf);
 		if (endSpeed != undefined && endSpeed.length() > 0.001) {
 			vis.addPath("MoveTo", [targetPos, targetPos + endSpeed], vis.colors.whiteHalf);

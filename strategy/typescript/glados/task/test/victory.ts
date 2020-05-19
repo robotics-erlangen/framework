@@ -49,19 +49,19 @@ export class Victory extends Task {
 		this._outerAngle = this._outerAngle + Math.PI / (180 + this._ticks * 180) * ANGULAR_SPEED_FACTOR;
 		let pos: Position | undefined;
 		if (this._state === "double circle") {
-			let origin = Vector.fromAngle(this._centerAngle).withLength(this._radius / 2);
-			pos = this._center + origin + Vector.fromAngle(this._outerAngle).withLength(this._radius / (4 - this._ticks * 2));
+			let origin = Vector.fromPolar(this._centerAngle, this._radius / 2);
+			pos = this._center + origin + Vector.fromPolar(this._outerAngle, this._radius / (4 - this._ticks * 2));
 			this._state = Math.abs(this._centerAngle) < NUM_OF_REVOLUTIONS * 2 * Math.PI ? "double circle" : "spiral prepare";
 			if (this._state === "spiral prepare") {
 				this._ticks = 1;
 				this._increment = false;
 			}
 		} else if (this._state === "spiral prepare") {
-			let origin = Vector.fromAngle(this._centerAngle).withLength((this._radius / 2) * this._ticks);
-			pos = this._center + origin + Vector.fromAngle(this._outerAngle).withLength(this._radius / (4 - this._ticks * 2));
+			let origin = Vector.fromPolar(this._centerAngle, (this._radius / 2) * this._ticks);
+			pos = this._center + origin + Vector.fromPolar(this._outerAngle, this._radius / (4 - this._ticks * 2));
 			this._state = this._ticks > 0 ? "spiral prepare" : "spiral";
 		} else if (this._state === "spiral") {
-			pos = this._center + Vector.fromAngle(this._outerAngle).withLength(this._radius - this._ticks * this._radius * 3 / 4);
+			pos = this._center + Vector.fromPolar(this._outerAngle, this._radius - this._ticks * this._radius * 3 / 4);
 			this._state = this._centerAngle > 2 * NUM_OF_REVOLUTIONS * 2 * Math.PI ? "double circle prepare" : "spiral";
 			if (this._state === "double circle prepare") {
 				this._centerAngle = geom.normalizeAnglePositive(this._centerAngle);
@@ -69,8 +69,8 @@ export class Victory extends Task {
 				this._increment = true;
 			}
 		} else if (this._state === "double circle prepare") {
-			let origin = Vector.fromAngle(this._centerAngle).withLength((this._radius / 2) * this._ticks);
-			pos = this._center + origin + Vector.fromAngle(this._outerAngle).withLength(this._radius / (4 - this._ticks * 2));
+			let origin = Vector.fromPolar(this._centerAngle, (this._radius / 2) * this._ticks);
+			pos = this._center + origin + Vector.fromPolar(this._outerAngle, this._radius / (4 - this._ticks * 2));
 			this._state = this._ticks > 1 ? "double circle" : "double circle prepare";
 		}
 

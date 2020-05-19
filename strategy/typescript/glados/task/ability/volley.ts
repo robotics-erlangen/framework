@@ -288,7 +288,7 @@ export class Volley {
 		// don't block the jit by calling c code
 		for (let visPhi of visData) {
 			vis.addPath("t/a/volley: Iterations",
-					[robot.pos, robot.pos + Vector.fromAngle(visPhi).scaleLength(100)],
+					[robot.pos, robot.pos + Vector.fromPolar(visPhi, 100)],
 					vis.colors.greenHalf);
 		}
 
@@ -320,8 +320,7 @@ export class Volley {
 		let [phi, v_s] = Volley.calcPhi(this._robot, this._ball_in, viewPos, targetPos, targetSpeed);
 
 		// position the robot to receive the pass
-		let robotPos = viewPos - Vector.fromAngle(phi).scaleLength(
-					World.Ball.radius + this._robot.shootRadius);
+		let robotPos = viewPos - Vector.fromPolar(phi, World.Ball.radius + this._robot.shootRadius);
 		this._robot.trajectory.update(ToTarget, robotPos, phi, undefined, undefined);
 
 		// only shoot if the robot looks about in the right direction
@@ -339,8 +338,8 @@ export class Volley {
 		}
 
 		vis.addCircle("t/a/volley: Volley", targetPos, 0.1, vis.colors.redHalf, true);
-		let viewPoint = viewPos + Vector.fromAngle(phi).scaleLength(10000);
-		let currentDir = viewPos + Vector.fromAngle(this._robot.dir).scaleLength(10000);
+		let viewPoint = viewPos + Vector.fromPolar(phi, 10000);
+		let currentDir = viewPos + Vector.fromPolar(this._robot.dir, 10000);
 		vis.addPath("t/a/volley: Volley", [viewPos, viewPoint], vis.colors.green);
 		vis.addPath("t/a/volley: Volley", [viewPos, targetPos], vis.colors.red);
 		vis.addPath("t/a/volley: Volley", [viewPos, currentDir], vis.colors.orange);

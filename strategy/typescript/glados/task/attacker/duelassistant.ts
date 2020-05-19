@@ -94,7 +94,7 @@ export class DuelAssistant extends Task {
 
 		let pos : Vector;
 		if (agressivePositionMode) {
-			pos = opponentPos + (Vector.fromAngle(opponentDir)).scaleLength(3 * this._robot.radius);
+			pos = opponentPos + Vector.fromPolar(opponentDir, 3 * this._robot.radius);
 		} else {
 			pos = friendlyPos + totalOffset;
 		}

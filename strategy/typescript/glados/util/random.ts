@@ -23,5 +23,5 @@ export function standardNormalDistributedNumber(): number {
 
 export function standardNormalDistributedVector(): Vector {
 	let r = standardNormalDistributedNumber();
-	return Vector.fromAngle(MathUtil.random() * 2 * Math.PI) * r;
+	return Vector.fromPolar(MathUtil.random() * 2 * Math.PI, r);
 }

@@ -209,7 +209,7 @@ export class PenaltyShootout extends Behavior {
 		if (World.Ball.isPositionValid()) {
 			if (robotPos.distanceToSq(getRealisticBallPos()) < minDistance * minDistance || quality < 0) {
 				if (ellipticDistance(robot, ball.pos) < ball.radius + 0.01) {
-					let dribblerPos = robotPos + Vector.fromAngle(robot.dir).scaleLength(robot.shootRadius + ball.radius);
+					let dribblerPos = robotPos + Vector.fromPolar(robot.dir, robot.shootRadius + ball.radius);
 					let a = 0.9;
 					ballPos = (ballPos * a) + (dribblerPos * (1 - a));
 					// ballPos = (ballPos * a);

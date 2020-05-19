@@ -76,7 +76,7 @@ export class AcceptPass extends Task {
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, this._obstacleTable);
 
 		let dir = (World.Ball.pos - ballPos).angle();
-		let robotPos = ballPos - Vector.fromAngle(dir) * (this._robot.shootRadius + World.Ball.radius);
+		let robotPos = ballPos - Vector.fromPolar(dir, this._robot.shootRadius + World.Ball.radius);
 		let moveTime = this._robot.trajectory.update(ToTarget, robotPos, dir)[1];
 		if (this._runCounter < 5) {
 			// in the first 5 runs, the time from trajectory/update is unreliable. Just pretend we will be just in time

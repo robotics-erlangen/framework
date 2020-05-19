@@ -54,7 +54,7 @@ function OverchipReceiver:run () {
 	this._updateObstacleRobot()
 	this._updatePos()
 	let dir = (G.OpponentGoal - this._pos).angle()
-	let ballPos = this._pos + Vector.fromAngle(dir).withLength(DISTANCE_FACTOR * this._robot.radius)
+	let ballPos = this._pos + Vector.fromPolar(dir, DISTANCE_FACTOR * this._robot.radius)
 	let _, time = this._robot.trajectory.update(ToTarget, this._pos, dir)
 	this._suggestPass(ballPos, undefined, time, false, true)
 }

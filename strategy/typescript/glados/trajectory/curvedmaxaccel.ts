@@ -521,7 +521,7 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 	public update(targetPos: Position, targetDir: number = 0, maxSpeed: number = this._robot.maxSpeed,
 			endSpeed: Speed = new Vector(0, 0), accelScale: number = 1.0, dribble: boolean = false): TrajectoryResult {
 
-		let directionVector = Vector.fromAngle(targetDir).scaleLength(0.09);
+		let directionVector = Vector.fromPolar(targetDir, 0.09);
 		vis.addPath("MoveTo", [targetPos, targetPos + directionVector], vis.colors.yellowHalf);
 		if (endSpeed != undefined && endSpeed.length() > 0.001) {
 			vis.addPath("MoveTo", [targetPos, targetPos + endSpeed], vis.colors.whiteHalf);

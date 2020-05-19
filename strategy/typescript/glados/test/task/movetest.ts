@@ -56,7 +56,7 @@ function MoveTestTask:run () {
 		if (this._dest) {
 			this._dest = nil
 		} else {
-			this._dest = this._startPos + Vector.fromAngle(this._angle).scaleLength(CENTER_DIST)
+			this._dest = this._startPos + Vector.fromPolar(this._angle, CENTER_DIST)
 			this._angle = this._angle + ANGLE_STEP
 		}
 		this._orientation = this._orientation + ROBOT_ORIENTATION_STEP

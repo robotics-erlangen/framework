@@ -134,8 +134,7 @@ export class InterceptPass extends Task {
 		let [moveDest, time, oppTime] = InterceptPass.calculateInterceptPos(this._robot);
 
 		if (moveDest == undefined) {
-			let dribblerPos = this._robot.pos + Vector.fromAngle(this._robot.dir).scaleLength(
-					this._robot.shootRadius + World.Ball.radius);
+			let dribblerPos = this._robot.pos + Vector.fromPolar(this._robot.dir, this._robot.shootRadius + World.Ball.radius);
 			moveDest = dribblerPos.nearestPosOnLine(World.Ball.pos, World.Ball.pos + World.Ball.speed * 3);
 			time = Physics.robotTimeToPos(this._robot, moveDest, moveDest.withLength(this._robot.maxSpeed * 0.5))[0];
 			let firstEnemy = Ball.firstRobotAtBall(World.OpponentRobots)[0];

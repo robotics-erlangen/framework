@@ -61,7 +61,7 @@ export class Manual extends Task {
 		if (input.kickPower && input.kickPower > 0 && Ball.friendlyBallOwner() === this._robot) {
 			// shoot
 			let shootDistance = 1.5;
-			let shootPos = this._robot.pos + Vector.fromAngle(this._robot.dir).scaleLength(shootDistance);
+			let shootPos = this._robot.pos + Vector.fromPolar(this._robot.dir, shootDistance);
 			let linear = input.kickStyle === "linear";
 			if (linear) {
 				this._shoot._shoot(shootPos, Infinity);

@@ -178,7 +178,7 @@ export class Robot {
 		this.dir = Coordinates.toLocal(state.phi as number);
 		this.speed = Coordinates.toLocal(Vector.createReadOnly(state.v_x, state.v_y));
 		this.angularSpeed = state.omega; // do not invert!
-		(this.dribblerPos as Vector) = this.pos + Vector.fromAngle(this.dir) * this.shootRadius;
+		(this.dribblerPos as Vector) = this.pos + Vector.fromPolar(this.dir, this.shootRadius);
 	}
 
 	/**
@@ -222,7 +222,7 @@ export class Robot {
 		lclen = latencyCompensation.length();
 		if (lclen > 0.001 && Math.abs(latencyCompensation.angle()) > BOUND_COMPENSATION_ANGLE) {
 			let boundAngle = MathUtil.bound(-BOUND_COMPENSATION_ANGLE, latencyCompensation.angle(), BOUND_COMPENSATION_ANGLE);
-			latencyCompensation = Vector.fromAngle(boundAngle).scaleLength(lclen);
+			latencyCompensation = Vector.fromPolar(boundAngle, lclen);
 		}
 
 		// add hasBallDistance

@@ -136,8 +136,7 @@ let TIME_UNTIL_MIN_ANGLE = 5;
 function _updateTarget(ownRobot: FriendlyRobot, oldTarget: Position | undefined, oldDirty: boolean,
 		attackPosition?: Position): [Position, number, boolean] {
 	// compute viewPos relative to the current robot pos
-	let viewPos = attackPosition || (ownRobot.pos + Vector.fromAngle(ownRobot.dir) *
-										(ownRobot.shootRadius + World.Ball.radius));
+	let viewPos = attackPosition || (ownRobot.pos + Vector.fromPolar(ownRobot.dir, ownRobot.shootRadius + World.Ball.radius));
 
 	// search a good target
 	let [targetPoint, targetWidth] = findTarget(ownRobot, viewPos, false, oldTarget);

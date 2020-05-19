@@ -35,7 +35,7 @@ function ChipChallengeReceiver:run () {
 	} else if (kickingRobot && World.Ball.speed.length() < 0.3) {
 		debug.set("ball speed", World.Ball.speed.length())
 		let bp = World.Ball.pos
-		this._moveDest = bp + Vector.fromAngle(kickingRobot.dir).withLength(3.1)
+		this._moveDest = bp + Vector.fromPolar(kickingRobot.dir, 3.1)
 	}
 
 	let toBall = (ball.pos - this._robot.pos).angle()

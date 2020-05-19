@@ -175,7 +175,7 @@ export class Shoot extends Behavior {
 				for (let dist = MIN_DISTANCE;dist <= MAX_DISTANCE;dist += DISTANCE_STEP) {
 					for (let angle = -CONE_WIDTH / 2;angle <= CONE_WIDTH / 2;angle += ANGLE_STEP) {
 						// check for possible goalshot opportunity
-						let newAttackPosition = this._attackPosition + Vector.fromAngle(attackAngle + angle).withLength(dist);
+						let newAttackPosition = this._attackPosition + Vector.fromPolar(attackAngle + angle, dist);
 						let [possible, freeAngle] = Shoot._shootGoalPossible(this._robot, newAttackPosition);
 						if (possible && freeAngle != undefined && freeAngle > bestFreeAngle) {
 							bestFreeAngle = freeAngle;
@@ -210,7 +210,7 @@ export class Shoot extends Behavior {
 
 				// short chip forward
 				if (pass == undefined || Attack.ratePass(this._robot, pass, attackTime, true) < MIN_PASS_RATING) {
-					let newAttackPosition = this._attackPosition + Vector.fromAngle(attackAngle).withLength((MAX_DISTANCE - MIN_DISTANCE) / 2 + MIN_DISTANCE);
+					let newAttackPosition = this._attackPosition + Vector.fromPolar(attackAngle, (MAX_DISTANCE - MIN_DISTANCE) / 2 + MIN_DISTANCE);
 					let passVector = (newAttackPosition - this._attackPosition).withLength(0.5);
 					if (Attack.isPassAllowed(this._attackPosition, this._attackPosition + passVector)) {
 						return {

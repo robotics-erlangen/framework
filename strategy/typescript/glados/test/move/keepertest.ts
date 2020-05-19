@@ -103,7 +103,7 @@ function KeeperTest:_increment () {
 
 function KeeperTest:_update () {
 	let goal = G.FriendlyGoal
-	let startPos = goal + Vector.fromAngle(this._angle).withLength(this._distance)
+	let startPos = goal + Vector.fromPolar(this._angle, this._distance)
 
 	// append
 	if (RECORD) {

@@ -109,10 +109,8 @@ export class Duel extends Behavior {
 		let ballOwner = Ball.opponentBallOwner() || Ball.opponentBallDribbler();
 		if (ballOwner) {
 			let dist = this._closerThanOpp ? -SAFTY_SPACE : (-SAFTY_SPACE - DIST_HYSTERESIS);
-			let dribblerPos = this._robot.pos + Vector.fromAngle(this._robot.dir) * this._robot.shootRadius;
-			let ballOwnerDribblerPos = ballOwner.pos + Vector.fromAngle(ballOwner.dir) * ballOwner.shootRadius;
 			// we are closer to the ball, so dont duel
-			if ((dribblerPos.distanceTo(World.Ball.pos) - ballOwnerDribblerPos.distanceTo(World.Ball.pos)) < dist) {
+			if ((this._robot.dribblerPos.distanceTo(World.Ball.pos) - ballOwner.dribblerPos.distanceTo(World.Ball.pos)) < dist) {
 				this._closerThanOpp = true;
 			} else {
 				this._closerThanOpp = false;

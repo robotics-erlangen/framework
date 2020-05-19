@@ -22,7 +22,7 @@ export class MoveToStaticBall extends Task {
 
 	run() {
 		let absDistToBall = this._distanceToBall + this._robot.radius + World.Ball.radius;
-		let pos = World.Ball.pos - Vector.fromAngle(this._rotation) * absDistToBall;
+		let pos = World.Ball.pos - Vector.fromPolar(this._rotation, absDistToBall);
 
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, this._obstacleTable);
 

@@ -11,8 +11,8 @@ function GoalTest.testFreeSectors () {
 	vis.setColor(vis.colors.orangeHalf, true)
 	for (_, s in ipairs(freeSectors)) {
 		//log(tostring(s[1]) .. " "+tostring(s[2]))
-		let pointRight = World.Ball.pos + Vector.fromAngle(s[1])*10
-		let pointLeft = World.Ball.pos + Vector.fromAngle(s[2])*10
+		let pointRight = World.Ball.pos + Vector.fromPolar(s[1], 10)
+		let pointLeft = World.Ball.pos + Vector.fromPolar(s[2], 10)
 		vis.addPolygon("test: Free Sectors", {World.Ball.pos, pointRight, pointLeft})
 	}
 }

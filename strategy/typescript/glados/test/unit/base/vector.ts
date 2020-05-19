@@ -21,6 +21,7 @@ export class BaseVector extends UnitTest {
 		this.addTest("dot", this.testDot);
 		this.addTest("angle", this.testAngle);
 		this.addTest("fromAngle", this.testFromAngle);
+		this.addTest("fromPolar", this.testFromPolar);
 		this.addTest("perpendicular", this.testPerpendicular);
 		this.addTest("rotate", this.testRotate);
 		this.addTest("orthogonalProjection", this.testOrthogonalProjection);
@@ -270,6 +271,34 @@ export class BaseVector extends UnitTest {
 		this.assert_equal_eps(vec6.y, -Math.sqrt(2) / 2, EPS);
 		this.assert_equal_eps(vec7.x, 0, EPS);
 		this.assert_equal_eps(vec7.y, -1, EPS);
+	}
+
+	private testFromPolar() {
+		let vec1 = Vector.fromPolar(0, 3);
+		let vec2 = Vector.fromPolar(Math.PI / 2, 2);
+		let vec3 = Vector.fromPolar(Math.PI, 1);
+		let vec4 = Vector.fromPolar(-Math.PI / 2, 1);
+		let vec5 = Vector.fromPolar(-Math.PI, 1);
+		let vec6 = Vector.fromPolar(-Math.PI / 4, 1);
+		let vec7 = Vector.fromPolar(Math.PI * 1.5, 1);
+		this.assert_equal_eps(vec1.x, 3, EPS);
+		this.assert_equal_eps(vec1.y, 0, EPS);
+		this.assert_equal_eps(vec2.x, 0, EPS);
+		this.assert_equal_eps(vec2.y, 2, EPS);
+		this.assert_equal_eps(vec3.x, -1, EPS);
+		this.assert_equal_eps(vec3.y, 0, EPS);
+		this.assert_equal_eps(vec4.x, 0, EPS);
+		this.assert_equal_eps(vec4.y, -1, EPS);
+		this.assert_equal_eps(vec5.x, -1, EPS);
+		this.assert_equal_eps(vec5.y, 0, EPS);
+		this.assert_equal_eps(vec6.x, Math.sqrt(2) / 2, EPS);
+		this.assert_equal_eps(vec6.y, -Math.sqrt(2) / 2, EPS);
+		this.assert_equal_eps(vec7.x, 0, EPS);
+		this.assert_equal_eps(vec7.y, -1, EPS);
+
+		let z1 = Vector.fromPolar(1, 0);
+		this.assert_equal(z1.x, 0);
+		this.assert_equal(z1.y, 0);
 	}
 
 	private testPerpendicular() {

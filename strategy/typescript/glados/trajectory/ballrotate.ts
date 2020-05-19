@@ -14,7 +14,7 @@ function BallRotate:update (speedForward, radius, turnRight) {
 	let dirSign = turnRight ? -1 : 1
 
 	let phi = Math.atan(mu * g * omega * omega * radius)
-	let letSpeed = Vector.fromAngle(dirSign * phi) * speedForward
+	let letSpeed = Vector.fromPolar(dirSign * phi, speedForward)
 	this._robot:setDribblerSpeed(0.08)
 
 	// assert(not this._robot.isVisible, "can only control invisible robots")
