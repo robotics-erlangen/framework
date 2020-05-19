@@ -137,17 +137,6 @@ export class Vector {
 	}
 
 	/**
-	 * Scale the current vectors length
-	 * @param scale - factor to scale vector length with
-	 * @returns reference to this
-	 */
-	scaleLength(scale: number) {
-		this.x *= scale;
-		this.y *= scale;
-		return this;
-	}
-
-	/**
 	 * Distance between vectors.
 	 * distance = (other - this).length()
 	 */
