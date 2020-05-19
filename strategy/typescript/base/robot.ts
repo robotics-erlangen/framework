@@ -213,7 +213,7 @@ export class Robot {
 			latencyCompensation = latencyCompensation * scale;
 		}
 		// local coordinate system
-		latencyCompensation = latencyCompensation.rotate(-this.dir);
+		latencyCompensation = latencyCompensation.rotated(-this.dir);
 		// let the vector point away from the robot
 		if (latencyCompensation.x < 0) {
 			latencyCompensation = -latencyCompensation;
@@ -233,7 +233,7 @@ export class Robot {
 		}
 
 		// Ball position relative to dribbler mid
-		let relpos = (ball.pos - this.pos).rotate(-this.dir);
+		let relpos = (ball.pos - this.pos).rotated(-this.dir);
 		relpos.x = relpos.x - this.shootRadius - ball.radius;
 		// calculate position on the dribbler that would have been hit
 		let offset = Math.abs(relpos.y - relpos.x * latencyCompensation.y / latencyCompensation.x);
@@ -355,7 +355,7 @@ export class FriendlyRobot extends Robot {
 			// correctly align local and strategy coordinate system
 			// this.dir can be undefined if robot was not yet visible
 			let dir = this.isVisible ? this.dir : Math.PI / 2;
-			v = v.rotate(dir - Math.PI / 2);
+			v = v.rotated(dir - Math.PI / 2);
 		} else {
 			// global to strategy coordinate mapping
 			v = Coordinates.toLocal(v);
