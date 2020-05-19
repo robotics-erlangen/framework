@@ -41,6 +41,7 @@ class Integrator;
 class BlockingStrategyReplay;
 class ProtobufFileSaver;
 class OptionsManager;
+class Seshat;
 
 namespace camun {
     namespace simulator {
@@ -130,6 +131,7 @@ private:
     CompilerRegistry m_compilerRegistry;
 
     ProtobufFileSaver *m_pathInputSaver;
+    Seshat *m_seshat;
 };
 
 #endif // AMUN_H

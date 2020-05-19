@@ -33,6 +33,7 @@
 #include "strategy/strategyreplayhelper.h"
 #include "strategy/strategy.h"
 #include "networkinterfacewatcher.h"
+#include "seshat/seshat.h"
 #include <QMetaType>
 #include <QThread>
 #include <QList>
@@ -74,7 +75,8 @@ Amun::Amun(bool simulatorOnly, QObject *parent) :
     m_simulatorOnly(simulatorOnly),
     m_useInternalReferee(true),
     m_useAutoref(true),
-    m_networkInterfaceWatcher(nullptr)
+    m_networkInterfaceWatcher(nullptr),
+    m_seshat(new Seshat(20, this))
 {
     qRegisterMetaType<QNetworkInterface>("QNetworkInterface");
     qRegisterMetaType<Command>("Command");
