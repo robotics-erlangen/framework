@@ -57,18 +57,6 @@ export class Vector {
 		return new Vector(-this.x, -this.y);
 	}
 
-	// WARNING: do not implement operators like +=, -=, *=, /=
-	// This can create subtle bugs in which vectors are modified on accident as vectors are
-	// given as references to functions
-
-	/**
-	 * Creates a copy of the current vector.
-	 * Doesn't copy read-only flag
-	 */
-	copy(): Vector {
-		return new Vector(this.x, this.y);
-	}
-
 	/**
 	 * Creates a vector with the given x value
 	 * and the y value of the current vector
@@ -334,16 +322,6 @@ export class Vector {
 
 	toString() {
 		return this._toString();
-	}
-
-	/**
-	 * Creates a new read-only vector
-	 * @see Vector.create
-	 * @param x - x coordinate
-	 * @param y - y coordinate
-	 */
-	static createReadOnly(x: number, y: number): Readonly<Vector> {
-		return new Vector(x, y);
 	}
 
 	/**

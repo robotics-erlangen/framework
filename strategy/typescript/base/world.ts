@@ -250,19 +250,19 @@ function _updateGeometry(geom: pb.world.Geometry) {
 	wgeom.DefenseHeight = geom.defense_height != undefined ? geom.defense_height : geom.defense_radius;
 	wgeom.DefenseWidthHalf = (geom.defense_width != undefined ? geom.defense_width : geom.defense_stretch) / 2;
 
-	wgeom.FriendlyPenaltySpot = Vector.createReadOnly(0, - wgeom.FieldHeightHalf + geom.penalty_spot_from_field_line_dist);
-	wgeom.OpponentPenaltySpot = Vector.createReadOnly(0, wgeom.FieldHeightHalf - geom.penalty_spot_from_field_line_dist);
+	wgeom.FriendlyPenaltySpot = new Vector(0, - wgeom.FieldHeightHalf + geom.penalty_spot_from_field_line_dist);
+	wgeom.OpponentPenaltySpot = new Vector(0, wgeom.FieldHeightHalf - geom.penalty_spot_from_field_line_dist);
 	wgeom.PenaltyLine = wgeom.OpponentPenaltySpot.y - geom.penalty_line_from_spot_dist;
 	wgeom.OwnPenaltyLine = wgeom.FriendlyPenaltySpot.y + geom.penalty_line_from_spot_dist;
 
 	// The goal posts are on the field lines
-	wgeom.FriendlyGoal = Vector.createReadOnly(0, - wgeom.FieldHeightHalf);
-	wgeom.FriendlyGoalLeft = Vector.createReadOnly(- wgeom.GoalWidth / 2, wgeom.FriendlyGoal.y);
-	wgeom.FriendlyGoalRight = Vector.createReadOnly(wgeom.GoalWidth / 2, wgeom.FriendlyGoal.y);
+	wgeom.FriendlyGoal = new Vector(0, - wgeom.FieldHeightHalf);
+	wgeom.FriendlyGoalLeft = new Vector(- wgeom.GoalWidth / 2, wgeom.FriendlyGoal.y);
+	wgeom.FriendlyGoalRight = new Vector(wgeom.GoalWidth / 2, wgeom.FriendlyGoal.y);
 
-	wgeom.OpponentGoal = Vector.createReadOnly(0, wgeom.FieldHeightHalf);
-	wgeom.OpponentGoalLeft = Vector.createReadOnly(- wgeom.GoalWidth / 2, wgeom.OpponentGoal.y);
-	wgeom.OpponentGoalRight = Vector.createReadOnly(wgeom.GoalWidth / 2, wgeom.OpponentGoal.y);
+	wgeom.OpponentGoal = new Vector(0, wgeom.FieldHeightHalf);
+	wgeom.OpponentGoalLeft = new Vector(- wgeom.GoalWidth / 2, wgeom.OpponentGoal.y);
+	wgeom.OpponentGoalRight = new Vector(wgeom.GoalWidth / 2, wgeom.OpponentGoal.y);
 
 	wgeom.BoundaryWidth = geom.boundary_width;
 
@@ -414,7 +414,7 @@ function _updateGameState(state: pb.amun.GameState) {
 	}
 
 	if (state.designated_position && state.designated_position.x != undefined) {
-		BallPlacementPos = Coordinates.toLocal(Vector.createReadOnly(
+		BallPlacementPos = Coordinates.toLocal(new Vector(
 			// refbox position message uses millimeters
 			// ssl-vision's coordinate system is rotated by 90 degrees
 			-state.designated_position.y / 1000,

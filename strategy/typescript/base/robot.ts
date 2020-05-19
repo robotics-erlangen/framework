@@ -174,9 +174,9 @@ export class Robot {
 
 		this._toStringCache = "";
 		this.isVisible = true;
-		this.pos = Coordinates.toLocal(Vector.createReadOnly(state.p_x, state.p_y));
+		this.pos = Coordinates.toLocal(new Vector(state.p_x, state.p_y));
 		this.dir = Coordinates.toLocal(state.phi as number);
-		this.speed = Coordinates.toLocal(Vector.createReadOnly(state.v_x, state.v_y));
+		this.speed = Coordinates.toLocal(new Vector(state.v_x, state.v_y));
 		this.angularSpeed = state.omega; // do not invert!
 		(this.dribblerPos as Vector) = this.pos + Vector.fromPolar(this.dir, this.shootRadius);
 	}
