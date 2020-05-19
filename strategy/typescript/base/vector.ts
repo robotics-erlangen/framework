@@ -116,25 +116,24 @@ export class Vector {
 	}
 
 	/**
-	 * Change length of current vector to given value
-	 * @param len - New length of current vector
-	 * @returns reference to this
+	 * Returns a vector with the given length pointing
+	 * in the direction of the current vector
+	 * @param len - Length for the resulting vector
+	 * @returns vector with length len
 	 */
-	setLength(len: number): Vector {
+	withLength(len: number): Vector {
 		if (len === 0) {
-			this.x = 0;
-			this.y = 0;
-			return this;
+			return new Vector(0, 0);
 		}
 		let x = this.x;
 		let y = this.y;
 		let l = Math.sqrt(x * x + y * y);
 		if (l > 0) {
 			l = len / l;
-			this.x *= l;
-			this.y *= l;
+			x *= l;
+			y *= l;
 		}
-		return this;
+		return new Vector(x, y);
 	}
 
 	/**

@@ -151,7 +151,7 @@ export function intersectLineCorridor(offset : Position, direction: RelativePosi
 	if (directionCorridor.equals(new Vector(0, 0))) {
 		throw new Error("intersectLineCorridor: directionCorridor can not be a 0 vector");
 	}
-	let corridorPerpendicular = directionCorridor.perpendicular().setLength(widthHalf);
+	let corridorPerpendicular = directionCorridor.perpendicular().withLength(widthHalf);
 	let offsetCorridorLeft = offsetCorridor + corridorPerpendicular;
 	let offsetCorridorRight = offsetCorridor - corridorPerpendicular;
 	let [intersectionLeft, lambdaLeftLine, lambdaLeft] = intersectLineLine(offset, direction,
@@ -408,8 +408,8 @@ export function bisectingAngle(angle1: number, angle2: number): number {
 export function inscribedAngle(point1: Position, point2: Position, theta: number):
 		[Vector, Vector, number] {
 	let radius = point1.distanceTo(point2) / (2 * Math.sin(theta));
-	let centerOfCircleOne = point1 + ((point2 - point1).rotate(Math.PI / 2 - theta)).setLength(radius);
-	let centerOfCircleTwo = point1 + ((point2 - point1).rotate(-(Math.PI / 2 - theta))).setLength(radius);
+	let centerOfCircleOne = point1 + ((point2 - point1).rotate(Math.PI / 2 - theta)).withLength(radius);
+	let centerOfCircleTwo = point1 + ((point2 - point1).rotate(-(Math.PI / 2 - theta))).withLength(radius);
 	return [centerOfCircleOne, centerOfCircleTwo, radius];
 }
 

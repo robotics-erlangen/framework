@@ -61,7 +61,7 @@ function limitToAllowedField_2017(pos: Readonly<Position>, extraLimit: number = 
 		} else {
 			let circleMidpoint = new Vector(
 				G.DefenseStretchHalf * MathUtil.sign(pos.x), -G.FieldHeightHalf);
-			pos = circleMidpoint + (pos - circleMidpoint).setLength(G.DefenseRadius + extraLimit);
+			pos = circleMidpoint + (pos - circleMidpoint).withLength(G.DefenseRadius + extraLimit);
 		}
 		return pos;
 	} else if (isInOpponentDefenseArea(pos, oppExtraLimit)) {
@@ -70,7 +70,7 @@ function limitToAllowedField_2017(pos: Readonly<Position>, extraLimit: number = 
 		} else {
 			let circleMidpoint = new Vector(
 				G.DefenseStretchHalf * MathUtil.sign(pos.x), G.FieldHeightHalf);
-			pos = circleMidpoint + (pos - circleMidpoint).setLength(G.DefenseRadius + oppExtraLimit);
+			pos = circleMidpoint + (pos - circleMidpoint).withLength(G.DefenseRadius + oppExtraLimit);
 		}
 		return pos;
 	}
@@ -499,14 +499,14 @@ function cornerPointsBetweenWays2018(way1: number, way2: number, radius: number 
 	let cornerRightWay = G.DefenseHeight + G.DefenseWidth + 3 * Math.PI * radius / 4;
 	let result: Position[] = [];
 	if (smallerWay <= cornerLeftWay && largerWay >= cornerLeftWay) {
-		let cornerLeft = new Vector(-G.DefenseWidthHalf, -G.FieldHeightHalf + G.DefenseHeight) + new Vector(-1, 1).setLength(radius);
+		let cornerLeft = new Vector(-G.DefenseWidthHalf, -G.FieldHeightHalf + G.DefenseHeight) + new Vector(-1, 1).withLength(radius);
 		if (!friendly) {
 			cornerLeft = -cornerLeft;
 		}
 		result.push(cornerLeft);
 	}
 	if (smallerWay <= cornerRightWay && largerWay >= cornerRightWay) {
-		let cornerRight = new Vector(G.DefenseWidthHalf, -G.FieldHeightHalf + G.DefenseHeight) + new Vector(1, 1).setLength(radius);
+		let cornerRight = new Vector(G.DefenseWidthHalf, -G.FieldHeightHalf + G.DefenseHeight) + new Vector(1, 1).withLength(radius);
 		if (!friendly) {
 			cornerRight = -cornerRight;
 		}
@@ -570,8 +570,7 @@ if (World.RULEVERSION === "2018") {
  * @returns Contains n {pos1, pos2} tables representing the resulting line segments
  */
 export function allowedLineSegments(pos: Position, dir: RelativePosition, maxLength: number = Infinity): [Position, Position][] {
-	let direction = dir.copy();
-	direction.setLength(1);
+	let direction = dir.normalized();
 	let [pos1, lambda1] = geom.intersectLineLine(pos, direction, new Vector(G.FieldWidthHalf, 0), new Vector(0, 1));
 	let [pos2, lambda2] = geom.intersectLineLine(pos, direction, new Vector(-G.FieldWidthHalf, 0), new Vector(0, 1));
 	let [pos3, lambda3] = geom.intersectLineLine(pos, direction, new Vector(0, G.FieldHeightHalf), new Vector(1, 0));
