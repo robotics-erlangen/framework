@@ -217,6 +217,7 @@ message CommandPlayback {
     optional int32 seek_time_backwards = 3;
     optional int32 playback_speed = 4;
     optional Flag toggle_paused = 5;
+    optional bool run_playback = 6; // used to switch between live and log (corresponding to ra and horus in the UI)
 }
 
 message CommandRecord {

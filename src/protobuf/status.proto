@@ -124,6 +124,7 @@ message UiResponse {
     optional bool playback_paused = 5;
     optional LogPlaybackInfo log_info = 6;
     optional int64 frame_number = 7;
+    optional bool force_ra_horus = 8; // true if forced Ra, false if forced Horus
 }
 
 message LogPlaybackInfo {
