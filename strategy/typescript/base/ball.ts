@@ -100,8 +100,8 @@ export class Ball {
 		}
 
 		// check if the ball pos or speed are invalid (might result from tracking) -> then ignore the update
-		let nextPos = Coordinates.toLocal(Vector.createReadOnly(data.p_x, data.p_y));
-		let nextSpeed = Coordinates.toLocal(Vector.createReadOnly(data.v_x, data.v_y));
+		let nextPos = Coordinates.toLocal(new Vector(data.p_x, data.p_y));
+		let nextSpeed = Coordinates.toLocal(new Vector(data.v_x, data.v_y));
 		let extraDist = 2;
 		let SIZE_LIMIT = 1000;
 		if (nextPos.isNan() || nextSpeed.isNan() || Math.abs(nextPos.x) > SIZE_LIMIT  ||
@@ -129,7 +129,7 @@ export class Ball {
 		this.posZ = data.p_z || 0;
 		this.speedZ = data.v_z || 0;
 		if (data.touchdown_x != undefined && data.touchdown_y != undefined) {
-			this.touchdownPos = Coordinates.toLocal(Vector.createReadOnly(data.touchdown_x, data.touchdown_y));
+			this.touchdownPos = Coordinates.toLocal(new Vector(data.touchdown_x, data.touchdown_y));
 		}
 		this.isBouncing = !!data.is_bouncing;
 

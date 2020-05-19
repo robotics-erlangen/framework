@@ -285,7 +285,7 @@ export function checkTouching() {
 		if (robot.pos.distanceTo(ballPos) <= touchDist) {
 			lastTeam = true;
 			lastRobot = robot;
-			lastTouchPos = Vector.createReadOnly(ballPos.x, ballPos.y);
+			lastTouchPos = new Vector(ballPos.x, ballPos.y);
 			return;
 		}
 	}
@@ -293,7 +293,7 @@ export function checkTouching() {
 		if (robot.pos.distanceTo(ballPos) <= touchDist) {
 			lastTeam = false;
 			lastRobot = robot;
-			lastTouchPos = Vector.createReadOnly(ballPos.x, ballPos.y);
+			lastTouchPos = new Vector(ballPos.x, ballPos.y);
 			return;
 		}
 	}

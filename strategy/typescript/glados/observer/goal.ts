@@ -284,7 +284,7 @@ function _predictShot(allShots: boolean = false, includeInvisible: boolean = tru
 		}
 	}
 
-	let ballSpeed = World.Ball.speed.copy(); // Defend ball by default
+	let ballSpeed = World.Ball.speed; // Defend ball by default
 	let pos = World.Ball.pos;
 	let isShot = false;
 	let isDribbling = false;

@@ -444,7 +444,7 @@ export function getRealisticBallPos(): Position {
 function updateLastRealisticBall() {
 	if (lastRealisticBallPos == undefined ||  lastRealisticBallPos.distanceTo(World.Ball.pos) < MAX_FRAME_DISTANCE
 			||  World.Time - lastRealisticBallTime > MAX_INVISIBLE_TIME) {
-		lastRealisticBallPos = World.Ball.pos.copy();
+		lastRealisticBallPos = World.Ball.pos;
 		lastRealisticBallTime = World.Time;
 	}
 }

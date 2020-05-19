@@ -18,7 +18,7 @@ export class RescueRobot extends Task {
 
 		if (this._rotation == undefined || this._speeds == undefined) {
 			// align forward direction with the opposite speed the robot had when it was lost
-			let robotSpeed = this._robot.speed.copy();
+			let robotSpeed = this._robot.speed;
 			if (robotSpeed.length() < 0.0001) {
 				// ensure that backwardsDir points to the opponent goal, if the robot doesn't move
 				robotSpeed = new Vector(0, -1);

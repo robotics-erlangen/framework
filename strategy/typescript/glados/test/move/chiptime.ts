@@ -12,7 +12,7 @@ function ChipTimeTest.canStart () {
 }
 
 function ChipTimeTest:_init () {
-	let startPos = World.Ball.pos.copy()
+	let startPos = World.Ball.pos
 	this._endPos = new Vector(0, 0)
 	let timePredicted = Physics.chipPassTime(startPos, this._endPos)
 	log("Time needed: " +  timePredicted)

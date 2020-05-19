@@ -11,7 +11,6 @@ export class BaseVector extends UnitTest {
 		this.addTest("constructor", this.testConstructor);
 		this.addTest("attributes", this.testAttributes);
 		this.addTest("operators", this.testOperators);
-		this.addTest("copy", this.testCopy);
 		this.addTest("withX", this.testWithX);
 		this.addTest("withY", this.testWithY);
 		this.addTest("isNan", this.testIsNan);
@@ -88,14 +87,6 @@ export class BaseVector extends UnitTest {
 		this.assert_equal(vecLen3.length(), 0);
 
 		this.assert_equal(vec1._toString(), "Vector(1.00, 2.00)");
-	}
-
-	private testCopy() {
-		let vec = new Vector(4, 5);
-		let vec_copy = vec.copy();
-		this.assert_equal(vec_copy.x, 4);
-		this.assert_equal(vec_copy.y, 5);
-		this.assert_vector_equal(vec_copy, vec);
 	}
 
 	private testWithX() {
@@ -314,9 +305,9 @@ export class BaseVector extends UnitTest {
 		this.assert_equal(rot0.x, 1);
 		this.assert_equal(rot0.y, 0);
 
-		let rot1 = vec.copy().rotated(Math.PI);
-		let rot2 = vec.copy().rotated(Math.PI / 2);
-		let rot3 = vec.copy().rotated(-Math.PI / 2);
+		let rot1 = vec.rotated(Math.PI);
+		let rot2 = vec.rotated(Math.PI / 2);
+		let rot3 = vec.rotated(-Math.PI / 2);
 		this.assert_equal_eps(rot1.x, -1, EPS);
 		this.assert_equal_eps(rot1.y, 0, EPS);
 		this.assert_equal_eps(rot2.x, 0, EPS);

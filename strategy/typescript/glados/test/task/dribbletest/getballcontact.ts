@@ -50,8 +50,8 @@ export class GetBallContact extends Task {
 		this._currentState = State.GO_TO_STARTPOSITION;
 		GetBallContact._ready = false;
 
-		this._currentTargetPos = World.Ball.pos.copy();
-		this._startPos = this._currentTargetPos.copy();
+		this._currentTargetPos = World.Ball.pos;
+		this._startPos = this._currentTargetPos;
 		this._startPos = this._startPos.withY(this._startPos.y - 0.3);
 
 		this._initDribblerSpeed = dribblerSpeed;
@@ -67,7 +67,7 @@ export class GetBallContact extends Task {
 	run() {
 
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, { ignorePass: true, ignoreBall: true });
-		this._currentTargetPos = World.Ball.pos.copy();
+		this._currentTargetPos = World.Ball.pos;
 
 		let currentState = this._currentState;
 		this._currentState = this._getNextState(currentState);

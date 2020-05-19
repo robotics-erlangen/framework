@@ -53,7 +53,7 @@ export class RotateWithBall extends Task {
 	public run() {
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, { ignorePass: true, ignoreBall: true, ignoreDefenseArea: true, ignoreOpponentDefenseArea: true });
 
-		let targetPosition : Position = World.Ball.pos.copy();
+		let targetPosition : Position = World.Ball.pos;
 		let ownPosition: Position = this._robot.pos;
 		let offset = this._robot.shootRadius + World.Ball.radius;
 		let speed : Speed = new Vector(0, 0);

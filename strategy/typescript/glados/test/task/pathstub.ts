@@ -13,7 +13,7 @@ let WAYPOINTS = nil
 function PathStub.setWaypoints (waypoints) {
 	WAYPOINTS = {}
 	for (_, v in ipairs(waypoints)) {
-		table.insert(WAYPOINTS, v.copy())
+		table.insert(WAYPOINTS, v)
 	}
 }
 

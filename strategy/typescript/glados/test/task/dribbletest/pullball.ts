@@ -38,10 +38,10 @@ export class PullBall extends Task {
 
 		PullBall._isInitialised = true;
 
-		this._target = this._robot.pos.copy();
+		this._target = this._robot.pos;
 		this._target = this._target.withY(this._target.y - 1);
 
-		this._startPos = this._robot.pos.copy();
+		this._startPos = this._robot.pos;
 
 		this._curTarget = this._startPos;
 		this._curMovementSpeed = this._movementSpeed;

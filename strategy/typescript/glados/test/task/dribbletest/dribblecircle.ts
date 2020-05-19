@@ -45,7 +45,7 @@ export class DribbleCircle extends Task {
 
 		this._speed = new Vector(0, this._movementSpeed);
 
-		this._startPos = this._robot.pos.copy();
+		this._startPos = this._robot.pos;
 
 
 		DribbleCircle._isInitialised = true;

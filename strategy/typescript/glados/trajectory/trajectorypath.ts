@@ -93,7 +93,7 @@ export class TrajectoryPath extends TrajectoryHandler {
 		endSpeed = Coordinates.toGlobal(endSpeed);
 		targetDir = Coordinates.toGlobal(targetDir);
 		let robotPos = Coordinates.toGlobal(this._robot.pos);
-		let rSpeed = this._robot.speed.copy();
+		let rSpeed = this._robot.speed;
 		// check if the robot is outside the field and the speed points further outside the field
 		if (!Field.isInField(this._robot.pos) && this._robot.pos.dot(this._robot.speed) > 0) {
 			// remove speed component that points further outside the field, but keep the remaining component
