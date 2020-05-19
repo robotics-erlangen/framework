@@ -16,7 +16,6 @@ export class BaseVector extends UnitTest {
 		this.addTest("length", this.testLength);
 		this.addTest("normalized", this.testNormalized);
 		this.addTest("withLength", this.testWithLength);
-		this.addTest("scaleLength", this.testScaleLength);
 		this.addTest("distanceTo", this.testDistanceTo);
 		this.addTest("dot", this.testDot);
 		this.addTest("angle", this.testAngle);
@@ -168,20 +167,6 @@ export class BaseVector extends UnitTest {
 		this.assert_equal(nullVec.y, 0);
 		this.assert_equal(nullRet.x, 0);
 		this.assert_equal(nullRet.y, 0);
-	}
-
-	private testScaleLength() {
-		let vec = new Vector(1, 2);
-
-		let factor = 3;
-		let mul = vec.scaleLength(factor);
-		this.assert_equal(mul.x, 3);
-		this.assert_equal(mul.y, 6);
-
-		factor = 0;
-		mul = vec.scaleLength(factor);
-		this.assert_equal(mul.x, 0);
-		this.assert_equal(mul.y, 0);
 	}
 
 	private testDistanceTo() {

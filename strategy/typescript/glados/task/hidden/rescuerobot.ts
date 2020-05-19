@@ -23,7 +23,7 @@ export class RescueRobot extends Task {
 				// ensure that backwardsDir points to the opponent goal, if the robot doesn't move
 				robotSpeed = new Vector(0, -1);
 			}
-			let backwardsDir = robotSpeed.scaleLength(-1).angle();
+			let backwardsDir = (-robotSpeed).angle();
 			let frontDir = this._robot.dir;
 			this._rotation = geom.getAngleDiff(frontDir, backwardsDir);
 

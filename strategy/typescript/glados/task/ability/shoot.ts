@@ -575,7 +575,7 @@ export class Shoot {
 		} else {
 			origin = World.Ball.pos;
 		}
-		let firstContactPos = origin + (rollingBallPos - origin).scaleLength(manualChipDistFactor);
+		let firstContactPos = origin + (rollingBallPos - origin) * manualChipDistFactor;
 		this._chipToPos(firstContactPos, undefined, ballReceiptPos, precision); // as we cannot time the chip anyways, we ignore the targetTime
 	}
 

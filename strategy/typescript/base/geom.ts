@@ -31,7 +31,7 @@ function intersectCircleCircle_OLD(c1: Position, r1: number, c2: Position, r2: n
 	if (dist > r1 + r2) {
 		return [];
 	} else if (dist === r1 + r2) {
-		return [c1 + (c2 - c1).scaleLength(0.5)];
+		return [c1 + (c2 - c1) * 0.5];
 	} else if (dist < r1 + r2) {
 		let c1x = c1.x, c1y = c1.y, c2x = c2.x, c2y = c2.y;
 		let a1 = (r1 * r1 - r2 * r2 - c1x * c1x + c2x * c2x - c1y * c1y + c2y * c2y) / (2 * c2x - 2 * c1x);
@@ -184,7 +184,7 @@ export function intersectLineCorridor(offset : Position, direction: RelativePosi
  * @returns second tangent point on the circle if exists
  */
 export function getTangentsToCircle(point: Position, centerpoint: Position, radius: number): [Position?, Position?] {
-	return intersectCircleCircle(centerpoint, radius, centerpoint + (point - centerpoint).scaleLength(0.5),
+	return intersectCircleCircle(centerpoint, radius, centerpoint + (point - centerpoint) * 0.5,
 		0.5 * (centerpoint).distanceTo(point));
 }
 

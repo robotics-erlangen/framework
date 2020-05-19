@@ -192,7 +192,7 @@ export class Robot {
 		let hasBallDistance = manualHasBallDistance;
 
 		// handle sidewards balls, add extra time for strategy timing jitter
-		let latencyCompensation = (ball.speed - this.speed).scaleLength(Constants.systemLatency + 0.03);
+		let latencyCompensation = (ball.speed - this.speed) * (Constants.systemLatency + 0.03);
 		let lclen = latencyCompensation.length();
 
 		// fast fail
@@ -210,13 +210,13 @@ export class Robot {
 			latencyCompensation = new Vector(0, 0);
 		} else if (lclen < 2 * MIN_COMPENSATION) {
 			let scale = (lclen - MIN_COMPENSATION) / MIN_COMPENSATION;
-			latencyCompensation.scaleLength(scale);
+			latencyCompensation = latencyCompensation * scale;
 		}
 		// local coordinate system
 		latencyCompensation = latencyCompensation.rotate(-this.dir);
 		// let the vector point away from the robot
 		if (latencyCompensation.x < 0) {
-			latencyCompensation.scaleLength(-1);
+			latencyCompensation = -latencyCompensation;
 		}
 		// bound angle
 		lclen = latencyCompensation.length();

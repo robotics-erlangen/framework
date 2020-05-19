@@ -34,7 +34,7 @@ class AlternatingObstacle {
 
 	public addAsMovingObstacle(robot: FriendlyRobot) {
 		this.update();
-		let startPos = this.pos1 + (this.pos2 - this.pos1).scaleLength((World.Time - this.startTime) / this.totalTime);
+		let startPos = this.pos1 + (this.pos2 - this.pos1) * ((World.Time - this.startTime) / this.totalTime);
 		vis.addPath("moving obstacles test", [this.pos1, this.pos2], vis.colors.red);
 		vis.addCircle("moving obstacles test", startPos, this.radius, vis.colors.red);
 		let remainingTime = this.totalTime - (World.Time - this.startTime);

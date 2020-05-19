@@ -62,8 +62,8 @@ export function estimateRobotDynamics() {
 		letRobotSpeed.y = Math.abs(letRobotSpeed.y);
 		let letRobotDir = Math.abs(robot.angularSpeed);
 		if (lastLocalSpeed.has(robot)) {
-			let accel = (letRobotSpeed - <Speed> lastLocalSpeed.get(robot)).scaleLength(invTimeDiff);  // classic derivative without smoothing
-			accelerationSmoothed.set(robot, accel.scaleLength(alpha) + (accelerationSmoothed.get(robot) || nullVector) * (1 - alpha)); // smoothed acceleration curve
+			let accel = (letRobotSpeed - <Speed> lastLocalSpeed.get(robot)) * invTimeDiff;  // classic derivative without smoothing
+			accelerationSmoothed.set(robot, accel * alpha + (accelerationSmoothed.get(robot) || nullVector) * (1 - alpha)); // smoothed acceleration curve
 		}
 		if (lastRotation.has(robot)) {
 			let accel = (letRobotDir - <number> lastRotation.get(robot)) * invTimeDiff;

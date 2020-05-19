@@ -70,7 +70,7 @@ function _manMarkPos(opponent: { pos: Position, radius: number, speed: Speed }):
 				Constants.maxRobotRadius + 0.1, true)[0];
 
 	if (intersectionDefenseArea && !Referee.isStopState()) {
-		targetPos = intersectionDefenseArea + (targetPos - intersectionDefenseArea).scaleLength(0.3);
+		targetPos = intersectionDefenseArea + (targetPos - intersectionDefenseArea) * 0.3;
 	}
 
 	if (Referee.isStopState() && !Referee.isKickoffState() || intersectionDefenseArea

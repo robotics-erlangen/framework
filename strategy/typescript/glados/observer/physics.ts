@@ -358,7 +358,7 @@ export function robotBrakePos(robot: {pos: Position, speed: Speed, acceleration?
 	let brkAcc = robot.acceleration ? robot.acceleration.aBrakeFMax : BREAK_DEFAULT;
 	let robotSpeed = robot.speed.length();
 	let brkLength = 0.5 * robotSpeed * robotSpeed / brkAcc;
-	return robot.pos + robot.speed.normalized().scaleLength(brkLength);
+	return robot.pos + robot.speed.withLength(brkLength);
 }
 
 /** Estimates the time the ball needs to travel for a chip pass from startPos to endPos */
@@ -856,7 +856,7 @@ export function robotTimeForBallTime(robot: Robot, ball: BallLike & {radius: num
 	let x_robot = x_ball + offset;
 
 	// anywhere on the dribbler is okay, not only the center
-	let dribblerHalf = axis.perpendicular().scaleLength(-robot.dribblerWidth / 2);
+	let dribblerHalf = axis.perpendicular() * (-robot.dribblerWidth / 2);
 	x_robot = robot.pos.nearestPosOnLine(x_robot + dribblerHalf, x_robot - dribblerHalf);
 
 	// calculate and save the robot time
