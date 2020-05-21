@@ -90,7 +90,7 @@ export class Armada extends Move {
 			for (let i = 0;i < 4;i++) {
 				let pos = POSITIONS_ORIG[i];
 				if (World.Ball.pos.x > 0) {
-					pos = new Vector(-pos.x, pos.x);
+					pos = new Vector(-pos.x, pos.y);
 				}
 				pos = pos + getRandomOffsetVector();
 				// shift positions to make volley possible
