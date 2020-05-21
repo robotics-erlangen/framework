@@ -234,7 +234,7 @@ export class Robot {
 
 		// Ball position relative to dribbler mid
 		let relpos = (ball.pos - this.pos).rotated(-this.dir);
-		relpos.withX(relpos.x - this.shootRadius - ball.radius);
+		relpos = relpos.withX(relpos.x - this.shootRadius - ball.radius);
 		// calculate position on the dribbler that would have been hit
 		let offset = Math.abs(relpos.y - relpos.x * latencyCompensation.y / latencyCompensation.x);
 		// debug.set("latencyCompensation", latencyCompensation)
