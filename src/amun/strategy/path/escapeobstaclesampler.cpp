@@ -82,7 +82,7 @@ bool EscapeObstacleSampler::compute(const TrajectoryInput &input)
         TrajectoryGenerationInfo info;
         bestProfile.limitToTime(bestEndTime);
         info.profile = bestProfile;
-        info.desiredDistance = Vector(0, 0);
+        info.desiredDistance = bestProfile.endPos();
         m_generationInfo.push_back(info);
     }
     return true;

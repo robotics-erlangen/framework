@@ -225,10 +225,7 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Tra
 
             // trajectory positions are not perfect, move them slightly to reach the desired position perfectly
             Vector endPos = trajectory.endPos();
-            Vector correctionOffset(0, 0);
-            if (info.desiredDistance != Vector(0, 0)) {
-                correctionOffset = info.desiredDistance - endPos;
-            }
+            Vector correctionOffset = info.desiredDistance - endPos;
 
             bool wasAtEndPoint = false;
             while (true) {
@@ -292,10 +289,7 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Tra
 
             // trajectory positions are not perfect, move them slightly to reach the desired position perfectly
             Vector endPos = trajectory.endPos();
-            Vector correctionOffset(0, 0);
-            if (info.desiredDistance != Vector(0, 0)) {
-                correctionOffset = info.desiredDistance - endPos;
-            }
+            Vector correctionOffset = info.desiredDistance - endPos;
             for (auto &point : newPoints) {
                 point.pos += totalOffset + correctionOffset * point.time / partTime;
                 point.time += totalTime;

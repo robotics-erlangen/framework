@@ -249,8 +249,7 @@ float StandardSampler::checkSample(const TrajectoryInput &input, const StandardT
 
     TrajectoryGenerationInfo infoSecondPart;
     infoSecondPart.profile = secondPart;
-    // TODO: this could go wrong if we want to stay at the current robot position
-    infoSecondPart.desiredDistance = Vector(0, 0); // do not use desired distance calculation
+    infoSecondPart.desiredDistance = secondPartOffset;
     m_generationInfo.push_back(infoSecondPart);
     return biasedTrajectoryTime;
 }
