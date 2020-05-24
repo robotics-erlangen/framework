@@ -78,6 +78,9 @@ public:
 
     static TrajectoryPosInfo1D calculateEndPos1D(float v0, float v1, float hintDist, float acc, float vMax);
     void calculate1DTrajectory(float v0, float v1, float hintDist, float acc, float vMax);
+
+private:
+    void createFreeExtraTimeSegment(float beforeSpeed, float v, float nextSpeed, float time, float acc, float desiredVMax);
 };
 
 class SpeedProfile

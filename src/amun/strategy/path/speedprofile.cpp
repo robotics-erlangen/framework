@@ -547,21 +547,19 @@ void SpeedProfile1D::calculate1DTrajectoryFastEndSpeed(float v0, float v1, float
     }
 }
 
-static void createFreeExtraTimeSegment(float beforeSpeed, float v, float nextSpeed, float time, float acc, float vMax, SpeedProfile1D &p)
+void SpeedProfile1D::createFreeExtraTimeSegment(float beforeSpeed, float v, float nextSpeed, float time, float acc, float desiredVMax)
 {
-    vMax *= sign(time);
-    time = std::abs(time);
-    float toMaxTime = 2.0f * std::abs(vMax - v) / acc;
+    float toMaxTime = 2.0f * std::abs(desiredVMax - v) / acc;
     if (toMaxTime < time) {
-        p.profile[1] = {vMax, std::abs(vMax - beforeSpeed) / acc};
-        p.profile[2] = {vMax, time - toMaxTime};
-        p.profile[3] = {nextSpeed, std::abs(vMax - nextSpeed) / acc};
-        p.counter = 4;
+        profile[1] = {desiredVMax, std::abs(desiredVMax - beforeSpeed) / acc};
+        profile[2] = {desiredVMax, time - toMaxTime};
+        profile[3] = {nextSpeed, std::abs(desiredVMax - nextSpeed) / acc};
+        counter = 4;
     } else {
-        float v1 = (v > vMax ? -1.0f : 1.0f) * acc * time / 2 + v;
-        p.profile[1] = {v1, std::abs(beforeSpeed - v1) / acc};
-        p.profile[2] = {nextSpeed, std::abs(nextSpeed - v1) / acc};
-        p.counter = 3;
+        float v1 = (v > desiredVMax ? -1.0f : 1.0f) * acc * time / 2 + v;
+        profile[1] = {v1, std::abs(beforeSpeed - v1) / acc};
+        profile[2] = {nextSpeed, std::abs(nextSpeed - v1) / acc};
+        counter = 3;
     }
 }
 
@@ -570,53 +568,24 @@ void SpeedProfile1D::calculate1DTrajectory(float v0, float v1, float hintDist, f
     this->acc = acc;
     profile[0] = {v0, 0};
 
+    float desiredVMax = hintDist < 0 ? -vMax : vMax;
     if (hintDist == 0.0f) {
         profile[1] = {v1, std::abs(v0 - v1) / acc};
         counter = 2;
-    } else if (hintDist < 0 && v0 <= v1) {
-        if (v0 >= -vMax) {
-            createFreeExtraTimeSegment(v0, v0, v1, hintDist, acc, vMax, *this);
-        } else if (v0 < -vMax && v1 >= -vMax) {
-            profile[1] = {-vMax, std::abs(v0 + vMax) / acc};
-            profile[2] = {-vMax, -hintDist};
-            profile[3] = {v1, std::abs(v1 + vMax) / acc};
-            counter = 4;
-        } else {
-            createFreeExtraTimeSegment(v0, v1, v1, hintDist, acc, vMax, *this);
-        }
-    } else if (hintDist < 0 && v0 > v1) {
-        if (v1 >= -vMax) {
-            createFreeExtraTimeSegment(v0, v1, v1, hintDist, acc, vMax, *this);
-        } else if (v1 < -vMax && v0 >= -vMax) {
-            profile[1] = {-vMax, std::abs(v0 + vMax) / acc};
-            profile[2] = {-vMax, -hintDist};
-            profile[3] = {v1, std::abs(v1 + vMax) / acc};
-            counter = 4;
-        } else {
-            createFreeExtraTimeSegment(v0, v0, v1, hintDist, acc, vMax, *this);
-        }
-    } else if (hintDist > 0 && v0 <= v1) {
-        if (v1 <= vMax) {
-            createFreeExtraTimeSegment(v0, v1, v1, hintDist, acc, vMax, *this);
-        } else if (v1 > vMax && v0 <= vMax) {
-            profile[1] = {vMax, std::abs(v0 - vMax) / acc};
-            profile[2] = {vMax, hintDist};
-            profile[3] = {v1, std::abs(v1 - vMax) / acc};
-            counter = 4;
-        } else {
-            createFreeExtraTimeSegment(v0, v0, v1, hintDist, acc, vMax, *this);
-        }
-    } else { // hintDist > 0, v0 > v1
-        //assert(hintDist > 0 && v0 > v1);
-        if (v0 <= vMax) {
-            createFreeExtraTimeSegment(v0, v0, v1, hintDist, acc, vMax, *this);
-        } else if (v0 > vMax && v1 <= vMax) {
-            profile[1] = {vMax, std::abs(v0 - vMax) / acc};
-            profile[2] = {vMax, hintDist};
-            profile[3] = {v1, std::abs(v1 - vMax) / acc};
-            counter = 4;
-        } else {
-            createFreeExtraTimeSegment(v0, v1, v1, hintDist, acc, vMax, *this);
-        }
+    } else if ((v0 < desiredVMax) != (v1 < desiredVMax)) {
+        // we need to cross the maximum speed because either abs(v0) or abs(v1) exceed it
+        // therefore, a segment reaching desiredMax from v0 is created,
+        // one segment staying at desiredVMax for the given extra time
+        // and one going from desiredVMax to v1
+        float accInv = 1.0f / acc;
+        profile[1] = {desiredVMax, std::abs(v0 - desiredVMax) * accInv};
+        profile[2] = {desiredVMax, std::abs(hintDist)};
+        profile[3] = {v1, std::abs(v1 - desiredVMax) * accInv};
+        counter = 4;
+    } else {
+        // check wheterh v0 or v1 is closer to the desired max speed
+        bool v0Closer = std::abs(v0 - desiredVMax) < std::abs(v1 - desiredVMax);
+        float closerSpeed = v0Closer ? v0 : v1;
+        createFreeExtraTimeSegment(v0, closerSpeed, v1, std::abs(hintDist), acc, desiredVMax);
     }
 }
