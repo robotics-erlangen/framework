@@ -244,13 +244,11 @@ float StandardSampler::checkSample(const TrajectoryInput &input, const StandardT
     m_generationInfo.clear();
     TrajectoryGenerationInfo infoFirstPart;
     infoFirstPart.profile = firstPart;
-    infoFirstPart.fastEndSpeed = false;
     infoFirstPart.desiredDistance = firstPartPosition;
     m_generationInfo.push_back(infoFirstPart);
 
     TrajectoryGenerationInfo infoSecondPart;
     infoSecondPart.profile = secondPart;
-    infoSecondPart.fastEndSpeed = true;
     // TODO: this could go wrong if we want to stay at the current robot position
     infoSecondPart.desiredDistance = Vector(0, 0); // do not use desired distance calculation
     m_generationInfo.push_back(infoSecondPart);

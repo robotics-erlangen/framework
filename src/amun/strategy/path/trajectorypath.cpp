@@ -156,7 +156,6 @@ std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPat
                 (obstacleDistances.first == ZonedIntersection::NEAR_OBSTACLE && obstacleDistances.second == ZonedIntersection::NEAR_OBSTACLE)) {
             TrajectorySampler::TrajectoryGenerationInfo info;
             info.profile = direct;
-            info.fastEndSpeed = true;
             info.desiredDistance = input.distance;
             return concat(escapeObstacle, {info});
         }

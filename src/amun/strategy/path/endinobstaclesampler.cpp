@@ -86,7 +86,6 @@ bool EndInObstacleSampler::testEndPoint(const TrajectoryInput &input, Vector end
 
     result.resize(1);
     result[0].profile = direct;
-    result[0].fastEndSpeed = false;
     result[0].desiredDistance = endPoint - input.s0;
 
     return true;

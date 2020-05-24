@@ -43,7 +43,6 @@ public:
     struct TrajectoryGenerationInfo {
         SpeedProfile profile = SpeedProfile(0);
         Vector desiredDistance;
-        bool fastEndSpeed;
     };
 
     TrajectorySampler(RNG *rng, const WorldInformation &world, PathDebug &debug) :
