@@ -42,18 +42,21 @@ public:
 
     void limitToTime(float time);
 
+    template<typename AccelerationProfile>
     std::pair<float, float> calculateRange(float slowDownTime) const;
 
-    float endOffset() const;
-    float endOffsetSlowDown(float slowDownTime) const;
+    template<typename AccelerationProfile>
+    float endOffset(float slowDownTime) const;
 
     // returns {offset, speed}
-    std::pair<float, float> offsetAndSpeedForTime(float time) const;
-    std::pair<float, float> offsetAndSpeedForTimeSlowDown(float time, float slowDownTime) const;
+    template<typename AccelerationProfile>
+    std::pair<float, float> offsetAndSpeedForTime(float time, float slowDownTime) const;
+
+    float timeWithSlowdown(float slowDownTime) const;
 
     // outIndex can be 0 or 1, writing the result to the x or y coordinate of the vectors
-    void trajectoryPositions(std::vector<Vector> &outPoints, std::size_t outIndex, float timeInterval, float positionOffset, std::size_t desiredCount) const;
-    void trajectoryPositionsSlowDown(std::vector<Vector> &outPoints, std::size_t outIndex, float timeInterval, float positionOffset, float slowDownTime) const;
+    template<typename AccelerationProfile>
+    void trajectoryPositions(std::vector<Vector> &outPoints, std::size_t outIndex, float timeInterval, float positionOffset, float slowDownTime) const;
 
     void integrateTime() {
         float totalTime = 0;
@@ -62,8 +65,6 @@ public:
             profile[i].t = totalTime;
         }
     }
-
-    float timeWithSlowDown(float slowDownTime) const;
 
     struct TrajectoryPosInfo1D {
         float endPos;
@@ -94,50 +95,15 @@ public:
     float slowDownTime;
 
     bool isValid() const { return valid; }
-
-    Vector endPos() const {
-        if (slowDownTime > 0) {
-            return Vector(xProfile.endOffsetSlowDown(slowDownTime), yProfile.endOffsetSlowDown(slowDownTime));
-        } else {
-            return Vector(xProfile.endOffset(), yProfile.endOffset());
-        }
-    }
-
+    float time() const;
+    Vector endPos() const;
     // returns {position, speed}
-    std::pair<Vector, Vector> positionAndSpeedForTime(float time) const {
-        if (slowDownTime == 0.0f) {
-            auto x = xProfile.offsetAndSpeedForTime(time);
-            auto y = yProfile.offsetAndSpeedForTime(time);
-            return {Vector(x.first, y.first), Vector(x.second, y.second)};
-        } else {
-            auto x = xProfile.offsetAndSpeedForTimeSlowDown(time, slowDownTime);
-            auto y = yProfile.offsetAndSpeedForTimeSlowDown(time, slowDownTime);
-            return {Vector(x.first, y.first), Vector(x.second, y.second)};
-        }
-    }
-
-    std::vector<Vector> trajectoryPositions(Vector offset, std::size_t count, float timeInterval) const {
-        std::vector<Vector> result(count);
-        if (slowDownTime == 0.0f) {
-            xProfile.trajectoryPositions(result, 0, timeInterval, offset.x, count);
-            yProfile.trajectoryPositions(result, 1, timeInterval, offset.y, count);
-        } else {
-            xProfile.trajectoryPositionsSlowDown(result, 0, timeInterval, offset.x, slowDownTime);
-            yProfile.trajectoryPositionsSlowDown(result, 1, timeInterval, offset.y, slowDownTime);
-        }
-        return result;
-    }
+    std::pair<Vector, Vector> positionAndSpeedForTime(float time) const;
+    std::vector<Vector> trajectoryPositions(Vector offset, std::size_t count, float timeInterval) const;
+    BoundingBox calculateBoundingBox(Vector offset) const;
 
     Vector endSpeed() const {
         return Vector(xProfile.profile[xProfile.counter-1].v, yProfile.profile[yProfile.counter-1].v);
-    }
-
-    float time() const {
-        if (slowDownTime == 0.0f) {
-            return std::max(xProfile.profile[xProfile.counter-1].t, yProfile.profile[yProfile.counter-1].t);
-        } else {
-            return std::max(xProfile.timeWithSlowDown(slowDownTime), yProfile.timeWithSlowDown(slowDownTime));
-        }
     }
 
     Vector continuationSpeed() const {
@@ -148,12 +114,6 @@ public:
     void limitToTime(float time) {
         xProfile.limitToTime(time);
         yProfile.limitToTime(time);
-    }
-
-    BoundingBox calculateBoundingBox(Vector offset) const {
-        auto xRange = xProfile.calculateRange(slowDownTime);
-        auto yRange = yProfile.calculateRange(slowDownTime);
-        return BoundingBox(offset + Vector(xRange.first, yRange.first), offset + Vector(xRange.second, yRange.second));
     }
 
     // WARNING: this function does NOT create points for the slow down time. Use other functions if that is necessary
