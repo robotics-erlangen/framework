@@ -442,108 +442,41 @@ SpeedProfile1D::TrajectoryPosInfo1D SpeedProfile1D::calculateEndPos1D(float v0, 
     }
 }
 
-static void adjustEndSpeed(float v0, const float v1, float time, bool directionPositive, float acc, float &outExtraTime, float &outV1)
+static SpeedProfile1D::VT adjustEndSpeed(float v0, float v1, float time, bool directionPositive, float acc)
 {
-    outExtraTime = 0.0f;
-    outV1 = v1;
+    float invAcc = 1.0f / acc;
 
-    if (directionPositive) {
-        if (v0 < 0 && v1 < 0) {
-            float toZeroTime = std::abs(v0) / acc;
-            if (toZeroTime < time) {
-                outV1 = 0;
-                outExtraTime = time - toZeroTime;
-            } else {
-                outV1 = v0 + time * acc;
-                // omit check for invalid case outV1 < v1
-            }
-        } else if (v0 < 0 && v1 >= 0) {
-            float toV1Time = (v1 - v0) / acc;
-            if (toV1Time < time) {
-                // do nothing, everything is fine
-                outExtraTime = time - toV1Time;
-            } else {
-                outV1 = v0 + time * acc;
-                // omit check for invalid case outV1 < 0
-            }
-        } else if (v0 >= 0 && v1 < 0) {
-            outV1 = 0;
-            outExtraTime = time - std::abs(v0) / acc;
-            // omit check for invalid case outRestTime < 0
-        } else { // v0 >= 0, v1 >= 0
-            float directTime = std::abs(v0 - v1) / acc;
-            if (directTime < time) {
-                outExtraTime = time - directTime;
-            } else {
-                // omit check for invalid case v0 > v1
-                outV1 = v0 + time * acc;
-            }
-        }
-
-    } else { // directionPositive == false
-        // TODO: this block is basically the same as the above, just some sign changes
-        if (v0 < 0 && v1 < 0) {
-            float directTime = std::abs(v0 - v1) / acc;
-            if (directTime < time) {
-                outExtraTime = time - directTime;
-            } else {
-                // omit check for invalid case v0 < v1
-                outV1 = v0 - time * acc;
-            }
-        } else if (v0 < 0 && v1 >= 0) {
-            outV1 = 0;
-            outExtraTime = time - std::abs(v0) / acc;
-            // omit check for invalid case outRestTime < 0
-        } else if (v0 >= 0 && v1 < 0) {
-            float toV1Time = (v0 - v1) / acc;
-            if (toV1Time < time) {
-                // do nothing, everything is fine
-                outExtraTime = time - toV1Time;
-            } else {
-                outV1 = v0 - time * acc;
-                // omit check for invalid case outV1 > 0
-            }
-        } else { // v0 >= 0 && v1 >= 0
-            float toZeroTime = std::abs(v0) / acc;
-            if (toZeroTime < time) {
-                outV1 = 0;
-                outExtraTime = time - toZeroTime;
-            } else {
-                outV1 = v0 - time * acc;
-                // omit check for invalid case outV1 > v1
-            }
-        }
-    }
+    // idea: compute the speed that would be reached after accelerating in the desired direction
+    float speedAfterT = v0 + (directionPositive ? 1.0f : -1.0f) * (time * acc);
+    // bound that speed to the allowed endspeed range [0, v1]
+    float boundedSpeed = std::max(std::min(speedAfterT, std::max(v1, 0.0f)), std::min(v1, 0.0f));
+    // compute the time it would take to reach boundedSpeed from v0
+    float necessaryTime = std::abs(v0 - boundedSpeed) * invAcc;
+    return {boundedSpeed, time - necessaryTime};
 }
 
 SpeedProfile1D::TrajectoryPosInfo1D SpeedProfile1D::calculateEndPos1DFastSpeed(float v0, float v1, float time, bool directionPositive, float acc, float vMax)
 {
-    // TODO: simple case with v1 = 0 seperately?
-    float realV1, extraTime;
-    adjustEndSpeed(v0, v1, time, directionPositive, acc, extraTime, realV1);
-
-    if (extraTime == 0.0f) {
-        return {(v0 + realV1) * 0.5f * time, directionPositive ? std::max(v0, v1) : std::min(v0, v1)};
+    SpeedProfile1D::VT endValues = adjustEndSpeed(v0, v1, time, directionPositive, acc);
+    if (endValues.t == 0.0f) {
+        return {(v0 + endValues.v) * 0.5f * time, directionPositive ? std::max(v0, v1) : std::min(v0, v1)};
     } else {
         // TODO: remove the negative time in calculateEndPos1D
-        return calculateEndPos1D(v0, realV1, directionPositive ? extraTime : -extraTime, acc, vMax);
+        return calculateEndPos1D(v0, endValues.v, directionPositive ? endValues.t : -endValues.t, acc, vMax);
     }
 }
 
 void SpeedProfile1D::calculate1DTrajectoryFastEndSpeed(float v0, float v1, float time, bool directionPositive, float acc, float vMax)
 {
-    // TODO: simple case with v1 = 0 seperately?
-    float realV1, extraTime;
-    adjustEndSpeed(v0, v1, time, directionPositive, acc, extraTime, realV1);
-
-    if (extraTime == 0.0f) {
+    SpeedProfile1D::VT endValues = adjustEndSpeed(v0, v1, time, directionPositive, acc);
+    if (endValues.t == 0.0f) {
         this->acc = acc;
         profile[0] = {v0, 0};
-        profile[1] = {realV1, std::abs(realV1 - v0) / acc};
+        profile[1] = {endValues.v, std::abs(endValues.v - v0) / acc};
         counter = 2;
     } else {
         // TODO: remove the negative time in calculateEndPos1D
-        calculate1DTrajectory(v0, realV1, directionPositive ? extraTime : -extraTime, acc, vMax);
+        calculate1DTrajectory(v0, endValues.v, directionPositive ? endValues.t : -endValues.t, acc, vMax);
     }
 }
 
@@ -583,7 +516,7 @@ void SpeedProfile1D::calculate1DTrajectory(float v0, float v1, float hintDist, f
         profile[3] = {v1, std::abs(v1 - desiredVMax) * accInv};
         counter = 4;
     } else {
-        // check wheterh v0 or v1 is closer to the desired max speed
+        // check whether v0 or v1 is closer to the desired max speed
         bool v0Closer = std::abs(v0 - desiredVMax) < std::abs(v1 - desiredVMax);
         float closerSpeed = v0Closer ? v0 : v1;
         createFreeExtraTimeSegment(v0, closerSpeed, v1, std::abs(hintDist), acc, desiredVMax);
