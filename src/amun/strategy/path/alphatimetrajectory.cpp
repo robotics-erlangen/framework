@@ -47,6 +47,7 @@ static float adjustAngle(Vector startSpeed, Vector endSpeed, float time, float a
     if (fastEndSpeed) {
         endSpeed = minTimeEndSpeed(startSpeed, endSpeed);
     }
+    angle = normalizeAnglePositive(angle);
 
     // case 1: only startSpeed.x is != 0
     // this results in 2 cases where the angle is invalid, in a range around 0 and 180 degree
@@ -61,7 +62,7 @@ static float adjustAngle(Vector startSpeed, Vector endSpeed, float time, float a
     Vector diff = endSpeed - startSpeed;
     Vector absDiff(std::abs(diff.x), std::abs(diff.y));
     if (absDiff.x > time * acc || absDiff.y > time * acc) {
-        // TODO: the trajectory is not solvable
+        // sometimes happens because of floating point inaccuracies
         return angle;
     }
     // offset to ensure that values directly on the border of an invalid segment are not treated as invalid later
