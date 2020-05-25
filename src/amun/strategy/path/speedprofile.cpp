@@ -372,73 +372,33 @@ static float dist(float v0, float v1, float acc)
     return 0.5f * (v0 + v1) * time;
 }
 
-static float freeExtraTimeDistance(float v, float time, float acc, float vMax, float &outTopSpeed)
+std::pair<float, float> SpeedProfile1D::freeExtraTimeDistance(float v, float time, float acc, float vMax)
 {
-    vMax *= sign(time);
-    time = std::abs(time);
     float toMaxTime = 2.0f * std::abs(vMax - v) / acc;
     if (toMaxTime < time) {
-        outTopSpeed = vMax;
-        return 2 * dist(v, vMax, acc) +
-               constantDistance(vMax, time - toMaxTime);
+        return {2 * dist(v, vMax, acc) +
+               constantDistance(vMax, time - toMaxTime), vMax};
     } else {
         float v1 = (v > vMax ? -1.0f : 1.0f) * acc * time / 2 + v;
-        outTopSpeed = v1;
-        return 2.0f * dist(v, v1, acc);
+        return {2.0f * dist(v, v1, acc), v1};
     }
 }
 
 SpeedProfile1D::TrajectoryPosInfo1D SpeedProfile1D::calculateEndPos1D(float v0, float v1, float hintDist, float acc, float vMax)
 {
-    // TODO: this can be optimized
-    float topSpeed;
+    // basically the same as calculate1DTrajectory, but with position only
+    // see the comments there if necessary
+    float desiredVMax = hintDist < 0 ? -vMax : vMax;
     if (hintDist == 0.0f) {
         return {dist(v0, v1, acc), std::max(v0, v1)};
-    } else if (hintDist < 0 && v0 <= v1) {
-        if (v0 >= -vMax) {
-            return {freeExtraTimeDistance(v0, hintDist, acc, vMax, topSpeed) +
-                        dist(v0, v1, acc), topSpeed};
-        } else if (v0 < -vMax && v1 >= -vMax) {
-            return {dist(v0, v1, acc) +
-                        constantDistance(-vMax, -hintDist), -vMax};
-        } else {
-            return {dist(v0, v1, acc) +
-                        freeExtraTimeDistance(v1, hintDist, acc, vMax, topSpeed), topSpeed};
-        }
-    } else if (hintDist < 0 && v0 > v1) {
-        if (v1 >= -vMax) {
-            return {dist(v0, v1, acc) +
-                        freeExtraTimeDistance(v1, hintDist, acc, vMax, topSpeed), topSpeed};
-        } else if (v1 < -vMax && v0 >= -vMax) {
-            return {dist(v0, v1, acc) +
-                        constantDistance(-vMax, -hintDist), -vMax};
-        } else {
-            return {freeExtraTimeDistance(v0, hintDist, acc, vMax, topSpeed) +
-                        dist(v0, v1, acc), topSpeed};
-        }
-    } else if (hintDist > 0 && v0 <= v1) {
-        if (v1 <= vMax) {
-            return {dist(v0, v1, acc) +
-                        freeExtraTimeDistance(v1, hintDist, acc, vMax, topSpeed), topSpeed};
-        } else if (v1 > vMax && v0 <= vMax) {
-            return {dist(v0, v1, acc) +
-                        constantDistance(vMax, hintDist), vMax};
-        } else {
-            return {freeExtraTimeDistance(v0, hintDist, acc, vMax, topSpeed) +
-                        dist(v0, v1, acc), topSpeed};
-        }
-    } else { // hintDist > 0, v0 > v1
-        //assert(hintDist > 0 && v0 > v1);
-        if (v0 <= vMax) {
-            return {freeExtraTimeDistance(v0, hintDist, acc, vMax, topSpeed) +
-                        dist(v0, v1, acc), topSpeed};
-        } else if (v0 > vMax && v1 <= vMax) {
-            return {dist(v0, v1, acc) +
-                        constantDistance(vMax, hintDist), vMax};
-        } else {
-            return {dist(v0, v1, acc) +
-                        freeExtraTimeDistance(v1, hintDist, acc, vMax, topSpeed), topSpeed};
-        }
+    } else if ((v0 < desiredVMax) != (v1 < desiredVMax)) {
+        return {dist(v0, v1, acc) + constantDistance(desiredVMax, std::abs(hintDist)), desiredVMax};
+    } else {
+        // check whether v0 or v1 is closer to the desired max speed
+        bool v0Closer = std::abs(v0 - desiredVMax) < std::abs(v1 - desiredVMax);
+        float closerSpeed = v0Closer ? v0 : v1;
+        auto extraDistance = freeExtraTimeDistance(closerSpeed, std::abs(hintDist), acc, desiredVMax);
+        return {extraDistance.first + dist(v0, v1, acc), extraDistance.second};
     }
 }
 
