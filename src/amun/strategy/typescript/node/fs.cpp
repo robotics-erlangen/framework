@@ -211,7 +211,7 @@ void Node::fs::readFileSync(const FunctionCallbackInfo<Value>& args) {
     QString fileName = buildPath(fs->m_path, *String::Utf8Value(args[0]));
     QFile file(fileName);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        throwError(fs->m_isolate, QString("file '%s' could not be opened").arg(fileName));
+        throwError(fs->m_isolate, QString("file '%1' could not be opened").arg(fileName));
         return;
     }
     QByteArray fileBytes = file.readAll();
