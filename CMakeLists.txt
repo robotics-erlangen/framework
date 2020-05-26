@@ -128,6 +128,7 @@ include(BuildBullet)
 include(BuildEigen)
 include(BuildSourceMap)
 include(BuildLuaJIT2)
+include(BuildGoogleTest)
 find_package(V8 6.8)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)

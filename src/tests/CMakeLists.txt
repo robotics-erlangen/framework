@@ -1,5 +1,5 @@
 # ***************************************************************************
-# *   Copyright 2015 Michael Bleier, Philipp Nordhus                        *
+# *   Copyright 2020 Andreas Wendler                                        *
 # *   Robotics Erlangen e.V.                                                *
 # *   http://www.robotics-erlangen.de/                                      *
 # *   info@robotics-erlangen.de                                             *
@@ -18,24 +18,14 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-# firmware
-add_subdirectory(firmware)
+file (GLOB_RECURSE TEST_SRC_FILES RELATIVE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    *.cpp)
 
-# libs
-add_subdirectory(config)
-add_subdirectory(core)
-add_subdirectory(protobuf)
-add_subdirectory(amun)
-add_subdirectory(visionlog)
-add_subdirectory(timeline)
+add_executable(cpptests ${TEST_SRC_FILES})
 
-# apps
-add_subdirectory(ra)
-add_subdirectory(logplayer)
-add_subdirectory(amuncli)
-add_subdirectory(replaycli)
-add_subdirectory(visionanalyzer)
-add_subdirectory(logcuttercli)
-add_subdirectory(loganalyzer)
-add_subdirectory(trajectorycli)
-add_subdirectory(tests)
+add_dependencies(cpptests
+    lib::googletest
+    amun
+)
+target_link_libraries(cpptests lib::googletest pthread)
