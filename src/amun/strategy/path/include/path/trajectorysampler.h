@@ -31,6 +31,7 @@ class RNG;
 
 struct TrajectoryInput {
     Vector v0, v1, distance, s0, s1;
+    float t0 = 0;
     bool exponentialSlowDown;
     float maxSpeed;
     float maxSpeedSquared;

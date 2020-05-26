@@ -43,14 +43,12 @@ public:
     int maxIntersectingObstaclePrio() const { return m_escapeObstacleSampler.m_maxIntersectingObstaclePrio; }
 
 private:
-    std::vector<TrajectorySampler::TrajectoryGenerationInfo> findPath();
-    bool checkMidPoint(Vector midSpeed, const float time, const float angle);
-    std::vector<TrajectoryPoint> getResultPath(const std::vector<TrajectorySampler::TrajectoryGenerationInfo> &generationInfo);
-    void searchFullTrajectory();
+    // copy input so that the modification does not affect the getResultPath function
+    std::vector<TrajectorySampler::TrajectoryGenerationInfo> findPath(TrajectoryInput input);
+    std::vector<TrajectoryPoint> getResultPath(const std::vector<TrajectorySampler::TrajectoryGenerationInfo> &generationInfo,
+                                               const TrajectoryInput &input);
 
 private:
-    TrajectoryInput m_input;
-
     StandardSampler m_standardSampler;
     EndInObstacleSampler m_endInObstacleSampler;
     EscapeObstacleSampler m_escapeObstacleSampler;

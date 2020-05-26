@@ -77,7 +77,7 @@ bool EndInObstacleSampler::testEndPoint(const TrajectoryInput &input, Vector end
     if (!direct.isValid()) {
         return false;
     }
-    if (m_world.isTrajectoryInObstacle(direct, 0, input.s0)) {
+    if (m_world.isTrajectoryInObstacle(direct, input.t0, input.s0)) {
         return false;
     }
 

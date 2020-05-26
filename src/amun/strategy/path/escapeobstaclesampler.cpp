@@ -127,7 +127,7 @@ std::tuple<int, float, float> EscapeObstacleSampler::trajectoryObstacleScore(con
             }
         }
         for (const auto o : m_world.movingObstacles()) {
-            if (o->prio > obstaclePriority && o->intersects(pos, time)) {
+            if (o->prio > obstaclePriority && o->intersects(pos, time + input.t0)) {
                 obstaclePriority = o->prio;
             }
         }

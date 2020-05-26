@@ -45,17 +45,19 @@ std::vector<TrajectoryPoint> TrajectoryPath::calculateTrajectory(Vector s0, Vect
         return {};
     }
 
-    m_input.v0 = v0;
-    m_input.v1 = v1;
-    m_input.distance = s1 - s0;
-    m_input.s0 = s0;
-    m_input.s1 = s1;
-    m_input.exponentialSlowDown = v1 == Vector(0, 0);
-    m_input.maxSpeed = maxSpeed;
-    m_input.maxSpeedSquared = maxSpeed * maxSpeed;
-    m_input.acceleration = acceleration;
+    TrajectoryInput input;
+    input.v0 = v0;
+    input.v1 = v1;
+    input.distance = s1 - s0;
+    input.s0 = s0;
+    input.s1 = s1;
+    input.t0 = 0;
+    input.exponentialSlowDown = v1 == Vector(0, 0);
+    input.maxSpeed = maxSpeed;
+    input.maxSpeedSquared = maxSpeed * maxSpeed;
+    input.acceleration = acceleration;
 
-    return getResultPath(findPath());
+    return getResultPath(findPath(input), input);
 }
 
 static void setVector(Vector v, pathfinding::Vector *out)
@@ -66,6 +68,7 @@ static void setVector(Vector v, pathfinding::Vector *out)
 
 static void serializeTrajectoryInput(const TrajectoryInput &input, pathfinding::TrajectoryInput *result)
 {
+    // t0 is not serialized, since it is only added during the computation
     setVector(input.v0, result->mutable_v0());
     setVector(input.v1, result->mutable_v1());
     setVector(input.distance, result->mutable_distance());
@@ -84,7 +87,7 @@ static std::vector<TrajectorySampler::TrajectoryGenerationInfo> concat(const std
     return result;
 }
 
-std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPath()
+std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPath(TrajectoryInput input)
 {
     const auto &obstacles = m_world.obstacles();
 
@@ -93,9 +96,6 @@ std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPat
     m_world.addToAllStaticObstacleRadius(m_world.radius());
     m_world.collectObstacles();
     m_world.collectMovingObstacles();
-
-    // copy input so that the modification does not affect the getResultPath function
-    TrajectoryInput input = m_input;
 
     // check if start point is in obstacle
     std::vector<TrajectorySampler::TrajectoryGenerationInfo> escapeObstacle;
@@ -116,6 +116,7 @@ std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPat
         input.s0 += startOffset;
         input.distance = input.s1 - input.s0;
         input.v0 = startSpeed;
+        input.t0 = escapeObstacle[0].profile.time();
     }
 
     // check if end point is in obstacle
@@ -185,15 +186,15 @@ std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPat
     return {};
 }
 
-std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<TrajectorySampler::TrajectoryGenerationInfo> &generationInfo)
+std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<TrajectorySampler::TrajectoryGenerationInfo> &generationInfo, const TrajectoryInput &input)
 {
     if (generationInfo.size() == 0) {
         TrajectoryPoint p1;
-        p1.pos = m_input.s0;
+        p1.pos = input.s0;
         p1.time = 0;
-        p1.speed = m_input.v0;
+        p1.speed = input.v0;
         TrajectoryPoint p2;
-        p2.pos = m_input.s0;
+        p2.pos = input.s0;
         p2.time = std::numeric_limits<float>::max();
         p2.speed = Vector(0, 0);
         return {p1, p2};
@@ -208,7 +209,7 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Tra
     m_currentTrajectory.clear();
 
     {
-        Vector startPos = m_input.s0;
+        Vector startPos = input.s0;
         float currentTime = 0; // time in a trajectory part
         float currentTotalTime = 0; // time from the beginning
         const int SAMPLES_PER_TRAJECTORY = 40;
@@ -260,7 +261,7 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Tra
     {
         std::vector<TrajectoryPoint> result;
         float totalTime = 0;
-        Vector totalOffset = m_input.s0;
+        Vector totalOffset = input.s0;
         for (unsigned int i = 0;i<generationInfo.size();i++) {
             const auto &info = generationInfo[i];
             const SpeedProfile &trajectory = info.profile;
