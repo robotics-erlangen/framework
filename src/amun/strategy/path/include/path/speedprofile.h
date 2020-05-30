@@ -36,7 +36,6 @@ public:
 
     VT profile[4];
     unsigned int counter = 0;
-    float acc;
 
 public:
 
@@ -77,7 +76,7 @@ public:
     void calculate1DTrajectoryFastEndSpeed(float v0, float v1, float time, bool directionPositive, float acc, float vMax);
 
     static TrajectoryPosInfo1D calculateEndPos1D(float v0, float v1, float hintDist, float acc, float vMax);
-    void calculate1DTrajectory(float v0, float v1, float hintDist, float acc, float vMax);
+    void calculate1DTrajectory(float v0, float v1, float extraTime, bool directionPositive, float acc, float vMax);
 
 private:
     void createFreeExtraTimeSegment(float beforeSpeed, float v, float nextSpeed, float time, float acc, float desiredVMax);

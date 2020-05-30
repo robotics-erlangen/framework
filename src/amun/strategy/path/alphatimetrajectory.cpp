@@ -146,8 +146,8 @@ SpeedProfile AlphaTimeTrajectory::calculateTrajectory(Vector v0, Vector v1, floa
         float restTimeX = (time - std::abs(diff.x) / (acc * std::abs(alphaX)));
         float restTimeY = (time - std::abs(diff.y) / (acc * std::abs(alphaY)));
 
-        result.xProfile.calculate1DTrajectory(v0.x, v1.x, alphaX > 0 ? restTimeX : -restTimeX, acc * std::abs(alphaX), vMax * std::abs(alphaX));
-        result.yProfile.calculate1DTrajectory(v0.y, v1.y, alphaY > 0 ? restTimeY : -restTimeY, acc * std::abs(alphaY), vMax * std::abs(alphaY));
+        result.xProfile.calculate1DTrajectory(v0.x, v1.x, restTimeX, alphaX > 0, acc * std::abs(alphaX), vMax * std::abs(alphaX));
+        result.yProfile.calculate1DTrajectory(v0.y, v1.y, restTimeY, alphaY > 0, acc * std::abs(alphaY), vMax * std::abs(alphaY));
     }
 
     result.xProfile.integrateTime();
@@ -170,17 +170,16 @@ Vector AlphaTimeTrajectory::minTimePos(Vector v0, Vector v1, float acc, float sl
     if (slowDownTime == 0.0f) {
         return (v0 + v1) * (minTime * 0.5f);
     } else {
+        // assumes that slowDownTime can only be given with v1 = (0, 0)
         // construct speed profile for slowing down to zero
         SpeedProfile profile(slowDownTime);
         profile.xProfile.counter = 2;
         profile.xProfile.profile[0] = {v0.x, 0};
         profile.xProfile.profile[1] = {v1.x, minTime};
-        profile.xProfile.acc = std::abs(v0.x - v1.x) / minTime;
 
         profile.yProfile.counter = 2;
         profile.yProfile.profile[0] = {v0.y, 0};
         profile.yProfile.profile[1] = {v1.y, minTime};
-        profile.yProfile.acc = std::abs(v0.y - v1.y) / minTime;
 
         return profile.endPos();
     }
@@ -218,11 +217,9 @@ SpeedProfile AlphaTimeTrajectory::findTrajectory(Vector v0, Vector v1, Vector po
         if (accLength > acc && accLength < acc * MAX_ACCELERATION_FACTOR && timeDiff < 0.1f) {
             result.valid = true;
             result.slowDownTime = 0;
-            result.xProfile.acc = necessaryAcc.x;
             result.xProfile.counter = 2;
             result.xProfile.profile[0] = {v0.x, 0};
             result.xProfile.profile[1] = {0, std::abs(v0.x / necessaryAcc.x)};
-            result.yProfile.acc = necessaryAcc.y;
             result.yProfile.counter = 2;
             result.yProfile.profile[0] = {v0.y, 0};
             result.yProfile.profile[1] = {0, std::abs(v0.y / necessaryAcc.y)};
