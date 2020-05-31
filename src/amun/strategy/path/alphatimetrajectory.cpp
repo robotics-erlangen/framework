@@ -231,7 +231,7 @@ SpeedProfile AlphaTimeTrajectory::findTrajectory(Vector v0, Vector v1, Vector po
     Vector minPos = minTimePos(v0, v1, acc, slowDownTime);
     float minTimeDistance = position.distance(minPos);
 
-    const bool useMinTimePosForCenterPos = minTimeDistance < 0.1f;
+    const bool useMinTimePosForCenterPos = minTimeDistance < 0.007f;
 
     // estimate rough time from distance
     // TODO: improve this estimate?
@@ -240,17 +240,13 @@ SpeedProfile AlphaTimeTrajectory::findTrajectory(Vector v0, Vector v1, Vector po
     Vector estimateCenterPos = centerTimePos(v0, v1, estimatedTime, fastEndSpeed);
 
     float estimatedAngle = normalizeAnglePositive((position - estimateCenterPos).angle());
-    // calculate better estimate for the time
-    estimatedTime = std::max(estimatedTime, 0.001f);
-
-    // TODO: can this even still occur??
-    if (std::isnan(estimatedTime)) {
-        estimatedTime = 3;
-    }
     if (std::isnan(estimatedAngle)) {
-        // 0 is floating point instable, dont use that
+        // 0 might be floating point instable, dont use that
         estimatedAngle = 0.05f;
     }
+
+    // calculate better estimate for the time
+    estimatedTime = std::max(estimatedTime, 0.001f);
 
     // cached for usage in calculateTrajectory
     float minTime = minimumTime(v0, v1, acc, fastEndSpeed);
@@ -261,7 +257,7 @@ SpeedProfile AlphaTimeTrajectory::findTrajectory(Vector v0, Vector v1, Vector po
     float distanceFactor = 0.8f;
     float lastCenterDistanceDiff = 0;
 
-    float angleFactor = 0.8f;
+    float angleFactor = 1.07f;
     float lastAngleDiff = 0;
 
     const int ITERATIONS = highPrecision ? HIGH_PRECISION_ITERATIONS : MAX_SEARCH_ITERATIONS;
@@ -289,24 +285,25 @@ SpeedProfile AlphaTimeTrajectory::findTrajectory(Vector v0, Vector v1, Vector po
             return result;
         }
 
+        // update time
         Vector currentCenterTimePos = useMinTimePosForCenterPos ? minPos : centerTimePos(v0, v1, currentTime + minTime, fastEndSpeed);
         float newDistance = endPos.distance(currentCenterTimePos);
         float targetCenterDistance = currentCenterTimePos.distance(position);
         float currentCenterDistanceDiff = targetCenterDistance - newDistance;
         if ((lastCenterDistanceDiff < 0) != (currentCenterDistanceDiff < 0)) {
-            distanceFactor *= 0.85f;
+            distanceFactor *= 0.92f;
         } else {
-            distanceFactor *= 1.05f;
+            distanceFactor *= 1.1f;
         }
         lastCenterDistanceDiff = currentCenterDistanceDiff;
-        currentTime += currentCenterDistanceDiff * distanceFactor / std::max(0.5f, assumedSpeed);
+        currentTime += currentCenterDistanceDiff * distanceFactor / std::max(0.82f, assumedSpeed);
 
-        // correct angle
+        // update angle
         float newAngle = (endPos - currentCenterTimePos).angle();
         float targetCenterAngle = (position - currentCenterTimePos).angle();
         float currentAngleDiff = angleDiff(targetCenterAngle, newAngle);
-        if (i >= 4 && (currentAngleDiff < 0) != (lastAngleDiff < 0)) {
-            angleFactor *= 0.5f;
+        if (i >= 1 && (currentAngleDiff < 0) != (lastAngleDiff < 0)) {
+            angleFactor *= 0.82f;
         }
         lastAngleDiff = currentAngleDiff;
         currentAngle += currentAngleDiff * angleFactor;
