@@ -338,6 +338,13 @@ static int amunGetGameControllerMessage(lua_State *state)
     return 0;
 }
 
+static int amunIsInternalAutoref(lua_State *state)
+{
+    Lua *thread = getStrategyThread(state);
+    lua_pushboolean(state, thread->scriptState().isInternalAutoref);
+    return 1;
+}
+
 static int amunSendMixedTeamInfo(lua_State *state)
 {
     Lua *thread = getStrategyThread(state);
@@ -416,6 +423,7 @@ static const luaL_Reg amunMethods[] = {
     {"isBlue",              amunIsBlue},
     {"isReplay",            amunIsReplay},
     {"getSelectedOptions",  amunGetSelectedOptions},
+    {"isInternalAutoref",   amunIsInternalAutoref},
     // dynamic
     {"getWorldState",       amunGetWorldState},
     {"getGameState",        amunGetGameState},
