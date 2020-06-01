@@ -137,8 +137,8 @@ void RobotSpecsDialog::fillTree(QStandardItem *parent, google::protobuf::Message
             key_item->setEditable(false);
 
             QStandardItem *value_item = new QStandardItem;
-            value_item->setData(qVariantFromValue(field), DATA_FIELD);
-            value_item->setData(qVariantFromValue(specs), DATA_MESSAGE);
+            value_item->setData(QVariant::fromValue(field), DATA_FIELD);
+            value_item->setData(QVariant::fromValue(specs), DATA_MESSAGE);
 
             QVariant data;
             bool has_default = def;
@@ -156,7 +156,7 @@ void RobotSpecsDialog::fillTree(QStandardItem *parent, google::protobuf::Message
                 }
             }
             value_item->setData(data, DATA_DEFAULT);
-            value_item->setData(qVariantFromValue(has_default), DATA_HAS_DEFAULT);
+            value_item->setData(QVariant::fromValue(has_default), DATA_HAS_DEFAULT);
 
             parent->appendRow(QList<QStandardItem*>() << key_item << value_item);
         }
