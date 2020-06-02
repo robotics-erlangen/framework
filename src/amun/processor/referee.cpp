@@ -130,7 +130,13 @@ void Referee::process(const world::State &worldState)
                 const float y = m_ball.p_y() - ball.p_y();
 
                 if (x * x + y * y > ballMovementDistance * ballMovementDistance) {
-                    m_gameState.set_state(amun::GameState::Game);
+                    if (m_gameState.state() == amun::GameState::PenaltyBlue) {
+                        m_gameState.set_state(amun::GameState::PenaltyBlueRunning);
+                    } else if (m_gameState.state() == amun::GameState::PenaltyYellow) {
+                        m_gameState.set_state(amun::GameState::PenaltyYellowRunning);
+                    } else {
+                        m_gameState.set_state(amun::GameState::Game);
+                    }
                 }
             }
         }
