@@ -306,7 +306,7 @@ StandardTrajectorySample StandardTrajectorySample::denormalize(const TrajectoryI
     StandardTrajectorySample normalized = *this;
     Vector toTarget = (input.s1 - input.s0).normalized();
     Vector sideWays = toTarget.perpendicular();
-    normalized.setMidSpeed(toTarget * getMidSpeed().x + sideWays * getMidSpeed().y);
+    normalized.setMidSpeed(toTarget * getMidSpeed().x - sideWays * getMidSpeed().y);
     normalized.setAngle(normalized.getAngle() + toTarget.angle());
     while (normalized.getAngle() > 2.0 * M_PI) normalized.setAngle(normalized.getAngle() - 2.0 * M_PI);
     while (normalized.getAngle() < 0) normalized.setAngle(normalized.getAngle() + 2 * M_PI);

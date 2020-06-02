@@ -149,11 +149,12 @@ inline Vector& Vector::operator *= (float scalar)
 
 /*!
  * \brief Calculate a perpendicular vector
+ * Returns perpendicular which is reached first when rotating clockwise.
  * \return A vector perpendicular to this one
  */
 inline Vector Vector::perpendicular() const
 {
-    return Vector(-y, x);
+    return Vector(y, -x);
 }
 
 /*!

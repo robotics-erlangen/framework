@@ -72,7 +72,7 @@ inline LineSegment::LineSegment(const Vector& start, const Vector& end) :
 {
     assert(m_start != m_end);
     m_dir = (m_end - m_start).normalized();
-    m_normal = m_dir.perpendicular();
+    m_normal = m_dir.perpendicular() * (-1);
 }
 
 /*!
