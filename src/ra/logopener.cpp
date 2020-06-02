@@ -139,7 +139,7 @@ void LogOpener::openFile()
         s.endGroup();
     }
     // open again in previously used folder
-    if (m_logFile.lock()) {
+    if (m_isValid) {
         QFileInfo finfo(m_openFileName);
         previousDir = finfo.dir().path();
     }
@@ -150,9 +150,10 @@ void LogOpener::openFile()
 
 void LogOpener::saveCurrentPosition()
 {
-    if (m_logFile.lock()) {
+    if (m_isValid) {
         m_lastFilePositions[m_openFileName] = ui->logManager->getFrame();
     }
+    m_isValid = false;
 }
 
 void LogOpener::activateLastPosition(int numPackets)
@@ -185,7 +186,7 @@ void LogOpener::openFile(const QString &filename)
                 // the logfile was successfully opened
                 // the old logfile is deleted by the logmanager
                 auto logfile = openResult.first;
-                m_logFile = logfile;
+                m_isValid = true;
 
                 m_openFileName = filename;
 

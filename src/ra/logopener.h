@@ -66,7 +66,7 @@ private:
 private:
     Ui::MainWindow *ui;
 
-    std::weak_ptr<StatusSource> m_logFile;
+    bool m_isValid = false;
     QString m_openFileName;
 
     QList<QString> m_recentFiles;
