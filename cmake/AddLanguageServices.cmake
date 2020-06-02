@@ -21,7 +21,7 @@ add_test(NAME git-correct-mail
 # show what went wrong by default
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
     USES_TERMINAL)
-add_dependencies(check amun-cli)
+add_dependencies(check amun-cli cpptests)
 
 add_custom_target(tsfix
     COMMAND npm run lint-fix
