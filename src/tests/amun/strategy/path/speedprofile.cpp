@@ -22,5 +22,4 @@
 #include <iostream>
 
 TEST(SomeTest, Test) {
-    std::cout <<"I has test"<<std::endl;
 }

@@ -24,8 +24,9 @@ file (GLOB_RECURSE TEST_SRC_FILES RELATIVE
 
 add_executable(cpptests ${TEST_SRC_FILES})
 
-add_dependencies(cpptests
+target_link_libraries(cpptests
     lib::googletest
-    amun
+    amun::path
+    shared::core
+    pthread
 )
-target_link_libraries(cpptests lib::googletest pthread)

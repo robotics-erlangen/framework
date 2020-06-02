@@ -74,6 +74,7 @@ public:
         return a.x * b.y + b.x * c.y + c.x * a.y - a.x * c.y - b.x * a.y - c.x * b.y;
     }
 
+    // WARNING: behaves differently than in typescript
     float angle() const {
         return std::atan2(x, y) + float(2 * M_PI);
     }
