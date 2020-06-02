@@ -6,6 +6,9 @@ add_test(NAME typescript-tslint
     COMMAND npm run lint
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/strategy/typescript")
 
+add_test(NAME cpp-unittests
+    COMMAND cpptests
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
 
 add_test(NAME copyright-header-exists
 	COMMAND python2 "data/scripts/check-copyright-header.py"
