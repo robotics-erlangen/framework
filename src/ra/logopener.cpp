@@ -73,9 +73,7 @@ LogOpener::LogOpener(Ui::MainWindow *ui, QObject *parent) :
 
 void LogOpener::close()
 {
-    if (m_logFile.lock()) {
-        m_lastFilePositions[m_openFileName] = ui->logManager->getFrame();
-    }
+    saveCurrentPosition();
     saveConfig();
 }
 
@@ -182,9 +180,7 @@ void LogOpener::openFile(const QString &filename)
             auto openResult = openFunction(filename);
 
             if (openResult.first != nullptr) {
-                if (m_logFile.lock()) {
-                    m_lastFilePositions[m_openFileName] = ui->logManager->getFrame();
-                }
+                saveCurrentPosition();
 
                 // the logfile was successfully opened
                 // the old logfile is deleted by the logmanager
