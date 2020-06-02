@@ -17,7 +17,8 @@ RUN set -xe; \
 	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends nodejs; \
 	apt-get clean; \
 	rm -rf /var/lib/apt/lists/* ; \
-	luarocks install luacheck;
+	luarocks install luacheck; \
+	npm install -g tslint@6.1.1 typescript@3.8.3;
 
 COPY libs /libs
 RUN set -xe; \
