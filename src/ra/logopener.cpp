@@ -105,8 +105,15 @@ void LogOpener::showLastPosition(bool show)
     ui->goToLastPosition->setVisible(show);
 }
 
-void LogOpener::handleStatus(const Status&)
+void LogOpener::handleStatus(const Status& status)
 {
+    if (status->has_pure_ui_response()) {
+        const auto& response = status->pure_ui_response();
+        if (response.has_log_info()) {
+            activateLastPosition(response.log_info().packet_count());
+        }
+    }
+
     // around 10 seconds
     if (m_packetsSinceOpened > 5000) {
         showLastPosition(false);
@@ -150,6 +157,21 @@ void LogOpener::saveCurrentPosition()
     }
 }
 
+void LogOpener::activateLastPosition(int numPackets)
+{
+    // TODO: How to avoid triggering for backlogs? They are small, but is that for eternity?
+
+    // add button to go to the last position (if log is long enough, around 1:30 min)
+    if (numPackets > 50000 && m_lastFilePositions.contains(m_openFileName)) {
+        showLastPosition(true);
+        ui->goToLastPosition->setText(QString::number(m_lastFilePositions[m_openFileName]));
+    } else {
+        showLastPosition(false);
+    }
+
+    m_packetsSinceOpened = 0;
+}
+
 void LogOpener::openFile(const QString &filename)
 {
     // don't do anything if the user couldn't decide for a new log file
@@ -179,15 +201,6 @@ void LogOpener::openFile(const QString &filename)
                 }
                 makeRecentFileMenu();
 
-                // add button to go to the last position (if log is long enough, around 1:30 min)
-                if (logfile->timings().size() > 50000 &&
-                        m_lastFilePositions.contains(filename)) {
-                    showLastPosition(true);
-                    ui->goToLastPosition->setText(QString::number(m_lastFilePositions[filename]));
-                } else {
-                    showLastPosition(false);
-                }
-                m_packetsSinceOpened = 0;
 
                 emit logOpened(QFileInfo(filename).fileName(), false);
 

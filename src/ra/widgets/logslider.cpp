@@ -176,7 +176,7 @@ void LogSlider::handleStatus(const Status& status)
             m_startTime = response.log_info().start_time();
             m_duration = response.log_info().duration();
             initializeLabels(response.log_info().packet_count(), true);
-            return;
+            //return;
         }
     }
     emit gotStatus(status);

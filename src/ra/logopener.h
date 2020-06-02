@@ -61,6 +61,7 @@ public slots:
 private:
     void makeRecentFileMenu();
     void showLastPosition(bool show);
+    void activateLastPosition(int numPackets);
 
 private:
     Ui::MainWindow *ui;
