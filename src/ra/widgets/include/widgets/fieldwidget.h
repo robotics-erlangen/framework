@@ -153,8 +153,14 @@ private:
     void clearTeamData(RobotMap &team);
     void updateTeam(RobotMap &team, QHash<uint, robot::Specs> &specsMap, const robot::Team &specs);
     void setBall(const world::Ball &ball);
+
+    void setDetectedBall(const SSL_DetectionBall &ball, const int index);
+
     void addBallTrace(qint64 time, const world::Ball &ball);
     void setRobot(const world::Robot &robot, const robot::Specs &specs, RobotMap &robots, const QColor &color);
+
+    void setDetectedRobot(const SSL_DetectionRobot &robot, const robot::Specs &specs, QList<RobotMap> &robots, QMap<uint, int> &idCounter, const QColor &color);
+
     void addBlob(float x, float y, const QBrush &brush, QGraphicsItem *parent);
     void addRobotTrace(qint64 time, const world::Robot &robot, Trace &robotTrace, Trace &robotRawTrace);
     void showWholeField();
@@ -224,6 +230,10 @@ private:
     Items m_visualizationItems;
     RobotMap m_robotsBlue;
     RobotMap m_robotsYellow;
+    
+    QList<RobotMap> m_detectedRobotsBlue;
+    QList<RobotMap> m_detectedRobotsYellow;
+    QList<QGraphicsEllipseItem*> m_detectedBalls;
 
     Trace m_ballTrace;
     Trace m_ballRawTrace;
