@@ -40,6 +40,7 @@ export const enum RefereeState {
 	KickoffOffensive = "KickoffOffensive",
 	PenaltyOffensivePrepare = "PenaltyOffensivePrepare",
 	PenaltyOffensive = "PenaltyOffensive",
+	PenaltyOffensiveRunning = "PenaltyOffensiveRunning",
 	DirectOffensive = "DirectOffensive",
 	IndirectOffensive = "IndirectOffensive",
 	BallPlacementOffensive = "BallPlacementOffensive",
@@ -48,6 +49,7 @@ export const enum RefereeState {
 	KickoffDefensive = "KickoffDefensive",
 	PenaltyDefensivePrepare = "PenaltyDefensivePrepare",
 	PenaltyDefensive = "PenaltyDefensive",
+	PenaltyDefensiveRunning = "PenaltyDefensiveRunning",
 	DirectDefensive = "DirectDefensive",
 	IndirectDefensive = "IndirectDefensive",
 	BallPlacementDefensive = "BallPlacementDefensive"
@@ -91,12 +93,14 @@ const opponentKickoffStates: {[state: string]: boolean} = {
 
 const opponentPenaltyStates: {[state: string]: boolean} = {
 	PenaltyDefensivePrepare: true,
-	PenaltyDefensive: true
+	PenaltyDefensive: true,
+	PenaltyDefensiveRunning: true
 };
 
 const friendlyPenaltyStates: {[state: string]: boolean} = {
 	PenaltyOffensivePrepare: true,
-	PenaltyOffensive: true
+	PenaltyOffensive: true,
+	PenaltyOffensiveRunning: true
 };
 
 const gameStates: {[state: string]: boolean} = {
