@@ -8,7 +8,8 @@ RUN set -xe; \
 		cmake ninja-build ccache g++ gcc-arm-none-eabi gdb-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib \
 		luarocks unzip \
 		ca-certificates curl apt-transport-https \
-		git; \
+		git \
+		python python3; \
 	curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -; \
 	echo 'deb https://deb.nodesource.com/node_12.x xenial main' > /etc/apt/sources.list.d/nodesource.list; \
 	echo 'deb-src https://deb.nodesource.com/node_12.x xenial main' >> /etc/apt/sources.list.d/nodesource.list; \
