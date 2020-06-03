@@ -22,8 +22,7 @@ include(ExternalProject)
 include(ExternalProjectHelper)
 
 ExternalProject_Add(project_googletest
-    GIT_REPOSITORY https://github.com/google/googletest
-    GIT_TAG release-1.10.0
+    URL https://github.com/google/googletest/archive/release-1.10.0.zip
     DOWNLOAD_NO_PROGRESS true
     CMAKE_ARGS
         -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
