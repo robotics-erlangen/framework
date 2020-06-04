@@ -22,7 +22,8 @@ include(ExternalProject)
 include(ExternalProjectHelper)
 
 ExternalProject_Add(project_googletest
-    URL https://github.com/google/googletest/archive/release-1.10.0.zip
+    URL https://www.robotics-erlangen.de/downloads/googletest-release-1.10.0.tar.gz
+    URL_HASH SHA256=9f7370ce748fdd7c23a4dcd785d49c45f718899381af947de59b65544b08c7eb
     DOWNLOAD_NO_PROGRESS true
     CMAKE_ARGS
         -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
