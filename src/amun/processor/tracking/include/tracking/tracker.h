@@ -95,7 +95,7 @@ private:
     bool m_hasVisionData;
     bool m_virtualFieldEnabled;
 
-    qint64 m_lastUpdateTime;
+    QMap<qint32, qint64> m_lastUpdateTime; // indexed by camera id
     QList<Packet> m_visionPackets;
 
     QList<BallTracker*> m_ballFilter;

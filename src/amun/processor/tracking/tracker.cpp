@@ -36,7 +36,6 @@ Tracker::Tracker(bool robotsOnly, bool isSpeedTracker) :
     m_geometryUpdated(false),
     m_hasVisionData(false),
     m_virtualFieldEnabled(false),
-    m_lastUpdateTime(0),
     m_currentBallFilter(nullptr),
     m_aoiEnabled(false),
     m_aoi_x1(0.0f),
@@ -84,7 +83,7 @@ void Tracker::reset()
 
     m_hasVisionData = false;
     m_resetTime = 0;
-    m_lastUpdateTime = 0;
+    m_lastUpdateTime.clear();
     m_visionPackets.clear();
     m_cameraInfo->cameraPosition.clear();
     m_cameraInfo->focalLength.clear();
@@ -138,7 +137,7 @@ void Tracker::process(qint64 currentTime)
         const qint64 sourceTime = p.time - visionProcessingTime - m_systemDelay;
 
         // drop frames older than the current state
-        if (sourceTime <= m_lastUpdateTime) {
+        if (sourceTime <= m_lastUpdateTime[detection.camera_id()]) {
             continue;
         }
 
@@ -160,7 +159,7 @@ void Tracker::process(qint64 currentTime)
             }
         }
 
-        m_lastUpdateTime = sourceTime;
+        m_lastUpdateTime[detection.camera_id()] = sourceTime;
     }
     m_visionPackets.clear();
 }
