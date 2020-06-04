@@ -18,11 +18,10 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-file (GLOB_RECURSE TEST_SRC_FILES RELATIVE
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    *.cpp)
-
-add_executable(cpptests ${TEST_SRC_FILES})
+add_executable(cpptests
+    core/vector.cpp
+    amun/strategy/path/speedprofile.cpp
+)
 
 target_link_libraries(cpptests
     lib::googletest
