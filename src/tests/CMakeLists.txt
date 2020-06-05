@@ -20,6 +20,7 @@
 
 add_executable(cpptests
     core/vector.cpp
+    core/rng.cpp
     amun/strategy/path/speedprofile.cpp
 )
 
