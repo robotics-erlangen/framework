@@ -48,7 +48,7 @@ inline BoundingBox::BoundingBox(Vector topLeft, Vector bottomRight) :
 
 inline bool BoundingBox::isInside(Vector p)
 {
-    return p.y >= top && p.y <= bottom &&
+    return p.y <= top && p.y >= bottom &&
             p.x >= left && p.x <= right;
 }
 
