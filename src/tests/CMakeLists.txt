@@ -23,6 +23,7 @@ add_executable(cpptests
     core/rng.cpp
     amun/strategy/path/boundingbox.cpp
     amun/strategy/path/speedprofile.cpp
+    amun/strategy/path/linesegment.cpp
 )
 
 target_link_libraries(cpptests

@@ -46,7 +46,7 @@ public:
     //! Returns the end point of the line.
     const Vector& end() const { return m_end; }
 
-    //! Returns the direction vector of the line.
+    //! Returns the normalized direction vector of the line.
     const Vector& dir() const { return m_dir; }
 
     //! Returns the normal vector of the line.
