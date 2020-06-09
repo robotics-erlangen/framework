@@ -16,9 +16,8 @@ export class BreakPass extends Behavior {
 	}
 
 	check(): boolean {
-		// ballplacement
 		if (!Referee.isGameState(World.RefereeState)) {
-			debug.set("breakpass check", "ballplacement");
+			debug.set("breakpass check", "non game state");
 			return false;
 		}
 
