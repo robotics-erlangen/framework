@@ -54,12 +54,16 @@ inline bool BoundingBox::isInside(Vector p)
 
 inline bool BoundingBox::intersects(const BoundingBox &other)
 {
-    float xDiff = std::abs(left + right - other.left - other.right) * 0.5f;
-    if (xDiff > (other.right - other.left) + (right - left)) {
+    if (other.bottom > top) {
         return false;
     }
-    float yDiff = std::abs(top + bottom - other.top - other.bottom) * 0.5f;
-    if (yDiff > (other.top - other.bottom) + (top - bottom)) {
+    if (other.top < bottom) {
+        return false;
+    }
+    if (other.left > right) {
+        return false;
+    }
+    if (other.right < left) {
         return false;
     }
     return true;
