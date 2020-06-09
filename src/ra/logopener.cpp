@@ -107,6 +107,20 @@ void LogOpener::handleStatus(const Status& status)
 {
     if (status->has_pure_ui_response()) {
         const auto& response = status->pure_ui_response();
+        if (response.has_log_open() && response.log_open().success()) {
+            saveCurrentPosition();
+            m_isValid = true;
+
+            m_openFileName = m_prelimFileName;
+
+            // move the file to the end of the recent files list
+            m_recentFiles.removeAll(m_openFileName);
+            m_recentFiles.append(m_openFileName);
+            if (m_recentFiles.size() > MAX_RECENT_FILE_COUNT) {
+                m_recentFiles.removeFirst();
+            }
+            makeRecentFileMenu();
+        }
         if (response.has_log_info()) {
             activateLastPosition(response.log_info().packet_count());
         }
@@ -175,6 +189,10 @@ void LogOpener::openFile(const QString &filename)
 {
     // don't do anything if the user couldn't decide for a new log file
     if (!filename.isEmpty()) {
+        m_prelimFileName = filename; // Also FIXME: this is a relative path, an absolte path, an absolute mess, ...
+        Command command(new amun::Command);
+        command->mutable_playback()->set_log_path(filename.toStdString());
+        emit sendCommand(command);
         QList<std::function<QPair<std::shared_ptr<StatusSource>, QString>(QString)>> openFunctions =
             { &VisionLogLiveConverter::tryOpen, &LogFileReader::tryOpen};
         for (const auto &openFunction : openFunctions) {
@@ -188,7 +206,7 @@ void LogOpener::openFile(const QString &filename)
                 auto logfile = openResult.first;
                 m_isValid = true;
 
-                m_openFileName = filename;
+                m_openFileName = filename; // Also FIXME: this is a relative path, an absolte path, an absolute mess, ...
 
                 // move the file to the end of the recent files list
                 m_recentFiles.removeAll(filename);

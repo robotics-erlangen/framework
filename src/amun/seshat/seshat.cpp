@@ -23,6 +23,8 @@
 #include "logfile/timedstatussource.h"
 
 #include <QThread>
+#include <QFileInfo>
+#include <functional>
 
 namespace SeshatInternal {
     class SignalSource: public QObject {
@@ -73,13 +75,121 @@ void Seshat::setStatusSource(std::shared_ptr<StatusSource> source)
         connect(m_statusSource, &TimedStatusSource::jumped, &m_replayLogger, &CombinedLogWriter::resetBacklog);
         m_statusSource->start();
         if (!m_isPlayback) {
-            Status s = Status::createArena();
-            auto* response = s->mutable_pure_ui_response();
-            response->set_force_ra_horus(false); // horus mode
-            emit sendUi(s);
+            forceUi(false);
         }
         m_isPlayback = true;
     } // TODO: watch over non-halt realworld status and switch back
+}
+
+void Seshat::handleCheckHaltStatus(const Status &status)
+{
+    if (status->has_status_strategy() || status->debug_size() > 0) {
+        // use 50 as some upper limit, the exact number is irrelevant
+        if (m_horusStrategyBuffer.size() < 50) {
+            m_horusStrategyBuffer.push_back(status);
+        }
+    }
+    if (status->has_game_state()) {
+        const amun::GameState &gameState = status->game_state();
+        if (gameState.state() != amun::GameState::Halt) {
+            m_statusSource->setPaused(true);
+            forceUi(true);
+        }
+    }
+}
+
+void Seshat::forceUi(bool ra)
+{
+    if (ra) {
+        for (const Status &status : m_horusStrategyBuffer) {
+            emit sendUi(status);
+        }
+        m_horusStrategyBuffer.clear();
+    }
+    Status s = Status::createArena();
+    auto* response = s->mutable_pure_ui_response();
+    response->set_force_ra_horus(ra); // horus mode
+    emit sendUi(s);
+}
+
+void Seshat::handleStatus(const Status& status)
+{
+    m_logger.handleStatus(status);
+    if (m_isPlayback) {
+        handleCheckHaltStatus(status);
+    } else {
+        emit sendUi(status);
+    }
+}
+
+void Seshat::handleReplayStatus(const Status& status)
+{
+    m_replayLogger.handleStatus(status);
+}
+
+void Seshat::handleCommand(const Command& command)
+{
+    m_logger.handleCommand(command);
+    m_replayLogger.handleCommand(command);
+
+    if (command->has_playback()) {
+        const auto& playback =  command->playback();
+        if (playback.has_run_playback()) {
+            bool newPlayback = playback.run_playback();
+            if (newPlayback != m_isPlayback && m_statusSource) {
+                if (!newPlayback) {
+                    m_storedPlaybackPaused = m_statusSource->isPaused();
+                    // stop the playback while Ra is displayed
+                    m_statusSource->setPaused(true);
+                } else {
+                    m_statusSource->setPaused(m_storedPlaybackPaused);
+                }
+            }
+            m_isPlayback = newPlayback;
+        }
+
+        if (playback.has_log_path()) {
+            openLogfile(playback.log_path());
+        }
+    }
+
+    if (m_isPlayback && m_statusSource) {
+        m_statusSource->handleCommand(command);
+    }
+}
+
+void Seshat::openLogfile(const std::string& filename)
+{
+    QList<std::function<QPair<std::shared_ptr<StatusSource>, QString>(QString)>> openFunctions =
+        {/*&VisionLogLiveConverter::tryOpen, &LogFileReader::tryOpen*/};
+    for (auto openFunction : openFunctions) {
+        auto openResult = openFunction(QString::fromStdString(filename));
+
+        if (openResult.first != nullptr) {
+            auto logfile = openResult.first;
+
+            sendLogfileInfo(QFileInfo(QString::fromStdString(filename)).fileName().toStdString(), false);
+            setStatusSource(logfile);
+
+            return;
+
+        } else if (!openResult.second.isEmpty()) {
+            // the header matched, but the log file is corrupt
+            sendLogfileInfo(("Error: " + openResult.second).toStdString(), true);
+            return;
+        }
+    }
+    sendLogfileInfo("Error: Could not open log file - no matching format found", true);
+}
+
+void Seshat::sendLogfileInfo(const std::string& message, bool error)
+{
+    Status s = Status::createArena();
+    auto* pureUi = s->mutable_pure_ui_response();
+    auto* logOpen = pureUi->mutable_log_open();
+    logOpen->set_success(error);
+    logOpen->set_filename(message);
+    emit sendUi(s);
 }
 
 #include "seshat.moc"

@@ -125,10 +125,16 @@ message UiResponse {
     optional LogPlaybackInfo log_info = 6;
     optional int64 frame_number = 7;
     optional bool force_ra_horus = 8; // true if forced Ra, false if forced Horus
+    optional LogfileOpenInfo log_open = 9;
 }
 
 message LogPlaybackInfo {
     required int64 start_time = 1;
     required int64 duration = 2;
     required int64 packet_count = 3;
+}
+
+message LogfileOpenInfo {
+    required bool success = 1;
+    required string filename = 2; // error-message if success = true, filename if success = false
 }

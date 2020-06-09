@@ -46,6 +46,8 @@ public:
     }
     // has to be called once and only once
     void start();
+    void setPaused(bool pause);
+    bool isPaused() const { return m_paused; }
 
 private slots:
     void playNext();
@@ -57,7 +59,6 @@ signals:
 
 private:
     void indexLogFile();
-    void setPaused(bool pause);
     // Frame is timed, time in 0.1s (resolution for TimedStatusSource)
     void seekFrame(int time);
     // Packet is part of the log.

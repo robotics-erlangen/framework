@@ -26,6 +26,7 @@
 #include <QMap>
 
 #include "protobuf/status.h"
+#include "protobuf/command.h"
 
 // Disable for now in order to be able to compile
 class QMenu;
@@ -50,6 +51,7 @@ public:
 
 signals:
     void logOpened(QString name, bool errorOccurred);
+    void sendCommand(const Command& command);
 
 public slots:
     void handleStatus(const Status&);
@@ -68,6 +70,7 @@ private:
 
     bool m_isValid = false;
     QString m_openFileName;
+    QString m_prelimFileName;
 
     QList<QString> m_recentFiles;
     QMap<QString, uint> m_lastFilePositions;

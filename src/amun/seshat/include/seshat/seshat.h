@@ -46,12 +46,16 @@ signals:
     void sendReplayStrategy(const Status& status);
 
 public slots:
-    void handleCommand(const Command& comm) {}
-    void handleStatus(const Status& status) {}
-    void handleReplayStatus(const Status& status) {}
+    void handleCommand(const Command& comm);
+    void handleStatus(const Status& status);
+    void handleReplayStatus(const Status& status);
 
 private:
+    void handleCheckHaltStatus(const Status &status);
     void setStatusSource(std::shared_ptr<StatusSource> source);
+    void forceUi(bool ra);
+    void openLogfile(const std::string& filename);
+    void sendLogfileInfo(const std::string& message, bool success);
 
 private:
 
@@ -60,6 +64,8 @@ private:
     TimedStatusSource* m_statusSource = nullptr;
     SeshatInternal::SignalSource* m_signalSource = nullptr;
     bool m_isPlayback = false;
+    bool m_storedPlaybackPaused = true;
+    QList<Status> m_horusStrategyBuffer;
 };
 
 #endif
