@@ -3,6 +3,7 @@ import * as World from "base/world";
 
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
+import * as Robot from "glados/observer/robot";
 import { DuelAssistant as TaskDuelAssistant } from "glados/task/attacker/duelassistant";
 import * as Rating from "glados/util/rating";
 
@@ -37,7 +38,8 @@ export class DuelAssistant extends Behavior {
 	}
 
 	check(): Behavior | undefined {
-		if (this._robot === this._messaging.receiveTrainer(MessageType.mainAttacker)) {
+		if (this._robot === this._messaging.receiveTrainer(MessageType.mainAttacker)
+				|| this._robot === Robot.doubleTouchingRobot()) {
 			this._lastTrue = undefined;
 			return undefined;
 		}

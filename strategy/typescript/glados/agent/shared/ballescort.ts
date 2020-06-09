@@ -51,6 +51,14 @@ export class BallEscort extends Behavior {
 	check(): Behavior | undefined {
 		let shotHysteresis = this._active ? 0.075 : 0.15;
 
+		if (Referee.isFriendlyFreeKickState()) {
+			return undefined;
+		}
+
+		if (this._robot === ObserverRobot.doubleTouchingRobot()) {
+			return undefined;
+		}
+
 		if (!(World.RefereeState === "Game" || World.RefereeState === "GameForce")
 				||  !Referee.opponentTouchedLast()
 				||  Ball.wasShot(shotHysteresis)) {

@@ -1,6 +1,7 @@
 import * as debug from "base/debug";
 import * as Field from "base/field";
 import * as geom from "base/geom";
+import * as Referee from "base/referee";
 import { Vector } from "base/vector";
 import * as World from "base/world";
 
@@ -29,6 +30,16 @@ export class Duel extends Behavior {
 	}
 
 	private genericCheck(): boolean {
+		if (Referee.isFriendlyFreeKickState()) {
+			debug.set("duel check", "freekick");
+			return false;
+		}
+
+		if (Robot.doubleTouchingRobot() === this._robot) {
+			debug.set("duel check", "double touch");
+			return false;
+		}
+
 		// only duel while its rational to touch the ball
 		if (!Field.isInAllowedField(World.Ball.pos, 0)) {
 			debug.set("duel check", "allowed field");
