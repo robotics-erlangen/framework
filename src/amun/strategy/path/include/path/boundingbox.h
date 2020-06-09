@@ -29,7 +29,6 @@ public:
     BoundingBox(Vector topLeft, Vector bottomRight);
     bool isInside(Vector p);
     bool intersects(const BoundingBox &other);
-    void scaleSize(float scale);
     void mergePoint(Vector p);
     void addExtraRadius(float radius);
 
@@ -67,16 +66,6 @@ inline bool BoundingBox::intersects(const BoundingBox &other)
         return false;
     }
     return true;
-}
-
-inline void BoundingBox::scaleSize(float scale)
-{
-    float centerX = (left + right) * 0.5f;
-    float centerY = (top + bottom) * 0.5f;
-    left = centerX + (left - centerX) * scale;
-    right = centerX + (right - centerX) * scale;
-    top = centerY + (top - centerY) * scale;
-    bottom = centerY + (bottom - centerY) * scale;
 }
 
 inline void BoundingBox::mergePoint(Vector p)
