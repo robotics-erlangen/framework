@@ -676,9 +676,19 @@ QGraphicsItem* FieldWidget::createPath(const QPen &pen, const QBrush &brush, con
     item->setBrush(brush);
 
     QPainterPath path;
-    path.moveTo(vis.path().point(0).x(), vis.path().point(0).y());
-    for (int i = 1; i < vis.path().point_size(); i++) {
-        path.lineTo(vis.path().point(i).x(), vis.path().point(i).y());
+
+    // if the start and end point of a simple line are the same, QPainterPath.lineTo draws nothing (even with a positive line width)
+    if (vis.path().point_size() == 2 && vis.path().point(0).x() == vis.path().point(1).x() &&
+            vis.path().point(0).y() == vis.path().point(1).y()) {
+        // a radius of zero will discard the ellipse, just use a very very small radius
+        const float EPS = 0.00001f;
+        path.addEllipse(vis.path().point(0).x(), vis.path().point(0).y(), EPS, 0);
+    } else {
+        // a regular line
+        path.moveTo(vis.path().point(0).x(), vis.path().point(0).y());
+        for (int i = 1; i < vis.path().point_size(); i++) {
+            path.lineTo(vis.path().point(i).x(), vis.path().point(i).y());
+        }
     }
 
     item->setPath(path);
