@@ -21,7 +21,6 @@
 add_subdirectory(guihelper)
 add_subdirectory(input)
 add_subdirectory(logcutter)
-add_subdirectory(logfile)
 add_subdirectory(plotter)
 add_subdirectory(widgets)
 

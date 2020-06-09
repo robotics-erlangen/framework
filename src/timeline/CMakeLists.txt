@@ -33,7 +33,7 @@ target_include_directories(timeline
 
 target_link_libraries(timeline
     PRIVATE Qt5::Core
-    PRIVATE ra::logfile
+    PRIVATE amun::seshat
 )
 
 add_library(timeline::timeline ALIAS timeline)
