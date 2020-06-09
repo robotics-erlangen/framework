@@ -1400,13 +1400,21 @@ void FieldWidget::mousePressEvent(QMouseEvent *event)
 void FieldWidget::createInfoText()
 {
     const QPointF p = mapToScene(m_mousePosition);
-    QString infoText = QString("(%1, %2)").arg(p.x(), 0, 'f', 4).arg(p.y(), 0, 'f', 4);
+    // create a html table containing the mouse position in both coordinate systems
+    QString bgColor = palette().brush(QPalette::Window).color().name();
+    QString infoText = QString("<table style='background-color:" + bgColor + ";padding: 2px;'><tr><th>Yellow</th><th>(</th><th>%1,</th>\
+                                <th>%2</th><th>)</th></tr><tr><th>Blue</th><th>(</th><th>%3,</th><th>%4</th><th>)</th></tr>")
+            .arg(p.x(), 0, 'f', 4).arg(p.y(), 0, 'f', 4).arg(-p.x(), 0, 'f', 4).arg(-p.y(), 0, 'f', 4);
+
+    int textRows = 2;
     if (m_dragType == DragMeasure) {
         QPointF diff = (p - m_mouseBegin);
         float dist = std::sqrt(diff.x() * diff.x() + diff.y() * diff.y());
-        infoText += QString(", distance: %1").arg(dist, 0, 'f', 4);
+        infoText += QString("<tr><th>Distance</th><th></th><th>%1</th></tr>").arg(dist, 0, 'f', 4);
+        textRows++;
     }
-    setInfoText(infoText);
+    infoText += "</table>";
+    setInfoText(infoText, textRows);
 }
 
 void FieldWidget::mouseMoveEvent(QMouseEvent *event)
@@ -1529,7 +1537,7 @@ bool FieldWidget::gestureEvent(QGestureEvent *event)
 void FieldWidget::leaveEvent(QEvent *event)
 {
     // clear mouse position
-    setInfoText(QString());
+    setInfoText(QString(), 0);
     QGraphicsView::leaveEvent(event);
 }
 
@@ -1556,12 +1564,11 @@ void FieldWidget::updateInfoText()
         return;
     }
 
-    QString bgColor = palette().brush(QPalette::Window).color().name();
-    m_infoTextItem->setHtml("<div style='background-color:" + bgColor + ";padding: 2px;'>" + m_infoText + "</div>");
+    m_infoTextItem->setHtml(m_infoText);
     m_infoTextItem->show();
 
     QFontMetrics fm(QGuiApplication::font());
-    QPoint lblPos = QPoint(-4, height()-fm.height()-6);
+    QPoint lblPos = QPoint(-4, height() - m_infoTextRows * fm.height() - 12);
 
     // revert to window scale
     float scaleX, scaleY;
@@ -1583,12 +1590,13 @@ void FieldWidget::updateInfoText()
     }
 }
 
-void FieldWidget::setInfoText(const QString &str)
+void FieldWidget::setInfoText(const QString &str, int textRows)
 {
     if (str == m_infoText) {
         return;
     }
     m_infoText = str;
+    m_infoTextRows = textRows;
     m_infoTextUpdated = true;
     m_guiTimer->requestTriggering();
 }

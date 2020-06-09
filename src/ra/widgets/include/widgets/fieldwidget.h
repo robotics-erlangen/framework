@@ -121,7 +121,7 @@ protected:
     void dragLeaveEvent(QDragLeaveEvent *event) override;
     void dropEvent(QDropEvent *event) override;
 
-    void setInfoText(const QString &str);
+    void setInfoText(const QString &str, int textRows);
 private slots:
     void updateVisualizationVisibility();
     void updateTracesVisibility();
@@ -234,6 +234,7 @@ private:
 
     bool m_infoTextUpdated;
     QString m_infoText;
+    int m_infoTextRows = 0;
     QGraphicsTextItem *m_infoTextItem;
 
     Qt::GestureType m_touchStatusType;
