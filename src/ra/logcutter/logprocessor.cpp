@@ -19,9 +19,9 @@
  ***************************************************************************/
 
 #include "logprocessor.h"
-#include "logfile/seqlogfilereader.h"
-#include "logfile/logfilewriter.h"
-#include "logfile/logfilehasher.h"
+#include "seshat/seqlogfilereader.h"
+#include "seshat/logfilewriter.h"
+#include "seshat/logfilehasher.h"
 #include "protobuf/gamestate.pb.h"
 #include "protobuf/status.pb.h"
 #include <QSemaphore>

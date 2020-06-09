@@ -23,7 +23,7 @@ add_executable(visionanalyzer
 )
 target_link_libraries(visionanalyzer
     PRIVATE shared::core
-    PRIVATE ra::logfile
+    PRIVATE amun::seshat
     PRIVATE lib::eigen
     PRIVATE amun::strategy
     PRIVATE amun::processor
@@ -49,7 +49,7 @@ add_executable(visionextractor
 )
 
 target_link_libraries(visionextractor
-    PRIVATE ra::logfile
+    PRIVATE amun::seshat
     PRIVATE shared::protobuf
     PRIVATE visionlog::visionlog
     PUBLIC Qt5::Core

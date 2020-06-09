@@ -23,7 +23,7 @@ add_executable(loganalyzer
 )
 target_link_libraries(loganalyzer
     shared::protobuf
-    ra::logfile
+    amun::seshat
 )
 
 target_include_directories(loganalyzer

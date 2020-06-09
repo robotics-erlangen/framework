@@ -22,8 +22,8 @@
 #define CONNECTOR_H
 
 #include "internalreferee.h"
-#include "logfile/logfilewriter.h"
-#include "logfile/backlogwriter.h"
+#include "seshat/logfilewriter.h"
+#include "seshat/backlogwriter.h"
 #include "protobuf/command.h"
 #include "protobuf/status.h"
 #include "protobuf/ssl_referee_game_event.pb.h"

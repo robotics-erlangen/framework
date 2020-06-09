@@ -21,12 +21,35 @@
 add_library(seshat
     include/seshat/seshat.h
     seshat.cpp
+
+    include/seshat/backlogwriter.h
+    include/seshat/combinedlogwriter.h
+    include/seshat/logfilereader.h
+    include/seshat/seqlogfilereader.h
+    include/seshat/logfilewriter.h
+    include/seshat/statussource.h
+    include/seshat/visionlogliveconverter.h
+    include/seshat/logfilehasher.h
+    include/seshat/bufferedstatussource.h
+    include/seshat/timedstatussource.h
+
+    backlogwriter.cpp
+    combinedlogwriter.cpp
+    logfilereader.cpp
+    seqlogfilereader.cpp
+    logfilewriter.cpp
+    visionlogliveconverter.cpp
+    logfilehasher.cpp
+    bufferedstatussource.cpp
+    timedstatussource.cpp
 )
 
 target_link_libraries(seshat
     PUBLIC shared::protobuf
-    PUBLIC ra::logfile
+    PUBLIC shared::core
+    PUBLIC amun::processor
     PUBLIC Qt5::Core
+    PUBLIC visionlog
 )
 
 target_include_directories(seshat

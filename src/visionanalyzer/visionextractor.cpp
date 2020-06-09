@@ -22,7 +22,7 @@
 #include <QCoreApplication>
 #include <QCommandLineParser>
 
-#include "logfile/logfilereader.h"
+#include "seshat/logfilereader.h"
 #include "visionlog/visionlogwriter.h"
 #include "protobuf/ssl_referee.h"
 

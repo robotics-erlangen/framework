@@ -86,7 +86,7 @@ target_sources(ra-horus PRIVATE ${UIC_SOURCES})
 
 target_link_libraries(ra-horus
     PUBLIC amun::amun
-    PUBLIC ra::logfile
+    PUBLIC amun::seshat
     PRIVATE shared::core
     PRIVATE shared::config
     PRIVATE shared::protobuf

@@ -29,7 +29,7 @@ add_executable(replay-cli
 target_link_libraries(replay-cli
     amun::strategy
     shared::protobuf
-    ra::logfile
+    amun::seshat
     shared::core
     Qt5::Core
     Threads::Threads

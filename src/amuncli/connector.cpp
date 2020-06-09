@@ -24,7 +24,7 @@
 #include "protobuf/ssl_game_event_2019.pb.h"
 #include "testtools/testtools.h"
 #include "config/config.h"
-#include "logfile/combinedlogwriter.h"
+#include "seshat/combinedlogwriter.h"
 
 #include <google/protobuf/text_format.h>
 #include <google/protobuf/util/message_differencer.h>

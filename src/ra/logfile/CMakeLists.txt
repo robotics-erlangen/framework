@@ -19,26 +19,6 @@
 # ***************************************************************************
 
 add_library(logfile
-    include/logfile/backlogwriter.h
-    include/logfile/combinedlogwriter.h
-    include/logfile/logfilereader.h
-    include/logfile/seqlogfilereader.h
-    include/logfile/logfilewriter.h
-    include/logfile/statussource.h
-    include/logfile/visionlogliveconverter.h
-    include/logfile/logfilehasher.h
-    include/logfile/bufferedstatussource.h
-    include/logfile/timedstatussource.h
-
-    backlogwriter.cpp
-    combinedlogwriter.cpp
-    logfilereader.cpp
-    seqlogfilereader.cpp
-    logfilewriter.cpp
-    visionlogliveconverter.cpp
-    logfilehasher.cpp
-    bufferedstatussource.cpp
-    timedstatussource.cpp
 )
 target_link_libraries(logfile
     PUBLIC shared::protobuf

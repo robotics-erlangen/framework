@@ -26,7 +26,7 @@
 #include <iostream>
 #include <fstream>
 
-#include "logfile/logfilereader.h"
+#include "seshat/logfilereader.h"
 #include "strategy/strategy.h"
 #include "strategy/strategyreplayhelper.h"
 #include "strategy/script/compilerregistry.h"

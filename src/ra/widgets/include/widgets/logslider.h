@@ -27,7 +27,7 @@
 #include <memory>
 #include "protobuf/status.h"
 #include "core/timer.h"
-#include "logfile/statussource.h"
+#include "seshat/statussource.h"
 
 class Timer;
 

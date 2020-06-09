@@ -20,7 +20,7 @@
 
 #include "logslider.h"
 #include "ui_logslider.h"
-#include "logfile/timedstatussource.h"
+#include "seshat/timedstatussource.h"
 #include "protobuf/command.h"
 
 #include <QThread>

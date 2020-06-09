@@ -25,7 +25,7 @@
 #include <iostream>
 
 #include "logcutter/logprocessor.h"
-#include "logfile/logfilewriter.h"
+#include "seshat/logfilewriter.h"
 
 
 int main(int argc, char* argv[])

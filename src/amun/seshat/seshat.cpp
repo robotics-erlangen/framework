@@ -20,7 +20,7 @@
 
 
 #include "seshat.h"
-#include "logfile/timedstatussource.h"
+#include "timedstatussource.h"
 
 #include <QThread>
 #include <QFileInfo>

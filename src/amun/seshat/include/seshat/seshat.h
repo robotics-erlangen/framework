@@ -24,7 +24,7 @@
 #include <QObject>
 #include "protobuf/status.h"
 #include "protobuf/command.h"
-#include "logfile/combinedlogwriter.h"
+#include "combinedlogwriter.h"
 
 class TimedStatusSource;
 class StatusSource;

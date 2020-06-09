@@ -29,7 +29,7 @@
 #include "strategy/strategyreplayhelper.h"
 #include "strategy/script/compilerregistry.h"
 #include "core/timer.h"
-#include "logfile/logfilewriter.h"
+#include "seshat/logfilewriter.h"
 #include "visionlog/visionlogreader.h"
 #include "visionlog/messagetype.h"
 #include "processor/referee.h"

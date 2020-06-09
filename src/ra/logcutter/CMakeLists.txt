@@ -35,7 +35,7 @@ target_sources(logcutter PRIVATE ${UIC_SOURCES})
 target_link_libraries(logcutter
     PUBLIC Qt5::Widgets
     PRIVATE shared::protobuf
-    PRIVATE ra::logfile
+    PRIVATE amun::seshat
 )
 target_include_directories(logcutter
     INTERFACE include

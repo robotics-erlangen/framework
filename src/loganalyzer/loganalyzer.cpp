@@ -25,7 +25,7 @@
 #include <QDebug>
 #include <clocale>
 
-#include "logfile/logfilereader.h"
+#include "seshat/logfilereader.h"
 
 
 static void ablateStatusRecursive(google::protobuf::Message *message, QList<int> &ablationInfo, int ablationPos)

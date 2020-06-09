@@ -22,7 +22,7 @@ add_executable(logcutter-cli
     logcuttercli.cpp
 )
 target_link_libraries(logcutter-cli
-    ra::logfile
+    amun::seshat
     ra::logcutter
     Qt5::Core
 )

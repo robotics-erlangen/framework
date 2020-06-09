@@ -22,7 +22,7 @@
 #define MAINWINDOW_H
 
 #include "amun/amunclient.h"
-#include "logfile/combinedlogwriter.h"
+#include "seshat/combinedlogwriter.h"
 #include "loggingsuite.h"
 #include <QMainWindow>
 #include <QSet>
