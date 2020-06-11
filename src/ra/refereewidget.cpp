@@ -182,6 +182,12 @@ void RefereeWidget::setStyleSheets(bool useDark)
 
 void RefereeWidget::handleStatus(const Status &status)
 {
+    // prevent updating values from log status packages
+    // otherwise, the keeper will change for the simulator after viewing a log
+    // (if ra has been closed in horus mode)
+    if (!isEnabled()) {
+        return;
+    }
     ui->autoref->handleStatus(status);
     if (status->has_game_state()) {
         // just update the GUI!, prevents sending referee packets
