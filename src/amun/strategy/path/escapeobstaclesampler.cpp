@@ -21,31 +21,38 @@
 #include "escapeobstaclesampler.h"
 #include "core/rng.h"
 
+bool EscapeObstacleSampler::TrajectoryRating::isBetterThan(const TrajectoryRating &other)
+{
+    if (endsSafely && !other.endsSafely) {
+        return true;
+    } else if (!endsSafely && other.endsSafely) {
+        return false;
+    }
+    if (maxPrio < other.maxPrio) {
+        return true;
+    } else if (maxPrio > other.maxPrio) {
+        return false;
+    }
+    if (maxPrioTime < other.maxPrioTime) {
+        return true;
+    }
+    return false;
+}
+
 bool EscapeObstacleSampler::compute(const TrajectoryInput &input)
 {
     // first stage: find a path that quickly exists all obstacles
     // the second stage is executed by the regular standard sampler
     {
         // try last frames trajectory
-        SpeedProfile p = AlphaTimeTrajectory::calculateTrajectory(input.v0, Vector(0, 0), m_bestEscapingTime, m_bestEscapingAngle,
-                                                                  input.acceleration, input.maxSpeed, 0, false);
-        SpeedProfile bestProfile = p;
-        int bestPrio;
-        float bestObstacleTime;
-        float endTime;
-        std::tie(bestPrio, bestObstacleTime, endTime) = trajectoryObstacleScore(input, p);
-        bool foundValid = endTime > 0;
-
-        if (!foundValid) {
-            bestPrio = 10000;
-            bestObstacleTime = 10000;
-        }
-        float bestEndTime = endTime;
+        SpeedProfile bestProfile = AlphaTimeTrajectory::calculateTrajectory(input.v0, Vector(0, 0), m_bestEscapingTime, m_bestEscapingAngle,
+                                                                            input.acceleration, input.maxSpeed, 0, false);
+        auto bestRating = rateEscapingTrajectory(input, bestProfile);
         for (int i = 0;i<25;i++) {
             float time, angle;
             if (m_rng->uniformInt() % 2 == 0) {
                 // random sampling
-                if (!foundValid) {
+                if (!bestRating.endsSafely) {
                     time = m_rng->uniformFloat(0.001f, 6.0f);
                 } else {
                     time = m_rng->uniformFloat(0.001f, 2.0f);
@@ -57,30 +64,23 @@ bool EscapeObstacleSampler::compute(const TrajectoryInput &input)
                 angle = m_bestEscapingAngle + m_rng->uniformFloat(-0.1f, 0.1f);
             }
 
-            p = AlphaTimeTrajectory::calculateTrajectory(input.v0, Vector(0, 0), time, angle, input.acceleration, input.maxSpeed, 0, false);
-            if (p.isValid()) {
-                int prio;
-                float obstacleTime;
-                std::tie(prio, obstacleTime, endTime) = trajectoryObstacleScore(input, p);
-                if ((prio < bestPrio || (prio == bestPrio && obstacleTime < bestObstacleTime)) && endTime >= 0) {
-                    bestPrio = prio;
-                    bestProfile = p;
-                    bestObstacleTime = obstacleTime;
-                    m_bestEscapingTime = time;
-                    m_bestEscapingAngle = angle;
-                    bestEndTime = endTime;
-                    foundValid = true;
-                }
+            SpeedProfile profile = AlphaTimeTrajectory::calculateTrajectory(input.v0, Vector(0, 0), time, angle, input.acceleration, input.maxSpeed, 0, false);
+            auto rating = rateEscapingTrajectory(input, profile);
+            if (rating.isBetterThan(bestRating)) {
+                bestRating = rating;
+                bestProfile = profile;
+                m_bestEscapingTime = time;
+                m_bestEscapingAngle = angle;
             }
         }
-        m_maxIntersectingObstaclePrio = bestPrio;
+        m_maxIntersectingObstaclePrio = bestRating.maxPrio;
 
         m_generationInfo.clear();
-        if (!foundValid) {
+        if (!bestRating.endsSafely) {
             return false;
         }
         TrajectoryGenerationInfo info;
-        bestProfile.limitToTime(bestEndTime);
+        bestProfile.limitToTime(bestRating.escapeTime);
         info.profile = bestProfile;
         info.desiredDistance = bestProfile.endPos();
         m_generationInfo.push_back(info);
@@ -88,29 +88,21 @@ bool EscapeObstacleSampler::compute(const TrajectoryInput &input)
     return true;
 }
 
-std::tuple<int, float, float> EscapeObstacleSampler::trajectoryObstacleScore(const TrajectoryInput &input, const SpeedProfile &speedProfile)
+auto EscapeObstacleSampler::rateEscapingTrajectory(const TrajectoryInput &input, const SpeedProfile &speedProfile) const -> TrajectoryRating
 {
     const float OUT_OF_OBSTACLE_TIME = 0.1f;
     const float LONG_OUF_OF_OBSTACLE_TIME = 1.5f; // used when the trajectory has not yet intersected any obstacle
-    float totalTime = speedProfile.time();
     const float SAMPLING_INTERVAL = 0.03f;
+
+    const float totalTime = speedProfile.time();
     int samples = int(totalTime / SAMPLING_INTERVAL) + 1;
 
-    int currentBestObstaclePrio = -1;
-    float currentBestObstacleTime = 0;
-    float minStaticObstacleDistance = std::numeric_limits<float>::max();
+    TrajectoryRating result;
 
     int goodSamples = 0;
-    float fineTime = 0;
-    int lastObstaclePrio = -1;
-    bool foundPointInObstacle = false;
+    float fineTime = totalTime;
     for (int i = 0;i<samples;i++) {
-        float time;
-        if (i < samples-1) {
-            time = i * SAMPLING_INTERVAL;
-        } else {
-            time = totalTime;
-        }
+        float time = i * SAMPLING_INTERVAL;
 
         Vector pos = speedProfile.positionAndSpeedForTime(time).first + input.s0;
         int obstaclePriority = -1;
@@ -120,7 +112,10 @@ std::tuple<int, float, float> EscapeObstacleSampler::trajectoryObstacleScore(con
         for (const auto obstacle : m_world.obstacles()) {
             if (obstacle->prio > obstaclePriority) {
                 float distance = obstacle->distance(pos);
-                minStaticObstacleDistance = std::min(minStaticObstacleDistance, distance);
+                if (result.maxPrio == -1) {
+                    // when the trajectory does not intersect any obstacles, we want to stay as far away as possible from them
+                    result.maxPrioTime = std::min(result.maxPrioTime, distance);
+                }
                 if (distance < 0) {
                     obstaclePriority = obstacle->prio;
                 }
@@ -133,37 +128,34 @@ std::tuple<int, float, float> EscapeObstacleSampler::trajectoryObstacleScore(con
         }
         if (obstaclePriority == -1) {
             goodSamples++;
-            float boundaryTime = foundPointInObstacle ? OUT_OF_OBSTACLE_TIME : LONG_OUF_OF_OBSTACLE_TIME;
-            if (goodSamples > boundaryTime * (1.0f / SAMPLING_INTERVAL) && fineTime == 0) {
+            float boundaryTime = result.maxPrio >= 0 ? OUT_OF_OBSTACLE_TIME : LONG_OUF_OF_OBSTACLE_TIME;
+            if (goodSamples > boundaryTime * (1.0f / SAMPLING_INTERVAL) && fineTime == totalTime) {
                 fineTime = time;
             }
             if (goodSamples > LONG_OUF_OF_OBSTACLE_TIME * (1.0f / SAMPLING_INTERVAL)) {
+                result.endsSafely = true;
                 break;
             }
         } else {
-            foundPointInObstacle = true;
             goodSamples = 0;
         }
-        if (obstaclePriority > currentBestObstaclePrio) {
-            currentBestObstaclePrio = obstaclePriority;
-            currentBestObstacleTime = 0;
+        if (obstaclePriority > result.maxPrio) {
+            result.maxPrio = obstaclePriority;
+            result.maxPrioTime = 0;
         }
-        if (obstaclePriority == currentBestObstaclePrio) {
+        if (obstaclePriority == result.maxPrio) {
             if (i == samples-1) {
                 // strong penalization for stopping in an obstacle
-                currentBestObstacleTime += 10;
+                result.maxPrioTime += 10;
             } else {
-                currentBestObstacleTime += SAMPLING_INTERVAL;
+                result.maxPrioTime += SAMPLING_INTERVAL;
             }
         }
-        lastObstaclePrio = obstaclePriority;
     }
-    if (fineTime == 0) {
-        fineTime = totalTime;
-    }
-    if (currentBestObstaclePrio == -1) {
-        return std::make_tuple(-1, minStaticObstacleDistance, fineTime);
+    if (result.maxPrio == -1) {
+        result.escapeTime = OUT_OF_OBSTACLE_TIME;
     } else {
-        return std::make_tuple(currentBestObstaclePrio, currentBestObstacleTime, lastObstaclePrio == -1 ? fineTime : -1);
+        result.escapeTime = fineTime;
     }
+    return result;
 }

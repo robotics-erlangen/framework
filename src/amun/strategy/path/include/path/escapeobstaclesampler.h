@@ -35,14 +35,19 @@ public:
     int m_maxIntersectingObstaclePrio = -1;
 
 private:
-    std::tuple<int, float, float> trajectoryObstacleScore(const TrajectoryInput &input, const SpeedProfile &speedProfile);
+    struct TrajectoryRating {
+        int maxPrio = -1;
+        float maxPrioTime = 100000;
+        bool endsSafely = false; // if the trajectory ends in a safe point
+        float escapeTime = 0; // the point in time where the trajectory is safe to leave
+
+        bool isBetterThan(const TrajectoryRating &other);
+    };
+    TrajectoryRating rateEscapingTrajectory(const TrajectoryInput &input, const SpeedProfile &speedProfile) const;
 
 private:
     float m_bestEscapingTime = 2;
     float m_bestEscapingAngle = 0.5f;
-
-    float m_bestStoppingTime = 2;
-    float m_bestStoppingAngle = 0.5f;
 
     std::vector<TrajectoryGenerationInfo> m_generationInfo;
 };
