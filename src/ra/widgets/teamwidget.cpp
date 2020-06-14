@@ -80,7 +80,7 @@ void TeamWidget::init(amun::StatusStrategyWrapper::StrategyType type)
     m_entryPoints = new QMenu(this);
 
     m_btnOpen = new QToolButton;
-    m_btnOpen->setText("Strategy disabled");
+    m_btnOpen->setText("Disabled");
     m_btnOpen->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     m_btnOpen->setMenu(m_scriptMenu);
     m_btnOpen->setPopupMode(QToolButton::InstantPopup);
@@ -89,7 +89,7 @@ void TeamWidget::init(amun::StatusStrategyWrapper::StrategyType type)
 
     m_btnEntryPoint = new QToolButton;
     m_btnEntryPoint->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-    m_btnEntryPoint->setText("<no entrypoint>");
+    m_btnEntryPoint->setText("<n/a>");
     m_btnEntryPoint->setVisible(false);
     m_btnEntryPoint->setPopupMode(QToolButton::InstantPopup);
     m_btnEntryPoint->setMenu(m_entryPoints);
@@ -229,7 +229,7 @@ void TeamWidget::handleStatus(const Status &status)
             m_btnEntryPoint->setText(shortEntryPoint);
         } else {
             m_entryPoint = QString();
-            m_btnEntryPoint->setText("<no entrypoint>");
+            m_btnEntryPoint->setText("<n/a>");
         }
 
         // strategy name
@@ -240,7 +240,7 @@ void TeamWidget::handleStatus(const Status &status)
         m_compiling = false;
         switch (strategy->state()) {
         case amun::StatusStrategy::CLOSED:
-            m_btnOpen->setText("Strategy disabled");
+            m_btnOpen->setText("Disabled");
             m_notification = false;
             // clear strategy information
             m_filename = QString();
