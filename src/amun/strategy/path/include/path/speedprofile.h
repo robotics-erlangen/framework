@@ -113,6 +113,11 @@ public:
         return Vector(xProfile.profile[xProfile.counter / 2].v, yProfile.profile[yProfile.counter / 2].v);
     }
 
+    Vector initialAcceleration() const {
+        return Vector((xProfile.profile[1].v - xProfile.profile[0].v) / (xProfile.profile[1].t - xProfile.profile[0].t),
+                (yProfile.profile[1].v - yProfile.profile[0].v) / (yProfile.profile[1].t - yProfile.profile[0].t));
+    }
+
     // only works properly for trajectories without slowdown
     void limitToTime(float time) {
         xProfile.limitToTime(time);

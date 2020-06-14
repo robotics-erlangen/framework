@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2019 Andreas Wendler                                        *
+ *   Copyright 2020 Andreas Wendler                                        *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,39 +18,31 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef ESCAPEOBSTACLESAMPLER_H
-#define ESCAPEOBSTACLESAMPLER_H
+#ifndef MULTIESCAPESAMPLER_H
+#define MULTIESCAPESAMPLER_H
 
 #include "trajectorysampler.h"
+#include "escapeobstaclesampler.h"
+
 #include <vector>
 
-class EscapeObstacleSampler : public TrajectorySampler
+class RNG;
+
+class MultiEscapeSampler : public TrajectorySampler
 {
 public:
-    EscapeObstacleSampler(RNG *rng, const WorldInformation &world, PathDebug &debug) : TrajectorySampler(rng, world, debug) {}
+    MultiEscapeSampler(RNG *rng, const WorldInformation &world, PathDebug &debug);
+
     bool compute(const TrajectoryInput &input) override;
-    const std::vector<TrajectoryGenerationInfo> &getResult() const override { return m_generationInfo; }
-    int getMaxIntersectingObstaclePrio() const { return m_maxIntersectingObstaclePrio; }
-    void resetMaxIntersectingObstaclePrio() { m_maxIntersectingObstaclePrio = -1; }
+    const std::vector<TrajectoryGenerationInfo> &getResult() const override;
+    int getMaxIntersectingObstaclePrio() const;
+    void resetMaxIntersectingObstaclePrio();
 
 private:
-    struct TrajectoryRating {
-        int maxPrio = -1;
-        float maxPrioTime = 100000;
-        bool endsSafely = false; // if the trajectory ends in a safe point
-        float escapeTime = 0; // the point in time where the trajectory is safe to leave
+    EscapeObstacleSampler m_zeroV0Sampler;
+    EscapeObstacleSampler m_regularSampler;
 
-        bool isBetterThan(const TrajectoryRating &other);
-    };
-    TrajectoryRating rateEscapingTrajectory(const TrajectoryInput &input, const SpeedProfile &speedProfile) const;
-
-private:
-    float m_bestEscapingTime = 2;
-    float m_bestEscapingAngle = 0.5f;
-
-    int m_maxIntersectingObstaclePrio = -1;
-
-    std::vector<TrajectoryGenerationInfo> m_generationInfo;
+    bool m_resultIsZeroV0 = false;
 };
 
-#endif // ESCAPEOBSTACLESAMPLER_H
+#endif // MULTIESCAPESAMPLER_H

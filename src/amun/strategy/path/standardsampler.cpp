@@ -104,7 +104,7 @@ void StandardSampler::computeLive(const TrajectoryInput &input, const StandardSa
         Vector speed;
         float angle, time;
         if (mode == TOTAL_RANDOM) {
-            if (rand() % 2 == 0) {
+            if (m_rng->uniformInt() % 2 == 0) {
                 speed = defaultSpeed;
             } else {
                 speed = randomSpeed(input.maxSpeed);
@@ -167,7 +167,6 @@ void StandardSampler::computePrecomputed(const TrajectoryInput &input)
                 }
                 checkSample(input, denormalized, m_bestResultInfo.time);
             }
-            m_debug.debug(QString("trajectory/%1/time").arg(m_world.robotId()), m_bestResultInfo.time);
             break;
         }
     }

@@ -91,7 +91,7 @@ std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPat
 {
     const auto &obstacles = m_world.obstacles();
 
-    m_escapeObstacleSampler.m_maxIntersectingObstaclePrio = -1;
+    m_escapeObstacleSampler.resetMaxIntersectingObstaclePrio();
 
     m_world.addToAllStaticObstacleRadius(m_world.radius());
     m_world.collectObstacles();
