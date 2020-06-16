@@ -24,15 +24,18 @@
 
 #include <math.h>
 
-class RNGTest :  public testing::Test{
-public:
-    RNGTest(): seed(155), r(seed) {}
-
-protected:
+struct RNGData {
+    explicit RNGData(int s): seed(s), r(seed) {}
     int seed;
     RNG r;
+};
+
+class RNGTest :  public testing::Test, public RNGData{
+public:
+    RNGTest(): RNGData(155) {}
 
 };
+
 
 
 TEST_F(RNGTest, uniformBounds) {
@@ -300,4 +303,41 @@ TEST_F(RNGTest, multipleIndependendUniform) {
             KSTest(runs, [&arr, i, j, &cnt](){auto first = arr[i][cnt]; auto snd = arr[j][cnt]; cnt++; return first + snd;}, F2_uniform);
         }
     }
+}
+
+TEST_F(RNGTest, differentSeeds) {
+    RNGData other(17);
+    const int runs = 10'000;
+    KSTest(runs, [&other, this](){auto first = this->r.uniform(); auto snd = other.r.uniform(); return first + snd;}, F2_uniform);
+    KSTest(runs, [&other, this](){auto first = this->r.normalVector(2, .25); auto snd = other.r.normalVector(5, .25); return first.x + first.y + snd.x + snd.y;},
+            F_gaussian(1.0, std::sqrt(2*2 + 2*2 + 5*5 + 5*5)));
+}
+
+TEST_F(RNGTest, seed0) {
+    // contrary to all other seeds, RNG(0)
+    // uses currentTimeOfDay (and therefore does not work for unittests)
+    //
+    // BUT: r.seed(0) does not have this functionality and has to work deterministicly.
+
+
+    const int runs = 10'000;
+    std::vector<double> arr[2];
+    arr[0].reserve(runs);
+    arr[1].reserve(runs);
+
+    for(int i=0; i < 2; ++i) {
+        r.seed(0);
+        for(int j=0; j < runs; ++j){
+            arr[i].push_back(r.uniform());
+        }
+    }
+
+    for(int j=0; j < runs; ++j){
+        EXPECT_EQ(arr[0][j], arr[1][j]);
+    }
+
+    std::vector<double>* ptr = arr;
+
+    int cnt = 0;
+    KSTest(runs, [ptr, &cnt](){return ptr[0][cnt++];}, F_uniform);
 }
