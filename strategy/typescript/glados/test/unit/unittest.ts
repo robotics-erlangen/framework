@@ -159,11 +159,12 @@ export class UnitTest {
 		}
 	}
 
-	protected assert_less_than(a: number, b: number) {
+	protected assert_less_than(a: number, b: number, lazyString?: () => string) {
 		this.assert_not_nan(a);
 		this.assert_not_nan(b);
 		if (a >= b) {
-			throw new Error(`Assert failed: ${a} is not less than ${b}`);
+			lazyString = lazyString || (() => "");
+			throw new Error(`Assert failed: ${a} is not less than ${b}: ${lazyString()}`);
 		}
 	}
 
