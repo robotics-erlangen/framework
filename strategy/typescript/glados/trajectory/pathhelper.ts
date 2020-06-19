@@ -77,7 +77,7 @@ function addFriendlyDefenseAreaObstacle(path: Path, robot: FriendlyRobot) {
 					G.FriendlyGoal.x + G.DefenseStretch / 2, G.FriendlyGoal.y,
 					G.DefenseRadius + POSITION_PADDING, "DefenseArea", Priorities.DEFENSE_AREA);
 		}
-		if (geom.insideRect(_GoalAreaFriendly[0], _GoalAreaFriendly[1], robot.pos) || Field.isInFriendlyDefenseArea(robot.pos, robot.radius * 2)) {
+		if (geom.insideRect(_GoalAreaFriendly[0], _GoalAreaFriendly[1], robot.pos) || Field.isInFriendlyDefenseArea(robot.pos, robot.radius)) {
 			path.addRect(_GoalAreaFriendly[0].x, _GoalAreaFriendly[0].y, _GoalAreaFriendly[1].x, _GoalAreaFriendly[1].y, "EvacuateGoal", Priorities.EVACUATE_GOAL);
 		}
 	}
