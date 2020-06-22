@@ -1,3 +1,4 @@
+import * as debug from "base/debug";
 import * as Referee from "base/referee";
 import { FriendlyRobot } from "base/robot";
 import * as vis from "base/vis";
@@ -35,6 +36,8 @@ export class Roles {
 			}
 		}
 
+		debug.pushtop("Exclusive Role Rating");
+
 		let exclusiveRoles: Map<ExclusiveRole, FriendlyRobot> = new Map<ExclusiveRole, FriendlyRobot>(); // ensure that special roles are removed if no one applies
 		for (let [role, applications] of roleApplications.entries()) {
 			if (this._exclusiveRoles.has(role) && applications.has(this._exclusiveRoles[role]!)) {
@@ -45,6 +48,11 @@ export class Roles {
 					}
 				}
 			}
+			debug.push(MessageType[role]);
+			for (let [robot, application] of applications.entries()) {
+				debug.set("" + (robot.id), application._ratingArray);
+			}
+			debug.pop(); // role
 			let bestRobot = LeveledRating.findBestRating(applications);
 			if (bestRobot) {
 				exclusiveRoles[role] = bestRobot;
@@ -54,6 +62,9 @@ export class Roles {
 					World.TeamIsBlue ? vis.colors.blue : vis.colors.yellow, true, true);
 			}
 		}
+
+		debug.pop(); // exclusive role rating
+
 		this._exclusiveRoles = exclusiveRoles;
 	}
 }
