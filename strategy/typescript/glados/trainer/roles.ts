@@ -31,7 +31,7 @@ export class Roles {
 				if (!roleApplications.has(role)) {
 					roleApplications[role] = new Map<FriendlyRobot, LeveledRating>();
 				}
-				roleApplications[role]!.set(robot, rating);
+				roleApplications[role]!.set(robot, LeveledRating.clone(rating));
 			}
 		}
 

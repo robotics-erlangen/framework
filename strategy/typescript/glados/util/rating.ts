@@ -33,15 +33,22 @@ export class LeveledRating {
 	_ratingArray: (number | undefined)[];
 	_maxFilled: number = -1;
 
-	constructor(type: MessageType) {
-		if (Levels.has(type)) {
-			this._ratingArray = new Array(Levels[type]!);
-			this.clear();
+	constructor(type: MessageType);
+	constructor(type: undefined, customNumLevels: number);
+	constructor(type: MessageType | undefined, customNumLevels: number | undefined = undefined) {
+		let length = 0;
+
+		if (type !== undefined && Levels.has(type)) {
+			length = Levels[type]!;
+		} else if (customNumLevels !== undefined) {
+			length = customNumLevels;
 		} else {
 			// todo
 			this._ratingArray = new Array(0);
 			throw new Error("MessageType not implemented: " + type);
 		}
+		this._ratingArray = new Array(length);
+		this.clear();
 	}
 
 	public setRating(level: number, v : number) {
@@ -53,6 +60,15 @@ export class LeveledRating {
 	public clear() {
 		this._ratingArray.fill(undefined);
 		this._maxFilled = -1;
+	}
+
+	public static clone(rating: ReadonlyRec<LeveledRating>): LeveledRating {
+		let result = new LeveledRating(undefined, rating._ratingArray.length);
+		result._maxFilled = rating._maxFilled;
+		for (let i = 0;i < rating._ratingArray.length;i++) {
+			result._ratingArray[i] = rating._ratingArray[i];
+		}
+		return result;
 	}
 
 	public static findBestRating<T>(ratings: Map<T, LeveledRating>) : T | undefined {
