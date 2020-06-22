@@ -19,8 +19,8 @@ export class Trainer {
 		this._roles = new Roles(this._messaging);
 	}
 
-	_debugInbox(str?: string) {
-		debug.pushtop(str || "Trainer Inbox");
+	_debugInbox(str: string) {
+		debug.pushtop(str);
 		for (let type of MessageTypeList) {
 			let messages = this._messaging.receiveGeneric(type);
 			if (messages.size > 0) {
@@ -35,9 +35,8 @@ export class Trainer {
 	}
 
 	run() {
-		this._debugInbox("Preliminary Trainer Inbox");
+		this._debugInbox("Trainer Inbox");
 		this._roles._chooseExclusiveRoles();
 		this._groups._runGroups();
-		this._debugInbox();
 	}
 }
