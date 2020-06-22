@@ -1,3 +1,4 @@
+import * as debug from "base/debug";
 import { FriendlyRobot, Robot } from "base/robot";
 import { Position, RelativePosition } from "base/vector";
 
@@ -221,6 +222,19 @@ export class MessageBox {
 		this.sendGeneric(type, "all", data, false);
 	}
 
+	// for trainer -> trainer messages
+	private debugTrainerMessage(type: MessageType, data: any, repeated: boolean, messageCount: number) {
+		debug.pushtop("Trainer -> Trainer Inbox");
+		if (repeated) {
+			debug.push(MessageType[type]);
+			debug.set("" + (messageCount - 1), data);
+			debug.pop(); // message type
+		} else {
+			debug.set(MessageType[type], data);
+		}
+		debug.pop(); // Trainer -> Trainer Inbox
+	}
+
 	// TODO: more specific send methods for the different cases to improve performance
 	private sendGeneric(type: MessageType, receiver: "all" | "trainer" | FriendlyRobot, data: any, repeated: boolean) {
 		// although a sender is adressing a robot, a message is delivered
@@ -232,6 +246,7 @@ export class MessageBox {
 				return; // not registered yet
 			}
 		}
+
 		let messageBox = this.messaging._newMessages[type];
 		if (messageBox == undefined) {
 			messageBox = new Map<MessageOrigin, any>();
@@ -244,15 +259,22 @@ export class MessageBox {
 		}
 		let senderRobot = (this.origin === "trainer") ? "trainer" : this.origin;
 
+		let messageCount = 0;
 		if (repeated) {
 			let collection = receiveBox.get(senderRobot);
 			if (collection == undefined) {
 				collection = [];
 			}
 			collection.push(data);
+			messageCount = collection.length;
 			receiveBox.set(senderRobot, collection);
 		} else {
 			receiveBox.set(senderRobot, data);
+		}
+
+		// debug messages from the trainer to itself directly, since they can be immediately received
+		if (receiver === "trainer" && this.origin === "trainer") {
+			this.debugTrainerMessage(type, data, repeated, messageCount);
 		}
 	}
 
