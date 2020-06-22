@@ -241,7 +241,7 @@ export function choosePass(robot: FriendlyRobot, passes: PassObject[], earliestA
  * @param customHysteresis optional: sets the hysteresis bonus, defaults to 0.1
  * @returns the best pass object
  */
-export function choosePassFromSuggestions(robot: FriendlyRobot, passSuggestions: Map<FriendlyRobot, PassSuggestion>,
+export function choosePassFromSuggestions(robot: FriendlyRobot, passSuggestions: ReadonlyRec<Map<FriendlyRobot, PassSuggestion>>,
 		earliestAttackTime: number | undefined, currentPassPos?: Position,
 		considerTiming?: boolean, customHysteresis?: number): [PassObject | undefined, number] {
 	let passes: PassObject[] = [];
@@ -270,7 +270,7 @@ function sortByRating(a: {rating: number}, b: {rating: number}): number {
  * @param customHysteresis optional: sets the hysteresis bonus, defaults to 0.1
  * @returns list of passes, sorted by their rating
  */
-export function sortPassesFromSuggestions(robot: FriendlyRobot, passSuggestions: Map<FriendlyRobot, PassSuggestion>,
+export function sortPassesFromSuggestions(robot: FriendlyRobot, passSuggestions: ReadonlyRec<Map<FriendlyRobot, PassSuggestion>>,
 		earliestAttackTime: number | undefined, currentPassPositions: Position[] | undefined,
 		considerTiming: boolean, threshold: number = 0.5, customHysteresis: number = 0.1) {
 	let passes: (PassObject & {rating: number})[] = [];
@@ -330,7 +330,7 @@ let lastCPMATime = 0;
  * @param passInfoTable passInfo, for format details see messaging.ts
  * @returns the main attacker that receives a pass, or undefined
  */
-function _currentPlannedMainAttacker(passInfoSender: FriendlyRobot | undefined, passInfoTable: PassInfo[]): FriendlyRobot | undefined {
+function _currentPlannedMainAttacker(passInfoSender: FriendlyRobot | undefined, passInfoTable: Readonly<PassInfo[]>): FriendlyRobot | undefined {
 
 	if (World.Time - lastCPMATime > 0.2) {
 		lastCPMA = undefined;
@@ -417,8 +417,8 @@ export function shootGoalViewPos(shootDest: Position, attackPos: Position): Posi
 // Attack.checkForGoalShot = Cache.forFrame(Attack.checkForGoalShot)
 
 const BUFFER_TIME = 0.8;
-function printPassInfo(robot: {shootRadius: number} & Physics.RobotLike, passInfo: PassInfo | undefined, hysteresis: boolean | undefined,
-		hysteresisPassInfo: PassInfo | undefined) {
+function printPassInfo(robot: {shootRadius: number} & Physics.RobotLike, passInfo: ReadonlyRec<PassInfo> | undefined, hysteresis: boolean | undefined,
+		hysteresisPassInfo: ReadonlyRec<PassInfo> | undefined) {
 	if (passInfo) {
 		let robotPos = passInfo.ballPos + (passInfo.ballPos - World.Ball.pos).withLength(robot.shootRadius + World.Ball.radius);
 		let robotTime = Math.max(Physics.robotTimeToPos(robot, robotPos, new Vector(0, 0))[0], 0.5);
@@ -443,7 +443,8 @@ function printPassInfo(robot: {shootRadius: number} & Physics.RobotLike, passInf
 }
 
 /** The time between the arrival of the robot and the ball */
-function calculatePassInfoTiming(robot: {shootRadius: number} & Physics.RobotLike, passInfo: PassInfo | undefined, passIncoming?: boolean, absRobotTime?: number): number {
+function calculatePassInfoTiming(robot: {shootRadius: number} & Physics.RobotLike, passInfo: ReadonlyRec<PassInfo> | undefined,
+		passIncoming?: boolean, absRobotTime?: number): number {
 	if (passInfo != undefined) {
 		let robotPos = passInfo.ballPos + (passInfo.ballPos - World.Ball.pos).withLength(robot.shootRadius + World.Ball.radius);
 		let robotTime = Math.max(Physics.robotTimeToPos(robot, robotPos, new Vector(0, 0))[0], 0.5, (absRobotTime != undefined ? (absRobotTime - World.Time) : 0));
@@ -466,8 +467,8 @@ function calculatePassInfoTiming(robot: {shootRadius: number} & Physics.RobotLik
  * @param absRobotTime if we have to start to move
  * @returns time until we have to start moving
  */
-function _checkPassInfos(robot: FriendlyRobot, passInfoTable: PassInfo[], lastResult: boolean | undefined, lastPassInfo: PassInfo | undefined,
-		passIncoming?: boolean, absRobotTime?: number): [PassInfo | undefined, boolean, number | undefined] {
+function _checkPassInfos(robot: FriendlyRobot, passInfoTable: ReadonlyRec<PassInfo[]>, lastResult: boolean | undefined, lastPassInfo: ReadonlyRec<PassInfo> | undefined,
+		passIncoming?: boolean, absRobotTime?: number): ReadonlyRec<[PassInfo | undefined, boolean, number | undefined]> {
 	let _relevantPassInfoMessage = relevantPassInfoMessage(robot, passInfoTable);
 	printPassInfo(robot, _relevantPassInfoMessage, lastResult, lastPassInfo);
 	if (_relevantPassInfoMessage == undefined) {
@@ -478,12 +479,12 @@ function _checkPassInfos(robot: FriendlyRobot, passInfoTable: PassInfo[], lastRe
 	}
 }
 
-let checkedPassInfoPerRobot = new Map<FriendlyRobot, {result: boolean, message: PassInfo | undefined}>();
+let checkedPassInfoPerRobot = new Map<FriendlyRobot, {result: boolean, message: ReadonlyRec<PassInfo> | undefined}>();
 
 /**
  * {@link _checkPassInfos }
  */
-export function checkPassInfos(robot: FriendlyRobot, passInfoTable: PassInfo[], passIncoming?: boolean, absRobotTime?: number): [boolean, number | undefined] {
+export function checkPassInfos(robot: FriendlyRobot, passInfoTable: Readonly<PassInfo[]>, passIncoming?: boolean, absRobotTime?: number): [boolean, number | undefined] {
 	let cachedPassInfo = checkedPassInfoPerRobot[robot];
 	let preResult = cachedPassInfo ? cachedPassInfo.result : undefined;
 	let preMessage = cachedPassInfo ? cachedPassInfo.message : undefined;
@@ -523,7 +524,7 @@ export function checkPassInfoFromPosition(robot: FriendlyRobot, passInfo: PassIn
  * @param passInfoTable all of the passInfos currently being sent out
  * @returns Message relevantPassInfoMessage (the passInfo message that targets the robot), undefined if there isn't one
  */
-export function relevantPassInfoMessage(robot: FriendlyRobot, passInfoTable: PassInfo[]): PassInfo | undefined {
+export function relevantPassInfoMessage(robot: FriendlyRobot, passInfoTable: ReadonlyRec<PassInfo[]>): ReadonlyRec<PassInfo> | undefined {
 	let relevantPassInfoMessage = undefined;
 	if (passInfoTable != undefined) {
 		for (let passInfo of passInfoTable) {
@@ -562,7 +563,7 @@ let lastIPIUpdateTime = new Map<FriendlyRobot, number>();
  * @param passInfo passInfo-Message
  * @returns last passInfo-Message
  */
-export function lastIncomingPassInfo(robot: FriendlyRobot, passInfo: [FriendlyRobot, PassInfo[]] | []) {
+export function lastIncomingPassInfo(robot: FriendlyRobot, passInfo: ReadonlyRec<[FriendlyRobot, PassInfo[]] | []>) {
 	let incomingPassInfo = undefined;
 	let passInfoTable = passInfo[1];
 
