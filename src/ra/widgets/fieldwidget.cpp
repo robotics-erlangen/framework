@@ -225,15 +225,20 @@ FieldWidget::FieldWidget(QWidget *parent) :
     QAction *actionTrackingFromBlue = trackingFromMenu->addAction("Blue");
     actionTrackingFromBlue->setCheckable(true);
 
+    QAction *actionTrackingFromNone = trackingFromMenu->addAction("None");
+    actionTrackingFromNone->setCheckable(true);
+
     QSignalMapper *trackingMapper = new QSignalMapper(m_contextMenu);
     connect(actionTrackingFromBoth, SIGNAL(triggered()), trackingMapper, SLOT(map()));
     trackingMapper->setMapping(actionTrackingFromBoth, static_cast<int>(TrackingFrom::BOTH));
     connect(actionTrackingFromRef, SIGNAL(triggered()), trackingMapper, SLOT(map()));
     trackingMapper->setMapping(actionTrackingFromRef, static_cast<int>(TrackingFrom::REFEREE));
     connect(actionTrackingFromYellow, SIGNAL(triggered()), trackingMapper, SLOT(map()));
-    trackingMapper->setMapping(actionTrackingFromBlue, static_cast<int>(TrackingFrom::BLUE));
-    connect(actionTrackingFromBlue, SIGNAL(triggered()), trackingMapper, SLOT(map()));
     trackingMapper->setMapping(actionTrackingFromYellow, static_cast<int>(TrackingFrom::YELLOW));
+    connect(actionTrackingFromBlue, SIGNAL(triggered()), trackingMapper, SLOT(map()));
+    trackingMapper->setMapping(actionTrackingFromBlue, static_cast<int>(TrackingFrom::BLUE));
+    connect(actionTrackingFromNone, SIGNAL(triggered()), trackingMapper, SLOT(map()));
+    trackingMapper->setMapping(actionTrackingFromNone, static_cast<int>(TrackingFrom::NONE));
 
     connect(trackingMapper, SIGNAL(mapped(int)), SLOT(setTrackingFrom(int)));
 
@@ -243,9 +248,15 @@ FieldWidget::FieldWidget(QWidget *parent) :
     trackingGroup->addAction(actionTrackingFromRef);
     trackingGroup->addAction(actionTrackingFromYellow);
     trackingGroup->addAction(actionTrackingFromBlue);
+    trackingGroup->addAction(actionTrackingFromNone);
 
     m_trackingFrom = TrackingFrom::BOTH;
     actionTrackingFromBoth->setChecked(true);
+
+    m_actionShowVision = m_contextMenu->addAction("Show vision");
+    m_actionShowVision->setCheckable(true);
+    connect(m_actionShowVision, SIGNAL(toggled(bool)), SLOT(setShowVision(bool)));
+    m_showVision = false;
 
     // create graphics scene
     m_scene = new QGraphicsScene(this);
@@ -788,6 +799,7 @@ void FieldWidget::updateDetection()
         return;
     }
 
+    QSet<uint> cameraIDs{};
     for (int k = 0; k < m_worldState.size(); ++k) {
         if (m_worldState[k].isNull()) {
             continue;
@@ -803,69 +815,62 @@ void FieldWidget::updateDetection()
         invalidateTraces(m_robotYellowTrace, worldState.time());
         invalidateTraces(m_robotYellowRawTrace, worldState.time());
 
-        if (worldState.has_ball()) {
-            if (isLast) {
-                setBall(worldState.ball());
+        if (m_trackingFrom != TrackingFrom::NONE) {
+            if (worldState.has_ball()) {
+                if (isLast) {
+                    setBall(worldState.ball());
+                }
+                addBallTrace(worldState.time(), worldState.ball());
+            } else {
+                m_ball->hide();
             }
-            addBallTrace(worldState.time(), worldState.ball());
+
+            // update the individual robots
+            bool useSimpleBlueTracking = worldState.simple_tracking_blue_size() > 0 && (m_trackingFrom == TrackingFrom::REFEREE || m_trackingFrom == TrackingFrom::YELLOW);
+            for (int i = 0; i < worldState.blue_size(); i++) {
+                const world::Robot &robot = useSimpleBlueTracking ? worldState.simple_tracking_blue(i) : worldState.blue(i);
+                const robot::Specs &specs = m_teamBlue[robot.id()];
+                if (isLast) {
+                    setRobot(robot, specs, m_robotsBlue, Qt::blue);
+                }
+                addRobotTrace(worldState.time(), robot, m_robotBlueTrace, m_robotBlueRawTrace);
+            }
+
+            bool useSimpleYellowTracking = worldState.simple_tracking_yellow_size() > 0 && (m_trackingFrom == TrackingFrom::REFEREE || m_trackingFrom == TrackingFrom::BLUE);
+            for (int i = 0; i < worldState.yellow_size(); i++) {
+                const world::Robot &robot = useSimpleYellowTracking ? worldState.simple_tracking_yellow(i) : worldState.yellow(i);
+                const robot::Specs &specs = m_teamYellow[robot.id()];
+                if (isLast) {
+                    setRobot(robot, specs, m_robotsYellow, Qt::yellow);
+                }
+                addRobotTrace(worldState.time(), robot, m_robotYellowTrace, m_robotYellowRawTrace);
+            }
         } else {
             m_ball->hide();
         }
-
-        // update the individual robots
-        bool useSimpleBlueTracking = worldState.simple_tracking_blue_size() > 0 && (m_trackingFrom == TrackingFrom::REFEREE || m_trackingFrom == TrackingFrom::YELLOW);
-        for (int i = 0; i < worldState.blue_size(); i++) {
-            const world::Robot &robot = useSimpleBlueTracking ? worldState.simple_tracking_blue(i) : worldState.blue(i);
-            const robot::Specs &specs = m_teamBlue[robot.id()];
-            if (isLast) {
-                setRobot(robot, specs, m_robotsBlue, Qt::blue);
-            }
-            addRobotTrace(worldState.time(), robot, m_robotBlueTrace, m_robotBlueRawTrace);
-        }
-
-        bool useSimpleYellowTracking = worldState.simple_tracking_yellow_size() > 0 && (m_trackingFrom == TrackingFrom::REFEREE || m_trackingFrom == TrackingFrom::BLUE);
-        for (int i = 0; i < worldState.yellow_size(); i++) {
-            const world::Robot &robot = useSimpleYellowTracking ? worldState.simple_tracking_yellow(i) : worldState.yellow(i);
-            const robot::Specs &specs = m_teamYellow[robot.id()];
-            if (isLast) {
-                setRobot(robot, specs, m_robotsYellow, Qt::yellow);
-            }
-            addRobotTrace(worldState.time(), robot, m_robotYellowTrace, m_robotYellowRawTrace);
-        }
         
-        for (int i = 0; i < worldState.vision_frames_size(); ++i) {
-            const SSL_WrapperPacket wrapper = worldState.vision_frames(i);
-            if (wrapper.has_detection()) {
-                for (int j = 0; j < wrapper.detection().balls_size(); ++j) {
-                    SSL_DetectionBall b = wrapper.detection().balls(j);
-                    setDetectedBall(b, j);
-                }
-                for (int j = wrapper.detection().balls_size(); j < m_detectedBalls.size(); ++j) {
-                    m_detectedBalls[j]->hide();
-                }
-
-                QMap<uint, int> idCounter{};
-                for (int j = 0; j < wrapper.detection().robots_blue_size(); ++j) {
-                    SSL_DetectionRobot r = wrapper.detection().robots_blue(j);
-                    const robot::Specs &specs = m_teamBlue[r.robot_id()];
-                    setDetectedRobot(r, specs, m_detectedRobotsBlue, idCounter, Qt::blue);
-                }
-
-                for (int j = 0; j < wrapper.detection().robots_yellow_size(); ++j) {
-                    SSL_DetectionRobot r = wrapper.detection().robots_yellow(j);
-                    const robot::Specs &specs = m_teamYellow[r.robot_id()];
-                    setDetectedRobot(r, specs, m_detectedRobotsYellow, idCounter, Qt::yellow);
-                }
-
-                for (auto &robots : m_detectedRobotsBlue) {
-                    for (auto &r : robots) {
-                        r.tryHide();
+        if (m_showVision) {
+            m_visionCurrentlyDisplayed = true;
+            for (int i = 0; i < worldState.vision_frames_size(); ++i) {
+                if (worldState.vision_frames(i).has_detection()) {
+                    const SSL_DetectionFrame &detection = worldState.vision_frames(i).detection();
+                    uint cameraID = detection.camera_id();
+                    cameraIDs.insert(cameraID);
+                    for (int j = 0; j < detection.balls_size(); ++j) {
+                        const SSL_DetectionBall &b = detection.balls(j);
+                        setVisionBall(b, cameraID, j);
                     }
-                }
 
-                for (auto &robots : m_detectedRobotsYellow) {
-                    for (auto &r : robots) {
-                        r.tryHide();
+                    for (int j = 0; j < detection.robots_blue_size(); ++j) {
+                        const SSL_DetectionRobot &r = detection.robots_blue(j);
+                        const robot::Specs &specs = m_teamBlue[r.robot_id()];
+                        setVisionRobot(r, specs, m_visionRobotsBlue[cameraID], Qt::blue);
+                    }
+
+                    for (int j = 0; j < detection.robots_yellow_size(); ++j) {
+                        const SSL_DetectionRobot &r = detection.robots_yellow(j);
+                        const robot::Specs &specs = m_teamYellow[r.robot_id()];
+                        setVisionRobot(r, specs, m_visionRobotsYellow[cameraID], Qt::yellow);
                     }
                 }
             }
@@ -881,16 +886,62 @@ void FieldWidget::updateDetection()
     finishInvalidateTraces(m_robotYellowRawTrace);
 
     // hide robots that are no longer tracked
-    for(RobotMap::iterator it = m_robotsBlue.begin(); it != m_robotsBlue.end(); ++it) {
-        it.value().tryHide();
+    for(auto &robot : m_robotsBlue) {
+        robot.tryHide();
     }
 
-    for(RobotMap::iterator it = m_robotsYellow.begin(); it != m_robotsYellow.end(); ++it) {
-        it.value().tryHide();
+    for(auto &robot : m_robotsYellow) {
+        robot.tryHide();
+    }
+
+    for (uint cameraID : cameraIDs) {
+        for (auto &robots : m_visionRobotsBlue[cameraID]) {
+            for (auto &r : robots) {
+                r.tryHide();
+            }
+        }
+        for (auto &robots : m_visionRobotsYellow[cameraID]) {
+            for (auto &r : robots) {
+                r.tryHide();
+            }
+        }
+        for (auto &b : m_visionBalls[cameraID]) {
+            if (!b.seenThisFrame) {
+                b.ball->hide();
+            }
+            b.seenThisFrame = false;
+        }
+    }
+
+    if (!m_showVision && m_visionCurrentlyDisplayed) {
+        hideVision();
     }
 
     // prevent applying the world state again
     m_worldState.clear();
+}
+
+void FieldWidget::hideVision() {
+    for (auto &robotMaps : m_visionRobotsBlue) {
+        for (auto &robots : robotMaps) {
+            for (auto &r : robots) {
+                r.tryHide();
+            }
+        }
+    }
+    for (auto &robotMaps : m_visionRobotsYellow) {
+        for (auto &robots : robotMaps) {
+            for (auto &r : robots) {
+                r.tryHide();
+            }
+        }
+    }
+    for (auto &ballList : m_visionBalls) {
+        for (auto &b : ballList) {
+            b.ball->hide();
+        }
+    }
+    m_visionCurrentlyDisplayed = false;
 }
 
 void FieldWidget::setBall(const world::Ball &ball)
@@ -906,23 +957,28 @@ void FieldWidget::setBall(const world::Ball &ball)
     m_ball->show();
 }
 
-void FieldWidget::setDetectedBall(const SSL_DetectionBall &ball, const int index)
+void FieldWidget::setVisionBall(const SSL_DetectionBall &ball, uint cameraID, int ballID)
 {
-    if (m_detectedBalls.size() <= index) {
-        m_detectedBalls.append(new QGraphicsEllipseItem);
-        m_detectedBalls[index]->setPen(Qt::NoPen);
-        m_detectedBalls[index]->setBrush(QColor(200, 0, 200));
-        m_detectedBalls[index]->setZValue(100.0f);
-        m_detectedBalls[index]->setRect(QRectF(-ballRadius, -ballRadius, ballRadius * 2.0f, ballRadius * 2.0f));
-        m_detectedBalls[index]->hide();
-        m_scene->addItem(m_detectedBalls[index]);
-    }
-
     float posX = -ball.y()/1000.0f;
     float posY = ball.x()/1000.0f;
-    m_detectedBalls[index]->setPos(m_virtualFieldTransform.applyPosX(posX, posY), m_virtualFieldTransform.applyPosY(posX, posY));
+    QPointF pos(m_virtualFieldTransform.applyPosX(posX, posY), m_virtualFieldTransform.applyPosY(posX, posY));
 
-    m_detectedBalls[index]->show();
+    // increase number of ball visualizations
+    if (ballID >= m_visionBalls[cameraID].size()) {
+        m_visionBalls[cameraID].append(VisionBall(new QGraphicsEllipseItem));
+        m_visionBalls[cameraID][ballID].ball->setPen(Qt::NoPen);
+        m_visionBalls[cameraID][ballID].ball->setBrush(QColor(150, 0, 250));
+        m_visionBalls[cameraID][ballID].ball->setZValue(100.0f);
+        m_visionBalls[cameraID][ballID].ball->setRect(QRectF(-ballRadius, -ballRadius, ballRadius * 2.0f, ballRadius * 2.0f));
+        m_visionBalls[cameraID][ballID].ball->hide();
+        m_scene->addItem(m_visionBalls[cameraID][ballID].ball);
+    }
+
+
+    m_visionBalls[cameraID][ballID].ball->setPos(pos);
+    m_visionBalls[cameraID][ballID].seenThisFrame = true;
+
+    m_visionBalls[cameraID][ballID].ball->show();
 }
 
 void FieldWidget::addBallTrace(qint64 time, const world::Ball &ball)
@@ -936,6 +992,69 @@ void FieldWidget::addBallTrace(qint64 time, const world::Ball &ball)
     }
 }
 
+void FieldWidget::createRobotItem(Robot &r, const robot::Specs &specs, const QColor &color, const uint id, bool fromVision)
+{
+    r.robot = new QGraphicsPathItem;
+    r.robot->setBrush(Qt::black);
+    r.robot->setPen(Qt::NoPen);
+
+    // team marker
+    QGraphicsEllipseItem *center = new QGraphicsEllipseItem(r.robot);
+    center->setPen(Qt::NoPen);
+    center->setBrush(color);
+    center->setRect(QRectF(-0.025f, -0.025f, 0.05f, 0.05f));
+
+    const QBrush pink("fuchsia");
+    const QBrush green("lime");
+    QBrush brush;
+
+    // team id blobs
+    // positions are as seen in the ssl rules (dribbler is on the upper side)
+    // upper left
+    brush = (id == 0 || id == 3 || id == 4 || id == 7 || id == 9 || id == 10 || id == 14 || id == 15) ? pink : green;
+    addBlob(-0.054772f,  0.035f, brush, r.robot);
+    // lower left
+    brush = (id == 4 || id == 5 || id == 6 || id == 7 || id == 9 || id == 11 || id == 13  || id == 15) ? pink : green;
+    addBlob(-0.035f, -0.054772f, brush, r.robot);
+    // lower right
+    brush = (id == 0 || id == 1 || id == 2 || id == 3 || id == 9 || id == 11 || id == 13  || id == 15) ? pink : green;
+    addBlob( 0.035f, -0.054772f, brush, r.robot);
+    // upper right
+    brush = (id == 0 || id == 1 || id == 4 || id == 5 || id == 9 || id == 10 || id == 12  || id == 13) ? pink : green;
+    addBlob( 0.054772f,  0.035f, brush, r.robot);
+
+    const float angle = specs.has_angle() ? (specs.angle() / M_PI * 180.0f) : 70.0f;
+    const float radius = specs.has_radius() ? specs.radius() : 0.09f;
+    // robot body
+    const QRectF rect(-radius, -radius, radius * 2.0f, radius * 2.0f);
+    QPainterPath path;
+    path.arcMoveTo(rect, angle / 2.0f - 90.0f);
+    path.arcTo(rect, angle / 2.0f - 90.0f, 360.0f - angle);
+    path.closeSubpath();
+    r.robot->setPath(path);
+
+    // id
+    if(!fromVision) {
+        r.robot->setZValue(5.0f);
+
+        QGraphicsSimpleTextItem *text = new QGraphicsSimpleTextItem(QString::number(id));
+        text->setTransform(QTransform::fromScale(0.01, -0.01).rotate(-m_rotation).translate(radius*100, 0), true);
+        text->setBrush(Qt::white);
+        r.id = text;
+
+        r.id->setZValue(11.0f);
+        m_scene->addItem(r.id);
+
+        // just translated
+        r.id->setCacheMode(QGraphicsItem::DeviceCoordinateCache);
+    } else {
+        r.robot->setZValue(6.0f);
+        r.robot->setOpacity(0.5);
+    }
+
+    m_scene->addItem(r.robot);
+}
+
 void FieldWidget::setRobot(const world::Robot &robot, const robot::Specs &specs, RobotMap &robots,
                            const QColor &color)
 {
@@ -943,59 +1062,7 @@ void FieldWidget::setRobot(const world::Robot &robot, const robot::Specs &specs,
     Robot &r = robots[robot.id()];
     // recreate robot body if neccessary
     if (!r.robot) {
-        r.robot = new QGraphicsPathItem;
-        r.robot->setBrush(Qt::black);
-        r.robot->setPen(Qt::NoPen);
-
-        // team marker
-        QGraphicsEllipseItem *center = new QGraphicsEllipseItem(r.robot);
-        center->setPen(Qt::NoPen);
-        center->setBrush(color);
-        center->setRect(QRectF(-0.025f, -0.025f, 0.05f, 0.05f));
-
-        const QBrush pink("fuchsia");
-        const QBrush green("lime");
-        QBrush brush;
-
-        const uint id = robot.id();
-        // team id blobs
-        // positions are as seen in the ssl rules (dribbler is on the upper side)
-        // upper left
-        brush = (id == 0 || id == 3 || id == 4 || id == 7 || id == 9 || id == 10 || id == 14 || id == 15) ? pink : green;
-        addBlob(-0.054772f,  0.035f, brush, r.robot);
-        // lower left
-        brush = (id == 4 || id == 5 || id == 6 || id == 7 || id == 9 || id == 11 || id == 13  || id == 15) ? pink : green;
-        addBlob(-0.035f, -0.054772f, brush, r.robot);
-        // lower right
-        brush = (id == 0 || id == 1 || id == 2 || id == 3 || id == 9 || id == 11 || id == 13  || id == 15) ? pink : green;
-        addBlob( 0.035f, -0.054772f, brush, r.robot);
-        // upper right
-        brush = (id == 0 || id == 1 || id == 4 || id == 5 || id == 9 || id == 10 || id == 12  || id == 13) ? pink : green;
-        addBlob( 0.054772f,  0.035f, brush, r.robot);
-
-        const float angle = specs.has_angle() ? (specs.angle() / M_PI * 180.0f) : 70.0f;
-        const float radius = specs.has_radius() ? specs.radius() : 0.09f;
-        // robot body
-        const QRectF rect(-radius, -radius, radius * 2.0f, radius * 2.0f);
-        QPainterPath path;
-        path.arcMoveTo(rect, angle / 2.0f - 90.0f);
-        path.arcTo(rect, angle / 2.0f - 90.0f, 360.0f - angle);
-        path.closeSubpath();
-        r.robot->setPath(path);
-
-        // id
-        QGraphicsSimpleTextItem *text = new QGraphicsSimpleTextItem(QString::number(id));
-        text->setTransform(QTransform::fromScale(0.01, -0.01).rotate(-m_rotation).translate(radius*100, 0), true);
-        text->setBrush(Qt::white);
-        r.id = text;
-
-        r.robot->setZValue(5.0f);
-        r.id->setZValue(11.0f);
-        m_scene->addItem(r.robot);
-        m_scene->addItem(r.id);
-
-        // just translated
-        r.id->setCacheMode(QGraphicsItem::DeviceCoordinateCache);
+        createRobotItem(r, specs, color, robot.id(), false);
     }
 
     const float phi = robot.phi() * 180 / M_PI - 90.0f;
@@ -1015,82 +1082,35 @@ void FieldWidget::setRobot(const world::Robot &robot, const robot::Specs &specs,
     r.show();
 }
 
-void FieldWidget::setDetectedRobot(const SSL_DetectionRobot &robot, const robot::Specs &specs, QList<RobotMap> &robots,
-                           QMap<uint, int> &idCounter, const QColor &color)
+void FieldWidget::setVisionRobot(const SSL_DetectionRobot &robot, const robot::Specs &specs, QList<RobotMap> &robotMapList, const QColor &color)
 {
+    // looks for robot visualization with that id to avoid unnecessary recreation of objects
+    auto robotMapIt = std::find_if(robotMapList.begin(), robotMapList.end(),
+            [&] (auto &robotMap) {
+                return robotMap.find(robot.robot_id()) != robotMap.end();
+            });
+
     // increase number of robotmaps accordingly
-    int& idCount = idCounter[robot.robot_id()];
-    ++idCount;
-    if (idCount > robots.size()) {
-        robots.append(RobotMap{});
+    if (robotMapIt == robotMapList.end()) {
+        robotMapList.append(RobotMap{});
+        robotMapIt = std::prev(robotMapList.end());
     }
 
+    RobotMap &robotMap = *robotMapIt;
+
     // get robot or create it
-    Robot &r = robots[idCount-1][robot.robot_id()];
+    Robot &r = robotMap[robot.robot_id()];
 
     // recreate robot body if neccessary
     if (!r.robot) {
-        r.robot = new QGraphicsPathItem;
-        r.robot->setBrush(Qt::black);
-        r.robot->setPen(Qt::NoPen);
-
-        // team marker
-        QGraphicsEllipseItem *center = new QGraphicsEllipseItem(r.robot);
-        center->setPen(Qt::NoPen);
-        center->setBrush(color);
-        center->setRect(QRectF(-0.025f, -0.025f, 0.05f, 0.05f));
-
-        const QBrush pink("fuchsia");
-        const QBrush green("lime");
-        QBrush brush;
-
-        const uint id = robot.robot_id();
-        // team id blobs
-        // positions are as seen in the ssl rules (dribbler is on the upper side)
-        // upper left
-        brush = (id == 0 || id == 3 || id == 4 || id == 7 || id == 9 || id == 10 || id == 14 || id == 15) ? pink : green;
-        addBlob(-0.054772f,  0.035f, brush, r.robot);
-        // lower left
-        brush = (id == 4 || id == 5 || id == 6 || id == 7 || id == 9 || id == 11 || id == 13  || id == 15) ? pink : green;
-        addBlob(-0.035f, -0.054772f, brush, r.robot);
-        // lower right
-        brush = (id == 0 || id == 1 || id == 2 || id == 3 || id == 9 || id == 11 || id == 13  || id == 15) ? pink : green;
-        addBlob( 0.035f, -0.054772f, brush, r.robot);
-        // upper right
-        brush = (id == 0 || id == 1 || id == 4 || id == 5 || id == 9 || id == 10 || id == 12  || id == 13) ? pink : green;
-        addBlob( 0.054772f,  0.035f, brush, r.robot);
-
-        const float angle = specs.has_angle() ? (specs.angle() / M_PI * 180.0f) : 70.0f;
-        const float radius = specs.has_radius() ? specs.radius() : 0.09f;
-        // robot body
-        const QRectF rect(-radius, -radius, radius * 2.0f, radius * 2.0f);
-        QPainterPath path;
-        path.arcMoveTo(rect, angle / 2.0f - 90.0f);
-        path.arcTo(rect, angle / 2.0f - 90.0f, 360.0f - angle);
-        path.closeSubpath();
-        r.robot->setPath(path);
-
-        // id
-        QGraphicsSimpleTextItem *text = new QGraphicsSimpleTextItem(QString::number(id));
-        text->setTransform(QTransform::fromScale(0.01, -0.01).rotate(-m_rotation).translate(radius*100, 0), true);
-        text->setBrush(Qt::white);
-        r.id = text;
-
-        r.robot->setZValue(5.0f);
-        r.id->setZValue(11.0f);
-        m_scene->addItem(r.robot);
-        m_scene->addItem(r.id);
-
-        // just translated
-        r.id->setCacheMode(QGraphicsItem::DeviceCoordinateCache);
+        createRobotItem(r, specs, color, robot.robot_id(), true);
     }
 
-    const float phi = robot.orientation() * 180 / M_PI - 90.0f;
-    float posX = m_virtualFieldTransform.applyPosX(-robot.y()/1000.0f, robot.x()/1000.0f);
-    float posY = m_virtualFieldTransform.applyPosY(-robot.y()/1000.0f, robot.x()/1000.0f);
-    r.robot->setPos(posX, posY);
+    const float phi = m_virtualFieldTransform.applyAngle(robot.orientation()) * 180 / M_PI;
+
+    const QPointF pos = m_virtualFieldTransform.applyPosition({-robot.y()/1000.0f, robot.x()/1000.0f});
+    r.robot->setPos(pos);
     r.robot->setRotation(phi);
-    r.id->setPos(posX, posY);
 
     r.show();
 }
@@ -2001,7 +2021,9 @@ void FieldWidget::Robot::tryHide()
     // hide robot on second call, without interleaved call to show
     if (!visible) {
         robot->hide();
-        id->hide();
+        if (id != nullptr) {
+            id->hide();
+        }
     }
     visible = false;
 }
@@ -2009,13 +2031,22 @@ void FieldWidget::Robot::tryHide()
 void FieldWidget::Robot::show()
 {
     robot->show();
-    id->show();
+    if (id != nullptr) {
+        id->show();
+    }
     visible = true;
 }
 
 void FieldWidget::setTrackingFrom(int newViewPoint)
 {
     m_trackingFrom = static_cast<TrackingFrom>(newViewPoint);
+    m_worldState.append(m_lastWorldState);
+    updateDetection();
+}
+
+void FieldWidget::setShowVision(bool enable)
+{
+    m_showVision = enable;
     m_worldState.append(m_lastWorldState);
     updateDetection();
 }

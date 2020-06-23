@@ -36,7 +36,7 @@ class QMenu;
 class QGestureEvent;
 struct VirtualFieldConfiguration;
 
-enum class TrackingFrom{BOTH, REFEREE, YELLOW, BLUE};
+enum class TrackingFrom{BOTH, REFEREE, YELLOW, BLUE, NONE};
 
 class FieldWidget : public QGraphicsView
 {
@@ -52,6 +52,14 @@ private:
 
         void tryHide();
         void show();
+    };
+
+    struct VisionBall
+    {
+        VisionBall() : ball(nullptr) {}
+        VisionBall(QGraphicsEllipseItem *ellipse) : ball(ellipse) {}
+        QGraphicsEllipseItem *ball;
+        bool seenThisFrame;
     };
 
     typedef QMultiMap<qint64, QGraphicsEllipseItem *> TraceMap;
@@ -139,6 +147,7 @@ private slots:
     void ballPlacementYellow();
 
     void setTrackingFrom(int newViewPoint);
+    void setShowVision(bool enable);
 
 private:
     void addToggleVisAction();
@@ -153,14 +162,11 @@ private:
     void clearTeamData(RobotMap &team);
     void updateTeam(RobotMap &team, QHash<uint, robot::Specs> &specsMap, const robot::Team &specs);
     void setBall(const world::Ball &ball);
-
-    void setDetectedBall(const SSL_DetectionBall &ball, const int index);
-
+    void setVisionBall(const SSL_DetectionBall &ball, uint cameraID, int ballID);
     void addBallTrace(qint64 time, const world::Ball &ball);
     void setRobot(const world::Robot &robot, const robot::Specs &specs, RobotMap &robots, const QColor &color);
-
-    void setDetectedRobot(const SSL_DetectionRobot &robot, const robot::Specs &specs, QList<RobotMap> &robots, QMap<uint, int> &idCounter, const QColor &color);
-
+    void setVisionRobot(const SSL_DetectionRobot &robot, const robot::Specs &specs, QList<RobotMap> &robotMap, const QColor &color);
+    void hideVision();
     void addBlob(float x, float y, const QBrush &brush, QGraphicsItem *parent);
     void addRobotTrace(qint64 time, const world::Robot &robot, Trace &robotTrace, Trace &robotRawTrace);
     void showWholeField();
@@ -182,6 +188,7 @@ private:
     void clearRobotTraces();
     void ballPlacement(bool blue);
     QGraphicsPathItem *createAoiItem(unsigned int transparency);
+    void createRobotItem(Robot &r, const robot::Specs &specs, const QColor &color, const uint id, bool fromVision);
 
 private:
     QGraphicsScene *m_scene;
@@ -199,6 +206,7 @@ private:
     QAction *m_actionBallPlacementYellow;
     QAction *m_actionAntialiasing;
     QAction *m_actionGL;
+    QAction *m_actionShowVision;
 
     std::string m_geometryString;
     bool m_geometryUpdated;
@@ -231,9 +239,11 @@ private:
     RobotMap m_robotsBlue;
     RobotMap m_robotsYellow;
     
-    QList<RobotMap> m_detectedRobotsBlue;
-    QList<RobotMap> m_detectedRobotsYellow;
-    QList<QGraphicsEllipseItem*> m_detectedBalls;
+    QMap<uint, QList<RobotMap>> m_visionRobotsBlue;
+    QMap<uint, QList<RobotMap>> m_visionRobotsYellow;
+    QMap<uint, QList<VisionBall>> m_visionBalls;
+    bool m_visionCurrentlyDisplayed = false;
+    bool m_showVision;
 
     Trace m_ballTrace;
     Trace m_ballRawTrace;
