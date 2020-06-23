@@ -226,7 +226,8 @@ message CommandRecord {
     optional bool use_logfile_location = 1;
     optional Flag save_backlog = 2;
     optional bool run_logging = 3;
-    optional bool for_replay = 4; // has to be set to either true or false iff save_backlog or run_logging are set
+    optional bool for_replay = 4; // has to be set to either true or false iff save_backlog, request_backlog or run_logging are set
+    optional int32 request_backlog = 5; // sent by the plotter when opened.
 }
 
 message Command {

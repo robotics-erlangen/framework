@@ -140,6 +140,9 @@ void CombinedLogWriter::handleCommand(Command comm) {
     if (recordCommand.has_save_backlog() && recordCommand.for_replay() == m_isReplay) {
         saveBackLog();
     }
+    if (recordCommand.has_request_backlog() && recordCommand.for_replay() == m_isReplay) {
+        sendBacklogStatus(recordCommand.request_backlog());
+    }
 }
 
 std::shared_ptr<StatusSource> CombinedLogWriter::makeStatusSource()

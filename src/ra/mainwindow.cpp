@@ -391,6 +391,10 @@ void MainWindow::showPlotter()
 
     // no need to preload all 20 seconds
     const int PRELOAD_PACKETS = 5000;
+    Command c(new amun::Command);
+    c->mutable_record()->set_request_backlog(PRELOAD_PACKETS);
+    c->mutable_record()->set_for_replay(m_currentWidgetConfiguration % 2 == 0); // horus mode
+    emit sendCommand(c);
     if (m_currentWidgetConfiguration % 2 == 1) { // ra mode
         m_logWriterRa.sendBacklogStatus(PRELOAD_PACKETS);
     } else {
