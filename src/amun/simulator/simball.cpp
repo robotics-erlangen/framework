@@ -29,9 +29,7 @@ using namespace camun::simulator;
 
 SimBall::SimBall(RNG *rng, btDiscreteDynamicsWorld *world, float fieldWidth, float fieldHeight) :
     m_rng(rng),
-    m_world(world),
-    m_fieldWidth(fieldWidth),
-    m_fieldHeight(fieldHeight)
+    m_world(world)
 {
     // see http://robocup.mi.fu-berlin.de/buch/rolling.pdf for correct modelling
     m_sphere = new btSphereShape(BALL_RADIUS * SIMULATOR_SCALE);

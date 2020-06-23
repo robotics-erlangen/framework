@@ -68,8 +68,6 @@ private:
     btRigidBody *m_body;
     btMotionState *m_motionState;
     amun::SimulatorMoveBall m_move;
-    const float m_fieldWidth;
-    const float m_fieldHeight;
 };
 
 #endif // SIMBALL_H
