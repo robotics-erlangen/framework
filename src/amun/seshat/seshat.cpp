@@ -80,7 +80,7 @@ void Seshat::setStatusSource(std::shared_ptr<StatusSource> source)
             forceUi(false);
         }
         m_isPlayback = true;
-    } // TODO: watch over non-halt realworld status and switch back
+    }
 }
 
 void Seshat::handleCheckHaltStatus(const Status &status)
