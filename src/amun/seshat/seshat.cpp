@@ -21,6 +21,8 @@
 
 #include "seshat.h"
 #include "timedstatussource.h"
+#include "visionlogliveconverter.h"
+#include "logfilereader.h"
 
 #include <QThread>
 #include <QFileInfo>
@@ -161,7 +163,7 @@ void Seshat::handleCommand(const Command& command)
 void Seshat::openLogfile(const std::string& filename)
 {
     QList<std::function<QPair<std::shared_ptr<StatusSource>, QString>(QString)>> openFunctions =
-        {/*&VisionLogLiveConverter::tryOpen, &LogFileReader::tryOpen*/};
+        {&VisionLogLiveConverter::tryOpen, &LogFileReader::tryOpen};
     for (auto openFunction : openFunctions) {
         auto openResult = openFunction(QString::fromStdString(filename));
 
