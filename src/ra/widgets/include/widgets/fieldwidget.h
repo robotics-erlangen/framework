@@ -28,7 +28,7 @@
 #include <QGraphicsView>
 #include <QMap>
 #include <QHash>
-#include <QLinkedList>
+#include <QQueue>
 
 class GuiTimer;
 class QLabel;
@@ -66,8 +66,8 @@ private:
     struct Trace
     {
         TraceMap traces;
-        QLinkedList<QGraphicsEllipseItem *> staged;
-        QLinkedList<QGraphicsEllipseItem *> invalid;
+        QQueue<QGraphicsEllipseItem *> staged;
+        QQueue<QGraphicsEllipseItem *> invalid;
         QColor color;
         float z_index;
     };

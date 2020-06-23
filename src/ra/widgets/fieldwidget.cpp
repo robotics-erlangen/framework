@@ -733,7 +733,7 @@ void FieldWidget::clearTrace(Trace &trace)
 {
     for (QGraphicsEllipseItem *item: trace.traces) {
         item->hide();
-        trace.invalid.append(item);
+        trace.invalid.enqueue(item);
     }
     trace.traces.clear();
 }
@@ -761,7 +761,7 @@ void FieldWidget::invalidateTraces(Trace &trace, qint64 time)
 void FieldWidget::finishInvalidateTraces(Trace &trace)
 {
     for (auto &item: trace.staged) {
-        trace.invalid.append(item);
+        trace.invalid.enqueue(item);
         item->hide();
     }
     trace.staged.clear();
@@ -771,9 +771,9 @@ void FieldWidget::addTrace(Trace &trace, const QPointF &pos, qint64 time)
 {
     QGraphicsEllipseItem *item = nullptr;
     if (!trace.staged.isEmpty()) {
-        item = trace.staged.takeFirst();
+        item = trace.staged.dequeue();
     } else if (!trace.invalid.isEmpty()) {
-        item = trace.invalid.takeFirst();
+        item = trace.invalid.dequeue();
         item->show();
     } else if (trace.traces.size() >= 1000) {
         auto firstIt = trace.traces.begin();
@@ -790,7 +790,7 @@ void FieldWidget::addTrace(Trace &trace, const QPointF &pos, qint64 time)
     }
 
     item->setPos(pos);
-    trace.traces.insertMulti(time, item);
+    trace.traces.insert(time, item);
 }
 
 void FieldWidget::updateDetection()
