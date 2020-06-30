@@ -114,6 +114,18 @@ void Seshat::forceUi(bool ra)
     emit sendUi(s);
 }
 
+// returns true iff a status should even be forwarded to the UI
+// if the corresponding source (log) will not be shown right now
+// is currently used to forward strategy status information
+bool checkForwardImportance(const Status& status)
+{
+    return status->has_status_strategy(); // TODO: this is as buggy as the prev. implementation.
+                                          // While the statusInformation can pass freely, the really necessary output
+                                          // On amun.log can not be seen. Simply returning true if some debug info can be seen
+                                          // is not a good idea as this will constantly mix real world data and replay stuff during HALT...
+
+}
+
 void Seshat::handleStatus(const Status& status)
 {
     m_logger.handleStatus(status);
@@ -127,6 +139,11 @@ void Seshat::handleStatus(const Status& status)
 void Seshat::handleReplayStatus(const Status& status)
 {
     m_replayLogger.handleStatus(status);
+    if (m_isPlayback) {
+        emit sendUi(status);
+    } else if (checkForwardImportance(status)) {
+        emit sendUi(status);
+    }
 }
 
 void Seshat::handleCommand(const Command& command)
