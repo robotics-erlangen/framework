@@ -100,7 +100,8 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     statusBar()->addPermanentWidget(m_refereeStatus);
 
     m_logOpener = new LogOpener(ui, this);
-    connect(m_logOpener, SIGNAL(logOpened(QString)), SLOT(logOpened(QString)));
+    connect(m_logOpener, SIGNAL(logOpened(QString, bool)), SLOT(logOpened(QString, bool)));
+    connect(m_logOpener, &LogOpener::sendCommand, this, &MainWindow::sendCommand);
 
     // setup ui parts that send commands
     m_internalReferee = new InternalReferee(this);
@@ -352,6 +353,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     ui->replay->setRecentScriptList(ui->robots->recentScriptsList());
     connect(&m_amun, SIGNAL(gotReplayStatus(Status)), ui->replay, SIGNAL(gotStatus(Status)));
     connect(ui->replay, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
+    connect(ui->logManager, &LogSlider::sendCommand, this, &MainWindow::sendCommand);
 
     // add shortcuts
     connect(ui->actionLogCutter, &QAction::triggered, logCutter, &LogCutter::show);
@@ -655,6 +657,7 @@ void MainWindow::useLogfileLocation(bool enable)
     Command command(new amun::Command);
     command->mutable_record()->set_use_logfile_location(enable);
     emit sendCommandDirect(command);
+    sendCommand(command);
 }
 
 void MainWindow::sendCommand(const Command &command)

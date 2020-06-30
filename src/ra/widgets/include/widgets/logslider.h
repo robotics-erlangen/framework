@@ -26,6 +26,7 @@
 #include <QTimer>
 #include <memory>
 #include "protobuf/status.h"
+#include "protobuf/command.h"
 #include "core/timer.h"
 #include "seshat/statussource.h"
 
@@ -62,6 +63,7 @@ public slots:
 signals:
     void gotStatus(const Status &status);
     void disableSkipping(bool disable);
+    void sendCommand(const Command &command);
     void resetBacklog();
     void setSpeed(int speed);
     void stepBackward();

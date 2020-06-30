@@ -107,6 +107,7 @@ LogSlider::LogSlider(QWidget *parent) :
     connect(ui->btnPlay, SIGNAL(clicked()), this, SIGNAL(togglePaused()));
     connect(ui->spinSpeed, SIGNAL(valueChanged(int)), m_signalSource, SLOT(handlePlaySpeed(int)));
     connect(this, &LogSlider::togglePaused, m_signalSource, &SignalSource::togglePaused);
+    connect(m_signalSource, &SignalSource::sendCommand, this, &LogSlider::sendCommand);
 
     //connect other signals
     connect(this, SIGNAL(disableSkipping(bool)), ui->spinPacketCurrent, SLOT(setDisabled(bool)));
