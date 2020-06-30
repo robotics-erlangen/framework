@@ -28,31 +28,12 @@
 #include <QFileInfo>
 #include <functional>
 
-namespace SeshatInternal {
-    class SignalSource: public QObject {
-        Q_OBJECT
-
-    public:
-        SignalSource(QObject* parent = nullptr) : QObject(parent) {}
-
-    signals:
-        void gotStatusForRecording(const Status &status);
-        void gotStatusForReplayRecording(const Status &status);
-        void sendCommand(const Command &command);
-    };
-}
-
-using SeshatInternal::SignalSource;
-
 Seshat::Seshat(int backlogLen, QObject* parent) :
     QObject(parent),
     m_logger(false, backlogLen),
     m_replayLogger(true, backlogLen),
-    m_logthread(new QThread),
-    m_signalSource(new SignalSource(this))
+    m_logthread(new QThread)
 {
-    connect(m_signalSource, &SignalSource::gotStatusForRecording, &m_logger, &CombinedLogWriter::handleStatus);
-    connect(m_signalSource, &SignalSource::gotStatusForReplayRecording, &m_replayLogger, &CombinedLogWriter::handleStatus);
     connect(&m_logger, &CombinedLogWriter::sendStatus, this, &Seshat::sendUi);
     connect(&m_replayLogger, &CombinedLogWriter::sendStatus, this, &Seshat::sendUi);
 }
@@ -70,7 +51,6 @@ void Seshat::setStatusSource(std::shared_ptr<StatusSource> source)
         delete m_statusSource;
         m_statusSource = new TimedStatusSource(source, this);
         source->moveToThread(m_logthread);
-        connect(m_signalSource, &SignalSource::sendCommand, m_statusSource, &TimedStatusSource::handleCommand);
         connect(m_statusSource, &TimedStatusSource::gotStatus, this, &Seshat::sendUi);
         connect(m_statusSource, &TimedStatusSource::gotStatus, this, &Seshat::sendReplayStrategy);
         connect(m_statusSource, &TimedStatusSource::gotStatus, &m_replayLogger, &CombinedLogWriter::handleStatus);
@@ -210,5 +190,3 @@ void Seshat::sendLogfileInfo(const std::string& message, bool error)
     logOpen->set_filename(message);
     emit sendUi(s);
 }
-
-#include "seshat.moc"

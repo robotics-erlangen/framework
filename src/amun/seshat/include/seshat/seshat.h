@@ -29,10 +29,6 @@
 class TimedStatusSource;
 class StatusSource;
 
-namespace SeshatInternal {
-    class SignalSource;
-}
-
 class Seshat : public QObject {
     Q_OBJECT
 
@@ -62,7 +58,6 @@ private:
     CombinedLogWriter m_logger, m_replayLogger;
     QThread *m_logthread;
     TimedStatusSource* m_statusSource = nullptr;
-    SeshatInternal::SignalSource* m_signalSource = nullptr;
     bool m_isPlayback = false;
     bool m_storedPlaybackPaused = true;
     QList<Status> m_horusStrategyBuffer;
