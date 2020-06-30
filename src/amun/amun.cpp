@@ -150,6 +150,10 @@ void Amun::start()
     connect(this, SIGNAL(gotCommand(Command)), m_optionsManager, SLOT(handleCommand(Command)));
     connect(m_optionsManager, SIGNAL(sendStatus(Status)), SLOT(handleStatus(Status)));
 
+
+    connect(this, SIGNAL(gotCommand(Command)), m_seshat, SLOT(handleCommand(Command)));
+    connect(m_seshat, &Seshat::sendUi, this, &Amun::sendStatus);
+    connect(m_seshat, &Seshat::sendReplayStrategy, this, &Amun::handleStatusForReplay);
     // start strategy threads
     for (int i = 0; i < 3; i++) {
         StrategyType strategy = StrategyType::BLUE;
@@ -521,7 +525,7 @@ void Amun::updateScaling(float scaling)
 void Amun::handleStatus(const Status &status)
 {
     status->set_time(m_timer->currentTime());
-    emit sendStatus(status);
+    m_seshat->handleStatus(status);
 }
 
 void Amun::handleStatusForReplay(const Status &status)
@@ -534,7 +538,7 @@ void Amun::handleStatusForReplay(const Status &status)
 void Amun::handleReplayStatus(const Status &status)
 {
     status->set_time(m_replayTimer->currentTime());
-    emit gotReplayStatus(status);
+    m_seshat->handleReplayStatus(status);
 }
 
 /*!
