@@ -150,6 +150,11 @@ void Seshat::handleCommand(const Command& command)
         if (playback.has_log_path()) {
             openLogfile(playback.log_path());
         }
+
+        if (playback.has_instant_replay()) {
+            setStatusSource(m_logger.makeStatusSource());
+            emit sendReplayStrategy(m_logger.getTeamStatus());
+        }
     }
 
     if (m_isPlayback && m_statusSource) {

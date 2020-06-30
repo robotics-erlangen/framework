@@ -729,16 +729,17 @@ void MainWindow::liveMode()
     switchToWidgetConfiguration(static_cast<int>(m_currentWidgetConfiguration - 1));
 }
 
-void MainWindow::showBacklogMode()
+void MainWindow::showBacklogMode() //Instant Replay
 {
     if (ui->actionSimulator->isChecked() || m_lastRefState == amun::GameState::Halt) {
         m_horusTitleString = "Instant Replay";
         switchToWidgetConfiguration(static_cast<int>(m_currentWidgetConfiguration + 1));
         m_logOpener->saveCurrentPosition();
-        ui->logManager->setStatusSource(m_logWriterRa.makeStatusSource());
-        ui->logManager->goToEnd();
-        // send the current team status so that replays can use it
-        emit m_amun.sendReplayStatus(m_logWriterRa.getTeamStatus());
+        Command command(new amun::Command);
+        command->mutable_playback()->mutable_instant_replay();
+        sendCommand(command);
+        ui->logManager->goToEnd(); // TODO: this does no loger work as setStatusSource is removed in favor of a message
+                                   // goToEnd will now be called before the length is known :(
     }
 }
 
