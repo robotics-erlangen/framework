@@ -763,6 +763,13 @@ void MainWindow::handleCheckHaltStatus(const Status &status)
     }
 }
 
+static Command uiChangedCommand(bool ra)
+{
+    Command ret(new amun::Command);
+    ret->mutable_playback()->set_run_playback(!ra);
+    return ret;
+}
+
 void MainWindow::raMode()
 {
     m_plotter->clearData();
@@ -782,6 +789,7 @@ void MainWindow::raMode()
     m_horusStrategyBuffer.clear();
 
     ui->simulator->sendPauseSimulator(amun::Horus, false);
+    emit sendCommand(uiChangedCommand(true));
 
     disconnect(&m_amun, SIGNAL(gotStatus(Status)), this, SLOT(handleCheckHaltStatus(Status)));
     connect(&m_amun, SIGNAL(gotStatus(Status)), SLOT(handleStatus(Status)));
@@ -805,6 +813,7 @@ void MainWindow::horusMode()
     ui->field->setHorusMode(true);
 
     ui->simulator->sendPauseSimulator(amun::Horus, true);
+    emit sendCommand(uiChangedCommand(false));
 
     // there may still be packets between amun and the gui coming from the simulator
     // especially when a log was opened and the gui was blocked for some time
