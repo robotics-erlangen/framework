@@ -397,11 +397,6 @@ void MainWindow::showPlotter()
     c->mutable_record()->set_request_backlog(PRELOAD_PACKETS);
     c->mutable_record()->set_for_replay(m_currentWidgetConfiguration % 2 == 0); // horus mode
     emit sendCommand(c);
-    if (m_currentWidgetConfiguration % 2 == 1) { // ra mode
-        m_logWriterRa.sendBacklogStatus(PRELOAD_PACKETS);
-    } else {
-        m_logWriterHorus.sendBacklogStatus(PRELOAD_PACKETS);
-    }
 }
 
 void MainWindow::togglePause()
