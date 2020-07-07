@@ -162,6 +162,7 @@ void LogSlider::handleStatus(const Status& status)
                 m_openAtEnd = false;
                 seekPacket(getLastFrame());
             }
+            emit setSpeed(100);
         }
     }
 }
