@@ -59,7 +59,6 @@ public slots:
 signals:
     void disableSkipping(bool disable);
     void sendCommand(const Command &command);
-    void resetBacklog();
     void setSpeed(int speed);
     void stepBackward();
     void stepForward();

@@ -55,8 +55,6 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     ui(new Ui::MainWindow),
     m_transceiverActive(false),
     m_lastStageTime(0),
-    m_logWriterRa(false, 20),
-    m_logWriterHorus(true, 20),
     m_isTournamentMode(tournamentMode),
     m_currentWidgetConfiguration(0)
 {
@@ -211,10 +209,11 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     connect(this, SIGNAL(gotStatus(Status)), ui->simulator, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), m_logTimeLabel, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), ui->logManager, SLOT(handleStatus(Status)));
+    connect(this, &MainWindow::gotStatus, m_logTimeLabel, &LogLabel::handleStatus);
 
     // set up log connections
-    createLogWriterConnections(m_logWriterRa, m_loggingUiRa);
-    createLogWriterConnections(m_logWriterHorus, m_loggingUiHorus);
+    createLogWriterConnections(m_loggingUiRa);
+    createLogWriterConnections(m_loggingUiHorus);
 
     // disable all possibilities of skipping / going back packets when recording
     connect(m_loggingUiHorus, SIGNAL(isLogging(bool)), ui->logManager, SIGNAL(disableSkipping(bool)));
@@ -222,13 +221,6 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     connect(m_loggingUiHorus, SIGNAL(isLogging(bool)), ui->actionFrameForward, SLOT(setDisabled(bool)));
     connect(m_loggingUiHorus, SIGNAL(isLogging(bool)), ui->actionStepBack, SLOT(setDisabled(bool)));
     connect(m_loggingUiHorus, SIGNAL(isLogging(bool)), ui->actionStepForward, SLOT(setDisabled(bool)));
-
-    // reset backlog if packets have been skipped
-    connect(ui->actionFrameForward, SIGNAL(triggered(bool)), &m_logWriterHorus, SIGNAL(resetBacklog()));
-    connect(ui->actionFrameBack, SIGNAL(triggered(bool)), &m_logWriterHorus, SIGNAL(resetBacklog()));
-    connect(ui->actionStepForward, SIGNAL(triggered(bool)), &m_logWriterHorus, SIGNAL(resetBacklog()));
-    connect(ui->actionStepBack, SIGNAL(triggered(bool)), &m_logWriterHorus, SIGNAL(resetBacklog()));
-    connect(ui->logManager, SIGNAL(resetBacklog()), &m_logWriterHorus, SIGNAL(resetBacklog()));
 
     // start amun
     m_amun.start();
@@ -442,13 +434,10 @@ void MainWindow::showDirectoryDialog()
     s.endGroup();
 }
 
-void MainWindow::createLogWriterConnections(CombinedLogWriter &writer, Logsuite* suite)
+void MainWindow::createLogWriterConnections(Logsuite* suite)
 {
-    connect(suite, &Logsuite::sendCommand, &writer, &CombinedLogWriter::handleCommand);
-    connect(&writer, &CombinedLogWriter::sendStatus, m_logTimeLabel, &LogLabel::handleStatus);
-    connect(&writer, &CombinedLogWriter::sendStatus, suite, &Logsuite::handleStatus);
-    connect(&writer, SIGNAL(sendStatus(Status)), m_plotter, SLOT(handleStatus(Status)));
-    connect(this, &MainWindow::sendCommandDirect, &writer, &CombinedLogWriter::handleCommand); // TODO: this is WIP until seshat is in amun
+    connect(suite, &Logsuite::sendCommand, this, &MainWindow::sendCommand);
+    connect(this, &MainWindow::gotStatus, suite, &Logsuite::handleStatus);
 }
 
 void MainWindow::saveConfig()
@@ -651,7 +640,6 @@ void MainWindow::useLogfileLocation(bool enable)
 {
     Command command(new amun::Command);
     command->mutable_record()->set_use_logfile_location(enable);
-    emit sendCommandDirect(command);
     sendCommand(command);
 }
 
@@ -760,16 +748,8 @@ void MainWindow::raMode()
     ui->logManager->hide();
     ui->field->setHorusMode(false);
 
-    for (const Status &status : m_horusStrategyBuffer) {
-        handleStatus(status);
-    }
-    m_horusStrategyBuffer.clear();
-
     ui->simulator->sendPauseSimulator(amun::Horus, false);
     emit sendCommand(uiChangedCommand(true));
-
-    disconnect(this, SIGNAL(gotStatus(Status)), &m_logWriterHorus, SLOT(handleStatus(Status)));
-    connect(this, SIGNAL(gotStatus(Status)), &m_logWriterRa, SLOT(handleStatus(Status)));
 }
 
 void MainWindow::horusMode()
@@ -793,9 +773,6 @@ void MainWindow::horusMode()
     // 200 ms is an arbitrary number, the exact time shouldn't really matter
     // TODO: this in seshat?
     // QCoreApplication::processEvents(QEventLoop::AllEvents, 200);
-
-    disconnect(this, SIGNAL(gotStatus(Status)), &m_logWriterRa, SLOT(handleStatus(Status)));
-    connect(this, SIGNAL(gotStatus(Status)), &m_logWriterHorus, SLOT(handleStatus(Status)));
 }
 
 void MainWindow::toggleHorusModeWidgets(bool enable)

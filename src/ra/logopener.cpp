@@ -19,8 +19,6 @@
  ***************************************************************************/
 
 #include "logopener.h"
-#include "seshat/logfilereader.h"
-#include "seshat/visionlogliveconverter.h"
 #include "ui_mainwindow.h"
 
 #include <QSettings>

@@ -22,7 +22,6 @@
 #define MAINWINDOW_H
 
 #include "amun/amunclient.h"
-#include "seshat/combinedlogwriter.h"
 #include "loggingsuite.h"
 #include <QMainWindow>
 #include <QSet>
@@ -64,7 +63,6 @@ public:
 
 signals:
     void gotStatus(const Status &status);
-    void sendCommandDirect(const Command &command);
 
 protected:
     void closeEvent(QCloseEvent *e) override;
@@ -100,7 +98,7 @@ private:
     void loadConfig(bool doRestoreGeometry, uint configId);
     void raMode();
     void horusMode();
-    void createLogWriterConnections(CombinedLogWriter &writer, Logsuite *suite);
+    void createLogWriterConnections(Logsuite *suite);
 
 private:
     Ui::MainWindow *ui;
@@ -115,9 +113,7 @@ private:
     qint32 m_lastStageTime;
     LogLabel *m_logTimeLabel;
     Logsuite *m_loggingUiRa, *m_loggingUiHorus;
-    CombinedLogWriter m_logWriterRa, m_logWriterHorus;
     amun::GameState::State m_lastRefState;
-    QList<Status> m_horusStrategyBuffer;
     DebuggerConsole *m_console;
     bool m_isTournamentMode;
     uint m_currentWidgetConfiguration;

@@ -108,8 +108,6 @@ LogSlider::LogSlider(QWidget *parent) :
     //connect other signals
     connect(this, SIGNAL(disableSkipping(bool)), ui->spinPacketCurrent, SLOT(setDisabled(bool)));
     connect(this, SIGNAL(disableSkipping(bool)), ui->horizontalSlider, SLOT(setDisabled(bool)));
-    connect(ui->horizontalSlider, SIGNAL(sliderPressed()), SIGNAL(resetBacklog()));
-    connect(ui->horizontalSlider, SIGNAL(sliderReleased()), SIGNAL(resetBacklog()));
 
     //actions
     connect(this, SIGNAL(setSpeed(int)), ui->spinSpeed, SLOT(setValue(int)));
