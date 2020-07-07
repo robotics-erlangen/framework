@@ -160,14 +160,17 @@ void LogSlider::handleStatus(const Status& status)
             m_startTime = response.log_info().start_time();
             m_duration = response.log_info().duration();
             initializeLabels(response.log_info().packet_count(), true);
-            //return;
+            if (m_openAtEnd) {
+                m_openAtEnd = false;
+                seekPacket(getLastFrame());
+            }
         }
     }
 }
 
-void LogSlider::goToEnd()
+void LogSlider::openNextAtEnd()
 {
-    seekPacket(getLastFrame());
+    m_openAtEnd = true;
 }
 
 int LogSlider::getLastFrame()

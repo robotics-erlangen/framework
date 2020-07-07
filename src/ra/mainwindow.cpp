@@ -741,8 +741,7 @@ void MainWindow::showBacklogMode() //Instant Replay
         Command command(new amun::Command);
         command->mutable_playback()->mutable_instant_replay();
         sendCommand(command);
-        ui->logManager->goToEnd(); // TODO: this does no loger work as setStatusSource is removed in favor of a message
-                                   // goToEnd will now be called before the length is known :(
+        ui->logManager->openNextAtEnd();
     }
 }
 

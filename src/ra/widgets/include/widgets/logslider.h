@@ -48,7 +48,7 @@ public:
     ~LogSlider();
     LogSlider(const LogSlider&) = delete;
     LogSlider& operator=(const LogSlider&) = delete;
-    void goToEnd();
+    void openNextAtEnd();
     void setPaused(bool p);
     int getLastFrame();
     uint getFrame();
@@ -87,6 +87,7 @@ private:
 
     int m_exactSliderValue;
     bool m_scroll;
+    bool m_openAtEnd = false;
 };
 
 #endif // LOGMANAGER_H
