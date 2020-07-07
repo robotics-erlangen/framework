@@ -91,10 +91,6 @@ LogSlider::LogSlider(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    // create log reader and the belonging thread
-    m_logthread = new QThread();
-    m_logthread->start();
-
     resetVariables(); // reset internals
     initializeLabels(); // disables play button
 
@@ -124,19 +120,6 @@ LogSlider::LogSlider(QWidget *parent) :
 LogSlider::~LogSlider()
 {
     delete ui;
-}
-
-void LogSlider::setStatusSource(std::shared_ptr<StatusSource> source)
-{
-    if (!m_statusSource  ||  !m_statusSource->manages(source)) {
-        delete m_statusSource;
-        m_statusSource = new TimedStatusSource(source, this);
-        source->moveToThread(m_logthread);
-        connect(m_signalSource, &SignalSource::sendCommand, m_statusSource, &TimedStatusSource::handleCommand);
-        connect(m_statusSource, SIGNAL(gotStatus(Status)), this, SLOT(handleStatus(Status)));
-        resetVariables();
-        m_statusSource->start();
-    }
 }
 
 void LogSlider::handleStatus(const Status& status)
@@ -180,7 +163,6 @@ void LogSlider::handleStatus(const Status& status)
             //return;
         }
     }
-    emit gotStatus(status);
 }
 
 void LogSlider::goToEnd()

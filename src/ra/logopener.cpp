@@ -192,44 +192,6 @@ void LogOpener::openFile(const QString &filename)
         Command command(new amun::Command);
         command->mutable_playback()->set_log_path(filename.toStdString());
         emit sendCommand(command);
-        QList<std::function<QPair<std::shared_ptr<StatusSource>, QString>(QString)>> openFunctions =
-            { &VisionLogLiveConverter::tryOpen, &LogFileReader::tryOpen};
-        for (const auto &openFunction : openFunctions) {
-            auto openResult = openFunction(filename);
-
-            if (openResult.first != nullptr) {
-                saveCurrentPosition();
-
-                // the logfile was successfully opened
-                // the old logfile is deleted by the logmanager
-                auto logfile = openResult.first;
-                m_isValid = true;
-
-                m_openFileName = filename; // Also FIXME: this is a relative path, an absolte path, an absolute mess, ...
-
-                // move the file to the end of the recent files list
-                m_recentFiles.removeAll(filename);
-                m_recentFiles.append(filename);
-                if (m_recentFiles.size() > MAX_RECENT_FILE_COUNT) {
-                    m_recentFiles.removeFirst();
-                }
-                makeRecentFileMenu();
-
-
-                emit logOpened(QFileInfo(filename).fileName(), false);
-
-                // setStatusSource has to be after sending the logOpened signal
-                // otherwise the first frame might not be visible to replays, since logOpened() will result in preloading the first package
-                ui->logManager->setStatusSource(logfile);
-                return;
-
-            } else if (!openResult.second.isEmpty()) {
-                // the header matched, but the log file is corrupt
-                emit logOpened("Error: " + openResult.second, true);
-                return;
-            }
-        }
-        emit logOpened("Error: Could not open log file - no matching format found", true);
     }
 }
 

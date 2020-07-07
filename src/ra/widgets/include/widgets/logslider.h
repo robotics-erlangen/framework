@@ -28,15 +28,12 @@
 #include "protobuf/status.h"
 #include "protobuf/command.h"
 #include "core/timer.h"
-#include "seshat/statussource.h"
 
 class Timer;
 
 namespace Ui {
 class LogSlider;
 }
-
-class TimedStatusSource;
 
 namespace LogSliderInternal {
 class SignalSource;
@@ -51,7 +48,6 @@ public:
     ~LogSlider();
     LogSlider(const LogSlider&) = delete;
     LogSlider& operator=(const LogSlider&) = delete;
-    void setStatusSource(std::shared_ptr<StatusSource> source);
     void goToEnd();
     void setPaused(bool p);
     int getLastFrame();
@@ -61,7 +57,6 @@ public slots:
     void seekPacket(int packet);
 
 signals:
-    void gotStatus(const Status &status);
     void disableSkipping(bool disable);
     void sendCommand(const Command &command);
     void resetBacklog();
@@ -85,11 +80,7 @@ private:
 private:
     Ui::LogSlider *ui;
 
-    QThread *m_logthread;
-
     LogSliderInternal::SignalSource* m_signalSource;
-
-    TimedStatusSource* m_statusSource = nullptr;
 
     qint64 m_startTime;
     qint64 m_duration;

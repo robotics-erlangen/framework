@@ -100,7 +100,6 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     statusBar()->addPermanentWidget(m_refereeStatus);
 
     m_logOpener = new LogOpener(ui, this);
-    connect(m_logOpener, SIGNAL(logOpened(QString, bool)), SLOT(logOpened(QString, bool)));
     connect(m_logOpener, &LogOpener::sendCommand, this, &MainWindow::sendCommand);
 
     // setup ui parts that send commands
@@ -211,6 +210,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     connect(this, SIGNAL(gotStatus(Status)), ui->yellowDebugger, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), ui->simulator, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), m_logTimeLabel, SLOT(handleStatus(Status)));
+    connect(this, SIGNAL(gotStatus(Status)), ui->logManager, SLOT(handleStatus(Status)));
 
     // set up log connections
     createLogWriterConnections(m_logWriterRa, m_loggingUiRa);

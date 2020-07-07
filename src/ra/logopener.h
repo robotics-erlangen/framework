@@ -50,7 +50,6 @@ public:
     void saveCurrentPosition();
 
 signals:
-    void logOpened(QString name, bool errorOccurred);
     void sendCommand(const Command& command);
 
 public slots:
