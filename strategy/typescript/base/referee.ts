@@ -315,3 +315,6 @@ export function robotAndPosOfLastBallTouch(): [Robot, Position] {
 	return [lastRobot, lastTouchPos];
 }
 
+export function checkTooManyFriendlyRobots(): boolean {
+	return World.FriendlyRobots.length > (11 - World.FriendlyYellowCards.length - World.FriendlyRedCards);
+}

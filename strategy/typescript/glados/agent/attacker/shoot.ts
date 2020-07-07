@@ -1,5 +1,6 @@
 import * as debug from "base/debug";
 import * as Field from "base/field";
+import * as BaseRef from "base/referee";
 import { FriendlyRobot } from "base/robot";
 import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
@@ -90,6 +91,10 @@ export class Shoot extends Behavior {
 
 		if (sg_dirty) {
 			return [false, angle];
+		}
+
+		if (BaseRef.checkTooManyFriendlyRobots()) {
+			return [false, undefined];
 		}
 
 		if (World.Ball.speed.length() > 1.2) {

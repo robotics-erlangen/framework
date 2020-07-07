@@ -1,3 +1,4 @@
+import * as BaseRef from "base/referee";
 import { FriendlyRobot } from "base/robot";
 import { Vector } from "base/vector";
 import * as World from "base/world";
@@ -23,8 +24,7 @@ function rateRobot(robot: FriendlyRobot, messaging: MessageBox): number {
 }
 export class Exchange extends Behavior {
 	check(): boolean {
-		// check if too many robots
-		if (World.FriendlyRobots.length <= (11 - World.FriendlyYellowCards.length - World.FriendlyRedCards)) {
+		if (!BaseRef.checkTooManyFriendlyRobots()) {
 			return false;
 		}
 		if (this._messaging.receiveTrainer(MessageType.mainAttacker) === this._robot) {
