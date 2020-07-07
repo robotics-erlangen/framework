@@ -209,6 +209,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     connect(this, SIGNAL(gotStatus(Status)), ui->simulator, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), m_logTimeLabel, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), ui->logManager, SLOT(handleStatus(Status)));
+    connect(this, SIGNAL(gotStatus(Status)), ui->replay, SIGNAL(gotStatus(Status)));
     connect(this, &MainWindow::gotStatus, m_logTimeLabel, &LogLabel::handleStatus);
 
     // set up log connections
