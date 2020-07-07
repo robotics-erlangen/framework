@@ -74,7 +74,6 @@ protected:
     void dropEvent(QDropEvent *event) override;
 
 private slots:
-    void handleCheckHaltStatus(const Status &status);
     void handleStatus(const Status &status);
     void sendCommand(const Command &command);
     void setSimulatorEnabled(bool enabled);

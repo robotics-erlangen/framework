@@ -745,27 +745,6 @@ void MainWindow::showBacklogMode() //Instant Replay
     }
 }
 
-void MainWindow::handleCheckHaltStatus(const Status &status)
-{
-    if (m_currentWidgetConfiguration % 2 == 1) { // ra mode
-        return;
-    }
-    m_logWriterRa.handleStatus(status);
-    if (status->has_game_state()) {
-        const amun::GameState &gameState = status->game_state();
-        if (gameState.state() != amun::GameState::Halt) {
-            ui->logManager->setPaused(true); // TODO: this is a bug. This only modifies the UI and does not stop playback!
-            liveMode();
-        }
-    }
-    if (status->has_status_strategy() || status->debug_size() > 0) {
-        // use 50 as some upper limit, the exact number is irrelevant
-        if (m_horusStrategyBuffer.size() < 50) {
-            m_horusStrategyBuffer.push_back(status);
-        }
-    }
-}
-
 static Command uiChangedCommand(bool ra)
 {
     Command ret(new amun::Command);
