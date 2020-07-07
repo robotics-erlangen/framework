@@ -75,12 +75,12 @@ public:
 
 public slots:
     void handleCommand(const Command &command);
-    void handleStatusForReplay(const Status &status);
 
 private slots:
     void handleStatus(const Status &status);
     void handleReplayStatus(const Status &status);
     void handleRefereePacket(QByteArray, qint64, QString host);
+    void handleStatusForReplay(const Status &status);
 
 private:
     void setupReceiver(Receiver *&receiver, const QHostAddress &address, quint16 port);

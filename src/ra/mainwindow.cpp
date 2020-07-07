@@ -351,9 +351,9 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     setAcceptDrops(true);
 
     ui->replay->setRecentScriptList(ui->robots->recentScriptsList());
-    connect(&m_amun, SIGNAL(gotReplayStatus(Status)), ui->replay, SIGNAL(gotStatus(Status)));
     connect(ui->replay, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
     connect(ui->logManager, &LogSlider::sendCommand, this, &MainWindow::sendCommand);
+    connect(&m_amun, SIGNAL(gotStatus(Status)), SLOT(handleStatus(Status)));
 
     // add shortcuts
     connect(ui->actionLogCutter, &QAction::triggered, logCutter, &LogCutter::show);
@@ -795,10 +795,6 @@ void MainWindow::raMode()
     ui->simulator->sendPauseSimulator(amun::Horus, false);
     emit sendCommand(uiChangedCommand(true));
 
-    disconnect(&m_amun, SIGNAL(gotStatus(Status)), this, SLOT(handleCheckHaltStatus(Status)));
-    connect(&m_amun, SIGNAL(gotStatus(Status)), SLOT(handleStatus(Status)));
-    disconnect(&m_amun, SIGNAL(gotReplayStatus(Status)), this, SLOT(handleStatus(Status)));
-    disconnect(ui->logManager, SIGNAL(gotStatus(Status)), &m_amun, SIGNAL(sendReplayStatus(Status)));
     disconnect(this, SIGNAL(gotStatus(Status)), &m_logWriterHorus, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), &m_logWriterRa, SLOT(handleStatus(Status)));
 }
@@ -822,14 +818,11 @@ void MainWindow::horusMode()
     // there may still be packets between amun and the gui coming from the simulator
     // especially when a log was opened and the gui was blocked for some time
     // 200 ms is an arbitrary number, the exact time shouldn't really matter
-    QCoreApplication::processEvents(QEventLoop::AllEvents, 200);
+    // TODO: this in seshat?
+    // QCoreApplication::processEvents(QEventLoop::AllEvents, 200);
 
     disconnect(this, SIGNAL(gotStatus(Status)), &m_logWriterRa, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), &m_logWriterHorus, SLOT(handleStatus(Status)));
-    disconnect(&m_amun, SIGNAL(gotStatus(Status)), this, SLOT(handleStatus(Status)));
-    connect(&m_amun, SIGNAL(gotReplayStatus(Status)), this, SLOT(handleStatus(Status)));
-    connect(&m_amun, SIGNAL(gotStatus(Status)), SLOT(handleCheckHaltStatus(Status)));
-    connect(ui->logManager, SIGNAL(gotStatus(Status)), &m_amun, SIGNAL(sendReplayStatus(Status)));
 }
 
 void MainWindow::toggleHorusModeWidgets(bool enable)
