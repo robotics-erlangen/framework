@@ -47,6 +47,11 @@ namespace StaticObstacles {
         virtual ~Obstacle() {}
 
         virtual float distance(const Vector &v) const = 0;
+        /**
+         * @brief Returns the distance to the given line segment.
+         * Negative distances for lines inside or partially inside the obstacle are
+         * not necessarily supported, depending on obstacle type
+         */
         virtual float distance(const LineSegment &segment) const = 0;
         virtual ZonedIntersection zonedDistance(const Vector &v, float nearRadius) const = 0;
         virtual Vector projectOut(Vector v, float extraDistance) const { return v; }
