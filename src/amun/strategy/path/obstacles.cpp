@@ -293,7 +293,7 @@ float StaticObstacles::Triangle::distance(const Vector &v) const
 ZonedIntersection StaticObstacles::Triangle::zonedDistance(const Vector &v, float nearRadius) const
 {
     // TODO: optimize this code, but it would result in quite a lot of code duplication
-    return computeZonedIntersectionLinear(distance(v), radius, nearRadius);
+    return computeZonedIntersectionLinear(distance(v) + radius, radius, nearRadius);
 }
 
 float StaticObstacles::Triangle::distance(const LineSegment &segment) const
