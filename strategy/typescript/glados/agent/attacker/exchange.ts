@@ -24,7 +24,7 @@ function rateRobot(robot: FriendlyRobot, messaging: MessageBox): number {
 }
 export class Exchange extends Behavior {
 	check(): boolean {
-		if (!BaseRef.checkTooManyFriendlyRobots()) {
+		if (!BaseRef.hasTooManyFriendlyRobots()) {
 			return false;
 		}
 		if (this._messaging.receiveTrainer(MessageType.mainAttacker) === this._robot) {

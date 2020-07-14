@@ -93,7 +93,7 @@ export class Shoot extends Behavior {
 			return [false, angle];
 		}
 
-		if (BaseRef.checkTooManyFriendlyRobots()) {
+		if (BaseRef.hasTooManyFriendlyRobots()) {
 			return [false, undefined];
 		}
 

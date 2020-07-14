@@ -315,6 +315,11 @@ export function robotAndPosOfLastBallTouch(): [Robot, Position] {
 	return [lastRobot, lastTouchPos];
 }
 
-export function checkTooManyFriendlyRobots(): boolean {
-	return World.FriendlyRobots.length > (11 - World.FriendlyYellowCards.length - World.FriendlyRedCards);
+const teamSize = 11;
+export function hasTooManyFriendlyRobots(): boolean {
+	return World.FriendlyRobots.length > (teamSize - World.FriendlyYellowCards.length - World.FriendlyRedCards);
+}
+
+export function hasTooManyOpponentRobots(): boolean {
+	return World.OpponentRobots.length > (teamSize - World.OpponentYellowCards.length - World.OpponentRedCards);
 }
