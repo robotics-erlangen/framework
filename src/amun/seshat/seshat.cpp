@@ -191,7 +191,7 @@ void Seshat::sendLogfileInfo(const std::string& message, bool error)
     Status s = Status::createArena();
     auto* pureUi = s->mutable_pure_ui_response();
     auto* logOpen = pureUi->mutable_log_open();
-    logOpen->set_success(error);
+    logOpen->set_success(!error);
     logOpen->set_filename(message);
     emit sendUi(s);
 }

@@ -619,7 +619,7 @@ void MainWindow::handleStatus(const Status &status)
 
     if (status->has_pure_ui_response() && status->pure_ui_response().has_log_open()) {
         const auto& logInfo = status->pure_ui_response().log_open();
-        logOpened(QString::fromStdString(logInfo.filename() + " (seshat) "), logInfo.success());
+        logOpened(QString::fromStdString(logInfo.filename() + " (seshat) "), !logInfo.success());
     }
 
     if (status->has_pure_ui_response() && status->pure_ui_response().has_force_ra_horus()) {
