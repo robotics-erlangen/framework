@@ -123,6 +123,21 @@ static void testDerivativeDistanceRandomized(std::function<std::unique_ptr<Obsta
         return r() / float(r.max()) * BOX_SIZE - BOX_SIZE * 0.5f;
     };
 
+    // basic point distance test
+    for (int i = 0;i<10000;i++) {
+        auto o = generator(makeFloat);
+        Vector pos(Vector(makeFloat(), makeFloat()));
+
+        float dist = o->distance(pos);
+
+        float minDist = std::numeric_limits<float>::max();
+        for (Vector p : o->corners()) {
+            minDist = std::min(minDist, p.distance(pos));
+        }
+
+        ASSERT_LE(dist, minDist - o->radius + 0.001f);
+    }
+
     // test line segment distance
     for (int i = 0;i<500;i++) {
         auto o = generator(makeFloat);
@@ -186,4 +201,43 @@ TEST(Obstacles, Rect_BoundingBox) {
     ASSERT_EQ(b.right, 3);
     ASSERT_EQ(b.top, 2);
     ASSERT_EQ(b.bottom, 1);
+}
+
+TEST(Obstacles, Triangle_distance) {
+    Triangle t(nullptr, 0, 0, Vector(0, 0), Vector(0, 1), Vector(1, 0));
+    ASSERT_FLOAT_EQ(t.distance(Vector(0, 0)), 0);
+    ASSERT_FLOAT_EQ(t.distance(Vector(1, 0)), 0);
+    ASSERT_FLOAT_EQ(t.distance(Vector(0, 1)), 0);
+    ASSERT_FLOAT_EQ(t.distance(Vector(0.5, 0)), 0);
+    ASSERT_FLOAT_EQ(t.distance(Vector(0, 0.5)), 0);
+    ASSERT_FLOAT_EQ(t.distance(Vector(0.5, 0.5)), 0);
+
+    ASSERT_FLOAT_EQ(t.distance(Vector(0, -0.5)), 0.5);
+    ASSERT_FLOAT_EQ(t.distance(Vector(-0.5, 0)), 0.5);
+    ASSERT_FLOAT_EQ(t.distance(Vector(1, 1)), 0.5 * std::sqrt(2.0f));
+    ASSERT_FLOAT_EQ(t.distance(Vector(-1, -1)), std::sqrt(2.0f));
+    ASSERT_FLOAT_EQ(t.distance(Vector(2, 0)), 1);
+    ASSERT_FLOAT_EQ(t.distance(Vector(1, -1)), 1);
+
+    ASSERT_FLOAT_EQ(t.distance(Vector(0.1, 0.1)), -0.1);
+    ASSERT_FLOAT_EQ(t.distance(Vector(0.5, 0.1)), -0.1);
+    ASSERT_FLOAT_EQ(t.distance(Vector(0.1, 0.5)), -0.1);
+    ASSERT_FLOAT_EQ(t.distance(Vector(0.4, 0.4)), -std::sqrt(2.0f) * 0.1);
+
+    // with radius
+    t = Triangle(nullptr, 0, 0.5, Vector(0, 0), Vector(2, 0), Vector(1, 2));
+    ASSERT_FLOAT_EQ(t.distance(Vector(-0.5, 0)), 0);
+    ASSERT_FLOAT_EQ(t.distance(Vector(0, 0)), -0.5);
+    ASSERT_FLOAT_EQ(t.distance(Vector(3, 0)), 0.5);
+
+    t = Triangle(nullptr, 0, 0, Vector(0, 0), Vector(5, 0), Vector(-5, -0.1));
+    ASSERT_LE(std::abs(t.distance(Vector(-2.5, 0.001f)) - 0.05f), 0.001f);
+}
+
+TEST(Obstacles, Triangle_DerivativeDistances) {
+    testDerivativeDistanceRandomized([](std::function<float()> random) {
+        float radius = rand() < 0 ? 0 : 0.4f;
+        return std::make_unique<Triangle>(nullptr, 0, radius, Vector(random(), random()),
+                                          Vector(random(), random()), Vector(random(), random()));
+    });
 }
