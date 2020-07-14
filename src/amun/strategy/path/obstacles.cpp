@@ -275,29 +275,16 @@ float StaticObstacles::Triangle::distance(const Vector &v) const
     // 3 positive dets
     if (det1 >= 0 && det2 >= 0 && det3 >= 0) {
         distance = -std::min(det1, std::min(det2, det3));
-    }
+    } else {
+        // brute force check all corners and sides
+        // otherwise, flat triangles are very hard to handle
 
-    // v lies closest to a side
-    // 2 positive dets, 1 negative det
-    else if (det1 * det2 * det3 < 0) {
-        distance = -std::min(det1, std::min(det2, det3));
-    }
+        // this is however a bit wastefull since some distance will be calculated multiple times
+        const float d1 = LineSegment(p1, p2).distance(v);
+        const float d2 = LineSegment(p2, p3).distance(v);
+        const float d3 = LineSegment(p1, p3).distance(v);
 
-    // v lies closest to a corner
-    // 1 positive det, 2 negative dets
-    else if (det1 > 0) {
-        distance = p1.distance(v);
-    }
-    else if (det2 > 0) {
-        distance = p2.distance(v);
-    }
-    else if (det3 > 0) {
-        distance = p3.distance(v);
-    }
-
-    else {
-        qDebug() << "Error in Path::Triangle::distance()" << det1 << det2 << det3;
-        return 42;
+        distance = std::min(d1, std::min(d2, d3));
     }
 
     return distance - radius;
