@@ -413,7 +413,7 @@ TEST(Obstacles, MovingCircle_BoundingBox) {
     ASSERT_FLOAT_EQ(b.bottom, -8.5);
 }
 
-TEST(Obstacles, MovingCircle_boundingBox_Randomized) {
+TEST(Obstacles, MovingCircle_BoundingBox_Randomized) {
     const float BOX_SIZE = 20.0f;
     std::mt19937 r(0);
     auto makeFloat = [&]() {
@@ -442,6 +442,104 @@ TEST(Obstacles, MovingCircle_boundingBox_Randomized) {
             ref.mergePoint(pos);
             maxDiff = std::max(maxDiff, pos.distance(last));
             last = pos;
+        }
+        ref.addExtraRadius(radius);
+
+        float maxError = 2 * maxDiff;
+        ASSERT_LE(std::abs(b.top - ref.top), maxError);
+        ASSERT_LE(std::abs(b.bottom - ref.bottom), maxError);
+        ASSERT_LE(std::abs(b.left - ref.left), maxError);
+        ASSERT_LE(std::abs(b.right - ref.right), maxError);
+
+    }
+}
+
+TEST(Obstacles, MovingLine_Distance) {
+    const float BOX_SIZE = 20.0f;
+    std::mt19937 r(0);
+    auto makeFloat = [&]() {
+        return r() / float(r.max()) * BOX_SIZE - BOX_SIZE * 0.5f;
+    };
+
+    for (int i = 0;i<10000;i++) {
+        Vector p1 = Vector(makeFloat(), makeFloat());
+        Vector p2 = Vector(makeFloat(), makeFloat());
+        Vector v1 = Vector(makeFloat(), makeFloat()) / 5;
+        Vector v2 = Vector(makeFloat(), makeFloat()) / 5;
+        Vector acc1 = Vector(makeFloat(), makeFloat()) / 5;
+        Vector acc2 = Vector(makeFloat(), makeFloat()) / 5;
+        float t0 = 1;
+        float t1 = 5;
+
+        MovingLine l(0, 1, p1, v1, acc1, p2, v2, acc2, t0, t1);
+        Vector pos = Vector(makeFloat(), makeFloat());
+
+        ASSERT_EQ(l.distance(pos, t0 - 0.01), std::numeric_limits<float>::max());
+        ASSERT_EQ(l.distance(pos, t1 + 0.01), std::numeric_limits<float>::max());
+
+        float extraTime = r() / float(r.max()) * (t1 - t0);
+
+        Vector start = p1 + v1 * extraTime + acc1 * (0.5f * extraTime * extraTime);
+        Vector end = p2 + v2 * extraTime + acc2 * (0.5f * extraTime * extraTime);
+
+        Line line(nullptr, 0, 1, start, end);
+
+        ASSERT_LE(std::abs(l.distance(pos, t0 + extraTime) - line.distance(pos)), 0.001f);
+    }
+}
+
+TEST(Obstacles, MovingLine_DerivativeDistance) {
+    testDerivativeDistanceRandomizedMoving([](std::function<float()> random) {
+        float radius = random() < 0 ? 0.1 : 5;
+        float t0 = std::abs(random()) / 10;
+        float t1 = t0 + std::abs(random()) / 5;
+        Vector p1 = Vector(random(), random());
+        Vector p2 = Vector(random(), random());
+        Vector v1 = Vector(random(), random()) / 5;
+        Vector v2 = Vector(random(), random()) / 5;
+        Vector acc1 = Vector(random(), random()) / 5;
+        Vector acc2 = Vector(random(), random()) / 5;
+        return std::make_unique<MovingLine>(0, radius, p1, v1, acc1, p2, v2, acc2, t0, t1);
+    });
+}
+
+TEST(Obstacles, MovingLine_BoundingBox_Randomized) {
+    const float BOX_SIZE = 20.0f;
+    std::mt19937 r(0);
+    auto makeFloat = [&]() {
+        return r() / float(r.max()) * BOX_SIZE - BOX_SIZE * 0.5f;
+    };
+
+    for (int i = 0;i<1000;i++) {
+        float radius = makeFloat() < 0 ? 0.1 : 5;
+        float t0 = std::abs(makeFloat()) / 10;
+        float t1 = t0 + std::abs(makeFloat()) / 5;
+        Vector p1 = Vector(makeFloat(), makeFloat());
+        Vector p2 = Vector(makeFloat(), makeFloat());
+        Vector v1 = Vector(makeFloat(), makeFloat()) / 5;
+        Vector v2 = Vector(makeFloat(), makeFloat()) / 5;
+        Vector acc1 = Vector(makeFloat(), makeFloat()) / 5;
+        Vector acc2 = Vector(makeFloat(), makeFloat()) / 5;
+        MovingLine l(0, radius, p1, v1, acc1, p2, v2, acc2, t0, t1);
+
+        BoundingBox b = l.boundingBox();
+
+        BoundingBox ref(p1, p2);
+
+        const int ITERATIONS = 1000;
+        Vector last1 = p1;
+        Vector last2 = p2;
+        float maxDiff = 0;
+        for (int i = 0;i<ITERATIONS;i++) {
+            float t = (t1 - t0) * float(i) / (ITERATIONS - 1);
+            Vector pos1 = p1 + v1 * t + acc1 * (0.5f * t * t);
+            Vector pos2 = p2 + v2 * t + acc2 * (0.5f * t * t);
+            ref.mergePoint(pos1);
+            ref.mergePoint(pos2);
+            maxDiff = std::max(maxDiff, pos1.distance(last1));
+            last1 = pos1;
+            maxDiff = std::max(maxDiff, pos2.distance(last2));
+            last2 = pos2;
         }
         ref.addExtraRadius(radius);
 
