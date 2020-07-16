@@ -499,7 +499,7 @@ BoundingBox MovingObstacles::MovingLine::boundingBox() const
     auto xRange2 = range1D(startPos2.x, speed2.x, acc2.x, startTime, endTime);
     auto yRange2 = range1D(startPos2.y, speed2.y, acc2.y, startTime, endTime);
     result.mergePoint({xRange2.first, yRange2.first});
-    result.mergePoint({xRange2.second, yRange2.first});
+    result.mergePoint({xRange2.second, yRange2.second});
     result.addExtraRadius(radius);
     return result;
 }
