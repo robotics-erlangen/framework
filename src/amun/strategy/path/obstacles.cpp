@@ -398,8 +398,8 @@ static std::pair<float, float> range1D(float p0, float speed, float acc, float s
     if (acc == 0.0f) {
         return {std::min(p0, endPos), std::max(p0, endPos)};
     }
-    float zeroSpeedTime = speed / acc;
-    if (zeroSpeedTime > 0 && zeroSpeedTime <= endTime) {
+    float zeroSpeedTime = std::abs(speed / acc);
+    if ((speed < 0) != (acc < 0) && zeroSpeedTime <= endTime - startTime) {
         float zeroSpeedPos = p0 + speed * zeroSpeedTime + acc * (0.5f * zeroSpeedTime * zeroSpeedTime);
         return {std::min({p0, endPos, zeroSpeedPos}), std::max({p0, endPos, zeroSpeedPos})};
     }
