@@ -163,6 +163,7 @@ namespace MovingObstacles {
         virtual ~MovingObstacle() {}
 
         virtual bool intersects(Vector pos, float time) const = 0;
+        /// returns float max if the obstacle is not present anymore at the given time
         virtual float distance(Vector pos, float time) const = 0;
         virtual ZonedIntersection zonedDistance(const Vector &pos, float time, float nearRadius) const = 0;
         // TODO: it might be possible to also use the trajectory max. time to make the obstacles smaller

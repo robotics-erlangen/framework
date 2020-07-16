@@ -25,6 +25,7 @@
 #include <random>
 
 using namespace StaticObstacles;
+using namespace MovingObstacles;
 
 TEST(Obstacles, Circle_Distance) {
     Circle c(nullptr, 0, 1, Vector(0, 0));
@@ -154,7 +155,7 @@ static void testDerivativeDistanceRandomized(std::function<std::unique_ptr<Obsta
             minDistance = std::min(minDistance, dist);
         }
 
-        float distanceError = std::abs(segmentDistance - std::max(0.0f, minDistance));
+        float distanceError = std::abs(std::max(0.0f, segmentDistance) - std::max(0.0f, minDistance));
         float maxError = BOX_SIZE * std::sqrt(2.0f) / SEGMENTS;
 
         ASSERT_LE(distanceError, maxError);
@@ -240,4 +241,215 @@ TEST(Obstacles, Triangle_DerivativeDistances) {
         return std::make_unique<Triangle>(nullptr, 0, radius, Vector(random(), random()),
                                           Vector(random(), random()), Vector(random(), random()));
     });
+}
+
+TEST(Obstacles, Triangle_BoundingBox) {
+    Triangle t(nullptr, 0, 0, Vector(0, 0), Vector(1, 0), Vector(0, 1));
+    auto b = t.boundingBox();
+    ASSERT_FLOAT_EQ(b.left, 0);
+    ASSERT_FLOAT_EQ(b.right, 1);
+    ASSERT_FLOAT_EQ(b.top, 1);
+    ASSERT_FLOAT_EQ(b.bottom, 0);
+
+    t = Triangle(nullptr, 0, 1, Vector(0, 0), Vector(1, 0), Vector(0, 1));
+    b = t.boundingBox();
+    ASSERT_FLOAT_EQ(b.left, -1);
+    ASSERT_FLOAT_EQ(b.right, 2);
+    ASSERT_FLOAT_EQ(b.top, 2);
+    ASSERT_FLOAT_EQ(b.bottom, -1);
+}
+
+TEST(Obstacles, Line_Distance) {
+    Line l(nullptr, 0, 0.5, Vector(0, 0), Vector(1, 0));
+    ASSERT_FLOAT_EQ(l.distance(Vector(0, 0)), -0.5);
+    ASSERT_FLOAT_EQ(l.distance(Vector(1, 0)), -0.5);
+    ASSERT_FLOAT_EQ(l.distance(Vector(-0.5, 0)), 0);
+    ASSERT_FLOAT_EQ(l.distance(Vector(0.5, 0.5)), 0);
+    ASSERT_FLOAT_EQ(l.distance(Vector(3, 0)), 1.5);
+}
+
+TEST(Obstacles, Line_DerivativeDistances) {
+    testDerivativeDistanceRandomized([](std::function<float()> random) {
+        float radius = random() < 0 ? 0 : 0.4f;
+        return std::make_unique<Line>(nullptr, 0, radius, Vector(random(), random()),
+                                          Vector(random(), random()));
+    });
+}
+
+TEST(Obstacles, Line_BoundingBox) {
+    Line l(nullptr, 0, 0.5, Vector(0, 0), Vector(1, 1));
+    auto b = l.boundingBox();
+    ASSERT_FLOAT_EQ(b.left, -0.5);
+    ASSERT_FLOAT_EQ(b.right, 1.5);
+    ASSERT_FLOAT_EQ(b.top, 1.5);
+    ASSERT_FLOAT_EQ(b.bottom, -0.5);
+}
+
+TEST(Obstacles, MovingCircle_Intersects) {
+    MovingCircle c(0, 1, Vector(1, 1), Vector(1, 0), Vector(0, 0), 0, 100);
+    ASSERT_TRUE(c.intersects(Vector(1, 1), 0));
+    ASSERT_TRUE(c.intersects(Vector(0.01, 1), 0));
+    ASSERT_FALSE(c.intersects(Vector(1, 1), 1.1));
+    ASSERT_TRUE(c.intersects(Vector(11, 1), 10));
+
+    // start time
+    c = MovingCircle(0, 1, Vector(0, 0), Vector(0, 1), Vector(0, 0), 5, 100);
+    ASSERT_FALSE(c.intersects(Vector(0, 0), 4.99));
+    ASSERT_TRUE(c.intersects(Vector(0, 0), 5));
+
+    // end time
+    c = MovingCircle(0, 1, Vector(0, 0), Vector(1, 0), Vector(0, 0), 0, 1);
+    ASSERT_TRUE(c.intersects(Vector(1, 0), 1));
+    ASSERT_FALSE(c.intersects(Vector(1, 0), 1.1));
+
+    // acc
+    c = MovingCircle(0, 1, Vector(0, 0), Vector(1, 0), Vector(0, 1), 0, 100);
+    ASSERT_FALSE(c.intersects(Vector(10, 0), 10));
+    ASSERT_TRUE(c.intersects(Vector(10, 50), 10));
+}
+
+TEST(Obstacles, MovingCircle_Distance) {
+    MovingCircle c(0, 1, Vector(0, 0), Vector(1, 0), Vector(0, 1), 0, 10);
+    ASSERT_FLOAT_EQ(c.distance(Vector(0, 0), 0), -1);
+    ASSERT_FLOAT_EQ(c.distance(Vector(1, 0), 0), 0);
+    ASSERT_FLOAT_EQ(c.distance(Vector(10, 0), 0), 9);
+    ASSERT_FLOAT_EQ(c.distance(Vector(0, 0.5), 1), 0);
+    ASSERT_FLOAT_EQ(c.distance(Vector(10, 50), 10), -1);
+
+    c = MovingCircle(0, 1, Vector(0, 0), Vector(0, 0), Vector(0, 0), 1, 2);
+    ASSERT_FLOAT_EQ(c.distance(Vector(0, 0), 0), std::numeric_limits<float>::max());
+    ASSERT_FLOAT_EQ(c.distance(Vector(0, 0), 2.001), std::numeric_limits<float>::max());
+}
+
+static void testDerivativeDistanceRandomizedMoving(std::function<std::unique_ptr<MovingObstacle>(std::function<float()>)> generator) {
+    const float BOX_SIZE = 20.0f;
+
+    std::mt19937 r(0);
+    auto makeFloat = [&]() {
+        return r() / float(r.max()) * BOX_SIZE - BOX_SIZE * 0.5f;
+    };
+
+    for (int i = 0;i<1000;i++) {
+        auto o = generator(makeFloat);
+
+        for (int j = 0;j<100;j++) {
+            Vector pos = Vector(makeFloat(), makeFloat());
+            float time = std::abs(makeFloat()) / 5;
+
+            float dist = o->distance(pos, time);
+
+            if (dist <= 0) {
+                ASSERT_TRUE(o->intersects(pos, time));
+            } else {
+                ASSERT_FALSE(o->intersects(pos, time));
+            }
+
+            auto d1 = o->zonedDistance(pos, time, 0);
+            ASSERT_EQ(d1, dist <= 0 ? ZonedIntersection::IN_OBSTACLE : ZonedIntersection::FAR_AWAY);
+
+            if (dist > 0) {
+                if (dist == std::numeric_limits<float>::max()) {
+                    ASSERT_EQ(o->zonedDistance(pos, time, 1), ZonedIntersection::FAR_AWAY);
+                    ASSERT_EQ(o->zonedDistance(pos, time, 100000), ZonedIntersection::FAR_AWAY);
+                } else {
+                    auto d2 = o->zonedDistance(pos, time, dist / 2);
+                    ASSERT_EQ(d2, ZonedIntersection::FAR_AWAY);
+
+                    auto d3 = o->zonedDistance(pos, time, dist * 0.99f);
+                    ASSERT_EQ(d3, ZonedIntersection::FAR_AWAY);
+
+                    auto d4 = o->zonedDistance(pos, time, dist * 1.01f);
+                    ASSERT_EQ(d4, ZonedIntersection::NEAR_OBSTACLE);
+                }
+            } else {
+                auto d5 = o->zonedDistance(pos, time, 1);
+                ASSERT_EQ(d5, ZonedIntersection::IN_OBSTACLE);
+            }
+        }
+    }
+}
+
+TEST(Obstacles, MovingCircle_DerivativeDistance) {
+    testDerivativeDistanceRandomizedMoving([](std::function<float()> random) {
+        float radius = random() < 0 ? 0.1 : 5;
+        float t0 = std::abs(random()) / 10;
+        float t1 = t0 + std::abs(random()) / 5;
+        return std::make_unique<MovingCircle>(0, radius, Vector(random(), random()), Vector(random(), random()) / 10,
+                                              Vector(random(), random()) / 50, t0, t1);
+    });
+}
+
+TEST(Obstacles, MovingCircle_BoundingBox) {
+    MovingCircle c(0, 1, Vector(1, 1), Vector(0, 0), Vector(0, 0), 0, 1);
+    auto b = c.boundingBox();
+
+    ASSERT_FLOAT_EQ(b.left, 0);
+    ASSERT_FLOAT_EQ(b.right, 2);
+    ASSERT_FLOAT_EQ(b.top, 2);
+    ASSERT_FLOAT_EQ(b.bottom, 0);
+
+    c = MovingCircle(0, 1, Vector(0, 0), Vector(1, 1), Vector(0, 0), 3, 5);
+    b = c.boundingBox();
+
+    ASSERT_FLOAT_EQ(b.left, -1);
+    ASSERT_FLOAT_EQ(b.right, 3);
+    ASSERT_FLOAT_EQ(b.top, 3);
+    ASSERT_FLOAT_EQ(b.bottom, -1);
+
+    c = MovingCircle(0, 1, Vector(0, 0), Vector(1, 1), Vector(1, 1), 3, 5);
+    b = c.boundingBox();
+
+    ASSERT_FLOAT_EQ(b.left, -1);
+    ASSERT_FLOAT_EQ(b.right, 5);
+    ASSERT_FLOAT_EQ(b.top, 5);
+    ASSERT_FLOAT_EQ(b.bottom, -1);
+
+    c = MovingCircle(0, 1, Vector(0, 0), Vector(1, 1), Vector(0, -1), 0, 5);
+    b = c.boundingBox();
+
+    ASSERT_FLOAT_EQ(b.left, -1);
+    ASSERT_FLOAT_EQ(b.right, 6);
+    ASSERT_FLOAT_EQ(b.top, 1.5);
+    ASSERT_FLOAT_EQ(b.bottom, -8.5);
+}
+
+TEST(Obstacles, MovingCircle_boundingBox_Randomized) {
+    const float BOX_SIZE = 20.0f;
+    std::mt19937 r(0);
+    auto makeFloat = [&]() {
+        return r() / float(r.max()) * BOX_SIZE - BOX_SIZE * 0.5f;
+    };
+
+    for (int i = 0;i<1000;i++) {
+        float radius = makeFloat() < 0 ? 0.1 : 5;
+        float t0 = std::abs(makeFloat()) / 10;
+        float t1 = t0 + std::abs(makeFloat()) / 3;
+        Vector p0 = Vector(makeFloat(), makeFloat());
+        Vector v0 = Vector(makeFloat(), makeFloat()) / 5;
+        Vector acc = Vector(makeFloat(), makeFloat()) / 5;
+        MovingCircle m(0, radius, p0, v0, acc, t0, t1);
+
+        BoundingBox b = m.boundingBox();
+
+        BoundingBox ref(p0, p0);
+
+        const int ITERATIONS = 1000;
+        Vector last = p0;
+        float maxDiff = 0;
+        for (int i = 0;i<ITERATIONS;i++) {
+            float t = (t1 - t0) * float(i) / (ITERATIONS - 1);
+            Vector pos = p0 + v0 * t + acc * (0.5f * t * t);
+            ref.mergePoint(pos);
+            maxDiff = std::max(maxDiff, pos.distance(last));
+            last = pos;
+        }
+        ref.addExtraRadius(radius);
+
+        float maxError = 2 * maxDiff;
+        ASSERT_LE(std::abs(b.top - ref.top), maxError);
+        ASSERT_LE(std::abs(b.bottom - ref.bottom), maxError);
+        ASSERT_LE(std::abs(b.left - ref.left), maxError);
+        ASSERT_LE(std::abs(b.right - ref.right), maxError);
+
+    }
 }
