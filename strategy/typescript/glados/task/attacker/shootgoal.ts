@@ -7,6 +7,7 @@ import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
 
+import { Behavior } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
 import * as Goal from "glados/observer/goal";
@@ -14,7 +15,7 @@ import * as Physics from "glados/observer/physics";
 import * as Robot from "glados/observer/robot";
 import * as ObserverShoot from "glados/observer/shoot";
 import { Shoot } from "glados/task/ability/shoot";
-import { Agent, Task } from "glados/task/base";
+import { Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import * as Interval from "glados/util/interval";
 import * as Rating from "glados/util/rating";
@@ -46,8 +47,8 @@ export class ShootGoal extends Task {
 
 	private _shoot: Shoot;
 
-	constructor(agent: Agent, ballReceiptPos?: Position, forceDesperate: boolean = false, forceFast: boolean = false) {
-		super(agent);
+	constructor(behavior: Behavior, ballReceiptPos?: Position, forceDesperate = false, forceFast = false) {
+		super(behavior);
 		this._desperate = forceDesperate;
 
 		this._ballReceiptPos = ballReceiptPos;

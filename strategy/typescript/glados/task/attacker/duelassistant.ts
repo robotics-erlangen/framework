@@ -4,9 +4,10 @@ import { FriendlyRobot, Robot } from "base/robot";
 import { Vector } from "base/vector";
 import * as World from "base/world";
 
+import { Behavior } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
 import { SuggestPass } from "glados/task/ability/suggestpass";
-import { Agent, Task } from "glados/task/base";
+import { Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
 import { head } from "glados/util/collections";
@@ -19,8 +20,8 @@ export class DuelAssistant extends Task {
 	private _lastPositionMode = false;
 	private _suggestPass: SuggestPass;
 
-	constructor(agent: Agent) {
-		super(agent);
+	constructor(behavior: Behavior) {
+		super(behavior);
 		this._update();
 		if (this._duelist == undefined || this._opponent == undefined) {
 			throw new Error("there is no duel to assist");

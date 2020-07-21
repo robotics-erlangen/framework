@@ -10,8 +10,9 @@ import * as vis from "base/vis";
 import * as World from "base/world";
 
 // import { MessageType } from "glados/control/messaging";
+import { Behavior } from "glados/agent/base/behavior";
 import { Shoot } from "glados/task/ability/shoot";
-import { Agent, Task } from "glados/task/base";
+import { Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
 
@@ -24,8 +25,8 @@ export class PenaltyShootoutGoal extends Task {
 	private _ball: {pos: Position, speed: Vector, radius: number};
 	private _dest: Position;
 
-	constructor(agent: Agent, dest: Position, ball: {pos: Position, speed: Vector, radius: number} = World.Ball) {
-		super(agent);
+	constructor(behavior: Behavior, dest: Position, ball: {pos: Position, speed: Vector, radius: number} = World.Ball) {
+		super(behavior);
 		this._shoot = new Shoot(this._robot, this._messaging, this.setMainAttackerParameters);
 		// this._pos = pos;
 		this._ball = ball;

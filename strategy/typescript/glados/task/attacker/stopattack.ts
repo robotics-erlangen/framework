@@ -6,9 +6,10 @@ import { Position, RelativePosition, Vector } from "base/vector";
 // import * as vis from "base/vis";
 import * as World from "base/world";
 
+import { Behavior } from "glados/agent/base/behavior";
 import * as Physics from "glados/observer/physics";
 import { Volley } from "glados/task/ability/volley";
-import { Agent, Task } from "glados/task/base";
+import { Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
 import * as UtilDefense from "glados/util/defense";
@@ -31,8 +32,8 @@ export class StopAttack extends Task {
 	private _defendGoalHysteresis: boolean;
 	private _minDistToBall: number;
 
-	constructor(agent: Agent, minDistToBall: number = Constants.stopBallDistance) {
-		super(agent);
+	constructor(behavior: Behavior, minDistToBall = Constants.stopBallDistance) {
+		super(behavior);
 		this._focusPoint = new Vector(0, -World.Geometry.FieldHeightHalf + 4 * this._robot.radius);
 		this._side = World.Ball.pos.x < 0 ? "left" : "right";
 		this._defenseHysteresis = false;

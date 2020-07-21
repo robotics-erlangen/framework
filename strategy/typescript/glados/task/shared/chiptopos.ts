@@ -1,7 +1,8 @@
 import { Position } from "base/vector";
 
+import { Behavior } from "glados/agent/base/behavior";
 import { Shoot } from "glados/task/ability/shoot";
-import { Agent, Task } from "glados/task/base";
+import { Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 
 export class ChipToPos extends Task {
@@ -12,8 +13,8 @@ export class ChipToPos extends Task {
 
 	private _shoot: Shoot;
 
-	constructor(agent: Agent, firstContactPos: Position, targetTime: number, ballReceiptPos?: Position, precision?: number) {
-		super(agent);
+	constructor(behavior: Behavior, firstContactPos: Position, targetTime: number, ballReceiptPos?: Position, precision?: number) {
+		super(behavior);
 		this._firstContactPos = firstContactPos;
 		this._targetTime = targetTime;
 		this._ballReceiptPos = ballReceiptPos;

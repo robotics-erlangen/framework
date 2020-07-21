@@ -2,8 +2,9 @@ import * as MathUtil from "base/mathutil";
 import { Position, Vector } from "base/vector";
 import * as World from "base/world";
 
+import { Behavior } from "glados/agent/base/behavior";
 import * as Physics from "glados/observer/physics";
-import { Agent, Task } from "glados/task/base";
+import { Task } from "glados/task/base";
 import { CurvedMaxAccel } from "glados/trajectory/curvedmaxaccel";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { TrajectoryPath } from "glados/trajectory/trajectorypath";
@@ -22,8 +23,8 @@ export class TrajectoryTiming extends Task {
 		ignorePass: true
 	};
 
-	constructor(agent: Agent) {
-		super(agent);
+	constructor(behavior: Behavior) {
+		super(behavior);
 	}
 
 	public run() {

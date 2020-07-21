@@ -31,16 +31,15 @@
 
 import * as World from "base/world";
 
-import { Agent, Task } from "glados/task/base";
+import { Behavior } from "glados/agent/base/behavior";
+import { Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
 
 export class TutorialTask extends Task {
 
-	constructor(agent: Agent, initialPos: number) {
-
-		super(agent);
-
+	constructor(behavior: Behavior, initialPos: number) {
+		super(behavior);
 	}
 
 	public run() {

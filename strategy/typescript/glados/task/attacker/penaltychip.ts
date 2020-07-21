@@ -5,9 +5,10 @@ import { Robot } from "base/robot";
 import { Position, Speed, Vector } from "base/vector";
 import * as World from "base/world";
 
+import { Behavior } from "glados/agent/base/behavior";
 import { ellipticDistance } from "glados/observer/ball";
 import { Shoot } from "glados/task/ability/shoot";
-import { Agent, Task } from "glados/task/base";
+import { Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
 
@@ -67,8 +68,8 @@ export class PenaltyChip extends Task {
 	private _mode: number;
 
 
-	constructor(agent: Agent, ball: BallLike, mode: number) {
-		super(agent);
+	constructor(behavior: Behavior, ball: BallLike, mode: number) {
+		super(behavior);
 		this._ball = ball;
 		this._mode = mode;
 		this._shoot = new Shoot(this._robot, this._messaging, this.setMainAttackerParameters);

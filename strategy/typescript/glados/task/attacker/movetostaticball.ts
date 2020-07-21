@@ -1,8 +1,9 @@
 import { Vector } from "base/vector";
 import * as World from "base/world";
 
+import { Behavior } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
-import { Agent, Task } from "glados/task/base";
+import { Task } from "glados/task/base";
 import { CurvedMaxAccel as ToTarget } from "glados/trajectory/curvedmaxaccel";
 import * as PathHelper from "glados/trajectory/pathhelper";
 
@@ -12,8 +13,8 @@ export class MoveToStaticBall extends Task {
 	private _distanceToBall: number;
 	private _obstacleTable: PathHelper.PathHelperParameters;
 
-	constructor(agent: Agent, rotation: number = Math.PI / 2, distanceToBall: number = 0.03) {
-		super(agent);
+	constructor(behavior: Behavior, rotation = Math.PI / 2, distanceToBall = 0.03) {
+		super(behavior);
 		this._rotation = rotation;
 		this._distanceToBall = distanceToBall;
 		// slightly smaller obstacle to avoid that the target position is in the obstacle (by float standards)

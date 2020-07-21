@@ -21,16 +21,15 @@
  * - It is located in "glados/task/ability/catchball.ts"
  */
 
-import { Agent, Task } from "glados/task/base";
+import { Behavior } from "glados/agent/base/behavior";
+import { Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
 
 export class TutorialTask extends Task {
 
-	constructor(agent: Agent) {
-
-		super(agent);
-
+	constructor(behavior: Behavior) {
+		super(behavior);
 	}
 
 	public run() {

@@ -1,7 +1,8 @@
 import * as geom from "base/geom";
 import { Position, Vector } from "base/vector";
 
-import { Agent, Task } from "glados/task/base";
+import { Behavior } from "glados/agent/base/behavior";
+import { Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
 
@@ -21,11 +22,11 @@ export class Victory extends Task {
 
 	private _obstacleTable: PathHelper.PathHelperParameters;
 
-	constructor(agent: Agent, center: Position, startingAngle: number, angle: number, radius: number) {
+	constructor(behavior: Behavior, center: Position, startingAngle: number, angle: number, radius: number) {
 		if (center == undefined || angle == undefined) {
 			throw new Error("Missing Parameters for Victory-Task");
 		}
-		super(agent);
+		super(behavior);
 		this._center = center;
 		this._centerAngle = startingAngle;
 		this._radius = radius;

@@ -1,14 +1,15 @@
 import { Position, RelativePosition, Vector } from "base/vector";
 
+import { Behavior } from "glados/agent/base/behavior";
 import { WallkickAbility } from "glados/task/ability/wallkickability";
-import { Agent, Task } from "glados/task/base";
+import { Task } from "glados/task/base";
 
 export class Wallkick extends Task {
 	private _placementPos: Position;
 	private _wallkick: WallkickAbility;
 
-	constructor(agent: Agent, placementPos: Position) {
-		super(agent);
+	constructor(behavior: Behavior, placementPos: Position) {
+		super(behavior);
 		this._placementPos = placementPos;
 
 		this._wallkick = new WallkickAbility(this._robot, this._placementPos);

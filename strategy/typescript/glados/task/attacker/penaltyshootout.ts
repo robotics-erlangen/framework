@@ -1,7 +1,8 @@
 import { Speed, Vector } from "base/vector";
 
+import { Behavior } from "glados/agent/base/behavior";
 import { Shoot } from "glados/task/ability/shoot";
-import { Agent, Task } from "glados/task/base";
+import { Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 
 
@@ -14,8 +15,8 @@ export class PenaltyShootout extends Task {
 
 	private _ball : Ball;
 
-	constructor(agent: Agent, ball: Ball) {
-		super(agent);
+	constructor(behavior: Behavior, ball: Ball) {
+		super(behavior);
 		this._ball = ball;
 		this._shoot = new Shoot(this._robot, this._messaging, this.setMainAttackerParameters);
 	}

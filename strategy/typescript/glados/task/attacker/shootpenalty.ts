@@ -7,9 +7,10 @@ import { Position } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
 
+import { Behavior } from "glados/agent/base/behavior";
 import { RotateAndShoot } from "glados/task/ability/rotateandshoot";
 import { Shoot } from "glados/task/ability/shoot";
-import { Agent, Task } from "glados/task/base";
+import { Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 
 const G = World.Geometry;
@@ -49,8 +50,8 @@ export class ShootPenalty extends Task {
 	private collectedBallPosition: Position;
 	private ballCounter: number = 0;
 
-	constructor(agent: Agent) {
-		super(agent);
+	constructor(behavior: Behavior) {
+		super(behavior);
 		this._lookDir = "Right";
 		if (MathUtil.randomInt([1,2]) < 2) {
 			this._lookDir = "Left";

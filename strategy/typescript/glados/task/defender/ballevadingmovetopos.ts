@@ -3,7 +3,8 @@ import * as geom from "base/geom";
 import { Position } from "base/vector";
 import * as World from "base/world";
 
-import { Agent, Task } from "glados/task/base";
+import { Behavior } from "glados/agent/base/behavior";
+import { Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
 
@@ -12,8 +13,8 @@ export class BallEvadingMoveToPos extends Task {
 	private _dir: number | undefined;
 	private _obstacleTable: PathHelper.PathHelperParameters;
 
-	constructor(agent: Agent, pos: Position, dir: number | undefined) {
-		super(agent);
+	constructor(behavior: Behavior, pos: Position, dir: number | undefined) {
+		super(behavior);
 		this._pos = pos;
 		this._dir = dir;
 		this._obstacleTable = {

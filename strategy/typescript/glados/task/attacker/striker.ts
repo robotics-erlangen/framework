@@ -5,10 +5,11 @@ import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
 
+import { Behavior } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
 import { StrikerSampling } from "glados/task/ability/strikersampling";
 import { SuggestPass } from "glados/task/ability/suggestpass";
-import { Agent, Task } from "glados/task/base";
+import { Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
 import * as Attack from "glados/util/attack";
@@ -30,8 +31,8 @@ export class Striker extends Task {
 	private _suggestPass: SuggestPass;
 	private _strikerSampling: StrikerSampling;
 
-	constructor(agent: Agent, manualDefaultPos?: Position, manualPassDest?: Position) {
-		super(agent);
+	constructor(behavior: Behavior, manualDefaultPos?: Position, manualPassDest?: Position) {
+		super(behavior);
 		this._manualDefaultPos = manualDefaultPos;
 		this._manualPassDest = manualPassDest;
 		this._passDestSuggestion = manualPassDest;

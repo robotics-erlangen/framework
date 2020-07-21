@@ -1,7 +1,8 @@
 import { Position, Vector } from "base/vector";
 import * as World from "base/world";
 
-import { Agent, Task } from "glados/task/base";
+import { Behavior } from "glados/agent/base/behavior";
+import { Task } from "glados/task/base";
 import { Direct } from "glados/trajectory/direct";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
@@ -45,8 +46,8 @@ export class GetBallContact extends Task {
 
 
 
-	constructor(agent: Agent, dribblerSpeed: number) {
-		super(agent);
+	constructor(behavior: Behavior, dribblerSpeed: number) {
+		super(behavior);
 		this._currentState = State.GO_TO_STARTPOSITION;
 		GetBallContact._ready = false;
 

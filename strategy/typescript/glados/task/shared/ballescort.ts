@@ -2,7 +2,8 @@ import * as Field from "base/field";
 import { Robot } from "base/robot";
 import * as World from "base/world";
 
-import { Agent, Task } from "glados/task/base";
+import { Behavior } from "glados/agent/base/behavior";
+import { Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
 
@@ -11,8 +12,8 @@ export class BallEscort extends Task {
 	private _opponentRobot: Robot | undefined;
 	private _obstacleTable: PathHelper.PathHelperParameters;
 
-	constructor(agent: Agent, opponentRobot: Robot | undefined) {
-		super(agent);
+	constructor(behavior: Behavior, opponentRobot: Robot | undefined) {
+		super(behavior);
 		this._opponentRobot = opponentRobot;
 		this._obstacleTable = {
 			ignoreBall: false,

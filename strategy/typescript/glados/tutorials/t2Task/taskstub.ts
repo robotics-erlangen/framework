@@ -3,8 +3,10 @@
 // We use Vectors (among other things) as positions
 import { Vector } from "base/vector";
 
-// The tutorial class extends Task and the constructor of the Task-class expects an agent
-import { Agent, Task } from "glados/task/base";
+// The constructor of the Task class expects a behavior
+import { Behavior } from "glados/agent/base/behavior";
+// The tutorial class extends Task
+import { Task } from "glados/task/base";
 // "PathHelper" is a class needed for pathfinding.
 import * as PathHelper from "glados/trajectory/pathhelper";
 // "ToTarget" is a class that allows driving to a certain positions.
@@ -19,8 +21,8 @@ export class Tutorial extends Task {
 
 	// This is, like the name obviously indicates, the constructor.
 	// It creates an object (of the type) of this task.
-	constructor(agent: Agent, dir: number) {
-		super(agent);
+	constructor(behavior: Behavior, dir: number) {
+		super(behavior);
 	}
 
 	// this function is called each frame and tells the robot what to do

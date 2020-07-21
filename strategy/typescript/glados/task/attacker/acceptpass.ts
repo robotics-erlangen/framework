@@ -2,9 +2,10 @@ import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
 
+import { Behavior } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
 import { SuggestPass } from "glados/task/ability/suggestpass";
-import { Agent, Task } from "glados/task/base";
+import { Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
 
@@ -18,8 +19,8 @@ export class AcceptPass extends Task {
 	private _lastTime: number | undefined;
 	private _runCounter: number;
 
-	constructor(agent: Agent, manualPassPos?: Position, manualDistance: number = 0.1) {
-		super(agent);
+	constructor(behavior: Behavior, manualPassPos?: Position, manualDistance = 0.1) {
+		super(behavior);
 		this._passPos = manualPassPos;
 		this._distance = manualDistance;
 		this._obstacleTable = {

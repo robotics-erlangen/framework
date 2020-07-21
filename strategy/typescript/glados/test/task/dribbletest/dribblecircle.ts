@@ -3,7 +3,8 @@ import { Position, Speed, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
 
-import { Agent, Task } from "glados/task/base";
+import { Behavior } from "glados/agent/base/behavior";
+import { Task } from "glados/task/base";
 import { Direct } from "glados/trajectory/direct";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
@@ -33,8 +34,8 @@ export class DribbleCircle extends Task {
 	private _finishedRound : boolean = true;
 
 
-	constructor(agent: Agent, movementSpeed: number, dribblerSpeed: number, acceleration: number, radius: number, carpetFriction: number, ballMass: number) {
-		super(agent);
+	constructor(behavior: Behavior, movementSpeed: number, dribblerSpeed: number, acceleration: number, radius: number, carpetFriction: number, ballMass: number) {
+		super(behavior);
 
 		this._movementSpeed = movementSpeed;
 		this._dribblerSpeed = dribblerSpeed;

@@ -1,8 +1,9 @@
 import { Position, Vector } from "base/vector";
 import * as World from "base/world";
 
+import { Behavior } from "glados/agent/base/behavior";
 import { SuggestPass } from "glados/task/ability/suggestpass";
-import { Agent, Task } from "glados/task/base";
+import { Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
 
@@ -18,8 +19,8 @@ export class Circuit extends Task {
 		ignorePass: true
 	};
 
-	constructor(agent: Agent, center: Position, angleOffset: number, radius: number = 0.5, passPos?: Position, anonym: boolean = false) {
-		super(agent);
+	constructor(behavior: Behavior, center: Position, angleOffset: number, radius = 0.5, passPos?: Position, anonym = false) {
+		super(behavior);
 		this._suggestPass = new SuggestPass(this._robot, this._messaging);
 		this._center = center;
 		this._angleOffset = angleOffset;

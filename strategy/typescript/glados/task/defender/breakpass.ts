@@ -58,7 +58,7 @@ export class BreakPass extends Task {
 
 		if (this._robot.pos.distanceTo(World.Ball.pos) < 0.5) {
 			this.setMainAttackerParameters(robotEndDir, 0);
-			this._agent._activeBehavior._applyForMainAttacker();
+			this.behavior()._applyForMainAttacker();
 			Attack.cancelCurrentPlannedMainAttacker();
 		}
 

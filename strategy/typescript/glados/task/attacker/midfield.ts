@@ -1,10 +1,11 @@
 import { Position, Vector } from "base/vector";
 
+import { Behavior } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
 import * as Physics from "glados/observer/physics";
 import { MidfieldSampling } from "glados/task/ability/midfieldsampling";
 import { SuggestPass } from "glados/task/ability/suggestpass";
-import { Agent, Task } from "glados/task/base";
+import { Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
 
@@ -17,8 +18,8 @@ export class Midfield extends Task {
 	private _suggestPass: SuggestPass;
 	private _midfieldSampling: MidfieldSampling;
 
-	constructor(agent: Agent) {
-		super(agent);
+	constructor(behavior: Behavior) {
+		super(behavior);
 
 		let ignore = false;
 		this._obstacleTable = {

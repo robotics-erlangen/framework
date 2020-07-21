@@ -9,10 +9,11 @@ import { Position, RelativePosition, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
 
+import { Behavior } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
 import * as BallObserver from "glados/observer/ball";
 import { WallkickAbility } from "glados/task/ability/wallkickability";
-import { Agent, Task } from "glados/task/base";
+import { Task } from "glados/task/base";
 import { CurvedMaxAccel } from "glados/trajectory/curvedmaxaccel";
 import { Direct } from "glados/trajectory/direct";
 import * as PathHelper from "glados/trajectory/pathhelper";
@@ -156,8 +157,8 @@ export class PlaceBall extends Task {
 	private _pushedBefore = false;
 
 
-	constructor(agent: Agent, placementPos?: Position) {
-		super(agent);
+	constructor(behavior: Behavior, placementPos?: Position) {
+		super(behavior);
 
 		this._firstFrame = true;
 

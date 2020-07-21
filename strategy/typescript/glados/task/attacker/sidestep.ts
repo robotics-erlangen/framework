@@ -5,9 +5,10 @@ import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
 
+import { Behavior } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
 import { SuggestPass } from "glados/task/ability/suggestpass";
-import { Agent, Task } from "glados/task/base";
+import { Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
 import * as Rating from "glados/util/rating";
@@ -49,8 +50,8 @@ export class SideStep extends Task {
 	private _suggestPass: SuggestPass;
 	private _remainingTime: number | undefined;
 
-	constructor(agent: Agent, passInfo: PassInfo, remainingFreeTime: number | undefined) {
-		super(agent);
+	constructor(behavior: Behavior, passInfo: PassInfo, remainingFreeTime: number | undefined) {
+		super(behavior);
 		this._passInfo = passInfo;
 		let passBlocked = this._projectBotsOnLine(this._robot.pos, passInfo.ballPos) > MANMARK_DISTANCE_THRESHOLD;
 		let line;

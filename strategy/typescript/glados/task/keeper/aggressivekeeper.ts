@@ -4,10 +4,11 @@ import { Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
 
+import { Behavior } from "glados/agent/base/behavior";
 import * as Physics from "glados/observer/physics";
 import * as Robot from "glados/observer/robot";
 import { ForceShoot } from "glados/task/ability/forceshoot";
-import { Agent, Task } from "glados/task/base";
+import { Task } from "glados/task/base";
 import { CurvedMaxAccel } from "glados/trajectory/curvedmaxaccel";
 import * as PathHelper from "glados/trajectory/pathhelper";
 
@@ -29,8 +30,8 @@ let nearBaseLineDir = rightNearBasePoint - leftNearBasePoint;
 export class AggressiveKeeper extends Task {
 	private _forceShoot: ForceShoot;
 
-	constructor(agent: Agent) {
-		super(agent);
+	constructor(behavior: Behavior) {
+		super(behavior);
 		this._forceShoot = new ForceShoot(this._robot);
 	}
 

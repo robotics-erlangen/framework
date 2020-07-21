@@ -4,10 +4,11 @@ import { FriendlyRobot } from "base/robot";
 import { Position, Vector } from "base/vector";
 import * as World from "base/world";
 
+import { Behavior } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
 import * as ObserverShoot from "glados/observer/shoot";
 import { Shoot } from "glados/task/ability/shoot";
-import { Agent, Task } from "glados/task/base";
+import { Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import * as Rating from "glados/util/rating";
 
@@ -39,9 +40,9 @@ export class Pass extends Task {
 
 	private _shoot: Shoot;
 
-	constructor(agent: Agent, targetRobot?: FriendlyRobot, targetPos?: Position, chip?: boolean,
-			ballReceiptPos?: Position, targetTime?: number, targetSpeed?: number, highPrecision: boolean = false) {
-		super(agent);
+	constructor(behavior: Behavior, targetRobot?: FriendlyRobot, targetPos?: Position, chip?: boolean,
+			ballReceiptPos?: Position, targetTime?: number, targetSpeed?: number, highPrecision = false) {
+		super(behavior);
 		this._targetRobot = targetRobot;
 		this._targetTime = targetTime;
 		this._chipOverride = chip != undefined;

@@ -155,7 +155,7 @@ export class InterceptPass extends Task {
 
 		if (time != undefined && oppTime - time > 0.3 && time < 0.8) {
 			this.setMainAttackerParameters(World.Ball.pos, endSpeed.length());
-			this._agent._activeBehavior._applyForMainAttacker();
+			this.behavior()._applyForMainAttacker();
 		}
 
 		this._robot.trajectory.update(ToTarget, moveDest, dir, undefined, endSpeed);

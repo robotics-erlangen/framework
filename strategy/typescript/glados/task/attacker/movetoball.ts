@@ -3,8 +3,9 @@ import { AbsTime, RelTime } from "base/timing";
 import { Position, Speed, Vector } from "base/vector";
 import * as World from "base/world";
 
+import { Behavior } from "glados/agent/base/behavior";
 import * as Physics from "glados/observer/physics";
-import { Agent, Task } from "glados/task/base";
+import { Task } from "glados/task/base";
 import { CurvedMaxAccel } from "glados/trajectory/curvedmaxaccel";
 import * as PathHelper from "glados/trajectory/pathhelper";
 
@@ -23,8 +24,8 @@ export class MoveToBall extends Task {
 	private _startTime : AbsTime;
 	private _lastTime : RelTime | undefined;
 
-	constructor(agent: Agent, viewDir: Vector, ball : Ball = World.Ball) {
-		super(agent);
+	constructor(behavior: Behavior, viewDir: Vector, ball: Ball = World.Ball) {
+		super(behavior);
 		this._ball = ball;
 		this._viewdir = viewDir.normalized();
 		this._startTime = World.Time;

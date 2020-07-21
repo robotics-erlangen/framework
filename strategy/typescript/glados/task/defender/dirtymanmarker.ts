@@ -2,7 +2,8 @@ import { Robot } from "base/robot";
 import { Position, Vector } from "base/vector";
 import * as World from "base/world";
 
-import { Agent, Task } from "glados/task/base";
+import { Behavior } from "glados/agent/base/behavior";
+import { Task } from "glados/task/base";
 import { CurvedMaxAccel } from "glados/trajectory/curvedmaxaccel";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import * as Defense from "glados/util/defense";
@@ -18,8 +19,8 @@ export class DirtyManMarker extends Task {
 	private direction: Vector | undefined;
 	private oldpos: Vector | undefined;
 
-	constructor(agent: Agent, targetRobot: Robot) {
-		super(agent);
+	constructor(behavior: Behavior, targetRobot: Robot) {
+		super(behavior);
 
 		this.targetRobot = targetRobot;
 		this.obstacleTable = {

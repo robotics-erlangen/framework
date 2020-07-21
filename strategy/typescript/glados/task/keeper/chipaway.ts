@@ -1,8 +1,9 @@
 import * as vis from "base/vis";
 import * as World from "base/world";
 
+import { Behavior } from "glados/agent/base/behavior";
 import { Shoot } from "glados/task/ability/shoot";
-import { Agent, Task } from "glados/task/base";
+import { Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 
 let obstacleTable: PathHelper.PathHelperParameters = {
@@ -12,8 +13,8 @@ let obstacleTable: PathHelper.PathHelperParameters = {
 export class ChipAway extends Task {
 	private _shoot: Shoot;
 
-	constructor(agent: Agent) {
-		super(agent);
+	constructor(behavior: Behavior) {
+		super(behavior);
 		this._shoot = new Shoot(this._robot, this._messaging, this.capturedSetMAParams());
 	}
 

@@ -2,7 +2,8 @@ import { log } from "base/amun";
 import { Position, Speed, Vector } from "base/vector";
 import * as World from "base/world";
 
-import { Agent, Task } from "glados/task/base";
+import { Behavior } from "glados/agent/base/behavior";
+import { Task } from "glados/task/base";
 import { Direct } from "glados/trajectory/direct";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
@@ -27,8 +28,8 @@ export class RotateWithBall extends Task {
 	private _finishedRound : boolean = true;
 
 
-	constructor(agent: Agent, rotationSpeed: number, dribblerSpeed: number, acceleration: number) {
-		super(agent);
+	constructor(behavior: Behavior, rotationSpeed: number, dribblerSpeed: number, acceleration: number) {
+		super(behavior);
 
 		this._rotationSpeed = rotationSpeed;
 		this._dribblerSpeed = dribblerSpeed;

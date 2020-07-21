@@ -1,48 +1,42 @@
 import { FriendlyRobot } from "base/robot";
 import { Position } from "base/vector";
 
-import { MessageBox } from "glados/control/messaging";
+import { Behavior } from "glados/agent/base/behavior";
 
 export type MainAttackerParameters = [Position, number];
 
 /**
  * A constructor that creates a task.
  *
- * Tasks always take an agent from their owning behavior, thus an agent is
- * mandatory as first argument.
+ * Task always belong to a behavior, thus a behavior is mandatory as first
+ * argument.
  */
-export type TaskConstructor = new (agent: Agent, ...args: any[]) => Task;
+export type TaskConstructor = new (behavior: Behavior, ...args: any[]) => Task;
 
-/** The parameters needed to construct a task, excluding the mandatory agent */
+/** The parameters needed to construct a task, excluding the mandatory behavior */
 export type TaskParameters<T extends TaskConstructor> =
 	// This conditional is always true since T extends TaskConstructor
-	T extends new (agent: Agent, ...args: infer P) => Task
+	T extends new (behavior: Behavior, ...args: infer P) => Task
 	? P
 	: never;
 
-export interface Agent {
-	isAgent(): boolean;
-	_messaging: MessageBox;
-	robot(): FriendlyRobot;
-	_activeBehavior: any;
-}
-
 export abstract class Task {
-	_agent: Agent;
-	_robot: FriendlyRobot;
-	_messaging: MessageBox;
+	private _behavior: Behavior;
+	protected _robot: FriendlyRobot;
 	_mainAttackerParameters: MainAttackerParameters | undefined;
 
+	protected get _messaging() {
+		return this._behavior.agent().messaging();
+	}
 
-	constructor(agent: Agent) {
-		this._agent = agent;
-		this._robot = agent.robot();
-		this._messaging = agent._messaging;
+	constructor(behavior: Behavior) {
+		this._behavior = behavior;
+		this._robot = behavior.agent().robot();
 		this.clearMainAttackerParameters();
 	}
 
-	robot() {
-		return this._robot;
+	behavior() {
+		return this._behavior;
 	}
 
 	abstract run(): void;

@@ -3,10 +3,11 @@ import { Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
 
+import { Behavior } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
 import * as Physics from "glados/observer/physics";
 import { SuggestPass } from "glados/task/ability/suggestpass";
-import { Agent, Task } from "glados/task/base";
+import { Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
 import * as UtilDefense from "glados/util/defense";
@@ -15,8 +16,8 @@ export class Piggy extends Task {
 	private _targetRobot: Robot;
 	private _suggestPass: SuggestPass;
 
-	constructor(agent: Agent, targetRobot: Robot) {
-		super(agent);
+	constructor(behavior: Behavior, targetRobot: Robot) {
+		super(behavior);
 		if (targetRobot == undefined) {
 			throw new Error("Piggy task needs a target robot");
 		}

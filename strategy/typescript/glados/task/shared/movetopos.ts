@@ -1,8 +1,9 @@
 import { Position } from "base/vector";
 import * as World from "base/world";
 
+import { Behavior } from "glados/agent/base/behavior";
 import { SuggestPass } from "glados/task/ability/suggestpass";
-import { Agent, Task } from "glados/task/base";
+import { Task } from "glados/task/base";
 import { CurvedMaxAccel } from "glados/trajectory/curvedmaxaccel";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
@@ -69,8 +70,8 @@ export class MoveToPos extends Task {
 	// customObstacles is a table of obstacle tables
 	// An obstacle table contains a string field called type and parameters relevant for Path:addX
 	// Type can be "circle", "line", "rect" and "triangle"
-	constructor(agent: Agent, params: Parameters) {
-		super(agent);
+	constructor(behavior: Behavior, params: Parameters) {
+		super(behavior);
 
 		this._pos = params.pos;
 

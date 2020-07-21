@@ -2,7 +2,8 @@ import { log } from "base/amun";
 import { Position, Speed, Vector } from "base/vector";
 import * as World from "base/world";
 
-import { Agent, Task } from "glados/task/base";
+import { Behavior } from "glados/agent/base/behavior";
+import { Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
 
@@ -30,8 +31,8 @@ export class PullBall extends Task {
 	private _startArrivalFlag : boolean = false;
 
 
-	constructor(agent: Agent, movementSpeed: number, dribblerSpeed: number, acceleration: number) {
-		super(agent);
+	constructor(behavior: Behavior, movementSpeed: number, dribblerSpeed: number, acceleration: number) {
+		super(behavior);
 		this._movementSpeed = movementSpeed;
 		this._dribblerSpeed = dribblerSpeed;
 		this._acceleration = acceleration;

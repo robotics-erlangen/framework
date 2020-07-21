@@ -6,11 +6,12 @@ import * as Referee from "base/referee";
 import { Position, Vector } from "base/vector";
 import * as World from "base/world";
 
+import { Behavior } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
 import * as Physics from "glados/observer/physics";
 import * as ObserverRobot from "glados/observer/robot";
 import { ForceShoot } from "glados/task/ability/forceshoot";
-import { Agent, Task } from "glados/task/base";
+import { Task } from "glados/task/base";
 import { CurvedMaxAccel } from "glados/trajectory/curvedmaxaccel";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
@@ -25,8 +26,8 @@ export class CenterBack extends Task {
 	private _forceShoot: ForceShoot;
 
 	// centerbackTarget has to be updated by the caller
-	constructor(agent: Agent, centerbackTarget: {pos: Position}) {
-		super(agent);
+	constructor(behavior: Behavior, centerbackTarget: {pos: Position}) {
+		super(behavior);
 
 		if (centerbackTarget == undefined) {
 			throw new Error("CB has to be called with a non null centerbackTarget");

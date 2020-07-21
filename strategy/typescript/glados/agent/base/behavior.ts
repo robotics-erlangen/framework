@@ -112,9 +112,9 @@ export abstract class Behavior implements Checkable {
 		}
 		if (this._task == undefined || !(this._task instanceof bestTask) || forceNewTask) {
 			if (parameters != undefined) {
-				this._task = new bestTask(this._agent, ...parameters);
+				this._task = new bestTask(this, ...parameters);
 			} else {
-				this._task = new bestTask(this._agent);
+				this._task = new bestTask(this);
 			}
 		}
 		if (this._deferredBehavior) {
@@ -144,6 +144,10 @@ export abstract class Behavior implements Checkable {
 
 	robot(): FriendlyRobot {
 		return this._robot;
+	}
+
+	agent(): Agent {
+		return this._agent;
 	}
 
 	// chooses and returns a task and its parameters

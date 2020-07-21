@@ -6,8 +6,9 @@ import { Robot } from "base/robot";
 import { Position } from "base/vector";
 import * as World from "base/world";
 
+import { Behavior } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
-import { Agent, Task } from "glados/task/base";
+import { Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
 import * as Defense from "glados/util/defense";
@@ -26,8 +27,8 @@ export class ManMark extends Task {
 	private _obstacleTable: PathHelper.PathHelperParameters;
 
 
-	constructor(agent: Agent, targetRobot: Robot) {
-		super(agent);
+	constructor(behavior: Behavior, targetRobot: Robot) {
+		super(behavior);
 		if (targetRobot == undefined) {
 			throw new Error("ManMark task needs a target robot");
 		}

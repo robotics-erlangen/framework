@@ -1,10 +1,11 @@
 import { Position, Vector } from "base/vector";
 import * as World from "base/world";
 
+import { Behavior } from "glados/agent/base/behavior";
 import * as Physics from "glados/observer/physics";
 import { CatchBall } from "glados/task/ability/catchball";
 import { SuggestPass } from "glados/task/ability/suggestpass";
-import { Agent, Task } from "glados/task/base";
+import { Task } from "glados/task/base";
 import { CurvedMaxAccel } from "glados/trajectory/curvedmaxaccel";
 import * as PathHelper from "glados/trajectory/pathhelper";
 
@@ -26,8 +27,8 @@ export class Dribble extends Task {
 	private _catchBall: CatchBall;
 	private _suggestPass: SuggestPass;
 
-	constructor(agent: Agent, pos: Position, suggestPass: boolean = false, endSpeedLength: number = 0) {
-		super(agent);
+	constructor(behavior: Behavior, pos: Position, suggestPass = false, endSpeedLength = 0) {
+		super(behavior);
 		this._pos = pos;
 		this._dir = (pos - this._robot.pos).angle();
 		this._suggestPassFlag = suggestPass;
