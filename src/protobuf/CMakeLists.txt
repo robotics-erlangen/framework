@@ -60,6 +60,7 @@ target_sources(protobuf PRIVATE ${PROTO_SOURCES} ${PROTO_HEADERS} ${PROTO_FILES}
 
 target_link_libraries(protobuf
     PUBLIC ${PROTOBUF_LIBRARY}
+    PUBLIC Threads::Threads
     INTERFACE Qt5::Core
 )
 target_include_directories(protobuf
