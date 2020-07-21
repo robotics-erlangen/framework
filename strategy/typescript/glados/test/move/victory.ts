@@ -46,7 +46,7 @@ export class Victory extends Move {
 				let angle = i * angleStep;
 				let moveLine = Vector.fromPolar(angle, radius / 2);
 				let pos = center - new Vector(0, -radius / 2) + moveLine;
-				taskAssignments[this._robots[i]] = { class: MoveToPos, params: [pos]};
+				taskAssignments[this._robots[i]] = { class: MoveToPos, params: [{ pos }]};
 				if (this._robots[i].pos.distanceTo(pos) > 0.1) {
 					this._state = "circle";
 				}

@@ -157,11 +157,11 @@ export class DribbleTest extends Move {
 				break;
 			case State.FINISHED:
 				// log("FINISHED");
-				taskAssignments[this._robots[0]] = {class: MoveToPos, params: [defaultPos, 0]};
+				taskAssignments[this._robots[0]] = {class: MoveToPos, params: [{ pos: defaultPos, dir: 0 }]};
 
 				break;
 			default:
-				taskAssignments[this._robots[0]] = {class: MoveToPos, params: [defaultPos, 0]};
+				taskAssignments[this._robots[0]] = {class: MoveToPos, params: [{ pos: defaultPos, dir: 0 }]};
 
 				break;
 		}

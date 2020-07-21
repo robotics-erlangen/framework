@@ -9,6 +9,6 @@ export class MoveCommand extends Behavior {
 	}
 
 	_updateTask(): TaskAssignment<typeof MoveToPos> {
-		return [MoveToPos, [this._robot.moveCommand!.pos, undefined, undefined, undefined, true], true];
+		return [MoveToPos, [{ pos: this._robot.moveCommand!.pos, ignoreDefaultObstacles: true }], true];
 	}
 }

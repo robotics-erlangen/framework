@@ -53,9 +53,9 @@ export class KickOff extends Move {
 
 		if (World.RefereeState === "KickoffOffensivePrepare") {
 			taskAssignments[this._robots[this._assignments[0]]] = { class: StopAttack, params: [] };
-			taskAssignments[this._robots[this._assignments[1]]] = { class: MoveToPos, params: [ this._assistantPos[0] ] };
+			taskAssignments[this._robots[this._assignments[1]]] = { class: MoveToPos, params: [{ pos: this._assistantPos[0] }] };
 			if (this._robots.length === 3) {
-				taskAssignments[this._robots[this._assignments[2]]] = { class: MoveToPos, params: [ this._assistantPos[1] ] };
+				taskAssignments[this._robots[this._assignments[2]]] = { class: MoveToPos, params: [{ pos: this._assistantPos[1] }] };
 			}
 		} else {
 			let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];

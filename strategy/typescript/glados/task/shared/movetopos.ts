@@ -44,6 +44,18 @@ interface TriangleObstacle {
 }
 export type Obstacle = CircleObstacle | LineObstacle | RectObstacle | TriangleObstacle;
 
+export type Parameters = {
+	pos: Position,
+	dir?: number,
+	endSpeedLength?: number,
+	customObstacles?: Obstacle[],
+	suggestPass?: boolean,
+	ignoreDefaultObstacles?: boolean,
+	ignoreBallPlacement?: boolean
+	ignoreBall?: boolean,
+	useCMA?: boolean
+};
+
 export class MoveToPos extends Task {
 	private _pos: Position;
 	private _dir: number;
@@ -56,28 +68,38 @@ export class MoveToPos extends Task {
 	// customObstacles is a table of obstacle tables
 	// An obstacle table contains a string field called type and parameters relevant for Path:addX
 	// Type can be "circle", "line", "rect" and "triangle"
-	constructor(agent: Agent, pos: Position, dir: number = (World.Ball.pos - pos).angle(), suggestPass: boolean = false,
-			endSpeedLength: number = 0, ignoreDefaultObstacles: boolean = false, customObstacles: Obstacle[] = [],
-			ignoreBallPlacement: boolean = false, ignoreBall: boolean = false, useCMA: boolean = false) {
+	constructor(agent: Agent, params: Parameters) {
 		super(agent);
-		this._pos = pos;
-		this._dir = dir;
-		this._endSpeedLength = endSpeedLength;
-		let ignore = ignoreDefaultObstacles;
+
+		this._pos = params.pos;
+
+		if (params.dir === undefined) {
+			params.dir = (World.Ball.pos - params.pos).angle();
+		}
+		this._dir = params.dir;
+		if (params.endSpeedLength === undefined) {
+			params.endSpeedLength = 0;
+		}
+		this._endSpeedLength = params.endSpeedLength;
+		if (params.customObstacles === undefined) {
+			params.customObstacles = [];
+		}
+		this._customObstacles = params.customObstacles;
+
+		const ignore = params.ignoreDefaultObstacles === true;
 		this._obstacleTable = {
-			ignoreBall: ignore || ignoreBall,
+			ignoreBall: ignore || params.ignoreBall === true,
 			ignoreDefenseArea: ignore,
 			ignoreOpponentDefenseArea: ignore,
 			messaging: this._messaging,
 			ignorePass: this._messaging == undefined || ignore,
-			ignoreBallPlacementObstacle: ignoreBallPlacement
+			ignoreBallPlacementObstacle: params.ignoreBallPlacement === true
 		};
-		this._customObstacles = customObstacles;
 
-		if (suggestPass) {
+		if (params.suggestPass) {
 			this._suggestPass = new SuggestPass(this._robot, this._messaging);
 		}
-		this.useCMA = useCMA;
+		this.useCMA = params.useCMA === true;
 	}
 
 	public run() {

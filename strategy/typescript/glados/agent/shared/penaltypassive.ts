@@ -14,6 +14,6 @@ export class PenaltyPassive extends Behavior {
 	}
 
 	_updateTask(): TaskAssignment<typeof MoveToPos> {
-		return [MoveToPos, [new Vector(G.FieldWidthHalf - 0.75, -G.FieldHeightHalf + 0.75)]];
+		return [MoveToPos, [{ pos: new Vector(G.FieldWidthHalf - 0.75, -G.FieldHeightHalf + 0.75) }]];
 	}
 }

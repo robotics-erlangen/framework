@@ -124,7 +124,7 @@ export class Armada extends Move {
 						= {class: AcceptPass, params: [this._positions[i - 1], 0.1]};
 				} else {
 					taskAssignments[this._robots[this._assignment[i - 1]]]
-						= {class: MoveToPos, params: [ this._positions[i - 1], undefined, true ] }; // offer other positions for redeciding
+						= { class: MoveToPos, params: [{ pos: this._positions[i - 1], suggestPass: true }] }; // offer other positions for redeciding
 				}
 			}
 		} else {

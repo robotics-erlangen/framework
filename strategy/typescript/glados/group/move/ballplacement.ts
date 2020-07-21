@@ -150,12 +150,17 @@ export class BallPlacement extends Move {
 				this._determinePositions(extraDistance);
 				taskAssignments[this.RECEIVER] = {
 					class: MoveToPos,
-					params: [ this._computedReceiverPos, undefined, undefined, undefined, undefined, undefined, true ],
+					params: [{ pos: this._computedReceiverPos, ignoreBallPlacement: true }],
 					restart: true
 				};
 				taskAssignments[this.SHOOTER] = {
 					class: MoveToPos,
-					params: [ Field.limitToField(this._computedShooterPos, -0.15), undefined, undefined, undefined, true, SHOOTER_OBSTACLES, true ],
+					params: [{
+						pos: Field.limitToField(this._computedShooterPos, -0.15),
+						ignoreDefaultObstacles: true,
+						customObstacles: SHOOTER_OBSTACLES,
+						ignoreBallPlacement: true
+					}],
 					restart: true
 				};
 
@@ -165,7 +170,7 @@ export class BallPlacement extends Move {
 				this._mainAttacker = this.SHOOTER;
 				taskAssignments[this.RECEIVER] = {
 					class: MoveToPos,
-					params: [ this._computedReceiverPos, undefined, undefined, undefined, undefined, undefined, true ],
+					params: [{ pos: this._computedReceiverPos, ignoreBallPlacement: true }],
 					restart: this._stateChanged
 				};
 				taskAssignments[this.SHOOTER] = {
@@ -181,12 +186,17 @@ export class BallPlacement extends Move {
 				this._determinePositions(0.15);
 				taskAssignments[this.RECEIVER] = {
 					class: MoveToPos,
-					params: [ this._computedReceiverPos, undefined, undefined, undefined, undefined, undefined, true ],
+					params: [{ pos: this._computedReceiverPos, ignoreBallPlacement: true }],
 					restart: true
 				};
 				taskAssignments[this.SHOOTER] = {
 					class: MoveToPos,
-					params: [ this._computedShooterPos, undefined, undefined, undefined, true, SHOOTER_OBSTACLES, true ],
+					params: [{
+						pos: this._computedShooterPos,
+						ignoreDefaultObstacles: true,
+						customObstacles: SHOOTER_OBSTACLES,
+						ignoreBallPlacement: true,
+					}],
 					restart: true
 				};
 
@@ -202,7 +212,7 @@ export class BallPlacement extends Move {
 				};
 				taskAssignments[this.RECEIVER] = {
 					class: MoveToPos,
-					params: [ this._computedReceiverPos, undefined, undefined, undefined, undefined, undefined, true ],
+					params: [{ pos: this._computedReceiverPos, ignoreBallPlacement: true }],
 					restart: this._stateChanged
 				};
 
@@ -213,7 +223,7 @@ export class BallPlacement extends Move {
 				if (this._stateChanged) {
 					this._calculateEvadingPos();
 				}
-				taskAssignments[this.SHOOTER] = { class: MoveToPos, params: [this._selectedEvadingPos] };
+				taskAssignments[this.SHOOTER] = { class: MoveToPos, params: [{ pos: this._selectedEvadingPos }] };
 
 				this.RECEIVER.setDribblerSpeed(MAX_DRIBBLER_SPEED);
 
@@ -234,7 +244,7 @@ export class BallPlacement extends Move {
 					this.invisible = true;
 					taskAssignments[this.RECEIVER] = {
 						class: MoveToPos,
-						params: [ this.RECEIVER.pos, this._receiverBallDirection, undefined, undefined, undefined, undefined, true, true ],
+						params: [{ pos: this.RECEIVER.pos, dir: this._receiverBallDirection, ignoreBallPlacement: true, ignoreBall: true }],
 						restart: true
 					};
 				} else {
@@ -244,7 +254,7 @@ export class BallPlacement extends Move {
 					this._receiverBallDirection = (BallObserver.getRealisticBallPos() - this.RECEIVER.pos).angle();
 					taskAssignments[this.RECEIVER] = {
 						class: MoveToPos,
-						params: [ intersection, undefined, undefined, undefined, undefined, undefined, true ],
+						params: [{ pos: intersection, ignoreBallPlacement: true }],
 						restart: true
 					};
 				}
@@ -256,7 +266,7 @@ export class BallPlacement extends Move {
 				if (this._stateChanged) {
 					this._calculateEvadingPos();
 				}
-				taskAssignments[this.SHOOTER] = { class: MoveToPos, params: [this._selectedEvadingPos] };
+				taskAssignments[this.SHOOTER] = { class: MoveToPos, params: [{ pos: this._selectedEvadingPos }] };
 				taskAssignments[this.RECEIVER] = { class: Halt, restart: this._stateChanged };
 
 				break;
@@ -266,7 +276,7 @@ export class BallPlacement extends Move {
 				if (this._stateChanged) {
 					this._calculateEvadingPos();
 				}
-				taskAssignments[this.SHOOTER] = { class: MoveToPos, params: [this._selectedEvadingPos] };
+				taskAssignments[this.SHOOTER] = { class: MoveToPos, params: [{ pos: this._selectedEvadingPos }] };
 				if (this._stateChanged) {
 					this._computedReceiverPos = this.RECEIVER.pos + (this.RECEIVER.pos - BallObserver.getRealisticBallPos()).withLength(2 * this.RECEIVER.radius);
 				}
@@ -274,13 +284,22 @@ export class BallPlacement extends Move {
 					this.setBackPosInvisible = this.RECEIVER.pos - (this._ballPlacementPos - this.RECEIVER.pos).withLength(SET_BACK_INVISIBLE_LENGTH);
 					taskAssignments[this.RECEIVER] = {
 						class: MoveToPos,
-						params: [ this.setBackPosInvisible, (this._ballPlacementPos - this.RECEIVER.pos).angle(), undefined, undefined, undefined, undefined, true, true ],
+						params: [{
+							pos: this.setBackPosInvisible,
+							dir: (this._ballPlacementPos - this.RECEIVER.pos).angle(),
+							ignoreBallPlacement: true,
+							ignoreBall: true
+						}],
 						restart: this._stateChanged
 					};
 				} else {
 					taskAssignments[this.RECEIVER] = {
 						class: MoveToPos,
-						params: [ this._computedReceiverPos, undefined, undefined, undefined, undefined, undefined, true, true ],
+						params: [{
+							pos: this._computedReceiverPos,
+							ignoreBallPlacement: true,
+							ignoreBall: true
+						}],
 						restart: this._stateChanged
 					};
 				}
@@ -297,7 +316,11 @@ export class BallPlacement extends Move {
 				}
 				taskAssignments[this.SHOOTER] = {
 					class: MoveToPos,
-					params: [ this._selectedEvadingPos, undefined, undefined, undefined, undefined, SHOOTER_OBSTACLES, true],
+					params: [{
+						pos: this._selectedEvadingPos,
+						customObstacles: SHOOTER_OBSTACLES,
+						ignoreBallPlacement: true
+					}],
 					restart: this._stateChanged
 				};
 

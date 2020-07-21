@@ -33,7 +33,7 @@ function taskAssignment(passInfoTable: any, pos1: Position, pos2: Position, robo
 	if (acceptPass) {
 		return { class: AcceptPass };
 	} else if (enemyAmm > 0) {
-		return { class: MoveToPos, params: [new Vector(pos1.x * ballSide, pos1.y)]};
+		return { class: MoveToPos, params: [{ pos: new Vector(pos1.x * ballSide, pos1.y) }] };
 	} else {
 		return { class: Striker, params: [ new Vector(pos1.x * ballSide, pos1.y), new Vector(pos2.x * ballSide, pos2.y) ]};
 	}

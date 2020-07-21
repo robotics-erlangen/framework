@@ -255,8 +255,11 @@ export class PenaltyShootout extends Behavior {
 			return [MoveToStaticBall, [Math.PI / 2, 0.1]];
 		} else if (distanceToContact > 1 - 0.05) {
 			// return [StopAttack];
-			return [ MoveToPos, [World.Ball.pos - new Vector(0, 0.5), (new Vector(0, -1)).angle(),
-				undefined, undefined, undefined, undefined, undefined, undefined, true]];
+			return [ MoveToPos, [{
+				pos: World.Ball.pos - new Vector(0, 0.5),
+				dir: (new Vector(0, -1)).angle(),
+				useCMA: true
+			}]];
 		} else if (chipMode !== false) {
 			debug.set("chipMode", chipMode);
 			return [PenaltyChip, [this._ball, chipMode]];

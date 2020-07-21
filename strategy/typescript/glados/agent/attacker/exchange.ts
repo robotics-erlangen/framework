@@ -55,6 +55,6 @@ export class Exchange extends Behavior {
 			this._applyForMainAttacker(undefined, undefined, -Infinity);
 		}
 		amun.setRobotExchangeSymbol(this._robot.generation, this._robot.id,true);
-		return [MoveToPos, [exchangePos]];
+		return [MoveToPos, [{ pos: exchangePos }]];
 	}
 }
