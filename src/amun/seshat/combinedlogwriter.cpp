@@ -46,8 +46,8 @@ namespace CombinedLogWriterInternal {
         void emitStatusToBacklog(const Status &status);
     };
 
-    void SignalSource::emitSaveBacklog(QString filename, const Status &status, bool b) {
-        emit saveBacklogFile(filename, status,b);
+    void SignalSource::emitSaveBacklog(QString filename, const Status &status, bool processEvents) {
+        emit saveBacklogFile(filename, status, processEvents);
     }
 
     void SignalSource::emitStatusToRecording(const Status &status) {

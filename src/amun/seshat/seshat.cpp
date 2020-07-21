@@ -28,10 +28,10 @@
 #include <QFileInfo>
 #include <functional>
 
-Seshat::Seshat(int backlogLen, QObject* parent) :
+Seshat::Seshat(int backlogLength, QObject* parent) :
     QObject(parent),
-    m_logger(false, backlogLen),
-    m_replayLogger(true, backlogLen),
+    m_logger(false, backlogLength),
+    m_replayLogger(true, backlogLength),
     m_logthread(new QThread)
 {
     connect(&m_logger, &CombinedLogWriter::sendStatus, this, &Seshat::sendUi);
