@@ -67,6 +67,7 @@ private:
     void saveBackLog();
     void recordButtonToggled(bool enabled);
     void useLogfileLocation(bool enabled);
+    void sendIsLogging(bool log);
 
 private:
     enum class LogState {
