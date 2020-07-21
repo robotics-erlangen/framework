@@ -768,12 +768,6 @@ void MainWindow::horusMode()
 
     ui->simulator->sendPauseSimulator(amun::Horus, true);
     emit sendCommand(uiChangedCommand(false));
-
-    // there may still be packets between amun and the gui coming from the simulator
-    // especially when a log was opened and the gui was blocked for some time
-    // 200 ms is an arbitrary number, the exact time shouldn't really matter
-    // TODO: this in seshat?
-    // QCoreApplication::processEvents(QEventLoop::AllEvents, 200);
 }
 
 void MainWindow::toggleHorusModeWidgets(bool enable)
