@@ -55,6 +55,8 @@ target_link_libraries(seshat
 target_include_directories(seshat
     INTERFACE include
     PRIVATE include/seshat
+    PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
 add_library(amun::seshat ALIAS seshat)
