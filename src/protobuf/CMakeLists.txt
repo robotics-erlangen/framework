@@ -58,6 +58,9 @@ set(PROTO_FILES
 protobuf_generate_cpp(PROTO_SOURCES PROTO_HEADERS ${PROTO_FILES})
 target_sources(protobuf PRIVATE ${PROTO_SOURCES} ${PROTO_HEADERS} ${PROTO_FILES})
 
+# disable warnings for generated files
+target_compile_options(protobuf PUBLIC -w)
+
 target_link_libraries(protobuf
     PUBLIC ${PROTOBUF_LIBRARY}
     PUBLIC Threads::Threads
