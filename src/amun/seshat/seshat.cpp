@@ -23,6 +23,7 @@
 #include "timedstatussource.h"
 #include "visionlogliveconverter.h"
 #include "logfilereader.h"
+#include "visionconverter.h"
 
 #include <QThread>
 #include <QCoreApplication>
@@ -144,7 +145,7 @@ void Seshat::handleCommand(const Command& command)
     m_replayLogger.handleCommand(command);
 
     if (command->has_playback()) {
-        const auto& playback =  command->playback();
+        const auto& playback = command->playback();
         if (playback.has_run_playback()) {
             bool newPlayback = playback.run_playback();
             if (newPlayback != m_isPlayback && m_statusSource) {
@@ -167,10 +168,30 @@ void Seshat::handleCommand(const Command& command)
             setStatusSource(m_logger.makeStatusSource());
             emit sendReplayStrategy(m_logger.getTeamStatus());
         }
+
+        if (playback.has_export_vision_log()) {
+            exportVisionLog(playback.export_vision_log());
+        }
     }
 
     if (m_isPlayback && m_statusSource) {
         m_statusSource->handleCommand(command);
+    }
+}
+
+void Seshat::exportVisionLog(const std::string& filename)
+{
+    QString error;
+    if (!m_statusSource) {
+        error = "No open logfile/backlog";
+    } else {
+        error = VisionExtractor::extractVision(*m_statusSource->getStatusSource(), QString::fromStdString(filename));
+    }
+
+    if (!error.isEmpty()) {
+        Status status(new amun::Status);
+        status->mutable_pure_ui_response()->set_export_visionlog_error(error.toStdString());
+        emit sendUi(status);
     }
 }
 

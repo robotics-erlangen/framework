@@ -23,8 +23,7 @@
 #include <QCommandLineParser>
 
 #include "seshat/logfilereader.h"
-#include "visionlog/visionlogwriter.h"
-#include "protobuf/ssl_referee.h"
+#include "seshat/visionconverter.h"
 
 int main(int argc, char* argv[])
 {
@@ -57,59 +56,11 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
-    VisionLogWriter logfileOut(parser.value(outputDirOption));
+    QString error = VisionExtractor::extractVision(logfileIn, parser.value(outputDirOption));
 
-    amun::GameState::State lastState = amun::GameState::Halt;
-    qint64 gameStateChangeTime = logfileIn.readStatus(0)->time();
-    quint32 refereeCounter = 0;
-    SSL_Referee::Command lastCommand = SSL_Referee::HALT;
-    qint32 remainingActionTime = 0;
-
-    for(int i = 0; i < logfileIn.packetCount(); ++i){
-        Status current = logfileIn.readStatus(i);
-
-        if (current->has_world_state()) {
-            for (const auto &frame : current->world_state().vision_frames()) {
-                logfileOut.addVisionPacket(frame, current->time());
-            }
-        }
-
-        if (current->has_game_state()) {
-            const auto &gameState = current->game_state();
-            SSL_Referee refereePacket;
-            refereePacket.set_packet_timestamp((quint64)current->time());
-            refereePacket.set_stage(gameState.stage());
-            if (gameState.has_stage_time_left()) {
-                refereePacket.set_stage_time_left(gameState.stage_time_left());
-            }
-            if (gameState.state() != lastState) {
-                lastState = gameState.state();
-                gameStateChangeTime = current->time();
-                refereeCounter++;
-
-                if (gameState.state() != amun::GameState::Game) {
-                    lastCommand = commandFromGameState(gameState.state());
-                }
-            }
-            refereePacket.set_command(lastCommand);
-            refereePacket.set_command_counter(refereeCounter);
-            refereePacket.set_command_timestamp((quint64)gameStateChangeTime);
-            refereePacket.mutable_yellow()->CopyFrom(gameState.yellow());
-            refereePacket.mutable_blue()->CopyFrom(gameState.blue());
-            if (gameState.has_designated_position()) {
-                refereePacket.mutable_designated_position()->CopyFrom(gameState.designated_position());
-            }
-            if (gameState.has_goals_flipped()) {
-                refereePacket.set_blueteamonpositivehalf(!gameState.goals_flipped());
-            }
-            if (gameState.has_game_event()) {
-                refereePacket.mutable_gameevent()->CopyFrom(gameState.game_event());
-            }
-            if (gameState.has_current_action_time_remaining()) {
-                remainingActionTime = gameState.current_action_time_remaining();
-            }
-            refereePacket.set_current_action_time_remaining(remainingActionTime);
-            logfileOut.addRefereePacket(refereePacket, current->time());
-        }
+    if (!error.isEmpty()) {
+        std::cerr <<error.toStdString()<<std::endl;
     }
+
+    return 0;
 }

@@ -32,6 +32,7 @@ add_library(seshat
     include/seshat/logfilehasher.h
     include/seshat/bufferedstatussource.h
     include/seshat/timedstatussource.h
+    include/seshat/visionconverter.h
 
     backlogwriter.cpp
     combinedlogwriter.cpp
@@ -42,6 +43,7 @@ add_library(seshat
     logfilehasher.cpp
     bufferedstatussource.cpp
     timedstatussource.cpp
+    visionconverter.cpp
 )
 
 target_link_libraries(seshat

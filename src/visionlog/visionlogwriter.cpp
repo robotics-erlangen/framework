@@ -34,10 +34,6 @@ VisionLogWriter::VisionLogWriter(const QString& filename):
     QByteArray filenameBytes = filename.toUtf8();
     const char *fname = filenameBytes.constData();
     out_stream = new std::ofstream(fname, std::ios_base::out | std::ios_base::binary);
-    if (!out_stream->is_open()) {
-        std::cerr << "Error opening log file \"" << fname << "\"!" << std::endl;
-        exit(1);
-    }
 
     VisionLog::FileHeader fileHeader;
     fileHeader.version = 1;
@@ -49,6 +45,11 @@ VisionLogWriter::VisionLogWriter(const QString& filename):
     out_stream->write((char*) &fileHeader, sizeof(fileHeader));
 }
 
+bool VisionLogWriter::isOpen() const
+{
+    return out_stream->is_open();
+}
+
 VisionLogWriter::~VisionLogWriter()
 {
     delete out_stream;
@@ -56,6 +57,9 @@ VisionLogWriter::~VisionLogWriter()
 
 void VisionLogWriter::addVisionPacket(const SSL_WrapperPacket& frame, qint64 time)
 {
+    if (!isOpen()) {
+        return;
+    }
     QByteArray data;
     data.resize(frame.ByteSize());
     if (!frame.IsInitialized()){
@@ -70,6 +74,9 @@ void VisionLogWriter::addVisionPacket(const SSL_WrapperPacket& frame, qint64 tim
 
 void VisionLogWriter::addRefereePacket(const SSL_Referee& state, qint64 time)
 {
+    if (!isOpen()) {
+        return;
+    }
     QByteArray data;
     data.resize(state.ByteSize());
     if (!state.IsInitialized()){

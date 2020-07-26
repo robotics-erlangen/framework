@@ -41,8 +41,11 @@ public slots:
 public:
     TimedStatusSource(std::shared_ptr<StatusSource> source, QObject* parent = nullptr);
     // checks if this TimedStatusSource manages the supplied StatusSource source
-    bool manages(const std::shared_ptr<StatusSource>& source) const{
+    bool manages(const std::shared_ptr<StatusSource>& source) const {
         return m_statusSource.getStatusSource() == source;
+    }
+    const std::shared_ptr<StatusSource>& getStatusSource() const {
+        return m_statusSource.getStatusSource();
     }
     // has to be called once and only once
     void start();

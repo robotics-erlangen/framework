@@ -27,7 +27,7 @@
 #include "protobuf/status.h"
 #include "statussource.h"
 
-namespace BufferedStatusSourceInternal{
+namespace BufferedStatusSourceInternal {
     class SignalSource;
 }
 

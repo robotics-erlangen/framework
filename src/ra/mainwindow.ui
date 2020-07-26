@@ -95,7 +95,7 @@
      <x>0</x>
      <y>0</y>
      <width>905</width>
-     <height>23</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_Game">
@@ -149,6 +149,7 @@
      <string>File</string>
     </property>
     <addaction name="actionOpen_Logfile"/>
+    <addaction name="exportVision"/>
     <addaction name="actionLogCutter"/>
     <addaction name="separator"/>
     <addaction name="actionSaveConfiguration"/>
@@ -335,12 +336,12 @@
    <widget class="ReplayTeamWidget" name="replay"/>
   </widget>
   <widget class="QDockWidget" name="dockWidget">
-   <attribute name="dockWidgetArea">
-    <number>1</number>
-   </attribute>
    <property name="windowTitle">
     <string>Simulator Config</string>
    </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
    <widget class="SimulatorConfigWidget" name="simulatorConfig"/>
   </widget>
   <action name="actionPlotter">
@@ -733,6 +734,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+R</string>
+   </property>
+  </action>
+  <action name="exportVision">
+   <property name="text">
+    <string>Export as Vision Log</string>
    </property>
   </action>
  </widget>

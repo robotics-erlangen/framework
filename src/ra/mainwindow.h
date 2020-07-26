@@ -92,6 +92,7 @@ private slots:
     void setSpeed(int speed);
     void udpateSpeedActionsEnabled();
     void useLogfileLocation(bool enable);
+    void exportVisionLog();
 
 private:
     void toggleHorusModeWidgets(bool enable);

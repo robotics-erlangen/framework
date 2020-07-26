@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2018 Tobias Heineken                                        *
+ *   Copyright 2020 Tobias Heineken, Andreas Wendler                       *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,33 +18,16 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef VISIONLOGWRITER_H
-#define VISIONLOGWRITER_H
+#ifndef VISIONCONVERTER_H
+#define VISIONCONVERTER_H
 
-#include <QObject>
-#include <QString>
-#include <iostream>
+#include "statussource.h"
 
-#include "protobuf/ssl_wrapper.pb.h"
-#include "protobuf/ssl_referee.pb.h"
-#include "messagetype.h"
+namespace VisionExtractor {
 
-class VisionLogWriter: public QObject
-{
-    Q_OBJECT
-public:
-    explicit VisionLogWriter(const QString& filename);
-    ~VisionLogWriter() override;
-    void addVisionPacket(const SSL_WrapperPacket& frame, qint64 time);
-    void addRefereePacket(const SSL_Referee& state, qint64 time);
-    bool isOpen() const;
+    // returns an error message, empty if no error occured
+    QString extractVision(StatusSource& source, const QString& saveFileLocation);
 
-private:
-    void writePacket(const QByteArray &data, qint64 time, VisionLog::MessageType type);
+}
 
-private:
-    std::ofstream* out_stream;
-};
-
-
-#endif //VISIONLOGWRITER_H
+#endif // VISIONCONVERTER_H

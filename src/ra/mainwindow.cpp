@@ -180,6 +180,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     connect(ui->actionUseLocation, SIGNAL(toggled(bool)), this, SLOT(useLogfileLocation(bool)));
     connect(ui->actionUseLocation, SIGNAL(toggled(bool)), m_logOpener, SLOT(useLogfileLocation(bool)));
     connect(ui->actionChangeLocation, SIGNAL(triggered()), SLOT(showDirectoryDialog()));
+    connect(ui->exportVision, &QAction::triggered, this, &MainWindow::exportVisionLog);
 
     connect(ui->actionGoLive, SIGNAL(triggered()), SLOT(liveMode()));
     connect(ui->actionShowBacklog, SIGNAL(triggered()), SLOT(showBacklogMode()));
@@ -617,20 +618,27 @@ void MainWindow::handleStatus(const Status &status)
         }
     }
 
-    if (status->has_pure_ui_response() && status->pure_ui_response().has_log_open()) {
-        const auto& logInfo = status->pure_ui_response().log_open();
-        logOpened(QString::fromStdString(logInfo.filename() + " (seshat) "), !logInfo.success());
-    }
-
-    if (status->has_pure_ui_response() && status->pure_ui_response().has_force_ra_horus()) {
-        bool ra = status->pure_ui_response().force_ra_horus();
-        if (ra && m_currentWidgetConfiguration % 2 == 0) {
-            // Ra Mode
-            switchToWidgetConfiguration(m_currentWidgetConfiguration - 1);
+    if (status->has_pure_ui_response()) {
+        auto response = status->pure_ui_response();
+        if (response.has_log_open()) {
+            const auto& logInfo = response.log_open();
+            logOpened(QString::fromStdString(logInfo.filename() + " (seshat) "), !logInfo.success());
         }
-        else if (!ra && m_currentWidgetConfiguration % 2 == 1) {
-            // Horus Mode
-            switchToWidgetConfiguration(m_currentWidgetConfiguration + 1);
+
+        if (response.has_force_ra_horus()) {
+            bool ra = response.force_ra_horus();
+            if (ra && m_currentWidgetConfiguration % 2 == 0) {
+                // Ra Mode
+                switchToWidgetConfiguration(m_currentWidgetConfiguration - 1);
+            }
+            else if (!ra && m_currentWidgetConfiguration % 2 == 1) {
+                // Horus Mode
+                switchToWidgetConfiguration(m_currentWidgetConfiguration + 1);
+            }
+        }
+
+        if (response.has_export_visionlog_error()) {
+            QMessageBox::critical(this, "Visionlog export error", QString::fromStdString(response.export_visionlog_error()));
         }
     }
 
@@ -642,6 +650,17 @@ void MainWindow::useLogfileLocation(bool enable)
     Command command(new amun::Command);
     command->mutable_record()->set_use_logfile_location(enable);
     sendCommand(command);
+}
+
+void MainWindow::exportVisionLog()
+{
+    QString filename = QFileDialog::getSaveFileName(this, "Save file location", "", "Vision log files (*.log)");
+
+    if (!filename.isEmpty()) {
+        Command command(new amun::Command);
+        command->mutable_playback()->set_export_vision_log(filename.toStdString());
+        sendCommand(command);
+    }
 }
 
 void MainWindow::sendCommand(const Command &command)
@@ -793,6 +812,7 @@ void MainWindow::toggleHorusModeWidgets(bool enable)
     ui->actionRecord->setVisible(!enable);
     ui->actionSave20s->setEnabled(!enable);
     ui->goToLastPosition->setVisible(enable && m_logOpener->showGoToLastPositionButton());
+    ui->exportVision->setVisible(enable);
 
     udpateSpeedActionsEnabled();
 }

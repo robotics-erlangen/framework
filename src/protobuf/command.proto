@@ -220,6 +220,7 @@ message CommandPlayback {
     optional bool run_playback = 6; // used to switch between live and log (corresponding to ra and horus in the UI)
     optional string log_path = 7;
     optional Flag instant_replay = 8;
+    optional string export_vision_log = 9; // the location to save the vision log to
 }
 
 message CommandRecord {

@@ -37,6 +37,7 @@ public:
     ~Seshat();
     Seshat(const Seshat& other) = delete;
     Seshat& operator=(const Seshat& other) = delete;
+
 signals:
     void sendUi(const Status& status);
     void sendReplayStrategy(const Status& status);
@@ -54,6 +55,7 @@ private:
     void openLogfile(const std::string& filename);
     void sendLogfileInfo(const std::string& message, bool success);
     void sendSimulatorCommand();
+    void exportVisionLog(const std::string& filename);
 
 private:
 
