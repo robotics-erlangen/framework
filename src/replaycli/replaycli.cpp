@@ -27,6 +27,7 @@
 #include <fstream>
 
 #include "seshat/logfilereader.h"
+#include "seshat/visionlogliveconverter.h"
 #include "strategy/strategy.h"
 #include "strategy/strategyreplayhelper.h"
 #include "strategy/script/compilerregistry.h"
@@ -120,11 +121,23 @@ int main(int argc, char* argv[])
     qRegisterMetaType<Status>("Status");
     qRegisterMetaType<Command>("Command");
 
-    LogFileReader logfile;
-    QString logfileName = parser.positionalArguments().first();
-    QByteArray lognameBytes = logfileName.toUtf8();
-    if (!logfile.open(logfileName)){
-        qFatal("Error reading logfile %s: %s",lognameBytes.constData(),logfile.errorMsg().toUtf8().constData());
+    std::shared_ptr<StatusSource> logfile;
+
+    QList<std::function<QPair<std::shared_ptr<StatusSource>, QString>(QString)>> openFunctions =
+        {&VisionLogLiveConverter::tryOpen, &LogFileReader::tryOpen};
+    for (auto openFunction : openFunctions) {
+        auto openResult = openFunction(parser.positionalArguments().first());
+
+        if (openResult.first != nullptr) {
+            logfile = openResult.first;
+            break;
+        } else if (!openResult.second.isEmpty()) {
+            // the header matched, but the log file is corrupt
+            qFatal(("Error: " + openResult.second).toStdString().c_str());
+        }
+    }
+    if (!logfile) {
+        qFatal("Error: Could not open log file - no matching format found");
     }
 
     const QStringList args = parser.positionalArguments();
@@ -152,7 +165,7 @@ int main(int argc, char* argv[])
             qInstallMessageHandler(myMessageOutput);
         }
         Timer timer;
-        timer.setTime(logfile.readStatus(0)->time(), 1.0);
+        timer.setTime(logfile->readStatus(0)->time(), 1.0);
         StrategyType strategyColor = asBlue ? StrategyType::BLUE : StrategyType::YELLOW;
         std::shared_ptr<GameControllerConnection> connection(new GameControllerConnection(false));
         std::unique_ptr<Strategy> strategy(new Strategy(&timer, strategyColor, nullptr, &compilerRegistry, connection));
@@ -162,7 +175,7 @@ int main(int argc, char* argv[])
             strategy->connect(strategy.get(), SIGNAL(sendStatus(Status)), testRunner.get(), SLOT(handleOriginalStatus(Status)));
         }
 
-        TimingStatistics statistics(asBlue, parser.isSet(printAllTimings), logfile.packetCount() + 1);
+        TimingStatistics statistics(asBlue, parser.isSet(printAllTimings), logfile->packetCount() + 1);
         statistics.connect(strategy.get(), &Strategy::sendStatus, &statistics, &TimingStatistics::handleStatus);
         if (showLog) {
             strategy->connect(strategy.get(), &Strategy::sendStatus, [](const Status& s) {
@@ -194,14 +207,14 @@ int main(int argc, char* argv[])
         // load the strategy
         strategy->handleCommand(createLoadCommand(asBlue, initScript, entryPoint, parser.isSet(enablePerformanceMode)));
 
-        int packetCount = logfile.packetCount();
+        int packetCount = logfile->packetCount();
         int startPosition = parser.value(profileStart).toInt();
         int endPosition = parser.isSet(profileLength) ? startPosition + parser.value(profileLength).toInt() : packetCount - 1;
 
         bool hasExecutionState = false;
         qint64 lastExecutionTime = 0;
         for (int i = 0; i<packetCount; i++) {
-            Status status = logfile.readStatus(i);
+            Status status = logfile->readStatus(i);
 
             if ((status->has_blue_running() && asBlue) || (status->has_yellow_running() && !asBlue)) {
                 hasExecutionState = true;
