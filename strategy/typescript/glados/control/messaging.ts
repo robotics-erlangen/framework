@@ -4,6 +4,7 @@ import { AbsTime } from "base/timing";
 import { Position, RelativePosition } from "base/vector";
 import * as World from "base/world";
 
+import { Objective } from "glados/agent/base/objective";
 import { Point as CenterBackPoint } from "glados/group/centerback";
 import { Assignment as MoveAssignment, MoveInfo } from "glados/group/moves";
 import { ForcePoolChange } from "glados/trainer/attackratio";
@@ -106,6 +107,8 @@ export enum MessageType {
 	midfieldZone,
 	/** Sent by `t/a/placeball` to inform that he is placing the ball. */
 	placingRobot,
+	/** Sent by the MA to inform support attackers about the current objective */
+	selectedObjective,
 
 	// =======================
 	// === Exclusive roles ===
@@ -313,6 +316,12 @@ interface NormalDescriptor extends BaseDescriptor {
 		singleSender: true;
 	};
 	[MessageType.placingRobot]: {
+		sender: "robot";
+		receiver: "broadcast";
+		singleSender: true;
+	};
+	[MessageType.selectedObjective]: {
+		data: Objective;
 		sender: "robot";
 		receiver: "broadcast";
 		singleSender: true;
@@ -622,11 +631,27 @@ export class MessageBox {
 	}
 
 	/**
+	 * Retrieve the `selectedObjective` message. This overload is required,
+	 * since objects returned by receive functions are usually immutable.
+	 * However, the objective lives in the messaging to allow the objective to
+	 * be reused even if the MA switches from defender to attacker. For this
+	 * reason it has to hold mutable state.
+	 *
+	 * This overload has to be higher up since `MessageType.selectedObjective`
+	 * is included in `ReceiveSingleSender`
+	 *
+	 * @param type - `MessageType.selectedObjective`
+	 * @param receiveOwn - Whether to receive messages sent by this message box
+	 * @returns the message along with its sender or an empty tuple if the message wasn't sent
+	 */
+	receiveSingleSender(type: MessageType.selectedObjective, receiveOwn?: boolean): [FriendlyRobot, ReceivedData<MessageType.selectedObjective>] | [];
+	/**
 	 * Retrieve a single sender message.
 	 * @param type - Which message to receive
 	 * @param receiveOwn - Whether to receive messages sent by this message box
 	 * @returns the message along with its sender or an empty tuple if the message wasn't sent
 	 */
+	receiveSingleSender<M extends ReceiveSingleSender>(type: M, receiveOwn?: boolean): ReadonlyRec<[FriendlyRobot, ReceivedData<M>] | []>;
 	receiveSingleSender<M extends ReceiveSingleSender>(type: M, receiveOwn?: boolean): ReadonlyRec<[FriendlyRobot, ReceivedData<M>] | []> {
 		const map = this.receiveGeneric(type, receiveOwn);
 		if (map.size > 1) {
