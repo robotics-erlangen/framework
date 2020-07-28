@@ -768,8 +768,8 @@ void MainWindow::raMode()
     ui->logManager->hide();
     ui->field->setHorusMode(false);
 
-    ui->simulator->sendPauseSimulator(amun::Horus, false);
     emit sendCommand(uiChangedCommand(true));
+    ui->simulator->sendPauseSimulator(amun::Horus, false);
 }
 
 void MainWindow::horusMode()
