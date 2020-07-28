@@ -39,6 +39,7 @@ const tests: {[name: string]: string} = {
 	"BaseBall": testPrefix + "base/ball",
 	"BaseCache": testPrefix + "base/cache",
 	"BaseCoordinates": testPrefix + "base/coordinates",
+	"BaseDebug": testPrefix + "base/debug",
 	"BaseEntrypoints": testPrefix + "base/entrypoints",
 	"BaseField": testPrefix + "base/field",
 	"BaseGeom": testPrefix + "base/geom",

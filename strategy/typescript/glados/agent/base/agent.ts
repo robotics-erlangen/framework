@@ -179,8 +179,7 @@ export abstract class Agent {
 		}
 	}
 
-	_applyForMainAttacker(task: Task | undefined) {
-		debug.push("mainAttackerRating");
+	_applyForMainAttacker = debug.wrap("mainAttackerRating", (task: Task | undefined) => {
 		// the keeper just overrides this
 		let parameters = undefined;
 		for (let behavior of this._behaviors) {
@@ -197,7 +196,6 @@ export abstract class Agent {
 		if (parameters == undefined) {
 			this._mainAttackerLastTime = undefined;
 			debug.set("return case 1", true);
-			debug.pop();
 			return;
 		}
 
@@ -206,14 +204,12 @@ export abstract class Agent {
 			if (Field.isInFriendlyDefenseArea(this._robot.pos, this._robot.radius + World.Ball.radius + 0.02)
 				&&  World.Ball.pos.y < this._robot.pos.y + this._robot.radius * 3) {
 				debug.set("return case 2", true);
-				debug.pop();
 				return;
 			}
 
 			// only the keeper can apply for MA if the ball is behind the centerbacks
 			if (Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius + UtilDefense.centerBackDistanceToDefenseArea())) {
 				debug.set("return case 3", true);
-				debug.pop();
 				return;
 			}
 		}
@@ -282,9 +278,8 @@ export abstract class Agent {
 		// //debugger.dumpLocals(0)
 		// debug.pop()
 		debug.set("mainAttackerRating", ratingArg._ratingArray);
-		debug.pop();
 		this._messaging.sendToTrainerRepeated(MessageType.exclusiveRole, [ MessageType.mainAttacker, ratingArg]);
-	}
+	});
 
 	// controls whether the robot may be kept in its pool
 	abstract keepRobot(): boolean;

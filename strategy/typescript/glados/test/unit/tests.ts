@@ -2,6 +2,7 @@
 import "glados/test/unit/base/ball";
 import "glados/test/unit/base/cache";
 import "glados/test/unit/base/coordinates";
+import "glados/test/unit/base/debug";
 import "glados/test/unit/base/entrypoints";
 import "glados/test/unit/base/field";
 import "glados/test/unit/base/geom";
