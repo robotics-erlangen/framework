@@ -301,7 +301,7 @@ export class MessageBox {
 	receiveSingleSender(type: MessageType.passInfo, broadcast?: boolean): ReadonlyRec<[FriendlyRobot, {target: FriendlyRobot, ballPos: Position, time: number}[]] | []>;
 	receiveSingleSender(type: MessageType.shootDestination, broadcast?: boolean): ReadonlyRec<[FriendlyRobot, Position] | []>;
 	receiveSingleSender(type: MessageType.placingRobot, broadcast?: boolean): ReadonlyRec<[FriendlyRobot, undefined] | []>;
-	receiveSingleSender(type: MessageType, broadcast?: boolean): ReadonlyRec<[FriendlyRobot, any]> | [] {
+	receiveSingleSender(type: MessageType, broadcast?: boolean): ReadonlyRec<[FriendlyRobot, any] | []>  {
 		let map: Map<FriendlyRobot, any> = this.receiveGeneric(type, broadcast);
 		if (map.size > 1) {
 			throw new Error(`Single sender message ${MessageType[type]} sent by ${map.size} robots!`);
@@ -316,15 +316,15 @@ export class MessageBox {
 		return this.receiveGeneric(type, broadcast);
 	}
 
-	receiveTrainer(type: MessageType.centerBackPosTarget, broadcast?: boolean): ReadonlyRec<CenterBackPoint> | undefined;
-	receiveTrainer(type: MessageType.moveAssignment, broadcast?: boolean): ReadonlyRec<{behavior: any, class: any, params: any, restart: boolean, mainAttacker: boolean}> | undefined;
-	receiveTrainer(type: MessageType.moveInfo, broadcast?: boolean): ReadonlyRec<{ numAttackers: number, allowExtraAttackers: boolean }> | undefined;
+	receiveTrainer(type: MessageType.centerBackPosTarget, broadcast?: boolean): ReadonlyRec<CenterBackPoint | undefined>;
+	receiveTrainer(type: MessageType.moveAssignment, broadcast?: boolean): ReadonlyRec<{behavior: any, class: any, params: any, restart: boolean, mainAttacker: boolean} | undefined>;
+	receiveTrainer(type: MessageType.moveInfo, broadcast?: boolean): ReadonlyRec<{ numAttackers: number, allowExtraAttackers: boolean } | undefined>;
 	receiveTrainer(type: MessageType.roleAssignment, broadcast?: boolean):
 		ReadonlyRec<{ name: "CenterBack", params: {pos: Position, dir: RelativePosition, time: number} }
 		| { name: "ManMark", params: Robot[] } | { name: "ZoneDefense", params: [Position] }
 		| { name: "Piggy", params: [Robot] } | undefined>;
-	receiveTrainer(type: MessageType.strikerZone, broadcast?: boolean): ReadonlyRec<{ defaultPos: Position, boundaries: {left: number, right: number, top: number, bottom: number} }> | undefined;
-	receiveTrainer(type: MessageType.midfieldZone, broadcast?: boolean): ReadonlyRec<{ defaultPos: Position, boundaries: {left: number, right: number, top: number, bottom: number } }> | undefined;
+	receiveTrainer(type: MessageType.strikerZone, broadcast?: boolean): ReadonlyRec<{ defaultPos: Position, boundaries: {left: number, right: number, top: number, bottom: number} } | undefined>;
+	receiveTrainer(type: MessageType.midfieldZone, broadcast?: boolean): ReadonlyRec<{ defaultPos: Position, boundaries: {left: number, right: number, top: number, bottom: number } } | undefined>;
 	receiveTrainer(type: MessageType.mainAttacker, broadcast?: boolean): ReadonlyRec<FriendlyRobot | undefined>;
 	receiveTrainer(type: MessageType.duelAssistant, broadcast?: boolean): ReadonlyRec<FriendlyRobot | undefined>;
 	receiveTrainer(type: MessageType.interceptPass, broadcast?: boolean): ReadonlyRec<FriendlyRobot | undefined>;
@@ -333,8 +333,8 @@ export class MessageBox {
 		return this.receiveGeneric(type, broadcast).get("trainer");
 	}
 
-	receiveTrainerRepeated(type: MessageType.forcePoolChange): ReadonlyRec<{ robot: FriendlyRobot, destPool: "manual" | "ally" | "keeper" | "defender" | "attacker" | "hidden" }[]> | undefined;
-	receiveTrainerRepeated(type: MessageType, broadcast?: boolean): ReadonlyRec<any[]> | undefined {
+	receiveTrainerRepeated(type: MessageType.forcePoolChange): ReadonlyRec<{ robot: FriendlyRobot, destPool: "manual" | "ally" | "keeper" | "defender" | "attacker" | "hidden" }[] | undefined>;
+	receiveTrainerRepeated(type: MessageType, broadcast?: boolean): ReadonlyRec<any[] | undefined> {
 		return this.receiveGeneric(type, broadcast).get("trainer");
 	}
 
