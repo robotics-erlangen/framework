@@ -168,6 +168,33 @@ export function set(name: string | undefined, value: any, visited: Map<object, s
 	addDebug(prefixName(name), result);
 }
 
+/**
+ * Wrap a function call with a push/pop. This ensures that, no matter where
+ * fn returns, the debug tree is properly balanced.
+ * @param key - The key to push onto the debug tree
+ * @param fn - The function to wrap
+ * @returns A wrapper function which will push and pop properly
+ */
+export function wrap<T extends Function>(key: string, fn: T): T {
+	// must not be an arrow-function
+	// otherwise the returned function will will have the local this as this
+	const newFn = function(this: any) {
+		push(key);
+		const ret = fn.apply(this, arguments);
+		pop();
+		return ret;
+	};
+	// copy over [[prototype]] and own fields
+	// note that this should rarely be needed
+	// who changes the prototype of a function anyways?
+	const fnProto = Object.getPrototypeOf(fn);
+	if (Object.getPrototypeOf(newFn) !== fnProto) {
+		Object.setPrototypeOf(newFn, fnProto);
+	}
+	Object.assign(newFn, fn);
+	return newFn as any;
+}
+
 /** Clears the debug stack */
 export function resetStack() {
 	if (debugStack.length !== 1 || debugStack[0] !== "") {
