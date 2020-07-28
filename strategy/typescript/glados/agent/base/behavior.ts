@@ -42,10 +42,30 @@ export interface Checkable {
 	 */
 	mainAttackerParameters(activeBehavior?: Behavior): [MainAttackerParameters | undefined, boolean];
 	clearMainAttackerParameters(): void;
+	/**
+	 * This reference is invalidated after one frame since the agent may be
+	 * changed. Thus, objects living on the agent can't be taken from the agent
+	 * and be cached. The robot() is an exception, since the behavior does not
+	 * allow changing to an agent for a different robot.
+	 * @see setAgent
+	 */
+	agent(): Agent;
+	/**
+	 * Update the agent this checkable belongs to.
+	 *
+	 * Since hysteresis of checkables nearly always depends on robot
+	 * position/speed, its not allowed to update with an agent belonging to a
+	 * different robot. Implementors of checkable should check for this case.
+	 *
+	 * @param agent - The new agent this checkable will belong to
+	 */
+	setAgent(agent: Agent): void;
 }
 
 export abstract class Behavior implements Checkable {
-	protected _messaging: MessageBox;
+	protected get  _messaging(): MessageBox {
+		return this._agent.messaging();
+	}
 
 	protected _agent: Agent;
 	protected _robot: FriendlyRobot;
@@ -62,7 +82,6 @@ export abstract class Behavior implements Checkable {
 	constructor(agent: Agent) {
 		this._agent = agent;
 		this._robot = this._agent.robot();
-		this._messaging = this._agent.messaging();
 		this.stop();
 	}
 
@@ -142,12 +161,16 @@ export abstract class Behavior implements Checkable {
 		return <Task> this._task;
 	}
 
-	robot(): FriendlyRobot {
-		return this._robot;
-	}
-
 	agent(): Agent {
 		return this._agent;
+	}
+
+	setAgent(agent: Agent) {
+		// behavior/task hysteresis nearly always relies on robot position, speed etc.
+		if (this._robot !== agent.robot()) {
+			throw new Error("Can't reuse behavior with different robot");
+		}
+		this._agent = agent;
 	}
 
 	// chooses and returns a task and its parameters
@@ -174,9 +197,11 @@ export abstract class Behavior implements Checkable {
  * collection
  */
 export class CheckableList implements Checkable {
+	private _agent: Agent;
 	private _checkables: Checkable[];
 
 	constructor(agent: Agent, checkables: CheckableConstructor[]) {
+		this._agent = agent;
 		this._checkables = checkables.map((ctor) => new ctor(agent));
 	}
 
@@ -214,6 +239,17 @@ export class CheckableList implements Checkable {
 	clearMainAttackerParameters() {
 		for (const checkable of this._checkables) {
 			checkable.clearMainAttackerParameters();
+		}
+	}
+
+	agent() {
+		return this._agent;
+	}
+
+	setAgent(agent: Agent) {
+		this._agent = agent;
+		for (const checkable of this._checkables) {
+			checkable.setAgent(agent);
 		}
 	}
 }
