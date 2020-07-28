@@ -25,7 +25,7 @@ export class AcceptPass extends Task {
 		this._distance = manualDistance;
 		this._obstacleTable = {
 			ignoreBall: false,
-			messaging: this._messaging,
+			task: this,
 		};
 		this._suggestPass = new SuggestPass(this._robot, this._messaging);
 		this._lastTime = undefined;

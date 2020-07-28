@@ -27,7 +27,7 @@ export class Midfield extends Task {
 			ignoreGoals: ignore,
 			ignoreDefenseArea: ignore,
 			ignoreOpponentDefenseArea: ignore,
-			messaging: this._messaging,
+			task: this,
 			ignorePass: ignore,
 			ignoreBallPlacementObstacle: false
 		};

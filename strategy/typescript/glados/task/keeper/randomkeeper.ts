@@ -28,7 +28,7 @@ export class RandomKeeper extends Task {
 			ignoreGoals: false,
 			ignoreDefenseArea: true,
 			stopBallDistance: 0.05,
-			messaging: this._messaging
+			task: this,
 		};
 		if (Field.isInFriendlyDefenseArea(this._robot.pos, this._robot.radius)) {
 			obstacleTable.ignoreFriendlyRobots = true;

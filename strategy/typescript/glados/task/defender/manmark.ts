@@ -35,7 +35,7 @@ export class ManMark extends Task {
 		this._targetRobot = targetRobot;
 		this._obstacleTable = {
 			ignoreBall: true,
-			messaging: this._messaging
+			task: this,
 		};
 	}
 

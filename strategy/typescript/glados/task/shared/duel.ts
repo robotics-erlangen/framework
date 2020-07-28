@@ -98,7 +98,7 @@ export class Duel extends Task {
 		let destinationPos = Ball.getRealisticBallPos() - Vector.fromPolar(viewDir, this._robot.shootRadius);
 		let obstacleTable = {
 			ignoreBall: true,
-			messaging: this._messaging,
+			task: this,
 			ignoreOpponentRobots: true,
 			useCMAPathFinding: true
 		};
@@ -257,7 +257,7 @@ export class Duel extends Task {
 		let ignoreOpponents = Ball.getRealisticBallPos().distanceTo(this._robot.pos) < World.Ball.radius + 2 * this._robot.radius + 0.1;
 		let obstacleTable = {
 			ignoreBall: this._blockingBall,
-			messaging: this._messaging,
+			task: this,
 			pathRadius: this._robot.shootRadius,
 			ignoreOpponentRobots: ignoreOpponents,
 			disableOpponentPrediction: true,

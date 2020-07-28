@@ -39,7 +39,7 @@ export class Striker extends Task {
 
 		this._obstacleTable  = {
 			ignoreBall: false,
-			messaging: this._messaging
+			task: this,
 		};
 
 		this._suggestPass = new SuggestPass(this._robot, this._messaging);

@@ -19,7 +19,7 @@ export class BallEscort extends Task {
 			ignoreBall: false,
 			extraBallDistance: 0.25,
 			ignorePass: true,
-			messaging: this._messaging
+			task: this,
 		};
 	}
 

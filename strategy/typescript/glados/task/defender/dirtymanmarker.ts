@@ -25,7 +25,7 @@ export class DirtyManMarker extends Task {
 		this.targetRobot = targetRobot;
 		this.obstacleTable = {
 			ignoreBall: false,
-			messaging: this._messaging
+			task: this,
 		};
 	}
 

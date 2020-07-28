@@ -24,8 +24,8 @@ export class ChipToPos extends Task {
 	}
 
 	public run() {
-		let obstacleTable = {
-			messaging: this._messaging
+		const obstacleTable = {
+			task: this,
 		};
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
 		this._shoot._chipToPos(this._firstContactPos, this._targetTime, this._ballReceiptPos, this._chipPrecision);

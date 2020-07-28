@@ -45,7 +45,7 @@ export class DuelAssistant extends Task {
 		const HYSTERESIS_BASELINE = 0.5;
 		const HYSTERESIS_ORTHOGONAL_DISTANCE = 0.2 * this._robot.radius;
 		const HYSTERESIS_ANGLE = 7 * Math.PI / 180;
-		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, {messaging: this._messaging});
+		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, { task: this });
 		this._update();
 		let angleOffset = Math.PI / 2;
 		let ballPos = World.Ball.pos;

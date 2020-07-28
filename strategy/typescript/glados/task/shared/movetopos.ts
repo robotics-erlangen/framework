@@ -93,7 +93,7 @@ export class MoveToPos extends Task {
 			ignoreBall: ignore || params.ignoreBall === true,
 			ignoreDefenseArea: ignore,
 			ignoreOpponentDefenseArea: ignore,
-			messaging: this._messaging,
+			task: this,
 			ignorePass: this._messaging == undefined || ignore,
 			ignoreBallPlacementObstacle: params.ignoreBallPlacement === true
 		};

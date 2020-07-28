@@ -37,7 +37,7 @@ export class CenterBack extends Task {
 		this._lookingToGoal = true;
 		this._obstacleTable = {
 			ignoreBall: true,
-			messaging: this._messaging
+			task: this,
 		};
 		this._forceShoot = new ForceShoot(this._robot);
 	}

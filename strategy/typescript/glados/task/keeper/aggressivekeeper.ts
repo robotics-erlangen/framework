@@ -64,7 +64,7 @@ export class AggressiveKeeper extends Task {
 			ignorePass: true,
 			ignoreFriendlyRobots: ignoreFriendlyRobots,
 			disableOpponentPrediction: true,
-			messaging: this._messaging
+			task: this,
 		};
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
 		let viewDir = World.Ball.pos - safeGoalMid;

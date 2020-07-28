@@ -134,7 +134,7 @@ export class SideStep extends Task {
 
 		let obstacleTable: PathHelper.PathHelperParameters = {
 			ignorePass: false,
-			messaging: this._messaging
+			task: this,
 		};
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
 		let viewPos = attackPosition || World.Geometry.OpponentGoal;

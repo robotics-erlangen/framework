@@ -56,7 +56,6 @@ export class MovingObstacles extends Move {
 		ignoreGoals: true,
 		ignoreDefenseArea: true,
 		ignoreOpponentDefenseArea: true,
-		messaging: undefined,
 		ignorePass: true,
 		ignoreBallPlacementObstacle: true
 	};

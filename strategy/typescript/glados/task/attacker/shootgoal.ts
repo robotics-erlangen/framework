@@ -127,8 +127,8 @@ export class ShootGoal extends Task {
 	}
 
 	run() {
-		let obstacleTable = {
-			messaging: this._messaging
+		const obstacleTable = {
+			task: this,
 		};
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
 

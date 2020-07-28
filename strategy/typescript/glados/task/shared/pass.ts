@@ -88,7 +88,7 @@ export class Pass extends Task {
 
 	run() {
 		let obstacleTable = {
-			messaging: this._messaging,
+			task: this,
 			ignoreBallPlacementObstacle: true
 		};
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);

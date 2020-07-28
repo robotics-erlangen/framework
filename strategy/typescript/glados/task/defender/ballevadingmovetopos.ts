@@ -19,7 +19,7 @@ export class BallEvadingMoveToPos extends Task {
 		this._dir = dir;
 		this._obstacleTable = {
 			ignoreBall: false,
-			messaging: this._messaging
+			task: this,
 		};
 	}
 

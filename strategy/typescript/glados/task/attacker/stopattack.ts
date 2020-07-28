@@ -194,7 +194,7 @@ export class StopAttack extends Task {
 
 		let obstacleTable = {
 			ignorePass: false,
-			messaging: this._messaging
+			task: this,
 		};
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
 

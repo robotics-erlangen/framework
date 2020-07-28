@@ -12,6 +12,7 @@ import * as World from "base/world";
 import { MessageBox, MessageType } from "glados/control/messaging";
 import * as OBall from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
+import { Task } from "glados/task/base";
 import * as Rating from "glados/util/rating";
 
 let G: Readonly<World.GeometryType> = World.Geometry;
@@ -542,10 +543,10 @@ interface PathHelperParametersRaw {
 	pathRadius?: number;
 	stopBallDistance?: number;
 	extraBallDistance?: number;
-	messaging?: MessageBox;
+	task?: Task;
 	path?: Path;
 }
-export type PathHelperParameters = PathHelperParametersRaw & ({ignorePass: true} | {messaging: MessageBox});
+export type PathHelperParameters = PathHelperParametersRaw & ({ ignorePass: true } | { task: Task });
 
 export enum ParameterType {
 	ignoreBall = "ignoreBall", ignoreGoals = "ignoreGoals", ignoreDefenseArea = "ignoreDefenseArea",
@@ -553,7 +554,7 @@ export enum ParameterType {
 	ignorePass = "ignorePass", ignoreFriendlyRobots = "ignoreFriendlyRobots", ignoreOpponentRobots = "ignoreOpponentRobots",
 	ignoreBallPlacementObstacle = "ignoreBallPlacementObstacle", ignorePenaltyDistance = "ignorePenaltyDistance",
 	disableOpponentPrediction = "disableOpponentPrediction", pathRadius = "pathRadius", stopBallDistance = "stopBallDistance",
-	extraBallDistance = "extraBallDistance", messaging = "messaging"
+	extraBallDistance = "extraBallDistance", task = "task"
 }
 
 type BooleanParameterType = ParameterType.ignoreBall | ParameterType.ignoreGoals | ParameterType.ignoreOpponentDefenseArea |
@@ -565,7 +566,7 @@ let obstacles: Map<FriendlyRobot, PathHelperParameters> = new Map<FriendlyRobot,
 export function setObstacleParam(robot: FriendlyRobot, type: ParameterType.pathRadius, value: number): void;
 export function setObstacleParam(robot: FriendlyRobot, type: ParameterType.stopBallDistance, value: number): void;
 export function setObstacleParam(robot: FriendlyRobot, type: ParameterType.extraBallDistance, value: number): void;
-export function setObstacleParam(robot: FriendlyRobot, type: ParameterType.messaging, value: MessageBox): void;
+export function setObstacleParam(robot: FriendlyRobot, type: ParameterType.task, value: Task): void;
 export function setObstacleParam(robot: FriendlyRobot, type: BooleanParameterType, value: boolean): void;
 export function setObstacleParam(robot: FriendlyRobot, type: ParameterType, value: any): void {
 	if (!obstacles.has(robot)) {
@@ -578,7 +579,7 @@ export function getObstacleParam(robot: FriendlyRobot, type: BooleanParameterTyp
 export function getObstacleParam(robot: FriendlyRobot, type: ParameterType.pathRadius): number;
 export function getObstacleParam(robot: FriendlyRobot, type: ParameterType.stopBallDistance): number;
 export function getObstacleParam(robot: FriendlyRobot, type: ParameterType.extraBallDistance): number;
-export function getObstacleParam(robot: FriendlyRobot, type: ParameterType.messaging): MessageBox;
+export function getObstacleParam(robot: FriendlyRobot, type: ParameterType.task): Task;
 export function getObstacleParam(robot: FriendlyRobot, type: ParameterType): any {
 	if (!obstacles.has(robot)) {
 		throw new Error(`getObstacleParam got called before setDefaultObstaclesByTable for robot ${robot.id}`);
@@ -607,17 +608,18 @@ export function insertObstacles(robot: FriendlyRobot, isCMA: boolean, targetPosi
 	let p = obstacles.get(robot) as PathHelperParameters & {path: Path};
 	setDefaultObstacles(p.path, robot, targetPosition, p.ignoreBall, p.ignoreGoals, p.ignoreDefenseArea,
 		p.pathRadius, p.stopBallDistance, p.noSeedTarget, p.ignoreOpponentDefenseArea, p.extraBallDistance);
+	const messaging = p.task?.behavior().agent().messaging();
 	if (!p.ignorePass) {
-		if (p.messaging == undefined) {
+		if (messaging == undefined) {
 			throw new Error("");
 		}
-		let disablePass = addGoalObstacleShot(p.path, robot, p.messaging, isCMA) || World.RefereeState === "Stop";
+		let disablePass = addGoalObstacleShot(p.path, robot, messaging, isCMA) || World.RefereeState === "Stop";
 		if (!disablePass) {
-			addFriendlyPassObstacle(p.path, robot, p.messaging, isCMA);
+			addFriendlyPassObstacle(p.path, robot, messaging, isCMA);
 		}
 	}
 	if (!p.ignoreBallPlacementObstacle) {
-		addBallPlacementObstacle(p.path, p.messaging);
+		addBallPlacementObstacle(p.path, messaging);
 	}
 	if (!p.ignorePenaltyDistance) {
 		addPenaltyObstacle(p.path);

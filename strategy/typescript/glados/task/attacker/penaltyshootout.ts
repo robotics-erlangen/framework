@@ -22,8 +22,8 @@ export class PenaltyShootout extends Task {
 	}
 
 	run() {
-		let obstacleTable = {
-			messaging : this._messaging,
+		const obstacleTable = {
+			task: this,
 		};
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
 		let shootlength = (0.2 + this._robot.speed.length() * 0.4);
