@@ -223,6 +223,10 @@ namespace MovingObstacles {
 
     struct FriendlyRobotObstacle : public MovingObstacle {
         FriendlyRobotObstacle();
+        /**
+         * @param trajectory Must be comprised of at least two points, all equidistant in time
+         * The first element must start at time zero
+         */
         FriendlyRobotObstacle(std::vector<TrajectoryPoint> *trajectory, float radius, int prio);
         FriendlyRobotObstacle(const pathfinding::Obstacle &obstacle, const pathfinding::FriendlyRobotObstacle &robot);
         FriendlyRobotObstacle(const FriendlyRobotObstacle &other);
