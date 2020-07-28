@@ -27,14 +27,17 @@
 Command createLoadCommand(bool asBlue, QString initScript, QString entryPoint, bool enablePerformanceMode)
 {
     Command command(new amun::Command);
+    command->mutable_replay()->set_enable(true);
     amun::CommandStrategyLoad *load;
     amun::CommandStrategy *strategyCommand;
     if (asBlue) {
-        load = command->mutable_strategy_blue()->mutable_load();
-        strategyCommand = command->mutable_strategy_blue();
+        command->mutable_replay()->set_enable_blue_strategy(true);
+        load = command->mutable_replay()->mutable_blue_strategy()->mutable_load();
+        strategyCommand = command->mutable_replay()->mutable_blue_strategy();
     } else {
-        load = command->mutable_strategy_yellow()->mutable_load();
-        strategyCommand = command->mutable_strategy_yellow();
+        command->mutable_replay()->set_enable_yellow_strategy(true);
+        load = command->mutable_replay()->mutable_yellow_strategy()->mutable_load();
+        strategyCommand = command->mutable_replay()->mutable_yellow_strategy();
     }
     load->set_filename(initScript.toStdString());
     load->set_entry_point(entryPoint.toStdString());
@@ -46,7 +49,7 @@ Command createLoadCommand(bool asBlue, QString initScript, QString entryPoint, b
 ReplayTestRunner::ReplayTestRunner(QString testFile, StrategyType type, CompilerRegistry* compilerRegistry) :
     m_compilerRegistry(compilerRegistry),
     m_gameControllerConnection(new GameControllerConnection(false)),
-    m_testStrategy(&m_timer, type, nullptr, m_compilerRegistry, m_gameControllerConnection),
+    m_testStrategy(&m_timer, type, nullptr, m_compilerRegistry, m_gameControllerConnection, false, true),
     m_exitCode(255),
     m_type(type),
     m_firstGameStateCopied(false)
@@ -86,7 +89,7 @@ void ReplayTestRunner::handleOriginalStatus(const Status &status)
         if (strategy.state() == amun::StatusStrategy::FAILED) {
             // dump log output from that crash
             std::cout <<"Strategy to test failed:"<<std::endl;
-            auto expectedSource = m_type == StrategyType::BLUE ? amun::StrategyBlue : amun::StrategyYellow;
+            auto expectedSource = m_type == StrategyType::BLUE ? amun::ReplayBlue : amun::ReplayYellow;
             for (const auto& debug: status->debug()) {
                 if (debug.source() == expectedSource) {
                     TestTools::dumpLog(debug, m_exitCode);
@@ -115,7 +118,7 @@ void ReplayTestRunner::handleStrategyStatus(const amun::StatusStrategy &strategy
 
 void ReplayTestRunner::handleTestStatus(const Status &status)
 {
-    auto expectedSource = m_type == StrategyType::BLUE ? amun::StrategyBlue : amun::StrategyYellow;
+    auto expectedSource = m_type == StrategyType::BLUE ? amun::ReplayBlue : amun::ReplayYellow;
     for (const auto& debug: status->debug()) {
         if (debug.source() == expectedSource) {
             TestTools::dumpLog(debug, m_exitCode);

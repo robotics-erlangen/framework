@@ -105,6 +105,7 @@ private:
     Status m_debugStatus;
     const StrategyType m_type;
     ScriptState m_scriptState;
+    qint64 m_lastReplayTime = 0;
 
     QString m_filename;
     QString m_entryPoint;

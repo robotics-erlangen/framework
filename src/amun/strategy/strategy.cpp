@@ -171,28 +171,35 @@ void Strategy::handleStatus(const Status &status)
         }
     }
 
+    if (!m_scriptState.isRunningInLogplayer) {
+        if (status->has_world_state() && status->has_game_state()) {
+            m_scriptState.currentStatus = status;
 
-
-    if (status->has_world_state() && status->has_game_state() && !m_scriptState.isReplay) {
-        m_scriptState.currentStatus = status;
-
-        // This timer delays execution of the entrypoint (executeScript) until all currently
-        // pending messages in the event loop have been processed.
-        // Instead of processing each tracking packet, only the most recent one
-        // will be used.
-        // guarantees that the tracking packet used by the strategy is at most 10 ms old
-        m_idleTimer->start();
-    }
-    if ((status->has_blue_running() && status->blue_running() && m_type == StrategyType::BLUE)
-            || (status->has_yellow_running() && status->yellow_running() && m_type == StrategyType::YELLOW)) {
-        m_idleTimer->stop();
-        if (!m_scriptState.isReplay) {
-            reload();
+            // This timer delays execution of the entrypoint (executeScript) until all currently
+            // pending messages in the event loop have been processed.
+            // Instead of processing each tracking packet, only the most recent one
+            // will be used.
+            // guarantees that the tracking packet used by the strategy is at most 10 ms old
+            m_idleTimer->start();
         }
+    } else {
+        if ((status->has_blue_running() && status->blue_running() && m_type == StrategyType::BLUE)
+                || (status->has_yellow_running() && status->yellow_running() && m_type == StrategyType::YELLOW)) {
+            m_idleTimer->stop();
+            if (!m_scriptState.isReplay) {
+                reload();
+            }
 
-        m_scriptState.isReplay = true;
-        m_scriptState.currentStatus = status;
-        process();
+            m_scriptState.isReplay = true;
+            m_scriptState.currentStatus = status;
+            process();
+        }
+        if (!m_scriptState.isReplay && status->time() >= m_lastReplayTime + 10000000 &&
+                status->has_world_state() && status->has_game_state()) {
+            m_lastReplayTime = status->time();
+            m_scriptState.currentStatus = status;
+            process();
+        }
     }
 }
 
