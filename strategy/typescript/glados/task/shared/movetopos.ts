@@ -99,7 +99,7 @@ export class MoveToPos extends Task {
 		};
 
 		if (params.suggestPass) {
-			this._suggestPass = new SuggestPass(this._robot, this._messaging);
+			this._suggestPass = new SuggestPass(this);
 		}
 		this.useCMA = params.useCMA === true;
 	}

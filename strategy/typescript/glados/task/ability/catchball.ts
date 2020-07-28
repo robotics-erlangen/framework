@@ -7,10 +7,11 @@ import { Position, Speed, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
 
-import { MessageBox, MessageType } from "glados/control/messaging";
+import { MessageType } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 import { Volley } from "glados/task/ability/volley"; // only for calcPhi
+import { Task } from "glados/task/base";
 import { CurvedMaxAccel } from "glados/trajectory/curvedmaxaccel";
 import * as PathHelper from "glados/trajectory/pathhelper";
 
@@ -41,11 +42,15 @@ export class CatchBall {
 	private _ignoringOpponents: boolean = false;
 
 	_robot: FriendlyRobot;
-	_messaging: MessageBox;
+	_task: Task;
 
-	constructor(robot: FriendlyRobot, messaging: MessageBox) {
-		this._robot = robot;
-		this._messaging = messaging;
+	private get _messaging() {
+		return this._task.behavior().agent().messaging();
+	}
+
+	constructor(task: Task) {
+		this._robot = task.behavior().agent().robot();
+		this._task = task;
 	}
 
 	/**

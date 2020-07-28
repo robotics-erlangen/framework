@@ -2,6 +2,7 @@ import * as debug from "base/debug";
 import { FriendlyRobot } from "base/robot";
 import * as World from "base/world";
 
+import { Task } from "glados/task/base";
 
 let FORCE_SHOOT_DELAY = 0.03; // delay forced kick by this time
 let ENABLE_FORCE_SHOOT = false;
@@ -14,8 +15,8 @@ export class ForceShoot {
 
 	private _robot: FriendlyRobot;
 
-	constructor(robot: FriendlyRobot) {
-		this._robot = robot;
+	constructor(task: Task) {
+		this._robot = task.behavior().agent().robot();
 	}
 
 	public _doForceShoot() {

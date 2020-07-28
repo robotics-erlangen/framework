@@ -21,7 +21,7 @@ export class Circuit extends Task {
 
 	constructor(behavior: Behavior, center: Position, angleOffset: number, radius = 0.5, passPos?: Position, anonym = false) {
 		super(behavior);
-		this._suggestPass = new SuggestPass(this._robot, this._messaging);
+		this._suggestPass = new SuggestPass(this);
 		this._center = center;
 		this._angleOffset = angleOffset;
 		this._radius = radius;

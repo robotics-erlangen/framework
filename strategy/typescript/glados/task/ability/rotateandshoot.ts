@@ -4,6 +4,7 @@ import { FriendlyRobot } from "base/robot";
 import { Position } from "base/vector";
 import * as World from "base/world";
 
+import { Task } from "glados/task/base";
 import { Direct } from "glados/trajectory/direct";
 
 
@@ -12,8 +13,8 @@ export class RotateAndShoot {
 
 	_robot: FriendlyRobot;
 
-	constructor(robot: FriendlyRobot) {
-		this._robot = robot;
+	constructor(task: Task) {
+		this._robot = task.behavior().agent().robot();
 	}
 
 	_rotateAndShoot(destAngle: number, customPos: Position = World.Ball.pos) {

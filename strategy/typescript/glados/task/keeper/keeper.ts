@@ -28,7 +28,7 @@ export class Keeper extends Task {
 
 	constructor(behavior: Behavior) {
 		super(behavior);
-		this._forceShoot = new ForceShoot(this._robot);
+		this._forceShoot = new ForceShoot(this);
 	}
 
 	// moves keeper do defending possition

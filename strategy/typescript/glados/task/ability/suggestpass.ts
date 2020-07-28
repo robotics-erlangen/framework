@@ -3,16 +3,21 @@ import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
 
-import { MessageBox, MessageType } from "glados/control/messaging";
+import { MessageType } from "glados/control/messaging";
 import * as Physics from "glados/observer/physics";
+import { Task } from "glados/task/base";
 
 export class SuggestPass {
 	_robot: FriendlyRobot;
-	_messaging: MessageBox;
+	_task: Task;
 
-	constructor(robot: FriendlyRobot, messaging: MessageBox) {
-		this._robot = robot;
-		this._messaging = messaging;
+	private get _messaging() {
+		return this._task.behavior().agent().messaging();
+	}
+
+	constructor(task: Task) {
+		this._robot = task.behavior().agent().robot();
+		this._task = task;
 	}
 
 	_suggestPass(destBallPos: Position, attackPos: Position = World.Ball.pos,

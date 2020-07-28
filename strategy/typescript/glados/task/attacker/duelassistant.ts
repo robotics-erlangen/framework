@@ -26,7 +26,7 @@ export class DuelAssistant extends Task {
 		if (this._duelist == undefined || this._opponent == undefined) {
 			throw new Error("there is no duel to assist");
 		}
-		this._suggestPass = new SuggestPass(this._robot, this._messaging);
+		this._suggestPass = new SuggestPass(this);
 	}
 
 	private _update() {

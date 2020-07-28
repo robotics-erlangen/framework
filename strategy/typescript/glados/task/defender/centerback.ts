@@ -39,7 +39,7 @@ export class CenterBack extends Task {
 			ignoreBall: true,
 			task: this,
 		};
-		this._forceShoot = new ForceShoot(this._robot);
+		this._forceShoot = new ForceShoot(this);
 	}
 
 	run() {

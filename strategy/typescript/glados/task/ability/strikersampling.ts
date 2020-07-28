@@ -4,11 +4,12 @@ import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
 
-import { MessageBox, MessageType } from "glados/control/messaging";
+import { MessageType } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 import * as Robot from "glados/observer/robot";
 import * as ObserverShoot from "glados/observer/shoot";
+import { Task } from "glados/task/base";
 import * as Rating from "glados/util/rating";
 
 let G = World.Geometry;
@@ -26,11 +27,15 @@ export class StrikerSampling {
 	_mainAttacker: FriendlyRobot | undefined;
 
 	_robot: FriendlyRobot;
-	_messaging: MessageBox;
+	_task: Task;
 
-	constructor(robot: FriendlyRobot, messaging: MessageBox) {
-		this._robot = robot;
-		this._messaging = messaging;
+	private get _messaging() {
+		return this._task.behavior().agent().messaging();
+	}
+
+	constructor(task: Task) {
+		this._robot = task.behavior().agent().robot();
+		this._task = task;
 	}
 
 	precalculate() {

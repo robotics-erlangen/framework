@@ -40,7 +40,7 @@ export class ShootoutKeeper extends Task {
 
 	constructor(behavior: Behavior) {
 		super(behavior);
-		this._forceShoot = new ForceShoot(this._robot);
+		this._forceShoot = new ForceShoot(this);
 	}
 
 	public run() {

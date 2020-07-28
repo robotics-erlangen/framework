@@ -27,7 +27,7 @@ export class AcceptPass extends Task {
 			ignoreBall: false,
 			task: this,
 		};
-		this._suggestPass = new SuggestPass(this._robot, this._messaging);
+		this._suggestPass = new SuggestPass(this);
 		this._lastTime = undefined;
 		this._runCounter = 0;
 	}

@@ -34,8 +34,8 @@ export class Dribble extends Task {
 		this._suggestPassFlag = suggestPass;
 		this._endSpeedLength = endSpeedLength;
 
-		this._catchBall = new CatchBall(this._robot, this._messaging);
-		this._suggestPass = new SuggestPass(this._robot, this._messaging);
+		this._catchBall = new CatchBall(this);
+		this._suggestPass = new SuggestPass(this);
 	}
 
 	run() {

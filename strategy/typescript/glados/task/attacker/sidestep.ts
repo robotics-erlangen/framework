@@ -82,7 +82,7 @@ export class SideStep extends Task {
 			feintPos: this._feintPos
 		};
 
-		this._suggestPass = new SuggestPass(this._robot, this._messaging);
+		this._suggestPass = new SuggestPass(this);
 		this._remainingTime = remainingFreeTime;
 	}
 

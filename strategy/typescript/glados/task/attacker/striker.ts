@@ -42,8 +42,8 @@ export class Striker extends Task {
 			task: this,
 		};
 
-		this._suggestPass = new SuggestPass(this._robot, this._messaging);
-		this._strikerSampling = new StrikerSampling(this._robot, this._messaging);
+		this._suggestPass = new SuggestPass(this);
+		this._strikerSampling = new StrikerSampling(this);
 	}
 
 	private _reEvaluatePassDest(): boolean {

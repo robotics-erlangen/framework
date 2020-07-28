@@ -32,8 +32,8 @@ export class Midfield extends Task {
 			ignoreBallPlacementObstacle: false
 		};
 
-		this._suggestPass = new SuggestPass(this._robot, this._messaging);
-		this._midfieldSampling = new MidfieldSampling(this._robot, this._messaging);
+		this._suggestPass = new SuggestPass(this);
+		this._midfieldSampling = new MidfieldSampling(this);
 	}
 
 	private _samplePassPosition(): Position {

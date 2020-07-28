@@ -18,7 +18,7 @@ export class PenaltyShootout extends Task {
 	constructor(behavior: Behavior, ball: Ball) {
 		super(behavior);
 		this._ball = ball;
-		this._shoot = new Shoot(this._robot, this._messaging, this.setMainAttackerParameters);
+		this._shoot = new Shoot(this, this.setMainAttackerParameters);
 	}
 
 	run() {

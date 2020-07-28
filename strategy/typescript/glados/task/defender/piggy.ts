@@ -22,7 +22,7 @@ export class Piggy extends Task {
 			throw new Error("Piggy task needs a target robot");
 		}
 		this._targetRobot = targetRobot;
-		this._suggestPass = new SuggestPass(this._robot, this._messaging);
+		this._suggestPass = new SuggestPass(this);
 	}
 
 	run() {
