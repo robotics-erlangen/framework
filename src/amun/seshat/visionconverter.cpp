@@ -54,13 +54,15 @@ QString VisionExtractor::extractVision(StatusSource& source, const QString& save
                 refereePacket.set_stage_time_left(gameState.stage_time_left());
             }
             if (gameState.state() != lastState) {
+                if (gameState.state() != amun::GameState::Game) {
+                    lastCommand = commandFromGameState(gameState.state());
+                } else if (lastState == amun::GameState::Halt) {
+                    lastCommand = SSL_Referee::FORCE_START;
+                }
+
                 lastState = gameState.state();
                 gameStateChangeTime = current->time();
                 refereeCounter++;
-
-                if (gameState.state() != amun::GameState::Game) {
-                    lastCommand = commandFromGameState(gameState.state());
-                }
             }
             refereePacket.set_command(lastCommand);
             refereePacket.set_command_counter(refereeCounter);
