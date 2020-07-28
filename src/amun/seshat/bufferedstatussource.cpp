@@ -50,7 +50,7 @@ void BufferedStatusSource::requestPackets(int start, int size) {
     m_expectedPacket = start;
     m_nextPackets.clear();
     m_nextRequestPacket = start + size;
-    emit m_statusSource->readPackets(start, size);
+    emit m_signalSource->readPackets(start, size);
     return;
 }
 
@@ -94,7 +94,7 @@ void BufferedStatusSource::checkBuffer() {
         int lastRequest = m_nextRequestPacket;
         m_nextRequestPacket = std::min(m_nextRequestPacket + m_bufferLimit/5, m_statusSource->packetCount());
         int packetCount = m_nextRequestPacket - lastRequest;
-        emit m_statusSource->readPackets(lastRequest, packetCount);
+        emit m_signalSource->readPackets(lastRequest, packetCount);
     }
 }
 

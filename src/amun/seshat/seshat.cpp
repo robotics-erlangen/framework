@@ -36,6 +36,7 @@ Seshat::Seshat(int backlogLength, QObject* parent) :
     m_replayLogger(true, backlogLength),
     m_logthread(new QThread)
 {
+    m_logthread->start();
     connect(&m_logger, &CombinedLogWriter::sendStatus, this, &Seshat::sendUi);
     connect(&m_replayLogger, &CombinedLogWriter::sendStatus, this, &Seshat::sendUi);
 }
