@@ -154,6 +154,7 @@ void Amun::start()
     connect(this, SIGNAL(gotCommand(Command)), m_seshat, SLOT(handleCommand(Command)));
     connect(m_seshat, &Seshat::sendUi, this, &Amun::sendStatus);
     connect(m_seshat, &Seshat::sendReplayStrategy, this, &Amun::handleStatusForReplay);
+    connect(m_seshat, &Seshat::simPauseCommand, this, &Amun::handleCommandLocally);
     // start strategy threads
     for (int i = 0; i < 3; i++) {
         StrategyType strategy = StrategyType::BLUE;
@@ -379,6 +380,13 @@ void Amun::createSimulator(const amun::SimulatorSetup &setup)
  */
 void Amun::handleCommand(const Command &command)
 {
+    handleCommandLocally(command);
+
+    emit gotCommand(command);
+}
+
+void Amun::handleCommandLocally(const Command &command)
+{
     if (command->has_simulator()) {
         const amun::CommandSimulator &sim = command->simulator();
         if (sim.has_enable()) {
@@ -458,8 +466,6 @@ void Amun::handleCommand(const Command &command)
             pauseSimulator(pause);
         }
     }
-
-    emit gotCommand(command);
 }
 
 void Amun::pauseSimulator(const amun::PauseSimulatorCommand &pauseCommand)
@@ -467,7 +473,7 @@ void Amun::pauseSimulator(const amun::PauseSimulatorCommand &pauseCommand)
     auto reason = pauseCommand.reason();
     int reasonsSizeBefore = m_activePauseReasons.size();
     if (pauseCommand.has_pause()) {
-        if (pauseCommand.pause() && !m_activePauseReasons.contains(reason)) {
+        if (pauseCommand.pause()) {
             m_activePauseReasons.insert(reason);
         } else {
             m_activePauseReasons.remove(reason);

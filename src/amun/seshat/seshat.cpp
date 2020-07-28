@@ -25,6 +25,7 @@
 #include "logfilereader.h"
 
 #include <QThread>
+#include <QCoreApplication>
 #include <QFileInfo>
 #include <functional>
 
@@ -58,9 +59,20 @@ void Seshat::setStatusSource(std::shared_ptr<StatusSource> source)
         m_statusSource->start();
         if (!m_isPlayback) {
             forceUi(false);
+            sendSimulatorCommand();
+            QCoreApplication::processEvents(QEventLoop::AllEvents | QEventLoop::WaitForMoreEvents, 50);
         }
         m_isPlayback = true;
     }
+}
+
+void Seshat::sendSimulatorCommand()
+{
+    Command c{new amun::Command};
+    auto * pause = c->mutable_pause_simulator();
+    pause->set_pause(true);
+    pause->set_reason(amun::Horus);
+    emit simPauseCommand(c);
 }
 
 void Seshat::handleCheckHaltStatus(const Status &status)

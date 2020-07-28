@@ -40,6 +40,7 @@ public:
 signals:
     void sendUi(const Status& status);
     void sendReplayStrategy(const Status& status);
+    void simPauseCommand(const Command& command);
 
 public slots:
     void handleCommand(const Command& comm);
@@ -52,6 +53,7 @@ private:
     void forceUi(bool ra);
     void openLogfile(const std::string& filename);
     void sendLogfileInfo(const std::string& message, bool success);
+    void sendSimulatorCommand();
 
 private:
 
