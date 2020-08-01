@@ -335,7 +335,7 @@
    </attribute>
    <widget class="ReplayTeamWidget" name="replay"/>
   </widget>
-  <widget class="QDockWidget" name="dockWidget">
+  <widget class="QDockWidget" name="dockSimConfig">
    <property name="windowTitle">
     <string>Simulator Config</string>
    </property>
@@ -895,6 +895,22 @@
     <hint type="destinationlabel">
      <x>802</x>
      <y>181</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionSimulator</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>dockSimConfig</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>28</x>
+     <y>437</y>
     </hint>
    </hints>
   </connection>
