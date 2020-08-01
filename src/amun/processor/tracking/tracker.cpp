@@ -151,8 +151,20 @@ void Tracker::process(qint64 currentTime)
 
         if (!m_robotsOnly) {
             QList<RobotFilter *> bestRobots = getBestRobots(sourceTime);
+
             for (int i = 0; i < detection.balls_size(); i++) {
-                trackBall(detection.balls(i), sourceTime, detection.camera_id(), bestRobots, visionProcessingTime);
+
+                // filter out all ball detections originating from people on the field
+                // they can be identified by having many detections in a small area
+                const float RADIUS = 500; // in millimiter
+                const int MAX_NEAR_COUNT = 3;
+                const auto nearCount = std::count_if(detection.balls().begin(), detection.balls().end(), [&](const SSL_DetectionBall &ball) {
+                    return (Eigen::Vector2f(detection.balls(i).x(), detection.balls(i).y()) - Eigen::Vector2f(ball.x(), ball.y())).norm() < RADIUS;
+                });
+
+                if (nearCount <= MAX_NEAR_COUNT) {
+                    trackBall(detection.balls(i), sourceTime, detection.camera_id(), bestRobots, visionProcessingTime);
+                }
             }
             for (BallTracker * filter : m_ballFilter) {
                 filter->updateConfidence();
