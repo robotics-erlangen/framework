@@ -582,6 +582,7 @@ void Amun::setSimulatorEnabled(bool enabled, bool useNetworkTransceiver)
                 m_processor, SLOT(handleRadioResponses(QList<robot::RadioResponse>)));
         connect(m_processor, SIGNAL(sendRadioCommands(QList<robot::RadioCommand>,qint64)),
                 m_simulator, SLOT(handleRadioCommands(QList<robot::RadioCommand>,qint64)));
+        connect(m_simulator, &Simulator::sendRealData, m_processor, &Processor::handleSimulatorExtraVision);
     } else {
         connect(m_vision, SIGNAL(gotPacket(QByteArray, qint64, QString)),
                 m_processor, SLOT(handleVisionPacket(QByteArray, qint64, QString)));

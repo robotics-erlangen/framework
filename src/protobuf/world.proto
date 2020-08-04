@@ -106,4 +106,42 @@ message State {
     // robot states predicted without trajectories, only from vision data
     repeated Robot simple_tracking_yellow = 11;
     repeated Robot simple_tracking_blue = 12;
+    // debug information from the simulator
+    repeated SimulatorState reality = 13;
+}
+
+message SimulatorState {
+    repeated SimRobot blue_robots = 1;
+    repeated SimRobot yellow_robots = 2;
+    optional SimBall ball = 3;
+}
+
+message SimBall {
+    required float p_x = 1;
+    required float p_y = 2;
+    required float p_z = 3;
+    required float v_x = 4;
+    required float v_y = 5;
+    required float v_z = 6;
+}
+
+message Quaternion {
+    required float real = 1;
+    required float i = 2;
+    required float j = 3;
+    required float k = 4;
+}
+
+message SimRobot {
+    required uint32 id = 1;
+    required float p_x = 2;
+    required float p_y = 3;
+    required float p_z = 4;
+    required Quaternion rotation = 5;
+    required float v_x = 6;
+    required float v_y = 7;
+    required float v_z = 8;
+    required float r_x = 9;
+    required float r_y = 10;
+    required float r_z = 11;
 }

@@ -65,6 +65,7 @@ signals:
     void gotPacket(const QByteArray &data, qint64 time, QString sender);
     void sendStatus(const Status &status);
     void sendRadioResponses(const QList<robot::RadioResponse> &responses);
+    void sendRealData(const QByteArray& data); // sends amun::SimulatorState
 
 public slots:
     void handleCommand(const Command &command);
@@ -81,7 +82,7 @@ private slots:
 
 private:
     void resetFlipped(RobotMap &robots, float side);
-    QList<QByteArray> createVisionPacket();
+    QPair<QList<QByteArray>, QByteArray> createVisionPacket();
     void resetVisionPackets();
     void setTeam(RobotMap &list, float side, const robot::Team &team);
     void moveBall(const amun::SimulatorMoveBall &ball);
@@ -96,7 +97,7 @@ private:
     typedef QPair<QList<robot::RadioCommand>, qint64> RadioCommand;
     SimulatorData *m_data;
     QQueue<RadioCommand> m_radioCommands;
-    QQueue<QList<QByteArray>> m_visionPackets;
+    QQueue<QPair<QList<QByteArray>, QByteArray>> m_visionPackets;
     QQueue<QTimer *> m_visionTimers;
     const Timer *m_timer;
     QTimer *m_trigger;

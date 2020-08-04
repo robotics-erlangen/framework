@@ -223,7 +223,7 @@ void Simulator::process()
     // only send a vision packet every third frame = 15 ms - epsilon (=half frame)
     // gives a vision frequency of 66.67Hz
     if (m_lastSentStatusTime + 12500000 <= m_time) {
-        QList<QByteArray> data = createVisionPacket();
+        auto data = createVisionPacket();
 
         m_visionPackets.enqueue(data);
 
@@ -528,9 +528,10 @@ void Simulator::initializeDetection(SSL_DetectionFrame *detection, std::size_t c
     detection->set_t_sent((m_time + m_visionDelay)*1E-9);
 }
 
-QList<QByteArray> Simulator::createVisionPacket()
+QPair<QList<QByteArray>, QByteArray> Simulator::createVisionPacket()
 {
     const std::size_t numCameras = m_data->cameraSetup.num_cameras();
+    world::SimulatorState simState;
 
     std::vector<SSL_DetectionFrame> detections(numCameras);
     for (std::size_t i = 0;i<numCameras;i++) {
@@ -540,12 +541,21 @@ QList<QByteArray> Simulator::createVisionPacket()
     std::vector<CameraInfo> cameraInfos = getCameraInfos(numCameras, m_data->geometry.field_width(), m_data->geometry.field_height(), m_data->cameraSetup.camera_height());
 
     const float totalBoundaryWidth = m_data->geometry.boundary_width();
+    const btVector3 ballPosition = m_data->ball->position() / SIMULATOR_SCALE;
+    auto* ball = simState.mutable_ball();
+    ball->set_p_x(ballPosition.getX());
+    ball->set_p_y(ballPosition.getY());
+    ball->set_p_z(ballPosition.getZ());
+    const btVector3 ballSpeed = m_data->ball->speed() / SIMULATOR_SCALE;
+    ball->set_v_x(ballSpeed.getX());
+    ball->set_v_y(ballSpeed.getY());
+    ball->set_v_z(ballSpeed.getZ());
+
 
     bool missingBall = m_data->missingBallDetections > 0 && m_data->rng.uniformFloat(0, 1) <= m_data->missingBallDetections;
     if (m_time - m_lastBallSendTime >= m_minBallDetectionTime && !missingBall) {
         m_lastBallSendTime = m_time;
 
-        const btVector3 ballPosition = m_data->ball->position() / SIMULATOR_SCALE;
 
         for (std::size_t cameraId = 0; cameraId < numCameras; ++cameraId) {
             // at least one id is always valid
@@ -567,12 +577,15 @@ QList<QByteArray> Simulator::createVisionPacket()
         auto &team = teamIsBlue ? m_data->robotsBlue : m_data->robotsYellow;
 
         for (SimRobot *robot : team) {
+            auto* robotProto = teamIsBlue ? simState.add_blue_robots() : simState.add_yellow_robots();
+            robot->update(robotProto);
+
             if (m_time - robot->getLastSendTime() >= m_minRobotDetectionTime) {
                 const float timeDiff = (m_time - robot->getLastSendTime()) * 1E-9;
+                const btVector3 robotPos = robot->position() / SIMULATOR_SCALE;
 
                 for (std::size_t cameraId = 0; cameraId < numCameras; ++cameraId) {
 
-                    const btVector3 robotPos = robot->position() / SIMULATOR_SCALE;
 
                     if (!checkCameraID(cameraId, numCameras, robotPos, m_data->geometry.field_height(), m_data->cameraOverlap)) {
                         continue;
@@ -641,17 +654,23 @@ QList<QByteArray> Simulator::createVisionPacket()
         }
     }
 
-    return data;
+    QByteArray d;
+    d.resize(simState.ByteSize());
+    if (!simState.SerializeToArray(d.data(), d.size())) {
+        d = {};
+    }
+    return {data,d};
 }
 
 void Simulator::sendVisionPacket()
 {
-    QList<QByteArray> currentVisionPackets = m_visionPackets.dequeue();
-    for (const QByteArray &data : currentVisionPackets) {
+    QPair<QList<QByteArray>, QByteArray> currentVisionPackets = m_visionPackets.dequeue();
+    for (const QByteArray &data : currentVisionPackets.first) {
         emit gotPacket(data, m_timer->currentTime(), "simulator"); // send "vision packet" and assume instant receiving
         // the receive time may be a bit jittered just like a real transmission
 
     }
+    emit sendRealData(currentVisionPackets.second);
     QTimer *timer = m_visionTimers.dequeue();
     timer->deleteLater();
 }

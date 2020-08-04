@@ -62,6 +62,7 @@ public slots:
     void setScaling(double scaling);
     void handleRefereePacket(const QByteArray &data, qint64 time);
     void handleVisionPacket(const QByteArray &data, qint64 time, QString sender);
+    void handleSimulatorExtraVision(const QByteArray &data);
     void handleNetworkCommand(const QByteArray &data, qint64 time);
     void handleMixedTeamInfo(const QByteArray &data, qint64 time);
     void handleRadioResponses(const QList<robot::RadioResponse> &responses);
@@ -105,6 +106,7 @@ private:
     std::unique_ptr<Tracker> m_simpleTracker;
     QList<robot::RadioResponse> m_responses;
     QMap<uint, SSL_RadioProtocolCommand> m_networkCommand;
+    QList<QByteArray> m_extraVision;
     ssl::TeamPlan m_mixedTeamInfo;
     bool m_mixedTeamInfoSet;
     qint64 m_networkCommandTime;

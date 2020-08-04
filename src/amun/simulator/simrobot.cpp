@@ -406,6 +406,34 @@ void SimRobot::update(SSL_DetectionRobot *robot, float stddev_p, float stddev_ph
     m_lastSendTime = time;
 }
 
+void SimRobot::update(world::SimRobot* robot) const
+{
+    btTransform transform;
+    m_motionState->getWorldTransform(transform);
+    const btVector3 position = transform.getOrigin() / SIMULATOR_SCALE;
+    robot->set_p_x(position.x());
+    robot->set_p_y(position.y());
+    robot->set_p_z(position.z());
+    robot->set_id(m_specs.id());
+
+    const btQuaternion q = transform.getRotation();
+    auto * rotation = robot->mutable_rotation();
+    rotation->set_real(q.getX());
+    rotation->set_i(q.getY());
+    rotation->set_j(q.getZ());
+    rotation->set_k(q.getW());
+
+    const btVector3 velocity = m_body->getLinearVelocity() / SIMULATOR_SCALE;
+    robot->set_v_x(velocity.x());
+    robot->set_v_y(velocity.y());
+    robot->set_v_z(velocity.z());
+
+    const btVector3 angular = m_body->getAngularVelocity();
+    robot->set_r_x(angular.x());
+    robot->set_r_y(angular.y());
+    robot->set_r_z(angular.z());
+}
+
 void SimRobot::move(const amun::SimulatorMoveRobot &robot)
 {
     m_move = robot;
