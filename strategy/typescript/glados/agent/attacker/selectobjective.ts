@@ -7,6 +7,7 @@ import { Attacker } from "glados/agent/attacker";
 import { Agent } from "glados/agent/base/agent";
 import { Checkable } from "glados/agent/base/behavior";
 import { ObjectiveConstructor } from "glados/agent/base/objective";
+import { Striker } from "glados/agent/objective/striker";
 import { MessageType } from "glados/control/messaging";
 import * as Attack from "glados/util/attack";
 
@@ -74,7 +75,9 @@ function determineFreekickRestartMode(oldRefereeState: World.RefereeStateType, o
 
 export class SelectObjective implements Checkable {
 	/** Use a simple priority list for now */
-	static OBJECTIVES: ObjectiveConstructor[] = [];
+	static OBJECTIVES: ObjectiveConstructor[] = [
+		Striker,
+	];
 
 	private _agent: Attacker;
 	private _cachedNextRefereeState: World.RefereeStateType = "";

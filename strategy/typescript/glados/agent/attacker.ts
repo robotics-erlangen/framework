@@ -3,19 +3,14 @@ import { FriendlyRobot } from "base/robot";
 import * as World from "base/world";
 
 import { ApplyForMainattacker } from "glados/agent/attacker/applyformainattacker";
-import { Default } from "glados/agent/attacker/default";
-import { DoubleTouchGuard } from "glados/agent/attacker/doubletouchguard";
 import { Duel } from "glados/agent/attacker/duel";
 import { DuelAssistant } from "glados/agent/attacker/duelassistant";
 import { Exchange } from "glados/agent/attacker/exchange";
-import { FreeKick } from "glados/agent/attacker/freekick";
 import { Move } from "glados/agent/attacker/move";
-import { PassTiming } from "glados/agent/attacker/passtiming";
 import { PenaltyPassiveAttackerOffense } from "glados/agent/attacker/penaltypassiveattackeroffense";
 import { PenaltyShootout } from "glados/agent/attacker/penaltyshootout";
 import { RunObjective } from "glados/agent/attacker/runobjective";
 import { SelectObjective } from "glados/agent/attacker/selectobjective";
-import { Shoot } from "glados/agent/attacker/shoot";
 import { Stop } from "glados/agent/attacker/stop";
 import { Agent } from "glados/agent/base/agent";
 import { CheckableConstructor } from "glados/agent/base/behavior";
@@ -58,13 +53,8 @@ export class Attacker extends Agent {
 			Duel,
 			DuelAssistant,
 			BallEscort,
-			FreeKick,
-			DoubleTouchGuard,
-			PassTiming,
-			Shoot,
 			BreakPass,
 			RunObjective,
-			Default
 		];
 	}
 
