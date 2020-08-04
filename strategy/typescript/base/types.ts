@@ -21,6 +21,32 @@
 import { Robot } from "base/robot";
 import { Vector } from "base/vector";
 
+/**
+ * Bind every constructor parameter except the first to certain values.
+ *
+ * @param ctor - The class that should be parameterized
+ * @param ...tail - All parameters to ctor, except the first
+ * @returns a class that can be constructed with just the first constructor
+ *          parameter of `ctor`
+ */
+export function parameterizeClass<
+	TargetType extends {},
+	HeadArg extends any,
+	TailArgs extends any[],
+>(ctor: new(head: HeadArg, ...tail: TailArgs) => TargetType, ...tail: TailArgs) {
+	/**
+	 * The casts are necessary, since generic class types are not allowed to be
+	 * extended.
+	 * @see https://github.com/microsoft/TypeScript/issues/4890#issuecomment-141879451
+	 */
+	const castedCtor = ctor as new(head: HeadArg, ...tail: TailArgs) => {};
+	return class extends castedCtor {
+		constructor(head: HeadArg) {
+			super(head, ...tail);
+		}
+	} as new(head: HeadArg) => TargetType;
+}
+
 declare global {
 	type ReadonlyRec<T> = T extends Map<infer K, infer V> ?
 		ReadonlyMap<ReadonlyRec<K>, ReadonlyRec<V>> :
