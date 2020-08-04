@@ -458,14 +458,14 @@ function calculatePassInfoTiming(robot: {shootRadius: number} & Physics.RobotLik
 }
 
 /**
- * checks if an attacker has to start to move towards its pass
- * @param robot Robot
- * @param passInfoTable all of the passInfos currently being sent out
- * @param lastResult the return value of the last call to this function, or false
- * @param lastPassInfo an alternative time that this robot will take to reach lastPassInfo.pos //TODO: this is used incorrectly when passInfo changes
- * @param passIncoming the relevantPassInfoMessage for this robot
- * @param absRobotTime if we have to start to move
- * @returns time until we have to start moving
+ * Checks if an attacker has to start to move towards its pass
+ * @param robot - The robot
+ * @param passInfoTable - All of the passInfos currently being sent out
+ * @param lastResult - The return value of the last call to this function, or false
+ * @param absRobotTime - An alternative time that this robot will take to reach lastPassInfo.pos // TODO this is used incorrectly when passInfo changes
+ * @returns PassInfo | undefined - The relevant passInfo message for this robot
+ * @returns boolean - If the robot has to start to move
+ * @returns number  | undefined - The time until the robot has to start moving
  */
 function _checkPassInfos(robot: FriendlyRobot, passInfoTable: ReadonlyRec<PassInfo[]>, lastResult: boolean | undefined, lastPassInfo: ReadonlyRec<PassInfo> | undefined,
 		passIncoming?: boolean, absRobotTime?: number): ReadonlyRec<[PassInfo | undefined, boolean, number | undefined]> {
