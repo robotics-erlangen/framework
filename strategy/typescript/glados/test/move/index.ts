@@ -5,7 +5,7 @@ import { CenterBack as CenterBackGroup } from "glados/group/centerback";
 import { Midfield as MidfieldGroup } from "glados/group/midfield";
 import { Move } from "glados/group/move/base";
 import { Moves as MoveGroup } from "glados/group/moves";
-import { Striker as StrikerGroup } from "glados/group/striker";
+import { Support as SupportGroup } from "glados/group/support";
 // test moves
 import { TrajectoryTiming as TrajectoryTimingTask } from "glados/task/test/trajectorytiming";
 import { DribbleTest } from "glados/test/move/dribbletest";
@@ -31,7 +31,7 @@ function createEntrypoint(move: typeof Move) {
 			let moveGroup = new MoveGroup();
 			moveGroup.moveList =  [move];
 
-			let groupList: any[] = [new CenterBackGroup(), new StrikerGroup(), moveGroup, new MidfieldGroup()];
+			let groupList: any[] = [new CenterBackGroup(), new SupportGroup(), moveGroup, new MidfieldGroup()];
 
 			let trainer = new MainTrainer(undefined);
 			trainer._groups.setGroups(groupList);

@@ -9,10 +9,10 @@ import * as UtilZone from "glados/util/zone";
 
 let G = World.Geometry;
 
-export class Striker implements Group {
-	readonly name = "striker";
+export class Support implements Group {
+	readonly name = "support";
 
-	_strikerCount: number = 0;
+	_supportCount = 0;
 
 	_zones: UtilZone.Zone[] = [];
 	_emptyZone: UtilZone.Zone | undefined;
@@ -28,9 +28,9 @@ export class Striker implements Group {
 		let totalTop = G.FieldHeightHalf;
 		let totalBottom = -G.FieldHeightQuarter;
 
-		let nStrikers = robots.length;
-		let remainingZones = nStrikers + 1; // one zone will stay empty
-		this._strikerCount = nStrikers;
+		let nSupporter = robots.length;
+		let remainingZones = nSupporter + 1; // one zone will stay empty
+		this._supportCount = nSupporter;
 
 		// reset the zones
 		this._zones = [];
@@ -80,7 +80,7 @@ export class Striker implements Group {
 		let mainAttacker = messaging.receiveTrainer(MessageType.mainAttacker);
 		let prevEmptyZone = this._emptyZone;
 
-		// if the mainAttacker changes, assume that the previous mainAttacker becomes a striker instead
+		// if the mainAttacker changes, assume that the previous mainAttacker becomes a supporter instead
 		let robotsTmp: FriendlyRobot[] = [];
 		for (let robot of robots) {
 			if (robot === mainAttacker && this._lastMainAttacker) {
@@ -103,7 +103,7 @@ export class Striker implements Group {
 		}
 
 		// update zones if necessary
-		if (robots.length !== this._strikerCount) {
+		if (robots.length !== this._supportCount) {
 			updateAssignments = true;
 			this._updateZones(robots);
 		}
@@ -118,7 +118,7 @@ export class Striker implements Group {
 		// update assignments if empty zone changed
 		updateAssignments = updateAssignments || this._emptyZone !== prevEmptyZone;
 
-		// assign the zones to the nearest strikers
+		// assign the zones to the nearest supporters
 		let robotPositions = new Map<FriendlyRobot, Position>(); // robot -> pos
 		let passInfoTable = messaging.receiveSingleSender(MessageType.passInfo)[1];
 		for (let r of robots) {
@@ -137,7 +137,7 @@ export class Striker implements Group {
 		for (let zone of this._zones) {
 			if (zone !== this._emptyZone) {
 				zoneList.push(zone);
-				vis.addPolygon("g/striker: Zones", UtilZone.zoneToPolygon(zone), vis.colors.gold);
+				vis.addPolygon("g/support: Zones", UtilZone.zoneToPolygon(zone), vis.colors.gold);
 			}
 		}
 
@@ -146,7 +146,7 @@ export class Striker implements Group {
 			robotZones = UtilZone.assignRobotsToZones(robotPositions, zoneList);
 			if (!amun.isPerformanceMode) {
 				for (const [zone, robot] of robotZones.entries()) {
-					vis.addPath("g/striker: zone assignment", [zone.defaultPos, robot.pos], vis.colors.white);
+					vis.addPath("g/support: Zone assignment", [zone.defaultPos, robot.pos], vis.colors.white);
 				}
 			}
 		} else {
@@ -154,7 +154,7 @@ export class Striker implements Group {
 		}
 
 		for (let [zone, robot] of robotZones.entries()) {
-			messaging.send(MessageType.strikerZone, robot, zone);
+			messaging.send(MessageType.supportZone, robot, zone);
 		}
 
 

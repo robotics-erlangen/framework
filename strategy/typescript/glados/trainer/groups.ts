@@ -4,7 +4,7 @@ import { MessageBox, MessageType } from "glados/control/messaging";
 import { CenterBack } from "glados/group/centerback";
 import { Midfield } from "glados/group/midfield";
 import { Moves } from "glados/group/moves";
-import { Striker } from "glados/group/striker";
+import { Support } from "glados/group/support";
 
 export interface Group {
 	readonly name: string;
@@ -21,7 +21,7 @@ type SingleApplication<G extends Group> = G extends any
 		: { name: G["name"]; payload: GroupPayload<G> }
 	: never;
 
-export type Application = SingleApplication<CenterBack | Midfield | Moves | Striker>;
+export type Application = SingleApplication<CenterBack | Midfield | Moves | Support>;
 
 export class Groups {
 	_groupList: Group[];
@@ -32,7 +32,7 @@ export class Groups {
 		const groupClasses: GroupConstructor[] = [
 			CenterBack,
 			Moves,
-			Striker,
+			Support,
 			Midfield
 		];
 

@@ -138,11 +138,11 @@ export class Striker extends Task {
 		if (this._manualDefaultPos) {
 			this._moveDest = this._manualDefaultPos;
 		} else {
-			// participate in the striker group
-			this._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: "striker" });
+			// participate in the support group
+			this._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: "support" });
 
-			// retrieve the assigned zone from the striker group
-			this._zone = this._messaging.receiveTrainer(MessageType.strikerZone);
+			// retrieve the assigned zone from the support group
+			this._zone = this._messaging.receiveTrainer(MessageType.supportZone);
 			if (this._zone == undefined) {
 				return;
 			}

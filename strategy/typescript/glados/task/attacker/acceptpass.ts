@@ -33,7 +33,7 @@ export class AcceptPass extends Task {
 	}
 
 	run() {
-		this._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: "striker" });
+		this._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: "support" });
 
 		let passInfo = undefined;
 		let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];

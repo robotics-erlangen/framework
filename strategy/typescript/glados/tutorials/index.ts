@@ -11,7 +11,7 @@ import { CenterBack as CenterBackGroup } from "glados/group/centerback";
 import { Midfield as MidfieldGroup } from "glados/group/midfield";
 import { Move } from "glados/group/move/base";
 import { Moves as MoveGroup } from "glados/group/moves";
-import { Striker as StrikerGroup } from "glados/group/striker";
+import { Support as SupportGroup } from "glados/group/support";
 import { Group } from "glados/trainer/groups";
 import { MainTrainer } from "glados/trainer/maintrainer";
 import { Tutorial as Tutorial1 } from "glados/tutorials/t1Move/tutorial";
@@ -25,7 +25,7 @@ function createEntrypoint(move: typeof Move) {
 			let moveGroup = new MoveGroup();
 			moveGroup.moveList =  [move];
 
-			let groupList: any[] = [new CenterBackGroup(), new StrikerGroup(), moveGroup, new MidfieldGroup()];
+			let groupList: any[] = [new CenterBackGroup(), new SupportGroup(), moveGroup, new MidfieldGroup()];
 
 			let trainer = new MainTrainer(undefined);
 			trainer._groups.setGroups(groupList);
