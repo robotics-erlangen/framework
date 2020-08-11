@@ -91,7 +91,7 @@ export class BreakPass extends Behavior {
 		if (attackPosition != undefined) {
 			let oppInPassZone = false;
 			for (let robot of World.OpponentRobots) {
-				if ((this._robot.pos.orthogonalProjection(World.Ball.pos, World.Ball.pos + attackPosition)[1] < 0.3) && (robot.speed.lengthSq() < 0.5 * 0.5)) {
+				if ((robot.pos.orthogonalProjection(World.Ball.pos, World.Ball.pos + attackPosition)[1] < 0.3) && (robot.speed.lengthSq() < 0.5 * 0.5)) {
 					oppInPassZone = true;
 					break;
 				}

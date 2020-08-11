@@ -341,7 +341,6 @@ function _currentPlannedMainAttacker(passInfoSender: FriendlyRobot | undefined, 
 		}
 	}
 
-	let passInfoMessage;
 	if (passInfoTable) {
 		if (passInfoTable.length > 1) {
 			return undefined;
@@ -387,6 +386,16 @@ function _currentPlannedMainAttacker(passInfoSender: FriendlyRobot | undefined, 
  * @returns The main attacker that receives a pass, or undefined
  */
 export let currentPlannedMainAttacker = Cache.forFrame(_currentPlannedMainAttacker);
+
+/**
+ * cancels CPMA
+ * used in t/d/breakpass
+ */
+export function cancelCurrentPlannedMainAttacker(): void {
+	lastCPMA = undefined;
+	lastPasser = undefined;
+	lastReceiver = undefined;
+}
 
 /**
  * checks whether we are shooting a goal and returns a position for a path obstacle, or undefined

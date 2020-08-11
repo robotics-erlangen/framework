@@ -7,6 +7,7 @@ import * as Physics from "glados/observer/physics";
 import { Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
+import * as Attack from "glados/util/attack";
 
 
 /**
@@ -58,6 +59,7 @@ export class BreakPass extends Task {
 		if (this._robot.pos.distanceTo(World.Ball.pos) < 0.5) {
 			this.setMainAttackerParameters(robotEndDir, 0);
 			this._agent._activeBehavior._applyForMainAttacker();
+			Attack.cancelCurrentPlannedMainAttacker();
 		}
 
 		this._robot.trajectory.update(ToTarget, moveDest, robotEndDir.angle(), undefined, endSpeed);
