@@ -86,6 +86,8 @@ private:
         DragMeasure =       0x80,
     };
 
+    enum class RobotVisualisation{RA, TRANSPARENT, VISION};
+
 public:
     explicit FieldWidget(QWidget *parent = nullptr);
     ~FieldWidget() override;
@@ -188,7 +190,7 @@ private:
     void clearRobotTraces();
     void ballPlacement(bool blue);
     QGraphicsPathItem *createAoiItem(unsigned int transparency);
-    void createRobotItem(Robot &r, const robot::Specs &specs, const QColor &color, const uint id, bool fromVision);
+    void createRobotItem(Robot &r, const robot::Specs &specs, const QColor &color, const uint id, RobotVisualisation visType);
 
 private:
     QGraphicsScene *m_scene;

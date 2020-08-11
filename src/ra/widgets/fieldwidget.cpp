@@ -992,36 +992,41 @@ void FieldWidget::addBallTrace(qint64 time, const world::Ball &ball)
     }
 }
 
-void FieldWidget::createRobotItem(Robot &r, const robot::Specs &specs, const QColor &color, const uint id, bool fromVision)
+void FieldWidget::createRobotItem(Robot &r, const robot::Specs &specs, const QColor &color, const uint id, RobotVisualisation visType)
 {
     r.robot = new QGraphicsPathItem;
     r.robot->setBrush(Qt::black);
+    if (visType == RobotVisualisation::VISION) {
+        r.robot->setBrush(color);
+    }
     r.robot->setPen(Qt::NoPen);
 
-    // team marker
-    QGraphicsEllipseItem *center = new QGraphicsEllipseItem(r.robot);
-    center->setPen(Qt::NoPen);
-    center->setBrush(color);
-    center->setRect(QRectF(-0.025f, -0.025f, 0.05f, 0.05f));
+    if (visType != RobotVisualisation::VISION) {
+        // team marker
+        QGraphicsEllipseItem *center = new QGraphicsEllipseItem(r.robot);
+        center->setPen(Qt::NoPen);
+        center->setBrush(color);
+        center->setRect(QRectF(-0.025f, -0.025f, 0.05f, 0.05f));
 
-    const QBrush pink("fuchsia");
-    const QBrush green("lime");
-    QBrush brush;
+        const QBrush pink("fuchsia");
+        const QBrush green("lime");
+        QBrush brush;
 
-    // team id blobs
-    // positions are as seen in the ssl rules (dribbler is on the upper side)
-    // upper left
-    brush = (id == 0 || id == 3 || id == 4 || id == 7 || id == 9 || id == 10 || id == 14 || id == 15) ? pink : green;
-    addBlob(-0.054772f,  0.035f, brush, r.robot);
-    // lower left
-    brush = (id == 4 || id == 5 || id == 6 || id == 7 || id == 9 || id == 11 || id == 13  || id == 15) ? pink : green;
-    addBlob(-0.035f, -0.054772f, brush, r.robot);
-    // lower right
-    brush = (id == 0 || id == 1 || id == 2 || id == 3 || id == 9 || id == 11 || id == 13  || id == 15) ? pink : green;
-    addBlob( 0.035f, -0.054772f, brush, r.robot);
-    // upper right
-    brush = (id == 0 || id == 1 || id == 4 || id == 5 || id == 9 || id == 10 || id == 12  || id == 13) ? pink : green;
-    addBlob( 0.054772f,  0.035f, brush, r.robot);
+        // team id blobs
+        // positions are as seen in the ssl rules (dribbler is on the upper side)
+        // upper left
+        brush = (id == 0 || id == 3 || id == 4 || id == 7 || id == 9 || id == 10 || id == 14 || id == 15) ? pink : green;
+        addBlob(-0.054772f,  0.035f, brush, r.robot);
+        // lower left
+        brush = (id == 4 || id == 5 || id == 6 || id == 7 || id == 9 || id == 11 || id == 13  || id == 15) ? pink : green;
+        addBlob(-0.035f, -0.054772f, brush, r.robot);
+        // lower right
+        brush = (id == 0 || id == 1 || id == 2 || id == 3 || id == 9 || id == 11 || id == 13  || id == 15) ? pink : green;
+        addBlob( 0.035f, -0.054772f, brush, r.robot);
+        // upper right
+        brush = (id == 0 || id == 1 || id == 4 || id == 5 || id == 9 || id == 10 || id == 12  || id == 13) ? pink : green;
+        addBlob( 0.054772f,  0.035f, brush, r.robot);
+    }
 
     const float angle = specs.has_angle() ? (specs.angle() / M_PI * 180.0f) : 70.0f;
     const float radius = specs.has_radius() ? specs.radius() : 0.09f;
@@ -1033,25 +1038,41 @@ void FieldWidget::createRobotItem(Robot &r, const robot::Specs &specs, const QCo
     path.closeSubpath();
     r.robot->setPath(path);
 
-    // id
-    if(!fromVision) {
+    // opacity
+    if (visType != RobotVisualisation::RA) {
+        r.robot->setZValue(6.0f);
+        r.robot->setOpacity(0.5);
+    } else {
         r.robot->setZValue(5.0f);
+    }
 
-        QGraphicsSimpleTextItem *text = new QGraphicsSimpleTextItem(QString::number(id));
-        text->setTransform(QTransform::fromScale(0.01, -0.01).rotate(-m_rotation).translate(radius*100, 0), true);
-        text->setBrush(Qt::white);
+    // id
+    if (visType != RobotVisualisation::TRANSPARENT) {
+        QGraphicsSimpleTextItem *text;
+        qreal tx, ty;
+        if (visType == RobotVisualisation::RA) {
+            text = new QGraphicsSimpleTextItem(QString::number(id));
+            tx = 100 * radius;
+            ty = 0;
+            text->setBrush(Qt::white);
+        } else {
+            char data[2] = {0,'\0'};
+            data[0] = "0123456789ABCDEFGHIKLMN"[id];
+            text = new QGraphicsSimpleTextItem(data);
+            text->setBrush(Qt::black);
+            auto width = text->boundingRect().width() * 0.01;
+            auto height = text->boundingRect().height() * 0.01;
+            tx = -width * 50;
+            ty = -height * 50;
+        }
+        text->setTransform(QTransform::fromScale(0.01, -0.01).rotate(-m_rotation).translate(tx, ty), true);
         r.id = text;
-
         r.id->setZValue(11.0f);
         m_scene->addItem(r.id);
 
         // just translated
         r.id->setCacheMode(QGraphicsItem::DeviceCoordinateCache);
-    } else {
-        r.robot->setZValue(6.0f);
-        r.robot->setOpacity(0.5);
     }
-
     m_scene->addItem(r.robot);
 }
 
@@ -1062,7 +1083,7 @@ void FieldWidget::setRobot(const world::Robot &robot, const robot::Specs &specs,
     Robot &r = robots[robot.id()];
     // recreate robot body if neccessary
     if (!r.robot) {
-        createRobotItem(r, specs, color, robot.id(), false);
+        createRobotItem(r, specs, color, robot.id(), RobotVisualisation::RA);
     }
 
     const float phi = robot.phi() * 180 / M_PI - 90.0f;
@@ -1103,7 +1124,7 @@ void FieldWidget::setVisionRobot(const SSL_DetectionRobot &robot, const robot::S
 
     // recreate robot body if neccessary
     if (!r.robot) {
-        createRobotItem(r, specs, color, robot.robot_id(), true);
+        createRobotItem(r, specs, color, robot.robot_id(), RobotVisualisation::TRANSPARENT);
     }
 
     const float phi = m_virtualFieldTransform.applyAngle(robot.orientation()) * 180 / M_PI;
@@ -1111,6 +1132,9 @@ void FieldWidget::setVisionRobot(const SSL_DetectionRobot &robot, const robot::S
     const QPointF pos = m_virtualFieldTransform.applyPosition({-robot.y()/1000.0f, robot.x()/1000.0f});
     r.robot->setPos(pos);
     r.robot->setRotation(phi);
+    if (r.id) {
+        r.id->setPos(pos);
+    }
 
     r.show();
 }
