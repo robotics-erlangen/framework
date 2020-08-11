@@ -33,3 +33,19 @@ target_include_directories(logcutter-cli
 if (TARGET lib::jemalloc)
     target_link_libraries(logcutter-cli lib::jemalloc)
 endif()
+
+add_executable(visionlogcutter-cli
+    visionlogcutter.cpp
+)
+target_link_libraries(visionlogcutter-cli
+    visionlog::visionlog
+    shared::protobuf
+    Qt5::Core
+)
+target_include_directories(visionlogcutter-cli
+    PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
+)
+if (TARGET lib::jemalloc)
+    target_link_libraries(visionlogcutter-cli lib::jemalloc)
+endif()
