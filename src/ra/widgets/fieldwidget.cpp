@@ -41,6 +41,7 @@
 #include <QMimeData>
 #include <QUrl>
 #include <QSignalMapper>
+#include <QQuaternion>
 #include "fieldwidget.h"
 #include "virtualfieldsetupdialog.h"
 
@@ -256,6 +257,9 @@ FieldWidget::FieldWidget(QWidget *parent) :
     m_actionShowVision = m_contextMenu->addAction("Show vision");
     m_actionShowVision->setCheckable(true);
     connect(m_actionShowVision, SIGNAL(toggled(bool)), SLOT(setShowVision(bool)));
+    QAction *actionSimulatorData = m_contextMenu->addAction("Show Simulator Truth");
+    actionSimulatorData->setCheckable(true);
+    connect(actionSimulatorData, &QAction::toggled, this, &FieldWidget::setShowTruth);
     m_showVision = false;
 
     // create graphics scene
@@ -793,6 +797,19 @@ void FieldWidget::addTrace(Trace &trace, const QPointF &pos, qint64 time)
     trace.traces.insert(time, item);
 }
 
+static void setBall(QGraphicsEllipseItem* ball, float x, float y)
+{
+    bool update = false;
+    // update ball if it moved for more than 1 millimeter
+    update |= (qAbs(x - ball->pos().x()) > 0.001);
+    update |= (qAbs(y - ball->pos().y()) > 0.001);
+
+    if (update) {
+        ball->setPos(x, y);
+    }
+    ball->show();
+}
+
 void FieldWidget::updateDetection()
 {
     if (m_worldState.isEmpty()) {
@@ -875,6 +892,39 @@ void FieldWidget::updateDetection()
                 }
             }
         }
+
+        if (m_showTruth) {
+            m_truthDisplayed = true;
+            if (worldState.reality_size() > 0) {
+                const world::SimulatorState& reality = worldState.reality(worldState.reality_size() - 1);
+                for (int i=0; i < reality.blue_robots_size(); ++i) {
+                    const world::SimRobot& robot = reality.blue_robots(i);
+                    const robot::Specs &specs = m_teamBlue[robot.id()];
+                    setTrueRobot(robot, specs, m_realRobotsBlue, Qt::blue);
+                }
+                for (int i=0; i < reality.yellow_robots_size(); ++i) {
+                    const world::SimRobot& robot = reality.yellow_robots(i);
+                    const robot::Specs &specs = m_teamYellow[robot.id()];
+                    setTrueRobot(robot, specs, m_realRobotsYellow, Qt::yellow);
+                }
+                if (reality.has_ball()) {
+                    if (!m_realBall) {
+                        m_realBall = new QGraphicsEllipseItem;
+                        m_realBall->setPen(Qt::NoPen);
+                        m_realBall->setBrush(QColor(250, 150, 0));
+                        m_realBall->setZValue(90.0f);
+                        m_realBall->setRect({-ballRadius, -ballRadius, ballRadius * 2, ballRadius * 2});
+                        m_realBall->hide();
+                        m_scene->addItem(m_realBall);
+                    }
+                    const QPointF pos = m_virtualFieldTransform.applyPosition({reality.ball().p_x(), reality.ball().p_y()});
+                    ::setBall(m_realBall, pos.x(), pos.y());
+                } else if (m_realBall) {
+                    m_realBall->hide();
+                }
+
+            }
+        }
     }
 
     // cleanup trace remainders
@@ -891,6 +941,14 @@ void FieldWidget::updateDetection()
     }
 
     for(auto &robot : m_robotsYellow) {
+        robot.tryHide();
+    }
+
+    for(auto &robot : m_realRobotsBlue) {
+        robot.tryHide();
+    }
+
+    for(auto &robot : m_realRobotsYellow) {
         robot.tryHide();
     }
 
@@ -915,6 +973,10 @@ void FieldWidget::updateDetection()
 
     if (!m_showVision && m_visionCurrentlyDisplayed) {
         hideVision();
+    }
+
+    if (!m_showTruth && m_truthDisplayed) {
+        hideTruth();
     }
 
     // prevent applying the world state again
@@ -944,17 +1006,23 @@ void FieldWidget::hideVision() {
     m_visionCurrentlyDisplayed = false;
 }
 
+void FieldWidget::hideTruth() {
+    for(auto &robot : m_realRobotsBlue) {
+        robot.tryHide();
+    }
+
+    for(auto &robot : m_realRobotsYellow) {
+        robot.tryHide();
+    }
+    if (m_realBall) {
+        m_realBall->hide();
+    }
+    m_truthDisplayed = false;
+}
+
 void FieldWidget::setBall(const world::Ball &ball)
 {
-    bool update = false;
-    // update ball if it moved for more than 1 millimeter
-    update |= (qAbs(ball.p_x() - m_ball->pos().x()) > 0.001);
-    update |= (qAbs(ball.p_y() - m_ball->pos().y()) > 0.001);
-
-    if (update) {
-        m_ball->setPos(ball.p_x(), ball.p_y());
-    }
-    m_ball->show();
+    ::setBall(m_ball, ball.p_x(), ball.p_y());
 }
 
 void FieldWidget::setVisionBall(const SSL_DetectionBall &ball, uint cameraID, int ballID)
@@ -1139,6 +1207,37 @@ void FieldWidget::setVisionRobot(const SSL_DetectionRobot &robot, const robot::S
     r.show();
 }
 
+void FieldWidget::setTrueRobot(const world::SimRobot& robot, const robot::Specs &specs, RobotMap& robots, const QColor &color) {
+    // get robot or create it
+    Robot &r = robots[robot.id()];
+    // recreate robot body if neccessary
+    if (!r.robot) {
+        createRobotItem(r, specs, color, robot.id(), RobotVisualisation::VISION);
+    }
+
+    QQuaternion q{robot.rotation().real(), robot.rotation().i(), robot.rotation().j(), robot.rotation().k()}; // see simrobot.cpp
+    QVector3D forwards{0, 1, 0};
+    QVector3D rotated = q.rotatedVector(forwards);
+    float phi = -atan2(rotated.z(), rotated.y());
+    phi = m_virtualFieldTransform.applyAngle(phi) * 180 / M_PI + 180;
+
+    bool update = false;
+    const QPointF pos = m_virtualFieldTransform.applyPosition({robot.p_x(), robot.p_y()});
+
+    // update if moved more than 1 millimeter or rotated for over 0.2 degrees
+    update |= (qAbs(pos.x() - r.robot->pos().x()) > 0.001);
+    update |= (qAbs(pos.y() - r.robot->pos().y()) > 0.001);
+    update |= (qAbs(phi - r.robot->rotation()) > 0.2);
+
+
+    if (update) {
+        r.robot->setPos(pos);
+        r.robot->setRotation(phi);
+        r.id->setPos(robot.p_x(), robot.p_y());
+    }
+
+    r.show();
+}
 
 void FieldWidget::addBlob(float x, float y, const QBrush &brush, QGraphicsItem *parent)
 {
@@ -1210,17 +1309,20 @@ void FieldWidget::setFieldOrientation(float rotation)
     m_rotation = rotation;
     showWholeField();
 
+    auto clear = [](RobotMap& map) {
+        for(const auto& robot : map) {
+            delete robot.id;
+            delete robot.robot;
+        }
+        map.clear();
+    };
+
     // force redrawing robots, required to update the label orientation
-    foreach (Robot r, m_robotsBlue) {
-        delete r.id;
-        delete r.robot;
-    }
-    m_robotsBlue.clear();
-    foreach (Robot r, m_robotsYellow) {
-        delete r.id;
-        delete r.robot;
-    }
-    m_robotsYellow.clear();
+    clear(m_robotsBlue);
+    clear(m_robotsYellow);
+    clear(m_realRobotsBlue);
+    clear(m_realRobotsYellow);
+
     // recreate robots on redraw
     m_worldState.append(m_lastWorldState);
     m_guiTimer->requestTriggering();
@@ -2073,4 +2175,9 @@ void FieldWidget::setShowVision(bool enable)
     m_showVision = enable;
     m_worldState.append(m_lastWorldState);
     updateDetection();
+}
+
+void FieldWidget::setShowTruth(bool enable)
+{
+    m_showTruth = enable;
 }

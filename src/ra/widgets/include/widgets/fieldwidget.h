@@ -150,6 +150,7 @@ private slots:
 
     void setTrackingFrom(int newViewPoint);
     void setShowVision(bool enable);
+    void setShowTruth(bool enable);
 
 private:
     void addToggleVisAction();
@@ -168,6 +169,7 @@ private:
     void addBallTrace(qint64 time, const world::Ball &ball);
     void setRobot(const world::Robot &robot, const robot::Specs &specs, RobotMap &robots, const QColor &color);
     void setVisionRobot(const SSL_DetectionRobot &robot, const robot::Specs &specs, QList<RobotMap> &robotMap, const QColor &color);
+    void setTrueRobot(const world::SimRobot& robot, const robot::Specs &specs, RobotMap& robots, const QColor &color);
     void hideVision();
     void addBlob(float x, float y, const QBrush &brush, QGraphicsItem *parent);
     void addRobotTrace(qint64 time, const world::Robot &robot, Trace &robotTrace, Trace &robotRawTrace);
@@ -191,6 +193,7 @@ private:
     void ballPlacement(bool blue);
     QGraphicsPathItem *createAoiItem(unsigned int transparency);
     void createRobotItem(Robot &r, const robot::Specs &specs, const QColor &color, const uint id, RobotVisualisation visType);
+    void hideTruth();
 
 private:
     QGraphicsScene *m_scene;
@@ -235,12 +238,17 @@ private:
     amun::GameState m_gameState;
 
     QGraphicsEllipseItem *m_ball;
+    QGraphicsEllipseItem *m_realBall = nullptr;
     QStringList m_visibleVisualizations;
     typedef QList<QGraphicsItem*> Items;
     Items m_visualizationItems;
     RobotMap m_robotsBlue;
     RobotMap m_robotsYellow;
-    
+    RobotMap m_realRobotsBlue;
+    RobotMap m_realRobotsYellow;
+    bool m_showTruth = false;
+    bool m_truthDisplayed = false;
+
     QMap<uint, QList<RobotMap>> m_visionRobotsBlue;
     QMap<uint, QList<RobotMap>> m_visionRobotsYellow;
     QMap<uint, QList<VisionBall>> m_visionBalls;
