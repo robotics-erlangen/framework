@@ -69,7 +69,6 @@ target_sources(widgets PRIVATE ${UIC_SOURCES})
 target_link_libraries(widgets
     PRIVATE shared::core
     PUBLIC shared::protobuf
-    PRIVATE amun::seshat
     PRIVATE ra::guihelper
     PUBLIC Qt5::Widgets
     PRIVATE Qt5::OpenGL
