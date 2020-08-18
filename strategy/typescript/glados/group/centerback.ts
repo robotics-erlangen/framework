@@ -6,6 +6,7 @@ import * as vis from "base/vis";
 import * as World from "base/world";
 
 import { MessageBox, MessageType } from "glados/control/messaging";
+import * as Physics from "glados/observer/physics";
 import * as Robot from "glados/observer/robot";
 import { Group } from "glados/trainer/groups";
 import * as UtilDefense from "glados/util/defense";
@@ -40,7 +41,7 @@ interface Target {
 }
 
 let privateCenterBackPositions: Map<FriendlyRobot, {pos: Position, target: Target | undefined, way: number}> = new Map();
-let centerBackPositions: Map<FriendlyRobot, {pos: Position, target: Target | undefined, way: number}> = new Map();
+let centerBackPositions: Map<FriendlyRobot, {pos: Position, target: Target | undefined, way: number, time?: number}> = new Map();
 
 				// 	["pos"] = final_pos,
 				// 	["target"] = t.target,
@@ -232,12 +233,14 @@ export class CenterBack implements Group {
 			[cBPos, way, sec] = UtilDefense.centerBackPos(targetPos, target.dir);
 			// check if the target is necessary but reachable
 			let idealBotPrel = <FriendlyRobot> UtilDefense.getClosestRobot(robotSet, cBPos)[0];
-			let timeAroundDefenseArea = Robot.timeAroundDefenseAreaByWay(idealBotPrel, undefined, cBPos, way, extraDistance, true);
+
 			let targetTime = target.time != undefined ? target.time : Infinity;
 			// only consider the next timestamp
 			if (targetTime > minTime) {
 				targetTime = Infinity;
 			}
+			let endSpeed = Physics.robotMinEndspeed(idealBotPrel, cBPos, targetTime);
+			let timeAroundDefenseArea = Robot.timeAroundDefenseAreaByWay(idealBotPrel, undefined, cBPos, way, extraDistance, true, endSpeed.length());
 			if (adjustWay && sec != undefined) {
 				way = UtilDefense.mulCornerFactor(way, sec, extraDistance);
 			}
