@@ -1176,7 +1176,8 @@ void FieldWidget::setVisionRobot(const SSL_DetectionRobot &robot, const robot::S
     // looks for robot visualization with that id to avoid unnecessary recreation of objects
     auto robotMapIt = std::find_if(robotMapList.begin(), robotMapList.end(),
             [&] (auto &robotMap) {
-                return robotMap.find(robot.robot_id()) != robotMap.end();
+                auto rM = robotMap.find(robot.robot_id());
+                return rM != robotMap.end() && !rM->visible;
             });
 
     // increase number of robotmaps accordingly
