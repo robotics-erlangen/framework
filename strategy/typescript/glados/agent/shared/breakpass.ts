@@ -19,6 +19,12 @@ export class BreakPass extends Behavior {
 	}
 
 	check(): Behavior | undefined {
+		const isMainAttacker = this._messaging.receiveTrainer(MessageType.mainAttacker) === this._robot;
+		if (isMainAttacker) {
+			debug.set("breakpass check", "main attacker");
+			return undefined;
+		}
+
 		if (!Referee.isGameState(World.RefereeState)) {
 			debug.set("breakpass check", "non game state");
 			return undefined;
