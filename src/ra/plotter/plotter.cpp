@@ -309,6 +309,19 @@ void Plotter::handleStatus(const Status &status, bool backlogStatus)
         const world::State &worldState = status->world_state();
         float time = (worldState.time() - m_startTime) * 1E-9f;
 
+        if (worldState.reality_size() > 0) {
+            auto reality = worldState.reality(worldState.reality_size()-1);
+            if (reality.has_ball()) {
+                parseMessage(reality.ball(), QStringLiteral("Ball.truth"), time);
+            }
+            for (const auto &robot : reality.yellow_robots()) {
+                parseMessage(robot, QString(QStringLiteral("Yellow.%1.truth")).arg(robot.id()), time);
+            }
+            for (const auto &robot : reality.blue_robots()) {
+                parseMessage(robot, QString(QStringLiteral("Blue.%1.truth")).arg(robot.id()), time);
+            }
+        }
+
         if (worldState.has_ball()) {
             parseMessage(worldState.ball(), QStringLiteral("Ball"), time);
 
