@@ -77,6 +77,7 @@ public slots:
     void selectInputDeviceForGeneration(uint generation, const QString &inputDevice);
     void saveConfig(bool saveTeams = true);
     void setIsSimulator(bool simulator);
+    void selectRobots(const QList<int> &yellow, const QList<int> &blue);
 
 public:
     void init(QWidget *window, InputManager *inputManager);

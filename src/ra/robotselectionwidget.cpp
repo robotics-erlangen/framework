@@ -394,6 +394,27 @@ void RobotSelectionWidget::setIsSimulator(bool simulator)
     sendTeams();
 }
 
+void RobotSelectionWidget::selectRobots(const QList<int> &yellow, const QList<int> &blue)
+{
+    // find currently most used generation
+    uint bestGeneration = 0;
+    int bestGenerationRobots = 0;
+    for (auto gen : m_generations.keys()) {
+        if (m_generations[gen].robots.size() > bestGenerationRobots) {
+            bestGenerationRobots = m_generations[gen].robots.size();
+            bestGeneration = gen;
+        }
+    }
+
+    // set all robots
+    for (int id : yellow) {
+        emit setTeam(bestGeneration, id, RobotWidget::Team::Yellow);
+    }
+    for (int id : blue) {
+        emit setTeam(bestGeneration, id, RobotWidget::Team::Blue);
+    }
+}
+
 bool RobotSelectionWidget::validate(const robot::Generation &g)
 {
     if (!g.default_().IsInitialized()) {

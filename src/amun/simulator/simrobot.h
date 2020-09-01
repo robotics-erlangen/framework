@@ -51,6 +51,7 @@ public:
     robot::RadioResponse setCommand(const robot::Command &command, SimBall *ball, bool charge, float rxLoss, float txLoss);
     void update(SSL_DetectionRobot *robot, float stddev_p, float stddev_phi, qint64 time);
     void update(world::SimRobot *robot) const;
+    void restoreState(const world::SimRobot &robot);
     void move(const amun::SimulatorMoveRobot &robot);
     bool isFlipped();
     btVector3 position() const;

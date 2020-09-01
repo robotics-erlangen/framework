@@ -101,6 +101,7 @@ signals:
     void fileDropped(const QString &fileName);
     void robotDoubleClicked(bool teamIsBlue, int robotId);
     void robotCtrlClicked(bool teamIsBlue, int robotId);
+    void selectRobots(const QList<int> &yellow, const QList<int> &blue);
 
 public slots:
     void handleStatus(const Status &status);
@@ -151,6 +152,7 @@ private slots:
     void setTrackingFrom(int newViewPoint);
     void setShowVision(bool enable);
     void setShowTruth(bool enable);
+    void restoreSituation();
 
 private:
     void addToggleVisAction();
@@ -212,6 +214,7 @@ private:
     QAction *m_actionAntialiasing;
     QAction *m_actionGL;
     QAction *m_actionShowVision;
+    QAction *m_actionRestoreSimulatorState;
 
     std::string m_geometryString;
     bool m_geometryUpdated;
@@ -285,6 +288,8 @@ private:
     FieldTransform m_virtualFieldTransform;
 
     TrackingFrom m_trackingFrom;
+    world::SimulatorState m_lastSimulatorState;
+    int m_statesWithoutSimulatorReality = 0;
 };
 
 #endif // FIELDWIDGET_H

@@ -207,6 +207,9 @@ FieldWidget::FieldWidget(QWidget *parent) :
     connect(actionScreenshot, SIGNAL(triggered()), SLOT(takeScreenshot()));
     QAction *actionSaveSituation = m_contextMenu->addAction("Save Situation");
     connect(actionSaveSituation, SIGNAL(triggered()), SLOT(saveSituation()));
+    m_actionRestoreSimulatorState = m_contextMenu->addAction("Restore Simulator State");
+    m_actionRestoreSimulatorState->setVisible(false);
+    connect(m_actionRestoreSimulatorState, &QAction::triggered, this, &FieldWidget::restoreSituation);
 
     // different points of view
     m_contextMenu->addSeparator();
@@ -380,6 +383,9 @@ void FieldWidget::setHorusMode(bool enable)
     m_actionBallPlacementYellow->setVisible(!enable);
     m_actionShowBlueReplayVis->setVisible(enable);
     m_actionShowYellowReplayVis->setVisible(enable);
+    if (!m_isLogplayer) {
+        m_actionRestoreSimulatorState->setVisible(false);
+    }
 }
 
 void FieldWidget::toggleStrategyVisualizations()
@@ -890,6 +896,21 @@ void FieldWidget::updateDetection()
                         setVisionRobot(r, specs, m_visionRobotsYellow[cameraID], Qt::yellow);
                     }
                 }
+            }
+        }
+
+        // doing it here ensures that the chosen state is exactly the one currently being displayed
+        if (worldState.reality_size() > 0) {
+            if (m_isLogplayer) {
+                m_actionRestoreSimulatorState->setVisible(true);
+                m_lastSimulatorState.CopyFrom(worldState.reality(worldState.reality_size()-1));
+            }
+            m_statesWithoutSimulatorReality = 0;
+        } else {
+            m_statesWithoutSimulatorReality++;
+            if (m_statesWithoutSimulatorReality > 10) {
+                m_actionRestoreSimulatorState->setVisible(false);
+                m_lastSimulatorState.Clear();
             }
         }
 
@@ -2115,6 +2136,22 @@ void FieldWidget::saveSituation()
         return;
     }
     ::saveSituation(m_lastWorldState->world_state(), m_gameState);
+}
+
+void FieldWidget::restoreSituation()
+{
+    QList<int> yellowIds;
+    for (auto robot : m_lastSimulatorState.yellow_robots()) {
+        yellowIds.append(robot.id());
+    }
+    QList<int> blueIds;
+    for (auto robot : m_lastSimulatorState.blue_robots()) {
+        blueIds.append(robot.id());
+    }
+    emit selectRobots(yellowIds, blueIds);
+    Command command(new amun::Command);
+    command->mutable_simulator()->mutable_set_simulator_state()->CopyFrom(m_lastSimulatorState);
+    emit sendCommand(command);
 }
 
 void FieldWidget::ballPlacement(bool blue)

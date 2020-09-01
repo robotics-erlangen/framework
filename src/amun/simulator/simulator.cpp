@@ -851,6 +851,26 @@ void Simulator::handleCommand(const Command &command)
                 m_minRobotDetectionTime = sim.vision_worst_case().min_robot_detection_time() * 1E9;
             }
         }
+
+        if (sim.has_set_simulator_state()) {
+            if (sim.set_simulator_state().has_ball()) {
+                m_data->ball->restoreState(sim.set_simulator_state().ball());
+            }
+            for (const auto &robot : sim.set_simulator_state().yellow_robots()) {
+                for (auto key : m_data->robotsYellow.keys()) {
+                    if (key.second == robot.id()) {
+                        m_data->robotsYellow[key]->restoreState(robot);
+                    }
+                }
+            }
+            for (const auto &robot : sim.set_simulator_state().blue_robots()) {
+                for (auto key : m_data->robotsBlue.keys()) {
+                    if (key.second == robot.id()) {
+                        m_data->robotsBlue[key]->restoreState(robot);
+                    }
+                }
+            }
+        }
     }
 
     if (command->has_transceiver()) {

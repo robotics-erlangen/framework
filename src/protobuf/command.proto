@@ -79,6 +79,7 @@ message CommandSimulator {
     optional SimulatorSetup simulator_setup = 5;
     optional SimulatorWorstCaseVision vision_worst_case = 6;
     optional SimulatorRealismConfig realism_config = 7;
+    optional world.SimulatorState set_simulator_state = 8;
 }
 
 message CommandReferee {

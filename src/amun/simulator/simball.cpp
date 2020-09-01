@@ -279,6 +279,16 @@ void SimBall::writeBallState(world::SimBall *ball) const
     ball->set_angular_z(angularVelocity.z());
 }
 
+void SimBall::restoreState(const world::SimBall &ball)
+{
+    btVector3 position(ball.p_x(), ball.p_y(), ball.p_z());
+    m_body->getWorldTransform().setOrigin(position * SIMULATOR_SCALE);
+    btVector3 velocity(ball.v_x(), ball.v_y(), ball.v_z());
+    m_body->setLinearVelocity(velocity * SIMULATOR_SCALE);
+    btVector3 angular(ball.angular_x(), ball.angular_y(), ball.angular_z());
+    m_body->setAngularVelocity(angular);
+}
+
 bool SimBall::isInvalid() const
 {
     const btTransform transform = m_body->getWorldTransform();

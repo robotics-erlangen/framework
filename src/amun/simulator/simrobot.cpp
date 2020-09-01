@@ -434,6 +434,18 @@ void SimRobot::update(world::SimRobot* robot) const
     robot->set_r_z(angular.z());
 }
 
+void SimRobot::restoreState(const world::SimRobot &robot)
+{
+    btVector3 position(robot.p_x(), robot.p_y(), robot.p_z());
+    m_body->getWorldTransform().setOrigin(position * SIMULATOR_SCALE);
+    btQuaternion rotation(robot.rotation().real(), robot.rotation().i(), robot.rotation().j(), robot.rotation().k());
+    m_body->getWorldTransform().setRotation(rotation);
+    btVector3 velocity(robot.v_x(), robot.v_y(), robot.v_z());
+    m_body->setLinearVelocity(velocity * SIMULATOR_SCALE);
+    btVector3 angular(robot.r_x(), robot.r_y(), robot.r_z());
+    m_body->setAngularVelocity(angular);
+}
+
 void SimRobot::move(const amun::SimulatorMoveRobot &robot)
 {
     m_move = robot;

@@ -213,6 +213,8 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     connect(this, SIGNAL(gotStatus(Status)), ui->replay, SIGNAL(gotStatus(Status)));
     connect(this, &MainWindow::gotStatus, m_logTimeLabel, &LogLabel::handleStatus);
 
+    connect(ui->field, &FieldWidget::selectRobots, ui->robots, &RobotSelectionWidget::selectRobots);
+
     // set up log connections
     createLogWriterConnections(m_loggingUiRa);
     createLogWriterConnections(m_loggingUiHorus);
