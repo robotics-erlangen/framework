@@ -1,9 +1,11 @@
 import * as Referee from "base/referee";
+import { FriendlyRobot } from "base/robot";
 import { Position } from "base/vector";
 import * as World from "base/world";
 
 import { Agent } from "glados/agent/base/agent";
 import { Checkable, CheckableConstructor } from "glados/agent/base/behavior";
+import { Zone } from "glados/util/zone";
 
 /** Different checkables to be used by the main and support attackers */
 export interface RunnerCtors {
@@ -56,6 +58,14 @@ export abstract class Objective {
 		}
 		return this._supportRunner[agent]!;
 	}
+
+	/**
+	 * The zones in which supporting attackers should distribute. The zone at
+	 * index 0 is the default empty zone, i.e the zone which is used as empty
+	 * zone if the main attacker is in no other zone.
+	 * @see glados/group/supporter
+	 */
+	abstract getSupporterZones(supporter: FriendlyRobot[]): Zone[];
 
 	/** Whether the objective is fit to continue execution. */
 	abstract canContinue(): boolean;

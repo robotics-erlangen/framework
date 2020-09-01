@@ -3,6 +3,7 @@ import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
 
+import { Objective } from "glados/agent/base/objective";
 import { MessageBox, MessageType } from "glados/control/messaging";
 import { Group } from "glados/trainer/groups";
 import * as UtilZone from "glados/util/zone";
@@ -21,41 +22,6 @@ export class Support implements Group {
 	_lastRobots: FriendlyRobot[] | undefined;
 	_lastAssignments: Map<UtilZone.Zone, FriendlyRobot> | undefined = undefined;
 
-
-	_updateZones(robots: FriendlyRobot[]) {
-		let totalLeft = -G.FieldWidthHalf;
-		let totalRight = G.FieldWidthHalf;
-		let totalTop = G.FieldHeightHalf;
-		let totalBottom = -G.FieldHeightQuarter;
-
-		let nSupporter = robots.length;
-		let remainingZones = nSupporter + 1; // one zone will stay empty
-		this._supportCount = nSupporter;
-
-		// reset the zones
-		this._zones = [];
-
-		// create midfield zone
-		{
-			let boundaries = { left: totalLeft, right: totalRight, top: G.FieldHeightHalf / 4, bottom: totalBottom };
-			let defaultPos = UtilZone.getRandomPosition(boundaries);
-			this._zones.push({boundaries: boundaries, defaultPos: defaultPos});
-			remainingZones = remainingZones - 1;
-		}
-
-		// create offensive zones
-		let zoneWidth = (totalRight - totalLeft) / remainingZones;
-		for (let i = 1;i <= remainingZones;i++) {
-			let boundaries = { left: totalLeft + (i - 1) * zoneWidth, right: totalLeft + i * zoneWidth,
-					top: totalTop, bottom: G.FieldHeightHalf / 4 };
-			let defaultPos = UtilZone.getRandomPosition(boundaries);
-			this._zones.push({boundaries: boundaries, defaultPos: defaultPos});
-		}
-
-		// reset empty zone hysteresis
-		this._emptyZone = undefined;
-	}
-
 	_chooseEmptyZone(mainAttackerPos?: Position) {
 		let emptyZoneHysteresis = this._emptyZone ? 0.2 : 0;
 		if (mainAttackerPos != undefined) {
@@ -69,13 +35,18 @@ export class Support implements Group {
 			}
 		}
 
-		// default: midfield zone is empty
+		// Use zeroth zone as default empty zone
 		if (!this._emptyZone && this._zones.length > 0) {
 			this._emptyZone = this._zones[0];
 		}
 	}
 
 	run(messaging: MessageBox, messages: Map<FriendlyRobot, undefined>) {
+		const [, objective] = messaging.receiveSingleSender(MessageType.selectedObjective);
+		if (!objective) {
+			return;
+		}
+
 		let robots = Array.from(messages.keys());
 		let mainAttacker = messaging.receiveTrainer(MessageType.mainAttacker);
 		let prevEmptyZone = this._emptyZone;
@@ -104,10 +75,13 @@ export class Support implements Group {
 
 		// update zones if necessary
 		if (robots.length !== this._supportCount) {
-			updateAssignments = true;
-			this._updateZones(robots);
-		}
+			this._supportCount = robots.length;
+			this._zones = objective.getSupporterZones(robots);
+			// reset empty zone hysteresis
+			this._emptyZone = undefined;
 
+			updateAssignments = true;
+		}
 		// choose which zone is occupied by the mainAttacker
 		let mainAttackerPos = undefined;
 		if (mainAttacker) {
