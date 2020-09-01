@@ -130,7 +130,7 @@ Simulator::Simulator(const Timer *timer, const amun::SimulatorSetup &setup) :
 
     // add field and ball
     m_data->field = new SimField(m_data->dynamicsWorld, m_data->geometry);
-    m_data->ball = new SimBall(&m_data->rng, m_data->dynamicsWorld, m_data->geometry.field_width(), m_data->geometry.field_height());
+    m_data->ball = new SimBall(&m_data->rng, m_data->dynamicsWorld);
     m_data->flip = false;
     m_data->stddevBall = 0.0f;
     m_data->stddevBallArea = 0.0f;
@@ -272,7 +272,7 @@ void Simulator::handleSimulatorTick(double timeStep)
     resetFlipped(m_data->robotsYellow, -1.0f);
     if (m_data->ball->isInvalid()) {
         delete m_data->ball;
-        m_data->ball = new SimBall(&m_data->rng, m_data->dynamicsWorld, m_data->geometry.field_width(), m_data->geometry.field_height());
+        m_data->ball = new SimBall(&m_data->rng, m_data->dynamicsWorld);
     }
 
     // apply commands and forces to ball and robots
@@ -541,18 +541,11 @@ QPair<QList<QByteArray>, QByteArray> Simulator::createVisionPacket()
     std::vector<CameraInfo> cameraInfos = getCameraInfos(numCameras, m_data->geometry.field_width(), m_data->geometry.field_height(), m_data->cameraSetup.camera_height());
 
     const float totalBoundaryWidth = m_data->geometry.boundary_width();
-    const btVector3 ballPosition = m_data->ball->position() / SIMULATOR_SCALE;
     auto* ball = simState.mutable_ball();
-    ball->set_p_x(ballPosition.getX());
-    ball->set_p_y(ballPosition.getY());
-    ball->set_p_z(ballPosition.getZ());
-    const btVector3 ballSpeed = m_data->ball->speed() / SIMULATOR_SCALE;
-    ball->set_v_x(ballSpeed.getX());
-    ball->set_v_y(ballSpeed.getY());
-    ball->set_v_z(ballSpeed.getZ());
-
+    m_data->ball->writeBallState(ball);
 
     bool missingBall = m_data->missingBallDetections > 0 && m_data->rng.uniformFloat(0, 1) <= m_data->missingBallDetections;
+    const btVector3 ballPosition = m_data->ball->position() / SIMULATOR_SCALE;
     if (m_time - m_lastBallSendTime >= m_minBallDetectionTime && !missingBall) {
         m_lastBallSendTime = m_time;
 

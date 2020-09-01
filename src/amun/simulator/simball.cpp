@@ -27,7 +27,7 @@
 
 using namespace camun::simulator;
 
-SimBall::SimBall(RNG *rng, btDiscreteDynamicsWorld *world, float fieldWidth, float fieldHeight) :
+SimBall::SimBall(RNG *rng, btDiscreteDynamicsWorld *world) :
     m_rng(rng),
     m_world(world)
 {
@@ -261,6 +261,22 @@ btVector3 SimBall::position() const
 btVector3 SimBall::speed() const
 {
     return m_body->getLinearVelocity();
+}
+
+void SimBall::writeBallState(world::SimBall *ball) const
+{
+    const btVector3 ballPosition = m_body->getWorldTransform().getOrigin() / SIMULATOR_SCALE;
+    ball->set_p_x(ballPosition.getX());
+    ball->set_p_y(ballPosition.getY());
+    ball->set_p_z(ballPosition.getZ());
+    const btVector3 ballSpeed = speed() / SIMULATOR_SCALE;
+    ball->set_v_x(ballSpeed.getX());
+    ball->set_v_y(ballSpeed.getY());
+    ball->set_v_z(ballSpeed.getZ());
+    const btVector3 angularVelocity = m_body->getAngularVelocity();
+    ball->set_angular_x(angularVelocity.x());
+    ball->set_angular_y(angularVelocity.y());
+    ball->set_angular_z(angularVelocity.z());
 }
 
 bool SimBall::isInvalid() const

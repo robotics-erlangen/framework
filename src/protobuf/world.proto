@@ -123,6 +123,9 @@ message SimBall {
     required float v_x = 4;
     required float v_y = 5;
     required float v_z = 6;
+    optional float angular_x = 7;
+    optional float angular_y = 8;
+    optional float angular_z = 9;
 }
 
 message Quaternion {

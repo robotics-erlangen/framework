@@ -41,7 +41,7 @@ namespace camun {
 class camun::simulator::SimBall
 {
 public:
-    SimBall(RNG *rng, btDiscreteDynamicsWorld *world, float fieldWidth, float fieldHeight);
+    SimBall(RNG *rng, btDiscreteDynamicsWorld *world);
     ~SimBall();
     SimBall(const SimBall&) = delete;
     SimBall& operator=(const SimBall&) = delete;
@@ -52,8 +52,10 @@ public:
                bool enableInvisibleBall, float visibilityThreshold);
     void move(const amun::SimulatorMoveBall &ball);
     void kick(const btVector3 &power);
+    // returns the ball position projected onto the floor (z component is not included)
     btVector3 position() const;
     btVector3 speed() const;
+    void writeBallState(world::SimBall *ball) const;
     const btRigidBody *body() const { return m_body; }
     bool isInvalid() const;
 
