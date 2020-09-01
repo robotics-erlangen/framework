@@ -13,6 +13,7 @@ import { Move } from "glados/agent/attacker/move";
 import { PassTiming } from "glados/agent/attacker/passtiming";
 import { PenaltyPassiveAttackerOffense } from "glados/agent/attacker/penaltypassiveattackeroffense";
 import { PenaltyShootout } from "glados/agent/attacker/penaltyshootout";
+import { RunObjective } from "glados/agent/attacker/runobjective";
 import { SelectObjective } from "glados/agent/attacker/selectobjective";
 import { Shoot } from "glados/agent/attacker/shoot";
 import { Stop } from "glados/agent/attacker/stop";
@@ -62,6 +63,7 @@ export class Attacker extends Agent {
 			PassTiming,
 			Shoot,
 			BreakPass,
+			RunObjective,
 			Default
 		];
 	}
