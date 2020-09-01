@@ -13,10 +13,12 @@ import { Move } from "glados/agent/attacker/move";
 import { PassTiming } from "glados/agent/attacker/passtiming";
 import { PenaltyPassiveAttackerOffense } from "glados/agent/attacker/penaltypassiveattackeroffense";
 import { PenaltyShootout } from "glados/agent/attacker/penaltyshootout";
+import { SelectObjective } from "glados/agent/attacker/selectobjective";
 import { Shoot } from "glados/agent/attacker/shoot";
 import { Stop } from "glados/agent/attacker/stop";
 import { Agent } from "glados/agent/base/agent";
 import { CheckableConstructor } from "glados/agent/base/behavior";
+import { Objective } from "glados/agent/base/objective";
 import { BallEscort } from "glados/agent/shared/ballescort";
 import { BreakPass } from "glados/agent/shared/breakpass";
 import { PenaltyPassiveDefense } from "glados/agent/shared/penaltypassivedefense";
@@ -24,6 +26,14 @@ import { MessageType } from "glados/control/messaging";
 
 export class Attacker extends Agent {
 	beOffensive: boolean = false;
+	/**
+	 * Set by the main attacker to the currently active objective.
+	 *
+	 * The objective needs to be stored on the agent to allow the main attacker
+	 * to run an objective in the same frame he selected it, but at a later
+	 * point in the priority list
+	 */
+	objective?: Objective;
 
 	_run() {
 		if (this._activeBehavior) {
@@ -37,6 +47,7 @@ export class Attacker extends Agent {
 	getBehaviors(): CheckableConstructor[] {
 		return [
 			ApplyForMainattacker,
+			SelectObjective,
 			Move,
 			Stop,
 			PenaltyShootout,
