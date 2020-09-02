@@ -1,5 +1,6 @@
 import * as debug from "base/debug";
 import * as Field from "base/field";
+import { some } from "base/listutil";
 import * as Referee from "base/referee";
 import * as World from "base/world";
 
@@ -89,13 +90,11 @@ export class BreakPass extends Behavior {
 		// main attacker will receive the pass
 		let attackPosition = this._messaging.receiveSingleSender(MessageType.attackPosition)[1];
 		if (attackPosition != undefined) {
-			let oppInPassZone = false;
-			for (let robot of World.OpponentRobots) {
-				if ((robot.pos.orthogonalProjection(World.Ball.pos, World.Ball.pos + attackPosition)[1] < 0.3) && (robot.speed.lengthSq() < 0.5 * 0.5)) {
-					oppInPassZone = true;
-					break;
-				}
-			}
+			const oppInPassZone = some(World.OpponentRobots, (opp) => {
+				const dist = opp.pos.distanceToLineSegment(World.Ball.pos, attackPosition!);
+				const speed = opp.speed.lengthSq();
+				return dist < 0.3 && speed < 0.5 * 0.5;
+			});
 			if (!oppInPassZone) {
 				debug.set("breakpass check", "main attacker will receive the ball");
 				return false;
