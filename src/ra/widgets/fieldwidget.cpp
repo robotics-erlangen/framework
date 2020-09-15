@@ -2181,4 +2181,6 @@ void FieldWidget::setShowVision(bool enable)
 void FieldWidget::setShowTruth(bool enable)
 {
     m_showTruth = enable;
+    m_worldState.append(m_lastWorldState);
+    updateDetection();
 }
