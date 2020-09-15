@@ -442,8 +442,10 @@ export function getRealisticBallPos(): Position {
 }
 
 function updateLastRealisticBall() {
-	if (lastRealisticBallPos == undefined ||  lastRealisticBallPos.distanceTo(World.Ball.pos) < MAX_FRAME_DISTANCE
-			||  World.Time - lastRealisticBallTime > MAX_INVISIBLE_TIME) {
+	if (lastRealisticBallPos == undefined || lastRealisticBallPos.distanceTo(World.Ball.pos) < MAX_FRAME_DISTANCE
+			|| (World.Time - lastRealisticBallTime > MAX_INVISIBLE_TIME
+			&& (World.Ball.detectionQuality > 0.2 ||
+				(World.RefereeState !== "BallPlacementDefensive" && World.RefereeState !== "BallPlacementOffensive")))) {
 		lastRealisticBallPos = World.Ball.pos;
 		lastRealisticBallTime = World.Time;
 	}
