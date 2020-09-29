@@ -19,11 +19,21 @@ function robotStub(id: number) {
 	return r;
 }
 
+function getAgentForRobot(pool: any, robot: FriendlyRobot, poolName: string): any {
+	for (let agent of pool._agents) {
+		if (agent.robot() === robot) {
+			return agent;
+		}
+	}
+	throw new Error(`Agent for '${robot}' is not found in '${poolName}'`);
+}
+
 export class GladosPools extends UnitTest {
 	constructor() {
 		super();
 		this.addTest("all", this.testAll);
 	}
+
 
 	private testAll() {
 		// so that the Coordinates module works
@@ -43,29 +53,19 @@ export class GladosPools extends UnitTest {
 
 		let attackerRobot = coordinator._trainer._messaging.receive(MessageType.attackerFlag).keys().next().value;
 		let defenderRobot = coordinator._trainer._messaging.receive(MessageType.defenderFlag).keys().next().value;
-		let attackerAgent = undefined;
-		let defenderAgent = undefined;
-		for (let agent of (coordinator._pools.attack as any)._agents) {
-			if (agent.robot() === attackerRobot) {
-				attackerAgent = agent;
-			}
-		}
-		for (let agent of (coordinator._pools.defense as any)._agents) {
-			if (agent.robot() === defenderRobot) {
-				defenderAgent = agent;
-			}
-		}
-		this.assert_not_undefined(attackerAgent);
-		this.assert_not_undefined(defenderAgent);
+		let attackerAgent = getAgentForRobot(coordinator._pools.attack, attackerRobot, "Attack");
+		let defenderAgent = getAgentForRobot(coordinator._pools.defense, defenderRobot, "Defense");
 
 		let [defenderBefore, attackerBefore] = [defenderRobot, attackerRobot];
-		attackerAgent!._messaging.sendToTrainer(MessageType.poolChangeRequest, "defender");
+		attackerAgent._messaging.sendToTrainer(MessageType.poolChangeRequest, "defender");
 		coordinator.run();
 
 		attackerRobot = coordinator._trainer._messaging.receive(MessageType.attackerFlag).keys().next().value;
 		defenderRobot = coordinator._trainer._messaging.receive(MessageType.defenderFlag).keys().next().value;
 		this.assert_equal(attackerRobot, defenderBefore);
 		this.assert_equal(defenderRobot, attackerBefore);
+		attackerAgent = getAgentForRobot(coordinator._pools.attack, attackerRobot, "Attack");
+		defenderAgent = getAgentForRobot(coordinator._pools.defense, defenderRobot, "Defense");
 
 		[defenderBefore, attackerBefore] = [defenderRobot, attackerRobot];
 		defenderAgent._messaging.sendToTrainer(MessageType.poolChangeRequest, "attacker");
@@ -75,6 +75,8 @@ export class GladosPools extends UnitTest {
 		defenderRobot = coordinator._trainer._messaging.receive(MessageType.defenderFlag).keys().next().value;
 		this.assert_equal(attackerRobot, defenderBefore);
 		this.assert_equal(defenderRobot, attackerBefore);
+		attackerAgent = getAgentForRobot(coordinator._pools.attack, attackerRobot, "Attack");
+		defenderAgent = getAgentForRobot(coordinator._pools.defense, defenderRobot, "Defense");
 
 		(World as any).FriendlyRobotsAll = allFriendlyRobotsOrig;
 		(World as any).RefereeState = refereeStateOrig;
