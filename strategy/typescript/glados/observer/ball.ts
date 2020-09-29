@@ -441,11 +441,46 @@ export function getRealisticBallPos(): Position {
 	return lastRealisticBallPos;
 }
 
+function uLRBCondition() {
+	debug.pushtop("last realistic ball");
+	if (lastRealisticBallPos == undefined) {
+		debug.set(undefined, "initial");
+		debug.pop();
+		return true; // always update if no previous data is known
+	}
+	if (lastRealisticBallPos.distanceToSq(World.Ball.pos) < MAX_FRAME_DISTANCE * MAX_FRAME_DISTANCE) {
+		debug.set(undefined, "close");
+		debug.pop();
+		return true; // do update if the position seems plausible
+	}
+	if (World.Time - lastRealisticBallTime <= MAX_INVISIBLE_TIME) {
+		debug.set(undefined, "waiting");
+		debug.pop();
+		return false; // we don't want to update the prediction with bad data too quickly,
+		// but we do need to update after some time to stay responsive,
+		// for example if the ball was moved by the referee
+	}
+	if (World.Ball.detectionQuality > 0.2) {
+		debug.set(undefined, "good");
+		debug.pop();
+		return true; // if the data is good, we take it after some time
+	}
+	if (World.RefereeState === "BallPlacementDefensive" || World.RefereeState === "BallPlacementOffensive") {
+		debug.set(undefined, "ball placement");
+		debug.pop();
+		return false; // we do not want to use bad data during Ballplacement, as it's not as important to be responsive
+	}
+	debug.set(undefined, "default");
+	debug.pop();
+	return true; // during regular matches we need to be more responsive, so we take bad data.
+	// This is quite dangerous as false detections seem to be taken by the tracking eagerly if
+	// no other option is visible, but compared to ballplacement we need to be quicker.
+	// Also, the ball isn't as often invisible during normal play.
+	// Use this function during normal play AT YOUR OWN RISK.
+}
+
 function updateLastRealisticBall() {
-	if (lastRealisticBallPos == undefined || lastRealisticBallPos.distanceTo(World.Ball.pos) < MAX_FRAME_DISTANCE
-			|| (World.Time - lastRealisticBallTime > MAX_INVISIBLE_TIME
-			&& (World.Ball.detectionQuality > 0.2 ||
-				(World.RefereeState !== "BallPlacementDefensive" && World.RefereeState !== "BallPlacementOffensive")))) {
+	if (uLRBCondition()) {
 		lastRealisticBallPos = World.Ball.pos;
 		lastRealisticBallTime = World.Time;
 	}
