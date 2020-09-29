@@ -78,6 +78,18 @@ export class GladosPools extends UnitTest {
 		attackerAgent = getAgentForRobot(coordinator._pools.attack, attackerRobot, "Attack");
 		defenderAgent = getAgentForRobot(coordinator._pools.defense, defenderRobot, "Defense");
 
+		attackerAgent._messaging.sendToTrainer(MessageType.poolChangeRequest, "defender");
+		defenderAgent._messaging.sendToTrainer(MessageType.poolChangeRequest, "attacker");
+		[defenderBefore, attackerBefore] = [defenderRobot, attackerRobot];
+		coordinator.run();
+
+		attackerRobot = coordinator._trainer._messaging.receive(MessageType.attackerFlag).keys().next().value;
+		defenderRobot = coordinator._trainer._messaging.receive(MessageType.defenderFlag).keys().next().value;
+		this.assert_equal(attackerRobot, defenderBefore);
+		this.assert_equal(defenderRobot, attackerBefore);
+		attackerAgent = getAgentForRobot(coordinator._pools.attack, attackerRobot, "Attack");
+		defenderAgent = getAgentForRobot(coordinator._pools.defense, defenderRobot, "Defense");
+
 		(World as any).FriendlyRobotsAll = allFriendlyRobotsOrig;
 		(World as any).RefereeState = refereeStateOrig;
 		mainTrainer._attackRatio.attackerDefenderDistribution = mainTrainerAttackerDefenderDistribution;
