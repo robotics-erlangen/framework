@@ -22,6 +22,18 @@ let Agents = {
 	// Manual: Manual
 };
 
+// @return: returns an int i s.t. list[list.length-1] and list[i] have opposite values for isAttacker, undefined if there is none
+function findPair(list: {isAttacker: boolean}[]): number | undefined {
+	if (list.length < 2) {
+		return undefined;
+	}
+	let searchBool = !list[list.length - 1].isAttacker;
+	for (let i = 0; i < list.length - 1; ++i) {
+		if (list[i].isAttacker === searchBool) return i;
+	}
+	return undefined;
+}
+
 export class MainCoordinator extends Coordinator {
 	constructor(trainer: MainTrainer) {
 		let pools: {[name: string]: AgentPool} = {
@@ -49,6 +61,16 @@ export class MainCoordinator extends Coordinator {
 
 		// process pool change requests
 		let changingRobots = this._trainer._attackRatio.changingRobots();
+		let pair = findPair(changingRobots);
+		while (pair != undefined) {
+			let robot1 = changingRobots[pair].robot;
+			let robot1IsAttacker = changingRobots[pair].isAttacker;
+			let robot2 = changingRobots.pop()!.robot;
+			changingRobots.splice(pair, 1);
+
+			this._swapRobots(robot1, robot2, robot1IsAttacker);
+			pair = findPair(changingRobots);
+		}
 		for (let changingRobotEntry of changingRobots) {
 			this._changeRobot(attackers, defenders,
 				changingRobotEntry.robot, changingRobotEntry.isAttacker);
@@ -83,6 +105,25 @@ export class MainCoordinator extends Coordinator {
 		} else if (changingRobot !== World.FriendlyKeeper) {
 			throw new Error("invalid pool change request from " + changingRobot.id);
 		}
+	}
+
+	private _swapRobots(changingRobot1: FriendlyRobot, changingRobot2: FriendlyRobot, robot1IsAttacker: boolean) {
+		let oldPool1 = robot1IsAttacker ? "attack" : "defense";
+		let newPool1 = robot1IsAttacker ? "defense" : "attack";
+		amun.log("pair");
+		// We don't need to check forceKeepingInPool as both robots volunteered
+		if (changingRobot1 === World.FriendlyKeeper || changingRobot2 === World.FriendlyKeeper) {
+			throw new Error("invalid pool change from Keeper");
+		}
+		if (!this._pools[oldPool1].removeRobot(changingRobot1)) {
+			throw new Error("invalid pool change request from " + changingRobot1.id);
+		}
+		if (!this._pools[newPool1].removeRobot(changingRobot2)) {
+			throw new Error("invalid pool change request from " + changingRobot2.id);
+		}
+
+		this._pools[newPool1].takeRobot([changingRobot1], this._messaging);
+		this._pools[oldPool1].takeRobot([changingRobot2], this._messaging);
 	}
 }
 
