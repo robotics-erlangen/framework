@@ -52,6 +52,7 @@ export class Moves implements Group {
 				if (!messages.has(r)) {
 					this._currentMove = undefined;
 					this._chosenMove = undefined;
+					this._numAttackersSent = false;
 					break;
 				}
 			}
