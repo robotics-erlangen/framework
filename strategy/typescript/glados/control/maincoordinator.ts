@@ -110,7 +110,6 @@ export class MainCoordinator extends Coordinator {
 	private _swapRobots(changingRobot1: FriendlyRobot, changingRobot2: FriendlyRobot, robot1IsAttacker: boolean) {
 		let oldPool1 = robot1IsAttacker ? "attack" : "defense";
 		let newPool1 = robot1IsAttacker ? "defense" : "attack";
-		amun.log("pair");
 		// We don't need to check forceKeepingInPool as both robots volunteered
 		if (changingRobot1 === World.FriendlyKeeper || changingRobot2 === World.FriendlyKeeper) {
 			throw new Error("invalid pool change from Keeper");
