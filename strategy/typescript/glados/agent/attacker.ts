@@ -11,7 +11,7 @@ import { Exchange } from "glados/agent/attacker/exchange";
 import { FreeKick } from "glados/agent/attacker/freekick";
 import { Move } from "glados/agent/attacker/move";
 import { PassTiming } from "glados/agent/attacker/passtiming";
-import { PenaltyShootoutDefensive as PenaltyDefensive } from "glados/agent/attacker/penaltydefensive";
+import { PenaltyPassiveOffensive as PenaltyPassiveOffensive } from "glados/agent/attacker/penaltypassive";
 import { PenaltyShootout } from "glados/agent/attacker/penaltyshootout";
 import { Shoot } from "glados/agent/attacker/shoot";
 import { Stop } from "glados/agent/attacker/stop";
@@ -19,7 +19,7 @@ import { Agent } from "glados/agent/base/agent";
 import { Behavior } from "glados/agent/base/behavior";
 import { BallEscort } from "glados/agent/shared/ballescort";
 import { BreakPass } from "glados/agent/shared/breakpass";
-import { PenaltyPassive } from "glados/agent/shared/penaltypassive";
+import { PenaltyPassive as PenaltyPassiveDefensive } from "glados/agent/shared/penaltypassive";
 import { MessageType } from "glados/control/messaging";
 
 export class Attacker extends Agent {
@@ -40,8 +40,8 @@ export class Attacker extends Agent {
 			Move,
 			Stop,
 			PenaltyShootout,
-			PenaltyDefensive,
-			PenaltyPassive,
+			PenaltyPassiveDefensive,
+			PenaltyPassiveOffensive,
 			Exchange,
 			FreeKick,
 			DoubleTouchGuard,

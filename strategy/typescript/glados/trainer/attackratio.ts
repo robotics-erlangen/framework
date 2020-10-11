@@ -61,9 +61,7 @@ export class AttackRatio {
 
 		let attackRatio: number;
 
-		if (BaseRef.isFriendlyPenaltyState() || BaseRef.isOpponentPenaltyState()) {
-			attackRatio = 11;
-		} else if (BaseRef.isFriendlyKickoffState(refState)) {
+		if (BaseRef.isFriendlyKickoffState(refState)) {
 			attackRatio = 8;
 		} else if (BaseRef.isOpponentKickoffState(refState)) {
 			attackRatio = 4;
@@ -93,10 +91,6 @@ export class AttackRatio {
 			if (this._opponentFreeKickAT != undefined) {
 				this._opponentFreeKickAT = attackRatio;
 			}
-		} else if (BaseRef.isOpponentPenaltyState(refState)) {
-			attackRatio = 1;
-		} else if (BaseRef.isFriendlyPenaltyState(refState)) {
-			attackRatio = 10;
 		} else if (refState === "Stop") {
 			if (this._ballInOpponentFieldHalf) {
 				attackRatio = 4;
