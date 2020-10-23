@@ -382,6 +382,17 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
 
     switchToWidgetConfiguration(INITIAL_CONFIG_ID, true);
     udpateSpeedActionsEnabled();
+
+    ui->actionSimulator->setChecked(true);
+    ui->actionSimulator->setEnabled(false);
+    ui->actionInternalReferee->setChecked(true);
+    ui->actionInternalReferee->setEnabled(false);
+    ui->actionInputDevices->setChecked(true);
+    ui->actionInputDevices->setEnabled(true);
+    ui->actionChargeKicker->setChecked(true);
+    ui->actionChargeKicker->setEnabled(false);
+    ui->actionEnableTransceiver->setChecked(true);
+    ui->actionEnableTransceiver->setEnabled(false);
 }
 
 MainWindow::~MainWindow()
