@@ -874,7 +874,7 @@ void MainWindow::toggleHorusModeWidgets(bool enable)
     ui->actionStepBack->setEnabled(enable);
     ui->actionStepForward->setEnabled(enable);
     ui->actionTogglePause->setEnabled(enable);
-    ui->actionShowBacklog->setEnabled(!enable);
+    ui->actionShowBacklog->setEnabled(false);
     ui->referee->setEnabled(!enable);
     ui->simulator->setEnabled(!enable);
     ui->simulatorConfig->setEnabled(!enable);
