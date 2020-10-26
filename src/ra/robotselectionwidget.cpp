@@ -306,6 +306,8 @@ void RobotSelectionWidget::loadRobots()
 
 void RobotSelectionWidget::loadRobots(const QString &group, RobotWidget::Team team)
 {
+    bool hasTeamSet = false;
+
     QSettings s;
     s.beginGroup(group);
     const int size = s.beginReadArray("Robots");
@@ -319,12 +321,17 @@ void RobotSelectionWidget::loadRobots(const QString &group, RobotWidget::Team te
                 unsetTeam(id, generation, team);
                 robots[id].team = team;
                 emit setTeam(generation, id, team);
+                hasTeamSet = true;
             }
         }
     }
     s.endArray();
     s.endGroup();
 
+    if (!hasTeamSet && m_isSimulator) {
+        int generation = 3;
+        selectTeamForGeneration(generation, 0 /* unused */, RobotWidget::Select11v11);
+    }
     updateGenerationTeam();
 }
 
