@@ -208,6 +208,7 @@ void RobotSelectionWidget::loadStrategies()
     s.endGroup();
 
     newRecent = ra::sanitizeRecentScripts(newRecent, { "init.ts", "init.lua" });
+    ra::searchForStrategies(newRecent, QDir::homePath() + "/Robotics/strategy/typescript/", "init.ts");
     ra::searchForStrategies(newRecent, QString(ERFORCE_STRATEGYDIR) + "lua/", "init.lua");
     ra::searchForStrategies(newRecent, QString(ERFORCE_STRATEGYDIR) + "typescript/", "init.ts");
     m_recentScripts = std::make_shared<QStringList>(newRecent);
