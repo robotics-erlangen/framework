@@ -23,7 +23,6 @@
 #include "lua_protobuf.h"
 #include "protobuf/ssl_game_controller_team.pb.h"
 #include "protobuf/ssl_game_controller_auto_ref.pb.h"
-#include "protobuf/ssl_refbox_remotecontrol.pb.h"
 #include <QtEndian>
 #include "strategy/script/scriptstate.h"
 

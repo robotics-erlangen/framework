@@ -431,17 +431,11 @@ void Processor::handleCommand(const Command &command)
 
     if (command->has_set_team_blue()) {
         setTeam(command->set_team_blue(), m_blueTeam);
-        m_tracker->updateTeam(command->set_team_blue(), true);
-        m_speedTracker->updateTeam(command->set_team_blue(), true);
-        m_simpleTracker->updateTeam(command->set_team_blue(), true);
         teamsChanged = true;
     }
 
     if (command->has_set_team_yellow()) {
         setTeam(command->set_team_yellow(), m_yellowTeam);
-        m_tracker->updateTeam(command->set_team_yellow(), false);
-        m_speedTracker->updateTeam(command->set_team_yellow(), false);
-        m_simpleTracker->updateTeam(command->set_team_yellow(), false);
         teamsChanged = true;
     }
 

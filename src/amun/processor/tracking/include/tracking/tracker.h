@@ -66,7 +66,6 @@ public:
     void queueRadioCommands(const QList<robot::RadioCommand> &radio_commands, qint64 time);
     void handleCommand(const amun::CommandTracking &command);
     void reset();
-    void updateTeam(const robot::Team &team, bool isBlue);
     void finishProcessing(); // has to be called after all calls to worldState for one frame
 
 private:
@@ -81,7 +80,7 @@ private:
     QList<RobotFilter *> getBestRobots(qint64 currentTime);
     void trackBall(const SSL_DetectionBall &ball, qint64 receiveTime, quint32 cameraId, const QList<RobotFilter *> &bestRobots, qint64 visionProcessingDelay);
     void trackRobot(RobotMap& robotMap, const SSL_DetectionRobot &robot, qint64 receiveTime, qint32 cameraId, qint64 visionProcessingDelay,
-                    const robot::Team &team, bool teamIsYellow);
+                    bool teamIsYellow);
 
 private:
     typedef QPair<robot::RadioCommand, qint64> RadioCommand;

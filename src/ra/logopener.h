@@ -49,7 +49,7 @@ public:
     void saveCurrentPosition();
 
 signals:
-    void logOpened(QString name);
+    void logOpened(QString name, bool errorOccurred);
 
 public slots:
     void handleStatus(const Status&);

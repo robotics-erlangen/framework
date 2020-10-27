@@ -198,11 +198,11 @@ void LogOpener::openFile(const QString &filename)
 
             } else if (!openResult.second.isEmpty()) {
                 // the header matched, but the log file is corrupt
-                emit logOpened("Error: " + openResult.second);
+                emit logOpened("Error: " + openResult.second, true);
                 return;
             }
         }
-        emit logOpened("Error: Could not open log file - no matching format found");
+        emit logOpened("Error: Could not open log file - no matching format found", true);
     }
 }
 

@@ -46,6 +46,7 @@
 #include <QDragMoveEvent>
 #include <QDropEvent>
 #include <QMimeData>
+#include <QMessageBox>
 #include <QUrl>
 
 MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
@@ -850,7 +851,7 @@ void MainWindow::dragLeaveEvent(QDragLeaveEvent *event)
     event->accept();
 }
 
-void MainWindow::logOpened(QString name)
+void MainWindow::logOpened(QString name, bool errorOccurred)
 {
     if (!errorOccurred) {
         m_plotter->clearData();

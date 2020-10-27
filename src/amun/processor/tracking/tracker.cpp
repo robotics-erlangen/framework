@@ -143,11 +143,11 @@ void Tracker::process(qint64 currentTime)
         }
 
         for (int i = 0; i < detection.robots_yellow_size(); i++) {
-            trackRobot(m_robotFilterYellow, detection.robots_yellow(i), sourceTime, detection.camera_id(), visionProcessingTime, m_yellowTeam, true);
+            trackRobot(m_robotFilterYellow, detection.robots_yellow(i), sourceTime, detection.camera_id(), visionProcessingTime, true);
         }
 
         for (int i = 0; i < detection.robots_blue_size(); i++) {
-            trackRobot(m_robotFilterBlue, detection.robots_blue(i), sourceTime, detection.camera_id(), visionProcessingTime, m_blueTeam, false);
+            trackRobot(m_robotFilterBlue, detection.robots_blue(i), sourceTime, detection.camera_id(), visionProcessingTime, false);
         }
 
         if (!m_robotsOnly) {
@@ -535,7 +535,7 @@ void Tracker::trackBall(const SSL_DetectionBall &ball, qint64 receiveTime, quint
 }
 
 void Tracker::trackRobot(RobotMap &robotMap, const SSL_DetectionRobot &robot, qint64 receiveTime, qint32 cameraId,
-                         qint64 visionProcessingDelay, const robot::Team &team, bool teamIsYellow)
+                         qint64 visionProcessingDelay, bool teamIsYellow)
 {
     if (!robot.has_robot_id()) {
         return;
