@@ -21,7 +21,18 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#ifdef _WIN32
+#ifndef _WIN32
+#define LINUX_SIMPLE
+#endif
+
+#ifdef LINUX_SIMPLE
+static const char* const ERFORCE_DATADIR = "./data/";
+static const char* const ERFORCE_CONFDIR = "./config/";
+static const char* const ERFORCE_LIBDIR = "./libs/";
+static const char* const ERFORCE_STRATEGYDIR = "./strategy/";
+static const char* const ERFORCE_AUTOREFDIR = "./autoref";
+
+#elif defined(_WIN32)
 static const char* const ERFORCE_DATADIR = "./data/";
 static const char* const ERFORCE_CONFDIR = "./config/";
 static const char* const ERFORCE_LIBDIR = "./libs/";
@@ -37,6 +48,8 @@ static const char* const ERFORCE_STRATEGYDIR = "${CMAKE_SOURCE_DIR}/strategy/";
 static const char* const ERFORCE_AUTOREFDIR = "${CMAKE_SOURCE_DIR}/autoref/";
 static const char* const GAMECONTROLLER_EXECUTABLE_LOCATION = "${GAMECONTROLLER_FULL_PATH}";
 #endif // _WIN32
+
+
 
 // colors
 static const char* const UI_YELLOW_COLOR_LIGHT = "yellow";
