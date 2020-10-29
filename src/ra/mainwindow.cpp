@@ -247,7 +247,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     // find all simulator configuration files
     QDirIterator dirIterator(QString(ERFORCE_CONFDIR) + "simulator", {"*.txt"}, QDir::AllEntries | QDir::NoSymLinks | QDir::NoDotAndDotDot);
     m_simulatorSetupGroup = new QActionGroup(this);
-    QString selectedFile = s.value("Simulator/SetupFile").toString();
+    QString selectedFile = s.value("Simulator/SetupFile", "2020").toString();
     QAction *selectedAction = nullptr;
     while (dirIterator.hasNext()) {
         QFileInfo file(dirIterator.next());
