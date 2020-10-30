@@ -26,4 +26,10 @@ target_include_directories(config
 target_sources(config
     INTERFACE "${CMAKE_CURRENT_BINARY_DIR}/include/config/config.h"
 )
+if (RELATIVE_DATA_DIRS)
+	target_compile_definitions(config
+		INTERFACE RELATIVE_DATA_DIRS
+	)
+endif()
+
 add_library(shared::config ALIAS config)

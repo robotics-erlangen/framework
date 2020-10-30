@@ -21,11 +21,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#ifndef _WIN32
-#define LINUX_SIMPLE
-#endif
-
-#ifdef LINUX_SIMPLE
+#ifdef RELATIVE_DATA_DIRS
 static const char* const ERFORCE_DATADIR = "./data/";
 static const char* const ERFORCE_CONFDIR = "./config/";
 static const char* const ERFORCE_LIBDIR = "./libs/";
