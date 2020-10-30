@@ -1,3 +1,8 @@
+#!/bin/bash
+# make sure the current working directory is the location of the script
+# `bash foobar.sh` seems to have foobar.sh in $0
+cd "$(dirname "$0")"
+
 mkdir -p ../software-cpy/build/bin
 mkdir -p ../software-cpy/libs/v8/v8
 cp -r strategy ../software-cpy
