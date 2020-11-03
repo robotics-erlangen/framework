@@ -1,40 +1,90 @@
 # Compiling Ra
 
-    Robotics Erlangen e.V.
-    http://www.robotics-erlangen.de/
-    info@robotics-erlangen.de
-
-
-All programs should work on GNU/Linux (tested on Ubuntu 16.04), Mac OS X 10.10 and Windows >= 7.
+All programs should work on GNU/Linux, Mac OS X 10.10 and Windows >= 7.
+Building is tested automatically on recent Ubuntu versions (currently 16.04 and
+18.04). Also, various team members use Arch Linux/Manjaro.
 
 In order to build Ra you will need:
- * cmake >= 3.5 (3.7 on Windows)
- * g++ >= 4.6
- * qt >= 5.5.1, NOT 5.9.[0-2] on Windows
- * protobuf >= 2.6.0
+- `cmake` >= `3.5` (`3.7` on Windows)
+- `g++` >= `4.6`
+- `Qt` >= `5.5.1` (**NOT** `5.9.[0-2]` on Windows)
+- `protobuf` >= `2.6.0` (will be built from source when no suitable version is found)
 
 Certain features require additional libraries:
- * libusb-1.0 - USB communication (version >= 1.0.9)
- * libsdl2 - Joystick support (version >= 2.0.2)
- * libudev - Required for joystick support (only required if libsdl2 is not available via the package manager)
- * libqt5svg5-dev - Required for taking SVG screenshots of the fieldwidget
+- `libusb-1.0` >= `1.0.9` - USB communication
+- `libsdl2` >= `2.0.2` - Gamepad support
+- `libudev` - required for Gamepad support (only required if `libsdl2` is not available via the package manager)
+- `libqt5svg5-dev` - Required for taking SVG screenshots of the fieldwidget
+- `python2`, `python3` and `git` - Required to build V8
+
+## Table Of Contents
+- [Linux](#linux)
+  * [Required packages](#required-packages)
+    * [Ubuntu 16.04/18.04/20.04](#ubuntu-160418042004)
+    * [Manjaro](#manjaro)
+  * [Building V8 (optional)](#building-v8-optional-needed-for-javascript-support)
+  * [Building Ra](#building-ra)
+- [Windows](#windows)
+  * [Setup](#setup)
+  * [Compiling](#compiling)
+  * [Common problems](#common-problems)
+- [Mac OS X](#mac-os-x)
 
 ## Linux
-Names of required package for Ubuntu 16.04: `cmake protobuf-compiler libprotobuf-dev qtbase5-dev libqt5opengl5-dev libsdl2-dev libusb-1.0-0-dev g++`
-Only on Ubuntu 14.04 you'll need `cmake3`.
 
-Names of required package for Arch/Manjaro (tested on Manjaro 17.1.15): `cmake qt5-base protobuf sdl2 libusb arm-none-eabi-newlib patch pck-conf`
+### Required packages
+
+#### Ubuntu 16.04/18.04/20.04
+The package names are
+```
+cmake protobuf-compiler libprotobuf-dev qtbase5-dev libqt5opengl5-dev g++ libusb-1.0-0-dev libsdl2-dev libqt5svg5-dev
+```
+where `protobuf-compiler` and `libprotobuf-dev` will be built from source if
+not already installed.
+#### Manjaro
+The package names are
+```
+cmake qt5-base patch pck-conf sdl2 libusb pkgconf
+```
+There is a provided `protobuf` package, however its current version breaks
+compilation. It is advisable to let the build system build `protobuf` from
+source.
+
+### Building V8 (optional, needed for Javascript support)
+To build V8, `git`, `python2` and `python3` are required to be executable
+commands. The package names are
+
+| Distribution       | Packages              |
+|--------------------|-----------------------|
+| Ubuntu 20.04       | `git python2 python3` |
+| Ubuntu 16.04/18.04 | `git python python3`  |
+| Manjaro            | `git python python2`  |
+
+Also, the `python` command needs to be available and point to `python2`. On
+Ubuntu 16.04 and 18.04, this is already the case when installing these
+packages. **On Ubuntu 20.04 and Manjaro** you'll need to **temporarily** symlink
+`python` to point to `python2` with
+```
+$ sudo ln -nfs /usr/bin/python{2,}
+```
+Remember to undo the link later, either by linking back to `python3` or by
+deleting the symlink, depending on your system's default.
+
+On Ubuntu 20.04, you can also install `python-is-python2`.
+
+Finally, run the following in the repository root directory
+```
+$ libs/v8/build.sh
+```
+### Building Ra
 
 The recommended way of building a project with CMake is by doing an
 out-of-source build. This can be done like this:
-
 ```
-libs/v8/build.sh
 mkdir build && cd build
 cmake ..
 make
 ```
-
 To be able to use the USB transceiver / JTAG programmer the rights for udev have to be modified.
 This only needs to be done once.
 ```
@@ -52,126 +102,81 @@ In order to select which Qt-Installation to use specify it using a similar comma
 cmake -DCMAKE_PREFIX_PATH=~/Qt/5.6/gcc_64/lib/cmake ..
 ```
 
-## Windows 32bit
-Get dependencies (tested using the given versions):
-* cmake 3.15.5 - https://github.com/Kitware/CMake/releases/download/v3.15.5/cmake-3.15.5-win64-x64.msi
-* MSYS2 - http://repo.msys2.org/distrib/x86_64/msys2-x86_64-20190524.exe
-* Qt 5 - http://download.qt.io/official_releases/online_installers/qt-unified-windows-x86-online.exe
+## Windows
 
-### install compiler environment
+Compilation on Windows is done using `MSYS2` and `cmake`. You'll also need to
+install `Qt 5`.
 
-#### install cmake
-use the installer, select add to PATH
+### Setup
 
-#### install qt
-Use the online installer! run installer (use default install path! ), install "Qt 5.13.2 > MinGW 7.3.0 32-bit".
-In case you use the offline installer, change to install path such that Qt 5.13.2 ends up in `c:\Qt\5.13.2`
+First, download dependencies and setup the compiler environment. The setup is
+tested using the given versions.
 
-#### install MSYS2
-Run installer (use default path C:\msys64 !)
-Open `MSYS2 MSYS` and run the following commands
+#### cmake
+Use the [cmake 3.15.5 installer](https://github.com/Kitware/CMake/releases/download/v3.15.5/cmake-3.15.5-win64-x64.msi)
+and select add to `PATH`.
+
+#### MSYS2
+Run the [installer](http://repo.msys2.org/distrib/x86_64/msys2-x86_64-20190524.exe)
+(use the default path `C:\msys64`). Open `MSYS2 MSYS` and run the following command
 ```
-pacman -Syu
+$ pacman -Syu
 ```
-Close the console when promted and open it again
+Close the console when prompted and open it again
 ```
-pacman -Su
-# dependencies for ra
-pacman -S patch make mingw-w64-i686-gcc mingw-w64-i686-cmake mingw-w64-i686-ninja
-# dependencies for v8
-pacman -S python2 git
-```
-Close the MSYS console.
-
-
-### compile ra
-*Do:*
-- **!!! USE THE `MSYS2 MinGW 32-bit` CONSOLE TO COMPILE EVERYTHING !!!**
-- Use a folder with a short path like `C:\Robocup` as base folder
-- Recreate the build folder after updating Qt or the Compiler
-
-*Don't:*
-- Use a folder whose path contains whitespace
-- Use a base folder with a path name longer than 30 characters
-
-```
-libs/v8/build.sh
-mkdir build-win && cd build-win
-cmake -GNinja -DCMAKE_PREFIX_PATH=/c/Qt/5.13.2/mingw73_32/lib/cmake -DCMAKE_BUILD_TYPE=Release ..
-cmake --build .
-cmake --build . --target assemble
-```
-
-Automatic packing of ra is possible with (Note that the other calls to `cmake --build` are **not** necessary):
-```
-cmake --build . --target pack
-```
-
-Finished!
-
-
-
-## Windows 64bit
-Get dependencies (tested using the given versions):
-* cmake 3.15.5 - https://github.com/Kitware/CMake/releases/download/v3.15.5/cmake-3.15.5-win64-x64.msi
-* MSYS2 - http://repo.msys2.org/distrib/x86_64/msys2-x86_64-20190524.exe
-* Qt 5 - http://download.qt.io/official_releases/online_installers/qt-unified-windows-x86-online.exe
-
-### install compiler environment
-
-#### install cmake
-use the installer, select add to PATH
-
-#### install qt
-Use the online installer! run installer (use default install path! ), install "Qt 5.13.2 > MinGW 7.3.0 64-bit".
-In case you use the offline installer, change to install path such that Qt 5.13.2 ends up in `c:\Qt\5.13.2`
-
-#### install MSYS2
-Run installer (use default path C:\msys64 !)
-Open `MSYS2 MSYS` and run the following commands
-```
-pacman -Syu
-```
-Close the console when promted and open it again
-```
-pacman -Su
-# dependencies for ra
-pacman -S patch make mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja
-# dependencies for v8
-pacman -S python2 git
+$ pacman -Su
+# Dependencies for Ra
+$ pacman -S patch make mingw-w64-i686-gcc mingw-w64-i686-cmake mingw-w64-i686-ninja
+# Dependencies for V8
+$ pacman -S python2 git
 ```
 Close the MSYS console.
 
+#### QT 5
+Run the [online installer](http://download.qt.io/official_releases/online_installers/qt-unified-windows-x86-online.exe) (use the default install path).
+- On **32bit**, install `QT 5.13.2 > MinGW 7.3.0 32-bit`
+- On **64bit**, install `QT 5.13.2 > MinGW 7.3.0 64-bit`
 
-### compile ra
-*Do:*
-- **!!! USE THE `MSYS2 MinGW 64-bit` CONSOLE TO COMPILE EVERYTHING !!!**
-- Use a folder with a short path like `C:\Robocup` as base folder
-- Recreate the build folder after updating Qt or the Compiler
+In case you use the offline installer, change to install path such that `Qt
+5.13.2` ends up in `c:\Qt\5.13.2`.
 
-*Don't:*
+### Compiling
+After setting up the dependencies, you are ready to start the compilation
+
+**DO**
+- **USE THE `MSYS2` CONSOLE CORRESPONDING TO YOUR ARCHITECTURE TO COMPILE EVERYTHING** i.e. `MSYS2 MinGW 32-bit` on 32-bit systems, and `MSYS2 MinGW 64-bit` on 64-bit systems
+- Use a folder with a short path like `C:\software` as base folder
+- Recreate the build folder after updating `Qt` or the compiler
+
+**DON'T**
 - Use a folder whose path contains whitespace
-- Use a base folder with a path name longer than 30 characters
+- Use a base folder with a path name longer 30 characters
 
+If you're compiling on a 32bit system, setup the shell like this
 ```
-export PATH=/c/Qt/Tools/mingw730_64/bin:$PATH
-libs/v8/build.sh
-mkdir build-win && cd build-win
-cmake -GNinja -DCMAKE_PREFIX_PATH=/c/Qt/5.13.2/mingw73_64/lib/cmake -DCMAKE_BUILD_TYPE=Release ..
-cmake --build .
-cmake --build . --target assemble
+$ export USED_QT=/c/Qt/5.13.2/mingw73_32/lib/cmake
 ```
-
-Automatic packing of ra is possible with (Note that the other calls to `cmake --build` are **not** necessary):
+On a 64bit system, do this
 ```
-cmake --build . --target pack
+$ export PATH=/c/Qt/Tools/mingw730_64/bin:$PATH
+$ export USED_QT=/c/Qt/5.13.2/mingw73_64/lib/cmake
 ```
+To compile Ra, run the following commands
+```
+$ libs/v8/build.sh
+$ mkdir build-win && cd build-win
+$ cmake -GNinja -DCMAKE_PREFIX_PATH="$USED_QT" -DCMAKE_BUILD_TYPE=Release ..
+$ cmake --build .
+$ cmake --build . --target assemble
+```
+Automatic packing of Ra is possible with
+```
+$ cmake --build . --target pack
+```
+Note than when doing this, the other calls to `cmake --build` are not necessary.
+### Common problems
 
-Finished!
-
-
-
-#### Windows 7 - problems with usb driver installation
+#### Windows 7 - Problems with USB driver installation
 In case windows does not automatically find the driver for the transceiver, follow
 the following steps:
 - Access the website http://catalog.update.microsoft.com/
@@ -179,7 +184,6 @@ the following steps:
 - Unpack the downloaded _cab_ files, so that there is a file with the name `winusbcompat.inf`
 - Open the device manager and choose to manually select a driver for the transceiver.
   Then select the folder containing the `winusbcompat.inf`.
-
 
 ## Mac OS X
 Get dependencies using [Homebrew](http://brew.sh):
@@ -194,34 +198,16 @@ xcode-select --install
 Run Xcode once afterwards to ensure that everything gets setup. Starting Xcode may also be necessary after an update.
 
 Download Qt 5 from http://qt-project.org and install it.
-WARNING: DO NOT install Qt 5.4.0-5.5.0; Qt 5.5.1 is ok
+WARNING: **DO NOT** install `Qt 5.4.0-5.5.0`; `Qt 5.5.1` is ok
 
 Build using:
 ```
-cd path/to/framework
-libs/v8/build.sh
-mkdir build-mac && cd build-mac
-cmake -DCMAKE_PREFIX_PATH=~/Qt/5.6/clang_64/lib/cmake -DCMAKE_BUILD_TYPE=Release ..
-make
+$ cd path/to/framework
+$ libs/v8/build.sh
+$ mkdir build-mac && cd build-mac
+$ cmake -DCMAKE_PREFIX_PATH=~/Qt/5.6/clang_64/lib/cmake -DCMAKE_BUILD_TYPE=Release ..
+$ make
 ```
 
-(If starting ra.app the normal way doesn't work launch it from Qt Creator)
+(If starting `Ra.app` the normal way doesn't work launch it from Qt Creator)
 
-# Compiling a strategy
-
-
-In order to build a strategy you will need:
- * node
- * prebuilt butterflyscript-compiler
-
-## Linux
-Names of required package for Ubuntu 16.04: `npm`
-
-To build a strategy using the precompiled butterflyscript-compiler call `node /path/to/tsc -w` in strategy/typescript.
-The resulting compiled strategy can be found in strategy/built/strategy_name/init.js
-
-## Windows
-Install node LTS via installer (https://nodejs.org/en/download/)
-
-To build a strategy using the precompiled butterflyscript-compiler type `node /path/to/tsc -w` in the Windows Powershell while beeing in strategy/typescript.
-The resulting compiled strategy can be found in strategy/built/strategy_name/init.js
