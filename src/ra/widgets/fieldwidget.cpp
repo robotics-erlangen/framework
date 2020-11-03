@@ -1115,7 +1115,7 @@ void FieldWidget::createRobotItem(Robot &r, const robot::Specs &specs, const QCo
     }
 
     // id
-    if (visType != RobotVisualisation::TRANSPARENT) {
+    if (visType != RobotVisualisation::SEE_THROUGH) {
         QGraphicsSimpleTextItem *text;
         qreal tx, ty;
         if (visType == RobotVisualisation::RA) {
@@ -1193,7 +1193,7 @@ void FieldWidget::setVisionRobot(const SSL_DetectionRobot &robot, const robot::S
 
     // recreate robot body if neccessary
     if (!r.robot) {
-        createRobotItem(r, specs, color, robot.robot_id(), RobotVisualisation::TRANSPARENT);
+        createRobotItem(r, specs, color, robot.robot_id(), RobotVisualisation::SEE_THROUGH);
     }
 
     const float phi = m_virtualFieldTransform.applyAngle(robot.orientation()) * 180 / M_PI;

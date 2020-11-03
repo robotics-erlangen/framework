@@ -86,7 +86,7 @@ private:
         DragMeasure =       0x80,
     };
 
-    enum class RobotVisualisation{RA, TRANSPARENT, VISION};
+    enum class RobotVisualisation{RA, SEE_THROUGH, VISION};
 
 public:
     explicit FieldWidget(QWidget *parent = nullptr);
