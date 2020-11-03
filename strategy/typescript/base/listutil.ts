@@ -58,7 +58,7 @@ export function max<T>(list: T[], rate: (a: T) => number): [T, number] {
 		throw new Error("The maximum of an empty list is undefined");
 	}
 	let currentMax: T;
-	let maxRating = Infinity;
+	let maxRating = -Infinity;
 	for (const i of list) {
 		const rating = rate(i);
 		if (rating > maxRating) {
