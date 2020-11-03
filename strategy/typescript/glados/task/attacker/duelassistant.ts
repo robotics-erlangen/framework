@@ -76,17 +76,20 @@ export class DuelAssistant extends Task {
 
 		for (let robot of World.FriendlyRobots) {
 			let robotPos = robot.pos;
+
 			let orthogonalDistance = robotPos.orthogonalDistance(opponentPos, opponentPos + Vector.fromAngle(opponentDir));
 			orthogonalDistance += this._lastPositionMode ? HYSTERESIS_ORTHOGONAL_DISTANCE : -HYSTERESIS_ORTHOGONAL_DISTANCE;
+
 			let distance = robotPos.distanceTo(opponentPos);
 			distance += this._lastPositionMode ? HYSTERESIS_ORTHOGONAL_DISTANCE : -HYSTERESIS_ORTHOGONAL_DISTANCE;
-			let duelAngleDiff = Math.abs((-duelVector).angle() - opponentDir);
+
+			let duelAngleDiff = Math.abs((robotPos - opponentPos).angleDiff(Vector.fromAngle(opponentDir)));
 			duelAngleDiff += this._lastPositionMode ? HYSTERESIS_ANGLE : -HYSTERESIS_ANGLE;
-			if (orthogonalDistance <= robot.radius && distance <= 5 * robot.radius && duelAngleDiff <= 70 * Math.PI / 180) {
+
+			if (orthogonalDistance <= 2 * robot.radius && distance <= 6 * robot.radius && duelAngleDiff <= 70 * Math.PI / 180) {
 				agressivePositionMode = false;
 			}
 		}
-
 		this._lastPositionMode = agressivePositionMode;
 
 		debug.push("duelAssistant");
