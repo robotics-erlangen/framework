@@ -85,3 +85,22 @@ export function some<T>(list: T[], pred: (a: T) => boolean): boolean {
 	return false;
 }
 
+/**
+ * Paritions a list in two list.
+ * The first return value will be a list with all elements fullfilling the pred,
+ * the second return value a list with all element that do not fullfill the pred.
+ * @param list - The list to check
+ * @param pred - The predicate to apply
+ */
+export function partition<T>(list: T[], pred: (a: T) => boolean): [T[], T[]] {
+	let accepted = [];
+	let rejected = [];
+	for (const elem of list) {
+		if (pred(elem)) {
+			accepted.push(elem);
+		} else {
+			rejected.push(elem);
+		}
+	}
+	return [accepted, rejected];
+}
