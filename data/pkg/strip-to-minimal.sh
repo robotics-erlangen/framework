@@ -2,6 +2,12 @@
 # CAUTION
 # This will destroy the repo be removing .git
 
+read -p "This will destroy your repo by removing .git. Are you sure? [y/N] " -n 1 -r
+echo
+if [[ ! "$REPLY" =~ ^[Yy]$ ]]; then
+	exit 1
+fi
+
 # make sure the current working directory is the location of the script
 cd "$(dirname "$0")"
 # goto repo root
