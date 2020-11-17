@@ -57,7 +57,8 @@ export class Tutorial extends Move {
 		// You need to assign each robot the class of the task you want it to use (needs to be imported at the top!).
 		// Depending on the task you may need parameters, these can be passed as a array.
 		// For example, MoveToPos needs a position to drive to.
-		taskAssignments[this._robots[i]] = {class: MoveToPos, params: [new Vector(0,0)]});
+		// Pay attention you have to restart the task if you change the vector
+		taskAssignments[this._robots[i]] = {class: MoveToPos, params: [new Vector(0,0)], restart: false});
 
 		return [taskAssignments, undefined];
 	}
