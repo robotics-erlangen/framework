@@ -102,9 +102,6 @@ export class Striker implements Group {
 
 		// reset the zones
 		this._zones = [];
-		if (remainingZones === 0) {
-			return;
-		}
 
 		// create midfield zone
 		{
