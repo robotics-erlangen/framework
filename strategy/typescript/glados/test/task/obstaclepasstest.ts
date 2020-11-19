@@ -7,7 +7,7 @@ let Coordinator = require "control/coordinator"
 import * as Ball from "glados/observer/ball";
 import {MoveToPos} from "glados/task/shared/movetopos";
 import {Pass} from "glados/task/shared/pass";
-import {Striker} from "glados/task/attacker/striker";
+import { Support } from "glados/task/attacker/support";
 let Trainer = require "trainer/trainer"
 
 
@@ -48,7 +48,7 @@ function Position:check () {
 }
 
 function Position:_updateTask () {
-	return Striker, {}
+	return Support, {}
 }
 
 let ObstaclePassAgent = Class("Test.Task.ObstaclePassAgent", require "agent/base/simpleagent")

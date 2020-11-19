@@ -17,7 +17,7 @@ import * as UtilDefense from "glados/util/defense";
 
 const G = World.Geometry;
 
-export class Striker extends Task {
+export class Support extends Task {
 	private _manualDefaultPos: Position | undefined;
 	private _manualPassDest: Position | undefined;
 	private _passDestSuggestion: Position | undefined;
@@ -55,7 +55,7 @@ export class Striker extends Task {
 			return true;
 		}
 
-		let timestamps = this._messaging.receive(MessageType.strikerSamplingTimestamp, true);
+		let timestamps = this._messaging.receive(MessageType.supportSamplingTimestamp, true);
 		let nextCandidate = undefined;
 		let nextCandidateTimestamp = Infinity;
 		for (let [r, time] of timestamps.entries()) {
@@ -71,7 +71,7 @@ export class Striker extends Task {
 			this._reEvaluateTimestamp = World.Time;
 		}
 
-		this._messaging.sendBroadcast(MessageType.strikerSamplingTimestamp, this._reEvaluateTimestamp);
+		this._messaging.sendBroadcast(MessageType.supportSamplingTimestamp, this._reEvaluateTimestamp);
 
 		return revaluate;
 	}
@@ -163,22 +163,22 @@ export class Striker extends Task {
 			this._moveDest = intersection || this._moveDest;
 		}
 
-		// check whether the agent would change its state to accepting an incoming pass (striker should not be active then)
+		// check whether the agent would change its state to accepting an incoming pass (support should not be active then)
 		let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
 		if (passInfoTable && Attack.checkPassInfos(this._robot, passInfoTable, false)[0] === true) {
-			throw new Error("Striker shouldn't accept passes");
+			throw new Error("Support shouldn't accept passes");
 		}
 
 		if (passInfoTable) {
 			for (let passInfo of passInfoTable) {
-				vis.addCircle("t/striker", this._moveDest!, 0.1, vis.colors.slateHalf, true);
+				vis.addCircle("t/a/support", this._moveDest!, 0.1, vis.colors.slateHalf, true);
 				if (this._passDestSuggestion) {
 					let color = passInfo.target === this._robot
 						? vis.colors.turquoiseHalf : vis.colors.whiteHalf;
-					vis.addCircle("t/striker", passInfo.ballPos, 0.1, color, true);
-					vis.addCircle("t/striker", this._passDestSuggestion, 0.14,
+					vis.addCircle("t/a/support", passInfo.ballPos, 0.1, color, true);
+					vis.addCircle("t/a/support", this._passDestSuggestion, 0.14,
 						vis.colors.whiteHalf, false, undefined, undefined, 0.03);
-					vis.addPath("t/striker", [this._moveDest!, this._passDestSuggestion],
+					vis.addPath("t/a/support", [this._moveDest!, this._passDestSuggestion],
 						vis.colors.slateHalf, undefined, undefined, 0.02);
 				}
 			}

@@ -5,7 +5,7 @@ import * as World from "base/world";
 let Freekick = require "agent/attacker/freekick"
 import {MoveToPos} from "glados/task/shared/movetopos";
 let StopAttack = require "task/attacker/stopattack"
-import {Striker} from "glados/task/attacker/striker";
+import { Support } from "glados/task/attacker/support";
 let G = World.Geometry
 
 SafeCorner.MIN_ROBOTS = 5
@@ -40,8 +40,8 @@ function SafeCorner:_updateTasks () {
 		taskAssignments[this._robots[0]] = { behavior: Freekick }
 	}
 
-	taskAssignments[this._robots[1]] = { class: Striker, params: { Vector(0, G.FieldHeightHalf * -0.5), new Vector(0, 0) }}
-	taskAssignments[this._robots[2]] = { class: Striker, params: { Vector(this._ballSide * G.FieldWidthHalf * -0.5, G.FieldHeightHalf * -0.5),
+	taskAssignments[this._robots[1]] = { class: Support, params: { Vector(0, G.FieldHeightHalf * -0.5), new Vector(0, 0) }}
+	taskAssignments[this._robots[2]] = { class: Support, params: { Vector(this._ballSide * G.FieldWidthHalf * -0.5, G.FieldHeightHalf * -0.5),
 		Vector(this._ballSide * G.FieldWidthHalf * -0.5, 0) }}
 	taskAssignments[this._robots[3]] = { class: MoveToPos, params: { Vector(0.3, G.OpponentGoal.y - G.DefenseRadius - 0.4)}}
 	// taskAssignments[this._robots[4]] = { class: MoveToPos, params: { Vector(, )}}

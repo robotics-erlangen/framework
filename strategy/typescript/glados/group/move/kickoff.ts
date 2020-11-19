@@ -7,7 +7,7 @@ import { MessageBox, MessageType } from "glados/control/messaging";
 import { Assignment, Move, MoveParameters } from "glados/group/move/base";
 import { AcceptPass } from "glados/task/attacker/acceptpass";
 import { StopAttack } from "glados/task/attacker/stopattack";
-import { Striker } from "glados/task/attacker/striker";
+import { Support } from "glados/task/attacker/support";
 import { MoveToPos } from "glados/task/shared/movetopos";
 import * as Attack from "glados/util/attack";
 import * as MovesHelper from "glados/util/moveshelper";
@@ -64,7 +64,10 @@ export class KickOff extends Move {
 				if (passInfoTable && Attack.checkPassInfos(this._robots[this._assignments[i + 1]], passInfoTable, false)[0]) {
 					taskAssignments[this._robots[this._assignments[i + 1]]] = Assignment.create({ class: AcceptPass });
 				} else {
-					taskAssignments[this._robots[this._assignments[i + 1]]] = Assignment.create({ class: Striker, params: [ this._assistantPos[i], this._passDest[i] ] });
+					taskAssignments[this._robots[this._assignments[i + 1]]] = Assignment.create({
+						class: Support,
+						params: [ this._assistantPos[i], this._passDest[i] ]
+					});
 				}
 			}
 		}

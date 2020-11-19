@@ -5,7 +5,7 @@ import * as World from "base/world";
 let Freekick = require "agent/attacker/freekick"
 let Stop = require "agent/attacker/stop"
 let AcceptPass = require "task/attacker/acceptpass"
-import {Striker} from "glados/task/attacker/striker";
+import { Support } from "glados/task/attacker/support";
 import * as Attack from "glados/util/attack";
 
 Volley.MIN_ROBOTS = 2
@@ -43,7 +43,7 @@ function Volley:_updateTasks () {
 	if (startMoving) {
 		taskAssignments[this._robots[1]] = { class: AcceptPass }
 	} else {
-		taskAssignments[this._robots[1]] = { class: Striker, params: { this._startPos, this._shootPos } }
+		taskAssignments[this._robots[1]] = { class: Support, params: { this._startPos, this._shootPos } }
 	}
 
 	return taskAssignments, this._robots[0]

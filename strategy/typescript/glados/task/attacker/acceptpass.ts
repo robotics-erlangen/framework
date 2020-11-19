@@ -71,7 +71,7 @@ export class AcceptPass extends Task {
 		if (passInfo == undefined) {
 			throw new Error("AcceptPass runs despite not being a target");
 		}
-		vis.addCircle("t/striker", passInfo.ballPos, 0.1, vis.colors.turquoiseHalf, true);
+		vis.addCircle("t/a/support", passInfo.ballPos, 0.1, vis.colors.turquoiseHalf, true);
 		let ballPos = passInfo.ballPos;
 		let attackPosition = this._messaging.receiveSingleSender(MessageType.attackPosition)[1];
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, this._obstacleTable);

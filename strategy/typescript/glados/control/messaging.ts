@@ -47,14 +47,14 @@ export enum MessageType {
 	defenderFlag,
 	/** Sent by various tasks to notify other robots about their future positioning */
 	moveDest,
-	/** Sent by strikers to the MA to propose a possible pass. Also see {@link PassSuggestion} */
+	/** Sent by supporters to the MA to propose a possible pass. Also see {@link PassSuggestion} */
 	passSuggestion,
 	/** Sent by various behaviors which want to change the pool. */
 	poolChangeRequest,
 	/** Sent by all strikers */
 	strikerFlag,
-	/** Sent by `t/a/striker` to tell all other strikers about the currency of the sampled pass position */
-	strikerSamplingTimestamp,
+	/** Sent by `t/a/support` to tell all other supporters about the currency of the sampled pass position */
+	supportSamplingTimestamp,
 
 	// =====================
 	// === single sender ===
@@ -101,7 +101,7 @@ export enum MessageType {
 	roleAssignment,
 	/** sent by the MA to tell other attackers about the destination of the next shot */
 	shootDestination,
-	/** Sent by `gr/support` to assign zones to the striker tasks */
+	/** Sent by `gr/support` to assign zones to the support tasks */
 	supportZone,
 	/** Sent by `gr/midfield` to assign zones to the midfield tasks */
 	midfieldZone,
@@ -280,7 +280,7 @@ interface NormalDescriptor extends BaseDescriptor {
 		sender: "robot";
 		receiver: "broadcast";
 	};
-	[MessageType.strikerSamplingTimestamp]: {
+	[MessageType.supportSamplingTimestamp]: {
 		data: number;
 		sender: "robot";
 		receiver: "broadcast";
@@ -845,7 +845,7 @@ const DUMP_MESSAGES_SPECIAL_CASES: Partial<AllMessageDumper> = {
 	[MessageType.passSuggestion]: dumpWithTimeSubkey,
 	[MessageType.plannedAttackTime]: dumpTimeMessage,
 	[MessageType.roleAssignment]: dumpRoleAssignment,
-	[MessageType.strikerSamplingTimestamp]: dumpTimeMessage,
+	[MessageType.supportSamplingTimestamp]: dumpTimeMessage,
 	[MessageType.groupApplication]: dumpGroupApplication,
 };
 

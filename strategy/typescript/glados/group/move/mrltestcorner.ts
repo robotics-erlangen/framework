@@ -9,7 +9,7 @@ import { MessageBox, MessageType } from "glados/control/messaging";
 import { Assignment, Move, MoveParameters } from "glados/group/move/base";
 import { AcceptPass } from "glados/task/attacker/acceptpass";
 import { StopAttack } from "glados/task/attacker/stopattack";
-import { Striker } from "glados/task/attacker/striker";
+import { Support } from "glados/task/attacker/support";
 import { MoveToPos } from "glados/task/shared/movetopos";
 import * as Attack from "glados/util/attack";
 import * as MovesHelper from "glados/util/moveshelper";
@@ -35,7 +35,10 @@ function taskAssignment(passInfoTable: any, pos1: Position, pos2: Position, robo
 	} else if (enemyAmm > 0) {
 		return Assignment.create({ class: MoveToPos, params: [{ pos: new Vector(pos1.x * ballSide, pos1.y) }] });
 	} else {
-		return Assignment.create({ class: Striker, params: [ new Vector(pos1.x * ballSide, pos1.y), new Vector(pos2.x * ballSide, pos2.y) ]});
+		return Assignment.create({
+			class: Support,
+			params: [ new Vector(pos1.x * ballSide, pos1.y), new Vector(pos2.x * ballSide, pos2.y) ]
+		});
 	}
 }
 

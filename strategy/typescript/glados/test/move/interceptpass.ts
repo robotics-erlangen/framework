@@ -2,7 +2,7 @@ let InterceptPass = Class("Test.Move.InterceptPass", require "group/move/base")
 
 import * as World from "base/world";
 import {Pass} from "glados/task/shared/pass";
-import {Striker} from "glados/task/attacker/striker";
+import { Support } from "glados/task/attacker/support";
 import * as Ball from "glados/observer/ball";
 
 InterceptPass.MIN_ROBOTS = 2
@@ -34,21 +34,21 @@ function InterceptPass:_updateTasks () {
 		if (this._lastMainAttacker == this._robots[0]) {
 			taskAssignments[this._robots[0]] = {class: Pass, params: {this._robots[1]}}
 		} else {
-			taskAssignments[this._robots[0]] = {class: Striker, params: {default1, default1}}
+			taskAssignments[this._robots[0]] = {class: Support, params: {default1, default1}}
 		}
 		mainAttacker = this._robots[0]
 	} else {
-		taskAssignments[this._robots[0]] = {class: Striker, params: {default1, default1}}
+		taskAssignments[this._robots[0]] = {class: Support, params: {default1, default1}}
 	}
 	if (not mainAttacker) {
 		if (this._lastMainAttacker == this._robots[1]) {
 			taskAssignments[this._robots[1]] = {class: Pass, params: {this._robots[0]}}
 		} else {
-			taskAssignments[this._robots[1]] = {class: Striker, params: {default2, default2}}
+			taskAssignments[this._robots[1]] = {class: Support, params: {default2, default2}}
 		}
 		mainAttacker = this._robots[1]
 	} else {
-		taskAssignments[this._robots[1]] = {class: Striker, params: {default2, default2}}
+		taskAssignments[this._robots[1]] = {class: Support, params: {default2, default2}}
 	}
 	this._lastMainAttacker = mainAttacker
 	return taskAssignments, mainAttacker

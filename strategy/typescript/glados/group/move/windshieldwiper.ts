@@ -10,7 +10,7 @@ import { MessageBox, MessageType } from "glados/control/messaging";
 import { Assignment, Move, MoveParameters } from "glados/group/move/base";
 import { AcceptPass } from "glados/task/attacker/acceptpass";
 import { StopAttack } from "glados/task/attacker/stopattack";
-import { Striker } from "glados/task/attacker/striker";
+import { Support } from "glados/task/attacker/support";
 import * as Attack from "glados/util/attack";
 import * as MovesHelper from "glados/util/moveshelper";
 
@@ -93,7 +93,10 @@ export class WindshieldWiper extends Move {
 				acceptingRobots.add(i);
 			}
 			let acceptPos = this.calcAcceptPos(pos[i], this._robots[i].radius);
-			taskAssignments[distances[i].robot] = Assignment.create({class: Striker, params: [new Vector(-pos[i].x,pos[i].y), acceptPos]});
+			taskAssignments[distances[i].robot] = Assignment.create({
+				class: Support,
+				params: [new Vector(-pos[i].x, pos[i].y), acceptPos]
+			});
 		}
 		if (acceptingRobots.size > 0) {
 			for (let i = 1;i < this._robots.length;i++) {
@@ -101,7 +104,11 @@ export class WindshieldWiper extends Move {
 					taskAssignments[distances[i].robot] = Assignment.create({ class: AcceptPass});
 				} else {
 					let acceptPos = this.calcAcceptPos(pos[i], this._robots[i].radius);
-					taskAssignments[distances[i].robot] = Assignment.create({class: Striker, params: [pos[i], acceptPos], restart: true});
+					taskAssignments[distances[i].robot] = Assignment.create({
+						class: Support,
+						params: [pos[i], acceptPos],
+						restart: true,
+					});
 				}
 			}
 		}

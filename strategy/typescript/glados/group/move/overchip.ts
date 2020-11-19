@@ -10,7 +10,7 @@ let Freekick = require "agent/attacker/freekick"
 let MoveToStaticBall = require "task/attacker/movetostaticball"
 let OverchipReceiver = require "task/attacker/overchipreceiver"
 let Shootgoal = require "task/attacker/shootgoal"
-import {Striker} from "glados/task/attacker/striker";
+import { Support } from "glados/task/attacker/support";
 
 // "runway" refers to the way on which we have to accelerate to receive the rolling ball
 let MIN_RUNWAY_LENGTH = 1.5 // how much room we need (measured horizontally)
@@ -86,7 +86,7 @@ function Overchip:_updateTasks () {
 		taskAssignments[this._robots[1]] = { class: OverchipReceiver, params: {}}
 	} else if (World.Time - Referee.lastStateChangeTime() > 9) {
 		taskAssignments[this._robots[0]] = { class: Shootgoal, params: {}}
-		taskAssignments[this._robots[1]] = { class: Striker, params: {}}
+		taskAssignments[this._robots[1]] = { class: Support, params: {}}
 	} else {
 		taskAssignments[this._robots[0]] = { class: MoveToStaticBall, params: {}}
 		taskAssignments[this._robots[1]] = { class: OverchipReceiver, params: {}}
