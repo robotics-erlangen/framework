@@ -1,5 +1,6 @@
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
+import { StrikerSampling } from "glados/task/ability/strikersampling";
 import { AcceptPass } from "glados/task/attacker/acceptpass";
 import { Midfield } from "glados/task/attacker/midfield";
 import { SideStep } from "glados/task/attacker/sidestep";
@@ -48,6 +49,6 @@ export class Default extends Behavior {
 		if (midfieldZone) {
 			return [Midfield];
 		}
-		return [Support];
+		return [Support, [{ isStriker: true, samplingCtor: StrikerSampling }]];
 	}
 }

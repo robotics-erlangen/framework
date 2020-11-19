@@ -7,7 +7,6 @@ import * as World from "base/world";
 
 import { Behavior } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
-import { StrikerSampling } from "glados/task/ability/strikersampling";
 import { SuggestPass } from "glados/task/ability/suggestpass";
 import { Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
@@ -16,6 +15,35 @@ import * as Attack from "glados/util/attack";
 import * as UtilDefense from "glados/util/defense";
 
 const G = World.Geometry;
+
+/**
+ * Encapsulates a position sampling strategy. Will give ratings on how suitable
+ * a given position is.
+ */
+export interface Sampling {
+	/**
+	 * Evalulates a given position. Ratings are between 0 and 1 where 1 is the
+	 * best possible rating. Will return early if a score of `bestScore` is
+	 * undercut.
+	 * @param pos - The position to check
+	 * @param bestScore - If this score is undercut, the function will return early
+	 * @returns the score of this location
+	 */
+	evalLocation(pos: Position, bestScore: number): number;
+	/** Perform setup that has to be done at most once per frame */
+	precalculate(): void;
+}
+
+/** Construct an instance of {@link Sampling}. */
+export type SamplingCtor = new(task: Task) => Sampling;
+
+/** Specifies parameterization for the {@link Support} task. */
+export interface SupportParameters {
+	/** If this is `true`, the striker flag will be sent */
+	isStriker: boolean;
+	/** The sampling strategy to use */
+	samplingCtor: SamplingCtor;
+}
 
 export class Support extends Task {
 	private _manualDefaultPos: Position | undefined;
@@ -29,9 +57,10 @@ export class Support extends Task {
 	private _obstacleTable: PathHelper.PathHelperParameters;
 
 	private _suggestPass: SuggestPass;
-	private _strikerSampling: StrikerSampling;
+	private _sampling: Sampling;
+	private _isStriker: boolean;
 
-	constructor(behavior: Behavior, manualDefaultPos?: Position, manualPassDest?: Position) {
+	constructor(behavior: Behavior, supportParameters: SupportParameters, manualDefaultPos?: Position, manualPassDest?: Position) {
 		super(behavior);
 		this._manualDefaultPos = manualDefaultPos;
 		this._manualPassDest = manualPassDest;
@@ -43,7 +72,8 @@ export class Support extends Task {
 		};
 
 		this._suggestPass = new SuggestPass(this);
-		this._strikerSampling = new StrikerSampling(this);
+		this._sampling = new supportParameters.samplingCtor(this);
+		this._isStriker = supportParameters.isStriker;
 	}
 
 	private _reEvaluatePassDest(): boolean {
@@ -77,7 +107,7 @@ export class Support extends Task {
 	}
 
 	private _searchForPassDest() {
-		this._strikerSampling.precalculate();
+		this._sampling.precalculate();
 
 		let grid_point_count_x = 16;
 		let grid_point_count_y = 14;
@@ -104,7 +134,7 @@ export class Support extends Task {
 						let candidatePoint = new Vector(x, y);
 						candidatePoint = Field.limitToAllowedField(candidatePoint, 3 * this._robot.radius + 0.1);
 						if (geom.insideRect(new Vector(left, bottom), new Vector(right, top), candidatePoint)) {
-							let score = this._strikerSampling.evalLocation(candidatePoint, bestScore);
+							let score = this._sampling.evalLocation(candidatePoint, bestScore);
 							let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
 							let firstHysteresis = false;
 							if (passInfoTable) {
@@ -133,7 +163,9 @@ export class Support extends Task {
 	}
 
 	public run() {
-		this._messaging.sendBroadcast(MessageType.strikerFlag);
+		if (this._isStriker) {
+			this._messaging.sendBroadcast(MessageType.strikerFlag);
+		}
 
 		if (this._manualDefaultPos) {
 			this._moveDest = this._manualDefaultPos;

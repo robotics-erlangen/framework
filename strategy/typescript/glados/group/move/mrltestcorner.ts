@@ -7,6 +7,7 @@ import * as World from "base/world";
 import { FreeKick } from "glados/agent/attacker/freekick";
 import { MessageBox, MessageType } from "glados/control/messaging";
 import { Assignment, Move, MoveParameters } from "glados/group/move/base";
+import { StrikerSampling } from "glados/task/ability/strikersampling";
 import { AcceptPass } from "glados/task/attacker/acceptpass";
 import { StopAttack } from "glados/task/attacker/stopattack";
 import { Support } from "glados/task/attacker/support";
@@ -37,7 +38,11 @@ function taskAssignment(passInfoTable: any, pos1: Position, pos2: Position, robo
 	} else {
 		return Assignment.create({
 			class: Support,
-			params: [ new Vector(pos1.x * ballSide, pos1.y), new Vector(pos2.x * ballSide, pos2.y) ]
+			params: [
+				{ isStriker: true, samplingCtor: StrikerSampling },
+				new Vector(pos1.x * ballSide, pos1.y),
+				new Vector(pos2.x * ballSide, pos2.y),
+			]
 		});
 	}
 }

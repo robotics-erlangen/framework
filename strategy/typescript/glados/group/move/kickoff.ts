@@ -5,6 +5,7 @@ import * as World from "base/world";
 import { FreeKick } from "glados/agent/attacker/freekick";
 import { MessageBox, MessageType } from "glados/control/messaging";
 import { Assignment, Move, MoveParameters } from "glados/group/move/base";
+import { StrikerSampling } from "glados/task/ability/strikersampling";
 import { AcceptPass } from "glados/task/attacker/acceptpass";
 import { StopAttack } from "glados/task/attacker/stopattack";
 import { Support } from "glados/task/attacker/support";
@@ -66,7 +67,11 @@ export class KickOff extends Move {
 				} else {
 					taskAssignments[this._robots[this._assignments[i + 1]]] = Assignment.create({
 						class: Support,
-						params: [ this._assistantPos[i], this._passDest[i] ]
+						params: [
+							{ isStriker: true, samplingCtor: StrikerSampling },
+							this._assistantPos[i],
+							this._passDest[i],
+						]
 					});
 				}
 			}

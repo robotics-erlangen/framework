@@ -8,6 +8,7 @@ import * as World from "base/world";
 import { FreeKick } from "glados/agent/attacker/freekick";
 import { MessageBox, MessageType } from "glados/control/messaging";
 import { Assignment, Move, MoveParameters } from "glados/group/move/base";
+import { StrikerSampling } from "glados/task/ability/strikersampling";
 import { AcceptPass } from "glados/task/attacker/acceptpass";
 import { StopAttack } from "glados/task/attacker/stopattack";
 import { Support } from "glados/task/attacker/support";
@@ -95,7 +96,11 @@ export class WindshieldWiper extends Move {
 			let acceptPos = this.calcAcceptPos(pos[i], this._robots[i].radius);
 			taskAssignments[distances[i].robot] = Assignment.create({
 				class: Support,
-				params: [new Vector(-pos[i].x, pos[i].y), acceptPos]
+				params: [
+					{ isStriker: true, samplingCtor: StrikerSampling },
+					new Vector(-pos[i].x, pos[i].y),
+					acceptPos,
+				]
 			});
 		}
 		if (acceptingRobots.size > 0) {
@@ -106,7 +111,11 @@ export class WindshieldWiper extends Move {
 					let acceptPos = this.calcAcceptPos(pos[i], this._robots[i].radius);
 					taskAssignments[distances[i].robot] = Assignment.create({
 						class: Support,
-						params: [pos[i], acceptPos],
+						params: [
+							{ isStriker: true, samplingCtor: StrikerSampling },
+							pos[i],
+							acceptPos,
+						],
 						restart: true,
 					});
 				}
