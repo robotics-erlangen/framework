@@ -1,6 +1,7 @@
 import * as Referee from "base/referee";
 import * as World from "base/world";
 
+import { Attacker } from "glados/agent/attacker";
 import { Behavior } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
 import * as Robot from "glados/observer/robot";
@@ -30,12 +31,12 @@ export class ApplyForMainattacker extends Behavior {
 		let [sender, passInfoTable] = this._messaging.receiveSingleSender(MessageType.passInfo, true);
 		if (Attack.currentPlannedMainAttacker(sender, passInfoTable!) === this._robot) {
 			this._applyForMainAttacker(undefined, undefined, 2);
-			(this._agent as any).beOffensive = true;
+			(this._agent as Attacker).beOffensive = true;
 			applying = true;
 		} else {
 			if (!Defense.dangerousBallTowardsDefense(true)) {
 				this._applyForMainAttacker();
-				(this._agent as any).beOffensive = false;
+				(this._agent as Attacker).beOffensive = false;
 				applying = true;
 			} else {
 				let robotDistToGoal = this._robot.pos.distanceTo(World.Geometry.OpponentGoal);
@@ -43,7 +44,7 @@ export class ApplyForMainattacker extends Behavior {
 				let maxDistDiff = (this._applying ? -1 : 1) * (World.Ball.radius + this._robot.shootRadius);
 				if (robotDistToGoal - ballDistToGoal > maxDistDiff) {
 					this._applyForMainAttacker();
-					(this._agent as any).beOffensive = false;
+					(this._agent as Attacker).beOffensive = false;
 					applying = true;
 				}
 			}

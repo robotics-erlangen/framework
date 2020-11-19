@@ -4,6 +4,7 @@ import * as geom from "base/geom";
 import { Vector } from "base/vector";
 import * as World from "base/world";
 
+import { Attacker } from "glados/agent/attacker";
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
@@ -62,7 +63,7 @@ export class Duel extends Behavior {
 		}
 
 
-		if ((this._agent as any).beOffensive) {
+		if ((this._agent as Attacker).beOffensive) {
 			debug.set("duel check", "beOffensive");
 			return false;
 		}
