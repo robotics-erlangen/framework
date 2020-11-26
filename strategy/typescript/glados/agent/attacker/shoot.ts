@@ -31,6 +31,7 @@ type Decision = {
 	pos: Position;
 	quality: "clean" | "fallback";
 } | {
+	pos?: undefined
 	task: "none";
 } | {
 	task: "shootgoal";
@@ -437,8 +438,8 @@ export class Shoot extends Behavior {
 		this._decisionFrames++;
 
 		// visualize decision
-		if ((this._decision as any).pos != undefined) {
-			Attack.visualizeAttack(this._robot.pos, (this._decision as any).pos);
+		if (this._decision.pos !== undefined) {
+			Attack.visualizeAttack(this._robot.pos, this._decision.pos);
 		}
 
 		// write decision to debug tree
