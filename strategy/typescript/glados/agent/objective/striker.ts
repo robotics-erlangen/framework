@@ -10,6 +10,7 @@ import { Shoot } from "glados/agent/attacker/shoot";
 import { Agent } from "glados/agent/base/agent";
 import { CheckableList } from "glados/agent/base/behavior";
 import { BallLike, Objective } from "glados/agent/base/objective";
+import { StrikerSampling } from "glados/task/ability/strikersampling";
 import { getRandomPosition, Zone } from "glados/util/zone";
 
 const G = World.Geometry;
@@ -33,7 +34,7 @@ export class Striker extends Objective {
 		PassTiming,
 		Shoot,
 	]);
-	private static SUPPORT_RUNNER = Default;
+	private static SUPPORT_RUNNER = parameterizeClass(Default, { isStriker: true, samplingCtor: StrikerSampling });
 
 	static canStart(_ball: BallLike) {
 		return true;

@@ -1,14 +1,31 @@
+import { Agent } from "glados/agent/base/agent";
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
-import { StrikerSampling } from "glados/task/ability/strikersampling";
 import { AcceptPass } from "glados/task/attacker/acceptpass";
 import { Midfield } from "glados/task/attacker/midfield";
 import { SideStep } from "glados/task/attacker/sidestep";
-import { Support } from "glados/task/attacker/support";
+import { Support, SupportParameters } from "glados/task/attacker/support";
 import * as Attack from "glados/util/attack";
 
+/**
+ * The default attacker behavior.
+ *
+ * It will participate in the support group and accept passes if necessary.
+ */
 export class Default extends Behavior {
 	_forceKeepingInPool: boolean = false;
+	_supportParams: SupportParameters;
+
+	/**
+	 * Construct a new instance.
+	 *
+	 * @param agent - The agent this behavior will initially belong to
+	 * @param supportParams - Parameters to parameterize the {@link Support} task with
+	 */
+	constructor(agent: Agent, supportParams: SupportParameters) {
+		super(agent);
+		this._supportParams = supportParams;
+	}
 
 	_stop() {
 		this._forceKeepingInPool = false;
@@ -49,6 +66,6 @@ export class Default extends Behavior {
 		if (midfieldZone) {
 			return [Midfield];
 		}
-		return [Support, [{ isStriker: true, samplingCtor: StrikerSampling }]];
+		return [Support, [this._supportParams]];
 	}
 }
