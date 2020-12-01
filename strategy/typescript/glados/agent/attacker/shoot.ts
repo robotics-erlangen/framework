@@ -6,6 +6,7 @@ import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
 
+import { Agent } from "glados/agent/base/agent";
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
@@ -59,6 +60,18 @@ export class Shoot extends Behavior {
 	private _prevTime: number = 0;
 	private _passFrames: number = 0;
 	private _decisionFrames: number = 0;
+	private _ratePass: Attack.PassRater;
+
+	/**
+	 * Create a new Shoot instance parameterized with a pass rating function.
+	 *
+	 * @param agent - The agent this behavior will initially belong to
+	 * @param ratePass - The function to rate passes with
+	 */
+	constructor(agent: Agent, ratePass: Attack.PassRater) {
+		super(agent);
+		this._ratePass = ratePass;
+	}
 
 	_stop() {
 		this._nextDecisionTime = World.Time;
@@ -148,11 +161,11 @@ export class Shoot extends Behavior {
 			earliestAttackTime,
 			currentPassPos: this._prevPassPos,
 			considerTiming: true,
-			ratePass: Attack.defaultRatePass,
+			ratePass: this._ratePass,
 		})[0];
 
 		// consider chipping forward
-		let passRating = pass ? Attack.defaultRatePass(this._robot, pass, earliestAttackTime, true) : 0;
+		let passRating = pass ? this._ratePass(this._robot, pass, earliestAttackTime, true) : 0;
 		if (ENABLE_PSEUDO_PASS && this._attackPosition && passRating < MIN_PASS_RATING
 				&&  Field.distanceToDefenseAreaSq(this._attackPosition, false) > 2
 				&&  World.Ball.speed.length() < 1
@@ -199,9 +212,9 @@ export class Shoot extends Behavior {
 							earliestAttackTime,
 							currentPassPos: this._prevPassPos,
 							considerTiming: true,
-							ratePass: Attack.defaultRatePass,
+							ratePass: this._ratePass,
 						})[0];
-						let newPassRating = newPass ? Attack.defaultRatePass(this._robot, newPass, earliestAttackTime, true) : 0;
+						let newPassRating = newPass ? this._ratePass(this._robot, newPass, earliestAttackTime, true) : 0;
 
 						if (newPassRating > bestRating && newPassRating > MIN_PASS_RATING) {
 							bestRating = newPassRating;
@@ -225,7 +238,7 @@ export class Shoot extends Behavior {
 				}
 
 				// short chip forward
-				if (pass == undefined || Attack.defaultRatePass(this._robot, pass, earliestAttackTime, true) < MIN_PASS_RATING) {
+				if (pass == undefined || this._ratePass(this._robot, pass, earliestAttackTime, true) < MIN_PASS_RATING) {
 					let newAttackPosition = this._attackPosition + Vector.fromPolar(attackAngle, (MAX_DISTANCE - MIN_DISTANCE) / 2 + MIN_DISTANCE);
 					let passVector = (newAttackPosition - this._attackPosition).withLength(0.5);
 					if (Attack.isPassAllowed(this._attackPosition, this._attackPosition + passVector)) {

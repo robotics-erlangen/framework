@@ -11,6 +11,7 @@ import { Agent } from "glados/agent/base/agent";
 import { CheckableList } from "glados/agent/base/behavior";
 import { BallLike, Objective } from "glados/agent/base/objective";
 import { StrikerSampling } from "glados/task/ability/strikersampling";
+import { defaultRatePass } from "glados/util/attack";
 import { getRandomPosition, Zone } from "glados/util/zone";
 
 const G = World.Geometry;
@@ -26,13 +27,13 @@ export class Striker extends Objective {
 
 	private static MA_RUNNER = parameterizeClass(CheckableList, [
 		PassTiming,
-		Shoot,
+		parameterizeClass(Shoot, defaultRatePass),
 	]);
 	private static FREEKICK_RUNNER = parameterizeClass(CheckableList, [
 		FreeKick,
 		DoubleTouchGuard,
 		PassTiming,
-		Shoot,
+		parameterizeClass(Shoot, defaultRatePass),
 	]);
 	private static SUPPORT_RUNNER = parameterizeClass(Default, { isStriker: true, samplingCtor: StrikerSampling });
 
