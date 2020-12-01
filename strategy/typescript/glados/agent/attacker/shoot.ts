@@ -140,13 +140,16 @@ export class Shoot extends Behavior {
 			};
 		}
 
-		let attackTime = this._messaging.receiveSingleSender(MessageType.earliestAttackTime, true)[1];
+		const earliestAttackTime = this._messaging.receiveSingleSender(MessageType.earliestAttackTime, true)[1];
 		let passSuggestions = this._messaging.receive(MessageType.passSuggestion);
-		let pass = Attack.choosePassFromSuggestions(this._robot,
-			passSuggestions, attackTime, this._prevPassPos, true)[0];
+		let pass = Attack.choosePassFromSuggestions(this._robot, passSuggestions, {
+			earliestAttackTime,
+			currentPassPos: this._prevPassPos,
+			considerTiming: true
+		})[0];
 
 		// consider chipping forward
-		let passRating = pass ? Attack.ratePass(this._robot, pass, attackTime, true) : 0;
+		let passRating = pass ? Attack.ratePass(this._robot, pass, earliestAttackTime, true) : 0;
 		if (ENABLE_PSEUDO_PASS && this._attackPosition && passRating < MIN_PASS_RATING
 				&&  Field.distanceToDefenseAreaSq(this._attackPosition, false) > 2
 				&&  World.Ball.speed.length() < 1
@@ -189,9 +192,12 @@ export class Shoot extends Behavior {
 						}
 
 						// look for better pass opportunities
-						let newPass = Attack.choosePassFromSuggestions(this._robot,
-							passSuggestions, attackTime, this._prevPassPos, true)[0];
-						let newPassRating = newPass ? Attack.ratePass(this._robot, newPass, attackTime, true) : 0;
+						let newPass = Attack.choosePassFromSuggestions(this._robot, passSuggestions, {
+							earliestAttackTime,
+							currentPassPos: this._prevPassPos,
+							considerTiming: true
+						})[0];
+						let newPassRating = newPass ? Attack.ratePass(this._robot, newPass, earliestAttackTime, true) : 0;
 
 						if (newPassRating > bestRating && newPassRating > MIN_PASS_RATING) {
 							bestRating = newPassRating;
@@ -215,7 +221,7 @@ export class Shoot extends Behavior {
 				}
 
 				// short chip forward
-				if (pass == undefined || Attack.ratePass(this._robot, pass, attackTime, true) < MIN_PASS_RATING) {
+				if (pass == undefined || Attack.ratePass(this._robot, pass, earliestAttackTime, true) < MIN_PASS_RATING) {
 					let newAttackPosition = this._attackPosition + Vector.fromPolar(attackAngle, (MAX_DISTANCE - MIN_DISTANCE) / 2 + MIN_DISTANCE);
 					let passVector = (newAttackPosition - this._attackPosition).withLength(0.5);
 					if (Attack.isPassAllowed(this._attackPosition, this._attackPosition + passVector)) {

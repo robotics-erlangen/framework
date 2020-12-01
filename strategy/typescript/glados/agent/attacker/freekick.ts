@@ -107,8 +107,11 @@ export class FreeKick extends Behavior {
 				this._state = State.ShootGoal;
 			} else if (World.Time - <number> this._waitStartTime > MIN_WAIT_TIME) {
 				let passSuggestions = this._messaging.receive(MessageType.passSuggestion);
-				let attackTime = this._messaging.receiveSingleSender(MessageType.earliestAttackTime, true)[1];
-				this._passList = Attack.sortPassesFromSuggestions(this._robot, passSuggestions, attackTime, undefined, false);
+				const earliestAttackTime = this._messaging.receiveSingleSender(MessageType.earliestAttackTime, true)[1];
+				this._passList = Attack.sortPassesFromSuggestions(this._robot, passSuggestions, {
+					earliestAttackTime,
+					considerTiming: false
+				});
 				if (this._passList != undefined) {
 					for (let pass of this._passList.values()) {
 						// check this pass for timing-posibilities
@@ -140,8 +143,12 @@ export class FreeKick extends Behavior {
 				// try to find the target
 				// look for a suggestion that matches our pass
 				let passSuggestions = this._messaging.receive(MessageType.passSuggestion);
-				let attackTime = this._messaging.receiveSingleSender(MessageType.earliestAttackTime, true)[1];
-				let passes = Attack.sortPassesFromSuggestions(this._robot, passSuggestions, attackTime, undefined, false, 0);
+				const earliestAttackTime = this._messaging.receiveSingleSender(MessageType.earliestAttackTime, true)[1];
+				let passes = Attack.sortPassesFromSuggestions(this._robot, passSuggestions, {
+					earliestAttackTime,
+					considerTiming: false,
+					threshold: 0
+				});
 				if (passes) {
 					for (let pass of passes) {
 						if (pass.target != undefined && pass.ballPos.distanceTo(this._pass.ballPos) < 0.1) {
@@ -190,11 +197,13 @@ export class FreeKick extends Behavior {
 			// redecide if beneficial
 			let enoughTime = World.Time - Referee.lastStateChangeTime() <= MAX_TIMEFRAME - 1.5;
 			if (enoughTime) {
-				let hysteresis = 0.05;
-				let attackTime = this._messaging.receiveSingleSender(MessageType.earliestAttackTime, true)[1];
 				let passSuggestions = this._messaging.receive(MessageType.passSuggestion);
-				let newPass = Attack.choosePassFromSuggestions(this._robot, passSuggestions, attackTime,
-						pass.ballPos, false, hysteresis)[0];
+				let newPass = Attack.choosePassFromSuggestions(this._robot, passSuggestions, {
+					earliestAttackTime: this._messaging.receiveSingleSender(MessageType.earliestAttackTime, true)[1],
+					currentPassPos: pass.ballPos,
+					considerTiming: false,
+					customHysteresis: 0.05
+				})[0];
 				if (newPass != undefined && newPass.ballPos.distanceTo(pass.ballPos) > 0.2) {
 					// check if the pass is valid, i.e. in time.
 					let timeDiff = newPass.time - Referee.lastStateChangeTime() - Shoot.ballPassTime(World.Ball.pos, newPass.ballPos, newPass.target, undefined, this._robot);
