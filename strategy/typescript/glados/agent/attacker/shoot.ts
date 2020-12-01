@@ -147,11 +147,12 @@ export class Shoot extends Behavior {
 		let pass = Attack.choosePassFromSuggestions(this._robot, passSuggestions, {
 			earliestAttackTime,
 			currentPassPos: this._prevPassPos,
-			considerTiming: true
+			considerTiming: true,
+			ratePass: Attack.defaultRatePass,
 		})[0];
 
 		// consider chipping forward
-		let passRating = pass ? Attack.ratePass(this._robot, pass, earliestAttackTime, true) : 0;
+		let passRating = pass ? Attack.defaultRatePass(this._robot, pass, earliestAttackTime, true) : 0;
 		if (ENABLE_PSEUDO_PASS && this._attackPosition && passRating < MIN_PASS_RATING
 				&&  Field.distanceToDefenseAreaSq(this._attackPosition, false) > 2
 				&&  World.Ball.speed.length() < 1
@@ -197,9 +198,10 @@ export class Shoot extends Behavior {
 						let newPass = Attack.choosePassFromSuggestions(this._robot, passSuggestions, {
 							earliestAttackTime,
 							currentPassPos: this._prevPassPos,
-							considerTiming: true
+							considerTiming: true,
+							ratePass: Attack.defaultRatePass,
 						})[0];
-						let newPassRating = newPass ? Attack.ratePass(this._robot, newPass, earliestAttackTime, true) : 0;
+						let newPassRating = newPass ? Attack.defaultRatePass(this._robot, newPass, earliestAttackTime, true) : 0;
 
 						if (newPassRating > bestRating && newPassRating > MIN_PASS_RATING) {
 							bestRating = newPassRating;
@@ -223,7 +225,7 @@ export class Shoot extends Behavior {
 				}
 
 				// short chip forward
-				if (pass == undefined || Attack.ratePass(this._robot, pass, earliestAttackTime, true) < MIN_PASS_RATING) {
+				if (pass == undefined || Attack.defaultRatePass(this._robot, pass, earliestAttackTime, true) < MIN_PASS_RATING) {
 					let newAttackPosition = this._attackPosition + Vector.fromPolar(attackAngle, (MAX_DISTANCE - MIN_DISTANCE) / 2 + MIN_DISTANCE);
 					let passVector = (newAttackPosition - this._attackPosition).withLength(0.5);
 					if (Attack.isPassAllowed(this._attackPosition, this._attackPosition + passVector)) {

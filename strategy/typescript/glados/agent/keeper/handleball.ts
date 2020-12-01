@@ -76,7 +76,8 @@ export class HandleBall extends Behavior {
 			this._pass = Attack.choosePassFromSuggestions(this._robot, suggestions, {
 				earliestAttackTime,
 				currentPassPos: this._pass?.ballPos,
-				considerTiming: false
+				considerTiming: false,
+				ratePass: Attack.defaultRatePass,
 			})[0];
 			if (this._pass != undefined) { // check if there is a good pass, else chip away
 				if (this._pass.target) {

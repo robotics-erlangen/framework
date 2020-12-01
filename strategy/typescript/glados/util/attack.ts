@@ -45,14 +45,16 @@ interface PassObject {
 }
 
 /**
- * evaluates a given pass object
- * @param robot the pass sender / main attacker
- * @param pass a pass object (target: Robot, ballPos: Vector, time: number)
- * @param earliestAttackTime the value of the earliestAttackTime message
- * @param considerTiming true if the pass is given as soon as possible, false if we can wait
- * @returns - a rating between 0 and 1 (1 = perfect, 0 = poor)
+ * Evaluates a given pass object
+ * @param robot - The pass sender / main attacker
+ * @param pass - A pass object (target: Robot, ballPos: Vector, time: number)
+ * @param earliestAttackTime - The value of the earliestAttackTime message
+ * @param considerTiming - true if the pass is given as soon as possible, false if we can wait
+ * @returns a rating between 0 and 1 (1 = perfect, 0 = poor)
  */
-export function _ratePass(robot: FriendlyRobot, pass: PassObject, earliestAttackTime: number | undefined, considerTiming: boolean): number {
+export type PassRater = (robot: FriendlyRobot, pass: PassObject, earliestAttackTime: number | undefined, considerTiming: boolean) => number;
+
+const _defaultRatePass: PassRater = (robot, pass, earliestAttackTime, considerTiming) => {
 	if (robot === World.FriendlyKeeper && G.FieldHeightHalf - Math.abs(pass.ballPos.y) < 4) {
 		return 0;
 	}
@@ -190,15 +192,10 @@ export function _ratePass(robot: FriendlyRobot, pass: PassObject, earliestAttack
 			vis.fromTemperature(1 - rating, 127), true);
 
 	return rating;
-}
-/**
- * Evaluates a given pass object
- * @param robot - The pass sender / main attacker
- * @param pass - A pass object containing target information
- * @param considerTiming - true, if the pass is given as soon as possible, false if we can wait
- * @returns a rating between 0 and 1 (1 = perfect, 0 = poor)
- */
-export let ratePass = Cache.forFrame(_ratePass);
+};
+
+/** The default pass evaluator. @see PassRater */
+export const defaultRatePass = Cache.forFrame(_defaultRatePass);
 
 interface ChoosePassOptions {
 	/** The value of the earliestAttackTime message */
@@ -209,6 +206,8 @@ interface ChoosePassOptions {
 	considerTiming?: boolean;
 	/** Sets the hysteresis bonus */
 	customHysteresis?: number;
+	/** Pass rating function to use */
+	ratePass: PassRater;
 }
 
 /**
@@ -217,7 +216,7 @@ interface ChoosePassOptions {
  * @param passes - A list of pass objects
  * @returns the best pass object
  */
-export function choosePass(robot: FriendlyRobot, passes: PassObject[], options: ChoosePassOptions = {}): [PassObject | undefined, number] {
+export function choosePass(robot: FriendlyRobot, passes: PassObject[], options: ChoosePassOptions): [PassObject | undefined, number] {
 	if (options.customHysteresis === undefined) {
 		options.customHysteresis = 0.1;
 	}
@@ -228,7 +227,7 @@ export function choosePass(robot: FriendlyRobot, passes: PassObject[], options: 
 	let bestPass: PassObject | undefined;
 	let bestPassRating = -Infinity;
 	for (let pass of passes) {
-		let rating = ratePass(robot, pass, options.earliestAttackTime, options.considerTiming);
+		let rating = options.ratePass(robot, pass, options.earliestAttackTime, options.considerTiming);
 		if (rating > 0) {
 			// give a bonus if the pos is near the currentPassPos
 			if (options.currentPassPos) {
@@ -256,7 +255,7 @@ export function choosePass(robot: FriendlyRobot, passes: PassObject[], options: 
  */
 export function choosePassFromSuggestions(robot: FriendlyRobot,
 		passSuggestions: ReadonlyRec<Map<FriendlyRobot, PassSuggestion>>,
-		options?: ChoosePassOptions): [PassObject | undefined, number] {
+		options: ChoosePassOptions): [PassObject | undefined, number] {
 	let passes: PassObject[] = [];
 	for (let [sender, sugg] of passSuggestions.entries()) {
 		let target: FriendlyRobot | undefined = sender;
@@ -283,6 +282,8 @@ interface SortPassesFromSuggestionsOptions {
 	threshold?: number;
 	/** sets the hysteresis bonus */
 	customHysteresis?: number;
+	/** Pass rating function to use */
+	ratePass: PassRater;
 }
 
 /**
@@ -303,7 +304,7 @@ export function sortPassesFromSuggestions(robot: FriendlyRobot, passSuggestions:
 	let passes: (PassObject & {rating: number})[] = [];
 	for (let [sender, sugg] of passSuggestions.entries()) {
 		let pass = {target: sender, ballPos: sugg.ballPos, time: sugg.time};
-		let rating = ratePass(robot, pass, options.earliestAttackTime, options.considerTiming);
+		let rating = options.ratePass(robot, pass, options.earliestAttackTime, options.considerTiming);
 		// give a bonus if the pos is near the currentPassPos
 		if (options.currentPassPositions != undefined) {
 			let ratingHystDistance = options.customHysteresis;

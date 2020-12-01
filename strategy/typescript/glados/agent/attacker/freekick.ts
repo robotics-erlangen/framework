@@ -110,7 +110,8 @@ export class FreeKick extends Behavior {
 				const earliestAttackTime = this._messaging.receiveSingleSender(MessageType.earliestAttackTime, true)[1];
 				this._passList = Attack.sortPassesFromSuggestions(this._robot, passSuggestions, {
 					earliestAttackTime,
-					considerTiming: false
+					considerTiming: false,
+					ratePass: Attack.defaultRatePass,
 				});
 				if (this._passList != undefined) {
 					for (let pass of this._passList.values()) {
@@ -147,7 +148,8 @@ export class FreeKick extends Behavior {
 				let passes = Attack.sortPassesFromSuggestions(this._robot, passSuggestions, {
 					earliestAttackTime,
 					considerTiming: false,
-					threshold: 0
+					threshold: 0,
+					ratePass: Attack.defaultRatePass,
 				});
 				if (passes) {
 					for (let pass of passes) {
@@ -202,7 +204,8 @@ export class FreeKick extends Behavior {
 					earliestAttackTime: this._messaging.receiveSingleSender(MessageType.earliestAttackTime, true)[1],
 					currentPassPos: pass.ballPos,
 					considerTiming: false,
-					customHysteresis: 0.05
+					customHysteresis: 0.05,
+					ratePass: Attack.defaultRatePass,
 				})[0];
 				if (newPass != undefined && newPass.ballPos.distanceTo(pass.ballPos) > 0.2) {
 					// check if the pass is valid, i.e. in time.
