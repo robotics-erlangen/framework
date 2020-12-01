@@ -103,8 +103,6 @@ export enum MessageType {
 	shootDestination,
 	/** Sent by `gr/support` to assign zones to the support tasks */
 	supportZone,
-	/** Sent by `gr/midfield` to assign zones to the midfield tasks */
-	midfieldZone,
 	/** Sent by `t/a/placeball` to inform that he is placing the ball. */
 	placingRobot,
 	/** Sent by the MA to inform support attackers about the current objective */
@@ -212,11 +210,6 @@ interface NormalDescriptor extends BaseDescriptor {
 		receiver: "robot";
 	};
 	[MessageType.supportZone]: {
-		data: Zone;
-		sender: "trainer";
-		receiver: "robot";
-	};
-	[MessageType.midfieldZone]: {
 		data: Zone;
 		sender: "trainer";
 		receiver: "robot";

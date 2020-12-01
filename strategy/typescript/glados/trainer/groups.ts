@@ -2,7 +2,6 @@ import { FriendlyRobot } from "base/robot";
 
 import { MessageBox, MessageType } from "glados/control/messaging";
 import { CenterBack } from "glados/group/centerback";
-import { Midfield } from "glados/group/midfield";
 import { Moves } from "glados/group/moves";
 import { Support } from "glados/group/support";
 
@@ -21,7 +20,7 @@ type SingleApplication<G extends Group> = G extends any
 		: { name: G["name"]; payload: GroupPayload<G> }
 	: never;
 
-export type Application = SingleApplication<CenterBack | Midfield | Moves | Support>;
+export type Application = SingleApplication<CenterBack | Moves | Support>;
 
 export class Groups {
 	_groupList: Group[];
@@ -33,7 +32,6 @@ export class Groups {
 			CenterBack,
 			Moves,
 			Support,
-			Midfield
 		];
 
 		this._groupList = [];

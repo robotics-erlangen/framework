@@ -2,7 +2,6 @@ import { Agent } from "glados/agent/base/agent";
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
 import { AcceptPass } from "glados/task/attacker/acceptpass";
-import { Midfield } from "glados/task/attacker/midfield";
 import { SideStep } from "glados/task/attacker/sidestep";
 import { Support, SupportParameters } from "glados/task/attacker/support";
 import * as Attack from "glados/util/attack";
@@ -45,9 +44,7 @@ export class Default extends Behavior {
 		return this;
 	}
 
-	_updateTask(): TaskAssignment<typeof SideStep> | TaskAssignment<typeof AcceptPass> | TaskAssignment<typeof Midfield> | TaskAssignment<typeof Support> {
-		this._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: "midfield" });
-
+	_updateTask(): TaskAssignment<typeof SideStep> | TaskAssignment<typeof AcceptPass> | TaskAssignment<typeof Support> {
 		let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
 		let relevantPassInfo = passInfoTable ? Attack.relevantPassInfoMessage(this._robot, passInfoTable) : undefined;
 		let prevRobotTime = (this._task instanceof AcceptPass) ? (this._task as AcceptPass).getLastTime() : undefined;
@@ -61,10 +58,6 @@ export class Default extends Behavior {
 		}
 		if (acceptingPass) {
 			return [AcceptPass];
-		}
-		let midfieldZone = this._messaging.receiveTrainer(MessageType.midfieldZone);
-		if (midfieldZone) {
-			return [Midfield];
 		}
 		return [Support, [this._supportParams]];
 	}
