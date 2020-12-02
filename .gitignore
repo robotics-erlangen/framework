@@ -14,3 +14,7 @@ node_modules/
 /strategy/typescript/base/protobuf.ts
 /.idea*
 /.vscode*
+/.cache*
+/.clangd*
+**/__pycache__/**
+compile_commands.json

@@ -30,6 +30,7 @@ if(MINGW)
         set(MINGW64 TRUE)
     endif()
 endif()
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 #
 # Policies
