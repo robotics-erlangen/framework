@@ -76,7 +76,7 @@ export function max<T>(list: T[], rate: (a: T) => number): [T, number] {
  * @param pred - The predicate to apply
  * @returns true if at least one element of list fullfills pred
  */
-export function some<T>(list: T[], pred: (a: T) => boolean): boolean {
+export function some<T>(list: readonly T[], pred: (a: T) => boolean): boolean {
 	for (const elem of list) {
 		if (pred(elem)) {
 			return true;
