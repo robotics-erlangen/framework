@@ -63,7 +63,13 @@ local msgDefs = {
 	moveAssignment = { behavior: "class", class = "class", params: "table", restart: "boolean", mainAttacker = "boolean" },
 
 	-- sent by gr/moves to tr/attackratio to overwrite the number of attackers
-	moveInfo = { numAttackers: "number", allowExtraAttackers: "boolean" }
+	-- also sent to all robots so the attackerpool can make informed decisions
+	-- which robot not to drop during a move. As this information has to be read
+	-- after calling deliverMessages, this message is sent to each agent.
+	-- In the first frame of each move, the attackers field ist an empty array
+	-- of size of requested attackers. In each following frame it contains all attackers
+	-- participating in this move.
+	moveInfo = { attackers: (Robot | undefined)[], allowExtraAttackers: "boolean" }
 
 	-- sent by the MA to notify all agents about an upcoming pass
 	-- when the ball is actually shot, there should only be one entry in the table
@@ -188,7 +194,6 @@ export class MessageBox {
 	}
 
 	sendToTrainer(type: MessageType.poolChangeRequest, changeTo: "attacker" | "defender"): void;
-	sendToTrainer(type: MessageType.moveInfo, info: { numAttackers: number, allowExtraAttackers: boolean }): void;
 	sendToTrainer(type: MessageType, data?: any): void {
 		this.sendGeneric(type, "trainer", data, false);
 	}
@@ -216,6 +221,7 @@ export class MessageBox {
 	sendBroadcast(type: MessageType.shootDestination, dest: Position): void;
 	sendBroadcast(type: ExclusiveRole, dest: FriendlyRobot | undefined): void;
 	sendBroadcast(type: MessageType.placingRobot, data? : undefined): void;
+	sendBroadcast(type: MessageType.moveInfo, info: { attackers: (number | undefined)[], allowExtraAttackers: boolean }): void;
 	sendBroadcast(type: MessageType, data?: any): void {
 		if (type === MessageType.plannedAttackTime && (data === -Infinity || data === Infinity)) throw new Error("Invalid PAttackTime");
 		if (type === MessageType.earliestAttackTime && (data === -Infinity || data === Infinity)) throw new Error("Invalid EAttackTime");
@@ -318,7 +324,6 @@ export class MessageBox {
 
 	receiveTrainer(type: MessageType.centerBackPosTarget, broadcast?: boolean): ReadonlyRec<CenterBackPoint | undefined>;
 	receiveTrainer(type: MessageType.moveAssignment, broadcast?: boolean): ReadonlyRec<{behavior: any, class: any, params: any, restart: boolean, mainAttacker: boolean} | undefined>;
-	receiveTrainer(type: MessageType.moveInfo, broadcast?: boolean): ReadonlyRec<{ numAttackers: number, allowExtraAttackers: boolean } | undefined>;
 	receiveTrainer(type: MessageType.roleAssignment, broadcast?: boolean):
 		ReadonlyRec<{ name: "CenterBack", params: {pos: Position, dir: RelativePosition, time: number} }
 		| { name: "ManMark", params: Robot[] } | { name: "ZoneDefense", params: [Position] }
@@ -329,6 +334,7 @@ export class MessageBox {
 	receiveTrainer(type: MessageType.duelAssistant, broadcast?: boolean): ReadonlyRec<FriendlyRobot | undefined>;
 	receiveTrainer(type: MessageType.interceptPass, broadcast?: boolean): ReadonlyRec<FriendlyRobot | undefined>;
 	receiveTrainer(type: MessageType.exchangeRobot, broadcast?: boolean): ReadonlyRec<FriendlyRobot | undefined>;
+	receiveTrainer(type: MessageType.moveInfo, broadcast?: boolean): ReadonlyRec<{ attackers: (number | undefined)[], allowExtraAttackers: boolean } | undefined>;
 	receiveTrainer(type: MessageType, broadcast?: boolean): any {
 		return this.receiveGeneric(type, broadcast).get("trainer");
 	}

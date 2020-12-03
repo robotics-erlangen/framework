@@ -66,6 +66,7 @@ export class Moves implements Group {
 		}
 
 		let n_attackers;
+		let attackers: (undefined | number)[];
 		// choose a new move
 		if (this._chosenMove == undefined) {
 			let candidates = [];
@@ -84,6 +85,8 @@ export class Moves implements Group {
 				let index = MathUtil.randomInt([0,candidates.length - 1]);
 				this._chosenMove = candidates[index];
 				n_attackers = Math.min(numCandidateRobots, candidates[index].MAX_ROBOTS);
+				attackers = [];
+				attackers.length = n_attackers;
 			}
 		}
 
@@ -123,7 +126,8 @@ export class Moves implements Group {
 					messaging.sendToTrainerRepeated(MessageType.forcePoolChange, { robot: robot, destPool: "defender" });
 				}
 			}
-			n_attackers = this._participatingRobots.length;
+			attackers = this._participatingRobots.map((x) => x.id);
+			n_attackers = attackers.length;
 			debug.pop();
 		}
 
@@ -132,8 +136,8 @@ export class Moves implements Group {
 				throw new Error();
 			}
 			this._numAttackersSent = true;
-			messaging.sendToTrainer(MessageType.moveInfo, {
-				numAttackers: n_attackers,
+			messaging.sendBroadcast(MessageType.moveInfo, {
+				attackers: attackers!,
 				allowExtraAttackers: this._chosenMove.ALLOW_EXTRA_ATTACKERS
 			});
 		}

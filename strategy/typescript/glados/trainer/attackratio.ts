@@ -195,7 +195,7 @@ export class AttackRatio {
 
 		let moveInfo = this._messaging.receiveTrainer(MessageType.moveInfo);
 		if (moveInfo) {
-			const num = moveInfo.numAttackers;
+			const num = moveInfo.attackers.length;
 			attackers = moveInfo.allowExtraAttackers ? Math.max(attackers, num) : num;
 		}
 

@@ -1,7 +1,8 @@
+import * as ListUtil from "base/listutil";
 import { FriendlyRobot } from "base/robot";
 
 import { Agent } from "glados/agent/base/agent";
-import { Messaging } from "glados/control/messaging";
+import { MessageType,  Messaging } from "glados/control/messaging";
 
 // sort in descending order
 function sortByRating(a1: Agent, a2: Agent): number {
@@ -9,7 +10,7 @@ function sortByRating(a1: Agent, a2: Agent): number {
 }
 
 export class AgentPool {
-	private _agents: Agent[] = [];
+	protected _agents: Agent[] = [];
 	private _agentType: typeof Agent;
 	private _robotLimit: number;
 
@@ -25,6 +26,11 @@ export class AgentPool {
 		}
 	}
 
+	// can be overridden to make sure robots are not beeing dropped.
+	protected isImmune(x: Agent) {
+		return false;
+	}
+
 	// remove agents and associated robots we no longer want to keep
 	cleanupRobots() {
 		let agents: Agent[] = []; // agents to keep
@@ -36,9 +42,15 @@ export class AgentPool {
 
 		// only sort if we have too many robots
 		if (this._robotLimit < agents.length) {
+			// first: get immuneRobots.
+			let [taken, remaining] = ListUtil.partition(agents, (x: Agent) => this.isImmune(x));
+			if (taken.length > this._robotLimit) {
+				throw new Error("More immunes than allowed Robots: " + this._robotLimit);
+			}
 			// sort with by decreasing importance
-			agents.sort(sortByRating);
-			agents.splice(this._robotLimit, agents.length - this._robotLimit);
+			remaining.sort(sortByRating);
+			remaining.splice(this._robotLimit - taken.length);
+			agents = taken.concat(remaining);
 		}
 		this._agents = agents;
 	}
@@ -86,6 +98,24 @@ export class AgentPool {
 	}
 
 	setRobotLimit(robotLimit: number) {
+		if (robotLimit < 0) {
+			throw new Error("We don't allow negative robot limits: " + robotLimit);
+		}
 		this._robotLimit = robotLimit;
+	}
+}
+
+export class AttackerPool extends AgentPool {
+	constructor(agentType: typeof Agent, robotLimit: number = Infinity) {
+		super(agentType, robotLimit);
+	}
+
+	protected isImmune(x: Agent) {
+		let moveInfo = x._messaging.receiveTrainer(MessageType.moveInfo);
+		if (moveInfo == undefined) {
+			return false;
+		}
+		let attackers = moveInfo.attackers;
+		return ListUtil.some(attackers, (a: (number | undefined)) => a === x.robot().id);
 	}
 }
