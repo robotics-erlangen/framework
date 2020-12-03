@@ -190,6 +190,14 @@ export abstract class Behavior implements Checkable {
 
 	// can be overwritten for custom cleanups
 	_stop() { }
+
+	/**
+	 * Add custom debug info for this behavior.
+	 * Will be put in a subtree in the debug tree.
+	 */
+	addDebugInfo() {
+		debug.set(undefined, this.constructor.name);
+	}
 }
 
 /**

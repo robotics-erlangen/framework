@@ -293,4 +293,9 @@ export class FreeKick extends Behavior {
 				return [TaskPass, [ pass.target, pass.ballPos, pass.chip, World.Ball.pos, pass.time ], restartTask];
 		}
 	}
+
+	addDebugInfo() {
+		debug.set(undefined, "FreeKick");
+		debug.set("ratePass", this._ratePass.name);
+	}
 }

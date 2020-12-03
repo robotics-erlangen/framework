@@ -535,4 +535,9 @@ export class Shoot extends Behavior {
 		// error: invalid decision
 		throw new Error();
 	}
+
+	addDebugInfo() {
+		debug.set(undefined, "Shoot");
+		debug.set("ratePass", this._ratePass.name);
+	}
 }

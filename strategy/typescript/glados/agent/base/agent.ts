@@ -96,7 +96,10 @@ export abstract class Agent {
 
 		// run behavior
 		if (this._activeBehavior) {
-			debug.set("Behavior", this._activeBehavior.constructor.name);
+			debug.push("Behavior");
+			this._activeBehavior.addDebugInfo();
+			debug.pop();
+
 			this._activeBehavior.run();
 		} else {
 			debug.set("Behavior", "none");

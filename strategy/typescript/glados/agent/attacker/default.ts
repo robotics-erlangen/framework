@@ -1,3 +1,5 @@
+import * as debug from "base/debug";
+
 import { Agent } from "glados/agent/base/agent";
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
@@ -24,6 +26,11 @@ export class Default extends Behavior {
 	constructor(agent: Agent, supportParams: SupportParameters) {
 		super(agent);
 		this._supportParams = supportParams;
+	}
+
+	addDebugInfo() {
+		debug.set(undefined, "Default");
+		debug.set("Sampling", this._supportParams.samplingCtor.name);
 	}
 
 	_stop() {
