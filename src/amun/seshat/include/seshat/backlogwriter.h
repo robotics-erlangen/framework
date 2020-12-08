@@ -41,6 +41,7 @@ public:
     // equals timings().size()
     int packetCount() const override { return m_timings.size(); }
     Status readStatus(int packet) override;
+    QString logUID() override { return "Backlogs don't have a UID yet."; }
 
 public slots:
     void readPackets(int startPacket, int count) override;

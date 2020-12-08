@@ -223,6 +223,7 @@ message CommandPlayback {
     optional logfile.LogRequest log_path = 7;
     optional Flag instant_replay = 8;
     optional string export_vision_log = 9; // the location to save the vision log to
+    optional Flag get_uid = 10;
 }
 
 message CommandRecord {

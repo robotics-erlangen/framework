@@ -46,6 +46,7 @@ public:
     const QList<qint64>& timings() const override { return m_timings; }
     int packetCount() const override { return m_timings.size(); }
     Status readStatus(int packet) override;
+    QString logUID() override { return "Visionlogs don't contain a UID"; }
 
 public slots:
     void readPackets(int startPacket, int count) override;

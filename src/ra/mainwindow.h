@@ -93,6 +93,7 @@ private slots:
     void udpateSpeedActionsEnabled();
     void useLogfileLocation(bool enable);
     void exportVisionLog();
+    void requestLogUid();
 
 private:
     void toggleHorusModeWidgets(bool enable);

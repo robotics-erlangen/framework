@@ -181,6 +181,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     connect(ui->actionUseLocation, SIGNAL(toggled(bool)), m_logOpener, SLOT(useLogfileLocation(bool)));
     connect(ui->actionChangeLocation, SIGNAL(triggered()), SLOT(showDirectoryDialog()));
     connect(ui->exportVision, &QAction::triggered, this, &MainWindow::exportVisionLog);
+    connect(ui->getLogUid, &QAction::triggered, this, &MainWindow::requestLogUid);
 
     connect(ui->actionGoLive, SIGNAL(triggered()), SLOT(liveMode()));
     connect(ui->actionShowBacklog, SIGNAL(triggered()), SLOT(showBacklogMode()));
@@ -642,6 +643,10 @@ void MainWindow::handleStatus(const Status &status)
         if (response.has_export_visionlog_error()) {
             QMessageBox::critical(this, "Visionlog export error", QString::fromStdString(response.export_visionlog_error()));
         }
+
+        if (response.has_requested_log_uid()) {
+            QMessageBox::information(this, "Log UID", QString::fromStdString(response.requested_log_uid()));
+        }
     }
 
     emit gotStatus(status);
@@ -663,6 +668,13 @@ void MainWindow::exportVisionLog()
         command->mutable_playback()->set_export_vision_log(filename.toStdString());
         sendCommand(command);
     }
+}
+
+void MainWindow::requestLogUid()
+{
+    Command command{new amun::Command};
+    command->mutable_playback()->mutable_get_uid();
+    sendCommand(command);
 }
 
 void MainWindow::sendCommand(const Command &command)
@@ -815,6 +827,7 @@ void MainWindow::toggleHorusModeWidgets(bool enable)
     ui->actionSave20s->setEnabled(!enable);
     ui->goToLastPosition->setVisible(enable && m_logOpener->showGoToLastPositionButton());
     ui->exportVision->setVisible(enable);
+    ui->getLogUid->setVisible(enable);
 
     udpateSpeedActionsEnabled();
 }

@@ -56,6 +56,7 @@ private:
     void sendLogfileInfo(const std::string& message, bool success);
     void sendSimulatorCommand();
     void exportVisionLog(const std::string& filename);
+    void handleUIDRequest();
 
 private:
 

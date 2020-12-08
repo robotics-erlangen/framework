@@ -127,6 +127,7 @@ message UiResponse {
     optional bool force_ra_horus = 8; // true if forced Ra, false if forced Horus
     optional LogfileOpenInfo log_open = 9;
     optional string export_visionlog_error = 10;
+    optional string requested_log_uid = 11;
 }
 
 message LogPlaybackInfo {

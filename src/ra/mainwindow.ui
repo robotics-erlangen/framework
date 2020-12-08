@@ -150,6 +150,7 @@
     </property>
     <addaction name="actionOpen_Logfile"/>
     <addaction name="exportVision"/>
+    <addaction name="getLogUid"/>
     <addaction name="actionLogCutter"/>
     <addaction name="separator"/>
     <addaction name="actionSaveConfiguration"/>
@@ -739,6 +740,11 @@
   <action name="exportVision">
    <property name="text">
     <string>Export as Vision Log</string>
+   </property>
+  </action>
+  <action name="getLogUid">
+   <property name="text">
+    <string>Get LogUID</string>
    </property>
   </action>
  </widget>

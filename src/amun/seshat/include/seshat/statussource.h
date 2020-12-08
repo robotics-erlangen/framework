@@ -38,6 +38,7 @@ public:
     // equals timings().size()
     virtual int packetCount() const = 0;
     virtual Status readStatus(int packet) = 0;
+    virtual QString logUID() = 0;
 
 public slots:
     virtual void readPackets(int startPacket, int count) = 0;

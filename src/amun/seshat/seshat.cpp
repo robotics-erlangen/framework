@@ -173,6 +173,10 @@ void Seshat::handleCommand(const Command& command)
         if (playback.has_export_vision_log()) {
             exportVisionLog(playback.export_vision_log());
         }
+
+        if (playback.has_get_uid()) {
+            handleUIDRequest();
+        }
     }
 
     if (m_isPlayback && m_statusSource) {
@@ -219,6 +223,20 @@ void Seshat::openLogfile(const logfile::LogRequest& logRequest)
         }
     }
     sendLogfileInfo("Error: Could not open log file - no matching format found", true);
+}
+
+void Seshat::handleUIDRequest()
+{
+    Status s{new amun::Status};
+    auto* pureUi = s->mutable_pure_ui_response();
+    QString res;
+    if (!m_statusSource) {
+        res = "No open logfile/backlog";
+    } else {
+        res = m_statusSource->getStatusSource()->logUID();
+    }
+    pureUi->set_requested_log_uid(res.toStdString());
+    emit sendUi(s);
 }
 
 void Seshat::sendLogfileInfo(const std::string& message, bool error)

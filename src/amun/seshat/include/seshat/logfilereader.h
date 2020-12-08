@@ -58,6 +58,8 @@ public:
 
     qint32 groupSize() const { return m_reader.groupSize(); }
 
+    QString logUID() override;
+
 public slots:
     void readPackets(int startPacket, int count) override;
 
