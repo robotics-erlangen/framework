@@ -137,9 +137,7 @@ export class BallPlacement extends Move {
 			this._stateChangeTime = World.Time;
 		}
 
-		debug.push("Ball Placement");
-		debug.set("State", this._state);
-		debug.pop();
+		debug.set("Ball Placement", this._state);
 
 		vis.addCircle("g/m/ballplacement", this._ballPlacementPos, TOLERANCE, vis.colors.red, true);
 		vis.addCircle("g/m/ballplacement", this._ballPlacementPos, FINE_ADJUST_ZONE, vis.colors.orange);
