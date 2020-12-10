@@ -26,7 +26,7 @@ export class Trainer {
 			if (messages.size > 0) {
 				debug.push(MessageType[type]);
 				for (let [sender, msg] of messages.entries()) {
-					debug.set(sender.id == undefined ? sender : sender.id, msg);
+					debug.set(sender === "trainer" ? sender : sender.id.toString(), msg);
 				}
 				debug.pop(); // name
 			}

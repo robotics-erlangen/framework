@@ -165,7 +165,18 @@ interface AgentLike {
 	robot(): FriendlyRobot;
 }
 
-const emptyMap: Readonly<Map<FriendlyRobot, any>> = Object.freeze(new Map<FriendlyRobot, any>());
+/*
+ * This type assertion is valid, since the frozen objects contain all the
+ * original properties. However, Object.freeze returns a `Readonly<T>`, which
+ * does a `keyof T`, which does not properly copy well known symbols (in this
+ * case `[Symbol.iterator]`, see https://github.com/microsoft/TypeScript/issues/24622)
+ *
+ * Also, this uses `ReadonlyRec` instead of `Readonly`. `ReadonlyRec` returns
+ * `ReadonlyMap` instead of Readonly<Map>, which is correct for maps that don't
+ * allow adding new elements. `ReadonlyMap` removes the `set` function, while
+ * `Readonly<Map>` just disallows code like `map.set = (k, v) => {}`
+ */
+const emptyMap = Object.freeze(new Map<FriendlyRobot, any>()) as unknown as ReadonlyRec<Map<FriendlyRobot, any>>;
 
 export class MessageBox {
 	private messaging: Messaging;
@@ -298,7 +309,7 @@ export class MessageBox {
 	receive(type: MessageType.strikerFlag, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, true>>;
 	receive(type: MessageType.strikerSamplingTimestamp, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, number>>;
 	receive(type: MessageType, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, any>> {
-		return this.receiveGeneric(type, broadcast);
+		return this.receiveGeneric(type, broadcast) as ReadonlyRec<Map<FriendlyRobot, any>>;
 	}
 
 	receiveSingleSender(type: MessageType.attackPosition, broadcast?: boolean): ReadonlyRec<[FriendlyRobot, Position] | []>;
@@ -308,18 +319,20 @@ export class MessageBox {
 	receiveSingleSender(type: MessageType.shootDestination, broadcast?: boolean): ReadonlyRec<[FriendlyRobot, Position] | []>;
 	receiveSingleSender(type: MessageType.placingRobot, broadcast?: boolean): ReadonlyRec<[FriendlyRobot, undefined] | []>;
 	receiveSingleSender(type: MessageType, broadcast?: boolean): ReadonlyRec<[FriendlyRobot, any] | []>  {
-		let map: Map<FriendlyRobot, any> = this.receiveGeneric(type, broadcast);
+		const map = this.receiveGeneric(type, broadcast);
 		if (map.size > 1) {
 			throw new Error(`Single sender message ${MessageType[type]} sent by ${map.size} robots!`);
 		}
 		const it = head(map);
-		return it ? it : [];
+		return it
+			? it as ReadonlyRec<[FriendlyRobot, any]>
+			: [];
 	}
 
 	receiveRepeated(type: MessageType.exclusiveRole, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, [ExclusiveRole, LeveledRating][]>>;
 	receiveRepeated(type: MessageType.groupApplication, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, { name: "centerback" | "moves" | "striker" | "midfield", payload: any }[]>>;
 	receiveRepeated(type: MessageType, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, any[]>> {
-		return this.receiveGeneric(type, broadcast);
+		return this.receiveGeneric(type, broadcast) as ReadonlyRec<Map<FriendlyRobot, any[]>>;
 	}
 
 	receiveTrainer(type: MessageType.centerBackPosTarget, broadcast?: boolean): ReadonlyRec<CenterBackPoint | undefined>;
@@ -344,7 +357,7 @@ export class MessageBox {
 		return this.receiveGeneric(type, broadcast).get("trainer");
 	}
 
-	public receiveGeneric(type: MessageType, broadcast?: boolean) {
+	public receiveGeneric(type: MessageType, broadcast?: boolean): ReadonlyRec<Map<MessageOrigin, any>> {
 		let mtypeBox = this.messaging._deliveredMessages[type];
 		if (this.origin === "trainer") {
 			mtypeBox = this.messaging._newMessages[type];
@@ -390,7 +403,7 @@ export class MessageBox {
 		}
 	}
 
-	public receiveNoBroadcast(type: MessageType) {
+	public receiveNoBroadcast(type: MessageType): ReadonlyRec<Map<MessageOrigin, any>> {
 		let mtypeBox = this.messaging._deliveredMessages[type];
 		if (this.origin === "trainer") {
 			mtypeBox = this.messaging._newMessages[type];
@@ -406,7 +419,7 @@ export class MessageBox {
 		}
 	}
 
-	public receiveAllInbox(type: MessageType) {
+	public receiveAllInbox(type: MessageType): ReadonlyRec<Map<MessageOrigin, any>> {
 		let mtypeBox = this.messaging._deliveredMessages[type];
 		if (this.origin === "trainer") {
 			mtypeBox = this.messaging._newMessages[type];
