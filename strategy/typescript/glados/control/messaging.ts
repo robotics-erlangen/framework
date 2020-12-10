@@ -1,6 +1,8 @@
 import * as debug from "base/debug";
 import { FriendlyRobot, Robot } from "base/robot";
+import { AbsTime } from "base/timing";
 import { Position, RelativePosition } from "base/vector";
+import * as World from "base/world";
 
 import { Point as CenterBackPoint } from "glados/group/centerback";
 import { head } from "glados/util/collections";
@@ -470,4 +472,36 @@ export class Messaging {
 		this._deliveredMessages = this._newMessages;
 		this._newMessages = {};
 	}
+}
+
+/**
+ * Display messages in the debug tree. If a message contains a timestamp, this
+ * function will display both the original absolute time and a relative time.
+ * @param name - The name of the subtree where the messages will be displayed
+ * @param messages - The messages to dump along with their sender
+ */
+export function dumpMessages(name: string, messages: ReadonlyRec<Map<MessageOrigin, any>>): void {
+	if (messages.size === 0) {
+		return;
+	}
+	debug.push(name);
+	for (let [sender, msg] of messages.entries()) {
+		const indexValue = sender === "trainer" ? sender : sender.id.toString();
+		if (name.toLowerCase().indexOf("time") === -1) {
+			debug.set(indexValue, msg);
+			if (typeof msg === "object" && msg.time !== undefined && typeof msg.time === "number") {
+				debug.set(indexValue + "/time", formatTimestamp(msg.time));
+			}
+		} else if (typeof msg === "number") {
+			debug.set(indexValue, formatTimestamp(msg));
+		} else {
+			debug.set(indexValue, msg);
+		}
+	}
+	debug.pop(); // name
+}
+
+function formatTimestamp(absTime: AbsTime): string {
+	const relTime = absTime - World.Time;
+	return `${relTime.toFixed(4)} (${absTime.toFixed(0)})`;
 }

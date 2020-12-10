@@ -10,7 +10,7 @@ import { Behavior } from "glados/agent/base/behavior";
 import { Error as AgentError } from "glados/agent/shared/error";
 import { Halt } from "glados/agent/shared/halt";
 import { MoveCommand } from "glados/agent/shared/movecommand";
-import { MessageBox, MessageType, MessageTypeList, Messaging } from "glados/control/messaging";
+import { dumpMessages, MessageBox, MessageType, MessageTypeList, Messaging } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 import * as Robot from "glados/observer/robot";
@@ -119,43 +119,16 @@ export abstract class Agent {
 		if (World.Time !== Agent._dumpAllTime) {
 			Agent._dumpAllTime = World.Time;
 			debug.pushtop("Global Inbox");
-			for (let type of MessageTypeList) {
-				let messages = this._messaging.receiveAllInbox(type);
-				Agent._dumpMessages(messages, type);
+			for (const type of MessageTypeList) {
+				dumpMessages(MessageType[type], this._messaging.receiveAllInbox(type));
 			}
 			debug.pop(); // Global Inbox
 		}
 		debug.push("Inbox");
-		for (let type of MessageTypeList) {
-			let messages = this._messaging.receiveNoBroadcast(type);
-			Agent._dumpMessages(messages, type);
+		for (const type of MessageTypeList) {
+			dumpMessages(MessageType[type], this._messaging.receiveNoBroadcast(type));
 		}
 		debug.pop(); // Inbox
-	}
-
-	private static _dumpMessages(messages: any, type: MessageType) {
-		if (messages.size > 0) {
-			let name = MessageType[type];
-			debug.push(name);
-			for (let [sender, msg] of messages.entries()) {
-				const indexValue = sender.id == undefined ? sender : sender.id;
-				if (name.toLowerCase().indexOf("time") === -1) {
-					debug.set(indexValue, msg);
-					if (typeof msg === "object" && msg.time != undefined) {
-						let relTime = String(msg.time - World.Time);
-						relTime = `${relTime.substring(0, 4)} (${msg.time})`;
-						debug.set(indexValue + "/time", relTime);
-					}
-				} else {
-					debug.set(indexValue, msg);
-					if (typeof msg === "number") {
-						let relTime = String(msg - World.Time);
-						debug.set(indexValue + "/relative", relTime);
-					}
-				}
-			}
-			debug.pop(); // name
-		}
 	}
 
 	_runTask(task: Task | undefined) {
