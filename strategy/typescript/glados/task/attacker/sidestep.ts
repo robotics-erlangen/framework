@@ -30,11 +30,9 @@ interface DebugTable {
 
 function draw(table: DebugTable) {
 	let t = table;
-	debug.push("sideStep Debug");
 	for (let [a, b] of Object.entries(t)) {
 		debug.set(a, b);
 	}
-	debug.pop();
 	vis.addCircle("sideStep", t.startingPoint, 0.05, vis.colors.blue, true);
 	vis.addCircle("sideStep", t.feintPos, 0.05, vis.colors.red, true);
 	vis.addPath("sideStep", [t.ballPos, t.ballPos + t.cw.withLength(t.cwDist)], vis.fromTemperature(t.cwRating));
