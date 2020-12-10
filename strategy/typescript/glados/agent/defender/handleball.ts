@@ -8,6 +8,8 @@ import * as vis from "base/vis";
 import * as World from "base/world";
 
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
+import { Objective } from "glados/agent/base/objective";
+import { Midfield } from "glados/agent/objective/midfield";
 import { MessageType } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
 import * as Goal from "glados/observer/goal";
@@ -39,10 +41,12 @@ function rateRobot(robot: FriendlyRobot) {
 export class HandleBall extends Behavior {
 	private _taskDecision: string | undefined = undefined;
 	private _forceDefenderFrameCounter: number = 0;
+	private _objective: Objective | undefined;
 
 	_stop() {
 		this._taskDecision = undefined;
 		this._forceDefenderFrameCounter = 0;
+		this._objective = undefined;
 	}
 
 	private _checkDefender(): boolean {
@@ -221,6 +225,16 @@ export class HandleBall extends Behavior {
 
 	_updateTask(): TaskAssignment<typeof InterceptPass> | TaskAssignment<typeof Duel> |
 			TaskAssignment<typeof CenterBack> {
+		const isMainAttacker = this._messaging.receiveTrainer(MessageType.mainAttacker) === this._robot;
+		if (isMainAttacker) {
+			if (!this._objective) {
+				this._objective = new Midfield(this._agent);
+			}
+			this._messaging.sendBroadcast(MessageType.selectedObjective, this._objective);
+		} else {
+			this._objective = undefined;
+		}
+
 		let selfDefenseDist = Field.distanceToFriendlyDefenseArea(this._robot.pos, this._robot.radius);
 		if (selfDefenseDist < DefUtil.centerBackDistanceToDefenseArea() + this._robot.radius + 0.03) {
 			// TODO: EVACUATE or EVACUATING
