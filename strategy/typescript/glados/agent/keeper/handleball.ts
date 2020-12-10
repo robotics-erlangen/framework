@@ -13,11 +13,8 @@ import { MoveToStaticBall } from "glados/task/attacker/movetostaticball";
 import { AggressiveKeeper } from "glados/task/keeper/aggressivekeeper";
 import { ChipAway as KeeperChipAway } from "glados/task/keeper/chipaway";
 import { Keeper } from "glados/task/keeper/keeper";
-import { Halt } from "glados/task/shared/halt";
 import { Pass } from "glados/task/shared/pass";
 import * as Attack from "glados/util/attack";
-
-import { Move } from "../attacker/move";
 
 export class HandleBall extends Behavior {
 	private _pass: {target?: FriendlyRobot, ballPos: Position, time: number} | undefined;
@@ -53,7 +50,7 @@ export class HandleBall extends Behavior {
 	}
 
 	_updateTask(): TaskAssignment<typeof Keeper> | TaskAssignment<typeof Pass> | TaskAssignment<typeof KeeperChipAway>
-			| TaskAssignment<typeof AggressiveKeeper> | TaskAssignment<typeof Halt> | TaskAssignment<typeof MoveToStaticBall> {
+			| TaskAssignment<typeof AggressiveKeeper> | TaskAssignment<typeof MoveToStaticBall> {
 		let endPos = Physics.ballAtTime(World.Ball, Infinity).pos;
 		let startInside = Field.isInFriendlyDefenseArea(World.Ball.pos, -World.Ball.radius - this._robot.radius);
 		let endInside = Field.isInFriendlyDefenseArea(endPos, -World.Ball.radius - this._robot.radius);
