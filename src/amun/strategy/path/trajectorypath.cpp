@@ -195,7 +195,7 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Tra
         p1.speed = input.v0;
         TrajectoryPoint p2;
         p2.pos = input.s0;
-        p2.time = std::numeric_limits<float>::max();
+        p2.time = 0;
         p2.speed = Vector(0, 0);
         return {p1, p2};
     }
