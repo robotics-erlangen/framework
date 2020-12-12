@@ -157,5 +157,8 @@ auto EscapeObstacleSampler::rateEscapingTrajectory(const TrajectoryInput &input,
     } else {
         result.escapeTime = fineTime;
     }
+    if (goodSamples > 0 && speedProfile.endSpeed() == Vector(0, 0)) {
+        result.endsSafely = true;
+    }
     return result;
 }
