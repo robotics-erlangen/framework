@@ -120,13 +120,13 @@ export abstract class Agent {
 			Agent._dumpAllTime = World.Time;
 			debug.pushtop("Global Inbox");
 			for (const type of MessageTypeList) {
-				dumpMessages(MessageType[type], this._messaging.receiveAllInbox(type));
+				dumpMessages(type, this._messaging.receiveAllInbox(type));
 			}
 			debug.pop(); // Global Inbox
 		}
 		debug.push("Inbox");
 		for (const type of MessageTypeList) {
-			dumpMessages(MessageType[type], this._messaging.receiveNoBroadcast(type));
+			dumpMessages(type, this._messaging.receiveNoBroadcast(type));
 		}
 		debug.pop(); // Inbox
 	}

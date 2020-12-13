@@ -22,7 +22,7 @@ export class Trainer {
 	_debugInbox(str: string) {
 		debug.pushtop(str);
 		for (const type of MessageTypeList) {
-			dumpMessages(MessageType[type], this._messaging.receiveGeneric(type));
+			dumpMessages(type, this._messaging.receiveGeneric(type));
 		}
 		debug.pop(); // Trainer Inbox
 	}

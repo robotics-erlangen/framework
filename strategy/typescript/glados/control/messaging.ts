@@ -717,30 +717,96 @@ export class Messaging {
 }
 
 /**
- * Display messages in the debug tree. If a message contains a timestamp, this
- * function will display both the original absolute time and a relative time.
- * @param name - The name of the subtree where the messages will be displayed
+ * Display received messages in the debug tree. If a message contains a
+ * timestamp, this function will display both the original absolute time and a
+ * relative time.
+ * @param type - The type of the message. Used to determine special cases and the message name
  * @param messages - The messages to dump along with their sender
  */
-export function dumpMessages(name: string, messages: ReadonlyRec<Map<MessageOrigin, any>>): void {
+export function dumpMessages<M extends MessageType>(type: M, messages: ReadonlyRec<Map<MessageOrigin, any>>): void {
 	if (messages.size === 0) {
 		return;
 	}
+	const name = MessageType[type];
 	debug.push(name);
-	for (let [sender, msg] of messages.entries()) {
+
+	const specialDumpFunction = DUMP_MESSAGES_SPECIAL_CASES[type];
+	for (const [sender, msg] of messages.entries()) {
 		const indexValue = sender === "trainer" ? sender : sender.id.toString();
-		if (name.toLowerCase().indexOf("time") === -1) {
-			debug.set(indexValue, msg);
-			if (typeof msg === "object" && msg.time !== undefined && typeof msg.time === "number") {
-				debug.set(indexValue + "/time", formatTimestamp(msg.time));
-			}
-		} else if (typeof msg === "number") {
-			debug.set(indexValue, formatTimestamp(msg));
+		if (specialDumpFunction) {
+			specialDumpFunction(indexValue, msg as never);
 		} else {
 			debug.set(indexValue, msg);
 		}
 	}
 	debug.pop(); // name
+}
+
+type MessageDumper<M extends MessageType> = { [k in M]: (senderName: string, msg: ReceivedData<M>) => void };
+
+/** Needed to distribute MessageDumper over all MessageTypes */
+type MessageDumperHelper<M extends MessageType> = M extends any ? MessageDumper<M> : never;
+
+type AllMessageDumper = UnionToIntersection<MessageDumperHelper<MessageType>>;
+
+const DUMP_MESSAGES_SPECIAL_CASES: Partial<AllMessageDumper> = {
+	[MessageType.centerBackPosTarget]: dumpWithTimeSubkey,
+	[MessageType.earliestAttackTime]: dumpTimeMessage,
+	[MessageType.exclusiveRole]: dumpExclusiveRole,
+	[MessageType.passInfo]: dumpArrayWithTimeSubkey,
+	[MessageType.passSuggestion]: dumpWithTimeSubkey,
+	[MessageType.plannedAttackTime]: dumpTimeMessage,
+	[MessageType.roleAssignment]: dumpRoleAssignment,
+	[MessageType.strikerSamplingTimestamp]: dumpTimeMessage,
+	[MessageType.groupApplication]: dumpGroupApplication,
+};
+
+function dumpGroupApplication(senderName: string, msg: ReadonlyRec<ReceivedData<MessageType.groupApplication>>) {
+	debug.push(senderName);
+	for (const { name, payload } of msg) {
+		debug.set(name, payload);
+	}
+	debug.pop(); // senderName
+}
+
+function dumpExclusiveRole(senderName: string, msg: ReadonlyRec<ReceivedData<MessageType.exclusiveRole>>) {
+	debug.push(senderName);
+	for (const [role, rating] of msg) {
+		debug.set(MessageType[role], rating);
+	}
+	debug.pop(); // senderName
+}
+
+function dumpRoleAssignment(senderName: string, msg: ReadonlyRec<ReceivedData<MessageType.roleAssignment>>) {
+	debug.set(senderName, msg.params);
+	if (msg.name === "CenterBack" && msg.params.time !== undefined) {
+		debug.set(`${senderName}/time`, formatTimestamp(msg.params.time));
+	}
+	// Replace "Object"/"Array" tree value with role name
+	debug.set(senderName, msg.name);
+}
+
+function dumpTimeMessage(senderName: string, msg: number) {
+	debug.set(senderName, formatTimestamp(msg));
+}
+
+function dumpArrayWithTimeSubkey(senderName: string, msg: ReadonlyRec<{ time?: number }[]>) {
+	debug.push(senderName);
+	for (let i = 0; i < msg.length; ++i) {
+		dumpWithTimeSubkey(i.toString(), msg[i]);
+	}
+	debug.pop(); // senderName
+}
+
+/**
+ * Dumps the given object where `msg.time` is output as a string that
+ * contains both relative and absolute timestamps
+ */
+function dumpWithTimeSubkey(senderName: string, msg: ReadonlyRec<{ time?: number }>) {
+	debug.set(senderName, msg);
+	if (msg.time !== undefined) {
+		debug.set(`${senderName}/time`, formatTimestamp(msg.time));
+	}
 }
 
 function formatTimestamp(absTime: AbsTime): string {
