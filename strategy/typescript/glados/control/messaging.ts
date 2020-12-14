@@ -8,143 +8,152 @@ import { Point as CenterBackPoint } from "glados/group/centerback";
 import { head } from "glados/util/collections";
 import { LeveledRating } from "glados/util/rating";
 
-// TODO: document the messages in a more native format
-/*
-local msgDefs = {
-	-- ========================
-	-- === multiple senders ===
-	-- ========================
-
-	-- sent by robots we don't control (mixed team challenge)
-	allyFlag = "flag",
-
-	-- sent by all attackers
-	attackerFlag = "flag",
-
-	-- sent by t/duel to make sure that the opponent duelist does not get marked as well
-	defendedOpponent = Robot,
-
-	-- sent by all defenders
-	defenderFlag = "flag",
-
-	-- sent by various tasks to notify other robots about their future positioning
-	moveDest = "vector",
-
-	-- sent by strikers to the MA to propose a possible pass
-	-- requests that the ball is at msg.ballPos when the time reaches msg.time
-	passSuggestion = { ballPos = "vector", time = "number", anonymous = "boolean", chip = "boolean", manual = "boolean" },
-
-	-- sent by various behaviors which want to change the pool
-	-- the string can be "attacker" or "defender"
-	poolChangeRequest = "string",
-
-	-- sent by all strikers
-	strikerFlag = "flag",
-
-	-- sent by t/striker to tell all other strikers about the currency of the sampled pass position
-	strikerSamplingTimestamp = "number",
-
-
-	-- =====================
-	-- === single sender ===
-	-- =====================
-
-	-- sent by the MA to tell other attackers about the origin of the next shot
-	attackPosition = "vector",
-
-	-- sent by the MA to tell other attackers about the time of the next shot
-	attackTime = "number",
-
-	-- sent by gr/centerback to assign a target and a position to the centerback tasks
-	-- target can be any table (preferably a ball-like or robot-like object)
-	-- time is relativ time until the target should be reached
-	centerBackPosTarget = { pos = "vector", target = "table", way = "number", time = "number" },
-
-	-- sent by gr/moves to the participating agents
-	-- params is a list of parameters
-	moveAssignment = { behavior: "class", class = "class", params: "table", restart: "boolean", mainAttacker = "boolean" },
-
-	-- sent by gr/moves to tr/attackratio to overwrite the number of attackers
-	-- also sent to all robots so the attackerpool can make informed decisions
-	-- which robot not to drop during a move. As this information has to be read
-	-- after calling deliverMessages, this message is sent to each agent.
-	-- In the first frame of each move, the attackers field ist an empty array
-	-- of size of requested attackers. In each following frame it contains all attackers
-	-- participating in this move.
-	moveInfo = { attackers: (Robot | undefined)[], allowExtraAttackers: "boolean" }
-
-	-- sent by the MA to notify all agents about an upcoming pass
-	-- when the ball is actually shot, there should only be one entry in the table
-	-- this is needed to choose the correct mainAttacker
-	-- the ball is at msg.ballPos when the time reaches msg.time
-	-- table is of entries of the format: { target = Robot, ballPos = "vector", time = "number" }
-	passInfo = "table",
-
-	-- sent by tr/defense to assign a behavior to each defender
-	-- possible names are "CenterBack", "ManMark" and "ZoneDefense"
-	-- params is a list of parameters
-		-- Centerback:
-			-- params[1]: Table, target like {pos= Vector, dir=Vector, time = number}
-		-- ManMark:
-			-- params[1]: Robot manMarkTarget
-		-- ZoneDefense
-			-- params[1]: Vector movePos
-	roleAssignment = { name = "string", params: "table" },
-
-	-- sent by the MA to tell other attackers about the destination of the next shot
-	shootDestination = "vector",
-
-	-- sent by gr/striker to assign zones to the striker tasks
-	-- msg.boundaries = { left: number, right: number }
-	strikerZone = { defaultPos = "vector", boundaries = "table" },
-
-	-- sent by gr/midfield to assign zones to the midfield tasks
-	-- msg.boundaries = { left: number, right: number }
-	midfieldZone = { defaultPos = "vector", boundaries = "table" },
-}
-
-
-local exclusiveRoles = {
-	mainAttacker = "number",
-	duelAssistant = "number",
-	interceptPass = "number",
-}
-for role, _ in pairs(exclusiveRoles) do
-	msgDefs[role] = Robot
-end
-
-
-local repeatedMessages = {
-	-- sent by agents that want to apply for an exclusive role
-	-- the list of exclusive roles is defined below
-	-- format: msg.<role>: number
-	exclusiveRole = "table",
-
-	-- sent by gr/moves to make sure that unassigned robots become defenders
-	forcePoolChange = { robot = Robot, destPool = "string" },
-
-	-- sent by agents that want to join a specific group
-	-- the list of groups is defined in tr/groups
-	groupApplication = { name = "string", payload = "table" },
-}
-*/
-
 export enum MessageType {
-	// multiple sender
-	allyFlag, attackerFlag, defendedOpponent, dueledOpponent, defenderFlag,
-	moveDest, passSuggestion, poolChangeRequest, strikerFlag,
+	// =======================
+	// === multiple sender ===
+	// =======================
+
+	/** Sent by robots we don't control (mixed team challenge) */
+	allyFlag,
+	/** Sent by all attackers */
+	attackerFlag,
+	/** Sent by `t/s/duel` to make sure that the opponent duelist does not get marked as well */
+	defendedOpponent,
+	/**
+	 * Sent by `t/s/duel` to inform the duel assistant which opponent is
+	 * currently dueled.
+	 *
+	 * This is different from {@link defendedOpponent} since the robot may not be
+	 * actually defended (since the duelist may be to far away), but we still
+	 * want the duel assistant to help.
+	 */
+	dueledOpponent,
+	/** Sent by all defenders */
+	defenderFlag,
+	/** Sent by various tasks to notify other robots about their future positioning */
+	moveDest,
+	/**
+	 * Sent by strikers to the MA to propose a possible pass.
+	 * Requests that the ball is at msg.ballPos when the time reaches msg.time
+	 */
+	passSuggestion,
+	/** Sent by various behaviors which want to change the pool. */
+	poolChangeRequest,
+	/** Sent by all strikers */
+	strikerFlag,
+	/** Sent by `t/a/striker` to tell all other strikers about the currency of the sampled pass position */
 	strikerSamplingTimestamp,
 
-	// single sender
-	attackPosition, plannedAttackTime, centerBackPosTarget, earliestAttackTime, moveAssignment,
-	moveInfo, passInfo, roleAssignment, shootDestination,
-	strikerZone, midfieldZone, placingRobot,
+	// =====================
+	// === single sender ===
+	// =====================
 
-	// exclusive roles
-	mainAttacker, duelAssistant, interceptPass, exchangeRobot,
+	/** Sent by the MA to tell other attackers about the origin of the next shot */
+	attackPosition,
+	/**
+	 * Sent by the MA to tell other attackers about the planned time of the
+	 * next shot. Also see {@link earliestAttackTime}.
+	 */
+	plannedAttackTime,
+	/**
+	 * Sent by `gr/centerback` to assign a target and a position to the centerback tasks.
+	 * target can be any table (preferably a ball-like or robot-like object)
+	 * time is relativ time until the target should be reached
+	 */
+	centerBackPosTarget,
+	/**
+	 * Sent by the MA to tell other attackers about the earliest possible time
+	 * of the next shot. Also see {@link plannedAttackTime}.
+	 */
+	earliestAttackTime,
+	/**
+	 * Sent by `gr/moves` to the participating agents.
+	 * params is a list of parameters
+	 */
+	moveAssignment,
+	/**
+	 * Sent by `gr/moves` to `tr/attackratio` to overwrite the number of attackers.
+	 * Also sent to all robots so the attackerpool can make informed decisions
+	 * which robot not to drop during a move. As this information has to be read
+	 * after calling deliverMessages, this message is sent to each agent.
+	 * In the first frame of each move, the attackers field ist an empty array
+	 * of size of requested attackers. In each following frame it contains all attackers
+	 * participating in this move.
+	 */
+	moveInfo,
+	/**
+	 * Sent by the MA to notify all agents about an upcoming pass.
+	 * When the ball is actually shot, there should only be one entry in the table.
+	 * This is needed to choose the correct mainAttacker.
+	 * The ball is at msg.ballPos when the time reaches msg.time.
+	 * Table is of entries of the format: { target = Robot, ballPos = "vector", time = "number" }]
+	 */
+	passInfo,
+	/**
+	 * Sent by `tr/defense` to assign a behavior to each defender.
+	 *
+	 * Possible names are "CenterBack", "ManMark" and "ZoneDefense".
+	 * Params is a list of parameters
+	 * - Centerback: params[0]: Table, target like {pos= Vector, dir=Vector, time = number}
+	 * - ManMark: params[0]: Robot manMarkTarget
+	 * - ZoneDefense: params[0]: Vector movePos
+	 */
+	roleAssignment,
+	/** sent by the MA to tell other attackers about the destination of the next shot */
+	shootDestination,
+	/**
+	 * Sent by `gr/striker` to assign zones to the striker tasks
+	 * msg.boundaries = { left: number, right: number }
+	 */
+	strikerZone,
+	/**
+	 * Sent by `gr/midfield` to assign zones to the midfield tasks
+	 * msg.boundaries = { left: number, right: number }
+	 */
+	midfieldZone,
+	/** Sent by `t/a/placeball` to inform that he is placing the ball. */
+	placingRobot,
 
-	// repeated messages
-	exclusiveRole, forcePoolChange, groupApplication
+	// =======================
+	// === Exclusive roles ===
+	// =======================
+
+	/** The only robot that should touch the ball. Also the one who will shoot it next. */
+	mainAttacker,
+	/**
+	 * The assistant to the duelist. Often becomes the next duelist when the
+	 * current duelist loses the ball to his opponent.
+	 */
+	duelAssistant,
+	/**
+	 * A role taken by a CenterBack. Its purpose is to deflect cross passes in
+	 * front of our defense area, without necessarily taking control of the
+	 * ball.
+	 */
+	interceptPass,
+	/**
+	 * A role taken by attackers. Selects the robot that should be
+	 * automatically exchanged after a yellow card.
+	 */
+	exchangeRobot,
+
+	// =========================
+	// === Repeated messages ===
+	// =========================
+
+	/**
+	 * Sent by agents that want to apply for an exclusive role
+	 * the list of exclusive roles is defined below
+	 * format: msg.<role>: number
+	 */
+	exclusiveRole,
+	/** Sent by `gr/moves` to make sure that unassigned robots become defenders */
+	forcePoolChange,
+	/**
+	 * Sent by agents that want to join a specific group.
+	 * The list of groups is defined in `tr/groups`
+	 */
+	groupApplication
 }
 
 export type ExclusiveRole = MessageType.mainAttacker | MessageType.duelAssistant | MessageType.interceptPass | MessageType.exchangeRobot;
