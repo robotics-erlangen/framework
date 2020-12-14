@@ -149,16 +149,15 @@ export enum MessageType {
 
 export type ExclusiveRole = MessageType.mainAttacker | MessageType.duelAssistant | MessageType.interceptPass | MessageType.exchangeRobot;
 
-export const MessageTypeList = [
-	MessageType.allyFlag, MessageType.attackerFlag, MessageType.defendedOpponent, MessageType.dueledOpponent, MessageType.defenderFlag,
-	MessageType.moveDest, MessageType.passSuggestion, MessageType.poolChangeRequest, MessageType.strikerFlag,
-	MessageType.strikerSamplingTimestamp,
-	MessageType.attackPosition, MessageType.earliestAttackTime, MessageType.centerBackPosTarget, MessageType.plannedAttackTime, MessageType.moveAssignment,
-	MessageType.moveInfo, MessageType.passInfo, MessageType.roleAssignment, MessageType.shootDestination,
-	MessageType.strikerZone, MessageType.midfieldZone,
-	MessageType.mainAttacker, MessageType.duelAssistant, MessageType.interceptPass, MessageType.exchangeRobot,
-	MessageType.exclusiveRole, MessageType.forcePoolChange, MessageType.groupApplication, MessageType.placingRobot
-];
+/*
+ * Enums in Typescript are objects with two members per variant: A number
+ * mapping to the name of the variant, and the name mapping to that number.
+ * Thus we can just filter out the names to get a list of all possible
+ * variants.
+ */
+export const MessageTypeList: MessageType[] = Object.keys(MessageType)
+	.map((key) => parseInt(key, 10))
+	.filter((key) => !isNaN(key));
 
 type MessageOrigin = "trainer" | FriendlyRobot;
 
