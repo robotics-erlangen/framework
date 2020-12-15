@@ -25,6 +25,7 @@ add_executable(cpptests
     amun/strategy/path/speedprofile.cpp
     amun/strategy/path/linesegment.cpp
     amun/strategy/path/obstacles.cpp
+    amun/strategy/path/endinobstaclesampler.cpp
 )
 
 target_link_libraries(cpptests
