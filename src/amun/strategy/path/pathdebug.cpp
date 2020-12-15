@@ -117,6 +117,9 @@ void PathDebug::debugLine(const QString &name, Vector start, Vector end, PathDeb
 
 void PathDebug::debugTrajectory(const QString &name, const SpeedProfile &trajectory, Vector offset, PathDebugColor color)
 {
+    if (!trajectory.isValid()) {
+        return;
+    }
     const int VIS_POINTS = 35;
     float timeInterval = trajectory.time() / float(VIS_POINTS-1);
 
