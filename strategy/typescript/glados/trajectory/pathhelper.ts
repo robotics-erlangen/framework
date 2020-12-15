@@ -435,26 +435,32 @@ function addRobotObstacles(path: Path, robot: FriendlyRobot, targetPosition: Pos
 	// use 1 seconds for the navigation challenge
 	let estimationTime = 0.1; // just a fixed time for now
 	let SLOW_ROBOT = 0.3;
+	let MAX_DISTANCE_TO_IGNORE = 3.5;
 	if (!ignoreFriendlyRobots) {
 		for (let r of World.FriendlyRobots) {
-			if (r.id !== robot.id) { // don't add current robot
-				if (useCMA || !r.path.lastFrameWasTrajectoryPath()) {
-					if (!ignoreRobot(robot, r)) {
-						// use speed difference to calculate the safety distance
-						let safetyDistance = MathUtil.bound(0, robot.speed.distanceTo(r.speed) * 0.05, 0.05);
-						let estimatedPosition = r.pos + r.speed * estimationTime;
-						// only use estimated position if it doesn't collide with the robot
-						if (robot.pos.distanceToLineSegment(r.pos, estimatedPosition) >= robot.radius + r.radius
-								&&  r.pos.distanceTo(estimatedPosition) > 0.0001) {
-							path.addLine(r.pos.x, r.pos.y, estimatedPosition.x, estimatedPosition.y,
-								r.radius + safetyDistance, `OwnRobot_${r.id}`, Priorities.ROBOT);
-						} else {
-							path.addCircle(r.pos.x, r.pos.y, r.radius + safetyDistance, `OwnRobot_${r.id}`, Priorities.ROBOT);
-						}
-					}
-				} else {
-					path.addFriendlyRobotObstacle(r, r.radius + 0.02, Priorities.ROBOT);
+			if (r.id === robot.id) { // don't add current robot
+				continue;
+			}
+			if (r.pos.distanceToLineSegment(robot.pos, targetPosition) > MAX_DISTANCE_TO_IGNORE) {
+				continue;
+			}
+			if (useCMA || !r.path.lastFrameWasTrajectoryPath()) {
+				if (ignoreRobot(robot, r)) {
+					continue;
 				}
+				// use speed difference to calculate the safety distance
+				let safetyDistance = MathUtil.bound(0, robot.speed.distanceTo(r.speed) * 0.05, 0.05);
+				let estimatedPosition = r.pos + r.speed * estimationTime;
+				// only use estimated position if it doesn't collide with the robot
+				if (robot.pos.distanceToLineSegment(r.pos, estimatedPosition) >= robot.radius + r.radius
+						&&  r.pos.distanceTo(estimatedPosition) > 0.0001) {
+					path.addLine(r.pos.x, r.pos.y, estimatedPosition.x, estimatedPosition.y,
+						r.radius + safetyDistance, `OwnRobot_${r.id}`, Priorities.ROBOT);
+				} else {
+					path.addCircle(r.pos.x, r.pos.y, r.radius + safetyDistance, `OwnRobot_${r.id}`, Priorities.ROBOT);
+				}
+			} else {
+				path.addFriendlyRobotObstacle(r, r.radius + 0.02, Priorities.ROBOT);
 			}
 		}
 	}
@@ -476,41 +482,46 @@ function addRobotObstacles(path: Path, robot: FriendlyRobot, targetPosition: Pos
 			if (robotIsSlow && willAccelerate) {
 				break;
 			}
-			if (!ignoreRobot(robot, r)) {
-				// use speed difference to calculate the safety distance
-				let safetyDistance = Math.max(0, Rating.valueToRating(robot.speed.distanceTo(r.speed), 0, 1.25) * 0.15 - 0.05);
-				if (robot.speed.length() < 0.5) {
-					safetyDistance = Math.min(safetyDistance, 0.02);
-				}
-				if (disableOpponentPrediction) { // be more aggressive
-					safetyDistance = safetyDistance / 2;
-				} else if (robot.speed.length() < SLOW_ROBOT && r.speed.length() < SLOW_ROBOT) {
-					safetyDistance = safetyDistance - 0.02;
-				}
-				let estimatedPosition = r.pos + r.speed * estimationTime;
-				// only use estimated position if it doesn't collide with the robot
-				if (robot.pos.distanceToLineSegment(r.pos, estimatedPosition) >= robot.radius + r.radius
-						&&  r.pos.distanceTo(estimatedPosition) > 0.0001) {
 
-					let absSpeed = r.speed.length();
-					let breakTime = absSpeed / r.acceleration.aBrakeFMax;
-					if (breakTime < estimationTime || useCMA) {
-						// They can break in the estimation. This means that leavingTime would be INF.
-						// TODO: we can trim the obstacle
-						// For now, we keep the fixed obstacle
-						path.addLine(r.pos.x, r.pos.y, estimatedPosition.x, estimatedPosition.y,
-							r.radius + safetyDistance, `OwnRobot_${r.id}`, Priorities.ROBOT);
-					} else {
-						// leavingTime is the time until the robot will have left the obstacle fully if he breaks as hard as possible.
-						let leavingTime = (-absSpeed + Math.sqrt(absSpeed * absSpeed + 2 * r.acceleration.aBrakeFMax * (absSpeed * estimationTime + r.radius))) / r.acceleration.aBrakeFMax;
-						path.addMovingLine(0, leavingTime, r.pos, new Vector(0, 0), new Vector(0, 0), estimatedPosition, new Vector(0, 0), new Vector(0, 0), r.radius + safetyDistance, Priorities.ROBOT);
-					}
-					if (!robotIsSlow && !useCMA) {
-						path.addMovingCircle(0, 0.8, r.pos, r.speed, new Vector(0, 0), r.radius + safetyDistance, Priorities.ROBOT);
-					}
+			if (ignoreRobot(robot, r)) {
+				continue;
+			}
+			if (r.pos.distanceToLineSegment(robot.pos, targetPosition) > MAX_DISTANCE_TO_IGNORE) {
+				continue;
+			}
+			// use speed difference to calculate the safety distance
+			let safetyDistance = Math.max(0, Rating.valueToRating(robot.speed.distanceTo(r.speed), 0, 1.25) * 0.15 - 0.05);
+			if (robot.speed.length() < 0.5) {
+				safetyDistance = Math.min(safetyDistance, 0.02);
+			}
+			if (disableOpponentPrediction) { // be more aggressive
+				safetyDistance = safetyDistance / 2;
+			} else if (robot.speed.length() < SLOW_ROBOT && r.speed.length() < SLOW_ROBOT) {
+				safetyDistance = safetyDistance - 0.02;
+			}
+			let estimatedPosition = r.pos + r.speed * estimationTime;
+			// only use estimated position if it doesn't collide with the robot
+			if (robot.pos.distanceToLineSegment(r.pos, estimatedPosition) >= robot.radius + r.radius
+					&&  r.pos.distanceTo(estimatedPosition) > 0.0001) {
+
+				let absSpeed = r.speed.length();
+				let breakTime = absSpeed / r.acceleration.aBrakeFMax;
+				if (breakTime < estimationTime || useCMA) {
+					// They can break in the estimation. This means that leavingTime would be INF.
+					// TODO: we can trim the obstacle
+					// For now, we keep the fixed obstacle
+					path.addLine(r.pos.x, r.pos.y, estimatedPosition.x, estimatedPosition.y,
+						r.radius + safetyDistance, `OwnRobot_${r.id}`, Priorities.ROBOT);
 				} else {
-					path.addCircle(r.pos.x, r.pos.y, r.radius + safetyDistance, `OwnRobot_${r.id}`, Priorities.ROBOT);
+					// leavingTime is the time until the robot will have left the obstacle fully if he breaks as hard as possible.
+					let leavingTime = (-absSpeed + Math.sqrt(absSpeed * absSpeed + 2 * r.acceleration.aBrakeFMax * (absSpeed * estimationTime + r.radius))) / r.acceleration.aBrakeFMax;
+					path.addMovingLine(0, leavingTime, r.pos, new Vector(0, 0), new Vector(0, 0), estimatedPosition, new Vector(0, 0), new Vector(0, 0), r.radius + safetyDistance, Priorities.ROBOT);
 				}
+				if (!robotIsSlow && !useCMA) {
+					path.addMovingCircle(0, 0.8, r.pos, r.speed, new Vector(0, 0), r.radius + safetyDistance, Priorities.ROBOT);
+				}
+			} else {
+				path.addCircle(r.pos.x, r.pos.y, r.radius + safetyDistance, `OwnRobot_${r.id}`, Priorities.ROBOT);
 			}
 		}
 	}
