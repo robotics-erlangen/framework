@@ -22,6 +22,7 @@
 #define VECTOR_H
 
 #include <cmath>
+#include <ostream>
 
 /*!
  * \ingroup path
@@ -78,6 +79,8 @@ public:
     float angle() const {
         return std::atan2(x, y) + float(2 * M_PI);
     }
+
+    friend std::ostream& operator<<(std::ostream &stream, const Vector v);
 
 public:
     union {
@@ -199,6 +202,12 @@ inline float Vector::lengthSquared() const
 inline float Vector::distance(const Vector &rho) const
 {
     return (*this - rho).length();
+}
+
+inline std::ostream& operator<<(std::ostream &stream, const Vector v)
+{
+    stream <<"Vector("<<v.x<<", "<<v.y<<")";
+    return stream;
 }
 
 #endif // VECTOR_H
