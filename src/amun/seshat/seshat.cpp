@@ -24,6 +24,7 @@
 #include "visionlogliveconverter.h"
 #include "logfilereader.h"
 #include "visionconverter.h"
+#include "logfilefinder.h"
 
 #include <QThread>
 #include <QCoreApplication>
@@ -177,6 +178,10 @@ void Seshat::handleCommand(const Command& command)
         if (playback.has_get_uid()) {
             handleUIDRequest();
         }
+
+        if (playback.has_find_logfile()) {
+            handleLogFindRequest(playback.find_logfile());
+        }
     }
 
     if (m_isPlayback && m_statusSource) {
@@ -237,6 +242,12 @@ void Seshat::handleUIDRequest()
     }
     pureUi->set_requested_log_uid(res.toStdString());
     emit sendUi(s);
+}
+
+void Seshat::handleLogFindRequest(const std::string& logHash)
+{
+    LogFileFinder finder;
+    emit sendUi(finder.find(QString::fromStdString(logHash)));
 }
 
 void Seshat::sendLogfileInfo(const std::string& message, bool error)

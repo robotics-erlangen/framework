@@ -144,6 +144,31 @@ Status LogFileFinder::find(logfile::Uid&& hash)
     return findAll();
 }
 
+Status LogFileFinder::find(const QString& stringified)
+{
+    QStringList splitted = stringified.split("+");
+    for(const QString& elem : splitted) {
+        auto* hashPart = m_hash.add_parts();
+        QStringList parts = elem.split(":");
+        if (parts.size() == 0) {
+            std::cerr << "This is bad: " << elem.toStdString() << std::endl;
+            m_hash.mutable_parts()->RemoveLast();
+        }
+        hashPart->set_hash(parts[0].toStdString());
+        if (parts.size() >= 2) {
+            if (parts.size() >= 3) {
+                std::cerr << "This is also bad: " << elem.toStdString() << std::endl;
+            }
+            bool ok;
+            hashPart->set_flags(parts[1].toInt(&ok));
+            if (!ok) {
+                hashPart->clear_flags();
+            }
+        }
+    }
+    return findAll();
+}
+
 Status LogFileFinder::findAll()
 {
     Status s = Status::createArena();

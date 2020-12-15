@@ -39,6 +39,7 @@ public:
     explicit LogFileFinder();
     Status find(const logfile::Uid& m_hash);
     Status find(logfile::Uid&& m_hash);
+    Status find(const QString& stringified);
 private:
     void findLocal(logfile::LogOffer* offers);
     Status findAll();

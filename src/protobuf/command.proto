@@ -224,6 +224,7 @@ message CommandPlayback {
     optional Flag instant_replay = 8;
     optional string export_vision_log = 9; // the location to save the vision log to
     optional Flag get_uid = 10;
+    optional string find_logfile = 11;
 }
 
 message CommandRecord {

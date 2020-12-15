@@ -57,6 +57,7 @@ private:
     void sendSimulatorCommand();
     void exportVisionLog(const std::string& filename);
     void handleUIDRequest();
+    void handleLogFindRequest(const std::string& logHash);
 
 private:
 
