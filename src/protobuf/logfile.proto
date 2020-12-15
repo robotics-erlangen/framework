@@ -12,3 +12,11 @@ message UidEntry {
 message Uid {
     repeated UidEntry parts = 1;
 }
+
+
+// This message can be modified to describe arbitraty log locations,
+// for example logs that can be downloaded from our NAS or
+// that are offered peer-to-peer.
+message LogRequest{
+    required string path = 1;
+}

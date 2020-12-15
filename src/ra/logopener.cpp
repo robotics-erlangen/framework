@@ -188,7 +188,7 @@ void LogOpener::openFile(const QString &filename)
     if (!filename.isEmpty()) {
         m_prelimFileName = filename; // Also FIXME: this is a relative path, an absolte path, an absolute mess, ...
         Command command(new amun::Command);
-        command->mutable_playback()->set_log_path(filename.toStdString());
+        command->mutable_playback()->mutable_log_path()->set_path(filename.toStdString());
         emit sendCommand(command);
     }
 }

@@ -52,7 +52,7 @@ private:
     void handleCheckHaltStatus(const Status &status);
     void setStatusSource(std::shared_ptr<StatusSource> source);
     void forceUi(bool ra);
-    void openLogfile(const std::string& filename);
+    void openLogfile(const logfile::LogRequest& filename);
     void sendLogfileInfo(const std::string& message, bool success);
     void sendSimulatorCommand();
     void exportVisionLog(const std::string& filename);

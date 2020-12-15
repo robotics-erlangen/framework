@@ -3,6 +3,7 @@ option cc_enable_arenas = true;
 
 import "world.proto";
 import "robot.proto";
+import "logfile.proto";
 
 package amun;
 
@@ -219,7 +220,7 @@ message CommandPlayback {
     optional int32 playback_speed = 4;
     optional Flag toggle_paused = 5;
     optional bool run_playback = 6; // used to switch between live and log (corresponding to ra and horus in the UI)
-    optional string log_path = 7;
+    optional logfile.LogRequest log_path = 7;
     optional Flag instant_replay = 8;
     optional string export_vision_log = 9; // the location to save the vision log to
 }
