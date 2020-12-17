@@ -94,6 +94,7 @@ private slots:
     void useLogfileLocation(bool enable);
     void exportVisionLog();
     void requestLogUid();
+    void searchUid(QString uid);
 
 private:
     void toggleHorusModeWidgets(bool enable);

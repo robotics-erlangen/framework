@@ -690,6 +690,15 @@ void MainWindow::requestLogUid()
     sendCommand(command);
 }
 
+void MainWindow::searchUid(QString uid)
+{
+    Command command{new amun::Command};
+    command->mutable_playback()->set_find_logfile(
+                uid.toStdString()
+            );
+    sendCommand(command);
+}
+
 void MainWindow::sendCommand(const Command &command)
 {
     emit m_amun.sendCommand(command);
