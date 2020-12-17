@@ -696,10 +696,6 @@ export class Messaging {
 	_robotToAgent: Map<FriendlyRobot, AgentLike> = new Map<FriendlyRobot, AgentLike>();
 	_trainerRegistered = false;
 
-	constructor() {
-		//
-	}
-
 	registerAgent(agent: AgentLike): MessageBox {
 		this._robotToAgent.set(agent.robot(), agent);
 		return new MessageBox(this, agent.robot());
