@@ -5,8 +5,18 @@ import { Position, RelativePosition } from "base/vector";
 import * as World from "base/world";
 
 import { Point as CenterBackPoint } from "glados/group/centerback";
+import { Assignment as MoveAssignment, MoveInfo } from "glados/group/moves";
+import { ForcePoolChange } from "glados/trainer/attackratio";
+import { RoleAssignment } from "glados/trainer/defense";
+import { Application as GroupApplication } from "glados/trainer/groups";
+import { ExclusiveRoleApplication } from "glados/trainer/roles";
+import { PassInfo, PassSuggestion } from "glados/util/attack";
 import { head } from "glados/util/collections";
-import { LeveledRating } from "glados/util/rating";
+
+interface Zone {
+	defaultPos: Position;
+	boundaries: { left: number, right: number, top: number, bottom: number };
+}
 
 export enum MessageType {
 	// =======================
@@ -32,10 +42,7 @@ export enum MessageType {
 	defenderFlag,
 	/** Sent by various tasks to notify other robots about their future positioning */
 	moveDest,
-	/**
-	 * Sent by strikers to the MA to propose a possible pass.
-	 * Requests that the ball is at msg.ballPos when the time reaches msg.time
-	 */
+	/** Sent by strikers to the MA to propose a possible pass. Also see {@link PassSuggestion} */
 	passSuggestion,
 	/** Sent by various behaviors which want to change the pool. */
 	poolChangeRequest,
@@ -55,21 +62,14 @@ export enum MessageType {
 	 * next shot. Also see {@link earliestAttackTime}.
 	 */
 	plannedAttackTime,
-	/**
-	 * Sent by `gr/centerback` to assign a target and a position to the centerback tasks.
-	 * target can be any table (preferably a ball-like or robot-like object)
-	 * time is relativ time until the target should be reached
-	 */
+	/** Sent by `gr/centerback` to assign a target and a position to the centerback tasks. */
 	centerBackPosTarget,
 	/**
 	 * Sent by the MA to tell other attackers about the earliest possible time
 	 * of the next shot. Also see {@link plannedAttackTime}.
 	 */
 	earliestAttackTime,
-	/**
-	 * Sent by `gr/moves` to the participating agents.
-	 * params is a list of parameters
-	 */
+	/** Sent by `gr/moves` to the participating agents. */
 	moveAssignment,
 	/**
 	 * Sent by `gr/moves` to `tr/attackratio` to overwrite the number of attackers.
@@ -83,33 +83,22 @@ export enum MessageType {
 	moveInfo,
 	/**
 	 * Sent by the MA to notify all agents about an upcoming pass.
-	 * When the ball is actually shot, there should only be one entry in the table.
-	 * This is needed to choose the correct mainAttacker.
-	 * The ball is at msg.ballPos when the time reaches msg.time.
-	 * Table is of entries of the format: { target = Robot, ballPos = "vector", time = "number" }]
+	 *
+	 * When the ball is actually shot, there should only be one entry in the
+	 * table. This is needed to choose the correct mainAttacker.
 	 */
 	passInfo,
 	/**
 	 * Sent by `tr/defense` to assign a behavior to each defender.
 	 *
-	 * Possible names are "CenterBack", "ManMark" and "ZoneDefense".
-	 * Params is a list of parameters
-	 * - Centerback: params[0]: Table, target like {pos= Vector, dir=Vector, time = number}
-	 * - ManMark: params[0]: Robot manMarkTarget
-	 * - ZoneDefense: params[0]: Vector movePos
+	 * See {@link RoleAssignment} for the possible parameters.
 	 */
 	roleAssignment,
 	/** sent by the MA to tell other attackers about the destination of the next shot */
 	shootDestination,
-	/**
-	 * Sent by `gr/striker` to assign zones to the striker tasks
-	 * msg.boundaries = { left: number, right: number }
-	 */
+	/** Sent by `gr/striker` to assign zones to the striker tasks */
 	strikerZone,
-	/**
-	 * Sent by `gr/midfield` to assign zones to the midfield tasks
-	 * msg.boundaries = { left: number, right: number }
-	 */
+	/** Sent by `gr/midfield` to assign zones to the midfield tasks */
 	midfieldZone,
 	/** Sent by `t/a/placeball` to inform that he is placing the ball. */
 	placingRobot,
@@ -142,9 +131,8 @@ export enum MessageType {
 	// =========================
 
 	/**
-	 * Sent by agents that want to apply for an exclusive role
-	 * the list of exclusive roles is defined below
-	 * format: msg.<role>: number
+	 * Sent by agents that want to apply for an exclusive role.
+	 * See {@link ExclusiveRole} for a list of these roles.
 	 */
 	exclusiveRole,
 	/** Sent by `gr/moves` to make sure that unassigned robots become defenders */
@@ -199,13 +187,10 @@ export class MessageBox {
 	}
 
 	send(type: MessageType.centerBackPosTarget, dest: FriendlyRobot, target: CenterBackPoint): void;
-	send(type: MessageType.moveAssignment, dest: FriendlyRobot, assignment: {behavior?: any, class?: any, params: any, restart: boolean, mainAttacker: boolean}): void;
-	send(type: MessageType.roleAssignment, dest: FriendlyRobot, assignment: { name: "CenterBack", params: {pos: Position, dir?: RelativePosition, time?: number} }): void;
-	send(type: MessageType.roleAssignment, dest: FriendlyRobot, assignment: { name: "ManMark", params: Robot[] }): void;
-	send(type: MessageType.roleAssignment, dest: FriendlyRobot, assignment: { name: "ZoneDefense", params: Position[] }): void;
-	send(type: MessageType.roleAssignment, dest: FriendlyRobot, assignment: { name: "Piggy", params: Robot[] }): void;
-	send(type: MessageType.strikerZone, dest: FriendlyRobot, zone: { defaultPos: Position, boundaries: {left: number, right: number, top: number, bottom: number} }): void;
-	send(type: MessageType.midfieldZone, dest: FriendlyRobot, zone: { defaultPos: Position, boundaries: {left: number, right: number, top: number, bottom: number} }): void;
+	send(type: MessageType.moveAssignment, dest: FriendlyRobot, assignment: MoveAssignment): void;
+	send(type: MessageType.roleAssignment, dest: FriendlyRobot, assignment: RoleAssignment): void;
+	send(type: MessageType.strikerZone, dest: FriendlyRobot, zone: Zone): void;
+	send(type: MessageType.midfieldZone, dest: FriendlyRobot, zone: Zone): void;
 	send(type: MessageType, dest: FriendlyRobot, data?: any): void {
 		this.sendGeneric(type, dest, data, false);
 	}
@@ -219,9 +204,9 @@ export class MessageBox {
 		this.sendGeneric(type, "trainer", data, false);
 	}
 
-	sendToTrainerRepeated(type: MessageType.exclusiveRole, role: [ExclusiveRole, LeveledRating]): void;
-	sendToTrainerRepeated(type: MessageType.forcePoolChange, info: { robot: FriendlyRobot, destPool: "manual" | "ally" | "keeper" | "defender" | "attacker" | "hidden" }): void;
-	sendToTrainerRepeated(type: MessageType.groupApplication, group: { name: "centerback" | "moves" | "striker" | "midfield", payload: any }): void;
+	sendToTrainerRepeated(type: MessageType.exclusiveRole, role: ExclusiveRoleApplication): void;
+	sendToTrainerRepeated(type: MessageType.forcePoolChange, info: ForcePoolChange): void;
+	sendToTrainerRepeated(type: MessageType.groupApplication, group: GroupApplication): void;
 	sendToTrainerRepeated(type: MessageType, data?: any): void {
 		this.sendGeneric(type, "trainer", data, true);
 	}
@@ -232,17 +217,17 @@ export class MessageBox {
 	sendBroadcast(type: MessageType.dueledOpponent, data: Robot): void;
 	sendBroadcast(type: MessageType.defenderFlag, data?: undefined): void;
 	sendBroadcast(type: MessageType.moveDest, pos: Position): void;
-	sendBroadcast(type: MessageType.passSuggestion, suggestion: {ballPos: Position, time: number, anonymous: boolean, chip: boolean, manual: boolean}): void;
+	sendBroadcast(type: MessageType.passSuggestion, suggestion: PassSuggestion): void;
 	sendBroadcast(type: MessageType.strikerFlag, data?: undefined): void;
 	sendBroadcast(type: MessageType.strikerSamplingTimestamp, time: number): void;
 	sendBroadcast(type: MessageType.attackPosition, pos: Position): void;
 	sendBroadcast(type: MessageType.plannedAttackTime, time: number): void;
 	sendBroadcast(type: MessageType.earliestAttackTime, time: number): void;
-	sendBroadcast(type: MessageType.passInfo, info: {target: FriendlyRobot, ballPos: Position, time: number}[]): void;
+	sendBroadcast(type: MessageType.passInfo, info: PassInfo[]): void;
 	sendBroadcast(type: MessageType.shootDestination, dest: Position): void;
 	sendBroadcast(type: ExclusiveRole, dest: FriendlyRobot | undefined): void;
 	sendBroadcast(type: MessageType.placingRobot, data? : undefined): void;
-	sendBroadcast(type: MessageType.moveInfo, info: { attackers: (number | undefined)[], allowExtraAttackers: boolean }): void;
+	sendBroadcast(type: MessageType.moveInfo, info: MoveInfo): void;
 	sendBroadcast(type: MessageType, data?: any): void {
 		if (type === MessageType.plannedAttackTime && (data === -Infinity || data === Infinity)) throw new Error("Invalid PAttackTime");
 		if (type === MessageType.earliestAttackTime && (data === -Infinity || data === Infinity)) throw new Error("Invalid EAttackTime");
@@ -314,7 +299,7 @@ export class MessageBox {
 	receive(type: MessageType.dueledOpponent, ownMessage?: boolean): ReadonlyRec<Map<FriendlyRobot, Robot>>;
 	receive(type: MessageType.defenderFlag, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, undefined>>;
 	receive(type: MessageType.moveDest, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, Position>>;
-	receive(type: MessageType.passSuggestion, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, {ballPos: Position, time: number, anonymous: boolean, chip: boolean, manual: boolean}>>;
+	receive(type: MessageType.passSuggestion, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, PassSuggestion>>;
 	receive(type: MessageType.poolChangeRequest, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, "attacker" | "defender">>;
 	receive(type: MessageType.strikerFlag, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, undefined>>;
 	receive(type: MessageType.strikerSamplingTimestamp, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, number>>;
@@ -325,7 +310,7 @@ export class MessageBox {
 	receiveSingleSender(type: MessageType.attackPosition, broadcast?: boolean): ReadonlyRec<[FriendlyRobot, Position] | []>;
 	receiveSingleSender(type: MessageType.earliestAttackTime, broadcast?: boolean): ReadonlyRec<[FriendlyRobot, number] | []>;
 	receiveSingleSender(type: MessageType.plannedAttackTime, broadcast?: boolean): ReadonlyRec<[FriendlyRobot, number] | []>;
-	receiveSingleSender(type: MessageType.passInfo, broadcast?: boolean): ReadonlyRec<[FriendlyRobot, {target: FriendlyRobot, ballPos: Position, time: number}[]] | []>;
+	receiveSingleSender(type: MessageType.passInfo, broadcast?: boolean): ReadonlyRec<[FriendlyRobot, PassInfo[]] | []>;
 	receiveSingleSender(type: MessageType.shootDestination, broadcast?: boolean): ReadonlyRec<[FriendlyRobot, Position] | []>;
 	receiveSingleSender(type: MessageType.placingRobot, broadcast?: boolean): ReadonlyRec<[FriendlyRobot, undefined] | []>;
 	receiveSingleSender(type: MessageType, broadcast?: boolean): ReadonlyRec<[FriendlyRobot, any] | []>  {
@@ -339,30 +324,27 @@ export class MessageBox {
 			: [];
 	}
 
-	receiveRepeated(type: MessageType.exclusiveRole, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, [ExclusiveRole, LeveledRating][]>>;
-	receiveRepeated(type: MessageType.groupApplication, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, { name: "centerback" | "moves" | "striker" | "midfield", payload: any }[]>>;
+	receiveRepeated(type: MessageType.exclusiveRole, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, ExclusiveRoleApplication[]>>;
+	receiveRepeated(type: MessageType.groupApplication, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, GroupApplication[]>>;
 	receiveRepeated(type: MessageType, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, any[]>> {
 		return this.receiveGeneric(type, broadcast) as ReadonlyRec<Map<FriendlyRobot, any[]>>;
 	}
 
 	receiveTrainer(type: MessageType.centerBackPosTarget, broadcast?: boolean): ReadonlyRec<CenterBackPoint | undefined>;
-	receiveTrainer(type: MessageType.moveAssignment, broadcast?: boolean): ReadonlyRec<{behavior: any, class: any, params: any, restart: boolean, mainAttacker: boolean} | undefined>;
-	receiveTrainer(type: MessageType.roleAssignment, broadcast?: boolean):
-		ReadonlyRec<{ name: "CenterBack", params: {pos: Position, dir: RelativePosition, time: number} }
-		| { name: "ManMark", params: Robot[] } | { name: "ZoneDefense", params: [Position] }
-		| { name: "Piggy", params: [Robot] } | undefined>;
-	receiveTrainer(type: MessageType.strikerZone, broadcast?: boolean): ReadonlyRec<{ defaultPos: Position, boundaries: {left: number, right: number, top: number, bottom: number} } | undefined>;
-	receiveTrainer(type: MessageType.midfieldZone, broadcast?: boolean): ReadonlyRec<{ defaultPos: Position, boundaries: {left: number, right: number, top: number, bottom: number } } | undefined>;
+	receiveTrainer(type: MessageType.moveAssignment, broadcast?: boolean): ReadonlyRec<MoveAssignment | undefined>;
+	receiveTrainer(type: MessageType.roleAssignment, broadcast?: boolean): ReadonlyRec<RoleAssignment | undefined>;
+	receiveTrainer(type: MessageType.strikerZone, broadcast?: boolean): ReadonlyRec<Zone | undefined>;
+	receiveTrainer(type: MessageType.midfieldZone, broadcast?: boolean): ReadonlyRec<Zone | undefined>;
 	receiveTrainer(type: MessageType.mainAttacker, broadcast?: boolean): ReadonlyRec<FriendlyRobot | undefined>;
 	receiveTrainer(type: MessageType.duelAssistant, broadcast?: boolean): ReadonlyRec<FriendlyRobot | undefined>;
 	receiveTrainer(type: MessageType.interceptPass, broadcast?: boolean): ReadonlyRec<FriendlyRobot | undefined>;
 	receiveTrainer(type: MessageType.exchangeRobot, broadcast?: boolean): ReadonlyRec<FriendlyRobot | undefined>;
-	receiveTrainer(type: MessageType.moveInfo, broadcast?: boolean): ReadonlyRec<{ attackers: (number | undefined)[], allowExtraAttackers: boolean } | undefined>;
+	receiveTrainer(type: MessageType.moveInfo, broadcast?: boolean): ReadonlyRec<MoveInfo | undefined>;
 	receiveTrainer(type: MessageType, broadcast?: boolean): any {
 		return this.receiveGeneric(type, broadcast).get("trainer");
 	}
 
-	receiveTrainerRepeated(type: MessageType.forcePoolChange): ReadonlyRec<{ robot: FriendlyRobot, destPool: "manual" | "ally" | "keeper" | "defender" | "attacker" | "hidden" }[] | undefined>;
+	receiveTrainerRepeated(type: MessageType.forcePoolChange): ReadonlyRec<ForcePoolChange[] | undefined>;
 	receiveTrainerRepeated(type: MessageType, broadcast?: boolean): ReadonlyRec<any[] | undefined> {
 		return this.receiveGeneric(type, broadcast).get("trainer");
 	}

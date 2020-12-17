@@ -16,14 +16,19 @@ import * as Rating from "glados/util/rating";
 
 let G = World.Geometry;
 
-interface PassInfo {
+export interface PassInfo {
+	/** The target of an upcoming pass */
 	target: FriendlyRobot;
+	/** The position the ball should be at when the time reaches {@link time} */
 	ballPos: Position;
+	/** At this time the ball should be at {@link ballPos} */
 	time: number;
 }
 
-interface PassSuggestion {
+export interface PassSuggestion {
+	/** The position the ball should be at when the time reaches {@link time} */
 	ballPos: Position;
+	/** At this time, the ball should be at {@link ballPos} */
 	time: number;
 	anonymous: boolean;
 	chip: boolean;

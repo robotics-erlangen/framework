@@ -10,6 +10,13 @@ import * as Ball from "glados/observer/ball";
 import * as Referee from "glados/observer/referee";
 import * as Robot from "glados/observer/robot";
 
+export type ChangePoolTo = "attacker" | "defender";
+
+export interface ForcePoolChange {
+	robot: FriendlyRobot;
+	destPool: "manual" | "ally" | "keeper" | "defender" | "attacker" | "hidden";
+}
+
 export class AttackRatio {
 	_friendlyFreeKickOngoing: boolean = false;
 	_opponentFreeKickAT: number | undefined = undefined;

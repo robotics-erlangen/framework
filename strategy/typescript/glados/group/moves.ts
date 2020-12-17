@@ -15,6 +15,20 @@ import { WindshieldWiper } from "glados/group/move/windshieldwiper";
 import { Group } from "glados/trainer/groups";
 // import {OverChip} from "glados/group/move/overchip";
 
+export interface Assignment {
+	behavior?: any;
+	class?: any;
+	/** The parameters used to construct class or behavior */
+	params: any;
+	restart: boolean;
+	mainAttacker: boolean;
+}
+
+export interface MoveInfo {
+	attackers: (number | undefined)[];
+	allowExtraAttackers: boolean;
+}
+
 export class Moves implements Group {
 	readonly name = "moves";
 	moveList: typeof Move[];

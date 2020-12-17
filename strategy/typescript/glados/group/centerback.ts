@@ -49,9 +49,13 @@ let centerBackPositions: Map<FriendlyRobot, {pos: Position, target: Target | und
 				// 	["time"] = (i.n == 1) and i.time or math.huge
 				// }
 export interface Point {
+	/** The position the centerback should drive to */
 	pos: Position;
+	/** Usually a ball or a robot */
 	target: Target | undefined;
+	/** Where to stand on the centerback line */
 	way: number;
+	/** A relative time until which the target should be reached */
 	time?: number;
 }
 

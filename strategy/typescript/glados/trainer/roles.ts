@@ -10,6 +10,8 @@ import { LeveledRating } from "glados/util/rating";
 
 const ROLE_HYSTERESIS = 0.05;
 
+export type ExclusiveRoleApplication = [ExclusiveRole, LeveledRating];
+
 export class Roles {
 	_exclusiveRoles: Map<ExclusiveRole, FriendlyRobot> = new Map<ExclusiveRole, FriendlyRobot>();
 

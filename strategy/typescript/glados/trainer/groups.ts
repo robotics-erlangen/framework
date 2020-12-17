@@ -15,7 +15,7 @@ export interface Group {
 
 export type GroupConstructor = new() => Group;
 
-interface Application {
+export interface Application {
 	name: GroupName;
 	payload: any;
 }

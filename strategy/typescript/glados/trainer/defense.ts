@@ -437,6 +437,28 @@ export class Defense {
 	}
 }
 
+export interface CenterBackRoleAssignment {
+	name: "CenterBack";
+	params: { pos: Position, dir?: RelativePosition, time?: number };
+}
+
+export interface ManMarkRoleAssignment {
+	name: "ManMark";
+	params: Robot[];
+}
+
+export interface PiggyRoleAssignment {
+	name: "Piggy";
+	params: Robot[];
+}
+
+export interface ZoneDefenseRoleAssignment {
+	name: "ZoneDefense";
+	params: Position[];
+}
+
+export type RoleAssignment = CenterBackRoleAssignment | ManMarkRoleAssignment | PiggyRoleAssignment | ZoneDefenseRoleAssignment;
+
 function determineNumberOfPiggies(defenderCount: number, manmarkTargets: Map<Robot, number>, piggyTargets: Map<Robot, number>): number {
 	debug.push("piggy count");
 	debug.set("defender count", defenderCount);
