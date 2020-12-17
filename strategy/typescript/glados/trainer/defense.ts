@@ -309,12 +309,12 @@ export class Defense {
 		let defenseExtraRadius = distanceToDefenseArea + Constants.maxRobotRadius;
 		let intersectionInfos: Ray[] = [];
 		if (ballDistance < 1 ? World.Ball.speed.length() > 0.2 : !Ball.isSlowBall()) {
-			this._createIntersections(intersectionInfos, World.Ball.pos, World.Ball.speed, defenseExtraRadius, 1, false);
+			this._createIntersections(intersectionInfos, World.Ball.pos, World.Ball.speed, defenseExtraRadius, 0, false);
 		}
 		let [predicedPos, predicedDir, isShot, _, isDribbling] = Goal.predictShot(true);
 		if ((isShot || isDribbling) && (!predicedPos.equals(World.Ball.pos) || !predicedDir.equals(World.Ball.speed))) {
 			let numBefore = intersectionInfos.length;
-			this._createIntersections(intersectionInfos, predicedPos, predicedDir, defenseExtraRadius, 2, isDribbling);
+			this._createIntersections(intersectionInfos, predicedPos, predicedDir, defenseExtraRadius, 1, isDribbling);
 			if (intersectionInfos.length > numBefore) {
 				intersectionInfos[numBefore].resetSpeed = true;
 				intersectionInfos[numBefore].isDribbling = isDribbling;
