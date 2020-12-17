@@ -37,14 +37,19 @@ LogFileSelectionDialog::~LogFileSelectionDialog()
     delete ui;
 }
 
-void LogFileSelectionDialog::setListContent(const QList<QString> &l)
+void LogFileSelectionDialog::setListContent(const logfile::LogOffer &l)
 {
     ui->list->clear();
-    ui->list->addItems(l);
+    paths = {};
+    const auto& qualityDescriptor = logfile::LogOfferEntry::QUALITY_descriptor();
+    for (const auto& item : l.entries()) {
+        ui->list->addItem(QString::fromStdString(item.name() + "(" + qualityDescriptor->FindValueByNumber(item.quality())->name() + ")"));
+        paths.append(QString::fromStdString(item.uri().path()));
+    }
 }
 
 void LogFileSelectionDialog::onAccept()
 {
-    emit resultSelected(ui->list->currentRow());
+    emit resultSelected(paths[ui->list->currentRow()]);
     accept();
 }

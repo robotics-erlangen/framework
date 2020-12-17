@@ -33,6 +33,7 @@
 #include "protobuf/geometry.h"
 #include "logopener.h"
 #include "loglabel.h"
+#include "logfileselectiondialog.h"
 #include <google/protobuf/text_format.h>
 #include <QFile>
 #include <QFileDialog>
@@ -646,6 +647,14 @@ void MainWindow::handleStatus(const Status &status)
 
         if (response.has_requested_log_uid()) {
             QMessageBox::information(this, "Log UID", QString::fromStdString(response.requested_log_uid()));
+        }
+
+        if (response.has_log_offers()) {
+            LogFileSelectionDialog* dialog = new LogFileSelectionDialog(this);
+            dialog->setAttribute(Qt::WA_DeleteOnClose);
+            connect(dialog, SIGNAL(resultSelected(QString)), m_logOpener, SLOT(openFile(const QString&)));
+            dialog->setListContent(response.log_offers());
+            dialog->show();
         }
     }
 

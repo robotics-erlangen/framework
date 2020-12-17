@@ -25,6 +25,8 @@
 #include <QString>
 #include <QList>
 
+#include "protobuf/logfile.pb.h"
+
 namespace Ui {
 class LogFileSelectionDialog;
 }
@@ -38,16 +40,17 @@ public:
     ~LogFileSelectionDialog();
 
 public slots:
-    void setListContent(const QList<QString> &l);
+    void setListContent(const logfile::LogOffer & l);
 
 signals:
-    void resultSelected(unsigned int index);
+    void resultSelected(QString selected);
 
 private slots:
     void onAccept();
 
 private:
     Ui::LogFileSelectionDialog *ui;
+    QList<QString> paths;
 };
 
 #endif // LOGFILESELECTIONDIALOG_H
