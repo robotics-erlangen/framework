@@ -656,6 +656,10 @@ void MainWindow::handleStatus(const Status &status)
             dialog->setListContent(response.log_offers());
             dialog->show();
         }
+
+        if (response.has_log_uid_parser_error()) {
+            QMessageBox::critical(this, "UID Parser error", QString::fromStdString(response.log_uid_parser_error()));
+        }
     }
 
     emit gotStatus(status);

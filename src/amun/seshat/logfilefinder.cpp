@@ -147,26 +147,42 @@ Status LogFileFinder::find(logfile::Uid&& hash)
 Status LogFileFinder::find(const QString& stringified)
 {
     QStringList splitted = stringified.split("+");
+    bool ok = true;
+    std::string error;
     for(const QString& elem : splitted) {
         auto* hashPart = m_hash.add_parts();
         QStringList parts = elem.split(":");
         if (parts.size() == 0) {
-            std::cerr << "This is bad: " << elem.toStdString() << std::endl;
-            m_hash.mutable_parts()->RemoveLast();
+            error = "Having a QStringList post split with 0 entries seems impossible: " + elem.toStdString();
+            ok = false;
+            break;
         }
         hashPart->set_hash(parts[0].toStdString());
         if (parts.size() >= 2) {
             if (parts.size() >= 3) {
-                std::cerr << "This is also bad: " << elem.toStdString() << std::endl;
+                error = "Every entry should not have more than 1 colon: " + elem.toStdString();
+                ok = false;
+                break;
             }
-            bool ok;
             hashPart->set_flags(parts[1].toInt(&ok));
             if (!ok) {
                 hashPart->clear_flags();
+                error = "This was an unparsable number: " + parts[1].toStdString() + ", in: " + elem.toStdString();
+                break;
             }
         }
     }
-    return findAll();
+
+    if (ok) {
+        return findAll();
+    }
+    int sz = error.size();
+    for (int i=50; i < sz; i += 50) {
+        error.insert(i, "\n");
+    }
+    Status status{new amun::Status};
+    status->mutable_pure_ui_response()->set_log_uid_parser_error(error);
+    return status;
 }
 
 Status LogFileFinder::findAll()
