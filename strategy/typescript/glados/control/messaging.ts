@@ -308,15 +308,15 @@ export class MessageBox {
 
 	// receive code
 	// allyFlag, attackerFlag
-	receive(type: MessageType.allyFlag, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, true>>;
-	receive(type: MessageType.attackerFlag, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, true>>;
+	receive(type: MessageType.allyFlag, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, undefined>>;
+	receive(type: MessageType.attackerFlag, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, undefined>>;
 	receive(type: MessageType.defendedOpponent, ownMessage?: boolean): ReadonlyRec<Map<FriendlyRobot, Robot>>;
 	receive(type: MessageType.dueledOpponent, ownMessage?: boolean): ReadonlyRec<Map<FriendlyRobot, Robot>>;
-	receive(type: MessageType.defenderFlag, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, true>>;
+	receive(type: MessageType.defenderFlag, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, undefined>>;
 	receive(type: MessageType.moveDest, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, Position>>;
 	receive(type: MessageType.passSuggestion, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, {ballPos: Position, time: number, anonymous: boolean, chip: boolean, manual: boolean}>>;
 	receive(type: MessageType.poolChangeRequest, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, "attacker" | "defender">>;
-	receive(type: MessageType.strikerFlag, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, true>>;
+	receive(type: MessageType.strikerFlag, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, undefined>>;
 	receive(type: MessageType.strikerSamplingTimestamp, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, number>>;
 	receive(type: MessageType, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, any>> {
 		return this.receiveGeneric(type, broadcast) as ReadonlyRec<Map<FriendlyRobot, any>>;
