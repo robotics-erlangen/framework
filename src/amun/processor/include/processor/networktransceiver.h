@@ -24,6 +24,7 @@
 
 #include "protobuf/command.h"
 #include "protobuf/status.h"
+#include "protobuf/grsim_packet.pb.h"
 
 class QUdpSocket;
 
@@ -42,6 +43,9 @@ signals:
 public slots:
     void handleRadioCommands(const QList<robot::RadioCommand> &commands, qint64 processingStart);
     void handleCommand(const Command &command);
+
+private:
+    bool sendGrSimPacket(const QList<robot::RadioCommand> &commands, bool blueTeam);
 
 private:
     bool m_charge;

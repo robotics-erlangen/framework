@@ -45,7 +45,6 @@ set(PROTO_FILES
     ssl_game_event_2019.proto
     ssl_geometry.proto
     ssl_mixed_team.proto
-    ssl_radio_protocol.proto
     ssl_referee.proto
     ssl_referee_game_event.proto
     ssl_wrapper.proto

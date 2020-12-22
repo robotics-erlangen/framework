@@ -30,7 +30,7 @@ const uint DEFAULT_REFEREE_PORT = 10003;
 
 const bool DEFAULT_NETWORK_ENABLE = false;
 const QString DEFAULT_NETWORK_HOST = QStringLiteral("");
-const uint DEFAULT_NETWORK_PORT = 10010;
+const uint DEFAULT_NETWORK_PORT = 20011;
 
 const QString DEFAULT_MIXED_HOST = QStringLiteral("");
 const uint DEFAULT_MIXED_PORT = 10012;

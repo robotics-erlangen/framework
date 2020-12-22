@@ -19,7 +19,8 @@
  ***************************************************************************/
 #include "networktransceiver.h"
 #include "core/timer.h"
-#include "protobuf/ssl_radio_protocol.pb.h"
+#include "protobuf/grsim_commands.pb.h"
+#include "protobuf/grsim_replacement.pb.h"
 #include <QUdpSocket>
 
 NetworkTransceiver::NetworkTransceiver(QObject *parent) : QObject(parent),
@@ -31,30 +32,32 @@ NetworkTransceiver::NetworkTransceiver(QObject *parent) : QObject(parent),
 
 NetworkTransceiver::~NetworkTransceiver() { }
 
-void NetworkTransceiver::handleRadioCommands(const QList<robot::RadioCommand> &commands, qint64 processingStart)
+bool NetworkTransceiver::sendGrSimPacket(const QList<robot::RadioCommand> &commands, bool blueTeam)
 {
-    (void)processingStart;
-    Status status(new amun::Status);
-    const qint64 transceiver_start = Timer::systemTime();
-
-    // charging the condensator can be enabled / disable separately
-    SSL_RadioProtocolWrapper wrapper;
-    foreach (const robot::RadioCommand &robot, commands) {
-        SSL_RadioProtocolCommand *cmd = wrapper.add_command();
-        cmd->set_robot_id(robot.id());
-        cmd->set_velocity_x(robot.command().output1().v_f());
-        cmd->set_velocity_y(-robot.command().output1().v_s());
-        cmd->set_velocity_r(robot.command().output1().omega());
+    grSim_Packet packet;
+    packet.mutable_commands()->set_timestamp(0);
+    packet.mutable_commands()->set_isteamyellow(!blueTeam);
+    for (const robot::RadioCommand &robot : commands) {
+        if (robot.is_blue() != blueTeam) {
+            continue;
+        }
+        grSim_Robot_Command *command = packet.mutable_commands()->add_robot_commands();
+        command->set_id(robot.id());
+        command->set_kickspeedx(0);
+        command->set_kickspeedz(0);
         if (robot.command().kick_power() > 0 && m_charge) {
-            if (robot.command().kick_style() == robot::Command::Chip) {
-                cmd->set_chip_kick(qBound(0.f, robot.command().kick_power(), 20.f));
+            if (robot.command().kick_style() == robot::Command::Linear) {
+                command->set_kickspeedx(robot.command().kick_power());
             } else {
-                cmd->set_flat_kick(qBound(0.f, robot.command().kick_power(), 20.f));
+                command->set_kickspeedx(robot.command().kick_power() / 2);
+                command->set_kickspeedz(robot.command().kick_power() / 2);
             }
         }
-        if (robot.command().dribbler() != 0) {
-            cmd->set_dribbler_spin(qBound(-1.f, robot.command().dribbler(), 1.f));
-        }
+        command->set_veltangent(robot.command().output1().v_f());
+        command->set_velnormal(-robot.command().output1().v_s());
+        command->set_velangular(robot.command().output1().omega());
+        command->set_spinner(robot.command().dribbler() > 0);
+        command->set_wheelsspeed(false);
     }
 
     bool sendingSuccessful = false;
@@ -62,11 +65,23 @@ void NetworkTransceiver::handleRadioCommands(const QList<robot::RadioCommand> &c
         QHostAddress address(QString::fromStdString(m_configuration.host()));
 
         QByteArray data;
-        data.resize(wrapper.ByteSize());
-        if (wrapper.SerializeToArray(data.data(), data.size())) {
+        data.resize(packet.ByteSize());
+        if (packet.SerializeToArray(data.data(), data.size())) {
             sendingSuccessful = m_udpSocket->writeDatagram(data, address, m_configuration.port()) == data.size();
         }
     }
+
+    return sendingSuccessful;
+}
+
+void NetworkTransceiver::handleRadioCommands(const QList<robot::RadioCommand> &commands, qint64 processingStart)
+{
+    (void)processingStart;
+    Status status(new amun::Status);
+    const qint64 transceiver_start = Timer::systemTime();
+
+    bool sendingSuccessful = sendGrSimPacket(commands, false);
+    sendingSuccessful &= sendGrSimPacket(commands, true);
 
     status->mutable_timing()->set_transceiver((Timer::systemTime() - transceiver_start) * 1E-9f);
     status->mutable_transceiver()->set_active(sendingSuccessful);
