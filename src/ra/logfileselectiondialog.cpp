@@ -21,9 +21,10 @@
 #include "logfileselectiondialog.h"
 #include "ui_logfileselectiondialog.h"
 
-LogFileSelectionDialog::LogFileSelectionDialog(QWidget *parent) :
+LogFileSelectionDialog::LogFileSelectionDialog(QWidget *parent, bool filter) :
     QDialog(parent),
-    ui(new Ui::LogFileSelectionDialog)
+    ui(new Ui::LogFileSelectionDialog),
+    m_filter(filter)
 {
     ui->setupUi(this);
     setWindowTitle("Select Logfile");
@@ -74,22 +75,24 @@ struct LogEntry {
 void LogFileSelectionDialog::setListContent(const logfile::LogOffer &l)
 {
     ui->list->clear();
-    paths = {};
+    m_paths = {};
     std::vector<LogEntry> items;
     items.reserve(l.entries_size());
     for (const auto& item : l.entries()) {
-        items.emplace_back(item.uri().path(), item.name(), item.quality());
+        if (!m_filter || item.quality() == logfile::LogOfferEntry::PERFECT) {
+            items.emplace_back(item.uri().path(), item.name(), item.quality());
+        }
     }
     std::sort(items.begin(), items.end());
 
     for(const auto& item: items) {
          ui->list->addItem(QString::fromStdString(item.toString()));
-         paths.append(QString::fromStdString(item.path));
+         m_paths.append(QString::fromStdString(item.path));
     }
 }
 
 void LogFileSelectionDialog::onAccept()
 {
-    emit resultSelected(paths[ui->list->currentRow()]);
+    emit resultSelected(m_paths[ui->list->currentRow()]);
     accept();
 }

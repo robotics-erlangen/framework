@@ -36,7 +36,7 @@ class LogFileSelectionDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit LogFileSelectionDialog(QWidget *parent = nullptr);
+    explicit LogFileSelectionDialog(QWidget *parent = nullptr, bool filter = true);
     ~LogFileSelectionDialog();
 
 public slots:
@@ -50,7 +50,8 @@ private slots:
 
 private:
     Ui::LogFileSelectionDialog *ui;
-    QList<QString> paths;
+    QList<QString> m_paths;
+    bool m_filter;
 };
 
 #endif // LOGFILESELECTIONDIALOG_H
