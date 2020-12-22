@@ -157,7 +157,7 @@ Status LogFileFinder::find(const QString& stringified)
             ok = false;
             break;
         }
-        hashPart->set_hash(parts[0].toStdString());
+        hashPart->set_hash(parts[0].remove('\n').toStdString());
         if (parts.size() >= 2) {
             if (parts.size() >= 3) {
                 error = "Every entry should not have more than 1 colon: " + elem.toStdString();
