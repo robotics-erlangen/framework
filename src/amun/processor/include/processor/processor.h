@@ -24,7 +24,6 @@
 #include "protobuf/command.h"
 #include "protobuf/robotcommand.h"
 #include "protobuf/ssl_mixed_team.pb.h"
-#include "protobuf/ssl_radio_protocol.pb.h"
 #include "protobuf/status.h"
 #include <QMap>
 #include <QPair>
@@ -63,7 +62,6 @@ public slots:
     void handleRefereePacket(const QByteArray &data, qint64 time);
     void handleVisionPacket(const QByteArray &data, qint64 time, QString sender);
     void handleSimulatorExtraVision(const QByteArray &data);
-    void handleNetworkCommand(const QByteArray &data, qint64 time);
     void handleMixedTeamInfo(const QByteArray &data, qint64 time);
     void handleRadioResponses(const QList<robot::RadioResponse> &responses);
     void handleCommand(const Command &command);
@@ -105,11 +103,9 @@ private:
     std::unique_ptr<Tracker> m_speedTracker;
     std::unique_ptr<Tracker> m_simpleTracker;
     QList<robot::RadioResponse> m_responses;
-    QMap<uint, SSL_RadioProtocolCommand> m_networkCommand;
     QList<QByteArray> m_extraVision;
     ssl::TeamPlan m_mixedTeamInfo;
     bool m_mixedTeamInfoSet;
-    qint64 m_networkCommandTime;
     bool m_refereeInternalActive;
     bool m_simulatorEnabled;
     bool m_lastFlipped;

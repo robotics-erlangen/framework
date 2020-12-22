@@ -67,7 +67,6 @@ Amun::Amun(bool simulatorOnly, QObject *parent) :
     m_simulator(nullptr),
     m_referee(nullptr),
     m_vision(nullptr),
-    m_networkCommand(nullptr),
     m_mixedTeam(nullptr),
     m_simulatorEnabled(false),
     m_scaling(1.0f),
@@ -242,11 +241,6 @@ void Amun::start()
         // vision is connected in setSimulatorEnabled
         connect(m_vision, &Receiver::sendStatus, this, &Amun::handleStatus);
 
-        // create network radio protocol receiver
-        setupReceiver(m_networkCommand, QHostAddress(), 10010);
-        // pass packets to processor
-        connect(m_networkCommand, SIGNAL(gotPacket(QByteArray, qint64, QString)), m_processor, SLOT(handleNetworkCommand(QByteArray, qint64)));
-
         // create mixed team information receiver
         setupReceiver(m_mixedTeam, QHostAddress(), 10012);
         // pass packets to processor
@@ -332,7 +326,6 @@ void Amun::stop()
     // worker objects are destroyed on thread shutdown
     m_transceiver = nullptr;
     m_networkTransceiver = nullptr;
-    m_networkCommand = nullptr;
     m_simulator = nullptr;
     m_vision = nullptr;
     m_referee = nullptr;

@@ -120,7 +120,6 @@ Processor::Processor(const Timer *timer) :
     m_speedTracker(new Tracker(true, true)),
     m_simpleTracker(new Tracker(true, false)),
     m_mixedTeamInfoSet(false),
-    m_networkCommandTime(0),
     m_refereeInternalActive(false),
     m_simulatorEnabled(false),
     m_lastFlipped(false),
@@ -298,26 +297,6 @@ void Processor::injectUserControl(Status &status, bool isBlue)
             continue;
         }
 
-        if (robot->manual_command->network_controlled()
-                && m_networkCommandTime + 200*1000*1000 > status->world_state().time()
-                && m_networkCommand.contains(robot->id)) {
-
-            const SSL_RadioProtocolCommand &cmd = m_networkCommand[robot->id];
-
-            robot->manual_command->set_v_f(cmd.velocity_x());
-            robot->manual_command->set_v_s(-cmd.velocity_y());
-            robot->manual_command->set_omega(cmd.velocity_r());
-            if (cmd.has_flat_kick()) {
-                robot->manual_command->set_kick_style(robot::Command::Linear);
-                robot->manual_command->set_kick_power(cmd.flat_kick());
-            } else if (cmd.has_chip_kick()) {
-                robot->manual_command->set_kick_style(robot::Command::Chip);
-                robot->manual_command->set_kick_power(cmd.chip_kick());
-            }
-            robot->manual_command->set_dribbler(cmd.dribbler_spin());
-            robot->manual_command->set_local(true);
-        }
-
         if (!robot->manual_command->strategy_controlled()) {
             continue;
         }
@@ -394,18 +373,6 @@ void Processor::handleVisionPacket(const QByteArray &data, qint64 time, QString 
 void Processor::handleSimulatorExtraVision(const QByteArray &data)
 {
     m_extraVision.append(data);
-}
-
-void Processor::handleNetworkCommand(const QByteArray &data, qint64 time)
-{
-    m_networkCommand.clear();
-    m_networkCommandTime = time;
-    SSL_RadioProtocolWrapper wrapper;
-    wrapper.ParseFromArray(data.constData(), data.size());
-    for (int i = 0; i < wrapper.command_size(); ++i) {
-        const SSL_RadioProtocolCommand &cmd = wrapper.command(i);
-        m_networkCommand[cmd.robot_id()] = cmd;
-    }
 }
 
 void Processor::handleMixedTeamInfo(const QByteArray &data, qint64 time)
