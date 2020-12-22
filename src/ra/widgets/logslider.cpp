@@ -134,6 +134,12 @@ void LogSlider::handleStatus(const Status& status)
             // prevent sliders from seeking
             m_scroll = false;
             ui->spinPacketCurrent->setValue(response.frame_number());
+            if (ui->spinLimit->value() < 0) {
+                ui->spinLimit->setValue(ui->spinLimit->maximum());
+            }
+            if (ui->spinLimit->value() <= response.frame_number()) {
+                emit togglePaused();
+            }
 
             // don't do updates for the slider which would only cause subpixel movement
             // as that won't be visible but is very expensive to redraw
@@ -265,6 +271,8 @@ void LogSlider::initializeLabels(int64_t packetCount, bool enable)
     // set log information
     ui->spinPacketCurrent->setMinimum(0);
     ui->spinPacketCurrent->setMaximum(packetCount - 1);
+    ui->spinLimit->setMaximum(packetCount - 1);
+    ui->spinLimit->setValue(packetCount - 1);
     ui->lblPacketMax->setText(QString::number(packetCount - 1));
     ui->lblTimeMax->setText(formatTime(m_duration));
     ui->horizontalSlider->setMaximum(m_duration / 1E8);
