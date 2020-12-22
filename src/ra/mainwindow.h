@@ -95,6 +95,7 @@ private slots:
     void exportVisionLog();
     void requestLogUid();
     void searchUid(QString uid);
+    void requestUidInsertWindow();
 
 private:
     void toggleHorusModeWidgets(bool enable);

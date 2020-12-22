@@ -48,8 +48,9 @@
 #include <QDragMoveEvent>
 #include <QDropEvent>
 #include <QMimeData>
-#include <QMessageBox>
 #include <QUrl>
+#include <QMessageBox>
+#include <QInputDialog>
 
 MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     QMainWindow(parent),
@@ -183,6 +184,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     connect(ui->actionChangeLocation, SIGNAL(triggered()), SLOT(showDirectoryDialog()));
     connect(ui->exportVision, &QAction::triggered, this, &MainWindow::exportVisionLog);
     connect(ui->getLogUid, &QAction::triggered, this, &MainWindow::requestLogUid);
+    connect(ui->openLogUidString, &QAction::triggered, this, &MainWindow::requestUidInsertWindow);
 
     connect(ui->actionGoLive, SIGNAL(triggered()), SLOT(liveMode()));
     connect(ui->actionShowBacklog, SIGNAL(triggered()), SLOT(showBacklogMode()));
@@ -697,6 +699,14 @@ void MainWindow::searchUid(QString uid)
                 uid.toStdString()
             );
     sendCommand(command);
+}
+
+void MainWindow::requestUidInsertWindow()
+{
+    auto* input = new QInputDialog(this);
+    input->setAttribute(Qt::WA_DeleteOnClose);
+    connect(input, &QInputDialog::textValueSelected, this, &MainWindow::searchUid);
+    input->show();
 }
 
 void MainWindow::sendCommand(const Command &command)

@@ -149,6 +149,7 @@
      <string>File</string>
     </property>
     <addaction name="actionOpen_Logfile"/>
+    <addaction name="openLogUidString" />
     <addaction name="exportVision"/>
     <addaction name="getLogUid"/>
     <addaction name="actionLogCutter"/>
@@ -745,6 +746,11 @@
   <action name="getLogUid">
    <property name="text">
     <string>Get LogUID</string>
+   </property>
+  </action>
+  <action name="openLogUidString">
+   <property name="text">
+    <string>Open a log via UID String</string>
    </property>
   </action>
  </widget>
