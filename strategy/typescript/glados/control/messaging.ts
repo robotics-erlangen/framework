@@ -13,6 +13,14 @@ import { ExclusiveRoleApplication } from "glados/trainer/roles";
 import { PassInfo, PassSuggestion } from "glados/util/attack";
 import { head } from "glados/util/collections";
 
+/*
+ * How to add a new message:
+ * 1. Add a variant to the MessageType enum
+ * 2. - If the message is to designate an exclusive role, add the new variant
+ *      to the ExclusiveRole type
+ *    - Otherwise, add a descriptor to the NormalDescriptor interface
+ */
+
 interface Zone {
 	defaultPos: Position;
 	boundaries: { left: number, right: number, top: number, bottom: number };
@@ -146,6 +154,291 @@ export enum MessageType {
 
 export type ExclusiveRole = MessageType.mainAttacker | MessageType.duelAssistant | MessageType.interceptPass | MessageType.exchangeRobot;
 
+/**
+ * Possible senders for messages.
+ *
+ * Important: If you intend to add another variant here, you'll have to make
+ * sure the `Receive*` types below are disjunct
+ */
+type Sender = "robot" | "trainer";
+
+/**
+ * Possible senders for messages.
+ *
+ * Important: If you intend to add another variant here, you'll have to make
+ * sure the `Send*` types below are disjunct
+ */
+type Receiver = "robot" | "trainer" | "broadcast";
+
+type BaseDescriptor = {
+	[M in MessageType]: {
+		data?: unknown;
+		sender: Sender;
+		receiver: Receiver;
+		repeated?: boolean;
+		singleSender?: boolean;
+	}
+};
+
+type ExclusiveRoleDescriptor = {
+	[M in ExclusiveRole]: {
+		data: FriendlyRobot | undefined;
+		sender: "trainer";
+		receiver: "broadcast";
+	}
+};
+
+/**
+ * Describes attributes of messages. Attributes are:
+ * - `data`: The message's payload
+ * - `sender`: Who sends the message (influences which receive function is used)
+ * - `receiver`: Who receives the message (influences which send function is used)
+ * - `repeated`: Whether this message can be sent multiple times by the same sender
+ * - `singleSender`: Whether this message is sent by at most one sender
+ */
+interface NormalDescriptor extends BaseDescriptor {
+	[MessageType.centerBackPosTarget]: {
+		data: CenterBackPoint;
+		sender: "trainer";
+		receiver: "robot";
+	};
+	[MessageType.moveAssignment]: {
+		data: MoveAssignment;
+		sender: "trainer";
+		receiver: "robot";
+	};
+	[MessageType.roleAssignment]: {
+		data: RoleAssignment;
+		sender: "trainer";
+		receiver: "robot";
+	};
+	[MessageType.strikerZone]: {
+		data: Zone;
+		sender: "trainer";
+		receiver: "robot";
+	};
+	[MessageType.midfieldZone]: {
+		data: Zone;
+		sender: "trainer";
+		receiver: "robot";
+	};
+	[MessageType.poolChangeRequest]: {
+		data: "attacker" | "defender";
+		sender: "robot";
+		receiver: "trainer";
+	};
+	[MessageType.exclusiveRole]: {
+		data: ExclusiveRoleApplication;
+		sender: "robot";
+		receiver: "trainer";
+		repeated: true;
+	};
+	[MessageType.forcePoolChange]: {
+		data: ForcePoolChange;
+		sender: "trainer";
+		receiver: "trainer";
+		repeated: true;
+	};
+	[MessageType.groupApplication]: {
+		data: GroupApplication;
+		sender: "robot";
+		receiver: "trainer";
+		repeated: true;
+	};
+	[MessageType.allyFlag]: {
+		sender: "robot";
+		receiver: "broadcast";
+	};
+	[MessageType.attackerFlag]: {
+		sender: "robot";
+		receiver: "broadcast";
+	};
+	[MessageType.defendedOpponent]: {
+		data: Robot;
+		sender: "robot";
+		receiver: "broadcast";
+	};
+	[MessageType.dueledOpponent]: {
+		data: Robot;
+		sender: "robot";
+		receiver: "broadcast";
+	};
+	[MessageType.defenderFlag]: {
+		sender: "robot";
+		receiver: "broadcast";
+	};
+	[MessageType.moveDest]: {
+		data: Position;
+		sender: "robot";
+		receiver: "broadcast";
+	};
+	[MessageType.passSuggestion]: {
+		data: PassSuggestion;
+		sender: "robot";
+		receiver: "broadcast";
+	};
+	[MessageType.strikerFlag]: {
+		sender: "robot";
+		receiver: "broadcast";
+	};
+	[MessageType.strikerSamplingTimestamp]: {
+		data: number;
+		sender: "robot";
+		receiver: "broadcast";
+	};
+	[MessageType.attackPosition]: {
+		data: Position;
+		sender: "robot";
+		receiver: "broadcast";
+		singleSender: true;
+	};
+	[MessageType.plannedAttackTime]: {
+		data: number;
+		sender: "robot";
+		receiver: "broadcast";
+		singleSender: true;
+	};
+	[MessageType.earliestAttackTime]: {
+		data: number;
+		sender: "robot";
+		receiver: "broadcast";
+		singleSender: true;
+	};
+	[MessageType.passInfo]: {
+		data: PassInfo[];
+		sender: "robot";
+		receiver: "broadcast";
+		singleSender: true;
+	};
+	[MessageType.shootDestination]: {
+		data: Position;
+		sender: "robot";
+		receiver: "broadcast";
+		singleSender: true;
+	};
+	[MessageType.placingRobot]: {
+		sender: "robot";
+		receiver: "broadcast";
+		singleSender: true;
+	};
+	[MessageType.moveInfo]: {
+		data: MoveInfo;
+		sender: "trainer";
+		receiver: "broadcast";
+	};
+}
+
+type Descriptor = NormalDescriptor & ExclusiveRoleDescriptor;
+
+/*
+ * Utility types to filter MessageTypes by their attributes
+ *
+ * This makes use of distributive conditional types
+ * (see https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-8.html#distributive-conditional-types)
+ * The feature only triggers if there is a raw type variable preceding the
+ * extends clause. This means, `M extends ...` will trigger distribution, but
+ * `Descriptor[M] extends ...` will not. Thats why there is an `M extends any`
+ * clause at the beginning of each type definition. The condition is always
+ * true since `any` is parent to all types.
+ *
+ * Since these types are meant to be used on unions of MessageType variants and
+ * will thus return a union of the properties of the respective variants, it is
+ * important to use `never` in cases where a certain variant is unwanted (since
+ * `never` is the neutral element in type unions)
+ * For example: `SentBy<S, M>` should return all MessageTypes in M that are
+ * sent by S. For messages that don't have the wanted Sender, never is returned
+ */
+
+/** Filter out messages that are not sent by the wanted sender */
+type SentBy<S extends Sender, M extends MessageType> = M extends any
+	? Descriptor[M] extends { sender: S }
+		? M
+		: never
+	: never;
+
+/** Filter out messages that are not received by the wanted receiver */
+type ReceivedBy<R extends Receiver, M extends MessageType> = M extends any
+	? Descriptor[M] extends { receiver: R }
+		? M
+		: never
+	: never;
+
+/**
+ * Get the type of the data associated with a message or undefined if it specifies no
+ * data type
+ */
+type DataOf<M extends MessageType> = M extends any
+	? Descriptor[M] extends { data: infer D }
+		? D
+		: undefined
+	: never;
+
+/** Returns whether there is data associated with the given message */
+type HasData<M extends MessageType> = M extends any
+	? DataOf<M> extends undefined
+		? false
+		: true
+	: never;
+
+/**
+ * Retrieve only messages that have (`D == true`) or don't have (`D == false`)
+ * data associated with them
+ */
+type FilterData<D extends boolean, M extends MessageType> = M extends any
+	? HasData<M> extends D
+		? M
+		: never
+	: never;
+
+/** Whether the given message is repeated */
+type IsRepeated<M extends MessageType> = M extends any
+	? Descriptor[M] extends { repeated: infer R }
+		? R extends true
+			? true
+			: false
+		: false
+	: never;
+
+/**
+ * Retrieve only messages that are (`R == true`) or are not (`R == false`)
+ * repeated
+ */
+type SelectRepeated<R extends boolean, M extends MessageType> = M extends any
+	? IsRepeated<M> extends R
+		? M
+		: never
+	: never;
+
+/** Whether the given message is sent by a single sender only */
+type IsSingleSender<M extends MessageType> = M extends any
+	? Descriptor[M] extends { singleSender: infer S }
+		? S extends true
+			? true
+			: false
+		: false
+	: never;
+
+/**
+ * Retrieve only messages that are (`R == true`) or are not (`R == false`)
+ * single sender
+ */
+type SelectSingleSender<S extends boolean, M extends MessageType> = M extends any
+	? IsSingleSender<M> extends S
+		? M
+		: never
+	: never;
+
+/**
+ * Returns the type of the data returned by a receive function for the
+ * specified message type. This is just the specified data or an array thereof
+ * for repeated messages
+ */
+type ReceivedData<M extends MessageType> = M extends any
+	? IsRepeated<M> extends true
+		? DataOf<M>[]
+		: DataOf<M>
+	: never;
+
 /*
  * Enums in Typescript are objects with two members per variant: A number
  * mapping to the name of the variant, and the name mapping to that number.
@@ -176,6 +469,23 @@ interface AgentLike {
  */
 const emptyMap = Object.freeze(new Map<FriendlyRobot, any>()) as unknown as ReadonlyRec<Map<FriendlyRobot, any>>;
 
+type Send = ReceivedBy<"robot", SelectRepeated<false, MessageType>>;
+type SendRepeated = ReceivedBy<"robot", SelectRepeated<true, MessageType>>;
+
+type SendToTrainer = ReceivedBy<"trainer", SelectRepeated<false, MessageType>>;
+type SendToTrainerRepeated = ReceivedBy<"trainer", SelectRepeated<true, MessageType>>;
+
+type SendBroadcast = ReceivedBy<"broadcast", MessageType>;
+type SendBroadcastNoData = ReceivedBy<"broadcast", FilterData<false, MessageType>>;
+
+type Receive = SentBy<"robot", SelectRepeated<false, SelectSingleSender<false, MessageType>>>;
+type ReceiveSingleSender = SentBy<"robot", SelectRepeated<false, SelectSingleSender<true, MessageType>>>;
+
+type ReceiveRepeated = SentBy<"robot", SelectRepeated<true, SelectSingleSender<false, MessageType>>>;
+
+type ReceiveTrainer = SentBy<"trainer", SelectRepeated<false, MessageType>>;
+type ReceiveTrainerRepeated = SentBy<"trainer", SelectRepeated<true, MessageType>>;
+
 export class MessageBox {
 	private messaging: Messaging;
 	private origin: MessageOrigin;
@@ -186,49 +496,25 @@ export class MessageBox {
 		this.origin = origin;
 	}
 
-	send(type: MessageType.centerBackPosTarget, dest: FriendlyRobot, target: CenterBackPoint): void;
-	send(type: MessageType.moveAssignment, dest: FriendlyRobot, assignment: MoveAssignment): void;
-	send(type: MessageType.roleAssignment, dest: FriendlyRobot, assignment: RoleAssignment): void;
-	send(type: MessageType.strikerZone, dest: FriendlyRobot, zone: Zone): void;
-	send(type: MessageType.midfieldZone, dest: FriendlyRobot, zone: Zone): void;
-	send(type: MessageType, dest: FriendlyRobot, data?: any): void {
+	send<M extends Send>(type: M, dest: FriendlyRobot, data: DataOf<M>): void {
 		this.sendGeneric(type, dest, data, false);
 	}
 
-	sendRepeated(type: MessageType, dest: FriendlyRobot, data?: any): void {
+	sendRepeated<M extends SendRepeated>(type: M, dest: FriendlyRobot, data: DataOf<M>): void {
 		this.sendGeneric(type, dest, data, true);
 	}
 
-	sendToTrainer(type: MessageType.poolChangeRequest, changeTo: "attacker" | "defender"): void;
-	sendToTrainer(type: MessageType, data?: any): void {
+	sendToTrainer<M extends SendToTrainer>(type: M, data: DataOf<M>): void {
 		this.sendGeneric(type, "trainer", data, false);
 	}
 
-	sendToTrainerRepeated(type: MessageType.exclusiveRole, role: ExclusiveRoleApplication): void;
-	sendToTrainerRepeated(type: MessageType.forcePoolChange, info: ForcePoolChange): void;
-	sendToTrainerRepeated(type: MessageType.groupApplication, group: GroupApplication): void;
-	sendToTrainerRepeated(type: MessageType, data?: any): void {
+	sendToTrainerRepeated<M extends SendToTrainerRepeated>(type: M, data: DataOf<M>): void {
 		this.sendGeneric(type, "trainer", data, true);
 	}
 
-	sendBroadcast(type: MessageType.allyFlag, data?: undefined): void;
-	sendBroadcast(type: MessageType.attackerFlag, data?: undefined): void;
-	sendBroadcast(type: MessageType.defendedOpponent, data: Robot): void;
-	sendBroadcast(type: MessageType.dueledOpponent, data: Robot): void;
-	sendBroadcast(type: MessageType.defenderFlag, data?: undefined): void;
-	sendBroadcast(type: MessageType.moveDest, pos: Position): void;
-	sendBroadcast(type: MessageType.passSuggestion, suggestion: PassSuggestion): void;
-	sendBroadcast(type: MessageType.strikerFlag, data?: undefined): void;
-	sendBroadcast(type: MessageType.strikerSamplingTimestamp, time: number): void;
-	sendBroadcast(type: MessageType.attackPosition, pos: Position): void;
-	sendBroadcast(type: MessageType.plannedAttackTime, time: number): void;
-	sendBroadcast(type: MessageType.earliestAttackTime, time: number): void;
-	sendBroadcast(type: MessageType.passInfo, info: PassInfo[]): void;
-	sendBroadcast(type: MessageType.shootDestination, dest: Position): void;
-	sendBroadcast(type: ExclusiveRole, dest: FriendlyRobot | undefined): void;
-	sendBroadcast(type: MessageType.placingRobot, data? : undefined): void;
-	sendBroadcast(type: MessageType.moveInfo, info: MoveInfo): void;
-	sendBroadcast(type: MessageType, data?: any): void {
+	sendBroadcast<M extends SendBroadcastNoData>(type: M, data?: undefined): void;
+	sendBroadcast<M extends SendBroadcast>(type: M, data: DataOf<M>): void;
+	sendBroadcast<M extends SendBroadcast | SendBroadcastNoData>(type: M, data: DataOf<M>): void {
 		if (type === MessageType.plannedAttackTime && (data === -Infinity || data === Infinity)) throw new Error("Invalid PAttackTime");
 		if (type === MessageType.earliestAttackTime && (data === -Infinity || data === Infinity)) throw new Error("Invalid EAttackTime");
 		this.sendGeneric(type, "all", data, false);
@@ -248,7 +534,7 @@ export class MessageBox {
 	}
 
 	// TODO: more specific send methods for the different cases to improve performance
-	private sendGeneric(type: MessageType, receiver: "all" | "trainer" | FriendlyRobot, data: any, repeated: boolean) {
+	private sendGeneric<M extends MessageType>(type: M, receiver: "all" | "trainer" | FriendlyRobot, data: DataOf<M>, repeated: boolean) {
 		// although a sender is adressing a robot, a message is delivered
 		// to the corresponding agent. This ensures that a robot only receives
 		// messages sent in frames where he has had the current agent
@@ -292,28 +578,11 @@ export class MessageBox {
 
 
 	// receive code
-	// allyFlag, attackerFlag
-	receive(type: MessageType.allyFlag, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, undefined>>;
-	receive(type: MessageType.attackerFlag, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, undefined>>;
-	receive(type: MessageType.defendedOpponent, ownMessage?: boolean): ReadonlyRec<Map<FriendlyRobot, Robot>>;
-	receive(type: MessageType.dueledOpponent, ownMessage?: boolean): ReadonlyRec<Map<FriendlyRobot, Robot>>;
-	receive(type: MessageType.defenderFlag, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, undefined>>;
-	receive(type: MessageType.moveDest, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, Position>>;
-	receive(type: MessageType.passSuggestion, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, PassSuggestion>>;
-	receive(type: MessageType.poolChangeRequest, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, "attacker" | "defender">>;
-	receive(type: MessageType.strikerFlag, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, undefined>>;
-	receive(type: MessageType.strikerSamplingTimestamp, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, number>>;
-	receive(type: MessageType, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, any>> {
+	receive<M extends Receive>(type: M, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, ReceivedData<M>>> {
 		return this.receiveGeneric(type, broadcast) as ReadonlyRec<Map<FriendlyRobot, any>>;
 	}
 
-	receiveSingleSender(type: MessageType.attackPosition, broadcast?: boolean): ReadonlyRec<[FriendlyRobot, Position] | []>;
-	receiveSingleSender(type: MessageType.earliestAttackTime, broadcast?: boolean): ReadonlyRec<[FriendlyRobot, number] | []>;
-	receiveSingleSender(type: MessageType.plannedAttackTime, broadcast?: boolean): ReadonlyRec<[FriendlyRobot, number] | []>;
-	receiveSingleSender(type: MessageType.passInfo, broadcast?: boolean): ReadonlyRec<[FriendlyRobot, PassInfo[]] | []>;
-	receiveSingleSender(type: MessageType.shootDestination, broadcast?: boolean): ReadonlyRec<[FriendlyRobot, Position] | []>;
-	receiveSingleSender(type: MessageType.placingRobot, broadcast?: boolean): ReadonlyRec<[FriendlyRobot, undefined] | []>;
-	receiveSingleSender(type: MessageType, broadcast?: boolean): ReadonlyRec<[FriendlyRobot, any] | []>  {
+	receiveSingleSender<M extends ReceiveSingleSender>(type: M, broadcast?: boolean): ReadonlyRec<[FriendlyRobot, ReceivedData<M>] | []> {
 		const map = this.receiveGeneric(type, broadcast);
 		if (map.size > 1) {
 			throw new Error(`Single sender message ${MessageType[type]} sent by ${map.size} robots!`);
@@ -324,28 +593,15 @@ export class MessageBox {
 			: [];
 	}
 
-	receiveRepeated(type: MessageType.exclusiveRole, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, ExclusiveRoleApplication[]>>;
-	receiveRepeated(type: MessageType.groupApplication, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, GroupApplication[]>>;
-	receiveRepeated(type: MessageType, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, any[]>> {
-		return this.receiveGeneric(type, broadcast) as ReadonlyRec<Map<FriendlyRobot, any[]>>;
+	receiveRepeated<M extends ReceiveRepeated>(type: M, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, ReceivedData<M>>> {
+		return this.receiveGeneric(type, broadcast) as ReadonlyRec<Map<FriendlyRobot, ReceivedData<M>>>;
 	}
 
-	receiveTrainer(type: MessageType.centerBackPosTarget, broadcast?: boolean): ReadonlyRec<CenterBackPoint | undefined>;
-	receiveTrainer(type: MessageType.moveAssignment, broadcast?: boolean): ReadonlyRec<MoveAssignment | undefined>;
-	receiveTrainer(type: MessageType.roleAssignment, broadcast?: boolean): ReadonlyRec<RoleAssignment | undefined>;
-	receiveTrainer(type: MessageType.strikerZone, broadcast?: boolean): ReadonlyRec<Zone | undefined>;
-	receiveTrainer(type: MessageType.midfieldZone, broadcast?: boolean): ReadonlyRec<Zone | undefined>;
-	receiveTrainer(type: MessageType.mainAttacker, broadcast?: boolean): ReadonlyRec<FriendlyRobot | undefined>;
-	receiveTrainer(type: MessageType.duelAssistant, broadcast?: boolean): ReadonlyRec<FriendlyRobot | undefined>;
-	receiveTrainer(type: MessageType.interceptPass, broadcast?: boolean): ReadonlyRec<FriendlyRobot | undefined>;
-	receiveTrainer(type: MessageType.exchangeRobot, broadcast?: boolean): ReadonlyRec<FriendlyRobot | undefined>;
-	receiveTrainer(type: MessageType.moveInfo, broadcast?: boolean): ReadonlyRec<MoveInfo | undefined>;
-	receiveTrainer(type: MessageType, broadcast?: boolean): any {
+	receiveTrainer<M extends ReceiveTrainer>(type: M, broadcast?: boolean): ReadonlyRec<ReceivedData<M> | undefined> {
 		return this.receiveGeneric(type, broadcast).get("trainer");
 	}
 
-	receiveTrainerRepeated(type: MessageType.forcePoolChange): ReadonlyRec<ForcePoolChange[] | undefined>;
-	receiveTrainerRepeated(type: MessageType, broadcast?: boolean): ReadonlyRec<any[] | undefined> {
+	receiveTrainerRepeated<M extends ReceiveTrainerRepeated>(type: M, broadcast?: boolean): ReadonlyRec<ReceivedData<M> | undefined> {
 		return this.receiveGeneric(type, broadcast).get("trainer");
 	}
 
