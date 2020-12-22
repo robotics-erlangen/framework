@@ -182,7 +182,7 @@ type BaseDescriptor = {
 
 type ExclusiveRoleDescriptor = {
 	[M in ExclusiveRole]: {
-		data: FriendlyRobot | undefined;
+		data: FriendlyRobot;
 		sender: "trainer";
 		receiver: "broadcast";
 	}
