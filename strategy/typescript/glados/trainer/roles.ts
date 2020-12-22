@@ -34,6 +34,9 @@ export class Roles {
 				if (!roleApplications.has(role)) {
 					roleApplications[role] = new Map<FriendlyRobot, LeveledRating>();
 				}
+				if (roleApplications[role]!.get(robot)) {
+					throw new Error(`Robot ${robot.id} applies twice for ${MessageType[role]}`);
+				}
 				roleApplications[role]!.set(robot, LeveledRating.clone(rating));
 			}
 		}
