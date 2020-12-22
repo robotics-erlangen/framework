@@ -54,6 +54,9 @@ set(PROTO_FILES
     world.proto
     timeline.proto
     pathfinding.proto
+    grsim_commands.proto
+    grsim_packet.proto
+    grsim_replacement.proto
 )
 protobuf_generate_cpp(PROTO_SOURCES PROTO_HEADERS ${PROTO_FILES})
 target_sources(protobuf PRIVATE ${PROTO_SOURCES} ${PROTO_HEADERS} ${PROTO_FILES})
