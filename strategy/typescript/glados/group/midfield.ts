@@ -8,44 +8,11 @@ import * as World from "base/world";
 import { MessageBox, MessageType } from "glados/control/messaging";
 import { Group } from "glados/trainer/groups";
 import * as Attack from "glados/util/attack";
+import { getRandomPosition, Zone, zoneToPolygon } from "glados/util/zone";
 
 const G = World.Geometry;
 
-interface Boundaries {
-	right: number;
-	left: number;
-	top: number;
-	bottom: number;
-}
-
-interface Zone {
-	boundaries: Boundaries;
-	defaultPos: Position;
-}
-
-let getDefaultPosition = function(boundaries: Boundaries) {
-	let zoneWidth = Math.abs(boundaries.right - boundaries.left);
-	let zoneHeight = Math.abs(boundaries.top - boundaries.bottom);
-
-	let isInTopHalf = Math.abs(boundaries.right) > Math.abs(boundaries.left);
-	let fraction = isInTopHalf ? 1 / 8 : 7 / 8;
-
-	return new Vector(boundaries.right - zoneWidth * fraction, boundaries.bottom + zoneHeight * 2 / 3);
-};
-
-function visualizeZone(zone: Zone) {
-	let visFlag = true;
-
-	if (visFlag) {
-		let edge = 0.05;
-		let left = zone.boundaries.left + edge;
-		let right = zone.boundaries.right - edge;
-		let top = zone.boundaries.top - edge;
-		let bottom = zone.boundaries.bottom + edge;
-		let points = [ new Vector(left, top), new Vector(left, bottom), new Vector(right, bottom), new Vector(right, top) ];
-		vis.addPolygon("g/Midfield: Zones", points, vis.colors.orchid);
-	}
-}
+const VISUALIZE_ZONES = true;
 
 function assignRobotsToZones(robotPositions: Map<FriendlyRobot, Position>, zones: Zone[]): Map<Zone, FriendlyRobot> {
 	let n = zones.length;
@@ -147,8 +114,8 @@ export class Midfield implements Group {
 				right: Math.max(xBound1, xBound2)
 			};
 			let zone: Zone = {
-				defaultPos: getDefaultPosition(boundaries),
-				boundaries: boundaries
+				defaultPos: getRandomPosition(boundaries),
+				boundaries
 			};
 			remainingZones = remainingZones - 1;
 			this._zones.push(zone);
@@ -165,8 +132,8 @@ export class Midfield implements Group {
 				right: Math.max(xBound1, xBound2)
 			};
 			let zone: Zone = {
-				defaultPos: getDefaultPosition(boundaries),
-				boundaries: boundaries
+				defaultPos: getRandomPosition(boundaries),
+				boundaries
 			};
 			this._zones.push(zone);
 		}
@@ -222,7 +189,9 @@ export class Midfield implements Group {
 
 		let zoneList: Zone[] = [];
 		for (let zone of this._zones) {
-			visualizeZone(zone);
+			if (VISUALIZE_ZONES) {
+				vis.addPolygon("g/midfield: Zones", zoneToPolygon(zone), vis.colors.orchid);
+			}
 			zoneList.push(zone);
 		}
 

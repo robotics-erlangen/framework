@@ -1,5 +1,3 @@
-import * as Field from "base/field";
-import * as MathUtil from "base/mathutil";
 import { FriendlyRobot } from "base/robot";
 import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
@@ -7,87 +5,21 @@ import * as World from "base/world";
 
 import { MessageBox, MessageType } from "glados/control/messaging";
 import { Group } from "glados/trainer/groups";
-import * as MovesHelper from "glados/util/moveshelper";
+import * as UtilZone from "glados/util/zone";
 
 let G = World.Geometry;
-
-interface Boundaries {
-	right: number;
-	left: number;
-	top: number;
-	bottom: number;
-}
-
-interface Zone {
-	boundaries: Boundaries;
-	defaultPos: Position;
-}
-
-function getDefaultPosition(boundaries: Boundaries): Position {
-	const zoneWidth = boundaries.right - boundaries.left;
-	const zoneHeight = boundaries.top - boundaries.bottom;
-	let x, y;
-	do {
-		x = (MathUtil.random() * 0.6 + 0.2) * zoneWidth + boundaries.left;
-		y = (MathUtil.random() * 0.6 + 0.2) * zoneHeight + boundaries.bottom;
-	} while (Field.isInOpponentDefenseArea(new Vector(x, y), 0.2));
-	return new Vector(x, y);
-}
-
-function visualizeZone(zone: Zone) {
-	let edge = 0.05;
-	let left = zone.boundaries.left + edge;
-	let right = zone.boundaries.right - edge;
-	let top = zone.boundaries.top - edge;
-	let bottom = zone.boundaries.bottom + edge;
-	let points = [ new Vector(left, top), new Vector(left, bottom), new Vector(right, bottom), new Vector(right, top) ];
-	vis.addPolygon("g/striker: Zones", points, vis.colors.gold);
-}
-
-function assignRobotsToZones(robotPositions: Map<FriendlyRobot, Position>, zones: Zone[]): Map<Zone, FriendlyRobot> {
-	let n = zones.length;
-	if (n === 0) {
-		return new Map<Zone, FriendlyRobot>();
-	}
-
-	let positions: {pos: Position}[] = [];
-	let robots: FriendlyRobot[] = [];
-	for (let [robot, robotPos] of robotPositions.entries()) {
-		positions.push({pos: robotPos});
-		robots.push(robot);
-	}
-	let zonePositions: Position[] = [];
-	for (let zone of zones) {
-		zonePositions.push(zone.defaultPos);
-	}
-	let assignment = MovesHelper.assignRobots(positions, zonePositions);
-
-	let zoneAssignment: Map<Zone, FriendlyRobot> = new Map<Zone, FriendlyRobot>();
-	for (let i = 0;i < zones.length;i++) {
-		const zone = zones[i];
-		zoneAssignment[zone] = robots[assignment[i]];
-	}
-
-	// visualize assignments
-	if (!amun.isPerformanceMode) {
-		for (let [zone, robot] of zoneAssignment.entries()) {
-			vis.addPath("g/striker: zone assignment", [zone.defaultPos, robot.pos], vis.colors.white);
-		}
-	}
-	return zoneAssignment;
-}
 
 export class Striker implements Group {
 	readonly name = "striker";
 
 	_strikerCount: number = 0;
 
-	_zones: Zone[] = [];
-	_emptyZone: Zone | undefined;
+	_zones: UtilZone.Zone[] = [];
+	_emptyZone: UtilZone.Zone | undefined;
 
 	_lastMainAttacker: FriendlyRobot | undefined;
 	_lastRobots: FriendlyRobot[] | undefined;
-	_lastAssignments: Map<Zone, FriendlyRobot> | undefined = undefined;
+	_lastAssignments: Map<UtilZone.Zone, FriendlyRobot> | undefined = undefined;
 
 
 	_updateZones(robots: FriendlyRobot[]) {
@@ -106,7 +38,7 @@ export class Striker implements Group {
 		// create midfield zone
 		{
 			let boundaries = { left: totalLeft, right: totalRight, top: G.FieldHeightHalf / 4, bottom: totalBottom };
-			let defaultPos = getDefaultPosition(boundaries);
+			let defaultPos = UtilZone.getRandomPosition(boundaries);
 			this._zones.push({boundaries: boundaries, defaultPos: defaultPos});
 			remainingZones = remainingZones - 1;
 		}
@@ -116,7 +48,7 @@ export class Striker implements Group {
 		for (let i = 1;i <= remainingZones;i++) {
 			let boundaries = { left: totalLeft + (i - 1) * zoneWidth, right: totalLeft + i * zoneWidth,
 					top: totalTop, bottom: G.FieldHeightHalf / 4 };
-			let defaultPos = getDefaultPosition(boundaries);
+			let defaultPos = UtilZone.getRandomPosition(boundaries);
 			this._zones.push({boundaries: boundaries, defaultPos: defaultPos});
 		}
 
@@ -128,10 +60,9 @@ export class Striker implements Group {
 		let emptyZoneHysteresis = this._emptyZone ? 0.2 : 0;
 		if (mainAttackerPos != undefined) {
 			for (let zone of this._zones) {
-				if (mainAttackerPos.x >= zone.boundaries.left + emptyZoneHysteresis
-						&&  mainAttackerPos.x <= zone.boundaries.right - emptyZoneHysteresis
-						&&  mainAttackerPos.y >= zone.boundaries.bottom + emptyZoneHysteresis
-						&&  mainAttackerPos.y <= zone.boundaries.top - emptyZoneHysteresis) {
+				// make all zones smaller
+				// makes keeping the old zone likelier, since it wont be changed if the condition is never true
+				if (UtilZone.isInZone(mainAttackerPos, zone, -emptyZoneHysteresis)) {
 					this._emptyZone = zone;
 					break;
 				}
@@ -202,15 +133,25 @@ export class Striker implements Group {
 			robotPositions[r] = pos;
 		}
 
-		let zoneList: Zone[] = []; // { zone }
+		let zoneList: UtilZone.Zone[] = []; // { zone }
 		for (let zone of this._zones) {
 			if (zone !== this._emptyZone) {
 				zoneList.push(zone);
-				visualizeZone(zone);
+				vis.addPolygon("g/striker: Zones", UtilZone.zoneToPolygon(zone), vis.colors.gold);
 			}
 		}
 
-		let robotZones = updateAssignments ? assignRobotsToZones(robotPositions, zoneList) : <Map<Zone, FriendlyRobot>> this._lastAssignments;
+		let robotZones;
+		if (updateAssignments) {
+			robotZones = UtilZone.assignRobotsToZones(robotPositions, zoneList);
+			if (!amun.isPerformanceMode) {
+				for (const [zone, robot] of robotZones.entries()) {
+					vis.addPath("g/striker: zone assignment", [zone.defaultPos, robot.pos], vis.colors.white);
+				}
+			}
+		} else {
+			robotZones = this._lastAssignments!;
+		}
 
 		for (let [zone, robot] of robotZones.entries()) {
 			messaging.send(MessageType.strikerZone, robot, zone);

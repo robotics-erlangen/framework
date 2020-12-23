@@ -12,6 +12,7 @@ import { Application as GroupApplication } from "glados/trainer/groups";
 import { ExclusiveRoleApplication } from "glados/trainer/roles";
 import { PassInfo, PassSuggestion } from "glados/util/attack";
 import { head } from "glados/util/collections";
+import { Zone } from "glados/util/zone";
 
 /*
  * How to add a new message:
@@ -20,11 +21,6 @@ import { head } from "glados/util/collections";
  *      to the ExclusiveRole type
  *    - Otherwise, add a descriptor to the NormalDescriptor interface
  */
-
-interface Zone {
-	defaultPos: Position;
-	boundaries: { left: number, right: number, top: number, bottom: number };
-}
 
 export enum MessageType {
 	// =======================
