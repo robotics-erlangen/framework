@@ -21,7 +21,7 @@
 
 #add_compile_definitions(PATHFINDING_DEBUG)
 
-add_library(path
+set(path_files
     include/path/alphatimetrajectory.h
     include/path/abstractpath.h
     include/path/boundingbox.h
@@ -38,6 +38,7 @@ add_library(path
     include/path/pathdebug.h
     include/path/speedprofile.h
     include/path/multiescapesampler.h
+    include/path/parameterization.h
 
     abstractpath.cpp
     alphatimetrajectory.cpp
@@ -52,7 +53,10 @@ add_library(path
     pathdebug.cpp
     speedprofile.cpp
     multiescapesampler.cpp
+    parameterization.cpp
 )
+
+add_library(path ${path_files})
 target_link_libraries(path
     PRIVATE shared::core
     PUBLIC shared::protobuf
@@ -65,3 +69,18 @@ target_include_directories(path
 )
 
 add_library(amun::path ALIAS path)
+
+add_library(path_parameter_optimization ${path_files})
+target_link_libraries(path_parameter_optimization
+    PRIVATE shared::core
+    PUBLIC shared::protobuf
+    PUBLIC Qt5::Core
+    PRIVATE shared::config
+)
+target_include_directories(path_parameter_optimization
+    INTERFACE include
+    PRIVATE include/path
+)
+
+add_library(amun::path_parameter_optimization ALIAS path_parameter_optimization)
+target_compile_definitions(path_parameter_optimization PUBLIC ACTIVE_PATHFINDING_PARAMETER_OPTIMIZATION)
