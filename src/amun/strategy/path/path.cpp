@@ -240,10 +240,10 @@ Path::List Path::get(float start_x, float start_y, float end_x, float end_y)
     const Vector middle = (start + end) / 2;
     // symmetric sampling around middle between start and end, that includes the complete field
     auto bound = m_world.boundary();
-    const float x_half = std::max(middle.x - bound.bottom_left.x, bound.top_right.x - middle.x);
-    const float y_half = std::max(middle.y - bound.bottom_left.y, bound.top_right.y - middle.y);
-    m_sampleRect.bottom_left = Vector(middle.x - x_half, middle.y - y_half);
-    m_sampleRect.top_right = Vector(middle.x + x_half, middle.y + y_half);
+    const float x_half = std::max(middle.x - bound.bottomLeft.x, bound.topRight.x - middle.x);
+    const float y_half = std::max(middle.y - bound.bottomLeft.y, bound.topRight.y - middle.y);
+    m_sampleRect.bottomLeft = Vector(middle.x - x_half, middle.y - y_half);
+    m_sampleRect.topRight = Vector(middle.x + x_half, middle.y + y_half);
 
     bool startingInObstacle = !m_world.pointInPlayfield(start, radius) || !test(start, radius, m_world.obstacles());
     bool endingInObstacle = !m_world.pointInPlayfield(end, radius) || !test(end, radius, m_world.obstacles());
@@ -460,8 +460,8 @@ Vector Path::randomState() const
 {
     Vector v(float(m_rng->uniformInt()) / 0xffffffffU, float(m_rng->uniformInt()) / 0xffffffffU);
 
-    v.x = v.x * (m_sampleRect.top_right.x - m_sampleRect.bottom_left.x) + m_sampleRect.bottom_left.x;
-    v.y = v.y * (m_sampleRect.top_right.y - m_sampleRect.bottom_left.y) + m_sampleRect.bottom_left.y;
+    v.x = v.x * (m_sampleRect.topRight.x - m_sampleRect.bottomLeft.x) + m_sampleRect.bottomLeft.x;
+    v.y = v.y * (m_sampleRect.topRight.y - m_sampleRect.bottomLeft.y) + m_sampleRect.bottomLeft.y;
     return v;
 }
 
@@ -495,8 +495,8 @@ float Path::outsidePlayfieldCoverage(const Vector &point, float radius) const
     auto bound = m_world.boundary();
     return std::max(0.f,
         std::max(
-            std::max(bound.bottom_left.x - point.x + radius, point.x + radius - bound.top_right.x),
-            std::max(bound.bottom_left.y - point.y + radius, point.y + radius - bound.top_right.y)
+            std::max(bound.bottomLeft.x - point.x + radius, point.x + radius - bound.topRight.x),
+            std::max(bound.bottomLeft.y - point.y + radius, point.y + radius - bound.topRight.y)
     ));
 }
 

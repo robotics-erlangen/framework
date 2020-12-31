@@ -102,12 +102,12 @@ namespace StaticObstacles {
         float distance(const LineSegment &segment) const override;
         ZonedIntersection zonedDistance(const Vector &v, float nearRadius) const override;
         BoundingBox boundingBox() const override;
-        std::vector<Vector> corners() const override { return {bottom_left, Vector(bottom_left.x, top_right.y), top_right, Vector(top_right.x, bottom_left.y)}; }
+        std::vector<Vector> corners() const override { return {bottomLeft, Vector(bottomLeft.x, topRight.y), topRight, Vector(topRight.x, bottomLeft.y)}; }
 
         void serializeChild(pathfinding::Obstacle *obstacle) const override;
 
-        Vector bottom_left;
-        Vector top_right;
+        Vector bottomLeft;
+        Vector topRight;
     };
 
     struct Triangle : Obstacle

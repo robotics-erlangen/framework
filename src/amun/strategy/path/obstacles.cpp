@@ -153,29 +153,30 @@ void StaticObstacles::Line::serializeChild(pathfinding::Obstacle *obstacle) cons
 
 StaticObstacles::Rect::Rect() :
     Obstacle(nullptr, 0, 0),
-    bottom_left(Vector(0, 0)),
-    top_right(Vector(0, 0))
+    bottomLeft(Vector(0, 0)),
+    topRight(Vector(0, 0))
 { }
 
 StaticObstacles::Rect::Rect(const char* name, int prio, float x1, float y1, float x2, float y2) :
     Obstacle(name, prio, 0)
 {
-    bottom_left.x = std::min(x1, x2);
-    bottom_left.y = std::min(y1, y2);
-    top_right.x = std::max(x1, x2);
-    top_right.y = std::max(y1, y2);
+    bottomLeft.x = std::min(x1, x2);
+    bottomLeft.y = std::min(y1, y2);
+    topRight.x = std::max(x1, x2);
+    topRight.y = std::max(y1, y2);
 }
 
 StaticObstacles::Rect::Rect(const pathfinding::Obstacle &obstacle, const pathfinding::RectObstacle &rect) :
     Obstacle(obstacle),
-    bottom_left(deserializeVector(rect.bottom_left())),
-    top_right(deserializeVector(rect.top_right()))
+    bottomLeft(deserializeVector(rect.bottom_left())),
+    topRight(deserializeVector(rect.top_right()))
 { }
 
 float StaticObstacles::Rect::distance(const Vector &v) const
 {
-    float distX = std::max(bottom_left.x - v.x, v.x - top_right.x);
-    float distY = std::max(bottom_left.y - v.y, v.y - top_right.y);
+    // TODO: den radius kann man gar nicht setzen?
+    float distX = std::max(bottomLeft.x - v.x, v.x - topRight.x);
+    float distY = std::max(bottomLeft.y - v.y, v.y - topRight.y);
 
     if (distX >= 0 && distY >= 0) { // distance to corner
         return std::sqrt(distX*distX + distY*distY) - radius;
@@ -190,8 +191,8 @@ float StaticObstacles::Rect::distance(const Vector &v) const
 
 ZonedIntersection StaticObstacles::Rect::zonedDistance(const Vector &v, float nearRadius) const
 {
-    float distX = std::max(bottom_left.x - v.x, v.x - top_right.x);
-    float distY = std::max(bottom_left.y - v.y, v.y - top_right.y);
+    float distX = std::max(bottomLeft.x - v.x, v.x - topRight.x);
+    float distY = std::max(bottomLeft.y - v.y, v.y - topRight.y);
 
     if (distX >= 0 && distY >= 0) { // distance to corner
         return computeZonedIntersection(distX*distX + distY*distY, radius, nearRadius);
@@ -207,37 +208,37 @@ ZonedIntersection StaticObstacles::Rect::zonedDistance(const Vector &v, float ne
 float StaticObstacles::Rect::distance(const LineSegment &segment) const
 {
     // check if end is inside the rectangle
-    if (segment.end().x >= bottom_left.x && segment.end().x <= top_right.x
-            && segment.end().y >= bottom_left.y && segment.end().y <= top_right.y) {
+    if (segment.end().x >= bottomLeft.x && segment.end().x <= topRight.x
+            && segment.end().y >= bottomLeft.y && segment.end().y <= topRight.y) {
         return -radius;
     }
     // check if start is inside the rectangle
-    if (segment.start().x >= bottom_left.x && segment.start().x <= top_right.x
-            && segment.start().y >= bottom_left.y && segment.start().y <= top_right.y) {
+    if (segment.start().x >= bottomLeft.x && segment.start().x <= topRight.x
+            && segment.start().y >= bottomLeft.y && segment.start().y <= topRight.y) {
         return -radius;
     }
 
-    Vector bottom_right(top_right.x, bottom_left.y);
-    Vector top_left(bottom_left.x, top_right.y);
+    Vector bottom_right(topRight.x, bottomLeft.y);
+    Vector top_left(bottomLeft.x, topRight.y);
 
-    float distTop = segment.distance(LineSegment(top_left, top_right));
-    float distBottom = segment.distance(LineSegment(bottom_left, bottom_right));
-    float distLeft = segment.distance(LineSegment(top_left, bottom_left));
-    float distRight = segment.distance(LineSegment(top_right, bottom_right));
+    float distTop = segment.distance(LineSegment(top_left, topRight));
+    float distBottom = segment.distance(LineSegment(bottomLeft, bottom_right));
+    float distLeft = segment.distance(LineSegment(top_left, bottomLeft));
+    float distRight = segment.distance(LineSegment(topRight, bottom_right));
 
     return std::min(std::min(distTop, distBottom), std::min(distLeft, distRight)) - radius;
 }
 
 BoundingBox StaticObstacles::Rect::boundingBox() const
 {
-    return BoundingBox(bottom_left - Vector(radius, radius), top_right +  Vector(radius, radius));
+    return BoundingBox(bottomLeft - Vector(radius, radius), topRight +  Vector(radius, radius));
 }
 
 void StaticObstacles::Rect::serializeChild(pathfinding::Obstacle *obstacle) const
 {
     auto rect = obstacle->mutable_rectangle();
-    setVector(top_right, rect->mutable_top_right());
-    setVector(bottom_left, rect->mutable_bottom_left());
+    setVector(topRight, rect->mutable_top_right());
+    setVector(bottomLeft, rect->mutable_bottom_left());
 }
 
 StaticObstacles::Triangle::Triangle(const char *name, int prio, float radius, Vector a, Vector b, Vector c) :

@@ -100,6 +100,6 @@ bool EndInObstacleSampler::testEndPoint(const TrajectoryInput &input, Vector end
 Vector EndInObstacleSampler::randomPointInField()
 {
     auto bound = m_world.boundary();
-    return Vector(m_rng->uniformFloat(bound.bottom_left.x, bound.top_right.x),
-                  m_rng->uniformFloat(bound.bottom_left.y, bound.top_right.y));
+    return Vector(m_rng->uniformFloat(bound.bottomLeft.x, bound.topRight.x),
+                  m_rng->uniformFloat(bound.bottomLeft.y, bound.topRight.y));
 }

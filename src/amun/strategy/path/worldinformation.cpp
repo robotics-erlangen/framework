@@ -29,10 +29,10 @@ void WorldInformation::setRadius(float r)
 
 void WorldInformation::setBoundary(float x1, float y1, float x2, float y2)
 {
-    m_boundary.bottom_left.x = std::min(x1, x2);
-    m_boundary.bottom_left.y = std::min(y1, y2);
-    m_boundary.top_right.x = std::max(x1, x2);
-    m_boundary.top_right.y = std::max(y1, y2);
+    m_boundary.bottomLeft.x = std::min(x1, x2);
+    m_boundary.bottomLeft.y = std::min(y1, y2);
+    m_boundary.topRight.x = std::max(x1, x2);
+    m_boundary.topRight.y = std::max(y1, y2);
 }
 
 void WorldInformation::clearObstacles()
@@ -101,10 +101,10 @@ void WorldInformation::collectMovingObstacles()
 
 bool WorldInformation::pointInPlayfield(const Vector &point, float radius) const
 {
-    if (point.x - radius < m_boundary.bottom_left.x ||
-           point.x + radius > m_boundary.top_right.x ||
-           point.y - radius < m_boundary.bottom_left.y ||
-           point.y + radius > m_boundary.top_right.y) {
+    if (point.x - radius < m_boundary.bottomLeft.x ||
+           point.x + radius > m_boundary.topRight.x ||
+           point.y - radius < m_boundary.bottomLeft.y ||
+           point.y + radius > m_boundary.topRight.y) {
         return false;
     }
     return true;
