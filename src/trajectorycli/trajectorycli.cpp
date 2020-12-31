@@ -26,6 +26,7 @@
 
 #include "common.h"
 #include "standardsampleroptimizer.h"
+#include "endinobstacleoptimizer.h"
 #include "core/protobuffilereader.h"
 #include "protobuf/pathfinding.pb.h"
 
@@ -85,12 +86,20 @@ int main(int argc, char* argv[])
 
     QCommandLineOption standardSampler("s", "Optimize the standard sampler intermediate positions", "output file name");
     parser.addOption(standardSampler);
+    QCommandLineOption endInObstacle("e", "Optimize the end in obstacle sampler search parameters");
+    parser.addOption(endInObstacle);
 
     // parse command line
     parser.process(app);
 
     int argCount = parser.positionalArguments().size();
     if (argCount != 1) {
+        parser.showHelp(1);
+        return 0;
+    }
+
+    if (!parser.isSet(standardSampler) && !parser.isSet(endInObstacle)) {
+        qDebug() <<"At lest one optimizer must be run!";
         parser.showHelp(1);
         return 0;
     }
@@ -104,6 +113,8 @@ int main(int argc, char* argv[])
         qDebug() <<"Could not open file:"<<path;
         exit(1);
     }
+
+    std::cout <<"Loading situations"<<std::endl;
 
     pathfinding::PathFindingTask situation;
     while (reader.readNext(situation)) {
@@ -123,6 +134,11 @@ int main(int argc, char* argv[])
     if (parser.isSet(standardSampler)) {
         std::cout <<"Optimizing standard sampler intermediate points"<<std::endl;
         optimizeStandardSamplerPoints(situations, parser.value(standardSampler));
+    }
+
+    if (parser.isSet(endInObstacle)) {
+        std::cout <<"Optimizing end in obstacle sampler"<<std::endl;
+        optimizeEndInObstacleParameters(situations);
     }
 
     return 0;
