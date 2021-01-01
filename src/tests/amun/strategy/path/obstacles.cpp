@@ -120,6 +120,29 @@ TEST(Obstacles, Rect_Distance) {
     ASSERT_FLOAT_EQ(r.distance(Vector(1, 3)), 0);
 }
 
+TEST(Obstacles, Rect_ProjectOut) {
+    Rect r(nullptr, 0, 1, 1, 4, 3, 0);
+    ASSERT_FLOAT_EQ(r.projectOut(Vector(1.5, 2), 0.5).distance(Vector(0.5, 2)), 0);
+    ASSERT_FLOAT_EQ(r.projectOut(Vector(2, 2.5), 0.5).distance(Vector(2, 3.5)), 0);
+    ASSERT_FLOAT_EQ(r.projectOut(Vector(3.75, 2), 0.5).distance(Vector(4.5, 2)), 0);
+    ASSERT_FLOAT_EQ(r.projectOut(Vector(3, 1.5), 0.5).distance(Vector(3, 0.5)), 0);
+    Vector centerProjection = r.projectOut(Vector(2.5, 2), 0.5); // the exact center gets projected somewhere out of the obstacle
+    ASSERT_FLOAT_EQ(r.distance(centerProjection), 0.5f);
+
+    // with radius
+    r = Rect(nullptr, 0, 1, 1, 4, 3, 0.5);
+    ASSERT_FLOAT_EQ(r.projectOut(Vector(1.5, 2), 0.5).distance(Vector(0, 2)), 0);
+    ASSERT_FLOAT_EQ(r.projectOut(Vector(0.8, 2), 0.5).distance(Vector(0, 2)), 0);
+    ASSERT_FLOAT_EQ(r.projectOut(Vector(2, 2.5), 0.5).distance(Vector(2, 4)), 0);
+    ASSERT_FLOAT_EQ(r.projectOut(Vector(3.75, 2), 0.5).distance(Vector(5, 2)), 0);
+    ASSERT_FLOAT_EQ(r.projectOut(Vector(3, 1.5), 0.5).distance(Vector(3, 0)), 0);
+    // corners
+    ASSERT_LE(r.projectOut(Vector(0.9, 3.1), 0.5).distance(Vector(1, 3) + Vector(-1, 1).normalized()), 0.0001f);
+    ASSERT_LE(r.projectOut(Vector(4.1, 3.1), 0.5).distance(Vector(4, 3) + Vector(1, 1).normalized()), 0.0001f);
+    ASSERT_LE(r.projectOut(Vector(4.1, 0.9), 0.5).distance(Vector(4, 1) + Vector(1, -1).normalized()), 0.0001f);
+    ASSERT_LE(r.projectOut(Vector(0.9, 0.9), 0.5).distance(Vector(1, 1) + Vector(-1, -1).normalized()), 0.0001f);
+}
+
 // tests distance functions that can be computed with the use of the point distance
 static void testDerivativeDistanceRandomized(std::function<std::unique_ptr<Obstacle>(std::function<float()>)> generator) {
     const float BOX_SIZE = 20.0f;

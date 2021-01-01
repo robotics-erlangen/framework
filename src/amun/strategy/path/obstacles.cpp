@@ -204,6 +204,39 @@ ZonedIntersection StaticObstacles::Rect::zonedDistance(const Vector &v, float ne
     }
 }
 
+Vector StaticObstacles::Rect::projectOut(Vector v, float extraDistance) const
+{
+    if (distance(v) > radius) {
+        return v;
+    }
+
+    if ((v.x > bottomLeft.x && v.x < topRight.x) || (v.y > bottomLeft.y && v.y < topRight.y)) {
+        // project the point out toward a side
+
+        float rightDist = LineSegment(topRight, Vector(topRight.x, bottomLeft.y)).distance(v);
+        float bottomDist = LineSegment(Vector(topRight.x, bottomLeft.y), bottomLeft).distance(v);
+        float leftDist = LineSegment(bottomLeft, Vector(bottomLeft.x, topRight.y)).distance(v);
+        float topDist = LineSegment(Vector(bottomLeft.x, topRight.y), topRight).distance(v);
+
+        if (rightDist < std::min({bottomDist, leftDist, topDist})) {
+            return Vector(topRight.x + radius + extraDistance, v.y);
+        } else if (bottomDist < std::min(leftDist, topDist)) {
+            return Vector(v.x, bottomLeft.y - radius - extraDistance);
+        } else if (leftDist < topDist) {
+            return Vector(bottomLeft.x - radius - extraDistance, v.y);
+        } else {
+            return Vector(v.x, topRight.y + radius + extraDistance);
+        }
+    } else {
+        // project the point out of one of the corners
+
+        Vector cornerPos;
+        cornerPos.x = v.x < bottomLeft.x ? bottomLeft.x : topRight.x;
+        cornerPos.y = v.y < bottomLeft.y ? bottomLeft.y : topRight.y;
+        return Circle(nullptr, prio, radius, cornerPos).projectOut(v, extraDistance);
+    }
+}
+
 float StaticObstacles::Rect::distance(const LineSegment &segment) const
 {
     // check if end is inside the rectangle

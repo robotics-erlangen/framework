@@ -101,6 +101,7 @@ namespace StaticObstacles {
         float distance(const Vector &v) const override;
         float distance(const LineSegment &segment) const override;
         ZonedIntersection zonedDistance(const Vector &v, float nearRadius) const override;
+        Vector projectOut(Vector v, float extraDistance) const override;
         BoundingBox boundingBox() const override;
         std::vector<Vector> corners() const override { return {bottomLeft, Vector(bottomLeft.x, topRight.y), topRight, Vector(topRight.x, bottomLeft.y)}; }
 
