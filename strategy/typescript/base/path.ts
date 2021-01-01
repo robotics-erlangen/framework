@@ -58,6 +58,7 @@ interface RectObstacle extends Obstacle {
 	start_y: number;
 	stop_x: number;
 	stop_y: number;
+	radius: number;
 }
 
 interface TriangleObstacle extends Obstacle {
@@ -121,9 +122,10 @@ interface PathObjectCommon {
 	 * @param end_y - y coordinate of upper right corner
 	 * @param name - name of the obstacle
 	 * @param priority - obstacle priority
+	 * @param radius - an extra radius around the rectangle to count as obstacle
 	 */
 	addRect(start_x: number, start_y: number, end_x: number, end_y: number,
-		name: string | undefined, priority: number): void;
+		name: string | undefined, priority: number, radius: number): void;
 	/**
 	 * Adds a triangle as an obstacle.
 	 * The triangle MUST be passed in strategy coordinates!
@@ -269,7 +271,7 @@ export class Path {
 				line.radius, line.name, line.prio);
 		}
 		for (let rect of this.rectObstacles) {
-			path.addRect(rect.start_x, rect.start_y, rect.stop_x, rect.stop_y, rect.name, rect.prio);
+			path.addRect(rect.start_x, rect.start_y, rect.stop_x, rect.stop_y, rect.name, rect.prio, rect.radius);
 		}
 		for (let tri of this.triangleObstacles) {
 			path.addTriangle(tri.x1, tri.y1, tri.x2, tri.y2, tri.x3, tri.y3, tri.lineWidth,
@@ -423,7 +425,7 @@ export class Path {
 			acc2.x, acc2.y, width, priority);
 	}
 
-	addRect(start_x: number, start_y: number, stop_x: number, stop_y: number, name?: string, prio: number = 0) {
+	addRect(start_x: number, start_y: number, stop_x: number, stop_y: number, radius: number, name?: string, prio: number = 0) {
 		if (teamIsBlue) {
 			start_x = -start_x;
 			start_y = -start_y;
@@ -439,7 +441,7 @@ export class Path {
 			name = undefined;
 		}
 		this.rectObstacles.push({start_x: start_x, start_y: start_y, stop_x: stop_x, stop_y: stop_y,
-			name: name, prio: prio});
+			radius: radius, name: name, prio: prio});
 	}
 
 	addTriangle(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number,

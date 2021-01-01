@@ -34,6 +34,7 @@ export class PenaltyPassiveDefense extends Behavior {
 				start_y: this.startY,
 				end_x: this.endX,
 				end_y: World.Ball.pos.y + this.endYOffset,
+				radius: 0,
 				name: "a/a/penaltyPassive"
 			}
 		];

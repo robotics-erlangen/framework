@@ -70,7 +70,7 @@ function addFriendlyDefenseAreaObstacle(path: Path, robot: FriendlyRobot) {
 					G.FriendlyGoal.y - 1,
 					G.FriendlyGoal.x + G.DefenseWidthHalf + POSITION_PADDING,
 					G.FriendlyGoal.y + G.DefenseHeight + POSITION_PADDING,
-					"DefenseArea", Priorities.DEFENSE_AREA);
+					0, "DefenseArea", Priorities.DEFENSE_AREA);
 		} else {
 		// line with round end caps
 			path.addLine(G.FriendlyGoal.x - G.DefenseStretch / 2, G.FriendlyGoal.y,
@@ -78,7 +78,7 @@ function addFriendlyDefenseAreaObstacle(path: Path, robot: FriendlyRobot) {
 					G.DefenseRadius + POSITION_PADDING, "DefenseArea", Priorities.DEFENSE_AREA);
 		}
 		if (geom.insideRect(_GoalAreaFriendly[0], _GoalAreaFriendly[1], robot.pos) || Field.isInFriendlyDefenseArea(robot.pos, robot.radius)) {
-			path.addRect(_GoalAreaFriendly[0].x, _GoalAreaFriendly[0].y, _GoalAreaFriendly[1].x, _GoalAreaFriendly[1].y, "EvacuateGoal", Priorities.EVACUATE_GOAL);
+			path.addRect(_GoalAreaFriendly[0].x, _GoalAreaFriendly[0].y, _GoalAreaFriendly[1].x, _GoalAreaFriendly[1].y, 0, "EvacuateGoal", Priorities.EVACUATE_GOAL);
 		}
 	}
 }
@@ -96,14 +96,14 @@ function addOpponentDefenseAreaObstacle(path: Path, robot: FriendlyRobot, target
 					G.OpponentGoal.y - G.DefenseHeight - distance,
 					G.OpponentGoal.x + G.DefenseWidthHalf + distance,
 					G.OpponentGoal.y + 1,
-					"DefenseArea", priority);
+					0, "DefenseArea", priority);
 		} else {
 			path.addLine(G.OpponentGoal.x - G.DefenseStretch / 2, G.OpponentGoal.y,
 					G.OpponentGoal.x + G.DefenseStretch / 2, G.OpponentGoal.y,
 					G.DefenseRadius + POSITION_PADDING, "DefenseArea", priority);
 		}
 		if (geom.insideRect(_GoalArea[0], _GoalArea[1], robot.pos) || Field.isInOpponentDefenseArea(robot.pos, robot.radius * 2)) {
-			path.addRect(_GoalArea[0].x, _GoalArea[0].y, _GoalArea[1].x, _GoalArea[1].y, "EvacuateGoal", priority === Priorities.DEFENSE_AREA ? Priorities.EVACUATE_GOAL : Priorities.STOP_EVACUATE_GOAL);
+			path.addRect(_GoalArea[0].x, _GoalArea[0].y, _GoalArea[1].x, _GoalArea[1].y, 0, "EvacuateGoal", priority === Priorities.DEFENSE_AREA ? Priorities.EVACUATE_GOAL : Priorities.STOP_EVACUATE_GOAL);
 		}
 	}
 }
@@ -111,14 +111,14 @@ function addOpponentDefenseAreaObstacle(path: Path, robot: FriendlyRobot, target
 function addOpponentFieldHalfObstacle(path: Path) {
 	if (World.RefereeState === "KickoffOffensive") {
 		path.addRect(-G.FieldWidthHalf - 0.5, G.FieldHeightHalf + 0.5,
-			-G.CenterCircleRadius, 0.02, "OppFieldHalf", Priorities.OPP_FIELD_HALF);
+			-G.CenterCircleRadius, 0.02, 0, "OppFieldHalf", Priorities.OPP_FIELD_HALF);
 		path.addRect(-G.CenterCircleRadius - 0.2, G.FieldHeightHalf + 0.5,
-			G.CenterCircleRadius + 0.2, G.CenterCircleRadius, "OppFieldHalf", Priorities.OPP_FIELD_HALF_INNER);
+			G.CenterCircleRadius + 0.2, G.CenterCircleRadius, 0, "OppFieldHalf", Priorities.OPP_FIELD_HALF_INNER);
 		path.addRect(G.CenterCircleRadius, G.FieldHeightHalf + 0.5,
-			G.FieldWidthHalf + 0.5, 0.02, "OppFieldHalf", Priorities.OPP_FIELD_HALF);
+			G.FieldWidthHalf + 0.5, 0.02, 0, "OppFieldHalf", Priorities.OPP_FIELD_HALF);
 	} else {
 		path.addRect(-G.FieldWidthHalf - 0.5, G.FieldHeightHalf + 0.5,
-			G.FieldWidthHalf + 0.5, 0.02, "OppFieldHalf", Priorities.OPP_FIELD_HALF);
+			G.FieldWidthHalf + 0.5, 0.02, 0, "OppFieldHalf", Priorities.OPP_FIELD_HALF);
 	}
 }
 
@@ -326,7 +326,7 @@ function addFriendlyPassObstacle(path: Path, robot: FriendlyRobot, messaging: Me
 function addPenaltyObstacle(path: Path) {
 	if (World.RefereeState === "PenaltyOffensivePrepare" || World.RefereeState === "PenaltyOffensive") {
 		path.addRect(-G.FieldWidthHalf - 1, G.OpponentGoalRight.y + 1,
-			G.FieldWidthHalf + 1, (G.OpponentGoalRight.y - (G.DefenseHeight + 0.45)));
+			G.FieldWidthHalf + 1, (G.OpponentGoalRight.y - (G.DefenseHeight + 0.45)), 0);
 	}
 }
 
