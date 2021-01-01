@@ -45,6 +45,9 @@ static const char* const UI_AUTOREF_COLOR_LIGHT = "lightgray";
 static const char* const UI_AUTOREF_COLOR_DARK = "#161616";
 
 // pathfinding
-static const char* const DO_NOT_SAVE_PATHFINDING_INPUT = "Do not save pathfinding input";
+static const char* const SAVE_PATHFINDING_INPUT_ALL = "Save pathfinding input: all inputs";
+static const char* const SAVE_PATHFINDING_INPUT_STANDARDSAMPLER = "Save pathfinding input: standard sampler inputs";
+static const char* const SAVE_PATHFINDING_INPUT_ENDINOBSTACLE = "Save pathfinding input: end in obstacle inputs";
+static const char* const SAVE_PATHFINDING_INPUT_ESCAPEOBSTACLE = "Save pathfinding input: escape obstacle inputs";
 
 #endif // CONFIG_H

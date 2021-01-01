@@ -24,12 +24,13 @@
 #include <QDebug>
 
 
-TrajectoryPath::TrajectoryPath(uint32_t rng_seed, ProtobufFileSaver *inputSaver) :
+TrajectoryPath::TrajectoryPath(uint32_t rng_seed, ProtobufFileSaver *inputSaver, pathfinding::InputSourceType captureType) :
     AbstractPath(rng_seed),
     m_standardSampler(m_rng, m_world, m_debug),
     m_endInObstacleSampler(m_rng, m_world, m_debug),
     m_escapeObstacleSampler(m_rng, m_world, m_debug),
-    m_inputSaver(inputSaver)
+    m_inputSaver(inputSaver),
+    m_captureType(captureType)
 { }
 
 void TrajectoryPath::reset()
@@ -87,6 +88,30 @@ static std::vector<TrajectorySampler::TrajectoryGenerationInfo> concat(const std
     return result;
 }
 
+void TrajectoryPath::savePathfindingInput(const TrajectoryInput &input)
+{
+    pathfinding::PathFindingTask task;
+    serializeTrajectoryInput(input, task.mutable_input());
+    m_world.serialize(task.mutable_state());
+    task.set_type(m_captureType);
+    m_inputSaver->saveMessage(task);
+}
+
+bool TrajectoryPath::testSampler(const TrajectoryInput &input, pathfinding::InputSourceType type)
+{
+    if (m_captureType == type && m_inputSaver != nullptr) {
+        savePathfindingInput(input);
+    }
+    if (type == pathfinding::StandardSampler) {
+        return m_standardSampler.compute(input);
+    } else if (type == pathfinding::EndInObstacleSampler) {
+        return m_endInObstacleSampler.compute(input);
+    } else if (type == pathfinding::EscapeObstacleSampler) {
+        return m_escapeObstacleSampler.compute(input);
+    }
+    return false;
+}
+
 std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPath(TrajectoryInput input)
 {
     const auto &obstacles = m_world.obstacles();
@@ -97,10 +122,14 @@ std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPat
     m_world.collectObstacles();
     m_world.collectMovingObstacles();
 
+    if (m_captureType == pathfinding::AllSamplers && m_inputSaver != nullptr) {
+        savePathfindingInput(input);
+    }
+
     // check if start point is in obstacle
     std::vector<TrajectorySampler::TrajectoryGenerationInfo> escapeObstacle;
     if (m_world.isInStaticObstacle(obstacles, input.s0) || m_world.isInMovingObstacle(m_world.movingObstacles(), input.s0, 0)) {
-        if (!m_escapeObstacleSampler.compute(input)) {
+        if (!testSampler(input, pathfinding::EscapeObstacleSampler)) {
             // no fallback for now
             return {};
         }
@@ -131,14 +160,14 @@ std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPat
         // test again, might have been moved into another obstacle
         // TODO: check moving obstacles with minimum
         if (m_world.isInStaticObstacle(obstacles, input.s1)) {
-            if (m_endInObstacleSampler.compute(input)) {
+            if (testSampler(input, pathfinding::EndInObstacleSampler)) {
                 return concat(escapeObstacle, m_endInObstacleSampler.getResult());
             }
             if (escapeObstacle.size() > 0) {
                 // we have already run the escape obstacle sampler, no need to do it again
                 return escapeObstacle;
             }
-            if (m_escapeObstacleSampler.compute(input)) {
+            if (testSampler(input, pathfinding::EscapeObstacleSampler)) {
                 return m_escapeObstacleSampler.getResult();
             }
             return {};
@@ -162,17 +191,10 @@ std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPat
         }
     }
 
-    if (m_inputSaver != nullptr) {
-        pathfinding::PathFindingTask task;
-        serializeTrajectoryInput(input, task.mutable_input());
-        m_world.serialize(task.mutable_state());
-        m_inputSaver->saveMessage(task);
-    }
-
-    if (m_standardSampler.compute(input)) {
+    if (testSampler(input, pathfinding::StandardSampler)) {
         return concat(escapeObstacle, m_standardSampler.getResult());
     }
-    if (m_endInObstacleSampler.compute(input)) {
+    if (testSampler(input, pathfinding::EndInObstacleSampler)) {
         return concat(escapeObstacle, m_endInObstacleSampler.getResult());
     }
 
@@ -180,7 +202,7 @@ std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPat
         // we have already run the escape obstacle sampler, no need to do it again
         return escapeObstacle;
     }
-    if (m_escapeObstacleSampler.compute(input)) {
+    if (testSampler(input, pathfinding::EscapeObstacleSampler)) {
         return m_escapeObstacleSampler.getResult();
     }
     return {};

@@ -93,9 +93,18 @@ message TrajectoryInput {
     optional float acceleration = 7;
 };
 
+enum InputSourceType {
+    None = 0;
+    AllSamplers = 1;
+    StandardSampler = 2;
+    EndInObstacleSampler = 3;
+    EscapeObstacleSampler = 4;
+};
+
 message PathFindingTask {
 	optional WorldState state = 1;
 	optional TrajectoryInput input = 2;
+    optional InputSourceType type = 3;
 }
 
 // these messages are for defining the pre-computed values to use during run-time

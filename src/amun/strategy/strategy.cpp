@@ -690,7 +690,10 @@ void Strategy::setStrategyStatus(Status &status, amun::StatusStrategy::STATE sta
         strategy->set_current_entry_point(m_strategy->entryPoint().toStdString());
 
         QVector<QPair<std::string, bool>> options;
-        options.push_back({ DO_NOT_SAVE_PATHFINDING_INPUT, true });
+        options.push_back({ SAVE_PATHFINDING_INPUT_ALL, false });
+        options.push_back({ SAVE_PATHFINDING_INPUT_STANDARDSAMPLER, false });
+        options.push_back({ SAVE_PATHFINDING_INPUT_ENDINOBSTACLE, false });
+        options.push_back({ SAVE_PATHFINDING_INPUT_ESCAPEOBSTACLE, false });
         const QMap<QString, bool> &strategyOptions = m_strategy->options();
         for (const QString &option: m_strategy->options().keys()) {
             options.push_back({ option.toStdString(), strategyOptions[option] });

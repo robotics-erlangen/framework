@@ -518,10 +518,31 @@ static void trajectoryPathCreateNew(const FunctionCallbackInfo<Value>& args)
     Typescript *ts = static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value())->typescript();
 
     ProtobufFileSaver *inputSaver = nullptr;
-    if (!ts->scriptState().selectedOptions.contains(DO_NOT_SAVE_PATHFINDING_INPUT)) {
+
+    std::pair<const char*, pathfinding::InputSourceType> pathfindingOptions[4] = {
+        {SAVE_PATHFINDING_INPUT_ALL, pathfinding::AllSamplers},
+        {SAVE_PATHFINDING_INPUT_STANDARDSAMPLER, pathfinding::StandardSampler},
+        {SAVE_PATHFINDING_INPUT_ENDINOBSTACLE, pathfinding::EndInObstacleSampler},
+        {SAVE_PATHFINDING_INPUT_ESCAPEOBSTACLE, pathfinding::EscapeObstacleSampler}
+    };
+    pathfinding::InputSourceType sourceType = pathfinding::None;
+    for (auto option : pathfindingOptions) {
+        if (ts->scriptState().selectedOptions.contains(option.first)) {
+            if (sourceType != pathfinding::None) {
+                sourceType = pathfinding::AllSamplers;
+                ts->log("Warning: multiple pathfinding save input options selected, saving all inputs!");
+            } else {
+                sourceType = option.second;
+            }
+        }
+    }
+    if (sourceType != pathfinding::None) {
         inputSaver = ts->scriptState().pathInputSaver;
     }
-    QTPath *p = new QTPath(nullptr, new TrajectoryPath(ts->time(), inputSaver), ts);
+    if (inputSaver == nullptr) { // not all strategy instances might get one
+        sourceType = pathfinding::None;
+    }
+    QTPath *p = new QTPath(nullptr, new TrajectoryPath(ts->time(), inputSaver, sourceType), ts);
 
     Local<Object> pathWrapper = Object::New(isolate);
     Local<External> pathObject = External::New(isolate, p);

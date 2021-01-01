@@ -28,6 +28,7 @@
 #include "multiescapesampler.h"
 #include "standardsampler.h"
 #include "core/vector.h"
+#include "protobuf/pathfinding.pb.h"
 #include <vector>
 
 class ProtobufFileSaver;
@@ -35,7 +36,7 @@ class ProtobufFileSaver;
 class TrajectoryPath : public AbstractPath
 {
 public:
-    TrajectoryPath(uint32_t rng_seed, ProtobufFileSaver *inputSaver);
+    TrajectoryPath(uint32_t rng_seed, ProtobufFileSaver *inputSaver, pathfinding::InputSourceType captureType);
     void reset() override;
     std::vector<TrajectoryPoint> calculateTrajectory(Vector s0, Vector v0, Vector s1, Vector v1, float maxSpeed, float acceleration);
     // is guaranteed to be equally spaced in time
@@ -47,6 +48,8 @@ private:
     std::vector<TrajectorySampler::TrajectoryGenerationInfo> findPath(TrajectoryInput input);
     std::vector<TrajectoryPoint> getResultPath(const std::vector<TrajectorySampler::TrajectoryGenerationInfo> &generationInfo,
                                                const TrajectoryInput &input);
+    bool testSampler(const TrajectoryInput &input, pathfinding::InputSourceType type);
+    void savePathfindingInput(const TrajectoryInput &input);
 
 private:
     StandardSampler m_standardSampler;
@@ -57,6 +60,7 @@ private:
     std::vector<TrajectoryPoint> m_currentTrajectory;
 
     ProtobufFileSaver *m_inputSaver;
+    pathfinding::InputSourceType m_captureType;
 };
 
 #endif // TRAJECTORYPATH_H
