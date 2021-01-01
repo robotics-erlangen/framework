@@ -117,6 +117,7 @@ int main(int argc, char* argv[])
     std::cout <<"Loading situations"<<std::endl;
 
     pathfinding::PathFindingTask situation;
+    pathfinding::InputSourceType sourceSoFar = pathfinding::None;
     while (reader.readNext(situation)) {
         Situation s;
         if (situation.has_state()) {
@@ -125,6 +126,17 @@ int main(int argc, char* argv[])
         if (situation.has_input()) {
             s.input = deserializeTrajectoryInput(situation.input());
         }
+        if (situation.has_type()) {
+            s.sourceType = situation.type();
+        } else {
+            s.sourceType = pathfinding::AllSamplers;
+        }
+        // check for properly behaved pathfinding input files, as recordings can be mixed
+        if (sourceSoFar != pathfinding::None && sourceSoFar != s.sourceType) {
+            std::cerr <<"Error: mixed pathfinding input sources in the input file"<<std::endl;
+            exit(1);
+        }
+        sourceSoFar = s.sourceType;
         situations.push_back(s);
         situation.Clear();
     }
@@ -133,11 +145,19 @@ int main(int argc, char* argv[])
 
     if (parser.isSet(standardSampler)) {
         std::cout <<"Optimizing standard sampler intermediate points"<<std::endl;
+        if (sourceSoFar != pathfinding::StandardSampler) {
+            std::cerr <<"Error: trying to use pathfinding inputs not collected for the standard sampler!"<<std::endl;
+            exit(1);
+        }
         optimizeStandardSamplerPoints(situations, parser.value(standardSampler));
     }
 
     if (parser.isSet(endInObstacle)) {
         std::cout <<"Optimizing end in obstacle sampler"<<std::endl;
+        if (sourceSoFar != pathfinding::EndInObstacleSampler) {
+            std::cerr <<"Error: trying to use pathfinding inputs not collected for the end in obstacle sampler!"<<std::endl;
+            exit(1);
+        }
         optimizeEndInObstacleParameters(situations);
     }
 

@@ -21,8 +21,10 @@
 #pragma once
 
 #include "path/trajectorysampler.h"
+#include "protobuf/pathfinding.pb.h"
 
 struct Situation {
     WorldInformation world;
     TrajectoryInput input;
+    pathfinding::InputSourceType sourceType;
 };
