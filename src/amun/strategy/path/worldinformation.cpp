@@ -65,9 +65,9 @@ void WorldInformation::addLine(float x1, float y1, float x2, float y2, float wid
     m_lineObstacles.emplace_back(name, prio, width, Vector(x1, y1), Vector(x2, y2));
 }
 
-void WorldInformation::addRect(float x1, float y1, float x2, float y2, const char* name, int prio)
+void WorldInformation::addRect(float x1, float y1, float x2, float y2, const char* name, int prio, float radius)
 {
-    StaticObstacles::Rect r(name, prio, x1, y1, x2, y2);
+    StaticObstacles::Rect r(name, prio, x1, y1, x2, y2, radius);
     m_rectObstacles.push_back(r);
 }
 

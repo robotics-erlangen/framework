@@ -172,8 +172,9 @@ static int pathAddRect(lua_State *L)
     const char* name = nullptr;
     name = luaL_optstring(L,6, nullptr);
     const int prio = luaL_optint(L, 7, 0);
+    const float radius = luaL_optnumber(L, 8, 0);
 
-    p->world().addRect(x1, y1, x2, y2, name, prio);
+    p->world().addRect(x1, y1, x2, y2, name, prio, radius);
     return 0;
 }
 

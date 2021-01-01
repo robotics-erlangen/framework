@@ -205,8 +205,12 @@ static void pathAddRect(QTPath *wrapper, const FunctionCallbackInfo<Value>& args
             !verifyNumber(isolate, args[5 + offset], prio)) {
         return;
     }
+    float radius = 0;
+    if (args[6 + offset]->IsNumber()) {
+        radius = args[6 + offset]->ToNumber(isolate->GetCurrentContext()).ToLocalChecked()->Value();
+    }
 
-    wrapper->abstractPath()->world().addRect(x1, y1, x2, y2, nullptr, int(prio));
+    wrapper->abstractPath()->world().addRect(x1, y1, x2, y2, nullptr, int(prio), radius);
 }
 GENERATE_FUNCTIONS(pathAddRect);
 

@@ -116,7 +116,7 @@ TEST(EndInObstacleSampler, WholeSampling) {
         Vector s1(5, 5);
         TrajectoryInput input = constructBasicInput(s0, s1);
         auto addObst = [&](WorldInformation &world) {
-            world.addRect(s1.x - 0.3, 10, 10, -10, "rect around target", 50);
+            world.addRect(s1.x - 0.3, 10, 10, -10, "rect around target", 50, 0);
         };
 
         Vector target = optimizeCloseness(addObst, input) + s0;

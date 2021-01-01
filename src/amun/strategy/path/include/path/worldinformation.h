@@ -51,7 +51,7 @@ public:
     // static obstacles
     void addCircle(float x, float y, float radius, const char *name, int prio);
     void addLine(float x1, float y1, float x2, float y2, float width, const char *name, int prio);
-    void addRect(float x1, float y1, float x2, float y2, const char *name, int prio);
+    void addRect(float x1, float y1, float x2, float y2, const char *name, int prio, float radius);
     void addTriangle(float x1, float y1, float x2, float y2, float x3, float y3, float lineWidth, const char *name, int prio);
 
     void collectObstacles() const;

@@ -87,7 +87,7 @@ TEST(Obstacles, Circle_BoundingBox) {
 }
 
 TEST(Obstacles, Rect_Distance) {
-    Rect r(nullptr, 0, 1, 1, 3, 2);
+    Rect r(nullptr, 0, 1, 1, 3, 2, 0);
     // boundary
     ASSERT_FLOAT_EQ(r.distance(Vector(1, 1)), 0);
     ASSERT_FLOAT_EQ(r.distance(Vector(2, 1)), 0);
@@ -110,9 +110,14 @@ TEST(Obstacles, Rect_Distance) {
     ASSERT_FLOAT_EQ(r.distance(Vector(0, 3)), sqrt2);
 
     // inside
-    r = Rect(nullptr, 0, 0, 0, 2, 2);
+    r = Rect(nullptr, 0, 0, 0, 2, 2, 0);
     ASSERT_FLOAT_EQ(r.distance(Vector(1, 1)), -1);
     ASSERT_FLOAT_EQ(r.distance(Vector(0.5, 1)), -0.5);
+
+    // with radius
+    r = Rect(nullptr, 0, 0, 0, 2, 2, 1);
+    ASSERT_FLOAT_EQ(r.distance(Vector(0, 0)), -1);
+    ASSERT_FLOAT_EQ(r.distance(Vector(1, 3)), 0);
 }
 
 // tests distance functions that can be computed with the use of the point distance
@@ -191,17 +196,18 @@ static void testDerivativeDistanceRandomized(std::function<std::unique_ptr<Obsta
 
 TEST(Obstacles, Rect_DerivativeDistances) {
     testDerivativeDistanceRandomized([](std::function<float()> random) {
-        return std::make_unique<Rect>(nullptr, 0, random(), random(), random(), random());
+        float radius = rand() < 0 ? 0 : 0.4f;
+        return std::make_unique<Rect>(nullptr, 0, random(), random(), random(), random(), radius);
     });
 }
 
 TEST(Obstacles, Rect_BoundingBox) {
-    Rect r(nullptr, 0, 1, 1, 3, 2);
+    Rect r(nullptr, 0, 1, 1, 3, 2, 0.5);
     auto b = r.boundingBox();
-    ASSERT_EQ(b.left, 1);
-    ASSERT_EQ(b.right, 3);
-    ASSERT_EQ(b.top, 2);
-    ASSERT_EQ(b.bottom, 1);
+    ASSERT_EQ(b.left, 0.5);
+    ASSERT_EQ(b.right, 3.5);
+    ASSERT_EQ(b.top, 2.5);
+    ASSERT_EQ(b.bottom, 0.5);
 }
 
 TEST(Obstacles, Triangle_distance) {

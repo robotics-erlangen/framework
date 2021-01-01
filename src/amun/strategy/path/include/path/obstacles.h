@@ -95,7 +95,7 @@ namespace StaticObstacles {
     {
         // gets a default constructor since it is also used for boundary checking
         Rect();
-        Rect(const char* name, int prio, float x1, float y1, float x2, float y2);
+        Rect(const char* name, int prio, float x1, float y1, float x2, float y2, float radius);
         Rect(const pathfinding::Obstacle &obstacle, const pathfinding::RectObstacle &rect);
 
         float distance(const Vector &v) const override;

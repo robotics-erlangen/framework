@@ -157,8 +157,8 @@ StaticObstacles::Rect::Rect() :
     topRight(Vector(0, 0))
 { }
 
-StaticObstacles::Rect::Rect(const char* name, int prio, float x1, float y1, float x2, float y2) :
-    Obstacle(name, prio, 0)
+StaticObstacles::Rect::Rect(const char* name, int prio, float x1, float y1, float x2, float y2, float radius) :
+    Obstacle(name, prio, radius)
 {
     bottomLeft.x = std::min(x1, x2);
     bottomLeft.y = std::min(y1, y2);
@@ -174,7 +174,6 @@ StaticObstacles::Rect::Rect(const pathfinding::Obstacle &obstacle, const pathfin
 
 float StaticObstacles::Rect::distance(const Vector &v) const
 {
-    // TODO: den radius kann man gar nicht setzen?
     float distX = std::max(bottomLeft.x - v.x, v.x - topRight.x);
     float distY = std::max(bottomLeft.y - v.y, v.y - topRight.y);
 
