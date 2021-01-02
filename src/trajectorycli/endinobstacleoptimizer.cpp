@@ -24,12 +24,54 @@
 #include "core/rng.h"
 
 #include <iostream>
+#include <memory>
+#include <QDebug>
 
+const static float INVALID_COST = 10;
+
+static float evaluateParameters(const std::vector<float> &optimalValues, const std::vector<std::pair<ParameterIdentifier, float>> &parameters,
+                           const std::vector<Situation> &situations)
+{
+    DynamicSearchParameters::setParameters(parameters);
+
+    // TODO: this will not work if we have robots of the same id in the two teams
+    int maxRobotId = 0;
+    for (const auto &sit : situations) {
+        maxRobotId = std::max(maxRobotId, sit.world.robotId());
+    }
+
+    RNG rng(42);
+    PathDebug debug;
+    WorldInformation world;
+
+    std::vector<std::unique_ptr<EndInObstacleSampler>> samplers; // on per robot, as during normal ra usages
+    for (int i = 0;i<maxRobotId + 1;i++) {
+        samplers.push_back(std::make_unique<EndInObstacleSampler>(&rng, world, debug));
+    }
+
+    float totalDistance = 0;
+    for (int i = 0;i<(int)situations.size();i++) {
+        const auto &situation = situations[i];
+        world = situation.world;
+        world.collectObstacles();
+        world.collectMovingObstacles();
+
+        EndInObstacleSampler &sampler = *samplers[world.robotId()].get();
+
+        bool valid = sampler.compute(situation.input);
+        float cost;
+        if (!valid) {
+            cost = INVALID_COST - optimalValues[i];
+        } else {
+            cost = sampler.getTargetDistance() - optimalValues[i];
+        }
+        totalDistance += cost; // squared error or other metrics are also possible here
+    }
+    return totalDistance;
+}
 
 void optimizeEndInObstacleParameters(std::vector<Situation> situations)
 {
-    const float INVALID_COST = 10;
-
     std::cout <<"Computing optimal scenario solutions"<<std::endl;
     DynamicSearchParameters::beginRegistering(ParameterCategory::EndInObstacleSamplerParameter);
     std::vector<float> optimalDistances;
@@ -54,12 +96,13 @@ void optimizeEndInObstacleParameters(std::vector<Situation> situations)
 
     auto parameterDefs = DynamicSearchParameters::stopRegistering();
 
-    float bestExtraDistance = std::numeric_limits<float>::infinity();
     std::vector<std::pair<ParameterIdentifier, float>> bestParameters;
     for (const auto &def : parameterDefs) {
         bestParameters.push_back({def.identifier, def.defaultValue});
     }
+    float bestExtraDistance = evaluateParameters(optimalDistances, bestParameters, situations);
 
+    std::cout <<"The default parameters have a score of: "<<bestExtraDistance / situations.size()<<std::endl;
     std::cout <<"Searching for better parameters..."<<std::endl;
 
     RNG rng(42);
@@ -79,23 +122,7 @@ void optimizeEndInObstacleParameters(std::vector<Situation> situations)
             }
         }
 
-        DynamicSearchParameters::setParameters(testParameters);
-
-        float totalDistance = 0;
-        for (int i = 0;i<(int)situations.size();i++) {
-            const auto &situation = situations[i];
-            RNG rng(42);
-            PathDebug debug;
-            EndInObstacleSampler sampler(&rng, situation.world, debug);
-            bool valid = sampler.compute(situation.input);
-            float cost;
-            if (!valid) {
-                cost = INVALID_COST - optimalDistances[i];
-            } else {
-                cost = sampler.getTargetDistance() - optimalDistances[i];
-            }
-            totalDistance += cost; // squared error or other metrics are also possible here
-        }
+        float totalDistance = evaluateParameters(optimalDistances, testParameters, situations);
 
         if (totalDistance < bestExtraDistance) {
             std::cout <<std::endl<<std::endl;

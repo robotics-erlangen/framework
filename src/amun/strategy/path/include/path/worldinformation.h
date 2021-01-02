@@ -89,6 +89,9 @@ public:
     // collect obstacles must be called after calling this and before using it
     void deserialize(const pathfinding::WorldState &state);
 
+    // collectobstacles must be called after this
+    WorldInformation& operator=(const WorldInformation &world) = default;
+
 private:
     mutable QVector<const StaticObstacles::Obstacle*> m_obstacles;
 
