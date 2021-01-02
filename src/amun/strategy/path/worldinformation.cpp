@@ -307,7 +307,7 @@ std::pair<ZonedIntersection, ZonedIntersection> WorldInformation::minObstacleDis
 
 void WorldInformation::serialize(pathfinding::WorldState *state) const
 {
-    for (auto obstacle : m_obstacles) {
+    for (auto obstacle : qAsConst(m_obstacles)) {
         obstacle->serialize(state->add_obstacles());
     }
     for (auto obstacle : m_movingObstacles) {
@@ -318,6 +318,7 @@ void WorldInformation::serialize(pathfinding::WorldState *state) const
     m_boundary.serialize(&o);
     state->mutable_boundary()->CopyFrom(o.rectangle());
     state->set_radius(m_radius);
+    state->set_robot_id(m_robotId);
 }
 
 void WorldInformation::deserialize(const pathfinding::WorldState &state)
@@ -357,7 +358,9 @@ void WorldInformation::deserialize(const pathfinding::WorldState &state)
     if (state.has_radius()) {
         m_radius = state.radius();
     }
-
+    if (state.has_robot_id()) {
+        m_robotId = state.robot_id();
+    }
     if (state.has_boundary()) {
         m_boundary = StaticObstacles::Rect(pathfinding::Obstacle(), state.boundary());
     }

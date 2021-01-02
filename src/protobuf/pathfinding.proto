@@ -81,6 +81,7 @@ message WorldState {
     optional uint32 out_of_field_priority = 2;
     optional RectObstacle boundary = 3;
     optional float radius = 4;
+    optional uint32 robot_id = 5;
 };
 
 message TrajectoryInput {
