@@ -58,6 +58,12 @@ private:
     static constexpr int MAX_SEARCH_ITERATIONS = 30;
     static constexpr int HIGH_PRECISION_ITERATIONS = 50;
 
+public:
+    // for the trajectorycli paramter optimization of findTrajectory (for single threaded use only)
+#ifdef ACTIVE_PATHFINDING_PARAMETER_OPTIMIZATION
+    static int searchIterationCounter;
+#endif
+
 };
 
 #endif // ALPHATIMETRAJECTORY_H

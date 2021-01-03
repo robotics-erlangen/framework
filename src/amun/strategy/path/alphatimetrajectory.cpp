@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include "alphatimetrajectory.h"
+#include "parameterization.h"
 #include <QDebug>
 
 // helper functions
@@ -231,7 +232,7 @@ SpeedProfile AlphaTimeTrajectory::findTrajectory(Vector v0, Vector v1, Vector po
     Vector minPos = minTimePos(v0, v1, acc, slowDownTime);
     float minTimeDistance = position.distance(minPos);
 
-    const bool useMinTimePosForCenterPos = minTimeDistance < 0.007f;
+    const bool useMinTimePosForCenterPos = minTimeDistance < PARAMETER(AlphaTimeTrajectory, 0, 0.007f, 0.05);
 
     // estimate rough time from distance
     // TODO: improve this estimate?
@@ -254,10 +255,10 @@ SpeedProfile AlphaTimeTrajectory::findTrajectory(Vector v0, Vector v1, Vector po
     float currentTime = estimatedTime;
     float currentAngle = estimatedAngle;
 
-    float distanceFactor = 0.8f;
+    float distanceFactor = PARAMETER(AlphaTimeTrajectory, 0.3, 0.8f, 1.5);
     float lastCenterDistanceDiff = 0;
 
-    float angleFactor = 1.07f;
+    float angleFactor = PARAMETER(AlphaTimeTrajectory, 0.7, 1.07f, 1.5);
     float lastAngleDiff = 0;
 
     const int ITERATIONS = highPrecision ? HIGH_PRECISION_ITERATIONS : MAX_SEARCH_ITERATIONS;
@@ -282,6 +283,9 @@ SpeedProfile AlphaTimeTrajectory::findTrajectory(Vector v0, Vector v1, Vector po
             if (slowDownTime <= 0) {
                 result = calculateTrajectory(v0, v1, currentTime, currentAngle, acc, vMax, slowDownTime, fastEndSpeed, minTime);
             }
+#ifdef ACTIVE_PATHFINDING_PARAMETER_OPTIMIZATION
+            searchIterationCounter += i;
+#endif
             return result;
         }
 
@@ -291,23 +295,30 @@ SpeedProfile AlphaTimeTrajectory::findTrajectory(Vector v0, Vector v1, Vector po
         float targetCenterDistance = currentCenterTimePos.distance(position);
         float currentCenterDistanceDiff = targetCenterDistance - newDistance;
         if ((lastCenterDistanceDiff < 0) != (currentCenterDistanceDiff < 0)) {
-            distanceFactor *= 0.92f;
+            distanceFactor *= PARAMETER(AlphaTimeTrajectory, 0.7, 0.92f, 1);
         } else {
-            distanceFactor *= 1.1f;
+            distanceFactor *= PARAMETER(AlphaTimeTrajectory, 1, 1.1f, 1.3);
         }
         lastCenterDistanceDiff = currentCenterDistanceDiff;
-        currentTime += currentCenterDistanceDiff * distanceFactor / std::max(0.82f, assumedSpeed);
+        currentTime += currentCenterDistanceDiff * distanceFactor / std::max(PARAMETER(AlphaTimeTrajectory, 0.3, 0.82f, 1.5), assumedSpeed);
 
         // update angle
         float newAngle = (endPos - currentCenterTimePos).angle();
         float targetCenterAngle = (position - currentCenterTimePos).angle();
         float currentAngleDiff = angleDiff(targetCenterAngle, newAngle);
         if (i >= 1 && (currentAngleDiff < 0) != (lastAngleDiff < 0)) {
-            angleFactor *= 0.82f;
+            angleFactor *= PARAMETER(AlphaTimeTrajectory, 0.5, 0.82f, 1.1);
         }
         lastAngleDiff = currentAngleDiff;
         currentAngle += currentAngleDiff * angleFactor;
     }
     result.valid = false;
+#ifdef ACTIVE_PATHFINDING_PARAMETER_OPTIMIZATION
+    searchIterationCounter += ITERATIONS;
+#endif
     return result;
 }
+
+#ifdef ACTIVE_PATHFINDING_PARAMETER_OPTIMIZATION
+int AlphaTimeTrajectory::searchIterationCounter = 0;
+#endif

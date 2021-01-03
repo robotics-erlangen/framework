@@ -18,7 +18,7 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#include "endinobstacleoptimizer.h"
+#include "common.h"
 #include "path/parameterization.h"
 #include "path/endinobstaclesampler.h"
 #include "core/rng.h"
@@ -29,11 +29,8 @@
 
 const static float INVALID_COST = 10;
 
-static float evaluateParameters(const std::vector<float> &optimalValues, const std::vector<std::pair<ParameterIdentifier, float>> &parameters,
-                           const std::vector<Situation> &situations)
+static float evaluateParameters(const std::vector<float> &optimalValues, const std::vector<Situation> &situations)
 {
-    DynamicSearchParameters::setParameters(parameters);
-
     // TODO: this will not work if we have robots of the same id in the two teams
     int maxRobotId = 0;
     for (const auto &sit : situations) {
@@ -72,67 +69,28 @@ static float evaluateParameters(const std::vector<float> &optimalValues, const s
 
 void optimizeEndInObstacleParameters(std::vector<Situation> situations)
 {
-    std::cout <<"Computing optimal scenario solutions"<<std::endl;
-    DynamicSearchParameters::beginRegistering(ParameterCategory::EndInObstacleSamplerParameter);
     std::vector<float> optimalDistances;
-    for (auto &situation : situations) {
 
-        situation.world.collectObstacles();
-        situation.world.collectMovingObstacles();
-
-        RNG rng(42);
-        PathDebug debug;
-        EndInObstacleSampler sampler(&rng, situation.world, debug);
-        for (int i = 0;i<50;i++) {
-            sampler.compute(situation.input);
-        }
-        bool valid = sampler.compute(situation.input);
-        if (valid) {
-            optimalDistances.push_back(sampler.getTargetDistance());
-        } else {
-            optimalDistances.push_back(INVALID_COST);
-        }
-    }
-
-    auto parameterDefs = DynamicSearchParameters::stopRegistering();
-
-    std::vector<std::pair<ParameterIdentifier, float>> bestParameters;
-    for (const auto &def : parameterDefs) {
-        bestParameters.push_back({def.identifier, def.defaultValue});
-    }
-    float bestExtraDistance = evaluateParameters(optimalDistances, bestParameters, situations);
-
-    std::cout <<"The default parameters have a score of: "<<bestExtraDistance / situations.size()<<std::endl;
-    std::cout <<"Searching for better parameters..."<<std::endl;
-
-    RNG rng(42);
-    // run until there was no improvement for x iterations
-    for (int i = 0;i<200;i++) {
-        auto testParameters = bestParameters;
-        if (rng.uniformInt() % 5 == 0 && i > 10) {
-            for (unsigned int i = 0;i<parameterDefs.size();i++) {
-                testParameters[i].second = rng.uniformFloat(parameterDefs[i].rangeMin, parameterDefs[i].rangeMax);
+    std::function<void(std::vector<Situation>&)> initial = [&optimalDistances](const std::vector<Situation> &situations) {
+        for (const Situation &situation : situations) {
+            RNG rng(42);
+            PathDebug debug;
+            EndInObstacleSampler sampler(&rng, situation.world, debug);
+            for (int i = 0;i<50;i++) {
+                sampler.compute(situation.input);
             }
-        } else {
-            float radiusFactor = rng.uniformFloat(0.01f, 0.2f);
-            for (unsigned int i = 0;i<parameterDefs.size();i++) {
-                float radius = radiusFactor * (parameterDefs[i].rangeMax - parameterDefs[i].rangeMin);
-                testParameters[i].second += rng.uniformFloat(-radius, radius);
-                testParameters[i].second = std::min(std::max(testParameters[i].second, parameterDefs[i].rangeMin), parameterDefs[i].rangeMax);
+            bool valid = sampler.compute(situation.input);
+            if (valid) {
+                optimalDistances.push_back(sampler.getTargetDistance());
+            } else {
+                optimalDistances.push_back(INVALID_COST);
             }
         }
+    };
 
-        float totalDistance = evaluateParameters(optimalDistances, testParameters, situations);
+    std::function<float(std::vector<Situation>&)> computeScore = [&optimalDistances](const std::vector<Situation> &situations) {
+        return evaluateParameters(optimalDistances, situations);
+    };
 
-        if (totalDistance < bestExtraDistance) {
-            std::cout <<std::endl<<std::endl;
-            std::cout <<"Found better parameters with average error: \t"<<totalDistance / situations.size()<<std::endl;
-            for (unsigned int i = 0;i<parameterDefs.size();i++) {
-                std::cout <<parameterDefs[i].identifier.first<<": "<<parameterDefs[i].identifier.second<<": "<<testParameters[i].second<<std::endl;
-            }
-            bestExtraDistance = totalDistance;
-            bestParameters = testParameters;
-            i = 0;
-        }
-    }
+    optimizeParameters(situations, ParameterCategory::EndInObstacleSamplerParameter, initial, computeScore);
 }

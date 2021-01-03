@@ -20,6 +20,8 @@
 
 #include "parameterization.h"
 
+#include <algorithm>
+
 #ifdef ACTIVE_PATHFINDING_PARAMETER_OPTIMIZATION
 DynamicSearchParameters DynamicSearchParameters::instance;
 
@@ -53,6 +55,14 @@ float DynamicSearchParameters::getParameterRegistering(float rangeMin, float cur
         // should not happen if the parameters are properly collected and registered
         return currentDefault;
     }
+}
+
+std::vector<ParameterDefinition> DynamicSearchParameters::stopRegistering()
+{
+    instance.m_currentlyRegistering = false;
+    // sort parameters to be consistent across different executions
+    std::sort(instance.m_parameterDefinitions.begin(), instance.m_parameterDefinitions.end());
+    return instance.m_parameterDefinitions;
 }
 
 #endif

@@ -49,6 +49,10 @@ struct ParameterDefinition {
     float defaultValue;
     ParameterIdentifier identifier;
     int counter;
+
+    bool operator<(const ParameterDefinition &other) const {
+        return identifier < other.identifier;
+    }
 };
 
 
@@ -79,10 +83,7 @@ public:
         instance.m_currentlyOptimizing = toOptimize;
     }
 
-    static std::vector<ParameterDefinition> stopRegistering() {
-        instance.m_currentlyRegistering = false;
-        return instance.m_parameterDefinitions;
-    }
+    static std::vector<ParameterDefinition> stopRegistering();
 
 private:
     DynamicSearchParameters() = default;

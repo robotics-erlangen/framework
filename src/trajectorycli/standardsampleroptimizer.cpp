@@ -18,7 +18,8 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#include "standardsampleroptimizer.h"
+#include "common.h"
+#include "path/standardsampler.h"
 #include "core/protobuffilesaver.h"
 #include "core/rng.h"
 

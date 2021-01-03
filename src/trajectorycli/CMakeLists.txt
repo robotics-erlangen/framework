@@ -21,10 +21,10 @@
 add_executable(trajectory-cli
     trajectorycli.cpp
     standardsampleroptimizer.cpp
-    standardsampleroptimizer.h
     common.h
+    common.cpp
     endinobstacleoptimizer.cpp
-    endinobstacleoptimizer.h
+    alphatimetrajectoryoptimizer.cpp
 )
 target_link_libraries(trajectory-cli
     amun::path_parameter_optimization

@@ -25,8 +25,6 @@
 #include <QDebug>
 
 #include "common.h"
-#include "standardsampleroptimizer.h"
-#include "endinobstacleoptimizer.h"
 #include "core/protobuffilereader.h"
 #include "protobuf/pathfinding.pb.h"
 
@@ -88,6 +86,8 @@ int main(int argc, char* argv[])
     parser.addOption(standardSampler);
     QCommandLineOption endInObstacle("e", "Optimize the end in obstacle sampler search parameters");
     parser.addOption(endInObstacle);
+    QCommandLineOption alphaTime("a", "Optimize the alpha time trajectory search parameters");
+    parser.addOption(alphaTime);
 
     // parse command line
     parser.process(app);
@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    if (!parser.isSet(standardSampler) && !parser.isSet(endInObstacle)) {
+    if (!parser.isSet(standardSampler) && !parser.isSet(endInObstacle) && !parser.isSet(alphaTime)) {
         qDebug() <<"At lest one optimizer must be run!";
         parser.showHelp(1);
         return 0;
@@ -159,6 +159,15 @@ int main(int argc, char* argv[])
             exit(1);
         }
         optimizeEndInObstacleParameters(situations);
+    }
+
+    if (parser.isSet(alphaTime)) {
+        std::cout <<"Optimizing alpha time trajectory generation"<<std::endl;
+        if (sourceSoFar != pathfinding::AllSamplers) {
+            std::cerr <<"Error: trying to use pathfinding inputs not collected for the whole trajectorypath!"<<std::endl;
+            exit(1);
+        }
+        optimizeAlphaTimeTrajectoryParameters(situations);
     }
 
     return 0;
