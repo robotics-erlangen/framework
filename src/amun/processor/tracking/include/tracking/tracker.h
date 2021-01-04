@@ -114,7 +114,7 @@ private:
     float m_aoi_y2;
 
     QList<QString> m_errorMessages;
-    QList<SSL_WrapperPacket> m_detectionWrappers;
+    QList<std::pair<SSL_WrapperPacket, qint64>> m_detectionWrappers;
     std::unique_ptr<FieldTransform> m_fieldTransform;
 
     // differences between tracker and speedtracker

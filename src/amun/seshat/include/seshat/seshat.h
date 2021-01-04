@@ -41,12 +41,16 @@ public:
 signals:
     void sendUi(const Status& status);
     void sendReplayStrategy(const Status& status);
+    void sendTrackingReplay(const Status& status);
     void simPauseCommand(const Command& command);
 
 public slots:
     void handleCommand(const Command& comm);
     void handleStatus(const Status& status);
     void handleReplayStatus(const Status& status);
+
+private slots:
+    void handleLogStatus(const Status& status);
 
 private:
     void handleCheckHaltStatus(const Status &status);
@@ -66,6 +70,7 @@ private:
     TimedStatusSource* m_statusSource = nullptr;
     bool m_isPlayback = false;
     bool m_storedPlaybackPaused = true;
+    bool m_isTrackingReplay = false;
     QList<Status> m_horusStrategyBuffer;
 };
 

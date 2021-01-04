@@ -123,7 +123,7 @@ void Tracker::process(qint64 currentTime)
         }
 
         if (!m_robotsOnly) {
-            m_detectionWrappers.append(wrapper);
+            m_detectionWrappers.append({wrapper, p.time});
         }
 
         if (!wrapper.has_detection()) {
@@ -258,10 +258,12 @@ Status Tracker::worldState(qint64 currentTime, bool resetRaw)
     world::State *worldState = status->mutable_world_state();
     worldState->set_time(currentTime);
     worldState->set_has_vision_data(m_hasVisionData);
+    worldState->set_system_delay(m_systemDelay);
 
     if (!m_robotsOnly) {
-        for (SSL_WrapperPacket &wrapper : m_detectionWrappers) {
-            worldState->add_vision_frames()->CopyFrom(wrapper);
+        for (auto &data : m_detectionWrappers) {
+            worldState->add_vision_frames()->CopyFrom(data.first);
+            worldState->add_vision_frame_times(data.second);
         }
         m_detectionWrappers.clear();
 

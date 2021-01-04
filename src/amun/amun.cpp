@@ -134,7 +134,7 @@ void Amun::start()
 {
     // create processor
     Q_ASSERT(m_processor == nullptr);
-    m_processor = new Processor(m_timer);
+    m_processor = new Processor(m_timer, false);
     m_processor->moveToThread(m_processorThread);
     connect(m_processorThread, SIGNAL(finished()), m_processor, SLOT(deleteLater()));
 
@@ -459,6 +459,26 @@ void Amun::handleCommandLocally(const Command &command)
             pauseSimulator(pause);
         }
     }
+
+    if (command->has_tracking()) {
+        if (command->tracking().has_tracking_replay_enabled()) {
+            bool enable = command->tracking().tracking_replay_enabled();
+            if (enable != m_trackingReplay) {
+                m_trackingReplay = enable;
+                if (enable) {
+                    enableTrackingReplay();
+                }
+            }
+        }
+    }
+}
+
+void Amun::enableTrackingReplay()
+{
+    if (!m_replayProcessor) {
+        m_replayProcessor.reset(new Processor(m_replayTimer, true));
+        connect(m_replayProcessor.get(), &Processor::sendStatus, m_seshat, &Seshat::handleReplayStatus);
+    }
 }
 
 void Amun::pauseSimulator(const amun::PauseSimulatorCommand &pauseCommand)
@@ -530,8 +550,65 @@ void Amun::handleStatus(const Status &status)
 void Amun::handleStatusForReplay(const Status &status)
 {
     m_replayTimer->setTime(status->time(), 0);
-    emit gotReplayStatus(status);
-    emit sendStatusForReplay(status);
+    if (m_trackingReplay) {
+        if (status->has_team_blue()) {
+            Command command(new amun::Command);
+            command->mutable_set_team_blue()->CopyFrom(status->team_blue());
+            m_replayProcessor->handleCommand(command);
+        }
+        if (status->has_team_yellow()) {
+            Command command(new amun::Command);
+            command->mutable_set_team_yellow()->CopyFrom(status->team_yellow());
+            m_replayProcessor->handleCommand(command);
+        }
+
+        // radio commands
+        {
+            QList<RobotCommandInfo> yellowRobotCommands, blueRobotCommands;
+            for (const auto& command : status->radio_command()) {
+                RobotCommandInfo info;
+                info.generation = command.generation();
+                info.robotId = command.id();
+                info.command.reset(new robot::Command(command.command()));
+                if (command.is_blue()) {
+                    blueRobotCommands.append(info);
+                } else {
+                    yellowRobotCommands.append(info);
+                }
+            }
+            auto time = m_replayTimer->currentTime();
+            if (yellowRobotCommands.size() > 0) {
+                m_replayProcessor->handleStrategyCommands(false, yellowRobotCommands, time);
+            }
+            if (blueRobotCommands.size() > 0) {
+                m_replayProcessor->handleStrategyCommands(true, blueRobotCommands, time);
+            }
+        }
+
+        if (status->has_world_state()) {
+            m_replayTimer->setTime(status->world_state().time(), 0);
+            if (status->world_state().has_system_delay()) {
+                Command command(new amun::Command);
+                command->mutable_tracking()->set_system_delay(status->world_state().system_delay());
+                m_replayProcessor->handleCommand(command);
+            }
+            for (int i = 0;i<status->world_state().vision_frames_size();i++) {
+                auto vision = status->world_state().vision_frames(i);
+                QByteArray visionData(vision.ByteSize(), 0);
+                if (vision.SerializeToArray(visionData.data(), visionData.size())) {
+                    auto time = status->world_state().time();
+                    if (i < status->world_state().vision_frame_times_size()) {
+                        time = status->world_state().vision_frame_times(i);
+                    }
+                    m_replayProcessor->handleVisionPacket(visionData, time, "replay");
+                }
+            }
+            // the appropiate time is set by the m_replayTimer already
+            m_replayProcessor->process();
+        }
+    } else {
+        emit sendStatusForReplay(status);
+    }
 }
 
 void Amun::handleReplayStatus(const Status &status)
@@ -561,7 +638,7 @@ void Amun::setSimulatorEnabled(bool enabled, bool useNetworkTransceiver)
     if (!m_simulatorOnly) {
         m_vision->disconnect(m_processor);
     }
-    //remove radio command and response connections
+    // remove radio command and response connections
     m_processor->disconnect(m_simulator);
     if (!m_simulatorOnly) {
         m_processor->disconnect(m_transceiver);

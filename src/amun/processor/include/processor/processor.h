@@ -44,7 +44,7 @@ class Processor : public QObject
 public:
     static const int FREQUENCY;
 
-    explicit Processor(const Timer *timer);
+    explicit Processor(const Timer *timer, bool isReplay);
     ~Processor() override;
     Processor(const Processor&) = delete;
     Processor& operator=(const Processor&) = delete;
@@ -67,6 +67,8 @@ public slots:
     void handleCommand(const Command &command);
     void handleStrategyCommands(bool blue, const QList<RobotCommandInfo> &commands, qint64 time);
     void handleStrategyHalt(bool blue);
+    // public only for tracking replay
+    void process();
 
 private:
     struct Robot;
@@ -75,9 +77,6 @@ private:
         robot::Team team;
         QMap<QPair<uint, uint>, Robot*> robots;
     };
-
-private slots:
-    void process();
 
 private:
     typedef google::protobuf::RepeatedPtrField<world::Robot> RobotList;

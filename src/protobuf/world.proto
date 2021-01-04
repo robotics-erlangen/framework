@@ -102,12 +102,15 @@ message State {
     optional bool has_vision_data = 7;
     optional ssl.TeamPlan mixed_team_info = 8;
     optional TrackingAOI tracking_aoi = 9;
-    repeated SSL_WrapperPacket vision_frames = 10;
     // robot states predicted without trajectories, only from vision data
     repeated Robot simple_tracking_yellow = 11;
     repeated Robot simple_tracking_blue = 12;
     // debug information from the simulator
     repeated SimulatorState reality = 13;
+    // data for tracking replay and vision extraction
+    repeated SSL_WrapperPacket vision_frames = 10;
+    repeated int64 vision_frame_times = 14;
+    optional int64 system_delay = 15;
 }
 
 message SimulatorState {

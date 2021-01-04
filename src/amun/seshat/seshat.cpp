@@ -55,9 +55,8 @@ void Seshat::setStatusSource(std::shared_ptr<StatusSource> source)
         delete m_statusSource;
         m_statusSource = new TimedStatusSource(source, this);
         source->moveToThread(m_logthread);
-        connect(m_statusSource, &TimedStatusSource::gotStatus, this, &Seshat::sendUi);
+        connect(m_statusSource, &TimedStatusSource::gotStatus, this, &Seshat::handleLogStatus);
         connect(m_statusSource, &TimedStatusSource::gotStatus, this, &Seshat::sendReplayStrategy);
-        connect(m_statusSource, &TimedStatusSource::gotStatus, &m_replayLogger, &CombinedLogWriter::handleStatus);
         connect(m_statusSource, &TimedStatusSource::jumped, &m_replayLogger, &CombinedLogWriter::resetBacklog);
         m_statusSource->start();
         if (!m_isPlayback) {
@@ -66,6 +65,14 @@ void Seshat::setStatusSource(std::shared_ptr<StatusSource> source)
             QCoreApplication::processEvents(QEventLoop::AllEvents | QEventLoop::WaitForMoreEvents, 50);
         }
         m_isPlayback = true;
+    }
+}
+
+void Seshat::handleLogStatus(const Status& status)
+{
+    if (!m_isTrackingReplay || !status->has_world_state()) {
+        emit sendUi(status);
+        m_replayLogger.handleStatus(status);
     }
 }
 
@@ -186,6 +193,10 @@ void Seshat::handleCommand(const Command& command)
 
     if (m_isPlayback && m_statusSource) {
         m_statusSource->handleCommand(command);
+    }
+
+    if (command->has_tracking() && command->tracking().has_tracking_replay_enabled()) {
+        m_isTrackingReplay = command->tracking().tracking_replay_enabled();
     }
 }
 

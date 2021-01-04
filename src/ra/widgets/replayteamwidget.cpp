@@ -37,6 +37,7 @@ ReplayTeamWidget::ReplayTeamWidget(QWidget *parent) :
     connect(ui->replayYellow, SIGNAL(clicked(bool)), ui->yellow, SLOT(setEnabled(bool)));
     connect(ui->replayBlue, SIGNAL(clicked(bool)), this, SLOT(strategyBlueEnabled(bool)));
     connect(ui->replayYellow, SIGNAL(clicked(bool)), this, SLOT(strategyYellowEnabled(bool)));
+    connect(ui->trackingReplay, &QCheckBox::toggled, this, &ReplayTeamWidget::trackingReplayChanged);
 
     connect(ui->blue, SIGNAL(sendCommand(Command)), this, SIGNAL(sendCommand(Command)));
     connect(ui->yellow, SIGNAL(sendCommand(Command)), this, SIGNAL(sendCommand(Command)));
@@ -52,6 +53,22 @@ ReplayTeamWidget::ReplayTeamWidget(QWidget *parent) :
 ReplayTeamWidget::~ReplayTeamWidget()
 {
     delete ui;
+}
+
+void ReplayTeamWidget::trackingReplayChanged(bool enabled)
+{
+    if (enabled) {
+        ui->replayBlue->setChecked(false);
+        ui->replayYellow->setChecked(false);
+    }
+    ui->replayBlue->setEnabled(!enabled);
+    ui->replayYellow->setEnabled(!enabled);
+    ui->blue->setEnabled(!enabled && ui->replayBlue->isChecked());
+    ui->yellow->setEnabled(!enabled && ui->replayYellow->isChecked());
+
+    Command command(new amun::Command);
+    command->mutable_tracking()->set_tracking_replay_enabled(enabled);
+    emit sendCommand(command);
 }
 
 void ReplayTeamWidget::setRecentScriptList(const std::shared_ptr<QStringList> &list)

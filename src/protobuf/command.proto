@@ -152,6 +152,7 @@ message CommandTracking {
     optional bool enable_virtual_field = 5;
     optional VirtualFieldTransform field_transform = 6;
     optional world.Geometry virtual_geometry = 7;
+    optional bool tracking_replay_enabled = 8;
 }
 
 // the UI may not store the option state, therefore only single values will be changed (by hand)

@@ -114,16 +114,16 @@ const int Processor::FREQUENCY(100);
  * \brief Constructs a Processor
  * \param timer Timer to be used for time scaling
  */
-Processor::Processor(const Timer *timer) :
+Processor::Processor(const Timer *timer, bool isReplay) :
     m_timer(timer),
     m_tracker(new Tracker(false, false)),
     m_speedTracker(new Tracker(true, true)),
     m_simpleTracker(new Tracker(true, false)),
     m_mixedTeamInfoSet(false),
-    m_refereeInternalActive(false),
+    m_refereeInternalActive(isReplay),
     m_simulatorEnabled(false),
     m_lastFlipped(false),
-    m_transceiverEnabled(false)
+    m_transceiverEnabled(isReplay)
 {
     // keep two separate referee states
     m_referee = new Referee();
@@ -135,7 +135,9 @@ Processor::Processor(const Timer *timer) :
     m_trigger = new QTimer(this);
     connect(m_trigger, SIGNAL(timeout()), SLOT(process()));
     m_trigger->setTimerType(Qt::PreciseTimer);
-    m_trigger->start(1000/FREQUENCY);
+    if (!isReplay) {
+        m_trigger->start(1000/FREQUENCY);
+    }
 
     connect(timer, &Timer::scalingChanged, this, &Processor::setScaling);
 

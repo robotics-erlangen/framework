@@ -14,35 +14,21 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="3" column="0">
-    <widget class="TeamWidget" name="yellow" native="true">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="0">
-    <widget class="QCheckBox" name="replayYellow">
-     <property name="text">
-      <string>Observer Replay Yellow</string>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="0">
+   <item row="1" column="0">
     <widget class="QCheckBox" name="replayBlue">
      <property name="text">
       <string>Observer Replay Blue</string>
      </property>
     </widget>
    </item>
-   <item row="1" column="0">
-    <widget class="TeamWidget" name="blue" native="true">
+   <item row="4" column="0">
+    <widget class="TeamWidget" name="yellow" native="true">
      <property name="enabled">
       <bool>false</bool>
      </property>
     </widget>
    </item>
-   <item row="4" column="0">
+   <item row="5" column="0">
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -54,6 +40,27 @@
       </size>
      </property>
     </spacer>
+   </item>
+   <item row="3" column="0">
+    <widget class="QCheckBox" name="replayYellow">
+     <property name="text">
+      <string>Observer Replay Yellow</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="TeamWidget" name="blue" native="true">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0">
+    <widget class="QCheckBox" name="trackingReplay">
+     <property name="text">
+      <string>Tracking Replay</string>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>

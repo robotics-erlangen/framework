@@ -27,6 +27,7 @@
 #include "protobuf/status.h"
 #include <QObject>
 #include <QSet>
+#include <memory>
 
 class DebugHelper;
 class NetworkInterfaceWatcher;
@@ -62,7 +63,6 @@ public:
 signals:
     void sendStatusForReplay(const Status &status);
     void sendStatus(const Status &status);
-    void gotReplayStatus(const Status &status);
     void gotCommand(const Command &command);
     void updateVisionPort(quint16 port);
     void updateRefereePort(quint16 port);
@@ -90,6 +90,7 @@ private:
     void createSimulator(const amun::SimulatorSetup &setup);
     void enableAutoref(bool enable);
     void pauseSimulator(const amun::PauseSimulatorCommand &pauseCommand);
+    void enableTrackingReplay();
 
 private:
     QThread *m_processorThread;
@@ -100,6 +101,7 @@ private:
     QThread *m_debugHelperThread;
 
     Processor *m_processor;
+    std::unique_ptr<Processor> m_replayProcessor;
     Transceiver *m_transceiver;
     NetworkTransceiver *m_networkTransceiver;
     camun::simulator::Simulator *m_simulator;
@@ -122,6 +124,7 @@ private:
     const bool m_simulatorOnly;
     bool m_useInternalReferee;
     bool m_useAutoref;
+    bool m_trackingReplay = false;
 
     QSet<amun::PauseSimulatorReason> m_activePauseReasons;
     float m_previousSpeed;

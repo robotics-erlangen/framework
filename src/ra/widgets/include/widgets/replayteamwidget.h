@@ -52,6 +52,7 @@ signals:
 private slots:
     void strategyBlueEnabled(bool enabled);
     void strategyYellowEnabled(bool enabled);
+    void trackingReplayChanged(bool enabled);
 
 private:
     Ui::ReplayTeamWidget *ui;
