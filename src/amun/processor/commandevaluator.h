@@ -45,6 +45,7 @@ public:
     void setInput(const robot::ControllerInput &input, qint64 currentTime);
     void clearInput();
     bool hasInput();
+    qint64 startTime() const{ return m_startTime; }
 
 private:
     static float robotToPhi(const world::Robot *robot);

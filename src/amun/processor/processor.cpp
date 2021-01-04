@@ -210,15 +210,11 @@ void Processor::process()
     injectUserControl(status, true);
     injectUserControl(status, false);
 
-    //publish world status
-    emit sendStatus(status);
-
-    Status status_debug = Status::createArena();
     const qint64 controller_start = Timer::systemTime();
     // just ignore the referee for timing
-    status_debug->mutable_timing()->set_tracking((controller_start - tracker_start) * 1E-9f);
+    status->mutable_timing()->set_tracking((controller_start - tracker_start) * 1E-9f);
 
-    amun::DebugValues *debug = status_debug->add_debug();
+    amun::DebugValues *debug = status->add_debug();
     debug->set_source(amun::Controller);
     QList<robot::RadioCommand> radio_commands_prio;
 
@@ -228,9 +224,9 @@ void Processor::process()
         // assume that current_time is still "now"
         const qint64 controllerTime = current_time + tickDuration;
         processTeam(m_blueTeam, true, status->world_state().blue(), radio_commands_prio, radio_commands,
-                    status_debug, controllerTime, radioStatus->world_state().blue(), debug);
+                    status, controllerTime, radioStatus->world_state().blue(), debug);
         processTeam(m_yellowTeam, false, status->world_state().yellow(), radio_commands_prio, radio_commands,
-                    status_debug, controllerTime, radioStatus->world_state().yellow(), debug);
+                    status, controllerTime, radioStatus->world_state().yellow(), debug);
 
         radio_commands_prio.append(radio_commands);
     }
@@ -255,8 +251,9 @@ void Processor::process()
     strategyStatus->mutable_user_input_blue()->CopyFrom(status->user_input_blue());
     emit sendStrategyStatus(strategyStatus);
 
-    status_debug->mutable_timing()->set_controller((Timer::systemTime() - controller_start) * 1E-9f);
-    emit sendStatus(status_debug);
+    // publish world state and timing information
+    status->mutable_timing()->set_controller((Timer::systemTime() - controller_start) * 1E-9f);
+    emit sendStatus(status);
 
     if (m_transceiverEnabled) {
         emit sendRadioCommands(radio_commands_prio, current_time);
@@ -308,6 +305,7 @@ void Processor::injectUserControl(Status &status, bool isBlue)
         radio_command->set_id(robot->id);
         radio_command->set_is_blue(isBlue);
         radio_command->mutable_command()->CopyFrom(*robot->manual_command);
+        radio_command->set_command_time(robot->controller.startTime());
     }
 }
 
@@ -320,6 +318,7 @@ void Processor::processTeam(Team &team, bool isBlue, const RobotList &robots, QL
         radio_command->set_generation(robot->generation);
         radio_command->set_id(robot->id);
         radio_command->set_is_blue(isBlue);
+        radio_command->set_command_time(robot->controller.startTime());
 
         robot::Command& command = *radio_command->mutable_command();
         robot->mergeIntoCommand(command);

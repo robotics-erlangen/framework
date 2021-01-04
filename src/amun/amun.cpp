@@ -564,24 +564,25 @@ void Amun::handleStatusForReplay(const Status &status)
 
         // radio commands
         {
-            QList<RobotCommandInfo> yellowRobotCommands, blueRobotCommands;
+            QMap<qint64, QList<RobotCommandInfo>> yellowRobotCommands, blueRobotCommands;
+            auto time = m_replayTimer->currentTime();
             for (const auto& command : status->radio_command()) {
                 RobotCommandInfo info;
                 info.generation = command.generation();
                 info.robotId = command.id();
                 info.command.reset(new robot::Command(command.command()));
+                qint64 commandTime = command.has_command_time() ? command.command_time() : time;
                 if (command.is_blue()) {
-                    blueRobotCommands.append(info);
+                    blueRobotCommands[commandTime].append(info);
                 } else {
-                    yellowRobotCommands.append(info);
+                    yellowRobotCommands[commandTime].append(info);
                 }
             }
-            auto time = m_replayTimer->currentTime();
-            if (yellowRobotCommands.size() > 0) {
-                m_replayProcessor->handleStrategyCommands(false, yellowRobotCommands, time);
+            for (qint64 time : yellowRobotCommands.keys()) {
+                m_replayProcessor->handleStrategyCommands(false, yellowRobotCommands[time], time);
             }
-            if (blueRobotCommands.size() > 0) {
-                m_replayProcessor->handleStrategyCommands(true, blueRobotCommands, time);
+            for (qint64 time : blueRobotCommands.keys()) {
+                m_replayProcessor->handleStrategyCommands(true, blueRobotCommands[time], time);
             }
         }
 
