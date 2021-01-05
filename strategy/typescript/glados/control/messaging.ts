@@ -496,23 +496,61 @@ export class MessageBox {
 		this.origin = origin;
 	}
 
+	/**
+	 * Send a message to a certain robot. If a message of the same
+	 * sender-receiver-type constellation was already sent it will be
+	 * overwritten.
+	 * @param type - Which message to send
+	 * @param dest - The robot that will receive the message
+	 * @param data - The message data
+	 */
 	send<M extends Send>(type: M, dest: FriendlyRobot, data: DataOf<M>): void {
 		this.sendGeneric(type, dest, data, false);
 	}
 
+	/**
+	 * Send a repeated message to a certain robot. Multiple messages of the
+	 * same type can be sent by the same robot to the same receiver.
+	 * @param type - Which message to send
+	 * @param dest - The robot that will receive the message
+	 * @param data - The message data
+	 */
 	sendRepeated<M extends SendRepeated>(type: M, dest: FriendlyRobot, data: DataOf<M>): void {
 		this.sendGeneric(type, dest, data, true);
 	}
 
+	/**
+	 * Send a message to the trainer. If a message of the same sender-type
+	 * constellation was already sent it will be overwritten
+	 * @param type - Which message to send
+	 * @param data - The message data
+	 */
 	sendToTrainer<M extends SendToTrainer>(type: M, data: DataOf<M>): void {
 		this.sendGeneric(type, "trainer", data, false);
 	}
 
+	/**
+	 * Send a repeated message to the trainer. Multiple messages of the same
+	 * type can be sent by the same robot.
+	 * @param type - Which message to send
+	 * @param data - The message data
+	 */
 	sendToTrainerRepeated<M extends SendToTrainerRepeated>(type: M, data: DataOf<M>): void {
 		this.sendGeneric(type, "trainer", data, true);
 	}
 
+	/**
+	 * Broadcast a flag message. Will be received by all robots and the
+	 * trainer.
+	 * @param type - Which flag to send
+	 */
 	sendBroadcast<M extends SendBroadcastNoData>(type: M, data?: undefined): void;
+	/**
+	 * Send a broadcast message. Will be received by all robots and the
+	 * trainer.
+	 * @param type - Which message to send
+	 * @param data - The message data
+	 */
 	sendBroadcast<M extends SendBroadcast>(type: M, data: DataOf<M>): void;
 	sendBroadcast<M extends SendBroadcast | SendBroadcastNoData>(type: M, data: DataOf<M>): void {
 		if (type === MessageType.plannedAttackTime && (data === -Infinity || data === Infinity)) throw new Error("Invalid PAttackTime");
@@ -577,13 +615,24 @@ export class MessageBox {
 	}
 
 
-	// receive code
-	receive<M extends Receive>(type: M, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, ReceivedData<M>>> {
-		return this.receiveGeneric(type, broadcast) as ReadonlyRec<Map<FriendlyRobot, any>>;
+	/**
+	 * Retrieve messages of a certain type sent to this box.
+	 * @param type - Which message to receive
+	 * @param receiveOwn - Whether to receive messages sent by this message box
+	 * @returns all messages of this type sent to this box along with their sender
+	 */
+	receive<M extends Receive>(type: M, receiveOwn?: boolean): ReadonlyRec<Map<FriendlyRobot, ReceivedData<M>>> {
+		return this.receiveGeneric(type, receiveOwn) as ReadonlyRec<Map<FriendlyRobot, any>>;
 	}
 
-	receiveSingleSender<M extends ReceiveSingleSender>(type: M, broadcast?: boolean): ReadonlyRec<[FriendlyRobot, ReceivedData<M>] | []> {
-		const map = this.receiveGeneric(type, broadcast);
+	/**
+	 * Retrieve a single sender message.
+	 * @param type - Which message to receive
+	 * @param receiveOwn - Whether to receive messages sent by this message box
+	 * @returns the message along with its sender or an empty tuple if the message wasn't sent
+	 */
+	receiveSingleSender<M extends ReceiveSingleSender>(type: M, receiveOwn?: boolean): ReadonlyRec<[FriendlyRobot, ReceivedData<M>] | []> {
+		const map = this.receiveGeneric(type, receiveOwn);
 		if (map.size > 1) {
 			throw new Error(`Single sender message ${MessageType[type]} sent by ${map.size} robots!`);
 		}
@@ -593,19 +642,37 @@ export class MessageBox {
 			: [];
 	}
 
-	receiveRepeated<M extends ReceiveRepeated>(type: M, broadcast?: boolean): ReadonlyRec<Map<FriendlyRobot, ReceivedData<M>>> {
-		return this.receiveGeneric(type, broadcast) as ReadonlyRec<Map<FriendlyRobot, ReceivedData<M>>>;
+	/**
+	 * Retrieve a repeated message.
+	 * @param param - Which message to receive
+	 * @param receiveOwn - Whether to receive messages sent by this message box
+	 * @returns the messages of this type sent to this box along with their sender
+	 */
+	receiveRepeated<M extends ReceiveRepeated>(type: M, receiveOwn?: boolean): ReadonlyRec<Map<FriendlyRobot, ReceivedData<M>>> {
+		return this.receiveGeneric(type, receiveOwn) as ReadonlyRec<Map<FriendlyRobot, ReceivedData<M>>>;
 	}
 
-	receiveTrainer<M extends ReceiveTrainer>(type: M, broadcast?: boolean): ReadonlyRec<ReceivedData<M> | undefined> {
-		return this.receiveGeneric(type, broadcast).get("trainer");
+	/**
+	 * Retrieve a message sent by the trainer.
+	 * @param type - Which message to receive
+	 * @param receiveOwn - Whether to receive messages sent by this message box (only sensible for the trainer)
+	 * @returns the message of this type or undefined if it wasn't sent
+	 */
+	receiveTrainer<M extends ReceiveTrainer>(type: M, receiveOwn?: boolean): ReadonlyRec<ReceivedData<M> | undefined> {
+		return this.receiveGeneric(type, receiveOwn).get("trainer");
 	}
 
-	receiveTrainerRepeated<M extends ReceiveTrainerRepeated>(type: M, broadcast?: boolean): ReadonlyRec<ReceivedData<M> | undefined> {
-		return this.receiveGeneric(type, broadcast).get("trainer");
+	/**
+	 * Retrieve a repeated message sent by the trainer.
+	 * @param type - Which message to receive
+	 * @param receiveOwn - Whether to receive messages sent by this message box (only sensible for the trainer)
+	 * @returns the messages of this type or undefined if it wasn't sent
+	 */
+	receiveTrainerRepeated<M extends ReceiveTrainerRepeated>(type: M, receiveOwn?: boolean): ReadonlyRec<ReceivedData<M> | undefined> {
+		return this.receiveGeneric(type, receiveOwn).get("trainer");
 	}
 
-	public receiveGeneric(type: MessageType, broadcast?: boolean): ReadonlyRec<Map<MessageOrigin, any>> {
+	public receiveGeneric(type: MessageType, receiveOwn?: boolean): ReadonlyRec<Map<MessageOrigin, any>> {
 		let mtypeBox = this.messaging._deliveredMessages[type];
 		if (this.origin === "trainer") {
 			mtypeBox = this.messaging._newMessages[type];
@@ -614,7 +681,7 @@ export class MessageBox {
 			return emptyMap;
 		}
 		// returns all messages of "type" which were sent to "all"
-		if (broadcast) {
+		if (receiveOwn) {
 			if (mtypeBox.get("all") == undefined) {
 				return emptyMap;
 			}
