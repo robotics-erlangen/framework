@@ -28,7 +28,7 @@ export class Default extends Behavior {
 	}
 
 	_updateTask(): TaskAssignment<typeof SideStep> | TaskAssignment<typeof AcceptPass> | TaskAssignment<typeof Midfield> | TaskAssignment<typeof Striker> {
-		this._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: "midfield", payload: {} });
+		this._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: "midfield" });
 
 		let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
 		let relevantPassInfo = passInfoTable ? Attack.relevantPassInfoMessage(this._robot, passInfoTable) : undefined;

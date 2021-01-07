@@ -147,7 +147,7 @@ export class Striker implements Group {
 		}
 	}
 
-	run(messaging: MessageBox, messages: Map<FriendlyRobot, any>) {
+	run(messaging: MessageBox, messages: Map<FriendlyRobot, undefined>) {
 		let robots = Array.from(messages.keys());
 		let mainAttacker = messaging.receiveTrainer(MessageType.mainAttacker);
 		let prevEmptyZone = this._emptyZone;

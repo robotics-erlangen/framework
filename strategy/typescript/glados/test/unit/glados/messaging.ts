@@ -65,8 +65,8 @@ export class GladosMessaging extends UnitTest {
 		messaging.deliverMessages();
 		this.assert_equal(agent1Box.receiveTrainer(MessageType.mainAttacker), agent2.robot());
 
-		agent1Box.sendToTrainerRepeated(MessageType.groupApplication, { name: "centerback", payload: ["payload_A"] });
-		agent1Box.sendToTrainerRepeated(MessageType.groupApplication, { name: "moves", payload: ["payload_B"] });
+		agent1Box.sendToTrainerRepeated(MessageType.groupApplication, { name: "centerback", payload: ["payload_A"] as any });
+		agent1Box.sendToTrainerRepeated(MessageType.groupApplication, { name: "moves", payload: ["payload_B"] as any });
 		// let groupApplications = trainerInbox.groupApplication();
 		let groupApplications = trainerBox.receiveRepeated(MessageType.groupApplication);
 		this.assert_equal(groupApplications.get(agent1.robot())!.length, 2);

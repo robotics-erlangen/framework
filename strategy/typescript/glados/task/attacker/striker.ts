@@ -138,7 +138,7 @@ export class Striker extends Task {
 			this._moveDest = this._manualDefaultPos;
 		} else {
 			// participate in the striker group
-			this._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: "striker", payload: {} });
+			this._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: "striker" });
 
 			// retrieve the assigned zone from the striker group
 			this._zone = this._messaging.receiveTrainer(MessageType.strikerZone);

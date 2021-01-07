@@ -176,7 +176,7 @@ export class Midfield implements Group {
 
 
 
-	public run(messaging: MessageBox, messages: Map<FriendlyRobot, any>) {
+	public run(messaging: MessageBox, messages: Map<FriendlyRobot, undefined>) {
 		let robots = Array.from(messages.keys());
 		let mainAttacker = messaging.receiveTrainer(MessageType.mainAttacker);
 

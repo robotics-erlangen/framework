@@ -59,7 +59,7 @@ export class Moves implements Group {
 		}
 	}
 
-	run(messaging: MessageBox, messages: Map<FriendlyRobot, any>) {
+	run(messaging: MessageBox, messages: Map<FriendlyRobot, undefined>) {
 		// check if all participating robots are still available
 		if (this._currentMove) {
 			for (let r of this._participatingRobots) {

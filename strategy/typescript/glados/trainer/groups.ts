@@ -6,19 +6,22 @@ import { Midfield } from "glados/group/midfield";
 import { Moves } from "glados/group/moves";
 import { Striker } from "glados/group/striker";
 
-type GroupName = "centerback" | "moves" | "striker" | "midfield";
-
 export interface Group {
-	readonly name: GroupName;
-	run(messaging: MessageBox, messages: Map<FriendlyRobot, any>): void;
+	readonly name: string;
+	run(messaging: MessageBox, messages: Map<FriendlyRobot, unknown>): void;
 }
 
 export type GroupConstructor = new() => Group;
 
-export interface Application {
-	name: GroupName;
-	payload: any;
-}
+type GroupPayload<G extends Group> = ValueType<Parameters<G["run"]>[1]>;
+
+type SingleApplication<G extends Group> = G extends any
+	? GroupPayload<G> extends undefined
+		? { name: G["name"]; payload?: undefined }
+		: { name: G["name"]; payload: GroupPayload<G> }
+	: never;
+
+export type Application = SingleApplication<CenterBack | Midfield | Moves | Striker>;
 
 export class Groups {
 	_groupList: Group[];
@@ -49,12 +52,13 @@ export class Groups {
 		// robot -> { groupname -> application }
 		let groupApplications = this._messaging.receiveRepeated(MessageType.groupApplication);
 
-		// groupname -> { robot -> application }
-		let robotApplications: {[groupName: string]: Map<FriendlyRobot, Application>} = {};
+		// groupname -> { robot -> payload }
+		let robotApplications: {[groupName: string]: Map<FriendlyRobot, unknown>} = {};
 
 		for (let group of this._groupList) {
-			robotApplications[group.name] = new Map<FriendlyRobot, Application>();
+			robotApplications[group.name] = new Map<FriendlyRobot, unknown>();
 		}
+
 		for (let [robot, msg] of groupApplications.entries()) {
 			for (let app of msg) {
 				let application = robotApplications[app.name];

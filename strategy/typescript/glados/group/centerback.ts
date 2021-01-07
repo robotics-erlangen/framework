@@ -36,8 +36,8 @@ function lessthan_robots(r1: {pos: Position}, r2: {pos: Position}): number {
 
 interface Target {
 	pos: Position;
-	time: number;
-	dir: RelativePosition;
+	time?: number;
+	dir?: RelativePosition;
 }
 
 let privateCenterBackPositions: Map<FriendlyRobot, {pos: Position, target: Target | undefined, way: number}> = new Map();
@@ -465,7 +465,7 @@ export class CenterBack implements Group {
 		}
 	}
 
-	run(messaging: MessageBox, messages: Map<FriendlyRobot, any>) {
+	run(messaging: MessageBox, messages: Map<FriendlyRobot, Target>) {
 		this.calculateCenterBackPositions(messages);
 
 		for (let robot of messages.keys()) {

@@ -28,6 +28,12 @@ declare global {
 			readonly [P in keyof T]: ReadonlyRec<T[P]>;
 		};
 
+	type ValueType<T> = T extends Map<infer _, infer V>
+		? V
+		: T extends (infer V)[]
+		? V
+		: never;
+
 	/**
 	 * Converts a union type to an intersection type, i.e. converts `a | b` to `a & b`
 	 *

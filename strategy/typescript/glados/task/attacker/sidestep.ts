@@ -113,7 +113,7 @@ export class SideStep extends Task {
 	run() {
 		draw(this._debugTable);
 		if (this._messaging.receiveTrainer(MessageType.mainAttacker) !== this._robot) {
-			this._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: "striker", payload: {}});
+			this._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: "striker" });
 		}
 
 		let attackPosition = this._messaging.receiveSingleSender(MessageType.attackPosition)[1];
