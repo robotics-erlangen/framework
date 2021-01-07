@@ -82,6 +82,7 @@ private:
     int m_nextPacket;
     int m_spoolCounter;
 
+    int m_lastPacket;
     bool m_paused;
 };
 

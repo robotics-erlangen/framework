@@ -69,6 +69,7 @@ private slots:
     void previousFrame();
     void nextFrame();
     void handleStatus(const Status &status);
+    void handleMaximumFrameSetting(int maxFrame);
 
 private:
     QString formatTime(qint64 time);

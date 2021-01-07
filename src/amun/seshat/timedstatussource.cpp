@@ -27,6 +27,9 @@ TimedStatusSource::TimedStatusSource(std::shared_ptr<StatusSource> source, QObje
     // invalidate play timer
     m_nextPacket = -1;
     m_spoolCounter = 0;
+    // No limit when the TimedStatusSource is created
+    m_lastPacket = -1;
+
     // setup the timer used to trigger playing the next packets
     connect(&m_timer, SIGNAL(timeout()), SLOT(playNext()));
     m_timer.setSingleShot(true);
@@ -62,6 +65,9 @@ void TimedStatusSource::handleCommand(const Command& command)
     }
     if (playback.has_toggle_paused()) {
         togglePaused();
+    }
+    if (playback.has_playback_limit()) {
+        m_lastPacket = playback.playback_limit();
     }
 
 }
@@ -218,6 +224,7 @@ void TimedStatusSource::playNext()
             hasChanged = true;
 
             emit gotStatus(status);
+
             timeCurrent = packetTime;
         }
 
@@ -231,6 +238,11 @@ void TimedStatusSource::playNext()
         // stop after last packet
         if (m_nextPacket == m_statusSource.getStatusSource()->packetCount()) {
             setPaused(true);
+        }
+        // break if the current frame should have been the last one
+        if (m_spoolCounter == 0 && currentPacket == m_lastPacket) {
+            setPaused(true);
+            break;
         }
     }
     // only update sliders if something changed and only once

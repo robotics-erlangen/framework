@@ -103,6 +103,7 @@ LogSlider::LogSlider(QWidget *parent) :
     connect(ui->spinSpeed, SIGNAL(valueChanged(int)), m_signalSource, SLOT(handlePlaySpeed(int)));
     connect(this, &LogSlider::togglePaused, m_signalSource, &SignalSource::togglePaused);
     connect(m_signalSource, &SignalSource::sendCommand, this, &LogSlider::sendCommand);
+    connect(ui->spinLimit, SIGNAL(valueChanged(int)), SLOT(handleMaximumFrameSetting(int)));
 
     //connect other signals
     connect(this, SIGNAL(disableSkipping(bool)), ui->spinPacketCurrent, SLOT(setDisabled(bool)));
@@ -134,12 +135,6 @@ void LogSlider::handleStatus(const Status& status)
             // prevent sliders from seeking
             m_scroll = false;
             ui->spinPacketCurrent->setValue(response.frame_number());
-            if (ui->spinLimit->value() < 0) {
-                ui->spinLimit->setValue(ui->spinLimit->maximum());
-            }
-            if (ui->spinLimit->value() <= response.frame_number()) {
-                emit togglePaused();
-            }
 
             // don't do updates for the slider which would only cause subpixel movement
             // as that won't be visible but is very expensive to redraw
@@ -291,6 +286,19 @@ void LogSlider::initializeLabels(int64_t packetCount, bool enable)
 uint LogSlider::getFrame()
 {
     return ui->spinPacketCurrent->value();
+}
+
+void LogSlider::handleMaximumFrameSetting(int maxValue) {
+    if (maxValue < 0) {
+         ui->spinLimit->setValue(ui->spinLimit->maximum());
+         return;
+    }
+    if (maxValue != ui->spinLimit->maximum()) {
+        Command command{new amun::Command};
+
+        command->mutable_playback()->set_playback_limit(maxValue);
+        emit sendCommand(command);
+    }
 }
 
 #include "logslider.moc"
