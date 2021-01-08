@@ -187,25 +187,33 @@ void Simulator::process()
 
             // pass radio command to robot that matches the generation and id
             const QPair<uint, uint> id(command.generation(), command.id());
-            if (m_data->robotsBlue.contains(id)) {
-                robot::RadioResponse response = m_data->robotsBlue[id]->setCommand(command.command(), m_data->ball, m_charge,
-                                                                                   m_data->robotCommandPacketLoss, m_data->robotReplyPacketLoss);
-                response.set_time(m_time);
+            SimulatorData* data = m_data;
+            auto time = m_time;
+            auto charge = m_charge;
+            auto fabricateResponse = [data, &responses, time, charge, &id, &command](const Simulator::RobotMap& map) {
+                robot::RadioResponse response = map[id]->setCommand(command.command(), data->ball, charge,
+                                                                                   data->robotCommandPacketLoss, data->robotReplyPacketLoss);
+                response.set_time(time);
                 // only collect valid responses
                 if (response.IsInitialized()) {
-                    if (m_data->robotReplyPacketLoss == 0 || m_data->rng.uniformFloat(0, 1) > m_data->robotReplyPacketLoss) {
+                    if (data->robotReplyPacketLoss == 0 || data->rng.uniformFloat(0, 1) > data->robotReplyPacketLoss) {
                         responses.append(response);
                     }
                 }
-            }
-            if (m_data->robotsYellow.contains(id)) {
-                robot::RadioResponse response = m_data->robotsYellow[id]->setCommand(command.command(), m_data->ball, m_charge,
-                                                                                     m_data->robotCommandPacketLoss, m_data->robotReplyPacketLoss);
-                response.set_time(m_time);
-                if (response.IsInitialized()) {
-                    if (m_data->robotReplyPacketLoss == 0 || m_data->rng.uniformFloat(0, 1) > m_data->robotReplyPacketLoss) {
-                        responses.append(response);
-                    }
+            };
+            if (command.has_is_blue()) {
+                if (command.is_blue()) {
+                    fabricateResponse(m_data->robotsBlue);
+                } else {
+                    fabricateResponse(m_data->robotsYellow);
+                }
+            } else {
+                std::cerr << "This is bad. Why do we get a command without is_blue in the simulator? This is acceptable in the logfiles or tracking, but not in the simulator" << std::endl;
+                if (m_data->robotsBlue.contains(id)) {
+                    fabricateResponse(m_data->robotsBlue);
+                }
+                if (m_data->robotsYellow.contains(id)) {
+                    fabricateResponse(m_data->robotsYellow);
                 }
             }
         }
