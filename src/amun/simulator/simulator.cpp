@@ -191,6 +191,7 @@ void Simulator::process()
             auto time = m_time;
             auto charge = m_charge;
             auto fabricateResponse = [data, &responses, time, charge, &id, &command](const Simulator::RobotMap& map) {
+                if (!map.contains(id)) return;
                 robot::RadioResponse response = map[id]->setCommand(command.command(), data->ball, charge,
                                                                                    data->robotCommandPacketLoss, data->robotReplyPacketLoss);
                 response.set_time(time);
@@ -209,12 +210,8 @@ void Simulator::process()
                 }
             } else {
                 std::cerr << "This is bad. Why do we get a command without is_blue in the simulator? This is acceptable in the logfiles or tracking, but not in the simulator" << std::endl;
-                if (m_data->robotsBlue.contains(id)) {
-                    fabricateResponse(m_data->robotsBlue);
-                }
-                if (m_data->robotsYellow.contains(id)) {
-                    fabricateResponse(m_data->robotsYellow);
-                }
+                fabricateResponse(m_data->robotsBlue);
+                fabricateResponse(m_data->robotsYellow);
             }
         }
     }
