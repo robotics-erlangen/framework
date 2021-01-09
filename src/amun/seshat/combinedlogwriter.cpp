@@ -184,19 +184,17 @@ void CombinedLogWriter::handleStatus(Status status)
         m_yellowTeamName = QString::fromStdString(teamYellow.name());
     }
 
+    auto previousTime = m_lastTime;
+    m_lastTime = status->time();
 
     if (m_isLoggingEnabled && m_logState == LogState::PENDING) {
         startLogfile();
     }
 
     // If we didn't tell the UI because we didn't know what time is it, we have to send this information here.
-    if (m_lastTime == 0 && m_logState == LogState::LOGGING) {
-        // Update m_lastTime as sendIsLogging will read it.
-        m_lastTime = status->time();
+    if (previousTime == 0 && m_logState == LogState::LOGGING) {
         sendIsLogging(true);
     }
-
-    m_lastTime = status->time();
 
     if (status->has_pure_ui_response()) {
         return;
