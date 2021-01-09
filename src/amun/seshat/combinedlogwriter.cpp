@@ -85,12 +85,15 @@ CombinedLogWriter::CombinedLogWriter(bool replay, int backlogLength) :
 
 CombinedLogWriter::~CombinedLogWriter()
 {
+    if (m_logFile) {
+        connect(m_logFile, &LogFileWriter::destroyed, m_logFileThread, &QThread::quit, Qt::DirectConnection);
+        m_logFile->deleteLater();
+    }
     if (m_logFileThread) {
-        m_logFileThread->quit();
+        // is quit by deleting m_logFile
         m_logFileThread->wait();
         delete m_logFileThread;
     }
-    delete m_logFile;
     m_backlogThread->quit();
     m_backlogThread->wait();
     delete m_backlogThread;
