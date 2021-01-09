@@ -41,7 +41,7 @@ target_link_libraries(amun
     PRIVATE shared::core
     PRIVATE amun::processor
     PRIVATE amun::simulator
-    PRIVATE amun::strategy
+    PUBLIC amun::strategy
     PRIVATE amun::seshat
     PUBLIC shared::protobuf
     PUBLIC Qt5::Core
