@@ -235,6 +235,7 @@ message CommandRecord {
     optional bool run_logging = 3;
     optional bool for_replay = 4; // has to be set to either true or false iff save_backlog, request_backlog or run_logging are set
     optional int32 request_backlog = 5; // sent by the plotter when opened.
+    optional string overwrite_record_filename = 6; // must be given in the first frame in which run_logging is true to be effective
 }
 
 message Command {

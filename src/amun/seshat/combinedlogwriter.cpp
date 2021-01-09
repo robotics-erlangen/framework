@@ -137,7 +137,11 @@ void CombinedLogWriter::handleCommand(Command comm) {
         useLogfileLocation(recordCommand.use_logfile_location());
     }
     if (recordCommand.has_run_logging() && recordCommand.for_replay() == m_isReplay) {
-        recordButtonToggled(recordCommand.run_logging());
+        QString overwriteFilename;
+        if (recordCommand.has_overwrite_record_filename()) {
+            overwriteFilename = QString::fromStdString(recordCommand.overwrite_record_filename());
+        }
+        recordButtonToggled(recordCommand.run_logging(), overwriteFilename);
     }
     if (recordCommand.has_save_backlog() && recordCommand.for_replay() == m_isReplay) {
         saveBackLog();
@@ -210,7 +214,7 @@ void CombinedLogWriter::enableLogging(bool enable)
 {
     if (!enable) {
         if (m_isLoggingEnabled) {
-            recordButtonToggled(false);
+            recordButtonToggled(false, "");
         }
     }
     m_isLoggingEnabled = enable;
@@ -305,13 +309,13 @@ void CombinedLogWriter::sendIsLogging(bool log)
     emit sendStatus(s);
 }
 
-void CombinedLogWriter::recordButtonToggled(bool enabled)
+void CombinedLogWriter::recordButtonToggled(bool enabled, QString overwriteFilename)
 {
     if (enabled) {
         Q_ASSERT(!m_logFile);
         emit resetBacklog();
 
-        const QString filename = createLogFilename();
+        const QString filename = overwriteFilename.isEmpty() ? createLogFilename() : overwriteFilename;
 
         // create log file and forward status
         m_logFile = new LogFileWriter();
@@ -325,7 +329,7 @@ void CombinedLogWriter::recordButtonToggled(bool enabled)
         connect(m_signalSource, SIGNAL(gotStatusForRecording(Status)), m_logFile, SLOT(writeStatus(Status)));
 
         // create thread if not done yet and move to seperate thread
-        if (m_logFileThread == NULL) {
+        if (m_logFileThread == nullptr) {
             m_logFileThread = new QThread();
             m_logFileThread->start();
         }

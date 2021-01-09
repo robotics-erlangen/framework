@@ -26,11 +26,13 @@ add_executable(cpptests
     amun/strategy/path/linesegment.cpp
     amun/strategy/path/obstacles.cpp
     amun/strategy/path/endinobstaclesampler.cpp
+    amun/seshat/combinedlogwriter.cpp
 )
 
 target_link_libraries(cpptests
     lib::googletest
     amun::path
     shared::core
+    amun::seshat
     pthread
 )

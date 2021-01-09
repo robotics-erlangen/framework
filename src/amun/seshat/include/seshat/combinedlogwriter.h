@@ -65,7 +65,7 @@ private:
     QString createLogFilename() const;
     void startLogfile();
     void saveBackLog();
-    void recordButtonToggled(bool enabled);
+    void recordButtonToggled(bool enabled, QString overwriteFilename);
     void useLogfileLocation(bool enabled);
     void sendIsLogging(bool log);
 
