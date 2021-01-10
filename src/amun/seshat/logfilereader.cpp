@@ -102,12 +102,17 @@ void LogFileReader::close()
 bool LogFileReader::indexFile()
 {
     qint64 lastTime = 0;
+    bool atEnd = false;
     while (!m_reader.atEnd()) {
         SeqLogFileReader::Memento mem = m_reader.createMemento();
 
         qint64 time = m_reader.readTimestamp();
         // a timestamp of 0 indicates a invalid packet
         if (time != 0) {
+            if (atEnd) {
+                m_errorMsg = "Packet with timestamp zero in the middle of the log found!";
+                return false;
+            }
             // timestamps that are too far apart mean that the logfile is corrupt
             if (lastTime != 0 && (time - lastTime < 0 || time - lastTime > 200000000000LL)) {
                 m_errorMsg = "Invalid or corrupt logfile %1, %2";
@@ -118,6 +123,8 @@ bool LogFileReader::indexFile()
             // remember the start of the current frame
             m_packets.append(mem);
             m_timings.append(time);
+        } else {
+            atEnd = true;
         }
         lastTime = time;
     }
