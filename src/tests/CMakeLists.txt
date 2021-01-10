@@ -27,6 +27,7 @@ add_executable(cpptests
     amun/strategy/path/obstacles.cpp
     amun/strategy/path/endinobstaclesampler.cpp
     amun/seshat/combinedlogwriter.cpp
+    amun/seshat/logfilereader.cpp
 )
 
 target_link_libraries(cpptests
