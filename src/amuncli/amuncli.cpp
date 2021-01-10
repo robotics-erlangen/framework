@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
     parser.addPositionalArgument("strategy_file", "Strategy init script");
     parser.addPositionalArgument("entrypoint", "Entrypoint, optional. Prints all entrypoints if missing", "[entrypoint]");
 
-    QCommandLineOption strategyColorConfig({"c", "strategy-color"}, "Color(s) of the strategy to run, eighter yellow, blue or both, defaults to yellow", "color", "yellow");
+    QCommandLineOption strategyColorConfig({"c", "strategy-color"}, "Color(s) of the strategy to run, either yellow, blue or both, defaults to yellow", "color", "yellow");
     QCommandLineOption debugOption({"v", "verbose"}, "Dump raw strategy output");
     QCommandLineOption simulatorConfig({"s", "simulator-config"}, "Which simulator config to use (field size etc.), loaded from the config directory", "file");
     QCommandLineOption simulationTime({"t", "simulation-time"}, "Number of seconds to simulator, infinite running if missing", "seconds", "-1");
@@ -54,6 +54,8 @@ int main(int argc, char* argv[])
     QCommandLineOption backlog({"b", "backlog-directory"}, "Directory for backlogging of events.", "directory");
     QCommandLineOption maxBacklog("max-backlog", "Maximum of backlog files in a category. 0 removes limit. Default 20.", "count");
     QCommandLineOption realismConfig("realism", "Simulator realism configuration (short file name without the .txt)", "realism");
+    QCommandLineOption silent("silent", "Do not print any messages");
+    QCommandLineOption forceStart({"f", "force-start"}, "Force start the game immediately (Kickoff will be used otherwise)");
     parser.addOption(strategyColorConfig);
     parser.addOption(debugOption);
     parser.addOption(simulatorConfig);
@@ -68,6 +70,8 @@ int main(int argc, char* argv[])
     parser.addOption(backlog);
     parser.addOption(maxBacklog);
     parser.addOption(realismConfig);
+    parser.addOption(silent);
+    parser.addOption(forceStart);
 
     // parse command line, handles --version
     parser.process(app);
@@ -143,6 +147,8 @@ int main(int argc, char* argv[])
     connector.setDebug(debug);
     connector.setSimulationRunningTime(simulationRunningTime < 0 ? std::numeric_limits<int>::max() : simulationRunningTime);
     connector.setReportEvents(parser.isSet(reportEvents));
+    connector.setSilent(parser.isSet(silent));
+    connector.setForceStartGame(parser.isSet(forceStart));
 
     if (parser.isSet(backlog)) {
         connector.setBacklogDirectory(parser.value(backlog));

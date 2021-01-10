@@ -237,6 +237,9 @@ void Connector::start()
         }
 
     }
+    if (m_forceStart) {
+        m_referee.changeCommand(SSL_Referee::FORCE_START);
+    }
     emit sendCommand(command);
 }
 
@@ -298,8 +301,9 @@ void Connector::handleStatus(const Status &status)
             if (m_debug) {
                 TestTools::dumpProtobuf(*status);
             }
-
-            TestTools::dumpLog(debug, m_exitCode);
+            if (!m_isSilent) {
+                TestTools::dumpLog(debug, m_exitCode);
+            }
         }
     }
 

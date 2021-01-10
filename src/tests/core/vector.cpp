@@ -137,7 +137,7 @@ TEST(Vector, Normalized) {
     ASSERT_EQ(nullVec.y, 0);
 }
 
-TEST(Vector, Lenght) {
+TEST(Vector, Length) {
     Vector vecLen(3, -4);
     Vector vecLen2(-3, -4);
     Vector vecLen3(0, 0);
