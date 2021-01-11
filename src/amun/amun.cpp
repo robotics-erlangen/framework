@@ -477,7 +477,7 @@ void Amun::enableTrackingReplay()
 {
     if (!m_replayProcessor) {
         m_replayProcessor.reset(new Processor(m_replayTimer, true));
-        connect(m_replayProcessor.get(), &Processor::sendStatus, m_seshat, &Seshat::handleReplayStatus);
+        connect(m_replayProcessor.get(), &Processor::sendStatus, this, &Amun::handleReplayStatus);
     }
 }
 
@@ -587,7 +587,6 @@ void Amun::handleStatusForReplay(const Status &status)
         }
 
         if (status->has_world_state()) {
-            m_replayTimer->setTime(status->world_state().time(), 0);
             if (status->world_state().has_system_delay()) {
                 Command command(new amun::Command);
                 command->mutable_tracking()->set_system_delay(status->world_state().system_delay());
@@ -604,8 +603,7 @@ void Amun::handleStatusForReplay(const Status &status)
                     m_replayProcessor->handleVisionPacket(visionData, time, "replay");
                 }
             }
-            // the appropiate time is set by the m_replayTimer already
-            m_replayProcessor->process();
+            m_replayProcessor->process(status->world_state().time());
         }
     } else {
         emit sendStatusForReplay(status);

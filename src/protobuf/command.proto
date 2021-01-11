@@ -144,6 +144,8 @@ message VirtualFieldTransform {
     required float offsetY = 6;
 }
 
+// WARNING: if tracking parameters are added in the ui, it must be checked if they are necessary
+// for the trackig replay (and if they are they must be saved in status packages)
 message CommandTracking {
     optional bool aoi_enabled = 1;
     optional world.TrackingAOI aoi = 2;

@@ -172,11 +172,11 @@ Status Processor::assembleStatus(qint64 time, bool resetRaw)
     return status;
 }
 
-void Processor::process()
+void Processor::process(qint64 overwriteTime)
 {
     const qint64 tracker_start = Timer::systemTime();
 
-    const qint64 current_time = m_timer->currentTime();
+    const qint64 current_time = overwriteTime == -1 ? m_timer->currentTime() : overwriteTime;
     // the controller runs with 100 Hz -> 10ms ticks
     const qint64 tickDuration = 1000 * 1000 * 1000 / FREQUENCY;
 

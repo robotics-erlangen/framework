@@ -68,7 +68,7 @@ public slots:
     void handleStrategyCommands(bool blue, const QList<RobotCommandInfo> &commands, qint64 time);
     void handleStrategyHalt(bool blue);
     // public only for tracking replay
-    void process();
+    void process(qint64 overwriteTime = -1);
 
 private:
     struct Robot;
