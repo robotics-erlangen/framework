@@ -188,11 +188,21 @@ void CombinedLogWriter::handleStatus(Status status)
         return;
     }
 
+    if (status->time() == 0 && m_logState == LogState::PENDING) {
+        m_zeroTimeStatus.append(status);
+        return;
+    }
+
     auto previousTime = m_lastTime;
     m_lastTime = status->time();
 
     if (m_isLoggingEnabled && m_logState == LogState::PENDING) {
         startLogfile();
+        for (const Status &status : qAsConst(m_zeroTimeStatus)) {
+            status->set_time(m_lastTime);
+            m_signalSource->emitStatusToRecording(status);
+        }
+        m_zeroTimeStatus.clear();
     }
 
     // If we didn't tell the UI because we didn't know what time is it, we have to send this information here.

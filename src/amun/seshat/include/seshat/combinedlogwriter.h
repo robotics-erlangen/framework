@@ -92,6 +92,8 @@ private:
     bool m_isLoggingEnabled;
 
     CombinedLogWriterInternal::SignalSource *m_signalSource;
+
+    QList<Status> m_zeroTimeStatus;
 };
 
 #endif // COMBINEDLOGWRITER_H
