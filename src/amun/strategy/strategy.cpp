@@ -517,7 +517,9 @@ void Strategy::loadStateChanged(amun::StatusStrategy::STATE state)
         //TODO: This assumes that there is at most one debug in this status
         log = status->mutable_debug(0)->add_log();
     } else {
-        log = status->add_debug()->add_log();
+        auto *debug = status->add_debug();
+        debug->set_source(debugSource());
+        log = debug->add_log();
     }
     log->set_timestamp(m_timer->currentTime());
     if (state == amun::StatusStrategy::COMPILING) {
@@ -635,7 +637,9 @@ void Strategy::fail(const QString &error, const amun::UserInput & userInput, dou
         //TODO: This assumes that there is at most one debug in this status
         log = status->mutable_debug(0)->add_log();
     } else {
-        log = status->add_debug()->add_log();
+        auto *debug = status->add_debug();
+        debug->set_source(debugSource());
+        log = debug->add_log();
     }
     log->set_timestamp(m_timer->currentTime());
     log->set_text(error.toStdString());
