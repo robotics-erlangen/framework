@@ -28,6 +28,7 @@ void RobotUIAction::actionInvoced(bool teamIsBlue, int robotId)
     QString filter = m_searchString;
     filter.replace("<id>", QString::number(robotId));
     filter.replace("<team>", teamIsBlue ? "blue" : "yellow");
+    filter.replace("<team-s>", teamIsBlue ? "b" : "y");
 
     switch (m_action) {
     case FieldWidgetAction::None: break;

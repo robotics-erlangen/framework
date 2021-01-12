@@ -341,7 +341,7 @@
           <item row="2" column="1">
            <widget class="QLineEdit" name="doubleClickSearch">
             <property name="toolTip">
-             <string>Any usage of &lt;id&gt; will be replaced with the robots id and any usage of &lt;team&gt; with the robots team color (either yellow or blue)</string>
+             <string>Any usage of &lt;id&gt; will be replaced with the robots id, any usage of &lt;team&gt; with the robots team color (either yellow or blue) and any usage of &lt;team-s&gt; with the robots team color in one letter (either y or b)</string>
             </property>
             <property name="text">
              <string/>
