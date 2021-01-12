@@ -54,15 +54,22 @@ const obstacleTable: PathHelper.PathHelperParameters = {
 	ignoreBall: true
 };
 
+interface BallLike {
+	pos: Position;
+	speed: Speed;
+	radius: number;
+	time: number;
+}
+
 export class PenaltyChip extends Task {
 	private _shoot: Shoot;
-	private _ball: {pos: Position, speed : Speed, radius: number, time: number};
+	private _ball: BallLike;
 	private _mode: number;
 
 
-	constructor(agent: Agent, ball: any, mode: number) {
+	constructor(agent: Agent, ball: BallLike, mode: number) {
 		super(agent);
-		this._ball = <{pos: Position, speed : Speed, radius: number, time: number}> ball;
+		this._ball = ball;
 		this._mode = mode;
 		this._shoot = new Shoot(this._robot, this._messaging, this.setMainAttackerParameters);
 
