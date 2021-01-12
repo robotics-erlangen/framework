@@ -38,12 +38,15 @@ const uint DEFAULT_MIXED_PORT = 10012;
 const bool DEFAULT_UI_DARK_MODE_COLORS = false;
 
 const FieldWidgetAction DEFAULT_ROBOT_DOUBLE_CLICK_ACTION = FieldWidgetAction::ToggleVisualization;
-const QString DEFAULT_ROBOT_DOUBLE_CLICK_SEARCH_STRING = ".*: <id>";
+const QString DEFAULT_ROBOT_DOUBLE_CLICK_SEARCH_STRING_2020 = ".*: <id>";
+const QString DEFAULT_ROBOT_DOUBLE_CLICK_SEARCH_STRING = ".*: <id><team-s>";
 
 const FieldWidgetAction DEFAULT_ROBOT_CTRL_CLICK_ACTION = FieldWidgetAction::None;
 const QString DEFAULT_ROBOT_CTRL_CLICK_SEARCH_STRING = "";
 
 const QString DEFAULT_NUMBER_KEYS_USAGE = "Internal Referee";
+const QString CURRENT_CONFIG_DATE = "20210112";
+const QString PREALL_CONFIG_DATE = "20201212";
 
 ConfigDialog::ConfigDialog(QWidget *parent) :
     QDialog(parent),
@@ -122,6 +125,15 @@ void ConfigDialog::load()
     ui->ctrlClickAction->setCurrentText(robotActionString(robotCtrlClick));
     ui->ctrlClickSearch->setText(s.value("Ui/RobotCtrlClickSearch", DEFAULT_ROBOT_CTRL_CLICK_SEARCH_STRING).toString());
 
+    m_defaultVersionString = s.value("Config/ConfigDialogDefaultVersion", PREALL_CONFIG_DATE).toString();
+    if (m_defaultVersionString != CURRENT_CONFIG_DATE) {
+        // Sanitize old double click search string
+        if (ui->doubleClickSearch->text() == DEFAULT_ROBOT_DOUBLE_CLICK_SEARCH_STRING_2020) {
+            ui->doubleClickSearch->setText(DEFAULT_ROBOT_DOUBLE_CLICK_SEARCH_STRING);
+        }
+
+    }
+
     sendConfiguration();
 }
 
@@ -170,6 +182,7 @@ void ConfigDialog::apply()
     s.setValue("Ui/RobotCtrlClickSearch", ui->ctrlClickSearch->text());
 
     s.setValue("Ui/NumKeyUsage", ui->numKeyUsage->currentText());
+    s.setValue("Config/ConfigDialogDefaultVersion", CURRENT_CONFIG_DATE);
 
     sendConfiguration();
 }

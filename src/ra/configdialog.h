@@ -62,6 +62,7 @@ private:
     static QString robotActionString(FieldWidgetAction action);
 
     Ui::ConfigDialog *ui;
+    QString m_defaultVersionString;
 };
 
 #endif // CONFIGDIALOG_H
