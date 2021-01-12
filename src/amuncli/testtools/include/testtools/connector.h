@@ -34,6 +34,7 @@
 #include <string>
 #include <utility>
 #include <map>
+#include <QCoreApplication>
 
 class Connector : public QObject
 {
@@ -62,6 +63,8 @@ public:
     void setRealismConfig(const QString &shortFile);
 
     void start();
+
+    void compileStrategy(QCoreApplication &app, QString initScript);
 
 public slots:
     void handleStatus(const Status &status);

@@ -22,9 +22,12 @@
 #include "protobuf/command.pb.h"
 #include "protobuf/gamestate.pb.h"
 #include "protobuf/ssl_game_event_2019.pb.h"
-#include "testtools/testtools.h"
+#include "testtools.h"
 #include "config/config.h"
 #include "seshat/combinedlogwriter.h"
+#include "core/timer.h"
+#include "strategy/strategy.h"
+#include "strategy/script/compilerregistry.h"
 
 #include <google/protobuf/text_format.h>
 #include <google/protobuf/util/message_differencer.h>
@@ -53,7 +56,26 @@ Connector::~Connector()
 {
 }
 
-void Connector::delayedExit(int exitCode) {
+void Connector::compileStrategy(QCoreApplication &app, QString initScript)
+{
+    setIsInCompileMode(true);
+    Timer timer;
+    timer.setTime(0, 1.0);
+    std::shared_ptr<GameControllerConnection> connection(new GameControllerConnection(false));
+    CompilerRegistry compilerRegistry;
+    Strategy strategy(&timer, StrategyType::YELLOW, nullptr, &compilerRegistry, connection);
+
+    connect(&strategy, &Strategy::sendStatus, this, &Connector::handleStatus);
+
+    strategy.compileIfNecessary(initScript);
+    // process all outstanding events before executing the strategy to avoid race conditions (otherwise, the compiler output may not be visible)
+    app.processEvents();
+
+    setIsInCompileMode(false);
+}
+
+void Connector::delayedExit(int exitCode)
+{
     QTimer::singleShot(0, qApp, [exitCode, this]{performExit(exitCode);});
 }
 
@@ -102,7 +124,8 @@ void Connector::setRecordLogfile(const QString &filename)
     m_recordLogfile = true;
 }
 
-void Connector::setBacklogDirectory(const QString &directory) {
+void Connector::setBacklogDirectory(const QString &directory)
+{
     QDir logdir(directory);
     if (!logdir.exists()) {
         QDir(".").mkdir(directory);
@@ -110,7 +133,8 @@ void Connector::setBacklogDirectory(const QString &directory) {
     m_backlogDir = directory;
 }
 
-void Connector::setMaxBacklog(size_t newMax) {
+void Connector::setMaxBacklog(size_t newMax)
+{
     m_maxBacklogFiles = newMax;
 }
 
@@ -264,6 +288,8 @@ void Connector::sendFlipOption(const std::string &name)
 void Connector::handleStatus(const Status &status)
 {
     emit backlogStatus(status);
+
+//    qDebug() <<QString::fromStdString(status->DebugString());
 
     m_logfile.writeStatus(status);
 

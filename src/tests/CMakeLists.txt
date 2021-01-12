@@ -35,5 +35,6 @@ target_link_libraries(cpptests
     amun::path
     shared::core
     amun::seshat
+    amuncli::testtools
     pthread
 )

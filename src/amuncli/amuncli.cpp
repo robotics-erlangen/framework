@@ -19,10 +19,7 @@
  ***************************************************************************/
 
 #include "amun/amunclient.h"
-#include "connector.h"
-#include "core/timer.h"
-#include "strategy/strategy.h"
-#include "strategy/script/compilerregistry.h"
+#include "testtools/connector.h"
 
 #include <clocale>
 #include <QCoreApplication>
@@ -96,22 +93,7 @@ int main(int argc, char* argv[])
     Connector connector;
 
     // compile the strategy beforehand to avoid using old compiles
-    {
-        connector.setIsInCompileMode(true);
-        Timer timer;
-        timer.setTime(0, 1.0);
-        std::shared_ptr<GameControllerConnection> connection(new GameControllerConnection(false));
-        CompilerRegistry compilerRegistry;
-        Strategy strategy(&timer, StrategyType::YELLOW, nullptr, &compilerRegistry, connection);
-
-        connector.connect(&strategy, &Strategy::sendStatus, &connector, &Connector::handleStatus);
-
-        strategy.compileIfNecessary(initScript);
-        // process all outstanding events before executing the strategy to avoid race conditions (otherwise, the compiler output may not be visible)
-        app.processEvents();
-
-        connector.setIsInCompileMode(false);
-    }
+    connector.compileStrategy(app, initScript);
 
     AmunClient amun;
     amun.start(true);

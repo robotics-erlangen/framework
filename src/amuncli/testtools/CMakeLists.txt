@@ -20,8 +20,10 @@
 
 add_library(testtools
     include/testtools/testtools.h
+    include/testtools/connector.h
 
     testtools.cpp
+    connector.cpp
 )
 
 qt5_wrap_ui(UIC_SOURCES ${UI_SOURCES})
@@ -30,6 +32,11 @@ target_sources(testtools PRIVATE ${UIC_SOURCES})
 target_link_libraries(testtools
     PUBLIC Qt5::Core
     PUBLIC shared::protobuf
+    PUBLIC shared::config
+    PUBLIC ra::ra-horus
+    PUBLIC amun::seshat
+    PUBLIC amun::strategy
+    PUBLIC Threads::Threads
 )
 target_include_directories(testtools
     INTERFACE include

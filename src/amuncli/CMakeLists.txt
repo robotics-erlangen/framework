@@ -22,19 +22,11 @@ add_subdirectory(testtools)
 
 add_executable(amun-cli
     amuncli.cpp
-    connector.cpp
-    connector.h
 )
 target_link_libraries(amun-cli
     amun::amun
-    shared::protobuf
     Qt5::Core
-    Threads::Threads
     amuncli::testtools
-    shared::config
-    ra::ra-horus
-    amun::seshat
-    amun::strategy
 )
 v8_copy_deps(amun-cli)
 target_include_directories(amun-cli
