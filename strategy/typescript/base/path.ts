@@ -279,6 +279,14 @@ export class Path {
 		}
 	}
 
+	private getObstacleString() {
+		let teamLetter = "y";
+		if (teamIsBlue) {
+			teamLetter = "b";
+		}
+		return `obstacles: ${this._robotId}${teamLetter}`;
+	}
+
 	getTrajectory(startPos: Position, startSpeed: Speed, endPos: Position, endSpeed: Speed, maxSpeed: number, acceleration: number): { pos: Position, speed: Speed, time: number}[] {
 		this.lastWasTrajectoryPath = true;
 		this.addObstaclesToPath(this._trajectoryInst);
@@ -331,7 +339,7 @@ export class Path {
 			y = -y;
 		}
 		if (!isPerformanceMode) {
-			vis.addCircleRaw(`obstacles: ${this._robotId}`, new Vector(x, y), radius, vis.colors.redHalf, true);
+			vis.addCircleRaw(this.getObstacleString(), new Vector(x, y), radius, vis.colors.redHalf, true);
 		} else {
 			// avoid string allocations in ra
 			name = undefined;
@@ -358,9 +366,9 @@ export class Path {
 				let pos = startPos + speed * time + acc * (0.5 * time * time);
 				positions.push(pos);
 			}
-			vis.addCircleRaw(`obstacles: ${this._robotId}`, startPos, radius, vis.colors.orangeHalf, true);
-			vis.addCircleRaw(`obstacles: ${this._robotId}`, positions[SAMPLES - 1], radius, vis.colors.orangeHalf, true);
-			vis.addPathRaw(`obstacles: ${this._robotId}`, positions, vis.colors.orangeHalf);
+			vis.addCircleRaw(this.getObstacleString(), startPos, radius, vis.colors.orangeHalf, true);
+			vis.addCircleRaw(this.getObstacleString(), positions[SAMPLES - 1], radius, vis.colors.orangeHalf, true);
+			vis.addPathRaw(this.getObstacleString(), positions, vis.colors.orangeHalf);
 		}
 
 		this._trajectoryInst.addMovingCircle(startTime, endTime, startPos.x, startPos.y,
@@ -379,7 +387,7 @@ export class Path {
 			stop_y = -stop_y;
 		}
 		if (!isPerformanceMode) {
-			vis.addPathRaw(`obstacles: ${this._robotId}`, [new Vector(start_x, start_y), new Vector(stop_x, stop_y)],
+			vis.addPathRaw(this.getObstacleString(), [new Vector(start_x, start_y), new Vector(stop_x, stop_y)],
 					vis.colors.redHalf, undefined, undefined, 2 * radius);
 		} else {
 			// avoid string allocations in ra
@@ -414,10 +422,10 @@ export class Path {
 				positions1.push(pos1);
 				positions2.push(pos2);
 			}
-			vis.addPathRaw(`obstacles: ${this._robotId}`, [startPos1, positions1[SAMPLES - 1]], vis.colors.orangeHalf, undefined, undefined, width);
-			vis.addPathRaw(`obstacles: ${this._robotId}`, [startPos2, positions2[SAMPLES - 1]], vis.colors.orangeHalf, undefined, undefined, width);
-			vis.addPathRaw(`obstacles: ${this._robotId}`, positions1, vis.colors.orangeHalf);
-			vis.addPathRaw(`obstacles: ${this._robotId}`, positions2, vis.colors.orangeHalf);
+			vis.addPathRaw(this.getObstacleString(), [startPos1, positions1[SAMPLES - 1]], vis.colors.orangeHalf, undefined, undefined, width);
+			vis.addPathRaw(this.getObstacleString(), [startPos2, positions2[SAMPLES - 1]], vis.colors.orangeHalf, undefined, undefined, width);
+			vis.addPathRaw(this.getObstacleString(), positions1, vis.colors.orangeHalf);
+			vis.addPathRaw(this.getObstacleString(), positions2, vis.colors.orangeHalf);
 		}
 
 		this._trajectoryInst.addMovingLine(startTime, endTime, startPos1.x, startPos1.y,
@@ -433,7 +441,7 @@ export class Path {
 			stop_y = -stop_y;
 		}
 		if (!isPerformanceMode) {
-			vis.addPolygonRaw(`obstacles: ${this._robotId}`,
+			vis.addPolygonRaw(this.getObstacleString(),
 					[new Vector(start_x, start_y), new Vector(start_x, stop_y), new Vector(stop_x, stop_y),
 					new Vector(stop_x, start_y)], vis.colors.redHalf, true);
 		} else {
@@ -458,7 +466,7 @@ export class Path {
 			let p1 = new Vector(x1, y1);
 			let p2 = new Vector(x2, y2);
 			let p3 = new Vector(x3, y3);
-			vis.addPolygonRaw(`obstacles: ${this._robotId}`, [p1, p2, p3], vis.colors.redHalf, true);
+			vis.addPolygonRaw(this.getObstacleString(), [p1, p2, p3], vis.colors.redHalf, true);
 		} else {
 			// avoid string allocations in ra
 			name = undefined;
@@ -470,7 +478,7 @@ export class Path {
 	addFriendlyRobotObstacle(robot: FriendlyRobot, radius: number, prio: number) {
 		this._trajectoryInst.addRobotTrajectoryObstacle(robot.path._trajectoryInst.getTrajectoryAsObstacle(), prio, radius);
 		if (!isPerformanceMode) {
-			vis.addCircle(`obstacles: ${this._robotId}`, robot.pos, 2 * robot.radius, vis.colors.goldHalf, false, undefined, undefined, robot.radius);
+			vis.addCircle(this.getObstacleString(), robot.pos, 2 * robot.radius, vis.colors.goldHalf, false, undefined, undefined, robot.radius);
 		}
 	}
 
