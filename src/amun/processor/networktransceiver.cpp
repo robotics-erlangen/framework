@@ -24,8 +24,7 @@
 #include <QUdpSocket>
 
 NetworkTransceiver::NetworkTransceiver(QObject *parent) : QObject(parent),
-    m_charge(false),
-    m_simulatorEnabled(false)
+    m_charge(false)
 {
     m_udpSocket = new QUdpSocket(this);
 }
@@ -91,12 +90,6 @@ void NetworkTransceiver::handleRadioCommands(const QList<robot::RadioCommand> &c
 
 void NetworkTransceiver::handleCommand(const Command &command)
 {
-    if (command->has_simulator()) {
-        if (command->simulator().has_enable()) {
-            m_simulatorEnabled = command->simulator().enable();
-        }
-    }
-
     if (command->has_transceiver()) {
         const amun::CommandTransceiver &t = command->transceiver();
 

@@ -49,7 +49,6 @@ private:
 
 private:
     bool m_charge;
-    bool m_simulatorEnabled;
     amun::HostAddress m_configuration;
     QUdpSocket *m_udpSocket;
 };
