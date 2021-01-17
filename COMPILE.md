@@ -1,13 +1,13 @@
 # Compiling Ra
 
 All programs should work on GNU/Linux, Mac OS X 10.10 and Windows >= 7.
-Building is tested automatically on recent Ubuntu versions (currently 16.04 and
-18.04). Also, various team members use Arch Linux/Manjaro.
+Building is tested automatically on recent Ubuntu versions (currently 18.04 and
+20.04). Also, various team members use Arch Linux/Manjaro.
 
 In order to build Ra you will need:
 - `cmake` >= `3.5` (`3.7` on Windows)
 - `g++` >= `4.6`
-- `Qt` >= `5.5.1` (**NOT** `5.9.[0-2]` on Windows)
+- `Qt` >= `5.9` (**NOT** `5.9.[0-2]` on Windows)
 - `protobuf` >= `2.6.0` (will be built from source when no suitable version is found)
 
 Certain features require additional libraries:
@@ -20,7 +20,7 @@ Certain features require additional libraries:
 ## Table Of Contents
 - [Linux](#linux)
   * [Required packages](#required-packages)
-    * [Ubuntu 16.04/18.04/20.04](#ubuntu-160418042004)
+    * [Ubuntu 18.04/20.04](#ubuntu-18042004)
     * [Manjaro](#manjaro)
   * [Building V8 (optional)](#building-v8-optional-needed-for-javascript-support)
   * [Building Ra](#building-ra)
@@ -34,7 +34,7 @@ Certain features require additional libraries:
 
 ### Required packages
 
-#### Ubuntu 16.04/18.04/20.04
+#### Ubuntu 18.04/20.04
 The package names are
 ```
 cmake protobuf-compiler libprotobuf-dev qtbase5-dev libqt5opengl5-dev g++ libusb-1.0-0-dev libsdl2-dev libqt5svg5-dev
@@ -57,11 +57,11 @@ commands. The package names are
 | Distribution       | Packages              |
 |--------------------|-----------------------|
 | Ubuntu 20.04       | `git python2 python3` |
-| Ubuntu 16.04/18.04 | `git python python3`  |
+| Ubuntu 18.04       | `git python python3`  |
 | Manjaro            | `git python python2`  |
 
 Also, the `python` command needs to be available and point to `python2`. On
-Ubuntu 16.04 and 18.04, this is already the case when installing these
+Ubuntu 18.04, this is already the case when installing these
 packages. **On Ubuntu 20.04 and Manjaro** you'll need to **temporarily** symlink
 `python` to point to `python2` with
 ```

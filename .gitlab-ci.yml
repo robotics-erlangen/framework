@@ -88,10 +88,6 @@ tests:
   only:
     - schedules
 
-compile-ra-16.04:
-  extends: .compile-ra-schedule
-  image: ubuntu-16.04
-
 compile-ra-18.04:
   extends: .compile-ra-schedule
   image: ubuntu-18.04
@@ -108,12 +104,6 @@ compile-ra-20.04:
   extends: .test-template
   only:
     - schedules
-
-tests-16.04:
-  extends: .test-schedule
-  image: ubuntu-16.04
-  dependencies:
-    - compile-ra-16.04
 
 tests-18.04:
   extends: .test-schedule
@@ -138,10 +128,6 @@ tests-20.04:
   extends: .sanitize-template
   only:
     - schedules
-
-sanitize-16.04:
-  extends: .sanitize-schedule
-  image: ubuntu-16.04
 
 sanitize-18.04:
   extends: .sanitize-schedule
