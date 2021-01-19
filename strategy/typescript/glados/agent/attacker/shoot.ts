@@ -280,6 +280,32 @@ export class Shoot extends Behavior {
 			return true;
 		}
 
+		let suffixDebugString = "";
+		let redecidePassTiming = false;
+		let redecideNoLongerOffered = false;
+		// adopt earlier time if pass timing reduced
+		if (this._decision.task === "pass") {
+			let oldTime = this._decision.time;
+			let oldTarget = this._decision.target;
+			let newSug = this._messaging.receive(MessageType.passSuggestion).get(oldTarget);
+			// redecide later if pass timing increased
+			// make decision here so that newSug won't be determined again later
+			// but we want (imminent) and (hadball) to maintain higher priority
+			if (newSug && newSug.time > oldTime + 0.2 && this._passFrames > 2) {
+				redecidePassTiming = true;
+			}
+			if (newSug && newSug.time < oldTime - 0.1 && this._passFrames > 2) {
+				suffixDebugString = ` + (earlyPassTiming (${newSug.time - oldTime}))`;
+				this._decision.time = newSug.time;
+				this._passFrames = 0;
+			}
+			// redecide later if pass no longer offered
+			// (imminent) and (hadball) should have higher priority
+			if (!newSug && this._passFrames > 2) {
+				redecideNoLongerOffered = true;
+			}
+		}
+
 		// redecide if during a pseudo pass, the ball overtakes the pass pos
 		// this is moderately likely to happen during chaseBall
 		if (!Robot.isPressed(this._robot) && ENABLE_PSEUDO_PASS && this._decision.task === "pass" && this._decision.target === this._robot) {
@@ -324,27 +350,15 @@ export class Shoot extends Behavior {
 			return true;
 		}
 
-		let suffixDebugString = "";
 		// redecide if passTiming changed a lot
-		if (this._decision.task === "pass") {
-			let oldTime = this._decision.time;
-			let oldTarget = this._decision.target;
-			let newSug = this._messaging.receive(MessageType.passSuggestion).get(oldTarget);
-			if (newSug && newSug.time > oldTime + 0.2 && this._passFrames > 2) {
-				debug.set("redeciding", "TRUE (passTiming)");
-				return true;
-			}
-			if (newSug && newSug.time < oldTime - 0.1 && this._passFrames > 2) {
-				suffixDebugString = ` + (earlyPassTiming (${newSug.time - oldTime}))`;
-				this._decision.time = newSug.time;
-				this._passFrames = 0;
-			}
+		if (redecidePassTiming) {
+			debug.set("redeciding", "TRUE (passTiming)");
+			return true;
+		}
 
-			// redecide if the passReciever no longer offers that pass
-
-			if (!newSug && this._passFrames > 2) {
-				debug.set("redeciding", "TRUE (dropped suggestion)" + suffixDebugString);
-			}
+		// redecide if the passReciever no longer offers that pass
+		if (redecideNoLongerOffered) {
+			debug.set("redeciding", "TRUE (dropped suggestion)" + suffixDebugString);
 		}
 
 		// redecide if the attackPosition changed a lot
