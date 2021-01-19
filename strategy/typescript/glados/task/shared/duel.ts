@@ -73,11 +73,7 @@ export class Duel extends Task {
 			this._messaging.sendBroadcast(MessageType.dueledOpponent, <Robot> this._opposer);
 		}
 
-		// closeToOpp Hysteresis
-		let effectiveDistance = distToOpp + (this._lastCloseToOpp ? -CLOSE_TO_OPP_HYSTERESIS : CLOSE_TO_OPP_HYSTERESIS);
-		this._lastCloseToOpp = effectiveDistance < CLOSE_TO_OPP_DISTANCE;
-
-		if ((this._opposer != undefined) && ((this._blockingBall && ObserverRobot.hadBall(this._robot, 0)) || this._lastCloseToOpp)) {
+		if ((this._opposer != undefined) && this._blockingBall && ObserverRobot.hadBall(this._robot, 0)) {
 			this._contest();
 			debug.set("duel-state", "contest");
 		} else {
@@ -294,8 +290,16 @@ export class Duel extends Task {
 			defendedRatio += this._lastDefendGoal ? DEFEND_GOAL_HYSTERESIS : -DEFEND_GOAL_HYSTERESIS;
 			if (defendedRatio < 0.70) {
 				debug.set("duelMode", "agressive");
-				moveDest = closestOpponentRobot!.pos;
+				moveDest = futureBall;
 				this._lastDefendGoal = false;
+
+				// If we get too close to opponent change to contest to avoid collision
+				let effectiveDistance = this._robot.pos.distanceTo(closestOpponentRobot!.pos) + (this._lastCloseToOpp ? -CLOSE_TO_OPP_HYSTERESIS : CLOSE_TO_OPP_HYSTERESIS);
+				this._lastCloseToOpp = effectiveDistance < CLOSE_TO_OPP_DISTANCE;
+				if (this._lastCloseToOpp) {
+					this._contest();
+					return;
+				}
 			} else {
 				debug.set("duelMode", "defensive");
 				this._lastDefendGoal = true;
