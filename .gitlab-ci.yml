@@ -110,18 +110,21 @@ tests-18.04:
   image: ubuntu-18.04
   dependencies:
     - compile-ra-18.04
+  needs: [compile-ra-18.04]
 
 tests-18.04-no-v8:
   extends: .test-schedule
   image: ubuntu-18.04-no-v8
   dependencies:
     - compile-ra-18.04-no-v8
+  needs: [compile-ra-18.04-no-v8]
 
 tests-20.04:
   extends: .test-schedule
   image: ubuntu-20.04
   dependencies:
     - compile-ra-20.04
+  needs: [compile-ra-20.04]
 
 
 .sanitize-schedule:
@@ -132,11 +135,14 @@ tests-20.04:
 sanitize-18.04:
   extends: .sanitize-schedule
   image: ubuntu-18.04
+  needs: [tests-18.04]
 
 sanitize-18.04-no-v8:
   extends: .sanitize-schedule
   image: ubuntu-18.04-no-v8
+  needs: [tests-18.04-no-v8]
 
 sanitize-20.04:
   extends: .sanitize-schedule
   image: ubuntu-20.04
+  needs: [tests-20.04]
