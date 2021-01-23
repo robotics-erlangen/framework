@@ -20,6 +20,14 @@ message BotId {
     optional Team team = 2;
 }
 
+// Division denotes the current division, which influences some rules
+enum Division {
+    DIV_UNKNOWN = 0;
+    DIV_A = 1;
+    DIV_B = 2;
+}
+
+
 // Location is a 2d-coordinate on the field in ssl-vision coordinate system. Units are in meters.
 message Location {
     // the x-coordinate in [m] in the ssl-vision coordinate system

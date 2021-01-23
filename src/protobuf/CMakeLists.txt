@@ -44,9 +44,17 @@ set(PROTO_FILES
     ssl_game_controller_team.proto
     ssl_game_event_2019.proto
     ssl_geometry.proto
+    ssl_gc_api.proto
+    ssl_gc_ci.proto
+    ssl_gc_change.proto
+    ssl_gc_engine_config.proto
+    ssl_gc_engine.proto
+    ssl_gc_state.proto
     ssl_mixed_team.proto
     ssl_referee.proto
     ssl_referee_game_event.proto
+    ssl_vision_detection_tracked.proto
+    ssl_vision_wrapper_tracked.proto
     ssl_wrapper.proto
     status.proto
     userinput.proto
