@@ -2,11 +2,14 @@ import * as debug from "base/debug";
 import * as Field from "base/field";
 import { some } from "base/listutil";
 import * as Referee from "base/referee";
+import { Vector } from "base/vector";
 import * as World from "base/world";
 
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
+import * as Physics from "glados/observer/physics";
+import * as Robot from "glados/observer/robot";
 import { BreakPass as BreakPassTask } from "glados/task/defender/breakpass";
 
 export class BreakPass extends Behavior {
@@ -91,9 +94,10 @@ export class BreakPass extends Behavior {
 		let attackPosition = this._messaging.receiveSingleSender(MessageType.attackPosition)[1];
 		if (attackPosition != undefined) {
 			const oppInPassZone = some(World.OpponentRobots, (opp) => {
-				const dist = opp.pos.distanceToLineSegment(World.Ball.pos, attackPosition!);
-				const speed = opp.speed.lengthSq();
-				return dist < 0.3 && speed < 0.5 * 0.5;
+				// Check if the opponent could reach the ball faster than the ball its target
+				const timeBallToTarget = Physics.ballRollTime(World.Ball, World.Ball.pos.distanceTo(attackPosition!));
+
+				return Robot.minTimeToBall(opp) < timeBallToTarget;
 			});
 			if (!oppInPassZone) {
 				debug.set("breakpass check", "main attacker will receive the ball");
