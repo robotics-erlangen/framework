@@ -88,11 +88,12 @@ export type RefereeStateType = "Halt" | "Stop" | "Game" | "GameForce"
 	| "DirectOffensive" | "DirectDefensive"
 	| "IndirectOffensive" | "IndirectDefensive"
 	| "TimeoutOffensive" | "TimeoutDefensive"
-	| "BallPlacementOffensive" | "BallPlacementDefensive";
+	| "BallPlacementOffensive" | "BallPlacementDefensive"
+	| "";
 
 /** Current refereestate */
-export let RefereeState: RefereeStateType = "" as RefereeStateType; // Will be initialized before usage
-export let NextRefereeState: RefereeStateType = "" as RefereeStateType;
+export let RefereeState: RefereeStateType = "";
+export let NextRefereeState: RefereeStateType = "";
 
 export type GameStageType = "FirstHalfPre" | "FirstHalf"
 	| "HalfTime"
