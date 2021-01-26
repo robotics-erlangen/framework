@@ -79,16 +79,21 @@ export let SelectedOptions = undefined;
 
 export let TeamName: string = "";
 export let OpponentTeamName: string = "";
-/**
- * current refereestate, can be one of these:
- * Halt, Stop, Game, GameForce,
- * KickoffOffensivePrepare, KickoffDefensivePrepare, KickoffOffensive, KickoffDefensive,
- * PenaltyOffensivePrepare, PenaltyDefensivePrepare, PenaltyOffensive, PenaltyDefensive,
- * DirectOffensive, DirectDefensive, IndirectOffensive, IndirectDefensive,
- * TimeoutOffensive, TimeoutDefensive, BallPlacementOffensive, BallPlacementDefensive
- */
-export let RefereeState: string = "";
-export let NextRefereeState: string = "";
+
+export type RefereeStateType = "Halt" | "Stop" | "Game" | "GameForce"
+	| "KickoffOffensivePrepare" | "KickoffOffensive"
+	| "KickoffDefensivePrepare" | "KickoffDefensive"
+	| "PenaltyOffensivePrepare" | "PenaltyOffensive" | "PenaltyOffensiveRunning"
+	| "PenaltyDefensivePrepare" | "PenaltyDefensive" | "PenaltyDefensiveRunning"
+	| "DirectOffensive" | "DirectDefensive"
+	| "IndirectOffensive" | "IndirectDefensive"
+	| "TimeoutOffensive" | "TimeoutDefensive"
+	| "BallPlacementOffensive" | "BallPlacementDefensive";
+
+/** Current refereestate */
+export let RefereeState: RefereeStateType = "" as RefereeStateType; // Will be initialized before usage
+export let NextRefereeState: RefereeStateType = "" as RefereeStateType;
+
 /**
  * current game stage, can be one of these:
  * FirstHalfPre, FirstHalf, HalfTime, SecondHalfPre, SecondHalf,
@@ -404,9 +409,9 @@ function _updateGameState(state: pb.amun.GameState) {
 			? val.replace("Blue", "Offensive").replace("Yellow", "Defensive")
 			: val.replace("Yellow", "Offensive").replace("Blue", "Defensive");
 	};
-	RefereeState = replaceWithTeamColor(state.state);
+	RefereeState = replaceWithTeamColor(state.state) as RefereeStateType;
 	if (state.next_state) {
-		NextRefereeState = replaceWithTeamColor(state.next_state);
+		NextRefereeState = replaceWithTeamColor(state.next_state) as RefereeStateType;
 	}
 
 	if (RefereeState === "TimeoutOffensive" || RefereeState === "TimeoutDefensive") {
