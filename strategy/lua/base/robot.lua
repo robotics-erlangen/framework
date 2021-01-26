@@ -66,6 +66,7 @@ Robot.constants = {
 }
 Robot.ALLY_GENERATION_ID = 9999
 Robot.GENERATION_2014_ID = 3
+Robot.GENERATION_2020_ID = 4
 
 --- Creates a new robot object.
 -- Init function must be called for EVERY robot.
@@ -82,6 +83,7 @@ function Robot:init(data, isFriendly)
 		self.id = data
 		self.maxSpeed = 3.5 -- Init max speed and acceleration for opponents
 		self.maxAngularSpeed = 12
+		self.maxShotLinear = 6.5
 
 		self.acceleration = {}
 		self.acceleration.aSpeedupFMax = 3.75
