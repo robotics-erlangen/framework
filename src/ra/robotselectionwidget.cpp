@@ -325,21 +325,6 @@ void RobotSelectionWidget::loadRobots(const QString &group, RobotWidget::Team te
     s.endArray();
     s.endGroup();
 
-    // hide robots with an ID higher than 15 if not simulating
-    // that wouldnt work
-    const auto GENERATION_COUNT = m_model->rowCount();
-    for (int genIndex = 0; genIndex < GENERATION_COUNT; ++genIndex) {
-        auto gen = m_model->index(genIndex, 0);
-        const int ROBOT_COUNT = m_model->rowCount(gen);
-        for (int robotIndex = 0; robotIndex < ROBOT_COUNT; ++robotIndex) {
-            auto robot = m_model->index(robotIndex, 0, gen);
-            bool ok = false;
-            uint robot_id = robot.data(DATA_ROBOT_ID).toUInt(&ok);
-            bool visible = m_isSimulator || (ok && robot_id <= 15);
-            ui->robots->setRowHidden(robotIndex, gen, !visible);
-        }
-    }
-
     updateGenerationTeam();
 }
 
