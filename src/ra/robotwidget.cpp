@@ -47,19 +47,7 @@ RobotWidget::RobotWidget(InputManager *inputManager, bool is_generation, QWidget
     m_teamGroup = new QActionGroup(this);
     connect(m_teamMenu, SIGNAL(triggered(QAction*)), SLOT(selectTeam(QAction*)));
 
-    if (m_isGeneration) {
-        // partial blue and yellow only set the team of the first half of the robots
-        addTeamType("No Team", NoTeam);
-        addTeamType("All Blue", Blue);
-        addTeamType("All Yellow", Yellow);
-        addTeamType("Blue - Yellow", HalfHalf);
-        // TODO maybe rename this function to be more general since SwapTeam is more of an action and not a team type
-        addTeamType("Swap teams", SwapTeam);
-    } else {
-        addTeamType("No team", NoTeam);
-        addTeamType("Blue", Blue);
-        addTeamType("Yellow", Yellow);
-    }
+    setDefaultTeamTypes();
 
     m_team = new QToolButton;
     m_team->setAutoRaise(true);
@@ -151,6 +139,35 @@ RobotWidget::RobotWidget(InputManager *inputManager, bool is_generation, QWidget
 RobotWidget::~RobotWidget()
 {
     emit removeBinding(m_specs.generation(), m_specs.id());
+}
+
+void RobotWidget::setIsSimulator(bool simulator) {
+    if (simulator) {
+        if (m_isGeneration) {
+            addTeamType("11v11", Select11v11);
+        } else {
+            addTeamType("Both", Mixed);
+        }
+    } else {
+        m_teamMenu->clear();
+        setDefaultTeamTypes();
+    }
+}
+
+void RobotWidget::setDefaultTeamTypes() {
+    if (m_isGeneration) {
+        // partial blue and yellow only set the team of the first half of the robots
+        addTeamType("No Team", NoTeam);
+        addTeamType("All Blue", Blue);
+        addTeamType("All Yellow", Yellow);
+        // TODO maybe rename this function to be more general since SwapTeam is more of an action and not a team type
+        addTeamType("Swap teams", SwapTeam);
+    } else {
+        addTeamType("No team", NoTeam);
+        addTeamType("Blue", Blue);
+        addTeamType("Yellow", Yellow);
+        // Assume we are created in the real world, we will get a signal if we start being in a simulation.
+    }
 }
 
 void RobotWidget::addTeamType(const QString &name, const RobotWidget::Team team)
@@ -321,7 +338,7 @@ void RobotWidget::selectTeam(Team team)
 
     case Mixed:
     case PartialBlue:
-    case HalfHalf:
+    case Select11v11:
         brush = QBrush("dodgerblue");
         break;
 

@@ -35,7 +35,7 @@ class RobotWidget : public QWidget
     Q_OBJECT
 
 public:
-    enum Team { NoTeam, Blue, Yellow, HalfHalf, Mixed, PartialBlue, PartialYellow, SwapTeam };
+    enum Team { NoTeam, Blue, Yellow, Mixed, PartialBlue, PartialYellow, SwapTeam, Select11v11 };
 
 public:
     explicit RobotWidget(InputManager *inputManager, bool is_generation, QWidget *parent = 0);
@@ -61,6 +61,7 @@ public slots:
     void handleResponse(const robot::RadioResponse &response);
     void generationChanged(uint generation, RobotWidget::Team team);
     void exchangeRobot(uint generation, uint id, bool exchange);
+    void setIsSimulator(bool simulator);
 
 private slots:
     void selectInput();
@@ -78,6 +79,7 @@ private slots:
 
 private:
     void addTeamType(const QString &name, const RobotWidget::Team team);
+    void setDefaultTeamTypes();
     void setupIcon(QLabel *&label, const QString &iconPath, QLayout *layout, const QString &toolTip = QString());
 
     void updateBatteryStatus(int percentage);

@@ -70,6 +70,7 @@ signals:
     void setRobotExchangeIcon(uint generation, uint id, bool exchange);
     void enableInternalAutoref(bool enable);
     void setUseDarkColors(bool useDark);
+    void sendIsSimulator(bool simulator);
 
 public slots:
     void selectTeam(uint generation, uint id, RobotWidget::Team team);

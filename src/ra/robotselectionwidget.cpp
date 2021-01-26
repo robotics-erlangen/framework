@@ -71,6 +71,7 @@ QWidget *ItemDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem 
     const bool is_generation = index.data(DATA_ROBOT_ID).isNull();
     RobotWidget *widget = new RobotWidget(m_inputManager, is_generation, parent);
     widget->setSpecs(m_widget->specs(index));
+    connect(m_widget, &RobotSelectionWidget::sendIsSimulator, widget, &RobotWidget::setIsSimulator);
     if (is_generation) {
         connect(m_widget, SIGNAL(generationChanged(uint,RobotWidget::Team)), widget, SLOT(generationChanged(uint,RobotWidget::Team)));
         connect(widget, SIGNAL(teamSelected(uint,uint,RobotWidget::Team)), m_widget, SLOT(selectTeamForGeneration(uint,uint,RobotWidget::Team)));
@@ -135,6 +136,7 @@ void RobotSelectionWidget::saveConfig(bool saveTeams)
     if (m_isSimulator) {
         saveRobots("SimulatorBlueTeam", RobotWidget::Blue);
         saveRobots("SimulatorYellowTeam", RobotWidget::Yellow);
+        saveRobots("SimulatorSharedTeam", RobotWidget::Mixed);
     } else {
         saveRobots("BlueTeam", RobotWidget::Blue);
         saveRobots("YellowTeam", RobotWidget::Yellow);
@@ -293,6 +295,7 @@ void RobotSelectionWidget::loadRobots()
     if (m_isSimulator) {
         loadRobots("SimulatorBlueTeam", RobotWidget::Blue);
         loadRobots("SimulatorYellowTeam", RobotWidget::Yellow);
+        loadRobots("SimulatorSharedTeam", RobotWidget::Mixed);
     } else {
         loadRobots("BlueTeam", RobotWidget::Blue);
         loadRobots("YellowTeam", RobotWidget::Yellow);
@@ -375,6 +378,7 @@ void RobotSelectionWidget::setIsSimulator(bool simulator)
         return;
     }
     m_isSimulator = simulator;
+    emit sendIsSimulator(simulator);
     if (!m_isInitialized) {
         return;
     }
@@ -384,9 +388,11 @@ void RobotSelectionWidget::setIsSimulator(bool simulator)
         unsetAll();
         loadRobots("SimulatorBlueTeam", RobotWidget::Blue);
         loadRobots("SimulatorYellowTeam", RobotWidget::Yellow);
+        loadRobots("SimulatorSharedTeam", RobotWidget::Mixed);
     } else {
         saveRobots("SimulatorBlueTeam", RobotWidget::Blue);
         saveRobots("SimulatorYellowTeam", RobotWidget::Yellow);
+        saveRobots("SimulatorSharedTeam", RobotWidget::Mixed);
         unsetAll();
         loadRobots("BlueTeam", RobotWidget::Blue);
         loadRobots("YellowTeam", RobotWidget::Yellow);
@@ -408,9 +414,16 @@ void RobotSelectionWidget::selectRobots(const QList<int> &yellow, const QList<in
 
     // set all robots
     for (int id : yellow) {
-        emit setTeam(bestGeneration, id, RobotWidget::Team::Yellow);
+        auto t = RobotWidget::Team::Yellow;
+        if (blue.contains(id)) {
+            t = RobotWidget::Team::Mixed;
+        }
+        emit setTeam(bestGeneration, id, t);
     }
     for (int id : blue) {
+        if (yellow.contains(id)) {
+                continue;
+        }
         emit setTeam(bestGeneration, id, RobotWidget::Team::Blue);
     }
 }
@@ -471,7 +484,7 @@ void RobotSelectionWidget::sendTeam(robot::Team *t, RobotWidget::Team team)
 {
     foreach (const Generation &g, m_generations) {
         foreach (const Generation::Robot &robot, g.robots) {
-            if (robot.team == team) {
+            if (robot.team == team || robot.team == RobotWidget::Mixed) {
                 t->add_robot()->CopyFrom(specs(robot.specs, g.def));
             }
         }
@@ -589,9 +602,23 @@ void RobotSelectionWidget::selectTeamForGeneration(uint generation, uint, RobotW
         Generation::Robot &r = it.value();
         RobotWidget::Team t = team;
         switch (team) {
-        case RobotWidget::HalfHalf:
-            t = robotCounter < g.robots.size() / 2 ? RobotWidget::Blue : RobotWidget::Yellow;
-            break;
+        case RobotWidget::Select11v11:
+            if (!m_isSimulator) {
+                qDebug() << "using the 11v11 mode without being in simulation will not work";
+            } else {
+                bool isBlue = robotCounter < 11;
+                bool isYellow = robotCounter >= g.robots.size() - 11;
+                if (isYellow && isBlue) {
+                    t = RobotWidget::Mixed;
+                } else if (isYellow) {
+                    t = RobotWidget::Yellow;
+                } else if (isBlue) {
+                    t = RobotWidget::Blue;
+                } else {
+                    t = RobotWidget::NoTeam;
+                }
+                break;
+            }
         case RobotWidget::SwapTeam:
             // Can't swap the team if none is assigned
             if (r.team != RobotWidget::NoTeam) {
@@ -665,6 +692,11 @@ void RobotSelectionWidget::updateGenerationTeam()
 
             case RobotWidget::NoTeam:
                 none = true;
+                break;
+
+            case RobotWidget::Mixed:
+                yellow = true;
+                blue = true;
                 break;
 
             default:
