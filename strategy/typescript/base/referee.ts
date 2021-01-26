@@ -30,31 +30,6 @@ import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
 
-export const enum RefereeState {
-	Halt = "Halt",
-	Stop = "Stop",
-	Game = "Game",
-	GameForce = "GameForce",
-
-	KickoffFriendlyPrepare = "KickoffFriendlyPrepare",
-	KickoffOffensive = "KickoffOffensive",
-	PenaltyOffensivePrepare = "PenaltyOffensivePrepare",
-	PenaltyOffensive = "PenaltyOffensive",
-	PenaltyOffensiveRunning = "PenaltyOffensiveRunning",
-	DirectOffensive = "DirectOffensive",
-	IndirectOffensive = "IndirectOffensive",
-	BallPlacementOffensive = "BallPlacementOffensive",
-
-	KickoffDefensivePrepare = "KickoffDefensivePrepare",
-	KickoffDefensive = "KickoffDefensive",
-	PenaltyDefensivePrepare = "PenaltyDefensivePrepare",
-	PenaltyDefensive = "PenaltyDefensive",
-	PenaltyDefensiveRunning = "PenaltyDefensiveRunning",
-	DirectDefensive = "DirectDefensive",
-	IndirectDefensive = "IndirectDefensive",
-	BallPlacementDefensive = "BallPlacementDefensive"
-}
-
 // states, in which we must keep a dist of 50cm
 const stopStates: {[state: string]: boolean} = {
 	Stop: true,
@@ -208,8 +183,8 @@ let cornerDist = 0.7; // some tolerance, rules say 10cm
 export function isOffensiveCornerKick(): boolean {
 	let ballPos = World.Ball.pos;
 	let refState = World.RefereeState;
-	return (refState === RefereeState.DirectOffensive ||
-			refState === RefereeState.IndirectOffensive)
+	return (refState === "DirectOffensive" ||
+			refState === "IndirectOffensive")
 		&&  goalLine - ballPos.y < cornerDist
 		&& (leftLine - ballPos.x > -cornerDist || rightLine - ballPos.x < cornerDist);
 }
@@ -221,17 +196,17 @@ export function isOffensiveCornerKick(): boolean {
 export function isDefensiveCornerKick(): boolean {
 	let ballPos = World.Ball.pos;
 	let refState = World.RefereeState;
-	return (refState === RefereeState.DirectDefensive ||
-		refState === RefereeState.IndirectDefensive || refState === RefereeState.Stop)
+	return (refState === "DirectDefensive" ||
+		refState === "IndirectDefensive" || refState === "Stop")
 		&&  -goalLine - ballPos.y > -cornerDist
 		&& (leftLine - ballPos.x > -cornerDist || rightLine - ballPos.x < cornerDist);
 }
 
 /** Draw areas forbidden by the current referee command */
 export function illustrateRefereeStates() {
-	if (World.RefereeState === RefereeState.PenaltyDefensivePrepare || World.RefereeState === RefereeState.PenaltyDefensive) {
+	if (World.RefereeState === "PenaltyDefensivePrepare" || World.RefereeState === "PenaltyDefensive") {
 		vis.addPath("penaltyDistanceAllowed", [new Vector(-2,World.Geometry.OwnPenaltyLine), new Vector(2,World.Geometry.OwnPenaltyLine)], vis.colors.red);
-	} else if (World.RefereeState === RefereeState.PenaltyOffensivePrepare || World.RefereeState === RefereeState.PenaltyOffensive) {
+	} else if (World.RefereeState === "PenaltyOffensivePrepare" || World.RefereeState === "PenaltyOffensive") {
 		vis.addPath("penaltyDistanceAllowed", [new Vector(-2,World.Geometry.PenaltyLine), new Vector(2,World.Geometry.PenaltyLine)], vis.colors.red);
 	} else if (isStopState()) {
 		vis.addCircle("stopstateBallDist", World.Ball.pos, 0.5, vis.colors.redHalf, true);
@@ -262,12 +237,12 @@ export function check() {
 	checkStateChange();
 }
 
-let lastState: RefereeState;
+let lastState: World.RefereeStateType;
 let lastChangedTime: AbsTime;
 export function checkStateChange() {
 	if (World.RefereeState !== lastState) {
 		lastChangedTime = World.Time;
-		lastState = <RefereeState> World.RefereeState;
+		lastState = World.RefereeState;
 	}
 }
 

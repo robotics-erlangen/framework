@@ -2,7 +2,6 @@ import * as Constants from "base/constants";
 import * as Field from "base/field";
 import * as geom from "base/geom";
 import * as MathUtil from "base/mathutil";
-import { RefereeState } from "base/referee";
 import { Position, RelativePosition, Vector } from "base/vector";
 // import * as vis from "base/vis";
 import * as World from "base/world";
@@ -46,7 +45,7 @@ export class StopAttack extends Task {
 
 		let ballPos = World.Ball.pos;
 		// already go to the freekick position during ballplacement
-		if (World.RefereeState === RefereeState.BallPlacementDefensive && World.BallPlacementPos) {
+		if (World.RefereeState === "BallPlacementDefensive" && World.BallPlacementPos) {
 			ballPos = World.BallPlacementPos;
 		}
 
