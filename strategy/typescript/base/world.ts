@@ -94,13 +94,18 @@ export type RefereeStateType = "Halt" | "Stop" | "Game" | "GameForce"
 export let RefereeState: RefereeStateType = "" as RefereeStateType; // Will be initialized before usage
 export let NextRefereeState: RefereeStateType = "" as RefereeStateType;
 
-/**
- * current game stage, can be one of these:
- * FirstHalfPre, FirstHalf, HalfTime, SecondHalfPre, SecondHalf,
- * ExtraTimeBreak, ExtraFirstHalfPre, ExtraFirstHalf, ExtraHalfTime, ExtraSecondHalfPre, ExtraSecondHalf,
- * PenaltyShootoutBreak, PenaltyShootout, PostGame
- */
-export let GameStage: string = "";
+export type GameStageType = "FirstHalfPre" | "FirstHalf"
+	| "HalfTime"
+	| "SecondHalfPre" | "SecondHalf"
+	| "ExtraTimeBreak"
+	| "ExtraFirstHalfPre" | "ExtraFirstHalf"
+	| "ExtraHalfTime"
+	| "ExtraSecondHalfPre" | "ExtraSecondHalf"
+	| "PenaltyShootoutBreak" | "PenaltyShootout"
+	| "PostGame";
+
+/** Current game stage */
+export let GameStage: GameStageType = "" as GameStageType; // Will be initialized before usage
 /** List of the remaining times for all active friendly yellow cards */
 export let FriendlyYellowCards: number[] = [];
 /** List of the remaining times for all active opponent yellow cards */
@@ -426,7 +431,7 @@ function _updateGameState(state: pb.amun.GameState) {
 			state.designated_position.x / 1000));
 	}
 
-	GameStage = gameStageMapping[state.stage];
+	GameStage = gameStageMapping[state.stage] as GameStageType;
 
 	let friendlyTeamInfo = TeamIsBlue ? state.blue : state.yellow;
 	let opponentTeamInfo = TeamIsBlue ? state.yellow : state.blue;
