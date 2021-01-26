@@ -1,10 +1,10 @@
 --[[
 --- Provides robot generations specific classes
-module "Robot.Generation"
+module "Robot.Generation.Gen2020_4"
 ]]--
 
 --[[***********************************************************************
-*   Copyright 2015 Alexander Danzer, Michael Eischer                      *
+*   Copyright 2020 Alexander Danzer, Michael Eischer, Andreas Wendler     *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
 *   info@robotics-erlangen.de                                             *
@@ -24,29 +24,13 @@ module "Robot.Generation"
 *************************************************************************]]
 
 local Robot = require "../base/robot"
-local Generation = {
-	Gen2014_3 = require "../base/robots/generation2014",
-	Gen2020_4 = require "../base/robots/generation2020"
+local Gen2020 = (require "../base/class")("Robot.Generation.Gen2020_"..Robot.GENERATION_2020_ID, Robot)
+
+--- Robot specific constants
+-- @class table
+-- @name Gen2020_4.constants
+Gen2020.constants = {
+	dribblerSpinupTime = 0.4
 }
 
-local constantsMt = { __index = Robot.constants }
-for _, cls in pairs(Generation) do
-	setmetatable(cls.constants, constantsMt)
-end
-
---- Creates a new generation specific robot object.
--- For these robot objects the constants table of robot is overlayed with generations specific constants.
--- This functions is a factory for constructing robots.
--- @name create
--- @param specs table - Specs as returned by getTeam()
--- @return Robot - Specific generation if available or generic robot object
-function Generation.factory(specs)
-	local robotGen = Generation["Gen" .. tostring(specs.year) .. "_" .. tostring(specs.generation)]
-	if robotGen then
-		return robotGen(specs, true)
-	end
-	log("Unknown generation " .. tostring(specs.generation))
-	return Robot(specs.id, true)
-end
-
-return Generation
+return Gen2020
