@@ -1,5 +1,6 @@
 import * as Cache from "base/cache";
 import * as Constants from "base/constants";
+import * as debug from "base/debug";
 import * as Field from "base/field";
 import * as Referee from "base/referee";
 import { Robot } from "base/robot";
@@ -7,6 +8,7 @@ import { Position, Speed, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
 
+import * as ObserverBall from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 
 export interface RobotDynamics {
@@ -225,6 +227,38 @@ export function ownStandardShooter(): Robot | undefined {
 	}
 }
 
+let _doubleTouchingRobot: Robot | undefined = undefined;
+// prevents freekicking robot from moving away after failed shot
+let lastFreekickTime = 1;
+function updateDoubleTouchingRobot() {
+	if (Referee.isFriendlyFreeKickState()) {
+		// subtract half a second to ensure that the freekick shot gets detected
+		lastFreekickTime = World.Time - 0.5;
+	}
+
+	const wasShot = ObserverBall.wasShot(World.Time - lastFreekickTime) !== undefined;
+	_doubleTouchingRobot = World.RefereeState === "Game" && !wasShot
+		? ownStandardShooter()
+		: undefined;
+
+	debug.pushtop("ObserverRobot");
+	debug.push("doubleTouchingRobot");
+	debug.set(undefined, _doubleTouchingRobot);
+	debug.set("lastFreekickTime", lastFreekickTime);
+	debug.set("wasShot", wasShot);
+	debug.pop(); // doubleTouchingRobot
+	debug.pop(); // ObserverRobot
+}
+
+/**
+ * Find the robot in danger of commiting double touch. Only detects friendly
+ * robots.
+ * @returns a robot that is in danger of commiting double touch or undefined if no such robot exists
+ */
+export function doubleTouchingRobot(): Robot | undefined {
+	return _doubleTouchingRobot;
+}
+
 function calculateWayForPosition(pos: Position, radius: number, friendly: boolean): number {
 	let goal = friendly ? World.Geometry.FriendlyGoal : World.Geometry.OpponentGoal;
 	if (Math.abs(pos.y) > World.Geometry.FieldHeightHalf) {
@@ -302,4 +336,7 @@ export function _update() {
 	updateHadBall();
 	updateTouchedBall();
 	updateOwnStandardShooter();
+	// Needs to be called after updateOwnStandardShooter() since it uses
+	// ownStandardShooter() for detection
+	updateDoubleTouchingRobot();
 }
