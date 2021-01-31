@@ -60,7 +60,7 @@ typedef KalmanFilter<6, 3> Kalman;
 
 class AbstractBallFilter {
 public:
-    AbstractBallFilter(const AbstractBallFilter&) = delete;
+    AbstractBallFilter(const AbstractBallFilter&) = default;
     AbstractBallFilter(AbstractBallFilter&&) = delete;
     AbstractBallFilter& operator=(const AbstractBallFilter&) = delete;
     AbstractBallFilter& operator=(AbstractBallFilter&&) = delete;

@@ -47,7 +47,9 @@ class FlyFilter : public AbstractBallFilter
 {
 public:
     explicit FlyFilter(const VisionFrame& frame, CameraInfo* cameraInfo);
-    FlyFilter(const FlyFilter &f, qint32 primaryCamera);
+    FlyFilter(const FlyFilter &filter) = default;
+
+    void moveToCamera(qint32 primaryCamera);
 
     void processVisionFrame(const VisionFrame& frame) override;
     bool acceptDetection(const VisionFrame& frame) override;

@@ -56,7 +56,8 @@ BallTracker::BallTracker(const BallTracker& previousFilter, qint32 primaryCamera
 {
     m_primaryCamera = primaryCamera;
 
-    m_flyFilter = new FlyFilter(*previousFilter.m_flyFilter, primaryCamera);
+    m_flyFilter = new FlyFilter(*previousFilter.m_flyFilter);
+    m_flyFilter->moveToCamera(primaryCamera);
     m_groundFilter = new GroundFilter(*previousFilter.m_groundFilter, primaryCamera);
     m_dribbleFilter = new DribbleFilter(*previousFilter.m_dribbleFilter, primaryCamera);
 }

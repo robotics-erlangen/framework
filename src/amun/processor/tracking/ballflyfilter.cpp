@@ -44,34 +44,10 @@ FlyFilter::FlyFilter(const VisionFrame& frame, CameraInfo* cameraInfo) :
     resetFlightReconstruction();
 }
 
-FlyFilter::FlyFilter(const FlyFilter& f, qint32 primaryCamera):
-    AbstractBallFilter(f, primaryCamera),
-    m_shotDetected(f.m_shotDetected),
-    m_chipDetected(f.m_chipDetected),
-    m_isActive(f.m_isActive),
-    m_shotDetectionWindow(f.m_shotDetectionWindow),
-    m_kickFrames(f.m_kickFrames),
-    m_chipStartPos(f.m_chipStartPos),
-    m_chipStartTime(f.m_chipStartTime),
-    m_groundSpeed(f.m_groundSpeed),
-    m_zSpeed(f.m_zSpeed),
-    m_touchdownPos(f.m_touchdownPos),
-    m_bouncing(f.m_bouncing),
-    m_bounceStartTime(f.m_bounceStartTime),
-    m_bounceZSpeed(f.m_bounceZSpeed),
-    m_bounceStartPos(f.m_bounceStartPos),
-    m_bounceGroundSpeed(f.m_bounceGroundSpeed),
-    m_shotStartFrame(f.m_shotStartFrame),
-    m_distToStartPos(f.m_distToStartPos),
-    m_initTime(f.m_initTime),
-    m_flyFitter(f.m_flyFitter),
-    m_pinvDataInserted(f.m_pinvDataInserted),
-    m_d_detailed(f.m_d_detailed),
-    m_D_detailed(f.m_D_detailed),
-    m_d_coarseControl(f.m_d_coarseControl),
-    m_D_coarseControl(f.m_D_coarseControl),
-    m_lastPredictionTime(f.m_lastPredictionTime)
-{ }
+void FlyFilter::moveToCamera(qint32 primaryCamera)
+{
+    m_primaryCamera = primaryCamera;
+}
 
 Eigen::Vector3f FlyFilter::unproject(const ChipDetection& detection, float ballRadius)
 {
