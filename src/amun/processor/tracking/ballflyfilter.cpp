@@ -780,6 +780,9 @@ void FlyFilter::processVisionFrame(const VisionFrame& frame)
         // we need to keep the last measurement to infer speed
         m_shotDetectionWindow.append(m_kickFrames.back());
 
+        // use the first kick frame time as an estimate, will be refined once it is accepted as a chip
+        m_chipStartTime = m_kickFrames.at(0).time;
+
         debug("shot detected", 1);
         m_shotDetected = true;
     }
