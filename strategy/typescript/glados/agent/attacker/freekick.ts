@@ -6,6 +6,7 @@ import { FriendlyRobot } from "base/robot";
 import { Position } from "base/vector";
 import * as World from "base/world";
 
+import { Agent } from "glados/agent/base/agent";
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
 import * as Robot from "glados/observer/robot";
@@ -40,7 +41,12 @@ export class FreeKick extends Behavior {
 	_pass: Pass | undefined = undefined;
 	_waitStartTime: number | undefined = undefined;
 	_redeciding: boolean = false;
+	_ratePass: Attack.PassRater;
 
+	constructor(agent: Agent, ratePass: Attack.PassRater) {
+		super(agent);
+		this._ratePass = ratePass;
+	}
 
 	_stop() {
 		this._startTime = 0;
@@ -111,7 +117,7 @@ export class FreeKick extends Behavior {
 				this._passList = Attack.sortPassesFromSuggestions(this._robot, passSuggestions, {
 					earliestAttackTime,
 					considerTiming: false,
-					ratePass: Attack.defaultRatePass,
+					ratePass: this._ratePass,
 				});
 				if (this._passList != undefined) {
 					for (let pass of this._passList.values()) {
@@ -149,7 +155,7 @@ export class FreeKick extends Behavior {
 					earliestAttackTime,
 					considerTiming: false,
 					threshold: 0,
-					ratePass: Attack.defaultRatePass,
+					ratePass: this._ratePass,
 				});
 				if (passes) {
 					for (let pass of passes) {
@@ -205,7 +211,7 @@ export class FreeKick extends Behavior {
 					currentPassPos: pass.ballPos,
 					considerTiming: false,
 					customHysteresis: 0.05,
-					ratePass: Attack.defaultRatePass,
+					ratePass: this._ratePass,
 				})[0];
 				if (newPass != undefined && newPass.ballPos.distanceTo(pass.ballPos) > 0.2) {
 					// check if the pass is valid, i.e. in time.

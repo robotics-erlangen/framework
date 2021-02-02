@@ -1,5 +1,6 @@
 import * as geom from "base/geom";
 import { FriendlyRobot, Robot } from "base/robot";
+import { parameterizeClass } from "base/types";
 import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
@@ -46,6 +47,8 @@ function taskAssignment(passInfoTable: any, pos1: Position, pos2: Position, robo
 		});
 	}
 }
+
+const MRLTESTCORNER_FREEKICK = parameterizeClass(FreeKick, Attack.defaultRatePass);
 
 export class MrlTestCorner extends Move {
 	public static MIN_ROBOTS: number = 5;
@@ -107,7 +110,7 @@ export class MrlTestCorner extends Move {
 		if (World.RefereeState === "Stop") {
 			taskAssignments[this._robots[0]] = Assignment.create({ class: StopAttack, params: [] });
 		} else if (MrlTestCorner.Referee.isFriendlyFreeKickState()) {
-			taskAssignments[this._robots[0]] = Assignment.createBehaviorAssignment({ behavior: FreeKick });
+			taskAssignments[this._robots[0]] = Assignment.createBehaviorAssignment({ behavior: MRLTESTCORNER_FREEKICK });
 			this._restart = false;
 		}
 

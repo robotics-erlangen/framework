@@ -2,6 +2,7 @@ import * as Field from "base/field";
 import * as geom from "base/geom";
 import * as MathUtil from "base/mathutil";
 import { FriendlyRobot } from "base/robot";
+import { parameterizeClass } from "base/types";
 import { Position, Vector } from "base/vector";
 import * as World from "base/world";
 
@@ -37,6 +38,8 @@ function getRandomOffsetVector(): Vector {
 function randomExtension(min: number): number {
 	return MathUtil.round(min + MAX_RANDOM_POSITION_OFFSET * Math.pow(MathUtil.random(), 2), 1);
 }
+
+const ARMADA_FREEKICK = parameterizeClass(FreeKick, Attack.defaultRatePass);
 
 export class Armada extends Move {
 	public static MIN_ROBOTS: number = 5;
@@ -116,7 +119,7 @@ export class Armada extends Move {
 			taskAssignments[this._robots[4]] = Assignment.create({ class: Circuit, params: [ this._circleCenter, Math.PI * 1.5 ], restart: this._startedSendPassPos });
 			this._startedSendPassPos = false;
 		} else if (startMoving && this._assignment != undefined) {
-			taskAssignments[this._robots[0]] = Assignment.createBehaviorAssignment({ behavior: FreeKick });
+			taskAssignments[this._robots[0]] = Assignment.createBehaviorAssignment({ behavior: ARMADA_FREEKICK });
 
 			for (let i = 1;i < 5;i++) {
 				if (passInfo != undefined && this._positions[i - 1].distanceTo(passInfo.ballPos) < 0.1) {
@@ -128,7 +131,7 @@ export class Armada extends Move {
 				}
 			}
 		} else {
-			taskAssignments[this._robots[0]] = Assignment.createBehaviorAssignment({ behavior: FreeKick });
+			taskAssignments[this._robots[0]] = Assignment.createBehaviorAssignment({ behavior: ARMADA_FREEKICK });
 			for (let i = 1;i < 5;i++) {
 				taskAssignments[this._robots[i]] = Assignment.create({ class: Circuit, params: [ this._circleCenter,
 					Math.PI * 0.5 * (i - 1), undefined, this._positions[i - 1], true ], restart: !this._startedSendPassPos });

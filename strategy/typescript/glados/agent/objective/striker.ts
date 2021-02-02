@@ -30,7 +30,7 @@ export class Striker extends Objective {
 		parameterizeClass(Shoot, defaultRatePass),
 	]);
 	private static FREEKICK_RUNNER = parameterizeClass(CheckableList, [
-		FreeKick,
+		parameterizeClass(FreeKick, defaultRatePass),
 		DoubleTouchGuard,
 		PassTiming,
 		parameterizeClass(Shoot, defaultRatePass),

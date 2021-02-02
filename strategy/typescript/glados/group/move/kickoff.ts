@@ -1,4 +1,5 @@
 import { FriendlyRobot } from "base/robot";
+import { parameterizeClass } from "base/types";
 import { Vector } from "base/vector";
 import * as World from "base/world";
 
@@ -14,6 +15,8 @@ import * as Attack from "glados/util/attack";
 import * as MovesHelper from "glados/util/moveshelper";
 
 let G = World.Geometry;
+
+const KICKOFF_FREEKICK = parameterizeClass(FreeKick, Attack.defaultRatePass);
 
 export class KickOff extends Move {
 	public static MIN_ROBOTS: number = 2;
@@ -60,7 +63,7 @@ export class KickOff extends Move {
 			}
 		} else {
 			let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
-			taskAssignments[this._robots[this._assignments[0]]] = Assignment.createBehaviorAssignment({ behavior: FreeKick });
+			taskAssignments[this._robots[this._assignments[0]]] = Assignment.createBehaviorAssignment({ behavior: KICKOFF_FREEKICK });
 			for (let i = 0;i < this._robots.length - 1;i++) {
 				if (passInfoTable && Attack.checkPassInfos(this._robots[this._assignments[i + 1]], passInfoTable, false)[0]) {
 					taskAssignments[this._robots[this._assignments[i + 1]]] = Assignment.create({ class: AcceptPass });

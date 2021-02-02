@@ -2,6 +2,7 @@ import * as Field from "base/field";
 import * as geom from "base/geom";
 import * as MathUtil from "base/mathutil";
 import { FriendlyRobot } from "base/robot";
+import { parameterizeClass } from "base/types";
 import { Position, Vector } from "base/vector";
 import * as World from "base/world";
 
@@ -16,6 +17,8 @@ import * as Attack from "glados/util/attack";
 import * as MovesHelper from "glados/util/moveshelper";
 
 let G = World.Geometry;
+
+const WINDSHIELD_WIPER_FREEKICK = parameterizeClass(FreeKick, Attack.defaultRatePass);
 
 export class WindshieldWiper extends Move {
 	public static MIN_ROBOTS: number = 1;
@@ -83,7 +86,7 @@ export class WindshieldWiper extends Move {
 		if (World.RefereeState === "Stop") {
 			taskAssignments[mainrobot] = Assignment.create({ class: StopAttack, params: [] });
 		} else if (WindshieldWiper.Referee.isFriendlyFreeKickState()) {
-			taskAssignments[mainrobot] = Assignment.createBehaviorAssignment({ behavior: FreeKick });
+			taskAssignments[mainrobot] = Assignment.createBehaviorAssignment({ behavior: WINDSHIELD_WIPER_FREEKICK });
 		}
 
 		let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
