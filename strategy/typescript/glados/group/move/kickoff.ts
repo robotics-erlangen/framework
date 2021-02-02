@@ -20,7 +20,7 @@ const KICKOFF_FREEKICK = parameterizeClass(FreeKick, Attack.defaultRatePass);
 
 export class KickOff extends Move {
 	public static MIN_ROBOTS: number = 2;
-	public static MAX_ROBOTS: number = 3;
+	public static MAX_ROBOTS: number = 5;
 	public static ALLOW_EXTRA_ATTACKERS = false;
 
 	static canStart() {
@@ -28,24 +28,34 @@ export class KickOff extends Move {
 			|| World.RefereeState === "KickoffOffensive";
 	}
 
-	private _assistantPos = [
-		new Vector(-G.FieldWidthHalf * 0.7, -0.7),
-		new Vector(G.FieldWidthHalf * 0.7, -0.7),
+
+	static wantedMaxRobots(availableRobots: number): number {
+		let wantedRobots = KickOff.MIN_ROBOTS;
+		if (availableRobots === 5) {
+			wantedRobots += 1;
+		} else if (availableRobots >= 6 && availableRobots < 8) {
+			wantedRobots += 2;
+		} else if (availableRobots >= 8) {
+			wantedRobots = KickOff.MAX_ROBOTS;
+		}
+		return wantedRobots;
+	}
+
+	private _assistantAndPassPos = [
+		{ assistantPos: new Vector(-G.FieldWidthHalf * 0.7, -0.7), passDest: new Vector(-G.FieldWidthHalf * 0.9, -0.2) },
+		{ assistantPos: new Vector(G.FieldWidthHalf * 0.7, -0.7), passDest: new Vector(G.FieldWidthHalf * 0.9, -0.2) },
+		{ assistantPos: new Vector(-G.FieldWidthHalf * 0.3, -G.FieldHeightHalf * 0.2), passDest: new Vector(-G.FieldWidthHalf * 0.4, -G.FieldHeightHalf * 0.1) },
+		{ assistantPos: new Vector(G.FieldWidthHalf * 0.3, -G.FieldHeightHalf * 0.2), passDest: new Vector(G.FieldWidthHalf * 0.4, -G.FieldHeightHalf * 0.1) },
 	];
-	private _passDest = [
-		new Vector(-G.FieldWidthHalf * 0.9, -0.2),
-		new Vector(G.FieldWidthHalf * 0.9, -0.2),
-	];
+
 	private _assignments: number[];
 
 	constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 		super(robots, messaging);
-		let positions = [ new Vector(0, 0) ];
-		for (let i = 0;i < this._robots.length - 1;i++) {
-			positions.push(this._assistantPos[i]);
-		}
-		this._assignments = MovesHelper.assignRobots(this._robots, positions);
+		this._assistantAndPassPos = this._assistantAndPassPos.slice(0, this._robots.length - 1);
+		this._assignments = MovesHelper.assignRobots(this._robots, [new Vector(0, 0), ...this._assistantAndPassPos.map((p) => p.assistantPos)]);
 	}
+
 
 	_canContinue(): boolean {
 		return World.RefereeState === "KickoffOffensivePrepare"
@@ -56,10 +66,9 @@ export class KickOff extends Move {
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
 
 		if (World.RefereeState === "KickoffOffensivePrepare") {
-			taskAssignments[this._robots[this._assignments[0]]] = Assignment.create({ class: StopAttack, params: [] });
-			taskAssignments[this._robots[this._assignments[1]]] = Assignment.create({ class: MoveToPos, params: [{ pos: this._assistantPos[0] }] });
-			if (this._robots.length === 3) {
-				taskAssignments[this._robots[this._assignments[2]]] = Assignment.create({ class: MoveToPos, params: [{ pos: this._assistantPos[1] }] });
+			taskAssignments[this._robots[this._assignments[0]]] = Assignment.create({class: StopAttack, params: []});
+			for (let i = 0; i < this._robots.length - 1; i++) {
+				taskAssignments[this._robots[this._assignments[i + 1]]] = Assignment.create({class: MoveToPos, params: [{pos: this._assistantAndPassPos[i].assistantPos}]});
 			}
 		} else {
 			let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
@@ -72,8 +81,8 @@ export class KickOff extends Move {
 						class: Support,
 						params: [
 							{ isStriker: true, samplingCtor: StrikerSampling },
-							this._assistantPos[i],
-							this._passDest[i],
+							this._assistantAndPassPos[i].assistantPos,
+							this._assistantAndPassPos[i].passDest,
 						]
 					});
 				}

@@ -98,7 +98,7 @@ export class Moves implements Group {
 			if (candidates.length > 0) {
 				let index = MathUtil.randomInt([0,candidates.length - 1]);
 				this._chosenMove = candidates[index];
-				n_attackers = Math.min(numCandidateRobots, candidates[index].MAX_ROBOTS);
+				n_attackers = Math.min(numCandidateRobots, candidates[index].wantedMaxRobots(Array.from(messages.keys()).length));
 				attackers = [];
 				attackers.length = n_attackers;
 			}

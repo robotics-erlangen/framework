@@ -82,6 +82,10 @@ export abstract class Move {
 		Move.Referee = pseudoRef;
 	}
 
+	public static wantedMaxRobots(availableRobots: number): number {
+		return this.MAX_ROBOTS;
+	}
+
 	// abstract members
 
 	public abstract static MAX_ROBOTS: number;
