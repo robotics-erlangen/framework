@@ -93,7 +93,7 @@ private:
 
     void approachPinvApply(const PinvResult& pinvRes);
     void approachIntersectApply(const IntersectionResult &intRes);
-    bool approachAreaApply();
+    void approachAreaApply();
 
     bool approachPinvApplicable(const PinvResult& pinvRes);
     bool approachIntersectApplicable(const IntersectionResult &intRes);

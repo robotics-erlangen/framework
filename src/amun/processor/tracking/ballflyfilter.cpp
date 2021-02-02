@@ -405,13 +405,15 @@ void FlyFilter::approachIntersectApply(const FlyFilter::IntersectionResult &intR
     debug("approx/speed length", intRes.intersectionGroundSpeed.norm());
 }
 
-bool FlyFilter::approachAreaApply()
+void FlyFilter::approachAreaApply()
 {
     ChipDetection firstInTheAir = m_kickFrames.at(m_shotStartFrame);
     m_chipStartPos = m_kickFrames.at(m_shotStartFrame).ballPos;
     m_chipStartTime = firstInTheAir.time;
+    m_zSpeed = 0;
+    m_groundSpeed = Eigen::Vector2f(0, 0);
     if (m_kickFrames.size() < m_shotStartFrame+4) {
-        return false;
+        return;
     }
 
     float ballRadius = 0;
@@ -469,8 +471,6 @@ bool FlyFilter::approachAreaApply()
     m_zSpeed = res.b;
 
     debug("method height", true);
-
-    return false;
 }
 
 // return value in the interval [0,pi] radians
@@ -571,8 +571,8 @@ bool FlyFilter::detectionCurviness(const PinvResult& pinvRes)
         sumX += m.ballPos(0);
         sumY += m.ballPos(1);
         sumXY += m.ballPos(0) * m.ballPos(1);
-        sumXSq += m.ballPos(0)*m.ballPos(0);
-        sumYSq += m.ballPos(1)*m.ballPos(1);
+        sumXSq += m.ballPos(0) * m.ballPos(0);
+        sumYSq += m.ballPos(1) * m.ballPos(1);
     }
     // pearson correlation coefficient
     double r = (n*sumXY-sumX*sumY) / (sqrt(n*sumXSq-sumX*sumX) * sqrt(n*sumYSq-sumY*sumY));
@@ -639,7 +639,7 @@ bool FlyFilter::detectionHeight()
     ballRadius /= (endR-startR);
 
     QList<float> heights;
-    for(auto& m : m_kickFrames) {
+    for (auto& m : m_kickFrames) {
         heights.append(unproject(m, ballRadius)(2));
     }
     float low = heights.at(0)+heights.at(1);
@@ -1021,5 +1021,6 @@ void FlyFilter::resetFlightReconstruction()
     m_D_detailed = Eigen::MatrixXf::Zero(2*MAX_FRAMES_PER_FLIGHT, 6);
     m_d_coarseControl = Eigen::VectorXf::Zero(2*MAX_FRAMES_PER_FLIGHT);
     m_D_coarseControl = Eigen::MatrixXf::Zero(2*MAX_FRAMES_PER_FLIGHT, 4);
+    m_lastPredictionTime = m_initTime;
 }
 
