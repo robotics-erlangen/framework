@@ -24,7 +24,7 @@ export class DirtyManMarkerMove extends Move {
 	_updateTasks(): MoveParameters {
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
 
-		taskAssignments[this._robots[0]] = { class: DirtyManMarker, params: [World.OpponentRobots[0]] };
+		taskAssignments[this._robots[0]] = Assignment.create({ class: DirtyManMarker, params: [World.OpponentRobots[0]] });
 		return {
 			assignments: taskAssignments,
 			mainAttacker: this._robots[0]

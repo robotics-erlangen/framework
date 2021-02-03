@@ -15,7 +15,7 @@ export class None extends Move {
 	_updateTasks(): MoveParameters {
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
 		for (let r of this._robots) {
-			taskAssignments[r] = {class: "none", params: []};
+			taskAssignments[r] = Assignment.create({class: "none"});
 		}
 		return {
 			assignments: taskAssignments,

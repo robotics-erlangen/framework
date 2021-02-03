@@ -52,19 +52,19 @@ export class KickOff extends Move {
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
 
 		if (World.RefereeState === "KickoffOffensivePrepare") {
-			taskAssignments[this._robots[this._assignments[0]]] = { class: StopAttack, params: [] };
-			taskAssignments[this._robots[this._assignments[1]]] = { class: MoveToPos, params: [{ pos: this._assistantPos[0] }] };
+			taskAssignments[this._robots[this._assignments[0]]] = Assignment.create({ class: StopAttack, params: [] });
+			taskAssignments[this._robots[this._assignments[1]]] = Assignment.create({ class: MoveToPos, params: [{ pos: this._assistantPos[0] }] });
 			if (this._robots.length === 3) {
-				taskAssignments[this._robots[this._assignments[2]]] = { class: MoveToPos, params: [{ pos: this._assistantPos[1] }] };
+				taskAssignments[this._robots[this._assignments[2]]] = Assignment.create({ class: MoveToPos, params: [{ pos: this._assistantPos[1] }] });
 			}
 		} else {
 			let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
-			taskAssignments[this._robots[this._assignments[0]]] = { behavior: FreeKick };
+			taskAssignments[this._robots[this._assignments[0]]] = Assignment.createBehaviorAssignment({ behavior: FreeKick });
 			for (let i = 0;i < this._robots.length - 1;i++) {
 				if (passInfoTable && Attack.checkPassInfos(this._robots[this._assignments[i + 1]], passInfoTable, false)[0]) {
-					taskAssignments[this._robots[this._assignments[i + 1]]] = { class: AcceptPass };
+					taskAssignments[this._robots[this._assignments[i + 1]]] = Assignment.create({ class: AcceptPass });
 				} else {
-					taskAssignments[this._robots[this._assignments[i + 1]]] = { class: Striker, params: [ this._assistantPos[i], this._passDest[i] ] };
+					taskAssignments[this._robots[this._assignments[i + 1]]] = Assignment.create({ class: Striker, params: [ this._assistantPos[i], this._passDest[i] ] });
 				}
 			}
 		}

@@ -117,7 +117,7 @@ export class DribbleTest extends Move {
 		switch (this._currentState) {
 			case State.GET_BALL_CONTACT:
 				restart = !GetBallContact.isInitialised();
-				taskAssignments[this._robots[0]] = {class: GetBallContact, restart: restart, params: [this._dribblerSpeed]};
+				taskAssignments[this._robots[0]] = Assignment.create({class: GetBallContact, restart: restart, params: [this._dribblerSpeed]});
 				break;
 			case State.RUN_TEST_ROTATE_WITH_BALL:
 				restart = !RotateWithBall.isInitialised();
@@ -125,7 +125,7 @@ export class DribbleTest extends Move {
 					log(`Running ${currentState}`);
 					log(`dribblerSpeed: ${this._dribblerSpeed}\tmovementSpeed: ${this._movementSpeed}\trotationSpeed: ${this._rotationSpeed}`);
 				}
-				taskAssignments[this._robots[0]] = {class: RotateWithBall, restart: restart, params: [this._rotationSpeed, this._dribblerSpeed, ACCELERATION]};
+				taskAssignments[this._robots[0]] = Assignment.create({class: RotateWithBall, restart: restart, params: [this._rotationSpeed, this._dribblerSpeed, ACCELERATION]});
 
 				break;
 			case State.RUN_TEST_DRIBBLE_CIRCLE:
@@ -134,7 +134,7 @@ export class DribbleTest extends Move {
 					log(`Running ${currentState}`);
 					log(`dribblerSpeed: ${this._dribblerSpeed}\tmovementSpeed: ${this._movementSpeed}`);
 				}
-				taskAssignments[this._robots[0]] = {class: DribbleCircle, restart: restart, params: [this._movementSpeed, this._dribblerSpeed, ACCELERATION, CIRCLE_RADIUS, CARPET_FRICTION, BALL_MASS]};
+				taskAssignments[this._robots[0]] = Assignment.create({class: DribbleCircle, restart: restart, params: [this._movementSpeed, this._dribblerSpeed, ACCELERATION, CIRCLE_RADIUS, CARPET_FRICTION, BALL_MASS]});
 
 				break;
 			case State.RUN_TEST_PULL_BALL:
@@ -143,7 +143,7 @@ export class DribbleTest extends Move {
 					log(`Running ${currentState}`);
 					log(`dribblerSpeed: ${this._dribblerSpeed}\tmovementSpeed: ${this._movementSpeed}`);
 				}
-				taskAssignments[this._robots[0]] = {class: PullBall, restart: restart, params: [this._movementSpeed, this._dribblerSpeed, ACCELERATION]};
+				taskAssignments[this._robots[0]] = Assignment.create({class: PullBall, restart: restart, params: [this._movementSpeed, this._dribblerSpeed, ACCELERATION]});
 
 				break;
 			case State.RUN_TEST_MOVE_SIDEWARDS:
@@ -152,16 +152,16 @@ export class DribbleTest extends Move {
 					log(`Running ${currentState}`);
 					log(`dribblerSpeed: ${this._dribblerSpeed}\tmovementSpeed: ${this._movementSpeed}`);
 				}
-				taskAssignments[this._robots[0]] = {class: MoveSidewards, restart: restart, params: [this._movementSpeed, this._dribblerSpeed, ACCELERATION]};
+				taskAssignments[this._robots[0]] = Assignment.create({class: MoveSidewards, restart: restart, params: [this._movementSpeed, this._dribblerSpeed, ACCELERATION]});
 
 				break;
 			case State.FINISHED:
 				// log("FINISHED");
-				taskAssignments[this._robots[0]] = {class: MoveToPos, params: [{ pos: defaultPos, dir: 0 }]};
+				taskAssignments[this._robots[0]] = Assignment.create({class: MoveToPos, params: [{ pos: defaultPos, dir: 0 }]});
 
 				break;
 			default:
-				taskAssignments[this._robots[0]] = {class: MoveToPos, params: [{ pos: defaultPos, dir: 0 }]};
+				taskAssignments[this._robots[0]] = Assignment.create({class: MoveToPos, params: [{ pos: defaultPos, dir: 0 }]});
 
 				break;
 		}

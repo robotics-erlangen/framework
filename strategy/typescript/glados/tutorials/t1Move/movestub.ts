@@ -58,7 +58,7 @@ export class Tutorial extends Move {
 		// Depending on the task you may need parameters, these can be passed as a array.
 		// For example, MoveToPos needs a position to drive to.
 		// Pay attention you have to restart the task if you change the vector
-		taskAssignments[this._robots[i]] = {class: MoveToPos, params: [new Vector(0,0)], restart: false});
+		taskAssignments[this._robots[i]] = Assignment.create({class: MoveToPos, params: [new Vector(0,0)], restart: false}));
 
 		return [taskAssignments, undefined];
 	}

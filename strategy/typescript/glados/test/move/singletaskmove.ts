@@ -26,7 +26,7 @@ export function makeSingleTaskMove(task: any): typeof Move {
 		_updateTasks(): MoveParameters {
 			let taskAssignments = new Map<FriendlyRobot, Assignment>();
 
-			taskAssignments[this._robots[0]] = { class: task };
+			taskAssignments[this._robots[0]] = Assignment.create({ class: task });
 
 			return {
 				assignments: taskAssignments,

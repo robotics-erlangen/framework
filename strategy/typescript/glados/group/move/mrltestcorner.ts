@@ -31,11 +31,11 @@ function taskAssignment(passInfoTable: any, pos1: Position, pos2: Position, robo
 	let ballSide = (World.Ball.pos.x > 0) ? 1 : -1;
 	let acceptPass = Attack.checkPassInfos(robot, passInfoTable, false)[0];
 	if (acceptPass) {
-		return { class: AcceptPass };
+		return Assignment.create({ class: AcceptPass });
 	} else if (enemyAmm > 0) {
-		return { class: MoveToPos, params: [{ pos: new Vector(pos1.x * ballSide, pos1.y) }] };
+		return Assignment.create({ class: MoveToPos, params: [{ pos: new Vector(pos1.x * ballSide, pos1.y) }] });
 	} else {
-		return { class: Striker, params: [ new Vector(pos1.x * ballSide, pos1.y), new Vector(pos2.x * ballSide, pos2.y) ]};
+		return Assignment.create({ class: Striker, params: [ new Vector(pos1.x * ballSide, pos1.y), new Vector(pos2.x * ballSide, pos2.y) ]});
 	}
 }
 
@@ -97,9 +97,9 @@ export class MrlTestCorner extends Move {
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
 
 		if (World.RefereeState === "Stop") {
-			taskAssignments[this._robots[0]] = { class: StopAttack, params: [] };
+			taskAssignments[this._robots[0]] = Assignment.create({ class: StopAttack, params: [] });
 		} else if (MrlTestCorner.Referee.isFriendlyFreeKickState()) {
-			taskAssignments[this._robots[0]] = { behavior: FreeKick };
+			taskAssignments[this._robots[0]] = Assignment.createBehaviorAssignment({ behavior: FreeKick });
 			this._restart = false;
 		}
 

@@ -83,15 +83,15 @@ export class CrossShoot extends Move {
 				G.OpponentGoal.y - G.DefenseHeight);
 		}
 		for (let i = 0; i < this.pos.length; i++) {
-			taskAssignments[this._robots[i + 1]] = { class: MoveToPos, params: [{ pos: this.pos[i] }] };
+			taskAssignments[this._robots[i + 1]] = Assignment.create({ class: MoveToPos, params: [{ pos: this.pos[i] }] });
 		}
 
-		taskAssignments[this._robots[5]] = { class: MoveToPos, params: [{ pos: receiverPos[0] }] };
+		taskAssignments[this._robots[5]] = Assignment.create({ class: MoveToPos, params: [{ pos: receiverPos[0]! }] });
 
 		if (World.RefereeState === "Stop") {
-			taskAssignments[this._robots[0]] = { class: StopAttack, params: [] };
+			taskAssignments[this._robots[0]] = Assignment.create({ class: StopAttack, params: [] });
 		} else if (Referee.isFriendlyFreeKickState()) {
-			taskAssignments[this._robots[0]] = { class: ChipToPos, params: [firstContactPos, World.Time] };
+			taskAssignments[this._robots[0]] = Assignment.create({ class: ChipToPos, params: [firstContactPos, World.Time] });
 		}
 		return {
 			assignments: taskAssignments,

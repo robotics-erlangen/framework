@@ -87,20 +87,20 @@ export class KickOffDefensive extends Move {
 		[this._targetRight, restartRight] = getTarget(this._targetRight, this._fallbackPos[1]);
 
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
-		taskAssignments[this._robots[this._assignments[0]]] = { class: StopAttack, params: [] };
+		taskAssignments[this._robots[this._assignments[0]]] = Assignment.create({ class: StopAttack, params: [] });
 
 		if (this._robots.length > 1) {
 			if (this._targetLeft) {
-				taskAssignments[this._robots[this._assignments[1]]] = { class: ManMark, params: [ this._targetLeft ], restart: restartLeft };
+				taskAssignments[this._robots[this._assignments[1]]] = Assignment.create({ class: ManMark, params: [ this._targetLeft ], restart: restartLeft });
 			} else {
-				taskAssignments[this._robots[this._assignments[1]]] = { class: MoveToPos, params: [{ pos: this._fallbackPos[0] }] };
+				taskAssignments[this._robots[this._assignments[1]]] = Assignment.create({ class: MoveToPos, params: [{ pos: this._fallbackPos[0] }] });
 			}
 		}
 		if (this._robots.length > 2) {
 			if (this._targetRight) {
-				taskAssignments[this._robots[this._assignments[2]]] = { class: ManMark, params: [ this._targetRight ], restart: restartRight };
+				taskAssignments[this._robots[this._assignments[2]]] = Assignment.create({ class: ManMark, params: [ this._targetRight ], restart: restartRight });
 			} else {
-				taskAssignments[this._robots[this._assignments[2]]] = { class: MoveToPos, params: [{ pos: this._fallbackPos[1] }] };
+				taskAssignments[this._robots[this._assignments[2]]] = Assignment.create({ class: MoveToPos, params: [{ pos: this._fallbackPos[1] }] });
 			}
 		}
 

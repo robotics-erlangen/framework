@@ -109,29 +109,29 @@ export class Armada extends Move {
 
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
 		if (World.RefereeState === "Stop") {
-			taskAssignments[this._robots[0]] = { class: StopAttack, params: [] };
-			taskAssignments[this._robots[1]] = { class: Circuit, params: [ this._circleCenter, Math.PI * 0.0 ], restart: this._startedSendPassPos };
-			taskAssignments[this._robots[2]] = { class: Circuit, params: [ this._circleCenter, Math.PI * 0.5 ], restart: this._startedSendPassPos };
-			taskAssignments[this._robots[3]] = { class: Circuit, params: [ this._circleCenter, Math.PI * 1.0 ], restart: this._startedSendPassPos };
-			taskAssignments[this._robots[4]] = { class: Circuit, params: [ this._circleCenter, Math.PI * 1.5 ], restart: this._startedSendPassPos };
+			taskAssignments[this._robots[0]] = Assignment.create({ class: StopAttack, params: [] });
+			taskAssignments[this._robots[1]] = Assignment.create({ class: Circuit, params: [ this._circleCenter, Math.PI * 0.0 ], restart: this._startedSendPassPos });
+			taskAssignments[this._robots[2]] = Assignment.create({ class: Circuit, params: [ this._circleCenter, Math.PI * 0.5 ], restart: this._startedSendPassPos });
+			taskAssignments[this._robots[3]] = Assignment.create({ class: Circuit, params: [ this._circleCenter, Math.PI * 1.0 ], restart: this._startedSendPassPos });
+			taskAssignments[this._robots[4]] = Assignment.create({ class: Circuit, params: [ this._circleCenter, Math.PI * 1.5 ], restart: this._startedSendPassPos });
 			this._startedSendPassPos = false;
 		} else if (startMoving && this._assignment != undefined) {
-			taskAssignments[this._robots[0]] = { behavior: FreeKick, params: [] };
+			taskAssignments[this._robots[0]] = Assignment.createBehaviorAssignment({ behavior: FreeKick });
 
 			for (let i = 1;i < 5;i++) {
 				if (passInfo != undefined && this._positions[i - 1].distanceTo(passInfo.ballPos) < 0.1) {
 					taskAssignments[this._robots[this._assignment[i - 1]]]
-						= {class: AcceptPass, params: [this._positions[i - 1], 0.1]};
+						= Assignment.create({class: AcceptPass, params: [this._positions[i - 1], 0.1]});
 				} else {
 					taskAssignments[this._robots[this._assignment[i - 1]]]
-						= { class: MoveToPos, params: [{ pos: this._positions[i - 1], suggestPass: true }] }; // offer other positions for redeciding
+						= Assignment.create({ class: MoveToPos, params: [{ pos: this._positions[i - 1], suggestPass: true }] }); // offer other positions for redeciding
 				}
 			}
 		} else {
-			taskAssignments[this._robots[0]] = { behavior: FreeKick, params: [] };
+			taskAssignments[this._robots[0]] = Assignment.createBehaviorAssignment({ behavior: FreeKick });
 			for (let i = 1;i < 5;i++) {
-				taskAssignments[this._robots[i]] = { class: Circuit, params: [ this._circleCenter,
-					Math.PI * 0.5 * (i - 1), undefined, this._positions[i - 1], true ], restart: !this._startedSendPassPos };
+				taskAssignments[this._robots[i]] = Assignment.create({ class: Circuit, params: [ this._circleCenter,
+					Math.PI * 0.5 * (i - 1), undefined, this._positions[i - 1], true ], restart: !this._startedSendPassPos });
 			}
 			this._startedSendPassPos = true;
 		}

@@ -13,7 +13,7 @@ import * as BallObserver from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 import { PlaceBall } from "glados/task/attacker/placeball";
 import { Halt } from "glados/task/shared/halt";
-import { MoveToPos } from "glados/task/shared/movetopos";
+import { MoveToPos, Obstacle } from "glados/task/shared/movetopos";
 import { Pass } from "glados/task/shared/pass";
 
 
@@ -112,7 +112,7 @@ export class BallPlacement extends Move {
 			this._ballPlacementPos = World.BallPlacementPos;
 		}
 
-		const SHOOTER_OBSTACLES = [
+		const SHOOTER_OBSTACLES: Obstacle[] = [
 			{
 				type: "circle",
 				x: BallObserver.getRealisticBallPos().x,
@@ -146,12 +146,12 @@ export class BallPlacement extends Move {
 			case State.WAIT_FOR_BALL_STOP: {
 				let extraDistance = 0.05 + (Math.min(0.4, World.Ball.speed.length()) - BALL_STOP_SPEED);
 				this._determinePositions(extraDistance);
-				taskAssignments[this.RECEIVER] = {
+				taskAssignments[this.RECEIVER] = Assignment.create({
 					class: MoveToPos,
 					params: [{ pos: this._computedReceiverPos, ignoreBallPlacement: true }],
 					restart: true
-				};
-				taskAssignments[this.SHOOTER] = {
+				});
+				taskAssignments[this.SHOOTER] = Assignment.create({
 					class: MoveToPos,
 					params: [{
 						pos: Field.limitToField(this._computedShooterPos, -0.15),
@@ -160,34 +160,34 @@ export class BallPlacement extends Move {
 						ignoreBallPlacement: true
 					}],
 					restart: true
-				};
+				});
 
 				break;
 			}
 			case State.PULL_TO_FIELD: {
 				this._mainAttacker = this.SHOOTER;
-				taskAssignments[this.RECEIVER] = {
+				taskAssignments[this.RECEIVER] = Assignment.create({
 					class: MoveToPos,
 					params: [{ pos: this._computedReceiverPos, ignoreBallPlacement: true }],
 					restart: this._stateChanged
-				};
-				taskAssignments[this.SHOOTER] = {
+				});
+				taskAssignments[this.SHOOTER] = Assignment.create({
 					class: PlaceBall,
 					params: [ Field.limitToField(BallObserver.getRealisticBallPos(), -TOLERANCE) ],
 					restart: this._stateChanged
-				};
+				});
 
 				break;
 			}
 			case State.GET_INTO_POSITION: {
 				this._mainAttacker = this.SHOOTER;
 				this._determinePositions(0.15);
-				taskAssignments[this.RECEIVER] = {
+				taskAssignments[this.RECEIVER] = Assignment.create({
 					class: MoveToPos,
 					params: [{ pos: this._computedReceiverPos, ignoreBallPlacement: true }],
 					restart: true
-				};
-				taskAssignments[this.SHOOTER] = {
+				});
+				taskAssignments[this.SHOOTER] = Assignment.create({
 					class: MoveToPos,
 					params: [{
 						pos: this._computedShooterPos,
@@ -196,23 +196,23 @@ export class BallPlacement extends Move {
 						ignoreBallPlacement: true,
 					}],
 					restart: true
-				};
+				});
 
 				break;
 			}
 			case State.EXECUTE_PASS: {
 				this._mainAttacker = this.SHOOTER;
 
-				taskAssignments[this.SHOOTER] = {
+				taskAssignments[this.SHOOTER] = Assignment.create({
 					class: Pass,
 					params: [ this.RECEIVER, World.BallPlacementPos, false, undefined, undefined, PASS_TARGET_SPEED],
 					restart: this._stateChanged
-				};
-				taskAssignments[this.RECEIVER] = {
+				});
+				taskAssignments[this.RECEIVER] = Assignment.create({
 					class: MoveToPos,
 					params: [{ pos: this._computedReceiverPos, ignoreBallPlacement: true }],
 					restart: this._stateChanged
-				};
+				});
 
 				break;
 			}
@@ -221,7 +221,7 @@ export class BallPlacement extends Move {
 				if (this._stateChanged) {
 					this._calculateEvadingPos();
 				}
-				taskAssignments[this.SHOOTER] = { class: MoveToPos, params: [{ pos: this._selectedEvadingPos }] };
+				taskAssignments[this.SHOOTER] = Assignment.create({ class: MoveToPos, params: [{ pos: this._selectedEvadingPos }] });
 
 				this.RECEIVER.setDribblerSpeed(MAX_DRIBBLER_SPEED);
 
@@ -240,21 +240,21 @@ export class BallPlacement extends Move {
 				// We don't use halt because Halt could possibly stop the dribbler from spinning
 				if (BallObserver.getRealisticBallPos().distanceTo(this.RECEIVER.pos) < World.Ball.radius + this.RECEIVER.shootRadius + 0.1) {
 					this.invisible = true;
-					taskAssignments[this.RECEIVER] = {
+					taskAssignments[this.RECEIVER] = Assignment.create({
 						class: MoveToPos,
 						params: [{ pos: this.RECEIVER.pos, dir: this._receiverBallDirection, ignoreBallPlacement: true, ignoreBall: true }],
 						restart: true
-					};
+					});
 				} else {
 					if (this.invisible) {
 						this.forceSetBackInvisible = true;
 					}
 					this._receiverBallDirection = (BallObserver.getRealisticBallPos() - this.RECEIVER.pos).angle();
-					taskAssignments[this.RECEIVER] = {
+					taskAssignments[this.RECEIVER] = Assignment.create({
 						class: MoveToPos,
 						params: [{ pos: intersection, ignoreBallPlacement: true }],
 						restart: true
-					};
+					});
 				}
 
 				break;
@@ -264,8 +264,8 @@ export class BallPlacement extends Move {
 				if (this._stateChanged) {
 					this._calculateEvadingPos();
 				}
-				taskAssignments[this.SHOOTER] = { class: MoveToPos, params: [{ pos: this._selectedEvadingPos }] };
-				taskAssignments[this.RECEIVER] = { class: Halt, restart: this._stateChanged };
+				taskAssignments[this.SHOOTER] = Assignment.create({ class: MoveToPos, params: [{ pos: this._selectedEvadingPos }] });
+				taskAssignments[this.RECEIVER] = Assignment.create({ class: Halt, restart: this._stateChanged });
 
 				break;
 			}
@@ -274,13 +274,13 @@ export class BallPlacement extends Move {
 				if (this._stateChanged) {
 					this._calculateEvadingPos();
 				}
-				taskAssignments[this.SHOOTER] = { class: MoveToPos, params: [{ pos: this._selectedEvadingPos }] };
+				taskAssignments[this.SHOOTER] = Assignment.create({ class: MoveToPos, params: [{ pos: this._selectedEvadingPos }] });
 				if (this._stateChanged) {
 					this._computedReceiverPos = this.RECEIVER.pos + (this.RECEIVER.pos - BallObserver.getRealisticBallPos()).withLength(2 * this.RECEIVER.radius);
 				}
 				if (this.forceSetBackInvisible) {
 					this.setBackPosInvisible = this.RECEIVER.pos - (this._ballPlacementPos - this.RECEIVER.pos).withLength(SET_BACK_INVISIBLE_LENGTH);
-					taskAssignments[this.RECEIVER] = {
+					taskAssignments[this.RECEIVER] = Assignment.create({
 						class: MoveToPos,
 						params: [{
 							pos: this.setBackPosInvisible,
@@ -289,9 +289,9 @@ export class BallPlacement extends Move {
 							ignoreBall: true
 						}],
 						restart: this._stateChanged
-					};
+					});
 				} else {
-					taskAssignments[this.RECEIVER] = {
+					taskAssignments[this.RECEIVER] = Assignment.create({
 						class: MoveToPos,
 						params: [{
 							pos: this._computedReceiverPos,
@@ -299,20 +299,20 @@ export class BallPlacement extends Move {
 							ignoreBall: true
 						}],
 						restart: this._stateChanged
-					};
+					});
 				}
 				break;
 			}
 			case State.FINE_ADJUST: {
 				this._mainAttacker = this.RECEIVER;
-				taskAssignments[this.RECEIVER] = {
+				taskAssignments[this.RECEIVER] = Assignment.create({
 					class: PlaceBall,
 					restart: this._stateChanged
-				};
+				});
 				if (this._stateChanged) {
 					this._calculateEvadingPos();
 				}
-				taskAssignments[this.SHOOTER] = {
+				taskAssignments[this.SHOOTER] = Assignment.create({
 					class: MoveToPos,
 					params: [{
 						pos: this._selectedEvadingPos,
@@ -320,7 +320,7 @@ export class BallPlacement extends Move {
 						ignoreBallPlacement: true
 					}],
 					restart: this._stateChanged
-				};
+				});
 
 				break;
 			}

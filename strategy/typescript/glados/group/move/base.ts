@@ -1,19 +1,57 @@
 import * as Referee from "base/referee";
 import { FriendlyRobot } from "base/robot";
 
+import { Behavior } from "glados/agent/base/behavior";
 import { MessageBox } from "glados/control/messaging";
+import { Agent, Task } from "glados/task/base";
 
 export { MessageBox } from "glados/control/messaging";
 
-export type Assignment = {
-	class: any,
-	params?: any[],
+type ConstructorParameters<T extends new (...args: any[]) => any> = T extends new (a: Agent, ...args: infer P) => any ? P : Error;
+
+type AssignmentWithTask<T extends new (...args: any[]) => Task> = ([] extends ConstructorParameters<T> ? {
+	class: T,
+	params?: ConstructorParameters<T>,
 	restart?: boolean
-} | {
-	behavior: any,
-	params?: any[],
+} : {
+	class: T,
+	params: ConstructorParameters<T>,
+	restart?: boolean
+}) | {
+	class: "none",
+	params?: undefined,
+	restart?: undefined
+};
+
+type AssignmentWithBehavior<T extends new (...args: any[]) => Behavior> = {
+	behavior: T,
 	restart?: boolean
 };
+
+export class Assignment {
+	public class: (new (agent: Agent, ...args: any[]) => Task) | "none" | undefined;
+	public behavior: (new (...args: any[]) => Behavior) | undefined;
+	public params: any[] | undefined;
+	public restart: boolean | undefined;
+
+	public static create<T extends new (...args: any[]) => Task>(data: AssignmentWithTask<T>): Assignment {
+		return new Assignment(data.class, undefined, data.params, data.restart);
+	}
+
+	public static createBehaviorAssignment<T extends new (...args: any[]) => Behavior>(data: AssignmentWithBehavior<T>): Assignment {
+		return new Assignment(undefined, data.behavior, undefined, data.restart);
+	}
+
+	private constructor(task: any, behavior: any, params: any, restart: any) {
+		this.class = task;
+		this.params = params;
+		this.restart = restart;
+		this.behavior = behavior;
+	}
+
+	// add a function to the type so that a simple assignment with {class: ..., behavior: ... etc} does not work
+	private __functionForNonAssignability() {}
+}
 
 export interface MoveParameters {
 	assignments: Map<FriendlyRobot, Assignment>;

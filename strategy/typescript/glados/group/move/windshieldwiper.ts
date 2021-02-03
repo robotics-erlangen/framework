@@ -80,9 +80,9 @@ export class WindshieldWiper extends Move {
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
 
 		if (World.RefereeState === "Stop") {
-			taskAssignments[mainrobot] = { class: StopAttack, params: [] };
+			taskAssignments[mainrobot] = Assignment.create({ class: StopAttack, params: [] });
 		} else if (WindshieldWiper.Referee.isFriendlyFreeKickState()) {
-			taskAssignments[mainrobot] = { behavior: FreeKick };
+			taskAssignments[mainrobot] = Assignment.createBehaviorAssignment({ behavior: FreeKick });
 		}
 
 		let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
@@ -93,15 +93,15 @@ export class WindshieldWiper extends Move {
 				acceptingRobots.add(i);
 			}
 			let acceptPos = this.calcAcceptPos(pos[i], this._robots[i].radius);
-			taskAssignments[distances[i].robot] = {class: Striker, params: [new Vector(-pos[i].x,pos[i].y), acceptPos]};
+			taskAssignments[distances[i].robot] = Assignment.create({class: Striker, params: [new Vector(-pos[i].x,pos[i].y), acceptPos]});
 		}
 		if (acceptingRobots.size > 0) {
 			for (let i = 1;i < this._robots.length;i++) {
 				if (acceptingRobots.has(i)) {
-					taskAssignments[distances[i].robot] = { class: AcceptPass};
+					taskAssignments[distances[i].robot] = Assignment.create({ class: AcceptPass});
 				} else {
 					let acceptPos = this.calcAcceptPos(pos[i], this._robots[i].radius);
-					taskAssignments[distances[i].robot] = {class: Striker, params: [pos[i], acceptPos], restart: true};
+					taskAssignments[distances[i].robot] = Assignment.create({class: Striker, params: [pos[i], acceptPos], restart: true});
 				}
 			}
 		}

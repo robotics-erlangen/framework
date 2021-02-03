@@ -44,7 +44,7 @@ export class BallTeleporter extends Move {
 
 		if (robotPos.distanceToSq(this._robots[0].pos) > (0.1 * 0.1) && !this._shot) {
 
-			taskAssignments[this._robots[0]] = {class: MoveToPos, params: [{ pos: robotPos }]};
+			taskAssignments[this._robots[0]] = Assignment.create({class: MoveToPos, params: [{ pos: robotPos }]});
 
 		} else if (!this._shot) {
 
@@ -65,13 +65,13 @@ export class BallTeleporter extends Move {
 
 			DebugCommands.moveObjects(this._initBall);
 
-			taskAssignments[this._robots[0]] = {class: MoveToPos, params: [{ pos: robotPos }]};
+			taskAssignments[this._robots[0]] = Assignment.create({class: MoveToPos, params: [{ pos: robotPos }]});
 
 			this._shot = true;
 
 		} else {
 
-			taskAssignments[this._robots[0]] = {class: TutorialTask};
+			taskAssignments[this._robots[0]] = Assignment.create({class: TutorialTask});
 
 		}
 

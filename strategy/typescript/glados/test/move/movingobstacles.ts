@@ -92,7 +92,7 @@ export class MovingObstacles extends Move {
 		}
 
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
-		taskAssignments[this._robots[0]] = { class: DirectDrive, params: [ this.targetPos ], restart: changed };
+		taskAssignments[this._robots[0]] = Assignment.create({ class: DirectDrive, params: [ this.targetPos ], restart: changed });
 		return {
 			assignments: taskAssignments,
 			mainAttacker: this._robots[0]
