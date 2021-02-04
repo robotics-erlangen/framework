@@ -36,6 +36,7 @@ class Timer;
 class Tracker;
 class QTimer;
 class InternalGameController;
+class SSLGameController;
 
 class Processor : public QObject
 {
@@ -110,6 +111,7 @@ private:
     bool m_lastFlipped;
 
     InternalGameController *m_internalGameController;
+    std::unique_ptr<SSLGameController> m_gameController;
 
     Team m_blueTeam;
     Team m_yellowTeam;

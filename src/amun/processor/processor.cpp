@@ -26,6 +26,7 @@
 #include "core/timer.h"
 #include "core/configuration.h"
 #include "gamecontroller/internalgamecontroller.h"
+#include "gamecontroller/sslgamecontroller.h"
 #include "tracking/tracker.h"
 #include "config/config.h"
 #include <cmath>
@@ -134,6 +135,9 @@ Processor::Processor(const Timer *timer, bool isReplay) :
     m_refereeInternal = new Referee();
 
     m_internalGameController = new InternalGameController(timer, this);
+    m_gameController.reset(new SSLGameController(timer, this));
+
+    connect(m_gameController.get(), &SSLGameController::sendStatus, this, &Processor::sendStatus);
 
     // start processing
     m_trigger = new QTimer(this);

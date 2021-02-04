@@ -79,6 +79,7 @@ enum DebugSource {
     ReplayBlue = 7;
     ReplayYellow = 8;
     NetworkTransceiver = 9;
+    GameController = 10;
 }
 
 message RobotValue {

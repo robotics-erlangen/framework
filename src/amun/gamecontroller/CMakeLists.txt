@@ -22,10 +22,12 @@ add_library(gamecontroller
     include/gamecontroller/internalgamecontroller.h
     include/gamecontroller/externalgamecontroller.h
     include/gamecontroller/gamecontrollerconnection.h
+    include/gamecontroller/sslgamecontroller.h
 
     internalgamecontroller.cpp
     externalgamecontroller.cpp
     gamecontrollerconnection.cpp
+    sslgamecontroller.cpp
 )
 target_link_libraries(gamecontroller
     PUBLIC shared::core
