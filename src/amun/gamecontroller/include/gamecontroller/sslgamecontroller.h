@@ -22,10 +22,13 @@
 
 #include <QObject>
 #include <QProcess>
+#include <memory>
 
+#include "gamecontrollerconnection.h"
 #include "protobuf/status.h"
 
 class Timer;
+class SSLVisionTracked;
 
 class SSLGameController : public QObject
 {
@@ -41,9 +44,11 @@ private:
 
 signals:
     void sendStatus(const Status &status);
+    void gotPacketForReferee(const QByteArray &data);
 
 public slots:
     void handleStatus(const Status &status);
+    void handleCommand(const amun::CommandReferee &refereeCommand);
 
 private slots:
     void handleGCStdout();
@@ -52,4 +57,6 @@ private slots:
 private:
     const Timer *m_timer;
     QProcess *m_gcProcess = nullptr;
+    ExternalGameController m_gcCIProtocolConnection;
+    std::unique_ptr<SSLVisionTracked> m_trackedVisionGenerator;
 };

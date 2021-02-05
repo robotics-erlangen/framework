@@ -28,6 +28,8 @@ add_library(gamecontroller
     externalgamecontroller.cpp
     gamecontrollerconnection.cpp
     sslgamecontroller.cpp
+    sslvisiontracked.cpp
+    sslvisiontracked.h
 )
 target_link_libraries(gamecontroller
     PUBLIC shared::core

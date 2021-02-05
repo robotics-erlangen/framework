@@ -19,12 +19,11 @@
  ***************************************************************************/
 
 #include "externalgamecontroller.h"
-#include "core/sslprotocols.h"
 #include <google/protobuf/util/delimited_message_util.h>
 
-ExternalGameController::ExternalGameController(bool isAutoref, QObject *parent) :
+ExternalGameController::ExternalGameController(quint16 port, QObject *parent) :
     m_gameControllerSocket(parent),
-    m_isAutoref(isAutoref)
+    m_port(port)
 {
     m_gameControllerSocket.setSocketOption(QAbstractSocket::LowDelayOption, 1);
 }
@@ -40,10 +39,7 @@ bool ExternalGameController::connectGameController()
         return true;
     }
     if (m_gameControllerSocket.state() == QAbstractSocket::UnconnectedState) {
-        quint16 port = m_isAutoref
-            ? SSL_AUTOREF_TO_GC_PORT
-            : SSL_TEAM_TO_GC_PORT;
-        m_gameControllerSocket.connectToHost(m_gameControllerHost, port);
+        m_gameControllerSocket.connectToHost(m_gameControllerHost, m_port);
     }
     return false;
 }

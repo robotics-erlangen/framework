@@ -19,7 +19,9 @@
  ***************************************************************************/
 
 #include "sslgamecontroller.h"
+#include "sslvisiontracked.h"
 #include "core/timer.h"
+#include "protobuf/ssl_gc_ci.pb.h"
 
 #include <QDebug>
 #include <QRegularExpression>
@@ -27,14 +29,17 @@
 
 SSLGameController::SSLGameController(const Timer *timer, QObject *parent) :
     QObject(parent),
-    m_timer(timer)
+    m_timer(timer),
+    m_gcCIProtocolConnection(10009, this)
 {
+    m_gcCIProtocolConnection.setRefereeHost("127.0.0.1");
     start();
 }
 
 SSLGameController::~SSLGameController()
 {
     if (m_gcProcess) {
+        m_gcCIProtocolConnection.closeConnection();
         m_gcProcess->close();
         m_gcProcess = nullptr;
     }
@@ -62,12 +67,47 @@ void SSLGameController::handleGCStdout()
 
 void SSLGameController::connectToGC()
 {
-
+    m_gcCIProtocolConnection.connectGameController();
 }
 
 void SSLGameController::handleStatus(const Status &status)
 {
+    if (!m_trackedVisionGenerator) {
+        return;
+    }
     // TODO: restart the game controller when the geometry changes
+    if (status->has_world_state()) {
+        gameController::CiInput ciInput;
+        ciInput.set_timestamp(status->world_state().time());
+        m_trackedVisionGenerator->createTrackedFrame(status->world_state(), ciInput.mutable_tracker_packet());
+
+        if (m_gcCIProtocolConnection.sendGameControllerMessage(&ciInput)) {
+            gameController::CiOutput ciOutput;
+            if (!m_gcCIProtocolConnection.receiveGameControllerMessage(&ciOutput)) {
+                return;
+            }
+
+            if (!ciOutput.has_referee_msg()) {
+                return;
+            }
+
+            const SSL_Referee referee = ciOutput.referee_msg();
+
+            QByteArray packetData;
+            packetData.resize(referee.ByteSize());
+            if (referee.SerializeToArray(packetData.data(), packetData.size())) {
+                emit gotPacketForReferee(packetData);
+            }
+        }
+    }
+}
+
+void SSLGameController::handleCommand(const amun::CommandReferee &refereeCommand)
+{
+    if (refereeCommand.has_command()) {
+//        const std::string &c = refereeCommand.command();
+//        handleGuiCommand(QByteArray(c.data(), c.size()));
+    }
 }
 
 void SSLGameController::gcFinished(int exitCode, QProcess::ExitStatus exitStatus)
@@ -77,6 +117,10 @@ void SSLGameController::gcFinished(int exitCode, QProcess::ExitStatus exitStatus
 
 void SSLGameController::start()
 {
+    if (!m_trackedVisionGenerator) {
+        m_trackedVisionGenerator.reset(new SSLVisionTracked());
+    }
+
     QString gameControllerExecutable(GAMECONTROLLER_EXECUTABLE_LOCATION);
 
     // the downloaded game controller file is not executable at first (relevant for linux and mac only)

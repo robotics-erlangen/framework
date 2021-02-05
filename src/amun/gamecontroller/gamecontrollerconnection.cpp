@@ -19,10 +19,11 @@
  ***************************************************************************/
 
 #include "gamecontrollerconnection.h"
+#include "core/sslprotocols.h"
 
 GameControllerConnection::GameControllerConnection(InternalGameController *internalGameController, bool isAutoref) :
     m_isAutoref(isAutoref),
-    m_externalGameControllerConnection(isAutoref, this)
+    m_externalGameControllerConnection(m_isAutoref ? SSL_AUTOREF_TO_GC_PORT : SSL_TEAM_TO_GC_PORT, this)
 {
     connect(this, &GameControllerConnection::gotMessageForInternalGameController, internalGameController, &InternalGameController::handleGameEvent);
     connect(internalGameController, &InternalGameController::gotControllerReply, this, &GameControllerConnection::handleInternalGameControllerReply);

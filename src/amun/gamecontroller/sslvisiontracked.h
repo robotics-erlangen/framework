@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2020 Andreas Wendler                                        *
+ *   Copyright 2021 Andreas Wendler                                        *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,35 +18,23 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef EXTERNALGAMECONTROLLER_H
-#define EXTERNALGAMECONTROLLER_H
+#pragma once
 
-#include <memory>
-#include <QByteArray>
-#include <QTcpSocket>
-#include <QHostAddress>
-#include <google/protobuf/message.h>
+#include <string>
+#include "protobuf/ssl_vision_wrapper_tracked.pb.h"
+#include "protobuf/world.pb.h"
 
-class QObject;
-
-class ExternalGameController
+class SSLVisionTracked
 {
 public:
-    ExternalGameController(quint16 port, QObject *parent = nullptr);
-    bool connectGameController();
-    void closeConnection();
-    bool receiveGameControllerMessage(google::protobuf::Message *type);
-    bool sendGameControllerMessage(const google::protobuf::Message *message);
-    void setRefereeHost(QString host);
+    SSLVisionTracked();
+
+    void createTrackedFrame(const world::State &state, gameController::TrackerWrapperPacket *packet);
 
 private:
-    QTcpSocket m_gameControllerSocket;
-    int m_nextPackageSize = -1; // negative if not known yet
-    QByteArray m_partialPacket;
-    unsigned int m_sizeBytesPosition = 0;
-    QHostAddress m_gameControllerHost;
+    std::string m_uuid;
+    int m_trackedFrameCounter = 0;
 
-    quint16 m_port;
+    static constexpr int UUID_LENGTH = 32;
+    static constexpr const char* SOURCE_NAME = "ER-FORCE";
 };
-
-#endif // EXTERNALGAMECONTROLLER_H

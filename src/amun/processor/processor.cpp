@@ -137,7 +137,10 @@ Processor::Processor(const Timer *timer, bool isReplay) :
     m_internalGameController = new InternalGameController(timer, this);
     m_gameController.reset(new SSLGameController(timer, this));
 
+    // TODO: move gamecontroller to own thread (take care with function call later)
     connect(m_gameController.get(), &SSLGameController::sendStatus, this, &Processor::sendStatus);
+    connect(m_gameController.get(), &SSLGameController::gotPacketForReferee, m_refereeInternal, &Referee::handlePacket);
+    connect(this, &Processor::sendStatus, m_gameController.get(), &SSLGameController::handleStatus);
 
     // start processing
     m_trigger = new QTimer(this);
@@ -148,10 +151,6 @@ Processor::Processor(const Timer *timer, bool isReplay) :
     }
 
     connect(timer, &Timer::scalingChanged, this, &Processor::setScaling);
-
-    connect(m_internalGameController, &InternalGameController::gotPacketForReferee, m_refereeInternal, &Referee::handlePacket);
-    connect(this, &Processor::sendStatus, m_internalGameController, &InternalGameController::handleStatus);
-
 
     loadConfiguration("division-dimensions", &m_divisionDimensions, false);
 }
@@ -467,7 +466,7 @@ void Processor::handleCommand(const Command &command)
             m_refereeInternal->setFlipped(refereeCommand.flipped());
         }
 
-        m_internalGameController->handleCommand(refereeCommand);
+        m_gameController->handleCommand(refereeCommand);
     }
 
     if (command->has_control()) {
