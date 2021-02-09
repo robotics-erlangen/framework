@@ -97,8 +97,10 @@ export class Duel extends Behavior {
 		// if the ball is shot fast at the opponent goal, dont duel it since it might be chipped by us
 		let ballSpeed = World.Ball.speed.length();
 		if (ballSpeed > MAX_BALL_SPEED + (this._lastChippedHysteresis ? 0 : 0.5)) {
-			let intersection = geom.intersectLineLine(World.Ball.pos, World.Ball.speed, World.Geometry.OpponentGoal, new Vector(1, 0))[0];
-			if (intersection && Math.abs(intersection.x) < World.Geometry.GoalWidth / 2 + (this._lastChippedHysteresis ? 1 : 0)) {
+			let intersectLine = geom.intersectLineLine(World.Ball.pos, World.Ball.speed, World.Geometry.OpponentGoal, new Vector(1, 0));
+			let intersection = intersectLine[0];
+			let lambdaOfBallToIntersection = intersectLine[1];
+			if ((intersection != undefined) && (Math.abs(intersection.x) < World.Geometry.GoalWidth / 2 + (this._lastChippedHysteresis ? 1 : 0)) && (lambdaOfBallToIntersection != undefined) && lambdaOfBallToIntersection >= 0) {
 				this._lastChippedHysteresis = true;
 				debug.set("duel check", "ball speed");
 				return false;
