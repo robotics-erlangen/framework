@@ -55,6 +55,7 @@ set(PROTO_FILES
     ssl_referee_game_event.proto
     ssl_vision_detection_tracked.proto
     ssl_vision_wrapper_tracked.proto
+    ssl_simulation_robot_control.proto
     ssl_wrapper.proto
     status.proto
     userinput.proto
