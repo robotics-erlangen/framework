@@ -124,7 +124,7 @@ void RobotCommandAdaptor::handleDatagrams()
             }
             m_commands.push_back(rCommand);
         }
-        emit sendRadioCommands(m_commands, 0 /*TODO: We need NOW, not 1970*/);
+        emit sendRadioCommands(m_commands, m_timer->currentTime()); // This might be a bit late.
         m_commands.clear();
         // TODO: response!
         qint64 delta = m_timer->currentTime() - start;
