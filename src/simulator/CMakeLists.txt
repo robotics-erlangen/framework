@@ -1,5 +1,5 @@
 # ***************************************************************************
-# *   Copyright 2015 Michael Bleier, Philipp Nordhus                        *
+# *   Copyright 2021 Tobias Heineken                                        *
 # *   Robotics Erlangen e.V.                                                *
 # *   http://www.robotics-erlangen.de/                                      *
 # *   info@robotics-erlangen.de                                             *
@@ -17,26 +17,15 @@
 # *   You should have received a copy of the GNU General Public License     *
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
+add_executable(simulator-cli WIN32 MACOSX_BUNDLE
+    simulator.cpp
+    ssl_robocup_server.cpp
+)
 
-# firmware
-add_subdirectory(firmware)
-
-# libs
-add_subdirectory(config)
-add_subdirectory(core)
-add_subdirectory(protobuf)
-add_subdirectory(amun)
-add_subdirectory(visionlog)
-add_subdirectory(timeline)
-
-# apps
-add_subdirectory(ra)
-add_subdirectory(logplayer)
-add_subdirectory(amuncli)
-add_subdirectory(replaycli)
-add_subdirectory(visionanalyzer)
-add_subdirectory(logcuttercli)
-add_subdirectory(loganalyzer)
-add_subdirectory(trajectorycli)
-add_subdirectory(tests)
-add_subdirectory(simulator)
+target_link_libraries(simulator-cli
+    Qt5::Network
+    shared::protobuf
+    shared::core
+    Qt5::Widgets
+    amun::simulator
+)
