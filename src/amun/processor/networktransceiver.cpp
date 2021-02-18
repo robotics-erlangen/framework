@@ -37,6 +37,8 @@ NetworkTransceiver::~NetworkTransceiver() { }
 
 bool NetworkTransceiver::sendSSLSimPacket(const sslsim::RobotControl& control, bool blueTeam)
 {
+    bool sendMessage = blueTeam ? getControlBlue() : getControlYellow();
+    if (!sendMessage) return true;
     bool sendingSuccessful = false;
     if (isConfigInitialized()) {
         QHostAddress address(getHost());
@@ -44,7 +46,11 @@ bool NetworkTransceiver::sendSSLSimPacket(const sslsim::RobotControl& control, b
         QByteArray data;
         data.resize(control.ByteSize());
         if (control.SerializeToArray(data.data(), data.size())) {
-            sendingSuccessful = m_udpSocket->writeDatagram(data, address, getPortControl()) == data.size();
+            int port = getPortBlue();
+            if (!blueTeam) {
+                port = getPortYellow();
+            }
+            sendingSuccessful = m_udpSocket->writeDatagram(data, address, port) == data.size();
         }
     }
     return sendingSuccessful;
