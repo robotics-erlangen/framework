@@ -55,8 +55,8 @@ bool NetworkTransceiver::sendSSLSimPacket(const QList<robot::RadioCommand> &comm
         if (robot.command().has_output1()) {
             auto* moveCommand  = robotCommand->mutable_move_command()->mutable_local_velocity();
             moveCommand->set_forward(robot.command().output1().v_f());
-            moveCommand->set_left(1);
-            moveCommand->set_angular(10.f / 360 * M_PI);
+            moveCommand->set_left(-robot.command().output1().v_s());
+            moveCommand->set_angular(robot.command().output1().omega() * 2 * M_PI);
         }
     }
 

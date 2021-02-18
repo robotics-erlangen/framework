@@ -118,8 +118,8 @@ void RobotCommandAdaptor::handleDatagrams()
                     const auto& localVelo = moveCmd.local_velocity();
                     auto moveCommand = rCmd->mutable_output1();
                     moveCommand->set_v_f(localVelo.forward());
-                    moveCommand->set_v_s(localVelo.left());
-                    moveCommand->set_omega(localVelo.angular());
+                    moveCommand->set_v_s(-localVelo.left());
+                    moveCommand->set_omega(localVelo.angular() * .5f / M_PI);
                 }
             }
             m_commands.push_back(rCommand);
