@@ -157,4 +157,5 @@ message RadioResponse
     optional bool error_present = 9;
     optional float radio_rtt = 11;
     optional ExtendedError extended_error = 12;
+    optional bool is_blue = 13;
 }

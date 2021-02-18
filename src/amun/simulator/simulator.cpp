@@ -190,11 +190,15 @@ void Simulator::process()
             SimulatorData* data = m_data;
             auto time = m_time;
             auto charge = m_charge;
-            auto fabricateResponse = [data, &responses, time, charge, &id, &command](const Simulator::RobotMap& map) {
+            auto fabricateResponse = [data, &responses, time, charge, &id, &command](const Simulator::RobotMap& map, const bool* isBlue) {
                 if (!map.contains(id)) return;
                 robot::RadioResponse response = map[id]->setCommand(command.command(), data->ball, charge,
                                                                                    data->robotCommandPacketLoss, data->robotReplyPacketLoss);
                 response.set_time(time);
+
+                if (isBlue != nullptr) {
+                    response.set_is_blue(*isBlue);
+                }
                 // only collect valid responses
                 if (response.IsInitialized()) {
                     if (data->robotReplyPacketLoss == 0 || data->rng.uniformFloat(0, 1) > data->robotReplyPacketLoss) {
@@ -203,15 +207,17 @@ void Simulator::process()
                 }
             };
             if (command.has_is_blue()) {
+                bool blue = true;
                 if (command.is_blue()) {
-                    fabricateResponse(m_data->robotsBlue);
+                    fabricateResponse(m_data->robotsBlue, &blue);
                 } else {
-                    fabricateResponse(m_data->robotsYellow);
+                    blue = false;
+                    fabricateResponse(m_data->robotsYellow, &blue);
                 }
             } else {
                 std::cerr << "This is bad. Why do we get a command without is_blue in the simulator? This is acceptable in the logfiles or tracking, but not in the simulator" << std::endl;
-                fabricateResponse(m_data->robotsBlue);
-                fabricateResponse(m_data->robotsYellow);
+                fabricateResponse(m_data->robotsBlue, nullptr);
+                fabricateResponse(m_data->robotsYellow, nullptr);
             }
         }
     }
