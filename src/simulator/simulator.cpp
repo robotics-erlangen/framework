@@ -40,7 +40,7 @@ static int CONTROL_PORT = 10300;
 class RobotCommandAdaptor: public QObject{
     Q_OBJECT
 public:
-    RobotCommandAdaptor(bool blue);
+    RobotCommandAdaptor(bool blue, Timer* timer);
 
 private slots:
     void handleDatagrams();
@@ -54,11 +54,13 @@ private:
     QUdpSocket m_server;
     QHostAddress m_address; // TODO use
     QList<robot::RadioCommand> m_commands;
+    Timer* m_timer; // unowned
 };
 
-RobotCommandAdaptor::RobotCommandAdaptor(bool blue): m_is_blue(blue),
+RobotCommandAdaptor::RobotCommandAdaptor(bool blue, Timer* timer): m_is_blue(blue),
     m_server(this),
-    m_address(QHostAddress::Null)
+    m_address(QHostAddress::Null),
+    m_timer(timer)
 {
     m_server.bind(QHostAddress::Any, (blue)? BLUE_PORT : YELLOW_PORT);
     connect(&m_server, &QUdpSocket::readyRead, this, &RobotCommandAdaptor::handleDatagrams);
@@ -67,7 +69,7 @@ RobotCommandAdaptor::RobotCommandAdaptor(bool blue): m_is_blue(blue),
 void RobotCommandAdaptor::handleDatagrams()
 {
     while(m_server.hasPendingDatagrams()) {
-        std::cout << "Datagram" << std::endl;
+        qint64 start =m_timer->currentTime();
         auto datagram = m_server.receiveDatagram();
         // TODO: do something with m_address and datagram.senderAddress
         auto data = datagram.data();
@@ -124,6 +126,8 @@ void RobotCommandAdaptor::handleDatagrams()
         emit sendRadioCommands(m_commands, 0 /*TODO: We need NOW, not 1970*/);
         m_commands.clear();
         // TODO: response!
+        qint64 delta = m_timer->currentTime() - start;
+        std::cout << "Handled Datagram in " << delta << std::endl;
     }
 }
 
@@ -174,14 +178,14 @@ int main(int argc, char* argv[])
 
     SimulatorComandAdaptor commands;
 
-    RobotCommandAdaptor blue{true}, yellow{false};
+    Timer timer;
+    RobotCommandAdaptor blue{true, &timer}, yellow{false, &timer};
     // TODO: accept configuration commands, this is stolen from amun
     amun::SimulatorSetup defaultSimulatorSetup;
     geometrySetDefault(defaultSimulatorSetup.mutable_geometry());
     defaultSimulatorSetup.mutable_camera_setup()->set_num_cameras(2);
     defaultSimulatorSetup.mutable_camera_setup()->set_camera_height(4.5f);
 
-    Timer timer;
     Simulator sim{&timer, defaultSimulatorSetup};
 
     blue.connect(&blue, &RobotCommandAdaptor::sendRadioCommands, &sim, &Simulator::handleRadioCommands);
