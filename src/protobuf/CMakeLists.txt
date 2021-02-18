@@ -56,6 +56,8 @@ set(PROTO_FILES
     ssl_vision_detection_tracked.proto
     ssl_vision_wrapper_tracked.proto
     ssl_simulation_robot_control.proto
+    ssl_simulation_error.proto
+    ssl_simulation_robot_feedback.proto
     ssl_wrapper.proto
     status.proto
     userinput.proto

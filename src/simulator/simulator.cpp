@@ -25,6 +25,7 @@
 #include <cmath>
 
 #include "protobuf/ssl_simulation_robot_control.pb.h"
+#include "protobuf/ssl_simulation_robot_feedback.pb.h"
 #include "protobuf/status.h"
 #include "protobuf/command.h"
 #include "protobuf/geometry.h"
@@ -43,6 +44,9 @@ class RobotCommandAdaptor: public QObject{
 public:
     RobotCommandAdaptor(bool blue, Timer* timer);
 
+public slots:
+    void handleRobotResponse(const QList<robot::RadioResponse>& responses);
+
 private slots:
     void handleDatagrams();
 
@@ -53,14 +57,16 @@ signals:
 private:
     bool m_is_blue;
     QUdpSocket m_server;
-    QHostAddress m_address; // TODO use
+    QHostAddress m_senderAddress;
+    int m_senderPort;
     QList<robot::RadioCommand> m_commands;
     Timer* m_timer; // unowned
 };
 
 RobotCommandAdaptor::RobotCommandAdaptor(bool blue, Timer* timer): m_is_blue(blue),
     m_server(this),
-    m_address(QHostAddress::Null),
+    m_senderAddress(QHostAddress::Null),
+    m_senderPort(-1),
     m_timer(timer)
 {
     m_server.bind(QHostAddress::Any, (blue)? BLUE_PORT : YELLOW_PORT);
@@ -72,11 +78,14 @@ void RobotCommandAdaptor::handleDatagrams()
     while(m_server.hasPendingDatagrams()) {
         qint64 start =m_timer->currentTime();
         auto datagram = m_server.receiveDatagram();
-        // TODO: do something with m_address and datagram.senderAddress
+        // TODO: do something with m_senderAddress and datagram.senderAddress
+        m_senderAddress = datagram.senderAddress();
+        m_senderPort = datagram.senderPort();
         auto data = datagram.data();
 
         sslsim::RobotControl control;
         if (!control.ParseFromArray(data.data(), data.size())) {
+            // TODO: cerr
             std::cerr << "This is bad" << std::endl;
         }
 
@@ -132,6 +141,36 @@ void RobotCommandAdaptor::handleDatagrams()
     }
 }
 
+void RobotCommandAdaptor::handleRobotResponse(const QList<robot::RadioResponse>& res) {
+    if (m_senderAddress.isNull()) {
+        return;
+    }
+
+    sslsim::RobotControlResponse out;
+    bool send = false;
+
+    for (const auto& response : res) {
+        if (response.has_is_blue() && response.is_blue() == m_is_blue && response.has_ball_detected() && response.ball_detected()) {
+            auto* outFeedback = out.add_feedback();
+            outFeedback->set_id(response.id());
+            outFeedback->set_dribbler_ball_contact(true);
+            send = true;
+        }
+    }
+
+    if (send) {
+        QByteArray data;
+        data.resize(out.ByteSize());
+        bool sendingSuccessful = false;
+        if (out.SerializeToArray(data.data(), data.size())) {
+            sendingSuccessful = m_server.writeDatagram(data, m_senderAddress, m_senderPort) == data.size();
+        }
+        if (!sendingSuccessful) {
+            std::cerr << "Sending relpy failed: " << std::endl;
+        }
+    }
+}
+
 class SSLVisionServer: public QObject {
     Q_OBJECT
 public:
@@ -178,6 +217,7 @@ int main(int argc, char* argv[])
     std::setlocale(LC_NUMERIC, "C");
 
     qRegisterMetaType<QList<robot::RadioCommand>>("QList<robot::RadioCommand>");
+    qRegisterMetaType<QList<robot::RadioResponse>>("QList<robot::RadioResponse>");
 
     SimulatorComandAdaptor commands;
 
@@ -192,7 +232,9 @@ int main(int argc, char* argv[])
     Simulator sim{&timer, defaultSimulatorSetup};
 
     blue.connect(&blue, &RobotCommandAdaptor::sendRadioCommands, &sim, &Simulator::handleRadioCommands);
+    blue.connect(&sim, &Simulator::sendRadioResponses, &blue, &RobotCommandAdaptor::handleRobotResponse);
     yellow.connect(&yellow, &RobotCommandAdaptor::sendRadioCommands, &sim, &Simulator::handleRadioCommands);
+    yellow.connect(&sim, &Simulator::sendRadioResponses, &yellow, &RobotCommandAdaptor::handleRobotResponse);
 
     SSLVisionServer vision{10020};
 
