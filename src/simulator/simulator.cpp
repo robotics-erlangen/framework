@@ -20,6 +20,7 @@
 #include <clocale>
 #include <QApplication>
 #include <QUdpSocket>
+#include <QThread>
 #include <QNetworkDatagram>
 #include <cmath>
 
@@ -176,6 +177,8 @@ int main(int argc, char* argv[])
 
     std::setlocale(LC_NUMERIC, "C");
 
+    qRegisterMetaType<QList<robot::RadioCommand>>("QList<robot::RadioCommand>");
+
     SimulatorComandAdaptor commands;
 
     Timer timer;
@@ -244,7 +247,18 @@ int main(int argc, char* argv[])
         }
     }
 
+
+
     emit commands.sendCommand(c);
+
+    QThread rcv_thread;
+
+    blue.moveToThread(&rcv_thread);
+    yellow.moveToThread(&rcv_thread);
+    vision.moveToThread(&rcv_thread);
+
+
+    rcv_thread.start();
 
     return app.exec();
 }
