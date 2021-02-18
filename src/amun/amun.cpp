@@ -655,14 +655,13 @@ void Amun::setSimulatorEnabled(bool enabled, bool useNetworkTransceiver)
     } else {
         connect(m_vision, SIGNAL(gotPacket(QByteArray, qint64, QString)),
                 m_processor, SLOT(handleVisionPacket(QByteArray, qint64, QString)));
-        if (!useNetworkTransceiver) {
-            connect(m_transceiver, SIGNAL(sendRadioResponses(QList<robot::RadioResponse>)),
-                    m_processor, SLOT(handleRadioResponses(QList<robot::RadioResponse>)));
-            connect(m_processor, SIGNAL(sendRadioCommands(QList<robot::RadioCommand>,qint64)),
-                    m_transceiver, SLOT(handleRadioCommands(QList<robot::RadioCommand>,qint64)));
-        } else {
-            connect(m_processor, SIGNAL(sendRadioCommands(QList<robot::RadioCommand>,qint64)),
-                    m_networkTransceiver, SLOT(handleRadioCommands(QList<robot::RadioCommand>,qint64)));
+        QObject* transceiver = m_transceiver;
+        if (useNetworkTransceiver) {
+            transceiver = m_networkTransceiver;
         }
+        connect(transceiver, SIGNAL(sendRadioResponses(QList<robot::RadioResponse>)),
+                m_processor, SLOT(handleRadioResponses(QList<robot::RadioResponse>)));
+        connect(m_processor, SIGNAL(sendRadioCommands(QList<robot::RadioCommand>,qint64)),
+                transceiver, SLOT(handleRadioCommands(QList<robot::RadioCommand>,qint64)));
     }
 }

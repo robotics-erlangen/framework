@@ -39,10 +39,14 @@ public:
 
 signals:
     void sendStatus(const Status &status);
+    void sendRadioResponses(const QList<robot::RadioResponse> &responses);
 
 public slots:
     void handleRadioCommands(const QList<robot::RadioCommand> &commands, qint64 processingStart);
     void handleCommand(const Command &command);
+
+private slots:
+    void handleResponse();
 
 private:
     bool sendSSLSimPacket(const QList<robot::RadioCommand> &commands, bool blueTeam);

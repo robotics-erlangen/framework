@@ -22,13 +22,16 @@
 #include "protobuf/grsim_commands.pb.h"
 #include "protobuf/grsim_replacement.pb.h"
 #include "protobuf/ssl_simulation_robot_control.pb.h"
+#include "protobuf/ssl_simulation_robot_feedback.pb.h"
 #include <QUdpSocket>
+#include <QNetworkDatagram>
 #include <cmath>
 
 NetworkTransceiver::NetworkTransceiver(QObject *parent) : QObject(parent),
     m_charge(false)
 {
     m_udpSocket = new QUdpSocket(this);
+    connect(m_udpSocket, &QUdpSocket::readyRead, this, &NetworkTransceiver::handleResponse);
 }
 
 NetworkTransceiver::~NetworkTransceiver() { }
@@ -110,3 +113,29 @@ void NetworkTransceiver::handleCommand(const Command &command)
     }
 }
 
+void NetworkTransceiver::handleResponse()
+{
+
+    QList<robot::RadioResponse> out;
+    while(m_udpSocket->hasPendingDatagrams()) {
+        auto datagram = m_udpSocket->receiveDatagram();
+        sslsim::RobotControlResponse res;
+        if (!res.ParseFromArray(datagram.data().data(), datagram.data().size())) {
+            // TODO: how to handle a broken reply??
+            std::cerr << "NetworkTransciever cannot parse reply" << std::endl;
+            return;
+        }
+
+        for(const auto& feedback : res.feedback()) {
+            if (feedback.has_dribbler_ball_contact() && feedback.dribbler_ball_contact()) {
+                robot::RadioResponse rr;
+                rr.set_id(feedback.id());
+                rr.set_generation(3); // FIXME: Just a guess
+                rr.set_ball_detected(true);
+                out.push_back(std::move(rr));
+            }
+        }
+    }
+
+    emit sendRadioResponses(out);
+}
