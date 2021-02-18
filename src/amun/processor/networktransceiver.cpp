@@ -25,8 +25,6 @@
 #include <QUdpSocket>
 #include <cmath>
 
-static constexpr bool USE_GRSIM = true;
-
 NetworkTransceiver::NetworkTransceiver(QObject *parent) : QObject(parent),
     m_charge(false)
 {
@@ -74,58 +72,14 @@ bool NetworkTransceiver::sendSSLSimPacket(const QList<robot::RadioCommand> &comm
 
 }
 
-bool NetworkTransceiver::sendGrSimPacket(const QList<robot::RadioCommand> &commands, bool blueTeam)
-{
-    grSim_Packet packet;
-    packet.mutable_commands()->set_timestamp(0);
-    packet.mutable_commands()->set_isteamyellow(!blueTeam);
-    for (const robot::RadioCommand &robot : commands) {
-        if (robot.is_blue() != blueTeam) {
-            continue;
-        }
-        grSim_Robot_Command *command = packet.mutable_commands()->add_robot_commands();
-        command->set_id(robot.id());
-        command->set_kickspeedx(0);
-        command->set_kickspeedz(0);
-        if (robot.command().kick_power() > 0 && m_charge) {
-            if (robot.command().kick_style() == robot::Command::Linear) {
-                command->set_kickspeedx(robot.command().kick_power());
-            } else {
-                command->set_kickspeedx(robot.command().kick_power() / 2);
-                command->set_kickspeedz(robot.command().kick_power() / 2);
-            }
-        }
-        command->set_veltangent(robot.command().output1().v_f());
-        command->set_velnormal(-robot.command().output1().v_s());
-        command->set_velangular(robot.command().output1().omega());
-        command->set_spinner(robot.command().dribbler() > 0);
-        command->set_wheelsspeed(false);
-    }
-
-    bool sendingSuccessful = false;
-    if (m_configuration.IsInitialized()) {
-        QHostAddress address(QString::fromStdString(m_configuration.host()));
-
-        QByteArray data;
-        data.resize(packet.ByteSize());
-        if (packet.SerializeToArray(data.data(), data.size())) {
-            sendingSuccessful = m_udpSocket->writeDatagram(data, address, m_configuration.port()) == data.size();
-        }
-    }
-
-    return sendingSuccessful;
-}
-
 void NetworkTransceiver::handleRadioCommands(const QList<robot::RadioCommand> &commands, qint64 processingStart)
 {
     (void)processingStart;
     Status status(new amun::Status);
     const qint64 transceiver_start = Timer::systemTime();
 
-    const auto& sendPacket = (USE_GRSIM)? &NetworkTransceiver::sendGrSimPacket : &NetworkTransceiver::sendSSLSimPacket;
-
-    bool sendingSuccessful = (this->*sendPacket)(commands, false);
-    sendingSuccessful &= (this->*sendPacket)(commands, true);
+    bool sendingSuccessful = sendSSLSimPacket(commands, false);
+    sendingSuccessful &= sendSSLSimPacket(commands, true);
 
     status->mutable_timing()->set_transceiver((Timer::systemTime() - transceiver_start) * 1E-9f);
     status->mutable_transceiver()->set_active(sendingSuccessful);

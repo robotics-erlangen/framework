@@ -45,7 +45,6 @@ public slots:
     void handleCommand(const Command &command);
 
 private:
-    bool sendGrSimPacket(const QList<robot::RadioCommand> &commands, bool blueTeam);
     bool sendSSLSimPacket(const QList<robot::RadioCommand> &commands, bool blueTeam);
 
 private:
