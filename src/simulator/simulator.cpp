@@ -39,6 +39,21 @@ static int BLUE_PORT = 10301;
 static int YELLOW_PORT = 10302;
 static int CONTROL_PORT = 10300;
 
+
+/**
+ * Stand alone Erforce simulator
+ *
+ * Known issues:
+ *  - [ ]: If the kick is considered a chip kick (45 degree) shot power is completly wrong (in meters distance until first drop down instead of velocity)
+ *  - [ ]: Only the kick - angles 0 degree or 45 degree supported
+ *  - [ ]: Configuring via control_port is unimplemented
+ *  - [ ]: Responding to teams in case of error is unimplemented
+ *  - [ ]: Robots go into standby after 0.1 seconds without command (Safty)
+ *  - [ ]: Dribbler will reset if a new command doesn't contain a new dribbling speed (contrary to the definition that states all not set values should stay as previously assumed)
+ *  - [ ]: Commands that are recieved at t0 will not be in effect after the next tick of the simulator (around 5 ms), no interpolation.
+ *  - [ ]: Tournament mode where commands origin are checked is not implemented
+ */
+
 class RobotCommandAdaptor: public QObject{
     Q_OBJECT
 public:
