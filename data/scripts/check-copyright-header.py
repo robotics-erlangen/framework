@@ -17,7 +17,7 @@ def checkFiles(folder):
 			if filepath.endswith(".h") or filepath.endswith(".cpp") or filepath.endswith(".ts") or filepath.endswith(".lua") or filepath.endswith("CMakeLists.txt"):
 				with open(filepath) as file:
 					data = file.read()
-					if "Copyright" not in data:
+					if "Copyright" not in data and "GNU General Public License" not in data:
 						print("File " + filepath + " does not contain a copyright header")
 						filesWithoutCounter = filesWithoutCounter + 1
 
