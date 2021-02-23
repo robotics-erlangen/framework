@@ -32,6 +32,7 @@
 #include "simulator/simulator.h"
 
 #include "core/timer.h"
+#include "core/run_out_of_scope.h"
 
 #include "ssl_robocup_server.h"
 
@@ -47,7 +48,6 @@ static int CONTROL_PORT = 10300;
  *  - [ ]: If the kick is considered a chip kick (45 degree) shot power is completly wrong (in meters distance until first drop down instead of velocity)
  *  - [ ]: Only the kick - angles 0 degree or 45 degree supported
  *  - [ ]: Configuring via control_port is unimplemented
- *  - [ ]: Responding to teams in case of error is unimplemented
  *  - [ ]: Robots go into standby after 0.1 seconds without command (Safty)
  *  - [ ]: Dribbler will reset if a new command doesn't contain a new dribbling speed (contrary to the definition that states all not set values should stay as previously assumed)
  *  - [ ]: Commands that are recieved at t0 will not be in effect after the next tick of the simulator (around 5 ms), no interpolation.
@@ -58,6 +58,9 @@ class RobotCommandAdaptor: public QObject{
     Q_OBJECT
 public:
     RobotCommandAdaptor(bool blue, Timer* timer);
+
+private:
+    void sendRobotRespose(const sslsim::RobotControlResponse& rcr);
 
 public slots:
     void handleRobotResponse(const QList<robot::RadioResponse>& responses);
@@ -88,20 +91,54 @@ RobotCommandAdaptor::RobotCommandAdaptor(bool blue, Timer* timer): m_is_blue(blu
     connect(&m_server, &QUdpSocket::readyRead, this, &RobotCommandAdaptor::handleDatagrams);
 }
 
+enum class SimError {
+    UNSUPPORTED_VELOCITY,
+    UNSUPPORTED_ANGLE,
+    UNREADABLE
+};
+
+static void setError(sslsim::SimulatorError* error, SimError code, std::string appendix = "") {
+    switch(code) {
+        case SimError::UNREADABLE:
+            error->set_code("UNREADABLE");
+            error->set_message("The recieved message was unreadable " + appendix);
+            break;
+        case SimError::UNSUPPORTED_VELOCITY:
+            error->set_code("VELOCITY_TYPE");
+            error->set_message("The recieved message had a velocity type unsupported by this simulator "+appendix);
+            break;
+        case SimError::UNSUPPORTED_ANGLE:
+            error->set_code("ANGLE_VALUE");
+            error->set_message("The recieved kick angle was not equal to either 0 or 45 " + appendix);
+            break;
+        default:
+            std::cerr << "Unmanaged SimError for message" << std::endl;
+    }
+}
+
 void RobotCommandAdaptor::handleDatagrams()
 {
     while(m_server.hasPendingDatagrams()) {
         qint64 start =m_timer->currentTime();
+        sslsim::RobotControlResponse rcr;
+        bool sendRcr = false;
         auto datagram = m_server.receiveDatagram();
         // TODO: do something with m_senderAddress and datagram.senderAddress
         m_senderAddress = datagram.senderAddress();
         m_senderPort = datagram.senderPort();
         auto data = datagram.data();
 
+        RUN_WHEN_OUT_OF_SCOPE({
+                if (sendRcr) {
+                    sendRobotRespose(rcr);
+                }
+            });
+
         sslsim::RobotControl control;
         if (!control.ParseFromArray(data.data(), data.size())) {
-            // TODO: cerr
-            std::cerr << "This is bad" << std::endl;
+            sendRcr = true;
+            setError(rcr.add_errors(), SimError::UNREADABLE);
+            continue;
         }
 
         for (const auto& command : control.robot_commands()) {
@@ -118,8 +155,8 @@ void RobotCommandAdaptor::handleDatagrams()
                     rCmd->set_kick_style(robot::Command::Chip);
                 } else {
                     accepted = false;
-                    // TODO: reply to the sender!
-                    std::cerr << "Unimplemented kick angle: " << command.kick_angle() << std::endl;
+                    sendRcr = true;
+                    setError(rcr.add_errors(), SimError::UNSUPPORTED_ANGLE, std::string{"(Robot :"} + std::to_string(command.id()) + ")");
                 }
                 if (accepted) {
                     rCmd->set_kick_power(command.kick_speed());
@@ -135,8 +172,8 @@ void RobotCommandAdaptor::handleDatagrams()
             if (command.has_move_command()) {
                 const auto& moveCmd = command.move_command();
                 if (moveCmd.has_wheel_velocity() || moveCmd.has_global_velocity()) {
-                    // TODO: reply to the sender!
-                    std::cerr << "Unimplemented Velocity" << std::endl;
+                    sendRcr = true;
+                    setError(rcr.add_errors(), SimError::UNSUPPORTED_VELOCITY, std::string{"(Robot :"}+std::to_string(command.id()) + ")");
                 }
                 if (moveCmd.has_local_velocity()) {
                     const auto& localVelo = moveCmd.local_velocity();
@@ -174,15 +211,19 @@ void RobotCommandAdaptor::handleRobotResponse(const QList<robot::RadioResponse>&
     }
 
     if (send) {
-        QByteArray data;
-        data.resize(out.ByteSize());
-        bool sendingSuccessful = false;
-        if (out.SerializeToArray(data.data(), data.size())) {
-            sendingSuccessful = m_server.writeDatagram(data, m_senderAddress, m_senderPort) == data.size();
-        }
-        if (!sendingSuccessful) {
-            std::cerr << "Sending relpy failed: " << std::endl;
-        }
+        sendRobotRespose(out);
+    }
+}
+
+void RobotCommandAdaptor::sendRobotRespose(const sslsim::RobotControlResponse& out) {
+    QByteArray data;
+    data.resize(out.ByteSize());
+    bool sendingSuccessful = false;
+    if (out.SerializeToArray(data.data(), data.size())) {
+        sendingSuccessful = m_server.writeDatagram(data, m_senderAddress, m_senderPort) == data.size();
+    }
+    if (!sendingSuccessful) {
+        std::cerr << "Sending relpy failed: " << std::endl;
     }
 }
 
