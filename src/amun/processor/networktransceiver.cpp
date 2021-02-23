@@ -135,6 +135,10 @@ void NetworkTransceiver::handleResponse()
                 out.push_back(std::move(rr));
             }
         }
+
+        for (const auto& error : res.errors()) {
+            std::cerr << error.DebugString() << std::endl;
+        }
     }
 
     emit sendRadioResponses(out);
