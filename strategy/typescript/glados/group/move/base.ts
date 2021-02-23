@@ -1,7 +1,7 @@
 import * as Referee from "base/referee";
 import { FriendlyRobot } from "base/robot";
 
-import { Behavior } from "glados/agent/base/behavior";
+import { BehaviorConstructor } from "glados/agent/base/behavior";
 import { MessageBox } from "glados/control/messaging";
 import { TaskConstructor, TaskParameters } from "glados/task/base";
 
@@ -21,14 +21,14 @@ type AssignmentWithTask<T extends TaskConstructor> = ([] extends TaskParameters<
 	restart?: undefined
 };
 
-type AssignmentWithBehavior<T extends new (...args: any[]) => Behavior> = {
+type AssignmentWithBehavior<T extends BehaviorConstructor> = {
 	behavior: T,
 	restart?: boolean
 };
 
 export class Assignment {
 	public class: TaskConstructor | "none" | undefined;
-	public behavior: (new (...args: any[]) => Behavior) | undefined;
+	public behavior: BehaviorConstructor | undefined;
 	public params: any[] | undefined;
 	public restart: boolean | undefined;
 
@@ -36,7 +36,7 @@ export class Assignment {
 		return new Assignment(data.class, undefined, data.params, data.restart);
 	}
 
-	public static createBehaviorAssignment<T extends new (...args: any[]) => Behavior>(data: AssignmentWithBehavior<T>): Assignment {
+	public static createBehaviorAssignment<T extends BehaviorConstructor>(data: AssignmentWithBehavior<T>): Assignment {
 		return new Assignment(undefined, data.behavior, undefined, data.restart);
 	}
 

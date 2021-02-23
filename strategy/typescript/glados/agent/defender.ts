@@ -2,7 +2,7 @@ import { FriendlyRobot } from "base/robot";
 import * as World from "base/world";
 
 import { Agent } from "glados/agent/base/agent";
-import { Behavior } from "glados/agent/base/behavior";
+import { BehaviorConstructor } from "glados/agent/base/behavior";
 import { CenterBack } from "glados/agent/defender/centerback";
 import { Default } from "glados/agent/defender/default";
 import { HandleBall } from "glados/agent/defender/handleball";
@@ -19,7 +19,7 @@ import { MessageType } from "glados/control/messaging";
 
 export class Defender extends Agent {
 
-	public getBehaviors(): (new (a: Agent) => Behavior)[] {
+	public getBehaviors(): BehaviorConstructor[] {
 		return [
 			PenaltyPassiveDefenderOffense,
 			PenaltyPassiveDefense,
@@ -36,7 +36,7 @@ export class Defender extends Agent {
 	}
 
 	public _run() {
-		(this._activeBehavior as Behavior)._messaging.sendBroadcast(MessageType.defenderFlag);
+		this._activeBehavior!._messaging.sendBroadcast(MessageType.defenderFlag);
 	}
 
 	public static takeRobot(robots: FriendlyRobot[]): FriendlyRobot | undefined {

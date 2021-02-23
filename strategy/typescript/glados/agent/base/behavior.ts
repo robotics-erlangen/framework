@@ -16,6 +16,14 @@ export type TaskAssignment<T extends TaskConstructor> =
 		: never
 	);
 
+/*
+ * A constructor that creates a behavior.
+ *
+ * Behaviors always belong to an agent, thus an agent is mandatory as first
+ * argument.
+ */
+export type BehaviorConstructor = new (agent: Agent) => Behavior;
+
 export abstract class Behavior {
 	public _messaging: MessageBox;
 

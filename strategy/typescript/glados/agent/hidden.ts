@@ -1,12 +1,12 @@
 import { FriendlyRobot } from "base/robot";
 
 import { Agent } from "glados/agent/base/agent";
-import { Behavior } from "glados/agent/base/behavior";
+import { BehaviorConstructor } from "glados/agent/base/behavior";
 import { Default } from "glados/agent/hidden/default";
 
 export class Hidden extends Agent {
 
-	public getBehaviors(): (new (a: Agent) => Behavior)[] {
+	public getBehaviors(): BehaviorConstructor[] {
 		return [Default];
 	}
 

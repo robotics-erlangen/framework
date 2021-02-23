@@ -16,7 +16,7 @@ import { PenaltyShootout } from "glados/agent/attacker/penaltyshootout";
 import { Shoot } from "glados/agent/attacker/shoot";
 import { Stop } from "glados/agent/attacker/stop";
 import { Agent } from "glados/agent/base/agent";
-import { Behavior } from "glados/agent/base/behavior";
+import { BehaviorConstructor } from "glados/agent/base/behavior";
 import { BallEscort } from "glados/agent/shared/ballescort";
 import { BreakPass } from "glados/agent/shared/breakpass";
 import { PenaltyPassiveDefense } from "glados/agent/shared/penaltypassivedefense";
@@ -34,7 +34,7 @@ export class Attacker extends Agent {
 		debug.set("pool rating", this.rateRobot());
 	}
 
-	getBehaviors(): (new (a: Agent) => Behavior)[] {
+	getBehaviors(): BehaviorConstructor[] {
 		return [
 			ApplyForMainattacker,
 			Move,

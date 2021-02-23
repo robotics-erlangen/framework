@@ -6,7 +6,7 @@ import * as timing from "base/timing";
 import { Position, Vector } from "base/vector";
 import * as World from "base/world";
 
-import { Behavior } from "glados/agent/base/behavior";
+import { Behavior, BehaviorConstructor } from "glados/agent/base/behavior";
 import { Error as AgentError } from "glados/agent/shared/error";
 import { Halt } from "glados/agent/shared/halt";
 import { MoveCommand } from "glados/agent/shared/movecommand";
@@ -42,12 +42,12 @@ export abstract class Agent {
 			new MoveCommand(this),
 			new Halt(this),
 			new AgentError(this),
-			...this.getBehaviors().map((B: new (a: Agent) => Behavior) => new B(this)),
+			...this.getBehaviors().map((ctor) => new ctor(this)),
 		];
 		this._debugIdStr = "Agent " + this._robot.id;
 	}
 
-	abstract getBehaviors(): (new (a: Agent) => Behavior)[];
+	abstract getBehaviors(): BehaviorConstructor[];
 
 	_run() { }
 
