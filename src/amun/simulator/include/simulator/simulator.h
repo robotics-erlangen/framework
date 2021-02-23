@@ -113,6 +113,7 @@ private:
     qint64 m_minRobotDetectionTime = 0;
     qint64 m_minBallDetectionTime = 0;
     qint64 m_lastBallSendTime = 0;
+    qint64 m_lastFrameNumber = 0;
 };
 
 #endif // SIMULATOR_H
