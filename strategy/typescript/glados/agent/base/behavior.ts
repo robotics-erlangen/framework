@@ -4,12 +4,17 @@ import { Position } from "base/vector";
 
 import { Agent } from "glados/agent/base/agent";
 import { MessageBox } from "glados/control/messaging";
-import { Agent as AgentForTask, Task } from "glados/task/base";
+import { Task, TaskConstructor, TaskParameters } from "glados/task/base";
 
 export type BaseTaskAssignment = [any, any[]?, boolean?];
 
-type TaskAssignmentHelper<T extends new (...args: any[]) => Task, P extends any[]> = [] extends P ? [T] : never;
-export type TaskAssignment<T extends new (...args: any[]) => Task> = T extends new (a: AgentForTask, ...args: infer P) => Task ? [T, P, boolean?] | TaskAssignmentHelper<T, P> : Error;
+export type TaskAssignment<T extends TaskConstructor> =
+	[T, TaskParameters<T>, boolean?]
+	| (
+		[] extends TaskParameters<T>
+		? [T]
+		: never
+	);
 
 export abstract class Behavior {
 	public _messaging: MessageBox;

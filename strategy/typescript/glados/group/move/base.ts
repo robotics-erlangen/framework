@@ -3,19 +3,17 @@ import { FriendlyRobot } from "base/robot";
 
 import { Behavior } from "glados/agent/base/behavior";
 import { MessageBox } from "glados/control/messaging";
-import { Agent, Task } from "glados/task/base";
+import { TaskConstructor, TaskParameters } from "glados/task/base";
 
 export { MessageBox } from "glados/control/messaging";
 
-type ConstructorParameters<T extends new (...args: any[]) => any> = T extends new (a: Agent, ...args: infer P) => any ? P : Error;
-
-type AssignmentWithTask<T extends new (...args: any[]) => Task> = ([] extends ConstructorParameters<T> ? {
+type AssignmentWithTask<T extends TaskConstructor> = ([] extends TaskParameters<T> ? {
 	class: T,
-	params?: ConstructorParameters<T>,
+	params?: TaskParameters<T>,
 	restart?: boolean
 } : {
 	class: T,
-	params: ConstructorParameters<T>,
+	params: TaskParameters<T>,
 	restart?: boolean
 }) | {
 	class: "none",
@@ -29,12 +27,12 @@ type AssignmentWithBehavior<T extends new (...args: any[]) => Behavior> = {
 };
 
 export class Assignment {
-	public class: (new (agent: Agent, ...args: any[]) => Task) | "none" | undefined;
+	public class: TaskConstructor | "none" | undefined;
 	public behavior: (new (...args: any[]) => Behavior) | undefined;
 	public params: any[] | undefined;
 	public restart: boolean | undefined;
 
-	public static create<T extends new (...args: any[]) => Task>(data: AssignmentWithTask<T>): Assignment {
+	public static create<T extends TaskConstructor>(data: AssignmentWithTask<T>): Assignment {
 		return new Assignment(data.class, undefined, data.params, data.restart);
 	}
 
