@@ -21,6 +21,7 @@
 #include "amun.h"
 #include "receiver.h"
 #include "optionsmanager.h"
+#include "commandconverter.h"
 #include "core/timer.h"
 #include "core/protobuffilesaver.h"
 #include "processor/processor.h"
@@ -75,7 +76,8 @@ Amun::Amun(bool simulatorOnly, QObject *parent) :
     m_useInternalReferee(true),
     m_useAutoref(true),
     m_networkInterfaceWatcher(nullptr),
-    m_seshat(new Seshat(20, this))
+    m_seshat(new Seshat(20, this)),
+    m_commandConverter(new CommandConverter(this))
 {
     qRegisterMetaType<QNetworkInterface>("QNetworkInterface");
     qRegisterMetaType<Command>("Command");
@@ -86,6 +88,7 @@ Amun::Amun(bool simulatorOnly, QObject *parent) :
     qRegisterMetaType<std::shared_ptr<gameController::AutoRefToController>>("std::shared_ptr<gameController::AutoRefToController>");
     qRegisterMetaType<amun::DebugValue>("amun::DebugValue");
     qRegisterMetaType<amun::Visualization>("amun::Visualization");
+    qRegisterMetaType<SSLSimRobotControl>("SSLSimRobotControl");
 
     for (int i = 0; i < 3; ++i) {
         m_strategy[i] = nullptr;
@@ -277,6 +280,8 @@ void Amun::start()
         // relay transceiver status and timing
         connect(m_networkTransceiver, SIGNAL(sendStatus(Status)), SLOT(handleStatus(Status)));
     }
+
+    connect (this, &Amun::gotCommand, m_commandConverter, &CommandConverter::handleCommand);
 
     // connect transceiver
     setSimulatorEnabled(m_simulatorOnly, false);
@@ -641,26 +646,66 @@ void Amun::setSimulatorEnabled(bool enabled, bool useNetworkTransceiver)
     m_processor->disconnect(m_simulator);
     if (!m_simulatorOnly) {
         m_processor->disconnect(m_transceiver);
-        m_processor->disconnect(m_networkTransceiver);
+        m_processor->disconnect(m_networkTransceiver); // TODO: legacy
     }
 
+    // remove radio command connections
+    m_processor->disconnect(m_commandConverter);
+    m_commandConverter->disconnect(m_simulator);
+    if (!m_simulatorOnly) {
+        m_commandConverter->disconnect(m_networkTransceiver);
+    }
+
+    // setup connection for radio commands
+    if (enabled || useNetworkTransceiver) {
+        connect(m_processor, &Processor::sendRadioCommands, m_commandConverter, &CommandConverter::handleRadioCommands);
+        // TODO: when using ersim via sslsim, radioResponses have less knowledge, TBD.
+        if (enabled) {
+            // simulator setup
+            // connect(m_commandConverter, &CommandConverter::SendSSLSim, m_simulator, &Simulator::handleSSLSim);
+        } else {
+            // network transciever setup
+            // connect(m_commandConverter, &CommandConverter::SendSSLSim, m_networkTransceiver, &NetworkTransceiver::handleSSLSim);
+        }
+    } else {
+        // field setup
+        connect(m_processor, SIGNAL(sendRadioCommands(QList<robot::RadioCommand>,qint64)),
+                m_transceiver, SLOT(handleRadioCommands(QList<robot::RadioCommand>,qint64)));
+    }
+
+    // setup connections for vision
     if (enabled) {
         connect(m_simulator, SIGNAL(gotPacket(QByteArray, qint64, QString)),
                 m_processor, SLOT(handleVisionPacket(QByteArray, qint64, QString)));
-        connect(m_simulator, SIGNAL(sendRadioResponses(QList<robot::RadioResponse>)),
-                m_processor, SLOT(handleRadioResponses(QList<robot::RadioResponse>)));
-        connect(m_processor, SIGNAL(sendRadioCommands(QList<robot::RadioCommand>,qint64)),
-                m_simulator, SLOT(handleRadioCommands(QList<robot::RadioCommand>,qint64)));
         connect(m_simulator, &Simulator::sendRealData, m_processor, &Processor::handleSimulatorExtraVision);
+
     } else {
         connect(m_vision, SIGNAL(gotPacket(QByteArray, qint64, QString)),
                 m_processor, SLOT(handleVisionPacket(QByteArray, qint64, QString)));
+    }
+
+    // setup connections for robot responses
+    if (enabled) {
+        connect(m_simulator, SIGNAL(sendRadioResponses(QList<robot::RadioResponse>)),
+                m_processor, SLOT(handleRadioResponses(QList<robot::RadioResponse>)));
+    } else {
         QObject* transceiver = m_transceiver;
         if (useNetworkTransceiver) {
             transceiver = m_networkTransceiver;
         }
         connect(transceiver, SIGNAL(sendRadioResponses(QList<robot::RadioResponse>)),
                 m_processor, SLOT(handleRadioResponses(QList<robot::RadioResponse>)));
+    }
+
+    // legacy connection for commands
+    if (enabled) {
+        connect(m_processor, SIGNAL(sendRadioCommands(QList<robot::RadioCommand>,qint64)),
+                m_simulator, SLOT(handleRadioCommands(QList<robot::RadioCommand>,qint64)));
+    } else if (useNetworkTransceiver) {
+        QObject* transceiver = m_transceiver;
+        if (useNetworkTransceiver) {
+            transceiver = m_networkTransceiver;
+        }
         connect(m_processor, SIGNAL(sendRadioCommands(QList<robot::RadioCommand>,qint64)),
                 transceiver, SLOT(handleRadioCommands(QList<robot::RadioCommand>,qint64)));
     }

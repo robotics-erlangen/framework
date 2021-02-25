@@ -43,6 +43,7 @@ class BlockingStrategyReplay;
 class ProtobufFileSaver;
 class OptionsManager;
 class Seshat;
+class CommandConverter;
 
 namespace camun {
     namespace simulator {
@@ -135,6 +136,8 @@ private:
 
     ProtobufFileSaver *m_pathInputSaver;
     Seshat *m_seshat;
+
+    CommandConverter *m_commandConverter;
 };
 
 #endif // AMUN_H
