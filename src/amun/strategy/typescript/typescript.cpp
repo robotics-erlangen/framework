@@ -326,7 +326,7 @@ bool Typescript::buildStackTrace(const Local<Context>& context, QString& errorMs
         // As .Message() returns the associated message to the exception,
         // which is not present if the exception does not have a JS representation,
         // this handle will be empty.
-        if (!checkMessage.IsEmpty()) {
+        if (!checkMessage.IsEmpty() || !message.IsEmpty()) {
             String::Utf8Value exception(m_isolate, message);
             QString exceptionString(*exception);
             exceptionString.replace("\n", "<br>");
@@ -675,13 +675,19 @@ ScriptOrigin *Typescript::scriptOriginFromFileName(QString name)
 bool Typescript::loadModule(QString name)
 {
     if (!m_requireCache.back().contains(name)) {
+
+        if (name.contains("..") || name.contains("./")) {
+            throwError(m_isolate, "No relative import paths are allowed: " + name);
+            return false;
+        }
+
         std::unique_ptr<QDir> baseDir = getTsconfigDir(m_filename);
         QFileInfo jsFile = m_compiler->comp()->mapToResult(baseDir->absolutePath() + "/" + name + ".ts");
         QString filename = jsFile.absoluteFilePath();
 
         QByteArray contentBytes = readFileContent(filename);
         if (contentBytes.isNull()) {
-            throwError(m_isolate, "Could not import module:" + name);
+            throwError(m_isolate, "Could not import module: " + name);
             return false;
         }
 
