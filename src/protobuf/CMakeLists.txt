@@ -25,6 +25,7 @@ add_library(protobuf
     include/protobuf/robotcommand.h
     include/protobuf/ssl_referee.h
     include/protobuf/status.h
+    include/protobuf/sslsim.h
 
     geometry.cpp
     robot.cpp

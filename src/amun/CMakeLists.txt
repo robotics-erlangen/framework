@@ -36,6 +36,8 @@ add_library(amun
     receiver.h
     optionsmanager.cpp
     optionsmanager.h
+    commandconverter.cpp
+    commandconverter.h
 )
 target_link_libraries(amun
     PRIVATE shared::core
