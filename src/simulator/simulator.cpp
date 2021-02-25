@@ -180,7 +180,7 @@ void RobotCommandAdaptor::handleDatagrams()
                     auto moveCommand = rCmd->mutable_output1();
                     moveCommand->set_v_f(localVelo.forward());
                     moveCommand->set_v_s(-localVelo.left());
-                    moveCommand->set_omega(localVelo.angular() * .5f / M_PI);
+                    moveCommand->set_omega(localVelo.angular());
                 }
             }
             m_commands.push_back(rCommand);
