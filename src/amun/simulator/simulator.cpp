@@ -533,7 +533,7 @@ static void addCameraCalibrations(SSL_GeometryData *geometry, const std::size_t&
 
 void Simulator::initializeDetection(SSL_DetectionFrame *detection, std::size_t cameraId)
 {
-    detection->set_frame_number(m_lastFrameNumber++);
+    detection->set_frame_number(m_lastFrameNumber[cameraId]++);
     detection->set_camera_id(cameraId);
     detection->set_t_capture((m_time + m_visionDelay - m_visionProcessingTime)*1E-9);
     detection->set_t_sent((m_time + m_visionDelay)*1E-9);
