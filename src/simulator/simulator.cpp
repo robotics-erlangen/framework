@@ -202,10 +202,10 @@ void RobotCommandAdaptor::handleRobotResponse(const QList<robot::RadioResponse>&
     bool send = false;
 
     for (const auto& response : res) {
-        if (response.has_is_blue() && response.is_blue() == m_is_blue && response.has_ball_detected() && response.ball_detected()) {
+        if (response.has_is_blue() && response.is_blue() == m_is_blue && response.has_ball_detected()) {
             auto* outFeedback = out.add_feedback();
             outFeedback->set_id(response.id());
-            outFeedback->set_dribbler_ball_contact(true);
+            outFeedback->set_dribbler_ball_contact(response.ball_detected());
             send = true;
         }
     }
