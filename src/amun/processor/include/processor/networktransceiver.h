@@ -24,7 +24,7 @@
 
 #include "protobuf/command.h"
 #include "protobuf/status.h"
-#include "protobuf/grsim_packet.pb.h"
+#include "protobuf/sslsim.h"
 
 class QUdpSocket;
 
@@ -42,17 +42,16 @@ signals:
     void sendRadioResponses(const QList<robot::RadioResponse> &responses);
 
 public slots:
-    void handleRadioCommands(const QList<robot::RadioCommand> &commands, qint64 processingStart);
+    void handleSSLSimCommand(const SSLSimRobotControl& rc, bool blue, qint64 processingStart);
     void handleCommand(const Command &command);
 
 private slots:
     void handleResponse();
 
 private:
-    bool sendSSLSimPacket(const QList<robot::RadioCommand> &commands, bool blueTeam);
+    bool sendSSLSimPacket(const sslsim::RobotControl& control, bool blueTeam);
 
 private:
-    bool m_charge;
     amun::HostAddress m_configuration;
     QUdpSocket *m_udpSocket;
 };

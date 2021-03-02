@@ -665,7 +665,7 @@ void Amun::setSimulatorEnabled(bool enabled, bool useNetworkTransceiver)
             // connect(m_commandConverter, &CommandConverter::SendSSLSim, m_simulator, &Simulator::handleSSLSim);
         } else {
             // network transciever setup
-            // connect(m_commandConverter, &CommandConverter::SendSSLSim, m_networkTransceiver, &NetworkTransceiver::handleSSLSim);
+            connect(m_commandConverter, &CommandConverter::sendSSLSim, m_networkTransceiver, &NetworkTransceiver::handleSSLSimCommand);
         }
     } else {
         // field setup
@@ -701,12 +701,5 @@ void Amun::setSimulatorEnabled(bool enabled, bool useNetworkTransceiver)
     if (enabled) {
         connect(m_processor, SIGNAL(sendRadioCommands(QList<robot::RadioCommand>,qint64)),
                 m_simulator, SLOT(handleRadioCommands(QList<robot::RadioCommand>,qint64)));
-    } else if (useNetworkTransceiver) {
-        QObject* transceiver = m_transceiver;
-        if (useNetworkTransceiver) {
-            transceiver = m_networkTransceiver;
-        }
-        connect(m_processor, SIGNAL(sendRadioCommands(QList<robot::RadioCommand>,qint64)),
-                transceiver, SLOT(handleRadioCommands(QList<robot::RadioCommand>,qint64)));
     }
 }
