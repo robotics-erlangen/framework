@@ -21,7 +21,7 @@
 #include "commandconverter.h"
 #include <cmath>
 
-void CommandConverter::handleRadioCommands(const QList<robot::RadioCommand> &commands, qint64 /*processingStart*/) {
+void CommandConverter::handleRadioCommands(const QList<robot::RadioCommand> &commands, qint64 processingStart) {
     for (bool blueTeam : {true, false}) {
         SSLSimRobotControl control{new sslsim::RobotControl};
         for (const robot::RadioCommand &robot : commands) {
@@ -47,7 +47,7 @@ void CommandConverter::handleRadioCommands(const QList<robot::RadioCommand> &com
                 moveCommand->set_angular(robot.command().output1().omega());
             }
         }
-        emit sendSSLSim(control, blueTeam);
+        emit sendSSLSim(control, blueTeam, processingStart);
     }
 }
 

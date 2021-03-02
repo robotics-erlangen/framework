@@ -31,7 +31,7 @@ public:
     explicit CommandConverter(QObject* parent = nullptr) : QObject(parent) {}
 
 signals:
-    void sendSSLSim(SSLSimRobotControl control, bool blue);
+    void sendSSLSim(SSLSimRobotControl control, bool blue, qint64 processingStart);
 
 public slots:
     void handleRadioCommands(const QList<robot::RadioCommand> &commands, qint64 processingStart);
