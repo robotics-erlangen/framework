@@ -6,7 +6,7 @@ import { Agent } from "glados/agent/base/agent";
 import { MessageBox } from "glados/control/messaging";
 import { Task, TaskConstructor, TaskParameters } from "glados/task/base";
 
-export type BaseTaskAssignment = [any, any[]?, boolean?];
+export type BaseTaskAssignment = [TaskConstructor, any[]?, boolean?];
 
 export type TaskAssignment<T extends TaskConstructor> =
 	[T, TaskParameters<T>, boolean?]
@@ -68,17 +68,17 @@ export abstract class Behavior {
 	// by the main behavior in order to use the task assignment of the deferred behavior
 	// a deferred behavior will be terminated as soon as it is not called in at least one frame
 	// this function MUST only be called in _updateTask
-	runDeferredBehavior(behavior: typeof Behavior, restart: boolean): BaseTaskAssignment {
+	runDeferredBehavior(behavior: BehaviorConstructor, restart: boolean): BaseTaskAssignment {
 		if (this._deferredBehavior == undefined || !(this._deferredBehavior instanceof behavior) || restart) {
-			this._deferredBehavior = new (behavior as any)(this._agent);
-			(this._deferredBehavior as Behavior).start();
+			this._deferredBehavior = new behavior(this._agent);
+			this._deferredBehavior.start();
 		}
 		this._deferredBehaviorRunning = true;
-		debug.set("deferred behavior", (this._deferredBehavior as Behavior).constructor.name);
-		let result = (this._deferredBehavior as Behavior)._updateTask();
+		debug.set("deferred behavior", this._deferredBehavior.constructor.name);
+		let result = this._deferredBehavior._updateTask();
 
 		// transfer state from deferred behavior to main behavior
-		this._forceKeepingInPool = this._deferredBehavior!._forceKeepingInPool;
+		this._forceKeepingInPool = this._deferredBehavior._forceKeepingInPool;
 		return result;
 	}
 
@@ -92,15 +92,15 @@ export abstract class Behavior {
 		}
 		if (this._task == undefined || !(this._task instanceof bestTask) || forceNewTask) {
 			if (parameters != undefined) {
-				this._task = new (bestTask as any)(this._agent, ...parameters);
+				this._task = new bestTask(this._agent, ...parameters);
 			} else {
-				this._task = new (bestTask as any)(this._agent);
+				this._task = new bestTask(this._agent);
 			}
 		}
-		if (this._deferredBehaviorRunning) {
+		if (this._deferredBehavior) {
 			// transfer state from this behavior to the deferred behavior
-			this._deferredBehavior!._task = this._task;
-			this._deferredBehavior!._active = true;
+			this._deferredBehavior._task = this._task;
+			this._deferredBehavior._active = true;
 		}
 		this._active = true;
 	}
