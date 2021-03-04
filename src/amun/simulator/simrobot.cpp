@@ -209,6 +209,7 @@ void SimRobot::begin(SimBall *ball, double time)
         }
     } else {
         m_isCharged = false;
+        m_shootTime = 0.0;
     }
     // check if should kick and can do that
     if (m_isCharged && m_command.has_kick_power() && m_command.kick_power() > 0 && canKickBall(ball)) {
