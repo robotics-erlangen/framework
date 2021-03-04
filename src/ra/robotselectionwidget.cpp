@@ -646,9 +646,23 @@ void RobotSelectionWidget::unsetTeam(uint id, uint skip_generation, RobotWidget:
             continue;
         }
 
-        if (it.value().robots.contains(id) && it.value().robots[id].team == team) {
-            it.value().robots[id].team = RobotWidget::NoTeam;
-            emit setTeam(it.key(), id, RobotWidget::NoTeam);
+        if (it.value().robots.contains(id))
+        {
+            RobotWidget::Team oldTeam = it.value().robots[id].team;
+            RobotWidget::Team newTeam = oldTeam;
+            if ( oldTeam == team || team == RobotWidget::Mixed) {
+                newTeam = RobotWidget::NoTeam;
+            } else if (oldTeam == RobotWidget::Mixed) {
+                if (team == RobotWidget::Blue) {
+                    newTeam = RobotWidget::Yellow;
+                } else if (team == RobotWidget::Yellow) {
+                    newTeam = RobotWidget::Blue;
+                }
+            }
+            if ( oldTeam != newTeam) {
+                it.value().robots[id].team = newTeam;
+                emit setTeam(it.key(), id, newTeam);
+            }
         }
     }
 }
