@@ -150,12 +150,20 @@ Simulator::Simulator(const Timer *timer, const amun::SimulatorSetup &setup) :
     connect(timer, &Timer::scalingChanged, this, &Simulator::setScaling);
 }
 
+// does delete all Simrobots in the RobotMap, does not clear map
+// (just like qDeleteAll would)
+static void deleteAll(const Simulator::RobotMap& map) {
+    for(const auto& e : map) {
+        delete e.first;
+    }
+}
+
 Simulator::~Simulator()
 {
     resetVisionPackets();
 
-    qDeleteAll(m_data->robotsBlue);
-    qDeleteAll(m_data->robotsYellow);
+    deleteAll(m_data->robotsBlue);
+    deleteAll(m_data->robotsYellow);
     delete m_data->ball;
     delete m_data->field;
     delete m_data->dynamicsWorld;
@@ -186,13 +194,13 @@ void Simulator::process()
             }
 
             // pass radio command to robot that matches the generation and id
-            const QPair<uint, uint> id(command.generation(), command.id());
+            const auto id = command.id();
             SimulatorData* data = m_data;
             auto time = m_time;
             auto charge = m_charge;
             auto fabricateResponse = [data, &responses, time, charge, &id, &command](const Simulator::RobotMap& map, const bool* isBlue) {
                 if (!map.contains(id)) return;
-                robot::RadioResponse response = map[id]->setCommand(command.command(), data->ball, charge,
+                robot::RadioResponse response = map[id].first->setCommand(command.command(), data->ball, charge,
                                                                                    data->robotCommandPacketLoss, data->robotReplyPacketLoss);
                 response.set_time(time);
 
@@ -264,11 +272,11 @@ void Simulator::resetFlipped(Simulator::RobotMap &robots, float side)
     float y = m_data->geometry.field_height() / 2 - 0.2;
 
     for (RobotMap::iterator it = robots.begin(); it != robots.end(); ++it) {
-        SimRobot *robot = it.value();
+        SimRobot *robot = it.value().first;
         if (robot->isFlipped()) {
             SimRobot *new_robot = new SimRobot(&m_data->rng, robot->specs(), m_data->dynamicsWorld, btVector3(x, side * y, 0), 0.0f);
             delete robot;
-            it.value() = new_robot;
+            it.value().first = new_robot;
         }
         y -= 0.3;
     }
@@ -288,11 +296,11 @@ void Simulator::handleSimulatorTick(double timeStep)
 
     // apply commands and forces to ball and robots
     m_data->ball->begin();
-    foreach (SimRobot *robot, m_data->robotsBlue) {
-        robot->begin(m_data->ball, timeStep);
+    for(const auto& pair : m_data->robotsBlue) {
+        pair.first->begin(m_data->ball, timeStep);
     }
-    foreach (SimRobot *robot, m_data->robotsYellow) {
-        robot->begin(m_data->ball, timeStep);
+    for(const auto& pair : m_data->robotsYellow) {
+        pair.first->begin(m_data->ball, timeStep);
     }
 
     // add gravity to all ACTIVE objects
@@ -580,7 +588,8 @@ QPair<QList<QByteArray>, QByteArray> Simulator::createVisionPacket()
     for (bool teamIsBlue : {true, false}) {
         auto &team = teamIsBlue ? m_data->robotsBlue : m_data->robotsYellow;
 
-        for (SimRobot *robot : team) {
+        for (const auto& it : team) {
+            SimRobot* robot = it.first;
             auto* robotProto = teamIsBlue ? simState.add_blue_robots() : simState.add_yellow_robots();
             robot->update(robotProto);
 
@@ -695,7 +704,7 @@ void Simulator::handleRadioCommands(const QList<robot::RadioCommand> &commands, 
 void Simulator::setTeam(Simulator::RobotMap &list, float side, const robot::Team &team)
 {
     // remove old team
-    qDeleteAll(list);
+    deleteAll(list);
     list.clear();
 
     // changing a team is also triggering a tracking reset
@@ -709,16 +718,19 @@ void Simulator::setTeam(Simulator::RobotMap &list, float side, const robot::Team
     const float x = m_data->geometry.field_width() / 2 - 0.2;
     float y = m_data->geometry.field_height() / 2 - 0.2;
 
+
     for (int i = 0; i < team.robot_size(); i++) {
         const robot::Specs& specs = team.robot(i);
-        const QPair<uint, uint> id(specs.generation(), specs.id());
-        // (generation, robot id) must be unique
+        const auto id = specs.id();
+
+        // (color, robot id) must be unique
         if (list.contains(id)) {
+            std::cerr << "Error: Two ids for the same color, aborting!" << std::endl;
             continue;
         }
 
         SimRobot *robot = new SimRobot(&m_data->rng, specs, m_data->dynamicsWorld, btVector3(x, side * y, 0), 0.0f);
-        list[id] = robot;
+        list[id] = {robot, specs.generation()};
         y -= 0.3;
     }
 }
@@ -745,8 +757,13 @@ void Simulator::moveBall(const amun::SimulatorMoveBall &ball)
 
 void Simulator::moveRobot(const Simulator::RobotMap &list, const amun::SimulatorMoveRobot &robot)
 {
-    // handle robot move command
     amun::SimulatorMoveRobot r = robot;
+
+    if (!list.contains(r.id())) {
+        return;
+    }
+
+    // handle robot move command
     if (m_data->flip) {
         if (robot.has_p_x()) {
             r.set_p_x(-robot.p_x());
@@ -756,12 +773,8 @@ void Simulator::moveRobot(const Simulator::RobotMap &list, const amun::Simulator
         }
     }
 
-    foreach (SimRobot *sim_robot, list) {
-        if (sim_robot->specs().id() == r.id()) {
-            sim_robot->move(r);
-            break;
-        }
-    }
+    SimRobot* sim_robot = list[r.id()].first;
+    sim_robot->move(r);
 }
 
 void Simulator::setFlipped(bool flipped)
@@ -867,20 +880,15 @@ void Simulator::handleCommand(const Command &command)
             if (sim.set_simulator_state().has_ball()) {
                 m_data->ball->restoreState(sim.set_simulator_state().ball());
             }
-            for (const auto &robot : sim.set_simulator_state().yellow_robots()) {
-                for (auto key : m_data->robotsYellow.keys()) {
-                    if (key.second == robot.id()) {
-                        m_data->robotsYellow[key]->restoreState(robot);
+            const auto restoreRobots = [](RobotMap& map, auto robots) {
+                for(const auto& robot: robots) {
+                    if (map.contains(robot.id())) {
+                        map[robot.id()].first->restoreState(robot);
                     }
                 }
-            }
-            for (const auto &robot : sim.set_simulator_state().blue_robots()) {
-                for (auto key : m_data->robotsBlue.keys()) {
-                    if (key.second == robot.id()) {
-                        m_data->robotsBlue[key]->restoreState(robot);
-                    }
-                }
-            }
+            };
+            restoreRobots(m_data->robotsYellow, sim.set_simulator_state().yellow_robots());
+            restoreRobots(m_data->robotsBlue, sim.set_simulator_state().blue_robots());
         }
     }
 
@@ -940,7 +948,8 @@ void Simulator::teleportRobotToFreePosition(SimRobot *robot)
         robotPos = robotPos + 2 * direction*distance;
 
         for (const auto& robotList : {m_data->robotsBlue, m_data->robotsYellow}) {
-            for (SimRobot *robot2 : robotList) {
+            for (const auto& it : robotList) {
+                SimRobot *robot2 = it.first;
                 if (robot == robot2) {
                     continue;
                 }
@@ -975,7 +984,8 @@ void Simulator::safelyTeleportBall(const float x, const float y)
 
     btVector3 newBallPos(x, y, 0);
     for (const auto& robotList : {m_data->robotsBlue, m_data->robotsYellow}) {
-        for (SimRobot *robot : robotList) {
+        for (const auto& it : robotList) {
+            SimRobot* robot = it.first;
             btVector3 robotPos = robot->position() / SIMULATOR_SCALE;
             if (overlapCheck(newBallPos, BALL_RADIUS, robotPos, robot->specs().radius())) {
                 teleportRobotToFreePosition(robot);

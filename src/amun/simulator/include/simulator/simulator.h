@@ -53,7 +53,7 @@ class camun::simulator::Simulator : public QObject
     Q_OBJECT
 
 public:
-    typedef QMap<QPair<unsigned int, unsigned int>, SimRobot *> RobotMap;
+    typedef QMap<unsigned int, QPair<SimRobot*, unsigned int>> RobotMap; /*First int: ID, Second int: Generation*/
 
     explicit Simulator(const Timer *timer, const amun::SimulatorSetup &setup);
     ~Simulator() override;
