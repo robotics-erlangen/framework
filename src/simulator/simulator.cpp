@@ -26,6 +26,7 @@
 
 #include "protobuf/ssl_simulation_robot_control.pb.h"
 #include "protobuf/ssl_simulation_robot_feedback.pb.h"
+#include "protobuf/sslsim.h"
 #include "protobuf/status.h"
 #include "protobuf/command.h"
 #include "protobuf/geometry.h"
@@ -45,8 +46,6 @@ static int CONTROL_PORT = 10300;
  * Stand alone Erforce simulator
  *
  * Known issues:
- *  - [ ]: If the kick is considered a chip kick (45 degree) shot power is completly wrong (in meters distance until first drop down instead of velocity)
- *  - [ ]: Only the kick - angles 0 degree or 45 degree supported
  *  - [ ]: Configuring via control_port is unimplemented
  *  - [ ]: Robots go into standby after 0.1 seconds without command (Safty)
  *  - [ ]: Dribbler will reset if a new command doesn't contain a new dribbling speed (contrary to the definition that states all not set values should stay as previously assumed)
@@ -69,7 +68,7 @@ private slots:
     void handleDatagrams();
 
 signals:
-    void sendRadioCommands(QList<robot::RadioCommand>, qint64 processingDelay);
+    void sendRadioCommands(const SSLSimRobotControl & commands, bool isBlue, qint64 processingDelay);
 
 
 private:
@@ -134,59 +133,23 @@ void RobotCommandAdaptor::handleDatagrams()
                 }
             });
 
-        sslsim::RobotControl control;
-        if (!control.ParseFromArray(data.data(), data.size())) {
+        SSLSimRobotControl control{new sslsim::RobotControl};
+        if (!control->ParseFromArray(data.data(), data.size())) {
             sendRcr = true;
             setError(rcr.add_errors(), SimError::UNREADABLE);
             continue;
         }
 
-        for (const auto& command : control.robot_commands()) {
-            robot::RadioCommand rCommand;
-            rCommand.set_is_blue(m_is_blue);
-            rCommand.set_generation(0); // only one generation for external use
-            rCommand.set_id(command.id());
-            auto* rCmd = rCommand.mutable_command();
-            if (command.has_kick_speed()) {
-                bool accepted = true;
-                if (command.kick_angle() == 0) {
-                    rCmd->set_kick_style(robot::Command::Linear);
-                } else if(command.kick_angle() == 45) {
-                    rCmd->set_kick_style(robot::Command::Chip);
-                } else {
-                    accepted = false;
-                    sendRcr = true;
-                    setError(rcr.add_errors(), SimError::UNSUPPORTED_ANGLE, std::string{"(Robot :"} + std::to_string(command.id()) + ")");
-                }
-                if (accepted) {
-                    rCmd->set_kick_power(command.kick_speed());
-                }
-            }
-            if (command.has_dribbler_speed()) {
-                // We uses a float between 0 and 1 for its dribbler speed.
-                // Where 0 is no rotation and 1 is 150 (rad / s).
-                float max_rotation_speed = 150.f / 2 / M_PI * 60; // rpm
-                rCmd->set_dribbler(command.dribbler_speed() / max_rotation_speed);
-            }
-
+        for (const auto& command : control->robot_commands()) {
             if (command.has_move_command()) {
                 const auto& moveCmd = command.move_command();
                 if (moveCmd.has_wheel_velocity() || moveCmd.has_global_velocity()) {
                     sendRcr = true;
                     setError(rcr.add_errors(), SimError::UNSUPPORTED_VELOCITY, std::string{"(Robot :"}+std::to_string(command.id()) + ")");
                 }
-                if (moveCmd.has_local_velocity()) {
-                    const auto& localVelo = moveCmd.local_velocity();
-                    auto moveCommand = rCmd->mutable_output1();
-                    moveCommand->set_v_f(localVelo.forward());
-                    moveCommand->set_v_s(-localVelo.left());
-                    moveCommand->set_omega(localVelo.angular());
-                }
             }
-            m_commands.push_back(rCommand);
         }
-        emit sendRadioCommands(m_commands, m_timer->currentTime()); // This might be a bit late.
-        m_commands.clear();
+        emit sendRadioCommands(control, m_is_blue, m_timer->currentTime()); // This might be a bit late.
         // TODO: response!
         qint64 delta = m_timer->currentTime() - start;
         std::cout << "Handled Datagram in " << delta << std::endl;
@@ -272,8 +235,10 @@ int main(int argc, char* argv[])
 
     std::setlocale(LC_NUMERIC, "C");
 
-    qRegisterMetaType<QList<robot::RadioCommand>>("QList<robot::RadioCommand>");
     qRegisterMetaType<QList<robot::RadioResponse>>("QList<robot::RadioResponse>");
+    qRegisterMetaType<Status>("Status");
+    qRegisterMetaType<Command>("Command");
+    qRegisterMetaType<SSLSimRobotControl>("SSLSimRobotControl");
 
     SimulatorComandAdaptor commands;
 

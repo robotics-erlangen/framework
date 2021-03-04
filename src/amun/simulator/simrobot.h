@@ -23,6 +23,7 @@
 
 #include "protobuf/command.pb.h"
 #include "protobuf/robot.pb.h"
+#include "protobuf/sslsim.h"
 #include <QList>
 #include <btBulletDynamicsCommon.h>
 
@@ -48,7 +49,7 @@ public:
     void begin(SimBall *ball, double time);
     bool canKickBall(SimBall *ball) const;
     void tryKick(SimBall *ball, float power, double time);
-    robot::RadioResponse setCommand(const robot::Command &command, SimBall *ball, bool charge, float rxLoss, float txLoss);
+    robot::RadioResponse setCommand(const sslsim::RobotCommand &command, SimBall *ball, bool charge, float rxLoss, float txLoss);
     void update(SSL_DetectionRobot *robot, float stddev_p, float stddev_phi, qint64 time);
     void update(world::SimRobot *robot) const;
     void restoreState(const world::SimRobot &robot);
@@ -83,7 +84,7 @@ private:
     };
 
     amun::SimulatorMoveRobot m_move;
-    robot::Command m_command;
+    sslsim::RobotCommand m_sslCommand;
     bool m_charge;
     bool m_isCharged;
     bool m_inStandby;

@@ -185,9 +185,9 @@ void Simulator::process()
     QList<robot::RadioResponse> responses;
 
     // apply only radio commands that were already received by the robots
-    while (m_radioCommands.size() > 0 && m_radioCommands.head().second < m_time) {
+    while (m_radioCommands.size() > 0 && std::get<1>(m_radioCommands.head()) < m_time) {
         RadioCommand commands = m_radioCommands.dequeue();
-        foreach (const robot::RadioCommand &command, commands.first) {
+        for (const sslsim::RobotCommand& command : std::get<0>(commands)->robot_commands()) {
 
             if (m_data->robotCommandPacketLoss > 0 && m_data->rng.uniformFloat(0, 1) <= m_data->robotCommandPacketLoss) {
                 continue;
@@ -200,7 +200,7 @@ void Simulator::process()
             auto charge = m_charge;
             auto fabricateResponse = [data, &responses, time, charge, &id, &command](const Simulator::RobotMap& map, const bool* isBlue) {
                 if (!map.contains(id)) return;
-                robot::RadioResponse response = map[id].first->setCommand(command.command(), data->ball, charge,
+                robot::RadioResponse response = map[id].first->setCommand(command, data->ball, charge,
                                                                                    data->robotCommandPacketLoss, data->robotReplyPacketLoss);
                 response.set_time(time);
 
@@ -214,18 +214,12 @@ void Simulator::process()
                     }
                 }
             };
-            if (command.has_is_blue()) {
-                bool blue = true;
-                if (command.is_blue()) {
-                    fabricateResponse(m_data->robotsBlue, &blue);
-                } else {
-                    blue = false;
-                    fabricateResponse(m_data->robotsYellow, &blue);
-                }
+            bool blue = true;
+            if (std::get<2>(commands)) {
+                fabricateResponse(m_data->robotsBlue, &blue);
             } else {
-                std::cerr << "This is bad. Why do we get a command without is_blue in the simulator? This is acceptable in the logfiles or tracking, but not in the simulator" << std::endl;
-                fabricateResponse(m_data->robotsBlue, nullptr);
-                fabricateResponse(m_data->robotsYellow, nullptr);
+                blue = false;
+                fabricateResponse(m_data->robotsYellow, &blue);
             }
         }
     }
@@ -695,10 +689,9 @@ void Simulator::resetVisionPackets()
     m_visionPackets.clear();
 }
 
-void Simulator::handleRadioCommands(const QList<robot::RadioCommand> &commands, qint64 processingStart)
+void Simulator::handleRadioCommands(const SSLSimRobotControl &commands, bool isBlue, qint64 processingStart)
 {
-    qint64 receiveTime = processingStart;
-    m_radioCommands.enqueue(qMakePair(commands, receiveTime));
+    m_radioCommands.enqueue(std::make_tuple(commands, processingStart, isBlue));
 }
 
 void Simulator::setTeam(Simulator::RobotMap &list, float side, const robot::Team &team)

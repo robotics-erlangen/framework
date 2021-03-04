@@ -637,34 +637,31 @@ void Amun::setSimulatorEnabled(bool enabled, bool useNetworkTransceiver)
     }
     m_simulatorEnabled = enabled;
     m_useNetworkTransceiver = useNetworkTransceiver;
-    // remove vision connections
+
+    // remove vision and response connections
     m_simulator->disconnect(m_processor);
     if (!m_simulatorOnly) {
         m_vision->disconnect(m_processor);
-    }
-    // remove radio command and response connections
-    m_processor->disconnect(m_simulator);
-    if (!m_simulatorOnly) {
-        m_processor->disconnect(m_transceiver);
-        m_processor->disconnect(m_networkTransceiver); // TODO: legacy
+        m_networkTransceiver->disconnect(m_processor);
+        m_transceiver->disconnect(m_processor);
     }
 
     // remove radio command connections
     m_processor->disconnect(m_commandConverter);
     m_commandConverter->disconnect(m_simulator);
     if (!m_simulatorOnly) {
+        m_processor->disconnect(m_transceiver);
         m_commandConverter->disconnect(m_networkTransceiver);
     }
 
     // setup connection for radio commands
     if (enabled || useNetworkTransceiver) {
         connect(m_processor, &Processor::sendRadioCommands, m_commandConverter, &CommandConverter::handleRadioCommands);
-        // TODO: when using ersim via sslsim, radioResponses have less knowledge, TBD.
         if (enabled) {
             // simulator setup
-            // connect(m_commandConverter, &CommandConverter::SendSSLSim, m_simulator, &Simulator::handleSSLSim);
+            connect(m_commandConverter, &CommandConverter::sendSSLSim, m_simulator, &Simulator::handleRadioCommands);
         } else {
-            // network transciever setup
+            // network transceiver setup
             connect(m_commandConverter, &CommandConverter::sendSSLSim, m_networkTransceiver, &NetworkTransceiver::handleSSLSimCommand);
         }
     } else {
@@ -695,11 +692,5 @@ void Amun::setSimulatorEnabled(bool enabled, bool useNetworkTransceiver)
         }
         connect(transceiver, SIGNAL(sendRadioResponses(QList<robot::RadioResponse>)),
                 m_processor, SLOT(handleRadioResponses(QList<robot::RadioResponse>)));
-    }
-
-    // legacy connection for commands
-    if (enabled) {
-        connect(m_processor, SIGNAL(sendRadioCommands(QList<robot::RadioCommand>,qint64)),
-                m_simulator, SLOT(handleRadioCommands(QList<robot::RadioCommand>,qint64)));
     }
 }

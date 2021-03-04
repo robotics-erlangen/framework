@@ -146,18 +146,23 @@ void SimRobot::calculateDribblerMove(const btVector3 pos, const btQuaternion rot
 void SimRobot::begin(SimBall *ball, double time)
 {
     m_commandTime += time;
-    m_inStandby = m_command.standby();
+    m_inStandby = false;
+    //m_inStandby = m_command.standby();
 
     // after 0.1s without new command reset to stop
     if (m_commandTime > 0.1) {
-        m_command.Clear();
+        m_sslCommand.Clear();
         // the real robot switches to standby after a short delay
         m_inStandby = true;
     }
 
     // enable dribbler if necessary
-    if (!m_inStandby && m_command.has_dribbler() && m_command.dribbler() > 0) {
-        float boundedDribbler = qBound(0.0f, m_command.dribbler(), 1.0f);
+    if (!m_inStandby && m_sslCommand.has_dribbler_speed() && m_sslCommand.dribbler_speed() > 0) {
+        // unit for rotation is  (rad / s) in bullet, but (rpm) in sslCommand
+        const float max_rotation_speed = 150.f / 2 / M_PI * 60;
+        float dribbler = m_sslCommand.dribbler_speed() / max_rotation_speed;
+        // rad/s is limited to 150
+        float boundedDribbler = qBound(0.0f, dribbler, 1.0f);
         m_constraint->enableAngularMotor(true, 150 * boundedDribbler, 20 * boundedDribbler);
     } else {
         m_constraint->enableAngularMotor(false, 0, 0);
@@ -212,7 +217,24 @@ void SimRobot::begin(SimBall *ball, double time)
         m_shootTime = 0.0;
     }
     // check if should kick and can do that
-    if (m_isCharged && m_command.has_kick_power() && m_command.kick_power() > 0 && canKickBall(ball)) {
+    if (m_isCharged && m_sslCommand.has_kick_speed() && m_sslCommand.kick_speed() > 0 && canKickBall(ball)) {
+        float power = 0.0;
+        if (m_sslCommand.kick_angle() == 0) {
+            power = qBound(0.05f, m_sslCommand.kick_speed(), m_specs.shot_linear_max());
+        } else {
+            // TODO: bound chips not based upon shot_chip_max (which is in meters, not m/s)
+            power = qBound(0.05f, m_sslCommand.kick_speed(), m_specs.shot_chip_max());
+        }
+        const float angle = m_sslCommand.kick_angle()/180*M_PI;
+        const float dirFloor = std::cos(angle);
+        const float dirUp = std::sin(angle);
+
+        // if the ball hits the robot the chip distance actually decreases
+        const btVector3 relBallSpeed = relativeBallSpeed(ball) / SIMULATOR_SCALE;
+        const float speedCompensation = -std::max((btScalar)0, relBallSpeed.y())
+                - qBound((btScalar)0, (btScalar)0.5 * relBallSpeed.y(), (btScalar)0.5 * dirFloor);
+        ball->kick(t * btVector3(0, dirFloor * power + speedCompensation, dirUp * power) * (1/time) * SIMULATOR_SCALE * BALL_MASS);
+        /*
         if (m_command.kick_style() == robot::Command::Linear) {
             const float shootSpeed = m_specs.shot_linear_max();
             const float power = qBound(0.05f, m_command.kick_power(), shootSpeed);
@@ -236,20 +258,24 @@ void SimRobot::begin(SimBall *ball, double time)
 
             // airtime = 2 * (shootSpeed * dirUp) / g
             // targetDist = shootSpeed * dirFloor * airtime
+            // => targetDist = shootSpeed * dirFloor * (2 * shootSpeed * dirUp) / g = 2 * shootSpeed**2 * dirFloor * dirUp / g
             const float shootSpeed = std::sqrt(targetDist*m_world->getGravity().length() / (2*std::abs(dirUp*dirFloor)*SIMULATOR_SCALE));
-            ball->kick(t * btVector3(0, dirFloor * shootSpeed + speedCompensation, dirUp * shootSpeed) * (1/time) * SIMULATOR_SCALE * BALL_MASS);
-        }
+        }*/
         // discharge
         m_isCharged = false;
         m_shootTime = 0.0;
     }
 
-    if (m_inStandby || !m_command.has_output1() || !m_command.output1().has_v_f() || !m_command.output1().has_v_s() || !m_command.output1().has_omega()) {
+    if (m_inStandby || !m_sslCommand.has_move_command() || !m_sslCommand.move_command().has_local_velocity()) {
         return;
     }
 
+    float output_v_f = m_sslCommand.move_command().local_velocity().forward();
+    float output_v_s = -m_sslCommand.move_command().local_velocity().left();
+    float output_omega = m_sslCommand.move_command().local_velocity().angular();
+
     btVector3 v_local(t.inverse() * m_body->getLinearVelocity());
-    btVector3 v_d_local(boundSpeed(m_command.output1().v_s()), boundSpeed(m_command.output1().v_f()), 0);
+    btVector3 v_d_local(boundSpeed(output_v_s), boundSpeed(output_v_f), 0);
 
     float v_f = v_local.y()/SIMULATOR_SCALE;
     float v_s = v_local.x()/SIMULATOR_SCALE;
@@ -257,7 +283,7 @@ void SimRobot::begin(SimBall *ball, double time)
 
     const float error_v_s = v_d_local.x() - v_s;
     const float error_v_f = v_d_local.y() - v_f;
-    const float error_omega = boundSpeed(m_command.output1().omega()) - omega;
+    const float error_omega = boundSpeed(output_omega) - omega;
 
     error_sum_v_s += error_v_s;
     error_sum_v_f += error_v_f;
@@ -352,9 +378,9 @@ bool SimRobot::canKickBall(SimBall *ball) const
     return false;
 }
 
-robot::RadioResponse SimRobot::setCommand(const robot::Command &command, SimBall *ball, bool charge, float rxLoss, float txLoss)
+robot::RadioResponse SimRobot::setCommand(const sslsim::RobotCommand &command, SimBall *ball, bool charge, float rxLoss, float txLoss)
 {
-    m_command = command;
+    m_sslCommand = command;
     m_commandTime = 0.0f;
     m_charge = charge;
 

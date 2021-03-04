@@ -23,11 +23,13 @@
 
 #include "protobuf/command.h"
 #include "protobuf/status.h"
+#include "protobuf/sslsim.h"
 #include <QList>
 #include <QMap>
 #include <QPair>
 #include <QQueue>
 #include <QByteArray>
+#include <tuple>
 
 // higher values break the rolling friction of the ball
 const float SIMULATOR_SCALE = 10.0f;
@@ -69,7 +71,7 @@ signals:
 
 public slots:
     void handleCommand(const Command &command);
-    void handleRadioCommands(const QList<robot::RadioCommand> &commands, qint64 processingDelay);
+    void handleRadioCommands(const SSLSimRobotControl& control, bool isBlue, qint64 processingStart);
     void setScaling(double scaling);
     void setFlipped(bool flipped);
     // checks for possible collisions with the robots on the target position of the ball
@@ -94,7 +96,7 @@ private:
     void initializeDetection(SSL_DetectionFrame *detection, std::size_t cameraId);
 
 private:
-    typedef QPair<QList<robot::RadioCommand>, qint64> RadioCommand;
+    typedef std::tuple<SSLSimRobotControl, qint64, bool> RadioCommand;
     SimulatorData *m_data;
     QQueue<RadioCommand> m_radioCommands;
     QQueue<QPair<QList<QByteArray>, QByteArray>> m_visionPackets;
