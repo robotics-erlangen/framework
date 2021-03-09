@@ -35,6 +35,16 @@ void CommandConverter::handleRadioCommands(const QList<robot::RadioCommand> &com
                 robotCommand->set_kick_speed(robot.command().kick_power());
                 if (robot.command().kick_style() == robot::Command::Chip) {
                     robotCommand->set_kick_angle(45);
+
+                    const float angle = 45./180*M_PI;
+                    const float dirFloor = std::cos(angle);
+                    const float dirUp = std::sin(angle);
+                    const float gravity = 9.81;
+                    // airtime = 2 * (shootSpeed * dirUp) / g
+                    // targetDist = shootSpeed * dirFloor * airtime
+                    // => targetDist = shootSpeed * dirFloor * (2 * shootSpeed * dirUp) / g = 2 * shootSpeed**2 * dirFloor * dirUp / g
+                    const float shootSpeed = std::sqrt(robot.command().kick_power() * gravity / (2*std::abs(dirUp*dirFloor)));
+                    robotCommand->set_kick_speed(shootSpeed);
                 }
             }
             if (robot.command().has_dribbler()) {

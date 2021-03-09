@@ -234,33 +234,6 @@ void SimRobot::begin(SimBall *ball, double time)
         const float speedCompensation = -std::max((btScalar)0, relBallSpeed.y())
                 - qBound((btScalar)0, (btScalar)0.5 * relBallSpeed.y(), (btScalar)0.5 * dirFloor);
         ball->kick(t * btVector3(0, dirFloor * power + speedCompensation, dirUp * power) * (1/time) * SIMULATOR_SCALE * BALL_MASS);
-        /*
-        if (m_command.kick_style() == robot::Command::Linear) {
-            const float shootSpeed = m_specs.shot_linear_max();
-            const float power = qBound(0.05f, m_command.kick_power(), shootSpeed);
-
-            // kick forward with the specified fraction of the max shoot speed
-            ball->kick(t * btVector3(0, 1, 0) * (1/time) * SIMULATOR_SCALE * power * BALL_MASS);
-        } else if (m_command.kick_style() == robot::Command::Chip) {
-            // reverse strategy calculation -> get desired chip distance
-            const float shootDist = m_specs.shot_chip_max();
-            const float targetDist = qBound(0.05f, m_command.kick_power(), shootDist);
-
-            // just assume a angle of 45 degrees
-            const float angle = 45./180*M_PI;
-            const float dirFloor = std::cos(angle);
-            const float dirUp = std::sin(angle);
-
-            // if the ball hits the robot the chip distance actually decreases
-            const btVector3 relBallSpeed = relativeBallSpeed(ball) / SIMULATOR_SCALE;
-            const float speedCompensation = -std::max((btScalar)0, relBallSpeed.y())
-                    - qBound((btScalar)0, (btScalar)0.5 * relBallSpeed.y(), (btScalar)0.5 * dirFloor);
-
-            // airtime = 2 * (shootSpeed * dirUp) / g
-            // targetDist = shootSpeed * dirFloor * airtime
-            // => targetDist = shootSpeed * dirFloor * (2 * shootSpeed * dirUp) / g = 2 * shootSpeed**2 * dirFloor * dirUp / g
-            const float shootSpeed = std::sqrt(targetDist*m_world->getGravity().length() / (2*std::abs(dirUp*dirFloor)*SIMULATOR_SCALE));
-        }*/
         // discharge
         m_isCharged = false;
         m_shootTime = 0.0;
