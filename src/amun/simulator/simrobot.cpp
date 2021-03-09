@@ -219,16 +219,20 @@ void SimRobot::begin(SimBall *ball, double time)
     // check if should kick and can do that
     if (m_isCharged && m_sslCommand.has_kick_speed() && m_sslCommand.kick_speed() > 0 && canKickBall(ball)) {
         float power = 0.0;
-        if (m_sslCommand.kick_angle() == 0) {
-            power = qBound(0.05f, m_sslCommand.kick_speed(), m_specs.shot_linear_max());
-        } else {
-            // TODO: bound chips not based upon shot_chip_max (which is in meters, not m/s)
-            power = qBound(0.05f, m_sslCommand.kick_speed(), m_specs.shot_chip_max());
-        }
         const float angle = m_sslCommand.kick_angle()/180*M_PI;
         const float dirFloor = std::cos(angle);
         const float dirUp = std::sin(angle);
 
+        if (m_sslCommand.kick_angle() == 0) {
+            power = qBound(0.05f, m_sslCommand.kick_speed(), m_specs.shot_linear_max());
+        } else {
+            // FIXME: for now we just recalc the max distance based on the given angle
+            // airtime = 2 * (shootSpeed * dirUp) / g
+            // targetDist = shootSpeed * dirFloor * airtime
+            // => targetDist = shootSpeed * dirFloor * (2 * shootSpeed * dirUp) / g = 2 * shootSpeed**2 * dirFloor * dirUp / g
+            const float maxShootSpeed = std::sqrt(m_specs.shot_chip_max() * m_world->getGravity().length() / (2*std::abs(dirUp*dirFloor) * SIMULATOR_SCALE));
+            power = qBound(0.05f, m_sslCommand.kick_speed(), maxShootSpeed);
+        }
         // if the ball hits the robot the chip distance actually decreases
         const btVector3 relBallSpeed = relativeBallSpeed(ball) / SIMULATOR_SCALE;
         const float speedCompensation = -std::max((btScalar)0, relBallSpeed.y())
