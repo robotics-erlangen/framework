@@ -19,6 +19,7 @@
  ***************************************************************************/
 #include "networktransceiver.h"
 #include "core/timer.h"
+#include "core/run_out_of_scope.h"
 #include "protobuf/grsim_commands.pb.h"
 #include "protobuf/grsim_replacement.pb.h"
 #include "protobuf/ssl_simulation_robot_feedback.pb.h"
@@ -26,7 +27,7 @@
 #include <QNetworkDatagram>
 #include <cmath>
 
-NetworkTransceiver::NetworkTransceiver(QObject *parent) : QObject(parent)
+NetworkTransceiver::NetworkTransceiver(const Timer* timer, QObject *parent) : QObject(parent), m_timer(timer)
 {
     m_udpSocket = new QUdpSocket(this);
     connect(m_udpSocket, &QUdpSocket::readyRead, this, &NetworkTransceiver::handleResponse);
@@ -88,9 +89,23 @@ void NetworkTransceiver::handleResponse()
     while(m_udpSocket->hasPendingDatagrams()) {
         auto datagram = m_udpSocket->receiveDatagram();
         sslsim::RobotControlResponse res;
+        bool hadErrors = false;
+        Status errors = Status::createArena();
+        amun::DebugValues* dV = nullptr;
+        RUN_WHEN_OUT_OF_SCOPE({
+                if (hadErrors) {
+                    emit sendStatus(errors);
+                }
+            });
         if (!res.ParseFromArray(datagram.data().data(), datagram.data().size())) {
-            // TODO: how to handle a broken reply??
-            std::cerr << "NetworkTransciever cannot parse reply" << std::endl;
+            errors->set_time(m_timer->currentTime());
+            hadErrors = true;
+            std::string result = "Error connected simulator (response unreadable)";
+            dV = errors->add_debug();
+            dV->set_time(m_timer->currentTime());
+            auto log = dV->add_log();
+            log->set_timestamp(m_timer->currentTime());
+            log->set_text(result);
             return;
         }
 
@@ -104,9 +119,28 @@ void NetworkTransceiver::handleResponse()
             }
         }
 
+
         for (const auto& error : res.errors()) {
-            std::cerr << error.DebugString() << std::endl;
+            errors->set_time(m_timer->currentTime());
+            hadErrors = true;
+            std::string result = "Error within connected simulator: ";
+            if (error.has_message()) {
+                result += error.message();
+            }
+            if (error.has_code()) {
+                result += "[" + error.code() + "]";
+            }
+
+            if(dV == nullptr) {
+                dV = errors->add_debug();
+                dV->set_time(m_timer->currentTime());
+            }
+
+            auto log = dV->add_log();
+            log->set_timestamp(m_timer->currentTime());
+            log->set_text(result);
         }
+
     }
 
     emit sendRadioResponses(out);

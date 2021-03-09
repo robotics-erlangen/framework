@@ -27,12 +27,13 @@
 #include "protobuf/sslsim.h"
 
 class QUdpSocket;
+class Timer;
 
 class NetworkTransceiver : public QObject
 {
     Q_OBJECT
 public:
-    explicit NetworkTransceiver(QObject *parent = nullptr);
+    explicit NetworkTransceiver(const Timer *m_timer, QObject *parent = nullptr);
     ~NetworkTransceiver() override;
     NetworkTransceiver(const NetworkTransceiver&) = delete;
     NetworkTransceiver& operator=(const NetworkTransceiver&) = delete;
@@ -54,6 +55,7 @@ private:
 private:
     amun::HostAddress m_configuration;
     QUdpSocket *m_udpSocket;
+    const Timer *m_timer;
 };
 
 #endif // NETWORKTRANSCEIVER_H
