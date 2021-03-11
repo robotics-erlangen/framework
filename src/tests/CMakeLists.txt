@@ -29,6 +29,7 @@ add_executable(cpptests
     amun/strategy/path/endinobstaclesampler.cpp
     amun/seshat/combinedlogwriter.cpp
     amun/seshat/logfilereader.cpp
+    amun/simulator/simulator.cpp
 )
 
 target_link_libraries(cpptests
@@ -36,6 +37,7 @@ target_link_libraries(cpptests
     amun::path
     shared::core
     amun::seshat
+    amun::simulator
     amuncli::testtools
     pthread
 )

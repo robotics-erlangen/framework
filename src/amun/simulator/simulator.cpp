@@ -942,6 +942,11 @@ void Simulator::setScaling(double scaling)
     m_timeScaling = scaling;
 }
 
+void Simulator::seedPRGN(uint32_t seed)
+{
+    m_data->rng.seed(seed);
+}
+
 static bool overlapCheck(const btVector3& p0, const float& r0, const btVector3& p1, const float& r1)
 {
     const float distance = (p1 - p0).length();

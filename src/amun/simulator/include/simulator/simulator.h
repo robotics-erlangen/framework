@@ -62,6 +62,7 @@ public:
     Simulator(const Simulator&) = delete;
     Simulator& operator=(const Simulator&) = delete;
     void handleSimulatorTick(double timeStep);
+    void seedPRGN(uint32_t seed);
 
 signals:
     void gotPacket(const QByteArray &data, qint64 time, QString sender);
