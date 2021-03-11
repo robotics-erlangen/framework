@@ -15,7 +15,7 @@ export class ChipAway extends Task {
 
 	constructor(behavior: Behavior) {
 		super(behavior);
-		this._shoot = new Shoot(this, this.capturedSetMAParams());
+		this._shoot = new Shoot(this);
 	}
 
 	run() {

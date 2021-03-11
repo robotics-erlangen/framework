@@ -75,7 +75,6 @@ export class Volley {
 	_ballIncoming: boolean = true;
 	_shooting: boolean = false;
 	_ball_in: Speed | undefined;
-	_setMainAttackerParameters: (p: Position, n: number) => void;
 
 	_robot: FriendlyRobot;
 	_task: Task;
@@ -84,10 +83,9 @@ export class Volley {
 		return this._task.behavior().agent().messaging();
 	}
 
-	constructor(task: Task, setMaParams: (p: Position, n: number) => void) {
+	constructor(task: Task) {
 		this._robot = task.behavior().agent().robot();
 		this._task = task;
-		this._setMainAttackerParameters = setMaParams;
 	}
 
 
@@ -314,7 +312,7 @@ export class Volley {
 	 * @param targetSpeed - How fast the Ball should arrive at targetPos
 	 */
 	_volley(viewPos: Position, targetPos: Position, targetSpeed: number) {
-		this._setMainAttackerParameters(targetPos, this._robot.maxSpeed);
+		this._task.setMainAttackerParameters(targetPos, this._robot.maxSpeed);
 		// init ball_in speed
 		if (this._ballIncoming || !this._ball_in) {
 			let ballRollTime = Physics.ballRollTime(World.Ball, World.Ball.pos.distanceTo(viewPos));

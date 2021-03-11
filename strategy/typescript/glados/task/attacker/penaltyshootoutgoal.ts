@@ -27,7 +27,7 @@ export class PenaltyShootoutGoal extends Task {
 
 	constructor(behavior: Behavior, dest: Position, ball: {pos: Position, speed: Vector, radius: number} = World.Ball) {
 		super(behavior);
-		this._shoot = new Shoot(this, this.setMainAttackerParameters);
+		this._shoot = new Shoot(this);
 		// this._pos = pos;
 		this._ball = ball;
 		this._dest = dest;

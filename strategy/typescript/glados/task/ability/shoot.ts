@@ -102,14 +102,12 @@ export class Shoot {
 
 	_catchBall: CatchBall;
 	_forceShoot: ForceShoot;
-	_setMainAttackerParameters: (target: Position, endSpeedLength: number) => void;
 
-	constructor(task: Task, setMAParams: (target: Position, endSpeedLength: number) => void) {
+	constructor(task: Task) {
 		this._robot = task.behavior().agent().robot();
 		this._task = task;
 		this._catchBall = new CatchBall(task);
 		this._forceShoot = new ForceShoot(task);
-		this._setMainAttackerParameters = setMAParams;
 	}
 
 	private _setObstacles(moveDest?: Position) {
@@ -528,7 +526,7 @@ export class Shoot {
 
 		Shoot._visualizeShoot(visBallStartPos, targetPos, color);
 
-		this._setMainAttackerParameters(futureBall.pos + Vector.fromAngle(this.targetRobotDir), this._robot.maxSpeed);
+		this._task.setMainAttackerParameters(futureBall.pos + Vector.fromAngle(this.targetRobotDir), this._robot.maxSpeed);
 		this._messaging.sendBroadcast(MessageType.shootDestination, targetPos);
 
 		this._lastTargetPos = targetPos;

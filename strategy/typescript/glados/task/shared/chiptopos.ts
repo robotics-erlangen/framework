@@ -20,7 +20,7 @@ export class ChipToPos extends Task {
 		this._ballReceiptPos = ballReceiptPos;
 		this._chipPrecision = precision;
 
-		this._shoot = new Shoot(this, this.capturedSetMAParams());
+		this._shoot = new Shoot(this);
 	}
 
 	public run() {

@@ -58,7 +58,7 @@ export class ShootPenalty extends Task {
 		}
 		this._waitTime = MathUtil.random() * 5 + 2;
 
-		this._shoot = new Shoot(this, this.capturedSetMAParams());
+		this._shoot = new Shoot(this);
 		this._rotateAndShoot = new RotateAndShoot(this);
 
 		this.collectedBallPosition = World.Ball.pos;

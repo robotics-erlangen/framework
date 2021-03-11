@@ -72,8 +72,7 @@ export class PenaltyChip extends Task {
 		super(behavior);
 		this._ball = ball;
 		this._mode = mode;
-		this._shoot = new Shoot(this, this.setMainAttackerParameters);
-
+		this._shoot = new Shoot(this);
 	}
 
 	run() {

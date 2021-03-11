@@ -54,7 +54,7 @@ export class ShootGoal extends Task {
 		this._ballReceiptPos = ballReceiptPos;
 		this._forceFast = forceFast;
 
-		this._shoot = new Shoot(this, this.capturedSetMAParams());
+		this._shoot = new Shoot(this);
 	}
 
 	private _lockTarget(ballReceiptPos?: Position): boolean {
