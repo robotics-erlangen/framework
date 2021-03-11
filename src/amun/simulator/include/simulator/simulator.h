@@ -84,7 +84,7 @@ private slots:
 
 private:
     void resetFlipped(RobotMap &robots, float side);
-    QPair<QList<QByteArray>, QByteArray> createVisionPacket();
+    std::tuple<QList<QByteArray>, QByteArray, qint64> createVisionPacket();
     void resetVisionPackets();
     void setTeam(RobotMap &list, float side, const robot::Team &team);
     void moveBall(const amun::SimulatorMoveBall &ball);
@@ -99,7 +99,7 @@ private:
     typedef std::tuple<SSLSimRobotControl, qint64, bool> RadioCommand;
     SimulatorData *m_data;
     QQueue<RadioCommand> m_radioCommands;
-    QQueue<QPair<QList<QByteArray>, QByteArray>> m_visionPackets;
+    QQueue<std::tuple<QList<QByteArray>, QByteArray, qint64>> m_visionPackets;
     QQueue<QTimer *> m_visionTimers;
     bool m_isPartial;
     const Timer *m_timer;

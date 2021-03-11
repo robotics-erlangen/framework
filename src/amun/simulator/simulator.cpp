@@ -184,6 +184,13 @@ void Simulator::process()
 
     const qint64 current_time = m_timer->currentTime();
 
+    // first: send vision packets in partial mode
+    if (m_isPartial) {
+        while(m_visionPackets.size() > 0 && std::get<2>(m_visionPackets.head()) >= current_time) {
+            sendVisionPacket();
+        }
+    }
+
     // collect responses from robots
     QList<robot::RadioResponse> responses;
 
@@ -241,17 +248,24 @@ void Simulator::process()
     if (m_lastSentStatusTime + 12500000 <= m_time) {
         auto data = createVisionPacket();
 
-        m_visionPackets.enqueue(data);
 
-        // timeout is in milliseconds
-        int timeout = m_visionDelay * 1E-6 / m_timeScaling;
-        // send after timeout, default timer mode, may jitter a bit
-        QTimer *timer = new QTimer();
-        timer->setTimerType(Qt::PreciseTimer);
-        timer->setSingleShot(true);
-        connect(timer, SIGNAL(timeout()), SLOT(sendVisionPacket()));
-        timer->start(timeout);
-        m_visionTimers.enqueue(timer);
+
+        if (m_isPartial) {
+            std::get<2>(data) = m_time + m_visionDelay;
+            m_visionPackets.enqueue(data);
+        } else {
+            m_visionPackets.enqueue(data);
+            // timeout is in milliseconds
+            int timeout = m_visionDelay * 1E-6 / m_timeScaling;
+
+            // send after timeout, default timer mode, may jitter a bit
+            QTimer *timer = new QTimer();
+            timer->setTimerType(Qt::PreciseTimer);
+            timer->setSingleShot(true);
+            connect(timer, SIGNAL(timeout()), SLOT(sendVisionPacket()));
+            timer->start(timeout);
+            m_visionTimers.enqueue(timer);
+        }
 
         m_lastSentStatusTime = m_time;
     }
@@ -544,7 +558,7 @@ void Simulator::initializeDetection(SSL_DetectionFrame *detection, std::size_t c
     detection->set_t_sent((m_time + m_visionDelay)*1E-9);
 }
 
-QPair<QList<QByteArray>, QByteArray> Simulator::createVisionPacket()
+std::tuple<QList<QByteArray>, QByteArray, qint64> Simulator::createVisionPacket()
 {
     const std::size_t numCameras = m_data->cameraSetup.num_cameras();
     world::SimulatorState simState;
@@ -669,20 +683,22 @@ QPair<QList<QByteArray>, QByteArray> Simulator::createVisionPacket()
     if (!simState.SerializeToArray(d.data(), d.size())) {
         d = {};
     }
-    return {data,d};
+    return {data,d, 0};
 }
 
 void Simulator::sendVisionPacket()
 {
-    QPair<QList<QByteArray>, QByteArray> currentVisionPackets = m_visionPackets.dequeue();
-    for (const QByteArray &data : currentVisionPackets.first) {
+    auto currentVisionPackets = m_visionPackets.dequeue();
+    for (const QByteArray &data : std::get<0>(currentVisionPackets)) {
         emit gotPacket(data, m_timer->currentTime(), "simulator"); // send "vision packet" and assume instant receiving
         // the receive time may be a bit jittered just like a real transmission
 
     }
-    emit sendRealData(currentVisionPackets.second);
-    QTimer *timer = m_visionTimers.dequeue();
-    timer->deleteLater();
+    emit sendRealData(std::get<1>(currentVisionPackets));
+    if (!m_isPartial) {
+        QTimer *timer = m_visionTimers.dequeue();
+        timer->deleteLater();
+    }
 }
 
 void Simulator::resetVisionPackets()

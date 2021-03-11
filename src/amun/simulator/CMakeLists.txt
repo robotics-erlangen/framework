@@ -20,6 +20,7 @@
 
 add_library(simulator
     include/simulator/simulator.h
+    include/simulator/fastsimulator.h
 
     mesh.cpp
     mesh.h
@@ -30,6 +31,7 @@ add_library(simulator
     simrobot.cpp
     simrobot.h
     simulator.cpp
+    fastsimulator.cpp
 )
 target_link_libraries(simulator
     PRIVATE shared::core
