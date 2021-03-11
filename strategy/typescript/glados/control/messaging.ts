@@ -672,7 +672,7 @@ export class MessageBox {
 		return this.receiveGeneric(type, receiveOwn).get("trainer");
 	}
 
-	public receiveGeneric(type: MessageType, receiveOwn?: boolean): ReadonlyRec<Map<MessageOrigin, any>> {
+	public receiveGeneric<M extends MessageType>(type: M, receiveOwn?: boolean): ReadonlyRec<Map<MessageOrigin, ReceivedData<M>>> {
 		let mtypeBox = this.messaging._deliveredMessages[type];
 		if (this.origin === "trainer") {
 			mtypeBox = this.messaging._newMessages[type];
@@ -718,7 +718,7 @@ export class MessageBox {
 		}
 	}
 
-	public receiveNoBroadcast(type: MessageType): ReadonlyRec<Map<MessageOrigin, any>> {
+	public receiveNoBroadcast<M extends MessageType>(type: M): ReadonlyRec<Map<MessageOrigin, ReceivedData<M>>> {
 		let mtypeBox = this.messaging._deliveredMessages[type];
 		if (this.origin === "trainer") {
 			mtypeBox = this.messaging._newMessages[type];
@@ -734,7 +734,7 @@ export class MessageBox {
 		}
 	}
 
-	public receiveAllInbox(type: MessageType): ReadonlyRec<Map<MessageOrigin, any>> {
+	public receiveAllInbox<M extends MessageType>(type: M): ReadonlyRec<Map<MessageOrigin, ReceivedData<M>>> {
 		let mtypeBox = this.messaging._deliveredMessages[type];
 		if (this.origin === "trainer") {
 			mtypeBox = this.messaging._newMessages[type];
@@ -790,7 +790,7 @@ export class Messaging {
  * @param type - The type of the message. Used to determine special cases and the message name
  * @param messages - The messages to dump along with their sender
  */
-export function dumpMessages<M extends MessageType>(type: M, messages: ReadonlyRec<Map<MessageOrigin, any>>): void {
+export function dumpMessages<M extends MessageType>(type: M, messages: ReadonlyRec<Map<MessageOrigin, ReceivedData<M>>>): void {
 	if (messages.size === 0) {
 		return;
 	}
