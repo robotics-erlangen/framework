@@ -57,7 +57,7 @@ class camun::simulator::Simulator : public QObject
 public:
     typedef QMap<unsigned int, QPair<SimRobot*, unsigned int>> RobotMap; /*First int: ID, Second int: Generation*/
 
-    explicit Simulator(const Timer *timer, const amun::SimulatorSetup &setup);
+    explicit Simulator(const Timer *timer, const amun::SimulatorSetup &setup, bool useManualTrigger = false);
     ~Simulator() override;
     Simulator(const Simulator&) = delete;
     Simulator& operator=(const Simulator&) = delete;
@@ -77,9 +77,9 @@ public slots:
     // checks for possible collisions with the robots on the target position of the ball
     // calls teleportRobotToFreePosition to move robots out of the way
     void safelyTeleportBall(const float x, const float y);
+    void process();
 
 private slots:
-    void process();
     void sendVisionPacket();
 
 private:
@@ -101,6 +101,7 @@ private:
     QQueue<RadioCommand> m_radioCommands;
     QQueue<QPair<QList<QByteArray>, QByteArray>> m_visionPackets;
     QQueue<QTimer *> m_visionTimers;
+    bool m_isPartial;
     const Timer *m_timer;
     QTimer *m_trigger;
     qint64 m_time;

@@ -99,7 +99,7 @@ static void simulatorTickCallback(btDynamicsWorld *world, btScalar timeStep)
  * \brief %Simulator interface
  */
 
-Simulator::Simulator(const Timer *timer, const amun::SimulatorSetup &setup) :
+Simulator::Simulator(const Timer *timer, const amun::SimulatorSetup &setup, bool useManualTrigger) :
     m_timer(timer),
     m_time(0),
     m_lastSentStatusTime(0),
@@ -107,13 +107,16 @@ Simulator::Simulator(const Timer *timer, const amun::SimulatorSetup &setup) :
     m_enabled(false),
     m_charge(false),
     m_visionDelay(35 * 1000 * 1000),
-    m_visionProcessingTime(5 * 1000 * 1000)
+    m_visionProcessingTime(5 * 1000 * 1000),
+    m_isPartial(useManualTrigger)
 {
     // triggers by default every 5 milliseconds if simulator is enabled
     // timing may change if time is scaled
     m_trigger = new QTimer(this);
     m_trigger->setTimerType(Qt::PreciseTimer);
-    connect(m_trigger, SIGNAL(timeout()), SLOT(process()));
+    if (!m_isPartial) {
+        connect(m_trigger, SIGNAL(timeout()), SLOT(process()));
+    }
 
     // setup bullet
     m_data = new SimulatorData;
