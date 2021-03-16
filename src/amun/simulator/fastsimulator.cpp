@@ -23,17 +23,23 @@
 
 #include <algorithm>
 
-bool FastSimulator::goToTime(camun::simulator::Simulator* sim, Timer* t, qint64 targetTime)
+bool FastSimulator::goWithCallback(camun::simulator::Simulator* sim, Timer* t, qint64 targetTime,const std::function<void(void)>& callback)
 {
 
     if (t->scaling() != 0) return false;
+    callback();
     const qint64 maxSimulationStep = 1e9 / 200;
     qint64 now = t->currentTime();
+    qint64 lastCallbackTime = now;
     while( now != targetTime) {
         qint64 nextTime = std::min(now + maxSimulationStep, targetTime);
         t->setTime(nextTime, 0);
         sim->process();
         now = t->currentTime();
+        if (now - lastCallbackTime >= 1e7) {
+            callback();
+            lastCallbackTime = now;
+        }
     }
     return true;
 }

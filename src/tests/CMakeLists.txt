@@ -40,4 +40,5 @@ target_link_libraries(cpptests
     amun::simulator
     amuncli::testtools
     pthread
+    Qt5::Gui
 )

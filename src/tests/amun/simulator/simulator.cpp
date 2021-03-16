@@ -28,7 +28,9 @@
 #include "protobuf/ssl_wrapper.pb.h"
 
 #include <QObject>
+#include <QQuaternion>
 #include <functional>
+#include <cmath>
 
 class SimTester : public QObject {
     Q_OBJECT
@@ -39,6 +41,7 @@ public slots:
 
 signals:
     void sendCommand(const Command& c);
+    void sendSSLRadioCommand(const SSLSimRobotControl& control, bool isBlue, qint64 processingStart);
 
 public:
     int m_counter = 0;
@@ -206,4 +209,393 @@ TEST_F(FastSimulatorTest, LoadRobots) {
         ASSERT_FLOAT_EQ(ball.p_z(), 0.0215);
     };
     FastSimulator::goDelta(s, &t, 1e8); // 100 millisecond
+}
+
+TEST_F(FastSimulatorTest, CBFrequency) {
+    s->disconnect(s, &Simulator::sendRealData, &test, &SimTester::handleSimulatorTruth);
+    int counter = 0;
+    auto lambda = [&counter]() {counter++;};
+    FastSimulator::goDeltaCallback(s, &t, 10e9, lambda); // 10 seconds, should be run every 10 ms = 100 times + 1 time initially
+    ASSERT_EQ(counter, 1001);
+}
+
+TEST_F(FastSimulatorTest, DriveRobotForwardBlue) {
+    loadRobots(1, 0);
+    float phi=0.f, x = 0.f, y = 0.f;
+    QQuaternion rotation;
+    bool init = false;
+    test.s = [&x, &y, &phi, &init, &rotation] (auto truth) {
+        ASSERT_EQ(truth.blue_robots_size(), 1);
+        for (const auto& robot : truth.blue_robots()) {
+            QQuaternion q{robot.rotation().real(), robot.rotation().i(), robot.rotation().j(), robot.rotation().k()}; // see simrobot.cpp
+            QVector3D forwards{0, 1, 0};
+            QVector3D rotated = q.rotatedVector(forwards);
+            if (!init) {
+                x = robot.p_x();
+                y = robot.p_y();
+                //stolen from fieldwidget
+                phi = -atan2(rotated.z(), rotated.y());
+                init = true;
+                rotation = q;
+            } else {
+                ASSERT_LE(std::abs(robot.p_x() - x), 1e-2);
+                ASSERT_LE(std::abs(robot.p_y() - y), 1e-2);
+                ASSERT_LE(std::abs(-atan2(rotated.z(), rotated.y()) - phi), 5.f / 180 * M_PI);
+            }
+
+        }
+    };
+    FastSimulator::goDelta(s, &t, 1e9); // 1 second to get robot data and make sure it doesn't move on its own.
+
+    SSLSimRobotControl control{new sslsim::RobotControl};
+
+    auto* cmd = control->add_robot_commands();
+    cmd->set_id(0);
+    auto * localVel = cmd->mutable_move_command()->mutable_local_velocity();
+    localVel->set_forward(-0.5);
+    localVel->set_left(0);
+    localVel->set_angular(0);
+
+    auto callback = [&control, this]() {
+        emit this->test.sendSSLRadioCommand(control, true, 0);
+    };
+
+    t.connect(&test, &SimTester::sendSSLRadioCommand, s, &Simulator::handleRadioCommands);
+
+    test.s = [](auto truth) {};
+
+    FastSimulator::goDeltaCallback(s, &t, 2e8, callback); // 200 milliseond to accelerate
+
+    qint64 time = -1e7;
+    init = false;
+    auto callback2 = [&control, this, &time]() {
+        time += 1e7;
+        emit this->test.sendSSLRadioCommand(control, true, 0);
+    };
+
+    float ox, oy, oz;
+
+    test.s = [rotation, &time, &ox, &oy, &oz, &init](auto truth) {
+        ASSERT_EQ(truth.blue_robots_size(), 1);
+        for (const auto& robot : truth.blue_robots()) {
+            QVector3D forwards{0, -0.5, 0};
+            QVector3D rotated = rotation.rotatedVector(forwards);
+            ASSERT_LE(std::abs(robot.v_x() + rotated.z()), 2e-2);
+            ASSERT_LE(std::abs(robot.v_y() + rotated.y()), 2e-2);
+            ASSERT_LE(std::abs(robot.v_z() + rotated.x()), 2e-2);
+            if (!init) {
+                ox = robot.p_x();
+                oy = robot.p_y();
+                oz = robot.p_z();
+                init = true;
+            } else {
+                QVector3D distance{0, static_cast<float>(-0.5 * time / 1e9), 0};
+                rotated = rotation.rotatedVector(distance);
+                ASSERT_LE(std::abs(robot.p_x() + rotated.z() - ox), 5e-2);
+                ASSERT_LE(std::abs(robot.p_y() + rotated.y() - oy), 5e-2);
+                ASSERT_LE(std::abs(robot.p_z() + rotated.x() - oz), 5e-2);
+            }
+        }
+    };
+
+    FastSimulator::goDeltaCallback(s, &t, 18e8, callback2); // summa summarum 2 seconds
+}
+
+TEST_F(FastSimulatorTest, DriveRobotRightBlue) {
+    loadRobots(1, 0);
+    float phi=0.f, x = 0.f, y = 0.f;
+    QQuaternion rotation;
+    bool init = false;
+    test.s = [&x, &y, &phi, &init, &rotation] (auto truth) {
+        ASSERT_EQ(truth.blue_robots_size(), 1);
+        for (const auto& robot : truth.blue_robots()) {
+            QQuaternion q{robot.rotation().real(), robot.rotation().i(), robot.rotation().j(), robot.rotation().k()}; // see simrobot.cpp
+            QVector3D forwards{0, 1, 0};
+            QVector3D rotated = q.rotatedVector(forwards);
+            if (!init) {
+                x = robot.p_x();
+                y = robot.p_y();
+                //stolen from fieldwidget
+                phi = -atan2(rotated.z(), rotated.y());
+                init = true;
+                rotation = q;
+            } else {
+                ASSERT_LE(std::abs(robot.p_x() - x), 1e-2);
+                ASSERT_LE(std::abs(robot.p_y() - y), 1e-2);
+                ASSERT_LE(std::abs(-atan2(rotated.z(), rotated.y()) - phi), 5.f / 180 * M_PI);
+            }
+
+        }
+    };
+    FastSimulator::goDelta(s, &t, 1e9); // 1 second to get robot data and make sure it doesn't move on its own.
+
+    SSLSimRobotControl control{new sslsim::RobotControl};
+
+    auto* cmd = control->add_robot_commands();
+    cmd->set_id(0);
+    auto * localVel = cmd->mutable_move_command()->mutable_local_velocity();
+    localVel->set_forward(0);
+    localVel->set_left(-0.5);
+    localVel->set_angular(0);
+
+    auto callback = [&control, this]() {
+        emit this->test.sendSSLRadioCommand(control, true, 0);
+    };
+
+    t.connect(&test, &SimTester::sendSSLRadioCommand, s, &Simulator::handleRadioCommands);
+
+    test.s = [](auto truth) {};
+
+    FastSimulator::goDeltaCallback(s, &t, 2e8, callback); // 200 milliseond to accelerate
+
+    qint64 time = -1e7;
+    init = false;
+    auto callback2 = [&control, this, &time]() {
+        time += 1e7;
+        emit this->test.sendSSLRadioCommand(control, true, 0);
+    };
+
+    float ox, oy, oz;
+
+    test.s = [rotation, &time, &ox, &oy, &oz, &init](auto truth) {
+        ASSERT_EQ(truth.blue_robots_size(), 1);
+        for (const auto& robot : truth.blue_robots()) {
+            QVector3D forwards{0, 0, -0.5};
+            QVector3D rotated = rotation.rotatedVector(forwards);
+            ASSERT_LE(std::abs(robot.v_x() + rotated.z()), 2e-2);
+            ASSERT_LE(std::abs(robot.v_y() + rotated.y()), 2e-2);
+            ASSERT_LE(std::abs(robot.v_z() + rotated.x()), 2e-2);
+            if (!init) {
+                ox = robot.p_x();
+                oy = robot.p_y();
+                oz = robot.p_z();
+                init = true;
+            } else {
+                QVector3D distance{0, 0, static_cast<float>(-0.5 * time / 1e9)};
+                rotated = rotation.rotatedVector(distance);
+                ASSERT_LE(std::abs(robot.p_x() + rotated.z() - ox), 5e-2);
+                ASSERT_LE(std::abs(robot.p_y() + rotated.y() - oy), 5e-2);
+                ASSERT_LE(std::abs(robot.p_z() + rotated.x() - oz), 5e-2);
+            }
+        }
+    };
+
+    FastSimulator::goDeltaCallback(s, &t, 18e8, callback2); // summa summarum 2 seconds
+}
+
+TEST_F(FastSimulatorTest, DriveRobotForwardYellow) {
+    loadRobots(0, 1);
+    float phi=0.f, x = 0.f, y = 0.f;
+    QQuaternion rotation;
+    bool init = false;
+    test.s = [&x, &y, &phi, &init, &rotation] (auto truth) {
+        ASSERT_EQ(truth.yellow_robots_size(), 1);
+        for (const auto& robot : truth.yellow_robots()) {
+            QQuaternion q{robot.rotation().real(), robot.rotation().i(), robot.rotation().j(), robot.rotation().k()}; // see simrobot.cpp
+            QVector3D forwards{0, 1, 0};
+            QVector3D rotated = q.rotatedVector(forwards);
+            if (!init) {
+                x = robot.p_x();
+                y = robot.p_y();
+                //stolen from fieldwidget
+                phi = -atan2(rotated.z(), rotated.y());
+                init = true;
+                rotation = q;
+            } else {
+                ASSERT_LE(std::abs(robot.p_x() - x), 1e-2);
+                ASSERT_LE(std::abs(robot.p_y() - y), 1e-2);
+                ASSERT_LE(std::abs(-atan2(rotated.z(), rotated.y()) - phi), 5.f / 180 * M_PI);
+            }
+
+        }
+    };
+    FastSimulator::goDelta(s, &t, 1e9); // 1 second to get robot data and make sure it doesn't move on its own.
+
+    SSLSimRobotControl control{new sslsim::RobotControl};
+
+    auto* cmd = control->add_robot_commands();
+    cmd->set_id(0);
+    auto * localVel = cmd->mutable_move_command()->mutable_local_velocity();
+    localVel->set_forward(-0.5);
+    localVel->set_left(0);
+    localVel->set_angular(0);
+
+    auto callback = [&control, this]() {
+        emit this->test.sendSSLRadioCommand(control, false, 0);
+    };
+
+    t.connect(&test, &SimTester::sendSSLRadioCommand, s, &Simulator::handleRadioCommands);
+
+    test.s = [](auto truth) {};
+
+    FastSimulator::goDeltaCallback(s, &t, 2e8, callback); // 200 milliseond to accelerate
+
+    qint64 time = -1e7;
+    init = false;
+    auto callback2 = [&control, this, &time]() {
+        time += 1e7;
+        emit this->test.sendSSLRadioCommand(control, false, 0);
+    };
+
+    float ox, oy, oz;
+
+    test.s = [rotation, &time, &ox, &oy, &oz, &init](auto truth) {
+        ASSERT_EQ(truth.yellow_robots_size(), 1);
+        for (const auto& robot : truth.yellow_robots()) {
+            QVector3D forwards{0, -0.5, 0};
+            QVector3D rotated = rotation.rotatedVector(forwards);
+            ASSERT_LE(std::abs(robot.v_x() + rotated.z()), 2e-2);
+            ASSERT_LE(std::abs(robot.v_y() + rotated.y()), 2e-2);
+            ASSERT_LE(std::abs(robot.v_z() + rotated.x()), 2e-2);
+            if (!init) {
+                ox = robot.p_x();
+                oy = robot.p_y();
+                oz = robot.p_z();
+                init = true;
+            } else {
+                QVector3D distance{0, static_cast<float>(-0.5 * time / 1e9), 0};
+                rotated = rotation.rotatedVector(distance);
+                ASSERT_LE(std::abs(robot.p_x() + rotated.z() - ox), 5e-2);
+                ASSERT_LE(std::abs(robot.p_y() + rotated.y() - oy), 5e-2);
+                ASSERT_LE(std::abs(robot.p_z() + rotated.x() - oz), 5e-2);
+            }
+        }
+    };
+
+    FastSimulator::goDeltaCallback(s, &t, 18e8, callback2); // summa summarum 2 seconds
+}
+
+TEST_F(FastSimulatorTest, DriveRobotLeftYellow) {
+    loadRobots(0, 1);
+    float phi=0.f, x = 0.f, y = 0.f;
+    QQuaternion rotation;
+    bool init = false;
+    test.s = [&x, &y, &phi, &init, &rotation] (auto truth) {
+        ASSERT_EQ(truth.yellow_robots_size(), 1);
+        for (const auto& robot : truth.yellow_robots()) {
+            QQuaternion q{robot.rotation().real(), robot.rotation().i(), robot.rotation().j(), robot.rotation().k()}; // see simrobot.cpp
+            QVector3D forwards{0, 1, 0};
+            QVector3D rotated = q.rotatedVector(forwards);
+            if (!init) {
+                x = robot.p_x();
+                y = robot.p_y();
+                //stolen from fieldwidget
+                phi = -atan2(rotated.z(), rotated.y());
+                init = true;
+                rotation = q;
+            } else {
+                ASSERT_LE(std::abs(robot.p_x() - x), 1e-2);
+                ASSERT_LE(std::abs(robot.p_y() - y), 1e-2);
+                ASSERT_LE(std::abs(-atan2(rotated.z(), rotated.y()) - phi), 5.f / 180 * M_PI);
+            }
+
+        }
+    };
+    FastSimulator::goDelta(s, &t, 1e9); // 1 second to get robot data and make sure it doesn't move on its own.
+
+    SSLSimRobotControl control{new sslsim::RobotControl};
+
+    auto* cmd = control->add_robot_commands();
+    cmd->set_id(0);
+    auto * localVel = cmd->mutable_move_command()->mutable_local_velocity();
+    localVel->set_forward(0);
+    localVel->set_left(0.5);
+    localVel->set_angular(0);
+
+    auto callback = [&control, this]() {
+        emit this->test.sendSSLRadioCommand(control, false, 0);
+    };
+
+    t.connect(&test, &SimTester::sendSSLRadioCommand, s, &Simulator::handleRadioCommands);
+
+    test.s = [](auto truth) {};
+
+    FastSimulator::goDeltaCallback(s, &t, 2e8, callback); // 200 milliseond to accelerate
+
+    qint64 time = -1e7;
+    init = false;
+    auto callback2 = [&control, this, &time]() {
+        time += 1e7;
+        emit this->test.sendSSLRadioCommand(control, false, 0);
+    };
+
+    float ox, oy, oz;
+
+    test.s = [rotation, &time, &ox, &oy, &oz, &init](auto truth) {
+        ASSERT_EQ(truth.yellow_robots_size(), 1);
+        for (const auto& robot : truth.yellow_robots()) {
+            QVector3D forwards{0, 0, 0.5};
+            QVector3D rotated = rotation.rotatedVector(forwards);
+            ASSERT_LE(std::abs(robot.v_x() + rotated.z()), 2e-2);
+            ASSERT_LE(std::abs(robot.v_y() + rotated.y()), 2e-2);
+            ASSERT_LE(std::abs(robot.v_z() + rotated.x()), 2e-2);
+            if (!init) {
+                ox = robot.p_x();
+                oy = robot.p_y();
+                oz = robot.p_z();
+                init = true;
+            } else {
+                QVector3D distance{0, 0, static_cast<float>(0.5 * time / 1e9)};
+                rotated = rotation.rotatedVector(distance);
+                ASSERT_LE(std::abs(robot.p_x() + rotated.z() - ox), 5e-2);
+                ASSERT_LE(std::abs(robot.p_y() + rotated.y() - oy), 5e-2);
+                ASSERT_LE(std::abs(robot.p_z() + rotated.x() - oz), 5e-2);
+            }
+        }
+    };
+
+    FastSimulator::goDeltaCallback(s, &t, 18e8, callback2); // summa summarum 2 seconds
+}
+
+TEST_F(FastSimulatorTest, UnaffectedRobotsByCommands) {
+    loadRobots(2, 1);
+    float phi[2], x[2], y[2]; // 0 blue, 1 yellow
+    bool init = false;
+    test.s = [&x, &y, &phi, &init] (auto truth) {
+        ASSERT_EQ(truth.blue_robots_size(), 2);
+        int i = -2;
+        auto checkRobot = [&i, init, &x, &y, &phi](const auto& robot) {
+            QQuaternion q{robot.rotation().real(), robot.rotation().i(), robot.rotation().j(), robot.rotation().k()}; // see simrobot.cpp
+            QVector3D forwards{0, 1, 0};
+            QVector3D rotated = q.rotatedVector(forwards);
+            if (!init) {
+                x[i] = robot.p_x();
+                y[i] = robot.p_y();
+                //stolen from fieldwidget
+                phi[i] = -atan2(rotated.z(), rotated.y());
+            } else {
+                ASSERT_LE(std::abs(robot.p_x() - x[i]), 1e-2);
+                ASSERT_LE(std::abs(robot.p_y() - y[i]), 1e-2);
+                ASSERT_LE(std::abs(-atan2(rotated.z(), rotated.y()) - phi[i]), 5.f / 180 * M_PI);
+            }
+        };
+        for (const auto& robot : truth.blue_robots()) {
+            ++i;
+            if (robot.id() == 0) continue;
+            checkRobot(robot);
+        }
+        ASSERT_EQ(truth.yellow_robots_size(), 1);
+        for(const auto& robot : truth.yellow_robots()) {
+            ++i;
+            checkRobot(robot);
+        }
+        init = true;
+    };
+
+    SSLSimRobotControl control{new sslsim::RobotControl};
+    auto* cmd = control->add_robot_commands();
+    cmd->set_id(0);
+    auto * localVel = cmd->mutable_move_command()->mutable_local_velocity();
+    localVel->set_forward(-0.5);
+    localVel->set_left(0);
+    localVel->set_angular(0);
+
+    auto callback = [&control, this]() {
+        emit this->test.sendSSLRadioCommand(control, true, 0);
+    };
+
+    t.connect(&test, &SimTester::sendSSLRadioCommand, s, &Simulator::handleRadioCommands);
+
+
+    FastSimulator::goDeltaCallback(s, &t, 2e9, callback); // 2 seconds
 }

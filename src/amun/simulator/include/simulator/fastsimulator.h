@@ -23,6 +23,7 @@
 
 #include <QtGlobal>
 #include <core/timer.h>
+#include <functional>
 
 namespace camun {
     namespace simulator {
@@ -32,13 +33,25 @@ namespace camun {
 
 
 namespace FastSimulator {
+    // calls the callback every 10 ms simulation time
+    // Warning: the state of the callback timing will not be preserved between different calls to this function.
+    // Instead, the callback will be called at the beginning and every 10 ms after that.
+    bool goWithCallback(camun::simulator::Simulator* sim, Timer* t, qint64 targetTime, const std::function<void(void)>& callback);
+
+    inline bool goDeltaCallback(camun::simulator::Simulator* sim, Timer* t, qint64 delta, const std::function<void(void)>& cb) {
+        return goWithCallback(sim, t, t->currentTime() + delta, cb);
+    }
+
     // runs the simulation single-threaded as fast as your CPU will allow,
     // only possible for simulators created with useManualTrigger = true, and with timer.scaling = 0
     // @return: returns false if one of these preconditions was violated and the process was aborted, true otherwise.
-    bool goToTime(camun::simulator::Simulator* sim, Timer* t, qint64 targetTime);
+    inline bool goToTime(camun::simulator::Simulator* sim, Timer* t, qint64 targetTime) {
+        return goWithCallback(sim, t, targetTime, [](){});
+    }
 
     inline bool goDelta(camun::simulator::Simulator* sim, Timer* t, qint64 delta) {
         return goToTime(sim, t, t->currentTime() + delta);
     }
+
 }
 #endif
