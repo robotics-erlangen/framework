@@ -21,7 +21,7 @@ export class BaseBall extends UnitTest {
 
 	private testToString() {
 		let ball = new Ball();
-		this.assert_equal(ball._toString(), "Ball(pos = (0, 0), speed = 0)");
+		this.assert_equal(ball._toString(), "Ball(pos = ( 0.000,  0.000), speed = 0.0)");
 	}
 
 	private ballData(pos: Position, speed: Speed, posZ: number, speedZ: number) {
