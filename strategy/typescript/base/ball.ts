@@ -67,10 +67,10 @@ export class Ball {
 	}
 
 	_toString() {
-		// return string.format("Ball(pos = (%6.3f, %6.3f), speed = %3.1f)",
-		// 	this.pos.x, this.pos.y, this.speed.length());
-		// TODO: string.format doesn't exist, but number of digits would be nice
-		return `Ball(pos = (${this.pos.x}, ${this.pos.y}), speed = ${this.speed.length()})`;
+		const x = this.pos.x.toFixed(3).padStart(6);
+		const y = this.pos.x.toFixed(3).padStart(6);
+		const speed = this.speed.length().toFixed(1).padStart(3);
+		return `Ball(pos = (${x}, ${y}), speed = ${speed})`;
 	}
 
 	toString() {
