@@ -22,6 +22,7 @@ add_executable(cpptests
     core/vector.cpp
     core/rng.cpp
     core/run_out_of_scope.cpp
+    core/coordinates.cpp
     amun/strategy/path/boundingbox.cpp
     amun/strategy/path/speedprofile.cpp
     amun/strategy/path/linesegment.cpp

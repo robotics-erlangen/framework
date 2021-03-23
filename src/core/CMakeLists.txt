@@ -25,6 +25,8 @@ add_library(core
     include/core/vector.h
     include/core/protobuffilesaver.h
     include/core/protobuffilereader.h
+    include/core/run_out_of_scope.h
+    include/core/coordinates.h
 
     fieldtransform.cpp
     rng.cpp
