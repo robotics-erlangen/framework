@@ -133,6 +133,11 @@ export class AttackRatio {
 	}
 
 	attackerDefenderDistribution(): [number, number] {
+
+		if (World.FriendlyRobots.length === 0) {
+			return [0, 0];
+		}
+
 		let attackRatio = this.attackRatio();
 
 		let attackers = attackRatio > 0 ? Math.max(1, Math.floor(attackRatio / 11 * World.FriendlyRobots.length)) : 0;
