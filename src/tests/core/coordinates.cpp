@@ -69,3 +69,34 @@ TEST(Coordinates, ToProtobuf) {
     ASSERT_FLOAT_EQ(res.x, -1);
     ASSERT_FLOAT_EQ(res.y, -5);
 }
+
+TEST(Coordinates, VelProtoProto) {
+    sslsim::TeleportRobot input, inLocal, output;
+
+    input.set_v_x(-5);
+    input.set_v_y(3);
+
+    coordinates::fromVisionVelocity(input, inLocal);
+    coordinates::toVisionVelocity(inLocal, output);
+
+    ASSERT_FLOAT_EQ(output.v_x(), -5);
+    ASSERT_FLOAT_EQ(output.v_y(), 3);
+    ASSERT_FALSE(output.has_x());
+    ASSERT_FALSE(output.has_y());
+}
+
+
+TEST(Coordinates, VelProtoProtoVX) {
+    sslsim::TeleportBall input, inLocal, output;
+
+    input.set_vx(-5);
+    input.set_vy(3);
+
+    coordinates::fromVisionVelocity(input, inLocal);
+    coordinates::toVisionVelocity(inLocal, output);
+
+    ASSERT_FLOAT_EQ(output.vx(), -5);
+    ASSERT_FLOAT_EQ(output.vy(), 3);
+    ASSERT_FALSE(output.has_x());
+    ASSERT_FALSE(output.has_y());
+}

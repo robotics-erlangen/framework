@@ -61,6 +61,12 @@ namespace core {
         }
 
         template<class T>
+        auto setVel(T& t, float x, float y) -> decltype(t.set_vx(x), void()) {
+            t.set_vx(x);
+            t.set_vy(y);
+        }
+
+        template<class T>
         auto get(const T& t, float& x, float& y) -> decltype(x = t.first, void()) {
             x = t.first;
             y = t.second;
@@ -95,6 +101,12 @@ namespace core {
             x = t.v_x();
             y = t.v_y();
         }
+
+        template<class T>
+        auto getVel(const T& t, float& x, float& y) -> decltype(x = t.vx(), void()) {
+            x = t.vx();
+            y = t.vy();
+        }
     }
 }
 
@@ -118,6 +130,25 @@ namespace coordinates {
         visionY = -x * 1000.f;
         core::internal::setPos(to, visionX, visionY);
     }
+
+    template<class F, class T>
+    void fromVisionVelocity(const F& from, T& to) {
+        std::pair<float, float> vision;
+        std::pair<float, float> result;
+        core::internal::getVel(from, vision.first, vision.second);
+        fromVision(vision, result);
+        core::internal::setVel(to, result.first, result.second);
+    }
+
+    template<class F, class T>
+    void toVisionVelocity(const F& from, T& to) {
+        std::pair<float, float> vision;
+        std::pair<float, float> result;
+        core::internal::getVel(from, vision.first, vision.second);
+        toVision(vision, result);
+        core::internal::setVel(to, result.first, result.second);
+    }
+
 }
 
 #endif
