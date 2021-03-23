@@ -100,6 +100,7 @@ static void simulatorTickCallback(btDynamicsWorld *world, btScalar timeStep)
  */
 
 Simulator::Simulator(const Timer *timer, const amun::SimulatorSetup &setup, bool useManualTrigger) :
+    m_isPartial(useManualTrigger),
     m_timer(timer),
     m_time(0),
     m_lastSentStatusTime(0),
@@ -107,8 +108,7 @@ Simulator::Simulator(const Timer *timer, const amun::SimulatorSetup &setup, bool
     m_enabled(false),
     m_charge(false),
     m_visionDelay(35 * 1000 * 1000),
-    m_visionProcessingTime(5 * 1000 * 1000),
-    m_isPartial(useManualTrigger)
+    m_visionProcessingTime(5 * 1000 * 1000)
 {
     // triggers by default every 5 milliseconds if simulator is enabled
     // timing may change if time is scaled
@@ -752,19 +752,25 @@ void Simulator::setTeam(Simulator::RobotMap &list, float side, const robot::Team
 
 #define FLIP(X, ATTR) do{if(X.has_##ATTR()){X.set_##ATTR(-X.ATTR());}} while(0)
 
-void Simulator::moveBall(const amun::SimulatorMoveBall &ball)
+void Simulator::moveBall(const sslsim::TeleportBall& ball)
 {
-    // handle ball move command
-    amun::SimulatorMoveBall b = ball;
+    sslsim::TeleportBall b = ball;
     if (m_data->flip) {
-        FLIP(b, p_x);
-        FLIP(b, p_y);
-        FLIP(b, v_x);
-        FLIP(b, v_y);
+        FLIP(b, x);
+        FLIP(b, y);
+        FLIP(b, vx);
+        FLIP(b, vy);
     }
 
-    if (b.has_teleport_safely() && b.teleport_safely()) {
-        safelyTeleportBall(b.p_x(), b.p_y());
+    if (b.teleport_safely()) {
+        if (!b.has_x() || !b.has_y()) {
+            SSLSimError error{new sslsim::SimulatorError};
+            error->set_code("TELEPORT_SAFLY_PARTIAL");
+            error->set_message("teleporting the ball safly with partial coordinates is not possible");
+            emit sendSSLSimError(error, ErrorSource::CONFIG);
+            return;
+        }
+        safelyTeleportBall(b.x(), b.y());
     }
 
     m_data->ball->move(b);
@@ -865,10 +871,10 @@ void Simulator::handleCommand(const Command &command)
             }
         }
 
-        if (sim.has_move_ball()) {
+/*        if (sim.has_move_ball()) {
             const amun::SimulatorMoveBall &ball = sim.move_ball();
             moveBall(ball);
-        }
+        }*/
 
         for (int i = 0; i < sim.move_blue_size(); i++) {
             const amun::SimulatorMoveRobot &robot = sim.move_blue(i);
@@ -878,6 +884,13 @@ void Simulator::handleCommand(const Command &command)
         for (int i = 0; i < sim.move_yellow_size(); i++) {
             const amun::SimulatorMoveRobot &robot = sim.move_yellow(i);
             moveRobot(m_data->robotsYellow, robot);
+        }
+
+        if (sim.has_ssl_control()) {
+            const auto& sslControl = sim.ssl_control();
+            if (sslControl.has_teleport_ball()) {
+                moveBall(sslControl.teleport_ball());
+            }
         }
 
         if (sim.has_vision_worst_case()) {

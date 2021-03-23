@@ -57,7 +57,7 @@ public:
     void begin();
     bool update(SSL_DetectionBall *ball, float stddev, float stddevArea, const CameraInfo& cameraInfo, float fieldBoundaryWidth,
                bool enableInvisibleBall, float visibilityThreshold);
-    void move(const amun::SimulatorMoveBall &ball);
+    void move(const sslsim::TeleportBall &ball);
     void kick(const btVector3 &power);
     // returns the ball position projected onto the floor (z component is not included)
     btVector3 position() const;
@@ -77,7 +77,7 @@ private:
     btCollisionShape *m_sphere;
     btRigidBody *m_body;
     btMotionState *m_motionState;
-    amun::SimulatorMoveBall m_move;
+    sslsim::TeleportBall m_move;
 };
 
 #endif // SIMBALL_H

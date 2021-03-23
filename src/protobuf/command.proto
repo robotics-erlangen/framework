@@ -75,7 +75,7 @@ message SimulatorRealismConfig {
 
 message CommandSimulator {
     optional bool enable = 1;
-    optional SimulatorMoveBall move_ball = 2; // deprecated
+    //optional SimulatorMoveBall move_ball = 2; // deprecated
     repeated SimulatorMoveRobot move_blue = 3; // deprecated
     repeated SimulatorMoveRobot move_yellow = 4; // depreaceted
     optional SimulatorSetup simulator_setup = 5;

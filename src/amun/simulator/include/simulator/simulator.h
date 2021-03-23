@@ -95,7 +95,7 @@ private:
     std::tuple<QList<QByteArray>, QByteArray, qint64> createVisionPacket();
     void resetVisionPackets();
     void setTeam(RobotMap &list, float side, const robot::Team &team);
-    void moveBall(const amun::SimulatorMoveBall &ball);
+    void moveBall(const sslsim::TeleportBall &ball);
     void moveRobot(const RobotMap &list, const amun::SimulatorMoveRobot &robot);
     void fieldAddLine(SSL_GeometryFieldSize *field, std::string name, float x1, float y1, float x2, float y2) const;
     void fieldAddCircularArc(SSL_GeometryFieldSize *field, std::string name, float x, float y, float radius, float a1, float a2) const;

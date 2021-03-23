@@ -26,6 +26,9 @@ message TeleportBall {
     optional bool teleport_safely = 7 [default = false];
     // Adapt the angular ball velocity such that the ball is rolling
     optional bool roll = 8 [default = false];
+    // Instead of teleporting the ball, apply some force to make sure
+    // the ball reaches the required position soon (velocity is ignored if true)
+    optional bool by_force = 9 [ default = false];
 }
 
 // Teleport a robot to some location and give it a velocity
@@ -48,6 +51,9 @@ message TeleportRobot {
     // true -> robot will be added, if it does not exist yet
     // false -> robot will be removed, if it is present
     optional bool present = 8;
+    // Instead of teleporting, apply some force to make sure
+    // the robot reaches the required position soon (velocity is ignored if true)
+    optional bool by_force = 9 [ default = false];
 }
 
 // Control the simulation

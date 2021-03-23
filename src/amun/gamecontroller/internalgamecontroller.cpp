@@ -20,6 +20,7 @@
 
 #include "internalgamecontroller.h"
 #include "protobuf/ssl_referee.h"
+#include "core/coordinates.h"
 #include <google/protobuf/descriptor.h>
 #include <QDebug>
 #include <cmath>
@@ -269,11 +270,11 @@ void InternalGameController::handleGameEvent(std::shared_ptr<gameController::Aut
         } else {
             // both teams failed placing the ball, teleport it instead
             Command ballCommand(new amun::Command);
-            ballCommand->mutable_simulator()->mutable_move_ball()->set_teleport_safely(true);
-            ballCommand->mutable_simulator()->mutable_move_ball()->set_position(true);
+            auto* teleport = ballCommand->mutable_simulator()->mutable_ssl_control()->mutable_teleport_ball();
+            teleport->set_teleport_safely(true);
             // use correct coordinates
-            ballCommand->mutable_simulator()->mutable_move_ball()->set_p_x(-placementPos.y);
-            ballCommand->mutable_simulator()->mutable_move_ball()->set_p_y(placementPos.x);
+            Vector rotatedPos{-placementPos.y, placementPos.x};
+            coordinates::toVision(rotatedPos, *teleport);
             emit sendCommand(ballCommand);
         }
         break;

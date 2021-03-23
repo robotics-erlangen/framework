@@ -21,6 +21,8 @@
 #include "simball.h"
 #include "simulator.h"
 #include "core/rng.h"
+#include "core/coordinates.h"
+#include "core/vector.h"
 #include "protobuf/ssl_detection.pb.h"
 #include <cmath>
 #include <QDebug>
@@ -87,29 +89,81 @@ void SimBall::begin()
         }
     }
 
-    if (m_move.has_p_x()) {
-        if (m_move.position()) {
-            // set ball to the given position and speed
-            const btVector3 pos(m_move.p_x(), m_move.p_y(), BALL_RADIUS + m_move.p_z());
-            btTransform transform = m_body->getWorldTransform();
-            transform.setOrigin(pos * SIMULATOR_SCALE);
-            m_body->setWorldTransform(transform);
-            const btVector3 linVel(m_move.v_x(), m_move.v_y(), m_move.v_z());
-            m_body->setLinearVelocity(linVel * SIMULATOR_SCALE);
-            m_body->setAngularVelocity(btVector3(0, 0, 0));
+
+    bool moveCommand = false;
+    auto sendPartialCoordError = [this](){
+        SSLSimError error{new sslsim::SimulatorError};
+        error->set_code("PARTIAL_COORD");
+        error->set_message("Partial coordinates are not implemented yet");
+        emit this->sendSSLSimError(error, ErrorSource::CONFIG);
+    };
+    if (m_move.has_x()) {
+        if (!m_move.has_y()) {
+            sendPartialCoordError();
+            return;
+        }
+        moveCommand = true;
+    } else if (m_move.has_y() || m_move.has_z()) {
+        sendPartialCoordError();
+        return;
+    }
+
+    if (m_move.has_vx()) {
+        if (!m_move.has_vy()) {
+            sendPartialCoordError();
+            return;
+        }
+        if (m_move.by_force() && (m_move.vx() != 0 || m_move.vy() != 0 || (m_move.has_vz() && m_move.vz() != 0))) {
+            SSLSimError error{new sslsim::SimulatorError};
+            error->set_code("VELOCITY_FORCE");
+            error->set_message("Velocities != 0 and by_force are incompatible");
+            emit sendSSLSimError(error, ErrorSource::CONFIG);
+            return;
+        }
+        moveCommand = true;
+    }
+
+    if (moveCommand) {
+        if(m_move.by_force()) {
+
+            Vector pos;
+            coordinates::fromVision(m_move, pos);
+            // move ball by hand
+            btVector3 force(pos.x, pos.y, m_move.z() + BALL_RADIUS);
+            force = force - m_body->getWorldTransform().getOrigin() / SIMULATOR_SCALE;
+            m_body->activate();
+            m_body->applyCentralImpulse(force * BALL_MASS * 0.1 * SIMULATOR_SCALE);
+            m_body->setDamping(0.99, 0.99);
+        } else {
+            if (m_move.has_x()) {
+                // set position
+                Vector cPos;
+                coordinates::fromVision(m_move, cPos);
+                float height = BALL_RADIUS;
+                if (m_move.has_z()) {
+                    height += m_move.z();
+                }
+                const btVector3 pos(cPos.x, cPos.y, height);
+                btTransform transform = m_body->getWorldTransform();
+                transform.setOrigin(pos * SIMULATOR_SCALE);
+                m_body->setWorldTransform(transform);
+            }
+            if (m_move.has_vx()) {
+                Vector vel;
+                coordinates::fromVisionVelocity(m_move, vel);
+                float vz = 0;
+                if (m_move.has_vz()) {
+                    vz = m_move.vz();
+                }
+                const btVector3 linVel(vel.x, vel.y, vz);
+                m_body->setLinearVelocity(linVel * SIMULATOR_SCALE);
+                m_body->setAngularVelocity(btVector3(0, 0, 0));
+            }
             m_body->activate();
             m_body->setDamping(0.0, 0.0);
             m_move.Clear(); // clear move command
             // reset is neccessary, as the command is only sent once
             // without one canceling it
-        } else {
-            // move ball by hand
-            btVector3 force(m_move.p_x(), m_move.p_y(), 0.0f);
-            force = force - m_body->getWorldTransform().getOrigin() / SIMULATOR_SCALE;
-            force.setZ(0.0f);
-            m_body->activate();
-            m_body->applyCentralImpulse(force * BALL_MASS * 0.1 * SIMULATOR_SCALE);
-            m_body->setDamping(0.99, 0.99);
         }
     } else {
         // ball is slowed down by rolling friction, not damping!
@@ -241,13 +295,12 @@ bool SimBall::addDetection(SSL_DetectionBall *ball, btVector3 pos, float stddev,
     // add noise to coordinates
     // to convert from bullet coordinate system to ssl-vision rotate by 90 degree ccw
     const Vector noise = m_rng->normalVector(stddev);
-    ball->set_x((modY + noise.x) * 1000.0f);
-    ball->set_y(-(modX + noise.y) * 1000.0f);
+    coordinates::toVision(Vector(modX, modY) + noise, *ball);
     return true;
 }
 
 
-void SimBall::move(const amun::SimulatorMoveBall &ball)
+void SimBall::move(const sslsim::TeleportBall &ball)
 {
     m_move = ball;
 }

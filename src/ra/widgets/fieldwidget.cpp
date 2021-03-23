@@ -45,6 +45,8 @@
 #include "fieldwidget.h"
 #include "virtualfieldsetupdialog.h"
 
+#include "core/coordinates.h"
+
 #ifdef QTSVG_FOUND
 #include <QSvgGenerator>
 #endif //QTSVG_FOUND
@@ -1507,9 +1509,9 @@ void FieldWidget::sendRobotMoveCommands(const QPointF &p)
     amun::CommandSimulator *sim = command->mutable_simulator();
     float flipFactor = m_flipped && !m_usingVirtualField ? -1.0f : 1.0f;
     if (m_dragType == DragBall) {
-        amun::SimulatorMoveBall *ball = sim->mutable_move_ball();
-        ball->set_p_x(p.x() * flipFactor);
-        ball->set_p_y(p.y() * flipFactor);
+        sslsim::TeleportBall *ball = sim->mutable_ssl_control()->mutable_teleport_ball();
+        coordinates::toVision(p * flipFactor, *ball); // TODO: mm vs. m. This one should be in meters, but is in mm.
+        ball->set_by_force(true);
     } else if (m_dragType == DragBlue) {
         amun::SimulatorMoveRobot *robot = sim->add_move_blue();
         robot->set_id(m_dragId);
@@ -1539,12 +1541,10 @@ void FieldWidget::sendSimulatorTeleportBall(const QPointF &p)
     float flipFactor = m_flipped && !m_usingVirtualField ? -1.0f : 1.0f;
     Command command(new amun::Command);
     amun::CommandSimulator *sim = command->mutable_simulator();
-    amun::SimulatorMoveBall *ball = sim->mutable_move_ball();
-    ball->set_p_x(p.x() * flipFactor);
-    ball->set_p_y(p.y() * flipFactor);
-    ball->set_v_x(0);
-    ball->set_v_y(0);
-    ball->set_position(true);
+    sslsim::TeleportBall *ball = sim->mutable_ssl_control()->mutable_teleport_ball();
+    coordinates::toVision(p * flipFactor, *ball);
+    ball->set_vx(0);
+    ball->set_vy(0);
     emit sendCommand(command);
 }
 
@@ -1757,7 +1757,7 @@ void FieldWidget::mouseReleaseEvent(QMouseEvent *event)
         Command command(new amun::Command);
         amun::CommandSimulator *sim = command->mutable_simulator();
         if (m_dragType == DragBall) {
-            sim->mutable_move_ball();
+            sim->mutable_ssl_control()->mutable_teleport_ball();
         } else if (m_dragType == DragBlue) {
             amun::SimulatorMoveRobot *robot = sim->add_move_blue();
             robot->set_id(m_dragId);
