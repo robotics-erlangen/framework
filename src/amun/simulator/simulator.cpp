@@ -747,17 +747,18 @@ void Simulator::setTeam(Simulator::RobotMap &list, float side, const robot::Team
     }
 }
 
+
+#define FLIP(X, ATTR) do{if(X.has_##ATTR()){X.set_##ATTR(-X.ATTR());}} while(0)
+
 void Simulator::moveBall(const amun::SimulatorMoveBall &ball)
 {
     // handle ball move command
     amun::SimulatorMoveBall b = ball;
     if (m_data->flip) {
-        if (ball.has_p_x()) {
-            b.set_p_x(-ball.p_x());
-        }
-        if (ball.has_p_y()) {
-            b.set_p_y(-ball.p_y());
-        }
+        FLIP(b, p_x);
+        FLIP(b, p_y);
+        FLIP(b, v_x);
+        FLIP(b, v_y);
     }
 
     if (b.has_teleport_safely() && b.teleport_safely()) {
@@ -777,12 +778,10 @@ void Simulator::moveRobot(const Simulator::RobotMap &list, const amun::Simulator
 
     // handle robot move command
     if (m_data->flip) {
-        if (robot.has_p_x()) {
-            r.set_p_x(-robot.p_x());
-        }
-        if (robot.has_p_y()) {
-            r.set_p_y(-robot.p_y());
-        }
+        FLIP(r, p_x);
+        FLIP(r, p_y);
+        FLIP(r, v_x);
+        FLIP(r, v_y);
     }
 
     SimRobot* sim_robot = list[r.id()].first;
