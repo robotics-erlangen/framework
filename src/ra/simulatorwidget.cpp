@@ -106,7 +106,7 @@ void SimulatorWidget::setSpeed(int speed)
         return;
     }
     Command command(new amun::Command);
-    command->set_speed(speed / 100.0f);
+    command->mutable_simulator()->mutable_ssl_control()->set_simulation_speed(speed / 100.0f);
     emit sendCommand(command);
 }
 

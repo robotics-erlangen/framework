@@ -407,15 +407,18 @@ void Amun::handleCommandLocally(const Command &command)
             createSimulator(sim.simulator_setup());
             setSimulatorEnabled(m_simulatorEnabled, m_useNetworkTransceiver);
         }
-    }
 
-    if (command->has_speed() && m_scaling != command->speed()) {
-        if (m_scaling == 0.0f) {
-            m_previousSpeed = command->speed();
-        } else {
-            m_scaling = command->speed();
-            if (m_simulatorEnabled) {
-                updateScaling(m_scaling);
+        if (sim.has_ssl_control() && sim.ssl_control().has_simulation_speed()) {
+            float newSpeed = sim.ssl_control().simulation_speed();
+            if (newSpeed != m_scaling) {
+                if (m_scaling == 0.0f) {
+                    m_previousSpeed = newSpeed;
+                } else {
+                    m_scaling = newSpeed;
+                    if (m_simulatorEnabled) {
+                        updateScaling(m_scaling);
+                    }
+                }
             }
         }
     }

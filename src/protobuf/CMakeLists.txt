@@ -59,6 +59,8 @@ set(PROTO_FILES
     ssl_simulation_robot_control.proto
     ssl_simulation_error.proto
     ssl_simulation_robot_feedback.proto
+    ssl_simulation_control.proto
+    ssl_simulation_config.proto
     ssl_wrapper.proto
     status.proto
     userinput.proto

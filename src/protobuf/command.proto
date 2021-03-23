@@ -4,6 +4,7 @@ option cc_enable_arenas = true;
 import "world.proto";
 import "robot.proto";
 import "logfile.proto";
+import "ssl_simulation_control.proto";
 
 package amun;
 
@@ -74,13 +75,14 @@ message SimulatorRealismConfig {
 
 message CommandSimulator {
     optional bool enable = 1;
-    optional SimulatorMoveBall move_ball = 2;
-    repeated SimulatorMoveRobot move_blue = 3;
-    repeated SimulatorMoveRobot move_yellow = 4;
+    optional SimulatorMoveBall move_ball = 2; // deprecated
+    repeated SimulatorMoveRobot move_blue = 3; // deprecated
+    repeated SimulatorMoveRobot move_yellow = 4; // depreaceted
     optional SimulatorSetup simulator_setup = 5;
     optional SimulatorWorstCaseVision vision_worst_case = 6;
     optional SimulatorRealismConfig realism_config = 7;
     optional world.SimulatorState set_simulator_state = 8;
+    optional sslsim.SimulatorControl ssl_control = 9;
 }
 
 message CommandReferee {
@@ -250,7 +252,7 @@ message Command {
     optional CommandStrategy strategy_autoref = 7;
     optional CommandControl control = 8;
     optional CommandTransceiver transceiver = 9;
-    optional float speed = 10;
+//    optional float speed = 10;
     optional CommandTracking tracking = 11;
     optional CommandAmun amun = 12;
     optional HostAddress mixed_team_destination = 13;
