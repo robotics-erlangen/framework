@@ -89,6 +89,7 @@ Amun::Amun(bool simulatorOnly, QObject *parent) :
     qRegisterMetaType<amun::DebugValue>("amun::DebugValue");
     qRegisterMetaType<amun::Visualization>("amun::Visualization");
     qRegisterMetaType<SSLSimRobotControl>("SSLSimRobotControl");
+    qRegisterMetaType<SSLSimError>("SSLSimError");
 
     for (int i = 0; i < 3; ++i) {
         m_strategy[i] = nullptr;

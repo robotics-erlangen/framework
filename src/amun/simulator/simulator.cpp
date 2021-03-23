@@ -134,6 +134,7 @@ Simulator::Simulator(const Timer *timer, const amun::SimulatorSetup &setup, bool
     // add field and ball
     m_data->field = new SimField(m_data->dynamicsWorld, m_data->geometry);
     m_data->ball = new SimBall(&m_data->rng, m_data->dynamicsWorld);
+    connect(m_data->ball, &SimBall::sendSSLSimError, this, &Simulator::sendSSLSimError);
     m_data->flip = false;
     m_data->stddevBall = 0.0f;
     m_data->stddevBallArea = 0.0f;
@@ -303,6 +304,7 @@ void Simulator::handleSimulatorTick(double timeStep)
     if (m_data->ball->isInvalid()) {
         delete m_data->ball;
         m_data->ball = new SimBall(&m_data->rng, m_data->dynamicsWorld);
+        connect(m_data->ball, &SimBall::sendSSLSimError, this, &Simulator::sendSSLSimError);
     }
 
     // apply commands and forces to ball and robots

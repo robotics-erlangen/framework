@@ -63,6 +63,7 @@ private:
 
 public slots:
     void handleRobotResponse(const QList<robot::RadioResponse>& responses);
+    void handleSimulatorError(const SSLSimError &error, camun::simulator::ErrorSource source);
 
 private slots:
     void handleDatagrams();
@@ -113,6 +114,16 @@ static void setError(sslsim::SimulatorError* error, SimError code, std::string a
         default:
             std::cerr << "Unmanaged SimError for message" << std::endl;
     }
+}
+
+void RobotCommandAdaptor::handleSimulatorError(const SSLSimError &error,camun::simulator::ErrorSource source)
+{
+    sslsim::RobotControlResponse rcr;
+
+    auto* sendError = rcr.add_errors();
+    *sendError = *error;
+
+    sendRobotRespose(rcr);
 }
 
 void RobotCommandAdaptor::handleDatagrams()
@@ -239,6 +250,7 @@ int main(int argc, char* argv[])
     qRegisterMetaType<Status>("Status");
     qRegisterMetaType<Command>("Command");
     qRegisterMetaType<SSLSimRobotControl>("SSLSimRobotControl");
+    qRegisterMetaType<SSLSimError>("SSLSimError");
 
     SimulatorComandAdaptor commands;
 

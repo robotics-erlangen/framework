@@ -22,8 +22,10 @@
 #define SIMBALL_H
 
 #include "protobuf/command.pb.h"
+#include "protobuf/sslsim.h"
 #include <btBulletDynamicsCommon.h>
 #include "simfield.h"
+#include <QObject>
 
 static const float BALL_RADIUS = 0.0215f;
 static const float BALL_MASS = 0.046f;
@@ -35,16 +37,21 @@ class SSL_DetectionBall;
 namespace camun {
     namespace simulator {
         class SimBall;
+        enum class ErrorSource;
     }
 }
 
-class camun::simulator::SimBall
+class camun::simulator::SimBall: public QObject
 {
+    Q_OBJECT
 public:
     SimBall(RNG *rng, btDiscreteDynamicsWorld *world);
     ~SimBall();
     SimBall(const SimBall&) = delete;
     SimBall& operator=(const SimBall&) = delete;
+
+signals:
+    void sendSSLSimError(const SSLSimError& error, ErrorSource s);
 
 public:
     void begin();

@@ -47,6 +47,12 @@ namespace camun {
         class SimRobot;
         class Simulator;
         struct SimulatorData;
+
+        enum class ErrorSource {
+            BLUE,
+            YELLOW,
+            CONFIG
+        };
     }
 }
 
@@ -69,6 +75,7 @@ signals:
     void sendStatus(const Status &status);
     void sendRadioResponses(const QList<robot::RadioResponse> &responses);
     void sendRealData(const QByteArray& data); // sends amun::SimulatorState
+    void sendSSLSimError(const SSLSimError& errors, ErrorSource source);
 
 public slots:
     void handleCommand(const Command &command);
