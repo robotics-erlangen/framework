@@ -5,7 +5,9 @@ import * as Referee from "base/referee";
 import { Robot } from "base/robot";
 import * as World from "base/world";
 
+import { Agent } from "glados/agent/base/agent";
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
+import { Midfield } from "glados/agent/objective/midfield";
 import { MessageType } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
@@ -13,6 +15,8 @@ import * as ObserverRobot from "glados/observer/robot";
 import { BallEscort as BallEscortTask } from "glados/task/shared/ballescort";
 
 export class BallEscort extends Behavior {
+	private _isDefender: boolean;
+	private _objective?: Midfield;
 	_minRobot: Robot | undefined = undefined;
 
 	private _checkOpponentTimings(): [Robot | undefined, number] {
@@ -46,6 +50,15 @@ export class BallEscort extends Behavior {
 		}
 
 		return oppTime - ownTime > 1;
+	}
+
+	constructor(agent: Agent, isDefender: boolean) {
+		super(agent);
+		this._isDefender = isDefender;
+	}
+
+	_stop() {
+		this._objective = undefined;
 	}
 
 	check(): Behavior | undefined {
@@ -124,6 +137,18 @@ export class BallEscort extends Behavior {
 	}
 
 	_updateTask(): TaskAssignment<typeof BallEscortTask> {
+		/*
+		 * Only send an objective when run on a defender.
+		 * If the main attacker is an attacker, he sends an objective in
+		 * SelectObjective.
+		 */
+		if (this._isDefender) {
+			if (!this._objective) {
+				this._objective = new Midfield(this._agent);
+			}
+			this._messaging.sendBroadcast(MessageType.selectedObjective, this._objective);
+		}
+
 		return [BallEscortTask, [this._minRobot]];
 	}
 }

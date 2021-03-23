@@ -1,4 +1,5 @@
 import { FriendlyRobot } from "base/robot";
+import { parameterizeClass } from "base/types";
 import * as World from "base/world";
 
 import { Agent } from "glados/agent/base/agent";
@@ -24,7 +25,7 @@ export class Defender extends Agent {
 			PenaltyPassiveDefenderOffense,
 			PenaltyPassiveDefense,
 			PassTarget,
-			BallEscort,
+			parameterizeClass(BallEscort, true),
 			HandleBall,
 			ManMark,
 			CenterBack,

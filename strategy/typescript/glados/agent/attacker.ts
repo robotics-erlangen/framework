@@ -1,5 +1,6 @@
 import * as debug from "base/debug";
 import { FriendlyRobot } from "base/robot";
+import { parameterizeClass } from "base/types";
 import * as World from "base/world";
 
 import { ApplyForMainattacker } from "glados/agent/attacker/applyformainattacker";
@@ -52,7 +53,7 @@ export class Attacker extends Agent {
 			Exchange,
 			Duel,
 			DuelAssistant,
-			BallEscort,
+			parameterizeClass(BallEscort, false),
 			BreakPass,
 			RunObjective,
 		];
