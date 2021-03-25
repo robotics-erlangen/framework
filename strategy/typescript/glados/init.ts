@@ -22,6 +22,7 @@ import "glados/tutorials/index";
 import "glados/util/lineup";
 
 import * as Ball from "glados/observer/ball";
+import * as Crash from "glados/observer/crash";
 import * as ErrorObserver from "glados/observer/error";
 import * as Goal from "glados/observer/goal";
 import * as Robot from "glados/observer/robot";
@@ -45,6 +46,7 @@ class PreProc implements Process {
 		Goal._update();
 		GameController._update();
 		lowFPSObserver.update();
+		Crash._update();
 	}
 
 	isFinished(): boolean {
