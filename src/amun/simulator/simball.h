@@ -64,7 +64,7 @@ public:
     btVector3 speed() const;
     void writeBallState(world::SimBall *ball) const;
     void restoreState(const world::SimBall &ball);
-    const btRigidBody *body() const { return m_body; }
+    btRigidBody *body() const { return m_body; }
     bool isInvalid() const;
 
     // can be used to add ball mis-detections

@@ -115,17 +115,20 @@ SimRobot::SimRobot(RNG *rng, const robot::Specs &specs, btDiscreteDynamicsWorld 
     localA.setOrigin(m_dribblerCenter);
     localA.setRotation(btQuaternion(btVector3(0, 1, 0), M_PI_2));
     localB.setRotation(btQuaternion(btVector3(0, 1, 0), M_PI_2));
-    m_constraint = new btHingeConstraint(*m_body, *dribblerBody, localA, localB);
-    m_constraint->enableAngularMotor(false, 0, 0);
-    m_world->addConstraint(m_constraint, true);
+    m_dribblerConstraint = new btHingeConstraint(*m_body, *dribblerBody, localA, localB);
+    m_dribblerConstraint->enableAngularMotor(false, 0, 0);
+    m_world->addConstraint(m_dribblerConstraint, true);
 }
 
 SimRobot::~SimRobot()
 {
-    m_world->removeConstraint(m_constraint);
+    if (m_holdBallConstraint) {
+        m_world->removeConstraint(m_holdBallConstraint.get());
+    }
+    m_world->removeConstraint(m_dribblerConstraint);
     m_world->removeRigidBody(m_dribblerBody);
     m_world->removeRigidBody(m_body);
-    delete m_constraint;
+    delete m_dribblerConstraint;
     delete m_body;
     delete m_dribblerBody;
     delete m_motionState;
@@ -144,6 +147,50 @@ void SimRobot::calculateDribblerMove(const btVector3 pos, const btQuaternion rot
     m_dribblerBody->setAngularVelocity(btVector3(0, 0, 0));
 }
 
+void SimRobot::dribble(SimBall *ball, float speed)
+{
+    if (m_perfectDribbler) {
+        if (canKickBall(ball) && !m_holdBallConstraint) {
+            btTransform localA, localB;
+            localA.setIdentity();
+            localB.setIdentity();
+
+            auto worldToRobot = m_body->getWorldTransform().inverse();
+            localA.setOrigin(worldToRobot * ball->position());
+            localA.setRotation(btQuaternion(worldToRobot * btVector3(0, 1, 0), M_PI_2));
+            localB.setRotation(btQuaternion(worldToRobot * btVector3(0, 1, 0), M_PI_2));
+
+            m_holdBallConstraint.reset(new btHingeConstraint(*m_body, *ball->body(), localA, localB));
+            m_world->addConstraint(m_holdBallConstraint.get(), true);
+        }
+    } else {
+        // unit for rotation is  (rad / s) in bullet, but (rpm) in sslCommand
+        const float max_rotation_speed = 150.f / 2 / M_PI * 60;
+        float dribbler = speed / max_rotation_speed;
+        // rad/s is limited to 150
+        float boundedDribbler = qBound(0.0f, dribbler, 1.0f);
+        m_dribblerConstraint->enableAngularMotor(true, 150 * boundedDribbler, 20 * boundedDribbler);
+    }
+}
+
+void SimRobot::stopDribbling()
+{
+    m_dribblerConstraint->enableAngularMotor(false, 0, 0);
+
+    if (m_holdBallConstraint) {
+        m_world->removeConstraint(m_holdBallConstraint.get());
+        m_holdBallConstraint.reset();
+    }
+}
+
+void SimRobot::setDribbleMode(bool perfectDribbler)
+{
+    if (m_perfectDribbler && !perfectDribbler) {
+        stopDribbling();
+    }
+    m_perfectDribbler = perfectDribbler;
+}
+
 void SimRobot::begin(SimBall *ball, double time)
 {
     m_commandTime += time;
@@ -159,14 +206,9 @@ void SimRobot::begin(SimBall *ball, double time)
 
     // enable dribbler if necessary
     if (!m_inStandby && m_sslCommand.has_dribbler_speed() && m_sslCommand.dribbler_speed() > 0) {
-        // unit for rotation is  (rad / s) in bullet, but (rpm) in sslCommand
-        const float max_rotation_speed = 150.f / 2 / M_PI * 60;
-        float dribbler = m_sslCommand.dribbler_speed() / max_rotation_speed;
-        // rad/s is limited to 150
-        float boundedDribbler = qBound(0.0f, dribbler, 1.0f);
-        m_constraint->enableAngularMotor(true, 150 * boundedDribbler, 20 * boundedDribbler);
+        dribble(ball, m_sslCommand.dribbler_speed());
     } else {
-        m_constraint->enableAngularMotor(false, 0, 0);
+        stopDribbling();
     }
 
     auto sendPartialCoordError = [this](const std::string& msg){
@@ -306,6 +348,8 @@ void SimRobot::begin(SimBall *ball, double time)
         const float dirFloor = std::cos(angle);
         const float dirUp = std::sin(angle);
 
+        stopDribbling();
+
         if (m_sslCommand.kick_angle() == 0) {
             power = qBound(0.05f, m_sslCommand.kick_speed(), m_specs.shot_linear_max());
         } else {
@@ -416,6 +460,10 @@ bool SimRobot::canKickBall(SimBall *ball) const
     // can't kick jumping ball
     if (ballPos.z() > 0.05f * SIMULATOR_SCALE) {
         return false;
+    }
+
+    if (m_holdBallConstraint) {
+        return true;
     }
 
     // check for collision between ball and dribbler

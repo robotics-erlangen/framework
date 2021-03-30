@@ -63,6 +63,7 @@ public:
     btVector3 position() const;
     btVector3 dribblerCorner(bool left) const;
     qint64 getLastSendTime() const { return m_lastSendTime; }
+    void setDribbleMode(bool perfectDribbler);
 
     const robot::Specs& specs() const { return m_specs; }
 
@@ -70,16 +71,19 @@ private:
     btVector3 relativeBallSpeed(SimBall *ball) const;
     float bound(float acceleration, float oldSpeed, float speedupLimit, float brakeLimit) const;
     void calculateDribblerMove(const btVector3 pos, const btQuaternion rot, const btVector3 linVel, float omega);
+    void dribble(SimBall *ball, float speed);
+    void stopDribbling();
 
     RNG *m_rng;
     robot::Specs m_specs;
     btDiscreteDynamicsWorld *m_world;
     btRigidBody * m_body;
     btRigidBody * m_dribblerBody;
-    btHingeConstraint *m_constraint;
+    btHingeConstraint *m_dribblerConstraint;
     QList<btCollisionShape*> m_shapes;
     btMotionState * m_motionState;
     btVector3 m_dribblerCenter;
+    std::unique_ptr<btHingeConstraint> m_holdBallConstraint;
 
     struct Wheel
     {
@@ -99,6 +103,8 @@ private:
     float error_sum_v_s;
     float error_sum_v_f;
     float error_sum_omega;
+
+    bool m_perfectDribbler = false;
 
     qint64 m_lastSendTime = 0;
 };
