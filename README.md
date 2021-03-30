@@ -47,7 +47,7 @@ provided by the framework.
 ...and many more. For a more complete description, [see here](docs/ra.md).
 
 ### Simulator CLI
-Target: `simulatorcli`
+Target: `simulator-cli`
 
 Simulate the physics of a SSL game. The program will receive a team's robot
 commands encoded using the [SSL simulation

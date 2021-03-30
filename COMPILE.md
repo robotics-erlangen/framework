@@ -39,7 +39,7 @@ just need to install the required dependencies.
 
 The following instructions advise to execute `make` without arguments, thus
 building **all** targets. This is **not needed** if you just want to use the
-`simulatorcli`.  Build it using `make simulatorcli`, that will be significantly
+`simulator-cli`.  Build it using `make simulator-cli`, that will be significantly
 faster.
 
 ## Linux
