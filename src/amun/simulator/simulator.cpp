@@ -25,6 +25,7 @@
 #include "simball.h"
 #include "simfield.h"
 #include "simrobot.h"
+#include "erroraggregator.h"
 #include <QTimer>
 #include <algorithm>
 #include <QtDebug>
@@ -108,7 +109,8 @@ Simulator::Simulator(const Timer *timer, const amun::SimulatorSetup &setup, bool
     m_enabled(false),
     m_charge(false),
     m_visionDelay(35 * 1000 * 1000),
-    m_visionProcessingTime(5 * 1000 * 1000)
+    m_visionProcessingTime(5 * 1000 * 1000),
+    m_aggregator(new ErrorAggregator(this))
 {
     // triggers by default every 5 milliseconds if simulator is enabled
     // timing may change if time is scaled
@@ -134,7 +136,7 @@ Simulator::Simulator(const Timer *timer, const amun::SimulatorSetup &setup, bool
     // add field and ball
     m_data->field = new SimField(m_data->dynamicsWorld, m_data->geometry);
     m_data->ball = new SimBall(&m_data->rng, m_data->dynamicsWorld);
-    connect(m_data->ball, &SimBall::sendSSLSimError, this, &Simulator::sendSSLSimError);
+    connect(m_data->ball, &SimBall::sendSSLSimError, m_aggregator, &ErrorAggregator::aggregate);
     m_data->flip = false;
     m_data->stddevBall = 0.0f;
     m_data->stddevBallArea = 0.0f;
@@ -238,6 +240,9 @@ void Simulator::process()
     // radio responses are sent when a robot gets his command
     // thus send the responses immediatelly
     emit sendRadioResponses(responses);
+    sendSSLSimError(ErrorSource::BLUE);
+    sendSSLSimError(ErrorSource::YELLOW);
+    sendSSLSimError(ErrorSource::CONFIG);
 
     // simulate to current strategy time
     double timeDelta = (current_time - m_time) * 1E-9;
@@ -277,6 +282,12 @@ void Simulator::process()
     emit sendStatus(status);
 }
 
+void Simulator::sendSSLSimError(ErrorSource source) {
+    QList<SSLSimError> errors = m_aggregator->getAggregates(source);
+    if (errors.size() == 0) return;
+    emit sendSSLSimError(errors, source);
+}
+
 void Simulator::resetFlipped(Simulator::RobotMap &robots, float side)
 {
     // find flipped robots and align them on a line
@@ -304,7 +315,7 @@ void Simulator::handleSimulatorTick(double timeStep)
     if (m_data->ball->isInvalid()) {
         delete m_data->ball;
         m_data->ball = new SimBall(&m_data->rng, m_data->dynamicsWorld);
-        connect(m_data->ball, &SimBall::sendSSLSimError, this, &Simulator::sendSSLSimError);
+        connect(m_data->ball, &SimBall::sendSSLSimError, m_aggregator, &ErrorAggregator::aggregate);
     }
 
     // apply commands and forces to ball and robots
@@ -767,13 +778,14 @@ void Simulator::moveBall(const sslsim::TeleportBall& ball)
             SSLSimError error{new sslsim::SimulatorError};
             error->set_code("TELEPORT_SAFLY_PARTIAL");
             error->set_message("teleporting the ball safly with partial coordinates is not possible");
-            emit sendSSLSimError(error, ErrorSource::CONFIG);
+            m_aggregator->aggregate(error, ErrorSource::CONFIG);
             return;
         }
         safelyTeleportBall(b.x(), b.y());
     }
 
     m_data->ball->move(b);
+
 }
 
 void Simulator::moveRobot(const Simulator::RobotMap &list, const amun::SimulatorMoveRobot &robot)

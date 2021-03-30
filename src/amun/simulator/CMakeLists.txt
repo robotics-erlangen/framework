@@ -32,6 +32,8 @@ add_library(simulator
     simrobot.h
     simulator.cpp
     fastsimulator.cpp
+    erroraggregator.h
+    erroraggregator.cpp
 )
 target_link_libraries(simulator
     PRIVATE shared::core

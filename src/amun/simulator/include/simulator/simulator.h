@@ -46,6 +46,7 @@ namespace camun {
     namespace simulator {
         class SimRobot;
         class Simulator;
+        class ErrorAggregator;
         struct SimulatorData;
 
         enum class ErrorSource {
@@ -75,7 +76,7 @@ signals:
     void sendStatus(const Status &status);
     void sendRadioResponses(const QList<robot::RadioResponse> &responses);
     void sendRealData(const QByteArray& data); // sends amun::SimulatorState
-    void sendSSLSimError(const SSLSimError& errors, ErrorSource source);
+    void sendSSLSimError(const QList<SSLSimError>& errors, ErrorSource source);
 
 public slots:
     void handleCommand(const Command &command);
@@ -91,6 +92,7 @@ private slots:
     void sendVisionPacket();
 
 private:
+    void sendSSLSimError(ErrorSource source);
     void resetFlipped(RobotMap &robots, float side);
     std::tuple<QList<QByteArray>, QByteArray, qint64> createVisionPacket();
     void resetVisionPackets();
@@ -125,6 +127,7 @@ private:
     qint64 m_minBallDetectionTime = 0;
     qint64 m_lastBallSendTime = 0;
     std::map<qint64, unsigned> m_lastFrameNumber;
+    ErrorAggregator *m_aggregator;
 };
 
 #endif // SIMULATOR_H
