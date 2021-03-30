@@ -31,7 +31,6 @@ void CommandConverter::handleRadioCommands(const QList<robot::RadioCommand> &com
             auto* robotCommand = control->add_robot_commands();
             robotCommand->set_id(robot.id());
             if (robot.command().kick_power() > 0 && m_charge) {
-                // TODO: This is bogus for kick speed for chips, as chipkicks are very much not handled like this.
                 robotCommand->set_kick_speed(robot.command().kick_power());
                 if (robot.command().kick_style() == robot::Command::Chip) {
                     robotCommand->set_kick_angle(45);
