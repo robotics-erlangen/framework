@@ -1,34 +1,46 @@
-# Compiling Ra
+# Setting up a build environment
 
-All programs should work on GNU/Linux, Mac OS X 10.10 and Windows >= 7.
+All programs should work on GNU+Linux Mac OS X 10.10 and Windows >= 7.
 Building is tested automatically on recent Ubuntu versions (currently 18.04 and
-20.04). Also, various team members use Arch Linux/Manjaro.
+20.04)
 
-In order to build Ra you will need:
+In order to build the framework, you will need:
 - `cmake` >= `3.5` (`3.7` on Windows)
 - `g++` >= `4.6`
 - `Qt` >= `5.9` (**NOT** `5.9.[0-2]` on Windows)
-- `protobuf` >= `2.6.0` (will be built from source when no suitable version is found)
+
+Also, `protobuf` >= `2.6.0` is required, but will be built from source when no
+suitable version is found.
 
 Certain features require additional libraries:
-- `libusb-1.0` >= `1.0.9` - USB communication
+- `libusb-1.0` >= `1.0.9` - USB communication with a wireless transceiver
 - `libsdl2` >= `2.0.2` - Gamepad support
 - `libudev` - required for Gamepad support (only required if `libsdl2` is not available via the package manager)
 - `libqt5svg5-dev` - Required for taking SVG screenshots of the fieldwidget
 - `python2`, `python3` and `git` - Required to build V8
 
 ## Table Of Contents
+- [Note for Robocup 2021 participants](#note-for-robocup-2021-participants)
 - [Linux](#linux)
   * [Required packages](#required-packages)
     * [Ubuntu 18.04/20.04](#ubuntu-18042004)
     * [Manjaro](#manjaro)
   * [Building V8 (optional)](#building-v8-optional-needed-for-javascript-support)
-  * [Building Ra](#building-ra)
+  * [Building Ra](#building-the-framework)
 - [Windows](#windows)
   * [Setup](#setup)
   * [Compiling](#compiling)
   * [Common problems](#common-problems)
 - [Mac OS X](#mac-os-x)
+
+## Note for Robocup 2021 participants
+None of the additional libraries are required to use the simulator. You'll
+just need to install the required dependencies.
+
+The following instructions advise to execute `make` without arguments, thus
+building **all** targets. This is **not needed** if you just want to use the
+`simulatorcli`.  Build it using `make simulatorcli`, that will be significantly
+faster.
 
 ## Linux
 
@@ -51,6 +63,8 @@ compilation. It is advisable to let the build system build `protobuf` from
 source.
 
 ### Building V8 (optional, needed for Javascript support)
+Note, that this is **not required** for the simulator.
+
 To build V8, `git`, `python2` and `python3` are required to be executable
 commands. The package names are
 
@@ -76,7 +90,7 @@ Finally, run the following in the repository root directory
 ```
 $ libs/v8/build.sh
 ```
-### Building Ra
+### Building the Framework
 
 The recommended way of building a project with CMake is by doing an
 out-of-source build. This can be done like this:

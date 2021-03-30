@@ -1,163 +1,64 @@
-# Ra
-This is the framework of the SSL-Team ER-Force named *Ra*. Its main features are:
-- simulate a SSL game with a varying number of robots on different possible field sizes
-- control robots, either autonomously with a Typescript/Lua AI script or manually
-- create a recording of the game and play it using our logplayer *Horus*
+# ER-Force Framework
+This is the framework of the SSL-Team ER-Force. Its main features are:
+- Simulating SSL games with a varying number of robots on different possible field sizes
+- Control robots, either autonomously using a Typescript/Lua AI script or manually
+- Create recordings of the game and play them back
 
-The **autoref** is found at https://github.com/robotics-erlangen/autoref .
+Note, that development of the **ER-Force autoref** does not happen in this
+repository - there is a separated repository [found
+here](https://github.com/robotics-erlangen/autoref). However, to ease the
+development of our AI scripts, it is contained as a `git` Submodule here. To
+use it, clone the repository using the `--recurse-submodules` flag. If you
+already cloned it, you can also use `git submodule init && git submodule update
+--recursive`.
 
 ## Table of Contents
-- [Getting Started](#getting-started)
-- [Usage](#usage)
-  * [Widgets](#widgets)
-  * [Analysis](#analysis)
-- [Other utilities](#other-utilities)
+- [Getting started and compiling the framework](#getting-started-and-compiling-the-framework)
+- [Contained programs](#contained-programs-and-their-corresponding-makefile-target)
+  * [Ra and Horus](#ra-and-horus)
+  * [Simulator CLI](#simulator-cli)
+  * [Other utilities](#other-utilities)
 - [Language services and Tests](#language-services-and-tests)
 
-## Getting started
-See [COMPILE.md](COMPILE.md) for instructions on how to build Ra.
-On Windows, the bin folder containing Ra and all other components can be moved
-freely to any location. On Linux and MacOS systems, it is required to leave the
-source folder at its current location since the generated binaries require the
-`config/` and `data/` folder to be located there.
 
-The autoref is included as a git submodule. It is not necessary for using Ra
-unless you want to use the internal autoref. To get it, either clone the whole
-repository with the `--recurse-submodules` flag or, if you already cloned the
-repo, use `git submodule init && git submodule update --recursive`
+## Getting started and compiling the framework
+First, [see here](COMPILE.md) on how to setup a build environment.
 
-## Usage
-Ra can either use the builtin simulator or use the data provided by SSL-Vision.
-Theres also a small builtin refbox which can be used in place of a network
-referee.
+You may then compile the [various
+programs](#contained-programs-and-their-corresponding-makefile-target)
+contained in the framework, or all of them using `make all`.
 
-### Widgets
-The GUI is made up of various widgets which can (for the most part) be freely
-moved inside the window. To open the menu used to hide or show widgets, make a
-middle mouse click in the toolbar on the top.
+**Note for Robocup 2021 participants**
+If you just intend to use the simulator to connect with your own software over
+the network, you only need to build the [Simulator CLI](#simulator-cli).
 
-#### Field widget
-Located in the center and can't be disabled. The field can be moved around by
-holding down the right mouse button and moving the cursor. Zooming is possible
-by scrolling. On MacOS, theres support for the usual gestures. While the
-simulator is active, the ball can be moved around with the left mouse button
-and teleported using the Control key and the left mouse button. Robots can be
-moved around by left clicking them and dragging the mouse. Use the context menu
-to change various settings:
-- field orientation
-- whether visualizations should be drawn
-- give ball placement commands
+## Contained programs (and their corresponding Makefile Target)
 
-#### Debug tree
-Located on the left of the field widget and can't be disabled. Can show debug
-information provided by the loaded AI modules. Its possible to filter the shown
-output using the search bar on the top. Hover over it for further information.
+### Ra and Horus
+Target: `ra`
 
-#### Visualizations
-Located on the right of the field widget by default. Allows drawing various
-visualizations on the field widget. The AI script base library contains a
-module `vis` which has a high level interface that can be used to draw common
-shapes. Double clicking a robot in the field widget toggles all visualizations
-whose name ends in "`: <robot id>`".
+The main program we use for development. Offers a GUI the various features
+provided by the framework.
+- Simulating a SSL game
+- Control robots either manually or autonomously using a Typescript/Lua AI script
+- Send commands to real robots using a wireless transceiver
+- Create recordings of the game and play them back (using the Logplayer Horus)
 
-#### Log widget
-Located below the field widget and can't be disabled. Will show text output by
-the loaded AI modules alongside a timestamp. This is also the place where
-autoref decisions are displayed.
+...and many more. For a more complete description, [see here](docs/ra.md).
 
-#### Robots
-This widget allows loading an AI script for each team, for the internal autoref
-and to assign robots to a team. Ra will only try to send radio commands
-generated by an AI script if the robot is set to be part of the corresponding
-team. Its also possible to select a robot for manual control.
+### Simulator CLI
+Target: `simulatorcli`
 
-#### Internal RefBox
-Allows sending referee commands which is useful during simulator play and test
-games. In order to allow an autoref script to be loaded in the Robots widget,
-tick the "Internal Autoref" checkbox.
+Simulate the physics of a SSL game. The program will receive a team's robot
+commands encoded using the [SSL simulation
+protocol](https://github.com/RoboCup-SSL/ssl-simulation-protocol) and broadcast
+the state of the world (i.e. positions of robots and the ball) using the SSL
+vision protocol.
 
-#### Toolbar
-Found on the top of the window and provides some central configuration
-switches. The toolbar is filled by the "Commands", the "Testing" and the
-"Configuration" widget. The following order only applies if all of them are
-enabled (which they are by default).
+**TODO** Implement command line options and document them
 
-The first button shows a radio antenna which enables the transceiver for robot
-communication. In the context of this release it is only important while the
-simulator is active. The capacitor next to it enables charging in order to
-allow robots to kick the ball.
 
-The fourth button, showing a computer display, is used to to switch between the
-internal simulator and SSl-Vision.
-
-The whistle button is used to disable and enable the "Internal RefBox" widget.
-
-Pressing the gamepad button allows robots to be controlled manually. They also
-have to be selected for manual control in the Robots widget.
-
-The vision port can be configured in the settings dialog.
-
-### Analysis
-Ra provides various tools used to analyze games.
-
-#### Ra and Horus
-Ra can be either in *normal* mode or in logplayer/*Horus* mode. In Horus mode,
-the field widget will transform to show a progress bar and will allow to load
-logfiles. There are multiple *workspaces* available. To switch between them type
-`Alt-1`, `Alt-2`, `Alt-3`... Odd numbered workspaces are in normal mode, even
-numbered in Horus mode. These workspaces have their own widget configuration.
-
-While in Horus mode, the search bar allows seeking to an arbitrary position in
-the logfile. The playback speed can be changed by changing the 100% scroll box.
-The playback can be controlled using shortcuts. Look at the menu items under
-`Logging` and `Instant Replay` for a complete list. Playback can be
-paused/continue by pressing `Space`.
-
-#### Logging and Instant Replay
-To start recording a game press the red button on the toolbar. Logs will be
-saved in the Ra process working directory by default, but another location can
-be set using `Select logfile default locations` item of the logging menu.
-
-Ra automatically records the last 20s played. To save this as a log, use the
-20s *backlog* button on the toolbar.
-
-While in Horus mode, a new button 20s (log) *backloglog* button will appear.
-While *backlog* will save the last real 20s of playtime, *backloglog* will save
-the last 20s of a replay (see next section).
-
-Ra also supports *Instant Replay*. Pressing `Ctrl-A` will switch to a Horus
-workspace with a log of the last 20s played. If the simulator is not active,
-this is only possible during halt. To exit Instant Replay, either type `Return`
-or switch to a workspace in normal mode.
-
-Its possible to merge together multiple logfiles into one and remove unwanted
-sections like halt. To do so, select the `Log Cutter` item in the File menu.
-
-Ra allows opening SSL Vision logs. They will be converted to our own log format
-on the fly.
-
-#### Replay
-Ra allows re-running an AI script on a log. This is called *Replay* (not to be
-confused with *Instant Replay*). To do so load a logfile and load an AI script
-in the replay widget. The replay scripts output will be tagged, e.g. when you
-replay a yellow strategy, the output in the debug tree will be prefixed by
-"Yellow Replay".
-
-#### Plotter
-Ra has a plotter that can either plot values provided by an AI script or
-information about robots and the ball. To access it, click the button with the
-red and blue line in the toolbar. You can adjust the scale of inputs and
-outputs using the input fields on the top and stop displaying new data using
-the "Freeze" button.
-
-You can calculate slopes by clicking in the output window and dragging the
-mouse.
-
-To perform a **ball speed measurement** set `Y Max` to 10 and `Y Min` to 0 and
-select `Ball/v_global` (only available if the ball is/was visible). When the
-ball is shot check whether its speed is higher than about 8,5 m/s.
-
-## Other utilities
+### Other utilities
 This repo also contains various utilities:
 - `amun-cli` - run an AI script from the command line.
 - `loganalyzer` - analayze the memory usage of a log file.
