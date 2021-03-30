@@ -9,9 +9,9 @@ import * as World from "base/world";
 
 import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
-import { Volley } from "glados/task/ability/volley";
 import * as Interval from "glados/util/interval";
 import * as Rating from "glados/util/rating";
+import * as Volley from "glados/util/volley";
 
 
 let G = World.Geometry;

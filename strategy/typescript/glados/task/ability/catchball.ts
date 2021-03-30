@@ -10,10 +10,10 @@ import * as World from "base/world";
 import { MessageType } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
-import { Volley } from "glados/task/ability/volley"; // only for calcPhi
 import { Task } from "glados/task/base";
 import { CurvedMaxAccel } from "glados/trajectory/curvedmaxaccel";
 import * as PathHelper from "glados/trajectory/pathhelper";
+import * as Volley from "glados/util/volley"; // only for calcPhi
 
 
 /** Safety distance to ball */

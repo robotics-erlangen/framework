@@ -8,12 +8,12 @@ import * as World from "base/world";
 
 import { Behavior } from "glados/agent/base/behavior";
 import * as Physics from "glados/observer/physics";
-import { Volley } from "glados/task/ability/volley";
 import { Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
 import * as UtilDefense from "glados/util/defense";
 import * as RobotList from "glados/util/robotlist";
+import * as Volley from "glados/util/volley";
 
 const POSITION_PADDING = 0.2; // safety distance
 const DEFEND_GOAL_HYSTERESIS = 0.1;
