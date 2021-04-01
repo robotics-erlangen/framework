@@ -25,21 +25,25 @@
 #include "protobuf/status.h"
 #include "protobuf/command.h"
 
+class Timer;
+
 class CommandConverter: public QObject {
     Q_OBJECT
 public:
-    explicit CommandConverter(QObject* parent = nullptr) : QObject(parent) {}
+    explicit CommandConverter(Timer* timer, QObject* parent = nullptr) : QObject(parent), m_timer(timer) {}
 
 signals:
     void sendSSLSim(SSLSimRobotControl control, bool blue, qint64 processingStart);
+    void sendStatus(const Status& s);
 
 public slots:
     void handleRadioCommands(const QList<robot::RadioCommand> &commands, qint64 processingStart);
     void handleCommand(Command c);
+    void handleSimulatorErrors(const QList<SSLSimError> &errors);
 
 private:
+    Timer* m_timer;
     bool m_charge = false;
-
 };
 
 #endif

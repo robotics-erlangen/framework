@@ -92,7 +92,7 @@ private slots:
     void sendVisionPacket();
 
 private:
-    void sendSSLSimError(ErrorSource source);
+    void sendSSLSimErrorInternal(ErrorSource source);
     void resetFlipped(RobotMap &robots, float side);
     std::tuple<QList<QByteArray>, QByteArray, qint64> createVisionPacket();
     void resetVisionPackets();

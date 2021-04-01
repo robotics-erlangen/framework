@@ -89,19 +89,22 @@ void NetworkTransceiver::handleResponse()
     while(m_udpSocket->hasPendingDatagrams()) {
         auto datagram = m_udpSocket->receiveDatagram();
         sslsim::RobotControlResponse res;
+        QList<SSLSimError> sslErrors;
         bool hadErrors = false;
         Status errors = Status::createArena();
-        amun::DebugValues* dV = nullptr;
         RUN_WHEN_OUT_OF_SCOPE({
                 if (hadErrors) {
                     emit sendStatus(errors);
+                }
+                if (sslErrors.size() != 0) {
+                    emit sendSSLSimError(sslErrors);
                 }
             });
         if (!res.ParseFromArray(datagram.data().data(), datagram.data().size())) {
             errors->set_time(m_timer->currentTime());
             hadErrors = true;
             std::string result = "Error connected simulator (response unreadable)";
-            dV = errors->add_debug();
+            auto dV = errors->add_debug();
             dV->set_time(m_timer->currentTime());
             auto log = dV->add_log();
             log->set_timestamp(m_timer->currentTime());
@@ -121,24 +124,9 @@ void NetworkTransceiver::handleResponse()
 
 
         for (const auto& error : res.errors()) {
-            errors->set_time(m_timer->currentTime());
-            hadErrors = true;
-            std::string result = "Error within connected simulator: ";
-            if (error.has_message()) {
-                result += error.message();
-            }
-            if (error.has_code()) {
-                result += "[" + error.code() + "]";
-            }
-
-            if(dV == nullptr) {
-                dV = errors->add_debug();
-                dV->set_time(m_timer->currentTime());
-            }
-
-            auto log = dV->add_log();
-            log->set_timestamp(m_timer->currentTime());
-            log->set_text(result);
+            SSLSimError cError{new sslsim::SimulatorError};
+            cError->CopyFrom(error);
+            sslErrors.push_back(std::move(cError));
         }
 
     }

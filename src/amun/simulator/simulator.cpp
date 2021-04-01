@@ -240,9 +240,9 @@ void Simulator::process()
     // radio responses are sent when a robot gets his command
     // thus send the responses immediatelly
     emit sendRadioResponses(responses);
-    sendSSLSimError(ErrorSource::BLUE);
-    sendSSLSimError(ErrorSource::YELLOW);
-    sendSSLSimError(ErrorSource::CONFIG);
+    sendSSLSimErrorInternal(ErrorSource::BLUE);
+    sendSSLSimErrorInternal(ErrorSource::YELLOW);
+    sendSSLSimErrorInternal(ErrorSource::CONFIG);
 
     // simulate to current strategy time
     double timeDelta = (current_time - m_time) * 1E-9;
@@ -282,7 +282,7 @@ void Simulator::process()
     emit sendStatus(status);
 }
 
-void Simulator::sendSSLSimError(ErrorSource source) {
+void Simulator::sendSSLSimErrorInternal(ErrorSource source) {
     QList<SSLSimError> errors = m_aggregator->getAggregates(source);
     if (errors.size() == 0) return;
     emit sendSSLSimError(errors, source);

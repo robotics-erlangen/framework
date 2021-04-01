@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include "commandconverter.h"
+#include "core/timer.h"
 #include <cmath>
 
 void CommandConverter::handleRadioCommands(const QList<robot::RadioCommand> &commands, qint64 processingStart) {
@@ -67,5 +68,31 @@ void CommandConverter::handleCommand(Command command) {
             m_charge = t.charge();
         }
     }
+}
+
+void CommandConverter::handleSimulatorErrors(const QList<SSLSimError>& errors) {
+    if (errors.size() == 0) return;
+    Status errorStatus = Status::createArena();
+    errorStatus->set_time(m_timer->currentTime());
+    amun::DebugValues* dV = nullptr;
+    for(const auto& e : errors) {
+        std::string result = "Error within simulator: ";
+        if (e->has_message()) {
+            result += e->message();
+        }
+        if (e->has_code()) {
+            result += "[" + e->code() + "]";
+        }
+
+        if(dV == nullptr) {
+            dV = errorStatus->add_debug();
+            dV->set_time(m_timer->currentTime());
+        }
+
+        auto log = dV->add_log();
+        log->set_timestamp(m_timer->currentTime());
+        log->set_text(result);
+    }
+    emit sendStatus(errorStatus);
 
 }

@@ -77,7 +77,7 @@ Amun::Amun(bool simulatorOnly, QObject *parent) :
     m_useAutoref(true),
     m_networkInterfaceWatcher(nullptr),
     m_seshat(new Seshat(20, this)),
-    m_commandConverter(new CommandConverter(this))
+    m_commandConverter(nullptr)
 {
     qRegisterMetaType<QNetworkInterface>("QNetworkInterface");
     qRegisterMetaType<Command>("Command");
@@ -90,6 +90,9 @@ Amun::Amun(bool simulatorOnly, QObject *parent) :
     qRegisterMetaType<amun::Visualization>("amun::Visualization");
     qRegisterMetaType<SSLSimRobotControl>("SSLSimRobotControl");
     qRegisterMetaType<SSLSimError>("SSLSimError");
+    qRegisterMetaType<QList<SSLSimError>>("QList<SSLSimError>");
+    qRegisterMetaType<camun::simulator::ErrorSource>("ErrorSource");
+    qRegisterMetaType<camun::simulator::ErrorSource>("camun::simulator::ErrorSource");
 
     for (int i = 0; i < 3; ++i) {
         m_strategy[i] = nullptr;
@@ -103,6 +106,9 @@ Amun::Amun(bool simulatorOnly, QObject *parent) :
     m_timer = new Timer;
     m_replayTimer = new Timer;
     m_replayTimer->setScaling(0);
+
+    m_commandConverter = new CommandConverter(m_timer, this);
+    connect(m_commandConverter, &CommandConverter::sendStatus, this, &Amun::handleStatus);
     // these threads just run an event loop
     // using the signal-slot mechanism the objects in these can be called
     m_processorThread = new QThread(this);
@@ -658,6 +664,12 @@ void Amun::setSimulatorEnabled(bool enabled, bool useNetworkTransceiver)
         m_commandConverter->disconnect(m_networkTransceiver);
     }
 
+    // remove errors connections
+    m_simulator->disconnect(m_commandConverter);
+    if (!m_simulatorOnly) {
+        m_networkTransceiver->disconnect(m_commandConverter);
+    }
+
     // setup connection for radio commands
     if (enabled || useNetworkTransceiver) {
         connect(m_processor, &Processor::sendRadioCommands, m_commandConverter, &CommandConverter::handleRadioCommands);
@@ -672,6 +684,13 @@ void Amun::setSimulatorEnabled(bool enabled, bool useNetworkTransceiver)
         // field setup
         connect(m_processor, SIGNAL(sendRadioCommands(QList<robot::RadioCommand>,qint64)),
                 m_transceiver, SLOT(handleRadioCommands(QList<robot::RadioCommand>,qint64)));
+    }
+
+    // setup connection for simulator errors
+    if (enabled) {
+        connect(m_simulator, &Simulator::sendSSLSimError, m_commandConverter, &CommandConverter::handleSimulatorErrors);
+    } else if (useNetworkTransceiver) {
+        connect(m_networkTransceiver, &NetworkTransceiver::sendSSLSimError, m_commandConverter, &CommandConverter::handleSimulatorErrors);
     }
 
     // setup connections for vision

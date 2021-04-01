@@ -41,6 +41,7 @@ public:
 signals:
     void sendStatus(const Status &status);
     void sendRadioResponses(const QList<robot::RadioResponse> &responses);
+    void sendSSLSimError(const QList<SSLSimError> errors);
 
 public slots:
     void handleSSLSimCommand(const SSLSimRobotControl& rc, bool blue, qint64 processingStart);
