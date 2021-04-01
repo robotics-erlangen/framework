@@ -91,26 +91,27 @@ void SimBall::begin()
 
 
     bool moveCommand = false;
-    auto sendPartialCoordError = [this](){
+    auto sendPartialCoordError = [this](const char* msg){
         SSLSimError error{new sslsim::SimulatorError};
         error->set_code("PARTIAL_COORD");
-        error->set_message("Partial coordinates are not implemented yet");
+        std::string message = "Partial coordinates are not implemented yet";
+        error->set_message(message + msg);
         emit this->sendSSLSimError(error, ErrorSource::CONFIG);
     };
     if (m_move.has_x()) {
         if (!m_move.has_y()) {
-            sendPartialCoordError();
+            sendPartialCoordError(": position ball");
             return;
         }
         moveCommand = true;
     } else if (m_move.has_y() || m_move.has_z()) {
-        sendPartialCoordError();
+        sendPartialCoordError(": position ball (not x)");
         return;
     }
 
     if (m_move.has_vx()) {
         if (!m_move.has_vy()) {
-            sendPartialCoordError();
+            sendPartialCoordError(": velocity ball");
             return;
         }
         if (m_move.by_force() && (m_move.vx() != 0 || m_move.vy() != 0 || (m_move.has_vz() && m_move.vz() != 0))) {
