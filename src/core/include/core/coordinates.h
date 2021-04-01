@@ -23,27 +23,39 @@
 
 #include "vector.h"
 
+#include<type_traits>
 
 namespace core {
     namespace internal {
 
+        // for pairs
         template<class T>
         auto set(T& t, float x, float y) -> decltype(t.first = x, void()) {
             t.first = x;
             t.second = y;
         }
 
-
+        //for core vectors
         template<class T>
         auto set(T& t, float x, float y) -> decltype(t.x = x, void()) {
             t.x = x;
             t.y = y;
         }
+
+        // for bullet vectors
+        template<class T>
+        auto set(T& t, float x, float y) -> decltype(t.setX(x), void()) {
+            t.setX(x);
+            t.setY(y);
+        }
+
+        // for protobuf messages
         template<class T>
         auto setPos(T& t, float x, float y) -> decltype(t.set_x(x), void()) {
             t.set_x(x);
             t.set_y(y);
         }
+
         template<class T>
         auto setPos(T& t, float x, float y) -> decltype(set(t,x,y), void()) {
             set(t,x,y);
@@ -80,6 +92,7 @@ namespace core {
         }
 
 
+        // for our bullet vectors and some messages
         template<class T>
         auto getPos(const T& t, float& x, float& y) -> decltype(x = t.x(), void()) {
             x = t.x();
@@ -147,6 +160,14 @@ namespace coordinates {
         core::internal::getVel(from, vision.first, vision.second);
         toVision(vision, result);
         core::internal::setVel(to, result.first, result.second);
+    }
+
+    inline float fromVisionRotation(float vision) {
+        return vision + M_PI_2;
+    }
+
+    inline float toVisionRotation(float internRotation) {
+        return internRotation - M_PI_2;
     }
 
 }
