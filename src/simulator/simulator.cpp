@@ -47,6 +47,8 @@ static int CONTROL_PORT = 10300;
  *
  * Known issues:
  *  - [ ]: Configuring via control_port is unimplemented
+ *      - [ ]: Currently, the TeleportBall message is in mm, not in meter
+ *      - [ ]: Currently, it is not possible to supply partial positions
  *  - [ ]: Robots go into standby after 0.1 seconds without command (Safty)
  *  - [ ]: Dribbler will reset if a new command doesn't contain a new dribbling speed (contrary to the definition that states all not set values should stay as previously assumed)
  *  - [ ]: Commands that are recieved at t0 will not be in effect after the next tick of the simulator (around 5 ms), no interpolation.
