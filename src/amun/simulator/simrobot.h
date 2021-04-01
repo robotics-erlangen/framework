@@ -34,16 +34,21 @@ namespace camun {
     namespace simulator {
         class SimBall;
         class SimRobot;
+        enum class ErrorSource;
     }
 }
 
-class camun::simulator::SimRobot
+class camun::simulator::SimRobot: public QObject
 {
+    Q_OBJECT
 public:
     SimRobot(RNG *rng, const robot::Specs &specs, btDiscreteDynamicsWorld *world, const btVector3 &pos, float dir);
     ~SimRobot();
     SimRobot(const SimRobot&) = delete;
     SimRobot& operator=(const SimRobot&) = delete;
+
+signals:
+    void sendSSLSimError(const SSLSimError& error, ErrorSource s);
 
 public:
     void begin(SimBall *ball, double time);
@@ -53,7 +58,7 @@ public:
     void update(SSL_DetectionRobot *robot, float stddev_p, float stddev_phi, qint64 time);
     void update(world::SimRobot *robot) const;
     void restoreState(const world::SimRobot &robot);
-    void move(const amun::SimulatorMoveRobot &robot);
+    void move(const sslsim::TeleportRobot &robot);
     bool isFlipped();
     btVector3 position() const;
     btVector3 dribblerCorner(bool left) const;
@@ -64,7 +69,7 @@ public:
 private:
     btVector3 relativeBallSpeed(SimBall *ball) const;
     float bound(float acceleration, float oldSpeed, float speedupLimit, float brakeLimit) const;
-    void calculateDribblerMove(const btVector3 pos, const btQuaternion rot, const btVector3 linVel);
+    void calculateDribblerMove(const btVector3 pos, const btQuaternion rot, const btVector3 linVel, float omega);
 
     RNG *m_rng;
     robot::Specs m_specs;
@@ -83,7 +88,7 @@ private:
         btVector3 dir;
     };
 
-    amun::SimulatorMoveRobot m_move;
+    sslsim::TeleportRobot m_move;
     sslsim::RobotCommand m_sslCommand;
     bool m_charge;
     bool m_isCharged;

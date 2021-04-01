@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include "core/rng.h"
+#include "core/coordinates.h"
 #include "mesh.h"
 #include "protobuf/ssl_detection.pb.h"
 #include "simball.h"
@@ -131,7 +132,7 @@ SimRobot::~SimRobot()
     qDeleteAll(m_shapes);
 }
 
-void SimRobot::calculateDribblerMove(const btVector3 pos, const btQuaternion rot, const btVector3 linVel)
+void SimRobot::calculateDribblerMove(const btVector3 pos, const btQuaternion rot, const btVector3 linVel, float omega)
 {
     const btQuaternion rotated = rot * btQuaternion(m_dribblerCenter, 0);
     const btVector3 dribblerPos = rotated.getAxis() + pos * SIMULATOR_SCALE;
@@ -139,7 +140,7 @@ void SimRobot::calculateDribblerMove(const btVector3 pos, const btQuaternion rot
     const btQuaternion dribblerDirectionRot(dribblerDirection, 0);
     const btQuaternion newDribblerRot = rot * dribblerDirectionRot;
     m_dribblerBody->setWorldTransform(btTransform(newDribblerRot, dribblerPos));
-    m_dribblerBody->setLinearVelocity(linVel + newDribblerRot.getAxis() * (-m_move.omega()));
+    m_dribblerBody->setLinearVelocity(linVel + newDribblerRot.getAxis() * (-omega));
     m_dribblerBody->setAngularVelocity(btVector3(0, 0, 0));
 }
 
@@ -168,18 +169,105 @@ void SimRobot::begin(SimBall *ball, double time)
         m_constraint->enableAngularMotor(false, 0, 0);
     }
 
-    if (m_move.has_p_x()) {
-        if (m_move.position()) {
-            // set the robot to the given position and speed
-            const btVector3 pos(m_move.p_x(), m_move.p_y(), m_specs.height() / 2.0f);
-            const btQuaternion rot = btQuaternion(btVector3(0, 0, 1), m_move.phi() - M_PI_2);
-            m_body->setWorldTransform(btTransform(rot, pos * SIMULATOR_SCALE));
-            const btVector3 linVel(m_move.v_x(), m_move.v_y(), 0.0f);
-            m_body->setLinearVelocity(linVel * SIMULATOR_SCALE);
-            const btVector3 angVel(m_move.omega(), 0.0f, 0.0f);
-            m_body->setAngularVelocity(angVel);
+    auto sendPartialCoordError = [this](const std::string& msg){
+        SSLSimError error{new sslsim::SimulatorError};
+        error->set_code("PARTIAL_COORD");
+        std::string message = "Partial coordinates are not implemented yet";
+        error->set_message(message + msg);
+        emit this->sendSSLSimError(error, ErrorSource::CONFIG);
+    };
+    bool moveCommand = false;
+    std::string message = " for robot (";
+    message += std::to_string(m_specs.id());
+    message += ')';
+    if (m_move.has_x()) {
+        if (!m_move.has_y() || (!m_move.has_orientation() && !m_move.by_force())) {
+            sendPartialCoordError(message + " position ");
+            return;
+        } else {
+            moveCommand = true;
+        }
+    } else if (m_move.has_y()) {
+            sendPartialCoordError(message + " position (no x)");
+        return;
+    }
 
-            calculateDribblerMove(pos, rot, linVel);
+    if (m_move.has_v_x()) {
+        if (!m_move.has_v_y()) {
+            sendPartialCoordError(message + " velocity");
+            return;
+        }
+        moveCommand = true;
+    } else if (m_move.has_v_y()) {
+        sendPartialCoordError(message + " velocity (no x)");
+        return;
+    }
+
+    if (m_move.has_v_angular()) {
+        moveCommand = true;
+    }
+
+    if (m_move.by_force()) {
+        bool sendError = false;
+        if (m_move.has_v_x()) {
+            sendError = m_move.v_x() != 0 || m_move.v_y() != 0;
+        }
+        if (m_move.has_v_angular()) {
+            sendError |= m_move.v_angular() != 0;
+        }
+        if (sendError) {
+            SSLSimError error{new sslsim::SimulatorError};
+            error->set_code("VELOCITY_FORCE");
+            error->set_message("Velocities != 0 and by_force are incompatible");
+            emit sendSSLSimError(error, ErrorSource::CONFIG);
+            return;
+        }
+    } // TODO: check for force and orientation
+
+    if(moveCommand) {
+        if (m_move.by_force()) {
+            // move robot by hand
+            btVector3 force;
+            coordinates::fromVision(m_move, force);
+            force.setZ(0.0f);
+            force = force - m_body->getWorldTransform().getOrigin() / SIMULATOR_SCALE;
+            force.setZ(0.0f);
+            m_body->activate();
+            m_body->applyCentralImpulse(force * m_specs.mass() * (1./6) * SIMULATOR_SCALE);
+            m_body->setDamping(0.99, 0.99);
+        } else {
+            btVector3 pos;
+            btVector3 linVel;
+            btQuaternion rot;
+            float angular;
+            // set the robot to the given position and speed
+            if (m_move.has_x()) {
+                coordinates::fromVision(m_move, pos);
+                pos.setZ(m_specs.height() / 2.0f);
+                rot = btQuaternion(btVector3(0, 0, 1), coordinates::fromVisionRotation(m_move.orientation()) - M_PI_2);
+                m_body->setWorldTransform(btTransform(rot, pos * SIMULATOR_SCALE));
+            } else {
+                const auto& transform = m_body->getWorldTransform();
+                rot = transform.getRotation();
+                pos = transform.getOrigin();
+            }
+            if (m_move.has_v_x()) {
+                btVector3 linVel;
+                coordinates::fromVisionVelocity(m_move, linVel);
+                linVel.setZ(0.0f);
+                m_body->setLinearVelocity(linVel * SIMULATOR_SCALE);
+            } else {
+                linVel = m_body->getLinearVelocity();
+            }
+            if (m_move.has_v_angular()) {
+                const btVector3 angVel(m_move.v_angular(), 0.0f, 0.0f);
+                m_body->setAngularVelocity(angVel);
+                angular = angVel[0];
+            } else {
+                angular = m_body->getAngularVelocity()[0];
+            }
+
+            calculateDribblerMove(pos, rot, linVel, angular);
 
             m_body->activate();
             m_dribblerBody->activate();
@@ -188,14 +276,6 @@ void SimRobot::begin(SimBall *ball, double time)
             m_move.Clear(); // clear move command
             // reset is neccessary, as the command is only sent once
             // without one canceling it
-        } else {
-            // move robot by hand
-            btVector3 force(m_move.p_x(), m_move.p_y(), 0.0f);
-            force = force - m_body->getWorldTransform().getOrigin() / SIMULATOR_SCALE;
-            force.setZ(0.0f);
-            m_body->activate();
-            m_body->applyCentralImpulse(force * m_specs.mass() * (1./6) * SIMULATOR_SCALE);
-            m_body->setDamping(0.99, 0.99);
         }
         return;
     }
@@ -450,7 +530,7 @@ void SimRobot::restoreState(const world::SimRobot &robot)
     m_body->setAngularVelocity(angular);
 }
 
-void SimRobot::move(const amun::SimulatorMoveRobot &robot)
+void SimRobot::move(const sslsim::TeleportRobot &robot)
 {
     m_move = robot;
 }

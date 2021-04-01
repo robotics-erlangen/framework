@@ -21,6 +21,7 @@
 #include "simulator.h"
 #include "core/rng.h"
 #include "core/timer.h"
+#include "core/coordinates.h"
 #include "protobuf/ssl_wrapper.pb.h"
 #include "simball.h"
 #include "simfield.h"
@@ -299,6 +300,7 @@ void Simulator::resetFlipped(Simulator::RobotMap &robots, float side)
         if (robot->isFlipped()) {
             SimRobot *new_robot = new SimRobot(&m_data->rng, robot->specs(), m_data->dynamicsWorld, btVector3(x, side * y, 0), 0.0f);
             delete robot;
+            connect(new_robot, &SimRobot::sendSSLSimError, m_aggregator, &ErrorAggregator::aggregate);
             it.value().first = new_robot;
         }
         y -= 0.3;
@@ -755,6 +757,7 @@ void Simulator::setTeam(Simulator::RobotMap &list, float side, const robot::Team
         }
 
         SimRobot *robot = new SimRobot(&m_data->rng, specs, m_data->dynamicsWorld, btVector3(x, side * y, 0), 0.0f);
+        connect(robot, &SimRobot::sendSSLSimError, m_aggregator, &ErrorAggregator::aggregate);
         list[id] = {robot, specs.generation()};
         y -= 0.3;
     }
@@ -788,7 +791,7 @@ void Simulator::moveBall(const sslsim::TeleportBall& ball)
 
 }
 
-void Simulator::moveRobot(const Simulator::RobotMap &list, const amun::SimulatorMoveRobot &robot)
+/*void Simulator::moveRobot(const Simulator::RobotMap &list, const amun::SimulatorMoveRobot &robot)
 {
     amun::SimulatorMoveRobot r = robot;
 
@@ -805,6 +808,33 @@ void Simulator::moveRobot(const Simulator::RobotMap &list, const amun::Simulator
     }
 
     SimRobot* sim_robot = list[r.id()].first;
+    sim_robot->move(r);
+}*/
+
+void Simulator::moveRobot(const sslsim::TeleportRobot &robot) {
+    if (!robot.id().has_team()) return;
+    if (!robot.id().has_id()) return;
+    bool is_blue = robot.id().team() == gameController::Team::BLUE;
+
+    const RobotMap& list = is_blue ? m_data->robotsBlue : m_data->robotsYellow;
+    /*bool present = false;
+    if (robot.has_present()) {
+        present = robot.present();
+    }*/
+
+    if (!list.contains(robot.id().id())) return; // TODO: obey adding new robots
+
+
+    sslsim::TeleportRobot r = robot;
+
+    if (m_data->flip) {
+        FLIP(r, x);
+        FLIP(r, y);
+        FLIP(r, v_x);
+        FLIP(r, v_y);
+    }
+
+    SimRobot* sim_robot = list[robot.id().id()].first;
     sim_robot->move(r);
 }
 
@@ -888,7 +918,7 @@ void Simulator::handleCommand(const Command &command)
             moveBall(ball);
         }*/
 
-        for (int i = 0; i < sim.move_blue_size(); i++) {
+/*        for (int i = 0; i < sim.move_blue_size(); i++) {
             const amun::SimulatorMoveRobot &robot = sim.move_blue(i);
             moveRobot(m_data->robotsBlue, robot);
         }
@@ -896,12 +926,15 @@ void Simulator::handleCommand(const Command &command)
         for (int i = 0; i < sim.move_yellow_size(); i++) {
             const amun::SimulatorMoveRobot &robot = sim.move_yellow(i);
             moveRobot(m_data->robotsYellow, robot);
-        }
+        }*/
 
         if (sim.has_ssl_control()) {
             const auto& sslControl = sim.ssl_control();
             if (sslControl.has_teleport_ball()) {
                 moveBall(sslControl.teleport_ball());
+            }
+            for (const auto& moveR : sslControl.teleport_robot()){
+                moveRobot(moveR);
             }
         }
 
@@ -1009,11 +1042,9 @@ void Simulator::teleportRobotToFreePosition(SimRobot *robot)
         }
     } while(!valid);
 
-    amun::SimulatorMoveRobot robotCommand;
-    robotCommand.set_id(robot->specs().id());
-    robotCommand.set_position(true);
-    robotCommand.set_p_x(robotPos.x());
-    robotCommand.set_p_y(robotPos.y());
+    sslsim::TeleportRobot robotCommand;
+    robotCommand.mutable_id()->set_id(robot->specs().id());
+    coordinates::toVision(robotPos, robotCommand);
 
     robotCommand.set_v_x(0);
     robotCommand.set_v_y(0);
@@ -1034,11 +1065,8 @@ void Simulator::safelyTeleportBall(const float x, const float y)
                 teleportRobotToFreePosition(robot);
             } else if (overlapCheck(newBallPos, STOP_ROBOTS_RADIUS, robotPos, robot->specs().radius())) {
                 // set the speed to zero but keep the robot where it is
-                amun::SimulatorMoveRobot robotCommand;
-                robotCommand.set_id(robot->specs().id());
-                robotCommand.set_position(true);
-                robotCommand.set_p_x(robotPos.x());
-                robotCommand.set_p_y(robotPos.y());
+                sslsim::TeleportRobot robotCommand;
+                robotCommand.mutable_id()->set_id(robot->specs().id());
                 robotCommand.set_v_x(0);
                 robotCommand.set_v_y(0);
                 robot->move(robotCommand);

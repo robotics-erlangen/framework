@@ -1513,20 +1513,24 @@ void FieldWidget::sendRobotMoveCommands(const QPointF &p)
         coordinates::toVision(p * flipFactor, *ball); // TODO: mm vs. m. This one should be in meters, but is in mm.
         ball->set_by_force(true);
     } else if (m_dragType == DragBlue) {
-        amun::SimulatorMoveRobot *robot = sim->add_move_blue();
-        robot->set_id(m_dragId);
-        robot->set_p_x(p.x() * flipFactor);
-        robot->set_p_y(p.y() * flipFactor);
+        sslsim::TeleportRobot *robot = sim->mutable_ssl_control()->add_teleport_robot();
+        auto* id = robot->mutable_id();
+        id->set_id(m_dragId);
+        id->set_team(gameController::BLUE);
+        coordinates::toVision(p * flipFactor, *robot);
+        robot->set_by_force(true);
 
         amun::RobotMoveCommand *move = command->add_robot_move_blue();
         move->set_id(m_dragId);
         move->set_p_x(p.x());
         move->set_p_y(p.y());
     } else if (m_dragType == DragYellow) {
-        amun::SimulatorMoveRobot *robot = sim->add_move_yellow();
-        robot->set_id(m_dragId);
-        robot->set_p_x(p.x() * flipFactor);
-        robot->set_p_y(p.y() * flipFactor);
+        sslsim::TeleportRobot *robot = sim->mutable_ssl_control()->add_teleport_robot();
+        auto* id = robot->mutable_id();
+        id->set_id(m_dragId);
+        id->set_team(gameController::YELLOW);
+        coordinates::toVision(p * flipFactor, *robot);
+        robot->set_by_force(true);
 
         amun::RobotMoveCommand *move = command->add_robot_move_yellow();
         move->set_id(m_dragId);
@@ -1759,11 +1763,13 @@ void FieldWidget::mouseReleaseEvent(QMouseEvent *event)
         if (m_dragType == DragBall) {
             sim->mutable_ssl_control()->mutable_teleport_ball();
         } else if (m_dragType == DragBlue) {
-            amun::SimulatorMoveRobot *robot = sim->add_move_blue();
-            robot->set_id(m_dragId);
+            gameController::BotId *id = sim->mutable_ssl_control()->add_teleport_robot()->mutable_id();
+            id->set_id(m_dragId);
+            id->set_team(gameController::BLUE);
         } else if (m_dragType == DragYellow) {
-            amun::SimulatorMoveRobot *robot = sim->add_move_yellow();
-            robot->set_id(m_dragId);
+            gameController::BotId *id = sim->mutable_ssl_control()->add_teleport_robot()->mutable_id();
+            id->set_id(m_dragId);
+            id->set_team(gameController::YELLOW);
         }
         emit sendCommand(command);
     }
