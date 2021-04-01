@@ -7,6 +7,10 @@ import "ssl_simulation_error.proto";
 
 package sslsim;
 
+// WARNING for all of these messages: They are used internally in full vision coordinate systems (mm / mm per second)
+// External users will send and recieve messages in the stipulated units (meters / meters per seconds)
+// Be careful when converting between these two uses.
+
 // Teleport the ball to a new location and optionally set it to some velocity
 message TeleportBall {
     // x-coordinate [m]
