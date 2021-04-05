@@ -30,6 +30,7 @@
 #include <QTimer>
 #include <algorithm>
 #include <QtDebug>
+#include <QVector>
 
 using namespace camun::simulator;
 
@@ -69,7 +70,8 @@ struct camun::simulator::SimulatorData
     btSequentialImpulseConstraintSolver *solver;
     btDiscreteDynamicsWorld *dynamicsWorld;
     world::Geometry geometry;
-    amun::CameraSetup cameraSetup;
+    QVector<SSL_GeometryCameraCalibration> reportedCameraSetup;
+    QVector<btVector3> cameraPositions;
     SimField *field;
     SimBall *ball;
     Simulator::RobotMap robotsBlue;
@@ -132,7 +134,14 @@ Simulator::Simulator(const Timer *timer, const amun::SimulatorSetup &setup, bool
     m_data->dynamicsWorld->setInternalTickCallback(simulatorTickCallback, this, true);
 
     m_data->geometry.CopyFrom(setup.geometry());
-    m_data->cameraSetup.CopyFrom(setup.camera_setup());
+    for (const auto& camera : setup.camera_setup()) {
+        m_data->reportedCameraSetup.append(camera);
+        Vector visionPosition(camera.derived_camera_world_tx(), camera.derived_camera_world_ty());
+        btVector3 truePosition;
+        coordinates::fromVision(visionPosition, truePosition);
+        truePosition.setZ(camera.derived_camera_world_tz() / 1000.0f);
+        m_data->cameraPositions.append(truePosition);
+    }
 
     // add field and ball
     m_data->field = new SimField(m_data->dynamicsWorld, m_data->geometry);
@@ -283,7 +292,8 @@ void Simulator::process()
     emit sendStatus(status);
 }
 
-void Simulator::sendSSLSimErrorInternal(ErrorSource source) {
+void Simulator::sendSSLSimErrorInternal(ErrorSource source)
+{
     QList<SSLSimError> errors = m_aggregator->getAggregates(source);
     if (errors.size() == 0) return;
     emit sendSSLSimError(errors, source);
@@ -360,139 +370,19 @@ void Simulator::fieldAddCircularArc(SSL_GeometryFieldSize *field, std::string na
     arc->set_thickness(m_data->geometry.line_width() * 1000.0f);
 }
 
-static bool checkCameraID(const int cameraId, const unsigned int numCameras, const btVector3& p, const float fieldHeight, const float overlap)
+static bool checkCameraID(const int cameraId, const btVector3 &p, const QVector<btVector3> &cameraPositions, const float overlap)
 {
-    if (numCameras == 1) {
-        return true;
-    } else if (numCameras == 2) {
-        // setup may differ from ssl-vision!
-        //  +y
-        // |-G-|
-        // | 1 |
-        // |---| +x
-        // | 0 |
-        // |-G-|
-        if (cameraId == 0) {
-            return p.y() <= overlap;
-        } else {
-            return p.y() >= -overlap;
-        }
-        // cameraId = p.y() > 0 ? 1 : 0;
-    } else if (numCameras == 4) {
-        // setup differs from ssl-vision!
-        //    +y
-        // |---G---|
-        // | 1 | 3 |
-        // |---o---| +x
-        // | 0 | 2 |
-        // |---G---|
-        switch(cameraId) {
-            case 0:
-                return p.y() <= overlap && p.x() <= overlap;
-            case 1:
-                return p.y() >= -overlap && p.x() <= overlap;
-            case 2:
-                return p.y() <= overlap && p.x() >= -overlap;
-            case 3:
-                return p.y() >= -overlap && p.x() >= -overlap;
-        }
-        // cameraId = ((p.y() > 0) ? 1 : 0) + ((p.x() > 0) ? 2 : 0);
-    } else if (numCameras == 8) {
-        // setup differs from ssl-vision!
-        //      +y
-        // |-----G-----|
-        // |  3  |  7  |
-        // |----- -----|
-        // |  2  |  6  |
-        // |-----o-----| +x
-        // |  1  |  5  |
-        // |----- -----|
-        // |  0  |  4  |
-        // |-----G-----|
-        // avoid duplicate check for positive and negative p.x
-        // float normalizedY = ((p.y() <= 0) ? fieldHeight/2 : 0) + p.y();
-        // cameraId = ((normalizedY > fieldHeight/4) ? 1 : 0)
-        //         + ((p.y() > 0) ? 2 : 0) + ((p.x() > 0) ? 4 : 0);
-        switch(cameraId) {
-            case 0:
-                return p.y() <= overlap-fieldHeight/4 && p.x() <= overlap;
-            case 1:
-                return p.y() >= -overlap-fieldHeight/4 && p.y() <= overlap && p.x() <= overlap;
-            case 2:
-                return p.y() <= overlap+fieldHeight/4 && p.y() >= -overlap && p.x() <= overlap;
-            case 3:
-                return p.y() >= -overlap+fieldHeight/4 && p.x() <= overlap;
-            case 4:
-                return p.y() <= overlap-fieldHeight/4 && p.x() >= -overlap;
-            case 5:
-                return p.y() >= -overlap-fieldHeight/4 && p.y() <= overlap && p.x() >= -overlap;
-            case 6:
-                return p.y() <= overlap+fieldHeight/4 && p.y() >= -overlap && p.x() >= -overlap;
-            case 7:
-                return p.y() >= -overlap+fieldHeight/4 && p.x() >= -overlap;
+    float minDistance = std::numeric_limits<float>::max();
+    float ownDistance = 0;
+    for (int i = 0;i<cameraPositions.size();i++) {
+        // manhattan distance for rectangular camera regions (if the cameras are distributed normally)
+        float distance = std::abs(cameraPositions[i].x() - p.x()) + std::abs(cameraPositions[i].y() - p.y());
+        minDistance = std::min(minDistance, distance);
+        if (i == cameraId) {
+            ownDistance = distance;
         }
     }
-
-    qDebug() << "SimBall: Unsupported number of cameras" << numCameras;
-    return -1;
-}
-
-
-static std::vector<CameraInfo> getCameraInfos(const std::size_t numCameras, const float fieldWidth, const float fieldHeight, const float cameraHeight)
-{
-    unsigned int camerasX = 0, camerasY = 0;
-    if (numCameras == 1) {
-        camerasX = 1;
-        camerasY = 1;
-    } else if (numCameras == 2) {
-        // setup may differ from ssl-vision!
-        //  +y
-        // |-G-|
-        // | 1 |
-        // |---| +x
-        // | 0 |
-        // |-G-|
-        camerasX = 1;
-        camerasY = 2;
-    } else if (numCameras == 4) {
-        // setup differs from ssl-vision!
-        //    +y
-        // |---G---|
-        // | 1 | 3 |
-        // |---o---| +x
-        // | 0 | 2 |
-        // |---G---|
-        camerasX = 2;
-        camerasY = 2;
-    } else if (numCameras == 8) {
-        // setup differs from ssl-vision!
-        //      +y
-        // |-----G-----|
-        // |  3  |  7  |
-        // |----- -----|
-        // |  2  |  6  |
-        // |-----o-----| +x
-        // |  1  |  5  |
-        // |----- -----|
-        // |  0  |  4  |
-        // |-----G-----|
-        camerasX = 2;
-        camerasY = 4;
-    }
-
-    std::vector<CameraInfo> cameraInfos(numCameras);
-    for (std::size_t cameraId = 0; cameraId < numCameras; ++cameraId) {
-        int signX = (cameraId >= numCameras / 2) ? 1 : -1;
-        int partsY = 2 * (cameraId % (numCameras / camerasX)) - (numCameras / camerasX - 1);
-
-        const float cameraHalfAreaX = fieldWidth / (2 * camerasX);
-        const float cameraHalfAreaY = fieldHeight / (2 * camerasY);
-        const float cameraX = camerasX == 1 ? 0 : cameraHalfAreaX * signX;
-        const float cameraY = cameraHalfAreaY * partsY;
-        const float cameraZ = cameraHeight;
-        cameraInfos[cameraId] = {btVector3(cameraX, cameraY, cameraZ), cameraHalfAreaX, cameraHalfAreaY};
-    }
-    return cameraInfos;
+    return ownDistance <= minDistance + 2 * overlap;
 }
 
 void Simulator::populateFieldPacket(SSL_GeometryFieldSize *field)
@@ -537,34 +427,6 @@ void Simulator::populateFieldPacket(SSL_GeometryFieldSize *field)
     }
 }
 
-static void addCameraCalibrations(SSL_GeometryData *geometry, const std::size_t& numCameras, const std::vector<CameraInfo>& cameraInfos,
-                                  float positionError)
-{
-    // the exact direction is not really important, but it should stay constant
-    const btVector3 CAMERA_POSITION_ERROR = btVector3(0.3f, 0.7f, 0.05f).normalized() * positionError;
-
-    for (std::size_t cameraId = 0; cameraId < numCameras; ++cameraId) {
-        SSL_GeometryCameraCalibration *calib = geometry->add_calib();
-        calib->set_camera_id(cameraId);
-        // DUMMY VALUES
-        calib->set_distortion(0.2);
-        calib->set_focal_length(FOCAL_LENGTH);
-        calib->set_principal_point_x(300);
-        calib->set_principal_point_y(300);
-        calib->set_q0(0.7);
-        calib->set_q1(0.7);
-        calib->set_q2(0.7);
-        calib->set_q3(0.7);
-        calib->set_tx(0);
-        calib->set_ty(0);
-        calib->set_tz(3500);
-
-        calib->set_derived_camera_world_tx((cameraInfos[cameraId].position.y() + CAMERA_POSITION_ERROR.y()) * 1000);
-        calib->set_derived_camera_world_ty(-(cameraInfos[cameraId].position.x() + CAMERA_POSITION_ERROR.x()) * 1000);
-        calib->set_derived_camera_world_tz((cameraInfos[cameraId].position.z() + CAMERA_POSITION_ERROR.z()) * 1000);
-    }
-}
-
 void Simulator::initializeDetection(SSL_DetectionFrame *detection, std::size_t cameraId)
 {
     detection->set_frame_number(m_lastFrameNumber[cameraId]++);
@@ -575,7 +437,7 @@ void Simulator::initializeDetection(SSL_DetectionFrame *detection, std::size_t c
 
 std::tuple<QList<QByteArray>, QByteArray, qint64> Simulator::createVisionPacket()
 {
-    const std::size_t numCameras = m_data->cameraSetup.num_cameras();
+    const std::size_t numCameras = m_data->reportedCameraSetup.size();
     world::SimulatorState simState;
 
     std::vector<SSL_DetectionFrame> detections(numCameras);
@@ -583,9 +445,6 @@ std::tuple<QList<QByteArray>, QByteArray, qint64> Simulator::createVisionPacket(
         initializeDetection(&detections[i], i);
     }
 
-    std::vector<CameraInfo> cameraInfos = getCameraInfos(numCameras, m_data->geometry.field_width(), m_data->geometry.field_height(), m_data->cameraSetup.camera_height());
-
-    const float totalBoundaryWidth = m_data->geometry.boundary_width();
     auto* ball = simState.mutable_ball();
     m_data->ball->writeBallState(ball);
 
@@ -597,13 +456,13 @@ std::tuple<QList<QByteArray>, QByteArray, qint64> Simulator::createVisionPacket(
 
         for (std::size_t cameraId = 0; cameraId < numCameras; ++cameraId) {
             // at least one id is always valid
-            if (!checkCameraID(cameraId, numCameras, ballPosition, m_data->geometry.field_height(), m_data->cameraOverlap)) {
+            if (!checkCameraID(cameraId, ballPosition, m_data->cameraPositions, m_data->cameraOverlap)) {
                 continue;
             }
 
             // get ball position
-            bool visible = m_data->ball->update(detections[cameraId].add_balls(), m_data->stddevBall, m_data->stddevBallArea, cameraInfos[cameraId],
-                    totalBoundaryWidth, m_data->enableInvisibleBall, m_data->ballVisibilityThreshold);
+            bool visible = m_data->ball->update(detections[cameraId].add_balls(), m_data->stddevBall, m_data->stddevBallArea, m_data->cameraPositions[cameraId],
+                    m_data->enableInvisibleBall, m_data->ballVisibilityThreshold);
             if (!visible) {
                 detections[cameraId].clear_balls();
             }
@@ -626,7 +485,7 @@ std::tuple<QList<QByteArray>, QByteArray, qint64> Simulator::createVisionPacket(
                 for (std::size_t cameraId = 0; cameraId < numCameras; ++cameraId) {
 
 
-                    if (!checkCameraID(cameraId, numCameras, robotPos, m_data->geometry.field_height(), m_data->cameraOverlap)) {
+                    if (!checkCameraID(cameraId, robotPos, m_data->cameraPositions, m_data->cameraOverlap)) {
                         continue;
                     }
 
@@ -643,7 +502,7 @@ std::tuple<QList<QByteArray>, QByteArray, qint64> Simulator::createVisionPacket(
                     if (m_data->ballDetectionsAtDribbler > 0 && m_data->rng.uniformFloat(0, 1) < detectionProb) {
                         // always on the right side of the dribbler for now
                         if (!m_data->ball->addDetection(detections[cameraId].add_balls(), robot->dribblerCorner(false) / SIMULATOR_SCALE,
-                                                        m_data->stddevRobot, 0, cameraInfos[cameraId], totalBoundaryWidth, false, 0)) {
+                                                        m_data->stddevRobot, 0, m_data->cameraPositions[cameraId], false, 0)) {
                             detections[cameraId].mutable_balls()->DeleteSubrange(detections[cameraId].balls_size()-1, 1);
                         }
                     }
@@ -679,7 +538,16 @@ std::tuple<QList<QByteArray>, QByteArray, qint64> Simulator::createVisionPacket(
     SSL_GeometryFieldSize *field = geometry->mutable_field();
     populateFieldPacket(field);
 
-    addCameraCalibrations(geometry, numCameras, cameraInfos, m_data->cameraPositionError);
+    const btVector3 positionErrorSimScale = btVector3(0.3f, 0.7f, 0.05f).normalized() * m_data->cameraPositionError;
+    btVector3 positionErrorVisionScale{0, 0, positionErrorSimScale.z() * 1000};
+    coordinates::toVision(positionErrorSimScale, positionErrorVisionScale);
+    for (const auto &calibration : m_data->reportedCameraSetup) {
+        auto calib = geometry->add_calib();
+        calib->CopyFrom(calibration);
+        calib->set_derived_camera_world_tx(calib->derived_camera_world_tx() + positionErrorVisionScale.x());
+        calib->set_derived_camera_world_ty(calib->derived_camera_world_ty() + positionErrorVisionScale.y());
+        calib->set_derived_camera_world_tz(calib->derived_camera_world_tz() + positionErrorVisionScale.z());
+    }
 
     // serialize "vision packet"
     QList<QByteArray> data;

@@ -52,9 +52,7 @@ public:
 static camun::simulator::Simulator* mallocTestingSimulator(Timer* t) {
     // this is stolen from amun
     amun::SimulatorSetup defaultSimulatorSetup;
-    geometrySetDefault(defaultSimulatorSetup.mutable_geometry());
-    defaultSimulatorSetup.mutable_camera_setup()->set_num_cameras(2);
-    defaultSimulatorSetup.mutable_camera_setup()->set_camera_height(4.5f);
+    simulatorSetupSetDefault(defaultSimulatorSetup);
     return new camun::simulator::Simulator{t, defaultSimulatorSetup, true};
 }
 

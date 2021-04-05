@@ -41,3 +41,56 @@ void geometrySetDefault(world::Geometry *geometry, bool useQuadField)
     geometry->set_type(useQuadField ? world::Geometry::TYPE_2018 : world::Geometry::TYPE_2014);
     assert(geometry->IsInitialized());
 }
+
+void convertFromSSlGeometry(const SSL_GeometryFieldSize &g, world::Geometry &outGeometry)
+{
+    // assumes that the packet using the ssl vision naming convention for field markings
+    // also the packet should be consistent, complete and use only one rule version (no mixed penalty arcs and rectangles)
+    outGeometry.set_field_width(g.field_width() / 1000.0f);
+    outGeometry.set_field_height(g.field_length() / 1000.0f);
+    outGeometry.set_goal_width(g.goal_width() / 1000.0f);
+    outGeometry.set_goal_depth(g.goal_depth() / 1000.0f);
+    outGeometry.set_boundary_width(g.boundary_width() / 1000.0f);
+    outGeometry.set_goal_height(0.155f);
+    outGeometry.set_goal_wall_width(0.02f);
+    outGeometry.set_free_kick_from_defense_dist(0.20f);
+    outGeometry.set_penalty_line_from_spot_dist(0.40f);
+
+    float minThickness = std::numeric_limits<float>::max();
+    bool is2014Geometry = true;
+    for (const SSL_FieldLineSegment &line : g.field_lines()) {
+        minThickness = std::min(minThickness, line.thickness());
+        std::string name = line.name();
+        if (name == "LeftPenaltyStretch") {
+            outGeometry.set_defense_stretch(std::abs(line.p1().y() - line.p2().y()) / 1000.0f);
+            outGeometry.set_defense_width(std::abs(line.p1().y() - line.p2().y()) / 1000.0f);
+        } else if (name == "LeftFieldLeftPenaltyStretch") {
+            outGeometry.set_defense_height(std::abs(line.p1().x() - line.p2().x()) / 1000.0f);
+            is2014Geometry = false;
+        }
+    }
+
+    for (const SSL_FieldCircularArc &arc : g.field_arcs()) {
+        minThickness = std::min(minThickness, arc.thickness());
+        std::string name = arc.name();
+        if (name == "LeftFieldLeftPenaltyArc") {
+            is2014Geometry = true;
+            outGeometry.set_defense_radius(arc.radius() / 1000.0f);
+        } else if (name == "CenterCircle") {
+            outGeometry.set_center_circle_radius(arc.radius() / 1000.0f);
+        }
+    }
+    outGeometry.set_line_width(minThickness / 1000.0f);
+
+    // fill out the other required fields
+    outGeometry.set_penalty_spot_from_field_line_dist((is2014Geometry) ? outGeometry.defense_radius() : outGeometry.defense_height());
+    if (!outGeometry.has_defense_radius()) {
+        outGeometry.set_defense_radius(outGeometry.defense_height());
+    }
+
+    if (is2014Geometry) {
+        outGeometry.set_type(world::Geometry::TYPE_2014);
+    } else {
+        outGeometry.set_type(world::Geometry::TYPE_2018);
+    }
+}

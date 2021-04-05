@@ -28,7 +28,6 @@
 namespace camun {
     namespace simulator {
         class SimField;
-        struct CameraInfo;
     }
 }
 
@@ -49,13 +48,6 @@ private:
     btCollisionShape *m_goalSide;
     btCollisionShape *m_goalBack;
     QList<btCollisionObject*> m_objects;
-};
-
-// maybe needs a better home than this header
-struct camun::simulator::CameraInfo {
-    btVector3 position;
-    float halfAreaX;
-    float halfAreaY;
 };
 
 #endif // SIMFIELD_H

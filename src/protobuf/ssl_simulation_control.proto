@@ -71,7 +71,7 @@ message SimulatorCommand {
     // Control the simulation
     optional SimulatorControl control = 1;
     // Configure the simulation
-    optional SimulatorConfig config = 2;
+    optional sslsim.SimulatorConfig config = 2;
 }
 
 // Response of the simulator to the connected client

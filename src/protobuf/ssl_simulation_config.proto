@@ -5,6 +5,8 @@ import "ssl_game_controller_common.proto";
 import "ssl_geometry.proto";
 import "google/protobuf/any.proto";
 
+package sslsim;
+
 // Movement limits for a robot
 message RobotLimits {
     // Max absolute speed-up acceleration [m/s^2]

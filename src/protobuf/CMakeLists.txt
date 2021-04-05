@@ -27,6 +27,7 @@ add_library(protobuf
     include/protobuf/status.h
     include/protobuf/sslsim.h
 
+    command.cpp
     geometry.cpp
     robot.cpp
     ssl_referee.cpp
@@ -80,7 +81,7 @@ target_compile_options(protobuf PUBLIC -w)
 target_link_libraries(protobuf
     PUBLIC ${PROTOBUF_LIBRARY}
     PUBLIC Threads::Threads
-    INTERFACE Qt5::Core
+    PUBLIC Qt5::Core
 )
 target_include_directories(protobuf
     PUBLIC include

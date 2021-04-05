@@ -260,9 +260,7 @@ void Amun::start()
     // create simulator
     Q_ASSERT(m_simulator == nullptr);
     amun::SimulatorSetup defaultSimulatorSetup;
-    geometrySetDefault(defaultSimulatorSetup.mutable_geometry(), true);
-    defaultSimulatorSetup.mutable_camera_setup()->set_num_cameras(2);
-    defaultSimulatorSetup.mutable_camera_setup()->set_camera_height(4.5f);
+    simulatorSetupSetDefault(defaultSimulatorSetup);
     createSimulator(defaultSimulatorSetup);
     connect(m_processor, SIGNAL(setFlipped(bool)), m_simulator, SLOT(setFlipped(bool)));
 

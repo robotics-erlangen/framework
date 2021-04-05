@@ -233,18 +233,18 @@ static float positionOfVisiblePixels(btVector3& p, const btVector3& simulatorBal
     return static_cast<float>(cameraHitCounter) / static_cast<float>(maxHits);
 }
 
-bool SimBall::update(SSL_DetectionBall *ball, float stddev, float stddevArea, const CameraInfo& cameraInfo,
-                     float fieldBoundaryWidth, bool enableInvisibleBall, float visibilityThreshold)
+bool SimBall::update(SSL_DetectionBall *ball, float stddev, float stddevArea, const btVector3& cameraPosition,
+                     bool enableInvisibleBall, float visibilityThreshold)
 {
     btTransform transform;
     m_motionState->getWorldTransform(transform);
     btVector3 pos = transform.getOrigin() / SIMULATOR_SCALE;
 
-    return addDetection(ball, pos, stddev, stddevArea, cameraInfo, fieldBoundaryWidth, enableInvisibleBall, visibilityThreshold);
+    return addDetection(ball, pos, stddev, stddevArea, cameraPosition, enableInvisibleBall, visibilityThreshold);
 }
 
-bool SimBall::addDetection(SSL_DetectionBall *ball, btVector3 pos, float stddev, float stddevArea, const CameraInfo& cameraInfo,
-                            float fieldBoundaryWidth, bool enableInvisibleBall, float visibilityThreshold)
+bool SimBall::addDetection(SSL_DetectionBall *ball, btVector3 pos, float stddev, float stddevArea, const btVector3& cameraPosition,
+                            bool enableInvisibleBall, float visibilityThreshold)
 {
     // setup ssl-vision ball detection
     ball->set_confidence(1.0);
@@ -254,7 +254,7 @@ bool SimBall::addDetection(SSL_DetectionBall *ball, btVector3 pos, float stddev,
     btTransform transform;
     m_motionState->getWorldTransform(transform);
 
-    const btVector3 simulatorCameraPosition = btVector3(cameraInfo.position.x(), cameraInfo.position.y(), cameraInfo.position.z()) * SIMULATOR_SCALE;
+    const btVector3 simulatorCameraPosition = btVector3(cameraPosition.x(), cameraPosition.y(), cameraPosition.z()) * SIMULATOR_SCALE;
 
     float visibility = 1;
     // the camera uses the mid point of the visible pixels as the mid point of the ball
@@ -268,26 +268,19 @@ bool SimBall::addDetection(SSL_DetectionBall *ball, btVector3 pos, float stddev,
     }
 
     const float SCALING_LIMIT = 0.9f;
-    const float MAX_EXTRA_OVERLAP = 0.05f;
     // reflects the cameras resolution
     const unsigned PIXEL_PER_AREA = 10; // i do not know in what unit area is, just make it similar to a real game
 
-    float modZ = std::min(SCALING_LIMIT * cameraInfo.position.z(), std::max(0.f, pos.z() - BALL_RADIUS));
-    float modX = (pos.x() - cameraInfo.position.x()) * (cameraInfo.position.z() / (cameraInfo.position.z() - modZ)) + cameraInfo.position.x();
-    float modY = (pos.y() - cameraInfo.position.y()) * (cameraInfo.position.z() / (cameraInfo.position.z() - modZ)) + cameraInfo.position.y();
+    float modZ = std::min(SCALING_LIMIT * cameraPosition.z(), std::max(0.f, pos.z() - BALL_RADIUS));
+    float modX = (pos.x() - cameraPosition.x()) * (cameraPosition.z() / (cameraPosition.z() - modZ)) + cameraPosition.x();
+    float modY = (pos.y() - cameraPosition.y()) * (cameraPosition.z() / (cameraPosition.z() - modZ)) + cameraPosition.y();
 
-    float distBallCam = std::sqrt((cameraInfo.position.z()-modZ)*(cameraInfo.position.z()-modZ)+
-        (cameraInfo.position.x()-pos.x())*(cameraInfo.position.x()-pos.x())+(cameraInfo.position.y()-pos.y())*(cameraInfo.position.y()-pos.y()));
+    float distBallCam = std::sqrt((cameraPosition.z()-modZ)*(cameraPosition.z()-modZ)+
+        (cameraPosition.x()-pos.x())*(cameraPosition.x()-pos.x())+(cameraPosition.y()-pos.y())*(cameraPosition.y()-pos.y()));
     float denomSqrt = (distBallCam*1000)/FOCAL_LENGTH - 1;
     float basePixelArea = (BALL_RADIUS*BALL_RADIUS*1000000*M_PI) / (denomSqrt*denomSqrt);
     float area = visibility * std::max(0.0f, (basePixelArea + static_cast<float>(m_rng->normal(stddevArea)) / PIXEL_PER_AREA));
     ball->set_area(area * PIXEL_PER_AREA);
-
-    if (std::abs(modX - cameraInfo.position.x()) > cameraInfo.halfAreaX + fieldBoundaryWidth + MAX_EXTRA_OVERLAP
-            || std::abs(modY - cameraInfo.position.y()) > cameraInfo.halfAreaY + fieldBoundaryWidth + MAX_EXTRA_OVERLAP) {
-        // invalid
-        return false;
-    }
 
     // if (height > 0.1f) {
     //     qDebug() << "simball" << p.x() << p.y() << height << "ttt" << ball_x << ball_y;

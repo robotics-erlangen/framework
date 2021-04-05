@@ -258,11 +258,9 @@ int main(int argc, char* argv[])
 
     Timer timer;
     RobotCommandAdaptor blue{true, &timer}, yellow{false, &timer};
-    // TODO: accept configuration commands, this is stolen from amun
+    // TODO: accept configuration commands
     amun::SimulatorSetup defaultSimulatorSetup;
-    geometrySetDefault(defaultSimulatorSetup.mutable_geometry());
-    defaultSimulatorSetup.mutable_camera_setup()->set_num_cameras(2);
-    defaultSimulatorSetup.mutable_camera_setup()->set_camera_height(4.5f);
+    simulatorSetupSetDefault(defaultSimulatorSetup);
 
     Simulator sim{&timer, defaultSimulatorSetup};
 

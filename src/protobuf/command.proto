@@ -4,6 +4,7 @@ option cc_enable_arenas = true;
 import "world.proto";
 import "robot.proto";
 import "logfile.proto";
+import "ssl_geometry.proto";
 import "ssl_simulation_control.proto";
 
 package amun;
@@ -36,15 +37,9 @@ message RobotMoveCommand {
     optional float p_y = 3;
 }
 
-message CameraSetup {
-    required uint32 num_cameras = 1;
-    // note that this height must always be lower than the room height of the simulator
-    required float camera_height = 2;
-}
-
 message SimulatorSetup {
     optional world.Geometry geometry = 1;
-    optional CameraSetup camera_setup = 2;
+    repeated SSL_GeometryCameraCalibration camera_setup = 2;
 }
 
 message SimulatorWorstCaseVision {

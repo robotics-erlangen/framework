@@ -18,6 +18,36 @@ geometry {
 	type: TYPE_2018
 }
 camera_setup {
-  num_cameras: 2
-  camera_height: 6
+  camera_id: 0
+  focal_length: 390
+  principal_point_x: 300
+  principal_point_y: 300
+  distortion: 0.2
+  q0: 0.7
+  q1: 0.7
+  q2: 0.7
+  q3: 0.7
+  tx: 0
+  ty: 0
+  tz: 3500
+  derived_camera_world_tx: -3010
+  derived_camera_world_ty: -0
+  derived_camera_world_tz: 6000
+}
+camera_setup {
+  camera_id: 1
+  focal_length: 390
+  principal_point_x: 300
+  principal_point_y: 300
+  distortion: 0.2
+  q0: 0.7
+  q1: 0.7
+  q2: 0.7
+  q3: 0.7
+  tx: 0
+  ty: 0
+  tz: 3500
+  derived_camera_world_tx: 3010
+  derived_camera_world_ty: -0
+  derived_camera_world_tz: 6000
 }

@@ -69,7 +69,6 @@ public:
     void finishProcessing(); // has to be called after all calls to worldState for one frame
 
 private:
-    void updateGeometry(const SSL_GeometryFieldSize &g);
     void updateCamera(const SSL_GeometryCameraCalibration &c, QString sender);
 
     template<class Filter>

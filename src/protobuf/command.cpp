@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2015 Philipp Nordhus                                        *
+ *   Copyright 2021 Andreas Wendler                                        *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,21 +18,38 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef COMMAND_H
-#define COMMAND_H
+#include "command.h"
+#include "geometry.h"
 
-#include "protobuf/command.pb.h"
-#include <QSharedPointer>
+// position is in meters in our coordinate system
+static SSL_GeometryCameraCalibration createDefaultCamera(int cameraId, float x, float y, float z)
+{
+    SSL_GeometryCameraCalibration calibration;
 
-//! @file command.h
-//! @addtogroup protobuf
-//! @{
+    calibration.set_camera_id(cameraId);
+    // DUMMY VALUES
+    calibration.set_distortion(0.2);
+    calibration.set_focal_length(390);
+    calibration.set_principal_point_x(300);
+    calibration.set_principal_point_y(300);
+    calibration.set_q0(0.7);
+    calibration.set_q1(0.7);
+    calibration.set_q2(0.7);
+    calibration.set_q3(0.7);
+    calibration.set_tx(0);
+    calibration.set_ty(0);
+    calibration.set_tz(3500);
 
-//! Protobuf command wrapper with reference counting
-typedef QSharedPointer<amun::Command> Command;
+    calibration.set_derived_camera_world_tx(y * 1000);
+    calibration.set_derived_camera_world_ty(-x * 1000);
+    calibration.set_derived_camera_world_tz(z * 1000);
 
-void simulatorSetupSetDefault(amun::SimulatorSetup &setup);
+    return calibration;
+}
 
-//! @}
-
-#endif // COMMAND_H
+void simulatorSetupSetDefault(amun::SimulatorSetup &setup)
+{
+    geometrySetDefault(setup.mutable_geometry(), true);
+    setup.add_camera_setup()->CopyFrom(createDefaultCamera(0, -3.0f, 0.0f, 4.0f));
+    setup.add_camera_setup()->CopyFrom(createDefaultCamera(1, 3.0f, 0.0f, 4.0f));
+}
