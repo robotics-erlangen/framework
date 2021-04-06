@@ -57,6 +57,25 @@ bool NetworkTransceiver::sendSSLSimPacket(const sslsim::RobotControl& control, b
 
 }
 
+bool NetworkTransceiver::sendSSLSimCommand(const sslsim::SimulatorCommand& cmd)
+{
+    bool sendingSuccessful = false;
+    if (!getControlSimulator()) {
+        return true;
+    }
+    if (isConfigInitialized()) {
+        QHostAddress address(getHost());
+
+        QByteArray data;
+        data.resize(cmd.ByteSize());
+        if (cmd.SerializeToArray(data.data(), data.size())) {
+            int port = getPortControl();
+            sendingSuccessful = m_udpSocket->writeDatagram(data, address, port) == data.size();
+        }
+    }
+    return sendingSuccessful;
+}
+
 void NetworkTransceiver::handleSSLSimCommand(const SSLSimRobotControl& rc, bool blue, qint64)
 {
     Status status(new amun::Status);
@@ -67,6 +86,25 @@ void NetworkTransceiver::handleSSLSimCommand(const SSLSimRobotControl& rc, bool 
     status->mutable_transceiver()->set_active(sendingSuccessful);
     status->mutable_transceiver()->set_error("Network");
     emit sendStatus(status);
+}
+
+#define SCALE_DOWN(OBJ, X) do{if ((OBJ) . has_##X()) (OBJ) . set_##X((OBJ) . X() * 1e-3);} while(0)
+
+static void convertUnits(sslsim::TeleportBall* ball) {
+    SCALE_DOWN(*ball, x);
+    SCALE_DOWN(*ball, y);
+    SCALE_DOWN(*ball, z);
+    SCALE_DOWN(*ball, vx);
+    SCALE_DOWN(*ball, vy);
+    SCALE_DOWN(*ball, vz);
+
+}
+
+static void convertUnits(sslsim::TeleportRobot& robot) {
+    SCALE_DOWN(robot, x);
+    SCALE_DOWN(robot, y);
+    SCALE_DOWN(robot, v_x);
+    SCALE_DOWN(robot, v_y);
 }
 
 void NetworkTransceiver::handleCommand(const Command &command)
@@ -88,6 +126,19 @@ void NetworkTransceiver::handleCommand(const Command &command)
                 emit sendStatus(status);
             }
         }
+    }
+    if (command->has_simulator() && command->simulator().has_ssl_control()) {
+       const auto& sslControl = command->simulator().ssl_control();
+       sslsim::SimulatorCommand cmd;
+       sslsim::SimulatorControl *cntr = cmd.mutable_control();
+       cntr->CopyFrom(sslControl);
+       if (cntr->has_teleport_ball()) {
+           convertUnits(cntr->mutable_teleport_ball());
+       }
+       for(sslsim::TeleportRobot& robot : *cntr->mutable_teleport_robot()) {
+           convertUnits(robot);
+       }
+       sendSSLSimCommand(cmd);
     }
 }
 

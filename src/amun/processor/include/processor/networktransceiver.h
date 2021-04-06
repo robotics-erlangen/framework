@@ -60,6 +60,7 @@ private:
     uint32_t getPortControl() const;
     uint32_t getPortBlue() const;
     uint32_t getPortYellow() const;
+    bool sendSSLSimCommand(const sslsim::SimulatorCommand& cmd);
 
 private:
     struct NetworkConfig {
