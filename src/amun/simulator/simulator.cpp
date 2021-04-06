@@ -76,6 +76,8 @@ struct camun::simulator::SimulatorData
     SimBall *ball;
     Simulator::RobotMap robotsBlue;
     Simulator::RobotMap robotsYellow;
+    QMap<uint32_t, robot::Specs> specsBlue;
+    QMap<uint32_t, robot::Specs> specsYellow;
     bool flip;
     float stddevBall;
     float stddevBallArea;
@@ -216,7 +218,7 @@ void Simulator::process()
                 continue;
             }
 
-            // pass radio command to robot that matches the generation and id
+            // pass radio command to robot that matches the id
             const auto id = command.id();
             SimulatorData* data = m_data;
             auto time = m_time;
@@ -299,6 +301,14 @@ void Simulator::sendSSLSimErrorInternal(ErrorSource source)
     emit sendSSLSimError(errors, source);
 }
 
+static void createRobot(Simulator::RobotMap &list, float x, float y, uint32_t id, const ErrorAggregator* agg, SimulatorData* data, const QMap<uint32_t, robot::Specs>& teamSpecs)
+{
+    SimRobot *robot = new SimRobot(&data->rng, teamSpecs[id], data->dynamicsWorld, btVector3(x, y, 0), 0.f);
+    robot->connect(robot, &SimRobot::sendSSLSimError, agg, &ErrorAggregator::aggregate);
+    list[id] = {robot, teamSpecs[id].generation()};
+
+}
+
 void Simulator::resetFlipped(Simulator::RobotMap &robots, float side)
 {
     // find flipped robots and align them on a line
@@ -310,7 +320,7 @@ void Simulator::resetFlipped(Simulator::RobotMap &robots, float side)
         if (robot->isFlipped()) {
             SimRobot *new_robot = new SimRobot(&m_data->rng, robot->specs(), m_data->dynamicsWorld, btVector3(x, side * y, 0), 0.0f);
             delete robot;
-            connect(new_robot, &SimRobot::sendSSLSimError, m_aggregator, &ErrorAggregator::aggregate);
+            connect(new_robot, &SimRobot::sendSSLSimError, m_aggregator, &ErrorAggregator::aggregate); // TODO? use createRobot instead of this. However, doing so naively will break the iteration, so I left it for now.
             it.value().first = new_robot;
         }
         y -= 0.3;
@@ -596,7 +606,8 @@ void Simulator::handleRadioCommands(const SSLSimRobotControl &commands, bool isB
     m_radioCommands.enqueue(std::make_tuple(commands, processingStart, isBlue));
 }
 
-void Simulator::setTeam(Simulator::RobotMap &list, float side, const robot::Team &team)
+
+void Simulator::setTeam(Simulator::RobotMap &list, float side, const robot::Team &team, QMap<uint32_t, robot::Specs>& teamSpecs)
 {
     // remove old team
     deleteAll(list);
@@ -623,10 +634,11 @@ void Simulator::setTeam(Simulator::RobotMap &list, float side, const robot::Team
             std::cerr << "Error: Two ids for the same color, aborting!" << std::endl;
             continue;
         }
+        teamSpecs[id].CopyFrom(specs);
 
-        SimRobot *robot = new SimRobot(&m_data->rng, specs, m_data->dynamicsWorld, btVector3(x, side * y, 0), 0.0f);
-        connect(robot, &SimRobot::sendSSLSimError, m_aggregator, &ErrorAggregator::aggregate);
-        list[id] = {robot, specs.generation()};
+
+
+        createRobot(list, x, side * y, id, m_aggregator, m_data, teamSpecs);
         y -= 0.3;
     }
 }
@@ -659,38 +671,53 @@ void Simulator::moveBall(const sslsim::TeleportBall& ball)
 
 }
 
-/*void Simulator::moveRobot(const Simulator::RobotMap &list, const amun::SimulatorMoveRobot &robot)
-{
-    amun::SimulatorMoveRobot r = robot;
-
-    if (!list.contains(r.id())) {
-        return;
-    }
-
-    // handle robot move command
-    if (m_data->flip) {
-        FLIP(r, p_x);
-        FLIP(r, p_y);
-        FLIP(r, v_x);
-        FLIP(r, v_y);
-    }
-
-    SimRobot* sim_robot = list[r.id()].first;
-    sim_robot->move(r);
-}*/
-
 void Simulator::moveRobot(const sslsim::TeleportRobot &robot) {
     if (!robot.id().has_team()) return;
     if (!robot.id().has_id()) return;
     bool is_blue = robot.id().team() == gameController::Team::BLUE;
 
-    const RobotMap& list = is_blue ? m_data->robotsBlue : m_data->robotsYellow;
-    /*bool present = false;
+    RobotMap& list = is_blue ? m_data->robotsBlue : m_data->robotsYellow;
+    bool isPresent = list.contains(robot.id().id());
+    QMap<uint32_t, robot::Specs>& teamSpecs = is_blue ? m_data->specsBlue : m_data->specsYellow;
     if (robot.has_present()) {
-        present = robot.present();
-    }*/
+        if (robot.present() && !isPresent) {
+            // add the requested robot
+            if (!teamSpecs.contains(robot.id().id())) {
+                SSLSimError error{new sslsim::SimulatorError};
+                error->set_code("CREATE_UNSPEC_ROBOT");
+                std::string message = "trying to create robot " + robot.id().id();
+                message += ", but no spec for this robot was found";
+                error->set_message(std::move(message));
+                m_aggregator->aggregate(error, ErrorSource::CONFIG);
+            } else if(!robot.has_x() || !robot.has_y()){
+                SSLSimError error{new sslsim::SimulatorError};
+                error->set_code("CREATE_NOPOS_ROBOT");
+                std::string message = "trying to create robot " + robot.id().id();
+                message += " without giving a position";
+                error->set_message(std::move(message));
+                m_aggregator->aggregate(error, ErrorSource::CONFIG);
+            } else {
+                Vector targetPos;
+                coordinates::fromVision(robot, targetPos);
+                //TODO: check if the given position is fine
+                createRobot(list, targetPos.x, targetPos.y, robot.id().id(), m_aggregator, m_data, teamSpecs);
+            }
+        }
+        else if (!robot.present() && isPresent) {
+            //remove the robot
+            auto val = list.take(robot.id().id());
+            delete val.first;
+            return;
+        }
+        else if (!robot.present() && !isPresent) {
+            return;
+        }
+        // Fall though: If the robot is already on the field and needs to be on the field, we just use that robot.
+    } else {
+        if (!isPresent) return;
+    }
 
-    if (!list.contains(robot.id().id())) return; // TODO: obey adding new robots
+    if (!list.contains(robot.id().id())) return; //Recheck the list in case the has_present paragraph did change it.
 
 
     sslsim::TeleportRobot r = robot;
@@ -839,11 +866,11 @@ void Simulator::handleCommand(const Command &command)
     }
 
     if (command->has_set_team_blue()) {
-        setTeam(m_data->robotsBlue, 1.0f, command->set_team_blue());
+        setTeam(m_data->robotsBlue, 1.0f, command->set_team_blue(), m_data->specsBlue);
     }
 
     if (command->has_set_team_yellow()) {
-        setTeam(m_data->robotsYellow, -1.0f, command->set_team_yellow());
+        setTeam(m_data->robotsYellow, -1.0f, command->set_team_yellow(), m_data->specsYellow);
     }
 }
 

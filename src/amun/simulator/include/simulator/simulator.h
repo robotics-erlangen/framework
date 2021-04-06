@@ -96,7 +96,7 @@ private:
     void resetFlipped(RobotMap &robots, float side);
     std::tuple<QList<QByteArray>, QByteArray, qint64> createVisionPacket();
     void resetVisionPackets();
-    void setTeam(RobotMap &list, float side, const robot::Team &team);
+    void setTeam(RobotMap &list, float side, const robot::Team &team, QMap<uint32_t, robot::Specs>& specs);
     void moveBall(const sslsim::TeleportBall &ball);
     void moveRobot(const sslsim::TeleportRobot &robot);
     void fieldAddLine(SSL_GeometryFieldSize *field, std::string name, float x1, float y1, float x2, float y2) const;
