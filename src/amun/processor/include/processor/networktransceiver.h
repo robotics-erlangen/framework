@@ -37,6 +37,9 @@ public:
     ~NetworkTransceiver() override;
     NetworkTransceiver(const NetworkTransceiver&) = delete;
     NetworkTransceiver& operator=(const NetworkTransceiver&) = delete;
+    void setSendCommands(bool send) {
+        m_sendCommands = send;
+    }
 
 signals:
     void sendStatus(const Status &status);
@@ -70,6 +73,7 @@ private:
     NetworkConfig m_configuration;
     QUdpSocket *m_udpSocket;
     const Timer *m_timer;
+    bool m_sendCommands = false;
 };
 
 #endif // NETWORKTRANSCEIVER_H

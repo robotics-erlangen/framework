@@ -660,6 +660,7 @@ void Amun::setSimulatorEnabled(bool enabled, bool useNetworkTransceiver)
     if (!m_simulatorOnly) {
         m_processor->disconnect(m_transceiver);
         m_commandConverter->disconnect(m_networkTransceiver);
+        m_networkTransceiver->setSendCommands(false);
     }
 
     // remove errors connections
@@ -677,6 +678,7 @@ void Amun::setSimulatorEnabled(bool enabled, bool useNetworkTransceiver)
         } else {
             // network transceiver setup
             connect(m_commandConverter, &CommandConverter::sendSSLSim, m_networkTransceiver, &NetworkTransceiver::handleSSLSimCommand);
+            m_networkTransceiver->setSendCommands(true);
         }
     } else {
         // field setup

@@ -127,7 +127,7 @@ void NetworkTransceiver::handleCommand(const Command &command)
             }
         }
     }
-    if (command->has_simulator() && command->simulator().has_ssl_control()) {
+    if (command->has_simulator() && command->simulator().has_ssl_control() && m_sendCommands) {
        const auto& sslControl = command->simulator().ssl_control();
        sslsim::SimulatorCommand cmd;
        sslsim::SimulatorControl *cntr = cmd.mutable_control();
