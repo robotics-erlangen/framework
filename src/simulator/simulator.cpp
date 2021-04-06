@@ -46,13 +46,41 @@ static int CONTROL_PORT = 10300;
  * Stand alone Erforce simulator
  *
  * Known issues:
- *  - [ ]: Configuring via control_port is unimplemented
- *      - [ ]: Currently, it is not possible to supply partial positions
+ *  - [ ]: Currently, it is not possible to supply partial positions for teleportBall or teleportRobot
+ *  - [ ]: Simulator Config is not implemented
+ *  - [ ]: Adding / removing robots via teleport-robot is not implemented.
  *  - [ ]: Robots go into standby after 0.1 seconds without command (Safty)
  *  - [ ]: Dribbler will reset if a new command doesn't contain a new dribbling speed (contrary to the definition that states all not set values should stay as previously assumed)
  *  - [ ]: Commands that are recieved at t0 will not be in effect after the next tick of the simulator (around 5 ms), no interpolation.
  *  - [ ]: Tournament mode where commands origin are checked is not implemented
  */
+
+class SimulatorCommandAdaptor: public QObject {
+    Q_OBJECT
+public:
+    SimulatorCommandAdaptor(Timer* timer);
+private slots:
+    void handleDatagrams();
+
+signals:
+    void sendCommand(const Command& c);
+
+private:
+    QUdpSocket m_server;
+    QHostAddress m_senderAddress;
+    int m_senderPort;
+    Timer* m_timer; // unowned
+};
+
+SimulatorCommandAdaptor::SimulatorCommandAdaptor(Timer* timer):
+    m_server(this),
+    m_senderAddress(QHostAddress::Null),
+    m_senderPort(-1),
+    m_timer(timer)
+{
+    m_server.bind(QHostAddress::Any, CONTROL_PORT);
+    connect(&m_server, &QUdpSocket::readyRead, this, &SimulatorCommandAdaptor::handleDatagrams);
+}
 
 class RobotCommandAdaptor: public QObject{
     Q_OBJECT
@@ -114,6 +142,68 @@ static void setError(sslsim::SimulatorError* error, SimError code, std::string a
             break;
         default:
             std::cerr << "Unmanaged SimError for message" << std::endl;
+    }
+}
+
+static void sendUDP(const google::protobuf::Message& out, QUdpSocket& server, const QHostAddress& senderAddress, int senderPort) {
+    QByteArray data;
+    data.resize(out.ByteSize());
+    bool sendingSuccessful = false;
+    if (out.SerializeToArray(data.data(), data.size())) {
+        sendingSuccessful = server.writeDatagram(data, senderAddress, senderPort) == data.size();
+    }
+    if (!sendingSuccessful) {
+        std::cerr << "Sending relpy failed: " << std::endl;
+    }
+}
+
+#define SCALE_UP(OBJ, ATTR) do{if((OBJ).has_##ATTR()) (OBJ).set_##ATTR((OBJ).ATTR() * 1e3);} while(0)
+
+void SimulatorCommandAdaptor::handleDatagrams() {
+    while(m_server.hasPendingDatagrams()) {
+        qint64 start = m_timer->currentTime();
+        auto datagram = m_server.receiveDatagram();
+        sslsim::SimulatorResponse sir;
+        bool sendSir = false;
+        m_senderAddress = datagram.senderAddress();
+        m_senderPort = datagram.senderPort();
+        auto data = datagram.data();
+
+        RUN_WHEN_OUT_OF_SCOPE({
+                if (sendSir) {
+                    sendUDP(sir, m_server, m_senderAddress, m_senderPort);
+                }
+            });
+        sslsim::SimulatorCommand simcom;
+        if (!simcom.ParseFromArray(data.data(), data.size())) {
+            sendSir = true;
+            setError(sir.add_errors(), SimError::UNREADABLE);
+            continue;
+        }
+        if (simcom.has_control()) {
+            Command c{new amun::Command};
+            auto* sslControl = c->mutable_simulator()->mutable_ssl_control();
+            sslControl->CopyFrom(simcom.control());
+            if (sslControl->has_teleport_ball()) {
+                auto* teleportBall = sslControl->mutable_teleport_ball();
+                SCALE_UP(*teleportBall, x);
+                SCALE_UP(*teleportBall, y);
+                SCALE_UP(*teleportBall, z);
+                SCALE_UP(*teleportBall, vx);
+                SCALE_UP(*teleportBall, vy);
+                SCALE_UP(*teleportBall, vz);
+            }
+            for(sslsim::TeleportRobot& robot : *sslControl->mutable_teleport_robot()) {
+                SCALE_UP(robot, x);
+                SCALE_UP(robot, y);
+                SCALE_UP(robot, v_x);
+                SCALE_UP(robot, v_y);
+            }
+            emit sendCommand(c);
+        }
+
+        qint64 delta = m_timer->currentTime() - start;
+        std::cout << "Handled Datagram in " << delta << std::endl;
     }
 }
 
@@ -191,15 +281,7 @@ void RobotCommandAdaptor::handleRobotResponse(const QList<robot::RadioResponse>&
 }
 
 void RobotCommandAdaptor::sendRobotRespose(const sslsim::RobotControlResponse& out) {
-    QByteArray data;
-    data.resize(out.ByteSize());
-    bool sendingSuccessful = false;
-    if (out.SerializeToArray(data.data(), data.size())) {
-        sendingSuccessful = m_server.writeDatagram(data, m_senderAddress, m_senderPort) == data.size();
-    }
-    if (!sendingSuccessful) {
-        std::cerr << "Sending relpy failed: " << std::endl;
-    }
+    sendUDP(out, m_server, m_senderAddress, m_senderPort);
 }
 
 class SSLVisionServer: public QObject {
@@ -223,17 +305,6 @@ void SSLVisionServer::sendVisionData(const QByteArray& data, qint64, QString)
     m_server.send(data);
 }
 
-class SimulatorComandAdaptor: public QObject {
-    Q_OBJECT
-public:
-    SimulatorComandAdaptor();
-
-signals:
-    void sendCommand(const Command& command);
-};
-
-SimulatorComandAdaptor::SimulatorComandAdaptor() {}
-
 #include "simulator.moc"
 
 using camun::simulator::Simulator;
@@ -253,10 +324,9 @@ int main(int argc, char* argv[])
     qRegisterMetaType<SSLSimRobotControl>("SSLSimRobotControl");
     qRegisterMetaType<SSLSimError>("SSLSimError");
 
-    SimulatorComandAdaptor commands;
-
     Timer timer;
     RobotCommandAdaptor blue{true, &timer}, yellow{false, &timer};
+    SimulatorCommandAdaptor commands{&timer};
     // TODO: accept configuration commands
     amun::SimulatorSetup defaultSimulatorSetup;
     simulatorSetupSetDefault(defaultSimulatorSetup);
@@ -271,7 +341,7 @@ int main(int argc, char* argv[])
     SSLVisionServer vision{10020};
 
     vision.connect(&sim, &Simulator::gotPacket, &vision, &SSLVisionServer::sendVisionData);
-    commands.connect(&commands, &SimulatorComandAdaptor::sendCommand, &sim, &Simulator::handleCommand);
+    commands.connect(&commands, &SimulatorCommandAdaptor::sendCommand, &sim, &Simulator::handleCommand);
 
     Command c{new amun::Command};
     auto* simCommand = c->mutable_simulator();
