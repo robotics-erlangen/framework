@@ -109,7 +109,6 @@ private:
     QUdpSocket m_server;
     QHostAddress m_senderAddress;
     int m_senderPort;
-    QList<robot::RadioCommand> m_commands;
     Timer* m_timer; // unowned
 };
 
