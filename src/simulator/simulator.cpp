@@ -62,6 +62,9 @@ public:
 private slots:
     void handleDatagrams();
 
+public slots:
+    void handleSimulatorError(const QList<SSLSimError> &error, camun::simulator::ErrorSource source);
+
 signals:
     void sendCommand(const Command& c);
 
@@ -92,7 +95,7 @@ private:
 
 public slots:
     void handleRobotResponse(const QList<robot::RadioResponse>& responses);
-    void handleSimulatorError(const SSLSimError &error, camun::simulator::ErrorSource source);
+    void handleSimulatorError(const QList<SSLSimError> &error, camun::simulator::ErrorSource source);
 
 private slots:
     void handleDatagrams();
@@ -207,15 +210,33 @@ void SimulatorCommandAdaptor::handleDatagrams() {
     }
 }
 
-void RobotCommandAdaptor::handleSimulatorError(const SSLSimError &error,camun::simulator::ErrorSource source)
+void RobotCommandAdaptor::handleSimulatorError(const QList<SSLSimError> &error,camun::simulator::ErrorSource source)
 {
+
+    camun::simulator::ErrorSource expected = m_is_blue ? camun::simulator::ErrorSource::BLUE : camun::simulator::ErrorSource::YELLOW;
+    if (source != expected) return;
+    if (error.size() == 0) return;
+
     sslsim::RobotControlResponse rcr;
 
-    auto* sendError = rcr.add_errors();
-    *sendError = *error;
+    for(const SSLSimError& err : error) {
+        auto* sendError = rcr.add_errors();
+        *sendError = *err;
+    }
 
     sendRobotRespose(rcr);
 }
+
+void SimulatorCommandAdaptor::handleSimulatorError(const QList<SSLSimError> &error, camun::simulator::ErrorSource source) {
+    if (source != camun::simulator::ErrorSource::CONFIG) return;
+    if (error.size() == 0) return;
+    sslsim::SimulatorResponse sir;
+    for (const SSLSimError& err : error) {
+        sir.add_errors()->CopyFrom(*err);
+    }
+    sendUDP(sir, m_server, m_senderAddress, m_senderPort);
+}
+
 
 void RobotCommandAdaptor::handleDatagrams()
 {
@@ -323,6 +344,8 @@ int main(int argc, char* argv[])
     qRegisterMetaType<Command>("Command");
     qRegisterMetaType<SSLSimRobotControl>("SSLSimRobotControl");
     qRegisterMetaType<SSLSimError>("SSLSimError");
+    qRegisterMetaType<QList<SSLSimError>>("QList<SSLSimError>");
+    qRegisterMetaType<camun::simulator::ErrorSource>("ErrorSource");
 
     Timer timer;
     RobotCommandAdaptor blue{true, &timer}, yellow{false, &timer};
@@ -342,6 +365,11 @@ int main(int argc, char* argv[])
 
     vision.connect(&sim, &Simulator::gotPacket, &vision, &SSLVisionServer::sendVisionData);
     commands.connect(&commands, &SimulatorCommandAdaptor::sendCommand, &sim, &Simulator::handleCommand);
+
+
+    commands.connect(&sim, &Simulator::sendSSLSimError, &commands, &SimulatorCommandAdaptor::handleSimulatorError);
+    blue.connect(&sim, &Simulator::sendSSLSimError, &blue, &RobotCommandAdaptor::handleSimulatorError);
+    yellow.connect(&sim, &Simulator::sendSSLSimError, &yellow, &RobotCommandAdaptor::handleSimulatorError);
 
     Command c{new amun::Command};
     auto* simCommand = c->mutable_simulator();
@@ -400,6 +428,7 @@ int main(int argc, char* argv[])
     blue.moveToThread(&rcv_thread);
     yellow.moveToThread(&rcv_thread);
     vision.moveToThread(&rcv_thread);
+    commands.moveToThread(&rcv_thread);
 
 
     rcv_thread.start();
