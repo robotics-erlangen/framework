@@ -539,6 +539,7 @@ void MainWindow::updateSimulatorSetup(QString setupFile, std::function<void(worl
 
     // resend all the information the simulator needs
     ui->robots->resend();
+    ui->simulatorConfig->sendAll();
     setCharge(ui->actionChargeKicker->isChecked());
     setSimulatorEnabled(ui->actionSimulator->isChecked());
 }

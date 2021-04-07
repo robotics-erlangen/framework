@@ -42,21 +42,13 @@ public:
 
 public slots:
     void save();
+    void sendAll();
 
 signals:
     void sendCommand(const Command &command);
 
 private slots:
-    void sendSimulatorNoiseConfig();
-    void setEnableInvisibleBall(int state);
-    void setBallVisibilityThreshold(int threshold);
-    void setCameraOverlap(int overlap);
-    void setEnableSimulateDribbling(int state);
-    void updateWorstCaseVision();
     void realismPresetChanged(QString name);
-    void setCameraPositionError(int error);
-    void updateRobotRealism();
-    void updateDelays();
 
 private:
     Ui::SimulatorConfigWidget *ui;

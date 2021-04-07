@@ -37,31 +37,32 @@ SimulatorConfigWidget::SimulatorConfigWidget(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    connect(ui->chkEnableNoise, &QCheckBox::stateChanged, this, &SimulatorConfigWidget::sendSimulatorNoiseConfig);
-    connect(ui->chkEnableInvisibleBall, &QCheckBox::stateChanged, this, &SimulatorConfigWidget::setEnableInvisibleBall);
+    connect(ui->chkEnableNoise, &QCheckBox::stateChanged, this, &SimulatorConfigWidget::sendAll);
+    connect(ui->chkEnableInvisibleBall, &QCheckBox::stateChanged, this, &SimulatorConfigWidget::sendAll);
     connect(ui->chkEnableInvisibleBall, &QCheckBox::toggled, ui->spinBallVisibilityThreshold, &QSpinBox::setEnabled);
     connect(ui->chkEnableInvisibleBall, &QCheckBox::toggled, ui->ballVisibilityThresholdLabel, &QSpinBox::setEnabled);
-    connect(ui->spinBallVisibilityThreshold, SIGNAL(valueChanged(int)), SLOT(setBallVisibilityThreshold(int)));
-    connect(ui->spinCameraOverlap, SIGNAL(valueChanged(int)), SLOT(setCameraOverlap(int)));
-    connect(ui->spinCameraPositionError, SIGNAL(valueChanged(int)), this, SLOT(setCameraPositionError(int)));
-    connect(ui->spinPacketLoss, SIGNAL(valueChanged(int)), this, SLOT(updateRobotRealism()));
-    connect(ui->spinReplyLoss, SIGNAL(valueChanged(int)), this, SLOT(updateRobotRealism()));
 
-    connect(ui->spinStddevBall, SIGNAL(valueChanged(double)), SLOT(sendSimulatorNoiseConfig()));
-    connect(ui->spinStddevRobotPos, SIGNAL(valueChanged(double)), SLOT(sendSimulatorNoiseConfig()));
-    connect(ui->spinStddevRobotPhi, SIGNAL(valueChanged(double)), SLOT(sendSimulatorNoiseConfig()));
-    connect(ui->spinStdDevBallArea, SIGNAL(valueChanged(double)), SLOT(sendSimulatorNoiseConfig()));
-    connect(ui->spinDribblerBallDetections, SIGNAL(valueChanged(double)), SLOT(sendSimulatorNoiseConfig()));
-    connect(ui->spinMissingDetections, SIGNAL(valueChanged(double)), SLOT(sendSimulatorNoiseConfig()));
+    connect(ui->spinBallVisibilityThreshold, SIGNAL(valueChanged(int)), SLOT(sendAll()));
+    connect(ui->spinCameraOverlap, SIGNAL(valueChanged(int)), SLOT(sendAll()));
+    connect(ui->spinCameraPositionError, SIGNAL(valueChanged(int)), this, SLOT(sendAll()));
+    connect(ui->spinPacketLoss, SIGNAL(valueChanged(int)), this, SLOT(sendAll()));
+    connect(ui->spinReplyLoss, SIGNAL(valueChanged(int)), this, SLOT(sendAll()));
 
-    connect(ui->chkSimulateDribbling, &QCheckBox::stateChanged, this, &SimulatorConfigWidget::setEnableSimulateDribbling);
+    connect(ui->spinStddevBall, SIGNAL(valueChanged(double)), SLOT(sendAll()));
+    connect(ui->spinStddevRobotPos, SIGNAL(valueChanged(double)), SLOT(sendAll()));
+    connect(ui->spinStddevRobotPhi, SIGNAL(valueChanged(double)), SLOT(sendAll()));
+    connect(ui->spinStdDevBallArea, SIGNAL(valueChanged(double)), SLOT(sendAll()));
+    connect(ui->spinDribblerBallDetections, SIGNAL(valueChanged(double)), SLOT(sendAll()));
+    connect(ui->spinMissingDetections, SIGNAL(valueChanged(double)), SLOT(sendAll()));
 
-    connect(ui->spinVisionDelay, SIGNAL(valueChanged(int)), SLOT(updateDelays()));
-    connect(ui->spinProcessingTime, SIGNAL(valueChanged(int)), SLOT(updateDelays()));
+    connect(ui->chkSimulateDribbling, &QCheckBox::stateChanged, this, &SimulatorConfigWidget::sendAll);
 
-    connect(ui->enableWorstCaseVision, &QCheckBox::toggled, this, &SimulatorConfigWidget::updateWorstCaseVision);
-    connect(ui->worstCaseBallDetections, SIGNAL(valueChanged(double)), this, SLOT(updateWorstCaseVision()));
-    connect(ui->worstCaseRobotDetections, SIGNAL(valueChanged(double)), this, SLOT(updateWorstCaseVision()));
+    connect(ui->spinVisionDelay, SIGNAL(valueChanged(int)), SLOT(sendAll()));
+    connect(ui->spinProcessingTime, SIGNAL(valueChanged(int)), SLOT(sendAll()));
+
+    connect(ui->enableWorstCaseVision, &QCheckBox::toggled, this, &SimulatorConfigWidget::sendAll);
+    connect(ui->worstCaseBallDetections, SIGNAL(valueChanged(double)), this, SLOT(sendAll()));
+    connect(ui->worstCaseRobotDetections, SIGNAL(valueChanged(double)), this, SLOT(sendAll()));
 
     connect(ui->realismPreset, &QComboBox::currentTextChanged, this, &SimulatorConfigWidget::realismPresetChanged);
 }
@@ -132,84 +133,52 @@ void SimulatorConfigWidget::realismPresetChanged(QString name)
     ui->chkEnableNoise->setChecked(enableNoise);
 }
 
-void SimulatorConfigWidget::updateRobotRealism()
+void SimulatorConfigWidget::sendAll()
 {
     Command command(new amun::Command);
+
+    // robot realism
     command->mutable_simulator()->mutable_realism_config()->set_robot_command_loss(ui->spinPacketLoss->value() / 100.0f);
     command->mutable_simulator()->mutable_realism_config()->set_robot_response_loss(ui->spinReplyLoss->value() / 100.0f);
-    emit sendCommand(command);
-}
 
-void SimulatorConfigWidget::updateDelays()
-{
-    Command command(new amun::Command);
+    // delays
     // from ms to ns
     command->mutable_simulator()->mutable_realism_config()->set_vision_delay(ui->spinVisionDelay->value() * 1000 * 1000);
     command->mutable_simulator()->mutable_realism_config()->set_vision_processing_time(ui->spinProcessingTime->value() * 1000 * 1000);
-    emit sendCommand(command);
-}
 
-void SimulatorConfigWidget::sendSimulatorNoiseConfig()
-{
-    bool isEnabled = ui->chkEnableNoise->checkState() != Qt::Unchecked;
+    // simulator noise
+    {
+        bool isEnabled = ui->chkEnableNoise->checkState() != Qt::Unchecked;
 
-    Command command(new amun::Command);
-    auto realism = command->mutable_simulator()->mutable_realism_config();
-    realism->set_stddev_ball_p(isEnabled ? ui->spinStddevBall->value() : 0);
-    realism->set_stddev_robot_p(isEnabled ? ui->spinStddevRobotPos->value() : 0);
-    realism->set_stddev_robot_phi(isEnabled ? ui->spinStddevRobotPhi->value(): 0);
-    realism->set_stddev_ball_area(isEnabled ? ui->spinStdDevBallArea->value(): 0);
-    realism->set_dribbler_ball_detections(isEnabled ? ui->spinDribblerBallDetections->value() : 0);
-    realism->set_missing_ball_detections(isEnabled ? ui->spinMissingDetections->value() / 100.0f : 0);
-    realism->set_simulate_dribbling(isEnabled ? ui->chkSimulateDribbling->isChecked() : false);
-    emit sendCommand(command);
-}
+        auto realism = command->mutable_simulator()->mutable_realism_config();
+        realism->set_stddev_ball_p(isEnabled ? ui->spinStddevBall->value() : 0);
+        realism->set_stddev_robot_p(isEnabled ? ui->spinStddevRobotPos->value() : 0);
+        realism->set_stddev_robot_phi(isEnabled ? ui->spinStddevRobotPhi->value(): 0);
+        realism->set_stddev_ball_area(isEnabled ? ui->spinStdDevBallArea->value(): 0);
+        realism->set_dribbler_ball_detections(isEnabled ? ui->spinDribblerBallDetections->value() : 0);
+        realism->set_missing_ball_detections(isEnabled ? ui->spinMissingDetections->value() / 100.0f : 0);
+        realism->set_simulate_dribbling(isEnabled ? ui->chkSimulateDribbling->isChecked() : false);
+    }
 
-void SimulatorConfigWidget::setEnableInvisibleBall(int state)
-{
-    bool isEnabled = state != Qt::Unchecked;
+    // invisible ball
+    {
+        bool isEnabled = ui->chkEnableInvisibleBall->checkState() != Qt::Unchecked;
+        command->mutable_simulator()->mutable_realism_config()->set_enable_invisible_ball(isEnabled);
+        command->mutable_simulator()->mutable_realism_config()->set_ball_visibility_threshold(ui->spinBallVisibilityThreshold->value() / 100.0f);
+    }
 
-    Command command(new amun::Command);
-    command->mutable_simulator()->mutable_realism_config()->set_enable_invisible_ball(isEnabled);
-    emit sendCommand(command);
-}
+    // camera overlap
+    command->mutable_simulator()->mutable_realism_config()->set_camera_overlap(ui->spinCameraOverlap->value() / 100.0f);
 
-void SimulatorConfigWidget::setBallVisibilityThreshold(int threshold)
-{
-    Command command(new amun::Command);
-    command->mutable_simulator()->mutable_realism_config()->set_ball_visibility_threshold(threshold / 100.0f);
-    emit sendCommand(command);
-}
+    // position error
+    command->mutable_simulator()->mutable_realism_config()->set_camera_position_error(ui->spinCameraPositionError->value() / 100.0f);
 
-void SimulatorConfigWidget::setCameraOverlap(int overlap)
-{
-    Command command(new amun::Command);
-    command->mutable_simulator()->mutable_realism_config()->set_camera_overlap(overlap / 100.0f);
-    emit sendCommand(command);
-}
-
-void SimulatorConfigWidget::setCameraPositionError(int error)
-{
-    Command command(new amun::Command);
-    command->mutable_simulator()->mutable_realism_config()->set_camera_position_error(error / 100.0f);
-    emit sendCommand(command);
-}
-
-void SimulatorConfigWidget::updateWorstCaseVision()
-{
-    Command command(new amun::Command);
+    // worst case vision
     command->mutable_simulator()->mutable_vision_worst_case()->set_min_ball_detection_time(
                 ui->enableWorstCaseVision->isChecked() ? ui->worstCaseBallDetections->value() : 0);
     command->mutable_simulator()->mutable_vision_worst_case()->set_min_robot_detection_time(
                 ui->enableWorstCaseVision->isChecked() ? ui->worstCaseRobotDetections->value() : 0);
-    emit sendCommand(command);
-}
 
-void SimulatorConfigWidget::setEnableSimulateDribbling(int state)
-{
-    bool isEnabled = state != Qt::Unchecked;
 
-    Command command(new amun::Command);
-    command->mutable_simulator()->mutable_realism_config()->set_simulate_dribbling(isEnabled);
     emit sendCommand(command);
 }
