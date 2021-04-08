@@ -457,11 +457,9 @@ std::tuple<QList<QByteArray>, QByteArray, qint64> Simulator::createVisionPacket(
     std::vector<SSL_WrapperPacket> packets;
     packets.reserve(numCameras);
 
-    // add a wrapper packet for all detections that contain the ball or a robot
+    // add a wrapper packet for all detections (also for empty ones).
+    // The reason is that other teams might rely on the fact that these detections are in regular intervals.
     for (auto &frame : detections) {
-        if (frame.balls_size() == 0 && frame.robots_blue_size() == 0 && frame.robots_yellow_size() == 0) {
-            continue;
-        }
 
         // if multiple balls are reported, shuffle them randomly (the tracking might have systematic errors depending on the ball order)
         if (frame.balls_size() > 1) {
