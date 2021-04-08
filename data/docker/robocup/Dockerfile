@@ -1,4 +1,4 @@
-FROM robocupssl/ubuntu-vnc:latest
+FROM robocupssl/ubuntu-vnc:0.2.0
 
 USER root
 
