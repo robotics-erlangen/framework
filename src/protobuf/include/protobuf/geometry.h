@@ -26,5 +26,6 @@
 void geometrySetDefault(world::Geometry *geometry, bool useQuadField = true);
 
 void convertFromSSlGeometry(const SSL_GeometryFieldSize &g, world::Geometry &outGeometry);
+void convertToSSlGeometry(const world::Geometry &g, SSL_GeometryFieldSize *outGeometry);
 
 #endif // GEOMETRY_H

@@ -99,9 +99,6 @@ private:
     void setTeam(RobotMap &list, float side, const robot::Team &team, QMap<uint32_t, robot::Specs>& specs);
     void moveBall(const sslsim::TeleportBall &ball);
     void moveRobot(const sslsim::TeleportRobot &robot);
-    void fieldAddLine(SSL_GeometryFieldSize *field, std::string name, float x1, float y1, float x2, float y2) const;
-    void fieldAddCircularArc(SSL_GeometryFieldSize *field, std::string name, float x, float y, float radius, float a1, float a2) const;
-    void populateFieldPacket(SSL_GeometryFieldSize *field);
     void teleportRobotToFreePosition(SimRobot *robot);
     void initializeDetection(SSL_DetectionFrame *detection, std::size_t cameraId);
 

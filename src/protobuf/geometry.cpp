@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include "geometry.h"
+#include <cmath>
 
 void geometrySetDefault(world::Geometry *geometry, bool useQuadField)
 {
@@ -92,5 +93,77 @@ void convertFromSSlGeometry(const SSL_GeometryFieldSize &g, world::Geometry &out
         outGeometry.set_type(world::Geometry::TYPE_2014);
     } else {
         outGeometry.set_type(world::Geometry::TYPE_2018);
+    }
+}
+
+namespace proto_geom_internal {
+static void fieldAddLine(SSL_GeometryFieldSize *field, std::string name, float x1, float y1, float x2, float y2, const world::Geometry &geometry)
+{
+    SSL_FieldLineSegment * line = field->add_field_lines();
+    line->set_name(std::move(name));
+    Vector2f * p1 = line->mutable_p1();
+    p1->set_x(x1);
+    p1->set_y(y1);
+    Vector2f * p2 = line->mutable_p2();
+    p2->set_x(x2);
+    p2->set_y(y2);
+    line->set_thickness(geometry.line_width() * 1000.0f);
+}
+
+static void fieldAddCircularArc(SSL_GeometryFieldSize *field, std::string name, float x, float y, float radius, float a1, float a2, const world::Geometry &geometry)
+{
+    SSL_FieldCircularArc * arc = field->add_field_arcs();
+    arc->set_name(name);
+    Vector2f * center = arc->mutable_center();
+    center->set_x(x);
+    center->set_y(y);
+    arc->set_radius(radius);
+    arc->set_a1(a1);
+    arc->set_a2(a2);
+    arc->set_thickness(geometry.line_width() * 1000.0f);
+}
+}
+
+using namespace proto_geom_internal;
+
+void convertToSSlGeometry(const world::Geometry &geometry,  SSL_GeometryFieldSize *field)
+{
+    field->set_field_width(geometry.field_width() * 1000.0f);
+    field->set_field_length(geometry.field_height() * 1000.0f);
+    field->set_boundary_width(geometry.boundary_width() * 1000.0f);
+    field->set_goal_width(geometry.goal_width() * 1000.0f);
+    field->set_goal_depth(geometry.goal_depth() * 1000.0f);
+
+    float fieldLengthHalf = geometry.field_height() * 1000.0f / 2.0f;
+    float fieldWidthHalf = geometry.field_width() * 1000.0f / 2.0f;
+    fieldAddLine(field, "TopTouchLine", -fieldLengthHalf, fieldWidthHalf, fieldLengthHalf, fieldWidthHalf, geometry);
+    fieldAddLine(field, "BottomTouchLine", -fieldLengthHalf, -fieldWidthHalf, fieldLengthHalf, -fieldWidthHalf, geometry);
+    fieldAddLine(field, "LeftGoalLine", -fieldLengthHalf, -fieldWidthHalf, -fieldLengthHalf, fieldWidthHalf, geometry);
+    fieldAddLine(field, "RightGoalLine", fieldLengthHalf, -fieldWidthHalf, fieldLengthHalf, fieldWidthHalf, geometry);
+    fieldAddLine(field, "HalfwayLine", 0, -fieldWidthHalf, 0, fieldWidthHalf, geometry);
+    fieldAddLine(field, "CenterLine", -fieldLengthHalf, 0, fieldLengthHalf, 0, geometry);
+    fieldAddCircularArc(field, "CenterCircle", 0, 0, geometry.center_circle_radius() * 1000.0f, 0, 2.0f * M_PI, geometry);
+
+    if (geometry.type() == world::Geometry::TYPE_2018) {
+        float defenseDistance = geometry.defense_height() * 1000.0f;
+        float defensePos = -fieldLengthHalf + defenseDistance;
+        float defenseWidthHalf = geometry.defense_width() * 1000.0f / 2.0f;
+        fieldAddLine(field, "LeftPenaltyStretch", defensePos, -defenseWidthHalf, defensePos, defenseWidthHalf, geometry);
+        fieldAddLine(field, "RightPenaltyStretch", -defensePos, -defenseWidthHalf, -defensePos, defenseWidthHalf, geometry);
+        fieldAddLine(field, "LeftFieldLeftPenaltyStretch", -fieldLengthHalf, -defenseWidthHalf, defensePos, -defenseWidthHalf, geometry);
+        fieldAddLine(field, "LeftFieldRightPenaltyStretch", -fieldLengthHalf, defenseWidthHalf, defensePos, defenseWidthHalf, geometry);
+        fieldAddLine(field, "RightFieldRightPenaltyStretch", fieldLengthHalf, -defenseWidthHalf, -defensePos, -defenseWidthHalf, geometry);
+        fieldAddLine(field, "RightFieldLeftPenaltyStretch", fieldLengthHalf, defenseWidthHalf, -defensePos, defenseWidthHalf, geometry);
+    } else {
+        float defenseDistance = geometry.defense_radius() * 1000.0f;
+        float defensePos = -fieldLengthHalf + defenseDistance;
+        float defenseStretchHalf = geometry.defense_stretch() * 1000.0f / 2.0f;
+        fieldAddLine(field, "LeftPenaltyStretch", defensePos, -defenseStretchHalf, defensePos, defenseStretchHalf, geometry);
+        fieldAddLine(field, "RightPenaltyStretch", -defensePos, -defenseStretchHalf, -defensePos, defenseStretchHalf, geometry);
+
+        fieldAddCircularArc(field, "LeftFieldLeftPenaltyArc", -fieldLengthHalf, -defenseStretchHalf, defenseDistance, 0, 0.5f * M_PI, geometry);
+        fieldAddCircularArc(field, "LeftFieldRightPenaltyArc", -fieldLengthHalf, defenseStretchHalf, defenseDistance, 1.5f * M_PI, 2.0f * M_PI, geometry);
+        fieldAddCircularArc(field, "RightFieldLeftPenaltyArc", fieldLengthHalf, -defenseStretchHalf, defenseDistance, M_PI, 1.5f * M_PI, geometry);
+        fieldAddCircularArc(field, "RightFieldRightPenaltyArc", fieldLengthHalf, defenseStretchHalf, defenseDistance, 0.5f * M_PI, M_PI, geometry);
     }
 }
