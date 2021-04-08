@@ -47,8 +47,8 @@ static int CONTROL_PORT = 10300;
  *
  * Known issues:
  *  - [ ]: Currently, it is not possible to supply partial positions for teleportBall or teleportRobot
- *  - [ ]: Simulator Config is not implemented
- *  - [ ]: Adding / removing robots via teleport-robot is not implemented.
+ *  - [ ]: Simulator Config is not implemented, apart from geometry
+ *  - [ ]: The simulation will not start without explicit sending of a geometry
  *  - [ ]: Robots go into standby after 0.1 seconds without command (Safty)
  *  - [ ]: Dribbler will reset if a new command doesn't contain a new dribbling speed (contrary to the definition that states all not set values should stay as previously assumed)
  *  - [ ]: Commands that are recieved at t0 will not be in effect after the next tick of the simulator (around 5 ms), no interpolation.
@@ -203,6 +203,17 @@ void SimulatorCommandAdaptor::handleDatagrams() {
             }
             emit sendCommand(c);
         }
+        if (simcom.has_config()) {
+            const auto& config{simcom.config()};
+
+            if (config.has_geometry()) {
+                Command c{new amun::Command};
+                auto* setup = c->mutable_simulator()->mutable_simulator_setup();
+                convertFromSSlGeometry(config.geometry().field(), *(setup->mutable_geometry()));
+                setup->mutable_camera_setup()->CopyFrom(config.geometry().calib());
+                emit sendCommand(c);
+            }
+        }
 
         qint64 delta = m_timer->currentTime() - start;
         std::cout << "Handled Datagram in " << delta << std::endl;
@@ -325,9 +336,59 @@ void SSLVisionServer::sendVisionData(const QByteArray& data, qint64, QString)
     m_server.send(data);
 }
 
+using camun::simulator::Simulator;
+using camun::simulator::ErrorSource;
+
+class SimProxy: public QObject {
+    Q_OBJECT
+public:
+    SimProxy(Timer* t): m_timer(t) {}
+signals:
+    void sendSSLSimError(const QList<SSLSimError>& errors, ErrorSource source);
+    void sendRadioResponses(const QList<robot::RadioResponse> &responses);
+    void gotPacket(const QByteArray &data, qint64 time, QString sender);
+    void gotCommand(const Command &command);
+    void handleRadioCommands(const SSLSimRobotControl& control, bool isBlue, qint64 processingStart);
+public slots:
+    void handleCommand(const Command &command);
+
+private:
+    Timer* m_timer;
+    Simulator* m_sim = nullptr;
+    Command m_teamCommand{new amun::Command};
+};
+
+void SimProxy::handleCommand(const Command &command) {
+    if (command->has_set_team_blue()) {
+        m_teamCommand->mutable_set_team_blue()->CopyFrom(command->set_team_blue());
+    }
+    if (command->has_set_team_yellow()) {
+        m_teamCommand->mutable_set_team_yellow()->CopyFrom(command->set_team_yellow());
+    }
+    if (command->has_simulator() && command->simulator().has_simulator_setup()) {
+        // replace m_sim
+        if (m_sim != nullptr) {
+            // replace old connectios
+            m_sim->blockSignals(true);
+            m_sim->deleteLater();
+        }
+        m_sim = new Simulator(m_timer, command->simulator().simulator_setup());
+        connect(this, &SimProxy::gotCommand, m_sim, &Simulator::handleCommand);
+        connect(m_sim, &Simulator::gotPacket, this, &SimProxy::gotPacket);
+        connect(this, &SimProxy::handleRadioCommands, m_sim, &Simulator::handleRadioCommands);
+        connect(m_sim, &Simulator::sendSSLSimError, this, &SimProxy::sendSSLSimError);
+        connect(m_sim, &Simulator::sendRadioResponses, this, &SimProxy::sendRadioResponses);
+        auto* simCommand = m_teamCommand->mutable_simulator();
+        simCommand->set_enable(true);
+        auto* trCommand = m_teamCommand->mutable_transceiver();
+        trCommand->set_charge(true);
+        emit gotCommand(m_teamCommand);
+    }
+    emit gotCommand(command);
+}
+
 #include "simulator.moc"
 
-using camun::simulator::Simulator;
 
 
 int main(int argc, char* argv[])
@@ -349,32 +410,24 @@ int main(int argc, char* argv[])
     Timer timer;
     RobotCommandAdaptor blue{true, &timer}, yellow{false, &timer};
     SimulatorCommandAdaptor commands{&timer};
-    // TODO: accept configuration commands
-    amun::SimulatorSetup defaultSimulatorSetup;
-    simulatorSetupSetDefault(defaultSimulatorSetup);
+    SimProxy sim{&timer};
 
-    Simulator sim{&timer, defaultSimulatorSetup};
-
-    blue.connect(&blue, &RobotCommandAdaptor::sendRadioCommands, &sim, &Simulator::handleRadioCommands);
-    blue.connect(&sim, &Simulator::sendRadioResponses, &blue, &RobotCommandAdaptor::handleRobotResponse);
-    yellow.connect(&yellow, &RobotCommandAdaptor::sendRadioCommands, &sim, &Simulator::handleRadioCommands);
-    yellow.connect(&sim, &Simulator::sendRadioResponses, &yellow, &RobotCommandAdaptor::handleRobotResponse);
+    blue.connect(&blue, &RobotCommandAdaptor::sendRadioCommands, &sim, &SimProxy::handleRadioCommands);
+    blue.connect(&sim, &SimProxy::sendRadioResponses, &blue, &RobotCommandAdaptor::handleRobotResponse);
+    yellow.connect(&yellow, &RobotCommandAdaptor::sendRadioCommands, &sim, &SimProxy::handleRadioCommands);
+    yellow.connect(&sim, &SimProxy::sendRadioResponses, &yellow, &RobotCommandAdaptor::handleRobotResponse);
 
     SSLVisionServer vision{10020};
 
-    vision.connect(&sim, &Simulator::gotPacket, &vision, &SSLVisionServer::sendVisionData);
-    commands.connect(&commands, &SimulatorCommandAdaptor::sendCommand, &sim, &Simulator::handleCommand);
+    vision.connect(&sim, &SimProxy::gotPacket, &vision, &SSLVisionServer::sendVisionData);
+    commands.connect(&commands, &SimulatorCommandAdaptor::sendCommand, &sim, &SimProxy::handleCommand);
 
 
-    commands.connect(&sim, &Simulator::sendSSLSimError, &commands, &SimulatorCommandAdaptor::handleSimulatorError);
-    blue.connect(&sim, &Simulator::sendSSLSimError, &blue, &RobotCommandAdaptor::handleSimulatorError);
-    yellow.connect(&sim, &Simulator::sendSSLSimError, &yellow, &RobotCommandAdaptor::handleSimulatorError);
+    commands.connect(&sim, &SimProxy::sendSSLSimError, &commands, &SimulatorCommandAdaptor::handleSimulatorError);
+    blue.connect(&sim, &SimProxy::sendSSLSimError, &blue, &RobotCommandAdaptor::handleSimulatorError);
+    yellow.connect(&sim, &SimProxy::sendSSLSimError, &yellow, &RobotCommandAdaptor::handleSimulatorError);
 
     Command c{new amun::Command};
-    auto* simCommand = c->mutable_simulator();
-    simCommand->set_enable(true);
-    auto* trCommand = c->mutable_transceiver();
-    trCommand->set_charge(true);
     // start with 6 robots for yellow and blue, take ER-Force specs.
 
 

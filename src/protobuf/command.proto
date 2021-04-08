@@ -38,7 +38,7 @@ message RobotMoveCommand {
 }
 
 message SimulatorSetup {
-    optional world.Geometry geometry = 1;
+    required world.Geometry geometry = 1;
     repeated SSL_GeometryCameraCalibration camera_setup = 2;
 }
 
