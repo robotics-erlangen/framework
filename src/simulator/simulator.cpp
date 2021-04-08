@@ -161,6 +161,12 @@ static void sendUDP(const google::protobuf::Message& out, QUdpSocket& server, co
 
 #define SCALE_UP(OBJ, ATTR) do{if((OBJ).has_##ATTR()) (OBJ).set_##ATTR((OBJ).ATTR() * 1e3);} while(0)
 
+static void warnLatency(qint64 delta) {
+    if (delta > 1e6) {
+        std::cout << "Warning: Handled Datagram in " << delta <<"ns, should be lower than 1e6"<< std::endl;
+    }
+}
+
 void SimulatorCommandAdaptor::handleDatagrams() {
     while(m_server.hasPendingDatagrams()) {
         qint64 start = m_timer->currentTime();
@@ -216,7 +222,7 @@ void SimulatorCommandAdaptor::handleDatagrams() {
         }
 
         qint64 delta = m_timer->currentTime() - start;
-        std::cout << "Handled Datagram in " << delta << std::endl;
+        warnLatency(delta);
     }
 }
 
@@ -285,7 +291,8 @@ void RobotCommandAdaptor::handleDatagrams()
         emit sendRadioCommands(control, m_is_blue, m_timer->currentTime()); // This might be a bit late.
         // TODO: response!
         qint64 delta = m_timer->currentTime() - start;
-        std::cout << "Handled Datagram in " << delta << std::endl;
+
+        warnLatency(delta);
     }
 }
 
