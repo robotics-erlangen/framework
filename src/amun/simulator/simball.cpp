@@ -154,7 +154,7 @@ void SimBall::begin()
                 coordinates::fromVisionVelocity(m_move, vel);
                 float vz = 0;
                 if (m_move.has_vz()) {
-                    vz = m_move.vz();
+                    vz = m_move.vz() * 1e-3;
                 }
                 const btVector3 linVel(vel.x, vel.y, vz);
                 m_body->setLinearVelocity(linVel * SIMULATOR_SCALE);
