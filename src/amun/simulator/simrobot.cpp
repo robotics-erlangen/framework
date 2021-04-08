@@ -175,6 +175,9 @@ void SimRobot::begin(SimBall *ball, double time)
         std::string message = "Partial coordinates are not implemented yet";
         error->set_message(message + msg);
         emit this->sendSSLSimError(error, ErrorSource::CONFIG);
+        if (!m_move.has_by_force() || !m_move.by_force()) {
+            m_move.Clear();
+        }
     };
     bool moveCommand = false;
     std::string message = " for robot (";
