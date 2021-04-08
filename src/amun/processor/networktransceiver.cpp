@@ -22,6 +22,7 @@
 #include "core/run_out_of_scope.h"
 #include "protobuf/grsim_commands.pb.h"
 #include "protobuf/grsim_replacement.pb.h"
+#include "protobuf/geometry.h"
 #include "protobuf/ssl_simulation_robot_feedback.pb.h"
 #include <QUdpSocket>
 #include <QNetworkDatagram>
@@ -139,6 +140,15 @@ void NetworkTransceiver::handleCommand(const Command &command)
            convertUnits(robot);
        }
        sendSSLSimCommand(cmd);
+    }
+    if (command->has_simulator() && command->simulator().has_simulator_setup() && m_sendCommands) {
+        sslsim::SimulatorCommand cmd;
+        SSL_GeometryData *data = cmd.mutable_config()->mutable_geometry();
+        for(const auto& camSetup : command->simulator().simulator_setup().camera_setup()) {
+            data->add_calib()->CopyFrom(camSetup);
+        }
+        convertToSSlGeometry(command->simulator().simulator_setup().geometry(), data->mutable_field());
+        sendSSLSimCommand(cmd);
     }
 }
 
