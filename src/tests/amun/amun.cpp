@@ -61,7 +61,7 @@ static void checkWorldEquality(const world::State &original, const world::State 
 const static QString amunCliLogfile("temp_unittest_amunycli.log");
 const static QString replayLogfile("temp_unittest_tracking_replay.log");
 
-TEST(Amun, TrackingReplay) {
+TEST(Amun, DISABLED_TrackingReplay) {
     class DeleteFile {
     public:
         ~DeleteFile() {
