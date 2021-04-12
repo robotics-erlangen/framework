@@ -30,7 +30,9 @@ const uint DEFAULT_REFEREE_PORT = 10003;
 
 const bool DEFAULT_NETWORK_ENABLE = false;
 const QString DEFAULT_NETWORK_HOST = QStringLiteral("");
-const uint DEFAULT_NETWORK_PORT = 20011;
+const uint DEFAULT_NETWORK_PORT = 20010;
+const uint DEFAULT_NETWORK_PORT_BLUE = 20011;
+const uint DEFAULT_NETWORK_PORT_YELLOW = 20012;
 
 const QString DEFAULT_MIXED_HOST = QStringLiteral("");
 const uint DEFAULT_MIXED_PORT = 10012;
@@ -83,6 +85,8 @@ void ConfigDialog::sendConfiguration()
     amun::HostAddress *nc = command->mutable_transceiver()->mutable_network_configuration();
     nc->set_host(ui->networkHost->text().toStdString());
     nc->set_port(ui->networkPort->value());
+    nc->set_port_blue(ui->networkPortBlue->value());
+    nc->set_port_yellow(ui->networkPortYellow->value());
 
     command->mutable_mixed_team_destination()->set_host(ui->mixedHost->text().toStdString());
     command->mutable_mixed_team_destination()->set_port(ui->mixedPort->value());
@@ -110,6 +114,8 @@ void ConfigDialog::load()
     ui->networkUse->setChecked(s.value("Network/Use", DEFAULT_NETWORK_ENABLE).toBool());
     ui->networkHost->setText(s.value("Network/Host", DEFAULT_NETWORK_HOST).toString());
     ui->networkPort->setValue(s.value("Network/Port", DEFAULT_NETWORK_PORT).toUInt());
+    ui->networkPortBlue->setValue(s.value("Network/PortBlue", DEFAULT_NETWORK_PORT_BLUE).toUInt());
+    ui->networkPortYellow->setValue(s.value("Network/PortYellow", DEFAULT_NETWORK_PORT_YELLOW).toUInt());
 
     ui->mixedHost->setText(s.value("Mixed/Host", DEFAULT_MIXED_HOST).toString());
     ui->mixedPort->setValue(s.value("Mixed/Port", DEFAULT_MIXED_PORT).toUInt());
@@ -146,6 +152,8 @@ void ConfigDialog::reset()
     ui->networkUse->setChecked(DEFAULT_NETWORK_ENABLE);
     ui->networkHost->setText(DEFAULT_NETWORK_HOST);
     ui->networkPort->setValue(DEFAULT_NETWORK_PORT);
+    ui->networkPortBlue->setValue(DEFAULT_NETWORK_PORT_BLUE);
+    ui->networkPortYellow->setValue(DEFAULT_NETWORK_PORT_YELLOW);
     ui->mixedHost->setText(DEFAULT_MIXED_HOST);
     ui->mixedPort->setValue(DEFAULT_MIXED_PORT);
     ui->uiDarkMode->setChecked(DEFAULT_UI_DARK_MODE_COLORS);
@@ -170,6 +178,8 @@ void ConfigDialog::apply()
     s.setValue("Network/Use", ui->networkUse->isChecked());
     s.setValue("Network/Host", ui->networkHost->text());
     s.setValue("Network/Port", ui->networkPort->value());
+    s.setValue("Network/PortBlue", ui->networkPortBlue->value());
+    s.setValue("Network/PortYellow", ui->networkPortYellow->value());
 
     s.setValue("Mixed/Host", ui->mixedHost->text());
     s.setValue("Mixed/Port", ui->mixedPort->value());
