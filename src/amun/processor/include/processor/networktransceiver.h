@@ -73,7 +73,9 @@ private:
     NetworkConfig m_configuration;
     QUdpSocket *m_udpSocket;
     const Timer *m_timer;
+    Command m_teamCommand{new amun::Command};
     bool m_sendCommands = false;
+    bool m_teamCommandModified = false;
 };
 
 #endif // NETWORKTRANSCEIVER_H

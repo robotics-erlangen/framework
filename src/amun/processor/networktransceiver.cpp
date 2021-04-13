@@ -24,6 +24,7 @@
 #include "protobuf/grsim_replacement.pb.h"
 #include "protobuf/geometry.h"
 #include "protobuf/ssl_simulation_robot_feedback.pb.h"
+#include "protobuf/ssl_simulation_custom_erforce_robot_spec.pb.h"
 #include <QUdpSocket>
 #include <QNetworkDatagram>
 #include <cmath>
@@ -108,8 +109,96 @@ static void convertUnits(sslsim::TeleportRobot& robot) {
     SCALE_DOWN(robot, v_y);
 }
 
+#define MAX_WITH_OPTION(OBJ, X, Y, BOOL_OUT, FLOAT_OUT) do{BOOL_OUT = false; float tmp##X##Y; \
+if ((OBJ) . has_##X()) { tmp##X##Y = (OBJ). X(); BOOL_OUT = true;} \
+if ((OBJ) . has_##Y()) { if(BOOL_OUT) tmp##X##Y = std::max(tmp##X##Y, (OBJ) . Y()); else { tmp##X##Y = (OBJ) . Y(); BOOL_OUT = true;}} \
+if (BOOL_OUT) FLOAT_OUT = tmp##X##Y; } while(0)
+
+
+static void convertSpecs(const robot::Specs& in, sslsim::RobotSpecs* out, bool blueTeam, bool* success)
+{
+    bool useSpecialFields = false;
+    sslsim::RobotSpecErForce rsef;
+    out->mutable_id()->set_id(in.id());
+    out->mutable_id()->set_team(blueTeam? gameController::BLUE : gameController::YELLOW);
+    if (in.has_radius()) {
+        out->set_radius(in.radius());
+    }
+    if (in.has_height()) {
+        out->set_height(in.height());
+    }
+    if (in.has_mass()) {
+        out->set_mass(in.mass());
+    }
+    if (in.has_angle()) {
+        if (!in.has_dribbler_width()) {
+            *success = false;
+            return;
+        }
+        const float fullFrontWidth = std::sin(in.angle() / 2) * in.radius() * 2;
+        if (in.dribbler_width() >= fullFrontWidth) {
+            *success = false;
+            return;
+        }
+        useSpecialFields = true;
+        rsef.set_dribbler_width_extra(fullFrontWidth - in.dribbler_width());
+    }
+    if (in.has_v_max()) {
+        out->mutable_limits()->set_vel_absolute_max(in.v_max());
+    }
+    if (in.has_omega_max()) {
+        out->mutable_limits()->set_vel_angular_max(in.omega_max());
+    }
+    if (in.has_shot_linear_max()) {
+        out->set_max_linear_kick_speed(in.shot_linear_max());
+    }
+    if (in.has_dribbler_width()) {
+        out->set_dribbler_width(in.dribbler_width());
+    }
+    if (in.has_strategy()) {
+        auto* robotLimits = out->mutable_limits();
+        bool found;
+        float result;
+        MAX_WITH_OPTION(in.strategy(), a_speedup_f_max, a_speedup_s_max, found, result);
+        if (found) {
+            robotLimits->set_acc_speedup_absolute_max(result);
+        }
+        MAX_WITH_OPTION(in.strategy(), a_brake_f_max, a_brake_s_max, found, result);
+        if (found) {
+            robotLimits->set_acc_brake_absolute_max(result);
+        }
+        if (in.strategy().has_a_speedup_phi_max()) {
+            robotLimits->set_acc_speedup_angular_max(in.strategy().a_speedup_phi_max());
+        }
+        if (in.strategy().has_a_brake_phi_max()) {
+            robotLimits->set_acc_brake_angular_max(in.strategy().a_brake_phi_max());
+        }
+    }
+    if (in.has_shoot_radius()) {
+        rsef.set_shoot_radius(in.shoot_radius());
+        useSpecialFields = true;
+    }
+    if (in.has_dribbler_height()) {
+        rsef.set_dribbler_height(in.dribbler_height());
+        useSpecialFields = true;
+    }
+    if (useSpecialFields) {
+        out->mutable_custom()->PackFrom(rsef);
+
+    }
+    *success = true;
+}
+
 void NetworkTransceiver::handleCommand(const Command &command)
 {
+    if (command->has_set_team_blue()) {
+        m_teamCommand->mutable_set_team_blue()->CopyFrom(command->set_team_blue());
+        m_teamCommandModified = true;
+    }
+    if (command->has_set_team_yellow()) {
+        m_teamCommand->mutable_set_team_yellow()->CopyFrom(command->set_team_yellow());
+        m_teamCommandModified = true;
+    }
     if (command->has_transceiver()) {
         const amun::CommandTransceiver &t = command->transceiver();
 
@@ -148,6 +237,64 @@ void NetworkTransceiver::handleCommand(const Command &command)
             data->add_calib()->CopyFrom(camSetup);
         }
         convertToSSlGeometry(command->simulator().simulator_setup().geometry(), data->mutable_field());
+        sendSSLSimCommand(cmd);
+    }
+    static bool sendMessage = true;
+    if (sendMessage) {
+        const int highest_field = 20;
+        const int expected_fields = highest_field - 1;
+        auto* desc = robot::Specs::descriptor();
+        int real_fields = desc->field_count();
+        for(int i=0; i<desc->reserved_range_count(); ++i){
+            const auto* rr = desc->reserved_range(i);
+            real_fields += rr->end - rr->start;
+        }
+        // FIXME: Always keep this number updated to the transported fields in convertSpecs (m_teamCommandModified ...)
+        if(real_fields != expected_fields) {
+            Status s{new amun::Status};
+            auto* debug = s->add_debug();
+            debug->set_source(amun::DebugSource::NetworkTransceiver);
+            auto* log = debug->add_log();
+            log->set_timestamp(m_timer->currentTime());
+            std::string msg = "BUG: The number of fields for the specs has a different number compared to expected!";
+            msg += " expected: " + std::to_string(expected_fields);
+            msg += ", but found: " + std::to_string(real_fields);
+            msg += " (in ";
+            msg += __FILE__;
+            msg += ": ";
+            msg += std::to_string(__LINE__);
+            log->set_text(msg + ")");
+            emit sendStatus(s);
+        }
+    }
+    if (m_teamCommandModified && m_sendCommands) {
+        m_teamCommandModified = false;
+        sslsim::SimulatorCommand cmd;
+
+        const auto reportIssue = [this](const robot::Specs& spec) {
+            Status s{new amun::Status};
+            auto* debug = s->add_debug();
+            debug->set_source(amun::DebugSource::NetworkTransceiver);
+            auto* log = debug->add_log();
+            log->set_timestamp(m_timer->currentTime());
+            std::string msg = "The following spec couldn't be converted a valid spec for the remote simulator, skipping:";
+            msg += spec.DebugString();
+            log->set_text(msg);
+            emit sendStatus(s);
+        };
+
+        const auto convertTeam = [&reportIssue](const robot::Team& team, sslsim::SimulatorConfig* config, bool isBlue) {
+            for(const robot::Specs& spec : team.robot()) {
+                bool result;
+                convertSpecs(spec, config->add_robot_specs(), isBlue, &result);
+                if (!result) {
+                    reportIssue(spec);
+                }
+            }
+        };
+        sslsim::SimulatorConfig* cfg = cmd.mutable_config();
+        convertTeam(m_teamCommand->set_team_blue(), cfg, true);
+        convertTeam(m_teamCommand->set_team_yellow(), cfg, false);
         sendSSLSimCommand(cmd);
     }
 }

@@ -72,6 +72,7 @@ set(PROTO_FILES
     grsim_commands.proto
     grsim_packet.proto
     grsim_replacement.proto
+    ssl_simulation_custom_erforce_robot_spec.proto
 )
 protobuf_generate_cpp(PROTO_SOURCES PROTO_HEADERS ${PROTO_FILES})
 target_sources(protobuf PRIVATE ${PROTO_SOURCES} ${PROTO_HEADERS} ${PROTO_FILES})
