@@ -370,9 +370,11 @@ private:
 void SimProxy::handleCommand(const Command &command) {
     if (command->has_set_team_blue()) {
         m_teamCommand->mutable_set_team_blue()->CopyFrom(command->set_team_blue());
+        command->clear_set_team_blue();
     }
     if (command->has_set_team_yellow()) {
         m_teamCommand->mutable_set_team_yellow()->CopyFrom(command->set_team_yellow());
+        command->clear_set_team_yellow();
     }
     if (command->has_simulator() && command->simulator().has_simulator_setup()) {
         // replace m_sim
