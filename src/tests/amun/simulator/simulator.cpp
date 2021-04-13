@@ -22,6 +22,7 @@
 #include "simulator/fastsimulator.h"
 #include "simulator/simulator.h"
 #include "core/timer.h"
+#include "core/configuration.h"
 #include "protobuf/geometry.h"
 #include "protobuf/command.h"
 #include "protobuf/status.h"
@@ -50,9 +51,8 @@ public:
 };
 
 static camun::simulator::Simulator* mallocTestingSimulator(Timer* t) {
-    // this is stolen from amun
     amun::SimulatorSetup defaultSimulatorSetup;
-    simulatorSetupSetDefault(defaultSimulatorSetup);
+    loadConfiguration("simulator/2020", &defaultSimulatorSetup, false);
     return new camun::simulator::Simulator{t, defaultSimulatorSetup, true};
 }
 
