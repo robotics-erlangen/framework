@@ -25,7 +25,7 @@
 
 import { Coordinates } from "base/coordinates";
 import * as pb from "base/protobuf";
-import { FriendlyRobot, Robot } from "base/robot";
+import { RobotState } from "base/robot";
 import { Position, Vector } from "base/vector";
 import * as World from "base/world";
 
@@ -158,7 +158,7 @@ export function sendRefereeCommand(refereeCommand: string, gameStage?: string, b
  * @param opponentRobots - opponent robots by id
  */
 type BallInfo = { pos: Vector, posZ: number, speed: Vector, speedZ: number };
-export function moveObjects(ball?: BallInfo, friendlyRobots?: FriendlyRobot[], opponentRobots?: Robot[]) {
+export function moveObjects(ball?: BallInfo, friendlyRobots?: RobotState[], opponentRobots?: RobotState[]) {
 	if (!amun.isDebug) {
 		throw new Error("only works in debug mode");
 	}
