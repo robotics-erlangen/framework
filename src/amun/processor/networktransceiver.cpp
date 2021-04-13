@@ -115,21 +115,11 @@ if ((OBJ) . has_##Y()) { if(BOOL_OUT) tmp##X##Y = std::max(tmp##X##Y, (OBJ) . Y(
 if (BOOL_OUT) FLOAT_OUT = tmp##X##Y; } while(0)
 
 
-static void convertSpecs(const robot::Specs& in, sslsim::RobotSpecs* out, bool blueTeam, bool* success)
+template<class T>
+static void convertSpecs(const robot::Specs& in, T outGen, bool blueTeam, bool* success)
 {
     bool useSpecialFields = false;
     sslsim::RobotSpecErForce rsef;
-    out->mutable_id()->set_id(in.id());
-    out->mutable_id()->set_team(blueTeam? gameController::BLUE : gameController::YELLOW);
-    if (in.has_radius()) {
-        out->set_radius(in.radius());
-    }
-    if (in.has_height()) {
-        out->set_height(in.height());
-    }
-    if (in.has_mass()) {
-        out->set_mass(in.mass());
-    }
     if (in.has_angle()) {
         if (!in.has_dribbler_width()) {
             *success = false;
@@ -142,6 +132,18 @@ static void convertSpecs(const robot::Specs& in, sslsim::RobotSpecs* out, bool b
         }
         useSpecialFields = true;
         rsef.set_dribbler_width_extra(fullFrontWidth - in.dribbler_width());
+    }
+    sslsim::RobotSpecs* out = outGen();
+    out->mutable_id()->set_id(in.id());
+    out->mutable_id()->set_team(blueTeam? gameController::BLUE : gameController::YELLOW);
+    if (in.has_radius()) {
+        out->set_radius(in.radius());
+    }
+    if (in.has_height()) {
+        out->set_height(in.height());
+    }
+    if (in.has_mass()) {
+        out->set_mass(in.mass());
     }
     if (in.has_v_max()) {
         out->mutable_limits()->set_vel_absolute_max(in.v_max());
@@ -286,7 +288,7 @@ void NetworkTransceiver::handleCommand(const Command &command)
         const auto convertTeam = [&reportIssue](const robot::Team& team, sslsim::SimulatorConfig* config, bool isBlue) {
             for(const robot::Specs& spec : team.robot()) {
                 bool result;
-                convertSpecs(spec, config->add_robot_specs(), isBlue, &result);
+                convertSpecs(spec, [config](){return config->add_robot_specs();}, isBlue, &result);
                 if (!result) {
                     reportIssue(spec);
                 }
