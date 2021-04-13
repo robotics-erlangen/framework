@@ -12,3 +12,4 @@ robot_response_loss: 0
 missing_ball_detections: 0
 vision_delay: 35000000
 vision_processing_time: 5000000
+simulate_dribbling: true

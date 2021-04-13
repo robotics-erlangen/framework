@@ -51,6 +51,7 @@ private slots:
     void setEnableInvisibleBall(int state);
     void setBallVisibilityThreshold(int threshold);
     void setCameraOverlap(int overlap);
+    void setEnableSimulateDribbling(int state);
     void updateWorstCaseVision();
     void realismPresetChanged(QString name);
     void setCameraPositionError(int error);

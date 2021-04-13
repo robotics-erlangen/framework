@@ -21,6 +21,8 @@
 #include "simulatorconfigwidget.h"
 #include "ui_simulatorconfigwidget.h"
 #include "protobuf/command.pb.h"
+#include "protobuf/ssl_simulation_custom_erforce_realism.pb.h"
+#include "protobuf/ssl_simulation_control.pb.h"
 #include "config/config.h"
 #include <QCheckBox>
 #include <QDoubleSpinBox>
@@ -51,6 +53,8 @@ SimulatorConfigWidget::SimulatorConfigWidget(QWidget *parent) :
     connect(ui->spinStdDevBallArea, SIGNAL(valueChanged(double)), SLOT(sendSimulatorNoiseConfig()));
     connect(ui->spinDribblerBallDetections, SIGNAL(valueChanged(double)), SLOT(sendSimulatorNoiseConfig()));
     connect(ui->spinMissingDetections, SIGNAL(valueChanged(double)), SLOT(sendSimulatorNoiseConfig()));
+
+    connect(ui->chkSimulateDribbling, &QCheckBox::stateChanged, this, &SimulatorConfigWidget::setEnableSimulateDribbling);
 
     connect(ui->spinVisionDelay, SIGNAL(valueChanged(int)), SLOT(updateDelays()));
     connect(ui->spinProcessingTime, SIGNAL(valueChanged(int)), SLOT(updateDelays()));
@@ -101,7 +105,7 @@ void SimulatorConfigWidget::realismPresetChanged(QString name)
     file.close();
     std::string s = qPrintable(str);
 
-    amun::SimulatorRealismConfig config;
+    RealismConfigErForce config;
     google::protobuf::TextFormat::Parser parser;
     parser.AllowPartialMessage(false);
     parser.ParseFromString(s, &config);
@@ -120,6 +124,7 @@ void SimulatorConfigWidget::realismPresetChanged(QString name)
     ui->spinMissingDetections->setValue(config.missing_ball_detections() * 100.0f);
     ui->spinVisionDelay->setValue(config.vision_delay() / 1000000LL); // from ns to ms
     ui->spinProcessingTime->setValue(config.vision_processing_time() / 1000000LL);
+    ui->chkSimulateDribbling->setChecked(config.simulate_dribbling());
 
     bool enableNoise = ui->spinStddevBall->value() != 0 || ui->spinStddevRobotPos->value() != 0 ||
                        ui->spinStddevRobotPhi->value() != 0 || ui->spinStdDevBallArea->value() != 0 ||
@@ -156,6 +161,7 @@ void SimulatorConfigWidget::sendSimulatorNoiseConfig()
     realism->set_stddev_ball_area(isEnabled ? ui->spinStdDevBallArea->value(): 0);
     realism->set_dribbler_ball_detections(isEnabled ? ui->spinDribblerBallDetections->value() : 0);
     realism->set_missing_ball_detections(isEnabled ? ui->spinMissingDetections->value() / 100.0f : 0);
+    realism->set_simulate_dribbling(isEnabled ? ui->chkSimulateDribbling->isChecked() : false);
     emit sendCommand(command);
 }
 
@@ -196,5 +202,14 @@ void SimulatorConfigWidget::updateWorstCaseVision()
                 ui->enableWorstCaseVision->isChecked() ? ui->worstCaseBallDetections->value() : 0);
     command->mutable_simulator()->mutable_vision_worst_case()->set_min_robot_detection_time(
                 ui->enableWorstCaseVision->isChecked() ? ui->worstCaseRobotDetections->value() : 0);
+    emit sendCommand(command);
+}
+
+void SimulatorConfigWidget::setEnableSimulateDribbling(int state)
+{
+    bool isEnabled = state != Qt::Unchecked;
+
+    Command command(new amun::Command);
+    command->mutable_simulator()->mutable_realism_config()->set_simulate_dribbling(isEnabled);
     emit sendCommand(command);
 }

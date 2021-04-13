@@ -6,6 +6,7 @@ import "robot.proto";
 import "logfile.proto";
 import "ssl_geometry.proto";
 import "ssl_simulation_control.proto";
+import "ssl_simulation_custom_erforce_realism.proto";
 
 package amun;
 
@@ -75,7 +76,7 @@ message CommandSimulator {
     //repeated SimulatorMoveRobot move_yellow = 4; // depreaceted
     optional SimulatorSetup simulator_setup = 5;
     optional SimulatorWorstCaseVision vision_worst_case = 6;
-    optional SimulatorRealismConfig realism_config = 7;
+    optional RealismConfigErForce realism_config = 7;
     optional world.SimulatorState set_simulator_state = 8;
     optional sslsim.SimulatorControl ssl_control = 9;
 }

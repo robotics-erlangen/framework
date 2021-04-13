@@ -62,6 +62,7 @@ set(PROTO_FILES
     ssl_simulation_robot_feedback.proto
     ssl_simulation_control.proto
     ssl_simulation_config.proto
+	ssl_simulation_custom_erforce_realism.proto
     ssl_wrapper.proto
     status.proto
     userinput.proto
