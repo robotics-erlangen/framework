@@ -27,6 +27,7 @@
 
 #include "protobuf/ssl_simulation_robot_control.pb.h"
 #include "protobuf/ssl_simulation_robot_feedback.pb.h"
+#include "protobuf/ssl_simulation_custom_erforce_robot_spec.pb.h"
 #include "protobuf/sslsim.h"
 #include "protobuf/status.h"
 #include "protobuf/command.h"
@@ -169,6 +170,121 @@ static void warnLatency(qint64 delta) {
     }
 }
 
+
+//TODO: Always update the following constant if the robotSpecs did change,
+// either disregard the new field and just increase the expected number if the new field is useless to our simulator,
+// or convert it properly and update this number.
+constexpr int expected_specs_fields = 10 + 3;
+constexpr int functionToFixForSpecs = __LINE__;
+template<class T>
+static bool convertSpecsToErForce(T outGen, const sslsim::RobotSpecs& in) // @return false: Error occured
+{
+    if (!in.has_mass()) {
+        return false;
+    }
+    if (!in.has_limits()) {
+        return false;
+    }
+    if (!in.has_custom()) {
+        return false;
+    }
+    if (!in.has_dribbler_width()) {
+        return false;
+    }
+    sslsim::RobotSpecErForce rsef;
+    /*
+    optional float shoot_radius = 1;
+    // The height of the dribbling bar from the ground [m]
+    optional float dribbler_height = 2;
+    // The 'loss' at the front of the robot where the dribbler bar does not (yet) start, due to the mechanical layout of the robot [m]
+    optional float dribbler_width_extra = 3 [default = 0.014];
+    */
+    if (!in.custom().UnpackTo(&rsef)) {
+        return false;
+    }
+    if (!rsef.has_shoot_radius()) {
+        return false;
+    }
+    if (!rsef.has_dribbler_height()) {
+        return false;
+    }
+    const sslsim::RobotLimits& lim = in.limits();
+    if (!lim.has_acc_speedup_absolute_max()) {
+        return false;
+    }
+    if (!lim.has_acc_speedup_angular_max()) {
+        return false;
+    }
+    if (!lim.has_acc_brake_absolute_max()) {
+        return false;
+    }
+    if (!lim.has_acc_brake_angular_max()) {
+        return false;
+    }
+    if (!lim.has_vel_absolute_max()) {
+        return false;
+    }
+    if (!lim.has_vel_angular_max()) {
+        return false;
+    }
+    if (!in.id().has_id()) {
+        return false;
+    }
+    if (!in.id().has_team()) {
+        return false;
+    }
+    robot::Specs* out = outGen(in.id().team() == gameController::BLUE);
+    out->set_year(1970);
+    out->set_generation(0);
+    out->set_id(in.id().id());
+    out->set_type(robot::Specs_GenerationType_Regular);
+    out->set_radius(in.radius());
+    out->set_height(in.height());
+    out->set_mass(in.mass());
+    out->set_v_max(lim.vel_absolute_max());
+    out->set_omega_max(lim.vel_angular_max());
+    if (in.has_max_linear_kick_speed()) {
+        out->set_shot_linear_max(in.max_linear_kick_speed());
+    }
+    else {
+        out->set_shot_linear_max(100);
+    }
+    // TODO: chips
+    out->set_dribbler_width(in.dribbler_width());
+    auto* acc = out->mutable_strategy();
+
+    acc->set_a_speedup_f_max(lim.acc_speedup_absolute_max());
+    acc->set_a_speedup_s_max(lim.acc_speedup_absolute_max());
+    acc->set_a_speedup_phi_max(lim.acc_speedup_angular_max());
+    acc->set_a_brake_f_max(lim.acc_brake_absolute_max());
+    acc->set_a_brake_s_max(lim.acc_brake_absolute_max());
+    acc->set_a_brake_phi_max(lim.acc_brake_angular_max());
+
+    out->set_shoot_radius(rsef.shoot_radius());
+    out->set_dribbler_height(rsef.dribbler_height());
+
+    // TODO: angle
+    out->set_angle(0.982f);
+    return true;
+            /*
+// Movement limits for a robot
+message RobotLimits {
+    // Max absolute speed-up acceleration [m/s^2]
+    optional float acc_speedup_absolute_max = 1;
+    // Max angular speed-up acceleration [rad/s^2]
+    optional float acc_speedup_angular_max = 2;
+    // Max absolute brake acceleration [m/s^2]
+    optional float acc_brake_absolute_max = 3;
+    // Max angular brake acceleration [rad/s^2]
+    optional float acc_brake_angular_max = 4;
+    // Max absolute velocity [m/s]
+    optional float vel_absolute_max = 5;
+    // Max angular velocity [rad/s]
+    optional float vel_angular_max = 6;
+    */
+}
+
+
 void SimulatorCommandAdaptor::handleDatagrams() {
     while(m_server.hasPendingDatagrams()) {
         qint64 start = m_timer->currentTime();
@@ -219,6 +335,29 @@ void SimulatorCommandAdaptor::handleDatagrams() {
                 auto* setup = c->mutable_simulator()->mutable_simulator_setup();
                 convertFromSSlGeometry(config.geometry().field(), *(setup->mutable_geometry()));
                 setup->mutable_camera_setup()->CopyFrom(config.geometry().calib());
+                emit sendCommand(c);
+            }
+
+            if (config.robot_specs_size() > 0) {
+                Command c{new amun::Command};
+                robot::Team* blueTeam = nullptr;
+                robot::Team* yellowTeam = nullptr;
+                for (const auto& spec : config.robot_specs()) {
+                    convertSpecsToErForce([&blueTeam, &yellowTeam, &c](bool isBlue){
+                            if (isBlue) {
+                                if (blueTeam == nullptr) {
+                                    blueTeam = c->mutable_set_team_blue();
+                                }
+                                return blueTeam->add_robot();
+                            }
+                            if (yellowTeam == nullptr) {
+                                yellowTeam = c->mutable_set_team_yellow();
+                            }
+                            return yellowTeam->add_robot();
+                            }
+                            , spec);
+                }
+                std::cout << "Updated to " << config.robot_specs_size() << " robots" << std::endl;
                 emit sendCommand(c);
             }
         }
@@ -427,6 +566,23 @@ int main(int argc, char* argv[])
 
 
     parser.process(app);
+
+    auto* desc = sslsim::RobotSpecs::descriptor();
+    int real_fields = desc->field_count();
+    auto* desc2 = sslsim::RobotSpecErForce::descriptor();
+    real_fields += desc2->field_count();
+
+
+    if (real_fields != expected_specs_fields) {
+        std::string msg = "BUG: The number of fields for the specs has a different number compared to expected!";
+        msg += " expected: " + std::to_string(expected_specs_fields);
+        msg += ", but found: " + std::to_string(real_fields);
+        msg += " (in ";
+        msg += __FILE__;
+        msg += ": ";
+        msg += std::to_string(functionToFixForSpecs);
+        std::cout << msg << ')' << std::endl;
+    }
 
     Timer timer;
     RobotCommandAdaptor blue{true, &timer}, yellow{false, &timer};
