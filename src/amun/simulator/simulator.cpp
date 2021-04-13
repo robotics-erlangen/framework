@@ -490,6 +490,14 @@ std::tuple<QList<QByteArray>, QByteArray, qint64> Simulator::createVisionPacket(
         calib->set_derived_camera_world_tz(calib->derived_camera_world_tz() + positionErrorVisionScale.z());
     }
 
+    // add ball model to geometry data
+    geometry->mutable_models()->mutable_straight_two_phase()->set_acc_roll(-0.35);
+    geometry->mutable_models()->mutable_straight_two_phase()->set_acc_slide(-4.5);
+    geometry->mutable_models()->mutable_straight_two_phase()->set_k_switch(0.69);
+    geometry->mutable_models()->mutable_chip_fixed_loss()->set_damping_z(0.566);
+    geometry->mutable_models()->mutable_chip_fixed_loss()->set_damping_xy_first_hop(0.715);
+    geometry->mutable_models()->mutable_chip_fixed_loss()->set_damping_xy_other_hops(1);
+
     // serialize "vision packet"
     QList<QByteArray> data;
     for (std::size_t i = 0; i < packets.size(); ++i) {
@@ -616,14 +624,14 @@ void Simulator::moveRobot(const sslsim::TeleportRobot &robot) {
             if (!teamSpecs.contains(robot.id().id())) {
                 SSLSimError error{new sslsim::SimulatorError};
                 error->set_code("CREATE_UNSPEC_ROBOT");
-                std::string message = "trying to create robot " + robot.id().id();
+                std::string message = "trying to create robot " + std::to_string(robot.id().id());
                 message += ", but no spec for this robot was found";
                 error->set_message(std::move(message));
                 m_aggregator->aggregate(error, ErrorSource::CONFIG);
             } else if(!robot.has_x() || !robot.has_y()){
                 SSLSimError error{new sslsim::SimulatorError};
                 error->set_code("CREATE_NOPOS_ROBOT");
-                std::string message = "trying to create robot " + robot.id().id();
+                std::string message = "trying to create robot " + std::to_string(robot.id().id());
                 message += " without giving a position";
                 error->set_message(std::move(message));
                 m_aggregator->aggregate(error, ErrorSource::CONFIG);
@@ -738,21 +746,6 @@ void Simulator::handleCommand(const Command &command)
                 m_visionProcessingTime = std::max((qint64)0, (qint64)realism.vision_processing_time());
             }
         }
-
-/*        if (sim.has_move_ball()) {
-            const amun::SimulatorMoveBall &ball = sim.move_ball();
-            moveBall(ball);
-        }*/
-
-/*        for (int i = 0; i < sim.move_blue_size(); i++) {
-            const amun::SimulatorMoveRobot &robot = sim.move_blue(i);
-            moveRobot(m_data->robotsBlue, robot);
-        }
-
-        for (int i = 0; i < sim.move_yellow_size(); i++) {
-            const amun::SimulatorMoveRobot &robot = sim.move_yellow(i);
-            moveRobot(m_data->robotsYellow, robot);
-        }*/
 
         if (sim.has_ssl_control()) {
             const auto& sslControl = sim.ssl_control();
