@@ -353,11 +353,11 @@ class SimProxy: public QObject {
 public:
     SimProxy(Timer* t): m_timer(t) {}
 signals:
-    void sendSSLSimError(const QList<SSLSimError>& errors, ErrorSource source);
-    void sendRadioResponses(const QList<robot::RadioResponse> &responses);
-    void gotPacket(const QByteArray &data, qint64 time, QString sender);
-    void gotCommand(const Command &command);
-    void handleRadioCommands(const SSLSimRobotControl& control, bool isBlue, qint64 processingStart);
+    void sendSSLSimError(const QList<SSLSimError>& errors, ErrorSource source); // out
+    void sendRadioResponses(const QList<robot::RadioResponse> &responses); // out
+    void gotPacket(const QByteArray &data, qint64 time, QString sender); // out
+    void gotCommand(const Command &command); // internal
+    void handleRadioCommands(const SSLSimRobotControl& control, bool isBlue, qint64 processingStart); // in
 public slots:
     void handleCommand(const Command &command);
 
