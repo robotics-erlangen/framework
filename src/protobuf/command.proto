@@ -50,25 +50,6 @@ message SimulatorWorstCaseVision {
     optional float min_ball_detection_time = 2;
 }
 
-// this message is stored in human readable form for saved ui settings
-// therefore do NOT modify field names without changing them in the config files
-message SimulatorRealismConfig {
-    optional float stddev_ball_p = 1;
-    optional float stddev_robot_p = 2;
-    optional float stddev_robot_phi = 3;
-    optional float stddev_ball_area = 4;
-    optional bool enable_invisible_ball = 5;
-    optional float ball_visibility_threshold = 6;
-    optional float camera_overlap = 7;
-    optional float dribbler_ball_detections = 8;
-    optional float camera_position_error = 9;
-    optional float robot_command_loss = 10;
-    optional float robot_response_loss = 11;
-    optional float missing_ball_detections = 12;
-    optional int64 vision_delay = 13;
-    optional int64 vision_processing_time = 14;
-}
-
 message CommandSimulator {
     optional bool enable = 1;
     //optional SimulatorMoveBall move_ball = 2; // deprecated

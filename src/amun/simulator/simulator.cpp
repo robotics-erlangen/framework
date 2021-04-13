@@ -745,6 +745,15 @@ void Simulator::handleCommand(const Command &command)
             if (realism.has_vision_processing_time()) {
                 m_visionProcessingTime = std::max((qint64)0, (qint64)realism.vision_processing_time());
             }
+
+            if (realism.has_simulate_dribbling()) {
+                for (const auto& robotList : {m_data->robotsBlue, m_data->robotsYellow}) {
+                    for (const auto& it : robotList) {
+                        SimRobot *robot = it.first;
+                        robot->setDribbleMode(!realism.simulate_dribbling());
+                    }
+                }
+            }
         }
 
         if (sim.has_ssl_control()) {
