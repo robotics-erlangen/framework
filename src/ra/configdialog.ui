@@ -28,7 +28,7 @@
         <x>0</x>
         <y>0</y>
         <width>297</width>
-        <height>761</height>
+        <height>787</height>
        </rect>
       </property>
       <property name="maximumSize">
@@ -200,16 +200,6 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
-           <widget class="QSpinBox" name="networkPort">
-            <property name="maximum">
-             <number>65535</number>
-            </property>
-            <property name="value">
-             <number>20010</number>
-            </property>
-           </widget>
-          </item>
           <item row="0" column="0" colspan="2">
            <widget class="QCheckBox" name="networkUse">
             <property name="text">
@@ -223,14 +213,7 @@
              <number>65535</number>
             </property>
             <property name="value">
-             <number>20011</number>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="label_4">
-            <property name="text">
-             <string>Port  Blue</string>
+             <number>10301</number>
             </property>
            </widget>
           </item>
@@ -240,14 +223,44 @@
              <number>65535</number>
             </property>
             <property name="value">
-             <number>20012</number>
+             <number>10302</number>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QCheckBox" name="controlSimulator">
+            <property name="text">
+             <string>Control Simulator</string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+            <property name="tristate">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QSpinBox" name="networkPortSimulator">
+            <property name="maximum">
+             <number>65535</number>
+            </property>
+            <property name="value">
+             <number>10300</number>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QCheckBox" name="controlBlue">
+            <property name="text">
+             <string>Control Blue</string>
             </property>
            </widget>
           </item>
           <item row="4" column="0">
-           <widget class="QLabel" name="label_3">
+           <widget class="QCheckBox" name="controlYellow">
             <property name="text">
-             <string>Port  Yellow</string>
+             <string>Control Yellow</string>
             </property>
            </widget>
           </item>

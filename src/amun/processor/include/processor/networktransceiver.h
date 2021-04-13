@@ -52,9 +52,21 @@ private slots:
 
 private:
     bool sendSSLSimPacket(const sslsim::RobotControl& control, bool blueTeam);
+    bool isConfigInitialized() const;
+    QString getHost() const;
+    bool getControlSimulator() const;
+    bool getControlBlue() const;
+    bool getControlYellow() const;
+    uint32_t getPortControl() const;
+    uint32_t getPortBlue() const;
+    uint32_t getPortYellow() const;
 
 private:
-    amun::HostAddress m_configuration;
+    struct NetworkConfig {
+        amun::HostAddress m_hostAddress;
+        amun::SimulatorNetworking m_simulatorConfig;
+    };
+    NetworkConfig m_configuration;
     QUdpSocket *m_udpSocket;
     const Timer *m_timer;
 };

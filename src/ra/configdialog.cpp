@@ -30,9 +30,12 @@ const uint DEFAULT_REFEREE_PORT = 10003;
 
 const bool DEFAULT_NETWORK_ENABLE = false;
 const QString DEFAULT_NETWORK_HOST = QStringLiteral("");
-const uint DEFAULT_NETWORK_PORT = 20010;
-const uint DEFAULT_NETWORK_PORT_BLUE = 20011;
-const uint DEFAULT_NETWORK_PORT_YELLOW = 20012;
+const uint DEFAULT_NETWORK_PORT = 10300;
+const uint DEFAULT_NETWORK_PORT_BLUE = 10301;
+const uint DEFAULT_NETWORK_PORT_YELLOW = 10302;
+const bool DEFAULT_CONTROL_SIMULATOR = false;
+const bool DEFAULT_CONTROL_BLUE = false;
+const bool DEFAULT_CONTROL_YELLOW = false;
 
 const QString DEFAULT_MIXED_HOST = QStringLiteral("");
 const uint DEFAULT_MIXED_PORT = 10012;
@@ -84,9 +87,15 @@ void ConfigDialog::sendConfiguration()
     command->mutable_transceiver()->set_use_network(ui->networkUse->isChecked());
     amun::HostAddress *nc = command->mutable_transceiver()->mutable_network_configuration();
     nc->set_host(ui->networkHost->text().toStdString());
-    nc->set_port(ui->networkPort->value());
-    nc->set_port_blue(ui->networkPortBlue->value());
-    nc->set_port_yellow(ui->networkPortYellow->value());
+    nc->set_port(ui->networkPortSimulator->value());
+
+    amun::SimulatorNetworking *sn = command->mutable_transceiver()->mutable_simulator_configuration();
+    sn->set_port_blue(ui->networkPortBlue->value());
+    sn->set_port_yellow(ui->networkPortYellow->value());
+
+    sn->set_control_simulator(ui->controlSimulator->isChecked());
+    sn->set_control_blue(ui->controlBlue->isChecked());
+    sn->set_control_yellow(ui->controlYellow->isChecked());
 
     command->mutable_mixed_team_destination()->set_host(ui->mixedHost->text().toStdString());
     command->mutable_mixed_team_destination()->set_port(ui->mixedPort->value());
@@ -113,8 +122,14 @@ void ConfigDialog::load()
 
     ui->networkUse->setChecked(s.value("Network/Use", DEFAULT_NETWORK_ENABLE).toBool());
     ui->networkHost->setText(s.value("Network/Host", DEFAULT_NETWORK_HOST).toString());
-    ui->networkPort->setValue(s.value("Network/Port", DEFAULT_NETWORK_PORT).toUInt());
+
+    ui->controlSimulator->setChecked(s.value("Network/ControlSimulator", DEFAULT_CONTROL_SIMULATOR).toBool());
+    ui->networkPortSimulator->setValue(s.value("Network/PortControl", DEFAULT_NETWORK_PORT).toUInt());
+
+    ui->controlBlue->setChecked(s.value("Network/ControlBlue", DEFAULT_CONTROL_BLUE).toBool());
     ui->networkPortBlue->setValue(s.value("Network/PortBlue", DEFAULT_NETWORK_PORT_BLUE).toUInt());
+
+    ui->controlYellow->setChecked(s.value("Network/ControlYellow", DEFAULT_CONTROL_YELLOW).toBool());
     ui->networkPortYellow->setValue(s.value("Network/PortYellow", DEFAULT_NETWORK_PORT_YELLOW).toUInt());
 
     ui->mixedHost->setText(s.value("Mixed/Host", DEFAULT_MIXED_HOST).toString());
@@ -151,8 +166,11 @@ void ConfigDialog::reset()
     ui->refPort->setValue(DEFAULT_REFEREE_PORT);
     ui->networkUse->setChecked(DEFAULT_NETWORK_ENABLE);
     ui->networkHost->setText(DEFAULT_NETWORK_HOST);
-    ui->networkPort->setValue(DEFAULT_NETWORK_PORT);
+    ui->controlSimulator->setChecked(DEFAULT_CONTROL_SIMULATOR);
+    ui->networkPortSimulator->setValue(DEFAULT_NETWORK_PORT);
+    ui->controlBlue->setChecked(DEFAULT_CONTROL_BLUE);
     ui->networkPortBlue->setValue(DEFAULT_NETWORK_PORT_BLUE);
+    ui->controlYellow->setChecked(DEFAULT_CONTROL_YELLOW);
     ui->networkPortYellow->setValue(DEFAULT_NETWORK_PORT_YELLOW);
     ui->mixedHost->setText(DEFAULT_MIXED_HOST);
     ui->mixedPort->setValue(DEFAULT_MIXED_PORT);
@@ -177,8 +195,11 @@ void ConfigDialog::apply()
 
     s.setValue("Network/Use", ui->networkUse->isChecked());
     s.setValue("Network/Host", ui->networkHost->text());
-    s.setValue("Network/Port", ui->networkPort->value());
+    s.setValue("Network/ControlSimulator", ui->controlSimulator->isChecked());
+    s.setValue("Network/PortControl", ui->networkPortSimulator->value());
+    s.setValue("Network/ControlBlue", ui->controlBlue->isChecked());
     s.setValue("Network/PortBlue", ui->networkPortBlue->value());
+    s.setValue("Network/ControlYellow", ui->controlYellow->isChecked());
     s.setValue("Network/PortYellow", ui->networkPortYellow->value());
 
     s.setValue("Mixed/Host", ui->mixedHost->text());

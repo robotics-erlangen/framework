@@ -122,8 +122,14 @@ message TransceiverConfiguration {
 message HostAddress {
     required string host = 1;
     required uint32 port = 2;
-    required uint32 port_yellow = 3;
-    required uint32 port_blue = 4;
+}
+
+message SimulatorNetworking {
+  required bool control_simulator = 1;
+  required bool control_blue = 2;
+  required bool control_yellow = 3;
+  required uint32 port_blue = 4;
+  required uint32 port_yellow = 5;
 }
 
 message CommandTransceiver {
@@ -132,6 +138,7 @@ message CommandTransceiver {
     optional TransceiverConfiguration configuration = 3;
     optional HostAddress network_configuration = 4;
     optional bool use_network = 5;
+    optional SimulatorNetworking simulator_configuration = 6;
 }
 
 message VirtualFieldTransform {

@@ -38,13 +38,13 @@ NetworkTransceiver::~NetworkTransceiver() { }
 bool NetworkTransceiver::sendSSLSimPacket(const sslsim::RobotControl& control, bool blueTeam)
 {
     bool sendingSuccessful = false;
-    if (m_configuration.IsInitialized()) {
-        QHostAddress address(QString::fromStdString(m_configuration.host()));
+    if (isConfigInitialized()) {
+        QHostAddress address(getHost());
 
         QByteArray data;
         data.resize(control.ByteSize());
         if (control.SerializeToArray(data.data(), data.size())) {
-            sendingSuccessful = m_udpSocket->writeDatagram(data, address, m_configuration.port()) == data.size();
+            sendingSuccessful = m_udpSocket->writeDatagram(data, address, getPortControl()) == data.size();
         }
     }
     return sendingSuccessful;
@@ -69,7 +69,10 @@ void NetworkTransceiver::handleCommand(const Command &command)
         const amun::CommandTransceiver &t = command->transceiver();
 
         if (t.has_network_configuration()) {
-            m_configuration = t.network_configuration();
+            m_configuration.m_hostAddress = t.network_configuration();
+        }
+        if (t.has_simulator_configuration()) {
+            m_configuration.m_simulatorConfig = t.simulator_configuration();
         }
 
         if (t.has_enable()) {
@@ -132,4 +135,44 @@ void NetworkTransceiver::handleResponse()
     }
 
     emit sendRadioResponses(out);
+}
+
+bool NetworkTransceiver::isConfigInitialized() const
+{
+    return m_configuration.m_hostAddress.IsInitialized() && m_configuration.m_simulatorConfig.IsInitialized();
+}
+
+uint32_t NetworkTransceiver::getPortControl() const
+{
+    return m_configuration.m_hostAddress.port();
+}
+
+uint32_t NetworkTransceiver::getPortBlue() const
+{
+    return m_configuration.m_simulatorConfig.port_blue();
+}
+
+uint32_t NetworkTransceiver::getPortYellow() const
+{
+    return m_configuration.m_simulatorConfig.port_yellow();
+}
+
+bool NetworkTransceiver::getControlSimulator() const
+{
+    return m_configuration.m_simulatorConfig.control_simulator();
+}
+
+bool NetworkTransceiver::getControlBlue() const
+{
+    return m_configuration.m_simulatorConfig.control_blue();
+}
+
+bool NetworkTransceiver::getControlYellow() const
+{
+    return m_configuration.m_simulatorConfig.control_yellow();
+}
+
+QString NetworkTransceiver::getHost() const
+{
+    return QString::fromStdString(m_configuration.m_hostAddress.host());
 }
