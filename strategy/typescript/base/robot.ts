@@ -71,10 +71,23 @@ export interface UserControl {
 	dribblerSpeed?: number;
 }
 
+export interface RobotState {
+	/** Robot ID */
+	id: number;
+	/** Current position */
+	pos: Position;
+	/** Current speed (movement direction doesn't have to match with dir) */
+	speed: Speed;
+	/** Current direction faced */
+	dir: number;
+	/** Rotation speed of the robot */
+	angularSpeed: number;
+}
+
 /**
  * Fields marked with * are only available for own robots
  */
-export class Robot {
+export class Robot implements RobotState {
 
 	readonly ALLY_GENERATION_ID: number = 9999;
 	readonly GENERATION_2014_ID: number = 3;
@@ -86,18 +99,16 @@ export class Robot {
 		shootDriveSpeed: 0.2, // how fast the shoot task drives at the ball [m/s]
 		minAngleError: 4 / 180 * Math.PI // minimal angular precision that the shoot task guarantees [in radians]
 	};
-	/** robot id */
+
+	// See RobotState
 	id: number;
-	/** current position */
-	pos: Readonly<Position> = new Vector(0, 0);
-	/** current speed (movement direction doesn't have to match with dir) */
-	speed: Readonly<Speed> = new Vector(0, 0);
-	/** current direction faced */
+	pos: Position = new Vector(0, 0);
+	speed: Speed = new Vector(0, 0);
 	dir: number = 0;
+	angularSpeed: number = 0;
+
 	/** true if own robot */
 	isFriendly: boolean;
-	/** rotation speed of the robot */
-	angularSpeed: number = 0;
 	/** True if robot is tracked */
 	isVisible: boolean = false;
 	/** the robot's radius (defaults to 0.09m) */
@@ -159,6 +170,22 @@ export class Robot {
 
 	toString() {
 		return this._toString();
+	}
+
+	copyState(): RobotState {
+		/* Note that speed and pos are shallow copied. However, Vectors are
+		 * readonly and copy on write, so this is ok.
+		 *
+		 * If more fields are to be added, object spread syntax (`...this`) may
+		 * be used. At the moment, I don't want to copy all fields
+		 */
+		return {
+			id: this.id,
+			pos: this.pos,
+			speed: this.speed,
+			dir: this.dir,
+			angularSpeed: this.angularSpeed,
+		};
 	}
 
 	/** Reset robot commands and update data */
