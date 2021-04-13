@@ -79,7 +79,6 @@ private:
     void addStrategyLoad(amun::CommandStrategy *strategy, const QString &initScript, const QString &entryPoint);
     void handleStrategyStatus(const amun::StatusStrategy &strategy);
     void sendFlipOption(const std::string &name);
-    void loadConfiguration(const QString &configFile, google::protobuf::Message *message, bool allowPartial);
     void delayedExit(int exitCode);
     void performExit(int exit);
     void stopAmunAndSaveBacklog(QString directory);

@@ -22,6 +22,7 @@
 #include <QUdpSocket>
 #include <QThread>
 #include <QNetworkDatagram>
+#include <QCommandLineParser>
 #include <cmath>
 
 #include "protobuf/ssl_simulation_robot_control.pb.h"
@@ -34,6 +35,7 @@
 
 #include "core/timer.h"
 #include "core/run_out_of_scope.h"
+#include "core/configuration.h"
 
 #include "ssl_robocup_server.h"
 
@@ -414,6 +416,16 @@ int main(int argc, char* argv[])
     qRegisterMetaType<QList<SSLSimError>>("QList<SSLSimError>");
     qRegisterMetaType<camun::simulator::ErrorSource>("ErrorSource");
 
+    QCommandLineParser parser;
+    parser.setApplicationDescription("ER-Force simulator command line interface");
+    parser.addHelpOption();
+
+    QCommandLineOption geometryConfig({"g", "geometry"}, "The geometry file to load as default", "file", "2020");
+    parser.addOption(geometryConfig);
+
+
+    parser.process(app);
+
     Timer timer;
     RobotCommandAdaptor blue{true, &timer}, yellow{false, &timer};
     SimulatorCommandAdaptor commands{&timer};
@@ -478,7 +490,9 @@ int main(int argc, char* argv[])
         }
     }
 
-
+    if (!loadConfiguration("simulator/" + parser.value(geometryConfig), c->mutable_simulator()->mutable_simulator_setup(), false)) {
+        exit(EXIT_FAILURE);
+    }
 
     emit commands.sendCommand(c);
 

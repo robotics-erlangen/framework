@@ -27,6 +27,7 @@ add_library(core
     include/core/protobuffilereader.h
     include/core/run_out_of_scope.h
     include/core/coordinates.h
+    include/core/configuration.h
 
     fieldtransform.cpp
     rng.cpp
@@ -36,6 +37,7 @@ add_library(core
 )
 target_link_libraries(core
     PUBLIC Qt5::Core
+    PUBLIC shared::config
     PUBLIC shared::protobuf
 )
 target_include_directories(core

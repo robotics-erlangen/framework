@@ -34,7 +34,7 @@
 #include "logopener.h"
 #include "loglabel.h"
 #include "logfileselectiondialog.h"
-#include <google/protobuf/text_format.h>
+#include "core/configuration.h"
 #include <QFile>
 #include <QFileDialog>
 #include <QLabel>
@@ -522,16 +522,10 @@ void MainWindow::switchToWidgetConfiguration(int configId, bool forceUpdate)
 
 void MainWindow::simulatorSetupChanged(QAction * action)
 {
-    QFile file(QString(ERFORCE_CONFDIR) + "simulator/" + action->text().replace("&", "") + ".txt");
-    file.open(QFile::ReadOnly);
-    QString str = file.readAll();
-    file.close();
-    std::string s = qPrintable(str);
-
     Command command(new amun::Command);
-    google::protobuf::TextFormat::Parser parser;
-    parser.AllowPartialMessage(false);
-    parser.ParseFromString(s, command->mutable_simulator()->mutable_simulator_setup());
+    if (!loadConfiguration("simulator/" + action->text().replace("&", ""), command->mutable_simulator()->mutable_simulator_setup(), false)) {
+        return;
+    }
 
     // reload the strategies / autoref
     sendCommand(command);

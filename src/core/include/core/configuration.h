@@ -1,4 +1,4 @@
-/***************************************************************************
+/****************************************************************************
  *   Copyright 2021 Andreas Wendler                                        *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
@@ -18,37 +18,33 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#include "command.h"
-#include "geometry.h"
+#ifndef CONFIGURATION_H
+#define CONFIGURATION_H
 
-// position is in meters in our coordinate system
-static SSL_GeometryCameraCalibration createDefaultCamera(int cameraId, float x, float y, float z)
+#include <QString>
+#include <google/protobuf/message.h>
+#include <google/protobuf/text_format.h>
+#include <QFile>
+#include <iostream>
+
+#include "config/config.h"
+
+inline bool loadConfiguration(const QString &configFile, google::protobuf::Message *message, bool allowPartial)
 {
-    SSL_GeometryCameraCalibration calibration;
+    QString fullFilename = QString(ERFORCE_CONFDIR) + configFile + ".txt";
+    QFile file(fullFilename);
+    if (!file.open(QFile::ReadOnly)) {
+        std::cout <<"Could not open configuration file "<<fullFilename.toStdString()<<std::endl;
+        return false;
+    }
+    QString str = file.readAll();
+    file.close();
+    std::string s = qPrintable(str);
 
-    calibration.set_camera_id(cameraId);
-    // DUMMY VALUES
-    calibration.set_distortion(0.2);
-    calibration.set_focal_length(390);
-    calibration.set_principal_point_x(300);
-    calibration.set_principal_point_y(300);
-    calibration.set_q0(0.7);
-    calibration.set_q1(0.7);
-    calibration.set_q2(0.7);
-    calibration.set_q3(0.7);
-    calibration.set_tx(0);
-    calibration.set_ty(0);
-    calibration.set_tz(3500);
-
-    calibration.set_derived_camera_world_tx(y * 1000);
-    calibration.set_derived_camera_world_ty(-x * 1000);
-    calibration.set_derived_camera_world_tz(z * 1000);
-
-    return calibration;
+    google::protobuf::TextFormat::Parser parser;
+    parser.AllowPartialMessage(allowPartial);
+    parser.ParseFromString(s, message);
+    return true;
 }
 
-void simulatorSetupSetDefault(amun::SimulatorSetup &setup)
-{
-    geometrySetDefault(setup.mutable_geometry(), true);
-    setup.add_camera_setup()->CopyFrom(createDefaultCamera(0, 0.0f, 0.0f, 4.0f));
-}
+#endif // CONFIGURATION_H

@@ -26,6 +26,7 @@
 #include "config/config.h"
 #include "seshat/combinedlogwriter.h"
 #include "core/timer.h"
+#include "core/configuration.h"
 #include "strategy/strategy.h"
 #include "strategy/script/compilerregistry.h"
 
@@ -138,27 +139,12 @@ void Connector::setMaxBacklog(size_t newMax)
     m_maxBacklogFiles = newMax;
 }
 
-void Connector::loadConfiguration(const QString &configFile, google::protobuf::Message *message, bool allowPartial)
-{
-    QString fullFilename = QString(ERFORCE_CONFDIR) + configFile + ".txt";
-    QFile file(fullFilename);
-    if (!file.open(QFile::ReadOnly)) {
-        std::cout <<"Could not open configuration file "<<fullFilename.toStdString()<<std::endl;
-        delayedExit(1);
-    }
-    QString str = file.readAll();
-    file.close();
-    std::string s = qPrintable(str);
-
-    google::protobuf::TextFormat::Parser parser;
-    parser.AllowPartialMessage(allowPartial);
-    parser.ParseFromString(s, message);
-}
-
 void Connector::setSimulatorConfigFile(const QString &shortFile)
 {
     Command command(new amun::Command);
-    loadConfiguration("simulator/" + shortFile, command->mutable_simulator()->mutable_simulator_setup(), false);
+    if (!loadConfiguration("simulator/" + shortFile, command->mutable_simulator()->mutable_simulator_setup(), false)) {
+        delayedExit(1);
+    }
 
     emit sendCommand(command);
 }
@@ -166,7 +152,9 @@ void Connector::setSimulatorConfigFile(const QString &shortFile)
 void Connector::setRealismConfig(const QString &shortFile)
 {
     Command command(new amun::Command);
-    loadConfiguration("simulator-realism/" + shortFile, command->mutable_simulator()->mutable_realism_config(), true);
+    if (!loadConfiguration("simulator-realism/" + shortFile, command->mutable_simulator()->mutable_realism_config(), true)) {
+        delayedExit(1);
+    }
 
     emit sendCommand(command);
 }
@@ -188,7 +176,9 @@ void Connector::setRobotConfiguration(int numRobots, const QString &generation)
         return;
     }
     robot::Generation gen;
-    loadConfiguration("robots/" + generation, &gen, true);
+    if (!loadConfiguration("robots/" + generation, &gen, true)) {
+        delayedExit(1);
+    }
 
     robot::Team yellow;
     robot::Team blue;
