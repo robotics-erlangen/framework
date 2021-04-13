@@ -507,15 +507,21 @@ private:
 };
 
 void SimProxy::handleCommand(const Command &command) {
+    bool hasSimSetup = command->has_simulator() && command->simulator().has_simulator_setup();
+
     if (command->has_set_team_blue()) {
         m_teamCommand->mutable_set_team_blue()->CopyFrom(command->set_team_blue());
-        command->clear_set_team_blue();
+        if (hasSimSetup) {
+            command->clear_set_team_blue();
+        }
     }
     if (command->has_set_team_yellow()) {
         m_teamCommand->mutable_set_team_yellow()->CopyFrom(command->set_team_yellow());
-        command->clear_set_team_yellow();
+        if (hasSimSetup) {
+            command->clear_set_team_yellow();
+        }
     }
-    if (command->has_simulator() && command->simulator().has_simulator_setup()) {
+    if (hasSimSetup) {
         // replace m_sim
         if (m_sim != nullptr) {
             // replace old connectios
