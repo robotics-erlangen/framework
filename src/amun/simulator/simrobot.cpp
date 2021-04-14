@@ -297,7 +297,6 @@ void SimRobot::begin(SimBall *ball, double time)
                 pos = transform.getOrigin();
             }
             if (m_move.has_v_x()) {
-                btVector3 linVel;
                 coordinates::fromVisionVelocity(m_move, linVel);
                 linVel.setZ(0.0f);
                 m_body->setLinearVelocity(linVel * SIMULATOR_SCALE);
