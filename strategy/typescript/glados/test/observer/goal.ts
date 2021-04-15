@@ -1,31 +1,30 @@
-let GoalTest = {}
-
 import * as debug from "base/debug";
+import { Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
+
 import * as Goal from "glados/observer/goal";
 
+export function testFreeSectors() {
+	const freeSectors = Goal.freeSectors(World.Ball.pos, World.OpponentRobots, true);
+	vis.setColor(vis.colors.orangeHalf, true);
 
-function GoalTest.testFreeSectors () {
-	let freeSectors = Goal.freeSectors(World.Ball.pos, World.OpponentRobots, true)
-	vis.setColor(vis.colors.orangeHalf, true)
-	for (_, s in ipairs(freeSectors)) {
-		//log(tostring(s[1]) .. " "+tostring(s[2]))
-		let pointRight = World.Ball.pos + Vector.fromPolar(s[1], 10)
-		let pointLeft = World.Ball.pos + Vector.fromPolar(s[2], 10)
-		vis.addPolygon("test: Free Sectors", {World.Ball.pos, pointRight, pointLeft})
+	for (const s of freeSectors) {
+		// log (`${s[1]} ${s[2]}`);
+		const pointRight = World.Ball.pos + Vector.fromPolar(s[0], 10);
+		const pointLeft = World.Ball.pos + Vector.fromPolar(s[1], 10);
+		vis.addPolygon("test: Free Sectors", [World.Ball.pos, pointRight, pointLeft]);
 	}
 }
 
-function GoalTest.testCustomFreeSectors () {
-	let freeSectors = Goal.allFreeSectors(World.Ball.pos, World.OpponentRobots)
-	for (i,sector in ipairs(freeSectors)) {
-		debug.set("sector["+i+"]", "{"+sector[1]+", "+sector[2]+"}")
+export function testCustomFreeSectors() {
+	const freeSectors = Goal.allFreeSectors(World.Ball.pos, World.OpponentRobots);
+	for (let i = 0; i < freeSectors.length; ++i) {
+		const sector = freeSectors[i];
+		debug.set(`sector[${i}]`, `[${sector[0]}, ${sector[1]}]`);
 	}
-	vis.setColor(vis.colors.orangeHalf, true)
-	for (_, s in ipairs(freeSectors)) {
-		vis.addPizza("test: Custom Free Sectors", World.Ball.pos, 5, s[2], s[1])
+	vis.setColor(vis.colors.orangeHalf, true);
+	for (const s of freeSectors) {
+		vis.addPizza("test: Custom Free Sectors", World.Ball.pos, 5, s[1], s[0]);
 	}
 }
-
-return GoalTest

@@ -27,7 +27,7 @@ import * as Goal from "glados/observer/goal";
 import * as Robot from "glados/observer/robot";
 import { lowFPSObserver } from "glados/observer/lowfps"
 
-// require "test/observer/index";
+import "glados/test/observer/index";
 // require "test/situation/index";
 // require "test/task/index";
 // require "test/unit/index";

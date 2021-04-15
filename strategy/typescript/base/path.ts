@@ -146,6 +146,16 @@ interface PathObjectCommon {
 	seedRandom(seed: number): void;
 }
 
+/**
+ * Waypoints and corridor widths for the way to a waypoint
+ *
+ * Waypoint[0]: p_x
+ * Waypoint[1]: p_y
+ * Waypoint[2]: left
+ * Waypoint[3]: right
+ */
+export type Waypoint = [number, number, number, number];
+
 interface PathObjectRRT extends PathObjectCommon {
 	/**
 	 * Set probabilities. Sum should be less or equal to 1
@@ -177,7 +187,7 @@ interface PathObjectRRT extends PathObjectCommon {
 	 * @param end_y - y coordinate of end point
 	 * @returns [p_x, p_y, left, right][] - waypoints and corridor widths for the way to a waypoint
 	 */
-	getPath(start_x: number, start_y: number, end_x: number, end_y: number): [number, number, number, number][];
+	getPath(start_x: number, start_y: number, end_x: number, end_y: number): Waypoint[];
 	/** Generates a visualization of the tree. */
 	addTreeVisualization(): void;
 }
@@ -299,7 +309,7 @@ export class Path {
 		return result;
 	}
 
-	getPath(x1: number, y1: number, x2: number, y2: number): [number, number, number, number][] {
+	getPath(x1: number, y1: number, x2: number, y2: number): Waypoint[] {
 		this.lastWasTrajectoryPath = false;
 		this.addObstaclesToPath(this._inst);
 		return this._inst.getPath(x1, y1, x2, y2);

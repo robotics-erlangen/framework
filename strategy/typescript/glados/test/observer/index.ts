@@ -1,30 +1,33 @@
 import * as Entrypoints from "base/entrypoints";
 
-/// Loads every test
-let Tests = {
-	Ball = require "test/observer/ball",
-	BallAnalyzer = require "test/observer/ballAnalyzer",
-	Defense = require "test/observer/defense",
-	Goal = require "test/observer/goal",
-	path = require "test/observer/path",
-	Physics = require "test/observer/physics",
-	Robot = require "test/observer/robot",
-}
+import * as Ball from "glados/test/observer/ball";
+import * as Defense from "glados/test/observer/defense";
+import * as Goal from "glados/test/observer/goal";
+import * as Path from "glados/test/observer/path";
+import * as Robot from "glados/test/observer/robot";
 
+type Module = { [fn: string]: () => void };
 
-for (name,s in pairs(Tests)) {
-	if (type(s) != "table") {
-		error("Invalid test! "  +  name)
-	}
+// Loads every test
+const Tests: { [name: string]: Module } = {
+	Ball,
+	Defense,
+	Goal,
+	Path,
+	Robot,
+};
 
-	for (fn,f in pairs(s)) {
-		if (type(fn) == "string" && type(f) == "function") {
-			let testname = fn:match("^test(.+)")
-			if (testname) {
-				Entrypoints.add("ObserverTest/"  +  name  +  "/"  +  testname, f)
-			}
+const TEST_NAME_REGEX = /^test(.+)/;
+
+for (const [name, mod] of Object.entries(Tests)) {
+	for (const [functionName, fn] of Object.entries(mod)) {
+		const testname = TEST_NAME_REGEX.exec(functionName);
+		if (!testname) {
+			continue;
 		}
+		Entrypoints.add(`ObserverTest/${name}/${testname[1]}`, () => {
+			fn();
+			return false;
+		});
 	}
 }
-
-return Tests
