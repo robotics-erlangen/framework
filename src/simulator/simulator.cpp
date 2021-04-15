@@ -609,7 +609,9 @@ int main(int argc, char* argv[])
     parser.addHelpOption();
 
     QCommandLineOption geometryConfig({"g", "geometry"}, "The geometry file to load as default", "file", "2020");
+    QCommandLineOption realismConfig("realism", "Simulator realism configuration (short file name without the .txt)", "realism", "Realistic");
     parser.addOption(geometryConfig);
+    parser.addOption(realismConfig);
 
 
     parser.process(app);
@@ -668,6 +670,9 @@ int main(int argc, char* argv[])
     }
 
     if (!loadConfiguration("simulator/" + parser.value(geometryConfig), c->mutable_simulator()->mutable_simulator_setup(), false)) {
+        exit(EXIT_FAILURE);
+    }
+    if (!loadConfiguration("simulator-realism/" + parser.value(realismConfig), c->mutable_simulator()->mutable_realism_config(), true)) {
         exit(EXIT_FAILURE);
     }
 
