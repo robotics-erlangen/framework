@@ -38,6 +38,7 @@
 #include "core/timer.h"
 #include "core/run_out_of_scope.h"
 #include "core/configuration.h"
+#include "core/coordinates.h"
 
 #include "ssl_robocup_server.h"
 
@@ -51,7 +52,6 @@ static int CONTROL_PORT = 10300;
  *
  * Known issues:
  *  - [ ]: Currently, it is not possible to supply partial positions for teleportBall or teleportRobot
- *  - [ ]: Currently, the chip speed limitations will be ignored.
  *  - [ ]: Robots go into standby after 0.1 seconds without command (Safty)
  *  - [ ]: It is not possible to change specs or geometry without resetting the world
  *  - [ ]: It is not possible to setUp a team with no robots (You can still teleport them away)
@@ -266,11 +266,15 @@ static bool convertSpecsToErForce(T outGen, const sslsim::RobotSpecs& in) // @re
     out->set_omega_max(lim.vel_angular_max());
     if (in.has_max_linear_kick_speed()) {
         out->set_shot_linear_max(in.max_linear_kick_speed());
-    }
-    else {
+    } else {
         out->set_shot_linear_max(100);
     }
-    // TODO: chips
+    if (in.has_max_chip_kick_speed()) {
+        out->set_shot_chip_max(coordinates::chipDistanceFromChipVel(in.max_chip_kick_speed()));
+    } else {
+        out->set_shot_chip_max(100);
+    }
+
     out->set_dribbler_width(rsef.dribbler_width());
     auto* acc = out->mutable_strategy();
 

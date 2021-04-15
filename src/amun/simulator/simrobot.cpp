@@ -353,10 +353,7 @@ void SimRobot::begin(SimBall *ball, double time)
             power = qBound(0.05f, m_sslCommand.kick_speed(), m_specs.shot_linear_max());
         } else {
             // FIXME: for now we just recalc the max distance based on the given angle
-            // airtime = 2 * (shootSpeed * dirUp) / g
-            // targetDist = shootSpeed * dirFloor * airtime
-            // => targetDist = shootSpeed * dirFloor * (2 * shootSpeed * dirUp) / g = 2 * shootSpeed**2 * dirFloor * dirUp / g
-            const float maxShootSpeed = std::sqrt(m_specs.shot_chip_max() * m_world->getGravity().length() / (2*std::abs(dirUp*dirFloor) * SIMULATOR_SCALE));
+            const float maxShootSpeed = coordinates::chipVelFromChipDistance(m_specs.shot_chip_max());
             power = qBound(0.05f, m_sslCommand.kick_speed(), maxShootSpeed);
         }
         // if the ball hits the robot the chip distance actually decreases

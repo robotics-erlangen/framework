@@ -20,6 +20,7 @@
 #include "networktransceiver.h"
 #include "core/timer.h"
 #include "core/run_out_of_scope.h"
+#include "core/coordinates.h"
 #include "protobuf/grsim_commands.pb.h"
 #include "protobuf/grsim_replacement.pb.h"
 #include "protobuf/geometry.h"
@@ -145,6 +146,9 @@ static void convertSpecs(const robot::Specs& in, T outGen, bool blueTeam, bool* 
     }
     if (in.has_shot_linear_max()) {
         out->set_max_linear_kick_speed(in.shot_linear_max());
+    }
+    if (in.has_shot_chip_max()) {
+        out->set_max_chip_kick_speed(coordinates::chipVelFromChipDistance(in.shot_chip_max()));
     }
     if (in.has_dribbler_width()) {
         rsef.set_dribbler_width(in.dribbler_width());

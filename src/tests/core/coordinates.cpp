@@ -100,3 +100,10 @@ TEST(Coordinates, VelProtoProtoVX) {
     ASSERT_FALSE(output.has_x());
     ASSERT_FALSE(output.has_y());
 }
+
+TEST(Coordinates, Chips) {
+    for (int i=1; i < 20; ++i){
+        float chipDist = i * 0.1f;
+        ASSERT_FLOAT_EQ(coordinates::chipDistanceFromChipVel(coordinates::chipVelFromChipDistance(chipDist)), chipDist);
+    }
+}

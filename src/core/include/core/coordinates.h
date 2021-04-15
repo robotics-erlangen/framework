@@ -170,6 +170,31 @@ namespace coordinates {
         return internRotation - M_PI_2;
     }
 
+    inline float chipVelFromChipDistance(float distance) {
+        const float angle = 45.f/ 180 * M_PI;
+        const float dirFloor = std::cos(angle);
+        const float dirUp = std::sin(angle);
+        const float gravity = 9.81;
+        // airtime = 2 * (shootSpeed * dirUp) / g
+        // targetDist = shootSpeed * dirFloor * airtime
+        // => targetDist = shootSpeed * dirFloor * (2 * shootSpeed * dirUp) / g = 2 * shootSpeed**2 * dirFloor * dirUp / g
+        const float shootSpeed = std::sqrt(distance * gravity / (2*std::abs(dirUp*dirFloor)));
+        return shootSpeed;
+    }
+
+    inline float chipDistanceFromChipVel(float velocity) {
+        const float angle = 45.f / 180 * M_PI;
+        const float dirFloor = std::cos(angle);
+        const float dirUp = std::sin(angle);
+        const float gravity = 9.81;
+        // airtime = 2 * (shootSpeed * dirUp) / g
+        // targetDist = shootSpeed * dirFloor * airtime
+        // => targetDist = shootSpeed * dirFloor * (2 * shootSpeed * dirUp) / g = 2 * shootSpeed**2 * dirFloor * dirUp / g
+        const float targetDist = 2 * velocity * velocity * dirFloor * dirUp / gravity;
+
+        return targetDist;
+    }
+
 }
 
 #endif
