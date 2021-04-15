@@ -50,9 +50,12 @@ static int CONTROL_PORT = 10300;
  *
  * Known issues:
  *  - [ ]: Currently, it is not possible to supply partial positions for teleportBall or teleportRobot
- *  - [ ]: Simulator Config is not implemented, apart from geometry
- *  - [ ]: The simulation will not start without explicit sending of a geometry
+ *  - [ ]: Simulator Config port change is not implemented
+ *  - [ ]: Simulator realism will be discarded if a new world is created
  *  - [ ]: Robots go into standby after 0.1 seconds without command (Safty)
+ *  - [ ]: The newstes simprotocol updates are not used
+ *  - [ ]: It is not possible to change specs or geometry without resetting the world
+ *  - [ ]: It is not possible to setUp a team with no robots if that team already had robots (You can still teleport them away)
  *  - [ ]: Dribbler will reset if a new command doesn't contain a new dribbling speed (contrary to the definition that states all not set values should stay as previously assumed)
  *  - [ ]: Commands that are recieved at t0 will not be in effect after the next tick of the simulator (around 5 ms), no interpolation.
  *  - [ ]: Tournament mode where commands origin are checked is not implemented
@@ -373,6 +376,17 @@ void SimulatorCommandAdaptor::handleDatagrams() {
                 }
                 std::cout << "Updated to " << newSz << " robots" << std::endl;
                 emit sendCommand(c);
+            }
+            if (config.has_realism_config() && config.realism_config().has_custom()) {
+                RealismConfigErForce rcef;
+                if (config.realism_config().custom().UnpackTo(&rcef)) {
+                    Command c{new amun::Command};
+                    c->mutable_simulator()->mutable_realism_config()->CopyFrom(rcef);
+                    emit sendCommand(c);
+                } else {
+                    sendSir = true;
+                    setError(sir.add_errors(), SimError::INVALID_REALISM, config.realism_config().DebugString());
+                }
             }
         }
 
