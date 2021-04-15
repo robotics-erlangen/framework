@@ -32,6 +32,7 @@
 #include "protobuf/status.h"
 #include "protobuf/command.h"
 #include "protobuf/geometry.h"
+#include "protobuf/robot.h"
 #include "simulator/simulator.h"
 
 #include "core/timer.h"
@@ -643,34 +644,7 @@ int main(int argc, char* argv[])
 
 
     robot::Specs ERForce;
-    ERForce.set_generation(0);
-    ERForce.set_year(1970);
-    ERForce.set_type(robot::Specs::Regular);
-    ERForce.set_mass(1.5);
-    ERForce.set_angle(0.98291);
-    ERForce.set_v_max(3);
-    ERForce.set_omega_max(6);
-    ERForce.set_shot_linear_max(8);
-    ERForce.set_shot_chip_max(3);
-    ERForce.set_dribbler_width(0.07);
-    ERForce.set_shoot_radius(0.067);
-    ERForce.set_dribbler_height(0.04);
-
-    auto* accel = ERForce.mutable_acceleration();
-    accel->set_a_speedup_f_max(7);
-    accel->set_a_speedup_s_max(6);
-    accel->set_a_speedup_phi_max(60);
-    accel->set_a_brake_f_max(7);
-    accel->set_a_brake_s_max(6);
-    accel->set_a_brake_phi_max(60);
-
-    auto* str = ERForce.mutable_strategy();
-    str->set_a_speedup_f_max(7);
-    str->set_a_speedup_s_max(6);
-    str->set_a_speedup_phi_max(60);
-    str->set_a_brake_f_max(7);
-    str->set_a_brake_s_max(6);
-    str->set_a_brake_phi_max(60);
+    robotSetDefault(&ERForce);
 
     auto* teamBlue = c->mutable_set_team_blue();
     auto* teamYellow = c->mutable_set_team_yellow();
