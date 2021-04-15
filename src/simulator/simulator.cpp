@@ -51,7 +51,6 @@ static int CONTROL_PORT = 10300;
  *
  * Known issues:
  *  - [ ]: Currently, it is not possible to supply partial positions for teleportBall or teleportRobot
- *  - [ ]: Simulator Config port change is not implemented
  *  - [ ]: Simulator realism will be discarded if a new world is created
  *  - [ ]: Robots go into standby after 0.1 seconds without command (Safty)
  *  - [ ]: The newstes simprotocol updates are not used
@@ -62,10 +61,23 @@ static int CONTROL_PORT = 10300;
  *  - [ ]: Tournament mode where commands origin are checked is not implemented
  */
 
+class SSLVisionServer: public QObject {
+    Q_OBJECT
+public:
+    SSLVisionServer(int port);
+    void setPort(int port);
+
+public slots:
+    void sendVisionData(const QByteArray& data, qint64 time, QString sender);
+
+private:
+    RoboCupSSLServer m_server;
+};
+
 class SimulatorCommandAdaptor: public QObject {
     Q_OBJECT
 public:
-    SimulatorCommandAdaptor(Timer* timer);
+    SimulatorCommandAdaptor(Timer* timer, SSLVisionServer *vision);
 private slots:
     void handleDatagrams();
 
@@ -80,13 +92,15 @@ private:
     QHostAddress m_senderAddress;
     int m_senderPort;
     Timer* m_timer; // unowned
+    SSLVisionServer* m_visionServer; // unowned
 };
 
-SimulatorCommandAdaptor::SimulatorCommandAdaptor(Timer* timer):
+SimulatorCommandAdaptor::SimulatorCommandAdaptor(Timer* timer, SSLVisionServer* vision):
     m_server(this),
     m_senderAddress(QHostAddress::Null),
     m_senderPort(-1),
-    m_timer(timer)
+    m_timer(timer),
+    m_visionServer(vision)
 {
     m_server.bind(QHostAddress::Any, CONTROL_PORT);
     connect(&m_server, &QUdpSocket::readyRead, this, &SimulatorCommandAdaptor::handleDatagrams);
@@ -389,6 +403,9 @@ void SimulatorCommandAdaptor::handleDatagrams() {
                     setError(sir.add_errors(), SimError::INVALID_REALISM, config.realism_config().DebugString());
                 }
             }
+            if (config.has_vision_port()) {
+                m_visionServer->setPort(config.vision_port());
+            }
         }
 
         qint64 delta = m_timer->currentTime() - start;
@@ -492,17 +509,6 @@ void RobotCommandAdaptor::sendRobotRespose(const sslsim::RobotControlResponse& o
     sendUDP(out, m_server, m_senderAddress, m_senderPort);
 }
 
-class SSLVisionServer: public QObject {
-    Q_OBJECT
-public:
-    SSLVisionServer(int port);
-
-public slots:
-    void sendVisionData(const QByteArray& data, qint64 time, QString sender);
-
-private:
-    RoboCupSSLServer m_server;
-};
 
 SSLVisionServer::SSLVisionServer(int port): m_server(this, port)
 {
@@ -511,6 +517,10 @@ SSLVisionServer::SSLVisionServer(int port): m_server(this, port)
 void SSLVisionServer::sendVisionData(const QByteArray& data, qint64, QString)
 {
     m_server.send(data);
+}
+
+void SSLVisionServer::setPort(int port) {
+    m_server.change_port(port);
 }
 
 using camun::simulator::Simulator;
@@ -621,15 +631,15 @@ int main(int argc, char* argv[])
 
     Timer timer;
     RobotCommandAdaptor blue{true, &timer}, yellow{false, &timer};
-    SimulatorCommandAdaptor commands{&timer};
     SimProxy sim{&timer};
+    SSLVisionServer vision{10020};
+    SimulatorCommandAdaptor commands{&timer, &vision};
 
     blue.connect(&blue, &RobotCommandAdaptor::sendRadioCommands, &sim, &SimProxy::handleRadioCommands);
     blue.connect(&sim, &SimProxy::sendRadioResponses, &blue, &RobotCommandAdaptor::handleRobotResponse);
     yellow.connect(&yellow, &RobotCommandAdaptor::sendRadioCommands, &sim, &SimProxy::handleRadioCommands);
     yellow.connect(&sim, &SimProxy::sendRadioResponses, &yellow, &RobotCommandAdaptor::handleRobotResponse);
 
-    SSLVisionServer vision{10020};
 
     vision.connect(&sim, &SimProxy::gotPacket, &vision, &SSLVisionServer::sendVisionData);
     commands.connect(&commands, &SimulatorCommandAdaptor::sendCommand, &sim, &SimProxy::handleCommand);
