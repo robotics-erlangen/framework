@@ -52,10 +52,9 @@ static int CONTROL_PORT = 10300;
  * Known issues:
  *  - [ ]: Currently, it is not possible to supply partial positions for teleportBall or teleportRobot
  *  - [ ]: Currently, the chip speed limitations will be ignored.
- *  - [ ]: Simulator realism will be discarded if a new world is created (by changing geometry)
  *  - [ ]: Robots go into standby after 0.1 seconds without command (Safty)
  *  - [ ]: It is not possible to change specs or geometry without resetting the world
- *  - [ ]: It is not possible to setUp a team with no robots if that team already had robots (You can still teleport them away)
+ *  - [ ]: It is not possible to setUp a team with no robots (You can still teleport them away)
  *  - [ ]: Dribbler will reset if a new command doesn't contain a new dribbling speed (contrary to the definition that states all not set values should stay as previously assumed)
  *  - [ ]: Commands that are recieved at t0 will not be in effect after the next tick of the simulator (around 5 ms), no interpolation.
  *  - [ ]: Tournament mode where commands origin are checked is not implemented
@@ -555,6 +554,12 @@ void SimProxy::handleCommand(const Command &command) {
         m_teamCommand->mutable_set_team_yellow()->CopyFrom(command->set_team_yellow());
         if (hasSimSetup) {
             command->clear_set_team_yellow();
+        }
+    }
+    if (command->has_simulator() && command->simulator().has_realism_config()) {
+        m_teamCommand->mutable_simulator()->mutable_realism_config()->CopyFrom(command->simulator().realism_config());
+        if (hasSimSetup) {
+            command->mutable_simulator()->clear_realism_config();
         }
     }
     if (hasSimSetup) {
