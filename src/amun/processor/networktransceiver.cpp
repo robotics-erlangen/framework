@@ -241,6 +241,11 @@ void NetworkTransceiver::handleCommand(const Command &command)
         convertToSSlGeometry(command->simulator().simulator_setup().geometry(), data->mutable_field());
         sendSSLSimCommand(cmd);
     }
+    if (command->has_simulator() && command->simulator().has_realism_config() && m_sendCommands) {
+        sslsim::SimulatorCommand cmd;
+        cmd.mutable_config()->mutable_realism_config()->mutable_custom()->PackFrom(command->simulator().realism_config());
+        sendSSLSimCommand(cmd);
+    }
     static bool sendMessage = true;
     if (sendMessage) {
         const int highest_field = 20;
