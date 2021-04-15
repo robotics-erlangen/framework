@@ -128,7 +128,9 @@ RobotCommandAdaptor::RobotCommandAdaptor(bool blue, Timer* timer): m_is_blue(blu
 enum class SimError {
     UNSUPPORTED_VELOCITY,
     UNSUPPORTED_ANGLE,
-    UNREADABLE
+    UNREADABLE,
+    MISSING_SPEC,
+    INVALID_REALISM,
 };
 
 static void setError(sslsim::SimulatorError* error, SimError code, std::string appendix = "") {
@@ -145,6 +147,12 @@ static void setError(sslsim::SimulatorError* error, SimError code, std::string a
             error->set_code("ANGLE_VALUE");
             error->set_message("The recieved kick angle was not equal to either 0 or 45 " + appendix);
             break;
+        case SimError::MISSING_SPEC:
+            error->set_code("INVALID_SPEC");
+            error->set_message("The recieved spec is missing one of the required fields for this simultor " + appendix);
+        case SimError::INVALID_REALISM:
+            error->set_code("INVALID_REALISM");
+            error->set_message("The recieved realism is not conforming to the realism configuration for this simulator " + appendix);
         default:
             std::cerr << "Unmanaged SimError for message" << std::endl;
     }
@@ -342,8 +350,9 @@ void SimulatorCommandAdaptor::handleDatagrams() {
                 Command c{new amun::Command};
                 robot::Team* blueTeam = nullptr;
                 robot::Team* yellowTeam = nullptr;
+                auto newSz = config.robot_specs_size();
                 for (const auto& spec : config.robot_specs()) {
-                    convertSpecsToErForce([&blueTeam, &yellowTeam, &c](bool isBlue){
+                    bool success = convertSpecsToErForce([&blueTeam, &yellowTeam, &c](bool isBlue){
                             if (isBlue) {
                                 if (blueTeam == nullptr) {
                                     blueTeam = c->mutable_set_team_blue();
@@ -356,8 +365,13 @@ void SimulatorCommandAdaptor::handleDatagrams() {
                             return yellowTeam->add_robot();
                             }
                             , spec);
+                    if (!success) {
+                        sendSir = true;
+                        setError(sir.add_errors(), SimError::MISSING_SPEC, spec.DebugString());
+                        newSz--;
+                    }
                 }
-                std::cout << "Updated to " << config.robot_specs_size() << " robots" << std::endl;
+                std::cout << "Updated to " << newSz << " robots" << std::endl;
                 emit sendCommand(c);
             }
         }
