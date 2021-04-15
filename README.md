@@ -55,7 +55,12 @@ protocol](https://github.com/RoboCup-SSL/ssl-simulation-protocol) and broadcast
 the state of the world (i.e. positions of robots and the ball) using the SSL
 vision protocol.
 
-**TODO** Implement command line options and document them
+The `simulator-cli` takes two command line arguments:
+- `-g short_file_name` sets the initial geometry to one of the defaults in `config/simulator`.
+- `--realism short_file_name` sets the initial realism to on of the defaults in `config/simulator-realism`
+
+Both of these argument take a `short_file_name`, i.e. just the filename without the path or the extension.
+For example, to start the binary with no realism and 2018 setup, call `simulator-cli -g 2018 --realism None`
 
 
 ### Other utilities
