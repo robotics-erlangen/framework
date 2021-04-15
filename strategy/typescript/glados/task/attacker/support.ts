@@ -206,7 +206,7 @@ export class Support extends Task {
 				vis.addCircle("t/a/support", this._moveDest!, 0.1, vis.colors.slateHalf, true);
 				if (this._passDestSuggestion) {
 					let color = passInfo.target === this._robot
-						? vis.colors.turquoiseHalf : vis.colors.whiteHalf;
+						? vis.colors.cyanHalf : vis.colors.whiteHalf;
 					vis.addCircle("t/a/support", passInfo.ballPos, 0.1, color, true);
 					vis.addCircle("t/a/support", this._passDestSuggestion, 0.14,
 						vis.colors.whiteHalf, false, undefined, undefined, 0.03);

@@ -119,76 +119,52 @@ type Style = pb.amun.Pen.Style;
 
 /**
  * List of predefined colors.
- * with alpha = 255. Colors ending with half have alpha = 127.
- * - black (0,0,0)
- * - white (255,255,255)
- * - red (255,0,0)
- * - green (0,255,0)
- * - blue (0,0,255)
- * - yellow (255,255,0)
- * - pink (255,0,255)
- * - turquoise (0,255,255)
- * - orange (255, 127, 0)
- * - magenta (255, 0, 127)
- * - brown (127, 63, 0)
- * - skyBlue (127, 191, 255)
  *
- * - blackHalf (0,0,0)
- * - whiteHalf (255,255,255)
- * - redHalf (255,0,0)
- * - greenHalf (0,255,0)
- * - blueHalf (0,0,255)
- * - yellowHalf (255,255,0)
- * - pinkHalf (255,0,255)
- * - turquoiseHalf (0,255,255)
- * - orangeHalf (255, 127, 0)
- * - magentaHalf (255, 0, 127)
- * - brownHalf (127, 63, 0)
- * - skyBlueHalf (127, 191, 255)
+ * Normals colors have alpha = 255.
+ * Colors ending with half have alpha = 127.
  */
+export const colors = {
+	black: fromRGBA(0, 0, 0, 255),
+	blackHalf: fromRGBA(0, 0, 0, 127),
+	white: fromRGBA(255, 255, 255, 255),
+	whiteHalf: fromRGBA(255, 255, 255, 127),
+	grey: fromRGBA(127, 127, 127, 255),
+	greyHalf: fromRGBA(127, 127, 127, 127),
 
-export let colors: {[name: string]: Color} = {};
+	red: fromRGBA(255, 0, 0, 255),
+	redHalf: fromRGBA(255, 0, 0, 127),
+	green: fromRGBA(0, 255, 0, 255),
+	greenHalf: fromRGBA(0, 255, 0, 127),
+	blue: fromRGBA(0, 0, 255, 255),
+	blueHalf: fromRGBA(0, 0, 255, 127),
 
-colors.black = fromRGBA(0, 0, 0, 255);
-colors.blackHalf = fromRGBA(0, 0, 0, 127);
-colors.white = fromRGBA(255, 255, 255, 255);
-colors.whiteHalf = fromRGBA(255, 255, 255, 127);
-colors.grey = fromRGBA(127, 127, 127, 255);
-colors.greyHalf = fromRGBA(127, 127, 127, 127);
+	yellow: fromRGBA(255, 255, 0, 255),
+	yellowHalf: fromRGBA(255, 255, 0, 127),
+	pink: fromRGBA(255, 0, 255, 255),
+	pinkHalf: fromRGBA(255, 0, 255, 127),
+	cyan: fromRGBA(0, 255, 255, 255),
+	cyanHalf: fromRGBA(0, 255, 255, 127),
 
-colors.red = fromRGBA(255, 0, 0, 255);
-colors.redHalf = fromRGBA(255, 0, 0, 127);
-colors.green = fromRGBA(0, 255, 0, 255);
-colors.greenHalf = fromRGBA(0, 255, 0, 127);
-colors.blue = fromRGBA(0, 0, 255, 255);
-colors.blueHalf = fromRGBA(0, 0, 255, 127);
+	orange: fromRGBA(255, 127, 0, 255),
+	orangeHalf: fromRGBA(255, 127, 0, 127),
+	magenta: fromRGBA(255, 0, 127, 255),
+	magentaHalf: fromRGBA(255, 0, 127, 127),
+	brown: fromRGBA(127, 63, 0, 255),
+	brownHalf: fromRGBA(127, 63, 0, 127),
+	skyBlue: fromRGBA(127, 191, 255, 255),
+	skyBlueHalf: fromRGBA(127, 191, 255, 127),
 
-colors.yellow = fromRGBA(255, 255, 0, 255);
-colors.yellowHalf = fromRGBA(255, 255, 0, 127);
-colors.pink = fromRGBA(255, 0, 255, 255);
-colors.pinkHalf = fromRGBA(255, 0, 255, 127);
-colors.turquoise = fromRGBA(0, 255, 255, 255);
-colors.turquoiseHalf = fromRGBA(0, 255, 255, 127);
-
-colors.orange = fromRGBA(255, 127, 0, 255);
-colors.orangeHalf = fromRGBA(255, 127, 0, 127);
-colors.magenta = fromRGBA(255, 0, 127, 255);
-colors.magentaHalf = fromRGBA(255, 0, 127, 127);
-colors.brown = fromRGBA(127, 63, 0, 255);
-colors.brownHalf = fromRGBA(127, 63, 0, 127);
-colors.skyBlue = fromRGBA(127, 191, 255, 255);
-colors.skyBlueHalf = fromRGBA(127, 191, 255, 127);
-
-colors.slate = fromRGBA(112, 118, 144, 255);
-colors.slateHalf = fromRGBA(112, 118, 144, 127);
-colors.orchid = fromRGBA(218, 94, 224, 255);
-colors.orchidHalf = fromRGBA(218, 94, 224, 127);
-colors.gold = fromRGBA(239, 185, 15, 255);
-colors.goldHalf = fromRGBA(239, 185, 15, 127);
-colors.mediumPurple = fromRGBA(171, 130, 255, 255);
-colors.mediumPurpleHalf = fromRGBA(171, 130, 255, 127);
-colors.darkPurple = fromRGBA(93, 71, 139, 255);
-colors.darkPurpleHalf = fromRGBA(93, 71, 139, 127);
+	slate: fromRGBA(112, 118, 144, 255),
+	slateHalf: fromRGBA(112, 118, 144, 127),
+	orchid: fromRGBA(218, 94, 224, 255),
+	orchidHalf: fromRGBA(218, 94, 224, 127),
+	gold: fromRGBA(239, 185, 15, 255),
+	goldHalf: fromRGBA(239, 185, 15, 127),
+	mediumPurple: fromRGBA(171, 130, 255, 255),
+	mediumPurpleHalf: fromRGBA(171, 130, 255, 127),
+	darkPurple: fromRGBA(93, 71, 139, 255),
+	darkPurpleHalf: fromRGBA(93, 71, 139, 127),
+};
 
 let gcolor: Color = colors.black;
 let gisFilled: boolean = true;
