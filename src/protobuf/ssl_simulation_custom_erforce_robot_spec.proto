@@ -7,9 +7,9 @@ package sslsim;
 message RobotSpecErForce {
     // The distance [m] from the robot center to the ball, when the ball is as close as possible to the robot.
     // The ball may be a little bit inside the roboter when looking from top, due to the dimensions of the dribbler.
-    optional float shoot_radius = 1;
+    required float shoot_radius = 1;
     // The height of the dribbling bar from the ground [m]
-    optional float dribbler_height = 2;
-    // The 'loss' at the front of the robot where the dribbler bar does not (yet) start, due to the mechanical layout of the robot [m]
-    optional float dribbler_width_extra = 3 [default = 0.014];
+    required float dribbler_height = 2;
+    // The width of the dribbler itself (where the ball can be controlled), without the mechanical frame [m].
+    required float dribbler_width = 3;
 }

@@ -51,9 +51,9 @@ static int CONTROL_PORT = 10300;
  *
  * Known issues:
  *  - [ ]: Currently, it is not possible to supply partial positions for teleportBall or teleportRobot
- *  - [ ]: Simulator realism will be discarded if a new world is created
+ *  - [ ]: Currently, the chip speed limitations will be ignored.
+ *  - [ ]: Simulator realism will be discarded if a new world is created (by changing geometry)
  *  - [ ]: Robots go into standby after 0.1 seconds without command (Safty)
- *  - [ ]: The newstes simprotocol updates are not used
  *  - [ ]: It is not possible to change specs or geometry without resetting the world
  *  - [ ]: It is not possible to setUp a team with no robots if that team already had robots (You can still teleport them away)
  *  - [ ]: Dribbler will reset if a new command doesn't contain a new dribbling speed (contrary to the definition that states all not set values should stay as previously assumed)
@@ -214,17 +214,10 @@ static bool convertSpecsToErForce(T outGen, const sslsim::RobotSpecs& in) // @re
     if (!in.has_custom()) {
         return false;
     }
-    if (!in.has_dribbler_width()) {
+    if (!in.has_center_to_dribbler()) {
         return false;
     }
     sslsim::RobotSpecErForce rsef;
-    /*
-    optional float shoot_radius = 1;
-    // The height of the dribbling bar from the ground [m]
-    optional float dribbler_height = 2;
-    // The 'loss' at the front of the robot where the dribbler bar does not (yet) start, due to the mechanical layout of the robot [m]
-    optional float dribbler_width_extra = 3 [default = 0.014];
-    */
     if (!in.custom().UnpackTo(&rsef)) {
         return false;
     }
@@ -232,6 +225,9 @@ static bool convertSpecsToErForce(T outGen, const sslsim::RobotSpecs& in) // @re
         return false;
     }
     if (!rsef.has_dribbler_height()) {
+        return false;
+    }
+    if (!rsef.has_dribbler_width()) {
         return false;
     }
     const sslsim::RobotLimits& lim = in.limits();
@@ -276,7 +272,7 @@ static bool convertSpecsToErForce(T outGen, const sslsim::RobotSpecs& in) // @re
         out->set_shot_linear_max(100);
     }
     // TODO: chips
-    out->set_dribbler_width(in.dribbler_width());
+    out->set_dribbler_width(rsef.dribbler_width());
     auto* acc = out->mutable_strategy();
 
     acc->set_a_speedup_f_max(lim.acc_speedup_absolute_max());
@@ -289,8 +285,9 @@ static bool convertSpecsToErForce(T outGen, const sslsim::RobotSpecs& in) // @re
     out->set_shoot_radius(rsef.shoot_radius());
     out->set_dribbler_height(rsef.dribbler_height());
 
-    // TODO: angle
-    out->set_angle(0.982f);
+    // cos(angle / 2 ) = center_to_dribbler / radius
+    const float ratio = in.center_to_dribbler() / in.radius();
+    out->set_angle(2 * acosf(ratio));
     return true;
             /*
 // Movement limits for a robot

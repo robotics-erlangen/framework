@@ -120,19 +120,6 @@ static void convertSpecs(const robot::Specs& in, T outGen, bool blueTeam, bool* 
 {
     bool useSpecialFields = false;
     sslsim::RobotSpecErForce rsef;
-    if (in.has_angle()) {
-        if (!in.has_dribbler_width()) {
-            *success = false;
-            return;
-        }
-        const float fullFrontWidth = std::sin(in.angle() / 2) * in.radius() * 2;
-        if (in.dribbler_width() >= fullFrontWidth) {
-            *success = false;
-            return;
-        }
-        useSpecialFields = true;
-        rsef.set_dribbler_width_extra(fullFrontWidth - in.dribbler_width());
-    }
     sslsim::RobotSpecs* out = outGen();
     out->mutable_id()->set_id(in.id());
     out->mutable_id()->set_team(blueTeam? gameController::BLUE : gameController::YELLOW);
@@ -145,6 +132,11 @@ static void convertSpecs(const robot::Specs& in, T outGen, bool blueTeam, bool* 
     if (in.has_mass()) {
         out->set_mass(in.mass());
     }
+    if (in.has_angle()) {
+        // cos(angle / 2) = d / r
+        const float centerToDribbler = std::cos(in.angle() / 2) * in.radius();
+        out->set_center_to_dribbler(centerToDribbler);
+    }
     if (in.has_v_max()) {
         out->mutable_limits()->set_vel_absolute_max(in.v_max());
     }
@@ -155,7 +147,8 @@ static void convertSpecs(const robot::Specs& in, T outGen, bool blueTeam, bool* 
         out->set_max_linear_kick_speed(in.shot_linear_max());
     }
     if (in.has_dribbler_width()) {
-        out->set_dribbler_width(in.dribbler_width());
+        rsef.set_dribbler_width(in.dribbler_width());
+        useSpecialFields = true;
     }
     if (in.has_strategy()) {
         auto* robotLimits = out->mutable_limits();
