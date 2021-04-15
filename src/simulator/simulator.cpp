@@ -640,16 +640,15 @@ int main(int argc, char* argv[])
     yellow.connect(&sim, &SimProxy::sendSSLSimError, &yellow, &RobotCommandAdaptor::handleSimulatorError);
 
     Command c{new amun::Command};
-    // start with 6 robots for yellow and blue, take ER-Force specs.
 
-
+    // start with default robots, take ER-Force specs.
     robot::Specs ERForce;
     robotSetDefault(&ERForce);
 
     auto* teamBlue = c->mutable_set_team_blue();
     auto* teamYellow = c->mutable_set_team_yellow();
     for(auto* team : {teamBlue, teamYellow}) {
-        for(int i=0; i < 6; ++i){
+        for(int i=0; i < 11; ++i){
             auto* robot = team->add_robot();
             robot->CopyFrom(ERForce);
             robot->set_id(i);
