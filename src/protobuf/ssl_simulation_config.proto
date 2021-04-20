@@ -58,12 +58,12 @@ message RobotSpecs {
     // Wheel angle configuration
     optional RobotWheelAngles wheel_angles = 13;
     // Custom robot spec for specific simulators (the protobuf files are managed by the simulators)
-    optional google.protobuf.Any custom = 14;
+    repeated google.protobuf.Any custom = 14;
 }
 
 message RealismConfig {
     // Custom config for specific simulators (the protobuf files are managed by the simulators)
-    optional google.protobuf.Any custom = 1;
+    repeated google.protobuf.Any custom = 1;
 }
 
 // Change the simulator configuration

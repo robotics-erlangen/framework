@@ -55,6 +55,7 @@ static int CONTROL_PORT = 10300;
  *  - [ ]: Robots go into standby after 0.1 seconds without command (Safty)
  *  - [ ]: It is not possible to change specs or geometry without resetting the world
  *  - [ ]: It is not possible to setUp a team with no robots (You can still teleport them away)
+ *  - [ ]: It is not possible to supply only partial specs. It is planned to fuse them with the last specs for this team if not supplied, but NYI.
  *  - [ ]: Dribbler will reset if a new command doesn't contain a new dribbling speed (contrary to the definition that states all not set values should stay as previously assumed)
  *  - [ ]: Commands that are recieved at t0 will not be in effect after the next tick of the simulator (around 5 ms), no interpolation.
  *  - [ ]: Tournament mode where commands origin are checked is not implemented
@@ -212,22 +213,26 @@ static bool convertSpecsToErForce(T outGen, const sslsim::RobotSpecs& in) // @re
     if (!in.has_limits()) {
         return false;
     }
-    if (!in.has_custom()) {
-        return false;
-    }
     if (!in.has_center_to_dribbler()) {
         return false;
     }
     sslsim::RobotSpecErForce rsef;
-    if (!in.custom().UnpackTo(&rsef)) {
+    bool rsefInitialized = false;
+    for(const auto& cus : in.custom()) {
+        if (cus.UnpackTo(&rsef)) {
+            rsefInitialized = true;
+            break;
+        }
+    }
+    if (!rsefInitialized) {
         return false;
     }
     if (!rsef.has_shoot_radius()) {
         return false;
     }
-    if (!rsef.has_dribbler_height()) {
+    /*if (!rsef.has_dribbler_height()) {
         return false;
-    }
+    }*/
     if (!rsef.has_dribbler_width()) {
         return false;
     }
@@ -288,7 +293,8 @@ static bool convertSpecsToErForce(T outGen, const sslsim::RobotSpecs& in) // @re
     acc->set_a_brake_phi_max(lim.acc_brake_angular_max());
 
     out->set_shoot_radius(rsef.shoot_radius());
-    out->set_dribbler_height(rsef.dribbler_height());
+    out->set_dribbler_height(0.04/*rsef.dribbler_height()*/); //FIXME: We use only our specs, because we don't know if dribbling will be possible at all with any other values :/
+
 
     // cos(angle / 2 ) = center_to_dribbler / radius
     const float ratio = in.center_to_dribbler() / in.radius();
@@ -394,15 +400,14 @@ void SimulatorCommandAdaptor::handleDatagrams() {
                 std::cout << "Updated to " << newSz << " robots" << std::endl;
                 emit sendCommand(c);
             }
-            if (config.has_realism_config() && config.realism_config().has_custom()) {
+            if (config.has_realism_config()) {
+                for(const auto& c : config.realism_config().custom()) {
                 RealismConfigErForce rcef;
-                if (config.realism_config().custom().UnpackTo(&rcef)) {
-                    Command c{new amun::Command};
-                    c->mutable_simulator()->mutable_realism_config()->CopyFrom(rcef);
-                    emit sendCommand(c);
-                } else {
-                    sendSir = true;
-                    setError(sir.add_errors(), SimError::INVALID_REALISM, config.realism_config().DebugString());
+                    if (c.UnpackTo(&rcef)) {
+                        Command c{new amun::Command};
+                        c->mutable_simulator()->mutable_realism_config()->CopyFrom(rcef);
+                        emit sendCommand(c);
+                    }
                 }
             }
             if (config.has_vision_port()) {

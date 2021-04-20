@@ -182,7 +182,7 @@ static void convertSpecs(const robot::Specs& in, T outGen, bool blueTeam, bool* 
         useSpecialFields = true;
     }
     if (useSpecialFields) {
-        out->mutable_custom()->PackFrom(rsef);
+        out->add_custom()->PackFrom(rsef);
 
     }
     *success = true;
@@ -240,7 +240,7 @@ void NetworkTransceiver::handleCommand(const Command &command)
     }
     if (command->has_simulator() && command->simulator().has_realism_config() && m_sendCommands) {
         sslsim::SimulatorCommand cmd;
-        cmd.mutable_config()->mutable_realism_config()->mutable_custom()->PackFrom(command->simulator().realism_config());
+        cmd.mutable_config()->mutable_realism_config()->add_custom()->PackFrom(command->simulator().realism_config());
         sendSSLSimCommand(cmd);
     }
     static bool sendMessage = true;
