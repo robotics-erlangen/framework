@@ -167,9 +167,11 @@ static void setError(sslsim::SimulatorError* error, SimError code, std::string a
         case SimError::MISSING_SPEC:
             error->set_code("INVALID_SPEC");
             error->set_message("The recieved spec is missing one of the required fields for this simultor " + appendix);
+            break;
         case SimError::INVALID_REALISM:
             error->set_code("INVALID_REALISM");
             error->set_message("The recieved realism is not conforming to the realism configuration for this simulator " + appendix);
+            break;
         default:
             std::cerr << "Unmanaged SimError for message" << std::endl;
     }
