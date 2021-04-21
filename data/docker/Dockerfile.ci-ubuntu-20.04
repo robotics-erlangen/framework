@@ -14,7 +14,7 @@ RUN set -xe; \
 	apt-get update; \
 	apt-get install --no-install-recommends -y \
 		libprotobuf-dev qtbase5-dev libqt5opengl5-dev libusb-1.0-0-dev libsdl2-dev libqt5svg5-dev \
-		cmake g++ protobuf-compiler make ccache patch \
+		cmake g++ protobuf-compiler make ccache patch ninja-build \
 		git git-lfs \
 		ca-certificates curl gnupg \
 		luarocks; \
