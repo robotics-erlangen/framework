@@ -18,7 +18,7 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 #include <clocale>
-#include <QApplication>
+#include <QCoreApplication>
 #include <QUdpSocket>
 #include <QThread>
 #include <QNetworkDatagram>
@@ -601,7 +601,7 @@ void SimProxy::handleCommand(const Command &command) {
 
 int main(int argc, char* argv[])
 {
-    QApplication app(argc, argv);
+    QCoreApplication app(argc, argv);
     app.setApplicationName("Simulator");
     app.setOrganizationName("ER-Force");
 
