@@ -1,4 +1,10 @@
-FROM ubuntu:focal
+FROM ubuntu:20.04
+
+ENV V8_INCLUDE_DIR=/libs/v8/include
+ENV V8_OUTPUT_DIR=/libs/v8/out/x64.release
+ENV PATH="/usr/lib/ccache:/usr/local/gcc-arm-none-eabi-7-2018-q2-update/bin:$PATH"
+ENV CCACHE_DIR="/ccache/ubuntu-20.04"
+COPY --from=roboticserlangen/v8:version-1 /v8/v8 /libs/v8
 
 ARG DEBIAN_FRONTEND=noninteractive
 # apt-key will warn to not parse its output if not set
@@ -8,8 +14,8 @@ RUN set -xe; \
 	apt-get update; \
 	apt-get install --no-install-recommends -y \
 		libprotobuf-dev qtbase5-dev libqt5opengl5-dev libusb-1.0-0-dev libsdl2-dev libqt5svg5-dev \
-		cmake g++ protobuf-compiler ninja-build make ccache patch \
-		git git-lfs python2 xz-utils python3 python-is-python2 \
+		cmake g++ protobuf-compiler make ccache patch \
+		git git-lfs \
 		ca-certificates curl gnupg \
 		luarocks; \
 	git lfs install; \
@@ -36,17 +42,3 @@ RUN set -xe; \
 	ln -s ../../bin/ccache /usr/lib/ccache/c++; \
 	ln -s ../../bin/ccache /usr/lib/ccache/arm-none-eabi-gcc; \
 	ln -s ../../bin/ccache /usr/lib/ccache/arm-none-eabi-g++;
-
-COPY libs /libs
-RUN set -xe; \
-	/libs/v8/build.sh ; \
-	mkdir -p /libs/v8-build/out ; \
-	cp -r /libs/v8/v8/include /libs/v8-build/ ; \
-	cp -r /libs/v8/v8/out/x64.release /libs/v8-build/out ; \
-	rm -rf /libs/v8
-
-ENV V8_INCLUDE_DIR=/libs/v8-build/include
-ENV V8_OUTPUT_DIR=/libs/v8-build/out/x64.release
-ENV PATH="/usr/lib/ccache:/usr/local/gcc-arm-none-eabi-7-2018-q2-update/bin:$PATH"
-ENV CCACHE_DIR="/ccache/ubuntu-20.04"
-
