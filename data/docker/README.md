@@ -1,10 +1,25 @@
-# Building the containers
+## Building the CI containers
 
 Run `copy-libs.sh` before building. Afterwards it's just standard docker building.
 e.g.
 ```
 cd ubuntu-18.04
 docker build -t ubuntu-18.04 .
+```
+## Simulator CLI
+This image is available from Docker Hub at
+[`roboticserlangen/simulatorcli`](https://hub.docker.com/repository/docker/roboticserlangen/simulatorcli).
+The available tags are `latest` and `commit-12HASH`, where `12HASH` are the
+first twelve letters identifying the commit the build is based on.
+
+You can also build the image yourself.The Simulator CLI needs to copy files
+from the repository root. Because of this, the top level folder needs to be
+used as build context. Building the image requires
+[BuildKit](https://docs.docker.com/develop/develop-images/build_enhancements/)
+and **at least Docker 19.03**.  In the **repository root**, run
+```sh
+$ DOCKER_BUILDKIT=1 docker build -t roboticserlangen/simulatorcli:latest -f data/docker/Dockerfile.simulatorcli .
+
 ```
 
 ## Robocup setup

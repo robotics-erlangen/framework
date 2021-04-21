@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Hook build because of BuildKit
+# Required because of per Dockerfile .dockerignore
+export DOCKER_BUILDKIT=1
+docker build -t "$DOCKER_IMAGE" -f "$DOCKERFILE_PATH" .

@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+SHORTHASH=${SOURCE_COMMIT:0:12}
+docker tag $IMAGE_NAME $DOCKER_REPO:commit-$SHORTHASH
+docker push $DOCKER_REPO:commit-$SHORTHASH
