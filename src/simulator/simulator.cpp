@@ -23,7 +23,10 @@
 #include <QThread>
 #include <QNetworkDatagram>
 #include <QCommandLineParser>
+#include <QTime>
 #include <cmath>
+#include <cstdio>
+#include <cstdarg>
 
 #include "protobuf/ssl_simulation_robot_control.pb.h"
 #include "protobuf/ssl_simulation_robot_feedback.pb.h"
@@ -60,6 +63,24 @@ static int CONTROL_PORT = 10300;
  *  - [ ]: Commands that are recieved at t0 will not be in effect after the next tick of the simulator (around 5 ms), no interpolation.
  *  - [ ]: Tournament mode where commands origin are checked is not implemented
  */
+
+// Check log format strings
+#if defined(__GNUC__) || defined(__CLANG__)
+#define CHECK_PRINTF __attribute__((format(printf, 2, 3)))
+#else
+#define CHECK_PRINTF
+#endif
+
+static void CHECK_PRINTF log(FILE* stream, const char* fmt, ...) {
+    const std::string timeStr = QTime::currentTime().toString().toStdString();
+    std::fputs(timeStr.c_str(), stream);
+    std::fputc(' ', stream);
+
+    va_list args;
+    va_start(args, fmt);
+    std::vfprintf(stream, fmt, args);
+    va_end(args);
+}
 
 class SSLVisionServer: public QObject {
     Q_OBJECT
@@ -151,31 +172,60 @@ enum class SimError {
     INVALID_REALISM,
 };
 
-static void setError(sslsim::SimulatorError* error, SimError code, std::string appendix = "") {
+enum class SimErrorSource {
+    CONTROLLER,
+    BLUE_TEAM,
+    YELLOW_TEAM,
+};
+
+static void setError(sslsim::SimulatorError* error, SimError code, SimErrorSource source, std::string appendix = "") {
+    const char* codeStr = nullptr;
+    std::string message;
     switch(code) {
         case SimError::UNREADABLE:
-            error->set_code("UNREADABLE");
-            error->set_message("The recieved message was unreadable " + appendix);
+            codeStr = "UNREADABLE";
+            message = "The received message was unreadable " + appendix;
             break;
         case SimError::UNSUPPORTED_VELOCITY:
-            error->set_code("VELOCITY_TYPE");
-            error->set_message("The recieved message had a velocity type unsupported by this simulator "+appendix);
+            codeStr = "VELOCITY_TYPE";
+            message = "The received message had a velocity type unsupported by this simulator " + appendix;
             break;
         case SimError::UNSUPPORTED_ANGLE:
-            error->set_code("ANGLE_VALUE");
-            error->set_message("The recieved kick angle was not equal to either 0 or 45 " + appendix);
+            codeStr = "ANGLE_VALUE";
+            message = "The received kick angle was not equal to either 0 or 45 " + appendix;
             break;
         case SimError::MISSING_SPEC:
-            error->set_code("INVALID_SPEC");
-            error->set_message("The recieved spec is missing one of the required fields for this simultor " + appendix);
+            codeStr = "INVALID_SPEC";
+            message = "The received spec is missing one of the required fields for this simulator " + appendix;
             break;
         case SimError::INVALID_REALISM:
-            error->set_code("INVALID_REALISM");
-            error->set_message("The recieved realism is not conforming to the realism configuration for this simulator " + appendix);
+            codeStr = "INVALID_REALISM";
+            message = "The received realism is not conforming to the realism configuration for this simulator " + appendix;
             break;
         default:
-            std::cerr << "Unmanaged SimError for message" << std::endl;
+            log(stderr, "Unmanaged SimError for message\n");
+            break;
     }
+    if (!codeStr || message.size() == 0) {
+        return;
+    }
+    error->set_code(codeStr);
+    error->set_message(message);
+
+    const char* sourceStr = [source]() {
+        switch (source) {
+            case SimErrorSource::CONTROLLER:
+                return "CONTROLLER";
+            case SimErrorSource::BLUE_TEAM:
+                return "BLUE";
+            case SimErrorSource::YELLOW_TEAM:
+                return "YELLOW";
+            default:
+                return "INVALID";
+        }
+    }();
+
+    log(stderr, "[%-10s - %-15s] %s\n", sourceStr, codeStr, message.c_str());
 }
 
 static void sendUDP(const google::protobuf::Message& out, QUdpSocket& server, const QHostAddress& senderAddress, int senderPort) {
@@ -186,7 +236,7 @@ static void sendUDP(const google::protobuf::Message& out, QUdpSocket& server, co
         sendingSuccessful = server.writeDatagram(data, senderAddress, senderPort) == data.size();
     }
     if (!sendingSuccessful) {
-        std::cerr << "Sending relpy failed: " << std::endl;
+        log(stderr, "Sending reply failed:\n");
     }
 }
 
@@ -194,7 +244,7 @@ static void sendUDP(const google::protobuf::Message& out, QUdpSocket& server, co
 
 static void warnLatency(qint64 delta) {
     if (delta > 1e6) {
-        std::cout << "Warning: Handled Datagram in " << delta <<"ns, should be lower than 1e6"<< std::endl;
+        log(stdout, "Warning: Handled Datagram in %lldns, should be lower than 1e6\n", delta);
     }
 }
 
@@ -337,7 +387,7 @@ void SimulatorCommandAdaptor::handleDatagrams() {
         sslsim::SimulatorCommand simcom;
         if (!simcom.ParseFromArray(data.data(), data.size())) {
             sendSir = true;
-            setError(sir.add_errors(), SimError::UNREADABLE);
+            setError(sir.add_errors(), SimError::UNREADABLE, SimErrorSource::CONTROLLER);
             continue;
         }
         if (simcom.has_control()) {
@@ -393,11 +443,11 @@ void SimulatorCommandAdaptor::handleDatagrams() {
                             , spec);
                     if (!success) {
                         sendSir = true;
-                        setError(sir.add_errors(), SimError::MISSING_SPEC, spec.DebugString());
+                        setError(sir.add_errors(), SimError::MISSING_SPEC, SimErrorSource::CONTROLLER, spec.DebugString());
                         newSz--;
                     }
                 }
-                std::cout << "Updated to " << newSz << " robots" << std::endl;
+                log(stdout, "Updated to %d robots\n", newSz);
                 emit sendCommand(c);
             }
             if (config.has_realism_config()) {
@@ -450,6 +500,9 @@ void SimulatorCommandAdaptor::handleSimulatorError(const QList<SSLSimError> &err
 
 void RobotCommandAdaptor::handleDatagrams()
 {
+    const SimErrorSource ERROR_SOURCE = m_is_blue
+        ? SimErrorSource::BLUE_TEAM
+        : SimErrorSource::YELLOW_TEAM;
     while(m_server.hasPendingDatagrams()) {
         qint64 start =m_timer->currentTime();
         sslsim::RobotControlResponse rcr;
@@ -469,7 +522,7 @@ void RobotCommandAdaptor::handleDatagrams()
         SSLSimRobotControl control{new sslsim::RobotControl};
         if (!control->ParseFromArray(data.data(), data.size())) {
             sendRcr = true;
-            setError(rcr.add_errors(), SimError::UNREADABLE);
+            setError(rcr.add_errors(), SimError::UNREADABLE, ERROR_SOURCE);
             continue;
         }
 
@@ -478,7 +531,8 @@ void RobotCommandAdaptor::handleDatagrams()
                 const auto& moveCmd = command.move_command();
                 if (moveCmd.has_wheel_velocity() || moveCmd.has_global_velocity()) {
                     sendRcr = true;
-                    setError(rcr.add_errors(), SimError::UNSUPPORTED_VELOCITY, std::string{"(Robot :"}+std::to_string(command.id()) + ")");
+                    const std::string robotStr = "(Robot :" + std::to_string(command.id()) + ")";
+                    setError(rcr.add_errors(), SimError::UNSUPPORTED_VELOCITY, ERROR_SOURCE, robotStr);
                 }
             }
         }
@@ -641,7 +695,7 @@ int main(int argc, char* argv[])
         msg += __FILE__;
         msg += ": ";
         msg += std::to_string(functionToFixForSpecs);
-        std::cout << msg << ')' << std::endl;
+        log(stdout, "%s)", msg.c_str());
     }
 
     Timer timer;
