@@ -11,7 +11,7 @@ add_test(NAME cpp-unittests
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
 
 add_test(NAME copyright-header-exists
-	COMMAND python2 "data/scripts/check-copyright-header.py"
+	COMMAND python3 "data/scripts/check-copyright-header.py"
 	WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
 
 add_test(NAME git-correct-mail
