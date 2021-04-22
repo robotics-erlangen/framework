@@ -22,6 +22,8 @@ message RealismConfigErForce {
     // A value of 0 would make the ball always visible
     optional float ball_visibility_threshold = 6;
     // The overlap of the visible range of the different cameras [m]
+    // For example: if there are two cameras and the overlap value is 0.5m
+    // then the ball is visible in both cameras between -0.5 and 0.5 meters from the centerline
     optional float camera_overlap = 7;
     // With this probability, additional erroneous ball detections are added
     // at the edge of a robots dribbler (to emulate the red break beam lights

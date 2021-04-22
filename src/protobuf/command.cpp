@@ -21,8 +21,7 @@
 #include "command.h"
 #include "geometry.h"
 
-// position is in meters in our coordinate system
-static SSL_GeometryCameraCalibration createDefaultCamera(int cameraId, float x, float y, float z)
+SSL_GeometryCameraCalibration createDefaultCamera(int cameraId, float x, float y, float z)
 {
     SSL_GeometryCameraCalibration calibration;
 

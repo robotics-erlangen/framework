@@ -33,6 +33,9 @@ typedef QSharedPointer<amun::Command> Command;
 
 void simulatorSetupSetDefault(amun::SimulatorSetup &setup);
 
+// position is in meters in our coordinate system
+SSL_GeometryCameraCalibration createDefaultCamera(int cameraId, float x, float y, float z);
+
 //! @}
 
 #endif // COMMAND_H

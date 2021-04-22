@@ -52,14 +52,11 @@ message SimulatorWorstCaseVision {
 
 message CommandSimulator {
     optional bool enable = 1;
-    //optional SimulatorMoveBall move_ball = 2; // deprecated
-    //repeated SimulatorMoveRobot move_blue = 3; // deprecated
-    //repeated SimulatorMoveRobot move_yellow = 4; // depreaceted
-    optional SimulatorSetup simulator_setup = 5;
-    optional SimulatorWorstCaseVision vision_worst_case = 6;
-    optional RealismConfigErForce realism_config = 7;
-    optional world.SimulatorState set_simulator_state = 8;
-    optional sslsim.SimulatorControl ssl_control = 9;
+    optional SimulatorSetup simulator_setup = 2;
+    optional SimulatorWorstCaseVision vision_worst_case = 3;
+    optional RealismConfigErForce realism_config = 4;
+    optional world.SimulatorState set_simulator_state = 5;
+    optional sslsim.SimulatorControl ssl_control = 6;
 }
 
 message CommandReferee {

@@ -23,6 +23,7 @@
 #include "simulator/simulator.h"
 #include "core/timer.h"
 #include "core/configuration.h"
+#include "core/coordinates.h"
 #include "protobuf/geometry.h"
 #include "protobuf/command.h"
 #include "protobuf/status.h"
@@ -38,7 +39,7 @@ class SimTester : public QObject {
 public slots:
     void count() { m_counter++; }
     void handlePacket(const QByteArray &data, qint64 time, QString sender);
-    void handleSimulatorTruth(const QByteArray &data);
+    void handleSimulatorTruthRaw(const QByteArray &data);
 
 signals:
     void sendCommand(const Command& c);
@@ -46,15 +47,9 @@ signals:
 
 public:
     int m_counter = 0;
-    std::function<void(const SSL_WrapperPacket&)> f = [](const SSL_WrapperPacket& p) {};
-    std::function<void(const world::SimulatorState&)> s = [](const world::SimulatorState& s) {};
+    std::function<void(const SSL_WrapperPacket&)> handleDetectionWrapper = [](const SSL_WrapperPacket&) {};
+    std::function<void(const world::SimulatorState&)> handleSimulatorTruth = [](const world::SimulatorState&) {};
 };
-
-static camun::simulator::Simulator* mallocTestingSimulator(Timer* t) {
-    amun::SimulatorSetup defaultSimulatorSetup;
-    loadConfiguration("simulator/2020", &defaultSimulatorSetup, false);
-    return new camun::simulator::Simulator{t, defaultSimulatorSetup, true};
-}
 
 void SimTester::handlePacket(const QByteArray &data, qint64 time, QString sender) {
     ASSERT_TRUE(sender == QString("simulator"));
@@ -63,15 +58,15 @@ void SimTester::handlePacket(const QByteArray &data, qint64 time, QString sender
     bool result = wrapper.ParseFromArray(data.data(), data.size());
     ASSERT_TRUE(result && "wrapper.ParseFromArray");
 
-    f(wrapper);
+    handleDetectionWrapper(wrapper);
 }
 
-void SimTester::handleSimulatorTruth(const QByteArray &data) {
+void SimTester::handleSimulatorTruthRaw(const QByteArray &data) {
     world::SimulatorState simState;
     bool result = simState.ParseFromArray(data.data(), data.size());
     ASSERT_TRUE(result && "simState.ParseFromArray");
 
-    s(simState);
+    handleSimulatorTruth(simState);
 }
 
 using namespace camun::simulator;
@@ -79,12 +74,12 @@ using namespace camun::simulator;
 class FastSimulatorTest : public testing::Test {
 public:
     FastSimulatorTest() : s(nullptr) {
-        s = mallocTestingSimulator(&t);
-        test.connect(&test, &SimTester::sendCommand, s, &Simulator::handleCommand);
+        amun::SimulatorSetup defaultSimulatorSetup;
+        loadConfiguration("simulator/2020", &defaultSimulatorSetup, false);
+        createSimulator(defaultSimulatorSetup);
+
         t.setScaling(0);
         t.setTime(1234, 0);
-        s->seedPRGN(14986);
-        s->connect(s, &Simulator::sendRealData, &test, &SimTester::handleSimulatorTruth);
     }
 
     void SetUp() override {
@@ -95,6 +90,14 @@ public:
 
     ~FastSimulatorTest() {
         delete s;
+    }
+
+    void createSimulator(const amun::SimulatorSetup &setup) {
+        delete s;
+        s = new camun::simulator::Simulator{&t, setup, true};
+        test.connect(&test, &SimTester::sendCommand, s, &Simulator::handleCommand);
+        s->seedPRGN(14986);
+        s->connect(s, &Simulator::sendRealData, &test, &SimTester::handleSimulatorTruthRaw);
     }
 
     void loadRobots(int blue, int yellow) {
@@ -153,7 +156,7 @@ public:
 
 
 TEST_F(FastSimulatorTest, VisionRate) {
-    s->disconnect(s, &Simulator::sendRealData, &test, &SimTester::handleSimulatorTruth);
+    s->disconnect(s, &Simulator::sendRealData, &test, &SimTester::handleSimulatorTruthRaw);
     s->connect(s, &Simulator::gotPacket, &test, &SimTester::count);
     FastSimulator::goDelta(s, &t, 1e9); // one second
     const int exp_packets = 60 * 2; // 60 Hz * 2 cameras
@@ -162,16 +165,16 @@ TEST_F(FastSimulatorTest, VisionRate) {
 }
 
 TEST_F(FastSimulatorTest, OriginString) {
-    s->disconnect(s, &Simulator::sendRealData, &test, &SimTester::handleSimulatorTruth);
+    s->disconnect(s, &Simulator::sendRealData, &test, &SimTester::handleSimulatorTruthRaw);
     s->connect(s, &Simulator::gotPacket, &test, &SimTester::handlePacket);
     FastSimulator::goDelta(s, &t, 5e8); // 500 millisecond
 }
 
 TEST_F(FastSimulatorTest, NoRobots) {
-    s->disconnect(s, &Simulator::sendRealData, &test, &SimTester::handleSimulatorTruth);
+    s->disconnect(s, &Simulator::sendRealData, &test, &SimTester::handleSimulatorTruthRaw);
     s->connect(s, &Simulator::gotPacket, &test, &SimTester::handlePacket);
     // Initially, the whole world should be empy without robots and just a ball
-    test.f = [] (auto packet) {
+    test.handleDetectionWrapper = [] (auto packet) {
         if (!packet.has_detection()) {
             return;
         }
@@ -183,7 +186,7 @@ TEST_F(FastSimulatorTest, NoRobots) {
 }
 
 TEST_F(FastSimulatorTest, StationaryBall) {
-    test.s = [] (auto truth) {
+    test.handleSimulatorTruth = [] (auto truth) {
         ASSERT_EQ(truth.blue_robots_size(), 0);
         ASSERT_EQ(truth.yellow_robots_size(), 0);
         ASSERT_TRUE(truth.has_ball());
@@ -197,7 +200,7 @@ TEST_F(FastSimulatorTest, StationaryBall) {
 
 TEST_F(FastSimulatorTest, LoadRobots) {
     loadRobots(2,5);
-    test.s = [] (auto truth) {
+    test.handleSimulatorTruth = [] (auto truth) {
         ASSERT_EQ(truth.blue_robots_size(), 2);
         ASSERT_EQ(truth.yellow_robots_size(), 5);
         ASSERT_TRUE(truth.has_ball());
@@ -210,7 +213,7 @@ TEST_F(FastSimulatorTest, LoadRobots) {
 }
 
 TEST_F(FastSimulatorTest, CBFrequency) {
-    s->disconnect(s, &Simulator::sendRealData, &test, &SimTester::handleSimulatorTruth);
+    s->disconnect(s, &Simulator::sendRealData, &test, &SimTester::handleSimulatorTruthRaw);
     int counter = 0;
     auto lambda = [&counter]() {counter++;};
     FastSimulator::goDeltaCallback(s, &t, 10e9, lambda); // 10 seconds, should be run every 10 ms = 100 times + 1 time initially
@@ -222,7 +225,7 @@ TEST_F(FastSimulatorTest, DriveRobotForwardBlue) {
     float phi=0.f, x = 0.f, y = 0.f;
     QQuaternion rotation;
     bool init = false;
-    test.s = [&x, &y, &phi, &init, &rotation] (auto truth) {
+    test.handleSimulatorTruth = [&x, &y, &phi, &init, &rotation] (auto truth) {
         ASSERT_EQ(truth.blue_robots_size(), 1);
         for (const auto& robot : truth.blue_robots()) {
             QQuaternion q{robot.rotation().real(), robot.rotation().i(), robot.rotation().j(), robot.rotation().k()}; // see simrobot.cpp
@@ -260,7 +263,7 @@ TEST_F(FastSimulatorTest, DriveRobotForwardBlue) {
 
     t.connect(&test, &SimTester::sendSSLRadioCommand, s, &Simulator::handleRadioCommands);
 
-    test.s = [](auto truth) {};
+    test.handleSimulatorTruth = [](auto) {};
 
     FastSimulator::goDeltaCallback(s, &t, 2e8, callback); // 200 milliseond to accelerate
 
@@ -273,7 +276,7 @@ TEST_F(FastSimulatorTest, DriveRobotForwardBlue) {
 
     float ox, oy, oz;
 
-    test.s = [rotation, &time, &ox, &oy, &oz, &init](auto truth) {
+    test.handleSimulatorTruth = [rotation, &time, &ox, &oy, &oz, &init](auto truth) {
         ASSERT_EQ(truth.blue_robots_size(), 1);
         for (const auto& robot : truth.blue_robots()) {
             QVector3D forwards{0, -0.5, 0};
@@ -304,7 +307,7 @@ TEST_F(FastSimulatorTest, DriveRobotRightBlue) {
     float phi=0.f, x = 0.f, y = 0.f;
     QQuaternion rotation;
     bool init = false;
-    test.s = [&x, &y, &phi, &init, &rotation] (auto truth) {
+    test.handleSimulatorTruth = [&x, &y, &phi, &init, &rotation] (auto truth) {
         ASSERT_EQ(truth.blue_robots_size(), 1);
         for (const auto& robot : truth.blue_robots()) {
             QQuaternion q{robot.rotation().real(), robot.rotation().i(), robot.rotation().j(), robot.rotation().k()}; // see simrobot.cpp
@@ -342,7 +345,7 @@ TEST_F(FastSimulatorTest, DriveRobotRightBlue) {
 
     t.connect(&test, &SimTester::sendSSLRadioCommand, s, &Simulator::handleRadioCommands);
 
-    test.s = [](auto truth) {};
+    test.handleSimulatorTruth = [](auto) {};
 
     FastSimulator::goDeltaCallback(s, &t, 2e8, callback); // 200 milliseond to accelerate
 
@@ -355,7 +358,7 @@ TEST_F(FastSimulatorTest, DriveRobotRightBlue) {
 
     float ox, oy, oz;
 
-    test.s = [rotation, &time, &ox, &oy, &oz, &init](auto truth) {
+    test.handleSimulatorTruth = [rotation, &time, &ox, &oy, &oz, &init](auto truth) {
         ASSERT_EQ(truth.blue_robots_size(), 1);
         for (const auto& robot : truth.blue_robots()) {
             QVector3D forwards{0, 0, -0.5};
@@ -386,7 +389,7 @@ TEST_F(FastSimulatorTest, DriveRobotForwardYellow) {
     float phi=0.f, x = 0.f, y = 0.f;
     QQuaternion rotation;
     bool init = false;
-    test.s = [&x, &y, &phi, &init, &rotation] (auto truth) {
+    test.handleSimulatorTruth = [&x, &y, &phi, &init, &rotation] (auto truth) {
         ASSERT_EQ(truth.yellow_robots_size(), 1);
         for (const auto& robot : truth.yellow_robots()) {
             QQuaternion q{robot.rotation().real(), robot.rotation().i(), robot.rotation().j(), robot.rotation().k()}; // see simrobot.cpp
@@ -424,7 +427,7 @@ TEST_F(FastSimulatorTest, DriveRobotForwardYellow) {
 
     t.connect(&test, &SimTester::sendSSLRadioCommand, s, &Simulator::handleRadioCommands);
 
-    test.s = [](auto truth) {};
+    test.handleSimulatorTruth = [](auto) {};
 
     FastSimulator::goDeltaCallback(s, &t, 2e8, callback); // 200 milliseond to accelerate
 
@@ -437,7 +440,7 @@ TEST_F(FastSimulatorTest, DriveRobotForwardYellow) {
 
     float ox, oy, oz;
 
-    test.s = [rotation, &time, &ox, &oy, &oz, &init](auto truth) {
+    test.handleSimulatorTruth = [rotation, &time, &ox, &oy, &oz, &init](auto truth) {
         ASSERT_EQ(truth.yellow_robots_size(), 1);
         for (const auto& robot : truth.yellow_robots()) {
             QVector3D forwards{0, -0.5, 0};
@@ -468,7 +471,7 @@ TEST_F(FastSimulatorTest, DriveRobotLeftYellow) {
     float phi=0.f, x = 0.f, y = 0.f;
     QQuaternion rotation;
     bool init = false;
-    test.s = [&x, &y, &phi, &init, &rotation] (auto truth) {
+    test.handleSimulatorTruth = [&x, &y, &phi, &init, &rotation] (auto truth) {
         ASSERT_EQ(truth.yellow_robots_size(), 1);
         for (const auto& robot : truth.yellow_robots()) {
             QQuaternion q{robot.rotation().real(), robot.rotation().i(), robot.rotation().j(), robot.rotation().k()}; // see simrobot.cpp
@@ -506,7 +509,7 @@ TEST_F(FastSimulatorTest, DriveRobotLeftYellow) {
 
     t.connect(&test, &SimTester::sendSSLRadioCommand, s, &Simulator::handleRadioCommands);
 
-    test.s = [](auto truth) {};
+    test.handleSimulatorTruth = [](auto) {};
 
     FastSimulator::goDeltaCallback(s, &t, 2e8, callback); // 200 milliseond to accelerate
 
@@ -519,7 +522,7 @@ TEST_F(FastSimulatorTest, DriveRobotLeftYellow) {
 
     float ox, oy, oz;
 
-    test.s = [rotation, &time, &ox, &oy, &oz, &init](auto truth) {
+    test.handleSimulatorTruth = [rotation, &time, &ox, &oy, &oz, &init](auto truth) {
         ASSERT_EQ(truth.yellow_robots_size(), 1);
         for (const auto& robot : truth.yellow_robots()) {
             QVector3D forwards{0, 0, 0.5};
@@ -549,7 +552,7 @@ TEST_F(FastSimulatorTest, UnaffectedRobotsByCommands) {
     loadRobots(2, 1);
     float phi[2], x[2], y[2]; // 0 blue, 1 yellow
     bool init = false;
-    test.s = [&x, &y, &phi, &init] (auto truth) {
+    test.handleSimulatorTruth = [&x, &y, &phi, &init] (auto truth) {
         ASSERT_EQ(truth.blue_robots_size(), 2);
         int i = -2;
         auto checkRobot = [&i, init, &x, &y, &phi](const auto& robot) {
@@ -596,4 +599,225 @@ TEST_F(FastSimulatorTest, UnaffectedRobotsByCommands) {
 
 
     FastSimulator::goDeltaCallback(s, &t, 2e9, callback); // 2 seconds
+}
+
+TEST_F(FastSimulatorTest, TeleportRobot) {
+    loadRobots(1, 0);
+
+    const Vector desiredPos(2, 3);
+
+    Command command(new amun::Command);
+    auto teleport = command->mutable_simulator()->mutable_ssl_control()->add_teleport_robot();
+    teleport->mutable_id()->set_id(0);
+    teleport->mutable_id()->set_team(gameController::Team::BLUE);
+    coordinates::toVision(desiredPos, *teleport);
+    teleport->set_v_x(0);
+    teleport->set_v_y(0);
+    teleport->set_v_angular(0);
+    teleport->set_orientation(0);
+
+    emit this->test.sendCommand(command);
+
+    FastSimulator::goDelta(s, &t, 5e7);
+
+    test.handleSimulatorTruth = [&desiredPos] (auto truth) {
+        ASSERT_EQ(truth.blue_robots_size(), 1);
+        auto robot = truth.blue_robots(0);
+        Vector truePos(robot.p_x(), robot.p_y());
+        ASSERT_LE(desiredPos.distance(truePos), 0.01f);
+        ASSERT_LE(Vector(robot.v_x(), robot.v_y()).length(), 0.01f);
+    };
+    FastSimulator::goDelta(s, &t, 1e8); // 100 millisecond
+}
+
+TEST_F(FastSimulatorTest, TeleportRobotPosOnly) {
+    loadRobots(1, 0);
+
+    const Vector desiredPos(2, 3);
+
+    Command command(new amun::Command);
+    auto teleport = command->mutable_simulator()->mutable_ssl_control()->add_teleport_robot();
+    teleport->mutable_id()->set_id(0);
+    teleport->mutable_id()->set_team(gameController::Team::BLUE);
+    coordinates::toVision(desiredPos, *teleport);
+    teleport->set_orientation(0);
+
+    emit this->test.sendCommand(command);
+
+    FastSimulator::goDelta(s, &t, 5e7);
+
+    test.handleSimulatorTruth = [&desiredPos] (auto truth) {
+        ASSERT_EQ(truth.blue_robots_size(), 1);
+        auto robot = truth.blue_robots(0);
+        Vector truePos(robot.p_x(), robot.p_y());
+        ASSERT_LE(desiredPos.distance(truePos), 0.01f);
+    };
+    FastSimulator::goDelta(s, &t, 1e8); // 100 millisecond
+}
+
+TEST_F(FastSimulatorTest, GeometryReflection) {
+    amun::SimulatorSetup setup;
+    setup.add_camera_setup()->CopyFrom(createDefaultCamera(2, 5, 3.3, 5));
+    geometrySetDefault(setup.mutable_geometry(), true);
+    createSimulator(setup);
+
+    s->disconnect(s, &Simulator::sendRealData, &test, &SimTester::handleSimulatorTruthRaw);
+    s->connect(s, &Simulator::gotPacket, &test, &SimTester::handlePacket);
+    int runCount = 0;
+    test.handleDetectionWrapper = [&setup, &runCount] (auto wrapper) {
+        if (!wrapper.has_geometry()) {
+            return;
+        }
+        runCount++;
+
+        amun::SimulatorSetup reproduced;
+        for (auto camera : wrapper.geometry().calib()) {
+            reproduced.add_camera_setup()->CopyFrom(camera);
+        }
+        convertFromSSlGeometry(wrapper.geometry().field(), *reproduced.mutable_geometry());
+
+        ASSERT_EQ(setup.SerializeAsString(), reproduced.SerializeAsString());
+    };
+    FastSimulator::goDelta(s, &t, 5e7); // 100 millisecond
+    // make sure the geometry arrived at least once
+    ASSERT_GT(runCount, 0);
+}
+
+TEST_F(FastSimulatorTest, InvisibleBall) {
+
+    const Vector cameraPos{2, 2};
+    const Vector robotPos{2, 5};
+    const Vector ballPos{2, 5.1};
+    const Vector ballPosVisible{2, 4.5};
+
+    // create controlled camera setup (before changing anything else)
+    {
+        amun::SimulatorSetup setup;
+        setup.add_camera_setup()->CopyFrom(createDefaultCamera(2, cameraPos.x, cameraPos.y, 5));
+        geometrySetDefault(setup.mutable_geometry(), true); // the exact field size does not matter
+        createSimulator(setup);
+    }
+
+    loadRobots(1, 0);
+
+    {
+        Command command(new amun::Command);
+
+        auto teleportRobot = command->mutable_simulator()->mutable_ssl_control()->add_teleport_robot();
+        teleportRobot->mutable_id()->set_id(0);
+        teleportRobot->mutable_id()->set_team(gameController::Team::BLUE);
+        coordinates::toVision(robotPos, *teleportRobot);
+        teleportRobot->set_v_x(0);
+        teleportRobot->set_v_y(0);
+        teleportRobot->set_v_angular(0);
+        teleportRobot->set_orientation(0);
+
+        auto teleportBall = command->mutable_simulator()->mutable_ssl_control()->mutable_teleport_ball();
+        coordinates::toVision(ballPos, *teleportBall);
+        teleportBall->set_vx(0);
+        teleportBall->set_vy(0);
+
+        // simulator realism settings
+        auto realism = command->mutable_simulator()->mutable_realism_config();
+        loadConfiguration("simulator-realism/None", realism, false);
+        realism->set_ball_visibility_threshold(0.4);
+        realism->set_enable_invisible_ball(true);
+
+        emit this->test.sendCommand(command);
+    }
+
+    FastSimulator::goDelta(s, &t, 1e8);
+
+    s->disconnect(s, &Simulator::sendRealData, &test, &SimTester::handleSimulatorTruthRaw);
+    s->connect(s, &Simulator::gotPacket, &test, &SimTester::handlePacket);
+    test.handleDetectionWrapper = [] (auto wrapper) {
+        if (!wrapper.has_detection()) {
+            return;
+        }
+        ASSERT_EQ(wrapper.detection().balls_size(), 0);
+    };
+    FastSimulator::goDelta(s, &t, 1e8); // 100 millisecond
+
+    // to make sure everything works, check if the ball is visible at another position
+    {
+        Command command(new amun::Command);
+        auto teleportBall = command->mutable_simulator()->mutable_ssl_control()->mutable_teleport_ball();
+        coordinates::toVision(ballPosVisible, *teleportBall);
+        teleportBall->set_vx(0);
+        teleportBall->set_vy(0);
+        emit this->test.sendCommand(command);
+    }
+    test.handleDetectionWrapper = [] (auto wrapper) {
+        if (!wrapper.has_detection()) {
+            return;
+        }
+        ASSERT_EQ(wrapper.detection().balls_size(), 1);
+    };
+    FastSimulator::goDelta(s, &t, 1e8); // 100 millisecond
+}
+
+TEST_F(FastSimulatorTest, CameraOverlap) {
+    amun::SimulatorSetup setup;
+    setup.add_camera_setup()->CopyFrom(createDefaultCamera(0, 3, 3, 5));
+    setup.add_camera_setup()->CopyFrom(createDefaultCamera(1, -3, 3, 5));
+    setup.add_camera_setup()->CopyFrom(createDefaultCamera(2, 3, -3, 5));
+    setup.add_camera_setup()->CopyFrom(createDefaultCamera(3, -3, -3, 5));
+    geometrySetDefault(setup.mutable_geometry(), true);
+    createSimulator(setup);
+
+    Command command(new amun::Command);
+    auto realism = command->mutable_simulator()->mutable_realism_config();
+    loadConfiguration("simulator-realism/None", realism, false);
+    realism->set_camera_overlap(0.5f);
+
+    emit this->test.sendCommand(command);
+
+    s->disconnect(s, &Simulator::sendRealData, &test, &SimTester::handleSimulatorTruthRaw);
+    s->connect(s, &Simulator::gotPacket, &test, &SimTester::handlePacket);
+
+    auto checkCameras = [this](Vector ballPos, std::set<int> expectedIds) {
+        Command command(new amun::Command);
+        auto teleportBall = command->mutable_simulator()->mutable_ssl_control()->mutable_teleport_ball();
+        coordinates::toVision(ballPos, *teleportBall);
+        teleportBall->set_vx(0);
+        teleportBall->set_vy(0);
+        emit this->test.sendCommand(command);
+
+        this->test.handleDetectionWrapper = [](auto){};
+        FastSimulator::goDelta(s, &t, 3e7);
+
+        std::set<int> foundCameras;
+        this->test.handleDetectionWrapper = [&foundCameras] (auto wrapper) {
+            if (wrapper.has_detection() && wrapper.detection().balls_size() > 0) {
+                foundCameras.insert(wrapper.detection().camera_id());
+            }
+        };
+
+        FastSimulator::goDelta(s, &t, 5e7);
+
+        ASSERT_EQ(expectedIds, foundCameras);
+    };
+
+    checkCameras(Vector(3, 3), {0});
+    checkCameras(Vector(-3, 3), {1});
+    checkCameras(Vector(3, -3), {2});
+    checkCameras(Vector(-3, -3), {3});
+
+    checkCameras(Vector(30, 30), {0});
+    checkCameras(Vector(-30, 30), {1});
+    checkCameras(Vector(30, -30), {2});
+    checkCameras(Vector(-30, -30), {3});
+
+    checkCameras(Vector(0.6, 0.6), {0});
+    checkCameras(Vector(-0.6, 0.6), {1});
+    checkCameras(Vector(0.6, -0.6), {2});
+    checkCameras(Vector(-0.6, -0.6), {3});
+
+    checkCameras(Vector(0, 0), {0, 1, 2, 3});
+
+    checkCameras(Vector(2, 0), {0, 2});
+    checkCameras(Vector(2, 0.51), {0});
+    checkCameras(Vector(2, 0.49), {0, 2});
+    checkCameras(Vector(2, -0.51), {2});
+    checkCameras(Vector(2, -0.49), {0, 2});
 }
