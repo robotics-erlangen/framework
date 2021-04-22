@@ -77,15 +77,6 @@ public:
         amun::SimulatorSetup defaultSimulatorSetup;
         loadConfiguration("simulator/2020", &defaultSimulatorSetup, false);
         createSimulator(defaultSimulatorSetup);
-
-        t.setScaling(0);
-        t.setTime(1234, 0);
-    }
-
-    void SetUp() override {
-        Command c{new amun::Command};
-        c->mutable_simulator()->set_enable(true);
-        emit test.sendCommand(c);
     }
 
     ~FastSimulatorTest() {
@@ -96,8 +87,14 @@ public:
         delete s;
         s = new camun::simulator::Simulator{&t, setup, true};
         test.connect(&test, &SimTester::sendCommand, s, &Simulator::handleCommand);
+        t.setScaling(0);
+        t.setTime(1234, 0);
         s->seedPRGN(14986);
         s->connect(s, &Simulator::sendRealData, &test, &SimTester::handleSimulatorTruthRaw);
+
+        Command c{new amun::Command};
+        c->mutable_simulator()->set_enable(true);
+        emit test.sendCommand(c);
     }
 
     void loadRobots(int blue, int yellow) {
