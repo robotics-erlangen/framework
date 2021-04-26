@@ -92,6 +92,7 @@ struct camun::simulator::SimulatorData
     float robotCommandPacketLoss;
     float robotReplyPacketLoss;
     float missingBallDetections;
+    bool dribblePerfect;
 };
 
 static void simulatorTickCallback(btDynamicsWorld *world, btScalar timeStep)
@@ -163,6 +164,7 @@ Simulator::Simulator(const Timer *timer, const amun::SimulatorSetup &setup, bool
     m_data->robotCommandPacketLoss = 0;
     m_data->robotReplyPacketLoss = 0;
     m_data->missingBallDetections = 0;
+    m_data->dribblePerfect = false;
 
     // no robots after initialisation
 
@@ -679,6 +681,8 @@ void Simulator::setFlipped(bool flipped)
 
 void Simulator::handleCommand(const Command &command)
 {
+    bool teamOrPerfectDribbleChanged = false;
+
     if (command->has_simulator()) {
         const amun::CommandSimulator &sim = command->simulator();
         if (sim.has_enable()) {
@@ -747,12 +751,8 @@ void Simulator::handleCommand(const Command &command)
             }
 
             if (realism.has_simulate_dribbling()) {
-                for (const auto& robotList : {m_data->robotsBlue, m_data->robotsYellow}) {
-                    for (const auto& it : robotList) {
-                        SimRobot *robot = it.first;
-                        robot->setDribbleMode(!realism.simulate_dribbling());
-                    }
-                }
+                m_data->dribblePerfect = !realism.simulate_dribbling();
+                teamOrPerfectDribbleChanged = true;
             }
         }
 
@@ -799,11 +799,22 @@ void Simulator::handleCommand(const Command &command)
     }
 
     if (command->has_set_team_blue()) {
+        teamOrPerfectDribbleChanged = true;
         setTeam(m_data->robotsBlue, 1.0f, command->set_team_blue(), m_data->specsBlue);
     }
 
     if (command->has_set_team_yellow()) {
+        teamOrPerfectDribbleChanged = true;
         setTeam(m_data->robotsYellow, -1.0f, command->set_team_yellow(), m_data->specsYellow);
+    }
+
+    if (teamOrPerfectDribbleChanged) {
+        for (const auto& robotList : {m_data->robotsBlue, m_data->robotsYellow}) {
+            for (const auto& it : robotList) {
+                SimRobot *robot = it.first;
+                robot->setDribbleMode(m_data->dribblePerfect);
+            }
+        }
     }
 }
 
