@@ -21,7 +21,6 @@
 #include "sslgamecontroller.h"
 #include "sslvisiontracked.h"
 #include "core/timer.h"
-#include "protobuf/ssl_gc_ci.pb.h"
 
 #include <QDebug>
 #include <QRegularExpression>
@@ -81,17 +80,38 @@ void SSLGameController::handleStatus(const Status &status)
         ciInput.set_timestamp(status->world_state().time());
         m_trackedVisionGenerator->createTrackedFrame(status->world_state(), ciInput.mutable_tracker_packet());
 
-        if (m_gcCIProtocolConnection.sendGameControllerMessage(&ciInput)) {
+        sendCiInput(ciInput);
+    }
+}
+
+void SSLGameController::sendCiInput(gameController::CiInput &input)
+{
+    if (!m_resetMatchSent) {
+        input.add_api_inputs()->set_reset_match(true);
+    }
+    if (!input.IsInitialized()) {
+        qDebug() <<"Trying to send something that is not initialized";
+    }
+    if (m_gcCIProtocolConnection.sendGameControllerMessage(&input)) {
+        m_resetMatchSent = true;
+
+        // the game controller may send multiple messages
+        while(true) {
             gameController::CiOutput ciOutput;
             if (!m_gcCIProtocolConnection.receiveGameControllerMessage(&ciOutput)) {
                 return;
             }
 
             if (!ciOutput.has_referee_msg()) {
-                return;
+                continue;
             }
 
-            const SSL_Referee referee = ciOutput.referee_msg();
+            const SSL_Referee &referee = ciOutput.referee_msg();
+
+            if (!referee.IsInitialized()) {
+                qDebug() <<"Not initialized! "<<referee.stage()<<referee.command();
+                continue;
+            }
 
             QByteArray packetData;
             packetData.resize(referee.ByteSize());
@@ -102,11 +122,93 @@ void SSLGameController::handleStatus(const Status &status)
     }
 }
 
+static gameController::Command makeCommand(gameController::Command::Type type, bool teamIsBlue, bool commandIsNeutral) {
+    gameController::Command command;
+    command.set_type(type);
+    if (!commandIsNeutral) {
+        command.set_for_team(teamIsBlue ? gameController::Team::BLUE : gameController::Team::YELLOW);
+    }
+    return command;
+}
+
+void SSLGameController::handleGuiCommand(const QByteArray &data)
+{
+    SSL_Referee newState;
+    newState.ParseFromArray(data.data(), data.size());
+
+    gameController::CiInput ciInput;
+    ciInput.set_timestamp(m_timer->currentTime());
+
+    // the ui part of the internal referee will only change command, stage, goalie or cards
+    if (!m_lastReferee.IsInitialized() || newState.command() != m_lastReferee.command()) {
+
+        // must be before the referee state change, otherwise the GC might send out the referee state without the placement pos
+        if (newState.command() == SSL_Referee::BALL_PLACEMENT_BLUE || newState.command() == SSL_Referee::BALL_PLACEMENT_YELLOW) {
+            gameController::Change *placementChange = ciInput.add_api_inputs()->mutable_change();
+            placementChange->mutable_set_ball_placement_pos()->mutable_pos()->set_x(newState.designated_position().x() / 1000.0f);
+            placementChange->mutable_set_ball_placement_pos()->mutable_pos()->set_y(newState.designated_position().y() / 1000.0f);
+        }
+
+        gameController::Change *change = ciInput.add_api_inputs()->mutable_change();
+
+        const std::map<SSL_Referee::Command, gameController::Command> commandMap = {
+            {SSL_Referee::HALT, makeCommand(gameController::Command::HALT, false, true)},
+            {SSL_Referee::STOP, makeCommand(gameController::Command::STOP, false, true)},
+            {SSL_Referee::NORMAL_START, makeCommand(gameController::Command::NORMAL_START, false, true)},
+            {SSL_Referee::FORCE_START, makeCommand(gameController::Command::FORCE_START, false, true)},
+            {SSL_Referee::PREPARE_KICKOFF_YELLOW, makeCommand(gameController::Command::KICKOFF, false, false)},
+            {SSL_Referee::PREPARE_KICKOFF_BLUE, makeCommand(gameController::Command::KICKOFF, true, false)},
+            {SSL_Referee::PREPARE_PENALTY_YELLOW, makeCommand(gameController::Command::PENALTY, false, false)},
+            {SSL_Referee::PREPARE_PENALTY_BLUE, makeCommand(gameController::Command::PENALTY, true, false)},
+            {SSL_Referee::DIRECT_FREE_YELLOW, makeCommand(gameController::Command::DIRECT, false, false)},
+            {SSL_Referee::DIRECT_FREE_BLUE, makeCommand(gameController::Command::DIRECT, true, false)},
+            {SSL_Referee::TIMEOUT_YELLOW, makeCommand(gameController::Command::TIMEOUT, false, false)},
+            {SSL_Referee::TIMEOUT_BLUE, makeCommand(gameController::Command::TIMEOUT, true, false)},
+            {SSL_Referee::BALL_PLACEMENT_YELLOW, makeCommand(gameController::Command::BALL_PLACEMENT, false, false)},
+            {SSL_Referee::BALL_PLACEMENT_BLUE, makeCommand(gameController::Command::BALL_PLACEMENT, true, false)},
+        };
+
+        auto it = commandMap.find(newState.command());
+
+        if (it == commandMap.end()) {
+            qDebug() <<"Error in ssl game controller wrapper: could not map command "<<newState.command();
+            return;
+        }
+
+        change->mutable_new_command()->mutable_command()->CopyFrom(it->second);
+    }
+
+    if (!m_lastReferee.IsInitialized() || newState.stage() != m_lastReferee.stage()) {
+        gameController::Change *change = ciInput.add_api_inputs()->mutable_change();
+        change->mutable_change_stage()->set_new_stage(newState.stage());
+    }
+    if (!m_lastReferee.IsInitialized() || newState.blue().goalie() != m_lastReferee.blue().goalie()) {
+        gameController::Change *change = ciInput.add_api_inputs()->mutable_change();
+        auto updateTeam = change->mutable_update_team_state();
+        updateTeam->set_for_team(gameController::Team::BLUE);
+        updateTeam->set_goalkeeper(newState.blue().goalie());
+    }
+    if (!m_lastReferee.IsInitialized() || newState.yellow().goalie() != m_lastReferee.yellow().goalie()) {
+        gameController::Change *change = ciInput.add_api_inputs()->mutable_change();
+        auto updateTeam = change->mutable_update_team_state();
+        updateTeam->set_for_team(gameController::Team::YELLOW);
+        updateTeam->set_goalkeeper(newState.yellow().goalie());
+    }
+
+    // TODO: handle adding cards
+
+    m_lastReferee = newState;
+
+    if (ciInput.api_inputs_size() > 0) {
+        sendCiInput(ciInput);
+    }
+}
+
 void SSLGameController::handleCommand(const amun::CommandReferee &refereeCommand)
 {
     if (refereeCommand.has_command()) {
-//        const std::string &c = refereeCommand.command();
-//        handleGuiCommand(QByteArray(c.data(), c.size()));
+        const std::string &c = refereeCommand.command();
+        handleGuiCommand(QByteArray(c.data(), c.size()));
     }
 }
 
@@ -120,6 +222,8 @@ void SSLGameController::start()
     if (!m_trackedVisionGenerator) {
         m_trackedVisionGenerator.reset(new SSLVisionTracked());
     }
+
+    m_resetMatchSent = false;
 
     QString gameControllerExecutable(GAMECONTROLLER_EXECUTABLE_LOCATION);
 

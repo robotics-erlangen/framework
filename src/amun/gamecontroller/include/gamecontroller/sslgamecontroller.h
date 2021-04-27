@@ -26,6 +26,7 @@
 
 #include "gamecontrollerconnection.h"
 #include "protobuf/status.h"
+#include "protobuf/ssl_gc_ci.pb.h"
 
 class Timer;
 class SSLVisionTracked;
@@ -41,6 +42,8 @@ public:
 
 private:
     void connectToGC();
+    void handleGuiCommand(const QByteArray &data);
+    void sendCiInput(gameController::CiInput &input);
 
 signals:
     void sendStatus(const Status &status);
@@ -59,4 +62,6 @@ private:
     QProcess *m_gcProcess = nullptr;
     ExternalGameController m_gcCIProtocolConnection;
     std::unique_ptr<SSLVisionTracked> m_trackedVisionGenerator;
+    SSL_Referee m_lastReferee;
+    bool m_resetMatchSent = false;
 };
