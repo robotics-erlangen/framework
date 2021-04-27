@@ -64,4 +64,5 @@ private:
     std::unique_ptr<SSLVisionTracked> m_trackedVisionGenerator;
     SSL_Referee m_lastReferee;
     bool m_resetMatchSent = false;
+    std::string m_geometryString;
 };

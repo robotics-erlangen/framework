@@ -3,6 +3,7 @@ syntax = "proto2";
 import "ssl_vision_wrapper_tracked.proto";
 import "ssl_gc_api.proto";
 import "ssl_referee.proto";
+import "ssl_geometry.proto";
 
 package gameController;
 
@@ -14,6 +15,8 @@ message CiInput {
     optional TrackerWrapperPacket tracker_packet = 2;
     // (UI) API input
     repeated Input api_inputs = 3;
+    // Update geometry
+    optional SSL_GeometryData geometry = 4;
 }
 
 // The output format of the GC response

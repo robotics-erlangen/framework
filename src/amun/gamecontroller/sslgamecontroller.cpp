@@ -20,6 +20,7 @@
 
 #include "sslgamecontroller.h"
 #include "sslvisiontracked.h"
+#include "protobuf/geometry.h"
 #include "core/timer.h"
 
 #include <QDebug>
@@ -74,7 +75,19 @@ void SSLGameController::handleStatus(const Status &status)
     if (!m_trackedVisionGenerator) {
         return;
     }
-    // TODO: restart the game controller when the geometry changes
+
+    if (status->has_geometry()) {
+        const std::string str = status->geometry().SerializeAsString();
+        if (str != m_geometryString) {
+            m_geometryString = str;
+
+            gameController::CiInput input;
+            input.set_timestamp(status->world_state().time());
+            convertToSSlGeometry(status->geometry(), input.mutable_geometry()->mutable_field());
+            sendCiInput(input);
+        }
+    }
+
     if (status->has_world_state()) {
         gameController::CiInput ciInput;
         ciInput.set_timestamp(status->world_state().time());
