@@ -25,7 +25,6 @@
 #include "referee.h"
 #include "core/timer.h"
 #include "core/configuration.h"
-#include "gamecontroller/internalgamecontroller.h"
 #include "gamecontroller/sslgamecontroller.h"
 #include "tracking/tracker.h"
 #include "config/config.h"
@@ -134,7 +133,6 @@ Processor::Processor(const Timer *timer, bool isReplay) :
     m_referee = new Referee();
     m_refereeInternal = new Referee();
 
-    m_internalGameController = new InternalGameController(timer, this);
     m_gameController.reset(new SSLGameController(timer, this));
 
     // TODO: move gamecontroller to own thread (take care with function call later)

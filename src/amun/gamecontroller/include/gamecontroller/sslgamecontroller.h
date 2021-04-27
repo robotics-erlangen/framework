@@ -23,10 +23,10 @@
 #include <QObject>
 #include <QProcess>
 #include <memory>
-
-#include "gamecontrollerconnection.h"
+#include "externalgamecontroller.h"
 #include "protobuf/status.h"
 #include "protobuf/ssl_gc_ci.pb.h"
+#include "protobuf/ssl_game_controller_auto_ref.pb.h"
 
 class Timer;
 class SSLVisionTracked;
@@ -39,6 +39,7 @@ public:
     ~SSLGameController();
 
     void start();
+    void handleGameEvent(std::shared_ptr<gameController::AutoRefToController> message);
 
 private:
     void connectToGC();
@@ -48,6 +49,7 @@ private:
 signals:
     void sendStatus(const Status &status);
     void gotPacketForReferee(const QByteArray &data);
+    void gotControllerReply(const gameController::ControllerReply &reply);
 
 public slots:
     void handleStatus(const Status &status);

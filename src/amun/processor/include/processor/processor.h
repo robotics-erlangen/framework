@@ -35,7 +35,6 @@ class SpeedTracker;
 class Timer;
 class Tracker;
 class QTimer;
-class InternalGameController;
 class SSLGameController;
 
 class Processor : public QObject
@@ -50,7 +49,7 @@ public:
     Processor(const Processor&) = delete;
     Processor& operator=(const Processor&) = delete;
     bool getIsFlipped() const { return m_lastFlipped; }
-    InternalGameController *getInternalGameController() const { return m_internalGameController; }
+    SSLGameController *getInternalGameController() const { return m_gameController.get(); }
 
 signals:
     void sendStatus(const Status &status);
@@ -109,8 +108,6 @@ private:
     bool m_refereeInternalActive;
     bool m_simulatorEnabled;
     bool m_lastFlipped;
-
-    InternalGameController *m_internalGameController;
     std::unique_ptr<SSLGameController> m_gameController;
 
     Team m_blueTeam;

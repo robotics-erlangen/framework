@@ -135,6 +135,11 @@ void SSLGameController::sendCiInput(gameController::CiInput &input)
     }
 }
 
+void SSLGameController::handleGameEvent(std::shared_ptr<gameController::AutoRefToController> message)
+{
+
+}
+
 static gameController::Command makeCommand(gameController::Command::Type type, bool teamIsBlue, bool commandIsNeutral) {
     gameController::Command command;
     command.set_type(type);
@@ -246,7 +251,7 @@ void SSLGameController::start()
     QStringList arguments;
     arguments << "-timeAcquisitionMode" << "ci";
 
-    // TODO: copy/modify config file with different ports and geometry
+    // TODO: copy/modify config file with different ports
 
     m_gcProcess = new QProcess(this);
     m_gcProcess->setReadChannel(QProcess::StandardOutput);

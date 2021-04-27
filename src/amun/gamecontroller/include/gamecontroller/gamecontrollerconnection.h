@@ -22,11 +22,13 @@
 #define GAMECONTROLLERCONNECTION_H
 
 #include "externalgamecontroller.h"
-#include "internalgamecontroller.h"
+#include "sslgamecontroller.h"
 #include "protobuf/ssl_game_controller_common.pb.h"
+#include "protobuf/ssl_game_controller_auto_ref.pb.h"
 #include <google/protobuf/message.h>
 #include <QObject>
 #include <QList>
+#include <memory>
 
 class GameControllerConnection : public QObject
 {
@@ -34,7 +36,7 @@ class GameControllerConnection : public QObject
 
 public:
     GameControllerConnection(bool isAutoref);
-    GameControllerConnection(InternalGameController *internalGameController, bool isAutoref);
+    GameControllerConnection(SSLGameController *internalGameController, bool isAutoref);
     bool connectGameController();
     void closeConnection();
     bool receiveGameControllerMessage(google::protobuf::Message *type);
