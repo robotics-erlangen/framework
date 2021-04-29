@@ -22,15 +22,17 @@
 #include "sslvisiontracked.h"
 #include "protobuf/geometry.h"
 #include "core/timer.h"
+#include "config/config.h"
 
 #include <QDebug>
 #include <QRegularExpression>
 #include <QFile>
+#include <QTcpServer>
 
 SSLGameController::SSLGameController(const Timer *timer, QObject *parent) :
     QObject(parent),
     m_timer(timer),
-    m_gcCIProtocolConnection(10009, this)
+    m_gcCIProtocolConnection(GC_CI_PORT_START, this)
 {
     m_gcCIProtocolConnection.setRefereeHost("127.0.0.1");
     start();
@@ -235,11 +237,31 @@ void SSLGameController::gcFinished(int exitCode, QProcess::ExitStatus exitStatus
     // TODO: report the game controller crashing
 }
 
+int SSLGameController::findFreePort(int startingFrom)
+{
+    for (int i = 0;i<10;i++) {
+        int port = startingFrom + i;
+        QTcpServer server;
+        bool success = server.listen(QHostAddress::LocalHost, port);
+        server.close();
+        if (success) {
+            return port;
+        }
+    }
+    // just give up
+    return startingFrom;
+}
+
 void SSLGameController::start()
 {
+    // TODO: show autoref version and running status in the UI
     if (!m_trackedVisionGenerator) {
         m_trackedVisionGenerator.reset(new SSLVisionTracked());
     }
+
+    // find a free port for the ci connection
+    int port = findFreePort(GC_CI_PORT_START);
+    m_gcCIProtocolConnection.setPort(port);
 
     m_resetMatchSent = false;
 
@@ -249,7 +271,7 @@ void SSLGameController::start()
     QFile::setPermissions(gameControllerExecutable, QFileDevice::ExeUser);
 
     QStringList arguments;
-    arguments << "-timeAcquisitionMode" << "ci";
+    arguments << "-timeAcquisitionMode" << "ci" << "-ciAddress" << QString("localhost:%1").arg(port);
 
     // TODO: copy/modify config file with different ports
 

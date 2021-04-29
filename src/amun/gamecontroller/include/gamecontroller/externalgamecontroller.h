@@ -38,6 +38,7 @@ public:
     bool receiveGameControllerMessage(google::protobuf::Message *type);
     bool sendGameControllerMessage(const google::protobuf::Message *message);
     void setRefereeHost(QString host);
+    void setPort(int port) { m_port = port; }
 
 private:
     QTcpSocket m_gameControllerSocket;

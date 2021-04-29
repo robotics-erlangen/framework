@@ -45,6 +45,7 @@ private:
     void connectToGC();
     void handleGuiCommand(const QByteArray &data);
     void sendCiInput(gameController::CiInput &input);
+    static int findFreePort(int startingFrom);
 
 signals:
     void sendStatus(const Status &status);
@@ -67,4 +68,7 @@ private:
     SSL_Referee m_lastReferee;
     bool m_resetMatchSent = false;
     std::string m_geometryString;
+
+    // the first port that will be chosen for the connection if it is available
+    static constexpr int GC_CI_PORT_START = 10209;
 };
