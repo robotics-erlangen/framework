@@ -207,17 +207,17 @@
    </attribute>
    <widget class="RefereeWidget" name="referee"/>
   </widget>
-  <widget class="QDockWidget" name="dockTeaminfo">
+  <widget class="QDockWidget" name="dockRefereeinfo">
    <property name="enabled">
     <bool>true</bool>
    </property>
    <property name="windowTitle">
-    <string>Team Information</string>
+    <string>Referee Information</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
    </attribute>
-   <widget class="TeamInfoWidget" name="teaminfo"/>
+   <widget class="RefereeInfoWidget" name="refereeinfo"/>
   </widget>
   <widget class="QDockWidget" name="dockSimulator">
    <property name="enabled">
@@ -832,9 +832,9 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>TeamInfoWidget</class>
+   <class>RefereeInfoWidget</class>
    <extends>QWidget</extends>
-   <header>teaminfowidget.h</header>
+   <header>refereeinfowidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>

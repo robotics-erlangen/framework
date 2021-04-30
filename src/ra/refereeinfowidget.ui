@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>TeaminfoWidget</class>
- <widget class="QWidget" name="TeaminfoWidget">
+ <class>RefereeInfoWidget</class>
+ <widget class="QWidget" name="RefereeInfoWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,9 +11,16 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Team Info</string>
+   <string>Referee Info</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
+   <item>
+    <widget class="QLabel" name="divisionLabel">
+     <property name="text">
+      <string>Division: A</string>
+     </property>
+    </widget>
+   </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <property name="sizeConstraint">

@@ -1007,6 +1007,10 @@ export namespace world {
 			TYPE_2014 = "TYPE_2014",
 			TYPE_2018 = "TYPE_2018",
 		}
+		export const enum Division {
+			A = "A",
+			B = "B",
+		}
 	}
 	export interface Geometry {
 		line_width: number;
@@ -1026,6 +1030,7 @@ export namespace world {
 		defense_width?: number;
 		defense_height?: number;
 		type?: world.Geometry.GeometryType;
+		division?: world.Geometry.Division;
 	}
 	export interface BallPosition {
 		time: number;

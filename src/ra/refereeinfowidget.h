@@ -18,26 +18,26 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef TEAMINFOWIDGET_H
-#define TEAMINFOWIDGET_H
+#ifndef REFEREEINFOWIDGET_H
+#define REFEREEINFOWIDGET_H
 
 #include "protobuf/status.h"
 #include <QStringList>
 #include <QWidget>
 
 namespace Ui {
-    class TeaminfoWidget;
+    class RefereeInfoWidget;
 }
 
-class TeamInfoWidget : public QWidget
+class RefereeInfoWidget : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit TeamInfoWidget(QWidget *parent = 0);
-    ~TeamInfoWidget() override;
-    TeamInfoWidget(const TeamInfoWidget&) = delete;
-    TeamInfoWidget& operator=(const TeamInfoWidget&) = delete;
+    explicit RefereeInfoWidget(QWidget *parent = 0);
+    ~RefereeInfoWidget() override;
+    RefereeInfoWidget(const RefereeInfoWidget&) = delete;
+    RefereeInfoWidget& operator=(const RefereeInfoWidget&) = delete;
 
 public slots:
     void handleStatus(const Status &status);
@@ -47,7 +47,7 @@ private:
     static QString createStyleSheet(const QColor &color);
 
 private:
-    Ui::TeaminfoWidget *ui;
+    Ui::RefereeInfoWidget *ui;
 
     uint m_yellowKeeperId = 0;
     uint m_blueKeeperId = 0;
@@ -59,4 +59,4 @@ private:
     bool m_blueTimerZero = true;
 };
 
-#endif // TEAMINFOWIDGET_H
+#endif // REFEREEINFOWIDGET_H

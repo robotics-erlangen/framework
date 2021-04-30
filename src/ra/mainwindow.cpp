@@ -132,7 +132,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     m_configDialog = new ConfigDialog(this);
     connect(m_configDialog, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
     connect(m_configDialog, SIGNAL(useDarkModeColors(bool)), ui->referee, SLOT(setStyleSheets(bool)));
-    connect(m_configDialog, SIGNAL(useDarkModeColors(bool)), ui->teaminfo, SLOT(setStyleSheets(bool)));
+    connect(m_configDialog, SIGNAL(useDarkModeColors(bool)), ui->refereeinfo, SLOT(setStyleSheets(bool)));
     connect(m_configDialog, SIGNAL(useDarkModeColors(bool)), ui->robots, SIGNAL(setUseDarkColors(bool)));
     connect(m_configDialog, SIGNAL(useDarkModeColors(bool)), ui->replay, SIGNAL(setUseDarkColors(bool)));
     connect(m_configDialog, SIGNAL(useNumKeysForReferee(bool)), this, SLOT(udpateSpeedActionsEnabled()));
@@ -204,7 +204,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     connect(this, SIGNAL(gotStatus(Status)), ui->debugTree, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), m_internalReferee, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), ui->referee, SLOT(handleStatus(Status)));
-    connect(this, SIGNAL(gotStatus(Status)), ui->teaminfo, SLOT(handleStatus(Status)));
+    connect(this, SIGNAL(gotStatus(Status)), ui->refereeinfo, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), ui->timing, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), m_refereeStatus, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), ui->log, SLOT(handleStatus(Status)));

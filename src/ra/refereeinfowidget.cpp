@@ -18,23 +18,23 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#include "teaminfowidget.h"
-#include "ui_teaminfowidget.h"
+#include "refereeinfowidget.h"
+#include "ui_refereeinfowidget.h"
 #include "config/config.h"
 
-TeamInfoWidget::TeamInfoWidget(QWidget *parent) :
-    QWidget(parent), ui(new Ui::TeaminfoWidget)
+RefereeInfoWidget::RefereeInfoWidget(QWidget *parent) :
+    QWidget(parent), ui(new Ui::RefereeInfoWidget)
 {
     ui->setupUi(this);
     setStyleSheets(false);
 }
 
-TeamInfoWidget::~TeamInfoWidget()
+RefereeInfoWidget::~RefereeInfoWidget()
 {
     delete ui;
 }
 
-void TeamInfoWidget::handleStatus(const Status &status)
+void RefereeInfoWidget::handleStatus(const Status &status)
 {
     if (status->has_game_state()) {
         const amun::GameState &state = status->game_state();
@@ -78,15 +78,32 @@ void TeamInfoWidget::handleStatus(const Status &status)
             ui->timeLeftOnYellowCardBlue->setValue(0);
         }
     }
+
+    if (status->has_geometry()) {
+        const auto& geometry = status->geometry();
+        if (geometry.has_division()) {
+            const QString divisionString = "Division: ";
+            switch (geometry.division()) {
+                case world::Geometry_Division_A:
+                    ui->divisionLabel->setText(divisionString + "A");
+                    break;
+                case world::Geometry_Division_B:
+                    ui->divisionLabel->setText(divisionString + "B");
+                    break;
+                default:
+                    ui->divisionLabel->setText("DIVISION ERROR");
+            }
+        }
+    }
 }
 
-QString TeamInfoWidget::createStyleSheet(const QColor &color)
+QString RefereeInfoWidget::createStyleSheet(const QColor &color)
 {
     const QString f("QLabel { background-color: %1; border: 1px solid %2; border-radius: 3px; }");
     return f.arg(color.lighter(180).name(), color.darker(140).name());
 }
 
-void TeamInfoWidget::setStyleSheets(bool useDark) {
+void RefereeInfoWidget::setStyleSheets(bool useDark) {
     QString yellow, blue;
     if (useDark) {
         yellow = createStyleSheet(UI_YELLOW_COLOR_DARK);

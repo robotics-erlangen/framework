@@ -169,6 +169,26 @@ Status Processor::assembleStatus(qint64 time, bool resetRaw)
         }
         m_extraVision.clear();
     }
+
+    if (status->has_geometry()) {
+        world::Geometry* geometry = status->mutable_geometry();
+
+        const float fieldHeightA = 12.0;
+        const float fieldWidthA = 9.0;
+
+        const float fieldHeightB = 9.0;
+        const float fieldWidthB = 6.0;
+
+        if (std::abs(fieldHeightB - geometry->field_height()) <= fieldHeightB*0.1 && std::abs(fieldWidthB - geometry->field_width()) <= fieldWidthB*0.1) {
+            geometry->set_division(world::Geometry_Division_B);
+        } else {
+            if (std::abs(fieldHeightA - geometry->field_height()) > fieldHeightA*0.1 && std::abs(fieldWidthA - geometry->field_width()) <= fieldWidthA*0.1) {
+                std::cerr << "Error, field size doesn't match either division. Field height should be\nA: " << fieldHeightA << " or B: " << fieldHeightB << "\nDefaulting to division A rules." << std::endl;
+            }
+            geometry->set_division(world::Geometry_Division_A);
+        }
+    }
+
     return status;
 }
 

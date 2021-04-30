@@ -120,6 +120,8 @@ export let BallPlacementPos: Readonly<Position> | undefined;
 
 export let RULEVERSION: string = "";
 
+export let DIVISION: string = "";
+
 /** Field geometry. Lengths in meter */
 export interface GeometryType {
 	/** Width of the playing field (short side) */
@@ -193,6 +195,7 @@ export function _init() {
 	let geom = amunLocal.getGeometry();
 	_updateGeometry(geom);
 	_updateRuleVersion(geom);
+	updateDivision(geom);
 	_updateTeam(amunLocal.getTeam());
 }
 
@@ -232,6 +235,15 @@ export function _updateRuleVersion(geom: pb.world.Geometry) {
 		RULEVERSION = "2017";
 	} else {
 		RULEVERSION = "2018";
+	}
+}
+
+/** Get division from geometry */
+function updateDivision(geom: pb.world.Geometry) {
+	if (geom.division == undefined || geom.division === "A") {
+		DIVISION = "A";
+	} else {
+		DIVISION = "B";
 	}
 }
 

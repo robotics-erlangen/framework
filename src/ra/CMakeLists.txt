@@ -57,8 +57,8 @@ add_library(ra-horus
     strategysearch.h
     logopener.cpp
     logopener.h
-    teaminfowidget.cpp
-    teaminfowidget.h
+    refereeinfowidget.cpp
+    refereeinfowidget.h
     loglabel.h
     loglabel.cpp
     loggingsuite.h
@@ -78,7 +78,7 @@ set(UI_SOURCES
     simulatorwidget.ui
     simulatorconfigwidget.ui
     savedirectorydialog.ui
-    teaminfowidget.ui
+    refereeinfowidget.ui
     logfileselectiondialog.ui
 )
 
