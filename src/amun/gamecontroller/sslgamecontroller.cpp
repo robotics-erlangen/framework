@@ -271,9 +271,7 @@ void SSLGameController::start()
     QFile::setPermissions(gameControllerExecutable, QFileDevice::ExeUser);
 
     QStringList arguments;
-    arguments << "-timeAcquisitionMode" << "ci" << "-ciAddress" << QString("localhost:%1").arg(port);
-
-    // TODO: copy/modify config file with different ports
+    arguments << "-timeAcquisitionMode" << "ci" << "-ciAddress" << QString("localhost:%1").arg(port) << "-backendOnly" << "True";
 
     m_gcProcess = new QProcess(this);
     m_gcProcess->setReadChannel(QProcess::StandardOutput);

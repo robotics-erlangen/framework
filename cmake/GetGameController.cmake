@@ -21,7 +21,9 @@
 include(ExternalProject)
 include(ExternalProjectHelper)
 
-set(GAMECONTROLLER_RELEASE_VERSION v2.5.1)
+set(GAMECONTROLLER_RELEASE_VERSION v2.7.0)
+# often the same as the version string, but not always
+set(GAMECONTROLLER_RELEASE_NAME untagged-2938b536f67a0415de22)
 
 if(APPLE)
     set(GAMECONTROLLER_OS_STRING darwin_amd64)
@@ -31,7 +33,7 @@ else()
     set(GAMECONTROLLER_OS_STRING linux_amd64)
 endif()
 
-set(GAMECONTROLLER_DOWNLOAD_LOCATION https://github.com/RoboCup-SSL/ssl-game-controller/releases/download/${GAMECONTROLLER_RELEASE_VERSION}/ssl-game-controller_${GAMECONTROLLER_RELEASE_VERSION}_${GAMECONTROLLER_OS_STRING})
+set(GAMECONTROLLER_DOWNLOAD_LOCATION https://github.com/RoboCup-SSL/ssl-game-controller/releases/download/${GAMECONTROLLER_RELEASE_NAME}/ssl-game-controller_${GAMECONTROLLER_RELEASE_VERSION}_${GAMECONTROLLER_OS_STRING})
 
 
 ExternalProject_Add(gamecontroller_download
