@@ -42,4 +42,4 @@ RUN set -xe; \
 
 ENV V8_INCLUDE_DIR=/libs/v8/include
 ENV V8_OUTPUT_DIR=/libs/v8/out/x64.release
-COPY --from=roboticserlangen/v8:version-1 /v8/v8 /libs/v8
+COPY --from=roboticserlangen/v8:version-1-ubuntu-20.04 /v8/v8 /libs/v8
