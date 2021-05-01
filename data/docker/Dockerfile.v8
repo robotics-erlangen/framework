@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:20.04 AS build-stage
 
 COPY libs/v8 v8
 
@@ -24,3 +24,6 @@ RUN set -xe; \
 	apt-get autoremove -y; \
 	apt-get clean -y; \
 	rm -rf /var/lib/apt/lists/*;
+
+FROM alpine:3
+COPY --from=build-stage /v8/v8 /v8/v8
