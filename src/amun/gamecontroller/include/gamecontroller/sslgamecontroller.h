@@ -25,6 +25,7 @@
 #include <memory>
 #include "externalgamecontroller.h"
 #include "protobuf/status.h"
+#include "protobuf/command.h"
 #include "protobuf/ssl_gc_ci.pb.h"
 #include "protobuf/ssl_game_controller_auto_ref.pb.h"
 
@@ -46,11 +47,14 @@ private:
     void handleGuiCommand(const QByteArray &data);
     void sendCiInput(gameController::CiInput &input);
     static int findFreePort(int startingFrom);
+    void handlePlacementFailure(const SSL_Referee &referee);
+    static gameController::Command mapCommand(SSL_Referee::Command command);
 
 signals:
     void sendStatus(const Status &status);
     void gotPacketForReferee(const QByteArray &data);
     void gotControllerReply(const gameController::ControllerReply &reply);
+    void sendCommand(const Command &command);
 
 public slots:
     void handleStatus(const Status &status);
@@ -68,6 +72,11 @@ private:
     SSL_Referee m_lastReferee;
     bool m_resetMatchSent = false;
     std::string m_geometryString;
+
+    // for ball teleportation after placement failure
+    bool m_ballIsTeleported = false;
+    int m_continueFrameCounter = 0;
+    SSL_Referee::Command m_nextCommand = SSL_Referee::HALT;
 
     // the first port that will be chosen for the connection if it is available
     static constexpr int GC_CI_PORT_START = 10209;

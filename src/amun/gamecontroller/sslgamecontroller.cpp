@@ -96,6 +96,19 @@ void SSLGameController::handleStatus(const Status &status)
         m_trackedVisionGenerator->createTrackedFrame(status->world_state(), ciInput.mutable_tracker_packet());
 
         sendCiInput(ciInput);
+
+        // the delayed sending of the freekick command from handlePlacementFailure()
+        if (m_continueFrameCounter > 0) {
+            m_continueFrameCounter--;
+
+            if (m_continueFrameCounter == 0) {
+                gameController::CiInput ciInput;
+                ciInput.set_timestamp(m_timer->currentTime());
+                gameController::Change *change = ciInput.add_api_inputs()->mutable_change();
+                change->mutable_new_command()->mutable_command()->CopyFrom(mapCommand(m_nextCommand));
+                sendCiInput(ciInput);
+            }
+        }
     }
 }
 
@@ -103,9 +116,6 @@ void SSLGameController::sendCiInput(gameController::CiInput &input)
 {
     if (!m_resetMatchSent) {
         input.add_api_inputs()->set_reset_match(true);
-    }
-    if (!input.IsInitialized()) {
-        qDebug() <<"Trying to send something that is not initialized";
     }
     if (m_gcCIProtocolConnection.sendGameControllerMessage(&input)) {
         m_resetMatchSent = true;
@@ -123,23 +133,71 @@ void SSLGameController::sendCiInput(gameController::CiInput &input)
 
             const SSL_Referee &referee = ciOutput.referee_msg();
 
-            if (!referee.IsInitialized()) {
-                qDebug() <<"Not initialized! "<<referee.stage()<<referee.command();
-                continue;
-            }
-
             QByteArray packetData;
             packetData.resize(referee.ByteSize());
             if (referee.SerializeToArray(packetData.data(), packetData.size())) {
                 emit gotPacketForReferee(packetData);
+                handlePlacementFailure(referee);
             }
         }
     }
 }
 
+void SSLGameController::handlePlacementFailure(const SSL_Referee &referee)
+{
+    // checks for halt after both teams failed placement, teleports the ball correctly and continues the game
+    bool hasFailedBlue = false, hasFailedYellow = false;
+    for (const auto &event : referee.game_events()) {
+        if (event.type() == gameController::GameEvent::PLACEMENT_FAILED) {
+            if (event.placement_failed().by_team() == gameController::Team::BLUE) {
+                hasFailedBlue = true;
+            } else {
+                hasFailedYellow = true;
+            }
+        }
+    }
+    if (referee.command() != SSL_Referee::HALT) {
+        m_ballIsTeleported = false;
+    }
+    if (referee.command() == SSL_Referee::HALT && referee.game_events_size() > 0 &&
+            hasFailedBlue && hasFailedYellow &&
+            referee.has_designated_position() &&
+            referee.has_next_command() &&
+            !m_ballIsTeleported) {
+
+        m_ballIsTeleported = true;
+
+        Command ballCommand(new amun::Command);
+        auto* teleport = ballCommand->mutable_simulator()->mutable_ssl_control()->mutable_teleport_ball();
+        teleport->set_teleport_safely(true);
+        teleport->set_x(referee.designated_position().x());
+        teleport->set_y(referee.designated_position().y());
+        teleport->set_vx(0);
+        teleport->set_vy(0);
+        teleport->set_vz(0);
+        emit sendCommand(ballCommand);
+
+        // delay sending out the direct freekick command since the changed ball position will not yet have
+        // arrived at the (internal) referee, so the position change from the teleportation would cause
+        // the referee to consider the freekick done and switch to game
+        // It is sent out in handleStatus m_continueFrameCounter frames later
+        m_continueFrameCounter = 30;
+        m_nextCommand = referee.next_command();
+    }
+}
+
+// TODO: auto approve goals
+
 void SSLGameController::handleGameEvent(std::shared_ptr<gameController::AutoRefToController> message)
 {
+    if (!message->has_game_event()) {
+        return;
+    }
 
+    gameController::CiInput ciInput;
+    ciInput.set_timestamp(m_timer->currentTime());
+    ciInput.add_api_inputs()->mutable_change()->mutable_add_game_event()->mutable_game_event()->CopyFrom(message->game_event());
+    sendCiInput(ciInput);
 }
 
 static gameController::Command makeCommand(gameController::Command::Type type, bool teamIsBlue, bool commandIsNeutral) {
@@ -149,6 +207,34 @@ static gameController::Command makeCommand(gameController::Command::Type type, b
         command.set_for_team(teamIsBlue ? gameController::Team::BLUE : gameController::Team::YELLOW);
     }
     return command;
+}
+
+gameController::Command SSLGameController::mapCommand(SSL_Referee::Command command)
+{
+    const std::map<SSL_Referee::Command, gameController::Command> commandMap = {
+        {SSL_Referee::HALT, makeCommand(gameController::Command::HALT, false, true)},
+        {SSL_Referee::STOP, makeCommand(gameController::Command::STOP, false, true)},
+        {SSL_Referee::NORMAL_START, makeCommand(gameController::Command::NORMAL_START, false, true)},
+        {SSL_Referee::FORCE_START, makeCommand(gameController::Command::FORCE_START, false, true)},
+        {SSL_Referee::PREPARE_KICKOFF_YELLOW, makeCommand(gameController::Command::KICKOFF, false, false)},
+        {SSL_Referee::PREPARE_KICKOFF_BLUE, makeCommand(gameController::Command::KICKOFF, true, false)},
+        {SSL_Referee::PREPARE_PENALTY_YELLOW, makeCommand(gameController::Command::PENALTY, false, false)},
+        {SSL_Referee::PREPARE_PENALTY_BLUE, makeCommand(gameController::Command::PENALTY, true, false)},
+        {SSL_Referee::DIRECT_FREE_YELLOW, makeCommand(gameController::Command::DIRECT, false, false)},
+        {SSL_Referee::DIRECT_FREE_BLUE, makeCommand(gameController::Command::DIRECT, true, false)},
+        {SSL_Referee::TIMEOUT_YELLOW, makeCommand(gameController::Command::TIMEOUT, false, false)},
+        {SSL_Referee::TIMEOUT_BLUE, makeCommand(gameController::Command::TIMEOUT, true, false)},
+        {SSL_Referee::BALL_PLACEMENT_YELLOW, makeCommand(gameController::Command::BALL_PLACEMENT, false, false)},
+        {SSL_Referee::BALL_PLACEMENT_BLUE, makeCommand(gameController::Command::BALL_PLACEMENT, true, false)},
+    };
+
+    auto it = commandMap.find(command);
+
+    if (it == commandMap.end()) {
+        qDebug() <<"Error in ssl game controller wrapper: could not map command "<<command;
+        return makeCommand(gameController::Command::HALT, false, true);
+    }
+    return it->second;
 }
 
 void SSLGameController::handleGuiCommand(const QByteArray &data)
@@ -171,31 +257,8 @@ void SSLGameController::handleGuiCommand(const QByteArray &data)
 
         gameController::Change *change = ciInput.add_api_inputs()->mutable_change();
 
-        const std::map<SSL_Referee::Command, gameController::Command> commandMap = {
-            {SSL_Referee::HALT, makeCommand(gameController::Command::HALT, false, true)},
-            {SSL_Referee::STOP, makeCommand(gameController::Command::STOP, false, true)},
-            {SSL_Referee::NORMAL_START, makeCommand(gameController::Command::NORMAL_START, false, true)},
-            {SSL_Referee::FORCE_START, makeCommand(gameController::Command::FORCE_START, false, true)},
-            {SSL_Referee::PREPARE_KICKOFF_YELLOW, makeCommand(gameController::Command::KICKOFF, false, false)},
-            {SSL_Referee::PREPARE_KICKOFF_BLUE, makeCommand(gameController::Command::KICKOFF, true, false)},
-            {SSL_Referee::PREPARE_PENALTY_YELLOW, makeCommand(gameController::Command::PENALTY, false, false)},
-            {SSL_Referee::PREPARE_PENALTY_BLUE, makeCommand(gameController::Command::PENALTY, true, false)},
-            {SSL_Referee::DIRECT_FREE_YELLOW, makeCommand(gameController::Command::DIRECT, false, false)},
-            {SSL_Referee::DIRECT_FREE_BLUE, makeCommand(gameController::Command::DIRECT, true, false)},
-            {SSL_Referee::TIMEOUT_YELLOW, makeCommand(gameController::Command::TIMEOUT, false, false)},
-            {SSL_Referee::TIMEOUT_BLUE, makeCommand(gameController::Command::TIMEOUT, true, false)},
-            {SSL_Referee::BALL_PLACEMENT_YELLOW, makeCommand(gameController::Command::BALL_PLACEMENT, false, false)},
-            {SSL_Referee::BALL_PLACEMENT_BLUE, makeCommand(gameController::Command::BALL_PLACEMENT, true, false)},
-        };
-
-        auto it = commandMap.find(newState.command());
-
-        if (it == commandMap.end()) {
-            qDebug() <<"Error in ssl game controller wrapper: could not map command "<<newState.command();
-            return;
-        }
-
-        change->mutable_new_command()->mutable_command()->CopyFrom(it->second);
+        auto mapped = mapCommand(newState.command());
+        change->mutable_new_command()->mutable_command()->CopyFrom(mapped);
     }
 
     if (!m_lastReferee.IsInitialized() || newState.stage() != m_lastReferee.stage()) {
