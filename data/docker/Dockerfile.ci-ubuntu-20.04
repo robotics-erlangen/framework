@@ -1,10 +1,7 @@
 FROM ubuntu:20.04
 
-ENV V8_INCLUDE_DIR=/libs/v8/include
-ENV V8_OUTPUT_DIR=/libs/v8/out/x64.release
 ENV PATH="/usr/lib/ccache:/usr/local/gcc-arm-none-eabi-7-2018-q2-update/bin:$PATH"
 ENV CCACHE_DIR="/ccache/ubuntu-20.04"
-COPY --from=roboticserlangen/v8:version-1 /v8/v8 /libs/v8
 
 ARG DEBIAN_FRONTEND=noninteractive
 # apt-key will warn to not parse its output if not set
@@ -42,3 +39,7 @@ RUN set -xe; \
 	ln -s ../../bin/ccache /usr/lib/ccache/c++; \
 	ln -s ../../bin/ccache /usr/lib/ccache/arm-none-eabi-gcc; \
 	ln -s ../../bin/ccache /usr/lib/ccache/arm-none-eabi-g++;
+
+ENV V8_INCLUDE_DIR=/libs/v8/include
+ENV V8_OUTPUT_DIR=/libs/v8/out/x64.release
+COPY --from=roboticserlangen/v8:version-1 /v8/v8 /libs/v8
