@@ -137,7 +137,7 @@ bool SSLGameController::sendCiInput(const gameController::CiInput &input)
             packetData.resize(referee.ByteSize());
             if (referee.SerializeToArray(packetData.data(), packetData.size())) {
                 emit gotPacketForReferee(packetData);
-                handlePlacementFailure(referee);
+                handleBallTeleportation(referee);
             }
         }
         return true;
@@ -145,10 +145,11 @@ bool SSLGameController::sendCiInput(const gameController::CiInput &input)
     return false;
 }
 
-void SSLGameController::handlePlacementFailure(const SSL_Referee &referee)
+void SSLGameController::handleBallTeleportation(const SSL_Referee &referee)
 {
     // checks for halt after both teams failed placement, teleports the ball correctly and continues the game
     bool hasFailedBlue = false, hasFailedYellow = false;
+    bool hasGoal = false;
     for (const auto &event : referee.game_events()) {
         if (event.type() == gameController::GameEvent::PLACEMENT_FAILED) {
             if (event.placement_failed().by_team() == gameController::Team::BLUE) {
@@ -156,13 +157,15 @@ void SSLGameController::handlePlacementFailure(const SSL_Referee &referee)
             } else {
                 hasFailedYellow = true;
             }
+        } else if (event.type() == gameController::GameEvent::GOAL) {
+            hasGoal = true;
         }
     }
     if (referee.command() != SSL_Referee::HALT) {
         m_ballIsTeleported = false;
     }
-    if (referee.command() == SSL_Referee::HALT && referee.game_events_size() > 0 &&
-            hasFailedBlue && hasFailedYellow &&
+    if (referee.command() == SSL_Referee::HALT &&
+            ((hasFailedBlue && hasFailedYellow) || hasGoal) &&
             referee.has_designated_position() &&
             referee.has_next_command() &&
             !m_ballIsTeleported) {
@@ -183,12 +186,10 @@ void SSLGameController::handlePlacementFailure(const SSL_Referee &referee)
         // arrived at the (internal) referee, so the position change from the teleportation would cause
         // the referee to consider the freekick done and switch to game
         // It is sent out in handleStatus m_continueFrameCounter frames later
-        m_continueFrameCounter = 30;
+        m_continueFrameCounter = 50;
         m_nextCommand = referee.next_command();
     }
 }
-
-// TODO: auto approve goals
 
 void SSLGameController::handleGameEvent(std::shared_ptr<gameController::AutoRefToController> message)
 {

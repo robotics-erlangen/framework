@@ -48,7 +48,7 @@ private:
     void handleGuiCommand(const QByteArray &data);
     bool sendCiInput(const gameController::CiInput &input);
     static int findFreePort(int startingFrom);
-    void handlePlacementFailure(const SSL_Referee &referee);
+    void handleBallTeleportation(const SSL_Referee &referee);
     static gameController::Command mapCommand(SSL_Referee::Command command);
     void handleRefereeUpdate(const SSL_Referee &newState, bool delayedSending);
 
