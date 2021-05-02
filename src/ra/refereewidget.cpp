@@ -125,6 +125,9 @@ void RefereeWidget::load()
 
     ui->autoref->setRecentScripts(m_recentScripts);
     ui->autoref->load();
+
+    // emit some values regardless of change, so that it works with amun wether or not the default values match
+    emit enableInternalAutoref(ui->useInternalAutoref->isChecked());
 }
 
 void RefereeWidget::enableNumberShortcuts(bool enable)

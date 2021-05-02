@@ -22,6 +22,7 @@
 
 #include <QObject>
 #include <QProcess>
+#include <QVector>
 #include <memory>
 #include "externalgamecontroller.h"
 #include "protobuf/status.h"
@@ -39,16 +40,17 @@ public:
     SSLGameController(const Timer *timer, QObject *parent);
     ~SSLGameController();
 
-    void start();
     void handleGameEvent(std::shared_ptr<gameController::AutoRefToController> message);
 
 private:
-    void connectToGC();
+    void start();
+    void stop();
     void handleGuiCommand(const QByteArray &data);
-    void sendCiInput(gameController::CiInput &input);
+    bool sendCiInput(const gameController::CiInput &input);
     static int findFreePort(int startingFrom);
     void handlePlacementFailure(const SSL_Referee &referee);
     static gameController::Command mapCommand(SSL_Referee::Command command);
+    void handleRefereeUpdate(const SSL_Referee &newState, bool delayedSending);
 
 signals:
     void sendStatus(const Status &status);
@@ -59,6 +61,7 @@ signals:
 public slots:
     void handleStatus(const Status &status);
     void handleCommand(const amun::CommandReferee &refereeCommand);
+    void setEnabled(bool enabled);
 
 private slots:
     void handleGCStdout();
@@ -66,12 +69,14 @@ private slots:
 
 private:
     const Timer *m_timer;
+    bool m_isEnabled = false;
     QProcess *m_gcProcess = nullptr;
     ExternalGameController m_gcCIProtocolConnection;
     std::unique_ptr<SSLVisionTracked> m_trackedVisionGenerator;
     SSL_Referee m_lastReferee;
-    bool m_resetMatchSent = false;
     std::string m_geometryString;
+    // these inputs will be sent once the first packet goes through to the GC
+    QVector<gameController::CiInput> m_queuedInputs;
 
     // for ball teleportation after placement failure
     bool m_ballIsTeleported = false;

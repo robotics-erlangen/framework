@@ -91,7 +91,8 @@ bool ExternalGameController::sendGameControllerMessage(const google::protobuf::M
 
         QByteArray serializedMessage((char*)buffer.data(), (int)codedOutput.ByteCount());
 
-        return m_gameControllerSocket.write(serializedMessage)<<serializedMessage.size() > 0;
+        auto count = m_gameControllerSocket.write(serializedMessage);
+        return count == serializedMessage.size();
     }
     return false;
 }

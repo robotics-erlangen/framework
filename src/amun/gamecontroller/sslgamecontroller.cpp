@@ -35,10 +35,17 @@ SSLGameController::SSLGameController(const Timer *timer, QObject *parent) :
     m_gcCIProtocolConnection(GC_CI_PORT_START, this)
 {
     m_gcCIProtocolConnection.setRefereeHost("127.0.0.1");
-    start();
+    // TODO: add timer and periodically receive from connections, so that it also works when the simulator is paused
 }
 
+// TODO: convince game controller to not keep state in files
+
 SSLGameController::~SSLGameController()
+{
+    stop();
+}
+
+void SSLGameController::stop()
 {
     if (m_gcProcess) {
         m_gcCIProtocolConnection.closeConnection();
@@ -59,34 +66,25 @@ void SSLGameController::handleGCStdout()
         auto log = debug->add_log();
         log->set_timestamp(m_timer->currentTime());
         log->set_text(simplified.toStdString());
-
-        if (simplified.contains("UI is available at")) {
-            connectToGC();
-        }
     }
     emit sendStatus(status);
 }
 
-void SSLGameController::connectToGC()
-{
-    m_gcCIProtocolConnection.connectGameController();
-}
-
 void SSLGameController::handleStatus(const Status &status)
 {
-    if (!m_trackedVisionGenerator) {
+    if (!m_trackedVisionGenerator || !m_isEnabled) {
         return;
     }
 
     if (status->has_geometry()) {
         const std::string str = status->geometry().SerializeAsString();
         if (str != m_geometryString) {
-            m_geometryString = str;
-
             gameController::CiInput input;
             input.set_timestamp(status->world_state().time());
             convertToSSlGeometry(status->geometry(), input.mutable_geometry()->mutable_field());
-            sendCiInput(input);
+            if (sendCiInput(input)) {
+                m_geometryString = str;
+            }
         }
     }
 
@@ -112,19 +110,21 @@ void SSLGameController::handleStatus(const Status &status)
     }
 }
 
-void SSLGameController::sendCiInput(gameController::CiInput &input)
+bool SSLGameController::sendCiInput(const gameController::CiInput &input)
 {
-    if (!m_resetMatchSent) {
-        input.add_api_inputs()->set_reset_match(true);
+    if (m_queuedInputs.size() > 0 && m_gcCIProtocolConnection.connectGameController()) {
+        QVector<gameController::CiInput> inputs = m_queuedInputs;
+        m_queuedInputs.clear();
+        for (const auto &i : inputs) {
+            sendCiInput(i);
+        }
     }
     if (m_gcCIProtocolConnection.sendGameControllerMessage(&input)) {
-        m_resetMatchSent = true;
-
         // the game controller may send multiple messages
         while(true) {
             gameController::CiOutput ciOutput;
             if (!m_gcCIProtocolConnection.receiveGameControllerMessage(&ciOutput)) {
-                return;
+                return true;
             }
 
             if (!ciOutput.has_referee_msg()) {
@@ -140,7 +140,9 @@ void SSLGameController::sendCiInput(gameController::CiInput &input)
                 handlePlacementFailure(referee);
             }
         }
+        return true;
     }
+    return false;
 }
 
 void SSLGameController::handlePlacementFailure(const SSL_Referee &referee)
@@ -237,15 +239,19 @@ gameController::Command SSLGameController::mapCommand(SSL_Referee::Command comma
     return it->second;
 }
 
-void SSLGameController::handleGuiCommand(const QByteArray &data)
+void SSLGameController::handleRefereeUpdate(const SSL_Referee &newState, bool delayedSending)
 {
-    SSL_Referee newState;
-    newState.ParseFromArray(data.data(), data.size());
-
     gameController::CiInput ciInput;
     ciInput.set_timestamp(m_timer->currentTime());
 
     // the ui part of the internal referee will only change command, stage, goalie or cards
+
+    // the stage change must be before the command change, as the GC issues commands on stage change
+    if (!m_lastReferee.IsInitialized() || newState.stage() != m_lastReferee.stage()) {
+        gameController::Change *change = ciInput.add_api_inputs()->mutable_change();
+        change->mutable_change_stage()->set_new_stage(newState.stage());
+    }
+
     if (!m_lastReferee.IsInitialized() || newState.command() != m_lastReferee.command()) {
 
         // must be before the referee state change, otherwise the GC might send out the referee state without the placement pos
@@ -261,10 +267,6 @@ void SSLGameController::handleGuiCommand(const QByteArray &data)
         change->mutable_new_command()->mutable_command()->CopyFrom(mapped);
     }
 
-    if (!m_lastReferee.IsInitialized() || newState.stage() != m_lastReferee.stage()) {
-        gameController::Change *change = ciInput.add_api_inputs()->mutable_change();
-        change->mutable_change_stage()->set_new_stage(newState.stage());
-    }
     if (!m_lastReferee.IsInitialized() || newState.blue().goalie() != m_lastReferee.blue().goalie()) {
         gameController::Change *change = ciInput.add_api_inputs()->mutable_change();
         auto updateTeam = change->mutable_update_team_state();
@@ -283,8 +285,27 @@ void SSLGameController::handleGuiCommand(const QByteArray &data)
     m_lastReferee = newState;
 
     if (ciInput.api_inputs_size() > 0) {
-        sendCiInput(ciInput);
+        if (delayedSending) {
+            m_queuedInputs.append(ciInput);
+        } else {
+            sendCiInput(ciInput);
+        }
     }
+}
+
+void SSLGameController::handleGuiCommand(const QByteArray &data)
+{
+    SSL_Referee newState;
+    newState.ParseFromArray(data.data(), data.size());
+
+    // if the GC is not currently activated, directly rout the commands from the UI to the internal referee
+    if (!m_isEnabled) {
+        emit gotPacketForReferee(data);
+        m_lastReferee = newState;
+        return;
+    }
+
+    handleRefereeUpdate(newState, false);
 }
 
 void SSLGameController::handleCommand(const amun::CommandReferee &refereeCommand)
@@ -298,6 +319,20 @@ void SSLGameController::handleCommand(const amun::CommandReferee &refereeCommand
 void SSLGameController::gcFinished(int exitCode, QProcess::ExitStatus exitStatus)
 {
     // TODO: report the game controller crashing
+}
+
+void SSLGameController::setEnabled(bool enabled)
+{
+    if (enabled == m_isEnabled) {
+        return;
+    }
+    m_isEnabled = enabled;
+
+    if (enabled) {
+        start();
+    } else {
+        stop();
+    }
 }
 
 int SSLGameController::findFreePort(int startingFrom)
@@ -322,11 +357,30 @@ void SSLGameController::start()
         m_trackedVisionGenerator.reset(new SSLVisionTracked());
     }
 
+    // queue all packets to set the GC to the current game state
+    {
+        // configure the game controller
+        {
+            gameController::CiInput ciInput;
+            ciInput.set_timestamp(m_timer->currentTime());
+            ciInput.add_api_inputs()->set_reset_match(true);
+
+            // automatically continue events without needing human input
+            ciInput.add_api_inputs()->mutable_change()->mutable_update_config()->set_auto_continue(true);
+            m_queuedInputs.append(ciInput);
+        }
+
+        auto prevReferee = m_lastReferee;
+        m_lastReferee.Clear();
+        handleRefereeUpdate(prevReferee, true);
+
+        // trigger a re-send of the geometry
+        m_geometryString.clear();
+    }
+
     // find a free port for the ci connection
     int port = findFreePort(GC_CI_PORT_START);
     m_gcCIProtocolConnection.setPort(port);
-
-    m_resetMatchSent = false;
 
     QString gameControllerExecutable(GAMECONTROLLER_EXECUTABLE_LOCATION);
 

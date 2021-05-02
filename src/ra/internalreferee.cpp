@@ -30,7 +30,8 @@ InternalReferee::InternalReferee(QObject *parent) :
     m_referee.set_stage(SSL_Referee::NORMAL_FIRST_HALF);
     m_referee.set_stage_time_left(0);
     m_referee.set_command(SSL_Referee::HALT);
-    m_referee.set_command_counter(0); // !!! is used as delta value by internal referee !!!
+    // use high values that do not conflict with the GC command counter
+    m_referee.set_command_counter(12345); // !!! is used as delta value by internal referee !!!
     m_referee.set_command_timestamp(0);
     teamInfoSetDefault(m_referee.mutable_yellow());
     teamInfoSetDefault(m_referee.mutable_blue());
@@ -38,8 +39,7 @@ InternalReferee::InternalReferee(QObject *parent) :
     assert(m_referee.IsInitialized());
 }
 
-void InternalReferee::sendRefereePacket(bool updateCommand) {
-    m_referee.set_command_counter((updateCommand)?1:0);
+void InternalReferee::sendRefereePacket() {
     m_referee.set_packet_timestamp(0);
     assert(m_referee.IsInitialized());
 
@@ -61,22 +61,23 @@ void InternalReferee::enableInternalAutoref(bool enable)
 void InternalReferee::changeCommand(SSL_Referee::Command command) {
     m_referee.set_command(command);
     m_referee.set_command_timestamp(0);
-    sendRefereePacket(true);
+    m_referee.set_command_counter(m_referee.command_counter() + 1);
+    sendRefereePacket();
 }
 
 void InternalReferee::changeStage(SSL_Referee::Stage stage) {
     m_referee.set_stage(stage);
-    sendRefereePacket(false);
+    sendRefereePacket();
 }
 
 void InternalReferee::changeYellowKeeper(uint id) {
     m_referee.mutable_yellow()->set_goalie(id);
-    sendRefereePacket(false);
+    sendRefereePacket();
 }
 
 void InternalReferee::changeBlueKeeper(uint id) {
     m_referee.mutable_blue()->set_goalie(id);
-    sendRefereePacket(false);
+    sendRefereePacket();
 }
 
 void InternalReferee::handleStatus(const Status &status)
@@ -149,5 +150,5 @@ void InternalReferee::adjustCardTimer(uint64_t statusTime)
 
     adjustCardTimerForOneTeam(m_referee.mutable_blue(), deltaTime, m_yellowCardsBlue);
     adjustCardTimerForOneTeam(m_referee.mutable_yellow(), deltaTime, m_yellowCardsYellow);
-    sendRefereePacket(false);
+    sendRefereePacket();
 }

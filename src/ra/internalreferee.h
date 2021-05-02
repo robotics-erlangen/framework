@@ -47,7 +47,7 @@ public slots:
     void handleStatus(const Status &status);
 
 private:
-    void sendRefereePacket(bool updateCommand);
+    void sendRefereePacket();
     void adjustCardTimer(uint64_t statusTime);
     void checkYellowCards(const Status &status);
     SSL_Referee m_referee;

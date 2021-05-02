@@ -345,7 +345,7 @@
      <item>
       <widget class="QCheckBox" name="useInternalAutoref">
        <property name="text">
-        <string>Internal Autoref</string>
+        <string>Enable Autoref and GC</string>
        </property>
        <property name="checked">
         <bool>true</bool>
