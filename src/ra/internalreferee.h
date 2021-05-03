@@ -48,14 +48,9 @@ public slots:
 
 private:
     void sendRefereePacket();
-    void adjustCardTimer(uint64_t statusTime);
-    void checkYellowCards(const Status &status);
     SSL_Referee m_referee;
 
     uint64_t m_lastStatusTime = 1;
-
-    uint8_t m_yellowCardsYellow = 0;
-    uint8_t m_yellowCardsBlue = 0;
 };
 
 #endif // INTERNALREFEREE_H

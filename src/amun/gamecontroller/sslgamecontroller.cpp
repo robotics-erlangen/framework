@@ -289,7 +289,14 @@ void SSLGameController::handleRefereeUpdate(const SSL_Referee &newState, bool de
         updateTeam->set_on_positive_half(newState.blueteamonpositivehalf());
     }
 
-    // TODO: handle adding cards
+    if (m_lastReferee.has_blue() && newState.blue().yellow_cards() > m_lastReferee.blue().yellow_cards()) {
+        gameController::Change *change = ciInput.add_api_inputs()->mutable_change();
+        change->mutable_add_yellow_card()->set_for_team(gameController::Team::BLUE);
+    }
+    if (m_lastReferee.has_yellow() && newState.yellow().yellow_cards() > m_lastReferee.yellow().yellow_cards()) {
+        gameController::Change *change = ciInput.add_api_inputs()->mutable_change();
+        change->mutable_add_yellow_card()->set_for_team(gameController::Team::YELLOW);
+    }
 
     m_lastReferee = newState;
 

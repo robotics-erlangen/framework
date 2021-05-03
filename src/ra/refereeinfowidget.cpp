@@ -41,8 +41,8 @@ void RefereeInfoWidget::handleStatus(const Status &status)
 
         const uint yellowKeeperId = state.yellow().goalie();
         const uint blueKeeperId = state.blue().goalie();
-        const uint yellowYellowCards = state.yellow().yellow_cards();
-        const uint blueYellowCards = state.blue().yellow_cards();
+        const uint yellowYellowCards = state.yellow().yellow_card_times_size();
+        const uint blueYellowCards = state.blue().yellow_card_times_size();
 
         if (yellowKeeperId != m_yellowKeeperId) {
             m_yellowKeeperId = yellowKeeperId;
