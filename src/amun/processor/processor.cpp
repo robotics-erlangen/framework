@@ -24,10 +24,14 @@
 #include "processor.h"
 #include "referee.h"
 #include "core/timer.h"
+#include "core/configuration.h"
 #include "gamecontroller/internalgamecontroller.h"
 #include "tracking/tracker.h"
+#include "config/config.h"
 #include <cmath>
 #include <QTimer>
+#include <QFile>
+#include <google/protobuf/text_format.h>
 
 struct Processor::Robot
 {
@@ -143,6 +147,9 @@ Processor::Processor(const Timer *timer, bool isReplay) :
 
     connect(m_internalGameController, &InternalGameController::gotPacketForReferee, m_refereeInternal, &Referee::handlePacket);
     connect(this, &Processor::sendStatus, m_internalGameController, &InternalGameController::handleStatus);
+
+
+    loadConfiguration("division-dimensions", &m_divisionDimensions, false);
 }
 
 /*!
@@ -173,17 +180,11 @@ Status Processor::assembleStatus(qint64 time, bool resetRaw)
     if (status->has_geometry()) {
         world::Geometry* geometry = status->mutable_geometry();
 
-        const float fieldHeightA = 12.0;
-        const float fieldWidthA = 9.0;
-
-        const float fieldHeightB = 9.0;
-        const float fieldWidthB = 6.0;
-
-        if (std::abs(fieldHeightB - geometry->field_height()) <= fieldHeightB*0.1 && std::abs(fieldWidthB - geometry->field_width()) <= fieldWidthB*0.1) {
+        if (std::abs(m_divisionDimensions.field_height_b() - geometry->field_height()) <= m_divisionDimensions.field_height_b()*0.1 && std::abs(m_divisionDimensions.field_width_b() - geometry->field_width()) <= m_divisionDimensions.field_width_b()*0.1) {
             geometry->set_division(world::Geometry_Division_B);
         } else {
-            if (std::abs(fieldHeightA - geometry->field_height()) > fieldHeightA*0.1 && std::abs(fieldWidthA - geometry->field_width()) <= fieldWidthA*0.1) {
-                std::cerr << "Error, field size doesn't match either division. Field height should be\nA: " << fieldHeightA << " or B: " << fieldHeightB << "\nDefaulting to division A rules." << std::endl;
+            if (std::abs(m_divisionDimensions.field_height_a() - geometry->field_height()) > m_divisionDimensions.field_height_a()*0.1 && std::abs(m_divisionDimensions.field_width_a() - geometry->field_width()) <= m_divisionDimensions.field_width_a()*0.1) {
+                std::cerr << "Error, field size doesn't match either division. Dimensions in config/division-dimensions.txt are:\nDivision A: width:"<< m_divisionDimensions.field_width_a() << " height: " << m_divisionDimensions.field_height_a() << "\nDivision B: width:" << m_divisionDimensions.field_width_b() << " height: " << m_divisionDimensions.field_height_b() << "\nDefaulting to division A rules." << std::endl;
             }
             geometry->set_division(world::Geometry_Division_A);
         }

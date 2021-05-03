@@ -17,7 +17,7 @@ amun/processor/tracking/ballflyfilter.cpp `const float floorDamping`.
 
 ## Divisions
 Ra detects divisions based on the geometry of the field.
-Make sure (TODO: insert file here) is updated with the correct field sizes for division A and B
+Make sure config/division-dimensions.txt is updated with the correct field sizes for division A and B
 
 ## System Delay
 TODO: I have no idea. Apearantly it does something, but we don't know where to insert it

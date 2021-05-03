@@ -115,6 +115,8 @@ private:
     Team m_yellowTeam;
 
     bool m_transceiverEnabled;
+
+    world::DivisionDimensions m_divisionDimensions;
 };
 
 #endif // PROCESSOR_H
