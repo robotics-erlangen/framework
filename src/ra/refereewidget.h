@@ -54,6 +54,7 @@ signals:
     void changeSidesFlipped(bool flipped);
     void sendCommand(const Command& command);
     void sendYellowCard(int forTeamYellow);
+    void sendDivisionChange(world::Geometry::Division division);
 
 public slots:
     void handleStatus(const Status &status);
@@ -66,6 +67,7 @@ private slots:
     void handleStage(int index);
     void handleYellowKeeper(int id);
     void handleBlueKeeper(int id);
+    void divisionChanged(QString division);
 
 private:
     void registerCommand(QWidget *button, SSL_Referee::Command c, const QString &stylesheet);

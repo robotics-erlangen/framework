@@ -96,6 +96,7 @@ private slots:
     void requestLogUid();
     void searchUid(QString uid);
     void requestUidInsertWindow();
+    void changeDivision(world::Geometry::Division division);
 
 private:
     void toggleHorusModeWidgets(bool enable);
@@ -103,6 +104,7 @@ private:
     void raMode();
     void horusMode();
     void createLogWriterConnections(Logsuite *suite);
+    void updateSimulatorSetup(QString setupFile, std::function<void(world::Geometry*)> fn);
 
 private:
     Ui::MainWindow *ui;

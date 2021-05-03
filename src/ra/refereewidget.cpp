@@ -76,6 +76,10 @@ RefereeWidget::RefereeWidget(QWidget *parent) :
     connect(ui->btnRefereeAddCardYellow, SIGNAL(clicked()), signalMapper, SLOT(map()));
     signalMapper->setMapping(ui->btnRefereeAddCardYellow, true);
     connect(signalMapper, SIGNAL(mapped(int)), this, SIGNAL(sendYellowCard(int)));
+
+    ui->boxDivision->addItem("A");
+    ui->boxDivision->addItem("B");
+    connect(ui->boxDivision, &QComboBox::currentTextChanged, this, &RefereeWidget::divisionChanged);
 }
 
 RefereeWidget::~RefereeWidget()
@@ -218,6 +222,20 @@ void RefereeWidget::handleStatus(const Status &status)
         }
         blockSignals(false);
     }
+
+    if (status->has_geometry()) {
+        const auto& geometry = status->geometry();
+        if (geometry.has_division()) {
+            switch (geometry.division()) {
+                case world::Geometry_Division_A:
+                    ui->boxDivision->setCurrentText("A");
+                    break;
+                case world::Geometry_Division_B:
+                    ui->boxDivision->setCurrentText("B");
+                    break;
+            }
+        }
+    }
 }
 
 QString RefereeWidget::createStyleSheet(const QColor &color)
@@ -253,4 +271,15 @@ void RefereeWidget::handleYellowKeeper(int id)
 void RefereeWidget::handleBlueKeeper(int id)
 {
     emit changeBlueKeeper((uint)id);
+}
+
+void RefereeWidget::divisionChanged(QString division)
+{
+    if (division == "A") {
+        emit sendDivisionChange(world::Geometry_Division_A);
+    } else if (division == "B") {
+        emit sendDivisionChange(world::Geometry_Division_B);
+    } else {
+        std::cerr << "Entered invalid division." << std::endl;
+    }
 }

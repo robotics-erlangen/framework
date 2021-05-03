@@ -113,6 +113,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     connect(ui->referee, SIGNAL(enableInternalAutoref(bool)), m_internalReferee, SLOT(enableInternalAutoref(bool)));
     connect(ui->referee, SIGNAL(changeSidesFlipped(bool)), m_internalReferee, SLOT(setSidesFlipped(bool)));
     connect(ui->referee, SIGNAL(sendYellowCard(int)), m_internalReferee, SLOT(setYellowCard(int)));
+    connect(ui->referee, SIGNAL(sendDivisionChange(world::Geometry::Division)), this, SLOT(changeDivision(world::Geometry::Division)));
 
 
     m_inputManager = new InputManager(this);
@@ -522,10 +523,16 @@ void MainWindow::switchToWidgetConfiguration(int configId, bool forceUpdate)
 
 void MainWindow::simulatorSetupChanged(QAction * action)
 {
+    updateSimulatorSetup("simulator/" + action->text().replace("&", ""), [](world::Geometry* g){});
+}
+
+void MainWindow::updateSimulatorSetup(QString setupFile, std::function<void(world::Geometry*)> fn) {
     Command command(new amun::Command);
-    if (!loadConfiguration("simulator/" + action->text().replace("&", ""), command->mutable_simulator()->mutable_simulator_setup(), false)) {
+    if (!loadConfiguration(setupFile, command->mutable_simulator()->mutable_simulator_setup(), false)) {
         return;
     }
+
+    fn(command->mutable_simulator()->mutable_simulator_setup()->mutable_geometry());
 
     // reload the strategies / autoref
     sendCommand(command);
@@ -923,4 +930,30 @@ void MainWindow::selectFrame(int amm)
 void MainWindow::openFile(QString fileName)
 {
     m_logOpener->openFile(fileName);
+}
+
+void MainWindow::changeDivision(world::Geometry::Division division) {
+
+    world::DivisionDimensions config;
+    if (!loadConfiguration("division-dimensions", &config, false)) {
+        return;
+    }
+
+    float fieldWidth;
+    float fieldHeight;
+    switch (division) {
+        case world::Geometry_Division_A:
+            fieldWidth = config.field_width_a();
+            fieldHeight = config.field_height_a();
+            break;
+        case world::Geometry_Division_B:
+            fieldWidth = config.field_width_b();
+            fieldHeight = config.field_height_b();
+            break;
+    }
+
+    updateSimulatorSetup("simulator/" + m_simulatorSetupGroup->checkedAction()->text().replace("&", ""), [=](world::Geometry* g) {
+                g->set_field_width(fieldWidth);
+                g->set_field_height(fieldHeight);
+            });
 }
