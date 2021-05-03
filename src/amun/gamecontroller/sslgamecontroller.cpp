@@ -253,7 +253,8 @@ void SSLGameController::handleRefereeUpdate(const SSL_Referee &newState, bool de
         change->mutable_change_stage()->set_new_stage(newState.stage());
     }
 
-    if (!m_lastReferee.IsInitialized() || newState.command() != m_lastReferee.command()) {
+    if (!m_lastReferee.IsInitialized() || newState.command() != m_lastReferee.command() ||
+            newState.command_counter() != m_lastReferee.command_counter()) {
 
         // must be before the referee state change, otherwise the GC might send out the referee state without the placement pos
         if (newState.command() == SSL_Referee::BALL_PLACEMENT_BLUE || newState.command() == SSL_Referee::BALL_PLACEMENT_YELLOW) {
@@ -281,6 +282,13 @@ void SSLGameController::handleRefereeUpdate(const SSL_Referee &newState, bool de
         updateTeam->set_goalkeeper(newState.yellow().goalie());
     }
 
+    if (!m_lastReferee.IsInitialized() || newState.blueteamonpositivehalf() != m_lastReferee.blueteamonpositivehalf()) {
+        gameController::Change *change = ciInput.add_api_inputs()->mutable_change();
+        auto updateTeam = change->mutable_update_team_state();
+        updateTeam->set_for_team(gameController::Team::BLUE);
+        updateTeam->set_on_positive_half(newState.blueteamonpositivehalf());
+    }
+
     // TODO: handle adding cards
 
     m_lastReferee = newState;
@@ -289,7 +297,9 @@ void SSLGameController::handleRefereeUpdate(const SSL_Referee &newState, bool de
         if (delayedSending) {
             m_queuedInputs.append(ciInput);
         } else {
-            sendCiInput(ciInput);
+            if (!sendCiInput(ciInput) && m_queuedInputs.size() > 0) {
+                m_queuedInputs.append(ciInput);
+            }
         }
     }
 }

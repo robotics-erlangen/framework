@@ -33,6 +33,7 @@ InternalReferee::InternalReferee(QObject *parent) :
     // use high values that do not conflict with the GC command counter
     m_referee.set_command_counter(12345); // !!! is used as delta value by internal referee !!!
     m_referee.set_command_timestamp(0);
+    m_referee.set_blueteamonpositivehalf(true);
     teamInfoSetDefault(m_referee.mutable_yellow());
     teamInfoSetDefault(m_referee.mutable_blue());
 
@@ -97,10 +98,8 @@ void InternalReferee::handleStatus(const Status &status)
 
 void InternalReferee::setSidesFlipped(bool flipped)
 {
-    Command command(new amun::Command);
-    amun::CommandReferee *referee = command->mutable_referee();
-    referee->set_flipped(flipped);
-    emit sendCommand(command);
+    m_referee.set_blueteamonpositivehalf(!flipped);
+    sendRefereePacket();
 }
 
 void InternalReferee::setYellowCard(int forTeamYellow)

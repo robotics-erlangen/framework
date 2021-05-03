@@ -41,11 +41,11 @@ public:
 public slots:
     void handlePacket(const QByteArray &data);
     void process(const world::State &worldState);
-    void setFlipped(bool flipped);
     bool isGameRunning();
 
 private:
     static amun::GameState::State processCommand(SSL_Referee::Command command, amun::GameState::State currentState);
+    void setFlipped(bool flipped);
 
 private:
     amun::GameState m_gameState;

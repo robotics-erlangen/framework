@@ -63,7 +63,6 @@ message CommandReferee {
     optional bool active = 1;
     optional bytes command = 2;
     optional bool use_internal_autoref = 3;
-    optional bool flipped = 4;
 }
 
 message CommandStrategyLoad {

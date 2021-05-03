@@ -460,10 +460,6 @@ void Processor::handleCommand(const Command &command)
             m_refereeInternalActive = refereeCommand.active();
         }
 
-        if (refereeCommand.has_flipped()) {
-            m_refereeInternal->setFlipped(refereeCommand.flipped());
-        }
-
         m_gameController->handleCommand(refereeCommand);
     }
 
