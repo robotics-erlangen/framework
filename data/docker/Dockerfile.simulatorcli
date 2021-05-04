@@ -35,7 +35,8 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN set -xe; \
 	apt-get update; \
 	apt-get install --no-install-recommends -y \
-		qtbase5-dev libqt5opengl5-dev libprotobuf-dev; \
+		qtbase5-dev libqt5opengl5-dev libprotobuf-dev \
+		tini; \
 	apt-get clean -y; \
 	rm -rf /var/lib/apt/lists/*;
 
@@ -44,7 +45,7 @@ USER default
 WORKDIR /home/default
 
 COPY --chown=default:default /data/docker/simulatorcli_entrypoint.bash .
-ENTRYPOINT ["./simulatorcli_entrypoint.bash"]
+ENTRYPOINT ["tini", "--", "./simulatorcli_entrypoint.bash"]
 
 COPY --chown=default:default --from=build-stage /home/default/COPYING .
 COPY --chown=default:default --from=build-stage /home/default/COPYING.GPL .

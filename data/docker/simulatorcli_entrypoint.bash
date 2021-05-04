@@ -12,5 +12,4 @@ if [[ -n "$REALISM" ]]; then
 fi
 
 echo "Starting the ER-Force simulator-cli"
-# Don't exec, let the shell handle SIGINT
-./build/bin/simulator-cli "$GEOMETRY_OPTION" "$REALISM_OPTION"
+exec ./build/bin/simulator-cli "$GEOMETRY_OPTION" "$REALISM_OPTION"
