@@ -165,7 +165,9 @@ export function moveObjects(ball?: BallInfo, friendlyRobots?: RobotState[], oppo
 	if (!World.IsSimulated) {
 		throw new Error("This can only be used in the simulator!");
 	}
-	let simCommand: pb.amun.CommandSimulator = { move_ball: {}, move_blue: [], move_yellow: [], };
+
+	// teleport_robot gets initialized further down, because otherwise the typescript compiler is sad
+	let simCommand: pb.sslsim.SimulatorControl = { teleport_ball: {} };
 	if (ball != undefined) {
 		if (ball.pos == undefined || ball.speed == undefined) {
 			throw new Error("ball parameter missing");
@@ -173,51 +175,44 @@ export function moveObjects(ball?: BallInfo, friendlyRobots?: RobotState[], oppo
 		// convert to global coordinate system
 		let pos = Coordinates.toGlobal(ball.pos);
 		let speed = Coordinates.toGlobal(ball.speed);
-		simCommand.move_ball = {
-			position: true, // just position
-			p_x: pos.x, p_y: pos.y, p_z: ball.posZ || 0,
-			v_x: speed.x, v_y: speed.y, v_z: ball.speedZ || 0
+		simCommand.teleport_ball = {
+			x: pos.x, y: pos.y, z: ball.posZ || 0,
+			vx: speed.x, vy: speed.y, vz: ball.speedZ || 0
 		};
 	}
 
-	let friendly, opponent; // handle blue / yellow team selection
+	// handle blue / yellow team selection
+	let friendly: pb.gameController.Team;
+	let opponent: pb.gameController.Team;
 	if (World.TeamIsBlue) {
-		friendly = simCommand.move_blue || [];
-		opponent = simCommand.move_yellow || [];
+		friendly = pb.gameController.Team.BLUE;
+		opponent = pb.gameController.Team.YELLOW;
 	} else {
-		friendly = simCommand.move_yellow || [];
-		opponent = simCommand.move_blue || [];
+		friendly = pb.gameController.Team.YELLOW;
+		opponent = pb.gameController.Team.BLUE;
 	}
 
+	let createTeleportCommandsForRobots = (robots: RobotState[], team: pb.gameController.Team) =>
+		robots.map((robot: RobotState) => {
+			if (robot.id == undefined || robot.pos == undefined || robot.speed == undefined || robot.dir == undefined || robot.angularSpeed == undefined) {
+				throw new Error("robot parameter missing");
+			}
+			let pos = Coordinates.toGlobal(robot.pos);
+			let speed = Coordinates.toGlobal(robot.speed);
+			return {
+				id: {id: robot.id, team: team},
+				x: pos.x, y: pos.y, orientation: Coordinates.toGlobal(robot.dir),
+				v_x: speed.x, v_y: speed.y, v_angular: robot.angularSpeed
+			};
+		});
+
+	simCommand.teleport_robot = [];
 	if (friendlyRobots != undefined) {
-		for (let robot of friendlyRobots) {
-			if (robot.id == undefined || robot.pos == undefined || robot.speed == undefined || robot.dir == undefined || robot.angularSpeed == undefined) {
-				throw new Error("robot parameter missing");
-			}
-			let pos = Coordinates.toGlobal(robot.pos);
-			let speed = Coordinates.toGlobal(robot.speed);
-			friendly.push({
-				position: true, id: robot.id, // just position
-				p_x: pos.x, p_y: pos.y, phi: Coordinates.toGlobal(robot.dir),
-				v_x: speed.x, v_y: speed.y, omega: robot.angularSpeed
-			});
-		}
+		simCommand.teleport_robot = simCommand.teleport_robot.concat(createTeleportCommandsForRobots(friendlyRobots, friendly));
 	}
-
 	if (opponentRobots != undefined) {
-		for (let robot of opponentRobots) {
-			if (robot.id == undefined || robot.pos == undefined || robot.speed == undefined || robot.dir == undefined || robot.angularSpeed == undefined) {
-				throw new Error("robot parameter missing");
-			}
-			let pos = Coordinates.toGlobal(robot.pos);
-			let speed = Coordinates.toGlobal(robot.speed);
-			opponent.push({
-				position: true, id: robot.id, // just position
-				p_x: pos.x, p_y: pos.y, phi: Coordinates.toGlobal(robot.dir),
-				v_x: speed.x, v_y: speed.y, omega: robot.angularSpeed
-			});
-		}
+		simCommand.teleport_robot = simCommand.teleport_robot.concat(createTeleportCommandsForRobots(opponentRobots, opponent));
 	}
 
-	amun.sendCommand({ simulator: simCommand, tracking: { reset: true } });
+	amun.sendCommand({ simulator: {ssl_control: simCommand}, tracking: { reset: true } });
 }
