@@ -223,7 +223,8 @@ export function moveObjectsToJSON(jsonString: string) {
 
 	// third entry of pos is angle, which doesn't make sense for ball
 	let ballPos: BallInfo = {
-		pos: new Vector(ball.pos[0], ball.pos[1]),
+		// necessary transformation, because moveObjects assumes local coordinates
+		pos: Coordinates.toLocal(new Vector(ball.pos[0], ball.pos[1])),
 		posZ: 0,
 		speed: new Vector(0, 0),
 		speedZ: 0,
@@ -242,10 +243,13 @@ export function moveObjectsToJSON(jsonString: string) {
 	}
 
 	let getTransform: (([jsonBot, id]: [any, number]) => RobotState) = ([jsonBot, id]) => {
+		// necessary transformation, because moveObjects assumes local coordinates
+		let pos = Coordinates.toLocal(new Vector(jsonBot.obj.pos[0], jsonBot.obj.pos[1]));
+		let angle = Coordinates.toLocal(<number> jsonBot.obj.pos[2]);
 		return {
 			id: id,
-			pos: new Vector(jsonBot.obj.pos[0], jsonBot.obj.pos[1]),
-			dir: jsonBot.obj.pos[2],
+			pos: pos,
+			dir: angle,
 			speed: new Vector(0, 0),
 			angularSpeed: 0,
 		};
