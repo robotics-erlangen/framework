@@ -28,6 +28,7 @@
 #include <QMap>
 #include <QPair>
 #include <QObject>
+#include <QThread>
 
 class CommandEvaluator;
 class Referee;
@@ -49,13 +50,14 @@ public:
     Processor(const Processor&) = delete;
     Processor& operator=(const Processor&) = delete;
     bool getIsFlipped() const { return m_lastFlipped; }
-    SSLGameController *getInternalGameController() const { return m_gameController.get(); }
+    SSLGameController *getInternalGameController() const { return m_gameController; }
 
 signals:
     void sendStatus(const Status &status);
     void sendStrategyStatus(const Status &status);
     void sendRadioCommands(const QList<robot::RadioCommand> &commands, qint64 processingStart);
     void setFlipped(bool flipped);
+    void gotCommandForGC(const amun::CommandReferee &command);
 
 public slots:
     void setScaling(double scaling);
@@ -108,7 +110,8 @@ private:
     bool m_refereeInternalActive;
     bool m_simulatorEnabled;
     bool m_lastFlipped;
-    std::unique_ptr<SSLGameController> m_gameController;
+    SSLGameController *m_gameController;
+    QThread *m_gameControllerThread;
 
     Team m_blueTeam;
     Team m_yellowTeam;

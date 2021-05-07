@@ -127,18 +127,23 @@ Processor::Processor(const Timer *timer, bool isReplay) :
     m_refereeInternalActive(isReplay),
     m_simulatorEnabled(false),
     m_lastFlipped(false),
+    m_gameController(new SSLGameController(timer)),
     m_transceiverEnabled(isReplay)
 {
     // keep two separate referee states
     m_referee = new Referee();
     m_refereeInternal = new Referee();
 
-    m_gameController.reset(new SSLGameController(timer, this));
+    m_gameControllerThread = new QThread(this);
+    m_gameControllerThread->setObjectName("game controller thread");
+    m_gameController->moveToThread(m_gameControllerThread);
+    connect(m_gameControllerThread, &QThread::finished, m_gameController, &SSLGameController::deleteLater);
+    m_gameControllerThread->start();
 
-    // TODO: move gamecontroller to own thread (take care with function call later)
-    connect(m_gameController.get(), &SSLGameController::sendStatus, this, &Processor::sendStatus);
-    connect(m_gameController.get(), &SSLGameController::gotPacketForReferee, m_refereeInternal, &Referee::handlePacket);
-    connect(this, &Processor::sendStatus, m_gameController.get(), &SSLGameController::handleStatus);
+    connect(m_gameController, &SSLGameController::sendStatus, this, &Processor::sendStatus);
+    connect(m_gameController, &SSLGameController::gotPacketForReferee, m_refereeInternal, &Referee::handlePacket);
+    connect(this, &Processor::sendStatus, m_gameController, &SSLGameController::handleStatus);
+    connect(this, &Processor::gotCommandForGC, m_gameController, &SSLGameController::handleCommand);
 
     // start processing
     m_trigger = new QTimer(this);
@@ -158,6 +163,9 @@ Processor::Processor(const Timer *timer, bool isReplay) :
  */
 Processor::~Processor()
 {
+    m_gameControllerThread->quit();
+    m_gameControllerThread->wait();
+
     delete m_refereeInternal;
     delete m_referee;
 
@@ -460,7 +468,7 @@ void Processor::handleCommand(const Command &command)
             m_refereeInternalActive = refereeCommand.active();
         }
 
-        m_gameController->handleCommand(refereeCommand);
+        emit gotCommandForGC(refereeCommand);
     }
 
     if (command->has_control()) {

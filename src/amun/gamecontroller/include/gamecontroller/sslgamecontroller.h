@@ -37,7 +37,7 @@ class SSLGameController : public QObject
 {
     Q_OBJECT
 public:
-    SSLGameController(const Timer *timer, QObject *parent);
+    SSLGameController(const Timer *timer, QObject *parent = nullptr);
     ~SSLGameController();
 
     void handleGameEvent(std::shared_ptr<gameController::AutoRefToController> message);

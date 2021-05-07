@@ -94,6 +94,7 @@ Amun::Amun(bool simulatorOnly, QObject *parent) :
     qRegisterMetaType<QList<SSLSimError>>("QList<SSLSimError>");
     qRegisterMetaType<camun::simulator::ErrorSource>("ErrorSource");
     qRegisterMetaType<camun::simulator::ErrorSource>("camun::simulator::ErrorSource");
+    qRegisterMetaType<amun::CommandReferee>("amun::CommandReferee");
 
     for (int i = 0; i < 3; ++i) {
         m_strategy[i] = nullptr;
