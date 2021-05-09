@@ -80,6 +80,9 @@ private:
     SSL_Referee::Stage m_stage;
 
     std::shared_ptr<QStringList> m_recentScripts;
+
+    bool m_newDivisionDetected = false;
+    world::Geometry::Division m_currentDivision;
 };
 
 #endif // REFEREEWIDGET_H

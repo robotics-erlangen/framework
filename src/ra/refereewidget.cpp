@@ -223,10 +223,14 @@ void RefereeWidget::handleStatus(const Status &status)
         blockSignals(false);
     }
 
+
+    // this check makes sure that the current division in the combobox is consistent with the one in the status packages
     if (status->has_geometry()) {
         const auto& geometry = status->geometry();
-        if (geometry.has_division()) {
-            switch (geometry.division()) {
+        if (geometry.has_division() && m_currentDivision != geometry.division()) {
+            m_newDivisionDetected = true;
+            m_currentDivision = geometry.division();
+            switch (m_currentDivision) {
                 case world::Geometry_Division_A:
                     ui->boxDivision->setCurrentText("A");
                     break;
@@ -275,11 +279,19 @@ void RefereeWidget::handleBlueKeeper(int id)
 
 void RefereeWidget::divisionChanged(QString division)
 {
+    // don't send a "change division command" if boxDivision changed because of a status message
+    if (m_newDivisionDetected) {
+        m_newDivisionDetected = false;
+        return;
+    }
+
     if (division == "A") {
-        emit sendDivisionChange(world::Geometry_Division_A);
+        m_currentDivision = world::Geometry_Division_A;
     } else if (division == "B") {
-        emit sendDivisionChange(world::Geometry_Division_B);
+        m_currentDivision = world::Geometry_Division_B;
     } else {
         std::cerr << "Entered invalid division." << std::endl;
+        return;
     }
+    emit sendDivisionChange(m_currentDivision);
 }
