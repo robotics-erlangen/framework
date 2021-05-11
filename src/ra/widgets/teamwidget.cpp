@@ -19,7 +19,7 @@
  ***************************************************************************/
 
 #include "teamwidget.h"
-#include "config/include/config/config.h"
+#include "config/config.h"
 #include "protobuf/command.pb.h"
 #include "protobuf/status.pb.h"
 #include <QAction>
