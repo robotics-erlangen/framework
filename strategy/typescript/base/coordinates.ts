@@ -73,6 +73,21 @@ interface CoordinatesType {
 	 * @param data - list to map
 	 */
 	listToGlobal(num: number[]): number[];
+	/**
+	 * Converts strategy local coordinates to vision coordinates for amun
+	 * @param data - vector to convert
+	 */
+	toVision(pos: Vector): Vector;
+	/**
+	 * Converts strategy local coordinates to vision coordinates for amun
+	 * @param data - vector to convert
+	 */
+	toVision(pos: Readonly<Vector>): Readonly<Vector>;
+	/**
+	 * Converts strategy local coordinates to vision coordinates for amun
+	 * @param data - angle to convert
+	 */
+	toVision(num: number): number;
 }
 
 class Invert implements CoordinatesType {
@@ -99,6 +114,20 @@ class Invert implements CoordinatesType {
 		}
 		return inverted;
 	}
+	toVision(data: any): any {
+		if (typeof(data) === "number") {
+			// rotate 270 degrees
+			let num = data as number - Math.PI * 1.5;
+			if (num < 0) {
+				num += 2.0 * Math.PI;
+			}
+			return num;
+		} else {
+			// meter to millimeter
+			let vector = data as Vector * 1000;
+			return new Vector(-vector.y, vector.x);
+		}
+	}
 }
 
 class Pass implements CoordinatesType {
@@ -110,6 +139,20 @@ class Pass implements CoordinatesType {
 	}
 	listToGlobal(value: any): any {
 		return value;
+	}
+	toVision(data: any): any {
+		if (typeof(data) === "number") {
+			// rotate 90 degrees
+			let num = data as number - Math.PI * 0.5;
+			if (num < 0) {
+				num += 2.0 * Math.PI;
+			}
+			return num;
+		} else {
+			// meter to millimeter
+			let vector = data as Vector * 1000;
+			return new Vector(vector.y, -vector.x);
+		}
 	}
 }
 
