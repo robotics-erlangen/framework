@@ -42,13 +42,9 @@
 #include "core/run_out_of_scope.h"
 #include "core/configuration.h"
 #include "core/coordinates.h"
+#include "core/sslprotocols.h"
 
 #include "ssl_robocup_server.h"
-
-static int BLUE_PORT = 10301;
-static int YELLOW_PORT = 10302;
-static int CONTROL_PORT = 10300;
-
 
 /**
  * Stand alone Erforce simulator
@@ -123,7 +119,7 @@ SimulatorCommandAdaptor::SimulatorCommandAdaptor(Timer* timer, SSLVisionServer* 
     m_timer(timer),
     m_visionServer(vision)
 {
-    m_server.bind(QHostAddress::Any, CONTROL_PORT);
+    m_server.bind(QHostAddress::Any, SSL_SIMULATION_CONTROL_PORT);
     connect(&m_server, &QUdpSocket::readyRead, this, &SimulatorCommandAdaptor::handleDatagrams);
 }
 
@@ -160,7 +156,7 @@ RobotCommandAdaptor::RobotCommandAdaptor(bool blue, Timer* timer): m_is_blue(blu
     m_senderPort(-1),
     m_timer(timer)
 {
-    m_server.bind(QHostAddress::Any, (blue)? BLUE_PORT : YELLOW_PORT);
+    m_server.bind(QHostAddress::Any, (blue)? SSL_SIMULATION_CONTROL_BLUE_PORT : SSL_SIMULATION_CONTROL_YELLOW_PORT);
     connect(&m_server, &QUdpSocket::readyRead, this, &RobotCommandAdaptor::handleDatagrams);
 }
 
@@ -701,7 +697,7 @@ int main(int argc, char* argv[])
     Timer timer;
     RobotCommandAdaptor blue{true, &timer}, yellow{false, &timer};
     SimProxy sim{&timer};
-    SSLVisionServer vision{10020};
+    SSLVisionServer vision{SSL_SIMULATED_VISION_PORT};
     SimulatorCommandAdaptor commands{&timer, &vision};
 
     blue.connect(&blue, &RobotCommandAdaptor::sendRadioCommands, &sim, &SimProxy::handleRadioCommands);

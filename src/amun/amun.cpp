@@ -24,6 +24,7 @@
 #include "commandconverter.h"
 #include "core/timer.h"
 #include "core/protobuffilesaver.h"
+#include "core/sslprotocols.h"
 #include "processor/processor.h"
 #include "processor/transceiver.h"
 #include "processor/networktransceiver.h"
@@ -238,21 +239,21 @@ void Amun::start()
 
     if (!m_simulatorOnly) {
         // create referee
-        setupReceiver(m_referee, QHostAddress("224.5.23.1"), 10003);
+        setupReceiver(m_referee, QHostAddress(SSL_GAME_CONTROLLER_ADDRESS), SSL_GAME_CONTROLLER_PORT);
         connect(this, &Amun::updateRefereePort, m_referee, &Receiver::updatePort);
         // move referee packets to processor
         connect(m_referee, SIGNAL(gotPacket(QByteArray, qint64, QString)), m_processor, SLOT(handleRefereePacket(QByteArray, qint64)));
         connect(m_referee, SIGNAL(gotPacket(QByteArray,qint64,QString)), SLOT(handleRefereePacket(QByteArray,qint64,QString)));
 
         // create vision
-        setupReceiver(m_vision, QHostAddress("224.5.23.2"), 10006);
+        setupReceiver(m_vision, QHostAddress(SSL_VISION_ADDRESS), SSL_VISION_PORT);
         // allow updating the port used to listen for ssl vision
         connect(this, &Amun::updateVisionPort, m_vision, &Receiver::updatePort);
         // vision is connected in setSimulatorEnabled
         connect(m_vision, &Receiver::sendStatus, this, &Amun::handleStatus);
 
         // create mixed team information receiver
-        setupReceiver(m_mixedTeam, QHostAddress(), 10012);
+        setupReceiver(m_mixedTeam, QHostAddress(), SSL_MIXED_TEAM_PORT);
         // pass packets to processor
         connect(m_mixedTeam, SIGNAL(gotPacket(QByteArray, qint64, QString)), m_processor, SLOT(handleMixedTeamInfo(QByteArray, qint64)));
     }

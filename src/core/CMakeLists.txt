@@ -28,6 +28,7 @@ add_library(core
     include/core/run_out_of_scope.h
     include/core/coordinates.h
     include/core/configuration.h
+    include/core/sslprotocols.h
 
     fieldtransform.cpp
     rng.cpp

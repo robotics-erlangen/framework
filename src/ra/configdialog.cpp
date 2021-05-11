@@ -20,25 +20,26 @@
 
 #include "configdialog.h"
 #include "ui_configdialog.h"
+#include "core/sslprotocols.h"
 #include <QPushButton>
 #include <QSettings>
 
 const uint DEFAULT_SYSTEM_DELAY = 30; // in ms
 const uint DEFAULT_TRANSCEIVER_CHANNEL = 11;
-const uint DEFAULT_VISION_PORT = 10006;
-const uint DEFAULT_REFEREE_PORT = 10003;
+const uint DEFAULT_VISION_PORT = SSL_VISION_PORT;
+const uint DEFAULT_REFEREE_PORT = SSL_GAME_CONTROLLER_PORT;
 
 const bool DEFAULT_NETWORK_ENABLE = false;
 const QString DEFAULT_NETWORK_HOST = QStringLiteral("");
-const uint DEFAULT_NETWORK_PORT = 10300;
-const uint DEFAULT_NETWORK_PORT_BLUE = 10301;
-const uint DEFAULT_NETWORK_PORT_YELLOW = 10302;
+const uint DEFAULT_NETWORK_PORT = SSL_SIMULATION_CONTROL_PORT;
+const uint DEFAULT_NETWORK_PORT_BLUE = SSL_SIMULATION_CONTROL_BLUE_PORT;
+const uint DEFAULT_NETWORK_PORT_YELLOW = SSL_SIMULATION_CONTROL_YELLOW_PORT;
 const bool DEFAULT_CONTROL_SIMULATOR = false;
 const bool DEFAULT_CONTROL_BLUE = false;
 const bool DEFAULT_CONTROL_YELLOW = false;
 
 const QString DEFAULT_MIXED_HOST = QStringLiteral("");
-const uint DEFAULT_MIXED_PORT = 10012;
+const uint DEFAULT_MIXED_PORT = SSL_MIXED_TEAM_PORT;
 
 const bool DEFAULT_UI_DARK_MODE_COLORS = false;
 
