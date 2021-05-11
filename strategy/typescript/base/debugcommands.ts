@@ -157,7 +157,7 @@ export function sendRefereeCommand(refereeCommand: string, gameStage?: string, b
  * @param friendlyRobots - friendly by id
  * @param opponentRobots - opponent robots by id
  */
-type BallInfo = { pos: Vector, posZ: number, speed: Vector, speedZ: number };
+export type BallInfo = { pos: Vector, posZ: number, speed: Vector, speedZ: number };
 export function moveObjects(ball?: BallInfo, friendlyRobots?: RobotState[], opponentRobots?: RobotState[]) {
 	if (!amun.isDebug) {
 		throw new Error("only works in debug mode");
@@ -173,8 +173,8 @@ export function moveObjects(ball?: BallInfo, friendlyRobots?: RobotState[], oppo
 			throw new Error("ball parameter missing");
 		}
 		// convert to global coordinate system
-		let pos = Coordinates.toGlobal(ball.pos);
-		let speed = Coordinates.toGlobal(ball.speed);
+		let pos = Coordinates.toVision(ball.pos);
+		let speed = Coordinates.toVision(ball.speed);
 		simCommand.teleport_ball = {
 			x: pos.x, y: pos.y, z: ball.posZ || 0,
 			vx: speed.x, vy: speed.y, vz: ball.speedZ || 0
@@ -197,11 +197,11 @@ export function moveObjects(ball?: BallInfo, friendlyRobots?: RobotState[], oppo
 			if (robot.id == undefined || robot.pos == undefined || robot.speed == undefined || robot.dir == undefined || robot.angularSpeed == undefined) {
 				throw new Error("robot parameter missing");
 			}
-			let pos = Coordinates.toGlobal(robot.pos);
-			let speed = Coordinates.toGlobal(robot.speed);
+			let pos = Coordinates.toVision(robot.pos);
+			let speed = Coordinates.toVision(robot.speed);
 			return {
 				id: {id: robot.id, team: team},
-				x: pos.x, y: pos.y, orientation: Coordinates.toGlobal(robot.dir),
+				x: pos.x, y: pos.y, orientation: Coordinates.toVision(robot.dir),
 				v_x: speed.x, v_y: speed.y, v_angular: robot.angularSpeed
 			};
 		});
