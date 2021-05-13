@@ -25,12 +25,12 @@ export abstract class HardwareChallengeBase extends Move {
 	private initialized: boolean = false;
 	private currentObstacleToSet: number = 0;
 
-	constructor(robots: FriendlyRobot[], messaging: MessageBox, jsonString: string) {
+	// any type meaning any of the scenarios in scenarios.ts from the JSONs
+	constructor(robots: FriendlyRobot[], messaging: MessageBox, positions: any) {
 		super(robots, messaging);
 
 		PathHelper.initHardwareChallenge();
 
-		let positions = JSON.parse(jsonString);
 		let ball = positions.ball;
 
 		// third entry of pos is angle, which doesn't make sense for ball
@@ -47,11 +47,19 @@ export abstract class HardwareChallengeBase extends Move {
 
 		// use existing ids for each team (e.g. team yellow might not have a robot with id 0 as in the JSON)
 		if (World.TeamIsBlue) {
-			blueRobots = blueRobots.map((x: any, i: number) => [x, World.FriendlyRobots[i].id]);
+			if (blueRobots.length > this._robots.length || yellowRobots.length > World.OpponentRobots.length) {
+				amun.log("Not enough robots. Friendly robots present:\n", this._robots.length, "/", blueRobots.length, "\n",
+						 "Opponent robots present: ",World.OpponentRobots.length, "/", yellowRobots.length);
+			}
+			blueRobots = blueRobots.map((x: any, i: number) => [x, this._robots[i].id]);
 			yellowRobots = yellowRobots.map((x: any, i: number) => [x, World.OpponentRobots[i].id]);
 		} else {
+			if (yellowRobots.length > this._robots.length || blueRobots.length > World.OpponentRobots.length) {
+				amun.log("Not enough robots. Friendly robots present:\n", this._robots.length, "/", yellowRobots.length, "\n",
+						 "Opponent robots present: ",World.OpponentRobots.length, "/", blueRobots.length);
+			}
 			blueRobots = blueRobots.map((x: any, i: number) => [x, World.OpponentRobots[i].id]);
-			yellowRobots = yellowRobots.map((x: any, i: number) => [x, World.FriendlyRobots[i].id]);
+			yellowRobots = yellowRobots.map((x: any, i: number) => [x, this._robots[i].id]);
 		}
 
 		let getTransform: (([jsonBot, id]: [any, number]) => RobotState) = ([jsonBot, id]) => {
