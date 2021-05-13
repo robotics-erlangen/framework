@@ -108,6 +108,8 @@ target_include_directories(ra-horus
     PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
+target_compile_definitions(ra-horus PRIVATE GAMECONTROLLER_RELEASE_VERSION="${GAMECONTROLLER_RELEASE_VERSION}")
+
 add_library(ra::ra-horus ALIAS ra-horus)
 
 add_executable(ra WIN32 MACOSX_BUNDLE

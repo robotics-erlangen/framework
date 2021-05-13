@@ -71,9 +71,21 @@ message OptionStatus {
     required bool value = 3;
 }
 
+message StatusGameController {
+    enum GameControllerState {
+        STOPPED = 1;
+        STARTING = 2;
+        RUNNING = 3;
+        CRASHED = 4;
+        NOT_RESPONDING = 5;
+    };
+    optional GameControllerState current_state = 1;
+}
+
 message StatusAmun {
     optional PortBindError port_bind_error = 1;
     repeated OptionStatus options = 2;
+    optional StatusGameController game_controller = 3;
 }
 
 // The status message is dumped for log replay

@@ -45,6 +45,7 @@ SSLGameController::~SSLGameController()
 void SSLGameController::stop()
 {
     if (m_gcProcess) {
+        m_deliberatlyStopped = true;
         m_gcCIProtocolConnection.closeConnection();
         m_gcProcess->close();
         m_gcProcess = nullptr;
@@ -53,18 +54,22 @@ void SSLGameController::stop()
 
 void SSLGameController::handleGCStdout()
 {
-    Status status(new amun::Status);
-    auto debug = status->add_debug();
-    debug->set_source(amun::DebugSource::GameController);
-    while (m_gcProcess->canReadLine()) {
-        QByteArray line = m_gcProcess->readLine();
-        // Remove log dates of the form 2021/01/10 10:00:10
-        QString simplified = QString(line).replace(QRegularExpression("[0-9]+/[0-9]+/[0-9]+ [0-9]+:[0-9]+:[0-9]+ "), "");
-        auto log = debug->add_log();
-        log->set_timestamp(m_timer->currentTime());
-        log->set_text(simplified.toStdString());
+    const bool LOG_MESSAGES = false;
+
+    if (LOG_MESSAGES) {
+        Status status(new amun::Status);
+        auto debug = status->add_debug();
+        debug->set_source(amun::DebugSource::GameController);
+        while (m_gcProcess->canReadLine()) {
+            QByteArray line = m_gcProcess->readLine();
+            // Remove log dates of the form 2021/01/10 10:00:10
+            QString simplified = QString(line).replace(QRegularExpression("[0-9]+/[0-9]+/[0-9]+ [0-9]+:[0-9]+:[0-9]+ "), "");
+            auto log = debug->add_log();
+            log->set_timestamp(m_timer->currentTime());
+            log->set_text(simplified.toStdString());
+        }
+        emit sendStatus(status);
     }
-    emit sendStatus(status);
 }
 
 void SSLGameController::handleStatus(const Status &status)
@@ -131,11 +136,20 @@ bool SSLGameController::sendCiInput(const gameController::CiInput &input)
         while(true) {
             gameController::CiOutput ciOutput;
             if (!m_gcCIProtocolConnection.receiveGameControllerMessage(&ciOutput)) {
+                m_nonResponseCounter++;
+                if (m_nonResponseCounter > 50) {
+                    updateCurrentStatus(amun::StatusGameController::NOT_RESPONDING);
+                }
                 return true;
             }
 
             if (!ciOutput.has_referee_msg()) {
                 continue;
+            }
+
+            m_nonResponseCounter = 0;
+            if (m_currentState != amun::StatusGameController::RUNNING) {
+                updateCurrentStatus(amun::StatusGameController::RUNNING);
             }
 
             const SSL_Referee &referee = ciOutput.referee_msg();
@@ -148,6 +162,11 @@ bool SSLGameController::sendCiInput(const gameController::CiInput &input)
             }
         }
         return true;
+    } else {
+        m_nonResponseCounter++;
+        if (m_nonResponseCounter > 50) {
+            updateCurrentStatus(amun::StatusGameController::NOT_RESPONDING);
+        }
     }
     return false;
 }
@@ -341,9 +360,13 @@ void SSLGameController::handleCommand(const amun::CommandReferee &refereeCommand
     }
 }
 
-void SSLGameController::gcFinished(int exitCode, QProcess::ExitStatus exitStatus)
+void SSLGameController::gcFinished(int, QProcess::ExitStatus)
 {
-    // TODO: report the game controller crashing
+    if (m_deliberatlyStopped) {
+        updateCurrentStatus(amun::StatusGameController::STOPPED);
+    } else {
+        updateCurrentStatus(amun::StatusGameController::CRASHED);
+    }
 }
 
 void SSLGameController::setEnabled(bool enabled)
@@ -375,9 +398,21 @@ int SSLGameController::findFreePort(int startingFrom)
     return startingFrom;
 }
 
+void SSLGameController::updateCurrentStatus(amun::StatusGameController::GameControllerState state)
+{
+    m_currentState = state;
+
+    Status status(new amun::Status);
+    status->mutable_amun_state()->mutable_game_controller()->set_current_state(m_currentState);
+    emit sendStatus(status);
+}
+
 void SSLGameController::start()
 {
-    // TODO: show autoref version and running status in the UI
+    m_nonResponseCounter = 0;
+    m_deliberatlyStopped = false;
+    updateCurrentStatus(amun::StatusGameController::STARTING);
+
     if (!m_trackedVisionGenerator) {
         m_trackedVisionGenerator.reset(new SSLVisionTracked());
     }

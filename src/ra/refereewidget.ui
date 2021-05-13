@@ -327,6 +327,20 @@
     <widget class="QComboBox" name="gameStage"/>
    </item>
    <item>
+    <layout class="QHBoxLayout" name="division">
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Division:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="boxDivision"/>
+     </item>
+    </layout>
+   </item>
+   <item>
     <widget class="Line" name="line_3">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
@@ -352,19 +366,12 @@
        </property>
       </widget>
      </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="division">
      <item>
-      <widget class="QLabel" name="label">
+      <widget class="QLabel" name="gcStatusLabel">
        <property name="text">
-        <string>Division:</string>
+        <string>GC is currently disabled</string>
        </property>
       </widget>
-     </item>
-     <item>
-      <widget class="QComboBox" name="boxDivision"/>
      </item>
     </layout>
    </item>

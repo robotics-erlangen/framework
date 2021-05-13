@@ -51,6 +51,7 @@ private:
     void handleBallTeleportation(const SSL_Referee &referee);
     static gameController::Command mapCommand(SSL_Referee::Command command);
     void handleRefereeUpdate(const SSL_Referee &newState, bool delayedSending);
+    void updateCurrentStatus(amun::StatusGameController::GameControllerState state);
 
 signals:
     void sendStatus(const Status &status);
@@ -65,7 +66,7 @@ public slots:
 
 private slots:
     void handleGCStdout();
-    void gcFinished(int exitCode, QProcess::ExitStatus exitStatus);
+    void gcFinished(int, QProcess::ExitStatus);
 
 private:
     const Timer *m_timer;
@@ -77,12 +78,15 @@ private:
     std::string m_geometryString;
     // these inputs will be sent once the first packet goes through to the GC
     QVector<gameController::CiInput> m_queuedInputs;
+    world::Geometry::Division m_currentDivision = world::Geometry::A;
+    int m_nonResponseCounter = 0; // the number of missing responses
+    amun::StatusGameController::GameControllerState m_currentState = amun::StatusGameController::STOPPED;
+    bool m_deliberatlyStopped = false;
 
     // for ball teleportation after placement failure
     bool m_ballIsTeleported = false;
     int m_continueFrameCounter = 0;
     SSL_Referee::Command m_nextCommand = SSL_Referee::HALT;
-    world::Geometry::Division m_currentDivision = world::Geometry::A;
 
     // the first port that will be chosen for the connection if it is available
     static constexpr int GC_CI_PORT_START = 10209;
