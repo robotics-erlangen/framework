@@ -1,5 +1,5 @@
 # ***************************************************************************
-# *   Copyright 2019 Andreas Wendler                                        *
+# *   Copyright 2021 Paul Bergmann                                          *
 # *   Robotics Erlangen e.V.                                                *
 # *   http://www.robotics-erlangen.de/                                      *
 # *   info@robotics-erlangen.de                                             *
@@ -18,31 +18,20 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-add_library(testtools
-    include/testtools/testtools.h
-    include/testtools/connector.h
+add_library(internalreferee
+    include/internalreferee/internalreferee.h
 
-    testtools.cpp
-    connector.cpp
+    internalreferee.cpp
 )
 
-qt5_wrap_ui(UIC_SOURCES ${UI_SOURCES})
-target_sources(testtools PRIVATE ${UIC_SOURCES})
-
-target_link_libraries(testtools
-    PUBLIC Qt5::Core
+target_link_libraries(internalreferee
     PUBLIC shared::protobuf
-    PUBLIC shared::config
-    PUBLIC amun::seshat
-    PUBLIC amun::strategy
-    PUBLIC amun::internalreferee
-    PUBLIC Threads::Threads
-)
-target_include_directories(testtools
-    INTERFACE include
-    PRIVATE include/testtools
-    PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
-    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
+    PUBLIC Qt5::Core
 )
 
-add_library(amuncli::testtools ALIAS testtools)
+target_include_directories(internalreferee
+    INTERFACE include
+    PRIVATE include/internalreferee
+)
+
+add_library(amun::internalreferee ALIAS internalreferee)

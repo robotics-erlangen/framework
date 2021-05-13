@@ -27,8 +27,6 @@ add_subdirectory(widgets)
 add_library(ra-horus
     configdialog.cpp
     configdialog.h
-    internalreferee.cpp
-    internalreferee.h
     inputwidget.cpp
     inputwidget.h
     mainwindow.cpp

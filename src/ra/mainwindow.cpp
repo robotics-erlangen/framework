@@ -22,7 +22,7 @@
 #include "ui_mainwindow.h"
 #include "configdialog.h"
 #include "input/inputmanager.h"
-#include "internalreferee.h"
+#include "internalreferee/internalreferee.h"
 #include "robotuiaction.h"
 #include "plotter/plotter.h"
 #include "config/config.h"

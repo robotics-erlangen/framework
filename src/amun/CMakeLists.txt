@@ -23,6 +23,7 @@ add_subdirectory(simulator)
 add_subdirectory(strategy)
 add_subdirectory(gamecontroller)
 add_subdirectory(seshat)
+add_subdirectory(internalreferee)
 
 add_library(amun
     include/amun/amun.h
@@ -49,6 +50,7 @@ target_link_libraries(amun
     PUBLIC Qt5::Core
     PRIVATE Qt5::Network
     PUBLIC amun::gamecontroller
+    PUBLIC amun::internalreferee
 )
 target_include_directories(amun
     INTERFACE include

@@ -21,7 +21,7 @@
 #ifndef CONNECTOR_H
 #define CONNECTOR_H
 
-#include "internalreferee.h"
+#include "internalreferee/internalreferee.h"
 #include "seshat/logfilewriter.h"
 #include "seshat/backlogwriter.h"
 #include "protobuf/command.h"
