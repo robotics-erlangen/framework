@@ -26,7 +26,7 @@ let moves: (typeof Move)[] = [
 ];
 
 let coord: MainCoordinator | undefined = undefined;
-function createEntrypoint(move: typeof Move) {
+export function createEntrypoint(move: typeof Move) {
 	return function() {
 		if (coord == undefined) {
 			let moveGroup = new MoveGroup();

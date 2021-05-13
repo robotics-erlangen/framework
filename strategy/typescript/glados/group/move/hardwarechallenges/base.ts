@@ -49,14 +49,14 @@ export abstract class HardwareChallengeBase extends Move {
 		if (World.TeamIsBlue) {
 			if (blueRobots.length > this._robots.length || yellowRobots.length > World.OpponentRobots.length) {
 				amun.log("Not enough robots. Friendly robots present:\n", this._robots.length, "/", blueRobots.length, "\n",
-						 "Opponent robots present: ",World.OpponentRobots.length, "/", yellowRobots.length);
+						"Opponent robots present: ",World.OpponentRobots.length, "/", yellowRobots.length);
 			}
 			blueRobots = blueRobots.map((x: any, i: number) => [x, this._robots[i].id]);
 			yellowRobots = yellowRobots.map((x: any, i: number) => [x, World.OpponentRobots[i].id]);
 		} else {
 			if (yellowRobots.length > this._robots.length || blueRobots.length > World.OpponentRobots.length) {
 				amun.log("Not enough robots. Friendly robots present:\n", this._robots.length, "/", yellowRobots.length, "\n",
-						 "Opponent robots present: ",World.OpponentRobots.length, "/", blueRobots.length);
+						"Opponent robots present: ",World.OpponentRobots.length, "/", blueRobots.length);
 			}
 			blueRobots = blueRobots.map((x: any, i: number) => [x, World.OpponentRobots[i].id]);
 			yellowRobots = yellowRobots.map((x: any, i: number) => [x, this._robots[i].id]);
@@ -157,7 +157,7 @@ export abstract class HardwareChallengeBase extends Move {
 		}
 		return {assignments: taskAssignments};
 	}
-	
+
 	private placeBall(): MoveParameters | undefined {
 		if ((World.Ball.pos - this.ballPos.pos).length() < 0.05) {
 			return undefined;
@@ -203,7 +203,7 @@ export abstract class HardwareChallengeBase extends Move {
 		if (moveParameters != undefined) {
 			return moveParameters;
 		}
-		
+
 
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
 		let everyoneInPosition = true;
