@@ -21,9 +21,9 @@
 include(ExternalProject)
 include(ExternalProjectHelper)
 
-set(GAMECONTROLLER_RELEASE_VERSION v2.7.0)
+set(GAMECONTROLLER_RELEASE_VERSION v2.7.3)
 # often the same as the version string, but not always
-set(GAMECONTROLLER_RELEASE_NAME untagged-2938b536f67a0415de22)
+set(GAMECONTROLLER_RELEASE_NAME v2.7.3)
 
 if(APPLE)
     set(GAMECONTROLLER_OS_STRING darwin_amd64)

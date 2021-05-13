@@ -35,7 +35,6 @@ SSLGameController::SSLGameController(const Timer *timer, QObject *parent) :
     m_gcCIProtocolConnection(GC_CI_PORT_START, this)
 {
     m_gcCIProtocolConnection.setRefereeHost("127.0.0.1");
-    // TODO: add timer and periodically receive from connections, so that it also works when the simulator is paused
 }
 
 // TODO: convince game controller to not keep state in files
@@ -411,6 +410,9 @@ void SSLGameController::start()
     m_gcProcess = new QProcess(this);
     m_gcProcess->setReadChannel(QProcess::StandardOutput);
     m_gcProcess->setProcessChannelMode(QProcess::MergedChannels);
+
+    // set the GC working directory so that all produced files (config/state store) end up there and not scattered
+    m_gcProcess->setWorkingDirectory(QString("%1/gamecontroller").arg(ERFORCE_CONFDIR));
 
     connect(m_gcProcess, &QProcess::readyReadStandardOutput, this, &SSLGameController::handleGCStdout);
     connect(m_gcProcess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this, &SSLGameController::gcFinished);
