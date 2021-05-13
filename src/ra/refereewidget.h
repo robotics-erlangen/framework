@@ -82,7 +82,7 @@ private:
     std::shared_ptr<QStringList> m_recentScripts;
 
     bool m_newDivisionDetected = false;
-    world::Geometry::Division m_currentDivision;
+    world::Geometry::Division m_currentDivision = world::Geometry_Division_A;
 };
 
 #endif // REFEREEWIDGET_H

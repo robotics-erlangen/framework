@@ -104,7 +104,7 @@ private:
     void raMode();
     void horusMode();
     void createLogWriterConnections(Logsuite *suite);
-    void updateSimulatorSetup(QString setupFile, std::function<void(world::Geometry*)> fn);
+    void updateSimulatorSetup(QString setupFile);
 
 private:
     Ui::MainWindow *ui;
