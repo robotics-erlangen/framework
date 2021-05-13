@@ -82,6 +82,7 @@ private:
     bool m_ballIsTeleported = false;
     int m_continueFrameCounter = 0;
     SSL_Referee::Command m_nextCommand = SSL_Referee::HALT;
+    world::Geometry::Division m_currentDivision = world::Geometry::A;
 
     // the first port that will be chosen for the connection if it is available
     static constexpr int GC_CI_PORT_START = 10209;

@@ -37,8 +37,6 @@ SSLGameController::SSLGameController(const Timer *timer, QObject *parent) :
     m_gcCIProtocolConnection.setRefereeHost("127.0.0.1");
 }
 
-// TODO: convince game controller to not keep state in files
-
 SSLGameController::~SSLGameController()
 {
     stop();
@@ -83,6 +81,16 @@ void SSLGameController::handleStatus(const Status &status)
             convertToSSlGeometry(status->geometry(), input.mutable_geometry()->mutable_field());
             if (sendCiInput(input)) {
                 m_geometryString = str;
+            }
+        }
+
+        if (status->geometry().has_division() && status->geometry().division() != m_currentDivision) {
+            gameController::CiInput ciInput;
+            ciInput.set_timestamp(m_timer->currentTime());
+            auto div = status->geometry().division() == world::Geometry::A ? gameController::Division::DIV_A : gameController::Division::DIV_B;
+            ciInput.add_api_inputs()->mutable_change()->mutable_update_config()->set_division(div);
+            if (sendCiInput(ciInput)) {
+                m_currentDivision = status->geometry().division();
             }
         }
     }
@@ -382,6 +390,7 @@ void SSLGameController::start()
             ciInput.set_timestamp(m_timer->currentTime());
             ciInput.add_api_inputs()->set_reset_match(true);
 
+            ciInput.add_api_inputs()->mutable_change()->mutable_update_config()->set_division(gameController::Division::DIV_A);
             // automatically continue events without needing human input
             ciInput.add_api_inputs()->mutable_change()->mutable_update_config()->set_auto_continue(true);
             m_queuedInputs.append(ciInput);
