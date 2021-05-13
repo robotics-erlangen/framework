@@ -155,8 +155,8 @@ function DebugCommands.moveObjects(ball, friendlyRobots, opponentRobots)
 	if ball then
 		assert(ball.pos and ball.speed, "ball parameter missing")
 		-- convert to global coordinate system
-		local pos = Coordinates.toGlobal(ball.pos)
-		local speed = Coordinates.toGlobal(ball.speed)
+		local pos = Coordinates.toVision(ball.pos)
+		local speed = Coordinates.toVision(ball.speed)
 		simCommand.teleport_ball = {
 			 x  =  pos.x,   y =  pos.y,  z =   ball.posZ or 0,
 			vx = speed.x, vy = speed.y, vz = ball.speedZ or 0
@@ -177,11 +177,11 @@ function DebugCommands.moveObjects(ball, friendlyRobots, opponentRobots)
 			if not robot.id or not robot.pos or not robot.speed or not robot.dir or not robot.angularSpeed then
 				error("Robot parameter missing")
 			end
-			local pos = Coordinates.toGlobal(robot.pos)
-			local speed = Coordinates.toGlobal(robot.speed)
+			local pos = Coordinates.toVision(robot.pos)
+			local speed = Coordinates.toVision(robot.speed)
 			return {
 				id = { id = robot.id, team = team },
-				 x =   pos.x,  y =   pos.y, orientation = Coordinates.toGlobal(robot.dir),
+				 x =   pos.x,  y =   pos.y, orientation = Coordinates.toVision(robot.dir),
 				vx = speed.x, vy = speed.y, v_angular = robot.angularSpeed
 			}
 		end

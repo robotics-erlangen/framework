@@ -80,15 +80,51 @@ local function passthrough(data)
 	return data
 end
 
+local function blueToVision(data)
+	local dtype = type(data)
+	if dtype == "number" then
+		-- Rotate 270 degrees
+		data = data - 1.5 * math.pi
+		if data < 0 then
+			data = data + 2 * math.pi
+		end
+		return data
+	elseif dtype == "nil" then
+		error("nil isn't a coordinate")
+	else
+		data = 1000 * data
+		return Vector(-data.y, data.x, data:isReadonly())
+	end
+end
+
+local function yellowToVision(data)
+	local dtype = type(data)
+	if dtype == "number" then
+		-- Rotate 90 degrees
+		data = data - 0.5 * math.pi
+		if data < 0 then
+			data = data + 2 * math.pi
+		end
+		return data
+	elseif dtype == "nil" then
+		error("nil isn't a coordinate")
+	else
+		data = 1000 * data
+		return Vector(data.y, -data.x, data:isReadonly())
+	end
+end
+
 function Coordinates._setIsBlue(teamIsBlue)
 	if teamIsBlue then
 		Coordinates.toGlobal = invertCoordinates
 		Coordinates.toLocal = invertCoordinates
 		Coordinates.listToGlobal = invertList
+		Coordinates.toVision = blueToVision
 	else
 		Coordinates.toGlobal = passthrough
 		Coordinates.toLocal = passthrough
 		Coordinates.listToGlobal = passthrough
+		Coordinates.toVision = yellowToVision
 	end
 end
 
