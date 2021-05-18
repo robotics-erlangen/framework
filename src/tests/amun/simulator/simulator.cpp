@@ -31,8 +31,11 @@
 
 #include <QObject>
 #include <QQuaternion>
+#include <algorithm>
 #include <functional>
 #include <cmath>
+
+constexpr const float SHOOT_LINEAR_MAX = 8.0f;
 
 class SimTester : public QObject {
     Q_OBJECT
@@ -109,7 +112,7 @@ public:
         fourteen.set_angle(0.98291);
         fourteen.set_v_max(3);
         fourteen.set_omega_max(6);
-        fourteen.set_shot_linear_max(8);
+        fourteen.set_shot_linear_max(SHOOT_LINEAR_MAX);
         fourteen.set_shot_chip_max(3);
         fourteen.set_dribbler_width(0.07);
         fourteen.set_shoot_radius(0.067);
@@ -148,6 +151,78 @@ public:
     SimTester test;
     Timer t;
     camun::simulator::Simulator* s;
+};
+
+class ShootTest : public FastSimulatorTest {
+protected:
+    ShootTest() : FastSimulatorTest() {
+        loadRobots(0, 1);
+    }
+
+    /* Places the yellow 0 in the field center facing the blue goal. A ball is
+     * placed at (0, 0.15) and slightly nudged towards the robot
+     *
+     * Coordinates are from the perspective of the yellow strategy (positive y
+     * is toward the blue goal, distances are in [m])
+     */
+    void prepareShoot() {
+        const Vector ROBOT_POS { 0, 0 };
+        const Vector BALL_POS { 0, 0.15 };
+        const Vector BALL_SPEED { 0, -0.4 };
+
+        Command command { new amun::Command };
+
+        // Enable kicker charge
+        amun::CommandTransceiver* transceiver = command->mutable_transceiver();
+        transceiver->set_enable(true); // For good measure, not sure if this is necessary
+        transceiver->set_charge(true);
+
+        sslsim::SimulatorControl* sim_control = command->mutable_simulator()->mutable_ssl_control();
+        // Place the robot
+        sslsim::TeleportRobot* teleport_robot = sim_control->add_teleport_robot();
+        teleport_robot->mutable_id()->set_id(0);
+        teleport_robot->mutable_id()->set_team(::gameController::Team::YELLOW);
+        coordinates::toVision(ROBOT_POS, *teleport_robot);
+        teleport_robot->set_orientation(0);
+
+        // Place ball
+        sslsim::TeleportBall* teleport_ball = sim_control->mutable_teleport_ball();
+        coordinates::toVision(BALL_POS, *teleport_ball);
+        teleport_ball->set_z(0);
+        coordinates::toVisionVelocity(BALL_SPEED, *teleport_ball);
+        teleport_ball->set_vz(0);
+
+        emit test.sendCommand(command);
+    }
+
+    /* Creates a shoot command for the robot with id 0 */
+    SSLSimRobotControl makeShootCommand(const float speed) {
+        SSLSimRobotControl control { new sslsim::RobotControl };
+        sslsim::RobotCommand* robot_command = control->add_robot_commands();
+        robot_command->set_id(0);
+        robot_command->set_kick_speed(speed);
+
+        return control;
+    }
+
+    float measureMaxShootSpeed(const float expected_speed) {
+        auto control = makeShootCommand(expected_speed);
+        auto callback = [&control, this]() {
+            emit test.sendSSLRadioCommand(control, false, 0);
+        };
+        float max_speed = 0.0f;
+        test.handleSimulatorTruth = [&max_speed](const world::SimulatorState& truth) {
+            if (!truth.has_ball()) {
+                return;
+            }
+            const world::SimBall& ball = truth.ball();
+            const Vector current_speed { ball.v_x(), ball.v_y() };
+            max_speed = std::max(max_speed, current_speed.length());
+        };
+        FastSimulator::goDeltaCallback(s, &t, 1e9, callback); // Simulate 1s
+
+        return max_speed;
+    }
 };
 
 #include "simulator.moc"
@@ -808,4 +883,19 @@ TEST_F(FastSimulatorTest, CameraOverlap) {
     checkCameras(Vector(2, 0.49), {0, 2});
     checkCameras(Vector(2, -0.51), {2});
     checkCameras(Vector(2, -0.49), {0, 2});
+}
+
+TEST_F(ShootTest, ShootSpeed) {
+    for (const float expected_speed : { 2.0f, 4.0f, 6.0f, 8.0f }) {
+        prepareShoot();
+        const float max_speed = measureMaxShootSpeed(expected_speed);
+        const float speed_diff = std::abs(expected_speed - max_speed);
+        EXPECT_LT(speed_diff, 0.10f);
+    }
+}
+
+TEST_F(ShootTest, ShootSpeedCapped) {
+    prepareShoot();
+    const float max_speed = measureMaxShootSpeed(SHOOT_LINEAR_MAX + 5.0f);
+    EXPECT_LT(max_speed, SHOOT_LINEAR_MAX + 0.1f);
 }
