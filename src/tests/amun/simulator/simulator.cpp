@@ -87,6 +87,7 @@ public:
         delete s;
         s = new camun::simulator::Simulator{&t, setup, true};
         QObject::connect(&test, &SimTester::sendCommand, s, &Simulator::handleCommand);
+        QObject::connect(&test, &SimTester::sendSSLRadioCommand, s, &Simulator::handleRadioCommands);
         t.setScaling(0);
         t.setTime(1234, 0);
         s->seedPRGN(14986);
@@ -258,8 +259,6 @@ TEST_F(FastSimulatorTest, DriveRobotForwardBlue) {
         emit this->test.sendSSLRadioCommand(control, true, 0);
     };
 
-    QObject::connect(&test, &SimTester::sendSSLRadioCommand, s, &Simulator::handleRadioCommands);
-
     test.handleSimulatorTruth = [](auto) {};
 
     FastSimulator::goDeltaCallback(s, &t, 2e8, callback); // 200 milliseond to accelerate
@@ -339,8 +338,6 @@ TEST_F(FastSimulatorTest, DriveRobotRightBlue) {
     auto callback = [&control, this]() {
         emit this->test.sendSSLRadioCommand(control, true, 0);
     };
-
-    QObject::connect(&test, &SimTester::sendSSLRadioCommand, s, &Simulator::handleRadioCommands);
 
     test.handleSimulatorTruth = [](auto) {};
 
@@ -422,8 +419,6 @@ TEST_F(FastSimulatorTest, DriveRobotForwardYellow) {
         emit this->test.sendSSLRadioCommand(control, false, 0);
     };
 
-    QObject::connect(&test, &SimTester::sendSSLRadioCommand, s, &Simulator::handleRadioCommands);
-
     test.handleSimulatorTruth = [](auto) {};
 
     FastSimulator::goDeltaCallback(s, &t, 2e8, callback); // 200 milliseond to accelerate
@@ -503,8 +498,6 @@ TEST_F(FastSimulatorTest, DriveRobotLeftYellow) {
     auto callback = [&control, this]() {
         emit this->test.sendSSLRadioCommand(control, false, 0);
     };
-
-    QObject::connect(&test, &SimTester::sendSSLRadioCommand, s, &Simulator::handleRadioCommands);
 
     test.handleSimulatorTruth = [](auto) {};
 
@@ -591,8 +584,6 @@ TEST_F(FastSimulatorTest, UnaffectedRobotsByCommands) {
     auto callback = [&control, this]() {
         emit this->test.sendSSLRadioCommand(control, true, 0);
     };
-
-    QObject::connect(&test, &SimTester::sendSSLRadioCommand, s, &Simulator::handleRadioCommands);
 
 
     FastSimulator::goDeltaCallback(s, &t, 2e9, callback); // 2 seconds
