@@ -278,6 +278,11 @@ function updateReceivesPass() {
 	ballRecipients = newBallRecipients;
 }
 
+// for testing purposes
+export function setReceivesPass(robot: Robot, receives: boolean) {
+	ballRecipients.set(robot, receives);
+}
+
 export function receivesPass(robot: Robot): boolean {
 	return ballRecipients.get(robot) || false;
 }
