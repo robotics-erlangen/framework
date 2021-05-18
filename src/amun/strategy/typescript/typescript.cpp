@@ -748,9 +748,28 @@ void Typescript::performRequire(const FunctionCallbackInfo<Value> &args)
         }
     }
 
-    QString name(*String::Utf8Value(args[0]));
-    if (t->loadModule(name)) {
-        args.GetReturnValue().Set(*t->m_requireCache.back()[name]);
+    // either load a single file and return the value or load an array of files and return an array
+    if (args[0]->IsArray()) {
+        Local<Array> requiredFiles = Local<Array>::Cast(args[0]);
+        Local<Array> result = Array::New(t->m_isolate);
+        bool failed = false;
+        for (unsigned int i = 0;i<requiredFiles->Length();i++) {
+            QString name(*String::Utf8Value(requiredFiles->Get(i)));
+            if (t->loadModule(name)) {
+                Local<Value> value = Local<Value>::New(t->m_isolate, *t->m_requireCache.back()[name]);
+                result->Set(i, value);
+            } else {
+                failed = true;
+            }
+        }
+        if (!failed) {
+            args.GetReturnValue().Set(result);
+        }
+    } else {
+        QString name(*String::Utf8Value(args[0]));
+        if (t->loadModule(name)) {
+            args.GetReturnValue().Set(*t->m_requireCache.back()[name]);
+        }
     }
 
     // remove new require module stack layer

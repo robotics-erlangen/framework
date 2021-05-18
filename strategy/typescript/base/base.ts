@@ -64,5 +64,6 @@ amunModule._hideFunctions();
 // declare the always present 'require' function
 declare global {
 	function require(module: string, cleanRequire?: boolean, overlays?: {[name: string]: any}): any;
+	function require(module: string[], cleanRequire?: boolean, overlays?: {[name: string]: any}): any[];
 }
 
