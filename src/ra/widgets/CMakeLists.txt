@@ -44,6 +44,7 @@ add_library(widgets
     logwidget.cpp
     refereestatuswidget.cpp
     savesituation.cpp
+    savesituationtypescript.cpp
     savesituation.h
     timingwidget.cpp
     virtualfieldsetupdialog.h

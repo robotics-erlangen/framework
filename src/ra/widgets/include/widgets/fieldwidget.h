@@ -145,7 +145,8 @@ private slots:
     void setAOIVisible(bool visible);
     void virtualFieldSetupDialog();
     void takeScreenshot();
-    void saveSituation();
+    void saveSituationLua();
+    void saveSituationTypescript(int trackingFromInt);
     void ballPlacementBlue();
     void ballPlacementYellow();
 

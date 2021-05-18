@@ -207,8 +207,25 @@ FieldWidget::FieldWidget(QWidget *parent) :
     m_contextMenu->addSeparator();
     QAction *actionScreenshot = m_contextMenu->addAction("Take screenshot");
     connect(actionScreenshot, SIGNAL(triggered()), SLOT(takeScreenshot()));
-    QAction *actionSaveSituation = m_contextMenu->addAction("Save Situation");
-    connect(actionSaveSituation, SIGNAL(triggered()), SLOT(saveSituation()));
+
+    QMenu *saveSituationMenu = m_contextMenu->addMenu("Save Situation");
+    QAction *actionSaveSituationLua = saveSituationMenu->addAction("As Lua Strategy File");
+    connect(actionSaveSituationLua, SIGNAL(triggered()), SLOT(saveSituationLua()));
+    QMenu *saveSituationTsMenu = saveSituationMenu->addMenu("As Typescript Data File");
+    QAction *actionSaveSituationTsAutoref = saveSituationTsMenu->addAction("Autoref Perspective");
+    QAction *actionSaveSituationTsBlue = saveSituationTsMenu->addAction("Blue Strategy Perspective");
+    QAction *actionSaveSituationTsYellow = saveSituationTsMenu->addAction("Yellow Strategy Perspective");
+
+    QSignalMapper *saveSituationMapper = new QSignalMapper(saveSituationTsMenu);
+    connect(actionSaveSituationTsAutoref, SIGNAL(triggered()), saveSituationMapper, SLOT(map()));
+    saveSituationMapper->setMapping(actionSaveSituationTsAutoref, static_cast<int>(TrackingFrom::REFEREE));
+    connect(actionSaveSituationTsBlue, SIGNAL(triggered()), saveSituationMapper, SLOT(map()));
+    saveSituationMapper->setMapping(actionSaveSituationTsBlue, static_cast<int>(TrackingFrom::BLUE));
+    connect(actionSaveSituationTsYellow, SIGNAL(triggered()), saveSituationMapper, SLOT(map()));
+    saveSituationMapper->setMapping(actionSaveSituationTsYellow, static_cast<int>(TrackingFrom::YELLOW));
+
+    connect(saveSituationMapper, SIGNAL(mapped(int)), SLOT(saveSituationTypescript(int)));
+
     m_actionRestoreSimulatorState = m_contextMenu->addAction("Restore Simulator State");
     m_actionRestoreSimulatorState->setVisible(false);
     connect(m_actionRestoreSimulatorState, &QAction::triggered, this, &FieldWidget::restoreSituation);
@@ -2136,12 +2153,21 @@ void FieldWidget::takeScreenshot()
     }
 }
 
-void FieldWidget::saveSituation()
+void FieldWidget::saveSituationLua()
 {
     if (m_lastWorldState.isNull()) {
         return;
     }
     ::saveSituation(m_lastWorldState->world_state(), m_gameState);
+}
+
+void FieldWidget::saveSituationTypescript(int trackingFromInt)
+{
+    if (m_lastWorldState.isNull()) {
+        return;
+    }
+    auto trackingFrom = static_cast<TrackingFrom>(trackingFromInt);
+    ::saveSituationTypescript(trackingFrom, m_lastWorldState->world_state(), m_gameState, m_geometry, m_teamBlue, m_teamYellow);
 }
 
 void FieldWidget::restoreSituation()

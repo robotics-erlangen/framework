@@ -22,7 +22,13 @@
 #define SAVESITUATION_H
 
 #include "protobuf/status.h"
+#include "fieldwidget.h"
+#include <QHash>
 
 void saveSituation(world::State worldState, amun::GameState gameState);
+
+void saveSituationTypescript(TrackingFrom useTrackingFrom, world::State worldState, amun::GameState gameState,
+                             const world::Geometry &geometry, const QHash<uint, robot::Specs> &blueRobots,
+                             const QHash<uint, robot::Specs> &yellowRobots);
 
 #endif // SAVESITUATION_H
