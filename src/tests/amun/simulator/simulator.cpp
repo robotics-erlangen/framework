@@ -47,7 +47,7 @@ signals:
 
 public:
     int m_counter = 0;
-    std::function<void(const SSL_WrapperPacket&)> handleDetectionWrapper = [](const SSL_WrapperPacket&) {};
+    std::function<void(const SSL_WrapperPacket&, qint64)> handleDetectionWrapper = [](const SSL_WrapperPacket&, quint64) {};
     std::function<void(const world::SimulatorState&)> handleSimulatorTruth = [](const world::SimulatorState&) {};
 };
 
@@ -58,7 +58,7 @@ void SimTester::handlePacket(const QByteArray &data, qint64 time, QString sender
     bool result = wrapper.ParseFromArray(data.data(), data.size());
     ASSERT_TRUE(result && "wrapper.ParseFromArray");
 
-    handleDetectionWrapper(wrapper);
+    handleDetectionWrapper(wrapper, time);
 }
 
 void SimTester::handleSimulatorTruthRaw(const QByteArray &data) {
@@ -172,7 +172,7 @@ TEST_F(FastSimulatorTest, NoRobots) {
     QObject::disconnect(s, &Simulator::sendRealData, &test, &SimTester::handleSimulatorTruthRaw);
     QObject::connect(s, &Simulator::gotPacket, &test, &SimTester::handlePacket);
     // Initially, the whole world should be empy without robots and just a ball
-    test.handleDetectionWrapper = [] (auto packet) {
+    test.handleDetectionWrapper = [] (auto packet, auto) {
         if (!packet.has_detection()) {
             return;
         }
@@ -652,7 +652,7 @@ TEST_F(FastSimulatorTest, GeometryReflection) {
     QObject::disconnect(s, &Simulator::sendRealData, &test, &SimTester::handleSimulatorTruthRaw);
     QObject::connect(s, &Simulator::gotPacket, &test, &SimTester::handlePacket);
     int runCount = 0;
-    test.handleDetectionWrapper = [&setup, &runCount] (auto wrapper) {
+    test.handleDetectionWrapper = [&setup, &runCount] (auto wrapper, auto) {
         if (!wrapper.has_geometry()) {
             return;
         }
@@ -718,7 +718,7 @@ TEST_F(FastSimulatorTest, InvisibleBall) {
 
     QObject::disconnect(s, &Simulator::sendRealData, &test, &SimTester::handleSimulatorTruthRaw);
     QObject::connect(s, &Simulator::gotPacket, &test, &SimTester::handlePacket);
-    test.handleDetectionWrapper = [] (auto wrapper) {
+    test.handleDetectionWrapper = [] (auto wrapper, auto) {
         if (!wrapper.has_detection()) {
             return;
         }
@@ -735,7 +735,7 @@ TEST_F(FastSimulatorTest, InvisibleBall) {
         teleportBall->set_vy(0);
         emit this->test.sendCommand(command);
     }
-    test.handleDetectionWrapper = [] (auto wrapper) {
+    test.handleDetectionWrapper = [] (auto wrapper, auto) {
         if (!wrapper.has_detection()) {
             return;
         }
@@ -771,11 +771,11 @@ TEST_F(FastSimulatorTest, CameraOverlap) {
         teleportBall->set_vy(0);
         emit this->test.sendCommand(command);
 
-        this->test.handleDetectionWrapper = [](auto){};
+        this->test.handleDetectionWrapper = [](auto, auto){};
         FastSimulator::goDelta(s, &t, 3e7);
 
         std::set<int> foundCameras;
-        this->test.handleDetectionWrapper = [&foundCameras] (auto wrapper) {
+        this->test.handleDetectionWrapper = [&foundCameras] (auto wrapper, auto) {
             if (wrapper.has_detection() && wrapper.detection().balls_size() > 0) {
                 foundCameras.insert(wrapper.detection().camera_id());
             }
