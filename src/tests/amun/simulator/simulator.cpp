@@ -86,11 +86,11 @@ public:
     void createSimulator(const amun::SimulatorSetup &setup) {
         delete s;
         s = new camun::simulator::Simulator{&t, setup, true};
-        test.connect(&test, &SimTester::sendCommand, s, &Simulator::handleCommand);
+        QObject::connect(&test, &SimTester::sendCommand, s, &Simulator::handleCommand);
         t.setScaling(0);
         t.setTime(1234, 0);
         s->seedPRGN(14986);
-        s->connect(s, &Simulator::sendRealData, &test, &SimTester::handleSimulatorTruthRaw);
+        QObject::connect(s, &Simulator::sendRealData, &test, &SimTester::handleSimulatorTruthRaw);
 
         Command c{new amun::Command};
         c->mutable_simulator()->set_enable(true);
@@ -153,8 +153,8 @@ public:
 
 
 TEST_F(FastSimulatorTest, VisionRate) {
-    s->disconnect(s, &Simulator::sendRealData, &test, &SimTester::handleSimulatorTruthRaw);
-    s->connect(s, &Simulator::gotPacket, &test, &SimTester::count);
+    QObject::disconnect(s, &Simulator::sendRealData, &test, &SimTester::handleSimulatorTruthRaw);
+    QObject::connect(s, &Simulator::gotPacket, &test, &SimTester::count);
     FastSimulator::goDelta(s, &t, 1e9); // one second
     const int exp_packets = 60 * 2; // 60 Hz * 2 cameras
     ASSERT_LE(test.m_counter, exp_packets * 1.2);
@@ -162,14 +162,14 @@ TEST_F(FastSimulatorTest, VisionRate) {
 }
 
 TEST_F(FastSimulatorTest, OriginString) {
-    s->disconnect(s, &Simulator::sendRealData, &test, &SimTester::handleSimulatorTruthRaw);
-    s->connect(s, &Simulator::gotPacket, &test, &SimTester::handlePacket);
+    QObject::disconnect(s, &Simulator::sendRealData, &test, &SimTester::handleSimulatorTruthRaw);
+    QObject::connect(s, &Simulator::gotPacket, &test, &SimTester::handlePacket);
     FastSimulator::goDelta(s, &t, 5e8); // 500 millisecond
 }
 
 TEST_F(FastSimulatorTest, NoRobots) {
-    s->disconnect(s, &Simulator::sendRealData, &test, &SimTester::handleSimulatorTruthRaw);
-    s->connect(s, &Simulator::gotPacket, &test, &SimTester::handlePacket);
+    QObject::disconnect(s, &Simulator::sendRealData, &test, &SimTester::handleSimulatorTruthRaw);
+    QObject::connect(s, &Simulator::gotPacket, &test, &SimTester::handlePacket);
     // Initially, the whole world should be empy without robots and just a ball
     test.handleDetectionWrapper = [] (auto packet) {
         if (!packet.has_detection()) {
@@ -210,7 +210,7 @@ TEST_F(FastSimulatorTest, LoadRobots) {
 }
 
 TEST_F(FastSimulatorTest, CBFrequency) {
-    s->disconnect(s, &Simulator::sendRealData, &test, &SimTester::handleSimulatorTruthRaw);
+    QObject::disconnect(s, &Simulator::sendRealData, &test, &SimTester::handleSimulatorTruthRaw);
     int counter = 0;
     auto lambda = [&counter]() {counter++;};
     FastSimulator::goDeltaCallback(s, &t, 10e9, lambda); // 10 seconds, should be run every 10 ms = 100 times + 1 time initially
@@ -258,7 +258,7 @@ TEST_F(FastSimulatorTest, DriveRobotForwardBlue) {
         emit this->test.sendSSLRadioCommand(control, true, 0);
     };
 
-    t.connect(&test, &SimTester::sendSSLRadioCommand, s, &Simulator::handleRadioCommands);
+    QObject::connect(&test, &SimTester::sendSSLRadioCommand, s, &Simulator::handleRadioCommands);
 
     test.handleSimulatorTruth = [](auto) {};
 
@@ -340,7 +340,7 @@ TEST_F(FastSimulatorTest, DriveRobotRightBlue) {
         emit this->test.sendSSLRadioCommand(control, true, 0);
     };
 
-    t.connect(&test, &SimTester::sendSSLRadioCommand, s, &Simulator::handleRadioCommands);
+    QObject::connect(&test, &SimTester::sendSSLRadioCommand, s, &Simulator::handleRadioCommands);
 
     test.handleSimulatorTruth = [](auto) {};
 
@@ -422,7 +422,7 @@ TEST_F(FastSimulatorTest, DriveRobotForwardYellow) {
         emit this->test.sendSSLRadioCommand(control, false, 0);
     };
 
-    t.connect(&test, &SimTester::sendSSLRadioCommand, s, &Simulator::handleRadioCommands);
+    QObject::connect(&test, &SimTester::sendSSLRadioCommand, s, &Simulator::handleRadioCommands);
 
     test.handleSimulatorTruth = [](auto) {};
 
@@ -504,7 +504,7 @@ TEST_F(FastSimulatorTest, DriveRobotLeftYellow) {
         emit this->test.sendSSLRadioCommand(control, false, 0);
     };
 
-    t.connect(&test, &SimTester::sendSSLRadioCommand, s, &Simulator::handleRadioCommands);
+    QObject::connect(&test, &SimTester::sendSSLRadioCommand, s, &Simulator::handleRadioCommands);
 
     test.handleSimulatorTruth = [](auto) {};
 
@@ -592,7 +592,7 @@ TEST_F(FastSimulatorTest, UnaffectedRobotsByCommands) {
         emit this->test.sendSSLRadioCommand(control, true, 0);
     };
 
-    t.connect(&test, &SimTester::sendSSLRadioCommand, s, &Simulator::handleRadioCommands);
+    QObject::connect(&test, &SimTester::sendSSLRadioCommand, s, &Simulator::handleRadioCommands);
 
 
     FastSimulator::goDeltaCallback(s, &t, 2e9, callback); // 2 seconds
@@ -658,8 +658,8 @@ TEST_F(FastSimulatorTest, GeometryReflection) {
     geometrySetDefault(setup.mutable_geometry(), true);
     createSimulator(setup);
 
-    s->disconnect(s, &Simulator::sendRealData, &test, &SimTester::handleSimulatorTruthRaw);
-    s->connect(s, &Simulator::gotPacket, &test, &SimTester::handlePacket);
+    QObject::disconnect(s, &Simulator::sendRealData, &test, &SimTester::handleSimulatorTruthRaw);
+    QObject::connect(s, &Simulator::gotPacket, &test, &SimTester::handlePacket);
     int runCount = 0;
     test.handleDetectionWrapper = [&setup, &runCount] (auto wrapper) {
         if (!wrapper.has_geometry()) {
@@ -725,8 +725,8 @@ TEST_F(FastSimulatorTest, InvisibleBall) {
 
     FastSimulator::goDelta(s, &t, 1e8);
 
-    s->disconnect(s, &Simulator::sendRealData, &test, &SimTester::handleSimulatorTruthRaw);
-    s->connect(s, &Simulator::gotPacket, &test, &SimTester::handlePacket);
+    QObject::disconnect(s, &Simulator::sendRealData, &test, &SimTester::handleSimulatorTruthRaw);
+    QObject::connect(s, &Simulator::gotPacket, &test, &SimTester::handlePacket);
     test.handleDetectionWrapper = [] (auto wrapper) {
         if (!wrapper.has_detection()) {
             return;
@@ -769,8 +769,8 @@ TEST_F(FastSimulatorTest, CameraOverlap) {
 
     emit this->test.sendCommand(command);
 
-    s->disconnect(s, &Simulator::sendRealData, &test, &SimTester::handleSimulatorTruthRaw);
-    s->connect(s, &Simulator::gotPacket, &test, &SimTester::handlePacket);
+    QObject::disconnect(s, &Simulator::sendRealData, &test, &SimTester::handleSimulatorTruthRaw);
+    QObject::connect(s, &Simulator::gotPacket, &test, &SimTester::handlePacket);
 
     auto checkCameras = [this](Vector ballPos, std::set<int> expectedIds) {
         Command command(new amun::Command);
