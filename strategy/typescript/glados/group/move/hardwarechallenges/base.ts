@@ -1,5 +1,6 @@
 import { Coordinates } from "base/coordinates";
 import { BallInfo, moveObjects } from "base/debugcommands";
+import * as pb from "base/protobuf";
 import { FriendlyRobot, Robot, RobotState } from "base/robot";
 import { Vector } from "base/vector";
 import * as World from "base/world";
@@ -23,6 +24,7 @@ export abstract class HardwareChallengeBase extends Move {
 	private opponentTransforms: RobotState[];
 	private ballPos: BallInfo;
 	private initialized: boolean = false;
+	private refStart: boolean = false;
 	private currentObstacleToSet: number = 0;
 
 	// any type meaning any of the scenarios in scenarios.ts from the JSONs
@@ -84,11 +86,6 @@ export abstract class HardwareChallengeBase extends Move {
 		} else {
 			this.friendlyTransforms = yellowTransforms;
 			this.opponentTransforms = blueTransforms;
-		}
-
-		if (World.IsSimulated && amun.isDebug) {
-			moveObjects(this.ballPos, this.friendlyTransforms, this.opponentTransforms);
-			this.initialized = true;
 		}
 	}
 
@@ -178,20 +175,38 @@ export abstract class HardwareChallengeBase extends Move {
 		return {assignments: taskAssignments};
 	}
 
+	private haltAllRobots(): MoveParameters {
+		let taskAssignments = new Map<FriendlyRobot, Assignment>();
+		for (let robot of this._robots) {
+			taskAssignments[robot] = Assignment.create({
+				class: Halt
+			});
+		}
+
+		return { assignments: taskAssignments };
+	}
+
 	public readonly _updateTasks: (() => MoveParameters) = () => {
+		if (World.RefereeState === this.startState) {
+			this.refStart = true;
+		}
+		if (World.RefereeState === "Stop") {
+			this.refStart = false;
+		}
+
 		if (this.initialized) {
-			if (World.RefereeState === this.startState) {
+			if (this.refStart) {
 				return this.challengeSpecificUpdateTask();
 			} else {
-				let taskAssignments = new Map<FriendlyRobot, Assignment>();
-				for (let robot of this._robots) {
-					taskAssignments[robot] = Assignment.create({
-						class: Halt
-					});
-				}
-
-				return { assignments: taskAssignments };
+				return this.haltAllRobots();
 			}
+		}
+
+		if (World.WorldStateSource === pb.world.WorldSource.INTERNAL_SIMULATION && amun.isDebug) {
+			moveObjects(this.ballPos, this.friendlyTransforms, this.opponentTransforms);
+			this.initialized = true;
+
+			return this.haltAllRobots();
 		}
 
 		let moveParameters: MoveParameters | undefined = this.placeOpponents();
@@ -230,5 +245,10 @@ export abstract class HardwareChallengeBase extends Move {
 			amun.log("Finished initialization.");
 		}
 		return {assignments: taskAssignments};
+	}
+
+	protected reset() {
+		this.initialized = false;
+		this.refStart = false;
 	}
 }
