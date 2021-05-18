@@ -31,7 +31,8 @@ let safePathCopy = Object.freeze({...getOriginalPath()});
 declare let path: any;
 
 let fakeAmunModule = {
-	log: noOp
+	log: fullAmun.log,
+	_hideFunctions: noOp
 };
 
 const testPrefix = "glados/test/unit/";
@@ -78,7 +79,8 @@ function runTests(moduleNames: string[]) {
 				test = require(module, true, {"base/amun": fakeAmunModule, ...overlays}).testClass;
 			}
 			let testInstance = new test();
-				failedCounter += testInstance.runTests(log);
+			failedCounter += testInstance.runTests(log, module, fakeAmunModule, safePathCopy, safeAmun);
+
 			})) {
 			failedCounter++;
 		}

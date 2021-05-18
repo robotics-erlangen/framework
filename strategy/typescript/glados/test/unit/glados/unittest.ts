@@ -1,4 +1,6 @@
+import { FriendlyRobot } from "base/robot";
 import { Vector } from "base/vector";
+import * as World from "base/world";
 
 import { UnitTest } from "glados/test/unit/unittest";
 
@@ -7,6 +9,38 @@ export class GladosUnitTest extends UnitTest {
 		super();
 		this.addTest("assertionsNoFail", this.testAssertionsNoFail);
 		this.addTest("assertionsFail", this.testAssertionsFail);
+		this.addSituationTest("testSituationTest", this.testSituationTest,
+			[["glados/test/unit/glados/unittest-situations/s1", 1], ["glados/test/unit/glados/unittest-situations/s2", 2]]);
+		this.addSituationTest("situationtest robot eq.", this.testSituationRobotEquality,
+			[["glados/test/unit/glados/unittest-situations/s1", World.FriendlyRobots[0]]]);
+	}
+
+	private testSituationTest(situation: number) {
+		if (situation === 1) {
+			this.assert_equal(World.FriendlyRobots.length, 2);
+			this.assert_equal(World.OpponentRobots.length, 5);
+			this.assert_equal(World.Geometry.FieldHeight, 17);
+			this.assert_equal(World.Geometry.FieldWidth, 11);
+			this.assert_equal(World.TeamIsBlue, false);
+			this.assert_equal(World.Ball.pos.x, 1);
+			this.assert_equal(World.Ball.pos.y, 2);
+			this.assert_equal(World.RefereeState, "Stop");
+		} else if (situation === 2) {
+			this.assert_equal(World.FriendlyRobots.length, 1);
+			this.assert_equal(World.OpponentRobots.length, 1);
+			this.assert_equal(World.Geometry.FieldHeight, 5);
+			this.assert_equal(World.Geometry.FieldWidth, 3);
+			this.assert_equal(World.TeamIsBlue, true);
+			this.assert_equal(World.Ball.pos.x, -2); // negated due to different coordinate system
+			this.assert_equal(World.Ball.pos.y, -1);
+			this.assert_equal(World.RefereeState, "Halt");
+		} else {
+			throw new Error("Unknown test case number " + situation);
+		}
+	}
+
+	private testSituationRobotEquality(robot: FriendlyRobot) {
+		this.assert_equal(robot, World.FriendlyRobotsById[robot.id]);
 	}
 
 	private testAssertionsNoFail() {
