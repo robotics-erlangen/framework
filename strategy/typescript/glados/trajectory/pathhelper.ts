@@ -22,10 +22,10 @@ let SEED_PREDICT_TIME = 0.5;
 
 // this bool is a hack for the hardware challenge
 // pls don't use anywhere outside of addBallObstacle
-let isHardwareChallenge = false;
+let hardwareChallenge: 1 | 2 | 3 | 4 | undefined = undefined;
 
-export function initHardwareChallenge() {
-	isHardwareChallenge = true;
+export function setHardwareChallenge(challenge: 1 | 2 | 3 | 4 | undefined) {
+	hardwareChallenge = challenge;
 }
 
 export const Priorities = {
@@ -163,7 +163,7 @@ function addBallObstacle(robot: FriendlyRobot, ignoreBall?: boolean, stopBallDis
 	// In the other two cases (ball placement and normal game), ignoreBall is considered.
 	// If it is false, we don't want to set a stopDistance but still consider an eventual extraBallDistance
 	// addZonedBallObstacles takes care of the undefined handling
-	let isDefensiveStopState = Referee.isStopState() && World.RefereeState !== "BallPlacementOffensive" && !isHardwareChallenge;
+	let isDefensiveStopState = Referee.isStopState() && World.RefereeState !== "BallPlacementOffensive" && hardwareChallenge != undefined;
 	if (isDefensiveStopState) {
 		if (stopBallDistance != undefined && extraBallDistance != undefined && stopBallDistance > extraBallDistance) {
 			let temp = stopBallDistance;
@@ -403,10 +403,10 @@ function setDefaultObstacles(path: Path, robot: FriendlyRobot, targetPosition: P
 	if (!noSeedTarget) {
 		addSeedTargets(path, robot);
 	}
-	if (!ignoreDefenseArea) {
+	if (!ignoreDefenseArea && hardwareChallenge !== 4) {
 		addFriendlyDefenseAreaObstacle(path, robot);
 	}
-	if (!ignoreOpponentDefenseArea) {
+	if (!ignoreOpponentDefenseArea && hardwareChallenge !== 4) {
 		addOpponentDefenseAreaObstacle(path, robot, targetPosition);
 	}
 	if (forbidOppFieldHalf) {

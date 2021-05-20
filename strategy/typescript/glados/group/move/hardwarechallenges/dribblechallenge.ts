@@ -8,6 +8,7 @@ import * as Scenarios from "glados/group/move/hardwarechallenges/scenarios";
 import { MoveToPos } from "glados/task/shared/movetopos";
 
 export class DribbleChallenge extends HardwareChallengeBase {
+	protected challengeNumber: 1 | 2 | 3 | 4 | undefined = 3;
 
 	constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 		super(robots, messaging, Scenarios.challenge3);

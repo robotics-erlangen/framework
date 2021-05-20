@@ -17,6 +17,8 @@ export abstract class HardwareChallengeBase extends Move {
 	public static MAX_ROBOTS: number = 1;
 	public static readonly ALLOW_EXTRA_ATTACKERS = false;
 
+	// override with specific challenge
+	protected challengeNumber: 1 | 2 | 3 | 4 | undefined = undefined;
 	// override this if the start command differs
 	protected startState: World.RefereeStateType = "GameForce";
 
@@ -31,7 +33,7 @@ export abstract class HardwareChallengeBase extends Move {
 	constructor(robots: FriendlyRobot[], messaging: MessageBox, positions: any) {
 		super(robots, messaging);
 
-		PathHelper.initHardwareChallenge();
+		PathHelper.setHardwareChallenge(this.challengeNumber);
 
 		let ball = positions.ball;
 
