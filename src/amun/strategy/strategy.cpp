@@ -433,10 +433,15 @@ void Strategy::process()
     // depending on the strategy type, the tracking with or without trajectory information is used for robots
     world::State worldState = assembleWorldState();
 
-    if (m_strategy->process(pathPlanning, worldState,
-                            m_scriptState.currentStatus->execution_game_state().IsInitialized()
-                                ? m_scriptState.currentStatus->execution_game_state()
-                                : m_scriptState.currentStatus->game_state(), userInput)) {
+    const auto &usedGameState = m_scriptState.currentStatus->execution_game_state().IsInitialized()
+            ? m_scriptState.currentStatus->execution_game_state()
+            : m_scriptState.currentStatus->game_state();
+
+    if (usedGameState.has_goals_flipped()) {
+        m_scriptState.isFlipped = usedGameState.goals_flipped();
+    }
+
+    if (m_strategy->process(pathPlanning, worldState, usedGameState, userInput)) {
         if (!m_p->mixedTeamData.isNull()) {
             int bytesSent = m_udpSenderSocket->writeDatagram(m_p->mixedTeamData, m_p->mixedTeamHost, m_p->mixedTeamPort);
             int origSize = m_p->mixedTeamData.size();
