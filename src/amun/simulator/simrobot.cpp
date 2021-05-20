@@ -356,10 +356,19 @@ void SimRobot::begin(SimBall *ball, double time)
             const float maxShootSpeed = coordinates::chipVelFromChipDistance(m_specs.shot_chip_max());
             power = qBound(0.05f, m_sslCommand.kick_speed(), maxShootSpeed);
         }
-        // if the ball hits the robot the chip distance actually decreases
-        const btVector3 relBallSpeed = relativeBallSpeed(ball) / SIMULATOR_SCALE;
-        const float speedCompensation = -std::max((btScalar)0, relBallSpeed.y())
-                - qBound((btScalar)0, (btScalar)0.5 * relBallSpeed.y(), (btScalar)0.5 * dirFloor);
+
+        const auto getSpeedCompensation = [&]() -> float {
+            if (m_sslCommand.kick_angle() == 0) {
+                return 0.0f;
+            } else {
+                // if the ball hits the robot the chip distance actually decreases
+                const btVector3 relBallSpeed = relativeBallSpeed(ball) / SIMULATOR_SCALE;
+                return std::max((btScalar)0, relBallSpeed.y())
+                    - qBound((btScalar)0, (btScalar)0.5 * relBallSpeed.y(), (btScalar)0.5 * dirFloor);
+            }
+        };
+        const float speedCompensation = getSpeedCompensation();
+
         ball->kick(t * btVector3(0, dirFloor * power + speedCompensation, dirUp * power) * (1/time) * SIMULATOR_SCALE * BALL_MASS);
         // discharge
         m_isCharged = false;
