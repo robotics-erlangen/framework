@@ -31,6 +31,7 @@
 #include <QSettings>
 #include <QStringBuilder>
 #include <unordered_map>
+#include <QCloseEvent>
 
 Plotter::Plotter() :
     QWidget(nullptr, Qt::Window),
@@ -137,7 +138,9 @@ void Plotter::closeEvent(QCloseEvent *event)
     }));
     s.endGroup();
 
-    QWidget::closeEvent(event);
+    // just accepting and closing leads to segfaults when re-opening the widget
+    this->hide();
+    event->ignore();
 }
 
 void Plotter::setScaling(float min, float max, float timespan)
