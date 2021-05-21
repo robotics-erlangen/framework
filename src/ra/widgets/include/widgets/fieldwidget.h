@@ -102,6 +102,7 @@ signals:
     void robotDoubleClicked(bool teamIsBlue, int robotId);
     void robotCtrlClicked(bool teamIsBlue, int robotId);
     void selectRobots(const QList<int> &yellow, const QList<int> &blue);
+    void sendPlaceBall(bool blue, float x, float y);
 
 public slots:
     void handleStatus(const Status &status);

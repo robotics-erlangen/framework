@@ -115,6 +115,8 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     connect(ui->referee, SIGNAL(sendYellowCard(int)), m_internalReferee, SLOT(setYellowCard(int)));
     connect(ui->referee, SIGNAL(sendDivisionChange(world::Geometry::Division)), this, SLOT(changeDivision(world::Geometry::Division)));
 
+    connect(ui->field, &FieldWidget::sendPlaceBall, m_internalReferee, &InternalReferee::handlePlaceBall);
+
 
     m_inputManager = new InputManager(this);
     connect(m_inputManager, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));

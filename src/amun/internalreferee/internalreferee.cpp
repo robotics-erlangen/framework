@@ -112,3 +112,13 @@ void InternalReferee::setYellowCard(int forTeamYellow)
     }
     sendRefereePacket();
 }
+
+void InternalReferee::handlePlaceBall(bool blue, float x, float y)
+{
+    m_referee.set_command(blue ? SSL_Referee::BALL_PLACEMENT_BLUE : SSL_Referee::BALL_PLACEMENT_YELLOW);
+    m_referee.mutable_designated_position()->set_x(x);
+    m_referee.mutable_designated_position()->set_y(y);
+    sendRefereePacket();
+    // remove the placement pos so that on the next action, it will not be sent again
+    m_referee.clear_designated_position();
+}

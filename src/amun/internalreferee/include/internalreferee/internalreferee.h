@@ -43,6 +43,7 @@ public slots:
     void enableInternalAutoref(bool enable);
     void setSidesFlipped(bool flipped);
     void setYellowCard(int forTeamYellow);
+    void handlePlaceBall(bool blue, float x, float y);
 
     void handleStatus(const Status &status);
 

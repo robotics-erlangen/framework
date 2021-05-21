@@ -2188,18 +2188,9 @@ void FieldWidget::restoreSituation()
 
 void FieldWidget::ballPlacement(bool blue)
 {
-    m_referee.set_command(blue ? SSL_Referee::BALL_PLACEMENT_BLUE : SSL_Referee::BALL_PLACEMENT_YELLOW);
     float flipFactor = m_flipped && !m_usingVirtualField ? -1.0f : 1.0f;
-    m_referee.mutable_designated_position()->set_x(m_mouseBegin.y() * flipFactor * 1000.0f);
-    m_referee.mutable_designated_position()->set_y(-m_mouseBegin.x() * flipFactor * 1000.0f);
-    assert(m_referee.IsInitialized());
-
-    std::string referee;
-    if (m_referee.SerializeToString(&referee)) {
-        Command command(new amun::Command);
-        command->mutable_referee()->set_command(referee);
-        emit sendCommand(command);
-    }
+    emit sendPlaceBall(blue, m_mouseBegin.y() * flipFactor * 1000.0f, -m_mouseBegin.x() * flipFactor * 1000.0f);
+    m_referee.set_command(blue ? SSL_Referee::BALL_PLACEMENT_BLUE : SSL_Referee::BALL_PLACEMENT_YELLOW);
 }
 
 void FieldWidget::ballPlacementBlue()
