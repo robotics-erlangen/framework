@@ -587,6 +587,9 @@ void RobotSelectionWidget::selectTeamForGeneration(uint generation, uint, RobotW
         Generation::Robot &r = it.value();
         RobotWidget::Team t = team;
         switch (team) {
+        case RobotWidget::Select8v8:
+            t = robotCounter < 8 ? RobotWidget::Blue : RobotWidget::Yellow;
+            break;
         case RobotWidget::Select11v11:
             if (!m_isSimulator) {
                 qDebug() << "using the 11v11 mode without being in simulation will not work";
@@ -602,8 +605,8 @@ void RobotSelectionWidget::selectTeamForGeneration(uint generation, uint, RobotW
                 } else {
                     t = RobotWidget::NoTeam;
                 }
-                break;
             }
+            break;
         case RobotWidget::SwapTeam:
             // Can't swap the team if none is assigned
             if (r.team != RobotWidget::NoTeam) {
