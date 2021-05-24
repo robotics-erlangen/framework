@@ -137,8 +137,8 @@ SimRobot::~SimRobot()
 
 void SimRobot::calculateDribblerMove(const btVector3 pos, const btQuaternion rot, const btVector3 linVel, float omega)
 {
-    const btQuaternion rotated = rot * btQuaternion(m_dribblerCenter, 0);
-    const btVector3 dribblerPos = rotated.getAxis() + pos * SIMULATOR_SCALE;
+    const btQuaternion rotated = rot * btQuaternion(m_dribblerCenter.x(), m_dribblerCenter.y(), m_dribblerCenter.z(), 0) * rot.inverse();
+    const btVector3 dribblerPos = btVector3(rotated.x(), rotated.y(), rotated.z()) + pos * SIMULATOR_SCALE;
     const btVector3 dribblerDirection(1, 0, 0);
     const btQuaternion dribblerDirectionRot(dribblerDirection, 0);
     const btQuaternion newDribblerRot = rot * dribblerDirectionRot;
