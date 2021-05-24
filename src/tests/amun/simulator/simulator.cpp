@@ -727,6 +727,56 @@ TEST_F(FastSimulatorTest, TeleportRobotPosOnly) {
     FastSimulator::goDelta(s, &t, 1e8); // 100 millisecond
 }
 
+TEST_F(FastSimulatorTest, TeleportRobotAfterMove) {
+    loadRobots(1, 0);
+
+    FastSimulator::goDelta(s, &t, 2.5e7);
+
+    const Vector desiredPos(-2, -2);
+
+    Command teleportCommand(new amun::Command);
+    auto teleport = teleportCommand->mutable_simulator()->mutable_ssl_control()->add_teleport_robot();
+    teleport->mutable_id()->set_id(0);
+    teleport->mutable_id()->set_team(gameController::Team::BLUE);
+    coordinates::toVision(desiredPos, *teleport);
+    teleport->set_v_x(0);
+    teleport->set_v_y(0);
+    teleport->set_v_angular(0);
+    teleport->set_orientation(0);
+
+    emit this->test.sendCommand(teleportCommand);
+    FastSimulator::goDelta(s, &t, 2e9);
+
+
+    const Vector pushPos(-1.6, -1.6);
+    Command pushCommand(new amun::Command);
+    auto push = pushCommand->mutable_simulator()->mutable_ssl_control()->add_teleport_robot();
+    push->mutable_id()->set_id(0);
+    push->mutable_id()->set_team(gameController::Team::BLUE);
+    coordinates::toVision(pushPos, *push);
+    push->set_v_x(0);
+    push->set_v_y(0);
+    push->set_v_angular(0);
+    push->set_orientation(0);
+    push->set_by_force(true);
+
+    emit this->test.sendCommand(pushCommand);
+    FastSimulator::goDelta(s, &t, 2e7);
+
+
+    // send same teleport command as above again
+    emit this->test.sendCommand(teleportCommand);
+
+    test.handleSimulatorTruth = [&desiredPos] (auto truth) {
+        ASSERT_EQ(truth.blue_robots_size(), 1);
+        auto robot = truth.blue_robots(0);
+        Vector truePos(robot.p_x(), robot.p_y());
+        ASSERT_LE(desiredPos.distance(truePos), 0.01f);
+        ASSERT_LE(Vector(robot.v_x(), robot.v_y()).length(), 0.01f);
+    };
+    FastSimulator::goDelta(s, &t, 1e8); // 100 millisecond
+}
+
 TEST_F(FastSimulatorTest, GeometryReflection) {
     amun::SimulatorSetup setup;
     setup.add_camera_setup()->CopyFrom(createDefaultCamera(2, 5, 3.3, 5));
