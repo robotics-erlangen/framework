@@ -96,6 +96,7 @@ void RefereeWidget::saveConfig()
     s.setValue("BlueKeeper", ui->keeperIdBlue->value());
     s.setValue("useInternalAutoref", ui->useInternalAutoref->isChecked());
     s.setValue("SidesFlipped", ui->sidesFlipped->isChecked());
+    s.setValue("Division", ui->boxDivision->currentText());
     s.endGroup();
 
     s.beginGroup("Autoref");
@@ -113,6 +114,7 @@ void RefereeWidget::load()
     ui->keeperIdBlue->setValue(s.value("BlueKeeper", 0).toInt());
     ui->useInternalAutoref->setChecked(s.value("useInternalAutoref", false).toBool());
     ui->sidesFlipped->setChecked(s.value("SidesFlipped", false).toBool());
+    ui->boxDivision->setCurrentText(s.value("Division", "A").toString());
     s.endGroup();
 
     s.beginGroup("Autoref");
