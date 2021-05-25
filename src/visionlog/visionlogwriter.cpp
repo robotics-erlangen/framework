@@ -28,13 +28,9 @@
 #include <QByteArray>
 
 VisionLogWriter::VisionLogWriter(const QString& filename):
-    QObject()
+    QObject(),
+    out_stream(filename.toUtf8().constData(), std::ios_base::out | std::ios_base::binary)
 {
-    //keep reference to filename bytes alive
-    QByteArray filenameBytes = filename.toUtf8();
-    const char *fname = filenameBytes.constData();
-    out_stream = new std::ofstream(fname, std::ios_base::out | std::ios_base::binary);
-
     VisionLog::FileHeader fileHeader;
     fileHeader.version = 1;
     // length of struct fileHeader and char[12] fileHeader.name is known: write ... sizeof
@@ -42,17 +38,12 @@ VisionLogWriter::VisionLogWriter(const QString& filename):
     // Log data is stored big endian, convert from host byte order
     fileHeader.version = qToBigEndian(fileHeader.version);
 
-    out_stream->write((char*) &fileHeader, sizeof(fileHeader));
+    out_stream.write((char*) &fileHeader, sizeof(fileHeader));
 }
 
 bool VisionLogWriter::isOpen() const
 {
-    return out_stream->is_open();
-}
-
-VisionLogWriter::~VisionLogWriter()
-{
-    delete out_stream;
+    return out_stream.is_open();
 }
 
 void VisionLogWriter::addVisionPacket(const SSL_WrapperPacket& frame, qint64 time)
@@ -101,7 +92,7 @@ void VisionLogWriter::writePacket(const QByteArray &data, qint64 time, VisionLog
     dataHeader.messageType = (VisionLog::MessageType) qToBigEndian((int32_t) dataHeader.messageType);
     dataHeader.messageSize = qToBigEndian(dataHeader.messageSize);
 
-    out_stream->write((char*) &dataHeader, sizeof(dataHeader));
+    out_stream.write((char*) &dataHeader, sizeof(dataHeader));
 
-    out_stream->write(data.constData(), data.size());
+    out_stream.write(data.constData(), data.size());
 }

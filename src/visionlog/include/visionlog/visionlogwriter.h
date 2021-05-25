@@ -23,7 +23,7 @@
 
 #include <QObject>
 #include <QString>
-#include <iostream>
+#include <fstream>
 
 #include "protobuf/ssl_wrapper.pb.h"
 #include "protobuf/ssl_referee.pb.h"
@@ -34,7 +34,6 @@ class VisionLogWriter: public QObject
     Q_OBJECT
 public:
     explicit VisionLogWriter(const QString& filename);
-    ~VisionLogWriter() override;
     void addVisionPacket(const SSL_WrapperPacket& frame, qint64 time);
     void addRefereePacket(const SSL_Referee& state, qint64 time);
     bool isOpen() const;
@@ -43,7 +42,7 @@ private:
     void writePacket(const QByteArray &data, qint64 time, VisionLog::MessageType type);
 
 private:
-    std::ofstream* out_stream;
+    std::ofstream out_stream;
 };
 
 
