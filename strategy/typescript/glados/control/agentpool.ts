@@ -89,15 +89,16 @@ export class AgentPool {
 		if (this._agents.length < this._robotLimit) {
 			return true;
 		}
+		let possibleRobots = 0;
 		for (let agent of this._agents) {
 			if (this.isImmune(agent)) {
 				continue;
 			}
 			if (agent._activeBehavior && !agent._activeBehavior.forceKeepingInPool()) {
-				return true;
+				possibleRobots++;
 			}
 		}
-		return false;
+		return possibleRobots > Math.max(0, this._agents.length - this._robotLimit);
 	}
 
 	setRobotLimit(robotLimit: number) {
