@@ -40,6 +40,7 @@ target_link_libraries(cpptests
     amun::seshat
     amun::simulator
     amuncli::testtools
+    visionlog
     pthread
     Qt5::Gui
 )
