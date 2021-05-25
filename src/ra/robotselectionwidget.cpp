@@ -587,8 +587,8 @@ void RobotSelectionWidget::selectTeamForGeneration(uint generation, uint, RobotW
         Generation::Robot &r = it.value();
         RobotWidget::Team t = team;
         switch (team) {
-        case RobotWidget::Select8v8:
-            t = robotCounter < 8 ? RobotWidget::Blue : RobotWidget::Yellow;
+        case RobotWidget::Select6v6:
+            t = robotCounter < 6 ? RobotWidget::Blue : robotCounter < 12 ? RobotWidget::Yellow : RobotWidget::NoTeam;
             break;
         case RobotWidget::Select11v11:
             if (!m_isSimulator) {

@@ -144,7 +144,7 @@ RobotWidget::~RobotWidget()
 void RobotWidget::setIsSimulator(bool simulator) {
     if (simulator) {
         if (m_isGeneration) {
-            addTeamType("8v8", Select8v8);
+            addTeamType("6v6", Select6v6);
             addTeamType("11v11", Select11v11);
         } else {
             addTeamType("Both", Mixed);
@@ -339,7 +339,7 @@ void RobotWidget::selectTeam(Team team)
 
     case Mixed:
     case PartialBlue:
-    case Select8v8:
+    case Select6v6:
     case Select11v11:
         brush = QBrush("dodgerblue");
         break;
