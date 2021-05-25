@@ -28,9 +28,15 @@
 #include <QByteArray>
 
 VisionLogWriter::VisionLogWriter(const QString& filename):
-    QObject(),
-    out_stream(filename.toUtf8().constData(), std::ios_base::out | std::ios_base::binary)
+    QObject()
 {
+    open(filename);
+}
+
+void VisionLogWriter::open(const QString &filename)
+{
+    out_stream = std::ofstream { filename.toUtf8().constData(), std::ios_base::out | std::ios_base::binary };
+
     VisionLog::FileHeader fileHeader;
     fileHeader.version = 1;
     // length of struct fileHeader and char[12] fileHeader.name is known: write ... sizeof

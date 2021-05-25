@@ -33,9 +33,13 @@ class VisionLogWriter: public QObject
 {
     Q_OBJECT
 public:
+    explicit VisionLogWriter() = default;
     explicit VisionLogWriter(const QString& filename);
+
     void addVisionPacket(const SSL_WrapperPacket& frame, qint64 time);
     void addRefereePacket(const SSL_Referee& state, qint64 time);
+
+    void open(const QString &filename);
     bool isOpen() const;
 
 private:
