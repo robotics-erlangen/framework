@@ -90,6 +90,9 @@ export class AgentPool {
 			return true;
 		}
 		for (let agent of this._agents) {
+			if (this.isImmune(agent)) {
+				continue;
+			}
 			if (agent._activeBehavior && !agent._activeBehavior.forceKeepingInPool()) {
 				return true;
 			}

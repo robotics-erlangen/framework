@@ -89,7 +89,7 @@ export class MainCoordinator extends Coordinator {
 
 		// robots with forceKeepingInPool must not be exchanged
 		this._pools[newPool].setRobotLimit(poolLimit);
-		if (amun.isDebug && !this._pools[newPool].hasExchangeableRobot()) {
+		if (!this._pools[newPool].hasExchangeableRobot()) {
 			amun.log("Trying to to remove robot from pool with force keeping in pool");
 			return;
 		}
