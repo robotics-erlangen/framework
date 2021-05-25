@@ -446,7 +446,7 @@ void SSLGameController::start()
     QString gameControllerExecutable(GAMECONTROLLER_EXECUTABLE_LOCATION);
 
     // the downloaded game controller file is not executable at first (relevant for linux and mac only)
-    QFile::setPermissions(gameControllerExecutable, QFileDevice::ExeUser);
+    QFile::setPermissions(gameControllerExecutable, QFileDevice::ExeUser | QFileDevice::ReadUser | QFileDevice::WriteUser);
 
     QStringList arguments;
     arguments << "-timeAcquisitionMode" << "ci" << "-ciAddress" << QString("localhost:%1").arg(port) << "-backendOnly" << "True";
