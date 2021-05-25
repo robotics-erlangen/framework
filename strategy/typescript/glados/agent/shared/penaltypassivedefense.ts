@@ -1,4 +1,3 @@
-import { teamSize } from "base/constants";
 import * as Referee from "base/referee";
 import { Vector } from "base/vector";
 import * as World from "base/world";
@@ -22,7 +21,7 @@ export class PenaltyPassiveDefense extends Behavior {
 	}
 
 	_updateTask(): TaskAssignment<typeof MoveToPos> {
-		let x = (this._robot.id - World.FriendlyRobots[0].id + 0.5) * G.FieldWidth / teamSize - G.FieldWidthHalf;
+		let x = (this._robot.id - World.FriendlyRobots[0].id + 0.5) * G.FieldWidth / World.MaxAllowedFriendlyRobots - G.FieldWidthHalf;
 
 		let y = World.Ball.pos.y + this.yOffset;
 		let pos = new Vector(x, y);
