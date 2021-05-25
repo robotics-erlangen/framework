@@ -23,7 +23,7 @@
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
 
-import { maxRobotRadius, teamSize } from "base/constants";
+import { maxRobotRadius } from "base/constants";
 import { Robot } from "base/robot";
 import { AbsTime } from "base/timing";
 import { Position, Vector } from "base/vector";
@@ -291,9 +291,9 @@ export function robotAndPosOfLastBallTouch(): [Robot, Position] {
 }
 
 export function hasTooManyFriendlyRobots(): boolean {
-	return World.FriendlyRobots.length > (teamSize - World.FriendlyYellowCards.length - World.FriendlyRedCards);
+	return World.FriendlyRobots.length > World.MaxAllowedFriendlyRobots;
 }
 
 export function hasTooManyOpponentRobots(): boolean {
-	return World.OpponentRobots.length > (teamSize - World.OpponentYellowCards.length - World.OpponentRedCards);
+	return World.OpponentRobots.length > World.MaxAllowedOpponentRobots;
 }

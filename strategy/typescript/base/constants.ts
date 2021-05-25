@@ -64,8 +64,6 @@ export let fastBallDeceleration: number;
 /** if ball is slower than switchRatio * shootSpeed then switch from fast to normal ball deceleration */
 export let ballSwitchRatio: number;
 
-export const teamSize = 11;
-
 export function switchSimulatorConstants(isSimulated: boolean) {
 	if (isSimulated) {
 		ballDeceleration = -0.35;

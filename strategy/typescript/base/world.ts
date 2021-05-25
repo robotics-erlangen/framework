@@ -117,6 +117,10 @@ export let FriendlyRedCards: number = 0;
 export let OpponentRedCards: number = 0;
 /** where the ball has to be placed */
 export let BallPlacementPos: Readonly<Position> | undefined;
+/** number of allowed friendly robots on the field based on division and cards */
+export let MaxAllowedFriendlyRobots: number = 11;
+/** number of allowed opponent robots on the field based on division and cards */
+export let MaxAllowedOpponentRobots: number = 11;
 
 export let RULEVERSION: string = "";
 
@@ -503,6 +507,17 @@ function _updateGameState(state: pb.amun.GameState) {
 	OpponentRedCards = opponentTeamInfo.red_cards;
 	TeamName = friendlyTeamInfo.name;
 	OpponentTeamName = opponentTeamInfo.name;
+
+	if (friendlyTeamInfo.max_allowed_bots != undefined) {
+		MaxAllowedFriendlyRobots = friendlyTeamInfo.max_allowed_bots;
+	} else {
+		MaxAllowedFriendlyRobots = DIVISION === "A" ? 11 : 6;
+	}
+	if (opponentTeamInfo.max_allowed_bots != undefined) {
+		MaxAllowedOpponentRobots = opponentTeamInfo.max_allowed_bots;
+	} else {
+		MaxAllowedOpponentRobots = DIVISION === "A" ? 11 : 6;
+	}
 }
 
 /** update and handle user inputs set for own robots */
