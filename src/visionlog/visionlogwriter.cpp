@@ -24,6 +24,8 @@
 
 #include <fstream>
 #include <cstring>
+#include <limits>
+#include <QtGlobal>
 #include <QtEndian>
 #include <QByteArray>
 
@@ -74,8 +76,12 @@ void VisionLogWriter::addRefereePacket(const SSL_Referee& state, qint64 time)
     if (!isOpen()) {
         return;
     }
+    const std::size_t size = state.ByteSizeLong();
+    // QByteArray.resize takes an int
+    Q_ASSERT(size <= std::numeric_limits<int>::max());
+
     QByteArray data;
-    data.resize(state.ByteSize());
+    data.resize(size);
     if (!state.IsInitialized()){
         qFatal("Writing an uninitialized referee packet to Vision log");
     }
