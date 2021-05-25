@@ -228,10 +228,6 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
 
     // disable all possibilities of skipping / going back packets when recording
     connect(m_loggingUiHorus, SIGNAL(isLogging(bool)), ui->logManager, SIGNAL(disableSkipping(bool)));
-    connect(m_loggingUiHorus, SIGNAL(isLogging(bool)), ui->actionFrameBack, SLOT(setDisabled(bool)));
-    connect(m_loggingUiHorus, SIGNAL(isLogging(bool)), ui->actionFrameForward, SLOT(setDisabled(bool)));
-    connect(m_loggingUiHorus, SIGNAL(isLogging(bool)), ui->actionStepBack, SLOT(setDisabled(bool)));
-    connect(m_loggingUiHorus, SIGNAL(isLogging(bool)), ui->actionStepForward, SLOT(setDisabled(bool)));
 
     // start amun
     m_amun.start();
@@ -862,6 +858,18 @@ void MainWindow::toggleHorusModeWidgets(bool enable)
     ui->goToLastPosition->setVisible(enable && m_logOpener->showGoToLastPositionButton());
     ui->exportVision->setVisible(enable);
     ui->getLogUid->setVisible(enable);
+
+    if (enable) {
+        connect(m_loggingUiHorus, &Logsuite::isLogging, ui->actionFrameBack, &QAction::setDisabled);
+        connect(m_loggingUiHorus, &Logsuite::isLogging, ui->actionFrameForward, &QAction::setDisabled);
+        connect(m_loggingUiHorus, &Logsuite::isLogging, ui->actionStepBack, &QAction::setDisabled);
+        connect(m_loggingUiHorus, &Logsuite::isLogging, ui->actionStepForward, &QAction::setDisabled);
+    } else {
+        disconnect(m_loggingUiHorus, &Logsuite::isLogging, ui->actionFrameBack, &QAction::setDisabled);
+        disconnect(m_loggingUiHorus, &Logsuite::isLogging, ui->actionFrameForward, &QAction::setDisabled);
+        disconnect(m_loggingUiHorus, &Logsuite::isLogging, ui->actionStepBack, &QAction::setDisabled);
+        disconnect(m_loggingUiHorus, &Logsuite::isLogging, ui->actionStepForward, &QAction::setDisabled);
+    }
 
     udpateSpeedActionsEnabled();
 }
