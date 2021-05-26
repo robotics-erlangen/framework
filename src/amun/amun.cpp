@@ -237,6 +237,8 @@ void Amun::start()
         connect(this, SIGNAL(gotCommand(Command)), m_replayStrategy[i], SLOT(handleCommand(Command)));
         connect(m_replayStrategy[i], SIGNAL(sendStatus(Status)), SLOT(handleReplayStatus(Status)));
         connect(m_replayStrategy[i], SIGNAL(sendStatus(Status)), m_optionsManager, SLOT(handleStatus(Status)));
+
+        connect(m_seshat, &Seshat::changeStatusSource, m_replayStrategy[i], &Strategy::resetIsReplay);
     }
 
     if (!m_simulatorOnly) {

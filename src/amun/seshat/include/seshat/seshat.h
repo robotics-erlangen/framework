@@ -43,6 +43,7 @@ signals:
     void sendReplayStrategy(const Status& status);
     void sendTrackingReplay(const Status& status);
     void simPauseCommand(const Command& command);
+    void changeStatusSource();
 
 public slots:
     void handleCommand(const Command& comm);

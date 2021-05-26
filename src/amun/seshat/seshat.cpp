@@ -66,6 +66,7 @@ void Seshat::setStatusSource(std::shared_ptr<StatusSource> source)
         }
         m_isPlayback = true;
     }
+    emit changeStatusSource();
 }
 
 void Seshat::handleLogStatus(const Status& status)
