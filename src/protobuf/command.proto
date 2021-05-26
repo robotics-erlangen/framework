@@ -10,28 +10,6 @@ import "ssl_simulation_custom_erforce_realism.proto";
 
 package amun;
 
-message SimulatorMoveBall {
-    optional float p_x = 1;
-    optional float p_y = 2;
-    optional float p_z = 6;
-    optional bool position = 3 [default = false]; // set pos and speed to given values
-    optional float v_x = 4;
-    optional float v_y = 5;
-    optional float v_z = 7;
-    optional bool teleport_safely = 8 [default = false]; // move robots out of the way in case of collision and set speed of robots closeby to zero
-}
-
-message SimulatorMoveRobot {
-    required uint32 id = 1;
-    optional float p_x = 2;
-    optional float p_y = 3;
-    optional float phi = 4;
-    optional bool position = 5 [default = false]; // set pos and speed to given values
-    optional float v_x = 6;
-    optional float v_y = 7;
-    optional float omega = 8;
-}
-
 message RobotMoveCommand {
     required uint32 id = 1;
     optional float p_x = 2;
