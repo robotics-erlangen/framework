@@ -111,6 +111,9 @@ void LogWidget::handleStatus(const Status &status)
             case amun::ReplayYellow:
                 prefix = "YR";
                 break;
+            case amun::GameController:
+                prefix = "GC";
+                break;
             }
             logAppend += fromTime(log.timestamp(), prefix) + QString::fromStdString(log.text()) + "</div>\n";
         }

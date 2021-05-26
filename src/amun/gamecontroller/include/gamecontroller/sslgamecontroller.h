@@ -29,6 +29,7 @@
 #include "protobuf/command.h"
 #include "protobuf/ssl_gc_ci.pb.h"
 #include "protobuf/ssl_game_controller_auto_ref.pb.h"
+#include "core/vector.h"
 
 class Timer;
 class SSLVisionTracked;
@@ -52,6 +53,8 @@ private:
     static gameController::Command mapCommand(SSL_Referee::Command command);
     void handleRefereeUpdate(const SSL_Referee &newState, bool delayedSending);
     void updateCurrentStatus(amun::StatusGameController::GameControllerState state);
+    void handleNumberOfRobots(const world::State &worldState);
+    bool isPositionFreeToEnterRobot(Vector pos, const world::State &worldState);
 
 signals:
     void sendStatus(const Status &status);
@@ -87,6 +90,14 @@ private:
     bool m_ballIsTeleported = false;
     int m_continueFrameCounter = 0;
     SSL_Referee::Command m_nextCommand = SSL_Referee::HALT;
+
+    // for adding and removing robots
+    bool m_enableRobotExchange = true;
+    int m_allowedRobotsBlue = 11;
+    int m_allowedRobotsYellow = 11;
+    float m_fieldWidth = 1; // short side of the field
+    qint64 m_lastExchangeTime = 0;
+    QVector<int> m_blueTeamIds, m_yellowTeamIds;
 
     // the first port that will be chosen for the connection if it is available
     static constexpr int GC_CI_PORT_START = 10209;

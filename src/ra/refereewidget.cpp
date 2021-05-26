@@ -65,6 +65,8 @@ RefereeWidget::RefereeWidget(QWidget *parent) :
     connect(ui->useInternalAutoref, SIGNAL(toggled(bool)), this, SIGNAL(enableInternalAutoref(bool)));
     connect(this, &RefereeWidget::enableInternalAutoref, ui->autoref, &TeamWidget::setEnabled);
     connect(ui->sidesFlipped, SIGNAL(toggled(bool)), this, SIGNAL(changeSidesFlipped(bool)));
+    connect(this, &RefereeWidget::enableInternalAutoref, ui->enableRobotExchange, &QCheckBox::setEnabled);
+    connect(ui->enableRobotExchange, &QCheckBox::toggled, this, &RefereeWidget::handleAutomaticRobotExchangeChanged);
 
     connect(ui->autoref, &TeamWidget::sendCommand, this, &RefereeWidget::sendCommand);
 
@@ -97,6 +99,7 @@ void RefereeWidget::saveConfig()
     s.setValue("useInternalAutoref", ui->useInternalAutoref->isChecked());
     s.setValue("SidesFlipped", ui->sidesFlipped->isChecked());
     s.setValue("Division", ui->boxDivision->currentText());
+    s.setValue("RobotExchange", ui->enableRobotExchange->isChecked());
     s.endGroup();
 
     s.beginGroup("Autoref");
@@ -115,6 +118,7 @@ void RefereeWidget::load()
     ui->useInternalAutoref->setChecked(s.value("useInternalAutoref", false).toBool());
     ui->sidesFlipped->setChecked(s.value("SidesFlipped", false).toBool());
     ui->boxDivision->setCurrentText(s.value("Division", "A").toString());
+    ui->enableRobotExchange->setChecked(s.value("RobotExchange", true).toBool());
     s.endGroup();
 
     s.beginGroup("Autoref");
@@ -314,4 +318,11 @@ void RefereeWidget::divisionChanged(QString division)
         return;
     }
     emit sendDivisionChange(m_currentDivision);
+}
+
+void RefereeWidget::handleAutomaticRobotExchangeChanged(bool enable)
+{
+    Command command(new amun::Command);
+    command->mutable_referee()->set_use_automatic_robot_exchange(enable);
+    emit sendCommand(command);
 }

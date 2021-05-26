@@ -68,6 +68,7 @@ private slots:
     void handleYellowKeeper(int id);
     void handleBlueKeeper(int id);
     void divisionChanged(QString division);
+    void handleAutomaticRobotExchangeChanged(bool enable);
 
 private:
     void registerCommand(QWidget *button, SSL_Referee::Command c, const QString &stylesheet);

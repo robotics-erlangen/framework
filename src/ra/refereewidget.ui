@@ -373,6 +373,16 @@
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="QCheckBox" name="enableRobotExchange">
+       <property name="text">
+        <string>Enable Automatic Robot Exchange</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>
