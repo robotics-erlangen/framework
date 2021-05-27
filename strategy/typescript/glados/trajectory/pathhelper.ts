@@ -21,10 +21,11 @@ let SEED_ANGLE_MOD = 2 / 180 * Math.PI;
 let SEED_PREDICT_TIME = 0.5;
 
 // this bool is a hack for the hardware challenge
-// pls don't use anywhere outside of addBallObstacle
-let hardwareChallenge: 1 | 2 | 3 | 4 | undefined = undefined;
+// pls don't use if possible
+// 0 is initialization phase
+let hardwareChallenge: 0 | 1 | 2 | 3 | 4 | undefined = undefined;
 
-export function setHardwareChallenge(challenge: 1 | 2 | 3 | 4 | undefined) {
+export function setHardwareChallenge(challenge: 0 | 1 | 2 | 3 | 4 | undefined) {
 	hardwareChallenge = challenge;
 }
 
@@ -163,7 +164,7 @@ function addBallObstacle(robot: FriendlyRobot, ignoreBall?: boolean, stopBallDis
 	// In the other two cases (ball placement and normal game), ignoreBall is considered.
 	// If it is false, we don't want to set a stopDistance but still consider an eventual extraBallDistance
 	// addZonedBallObstacles takes care of the undefined handling
-	let isDefensiveStopState = Referee.isStopState() && World.RefereeState !== "BallPlacementOffensive" && hardwareChallenge != undefined;
+	let isDefensiveStopState = Referee.isStopState() && World.RefereeState !== "BallPlacementOffensive" && hardwareChallenge !== 0;
 	if (isDefensiveStopState) {
 		if (stopBallDistance != undefined && extraBallDistance != undefined && stopBallDistance > extraBallDistance) {
 			let temp = stopBallDistance;

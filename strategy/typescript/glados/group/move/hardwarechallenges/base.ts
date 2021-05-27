@@ -15,7 +15,7 @@ import * as PathHelper from "glados/trajectory/pathhelper";
 export abstract class HardwareChallengeBase extends Move {
 	public static MIN_ROBOTS: number = 1;
 	public static MAX_ROBOTS: number = 1;
-	public static readonly ALLOW_EXTRA_ATTACKERS = false;
+	public static ALLOW_EXTRA_ATTACKERS = false;
 
 	// override with specific challenge
 	protected challengeNumber: 1 | 2 | 3 | 4 | undefined = undefined;
@@ -33,7 +33,7 @@ export abstract class HardwareChallengeBase extends Move {
 	constructor(robots: FriendlyRobot[], messaging: MessageBox, positions: any) {
 		super(robots, messaging);
 
-		PathHelper.setHardwareChallenge(this.challengeNumber);
+		PathHelper.setHardwareChallenge(0);
 
 		let ball = positions.ball;
 
@@ -244,6 +244,7 @@ export abstract class HardwareChallengeBase extends Move {
 
 		this.initialized = everyoneInPosition;
 		if (this.initialized) {
+			PathHelper.setHardwareChallenge(this.challengeNumber);
 			amun.log("Finished initialization.");
 		}
 		return {assignments: taskAssignments};
@@ -252,5 +253,6 @@ export abstract class HardwareChallengeBase extends Move {
 	protected reset() {
 		this.initialized = false;
 		this.refStart = false;
+		PathHelper.setHardwareChallenge(0);
 	}
 }
