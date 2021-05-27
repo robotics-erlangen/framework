@@ -18,12 +18,18 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
+#include <cstdint>
+
 #include "gamecontrollerconnection.h"
 #include "core/sslprotocols.h"
 
+static constexpr std::uint16_t getExternalPort(bool isAutoref) {
+    return isAutoref ? SSL_AUTOREF_TO_GC_PORT : SSL_TEAM_TO_GC_PORT;
+}
+
 GameControllerConnection::GameControllerConnection(SSLGameController *internalGameController, bool isAutoref) :
     m_isAutoref(isAutoref),
-    m_externalGameControllerConnection(m_isAutoref ? SSL_AUTOREF_TO_GC_PORT : SSL_TEAM_TO_GC_PORT, this)
+    m_externalGameControllerConnection(getExternalPort(m_isAutoref), this)
 {
     connect(this, &GameControllerConnection::gotMessageForInternalGameController, internalGameController, &SSLGameController::handleGameEvent);
     connect(internalGameController, &SSLGameController::gotControllerReply, this, &GameControllerConnection::handleInternalGameControllerReply);
@@ -31,7 +37,7 @@ GameControllerConnection::GameControllerConnection(SSLGameController *internalGa
 
 GameControllerConnection::GameControllerConnection(bool isAutoref) :
     m_isAutoref(isAutoref),
-    m_externalGameControllerConnection(isAutoref, this)
+    m_externalGameControllerConnection(getExternalPort(m_isAutoref), this)
 { }
 
 void GameControllerConnection::handleInternalGameControllerReply(const gameController::ControllerReply &reply)
