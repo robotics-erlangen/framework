@@ -24,6 +24,7 @@ export abstract class HardwareChallengeBase extends Move {
 	private opponentTransforms: RobotState[];
 	private ballPos: BallInfo;
 	private initialized: boolean = false;
+	private refHalt: boolean = false;
 	private refStart: boolean = false;
 	private currentObstacleToSet: number = 0;
 
@@ -187,11 +188,17 @@ export abstract class HardwareChallengeBase extends Move {
 	}
 
 	public readonly _updateTasks: (() => MoveParameters) = () => {
-		if (this.initialized && World.RefereeState === "Halt") {
-			this.refStart = true;
-		}
 
 		if (this.initialized) {
+			if (!this.refHalt && World.RefereeState === "Halt") {
+				this.refHalt = true;
+				PathHelper.setHardwareChallenge(this.challengeNumber);
+				amun.log("Finished initialization.");
+			}
+
+			if (this.refHalt && World.RefereeState !== "Halt") {
+				this.refStart = true;
+			}
 			if (this.refStart) {
 				return this.challengeSpecificUpdateTask();
 			} else {
@@ -202,6 +209,8 @@ export abstract class HardwareChallengeBase extends Move {
 		if (World.WorldStateSource === pb.world.WorldSource.INTERNAL_SIMULATION && amun.isDebug) {
 			moveObjects(this.ballPos, this.friendlyTransforms, this.opponentTransforms);
 			this.initialized = true;
+
+			sendRefereeCommand("Halt");
 
 			return this.haltAllRobots();
 		}
@@ -239,15 +248,18 @@ export abstract class HardwareChallengeBase extends Move {
 
 		this.initialized = everyoneInPosition;
 		if (this.initialized) {
-			sendRefereeCommand("Halt");
-			PathHelper.setHardwareChallenge(this.challengeNumber);
-			amun.log("Finished initialization.");
+			if (amun.isDebug) {
+				sendRefereeCommand("Halt");
+			} else {
+				amun.log("Press Halt to finish initialization.");
+			}
 		}
 		return {assignments: taskAssignments};
 	}
 
 	protected reset() {
 		this.initialized = false;
+		this.refHalt = false;
 		this.refStart = false;
 		PathHelper.setHardwareChallenge(0);
 	}
