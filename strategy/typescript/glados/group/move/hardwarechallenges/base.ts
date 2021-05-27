@@ -1,5 +1,5 @@
 import { Coordinates } from "base/coordinates";
-import { BallInfo, moveObjects } from "base/debugcommands";
+import { BallInfo, moveObjects, sendRefereeCommand } from "base/debugcommands";
 import * as pb from "base/protobuf";
 import { FriendlyRobot, Robot, RobotState } from "base/robot";
 import { Vector } from "base/vector";
@@ -19,8 +19,6 @@ export abstract class HardwareChallengeBase extends Move {
 
 	// override with specific challenge
 	protected challengeNumber: 1 | 2 | 3 | 4 | undefined = undefined;
-	// override this if the start command differs
-	protected startState: World.RefereeStateType = "GameForce";
 
 	private friendlyTransforms: RobotState[];
 	private opponentTransforms: RobotState[];
@@ -189,11 +187,8 @@ export abstract class HardwareChallengeBase extends Move {
 	}
 
 	public readonly _updateTasks: (() => MoveParameters) = () => {
-		if (World.RefereeState === this.startState) {
+		if (this.initialized && World.RefereeState === "Halt") {
 			this.refStart = true;
-		}
-		if (World.RefereeState === "Stop") {
-			this.refStart = false;
 		}
 
 		if (this.initialized) {
@@ -244,6 +239,7 @@ export abstract class HardwareChallengeBase extends Move {
 
 		this.initialized = everyoneInPosition;
 		if (this.initialized) {
+			sendRefereeCommand("Halt");
 			PathHelper.setHardwareChallenge(this.challengeNumber);
 			amun.log("Finished initialization.");
 		}
