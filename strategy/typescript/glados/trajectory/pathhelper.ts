@@ -100,7 +100,7 @@ function addOpponentDefenseAreaObstacle(path: Path, robot: FriendlyRobot, target
 	// TODO: adjust to rect with distance instead of larger rect
 	let distance = oppDefAreaDist + POSITION_PADDING;
 	if (robot.pos.y > 0 && (!Referee.isFriendlyPenaltyState()) &&
-			World.RefereeState !== "BallPlacementOffensive") {
+			World.RefereeState !== "BallPlacementOffensive" && hardwareChallenge !== 0) {
 		if (World.RULEVERSION === "2018") {
 			path.addRect(G.OpponentGoal.x - G.DefenseWidthHalf - distance,
 					G.OpponentGoal.y - G.DefenseHeight - distance,
