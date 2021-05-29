@@ -7,7 +7,7 @@ import * as World from "base/world";
 
 import { MessageBox } from "glados/control/messaging";
 import { Assignment, Move, MoveParameters } from "glados/group/move/base";
-import { PlaceBall } from "glados/task/attacker/placeball";
+import { END_DISTANCE, PlaceBall } from "glados/task/attacker/placeball";
 import { Halt } from "glados/task/shared/halt";
 import { MoveToPos } from "glados/task/shared/movetopos";
 import * as PathHelper from "glados/trajectory/pathhelper";
@@ -106,7 +106,7 @@ export abstract class HardwareChallengeBase extends Move {
 		let angleDiff = Math.abs(robot.dir - transform.dir);
 		const LOW = (5 / 180) * Math.PI;
 		const HIGH = 2.0 * Math.PI - LOW;
-		return (robot.pos - transform.pos).length() < 0.005 && (angleDiff < LOW || angleDiff > HIGH);
+		return (robot.pos - transform.pos).length() < 0.05 && (angleDiff < LOW || angleDiff > HIGH);
 	}
 
 	private placeOpponents(): MoveParameters | undefined {
@@ -157,7 +157,8 @@ export abstract class HardwareChallengeBase extends Move {
 	}
 
 	private placeBall(): MoveParameters | undefined {
-		if ((World.Ball.pos - this.ballPos.pos).length() < 0.05) {
+		if ((World.Ball.pos - this.ballPos.pos).length() < END_DISTANCE
+			&& World.Ball.speed.length() < 0.1) {
 			return undefined;
 		}
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();

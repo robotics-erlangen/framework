@@ -36,7 +36,7 @@ const enum State {
 }
 
 /** Maximum final distance from the ball to placement position */
-const END_DISTANCE = 0.1;
+export const END_DISTANCE = 0.1;
 const BALL_STOP_SPEED = 0.2;
 const MAX_BALL_DISTANCE = 0.25;
 
