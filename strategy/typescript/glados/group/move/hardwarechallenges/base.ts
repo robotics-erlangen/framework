@@ -134,7 +134,10 @@ export abstract class HardwareChallengeBase extends Move {
 		}
 
 		transform = this.opponentTransforms[this.currentObstacleToSet];
-		let dir = -transform.dir;
+		let dir = transform.dir + Math.PI;
+		if (dir > 2.0 * Math.PI) {
+			dir -= 2.0 * Math.PI;
+		}
 		let radius = this._robots[0].radius;
 		if (this._robots[0].centerToDribbler != undefined) {
 			radius = this._robots[0].centerToDribbler;
