@@ -32,6 +32,7 @@ public:
     const std::vector<TrajectoryGenerationInfo> &getResult() const override { return m_generationInfo; }
     int getMaxIntersectingObstaclePrio() const { return m_maxIntersectingObstaclePrio; }
     void resetMaxIntersectingObstaclePrio() { m_maxIntersectingObstaclePrio = -1; }
+    void updateFrom(const EscapeObstacleSampler &other);
 
 private:
     struct TrajectoryRating {

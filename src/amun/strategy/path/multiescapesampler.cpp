@@ -50,6 +50,8 @@ bool MultiEscapeSampler::compute(const TrajectoryInput &input)
     if (!m_resultIsZeroV0) {
           bool valid = m_regularSampler.compute(input);
           return valid;
+    } else {
+        m_regularSampler.updateFrom(m_zeroV0Sampler);
     }
     return zeroValid;
 }

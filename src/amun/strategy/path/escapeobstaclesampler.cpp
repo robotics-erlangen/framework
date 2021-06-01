@@ -88,6 +88,12 @@ bool EscapeObstacleSampler::compute(const TrajectoryInput &input)
     return true;
 }
 
+void EscapeObstacleSampler::updateFrom(const EscapeObstacleSampler &other)
+{
+    m_bestEscapingTime = other.m_bestEscapingTime;
+    m_bestEscapingAngle = other.m_bestEscapingAngle;
+}
+
 auto EscapeObstacleSampler::rateEscapingTrajectory(const TrajectoryInput &input, const SpeedProfile &speedProfile) const -> TrajectoryRating
 {
     const float OUT_OF_OBSTACLE_TIME = 0.1f;
