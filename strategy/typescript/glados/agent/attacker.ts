@@ -78,6 +78,9 @@ export class Attacker extends Agent {
 			return Infinity;
 		}
 		if (this._messaging.receiveTrainer(MessageType.mainAttacker) === this._robot) {
+			return 1;
+		}
+		if (this._messaging.receiveTrainer(MessageType.exchangeRobot) === this._robot) {
 			return 0;
 		}
 		return -World.Geometry.OpponentGoal.distanceTo(this._robot.pos);

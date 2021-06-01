@@ -52,8 +52,6 @@ export class Exchange extends Behavior {
 			 * to be sure the robot remains at the exchange pos
 			 * and does not change while the robot handler takes it
 			 */
-
-			this._forceKeepingInPool = true;
 			this._applyForMainAttacker(undefined, undefined, -Infinity);
 		}
 		amun.setRobotExchangeSymbol(this._robot.generation, this._robot.id,true);
