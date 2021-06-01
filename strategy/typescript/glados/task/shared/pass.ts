@@ -5,7 +5,7 @@ import { Position, Vector } from "base/vector";
 import * as World from "base/world";
 
 import { Behavior } from "glados/agent/base/behavior";
-import { MessageType } from "glados/control/messaging";
+import { formatTimestamp, MessageType } from "glados/control/messaging";
 import * as ObserverShoot from "glados/observer/shoot";
 import { Shoot } from "glados/task/ability/shoot";
 import { Task } from "glados/task/base";
@@ -119,10 +119,7 @@ export class Pass extends Task {
 
 		debug.set("chipOverride", this._chipOverride);
 		debug.set("chip", this._chip);
-		if (this._targetTime != undefined) {
-			debug.set("targetTime (rel)", this._targetTime - World.Time);
-		}
-		debug.set("targetTime", this._targetTime);
+		debug.set("targetTime", this._targetTime !== undefined ? formatTimestamp(this._targetTime) : undefined);
 
 		let attackPos = this._ballReceiptPos || World.Ball.pos;
 		let targetPos = this._targetPos;

@@ -890,7 +890,7 @@ function dumpWithTimeSubkey(senderName: string, msg: ReadonlyRec<{ time?: number
 	}
 }
 
-function formatTimestamp(absTime: AbsTime): string {
+export function formatTimestamp(absTime: AbsTime): string {
 	const relTime = absTime - World.Time;
 	return `${relTime.toFixed(4)} (${absTime.toFixed(0)})`;
 }
