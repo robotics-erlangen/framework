@@ -2,11 +2,11 @@ import { FriendlyRobot } from "base/robot";
 import { parameterizeClass } from "base/types";
 import * as World from "base/world";
 
-import { Default } from "glados/agent/attacker/default";
 import { DoubleTouchGuard } from "glados/agent/attacker/doubletouchguard";
 import { FreeKick } from "glados/agent/attacker/freekick";
 import { PassTiming } from "glados/agent/attacker/passtiming";
 import { Shoot } from "glados/agent/attacker/shoot";
+import { Support } from "glados/agent/attacker/support";
 import { Agent } from "glados/agent/base/agent";
 import { CheckableList } from "glados/agent/base/behavior";
 import { BallLike, Objective } from "glados/agent/base/objective";
@@ -35,7 +35,7 @@ export class Striker extends Objective {
 		PassTiming,
 		parameterizeClass(Shoot, defaultRatePass),
 	]);
-	private static SUPPORT_RUNNER = parameterizeClass(Default, { isStriker: true, samplingCtor: StrikerSampling });
+	private static SUPPORT_RUNNER = parameterizeClass(Support, { isStriker: true, samplingCtor: StrikerSampling });
 
 	static canStart(_ball: BallLike) {
 		return true;

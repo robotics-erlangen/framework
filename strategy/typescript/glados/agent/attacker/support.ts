@@ -5,7 +5,7 @@ import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
 import { AcceptPass } from "glados/task/attacker/acceptpass";
 import { SideStep } from "glados/task/attacker/sidestep";
-import { Support, SupportParameters } from "glados/task/attacker/support";
+import { Support as SupportTask, SupportParameters } from "glados/task/attacker/support";
 import * as Attack from "glados/util/attack";
 
 /**
@@ -13,7 +13,7 @@ import * as Attack from "glados/util/attack";
  *
  * It will participate in the support group and accept passes if necessary.
  */
-export class Default extends Behavior {
+export class Support extends Behavior {
 	_forceKeepingInPool: boolean = false;
 	_supportParams: SupportParameters;
 
@@ -51,7 +51,7 @@ export class Default extends Behavior {
 		return this;
 	}
 
-	_updateTask(): TaskAssignment<typeof SideStep> | TaskAssignment<typeof AcceptPass> | TaskAssignment<typeof Support> {
+	_updateTask(): TaskAssignment<typeof SideStep> | TaskAssignment<typeof AcceptPass> | TaskAssignment<typeof SupportTask> {
 		let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
 		let relevantPassInfo = passInfoTable ? Attack.relevantPassInfoMessage(this._robot, passInfoTable) : undefined;
 		let prevRobotTime = (this._task instanceof AcceptPass) ? (this._task as AcceptPass).getLastTime() : undefined;
@@ -66,6 +66,6 @@ export class Default extends Behavior {
 		if (acceptingPass) {
 			return [AcceptPass];
 		}
-		return [Support, [this._supportParams]];
+		return [SupportTask, [this._supportParams]];
 	}
 }
