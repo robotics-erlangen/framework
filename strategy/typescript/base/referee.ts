@@ -260,7 +260,7 @@ export function checkTouching() {
 		return;
 	}
 
-	if (World.Ball.posZ != 0) {
+	if (World.Ball.posZ !== 0) {
 		lastFlightTime = World.Time;
 		return;
 	}
