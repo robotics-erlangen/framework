@@ -1,6 +1,7 @@
 import * as debug from "base/debug";
 import * as Field from "base/field";
 import * as MathUtil from "base/mathutil";
+import * as Referee from "base/referee";
 import { FriendlyRobot } from "base/robot";
 import * as timing from "base/timing";
 import { Position, Vector } from "base/vector";
@@ -163,7 +164,7 @@ export abstract class Agent {
 			return;
 		}
 
-		if (this._robot !== World.FriendlyKeeper && World.RefereeState !== "BallPlacementOffensive") {
+		if (this._robot !== World.FriendlyKeeper && !Referee.isStopState()) {
 			// only the keeper can apply for MA if it could touch the ball inside the defense area
 			if (Field.isInFriendlyDefenseArea(this._robot.pos, this._robot.radius + World.Ball.radius + 0.02)
 				&&  World.Ball.pos.y < this._robot.pos.y + this._robot.radius * 3) {
