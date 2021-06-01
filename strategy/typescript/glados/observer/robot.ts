@@ -195,12 +195,17 @@ function _minShootTime(robot: Robot, shootPos: Position): number {
 }
 export let minShootTime: (robot: Robot, shootPos: Position) => number = Cache.forFrame(_minShootTime);
 
+function isBallClose(robot: Robot) {
+	const BAL_CLOSE_DIST = robot.radius + World.Ball.radius + 0.05;
+	return robot.pos.distanceToSq(World.Ball.pos) < BAL_CLOSE_DIST * BAL_CLOSE_DIST;
+}
+
 let standardShooterRobot: Robot | undefined = undefined;
 function updateOwnStandardShooter() {
 	if (Referee.isFriendlyFreeKickState() || World.RefereeState === "KickoffOffensive") {
-		if (!standardShooterRobot || !hadBall(standardShooterRobot, 0)) {
+		if (!standardShooterRobot || !isBallClose(standardShooterRobot)) {
 			for (let robot of World.FriendlyRobots) {
-				if (hadBall(robot, 0)) {
+				if (isBallClose(robot)) {
 					standardShooterRobot = robot;
 					break;
 				}
