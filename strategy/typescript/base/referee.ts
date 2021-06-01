@@ -251,11 +251,21 @@ export function lastStateChangeTime(): AbsTime {
 }
 
 /** Update the status of which team touched the ball last */
+let lastFlightTime = 0;
 export function checkTouching() {
 	let ballPos = World.Ball.pos;
 	// only consider touches when playing
 	if (noBallTouchStates[World.RefereeState]  ||
 			Math.abs(ballPos.x) > fieldWidthHalf || Math.abs(ballPos.y) > fieldHeightHalf) {
+		return;
+	}
+
+	if (World.Ball.posZ != 0) {
+		lastFlightTime = World.Time;
+		return;
+	}
+	// add an additional time after a chip detection, since it can sometimes flicker
+	if (World.Time - lastFlightTime < 0.1) {
 		return;
 	}
 
