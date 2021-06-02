@@ -58,6 +58,7 @@ const tests: {[name: string]: string} = {
 	"GladosZone": testPrefix + "glados/zone",
 	"GladosBehavior": testPrefix + "glados/behavior",
 	"GladosObserverBall": testPrefix + "glados/ball",
+	"GladosAbilityShoot": testPrefix + "glados/shoot",
 };
 
 function runTests(moduleNames: string[]) {
