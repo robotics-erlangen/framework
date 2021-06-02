@@ -73,7 +73,7 @@ export class StopAttack extends Task {
 			let minAngle = Infinity;
 			let maxAngle = -Infinity;
 			for (let robot of passReceivers) {
-				let angle = getNormalizedAngle(Field.limitToAllowedField(Physics.robotBrakePos(robot), robot.radius) - ballPos);
+				let angle = getNormalizedAngle(Field.limitToAllowedField(Physics.robotBrakePos(robot), -robot.radius) - ballPos);
 				angle = geom.normalizeAnglePositive(angle);
 				if (angle < minAngle && angle >= Math.PI) {
 					minAngle = angle;

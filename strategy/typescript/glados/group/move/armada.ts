@@ -102,7 +102,7 @@ export class Armada extends Move {
 					let intersectionWithCircle = geom.intersectLineCircle(posToShiftFrom, pos - posToShiftFrom, circle, radius)[0]!;
 					pos = posToShiftFrom + (intersectionWithCircle - posToShiftFrom).withLength(randomExtension(intersectionWithCircle.distanceTo(posToShiftFrom) + 0.1));
 				}
-				this._positions.push(Field.limitToAllowedField(pos, 0.3));
+				this._positions.push(Field.limitToAllowedField(pos, -0.3));
 			}
 		}
 		if (startMoving && this._assignment == undefined) {

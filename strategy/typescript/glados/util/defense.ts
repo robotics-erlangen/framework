@@ -59,10 +59,10 @@ function _manMarkPos(opponent: { pos: Position, radius: number, speed: Speed }):
 		if (defenseIntersection != undefined) {
 			targetPos = defenseIntersection;
 		} else {
-			targetPos = Field.limitToAllowedField(targetPos, Constants.maxRobotRadius);
+			targetPos = Field.limitToAllowedField(targetPos, -Constants.maxRobotRadius);
 		}
 	} else {
-		targetPos = Field.limitToAllowedField(targetPos, Constants.maxRobotRadius);
+		targetPos = Field.limitToAllowedField(targetPos, -Constants.maxRobotRadius);
 	}
 
 	let intersectionDefenseArea = Field.intersectRayDefenseArea(targetPos,

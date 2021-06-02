@@ -132,7 +132,7 @@ export class Support extends Task {
 				for (let y = grid_point_dist_y * 0.5 - G.FieldHeightHalf; y <= G.FieldHeightHalf; y += grid_point_dist_y) {
 					if (y > bottom && y < top) {
 						let candidatePoint = new Vector(x, y);
-						candidatePoint = Field.limitToAllowedField(candidatePoint, 3 * this._robot.radius + 0.1);
+						candidatePoint = Field.limitToAllowedField(candidatePoint, -(3 * this._robot.radius + 0.1));
 						if (geom.insideRect(new Vector(left, bottom), new Vector(right, top), candidatePoint)) {
 							let score = this._sampling.evalLocation(candidatePoint, bestScore);
 							let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];

@@ -53,14 +53,14 @@ let getRandomPosition = function (positions, maxShootingAngle) {
 	// angleDiff between the found positions
 	let angleDiff = ((firstPointNearBall - circle)).angleDiff((lastPointNearOppDefenseArea - circle)) / (BallCycle.MIN_ROBOTS - 2)
 	// make sure all positions are inside the field
-	firstPointNearBall = Field.limitToAllowedField(firstPointNearBall, 0.3)
-	lastPointNearOppDefenseArea = Field.limitToAllowedField(lastPointNearOppDefenseArea, 0.3)
+	firstPointNearBall = Field.limitToAllowedField(firstPointNearBall, -0.3)
+	lastPointNearOppDefenseArea = Field.limitToAllowedField(lastPointNearOppDefenseArea, -0.3)
 	table.insert(positions, firstPointNearBall)
 	table.insert(positions, lastPointNearOppDefenseArea)
 	// find positions for the other robots
 	for (i = 1, (BallCycle.MIN_ROBOTS - 3)) {
 		let pos = circle + (firstPointNearBall - circle).rotated(i * angleDiff).withLength(randomExtension(radius + extraDistForRobotToShoot))
-		table.insert(positions, Field.limitToAllowedField(pos, 0.3))
+		table.insert(positions, Field.limitToAllowedField(pos, -0.3))
 	}
 	return
 }
