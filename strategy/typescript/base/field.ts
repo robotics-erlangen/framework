@@ -837,7 +837,7 @@ export function isInOwnCorner(pos: Position, opp: boolean): boolean {
 
 /**
  * The position, where the half-line given by startPos and dir intersects the next field boundary
- * @param startPos - The initial point of the half-line
+ * @param startPos - The initial point of the half-line (the position must be INSIDE the field with the offset)
  * @param dir - The direction of the half-line
  * @param offset - Additional offset to move field lines further outwards]
  */
