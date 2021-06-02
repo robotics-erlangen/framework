@@ -49,7 +49,8 @@ export function limitToField(pos: Readonly<Position>, boundaryWidth: number = 0)
 	return new Vector(x, y);
 }
 
-function limitToAllowedField_2017(pos: Readonly<Position>, extraLimit: number = 0): Position {
+function limitToAllowedField_2017(pos: Readonly<Position>, boundaryWidth: number = 0): Position {
+	const extraLimit = -boundaryWidth;
 	let oppExtraLimit = extraLimit;
 	if (Referee.isStopState() || Referee.isFriendlyFreeKickState()) {
 		oppExtraLimit = oppExtraLimit + G.FreeKickDefenseDist + 0.10;
@@ -77,7 +78,8 @@ function limitToAllowedField_2017(pos: Readonly<Position>, extraLimit: number = 
 	return pos;
 }
 
-function limitToAllowedField_2018(pos: Readonly<Position>, extraLimit: number = 0): Position {
+function limitToAllowedField_2018(pos: Readonly<Position>, boundaryWidth: number = 0): Position {
+	const extraLimit = -boundaryWidth;
 	let oppExtraLimit = extraLimit;
 	if (Referee.isStopState() || Referee.isFriendlyFreeKickState()) {
 		oppExtraLimit = oppExtraLimit + G.FreeKickDefenseDist + 0.10;
@@ -223,7 +225,13 @@ export let distanceToDefenseArea: (pos: Readonly<Position>, radius: number, frie
  * @param friendly - Selection of Own/Opponent area
  */
 export let isInDefenseArea: (pos: Readonly<Position>, radius: number, friendly: boolean) => boolean;
-export let limitToAllowedField: (pos: Readonly<Position>, radius?: number) => Position;
+
+/**
+ * Limit the given position to inside the allowed field (the defense area is not allowed)
+ * @param pos - The position to limit
+ * @param boundaryWidth - How much the field should be extended beyond the borders
+ */
+export let limitToAllowedField: (pos: Readonly<Position>, boundaryWidth?: number) => Position;
 if (World.RULEVERSION === "2018") {
 	distanceToDefenseAreaSq = distanceToDefenseAreaSq_2018;
 	distanceToDefenseArea = distanceToDefenseArea_2018;
