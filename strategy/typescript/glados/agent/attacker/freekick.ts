@@ -274,17 +274,22 @@ export class FreeKick extends Behavior {
 			debug.set("pass", undefined);
 		}
 
+		// during the prepare states, position the robot so that it is between the
+		// field boundary and the ball. This ensures that the robot does not obscure the
+		// ball from the view of the camera, which can cause various problems during the freekick
+		let prepareRobotAngle = World.Ball.pos.x < 0 ? 0 : Math.PI;
+
 		let PASS_TIMEFRAME = 3;
 		switch (this._state) {
 			case State.Prepare:
 				this._messaging.sendBroadcast(MessageType.plannedAttackTime, Referee.lastStateChangeTime() + PASS_TIMEFRAME);
-				return [MoveToStaticBall, [ Math.PI / 2, distanceToBall ], stateChanged];
+				return [MoveToStaticBall, [ prepareRobotAngle, distanceToBall ], stateChanged];
 			case State.ShootGoal:
 				return [ShootGoal, [ undefined, undefined, timeRunningOut]];
 			case State.Wait:
 			case State.PassPrepare:
 				this._messaging.sendBroadcast(MessageType.plannedAttackTime, Referee.lastStateChangeTime() + PASS_TIMEFRAME);
-				return [MoveToStaticBall, [ Math.PI / 2 ], stateChanged];
+				return [MoveToStaticBall, [ prepareRobotAngle ], stateChanged];
 			case State.Pass:
 				const pass = <Pass> this._pass;
 				if (this._task != undefined && this._task instanceof TaskPass) {
