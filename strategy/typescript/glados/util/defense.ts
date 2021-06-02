@@ -86,14 +86,21 @@ function _manMarkPos(opponent: { pos: Position, radius: number, speed: Speed }):
 }
 export let manMarkPos: (opponent: { pos: Position, radius: number, speed: Speed }) => Position = Cache.forFrame(_manMarkPos);
 
+let lastWasOutOfField = false;
 function _piggyPos(opponent: Robot): Position {
+	const TO_BALL_LENGTH = 0.3;
+
 	let passLine = World.Ball.pos - opponent.pos;
 
 	let perpendicularOffset = passLine.perpendicular().withLength(0.3);
+	let offset = passLine.withLength(TO_BALL_LENGTH) + perpendicularOffset;
 
-
-	let offset = passLine.withLength(0.3) + perpendicularOffset;
-
+	if (!Field.isInAllowedField(opponent.pos + offset, lastWasOutOfField ? 0 : 0.1)) {
+		lastWasOutOfField = true;
+		offset = passLine.withLength(TO_BALL_LENGTH) - perpendicularOffset;
+	} else {
+		lastWasOutOfField = false;
+	}
 	return opponent.pos + offset;
 }
 export let piggyPos: (opponent: Robot) => Position = Cache.forFrame(_piggyPos);
