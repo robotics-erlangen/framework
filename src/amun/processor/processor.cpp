@@ -452,7 +452,8 @@ void Processor::handleCommand(const Command &command)
         m_tracker->reset();
         m_speedTracker->reset();
         m_simpleTracker->reset();
-        m_simulatorEnabled = command->simulator().enable();
+        m_internalSimulatorEnabled = command->simulator().enable();
+        m_simulatorEnabled = m_internalSimulatorEnabled || m_externalSimulatorEnabled;
     }
 
     if (teamsChanged) {
@@ -486,6 +487,11 @@ void Processor::handleCommand(const Command &command)
         const amun::CommandTransceiver &t = command->transceiver();
         if (t.has_enable()) {
             m_transceiverEnabled = t.enable();
+        }
+
+        if (t.has_use_network()) {
+            m_externalSimulatorEnabled = t.use_network();
+            m_simulatorEnabled = m_internalSimulatorEnabled || m_externalSimulatorEnabled;
         }
     }
 }

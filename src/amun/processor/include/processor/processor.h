@@ -109,6 +109,8 @@ private:
     bool m_mixedTeamInfoSet;
     bool m_refereeInternalActive;
     bool m_simulatorEnabled;
+    bool m_internalSimulatorEnabled = false;
+    bool m_externalSimulatorEnabled = false;
     bool m_lastFlipped;
     SSLGameController *m_gameController;
     QThread *m_gameControllerThread;
