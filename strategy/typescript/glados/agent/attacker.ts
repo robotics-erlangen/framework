@@ -4,6 +4,7 @@ import { parameterizeClass } from "base/types";
 import * as World from "base/world";
 
 import { ApplyForMainattacker } from "glados/agent/attacker/applyformainattacker";
+import { Default } from "glados/agent/attacker/default";
 import { Duel } from "glados/agent/attacker/duel";
 import { DuelAssistant } from "glados/agent/attacker/duelassistant";
 import { Exchange } from "glados/agent/attacker/exchange";
@@ -56,6 +57,7 @@ export class Attacker extends Agent {
 			parameterizeClass(BallEscort, false),
 			BreakPass,
 			RunObjective,
+			Default,
 		];
 	}
 
