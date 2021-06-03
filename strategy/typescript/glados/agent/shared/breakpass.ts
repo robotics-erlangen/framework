@@ -2,6 +2,7 @@ import * as debug from "base/debug";
 import * as Field from "base/field";
 import { some } from "base/listutil";
 import * as Referee from "base/referee";
+import { Robot } from "base/robot";
 import { Vector } from "base/vector";
 import * as World from "base/world";
 
@@ -9,10 +10,12 @@ import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
-import * as Robot from "glados/observer/robot";
+import * as ObserverRobot from "glados/observer/robot";
 import { BreakPass as BreakPassTask } from "glados/task/defender/breakpass";
 
 export class BreakPass extends Behavior {
+
+	private lastOppFirstAtBall: Map<Robot, boolean> = new Map();
 
 	_stop() {
 
@@ -99,11 +102,13 @@ export class BreakPass extends Behavior {
 		// main attacker will receive the pass
 		let attackPosition = this._messaging.receiveSingleSender(MessageType.attackPosition)[1];
 		if (attackPosition != undefined) {
+			const timeBallToTarget = Physics.ballRollTime(World.Ball, World.Ball.pos.distanceTo(attackPosition!));
 			const oppInPassZone = some(World.OpponentRobots, (opp) => {
 				// Check if the opponent could reach the ball faster than the ball its target
-				const timeBallToTarget = Physics.ballRollTime(World.Ball, World.Ball.pos.distanceTo(attackPosition!));
-
-				return Robot.minTimeToBall(opp) < timeBallToTarget;
+				const hysteresis = this.lastOppFirstAtBall[opp] ? 0 : -0.1;
+				const oppFaster = ObserverRobot.minTimeToBall(opp) < timeBallToTarget + hysteresis;
+				this.lastOppFirstAtBall[opp] = oppFaster;
+				return oppFaster;
 			});
 			if (!oppInPassZone) {
 				debug.set("breakpass check", "main attacker will receive the ball");
