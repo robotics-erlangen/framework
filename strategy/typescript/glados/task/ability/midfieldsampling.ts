@@ -172,8 +172,7 @@ export class MidfieldSampling {
 		}
 
 		let robotPos = ballPos + (ballPos - this._attackPosition).withLength(this._robot.shootRadius + World.Ball.radius);
-		let robotTime = Physics.robotTimeToPos(this._robot, robotPos,
-			(robotPos - this._robot.pos).withLength(this._robot.maxSpeed))[0];
+		let robotTime = Physics.robotTimeToPos(this._robot, robotPos, new Vector(0, 0))[0];
 		let shootTime = this._attackTime - World.Time;
 		let ballTime = ObserverShoot.ballPassTime(this._attackPosition, ballPos, this._robot, undefined, this._mainAttacker);
 
