@@ -64,7 +64,7 @@ public:
     void setFlip(bool flip);
     void queuePacket(const QByteArray &packet, qint64 time, QString sender);
     void queueRadioCommands(const QList<robot::RadioCommand> &radio_commands, qint64 time);
-    void handleCommand(const amun::CommandTracking &command);
+    void handleCommand(const amun::CommandTracking &command, qint64 time);
     void reset();
     void finishProcessing(); // has to be called after all calls to worldState for one frame
 
@@ -86,7 +86,9 @@ private:
     CameraInfo * const m_cameraInfo;
 
     qint64 m_systemDelay;
-    qint64 m_resetTime;
+    qint64 m_timeSinceLastReset;
+    // used to delay the reset, to avoid accepting invalid vision frames that were sent before reset was triggered
+    qint64 m_timeToReset = std::numeric_limits<qint64>::max();
 
     world::Geometry m_geometry;
     world::Geometry m_virtualFieldGeometry;

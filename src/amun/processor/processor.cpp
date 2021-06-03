@@ -478,9 +478,10 @@ void Processor::handleCommand(const Command &command)
     }
 
     if (command->has_tracking()) {
-        m_tracker->handleCommand(command->tracking());
-        m_speedTracker->handleCommand(command->tracking());
-        m_simpleTracker->handleCommand(command->tracking());
+        const qint64 currentTime = m_timer->currentTime();
+        m_tracker->handleCommand(command->tracking(), currentTime);
+        m_speedTracker->handleCommand(command->tracking(), currentTime);
+        m_simpleTracker->handleCommand(command->tracking(), currentTime);
     }
 
     if (command->has_transceiver()) {

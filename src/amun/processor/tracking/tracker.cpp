@@ -32,7 +32,7 @@
 Tracker::Tracker(bool robotsOnly, bool isSpeedTracker) :
     m_cameraInfo(new CameraInfo),
     m_systemDelay(0),
-    m_resetTime(0),
+    m_timeSinceLastReset(0),
     m_geometryUpdated(false),
     m_hasVisionData(false),
     m_virtualFieldEnabled(false),
@@ -82,7 +82,7 @@ void Tracker::reset()
     m_ballFilter.clear();
 
     m_hasVisionData = false;
-    m_resetTime = 0;
+    m_timeSinceLastReset = 0;
     m_lastUpdateTime.clear();
     m_visionPackets.clear();
     m_cameraInfo->cameraPosition.clear();
@@ -99,8 +99,8 @@ void Tracker::setFlip(bool flip)
 void Tracker::process(qint64 currentTime)
 {
     // reset time is used to immediatelly show robots after reset
-    if (m_resetTime == 0) {
-        m_resetTime = currentTime;
+    if (m_timeSinceLastReset == 0) {
+        m_timeSinceLastReset = currentTime;
     }
 
     // remove outdated ball and robot filters
@@ -135,6 +135,12 @@ void Tracker::process(qint64 currentTime)
         // time on the field for which the frame was captured
         // with Timer::currentTime being now
         const qint64 sourceTime = p.time - visionProcessingTime - m_systemDelay;
+
+        // delayed reset to clear frames older than the reset command
+        if (sourceTime > m_timeToReset) {
+            m_timeToReset = std::numeric_limits<qint64>::max();
+            reset();
+        }
 
         // drop frames older than the current state
         if (sourceTime <= m_lastUpdateTime[detection.camera_id()]) {
@@ -251,7 +257,7 @@ Status Tracker::worldState(qint64 currentTime, bool resetRaw)
 {
     // only return objects which have been tracked for more than minFrameCount frames
     // if the tracker was reset recently, allow for fast repopulation
-    const int minFrameCount = (currentTime > m_resetTime + m_resetTimeout) ? 5: 0;
+    const int minFrameCount = (currentTime > m_timeSinceLastReset + m_resetTimeout) ? 5: 0;
 
     // create world state for the given time
     Status status(new amun::Status);
@@ -409,7 +415,7 @@ QList<RobotFilter *> Tracker::getBestRobots(qint64 currentTime)
     const qint64 resetTimeout = 100*1000*1000;
     // only return objects which have been tracked for more than minFrameCount frames
     // if the tracker was reset recently, allow for fast repopulation
-    const int minFrameCount = (currentTime > m_resetTime + resetTimeout) ? 5: 0;
+    const int minFrameCount = (currentTime > m_timeSinceLastReset + resetTimeout) ? 5: 0;
 
     QList<RobotFilter *> filters;
 
@@ -554,7 +560,7 @@ void Tracker::queueRadioCommands(const QList<robot::RadioCommand> &radio_command
     }
 }
 
-void Tracker::handleCommand(const amun::CommandTracking &command)
+void Tracker::handleCommand(const amun::CommandTracking &command, qint64 time)
 {
     if (command.has_aoi_enabled()) {
         m_aoiEnabled = command.aoi_enabled();
@@ -573,7 +579,7 @@ void Tracker::handleCommand(const amun::CommandTracking &command)
 
     // allows resetting by the strategy
     if (command.reset()) {
-        reset();
+        m_timeToReset = time;
     }
 
     if (command.has_field_transform()) {
