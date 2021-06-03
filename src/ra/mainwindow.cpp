@@ -395,7 +395,7 @@ void MainWindow::showPlotter()
     Command c(new amun::Command);
     c->mutable_record()->set_request_backlog(PRELOAD_PACKETS);
     c->mutable_record()->set_for_replay(m_currentWidgetConfiguration % 2 == 0); // horus mode
-    emit sendCommand(c);
+    sendCommand(c);
 }
 
 void MainWindow::togglePause()
@@ -812,7 +812,7 @@ void MainWindow::raMode()
     ui->logManager->hide();
     ui->field->setHorusMode(false);
 
-    emit sendCommand(uiChangedCommand(true));
+    sendCommand(uiChangedCommand(true));
     ui->simulator->sendPauseSimulator(amun::Horus, false);
 }
 
@@ -830,7 +830,7 @@ void MainWindow::horusMode()
     ui->field->setHorusMode(true);
 
     ui->simulator->sendPauseSimulator(amun::Horus, true);
-    emit sendCommand(uiChangedCommand(false));
+    sendCommand(uiChangedCommand(false));
 }
 
 void MainWindow::toggleHorusModeWidgets(bool enable)

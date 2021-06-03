@@ -1588,10 +1588,11 @@ void FieldWidget::dropEvent(QDropEvent *event)
 {
     const QMimeData* mimeData = event->mimeData();
 
-    if (mimeData->hasUrls() && m_isLogplayer) {
+    if (mimeData->hasUrls()) {
         QList<QUrl> urlList = mimeData->urls();
         if (urlList.size() > 0) {
             emit fileDropped(urlList.at(0).toLocalFile());
+            event->acceptProposedAction();
         }
     }
 }
