@@ -192,7 +192,13 @@
          <property name="title">
           <string>GrSim Network Radio</string>
          </property>
+         <property name="alignment">
+          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+         </property>
          <layout class="QFormLayout" name="formLayout_5">
+          <property name="labelAlignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+          </property>
           <item row="1" column="0">
            <widget class="QLineEdit" name="networkHost">
             <property name="placeholderText">
@@ -331,6 +337,12 @@
           <string>User Interface</string>
          </property>
          <layout class="QFormLayout" name="formLayout_8">
+          <property name="labelAlignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+          </property>
+          <property name="formAlignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+          </property>
           <item row="0" column="0" colspan="2">
            <widget class="QCheckBox" name="uiDarkMode">
             <property name="text">
@@ -368,6 +380,12 @@
           <string>Fieldwidget Actions</string>
          </property>
          <layout class="QFormLayout" name="formLayout_9">
+          <property name="labelAlignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+          </property>
+          <property name="formAlignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+          </property>
           <item row="1" column="0">
            <widget class="QLabel" name="label_7">
             <property name="text">
