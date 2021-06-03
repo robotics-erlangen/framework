@@ -52,16 +52,16 @@ export class BreakPass extends Task {
 	run() {
 
 		let [moveDest, endSpeed, waitingTime] = BreakPass.calculateBreakPos(this._robot);
-		let robotEndDir = -World.Ball.speed;
 
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
 
 		if (this._robot.pos.distanceTo(World.Ball.pos) < 0.5) {
-			this.setMainAttackerParameters(robotEndDir, 0);
+			this.setMainAttackerParameters(World.Ball.pos, 0);
 			this.behavior()._applyForMainAttacker();
 			Attack.cancelCurrentPlannedMainAttacker();
 		}
 
+		let robotEndDir = -World.Ball.speed;
 		this._robot.trajectory.update(ToTarget, moveDest, robotEndDir.angle(), undefined, endSpeed);
 	}
 }
