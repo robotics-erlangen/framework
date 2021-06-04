@@ -119,6 +119,7 @@ FieldWidget::FieldWidget(QWidget *parent) :
     m_geometryUpdated(true),
     m_usingVirtualField(false),
     m_rotation(0.0f),
+    m_drawScenes(1),
     m_visualizationsUpdated(false),
     m_infoTextUpdated(false),
     m_hasTouchInput(false),
@@ -138,7 +139,7 @@ FieldWidget::FieldWidget(QWidget *parent) :
     connect(m_guiTimer, &GuiTimer::timeout, this, &FieldWidget::updateAll);
     m_guiTimer->requestTriggering();
 
-    geometrySetDefault(&m_geometry);
+    geometrySetDefault(&m_drawScenes[m_currentScene].geometry);
     geometrySetDefault(&m_virtualFieldGeometry);
 
     setAcceptDrops(true);
@@ -405,6 +406,8 @@ void FieldWidget::setHorusMode(bool enable)
     if (!m_isLogplayer) {
         m_actionRestoreSimulatorState->setVisible(false);
     }
+
+    switchScene(enable ? 1 : 0);
 }
 
 void FieldWidget::toggleStrategyVisualizations()
@@ -421,7 +424,7 @@ void FieldWidget::handleStatus(const Status &status)
 {
     if (status->has_world_state()) {
         m_worldState.append(status);
-        m_lastWorldState = status;
+        m_drawScenes[m_currentScene].lastWorldState = status;
         m_guiTimer->requestTriggering();
     }
 
@@ -457,7 +460,7 @@ void FieldWidget::handleStatus(const Status &status)
     }
 
     if (status->has_geometry() && !m_usingVirtualField) {
-        m_geometry.CopyFrom(status->geometry());
+        m_drawScenes[m_currentScene].geometry.CopyFrom(status->geometry());
         m_geometryUpdated = true;
         m_guiTimer->requestTriggering();
     }
@@ -469,13 +472,13 @@ void FieldWidget::handleStatus(const Status &status)
         }
         if (it.value() > 100) {
             it.value() = -1;
-            m_visualizations.remove(it.key());
+            m_drawScenes[m_currentScene].visualizations.remove(it.key());
             m_guiTimer->requestTriggering();
         }
     }
     for (const auto& debug: status->debug()) {
         // just save status to avoid copying the visualizations
-        m_visualizations[debug.source()] = status;
+        m_drawScenes[m_currentScene].visualizations[debug.source()] = status;
         m_debugSourceCounter[debug.source()] = 0;
         m_visualizationsUpdated = true;
         m_guiTimer->requestTriggering();
@@ -502,12 +505,12 @@ void FieldWidget::clearData()
     clearTraces();
 
     m_worldState.clear();
-    m_lastWorldState.clear();
+    m_drawScenes[m_currentScene].lastWorldState.clear();
 
-    m_visualizations.clear();
+    m_drawScenes[m_currentScene].visualizations.clear();
     m_visualizationsUpdated = true;
 
-    geometrySetDefault(&m_geometry);
+    geometrySetDefault(&m_drawScenes[m_currentScene].geometry);
     geometrySetDefault(&m_virtualFieldGeometry);
     m_geometryUpdated = true;
     m_guiTimer->requestTriggering();
@@ -594,7 +597,7 @@ void FieldWidget::updateVisualizations()
     qDeleteAll(m_visualizationItems);
     m_visualizationItems.clear();
 
-    foreach (const Status &v, m_visualizations) {
+    foreach (const Status &v, m_drawScenes[m_currentScene].visualizations) {
         for (const auto& debug: v->debug()) {
             if (m_visibleVisSources.value(debug.source())) {
                 updateVisualizations(debug);
@@ -1302,7 +1305,7 @@ void FieldWidget::addRobotTrace(qint64 time, const world::Robot &robot, Trace &r
 
 void FieldWidget::updateGeometry()
 {
-    const world::Geometry &g = m_usingVirtualField ? m_virtualFieldGeometry : m_geometry;
+    const world::Geometry &g = m_usingVirtualField ? m_virtualFieldGeometry : m_drawScenes[m_currentScene].geometry;
     if (!g.IsInitialized() || !m_geometryUpdated) {
         return;
     }
@@ -1365,7 +1368,7 @@ void FieldWidget::setFieldOrientation(float rotation)
     clear(m_realRobotsYellow);
 
     // recreate robots on redraw
-    m_worldState.append(m_lastWorldState);
+    m_worldState.append(m_drawScenes[m_currentScene].lastWorldState);
     m_guiTimer->requestTriggering();
 }
 
@@ -1418,7 +1421,7 @@ void FieldWidget::virtualFieldSetupDialog()
 {
     VirtualFieldSetupDialog dialog(*m_virtualFieldConfiguration, this);
     dialog.exec();
-    auto config = new VirtualFieldConfiguration(dialog.getResult(m_geometry));
+    auto config = new VirtualFieldConfiguration(dialog.getResult(m_drawScenes[m_currentScene].geometry));
     m_virtualFieldConfiguration.reset(config);
     m_usingVirtualField = m_virtualFieldConfiguration->enabled;
     m_virtualFieldGeometry.CopyFrom(m_virtualFieldConfiguration->geometry);
@@ -1445,7 +1448,7 @@ void FieldWidget::virtualFieldSetupDialog()
 
 void FieldWidget::resizeAOI(QPointF pos)
 {
-    const world::Geometry &geometry = m_usingVirtualField ? m_virtualFieldGeometry : m_geometry;
+    const world::Geometry &geometry = m_usingVirtualField ? m_virtualFieldGeometry : m_drawScenes[m_currentScene].geometry;
     if (geometry.IsInitialized()) {
         double offset = geometry.boundary_width() + 0.1f;
         double limitX = geometry.field_width() / 2 + offset;
@@ -1943,7 +1946,7 @@ bool FieldWidget::viewportEvent(QEvent *event)
 
 void FieldWidget::drawBackground(QPainter *painter, const QRectF &rect)
 {
-    const world::Geometry &geometry = m_usingVirtualField ? m_virtualFieldGeometry : m_geometry;
+    const world::Geometry &geometry = m_usingVirtualField ? m_virtualFieldGeometry : m_drawScenes[m_currentScene].geometry;
     painter->save();
 
     QRectF rect1;
@@ -1985,7 +1988,7 @@ void FieldWidget::drawBackground(QPainter *painter, const QRectF &rect)
 
 void FieldWidget::drawLines(QPainter *painter, QRectF rect, bool cosmetic)
 {
-    const world::Geometry &geometry = m_usingVirtualField ? m_virtualFieldGeometry : m_geometry;
+    const world::Geometry &geometry = m_usingVirtualField ? m_virtualFieldGeometry : m_drawScenes[m_currentScene].geometry;
     const float lw = geometry.line_width();
     const float lwh = lw / 2.0f;
 
@@ -2072,7 +2075,7 @@ void FieldWidget::drawLines(QPainter *painter, QRectF rect, bool cosmetic)
 
 void FieldWidget::drawGoal(QPainter *painter, float side, bool cosmetic)
 {
-    const world::Geometry &geometry = m_usingVirtualField ? m_virtualFieldGeometry : m_geometry;
+    const world::Geometry &geometry = m_usingVirtualField ? m_virtualFieldGeometry : m_drawScenes[m_currentScene].geometry;
     QPainterPath path;
 
     const float d = cosmetic ? 0 : geometry.goal_wall_width() / 2.0f;
@@ -2156,19 +2159,20 @@ void FieldWidget::takeScreenshot()
 
 void FieldWidget::saveSituationLua()
 {
-    if (m_lastWorldState.isNull()) {
+    if (m_drawScenes[m_currentScene].lastWorldState.isNull()) {
         return;
     }
-    ::saveSituation(m_lastWorldState->world_state(), m_gameState);
+    ::saveSituation(m_drawScenes[m_currentScene].lastWorldState->world_state(), m_gameState);
 }
 
 void FieldWidget::saveSituationTypescript(int trackingFromInt)
 {
-    if (m_lastWorldState.isNull()) {
+    if (m_drawScenes[m_currentScene].lastWorldState.isNull()) {
         return;
     }
     auto trackingFrom = static_cast<TrackingFrom>(trackingFromInt);
-    ::saveSituationTypescript(trackingFrom, m_lastWorldState->world_state(), m_gameState, m_geometry, m_teamBlue, m_teamYellow);
+    ::saveSituationTypescript(trackingFrom, m_drawScenes[m_currentScene].lastWorldState->world_state(),
+                              m_gameState, m_drawScenes[m_currentScene].geometry, m_teamBlue, m_teamYellow);
 }
 
 void FieldWidget::restoreSituation()
@@ -2228,20 +2232,41 @@ void FieldWidget::Robot::show()
 void FieldWidget::setTrackingFrom(int newViewPoint)
 {
     m_trackingFrom = static_cast<TrackingFrom>(newViewPoint);
-    m_worldState.append(m_lastWorldState);
+    m_worldState.append(m_drawScenes[m_currentScene].lastWorldState);
     updateDetection();
 }
 
 void FieldWidget::setShowVision(bool enable)
 {
     m_showVision = enable;
-    m_worldState.append(m_lastWorldState);
+    m_worldState.append(m_drawScenes[m_currentScene].lastWorldState);
     updateDetection();
 }
 
 void FieldWidget::setShowTruth(bool enable)
 {
     m_showTruth = enable;
-    m_worldState.append(m_lastWorldState);
+    m_worldState.append(m_drawScenes[m_currentScene].lastWorldState);
     updateDetection();
+}
+
+void FieldWidget::switchScene(int scene)
+{
+    while (scene >= m_drawScenes.size()) {
+        m_drawScenes.resize(m_drawScenes.size() + 1);
+        geometrySetDefault(&m_drawScenes.back().geometry);
+    }
+    m_currentScene = scene;
+
+    m_geometryUpdated = true;
+    updateGeometry();
+
+    m_visualizationsUpdated = true;
+    updateVisualizations();
+
+    if (!m_drawScenes[m_currentScene].lastWorldState.isNull()
+            && m_drawScenes[m_currentScene].lastWorldState->has_world_state()) {
+        m_worldState.append(m_drawScenes[m_currentScene].lastWorldState);
+        updateDetection();
+    }
 }
