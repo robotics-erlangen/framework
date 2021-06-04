@@ -2,6 +2,8 @@ import * as debug from "base/debug";
 import * as Field from "base/field";
 import * as geom from "base/geom";
 import { Path } from "base/path";
+import { Process } from "base/process";
+import * as Processor from "base/processor";
 import { FriendlyRobot } from "base/robot";
 import { Position, Speed, Vector } from "base/vector";
 import * as vis from "base/vis";
@@ -35,8 +37,33 @@ interface BallLike {
 	radius: number;
 }
 
+function isBallInRobot(robot: FriendlyRobot, ball: BallLike) {
+	return ball.pos.distanceTo(robot.pos) < robot.radius + ball.radius;
+}
+
+let lastReasonableBallPos: Position = World.Ball.pos;
+class BallPosProcess implements Process {
+	run() {
+		// the current prediction model doesn't acoount for collisions, so avoid prediction of the ball state after a collision
+		let ballInsideRobot = false;
+		for (let robot of World.FriendlyRobots) {
+			if (isBallInRobot(robot, World.Ball)) {
+				ballInsideRobot = true;
+				break;
+			}
+		}
+		if (!ballInsideRobot) {
+			lastReasonableBallPos = World.Ball.pos;
+		}
+	}
+
+	isFinished(): boolean {
+		return false;
+	}
+}
+Processor.addPre(new BallPosProcess());
+
 export class CatchBall {
-	private _lastReasonableBallPos: Position | undefined;
 	private _catchTime: number | undefined;
 	private _recalculateCatchTimeCounter: number = 0;
 	private _ignoringOpponents: boolean = false;
@@ -104,12 +131,10 @@ export class CatchBall {
 			}
 		}
 
-		this._updateReasonableBallPos(ball, ballInsideRobot);
-
 		// predict ball and catch it
 		let predictedBall = Physics.ballAtTime(ball, this._catchTime);
 		if (ballInsideRobot || predictedBall.pos.isNan() || predictedBall.speed.isNan()) {
-			predictedBall = { pos: <Position> this._lastReasonableBallPos, speed: new Vector(0, 0), maxSpeed: ball.maxSpeed, radius: ball.radius };
+			predictedBall = { pos: lastReasonableBallPos, speed: new Vector(0, 0), maxSpeed: ball.maxSpeed, radius: ball.radius };
 		}
 
 		// catching the ball only makes sense if we really try to
@@ -202,7 +227,7 @@ export class CatchBall {
 
 	_calculateHitTime(ball: BallLike & {maxSpeed: number}) {
 		// first check if the ball is inside the robot
-		if (ball.pos.distanceTo(this._robot.pos) < this._robot.radius + ball.radius) {
+		if (isBallInRobot(this._robot, ball)) {
 			// that means the ball is about to be reflected by the robot
 			return 0;
 			// 0 catchtime prevents the robot from driving away from the ball
@@ -277,24 +302,6 @@ export class CatchBall {
 			}
 		}
 		return endSpeed.withLength(endSpeedLength);
-	}
-
-	_updateReasonableBallPos(ball: BallLike, ballInsideRobot: boolean) {
-		// the current prediction model doesn't acoount for collisions, so avoid prediction of the ball state after a collision
-		if (!ballInsideRobot) {
-			this._lastReasonableBallPos = ball.pos;
-		} else if (this._lastReasonableBallPos == undefined) {
-			// try to come up with a sensible position
-			let [hitPoint1, hitPoint2] = geom.intersectLineCircle(ball.pos, ball.speed, this._robot.pos, this._robot.radius + ball.radius);
-			if (hitPoint1 == undefined || hitPoint2 == undefined) {
-				// fallback
-				this._lastReasonableBallPos = ball.pos;
-			} else if ((hitPoint1 - ball.pos).dot(ball.speed) > 0) {
-				this._lastReasonableBallPos = hitPoint2;
-			} else {
-				this._lastReasonableBallPos = hitPoint1;
-			}
-		}
 	}
 
 	_ballCatchMethod(currentBall: BallLike, predictedBall: BallLike, moveDest: Position): CatchMethod {
