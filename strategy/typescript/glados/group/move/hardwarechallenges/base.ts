@@ -28,6 +28,10 @@ export abstract class HardwareChallengeBase extends Move {
 	private refStart: boolean = false;
 	private currentObstacleToSet: number = 0;
 
+	// only necessary to not spam log messages
+	private numberOfInsufficientFriendlyRobots: number = -1;
+	private numberOfInsufficientOpponentRobots: number = -1;
+
 	// any type meaning any of the scenarios in scenarios.ts from the JSONs
 	constructor(robots: FriendlyRobot[], messaging: MessageBox, positions: any) {
 		super(robots, messaging);
@@ -48,29 +52,12 @@ export abstract class HardwareChallengeBase extends Move {
 		let yellowRobots = positions.bots.filter((x: any) =>  x.id.color === "YELLOW");
 		let blueRobots = positions.bots.filter((x: any) =>  x.id.color === "BLUE");
 
-		// use existing ids for each team (e.g. team yellow might not have a robot with id 0 as in the JSON)
-		if (World.TeamIsBlue) {
-			if (blueRobots.length > this._robots.length || yellowRobots.length > World.OpponentRobots.length) {
-				amun.log("Not enough robots. Friendly robots present:\n", this._robots.length, "/", blueRobots.length, "\n",
-						"Opponent robots present: ",World.OpponentRobots.length, "/", yellowRobots.length);
-			}
-			blueRobots = blueRobots.map((x: any, i: number) => [x, this._robots[i].id]);
-			yellowRobots = yellowRobots.map((x: any, i: number) => [x, World.OpponentRobots[i].id]);
-		} else {
-			if (yellowRobots.length > this._robots.length || blueRobots.length > World.OpponentRobots.length) {
-				amun.log("Not enough robots. Friendly robots present:\n", this._robots.length, "/", yellowRobots.length, "\n",
-						"Opponent robots present: ",World.OpponentRobots.length, "/", blueRobots.length);
-			}
-			blueRobots = blueRobots.map((x: any, i: number) => [x, World.OpponentRobots[i].id]);
-			yellowRobots = yellowRobots.map((x: any, i: number) => [x, this._robots[i].id]);
-		}
-
-		let getTransform: (([jsonBot, id]: [any, number]) => RobotState) = ([jsonBot, id]) => {
+		let getTransform: ((jsonBot: any) => RobotState) = (jsonBot) => {
 			// necessary transformation, because moveObjects assumes local coordinates
 			let pos = Coordinates.fromVision(new Vector(jsonBot.obj.pos[0], jsonBot.obj.pos[1]));
 			let angle = Coordinates.fromVision(<number> jsonBot.obj.pos[2]);
 			return {
-				id: id,
+				id: 0,
 				pos: pos,
 				dir: angle,
 				speed: new Vector(0, 0),
@@ -211,10 +198,36 @@ export abstract class HardwareChallengeBase extends Move {
 		}
 
 		if (World.WorldStateSource === pb.world.WorldSource.INTERNAL_SIMULATION && amun.isDebug) {
-			moveObjects(this.ballPos, this.friendlyTransforms, this.opponentTransforms);
-			this.initialized = true;
+			// use existing ids for each team (e.g. team yellow might not have a robot with id 0 as in the JSON)
+			let numberFriendlies = Math.min(this.friendlyTransforms.length, this._robots.length);
+			let blueRobots: RobotState[] = [];
+			for (let i = 0; i < numberFriendlies; ++i) {
+				let transform = this.friendlyTransforms[i];
+				transform.id = this._robots[i].id;
+				blueRobots.push(transform);
+			}
 
-			sendRefereeCommand("Halt");
+			let numberOpponents = Math.min(this.opponentTransforms.length, World.OpponentRobots.length);
+			let yellowRobots: RobotState[] = [];
+			for (let i = 0; i < numberOpponents; ++i) {
+				let transform = this.opponentTransforms[i];
+				transform.id = World.OpponentRobots[i].id;
+				yellowRobots.push(transform);
+			}
+
+			moveObjects(this.ballPos, blueRobots, yellowRobots);
+
+			if (this.friendlyTransforms.length <= this._robots.length && this.opponentTransforms.length <= World.OpponentRobots.length) {
+				this.initialized = true;
+				sendRefereeCommand("Halt");
+			} else {
+				if (this._robots.length !== this.numberOfInsufficientFriendlyRobots || World.OpponentRobots.length !== this.numberOfInsufficientOpponentRobots) {
+					this.numberOfInsufficientFriendlyRobots = this._robots.length;
+					this.numberOfInsufficientOpponentRobots = World.OpponentRobots.length;
+					amun.log("Not enough robots. Friendly robots present:\n", this._robots.length, "/", this.friendlyTransforms.length, "\n",
+							"Opponent robots present: ",World.OpponentRobots.length, "/", this.opponentTransforms.length);
+				}
+			}
 
 			return this.haltAllRobots();
 		}
