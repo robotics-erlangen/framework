@@ -104,19 +104,26 @@ export abstract class HardwareChallengeBase extends Move {
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
 
 		let transform = this.opponentTransforms[this.currentObstacleToSet];
-		let obstacleInPosition = false;
-		for (let robot of World.OpponentRobots) {
-			if (HardwareChallengeBase.compareRobotToState(robot, transform)) {
-				obstacleInPosition = true;
+		let resetMoveToPos = false;
+		let everyoneInPosition = true;
+		for (let i = 0; i < this.opponentTransforms.length; ++i) {
+			let transform = this.opponentTransforms[i];
+			let obstacleInPosition = false;
+			for (let robot of World.OpponentRobots) {
+				if (HardwareChallengeBase.compareRobotToState(robot, transform)) {
+					obstacleInPosition = true;
+					break;
+				}
+			}
+			if (!obstacleInPosition) {
+				resetMoveToPos = this.currentObstacleToSet !== i;
+				this.currentObstacleToSet = i;
+				everyoneInPosition = false;
 				break;
 			}
 		}
 
-		if (obstacleInPosition) {
-			this.currentObstacleToSet += 1;
-		}
-
-		if (this.currentObstacleToSet >= this.opponentTransforms.length) {
+		if (everyoneInPosition) {
 			return undefined;
 		}
 
@@ -134,15 +141,10 @@ export abstract class HardwareChallengeBase extends Move {
 			class: MoveToPos,
 			params: [{pos: pos, dir: dir, endSpeedLength: 0}],
 			// restart if obstacle changed
-			restart: obstacleInPosition
+			restart: resetMoveToPos
 		});
 
-		// avoid other robots dropping out of move
-		for (let i = 1; i < this._robots.length; ++i) {
-			taskAssignments[this._robots[i]] = Assignment.create({
-				class: Halt
-			});
-		}
+		this.assignFriendlyMoves(1, taskAssignments);
 		return {assignments: taskAssignments};
 	}
 
@@ -158,13 +160,31 @@ export abstract class HardwareChallengeBase extends Move {
 			restart: false
 		});
 
+		this.assignFriendlyMoves(1, taskAssignments);
+		return {assignments: taskAssignments};
+	}
+
+	private assignFriendlyMoves(startIndex: number, taskAssignments: Map<FriendlyRobot, Assignment>): boolean {
+		let everyoneInPosition = true;
+		for (let i = startIndex; i < this.friendlyTransforms.length; ++i) {
+			let transform = this.friendlyTransforms[i];
+			everyoneInPosition = everyoneInPosition && HardwareChallengeBase.compareRobotToState(this._robots[i], transform);
+
+			taskAssignments[this._robots[i]] = Assignment.create({
+				class: MoveToPos,
+				params: [{pos: transform.pos, dir: transform.dir, endSpeedLength: 0}],
+				restart: true
+			});
+		}
+
 		// avoid other robots dropping out of move
-		for (let i = 1; i < this._robots.length; ++i) {
+		for (let i = this.friendlyTransforms.length; i < this._robots.length; ++i) {
 			taskAssignments[this._robots[i]] = Assignment.create({
 				class: Halt
 			});
 		}
-		return {assignments: taskAssignments};
+
+		return everyoneInPosition;
 	}
 
 	private haltAllRobots(): MoveParameters {
@@ -244,26 +264,8 @@ export abstract class HardwareChallengeBase extends Move {
 
 
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
-		let everyoneInPosition = true;
-		for (let i = 0; i < this.friendlyTransforms.length; ++i) {
-			let transform = this.friendlyTransforms[i];
-			everyoneInPosition = everyoneInPosition && HardwareChallengeBase.compareRobotToState(this._robots[i], transform);
+		this.initialized = this.assignFriendlyMoves(0, taskAssignments);
 
-			taskAssignments[this._robots[i]] = Assignment.create({
-				class: MoveToPos,
-				params: [{pos: transform.pos, dir: transform.dir, endSpeedLength: 0}],
-				restart: true
-			});
-		}
-
-		// avoid other robots dropping out of move
-		for (let i = this.friendlyTransforms.length; i < this._robots.length; ++i) {
-			taskAssignments[this._robots[i]] = Assignment.create({
-				class: Halt
-			});
-		}
-
-		this.initialized = everyoneInPosition;
 		if (this.initialized) {
 			if (amun.isDebug) {
 				sendRefereeCommand("Halt");
