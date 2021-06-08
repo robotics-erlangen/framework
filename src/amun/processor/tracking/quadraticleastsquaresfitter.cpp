@@ -20,6 +20,8 @@
 
 #include "quadraticleastsquaresfitter.h"
 
+#include <limits>
+
 QuadraticLeastSquaresFitter::QuadraticLeastSquaresFitter(int pointLimit) :
     m_pointLimit(pointLimit)
 {
