@@ -21,10 +21,12 @@
 include(ExternalProject)
 include(ExternalProjectHelper)
 
+set(GOOGLETEST_PATCH_FILE "${CMAKE_CURRENT_LIST_DIR}/googletest.patch")
 ExternalProject_Add(project_googletest
     URL https://www.robotics-erlangen.de/downloads/googletest-release-1.10.0.tar.gz
     URL_HASH SHA256=9f7370ce748fdd7c23a4dcd785d49c45f718899381af947de59b65544b08c7eb
     DOWNLOAD_NO_PROGRESS true
+    PATCH_COMMAND cat "${GOOGLETEST_PATCH_FILE}" | patch -p1
     CMAKE_ARGS
         -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
         -DCMAKE_C_COMPILER:PATH=${CMAKE_C_COMPILER}
@@ -36,7 +38,7 @@ ExternalProject_Add(project_googletest
         "<INSTALL_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gtest_main${CMAKE_STATIC_LIBRARY_SUFFIX}"
 )
 EPHelper_Add_Cleanup(project_googletest bin include lib share)
-EPHelper_Add_Clobber(project_googletest ${CMAKE_CURRENT_LIST_DIR}/stub.patch)
+EPHelper_Add_Clobber(project_googletest "${GOOGLETEST_PATCH_FILE}")
 EPHelper_Mark_For_Download(project_googletest)
 
 externalproject_get_property(project_googletest install_dir)
