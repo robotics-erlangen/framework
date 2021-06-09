@@ -24,6 +24,9 @@
 #include "protobuf/status.h"
 #include "protobuf/command.h"
 #include <QDialog>
+#include <QVector>
+#include <utility>
+#include <limits>
 
 namespace Ui {
 class GitInfoDialog;
