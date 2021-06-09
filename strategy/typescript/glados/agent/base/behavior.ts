@@ -113,8 +113,9 @@ export abstract class Behavior implements Checkable {
 			this._deferredBehavior.start();
 		}
 		this._deferredBehaviorRunning = true;
-		debug.set("deferred behavior", this._deferredBehavior.constructor.name);
+		debug.push("deferred behavior", this._deferredBehavior.constructor.name);
 		let result = this._deferredBehavior._updateTask();
+		debug.pop();
 
 		// transfer state from deferred behavior to main behavior
 		this._forceKeepingInPool = this._deferredBehavior._forceKeepingInPool;
