@@ -167,13 +167,13 @@ export abstract class Agent {
 		if (this._robot !== World.FriendlyKeeper && !Referee.isStopState()) {
 			// only the keeper can apply for MA if it could touch the ball inside the defense area
 			if (Field.isInFriendlyDefenseArea(this._robot.pos, this._robot.radius + World.Ball.radius + 0.02)
-				&&  World.Ball.pos.y < this._robot.pos.y + this._robot.radius * 3) {
+					&&  World.Ball.pos.y < this._robot.pos.y + this._robot.radius * 3) {
 				debug.set("return case 2", true);
 				return;
 			}
 
-			// only the keeper can apply for MA if the ball is behind the centerbacks
-			if (Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius + UtilDefense.centerBackDistanceToDefenseArea())) {
+			// only the keeper can apply for MA if the ball is behind the centerbacks and slow
+			if (UtilDefense.keeperShouldBeMA()) {
 				debug.set("return case 3", true);
 				return;
 			}

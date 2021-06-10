@@ -422,3 +422,23 @@ export function divCornerFactor(way: number, distance: number): number {
 	restWay = restWay - maxCornerWay;
 	return defenseHeight + defenseWidth + corner * 2 + restWay;
 }
+
+
+let keeperShouldBeMAHysteresis = false;
+function behindCenterbacks(keeper: FriendlyRobot, object: {pos: Position, radius: number}): boolean {
+	const hyst = keeperShouldBeMAHysteresis ? 0.1 : 0;
+	const defenseDistance = keeper.radius + keeper.shootRadius + hyst;
+	return Field.distanceToFriendlyDefenseArea(object.pos, object.radius) < defenseDistance;
+}
+
+function _keeperShouldBeMA() {
+	const robot = World.FriendlyKeeper;
+	if (robot == undefined) {
+		keeperShouldBeMAHysteresis = false;
+		return false;
+	}
+	const result = behindCenterbacks(robot, World.Ball) && Ball.isSlowBall();
+	keeperShouldBeMAHysteresis = result;
+	return result;
+}
+export let keeperShouldBeMA = Cache.forFrame(_keeperShouldBeMA);
