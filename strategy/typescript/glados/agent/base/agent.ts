@@ -224,6 +224,18 @@ export abstract class Agent {
 				let cosAngle = World.Ball.speed.dot(ballToRobot) / ballToRobotLength / ballSpeedLength;
 				ratingBoost = cosAngle * cosAngle * cosAngle * ballSpeedLength * 0.5;
 			}
+
+			// if the ball is currently inside of the robot (according to the tracking), the time is 0
+			// this is necessary since minTimeToBall might not be reliable in this case
+			if (this._robot.pos.distanceToSq(World.Ball.pos) < this._robot.radius * this._robot.radius) {
+				timeToBall = 0;
+				if (timeToBallDetailed != undefined) {
+					timeToBallDetailed = 0;
+				}
+				// set boost to zero as it can also be negative, hurting in this case
+				ratingBoost = 0;
+			}
+
 			debug.set("slowBall", Ball.isSlowBall());
 			debug.set("ratingBoost", ratingBoost);
 			timeToBall = timeToBall - ratingBoost;
