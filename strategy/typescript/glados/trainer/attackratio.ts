@@ -229,8 +229,9 @@ export class AttackRatio {
 
 		let defenders = World.FriendlyRobots.length - attackers;
 		if (World.FriendlyKeeper && World.FriendlyKeeper.isVisible) {
-			defenders = Math.max(0, defenders - 1);
+			defenders = defenders - 1;
 		}
+		defenders = Math.max(0, defenders);
 		// [attackers, defenders] = Ally.updateRoleNumbers(attackers, defenders);
 		return [attackers, defenders];
 	}
