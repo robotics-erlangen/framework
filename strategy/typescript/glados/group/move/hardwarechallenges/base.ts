@@ -3,6 +3,7 @@ import { BallInfo, moveObjects, sendRefereeCommand } from "base/debugcommands";
 import * as pb from "base/protobuf";
 import { FriendlyRobot, Robot, RobotState } from "base/robot";
 import { Vector } from "base/vector";
+import * as vis from "base/vis";
 import * as World from "base/world";
 
 import { MessageBox } from "glados/control/messaging";
@@ -20,8 +21,8 @@ export abstract class HardwareChallengeBase extends Move {
 	// override with specific challenge
 	protected challengeNumber: 1 | 2 | 3 | 4 | undefined = undefined;
 
-	private friendlyTransforms: RobotState[];
-	private opponentTransforms: RobotState[];
+	protected friendlyTransforms: RobotState[];
+	protected opponentTransforms: RobotState[];
 	private ballPos: BallInfo;
 	private initialized: boolean = false;
 	private refHalt: boolean = false;
@@ -75,6 +76,7 @@ export abstract class HardwareChallengeBase extends Move {
 			this.friendlyTransforms = yellowTransforms;
 			this.opponentTransforms = blueTransforms;
 		}
+
 	}
 
 	public static canStart() {
@@ -199,7 +201,6 @@ export abstract class HardwareChallengeBase extends Move {
 	}
 
 	public readonly _updateTasks: (() => MoveParameters) = () => {
-
 		if (this.initialized) {
 			if (!this.refHalt && World.RefereeState === "Halt") {
 				this.refHalt = true;
@@ -216,6 +217,14 @@ export abstract class HardwareChallengeBase extends Move {
 				return this.haltAllRobots();
 			}
 		}
+
+		for (let transform of this.opponentTransforms) {
+			vis.addPizza("HWChallenge/ObstaclePosition", transform.pos, this._robots[0].radius, transform.dir + 5 * 180 / Math.PI + Math.PI, transform.dir - 5 * 180 / Math.PI + Math.PI, vis.colors.yellow, false);
+		}
+		for (let transform of this.friendlyTransforms) {
+			vis.addPizza("HWChallenge/FriendlyPosition", transform.pos, this._robots[0].radius, transform.dir + 5 * 180 / Math.PI + Math.PI, transform.dir - 5 * 180 / Math.PI + Math.PI, vis.colors.blue, false);
+		}
+		vis.addCircle("HWChallenge/BallPosition", this.ballPos.pos, World.Ball.radius, vis.colors.mediumPurple, false);
 
 		if (World.WorldStateSource === pb.world.WorldSource.INTERNAL_SIMULATION && amun.isDebug) {
 			// use existing ids for each team (e.g. team yellow might not have a robot with id 0 as in the JSON)
