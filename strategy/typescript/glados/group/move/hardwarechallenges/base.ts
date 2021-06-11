@@ -33,6 +33,10 @@ export abstract class HardwareChallengeBase extends Move {
 	private numberOfInsufficientFriendlyRobots: number = -1;
 	private numberOfInsufficientOpponentRobots: number = -1;
 
+	private friendlyInitialized: boolean[];
+	private opponentInitialized: boolean[];
+	private ballInitialized: boolean = false;
+
 	// any type meaning any of the scenarios in scenarios.ts from the JSONs
 	constructor(robots: FriendlyRobot[], messaging: MessageBox, positions: any) {
 		super(robots, messaging);
@@ -77,6 +81,8 @@ export abstract class HardwareChallengeBase extends Move {
 			this.opponentTransforms = blueTransforms;
 		}
 
+		this.friendlyInitialized = this.friendlyTransforms.map((_) => false);
+		this.opponentInitialized = this.opponentTransforms.map((_) => false);
 	}
 
 	public static canStart() {
@@ -91,11 +97,16 @@ export abstract class HardwareChallengeBase extends Move {
 	// is called in updateTasks after everything is initialized
 	protected abstract challengeSpecificUpdateTask(): MoveParameters;
 
-	private static compareRobotToState(robot: Robot, transform: RobotState) {
-		let angleDiff = Math.abs(robot.dir - transform.dir);
-		const LOW = (5 / 180) * Math.PI;
+	private static compareRobotToState(robot: Robot, transform: RobotState, previouslyCorrect: boolean) {
+		const angleDiff = Math.abs(robot.dir - transform.dir);
+
+		// hysteresis
+		const allowedAngleError = previouslyCorrect ? 5 : 4;
+		const maxDistance = previouslyCorrect ? 0.04 : 0.02;
+
+		const LOW = (allowedAngleError / 180) * Math.PI;
 		const HIGH = 2.0 * Math.PI - LOW;
-		return (robot.pos - transform.pos).length() < 0.05 && (angleDiff < LOW || angleDiff > HIGH);
+		return (robot.pos - transform.pos).length() < maxDistance && (angleDiff < LOW || angleDiff > HIGH);
 	}
 
 	private placeOpponents(): MoveParameters | undefined {
@@ -110,9 +121,10 @@ export abstract class HardwareChallengeBase extends Move {
 		let everyoneInPosition = true;
 		for (let i = 0; i < this.opponentTransforms.length; ++i) {
 			let transform = this.opponentTransforms[i];
+			let previouslyCorrect = this.opponentInitialized[i];
 			let obstacleInPosition = false;
 			for (let robot of World.OpponentRobots) {
-				if (HardwareChallengeBase.compareRobotToState(robot, transform)) {
+				if (HardwareChallengeBase.compareRobotToState(robot, transform, previouslyCorrect)) {
 					obstacleInPosition = true;
 					break;
 				}
@@ -120,9 +132,11 @@ export abstract class HardwareChallengeBase extends Move {
 			if (!obstacleInPosition) {
 				resetMoveToPos = this.currentObstacleToSet !== i;
 				this.currentObstacleToSet = i;
+				this.opponentInitialized[i] = false;
 				everyoneInPosition = false;
 				break;
 			}
+			this.opponentInitialized[i] = true;
 		}
 
 		if (everyoneInPosition) {
@@ -151,10 +165,19 @@ export abstract class HardwareChallengeBase extends Move {
 	}
 
 	private placeBall(): MoveParameters | undefined {
-		if ((World.Ball.pos - this.ballPos.pos).length() < END_DISTANCE
+		let maxDistance = END_DISTANCE;
+
+		// hysteresis
+		if (this.ballInitialized) {
+			maxDistance += 0.02;
+		}
+
+		if ((World.Ball.pos - this.ballPos.pos).length() < maxDistance
 			&& World.Ball.speed.length() < 0.1) {
+			this.ballInitialized = true;
 			return undefined;
 		}
+		this.ballInitialized = false;
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
 		taskAssignments[this._robots[0]] = Assignment.create({
 			class: PlaceBall,
@@ -170,7 +193,8 @@ export abstract class HardwareChallengeBase extends Move {
 		let everyoneInPosition = true;
 		for (let i = startIndex; i < this.friendlyTransforms.length; ++i) {
 			let transform = this.friendlyTransforms[i];
-			everyoneInPosition = everyoneInPosition && HardwareChallengeBase.compareRobotToState(this._robots[i], transform);
+			this.friendlyInitialized[i] = HardwareChallengeBase.compareRobotToState(this._robots[i], transform, this.friendlyInitialized[i]);
+			everyoneInPosition = everyoneInPosition && this.friendlyInitialized[i];
 
 			taskAssignments[this._robots[i]] = Assignment.create({
 				class: MoveToPos,
