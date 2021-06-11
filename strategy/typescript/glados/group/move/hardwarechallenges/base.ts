@@ -24,9 +24,9 @@ export abstract class HardwareChallengeBase extends Move {
 	protected friendlyTransforms: RobotState[];
 	protected opponentTransforms: RobotState[];
 	private ballPos: BallInfo;
-	private initialized: boolean = false;
-	private refHalt: boolean = false;
-	private refStart: boolean = false;
+	private static initialized: boolean = false;
+	private static refHalt: boolean = false;
+	private static refStart: boolean = false;
 	private currentObstacleToSet: number = 0;
 
 	// only necessary to not spam log messages
@@ -225,17 +225,17 @@ export abstract class HardwareChallengeBase extends Move {
 	}
 
 	public readonly _updateTasks: (() => MoveParameters) = () => {
-		if (this.initialized) {
-			if (!this.refHalt && World.RefereeState === "Halt") {
-				this.refHalt = true;
+		if (HardwareChallengeBase.initialized) {
+			if (!HardwareChallengeBase.refHalt && World.RefereeState === "Halt") {
+				HardwareChallengeBase.refHalt = true;
 				PathHelper.setHardwareChallenge(this.challengeNumber);
 				amun.log("Finished initialization.");
 			}
 
-			if (this.refHalt && World.RefereeState !== "Halt") {
-				this.refStart = true;
+			if (HardwareChallengeBase.refHalt && World.RefereeState !== "Halt") {
+				HardwareChallengeBase.refStart = true;
 			}
-			if (this.refStart) {
+			if (HardwareChallengeBase.refStart) {
 				return this.challengeSpecificUpdateTask();
 			} else {
 				return this.haltAllRobots();
@@ -271,7 +271,7 @@ export abstract class HardwareChallengeBase extends Move {
 			moveObjects(this.ballPos, blueRobots, yellowRobots);
 
 			if (this.friendlyTransforms.length <= this._robots.length && this.opponentTransforms.length <= World.OpponentRobots.length) {
-				this.initialized = true;
+				HardwareChallengeBase.initialized = true;
 				sendRefereeCommand("Halt");
 			} else {
 				if (this._robots.length !== this.numberOfInsufficientFriendlyRobots || World.OpponentRobots.length !== this.numberOfInsufficientOpponentRobots) {
@@ -297,9 +297,9 @@ export abstract class HardwareChallengeBase extends Move {
 
 
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
-		this.initialized = this.assignFriendlyMoves(0, taskAssignments);
+		HardwareChallengeBase.initialized = this.assignFriendlyMoves(0, taskAssignments);
 
-		if (this.initialized) {
+		if (HardwareChallengeBase.initialized) {
 			if (amun.isDebug) {
 				sendRefereeCommand("Halt");
 			} else {
@@ -310,9 +310,9 @@ export abstract class HardwareChallengeBase extends Move {
 	}
 
 	protected reset() {
-		this.initialized = false;
-		this.refHalt = false;
-		this.refStart = false;
+		HardwareChallengeBase.initialized = false;
+		HardwareChallengeBase.refHalt = false;
+		HardwareChallengeBase.refStart = false;
 		PathHelper.setHardwareChallenge(0);
 	}
 }
