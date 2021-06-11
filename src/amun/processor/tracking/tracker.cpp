@@ -68,12 +68,12 @@ static bool isInAOI(float detectionX, float detectionY, const FieldTransform &tr
 
 void Tracker::reset()
 {
-    foreach (const QList<RobotFilter*>& list, m_robotFilterYellow) {
+    for (const QList<RobotFilter*>& list : m_robotFilterYellow) {
         qDeleteAll(list);
     }
     m_robotFilterYellow.clear();
 
-    foreach (const QList<RobotFilter*>& list, m_robotFilterBlue) {
+    for (const QList<RobotFilter*>& list : m_robotFilterBlue) {
         qDeleteAll(list);
     }
     m_robotFilterBlue.clear();
@@ -108,7 +108,7 @@ void Tracker::process(qint64 currentTime)
     invalidateRobots(m_robotFilterYellow, currentTime);
     invalidateRobots(m_robotFilterBlue, currentTime);
 
-    foreach (const Packet &p, m_visionPackets) {
+    for (const Packet &p : m_visionPackets) {
         SSL_WrapperPacket wrapper;
         if (!wrapper.ParseFromArray(p.data.data(), p.data.size())) {
             continue;
@@ -182,11 +182,11 @@ void Tracker::process(qint64 currentTime)
     m_visionPackets.clear();
 }
 
-template<class Filter> static Filter* bestFilter(QList<Filter*> &filters, int minFrameCount)
+static RobotFilter* bestFilter(QList<RobotFilter*> &filters, int minFrameCount)
 {
     // get first filter that has the minFrameCount and move it to the front
     // this is required to ensure a stable result
-    foreach (Filter* item, filters) {
+    for (RobotFilter* item : filters) {
         if (item->frameCounter() >= minFrameCount) {
             if (filters.first() != item) {
                 filters.removeOne(item);
@@ -195,7 +195,7 @@ template<class Filter> static Filter* bestFilter(QList<Filter*> &filters, int mi
             return item;
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 void Tracker::prioritizeBallFilters()
@@ -270,6 +270,26 @@ Status Tracker::worldState(qint64 currentTime, bool resetRaw)
     worldState->set_has_vision_data(m_hasVisionData);
     worldState->set_system_delay(m_systemDelay);
 
+    QVector<RobotInfo> robotInfos;
+    robotInfos.reserve(m_robotFilterBlue.size() + m_robotFilterYellow.size());
+    for(RobotMap::iterator it = m_robotFilterYellow.begin(); it != m_robotFilterYellow.end(); ++it) {
+        RobotFilter *robot = bestFilter(*it, minFrameCount);
+        if (robot != nullptr) {
+            robot->update(currentTime);
+            robot->get(worldState->add_yellow(), *m_fieldTransform, false);
+            robotInfos.append(robot->getRobotInfo());
+        }
+    }
+
+    for(RobotMap::iterator it = m_robotFilterBlue.begin(); it != m_robotFilterBlue.end(); ++it) {
+        RobotFilter *robot = bestFilter(*it, minFrameCount);
+        if (robot != nullptr) {
+            robot->update(currentTime);
+            robot->get(worldState->add_blue(), *m_fieldTransform, false);
+            robotInfos.append(robot->getRobotInfo());
+        }
+    }
+
     if (!m_robotsOnly) {
         for (auto &data : m_detectionWrappers) {
             worldState->add_vision_frames()->CopyFrom(data.first);
@@ -279,26 +299,9 @@ Status Tracker::worldState(qint64 currentTime, bool resetRaw)
 
         BallTracker *ball = bestBallFilter();
 
-        if (ball != NULL) {
+        if (ball != nullptr) {
             ball->update(currentTime);
-            ball->get(worldState->mutable_ball(), *m_fieldTransform, resetRaw);
-        }
-    }
-
-
-    for(RobotMap::iterator it = m_robotFilterYellow.begin(); it != m_robotFilterYellow.end(); ++it) {
-        RobotFilter *robot = bestFilter(*it, minFrameCount);
-        if (robot != NULL) {
-            robot->update(currentTime);
-            robot->get(worldState->add_yellow(), *m_fieldTransform, false);
-        }
-    }
-
-    for(RobotMap::iterator it = m_robotFilterBlue.begin(); it != m_robotFilterBlue.end(); ++it) {
-        RobotFilter *robot = bestFilter(*it, minFrameCount);
-        if (robot != NULL) {
-            robot->update(currentTime);
-            robot->get(worldState->add_blue(), *m_fieldTransform, false);
+            ball->get(worldState->mutable_ball(), *m_fieldTransform, resetRaw, robotInfos);
         }
     }
 
@@ -425,14 +428,14 @@ QList<RobotFilter *> Tracker::getBestRobots(qint64 currentTime)
 
     for(RobotMap::iterator it = m_robotFilterYellow.begin(); it != m_robotFilterYellow.end(); ++it) {
         RobotFilter *robot = bestFilter(*it, minFrameCount);
-        if (robot != NULL) {
+        if (robot != nullptr) {
             robot->update(currentTime);
             filters.append(robot);
         }
     }
     for(RobotMap::iterator it = m_robotFilterBlue.begin(); it != m_robotFilterBlue.end(); ++it) {
         RobotFilter *robot = bestFilter(*it, minFrameCount);
-        if (robot != NULL) {
+        if (robot != nullptr) {
             robot->update(currentTime);
             filters.append(robot);
         }
@@ -472,7 +475,7 @@ void Tracker::trackBall(const SSL_DetectionBall &ball, qint64 receiveTime, quint
 
     bool acceptingFilterWithCamId = false;
     BallTracker *acceptingFilterWithOtherCamId = nullptr;
-    foreach (BallTracker *filter, m_ballFilter) {
+    for (BallTracker *filter : m_ballFilter) {
         filter->update(receiveTime);
         if (filter->acceptDetection(ball, receiveTime, cameraId, robotInfo, visionProcessingDelay)) {
             if (filter->primaryCamera() == cameraId) {
@@ -521,10 +524,10 @@ void Tracker::trackRobot(RobotMap &robotMap, const SSL_DetectionRobot &robot, qi
     // If no robot is closer than .5 m create a new Kalman Filter
 
     float nearest = 0.5;
-    RobotFilter *nearestFilter = NULL;
+    RobotFilter *nearestFilter = nullptr;
 
     QList<RobotFilter*>& list = robotMap[robot.robot_id()];
-    foreach (RobotFilter *filter, list) {
+    for (RobotFilter *filter : list) {
         filter->update(receiveTime);
         const float dist = filter->distanceTo(robot);
         if (dist < nearest) {
@@ -549,7 +552,7 @@ void Tracker::queuePacket(const QByteArray &packet, qint64 time, QString sender)
 
 void Tracker::queueRadioCommands(const QList<robot::RadioCommand> &radio_commands, qint64 time)
 {
-    foreach (const robot::RadioCommand &radioCommand, radio_commands) {
+    for (const robot::RadioCommand &radioCommand : radio_commands) {
         // skip commands for which the team is unknown
         if (!radioCommand.has_is_blue()) {
             continue;
@@ -558,7 +561,7 @@ void Tracker::queueRadioCommands(const QList<robot::RadioCommand> &radio_command
         // add radio responses to every available filter
         const RobotMap &teamMap = radioCommand.is_blue() ? m_robotFilterBlue : m_robotFilterYellow;
         const QList<RobotFilter*>& list = teamMap.value(radioCommand.id());
-        foreach (RobotFilter *filter, list) {
+        for (RobotFilter *filter : list) {
             filter->addRadioCommand(radioCommand.command(), time);
         }
     }

@@ -26,6 +26,8 @@ add_library(tracking
     balltracker.h
     ballflyfilter.h
     ballflyfilter.cpp
+    ballgroundcollisionfilter.h
+    ballgroundcollisionfilter.cpp
     ballgroundfilter.h
     ballgroundfilter.cpp
     balldribblefilter.cpp

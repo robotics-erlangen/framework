@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2020 Andreas Wendler                                        *
+ *   Copyright 2021 Andreas Wendler                                       *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,22 +18,30 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef BALLDRIBBLEFILTER_H
-#define BALLDRIBBLEFILTER_H
+#ifndef BALLGROUNDCOLLISIONFILTER_H
+#define BALLGROUNDCOLLISIONFILTER_H
 
 #include "abstractballfilter.h"
+#include "ballgroundfilter.h"
+#include "protobuf/ssl_detection.pb.h"
+#include "protobuf/world.pb.h"
+#include "protobuf/debug.pb.h"
 
-class DribbleFilter : public AbstractBallFilter
+class BallGroundCollisionFilter : public AbstractBallFilter
 {
 public:
-    explicit DribbleFilter(const VisionFrame &frame, CameraInfo* cameraInfo);
-    DribbleFilter(const DribbleFilter& dribbleFilter, qint32 primaryCamera);
+    explicit BallGroundCollisionFilter(const VisionFrame &frame, CameraInfo* cameraInfo);
+    BallGroundCollisionFilter(const BallGroundCollisionFilter& filter, qint32 primaryCamera);
 
-    void processVisionFrame(VisionFrame const& frame) override;
+    void processVisionFrame(const VisionFrame& frame) override;
     bool acceptDetection(const VisionFrame& frame) override;
-    void writeBallState(world::Ball *ball, qint64 predictionTime, const QVector<RobotInfo> &robots) override;
+    void writeBallState(world::Ball *ball, qint64 time, const QVector<RobotInfo> &robots) override;
+    std::size_t chooseBall(const std::vector<VisionFrame> &frames) override;
 
-    bool isActive() const { return false; }
+private:
+    GroundFilter m_groundFilter;
+    GroundFilter m_pastFilter;
+    qint64 m_lastVisionTime;
 };
 
-#endif // BALLDRIBBLEFILTER_H
+#endif // BALLGROUNDCOLLISIONFILTER_H

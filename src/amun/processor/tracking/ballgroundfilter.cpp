@@ -196,7 +196,7 @@ float GroundFilter::distanceTo(Eigen::Vector2f objPos)
 //}
 
 
-void GroundFilter::writeBallState(world::Ball *ball, qint64 time)
+void GroundFilter::writeBallState(world::Ball *ball, qint64 time, const QVector<RobotInfo> &)
 {
     predict(time);
 

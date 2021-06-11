@@ -30,6 +30,7 @@
 #include <QList>
 #include <QMap>
 #include <QString>
+#include <QVector>
 
 struct VisionFrame
 {
@@ -67,7 +68,7 @@ public:
 
     virtual void processVisionFrame(VisionFrame const& frame)=0;
     virtual bool acceptDetection(const VisionFrame& frame)=0;
-    virtual void writeBallState(world::Ball *ball, qint64 predictionTime)=0;
+    virtual void writeBallState(world::Ball *ball, qint64 predictionTime, const QVector<RobotInfo> &robots)=0;
     // this function is called when multiple mutually exclusive balls are available. Return the id of the best matching visionframe
     virtual std::size_t chooseBall(const std::vector<VisionFrame> &frames) { return 0; }
 
@@ -96,7 +97,12 @@ protected:
 
 #ifdef ENABLE_TRACKING_DEBUG
     amun::DebugValues m_debug;
-    void debug(const char* key, float value){
+    void plot(const char* key, float value) {
+        auto *plot = m_debug.add_plot();
+        plot->set_name(key);
+        plot->set_value(value);
+    }
+    void debug(const char* key, float value) {
         amun::DebugValue *debugValue = m_debug.add_value();
         QByteArray array = (QString::number(m_primaryCamera)+QString("/")+QString(key)).toLocal8Bit();
         const char* k = array.data();

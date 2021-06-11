@@ -35,7 +35,7 @@ public:
 
     void processVisionFrame(const VisionFrame& frame) override;
     bool acceptDetection(const VisionFrame& frame) override;
-    void writeBallState(world::Ball *ball, qint64 time) override;
+    void writeBallState(world::Ball *ball, qint64 time, const QVector<RobotInfo> &robots) override;
     std::size_t chooseBall(const std::vector<VisionFrame> &frames) override;
 
     float distanceTo(Eigen::Vector2f objPos);

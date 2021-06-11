@@ -38,7 +38,7 @@ bool DribbleFilter::acceptDetection(const VisionFrame& frame)
     return false;
 }
 
-void DribbleFilter::writeBallState(world::Ball *ball, qint64 predictionTime)
+void DribbleFilter::writeBallState(world::Ball *ball, qint64 predictionTime, const QVector<RobotInfo> &robots)
 {
 
 }

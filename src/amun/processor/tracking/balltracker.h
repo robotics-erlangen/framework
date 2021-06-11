@@ -29,7 +29,7 @@
 #include "protobuf/world.pb.h"
 
 class FlyFilter;
-class GroundFilter;
+class BallGroundCollisionFilter;
 class DribbleFilter;
 
 class BallTracker : public Filter
@@ -44,7 +44,7 @@ public:
 public:
     void update(qint64 time);
     void updateConfidence();
-    void get(world::Ball *ball, const FieldTransform &transform, bool resetRaw); // writes to world state
+    void get(world::Ball *ball, const FieldTransform &transform, bool resetRaw, const QVector<RobotInfo> &robots); // writes to world state
     void addVisionFrame(const SSL_DetectionBall& ball, qint64 time, qint32 cameraId, RobotInfo robotInfo, qint64 visionProcessingDelay);
     bool acceptDetection(const SSL_DetectionBall& ball, qint64 time, qint32 cameraId, RobotInfo robotInfo, qint64 visionProcessingDelay);
     void calcDistToCamera(bool flying);
@@ -66,7 +66,7 @@ public:
 
 private:  
     qint64 m_lastUpdateTime;
-    GroundFilter* m_groundFilter;
+    BallGroundCollisionFilter* m_groundFilter;
     FlyFilter *m_flyFilter;
     DribbleFilter *m_dribbleFilter;
     QList<VisionFrame> m_visionFrames;

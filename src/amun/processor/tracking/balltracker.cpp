@@ -20,7 +20,7 @@
 
 #include "balltracker.h"
 #include "ballflyfilter.h"
-#include "ballgroundfilter.h"
+#include "ballgroundcollisionfilter.h"
 #include "balldribblefilter.h"
 #include <random>
 
@@ -37,7 +37,7 @@ BallTracker::BallTracker(const SSL_DetectionBall &ball, qint64 last_time, qint32
 {
     m_primaryCamera = primaryCamera;
     VisionFrame frame(ball, last_time, primaryCamera, robotInfo, visionProcessingTime);
-    m_groundFilter = new GroundFilter(frame, cameraInfo);
+    m_groundFilter = new BallGroundCollisionFilter(frame, cameraInfo);
     // TODO collision filter
     m_flyFilter = new FlyFilter(frame, cameraInfo);
     m_dribbleFilter = new DribbleFilter(frame, cameraInfo);
@@ -58,7 +58,7 @@ BallTracker::BallTracker(const BallTracker& previousFilter, qint32 primaryCamera
 
     m_flyFilter = new FlyFilter(*previousFilter.m_flyFilter);
     m_flyFilter->moveToCamera(primaryCamera);
-    m_groundFilter = new GroundFilter(*previousFilter.m_groundFilter, primaryCamera);
+    m_groundFilter = new BallGroundCollisionFilter(*previousFilter.m_groundFilter, primaryCamera);
     m_dribbleFilter = new DribbleFilter(*previousFilter.m_dribbleFilter, primaryCamera);
 }
 
@@ -154,18 +154,18 @@ void BallTracker::update(qint64 time)
 #endif
 }
 
-void BallTracker::get(world::Ball *ball, const FieldTransform &transform, bool resetRaw)
+void BallTracker::get(world::Ball *ball, const FieldTransform &transform, bool resetRaw, const QVector<RobotInfo> &robots)
 {
     ball->set_is_bouncing(false); // fly filter overwrites if appropriate
 
     // IMPORTANT: the ground filter must be written to ball before the fly filter is executed (it sometimes uses parts of the ground filter results)
-    m_groundFilter->writeBallState(ball, m_lastUpdateTime);
+    m_groundFilter->writeBallState(ball, m_lastUpdateTime, robots);
     if (m_flyFilter->isActive()) {
         debug("active", "fly filter");
-        m_flyFilter->writeBallState(ball, m_lastUpdateTime);
+        m_flyFilter->writeBallState(ball, m_lastUpdateTime, robots);
     } else if (m_dribbleFilter->isActive()) {
         debug("active", "dribble filter");
-        m_dribbleFilter->writeBallState(ball, m_lastUpdateTime);
+        m_dribbleFilter->writeBallState(ball, m_lastUpdateTime, robots);
     } else {
         debug("active", "ground filter");
     }
