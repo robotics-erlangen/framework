@@ -86,8 +86,12 @@ static std::optional<Eigen::Vector2f> intersectLineSegmentCircle(Eigen::Vector2f
     if (intersections.size() == 0) {
         return {};
     }
-    if (intersections.size() == 1 && intersections[0].second >= 0 && intersections[0].second <= dist) {
-        return intersections[0].first;
+    if (intersections.size() == 1) {
+        if (intersections[0].second >= 0 && intersections[0].second <= dist) {
+            return intersections[0].first;
+        } else {
+            return {};
+        }
     }
     // TODO: is this complexity necessary?
     if (intersections[0].second > intersections[1].second) {
@@ -164,6 +168,8 @@ static bool isInsideRobot(Eigen::Vector2f pos, const RobotInfo &robot, float rob
 
 void BallGroundCollisionFilter::writeBallState(world::Ball *ball, qint64 time, const QVector<RobotInfo> &robots)
 {
+    const qint64 RESET_SPEED_TIME = 150000000; // 150 ms
+
     // TODO: test sides flipped
     m_groundFilter.writeBallState(ball, time, robots);
 
@@ -172,6 +178,7 @@ void BallGroundCollisionFilter::writeBallState(world::Ball *ball, qint64 time, c
 
     const Eigen::Vector2f pastPos{pastState.p_x(), pastState.p_y()};
     Eigen::Vector2f currentPos{ball->p_x(), ball->p_y()};
+    Eigen::Vector2f currentSpeed;
     bool hasIntersection = false;
     for (const RobotInfo &robot : robots) {
 
@@ -181,20 +188,25 @@ void BallGroundCollisionFilter::writeBallState(world::Ball *ball, qint64 time, c
             const Eigen::Vector2f pastSpeed{pastState.v_x(), pastState.v_y()};
             const Eigen::Vector2f relativeSpeed = pastSpeed - robot.speed;
             const Eigen::Vector2f projectDir = relativeSpeed.isZero(0.001f) ? Eigen::Vector2f(pastPos - robot.robotPos) : -relativeSpeed;
-            const Eigen::Vector2f projected = *intersectLineSegmentRobot(pastPos, projectDir * 1000.0f, robot, ROBOT_RADIUS);
-            ball->set_p_x(projected.x());
-            ball->set_p_y(projected.y());
-            // TODO: use robot speed (also relative robot speed at intersection?)
-//            ball->set_v_x(0);
-//            ball->set_v_y(0);
+            const auto lineIntersection = intersectLineSegmentRobot(pastPos, projectDir * 1000.0f, robot, ROBOT_RADIUS);
+            if (lineIntersection) {
+                const Eigen::Vector2f projected = *lineIntersection;
+                ball->set_p_x(projected.x());
+                ball->set_p_y(projected.y());
+                if (time - m_lastVisionTime > RESET_SPEED_TIME) {
+                    ball->set_v_x(robot.speed.x());
+                    ball->set_v_y(robot.speed.y());
+                }
 
-            debugLine("ball line intersection", pastPos.x(), pastPos.y(), projected.x(), projected.y(), 2);
-            return;
+                debugLine("ball line intersection", pastPos.x(), pastPos.y(), projected.x(), projected.y(), 2);
+                return;
+            }
         }
 
         auto intersection = intersectLineSegmentRobot(pastPos, currentPos, robot, ROBOT_RADIUS);
         if (intersection) {
             currentPos = *intersection;
+            currentSpeed = robot.speed;
             hasIntersection = true;
             debugLine("ball line intersection", pastPos.x(), pastPos.y(), currentPos.x(), currentPos.y(), 1);
         }
@@ -203,10 +215,11 @@ void BallGroundCollisionFilter::writeBallState(world::Ball *ball, qint64 time, c
     if (hasIntersection) {
         ball->set_p_x(currentPos.x());
         ball->set_p_y(currentPos.y());
-        // TODO: use robot speed (also relative robot speed at intersection?)
-        // TODO: enable these again
-//        ball->set_v_x(0);
-//        ball->set_v_y(0);
+        // TODO: fully enable these again
+        if (time - m_lastVisionTime > RESET_SPEED_TIME) {
+            ball->set_v_x(currentSpeed.x());
+            ball->set_v_y(currentSpeed.y());
+        }
     }
 
     debugCircle("past ball state", pastState.p_x(), pastState.p_y(), 0.015);
