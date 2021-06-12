@@ -26,6 +26,7 @@
 #include "protobuf/ssl_detection.pb.h"
 #include "protobuf/world.pb.h"
 #include "protobuf/debug.pb.h"
+#include <optional>
 
 class BallGroundCollisionFilter : public AbstractBallFilter
 {
@@ -39,9 +40,14 @@ public:
     std::size_t chooseBall(const std::vector<VisionFrame> &frames) override;
 
 private:
+    struct BallOffsetInfo {
+        Eigen::Vector2f ballOffset;
+        int robotIdentifier;
+    };
     GroundFilter m_groundFilter;
     GroundFilter m_pastFilter;
     qint64 m_lastVisionTime;
+    std::optional<BallOffsetInfo> m_localBallOffset;
 };
 
 #endif // BALLGROUNDCOLLISIONFILTER_H

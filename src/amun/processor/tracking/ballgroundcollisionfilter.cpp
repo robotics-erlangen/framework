@@ -18,7 +18,8 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 #include "ballgroundcollisionfilter.h"
-#include <optional>
+#include <algorithm>
+#include <QDebug>
 
 BallGroundCollisionFilter::BallGroundCollisionFilter(const VisionFrame &frame, CameraInfo* cameraInfo) :
     AbstractBallFilter(frame, cameraInfo),
@@ -82,7 +83,6 @@ static std::optional<Eigen::Vector2f> intersectLineSegmentCircle(Eigen::Vector2f
 {
     const float dist = (p2 - p1).norm();
     auto intersections = intersectLineCircle(p1, p2 - p1, center, radius);
-    // TODO: start pos in robot
     if (intersections.size() == 0) {
         return {};
     }
@@ -176,6 +176,25 @@ void BallGroundCollisionFilter::writeBallState(world::Ball *ball, qint64 time, c
     world::Ball pastState;
     m_pastFilter.writeBallState(&pastState, m_lastVisionTime, robots);
 
+    if (time - m_lastVisionTime > RESET_SPEED_TIME && m_localBallOffset) {
+        const int identifier = m_localBallOffset->robotIdentifier;
+        auto robot = std::find_if(robots.begin(), robots.end(), [identifier](const RobotInfo &robot) { return robot.identifier == identifier; });
+        if (robot != robots.end()) {
+            const auto toDribbler = (robot->dribblerPos - robot->robotPos).normalized();
+            const Eigen::Vector2f relativeBallPos = m_localBallOffset->ballOffset.x() * toDribbler +
+                                                    m_localBallOffset->ballOffset.y() * perpendicular(toDribbler);
+            const auto ballPos = robot->robotPos + relativeBallPos;
+            ball->set_p_x(ballPos.x());
+            ball->set_p_y(ballPos.y());
+            ball->set_v_x(robot->speed.x());
+            ball->set_v_y(robot->speed.y());
+            return;
+        }
+    }
+    if (time - m_lastVisionTime <= RESET_SPEED_TIME) {
+        m_localBallOffset.reset();
+    }
+
     const Eigen::Vector2f pastPos{pastState.p_x(), pastState.p_y()};
     Eigen::Vector2f currentPos{ball->p_x(), ball->p_y()};
     Eigen::Vector2f currentSpeed;
@@ -197,6 +216,13 @@ void BallGroundCollisionFilter::writeBallState(world::Ball *ball, qint64 time, c
                     ball->set_v_x(robot.speed.x());
                     ball->set_v_y(robot.speed.y());
                 }
+
+                BallOffsetInfo offset;
+                offset.robotIdentifier = robot.identifier;
+                const auto toDribbler = (robot.dribblerPos - robot.robotPos).normalized();
+                offset.ballOffset = Eigen::Vector2f{(projected - robot.robotPos).dot(toDribbler),
+                                                    (projected - robot.robotPos).dot(perpendicular(toDribbler))};
+                m_localBallOffset = offset;
 
                 debugLine("ball line intersection", pastPos.x(), pastPos.y(), projected.x(), projected.y(), 2);
                 return;
