@@ -404,6 +404,7 @@ RobotInfo RobotFilter::getRobotInfo() const
     result.robotPos = Eigen::Vector2f(m_kalman->state()(0), m_kalman->state()(1));
     float phi = limitAngle(m_kalman->state()(2));
     result.dribblerPos = result.robotPos + 0.08*Eigen::Vector2f(cos(phi), sin(phi));
+    result.speed = Eigen::Vector2f(m_kalman->state()[3], m_kalman->state()[4]);
 
     const auto& cmd = m_lastRadioCommand.first;
     result.chipCommand = cmd.has_kick_style() && cmd.kick_style() == robot::Command::Chip;;

@@ -36,6 +36,7 @@ class SSL_DetectionRobot;
 struct RobotInfo {
     Eigen::Vector2f robotPos = Eigen::Vector2f(0, 0);
     Eigen::Vector2f dribblerPos = Eigen::Vector2f(0, 0);
+    Eigen::Vector2f speed = Eigen::Vector2f(0, 0);
     bool chipCommand = false;
     bool linearCommand = false;
     int identifier = std::numeric_limits<int>::max(); // uniquely identifies each robot, stays constant over time (includes id and team)
