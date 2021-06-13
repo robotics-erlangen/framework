@@ -207,9 +207,17 @@ void BallGroundCollisionFilter::writeBallState(world::Ball *ball, qint64 time, c
             const Eigen::Vector2f pastSpeed{pastState.v_x(), pastState.v_y()};
             const Eigen::Vector2f relativeSpeed = pastSpeed - robot.speed;
             const Eigen::Vector2f projectDir = relativeSpeed.isZero(0.001f) ? Eigen::Vector2f(pastPos - robot.robotPos) : -relativeSpeed;
-            const auto lineIntersection = intersectLineSegmentRobot(pastPos, projectDir * 1000.0f, robot, ROBOT_RADIUS);
-            if (lineIntersection) {
-                const Eigen::Vector2f projected = *lineIntersection;
+            const auto closeLineIntersection = intersectLineSegmentRobot(pastPos, projectDir * 1000.0f, robot, ROBOT_RADIUS);
+            const auto farLineIntersection = intersectLineSegmentRobot(pastPos, -projectDir * 1000.0f, robot, ROBOT_RADIUS);
+            if (closeLineIntersection && farLineIntersection) {
+                const float closeDist = (*closeLineIntersection - pastPos).norm();
+                const float farDist = (*farLineIntersection - pastPos).norm();
+                Eigen::Vector2f projected;
+                if (closeDist < farDist * 2) {
+                    projected = *closeLineIntersection;
+                } else {
+                    projected = *farLineIntersection;
+                }
                 ball->set_p_x(projected.x());
                 ball->set_p_y(projected.y());
                 if (time - m_lastVisionTime > RESET_SPEED_TIME) {
