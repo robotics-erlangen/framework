@@ -385,7 +385,7 @@ export class BallPlacement extends Move {
 					this._ballStartPos = usedBallPos;
 					if (usedBallPos.distanceTo(this._ballPlacementPos) < FINE_ADJUST_ZONE) {
 						nextState = State.FINE_ADJUST;
-					} else if (!Field.isInField(usedBallPos)
+					} else if (!Field.isInField(usedBallPos, 0.05)
 							&& (((BOUNDARY_WIDTH + World.Geometry.FieldWidthHalf) - Math.abs(World.Ball.pos.x)) > MIN_BOUNDARY_DIST)
 							&& (Math.abs(World.Ball.pos.y) < World.Geometry.FieldHeightHalf - MIN_GOAL_LINE_DIST)) {
 						nextState = State.WALLKICK;
@@ -403,6 +403,11 @@ export class BallPlacement extends Move {
 			// same case as in t/a/placeball if you change something make sure to change it also in placeball
 			case State.WALLKICK: {
 				nextState = State.WALLKICK;
+				// a different boundary width is used here (compared to wait for ball stop -> wallkick) as a hysteresis
+				if (Field.isInField(usedBallPos, 0)) {
+					this._wallKickTryTime = undefined;
+					nextState = State.WAIT_FOR_BALL_STOP;
+				}
 				if (this._wallKickTryTime === undefined) {
 					this._firstPosWallkick = usedBallPos;
 					this._wallKickTryTime = World.Time;
