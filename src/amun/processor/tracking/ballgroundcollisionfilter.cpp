@@ -174,7 +174,7 @@ void BallGroundCollisionFilter::writeBallState(world::Ball *ball, qint64 time, c
     m_groundFilter.writeBallState(ball, time, robots);
 
     world::Ball pastState;
-    m_pastFilter.writeBallState(&pastState, m_lastVisionTime, robots);
+    m_pastFilter.writeBallState(&pastState, m_lastVisionTime + 1, robots);
 
     if (time - m_lastVisionTime > RESET_SPEED_TIME && m_localBallOffset) {
         const int identifier = m_localBallOffset->robotIdentifier;
