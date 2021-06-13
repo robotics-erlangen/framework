@@ -1342,6 +1342,8 @@ void FieldWidget::updateGeometry()
         // allow showing a small area around the field
         setSceneRect(rect.adjusted(-2, -2, 2, 2));
         showWholeField();
+
+        createInfoText();
     }
 }
 
