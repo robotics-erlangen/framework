@@ -155,10 +155,10 @@ FieldWidget::FieldWidget(QWidget *parent) :
     m_contextMenu->addSeparator();
     // add actions to allow hiding visualizations of a team
     QList<QAction**> visualizationActions {&m_actionShowBlueVis, &m_actionShowBlueReplayVis, &m_actionShowYellowVis,
-                                         &m_actionShowYellowReplayVis, &m_actionShowControllerVis};
+                                         &m_actionShowYellowReplayVis, &m_actionShowOtherVis};
     QList<QString> actionNames {"Show blue visualizations", "Show blue replay visualizations",
                                "Show yellow visualizations", "Show yellow replay visualizations",
-                               "Show controller visualizations"};
+                               "Show other visualizations"};
     for (int i = 0;i<visualizationActions.size();i++) {
         QAction * action = m_contextMenu->addAction(actionNames[i]);
         action->setCheckable(true);
@@ -520,7 +520,7 @@ void FieldWidget::hideVisualizationToggles()
 {
     m_actionShowBlueVis->setVisible(false);
     m_actionShowYellowVis->setVisible(false);
-    m_actionShowControllerVis->setVisible(false);
+    m_actionShowOtherVis->setVisible(false);
 }
 
 void FieldWidget::updateTeam(RobotMap &team, QHash<uint, robot::Specs> &specsMap, const robot::Team &specs) {
@@ -567,9 +567,16 @@ void FieldWidget::updateVisualizationVisibility()
     m_visibleVisSources[amun::ReplayBlue] = m_actionShowBlueReplayVis->isChecked();
     m_visibleVisSources[amun::StrategyYellow] = m_actionShowYellowVis->isChecked();
     m_visibleVisSources[amun::ReplayYellow] = m_actionShowYellowReplayVis->isChecked();
-    m_visibleVisSources[amun::Controller] = m_actionShowControllerVis->isChecked();
-    m_visibleVisSources[amun::Autoref] = true;
-    m_visibleVisSources[amun::Tracking] = true;
+
+    // use protobuf reflections so that no source is missing when they are added in the future
+    const QVector<amun::DebugSource> explicitSources = {amun::StrategyBlue, amun::ReplayBlue, amun::StrategyYellow, amun::ReplayYellow};
+    const auto debugSources = amun::DebugSource_descriptor();
+    for (int i = 0;i<debugSources->value_count();i++) {
+        const amun::DebugSource source = static_cast<amun::DebugSource>(debugSources->value(i)->number());
+        if (!explicitSources.contains(source)) {
+            m_visibleVisSources[source] = m_actionShowOtherVis->isChecked();
+        }
+    }
 
     m_visualizationsUpdated = true;
     m_guiTimer->requestTriggering();

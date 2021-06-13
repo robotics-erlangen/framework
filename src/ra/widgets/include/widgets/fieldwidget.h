@@ -216,7 +216,7 @@ private:
     QAction *m_actionShowBlueReplayVis;
     QAction *m_actionShowYellowVis;
     QAction *m_actionShowYellowReplayVis;
-    QAction *m_actionShowControllerVis;
+    QAction *m_actionShowOtherVis;
     QAction *m_actionShowBallTraces;
     QAction *m_actionShowRobotTraces;
     QAction *m_actionBallPlacementBlue;
