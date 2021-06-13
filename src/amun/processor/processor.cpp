@@ -450,17 +450,13 @@ void Processor::handleCommand(const Command &command)
     }
 
     if (command->has_simulator() && command->simulator().has_enable()) {
-        m_tracker->reset();
-        m_speedTracker->reset();
-        m_simpleTracker->reset();
+        resetTracking();
         m_internalSimulatorEnabled = command->simulator().enable();
         m_simulatorEnabled = m_internalSimulatorEnabled || m_externalSimulatorEnabled;
     }
 
     if (teamsChanged) {
-        m_tracker->reset();
-        m_speedTracker->reset();
-        m_simpleTracker->reset();
+        resetTracking();
         sendTeams();
     }
 
@@ -496,6 +492,13 @@ void Processor::handleCommand(const Command &command)
             m_simulatorEnabled = m_internalSimulatorEnabled || m_externalSimulatorEnabled;
         }
     }
+}
+
+void Processor::resetTracking()
+{
+    m_tracker->reset();
+    m_speedTracker->reset();
+    m_simpleTracker->reset();
 }
 
 void Processor::handleControl(Team &team, const amun::CommandControl &control)

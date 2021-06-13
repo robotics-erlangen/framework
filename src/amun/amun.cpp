@@ -568,8 +568,12 @@ void Amun::handleStatus(const Status &status)
 
 void Amun::handleStatusForReplay(const Status &status)
 {
+    const auto previousTime = m_replayTimer->currentTime();
     m_replayTimer->setTime(status->time(), 0);
     if (m_trackingReplay) {
+        if (previousTime > status->time()) {
+            m_replayProcessor->resetTracking();
+        }
         if (status->has_team_blue()) {
             Command command(new amun::Command);
             command->mutable_set_team_blue()->CopyFrom(status->team_blue());

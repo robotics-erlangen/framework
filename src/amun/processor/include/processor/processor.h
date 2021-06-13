@@ -51,6 +51,7 @@ public:
     Processor& operator=(const Processor&) = delete;
     bool getIsFlipped() const { return m_lastFlipped; }
     SSLGameController *getInternalGameController() const { return m_gameController; }
+    void resetTracking();
 
 signals:
     void sendStatus(const Status &status);
