@@ -226,12 +226,16 @@ void Tracker::prioritizeBallFilters()
 BallTracker* Tracker::bestBallFilter()
 {
     const double CONFIDENCE_HYSTERESIS = 0.15;
+    const int MIN_RAW_DETECTIONS = 3;
     // find oldest filter. if there are multiple with same initTime
     // (i.e. camera handover filters) this picks the first (prioritized) one.
     BallTracker* best = nullptr;
     qint64 oldestTime = 0;
     double bestConfidence = -1.0;
-    for (auto f : m_ballFilter) {
+    for (BallTracker* f : m_ballFilter) {
+        if (f->rawBallCount() < MIN_RAW_DETECTIONS) {
+            continue;
+        }
         double confidence = f->confidence() + (m_currentBallFilter == f ? CONFIDENCE_HYSTERESIS : 0.0);
         if (best == nullptr || f->initTime() < oldestTime ||
                 (f->initTime() == oldestTime && confidence > bestConfidence)) {

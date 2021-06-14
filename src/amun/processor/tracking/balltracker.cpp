@@ -206,4 +206,5 @@ void BallTracker::addVisionFrame(const SSL_DetectionBall &ball, qint64 time, qin
     m_visionFrames.append(VisionFrame(ball, time, cameraId, robotInfo, visionProcessingTime));
     m_frameCounter++;
     m_updateFrameCounter++;
+    m_rawBallCount++;
 }
