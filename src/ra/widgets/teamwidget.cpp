@@ -162,6 +162,7 @@ void TeamWidget::enableContent(bool enable)
     m_btnEnableDebug->setEnabled(enable && m_type != amun::StatusStrategyWrapper::AUTOREF);
     m_debugAction->setEnabled(enable);
     m_performanceAction->setEnabled(enable);
+    m_contentEnabled = enable;
 }
 
 void TeamWidget::load()
@@ -202,6 +203,9 @@ void TeamWidget::forceAutoReload(bool force)
 
 void TeamWidget::handleStatus(const Status &status)
 {
+    if (!m_contentEnabled) {
+        return;
+    }
     // select corresponding strategy status
     const amun::StatusStrategy *strategy = nullptr;
     if (status->has_status_strategy()) {

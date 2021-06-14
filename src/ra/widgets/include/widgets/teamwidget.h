@@ -99,6 +99,7 @@ private:
     bool m_compiling;
     std::shared_ptr<QStringList> m_recentScripts;
     bool m_useDarkColors = false;
+    bool m_contentEnabled = true;
 };
 
 #endif // TEAMWIDGET_H
