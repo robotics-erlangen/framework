@@ -1,3 +1,4 @@
+import * as pb from "base/protobuf";
 import * as Referee from "base/referee";
 import { FriendlyRobot } from "base/robot";
 import * as World from "base/world";
@@ -179,7 +180,7 @@ let speedError: Map<FriendlyRobot, number> = new Map<FriendlyRobot, number>();
 function updateSpeedError() {
 	let halfSpeed = Referee.isSlowDriveState() ? 0.75 : 1.5;
 	for (let robot of World.FriendlyRobots) {
-		if (robot.prevMoveTo && !World.IsReplay && !World.IsSimulated) {
+		if (robot.prevMoveTo && !World.IsReplay && World.WorldStateSource === pb.world.WorldSource.REAL_LIFE) {
 			if (robot.speed.lengthSq() < halfSpeed * halfSpeed && robot.pos.distanceToSq(robot.prevMoveTo) > 0.5 * 0.5) {
 				if (speedError.has(robot) && speedError[robot]! <= 450) {
 					speedError[robot] = speedError[robot]! + 1;

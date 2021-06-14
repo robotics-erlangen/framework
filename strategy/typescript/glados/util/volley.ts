@@ -2,6 +2,7 @@ import * as Constants from "base/constants";
 import * as debug from "base/debug";
 import * as geom from "base/geom";
 import { bound } from "base/mathutil";
+import * as pb from "base/protobuf";
 import { FriendlyRobot } from "base/robot";
 import { Position, Speed, Vector } from "base/vector";
 import * as vis from "base/vis";
@@ -18,7 +19,7 @@ interface DampingFactor {
  * These are the default values for muById, that are choosen if no additional information is available
  */
 const DEFAULT_DAMPING_FACTOR: DampingFactor = Object.freeze(
-	World.IsSimulated
+	World.WorldStateSource !== pb.world.WorldSource.REAL_LIFE
 	? { mu_x: 0.93, mu_y: 0.26 }
 	: { mu_x: 0.70, mu_y: 0.05 }
 );
@@ -58,7 +59,7 @@ export function setDampingParam(id: DampingIndex, param: DampingFactor) {
 }
 
 export function getDampingParam(id: DampingIndex | "default"): Readonly<DampingFactor> {
-	return World.IsSimulated || id === "default"
+	return World.WorldStateSource !== pb.world.WorldSource.REAL_LIFE || id === "default"
 		? DEFAULT_DAMPING_FACTOR
 		: mus[id]!;
 }
@@ -154,7 +155,7 @@ export function calcVOutFromVOutAbs(v_out_length: number, v_in: number, phi: num
  * @returns x,y - The velocity of the shot ball relative to the robot's velocity is Vector(x,y)
  */
 export function calcVOutFromVS(v_s: number, v_in: number, phi: number, alpha: number, robotId: number | "opp"): [number, number] {
-	if (!World.IsSimulated && (robotId < 0 || robotId > 15)) {
+	if (World.WorldStateSource !== pb.world.WorldSource.INTERNAL_SIMULATION && (robotId < 0 || robotId > 15)) {
 		throw new Error("Invalid robot id");
 	}
 	v_in = bound(0, v_in, Constants.maxBallSpeed);
@@ -172,7 +173,7 @@ export function calcVOutFromVS(v_s: number, v_in: number, phi: number, alpha: nu
 
 function volley_Jf(v_s: number, phi: number, alpha: number, v_in: number,
 		robotId: number | "opp"): [number, number, number, number] {
-	if (!World.IsSimulated && (robotId < 0 || robotId > 15)) {
+	if (World.WorldStateSource !== pb.world.WorldSource.INTERNAL_SIMULATION && (robotId < 0 || robotId > 15)) {
 		throw new Error("Invalid robot id");
 	}
 	let sinp = Math.sin(phi);

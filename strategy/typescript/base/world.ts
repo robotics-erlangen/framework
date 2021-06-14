@@ -64,7 +64,7 @@ export let Robots: Robot[] = [];
 /** True if we are the blue team, otherwise we're yellow */
 export let TeamIsBlue: boolean = false;
 /** True if the world is simulated */
-export let IsSimulated: boolean = false;
+export let WorldStateSource: pb.world.WorldSource = pb.world.WorldSource.REAL_LIFE;
 /** True if playing on the large field */
 export let IsLargeField: boolean = false;
 /** True if the current strategy run is a replay run */
@@ -311,9 +311,16 @@ export function _updateWorld(state: pb.world.State) {
 	if (Time <= 0) {
 		throw new Error("Invalid Time. Outdated ra version!");
 	}
-	if (IsSimulated !== state.is_simulated) {
-		IsSimulated = !!state.is_simulated;
-		Constants.switchSimulatorConstants(IsSimulated);
+	const prevWorldSource = WorldStateSource;
+	if (state.world_source != undefined) {
+		if (state.world_source !== WorldStateSource) {
+			WorldStateSource = state.world_source;
+		}
+	} else if (state.is_simulated != undefined) {
+		WorldStateSource = state.is_simulated ? pb.world.WorldSource.INTERNAL_SIMULATION : pb.world.WorldSource.REAL_LIFE;
+	}
+	if (WorldStateSource !== prevWorldSource) {
+		Constants.switchSimulatorConstants(WorldStateSource !== pb.world.WorldSource.REAL_LIFE);
 	}
 
 	let radioResponses: pb.robot.RadioResponse[] = state.radio_response || [];

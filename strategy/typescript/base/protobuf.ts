@@ -2042,6 +2042,11 @@ export namespace world {
 		x2: number;
 		y2: number;
 	}
+	export const enum WorldSource {
+		INTERNAL_SIMULATION = "INTERNAL_SIMULATION",
+		EXTERNAL_SIMULATION = "EXTERNAL_SIMULATION",
+		REAL_LIFE = "REAL_LIFE"
+	}
 	export interface State {
 		time: number;
 		ball?: world.Ball;
@@ -2058,6 +2063,7 @@ export namespace world {
 		vision_frames?: SSL_WrapperPacket[];
 		vision_frame_times?: number[];
 		system_delay?: number;
+		world_source?: WorldSource;
 	}
 	export interface SimulatorState {
 		blue_robots?: world.SimRobot[];
