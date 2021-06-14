@@ -105,16 +105,22 @@ void Seshat::handleCheckHaltStatus(const Status &status)
 
 void Seshat::forceUi(bool ra)
 {
-    if (ra) {
-        for (const Status &status : m_horusStrategyBuffer) {
-            emit sendUi(status);
-        }
-        m_horusStrategyBuffer.clear();
-    }
     Status s = Status::createArena();
     auto* response = s->mutable_pure_ui_response();
     response->set_force_ra_horus(ra); // horus mode
     emit sendUi(s);
+
+    if (ra) {
+        sendBufferedStatus();
+    }
+}
+
+void Seshat::sendBufferedStatus()
+{
+    for (const Status &status : m_horusStrategyBuffer) {
+        emit sendUi(status);
+    }
+    m_horusStrategyBuffer.clear();
 }
 
 // returns true iff a status should even be forwarded to the UI
@@ -163,6 +169,7 @@ void Seshat::handleCommand(const Command& command)
                     m_storedPlaybackPaused = m_statusSource->isPaused();
                     // stop the playback while Ra is displayed
                     m_statusSource->setPaused(true);
+                    sendBufferedStatus();
                 } else {
                     m_statusSource->setPaused(m_storedPlaybackPaused);
                 }
