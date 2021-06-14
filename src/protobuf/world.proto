@@ -104,6 +104,12 @@ message TrackingAOI {
     required float y2 = 4;
 }
 
+enum WorldSource {
+    INTERNAL_SIMULATION = 1;
+    EXTERNAL_SIMULATION = 2;
+    REAL_LIFE = 3;
+}
+
 message State {
     required int64 time = 1;
     optional Ball ball = 2;
@@ -111,6 +117,7 @@ message State {
     // robot states predicted with help of the desired trajectory (if available)
     repeated Robot blue = 4;
     repeated robot.RadioResponse radio_response = 5;
+    // deprecated, use world_source instead
     optional bool is_simulated = 6;
     optional bool has_vision_data = 7;
     optional ssl.TeamPlan mixed_team_info = 8;
@@ -124,6 +131,7 @@ message State {
     repeated SSL_WrapperPacket vision_frames = 10;
     repeated int64 vision_frame_times = 14;
     optional int64 system_delay = 15;
+    optional WorldSource world_source = 16;
 }
 
 message SimulatorState {

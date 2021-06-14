@@ -125,7 +125,6 @@ Processor::Processor(const Timer *timer, bool isReplay) :
     m_simpleTracker(new Tracker(true, false)),
     m_mixedTeamInfoSet(false),
     m_refereeInternalActive(isReplay),
-    m_simulatorEnabled(false),
     m_lastFlipped(false),
     m_gameController(new SSLGameController(timer)),
     m_transceiverEnabled(isReplay)
@@ -203,6 +202,17 @@ Status Processor::assembleStatus(qint64 time, bool resetRaw)
     return status;
 }
 
+world::WorldSource Processor::currentWorldSource() const
+{
+    if (!m_simulatorEnabled) {
+        return world::WorldSource::REAL_LIFE;
+    } else if (m_internalSimulatorEnabled) {
+        return world::WorldSource::INTERNAL_SIMULATION;
+    } else {
+        return world::WorldSource::EXTERNAL_SIMULATION;
+    }
+}
+
 void Processor::process(qint64 overwriteTime)
 {
     const qint64 tracker_start = Timer::systemTime();
@@ -220,6 +230,7 @@ void Processor::process(qint64 overwriteTime)
 
     // add information, about whether the world state is from the simulator or not
     status->mutable_world_state()->set_is_simulated(m_simulatorEnabled);
+    status->mutable_world_state()->set_world_source(currentWorldSource());
 
     // run referee
     Referee* activeReferee = (m_refereeInternalActive) ? m_refereeInternal : m_referee;
@@ -271,6 +282,7 @@ void Processor::process(qint64 overwriteTime)
     // depends on the just created radio command
     Status strategyStatus = assembleStatus(current_time + tickDuration, true);
     strategyStatus->mutable_world_state()->set_is_simulated(m_simulatorEnabled);
+    strategyStatus->mutable_world_state()->set_world_source(currentWorldSource());
     strategyStatus->mutable_game_state()->CopyFrom(activeReferee->gameState());
     injectExtraData(strategyStatus);
     // remove responses after injecting to avoid sending them a second time

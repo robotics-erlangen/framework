@@ -94,6 +94,7 @@ private:
     void injectExtraData(Status &status);
     void injectUserControl(Status &status, bool isBlue);
     Status assembleStatus(qint64 time, bool resetRaw);
+    world::WorldSource currentWorldSource() const;
 
     void sendTeams();
 
@@ -109,7 +110,7 @@ private:
     ssl::TeamPlan m_mixedTeamInfo;
     bool m_mixedTeamInfoSet;
     bool m_refereeInternalActive;
-    bool m_simulatorEnabled;
+    bool m_simulatorEnabled = false;
     bool m_internalSimulatorEnabled = false;
     bool m_externalSimulatorEnabled = false;
     bool m_lastFlipped;
