@@ -571,6 +571,9 @@ void Amun::handleStatusForReplay(const Status &status)
     const auto previousTime = m_replayTimer->currentTime();
     m_replayTimer->setTime(status->time(), 0);
     if (m_trackingReplay) {
+        if (status->has_game_state()) {
+            m_lastTrackingReplayGameState = status;
+        }
         if (previousTime > status->time()) {
             m_replayProcessor->resetTracking();
         }
@@ -636,6 +639,10 @@ void Amun::handleStatusForReplay(const Status &status)
 void Amun::handleReplayStatus(const Status &status)
 {
     status->set_time(m_replayTimer->currentTime());
+    if (m_trackingReplay && !m_lastTrackingReplayGameState.isNull()) {
+        // add game state information since the replay processor does not have the required data
+        status->mutable_game_state()->CopyFrom(m_lastTrackingReplayGameState->game_state());
+    }
     m_seshat->handleReplayStatus(status);
 }
 

@@ -126,6 +126,7 @@ private:
     bool m_useInternalReferee;
     bool m_useAutoref;
     bool m_trackingReplay = false;
+    Status m_lastTrackingReplayGameState;
 
     QSet<amun::PauseSimulatorReason> m_activePauseReasons;
     float m_previousSpeed;
