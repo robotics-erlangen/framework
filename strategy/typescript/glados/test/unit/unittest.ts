@@ -38,7 +38,12 @@ export class UnitTest {
 						continue;
 					}
 
-					let worldOverlayedAmun = {...safeAmun, ...worldData};
+					let logMessages: any[][] = [];
+					function storingLog(...values: any[]) {
+						logMessages.push(values);
+					}
+
+					let worldOverlayedAmun = {...safeAmun, ...worldData, log: storingLog};
 					amun = worldOverlayedAmun;
 					path = safePath;
 
@@ -51,6 +56,13 @@ export class UnitTest {
 					// read the situation data from the new instance as it might include references to robots or the ball
 					if (pcall(() => (testInstance as any)[test.name](testInstance.tests[name][1][i][1]))) {
 						failedSubTests++;
+						if (logMessages.length > 0) {
+							log("<font color=\"yellow\">Log messages:</font>");
+							for (let values of logMessages) {
+								log(...values);
+							}
+							log("<font color=\"yellow\">End log messages.</font>");
+						}
 						log(`&nbsp;&nbsp;&nbsp;&nbsp;situation ${situationFileName} <font color=\"red\">failed</font>`);
 					} else {
 						log(`&nbsp;&nbsp;&nbsp;&nbsp;situation ${situationFileName} <font color=\"darkgreen\">success</font>`);
