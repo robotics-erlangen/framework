@@ -96,12 +96,18 @@ export class WindshieldWiper extends Move {
 			if (passInfoTable && Attack.checkPassInfos(distances[i].robot, passInfoTable, false)[0]) {
 				acceptingRobots.add(i);
 			}
+
+			const defaultPos = new Vector(-pos[i].x, pos[i].y);
 			let acceptPos = this.calcAcceptPos(pos[i], this._robots[i].radius);
+			if (!acceptPos) {
+				acceptPos = defaultPos;
+			}
+
 			taskAssignments[distances[i].robot] = Assignment.create({
 				class: Support,
 				params: [
 					{ isStriker: true, samplingCtor: StrikerSampling },
-					new Vector(-pos[i].x, pos[i].y),
+					defaultPos,
 					acceptPos,
 				]
 			});
@@ -111,12 +117,17 @@ export class WindshieldWiper extends Move {
 				if (acceptingRobots.has(i)) {
 					taskAssignments[distances[i].robot] = Assignment.create({ class: AcceptPass});
 				} else {
+					const defaultPos = pos[i];
 					let acceptPos = this.calcAcceptPos(pos[i], this._robots[i].radius);
+					if (!acceptPos) {
+						acceptPos = defaultPos;
+					}
+
 					taskAssignments[distances[i].robot] = Assignment.create({
 						class: Support,
 						params: [
 							{ isStriker: true, samplingCtor: StrikerSampling },
-							pos[i],
+							defaultPos,
 							acceptPos,
 						],
 						restart: true,
