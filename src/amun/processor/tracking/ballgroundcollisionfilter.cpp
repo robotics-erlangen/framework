@@ -119,7 +119,7 @@ std::optional<std::pair<float, float>> intersectLineLine(Eigen::Vector2f pos1, E
         return {};
     }
 
-     const Eigen::Vector2f normal1 = perpendicular(dir1);
+    const Eigen::Vector2f normal1 = perpendicular(dir1);
     const Eigen::Vector2f normal2 = perpendicular(dir2);
     const Eigen::Vector2f diff = pos2 - pos1;
     const float t1 = normal2.dot(diff) / normal2.dot(dir1);
@@ -175,6 +175,9 @@ void BallGroundCollisionFilter::writeBallState(world::Ball *ball, qint64 time, c
 
     world::Ball pastState;
     m_pastFilter.writeBallState(&pastState, m_lastVisionTime + 1, robots);
+
+    // remove this once all issues are fixed
+    return;
 
     if (time - m_lastVisionTime > RESET_SPEED_TIME && m_localBallOffset) {
         const int identifier = m_localBallOffset->robotIdentifier;
