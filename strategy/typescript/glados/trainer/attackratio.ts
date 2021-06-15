@@ -160,7 +160,8 @@ export class AttackRatio {
 
 		let attackRatio = this.attackRatio();
 
-		let attackers = attackRatio > 0 ? Math.max(1, Math.floor(attackRatio / 11 * World.FriendlyRobots.length)) : 0;
+		let expectedRobots = World.DIVISION === "B" ? 6 : 11;
+		let attackers = attackRatio > 0 ? Math.max(1, Math.floor(attackRatio / expectedRobots * World.FriendlyRobots.length)) : 0;
 
 		let mainAttacker = this._messaging.receiveTrainer(MessageType.mainAttacker);
 
