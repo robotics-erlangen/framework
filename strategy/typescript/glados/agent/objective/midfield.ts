@@ -41,8 +41,8 @@ export class Midfield extends Objective {
 		return ball.pos.y < 0;
 	}
 
-	canContinue = () => {
-		return World.Ball.pos.y < G.FieldHeightQuarter;
+	canContinue = (ball: BallLike) => {
+		return ball.pos.y < G.FieldHeightQuarter;
 	}
 
 	getSupporterZones = (participants: FriendlyRobot[]): Zone[] => {

@@ -96,6 +96,12 @@ export class SelectObjective implements Checkable {
 		const messaging = this._agent.messaging();
 		const robot = this._agent.robot();
 
+		// this must be at the start before ANY return statements,
+		// since lastIncomingPassInfo needs to be continously updated
+		// to receive the information from every frame
+		const lastIncomingPassInfo = Attack.lastIncomingPassInfo(
+			robot, messaging.receiveSingleSender(MessageType.passInfo));
+
 		const isMainAttacker = messaging.receiveTrainer(MessageType.mainAttacker) === robot;
 		if (!isMainAttacker) {
 			// This may be set if this agent used to be MA
@@ -108,6 +114,13 @@ export class SelectObjective implements Checkable {
 		this._cachedNextRefereeState = World.NextRefereeState;
 
 		debug.set("freekick restart", freekickRestart);
+
+		// Use the position where we plan to receive the pass if available
+		const pos: Readonly<Vector> = World.RefereeState === "BallPlacementOffensive"
+			? World.BallPlacementPos!
+			: lastIncomingPassInfo
+			? lastIncomingPassInfo.ballPos
+			: World.Ball.pos;
 
 		/*
 		 * Take from messaging (and not as an instance variable here) to allow
@@ -126,24 +139,13 @@ export class SelectObjective implements Checkable {
 			case RestartMode.DEFER:
 				reuse = lastObjective !== undefined
 					&& lastObjective.getMaRunner().agent().robot() === robot
-					&& lastObjective.canContinue();
+					&& lastObjective.canContinue({ pos });
 				break;
 		}
 		debug.set("reuse", reuse);
 
 		let nextObjective;
 		if (!reuse) {
-			// Use the position where we plan to receive the pass if available
-			const lastIncomingPassInfo = Attack.lastIncomingPassInfo(
-				robot, messaging.receiveSingleSender(MessageType.passInfo)
-			);
-
-			const pos: Readonly<Vector> = World.RefereeState === "BallPlacementOffensive"
-				? World.BallPlacementPos!
-				: lastIncomingPassInfo
-				? lastIncomingPassInfo.ballPos
-				: World.Ball.pos;
-
 			const objectiveCtor = SelectObjective.OBJECTIVES.find((ctor) => ctor.canStart({ pos }));
 			if (objectiveCtor) {
 				nextObjective = new objectiveCtor(this._agent);

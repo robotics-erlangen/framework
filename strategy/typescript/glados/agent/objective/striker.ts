@@ -41,7 +41,7 @@ export class Striker extends Objective {
 		return true;
 	}
 
-	canContinue() {
+	canContinue(_ball: BallLike) {
 		return true;
 	}
 

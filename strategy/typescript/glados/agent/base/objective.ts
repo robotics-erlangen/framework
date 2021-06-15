@@ -67,8 +67,11 @@ export abstract class Objective {
 	 */
 	abstract getSupporterZones(supporter: FriendlyRobot[]): Zone[];
 
-	/** Whether the objective is fit to continue execution. */
-	abstract canContinue(): boolean;
+	/**
+	 * Whether the objective is fit to continue execution.
+	 * @param ball - The ball to use in e.g. ball position checks (the same as in canStart)
+	 */
+	abstract canContinue(ball: BallLike): boolean;
 
 	_toString() {
 		return `${this.constructor.name} (${this._freekick ? "Freekick" : "Normal"})`;
