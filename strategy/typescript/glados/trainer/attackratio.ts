@@ -67,11 +67,14 @@ export class AttackRatio {
 
 
 		let attackRatio: number;
+		let divBattackRatio: number;
 
 		if (BaseRef.isFriendlyKickoffState(refState)) {
 			attackRatio = 8;
+			divBattackRatio = 4;
 		} else if (BaseRef.isOpponentKickoffState(refState)) {
 			attackRatio = 4;
+			divBattackRatio = 3;
 		} else if (BaseRef.isFriendlyFreeKickState(refState)
 				|| (refState === "BallPlacementOffensive" && BaseRef.isFriendlyFreeKickState(nextRefState))) {
 			let checkedPos = refState === "BallPlacementOffensive"
@@ -81,44 +84,61 @@ export class AttackRatio {
 			let opponentCorner = Field.isInOwnCorner(checkedPos, true);
 			if (friendlyCorner) { // Goal-Kick Offensive
 				attackRatio = 5;
+				divBattackRatio = 3;
 			} else if (opponentCorner) { // Corner-Kick Offensive
 				attackRatio = 9;
+				divBattackRatio = 5;
 			} else if (checkedPos.y > 1.2) {
 				attackRatio = 8; // Throw-In Offensive
+				divBattackRatio = 4;
 			} else {
 				attackRatio = 5; // Throw-In Offensive
+				divBattackRatio = 3;
 			}
 		} else if (BaseRef.isOpponentFreeKickState(refState) || refState === "BallPlacementDefensive") {
 			let opponentCorner = Field.isInOwnCorner(ball.pos, true);
 			if (opponentCorner) {
 				attackRatio = 2;
+				divBattackRatio = 2;
 			} else {
 				attackRatio = 1;
+				divBattackRatio = 1;
 			}
 			if (this._opponentFreeKickAT != undefined) {
-				this._opponentFreeKickAT = attackRatio;
+				this._opponentFreeKickAT = (World.DIVISION === "A") ? attackRatio : divBattackRatio;
 			}
 		} else if (refState === "Stop") {
 			if (this._ballInOpponentFieldHalf) {
 				attackRatio = 4;
+				divBattackRatio = 2;
 			} else {
 				attackRatio = 1;
+				divBattackRatio = 1;
 			}
 		} else {// Game, GameForce
 			if (this._opponentFreeKickAT != undefined) {
 				attackRatio = this._opponentFreeKickAT;
+				divBattackRatio = this._opponentFreeKickAT;
 			} else {
 				attackRatio = this._ballInOpponentFieldHalf ? 5 : 4;
+				divBattackRatio = this._ballInOpponentFieldHalf ? 3 : 2;
 				if (this._friendlyFreeKickOngoing) {
 					attackRatio = attackRatio + 1;
+					divBattackRatio = divBattackRatio + 1;
 				}
 			}
 		}
 
+		let expectedEnemies = 11;
+		if (World.DIVISION === "B") {
+			attackRatio = divBattackRatio;
+			expectedEnemies = 6;
+		}
+
 		// increase attackRatio if we have more robots
-		let enemies = 11 - Referee.realisticCardsOpponent();
-		if (enemies < Math.min(11, World.FriendlyRobots.length)) {
-			attackRatio = Math.max(attackRatio, Math.min(attackRatio + 1 , 8));
+		let enemies = expectedEnemies - Referee.realisticCardsOpponent();
+		if (enemies < Math.min(expectedEnemies, World.FriendlyRobots.length)) {
+			attackRatio = Math.max(attackRatio, Math.min(attackRatio + 1 , 2.0 / 3 * expectedEnemies));
 		}
 
 		// allow a defender to promote if a pass is ongoing.
