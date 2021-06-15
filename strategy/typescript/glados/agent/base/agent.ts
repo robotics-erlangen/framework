@@ -164,6 +164,8 @@ export abstract class Agent {
 			return;
 		}
 
+		debug.set("parameters", parameters);
+
 		if (this._robot !== World.FriendlyKeeper && !Referee.isStopState()) {
 			// only the keeper can apply for MA if it could touch the ball inside the defense area
 			if (Field.isInFriendlyDefenseArea(this._robot.pos, this._robot.radius + World.Ball.radius + 0.02)
@@ -223,6 +225,7 @@ export abstract class Agent {
 				let ballToRobotLength = ballToRobot.length();
 				let cosAngle = World.Ball.speed.dot(ballToRobot) / ballToRobotLength / ballSpeedLength;
 				ratingBoost = cosAngle * cosAngle * cosAngle * ballSpeedLength * 0.5;
+				ratingBoost = MathUtil.bound(-timeToBall / 2, ratingBoost, timeToBall / 2);
 			}
 
 			// if the ball is currently inside of the robot (according to the tracking), the time is 0
