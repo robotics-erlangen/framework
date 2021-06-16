@@ -171,6 +171,30 @@ static bool isInsideRobot(Eigen::Vector2f pos, const RobotInfo &robot, float rob
     return (pos - robot.dribblerPos).dot(toDribbler) <= 0;
 }
 
+static bool isBallVisible(Eigen::Vector2f pos, const RobotInfo &robot, float robotRadius, float robotHeight, Eigen::Vector3f cameraPos)
+{
+    const float BALL_RADIUS = 0.0215f;
+    const Eigen::Vector3f toBall = Eigen::Vector3f(pos.x(), pos.y(), BALL_RADIUS) - cameraPos;
+    const float length = (cameraPos.z() - robotHeight) / (cameraPos.z() - BALL_RADIUS);
+    const Eigen::Vector3f projected = cameraPos + toBall * length;
+    const Eigen::Vector2f projected2D(projected.x(), projected.y());
+    // TODO: this assumes that the ball is only invisible if the center is overshadowed
+    const bool inRadius = (robot.robotPos - projected2D).norm() <= robotRadius;
+    const bool frontOfDribbler = (projected2D - robot.dribblerPos).dot(robot.dribblerPos - robot.robotPos) > 0;
+    return !inRadius || frontOfDribbler;
+}
+
+void BallGroundCollisionFilter::updateDribblingInfo(Eigen::Vector2f projectedBallPos, const RobotInfo &robot)
+{
+    BallOffsetInfo offset;
+    offset.robotIdentifier = robot.identifier;
+    const Eigen::Vector2f toDribbler = (robot.dribblerPos - robot.robotPos).normalized();
+    offset.ballOffset = Eigen::Vector2f{(projectedBallPos - robot.robotPos).dot(toDribbler),
+                                        (projectedBallPos - robot.robotPos).dot(perpendicular(toDribbler))};
+    offset.pushingBallPos = projectedBallPos;
+    m_localBallOffset = offset;
+}
+
 void BallGroundCollisionFilter::writeBallState(world::Ball *ball, qint64 time, const QVector<RobotInfo> &robots)
 {
     computeBallState(ball, time, robots);
@@ -181,6 +205,9 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
 {
     const qint64 RESET_SPEED_TIME = 150; // ms
     const qint64 ACTIVATE_DRIBBLING_TIME = 80; // ms
+    // TODO: robot data from specs?
+    const float ROBOT_RADIUS = 0.09f;
+    const float ROBOT_HEIGHT = 0.15f;
 
     // TODO: test sides flipped (fieldtransform difference in robotinfo and groundfilter result?)
     m_groundFilter.writeBallState(ball, time, robots);
@@ -201,17 +228,35 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
         const int identifier = m_localBallOffset->robotIdentifier;
         auto robot = std::find_if(robots.begin(), robots.end(), [identifier](const RobotInfo &robot) { return robot.identifier == identifier; });
         if (robot != robots.end()) {
+
             const Eigen::Vector2f toDribbler = (robot->dribblerPos - robot->robotPos).normalized();
             const Eigen::Vector2f relativeBallPos = m_localBallOffset->ballOffset.x() * toDribbler +
                                                     m_localBallOffset->ballOffset.y() * perpendicular(toDribbler);
             const Eigen::Vector2f ballPos = robot->robotPos + relativeBallPos;
-            ball->set_p_x(ballPos.x());
-            ball->set_p_y(ballPos.y());
-            if (invisibleTimeMs > RESET_SPEED_TIME) {
-                ball->set_v_x(robot->speed.x());
-                ball->set_v_y(robot->speed.y());
+
+            if (isInsideRobot(m_localBallOffset->pushingBallPos, *robot, ROBOT_RADIUS)) {
+                m_localBallOffset->pushingBallPos = ballPos;
             }
-            debug("ground filter mode", "dribbling");
+            bool pushingPosVisible = isBallVisible(m_localBallOffset->pushingBallPos, *robot, ROBOT_RADIUS, ROBOT_HEIGHT,
+                                                   m_cameraInfo->cameraPosition[m_primaryCamera]);
+            if (pushingPosVisible) {
+                // TODO: only allow this when the ball is near the dribbler not the robot body
+                ball->set_p_x(ballPos.x());
+                ball->set_p_y(ballPos.y());
+                if (invisibleTimeMs > RESET_SPEED_TIME) {
+                    ball->set_v_x(robot->speed.x());
+                    ball->set_v_y(robot->speed.y());
+                }
+                debug("ground filter mode", "dribbling");
+            } else {
+                ball->set_p_x(m_localBallOffset->pushingBallPos.x());
+                ball->set_p_y(m_localBallOffset->pushingBallPos.y());
+                if (invisibleTimeMs > RESET_SPEED_TIME) {
+                    ball->set_v_x(0);
+                    ball->set_v_y(0);
+                }
+                debug("ground filter mode", "invisible standing ball");
+            }
             return;
         }
     }
@@ -226,9 +271,6 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
     Eigen::Vector2f currentSpeed;
     bool hasIntersection = false;
     for (const RobotInfo &robot : robots) {
-
-        // TODO: robot radius
-        const float ROBOT_RADIUS = 0.09f;
         if (isInsideRobot(pastPos, robot, ROBOT_RADIUS)) {
             const Eigen::Vector2f pastSpeed{pastState.v_x(), pastState.v_y()};
             const Eigen::Vector2f relativeSpeed = pastSpeed - robot.speed;
@@ -251,12 +293,7 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
                     ball->set_v_y(robot.speed.y());
                 }
 
-                BallOffsetInfo offset;
-                offset.robotIdentifier = robot.identifier;
-                const Eigen::Vector2f toDribbler = (robot.dribblerPos - robot.robotPos).normalized();
-                offset.ballOffset = Eigen::Vector2f{(projected - robot.robotPos).dot(toDribbler),
-                                                    (projected - robot.robotPos).dot(perpendicular(toDribbler))};
-                m_localBallOffset = offset;
+                updateDribblingInfo(projected, robot);
 
                 debugLine("ball line intersection", pastPos.x(), pastPos.y(), projected.x(), projected.y(), 2);
                 debug("ground filter mode", "inside robot projection");
@@ -271,6 +308,8 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
             currentSpeed = robot.speed;
             hasIntersection = true;
             debug("ground filter mode", "outside robot projection");
+
+            updateDribblingInfo(*intersection, robot);
         }
     }
 

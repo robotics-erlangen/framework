@@ -40,13 +40,18 @@ public:
     std::size_t chooseBall(const std::vector<VisionFrame> &frames) override;
 
 private:
-    void computeBallState(world::Ball *ball, qint64 time, const QVector<RobotInfo> &robots);
-
-private:
     struct BallOffsetInfo {
         Eigen::Vector2f ballOffset;
+        // the position the ball would be in assuming the robot does not dribble (but possibly pushes the ball)
+        Eigen::Vector2f pushingBallPos;
         int robotIdentifier;
     };
+
+private:
+    void computeBallState(world::Ball *ball, qint64 time, const QVector<RobotInfo> &robots);
+    void updateDribblingInfo(Eigen::Vector2f projectedBallPos, const RobotInfo &robot);
+
+private:
     GroundFilter m_groundFilter;
     GroundFilter m_pastFilter;
     qint64 m_lastVisionTime;
