@@ -40,6 +40,9 @@ public:
     std::size_t chooseBall(const std::vector<VisionFrame> &frames) override;
 
 private:
+    void computeBallState(world::Ball *ball, qint64 time, const QVector<RobotInfo> &robots);
+
+private:
     struct BallOffsetInfo {
         Eigen::Vector2f ballOffset;
         int robotIdentifier;
@@ -48,6 +51,7 @@ private:
     GroundFilter m_pastFilter;
     qint64 m_lastVisionTime;
     std::optional<BallOffsetInfo> m_localBallOffset;
+    Eigen::Vector2f m_lastReportedBallPos = Eigen::Vector2f(10000000, 0);
 };
 
 #endif // BALLGROUNDCOLLISIONFILTER_H

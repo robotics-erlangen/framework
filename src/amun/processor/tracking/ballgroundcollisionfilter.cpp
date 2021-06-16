@@ -32,7 +32,10 @@ BallGroundCollisionFilter::BallGroundCollisionFilter(const VisionFrame &frame, C
 BallGroundCollisionFilter::BallGroundCollisionFilter(const BallGroundCollisionFilter& filter, qint32 primaryCamera) :
     AbstractBallFilter(filter, primaryCamera),
     m_groundFilter(filter.m_groundFilter, primaryCamera),
-    m_pastFilter(filter.m_pastFilter, primaryCamera)
+    m_pastFilter(filter.m_pastFilter, primaryCamera),
+    m_lastVisionTime(filter.m_lastVisionTime),
+    m_localBallOffset(filter.m_localBallOffset),
+    m_lastReportedBallPos(filter.m_lastReportedBallPos)
 {
 
 }
@@ -46,7 +49,9 @@ void BallGroundCollisionFilter::processVisionFrame(const VisionFrame& frame)
 
 bool BallGroundCollisionFilter::acceptDetection(const VisionFrame& frame)
 {
-    return m_groundFilter.acceptDetection(frame);
+    const float ACCEPT_BALL_DIST = 0.5f;
+    const float reportedBallDist = (m_lastReportedBallPos - Eigen::Vector2f(frame.x, frame.y)).norm();
+    return reportedBallDist < ACCEPT_BALL_DIST || m_groundFilter.acceptDetection(frame);
 }
 
 static auto intersectLineCircle(Eigen::Vector2f offset, Eigen::Vector2f dir, Eigen::Vector2f center, float radius)
@@ -168,6 +173,12 @@ static bool isInsideRobot(Eigen::Vector2f pos, const RobotInfo &robot, float rob
 
 void BallGroundCollisionFilter::writeBallState(world::Ball *ball, qint64 time, const QVector<RobotInfo> &robots)
 {
+    computeBallState(ball, time, robots);
+    m_lastReportedBallPos = Eigen::Vector2f(ball->p_x(), ball->p_y());
+}
+
+void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time, const QVector<RobotInfo> &robots)
+{
     const qint64 RESET_SPEED_TIME = 150; // ms
     const qint64 ACTIVATE_DRIBBLING_TIME = 80; // ms
 
@@ -190,10 +201,10 @@ void BallGroundCollisionFilter::writeBallState(world::Ball *ball, qint64 time, c
         const int identifier = m_localBallOffset->robotIdentifier;
         auto robot = std::find_if(robots.begin(), robots.end(), [identifier](const RobotInfo &robot) { return robot.identifier == identifier; });
         if (robot != robots.end()) {
-            const auto toDribbler = (robot->dribblerPos - robot->robotPos).normalized();
+            const Eigen::Vector2f toDribbler = (robot->dribblerPos - robot->robotPos).normalized();
             const Eigen::Vector2f relativeBallPos = m_localBallOffset->ballOffset.x() * toDribbler +
                                                     m_localBallOffset->ballOffset.y() * perpendicular(toDribbler);
-            const auto ballPos = robot->robotPos + relativeBallPos;
+            const Eigen::Vector2f ballPos = robot->robotPos + relativeBallPos;
             ball->set_p_x(ballPos.x());
             ball->set_p_y(ballPos.y());
             if (invisibleTimeMs > RESET_SPEED_TIME) {
@@ -242,7 +253,7 @@ void BallGroundCollisionFilter::writeBallState(world::Ball *ball, qint64 time, c
 
                 BallOffsetInfo offset;
                 offset.robotIdentifier = robot.identifier;
-                const auto toDribbler = (robot.dribblerPos - robot.robotPos).normalized();
+                const Eigen::Vector2f toDribbler = (robot.dribblerPos - robot.robotPos).normalized();
                 offset.ballOffset = Eigen::Vector2f{(projected - robot.robotPos).dot(toDribbler),
                                                     (projected - robot.robotPos).dot(perpendicular(toDribbler))};
                 m_localBallOffset = offset;
