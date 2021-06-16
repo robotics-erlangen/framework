@@ -523,7 +523,9 @@ void SSLGameController::gcFinished(int, QProcess::ExitStatus)
 
 void SSLGameController::setFlip(bool flip)
 {
-    m_trackedVisionGenerator->setFlip(flip);
+    if (m_trackedVisionGenerator) {
+        m_trackedVisionGenerator->setFlip(flip);
+    }
 }
 
 void SSLGameController::setEnabled(bool enabled)
