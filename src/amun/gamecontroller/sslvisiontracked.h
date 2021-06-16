@@ -23,6 +23,7 @@
 #include <string>
 #include "protobuf/ssl_vision_wrapper_tracked.pb.h"
 #include "protobuf/world.pb.h"
+#include "core/fieldtransform.h"
 
 class SSLVisionTracked
 {
@@ -30,10 +31,17 @@ public:
     SSLVisionTracked();
 
     void createTrackedFrame(const world::State &state, gameController::TrackerWrapperPacket *packet);
+    void setFlip(bool flip);
+
+private:
+    void setVector2(gameController::Vector2 *vec, float x, float y);
+    void setVector3(gameController::Vector3 *vec, float x, float y, float z);
+    void setRobot(gameController::TrackedRobot *robot, const world::Robot &original, bool isBlue);
 
 private:
     std::string m_uuid;
     int m_trackedFrameCounter = 0;
+    FieldTransform m_fieldTransform;
 
     static constexpr int UUID_LENGTH = 32;
     static constexpr const char* SOURCE_NAME = "ER-FORCE";

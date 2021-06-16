@@ -66,6 +66,7 @@ public slots:
     void handleStatus(const Status &status);
     void handleCommand(const amun::CommandReferee &refereeCommand);
     void setEnabled(bool enabled);
+    void setFlip(bool flip);
 
 private slots:
     void handleGCStdout();

@@ -29,21 +29,25 @@ SSLVisionTracked::SSLVisionTracked()
     }
 }
 
-static void setVector3(gameController::Vector3 *vec, float x, float y, float z)
+void SSLVisionTracked::setFlip(bool flip)
 {
-    // TODO: flipped field
-    vec->set_x(y);
-    vec->set_y(-x);
+    m_fieldTransform.setFlip(flip);
+}
+
+void SSLVisionTracked::setVector3(gameController::Vector3 *vec, float x, float y, float z)
+{
+    vec->set_x(m_fieldTransform.applyPosX(y, -x));
+    vec->set_y(m_fieldTransform.applyPosY(y, -x));
     vec->set_z(z);
 }
 
-static void setVector2(gameController::Vector2 *vec, float x, float y)
+void SSLVisionTracked::setVector2(gameController::Vector2 *vec, float x, float y)
 {
-    vec->set_x(y);
-    vec->set_y(-x);
+    vec->set_x(m_fieldTransform.applyPosX(y, -x));
+    vec->set_y(m_fieldTransform.applyPosY(y, -x));
 }
 
-static void setRobot(gameController::TrackedRobot *robot, const world::Robot &original, bool isBlue)
+void SSLVisionTracked::setRobot(gameController::TrackedRobot *robot, const world::Robot &original, bool isBlue)
 {
     robot->mutable_robot_id()->set_id(original.id());
     robot->mutable_robot_id()->set_team(isBlue ? gameController::Team::BLUE : gameController::Team::YELLOW);
@@ -62,7 +66,6 @@ void SSLVisionTracked::createTrackedFrame(const world::State &state, gameControl
     packet->set_source_name(SOURCE_NAME);
     auto frame = packet->mutable_tracked_frame();
     frame->set_frame_number(m_trackedFrameCounter++);
-    // TODO: is the time scaling here corect??
     frame->set_timestamp(state.time() / NS_PER_SEC);
 
     {
