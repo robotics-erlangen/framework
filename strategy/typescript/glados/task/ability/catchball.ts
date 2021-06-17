@@ -67,6 +67,7 @@ export class CatchBall {
 	private _catchTime: number | undefined;
 	private _recalculateCatchTimeCounter: number = 0;
 	private _ignoringOpponents: boolean = false;
+	private lastWasBackOff: boolean = false;
 
 	_robot: FriendlyRobot;
 	_task: Task;
@@ -195,6 +196,27 @@ export class CatchBall {
 			// this prevents switching the side around which a moving ball is circumnavigated
 			this._createMoveAroundBallObstacle(this._robot.path, moveDest, ball, predictedBall);
 			this._createBallCorridor(this._robot.path, viewDir, predictedBall);
+
+			let isOpponentClose = false;
+			const OPP_DIST_SQ = 0.3 * 0.3;
+			for (let opp of World.OpponentRobots) {
+				if (opp.pos.distanceToSq(World.Ball.pos) < OPP_DIST_SQ) {
+					isOpponentClose = true;
+					break;
+				}
+			}
+
+			const diffRadius = this._robot.radius + (this.lastWasBackOff ? 0.02 : 0.01);
+			const performBackOff = World.Ball.pos.distanceToSq(this._robot.pos) < diffRadius * diffRadius &&
+				this._robot.pos.distanceToSq(moveDest) > 0.05 * 0.05 && Ball.isSlowBall() &&
+				!isOpponentClose;
+
+			this.lastWasBackOff = performBackOff;
+			debug.set("backoff", performBackOff);
+			if (performBackOff) {
+				viewDir = this._robot.dir;
+				moveDest = this._robot.pos + (this._robot.pos - World.Ball.pos).normalized() * 0.2;
+			}
 		} else if (method === CatchMethod.Hunt) {
 			this._createHuntingBallObstacle(this._robot.path, viewDir, predictedBall);
 			this._createBallCorridor(this._robot.path, viewDir, predictedBall);
