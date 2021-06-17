@@ -53,7 +53,6 @@ public:
     qint64 initTime() const { return m_initTime; }
     bool isShot() const;
     double confidence() const { return m_confidence; }
-    int rawBallCount() const { return m_rawBallCount; } // basically reports the age of the filter in the number of accepted raw ball detections
 #ifdef ENABLE_TRACKING_DEBUG
     const amun::DebugValues &debugValues() const { return m_debug; }
     void clearDebugValues() {
@@ -78,7 +77,6 @@ private:
     double m_confidence;
     int m_updateFrameCounter;
     float m_cachedDistToCamera;
-    int m_rawBallCount = 0;
 
 #ifdef ENABLE_TRACKING_DEBUG
     amun::DebugValues m_debug;

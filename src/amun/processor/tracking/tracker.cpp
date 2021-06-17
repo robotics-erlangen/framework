@@ -233,7 +233,7 @@ BallTracker* Tracker::bestBallFilter()
     qint64 oldestTime = 0;
     double bestConfidence = -1.0;
     for (BallTracker* f : m_ballFilter) {
-        if (f->rawBallCount() < MIN_RAW_DETECTIONS) {
+        if (f->frameCounter() < MIN_RAW_DETECTIONS) {
             continue;
         }
         double confidence = f->confidence() + (m_currentBallFilter == f ? CONFIDENCE_HYSTERESIS : 0.0);
