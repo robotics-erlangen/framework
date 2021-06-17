@@ -362,34 +362,26 @@ function updateIsShot() {
 		return;
 	}
 
-	let ballSpeedLength = World.Ball.speed.length();
+	const ballSpeedLength = World.Ball.speed.length();
 
 	// if the ball was not shot in the last tenth second
-	let condCooldown = (World.Time > lastShootTime + 0.3);
+	const condCooldown = (World.Time > lastShootTime + 0.3);
 	// if the ball accelerates
-	let condAccelerates = isAccelerating();
+	const condAccelerates = isAccelerating();
 	// if the ball is fast
-	let condFast = (ballSpeedLength > 0.5);
-	// if one robot had the ball the last 0.1 seconds (equal to cooldown time)
-	let condHadBall = false;
-	// if this robot looks about in the same direction as the ball rolls
-	let condDirection = false;
-	// if the ball is distinctly faster than this robot
-	let condFasterThanRobot = false;
+	const condFast = (ballSpeedLength > 0.5);
 
-	debug.pushtop("Ball.isShot");
 	let robot: Robot | undefined = undefined;
 	if (condCooldown && condAccelerates && condFast) {
 		for (let r of World.Robots) {
 			if (ObserverRobot.hadBall(r, 0.3)) {
-				condHadBall = true;
-				let anglediff = Math.abs(geom.getAngleDiff(r.dir, World.Ball.speed.angle()));
+				const anglediff = Math.abs(geom.getAngleDiff(r.dir, World.Ball.speed.angle()));
 				// the ball has to be shot in the approximate direction the robot is facing
-				condDirection = (anglediff < 45 / 180 * Math.PI);
+				const condDirection = (anglediff < 45 / 180 * Math.PI);
 				// the ball has to be 0.1m/s faster than the robot
-				condFasterThanRobot = (ballSpeedLength > 0.1 + r.speed.length());
-				debug.set("robot speed", r.speed.length());
-				if (condDirection && condFasterThanRobot) {
+				const condFasterThanRobot = (ballSpeedLength > 0.1 + r.speed.length());
+				const condAwayFromRobot = World.Ball.pos.distanceTo(r.pos) > r.radius + 0.08;
+				if (condDirection && condFasterThanRobot && condAwayFromRobot) {
 					robot = r;
 					break;
 				}
@@ -402,14 +394,6 @@ function updateIsShot() {
 		lastShootTime = World.Time;
 		lastShootRobot = robot;
 	}
-
-	debug.set("cooldown", condCooldown);
-	debug.set("accelerates", condAccelerates);
-	debug.set("fast", condFast);
-	debug.set("hadBall", condHadBall);
-	debug.set("direction", condDirection);
-	debug.set("fasterThanRobot", condFasterThanRobot);
-	debug.pop();
 
 	plot.addPlot("isShot", robot != undefined ? (robot.id + (robot.isFriendly ? 0 : 0.5)) : -1);
 }
