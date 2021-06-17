@@ -441,3 +441,10 @@ export function isInStadium(a: Position, b: Position, radius: number, p: Positio
 	return insideRect(a - offset, b + offset, p);
 }
 
+export function angleBound(amin: number, val: number, amax: number): number {
+	if (val <= amax && val >= amin) return val;
+	let diffMin = Math.abs(getAngleDiff(amin, val));
+	let diffMax = Math.abs(getAngleDiff(amax, val));
+	if (diffMax < diffMin) return amax;
+	return amin;
+}

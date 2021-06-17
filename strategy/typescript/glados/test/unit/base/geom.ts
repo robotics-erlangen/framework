@@ -29,6 +29,7 @@ export class BaseGeom extends UnitTest {
 		this.addTest("inscribedAngle", this.testInscribedAngle);
 		this.addTest("insideRect", this.testInsideRect);
 		this.addTest("isInStadium", this.testIsInStadium);
+		this.addTest("angleBound", this.testAngleBound);
 	}
 
 	private testIntersectCircleCircle() {
@@ -490,6 +491,26 @@ export class BaseGeom extends UnitTest {
 
 		this.assert_false(geom.isInStadium(new Vector(0, 0), new Vector(1, 0), 0.5, new Vector(-0.5, -0.5)));
 		this.assert_false(geom.isInStadium(new Vector(0, 0), new Vector(1, 0), 0.5, new Vector(1.5, 0.5)));
+	}
+
+	private testAngleBound() {
+		// easy scenario: angle is in between both
+		this.assert_equal(geom.angleBound(1.0 / 2 * Math.PI, Math.PI, 3.0 / 2 * Math.PI), Math.PI);
+		// easy scenario: angle is left boundary
+		this.assert_equal(geom.angleBound(1.0 / 2 * Math.PI, 1.0 / 2 * Math.PI, 3.0 / 2 * Math.PI), 1.0 / 2 * Math.PI);
+		// easy scenario: angle is right boundary
+		this.assert_equal(geom.angleBound(1.0 / 2 * Math.PI, 3.0 / 2 * Math.PI, 3.0 / 2 * Math.PI), 3.0 / 2 * Math.PI);
+
+		// medium scenario: normal bound would be correct
+		this.assert_equal(geom.angleBound(1.0 / 2 * Math.PI, 7.0 / 4 * Math.PI, 3.0 / 2 * Math.PI), 3.0 / 2 * Math.PI);
+		this.assert_equal(geom.angleBound(1.0 / 2 * Math.PI, 1.0 / 4 * Math.PI, 3.0 / 2 * Math.PI), 1.0 / 2 * Math.PI);
+
+
+		// hard scenario: normal bound would be wrong
+		const EPSILON = 1e-6;
+		this.assert_equal(geom.angleBound(Math.PI, 1.0 / 8 * Math.PI, 2 * Math.PI - EPSILON), 2 * Math.PI - EPSILON);
+		this.assert_equal(geom.angleBound(Math.PI, 3.0 / 8 * Math.PI, 2 * Math.PI - EPSILON), 2 * Math.PI - EPSILON);
+		this.assert_equal(geom.angleBound(Math.PI, 5.0 / 8 * Math.PI, 2 * Math.PI - EPSILON), Math.PI);
 	}
 }
 export let testClass = BaseGeom;
