@@ -1,3 +1,4 @@
+import * as Constants from "base/constants";
 import * as debug from "base/debug";
 import * as Field from "base/field";
 import * as BaseRef from "base/referee";
@@ -129,10 +130,10 @@ export class AttackRatio {
 			}
 		}
 
-		let expectedEnemies = 11;
+		const expectedEnemies = Constants.maxTeamSize[World.DIVISION];
+
 		if (World.DIVISION === "B") {
 			attackRatio = divBattackRatio;
-			expectedEnemies = 6;
 		}
 
 		// increase attackRatio if we have more robots
@@ -160,7 +161,7 @@ export class AttackRatio {
 
 		let attackRatio = this.attackRatio();
 
-		let expectedRobots = World.DIVISION === "B" ? 6 : 11;
+		const expectedRobots = Constants.maxTeamSize[World.DIVISION];
 		let attackers = attackRatio > 0 ? Math.max(1, Math.floor(attackRatio / expectedRobots * World.FriendlyRobots.length)) : 0;
 
 		let mainAttacker = this._messaging.receiveTrainer(MessageType.mainAttacker);
