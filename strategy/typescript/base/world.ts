@@ -124,7 +124,7 @@ export let MaxAllowedOpponentRobots: number = 11;
 
 export let RULEVERSION: string = "";
 
-export let DIVISION: string = "";
+export let DIVISION: "A" | "B" | "" = "";
 
 /** Field geometry. Lengths in meter */
 export interface GeometryType {

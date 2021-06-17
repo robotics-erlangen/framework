@@ -24,6 +24,11 @@
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
 
+/* It is important for this to be a type only import. Since base/world imports
+ * base/constants this would be a cyclic import.
+ */
+import type { DIVISION } from "base/world";
+
 
 /** distance to ball during stop [m] */
 export const stopBallDistance = 0.5;
@@ -63,6 +68,17 @@ export let fastBallDeceleration: number;
 
 /** if ball is slower than switchRatio * shootSpeed then switch from fast to normal ball deceleration */
 export let ballSwitchRatio: number;
+
+/** Get the maximum allowed number of robots for the given division. */
+export const maxTeamSize: ReadonlyRec<{ [K in typeof DIVISION]: number }> = {
+	/**
+	 * 11 is given as default for the empty string. Old logs don't have
+	 * World.DIVISION set and are assumed to be division A
+	 */
+	"": 11,
+	"A": 11,
+	"B": 6,
+};
 
 export function switchSimulatorConstants(isSimulated: boolean) {
 	if (isSimulated) {
