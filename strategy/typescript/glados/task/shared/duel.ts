@@ -75,7 +75,6 @@ export class Duel extends Task {
 
 		if ((this._opposer != undefined) && this._blockingBall && ObserverRobot.hadBall(this._robot, 0)) {
 			this._contest();
-			debug.set("duel-state", "contest");
 		} else {
 			this._moveToBall();
 			debug.set("duel-state", "move to ball");
@@ -111,8 +110,10 @@ export class Duel extends Task {
 			||  Ball.getRealisticBallPos().y > -World.Geometry.FieldHeightHalf / 6;
 
 		if (this._rotating) {
+			debug.set("duel-state", "contest - rotate");
 			this._contestRotate();
 		} else {
+			debug.set("duel-state", "contest - push");
 			this._contestPush();
 		}
 
