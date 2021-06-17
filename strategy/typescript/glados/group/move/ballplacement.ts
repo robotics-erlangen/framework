@@ -199,7 +199,6 @@ export class BallPlacement extends Move {
 					params: [{
 						pos: this._computedShooterPos,
 						ignoreDefaultObstacles: true,
-						customObstacles: SHOOTER_OBSTACLES,
 						ignoreBallPlacement: true,
 					}],
 					restart: true
