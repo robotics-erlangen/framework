@@ -1,7 +1,6 @@
 import * as Constants from "base/constants";
 import * as Field from "base/field";
 import * as geom from "base/geom";
-import * as MathUtil from "base/mathutil";
 import { Position, RelativePosition, Vector } from "base/vector";
 // import * as vis from "base/vis";
 import * as World from "base/world";
@@ -136,15 +135,15 @@ export class StopAttack extends Task {
 			// vis.addPath("stopattack: MaxAllowedAngle", [ballPos, ballPos + Vector.fromAngle(maxAllowedAngle)], vis.colors.green);
 			// vis.addPath("stopattack: MinAllowedAngle", [ballPos, ballPos + Vector.fromAngle(minAllowedAngle)], vis.colors.greenHalf);
 
-			maxAngle = MathUtil.bound(minAllowedAngle, maxAngle, maxAllowedAngle);
-			minAngle = MathUtil.bound(minAllowedAngle, minAngle, maxAllowedAngle);
+			maxAngle = geom.angleBound(minAllowedAngle, maxAngle, maxAllowedAngle);
+			minAngle = geom.angleBound(minAllowedAngle, minAngle, maxAllowedAngle);
 			// vis.addPath("stopattack: MaxAngleBounded", [ballPos, ballPos + Vector.fromAngle(maxAngle)], vis.colors.black);
 			// vis.addPath("stopattack: MinAngleBounded", [ballPos, ballPos + Vector.fromAngle(minAngle)], vis.colors.blackHalf);
 
 			let relativeAngle = getNormalizedAngle(ballPos - opponentShooter!.pos);
-			let boundedAngle = MathUtil.bound(minAngle, relativeAngle, maxAngle);
+			let boundedAngle = geom.angleBound(minAngle, relativeAngle, maxAngle);
 			let opponentDirection = getNormalizedAngle(Vector.fromAngle(opponentShooter!.dir));
-			let boundedOppDirection = MathUtil.bound(minAngle, opponentDirection, maxAngle);
+			let boundedOppDirection = geom.angleBound(minAngle, opponentDirection, maxAngle);
 			let middleAngle = (boundedAngle + boundedOppDirection) / 2;
 			pos = ballPos + Vector.fromPolar(middleAngle, stopRadius);
 			// try to reflect the ball to the opponents goal
