@@ -27,11 +27,7 @@ GroundFilter::GroundFilter(const VisionFrame& frame, CameraInfo* cameraInfo) :
     AbstractBallFilter(frame, cameraInfo),
     m_lastUpdate(frame.time)
 {
-    Kalman::Vector x(Kalman::Vector::Zero());
-    x(0) = frame.x;
-    x(1) = frame.y;
-    m_kalman = new Kalman(x);
-    m_kalman->H = Kalman::MatrixM::Identity();
+    reset(frame);
 }
 
 GroundFilter::GroundFilter(const GroundFilter& groundFilter, qint32 primaryCamera) :
@@ -40,9 +36,13 @@ GroundFilter::GroundFilter(const GroundFilter& groundFilter, qint32 primaryCamer
     m_lastUpdate(groundFilter.m_lastUpdate)
 { }
 
-GroundFilter::~GroundFilter()
+void GroundFilter::reset(const VisionFrame& frame)
 {
-    delete m_kalman;
+    Kalman::Vector x(Kalman::Vector::Zero());
+    x(0) = frame.x;
+    x(1) = frame.y;
+    m_kalman.reset(new Kalman(x));
+    m_kalman->H = Kalman::MatrixM::Identity();
 }
 
 void GroundFilter::predict(qint64 time)

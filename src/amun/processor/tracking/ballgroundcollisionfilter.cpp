@@ -36,16 +36,21 @@ BallGroundCollisionFilter::BallGroundCollisionFilter(const BallGroundCollisionFi
     m_lastVisionTime(filter.m_lastVisionTime),
     m_localBallOffset(filter.m_localBallOffset),
     m_insideRobotOffset(filter.m_insideRobotOffset),
-    m_lastReportedBallPos(filter.m_lastReportedBallPos)
-{
-
-}
+    m_lastReportedBallPos(filter.m_lastReportedBallPos),
+    m_resetFilters(filter.m_resetFilters)
+{ }
 
 void BallGroundCollisionFilter::processVisionFrame(const VisionFrame& frame)
 {
     m_lastVisionTime = frame.time;
-    m_groundFilter.processVisionFrame(frame);
-    m_pastFilter.processVisionFrame(frame);
+    if (m_resetFilters) {
+        m_groundFilter.reset(frame);
+        m_pastFilter.reset(frame);
+        m_resetFilters = false;
+    } else {
+        m_groundFilter.processVisionFrame(frame);
+        m_pastFilter.processVisionFrame(frame);
+    }
 }
 
 bool BallGroundCollisionFilter::acceptDetection(const VisionFrame& frame)
@@ -236,6 +241,12 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
     world::Ball pastState;
     m_pastFilter.writeBallState(&pastState, m_lastVisionTime + 1, robots);
 
+#ifdef ENABLE_TRACKING_DEBUG
+    // prevent accumulation of debug values, since they are never read
+    m_groundFilter.clearDebugValues();
+    m_pastFilter.clearDebugValues();
+#endif
+
     // remove this once all issues are fixed
     return;
 
@@ -263,6 +274,7 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
                 setBallData(ball, m_localBallOffset->pushingBallPos, Eigen::Vector2f(0, 0), writeBallSpeed);
                 debug("ground filter mode", "invisible standing ball");
             }
+            m_resetFilters = true;
             return;
         }
     }

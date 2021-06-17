@@ -25,23 +25,26 @@
 #include "protobuf/ssl_detection.pb.h"
 #include "protobuf/world.pb.h"
 #include "protobuf/debug.pb.h"
+#include <memory>
 
 class GroundFilter : public AbstractBallFilter
 {
 public:
     explicit GroundFilter(const VisionFrame &frame, CameraInfo* cameraInfo);
     GroundFilter(const GroundFilter& groundFilter, qint32 primaryCamera);
-    ~GroundFilter() override;
 
     void processVisionFrame(const VisionFrame& frame) override;
     bool acceptDetection(const VisionFrame& frame) override;
     void writeBallState(world::Ball *ball, qint64 time, const QVector<RobotInfo> &robots) override;
     std::size_t chooseBall(const std::vector<VisionFrame> &frames) override;
 
+    void reset(const VisionFrame& frame);
+
+private:
     float distanceTo(Eigen::Vector2f objPos);
 
 private:
-    Kalman *m_kalman;
+    std::unique_ptr<Kalman> m_kalman;
     void predict(qint64 time);
     qint64 m_lastUpdate;
 };

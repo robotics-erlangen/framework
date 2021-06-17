@@ -58,6 +58,7 @@ private:
     std::optional<BallOffsetInfo> m_localBallOffset;
     std::optional<BallOffsetInfo> m_insideRobotOffset;
     Eigen::Vector2f m_lastReportedBallPos = Eigen::Vector2f(10000000, 0);
+    bool m_resetFilters = false;
 };
 
 #endif // BALLGROUNDCOLLISIONFILTER_H
