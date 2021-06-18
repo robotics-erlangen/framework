@@ -225,18 +225,19 @@ function updateReceivesPass() {
 	}
 
 	let ballDir = World.Ball.speed.angle();
-	let coneWidthSmall = 50 * Math.PI / 180;
-	let coneWidthLarge = 65 * Math.PI / 180;
-	let coneAngleMinSmall = ballDir - coneWidthSmall / 2;
-	let coneAngleMinLarge = ballDir - coneWidthLarge / 2;
+	/* A robot should be in a cone in front of the ball for the robot to be
+	 * considered to receive a pass
+	 *
+	 * Hysteresis should be applied as usual. However, there is a larger
+	 * hysteresis if the ball is closer as the angle between ball and dribbler
+	 * tends to get more unstable the closer the ball is to the robot
+	 */
+	const coneWidthSmall = 50 * Math.PI / 180;
+	const coneWidthMedium = 65 * Math.PI / 180;
+	const coneWidthLarge = 120 * Math.PI / 180;
 
 	let newBallRecipients: Map<Robot, boolean> = new Map<Robot, boolean>();
 	for (let robot of World.Robots) {
-
-		// check if the robot is inside the cone (hysteresis)
-		let coneWidth = ballRecipients.has(robot) ? coneWidthLarge : coneWidthSmall;
-		let coneAngleMin = ballRecipients.has(robot) ? coneAngleMinLarge : coneAngleMinSmall;
-
 		let maxRobotTime: RelTime = 0.4;
 		let robotBallDistance = World.Ball.pos.distanceTo(robot.pos);
 		let maxMoveDistance = (ballSpeed + robot.maxSpeed) * maxRobotTime;
@@ -254,6 +255,21 @@ function updateReceivesPass() {
 		let extrapolatedDribblerPos = extrapolatedRobotPos + Vector.fromPolar(robot.dir, robot.shootRadius);
 		let toRobotAngle = (extrapolatedRobotPos - World.Ball.pos).angle();
 		let toDribblerAngle = (extrapolatedDribblerPos - World.Ball.pos).angle();
+
+		// check if the robot is inside the cone (hysteresis)
+		let coneWidth: number;
+		if (!ballRecipients.has(robot)) {
+			coneWidth = coneWidthSmall;
+		} else if (robotBallDistance > World.Ball.radius + robot.radius) {
+			coneWidth = coneWidthMedium;
+		} else {
+			coneWidth = coneWidthLarge;
+		}
+		/* ballDir transforms the angle between ball and dribbler/robot to be
+		 * local, i.e independent of the ball's global movement
+		 */
+		const coneAngleMin = ballDir - coneWidth / 2;
+
 		if (robotBallDistance > World.Ball.radius + robot.radius
 				&& geom.normalizeAnglePositive(toRobotAngle - coneAngleMin) > coneWidth
 				&& geom.normalizeAnglePositive(toDribblerAngle - coneAngleMin) > coneWidth) {
