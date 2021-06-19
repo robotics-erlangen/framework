@@ -121,6 +121,10 @@ export let BallPlacementPos: Readonly<Position> | undefined;
 export let MaxAllowedFriendlyRobots: number = 11;
 /** number of allowed opponent robots on the field based on division and cards */
 export let MaxAllowedOpponentRobots: number = 11;
+/** The number of goals the friendly team scored */
+export let FriendlyScore: number = 0;
+/** The number of goals the opponent team scored */
+export let OpponentScore: number = 0;
 
 export let RULEVERSION: string = "";
 
@@ -525,6 +529,9 @@ function _updateGameState(state: pb.amun.GameState) {
 	} else {
 		MaxAllowedOpponentRobots = DIVISION === "A" ? 11 : 6;
 	}
+
+	FriendlyScore = friendlyTeamInfo.score;
+	OpponentScore = opponentTeamInfo.score;
 }
 
 /** update and handle user inputs set for own robots */
