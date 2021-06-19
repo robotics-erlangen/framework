@@ -119,14 +119,15 @@ export class BallPlacement extends Move {
 			this._ballPlacementPos = World.BallPlacementPos;
 		}
 
+		const EXTENDED_BALL_OBSTACLE: Obstacle = {
+			type: "circle",
+			x: BallObserver.getRealisticBallPos().x,
+			y: BallObserver.getRealisticBallPos().y,
+			radius: 3 * World.Ball.radius,
+			name: "g/m/ballplacement Ball"
+		};
 		const SHOOTER_OBSTACLES: Obstacle[] = [
-			{
-				type: "circle",
-				x: BallObserver.getRealisticBallPos().x,
-				y: BallObserver.getRealisticBallPos().y,
-				radius: 3 * World.Ball.radius,
-				name: "g/m/ballplacement Ball"
-			},
+			EXTENDED_BALL_OBSTACLE,
 			{
 				type: "circle",
 				x: this._ballPlacementPos.x,
@@ -199,6 +200,7 @@ export class BallPlacement extends Move {
 					params: [{
 						pos: this._computedShooterPos,
 						ignoreDefaultObstacles: true,
+						customObstacles: [ EXTENDED_BALL_OBSTACLE ],
 						ignoreBallPlacement: true,
 					}],
 					restart: true
