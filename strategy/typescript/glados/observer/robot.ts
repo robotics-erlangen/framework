@@ -316,6 +316,23 @@ export function timeAroundDefenseAreaByWay(robot: Robot, robotWay: number | unde
 }
 
 
+/**
+ * Determine the positions of the edges of a robots dribbler
+ * @returns a [Position, Position] tuple where the element one is the position
+ *          of the right edge and element two is the position of the left edge
+ *
+ * Sidenote: This would be a good candidate for named tuple types available in
+ * TS 4.0 and later
+ */
+export function getDribblerEdges(robot: Pick<Robot, "dir" | "dribblerWidth" | "dribblerPos">): [Position, Position] {
+	const toEdge = Vector.fromPolar(robot.dir - Math.PI / 2, robot.dribblerWidth / 2);
+	return [
+		robot.dribblerPos + toEdge,
+		robot.dribblerPos - toEdge,
+	];
+}
+
+
 function _isPressed(robot: Robot, attackPos?: Position): boolean {
 	if (!Referee.isGameState()) {
 		return false;
