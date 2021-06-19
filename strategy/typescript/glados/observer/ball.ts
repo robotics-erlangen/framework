@@ -2,6 +2,7 @@ import { Ball } from "base/ball";
 import * as Cache from "base/cache";
 import * as debug from "base/debug";
 import * as geom from "base/geom";
+import { some } from "base/listutil";
 import * as MathUtil from "base/mathutil";
 import * as plot from "base/plot";
 import * as Referee from "base/referee";
@@ -248,13 +249,33 @@ function updateReceivesPass() {
 			robotTime = MathUtil.bound(0, ObserverRobot.minTimeToBall(robot), maxRobotTime);
 		}
 
-		// consider both the robot center and the dribbler position for the angle calculation
-		// there can be a difference when the ball is very close to the robot (but not quite close enough to disable the condition)
-		// this makes receivesPass more stable for shooting robots
+		/* Consider both the robot center and the dribbler position for the
+		 * angle calculation there can be a difference when the ball is very
+		 * close to the robot (but not quite close enough to disable the
+		 * condition) this makes receivesPass more stable for shooting robots.
+		 *
+		 * Also consider the edges of the dribbler. When the ball is close, the
+		 * center may be outside the cone while the ball will still hit the
+		 * robot front. This may lead to more false positives (where to
+		 * dribbler edge is in the cone but the ball won't actually hit the
+		 * robot) but false positives are preferable to false negatives
+		 */
 		let extrapolatedRobotPos = robot.pos + robot.speed * robotTime;
 		let extrapolatedDribblerPos = extrapolatedRobotPos + Vector.fromPolar(robot.dir, robot.shootRadius);
-		let toRobotAngle = (extrapolatedRobotPos - World.Ball.pos).angle();
-		let toDribblerAngle = (extrapolatedDribblerPos - World.Ball.pos).angle();
+
+		/* Note that it may not be necessary to check extrapolatedRobotPos (the
+		 * dribbler positions may be sufficient). This should be validated
+		 * before however.
+		 */
+		const checkForConePositions = [
+			extrapolatedRobotPos,
+			extrapolatedDribblerPos,
+			...ObserverRobot.getDribblerEdges({
+				dir: robot.dir,
+				dribblerPos: extrapolatedRobotPos,
+				dribblerWidth: robot.dribblerWidth
+			})
+		];
 
 		// check if the robot is inside the cone (hysteresis)
 		let coneWidth: number;
@@ -270,9 +291,13 @@ function updateReceivesPass() {
 		 */
 		const coneAngleMin = ballDir - coneWidth / 2;
 
+		const robotInCone = some(checkForConePositions, (pos) => {
+			const globalAngle = (pos - World.Ball.pos).angle();
+			return geom.normalizeAnglePositive(globalAngle - coneAngleMin) <= coneWidth;
+		});
+
 		if (robotBallDistance > World.Ball.radius + robot.radius
-				&& geom.normalizeAnglePositive(toRobotAngle - coneAngleMin) > coneWidth
-				&& geom.normalizeAnglePositive(toDribblerAngle - coneAngleMin) > coneWidth) {
+				&& !robotInCone) {
 			continue;
 		}
 
