@@ -230,4 +230,16 @@ export function _hideFunctions() {
 
 export const log = amun.log;
 
+/**
+ * Throws an error with the given message if the strategy is in debug mode.
+ * Otherwise it just logs the error
+ * @param msg - An error message
+ */
+export function throwInDebug(msg: string) {
+	if (amun.isDebug) {
+		throw new Error(msg);
+	} else {
+		log(msg);
+	}
+}
 

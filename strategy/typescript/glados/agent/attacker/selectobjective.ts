@@ -1,3 +1,4 @@
+import { throwInDebug } from "base/amun";
 import * as debug from "base/debug";
 import * as Referee from "base/referee";
 import { Vector } from "base/vector";
@@ -151,6 +152,9 @@ export class SelectObjective implements Checkable {
 				nextObjective = new objectiveCtor(this._agent);
 			}
 		} else {
+			if (!lastObjective) {
+				throwInDebug("Trying to reuse the objective even if there was no objective previously. This is probably a bug");
+			}
 			nextObjective = lastObjective;
 		}
 		debug.set("objective", nextObjective?.toString());
