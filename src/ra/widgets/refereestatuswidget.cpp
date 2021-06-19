@@ -136,7 +136,8 @@ QString RefereeStatusWidget::gameEvent2019Message(const gameController::GameEven
          {GameEvent::MULTIPLE_PLACEMENT_FAILURES, "multiple placement failures by %1"},
          {GameEvent::MULTIPLE_FOULS, "multiple fouls by %1"},
          {GameEvent::UNSPORTING_BEHAVIOR_MINOR, "minor unsporting behavior by %1"},
-         {GameEvent::UNSPORTING_BEHAVIOR_MAJOR, "major unsporting behavior by %1"}};
+         {GameEvent::UNSPORTING_BEHAVIOR_MAJOR, "major unsporting behavior by %1"},
+         {GameEvent::NO_PROGRESS_IN_GAME, "no progress"}};
 
     QString result = eventTypeFormatString[event.type()];
     if (result.contains('%')) {
