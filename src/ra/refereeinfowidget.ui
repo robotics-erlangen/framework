@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>386</width>
-    <height>132</height>
+    <height>169</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -97,6 +97,27 @@
           </item>
          </layout>
         </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <widget class="QLabel" name="redCardTextLabelYellow">
+           <property name="text">
+            <string>Red Cards:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="redCardCountYellow">
+           <property name="text">
+            <string>0</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
         <layout class="QHBoxLayout" name="keeperIdDisplayYellow">
@@ -195,6 +216,27 @@
           </item>
          </layout>
         </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <item>
+          <widget class="QLabel" name="redCardTextLabelBlue">
+           <property name="text">
+            <string>Red Cards:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="redCardCountBlue">
+           <property name="text">
+            <string>0</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
         <layout class="QHBoxLayout" name="keeperIdDisplayBlue">

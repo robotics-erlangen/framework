@@ -54,6 +54,8 @@ private:
 
     uint m_yellowYellowCards = 0;
     uint m_blueYellowCards = 0;
+    uint m_yellowRedCards = 0;
+    uint m_blueRedCards = 0;
 
     bool m_yellowTimerZero = true;
     bool m_blueTimerZero = true;

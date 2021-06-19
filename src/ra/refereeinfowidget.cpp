@@ -43,6 +43,8 @@ void RefereeInfoWidget::handleStatus(const Status &status)
         const uint blueKeeperId = state.blue().goalie();
         const uint yellowYellowCards = state.yellow().yellow_card_times_size();
         const uint blueYellowCards = state.blue().yellow_card_times_size();
+        const uint yellowRedCards = state.yellow().red_cards();
+        const uint blueRedCards = state.blue().red_cards();
 
         if (yellowKeeperId != m_yellowKeeperId) {
             m_yellowKeeperId = yellowKeeperId;
@@ -64,6 +66,10 @@ void RefereeInfoWidget::handleStatus(const Status &status)
             m_yellowTimerZero = true;
             ui->timeLeftOnYellowCardYellow->setValue(0);
         }
+        if (yellowRedCards != m_yellowRedCards) {
+            m_yellowRedCards = yellowRedCards;
+            ui->redCardCountYellow->setNum(static_cast<int>(m_yellowRedCards));
+        }
 
 
         if (blueYellowCards != m_blueYellowCards) {
@@ -76,6 +82,10 @@ void RefereeInfoWidget::handleStatus(const Status &status)
         } else if (!m_blueTimerZero) {
             m_blueTimerZero = true;
             ui->timeLeftOnYellowCardBlue->setValue(0);
+        }
+        if (blueRedCards != m_blueRedCards) {
+            m_blueRedCards = blueRedCards;
+            ui->redCardCountBlue->setNum(static_cast<int>(m_blueRedCards));
         }
     }
 
@@ -116,9 +126,13 @@ void RefereeInfoWidget::setStyleSheets(bool useDark) {
     ui->keeperTextLabelBlue->setStyleSheet(blue);
     ui->numberOfCardsBlue->setStyleSheet(blue);
     ui->cardTextLabelBlue->setStyleSheet(blue);
+    ui->redCardCountBlue->setStyleSheet(blue);
+    ui->redCardTextLabelBlue->setStyleSheet(blue);
 
     ui->keeperIdYellow->setStyleSheet(yellow);
     ui->keeperTextLabelYellow->setStyleSheet(yellow);
     ui->numberOfCardsYellow->setStyleSheet(yellow);
     ui->cardTextLabelYellow->setStyleSheet(yellow);
+    ui->redCardCountYellow->setStyleSheet(yellow);
+    ui->redCardTextLabelYellow->setStyleSheet(yellow);
 }
