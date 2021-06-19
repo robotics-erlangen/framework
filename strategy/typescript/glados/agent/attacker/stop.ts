@@ -9,7 +9,7 @@ import { StopAttack } from "glados/task/attacker/stopattack";
 
 export class Stop extends Behavior {
 	check(): Behavior | undefined {
-		return Referee.isStopState() && this._messaging.receiveTrainer(MessageType.mainAttacker) === this._robot
+		return (Referee.isStopState() || Referee.isPlausiblyStillFreekick()) && this._messaging.receiveTrainer(MessageType.mainAttacker) === this._robot
 			? this
 			: undefined;
 	}

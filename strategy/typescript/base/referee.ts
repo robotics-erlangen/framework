@@ -213,6 +213,37 @@ export function illustrateRefereeStates() {
 	}
 }
 
+let couldStillBeFreekick = false;
+export function isPlausiblyStillFreekick(): boolean {
+	return couldStillBeFreekick;
+}
+
+let posInFreekick: Position | undefined;
+let freekickStartTime = World.Time;
+function updateStillFreekick() {
+	if (isOpponentFreeKickState() || isFriendlyFreeKickState() ||
+			isOpponentKickoffState() || isFriendlyKickoffState()) {
+		if (!posInFreekick) {
+			posInFreekick = World.Ball.pos;
+			freekickStartTime = World.Time;
+		}
+	}
+	const maxFreekickTime = World.DIVISION === "A" ? 5 : 10;
+	if (!isGameState() && !isOpponentFreeKickState() && !isFriendlyFreeKickState() &&
+			!isOpponentKickoffState() && !isFriendlyKickoffState()) {
+		couldStillBeFreekick = false;
+	} else if (World.Time - freekickStartTime > maxFreekickTime) {
+		couldStillBeFreekick = false;
+		posInFreekick = undefined;
+	} else if (posInFreekick) {
+		// same as in amun/processor/referee
+		const maxDist = 0.1;
+		couldStillBeFreekick = World.Ball.pos.distanceToSq(posInFreekick) < maxDist * maxDist;
+	} else {
+		couldStillBeFreekick = false;
+	}
+}
+
 let lastTeam = true; // true for the friendly team, false for the opponent
 let lastRobot: Robot;
 let lastTouchPos: Position;
@@ -235,6 +266,7 @@ let noBallTouchStates: {[name: string]: boolean} = {
 export function check() {
 	checkTouching();
 	checkStateChange();
+	updateStillFreekick();
 }
 
 let lastState: World.RefereeStateType;
