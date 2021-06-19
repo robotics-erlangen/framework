@@ -25,6 +25,7 @@
 
 const amunLocal = amun;
 
+import { throwInDebug } from "base/amun";
 import { gameController } from "base/protobuf";
 import * as World from "base/world";
 
@@ -67,8 +68,8 @@ export function isConnected(): boolean {
  * @param id - the id of the desired new keeper
  */
 export function requestDesiredKeeper(id: number) {
-	if (amunLocal.isDebug && World.RefereeState !== "Stop") {
-		throw new Error("Trying to change keeper while not in STOP. The request would be rejected");
+	if (World.RefereeState !== "Stop") {
+		throwInDebug("Trying to change keeper while not in STOP. The request would be rejected");
 	}
 	amunLocal.sendGameControllerMessage("TeamToController", { desired_keeper: id });
 }
