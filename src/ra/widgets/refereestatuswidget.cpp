@@ -131,7 +131,7 @@ QString RefereeStatusWidget::gameEvent2019Message(const gameController::GameEven
          {GameEvent::BOT_TOO_FAST_IN_STOP, "%1 %2 was too fast in stop"},
          {GameEvent::DEFENDER_TOO_CLOSE_TO_KICK_POINT, "%1 %2 too close to kick point"},
          {GameEvent::DEFENDER_IN_DEFENSE_AREA_PARTIALLY, "%1 %2 touched the ball while partially in its defense area"},
-         {GameEvent::DEFENDER_IN_DEFENSE_AREA, "1 %2 touched the ball while fully in its defense area"},
+         {GameEvent::DEFENDER_IN_DEFENSE_AREA, "%1 %2 touched the ball while fully in its defense area"},
          {GameEvent::MULTIPLE_CARDS, "multiple cards for %1"},
          {GameEvent::MULTIPLE_PLACEMENT_FAILURES, "multiple placement failures by %1"},
          {GameEvent::MULTIPLE_FOULS, "multiple fouls by %1"},
