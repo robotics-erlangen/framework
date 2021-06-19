@@ -31,8 +31,7 @@ LogWidget::LogWidget(QWidget *parent) :
     m_hideLogToggles(false),
     m_logBlueStrategy(true),
     m_logYellowStrategy(true),
-    m_logAutoref(true),
-    m_lastAutorefOutput("")
+    m_logAutoref(true)
 {
     const int MAX_BLOCKS = 1000;
     this->setMaximumBlockCount(MAX_BLOCKS);
@@ -122,22 +121,21 @@ void LogWidget::handleStatus(const Status &status)
         appendHtml(logAppend);
         m_lastTimes.append(status->time());
     }
-    logAppend = QString();
     if (status->has_game_state()) {
         const amun::GameState &game_state = status->game_state();
-        if (game_state.has_game_event_2019()) {
-            QString text = RefereeStatusWidget::gameEvent2019Message(game_state.game_event_2019());
-	    QString splittedText = text.split("[")[0];
-            if (splittedText != m_lastAutorefOutput) {
-                m_lastAutorefOutput = splittedText;
+        for (const auto &event : game_state.game_event_2019()) {
+            QString text = RefereeStatusWidget::gameEvent2019Message(event);
+            QString splittedText = text.split("[")[0];
+            if (!m_lastAutorefOutput.contains(splittedText)) {
+                m_lastAutorefOutput.append(splittedText);
                 text = fromTime(status->time(), QString("REF")) + text + "</div>";
-                logAppend = text;
+                appendHtml(text);
+                m_lastTimes.append(status->time());
             }
         }
-    }
-    if (logAppend.size() > 0) {
-        appendHtml(logAppend);
-        m_lastTimes.append(status->time());
+        while (m_lastAutorefOutput.size() > game_state.game_event_2019_size()) {
+            m_lastAutorefOutput.erase(m_lastAutorefOutput.begin());
+        }
     }
 }
 

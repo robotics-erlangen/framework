@@ -71,7 +71,7 @@ message GameState {
     // or fouls might be commited
     optional State next_state = 11;
 
-    // the last game event that was sent by the game controller
+    // the last game events that was sent by the game controller
     // it replaces the field game_event
-    optional gameController.GameEvent game_event_2019 = 12;
+    repeated gameController.GameEvent game_event_2019 = 12;
 }

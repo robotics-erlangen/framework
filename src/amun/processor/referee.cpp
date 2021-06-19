@@ -31,7 +31,8 @@
  * \brief Create a new Referee instance
  */
 Referee::Referee() :
-    m_counter(-1), m_flipped(false)
+    m_counter(-1),
+    m_flipped(false)
 {
     // initialize with first half to simplify testing
     m_gameState.set_stage(SSL_Referee::NORMAL_FIRST_HALF);
@@ -73,7 +74,10 @@ void Referee::handlePacket(const QByteArray &data)
         m_gameState.mutable_game_event()->CopyFrom(packet.gameevent());
     }
     if (packet.game_events_size() > 0) {
-        m_gameState.mutable_game_event_2019()->CopyFrom(packet.game_events(packet.game_events_size()-1));
+        m_gameState.clear_game_event_2019();
+        for (const auto &event : packet.game_events()) {
+            m_gameState.add_game_event_2019()->CopyFrom(event);
+        }
     }
 
     if (packet.has_current_action_time_remaining()) {

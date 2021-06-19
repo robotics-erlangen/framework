@@ -244,8 +244,9 @@ void RefereeStatusWidget::handleStatus(const Status &status)
             }
         }
 
-        if (game_state.has_game_event_2019()) {
-            QString text = gameEvent2019Message(game_state.game_event_2019());
+        // we can only show one here, show the last one
+        if (game_state.game_event_2019_size() > 0) {
+            QString text = gameEvent2019Message(game_state.game_event_2019(game_state.game_event_2019_size() - 1));
             ui->gameEvent->setText(text);
         } else if (game_state.has_game_event()) {
             QString text = gameEventMessage(game_state.game_event());

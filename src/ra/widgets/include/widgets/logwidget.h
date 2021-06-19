@@ -51,7 +51,7 @@ private:
     bool m_logBlueStrategy;
     bool m_logYellowStrategy;
     bool m_logAutoref;
-    QString m_lastAutorefOutput;
+    QList<QString> m_lastAutorefOutput;
 };
 
 #endif // LOGWIDGET_H

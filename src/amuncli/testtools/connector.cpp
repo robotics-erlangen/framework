@@ -336,8 +336,9 @@ void Connector::handleStatus(const Status &status)
         delayedExit(0);
     }
 
-    if (status->has_game_state() && status->game_state().has_game_event_2019()) {
-        auto event = status->game_state().game_event_2019();
+    // TODO: look at more than just the last game event, thismight miss some when multiple are issued in the same frame
+    if (status->has_game_state() && status->game_state().game_event_2019_size() > 0) {
+        auto event = status->game_state().game_event_2019(status->game_state().game_event_2019_size() - 1);
         if (!google::protobuf::util::MessageDifferencer::Equals(event, m_lastGameEvent)) {
             m_eventCounter[event.type()]++;
             m_lastGameEvent = event;
