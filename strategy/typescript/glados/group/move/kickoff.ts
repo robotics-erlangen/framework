@@ -30,6 +30,10 @@ export class KickOff extends Move {
 
 
 	static wantedMaxRobots(availableRobots: number): number {
+		if (World.DIVISION === "B") {
+			return 3;
+		}
+
 		let wantedRobots = KickOff.MIN_ROBOTS;
 		if (availableRobots === 5) {
 			wantedRobots += 1;
