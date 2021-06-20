@@ -40,7 +40,7 @@ export const systemLatency = 0.04;
 export const positionError = 0.005;
 
 /** maximum allowed shooting speed [m/s] */
-export const maxBallSpeed = 6.3;
+export const maxBallSpeed = 6.1;
 
 export const maxDribbleDistance = 1;
 
