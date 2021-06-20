@@ -33,7 +33,10 @@ export class Moves implements Group {
 	readonly name = "moves";
 	moveList: typeof Move[];
 	_numAttackersSent: boolean = false;
-	_chosenMove: typeof Move | undefined;
+	_chosenMove: undefined | {
+		ctor: typeof Move,
+		requestedRobots: number,
+	};
 	_currentMove: Move | undefined;
 	_participatingRobots: FriendlyRobot[] = [];
 
@@ -97,10 +100,15 @@ export class Moves implements Group {
 
 			if (candidates.length > 0) {
 				let index = MathUtil.randomInt([0,candidates.length - 1]);
-				this._chosenMove = candidates[index];
-				n_attackers = Math.min(numCandidateRobots, candidates[index].wantedMaxRobots(Array.from(messages.keys()).length));
+				const chosenMove = candidates[index];
+				n_attackers = Math.min(numCandidateRobots, chosenMove.wantedMaxRobots(numCandidateRobots));
 				attackers = [];
 				attackers.length = n_attackers;
+
+				this._chosenMove = {
+					ctor: chosenMove,
+					requestedRobots: n_attackers,
+				};
 			}
 		}
 
@@ -110,12 +118,15 @@ export class Moves implements Group {
 				availableRobots.push(r);
 			}
 
-			if (availableRobots.length >= this._chosenMove.MIN_ROBOTS
+			if (availableRobots.length >= this._chosenMove.ctor.MIN_ROBOTS
 					&& this._numAttackersSent) {
 				availableRobots.sort((a, b) => b.pos.y - a.pos.y);
-				const numAssigned = Math.min(availableRobots.length, this._chosenMove.MAX_ROBOTS);
+				const numAssigned = Math.min(
+					availableRobots.length,
+					this._chosenMove.requestedRobots,
+				);
 				this._participatingRobots = availableRobots.slice(0, numAssigned);
-				this._currentMove = new (this._chosenMove as any)(this._participatingRobots, messaging);
+				this._currentMove = new (this._chosenMove.ctor as any)(this._participatingRobots, messaging);
 			}
 		}
 
@@ -152,7 +163,7 @@ export class Moves implements Group {
 			this._numAttackersSent = true;
 			messaging.sendBroadcast(MessageType.moveInfo, {
 				attackers: attackers!,
-				allowExtraAttackers: this._chosenMove.ALLOW_EXTRA_ATTACKERS
+				allowExtraAttackers: this._chosenMove.ctor.ALLOW_EXTRA_ATTACKERS
 			});
 		}
 
