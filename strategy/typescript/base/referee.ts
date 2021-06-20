@@ -214,23 +214,23 @@ export function illustrateRefereeStates() {
 }
 
 let couldStillBeFreekick = false;
-export function isPlausiblyStillFreekick(): boolean {
+export function isPlausiblyStillOppFreekick(): boolean {
 	return couldStillBeFreekick;
 }
 
 let posInFreekick: Position | undefined;
 let freekickStartTime = World.Time;
 function updateStillFreekick() {
-	if (isOpponentFreeKickState() || isFriendlyFreeKickState() ||
-			isOpponentKickoffState() || isFriendlyKickoffState()) {
+	if (isOpponentFreeKickState() ||
+			isOpponentKickoffState()) {
 		if (!posInFreekick) {
 			posInFreekick = World.Ball.pos;
 			freekickStartTime = World.Time;
 		}
 	}
 	const maxFreekickTime = World.DIVISION === "A" ? 5 : 10;
-	if (!isGameState() && !isOpponentFreeKickState() && !isFriendlyFreeKickState() &&
-			!isOpponentKickoffState() && !isFriendlyKickoffState()) {
+	if (!isGameState() && !isOpponentFreeKickState() &&
+			!isOpponentKickoffState()) {
 		couldStillBeFreekick = false;
 	} else if (World.Time - freekickStartTime > maxFreekickTime) {
 		couldStillBeFreekick = false;
