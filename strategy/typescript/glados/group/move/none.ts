@@ -9,8 +9,12 @@ let G = World.Geometry;
 
 export class None extends Move {
 	static MIN_ROBOTS: number = 5;
-	static MAX_ROBOTS: number = 5;
+	static MAX_ROBOTS: number = 9;
 	static ALLOW_EXTRA_ATTACKERS = false;
+
+	static wantedMaxRobots(): number {
+		return World.DIVISION === "B" ? 5 : 9;
+	}
 
 	_updateTasks(): MoveParameters {
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
