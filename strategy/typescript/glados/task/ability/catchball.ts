@@ -212,7 +212,7 @@ export class CatchBall {
 				!isOpponentClose;
 
 			this.lastWasBackOff = performBackOff;
-			debug.set("backoff", performBackOff);
+			debug.set("CatchBall/backoff", performBackOff);
 			if (performBackOff) {
 				viewDir = this._robot.dir;
 				moveDest = this._robot.pos + (this._robot.pos - World.Ball.pos).normalized() * 0.2;
