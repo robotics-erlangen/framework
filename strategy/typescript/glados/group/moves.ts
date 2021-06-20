@@ -113,10 +113,7 @@ export class Moves implements Group {
 		}
 
 		if (this._currentMove == undefined && this._chosenMove != undefined) {
-			let availableRobots = [];
-			for (let r of messages.keys()) {
-				availableRobots.push(r);
-			}
+			const availableRobots = [...messages.keys()];
 
 			if (availableRobots.length >= this._chosenMove.ctor.MIN_ROBOTS
 					&& this._numAttackersSent) {
