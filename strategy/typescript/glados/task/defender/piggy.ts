@@ -38,8 +38,10 @@ export class Piggy extends Task {
 
 		vis.addCircle("piggy/requestedPass", requestedPassPos, 0.1);
 
-		let passTime = Physics.robotTimeToPos(this._robot, piggyPos, new Vector(0,0));
-		this._suggestPass._suggestPass(requestedPassPos, World.Ball.pos, passTime[0]);
+		if (requestedPassPos.y >= -World.Geometry.FieldHeightQuarter) {
+			let passTime = Physics.robotTimeToPos(this._robot, piggyPos, new Vector(0,0));
+			this._suggestPass._suggestPass(requestedPassPos, World.Ball.pos, passTime[0]);
+		}
 
 		let dir = (World.Ball.pos - this._targetRobot.pos).angle();
 		this._robot.trajectory.update(ToTarget, piggyPos, dir, undefined, this._targetRobot.speed);
