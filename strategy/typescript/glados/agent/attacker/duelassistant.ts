@@ -69,7 +69,7 @@ export class DuelAssistant extends Behavior {
 
 		if (isDuelAssistant) {
 			this._lastTrue = World.Time;
-		} else if (!(this._lastTrue != undefined && (World.Time - this._lastTrue) <= 1)) {
+		} else if (this._lastTrue === undefined || (World.Time - this._lastTrue) > 1) {
 			this._lastTrue = undefined;
 		}
 
