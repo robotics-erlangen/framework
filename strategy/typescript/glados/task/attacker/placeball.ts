@@ -79,7 +79,7 @@ const MIN_TIME_IN_STATE = 0.1;
 // for wallkick
 const MIN_BOUNDARY_DIST = 0.09;
 const BOUNDARY_WIDTH = G.BoundaryWidth;
-const MIN_GOAL_LINE_DIST = 0.03;
+const MIN_GOAL_LINE_DIST = 0.8;
 
 export class PlaceBall extends Task {
 
