@@ -50,8 +50,12 @@ QString RefereeStatusWidget::gameEvent2019Message(const gameController::GameEven
     QString autorefsString;
     if (event.origin_size() > 0) {
         autorefsString = "[";
+        int counter = 0;
         for (const auto &ref : event.origin()) {
             autorefsString += QString::fromStdString(ref);
+            if (counter++ < event.origin_size()-1) {
+                autorefsString += ", ";
+            }
         }
         autorefsString += "]";
 
@@ -136,10 +140,22 @@ QString RefereeStatusWidget::gameEvent2019Message(const gameController::GameEven
          {GameEvent::MULTIPLE_PLACEMENT_FAILURES, "multiple placement failures by %1"},
          {GameEvent::MULTIPLE_FOULS, "multiple fouls by %1"},
          {GameEvent::UNSPORTING_BEHAVIOR_MINOR, "minor unsporting behavior by %1"},
+         {GameEvent::BOUNDARY_CROSSING, "ball chipped out of field by %1"},
+         {GameEvent::INVALID_GOAL, "invalid goal"},
+         {GameEvent::PENALTY_KICK_FAILED, "penalty kick by %1 failed"},
+         {GameEvent::CHALLENGE_FLAG, "challenge flag raised by %1"},
+         {GameEvent::EMERGENCY_STOP, "emergency stop by %1"},
          {GameEvent::UNSPORTING_BEHAVIOR_MAJOR, "major unsporting behavior by %1"},
          {GameEvent::NO_PROGRESS_IN_GAME, "no progress"}};
 
-    QString result = eventTypeFormatString[event.type()];
+    auto it = eventTypeFormatString.find(event.type());
+    QString result;
+    if (it != eventTypeFormatString.end()) {
+        eventTypeFormatString[event.type()];
+    } else {
+        QString enumName = QString::fromStdString(GameEvent_Type_descriptor()->FindValueByNumber(event.type())->name());
+        result = QString("unhandled game event type: %1").arg(enumName);
+    }
     if (result.contains('%')) {
         result = result.arg(byTeamString);
     }
