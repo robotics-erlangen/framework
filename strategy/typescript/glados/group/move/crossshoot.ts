@@ -33,6 +33,7 @@ export class CrossShoot extends Move {
 	public static ALLOW_EXTRA_ATTACKERS = false;
 	private pos: Vector[] = [];
 	private timeBegin: number | undefined = undefined;
+	private waitThreeTwo: number | undefined = undefined;
 
 
 
@@ -91,7 +92,14 @@ export class CrossShoot extends Move {
 		if (World.RefereeState === "Stop") {
 			taskAssignments[this._robots[0]] = Assignment.create({ class: StopAttack, params: [] });
 		} else if (Referee.isFriendlyFreeKickState()) {
-			taskAssignments[this._robots[0]] = Assignment.create({ class: ChipToPos, params: [firstContactPos, World.Time] });
+			if (this.waitThreeTwo === undefined) {
+				this.waitThreeTwo = World.Time;
+			}
+			if (World.Time - this.waitThreeTwo > 2) {
+				taskAssignments[this._robots[0]] = Assignment.create({ class: ChipToPos, params: [firstContactPos, World.Time] });
+			} else {
+				taskAssignments[this._robots[0]] = Assignment.create({ class: StopAttack, params: [] });
+			}
 		}
 		return {
 			assignments: taskAssignments,
