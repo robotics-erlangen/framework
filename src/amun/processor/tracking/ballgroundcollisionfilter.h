@@ -39,6 +39,8 @@ public:
     void writeBallState(world::Ball *ball, qint64 time, const QVector<RobotInfo> &robots) override;
     std::size_t chooseBall(const std::vector<VisionFrame> &frames) override;
 
+    bool isFeasiblyInvisible() const { return m_feasiblyInvisible; };
+
 private:
     struct BallOffsetInfo {
         Eigen::Vector2f ballOffset;
@@ -50,6 +52,7 @@ private:
 private:
     void computeBallState(world::Ball *ball, qint64 time, const QVector<RobotInfo> &robots);
     void updateDribblingInfo(Eigen::Vector2f projectedBallPos, const RobotInfo &robot);
+    bool checkFeasibleInvisibility(const QVector<RobotInfo> &robots);
 
 private:
     GroundFilter m_groundFilter;
@@ -58,7 +61,11 @@ private:
     std::optional<BallOffsetInfo> m_localBallOffset;
     std::optional<BallOffsetInfo> m_insideRobotOffset;
     Eigen::Vector2f m_lastReportedBallPos = Eigen::Vector2f(10000000, 0);
+    bool m_feasiblyInvisible = false;
     bool m_resetFilters = false;
+
+    const float ROBOT_RADIUS = 0.09f;
+    const float ROBOT_HEIGHT = 0.15f;
 };
 
 #endif // BALLGROUNDCOLLISIONFILTER_H

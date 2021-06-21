@@ -227,10 +227,29 @@ static void setBallData(world::Ball *ball, Eigen::Vector2f pos, Eigen::Vector2f 
     }
 }
 
+bool BallGroundCollisionFilter::checkFeasibleInvisibility(const QVector<RobotInfo> &robots)
+{
+    if (!m_localBallOffset) {
+        return false;
+    }
+    int id = m_localBallOffset->robotIdentifier;
+    auto robot = std::find_if(robots.begin(), robots.end(), [id](const RobotInfo &robot) { return robot.identifier == id; });
+    if (robot == robots.end()) {
+        return false;
+    }
+    if (!isBallVisible(m_localBallOffset->pushingBallPos, *robot, ROBOT_RADIUS, ROBOT_HEIGHT,
+            m_cameraInfo->cameraPosition[m_primaryCamera])) {
+        return true;
+    }
+    return !isBallVisible(m_lastReportedBallPos, *robot, ROBOT_RADIUS, ROBOT_HEIGHT,
+                          m_cameraInfo->cameraPosition[m_primaryCamera]);
+}
+
 void BallGroundCollisionFilter::writeBallState(world::Ball *ball, qint64 time, const QVector<RobotInfo> &robots)
 {
     computeBallState(ball, time, robots);
     m_lastReportedBallPos = Eigen::Vector2f(ball->p_x(), ball->p_y());
+    m_feasiblyInvisible = checkFeasibleInvisibility(robots);
 }
 
 void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time, const QVector<RobotInfo> &robots)
@@ -238,8 +257,6 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
     const qint64 RESET_SPEED_TIME = 150; // ms
     const qint64 ACTIVATE_DRIBBLING_TIME = 80; // ms
     // TODO: robot data from specs?
-    const float ROBOT_RADIUS = 0.09f;
-    const float ROBOT_HEIGHT = 0.15f;
 
     // TODO: test sides flipped (fieldtransform difference in robotinfo and groundfilter result?)
     m_groundFilter.writeBallState(ball, time, robots);

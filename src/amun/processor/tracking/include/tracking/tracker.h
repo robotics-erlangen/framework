@@ -71,8 +71,7 @@ public:
 private:
     void updateCamera(const SSL_GeometryCameraCalibration &c, QString sender);
 
-    template<class Filter>
-    static void invalidate(QList<Filter*> &filters, const qint64 maxTime, const qint64 maxTimeLast, qint64 currentTime);
+    void invalidateRobotFilter(QList<RobotFilter*> &filters, const qint64 maxTime, const qint64 maxTimeLast, qint64 currentTime);
     void invalidateBall(qint64 currentTime);
     void invalidateRobots(RobotMap &map, qint64 currentTime);
 

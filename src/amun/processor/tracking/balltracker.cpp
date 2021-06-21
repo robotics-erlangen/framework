@@ -207,3 +207,12 @@ void BallTracker::addVisionFrame(const SSL_DetectionBall &ball, qint64 time, qin
     m_frameCounter++;
     m_updateFrameCounter++;
 }
+
+bool BallTracker::isFeasiblyInvisible() const
+{
+    if (m_flyFilter->isActive()) {
+        return false;
+    } else {
+        return m_groundFilter->isFeasiblyInvisible();
+    }
+}

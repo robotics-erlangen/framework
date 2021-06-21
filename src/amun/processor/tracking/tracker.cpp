@@ -375,15 +375,14 @@ void Tracker::updateCamera(const SSL_GeometryCameraCalibration &c, QString sende
     m_cameraInfo->cameraSender[c.camera_id()] = sender;
 }
 
-template<class Filter>
-void Tracker::invalidate(QList<Filter*> &filters, const qint64 maxTime, const qint64 maxTimeLast, qint64 currentTime)
+void Tracker::invalidateRobotFilter(QList<RobotFilter*> &filters, const qint64 maxTime, const qint64 maxTimeLast, qint64 currentTime)
 {
     const int minFrameCount = 5;
 
     // remove outdated filters
-    QMutableListIterator<Filter*> it(filters);
+    QMutableListIterator<RobotFilter*> it(filters);
     while (it.hasNext()) {
-        Filter *filter = it.next();
+        RobotFilter *filter = it.next();
         // last robot has more time, but only if it's visible yet
         const qint64 timeLimit = (filters.size() > 1 || filter->frameCounter() < minFrameCount) ? maxTime : maxTimeLast;
         if (filter->lastUpdate() + timeLimit < currentTime) {
@@ -399,8 +398,36 @@ void Tracker::invalidateBall(qint64 currentTime)
     const qint64 maxTimeBall = .1E9; // 0.1 s
     // Maximum tracking time for last ball
     const qint64 maxTimeLastBall = 1E9; // 1 s
+    // Maximum tracking time for a ball that is invisible but could still be dribbling
+    const qint64 maxTimeFeasibleBall = 10e9; // 10 s
+
     // remove outdated balls
-    invalidate(m_ballFilter, maxTimeBall, maxTimeLastBall, currentTime);
+    const int minFrameCount = 5;
+
+    int longLivingFilters = std::count_if(m_ballFilter.begin(), m_ballFilter.end(), [](const BallTracker *t) {
+        return t->frameCounter() >= 3;
+    });
+
+    // remove outdated filters
+    QMutableListIterator<BallTracker*> it(m_ballFilter);
+    while (it.hasNext()) {
+        BallTracker *filter = it.next();
+        // last robot has more time, but only if it's visible yet
+        qint64 timeLimit;
+        if (filter->frameCounter() < minFrameCount) {
+            timeLimit = maxTimeBall;
+        } else if (filter->isFeasiblyInvisible() && longLivingFilters == 1) {
+            timeLimit = maxTimeFeasibleBall;
+        } else if (longLivingFilters > 1) {
+            timeLimit = maxTimeBall;
+        } else {
+            timeLimit = maxTimeLastBall;
+        }
+        if (filter->lastUpdate() + timeLimit < currentTime) {
+            delete filter;
+            it.remove();
+        }
+    }
 }
 
 void Tracker::invalidateRobots(RobotMap &map, qint64 currentTime)
@@ -413,7 +440,7 @@ void Tracker::invalidateRobots(RobotMap &map, qint64 currentTime)
     // iterate over team
     for(RobotMap::iterator it = map.begin(); it != map.end(); ++it) {
         // remove outdated robots
-        invalidate(*it, maxTime, m_maxTimeLast, currentTime);
+        invalidateRobotFilter(*it, maxTime, m_maxTimeLast, currentTime);
     }
 }
 

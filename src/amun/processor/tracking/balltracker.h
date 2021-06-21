@@ -53,6 +53,8 @@ public:
     qint64 initTime() const { return m_initTime; }
     bool isShot() const;
     double confidence() const { return m_confidence; }
+    bool isFeasiblyInvisible() const;
+
 #ifdef ENABLE_TRACKING_DEBUG
     const amun::DebugValues &debugValues() const { return m_debug; }
     void clearDebugValues() {
