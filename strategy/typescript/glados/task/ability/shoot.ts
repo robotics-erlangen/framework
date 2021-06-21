@@ -10,6 +10,7 @@ import * as World from "base/world";
 
 import { MessageType } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
+import * as ObserverCrash from "glados/observer/crash";
 import * as Physics from "glados/observer/physics";
 import * as Robot from "glados/observer/robot";
 import * as ObserverShoot from "glados/observer/shoot";
@@ -283,7 +284,12 @@ export class Shoot {
 		let hasBallDistance;
 		let speedupFactor;
 
-		if (Referee.isFriendlyFreeKickState() || Referee.isFriendlyKickoffState() || World.RefereeState === "BallPlacementOffensive") {
+		const shootMorePrecise = Referee.isFriendlyFreeKickState()
+			|| Referee.isFriendlyFreeKickState()
+			|| World.RefereeState === "BallPlacementOffensive"
+			|| ObserverCrash.isCrashed();
+
+		if (shootMorePrecise) {
 			maxSidewardsAngle = 30 * Math.PI / 180;
 			maxOrientationAngle = 2 * Math.PI / 180;
 			minCatchBallDistance = 0.01;
