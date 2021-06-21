@@ -292,7 +292,7 @@ function _predictShot(allShots: boolean = false, includeInvisible: boolean = tru
 
 	let oppBallOwner = Ball.opponentBallOwner();
 	let oppBallDribbler = Ball.opponentBallDribbler();
-	if (oppBallDribbler) {
+	if (oppBallDribbler && World.RefereeState !== "Stop") {
 		isShot = true;
 		isDribbling = true;
 		// NOTE: use World.Ball instead of futureBall is fine, as the shot is assumed to be imminent.
