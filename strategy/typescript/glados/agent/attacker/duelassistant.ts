@@ -65,11 +65,13 @@ export class DuelAssistant extends Behavior {
 			this._messaging.sendToTrainerRepeated(MessageType.exclusiveRole, [ MessageType.duelAssistant, ratingArg ]);
 		}
 
-		let isDuelAssistant = (this._messaging.receiveTrainer(MessageType.duelAssistant) === this._robot);
+		const selectedByTrainer = this._messaging.receiveTrainer(MessageType.duelAssistant);
 
-		if (isDuelAssistant) {
+		if (selectedByTrainer === this._robot) {
 			this._lastTrue = World.Time;
-		} else if (this._lastTrue === undefined || (World.Time - this._lastTrue) > 1) {
+		} else if (selectedByTrainer !== undefined
+				|| this._lastTrue === undefined
+				|| (World.Time - this._lastTrue) > 1) {
 			this._lastTrue = undefined;
 		}
 
