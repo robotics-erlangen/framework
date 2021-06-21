@@ -129,7 +129,13 @@ export class Shoot {
 	private _calculateFutureBall(ballReceiptPos?: Position): [Physics.BallLike, number] {
 		let futureBallPos: Position;
 
+		const DEFENSE_AREA_EXTRA_DISTANCE = World.Ball.radius - 0.08;
 		const EXTRA_DISTANCE = World.Ball.radius - 0.05;
+		let extraDistance = EXTRA_DISTANCE;
+		if (Field.isInOpponentDefenseArea(World.Ball.pos, -DEFENSE_AREA_EXTRA_DISTANCE)) {
+			extraDistance = DEFENSE_AREA_EXTRA_DISTANCE;
+		}
+
 		if (World.Ball.speed.length() > 0.1) {
 			if (ballReceiptPos != undefined && (ballReceiptPos - World.Ball.pos).dot(World.Ball.speed) > 0) {
 				futureBallPos = ballReceiptPos.orthogonalProjection(World.Ball.pos, World.Ball.pos + World.Ball.speed)[0];
@@ -137,8 +143,8 @@ export class Shoot {
 				let dribblerPos = this._robot.pos + Vector.fromPolar(this._robot.dir, this._robot.shootRadius + World.Ball.radius);
 				futureBallPos = dribblerPos.nearestPosOnLine(World.Ball.pos, World.Ball.pos + World.Ball.speed * 3);
 			}
-			if (!Field.isInAllowedField(futureBallPos, EXTRA_DISTANCE)) {
-				const cut = Field.nextAllowedFieldLineCut(World.Ball.pos, World.Ball.speed, -EXTRA_DISTANCE)[0];
+			if (!Field.isInAllowedField(futureBallPos, extraDistance)) {
+				const cut = Field.nextAllowedFieldLineCut(World.Ball.pos, World.Ball.speed, -extraDistance)[0];
 				if (cut) {
 					futureBallPos = cut;
 				}
@@ -146,7 +152,7 @@ export class Shoot {
 		} else {
 			futureBallPos = World.Ball.pos;
 		}
-		futureBallPos = Field.limitToAllowedField(futureBallPos, EXTRA_DISTANCE);
+		futureBallPos = Field.limitToAllowedField(futureBallPos, extraDistance);
 
 		let ballTime = Math.max(0, Physics.checkedBallTravelTime(World.Ball, <Position> futureBallPos));
 		let futureBall = Physics.ballAtTime(World.Ball, ballTime);
