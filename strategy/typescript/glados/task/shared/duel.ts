@@ -73,7 +73,7 @@ export class Duel extends Task {
 			this._messaging.sendBroadcast(MessageType.dueledOpponent, <Robot> this._opposer);
 		}
 
-		if ((this._opposer != undefined) && this._blockingBall && ObserverRobot.hadBall(this._robot, 0)) {
+		if ((this._opposer != undefined) && this._blockingBall && ObserverRobot.hadBall(this._robot, 0.1)) {
 			this._contest();
 		} else {
 			this._moveToBall();
