@@ -353,6 +353,10 @@ export class Shoot {
 			}
 			this._catchBallActive = false;
 			this._messaging.sendBroadcast(MessageType.earliestAttackTime, World.Time);
+		} else if (ballInDefense) {
+			const EXTRA_DISTANCE = this._robot.radius + 0.06 - World.Ball.radius;
+			let projectedPos = Field.limitToAllowedField(World.Ball.pos, -EXTRA_DISTANCE);
+			this._robot.trajectory.update(CurvedMaxAccel, projectedPos, (World.Ball.pos - projectedPos).angle());
 		} else {
 			let cBTime = this._catchBall._catchBall(targetPos, minCatchBallDistance, targetSpeed);
 			this._messaging.sendBroadcast(MessageType.earliestAttackTime, World.Time + cBTime);
