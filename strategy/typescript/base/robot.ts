@@ -268,8 +268,9 @@ export class Robot implements RobotState {
 		// debug.set("latencyCompensation", latencyCompensation)
 		// debug.set("offset", offset)
 
+		const offsetHysteresis = this._hasBall[sideOffset] ? this.dribblerWidth / 4 : 0;
 		// if too far to the sides
-		if (offset > this.dribblerWidth / 2 + sideOffset) {
+		if (offset > this.dribblerWidth / 2 + sideOffset + offsetHysteresis) {
 			// reset hystersis
 			this._hasBall[sideOffset] = false;
 			return false;
