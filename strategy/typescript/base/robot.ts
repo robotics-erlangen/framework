@@ -23,6 +23,7 @@
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
 
+import { accelerationsByTeam, RobotSpecs } from "base/accelerations";
 import * as Constants from "base/constants";
 import { Coordinates } from "base/coordinates";
 import * as MathUtil from "base/mathutil";
@@ -281,6 +282,16 @@ export class Robot implements RobotState {
 		this._hasBall[sideOffset] = relpos.x > this.shootRadius * (-1.5)
 					&&  relpos.x < latencyCompensation.x  &&  ball.posZ < Constants.maxRobotHeight * 1.2; // *1.2 to compensate for vision error
 		return this._hasBall[sideOffset];
+	}
+
+	updateSpecs(teamname: string) {
+		let accel = accelerationsByTeam[teamname];
+		if (accelerationsByTeam[teamname]) {
+			this.maxSpeed = accel.vmax;
+			this.maxAngularSpeed = accel.vangular;
+			this.acceleration = accel.profile;
+			amun.log("updated specs with team " + teamname);
+		}
 	}
 }
 

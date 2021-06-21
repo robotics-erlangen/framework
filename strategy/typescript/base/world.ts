@@ -517,7 +517,12 @@ function _updateGameState(state: pb.amun.GameState) {
 	FriendlyRedCards = friendlyTeamInfo.red_cards;
 	OpponentRedCards = opponentTeamInfo.red_cards;
 	TeamName = friendlyTeamInfo.name;
-	OpponentTeamName = opponentTeamInfo.name;
+	if (opponentTeamInfo.name !== OpponentTeamName) {
+		OpponentTeamName = opponentTeamInfo.name;
+		for (let r of OpponentRobots) {
+			r.updateSpecs(OpponentTeamName);
+		}
+	}
 
 	if (friendlyTeamInfo.max_allowed_bots != undefined) {
 		MaxAllowedFriendlyRobots = friendlyTeamInfo.max_allowed_bots;
