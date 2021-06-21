@@ -272,9 +272,6 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
     m_pastFilter.clearDebugValues();
 #endif
 
-    // remove this once all issues are fixed
-    return;
-
     // TODO: time is with the added system delay time etc., these should be removed from the calculation
     const int invisibleTimeMs = (time - m_lastVisionTime) / 1000000;
     const bool writeBallSpeed = invisibleTimeMs > RESET_SPEED_TIME;
