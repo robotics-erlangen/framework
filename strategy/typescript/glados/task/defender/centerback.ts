@@ -4,6 +4,7 @@ import * as geom from "base/geom";
 import * as MathUtil from "base/mathutil";
 import * as Referee from "base/referee";
 import { Position, Vector } from "base/vector";
+import * as vis from "base/vis";
 import * as World from "base/world";
 
 import { Behavior } from "glados/agent/base/behavior";
@@ -112,7 +113,45 @@ export class CenterBack extends Task {
 			this._robot.path.addLine(startPos.x, startPos.y, endPos.x, endPos.y, mainAttacker.radius * 2 + 0.1, "", 100);
 		}
 
-		this._robot.trajectory.update(trajModule, destinationPos, dir, undefined,
+
+		let possibleCollision: boolean = false;
+		const collTime = 0.5;
+		const lineLambda = this._robot.speed.length() * collTime;
+
+		// if we are slower than 0.4 m/s it's impossible to be at fault for a collision
+		if (this._robot.speed.length() > 0.4) {
+
+			const lineDir: Vector = this._robot.speed.normalized();
+			for (let opponent of World.OpponentRobots) {
+				const direction = (this._robot.pos - opponent.pos).normalized();
+				// collision only relevant if speed projected on direction > 1.5 m/s
+				if (Math.abs((this._robot.speed - opponent.speed).dot(direction)) < 1.0) {
+					continue;
+				}
+
+				let circleIntersection = geom.intersectLineCircle(this._robot.pos, lineDir, opponent.pos, opponent.radius * 2);
+				if (circleIntersection.length !== 0 && ((circleIntersection[2] < lineLambda - this._robot.radius && circleIntersection[2] >= -this._robot.radius)
+					|| (circleIntersection[3] != undefined && circleIntersection[3] < lineLambda - this._robot.radius && circleIntersection[3] >= -this._robot.radius))) {
+
+					possibleCollision = true;
+					break;
+				}
+
+				let speedIntersection = geom.intersectLineLine(opponent.pos, opponent.speed * collTime, this._robot.pos, lineDir);
+				if (speedIntersection.length !== 0
+					 && speedIntersection[1] < opponent.speed.length() * collTime - this._robot.radius && speedIntersection[1] > -this._robot.radius
+						&& speedIntersection[2] < lineLambda - this._robot.radius && speedIntersection[2] >= -this._robot.radius) {
+
+					possibleCollision = true;
+					break;
+				}
+			}
+		}
+		debug.set("possibleCollision", possibleCollision);
+
+		let maxSpeed = possibleCollision ? 0.4 : undefined;
+
+		this._robot.trajectory.update(trajModule, destinationPos, dir, maxSpeed,
 				Physics.robotMinEndspeed(this._robot, destinationPos, destinationTime));
 		this._messaging.sendBroadcast(MessageType.moveDest, destinationPos);
 	}
