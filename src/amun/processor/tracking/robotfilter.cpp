@@ -400,11 +400,17 @@ void RobotFilter::addRadioCommand(const robot::Command &radioCommand, qint64 tim
 
 RobotInfo RobotFilter::getRobotInfo() const
 {
+    const float DRIBBLER_DIST = 0.08;
+
     RobotInfo result;
     result.robotPos = Eigen::Vector2f(m_futureKalman->state()(0), m_futureKalman->state()(1));
     float phi = limitAngle(m_futureKalman->state()(2));
-    result.dribblerPos = result.robotPos + 0.08*Eigen::Vector2f(cos(phi), sin(phi));
+    result.dribblerPos = result.robotPos + DRIBBLER_DIST * Eigen::Vector2f(cos(phi), sin(phi));
     result.speed = Eigen::Vector2f(m_futureKalman->state()[3], m_futureKalman->state()[4]);
+
+    result.pastRobotPos = Eigen::Vector2f(m_kalman->state()(0), m_kalman->state()(1));
+    phi = limitAngle(m_kalman->state()(2));
+    result.pastDribblerPos = result.pastRobotPos + DRIBBLER_DIST * Eigen::Vector2f(cos(phi), sin(phi));
 
     const auto& cmd = m_lastRadioCommand.first;
     result.chipCommand = cmd.has_kick_style() && cmd.kick_style() == robot::Command::Chip;;

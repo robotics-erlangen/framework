@@ -36,6 +36,8 @@ class SSL_DetectionRobot;
 struct RobotInfo {
     Eigen::Vector2f robotPos = Eigen::Vector2f(0, 0);
     Eigen::Vector2f dribblerPos = Eigen::Vector2f(0, 0);
+    Eigen::Vector2f pastRobotPos = Eigen::Vector2f(0, 0);
+    Eigen::Vector2f pastDribblerPos = Eigen::Vector2f(0, 0);
     Eigen::Vector2f speed = Eigen::Vector2f(0, 0);
     bool chipCommand = false;
     bool linearCommand = false;

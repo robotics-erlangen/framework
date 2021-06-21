@@ -175,13 +175,13 @@ static std::optional<Eigen::Vector2f> intersectLineSegmentRobot(Eigen::Vector2f 
     return hullIntersection;
 }
 
-static bool isInsideRobot(Eigen::Vector2f pos, const RobotInfo &robot, float robotRadius)
+static bool isInsideRobot(Eigen::Vector2f pos, Eigen::Vector2f robotPos, Eigen::Vector2f dribblerPos, float robotRadius)
 {
-    if ((pos - robot.robotPos).norm() > robotRadius) {
+    if ((pos - robotPos).norm() > robotRadius) {
         return false;
     }
-    const auto toDribbler = (robot.dribblerPos - robot.robotPos).normalized();
-    return (pos - robot.dribblerPos).dot(toDribbler) <= 0;
+    const Eigen::Vector2f toDribbler = (dribblerPos - robotPos).normalized();
+    return (pos - dribblerPos).dot(toDribbler) <= 0;
 }
 
 static bool isBallVisible(Eigen::Vector2f pos, const RobotInfo &robot, float robotRadius, float robotHeight, Eigen::Vector3f cameraPos)
@@ -286,7 +286,8 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
         if (robot != robots.end()) {
             const Eigen::Vector2f ballPos = unprojectRelativePosition(m_localBallOffset->ballOffset, *robot);
 
-            if (isInsideRobot(m_localBallOffset->pushingBallPos, *robot, ROBOT_RADIUS)) {
+            // TODO: the ball might already have been pushed before the dribbling activated
+            if (isInsideRobot(m_localBallOffset->pushingBallPos, robot->robotPos, robot->dribblerPos, ROBOT_RADIUS)) {
                 m_localBallOffset->pushingBallPos = ballPos;
             }
             bool pushingPosVisible = isBallVisible(m_localBallOffset->pushingBallPos, *robot, ROBOT_RADIUS, ROBOT_HEIGHT,
@@ -313,7 +314,15 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
     Eigen::Vector2f currentPos{ball->p_x(), ball->p_y()};
     debugCircle("current pos", currentPos.x(), currentPos.y(), 0.03);
     for (const RobotInfo &robot : robots) {
-        if (isInsideRobot(pastPos, robot, ROBOT_RADIUS)) {
+
+        const bool pastInsidePast = isInsideRobot(pastPos, robot.pastRobotPos, robot.pastDribblerPos, ROBOT_RADIUS);
+        const bool currentInsideCurrent = isInsideRobot(currentPos, robot.robotPos, robot.dribblerPos, ROBOT_RADIUS);
+        if (!pastInsidePast && !currentInsideCurrent && (pastPos - currentPos).norm() < 0.1f) {
+            continue;
+        }
+
+        const bool pastInsideCurrent = isInsideRobot(pastPos, robot.robotPos, robot.dribblerPos, ROBOT_RADIUS);
+        if (pastInsideCurrent) {
 
             if (m_insideRobotOffset && m_insideRobotOffset->robotIdentifier == robot.identifier) {
                 Eigen::Vector2f ballPos = unprojectRelativePosition(m_insideRobotOffset->ballOffset, robot);
@@ -325,7 +334,7 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
 
             const Eigen::Vector2f pastSpeed{pastState.v_x(), pastState.v_y()};
             const Eigen::Vector2f relativeSpeed = pastSpeed - robot.speed;
-            const Eigen::Vector2f projectDir = relativeSpeed.isZero(0.001f) ? Eigen::Vector2f(pastPos - robot.robotPos) : -relativeSpeed;
+            const Eigen::Vector2f projectDir = relativeSpeed.norm() < 0.05 ? Eigen::Vector2f(pastPos - robot.robotPos) : -relativeSpeed;
             const auto closeLineIntersection = intersectLineSegmentRobot(pastPos, projectDir * 1000.0f, robot, ROBOT_RADIUS);
             const auto farLineIntersection = intersectLineSegmentRobot(pastPos, -projectDir * 1000.0f, robot, ROBOT_RADIUS);
             if (closeLineIntersection && farLineIntersection) {
