@@ -1,10 +1,6 @@
 import * as Const from "base/constants";
 import * as debug from "base/debug";
-import * as Field from "base/field";
 import { normalizeAngle } from "base/geom";
-import * as MathUtil from "base/mathutil";
-import * as Referee from "base/referee";
-import { Robot as OpponentRobot } from "base/robot";
 import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
@@ -45,7 +41,7 @@ export class PenaltyShootoutGoal extends Task {
 		let r = this._dest - robot.pos;
 		let s = r.withLength(Const.maxBallSpeed) - ball.speed;
 		if (Math.abs(normalizeAngle(s.angle() - robot.dir)) < 1 * Math.PI / 180) {
-			robot.shoot(Infinity);
+			robot.shoot(Const.maxBallSpeed - robot.speed.length());
 		}
 		let pos = ball.pos + ball.speed * 0.5;
 		r = this._dest - robot.pos;
