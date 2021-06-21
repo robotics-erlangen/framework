@@ -312,12 +312,18 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
     debugCircle("past ball state", pastState.p_x(), pastState.p_y(), 0.015);
 
     Eigen::Vector2f currentPos{ball->p_x(), ball->p_y()};
+    Eigen::Vector2f currentSpeed{ball->v_x(), ball->v_x()};
     debugCircle("current pos", currentPos.x(), currentPos.y(), 0.03);
     for (const RobotInfo &robot : robots) {
 
         const bool pastInsidePast = isInsideRobot(pastPos, robot.pastRobotPos, robot.pastDribblerPos, ROBOT_RADIUS);
         const bool currentInsideCurrent = isInsideRobot(currentPos, robot.robotPos, robot.dribblerPos, ROBOT_RADIUS);
         if (!pastInsidePast && !currentInsideCurrent && (pastPos - currentPos).norm() < 0.1f) {
+            continue;
+        }
+
+        // prevent projection doing chaseball scenarios
+        if (currentSpeed.norm() > 0.3f && !currentInsideCurrent && (currentPos - robot.robotPos).dot(currentSpeed) > 0) {
             continue;
         }
 
