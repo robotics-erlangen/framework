@@ -140,18 +140,25 @@ std::optional<std::pair<float, float>> intersectLineLine(Eigen::Vector2f pos1, E
 }
 
 // TODO: ball radius
-static std::optional<Eigen::Vector2f> intersectLineSegmentRobot(Eigen::Vector2f p1, Eigen::Vector2f p2, const RobotInfo &robot, float robotRadius)
+static std::optional<Eigen::Vector2f> intersectLineSegmentRobot(Eigen::Vector2f p1, Eigen::Vector2f p2, const RobotInfo &robot, float robotRadius,
+                                                                float robotSizeFactor = 1.0f)
 {
     const float DRIBBLER_WIDTH = 0.07f;
 
-    const auto toDribbler = (robot.dribblerPos - robot.robotPos).normalized();
+    Eigen::Vector2f dribblerPos = robot.dribblerPos;
+    if (robotSizeFactor != 1.0f) {
+        robotRadius *= robotSizeFactor;
+        dribblerPos = robot.robotPos + (robot.dribblerPos - robot.robotPos) * robotSizeFactor;
+    }
+
+    const auto toDribbler = (dribblerPos - robot.robotPos).normalized();
     const auto dribblerSideways = perpendicular(toDribbler);
-    const auto dribblerIntersection = intersectLineLine(robot.dribblerPos, dribblerSideways, p1, p2 - p1);
+    const auto dribblerIntersection = intersectLineLine(dribblerPos, dribblerSideways, p1, p2 - p1);
     std::optional<Eigen::Vector2f> dribblerIntersectionPos;
     if (dribblerIntersection.has_value() && std::abs(dribblerIntersection->first) <= DRIBBLER_WIDTH / 2.0f &&
             dribblerIntersection->second >= 0 && dribblerIntersection->second <= 1) {
-        dribblerIntersectionPos = robot.dribblerPos + dribblerSideways * dribblerIntersection->first;
-        if ((p1 - robot.dribblerPos).dot(toDribbler) >= 0) {
+        dribblerIntersectionPos = dribblerPos + dribblerSideways * dribblerIntersection->first;
+        if ((p1 - dribblerPos).dot(toDribbler) >= 0) {
             // the line segment comes from in front of the robot, the line intersection is the correct one
             return dribblerIntersectionPos;
         }
@@ -187,7 +194,8 @@ static bool isBallVisible(Eigen::Vector2f pos, const RobotInfo &robot, float rob
     // TODO: this assumes that the ball is only invisible if the center is overshadowed
     const bool inRadius = (robot.robotPos - projected2D).norm() <= robotRadius;
     const bool frontOfDribbler = (projected2D - robot.dribblerPos).dot(robot.dribblerPos - robot.robotPos) > 0;
-    return !inRadius || frontOfDribbler;
+    const bool hasIntersection = intersectLineSegmentRobot(pos, projected2D, robot, robotRadius, 0.98f).has_value();
+    return (!inRadius || frontOfDribbler) && !hasIntersection;
 }
 
 void BallGroundCollisionFilter::updateDribblingInfo(Eigen::Vector2f projectedBallPos, const RobotInfo &robot)
