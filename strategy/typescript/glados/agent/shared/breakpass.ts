@@ -99,6 +99,12 @@ export class BreakPass extends Behavior {
 			return undefined;
 		}
 
+		// do if already running and ball will hit the robot
+		if (this._active && this._robot.pos.distanceTo(World.Ball.pos) <= 1 && this._robot.pos.orthogonalDistance(World.Ball.pos, World.Ball.pos + World.Ball.speed) <= 2 * this._robot.radius) {
+			debug.set("breakpass check", "hysteresis");
+			return this;
+		}
+
 		// main attacker will receive the pass
 		let attackPosition = this._messaging.receiveSingleSender(MessageType.attackPosition)[1];
 		if (attackPosition != undefined) {
