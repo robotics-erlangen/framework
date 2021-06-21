@@ -80,6 +80,10 @@ export class HandleBall extends Behavior {
 		let distanceOffset = isAttacker ? 3 * this._robot.radius : 5 * this._robot.radius;
 		let [firstOpp, firstOppTime] = Ball.firstRobotAtBall(World.OpponentRobots);
 
+		if (firstOpp && ObserverRobot.hadBall(this._robot, 0) && firstOpp.pos.distanceTo(this._robot.pos) > 4 * this._robot.radius) {
+			return true;
+		}
+
 		if (firstOppTime < ObserverRobot.minTimeToBall(this._robot) + timeDiff) {
 			// do if we are pretty close to our acceptPos
 			let acceptPos = Physics.ballAtTime(World.Ball, ObserverRobot.minTimeToBall(this._robot)).pos;
