@@ -14,6 +14,7 @@ import * as ObserverRobot from "glados/observer/robot";
 import { ForceShoot } from "glados/task/ability/forceshoot";
 import { Task } from "glados/task/base";
 import { CurvedMaxAccel } from "glados/trajectory/curvedmaxaccel";
+import { Direct } from "glados/trajectory/direct";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
 import * as UtilDefense from "glados/util/defense";
@@ -115,6 +116,7 @@ export class CenterBack extends Task {
 
 
 		let possibleCollision: boolean = false;
+		let hitEmergencyBrake: boolean = false;
 		const collTime = 0.5;
 		const lineLambda = this._robot.speed.length() * collTime;
 
@@ -122,37 +124,63 @@ export class CenterBack extends Task {
 		if (this._robot.speed.length() > 0.4) {
 
 			const lineDir: Vector = this._robot.speed.normalized();
-			for (let opponent of World.OpponentRobots) {
+			for (const opponent of World.OpponentRobots) {
 				const direction = (this._robot.pos - opponent.pos).normalized();
+				const collisionSpeed = Math.abs((this._robot.speed - opponent.speed).dot(direction));
 				// collision only relevant if speed projected on direction > 1.5 m/s
-				if (Math.abs((this._robot.speed - opponent.speed).dot(direction)) < 1.0) {
+				if (collisionSpeed < 1.4) {
 					continue;
 				}
 
-				let circleIntersection = geom.intersectLineCircle(this._robot.pos, lineDir, opponent.pos, opponent.radius * 2);
-				if (circleIntersection.length !== 0 && ((circleIntersection[2] < lineLambda - this._robot.radius && circleIntersection[2] >= -this._robot.radius)
-					|| (circleIntersection[3] != undefined && circleIntersection[3] < lineLambda - this._robot.radius && circleIntersection[3] >= -this._robot.radius))) {
+				let intersectionDistance: number | undefined = undefined;
 
-					possibleCollision = true;
-					break;
+				const circleIntersection = geom.intersectLineCircle(this._robot.pos, lineDir, opponent.pos, opponent.radius * 2);
+				if (circleIntersection.length !== 0) {
+					// lambda 1 is always less than lambda 0 in intersectLineCircle
+					if (circleIntersection[3] != undefined && circleIntersection[3] < lineLambda - this._robot.radius && circleIntersection[3] >= 0) {
+						intersectionDistance = circleIntersection[3];
+					} else if (circleIntersection[2] < lineLambda - this._robot.radius && circleIntersection[2] >= -this._robot.radius) {
+						intersectionDistance = circleIntersection[2];
+					}
 				}
 
-				let speedIntersection = geom.intersectLineLine(opponent.pos, opponent.speed * collTime, this._robot.pos, lineDir);
+				const speedIntersection = geom.intersectLineLine(opponent.pos, opponent.speed * collTime, this._robot.pos, lineDir);
 				if (speedIntersection.length !== 0
-					 && speedIntersection[1] < opponent.speed.length() * collTime - this._robot.radius && speedIntersection[1] > -this._robot.radius
-						&& speedIntersection[2] < lineLambda - this._robot.radius && speedIntersection[2] >= -this._robot.radius) {
+					&& speedIntersection[1] < opponent.speed.length() * collTime - this._robot.radius && speedIntersection[1] >= 0
+						&& speedIntersection[2] < lineLambda - this._robot.radius && speedIntersection[2] >= 0) {
+					intersectionDistance = speedIntersection[2];
+				}
 
+				if (intersectionDistance != undefined) {
 					possibleCollision = true;
+					const friendlyContribution = this._robot.speed.dot(-direction);
+					const opponentContribution = opponent.speed.dot(direction);
+					const timeUntilCollision = intersectionDistance / this._robot.speed.length();
+					if (opponentContribution - friendlyContribution < 0.4 && timeUntilCollision < 0.1) {
+						vis.addCircle("g/centerback: Emergency Brake", this._robot.pos, this._robot.radius * 1.3, vis.colors.red, true, true);
+						vis.addCircle("g/centerback: Emergency Brake", opponent.pos, opponent.radius * 1.3, vis.colors.red, true, true);
+						hitEmergencyBrake = true;
+					} else {
+						vis.addCircle("g/centerback: Emergency Brake", this._robot.pos, this._robot.radius * 1.3, vis.colors.orange, true, true);
+						vis.addCircle("g/centerback: Emergency Brake", opponent.pos, opponent.radius * 1.3, vis.colors.orange, true, true);
+					}
 					break;
 				}
 			}
 		}
-		debug.set("possibleCollision", possibleCollision);
 
-		let maxSpeed = possibleCollision ? 0.4 : undefined;
+		if (hitEmergencyBrake) {
+			debug.set("possible collision", "emergency");
+			this._robot.trajectory.update(Direct, new Vector(0, 0), this._robot.dir);
+		} else {
+			debug.set("possible collision", possibleCollision);
 
-		this._robot.trajectory.update(trajModule, destinationPos, dir, maxSpeed,
-				Physics.robotMinEndspeed(this._robot, destinationPos, destinationTime));
+			const maxSpeed = possibleCollision ? 0.4 : undefined;
+
+			this._robot.trajectory.update(trajModule, destinationPos, dir, maxSpeed,
+										Physics.robotMinEndspeed(this._robot, destinationPos, destinationTime));
+		}
+
 		this._messaging.sendBroadcast(MessageType.moveDest, destinationPos);
 	}
 }
