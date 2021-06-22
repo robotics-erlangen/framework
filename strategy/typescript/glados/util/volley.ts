@@ -18,11 +18,10 @@ interface DampingFactor {
 /**
  * These are the default values for muById, that are choosen if no additional information is available
  */
-const DEFAULT_DAMPING_FACTOR: DampingFactor = Object.freeze(
+const DEFAULT_DAMPING_FACTOR = (): Readonly<DampingFactor> =>
 	World.WorldStateSource !== pb.world.WorldSource.REAL_LIFE
-	? { mu_x: 0.93, mu_y: 0.26 }
-	: { mu_x: 0.70, mu_y: 0.05 }
-);
+		? { mu_x: 0.93, mu_y: 0.26 }
+		: { mu_x: 0.70, mu_y: 0.05 };
 
 type DampingIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | "opp";
 
@@ -34,33 +33,44 @@ type DampingIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 
  *
  * Index by robot id as number or by "opp" if information about an opposing robot is needed.
  */
-const mus = new Map<DampingIndex, DampingFactor>([
-	[0, DEFAULT_DAMPING_FACTOR],
-	[1, DEFAULT_DAMPING_FACTOR],
-	[2, { mu_x: 0.6, mu_y: 0.03 }],
-	[3, DEFAULT_DAMPING_FACTOR],
-	[4, DEFAULT_DAMPING_FACTOR],
-	[5, { mu_x: 0.6, mu_y: 0.04 }],
-	[6, DEFAULT_DAMPING_FACTOR],
-	[7, { mu_x: 0.7, mu_y: 0.05 }],
-	[8, DEFAULT_DAMPING_FACTOR],
-	[9, DEFAULT_DAMPING_FACTOR],
-	[10, DEFAULT_DAMPING_FACTOR],
-	[11, { mu_x: 0.5, mu_y: 0.04}],
-	[12, DEFAULT_DAMPING_FACTOR],
-	[13, DEFAULT_DAMPING_FACTOR],
-	[14, DEFAULT_DAMPING_FACTOR],
-	[15, DEFAULT_DAMPING_FACTOR],
-	["opp", DEFAULT_DAMPING_FACTOR]
-]);
+const mus = new Map<DampingIndex, Readonly<DampingFactor>>();
+
+/*
+ * mus must be initialized lazily since the default damping parameteres are
+ * different in the simulator and the WorldStateSource is not yet set during
+ * static initialization
+ */
+function initMus() {
+	mus[0] = DEFAULT_DAMPING_FACTOR();
+	mus[1] = DEFAULT_DAMPING_FACTOR();
+	mus[2] = { mu_x: 0.6, mu_y: 0.03 };
+	mus[3] = DEFAULT_DAMPING_FACTOR();
+	mus[4] = DEFAULT_DAMPING_FACTOR();
+	mus[5] = { mu_x: 0.6, mu_y: 0.04 };
+	mus[6] = DEFAULT_DAMPING_FACTOR();
+	mus[7] = { mu_x: 0.7, mu_y: 0.05 };
+	mus[8] = DEFAULT_DAMPING_FACTOR();
+	mus[9] = DEFAULT_DAMPING_FACTOR();
+	mus[10] = DEFAULT_DAMPING_FACTOR();
+	mus[11] = { mu_x: 0.5, mu_y: 0.04};
+	mus[12] = DEFAULT_DAMPING_FACTOR();
+	mus[13] = DEFAULT_DAMPING_FACTOR();
+	mus[14] = DEFAULT_DAMPING_FACTOR();
+	mus[15] = DEFAULT_DAMPING_FACTOR();
+	mus["opp"] = DEFAULT_DAMPING_FACTOR();
+}
 
 export function setDampingParam(id: DampingIndex, param: DampingFactor) {
 	mus[id] = param;
 }
 
 export function getDampingParam(id: DampingIndex | "default"): Readonly<DampingFactor> {
+	if (mus.size === 0) {
+		initMus();
+	}
+
 	return World.WorldStateSource !== pb.world.WorldSource.REAL_LIFE || id === "default"
-		? DEFAULT_DAMPING_FACTOR
+		? DEFAULT_DAMPING_FACTOR()
 		: mus[id]!;
 }
 
@@ -212,7 +222,7 @@ export function calcPhi(robot: FriendlyRobot, ballSpeed: Speed, viewPos: Positio
 	let dist = targetPos.distanceTo(viewPos);
 	let abs_v_out = robot.calculateShootSpeed(targetSpeed, dist);
 	if (targetSpeed === Infinity) { // FIXME: Robocup HACK. Necessary would be a detection that increases abs_v_out by a value, because we can rely on some reflection-speed. Only v_s is limited by this._robot.maxShotLinear.
-		abs_v_out = robot.maxShotLinear + DEFAULT_DAMPING_FACTOR.mu_y * v_in; // FIXME: This calculation is bullshit
+		abs_v_out = robot.maxShotLinear + DEFAULT_DAMPING_FACTOR().mu_y * v_in; // FIXME: This calculation is bullshit
 	}
 	abs_v_out = Math.min(Constants.maxBallSpeed, abs_v_out);
 	if (volleyObserver != undefined) {
