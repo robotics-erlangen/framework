@@ -185,6 +185,10 @@ amun::GameState::State Referee::processCommand(SSL_Referee::Command command, amu
         case amun::GameState::PenaltyBluePrepare:
             return amun::GameState::PenaltyBlue;
 
+        // while this is not consistent with the rules, the game controller uses it this way
+        case amun::GameState::Stop:
+            return amun::GameState::Game;
+
         default:
             // silently ignore start command
             return currentState;
