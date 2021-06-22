@@ -48,6 +48,26 @@ bool EscapeObstacleSampler::compute(const TrajectoryInput &input)
         SpeedProfile bestProfile = AlphaTimeTrajectory::calculateTrajectory(input.v0, Vector(0, 0), m_bestEscapingTime, m_bestEscapingAngle,
                                                                             input.acceleration, input.maxSpeed, 0, false);
         auto bestRating = rateEscapingTrajectory(input, bestProfile);
+
+        // the last trajectory (bestProfile) could stop directly in front of a new obstacle (optimized to minimize the
+        // travel time in the current obstacle).
+        // But since the robot moved in the 10 ms since the last frame, the last trajectory might have been pushed into the
+        // new obstacle, invaldiating it.
+        // Therefore, just check with a few time offsets (more than just 0.01 in case of varying pathfinding call frequency)
+        for (float timeOffset : {0.01f, 0.02f, 0.05f}) {
+            if (m_bestEscapingTime < timeOffset) {
+                continue;
+            }
+            SpeedProfile profile = AlphaTimeTrajectory::calculateTrajectory(input.v0, Vector(0, 0), m_bestEscapingTime - timeOffset, m_bestEscapingAngle,
+                                                                                input.acceleration, input.maxSpeed, 0, false);
+            auto rating = rateEscapingTrajectory(input, profile);
+            if (rating.isBetterThan(bestRating)) {
+                bestRating = rating;
+                bestProfile = profile;
+                m_bestEscapingTime -= timeOffset;
+            }
+        }
+
         for (int i = 0;i<25;i++) {
             float time, angle;
             if (m_rng->uniformInt() % 2 == 0) {
