@@ -165,6 +165,11 @@ export class Keeper extends Task {
 				// nearest pos on the ball trajectory
 				ignoreBall = true;
 				moveTo = this._robot.pos.nearestPosOnLine(atkPos, atkPos + atkDir);
+
+				// Move back while blocking the shot
+				if (this._robot.pos.distanceTo(moveTo) < 0.5 * this._robot.radius) {
+					moveTo = intersectPos;
+				}
 			}
 			if (Referee.isOpponentPenaltyState()) {
 				// during penalty the keeper has to touch the goalline
