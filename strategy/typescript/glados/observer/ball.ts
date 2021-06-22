@@ -350,6 +350,12 @@ export function isShot(): Robot | undefined {
 	return undefined;
 }
 
+/**
+ * Checks whether the ball was shot in the last time seconds
+ * @param time - The timeframe to check
+ * @returns The shooter or `undefined` if no-one shot the ball in the last
+ *          `time` seconds
+ */
 export function wasShot(time: RelTime): Robot | undefined {
 	if (lastShootTime + time >= World.Time) {
 		return lastShootRobot;
