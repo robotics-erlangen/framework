@@ -3,7 +3,7 @@ import { Position } from "base/vector";
 
 import { Behavior } from "glados/agent/base/behavior";
 
-export type MainAttackerParameters = [Position, number];
+export type MainAttackerParameters = [Position, number, number | undefined];
 
 /**
  * A constructor that creates a task.
@@ -50,8 +50,8 @@ export abstract class Task {
 		this._mainAttackerParameters = undefined;
 	}
 
-	setMainAttackerParameters(target: Position, endSpeedLength: number) {
-		this._mainAttackerParameters = [ target, endSpeedLength ];
+	setMainAttackerParameters(target: Position, endSpeedLength: number, overwriteRating?: number) {
+		this._mainAttackerParameters = [ target, endSpeedLength, overwriteRating ];
 	}
 
 	mainAttackerParameters(): MainAttackerParameters | undefined {
