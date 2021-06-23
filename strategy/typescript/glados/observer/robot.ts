@@ -358,6 +358,7 @@ export function _update() {
 	updateHadBall();
 	updateTouchedBall();
 	updateOwnStandardShooter();
+	debug.set("ownStandardShooter", ownStandardShooter());
 	// Needs to be called after updateOwnStandardShooter() since it uses
 	// ownStandardShooter() for detection
 	updateDoubleTouchingRobot();
