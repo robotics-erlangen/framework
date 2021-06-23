@@ -38,6 +38,10 @@ export class Midfield extends Objective {
 	private static SUPPORT_RUNNER = parameterizeClass(Support, { isStriker: false, samplingCtor: MidfieldSampling });
 
 	static canStart(ball: BallLike) {
+		if (World.DIVISION === "B") {
+			return false;
+		}
+
 		return ball.pos.y < 0;
 	}
 
