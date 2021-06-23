@@ -280,8 +280,10 @@ export class Robot implements RobotState {
 			return false;
 		}
 
+		const latencyXHysteresis = this._hasBall[sideOffset] ? latencyCompensation.x / 2 : 0;
+
 		this._hasBall[sideOffset] = relpos.x > this.shootRadius * (-1.5)
-					&&  relpos.x < latencyCompensation.x  &&  ball.posZ < Constants.maxRobotHeight * 1.2; // *1.2 to compensate for vision error
+					&&  relpos.x < latencyCompensation.x + latencyXHysteresis &&  ball.posZ < Constants.maxRobotHeight * 1.2; // *1.2 to compensate for vision error
 		return this._hasBall[sideOffset];
 	}
 
