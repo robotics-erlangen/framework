@@ -604,6 +604,8 @@ void Strategy::close()
     delete m_strategy;
     m_strategy = nullptr;
 
+    m_filename.clear();
+
     Status status(new amun::Status);
     setStrategyStatus(status, amun::StatusStrategy::CLOSED);
     // clear debug output
