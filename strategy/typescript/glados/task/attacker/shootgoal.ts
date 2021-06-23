@@ -47,7 +47,9 @@ export class ShootGoal extends Task {
 
 	private _shoot: Shoot;
 
-	constructor(behavior: Behavior, ballReceiptPos?: Position, forceDesperate = false, forceFast = false) {
+	private _hitCorners: boolean;
+
+	constructor(behavior: Behavior, ballReceiptPos?: Position, forceDesperate = false, forceFast = false, hitCorners = false) {
 		super(behavior);
 		this._desperate = forceDesperate;
 
@@ -55,6 +57,8 @@ export class ShootGoal extends Task {
 		this._forceFast = forceFast;
 
 		this._shoot = new Shoot(this);
+
+		this._hitCorners = hitCorners;
 	}
 
 	private _lockTarget(ballReceiptPos?: Position): boolean {
@@ -152,7 +156,8 @@ export class ShootGoal extends Task {
 		let minDistance = 0.25 * G.FieldHeight;
 		let distance = this._robot.pos.distanceTo(this._shootTargetPoint!);
 		// TODO fix volley model
-		let localTargetX = (Rating.valueToRating(distance, maxDistance, minDistance) * (2 / 3)) * this._shootTargetPoint!.x;
+		const limitCorners = this._hitCorners ? 1 : (2 / 3);
+		let localTargetX = (Rating.valueToRating(distance, maxDistance, minDistance) * limitCorners) * this._shootTargetPoint!.x;
 		this.localTarget = new Vector(localTargetX, this._shootTargetPoint!.y);
 
 		if (!this._desperate) {
