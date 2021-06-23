@@ -105,7 +105,7 @@ export class BallEscort extends Behavior {
 		// we do not want to execute ballescort when the ball interception position is close to the opponent defense area
 		// these situations are conducive to scoring goals
 		let futureBallPos = Physics.ballAtTime(World.Ball, ownTimeToBall).pos;
-		let defenseDist = this._active ? 1.2 : 1;
+		let defenseDist = this._active ? 1 : 1.2;
 		if (Field.distanceToOpponentDefenseArea(futureBallPos, 0) < defenseDist) {
 			return undefined;
 		}
