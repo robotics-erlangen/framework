@@ -589,6 +589,13 @@ void Simulator::setTeam(Simulator::RobotMap &list, float side, const robot::Team
 
 void Simulator::moveBall(const sslsim::TeleportBall& ball)
 {
+    // remove the dribbling constraint
+    for (const auto& robotList : {m_data->robotsBlue, m_data->robotsYellow}) {
+        for (const auto& it : robotList) {
+            it.first->stopDribbling();
+        }
+    }
+
     sslsim::TeleportBall b = ball;
     if (m_data->flip) {
         FLIP(b, x);
@@ -600,7 +607,7 @@ void Simulator::moveBall(const sslsim::TeleportBall& ball)
     if (b.teleport_safely()) {
         if (!b.has_x() || !b.has_y()) {
             SSLSimError error{new sslsim::SimulatorError};
-            error->set_code("TELEPORT_SAFLY_PARTIAL");
+            error->set_code("TELEPORT_SAFELY_PARTIAL");
             error->set_message("teleporting the ball safly with partial coordinates is not possible");
             m_aggregator->aggregate(error, ErrorSource::CONFIG);
             return;
@@ -647,6 +654,7 @@ void Simulator::moveRobot(const sslsim::TeleportRobot &robot) {
         else if (!robot.present() && isPresent) {
             //remove the robot
             auto val = list.take(robot.id().id());
+            val.first->stopDribbling();
             delete val.first;
             return;
         }
@@ -671,6 +679,7 @@ void Simulator::moveRobot(const sslsim::TeleportRobot &robot) {
     }
 
     SimRobot* sim_robot = list[robot.id().id()].first;
+    sim_robot->stopDribbling();
     sim_robot->move(r);
 }
 
@@ -761,7 +770,7 @@ void Simulator::handleCommand(const Command &command)
             if (sslControl.has_teleport_ball()) {
                 moveBall(sslControl.teleport_ball());
             }
-            for (const auto& moveR : sslControl.teleport_robot()){
+            for (const auto& moveR : sslControl.teleport_robot()) {
                 moveRobot(moveR);
             }
         }

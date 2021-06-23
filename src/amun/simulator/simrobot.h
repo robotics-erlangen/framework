@@ -64,6 +64,7 @@ public:
     btVector3 dribblerCorner(bool left) const;
     qint64 getLastSendTime() const { return m_lastSendTime; }
     void setDribbleMode(bool perfectDribbler);
+    void stopDribbling();
 
     const robot::Specs& specs() const { return m_specs; }
 
@@ -72,7 +73,6 @@ private:
     float bound(float acceleration, float oldSpeed, float speedupLimit, float brakeLimit) const;
     void calculateDribblerMove(const btVector3 pos, const btQuaternion rot, const btVector3 linVel, float omega);
     void dribble(SimBall *ball, float speed);
-    void stopDribbling();
 
     RNG *m_rng;
     robot::Specs m_specs;
