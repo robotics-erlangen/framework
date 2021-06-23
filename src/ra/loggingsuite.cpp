@@ -36,8 +36,8 @@ void Logsuite::handleStatus(const Status& status) {
         return;
     }
     const amun::UiResponse& response = status->pure_ui_response();
-    if (response.has_is_logging()) {
-        bool log = response.is_logging();
+    if (response.has_logging_info() && response.logging_info().is_replay_logger() == m_isReplay) {
+        bool log = response.logging_info().is_logging();
         m_backlogActionMenu->setEnabled(!log);
         m_backlogButton->setEnabled(!log);
         if (!log) {

@@ -23,8 +23,8 @@
 void LogLabel::handleStatus(const Status& s) {
     if (s->has_pure_ui_response()) {
         const amun::UiResponse& response = s->pure_ui_response();
-        if (response.has_is_logging()) {
-            if (response.is_logging()) {
+        if (response.has_logging_info()) {
+            if (response.logging_info().is_logging()) {
                 m_logStartTime = s->time(); // FIXME: Having one state for Ra & Horus is doomed.
                 setVisible(true);
             } else {

@@ -130,7 +130,7 @@ message Status {
 // DO NOT add a UIResponse to a normal Status, send a NEW STATUS instead.
 message UiResponse {
     optional bool enable_logging = 1;
-    optional bool is_logging = 2;
+    optional LoggingInfo logging_info = 2;
     repeated Status logger_status = 3; // used for the plotter right now
     optional bool playback_burst_end = 4; // used to notify logslider to update its position to Status::time
     optional bool playback_paused = 5;
@@ -142,6 +142,11 @@ message UiResponse {
     optional string requested_log_uid = 11;
     optional logfile.LogOffer log_offers = 12;
     optional string log_uid_parser_error = 13;
+}
+
+message LoggingInfo {
+    required bool is_logging = 1;
+    required bool is_replay_logger = 2;
 }
 
 message LogPlaybackInfo {

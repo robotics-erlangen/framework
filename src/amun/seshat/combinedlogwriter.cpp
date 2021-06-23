@@ -313,7 +313,8 @@ void CombinedLogWriter::sendIsLogging(bool log)
     Status s = Status::createArena();
     s->set_time(m_lastTime);
     amun::UiResponse* response = s->mutable_pure_ui_response();
-    response->set_is_logging(log);
+    response->mutable_logging_info()->set_is_logging(log);
+    response->mutable_logging_info()->set_is_replay_logger(m_isReplay);
     emit sendStatus(s);
 }
 
