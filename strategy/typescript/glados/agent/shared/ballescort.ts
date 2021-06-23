@@ -110,19 +110,28 @@ export class BallEscort extends Behavior {
 			return undefined;
 		}
 
+		// also do not run ballescort if the ball is imminent and we are close to the opponent defense area
+		if (this._robot.pos.distanceToSq(World.Ball.pos) < 1 && Field.distanceToOpponentDefenseArea(this._robot.pos, 0) < defenseDist) {
+			if (Ball.isSlowBall()) {
+				return undefined;
+			}
+			if ((this._robot.pos - World.Ball.pos).dot(World.Ball.speed) > 0) {
+				return undefined;
+			}
+		}
+
 
 		let distToBorder = this._active ? 0.7 : 0.5;
-
 		// If we can reach the ball we should try to if we are not already close to the field border
 		if (ownTimeToBall < Infinity && Math.abs(this._robot.pos.x) < World.Geometry.FieldWidthHalf - distToBorder && Math.abs(this._robot.pos.y) < World.Geometry.FieldHeightHalf - distToBorder) {
 			return undefined;
 		}
 
-		let intersection = Geom.intersectLineCircle(World.Ball.pos, World.Ball.speed, this._robot.pos, this._robot.radius * 1.5);
 
+		// Always take a ball if we are aligned perfectly
+		let intersection = Geom.intersectLineCircle(World.Ball.pos, World.Ball.speed, this._robot.pos, this._robot.radius * 1.5);
 		// Check if ball is between outline and robot
 		let behindRobot: boolean = ballOutPos.distanceToSq(World.Ball.pos) < ballOutPos.distanceToSq(this._robot.dribblerPos);
-
 		if (intersection.length !== 0 && !behindRobot) {
 			// The ball is moving directly towards the robot
 			return undefined;
