@@ -134,9 +134,15 @@ export class SelectObjective implements Checkable {
 			case RestartMode.FORCE_RESTART:
 				reuse = false;
 				break;
-			case RestartMode.FORCE_KEEPING:
+			case RestartMode.FORCE_KEEPING: {
+				if (lastObjective?.getMaRunner().agent().robot() !== robot) {
+					reuse = false;
+					throwInDebug("Objective restart mode is FORCE_KEEPING, but it was sent by someone else");
+					break;
+				}
 				reuse = true;
 				break;
+			}
 			case RestartMode.DEFER:
 				reuse = lastObjective !== undefined
 					&& lastObjective.getMaRunner().agent().robot() === robot
