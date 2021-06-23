@@ -120,6 +120,27 @@
         </layout>
        </item>
        <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_4">
+         <item>
+          <widget class="QLabel" name="foulLabelTextYellow">
+           <property name="text">
+            <string>Fouls:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="foulCounterYellow">
+           <property name="text">
+            <string>0</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
         <layout class="QHBoxLayout" name="keeperIdDisplayYellow">
          <item>
           <widget class="QLabel" name="keeperTextLabelYellow">
@@ -228,6 +249,27 @@
          </item>
          <item>
           <widget class="QLabel" name="redCardCountBlue">
+           <property name="text">
+            <string>0</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_5">
+         <item>
+          <widget class="QLabel" name="foulLabelTextBlue">
+           <property name="text">
+            <string>Fouls:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="foulCounterBlue">
            <property name="text">
             <string>0</string>
            </property>

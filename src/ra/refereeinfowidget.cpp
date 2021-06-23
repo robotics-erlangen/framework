@@ -45,6 +45,8 @@ void RefereeInfoWidget::handleStatus(const Status &status)
         const uint blueYellowCards = state.blue().yellow_card_times_size();
         const uint yellowRedCards = state.yellow().red_cards();
         const uint blueRedCards = state.blue().red_cards();
+        const uint yellowFouls = state.yellow().foul_counter();
+        const uint blueFouls = state.blue().foul_counter();
 
         if (yellowKeeperId != m_yellowKeeperId) {
             m_yellowKeeperId = yellowKeeperId;
@@ -70,6 +72,10 @@ void RefereeInfoWidget::handleStatus(const Status &status)
             m_yellowRedCards = yellowRedCards;
             ui->redCardCountYellow->setNum(static_cast<int>(m_yellowRedCards));
         }
+        if (yellowFouls != m_yellowFouls) {
+            m_yellowFouls = yellowFouls;
+            ui->foulCounterYellow->setNum(static_cast<int>(m_yellowFouls));
+        }
 
 
         if (blueYellowCards != m_blueYellowCards) {
@@ -86,6 +92,10 @@ void RefereeInfoWidget::handleStatus(const Status &status)
         if (blueRedCards != m_blueRedCards) {
             m_blueRedCards = blueRedCards;
             ui->redCardCountBlue->setNum(static_cast<int>(m_blueRedCards));
+        }
+        if (blueFouls != m_blueFouls) {
+            m_blueFouls = blueFouls;
+            ui->foulCounterBlue->setNum(static_cast<int>(m_blueFouls));
         }
     }
 
@@ -128,6 +138,8 @@ void RefereeInfoWidget::setStyleSheets(bool useDark) {
     ui->cardTextLabelBlue->setStyleSheet(blue);
     ui->redCardCountBlue->setStyleSheet(blue);
     ui->redCardTextLabelBlue->setStyleSheet(blue);
+    ui->foulLabelTextBlue->setStyleSheet(blue);
+    ui->foulCounterBlue->setStyleSheet(blue);
 
     ui->keeperIdYellow->setStyleSheet(yellow);
     ui->keeperTextLabelYellow->setStyleSheet(yellow);
@@ -135,4 +147,6 @@ void RefereeInfoWidget::setStyleSheets(bool useDark) {
     ui->cardTextLabelYellow->setStyleSheet(yellow);
     ui->redCardCountYellow->setStyleSheet(yellow);
     ui->redCardTextLabelYellow->setStyleSheet(yellow);
+    ui->foulLabelTextYellow->setStyleSheet(yellow);
+    ui->foulCounterYellow->setStyleSheet(yellow);
 }
