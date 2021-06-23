@@ -151,7 +151,7 @@ QString RefereeStatusWidget::gameEvent2019Message(const gameController::GameEven
     auto it = eventTypeFormatString.find(event.type());
     QString result;
     if (it != eventTypeFormatString.end()) {
-        eventTypeFormatString[event.type()];
+        result = eventTypeFormatString[event.type()];
     } else {
         QString enumName = QString::fromStdString(GameEvent_Type_descriptor()->FindValueByNumber(event.type())->name());
         result = QString("unhandled game event type: %1").arg(enumName);
