@@ -42,7 +42,12 @@ export class ApplyForMainattacker implements Checkable {
 
 		let applying = false;
 		let [sender, passInfoTable] = this._messaging.receiveSingleSender(MessageType.passInfo, true);
-		if (Attack.currentPlannedMainAttacker(sender, passInfoTable!) === this._robot) {
+
+		const isCPMA = Attack.currentPlannedMainAttacker(sender, passInfoTable!) === this._robot;
+		const isMainAttacker = this._messaging.receiveTrainer(MessageType.mainAttacker) === this._robot;
+		const isShootingFreekick = Referee.isFriendlyFreeKickState() && isMainAttacker;
+
+		if (isCPMA || isShootingFreekick) {
 			this._mainAttackerParameters = [undefined, undefined, 2];
 			this._agent.beOffensive = true;
 			applying = true;
