@@ -241,8 +241,13 @@ bool BallGroundCollisionFilter::checkFeasibleInvisibility(const QVector<RobotInf
             m_cameraInfo->cameraPosition[m_primaryCamera])) {
         return true;
     }
-    return !isBallVisible(m_lastReportedBallPos, *robot, ROBOT_RADIUS, ROBOT_HEIGHT,
-                          m_cameraInfo->cameraPosition[m_primaryCamera]);
+    for (const RobotInfo &r : robots) {
+        if (!isBallVisible(m_lastReportedBallPos, r, ROBOT_RADIUS, ROBOT_HEIGHT,
+                           m_cameraInfo->cameraPosition[m_primaryCamera])) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void BallGroundCollisionFilter::writeBallState(world::Ball *ball, qint64 time, const QVector<RobotInfo> &robots)
