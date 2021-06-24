@@ -95,6 +95,9 @@ export class Shoot {
 	_precision: number = 0;
 	_rightOrientation: boolean = false;
 
+	/** Whether the robot has stopped rotating during RotateWithBall */
+	private _stoppedRotation = false;
+
 	_lastBallInsideRobotTime: number = 0;
 	_directMovement: boolean = false;
 	_catchBallActive: boolean = false;
@@ -204,6 +207,7 @@ export class Shoot {
 		}
 		// rotatewithball should ONLY ever be active with ballInDribbler
 		if (this._state === ShootState.RotateWithBall) {
+			this._stoppedRotation = false;
 			this._state = ShootState.Unknown;
 		}
 
@@ -415,8 +419,10 @@ export class Shoot {
 		let kickSpeed = Volley.calcPhi(this._robot, new Vector(0, 0), shootBallPos, targetPos, targetSpeed)[1];
 		let [wait, attackTime] = this.computePassTiming(targetPos, targetTime, kickSpeed, shootBallPos);
 
-		// hysteresis is not really necessary since it should shoot instantly
-		if (Math.abs(this._robot.angularSpeed) < 0.2) {
+		const angularSpeedHysteresis = this._stoppedRotation ? 0.15 : 0;
+		if (Math.abs(this._robot.angularSpeed) < 0.2 + angularSpeedHysteresis) {
+			this._stoppedRotation = true;
+
 			if (wait) {
 				debug.set("Shoot/RotateAndShoot", "wait (pass timing)");
 			} else {
@@ -424,6 +430,7 @@ export class Shoot {
 				debug.set("Shoot/RotateAndShoot", "shooting");
 			}
 		} else {
+			this._stoppedRotation = false;
 			debug.set("Shoot/RotateAndShoot", "rotating");
 		}
 
