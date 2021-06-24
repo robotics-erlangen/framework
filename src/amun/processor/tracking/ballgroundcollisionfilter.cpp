@@ -21,10 +21,10 @@
 #include <algorithm>
 #include <QDebug>
 
-BallGroundCollisionFilter::BallGroundCollisionFilter(const VisionFrame &frame, CameraInfo* cameraInfo) :
-    AbstractBallFilter(frame, cameraInfo),
-    m_groundFilter(frame, cameraInfo),
-    m_pastFilter(frame, cameraInfo)
+BallGroundCollisionFilter::BallGroundCollisionFilter(const VisionFrame &frame, CameraInfo* cameraInfo, const FieldTransform &transform) :
+    AbstractBallFilter(frame, cameraInfo, transform),
+    m_groundFilter(frame, cameraInfo, transform),
+    m_pastFilter(frame, cameraInfo, transform)
 {
 
 }

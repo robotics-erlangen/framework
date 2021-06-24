@@ -524,7 +524,7 @@ void Tracker::trackBall(const SSL_DetectionBall &ball, qint64 receiveTime, quint
             bt = new BallTracker(*acceptingFilterWithOtherCamId, cameraId);
         } else {
             // create new Ball Filter without initial movement
-            bt = new BallTracker(ball, receiveTime, cameraId, m_cameraInfo, robotInfo, visionProcessingDelay);
+            bt = new BallTracker(ball, receiveTime, cameraId, m_cameraInfo, robotInfo, visionProcessingDelay, *m_fieldTransform);
         }
         m_ballFilter.append(bt);
         bt->addVisionFrame(ball, receiveTime, cameraId, robotInfo, visionProcessingDelay);

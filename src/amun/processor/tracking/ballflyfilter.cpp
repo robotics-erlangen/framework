@@ -35,8 +35,8 @@ static const int APPROACH_SWITCH_FRAMENO = 16;
 static const float GRAVITY = 9.81;
 static const double NS_PER_SEC = 1000000000.0;
 
-FlyFilter::FlyFilter(const VisionFrame& frame, CameraInfo* cameraInfo) :
-    AbstractBallFilter(frame, cameraInfo),
+FlyFilter::FlyFilter(const VisionFrame& frame, CameraInfo* cameraInfo, const FieldTransform &transform) :
+    AbstractBallFilter(frame, cameraInfo, transform),
     m_shotDetected(false),
     m_initTime(frame.time),
     m_flyFitter(MAX_FRAMES_PER_FLIGHT)

@@ -46,7 +46,7 @@ struct ChipDetection {
 class FlyFilter : public AbstractBallFilter
 {
 public:
-    explicit FlyFilter(const VisionFrame& frame, CameraInfo* cameraInfo);
+    explicit FlyFilter(const VisionFrame& frame, CameraInfo* cameraInfo, const FieldTransform &transform);
     FlyFilter(const FlyFilter &filter) = default;
 
     void moveToCamera(qint32 primaryCamera);

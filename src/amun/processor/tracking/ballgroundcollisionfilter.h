@@ -31,7 +31,7 @@
 class BallGroundCollisionFilter : public AbstractBallFilter
 {
 public:
-    explicit BallGroundCollisionFilter(const VisionFrame &frame, CameraInfo* cameraInfo);
+    explicit BallGroundCollisionFilter(const VisionFrame &frame, CameraInfo* cameraInfo, const FieldTransform &transform);
     BallGroundCollisionFilter(const BallGroundCollisionFilter& filter, qint32 primaryCamera);
 
     void processVisionFrame(const VisionFrame& frame) override;

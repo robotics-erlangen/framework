@@ -84,16 +84,19 @@ public:
 
 protected:
     // initial filter construction
-    AbstractBallFilter(const VisionFrame& frame, CameraInfo* cameraInfo) : m_cameraInfo(cameraInfo), m_primaryCamera(frame.cameraId) {}
+    AbstractBallFilter(const VisionFrame& frame, CameraInfo* cameraInfo, const FieldTransform &transform) :
+        m_cameraInfo(cameraInfo), m_primaryCamera(frame.cameraId), m_fieldTransform(transform) {}
 
     // create a copy of the filter in a different camera for border crossing
-    AbstractBallFilter(const AbstractBallFilter& filter, qint32 primaryCamera) : m_cameraInfo(filter.m_cameraInfo), m_primaryCamera(primaryCamera) {}
+    AbstractBallFilter(const AbstractBallFilter& filter, qint32 primaryCamera) :
+        m_cameraInfo(filter.m_cameraInfo), m_primaryCamera(primaryCamera), m_fieldTransform(filter.m_fieldTransform) {}
 
     virtual ~AbstractBallFilter() {}
 
 
     CameraInfo* m_cameraInfo;
     int m_primaryCamera;
+    const FieldTransform &m_fieldTransform;
 
 #ifdef ENABLE_TRACKING_DEBUG
     amun::DebugValues m_debug;
@@ -109,39 +112,40 @@ protected:
         debugValue->set_key(k);
         debugValue->set_float_value(value);
     }
-    void debug(const QString key, const char* value){
+    void debug(const QString key, const char* value) {
         debug(key.toStdString().c_str(), value);
     }
-    void debug(const QString key, float value){
+    void debug(const QString key, float value) {
         debug(key.toStdString().c_str(), value);
     }
-    void debug(const char* key, const char* value){
+    void debug(const char* key, const char* value) {
         amun::DebugValue *debugValue = m_debug.add_value();
         QByteArray array = (QString::number(m_primaryCamera)+QString("/")+QString(key)).toLocal8Bit();
         const char* k = array.data();
         debugValue->set_key(k);
         debugValue->set_string_value(value);
     }
-    void debugCircle(const char* name, float x, float y, float radius){
+    void debugCircle(const char* name, float x, float y, float radius) {
         amun::Visualization *vis = m_debug.add_visualization();
         vis->set_name(name);
         amun::Circle *circle = vis->mutable_circle();
-        circle->set_p_x(x);
-        circle->set_p_y(y);
+        circle->set_p_x(m_fieldTransform.applyPosX(x, y));
+        circle->set_p_y(m_fieldTransform.applyPosY(x, y));
         circle->set_radius(radius);
-        vis->mutable_brush();
+        vis->mutable_brush()->set_red(255);
+        vis->mutable_brush()->set_blue(255);
     }
-    void debugLine(const char* name, float xStart, float yStart, float xEnd, float yEnd, int col=0){
+    void debugLine(const char* name, float xStart, float yStart, float xEnd, float yEnd, int col=0) {
         amun::Visualization *vis = m_debug.add_visualization();
         vis->set_name(name);
         amun::Path *line = vis->mutable_path();
         amun::Point *start = line->add_point();
-        start->set_x(xStart);
-        start->set_y(yStart);
+        start->set_x(m_fieldTransform.applyPosX(xStart, yStart));
+        start->set_y(m_fieldTransform.applyPosY(xStart, yStart));
 
         amun::Point *end = line->add_point();
-        end->set_x(xEnd);
-        end->set_y(yEnd);
+        end->set_x(m_fieldTransform.applyPosX(xEnd, yEnd));
+        end->set_y(m_fieldTransform.applyPosY(xEnd, yEnd));
 
         amun::Pen *pen = vis->mutable_pen();
         if (col==1) {

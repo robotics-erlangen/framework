@@ -30,7 +30,7 @@
 class GroundFilter : public AbstractBallFilter
 {
 public:
-    explicit GroundFilter(const VisionFrame &frame, CameraInfo* cameraInfo);
+    explicit GroundFilter(const VisionFrame &frame, CameraInfo* cameraInfo, const FieldTransform &transform);
     GroundFilter(const GroundFilter& groundFilter, qint32 primaryCamera);
 
     void processVisionFrame(const VisionFrame& frame) override;

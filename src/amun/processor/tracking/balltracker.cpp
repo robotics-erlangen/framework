@@ -24,7 +24,7 @@
 #include <random>
 
 BallTracker::BallTracker(const SSL_DetectionBall &ball, qint64 last_time, qint32 primaryCamera, CameraInfo *cameraInfo,
-                         RobotInfo robotInfo, qint64 visionProcessingTime) :
+                         RobotInfo robotInfo, qint64 visionProcessingTime, const FieldTransform &transform) :
     Filter(last_time),
     m_lastUpdateTime(last_time),
     m_cameraInfo(cameraInfo),
@@ -36,8 +36,8 @@ BallTracker::BallTracker(const SSL_DetectionBall &ball, qint64 last_time, qint32
 {
     m_primaryCamera = primaryCamera;
     VisionFrame frame(ball, last_time, primaryCamera, robotInfo, visionProcessingTime);
-    m_groundFilter = new BallGroundCollisionFilter(frame, cameraInfo);
-    m_flyFilter = new FlyFilter(frame, cameraInfo);
+    m_groundFilter = new BallGroundCollisionFilter(frame, cameraInfo, transform);
+    m_flyFilter = new FlyFilter(frame, cameraInfo, transform);
 }
 
 BallTracker::BallTracker(const BallTracker& previousFilter, qint32 primaryCamera) :

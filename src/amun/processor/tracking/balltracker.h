@@ -35,7 +35,8 @@ class DribbleFilter;
 class BallTracker : public Filter
 {
 public:
-    BallTracker(const SSL_DetectionBall &ball, qint64 last_time, qint32 primaryCamera, CameraInfo* cameraInfo, RobotInfo robotInfo, qint64 visionProcessingDelay);
+    BallTracker(const SSL_DetectionBall &ball, qint64 last_time, qint32 primaryCamera, CameraInfo* cameraInfo,
+                RobotInfo robotInfo, qint64 visionProcessingDelay, const FieldTransform &transform);
     BallTracker(const BallTracker& previousFilter, qint32 primaryCamera);
     ~BallTracker() override;
     BallTracker(const BallTracker&) = delete;
