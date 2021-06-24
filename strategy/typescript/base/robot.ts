@@ -24,6 +24,7 @@
 **************************************************************************/
 
 import { accelerationsByTeam, RobotSpecs } from "base/accelerations";
+import { throwInDebug } from "base/amun";
 import * as Constants from "base/constants";
 import { Coordinates } from "base/coordinates";
 import * as MathUtil from "base/mathutil";
@@ -327,6 +328,8 @@ export class FriendlyRobot extends Robot {
 	private _standbyTick: boolean = false;
 	private _controllerInput: ControllerInput | {} = {};
 
+	private _dribblerSpeedVisualized = false;
+
 	constructor(specs: pb.robot.Specs) {
 		super(specs.id);
 
@@ -433,6 +436,7 @@ export class FriendlyRobot extends Robot {
 		// bypass override check in setControllerInput
 		this._controllerInput = {}; // halt robot by default
 		this.shootDisable(); // disable shoot
+		this._dribblerSpeedVisualized = false;
 		this.setDribblerSpeed(0); // stop dribbler
 		this.setStandby(false); // activate robot
 
@@ -508,6 +512,18 @@ export class FriendlyRobot extends Robot {
 	 * @param speed - robotspecific value between 0 and 1 (0 = off, 1 = on)
 	 */
 	setDribblerSpeed(speed: number) {
+		if (speed === 0 && this._dribblerSpeedVisualized) {
+			throwInDebug("Trying to reset dribbler speed after already setting it. The visualization will be wrong");
+		}
+
+		if (speed > 0 && !this._dribblerSpeedVisualized) {
+			this._dribblerSpeedVisualized = true;
+			vis.addCircle(
+				"b/robot: dribbler speed", this.pos, this.radius + 0.04,
+				vis.colors.magentaHalf, false, false, undefined, 0.03
+			);
+		}
+
 		this._dribblerSpeed = speed;
 	}
 
