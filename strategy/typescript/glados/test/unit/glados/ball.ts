@@ -2,6 +2,7 @@ import * as World from "base/world";
 
 import * as Ball from "glados/observer/ball";
 import { UnitTest } from "glados/test/unit/unittest";
+import * as ObserverRobot from "glados/observer/robot";
 
 interface ReceivesPassInfo {
 	robotId: number;
@@ -13,11 +14,43 @@ interface ReceivesPassInfo {
 	maxBallSpeed: number;
 }
 
+interface FirstRobotAtBallInfo {
+	// only for the opponent robots
+	robotId: number;
+	maxBallSpeed: number;
+}
+
 export class GladosObserverBall extends UnitTest {
 
 	constructor() {
 		super();
 
+		this.registerReceivesPassSituations();
+		this.registerFirstRobotAtBallSituations();
+	}
+
+	private registerFirstRobotAtBallSituations() {
+		let s123 = {
+			robotId: 4,
+			maxBallSpeed: 3.4
+		};
+		this.addSituationTest("firstrobotatball", this.testFirstRobotAtBall, [
+			["glados/test/unit/glados/ball-situations/firstrobotatball-1", s123],
+			["glados/test/unit/glados/ball-situations/firstrobotatball-2", s123],
+			["glados/test/unit/glados/ball-situations/firstrobotatball-3", s123]
+		]);
+	}
+
+	private testFirstRobotAtBall(testInfo: FirstRobotAtBallInfo) {
+		World.Ball.maxSpeed = testInfo.maxBallSpeed;
+		ObserverRobot._update();
+
+		let firstRobot = Ball.firstRobotAtBall(World.OpponentRobots)[0];
+		this.assert_not_undefined(firstRobot);
+		this.assert_equal(firstRobot!.id, testInfo.robotId);
+	}
+
+	private registerReceivesPassSituations() {
 		let s1: [string, ReceivesPassInfo] = ["glados/test/unit/glados/ball-situations/receivespass-1", {
 			robotId: 8,
 			isFriendly: true,

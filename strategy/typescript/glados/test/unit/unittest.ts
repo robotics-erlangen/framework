@@ -1,3 +1,4 @@
+import * as Cache from "base/cache";
 import { pcall, tryCatchThen } from "base/trycatch";
 import { Vector } from "base/vector";
 
@@ -50,6 +51,7 @@ export class UnitTest {
 					let [_, world, testFile] = require(["base/base", "base/world", currentFileName], true,
 						{"base/amun": fakeAmunModule, "base/error": {}});
 					world.update();
+					Cache.resetFrame();
 
 					let testInstance: UnitTest = new testFile.testClass();
 
