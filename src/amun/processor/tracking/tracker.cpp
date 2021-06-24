@@ -140,6 +140,8 @@ void Tracker::process(qint64 currentTime)
         if (sourceTime > m_timeToReset) {
             m_timeToReset = std::numeric_limits<qint64>::max();
             reset();
+            // reset clears out m_visionPackets, we can not continue in the loop
+            break;
         }
 
         // drop frames older than the current state
