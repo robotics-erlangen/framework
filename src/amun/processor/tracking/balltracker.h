@@ -69,7 +69,6 @@ private:
     qint64 m_lastUpdateTime;
     BallGroundCollisionFilter* m_groundFilter;
     FlyFilter *m_flyFilter;
-    DribbleFilter *m_dribbleFilter;
     QList<VisionFrame> m_visionFrames;
     QList<VisionFrame> m_rawMeasurements;
     CameraInfo* m_cameraInfo;
