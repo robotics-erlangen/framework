@@ -6,7 +6,7 @@ import * as MathUtil from "base/mathutil";
 import { Robot, RobotAccelerationProfile } from "base/robot";
 import { Position, Speed, Vector } from "base/vector";
 import * as World from "base/world";
-// import * as Roboobserver from "glados/observer/robot";
+import * as RobotObserver from "glados/observer/robot";
 
 export interface BallLike {
 	pos: Readonly<Position>;
@@ -930,9 +930,9 @@ function rttbSpecialCases(robot: Robot, ball: BallLike & {radius: number}, targe
 	let relpos = (ball.pos - robot.pos).rotated(-robot.dir);
 	relpos = relpos.withX(relpos.x - robot.shootRadius - ball.radius);
 	let sidewardsOffset = Math.abs(relpos.y);
-	/* if (Roboobserver.touchedBall(robot, 0.15) && relpos.x > -0.25 && relpos.x <= 0.05 && sidewardsOffset < 0.2) {
+	if (RobotObserver.touchedBall(robot, 0.15) && relpos.x > -0.25 && relpos.x <= 0.05 && sidewardsOffset < 0.2) {
 		return [undefined, 0];
-	}*/
+	}
 
 	// special case: when the ball is fast and will soon hit the dribbler
 	// just use the ballTimeToHitPos. This is necessary as the timespan during which
