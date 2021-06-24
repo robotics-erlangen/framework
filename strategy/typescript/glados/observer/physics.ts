@@ -848,10 +848,15 @@ export function robotMinEndspeed(robot: Robot, pos: Position, time: number): Spe
 
 
 /** Calculates the time the robot needs to move to the position next to the ball at given t_ball */
-export function robotTimeForBallTime(robot: Robot, ball: BallLike & {radius: number}, targetPos: Position,
+export function robotTimeForBallTime(robot: Robot, ball: BallLike & {radius: number}, targetPos: Position | undefined,
 		endSpeedLength: number, t_ball: number): number {
 	let x_ball = ballAtTime(ball, t_ball).pos;
-	let axis = (x_ball - targetPos).normalized();
+	let axis: Vector;
+	if (targetPos !== undefined) {
+		axis = (x_ball - targetPos).normalized();
+	} else {
+		axis = Vector.fromAngle(robot.dir + Math.PI);
+	}
 	let offset = axis * (ball.radius + robot.shootRadius);
 	let x_robot = x_ball + offset;
 
@@ -909,10 +914,16 @@ export function robotRotationRangeForTime(robot: Robot, time: number): [number, 
 	}
 }
 
-function rttbSpecialCases(robot: Robot, ball: BallLike & {radius: number}, targetPos: Position, endSpeedLength: number,
+function rttbSpecialCases(robot: Robot, ball: BallLike & {radius: number}, targetPos: Position | undefined, endSpeedLength: number,
 		t_max: number, t_out: number): [number | undefined, number | undefined] {
 	// calculate time required when the robot is directly hit by the ball
-	let frontOffset = (targetPos - robot.pos).withLength(ball.radius + robot.shootRadius);
+	let frontOffset: Position;
+	const frontOffsetRobotDist = ball.radius + robot.shootRadius;
+	if (targetPos != undefined) {
+		frontOffset = (targetPos - robot.pos).withLength(frontOffsetRobotDist);
+	} else {
+		frontOffset = Vector.fromAngle(robot.dir) * frontOffsetRobotDist;
+	}
 	let [ballHitPos, _, lambda] = geom.intersectLineLine(ball.pos, ball.speed,
 			robot.pos + frontOffset, ball.speed.perpendicular().normalized());
 	let ballTimeToHitPos = ballRollTime(ball, ball.pos.distanceTo(ballHitPos!));
@@ -961,7 +972,7 @@ function rttbSpecialCases(robot: Robot, ball: BallLike & {radius: number}, targe
 	return [t_max, undefined];
 }
 
-function rttbQuadraticSampling(robot: Robot, ball: BallLike & {radius: number}, targetPos: Position, endSpeedLength: number,
+function rttbQuadraticSampling(robot: Robot, ball: BallLike & {radius: number}, targetPos: Position | undefined, endSpeedLength: number,
 		t_max: number, t_stop: number, t_out: number): [undefined, number] | [number, number | undefined] {
 	const N_SAMPLES = 10;
 
@@ -1008,7 +1019,7 @@ function rttbQuadraticSampling(robot: Robot, ball: BallLike & {radius: number}, 
 	return [t_ball_bsearch_start, t_ball_bsearch_end];
 }
 
-function rttbBinarySearch(robot: Robot, ball: BallLike & {radius: number}, targetPos: Position, endSpeedLength: number,
+function rttbBinarySearch(robot: Robot, ball: BallLike & {radius: number}, targetPos: Position | undefined, endSpeedLength: number,
 		t_ball_bsearch_start: number, t_ball_bsearch_end: number): number {
 	if (t_ball_bsearch_start < 0 || t_ball_bsearch_end < t_ball_bsearch_start) {
 		throw new Error("");
@@ -1040,12 +1051,12 @@ function rttbBinarySearch(robot: Robot, ball: BallLike & {radius: number}, targe
  * Calculates the time the robot takes to reach the ball (in a controlled fashion)
  * @param robot - The robot
  * @param ball - A ball-like structure
- * @param targetPos - The position the robot will look at
+ * @param targetPos - The position the robot will look at or undefined (the robot can look whereever it is fastest)
  * @param endSpeedLength - The maximal velocity of the robot when reaching the destination
  * @param lastTime - Last result of robotTimeToBall for the given parameters
  * @returns The estimated time
  */
-export function robotTimeToBall(robot: Robot, ball: BallLike & {radius: number}, targetPos: Position,
+export function robotTimeToBall(robot: Robot, ball: BallLike & {radius: number}, targetPos: Position | undefined,
 		endSpeedLength: number, lastTime?: number): number {
 	// local time0 = amun.getCurrentTime()
 	// if the ball is extremely slow, consider it as stationary
