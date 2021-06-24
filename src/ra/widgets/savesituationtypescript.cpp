@@ -96,7 +96,8 @@ void saveSituationTypescript(TrackingFrom useTrackingFrom, world::State worldSta
     QTextStream situation(&file);
     situation <<"import * as pb from \"base/protobuf\";\n\n";
     situation <<"export const partialAmun: any = {\n";
-    situation <<"getWorldState(): pb.world.State {\nreturn "<<formatJson(QString::fromStdString(worldJson), {})<<";\n},\n\n";
+    situation <<"getWorldState(): pb.world.State {\nreturn "<<formatJson(QString::fromStdString(worldJson),
+                                                                         {{"world_source", "pb.world.WorldSource"}})<<";\n},\n\n";
 
     QString formattedGeometry = formatJson(QString::fromStdString(geomtryJson),
                                            {{"type", "pb.world.Geometry.GeometryType"}, {"division", "pb.world.Geometry.Division"}});
