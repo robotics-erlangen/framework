@@ -6,6 +6,7 @@ import * as World from "base/world";
 
 import { Behavior } from "glados/agent/base/behavior";
 import { formatTimestamp, MessageType } from "glados/control/messaging";
+import * as ObserverCrash from "glados/observer/crash";
 import * as ObserverShoot from "glados/observer/shoot";
 import { Shoot } from "glados/task/ability/shoot";
 import { Task } from "glados/task/base";
@@ -96,7 +97,11 @@ export class Pass extends Task {
 		debug.set("targetPos", this._targetPos);
 
 		let maxAngleError = 3.5 * Math.PI / 180;
-		let isFreekickLike = Referee.isFriendlyFreeKickState() || World.RefereeState === "KickoffOffensive" || this._highPrecision;
+		let isFreekickLike = Referee.isFriendlyFreeKickState()
+			|| World.RefereeState === "KickoffOffensive"
+			|| this._highPrecision
+			|| ObserverCrash.isCrashed();
+
 		if (isFreekickLike) {
 			maxAngleError = 2.5 * Math.PI / 180;
 		}
