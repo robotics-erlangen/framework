@@ -69,8 +69,9 @@ export function realisticCardsOpponent() {
 	} else if (World.RefereeState !== "Stop" && World.Time - Error.getLastRefChange() > 0.5) {
 		cntO = cntO + 1;
 	}
-	if (cntO % 1000 === 1) {
+	if (cntO % 1500 === 1499) {
 		log("Warning: More Enemies than allowed by the refbox, check Referee");
+		cntO = 0;
 	}
 
 	// assumes that there is only one yellow card that is not beeing played
