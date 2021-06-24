@@ -289,7 +289,15 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
             }
             bool pushingPosVisible = isBallVisible(m_localBallOffset->pushingBallPos, *robot, ROBOT_RADIUS, ROBOT_HEIGHT,
                                                    m_cameraInfo->cameraPosition[m_primaryCamera]);
-            if (pushingPosVisible) {
+            bool otherRobotObstruction = false;
+            for (const RobotInfo &r : robots) {
+                if (r.identifier != robot->identifier && !isBallVisible(m_localBallOffset->pushingBallPos, *robot, ROBOT_RADIUS, ROBOT_HEIGHT,
+                                   m_cameraInfo->cameraPosition[m_primaryCamera])) {
+                    otherRobotObstruction = true;
+                    break;
+                }
+            }
+            if (pushingPosVisible || otherRobotObstruction) {
                 // TODO: only allow this when the ball is near the dribbler not the robot body
                 setBallData(ball, ballPos, robot->speed, writeBallSpeed);
                 debug("ground filter mode", "dribbling");
