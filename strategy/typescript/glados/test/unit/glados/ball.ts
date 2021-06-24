@@ -1,8 +1,8 @@
 import * as World from "base/world";
 
 import * as Ball from "glados/observer/ball";
-import { UnitTest } from "glados/test/unit/unittest";
 import * as ObserverRobot from "glados/observer/robot";
+import { UnitTest } from "glados/test/unit/unittest";
 
 interface ReceivesPassInfo {
 	robotId: number;

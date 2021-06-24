@@ -178,6 +178,21 @@ export function minTimeToBall(robot: Robot): number {
 	return <number> _minTimeToBall.get(robot);
 }
 
+let _minTimeToBallNoTarget: Map<Robot, number> = new Map<Robot, number>();
+let _oldMinTimeToBallNoTarget: Map<Robot, number> = new Map<Robot, number>();
+function resetMinTimeToBallNoTarget() {
+	_oldMinTimeToBallNoTarget = _minTimeToBallNoTarget;
+	_minTimeToBallNoTarget = new Map<Robot, number>();
+}
+
+export function minTimeToBallNoTarget(robot: Robot): number {
+	if (_minTimeToBallNoTarget.has(robot)) {
+		return <number> _minTimeToBallNoTarget.get(robot);
+	}
+	_minTimeToBallNoTarget.set(robot, Physics.robotTimeToBall(robot, World.Ball, undefined, robot.maxSpeed, _oldMinTimeToBallNoTarget.get(robot)));
+	return <number> _minTimeToBallNoTarget.get(robot);
+}
+
 // WARNING: this function can return Infinity when the ball can't be reached inside the field
 let previousMinShootTimes: Map<Robot, number> = new Map<Robot, number>();
 function _minShootTime(robot: Robot, shootPos: Position): number {
@@ -355,6 +370,7 @@ export let isPressed: (robot: Robot, attackPos?: Position) => boolean = Cache.fo
 
 export function _update() {
 	resetMinTimeToBall();
+	resetMinTimeToBallNoTarget();
 	updateHadBall();
 	updateTouchedBall();
 	updateOwnStandardShooter();

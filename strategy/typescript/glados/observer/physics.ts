@@ -6,6 +6,7 @@ import * as MathUtil from "base/mathutil";
 import { Robot, RobotAccelerationProfile } from "base/robot";
 import { Position, Speed, Vector } from "base/vector";
 import * as World from "base/world";
+
 import * as RobotObserver from "glados/observer/robot";
 
 export interface BallLike {

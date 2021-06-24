@@ -19,7 +19,7 @@ function _firstRobotAtBall(robotlist: Robot[]): [Robot | undefined, RelTime] {
 	let minTime: RelTime = Infinity;
 	let minRobot: Robot | undefined = undefined;
 	for (let r of robotlist) {
-		let time =  ObserverRobot.minTimeToBall(r);
+		let time =  ObserverRobot.minTimeToBallNoTarget(r);
 		if (time < minTime) {
 			minTime = time;
 			minRobot = r;
