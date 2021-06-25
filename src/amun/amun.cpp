@@ -629,6 +629,12 @@ void Amun::handleStatusForReplay(const Status &status)
                     m_replayProcessor->handleVisionPacket(visionData, time, "replay");
                 }
             }
+            for (const auto &truth : status->world_state().reality()) {
+                QByteArray simulatorData(truth.ByteSize(), 0);
+                if (truth.SerializeToArray(simulatorData.data(), simulatorData.size())) {
+                    m_replayProcessor->handleSimulatorExtraVision(simulatorData);
+                }
+            }
             m_replayProcessor->process(status->world_state().time());
         }
     } else {
