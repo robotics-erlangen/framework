@@ -6,6 +6,7 @@ import * as World from "base/world";
 
 import { MessageBox, MessageType } from "glados/control/messaging";
 import { Assignment, Move, MoveParameters } from "glados/group/move/base";
+import { isShot } from "glados/observer/ball";
 import { StopAttack } from "glados/task/attacker/stopattack";
 import { ChipToPos } from "glados/task/shared/chiptopos";
 import { MoveToPos } from "glados/task/shared/movetopos";
@@ -14,15 +15,14 @@ let G = World.Geometry;
 
 
 
-const FIRST_CONTACT_POS_OFFSET_X: number = 0.2;
-const FIRST_CONTACT_POS_OFFSET_y: number = 0.1;
+const FIRST_CONTACT_POS_OFFSET_X: number = (1 / 12) * G.DefenseWidth;
+const FIRST_CONTACT_POS_OFFSET_y: number = (4 / 12) * G.DefenseHeight; // 0.1;
+const CONTACT_POS_OFFSET: number = (1 / 12) * G.DefenseHeight;
+const RECIEVER_POS_Y: number = (2 / 5) * G.DefenseHeight;
 // move stops before the ball arrives the attacker
-const DISTANCE_TO_BALL: number = 0.7;
 const MOVE_TIME_MAX: number = 1.5;
-const RECIEVER_POS_Y: number = 0.7;
 const START_POS_WALL: number = 0.4;
 const WALL_SPACE: number = 0.45;
-const CONTACT_POS_OFFSET: number = 0.4;
 const CORNER_KICK_POS_Y: number = G.OpponentGoal.y - 0.2;
 const GOAL_KICK_POS_Y: number = G.OpponentGoal.y - 1;
 
@@ -33,18 +33,16 @@ export class CrossShoot extends Move {
 	public static ALLOW_EXTRA_ATTACKERS = false;
 	private pos: Vector[] = [];
 	private timeBegin: number | undefined = undefined;
-	private waitThreeTwo: number | undefined = undefined;
-
-
+	private waitTwoSeconds: number | undefined = undefined;
+	private restart: boolean = true;
 
 	constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 		super(robots, messaging);
 	}
 	static canStart() {
-		return World.Ball.pos.y > 4 * G.FieldHeightHalf / 5
-			&& Math.abs(World.Ball.pos.x) > G.FieldWidthHalf / 2
+		return G.FieldHeightHalf - (2 / 3) * G.DefenseHeight < World.Ball.pos.y
+			&& G.DefenseWidthHalf + (1 / 4) * G.DefenseWidthHalf < Math.abs(World.Ball.pos.x)
 			&& World.RefereeState === "Stop" && CrossShoot.Referee.opponentTouchedLast();
-
 	}
 
 	_canContinue() {
@@ -52,33 +50,42 @@ export class CrossShoot extends Move {
 			if (this.timeBegin == undefined) {
 				this.timeBegin = World.Time;
 			}
-			return !(World.Ball.pos.distanceTo(this._robots[5].pos) < DISTANCE_TO_BALL || ((World.Time - this.timeBegin) > MOVE_TIME_MAX));
+			return !(isShot() || ((World.Time - this.timeBegin) > MOVE_TIME_MAX));
 		} else {
 			if (CrossShoot.Referee.isFriendlyFreeKickState()) {
 				return true;
 			}
-			return World.Ball.pos.y > 4 * G.FieldHeightHalf / 5 - 0.2
-				&& Math.abs(World.Ball.pos.x) > G.FieldWidthHalf / 2 - 0.2
+			return G.FieldHeightHalf - (2 / 3) * G.DefenseHeight - 0.2 < World.Ball.pos.y
+				&& G.DefenseWidthHalf + (1 / 4) * G.DefenseWidthHalf - 0.1 < Math.abs(World.Ball.pos.x)
 				&& World.RefereeState === "Stop";
 		}
 	}
-	calculateFirstContactPos(start: Vector, end: Vector, alpha: number): Vector {
-		return new Vector(start.x, start.y - alpha * (start.y - end.y));
 
+	private calculateFirstContactPosY(start: Vector, end: Vector, alpha: number): Vector {
+		return new Vector(start.x, start.y - alpha * (start.y - end.y));
+	}
+	private calculateFirstContactPosX(start: Vector, end: Vector, beta: number): Vector {
+		return new Vector(start.x - beta * (start.x - end.x), start.y);
 	}
 
 	_updateTasks(): MoveParameters {
-		let startContactPos = new Vector(Math.sign(World.Ball.pos.x) * G.DefenseWidthHalf -
+		let startContactPosY = new Vector(Math.sign(World.Ball.pos.x) * G.DefenseWidthHalf -
 			Math.sign(World.Ball.pos.x) * FIRST_CONTACT_POS_OFFSET_X, G.OpponentGoal.y - G.DefenseHeight + FIRST_CONTACT_POS_OFFSET_y);
-		let endContactPos = new Vector(Math.sign(World.Ball.pos.x) * G.DefenseWidthHalf -
-			Math.sign(World.Ball.pos.x) * FIRST_CONTACT_POS_OFFSET_X, G.OpponentGoal.y - G.DefenseHeight + FIRST_CONTACT_POS_OFFSET_y - CONTACT_POS_OFFSET);
+		let endContactPosY = new Vector(Math.sign(World.Ball.pos.x) * G.DefenseWidthHalf -
+			Math.sign(World.Ball.pos.x) * FIRST_CONTACT_POS_OFFSET_X, G.OpponentGoal.y - G.DefenseHeight + CONTACT_POS_OFFSET);
 		let alpha = valueToRating(World.Ball.pos.y, CORNER_KICK_POS_Y, GOAL_KICK_POS_Y);
-		let firstContactPos = this.calculateFirstContactPos(startContactPos, endContactPos, alpha);
+		let startContactPosX = new Vector(Math.sign(World.Ball.pos.x) * G.DefenseWidthHalf -
+			Math.sign(World.Ball.pos.x) * FIRST_CONTACT_POS_OFFSET_X, G.OpponentGoal.y - G.DefenseHeight + CONTACT_POS_OFFSET);
+		let endContactPosX = new Vector(Math.sign(World.Ball.pos.x) * G.DefenseWidthHalf -
+			Math.sign(World.Ball.pos.x) * FIRST_CONTACT_POS_OFFSET_X - Math.sign(World.Ball.pos.x) * G.DefenseWidthHalf / 3, G.OpponentGoal.y - G.DefenseHeight + CONTACT_POS_OFFSET);
+		let beta = valueToRating(Math.abs(World.Ball.pos.x), G.FieldWidthHalf, G.FieldWidthHalf - (G.DefenseWidthHalf + (1 / 4) * G.DefenseWidthHalf));
 
+		let firstContactPosY = this.calculateFirstContactPosY(startContactPosY, endContactPosY, alpha);
+		let firstContactPosX = this.calculateFirstContactPosX(startContactPosX, endContactPosX, beta);
+		let firstContactPos = firstContactPosY + 0.5 * (firstContactPosX - firstContactPosY);
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
 		let receiverPos = geom.intersectLineLine(World.Ball.pos, firstContactPos - World.Ball.pos,
 			new Vector(G.DefenseWidthHalf, G.OpponentGoal.y - G.DefenseHeight - RECIEVER_POS_Y), new Vector(1, 0));
-
 		for (let i = 0; i < 4; i++) {
 			this.pos[i] = new Vector(Math.sign(World.Ball.pos.x) * (G.DefenseWidthHalf + START_POS_WALL + i * WALL_SPACE),
 				G.OpponentGoal.y - G.DefenseHeight);
@@ -86,16 +93,16 @@ export class CrossShoot extends Move {
 		for (let i = 0; i < this.pos.length; i++) {
 			taskAssignments[this._robots[i + 1]] = Assignment.create({ class: MoveToPos, params: [{ pos: this.pos[i] }] });
 		}
-
-		taskAssignments[this._robots[5]] = Assignment.create({ class: MoveToPos, params: [{ pos: receiverPos[0]! }] });
+		taskAssignments[this._robots[5]] = Assignment.create({ class: MoveToPos, params: [{ pos: receiverPos[0]! }], restart: this.restart });
 
 		if (World.RefereeState === "Stop") {
 			taskAssignments[this._robots[0]] = Assignment.create({ class: StopAttack, params: [] });
 		} else if (Referee.isFriendlyFreeKickState()) {
-			if (this.waitThreeTwo === undefined) {
-				this.waitThreeTwo = World.Time;
+			if (this.waitTwoSeconds === undefined) {
+				this.restart = false;
+				this.waitTwoSeconds = World.Time;
 			}
-			if (World.Time - this.waitThreeTwo > 2) {
+			if (World.Time - this.waitTwoSeconds > 2) {
 				taskAssignments[this._robots[0]] = Assignment.create({ class: ChipToPos, params: [firstContactPos, World.Time] });
 			} else {
 				taskAssignments[this._robots[0]] = Assignment.create({ class: StopAttack, params: [] });
