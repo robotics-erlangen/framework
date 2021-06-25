@@ -26,6 +26,7 @@
 #include "protobuf/world.pb.h"
 #include <QByteArray>
 #include <QObject>
+#include <memory>
 
 class Referee : public QObject
 {
@@ -52,6 +53,7 @@ private:
     world::Ball m_ball;
     quint32 m_counter;
     bool m_flipped;
+    std::optional<SSL_Referee::Command> m_lastCommand;
 };
 
 #endif // REFEREE_H

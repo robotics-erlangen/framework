@@ -83,6 +83,10 @@ void Referee::handlePacket(const QByteArray &data)
     if (m_counter != packet.command_counter()) {
         m_counter = packet.command_counter();
         m_gameState.set_state(processCommand(packet.command(), gameState().state()));
+        m_lastCommand = packet.command();
+    } else if (packet.has_command() && (!m_lastCommand || m_lastCommand != packet.command())) {
+        m_gameState.set_state(processCommand(packet.command(), gameState().state()));
+        m_lastCommand = packet.command();
     }
 
     if (packet.has_next_command()) {
