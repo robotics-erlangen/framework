@@ -4,6 +4,7 @@ import * as Field from "base/field";
 import * as geom from "base/geom";
 import * as MathUtil from "base/mathutil";
 import { Robot, RobotAccelerationProfile } from "base/robot";
+import { RelTime } from "base/timing";
 import { Position, Speed, Vector } from "base/vector";
 import * as World from "base/world";
 
@@ -913,6 +914,144 @@ export function robotRotationRangeForTime(robot: Robot, time: number): [number, 
 	} else {
 		return [dist2, dist1];
 	}
+}
+
+export interface RobotRotationTimeInput {
+	dir: Robot["dir"];
+	angularSpeed: Robot["angularSpeed"];
+	maxAngularSpeed: Robot["maxAngularSpeed"];
+	acceleration: {
+		aSpeedupPhiMax: Robot["acceleration"]["aSpeedupPhiMax"];
+		aBrakePhiMax: Robot["acceleration"]["aBrakePhiMax"];
+	};
+}
+
+/**
+ * Returns the time a robot needs to rotate to a given angle.
+ *
+ * Uses a bang-bang motion profile.
+ *
+ * @param robot - The robot to consider
+ * @param targetAngle - The direction the robot should face
+ * @returns the time the robot needs for the rotation as relative time in
+ *          which direction the rotation would be the shortest
+ */
+export function robotRotationTime(robot: RobotRotationTimeInput, targetAngle: number): RelTime {
+	/** Cut off low angle differences to prevent instabilities */
+	const tolerance = 5 * Math.PI / 180;
+
+	const maxAcceleration = robot.acceleration.aSpeedupPhiMax;
+	const maxBrake = robot.acceleration.aBrakePhiMax;
+
+	// TODO Consider exponential slowdown
+	const timeForRotationDirection = (direction: "counterclockwise" | "clockwise"): number => {
+		/**
+		 * Current angular speed in the direction we want to turn
+		 *
+		 * The angular speed is negative when going in clockwise direction. For
+		 * time calculations, we need it in the direction we want to go, thus
+		 * we may need to invert it
+		 */
+		const speedInDirection = direction === "clockwise"
+			? -robot.angularSpeed
+			: robot.angularSpeed;
+
+		/** The speed the robot initially has in the direction of rotation */
+		const initialSpeed = Math.max(speedInDirection, 0);
+
+		/**
+		 * The robot may have an initial angular speed in the opposite
+		 * direction. This is the time needed to brake from that.
+		 */
+		const initialBrakeTime = speedInDirection < 0
+			? Math.abs(speedInDirection) / maxBrake
+			: 0;
+
+		/**
+		 * The time needed to accelerate to max angular speed
+		 *
+		 * Only consider the initial angular speed when it is actually going in
+		 * the right direction
+		 */
+		const maxAccelTime = (robot.maxAngularSpeed - initialSpeed) / maxAcceleration;
+
+		const maxFinalBrakeTime = robot.maxAngularSpeed / maxBrake;
+
+		/**
+		 * Will be negative when it is necessary to brake first and 0
+		 * otherwise.
+		 */
+		const initialBrakeAngle = speedInDirection * initialBrakeTime + maxBrake * (initialBrakeTime ** 2) / 2;
+
+		const maxAccelAngle = initialSpeed * maxAccelTime + maxAcceleration * (maxAccelTime ** 2) / 2;
+
+		const maxFinalBrakeAngle = maxBrake * (maxFinalBrakeTime ** 2) / 2;
+
+		let angleDiffInDirection = geom.normalizeAnglePositive(
+			direction === "clockwise" ? robot.dir - targetAngle : targetAngle - robot.dir
+		);
+		/*
+		 * The initialBrakeAngle is negative when it is necessary to brake,
+		 * thus increasing the angle difference
+		 */
+		angleDiffInDirection -= initialBrakeAngle;
+
+		angleDiffInDirection = Math.max(angleDiffInDirection - tolerance, 0);
+
+		// Case 1 - We reach the full angular speed
+		if (angleDiffInDirection >= maxAccelAngle + maxFinalBrakeAngle) {
+			const remainingAngle = angleDiffInDirection - maxAccelAngle - maxFinalBrakeTime;
+			const maxSpeedTime = remainingAngle / robot.maxAngularSpeed;
+			return initialBrakeTime + maxAccelTime + maxSpeedTime + maxFinalBrakeTime;
+		}
+
+		// Case 2 - We can't reach end speed 0 because we are rotating too fast
+		const minBrakeTime = initialSpeed / maxBrake;
+		const minBrakeDist = maxBrake * (minBrakeTime ** 2) / 2;
+		if (minBrakeDist >= angleDiffInDirection) {
+			/* This is actually wrong, we should give the time it takes to
+			 * reach the angle (even if with endspeed > 0). But this is a good
+			 * enough value, since currently most of the time, we are not
+			 * actually rotating to fast. This case is mostly reached because
+			 * of instability
+			 */
+			return minBrakeTime;
+				// - Math.sqrt(initialSpeed ** 2 - 2 * maxBrake * angleDiffInDirection);
+		}
+
+		/*
+		 * Case 3 - We accelerate and then brake
+		 *
+		 * We accelerate until we reach v_cut and the brake. If we calculate
+		 * v_cut, we can calculate the time that both the acceleration and the
+		 * deceleration take
+		 *
+		 * The area under the angular speed/time diagram is equivalent to the
+		 * total angle we need to rotate. We can thus find the time by
+		 * calculating the area using v_cut, setting that to be equal to the
+		 * total angle and then solving for v_cut
+		 */
+		let [v_cut] = MathUtil.solveSq(
+			0.5 * (1 / maxAcceleration + 1 / maxBrake),
+			-initialSpeed / maxAcceleration,
+			-angleDiffInDirection,
+		);
+
+		if (v_cut === undefined) {
+			// b^2 - 4ac < 0 is a rounding error
+			v_cut = 0;
+		}
+
+		const accelTime = (v_cut - initialSpeed) / maxAcceleration;
+		const brakeTime = v_cut / maxBrake;
+
+		return initialBrakeTime + accelTime + brakeTime;
+	};
+
+	const timeForClockwise = timeForRotationDirection("clockwise");
+	const timeForCounterClockwise = timeForRotationDirection("counterclockwise");
+
+	return Math.min(timeForClockwise, timeForCounterClockwise);
 }
 
 function rttbSpecialCases(robot: Robot, ball: BallLike & {radius: number}, targetPos: Position | undefined, endSpeedLength: number,

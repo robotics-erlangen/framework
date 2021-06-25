@@ -443,8 +443,7 @@ export class Shoot {
 		}
 
 		this._messaging.sendBroadcast(MessageType.attackPosition, shootBallPos);
-		// TODO: compute the time the robot will take to rotate to the target dir (with exponential slow down)
-		let rotateTime = 0;
+		const rotateTime = Physics.robotRotationTime(this._robot, targetAngle);
 		if (attackTime < World.Time + rotateTime) {
 			attackTime = World.Time + rotateTime;
 		}
