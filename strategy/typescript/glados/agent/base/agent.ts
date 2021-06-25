@@ -99,9 +99,8 @@ export abstract class Agent {
 		if (this._activeBehavior) {
 			debug.push("Behavior");
 			this._activeBehavior.addDebugInfo();
-			debug.pop();
-
 			this._activeBehavior.run();
+			debug.pop();
 		} else {
 			debug.set("Behavior", "none");
 		}
