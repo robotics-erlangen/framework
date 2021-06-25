@@ -257,7 +257,7 @@ export class PenaltyShootout extends Behavior {
 			// return [StopAttack];
 			return [ MoveToPos, [{
 				pos: World.Ball.pos - new Vector(0, 0.5),
-				dir: (new Vector(0, -1)).angle(),
+				dir: (new Vector(0, 1)).angle(),
 				useCMA: true
 			}]];
 		} else if (chipMode !== false) {
