@@ -94,7 +94,7 @@ export class Duel extends Task {
 
 	private _contestPush() {
 		let viewDir = (Ball.getRealisticBallPos() - World.Geometry.FriendlyGoal).angle();
-		let destinationPos = Ball.getRealisticBallPos() - Vector.fromPolar(viewDir, this._robot.shootRadius);
+		let destinationPos = Ball.getRealisticBallPos() - Vector.fromPolar(viewDir, 0.04);
 		let obstacleTable = {
 			ignoreBall: true,
 			task: this,
