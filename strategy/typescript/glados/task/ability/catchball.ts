@@ -89,9 +89,9 @@ export class CatchBall {
 	 * @param distanceToBall - Distance the robot should keep to the ball, only sensible for a stopped ball, defaults to 0
 	 * @param targetSpeed - Intended ball speed at target
 	 * @param maxSpeed - Maximum speed of the robot
-	 * @returns catchTime - When we will catch the ball (relative Time)
+	 * @returns [catchTime, catchPosition] - When we will catch the ball (relative Time) and the ball position then
 	 */
-	_catchBall(targetPos: Position, distanceToBall: number, targetSpeed?: number, maxSpeed?: number): number {
+	_catchBall(targetPos: Position, distanceToBall: number, targetSpeed?: number, maxSpeed?: number): [number, Position] {
 		let ball = World.Ball;
 		// update catch time
 		if (this._catchTime != undefined && !Ball.isAccelerating() && this._recalculateCatchTimeCounter < 20) {
@@ -244,7 +244,7 @@ export class CatchBall {
 		debug.set("CatchBall/ballInsideRobot", ballInsideRobot);
 		vis.addCircle("t/a/catchball: CatchBall", Physics.ballAtTime(ball, this._catchTime).pos, predictedBall.radius, vis.colors.blueHalf);
 
-		return this._catchTime;
+		return [this._catchTime, moveDest + Vector.fromAngle(viewDir) * (this._robot.shootRadius + World.Ball.radius)];
 	}
 
 	_calculateHitTime(ball: BallLike & {maxSpeed: number}) {

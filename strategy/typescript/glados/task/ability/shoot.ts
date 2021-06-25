@@ -395,7 +395,7 @@ export class Shoot {
 			let projectedPos = Field.limitToAllowedField(World.Ball.pos, -EXTRA_DISTANCE);
 			this._robot.trajectory.update(CurvedMaxAccel, projectedPos, (World.Ball.pos - projectedPos).angle());
 		} else {
-			let cBTime = this._catchBall._catchBall(targetPos, minCatchBallDistance, targetSpeed);
+			let cBTime = this._catchBall._catchBall(targetPos, minCatchBallDistance, targetSpeed)[0];
 			this._messaging.sendBroadcast(MessageType.earliestAttackTime, World.Time + cBTime);
 			if (attackTime < World.Time + cBTime) {
 				attackTime = World.Time + cBTime;
@@ -533,11 +533,11 @@ export class Shoot {
 			this._catchBallActive = false;
 			visBallStartPos = futureBall.pos;
 		} else {
-			let catchTime = this._catchBall._catchBall(targetPos, 0, targetSpeed);
+			let [catchTime, catchPos] = this._catchBall._catchBall(targetPos, 0, targetSpeed);
 			this._messaging.sendBroadcast(MessageType.earliestAttackTime, catchTime + World.Time);
 			this._messaging.sendBroadcast(MessageType.plannedAttackTime, catchTime + World.Time);
 			this._catchBallActive = true;
-			visBallStartPos = Physics.ballAtTime(World.Ball, catchTime).pos;
+			visBallStartPos = catchPos;
 		}
 
 		let currentDribblerPos = this._robot.pos + dribblerOffset;
@@ -564,10 +564,10 @@ export class Shoot {
 			this._catchBallActive = false;
 			visBallStartPos = futureBall.pos;
 		} else {
-			let attackTime = this._catchBall._catchBall(ballOrigin, 0, undefined);
+			let [attackTime, catchPos] = this._catchBall._catchBall(ballOrigin, 0, undefined);
 			this._messaging.sendBroadcast(MessageType.earliestAttackTime, attackTime + World.Time);
 			this._catchBallActive = true;
-			visBallStartPos = Physics.ballAtTime(World.Ball, attackTime).pos;
+			visBallStartPos = catchPos;
 		}
 
 		// activate dribbler to stop the ball
