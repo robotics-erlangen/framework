@@ -1,5 +1,7 @@
 import { log } from "base/amun";
 import * as Field from "base/field";
+import * as GameController from "base/gamecontroller";
+import * as pb from "base/protobuf";
 import * as BaseRef from "base/referee";
 import { Position, Speed } from "base/vector";
 import * as World from "base/world";
@@ -80,4 +82,37 @@ export function realisticCardsOpponent() {
 	}
 	return World.OpponentYellowCards.length + World.OpponentRedCards;
 
+}
+
+let lastChooseKeeperCommand = 0;
+export function checkChooseKeeper() {
+	if (World.WorldStateSource === pb.world.WorldSource.REAL_LIFE) {
+		return;
+	}
+	if (World.RefereeState !== "Stop") {
+		return;
+	}
+	if (World.FriendlyKeeper) {
+		return;
+	}
+	if (World.Time - lastChooseKeeperCommand < 1) {
+		return;
+	}
+	if (!GameController.isConnected()) {
+		return;
+	}
+	// find robot closest to our goal
+	let robotId: number | undefined = undefined;
+	let minDistance = Infinity;
+	for (let robot of World.FriendlyRobots) {
+		const dist = robot.pos.distanceToSq(World.Geometry.FriendlyGoal);
+		if (dist < minDistance) {
+			minDistance = dist;
+			robotId = robot.id;
+		}
+	}
+	if (robotId !== undefined) {
+		lastChooseKeeperCommand = World.Time;
+		GameController.requestDesiredKeeper(robotId);
+	}
 }
