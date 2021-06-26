@@ -436,7 +436,7 @@ export class Shoot {
 
 		// the tracking might place the ball quite far away from the robot even though it is in the dribbler
 		const requiredDist = this._robot.radius + 0.1;
-		if (World.Ball.isPositionValid()) {
+		if (World.Ball.isPositionValid() && World.Ball.detectionQuality > 0.3) {
 			this.ballInDribbler = this._robot.pos.distanceToSq(World.Ball.pos) < requiredDist * requiredDist;
 		} else {
 			this.ballInDribbler = true;
