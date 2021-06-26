@@ -54,6 +54,13 @@ export class Duel extends Behavior {
 			for (let opp of World.OpponentRobots) {
 				if (Ball.receivesPass(opp)) {
 					let oppDistToBall = opp.pos.distanceTo(World.Ball.pos);
+
+					// duel situation in which the ball is between the robots
+					const minDist = this._robot.radius + World.Ball.radius + 0.01;
+					if (selfDistToBall < minDist && oppDistToBall < minDist) {
+						firstAtBall = false;
+						break;
+					}
 					if (oppDistToBall < selfDistToBall) {
 						let pointOnBallLine = opp.pos.orthogonalProjection(World.Ball.pos, World.Ball.pos + World.Ball.speed)[0];
 						if (opp.pos.distanceTo(pointOnBallLine) < 0.5) {
@@ -62,6 +69,7 @@ export class Duel extends Behavior {
 							let ballTime = Physics.checkedBallRollTime(World.Ball, pointOnBallLine - ballOffset);
 							if (ballTime > robotTime + 0.1) {
 								firstAtBall = false;
+								break;
 							}
 						}
 					}
