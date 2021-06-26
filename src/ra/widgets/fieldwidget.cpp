@@ -396,11 +396,18 @@ void FieldWidget::addToggleVisAction()
     addAction(actionToggleVisualizations);
 }
 
+void FieldWidget::internalRefereeEnabled(bool enabled)
+{
+    m_internalRefereeEnabled = enabled;
+    m_actionBallPlacementBlue->setVisible(!m_isLogplayer && m_internalRefereeEnabled);
+    m_actionBallPlacementYellow->setVisible(!m_isLogplayer && m_internalRefereeEnabled);
+}
+
 void FieldWidget::setHorusMode(bool enable)
 {
     m_isLogplayer = enable;
-    m_actionBallPlacementBlue->setVisible(!enable);
-    m_actionBallPlacementYellow->setVisible(!enable);
+    m_actionBallPlacementBlue->setVisible(!m_isLogplayer && m_internalRefereeEnabled);
+    m_actionBallPlacementYellow->setVisible(!m_isLogplayer && m_internalRefereeEnabled);
     m_actionShowBlueReplayVis->setVisible(enable);
     m_actionShowYellowReplayVis->setVisible(enable);
     if (!m_isLogplayer) {

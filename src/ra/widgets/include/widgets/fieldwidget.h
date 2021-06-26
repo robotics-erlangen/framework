@@ -121,6 +121,7 @@ public slots:
     void enableDragMeasure(bool enable) { m_enableDragMeasure = enable; }
     void toggleStrategyVisualizations();
     void setRegularVisualizationsEnabled(bool blue, bool enabled);
+    void internalRefereeEnabled(bool enabled);
 
 protected:
     void keyPressEvent(QKeyEvent *event) override;
@@ -290,6 +291,7 @@ private:
     int m_dragId;
 
     bool m_isLogplayer;
+    bool m_internalRefereeEnabled = false;
     bool m_enableDragMeasure;
     bool m_flipped;
 

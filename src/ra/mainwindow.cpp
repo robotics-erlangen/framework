@@ -740,6 +740,8 @@ void MainWindow::setInternalRefereeEnabled(bool enabled)
     // force auto reload of strategies if external referee is used
     ui->robots->forceAutoReload(!enabled);
     ui->referee->forceAutoReload(!enabled);
+
+    ui->field->internalRefereeEnabled(enabled);
 }
 
 void MainWindow::setTransceiver(bool enabled)
