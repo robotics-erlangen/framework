@@ -46,6 +46,11 @@ export class Duel extends Behavior {
 			return false;
 		}
 
+		if (World.Ball.detectionQuality < 0.2 && this._active) {
+			debug.set("duel check", "invisible ball");
+			return true;
+		}
+
 		// if we receive the ball first, try shootgoal or something
 		let receivesPass = Ball.receivesPass(this._robot);
 		if (receivesPass) {
@@ -91,6 +96,7 @@ export class Duel extends Behavior {
 		let cornerMinX = World.Geometry.FieldWidthHalf * (this._active ? 0.7 : 0.6);
 		let cornerMinY = World.Geometry.FieldHeightHalf * (this._active ? 0.6 : 0.5);
 		if (World.Ball.pos.y > cornerMinY && Math.abs(World.Ball.pos.x) > cornerMinX) {
+			debug.set("duel check", "opponent corner");
 			return false;
 		}
 
