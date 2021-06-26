@@ -747,13 +747,13 @@ bool FlyFilter::detectionPinv(const FlyFilter::PinvResult &pinvRes)
 
 void FlyFilter::processVisionFrame(const VisionFrame& frame)
 {
-    debugCircle("dribbler pos", frame.dribblerPos.x(), frame.dribblerPos.y(), 0.03f);
+    debugCircle("dribbler pos", frame.robot.dribblerPos.x(), frame.robot.dribblerPos.y(), 0.03f);
     Eigen::Vector2f reportedBallPos(frame.x, frame.y);
     float timeSinceInit = (frame.time-m_initTime);
     float dribblerSpeed = 0;
     float absSpeed = 0;
 
-    float dribblerDist = (frame.dribblerPos - reportedBallPos).norm();
+    float dribblerDist = (frame.robot.dribblerPos - reportedBallPos).norm();
 
     if (m_shotDetectionWindow.size() > 0) {
         float timeDiff = (timeSinceInit - m_shotDetectionWindow.back().time) / NS_PER_SEC; // seconds
@@ -763,7 +763,7 @@ void FlyFilter::processVisionFrame(const VisionFrame& frame)
     }
 
     ChipDetection currentDetection(dribblerSpeed, absSpeed, timeSinceInit,
-        reportedBallPos, frame.dribblerPos, frame.ballArea, frame.robotPos,
+        reportedBallPos, frame.robot.dribblerPos, frame.ballArea, frame.robot.robotPos,
         frame.cameraId, frame.chipCommand, frame.linearCommand);
     m_shotDetectionWindow.append(currentDetection);
     if (m_shotDetectionWindow.size() > 4) {

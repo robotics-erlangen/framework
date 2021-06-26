@@ -51,7 +51,7 @@ private:
 
 private:
     void computeBallState(world::Ball *ball, qint64 time, const QVector<RobotInfo> &robots);
-    void updateDribblingInfo(Eigen::Vector2f projectedBallPos, const RobotInfo &robot);
+    BallOffsetInfo getDribblingInfo(Eigen::Vector2f projectedBallPos, const RobotInfo &robot);
     bool checkFeasibleInvisibility(const QVector<RobotInfo> &robots);
 
 private:
@@ -66,6 +66,10 @@ private:
     std::optional<VisionFrame> m_lastVisionFrame;
     qint64 m_lastResetTime = 0;
     float m_lastValidSpeed = 0;
+
+    // dribble and rotate
+    qint32 m_inDribblerFrames = 0;
+    BallOffsetInfo m_lastDribbleOffset;
 
     const float ROBOT_RADIUS = 0.09f;
     const float ROBOT_HEIGHT = 0.15f;
