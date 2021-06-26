@@ -103,7 +103,7 @@ export class DuelAssistant extends Task {
 			pos = friendlyPos + totalOffset;
 		}
 
-		let viewDir = duelVector.angle();
+		let viewDir = (World.Ball.pos - this._robot.pos).angle();
 		this._suggestPass._suggestPassRobotPosition(pos + duelVector);
 		this._robot.trajectory.update(ToTarget, pos, viewDir);
 	}
