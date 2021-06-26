@@ -93,7 +93,7 @@ private:
     const world::Robot *getWorldRobot(const RobotList &robots, uint id);
     void injectExtraData(Status &status);
     void injectUserControl(Status &status, bool isBlue);
-    Status assembleStatus(qint64 time, bool resetRaw);
+    Status assembleStatus(Tracker &tracker, qint64 time, bool resetRaw);
     world::WorldSource currentWorldSource() const;
 
     void sendTeams();
@@ -103,6 +103,7 @@ private:
     Referee *m_referee;
     Referee *m_refereeInternal;
     std::unique_ptr<Tracker> m_tracker;
+    std::unique_ptr<Tracker> m_strategyTracker;
     std::unique_ptr<Tracker> m_speedTracker;
     std::unique_ptr<Tracker> m_simpleTracker;
     QList<robot::RadioResponse> m_responses;
