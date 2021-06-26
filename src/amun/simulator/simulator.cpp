@@ -307,6 +307,7 @@ void Simulator::sendSSLSimErrorInternal(ErrorSource source)
 static void createRobot(Simulator::RobotMap &list, float x, float y, uint32_t id, const ErrorAggregator* agg, SimulatorData* data, const QMap<uint32_t, robot::Specs>& teamSpecs)
 {
     SimRobot *robot = new SimRobot(&data->rng, teamSpecs[id], data->dynamicsWorld, btVector3(x, y, 0), 0.f);
+    robot->setDribbleMode(data->dribblePerfect);
     robot->connect(robot, &SimRobot::sendSSLSimError, agg, &ErrorAggregator::aggregate);
     list[id] = {robot, teamSpecs[id].generation()};
 
@@ -324,6 +325,7 @@ void Simulator::resetFlipped(Simulator::RobotMap &robots, float side)
             SimRobot *new_robot = new SimRobot(&m_data->rng, robot->specs(), m_data->dynamicsWorld, btVector3(x, side * y, 0), 0.0f);
             delete robot;
             connect(new_robot, &SimRobot::sendSSLSimError, m_aggregator, &ErrorAggregator::aggregate); // TODO? use createRobot instead of this. However, doing so naively will break the iteration, so I left it for now.
+            new_robot->setDribbleMode(m_data->dribblePerfect);
             it.value().first = new_robot;
         }
         y -= 0.3;
