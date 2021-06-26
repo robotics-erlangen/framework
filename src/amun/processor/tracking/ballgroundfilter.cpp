@@ -24,8 +24,7 @@
 // TODO maybe exclude z axis from kalman filter
 
 GroundFilter::GroundFilter(const VisionFrame& frame, CameraInfo* cameraInfo, const FieldTransform &transform) :
-    AbstractBallFilter(frame, cameraInfo, transform),
-    m_lastUpdate(frame.time)
+    AbstractBallFilter(frame, cameraInfo, transform)
 {
     reset(frame);
 }
@@ -43,6 +42,7 @@ void GroundFilter::reset(const VisionFrame& frame)
     x(1) = frame.y;
     m_kalman.reset(new Kalman(x));
     m_kalman->H = Kalman::MatrixM::Identity();
+    m_lastUpdate = frame.time;
 }
 
 void GroundFilter::predict(qint64 time)

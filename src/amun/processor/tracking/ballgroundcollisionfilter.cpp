@@ -43,14 +43,15 @@ BallGroundCollisionFilter::BallGroundCollisionFilter(const BallGroundCollisionFi
 void BallGroundCollisionFilter::processVisionFrame(const VisionFrame& frame)
 {
     m_lastVisionTime = frame.time;
+    m_lastVisionFrame = frame;
     if (m_resetFilters) {
+        m_lastResetTime = frame.time;
         m_groundFilter.reset(frame);
         m_pastFilter.reset(frame);
         m_resetFilters = false;
-    } else {
-        m_groundFilter.processVisionFrame(frame);
-        m_pastFilter.processVisionFrame(frame);
     }
+    m_groundFilter.processVisionFrame(frame);
+    m_pastFilter.processVisionFrame(frame);
 }
 
 bool BallGroundCollisionFilter::acceptDetection(const VisionFrame& frame)
@@ -314,6 +315,7 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
             return;
         }
     }
+    const bool hadBallOffset = m_localBallOffset.has_value();
     if (invisibleTimeMs <= ACTIVATE_DRIBBLING_TIME) {
         m_localBallOffset.reset();
     }
@@ -324,6 +326,7 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
     Eigen::Vector2f currentPos{ball->p_x(), ball->p_y()};
     Eigen::Vector2f currentSpeed{ball->v_x(), ball->v_x()};
     debugCircle("current pos", currentPos.x(), currentPos.y(), 0.03);
+    bool hasIntersection = false;
     for (const RobotInfo &robot : robots) {
 
         const bool pastInsidePast = isInsideRobot(pastPos, robot.pastRobotPos, robot.pastDribblerPos, ROBOT_RADIUS);
@@ -376,7 +379,28 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
             debug("ground filter mode", "outside robot projection");
 
             updateDribblingInfo(*intersection, robot);
+            hasIntersection = true;
         }
+    }
+
+    // after a shot, reset the filters so that the speed is updated faster
+    if (hadBallOffset && !hasIntersection && !m_resetFilters && m_lastVisionFrame
+            && (m_lastVisionFrame->time - m_lastResetTime) / 1000000 > 100
+            // do not activate during dribbling etc.
+            && m_lastValidSpeed > 2.0f) {
+
+        m_lastResetTime = m_lastVisionFrame->time;
+
+        m_groundFilter.reset(*m_lastVisionFrame);
+        m_groundFilter.processVisionFrame(*m_lastVisionFrame);
+        m_groundFilter.writeBallState(ball, time, robots);
+
+        m_pastFilter.reset(*m_lastVisionFrame);
+        m_pastFilter.processVisionFrame(*m_lastVisionFrame);
+        m_pastFilter.writeBallState(&pastState, m_lastVisionTime + 1, robots);
+        debug("ground filter mode", "after shot reset");
+    } else if (!hasIntersection) {
+        m_lastValidSpeed = Eigen::Vector2f(ball->v_x(), ball->v_y()).norm();
     }
 
     m_insideRobotOffset.reset();

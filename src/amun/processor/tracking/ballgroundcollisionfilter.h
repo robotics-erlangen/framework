@@ -63,6 +63,9 @@ private:
     Eigen::Vector2f m_lastReportedBallPos = Eigen::Vector2f(10000000, 0);
     bool m_feasiblyInvisible = false;
     bool m_resetFilters = false;
+    std::optional<VisionFrame> m_lastVisionFrame;
+    qint64 m_lastResetTime = 0;
+    float m_lastValidSpeed = 0;
 
     const float ROBOT_RADIUS = 0.09f;
     const float ROBOT_HEIGHT = 0.15f;
