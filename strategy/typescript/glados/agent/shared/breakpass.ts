@@ -22,7 +22,8 @@ export class BreakPass extends Behavior {
 	}
 
 	check(): Behavior | undefined {
-		const isMainAttacker = this._messaging.receiveTrainer(MessageType.mainAttacker) === this._robot;
+		const mainAttacker = this._messaging.receiveTrainer(MessageType.mainAttacker);
+		const isMainAttacker = mainAttacker === this._robot;
 		if (isMainAttacker) {
 			debug.set("breakpass check", "main attacker");
 			return undefined;
@@ -96,6 +97,12 @@ export class BreakPass extends Behavior {
 		// waiting time is not over
 		if (breakPassThreshold < (waitingTime - BreakPassTask.BUFFER_TIME)) {
 			debug.set("breakpass check", "waiting time is not over");
+			return undefined;
+		}
+
+		// moveDest is behind the MA
+		if (mainAttacker && World.Ball.speed.dot(mainAttacker.pos - World.Ball.pos) < World.Ball.speed.dot(toPos)) {
+			debug.set("breakpass check", "behind MA");
 			return undefined;
 		}
 
