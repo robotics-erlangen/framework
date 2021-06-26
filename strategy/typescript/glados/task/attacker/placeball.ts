@@ -18,6 +18,7 @@ import { CurvedMaxAccel } from "glados/trajectory/curvedmaxaccel";
 import { Direct } from "glados/trajectory/direct";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
+import * as UtilAttack from "glados/util/attack";
 
 const G = World.Geometry;
 const enum State {
@@ -342,7 +343,12 @@ export class PlaceBall extends Task {
 				const dist = Referee.isFriendlyFreeKickState(World.NextRefereeState)
 					? 0.08 + this._robot.radius
 					: Constants.stopBallDistance + 0.05 + this._robot.radius;
-				let offset = (World.Geometry.FriendlyGoal - this._ball.pos).withLength(dist);
+				let offset;
+				if (Referee.isFriendlyFreeKickState(World.NextRefereeState)) {
+					offset = -Vector.fromPolar(UtilAttack.freekickPrepareRobotAngle(), dist);
+				} else {
+					offset = (World.Geometry.FriendlyGoal - this._ball.pos).withLength(dist);
+				}
 				this._currentTargetPos = this._ball.pos + offset;
 				this._robot.trajectory.update(CurvedMaxAccel, this._currentTargetPos, (-offset).angle());
 

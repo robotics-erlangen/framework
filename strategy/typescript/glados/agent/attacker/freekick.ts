@@ -274,13 +274,7 @@ export class FreeKick extends Behavior {
 			debug.set("pass", undefined);
 		}
 
-		// during the prepare states, position the robot so that it is between the
-		// field boundary and the ball. This ensures that the robot does not obscure the
-		// ball from the view of the camera, which can cause various problems during the freekick
-		let prepareRobotAngle = World.Ball.pos.x < 0 ? 0 : Math.PI;
-		if (Math.abs(World.Ball.pos.x) < 0.5) {
-			prepareRobotAngle = Math.PI / 2;
-		}
+		let prepareRobotAngle = Attack.freekickPrepareRobotAngle();
 
 		let PASS_TIMEFRAME = 3;
 		switch (this._state) {
