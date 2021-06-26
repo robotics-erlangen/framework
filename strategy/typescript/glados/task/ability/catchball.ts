@@ -166,7 +166,14 @@ export class CatchBall {
 				// QUICKFIX to prevent high speed movement towards defenseArea
 				// t/a/shoot for example does some calculations on the position that might move it out somewhat,
 				// therefore an extra buffer is needed
-				predictedBall.pos = Field.limitToAllowedField(predictedBall.pos, -World.Ball.radius - EXTRA_DISTANCE);
+				const totalExtraDistance = ball.radius + EXTRA_DISTANCE;
+				if (!Ball.isSlowBall()) {
+					const cut = Field.nextAllowedFieldLineCut(ball.pos, ball.speed, totalExtraDistance)[0];
+					if (cut) {
+						predictedBall.pos = cut;
+					}
+				}
+				predictedBall.pos = Field.limitToAllowedField(predictedBall.pos, -totalExtraDistance);
 			}
 		}
 
