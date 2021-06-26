@@ -217,7 +217,7 @@ export class Shoot {
 		let angleDiff = chaseFutureBall.speed.absoluteAngleDiff(shootVector);
 		let relativeBallPos = World.Ball.pos - this._robot.pos;
 		let sidewardsVector = shootVector.perpendicular().normalized();
-		let sidewardsBallSpeed = World.Ball.speed.dot(sidewardsVector);
+		let sidewardsBallSpeed = Math.abs(World.Ball.speed.dot(sidewardsVector));
 		let chaseBallAngle = CHASE_BALL_ANGLE + (this._state === ShootState.ChaseBall ? 1 : -1) * CHASE_BALL_ANGLE_HYST;
 		let sidewardsSpeedLimit = CHASE_BALL_SIDE_SPEED + (this._state === ShootState.ChaseBall ? 1 : -1) * CHASE_BALL_SIDE_SPEED_HYST;
 		if (chaseFutureBall.speed.length() > restingBallSpeed
