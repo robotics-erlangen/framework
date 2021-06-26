@@ -592,9 +592,11 @@ void Simulator::setTeam(Simulator::RobotMap &list, float side, const robot::Team
 void Simulator::moveBall(const sslsim::TeleportBall& ball)
 {
     // remove the dribbling constraint
-    for (const auto& robotList : {m_data->robotsBlue, m_data->robotsYellow}) {
-        for (const auto& it : robotList) {
-            it.first->stopDribbling();
+    if (!ball.has_by_force() || !ball.by_force()) {
+        for (const auto& robotList : {m_data->robotsBlue, m_data->robotsYellow}) {
+            for (const auto& it : robotList) {
+                it.first->stopDribbling();
+            }
         }
     }
 
@@ -668,7 +670,7 @@ void Simulator::moveRobot(const sslsim::TeleportRobot &robot) {
         if (!isPresent) return;
     }
 
-    if (!list.contains(robot.id().id())) return; //Recheck the list in case the has_present paragraph did change it.
+    if (!list.contains(robot.id().id())) return; // Recheck the list in case the has_present paragraph did change it.
 
 
     sslsim::TeleportRobot r = robot;
@@ -681,7 +683,9 @@ void Simulator::moveRobot(const sslsim::TeleportRobot &robot) {
     }
 
     SimRobot* sim_robot = list[robot.id().id()].first;
-    sim_robot->stopDribbling();
+    if (!r.has_by_force() || !r.by_force()) {
+        sim_robot->stopDribbling();
+    }
     sim_robot->move(r);
 }
 
