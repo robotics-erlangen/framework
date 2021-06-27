@@ -1,5 +1,6 @@
 import * as debug from "base/debug";
 import * as Field from "base/field";
+import * as geom from "base/geom";
 import * as BaseRef from "base/referee";
 import { FriendlyRobot } from "base/robot";
 import { Position, Vector } from "base/vector";
@@ -16,6 +17,7 @@ import * as ObserverShoot from "glados/observer/shoot";
 import { ShootGoal } from "glados/task/attacker/shootgoal";
 import { StopAttack } from "glados/task/attacker/stopattack";
 import { ChipToPos } from "glados/task/shared/chiptopos";
+import { DefenseChip } from "glados/task/shared/defensechip";
 import { Pass } from "glados/task/shared/pass";
 import * as Attack from "glados/util/attack";
 import * as ShootGoalUtil from "glados/util/shootgoal";
@@ -43,6 +45,10 @@ type Decision = {
 	pos: Position;
 	time: number;
 	quality: "clean" | "fallback";
+} | {
+	task: "chipAwayFromDefenseArea";
+	pos: Position;
+	quality: "clean";
 };
 
 export class Shoot extends Behavior {
@@ -61,6 +67,8 @@ export class Shoot extends Behavior {
 	private _passFrames: number = 0;
 	private _decisionFrames: number = 0;
 	private _ratePass: Attack.PassRater;
+
+	private readonly problematicDistance = 0.20 + this._robot.radius + World.Ball.radius;
 
 	/**
 	 * Create a new Shoot instance parameterized with a pass rating function.
@@ -145,6 +153,24 @@ export class Shoot extends Behavior {
 		this._passFrames = 0;
 		this._decisionFrames = 0;
 		this._wasPressed = Robot.isPressed(this._robot);
+
+		if (Math.abs(this._robot.pos.x) < G.DefenseWidth + 1
+				&& this._robot.pos.y < -(G.FieldHeightHalf - G.DefenseHeight - 1)) {
+
+			const obscured = this.isChipObscured();
+
+			const isGame = World.RefereeState === "Game" || World.RefereeState === "GameForce";
+			if (isGame
+					&& !obscured
+					&& Vector.fromAngle(this._robot.dir).absoluteAngleDiff(this._robot.pos - G.FriendlyGoal) < 90 * Math.PI / 180
+					&& Robot.hadBall(this._robot, 0)) {
+				return {
+					task: "chipAwayFromDefenseArea",
+					pos: this._robot.pos + Vector.fromAngle(this._robot.dir) * 2,
+					quality: "clean",
+				};
+			}
+		}
 
 		// perform clean goal shots if possible
 		if (Shoot._shootGoalPossible(this._robot, this._attackPosition)[0]) {
@@ -283,6 +309,18 @@ export class Shoot extends Behavior {
 		};
 	}
 
+	private isChipObscured(): boolean {
+		let obscured = false;
+		for (let opponent of World.OpponentRobots) {
+			const intersection = geom.intersectLineCircle(this._robot.pos, Vector.fromAngle(this._robot.dir), opponent.pos, opponent.radius + this._robot.radius);
+			if (intersection.length === 4 && (intersection[2] < this.problematicDistance || (intersection[3] != undefined && intersection[3] < this.problematicDistance))) {
+				obscured = true;
+				break;
+			}
+		}
+		return obscured;
+	}
+
 	private _redeciding(): boolean {
 
 		if (Ball.wasShot(0.25)) {
@@ -301,6 +339,32 @@ export class Shoot extends Behavior {
 		// always redecide if no decision has been made yet
 		if (this._activeFrames < 2 || this._decision.task === "none") {
 			debug.set("redeciding", "TRUE (initial)");
+			return true;
+		}
+
+		if (this._decision.task === "chipAwayFromDefenseArea") {
+			if (Math.abs(this._robot.pos.x) > G.DefenseWidth + 1.1
+					&& this._robot.pos.y > -(G.FieldHeightHalf - G.DefenseHeight - 1.1)) {
+
+				return true;
+			}
+
+			const obscured = this.isChipObscured();
+
+			const isGame = World.RefereeState === "Game" || World.RefereeState === "GameForce";
+			if (!isGame
+					|| obscured
+					|| Vector.fromAngle(this._robot.dir).absoluteAngleDiff(this._robot.pos - G.FriendlyGoal) > 100 * Math.PI / 180
+					|| !Robot.hadBall(this._robot, 0.1)) {
+
+				return true;
+			}
+		} else if (Math.abs(this._robot.pos.x) < G.DefenseWidth + 0.9
+				&& this._robot.pos.y < -(G.FieldHeightHalf - G.DefenseHeight - 0.9)
+				&& !this.isChipObscured()
+				&& Vector.fromAngle(this._robot.dir).absoluteAngleDiff(this._robot.pos - G.FriendlyGoal) < 80 * Math.PI / 180
+				&& Robot.hadBall(this._robot, 0.1)) {
+
 			return true;
 		}
 
@@ -430,7 +494,7 @@ export class Shoot extends Behavior {
 		return false;
 	}
 
-	_updateTask(): TaskAssignment<typeof Pass> | TaskAssignment<typeof ShootGoal> | TaskAssignment<typeof ChipToPos> | TaskAssignment<typeof StopAttack> {
+	_updateTask(): TaskAssignment<typeof Pass> | TaskAssignment<typeof ShootGoal> | TaskAssignment<typeof ChipToPos> | TaskAssignment<typeof StopAttack> | TaskAssignment<typeof DefenseChip> {
 		let pressed = Robot.isPressed(this._robot);
 		let color = pressed ? vis.colors.redHalf : vis.colors.greenHalf;
 		vis.addCircle("a/a/shoot: pressed", this._robot.pos, 0.3, color, true);
@@ -530,6 +594,10 @@ export class Shoot extends Behavior {
 
 		if (this._decision.task === "chipToPos") {
 			return [ChipToPos, [this._decision.pos, this._decision.time, this._attackPosition]];
+		}
+
+		if (this._decision.task === "chipAwayFromDefenseArea") {
+			return [DefenseChip];
 		}
 
 		// error: invalid decision
