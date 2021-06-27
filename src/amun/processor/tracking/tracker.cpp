@@ -411,6 +411,7 @@ void Tracker::invalidateBall(qint64 currentTime)
     });
 
     // remove outdated filters
+    QList<BallTracker*> possibleRemovals;
     QMutableListIterator<BallTracker*> it(m_ballFilter);
     while (it.hasNext()) {
         BallTracker *filter = it.next();
@@ -418,7 +419,7 @@ void Tracker::invalidateBall(qint64 currentTime)
         qint64 timeLimit;
         if (filter->frameCounter() < minFrameCount) {
             timeLimit = maxTimeBall;
-        } else if (filter->isFeasiblyInvisible() && longLivingFilters == 1) {
+        } else if (longLivingFilters == 1 && filter->isFeasiblyInvisible()) {
             timeLimit = maxTimeFeasibleBall;
         } else if (longLivingFilters > 1) {
             timeLimit = maxTimeBall;
@@ -426,9 +427,32 @@ void Tracker::invalidateBall(qint64 currentTime)
             timeLimit = maxTimeLastBall;
         }
         if (filter->lastUpdate() + timeLimit < currentTime) {
-            delete filter;
+            if (filter->frameCounter() < 3) {
+                delete filter;
+            } else {
+                possibleRemovals.append(filter);
+            }
             it.remove();
         }
+    }
+    if (possibleRemovals.size() > 0) {
+        std::sort(possibleRemovals.begin(), possibleRemovals.end(), [](BallTracker *f1, BallTracker *f2) {
+            if (f1->isFeasiblyInvisible() != f2->isFeasiblyInvisible()) {
+                return f1->isFeasiblyInvisible() > f2->isFeasiblyInvisible();
+            }
+            return f1->initTime() < f2->initTime();
+        });
+        // avoid collecting too many filters with a lot of balls/bad detections
+        while (possibleRemovals.size() > 5) {
+            BallTracker* toRemove = possibleRemovals.back();
+            possibleRemovals.pop_back();
+            delete toRemove;
+        }
+        // always remove at least one
+        BallTracker* toRemove = possibleRemovals.back();
+        possibleRemovals.pop_back();
+        delete toRemove;
+        m_ballFilter.append(possibleRemovals);
     }
 }
 
