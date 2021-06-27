@@ -11,7 +11,7 @@ import { Agent } from "glados/agent/base/agent";
 import { CheckableList } from "glados/agent/base/behavior";
 import { BallLike, Objective } from "glados/agent/base/objective";
 import { MidfieldSampling } from "glados/task/ability/midfieldsampling";
-import { defaultRatePass } from "glados/util/attack";
+import { midfieldRatePass } from "glados/util/attack";
 import { getRandomPosition, Zone } from "glados/util/zone";
 
 const G = World.Geometry;
@@ -27,13 +27,13 @@ export class Midfield extends Objective {
 
 	private static MA_RUNNER = parameterizeClass(CheckableList, [
 		PassTiming,
-		parameterizeClass(Shoot, defaultRatePass),
+		parameterizeClass(Shoot, midfieldRatePass),
 	]);
 	private static FREEKICK_RUNNER = parameterizeClass(CheckableList, [
-		parameterizeClass(FreeKick, defaultRatePass),
+		parameterizeClass(FreeKick, midfieldRatePass),
 		DoubleTouchGuard,
 		PassTiming,
-		parameterizeClass(Shoot, defaultRatePass),
+		parameterizeClass(Shoot, midfieldRatePass),
 	]);
 	private static SUPPORT_RUNNER = parameterizeClass(Support, { isStriker: false, samplingCtor: MidfieldSampling });
 
