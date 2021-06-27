@@ -88,7 +88,15 @@ export class CenterBack extends Task {
 					&&  this._robot.pos.distanceTo(destinationPos) < 1) {
 			debug.set("chip", true);
 			this._forceShoot._doForceShoot();
-			this._robot.chip(2);
+			let robotSpeed = this._robot.speed;
+			let ballSpeed = World.Ball.speed;
+			let robotSpeedProjectionOnBallSpeed = (ballSpeed.dot(robotSpeed - ballSpeed) * ballSpeed) / Math.pow(ballSpeed.length(), 2);
+			let projectionBoundary = 5;
+			if (robotSpeedProjectionOnBallSpeed.angle() > 0 && robotSpeedProjectionOnBallSpeed.length() > projectionBoundary) {
+				this._robot.chip(1.5);
+			} else {
+				this._robot.chip(2);
+			}
 		}
 
 		// centerbacks always have opponent robot obstacles during opponent ball placement,
