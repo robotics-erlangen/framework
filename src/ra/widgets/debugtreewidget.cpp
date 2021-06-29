@@ -71,6 +71,7 @@ DebugTreeWidget::~DebugTreeWidget()
 void DebugTreeWidget::setFilterRegEx(const QString &keyFilter, const QString &valueFilter)
 {
     m_modelTree->setFilterRegEx(keyFilter, valueFilter);
+    m_modelTree->clearData();
     // publish last statuses again for filtering
     for (const Status &status: m_lastStatus) {
         for (const auto& debug: status->debug()) {
