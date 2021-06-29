@@ -36,7 +36,7 @@ class QMenu;
 class QGestureEvent;
 struct VirtualFieldConfiguration;
 
-enum class TrackingFrom{BOTH, REFEREE, YELLOW, BLUE, NONE};
+enum class TrackingFrom{RA, AUTOREF, YELLOW, BLUE, NONE};
 
 class FieldWidget : public QGraphicsView
 {
@@ -89,7 +89,7 @@ private:
     enum class RobotVisualisation{RA, SEE_THROUGH, VISION};
 
     struct DrawScene {
-        Status lastWorldState;
+        QMap<TrackingFrom, Status> lastWorldState;
         world::Geometry geometry;
         // save status to avoid copying the debug values
         QMap<int, Status> visualizations;

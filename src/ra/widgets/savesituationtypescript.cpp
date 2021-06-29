@@ -62,16 +62,6 @@ void saveSituationTypescript(TrackingFrom useTrackingFrom, world::State worldSta
         return;
     }
 
-    // basically the same tracking from assembly that also happens in the strategy
-    if (useTrackingFrom != TrackingFrom::YELLOW && worldState.simple_tracking_yellow_size() > 0) {
-        worldState.clear_yellow();
-        worldState.mutable_yellow()->CopyFrom(worldState.simple_tracking_yellow());
-    }
-    if (useTrackingFrom != TrackingFrom::BLUE && worldState.simple_tracking_blue_size() > 0) {
-        worldState.clear_blue();
-        worldState.mutable_blue()->CopyFrom(worldState.simple_tracking_blue());
-    }
-
     // get rid of some unwanted fields that will only pollute the file and are not necessary for the strategy
     // this is the same as in js_amun getWorldState
     worldState.clear_vision_frames();

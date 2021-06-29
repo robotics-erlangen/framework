@@ -219,7 +219,7 @@ FieldWidget::FieldWidget(QWidget *parent) :
 
     QSignalMapper *saveSituationMapper = new QSignalMapper(saveSituationTsMenu);
     connect(actionSaveSituationTsAutoref, SIGNAL(triggered()), saveSituationMapper, SLOT(map()));
-    saveSituationMapper->setMapping(actionSaveSituationTsAutoref, static_cast<int>(TrackingFrom::REFEREE));
+    saveSituationMapper->setMapping(actionSaveSituationTsAutoref, static_cast<int>(TrackingFrom::AUTOREF));
     connect(actionSaveSituationTsBlue, SIGNAL(triggered()), saveSituationMapper, SLOT(map()));
     saveSituationMapper->setMapping(actionSaveSituationTsBlue, static_cast<int>(TrackingFrom::BLUE));
     connect(actionSaveSituationTsYellow, SIGNAL(triggered()), saveSituationMapper, SLOT(map()));
@@ -237,8 +237,8 @@ FieldWidget::FieldWidget(QWidget *parent) :
     trackingFromMenu->setToolTip("Changes point of view of the robot position tracking.");
     m_contextMenu->setToolTipsVisible(true);
 
-    QAction *actionTrackingFromBoth = trackingFromMenu->addAction("Both");
-    actionTrackingFromBoth->setCheckable(true);
+    QAction *actionTrackingFromRa = trackingFromMenu->addAction("Ra");
+    actionTrackingFromRa->setCheckable(true);
 
     QAction *actionTrackingFromRef = trackingFromMenu->addAction("Autoref");
     actionTrackingFromRef->setCheckable(true);
@@ -253,10 +253,10 @@ FieldWidget::FieldWidget(QWidget *parent) :
     actionTrackingFromNone->setCheckable(true);
 
     QSignalMapper *trackingMapper = new QSignalMapper(m_contextMenu);
-    connect(actionTrackingFromBoth, SIGNAL(triggered()), trackingMapper, SLOT(map()));
-    trackingMapper->setMapping(actionTrackingFromBoth, static_cast<int>(TrackingFrom::BOTH));
+    connect(actionTrackingFromRa, SIGNAL(triggered()), trackingMapper, SLOT(map()));
+    trackingMapper->setMapping(actionTrackingFromRa, static_cast<int>(TrackingFrom::RA));
     connect(actionTrackingFromRef, SIGNAL(triggered()), trackingMapper, SLOT(map()));
-    trackingMapper->setMapping(actionTrackingFromRef, static_cast<int>(TrackingFrom::REFEREE));
+    trackingMapper->setMapping(actionTrackingFromRef, static_cast<int>(TrackingFrom::AUTOREF));
     connect(actionTrackingFromYellow, SIGNAL(triggered()), trackingMapper, SLOT(map()));
     trackingMapper->setMapping(actionTrackingFromYellow, static_cast<int>(TrackingFrom::YELLOW));
     connect(actionTrackingFromBlue, SIGNAL(triggered()), trackingMapper, SLOT(map()));
@@ -268,14 +268,14 @@ FieldWidget::FieldWidget(QWidget *parent) :
 
     QActionGroup *trackingGroup = new QActionGroup(trackingFromMenu);
     trackingGroup->setExclusive(true);
-    trackingGroup->addAction(actionTrackingFromBoth);
+    trackingGroup->addAction(actionTrackingFromRa);
     trackingGroup->addAction(actionTrackingFromRef);
     trackingGroup->addAction(actionTrackingFromYellow);
     trackingGroup->addAction(actionTrackingFromBlue);
     trackingGroup->addAction(actionTrackingFromNone);
 
-    m_trackingFrom = TrackingFrom::BOTH;
-    actionTrackingFromBoth->setChecked(true);
+    m_trackingFrom = TrackingFrom::RA;
+    actionTrackingFromRa->setChecked(true);
 
     m_actionShowVision = m_contextMenu->addAction("Show vision");
     m_actionShowVision->setCheckable(true);
@@ -429,10 +429,26 @@ void FieldWidget::toggleStrategyVisualizations()
 
 void FieldWidget::handleStatus(const Status &status)
 {
-    if (status->has_world_state()) {
+    const bool hasRa = status->has_world_state() && (m_trackingFrom == TrackingFrom::RA || m_trackingFrom == TrackingFrom::NONE);
+    const bool hasBlue = status->has_execution_state() && (m_trackingFrom == TrackingFrom::BLUE && status->has_blue_running());
+    const bool hasYellow = status->has_execution_state() && (m_trackingFrom == TrackingFrom::YELLOW && status->has_yellow_running());
+    const bool hasAutoref = status->has_execution_state() && (m_trackingFrom == TrackingFrom::AUTOREF && status->has_autoref_running());
+    if (hasRa || hasBlue || hasYellow || hasAutoref) {
         m_worldState.append(status);
-        m_drawScenes[m_currentScene].lastWorldState = status;
         m_guiTimer->requestTriggering();
+    }
+    if (status->has_world_state()) {
+        m_drawScenes[m_currentScene].lastWorldState[TrackingFrom::RA] = status;
+        m_drawScenes[m_currentScene].lastWorldState[TrackingFrom::NONE] = status;
+    }
+    if (status->has_execution_state()) {
+        if (status->has_blue_running()) {
+            m_drawScenes[m_currentScene].lastWorldState[TrackingFrom::BLUE] = status;
+        } else if (status->has_yellow_running()) {
+            m_drawScenes[m_currentScene].lastWorldState[TrackingFrom::YELLOW] = status;
+        } else if (status->has_autoref_running()) {
+            m_drawScenes[m_currentScene].lastWorldState[TrackingFrom::AUTOREF] = status;
+        }
     }
 
     if (status->has_game_state()) {
@@ -863,7 +879,8 @@ void FieldWidget::updateDetection()
         if (m_worldState[k].isNull()) {
             continue;
         }
-        const world::State &worldState = m_worldState[k]->world_state();
+        const bool useExecutionState = m_trackingFrom == TrackingFrom::BLUE || m_trackingFrom == TrackingFrom::YELLOW || m_trackingFrom == TrackingFrom::AUTOREF;
+        const world::State &worldState = useExecutionState ? m_worldState[k]->execution_state() : m_worldState[k]->world_state();
         const bool isLast = (k == (m_worldState.size() - 1));
 
         // pre-clean all traces, independent of existence of ball / robot
@@ -885,9 +902,8 @@ void FieldWidget::updateDetection()
             }
 
             // update the individual robots
-            bool useSimpleBlueTracking = worldState.simple_tracking_blue_size() > 0 && (m_trackingFrom == TrackingFrom::REFEREE || m_trackingFrom == TrackingFrom::YELLOW);
             for (int i = 0; i < worldState.blue_size(); i++) {
-                const world::Robot &robot = useSimpleBlueTracking ? worldState.simple_tracking_blue(i) : worldState.blue(i);
+                const world::Robot &robot = worldState.blue(i);
                 const robot::Specs &specs = m_teamBlue[robot.id()];
                 if (isLast) {
                     setRobot(robot, specs, m_robotsBlue, Qt::blue);
@@ -895,9 +911,8 @@ void FieldWidget::updateDetection()
                 addRobotTrace(worldState.time(), robot, m_robotBlueTrace, m_robotBlueRawTrace);
             }
 
-            bool useSimpleYellowTracking = worldState.simple_tracking_yellow_size() > 0 && (m_trackingFrom == TrackingFrom::REFEREE || m_trackingFrom == TrackingFrom::BLUE);
             for (int i = 0; i < worldState.yellow_size(); i++) {
-                const world::Robot &robot = useSimpleYellowTracking ? worldState.simple_tracking_yellow(i) : worldState.yellow(i);
+                const world::Robot &robot = worldState.yellow(i);
                 const robot::Specs &specs = m_teamYellow[robot.id()];
                 if (isLast) {
                     setRobot(robot, specs, m_robotsYellow, Qt::yellow);
@@ -1384,7 +1399,7 @@ void FieldWidget::setFieldOrientation(float rotation)
     clear(m_realRobotsYellow);
 
     // recreate robots on redraw
-    m_worldState.append(m_drawScenes[m_currentScene].lastWorldState);
+    m_worldState.append(m_drawScenes[m_currentScene].lastWorldState[m_trackingFrom]);
     m_guiTimer->requestTriggering();
 }
 
@@ -2175,20 +2190,24 @@ void FieldWidget::takeScreenshot()
 
 void FieldWidget::saveSituationLua()
 {
-    if (m_drawScenes[m_currentScene].lastWorldState.isNull()) {
+    const Status &status = m_drawScenes[m_currentScene].lastWorldState[m_trackingFrom];
+    if (status.isNull()) {
         return;
     }
-    ::saveSituation(m_drawScenes[m_currentScene].lastWorldState->world_state(), m_gameState);
+    const world::State& worldState = status->has_execution_state() ? status->execution_state() : status->world_state();
+    ::saveSituation(worldState, m_gameState);
 }
 
 void FieldWidget::saveSituationTypescript(int trackingFromInt)
 {
-    if (m_drawScenes[m_currentScene].lastWorldState.isNull()) {
+    auto trackingFrom = static_cast<TrackingFrom>(trackingFromInt);
+    const Status &status = m_drawScenes[m_currentScene].lastWorldState[trackingFrom];
+    if (status.isNull()) {
         return;
     }
-    auto trackingFrom = static_cast<TrackingFrom>(trackingFromInt);
-    ::saveSituationTypescript(trackingFrom, m_drawScenes[m_currentScene].lastWorldState->world_state(),
-                              m_gameState, m_drawScenes[m_currentScene].geometry, m_teamBlue, m_teamYellow);
+    const world::State& worldState = status->has_execution_state() ? status->execution_state() : status->world_state();
+    const amun::GameState gameState = status->has_execution_game_state() ? status->execution_game_state() : m_gameState;
+    ::saveSituationTypescript(trackingFrom, worldState, gameState, m_drawScenes[m_currentScene].geometry, m_teamBlue, m_teamYellow);
 }
 
 void FieldWidget::restoreSituation()
@@ -2248,21 +2267,21 @@ void FieldWidget::Robot::show()
 void FieldWidget::setTrackingFrom(int newViewPoint)
 {
     m_trackingFrom = static_cast<TrackingFrom>(newViewPoint);
-    m_worldState.append(m_drawScenes[m_currentScene].lastWorldState);
+    m_worldState.append(m_drawScenes[m_currentScene].lastWorldState[m_trackingFrom]);
     updateDetection();
 }
 
 void FieldWidget::setShowVision(bool enable)
 {
     m_showVision = enable;
-    m_worldState.append(m_drawScenes[m_currentScene].lastWorldState);
+    m_worldState.append(m_drawScenes[m_currentScene].lastWorldState[m_trackingFrom]);
     updateDetection();
 }
 
 void FieldWidget::setShowTruth(bool enable)
 {
     m_showTruth = enable;
-    m_worldState.append(m_drawScenes[m_currentScene].lastWorldState);
+    m_worldState.append(m_drawScenes[m_currentScene].lastWorldState[m_trackingFrom]);
     updateDetection();
 }
 
@@ -2280,9 +2299,10 @@ void FieldWidget::switchScene(int scene)
     m_visualizationsUpdated = true;
     updateVisualizations();
 
-    if (!m_drawScenes[m_currentScene].lastWorldState.isNull()
-            && m_drawScenes[m_currentScene].lastWorldState->has_world_state()) {
-        m_worldState.append(m_drawScenes[m_currentScene].lastWorldState);
+    if (!m_drawScenes[m_currentScene].lastWorldState[m_trackingFrom].isNull()
+            && (m_drawScenes[m_currentScene].lastWorldState[m_trackingFrom]->has_world_state()
+                || m_drawScenes[m_currentScene].lastWorldState[m_trackingFrom]->has_execution_state())) {
+        m_worldState.append(m_drawScenes[m_currentScene].lastWorldState[m_trackingFrom]);
         updateDetection();
     }
 }
