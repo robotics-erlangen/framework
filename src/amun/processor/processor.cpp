@@ -184,7 +184,9 @@ Status Processor::assembleStatus(Tracker &tracker, qint64 time, bool resetRaw)
         for(const QByteArray& data : m_extraVision) {
             status->mutable_world_state()->add_reality()->ParseFromArray(data.data(), data.size());
         }
-        m_extraVision.clear();
+        if (resetRaw) {
+            m_extraVision.clear();
+        }
     }
 
     if (status->has_geometry()) {
