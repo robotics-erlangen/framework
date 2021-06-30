@@ -423,7 +423,7 @@ std::tuple<QList<QByteArray>, QByteArray, qint64> Simulator::createVisionPacket(
         for (const auto& it : team) {
             SimRobot* robot = it.first;
             auto* robotProto = teamIsBlue ? simState.add_blue_robots() : simState.add_yellow_robots();
-            robot->update(robotProto);
+            robot->update(robotProto, m_data->ball);
 
             if (m_time - robot->getLastSendTime() >= m_minRobotDetectionTime) {
                 const float timeDiff = (m_time - robot->getLastSendTime()) * 1E-9;
