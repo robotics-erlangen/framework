@@ -69,6 +69,7 @@ signals:
     void updateRefereePort(quint16 port);
     void gotRefereeHost(QString hostName);
     void useInternalGameController(bool useInternal);
+    void gotCommandForGC(const amun::CommandReferee &command);
 
 public:
     void start();

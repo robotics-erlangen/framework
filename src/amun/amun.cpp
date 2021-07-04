@@ -188,6 +188,7 @@ void Amun::start()
         connect(this, &Amun::gotRefereeHost, m_gameControllerConnection[i].get(), &GameControllerConnection::handleRefereeHost);
         connect(this, &Amun::useInternalGameController, m_gameControllerConnection[i].get(), &GameControllerConnection::switchInternalGameController);
         connect(this, &Amun::useInternalGameController, m_processor->getInternalGameController(), &SSLGameController::setEnabled);
+        connect(this, &Amun::gotCommandForGC, m_processor->getInternalGameController(), &SSLGameController::handleCommand);
 
         Q_ASSERT(m_strategy[i] == nullptr);
         m_strategy[i] = new Strategy(m_timer, strategy, m_debugHelper[i], &m_compilerRegistry, m_gameControllerConnection[i], i == 2, false, m_pathInputSaver);
@@ -467,6 +468,8 @@ void Amun::handleCommandLocally(const Command &command)
         }
         // send out even if it does not change, since the default value may vary between objects (GC)
         emit useInternalGameController(internalAutoref);
+
+        emit gotCommandForGC(referee);
     }
 
     if (command->has_replay()) {

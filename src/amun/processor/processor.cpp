@@ -143,7 +143,6 @@ Processor::Processor(const Timer *timer, bool isReplay) :
     connect(m_gameController, &SSLGameController::sendStatus, this, &Processor::sendStatus);
     connect(m_gameController, &SSLGameController::gotPacketForReferee, m_refereeInternal, &Referee::handlePacket);
     connect(this, &Processor::sendStatus, m_gameController, &SSLGameController::handleStatus);
-    connect(this, &Processor::gotCommandForGC, m_gameController, &SSLGameController::handleCommand);
     connect(this, &Processor::setFlipped, m_gameController, &SSLGameController::setFlip);
 
     // start processing
@@ -485,8 +484,6 @@ void Processor::handleCommand(const Command &command)
         if (refereeCommand.has_active()) {
             m_refereeInternalActive = refereeCommand.active();
         }
-
-        emit gotCommandForGC(refereeCommand);
     }
 
     if (command->has_control()) {

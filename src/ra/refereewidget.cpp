@@ -31,7 +31,10 @@
 #include <memory>
 
 RefereeWidget::RefereeWidget(QWidget *parent) :
-    QWidget(parent), m_yellowKeeperId(0), m_blueKeeperId(0), m_stage(SSL_Referee::NORMAL_FIRST_HALF)
+    QWidget(parent),
+    m_yellowKeeperId(0),
+    m_blueKeeperId(0),
+    m_stage(SSL_Referee::NORMAL_FIRST_HALF)
 {
     ui = new Ui::RefereeWidget;
     ui->setupUi(this);
@@ -113,9 +116,15 @@ void RefereeWidget::load()
 {
     QSettings s;
     s.beginGroup("Referee");
+
+    // this section MUST be first, in order for the internal ssl game controller not to swallow
+    // the referee updates in its brief activation
+    ui->useInternalAutoref->setChecked(s.value("useInternalAutoref", false).toBool());
+    // emit some values regardless of change, so that it works with amun wether or not the default values match
+    emit enableInternalAutoref(ui->useInternalAutoref->isChecked());
+
     ui->keeperIdYellow->setValue(s.value("YellowKeeper", 0).toInt());
     ui->keeperIdBlue->setValue(s.value("BlueKeeper", 0).toInt());
-    ui->useInternalAutoref->setChecked(s.value("useInternalAutoref", false).toBool());
     ui->sidesFlipped->setChecked(s.value("SidesFlipped", false).toBool());
     ui->boxDivision->setCurrentText(s.value("Division", "A").toString());
     ui->enableRobotExchange->setChecked(s.value("RobotExchange", true).toBool());
@@ -131,9 +140,6 @@ void RefereeWidget::load()
 
     ui->autoref->setRecentScripts(m_recentScripts);
     ui->autoref->load();
-
-    // emit some values regardless of change, so that it works with amun wether or not the default values match
-    emit enableInternalAutoref(ui->useInternalAutoref->isChecked());
 }
 
 void RefereeWidget::enableNumberShortcuts(bool enable)

@@ -58,7 +58,6 @@ signals:
     void sendStrategyStatus(const Status &status);
     void sendRadioCommands(const QList<robot::RadioCommand> &commands, qint64 processingStart);
     void setFlipped(bool flipped);
-    void gotCommandForGC(const amun::CommandReferee &command);
 
 public slots:
     void setScaling(double scaling);
