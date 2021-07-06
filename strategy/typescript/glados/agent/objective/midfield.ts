@@ -42,7 +42,7 @@ export class Midfield extends Objective {
 			return false;
 		}
 
-		return ball.pos.y < 0;
+		return ball.pos.y < -G.FieldHeightQuarter / 2;
 	}
 
 	canContinue = (ball: BallLike) => {
