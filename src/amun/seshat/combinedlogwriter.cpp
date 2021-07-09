@@ -88,6 +88,8 @@ CombinedLogWriter::~CombinedLogWriter()
     if (m_logFile) {
         connect(m_logFile, &LogFileWriter::destroyed, m_logFileThread, &QThread::quit, Qt::DirectConnection);
         m_logFile->deleteLater();
+    } else if (m_logFileThread) {
+        m_logFileThread->quit();
     }
     if (m_logFileThread) {
         // is quit by deleting m_logFile
