@@ -344,6 +344,10 @@ void Plotter::handleStatus(const Status &status, bool backlogStatus)
                 parseMessage(p, rawParent, (p.time() - m_startTime) * 1E-9f);
             }
         }
+        for (int i = 0; i < worldState.simple_tracking_yellow_size(); i++) {
+            const world::Robot &robot = worldState.simple_tracking_yellow(i);
+            parseMessage(robot, QString(QStringLiteral("Yellow.%1.without radio commands")).arg(robot.id()), time);
+        }
 
         for (int i = 0; i < worldState.blue_size(); i++) {
             const world::Robot &robot = worldState.blue(i);
@@ -354,6 +358,10 @@ void Plotter::handleStatus(const Status &status, bool backlogStatus)
                 const world::RobotPosition &p = robot.raw(i);
                 parseMessage(p, rawParent, (p.time() - m_startTime) * 1E-9f);
             }
+        }
+        for (int i = 0; i < worldState.simple_tracking_blue_size(); i++) {
+            const world::Robot &robot = worldState.simple_tracking_blue(i);
+            parseMessage(robot, QString(QStringLiteral("Blue.%1.without radio commands")).arg(robot.id()), time);
         }
 
         for (int i = 0; i < worldState.radio_response_size(); i++) {
