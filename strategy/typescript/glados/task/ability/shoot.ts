@@ -74,7 +74,7 @@ const MIN_PRECISION = 3.5 * Math.PI / 180;
 const MIN_PRECISION_CHASE = 6 * Math.PI / 180;
 
 // if the robot can rotate in place with the ball without loosing it
-const HAS_STRONG_DRIBBLER = true;
+const HAS_STRONG_DRIBBLER = false;
 
 enum ShootState {
 	StationaryBall = "StationaryBall", ChaseBall = "ChaseBall", Volley = "Volley",
