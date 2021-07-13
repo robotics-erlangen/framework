@@ -1,5 +1,5 @@
 # ***************************************************************************
-# *   Copyright 2015 Michael Bleier, Philipp Nordhus                        *
+# *   Copyright 2021 Tobias Heineken                                        *
 # *   Robotics Erlangen e.V.                                                *
 # *   http://www.robotics-erlangen.de/                                      *
 # *   info@robotics-erlangen.de                                             *
@@ -18,26 +18,24 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-# firmware
-add_subdirectory(firmware)
+execute_process(COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_CURRENT_BINARY_DIR}/stamp)
 
-# libs
-add_subdirectory(config)
-add_subdirectory(git)
-add_subdirectory(core)
-add_subdirectory(protobuf)
-add_subdirectory(amun)
-add_subdirectory(visionlog)
-add_subdirectory(timeline)
+add_custom_command(
+    OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/gitconfig.cpp"
+    MAIN_DEPENDENCY gitconfig.cpp.in
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/stamp
+    DEPENDS ${CMAKE_SOURCE_DIR}/cmake/checkGit.cmake
+    COMMAND ${CMAKE_COMMAND} -D TARGET=${CMAKE_CURRENT_BINARY_DIR}/gitconfig.cpp -D GIT_BASE_DIR=${CMAKE_SOURCE_DIR} -D SOURCE=${CMAKE_CURRENT_SOURCE_DIR}/gitconfig.cpp.in -D STAMP=${CMAKE_CURRENT_BINARY_DIR}/stamp -P ${CMAKE_SOURCE_DIR}/cmake/checkGit.cmake
+    COMMENT "Checking git"
+)
 
-# apps
-add_subdirectory(ra)
-add_subdirectory(logplayer)
-add_subdirectory(amuncli)
-add_subdirectory(replaycli)
-add_subdirectory(visionanalyzer)
-add_subdirectory(logcuttercli)
-add_subdirectory(loganalyzer)
-add_subdirectory(trajectorycli)
-add_subdirectory(tests)
-add_subdirectory(simulator)
+add_library(gitconfig
+    ${CMAKE_CURRENT_BINARY_DIR}/gitconfig.cpp
+    include/git/gitconfig.h
+    )
+
+target_include_directories(gitconfig
+    INTERFACE include
+    PRIVATE include/git
+)
+add_library(shared::gitconfig ALIAS gitconfig)
