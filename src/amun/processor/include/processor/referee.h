@@ -24,6 +24,7 @@
 #include "protobuf/gamestate.pb.h"
 #include "protobuf/ssl_referee.pb.h"
 #include "protobuf/world.pb.h"
+#include <optional>
 #include <QByteArray>
 #include <QObject>
 #include <memory>
