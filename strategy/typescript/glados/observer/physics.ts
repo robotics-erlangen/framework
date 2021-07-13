@@ -388,7 +388,7 @@ export function chipPassTime(startPos: Position, endPos: Position): number {
 export function ballTravelTime(ball: BallLike & {posZ: number, initSpeedZ: number, speedZ: number}, distance: number): number {
 	if (ball.posZ > 0 || ball.initSpeedZ > 0) { // ball is flying
 		let [newBall, time, restDist] = ballFlightTime(ball, distance);
-		if (restDist != undefined) { // bouncing over
+		if (restDist > 0) { // bouncing over
 			return time + ballRollTime(newBall, restDist);
 		} else {// ball still in the air or bouncing
 			return time;
