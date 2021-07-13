@@ -3,6 +3,7 @@ import * as Field from "base/field";
 import * as geom from "base/geom";
 import * as MathUtil from "base/mathutil";
 import * as Referee from "base/referee";
+import { FriendlyRobot } from "base/robot";
 import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
@@ -20,6 +21,16 @@ import { ToTarget } from "glados/trajectory/totarget";
 import * as UtilDefense from "glados/util/defense";
 
 const G = World.Geometry;
+
+function ballShotFastAtRobot(robot: FriendlyRobot): boolean {
+	const robotSpeed = robot.speed;
+	const ballSpeed = World.Ball.speed;
+	const robotSpeedProjectionOnBallSpeed = (ballSpeed.dot(robotSpeed - ballSpeed) * ballSpeed) / Math.pow(ballSpeed.length(), 2);
+	const projectionBoundary = 5;
+
+	return robotSpeedProjectionOnBallSpeed.angle() > 0
+		&& robotSpeedProjectionOnBallSpeed.length() > projectionBoundary;
+}
 
 export class CenterBack extends Task {
 	private _preliminaryCenterbackTarget: {pos: Position};
@@ -88,11 +99,8 @@ export class CenterBack extends Task {
 					&&  this._robot.pos.distanceTo(destinationPos) < 1) {
 			debug.set("chip", true);
 			this._forceShoot._doForceShoot();
-			let robotSpeed = this._robot.speed;
-			let ballSpeed = World.Ball.speed;
-			let robotSpeedProjectionOnBallSpeed = (ballSpeed.dot(robotSpeed - ballSpeed) * ballSpeed) / Math.pow(ballSpeed.length(), 2);
-			let projectionBoundary = 5;
-			if (robotSpeedProjectionOnBallSpeed.angle() > 0 && robotSpeedProjectionOnBallSpeed.length() > projectionBoundary) {
+
+			if (ballShotFastAtRobot(this._robot)) {
 				this._robot.chip(1.5);
 			} else {
 				this._robot.chip(2);
