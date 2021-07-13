@@ -54,6 +54,117 @@ interface PassObject {
  */
 export type PassRater = (robot: FriendlyRobot, pass: PassObject, earliestAttackTime: number | undefined, considerTiming: boolean) => number;
 
+const passShootTime = (robot: FriendlyRobot, pass: PassObject, earliestAttackTime: number | undefined) => {
+	if (earliestAttackTime != undefined) {
+		return earliestAttackTime - World.Time;
+	} else {
+		if (Ball.receivesPass(robot)) {
+			let dribblerPos = robot.pos + (World.Ball.pos - robot.pos).withLength(
+				robot.shootRadius + World.Ball.radius);
+			let shootTime = Physics.checkedBallRollTime(World.Ball, dribblerPos);
+			if (shootTime === -Infinity) {
+				shootTime = Robot.minShootTime(robot, pass.ballPos);
+			}
+			return shootTime;
+		} else {
+			return Robot.minShootTime(robot, pass.ballPos);
+		}
+	}
+};
+
+const ratePassTiming = (robot: FriendlyRobot, pass: PassObject, shootTime: number, shootPos: Position) => {
+	const passTime = Shoot.ballPassTime(shootPos, pass.ballPos, pass.target, undefined, robot);
+	const ballArrivalTime = shootTime + passTime + World.Time;
+	return 0.1 + Rating.valueToRating(ballArrivalTime - pass.time, -0.1, 0.1) * 0.9;
+};
+
+const rateVolley = (robot: FriendlyRobot, pass: PassObject, shootPos: Position) => {
+	/* This only matters if the ball is already on its way to the receiver.
+	 * Otherwise he will have enough time to turn
+	 */
+	if (!Ball.receivesPass(robot)) {
+		return 1;
+	}
+
+	const volleyAngle = World.Ball.speed.absoluteAngleDiff(shootPos - pass.ballPos);
+	const volleyWeight = 0.3;
+	const volleyRating = Rating.valueToRating(volleyAngle, 65 / 180 * Math.PI, 50 / 180 * Math.PI);
+	return 1 - volleyWeight + volleyWeight * volleyRating;
+};
+
+const rateOwnDefenseArea = (robot: FriendlyRobot, pass: PassObject, shootPos: Position) => {
+	/* Rate passes going through or near our own defense area lower. this is to
+	 * lower the chance of a centerback being in the way of a kick, since they
+	 * won't dodge the pass
+	 */
+	const CROSSING_DEFENSE_AREA_FACTOR = 0.6;
+	const defenseAreaDistance = Defense.centerBackDistanceToDefenseArea() + robot.radius + World.Ball.radius + 0.02;
+	const intersect = Field.intersectRayDefenseArea(shootPos, pass.ballPos - shootPos, defenseAreaDistance, true)[0];
+	// if there is an intersection in the line segment shootPos <-> pass.ballPos
+	if (intersect && shootPos.distanceToSq(intersect) < shootPos.distanceToSq(pass.ballPos)) {
+		return CROSSING_DEFENSE_AREA_FACTOR;
+	} else {
+		return 1;
+	}
+};
+
+const ratePassIntersections = (robot: FriendlyRobot, pass: PassObject, shootPos: Position) => {
+	let rating = 1;
+
+	for (let opp of World.OpponentRobots) {
+		// check if robot would have to move through defense area to intercept the pass
+		const orthogonalProjection = opp.pos.orthogonalProjection(shootPos, pass.ballPos)[0];
+		const intersection = Field.intersectRayDefenseArea(opp.pos, orthogonalProjection - opp.pos, 0, false)[0];
+		let validIntersection = false;
+		if (intersection) {
+			validIntersection = Field.isInField(intersection) && opp.pos.distanceTo(intersection) < opp.pos.distanceTo(orthogonalProjection);
+			if (validIntersection && !amun.isPerformanceMode) {
+				vis.addCircle("u/a/ratePass", intersection, 0.05, vis.colors.red, true);
+				vis.addPath("u/a/ratePass", [opp.pos, intersection], vis.colors.slate, true);
+			}
+		}
+
+		// rate opponent's ability to intercept the pass
+		if (!validIntersection && orthogonalProjection.distanceToLineSegment(shootPos, pass.ballPos) < 1
+					&&  opp !== World.OpponentKeeper) {
+			const passInterception = orthogonalProjection.distanceToLineSegment(shootPos, pass.ballPos) > 0.5
+				? pass.ballPos : orthogonalProjection;
+			if (!amun.isPerformanceMode) {
+				vis.addPath("u/a/ratePass", [opp.pos, passInterception], vis.colors.blue, true);
+			}
+
+			// calculate the time the ball needs to arrive at the intersection point
+			const shootSpeed = new Vector(1,1).withLength(robot.calculateShootSpeed(3, shootPos.distanceTo(pass.ballPos))); // direction doesn't actually matter
+			const fakeBall = {speed: shootSpeed, maxSpeed: shootSpeed.length()};
+			const ballRollTime = Physics.ballRollTime(fakeBall, passInterception.distanceTo(shootPos) - World.Ball.radius - opp.shootRadius);
+			if (ballRollTime === Infinity) {
+				throw new Error("Planning unreachable pass");
+			}
+
+			// calculate the time the robot needs to arrive at the intersection point
+			// to achieve more relevant results, the speed component parallel to the pass trajectory is ignored
+			const projectedSpeed = opp.speed - ((opp.pos + opp.speed).orthogonalProjection(shootPos, pass.ballPos)[0] - orthogonalProjection);
+			if (!amun.isPerformanceMode) {
+				vis.addPath("u/a/ratePass", [opp.pos, opp.pos + projectedSpeed], vis.colors.pink, true);
+			}
+			const fakeRobot = {acceleration: opp.acceleration, pos: opp.pos, maxSpeed: opp.maxSpeed, speed: projectedSpeed};
+
+			let timeToPos = 0;
+			const minDist = World.Ball.radius + opp.radius;
+			if (opp.pos.distanceTo(passInterception) > minDist) {
+				let hitPoint = passInterception + (opp.pos - passInterception).withLength(minDist);
+				timeToPos = Physics.robotTimeToPos(fakeRobot, hitPoint, new Vector(0,0))[0];
+			}
+
+			const passRating = Rating.valueToRating(timeToPos, ballRollTime - 1, ballRollTime + 0.5);
+			// uncomment to debug: log("Rating: "+tostring(opp)+", ballRollTime: "+tostring(ballRollTime)+", timeToPos: "+tostring(timeToPos)+", passRating: "+tostring(passRating))
+			rating *= passRating / 2 + 0.5;
+		}
+	}
+
+	return rating;
+};
+
 const _defaultRatePass: PassRater = (robot, pass, earliestAttackTime, considerTiming) => {
 	if (robot === World.FriendlyKeeper && G.FieldHeightHalf - Math.abs(pass.ballPos.y) < 4) {
 		return 0;
@@ -70,21 +181,7 @@ const _defaultRatePass: PassRater = (robot, pass, earliestAttackTime, considerTi
 	rating = rating * (Rating.valueToRating(distanceToMA, 1.5, 2.5) - Rating.valueToRating(distanceToMA, 4, 8));
 
 	// rate timing
-	let shootTime;
-	if (earliestAttackTime != undefined) {
-		shootTime = earliestAttackTime - World.Time;
-	} else {
-		if (Ball.receivesPass(robot)) {
-			let dribblerPos = robot.pos + (World.Ball.pos - robot.pos).withLength(
-				robot.shootRadius + World.Ball.radius);
-			shootTime = Physics.checkedBallRollTime(World.Ball, dribblerPos);
-			if (shootTime === -Infinity) {
-				shootTime = Robot.minShootTime(robot, pass.ballPos);
-			}
-		} else {
-			shootTime = Robot.minShootTime(robot, pass.ballPos);
-		}
-	}
+	const shootTime = passShootTime(robot, pass, earliestAttackTime);
 
 	// Infinity means that the ball can't be reached inside the field
 	if (shootTime === Infinity) {
@@ -93,19 +190,12 @@ const _defaultRatePass: PassRater = (robot, pass, earliestAttackTime, considerTi
 	}
 
 	let shootPos = Physics.ballAtTime(World.Ball, shootTime).pos;
-	let passTime = Shoot.ballPassTime(shootPos, pass.ballPos, pass.target, undefined, robot);
-	let ballArrivalTime = shootTime + passTime + World.Time;
+
 	if (considerTiming) {
-		rating = rating * (0.1 + Rating.valueToRating(ballArrivalTime - pass.time, -0.1, 0.1) * 0.9);
+		rating *= ratePassTiming(robot, pass, shootTime, shootPos);
 	}
 
-	// rate volley
-	if (Ball.receivesPass(robot)) {
-		let volleyAngle = World.Ball.speed.absoluteAngleDiff(shootPos - pass.ballPos);
-		let volleyWeight = 0.3;
-		let volleyRating = Rating.valueToRating(volleyAngle, 65 / 180 * Math.PI, 50 / 180 * Math.PI);
-		rating = rating * (1 - volleyWeight + volleyWeight * volleyRating);
-	}
+	rating *= rateVolley(robot, pass, shootPos);
 
 	// rate angle shooter-goal-receiver
 	let shooterGoalReceiverAngle = (shootPos - G.OpponentGoal).absoluteAngleDiff(
@@ -114,70 +204,9 @@ const _defaultRatePass: PassRater = (robot, pass, earliestAttackTime, considerTi
 	let shooterGoalReceiverWeight = 0.5;
 	rating = rating * (1 - shooterGoalReceiverWeight + shooterGoalReceiverWeight * shooterGoalReceiverRating);
 
-	// rate passes going through or near our own defense area lower
-	// this is to lower the chance of a centerback being in the way of a kick,
-	// since they won't dodge the pass
-	let CROSSING_DEFENSE_AREA_FACTOR = 0.6;
-	let defenseAreaDistance = Defense.centerBackDistanceToDefenseArea() + robot.radius + World.Ball.radius + 0.02;
-	let intersect = Field.intersectRayDefenseArea(shootPos, pass.ballPos - shootPos, defenseAreaDistance, true)[0];
-	// if there is an intersection in the line segment shootPos <-> pass.ballPos
-	if (intersect && shootPos.distanceToSq(intersect) < shootPos.distanceToSq(pass.ballPos)) {
-		rating = rating * CROSSING_DEFENSE_AREA_FACTOR;
-	}
+	rating *= rateOwnDefenseArea(robot, pass, shootPos);
 
-	// rate possible interceptions
-	for (let opp of World.OpponentRobots) {
-
-		// check if robot would have to move through defense area to intercept the pass
-		let orthogonalProjection = opp.pos.orthogonalProjection(shootPos, pass.ballPos)[0];
-		let intersection = Field.intersectRayDefenseArea(opp.pos, orthogonalProjection - opp.pos, 0, false)[0];
-		let validIntersection = false;
-		if (intersection) {
-			validIntersection = Field.isInField(intersection) && opp.pos.distanceTo(intersection) < opp.pos.distanceTo(orthogonalProjection);
-			if (validIntersection && !amun.isPerformanceMode) {
-				vis.addCircle("u/a/ratePass", intersection, 0.05, vis.colors.red, true);
-				vis.addPath("u/a/ratePass", [opp.pos, intersection], vis.colors.slate, true);
-			}
-		}
-
-		// rate opponent's ability to intercept the pass
-		if (!validIntersection && orthogonalProjection.distanceToLineSegment(shootPos, pass.ballPos) < 1
-					&&  opp !== World.OpponentKeeper) {
-			let passInterception = orthogonalProjection.distanceToLineSegment(shootPos, pass.ballPos) > 0.5
-				? pass.ballPos : orthogonalProjection;
-			if (!amun.isPerformanceMode) {
-				vis.addPath("u/a/ratePass", [opp.pos, passInterception], vis.colors.blue, true);
-			}
-
-			// calculate the time the ball needs to arrive at the intersection point
-			let shootSpeed = new Vector(1,1).withLength(robot.calculateShootSpeed(3, shootPos.distanceTo(pass.ballPos))); // direction doesn't actually matter
-			let fakeBall = {speed: shootSpeed, maxSpeed: shootSpeed.length()};
-			let ballRollTime = Physics.ballRollTime(fakeBall, passInterception.distanceTo(shootPos) - World.Ball.radius - opp.shootRadius);
-			if (ballRollTime === Infinity) {
-				throw new Error("Planning unreachable pass");
-			}
-
-			// calculate the time the robot needs to arrive at the intersection point
-			// to achieve more relevant results, the speed component parallel to the pass trajectory is ignored
-			let projectedSpeed = opp.speed - ((opp.pos + opp.speed).orthogonalProjection(shootPos, pass.ballPos)[0] - orthogonalProjection);
-			if (!amun.isPerformanceMode) {
-				vis.addPath("u/a/ratePass", [opp.pos, opp.pos + projectedSpeed], vis.colors.pink, true);
-			}
-			let fakeRobot = {acceleration: opp.acceleration, pos: opp.pos, maxSpeed: opp.maxSpeed, speed: projectedSpeed};
-
-			let timeToPos = 0;
-			let minDist = World.Ball.radius + opp.radius;
-			if (opp.pos.distanceTo(passInterception) > minDist) {
-				let hitPoint = passInterception + (opp.pos - passInterception).withLength(minDist);
-				timeToPos = Physics.robotTimeToPos(fakeRobot, hitPoint, new Vector(0,0))[0];
-			}
-
-			let passRating = Rating.valueToRating(timeToPos, ballRollTime - 1, ballRollTime + 0.5);
-			// uncomment to debug: log("Rating: "+tostring(opp)+", ballRollTime: "+tostring(ballRollTime)+", timeToPos: "+tostring(timeToPos)+", passRating: "+tostring(passRating))
-			rating = rating * (passRating / 2 + 0.5);
-
-		}
-	}
+	rating *= ratePassIntersections(robot, pass, shootPos);
 
 	let goalAngle = (G.OpponentGoalRight - pass.ballPos).absoluteAngleDiff(G.OpponentGoalLeft - pass.ballPos);
 	let goalAngleWeight = 0.5;
@@ -194,7 +223,6 @@ const _defaultRatePass: PassRater = (robot, pass, earliestAttackTime, considerTi
 	return rating;
 };
 
-// TODO: Copy-Paste not good :( make modular approach after robocup
 const _midfieldRatePass: PassRater = (robot, pass, earliestAttackTime, considerTiming) => {
 	if (robot === World.FriendlyKeeper && G.FieldHeightHalf - Math.abs(pass.ballPos.y) < 4) {
 		return 0;
@@ -211,21 +239,7 @@ const _midfieldRatePass: PassRater = (robot, pass, earliestAttackTime, considerT
 	rating = rating * (Rating.valueToRating(distanceToMA, 1.5, 2.5) - Rating.valueToRating(distanceToMA, 4, 8));
 
 	// rate timing
-	let shootTime;
-	if (earliestAttackTime != undefined) {
-		shootTime = earliestAttackTime - World.Time;
-	} else {
-		if (Ball.receivesPass(robot)) {
-			let dribblerPos = robot.pos + (World.Ball.pos - robot.pos).withLength(
-				robot.shootRadius + World.Ball.radius);
-			shootTime = Physics.checkedBallRollTime(World.Ball, dribblerPos);
-			if (shootTime === -Infinity) {
-				shootTime = Robot.minShootTime(robot, pass.ballPos);
-			}
-		} else {
-			shootTime = Robot.minShootTime(robot, pass.ballPos);
-		}
-	}
+	const shootTime = passShootTime(robot, pass, earliestAttackTime);
 
 	// Infinity means that the ball can't be reached inside the field
 	if (shootTime === Infinity) {
@@ -234,88 +248,21 @@ const _midfieldRatePass: PassRater = (robot, pass, earliestAttackTime, considerT
 	}
 
 	let shootPos = Physics.ballAtTime(World.Ball, shootTime).pos;
+
 	vis.addCircle("u/a/ratePass: shootPos", shootPos, robot.radius, vis.colors.gold);
-	let passTime = Shoot.ballPassTime(shootPos, pass.ballPos, pass.target, undefined, robot);
-	let ballArrivalTime = shootTime + passTime + World.Time;
 	if (considerTiming) {
-		rating = rating * (0.1 + Rating.valueToRating(ballArrivalTime - pass.time, -0.1, 0.1) * 0.9);
+		rating *= ratePassTiming(robot, pass, shootTime, shootPos);
 	}
 
 	// rate if pass is getting us forward
 	let progress = pass.ballPos.y - shootPos.y;
 	rating = rating * ((Rating.valueToRating(progress, 0, G.FieldHeightQuarter) + Rating.valueToRating(progress, -G.FieldHeightHalf, 0) - 1) / 2 + 0.5);
 
-	// rate volley
-	if (Ball.receivesPass(robot)) {
-		let volleyAngle = World.Ball.speed.absoluteAngleDiff(shootPos - pass.ballPos);
-		let volleyWeight = 0.3;
-		let volleyRating = Rating.valueToRating(volleyAngle, 65 / 180 * Math.PI, 50 / 180 * Math.PI);
-		rating = rating * (1 - volleyWeight + volleyWeight * volleyRating);
-	}
+	rating *= rateVolley(robot, pass, shootPos);
 
-	// rate passes going through or near our own defense area lower
-	// this is to lower the chance of a centerback being in the way of a kick,
-	// since they won't dodge the pass
-	let CROSSING_DEFENSE_AREA_FACTOR = 0.6;
-	let defenseAreaDistance = Defense.centerBackDistanceToDefenseArea() + robot.radius + World.Ball.radius + 0.02;
-	let intersect = Field.intersectRayDefenseArea(shootPos, pass.ballPos - shootPos, defenseAreaDistance, true)[0];
-	// if there is an intersection in the line segment shootPos <-> pass.ballPos
-	if (intersect && shootPos.distanceToSq(intersect) < shootPos.distanceToSq(pass.ballPos)) {
-		rating = rating * CROSSING_DEFENSE_AREA_FACTOR;
-	}
+	rating *= rateOwnDefenseArea(robot, pass, shootPos);
 
-	// rate possible interceptions
-	for (let opp of World.OpponentRobots) {
-
-		// check if robot would have to move through defense area to intercept the pass
-		let orthogonalProjection = opp.pos.orthogonalProjection(shootPos, pass.ballPos)[0];
-		let intersection = Field.intersectRayDefenseArea(opp.pos, orthogonalProjection - opp.pos, 0, false)[0];
-		let validIntersection = false;
-		if (intersection) {
-			validIntersection = Field.isInField(intersection) && opp.pos.distanceTo(intersection) < opp.pos.distanceTo(orthogonalProjection);
-			if (validIntersection && !amun.isPerformanceMode) {
-				vis.addCircle("u/a/ratePass", intersection, 0.05, vis.colors.red, true);
-				vis.addPath("u/a/ratePass", [opp.pos, intersection], vis.colors.slate, true);
-			}
-		}
-
-		// rate opponent's ability to intercept the pass
-		if (!validIntersection && orthogonalProjection.distanceToLineSegment(shootPos, pass.ballPos) < 1
-					&&  opp !== World.OpponentKeeper) {
-			let passInterception = orthogonalProjection.distanceToLineSegment(shootPos, pass.ballPos) > 0.5
-				? pass.ballPos : orthogonalProjection;
-			if (!amun.isPerformanceMode) {
-				vis.addPath("u/a/ratePass", [opp.pos, passInterception], vis.colors.blue, true);
-			}
-
-			// calculate the time the ball needs to arrive at the intersection point
-			let shootSpeed = new Vector(1,1).withLength(robot.calculateShootSpeed(3, shootPos.distanceTo(pass.ballPos))); // direction doesn't actually matter
-			let fakeBall = {speed: shootSpeed, maxSpeed: shootSpeed.length()};
-			let ballRollTime = Physics.ballRollTime(fakeBall, passInterception.distanceTo(shootPos) - World.Ball.radius - opp.shootRadius);
-			if (ballRollTime === Infinity) {
-				throw new Error("Planning unreachable pass");
-			}
-
-			// calculate the time the robot needs to arrive at the intersection point
-			// to achieve more relevant results, the speed component parallel to the pass trajectory is ignored
-			let projectedSpeed = opp.speed - ((opp.pos + opp.speed).orthogonalProjection(shootPos, pass.ballPos)[0] - orthogonalProjection);
-			if (!amun.isPerformanceMode) {
-				vis.addPath("u/a/ratePass", [opp.pos, opp.pos + projectedSpeed], vis.colors.pink, true);
-			}
-			let fakeRobot = {acceleration: opp.acceleration, pos: opp.pos, maxSpeed: opp.maxSpeed, speed: projectedSpeed};
-
-			let timeToPos = 0;
-			let minDist = World.Ball.radius + opp.radius;
-			if (opp.pos.distanceTo(passInterception) > minDist) {
-				let hitPoint = passInterception + (opp.pos - passInterception).withLength(minDist);
-				timeToPos = Physics.robotTimeToPos(fakeRobot, hitPoint, new Vector(0,0))[0];
-			}
-
-			let passRating = Rating.valueToRating(timeToPos, ballRollTime - 1, ballRollTime + 0.5);
-			// uncomment to debug: log("Rating: "+tostring(opp)+", ballRollTime: "+tostring(ballRollTime)+", timeToPos: "+tostring(timeToPos)+", passRating: "+tostring(passRating))
-			rating = rating * (passRating / 2 + 0.5);
-		}
-	}
+	rating *= ratePassIntersections(robot, pass, shootPos);
 
 	if (!amun.isPerformanceMode) {
 		vis.addCircle("u/a/ratePass", shootPos, 0.1, vis.colors.blue, true);
