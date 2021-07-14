@@ -56,7 +56,7 @@ signals:
 public:
     void begin();
     bool update(SSL_DetectionBall *ball, float stddev, float stddevArea, const btVector3 &cameraPosition,
-               bool enableInvisibleBall, float visibilityThreshold);
+               bool enableInvisibleBall, float visibilityThreshold, btVector3 positionOffset);
     void move(const sslsim::TeleportBall &ball);
     void kick(const btVector3 &power);
     // returns the ball position projected onto the floor (z component is not included)
@@ -69,7 +69,7 @@ public:
 
     // can be used to add ball mis-detections
     bool addDetection(SSL_DetectionBall *ball, btVector3 pos, float stddev, float stddevArea, const btVector3 &cameraPosition,
-                      bool enableInvisibleBall, float visibilityThreshold);
+                      bool enableInvisibleBall, float visibilityThreshold, btVector3 positionOffset);
 
 private:
     RNG *m_rng;

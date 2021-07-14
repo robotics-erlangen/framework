@@ -55,7 +55,7 @@ public:
     bool canKickBall(SimBall *ball) const;
     void tryKick(SimBall *ball, float power, double time);
     robot::RadioResponse setCommand(const sslsim::RobotCommand &command, SimBall *ball, bool charge, float rxLoss, float txLoss);
-    void update(SSL_DetectionRobot *robot, float stddev_p, float stddev_phi, qint64 time);
+    void update(SSL_DetectionRobot *robot, float stddev_p, float stddev_phi, qint64 time, btVector3 positionOffset);
     void update(world::SimRobot *robot, SimBall *ball) const;
     void restoreState(const world::SimRobot &robot);
     void move(const sslsim::TeleportRobot &robot);

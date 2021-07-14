@@ -89,6 +89,7 @@ struct camun::simulator::SimulatorData
     float ballVisibilityThreshold;
     float cameraOverlap;
     float cameraPositionError;
+    float objectPositionOffset;
     float robotCommandPacketLoss;
     float robotReplyPacketLoss;
     float missingBallDetections;
@@ -161,6 +162,7 @@ Simulator::Simulator(const Timer *timer, const amun::SimulatorSetup &setup, bool
     m_data->ballVisibilityThreshold = 0.4;
     m_data->cameraOverlap = 0.3;
     m_data->cameraPositionError = 0;
+    m_data->objectPositionOffset = 0;
     m_data->robotCommandPacketLoss = 0;
     m_data->robotReplyPacketLoss = 0;
     m_data->missingBallDetections = 0;
@@ -382,6 +384,11 @@ void Simulator::initializeDetection(SSL_DetectionFrame *detection, std::size_t c
     detection->set_t_sent((m_time + m_visionDelay)*1E-9);
 }
 
+static btVector3 positionOffsetForCamera(float offsetStrength, btVector3 cameraPos)
+{
+    return btVector3(cameraPos.x(), cameraPos.y(), 0).normalized() * offsetStrength;
+}
+
 std::tuple<QList<QByteArray>, QByteArray, qint64> Simulator::createVisionPacket()
 {
     const std::size_t numCameras = m_data->reportedCameraSetup.size();
@@ -408,8 +415,9 @@ std::tuple<QList<QByteArray>, QByteArray, qint64> Simulator::createVisionPacket(
             }
 
             // get ball position
+            const btVector3 positionOffset = positionOffsetForCamera(m_data->objectPositionOffset, m_data->cameraPositions[cameraId]);
             bool visible = m_data->ball->update(detections[cameraId].add_balls(), m_data->stddevBall, m_data->stddevBallArea, m_data->cameraPositions[cameraId],
-                    m_data->enableInvisibleBall, m_data->ballVisibilityThreshold);
+                    m_data->enableInvisibleBall, m_data->ballVisibilityThreshold, positionOffset);
             if (!visible) {
                 detections[cameraId].clear_balls();
             }
@@ -436,10 +444,11 @@ std::tuple<QList<QByteArray>, QByteArray, qint64> Simulator::createVisionPacket(
                         continue;
                     }
 
+                    const btVector3 positionOffset = positionOffsetForCamera(m_data->objectPositionOffset, m_data->cameraPositions[cameraId]);
                     if (teamIsBlue) {
-                        robot->update(detections[cameraId].add_robots_blue(), m_data->stddevRobot, m_data->stddevRobotPhi, m_time);
+                        robot->update(detections[cameraId].add_robots_blue(), m_data->stddevRobot, m_data->stddevRobotPhi, m_time, positionOffset);
                     } else {
-                        robot->update(detections[cameraId].add_robots_yellow(), m_data->stddevRobot, m_data->stddevRobotPhi, m_time);
+                        robot->update(detections[cameraId].add_robots_yellow(), m_data->stddevRobot, m_data->stddevRobotPhi, m_time, positionOffset);
                     }
 
 
@@ -449,7 +458,7 @@ std::tuple<QList<QByteArray>, QByteArray, qint64> Simulator::createVisionPacket(
                     if (m_data->ballDetectionsAtDribbler > 0 && m_data->rng.uniformFloat(0, 1) < detectionProb) {
                         // always on the right side of the dribbler for now
                         if (!m_data->ball->addDetection(detections[cameraId].add_balls(), robot->dribblerCorner(false) / SIMULATOR_SCALE,
-                                                        m_data->stddevRobot, 0, m_data->cameraPositions[cameraId], false, 0)) {
+                                                        m_data->stddevRobot, 0, m_data->cameraPositions[cameraId], false, 0, positionOffset)) {
                             detections[cameraId].mutable_balls()->DeleteSubrange(detections[cameraId].balls_size()-1, 1);
                         }
                     }
@@ -743,6 +752,10 @@ void Simulator::handleCommand(const Command &command)
 
             if (realism.has_camera_position_error()) {
                 m_data->cameraPositionError = realism.camera_position_error();
+            }
+
+            if (realism.has_object_position_offset()) {
+                m_data->objectPositionOffset = realism.object_position_offset();
             }
 
             if (realism.has_robot_command_loss()) {

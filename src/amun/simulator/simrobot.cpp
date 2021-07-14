@@ -523,7 +523,7 @@ robot::RadioResponse SimRobot::setCommand(const sslsim::RobotCommand &command, S
     return response;
 }
 
-void SimRobot::update(SSL_DetectionRobot *robot, float stddev_p, float stddev_phi, qint64 time)
+void SimRobot::update(SSL_DetectionRobot *robot, float stddev_p, float stddev_phi, qint64 time, btVector3 positionOffset)
 {
     // setup vision packet
     robot->set_robot_id(m_specs.id());
@@ -534,7 +534,7 @@ void SimRobot::update(SSL_DetectionRobot *robot, float stddev_p, float stddev_ph
     // add noise
     btTransform transform;
     m_motionState->getWorldTransform(transform);
-    const btVector3 p = transform.getOrigin() / SIMULATOR_SCALE;
+    const btVector3 p = transform.getOrigin() / SIMULATOR_SCALE + positionOffset;
     const Vector p_noise = m_rng->normalVector(stddev_p);
     robot->set_x((p.y() + p_noise.x) * 1000.0f);
     robot->set_y(-(p.x() + p_noise.y) * 1000.0f);

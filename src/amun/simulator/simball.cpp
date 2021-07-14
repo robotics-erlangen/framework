@@ -234,17 +234,17 @@ static float positionOfVisiblePixels(btVector3& p, const btVector3& simulatorBal
 }
 
 bool SimBall::update(SSL_DetectionBall *ball, float stddev, float stddevArea, const btVector3& cameraPosition,
-                     bool enableInvisibleBall, float visibilityThreshold)
+                     bool enableInvisibleBall, float visibilityThreshold, btVector3 positionOffset)
 {
     btTransform transform;
     m_motionState->getWorldTransform(transform);
     btVector3 pos = transform.getOrigin() / SIMULATOR_SCALE;
 
-    return addDetection(ball, pos, stddev, stddevArea, cameraPosition, enableInvisibleBall, visibilityThreshold);
+    return addDetection(ball, pos, stddev, stddevArea, cameraPosition, enableInvisibleBall, visibilityThreshold, positionOffset);
 }
 
 bool SimBall::addDetection(SSL_DetectionBall *ball, btVector3 pos, float stddev, float stddevArea, const btVector3& cameraPosition,
-                            bool enableInvisibleBall, float visibilityThreshold)
+                            bool enableInvisibleBall, float visibilityThreshold, btVector3 positionOffset)
 {
     // setup ssl-vision ball detection
     ball->set_confidence(1.0);
@@ -289,7 +289,8 @@ bool SimBall::addDetection(SSL_DetectionBall *ball, btVector3 pos, float stddev,
     // add noise to coordinates
     // to convert from bullet coordinate system to ssl-vision rotate by 90 degree ccw
     const Vector noise = m_rng->normalVector(stddev);
-    coordinates::toVision(Vector(modX, modY) + noise, *ball);
+    const Vector totalPosition = Vector(modX, modY) + noise + Vector(positionOffset.x(), positionOffset.y());
+    coordinates::toVision(totalPosition, *ball);
     return true;
 }
 

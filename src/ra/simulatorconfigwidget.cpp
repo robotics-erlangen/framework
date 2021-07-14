@@ -45,6 +45,7 @@ SimulatorConfigWidget::SimulatorConfigWidget(QWidget *parent) :
     connect(ui->spinBallVisibilityThreshold, SIGNAL(valueChanged(int)), SLOT(sendAll()));
     connect(ui->spinCameraOverlap, SIGNAL(valueChanged(int)), SLOT(sendAll()));
     connect(ui->spinCameraPositionError, SIGNAL(valueChanged(int)), this, SLOT(sendAll()));
+    connect(ui->spinPositionOffset, SIGNAL(valueChanged(double)), this, SLOT(sendAll()));
     connect(ui->spinPacketLoss, SIGNAL(valueChanged(int)), this, SLOT(sendAll()));
     connect(ui->spinReplyLoss, SIGNAL(valueChanged(int)), this, SLOT(sendAll()));
 
@@ -120,6 +121,7 @@ void SimulatorConfigWidget::realismPresetChanged(QString name)
     ui->spinBallVisibilityThreshold->setValue(config.ball_visibility_threshold() * 100.0f);
     ui->spinCameraOverlap->setValue(config.camera_overlap() * 100.0f);
     ui->spinCameraPositionError->setValue(config.camera_position_error() * 100.0f);
+    ui->spinPositionOffset->setValue(config.object_position_offset() * 100.0f);
     ui->spinPacketLoss->setValue(config.robot_command_loss() * 100.0f);
     ui->spinReplyLoss->setValue(config.robot_response_loss() * 100.0f);
     ui->spinMissingDetections->setValue(config.missing_ball_detections() * 100.0f);
@@ -170,8 +172,9 @@ void SimulatorConfigWidget::sendAll()
     // camera overlap
     command->mutable_simulator()->mutable_realism_config()->set_camera_overlap(ui->spinCameraOverlap->value() / 100.0f);
 
-    // position error
+    // position errors
     command->mutable_simulator()->mutable_realism_config()->set_camera_position_error(ui->spinCameraPositionError->value() / 100.0f);
+    command->mutable_simulator()->mutable_realism_config()->set_object_position_offset(ui->spinPositionOffset->value() / 100.0f);
 
     // worst case vision
     command->mutable_simulator()->mutable_vision_worst_case()->set_min_ball_detection_time(

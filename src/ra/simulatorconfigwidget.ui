@@ -30,8 +30,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>241</width>
-        <height>781</height>
+        <width>240</width>
+        <height>792</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_5">
@@ -65,10 +65,10 @@
           <property name="bottomMargin">
            <number>3</number>
           </property>
-          <item row="0" column="0">
-           <widget class="QLabel" name="overlapLabel">
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_10">
             <property name="text">
-             <string>Camera overlap:</string>
+             <string>Camera pos. error:</string>
             </property>
            </widget>
           </item>
@@ -85,13 +85,6 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_10">
-            <property name="text">
-             <string>Position error:</string>
-            </property>
-           </widget>
-          </item>
           <item row="1" column="1">
            <widget class="QSpinBox" name="spinCameraPositionError">
             <property name="toolTip">
@@ -102,6 +95,33 @@
             </property>
             <property name="maximum">
              <number>500</number>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="overlapLabel">
+            <property name="text">
+             <string>Camera overlap:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_16">
+            <property name="text">
+             <string>Output pos. offset:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QDoubleSpinBox" name="spinPositionOffset">
+            <property name="suffix">
+             <string>cm</string>
+            </property>
+            <property name="decimals">
+             <number>1</number>
+            </property>
+            <property name="singleStep">
+             <double>0.500000000000000</double>
             </property>
            </widget>
           </item>
