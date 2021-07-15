@@ -249,7 +249,6 @@ const _midfieldRatePass: PassRater = (robot, pass, earliestAttackTime, considerT
 
 	let shootPos = Physics.ballAtTime(World.Ball, shootTime).pos;
 
-	vis.addCircle("u/a/ratePass: shootPos", shootPos, robot.radius, vis.colors.gold);
 	if (considerTiming) {
 		rating *= ratePassTiming(robot, pass, shootTime, shootPos);
 	}
