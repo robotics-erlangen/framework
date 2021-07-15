@@ -310,15 +310,16 @@ export class Shoot extends Behavior {
 	}
 
 	private isChipObscured(): boolean {
-		let obscured = false;
-		for (let opponent of World.OpponentRobots) {
+		return undefined !== World.OpponentRobots.find((opponent) => {
 			const intersection = geom.intersectLineCircle(this._robot.pos, Vector.fromAngle(this._robot.dir), opponent.pos, opponent.radius + this._robot.radius);
-			if (intersection.length === 4 && (intersection[2] < this.problematicDistance || (intersection[3] != undefined && intersection[3] < this.problematicDistance))) {
-				obscured = true;
-				break;
+
+			if (intersection.length !== 4) {
+				return false;
 			}
-		}
-		return obscured;
+
+			return intersection[2] < this.problematicDistance
+				|| (intersection[3] !== undefined && intersection[3] < this.problematicDistance);
+		});
 	}
 
 	private _redeciding(): boolean {
