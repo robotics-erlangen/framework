@@ -110,6 +110,7 @@ function makeCached <F extends Function>(f: F, keepForever: boolean): F {
 		}
 		return result;
 	});
+	Object.defineProperty(cachedFunc, "name", {value: f.name, writable: false});
 	return cachedFunc;
 }
 
