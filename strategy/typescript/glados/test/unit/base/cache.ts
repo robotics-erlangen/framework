@@ -11,6 +11,21 @@ export class BaseCache extends UnitTest {
 		this.addTest("side effects", this.testSideEffects);
 		this.addTest("heavy", this.testHeavy);
 		this.addTest("forever", this.testForever);
+		this.addTest("function name", this.testFunctionName);
+	}
+
+	private testFunctionName() {
+		function bar() {
+			return 4;
+		}
+		function foo() {
+			return 5;
+		}
+		let cachedBar = Cache.forFrame(bar);
+		let cachedFoo = Cache.forFrame(foo);
+
+		this.assert_equal(bar.name, cachedBar.name);
+		this.assert_equal(foo.name, cachedFoo.name);
 	}
 
 	private testDifferentArguments() {
