@@ -386,6 +386,11 @@ void Simulator::initializeDetection(SSL_DetectionFrame *detection, std::size_t c
 
 static btVector3 positionOffsetForCamera(float offsetStrength, btVector3 cameraPos)
 {
+    btVector3 cam2d{cameraPos.x(), cameraPos.y(), 0};
+    if (cam2d.length() < offsetStrength ) {
+        // do not normalize a 0 vector
+        return cameraPos;
+    }
     return btVector3(cameraPos.x(), cameraPos.y(), 0).normalized() * offsetStrength;
 }
 
