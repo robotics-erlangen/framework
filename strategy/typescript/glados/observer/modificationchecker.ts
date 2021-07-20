@@ -14,10 +14,22 @@ class ValueCollector implements Process {
 	run() {
 		initialBallPosition = new Vector(World.Ball.pos.x, World.Ball.pos.y);
 		initialBallSpeed = new Vector(World.Ball.speed.x, World.Ball.speed.y);
+		if (!initialBallPosition.equals(initialBallPosition)) {
+			throw new Error("Got NaN as ball positon");
+		}
+		if (!initialBallSpeed.equals(initialBallSpeed)) {
+			throw new Error("Got NaN as ball speed");
+		}
 
 		for (let robot of World.Robots) {
 			robotPositions[robot] = new Vector(robot.pos.x, robot.pos.y);
 			robotSpeeds[robot] = new Vector(robot.speed.x, robot.speed.y);
+			if (!robotPositions[robot]!.equals(robotPositions[robot]!)) {
+				throw new Error(`Got NaN as a robot ${robot.id} position`);
+			}
+			if (!robotSpeeds[robot]!.equals(robotSpeeds[robot]!)) {
+				throw new Error(`Got NaN as a robot ${robot.id} speed`);
+			}
 		}
 	}
 
