@@ -22,6 +22,7 @@
 #define MAINWINDOW_H
 
 #include "amun/amunclient.h"
+#include "aboutus.h"
 #include "loggingsuite.h"
 #include <QMainWindow>
 #include <QSet>
@@ -114,6 +115,7 @@ private:
     InputManager *m_inputManager;
     InternalReferee *m_internalReferee;
     ConfigDialog *m_configDialog;
+    AboutUs *m_aboutUs;
     QLabel *m_transceiverStatus;
     bool m_transceiverActive;
     qint32 m_lastStageTime;

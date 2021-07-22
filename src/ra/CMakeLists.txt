@@ -25,6 +25,8 @@ add_subdirectory(plotter)
 add_subdirectory(widgets)
 
 add_library(ra-horus
+    aboutus.cpp
+    aboutus.h
     configdialog.cpp
     configdialog.h
     inputwidget.cpp
@@ -66,6 +68,7 @@ add_library(ra-horus
 )
 
 set(UI_SOURCES
+    aboutus.ui
     configdialog.ui
     inputwidget.ui
     mainwindow.ui
@@ -86,6 +89,7 @@ target_sources(ra-horus PRIVATE ${UIC_SOURCES})
 
 target_link_libraries(ra-horus
     PUBLIC amun::amun
+    PRIVATE gitconfig
     PRIVATE shared::core
     PRIVATE shared::config
     PRIVATE shared::protobuf

@@ -82,6 +82,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     ui->actionInputDevices->setIcon(QIcon("icon:32/input-gaming.png"));
     ui->actionPlotter->setIcon(QIcon("icon:32/plotter.png"));
     ui->actionConfiguration->setIcon(QIcon("icon:32/preferences-system.png"));
+    ui->actionAboutUs->setIcon(QIcon("icon:question.svg"));
 
     ui->actionQuit->setShortcut(QKeySequence::Quit);
 
@@ -140,6 +141,8 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     connect(m_configDialog, SIGNAL(useDarkModeColors(bool)), ui->replay, SIGNAL(setUseDarkColors(bool)));
     connect(m_configDialog, SIGNAL(useNumKeysForReferee(bool)), this, SLOT(udpateSpeedActionsEnabled()));
 
+    m_aboutUs = new AboutUs(this);
+
     connect(ui->options, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
 
     ui->blueDebugger->setStrategy(amun::DebugSource::StrategyBlue);
@@ -180,6 +183,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     connect(ui->actionInputDevices, SIGNAL(toggled(bool)), m_inputManager, SLOT(setEnabled(bool)));
 
     connect(ui->actionConfiguration, SIGNAL(triggered()), SLOT(showConfigDialog()));
+    connect(ui->actionAboutUs, SIGNAL(triggered()), m_aboutUs, SLOT(exec()));
     connect(ui->actionPlotter, SIGNAL(triggered()), this, SLOT(showPlotter()));
     connect(ui->actionAutoPause, SIGNAL(toggled(bool)), ui->simulator, SLOT(setEnableAutoPause(bool)));
     connect(ui->actionUseLocation, SIGNAL(toggled(bool)), this, SLOT(useLogfileLocation(bool)));

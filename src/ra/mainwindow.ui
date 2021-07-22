@@ -95,7 +95,7 @@
      <x>0</x>
      <y>0</y>
      <width>905</width>
-     <height>19</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_Game">
@@ -352,6 +352,18 @@
      <bool>false</bool>
     </property>
    </widget>
+  </widget>
+  <widget class="QToolBar" name="toolBarInfo">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionAboutUs"/>
   </widget>
   <action name="actionPlotter">
    <property name="text">
@@ -758,6 +770,11 @@
   <action name="openLogUidString">
    <property name="text">
     <string>Open a log via UID String</string>
+   </property>
+  </action>
+  <action name="actionAboutUs">
+   <property name="text">
+    <string>AboutUs</string>
    </property>
   </action>
  </widget>
