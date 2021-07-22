@@ -24,6 +24,7 @@
 #include <clocale>
 #include <QCoreApplication>
 #include <QCommandLineParser>
+#include <QProcessEnvironment>
 
 int main(int argc, char* argv[])
 {
@@ -47,6 +48,7 @@ int main(int argc, char* argv[])
     QCommandLineOption robotGenerationFile("robot-generation", "Robot generation to create the robots of", "generation");
     QCommandLineOption autorefInitScript({"a", "autoref"}, "Autoref init script (not executed when missing)", "file");
     QCommandLineOption recordLog({"r", "record"}, "Record the game to the specified log file", "file");
+    QCommandLineOption recordEnv("env", "Only record a logfile if the given environment variable is set. Only changes any behavior is -r is also set", "environment-variable");
     QCommandLineOption reportEvents({"e", "report-events"}, "Report the number of events (fouls, goals etc.)");
     QCommandLineOption simulationSpeed("simulation-speed", "Speed in percent to run the simulator at. Defaults to 100%", "speed", "100");
     QCommandLineOption backlog({"b", "backlog-directory"}, "Directory for backlogging of events.", "directory");
@@ -60,6 +62,7 @@ int main(int argc, char* argv[])
     parser.addOption(robotGenerationFile);
     parser.addOption(autorefInitScript);
     parser.addOption(recordLog);
+    parser.addOption(recordEnv);
     parser.addOption(reportEvents);
     parser.addOption(simulationSpeed);
     parser.addOption(backlog);
@@ -102,9 +105,17 @@ int main(int argc, char* argv[])
     connector.connect(&amun, &AmunClient::gotStatus, &connector, &Connector::handleStatus);
 
     if (parser.isSet(recordLog)) {
-        connector.setRecordLogfile(parser.value(recordLog));
+        bool record = true;
+        if (parser.isSet(recordEnv)) {
+            QProcessEnvironment env{QProcessEnvironment::systemEnvironment()};
+            if (!env.contains(parser.value(recordEnv))) {
+                record = false;
+            }
+        }
+        if (record) {
+            connector.setRecordLogfile(parser.value(recordLog));
+        }
     }
-
     if (parser.isSet(simulatorConfig)) {
         connector.setSimulatorConfigFile(parser.value(simulatorConfig));
     }
