@@ -342,7 +342,7 @@ export class Shoot extends Behavior {
 					|| obscured
 					|| Vector.fromAngle(this._robot.dir).absoluteAngleDiff(this._robot.pos - G.FriendlyGoal) > 100 * Math.PI / 180
 					|| !Robot.hadBall(this._robot, 0.1)) {
-
+				debug.set("redeciding", "TRUE (stop chipAway)");
 				return true;
 			}
 		} else if (Math.abs(this._robot.pos.x) < G.DefenseWidth + 0.9
@@ -351,6 +351,7 @@ export class Shoot extends Behavior {
 				&& Vector.fromAngle(this._robot.dir).absoluteAngleDiff(this._robot.pos - G.FriendlyGoal) < 80 * Math.PI / 180
 				&& Robot.hadBall(this._robot, 0.1)) {
 
+			debug.set("redeciding", "TRUE (consider chipAway)");
 			return true;
 		}
 
