@@ -219,7 +219,6 @@ export class Shoot extends Behavior {
 
 			if (closestOppDist >= OPPONENT_DISTANCE_THRESHOLD) {
 				let attackAngle = (G.OpponentGoal - this._attackPosition).angle();
-				let bestRating = passRating;
 
 				let bestFreeAngle = 0;
 				let bestAttackPosition = undefined;
@@ -231,20 +230,6 @@ export class Shoot extends Behavior {
 						if (possible && freeAngle != undefined && freeAngle > bestFreeAngle) {
 							bestFreeAngle = freeAngle;
 							bestAttackPosition = newAttackPosition;
-						}
-
-						// look for better pass opportunities
-						let newPass = Attack.choosePassFromSuggestions(this._robot, passSuggestions, {
-							earliestAttackTime,
-							currentPassPos: this._prevPassPos,
-							considerTiming: true,
-							ratePass: this._ratePass,
-						})[0];
-						let newPassRating = newPass ? this._ratePass(this._robot, newPass, earliestAttackTime, true) : 0;
-
-						if (newPassRating > bestRating && newPassRating > MIN_PASS_RATING) {
-							bestRating = newPassRating;
-							pass = {target: this._robot, ballPos: newAttackPosition, time: World.Time};
 						}
 					}
 				}
