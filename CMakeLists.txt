@@ -101,6 +101,18 @@ if(NOT ${PROTOBUF_FOUND} OR ${CMAKE_VERSION} VERSION_LESS 3.6.0 OR NOT TARGET pr
     include(BuildProtobuf)
 endif()
 
+# Try to auto-locate Qt5 on MacOS (won't work with custom installs)
+if (APPLE)
+    if (EXISTS /usr/local/opt/qt@5)
+        set(Qt5_DIR "/usr/local/opt/qt@5/lib/cmake/Qt5")
+    elseif(EXISTS /usr/local/opt/qt5)
+        set(Qt5_DIR "/usr/local/opt/qt5/lib/cmake/Qt5")
+    else()
+        message(FATAL_ERROR "Could not find Qt5. Please install with `brew install qt@5`.")
+    endif()
+endif()
+
+
 set(CMAKE_AUTOMOC ON)
 find_package(Qt5 COMPONENTS Core Widgets Network OpenGL REQUIRED)
 
