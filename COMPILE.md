@@ -31,7 +31,7 @@ Certain features require additional libraries:
   * [Setup](#setup)
   * [Compiling](#compiling)
   * [Common problems](#common-problems)
-- [Mac OS X](#mac-os-x)
+- [MacOS](#macos)
 
 ## Note for Robocup 2021 participants
 None of the additional libraries are required to use the simulator. You'll
@@ -199,27 +199,26 @@ the following steps:
 - Open the device manager and choose to manually select a driver for the transceiver.
   Then select the folder containing the `winusbcompat.inf`.
 
-## Mac OS X
-Get dependencies using [Homebrew](http://brew.sh):
-```
-brew install cmake git sdl2 protobuf libusb python@2
-```
-Install Xcode from the macOS App Store.
-Then run the following command to install the Command Line Developer Tools if prompted to do so.
+## MacOS
+Homebrew requires Xcode and Command Line Utilities. 
+
+Install Xcode from the App Store, run it once and then install the utilities with:
 ```
 xcode-select --install
 ```
-Run Xcode once afterwards to ensure that everything gets setup. Starting Xcode may also be necessary after an update.
 
-Download Qt 5 from http://qt-project.org and install it.
-WARNING: **DO NOT** install `Qt 5.4.0-5.5.0`; `Qt 5.5.1` is ok
+Get dependencies using [Homebrew](http://brew.sh):
+
+```
+brew install cmake git sdl2 protobuf libusb python@2 qt@5
+```
 
 Build using:
 ```
 $ cd path/to/framework
 $ libs/v8/build.sh
 $ mkdir build-mac && cd build-mac
-$ cmake -DCMAKE_PREFIX_PATH=~/Qt/5.6/clang_64/lib/cmake -DCMAKE_BUILD_TYPE=Release ..
+$ cmake -DCMAKE_BUILD_TYPE=Release ..
 $ make
 ```
 
