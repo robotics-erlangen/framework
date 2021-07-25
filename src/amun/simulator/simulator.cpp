@@ -467,7 +467,7 @@ std::tuple<QList<QByteArray>, QByteArray, qint64> Simulator::createVisionPacket(
 
         // if multiple balls are reported, shuffle them randomly (the tracking might have systematic errors depending on the ball order)
         if (frame.balls_size() > 1) {
-            std::random_shuffle(frame.mutable_balls()->begin(), frame.mutable_balls()->end());
+            std::shuffle(frame.mutable_balls()->begin(), frame.mutable_balls()->end(), rand_shuffle_src);
         }
 
         SSL_WrapperPacket packet;

@@ -30,6 +30,7 @@
 #include <QQueue>
 #include <QByteArray>
 #include <tuple>
+#include <random>
 
 // higher values break the rolling friction of the ball
 const float SIMULATOR_SCALE = 10.0f;
@@ -125,6 +126,8 @@ private:
     qint64 m_lastBallSendTime = 0;
     std::map<qint64, unsigned> m_lastFrameNumber;
     ErrorAggregator *m_aggregator;
+
+    std::mt19937 rand_shuffle_src = std::mt19937(std::random_device()());
 };
 
 #endif // SIMULATOR_H
