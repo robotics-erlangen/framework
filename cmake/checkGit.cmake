@@ -41,6 +41,7 @@ execute_process(WORKING_DIRECTORY ${GIT_BASE_DIR}
     OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
+string(REGEX REPLACE "[\\]" "\\\\\\\\" GIT_DIFF "${GIT_DIFF}")
 string(REGEX REPLACE "\n" "\\\\n" GIT_DIFF "${GIT_DIFF}")
 
 configure_file(${SOURCE} ${TARGET} ESCAPE_QUOTES)
