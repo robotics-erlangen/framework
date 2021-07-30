@@ -32,7 +32,7 @@
 
 execute_process(WORKING_DIRECTORY ${GIT_BASE_DIR}
     OUTPUT_VARIABLE GIT_DIFF
-    COMMAND git diff-files -p --no-color ${GIT_BASE_DIR}/src
+    COMMAND git diff-files -p --no-color ${GIT_BASE_DIR}/src ${GIT_BASE_DIR}/cmake
 )
 
 execute_process(WORKING_DIRECTORY ${GIT_BASE_DIR}
