@@ -105,11 +105,11 @@ fi
 
 cd v8
 
+function fakeuser {
+    git config user.name "patch"
+    git config user.email "noreply@robotics-erlangen.de"
+}
 if [[ "$IS_MINGW" == 1 ]]; then
-    function fakeuser {
-        git config user.name "patch"
-        git config user.email "noreply@robotics-erlangen.de"
-    }
     if [[ ! -e .patched || "$(cat .patched)" != "$V8_BASE_REVISION" ]]; then
         function v8base {
             git checkout $V8_BASE_REVISION
@@ -152,6 +152,19 @@ else
         git checkout $V8_BASE_REVISION
     fi
     gclient sync
+
+    cd build
+    if [[ ! -e .patched || "$(cat .patched)" != "$V8_BASE_REVISION" ]]; then
+        function buildbase {
+            git checkout $BUILD_REVISION
+        }
+        trap buildbase EXIT
+        buildbase
+        fakeuser
+        git am ../../patches/0001-macos-sdk-search.patch
+        trap '-' EXIT
+    fi
+    cd ..
 fi
 
 if [[ "$IS_MINGW32" == 1 ]]; then
