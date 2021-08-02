@@ -1,0 +1,22 @@
+--- a/src/SourceMap/Mapping_impl.h
++++ b/src/SourceMap/Mapping_impl.h
+@@ -101,7 +101,7 @@
+         for (auto& entry : m_data.entries) {
+             if (entry.original.name.isEmpty()) continue;
+             if (std::none_of(m_originalNames.begin(), m_originalNames.end(),
+-                             std::bind1st(std::equal_to<QString>(), entry.original.name))) {
++                             std::bind(std::equal_to<QString>(), entry.original.name))) {
+                 m_originalNames.push_back(entry.original.name);
+             }
+         }
+--- a/src/SourceMap/RevisionThree_impl.h
++++ b/src/SourceMap/RevisionThree_impl.h
+@@ -71,7 +71,7 @@
+     for (auto& entry : extractEntryList(mapping)) {
+         if (entry.name.isEmpty()) continue;
+         if (std::none_of(names.begin(), names.end(),
+-                         std::bind1st(std::equal_to<QString>(), entry.name))) {
++                         std::bind(std::equal_to<QString>(), entry.name))) {
+             names.push_back(entry.name);
+         }
+     }

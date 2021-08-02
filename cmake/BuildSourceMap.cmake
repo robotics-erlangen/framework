@@ -24,18 +24,20 @@ include(ExternalProjectHelper)
 set(LIBSM_SUBPATH "bin/${CMAKE_STATIC_LIBRARY_PREFIX}SourceMap${CMAKE_STATIC_LIBRARY_SUFFIX}")
 find_package(Qt5 COMPONENTS Core REQUIRED)
 
+set(SOURCEMAP_PATCH_FILE ${CMAKE_CURRENT_LIST_DIR}/sourcemap.patch)
 ExternalProject_Add(project_sourcemap
     # from https://github.com/hicknhack-software/SourceMap-Qt.git
     URL http://www.robotics-erlangen.de/downloads/libraries/SourceMap-Qt-1.0.1.tar.gz
     URL_HASH SHA256=833ca5e1efa6f58ed69188c5cff1a9aaf493bd50785bc220ff200bc7c717ce3f
     DOWNLOAD_NO_PROGRESS true
+    PATCH_COMMAND cat ${SOURCEMAP_PATCH_FILE} | patch -p1
     CONFIGURE_COMMAND ${Qt5Core_QMAKE_EXECUTABLE} "CONFIG+=NoTest" <SOURCE_DIR>
     BUILD_BYPRODUCTS
         "<BINARY_DIR>/${LIBSM_SUBPATH}"
     INSTALL_COMMAND ""
 )
 EPHelper_Add_Cleanup(project_sourcemap bin include lib share)
-EPHelper_Add_Clobber(project_sourcemap ${CMAKE_CURRENT_LIST_DIR}/stub.patch)
+EPHelper_Add_Clobber(project_sourcemap ${SOURCEMAP_PATCH_FILE})
 EPHelper_Mark_For_Download(project_sourcemap)
 
 externalproject_get_property(project_sourcemap binary_dir source_dir)
