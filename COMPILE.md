@@ -31,7 +31,7 @@ Certain features require additional libraries:
   * [Setup](#setup)
   * [Compiling](#compiling)
   * [Common problems](#common-problems)
-- [MacOS](#macos)
+- [macOS](#macos)
 
 ## Note for Robocup 2021 participants
 None of the additional libraries are required to use the simulator. You'll
@@ -199,7 +199,7 @@ the following steps:
 - Open the device manager and choose to manually select a driver for the transceiver.
   Then select the folder containing the `winusbcompat.inf`.
 
-## MacOS
+## macOS
 Homebrew requires Xcode and Command Line Utilities. 
 
 Install Xcode from the App Store, run it once and then install the utilities with:
