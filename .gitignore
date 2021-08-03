@@ -11,3 +11,4 @@ error.html
 /libs/v8/.gclient_entries
 node_modules/
 /config/gamecontroller/data/
+/strategy/typescript/base/protobuf.ts

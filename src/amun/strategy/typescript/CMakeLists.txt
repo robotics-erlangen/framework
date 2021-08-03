@@ -36,6 +36,8 @@ add_library(typescript
     js_path.h
     js_protobuf.cpp
     js_protobuf.h
+    protobuftypings.cpp
+    protobuftypings.h
     tsc_internal.cpp
     tsc_internal.h
     typescript.cpp
