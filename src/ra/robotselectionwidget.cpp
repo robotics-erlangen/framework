@@ -609,11 +609,11 @@ void RobotSelectionWidget::selectTeamForGeneration(uint generation, uint, RobotW
             break;
         case RobotWidget::SwapTeam:
             // Can't swap the team if none is assigned
-            if (r.team != RobotWidget::NoTeam) {
+            if (r.team != RobotWidget::NoTeam && r.team != RobotWidget::Mixed) {
                 t = r.team == RobotWidget::Blue ? RobotWidget::Yellow : RobotWidget::Blue;
             }
             else {
-                t = RobotWidget::NoTeam;
+                t = r.team;
             }
             break;
         default:
