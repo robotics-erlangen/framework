@@ -290,24 +290,14 @@ void RobotSelectionWidget::loadRobots()
         }
     }
 
-    if (m_isSimulator) {
-        loadRobots("SimulatorBlueTeam", RobotWidget::Blue);
-        loadRobots("SimulatorYellowTeam", RobotWidget::Yellow);
-        loadRobots("SimulatorSharedTeam", RobotWidget::Mixed);
-    } else {
-        loadRobots("BlueTeam", RobotWidget::Blue);
-        loadRobots("YellowTeam", RobotWidget::Yellow);
-    }
-
+    loadRobotsFromGroup(m_isSimulator);
     sendTeams();
 
     emit sendIsSimulator(m_isSimulator);
 }
 
-void RobotSelectionWidget::loadRobots(const QString &group, RobotWidget::Team team)
+void RobotSelectionWidget::loadRobots(const QString &group, RobotWidget::Team team, bool* hasRobot)
 {
-    bool hasTeamSet = false;
-
     QSettings s;
     s.beginGroup(group);
     const int size = s.beginReadArray("Robots");
@@ -321,17 +311,15 @@ void RobotSelectionWidget::loadRobots(const QString &group, RobotWidget::Team te
                 unsetTeam(id, generation, team);
                 robots[id].team = team;
                 emit setTeam(generation, id, team);
-                hasTeamSet = true;
+                if (hasRobot) {
+                    *hasRobot = true;
+                }
             }
         }
     }
     s.endArray();
     s.endGroup();
 
-    if (!hasTeamSet && m_isSimulator) {
-        int generation = 3;
-        selectTeamForGeneration(generation, 0 /* unused */, RobotWidget::Select11v11);
-    }
     updateGenerationTeam();
 }
 
@@ -364,6 +352,23 @@ void RobotSelectionWidget::unsetAll()
     }
 }
 
+void RobotSelectionWidget::loadRobotsFromGroup(bool simulator)
+{
+    if (simulator) {
+        bool hasSimRobots = false;
+        loadRobots("SimulatorBlueTeam", RobotWidget::Blue, &hasSimRobots);
+        loadRobots("SimulatorYellowTeam", RobotWidget::Yellow, &hasSimRobots);
+        loadRobots("SimulatorSharedTeam", RobotWidget::Mixed, &hasSimRobots);
+        if (!hasSimRobots) {
+            int generation = 3;
+            selectTeamForGeneration(generation, 0 /* unused */, RobotWidget::Select11v11);
+        }
+    } else {
+        loadRobots("BlueTeam", RobotWidget::Blue, nullptr);
+        loadRobots("YellowTeam", RobotWidget::Yellow, nullptr);
+    }
+}
+
 void RobotSelectionWidget::setIsSimulator(bool simulator)
 {
     if (simulator == m_isSimulator) {
@@ -378,16 +383,13 @@ void RobotSelectionWidget::setIsSimulator(bool simulator)
         saveRobots("BlueTeam", RobotWidget::Blue);
         saveRobots("YellowTeam", RobotWidget::Yellow);
         unsetAll();
-        loadRobots("SimulatorBlueTeam", RobotWidget::Blue);
-        loadRobots("SimulatorYellowTeam", RobotWidget::Yellow);
-        loadRobots("SimulatorSharedTeam", RobotWidget::Mixed);
+        loadRobotsFromGroup(true);
     } else {
         saveRobots("SimulatorBlueTeam", RobotWidget::Blue);
         saveRobots("SimulatorYellowTeam", RobotWidget::Yellow);
         saveRobots("SimulatorSharedTeam", RobotWidget::Mixed);
         unsetAll();
-        loadRobots("BlueTeam", RobotWidget::Blue);
-        loadRobots("YellowTeam", RobotWidget::Yellow);
+        loadRobotsFromGroup(false);
     }
     sendTeams();
 }

@@ -94,7 +94,8 @@ private slots:
     void showConfigDialog(const QModelIndex &index);
 
 private:
-    void loadRobots(const QString &group, RobotWidget::Team team);
+    void loadRobotsFromGroup(bool simulator);
+    void loadRobots(const QString &group, RobotWidget::Team team, bool* hasRobot);
     void saveRobots(const QString &group, RobotWidget::Team team);
     bool validate(const robot::Generation &g);
     robot::Generation loadGeneration(const QString &filename);
