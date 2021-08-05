@@ -1,0 +1,16 @@
+stddev_ball_p: 0.0004
+stddev_robot_p: 0.0003
+stddev_robot_phi: 0.003
+stddev_ball_area: 1
+enable_invisible_ball: true
+ball_visibility_threshold: 0.4
+camera_overlap: 1
+dribbler_ball_detections: 0.001
+camera_position_error: 0.05
+robot_command_loss: 0.01
+robot_response_loss: 0.01
+missing_ball_detections: 0.05
+vision_delay: 35000000
+simulate_dribbling: true
+object_position_offset: 0.02
+vision_processing_time: 10000000

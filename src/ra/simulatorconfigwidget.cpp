@@ -88,7 +88,7 @@ void SimulatorConfigWidget::load()
     }
 
     QSettings s;
-    QString selectedFile = s.value("SimulatorConfig/RealismPreset", "Realistic").toString();
+    QString selectedFile = s.value("SimulatorConfig/RealismPreset", "Friendly").toString();
 
     ui->realismPreset->setCurrentText(selectedFile);
 }
