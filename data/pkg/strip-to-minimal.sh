@@ -2,6 +2,9 @@
 # CAUTION
 # This will destroy the repo be removing .git
 
+# Exit on error and when undefined variables are accessed
+set -euo pipefail
+
 read -p "This will destroy your repo by removing .git. Are you sure? [y/N] " -n 1 -r
 echo
 if [[ ! "$REPLY" =~ ^[Yy]$ ]]; then
@@ -31,3 +34,10 @@ sed -i '/add_subdirectory(2014)/d' CMakeLists.txt
 sed -i '/add_subdirectory(2015)/d' CMakeLists.txt
 sed -i '/add_subdirectory(2018)/d' CMakeLists.txt
 
+cd ../../
+git init
+git add -A
+git commit \
+	--no-gpg-sign \
+	--author "Robotics Erlangen <info@robotics-erlangen.de>" \
+	-m "Initial Commit"
