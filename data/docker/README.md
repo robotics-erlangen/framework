@@ -1,26 +1,46 @@
-## Building the CI containers
+# ER-Force Docker images
+This folder contains various Dockerfiles used at ER-Force.
 
-Run `copy-libs.sh` before building. Afterwards it's just standard docker building.
-e.g.
+In general, building these images requires **at least Docker 19.03** and
+[Docker BuildKit](https://docs.docker.com/develop/develop-images/build_enhancements/)
+to be enabled. Prefix `docker` commands with `DOCKER_BUILDKIT=1` or take a look
+at the link to get instructions on how to enable it permanently.
+
+To build the images, it is important that the build context (the path argument
+given to `docker build`) is the repository root directory. Thus, to build the
+images, **enter the respsitory root** and run
+```bash
+$ docker build -t sometag -f data/docker/Dockerfile.something .
 ```
-cd ubuntu-18.04
-docker build -t ubuntu-18.04 .
+
+## Table of Contents
+- [V8 Images](#v8-images)
+- [CI Images](#ci-images)
+- [Simulator-CLI](#simulator-cli)
+- [Robocup Setup](#robocup-setup)
+
+## V8 images
+These images are available from Docker Hub at [`roboticserlangen/v8`](https://hub.docker.com/r/roboticserlangen/v8) They are
+tagged as `version-{x}-ubuntu-{y}` where `x` is a counter we bump when changing
+something about V8 and `y` is the used Ubuntu Version (e.g. `20.04`)
+
+There is a script at `data/scripts/package_docker_v8` that can be used to
+extract the V8 binaries out of such an image. Use it like this
+```bash
+$ ./package_docker_v8 sometag
+$ # e.g.
+$ ./package_docker_v8 version-1-ubuntu-20.04
 ```
+
+## CI images
+These images need to be available on the CI runner host. Take a look at
+`.gitlab-ci.yml` for the required tag names.
+
 ## Simulator CLI
 This image is available from Docker Hub at
 [`roboticserlangen/simulatorcli`](https://hub.docker.com/repository/docker/roboticserlangen/simulatorcli).
 The available tags are `latest` and `commit-12HASH`, where `12HASH` are the
 first twelve letters identifying the commit the build is based on.
-
-You can also build the image yourself.The Simulator CLI needs to copy files
-from the repository root. Because of this, the top level folder needs to be
-used as build context. Building the image requires
-[BuildKit](https://docs.docker.com/develop/develop-images/build_enhancements/)
-and **at least Docker 19.03**.  In the **repository root**, run
-```sh
-$ DOCKER_BUILDKIT=1 docker build -t roboticserlangen/simulatorcli:latest -f data/docker/Dockerfile.simulatorcli .
-
-```
 
 ## Robocup setup
 According to the Robocup simulation setup developed
@@ -39,4 +59,3 @@ If this happens, simply build using
 $ cd robocup
 $ docker build -t sometag .
 ```
-There is no need to run `copy-libs.sh`.

@@ -26,6 +26,7 @@ Certain features require additional libraries:
     * [Ubuntu 18.04/20.04](#ubuntu-18042004)
     * [Manjaro](#manjaro)
   * [Building V8 (optional)](#building-v8-optional-needed-for-javascript-support)
+    * [Building V8 inside Docker](#building-v8-inside-docker)
   * [Building Ra](#building-the-framework)
 - [Windows](#windows)
   * [Setup](#setup)
@@ -90,6 +91,11 @@ Finally, run the following in the repository root directory
 ```
 $ libs/v8/build.sh
 ```
+
+#### Building V8 inside Docker
+You can also build V8 inside a Docker container and copy out the result. Take a
+look at [`data/docker/README.md`](data/docker/README.md).
+
 ### Building the Framework
 
 The recommended way of building a project with CMake is by doing an
