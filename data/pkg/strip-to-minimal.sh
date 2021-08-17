@@ -16,6 +16,8 @@ cd "$(dirname "$0")"
 # goto repo root
 cd ../..
 
+current_hash="$(git rev-parse --short=12 HEAD)"
+
 rm -rf .git/ .gitignore autoref strategy/lua/
 
 cd src
@@ -41,3 +43,6 @@ git commit \
 	--no-gpg-sign \
 	--author "Robotics Erlangen <info@robotics-erlangen.de>" \
 	-m "Initial Commit"
+
+cd ..
+tar cfz "software-${current_hash}.tar.gz" software
