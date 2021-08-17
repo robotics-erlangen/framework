@@ -83,6 +83,12 @@ endmacro(find_cross_compiler)
 
 find_cross_compiler(ARM_C_CROSS_COMPILER arm-none-eabi-gcc REQUIRED)
 find_cross_compiler(ARM_CXX_CROSS_COMPILER arm-none-eabi-g++)
+if(NOT ARM_C_CROSS_COMPILER)
+    message(STATUS "No suitable cross compiler found, firmware will be unavailable")
+    set(BUILD_FIRMWARE FALSE CACHE BOOL "Build the firmware" FORCE)
+else()
+    set(BUILD_FIRMWARE TRUE CACHE BOOL "Build the firmware")
+endif()
 
 # downloads
 add_custom_target(download)
