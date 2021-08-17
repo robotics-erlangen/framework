@@ -17,7 +17,7 @@ Certain features require additional libraries:
 - `libsdl2` >= `2.0.2` - Gamepad support
 - `libudev` - required for Gamepad support (only required if `libsdl2` is not available via the package manager)
 - `libqt5svg5-dev` - Required for taking SVG screenshots of the fieldwidget
-- `python2`, `python3` and `git` - Required to build V8
+- `python2` and `git` - Required to build V8
 
 ## Table Of Contents
 - [Note for Robocup 2021 participants](#note-for-robocup-2021-participants)
@@ -65,14 +65,14 @@ source.
 ### Building V8 (optional, needed for Javascript support)
 Note, that this is **not required** for the simulator.
 
-To build V8, `git`, `python2` and `python3` are required to be executable
-commands. The package names are
+To build V8, `git` and `python2` are required to be executable commands.
+The package names are
 
 | Distribution       | Packages              |
 |--------------------|-----------------------|
-| Ubuntu 20.04       | `git python2 python3` |
-| Ubuntu 18.04       | `git python python3`  |
-| Manjaro            | `git python python2`  |
+| Ubuntu 20.04       | `git python2` |
+| Ubuntu 18.04       | `git python` |
+| Manjaro            | `git python2` |
 
 Also, the `python` command needs to be available and point to `python2`. On
 Ubuntu 18.04, this is already the case when installing these
