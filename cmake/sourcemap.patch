@@ -5,7 +5,7 @@
              if (entry.original.name.isEmpty()) continue;
              if (std::none_of(m_originalNames.begin(), m_originalNames.end(),
 -                             std::bind1st(std::equal_to<QString>(), entry.original.name))) {
-+                             std::bind(std::equal_to<QString>(), entry.original.name))) {
++                             std::bind(std::equal_to<QString>(), entry.original.name, std::placeholders::_1))) {
                  m_originalNames.push_back(entry.original.name);
              }
          }
@@ -16,7 +16,7 @@
          if (entry.name.isEmpty()) continue;
          if (std::none_of(names.begin(), names.end(),
 -                         std::bind1st(std::equal_to<QString>(), entry.name))) {
-+                         std::bind(std::equal_to<QString>(), entry.name))) {
++                         std::bind(std::equal_to<QString>(), entry.name, std::placeholders::_1))) {
              names.push_back(entry.name);
          }
      }
