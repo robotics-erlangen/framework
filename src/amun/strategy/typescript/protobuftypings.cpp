@@ -20,6 +20,9 @@
 
 #include "protobuftypings.h"
 
+#include <QDateTime>
+#include <QFileInfo>
+#include <QLocale>
 #include <deque>
 #include <google/protobuf/descriptor.h>
 #include <iterator>
@@ -48,6 +51,17 @@ using google::protobuf::FieldDescriptor;
 using google::protobuf::FileDescriptor;
 
 namespace {
+/* __DATE__ is of format mmm dd yyyy, but for days 1-9 the day is padded
+ * with a space. QT only supports
+ * - Single digit for 1-9
+ * - Leading zero
+ * We thus need to filter it out
+ */
+const QDateTime COMPILATION_DATETIME {
+    QLocale::c().toDate(QString(__DATE__).replace("  ", " "), "MMM d yyyy"),
+    QLocale::c().toTime(__TIME__, "HH:mm:ss")
+};
+
 /* Messages that are transferred between the strategy and amun. Used
  * sub-messages and enums will be found as well
  */
@@ -231,4 +245,8 @@ std::ostream& generateProtobufTypings(std::ostream& os) {
     }
 
     return os;
+}
+
+bool shouldGenerateProtobufTypings(const QFileInfo& baseProto) {
+    return !baseProto.exists() || baseProto.lastModified() <= COMPILATION_DATETIME;
 }

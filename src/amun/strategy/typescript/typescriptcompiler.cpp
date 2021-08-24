@@ -31,19 +31,7 @@
 #include <utility>
 #include <QDebug>
 #include <QDateTime>
-#include <QLocale>
 #include <fstream>
-
-/* __DATE__ is of format mmm dd yyyy, but for days 1-9 the day is padded
- * with a space. QT only supports
- * - Single digit for 1-9
- * - Leading zero
- * We thus need to filter it out
- */
-const static QDateTime COMPILATION_DATETIME {
-    QLocale::c().toDate(QString(__DATE__).replace("  ", " "), "MMM d yyyy"),
-    QLocale::c().toTime(__TIME__, "HH:mm:ss")
-};
 
 TypescriptCompiler::TypescriptCompiler(const QFileInfo &tsconfig)
     : m_tsconfig(tsconfig), m_state(State::STANDBY)
@@ -145,7 +133,7 @@ static bool copyDirectory(const QString &source, const QString &destination)
 void TypescriptCompiler::doCompile()
 {
     QFileInfo baseProto { m_tsconfig.dir().filePath("base/protobuf.ts") };
-    if (!baseProto.exists() || baseProto.lastModified() <= COMPILATION_DATETIME) {
+    if (shouldGenerateProtobufTypings(baseProto)) {
         std::ofstream baseProtoStream { baseProto.absoluteFilePath().toStdString() };
         if (!baseProtoStream.is_open()) {
             emit error("Could not open base/protobuf.ts for writing");
@@ -249,8 +237,7 @@ bool TypescriptCompiler::isCompilationNeeded()
         return true;
     }
 
-    QFileInfo baseProto { m_tsconfig.dir().filePath("base/protobuf.ts") };
-    if (!baseProto.exists() || baseProto.lastModified() <= COMPILATION_DATETIME) {
+    if (shouldGenerateProtobufTypings(m_tsconfig.dir().filePath("base/protobuf.ts"))) {
         return true;
     }
 

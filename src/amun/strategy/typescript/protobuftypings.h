@@ -21,8 +21,10 @@
 #ifndef PROTOBUFTYPINGS_H
 #define PROTOBUFTYPINGS_H
 
+#include <QFileInfo>
 #include <ostream>
 
 std::ostream& generateProtobufTypings(std::ostream& os);
+bool shouldGenerateProtobufTypings(const QFileInfo& baseProto);
 
 #endif // PROTOBUFTYPINGS_H
