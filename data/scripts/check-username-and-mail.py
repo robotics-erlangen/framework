@@ -5,6 +5,7 @@ import subprocess
 
 EXPECTED_MAIL_DOMAIN = "robotics-erlangen.de"
 ALLOWED_MAIL_ADRESSES = ["info@robotics-erlangen.de"]
+EXTERNAL_CONTRIBUTORS = ["Dawid Kulikowski"]
 
 # umlaut translation
 translationTable = { ord('ä'): 'ae', ord('ö'): 'oe', ord('ü'): 'ue', ord('ß'): 'ss', ord('é'): 'e' }
@@ -14,6 +15,8 @@ for line in iter(process.stdout.readline, b''):
     decoded = line.decode("utf-8").replace("'", "").replace("\n", "")
     username = decoded.split("|")[0]
     origUser = username
+    if origUser in EXTERNAL_CONTRIBUTORS:
+        continue
 
     # replace umlaute in username
     username = username.lower().translate(translationTable)
