@@ -105,6 +105,12 @@ mkdir build && cd build
 cmake ..
 make
 ```
+
+Alternatively in order to select which Qt-Installation to use specify it using a similar command line:
+```
+cmake -DCMAKE_PREFIX_PATH=~/Qt/5.6/gcc_64/lib/cmake ..
+```
+
 To be able to use the USB transceiver / JTAG programmer the rights for udev have to be modified.
 This only needs to be done once.
 ```
@@ -115,11 +121,6 @@ Ra and the Logplayer can be started from the build/bin/ directory.
 To install the desktop files use this command:
 ```
 make install-menu
-```
-
-In order to select which Qt-Installation to use specify it using a similar command line:
-```
-cmake -DCMAKE_PREFIX_PATH=~/Qt/5.6/gcc_64/lib/cmake ..
 ```
 
 ## Windows
