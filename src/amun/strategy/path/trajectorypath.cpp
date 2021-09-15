@@ -177,9 +177,10 @@ std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPat
     // check direct trajectory
     float directSlowDownTime = input.exponentialSlowDown ? SpeedProfile::SLOW_DOWN_TIME : 0.0f;
     bool useHighPrecision = input.distance.length() < 0.1f && input.v1 == Vector(0, 0) && input.v0.length() < 0.2f;
-    SpeedProfile direct = AlphaTimeTrajectory::findTrajectory(input.v0, input.v1, input.distance, input.acceleration, input.maxSpeed,
-                                                              directSlowDownTime, useHighPrecision, true);
+    const SpeedProfile direct = AlphaTimeTrajectory::findTrajectory(input.v0, input.v1, input.distance, input.acceleration, input.maxSpeed,
+                                                                    directSlowDownTime, useHighPrecision, true);
 
+    float directTrajectoryScore = std::numeric_limits<float>::max();
     if (direct.isValid()) {
         auto obstacleDistances = m_world.minObstacleDistance(direct, 0, input.s0, StandardSampler::OBSTACLE_AVOIDANCE_RADIUS);
         if (obstacleDistances.first == ZonedIntersection::FAR_AWAY ||
@@ -189,11 +190,23 @@ std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPat
             info.desiredDistance = input.distance;
             return concat(escapeObstacle, {info});
         }
+        if (obstacleDistances.first == ZonedIntersection::NEAR_OBSTACLE) {
+            directTrajectoryScore = StandardSampler::trajectoryScore(direct.time(), true, true);
+        }
     }
 
+    m_standardSampler.setDirectTrajectoryScore(directTrajectoryScore);
     if (testSampler(input, pathfinding::StandardSampler)) {
         return concat(escapeObstacle, m_standardSampler.getResult());
     }
+    // the standard sampler might fail since it regards the direct trajectory as the best result
+    if (directTrajectoryScore < std::numeric_limits<float>::max()) {
+        TrajectorySampler::TrajectoryGenerationInfo info;
+        info.profile = direct;
+        info.desiredDistance = input.distance;
+        return concat(escapeObstacle, {info});
+    }
+
     if (testSampler(input, pathfinding::EndInObstacleSampler)) {
         return concat(escapeObstacle, m_endInObstacleSampler.getResult());
     }

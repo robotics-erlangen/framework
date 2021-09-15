@@ -63,12 +63,14 @@ public:
     StandardSampler(RNG *rng, const WorldInformation &world, PathDebug &debug, bool usePrecomputation = true);
     bool compute(const TrajectoryInput &input) override;
     const std::vector<TrajectoryGenerationInfo> &getResult() const override { return m_generationInfo; }
+    void setDirectTrajectoryScore(float score) { m_directTrajectoryScore = score; }
 
     static constexpr float OBSTACLE_AVOIDANCE_RADIUS = 0.1f;
     static constexpr float OBSTACLE_AVOIDANCE_BONUS = 1.2f;
 
     // a negative return value indicates that the input was invalid or worse and a positive value is the score of the successfull check
     float checkSample(const TrajectoryInput &input, const StandardTrajectorySample &sample, const float currentBestTime);
+    static float trajectoryScore(float time, bool isNearObstacle, bool isEndFarFromObstacle);
 
 private:
     struct StandardSamplerBestTrajectoryInfo {
@@ -83,6 +85,7 @@ private:
     void computePrecomputed(const TrajectoryInput &input);
 
 private:
+    float m_directTrajectoryScore = std::numeric_limits<float>::max();
     StandardSamplerBestTrajectoryInfo m_bestResultInfo;
 
     std::vector<TrajectoryGenerationInfo> m_generationInfo;
