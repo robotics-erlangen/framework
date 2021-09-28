@@ -33,7 +33,7 @@ export class DribbleToPos extends Task {
 	private customObstacles: Obstacle[];
 	private useCMA: boolean;
 
-	private currentlyDribbling: boolean = false;
+	private static currentlyDribbling: boolean = false;
 	private obstacleToAvoid: CircleObstacle | undefined = undefined;
 	private alternativeTargetPos: Position = new Vector(0, 0);
 	private alternativeDirection: Vector = new Vector(0, 0);
@@ -71,8 +71,6 @@ export class DribbleToPos extends Task {
 		};
 
 		this.useCMA = params.useCMA === true;
-
-		// let offset = this._robot.shootRadius + World.Ball.radius + 0.1;
 	}
 
 	private getBallPosition(): Position {
@@ -106,7 +104,8 @@ export class DribbleToPos extends Task {
 
 		let minDistance: number = this._robot.radius * 1.8;
 		let preliminaryTargetPos: Position;
-		if (!this.currentlyDribbling && this.obstacleToAvoid == undefined) {
+		let noObstaclesInArea = true;
+		if (!DribbleToPos.currentlyDribbling && this.obstacleToAvoid == undefined) {
 			preliminaryTargetPos = this.getBallPosition() + (this._robot.radius - World.Ball.radius) *  -directionRobotToBall;
 
 			for (let obstacle of this.customObstacles) {
@@ -116,6 +115,9 @@ export class DribbleToPos extends Task {
 
 				let obstaclePos = new Vector(obstacle.x, obstacle.y);
 				let distanceToObstacle = (preliminaryTargetPos - obstaclePos).length();
+				if (distanceToObstacle < this._robot.radius * 3.0) {
+					noObstaclesInArea = false;
+				}
 				if (minDistance > distanceToObstacle) {
 					minDistance = distanceToObstacle;
 					this.obstacleToAvoid = obstacle;
@@ -150,22 +152,21 @@ export class DribbleToPos extends Task {
 		}
 
 		const conservativeAngleThreshold = Math.PI * 0.1;
-		const angleThreshold: number = this.currentlyDribbling ? Math.PI * 0.5 : conservativeAngleThreshold;
+		const angleThreshold: number = DribbleToPos.currentlyDribbling ? Math.PI * 0.30 : conservativeAngleThreshold;
 		let angleOkay: boolean = (angleDiff < angleThreshold || angleDiff > 2 * Math.PI - angleThreshold);
 
 		let ignoreBall: boolean = true;
-		const noObstaclesInArea = this.obstacleToAvoid == undefined;
 
-		const distanceThreshold: number = this.currentlyDribbling ? 0.1 : 0.03;
-		if (this.movingToPush && directionGateToBall.dot(directionRobotToBall) < -0.9) {
+		if (this.movingToPush && angleOkay) {
 			this.movingToPush = false;
-		} else if (noObstaclesInArea && (directionGateToBall.dot(directionRobotToBall) > -0.8)) {
+		} else if (noObstaclesInArea && (directionGateToBall.dot(directionRobotToBall) > -0.4)) {
 			this.movingToPush = true;
 		}
 
-		const maxDribbleSpeed = 0.6;
-		if (distanceToBall < distanceThreshold && angleOkay && (this.currentlyDribbling || !this.movingToPush)) {
-			this.currentlyDribbling = true;
+		const maxDribbleSpeed = 0.4;
+		const distanceThreshold: number = DribbleToPos.currentlyDribbling ? 0.06 : 0.03;
+		if (distanceToBall < distanceThreshold && angleOkay && (DribbleToPos.currentlyDribbling || !this.movingToPush)) {
+			DribbleToPos.currentlyDribbling = true;
 			this._robot.setDribblerSpeed(maxDribbleSpeed);
 			this.dir = (this.pos - this._robot.pos).normalized().angle();
 
@@ -174,15 +175,7 @@ export class DribbleToPos extends Task {
 				this.obstacleToAvoid = undefined;
 			}
 		} else {
-			this.currentlyDribbling = false;
-
-			if (isBallValid()) {
-				if (this.obstacleToAvoid == undefined) {
-					this.dir = (-(this.getBallPosition() - targetPos).normalized()).angle();
-				} else {
-					this.dir = ((this.getBallPosition() - this.alternativeTargetPos)).normalized().angle();
-				}
-			}
+			DribbleToPos.currentlyDribbling = false;
 
 			let offset: number = 0;
 			if (this.movingToPush || (!noObstaclesInArea && !angleOkay)) {
@@ -193,6 +186,10 @@ export class DribbleToPos extends Task {
 			targetPos = noObstaclesInArea
 				? this.getBallPosition() + (offset + this._robot.radius - World.Ball.radius) * directionGateToBall
 				: this.alternativeTargetPos + offset * this.alternativeDirection;
+
+			if (isBallValid()) {
+				this.dir = (this.getBallPosition() - targetPos).normalized().angle();
+			}
 
 			const dribblerSpeed = (distanceToBall < 0.05) ? 1.0 : 1 - Math.max(0.1, distanceToBall) / 0.1;
 			this._robot.setDribblerSpeed(dribblerSpeed * maxDribbleSpeed);
@@ -206,14 +203,19 @@ export class DribbleToPos extends Task {
 			this._addCustomObstacle(obstacle);
 		}
 
-		let maxSpeed = (distanceToBall < 0.1) ? 0.3 : undefined;
-		if (angleBallToTargetPos < 0.2 && this.currentlyDribbling) {
+		let minMaxSpeed = (DribbleToPos.currentlyDribbling &&
+					(angleDiff < conservativeAngleThreshold * 0.5 || angleDiff > 2 * Math.PI - conservativeAngleThreshold * 0.5))
+			? 0.5
+			: 0.3;
+		let alphaSpeed = Math.min((Math.max(distanceToBall, 0.1) - 0.1), 1.0);
+		let maxSpeed = this._robot.maxSpeed * alphaSpeed + minMaxSpeed * (1 - alphaSpeed);
+		if (angleBallToTargetPos < 0.2 && DribbleToPos.currentlyDribbling) {
 			maxSpeed = 0.1;
 		}
 		let endSpeed = (this.pos - this._robot.pos).withLength(this.endSpeedLength);
 
 		if (this.useCMA) {
-			this._robot.trajectory.update(CurvedMaxAccel, targetPos, this.dir, maxSpeed, endSpeed, 0.5, this.currentlyDribbling);
+			this._robot.trajectory.update(CurvedMaxAccel, targetPos, this.dir, maxSpeed, endSpeed, 0.5, DribbleToPos.currentlyDribbling);
 		} else {
 			this._robot.trajectory.update(ToTarget, targetPos, this.dir, maxSpeed, endSpeed);
 		}
