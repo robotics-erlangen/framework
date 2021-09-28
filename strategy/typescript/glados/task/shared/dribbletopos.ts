@@ -88,8 +88,10 @@ export class DribbleToPos extends Task {
 		const angleThreshold = this.currentlyDribbling ? 0.5 : 0.95;
 		if (distanceToBall < 0.01 && angleBallToTargetPos > angleThreshold) {
 			this.currentlyDribbling = true;
+			this._robot.setDribblerSpeed(1.0);
 		} else {
 			this.currentlyDribbling = false;
+			this._robot.setDribblerSpeed(0.0);
 		}
 
 		if (!this.currentlyDribbling) {
@@ -98,10 +100,6 @@ export class DribbleToPos extends Task {
 
 			const directionGateToBall = (BallObserver.getRealisticBallPos() - this.pos).normalized();
 			targetPos = BallObserver.getRealisticBallPos() + this._robot.radius * directionGateToBall;
-
-			const dribbleStartDistance = 0.1;
-			const dribblerSpeed = 1.0 - Math.max(dribbleStartDistance, distanceToBall) / dribbleStartDistance;
-			this._robot.setDribblerSpeed(dribblerSpeed);
 		} else {
 			this.dir = this._robot.speed.angle();
 		}
@@ -115,7 +113,7 @@ export class DribbleToPos extends Task {
 		let maxSpeed = 0.3;
 		let endSpeed = (this.pos - this._robot.pos).withLength(this.endSpeedLength);
 		if (this.useCMA) {
-			this._robot.trajectory.update(CurvedMaxAccel, targetPos, this.dir, maxSpeed, endSpeed);
+			this._robot.trajectory.update(CurvedMaxAccel, targetPos, this.dir, maxSpeed, endSpeed, undefined, this.currentlyDribbling);
 		} else {
 			this._robot.trajectory.update(ToTarget, targetPos, this.dir, maxSpeed, endSpeed);
 		}

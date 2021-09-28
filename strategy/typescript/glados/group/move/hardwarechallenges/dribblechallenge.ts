@@ -145,7 +145,7 @@ export class DribbleChallenge extends HardwareChallengeBase {
 
 		taskAssignments[this._robots[0]] = Assignment.create({
 			class: DribbleToPos,
-			params: [{pos: DribbleChallenge.currentTargetPosition, customObstacles: this.customObstacles, useCMA: true}],
+			params: [{pos: DribbleChallenge.currentTargetPosition, customObstacles: this.customObstacles, useCMA: true, ignoreDefaultObstacles: true}],
 			restart: restart
 		});
 
