@@ -13,6 +13,7 @@ import { Race } from "glados/test/move/race";
 import { makeSingleTaskMove } from "glados/test/move/singletaskmove";
 import { Victory } from "glados/test/move/victory";
 import { Volley } from "glados/test/move/volley";
+import { RotTest } from "glados/test/task/rotation";
 import { MainTrainer } from "glados/trainer/maintrainer";
 
 
@@ -23,6 +24,8 @@ let moves: (typeof Move)[] = [
 	Race,
 	makeSingleTaskMove(TrajectoryTimingTask),
 	Volley,
+	makeSingleTaskMove(RotTest)
+
 ];
 
 let coord: MainCoordinator | undefined = undefined;
