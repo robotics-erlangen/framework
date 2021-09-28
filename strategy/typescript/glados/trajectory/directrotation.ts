@@ -8,21 +8,21 @@ export class DirectRotation {
 
 	public calculateRotationHysteresis(robotDir: number, currentOmega: number, targetDir: number, rotAccel: number, rotBrake: number,
 			rotSpeed: number, rotExpTime: number): [number, number] {
+		// feedforward of target direction change
+		// as tracking a direction only works if it changes slow enough, using feedforwad shouldn't cause any trouble
+		// TODO: only add a reasonable directionChange, not a million
+		// FIXME?: Assuming the direction change will keep on going, we can still calculate if it will be faster to do the piruette, or to break and return and break again and accelerate again. TODO: Is that even what we want? At some point the dir change will stop and then we have to break our speed again.
+		const feedforwardSpeed: number = this.lastTime == undefined ? 0 : geom.normalizeAngle(targetDir - this.lastTargetDir!) / (World.Time - this.lastTime);
 		let [angularSpeed, angularAccel] = DirectRotation.calculateRotation(robotDir, currentOmega, targetDir,
-		rotAccel, rotBrake, rotSpeed, rotExpTime);
-		if (this.lastTime != undefined && this.lastTargetDir != undefined) {
-			// feedforward of target direction change
-			// as tracking a direction only works if it changes slow enough, using feedforwad shouldn't cause any trouble
-			let directionChange = (targetDir - this.lastTargetDir) / (World.Time - this.lastTime);
-			angularSpeed = angularSpeed + directionChange;
-		}
+		rotAccel, rotBrake, rotSpeed, rotExpTime, feedforwardSpeed);
 		this.lastTargetDir = targetDir;
 		this.lastTime = World.Time;
 		return [angularSpeed, angularAccel];
 	}
 
-	private static calculateRotation(currentDir: number, currentOmega: number, targetDir: number,
-		accelerate: number, brake: number, maxSpeed: number, exponentialTime: number): [number, number] {
+	private static calculateRotation(currentDir: number, currentOmegaParam: number, targetDir: number,
+		accelerate: number, brake: number, maxSpeed: number, exponentialTime: number, feedforwardSpeed: number): [number, number] {
+		let currentOmega = currentOmegaParam - feedforwardSpeed;
 		let fullBrakeTime = Math.abs(currentOmega / brake);
 		// how far the robot will rotate even if it brakes with maximum speed
 		let forcedRotation = MathUtil.sign(currentOmega) * -brake * fullBrakeTime * fullBrakeTime / 2;
@@ -91,6 +91,8 @@ export class DirectRotation {
 				outSpeed = targetSpeed * MathUtil.sign(dirChange);
 			}
 		}
+
+		outSpeed += feedforwardSpeed;
 
 		return [outSpeed, outAccel];
 	}
