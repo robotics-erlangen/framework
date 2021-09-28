@@ -22,7 +22,7 @@ export type Parameters = {
 };
 
 function isBallValid(): boolean {
-	return World.Ball.isPositionValid() && World.Ball.detectionQuality > 0.3;
+	return World.Ball.isPositionValid() && World.Ball.detectionQuality > 0.1;
 }
 
 export class DribbleToPos extends Task {
@@ -104,7 +104,7 @@ export class DribbleToPos extends Task {
 			angleCurrentPosToBall = ballDirection.angle();
 		}
 
-		let minDistance: number = this._robot.radius * 2.2;
+		let minDistance: number = this._robot.radius * 1.8;
 		let preliminaryTargetPos: Position;
 		if (!this.currentlyDribbling && this.obstacleToAvoid == undefined) {
 			preliminaryTargetPos = this.getBallPosition() + (this._robot.radius - World.Ball.radius) *  -directionRobotToBall;
@@ -149,19 +149,21 @@ export class DribbleToPos extends Task {
 			angleDiff += 2 * Math.PI;
 		}
 
-		const angleThreshold: number = this.currentlyDribbling ? Math.PI * 0.2 : Math.PI * 0.1;
+		const angleThreshold: number = this.currentlyDribbling ? Math.PI * 0.4 : Math.PI * 0.1;
 		let angleOkay: boolean = (angleDiff < angleThreshold || angleDiff > 2 * Math.PI - angleThreshold);
+
 		let ignoreBall: boolean = true;
 		const noObstaclesInArea = this.obstacleToAvoid == undefined;
 
-		const distanceThreshold: number = this.currentlyDribbling ? 0.05 : 0.02;
+		const distanceThreshold: number = this.currentlyDribbling ? 0.05 : 0.03;
 		const pushThreshold = this.movingToPush ? -0.8 : -0.3;
 		this.movingToPush = noObstaclesInArea && directionGateToBall.dot(directionRobotToBall) > pushThreshold;
 
 		if (distanceToBall < distanceThreshold && angleOkay && (this.currentlyDribbling || !this.movingToPush)) {
 			this.currentlyDribbling = true;
 			this._robot.setDribblerSpeed(2.0);
-			this.dir = (this.pos - this._robot.pos).normalized().angle();
+			this.dir = (-(this.pos - this._robot.pos)).normalized().angle();
+			amun.log(this.dir);
 
 			if (this.obstacleToAvoid != undefined) {
 				this.obstacleToAvoid.radius = this._robot.radius;
@@ -174,7 +176,7 @@ export class DribbleToPos extends Task {
 				if (this.obstacleToAvoid == undefined) {
 					this.dir = (-(this.getBallPosition() - targetPos).normalized()).angle();
 				} else {
-					this.dir = (this.getBallPosition() - this.alternativeTargetPos).normalized().angle();
+					this.dir = ((this.getBallPosition() - this.alternativeTargetPos)).normalized().angle();
 				}
 			}
 

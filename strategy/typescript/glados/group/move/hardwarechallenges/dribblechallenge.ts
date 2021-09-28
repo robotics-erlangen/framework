@@ -17,7 +17,6 @@ export class DribbleChallenge extends HardwareChallengeBase {
 	private static gates: [Position, Vector][] = [];
 	private static currentGateIndex: number = 0;
 	private static moveToMidwayPos: boolean = true;
-	private static nextGateImminent: boolean = false;
 	private static currentTargetPosition: Position = new Vector(0, 0);
 	private customObstacles: Obstacle[];
 	private static lastGate: number = -1;
@@ -40,7 +39,7 @@ export class DribbleChallenge extends HardwareChallengeBase {
 				type: "circle",
 				x: transform.pos.x,
 				y: transform.pos.y,
-				radius: this._robots[0].radius * 1.0,
+				radius: this._robots[0].radius * 1.1,
 				name: name
 			};
 		});
