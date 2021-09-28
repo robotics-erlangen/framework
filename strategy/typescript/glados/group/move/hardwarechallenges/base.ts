@@ -101,8 +101,8 @@ export abstract class HardwareChallengeBase extends Move {
 		const angleDiff = Math.abs(robot.dir - transform.dir);
 
 		// hysteresis
-		const allowedAngleError = previouslyCorrect ? 5 : 4;
-		const maxDistance = previouslyCorrect ? 0.04 : 0.02;
+		const allowedAngleError = previouslyCorrect ? 6 : 4;
+		const maxDistance = previouslyCorrect ? 0.05 : 0.02;
 
 		const LOW = (allowedAngleError / 180) * Math.PI;
 		const HIGH = 2.0 * Math.PI - LOW;
