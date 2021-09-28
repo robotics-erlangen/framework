@@ -1,4 +1,3 @@
-import * as debug from "base/debug";
 import { FriendlyRobot } from "base/robot";
 import { Position, Vector } from "base/vector";
 import * as World from "base/world";
@@ -108,7 +107,7 @@ export class DribbleChallenge extends HardwareChallengeBase {
 	// returns true if position changed
 	private updateTargetPosition(): boolean {
 		if (DribbleChallenge.moveToMidwayPos) {
-			if (this._robots[0].pos.x - DribbleChallenge.currentTargetPosition.x > -(0.01 + this._robots[0].radius)) {
+			if (this._robots[0].pos.x - DribbleChallenge.currentTargetPosition.x > -(0.05 + this._robots[0].radius)) {
 				DribbleChallenge.moveToMidwayPos = false;
 				DribbleChallenge.currentTargetPosition = this.getCurrentGatePosition();
 
@@ -133,6 +132,7 @@ export class DribbleChallenge extends HardwareChallengeBase {
 		if (this.checkIfGatePassed()) {
 			DribbleChallenge.currentGateIndex = this.getNextGateIndex();
 			restart = true;
+			amun.log("current gate", DribbleChallenge.currentGateIndex);
 		}
 
 		if (this.left && this.getBallPosition().y - this.getCurrentGatePosition().y < -0.1) {
@@ -140,8 +140,6 @@ export class DribbleChallenge extends HardwareChallengeBase {
 		} else if (!this.left && this.getBallPosition().y - this.getCurrentGatePosition().y > 0.1) {
 			this.left = true;
 		}
-
-		amun.log("current gate", DribbleChallenge.currentGateIndex);
 
 		restart = restart || this.updateTargetPosition();
 
