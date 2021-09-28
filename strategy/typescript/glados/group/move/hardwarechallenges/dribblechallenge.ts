@@ -40,7 +40,7 @@ export class DribbleChallenge extends HardwareChallengeBase {
 				type: "circle",
 				x: transform.pos.x,
 				y: transform.pos.y,
-				radius: this._robots[0].radius * 1.1,
+				radius: this._robots[0].radius * 1.0,
 				name: name
 			};
 		});
@@ -129,8 +129,7 @@ export class DribbleChallenge extends HardwareChallengeBase {
 		}
 
 		if (DribbleChallenge.moveToMidwayPos) {
-			if (this._robots[0].pos.x - DribbleChallenge.currentTargetPosition.x > -this._robots[0].radius
-			   && Math.abs(this._robots[0].pos.y - DribbleChallenge.currentTargetPosition.y) < this._robots[0].radius * 2) {
+			if ((this._robots[0].pos - DribbleChallenge.currentTargetPosition).length() < this._robots[0].radius * 2) {
 				DribbleChallenge.moveToMidwayPos = false;
 				DribbleChallenge.currentTargetPosition = this.getCurrentGatePosition();
 
@@ -160,8 +159,6 @@ export class DribbleChallenge extends HardwareChallengeBase {
 				amun.log("last gate", DribbleChallenge.lastGate);
 			}
 			restart = true;
-			DribbleChallenge.moveToMidwayPos = false;
-			DribbleChallenge.currentTargetPosition = this.getCurrentGatePosition();
 			amun.log("current gate", DribbleChallenge.currentGateIndex);
 		}
 
