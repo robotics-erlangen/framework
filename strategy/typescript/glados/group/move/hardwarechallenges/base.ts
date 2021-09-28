@@ -10,7 +10,7 @@ import { MessageBox } from "glados/control/messaging";
 import { Assignment, Move, MoveParameters } from "glados/group/move/base";
 import { END_DISTANCE, PlaceBall } from "glados/task/attacker/placeball";
 import { Halt } from "glados/task/shared/halt";
-import { MoveToPos } from "glados/task/shared/movetopos";
+import { MoveToPos, Obstacle } from "glados/task/shared/movetopos";
 import * as PathHelper from "glados/trajectory/pathhelper";
 
 export abstract class HardwareChallengeBase extends Move {
@@ -153,9 +153,46 @@ export abstract class HardwareChallengeBase extends Move {
 			radius = this._robots[0].centerToDribbler;
 		}
 		let pos = transform.pos + Vector.fromAngle(transform.dir) * 2.0 * radius;
+
+		let customObstacles: Obstacle[] = [];
+		for (let i = 0; i < this.opponentTransforms.length; ++i) {
+			if (i === this.currentObstacleToSet) {
+				continue;
+			}
+
+			let obstacleName: string = "opponentObstacle" + i;
+			customObstacles.push({
+				type: "circle",
+				x: transform.pos.x,
+				y: transform.pos.y,
+				radius: this._robots[0].radius * 1.05,
+				name: obstacleName
+			});
+		}
+
+		for (let i = 1; i < this.friendlyTransforms.length; ++i) {
+			let obstacleName: string = "friendlyObstacle" + i;
+			customObstacles.push({
+				type: "circle",
+				x: transform.pos.x,
+				y: transform.pos.y,
+				radius: this._robots[0].radius * 1.05,
+				name: obstacleName
+			});
+		}
+
+		customObstacles.push({
+			type: "circle",
+			x: World.Ball.pos.x,
+			y: World.Ball.pos.y,
+			radius: World.Ball.radius + 0.005,
+			name: "ballObstacle"
+		});
+
+
 		taskAssignments[this._robots[0]] = Assignment.create({
 			class: MoveToPos,
-			params: [{pos: pos, dir: dir, endSpeedLength: 0}],
+			params: [{pos: pos, dir: dir, endSpeedLength: 0, customObstacles: customObstacles}],
 			// restart if obstacle changed
 			restart: resetMoveToPos
 		});
