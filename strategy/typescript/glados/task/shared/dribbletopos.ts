@@ -155,15 +155,19 @@ export class DribbleToPos extends Task {
 		let ignoreBall: boolean = true;
 		const noObstaclesInArea = this.obstacleToAvoid == undefined;
 
-		const distanceThreshold: number = this.currentlyDribbling ? 0.05 : 0.03;
-		const pushThreshold = this.movingToPush ? -0.8 : -0.3;
-		this.movingToPush = noObstaclesInArea && directionGateToBall.dot(directionRobotToBall) > pushThreshold;
+		const distanceThreshold: number = this.currentlyDribbling ? 0.1 : 0.03;
+		const pushThreshold = this.movingToPush ? -0.8 : -0.5;
+		if (this.movingToPush && directionGateToBall.dot(directionRobotToBall) < -0.9) {
+			this.movingToPush = false;
+		} else if (noObstaclesInArea && (directionGateToBall.dot(directionRobotToBall) > -0.8)) {
+			this.movingToPush = true;
+		}
 
+		const maxDribbleSpeed = 0.6;
 		if (distanceToBall < distanceThreshold && angleOkay && (this.currentlyDribbling || !this.movingToPush)) {
 			this.currentlyDribbling = true;
-			this._robot.setDribblerSpeed(2.0);
-			this.dir = (-(this.pos - this._robot.pos)).normalized().angle();
-			amun.log(this.dir);
+			this._robot.setDribblerSpeed(maxDribbleSpeed);
+			this.dir = (this.pos - this._robot.pos).normalized().angle();
 
 			if (this.obstacleToAvoid != undefined) {
 				this.obstacleToAvoid.radius = this._robot.radius;
@@ -190,8 +194,8 @@ export class DribbleToPos extends Task {
 				? this.getBallPosition() + (offset + this._robot.radius - World.Ball.radius) * directionGateToBall
 				: this.alternativeTargetPos + offset * this.alternativeDirection;
 
-			const dribblerSpeed = 1 - Math.max(0.1, distanceToBall) / 0.1;
-			this._robot.setDribblerSpeed(2 * dribblerSpeed);
+			const dribblerSpeed = (distanceToBall < 0.05) ? 1.0 : 1 - Math.max(0.1, distanceToBall) / 0.1;
+			this._robot.setDribblerSpeed(dribblerSpeed * maxDribbleSpeed);
 
 			this.obstacleTable.ignoreBall = ignoreBall;
 		}

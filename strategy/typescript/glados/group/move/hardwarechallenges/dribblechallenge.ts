@@ -63,6 +63,15 @@ export class DribbleChallenge extends HardwareChallengeBase {
 	}
 
 	private getMidwayPosition(): Position {
+		if (DribbleChallenge.currentGateIndex === DribbleChallenge.gates.length - 1) {
+			const yOffset = 0.1 + this._robots[0].radius * 2;
+			if (this.left) {
+				return this.getCurrentGatePosition() + new Vector(0, -yOffset);
+			} else {
+				return this.getCurrentGatePosition() + new Vector(0, yOffset);
+			}
+		}
+
 		const currentGate = DribbleChallenge.gates[DribbleChallenge.currentGateIndex];
 		const yOffset = 0.5;
 		if (this.left) {
