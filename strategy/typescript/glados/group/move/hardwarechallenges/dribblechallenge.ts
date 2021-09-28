@@ -8,6 +8,7 @@ import { HardwareChallengeBase } from "glados/group/move/hardwarechallenges/base
 import * as Scenarios from "glados/group/move/hardwarechallenges/scenarios";
 import * as BallObserver from "glados/observer/ball";
 import { DribbleToPos } from "glados/task/shared/dribbletopos";
+import { Halt } from "glados/task/shared/halt";
 import { Obstacle } from "glados/task/shared/movetopos";
 
 export class DribbleChallenge extends HardwareChallengeBase {
@@ -21,6 +22,7 @@ export class DribbleChallenge extends HardwareChallengeBase {
 	private customObstacles: Obstacle[];
 	private static lastGate: number = -1;
 	private left: boolean = false;
+	private static previouslyLeft: boolean = false;
 
 	constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 		super(robots, messaging, Scenarios.challenge3);
@@ -72,17 +74,26 @@ export class DribbleChallenge extends HardwareChallengeBase {
 	}
 
 	private getNextMidwayPosition(): Position {
-		const currentGate = DribbleChallenge.gates[this.getNextGateIndex()];
-		const yOffset = 0.5;
-		if (this.left) {
-			return currentGate[0] + new Vector(0, -yOffset);
+		if (DribbleChallenge.currentGateIndex === DribbleChallenge.gates.length - 1) {
+			const yOffset = 0.1 + this._robots[0].radius * 2;
+			if (this.left) {
+				return this.getCurrentGatePosition() + new Vector(0, -yOffset);
+			} else {
+				return this.getCurrentGatePosition() + new Vector(0, yOffset);
+			}
 		} else {
-			return currentGate[0] + new Vector(0, yOffset);
+			const currentGate = DribbleChallenge.gates[this.getNextGateIndex()];
+			const yOffset = 0.5;
+			if (this.left) {
+				return currentGate[0] + new Vector(0, -yOffset);
+			} else {
+				return currentGate[0] + new Vector(0, yOffset);
+			}
 		}
 	}
 
 	private getBallPosition(): Position {
-		if (World.Ball.isPositionValid()) {
+		if (World.Ball.isPositionValid() && World.Ball.detectionQuality > 0.5) {
 			return BallObserver.getRealisticBallPos();
 		} else {
 			return this._robots[0].pos + Vector.fromAngle(this._robots[0].dir) * (this._robots[0].radius - World.Ball.radius);
@@ -93,7 +104,7 @@ export class DribbleChallenge extends HardwareChallengeBase {
 		const gatePosition = this.getCurrentGatePosition();
 		let ballPosition: Position = this.getBallPosition();
 		const currentGate = DribbleChallenge.gates[DribbleChallenge.currentGateIndex];
-		const betweenObstacles = ballPosition.x > currentGate[0].x && ballPosition.x < (currentGate[0] + currentGate[1]).x;
+		const betweenObstacles = ballPosition.x > currentGate[0].x + this._robots[0].radius && ballPosition.x < (currentGate[0] + currentGate[1]).x + this._robots[0].radius;
 		const crossingThreshold = World.Ball.radius + 0.05;
 		let crossed = false;
 		if (this.left) {
@@ -101,13 +112,25 @@ export class DribbleChallenge extends HardwareChallengeBase {
 		} else {
 			crossed = ballPosition.y - gatePosition.y > crossingThreshold;
 		}
-		return betweenObstacles && crossed;
+		return (this.left !== DribbleChallenge.previouslyLeft) && betweenObstacles && crossed;
 	}
 
 	// returns true if position changed
 	private updateTargetPosition(): boolean {
+		if (DribbleChallenge.currentGateIndex === DribbleChallenge.gates.length - 1) {
+			if ((DribbleChallenge.currentTargetPosition - this._robots[0].pos).length() < 0.1) {
+				DribbleChallenge.moveToMidwayPos = true;
+				DribbleChallenge.currentTargetPosition = this.getNextMidwayPosition();
+
+				return true;
+			} else {
+				return false;
+			}
+		}
+
 		if (DribbleChallenge.moveToMidwayPos) {
-			if (this._robots[0].pos.x - DribbleChallenge.currentTargetPosition.x > -(0.05 + this._robots[0].radius)) {
+			if (this._robots[0].pos.x - DribbleChallenge.currentTargetPosition.x > -this._robots[0].radius
+			   && Math.abs(this._robots[0].pos.y - DribbleChallenge.currentTargetPosition.y) < this._robots[0].radius * 2) {
 				DribbleChallenge.moveToMidwayPos = false;
 				DribbleChallenge.currentTargetPosition = this.getCurrentGatePosition();
 
@@ -130,15 +153,33 @@ export class DribbleChallenge extends HardwareChallengeBase {
 		let restart = false;
 
 		if (this.checkIfGatePassed()) {
+			DribbleChallenge.previouslyLeft = this.left;
 			DribbleChallenge.currentGateIndex = this.getNextGateIndex();
+			if (DribbleChallenge.currentGateIndex === DribbleChallenge.gates.length - 1) {
+				DribbleChallenge.lastGate += 1;
+				amun.log("last gate", DribbleChallenge.lastGate);
+			}
 			restart = true;
+			DribbleChallenge.moveToMidwayPos = false;
+			DribbleChallenge.currentTargetPosition = this.getCurrentGatePosition();
 			amun.log("current gate", DribbleChallenge.currentGateIndex);
+		}
+
+		if (DribbleChallenge.lastGate >= 3) {
+			taskAssignments[this._robots[0]] = Assignment.create({
+				class: Halt,
+				params: [],
+				restart: false
+			});
+			return {assignments: taskAssignments};
 		}
 
 		if (this.left && this.getBallPosition().y - this.getCurrentGatePosition().y < -0.1) {
 			this.left = false;
+			DribbleChallenge.previouslyLeft = true;
 		} else if (!this.left && this.getBallPosition().y - this.getCurrentGatePosition().y > 0.1) {
 			this.left = true;
+			DribbleChallenge.previouslyLeft = false;
 		}
 
 		restart = restart || this.updateTargetPosition();

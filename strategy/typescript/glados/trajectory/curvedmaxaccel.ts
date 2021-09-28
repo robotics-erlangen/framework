@@ -536,7 +536,7 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 		let sidewardsErrorFactor = 10; // used to scale sidewards speed error
 
 		let rotationExponentialTime = 0.1;
-		let rotationAccelerationFactor = 1;
+		let rotationAccelerationFactor = dribble ? 0.3 : 1;
 
 		// insert default values
 		if (Referee.isSlowDriveState()) {
@@ -554,7 +554,7 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 			? this._robot.acceleration.aSpeedupPhiMax : 1.0) * rotationAccelerationFactor;
 		let rotBrake = -Math.abs(this._robot.acceleration
 			? this._robot.acceleration.aBrakePhiMax : 1.0) * rotationAccelerationFactor;
-		let rotMaxSpeed = this._robot.maxAngularSpeed;
+		let rotMaxSpeed = dribble ? 0.0001 : this._robot.maxAngularSpeed;
 
 		let waypoints = this._getPath(targetPos);
 		if (waypoints.length === 0) { // no waypoints left, just stay here but also update the orientation

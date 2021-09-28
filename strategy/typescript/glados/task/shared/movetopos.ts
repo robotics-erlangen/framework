@@ -8,7 +8,7 @@ import { CurvedMaxAccel } from "glados/trajectory/curvedmaxaccel";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
 
-interface CircleObstacle {
+export interface CircleObstacle {
 	type: "circle";
 	x: number;
 	y: number;
