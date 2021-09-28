@@ -160,22 +160,24 @@ export abstract class HardwareChallengeBase extends Move {
 				continue;
 			}
 
+			let obstacleTransform = this.opponentTransforms[i];
 			let obstacleName: string = "opponentObstacle" + i;
 			customObstacles.push({
 				type: "circle",
-				x: transform.pos.x,
-				y: transform.pos.y,
+				x: obstacleTransform.pos.x,
+				y: obstacleTransform.pos.y,
 				radius: this._robots[0].radius * 1.05,
 				name: obstacleName
 			});
 		}
 
 		for (let i = 1; i < this.friendlyTransforms.length; ++i) {
+			let obstacleTransform = this.opponentTransforms[i];
 			let obstacleName: string = "friendlyObstacle" + i;
 			customObstacles.push({
 				type: "circle",
-				x: transform.pos.x,
-				y: transform.pos.y,
+				x: obstacleTransform.pos.x,
+				y: obstacleTransform.pos.y,
 				radius: this._robots[0].radius * 1.05,
 				name: obstacleName
 			});
@@ -209,7 +211,7 @@ export abstract class HardwareChallengeBase extends Move {
 			maxDistance += 0.02;
 		}
 
-		if ((World.Ball.pos - this.ballPos.pos).length() < maxDistance
+		if (World.Ball.isPositionValid() && (World.Ball.pos - this.ballPos.pos).length() < maxDistance
 			&& World.Ball.speed.length() < 0.1) {
 			this.ballInitialized = true;
 			return undefined;
@@ -228,6 +230,27 @@ export abstract class HardwareChallengeBase extends Move {
 
 	private assignFriendlyMoves(startIndex: number, taskAssignments: Map<FriendlyRobot, Assignment>): boolean {
 		let everyoneInPosition = true;
+
+		let customObstacles: Obstacle[] = [];
+		for (let i = 0; i < this.opponentTransforms.length; ++i) {
+			let obstacleTransform = this.opponentTransforms[i];
+			let obstacleName: string = "opponentObstacle" + i;
+			customObstacles.push({
+				type: "circle",
+				x: obstacleTransform.pos.x,
+				y: obstacleTransform.pos.y,
+				radius: this._robots[0].radius * 1.05,
+				name: obstacleName
+			});
+		}
+
+		customObstacles.push({
+			type: "circle",
+			x: World.Ball.pos.x,
+			y: World.Ball.pos.y,
+			radius: World.Ball.radius + 0.005,
+			name: "ballObstacle"
+		});
 		for (let i = startIndex; i < this.friendlyTransforms.length; ++i) {
 			let transform = this.friendlyTransforms[i];
 			this.friendlyInitialized[i] = HardwareChallengeBase.compareRobotToState(this._robots[i], transform, this.friendlyInitialized[i]);
@@ -235,7 +258,7 @@ export abstract class HardwareChallengeBase extends Move {
 
 			taskAssignments[this._robots[i]] = Assignment.create({
 				class: MoveToPos,
-				params: [{pos: transform.pos, dir: transform.dir, endSpeedLength: 0}],
+				params: [{pos: transform.pos, dir: transform.dir, endSpeedLength: 0, customObstacles: customObstacles}],
 				restart: true
 			});
 		}
