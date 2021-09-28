@@ -224,6 +224,16 @@ export abstract class HardwareChallengeBase extends Move {
 		return { assignments: taskAssignments };
 	}
 
+	private showVis() {
+		for (let transform of this.opponentTransforms) {
+			vis.addPizza("HWChallenge/ObstaclePosition", transform.pos, this._robots[0].radius, transform.dir + 5 * 180 / Math.PI + Math.PI, transform.dir - 5 * 180 / Math.PI + Math.PI, vis.colors.yellow, false);
+		}
+		for (let transform of this.friendlyTransforms) {
+			vis.addPizza("HWChallenge/FriendlyPosition", transform.pos, this._robots[0].radius, transform.dir + 5 * 180 / Math.PI + Math.PI, transform.dir - 5 * 180 / Math.PI + Math.PI, vis.colors.blue, false);
+		}
+		vis.addCircle("HWChallenge/BallPosition", this.ballPos.pos, World.Ball.radius, vis.colors.mediumPurple, false);
+	}
+
 	public readonly _updateTasks: (() => MoveParameters) = () => {
 		if (HardwareChallengeBase.initialized) {
 			if (!HardwareChallengeBase.refHalt && World.RefereeState === "Halt") {
@@ -238,17 +248,12 @@ export abstract class HardwareChallengeBase extends Move {
 			if (HardwareChallengeBase.refStart) {
 				return this.challengeSpecificUpdateTask();
 			} else {
+				this.showVis();
 				return this.haltAllRobots();
 			}
 		}
 
-		for (let transform of this.opponentTransforms) {
-			vis.addPizza("HWChallenge/ObstaclePosition", transform.pos, this._robots[0].radius, transform.dir + 5 * 180 / Math.PI + Math.PI, transform.dir - 5 * 180 / Math.PI + Math.PI, vis.colors.yellow, false);
-		}
-		for (let transform of this.friendlyTransforms) {
-			vis.addPizza("HWChallenge/FriendlyPosition", transform.pos, this._robots[0].radius, transform.dir + 5 * 180 / Math.PI + Math.PI, transform.dir - 5 * 180 / Math.PI + Math.PI, vis.colors.blue, false);
-		}
-		vis.addCircle("HWChallenge/BallPosition", this.ballPos.pos, World.Ball.radius, vis.colors.mediumPurple, false);
+		this.showVis();
 
 		if (World.WorldStateSource === pb.world.WorldSource.INTERNAL_SIMULATION && amun.isDebug) {
 			// use existing ids for each team (e.g. team yellow might not have a robot with id 0 as in the JSON)
