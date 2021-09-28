@@ -172,7 +172,7 @@ export abstract class HardwareChallengeBase extends Move {
 		}
 
 		for (let i = 1; i < this.friendlyTransforms.length; ++i) {
-			let obstacleTransform = this.opponentTransforms[i];
+			let obstacleTransform = this.friendlyTransforms[i];
 			let obstacleName: string = "friendlyObstacle" + i;
 			customObstacles.push({
 				type: "circle",
