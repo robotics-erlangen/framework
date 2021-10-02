@@ -4,6 +4,8 @@ All programs should work on GNU+Linux Mac OS X 10.10 and Windows >= 7.
 Building is tested automatically on recent Ubuntu versions (currently 18.04 and
 20.04)
 
+Currently, the software is also manually tested and proven to run for openSuse Leap and Manjaro
+
 In order to build the framework, you will need:
 - `cmake` >= `3.5` (`3.7` on Windows)
 - `g++` >= `4.6`
@@ -25,6 +27,7 @@ Certain features require additional libraries:
   * [Required packages](#required-packages)
     * [Ubuntu 18.04/20.04](#ubuntu-18042004)
     * [Manjaro](#manjaro)
+    * [Open Suse](#open-suse)
   * [Building V8 (optional)](#building-v8-optional-needed-for-javascript-support)
     * [Building V8 inside Docker](#building-v8-inside-docker)
   * [Building Ra](#building-the-framework)
@@ -62,6 +65,25 @@ cmake qt5-base patch pck-conf sdl2 libusb pkgconf
 There is a provided `protobuf` package, however its current version breaks
 compilation. It is advisable to let the build system build `protobuf` from
 source.
+
+#### Open Suse
+The required packages can be installed with
+```
+sudo zypper install git cmake libqt5-qtbase-devel libusb-1_0-devel libqt5-qtsvg-devel python2-pip libudev-devel patch glu-devel
+```
+
+For building V8 you need to select pip2 as pip, with
+```
+sudo alternatives --config pip
+```
+
+Currently, builing the firmware on open suse is not supported.
+To ignore the firmware, even if you already have some arm compiler installed, use
+```
+cmake -DBUILD_FIRMWARE=false ..
+```
+
+instead of the normale cmake command (`cmake ..`)
 
 ### Building V8 (optional, needed for Javascript support)
 Note, that this is **not required** for the simulator.
