@@ -34,10 +34,10 @@ ExternalProject_Add(project_googletest
         -DCMAKE_MAKE_PROGRAM:PATH=${CMAKE_MAKE_PROGRAM}
         -DCMAKE_INSTALL_MESSAGE:STRING=NEVER
     BUILD_BYPRODUCTS
-        "<INSTALL_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gtest${CMAKE_STATIC_LIBRARY_SUFFIX}"
-        "<INSTALL_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gtest_main${CMAKE_STATIC_LIBRARY_SUFFIX}"
+    "<INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/${CMAKE_STATIC_LIBRARY_PREFIX}gtest${CMAKE_STATIC_LIBRARY_SUFFIX}"
+    "<INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/${CMAKE_STATIC_LIBRARY_PREFIX}gtest_main${CMAKE_STATIC_LIBRARY_SUFFIX}"
 )
-EPHelper_Add_Cleanup(project_googletest bin include lib share)
+EPHelper_Add_Cleanup(project_googletest bin include ${CMAKE_INSTALL_LIBDIR} share)
 EPHelper_Add_Clobber(project_googletest "${GOOGLETEST_PATCH_FILE}")
 EPHelper_Mark_For_Download(project_googletest)
 
@@ -52,8 +52,8 @@ file(MAKE_DIRECTORY "${install_dir}/include/")
 set_property(TARGET lib::googletest PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${install_dir}/include")
 # just select a library
 set_property(TARGET lib::googletest PROPERTY IMPORTED_LOCATION
-    "${install_dir}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gtest${CMAKE_STATIC_LIBRARY_SUFFIX}"
+	"${install_dir}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_STATIC_LIBRARY_PREFIX}gtest${CMAKE_STATIC_LIBRARY_SUFFIX}"
 )
 set_property(TARGET lib::googletest PROPERTY INTERFACE_LINK_LIBRARIES
-    "${install_dir}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}gtest_main${CMAKE_STATIC_LIBRARY_SUFFIX}"
+	"${install_dir}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_STATIC_LIBRARY_PREFIX}gtest_main${CMAKE_STATIC_LIBRARY_SUFFIX}"
 )

@@ -19,6 +19,7 @@
 # ***************************************************************************
 
 include(ExternalProject)
+include(GNUInstallDirs)
 
 # make sure to remove installation remainders after a new download
 function(EPHelper_Add_Cleanup target)
