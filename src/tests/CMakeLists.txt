@@ -31,6 +31,7 @@ add_executable(cpptests
     amun/seshat/combinedlogwriter.cpp
     amun/seshat/logfilereader.cpp
     amun/simulator/simulator.cpp
+    amun/processor/tracking/ballgroundcollisionfilter.cpp
 )
 
 target_link_libraries(cpptests
@@ -39,6 +40,7 @@ target_link_libraries(cpptests
     shared::core
     amun::seshat
     amun::simulator
+    amun::tracking
     amuncli::testtools
     visionlog
     pthread
