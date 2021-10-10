@@ -324,7 +324,7 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
                                                    m_cameraInfo->cameraPosition[m_primaryCamera]);
             bool otherRobotObstruction = false;
             for (const RobotInfo &r : robots) {
-                if (r.identifier != robot->identifier && !isBallVisible(m_localBallOffset->pushingBallPos, *robot, ROBOT_RADIUS, ROBOT_HEIGHT,
+                if (r.identifier != robot->identifier && !isBallVisible(m_localBallOffset->pushingBallPos, r, ROBOT_RADIUS, ROBOT_HEIGHT,
                                    m_cameraInfo->cameraPosition[m_primaryCamera])) {
                     otherRobotObstruction = true;
                     break;
