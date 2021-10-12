@@ -247,6 +247,25 @@ TEST(BallGroundCollisionFilter, BallPushing) {
     s.simulate(1.3);
 }
 
+TEST(BallGroundCollisionFilter, PushAndLeave) {
+    // after pushing the ball and stopping, the ball should remain in the pushed
+    // position even if it is still not visible and the robot drives backwards.
+    SimulationController s;
+    s.teleportBall(Vector(-3.5, 2), Vector(0, 0));
+    s.simulate(0.2);
+    s.addTestFunction(testMaximumDistance<5>);
+    s.teleportRobot(true, 0, Vector(-3, 2), Vector(-1, 0));
+    // push ball
+    s.driveRobot(true, 0, Vector(1, 0), true);
+    s.simulate(1);
+    // stop
+    s.driveRobot(true, 0, Vector(0, 0), true);
+    s.simulate(0.5);
+    // drive back without the ball
+    s.driveRobot(true, 0, Vector(-1, 0), false);
+    s.simulate(1);
+}
+
 TEST(BallGroundCollisionFilter, PushingAndPulling) {
     // after pushing the ball and stopping, the ball should remain in the pushed
     // position even if it is still not visible and the robot drives backwards.
