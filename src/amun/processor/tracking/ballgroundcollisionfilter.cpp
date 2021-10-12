@@ -265,7 +265,7 @@ bool BallGroundCollisionFilter::checkFeasibleInvisibility(const QVector<RobotInf
     if (robot == robots.end()) {
         return false;
     }
-    if (!isBallVisible(m_localBallOffset->pushingBallPos, *robot, ROBOT_RADIUS, ROBOT_HEIGHT,
+    if (!isBallVisible(m_localBallOffset->pushingBallPos, *robot, ROBOT_RADIUS * DRIBBLING_ROBOT_VISIBILITY_FACTOR, ROBOT_HEIGHT * DRIBBLING_ROBOT_VISIBILITY_FACTOR,
             m_cameraInfo->cameraPosition[m_primaryCamera])) {
         return true;
     }
@@ -320,7 +320,7 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
             if (isInsideRobot(m_localBallOffset->pushingBallPos, robot->robotPos, robot->dribblerPos, ROBOT_RADIUS)) {
                 m_localBallOffset->pushingBallPos = ballPos;
             }
-            bool pushingPosVisible = isBallVisible(m_localBallOffset->pushingBallPos, *robot, ROBOT_RADIUS, ROBOT_HEIGHT,
+            bool pushingPosVisible = isBallVisible(m_localBallOffset->pushingBallPos, *robot, ROBOT_RADIUS * DRIBBLING_ROBOT_VISIBILITY_FACTOR, ROBOT_HEIGHT * DRIBBLING_ROBOT_VISIBILITY_FACTOR,
                                                    m_cameraInfo->cameraPosition[m_primaryCamera]);
             bool otherRobotObstruction = false;
             for (const RobotInfo &r : robots) {

@@ -73,6 +73,7 @@ private:
 
     const float ROBOT_RADIUS = 0.09f;
     const float ROBOT_HEIGHT = 0.15f;
+    const float DRIBBLING_ROBOT_VISIBILITY_FACTOR = 1.03f;
 };
 
 #endif // BALLGROUNDCOLLISIONFILTER_H
