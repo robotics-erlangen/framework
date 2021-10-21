@@ -320,8 +320,10 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
             if (isInsideRobot(m_localBallOffset->pushingBallPos, robot->robotPos, robot->dribblerPos, ROBOT_RADIUS)) {
                 m_localBallOffset->pushingBallPos = ballPos;
             }
-            bool pushingPosVisible = isBallVisible(m_localBallOffset->pushingBallPos, *robot, ROBOT_RADIUS * DRIBBLING_ROBOT_VISIBILITY_FACTOR, ROBOT_HEIGHT * DRIBBLING_ROBOT_VISIBILITY_FACTOR,
+            const float radiusFactor = m_localBallOffset->wasPushingPosVisible ? 1 : DRIBBLING_ROBOT_VISIBILITY_FACTOR;
+            bool pushingPosVisible = isBallVisible(m_localBallOffset->pushingBallPos, *robot, ROBOT_RADIUS * radiusFactor, ROBOT_HEIGHT * radiusFactor,
                                                    m_cameraInfo->cameraPosition[m_primaryCamera]);
+            m_localBallOffset->wasPushingPosVisible = pushingPosVisible;
             bool otherRobotObstruction = false;
             for (const RobotInfo &r : robots) {
                 if (r.identifier != robot->identifier && !isBallVisible(m_localBallOffset->pushingBallPos, r, ROBOT_RADIUS, ROBOT_HEIGHT,
