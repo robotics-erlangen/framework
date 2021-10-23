@@ -38,8 +38,15 @@
 #include <QDebug>
 
 // real ball pos and tracked ball pos
-using TestFunction = std::function<void(Vector, std::optional<Vector>)>;
-using TestFunctionWithRobot = std::function<void(Vector, std::optional<Vector>, std::vector<Vector>)>;
+struct TrackedStateInfo {
+    Vector trueBallPos;
+    Vector trueBallSpeed;
+    std::optional<Vector> trackedPos;
+    std::optional<Vector> trackedSpeed;
+    std::vector<Vector> robotPositions;
+};
+
+using TestFunction = std::function<void(TrackedStateInfo&)>;
 
 class SimulationController {
 public:
@@ -48,13 +55,12 @@ public:
     void saveToLog(const QString &filename);
     void simulate(float seconds);
     // this drive command stays active until a new one is given to the robot
-    void driveRobot(bool isBlue, int id, Vector localVelocity, float angular, bool enableDribbler = false);
+    void driveRobot(bool isBlue, int id, Vector localVelocity, float angular, bool enableDribbler = false, float shoot = 0);
     // for simplicity, this test uses the perfect dribbler
     void setDribbler(bool isBlue, int id, bool enabled);
     void teleportRobot(bool isBlue, int id, Vector position, Vector lookDirection);
     void teleportBall(Vector position, Vector velocity);
     void addTestFunction(TestFunction f) { m_testFunctions.push_back(f); }
-    void addTestFunction(TestFunctionWithRobot f) { m_robotTestFunctions.push_back(f); }
     void clearTestFunctions() { m_testFunctions.clear(); }
 
 private:
@@ -72,8 +78,8 @@ private:
     qint64 m_lastTrackingTime = 0;
     QList<QByteArray> m_simulatorTruth;
     std::vector<TestFunction> m_testFunctions;
-    std::vector<TestFunctionWithRobot> m_robotTestFunctions;
     std::optional<Vector> m_lastTrueBallPos;
+    std::optional<Vector> m_lastTrueBallSpeed;
 };
 
 SimulationController::SimulationController() :
@@ -87,6 +93,7 @@ SimulationController::SimulationController() :
 
     Command c(new amun::Command);
     c->mutable_simulator()->set_enable(true);
+    c->mutable_transceiver()->set_charge(true);
 
     RealismConfigErForce realismConfig;
     loadConfiguration("simulator-realism/Realistic", &realismConfig, false);
@@ -124,25 +131,24 @@ SimulationController::SimulationController() :
             m_lastTrackingTime = time;
 
             // extract ball/robot positions and check conditions
-            std::optional<Vector> ballPos;
+            TrackedStateInfo state;
             if (status->has_world_state() && status->world_state().has_ball()) {
-                ballPos = Vector(status->world_state().ball().p_x(), status->world_state().ball().p_y());
+                state.trackedPos = Vector(status->world_state().ball().p_x(), status->world_state().ball().p_y());
+                state.trackedSpeed = Vector(status->world_state().ball().v_x(), status->world_state().ball().v_y());
             }
-            std::vector<Vector> robotPositions;
             if (status->has_world_state()) {
                 for (const auto &r : status->world_state().blue()) {
-                    robotPositions.push_back(Vector(r.p_x(), r.p_y()));
+                    state.robotPositions.push_back(Vector(r.p_x(), r.p_y()));
                 }
                 for (const auto &r : status->world_state().yellow()) {
-                    robotPositions.push_back(Vector(r.p_x(), r.p_y()));
+                    state.robotPositions.push_back(Vector(r.p_x(), r.p_y()));
                 }
             }
             if (m_lastTrueBallPos) {
+                state.trueBallPos = *m_lastTrueBallPos;
+                state.trueBallSpeed = *m_lastTrueBallSpeed;
                 for (const auto &f : m_testFunctions) {
-                    f(*m_lastTrueBallPos, ballPos);
-                }
-                for (const auto &f : m_robotTestFunctions) {
-                    f(*m_lastTrueBallPos, ballPos, robotPositions);
+                    f(state);
                 }
             }
         }
@@ -157,6 +163,7 @@ SimulationController::SimulationController() :
 
         if (state.has_ball()) {
             m_lastTrueBallPos = Vector(state.ball().p_x(), state.ball().p_y());
+            m_lastTrueBallSpeed = Vector(state.ball().v_x(), state.ball().v_y());
         }
     });
 }
@@ -189,7 +196,7 @@ void SimulationController::loadRobots(int blue, int yellow)
     m_simulator.handleCommand(command);
 }
 
-void SimulationController::driveRobot(bool isBlue, int id, Vector localVelocity, float angular, bool enableDribbler)
+void SimulationController::driveRobot(bool isBlue, int id, Vector localVelocity, float angular, bool enableDribbler, float shoot)
 {
     SSLSimRobotControl control{new sslsim::RobotControl};
 
@@ -200,6 +207,7 @@ void SimulationController::driveRobot(bool isBlue, int id, Vector localVelocity,
     localVel->set_left(localVelocity.y);
     localVel->set_angular(angular);
     cmd->set_dribbler_speed(enableDribbler ? 100 : 0);
+    cmd->set_kick_speed(shoot);
 
     m_robotCommands[{isBlue, id}] = control;
 }
@@ -244,10 +252,10 @@ void SimulationController::teleportBall(Vector position, Vector velocity)
 }
 
 template<size_t maxDistanceMM>
-static void testMaximumDistance(Vector truePos, std::optional<Vector> trackedPos)
+static void testMaximumDistance(const TrackedStateInfo &state)
 {
-    ASSERT_TRUE(trackedPos);
-    const float dist = truePos.distance(*trackedPos);
+    ASSERT_TRUE(state.trackedPos);
+    const float dist = state.trueBallPos.distance(*state.trackedPos);
     ASSERT_LE(dist, maxDistanceMM * 0.01f);
 }
 
@@ -265,10 +273,18 @@ TEST(BallGroundCollisionFilter, BallPushing) {
 TEST(BallGroundCollisionFilter, PushAndLeave) {
     // after pushing the ball and stopping, the ball should remain in the pushed
     // position even if it is still not visible and the robot drives backwards.
+    // The ball should have the correct velocity (the same as the robot) even while it is pushed
     SimulationController s;
     s.teleportBall(Vector(-3.5, 2), Vector(0, 0));
     s.simulate(0.2);
     s.addTestFunction(testMaximumDistance<5>);
+    // unlike the position, it is not possible to perfectly match the speed, a few frames of difference are allowed
+    int ballVelocityDifferentFrames = 0;
+    s.addTestFunction([&ballVelocityDifferentFrames](const TrackedStateInfo &state) {
+        if (state.trueBallSpeed.distance(*state.trackedSpeed) > 0.1f) {
+            ballVelocityDifferentFrames++;
+        }
+    });
     s.teleportRobot(true, 0, Vector(-3, 2), Vector(-1, 0));
     // push ball
     s.driveRobot(true, 0, Vector(1, 0), 0, true);
@@ -279,6 +295,7 @@ TEST(BallGroundCollisionFilter, PushAndLeave) {
     // drive back without the ball
     s.driveRobot(true, 0, Vector(-1, 0), 0, false);
     s.simulate(1);
+    ASSERT_LE(ballVelocityDifferentFrames, 20);
 }
 
 TEST(BallGroundCollisionFilter, PushingAndPulling) {
@@ -292,6 +309,13 @@ TEST(BallGroundCollisionFilter, PushingAndPulling) {
     s.teleportBall(Vector(-3.5, 2), Vector(0, 0));
     s.simulate(0.2);
     s.addTestFunction(testMaximumDistance<5>);
+    // unlike the position, it is not possible to perfectly match the speed, a few frames of difference are allowed
+    int ballVelocityDifferentFrames = 0;
+    s.addTestFunction([&ballVelocityDifferentFrames](const TrackedStateInfo &state) {
+        if (state.trueBallSpeed.distance(*state.trackedSpeed) > 0.1f) {
+            ballVelocityDifferentFrames++;
+        }
+    });
     s.teleportRobot(true, 0, Vector(-3, 2), Vector(-1, 0));
     // push ball
     s.driveRobot(true, 0, Vector(1, 0), 0, true);
@@ -303,9 +327,9 @@ TEST(BallGroundCollisionFilter, PushingAndPulling) {
     // dribble the ball back
     s.driveRobot(true, 0, Vector(-1, 0), 0, true);
     float maxBallDistance = 0;
-    s.addTestFunction([&maxBallDistance](Vector truePos, std::optional<Vector> trackedPos) {
-        ASSERT_TRUE(trackedPos);
-        const float dist = truePos.distance(*trackedPos);
+    s.addTestFunction([&maxBallDistance](const TrackedStateInfo &state) {
+        ASSERT_TRUE(state.trackedPos);
+        const float dist = state.trueBallPos.distance(*state.trackedPos);
         maxBallDistance = std::max(maxBallDistance, dist);
     });
     s.simulate(0.3);
@@ -314,6 +338,7 @@ TEST(BallGroundCollisionFilter, PushingAndPulling) {
     s.clearTestFunctions();
     s.addTestFunction(testMaximumDistance<5>);
     s.simulate(0.5);
+    ASSERT_LE(ballVelocityDifferentFrames, 20);
 }
 
 TEST(BallGroundCollisionFilter, PushAndDuelBack) {
@@ -339,13 +364,13 @@ TEST(BallGroundCollisionFilter, PushAndDuelBack) {
     s.simulate(1);
 }
 
-static void testNotInRobot(Vector, std::optional<Vector> trackedPos, const std::vector<Vector> &robotPositions)
+static void testNotInRobot(const TrackedStateInfo &state)
 {
-    if (!trackedPos) {
+    if (!state.trackedPos) {
         return;
     }
-    for (Vector v : robotPositions) {
-        ASSERT_GE(trackedPos->distance(v), 0.06);
+    for (Vector v : state.robotPositions) {
+        ASSERT_GE(state.trackedPos->distance(v), 0.06);
     }
 }
 
@@ -360,14 +385,69 @@ TEST(BallGroundCollisionFilter, ShotAgainstRobot) {
     s.simulate(2);
 }
 
+TEST(BallGroundCollisionFilter, ShotAgainstRobotSide) {
+    // when the ball is shot at a robot, the tracked ball should never visibly
+    // enter the robot body and rather stay projected at the outside
+    SimulationController s;
+    s.addTestFunction(testNotInRobot);
+    s.teleportRobot(true, 0, Vector(0, 3), Vector(1, 0));
+    s.simulate(0.2);
+    s.teleportBall(Vector(0, 0), Vector(0, 6));
+    s.simulate(1.5);
+}
+
+TEST(BallGroundCollisionFilter, ShotAgainstRobotEndInvisible) {
+    // when the ball is shot at a robot, the tracked ball should never visibly
+    // enter the robot body and rather stay projected at the outside
+    // Also, the ball should not continue its trajectory on the other side
+    // of the robot if it was invisible long enough
+    // (it is easy to accidentally project the ball properly only while it would be inside the robot)
+    // Therefore, shoot the ball at the robot but have it become invisible shortly before the robot.
+    // The robot is always dribbling to prevent the ball from bouncing off and becoming visible again
+    const Vector ROBOT_POS(1, 4);
+    const Vector ROBOT_DIR(1, 1);
+    SimulationController s;
+    s.addTestFunction(testNotInRobot);
+    s.teleportRobot(true, 0, ROBOT_POS, ROBOT_DIR);
+    s.teleportBall(Vector(3, 6), Vector(-3, -3));
+    s.simulate(0.2);
+    s.driveRobot(true, 0, Vector(0, 0), 0, true);
+    // check that the ball is always in front of the robot and never behind it (having gone through it)
+    s.addTestFunction([&](const TrackedStateInfo &state) {
+        ASSERT_TRUE(state.trackedPos);
+        ASSERT_GE((*state.trackedPos - ROBOT_POS).dot(ROBOT_DIR), 0);
+    });
+    // Check that the reported velocity reaches zero after the ball reaches the robot
+    // Since the exact timing is unknown, count the number of frames with low velocity
+    int lowVelocityFrames = 0;
+    s.addTestFunction([&lowVelocityFrames](const TrackedStateInfo &state) {
+       if (state.trackedSpeed->length() < 0.05f) {
+           lowVelocityFrames++;
+       }
+    });
+    s.simulate(1.5);
+    ASSERT_GE(lowVelocityFrames, 30);
+}
+
 template<size_t maxDistanceMM>
-static void testNoBigJump(std::optional<Vector> *lastPos, Vector, std::optional<Vector> trackedPos) {
-    ASSERT_TRUE(trackedPos);
+static void testNoBigJump(std::optional<Vector> *lastPos, const TrackedStateInfo &state) {
+    ASSERT_TRUE(state.trackedPos);
     if (*lastPos) {
-        const float dist = (*lastPos)->distance(*trackedPos);
+        const float dist = (*lastPos)->distance(*state.trackedPos);
         ASSERT_LE(dist, maxDistanceMM * 0.01f);
     }
-    *lastPos = *trackedPos;
+    *lastPos = *state.trackedPos;
+}
+
+// maximum distance from the robot center, includes the robot radius
+template<size_t maxDistanceMM>
+static void testNotTooFarFromRobot(const TrackedStateInfo &state) {
+    ASSERT_TRUE(state.trackedPos);
+    float minDistance = std::numeric_limits<float>::max();
+    for (Vector v : state.robotPositions) {
+        minDistance = std::min(minDistance, state.trackedPos->distance(v));
+    }
+    ASSERT_LE(minDistance, maxDistanceMM * 0.01f);
 }
 
 TEST(BallGroundCollisionFilter, DribbleAndRotate) {
@@ -375,13 +455,43 @@ TEST(BallGroundCollisionFilter, DribbleAndRotate) {
     s.teleportBall(Vector(-1.5, 3), Vector(0, 0));
     s.simulate(0.2);
     std::optional<Vector> lastPositionStore;
-    TestFunction f = std::bind(testNoBigJump<10>, &lastPositionStore, std::placeholders::_1, std::placeholders::_2);
+    TestFunction f = std::bind(testNoBigJump<10>, &lastPositionStore, std::placeholders::_1);
     s.addTestFunction(f);
+    s.addTestFunction(testNotInRobot);
     s.teleportRobot(true, 0, Vector(-1, 3), Vector(-1, 0));
     // push ball
     s.driveRobot(true, 0, Vector(1, 0), 0, true);
     s.simulate(0.8);
     // rotate
+    s.addTestFunction(testNotTooFarFromRobot<12>);
     s.driveRobot(true, 0, Vector(0, 0), 5, true);
     s.simulate(2);
+}
+
+TEST(BallGroundCollisionFilter, VolleyShot) {
+    // During a volley shot with a different outgoing angle than ingoing angle,
+    // the tracking is supposed to produced velocities that either match
+    // the ingoing or outgoing ball trajectory.
+    // This test therefore makes sure that the velocity does not slowly interpolate
+    // between the two (as the ballgroundfilter does without the ballgroundcollisionfilter).
+    SimulationController s;
+    s.teleportRobot(true, 0, Vector(-0.03, 3), Vector(0.6, -1));
+    s.teleportBall(Vector(0, 0), Vector(0, 6));
+    s.simulate(0.2);
+    s.addTestFunction(testNotInRobot);
+    // test that the ball speed either goes in the initial teleport direction
+    // or the direction that the ball will have after the shot
+    // note that this direction is only inferred from the log and may
+    // change with changing robot damping parameters
+    s.addTestFunction([](const TrackedStateInfo &state) {
+        ASSERT_TRUE(state.trackedSpeed.has_value());
+        if (state.trackedSpeed->length() < 0.2) {
+            return;
+        }
+        const Vector normalizedSpeed = state.trackedSpeed->normalized();
+        ASSERT_TRUE(normalizedSpeed.dot(Vector(0, 1)) > 0.95f ||
+                    normalizedSpeed.dot(Vector(1, -0.85).normalized()) > 0.95f);
+    });
+    s.driveRobot(true, 0, Vector(0, 0), 0, false, 5);
+    s.simulate(1);
 }
