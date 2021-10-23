@@ -317,7 +317,8 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
             const Eigen::Vector2f ballPos = unprojectRelativePosition(m_localBallOffset->ballOffset, *robot);
 
             // TODO: the ball might already have been pushed before the dribbling activated
-            if (isInsideRobot(m_localBallOffset->pushingBallPos, robot->robotPos, robot->dribblerPos, ROBOT_RADIUS)) {
+            bool wasPushed = isInsideRobot(m_localBallOffset->pushingBallPos, robot->robotPos, robot->dribblerPos, ROBOT_RADIUS);
+            if (wasPushed) {
                 m_localBallOffset->pushingBallPos = ballPos;
             }
             const float radiusFactor = m_localBallOffset->wasPushingPosVisible ? 1 : DRIBBLING_ROBOT_VISIBILITY_FACTOR;
@@ -332,7 +333,7 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
                     break;
                 }
             }
-            if (pushingPosVisible || otherRobotObstruction) {
+            if (pushingPosVisible || otherRobotObstruction || wasPushed) {
                 // TODO: only allow this when the ball is near the dribbler not the robot body
                 setBallData(ball, ballPos, robot->speed, writeBallSpeed);
                 debug("ground filter mode", "dribbling");
