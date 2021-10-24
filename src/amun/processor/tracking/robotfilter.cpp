@@ -407,6 +407,7 @@ RobotInfo RobotFilter::getRobotInfo() const
     float phi = limitAngle(m_futureKalman->state()(2));
     result.dribblerPos = result.robotPos + DRIBBLER_DIST * Eigen::Vector2f(cos(phi), sin(phi));
     result.speed = Eigen::Vector2f(m_futureKalman->state()[3], m_futureKalman->state()[4]);
+    result.angularVelocity = m_futureKalman->state()(5);
 
     result.pastRobotPos = Eigen::Vector2f(m_kalman->state()(0), m_kalman->state()(1));
     phi = limitAngle(m_kalman->state()(2));

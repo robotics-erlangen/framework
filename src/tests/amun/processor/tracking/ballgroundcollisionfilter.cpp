@@ -464,8 +464,15 @@ TEST(BallGroundCollisionFilter, DribbleAndRotate) {
     s.simulate(0.8);
     // rotate
     s.addTestFunction(testNotTooFarFromRobot<12>);
+    int ballVelocityDifferentFrames = 0;
+    s.addTestFunction([&ballVelocityDifferentFrames](const TrackedStateInfo &state) {
+        if (state.trueBallSpeed.normalized().dot(state.trackedSpeed->normalized()) < 0.5f) {
+            ballVelocityDifferentFrames++;
+        }
+    });
     s.driveRobot(true, 0, Vector(0, 0), 5, true);
     s.simulate(2);
+    ASSERT_LE(ballVelocityDifferentFrames, 15);
 }
 
 TEST(BallGroundCollisionFilter, VolleyShot) {

@@ -285,6 +285,15 @@ void BallGroundCollisionFilter::writeBallState(world::Ball *ball, qint64 time, c
     m_feasiblyInvisible = checkFeasibleInvisibility(robots);
 }
 
+static Eigen::Vector2f computeDribblingBallSpeed(const RobotInfo &robot, Eigen::Vector2f relativePosition)
+{
+    const Eigen::Vector2f absoluteOffset = unprojectRelativePosition(relativePosition, robot) - robot.robotPos;
+    const float distToRobot = absoluteOffset.norm();
+    const float tangentialLength = robot.angularVelocity * distToRobot;
+    const Eigen::Vector2f tangential = -perpendicular(absoluteOffset.normalized()) * tangentialLength;
+    return robot.speed + tangential;
+}
+
 void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time, const QVector<RobotInfo> &robots)
 {
     const qint64 RESET_SPEED_TIME = 150; // ms
@@ -335,7 +344,8 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
             }
             if (pushingPosVisible || otherRobotObstruction || wasPushed) {
                 // TODO: only allow this when the ball is near the dribbler not the robot body
-                setBallData(ball, ballPos, robot->speed, writeBallSpeed);
+                const Eigen::Vector2f ballSpeed = computeDribblingBallSpeed(*robot, m_localBallOffset->ballOffset);
+                setBallData(ball, ballPos, ballSpeed, writeBallSpeed);
                 debug("ground filter mode", "dribbling");
             } else {
                 setBallData(ball, m_localBallOffset->pushingBallPos, Eigen::Vector2f(0, 0), writeBallSpeed);

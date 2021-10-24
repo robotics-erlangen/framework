@@ -39,6 +39,7 @@ struct RobotInfo {
     Eigen::Vector2f pastRobotPos = Eigen::Vector2f(0, 0);
     Eigen::Vector2f pastDribblerPos = Eigen::Vector2f(0, 0);
     Eigen::Vector2f speed = Eigen::Vector2f(0, 0);
+    float angularVelocity = 0;
     bool chipCommand = false;
     bool linearCommand = false;
     int identifier = std::numeric_limits<int>::max(); // uniquely identifies each robot, stays constant over time (includes id and team)
