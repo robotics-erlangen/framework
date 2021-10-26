@@ -364,7 +364,7 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
     debugCircle("past ball state", pastState.p_x(), pastState.p_y(), 0.015);
 
     Eigen::Vector2f currentPos{ball->p_x(), ball->p_y()};
-    Eigen::Vector2f currentSpeed{ball->v_x(), ball->v_x()};
+    const Eigen::Vector2f currentSpeed{ball->v_x(), ball->v_y()};
     debugCircle("current pos", currentPos.x(), currentPos.y(), 0.03);
     bool hasIntersection = false;
     for (const RobotInfo &robot : robots) {
