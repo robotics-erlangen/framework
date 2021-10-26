@@ -373,7 +373,8 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
         const bool currentInsideCurrent = isInsideRobot(currentPos, robot.robotPos, robot.dribblerPos, ROBOT_RADIUS);
         const bool skipProjectionDribbling = !pastInsidePast && !currentInsideCurrent && (pastPos - currentPos).norm() < 0.1f;
         // prevent projection doing chaseball scenarios
-        const bool skipProjectionChaseball = currentSpeed.norm() > 0.3f && !currentInsideCurrent && (currentPos - robot.robotPos).dot(currentSpeed) > 0;
+        const bool skipProjectionChaseball = currentSpeed.norm() > 0.3f && !currentInsideCurrent && (currentPos - robot.robotPos).dot(currentSpeed) > 0
+                && (pastPos - robot.pastRobotPos).dot(currentSpeed) > 0;
 
         const bool pastInsideCurrent = isInsideRobot(pastPos, robot.robotPos, robot.dribblerPos, ROBOT_RADIUS);
         if (pastInsideCurrent && !skipProjectionDribbling && !skipProjectionChaseball) {
@@ -412,7 +413,7 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
         }
 
         auto intersection = intersectLineSegmentRobot(pastPos, currentPos, robot, ROBOT_RADIUS);
-        if (intersection) {
+        if (intersection && !skipProjectionChaseball) {
             debugLine("ball line intersection", pastPos.x(), pastPos.y(), currentPos.x(), currentPos.y(), 1);
             currentPos = *intersection;
             setBallData(ball, currentPos, robot.speed, writeBallSpeed);
