@@ -54,6 +54,10 @@ private:
     void computeBallState(world::Ball *ball, qint64 time, const QVector<RobotInfo> &robots);
     BallOffsetInfo getDribblingInfo(Eigen::Vector2f projectedBallPos, const RobotInfo &robot);
     bool checkFeasibleInvisibility(const QVector<RobotInfo> &robots);
+    bool handleDribbling(world::Ball *ball, const QVector<RobotInfo> &robots, bool writeBallSpeed);
+    bool checkBallRobotIntersection(world::Ball *ball, const RobotInfo &robot, bool writeBallSpeed,
+                                    const Eigen::Vector2f pastPos, const Eigen::Vector2f pastSpeed,
+                                    const Eigen::Vector2f currentPos, const Eigen::Vector2f currentSpeed);
 
 private:
     GroundFilter m_groundFilter;

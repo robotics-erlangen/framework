@@ -45,7 +45,8 @@ BallGroundCollisionFilter::BallGroundCollisionFilter(const BallGroundCollisionFi
     m_lastVisionFrame(filter.m_lastVisionFrame),
     m_lastResetTime(filter.m_lastResetTime),
     m_lastValidSpeed(filter.m_lastValidSpeed),
-    m_inDribblerFrames(filter.m_inDribblerFrames)
+    m_inDribblerFrames(filter.m_inDribblerFrames),
+    m_lastDribbleOffset(filter.m_lastDribbleOffset)
 { }
 
 static Eigen::Vector2f perpendicular(const Eigen::Vector2f dir)
@@ -294,6 +295,105 @@ static Eigen::Vector2f computeDribblingBallSpeed(const RobotInfo &robot, Eigen::
     return robot.speed + tangential;
 }
 
+bool BallGroundCollisionFilter::handleDribbling(world::Ball *ball, const QVector<RobotInfo> &robots, bool writeBallSpeed)
+{
+    const int identifier = m_localBallOffset->robotIdentifier;
+    auto robot = std::find_if(robots.begin(), robots.end(), [identifier](const RobotInfo &robot) { return robot.identifier == identifier; });
+    if (robot == robots.end()) {
+        return false;
+    }
+
+    const Eigen::Vector2f ballPos = unprojectRelativePosition(m_localBallOffset->ballOffset, *robot);
+
+    // TODO: the ball might already have been pushed before the dribbling activated
+    bool wasPushed = isInsideRobot(m_localBallOffset->pushingBallPos, robot->robotPos, robot->dribblerPos, ROBOT_RADIUS);
+    if (wasPushed) {
+        m_localBallOffset->pushingBallPos = ballPos;
+    }
+    const float radiusFactor = m_localBallOffset->wasPushingPosVisible ? 1 : DRIBBLING_ROBOT_VISIBILITY_FACTOR;
+    bool pushingPosVisible = isBallVisible(m_localBallOffset->pushingBallPos, *robot, ROBOT_RADIUS * radiusFactor, ROBOT_HEIGHT * radiusFactor,
+                                           m_cameraInfo->cameraPosition[m_primaryCamera]);
+    m_localBallOffset->wasPushingPosVisible = pushingPosVisible;
+    bool otherRobotObstruction = false;
+    for (const RobotInfo &r : robots) {
+        if (r.identifier != robot->identifier && !isBallVisible(m_localBallOffset->pushingBallPos, r, ROBOT_RADIUS, ROBOT_HEIGHT,
+                           m_cameraInfo->cameraPosition[m_primaryCamera])) {
+            otherRobotObstruction = true;
+            break;
+        }
+    }
+    if (pushingPosVisible || otherRobotObstruction || wasPushed) {
+        // TODO: only allow this when the ball is near the dribbler not the robot body
+        const Eigen::Vector2f ballSpeed = computeDribblingBallSpeed(*robot, m_localBallOffset->ballOffset);
+        setBallData(ball, ballPos, ballSpeed, writeBallSpeed);
+        debug("ground filter mode", "dribbling");
+    } else {
+        setBallData(ball, m_localBallOffset->pushingBallPos, Eigen::Vector2f(0, 0), writeBallSpeed);
+        debug("ground filter mode", "invisible standing ball");
+    }
+    m_resetFilters = true;
+    return true;
+}
+
+bool BallGroundCollisionFilter::checkBallRobotIntersection(world::Ball *ball, const RobotInfo &robot, bool writeBallSpeed,
+                                                           const Eigen::Vector2f pastPos, const Eigen::Vector2f pastSpeed,
+                                                           const Eigen::Vector2f currentPos, const Eigen::Vector2f currentSpeed)
+{
+    const bool pastInsidePast = isInsideRobot(pastPos, robot.pastRobotPos, robot.pastDribblerPos, ROBOT_RADIUS);
+    const bool currentInsideCurrent = isInsideRobot(currentPos, robot.robotPos, robot.dribblerPos, ROBOT_RADIUS);
+    const bool skipProjectionDribbling = !pastInsidePast && !currentInsideCurrent && (pastPos - currentPos).norm() < 0.1f;
+    // prevent projection doing chaseball scenarios
+    const bool skipProjectionChaseball = currentSpeed.norm() > 0.3f && !currentInsideCurrent && (currentPos - robot.robotPos).dot(currentSpeed) > 0
+            && (pastPos - robot.pastRobotPos).dot(currentSpeed) > 0;
+
+    const bool pastInsideCurrent = isInsideRobot(pastPos, robot.robotPos, robot.dribblerPos, ROBOT_RADIUS);
+    if (pastInsideCurrent && !skipProjectionDribbling && !skipProjectionChaseball) {
+
+        if (m_insideRobotOffset && m_insideRobotOffset->robotIdentifier == robot.identifier) {
+            Eigen::Vector2f ballPos = unprojectRelativePosition(m_insideRobotOffset->ballOffset, robot);
+            setBallData(ball, ballPos, robot.speed, writeBallSpeed);
+            debug("ground filter mode", "inside robot (keep projection)");
+            m_localBallOffset = m_insideRobotOffset;
+            return true;
+        }
+
+        const Eigen::Vector2f relativeSpeed = pastSpeed - robot.speed;
+        const Eigen::Vector2f projectDir = relativeSpeed.norm() < 0.05 ? Eigen::Vector2f(pastPos - robot.robotPos) : -relativeSpeed;
+        const auto closeLineIntersection = intersectLineSegmentRobot(pastPos, projectDir * 1000.0f, robot, ROBOT_RADIUS);
+        const auto farLineIntersection = intersectLineSegmentRobot(pastPos, -projectDir * 1000.0f, robot, ROBOT_RADIUS);
+        if (closeLineIntersection && farLineIntersection) {
+            const float closeDist = (*closeLineIntersection - pastPos).norm();
+            const float farDist = (*farLineIntersection - pastPos).norm();
+            Eigen::Vector2f projected;
+            if (closeDist < farDist * 2) {
+                projected = *closeLineIntersection;
+            } else {
+                projected = *farLineIntersection;
+            }
+            setBallData(ball, projected, robot.speed, writeBallSpeed);
+
+            m_localBallOffset = getDribblingInfo(projected, robot);
+            m_insideRobotOffset = m_localBallOffset;
+
+            debugLine("ball line intersection", pastPos.x(), pastPos.y(), projected.x(), projected.y(), 2);
+            debug("ground filter mode", "inside robot (new projection)");
+            return true;
+        }
+    }
+
+    auto intersection = intersectLineSegmentRobot(pastPos, currentPos, robot, ROBOT_RADIUS);
+    if (intersection && !skipProjectionChaseball) {
+        debugLine("ball line intersection", pastPos.x(), pastPos.y(), currentPos.x(), currentPos.y(), 1);
+        setBallData(ball, *intersection, robot.speed, writeBallSpeed);
+        debug("ground filter mode", "outside robot projection");
+
+        m_localBallOffset = getDribblingInfo(*intersection, robot);
+        m_insideRobotOffset.reset();
+        return true;
+    }
+    return false;
+}
+
 void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time, const QVector<RobotInfo> &robots)
 {
     const qint64 RESET_SPEED_TIME = 150; // ms
@@ -320,112 +420,32 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
     debug("ball invisible time", invisibleTimeMs);
 
     if (invisibleTimeMs > ACTIVATE_DRIBBLING_TIME && m_localBallOffset) {
-        const int identifier = m_localBallOffset->robotIdentifier;
-        auto robot = std::find_if(robots.begin(), robots.end(), [identifier](const RobotInfo &robot) { return robot.identifier == identifier; });
-        if (robot != robots.end()) {
-            const Eigen::Vector2f ballPos = unprojectRelativePosition(m_localBallOffset->ballOffset, *robot);
-
-            // TODO: the ball might already have been pushed before the dribbling activated
-            bool wasPushed = isInsideRobot(m_localBallOffset->pushingBallPos, robot->robotPos, robot->dribblerPos, ROBOT_RADIUS);
-            if (wasPushed) {
-                m_localBallOffset->pushingBallPos = ballPos;
-            }
-            const float radiusFactor = m_localBallOffset->wasPushingPosVisible ? 1 : DRIBBLING_ROBOT_VISIBILITY_FACTOR;
-            bool pushingPosVisible = isBallVisible(m_localBallOffset->pushingBallPos, *robot, ROBOT_RADIUS * radiusFactor, ROBOT_HEIGHT * radiusFactor,
-                                                   m_cameraInfo->cameraPosition[m_primaryCamera]);
-            m_localBallOffset->wasPushingPosVisible = pushingPosVisible;
-            bool otherRobotObstruction = false;
-            for (const RobotInfo &r : robots) {
-                if (r.identifier != robot->identifier && !isBallVisible(m_localBallOffset->pushingBallPos, r, ROBOT_RADIUS, ROBOT_HEIGHT,
-                                   m_cameraInfo->cameraPosition[m_primaryCamera])) {
-                    otherRobotObstruction = true;
-                    break;
-                }
-            }
-            if (pushingPosVisible || otherRobotObstruction || wasPushed) {
-                // TODO: only allow this when the ball is near the dribbler not the robot body
-                const Eigen::Vector2f ballSpeed = computeDribblingBallSpeed(*robot, m_localBallOffset->ballOffset);
-                setBallData(ball, ballPos, ballSpeed, writeBallSpeed);
-                debug("ground filter mode", "dribbling");
-            } else {
-                setBallData(ball, m_localBallOffset->pushingBallPos, Eigen::Vector2f(0, 0), writeBallSpeed);
-                debug("ground filter mode", "invisible standing ball");
-            }
-            m_resetFilters = true;
+        if (handleDribbling(ball, robots, writeBallSpeed)) {
             return;
         }
     }
+
     const bool hadBallOffset = m_localBallOffset.has_value();
     if (invisibleTimeMs <= ACTIVATE_DRIBBLING_TIME) {
         m_localBallOffset.reset();
     }
 
     const Eigen::Vector2f pastPos{pastState.p_x(), pastState.p_y()};
+    const Eigen::Vector2f pastSpeed{pastState.v_x(), pastState.v_y()};
     debugCircle("past ball state", pastState.p_x(), pastState.p_y(), 0.015);
 
     Eigen::Vector2f currentPos{ball->p_x(), ball->p_y()};
     const Eigen::Vector2f currentSpeed{ball->v_x(), ball->v_y()};
     debugCircle("current pos", currentPos.x(), currentPos.y(), 0.03);
-    bool hasIntersection = false;
     for (const RobotInfo &robot : robots) {
-
-        const bool pastInsidePast = isInsideRobot(pastPos, robot.pastRobotPos, robot.pastDribblerPos, ROBOT_RADIUS);
-        const bool currentInsideCurrent = isInsideRobot(currentPos, robot.robotPos, robot.dribblerPos, ROBOT_RADIUS);
-        const bool skipProjectionDribbling = !pastInsidePast && !currentInsideCurrent && (pastPos - currentPos).norm() < 0.1f;
-        // prevent projection doing chaseball scenarios
-        const bool skipProjectionChaseball = currentSpeed.norm() > 0.3f && !currentInsideCurrent && (currentPos - robot.robotPos).dot(currentSpeed) > 0
-                && (pastPos - robot.pastRobotPos).dot(currentSpeed) > 0;
-
-        const bool pastInsideCurrent = isInsideRobot(pastPos, robot.robotPos, robot.dribblerPos, ROBOT_RADIUS);
-        if (pastInsideCurrent && !skipProjectionDribbling && !skipProjectionChaseball) {
-
-            if (m_insideRobotOffset && m_insideRobotOffset->robotIdentifier == robot.identifier) {
-                Eigen::Vector2f ballPos = unprojectRelativePosition(m_insideRobotOffset->ballOffset, robot);
-                setBallData(ball, ballPos, robot.speed, writeBallSpeed);
-                debug("ground filter mode", "inside robot (keep projection)");
-                m_localBallOffset = m_insideRobotOffset;
-                return;
-            }
-
-            const Eigen::Vector2f pastSpeed{pastState.v_x(), pastState.v_y()};
-            const Eigen::Vector2f relativeSpeed = pastSpeed - robot.speed;
-            const Eigen::Vector2f projectDir = relativeSpeed.norm() < 0.05 ? Eigen::Vector2f(pastPos - robot.robotPos) : -relativeSpeed;
-            const auto closeLineIntersection = intersectLineSegmentRobot(pastPos, projectDir * 1000.0f, robot, ROBOT_RADIUS);
-            const auto farLineIntersection = intersectLineSegmentRobot(pastPos, -projectDir * 1000.0f, robot, ROBOT_RADIUS);
-            if (closeLineIntersection && farLineIntersection) {
-                const float closeDist = (*closeLineIntersection - pastPos).norm();
-                const float farDist = (*farLineIntersection - pastPos).norm();
-                Eigen::Vector2f projected;
-                if (closeDist < farDist * 2) {
-                    projected = *closeLineIntersection;
-                } else {
-                    projected = *farLineIntersection;
-                }
-                setBallData(ball, projected, robot.speed, writeBallSpeed);
-
-                m_localBallOffset = getDribblingInfo(projected, robot);
-                m_insideRobotOffset = m_localBallOffset;
-
-                debugLine("ball line intersection", pastPos.x(), pastPos.y(), projected.x(), projected.y(), 2);
-                debug("ground filter mode", "inside robot (new projection)");
-                return;
-            }
-        }
-
-        auto intersection = intersectLineSegmentRobot(pastPos, currentPos, robot, ROBOT_RADIUS);
-        if (intersection && !skipProjectionChaseball) {
-            debugLine("ball line intersection", pastPos.x(), pastPos.y(), currentPos.x(), currentPos.y(), 1);
-            currentPos = *intersection;
-            setBallData(ball, currentPos, robot.speed, writeBallSpeed);
-            debug("ground filter mode", "outside robot projection");
-
-            m_localBallOffset = getDribblingInfo(*intersection, robot);
-            hasIntersection = true;
+        if (checkBallRobotIntersection(ball, robot, writeBallSpeed, pastPos, pastSpeed, currentPos, currentSpeed)) {
+            return;
         }
     }
+    m_insideRobotOffset.reset();
 
     // after a shot, reset the filters so that the speed is updated faster
-    if (hadBallOffset && !hasIntersection && !m_resetFilters && m_lastVisionFrame
+    if (hadBallOffset && !m_resetFilters && m_lastVisionFrame
             && (m_lastVisionFrame->time - m_lastResetTime) / 1000000 > 100
             // do not activate during dribbling etc.
             && m_lastValidSpeed > 2.0f) {
@@ -440,7 +460,7 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
         m_pastFilter.processVisionFrame(*m_lastVisionFrame);
         m_pastFilter.writeBallState(&pastState, m_lastVisionTime + 1, robots);
         debug("ground filter mode", "after shot reset");
-    } else if (!hasIntersection) {
+    } else {
         m_lastValidSpeed = Eigen::Vector2f(ball->v_x(), ball->v_y()).norm();
 
         // check for dribble and rotate
@@ -458,8 +478,6 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
             }
         }
     }
-
-    m_insideRobotOffset.reset();
 }
 
 std::size_t BallGroundCollisionFilter::chooseBall(const std::vector<VisionFrame> &frames)
