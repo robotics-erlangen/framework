@@ -28,7 +28,7 @@ const float BALL_RADIUS = 0.0215f;
 BallGroundCollisionFilter::BallGroundCollisionFilter(const VisionFrame &frame, CameraInfo* cameraInfo, const FieldTransform &transform) :
     AbstractBallFilter(frame, cameraInfo, transform),
     m_groundFilter(frame, cameraInfo, transform),
-    m_pastFilter(frame, cameraInfo, transform)
+    m_lastVisionFrame(frame)
 {
 
 }
@@ -36,8 +36,7 @@ BallGroundCollisionFilter::BallGroundCollisionFilter(const VisionFrame &frame, C
 BallGroundCollisionFilter::BallGroundCollisionFilter(const BallGroundCollisionFilter& filter, qint32 primaryCamera) :
     AbstractBallFilter(filter, primaryCamera),
     m_groundFilter(filter.m_groundFilter, primaryCamera),
-    m_pastFilter(filter.m_pastFilter, primaryCamera),
-    m_lastVisionTime(filter.m_lastVisionTime),
+    m_pastBallState(filter.m_pastBallState),
     m_localBallOffset(filter.m_localBallOffset),
     m_insideRobotOffset(filter.m_insideRobotOffset),
     m_lastReportedBallPos(filter.m_lastReportedBallPos),
@@ -56,16 +55,14 @@ static Eigen::Vector2f perpendicular(const Eigen::Vector2f dir)
 
 void BallGroundCollisionFilter::processVisionFrame(const VisionFrame& frame)
 {
-    m_lastVisionTime = frame.time;
     m_lastVisionFrame = frame;
     if (m_resetFilters) {
         m_lastResetTime = frame.time;
         m_groundFilter.reset(frame);
-        m_pastFilter.reset(frame);
         m_resetFilters = false;
     }
     m_groundFilter.processVisionFrame(frame);
-    m_pastFilter.processVisionFrame(frame);
+    m_groundFilter.writeBallState(&m_pastBallState, m_lastVisionFrame->time + 1, {});
 
     // update dribble and rotate condition data
     {
@@ -405,17 +402,13 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
     // might be overwritten later
     debug("ground filter mode", "regular ground filter");
 
-    world::Ball pastState;
-    m_pastFilter.writeBallState(&pastState, m_lastVisionTime + 1, robots);
-
 #ifdef ENABLE_TRACKING_DEBUG
     // prevent accumulation of debug values, since they are never read
     m_groundFilter.clearDebugValues();
-    m_pastFilter.clearDebugValues();
 #endif
 
     // TODO: time is with the added system delay time etc., these should be removed from the calculation
-    const int invisibleTimeMs = (time - m_lastVisionTime) / 1000000;
+    const int invisibleTimeMs = (time - m_lastVisionFrame->time) / 1000000;
     const bool writeBallSpeed = invisibleTimeMs > RESET_SPEED_TIME;
     debug("ball invisible time", invisibleTimeMs);
 
@@ -430,9 +423,9 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
         m_localBallOffset.reset();
     }
 
-    const Eigen::Vector2f pastPos{pastState.p_x(), pastState.p_y()};
-    const Eigen::Vector2f pastSpeed{pastState.v_x(), pastState.v_y()};
-    debugCircle("past ball state", pastState.p_x(), pastState.p_y(), 0.015);
+    const Eigen::Vector2f pastPos{m_pastBallState.p_x(), m_pastBallState.p_y()};
+    const Eigen::Vector2f pastSpeed{m_pastBallState.v_x(), m_pastBallState.v_y()};
+    debugCircle("past ball state", m_pastBallState.p_x(), m_pastBallState.p_y(), 0.015);
 
     Eigen::Vector2f currentPos{ball->p_x(), ball->p_y()};
     const Eigen::Vector2f currentSpeed{ball->v_x(), ball->v_y()};
@@ -455,10 +448,6 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
         m_groundFilter.reset(*m_lastVisionFrame);
         m_groundFilter.processVisionFrame(*m_lastVisionFrame);
         m_groundFilter.writeBallState(ball, time, robots);
-
-        m_pastFilter.reset(*m_lastVisionFrame);
-        m_pastFilter.processVisionFrame(*m_lastVisionFrame);
-        m_pastFilter.writeBallState(&pastState, m_lastVisionTime + 1, robots);
         debug("ground filter mode", "after shot reset");
     } else {
         m_lastValidSpeed = Eigen::Vector2f(ball->v_x(), ball->v_y()).norm();
