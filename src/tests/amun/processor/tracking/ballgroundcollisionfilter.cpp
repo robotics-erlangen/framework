@@ -50,7 +50,7 @@ using TestFunction = std::function<void(TrackedStateInfo&)>;
 
 class SimulationController {
 public:
-    SimulationController();
+    SimulationController(int predictTimeOffsetMs = 0);
 
     void saveToLog(const QString &filename);
     void simulate(float seconds);
@@ -62,6 +62,7 @@ public:
     void teleportBall(Vector position, Vector velocity);
     void addTestFunction(TestFunction f) { m_testFunctions.push_back(f); }
     void clearTestFunctions() { m_testFunctions.clear(); }
+    void spawnBallDetectionOnce(int cameraId, Vector pos);
 
 private:
     static amun::SimulatorSetup createDefaultSetup();
@@ -80,9 +81,10 @@ private:
     std::vector<TestFunction> m_testFunctions;
     std::optional<Vector> m_lastTrueBallPos;
     std::optional<Vector> m_lastTrueBallSpeed;
+    std::vector<std::pair<int, SSL_DetectionBall>> m_ballDetectionsToAdd;
 };
 
-SimulationController::SimulationController() :
+SimulationController::SimulationController(int predictTimeOffsetMs) :
     m_simulator(&m_timer, createDefaultSetup(), true),
     m_tracker(false, false)
 {
@@ -103,22 +105,40 @@ SimulationController::SimulationController() :
     c->mutable_simulator()->mutable_realism_config()->CopyFrom(realismConfig);
     m_simulator.handleCommand(c);
 
-    m_simulator.connect(&m_simulator, &camun::simulator::Simulator::gotPacket, [this](const QByteArray &data, qint64 time, QString sender) {
+    m_simulator.connect(&m_simulator, &camun::simulator::Simulator::sendStatus, [this](const Status &status) {
+        m_logWriter.writeStatus(status);
+    });
+
+    m_simulator.connect(&m_simulator, &camun::simulator::Simulator::gotPacket, [this, predictTimeOffsetMs](const QByteArray &data, qint64 time, QString sender) {
         ASSERT_TRUE(sender == QString("simulator"));
 
         SSL_WrapperPacket wrapper;
         bool result = wrapper.ParseFromArray(data.data(), data.size());
         ASSERT_TRUE(result && "wrapper.ParseFromArray");
 
+        // add additional fake ball detections if there are any
+        if (wrapper.has_detection() && m_ballDetectionsToAdd.size() > 0) {
+            for (const auto &det : m_ballDetectionsToAdd) {
+                if (det.first == (int)wrapper.detection().camera_id()) {
+                    wrapper.mutable_detection()->add_balls()->CopyFrom(det.second);
+                }
+            }
+            m_ballDetectionsToAdd.erase(std::remove_if(m_ballDetectionsToAdd.begin(), m_ballDetectionsToAdd.end(),
+                                                       [&](const auto &det) { return det.first == wrapper.detection().camera_id(); }), m_ballDetectionsToAdd.end());
+        }
+
+        QByteArray recodedData(wrapper.ByteSize(), 0);
+        wrapper.SerializeToArray(recodedData.data(), recodedData.size());
+
         // TODO: add radio commands to tracker
-        m_tracker.queuePacket(data, time, sender);
+        m_tracker.queuePacket(recodedData, time, sender);
         if (time - m_lastTrackingTime > 10000000) { // 10 ms
             // TODO: to better mimick the behavior of the real tracker, use a time offset here (and at the worldState query)
             m_tracker.process(time);
             m_tracker.finishProcessing();
             // TODO: use varying worldState times different from the process time
             // TODO: process more often (everey 10 ms as opposed to every 15)
-            Status status = m_tracker.worldState(time, true);
+            Status status = m_tracker.worldState(time + predictTimeOffsetMs * 1000000, true);
             status->set_time(time);
 
             // TODO: this currently has an offset of one simulator output frame
@@ -249,6 +269,16 @@ void SimulationController::teleportBall(Vector position, Vector velocity)
     coordinates::toVisionVelocity(velocity, *teleport);
 
     m_simulator.handleCommand(command);
+}
+
+void SimulationController::spawnBallDetectionOnce(int cameraId, Vector pos)
+{
+    SSL_DetectionBall detection;
+    detection.set_confidence(1);
+    coordinates::toVision(pos, detection);
+    detection.set_pixel_x(0);
+    detection.set_pixel_y(0);
+    m_ballDetectionsToAdd.push_back({cameraId, detection});
 }
 
 template<size_t maxDistanceMM>
@@ -501,4 +531,113 @@ TEST(BallGroundCollisionFilter, VolleyShot) {
     });
     s.driveRobot(true, 0, Vector(0, 0), 0, false, 5);
     s.simulate(1);
+}
+
+TEST(BallGroundCollisionFilter, DribbleIntoMovingBall) {
+    SimulationController s;
+    s.teleportBall(Vector(1, 3), Vector(1, 0));
+    s.teleportRobot(true, 0, Vector(0.7, 3), Vector(1, 0));
+    s.driveRobot(true, 0, Vector(1.5, 0), 0, true);
+    s.simulate(0.1);
+    s.addTestFunction(testMaximumDistance<4>);
+    s.simulate(0.7);
+}
+
+TEST(BallGroundCollisionFilter, Chaseball) {
+    SimulationController s(50);
+    s.teleportBall(Vector(0.7, 3), Vector(-2, 0));
+    s.teleportRobot(true, 0, Vector(1, 3), Vector(-1, 0));
+    s.driveRobot(true, 0, Vector(1.8, 0), 0, true);
+    s.simulate(0.1);
+    // the ball position must never jump backwards against its speed
+    Vector lastPos(1, 3);
+    s.addTestFunction([&lastPos](const TrackedStateInfo &state) {
+        ASSERT_TRUE(state.trackedPos);
+        ASSERT_LE(state.trackedPos->x - lastPos.x, 0);
+        lastPos = *state.trackedPos;
+    });
+    s.simulate(1.3);
+}
+
+TEST(BallGroundCollisionFilter, FeasiblyInvisibleBall) {
+    // while the ball is feasibly still shadowed by the robot, the tracked ball should stay intact,
+    // even if some time passes.
+    // However, once it is no longer possible that the ball is overshadowed by the robot,
+    // the tracked ball should disappear.
+    // Therefore, this test dribbles the ball for a while while keeping it invisible
+    // and then drives away while teleporting the ball to another invisible position.
+    SimulationController s;
+    s.teleportBall(Vector(-3.5, 3), Vector(0, 0));
+    s.simulate(0.2);
+    s.addTestFunction(testMaximumDistance<4>);
+    s.teleportRobot(true, 0, Vector(-3, 3), Vector(-1, 0));
+    s.driveRobot(true, 0, Vector(1, 0), 0, true);
+    s.simulate(1);
+    s.driveRobot(true, 0, Vector(0, 0), 0, true);
+    s.simulate(2);
+    s.clearTestFunctions();
+    s.driveRobot(true, 0, Vector(0, 0), 6, false);
+    // teleport the ball to a position where it will be invisible because of the second robot
+    s.teleportBall(Vector(4.4, 5.6), Vector(0, 0));
+    s.simulate(0.5);
+    s.driveRobot(true, 0, Vector(0, 3), 0, false);
+    s.simulate(0.5);
+    s.driveRobot(true, 0, Vector(0, 0), 0);
+    s.addTestFunction([](const TrackedStateInfo &state) {
+        ASSERT_FALSE(state.trackedPos);
+    });
+    s.simulate(2);
+}
+
+TEST(BallGroundCollisionFilter, InvisibleBallWithMisdetection) {
+    // This test adds a single fake ball detection while the ball
+    // has been invisible for a while.
+    // This is to ensure that this detection will not be taken as
+    // true ball while the old one is still feasibly invisible.
+    SimulationController s;
+    s.teleportBall(Vector(-3.5, 3), Vector(0, 0));
+    s.simulate(0.2);
+    s.addTestFunction(testMaximumDistance<4>);
+    s.teleportRobot(true, 0, Vector(-3, 3), Vector(-1, 0));
+    s.driveRobot(true, 0, Vector(1, 0), 0, true);
+    s.simulate(1);
+    s.driveRobot(true, 0, Vector(0, 0), 0, true);
+    s.simulate(2);
+    s.spawnBallDetectionOnce(1, Vector(4, 4));
+    s.simulate(1);
+}
+
+TEST(BallGroundCollisionFilter, ShotAgainstRobotWithFilterDelay) {
+    // the high delay in this scenario leads to the case that the
+    // projected current ball position can be on one side of the robot
+    // and the vision detection on the other side.
+    // This can possibly lead to issues in the tracking.
+    const float ROBOT_Y = 3;
+    SimulationController s(30);
+    s.teleportRobot(true, 0, Vector(0, ROBOT_Y), Vector(0, -1));
+    s.teleportBall(Vector(0, 0), Vector(0, 6));
+    s.simulate(0.2);
+    s.addTestFunction(testNotInRobot);
+    s.addTestFunction([ROBOT_Y](const TrackedStateInfo &state) {
+        ASSERT_TRUE(state.trackedPos);
+        ASSERT_LE(state.trackedPos->y, ROBOT_Y);
+    });
+    s.simulate(2);
+}
+
+TEST(BallGroundCollisionFilter, PseudoDribble) {
+    SimulationController s(20);
+    s.teleportBall(Vector(2.8, 4), Vector(-1, 0));
+    s.teleportRobot(true, 0, Vector(3, 4), Vector(-1, 0));
+    s.driveRobot(true, 0, Vector(1.8, 0), 0, false, 0.3);
+    s.simulate(0.1);
+    // the ball position must never jump backwards against its speed
+    Vector lastPos(4, 4);
+    s.addTestFunction([&lastPos](const TrackedStateInfo &state) {
+        ASSERT_TRUE(state.trackedPos);
+        const Vector last = lastPos;
+        lastPos = *state.trackedPos;
+        ASSERT_LE(state.trackedPos->x, last.x);
+    });
+    s.simulate(1.3);
 }
