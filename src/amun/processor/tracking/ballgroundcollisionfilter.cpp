@@ -354,8 +354,8 @@ bool BallGroundCollisionFilter::checkBallRobotIntersection(world::Ball *ball, co
 
         const Eigen::Vector2f relativeSpeed = pastSpeed - robot.speed;
         const Eigen::Vector2f projectDir = relativeSpeed.norm() < 0.05 ? Eigen::Vector2f(pastPos - robot.robotPos) : -relativeSpeed;
-        const auto closeLineIntersection = intersectLineSegmentRobot(pastPos, projectDir * 1000.0f, robot, ROBOT_RADIUS);
-        const auto farLineIntersection = intersectLineSegmentRobot(pastPos, -projectDir * 1000.0f, robot, ROBOT_RADIUS);
+        const auto closeLineIntersection = intersectLineSegmentRobot(pastPos, pastPos + projectDir.normalized(), robot, ROBOT_RADIUS);
+        const auto farLineIntersection = intersectLineSegmentRobot(pastPos, pastPos - projectDir.normalized(), robot, ROBOT_RADIUS);
         if (closeLineIntersection && farLineIntersection) {
             const float closeDist = (*closeLineIntersection - pastPos).norm();
             const float farDist = (*farLineIntersection - pastPos).norm();
