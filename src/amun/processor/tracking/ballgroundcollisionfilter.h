@@ -43,6 +43,8 @@ public:
 
 private:
     struct BallOffsetInfo {
+        BallOffsetInfo(Eigen::Vector2f projectedBallPos, const RobotInfo &robot);
+
         Eigen::Vector2f ballOffset;
         // the position the ball would be in assuming the robot does not dribble (but possibly pushes the ball)
         Eigen::Vector2f pushingBallPos;
@@ -52,8 +54,7 @@ private:
 
 private:
     void computeBallState(world::Ball *ball, qint64 time, const QVector<RobotInfo> &robots);
-    BallOffsetInfo getDribblingInfo(Eigen::Vector2f projectedBallPos, const RobotInfo &robot);
-    bool checkFeasibleInvisibility(const QVector<RobotInfo> &robots);
+    bool checkFeasibleInvisibility(const QVector<RobotInfo> &robots, const Eigen::Vector2f ballPos);
     bool handleDribbling(world::Ball *ball, const QVector<RobotInfo> &robots, bool writeBallSpeed);
     bool checkBallRobotIntersection(world::Ball *ball, const RobotInfo &robot, bool writeBallSpeed,
                                     const Eigen::Vector2f pastPos, const Eigen::Vector2f pastSpeed,
@@ -73,7 +74,7 @@ private:
 
     // dribble and rotate
     qint32 m_inDribblerFrames = 0;
-    BallOffsetInfo m_lastDribbleOffset;
+    std::optional<BallOffsetInfo> m_lastDribbleOffset;
 
     const float ROBOT_RADIUS = 0.09f;
     const float ROBOT_HEIGHT = 0.15f;

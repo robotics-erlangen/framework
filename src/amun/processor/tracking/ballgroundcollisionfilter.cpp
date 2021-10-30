@@ -80,10 +80,10 @@ void BallGroundCollisionFilter::processVisionFrame(const VisionFrame& frame)
         } else {
             m_inDribblerFrames = 0;
         }
-        if (m_lastDribbleOffset.robotIdentifier != frame.robot.identifier) {
+        if (m_lastDribbleOffset && m_lastDribbleOffset->robotIdentifier != frame.robot.identifier) {
             m_inDribblerFrames = 0;
         }
-        m_lastDribbleOffset = getDribblingInfo(framePos, frame.robot);
+        m_lastDribbleOffset = BallOffsetInfo(framePos, frame.robot);
     }
 }
 
@@ -224,15 +224,13 @@ static bool isBallVisible(Eigen::Vector2f pos, const RobotInfo &robot, float rob
     return (!inRadius || frontOfDribbler) && !hasIntersection;
 }
 
-auto BallGroundCollisionFilter::getDribblingInfo(Eigen::Vector2f projectedBallPos, const RobotInfo &robot) -> BallOffsetInfo
+BallGroundCollisionFilter::BallOffsetInfo::BallOffsetInfo(Eigen::Vector2f projectedBallPos, const RobotInfo &robot)
 {
-    BallOffsetInfo offset;
-    offset.robotIdentifier = robot.identifier;
+    robotIdentifier = robot.identifier;
     const Eigen::Vector2f toDribbler = (robot.dribblerPos - robot.robotPos).normalized();
-    offset.ballOffset = Eigen::Vector2f{(projectedBallPos - robot.robotPos).dot(toDribbler),
-                                        (projectedBallPos - robot.robotPos).dot(perpendicular(toDribbler))};
-    offset.pushingBallPos = projectedBallPos;
-    return offset;
+    ballOffset = Eigen::Vector2f{(projectedBallPos - robot.robotPos).dot(toDribbler),
+                                (projectedBallPos - robot.robotPos).dot(perpendicular(toDribbler))};
+    pushingBallPos = projectedBallPos;
 }
 
 static Eigen::Vector2f unprojectRelativePosition(Eigen::Vector2f relativePos, const RobotInfo &robot)
@@ -253,7 +251,7 @@ static void setBallData(world::Ball *ball, Eigen::Vector2f pos, Eigen::Vector2f 
     }
 }
 
-bool BallGroundCollisionFilter::checkFeasibleInvisibility(const QVector<RobotInfo> &robots)
+bool BallGroundCollisionFilter::checkFeasibleInvisibility(const QVector<RobotInfo> &robots, const Eigen::Vector2f ballPos)
 {
     if (!m_localBallOffset) {
         return false;
@@ -268,7 +266,7 @@ bool BallGroundCollisionFilter::checkFeasibleInvisibility(const QVector<RobotInf
         return true;
     }
     for (const RobotInfo &r : robots) {
-        if (!isBallVisible(m_lastReportedBallPos, r, ROBOT_RADIUS, ROBOT_HEIGHT,
+        if (!isBallVisible(ballPos, r, ROBOT_RADIUS, ROBOT_HEIGHT,
                            m_cameraInfo->cameraPosition[m_primaryCamera])) {
             return true;
         }
@@ -280,7 +278,7 @@ void BallGroundCollisionFilter::writeBallState(world::Ball *ball, qint64 time, c
 {
     computeBallState(ball, time, robots);
     m_lastReportedBallPos = Eigen::Vector2f(ball->p_x(), ball->p_y());
-    m_feasiblyInvisible = checkFeasibleInvisibility(robots);
+    m_feasiblyInvisible = checkFeasibleInvisibility(robots, m_lastReportedBallPos);
 }
 
 static Eigen::Vector2f computeDribblingBallSpeed(const RobotInfo &robot, Eigen::Vector2f relativePosition)
@@ -369,7 +367,7 @@ bool BallGroundCollisionFilter::checkBallRobotIntersection(world::Ball *ball, co
             }
             setBallData(ball, projected, robot.speed, writeBallSpeed);
 
-            m_localBallOffset = getDribblingInfo(projected, robot);
+            m_localBallOffset = BallOffsetInfo(projected, robot);
             m_insideRobotOffset = m_localBallOffset;
 
             debugLine("ball line intersection", pastPos.x(), pastPos.y(), projected.x(), projected.y(), 2);
@@ -384,7 +382,7 @@ bool BallGroundCollisionFilter::checkBallRobotIntersection(world::Ball *ball, co
         setBallData(ball, *intersection, robot.speed, writeBallSpeed);
         debug("ground filter mode", "outside robot projection");
 
-        m_localBallOffset = getDribblingInfo(*intersection, robot);
+        m_localBallOffset = BallOffsetInfo(*intersection, robot);
         m_insideRobotOffset.reset();
         return true;
     }
@@ -453,12 +451,12 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
         m_lastValidSpeed = Eigen::Vector2f(ball->v_x(), ball->v_y()).norm();
 
         // check for dribble and rotate
-        if (!m_localBallOffset && m_inDribblerFrames > 15 && invisibleTimeMs > ACTIVATE_DRIBBLING_TIME - 15) {
+        if (!m_localBallOffset && m_lastDribbleOffset && m_inDribblerFrames > 15 && invisibleTimeMs > ACTIVATE_DRIBBLING_TIME - 15) {
 
-            const auto identifier = m_lastDribbleOffset.robotIdentifier;
+            const auto identifier = m_lastDribbleOffset->robotIdentifier;
             const auto robot = std::find_if(robots.begin(), robots.end(), [identifier](const RobotInfo &robot) { return robot.identifier == identifier; });
             if (robot != robots.end()) {
-                const Eigen::Vector2f unprojected = unprojectRelativePosition(m_lastDribbleOffset.ballOffset, *robot);
+                const Eigen::Vector2f unprojected = unprojectRelativePosition(m_lastDribbleOffset->ballOffset, *robot);
                 if (!isBallVisible(unprojected, *robot, ROBOT_RADIUS, ROBOT_HEIGHT, m_cameraInfo->cameraPosition[m_primaryCamera])) {
                     // TODO: maybe average over the last few values instead of taking just the last one?
                     m_localBallOffset  = m_lastDribbleOffset;
