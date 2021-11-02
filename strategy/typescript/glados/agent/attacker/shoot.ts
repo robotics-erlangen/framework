@@ -349,7 +349,7 @@ export class Shoot extends Behavior {
 				&& this._robot.pos.y < -(G.FieldHeightHalf - G.DefenseHeight - 0.9)
 				&& !this.isChipObscured()
 				&& Vector.fromAngle(this._robot.dir).absoluteAngleDiff(this._robot.pos - G.FriendlyGoal) < 80 * Math.PI / 180
-				&& Robot.hadBall(this._robot, 0.1)) {
+				&& Robot.controlsBall(this._robot, 0.1)) {
 
 			debug.set("redeciding", "TRUE (consider chipAway)");
 			return true;
