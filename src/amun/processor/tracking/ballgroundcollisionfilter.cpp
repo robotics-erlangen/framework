@@ -168,7 +168,6 @@ std::optional<std::pair<float, float>> intersectLineLine(Eigen::Vector2f pos1, E
     return {{t1, t2}};
 }
 
-// TODO: ball radius
 static std::optional<Eigen::Vector2f> intersectLineSegmentRobot(Eigen::Vector2f p1, Eigen::Vector2f p2, const RobotInfo &robot, float robotRadius,
                                                                 float robotSizeFactor = 1.0f)
 {
@@ -182,15 +181,23 @@ static std::optional<Eigen::Vector2f> intersectLineSegmentRobot(Eigen::Vector2f 
     const auto dribblerSideways = perpendicular(toDribbler);
     const auto dribblerIntersection = intersectLineLine(dribblerPos, dribblerSideways, p1, p2 - p1);
     std::optional<Eigen::Vector2f> dribblerIntersectionPos;
-    if (dribblerIntersection.has_value() && std::abs(dribblerIntersection->first) <= DRIBBLER_WIDTH / 2.0f &&
-            dribblerIntersection->second >= 0 && dribblerIntersection->second <= 1) {
+    if (dribblerIntersection.has_value() && dribblerIntersection->second >= 0 && dribblerIntersection->second <= 1) {
         dribblerIntersectionPos = dribblerPos + dribblerSideways * dribblerIntersection->first;
-        if ((p1 - dribblerPos).dot(toDribbler) >= 0) {
+        if ((*dribblerIntersectionPos - robot.robotPos).norm() > robotRadius) {
+            dribblerIntersectionPos.reset();
+        }
+        if (dribblerIntersectionPos && (p1 - dribblerPos).dot(toDribbler) >= 0) {
             // the line segment comes from in front of the robot, the line intersection is the correct one
             return dribblerIntersectionPos;
         }
     }
     auto hullIntersection = intersectLineSegmentCircle(p1, p2, robot.robotPos, robotRadius);
+    if (hullIntersection && (*hullIntersection - dribblerPos).dot(toDribbler) >= 0) {
+        hullIntersection.reset();
+    }
+    if (dribblerIntersectionPos && !hullIntersection) {
+        return dribblerIntersectionPos;
+    }
     if (dribblerIntersectionPos && hullIntersection) {
         // select the closer of the two intersections
         if ((*hullIntersection - p1).norm() < (*dribblerIntersectionPos - p1).norm()) {
