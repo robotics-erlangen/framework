@@ -146,15 +146,15 @@ void BallTracker::update(qint64 time)
 #endif
 }
 
-void BallTracker::get(world::Ball *ball, const FieldTransform &transform, bool resetRaw, const QVector<RobotInfo> &robots)
+void BallTracker::get(world::Ball *ball, const FieldTransform &transform, bool resetRaw, const QVector<RobotInfo> &robots, qint64 lastCameraFrameTime)
 {
     ball->set_is_bouncing(false); // fly filter overwrites if appropriate
 
     // IMPORTANT: the ground filter must be written to ball before the fly filter is executed (it sometimes uses parts of the ground filter results)
-    m_groundFilter->writeBallState(ball, m_lastUpdateTime, robots);
+    m_groundFilter->writeBallState(ball, m_lastUpdateTime, robots, lastCameraFrameTime);
     if (m_flyFilter->isActive()) {
         debug("active", "fly filter");
-        m_flyFilter->writeBallState(ball, m_lastUpdateTime, robots);
+        m_flyFilter->writeBallState(ball, m_lastUpdateTime, robots, lastCameraFrameTime);
     } else {
         debug("active", "ground filter");
     }

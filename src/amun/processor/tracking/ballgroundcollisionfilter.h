@@ -35,8 +35,9 @@ public:
     BallGroundCollisionFilter(const BallGroundCollisionFilter& filter, qint32 primaryCamera);
 
     void processVisionFrame(const VisionFrame& frame) override;
+    void updateEmptyFrame(qint64 frameTime, const QVector<RobotInfo> &robots);
     bool acceptDetection(const VisionFrame& frame) override;
-    void writeBallState(world::Ball *ball, qint64 time, const QVector<RobotInfo> &robots) override;
+    void writeBallState(world::Ball *ball, qint64 time, const QVector<RobotInfo> &robots, qint64 lastCameraFrameTime) override;
     std::size_t chooseBall(const std::vector<VisionFrame> &frames) override;
 
     bool isFeasiblyInvisible() const { return m_feasiblyInvisible; };
@@ -53,21 +54,23 @@ private:
     };
 
 private:
-    void computeBallState(world::Ball *ball, qint64 time, const QVector<RobotInfo> &robots);
-    bool checkFeasibleInvisibility(const QVector<RobotInfo> &robots, const Eigen::Vector2f ballPos);
+    void computeBallState(world::Ball *ball, qint64 time, const QVector<RobotInfo> &robots, qint64 lastCameraFrameTime);
+    bool checkFeasibleInvisibility(const QVector<RobotInfo> &robots);
     bool handleDribbling(world::Ball *ball, const QVector<RobotInfo> &robots, bool writeBallSpeed);
     bool checkBallRobotIntersection(world::Ball *ball, const RobotInfo &robot, bool writeBallSpeed,
-                                    const Eigen::Vector2f pastPos, const Eigen::Vector2f pastSpeed,
-                                    const Eigen::Vector2f currentPos, const Eigen::Vector2f currentSpeed);
+                                    const Eigen::Vector2f pastPos, const Eigen::Vector2f currentPos);
 
 private:
     GroundFilter m_groundFilter;
+    qint64 m_lastUpdateTime = 0;
+    // is always at the time of m_lastUpdateTime
     world::Ball m_pastBallState;
-    std::optional<BallOffsetInfo> m_localBallOffset;
-    std::optional<BallOffsetInfo> m_insideRobotOffset;
+    std::optional<BallOffsetInfo> m_dribbleOffset;
     Eigen::Vector2f m_lastReportedBallPos = Eigen::Vector2f(10000000, 0);
     bool m_feasiblyInvisible = false;
     bool m_resetFilters = false;
+
+    // possibly needs adaption
     std::optional<VisionFrame> m_lastVisionFrame;
     qint64 m_lastResetTime = 0;
     float m_lastValidSpeed = 0;
@@ -75,6 +78,7 @@ private:
     // dribble and rotate
     qint32 m_inDribblerFrames = 0;
     std::optional<BallOffsetInfo> m_lastDribbleOffset;
+
 
     const float ROBOT_RADIUS = 0.09f;
     const float ROBOT_HEIGHT = 0.15f;

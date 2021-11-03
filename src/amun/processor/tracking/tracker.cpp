@@ -303,7 +303,8 @@ Status Tracker::worldState(qint64 currentTime, bool resetRaw)
 
         if (ball != nullptr) {
             ball->update(currentTime);
-            ball->get(worldState->mutable_ball(), *m_fieldTransform, resetRaw, robotInfos);
+            const qint64 lastCameraFrameTime = m_lastUpdateTime[ball->primaryCamera()];
+            ball->get(worldState->mutable_ball(), *m_fieldTransform, resetRaw, robotInfos, lastCameraFrameTime);
         }
     }
 

@@ -45,7 +45,7 @@ public:
 public:
     void update(qint64 time);
     void updateConfidence();
-    void get(world::Ball *ball, const FieldTransform &transform, bool resetRaw, const QVector<RobotInfo> &robots); // writes to world state
+    void get(world::Ball *ball, const FieldTransform &transform, bool resetRaw, const QVector<RobotInfo> &robots, qint64 lastCameraFrameTime); // writes to world state
     void addVisionFrame(const SSL_DetectionBall& ball, qint64 time, qint32 cameraId, RobotInfo robotInfo, qint64 visionProcessingDelay);
     bool acceptDetection(const SSL_DetectionBall& ball, qint64 time, qint32 cameraId, RobotInfo robotInfo, qint64 visionProcessingDelay);
     void calcDistToCamera(bool flying);

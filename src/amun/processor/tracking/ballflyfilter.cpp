@@ -975,7 +975,7 @@ static float dist(float v0, float v1, float acc)
     return 0.5f * (v0 + v1) * time;
 }
 
-void FlyFilter::writeBallState(world::Ball *ball, qint64 predictionTime, const QVector<RobotInfo> &)
+void FlyFilter::writeBallState(world::Ball *ball, qint64 predictionTime, const QVector<RobotInfo> &, qint64)
 {
     const Prediction& p = predictTrajectory(predictionTime);
 
