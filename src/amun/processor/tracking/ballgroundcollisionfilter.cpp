@@ -315,6 +315,23 @@ static Eigen::Vector2f computeDribblingBallSpeed(const RobotInfo &robot, Eigen::
     return robot.speed + tangential;
 }
 
+void BallGroundCollisionFilter::updateDribbling(const QVector<RobotInfo> &robots)
+{
+    const int identifier = m_dribbleOffset->robotIdentifier;
+    auto it = std::find_if(robots.begin(), robots.end(), [identifier](const RobotInfo &robot) { return robot.identifier == identifier; });
+    if (it == robots.end()) {
+        return;
+    }
+    const RobotInfo robot = pastToCurrentRobotInfo(*it);
+
+    const Eigen::Vector2f ballPos = unprojectRelativePosition(m_dribbleOffset->ballOffset, robot);
+
+    bool wasPushed = isInsideRobot(m_dribbleOffset->pushingBallPos, robot.robotPos, robot.dribblerPos, ROBOT_RADIUS);
+    if (wasPushed) {
+        m_dribbleOffset->pushingBallPos = ballPos;
+    }
+}
+
 bool BallGroundCollisionFilter::handleDribbling(world::Ball *ball, const QVector<RobotInfo> &robots, bool writeBallSpeed)
 {
     const int identifier = m_dribbleOffset->robotIdentifier;
@@ -325,15 +342,9 @@ bool BallGroundCollisionFilter::handleDribbling(world::Ball *ball, const QVector
 
     const Eigen::Vector2f ballPos = unprojectRelativePosition(m_dribbleOffset->ballOffset, *robot);
 
-    // TODO: the ball might already have been pushed before the dribbling activated
     bool wasPushed = isInsideRobot(m_dribbleOffset->pushingBallPos, robot->robotPos, robot->dribblerPos, ROBOT_RADIUS);
-    if (wasPushed) {
-        m_dribbleOffset->pushingBallPos = ballPos;
-    }
-    const float radiusFactor = m_dribbleOffset->wasPushingPosVisible ? 1 : DRIBBLING_ROBOT_VISIBILITY_FACTOR;
-    bool pushingPosVisible = isBallVisible(m_dribbleOffset->pushingBallPos, *robot, ROBOT_RADIUS * radiusFactor, ROBOT_HEIGHT * radiusFactor,
-                                           m_cameraInfo->cameraPosition[m_primaryCamera]);
-    m_dribbleOffset->wasPushingPosVisible = pushingPosVisible;
+    bool pushingPosVisible = isBallVisible(m_dribbleOffset->pushingBallPos, *robot, ROBOT_RADIUS * DRIBBLING_ROBOT_VISIBILITY_FACTOR,
+                                           ROBOT_HEIGHT * DRIBBLING_ROBOT_VISIBILITY_FACTOR, m_cameraInfo->cameraPosition[m_primaryCamera]);
     bool otherRobotObstruction = false;
     for (const RobotInfo &r : robots) {
         if (r.identifier != robot->identifier && !isBallVisible(m_dribbleOffset->pushingBallPos, r, ROBOT_RADIUS, ROBOT_HEIGHT,
@@ -351,7 +362,6 @@ bool BallGroundCollisionFilter::handleDribbling(world::Ball *ball, const QVector
         setBallData(ball, m_dribbleOffset->pushingBallPos, Eigen::Vector2f(0, 0), writeBallSpeed);
         debug("ground filter mode", "invisible standing ball");
     }
-    m_resetFilters = true;
     return true;
 }
 
@@ -391,6 +401,7 @@ void BallGroundCollisionFilter::updateEmptyFrame(qint64 frameTime, const QVector
     const Eigen::Vector2f currentPos{m_pastBallState.p_x(), m_pastBallState.p_y()};
 
     if (m_dribbleOffset) {
+        updateDribbling(robots);
         return;
     }
 
@@ -404,7 +415,6 @@ void BallGroundCollisionFilter::updateEmptyFrame(qint64 frameTime, const QVector
             }
 
             // no intersection means that both past and current position are inside the robot
-            // TODO: maybe use past speed?
             const Eigen::Vector2f relativeSpeed = pastSpeed - robot.speed;
             const Eigen::Vector2f projectDir = relativeSpeed.norm() < 0.05 ? Eigen::Vector2f(pastPos - robot.robotPos) : -relativeSpeed;
             const auto speedIntersection = intersectLineSegmentRobot(pastPos, pastPos + projectDir.normalized(), robot, ROBOT_RADIUS);
@@ -437,25 +447,15 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
     m_groundFilter.clearDebugValues();
 #endif
 
-    if (m_dribbleOffset) {
-        const int identifier = m_dribbleOffset->robotIdentifier;
-        auto robot = std::find_if(robots.begin(), robots.end(), [identifier](const RobotInfo &robot) { return robot.identifier == identifier; });
-        if (robot != robots.end()) {
-            const Eigen::Vector2f ballPos = unprojectRelativePosition(m_dribbleOffset->ballOffset, *robot);
-            // TODO: do not always write speed
-            setBallData(ball, ballPos, robot->speed, true);
-            debug("ground filter mode", "invisible ball dribbling");
-            return;
-        }
-    }
-
-
-
     // TODO: time is with the added system delay time etc., these should be removed from the calculation
     const int invisibleTimeMs = (time - m_lastVisionFrame->time) / 1000000;
     // TODO: maybe only do this when the ball is shot against the robot, not while dribbling/rotating?
     const bool writeBallSpeed = true;//invisibleTimeMs > RESET_SPEED_TIME;
 
+    if (m_dribbleOffset) {
+        handleDribbling(ball, robots, writeBallSpeed);
+        return;
+    }
 
     const Eigen::Vector2f pastBallPos{m_pastBallState.p_x(), m_pastBallState.p_y()};
     const Eigen::Vector2f currentBallPos{ball->p_x(), ball->p_y()};

@@ -49,7 +49,6 @@ private:
         Eigen::Vector2f ballOffset;
         // the position the ball would be in assuming the robot does not dribble (but possibly pushes the ball)
         Eigen::Vector2f pushingBallPos;
-        bool wasPushingPosVisible = false;
         int robotIdentifier;
     };
 
@@ -59,6 +58,7 @@ private:
     bool handleDribbling(world::Ball *ball, const QVector<RobotInfo> &robots, bool writeBallSpeed);
     bool checkBallRobotIntersection(world::Ball *ball, const RobotInfo &robot, bool writeBallSpeed,
                                     const Eigen::Vector2f pastPos, const Eigen::Vector2f currentPos);
+    void updateDribbling(const QVector<RobotInfo> &robots);
 
 private:
     GroundFilter m_groundFilter;

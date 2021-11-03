@@ -363,7 +363,7 @@ TEST(BallGroundCollisionFilter, PushingAndPulling) {
         maxBallDistance = std::max(maxBallDistance, dist);
     });
     s.simulate(0.3);
-    ASSERT_GE(maxBallDistance, 0.07);
+    ASSERT_GE(maxBallDistance, 0.06);
     // after a short while, the ball should be snapped to the robot
     s.clearTestFunctions();
     s.addTestFunction(testMaximumDistance<5>);
