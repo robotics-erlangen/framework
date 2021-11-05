@@ -44,12 +44,13 @@ public:
 
 private:
     struct BallOffsetInfo {
-        BallOffsetInfo(Eigen::Vector2f projectedBallPos, const RobotInfo &robot);
+        BallOffsetInfo(Eigen::Vector2f projectedBallPos, const RobotInfo &robot, bool forceDribbling);
 
         Eigen::Vector2f ballOffset;
         // the position the ball would be in assuming the robot does not dribble (but possibly pushes the ball)
         Eigen::Vector2f pushingBallPos;
         int robotIdentifier;
+        bool forceDribbleMode;
     };
 
 private:
@@ -68,7 +69,6 @@ private:
     std::optional<BallOffsetInfo> m_dribbleOffset;
     Eigen::Vector2f m_lastReportedBallPos = Eigen::Vector2f(10000000, 0);
     bool m_feasiblyInvisible = false;
-    bool m_resetFilters = false;
 
     // possibly needs adaption
     std::optional<VisionFrame> m_lastVisionFrame;
@@ -77,7 +77,7 @@ private:
 
     // dribble and rotate
     qint32 m_inDribblerFrames = 0;
-    std::optional<BallOffsetInfo> m_lastDribbleOffset;
+    std::optional<BallOffsetInfo> m_rotateAndDribbleOffset;
 
 
     const float ROBOT_RADIUS = 0.09f;
