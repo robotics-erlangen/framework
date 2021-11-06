@@ -60,6 +60,8 @@ private:
     bool checkBallRobotIntersection(world::Ball *ball, const RobotInfo &robot, bool writeBallSpeed,
                                     const Eigen::Vector2f pastPos, const Eigen::Vector2f currentPos);
     void updateDribbling(const QVector<RobotInfo> &robots);
+    void updateDribbleAndRotate(const VisionFrame &frame);
+    void checkVolleyShot(const VisionFrame &frame);
 
 private:
     GroundFilter m_groundFilter;
@@ -69,10 +71,10 @@ private:
     std::optional<BallOffsetInfo> m_dribbleOffset;
     Eigen::Vector2f m_lastReportedBallPos = Eigen::Vector2f(10000000, 0);
     bool m_feasiblyInvisible = false;
-
-    // possibly needs adaption
     std::optional<VisionFrame> m_lastVisionFrame;
-    qint64 m_lastResetTime = 0;
+
+    // volley shot detection
+    bool m_hadRobotIntersection = false;
     float m_lastValidSpeed = 0;
 
     // dribble and rotate
