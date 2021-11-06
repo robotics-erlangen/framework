@@ -56,8 +56,8 @@ private:
 private:
     void computeBallState(world::Ball *ball, qint64 time, const QVector<RobotInfo> &robots, qint64 lastCameraFrameTime);
     bool checkFeasibleInvisibility(const QVector<RobotInfo> &robots);
-    bool handleDribbling(world::Ball *ball, const QVector<RobotInfo> &robots, bool writeBallSpeed);
-    bool checkBallRobotIntersection(world::Ball *ball, const RobotInfo &robot, bool writeBallSpeed,
+    bool handleDribbling(world::Ball *ball, const QVector<RobotInfo> &robots, bool overwriteBallSpeed);
+    bool checkBallRobotIntersection(world::Ball *ball, const RobotInfo &robot, bool overwriteBallSpeed,
                                     const Eigen::Vector2f pastPos, const Eigen::Vector2f currentPos);
     void updateDribbling(const QVector<RobotInfo> &robots);
     void updateDribbleAndRotate(const VisionFrame &frame);

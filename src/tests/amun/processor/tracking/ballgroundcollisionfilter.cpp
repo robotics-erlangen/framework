@@ -502,7 +502,7 @@ TEST(BallGroundCollisionFilter, DribbleAndRotate) {
     });
     s.driveRobot(true, 0, Vector(0, 0), 5, true);
     s.simulate(2);
-    ASSERT_LE(ballVelocityDifferentFrames, 15);
+    ASSERT_LE(ballVelocityDifferentFrames, 10);
 }
 
 TEST(BallGroundCollisionFilter, VolleyShot) {
@@ -520,8 +520,13 @@ TEST(BallGroundCollisionFilter, VolleyShot) {
     // or the direction that the ball will have after the shot
     // note that this direction is only inferred from the log and may
     // change with changing robot damping parameters
-    s.addTestFunction([](const TrackedStateInfo &state) {
+    // Also check that the speed never drops to zero (possible while intersecting with the robot)
+    int lowVelFrames = 0;
+    s.addTestFunction([&lowVelFrames](const TrackedStateInfo &state) {
         ASSERT_TRUE(state.trackedSpeed.has_value());
+        if(state.trackedSpeed->length() < 2) {
+            lowVelFrames++;
+        }
         if (state.trackedSpeed->length() < 0.2) {
             return;
         }
@@ -529,6 +534,8 @@ TEST(BallGroundCollisionFilter, VolleyShot) {
         ASSERT_TRUE(normalizedSpeed.dot(Vector(0, 1)) > 0.95f ||
                     normalizedSpeed.dot(Vector(1, -0.85).normalized()) > 0.95f);
     });
+    // allow one low velocity frame for the filter reset after the shot
+    ASSERT_LE(lowVelFrames, 1);
     s.driveRobot(true, 0, Vector(0, 0), 0, false, 5);
     s.simulate(1);
 }

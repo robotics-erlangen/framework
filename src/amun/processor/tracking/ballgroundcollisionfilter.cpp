@@ -356,7 +356,7 @@ void BallGroundCollisionFilter::updateDribbling(const QVector<RobotInfo> &robots
     }
 }
 
-bool BallGroundCollisionFilter::handleDribbling(world::Ball *ball, const QVector<RobotInfo> &robots, bool writeBallSpeed)
+bool BallGroundCollisionFilter::handleDribbling(world::Ball *ball, const QVector<RobotInfo> &robots, bool overwriteBallSpeed)
 {
     const int identifier = m_dribbleOffset->robotIdentifier;
     auto robot = std::find_if(robots.begin(), robots.end(), [identifier](const RobotInfo &robot) { return robot.identifier == identifier; });
@@ -380,16 +380,16 @@ bool BallGroundCollisionFilter::handleDribbling(world::Ball *ball, const QVector
     if (pushingPosVisible || otherRobotObstruction || wasPushed || m_dribbleOffset->forceDribbleMode) {
         // TODO: only allow this when the ball is near the dribbler not the robot body
         const Eigen::Vector2f ballSpeed = computeDribblingBallSpeed(*robot, m_dribbleOffset->ballOffset);
-        setBallData(ball, ballPos, ballSpeed, writeBallSpeed);
+        setBallData(ball, ballPos, ballSpeed, overwriteBallSpeed);
         debug("ground filter mode", "dribbling");
     } else {
-        setBallData(ball, m_dribbleOffset->pushingBallPos, Eigen::Vector2f(0, 0), writeBallSpeed);
+        setBallData(ball, m_dribbleOffset->pushingBallPos, Eigen::Vector2f(0, 0), overwriteBallSpeed);
         debug("ground filter mode", "invisible standing ball");
     }
     return true;
 }
 
-bool BallGroundCollisionFilter::checkBallRobotIntersection(world::Ball *ball, const RobotInfo &robot, bool writeBallSpeed,
+bool BallGroundCollisionFilter::checkBallRobotIntersection(world::Ball *ball, const RobotInfo &robot, bool overwriteBallSpeed,
                                                            const Eigen::Vector2f pastPos, const Eigen::Vector2f currentPos)
 {
     Eigen::Vector2f outsideRobotPastPos = pastPos;
@@ -407,7 +407,7 @@ bool BallGroundCollisionFilter::checkBallRobotIntersection(world::Ball *ball, co
 
     const auto intersection = intersectLineSegmentRobot(outsideRobotPastPos, currentPos, robot, ROBOT_RADIUS);
     if (intersection) {
-        setBallData(ball, *intersection, robot.speed, writeBallSpeed);
+        setBallData(ball, *intersection, robot.speed, overwriteBallSpeed);
         debug("ground filter mode", "shot at robot");
         return true;
     }
@@ -473,7 +473,6 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
         m_feasiblyInvisible = checkFeasibleInvisibility(robots);
     }
 
-    const qint64 RESET_SPEED_TIME = 150; // ms
     // TODO: robot data from specs?
 
     // TODO: test sides flipped (fieldtransform difference in robotinfo and groundfilter result?)
@@ -486,20 +485,26 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
     m_groundFilter.clearDebugValues();
 #endif
 
-    // TODO: time is with the added system delay time etc., these should be removed from the calculation
+    // During dribbling etc. the ball speed should be set to the robot speed.
+    // However, during a volley shot, it is not desirable to have the speed at
+    // the zero (the robot speed) for a short time while the future ball intersects with
+    // the robot but the vision data is not there yet.
+    // Therefore, keep the ball speed as it is in this case.
+    const qint64 RESET_SPEED_TIME = 150; // ms
     const int invisibleTimeMs = (time - m_lastVisionFrame->time) / 1000000;
-    // TODO: maybe only do this when the ball is shot against the robot, not while dribbling/rotating?
-    const bool writeBallSpeed = true;//invisibleTimeMs > RESET_SPEED_TIME;
+    const bool rotateAndDribble = m_dribbleOffset.has_value() && m_dribbleOffset->forceDribbleMode;
+    const bool dribbling = m_lastValidSpeed < 2.0f;
+    const bool overwriteBallSpeed = invisibleTimeMs > RESET_SPEED_TIME || rotateAndDribble || dribbling;
 
     if (m_dribbleOffset) {
-        handleDribbling(ball, robots, writeBallSpeed);
+        handleDribbling(ball, robots, overwriteBallSpeed);
         return;
     }
 
     const Eigen::Vector2f pastBallPos{m_pastBallState.p_x(), m_pastBallState.p_y()};
     const Eigen::Vector2f currentBallPos{ball->p_x(), ball->p_y()};
     for (const RobotInfo &robot : robots) {
-        if (checkBallRobotIntersection(ball, robot, writeBallSpeed, pastBallPos, currentBallPos)) {
+        if (checkBallRobotIntersection(ball, robot, overwriteBallSpeed, pastBallPos, currentBallPos)) {
             return;
         }
     }
