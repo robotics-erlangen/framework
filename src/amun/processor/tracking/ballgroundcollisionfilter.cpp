@@ -21,9 +21,10 @@
 #include <algorithm>
 #include <QDebug>
 
-// TODO: handle constants better
 const float DRIBBLER_WIDTH = 0.07f;
 const float BALL_RADIUS = 0.0215f;
+const float ROBOT_RADIUS = 0.09f;
+const float ROBOT_HEIGHT = 0.15f;
 
 BallGroundCollisionFilter::BallGroundCollisionFilter(const VisionFrame &frame, CameraInfo* cameraInfo, const FieldTransform &transform) :
     AbstractBallFilter(frame, cameraInfo, transform),
@@ -277,28 +278,20 @@ static RobotInfo pastToCurrentRobotInfo(const RobotInfo &robot)
 
 bool BallGroundCollisionFilter::checkFeasibleInvisibility(const QVector<RobotInfo> &robots)
 {
-    if (!m_dribbleOffset) {
-        return false;
-    }
-    int id = m_dribbleOffset->robotIdentifier;
-    auto robot = std::find_if(robots.begin(), robots.end(), [id](const RobotInfo &robot) { return robot.identifier == id; });
-    if (robot == robots.end()) {
-        return false;
-    }
-    // TODO: why use the pushing ball pos in one and the last reported ball pos in the other??
-    const Eigen::Vector2f ballPos = unprojectRelativePosition(m_dribbleOffset->ballOffset, *robot);
-    // TODO: pushing ball pos instead of ballPos
-    if (!isBallVisible(ballPos, pastToCurrentRobotInfo(*robot), ROBOT_RADIUS * DRIBBLING_ROBOT_VISIBILITY_FACTOR, ROBOT_HEIGHT * DRIBBLING_ROBOT_VISIBILITY_FACTOR,
-            m_cameraInfo->cameraPosition[m_primaryCamera])) {
-        return true;
-    }
-    for (const RobotInfo &r : robots) {
-        if (!isBallVisible(ballPos, pastToCurrentRobotInfo(r), ROBOT_RADIUS, ROBOT_HEIGHT,
-                           m_cameraInfo->cameraPosition[m_primaryCamera])) {
-            return true;
+    Eigen::Vector2f ballPos(m_pastBallState.p_x(), m_pastBallState.p_y());
+    if (m_dribbleOffset) {
+        int id = m_dribbleOffset->robotIdentifier;
+        auto robot = std::find_if(robots.begin(), robots.end(), [id](const RobotInfo &robot) { return robot.identifier == id; });
+        if (robot != robots.end()) {
+            ballPos = unprojectRelativePosition(m_dribbleOffset->ballOffset, *robot);
         }
     }
-    return false;
+    const float sizeFactor = DRIBBLING_ROBOT_VISIBILITY_FACTOR;
+    const Eigen::Vector3f camPos = m_cameraInfo->cameraPosition[m_primaryCamera];
+    return std::any_of(robots.begin(), robots.end(), [=](const RobotInfo &r) {
+        return !isBallVisible(ballPos, pastToCurrentRobotInfo(r), ROBOT_RADIUS * sizeFactor,
+                              ROBOT_HEIGHT * sizeFactor, camPos);
+    });
 }
 
 void BallGroundCollisionFilter::checkVolleyShot(const VisionFrame &frame)

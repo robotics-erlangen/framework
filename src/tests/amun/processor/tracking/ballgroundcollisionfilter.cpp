@@ -648,3 +648,16 @@ TEST(BallGroundCollisionFilter, PseudoDribble) {
     });
     s.simulate(1.3);
 }
+
+TEST(BallGroundCollisionFilter, FeasiblyInvisibleNoIntersection) {
+    // The logic for the feasible invisiblity should also work if no robot is currently
+    // dribbling the ball, being close is enough
+    SimulationController s;
+    s.teleportBall(Vector(4.5, 3), Vector(0, 0));
+    s.simulate(0.6);
+    s.teleportRobot(true, 0, Vector(4.4, 3), Vector(1, 0));
+    s.addTestFunction([](const TrackedStateInfo &state) {
+        ASSERT_TRUE(state.trackedPos.has_value());
+    });
+    s.simulate(3);
+}
