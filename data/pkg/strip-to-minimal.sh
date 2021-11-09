@@ -44,5 +44,13 @@ git commit \
 	--author "Robotics Erlangen <info@robotics-erlangen.de>" \
 	-m "Initial Commit"
 
+# Delete unneeded V8 artifacts
+cd libs
+find v8 -maxdepth 1 ! -name 'v8' -exec rm -rf {} \; ; \
+find v8/v8 -maxdepth 1 ! -name 'v8' ! -name 'include' ! -name 'out' -exec rm -rf {} \; ; \
+find v8/v8/out/x64.release/ -maxdepth 1  ! -name 'x64.release' ! -regex '.+\.so\|.+\.dat\|.+\.bin' -exec rm -rf {} \; ; \
+rm v8/v8/out/x64.release/libv8_for_testing.so; \
+cd ..
+
 cd ..
 tar cfz "software-${current_hash}.tar.gz" software
