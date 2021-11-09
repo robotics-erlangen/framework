@@ -121,7 +121,6 @@ const int Processor::FREQUENCY(100);
 Processor::Processor(const Timer *timer, bool isReplay) :
     m_timer(timer),
     m_tracker(new Tracker(false, false)),
-    m_strategyTracker(new Tracker(false, false)),
     m_speedTracker(new Tracker(true, true)),
     m_simpleTracker(new Tracker(true, false)),
     m_mixedTeamInfoSet(false),
@@ -173,9 +172,9 @@ Processor::~Processor()
     qDeleteAll(m_yellowTeam.robots);
 }
 
-Status Processor::assembleStatus(Tracker &tracker, qint64 time, bool resetRaw)
+Status Processor::assembleStatus(qint64 time, bool resetRaw)
 {
-    Status status = tracker.worldState(time, true);
+    Status status = m_tracker->worldState(time, resetRaw);
     Status simplePredictionStatus = m_simpleTracker->worldState(time, resetRaw);
     status->mutable_world_state()->mutable_simple_tracking_blue()->CopyFrom(simplePredictionStatus->world_state().blue());
     status->mutable_world_state()->mutable_simple_tracking_yellow()->CopyFrom(simplePredictionStatus->world_state().yellow());
@@ -225,10 +224,9 @@ void Processor::process(qint64 overwriteTime)
 
     // run tracking
     m_tracker->process(current_time);
-    m_strategyTracker->process(current_time);
     m_speedTracker->process(current_time);
     m_simpleTracker->process(current_time);
-    Status status = assembleStatus(*m_tracker, current_time, false);
+    Status status = assembleStatus(current_time, false);
     Status radioStatus = m_speedTracker->worldState(current_time, false);
 
     // add information, about whether the world state is from the simulator or not
@@ -241,7 +239,6 @@ void Processor::process(qint64 overwriteTime)
     if (activeReferee->getFlipped() != m_lastFlipped) {
         m_lastFlipped = activeReferee->getFlipped();
         m_tracker->setFlip(m_lastFlipped);
-        m_strategyTracker->setFlip(m_lastFlipped);
         m_speedTracker->setFlip(m_lastFlipped);
         m_simpleTracker->setFlip(m_lastFlipped);
         emit setFlipped(m_lastFlipped);
@@ -280,12 +277,11 @@ void Processor::process(qint64 overwriteTime)
     if (m_transceiverEnabled) {
         // the command is active starting from now
         m_tracker->queueRadioCommands(radio_commands_prio, current_time+1);
-        m_strategyTracker->queueRadioCommands(radio_commands_prio, current_time+1);
     }
 
     // prediction which accounts for the strategy runtime
     // depends on the just created radio command
-    Status strategyStatus = assembleStatus(*m_strategyTracker, current_time + tickDuration, true);
+    Status strategyStatus = assembleStatus(current_time + tickDuration, true);
     strategyStatus->mutable_world_state()->set_is_simulated(m_simulatorEnabled);
     strategyStatus->mutable_world_state()->set_world_source(currentWorldSource());
     strategyStatus->mutable_game_state()->CopyFrom(activeReferee->gameState());
@@ -308,7 +304,6 @@ void Processor::process(qint64 overwriteTime)
     }
 
     m_tracker->finishProcessing();
-    m_strategyTracker->finishProcessing();
 }
 
 const world::Robot* Processor::getWorldRobot(const RobotList &robots, uint id) {
@@ -416,7 +411,6 @@ void Processor::handleRefereePacket(const QByteArray &data, qint64 /*time*/)
 void Processor::handleVisionPacket(const QByteArray &data, qint64 time, QString sender)
 {
     m_tracker->queuePacket(data, time, sender);
-    m_strategyTracker->queuePacket(data, time, sender);
     m_speedTracker->queuePacket(data, time, sender);
     m_simpleTracker->queuePacket(data, time, sender);
 }
@@ -494,7 +488,6 @@ void Processor::handleCommand(const Command &command)
     if (command->has_tracking()) {
         const qint64 currentTime = m_timer->currentTime();
         m_tracker->handleCommand(command->tracking(), currentTime);
-        m_strategyTracker->handleCommand(command->tracking(), currentTime);
         m_speedTracker->handleCommand(command->tracking(), currentTime);
         m_simpleTracker->handleCommand(command->tracking(), currentTime);
     }
@@ -515,7 +508,6 @@ void Processor::handleCommand(const Command &command)
 void Processor::resetTracking()
 {
     m_tracker->reset();
-    m_strategyTracker->reset();
     m_speedTracker->reset();
     m_simpleTracker->reset();
 }
