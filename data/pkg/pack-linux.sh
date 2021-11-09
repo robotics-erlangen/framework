@@ -23,6 +23,13 @@ echo "#!/bin/bash" > start.sh
 echo "LD_LIBRARY_PATH=libs/v8/v8/out/x64.release build/bin/ra" >> start.sh
 chmod +x start.sh
 
+git init
+git add -A
+git commit \
+	--no-gpg-sign \
+	--author "Robotics Erlangen <info@robotics-erlangen.de>" \
+	-m "Initial Commit"
+
 FILE_NAME="software-linux-prebuilt-${CURRENT_HASH}.tar.gz"
 tar cfz "$FILE_NAME" *
 mv "$FILE_NAME" ..
