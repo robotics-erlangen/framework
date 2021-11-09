@@ -1,37 +1,51 @@
 #!/bin/bash
+# Exit on error and when undefined variables are accessed
+set -euo pipefail
+
 # make sure the current working directory is the location of the script
 # `bash foobar.sh` seems to have foobar.sh in $0
 cd "$(dirname "$0")"
+# Then switch to the top level software directory
 cd ../..
 
 CURRENT_HASH="$(git rev-parse --short=12 HEAD)"
 
-mkdir -p ../software-cpy/build/bin
-mkdir -p ../software-cpy/libs/v8/v8
-cp -r strategy ../software-cpy
-cp build/bin/ra ../software-cpy/build/bin
-cp build/bin/icudtl.dat ../software-cpy/build/bin
-cp build/bin/natives_blob.bin ../software-cpy/build/bin
-cp build/bin/snapshot_blob.bin ../software-cpy/build/bin
-cp -r libs/v8/v8 ../software-cpy/libs/v8
-cp -r libs/tsc ../software-cpy/libs
-cp -r config ../software-cpy
-cp -r data ../software-cpy
 
-cd ../software-cpy
-echo "#!/bin/bash" > start.sh
-echo "LD_LIBRARY_PATH=libs/v8/v8/out/x64.release build/bin/ra" >> start.sh
-chmod +x start.sh
+SCRATCH="$(mktemp --directory)"
+function finish {
+	rm -rf "$SCRATCH"
+}
+trap finish EXIT
 
-git init
-git add -A
-git commit \
+mkdir --parents "$SCRATCH/build/bin"
+mkdir --parents "$SCRATCH/libs/v8/v8"
+
+cp --recursive strategy "$SCRATCH/"
+cp build/bin/ra \
+	build/bin/icudtl.dat \
+	build/bin/natives_blob.bin \
+	build/bin/snapshot_blob.bin \
+	"$SCRATCH/build/bin"
+cp --recursive libs/v8/v8 "$SCRATCH/libs/v8"
+cp --recursive libs/tsc "$SCRATCH/libs"
+cp --recursive \
+	config \
+	data \
+	"$SCRATCH"
+
+cat <<EOF >"$SCRATCH/start.sh"
+#!/usr/bin/env bash
+LD_LIBRARY_PATH=libs/v8/v8/out/x64.release exec build/bin/ra"
+EOF
+chmod +x "$SCRATCH/start.sh"
+
+git -C "$SCRATCH" init
+git -C "$SCRATCH" add -A
+git -C "$SCRATCH" commit \
 	--no-gpg-sign \
 	--author "Robotics Erlangen <info@robotics-erlangen.de>" \
 	-m "Initial Commit"
 
 FILE_NAME="software-linux-prebuilt-${CURRENT_HASH}.tar.gz"
-tar cfz "$FILE_NAME" *
+tar cfz "$FILE_NAME" --directory "$SCRATCH" .
 mv "$FILE_NAME" ..
-cd ..
-rm -rf software-cpy
