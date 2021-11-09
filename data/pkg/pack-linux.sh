@@ -14,7 +14,7 @@ cp build/bin/icudtl.dat ../software-cpy/build/bin
 cp build/bin/natives_blob.bin ../software-cpy/build/bin
 cp build/bin/snapshot_blob.bin ../software-cpy/build/bin
 cp -r libs/v8/v8 ../software-cpy/libs/v8
-cp -r libs/tsc ../software-cpy/
+cp -r libs/tsc ../software-cpy/libs
 cp -r config ../software-cpy
 cp -r data ../software-cpy
 
