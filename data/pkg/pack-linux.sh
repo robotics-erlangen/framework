@@ -4,6 +4,8 @@
 cd "$(dirname "$0")"
 cd ../..
 
+CURRENT_HASH="$(git rev-parse --short=12 HEAD)"
+
 mkdir -p ../software-cpy/build/bin
 mkdir -p ../software-cpy/libs/v8/v8
 cp -r strategy ../software-cpy
@@ -21,7 +23,8 @@ echo "#!/bin/bash" > start.sh
 echo "LD_LIBRARY_PATH=libs/v8/v8/out/x64.release build/bin/ra" >> start.sh
 chmod +x start.sh
 
-tar cfz software-linux.tar.gz *
-mv software-linux.tar.gz ..
+FILE_NAME="software-linux-prebuilt-${CURRENT_HASH}.tar.gz"
+tar cfz "$FILE_NAME" *
+mv "$FILE_NAME" ..
 cd ..
 rm -rf software-cpy
