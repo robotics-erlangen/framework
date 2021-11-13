@@ -546,7 +546,7 @@ TEST(BallGroundCollisionFilter, DribbleIntoMovingBall) {
     s.teleportRobot(true, 0, Vector(0.7, 3), Vector(1, 0));
     s.driveRobot(true, 0, Vector(1.5, 0), 0, true);
     s.simulate(0.1);
-    s.addTestFunction(testMaximumDistance<4>);
+    s.addTestFunction(testMaximumDistance<5>);
     s.simulate(0.7);
 }
 
@@ -660,4 +660,21 @@ TEST(BallGroundCollisionFilter, FeasiblyInvisibleNoIntersection) {
         ASSERT_TRUE(state.trackedPos.has_value());
     });
     s.simulate(3);
+}
+
+TEST(BallGroundCollisionFilter, DribbleBallBackSlowly) {
+    // The ball is standing and the robot very slowly drives to it while
+    // having the dribbler activated. While there will never be a visible
+    // intersection of the ball and the robot, the ball will be caught in the dribbler.
+    // The robot then drives back.
+    // This should be identified as dribbling and the ball should never disappear.
+    SimulationController s;
+    s.teleportBall(Vector(4.5, 3), Vector(0, 0));
+    s.teleportRobot(true, 0, Vector(4.25, 3), Vector(1, 0));
+    s.simulate(0.3);
+    s.addTestFunction(testMaximumDistance<10>);
+    s.driveRobot(true, 0, Vector(0.1, 0), 0, true);
+    s.simulate(1.8);
+    s.driveRobot(true, 0, Vector(-0.5, 0), 0, true);
+    s.simulate(1);
 }

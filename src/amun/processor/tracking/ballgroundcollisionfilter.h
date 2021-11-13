@@ -44,13 +44,14 @@ public:
 
 private:
     struct BallOffsetInfo {
-        BallOffsetInfo(Eigen::Vector2f projectedBallPos, const RobotInfo &robot, bool forceDribbling);
+        BallOffsetInfo(Eigen::Vector2f projectedBallPos, const RobotInfo &robot, bool forceDribbling, bool intersecting);
 
         Eigen::Vector2f ballOffset;
         // the position the ball would be in assuming the robot does not dribble (but possibly pushes the ball)
         Eigen::Vector2f pushingBallPos;
         int robotIdentifier;
         bool forceDribbleMode;
+        bool isIntersecting;
     };
 
 private:
@@ -71,7 +72,8 @@ private:
     std::optional<BallOffsetInfo> m_dribbleOffset;
     Eigen::Vector2f m_lastReportedBallPos = Eigen::Vector2f(10000000, 0);
     bool m_feasiblyInvisible = false;
-    std::optional<VisionFrame> m_lastVisionFrame;
+    VisionFrame m_lastVisionFrame;
+    int m_invisibleFrames = 0;
 
     // volley shot detection
     bool m_hadRobotIntersection = false;
