@@ -315,7 +315,7 @@ bool BallGroundCollisionFilter::checkFeasibleInvisibility(const QVector<RobotInf
         int id = m_dribbleOffset->robotIdentifier;
         auto robot = std::find_if(robots.begin(), robots.end(), [id](const RobotInfo &robot) { return robot.identifier == id; });
         if (robot != robots.end()) {
-            ballPos = unprojectRelativePosition(m_dribbleOffset->ballOffset, *robot);
+            ballPos = unprojectRelativePosition(m_dribbleOffset->ballOffset, pastToCurrentRobotInfo(*robot));
         }
     }
     const float sizeFactor = DRIBBLING_ROBOT_VISIBILITY_FACTOR;
