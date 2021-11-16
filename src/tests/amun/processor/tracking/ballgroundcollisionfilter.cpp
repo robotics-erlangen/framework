@@ -50,7 +50,7 @@ using TestFunction = std::function<void(TrackedStateInfo&)>;
 
 class SimulationController {
 public:
-    SimulationController(int predictTimeOffsetMs = 0);
+    SimulationController(int predictTimeOffsetMs = 0, RealismConfigErForce overwriteRealism = RealismConfigErForce{});
 
     void saveToLog(const QString &filename);
     void simulate(float seconds);
@@ -84,7 +84,7 @@ private:
     std::vector<std::pair<int, SSL_DetectionBall>> m_ballDetectionsToAdd;
 };
 
-SimulationController::SimulationController(int predictTimeOffsetMs) :
+SimulationController::SimulationController(int predictTimeOffsetMs, RealismConfigErForce overwriteRealism) :
     m_simulator(&m_timer, createDefaultSetup(), true),
     m_tracker(false, false)
 {
@@ -102,6 +102,7 @@ SimulationController::SimulationController(int predictTimeOffsetMs) :
     realismConfig.set_simulate_dribbling(false);
     // TODO: is this necessary?
     realismConfig.set_dribbler_ball_detections(0);
+    realismConfig.MergeFrom(overwriteRealism);
     c->mutable_simulator()->mutable_realism_config()->CopyFrom(realismConfig);
     m_simulator.handleCommand(c);
 
@@ -677,4 +678,26 @@ TEST(BallGroundCollisionFilter, DribbleBallBackSlowly) {
     s.simulate(1.8);
     s.driveRobot(true, 0, Vector(-0.5, 0), 0, true);
     s.simulate(1);
+}
+
+TEST(BallGroundCollisionFilter, RotateWithBallFlickering) {
+    RealismConfigErForce realism;
+    realism.set_missing_ball_detections(0.3f);
+    realism.set_ball_visibility_threshold(0);
+
+    SimulationController s(0, realism);
+    s.teleportBall(Vector(-1.5, 3), Vector(0, 0));
+    s.simulate(0.2);
+    s.teleportRobot(true, 0, Vector(-1, 3), Vector(-1, 0));
+    // push ball
+    s.driveRobot(true, 0, Vector(1, 0), 0, true);
+    s.simulate(0.8);
+    // rotate
+    s.driveRobot(true, 0, Vector(0, 0), 5, true);
+    s.simulate(0.2);
+    s.addTestFunction([](const TrackedStateInfo &state) {
+        ASSERT_TRUE(state.trackedSpeed.has_value());
+        ASSERT_GE(state.trackedSpeed->length(), 0.1f);
+    });
+    s.simulate(2);
 }

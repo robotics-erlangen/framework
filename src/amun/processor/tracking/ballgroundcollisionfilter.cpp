@@ -55,12 +55,17 @@ static Eigen::Vector2f perpendicular(const Eigen::Vector2f dir)
 
 void BallGroundCollisionFilter::processVisionFrame(const VisionFrame& frame)
 {
-    if (m_dribbleOffset) {
+    // Filter out 'intersections' where the ball did not truly intersect the ball
+    // but was just close and then got invisible for a frame.
+    // In these cases rotateAndDribble or other code activates, but the filter does not need to be reset.
+    const bool trueIntersection = m_dribbleOffset &&
+            ((m_dribbleOffset->isIntersecting && !m_dribbleOffset->forceDribbleMode) || m_invisibleFrames > 5);
+    if (trueIntersection) {
         // Reset the filter during dribbling so that the ball speed is
         // computed properly once the ball is visible again
-        m_dribbleOffset.reset();
         m_groundFilter.reset(frame);
     }
+    m_dribbleOffset.reset();
 
     m_feasiblyInvisible = false;
     m_lastUpdateTime = frame.time;
