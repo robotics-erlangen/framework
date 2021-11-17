@@ -701,3 +701,15 @@ TEST(BallGroundCollisionFilter, RotateWithBallFlickering) {
     });
     s.simulate(2);
 }
+
+TEST(BallGroundCollisionFilter, RobotBacksideAgainstBall) {
+    // make sure that the ball is not projected to the robot front if the
+    // robot is dribbling with its backside (this usually happens accidentally)
+    SimulationController s;
+    s.teleportBall(Vector(-3.5, 3), Vector(0, 0));
+    s.teleportRobot(true, 0, Vector(-3, 3), Vector(1, 0));
+    s.simulate(0.2);
+    s.addTestFunction(testMaximumDistance<10>);
+    s.driveRobot(true, 0, Vector(-1, 0), 0);
+    s.simulate(1.3);
+}

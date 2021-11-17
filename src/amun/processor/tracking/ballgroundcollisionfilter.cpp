@@ -237,32 +237,6 @@ static bool isInsideRobot(Eigen::Vector2f pos, Eigen::Vector2f robotPos, Eigen::
     return (pos - scaledDribblerPos).dot(toDribbler) <= 0;
 }
 
-// the position MUST be inside the robot, otherwise the result WILL be wrong
-static Eigen::Vector2f projectOutOfRobot(Eigen::Vector2f pos, Eigen::Vector2f robotPos, Eigen::Vector2f dribblerPos, float robotRadius)
-{
-    const Eigen::Vector2f circleIntersection = robotPos + (pos - robotPos).normalized() * robotRadius;
-
-    const Eigen::Vector2f toDribbler = (dribblerPos - robotPos).normalized();
-    const Eigen::Vector2f dribblerSideways = perpendicular(toDribbler);
-    const auto dribblerIntersection = intersectLineLine(dribblerPos, dribblerSideways, pos, toDribbler);
-
-    if (!dribblerIntersection) {
-        return circleIntersection;
-    }
-
-    const Eigen::Vector2f dribblerIntersectionPos = dribblerPos + dribblerSideways * dribblerIntersection->first;
-
-    const float circleDistance = (circleIntersection - robotPos).norm();
-    const float dribblerDistance = (dribblerIntersectionPos - robotPos).norm();
-
-    if (circleDistance < dribblerDistance) {
-        return circleIntersection;
-    } else {
-        return dribblerIntersectionPos;
-    }
-
-}
-
 static bool isBallVisible(Eigen::Vector2f pos, const RobotInfo &robot, float robotRadius, float robotHeight, Eigen::Vector3f cameraPos)
 {
     const Eigen::Vector3f toBall = Eigen::Vector3f(pos.x(), pos.y(), BALL_RADIUS) - cameraPos;
@@ -483,7 +457,7 @@ void BallGroundCollisionFilter::updateEmptyFrame(qint64 frameTime, const QVector
                 return;
             }
 
-            const Eigen::Vector2f directIntersection = projectOutOfRobot(currentPos, robot.robotPos, robot.dribblerPos, ROBOT_RADIUS);
+            const Eigen::Vector2f directIntersection = *intersectLineSegmentRobot(robot.robotPos, robot.robotPos + (currentPos - robot.robotPos).normalized(), robot, ROBOT_RADIUS);
             m_dribbleOffset = BallOffsetInfo(directIntersection, robot, false, true);
             return;
         }
