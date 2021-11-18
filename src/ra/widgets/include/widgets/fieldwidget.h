@@ -251,7 +251,8 @@ private:
     bool m_visualizationsUpdated;
     amun::GameState m_gameState;
 
-    QGraphicsEllipseItem *m_ball;
+    QGraphicsEllipseItem *m_rollingBall;
+    QGraphicsEllipseItem *m_flyingBall;
     QGraphicsEllipseItem *m_realBall = nullptr;
     QStringList m_visibleVisualizations;
     typedef QList<QGraphicsItem*> Items;

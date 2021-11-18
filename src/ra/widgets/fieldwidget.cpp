@@ -289,21 +289,29 @@ FieldWidget::FieldWidget(QWidget *parent) :
     m_scene = new QGraphicsScene(this);
     setScene(m_scene);
 
-    // ball object
-    m_ball = new QGraphicsEllipseItem;
-    m_ball->setPen(Qt::NoPen);
-    m_ball->setBrush(QColor(255, 66, 0));
-    m_ball->setZValue(100.0f);
-    m_ball->setRect(QRectF(-ballRadius, -ballRadius, ballRadius * 2.0f, ballRadius * 2.0f));
-    m_ball->hide();
-    m_scene->addItem(m_ball);
+    // ball objects
+    const QColor ballColor(255, 66, 0);
+    m_rollingBall = new QGraphicsEllipseItem;
+    m_rollingBall->setPen(Qt::NoPen);
+    m_rollingBall->setBrush(ballColor);
+    m_rollingBall->setZValue(100.0f);
+    m_rollingBall->setRect(QRectF(-ballRadius, -ballRadius, ballRadius * 2.0f, ballRadius * 2.0f));
+    m_rollingBall->hide();
+    m_scene->addItem(m_rollingBall);
+
+    m_flyingBall = new QGraphicsEllipseItem;
+    m_flyingBall->setPen(Qt::NoPen);
+    m_flyingBall->setBrush(ballColor);
+    m_flyingBall->setZValue(100.0f);
+    m_flyingBall->setRect(QRectF(-ballRadius * 4.0f, -ballRadius * 4.0f, ballRadius * 8.0f, ballRadius * 8.0f));
+    m_flyingBall->hide();
+    m_scene->addItem(m_flyingBall);
 
     // rectangle for area of interest
     m_aoiItem = createAoiItem(128);
     m_virtualFieldAoiItem = createAoiItem(80);
     m_aoi = QRectF(-1, -1, 2, 2);
 
-    QColor ballColor(255, 66, 0);
     m_ballTrace.color = ballColor.darker();
     m_ballTrace.z_index = 2.f;
     m_ballRawTrace.color =  QColor(Qt::blue);//ballColor.darker(300);
@@ -898,7 +906,8 @@ void FieldWidget::updateDetection()
                 }
                 addBallTrace(worldState.time(), worldState.ball());
             } else {
-                m_ball->hide();
+                m_rollingBall->hide();
+                m_flyingBall->hide();
             }
 
             // update the individual robots
@@ -920,7 +929,8 @@ void FieldWidget::updateDetection()
                 addRobotTrace(worldState.time(), robot, m_robotYellowTrace, m_robotYellowRawTrace);
             }
         } else {
-            m_ball->hide();
+            m_rollingBall->hide();
+            m_flyingBall->hide();
         }
         
         if (m_showVision) {
@@ -1094,7 +1104,13 @@ void FieldWidget::hideTruth() {
 
 void FieldWidget::setBall(const world::Ball &ball)
 {
-    ::setBall(m_ball, ball.p_x(), ball.p_y());
+    if (ball.p_z() == 0.0f) {
+        ::setBall(m_rollingBall, ball.p_x(), ball.p_y());
+        m_flyingBall->hide();
+    } else {
+        m_rollingBall->hide();
+        ::setBall(m_flyingBall, ball.p_x(), ball.p_y());
+    }
 }
 
 void FieldWidget::setVisionBall(const SSL_DetectionBall &ball, uint cameraID, int ballID)
@@ -1747,7 +1763,9 @@ void FieldWidget::mousePressEvent(QMouseEvent *event)
 
         if (m_dragType == DragNone) {
             m_dragType = DragBall;
-            m_dragItem = m_ball;
+            m_dragItem = m_rollingBall;
+            m_rollingBall->show();
+            m_flyingBall->hide();
         }
 
         if (m_dragType != DragMeasure) {
