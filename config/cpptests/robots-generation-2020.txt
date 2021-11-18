@@ -1,0 +1,147 @@
+default {
+  generation: 4
+  year: 2020
+  id: 0
+  radius: 0.089
+  height: 0.15
+  mass: 1.5
+  angle: 0.98291
+  v_max: 3.5
+  omega_max: 6
+  shot_linear_max: 6.5
+  shot_chip_max: 3
+  dribbler_width: 0.07
+  acceleration {
+    a_speedup_f_max: 7
+    a_speedup_s_max: 6
+    a_speedup_phi_max: 60
+    a_brake_f_max: 7
+    a_brake_s_max: 6
+    a_brake_phi_max: 60
+  }
+  ir_param: 40
+  strategy {
+    a_speedup_f_max: 4
+    a_speedup_s_max: 3
+    a_speedup_phi_max: 45
+    a_brake_f_max: 3
+    a_brake_s_max: 3
+    a_brake_phi_max: 45
+  }
+  shoot_radius: 0.067
+  dribbler_height: 0.04
+  type: Regular
+  pattern_rotation: 0
+}
+robot {
+  id: 0
+  acceleration {
+  }
+  strategy {
+  }
+}
+robot {
+  id: 1
+  acceleration {
+  }
+  strategy {
+  }
+}
+robot {
+  id: 2
+  acceleration {
+  }
+  strategy {
+  }
+}
+robot {
+  id: 3
+  acceleration {
+  }
+  strategy {
+  }
+}
+robot {
+  id: 4
+  acceleration {
+  }
+  strategy {
+  }
+}
+robot {
+  id: 5
+  acceleration {
+  }
+  strategy {
+  }
+}
+robot {
+  id: 6
+  acceleration {
+  }
+  strategy {
+  }
+}
+robot {
+  id: 7
+  acceleration {
+  }
+  strategy {
+  }
+}
+robot {
+  id: 8
+  acceleration {
+  }
+  strategy {
+  }
+}
+robot {
+  id: 9
+  acceleration {
+  }
+  strategy {
+  }
+}
+robot {
+  id: 10
+  acceleration {
+  }
+  strategy {
+  }
+}
+robot {
+  id: 11
+  acceleration {
+  }
+  strategy {
+  }
+}
+robot {
+  id: 12
+  acceleration {
+  }
+  strategy {
+  }
+}
+robot {
+  id: 13
+  acceleration {
+  }
+  strategy {
+  }
+}
+robot {
+  id: 14
+  acceleration {
+  }
+  strategy {
+  }
+}
+robot {
+  id: 15
+  acceleration {
+  }
+  strategy {
+  }
+}

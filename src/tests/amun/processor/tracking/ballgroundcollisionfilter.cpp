@@ -98,7 +98,7 @@ SimulationController::SimulationController(int predictTimeOffsetMs, RealismConfi
     c->mutable_transceiver()->set_charge(true);
 
     RealismConfigErForce realismConfig;
-    loadConfiguration("simulator-realism/Realistic", &realismConfig, false);
+    loadConfiguration("cpptests/realism-realistic", &realismConfig, false);
     realismConfig.set_simulate_dribbling(false);
     // TODO: is this necessary?
     realismConfig.set_dribbler_ball_detections(0);
@@ -192,7 +192,7 @@ SimulationController::SimulationController(int predictTimeOffsetMs, RealismConfi
 amun::SimulatorSetup SimulationController::createDefaultSetup()
 {
     amun::SimulatorSetup setup;
-    loadConfiguration("simulator/2020", &setup, false);
+    loadConfiguration("cpptests/simulator-2020", &setup, false);
     return setup;
 }
 
@@ -200,7 +200,7 @@ void SimulationController::loadRobots(int blue, int yellow)
 {
     // TODO: add robots to tracking (conditionally for different tests??)
     robot::Generation specs;
-    loadConfiguration("robots/generation_2020", &specs, true);
+    loadConfiguration("cpptests/robots-generation-2020", &specs, true);
 
     Command command(new amun::Command);
     for (int i = 0;i<blue;i++) {

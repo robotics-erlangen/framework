@@ -88,7 +88,7 @@ class FastSimulatorTest : public testing::Test {
 public:
     FastSimulatorTest() : s(nullptr) {
         amun::SimulatorSetup defaultSimulatorSetup;
-        loadConfiguration("simulator/2020", &defaultSimulatorSetup, false);
+        loadConfiguration("cpptests/simulator-2020", &defaultSimulatorSetup, false);
         createSimulator(defaultSimulatorSetup);
     }
 
@@ -840,7 +840,7 @@ TEST_F(FastSimulatorTest, InvisibleBall) {
 
         // simulator realism settings
         auto realism = command->mutable_simulator()->mutable_realism_config();
-        loadConfiguration("simulator-realism/None", realism, false);
+        loadConfiguration("cpptests/realism-none", realism, false);
         realism->set_ball_visibility_threshold(0.4);
         realism->set_enable_invisible_ball(true);
 
@@ -887,7 +887,7 @@ TEST_F(FastSimulatorTest, CameraOverlap) {
 
     Command command(new amun::Command);
     auto realism = command->mutable_simulator()->mutable_realism_config();
-    loadConfiguration("simulator-realism/None", realism, false);
+    loadConfiguration("cpptests/realism-none", realism, false);
     realism->set_camera_overlap(0.5f);
 
     emit this->test.sendCommand(command);
