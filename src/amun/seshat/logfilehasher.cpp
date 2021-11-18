@@ -28,7 +28,7 @@
 #ifndef Q_OS_WIN
 #include <stdio.h>
 #else
-#include <Windows.h>
+#include <windows.h>
 #endif
 
 static void collect(SeqLogFileReader& reader, LogFileHasher& hasher)
