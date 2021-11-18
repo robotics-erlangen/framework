@@ -197,6 +197,8 @@ FieldWidget::FieldWidget(QWidget *parent) :
     QAction *actionShowAOI = m_contextMenu->addAction("Enable custom vision area");
     actionShowAOI->setCheckable(true);
     connect(actionShowAOI, SIGNAL(toggled(bool)), SLOT(setAOIVisible(bool)));
+    m_actionFollowBall = m_contextMenu->addAction("Follow ball");
+    m_actionFollowBall->setCheckable(true);
     QAction *actionCustomFieldSetup = m_contextMenu->addAction("Virtual Field");
     connect(actionCustomFieldSetup, &QAction::triggered, this, &FieldWidget::virtualFieldSetupDialog);
     m_actionAntialiasing = m_contextMenu->addAction("Anti-aliasing");
@@ -1104,12 +1106,19 @@ void FieldWidget::hideTruth() {
 
 void FieldWidget::setBall(const world::Ball &ball)
 {
+    QGraphicsEllipseItem *currentBall;
     if (ball.p_z() == 0.0f) {
-        ::setBall(m_rollingBall, ball.p_x(), ball.p_y());
+        currentBall = m_rollingBall;
         m_flyingBall->hide();
     } else {
+        currentBall = m_flyingBall;
         m_rollingBall->hide();
-        ::setBall(m_flyingBall, ball.p_x(), ball.p_y());
+    }
+    ::setBall(currentBall, ball.p_x(), ball.p_y());
+
+    if (m_actionFollowBall->isChecked()) {
+        ensureVisible(currentBall, 150, 150);
+        createInfoText();
     }
 }
 

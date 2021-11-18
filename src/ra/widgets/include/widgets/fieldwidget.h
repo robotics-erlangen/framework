@@ -226,6 +226,7 @@ private:
     QAction *m_actionGL;
     QAction *m_actionShowVision;
     QAction *m_actionRestoreSimulatorState;
+    QAction *m_actionFollowBall;
 
     std::string m_geometryString;
     bool m_geometryUpdated;
