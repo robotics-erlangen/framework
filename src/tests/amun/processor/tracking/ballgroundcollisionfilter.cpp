@@ -713,3 +713,60 @@ TEST(BallGroundCollisionFilter, RobotBacksideAgainstBall) {
     s.driveRobot(true, 0, Vector(-1, 0), 0);
     s.simulate(1.3);
 }
+
+TEST(BallGroundCollisionFilter, AfterShotMultipleRobot) {
+    // Shoot a ball against the side of a robot so that it is reflected
+    // in a different direction. Very close to this robot, place another one
+    // so that it is in the way the ball would take if the shot reset does not happen.
+    // This can easily lead to problems in which the tracked ball jumps from the first robot
+    // to the second (seemingly) and only then the shot reset activates.
+    const Vector SECOND_ROBOT_POS = Vector(0.12, 2.98);
+    SimulationController s;
+    s.teleportRobot(true, 0, Vector(-0.04, 3), Vector(0, 1));
+    s.teleportRobot(true, 1, SECOND_ROBOT_POS, Vector(0, 1));
+    s.teleportBall(Vector(0, 0), Vector(0, 5));
+    s.simulate(0.2);
+    s.addTestFunction([SECOND_ROBOT_POS](const TrackedStateInfo &state) {
+        ASSERT_TRUE(state.trackedPos);
+        ASSERT_GE(state.trackedPos->distance(SECOND_ROBOT_POS), 0.1f);
+    });
+    s.simulate(1);
+}
+
+TEST(BallGroundCollisionFilter, DribblePartwayInvisible) {
+    SimulationController s;
+    s.teleportBall(Vector(2.6, 4), Vector(1, 0));
+    s.teleportRobot(true, 0, Vector(3, 3.6), Vector(0, 1));
+    s.driveRobot(true, 0, Vector(0.55, 0), 0, true);
+    s.simulate(0.1);
+    s.addTestFunction(testMaximumDistance<6>);
+    s.simulate(1.3);
+}
+
+TEST(BallGroundCollisionFilter, BigCircleDribbleRotate) {
+    // This test drives a circle by rotating and driving forward at the same time.
+    // The ball is always dribbled while this happens.
+    // This is to trigger both the dribble-rotate and the ball pushing code since this can cause problems.
+    SimulationController s(10);
+    s.teleportBall(Vector(2.9, 4), Vector(0, 0));
+    s.teleportRobot(true, 0, Vector(3, 4), Vector(-1, 0));
+    s.driveRobot(true, 0, Vector(0.5, 0), 2, true);
+    s.simulate(1.2);
+    // test that the distance from the robot to the ball stays constant,
+    // since in this time the ball is invisible and should stay in the same dribbling mode
+    float firstDistance = -1;
+    s.addTestFunction([&firstDistance](const TrackedStateInfo &state) {
+        ASSERT_TRUE(state.trackedPos);
+        float closestRobotDist = std::numeric_limits<float>::max();
+        for (Vector pos : state.robotPositions) {
+            const float dist = pos.distance(*state.trackedPos);
+            closestRobotDist = std::min(closestRobotDist, dist);
+        }
+        if (firstDistance < 0) {
+            firstDistance = closestRobotDist;
+        } else {
+            ASSERT_LE(std::abs(firstDistance - closestRobotDist), 0.01f);
+        }
+    });
+    s.simulate(0.9);
+}
