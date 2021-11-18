@@ -18,7 +18,7 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-add_library(timeline
+add_library(timeline STATIC
     include/timeline/timelinewriter.h
     include/timeline/timelinereader.h
 

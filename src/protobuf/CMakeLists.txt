@@ -18,7 +18,7 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-add_library(protobuf
+add_library(protobuf STATIC
     include/protobuf/command.h
     include/protobuf/geometry.h
     include/protobuf/robot.h

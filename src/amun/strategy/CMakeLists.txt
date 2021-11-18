@@ -22,7 +22,7 @@ add_subdirectory(path)
 add_subdirectory(script)
 add_subdirectory(lua)
 
-add_library(strategy
+add_library(strategy STATIC
     include/strategy/strategy.h
     include/strategy/strategyreplayhelper.h
 

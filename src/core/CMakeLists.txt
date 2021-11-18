@@ -18,7 +18,7 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-add_library(core
+add_library(core STATIC
     include/core/fieldtransform.h
     include/core/rng.h
     include/core/timer.h

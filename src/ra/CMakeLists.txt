@@ -24,7 +24,7 @@ add_subdirectory(logcutter)
 add_subdirectory(plotter)
 add_subdirectory(widgets)
 
-add_library(ra-horus
+add_library(ra-horus STATIC
     aboutus.cpp
     aboutus.h
     configdialog.cpp

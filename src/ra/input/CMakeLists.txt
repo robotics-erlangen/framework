@@ -18,7 +18,7 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-add_library(input
+add_library(input STATIC
     include/input/inputmanager.h
 
     inputdevice.cpp

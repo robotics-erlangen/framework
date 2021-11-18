@@ -18,7 +18,7 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-add_library(widgets
+add_library(widgets STATIC
     include/widgets/debuggerconsole.h
     include/widgets/debugwidget.h
     include/widgets/fieldwidget.h

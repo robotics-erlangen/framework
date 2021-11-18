@@ -18,7 +18,7 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-add_library(simulator
+add_library(simulator STATIC
     include/simulator/simulator.h
     include/simulator/fastsimulator.h
 

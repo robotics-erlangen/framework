@@ -56,7 +56,7 @@ set(path_files
     parameterization.cpp
 )
 
-add_library(path ${path_files})
+add_library(path STATIC ${path_files})
 target_link_libraries(path
     PRIVATE shared::core
     PUBLIC shared::protobuf
@@ -70,7 +70,7 @@ target_include_directories(path
 
 add_library(amun::path ALIAS path)
 
-add_library(path_parameter_optimization ${path_files})
+add_library(path_parameter_optimization STATIC ${path_files})
 target_link_libraries(path_parameter_optimization
     PRIVATE shared::core
     PUBLIC shared::protobuf

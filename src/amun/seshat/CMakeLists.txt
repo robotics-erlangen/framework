@@ -18,7 +18,7 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-add_library(seshat
+add_library(seshat STATIC
     include/seshat/seshat.h
     seshat.cpp
 

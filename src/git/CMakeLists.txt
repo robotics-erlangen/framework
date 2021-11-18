@@ -29,7 +29,7 @@ add_custom_command(
     COMMENT "Checking git"
 )
 
-add_library(gitconfig
+add_library(gitconfig STATIC
     ${CMAKE_CURRENT_BINARY_DIR}/gitconfig.cpp
     include/git/gitconfig.h
     )

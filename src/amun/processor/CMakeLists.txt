@@ -20,7 +20,7 @@
 
 add_subdirectory(tracking)
 
-add_library(processor
+add_library(processor STATIC
     include/processor/networktransceiver.h
     include/processor/processor.h
     include/processor/transceiver.h

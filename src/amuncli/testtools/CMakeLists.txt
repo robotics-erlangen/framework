@@ -18,7 +18,7 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-add_library(testtools
+add_library(testtools STATIC
     include/testtools/testtools.h
     include/testtools/connector.h
 

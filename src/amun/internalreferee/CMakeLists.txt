@@ -18,7 +18,7 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-add_library(internalreferee
+add_library(internalreferee STATIC
     include/internalreferee/internalreferee.h
 
     internalreferee.cpp

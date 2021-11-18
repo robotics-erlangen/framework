@@ -18,7 +18,7 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-add_library(visionlog
+add_library(visionlog STATIC
     include/visionlog/visionlogwriter.h
     include/visionlog/visionlogreader.h
     include/visionlog/messagetype.h

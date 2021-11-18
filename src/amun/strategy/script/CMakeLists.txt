@@ -19,7 +19,7 @@
 # ***************************************************************************
 
 
-add_library(script
+add_library(script STATIC
     include/strategy/script/abstractstrategyscript.h
     include/strategy/script/compiler.h
     include/strategy/script/compilerregistry.h

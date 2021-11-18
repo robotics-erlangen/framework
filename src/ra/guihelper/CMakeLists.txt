@@ -18,7 +18,7 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-add_library(guihelper
+add_library(guihelper STATIC
     include/guihelper/guitimer.h
 
     guitimer.cpp

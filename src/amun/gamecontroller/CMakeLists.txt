@@ -18,7 +18,7 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-add_library(gamecontroller
+add_library(gamecontroller STATIC
     include/gamecontroller/externalgamecontroller.h
     include/gamecontroller/gamecontrollerconnection.h
     include/gamecontroller/sslgamecontroller.h

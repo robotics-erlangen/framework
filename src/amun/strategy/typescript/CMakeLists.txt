@@ -18,7 +18,7 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-add_library(typescript
+add_library(typescript STATIC
     include/strategy/typescript/typescript.h
 
     checkforscripttimeout.h

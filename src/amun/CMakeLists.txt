@@ -25,7 +25,7 @@ add_subdirectory(gamecontroller)
 add_subdirectory(seshat)
 add_subdirectory(internalreferee)
 
-add_library(amun
+add_library(amun STATIC
     include/amun/amun.h
     include/amun/amunclient.h
 
