@@ -463,7 +463,9 @@ void BallGroundCollisionFilter::updateEmptyFrame(qint64 frameTime, const QVector
         }
 
         const float robotDist = (robot.robotPos - currentPos).norm();
-        if (robotDist < ROBOT_RADIUS + BALL_RADIUS && (!m_dribbleOffset || robotDist < m_dribbleOffset->ballOffset.norm())) {
+        const bool inFrontOfRobot = (robot.dribblerPos - robot.robotPos).dot(currentPos - robot.robotPos) > 0;
+        if (robotDist < ROBOT_RADIUS + BALL_RADIUS && inFrontOfRobot &&
+                (!m_dribbleOffset || robotDist < m_dribbleOffset->ballOffset.norm())) {
             closeRobot = robot;
         }
     }
