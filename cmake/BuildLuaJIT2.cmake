@@ -31,6 +31,17 @@ else()
 	set(LUAJIT_EXTRA_COMMANDS "")
 endif()
 
+if(CMAKE_CROSS_COMPILING AND MINGW)
+    get_filename_component(CROSS_PREFIX_STRIPPED ${CMAKE_C_COMPILER} NAME)
+    string(REPLACE "gcc" "" CROSS_PREFIX_STRIPPED ${CROSS_PREFIX_STRIPPED})
+    set(LUAJIT_CROSS_FLAGS HOST_CC=gcc CROSS=${CROSS_PREFIX_STRIPPED} TARGET_SYS=Windows)
+    # the makefile uses the native program 'install' to copy files, but it will only add the .exe suffix while on windows
+    set(LUAJIT_INSTALL_FLAGS FILE_T="luajit.exe")
+else()
+    set(LUAJIT_CROSS_FLAGS "")
+    set(LUAJIT_INSTALL_FLAGS "")
+endif()
+
 set(LUAJIT_XCFLAGS "-DLUAJIT_ENABLE_LUA52COMPAT")
 if(APPLE)
   if(${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang" AND ${CMAKE_CXX_COMPILER_VERSION} MATCHES "^11\.0\.")
@@ -38,7 +49,7 @@ if(APPLE)
     set(LUAJIT_XCFLAGS "${LUAJIT_XCFLAGS} -fno-stack-check")
   endif()
 endif()
-set(LUAJIT_FLAGS "XCFLAGS=${LUAJIT_XCFLAGS}" "MACOSX_DEPLOYMENT_TARGET=")
+set(LUAJIT_FLAGS "XCFLAGS=${LUAJIT_XCFLAGS}" "MACOSX_DEPLOYMENT_TARGET=" ${LUAJIT_CROSS_FLAGS})
 set(SPACE_FREE_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/project_luajit-prefix")
 string(REPLACE " " "\\ " SPACE_FREE_INSTALL_DIR "${SPACE_FREE_INSTALL_DIR}")
 
@@ -58,7 +69,7 @@ ExternalProject_Add(project_luajit
     CONFIGURE_COMMAND ""
     BUILD_COMMAND make clean && make amalg ${LUAJIT_FLAGS}
     BUILD_BYPRODUCTS "<INSTALL_DIR>/${LUAJIT_SUBPATH}"
-    INSTALL_COMMAND make install ${LUAJIT_FLAGS} PREFIX=${SPACE_FREE_INSTALL_DIR}
+    INSTALL_COMMAND make install ${LUAJIT_FLAGS} PREFIX=${SPACE_FREE_INSTALL_DIR} ${LUAJIT_INSTALL_FLAGS}
 	${LUAJIT_EXTRA_COMMANDS}
 )
 EPHelper_Add_Cleanup(project_luajit bin include lib share)
