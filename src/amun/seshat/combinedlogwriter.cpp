@@ -176,6 +176,17 @@ void CombinedLogWriter::handleStatus(Status status)
         m_blueTeam.CopyFrom(status->team_blue());
     }
 
+    if (status->has_world_state()) {
+        for (const auto &vision : status->world_state().vision_frames()) {
+            if (vision.has_geometry()) {
+                for (const auto &calib : vision.geometry().calib()) {
+                    // avoid copying the vision geometry since it is rather large (around 1kb)
+                    m_lastVisionGeometryStatus[calib.camera_id()] = status;
+                }
+            }
+        }
+    }
+
     // keep team names for the logfile
     if (status->has_game_state()) {
         const amun::GameState &state = status->game_state();
@@ -304,9 +315,29 @@ Status CombinedLogWriter::getTeamStatus()
     return status;
 }
 
+Status CombinedLogWriter::getVisionGeometryStatus()
+{
+    Status status(new amun::Status);
+    status->set_time(m_lastTime);
+    if (m_lastVisionGeometryStatus.size() > 0) {
+        auto *world = status->mutable_world_state();
+        world->set_time(m_lastTime);
+        for (int id : m_lastVisionGeometryStatus.keys()) {
+            for (const auto &vision : m_lastVisionGeometryStatus[id]->world_state().vision_frames()) {
+                if (vision.has_geometry()) {
+                    world->add_vision_frames()->mutable_geometry()->CopyFrom(vision.geometry());
+                    world->add_vision_frame_times(m_lastTime);
+                }
+            }
+        }
+    }
+    return status;
+}
+
 void CombinedLogWriter::startLogfile()
 {
     m_logFile->writeStatus(getTeamStatus());
+    m_logFile->writeStatus(getVisionGeometryStatus());
     m_logState = LogState::LOGGING;
 }
 

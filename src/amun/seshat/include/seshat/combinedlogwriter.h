@@ -28,6 +28,7 @@
 #include <QString>
 #include <QObject>
 #include <QList>
+#include <QMap>
 
 class LogFileWriter;
 class BacklogWriter;
@@ -68,6 +69,7 @@ private:
     void recordButtonToggled(bool enabled, QString overwriteFilename);
     void useLogfileLocation(bool enabled);
     void sendIsLogging(bool log);
+    Status getVisionGeometryStatus();
 
 private:
     enum class LogState {
@@ -87,6 +89,8 @@ private:
     QString m_yellowTeamName;
     QString m_blueTeamName;
 
+    // camera id -> geometry (each geometry only has at most 1 camera calibration)
+    QMap<int, Status> m_lastVisionGeometryStatus;
     qint64 m_lastTime;
 
     bool m_isLoggingEnabled;
