@@ -98,33 +98,33 @@ protected:
     const FieldTransform &m_fieldTransform;
 
 #ifdef ENABLE_TRACKING_DEBUG
-    amun::DebugValues m_debug;
-    void plot(const char* key, float value) {
+    mutable amun::DebugValues m_debug;
+    void plot(const char* key, float value) const {
         auto *plot = m_debug.add_plot();
         plot->set_name(key);
         plot->set_value(value);
     }
-    void debug(const char* key, float value) {
+    void debug(const char* key, float value) const {
         amun::DebugValue *debugValue = m_debug.add_value();
         QByteArray array = (QString::number(m_primaryCamera)+QString("/")+QString(key)).toLocal8Bit();
         const char* k = array.data();
         debugValue->set_key(k);
         debugValue->set_float_value(value);
     }
-    void debug(const QString key, const char* value) {
+    void debug(const QString key, const char* value) const {
         debug(key.toStdString().c_str(), value);
     }
-    void debug(const QString key, float value) {
+    void debug(const QString key, float value) const {
         debug(key.toStdString().c_str(), value);
     }
-    void debug(const char* key, const char* value) {
+    void debug(const char* key, const char* value) const {
         amun::DebugValue *debugValue = m_debug.add_value();
         QByteArray array = (QString::number(m_primaryCamera)+QString("/")+QString(key)).toLocal8Bit();
         const char* k = array.data();
         debugValue->set_key(k);
         debugValue->set_string_value(value);
     }
-    void debugCircle(const char* name, float x, float y, float radius) {
+    void debugCircle(const char* name, float x, float y, float radius) const {
         amun::Visualization *vis = m_debug.add_visualization();
         vis->set_name(name);
         amun::Circle *circle = vis->mutable_circle();
@@ -134,7 +134,7 @@ protected:
         vis->mutable_brush()->set_red(255);
         vis->mutable_brush()->set_blue(255);
     }
-    void debugLine(const char* name, float xStart, float yStart, float xEnd, float yEnd, int col=0) {
+    void debugLine(const char* name, float xStart, float yStart, float xEnd, float yEnd, int col=0) const {
         amun::Visualization *vis = m_debug.add_visualization();
         vis->set_name(name);
         amun::Path *line = vis->mutable_path();

@@ -56,7 +56,7 @@ public:
     void writeBallState(world::Ball *ball, qint64 predictionTime, const QVector<RobotInfo> &robots, qint64 lastCameraFrameTime) override;
     float distToStartPos() { return m_distToStartPos; }
 
-    bool isActive();
+    bool isActive() const;
     bool isShot();
 
 private:
@@ -79,24 +79,24 @@ private:
         float intersectionZSpeed;
     };
 
-    bool detectionCurviness(const PinvResult& pinvRes);
-    bool detectionHeight();
-    bool detectionSpeed();
-    bool detectionPinv(const PinvResult &pinvRes);
+    bool detectionCurviness(const PinvResult& pinvRes) const;
+    bool detectionHeight() const;
+    bool detectionSpeed() const;
+    bool detectionPinv(const PinvResult &pinvRes) const;
     bool checkIsShot();
     bool collision();
-    unsigned numMeasurementsWithOwnCamera();
-    Eigen::Vector3f unproject(const ChipDetection& detection, float ballRadius);
+    unsigned numMeasurementsWithOwnCamera() const;
+    Eigen::Vector3f unproject(const ChipDetection& detection, float ballRadius) const;
 
     PinvResult calcPinv();
-    IntersectionResult calcIntersection(const PinvResult &pinvRes);
+    IntersectionResult calcIntersection(const PinvResult &pinvRes) const;
 
     void approachPinvApply(const PinvResult& pinvRes);
     void approachIntersectApply(const IntersectionResult &intRes);
     void approachAreaApply();
 
-    bool approachPinvApplicable(const PinvResult& pinvRes);
-    bool approachIntersectApplicable(const IntersectionResult &intRes);
+    bool approachPinvApplicable(const PinvResult& pinvRes) const;
+    bool approachIntersectApplicable(const IntersectionResult &intRes) const;
 
     void parabolicFlightReconstruct(const PinvResult &pinvRes, const IntersectionResult &intRes);
     void resetFlightReconstruction();

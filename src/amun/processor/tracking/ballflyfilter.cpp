@@ -49,7 +49,7 @@ void FlyFilter::moveToCamera(qint32 primaryCamera)
     m_primaryCamera = primaryCamera;
 }
 
-Eigen::Vector3f FlyFilter::unproject(const ChipDetection& detection, float ballRadius)
+Eigen::Vector3f FlyFilter::unproject(const ChipDetection& detection, float ballRadius) const
 {
     float f = m_cameraInfo->focalLength.value(detection.cameraId);
     float a = detection.ballArea;
@@ -71,7 +71,8 @@ static bool monotonicRisingOneException(const QList<float>& points)
     return exceptions < 2;
 }
 
-bool FlyFilter::isActive() {
+bool FlyFilter::isActive() const
+{
     return m_isActive && m_acceptDist < ACTIVE_DIST;
 }
 
@@ -127,7 +128,7 @@ bool FlyFilter::checkIsShot()
     return false;
 }
 
-unsigned FlyFilter::numMeasurementsWithOwnCamera()
+unsigned FlyFilter::numMeasurementsWithOwnCamera() const
 {
     int num = 0;
     for (int i=0; i<m_kickFrames.size(); i++) {
@@ -138,7 +139,8 @@ unsigned FlyFilter::numMeasurementsWithOwnCamera()
     return num;
 }
 
-bool FlyFilter::collision() {
+bool FlyFilter::collision()
+{
     if (m_kickFrames.size() < 3) {
         return false;
     }
@@ -280,7 +282,7 @@ FlyFilter::PinvResult FlyFilter::calcPinv()
     return res;
 }
 
-FlyFilter::IntersectionResult FlyFilter::calcIntersection(const PinvResult &pinvRes)
+FlyFilter::IntersectionResult FlyFilter::calcIntersection(const PinvResult &pinvRes) const
 {
     // intersection approach
     Eigen::Vector2f vGround;
@@ -485,7 +487,7 @@ static double innerAngle(Eigen::Vector2f center, Eigen::Vector2f A, Eigen::Vecto
     return acos( (dx21*dx31 + dy21*dy31) / (m12 * m13) );
 }
 
-bool FlyFilter::approachPinvApplicable(const FlyFilter::PinvResult &pinvRes)
+bool FlyFilter::approachPinvApplicable(const FlyFilter::PinvResult &pinvRes) const
 {
     Eigen::Vector2f vGroundPinv(pinvRes.vx, pinvRes.vy);
     Eigen::Vector2f center = m_kickFrames.first().ballPos;
@@ -503,7 +505,7 @@ bool FlyFilter::approachPinvApplicable(const FlyFilter::PinvResult &pinvRes)
     return false;
 }
 
-bool FlyFilter::approachIntersectApplicable(const FlyFilter::IntersectionResult &intRes)
+bool FlyFilter::approachIntersectApplicable(const FlyFilter::IntersectionResult &intRes) const
 {
     // the calulated speed direction should not differ to much from the projection
     Eigen::Vector2f center = m_kickFrames.first().ballPos;
@@ -550,7 +552,7 @@ void FlyFilter::parabolicFlightReconstruct(const PinvResult& pinvRes, const Inte
     }
 }
 
-bool FlyFilter::detectionCurviness(const PinvResult& pinvRes)
+bool FlyFilter::detectionCurviness(const PinvResult& pinvRes) const
 {
     if (m_kickFrames.size() < 5) {
         return false;
@@ -611,7 +613,7 @@ bool FlyFilter::detectionCurviness(const PinvResult& pinvRes)
     return fabs(slope) > std::max(-0.03212*m_kickFrames.size() + 0.4873, 0.06);
 }
 
-bool FlyFilter::detectionHeight()
+bool FlyFilter::detectionHeight() const
 {
     if (m_kickFrames.size() < 5) {
         return false;
@@ -654,7 +656,7 @@ bool FlyFilter::detectionHeight()
     return high > 1 && high-low > 1;
 }
 
-bool FlyFilter::detectionSpeed()
+bool FlyFilter::detectionSpeed() const
 {
     QVector<float> speeds;
     for (int i=1; i<m_kickFrames.size(); i++) {
@@ -695,7 +697,7 @@ bool FlyFilter::detectionSpeed()
             || (slope > 0.002 && speeds.size() > 14);
 }
 
-bool FlyFilter::detectionPinv(const FlyFilter::PinvResult &pinvRes)
+bool FlyFilter::detectionPinv(const FlyFilter::PinvResult &pinvRes) const
 {
     float z0 = pinvRes.z0;
     float vz = pinvRes.vz;
@@ -837,12 +839,6 @@ void FlyFilter::processVisionFrame(const VisionFrame& frame)
                     debug("detection/pinv", true);
                     m_chipDetected = true;
                 }
-
-#ifdef ENABLE_TRACKING_DEBUG
-                if (m_chipDetected) {
-                    std::cout << "chip detected " << m_primaryCamera << " " << m_kickFrames.size() << std::endl;
-                }
-#endif
 
             }
             if (m_chipDetected) {
