@@ -352,20 +352,21 @@ FlyFilter::IntersectionResult FlyFilter::calcIntersection(const PinvResult &pinv
     return res;
 }
 
-void FlyFilter::approachPinvApply(const PinvResult &pinvRes)
+auto FlyFilter::approachPinvApply(const PinvResult &pinvRes) -> ChipReconstruction
 {
     ChipDetection firstInTheAir = m_kickFrames.at(m_shotStartFrame);
-    m_chipStartPos = firstInTheAir.ballPos;
-    m_chipStartTime = firstInTheAir.time;
+    ChipReconstruction result;
+    result.chipStartPos = firstInTheAir.ballPos;
+    result.chipStartTime = firstInTheAir.time;
 
     const float z0 = pinvRes.z0;
     const float vz = pinvRes.vz;
 
-    m_groundSpeed = Eigen::Vector2f(pinvRes.vx, pinvRes.vy);
-    m_zSpeed = pinvRes.vz;
+    result.groundSpeed = Eigen::Vector2f(pinvRes.vx, pinvRes.vy);
+    result.zSpeed = pinvRes.vz;
 
     if (pinvRes.distStartPos < 0.06) {
-        m_chipStartPos = Eigen::Vector2f(pinvRes.x0, pinvRes.y0);
+        result.chipStartPos = Eigen::Vector2f(pinvRes.x0, pinvRes.y0);
     }
 
     const float t1 = (vz + sqrt(vz*vz + GRAVITY*z0*2)) / GRAVITY;
@@ -378,44 +379,48 @@ void FlyFilter::approachPinvApply(const PinvResult &pinvRes)
     if (std::isnan(T)) {
         debug("abort pinv", T);
         resetFlightReconstruction();
-        return;
+        return result;
     }
 
     if (pinvRes.distStartPos < 0.06) {
         if (fabs(T) < 0.08) {
-            m_chipStartPos = m_chipStartPos+m_groundSpeed*T;
+            result.chipStartPos = result.chipStartPos+result.groundSpeed*T;
         }
     }
 
     if (fabs(T) < 0.08) {
-        m_zSpeed = pinvRes.vz - GRAVITY*T;
+        result.zSpeed = pinvRes.vz - GRAVITY*T;
     }
 
     if (fabs(T) < 0.04) { // maximum error 20ms at 50Hz
-        m_chipStartTime = firstInTheAir.time + T*NS_PER_SEC;
+        result.chipStartTime = firstInTheAir.time + T*NS_PER_SEC;
     }
+    return result;
 }
 
-void FlyFilter::approachIntersectApply(const FlyFilter::IntersectionResult &intRes)
+auto FlyFilter::approachIntersectApply(const FlyFilter::IntersectionResult &intRes) const -> ChipReconstruction
 {
     ChipDetection firstInTheAir = m_kickFrames.at(m_shotStartFrame);
-    m_chipStartPos = m_kickFrames.at(m_shotStartFrame).ballPos;
-    m_chipStartTime = firstInTheAir.time-10000000.0; // -10ms, actual kick was before
-    m_groundSpeed = intRes.intersectionGroundSpeed;
-    m_zSpeed = intRes.intersectionZSpeed;
+    ChipReconstruction result;
+    result.chipStartPos = m_kickFrames.at(m_shotStartFrame).ballPos;
+    result.chipStartTime = firstInTheAir.time-10000000.0; // -10ms, actual kick was before
+    result.groundSpeed = intRes.intersectionGroundSpeed;
+    result.zSpeed = intRes.intersectionZSpeed;
     debug("method intersect", true);
     debug("approx/speed length", intRes.intersectionGroundSpeed.norm());
+    return result;
 }
 
-void FlyFilter::approachAreaApply()
+auto FlyFilter::approachAreaApply() -> ChipReconstruction
 {
     ChipDetection firstInTheAir = m_kickFrames.at(m_shotStartFrame);
-    m_chipStartPos = m_kickFrames.at(m_shotStartFrame).ballPos;
-    m_chipStartTime = firstInTheAir.time;
-    m_zSpeed = 0;
-    m_groundSpeed = Eigen::Vector2f(0, 0);
+    ChipReconstruction result;
+    result.chipStartPos = m_kickFrames.at(m_shotStartFrame).ballPos;
+    result.chipStartTime = firstInTheAir.time;
+    result.zSpeed = 0;
+    result.groundSpeed = Eigen::Vector2f(0, 0);
     if (m_kickFrames.size() < m_shotStartFrame+4) {
-        return;
+        return result;
     }
 
     float ballRadius = 0;
@@ -454,7 +459,7 @@ void FlyFilter::approachAreaApply()
     debug("height/vy", speed(1));
     debug("height/v total", speed.norm());
 
-    m_groundSpeed = speed;//dir.normalized()*speedLengthViaHeight;
+    result.groundSpeed = speed;//dir.normalized()*speedLengthViaHeight;
 
     debugLine("calc dir", firstInTheAir.ballPos(0), firstInTheAir.ballPos(1), firstInTheAir.ballPos(0)+speed(0), firstInTheAir.ballPos(1)+speed(1));
 
@@ -470,9 +475,10 @@ void FlyFilter::approachAreaApply()
     }
     QuadraticLeastSquaresFitter::QuadraticFitResult res = m_flyFitter.fit();
     debug("height/res b", res.b);
-    m_zSpeed = res.b;
+    result.zSpeed = res.b;
 
     debug("method height", true);
+    return result;
 }
 
 // return value in the interval [0,pi] radians
@@ -527,7 +533,7 @@ void FlyFilter::parabolicFlightReconstruct(const PinvResult& pinvRes, const Inte
 {
     if (approachPinvApplicable(pinvRes) && m_kickFrames.size() > APPROACH_SWITCH_FRAMENO) {
         debug("chip approach", "pinv");
-        approachPinvApply(pinvRes);
+        m_chipReconstruction = approachPinvApply(pinvRes);
         m_isActive = true;
     } else {
         Eigen::Vector2f lastBall = m_kickFrames.back().ballPos;
@@ -539,11 +545,11 @@ void FlyFilter::parabolicFlightReconstruct(const PinvResult& pinvRes, const Inte
 
         if (intersectionAngle < 0.4) { // angle low
             debug("chip approach", "height");
-            approachAreaApply();
+            m_chipReconstruction = approachAreaApply();
             m_isActive = true;
         } else if (approachIntersectApplicable(intRes)) {
             debug("chip approach", "intersection");
-            approachIntersectApply(intRes);
+            m_chipReconstruction = approachIntersectApply(intRes);
             m_isActive = true;
         } else {
             debug("chip approach", "unavailable");
@@ -715,7 +721,7 @@ bool FlyFilter::detectionPinv(const FlyFilter::PinvResult &pinvRes) const
     float maxFlightDurationHalf = vz / GRAVITY;
     float maxFlightDuration = maxFlightDurationHalf*2;
     float maxHeight = vz*maxFlightDurationHalf - (GRAVITY * 0.5f) *maxFlightDurationHalf*maxFlightDurationHalf;
-    double timeElapsed = (m_kickFrames.back().time - m_chipStartTime) / NS_PER_SEC;
+    double timeElapsed = (m_kickFrames.back().time - m_chipReconstruction.chipStartTime) / NS_PER_SEC;
 
     float flightDistGroundCalc = vz*timeElapsed;
     float flightDistMeasured = (m_kickFrames.front().ballPos - m_kickFrames.back().ballPos).norm();
@@ -783,7 +789,7 @@ void FlyFilter::processVisionFrame(const VisionFrame& frame)
         m_shotDetectionWindow.append(m_kickFrames.back());
 
         // use the first kick frame time as an estimate, will be refined once it is accepted as a chip
-        m_chipStartTime = m_kickFrames.at(0).time;
+        m_chipReconstruction.chipStartTime = m_kickFrames.at(0).time;
 
         debug("shot detected", 1);
         m_shotDetected = true;
@@ -862,14 +868,14 @@ FlyFilter::Prediction FlyFilter::predictTrajectory(qint64 time)
     double zSpeed;
     float zPos;
 
-    double flightDuration = 2*m_zSpeed / GRAVITY;
-    double t = (time - (m_chipStartTime+m_initTime)) / NS_PER_SEC;
+    double flightDuration = 2*m_chipReconstruction.zSpeed / GRAVITY;
+    double t = (time - (m_chipReconstruction.chipStartTime+m_initTime)) / NS_PER_SEC;
 
     debug("flight duration", flightDuration);
     debug("flight time passed", t);
 
-    m_touchdownPos = m_chipStartPos + flightDuration*m_groundSpeed;
-    debugCircle("chosen pos start", m_chipStartPos(0), m_chipStartPos(1), 0.03);
+    m_touchdownPos = m_chipReconstruction.chipStartPos + flightDuration*m_chipReconstruction.groundSpeed;
+    debugCircle("chosen pos start", m_chipReconstruction.chipStartPos(0), m_chipReconstruction.chipStartPos(1), 0.03);
     if (!std::isnan(m_touchdownPos(0)) && !std::isnan(m_touchdownPos(1))) {
         debugCircle("touchdown", m_touchdownPos(0), m_touchdownPos(1), 0.04);
     }
@@ -877,9 +883,9 @@ FlyFilter::Prediction FlyFilter::predictTrajectory(qint64 time)
     bool abortBounce = false;
     if (m_isActive && t > 0.3 && t < 3 && t > flightDuration) { // check for bouncing
         if (!m_bouncing) {
-            m_bounceStartTime = m_chipStartTime + flightDuration*NS_PER_SEC;
-            m_bounceZSpeed = floorDamping * m_zSpeed;
-            m_bounceGroundSpeed = m_groundSpeed;
+            m_bounceStartTime = m_chipReconstruction.chipStartTime + flightDuration*NS_PER_SEC;
+            m_bounceZSpeed = floorDamping * m_chipReconstruction.zSpeed;
+            m_bounceGroundSpeed = m_chipReconstruction.groundSpeed;
             m_bouncing = true;
             m_bounceStartPos = m_touchdownPos;
         } else {
@@ -933,14 +939,14 @@ FlyFilter::Prediction FlyFilter::predictTrajectory(qint64 time)
             resetFlightReconstruction();
         }
     } else {
-        groundPos = m_chipStartPos + m_groundSpeed * t;
-        zSpeed = m_zSpeed -  GRAVITY * t;
-        zPos = t * m_zSpeed - 0.5f*GRAVITY*t*t;
+        groundPos = m_chipReconstruction.chipStartPos + m_chipReconstruction.groundSpeed * t;
+        zSpeed = m_chipReconstruction.zSpeed -  GRAVITY * t;
+        zPos = t * m_chipReconstruction.zSpeed - 0.5f*GRAVITY*t*t;
     }
 
     m_lastPredictionTime = time;
     return Prediction(groundPos(0), groundPos(1), zPos,
-        m_groundSpeed(0), m_groundSpeed(1), zSpeed);
+        m_chipReconstruction.groundSpeed(0), m_chipReconstruction.groundSpeed(1), zSpeed);
 }
 
 bool FlyFilter::acceptDetection(const VisionFrame& frame)

@@ -79,6 +79,15 @@ private:
         float intersectionZSpeed;
     };
 
+    // stores the information from the chip reconstruction,
+    // fully describes the current chip
+    struct ChipReconstruction {
+        Eigen::Vector2f chipStartPos;
+        qint64 chipStartTime;
+        Eigen::Vector2f groundSpeed;
+        float zSpeed;
+    };
+
     bool detectionCurviness(const PinvResult& pinvRes) const;
     bool detectionHeight() const;
     bool detectionSpeed() const;
@@ -91,9 +100,9 @@ private:
     PinvResult calcPinv();
     IntersectionResult calcIntersection(const PinvResult &pinvRes) const;
 
-    void approachPinvApply(const PinvResult& pinvRes);
-    void approachIntersectApply(const IntersectionResult &intRes);
-    void approachAreaApply();
+    ChipReconstruction approachPinvApply(const PinvResult& pinvRes);
+    ChipReconstruction approachIntersectApply(const IntersectionResult &intRes) const;
+    ChipReconstruction approachAreaApply();
 
     bool approachPinvApplicable(const PinvResult& pinvRes) const;
     bool approachIntersectApplicable(const IntersectionResult &intRes) const;
@@ -119,10 +128,7 @@ private:
     QVector<ChipDetection> m_shotDetectionWindow; // sliding window of size 5
     QVector<ChipDetection> m_kickFrames;
 
-    Eigen::Vector2f m_chipStartPos;
-    qint64 m_chipStartTime;
-    Eigen::Vector2f m_groundSpeed;
-    float m_zSpeed;
+    ChipReconstruction m_chipReconstruction;
 
     Eigen::Vector2f m_touchdownPos;
 
