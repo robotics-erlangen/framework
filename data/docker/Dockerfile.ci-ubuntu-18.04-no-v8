@@ -15,7 +15,7 @@ RUN set -xe; \
 		cmake ninja-build ccache g++ python3 \
 		luarocks unzip \
 		ca-certificates curl apt-transport-https gnupg \
-		git git-lfs; \
+		git git-lfs ssh; \
 	git lfs install; \
 	# Setup NodeJS \
 	curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -; \
