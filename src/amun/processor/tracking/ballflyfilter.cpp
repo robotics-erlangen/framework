@@ -37,7 +37,6 @@ static const double NS_PER_SEC = 1000000000.0;
 
 FlyFilter::FlyFilter(const VisionFrame& frame, CameraInfo* cameraInfo, const FieldTransform &transform) :
     AbstractBallFilter(frame, cameraInfo, transform),
-    m_shotDetected(false),
     m_initTime(frame.time),
     m_flyFitter(MAX_FRAMES_PER_FLIGHT)
 {
@@ -88,7 +87,7 @@ bool FlyFilter::checkIsShot()
     float dribblerDist3 = (m_shotDetectionWindow.at(0).dribblerPos - m_shotDetectionWindow.at(3).ballPos).norm();
 
     double dist = (m_shotDetectionWindow.at(1).ballPos - m_shotDetectionWindow.at(3).ballPos).norm();
-    double timeDiff = (m_shotDetectionWindow.at(3).time-m_shotDetectionWindow.at(1).time) / NS_PER_SEC;
+    double timeDiff = (m_shotDetectionWindow.at(3).time - m_shotDetectionWindow.at(1).time) / NS_PER_SEC;
     float absSpeed = dist/timeDiff;
 
     debug("shot/d speed 0", m_shotDetectionWindow.at(0).dribblerSpeed);
@@ -792,7 +791,6 @@ void FlyFilter::processVisionFrame(const VisionFrame& frame)
         m_chipReconstruction.chipStartTime = m_kickFrames.at(0).time;
 
         debug("shot detected", 1);
-        m_shotDetected = true;
     }
 
     if (m_kickFrames.size() > 0) { // chip detection or tracking ongoing
@@ -952,7 +950,7 @@ FlyFilter::Prediction FlyFilter::predictTrajectory(qint64 time)
 bool FlyFilter::acceptDetection(const VisionFrame& frame)
 {
     // acceptance depends on prediction which makes no sense when not active
-    //   for activation of the filter the acceptance is not necessary
+    // for activation of the filter the acceptance is not necessary
     // as the ground filter will accept a ball lying at the ground
     if (!m_isActive) {
         return false;
@@ -999,15 +997,6 @@ void FlyFilter::writeBallState(world::Ball *ball, qint64 predictionTime, const Q
     ball->set_is_bouncing(m_bouncing);
     ball->set_touchdown_x(m_touchdownPos(0));
     ball->set_touchdown_y(m_touchdownPos(1));
-}
-
-bool FlyFilter::isShot()
-{
-    if (m_shotDetected) {
-        m_shotDetected = false;
-        return true;
-    }
-    return false;
 }
 
 void FlyFilter::resetFlightReconstruction()

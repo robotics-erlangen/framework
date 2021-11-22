@@ -97,11 +97,6 @@ bool BallTracker::isFlying() const
     return m_flyFilter->isActive();
 }
 
-bool BallTracker::isShot() const
-{
-    return m_flyFilter->isShot();
-}
-
 void BallTracker::updateConfidence()
 {
     m_confidence = 0.98 * m_confidence + 0.02 * double(m_updateFrameCounter);

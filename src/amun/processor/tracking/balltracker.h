@@ -52,7 +52,6 @@ public:
     float cachedDistToCamera();
     bool isFlying() const;
     qint64 initTime() const { return m_initTime; }
-    bool isShot() const;
     double confidence() const { return m_confidence; }
     bool isFeasiblyInvisible() const;
 

@@ -57,7 +57,6 @@ public:
     float distToStartPos() { return m_distToStartPos; }
 
     bool isActive() const;
-    bool isShot();
 
 private:
     struct PinvResult {
@@ -121,7 +120,6 @@ private:
     Prediction predictTrajectory(qint64 time);
 
 private:
-    bool m_shotDetected;
     bool m_chipDetected;
     bool m_isActive;
 
