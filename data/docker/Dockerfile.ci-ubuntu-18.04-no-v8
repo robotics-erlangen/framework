@@ -19,8 +19,8 @@ RUN set -xe; \
 	git lfs install; \
 	# Setup NodeJS \
 	curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -; \
-	echo 'deb https://deb.nodesource.com/node_12.x bionic main' > /etc/apt/sources.list.d/nodesource.list; \
-	echo 'deb-src https://deb.nodesource.com/node_12.x bionic main' >> /etc/apt/sources.list.d/nodesource.list; \
+	echo 'deb https://deb.nodesource.com/node_16.x bionic main' > /etc/apt/sources.list.d/nodesource.list; \
+	echo 'deb-src https://deb.nodesource.com/node_16.x bionic main' >> /etc/apt/sources.list.d/nodesource.list; \
 	apt-get update; \
 	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends nodejs; \
 	# Cleanup APT \

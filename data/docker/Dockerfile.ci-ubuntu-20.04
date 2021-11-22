@@ -18,8 +18,8 @@ RUN set -xe; \
 	git lfs install; \
 	# setup nodejs \
 	curl --silent https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add - 2>/dev/null; \
-	echo 'deb https://deb.nodesource.com/node_12.x focal main' > /etc/apt/sources.list.d/nodesource.list; \
-	echo 'deb-src https://deb.nodesource.com/node_12.x focal main' >> /etc/apt/sources.list.d/nodesource.list; \
+	echo 'deb https://deb.nodesource.com/node_16.x focal main' > /etc/apt/sources.list.d/nodesource.list; \
+	echo 'deb-src https://deb.nodesource.com/node_16.x focal main' >> /etc/apt/sources.list.d/nodesource.list; \
 	apt-get update; \
 	apt-get install -y --no-install-recommends nodejs; \
 	# setup linters \
