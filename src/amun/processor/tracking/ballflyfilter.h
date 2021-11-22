@@ -49,8 +49,6 @@ public:
     explicit FlyFilter(const VisionFrame& frame, CameraInfo* cameraInfo, const FieldTransform &transform);
     FlyFilter(const FlyFilter &filter) = default;
 
-    void moveToCamera(qint32 primaryCamera);
-
     void processVisionFrame(const VisionFrame& frame) override;
     bool acceptDetection(const VisionFrame& frame) override;
     void writeBallState(world::Ball *ball, qint64 predictionTime, const QVector<RobotInfo> &robots, qint64 lastCameraFrameTime) override;
@@ -91,6 +89,8 @@ private:
     bool detectionHeight() const;
     bool detectionSpeed() const;
     bool detectionPinv(const PinvResult &pinvRes) const;
+    bool detectChip(const PinvResult &pinvRes) const;
+
     bool checkIsShot();
     bool collision();
     unsigned numMeasurementsWithOwnCamera() const;
@@ -110,8 +110,8 @@ private:
     void resetFlightReconstruction();
 
     struct Prediction {
-        Prediction(float x, float y, float z, float vx, float vy, float vz) :
-            pos(Eigen::Vector3f(x,y,z)), speed(Eigen::Vector3f(vx,vy,vz)) {}
+        Prediction(Eigen::Vector2f pos2, float z, Eigen::Vector2f speed2, float vz) :
+            pos(Eigen::Vector3f(pos2.x(),pos2.y(),z)), speed(Eigen::Vector3f(speed2.x(),speed2.y(),vz)) {}
 
         Eigen::Vector3f pos;
         Eigen::Vector3f speed;

@@ -71,6 +71,11 @@ public:
     // this function is called when multiple mutually exclusive balls are available. Return the id of the best matching visionframe
     virtual std::size_t chooseBall(const std::vector<VisionFrame> &frames) { return 0; }
 
+    // camera id is necessary for debugging
+    void moveToCamera(qint32 primaryCamera) {
+        m_primaryCamera = primaryCamera;
+    }
+
 #ifdef ENABLE_TRACKING_DEBUG
     virtual const amun::DebugValues &debugValues() const { return m_debug; }
     virtual void clearDebugValues() {
@@ -91,7 +96,6 @@ protected:
         m_cameraInfo(filter.m_cameraInfo), m_primaryCamera(primaryCamera), m_fieldTransform(filter.m_fieldTransform) {}
 
     virtual ~AbstractBallFilter() {}
-
 
     CameraInfo* m_cameraInfo;
     int m_primaryCamera;
