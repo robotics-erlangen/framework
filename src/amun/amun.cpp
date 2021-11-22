@@ -26,6 +26,7 @@
 #include "core/protobuffilesaver.h"
 #include "core/sslprotocols.h"
 #include "processor/processor.h"
+#include "processor/trackingreplay.h"
 #include "processor/transceiver.h"
 #include "processor/networktransceiver.h"
 #include "processor/integrator.h"
@@ -485,8 +486,8 @@ void Amun::handleCommandLocally(const Command &command)
     if (command->has_tracking()) {
         if (command->tracking().has_tracking_replay_enabled()) {
             bool enable = command->tracking().tracking_replay_enabled();
-            if (enable != m_trackingReplay) {
-                m_trackingReplay = enable;
+            if (enable != m_enableTrackingReplay) {
+                m_enableTrackingReplay = enable;
                 if (enable) {
                     enableTrackingReplay();
                 }
@@ -497,10 +498,8 @@ void Amun::handleCommandLocally(const Command &command)
 
 void Amun::enableTrackingReplay()
 {
-    if (!m_replayProcessor) {
-        m_replayProcessor.reset(new Processor(m_replayTimer, true));
-        connect(m_replayProcessor.get(), &Processor::sendStatus, this, &Amun::handleReplayStatus);
-    }
+    m_trackingReplay.reset(new TrackingReplay(m_replayTimer));
+    connect(m_trackingReplay.get(), &TrackingReplay::gotStatus, this, &Amun::handleReplayStatus);
 }
 
 void Amun::pauseSimulator(const amun::PauseSimulatorCommand &pauseCommand)
@@ -571,76 +570,10 @@ void Amun::handleStatus(const Status &status)
 
 void Amun::handleStatusForReplay(const Status &status)
 {
-    const auto previousTime = m_replayTimer->currentTime();
-    m_replayTimer->setTime(status->time(), 0);
-    if (m_trackingReplay) {
-        if (status->has_game_state()) {
-            m_lastTrackingReplayGameState = status;
-        }
-        if (previousTime > status->time()) {
-            m_replayProcessor->resetTracking();
-        }
-        if (status->has_team_blue()) {
-            Command command(new amun::Command);
-            command->mutable_set_team_blue()->CopyFrom(status->team_blue());
-            m_replayProcessor->handleCommand(command);
-        }
-        if (status->has_team_yellow()) {
-            Command command(new amun::Command);
-            command->mutable_set_team_yellow()->CopyFrom(status->team_yellow());
-            m_replayProcessor->handleCommand(command);
-        }
-
-        // radio commands
-        {
-            QMap<qint64, QList<RobotCommandInfo>> yellowRobotCommands, blueRobotCommands;
-            auto time = m_replayTimer->currentTime();
-            for (const auto& command : status->radio_command()) {
-                RobotCommandInfo info;
-                info.generation = command.generation();
-                info.robotId = command.id();
-                info.command.reset(new robot::Command(command.command()));
-                qint64 commandTime = command.has_command_time() ? command.command_time() : time;
-                if (command.is_blue()) {
-                    blueRobotCommands[commandTime].append(info);
-                } else {
-                    yellowRobotCommands[commandTime].append(info);
-                }
-            }
-            for (qint64 time : yellowRobotCommands.keys()) {
-                m_replayProcessor->handleStrategyCommands(false, yellowRobotCommands[time], time);
-            }
-            for (qint64 time : blueRobotCommands.keys()) {
-                m_replayProcessor->handleStrategyCommands(true, blueRobotCommands[time], time);
-            }
-        }
-
-        if (status->has_world_state()) {
-            if (status->world_state().has_system_delay()) {
-                Command command(new amun::Command);
-                command->mutable_tracking()->set_system_delay(status->world_state().system_delay());
-                m_replayProcessor->handleCommand(command);
-            }
-            for (int i = 0;i<status->world_state().vision_frames_size();i++) {
-                auto vision = status->world_state().vision_frames(i);
-                QByteArray visionData(vision.ByteSize(), 0);
-                if (vision.SerializeToArray(visionData.data(), visionData.size())) {
-                    auto time = status->world_state().time();
-                    if (i < status->world_state().vision_frame_times_size()) {
-                        time = status->world_state().vision_frame_times(i);
-                    }
-                    m_replayProcessor->handleVisionPacket(visionData, time, "replay");
-                }
-            }
-            for (const auto &truth : status->world_state().reality()) {
-                QByteArray simulatorData(truth.ByteSize(), 0);
-                if (truth.SerializeToArray(simulatorData.data(), simulatorData.size())) {
-                    m_replayProcessor->handleSimulatorExtraVision(simulatorData);
-                }
-            }
-            m_replayProcessor->process(status->world_state().time());
-        }
+    if (m_enableTrackingReplay) {
+        m_trackingReplay->handleStatus(status);
     } else {
+        m_replayTimer->setTime(status->time(), 0);
         emit sendStatusForReplay(status);
     }
 }
@@ -648,10 +581,6 @@ void Amun::handleStatusForReplay(const Status &status)
 void Amun::handleReplayStatus(const Status &status)
 {
     status->set_time(m_replayTimer->currentTime());
-    if (m_trackingReplay && !m_lastTrackingReplayGameState.isNull()) {
-        // add game state information since the replay processor does not have the required data
-        status->mutable_game_state()->CopyFrom(m_lastTrackingReplayGameState->game_state());
-    }
     m_seshat->handleReplayStatus(status);
 }
 

@@ -26,6 +26,7 @@ add_library(processor
     include/processor/transceiver.h
     include/processor/referee.h
     include/processor/integrator.h
+    include/processor/trackingreplay.h
 
     commandevaluator.cpp
     commandevaluator.h
@@ -38,6 +39,7 @@ add_library(processor
     referee.cpp
     transceiver.cpp
     integrator.cpp
+    trackingreplay.cpp
 )
 target_link_libraries(processor
     PRIVATE shared::core

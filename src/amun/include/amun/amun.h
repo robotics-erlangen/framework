@@ -32,6 +32,7 @@
 class DebugHelper;
 class NetworkInterfaceWatcher;
 class Processor;
+class TrackingReplay;
 class Receiver;
 class Strategy;
 class Timer;
@@ -103,7 +104,6 @@ private:
     QThread *m_debugHelperThread;
 
     Processor *m_processor;
-    std::unique_ptr<Processor> m_replayProcessor;
     Transceiver *m_transceiver;
     NetworkTransceiver *m_networkTransceiver;
     camun::simulator::Simulator *m_simulator;
@@ -126,8 +126,8 @@ private:
     const bool m_simulatorOnly;
     bool m_useInternalReferee;
     bool m_useAutoref;
-    bool m_trackingReplay = false;
-    Status m_lastTrackingReplayGameState;
+    bool m_enableTrackingReplay = false;
+    std::unique_ptr<TrackingReplay> m_trackingReplay;
 
     QSet<amun::PauseSimulatorReason> m_activePauseReasons;
     float m_previousSpeed;
