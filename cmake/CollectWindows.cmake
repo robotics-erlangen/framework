@@ -69,6 +69,7 @@ add_custom_target(assemble
 	COMMAND ${CMAKE_COMMAND} -E copy_if_different
 		$<TARGET_FILE:Qt5::QWindowsIntegrationPlugin>
             ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/platforms
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${GAMECONTROLLER_FULL_PATH} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
 		$ENV{MINGW_PREFIX}/bin/${LIB_GCC}
 		$ENV{MINGW_PREFIX}/bin/libstdc++-6.dll

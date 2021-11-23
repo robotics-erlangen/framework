@@ -54,4 +54,5 @@ EPHelper_Mark_For_Download(gamecontroller_download)
 
 ExternalProject_Get_property(gamecontroller_download DOWNLOADED_FILE)
 
-set(GAMECONTROLLER_EXECUTABLE_LOCATION ${DOWNLOADED_FILE})
+set(GAMECONTROLLER_FULL_PATH ${DOWNLOADED_FILE})
+get_filename_component(GAMECONTROLLER_FILE_NAME ${DOWNLOADED_FILE} NAME)

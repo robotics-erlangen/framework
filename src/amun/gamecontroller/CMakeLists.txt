@@ -42,7 +42,5 @@ target_include_directories(gamecontroller
 add_dependencies(gamecontroller
     gamecontroller_download
 )
-target_compile_definitions(gamecontroller PRIVATE GAMECONTROLLER_EXECUTABLE_LOCATION="${GAMECONTROLLER_EXECUTABLE_LOCATION}")
-
 
 add_library(amun::gamecontroller ALIAS gamecontroller)
