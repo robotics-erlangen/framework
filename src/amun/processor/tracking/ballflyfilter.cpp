@@ -678,6 +678,17 @@ bool FlyFilter::detectionPinv(const FlyFilter::PinvResult &pinvRes) const
             && m_kickFrames.size() > 5;
 }
 
+bool FlyFilter::checkIsDribbling() const
+{
+    // abort shot collection and detection when the shooting robot keeps being close to the ball, i.e. dribbles it
+    if (m_kickFrames.size() > 10) {
+        const ChipDetection &currentDetection = m_kickFrames.back();
+        return (currentDetection.ballPos - currentDetection.robotPos).norm() < 0.12f
+                && m_kickFrames.at(0).robotId == currentDetection.robotId;
+    }
+    return false;
+}
+
 bool FlyFilter::detectChip(const PinvResult &pinvRes) const
 {
     const bool heightSaysChip = detectionHeight(); // run for debug info
@@ -732,7 +743,7 @@ void FlyFilter::processVisionFrame(const VisionFrame& frame)
 
     const ChipDetection currentDetection(dribblerSpeed, absSpeed, timeSinceInit,
                         reportedBallPos, frame.robot.dribblerPos, frame.ballArea, frame.robot.robotPos,
-                        frame.cameraId, frame.chipCommand, frame.linearCommand);
+                        frame.cameraId, frame.chipCommand, frame.linearCommand, frame.robot.identifier);
     m_shotDetectionWindow.append(currentDetection);
     if (m_shotDetectionWindow.size() > 4) {
         m_shotDetectionWindow.pop_front();
@@ -753,6 +764,12 @@ void FlyFilter::processVisionFrame(const VisionFrame& frame)
         m_chipReconstruction.chipStartTime = m_kickFrames.at(0).time;
 
         debug("shot detected", 1);
+    }
+
+    if (checkIsDribbling()) {
+        debug("abort shot dribbling", 1);
+        resetFlightReconstruction();
+        return;
     }
 
     if (m_kickFrames.size() > 0) { // chip detection or tracking ongoing

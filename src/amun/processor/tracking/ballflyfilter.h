@@ -27,8 +27,8 @@
 #include "protobuf/world.pb.h"
 
 struct ChipDetection {
-    ChipDetection(float s, float as, float t, Eigen::Vector2f bp, Eigen::Vector2f dp,  float a, Eigen::Vector2f r, quint32 cid, bool cc, bool lc)
-        :  dribblerSpeed(s), absSpeed(as), time(t), ballPos(bp), dribblerPos(dp), robotPos(r), cameraId(cid), ballArea(a), chipCommand(cc), linearCommand(lc)  {}
+    ChipDetection(float s, float as, float t, Eigen::Vector2f bp, Eigen::Vector2f dp,  float a, Eigen::Vector2f r, quint32 cid, bool cc, bool lc, int rid)
+        :  dribblerSpeed(s), absSpeed(as), time(t), ballPos(bp), dribblerPos(dp), robotPos(r), cameraId(cid), ballArea(a), chipCommand(cc), linearCommand(lc), robotId(rid)  {}
     ChipDetection(){} // make QVector happy
 
     float dribblerSpeed;
@@ -37,6 +37,7 @@ struct ChipDetection {
     Eigen::Vector2f ballPos;
     Eigen::Vector2f dribblerPos;
     Eigen::Vector2f robotPos;
+    int robotId;
     quint32 cameraId;
     float ballArea;
     bool chipCommand;
@@ -92,6 +93,7 @@ private:
     bool detectChip(const PinvResult &pinvRes) const;
 
     bool checkIsShot();
+    bool checkIsDribbling() const;
     bool collision();
     unsigned numMeasurementsWithOwnCamera() const;
     Eigen::Vector3f unproject(const ChipDetection& detection, float ballRadius) const;
