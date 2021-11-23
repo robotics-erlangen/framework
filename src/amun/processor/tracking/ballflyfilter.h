@@ -106,7 +106,7 @@ private:
     bool approachPinvApplicable(const PinvResult& pinvRes) const;
     bool approachIntersectApplicable(const IntersectionResult &intRes) const;
 
-    void parabolicFlightReconstruct(const PinvResult &pinvRes, const IntersectionResult &intRes);
+    void parabolicFlightReconstruct(const PinvResult &pinvRes);
     void resetFlightReconstruction();
 
     struct Prediction {
