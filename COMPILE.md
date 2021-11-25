@@ -88,6 +88,9 @@ instead of the normale cmake command (`cmake ..`)
 ### Building V8 (optional, needed for Javascript support)
 Note, that this is **not required** for the simulator.
 
+It is also possible to specify for cmake to download a precompiled V8 version,
+but it might not support all operating systems or distributions.
+
 To build V8, `git` and `python2` are required to be executable commands.
 The package names are
 
@@ -131,6 +134,11 @@ make
 Alternatively in order to select which Qt-Installation to use specify it using a similar command line:
 ```
 cmake -DCMAKE_PREFIX_PATH=~/Qt/5.6/gcc_64/lib/cmake ..
+```
+
+In order to download and use the precompiled V8, use:
+```
+cmake -DDOWNLOAD_V8=TRUE ..
 ```
 
 To be able to use the USB transceiver / JTAG programmer the rights for udev have to be modified.

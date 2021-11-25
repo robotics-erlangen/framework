@@ -90,6 +90,49 @@ if (NOT V8_OUTPUT_DIR)
     set(V8_IS_DYNAMIC FALSE)
 endif()
 
+if((NOT V8_OUTPUT_DIR OR NOT V8_INCLUDE_DIR) AND DOWNLOAD_V8)
+    if(MINGW)
+        set(V8_PRECOMPILED_DOWNLOAD "http://downloads.robotics-erlangen.de/software-precompiled/v8-7.0-windows.zip")
+        set(V8_PRECOMPILED_HASH f9db8ad1a1483f649ddf9ad5a1fa29c46e4ecbb6b0fe31c53916794da74edbb8)
+        # not elegant, but the values must be known at configure time, before v8 is downloaded
+        set(V8_PRECOMPILED_INCLUDE_SUFFIX "include")
+        set(V8_PRECOMPILED_OUTPUT_SUFFIX "out/x64.release")
+        set(V8_VERSION "7.0.0")
+        set(V8_IS_DYNAMIC FALSE)
+    elseif(UNIX AND NOT APPLE)
+        set(V8_PRECOMPILED_DOWNLOAD "http://downloads.robotics-erlangen.de/software-precompiled/v8-7.0-ubuntu-20-04.zip")
+        set(V8_PRECOMPILED_HASH 40df9024ed012d248467fc04437b76a77fddd3a8989ea659dbcd6d18854c241d)
+        # not elegant, but the values must be known at configure time, before v8 is downloaded
+        set(V8_PRECOMPILED_INCLUDE_SUFFIX "include")
+        set(V8_PRECOMPILED_OUTPUT_SUFFIX "out/x64.release")
+        set(V8_VERSION "7.0.0")
+        set(V8_IS_DYNAMIC TRUE)
+    endif()
+
+    message("Could not find V8 - downloading a precompiled version")
+
+    if(V8_PRECOMPILED_DOWNLOAD)
+        ExternalProject_Add(v8_download
+            URL ${V8_PRECOMPILED_DOWNLOAD}
+            URL_HASH SHA256=${V8_PRECOMPILED_HASH}
+            CONFIGURE_COMMAND ""
+            BUILD_COMMAND ""
+            INSTALL_COMMAND ""
+            DOWNLOAD_NO_PROGRESS true
+        )
+        EPHelper_Add_Cleanup(v8_download bin include lib share)
+        EPHelper_Add_Clobber(v8_download ${CMAKE_CURRENT_LIST_DIR}/stub.patch)
+        EPHelper_Mark_For_Download(v8_download)
+
+        ExternalProject_Get_property(v8_download SOURCE_DIR)
+        set(V8_INCLUDE_DIR "${SOURCE_DIR}/${V8_PRECOMPILED_INCLUDE_SUFFIX}")
+        set(V8_OUTPUT_DIR "${SOURCE_DIR}/${V8_PRECOMPILED_OUTPUT_SUFFIX}")
+
+        file(MAKE_DIRECTORY "${V8_INCLUDE_DIR}")
+    endif()
+endif()
+
+
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(V8
     FOUND_VAR V8_FOUND
@@ -113,6 +156,9 @@ if(V8_FOUND)
     endif()
 
     add_library(lib::v8 UNKNOWN IMPORTED)
+    if(V8_PRECOMPILED_DOWNLOAD)
+        add_dependencies(lib::v8 v8_download)
+    endif()
     set_target_properties(lib::v8 PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${V8_INCLUDE_DIR}")
     if(V8_IS_DYNAMIC)
         set_target_properties(lib::v8 PROPERTIES IMPORTED_LOCATION "${V8_OUTPUT_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}v8${CMAKE_SHARED_LIBRARY_SUFFIX}")
