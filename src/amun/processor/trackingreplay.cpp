@@ -23,7 +23,8 @@
 
 TrackingReplay::TrackingReplay(Timer *timer) :
     m_timer(timer),
-    m_replayProcessor(timer, true)
+    m_replayProcessor(timer, true),
+    m_statusCache(2000)
 {
     connect(&m_replayProcessor, &Processor::sendStatus, this, &TrackingReplay::ammendStatus);
 }
@@ -35,6 +36,8 @@ void TrackingReplay::ammendStatus(const Status &status)
         // add game state information since the replay processor does not have the required data
         status->mutable_game_state()->CopyFrom(m_lastTrackingReplayGameState->game_state());
     }
+    // yes, I also do not want to use smart pointers like this
+    m_statusCache.insert(m_currentPacketString, new Status(status));
     emit gotStatus(status);
 }
 
@@ -42,6 +45,17 @@ void TrackingReplay::handleStatus(const Status &status)
 {
     const auto previousTime = m_timer->currentTime();
     m_timer->setTime(status->time(), 0);
+
+    // the time does not uniquely identify a status packet, therefore use its full string as identifier
+    // performance is not really a concern here, therefore serializing and hashing string is acceptable
+    const QString identifier = QString::fromStdString(status->SerializeAsString());
+    Status *cached = m_statusCache.object(identifier);
+    if (cached != nullptr) {
+        emit gotStatus(Status(*cached));
+        return;
+    }
+    // since ammendStatus is called synchrenously, this is fine if a bit inelegant
+    m_currentPacketString = identifier;
 
     if (status->has_game_state()) {
         m_lastTrackingReplayGameState = status;

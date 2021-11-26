@@ -22,6 +22,7 @@
 #define TRACKINGREPLAY_H
 
 #include <QObject>
+#include <QCache>
 
 #include "protobuf/status.h"
 #include "processor.h"
@@ -46,6 +47,10 @@ private:
     Timer *m_timer;
     Processor m_replayProcessor;
     Status m_lastTrackingReplayGameState;
+
+    // the tracking can not go back in time, therefore add a cache for already processed packages
+    QCache<QString, Status> m_statusCache;
+    QString m_currentPacketString;
 };
 
 #endif // TRACKINGREPLAY_H
