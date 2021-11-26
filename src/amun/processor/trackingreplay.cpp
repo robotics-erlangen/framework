@@ -24,9 +24,15 @@
 TrackingReplay::TrackingReplay(Timer *timer) :
     m_timer(timer),
     m_replayProcessor(timer, true),
+    m_refereeExtractor(timer->currentTime()),
     m_statusCache(2000)
 {
     connect(&m_replayProcessor, &Processor::sendStatus, this, &TrackingReplay::ammendStatus);
+
+    // disable the internal game controller and just use the referee packets from the log
+    Command command(new amun::Command);
+    command->mutable_referee()->set_active(false);
+    m_replayProcessor.handleCommand(command);
 }
 
 void TrackingReplay::ammendStatus(const Status &status)
@@ -72,6 +78,15 @@ void TrackingReplay::handleStatus(const Status &status)
         Command command(new amun::Command);
         command->mutable_set_team_yellow()->CopyFrom(status->team_yellow());
         m_replayProcessor.handleCommand(command);
+    }
+
+    // referee commands (mostly for which side is on which half)
+    if (status->has_game_state()) {
+        const SSL_Referee referee = m_refereeExtractor.convertGameState(status->game_state(), status->time());
+        QByteArray data(referee.ByteSize(), 0);
+        if (referee.SerializeToArray(data.data(), data.size())) {
+            m_replayProcessor.handleRefereePacket(data, status->time());
+        }
     }
 
     // radio commands

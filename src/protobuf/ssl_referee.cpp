@@ -64,3 +64,44 @@ SSL_Referee::Command commandFromGameState(amun::GameState::State state)
     }
     return SSL_Referee::HALT; // should never be reached
 }
+
+SSL_Referee SSLRefereeExtractor::convertGameState(const amun::GameState &gameState, qint64 currentTime)
+{
+    SSL_Referee refereePacket;
+    refereePacket.set_packet_timestamp((quint64)currentTime);
+    refereePacket.set_stage(gameState.stage());
+    if (gameState.has_stage_time_left()) {
+        refereePacket.set_stage_time_left(gameState.stage_time_left());
+    }
+    if (gameState.state() != m_lastState) {
+        if (gameState.state() != amun::GameState::Game) {
+            m_lastCommand = commandFromGameState(gameState.state());
+        } else if (m_lastState == amun::GameState::Halt) {
+            m_lastCommand = SSL_Referee::FORCE_START;
+        }
+
+        m_lastState = gameState.state();
+        m_gameStateChangeTime = currentTime;
+        m_refereeCounter++;
+    }
+    refereePacket.set_command(m_lastCommand);
+    refereePacket.set_command_counter(m_refereeCounter);
+    refereePacket.set_command_timestamp((quint64)m_gameStateChangeTime);
+    refereePacket.mutable_yellow()->CopyFrom(gameState.yellow());
+    refereePacket.mutable_blue()->CopyFrom(gameState.blue());
+    if (gameState.has_designated_position()) {
+        refereePacket.mutable_designated_position()->CopyFrom(gameState.designated_position());
+    }
+    if (gameState.has_goals_flipped()) {
+        refereePacket.set_blueteamonpositivehalf(!gameState.goals_flipped());
+    }
+    if (gameState.has_game_event()) {
+        refereePacket.mutable_gameevent()->CopyFrom(gameState.game_event());
+    }
+    if (gameState.has_current_action_time_remaining()) {
+        m_remainingActionTime = gameState.current_action_time_remaining();
+    }
+    refereePacket.set_current_action_time_remaining(m_remainingActionTime);
+
+    return refereePacket;
+}

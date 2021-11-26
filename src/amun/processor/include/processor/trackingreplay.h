@@ -24,6 +24,7 @@
 #include <QObject>
 #include <QCache>
 
+#include "protobuf/ssl_referee.h"
 #include "protobuf/status.h"
 #include "processor.h"
 
@@ -35,6 +36,7 @@ public:
 
 signals:
     void gotStatus(const Status &status);
+    void gotRefereeUpdate(const QByteArray &data);
 
 public slots:
     // this function will set the replay timer itself
@@ -47,6 +49,7 @@ private:
     Timer *m_timer;
     Processor m_replayProcessor;
     Status m_lastTrackingReplayGameState;
+    SSLRefereeExtractor m_refereeExtractor;
 
     // the tracking can not go back in time, therefore add a cache for already processed packages
     QCache<QString, Status> m_statusCache;
