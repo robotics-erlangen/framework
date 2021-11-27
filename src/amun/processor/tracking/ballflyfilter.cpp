@@ -125,7 +125,7 @@ unsigned FlyFilter::numMeasurementsWithOwnCamera() const
 
 bool FlyFilter::collision()
 {
-    if (m_kickFrames.size() < 3 || !m_isActive) {
+    if (m_kickFrames.size() <= 5) {
         return false;
     }
     const auto& first = m_kickFrames.at(m_kickFrames.size()-3);
@@ -136,9 +136,8 @@ bool FlyFilter::collision()
             - atan2(third.ballPos(1)-second.ballPos(1), third.ballPos(0)-second.ballPos(0)));
 
     const float robotDist = (m_kickFrames.back().ballPos - m_kickFrames.back().robotPos).norm();
-    const float height = predictTrajectory(m_lastPredictionTime).pos(2);
-    const bool collision = (angle < 0.86*M_PI || angle > 1.14*M_PI) && height < 0.15f && robotDist < 0.18f;
-    return collision;
+    const float height = m_isActive ? predictTrajectory(m_lastPredictionTime).pos(2) : 0.0f;
+    return (angle < 0.86*M_PI || angle > 1.14*M_PI) && height < 0.15f && robotDist < 0.18f;
 }
 
 FlyFilter::PinvResult FlyFilter::calcPinv()
