@@ -602,14 +602,21 @@ bool FlyFilter::detectionHeight() const
 
 bool FlyFilter::detectionSpeed() const
 {
+    // Tries to detect chips that are not curvy due to the shot ligning
+    // up with the camera (being closer below it).
+    // Linear shots quickly slow down after a few frames due to friction,
+    // while the perceived ground speed for flights is constant.
+    // Therefore, this function computes the slope of the speeds
+    // for the shot and checks if it is sufficiently shallow.
     QVector<float> speeds;
+    speeds.reserve(m_kickFrames.size()-1);
     for (int i=1; i<m_kickFrames.size(); i++) {
         if (m_kickFrames.at(i).cameraId != m_kickFrames.back().cameraId) {
             // bad geometry calibration may lead to virtual accelerations
             continue;
         }
         const double dist = (m_kickFrames.at(i).ballPos - m_kickFrames.at(i-1).ballPos).norm();
-        const double timeDiff = (m_kickFrames.at(i).time-m_kickFrames.at(i-1).time) / NS_PER_SEC; //seconds
+        const double timeDiff = (m_kickFrames.at(i).time - m_kickFrames.at(i-1).time) / NS_PER_SEC;
         speeds.append(dist/timeDiff);
     }
     const float avg = std::accumulate(speeds.begin(), speeds.end(), 0.0) / speeds.size();
@@ -637,8 +644,7 @@ bool FlyFilter::detectionSpeed() const
     debug("detection speed/avg", avg);
     debug("detection speed/last", speeds.back());
 
-    return (slope > 0.02 && speeds.size() > 5)
-            || (slope > 0.002 && speeds.size() > 14);
+    return slope > 0.005 && speeds.size() > 15;
 }
 
 bool FlyFilter::detectionPinv(const FlyFilter::PinvResult &pinvRes) const
@@ -702,7 +708,6 @@ bool FlyFilter::detectChip(const PinvResult &pinvRes) const
         const Eigen::Vector3f cam3d = m_cameraInfo->cameraPosition.value(m_kickFrames.back().cameraId);
         const Eigen::Vector2f cam(cam3d(0), cam3d(1));
         const double angleToCam = innerAngle(m_kickFrames.first().ballPos, cam, m_kickFrames.back().ballPos);
-        debug("detection/speed", true);
 
         if (numMeasurementsWithOwnCamera() > 10) { // MAGIC
             debug("detection/speed", true);
