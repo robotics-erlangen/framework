@@ -315,48 +315,41 @@ FlyFilter::IntersectionResult FlyFilter::calcIntersection(const PinvResult &pinv
     return res;
 }
 
-auto FlyFilter::approachPinvApply(const PinvResult &pinvRes) -> ChipReconstruction
+auto FlyFilter::approachPinvApply(const PinvResult &pinvRes) const -> ChipReconstruction
 {
     const ChipDetection firstInTheAir = m_kickFrames.at(m_shotStartFrame);
     ChipReconstruction result;
     result.chipStartPos = firstInTheAir.ballPos;
     result.chipStartTime = firstInTheAir.time;
 
-    const float z0 = pinvRes.z0;
-    const float vz = pinvRes.vz;
 
     result.groundSpeed = Eigen::Vector2f(pinvRes.vx, pinvRes.vy);
     result.zSpeed = pinvRes.vz;
 
-    if (pinvRes.distStartPos < 0.06) {
+    if (pinvRes.distStartPos < 0.06f) {
         result.chipStartPos = Eigen::Vector2f(pinvRes.x0, pinvRes.y0);
     }
 
-    const float t1 = (vz + sqrt(vz*vz + GRAVITY*z0*2)) / GRAVITY;
-    const float t2 = (vz - sqrt(vz*vz + GRAVITY*z0*2)) / GRAVITY;
-    const float T = (t1 < t2) ? t1 : t2;
-    debug("pinv/t2", t2);
-    debug("pinv/t1", t1);
-    debug("pinv/T", T);
+    // Compute the time the reconstruction thinks the shot started at ground level,
+    // relative to the detected shot start time.
+    // approachPinvApplicable guarantees that the ground plane will be reached.
+    const float z0 = pinvRes.z0;
+    const float vz = pinvRes.vz;
+    const float atGroundTime = (vz - sqrt(vz*vz + GRAVITY*z0*2)) / GRAVITY;
+    debug("pinv/at ground time", atGroundTime);
 
-    if (std::isnan(T)) {
-        debug("abort pinv", T);
-        resetFlightReconstruction();
-        return result;
-    }
-
-    if (pinvRes.distStartPos < 0.06) {
-        if (fabs(T) < 0.08) {
-            result.chipStartPos = result.chipStartPos+result.groundSpeed*T;
+    if (pinvRes.distStartPos < 0.06f) {
+        if (fabs(atGroundTime) < 0.08f) {
+            result.chipStartPos = result.chipStartPos + result.groundSpeed * atGroundTime;
         }
     }
 
-    if (fabs(T) < 0.08) {
-        result.zSpeed = pinvRes.vz - GRAVITY*T;
+    if (fabs(atGroundTime) < 0.08f) {
+        result.zSpeed = pinvRes.vz - GRAVITY * atGroundTime;
     }
 
-    if (fabs(T) < 0.04) { // maximum error 20ms at 50Hz
-        result.chipStartTime = firstInTheAir.time + T*NS_PER_SEC;
+    if (fabs(atGroundTime) < 0.04f) { // maximum error 20ms at 50Hz
+        result.chipStartTime = firstInTheAir.time + atGroundTime * NS_PER_SEC;
     }
     return result;
 }
@@ -464,9 +457,13 @@ bool FlyFilter::approachPinvApplicable(const FlyFilter::PinvResult &pinvRes) con
 
     const float z0 = pinvRes.z0;
     const float vz = pinvRes.vz;
+    // if z0 is so far lower than 0 or vz is very low, the flight trajectory might never reach the ground plane,
+    // this leads to problems later
+    const bool reconstructionReachesGround = vz*vz + GRAVITY*z0*2 >= 0;
     return  z0 > -0.5 && (z0 < 1 || (m_isActive && z0 < 4)) && vz > 1
             && pinvRes.distStartPos < 0.4 && vz < 10
-            && (std::isnan(vToProj) || vToProj < 0.7);
+            && (std::isnan(vToProj) || vToProj < 0.7)
+            && reconstructionReachesGround;
 }
 
 bool FlyFilter::approachIntersectApplicable(const FlyFilter::IntersectionResult &intRes) const

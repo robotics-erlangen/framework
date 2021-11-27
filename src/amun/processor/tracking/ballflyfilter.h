@@ -101,7 +101,7 @@ private:
     PinvResult calcPinv();
     IntersectionResult calcIntersection(const PinvResult &pinvRes) const;
 
-    ChipReconstruction approachPinvApply(const PinvResult& pinvRes);
+    ChipReconstruction approachPinvApply(const PinvResult& pinvRes) const;
     ChipReconstruction approachIntersectApply(const IntersectionResult &intRes) const;
     ChipReconstruction approachAreaApply();
 
