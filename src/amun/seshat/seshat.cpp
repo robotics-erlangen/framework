@@ -65,6 +65,7 @@ void Seshat::setStatusSource(std::shared_ptr<StatusSource> source)
             QCoreApplication::processEvents(QEventLoop::AllEvents | QEventLoop::WaitForMoreEvents, 50);
         }
         m_isPlayback = true;
+        m_replayLogger.handleStatus(m_logger.getTeamStatus());
     }
     emit changeStatusSource();
 }

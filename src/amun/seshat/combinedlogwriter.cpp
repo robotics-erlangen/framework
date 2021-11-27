@@ -336,6 +336,10 @@ Status CombinedLogWriter::getVisionGeometryStatus()
 
 void CombinedLogWriter::startLogfile()
 {
+    // add an empty status to the front of the log since applications like tracking replay might skip the first frame
+    Status emptyStatus(new amun::Status);
+    emptyStatus->set_time(m_lastTime);
+    m_logFile->writeStatus(emptyStatus);
     m_logFile->writeStatus(getTeamStatus());
     m_logFile->writeStatus(getVisionGeometryStatus());
     m_logState = LogState::LOGGING;
