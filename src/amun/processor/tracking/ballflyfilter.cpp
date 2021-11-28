@@ -29,7 +29,6 @@
 static const float floorDamping = 0.55; // robocup 2016: 0.67
 static const int MAX_FRAMES_PER_FLIGHT = 200; // 60Hz, 3 seconds in the air
 static const float ACCEPT_DIST = 0.35;
-static const float ACTIVE_DIST = 0.5; // must be greater or equal to accept dist
 static const int APPROACH_SWITCH_FRAMENO = 16;
 
 static const float GRAVITY = 9.81;
@@ -66,7 +65,7 @@ static bool monotonicRisingOneException(const QList<float>& points)
 
 bool FlyFilter::isActive() const
 {
-    return m_isActive && m_acceptDist < ACTIVE_DIST;
+    return m_isActive;
 }
 
 bool FlyFilter::checkIsShot()
@@ -892,24 +891,38 @@ FlyFilter::Prediction FlyFilter::predictTrajectory(qint64 time)
     }
 }
 
-bool FlyFilter::acceptDetection(const VisionFrame& frame)
+int FlyFilter::chooseDetection(const std::vector<VisionFrame> &frames)
 {
     // acceptance depends on prediction which makes no sense when not active
     // for activation of the filter the acceptance is not necessary
     // as the ground filter will accept a ball lying at the ground
     if (!m_isActive) {
-        return false;
+        return -1;
     }
-    const qint64 predTime = (frame.time < m_lastPredictionTime) ? m_lastPredictionTime : frame.time;
-    const auto pred = predictTrajectory(predTime);
-    const Eigen::Vector3f cam = m_cameraInfo->cameraPosition.value(frame.cameraId);
-    const float lambda = -cam(2) / (cam(2)-pred.pos(2));
-    const Eigen::Vector3f predGround = cam + (cam-pred.pos)*lambda;
-    const Eigen::Vector3f ball(frame.x, frame.y, 0);
+    // all frames will have the same time and camera id
+    // TODO: once predictTrajectory can go back in time, enable this code again
+    // for now, use the last detection position instead, even though it is not optimal
+//    const qint64 predTime = (frames.at(0).time < m_lastPredictionTime) ? m_lastPredictionTime : frames.at(0).time;
+//    const auto pred = predictTrajectory(predTime);
+//    const Eigen::Vector3f cam = m_cameraInfo->cameraPosition.value(frames.at(0).cameraId);
+//    const float lambda = -cam(2) / (cam(2)-pred.pos(2));
+//    const Eigen::Vector3f predGround = cam + (cam-pred.pos)*lambda;
+    const Eigen::Vector2f predGround = m_kickFrames.back().ballPos;
 
-    m_acceptDist = (ball - predGround).norm();
-    debug("accept dist", m_acceptDist);
-    return m_acceptDist < ACCEPT_DIST;
+    int bestDetection = -1;
+    float bestDistance = ACCEPT_DIST;
+    for (std::size_t i = 0;i<frames.size();i++) {
+        const VisionFrame &frame = frames[i];
+        const Eigen::Vector2f ball(frame.x, frame.y);
+        const float dist = (ball - predGround).norm();
+        if (dist < bestDistance) {
+            bestDetection = i;
+            bestDistance = dist;
+        }
+    }
+
+    debug("accept dist", bestDistance);
+    return bestDetection;
 }
 
 static float dist(float v0, float v1, float acc)

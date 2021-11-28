@@ -157,23 +157,9 @@ void Tracker::process(qint64 currentTime)
         }
 
         if (!m_robotsOnly) {
-            QList<RobotFilter *> bestRobots = getBestRobots(sourceTime);
+            const QList<RobotFilter *> bestRobots = getBestRobots(sourceTime);
+            trackBallDetections(detection, sourceTime, bestRobots, visionProcessingTime);
 
-            for (int i = 0; i < detection.balls_size(); i++) {
-
-                // filter out all ball detections originating from people on the field
-                // they can be identified by having many detections in a small area
-                const float RADIUS = 500; // in millimiter
-                const int MAX_NEAR_COUNT = 3;
-                const auto nearCount = std::count_if(detection.balls().begin(), detection.balls().end(), [&](const SSL_DetectionBall &ball) {
-                    return (Eigen::Vector2f(detection.balls(i).x(), detection.balls(i).y()) - Eigen::Vector2f(ball.x(), ball.y())).norm() < RADIUS;
-                });
-
-                if (nearCount <= MAX_NEAR_COUNT) {
-                    const qint64 captureTime = detection.t_capture() * 1E9;
-                    trackBall(detection.balls(i), sourceTime, detection.camera_id(), bestRobots, visionProcessingTime, captureTime);
-                }
-            }
             for (BallTracker * filter : m_ballFilter) {
                 filter->updateConfidence();
             }
@@ -516,48 +502,82 @@ static RobotInfo nearestRobotInfo(const QList<RobotFilter *> &robots, const SSL_
     return nearestRobot;
 }
 
-void Tracker::trackBall(const SSL_DetectionBall &ball, qint64 receiveTime, quint32 cameraId, const QList<RobotFilter *> &bestRobots,
-                        qint64 visionProcessingDelay, qint64 captureTime)
+void Tracker::trackBallDetections(const SSL_DetectionFrame &frame, qint64 receiveTime, const QList<RobotFilter *> &bestRobots,
+                                  qint64 visionProcessingDelay)
 {
+    const qint64 captureTime = frame.t_capture() * 1E9;
+    const quint32 cameraId = frame.camera_id();
 
-    if (m_aoiEnabled && !isInAOI(ball.x(), ball.y() , *m_fieldTransform, m_aoi_x1, m_aoi_y1, m_aoi_x2, m_aoi_y2)) {
+    if (!m_cameraInfo->cameraPosition.contains(cameraId)) {
         return;
     }
-    if (! m_cameraInfo->cameraPosition.contains(cameraId)) {
+
+    std::vector<VisionFrame> ballFrames;
+    ballFrames.reserve(frame.balls_size());
+    for (int i = 0; i < frame.balls_size(); i++) {
+
+        if (m_aoiEnabled && !isInAOI(frame.balls(i).x(), frame.balls(i).y() , *m_fieldTransform, m_aoi_x1, m_aoi_y1, m_aoi_x2, m_aoi_y2)) {
+            continue;
+        }
+
+        // filter out all ball detections originating from people on the field
+        // they can be identified by having many detections in a small area
+        const float RADIUS = 500; // in millimiter
+        const int MAX_NEAR_COUNT = 3;
+        const auto nearCount = std::count_if(frame.balls().begin(), frame.balls().end(), [&](const SSL_DetectionBall &ball) {
+            return (Eigen::Vector2f(frame.balls(i).x(), frame.balls(i).y()) - Eigen::Vector2f(ball.x(), ball.y())).norm() < RADIUS;
+        });
+
+        if (nearCount <= MAX_NEAR_COUNT) {
+            const RobotInfo robotInfo = nearestRobotInfo(bestRobots, frame.balls(i));
+            ballFrames.push_back(VisionFrame(frame.balls(i), receiveTime, cameraId, robotInfo, visionProcessingDelay, captureTime));
+        }
+    }
+
+    if (ballFrames.empty()) {
         return;
     }
-    RobotInfo robotInfo = nearestRobotInfo(bestRobots, ball);
 
-    bool acceptingFilterWithCamId = false;
-    BallTracker *acceptingFilterWithOtherCamId = nullptr;
+    bool detectionWasAccepted = false;
+    std::vector<bool> acceptingFilterWithCamId(ballFrames.size(), false);
+    std::vector<BallTracker*> acceptingFilterWithOtherCamId(ballFrames.size(), nullptr);
     for (BallTracker *filter : m_ballFilter) {
         filter->update(receiveTime);
-        if (filter->acceptDetection(ball, receiveTime, cameraId, robotInfo, visionProcessingDelay, captureTime)) {
+
+        // from a given vision packet, each filter can only accept one detection,
+        // since it is not possible to see the true ball multiple times
+        const int choice = filter->chooseDetection(ballFrames);
+        if (choice >= 0) {
             if (filter->primaryCamera() == cameraId) {
-                filter->addVisionFrame(ball, receiveTime, cameraId, robotInfo, visionProcessingDelay, captureTime);
-                acceptingFilterWithCamId = true;
+                filter->addVisionFrame(ballFrames.at(choice));
+                acceptingFilterWithCamId[choice] = true;
+                detectionWasAccepted = true;
             } else {
                 // remember filter for copying its state in case that no filter
                 // for the current camera does accept the frame
                 // ideally, you would choose which filter to use for this
-                acceptingFilterWithOtherCamId = filter;
+                acceptingFilterWithOtherCamId[choice] = filter;
             }
         }
     }
 
-    if (!acceptingFilterWithCamId) {
-        BallTracker* bt;
-        if (acceptingFilterWithOtherCamId != nullptr) {
-            // copy filter from old camera
-            bt = new BallTracker(*acceptingFilterWithOtherCamId, cameraId);
-        } else {
-            // create new Ball Filter without initial movement
-            bt = new BallTracker(ball, receiveTime, cameraId, m_cameraInfo, robotInfo, visionProcessingDelay, captureTime, *m_fieldTransform);
+    for (std::size_t i = 0;i<ballFrames.size();i++) {
+        if (!acceptingFilterWithCamId[i]) {
+            BallTracker* bt;
+            if (acceptingFilterWithOtherCamId[i] != nullptr) {
+                // copy filter from old camera
+                bt = new BallTracker(*acceptingFilterWithOtherCamId[i], cameraId);
+            } else {
+                // create new Ball Filter without initial movement
+                bt = new BallTracker(ballFrames[i], m_cameraInfo, *m_fieldTransform);
+            }
+            m_ballFilter.append(bt);
+            bt->addVisionFrame(ballFrames[i]);
         }
-        m_ballFilter.append(bt);
-        bt->addVisionFrame(ball, receiveTime, cameraId, robotInfo, visionProcessingDelay, captureTime);
-    } else {
-        // only prioritize when detection was accepted
+    }
+
+    if (detectionWasAccepted) {
+        // only prioritize when at least one detection was accepted
         prioritizeBallFilters();
     }
 }

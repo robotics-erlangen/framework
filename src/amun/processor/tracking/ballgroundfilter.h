@@ -34,13 +34,11 @@ public:
     GroundFilter(const GroundFilter& groundFilter, qint32 primaryCamera);
 
     void processVisionFrame(const VisionFrame& frame) override;
-    bool acceptDetection(const VisionFrame& frame) override;
     void writeBallState(world::Ball *ball, qint64 time, const QVector<RobotInfo> &robots, qint64 lastCameraFrameTime) override;
-    std::size_t chooseBall(const std::vector<VisionFrame> &frames) override;
+    // choosing detections is handled by the ballgroundcollisionfilter
+    int chooseDetection(const std::vector<VisionFrame>&) override { return -1; }
 
     void reset(const VisionFrame& frame);
-
-private:
     float distanceTo(Eigen::Vector2f objPos);
 
 private:

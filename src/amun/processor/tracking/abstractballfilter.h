@@ -68,10 +68,8 @@ public:
     AbstractBallFilter& operator=(AbstractBallFilter&&) = delete;
 
     virtual void processVisionFrame(VisionFrame const& frame)=0;
-    virtual bool acceptDetection(const VisionFrame& frame)=0;
+    virtual int chooseDetection(const std::vector<VisionFrame>& frames)=0;
     virtual void writeBallState(world::Ball *ball, qint64 predictionTime, const QVector<RobotInfo> &robots, qint64 lastCameraFrameTime)=0;
-    // this function is called when multiple mutually exclusive balls are available. Return the id of the best matching visionframe
-    virtual std::size_t chooseBall(const std::vector<VisionFrame> &frames) { return 0; }
 
     // camera id is necessary for debugging
     void moveToCamera(qint32 primaryCamera) {

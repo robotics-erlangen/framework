@@ -158,33 +158,11 @@ void GroundFilter::processVisionFrame(const VisionFrame& frame)
     m_lastUpdate = frame.time;
 }
 
-static float ACCEPT_DIST = 0.45; // FIXME mahalanobis
-bool GroundFilter::acceptDetection(const VisionFrame& frame)
-{
-    Eigen::Vector2f reportedPos(frame.x, frame.y);
-    return distanceTo(reportedPos) < ACCEPT_DIST;
-}
-
-std::size_t GroundFilter::chooseBall(const std::vector<VisionFrame> &frames)
-{
-    float minDistance = std::numeric_limits<float>::max();
-    std::size_t minIndex = 0;
-    for (std::size_t i = 0;i<frames.size();i++) {
-        float dist = distanceTo(Eigen::Vector2f(frames[i].x, frames[i].y));
-        if (dist < minDistance) {
-            minDistance = dist;
-            minIndex = i;
-        }
-    }
-    return minIndex;
-}
-
 float GroundFilter::distanceTo(Eigen::Vector2f objPos)
 {
     Eigen::Vector2f estimatedPos(m_kalman->state()(0), m_kalman->state()(1));
     return (objPos - estimatedPos).norm();
 }
-
 
 
 //float BallTracker::mahalanobisDistance(const SSL_DetectionBall &ball, qint64 time)

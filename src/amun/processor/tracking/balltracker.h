@@ -35,8 +35,7 @@ class DribbleFilter;
 class BallTracker : public Filter
 {
 public:
-    BallTracker(const SSL_DetectionBall &ball, qint64 last_time, qint32 primaryCamera, CameraInfo* cameraInfo,
-                RobotInfo robotInfo, qint64 visionProcessingDelay, qint64 captureTime, const FieldTransform &transform);
+    BallTracker(const VisionFrame &frame, CameraInfo* cameraInfo, const FieldTransform &transform);
     BallTracker(const BallTracker& previousFilter, qint32 primaryCamera);
     ~BallTracker() override;
     BallTracker(const BallTracker&) = delete;
@@ -46,8 +45,9 @@ public:
     void update(qint64 time);
     void updateConfidence();
     void get(world::Ball *ball, const FieldTransform &transform, bool resetRaw, const QVector<RobotInfo> &robots, qint64 lastCameraFrameTime); // writes to world state
-    void addVisionFrame(const SSL_DetectionBall& ball, qint64 time, qint32 cameraId, RobotInfo robotInfo, qint64 visionProcessingDelay, qint64 captureTime);
-    bool acceptDetection(const SSL_DetectionBall& ball, qint64 time, qint32 cameraId, RobotInfo robotInfo, qint64 visionProcessingDelay, qint64 captureTime);
+    void addVisionFrame(const VisionFrame &frame);
+    // returns a negative number to accept no frame
+    int chooseDetection(const std::vector<VisionFrame> &possibleFrames);
     void calcDistToCamera(bool flying);
     float cachedDistToCamera();
     bool isFlying() const;

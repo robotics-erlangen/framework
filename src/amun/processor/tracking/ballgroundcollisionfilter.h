@@ -36,9 +36,8 @@ public:
 
     void processVisionFrame(const VisionFrame& frame) override;
     void updateEmptyFrame(qint64 frameTime, const QVector<RobotInfo> &robots);
-    bool acceptDetection(const VisionFrame& frame) override;
     void writeBallState(world::Ball *ball, qint64 time, const QVector<RobotInfo> &robots, qint64 lastCameraFrameTime) override;
-    std::size_t chooseBall(const std::vector<VisionFrame> &frames) override;
+    int chooseDetection(const std::vector<VisionFrame> &frames) override;
 
     bool isFeasiblyInvisible() const { return m_feasiblyInvisible; };
 

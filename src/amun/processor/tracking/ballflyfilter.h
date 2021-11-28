@@ -33,7 +33,7 @@ public:
     FlyFilter(const FlyFilter &filter) = default;
 
     void processVisionFrame(const VisionFrame& frame) override;
-    bool acceptDetection(const VisionFrame& frame) override;
+    int chooseDetection(const std::vector<VisionFrame>& frames) override;
     void writeBallState(world::Ball *ball, qint64 predictionTime, const QVector<RobotInfo> &robots, qint64 lastCameraFrameTime) override;
     float distToStartPos() { return m_distToStartPos; }
 
@@ -70,7 +70,7 @@ private:
 
     struct ChipDetection {
         ChipDetection(float s, float as, float t, float ct, Eigen::Vector2f bp, Eigen::Vector2f dp,  float a, Eigen::Vector2f r, quint32 cid, bool cc, bool lc, int rid)
-            :  dribblerSpeed(s), absSpeed(as), time(t), captureTime(ct), ballPos(bp), dribblerPos(dp), robotPos(r), cameraId(cid), ballArea(a), chipCommand(cc), linearCommand(lc), robotId(rid)  {}
+            :  dribblerSpeed(s), absSpeed(as), time(t), captureTime(ct), ballPos(bp), dribblerPos(dp), robotPos(r), robotId(rid), cameraId(cid), ballArea(a), chipCommand(cc), linearCommand(lc)  {}
         ChipDetection(){} // make QVector happy
 
         float dribblerSpeed;
@@ -157,8 +157,6 @@ private:
     Eigen::MatrixXf m_D_coarseControl;
 
     qint64 m_lastPredictionTime;
-
-    float m_acceptDist = 0;
 };
 
 #endif // BALLFLYFILTER_H

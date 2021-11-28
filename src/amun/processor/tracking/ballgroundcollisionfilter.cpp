@@ -105,11 +105,24 @@ void BallGroundCollisionFilter::updateDribbleAndRotate(const VisionFrame &frame)
     m_rotateAndDribbleOffset = BallOffsetInfo(framePos, frame.robot, true, true);
 }
 
-bool BallGroundCollisionFilter::acceptDetection(const VisionFrame& frame)
+int BallGroundCollisionFilter::chooseDetection(const std::vector<VisionFrame> &frames)
 {
-    const float ACCEPT_BALL_DIST = 0.5f;
-    const float reportedBallDist = (m_lastReportedBallPos - Eigen::Vector2f(frame.x, frame.y)).norm();
-    return reportedBallDist < ACCEPT_BALL_DIST || m_groundFilter.acceptDetection(frame);
+    const float ACCEPT_BALL_DIST = 0.45f;
+    float minDistance = ACCEPT_BALL_DIST;
+    int bestFrame = -1;
+    for (std::size_t i = 0;i<frames.size();i++) {
+        const VisionFrame &frame = frames[i];
+        const Eigen::Vector2f framePos(frame.x, frame.y);
+        const float reportedBallDist = (m_lastReportedBallPos - framePos).norm();
+        const float groundFilterDist = m_groundFilter.distanceTo(framePos);
+
+        const float dist = std::min(reportedBallDist, groundFilterDist);
+        if (dist < minDistance) {
+            minDistance = dist;
+            bestFrame = i;
+        }
+    }
+    return bestFrame;
 }
 
 static auto intersectLineCircle(Eigen::Vector2f offset, Eigen::Vector2f dir, Eigen::Vector2f center, float radius)
@@ -533,9 +546,4 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
             return;
         }
     }
-}
-
-std::size_t BallGroundCollisionFilter::chooseBall(const std::vector<VisionFrame> &frames)
-{
-    return m_groundFilter.chooseBall(frames);
 }

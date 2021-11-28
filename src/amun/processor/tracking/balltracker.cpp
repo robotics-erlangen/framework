@@ -21,21 +21,18 @@
 #include "balltracker.h"
 #include "ballflyfilter.h"
 #include "ballgroundcollisionfilter.h"
-#include <random>
 
-BallTracker::BallTracker(const SSL_DetectionBall &ball, qint64 last_time, qint32 primaryCamera, CameraInfo *cameraInfo,
-                         RobotInfo robotInfo, qint64 visionProcessingTime, qint64 captureTime, const FieldTransform &transform) :
-    Filter(last_time),
-    m_lastUpdateTime(last_time),
+BallTracker::BallTracker(const VisionFrame &frame, CameraInfo *cameraInfo, const FieldTransform &transform) :
+    Filter(frame.time),
+    m_lastUpdateTime(frame.time),
     m_cameraInfo(cameraInfo),
-    m_initTime(last_time),
+    m_initTime(frame.time),
     m_lastFrameTime(0),
     m_confidence(0),
     m_updateFrameCounter(0),
     m_cachedDistToCamera(0)
 {
-    m_primaryCamera = primaryCamera;
-    VisionFrame frame(ball, last_time, primaryCamera, robotInfo, visionProcessingTime, captureTime);
+    m_primaryCamera = frame.cameraId;
     m_groundFilter = new BallGroundCollisionFilter(frame, cameraInfo, transform);
     m_flyFilter = new FlyFilter(frame, cameraInfo, transform);
 }
@@ -65,16 +62,15 @@ BallTracker::~BallTracker()
     delete m_groundFilter;
 }
 
-bool BallTracker::acceptDetection(const SSL_DetectionBall& ball, qint64 time, qint32 cameraId, RobotInfo robotInfo,
-                                  qint64 visionProcessingTime, qint64 captureTime)
+int BallTracker::chooseDetection(const std::vector<VisionFrame> &possibleFrames)
 {
-    VisionFrame frame(ball, time, cameraId, robotInfo, visionProcessingTime, captureTime);
-    bool accept = m_flyFilter->acceptDetection(frame) || m_groundFilter->acceptDetection(frame);
-    debug("accept", accept);
-    debug("acceptId", cameraId);
+    const int flyFilterChoice = m_flyFilter->chooseDetection(possibleFrames);
+    const int groundFilterChoice = m_groundFilter->chooseDetection(possibleFrames);
+    debug("accept", flyFilterChoice >= 0 || groundFilterChoice >= 0);
+    debug("acceptId", possibleFrames.at(0).cameraId);
     debug("age", std::to_string(initTime()).c_str());
     debug("confidence", m_confidence);
-    return accept;
+    return flyFilterChoice < 0 ? groundFilterChoice : flyFilterChoice;
 }
 
 void BallTracker::calcDistToCamera(bool flying)
@@ -109,30 +105,21 @@ void BallTracker::update(qint64 time)
 {
     // apply new vision frames
     while (!m_visionFrames.isEmpty()) {
-
-        if (m_visionFrames.first().time > time) {
+        const VisionFrame &frame = m_visionFrames.first();
+        if (frame.time > time) {
             break; // try again later
         }
 
-        // collect all frames with the same time, originating from the same camera image
-        // only one of these can be the real ball, so let the filters choose which one to use
-        std::vector<VisionFrame> sameTimeFrames;
-        sameTimeFrames.push_back(m_visionFrames.first());
-        m_visionFrames.removeFirst();
-        m_rawMeasurements.append(sameTimeFrames.back());
-        while (m_visionFrames.size() > 0 && m_visionFrames.first().time == sameTimeFrames.back().time) {
-            sameTimeFrames.push_back(m_visionFrames.first());
-            m_visionFrames.removeFirst();
-            m_rawMeasurements.append(sameTimeFrames.back());
-        }
+        m_flyFilter->processVisionFrame(frame);
+        m_groundFilter->processVisionFrame(frame);
+        m_rawMeasurements.append(frame);
 
-        m_flyFilter->processVisionFrame(sameTimeFrames[m_flyFilter->chooseBall(sameTimeFrames)]);
-        std::size_t chosenGroundFrame = m_groundFilter->chooseBall(sameTimeFrames);
-        m_groundFilter->processVisionFrame(sameTimeFrames[chosenGroundFrame]);
-
-        m_lastFrameTime = sameTimeFrames[0].time;
+        m_lastFrameTime = frame.time;
         m_lastTime = time;
-        m_lastBallPos = Eigen::Vector2f(sameTimeFrames[chosenGroundFrame].x, sameTimeFrames[chosenGroundFrame].y);
+        m_lastBallPos = Eigen::Vector2f(frame.x, frame.y);
+
+        // remove invalidates the reference to frame
+        m_visionFrames.removeFirst();
     }
     m_lastUpdateTime = time;
 #ifdef ENABLE_TRACKING_DEBUG
@@ -186,11 +173,10 @@ void BallTracker::get(world::Ball *ball, const FieldTransform &transform, bool r
     }
 }
 
-void BallTracker::addVisionFrame(const SSL_DetectionBall &ball, qint64 time, qint32 cameraId, RobotInfo robotInfo,
-                                 qint64 visionProcessingTime, qint64 captureTime)
+void BallTracker::addVisionFrame(const VisionFrame &frame)
 {
-    m_lastTime = time;
-    m_visionFrames.append(VisionFrame(ball, time, cameraId, robotInfo, visionProcessingTime, captureTime));
+    m_lastTime = frame.time;
+    m_visionFrames.append(frame);
     m_frameCounter++;
     m_updateFrameCounter++;
 }
