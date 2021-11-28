@@ -69,13 +69,14 @@ private:
     };
 
     struct ChipDetection {
-        ChipDetection(float s, float as, float t, Eigen::Vector2f bp, Eigen::Vector2f dp,  float a, Eigen::Vector2f r, quint32 cid, bool cc, bool lc, int rid)
-            :  dribblerSpeed(s), absSpeed(as), time(t), ballPos(bp), dribblerPos(dp), robotPos(r), cameraId(cid), ballArea(a), chipCommand(cc), linearCommand(lc), robotId(rid)  {}
+        ChipDetection(float s, float as, float t, float ct, Eigen::Vector2f bp, Eigen::Vector2f dp,  float a, Eigen::Vector2f r, quint32 cid, bool cc, bool lc, int rid)
+            :  dribblerSpeed(s), absSpeed(as), time(t), captureTime(ct), ballPos(bp), dribblerPos(dp), robotPos(r), cameraId(cid), ballArea(a), chipCommand(cc), linearCommand(lc), robotId(rid)  {}
         ChipDetection(){} // make QVector happy
 
         float dribblerSpeed;
         float absSpeed;
         float time; // in seconds since init of filter
+        float captureTime; // seconds since init of filter
         Eigen::Vector2f ballPos;
         Eigen::Vector2f dribblerPos;
         Eigen::Vector2f robotPos;

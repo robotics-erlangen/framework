@@ -140,7 +140,7 @@ FlyFilter::PinvResult FlyFilter::calcPinv()
 {
     ChipDetection firstInTheAir = m_kickFrames.at(m_shotStartFrame);
 
-    const float lowerTimeBound = firstInTheAir.time;
+    const float lowerTimeBound = firstInTheAir.captureTime;
     if (m_pinvDataInserted == 0) {
         m_pinvDataInserted = m_shotStartFrame-1;
     }
@@ -148,7 +148,7 @@ FlyFilter::PinvResult FlyFilter::calcPinv()
     const float y0 = firstInTheAir.ballPos(1);
     for (int i=m_pinvDataInserted+1; i<m_kickFrames.size(); i++) {
         const Eigen::Vector3f cam = m_cameraInfo->cameraPosition.value(m_kickFrames.at(i).cameraId);
-        const float t_i = m_kickFrames.at(i).time - lowerTimeBound;
+        const float t_i = m_kickFrames.at(i).captureTime - lowerTimeBound;
         const float x = m_kickFrames.at(i).ballPos(0);
         const float y = m_kickFrames.at(i).ballPos(1);
         const float alpha = (x-cam(0)) / cam(2);
@@ -241,7 +241,7 @@ FlyFilter::PinvResult FlyFilter::calcPinv()
         }
     }
     const float refSpeed = (firstInTheAir.ballPos - m_kickFrames.back().ballPos).norm()
-                     / (m_kickFrames.back().time - firstInTheAir.time);
+                     / (m_kickFrames.back().captureTime - firstInTheAir.captureTime);
     debug("pinv_params/ground speed raw", refSpeed);
     res.refSpeed = refSpeed;
 
@@ -738,7 +738,8 @@ auto FlyFilter::createChipDetection(const VisionFrame& frame) const -> ChipDetec
         absSpeed = (reportedBallPos-m_shotDetectionWindow.back().ballPos).norm() / timeDiff;
     }
 
-    return ChipDetection(dribblerSpeed, absSpeed, timeSinceInit,
+    const float captureTime = toLocalTime(frame.captureTime);
+    return ChipDetection(dribblerSpeed, absSpeed, timeSinceInit, captureTime,
                          reportedBallPos, frame.robot.dribblerPos, frame.ballArea, frame.robot.robotPos,
                          frame.cameraId, frame.chipCommand, frame.linearCommand, frame.robot.identifier);
 }

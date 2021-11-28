@@ -24,7 +24,7 @@
 #include <random>
 
 BallTracker::BallTracker(const SSL_DetectionBall &ball, qint64 last_time, qint32 primaryCamera, CameraInfo *cameraInfo,
-                         RobotInfo robotInfo, qint64 visionProcessingTime, const FieldTransform &transform) :
+                         RobotInfo robotInfo, qint64 visionProcessingTime, qint64 captureTime, const FieldTransform &transform) :
     Filter(last_time),
     m_lastUpdateTime(last_time),
     m_cameraInfo(cameraInfo),
@@ -35,7 +35,7 @@ BallTracker::BallTracker(const SSL_DetectionBall &ball, qint64 last_time, qint32
     m_cachedDistToCamera(0)
 {
     m_primaryCamera = primaryCamera;
-    VisionFrame frame(ball, last_time, primaryCamera, robotInfo, visionProcessingTime);
+    VisionFrame frame(ball, last_time, primaryCamera, robotInfo, visionProcessingTime, captureTime);
     m_groundFilter = new BallGroundCollisionFilter(frame, cameraInfo, transform);
     m_flyFilter = new FlyFilter(frame, cameraInfo, transform);
 }
@@ -65,9 +65,10 @@ BallTracker::~BallTracker()
     delete m_groundFilter;
 }
 
-bool BallTracker::acceptDetection(const SSL_DetectionBall& ball, qint64 time, qint32 cameraId, RobotInfo robotInfo, qint64 visionProcessingTime)
+bool BallTracker::acceptDetection(const SSL_DetectionBall& ball, qint64 time, qint32 cameraId, RobotInfo robotInfo,
+                                  qint64 visionProcessingTime, qint64 captureTime)
 {
-    VisionFrame frame(ball, time, cameraId, robotInfo, visionProcessingTime);
+    VisionFrame frame(ball, time, cameraId, robotInfo, visionProcessingTime, captureTime);
     bool accept = m_flyFilter->acceptDetection(frame) || m_groundFilter->acceptDetection(frame);
     debug("accept", accept);
     debug("acceptId", cameraId);
@@ -185,10 +186,11 @@ void BallTracker::get(world::Ball *ball, const FieldTransform &transform, bool r
     }
 }
 
-void BallTracker::addVisionFrame(const SSL_DetectionBall &ball, qint64 time, qint32 cameraId, RobotInfo robotInfo, qint64 visionProcessingTime)
+void BallTracker::addVisionFrame(const SSL_DetectionBall &ball, qint64 time, qint32 cameraId, RobotInfo robotInfo,
+                                 qint64 visionProcessingTime, qint64 captureTime)
 {
     m_lastTime = time;
-    m_visionFrames.append(VisionFrame(ball, time, cameraId, robotInfo, visionProcessingTime));
+    m_visionFrames.append(VisionFrame(ball, time, cameraId, robotInfo, visionProcessingTime, captureTime));
     m_frameCounter++;
     m_updateFrameCounter++;
 }

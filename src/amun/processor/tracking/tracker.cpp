@@ -132,8 +132,7 @@ void Tracker::process(qint64 currentTime)
 
         const SSL_DetectionFrame &detection = wrapper.detection();
         const qint64 visionProcessingTime = (detection.t_sent() - detection.t_capture()) * 1E9;
-        // time on the field for which the frame was captured
-        // with Timer::currentTime being now
+        // time on the field for which the frame was captured as seen by this computers clock
         const qint64 sourceTime = p.time - visionProcessingTime - m_systemDelay;
 
         // delayed reset to clear frames older than the reset command
@@ -171,7 +170,8 @@ void Tracker::process(qint64 currentTime)
                 });
 
                 if (nearCount <= MAX_NEAR_COUNT) {
-                    trackBall(detection.balls(i), sourceTime, detection.camera_id(), bestRobots, visionProcessingTime);
+                    const qint64 captureTime = detection.t_capture() * 1E9;
+                    trackBall(detection.balls(i), sourceTime, detection.camera_id(), bestRobots, visionProcessingTime, captureTime);
                 }
             }
             for (BallTracker * filter : m_ballFilter) {
@@ -516,7 +516,8 @@ static RobotInfo nearestRobotInfo(const QList<RobotFilter *> &robots, const SSL_
     return nearestRobot;
 }
 
-void Tracker::trackBall(const SSL_DetectionBall &ball, qint64 receiveTime, quint32 cameraId, const QList<RobotFilter *> &bestRobots, qint64 visionProcessingDelay)
+void Tracker::trackBall(const SSL_DetectionBall &ball, qint64 receiveTime, quint32 cameraId, const QList<RobotFilter *> &bestRobots,
+                        qint64 visionProcessingDelay, qint64 captureTime)
 {
 
     if (m_aoiEnabled && !isInAOI(ball.x(), ball.y() , *m_fieldTransform, m_aoi_x1, m_aoi_y1, m_aoi_x2, m_aoi_y2)) {
@@ -531,9 +532,9 @@ void Tracker::trackBall(const SSL_DetectionBall &ball, qint64 receiveTime, quint
     BallTracker *acceptingFilterWithOtherCamId = nullptr;
     for (BallTracker *filter : m_ballFilter) {
         filter->update(receiveTime);
-        if (filter->acceptDetection(ball, receiveTime, cameraId, robotInfo, visionProcessingDelay)) {
+        if (filter->acceptDetection(ball, receiveTime, cameraId, robotInfo, visionProcessingDelay, captureTime)) {
             if (filter->primaryCamera() == cameraId) {
-                filter->addVisionFrame(ball, receiveTime, cameraId, robotInfo, visionProcessingDelay);
+                filter->addVisionFrame(ball, receiveTime, cameraId, robotInfo, visionProcessingDelay, captureTime);
                 acceptingFilterWithCamId = true;
             } else {
                 // remember filter for copying its state in case that no filter
@@ -551,10 +552,10 @@ void Tracker::trackBall(const SSL_DetectionBall &ball, qint64 receiveTime, quint
             bt = new BallTracker(*acceptingFilterWithOtherCamId, cameraId);
         } else {
             // create new Ball Filter without initial movement
-            bt = new BallTracker(ball, receiveTime, cameraId, m_cameraInfo, robotInfo, visionProcessingDelay, *m_fieldTransform);
+            bt = new BallTracker(ball, receiveTime, cameraId, m_cameraInfo, robotInfo, visionProcessingDelay, captureTime, *m_fieldTransform);
         }
         m_ballFilter.append(bt);
-        bt->addVisionFrame(ball, receiveTime, cameraId, robotInfo, visionProcessingDelay);
+        bt->addVisionFrame(ball, receiveTime, cameraId, robotInfo, visionProcessingDelay, captureTime);
     } else {
         // only prioritize when detection was accepted
         prioritizeBallFilters();
