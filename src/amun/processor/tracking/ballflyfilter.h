@@ -63,7 +63,7 @@ private:
     // fully describes the current chip
     struct ChipReconstruction {
         Eigen::Vector2f chipStartPos;
-        qint64 chipStartTime;
+        float chipStartTime; //seconds
         Eigen::Vector2f groundSpeed;
         float zSpeed;
     };
@@ -75,7 +75,7 @@ private:
 
         float dribblerSpeed;
         float absSpeed;
-        float time; // in ns, since init of filter
+        float time; // in seconds since init of filter
         Eigen::Vector2f ballPos;
         Eigen::Vector2f dribblerPos;
         Eigen::Vector2f robotPos;
@@ -87,6 +87,7 @@ private:
     };
 
     ChipDetection createChipDetection(const VisionFrame& frame) const;
+    float toLocalTime(qint64 time) const; // returns a result in seconds, relative to the initialization of the filter
 
     bool detectionCurviness(const PinvResult& pinvRes) const;
     bool detectionHeight() const;
@@ -135,7 +136,7 @@ private:
     Eigen::Vector2f m_touchdownPos;
 
     bool m_bouncing;
-    qint64 m_bounceStartTime;
+    float m_bounceStartTime;
     float m_bounceZSpeed;
     Eigen::Vector2f m_bounceStartPos;
     Eigen::Vector2f m_bounceGroundSpeed;
