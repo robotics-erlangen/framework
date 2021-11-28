@@ -33,7 +33,7 @@ static const float ACTIVE_DIST = 0.5; // must be greater or equal to accept dist
 static const int APPROACH_SWITCH_FRAMENO = 16;
 
 static const float GRAVITY = 9.81;
-static const double NS_PER_SEC = 1000000000.0;
+static const float NS_PER_SEC = 1000000000.0f;
 
 FlyFilter::FlyFilter(const VisionFrame& frame, CameraInfo* cameraInfo, const FieldTransform &transform) :
     AbstractBallFilter(frame, cameraInfo, transform),
@@ -76,8 +76,8 @@ bool FlyFilter::checkIsShot()
         return false;
     }
 
-    const double dist = (m_shotDetectionWindow.at(1).ballPos - m_shotDetectionWindow.at(3).ballPos).norm();
-    const double timeDiff = (m_shotDetectionWindow.at(3).time - m_shotDetectionWindow.at(1).time) / NS_PER_SEC;
+    const float dist = (m_shotDetectionWindow.at(1).ballPos - m_shotDetectionWindow.at(3).ballPos).norm();
+    const float timeDiff = (m_shotDetectionWindow.at(3).time - m_shotDetectionWindow.at(1).time) / NS_PER_SEC;
     const float absSpeed = dist / timeDiff;
 
     if (m_shotDetectionWindow.at(1).dribblerSpeed > m_shotDetectionWindow.at(0).dribblerSpeed
@@ -141,7 +141,7 @@ FlyFilter::PinvResult FlyFilter::calcPinv()
 {
     ChipDetection firstInTheAir = m_kickFrames.at(m_shotStartFrame);
 
-    const double lowerTimeBound = firstInTheAir.time;
+    const float lowerTimeBound = firstInTheAir.time;
     if (m_pinvDataInserted == 0) {
         m_pinvDataInserted = m_shotStartFrame-1;
     }
@@ -149,12 +149,12 @@ FlyFilter::PinvResult FlyFilter::calcPinv()
     const float y0 = firstInTheAir.ballPos(1);
     for (int i=m_pinvDataInserted+1; i<m_kickFrames.size(); i++) {
         const Eigen::Vector3f cam = m_cameraInfo->cameraPosition.value(m_kickFrames.at(i).cameraId);
-        const double time = m_kickFrames.at(i).time - lowerTimeBound;
-        const double x = m_kickFrames.at(i).ballPos(0);
-        const double y = m_kickFrames.at(i).ballPos(1);
-        const double t_i = time / NS_PER_SEC; // seconds
-        const double alpha = (x-cam(0)) / cam(2);
-        const double beta = (y-cam(1)) / cam(2);
+        const float time = m_kickFrames.at(i).time - lowerTimeBound;
+        const float x = m_kickFrames.at(i).ballPos(0);
+        const float y = m_kickFrames.at(i).ballPos(1);
+        const float t_i = time / NS_PER_SEC; // seconds
+        const float alpha = (x-cam(0)) / cam(2);
+        const float beta = (y-cam(1)) / cam(2);
 
         m_D_detailed(i*2, 0) = alpha;
         m_D_detailed(i*2, 1) = alpha*t_i;
@@ -269,11 +269,11 @@ FlyFilter::IntersectionResult FlyFilter::calcIntersection(const PinvResult &pinv
 
     const Eigen::Vector2f S = m_kickFrames.at(m_shotStartFrame).ballPos;
     const Eigen::Vector2f V = S+vGround;
-    const double startTime = m_kickFrames.at(m_shotStartFrame).time;
+    const float startTime = m_kickFrames.at(m_shotStartFrame).time;
 
     int numZSpeeds = 0;
-    double zSpeed = 0;
-    double groundSpeedLength = 0;
+    float zSpeed = 0;
+    float groundSpeedLength = 0;
     for (int i=m_shotStartFrame+1; i < m_kickFrames.size(); i++) {
         const ChipDetection& f = m_kickFrames.at(i);
         const Eigen::Vector3f cam = m_cameraInfo->cameraPosition.value(f.cameraId);
@@ -283,14 +283,14 @@ FlyFilter::IntersectionResult FlyFilter::calcIntersection(const PinvResult &pinv
 
         debugLine("sp", S(0), S(1), V(0), V(1), 1);
         debugLine("pr", K(0), K(1), P(0), P(1), 2);
-        const double numerator = (K(1)-S(1))/(V(1)-S(1)) - (K(0)-S(0))/(V(0)-S(0));
-        const double denominator = (P(0)-K(0))/(V(0)-S(0)) - (P(1)-K(1))/(V(1)-S(1));
-        const double mu = numerator/denominator;
+        const float numerator = (K(1)-S(1))/(V(1)-S(1)) - (K(0)-S(0))/(V(0)-S(0));
+        const float denominator = (P(0)-K(0))/(V(0)-S(0)) - (P(1)-K(1))/(V(1)-S(1));
+        const float mu = numerator/denominator;
         const Eigen::Vector2f intersection = K + (P-K) * mu;
         debugCircle("intersection", intersection(0), intersection(1), 0.04);
 
-        const double timeDiff = ((f.time - startTime) / NS_PER_SEC);
-        const double speed = (S - intersection).norm() / timeDiff;
+        const float timeDiff = ((f.time - startTime) / NS_PER_SEC);
+        const float speed = (S - intersection).norm() / timeDiff;
         groundSpeedLength += speed;
 
         const float H = cam(2);
@@ -386,16 +386,16 @@ auto FlyFilter::approachAreaApply() -> ChipReconstruction
     ballRadius /= (endR-startR);
     debug("ball radius", ballRadius);
 
-    double speedXSum = 0.0;
-    double speedYSum = 0.0;
+    float speedXSum = 0.0;
+    float speedYSum = 0.0;
     const int start = m_shotStartFrame+2; // m_shotStartFrame+1 is first in the air
     const int end = m_kickFrames.size();
     for (int i=start; i<end; i++) {
         const ChipDetection& m = m_kickFrames.at(i);
         const auto timeDiff = (m.time - firstInTheAir.time) / NS_PER_SEC;
         const Eigen::Vector3f unprojPos = unproject(m, ballRadius);
-        const double xDist = unprojPos(0) - firstInTheAir.ballPos(0);
-        const double yDist = unprojPos(1) - firstInTheAir.ballPos(1);
+        const float xDist = unprojPos(0) - firstInTheAir.ballPos(0);
+        const float yDist = unprojPos(1) - firstInTheAir.ballPos(1);
         speedXSum += xDist/timeDiff;
         speedYSum += yDist/timeDiff;
     }
@@ -410,12 +410,12 @@ auto FlyFilter::approachAreaApply() -> ChipReconstruction
 
     debugLine("calc dir", firstInTheAir.ballPos(0), firstInTheAir.ballPos(1), firstInTheAir.ballPos(0)+speed(0), firstInTheAir.ballPos(1)+speed(1));
 
-    const double startTime = m_kickFrames.at(m_shotStartFrame).time;
+    const float startTime = m_kickFrames.at(m_shotStartFrame).time;
     for (int i=start; i<end; i++) {
         const ChipDetection& m = m_kickFrames.at(i);
-        const double time = (m.time - startTime) / NS_PER_SEC;
+        const float time = (m.time - startTime) / NS_PER_SEC;
         const Eigen::Vector3f unprojPos = unproject(m, ballRadius);
-        const double height = unprojPos(2);
+        const float height = unprojPos(2);
 
         m_flyFitter.addPoint(time, height);
     }
@@ -603,16 +603,16 @@ bool FlyFilter::detectionSpeed() const
             // bad geometry calibration may lead to virtual accelerations
             continue;
         }
-        const double dist = (m_kickFrames.at(i).ballPos - m_kickFrames.at(i-1).ballPos).norm();
-        const double timeDiff = (m_kickFrames.at(i).time - m_kickFrames.at(i-1).time) / NS_PER_SEC;
+        const float dist = (m_kickFrames.at(i).ballPos - m_kickFrames.at(i-1).ballPos).norm();
+        const float timeDiff = (m_kickFrames.at(i).time - m_kickFrames.at(i-1).time) / NS_PER_SEC;
         speeds.append(dist/timeDiff);
     }
     const float avg = std::accumulate(speeds.begin(), speeds.end(), 0.0) / speeds.size();
 
-    double xSum = 0;
-    double valSum = 0;
-    double xSumSq = 0;
-    double valXSum = 0;
+    float xSum = 0;
+    float valSum = 0;
+    float xSumSq = 0;
+    float valXSum = 0;
     int n = speeds.size()-1;
     for(int i=1; i<speeds.size(); i++) {
         if (speeds.at(i) > 1.4*avg) {
@@ -625,7 +625,7 @@ bool FlyFilter::detectionSpeed() const
         valSum += speeds.at(i);
         valXSum += i*speeds.at(i);
     }
-    double slope = (n * valXSum - xSum * valSum) / (n * xSumSq - xSum * xSum);
+    float slope = (n * valXSum - xSum * valSum) / (n * xSumSq - xSum * xSum);
     slope /= valSum / n;
 
     debug("detection speed/slope", slope);
@@ -644,7 +644,7 @@ bool FlyFilter::detectionPinv(const FlyFilter::PinvResult &pinvRes) const
     const float maxFlightDurationHalf = vz / GRAVITY;
     const float maxFlightDuration = maxFlightDurationHalf*2;
     const float maxHeight = vz*maxFlightDurationHalf - (GRAVITY * 0.5f) *maxFlightDurationHalf*maxFlightDurationHalf;
-    const double timeElapsed = (m_kickFrames.back().time - m_chipReconstruction.chipStartTime) / NS_PER_SEC;
+    const float timeElapsed = (m_kickFrames.back().time - m_chipReconstruction.chipStartTime) / NS_PER_SEC;
 
     const float flightDistGroundCalc = vz*timeElapsed;
     const float flightDistMeasured = (m_kickFrames.front().ballPos - m_kickFrames.back().ballPos).norm();
@@ -808,8 +808,8 @@ void FlyFilter::processVisionFrame(const VisionFrame& frame)
 FlyFilter::Prediction FlyFilter::predictTrajectory(qint64 time)
 {
     m_lastPredictionTime = time;
-    const double flightDuration = 2*m_chipReconstruction.zSpeed / GRAVITY;
-    const double t = (time - (m_chipReconstruction.chipStartTime + m_initTime)) / NS_PER_SEC;
+    const float flightDuration = 2*m_chipReconstruction.zSpeed / GRAVITY;
+    const float t = (time - (m_chipReconstruction.chipStartTime + m_initTime)) / NS_PER_SEC;
 
     debug("flight duration", flightDuration);
     debug("flight time passed", t);
@@ -830,7 +830,7 @@ FlyFilter::Prediction FlyFilter::predictTrajectory(qint64 time)
             m_bounceStartPos = m_touchdownPos;
         } else {
             const float bounceFlightDuration = 2*m_bounceZSpeed / GRAVITY;
-            const double bounceTime = (time - (m_bounceStartTime + m_initTime)) / NS_PER_SEC;
+            const float bounceTime = (time - (m_bounceStartTime + m_initTime)) / NS_PER_SEC;
             debug("bounce/time", bounceTime);
             if (bounceTime > bounceFlightDuration) {
                 m_bounceStartTime = m_bounceStartTime + bounceFlightDuration*NS_PER_SEC;
@@ -855,7 +855,7 @@ FlyFilter::Prediction FlyFilter::predictTrajectory(qint64 time)
     }
 
     if (m_bouncing) {
-        double groundSpeed = 0;
+        float groundSpeed = 0;
         int num = 0;
         for (int i=m_kickFrames.size()-1; i>0 && i>m_kickFrames.size()-5; i--) {
             const ChipDetection& first = m_kickFrames.at(i);
@@ -870,7 +870,7 @@ FlyFilter::Prediction FlyFilter::predictTrajectory(qint64 time)
         const float bounceTime = (time - (m_bounceStartTime + m_initTime)) / NS_PER_SEC;
         const Eigen::Vector2f groundPos = m_bounceStartPos + m_bounceGroundSpeed.normalized() * groundSpeed * bounceTime;
 
-        const double zSpeed = m_bounceZSpeed - GRAVITY * bounceTime;
+        const float zSpeed = m_bounceZSpeed - GRAVITY * bounceTime;
         const float zPos = bounceTime * m_bounceZSpeed - 0.5f * GRAVITY * bounceTime * bounceTime;
         debug("bounce/zSpeed", zSpeed);
         debug("bounce/zPos", zPos);
@@ -881,7 +881,7 @@ FlyFilter::Prediction FlyFilter::predictTrajectory(qint64 time)
         return Prediction(groundPos, zPos, m_chipReconstruction.groundSpeed, zSpeed);
     } else {
         const Eigen::Vector2f groundPos = m_chipReconstruction.chipStartPos + m_chipReconstruction.groundSpeed * t;
-        const double zSpeed = m_chipReconstruction.zSpeed -  GRAVITY * t;
+        const float zSpeed = m_chipReconstruction.zSpeed -  GRAVITY * t;
         const float zPos = t * m_chipReconstruction.zSpeed - 0.5f*GRAVITY*t*t;
         return Prediction(groundPos, zPos, m_chipReconstruction.groundSpeed, zSpeed);
     }

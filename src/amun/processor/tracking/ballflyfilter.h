@@ -75,7 +75,7 @@ private:
 
         float dribblerSpeed;
         float absSpeed;
-        double time; // in ns
+        float time; // in ns, since init of filter
         Eigen::Vector2f ballPos;
         Eigen::Vector2f dribblerPos;
         Eigen::Vector2f robotPos;
