@@ -26,24 +26,6 @@
 #include "protobuf/ssl_detection.pb.h"
 #include "protobuf/world.pb.h"
 
-struct ChipDetection {
-    ChipDetection(float s, float as, float t, Eigen::Vector2f bp, Eigen::Vector2f dp,  float a, Eigen::Vector2f r, quint32 cid, bool cc, bool lc, int rid)
-        :  dribblerSpeed(s), absSpeed(as), time(t), ballPos(bp), dribblerPos(dp), robotPos(r), cameraId(cid), ballArea(a), chipCommand(cc), linearCommand(lc), robotId(rid)  {}
-    ChipDetection(){} // make QVector happy
-
-    float dribblerSpeed;
-    float absSpeed;
-    double time; // in ns
-    Eigen::Vector2f ballPos;
-    Eigen::Vector2f dribblerPos;
-    Eigen::Vector2f robotPos;
-    int robotId;
-    quint32 cameraId;
-    float ballArea;
-    bool chipCommand;
-    bool linearCommand;
-};
-
 class FlyFilter : public AbstractBallFilter
 {
 public:
@@ -85,6 +67,26 @@ private:
         Eigen::Vector2f groundSpeed;
         float zSpeed;
     };
+
+    struct ChipDetection {
+        ChipDetection(float s, float as, float t, Eigen::Vector2f bp, Eigen::Vector2f dp,  float a, Eigen::Vector2f r, quint32 cid, bool cc, bool lc, int rid)
+            :  dribblerSpeed(s), absSpeed(as), time(t), ballPos(bp), dribblerPos(dp), robotPos(r), cameraId(cid), ballArea(a), chipCommand(cc), linearCommand(lc), robotId(rid)  {}
+        ChipDetection(){} // make QVector happy
+
+        float dribblerSpeed;
+        float absSpeed;
+        double time; // in ns
+        Eigen::Vector2f ballPos;
+        Eigen::Vector2f dribblerPos;
+        Eigen::Vector2f robotPos;
+        int robotId;
+        quint32 cameraId;
+        float ballArea;
+        bool chipCommand;
+        bool linearCommand;
+    };
+
+    ChipDetection createChipDetection(const VisionFrame& frame) const;
 
     bool detectionCurviness(const PinvResult& pinvRes) const;
     bool detectionHeight() const;
