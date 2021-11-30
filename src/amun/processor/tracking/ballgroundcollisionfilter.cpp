@@ -105,7 +105,7 @@ void BallGroundCollisionFilter::updateDribbleAndRotate(const VisionFrame &frame)
     m_rotateAndDribbleOffset = BallOffsetInfo(framePos, frame.robot, true, true);
 }
 
-int BallGroundCollisionFilter::chooseDetection(const std::vector<VisionFrame> &frames)
+int BallGroundCollisionFilter::chooseDetection(const std::vector<VisionFrame> &frames) const
 {
     const float ACCEPT_BALL_DIST = 0.45f;
     float minDistance = ACCEPT_BALL_DIST;
@@ -300,7 +300,7 @@ static RobotInfo pastToCurrentRobotInfo(const RobotInfo &robot)
     return result;
 }
 
-bool BallGroundCollisionFilter::checkFeasibleInvisibility(const QVector<RobotInfo> &robots)
+bool BallGroundCollisionFilter::checkFeasibleInvisibility(const QVector<RobotInfo> &robots) const
 {
     Eigen::Vector2f ballPos(m_pastBallState.p_x(), m_pastBallState.p_y());
     if (m_dribbleOffset) {
@@ -373,7 +373,7 @@ void BallGroundCollisionFilter::updateDribbling(const QVector<RobotInfo> &robots
     }
 }
 
-bool BallGroundCollisionFilter::handleDribbling(world::Ball *ball, const QVector<RobotInfo> &robots, bool overwriteBallSpeed)
+bool BallGroundCollisionFilter::handleDribbling(world::Ball *ball, const QVector<RobotInfo> &robots, bool overwriteBallSpeed) const
 {
     const int identifier = m_dribbleOffset->robotIdentifier;
     auto robot = std::find_if(robots.begin(), robots.end(), [identifier](const RobotInfo &robot) { return robot.identifier == identifier; });
@@ -407,7 +407,7 @@ bool BallGroundCollisionFilter::handleDribbling(world::Ball *ball, const QVector
 }
 
 bool BallGroundCollisionFilter::checkBallRobotIntersection(world::Ball *ball, const RobotInfo &robot, bool overwriteBallSpeed,
-                                                           const Eigen::Vector2f pastPos, const Eigen::Vector2f currentPos)
+                                                           const Eigen::Vector2f pastPos, const Eigen::Vector2f currentPos) const
 {
     Eigen::Vector2f outsideRobotPastPos = pastPos;
     const bool pastInsideCurrent = isInsideRobot(pastPos, robot.robotPos, robot.dribblerPos, ROBOT_RADIUS, 1.01f);

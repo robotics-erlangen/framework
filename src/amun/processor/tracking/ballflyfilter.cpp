@@ -884,7 +884,7 @@ FlyFilter::Prediction FlyFilter::predictTrajectory(float time) const
     return Prediction(groundPos, zPos, flight.groundSpeed, zSpeed, flight.touchdownPos());
 }
 
-int FlyFilter::chooseDetection(const std::vector<VisionFrame> &frames)
+int FlyFilter::chooseDetection(const std::vector<VisionFrame> &frames) const
 {
     // acceptance depends on prediction which makes no sense when not active
     // for activation of the filter the acceptance is not necessary

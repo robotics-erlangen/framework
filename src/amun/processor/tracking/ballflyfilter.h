@@ -33,7 +33,7 @@ public:
     FlyFilter(const FlyFilter &filter) = default;
 
     void processVisionFrame(const VisionFrame& frame) override;
-    int chooseDetection(const std::vector<VisionFrame>& frames) override;
+    int chooseDetection(const std::vector<VisionFrame>& frames) const override;
     void writeBallState(world::Ball *ball, qint64 predictionTime, const QVector<RobotInfo> &robots, qint64 lastCameraFrameTime) override;
     float distToStartPos() { return m_distToStartPos; }
 

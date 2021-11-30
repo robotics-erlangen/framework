@@ -36,10 +36,10 @@ public:
     void processVisionFrame(const VisionFrame& frame) override;
     void writeBallState(world::Ball *ball, qint64 time, const QVector<RobotInfo> &robots, qint64 lastCameraFrameTime) override;
     // choosing detections is handled by the ballgroundcollisionfilter
-    int chooseDetection(const std::vector<VisionFrame>&) override { return -1; }
+    int chooseDetection(const std::vector<VisionFrame>&) const override { return -1; }
 
     void reset(const VisionFrame& frame);
-    float distanceTo(Eigen::Vector2f objPos);
+    float distanceTo(Eigen::Vector2f objPos) const;
 
 private:
     std::unique_ptr<Kalman> m_kalman;

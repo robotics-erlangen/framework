@@ -158,7 +158,7 @@ void GroundFilter::processVisionFrame(const VisionFrame& frame)
     m_lastUpdate = frame.time;
 }
 
-float GroundFilter::distanceTo(Eigen::Vector2f objPos)
+float GroundFilter::distanceTo(Eigen::Vector2f objPos) const
 {
     Eigen::Vector2f estimatedPos(m_kalman->state()(0), m_kalman->state()(1));
     return (objPos - estimatedPos).norm();

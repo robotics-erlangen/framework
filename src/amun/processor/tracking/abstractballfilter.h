@@ -68,7 +68,7 @@ public:
     AbstractBallFilter& operator=(AbstractBallFilter&&) = delete;
 
     virtual void processVisionFrame(VisionFrame const& frame)=0;
-    virtual int chooseDetection(const std::vector<VisionFrame>& frames)=0;
+    virtual int chooseDetection(const std::vector<VisionFrame>& frames) const =0;
     virtual void writeBallState(world::Ball *ball, qint64 predictionTime, const QVector<RobotInfo> &robots, qint64 lastCameraFrameTime)=0;
 
     // camera id is necessary for debugging

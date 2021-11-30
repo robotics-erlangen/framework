@@ -35,9 +35,8 @@ public:
     BallGroundCollisionFilter(const BallGroundCollisionFilter& filter, qint32 primaryCamera);
 
     void processVisionFrame(const VisionFrame& frame) override;
-    void updateEmptyFrame(qint64 frameTime, const QVector<RobotInfo> &robots);
     void writeBallState(world::Ball *ball, qint64 time, const QVector<RobotInfo> &robots, qint64 lastCameraFrameTime) override;
-    int chooseDetection(const std::vector<VisionFrame> &frames) override;
+    int chooseDetection(const std::vector<VisionFrame> &frames) const override;
 
     bool isFeasiblyInvisible() const { return m_feasiblyInvisible; };
 
@@ -55,13 +54,14 @@ private:
 
 private:
     void computeBallState(world::Ball *ball, qint64 time, const QVector<RobotInfo> &robots, qint64 lastCameraFrameTime);
-    bool checkFeasibleInvisibility(const QVector<RobotInfo> &robots);
-    bool handleDribbling(world::Ball *ball, const QVector<RobotInfo> &robots, bool overwriteBallSpeed);
+    bool checkFeasibleInvisibility(const QVector<RobotInfo> &robots) const;
+    bool handleDribbling(world::Ball *ball, const QVector<RobotInfo> &robots, bool overwriteBallSpeed) const;
     bool checkBallRobotIntersection(world::Ball *ball, const RobotInfo &robot, bool overwriteBallSpeed,
-                                    const Eigen::Vector2f pastPos, const Eigen::Vector2f currentPos);
+                                    const Eigen::Vector2f pastPos, const Eigen::Vector2f currentPos) const;
     void updateDribbling(const QVector<RobotInfo> &robots);
     void updateDribbleAndRotate(const VisionFrame &frame);
     void checkVolleyShot(const VisionFrame &frame);
+    void updateEmptyFrame(qint64 frameTime, const QVector<RobotInfo> &robots);
 
 private:
     GroundFilter m_groundFilter;
