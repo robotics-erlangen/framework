@@ -169,6 +169,7 @@ protected:
         }
     }
 #else
+    void plot(const char* key, float value) const {}
     void debug(const char* key, float value) const {}
     void debug(const QString key, const char* value) const {}
     void debug(const QString key, float value) const {}

@@ -47,10 +47,8 @@ private:
         float vx;
         float vy;
         float vz;
-        float distStartPos;
-        float vxControl;
-        float vyControl;
         float refSpeed;
+        float reconstructionError;
     };
 
     struct IntersectionResult {
@@ -151,8 +149,6 @@ private:
     int m_pinvDataInserted;
     Eigen::VectorXf m_d_detailed;
     Eigen::MatrixXf m_D_detailed;
-    Eigen::VectorXf m_d_coarseControl;
-    Eigen::MatrixXf m_D_coarseControl;
 
 };
 

@@ -29,6 +29,7 @@
 static const float FLOOR_DAMPING_Z = 0.55f; // robocup 2016: 0.67
 static const float FLOOR_DAMPING_GROUND = 0.7f; // heavily dependant on ball spin
 static const int MAX_FRAMES_PER_FLIGHT = 200; // 60Hz, 3 seconds in the air
+static const int ADDITIONAL_DATA_INSERTION = 1; // these additional are for the position bias
 static const float ACCEPT_DIST = 0.35;
 static const int APPROACH_SWITCH_FRAMENO = 16;
 
@@ -169,23 +170,19 @@ FlyFilter::PinvResult FlyFilter::calcPinv()
         m_D_detailed(i*2+1, 4) = 1;
         m_D_detailed(i*2+1, 5) = t_i;
         m_d_detailed(i*2+1) = 0.5*GRAVITY*beta*t_i*t_i + y;
-
-        m_D_coarseControl(i*2, 0) = alpha; //z0
-        m_D_coarseControl(i*2, 1) = alpha*t_i; // vz
-        m_D_coarseControl(i*2, 2) = t_i; // vx
-        m_D_coarseControl(i*2, 3) = 0; // vy
-        m_d_coarseControl(i*2) = 0.5*GRAVITY*alpha*t_i*t_i + x - x0;
-
-        m_D_coarseControl(i*2+1, 0) = beta; // z0
-        m_D_coarseControl(i*2+1, 1) = beta*t_i; // vz
-        m_D_coarseControl(i*2+1, 2) = 0; //vx
-        m_D_coarseControl(i*2+1, 3) = t_i; // vy
-        m_d_coarseControl(i*2+1) = 0.5*GRAVITY*beta*t_i*t_i + y - y0;
         m_pinvDataInserted = i;
     }
 
+    const float strength = 0.1f;
+    const int lastIndex = MAX_FRAMES_PER_FLIGHT * 2 - 1;
+    m_D_detailed(lastIndex, 2) = strength;
+    m_d_detailed(lastIndex) = x0 * strength;
+    m_D_detailed(lastIndex-1, 4) = strength;
+    m_d_detailed(lastIndex-1) = y0 * strength;
+
     const Eigen::VectorXf pi = m_D_detailed.colPivHouseholderQr().solve(m_d_detailed);
-    const Eigen::VectorXf piControl = m_D_coarseControl.colPivHouseholderQr().solve(m_d_coarseControl);
+    const float piError = (m_D_detailed * pi - m_d_detailed).lpNorm<1>();
+    plot("reconstruction error", piError / m_kickFrames.size());
 
     PinvResult res;
     res.x0 = pi(2);
@@ -194,6 +191,7 @@ FlyFilter::PinvResult FlyFilter::calcPinv()
     res.vx = pi(3);
     res.vy = pi(5);
     res.vz = pi(1);
+    res.reconstructionError = piError / (m_kickFrames.size() - m_shotStartFrame);
 
     debug("pinv_params/x0", res.x0);
     debug("pinv_params/y0", res.y0);
@@ -202,14 +200,6 @@ FlyFilter::PinvResult FlyFilter::calcPinv()
     debug("pinv_params/vz", res.vz);
     debug("pinv_params/z0", res.z0);
 
-    debug("pinv_params/z0 control", piControl(0));
-    debug("pinv_params/vx control", piControl(2));
-    debug("pinv_params/vy control", piControl(3));
-    debug("pinv_params/vz control", piControl(1));
-
-    res.vxControl = piControl(2);
-    res.vyControl = piControl(3);
-
     const Eigen::Vector2f startPos = firstInTheAir.ballPos;
     const Eigen::Vector2f calculatedStartPos = Eigen::Vector2f(res.x0, res.y0);
     const float distStartPos = (calculatedStartPos-startPos).norm();
@@ -217,19 +207,10 @@ FlyFilter::PinvResult FlyFilter::calcPinv()
         m_distToStartPos = distStartPos; // is used for filter choice
     }
     debugCircle("shot start pos", calculatedStartPos(0), calculatedStartPos(1), 0.04);
-    res.distStartPos = distStartPos;
-    debug("pinv_params/dist start pos", res.distStartPos);
 
     const Eigen::Vector2f vGroundPinv(res.vx, res.vy);
     const Eigen::Vector2f endPos = Eigen::Vector2f(res.x0, res.y0) + vGroundPinv;
     debugLine("computed ground speed", res.x0, res.y0, endPos(0), endPos(1));
-
-    const Eigen::Vector2f vGroundPinvControl(res.vxControl, res.vyControl);
-    const Eigen::Vector2f endPosC = firstInTheAir.ballPos + vGroundPinvControl;
-    debugLine("computed ground speed (coarse control)", m_kickFrames.first().ballPos(0), m_kickFrames.first().ballPos(1), endPosC(0), endPosC(1), 1);
-
-    debug("pinv_params/ground speed pinv control", vGroundPinvControl.norm());
-    debug("pinv_params/ground speed pinv", vGroundPinv.norm());
 
     if (firstInTheAir.cameraId != m_kickFrames.back().cameraId) {
         // for a correct refSpeed, search first measurement from current camera
@@ -257,12 +238,7 @@ FlyFilter::IntersectionResult FlyFilter::calcIntersection(const PinvResult &pinv
         debug("intersection dir", "ball to robot");
     } else {
         debug("intersection dir", "pinv");
-        if (pinvRes.vx*pinvRes.vxControl < 0 && pinvRes.vy*pinvRes.vyControl < 0) {
-            vGround = Eigen::Vector2f(pinvRes.vxControl, pinvRes.vyControl);
-            debug("correction", true);
-        } else {
-            vGround = Eigen::Vector2f(pinvRes.vx, pinvRes.vy);
-        }
+        vGround = Eigen::Vector2f(pinvRes.vx, pinvRes.vy);
     }
 
     const Eigen::Vector2f S = m_kickFrames.at(m_shotStartFrame).ballPos;
@@ -312,11 +288,6 @@ FlyFilter::IntersectionResult FlyFilter::calcIntersection(const PinvResult &pinv
 auto FlyFilter::approachPinvApply(const PinvResult &pinvRes) const -> BallFlight
 {
     const ChipDetection firstInTheAir = m_kickFrames.at(m_shotStartFrame);
-    BallFlight result;
-    result.flightStartPos = firstInTheAir.ballPos;
-    result.flightStartTime = firstInTheAir.time;
-    result.groundSpeed = Eigen::Vector2f(pinvRes.vx, pinvRes.vy);
-    result.zSpeed = pinvRes.vz;
 
     // Compute the time the reconstruction thinks the shot started at ground level,
     // relative to the detected shot start time.
@@ -326,20 +297,11 @@ auto FlyFilter::approachPinvApply(const PinvResult &pinvRes) const -> BallFlight
     const float atGroundTime = (vz - sqrt(vz*vz + GRAVITY*z0*2)) / GRAVITY;
     debug("pinv/at ground time", atGroundTime);
 
-    if (pinvRes.distStartPos < 0.06f) {
-        result.flightStartPos = Eigen::Vector2f(pinvRes.x0, pinvRes.y0);
-        if (std::abs(atGroundTime) < 0.08f) {
-            result.flightStartPos = result.flightStartPos + result.groundSpeed * atGroundTime;
-        }
-    }
-
-    if (std::abs(atGroundTime) < 0.08f) {
-        result.zSpeed = pinvRes.vz - GRAVITY * atGroundTime;
-    }
-
-    if (std::abs(atGroundTime) < 0.04f) { // maximum error 20ms at 50Hz
-        result.flightStartTime = firstInTheAir.time + atGroundTime;
-    }
+    BallFlight result;
+    result.groundSpeed = Eigen::Vector2f(pinvRes.vx, pinvRes.vy);
+    result.flightStartPos = Eigen::Vector2f(pinvRes.x0, pinvRes.y0) + result.groundSpeed * atGroundTime;
+    result.flightStartTime = firstInTheAir.time + atGroundTime;
+    result.zSpeed = pinvRes.vz - GRAVITY * atGroundTime;
     return result;
 }
 
@@ -450,7 +412,7 @@ bool FlyFilter::approachPinvApplicable(const FlyFilter::PinvResult &pinvRes) con
     // this leads to problems later
     const bool reconstructionReachesGround = vz*vz + GRAVITY*z0*2 >= 0;
     return  z0 > -0.5 && (z0 < 1 || (m_isActive && z0 < 4)) && vz > 1
-            && pinvRes.distStartPos < 0.4 && vz < 10
+            && vz < 10
             && (std::isnan(vToProj) || vToProj < 0.7)
             && reconstructionReachesGround;
 }
@@ -470,7 +432,7 @@ bool FlyFilter::approachIntersectApplicable(const FlyFilter::IntersectionResult 
     debug("angle v", angleSpeed);
     debug("angle proj", angleProjection);
 
-    return angleSpeed < angleProjection && vToProj < 0.7;
+    return angleSpeed < angleProjection && vToProj < 0.7 && (m_kickFrames.size() - m_shotStartFrame) > 5;
 }
 
 void FlyFilter::parabolicFlightReconstruct(const PinvResult& pinvRes)
@@ -489,7 +451,7 @@ void FlyFilter::parabolicFlightReconstruct(const PinvResult& pinvRes)
 
         const IntersectionResult intRes = calcIntersection(pinvRes);
 
-        if (intersectionAngle < 0.4) { // angle low
+        if (intersectionAngle < 0.4 && m_kickFrames.size() > 6) { // angle low
             debug("chip approach", "height");
             m_flightReconstruction = approachAreaApply();
             m_isActive = true;
@@ -662,12 +624,12 @@ bool FlyFilter::detectionPinv(const FlyFilter::PinvResult &pinvRes) const
     }
 
     return  z0 > -0.4 && z0 < 1.5 && vz > 1 && vz < 10
-            && pinvRes.distStartPos < 1
+            && pinvRes.reconstructionError < 0.003f
             && vGroundPinv.norm() > 1.5
             && timeElapsed < maxFlightDuration
             && maxHeight > 0.1
             && std::abs(flightDistGroundCalc-flightDistMeasured) < std::min(flightDistGroundCalc, flightDistMeasured)/3
-            && m_kickFrames.size() > 5;
+            && (m_kickFrames.size() - m_shotStartFrame) > 8;
 }
 
 bool FlyFilter::checkIsDribbling() const
@@ -953,9 +915,8 @@ void FlyFilter::resetFlightReconstruction()
     m_kickFrames.clear();
     m_flyFitter.clear();
     m_pinvDataInserted = 0;
-    m_d_detailed = Eigen::VectorXf::Zero(2*MAX_FRAMES_PER_FLIGHT);
-    m_D_detailed = Eigen::MatrixXf::Zero(2*MAX_FRAMES_PER_FLIGHT, 6);
-    m_d_coarseControl = Eigen::VectorXf::Zero(2*MAX_FRAMES_PER_FLIGHT);
-    m_D_coarseControl = Eigen::MatrixXf::Zero(2*MAX_FRAMES_PER_FLIGHT, 4);
+    const int matchEntries = MAX_FRAMES_PER_FLIGHT + ADDITIONAL_DATA_INSERTION;
+    m_d_detailed = Eigen::VectorXf::Zero(2*matchEntries);
+    m_D_detailed = Eigen::MatrixXf::Zero(2*matchEntries, 6);
 }
 
