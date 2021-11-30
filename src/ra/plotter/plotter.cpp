@@ -412,6 +412,9 @@ void Plotter::handleStatus(const Status &status, bool backlogStatus)
             case amun::Autoref:
                 parent = "Autoref";
                 break;
+            case amun::Tracking:
+                parent = "Tracking";
+                break;
             default:
                 parent = "Unknown";
             }
