@@ -198,60 +198,60 @@ FlyFilter::PinvResult FlyFilter::calcPinv()
     return res;
 }
 
-FlyFilter::IntersectionResult FlyFilter::calcIntersection(const PinvResult &pinvRes) const
+// computes the intersection between the two lines between points (a1 and a2) and (b1 and b2)
+// returns the lambda of the second line such that the intersection P = b1 + (b2 - b1) * lambda
+static float intersectLineLine(const Eigen::Vector2f a1, const Eigen::Vector2f a2, const Eigen::Vector2f b1, const Eigen::Vector2f b2)
 {
-    // intersection approach
-    Eigen::Vector2f vGround;
+    const float numerator = (b1(1)-a1(1))/(a2(1)-a1(1)) - (b1(0)-a1(0))/(a2(0)-a1(0));
+    const float denominator = (b2(0)-b1(0))/(a2(0)-a1(0)) - (b2(1)-b1(1))/(a2(1)-a1(1));
+    return numerator / denominator;
+}
+
+Eigen::Vector2f FlyFilter::intersectDirection(const PinvResult &pinvRes) const
+{
     if (m_kickFrames.size() < 10 && m_kickFrames.at(m_shotStartFrame).absSpeed < 1) {
-        vGround = m_kickFrames.at(m_shotStartFrame).ballPos - m_kickFrames.at(m_shotStartFrame).robotPos;
         debug("intersection dir", "ball to robot");
+        return m_kickFrames.at(m_shotStartFrame).ballPos - m_kickFrames.at(m_shotStartFrame).robotPos;
     } else {
         debug("intersection dir", "pinv");
-        vGround = pinvRes.groundSpeed;
+        return pinvRes.groundSpeed;
     }
+}
 
-    const Eigen::Vector2f S = m_kickFrames.at(m_shotStartFrame).ballPos;
-    const Eigen::Vector2f V = S+vGround;
-    const float startTime = m_kickFrames.at(m_shotStartFrame).time;
+auto FlyFilter::calcIntersection(Eigen::Vector2f shotStartPos, Eigen::Vector2f groundSpeed, float startTime, int startFrame) const -> BallFlight
+{
+    const Eigen::Vector2f shotLineEnd = shotStartPos + groundSpeed;
 
-    int numZSpeeds = 0;
     float zSpeed = 0;
     float groundSpeedLength = 0;
-    for (int i=m_shotStartFrame+1; i < m_kickFrames.size(); i++) {
+    for (int i=startFrame; i < m_kickFrames.size(); i++) {
         const ChipDetection& f = m_kickFrames.at(i);
         const Eigen::Vector3f cam = m_cameraInfo->cameraPosition.value(f.cameraId);
 
-        const Eigen::Vector2f K(cam(0), cam(1));
-        const Eigen::Vector2f P = f.ballPos;
+        const Eigen::Vector2f camPos(cam.x(), cam.y());
+        const Eigen::Vector2f projectedBallPos = f.ballPos;
 
-        debugLine("sp", S(0), S(1), V(0), V(1), 1);
-        debugLine("pr", K(0), K(1), P(0), P(1), 2);
-        const float numerator = (K(1)-S(1))/(V(1)-S(1)) - (K(0)-S(0))/(V(0)-S(0));
-        const float denominator = (P(0)-K(0))/(V(0)-S(0)) - (P(1)-K(1))/(V(1)-S(1));
-        const float mu = numerator/denominator;
-        const Eigen::Vector2f intersection = K + (P-K) * mu;
-        debugCircle("intersection", intersection(0), intersection(1), 0.04);
+        const float lambda = intersectLineLine(shotStartPos, shotLineEnd, camPos, projectedBallPos);
+        const Eigen::Vector2f intersection = camPos + (projectedBallPos - camPos) * lambda;
 
         const float timeDiff = f.time - startTime;
-        const float speed = (S - intersection).norm() / timeDiff;
+        const float speed = (shotStartPos - intersection).norm() / timeDiff;
         groundSpeedLength += speed;
 
-        const float H = cam(2);
-        const float d = (P - intersection).norm();
-        const float D = (K - P).norm();
-        const float h = (H*d) / D; // intersect theorem
+        const float ballHeight = std::abs(cam.z() * (1 - lambda));
+        const float inferredZSpeed = ballHeight / timeDiff + GRAVITY * 0.5f * timeDiff;
 
-        zSpeed += h/timeDiff + GRAVITY * 0.5f * timeDiff;
-        numZSpeeds++;
+        zSpeed += inferredZSpeed;
     }
-    groundSpeedLength /= (m_kickFrames.size()-m_shotStartFrame-1);
-    zSpeed /= numZSpeeds;
+    groundSpeedLength /= m_kickFrames.size() - startFrame;
+    zSpeed /= m_kickFrames.size() - startFrame;
 
-    IntersectionResult res;
-    res.intersectionGroundSpeed = vGround.normalized() * groundSpeedLength;
-    res.intersectionZSpeed = zSpeed;
-    debug("approx/z speed", res.intersectionZSpeed);
-    return res;
+    BallFlight result;
+    result.flightStartPos = shotStartPos;
+    result.flightStartTime = startTime;
+    result.groundSpeed = groundSpeed.normalized() * groundSpeedLength;
+    result.zSpeed = zSpeed;
+    return result;
 }
 
 auto FlyFilter::approachPinvApply(const PinvResult &pinvRes) const -> BallFlight
@@ -274,16 +274,16 @@ auto FlyFilter::approachPinvApply(const PinvResult &pinvRes) const -> BallFlight
     return result;
 }
 
-auto FlyFilter::approachIntersectApply(const FlyFilter::IntersectionResult &intRes) const -> BallFlight
+auto FlyFilter::approachIntersectApply(const PinvResult &pinvRes) const -> BallFlight
 {
     const ChipDetection firstInTheAir = m_kickFrames.at(m_shotStartFrame);
+    const BallFlight reconstruction = calcIntersection(firstInTheAir.ballPos, intersectDirection(pinvRes), firstInTheAir.time, m_shotStartFrame + 1);
+
     BallFlight result;
-    result.flightStartPos = m_kickFrames.at(m_shotStartFrame).ballPos;
-    result.flightStartTime = firstInTheAir.time - 0.01f; // -10ms, actual kick was before
-    result.groundSpeed = intRes.intersectionGroundSpeed;
-    result.zSpeed = intRes.intersectionZSpeed;
-    debug("method intersect", true);
-    debug("approx/speed length", intRes.intersectionGroundSpeed.norm());
+    result.flightStartPos = reconstruction.flightStartPos;
+    result.flightStartTime = reconstruction.flightStartTime - 0.01f; // -10ms, actual kick was before
+    result.groundSpeed = reconstruction.groundSpeed;
+    result.zSpeed = reconstruction.zSpeed;
     return result;
 }
 
@@ -385,17 +385,18 @@ bool FlyFilter::approachPinvApplicable(const FlyFilter::PinvResult &pinvRes) con
             && reconstructionReachesGround;
 }
 
-bool FlyFilter::approachIntersectApplicable(const FlyFilter::IntersectionResult &intRes) const
+bool FlyFilter::approachIntersectApplicable(const PinvResult &pinvRes) const
 {
     // the calulated speed direction should not differ to much from the projection
     const Eigen::Vector2f center = m_kickFrames.first().ballPos;
-    const double vToProj = innerAngle(center, m_kickFrames.back().ballPos, center + intRes.intersectionGroundSpeed);
+    const Eigen::Vector2f groundSpeed = intersectDirection(pinvRes);
+    const double vToProj = innerAngle(center, m_kickFrames.back().ballPos, center + groundSpeed);
     debug("vToProjIntersection", vToProj);
 
     // calculated direction has to lie between projection and camera
     const Eigen::Vector3f cam3d = m_cameraInfo->cameraPosition.value(m_kickFrames.back().cameraId);
     const Eigen::Vector2f cam(cam3d(0), cam3d(1));
-    const double angleSpeed = innerAngle(center, cam, center + intRes.intersectionGroundSpeed);
+    const double angleSpeed = innerAngle(center, cam, center + groundSpeed);
     const double angleProjection = innerAngle(center, cam, m_kickFrames.back().ballPos);
     debug("angle v", angleSpeed);
     debug("angle proj", angleProjection);
@@ -417,15 +418,13 @@ void FlyFilter::parabolicFlightReconstruct(const PinvResult& pinvRes)
         const double intersectionAngle = innerAngle(center, cam, lastBall);
         debug("intersection angle", intersectionAngle);
 
-        const IntersectionResult intRes = calcIntersection(pinvRes);
-
         if (intersectionAngle < 0.4 && m_kickFrames.size() > 6) { // angle low
             debug("chip approach", "height");
             m_flightReconstruction = approachAreaApply();
             m_isActive = true;
-        } else if (approachIntersectApplicable(intRes)) {
+        } else if (approachIntersectApplicable(pinvRes)) {
             debug("chip approach", "intersection");
-            m_flightReconstruction = approachIntersectApply(intRes);
+            m_flightReconstruction = approachIntersectApply(pinvRes);
             m_isActive = true;
         } else {
             debug("chip approach", "unavailable");
@@ -787,6 +786,7 @@ void FlyFilter::updateBouncing(qint64 time)
     if (m_isActive && (t > 0.3f || m_isBouncing)) {
         if (m_flightReconstruction.hasBounced(toLocalTime(time))) {
             m_isBouncing = true;
+            m_bounceStartFrame = m_kickFrames.size();
             m_flightReconstruction = m_flightReconstruction.afterBounce();
 
             if (m_flightReconstruction.zSpeed < 0.1f) {
@@ -797,18 +797,12 @@ void FlyFilter::updateBouncing(qint64 time)
         }
     }
 
-    // TODO: fix/rework this rather questionable code
-    if (m_isBouncing && false) {
-        float groundSpeed = 0;
-        int num = 0;
-        for (int i=m_kickFrames.size()-1; i>0 && i>m_kickFrames.size()-5; i--) {
-            const ChipDetection& first = m_kickFrames.at(i);
-            const ChipDetection& second = m_kickFrames.front();
-            groundSpeed += (first.ballPos-second.ballPos).norm() / (first.time - second.time);
-            num++;
+    if (m_isBouncing && m_kickFrames.size() - m_bounceStartFrame > 5) {
+        const BallFlight reconstruction = calcIntersection(m_flightReconstruction.flightStartPos, m_flightReconstruction.groundSpeed,
+                                                            m_flightReconstruction.flightStartTime, m_bounceStartFrame + 1);
+        if (reconstruction.groundSpeed.norm() < 6.0f && reconstruction.zSpeed > 0 && reconstruction.zSpeed < 3.0f) {
+            m_flightReconstruction = reconstruction;
         }
-        groundSpeed /= (num+2); // TODO FIXME. error lies probably in flightStartTime
-        m_flightReconstruction.groundSpeed = m_flightReconstruction.groundSpeed.normalized() * groundSpeed;
     }
 }
 
@@ -894,6 +888,7 @@ void FlyFilter::resetFlightReconstruction()
     m_isActive = false;
     m_chipDetected = false;
     m_isBouncing = false;
+    m_bounceStartFrame = 0;
     m_kickFrames.clear();
     m_flyFitter.clear();
     m_pinvDataInserted = 0;

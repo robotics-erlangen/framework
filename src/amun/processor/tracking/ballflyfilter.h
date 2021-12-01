@@ -48,12 +48,6 @@ private:
         float reconstructionError;
     };
 
-    struct IntersectionResult {
-        Eigen::Vector2f intersection;
-        Eigen::Vector2f intersectionGroundSpeed;
-        float intersectionZSpeed;
-    };
-
     // can be used for the initial chip, but also while bouncing
     struct BallFlight {
         Eigen::Vector2f flightStartPos;
@@ -102,14 +96,16 @@ private:
     Eigen::Vector3f unproject(const ChipDetection& detection, float ballRadius) const;
 
     PinvResult calcPinv();
-    IntersectionResult calcIntersection(const PinvResult &pinvRes) const;
+
+    Eigen::Vector2f intersectDirection(const PinvResult &pinvRes) const;
+    BallFlight calcIntersection(Eigen::Vector2f shotStartPos, Eigen::Vector2f groundSpeed, float startTime, int startFrame) const;
 
     BallFlight approachPinvApply(const PinvResult& pinvRes) const;
-    BallFlight approachIntersectApply(const IntersectionResult &intRes) const;
+    BallFlight approachIntersectApply(const PinvResult &pinvRes) const;
     BallFlight approachAreaApply();
 
     bool approachPinvApplicable(const PinvResult& pinvRes) const;
-    bool approachIntersectApplicable(const IntersectionResult &intRes) const;
+    bool approachIntersectApplicable(const PinvResult &pinvRes) const;
 
     void parabolicFlightReconstruct(const PinvResult &pinvRes);
     void resetFlightReconstruction();
@@ -137,6 +133,7 @@ private:
     QVector<ChipDetection> m_kickFrames;
 
     bool m_isBouncing;
+    int m_bounceStartFrame;
     BallFlight m_flightReconstruction;
 
     float m_distToStartPos;
