@@ -41,13 +41,10 @@ public:
 
 private:
     struct PinvResult {
-        float x0;
-        float y0;
+        Eigen::Vector2f startPos;
+        Eigen::Vector2f groundSpeed;
         float z0;
-        float vx;
-        float vy;
         float vz;
-        float refSpeed;
         float reconstructionError;
     };
 
@@ -92,13 +89,13 @@ private:
     ChipDetection createChipDetection(const VisionFrame& frame) const;
     float toLocalTime(qint64 time) const; // returns a result in seconds, relative to the initialization of the filter
 
-    bool detectionCurviness(const PinvResult& pinvRes) const;
+    bool detectionCurviness() const;
     bool detectionHeight() const;
     bool detectionSpeed() const;
     bool detectionPinv(const PinvResult &pinvRes) const;
     bool detectChip(const PinvResult &pinvRes) const;
 
-    bool checkIsShot();
+    bool checkIsShot() const;
     bool checkIsDribbling() const;
     bool collision() const;
     unsigned numMeasurementsWithOwnCamera() const;
