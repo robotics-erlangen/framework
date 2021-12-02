@@ -48,18 +48,6 @@ private:
         float reconstructionError;
     };
 
-    // can be used for the initial chip, but also while bouncing
-    struct BallFlight {
-        Eigen::Vector2f flightStartPos;
-        float flightStartTime; // seconds
-        Eigen::Vector2f groundSpeed;
-        float zSpeed; // at the flight start time
-
-        bool hasBounced(float time) const;
-        // returns the estimated flight that will occur after the next bounce
-        BallFlight afterBounce() const;
-        Eigen::Vector2f touchdownPos() const;
-    };
 
     struct ChipDetection {
         ChipDetection(float s, float as, float t, float ct, Eigen::Vector2f bp, Eigen::Vector2f dp,  float a, Eigen::Vector2f r, quint32 cid, bool cc, bool lc, int rid)
@@ -78,6 +66,21 @@ private:
         float ballArea;
         bool chipCommand;
         bool linearCommand;
+    };
+
+    // can be used for the initial chip, but also while bouncing
+    struct BallFlight {
+        Eigen::Vector2f flightStartPos;
+        float flightStartTime; // seconds
+        Eigen::Vector2f groundSpeed;
+        float zSpeed; // at the flight start time
+        int startFrame; // the first frame in m_kickFrames that this flight uses
+
+        bool hasBounced(float time) const;
+        // returns the estimated flight that will occur after the next bounce
+        BallFlight afterBounce(int newStartFrame) const;
+        Eigen::Vector2f touchdownPos() const;
+        static BallFlight betweenChipFrames(const ChipDetection &first, const ChipDetection &last, int startFrame);
     };
 
     ChipDetection createChipDetection(const VisionFrame& frame) const;
@@ -107,7 +110,7 @@ private:
     bool approachPinvApplicable(const PinvResult& pinvRes) const;
     bool approachIntersectApplicable(const PinvResult &pinvRes) const;
 
-    void parabolicFlightReconstruct(const PinvResult &pinvRes);
+    std::optional<BallFlight> parabolicFlightReconstruct(const PinvResult &pinvRes);
     void resetFlightReconstruction();
 
     struct Prediction {
@@ -119,6 +122,7 @@ private:
         Eigen::Vector2f touchdownPos;
     };
 
+    int detectBouncing() const;
     void updateBouncing(qint64 time);
     Prediction predictTrajectory(float time) const;
 
@@ -126,15 +130,14 @@ private:
     qint64 m_initTime;
 
     bool m_chipDetected;
-    bool m_isActive;
 
     int m_shotStartFrame;
     QVector<ChipDetection> m_shotDetectionWindow; // sliding window of size 5
     QVector<ChipDetection> m_kickFrames;
 
-    bool m_isBouncing;
-    int m_bounceStartFrame;
-    BallFlight m_flightReconstruction;
+    // the initial flight, bounces are added as they happen
+    // if the flight could not be reconstructed, it will be empty
+    QVector<BallFlight> m_flightReconstructions;
 
     float m_distToStartPos;
 
