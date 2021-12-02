@@ -862,22 +862,14 @@ void FlyFilter::writeBallState(world::Ball *ball, qint64 predictionTime, const Q
 {
     const Prediction& p = predictTrajectory(toLocalTime(predictionTime));
 
-    // maximum height that will be reached in the future by the ball
-    // assume no floor damping for this approximation, therefore it can be handled in one case
-    const float topHeight = p.pos.z() + dist(std::abs(p.speed.z()), 0, GRAVITY);
 
-    // leave prediction to kalman filter for low flying balls
-    if ((m_isActive && !m_isBouncing) || topHeight > 0.05f) {
-        ball->set_p_x(p.pos(0));
-        ball->set_p_y(p.pos(1));
-        ball->set_v_x(p.speed(0));
-        ball->set_v_y(p.speed(1));
-    } else {
-        debug("hybrid filter", true);
-    }
-    ball->set_p_z(p.pos(2));
-    ball->set_v_z(p.speed(2));
     ball->set_is_bouncing(m_isBouncing);
+    ball->set_p_x(p.pos.x());
+    ball->set_p_y(p.pos.y());
+    ball->set_p_z(p.pos.z());
+    ball->set_v_x(p.speed.x());
+    ball->set_v_y(p.speed.y());
+    ball->set_v_z(p.speed.z());
     ball->set_touchdown_x(p.touchdownPos(0));
     ball->set_touchdown_y(p.touchdownPos(1));
 }
