@@ -43,28 +43,6 @@ FlyFilter::FlyFilter(const VisionFrame& frame, CameraInfo* cameraInfo, const Fie
     resetFlightReconstruction();
 }
 
-Eigen::Vector3f FlyFilter::unproject(const ChipDetection& detection, float ballRadius) const
-{
-    const float f = m_cameraInfo->focalLength.value(detection.cameraId);
-    const float a = detection.ballArea;
-    const float distInferred = f * (ballRadius/sqrt(a/M_PI) + 1) / 1000.0;
-    const Eigen::Vector3f cam = m_cameraInfo->cameraPosition.value(detection.cameraId);
-    const Eigen::Vector3f ballGround(detection.ballPos(0), detection.ballPos(1), 0);
-    // set calculated length on direction from camera to reported
-    return cam + (ballGround - cam).normalized() * distInferred;
-}
-
-static bool monotonicRisingOneException(const QList<float>& points)
-{
-    int exceptions = 0;
-    for (int i=0; i<points.size()-1; i++) {
-        if (points.at(i+1) > points.at(i)){
-            exceptions++;
-        }
-    }
-    return exceptions < 2;
-}
-
 bool FlyFilter::isActive() const
 {
     return !m_flightReconstructions.isEmpty();
@@ -284,76 +262,6 @@ auto FlyFilter::approachIntersectApply(const PinvResult &pinvRes) const -> BallF
     return reconstruction;
 }
 
-auto FlyFilter::approachAreaApply() -> BallFlight
-{
-    const ChipDetection firstInTheAir = m_kickFrames.at(m_shotStartFrame);
-    BallFlight result;
-    result.flightStartPos = m_kickFrames.at(m_shotStartFrame).ballPos;
-    result.flightStartTime = firstInTheAir.time;
-    result.zSpeed = 0;
-    result.groundSpeed = Eigen::Vector2f(0, 0);
-    result.startFrame = m_shotStartFrame;
-    if (m_kickFrames.size() < m_shotStartFrame+4) {
-        return result;
-    }
-
-    float ballRadius = 0;
-    const int startR = m_shotStartFrame+1;
-    const int endR = m_shotStartFrame+4;
-    for (int i=startR; i<endR; i++) {
-        const Eigen::Vector3f ballPos(m_kickFrames.at(i).ballPos(0), m_kickFrames.at(i).ballPos(1), 0);
-        const Eigen::Vector3f cam = m_cameraInfo->cameraPosition.value(m_kickFrames.at(i).cameraId);
-        const float d = (ballPos - cam).norm() * 1000 -100; // mm
-        const float focalLength = m_cameraInfo->focalLength.value(m_kickFrames.at(i).cameraId);
-        const float r = (d / focalLength - 1) * sqrt(m_kickFrames.at(i).ballArea/M_PI);
-        debug(QString("ball radius")+QString::number(i), r);
-        ballRadius += r;
-    }
-
-    ballRadius /= (endR-startR);
-    debug("ball radius", ballRadius);
-
-    float speedXSum = 0.0;
-    float speedYSum = 0.0;
-    const int start = m_shotStartFrame+2; // m_shotStartFrame+1 is first in the air
-    const int end = m_kickFrames.size();
-    for (int i=start; i<end; i++) {
-        const ChipDetection& m = m_kickFrames.at(i);
-        const float timeDiff = m.time - firstInTheAir.time;
-        const Eigen::Vector3f unprojPos = unproject(m, ballRadius);
-        const float xDist = unprojPos.x() - firstInTheAir.ballPos.x();
-        const float yDist = unprojPos.y() - firstInTheAir.ballPos.y();
-        speedXSum += xDist/timeDiff;
-        speedYSum += yDist/timeDiff;
-    }
-
-    const int num = end-start;
-    const Eigen::Vector2f speed(speedXSum/num, speedYSum/num);
-    debug("height/vx", speed(0));
-    debug("height/vy", speed(1));
-    debug("height/v total", speed.norm());
-
-    result.groundSpeed = speed;//dir.normalized()*speedLengthViaHeight;
-
-    debugLine("calc dir", firstInTheAir.ballPos(0), firstInTheAir.ballPos(1), firstInTheAir.ballPos(0)+speed(0), firstInTheAir.ballPos(1)+speed(1));
-
-    const float startTime = m_kickFrames.at(m_shotStartFrame).time;
-    for (int i=start; i<end; i++) {
-        const ChipDetection& m = m_kickFrames.at(i);
-        const float time = m.time - startTime;
-        const Eigen::Vector3f unprojPos = unproject(m, ballRadius);
-        const float height = unprojPos.z();
-
-        m_flyFitter.addPoint(time, height);
-    }
-    const QuadraticLeastSquaresFitter::QuadraticFitResult res = m_flyFitter.fit();
-    debug("height/res b", res.b);
-    result.zSpeed = res.b;
-
-    debug("method height", true);
-    return result;
-}
-
 // return value in the interval [0,pi] radians
 static double innerAngle(Eigen::Vector2f center, Eigen::Vector2f A, Eigen::Vector2f B)
 {
@@ -402,7 +310,7 @@ bool FlyFilter::approachIntersectApplicable(const PinvResult &pinvRes) const
     return angleSpeed < angleProjection && vToProj < 0.7 && (m_kickFrames.size() - m_shotStartFrame) > 5;
 }
 
-auto FlyFilter::parabolicFlightReconstruct(const PinvResult& pinvRes) -> std::optional<BallFlight>
+auto FlyFilter::parabolicFlightReconstruct(const PinvResult& pinvRes) const -> std::optional<BallFlight>
 {
     if (approachPinvApplicable(pinvRes) && m_kickFrames.size() > APPROACH_SWITCH_FRAMENO) {
         debug("chip approach", "pinv");
@@ -415,10 +323,7 @@ auto FlyFilter::parabolicFlightReconstruct(const PinvResult& pinvRes) -> std::op
         const double intersectionAngle = innerAngle(center, cam, lastBall);
         debug("intersection angle", intersectionAngle);
 
-        if (intersectionAngle < 0.4 && m_kickFrames.size() > 6) { // angle low
-            debug("chip approach", "height");
-            return {approachAreaApply()};
-        } else if (approachIntersectApplicable(pinvRes)) {
+        if (intersectionAngle > 0.4 && approachIntersectApplicable(pinvRes)) { // angle low
             debug("chip approach", "intersection");
             return {approachIntersectApply(pinvRes)};
         } else {
@@ -475,49 +380,6 @@ bool FlyFilter::detectionCurviness() const
     debug("detection angle/slope", slope);
 
     return std::abs(slope) > std::max(-0.03212*m_kickFrames.size() + 0.4873, 0.06);
-}
-
-bool FlyFilter::detectionHeight() const
-{
-    if (m_kickFrames.size() < 5) {
-        return false;
-    }
-
-    if (m_kickFrames.back().cameraId != m_kickFrames.front().cameraId) {
-        // if camera changed, and we have not detected a chip yet,
-        // assumptions about the ball radius become invalid
-        return false;
-    }
-
-    float ballRadius = 0;
-    const int startR = m_shotStartFrame+1;
-    const int endR = m_shotStartFrame+4;
-
-    for (int i=startR; i<endR; i++) {
-        const Eigen::Vector3f ballPos(m_kickFrames.at(i).ballPos(0), m_kickFrames.at(i).ballPos(1), 0);
-        const Eigen::Vector3f cam = m_cameraInfo->cameraPosition.value(m_kickFrames.at(i).cameraId);
-        const float d = (ballPos - cam).norm() * 1000 - 50; // mm
-        const float focalLength = m_cameraInfo->focalLength.value(m_kickFrames.at(i).cameraId);
-        const float r = (d / focalLength - 1) * sqrt(m_kickFrames.at(i).ballArea/M_PI);
-        debug(QString("ball radius")+QString::number(i), r);
-        ballRadius += r;
-    }
-    ballRadius /= (endR-startR);
-
-    QList<float> heights;
-    for (const auto& m : m_kickFrames) {
-        heights.append(unproject(m, ballRadius)(2));
-    }
-    const float low = heights.at(0)+heights.at(1);
-    const float high = heights.at(heights.size()-2)+heights.at(heights.size()-1);
-
-    debug("detection height/high", high);
-    debug("detection height/diff", high-low);
-    if (m_kickFrames.size() > 6 && monotonicRisingOneException(heights)) {
-        debug("detection height/mon", true);
-        return high > 0.5 && high-low > 0.5;
-    }
-    return high > 1 && high-low > 1;
 }
 
 bool FlyFilter::detectionSpeed() const
@@ -616,7 +478,6 @@ bool FlyFilter::checkIsDribbling() const
 
 bool FlyFilter::detectChip(const PinvResult &pinvRes) const
 {
-    const bool heightSaysChip = detectionHeight(); // run for debug info
     if (m_kickFrames.front().chipCommand) {
         debug("kick command", "chip");
         return true;
@@ -632,13 +493,8 @@ bool FlyFilter::detectChip(const PinvResult &pinvRes) const
             return true;
         }
         debug("angle to cam", angleToCam);
-        if (angleToCam > 0.45) { // MAGIC
-            if (detectionCurviness()) {
-                debug("detection/angle", true);
-                return true;
-            }
-        } else if (heightSaysChip) {
-            debug("detection/height", true);
+        if (angleToCam > 0.45 && detectionCurviness()) {
+            debug("detection/angle", true);
             return true;
         }
     }
@@ -672,7 +528,7 @@ auto FlyFilter::createChipDetection(const VisionFrame& frame) const -> ChipDetec
 
     const float captureTime = toLocalTime(frame.captureTime);
     return ChipDetection(dribblerSpeed, absSpeed, timeSinceInit, captureTime,
-                         reportedBallPos, frame.robot.dribblerPos, frame.ballArea, frame.robot.robotPos,
+                         reportedBallPos, frame.robot.dribblerPos, frame.robot.robotPos,
                          frame.cameraId, frame.chipCommand, frame.linearCommand, frame.robot.identifier);
 }
 
@@ -837,11 +693,13 @@ void FlyFilter::updateBouncing(qint64 time)
 
     const float t = toLocalTime(time) - m_kickFrames.at(m_shotStartFrame).time;
 
-    if (t > 0.3f && m_flightReconstructions.back().hasBounced(toLocalTime(time))) {
+    const bool hasBounced = m_flightReconstructions.back().hasBounced(toLocalTime(time));
+    if (t > 0.3f && hasBounced) {
         const BallFlight afterBounce = m_flightReconstructions.back().afterBounce(m_kickFrames.size() - 1);
         m_flightReconstructions.append(afterBounce);
 
-        if ((m_flightReconstructions.back().flightStartPos - m_kickFrames.back().ballPos).norm() > 0.05f) {
+        const float bounceDetectionDistance = (m_flightReconstructions.back().flightStartPos - m_kickFrames.back().ballPos).norm();
+        if (bounceDetectionDistance > 0.05f) {
             m_flightReconstructions.pop_back();
             const int startFrame = m_flightReconstructions.back().startFrame;
             const BallFlight fixedFlight = BallFlight::betweenChipFrames(m_kickFrames.at(startFrame),
@@ -927,12 +785,6 @@ int FlyFilter::chooseDetection(const std::vector<VisionFrame> &frames) const
 
     debug("accept dist", bestDistance);
     return bestDetection;
-}
-
-static float dist(float v0, float v1, float acc)
-{
-    const float time = std::abs(v0 - v1) / acc;
-    return 0.5f * (v0 + v1) * time;
 }
 
 void FlyFilter::writeBallState(world::Ball *ball, qint64 predictionTime, const QVector<RobotInfo> &, qint64)

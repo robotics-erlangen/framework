@@ -50,8 +50,8 @@ private:
 
 
     struct ChipDetection {
-        ChipDetection(float s, float as, float t, float ct, Eigen::Vector2f bp, Eigen::Vector2f dp,  float a, Eigen::Vector2f r, quint32 cid, bool cc, bool lc, int rid)
-            :  dribblerSpeed(s), absSpeed(as), time(t), captureTime(ct), ballPos(bp), dribblerPos(dp), robotPos(r), robotId(rid), cameraId(cid), ballArea(a), chipCommand(cc), linearCommand(lc)  {}
+        ChipDetection(float s, float as, float t, float ct, Eigen::Vector2f bp, Eigen::Vector2f dp, Eigen::Vector2f r, quint32 cid, bool cc, bool lc, int rid)
+            :  dribblerSpeed(s), absSpeed(as), time(t), captureTime(ct), ballPos(bp), dribblerPos(dp), robotPos(r), robotId(rid), cameraId(cid), chipCommand(cc), linearCommand(lc)  {}
         ChipDetection(){} // make QVector happy
 
         float dribblerSpeed;
@@ -63,7 +63,6 @@ private:
         Eigen::Vector2f robotPos;
         int robotId;
         quint32 cameraId;
-        float ballArea;
         bool chipCommand;
         bool linearCommand;
     };
@@ -87,7 +86,6 @@ private:
     float toLocalTime(qint64 time) const; // returns a result in seconds, relative to the initialization of the filter
 
     bool detectionCurviness() const;
-    bool detectionHeight() const;
     bool detectionSpeed() const;
     bool detectionPinv(const PinvResult &pinvRes) const;
     bool detectChip(const PinvResult &pinvRes) const;
@@ -96,7 +94,6 @@ private:
     bool checkIsDribbling() const;
     bool collision() const;
     unsigned numMeasurementsWithOwnCamera() const;
-    Eigen::Vector3f unproject(const ChipDetection& detection, float ballRadius) const;
 
     PinvResult calcPinv();
 
@@ -105,12 +102,11 @@ private:
 
     BallFlight approachPinvApply(const PinvResult& pinvRes) const;
     BallFlight approachIntersectApply(const PinvResult &pinvRes) const;
-    BallFlight approachAreaApply();
 
     bool approachPinvApplicable(const PinvResult& pinvRes) const;
     bool approachIntersectApplicable(const PinvResult &pinvRes) const;
 
-    std::optional<BallFlight> parabolicFlightReconstruct(const PinvResult &pinvRes);
+    std::optional<BallFlight> parabolicFlightReconstruct(const PinvResult &pinvRes) const;
     void resetFlightReconstruction();
 
     struct Prediction {
