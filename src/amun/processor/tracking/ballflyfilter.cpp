@@ -119,32 +119,35 @@ FlyFilter::PinvResult FlyFilter::calcPinv()
         const float alpha = (x-cam(0)) / cam(2);
         const float beta = (y-cam(1)) / cam(2);
 
-        m_D_detailed(i*2, 0) = alpha;
-        m_D_detailed(i*2, 1) = alpha*t_i;
-        m_D_detailed(i*2, 2) = 1;
-        m_D_detailed(i*2, 3) = t_i;
-        m_D_detailed(i*2, 4) = 0;
-        m_D_detailed(i*2, 5) = 0;
-        m_d_detailed(i*2) = 0.5*GRAVITY*alpha*t_i*t_i + x;
+        const int baseIndex = (i + ADDITIONAL_DATA_INSERTION) * 2;
+        m_D_detailed(baseIndex, 0) = alpha;
+        m_D_detailed(baseIndex, 1) = alpha*t_i;
+        m_D_detailed(baseIndex, 2) = 1;
+        m_D_detailed(baseIndex, 3) = t_i;
+        m_D_detailed(baseIndex, 4) = 0;
+        m_D_detailed(baseIndex, 5) = 0;
+        m_d_detailed(baseIndex) = 0.5*GRAVITY*alpha*t_i*t_i + x;
 
-        m_D_detailed(i*2+1, 0) = beta;
-        m_D_detailed(i*2+1, 1) = beta*t_i;
-        m_D_detailed(i*2+1, 2) = 0;
-        m_D_detailed(i*2+1, 3) = 0;
-        m_D_detailed(i*2+1, 4) = 1;
-        m_D_detailed(i*2+1, 5) = t_i;
-        m_d_detailed(i*2+1) = 0.5*GRAVITY*beta*t_i*t_i + y;
+        m_D_detailed(baseIndex + 1, 0) = beta;
+        m_D_detailed(baseIndex + 1, 1) = beta*t_i;
+        m_D_detailed(baseIndex + 1, 2) = 0;
+        m_D_detailed(baseIndex + 1, 3) = 0;
+        m_D_detailed(baseIndex + 1, 4) = 1;
+        m_D_detailed(baseIndex + 1, 5) = t_i;
+        m_d_detailed(baseIndex + 1) = 0.5*GRAVITY*beta*t_i*t_i + y;
         m_pinvDataInserted = i;
     }
 
     const float strength = 0.1f;
-    const int lastIndex = MAX_FRAMES_PER_FLIGHT * 2 - 1;
-    m_D_detailed(lastIndex, 2) = strength;
-    m_d_detailed(lastIndex) = firstInTheAir.ballPos.x() * strength;
-    m_D_detailed(lastIndex-1, 4) = strength;
-    m_d_detailed(lastIndex-1) = firstInTheAir.ballPos.y() * strength;
+    m_D_detailed(0, 2) = strength;
+    m_d_detailed(0) = firstInTheAir.ballPos.x() * strength;
+    m_D_detailed(1, 4) = strength;
+    m_d_detailed(1) = firstInTheAir.ballPos.y() * strength;
 
-    const Eigen::VectorXf pi = m_D_detailed.colPivHouseholderQr().solve(m_d_detailed);
+    const int filledEntries = (m_kickFrames.size() + ADDITIONAL_DATA_INSERTION) * 2;
+    const Eigen::VectorXf pi = m_D_detailed.block(0, 0, filledEntries, 6).colPivHouseholderQr().solve(m_d_detailed.block(0, 0, filledEntries, 1));
+
+
     const float piError = (m_D_detailed * pi - m_d_detailed).lpNorm<1>();
     plot("reconstruction error", piError / m_kickFrames.size());
 
