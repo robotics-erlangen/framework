@@ -695,20 +695,19 @@ void FlyFilter::updateBouncing(qint64 time)
 {
 
     const float t = toLocalTime(time) - m_kickFrames.at(m_shotStartFrame).time;
-
     const bool hasBounced = m_flightReconstructions.back().hasBounced(toLocalTime(time));
     if (t > 0.3f && hasBounced) {
-        const BallFlight afterBounce = m_flightReconstructions.back().afterBounce(m_kickFrames.size() - 1);
-        m_flightReconstructions.append(afterBounce);
 
         const float bounceDetectionDistance = (m_flightReconstructions.back().flightStartPos - m_kickFrames.back().ballPos).norm();
         if (bounceDetectionDistance > 0.05f) {
-            m_flightReconstructions.pop_back();
             const int startFrame = m_flightReconstructions.back().startFrame;
             const BallFlight fixedFlight = BallFlight::betweenChipFrames(m_kickFrames.at(startFrame),
                                                                          m_kickFrames.back(), startFrame);
             m_flightReconstructions.back() = fixedFlight;
             m_flightReconstructions.append(fixedFlight.afterBounce(m_kickFrames.size()-1));
+        } else {
+            const BallFlight afterBounce = m_flightReconstructions.back().afterBounce(m_kickFrames.size() - 1);
+            m_flightReconstructions.append(afterBounce);
         }
 
         if (m_flightReconstructions.back().zSpeed < 0.1f) {
@@ -730,10 +729,10 @@ void FlyFilter::updateBouncing(qint64 time)
         m_flightReconstructions.append(fixedFlight.afterBounce(bounceFrame));
     }
 
-    if (m_flightReconstructions.size() > 1 && m_kickFrames.size() - m_flightReconstructions.back().startFrame > 5) {
+    if (m_flightReconstructions.size() > 1 && m_kickFrames.size() - m_flightReconstructions.back().startFrame > 4) {
         const BallFlight &currentFlight = m_flightReconstructions.back();
         const BallFlight reconstruction = calcIntersection(currentFlight.flightStartPos, currentFlight.groundSpeed,
-                                                           currentFlight.flightStartTime, currentFlight.startFrame + 1);
+                                                           currentFlight.flightStartTime, currentFlight.startFrame);
         const BallFlight &previousFlight = m_flightReconstructions.at(m_flightReconstructions.size() - 2);
         if (reconstruction.groundSpeed.norm() < previousFlight.groundSpeed.norm()
                 && reconstruction.zSpeed > 0 && reconstruction.zSpeed < previousFlight.zSpeed) {
