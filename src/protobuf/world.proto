@@ -138,6 +138,7 @@ message SimulatorState {
     repeated SimRobot blue_robots = 1;
     repeated SimRobot yellow_robots = 2;
     optional SimBall ball = 3;
+    optional int64 time = 4;
 }
 
 message SimBall {

@@ -402,6 +402,7 @@ std::tuple<QList<QByteArray>, QByteArray, qint64> Simulator::createVisionPacket(
 {
     const std::size_t numCameras = m_data->reportedCameraSetup.size();
     world::SimulatorState simState;
+    simState.set_time(m_time);
 
     std::vector<SSL_DetectionFrame> detections(numCameras);
     for (std::size_t i = 0;i<numCameras;i++) {
