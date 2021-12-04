@@ -401,7 +401,7 @@ bool FlyFilter::detectionSpeed() const
             continue;
         }
         const float dist = (m_kickFrames.at(i).ballPos - m_kickFrames.at(i-1).ballPos).norm();
-        const float timeDiff = m_kickFrames.at(i).time - m_kickFrames.at(i-1).time;
+        const float timeDiff = m_kickFrames.at(i).captureTime - m_kickFrames.at(i-1).captureTime;
         speeds.append(dist / timeDiff);
     }
     const float avg = std::accumulate(speeds.begin(), speeds.end(), 0.0) / speeds.size();
