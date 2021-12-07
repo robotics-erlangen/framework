@@ -54,21 +54,22 @@ bool FlyFilter::checkIsShot() const
         return false;
     }
 
-    const float dist = (m_shotDetectionWindow.at(1).ballPos - m_shotDetectionWindow.at(3).ballPos).norm();
-    const float timeDiff = m_shotDetectionWindow.at(3).time - m_shotDetectionWindow.at(1).time;
+    const int b = m_shotDetectionWindow.size() - 4;
+    const float dist = (m_shotDetectionWindow.at(b + 1).ballPos - m_shotDetectionWindow.at(b + 3).ballPos).norm();
+    const float timeDiff = m_shotDetectionWindow.at(b + 3).time - m_shotDetectionWindow.at(b + 1).time;
     const float absSpeed = dist / timeDiff;
 
-    const float dribblerDist0 = (m_shotDetectionWindow.at(0).dribblerPos - m_shotDetectionWindow.at(0).ballPos).norm();
-    const float dribblerDist1 = (m_shotDetectionWindow.at(0).dribblerPos - m_shotDetectionWindow.at(1).ballPos).norm();
-    const float dribblerDist2 = (m_shotDetectionWindow.at(0).dribblerPos - m_shotDetectionWindow.at(2).ballPos).norm();
-    const float dribblerDist3 = (m_shotDetectionWindow.at(0).dribblerPos - m_shotDetectionWindow.at(3).ballPos).norm();
+    const float dribblerDist0 = (m_shotDetectionWindow.at(b + 0).dribblerPos - m_shotDetectionWindow.at(b + 0).ballPos).norm();
+    const float dribblerDist1 = (m_shotDetectionWindow.at(b + 0).dribblerPos - m_shotDetectionWindow.at(b + 1).ballPos).norm();
+    const float dribblerDist2 = (m_shotDetectionWindow.at(b + 0).dribblerPos - m_shotDetectionWindow.at(b + 2).ballPos).norm();
+    const float dribblerDist3 = (m_shotDetectionWindow.at(b + 0).dribblerPos - m_shotDetectionWindow.at(b + 3).ballPos).norm();
 
     const bool distanceMonotonicRising = dribblerDist0 < dribblerDist1 && dribblerDist1 < dribblerDist2 && dribblerDist2 < dribblerDist3;
 
-    return m_shotDetectionWindow.at(1).dribblerSpeed > m_shotDetectionWindow.at(0).dribblerSpeed
-            && m_shotDetectionWindow.at(1).dribblerSpeed > 0.1f
+    return m_shotDetectionWindow.at(b + 1).dribblerSpeed > m_shotDetectionWindow.at(b + 0).dribblerSpeed
+            && m_shotDetectionWindow.at(b + 1).dribblerSpeed > 0.1f
             && absSpeed > 1
-            && m_shotDetectionWindow.at(1).absSpeed - m_shotDetectionWindow.at(0).absSpeed > 0.2f
+            && m_shotDetectionWindow.at(b + 1).absSpeed - m_shotDetectionWindow.at(b + 0).absSpeed > 0.2f
             && distanceMonotonicRising
             // moved at least 6cm
             && dribblerDist3 - dribblerDist0 > 0.06f
@@ -481,7 +482,7 @@ bool FlyFilter::checkIsDribbling() const
 
 bool FlyFilter::detectChip(const PinvResult &pinvRes) const
 {
-    if (m_kickFrames.front().chipCommand) {
+    if (m_shootCommand == ShootCommand::CHIP) {
         debug("kick command", "chip");
         return true;
     }
@@ -529,17 +530,20 @@ auto FlyFilter::createChipDetection(const VisionFrame& frame) const -> ChipDetec
         absSpeed = (reportedBallPos-m_shotDetectionWindow.back().ballPos).norm() / timeDiff;
     }
 
+    const ShootCommand shootCommand = frame.linearCommand ? (frame.chipCommand ? ShootCommand::BOTH : ShootCommand::LINEAR) :
+                                                            (frame.chipCommand ? ShootCommand::CHIP : ShootCommand::NONE);
+
     const float captureTime = toLocalTime(frame.captureTime);
     return ChipDetection(dribblerSpeed, absSpeed, timeSinceInit, captureTime,
                          reportedBallPos, frame.robot.dribblerPos, frame.robot.robotPos,
-                         frame.cameraId, frame.chipCommand, frame.linearCommand, frame.robot.identifier);
+                         frame.cameraId, shootCommand, frame.robot.identifier);
 }
 
 void FlyFilter::processVisionFrame(const VisionFrame& frame)
 {
     const ChipDetection currentDetection = createChipDetection(frame);
     m_shotDetectionWindow.append(currentDetection);
-    if (m_shotDetectionWindow.size() > 4) {
+    if (m_shotDetectionWindow.size() > 8) {
         m_shotDetectionWindow.pop_front();
     }
 
@@ -547,19 +551,25 @@ void FlyFilter::processVisionFrame(const VisionFrame& frame)
 
     if (m_kickFrames.empty() && checkIsShot()) {
 
-        if (m_shotDetectionWindow.at(0).dribblerSpeed > 0.1f) {
+        // it is possible that in the detection window both a linear and a chip command
+        // were given, resulting in ShootCommand::BOTH, which is mostly equivalent to NONE for the flight tracking
+        for (const ChipDetection &d : m_shotDetectionWindow) {
+            m_shootCommand = static_cast<ShootCommand>(m_shootCommand | d.shootCommand);
+        }
+
+        if (m_shotDetectionWindow.at(m_shotDetectionWindow.size() - 4).dribblerSpeed > 0.1f) {
             m_shotStartFrame = 0;
         } else {
             m_shotStartFrame = 1;
         }
 
-        m_kickFrames.append(m_shotDetectionWindow.at(0));
-        m_kickFrames.append(m_shotDetectionWindow.at(1));
-        m_kickFrames.append(m_shotDetectionWindow.at(2));
+        m_kickFrames.append(m_shotDetectionWindow.at(m_shotDetectionWindow.size() - 4));
+        m_kickFrames.append(m_shotDetectionWindow.at(m_shotDetectionWindow.size() - 3));
+        m_kickFrames.append(m_shotDetectionWindow.at(m_shotDetectionWindow.size() - 2));
         // currentDetection is also in m_shotDetectionWindow but will be added by chip detection
         m_shotDetectionWindow.clear();
         // we need to keep the last measurement to infer speed
-        m_shotDetectionWindow.append(m_kickFrames.back());
+        m_shotDetectionWindow.append(currentDetection);
 
         debug("shot detected", 1);
     }
@@ -587,7 +597,7 @@ void FlyFilter::processVisionFrame(const VisionFrame& frame)
         }
         if (m_flightReconstructions.size() < 2) {
             debug("chip detected", m_chipDetected);
-            if (m_kickFrames.front().linearCommand) {
+            if (m_shootCommand == ShootCommand::LINEAR) {
                 resetFlightReconstruction();
                 debug("kick command", "linear");
                 return; // no detection for linear kicks
@@ -811,6 +821,7 @@ void FlyFilter::resetFlightReconstruction()
     m_chipDetected = false;
     m_flightReconstructions.clear();
     m_kickFrames.clear();
+    m_shootCommand = ShootCommand::NONE;
     m_flyFitter.clear();
     m_pinvDataInserted = 0;
     const int matchEntries = MAX_FRAMES_PER_FLIGHT + ADDITIONAL_DATA_INSERTION;

@@ -48,10 +48,16 @@ private:
         float reconstructionError;
     };
 
+    enum ShootCommand {
+        NONE = 0,
+        LINEAR = 1,
+        CHIP = 2,
+        BOTH = 3
+    };
 
     struct ChipDetection {
-        ChipDetection(float s, float as, float t, float ct, Eigen::Vector2f bp, Eigen::Vector2f dp, Eigen::Vector2f r, quint32 cid, bool cc, bool lc, int rid)
-            :  dribblerSpeed(s), absSpeed(as), time(t), captureTime(ct), ballPos(bp), dribblerPos(dp), robotPos(r), robotId(rid), cameraId(cid), chipCommand(cc), linearCommand(lc)  {}
+        ChipDetection(float s, float as, float t, float ct, Eigen::Vector2f bp, Eigen::Vector2f dp, Eigen::Vector2f r, quint32 cid, ShootCommand sc, int rid)
+            :  dribblerSpeed(s), absSpeed(as), time(t), captureTime(ct), ballPos(bp), dribblerPos(dp), robotPos(r), robotId(rid), cameraId(cid), shootCommand(sc)  {}
         ChipDetection(){} // make QVector happy
 
         float dribblerSpeed;
@@ -63,8 +69,7 @@ private:
         Eigen::Vector2f robotPos;
         int robotId;
         quint32 cameraId;
-        bool chipCommand;
-        bool linearCommand;
+        ShootCommand shootCommand;
     };
 
     // can be used for the initial chip, but also while bouncing
@@ -128,8 +133,9 @@ private:
     bool m_chipDetected;
 
     int m_shotStartFrame;
-    QVector<ChipDetection> m_shotDetectionWindow; // sliding window of size 5
+    QVector<ChipDetection> m_shotDetectionWindow; // sliding window
     QVector<ChipDetection> m_kickFrames;
+    ShootCommand m_shootCommand;
 
     // the initial flight, bounces are added as they happen
     // if the flight could not be reconstructed, it will be empty
