@@ -748,16 +748,38 @@ void FlyFilter::updateBouncing(qint64 time)
         m_flightReconstructions.append(fixedFlight.afterBounce(bounceFrame));
     }
 
-    if (m_flightReconstructions.size() > 1 && m_kickFrames.size() - m_flightReconstructions.back().startFrame > 4) {
+    const int framesSinceBounce = m_kickFrames.size() - 1 - m_flightReconstructions.back().startFrame;
+    if (m_flightReconstructions.size() > 1 && framesSinceBounce > 0) {
         const BallFlight &currentFlight = m_flightReconstructions.back();
-        const BallFlight reconstruction = calcIntersection(currentFlight.flightStartPos, currentFlight.groundSpeed,
-                                                           currentFlight.flightStartTime, currentFlight.startFrame);
-        const BallFlight &previousFlight = m_flightReconstructions.at(m_flightReconstructions.size() - 2);
-        if (reconstruction.groundSpeed.norm() < previousFlight.groundSpeed.norm()
-                && reconstruction.zSpeed > 0 && reconstruction.zSpeed < previousFlight.zSpeed) {
-            m_flightReconstructions.back() = reconstruction;
+
+        const Eigen::Vector2f shotDir = currentFlight.groundSpeed.normalized();
+        const Eigen::Vector2f sideDir = perpendicular(shotDir);
+
+        float maxShotLineDist = 0;
+        float minShotLineDist = 0;
+        for (int i = currentFlight.startFrame;i<m_kickFrames.size();i++) {
+            const float dist = (m_kickFrames.at(i).ballPos - currentFlight.flightStartPos).dot(sideDir);
+            maxShotLineDist = std::max(maxShotLineDist, std::abs(dist));
+            minShotLineDist = std::min(minShotLineDist, std::abs(dist));
         }
 
+        // if the shot is sufficiently curved, reconstruct the flight with intersection fitting
+        if (maxShotLineDist - minShotLineDist > 0.05f && framesSinceBounce > 4) {
+            const BallFlight reconstruction = calcIntersection(currentFlight.flightStartPos, currentFlight.groundSpeed,
+                                                               currentFlight.flightStartTime, currentFlight.startFrame);
+            const BallFlight &previousFlight = m_flightReconstructions.at(m_flightReconstructions.size() - 2);
+            if (reconstruction.groundSpeed.norm() < previousFlight.groundSpeed.norm()
+                    && reconstruction.zSpeed > 0 && reconstruction.zSpeed < previousFlight.zSpeed) {
+                m_flightReconstructions.back() = reconstruction;
+            }
+
+        } else {
+            const float initDist = (m_kickFrames.at(currentFlight.startFrame).ballPos - currentFlight.flightStartPos).dot(shotDir);
+            const float projectedDistance = (m_kickFrames.back().ballPos - currentFlight.flightStartPos).dot(shotDir) - initDist;
+            const float speedLength = projectedDistance / (m_kickFrames.back().captureTime - m_kickFrames.at(currentFlight.startFrame).captureTime);
+
+            m_flightReconstructions.back().groundSpeed = shotDir * speedLength;
+        }
 
     }
 }
