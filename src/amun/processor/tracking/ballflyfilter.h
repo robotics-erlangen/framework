@@ -123,7 +123,7 @@ private:
         Eigen::Vector2f touchdownPos;
     };
 
-    int detectBouncing() const;
+    int detectBouncing();
     void updateBouncing(qint64 time);
     Prediction predictTrajectory(float time) const;
 
@@ -140,6 +140,8 @@ private:
     // the initial flight, bounces are added as they happen
     // if the flight could not be reconstructed, it will be empty
     QVector<BallFlight> m_flightReconstructions;
+    // not an assumed bounce by timing, but only the last one determined by vision detections
+    int m_lastBounceFrame;
 
     float m_distToStartPos;
 

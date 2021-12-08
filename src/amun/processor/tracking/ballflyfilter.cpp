@@ -562,6 +562,7 @@ void FlyFilter::processVisionFrame(const VisionFrame& frame)
         } else {
             m_shotStartFrame = 1;
         }
+        m_lastBounceFrame = m_shotStartFrame;
 
         m_kickFrames.append(m_shotDetectionWindow.at(m_shotDetectionWindow.size() - 4));
         m_kickFrames.append(m_shotDetectionWindow.at(m_shotDetectionWindow.size() - 3));
@@ -628,36 +629,44 @@ void FlyFilter::processVisionFrame(const VisionFrame& frame)
     }
 }
 
-int FlyFilter::detectBouncing() const
+static Eigen::Vector2f perpendicular(const Eigen::Vector2f dir)
 {
-    if (m_kickFrames.size() < 15) {
+    return Eigen::Vector2f(dir.y(), -dir.x());
+}
+
+int FlyFilter::detectBouncing()
+{
+    debugCircle("bounce detected", m_kickFrames.at(m_lastBounceFrame).ballPos.x(), m_kickFrames.at(m_lastBounceFrame).ballPos.y(), 0.03f);
+
+    if (m_kickFrames.size() < 10 || m_kickFrames.back().cameraId != m_kickFrames.at(m_kickFrames.size() - 7).cameraId) {
         return -1;
     }
 
-    for (int i = 0;i<5;i++) {
-        const ChipDetection frame = m_kickFrames.at(m_kickFrames.size() - 1 - i);
-        // all frames are in the same camera
-        if (frame.cameraId != m_kickFrames.back().cameraId) {
-            return -1;
+    const int checkFrame = m_kickFrames.size() - 3;
+    const bool cameraChangeAfterBounce = m_kickFrames.at(m_lastBounceFrame).cameraId != m_kickFrames.back().cameraId;
+    const int shotFrame = cameraChangeAfterBounce ? m_shotStartFrame : m_lastBounceFrame;
+    const Eigen::Vector2f shotPos = m_kickFrames.at(checkFrame).ballPos;
+    const Eigen::Vector2f shotDir = (shotPos - m_kickFrames.at(shotFrame).ballPos).normalized();
+    const Eigen::Vector2f sideDir = perpendicular(shotDir);
+
+    float leftDist = 0;
+    float rightDist = 0;
+    for (int i = m_lastBounceFrame + 5;i<m_kickFrames.size();i++) {
+        if (m_kickFrames.at(i).cameraId != m_kickFrames.back().cameraId) {
+            continue;
         }
+        const Eigen::Vector2f offset = m_kickFrames.at(i).ballPos - shotPos;
+        const float sidePart = offset.dot(sideDir);
+        // this might switch around left and right, but it does not matter
+        leftDist = std::min(leftDist, sidePart);
+        rightDist = std::max(rightDist, sidePart);
     }
+    const float maxDist = std::max(std::abs(leftDist), std::abs(rightDist));
+    const float minDist = std::min(std::abs(leftDist), std::abs(rightDist));
 
-    const Eigen::Vector2f wayback = m_kickFrames.at(m_kickFrames.size() - 10).ballPos;
-    const Eigen::Vector2f oldest = m_kickFrames.at(m_kickFrames.size() - 5).ballPos;
-    const Eigen::Vector2f arcEnd = m_kickFrames.at(m_kickFrames.size() - 4).ballPos;
-    const Eigen::Vector2f bouncePos = m_kickFrames.at(m_kickFrames.size() - 3).ballPos;
-    const Eigen::Vector2f arcStart = m_kickFrames.at(m_kickFrames.size() - 2).ballPos;
-    const Eigen::Vector2f newest = m_kickFrames.at(m_kickFrames.size() - 1).ballPos;
-
-    // check if the bounce is sufficiently steep
-    const float inner = (arcStart - bouncePos).normalized().dot((bouncePos - arcEnd).normalized());
-    const float outer = (newest - bouncePos).normalized().dot((bouncePos - oldest).normalized());
-    const float back = (arcStart - bouncePos).normalized().dot((bouncePos - wayback).normalized());
-    const float back2 = (bouncePos - oldest).normalized().dot((bouncePos - wayback).normalized());
-
-    // TODO: terrible code
-    if (inner < 0.97f && outer < 0.97f && (inner < back || back2 > 0.99f)) {
-        return m_kickFrames.size() - 3;
+    if (maxDist > 0.03f && minDist == 0) {
+        m_lastBounceFrame = checkFrame;
+        return checkFrame;
     }
     return -1;
 }
