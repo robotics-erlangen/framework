@@ -104,3 +104,11 @@ export function partition<T>(list: T[], pred: (a: T) => boolean): [T[], T[]] {
 	}
 	return [accepted, rejected];
 }
+
+/**
+ * Creates a new array with all sub arrays elements concatinated into it
+ * @param list - The list to flatten
+ */
+export function flat<T>(list: T[][]): T[] {
+	return list.reduce((acc, val) => acc.concat(val), []);
+}
