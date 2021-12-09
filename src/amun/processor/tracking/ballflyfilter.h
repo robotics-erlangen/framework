@@ -22,7 +22,6 @@
 #define BALLFLYFILTER_H
 
 #include "abstractballfilter.h"
-#include "quadraticleastsquaresfitter.h"
 #include "protobuf/ssl_detection.pb.h"
 #include "protobuf/world.pb.h"
 

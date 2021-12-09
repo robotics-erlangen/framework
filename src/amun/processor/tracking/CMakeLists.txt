@@ -33,8 +33,6 @@ add_library(tracking
     filter.cpp
     filter.h
     kalmanfilter.h
-    quadraticleastsquaresfitter.cpp
-    quadraticleastsquaresfitter.h
     robotfilter.cpp
     robotfilter.h
     tracker.cpp
