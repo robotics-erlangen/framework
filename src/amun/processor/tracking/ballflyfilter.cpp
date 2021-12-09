@@ -31,6 +31,7 @@ static const float FLOOR_DAMPING_GROUND = 0.7f; // heavily dependant on ball spi
 static const int MAX_FRAMES_PER_FLIGHT = 200; // 60Hz, 3 seconds in the air
 static const int ADDITIONAL_DATA_INSERTION = 1; // these additional are for the position bias
 static const float ACCEPT_DIST = 0.35;
+static const float INITIAL_BIAS_STRENGTH = 0.1f;
 static const int APPROACH_SWITCH_FRAMENO = 16;
 
 static const float GRAVITY = 9.81;
@@ -139,14 +140,30 @@ FlyFilter::PinvResult FlyFilter::calcPinv()
         m_pinvDataInserted = i;
     }
 
-    const float strength = 0.1f;
-    m_D_detailed(0, 2) = strength;
-    m_d_detailed(0) = firstInTheAir.ballPos.x() * strength;
-    m_D_detailed(1, 4) = strength;
-    m_d_detailed(1) = firstInTheAir.ballPos.y() * strength;
 
-    const int filledEntries = (m_kickFrames.size() + ADDITIONAL_DATA_INSERTION) * 2;
-    const Eigen::VectorXf pi = m_D_detailed.block(0, 0, filledEntries, 6).colPivHouseholderQr().solve(m_d_detailed.block(0, 0, filledEntries, 1));
+    Eigen::VectorXf pi;
+    float startDistance = 0;
+    const float MAX_DISTANCE = 0.03f;
+    do {
+        m_D_detailed(0, 2) = m_biasStrength;
+        m_d_detailed(0) = firstInTheAir.ballPos.x() * m_biasStrength;
+        m_D_detailed(1, 4) = m_biasStrength;
+        m_d_detailed(1) = firstInTheAir.ballPos.y() * m_biasStrength;
+
+        const int filledEntries = (m_kickFrames.size() + ADDITIONAL_DATA_INSERTION) * 2;
+        pi = m_D_detailed.block(0, 0, filledEntries, 6).colPivHouseholderQr().solve(m_d_detailed.block(0, 0, filledEntries, 1));
+
+        const Eigen::Vector2f startPos = Eigen::Vector2f(pi(2), pi(4));
+        const Eigen::Vector2f trueStart = firstInTheAir.ballPos;
+        startDistance = (startPos - trueStart).norm();
+
+        const float FACTOR = 1.2f;
+        if (startDistance > MAX_DISTANCE) {
+            m_biasStrength *= FACTOR;
+        } else if (m_biasStrength > INITIAL_BIAS_STRENGTH) {
+            m_biasStrength /= FACTOR;
+        }
+    } while (startDistance > MAX_DISTANCE);
 
 
     const float piError = (m_D_detailed * pi - m_d_detailed).lpNorm<1>();
@@ -851,6 +868,7 @@ void FlyFilter::resetFlightReconstruction()
     m_shootCommand = ShootCommand::NONE;
     m_flyFitter.clear();
     m_pinvDataInserted = 0;
+    m_biasStrength = INITIAL_BIAS_STRENGTH;
     const int matchEntries = MAX_FRAMES_PER_FLIGHT + ADDITIONAL_DATA_INSERTION;
     m_d_detailed = Eigen::VectorXf::Zero(2*matchEntries);
     m_D_detailed = Eigen::MatrixXf::Zero(2*matchEntries, 6);

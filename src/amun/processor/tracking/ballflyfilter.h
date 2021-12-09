@@ -147,6 +147,7 @@ private:
 
     QuadraticLeastSquaresFitter m_flyFitter;
 
+    float m_biasStrength;
     int m_pinvDataInserted;
     Eigen::VectorXf m_d_detailed;
     Eigen::MatrixXf m_D_detailed;
