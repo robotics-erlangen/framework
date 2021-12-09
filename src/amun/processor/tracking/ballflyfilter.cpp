@@ -38,8 +38,7 @@ static const float GRAVITY = 9.81;
 
 FlyFilter::FlyFilter(const VisionFrame& frame, CameraInfo* cameraInfo, const FieldTransform &transform) :
     AbstractBallFilter(frame, cameraInfo, transform),
-    m_initTime(frame.time),
-    m_flyFitter(MAX_FRAMES_PER_FLIGHT)
+    m_initTime(frame.time)
 {
     resetFlightReconstruction();
 }
@@ -730,18 +729,8 @@ void FlyFilter::updateBouncing(qint64 time)
     const float t = toLocalTime(time) - m_kickFrames.at(m_shotStartFrame).time;
     const bool hasBounced = m_flightReconstructions.back().hasBounced(toLocalTime(time));
     if (t > 0.3f && hasBounced) {
-
-        const float bounceDetectionDistance = (m_flightReconstructions.back().flightStartPos - m_kickFrames.back().ballPos).norm();
-        if (bounceDetectionDistance > 0.05f) {
-            const int startFrame = m_flightReconstructions.back().startFrame;
-            const BallFlight fixedFlight = BallFlight::betweenChipFrames(m_kickFrames.at(startFrame),
-                                                                         m_kickFrames.back(), startFrame);
-            m_flightReconstructions.back() = fixedFlight;
-            m_flightReconstructions.append(fixedFlight.afterBounce(m_kickFrames.size()-1));
-        } else {
-            const BallFlight afterBounce = m_flightReconstructions.back().afterBounce(m_kickFrames.size() - 1);
-            m_flightReconstructions.append(afterBounce);
-        }
+        const BallFlight afterBounce = m_flightReconstructions.back().afterBounce(m_kickFrames.size() - 1);
+        m_flightReconstructions.append(afterBounce);
     }
 
     const int bounceFrame = detectBouncing();
@@ -866,7 +855,6 @@ void FlyFilter::resetFlightReconstruction()
     m_flightReconstructions.clear();
     m_kickFrames.clear();
     m_shootCommand = ShootCommand::NONE;
-    m_flyFitter.clear();
     m_pinvDataInserted = 0;
     m_biasStrength = INITIAL_BIAS_STRENGTH;
     const int matchEntries = MAX_FRAMES_PER_FLIGHT + ADDITIONAL_DATA_INSERTION;
