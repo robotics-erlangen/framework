@@ -728,12 +728,6 @@ void FlyFilter::updateBouncing(qint64 time)
             const BallFlight afterBounce = m_flightReconstructions.back().afterBounce(m_kickFrames.size() - 1);
             m_flightReconstructions.append(afterBounce);
         }
-
-        if (m_flightReconstructions.back().zSpeed < 0.1f) {
-            debug("abort bounce", true);
-            resetFlightReconstruction();
-            return;
-        }
     }
 
     const int bounceFrame = detectBouncing();
@@ -780,7 +774,12 @@ void FlyFilter::updateBouncing(qint64 time)
 
             m_flightReconstructions.back().groundSpeed = shotDir * speedLength;
         }
+    }
 
+    if (t > 0.5f && m_flightReconstructions.back().zSpeed < 0.5f) {
+        debug("abort bounce", true);
+        resetFlightReconstruction();
+        return;
     }
 }
 
