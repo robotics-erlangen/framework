@@ -103,7 +103,7 @@ private:
     PinvResult calcPinv();
 
     Eigen::Vector2f intersectDirection(const PinvResult &pinvRes) const;
-    BallFlight calcIntersection(Eigen::Vector2f shotStartPos, Eigen::Vector2f groundSpeed, float startTime, int startFrame) const;
+    BallFlight constrainedReconstruction(Eigen::Vector2f shotStartPos, Eigen::Vector2f groundSpeed, float startTime, int startFrame) const;
 
     BallFlight approachPinvApply(const PinvResult& pinvRes) const;
     BallFlight approachIntersectApply(const PinvResult &pinvRes) const;
