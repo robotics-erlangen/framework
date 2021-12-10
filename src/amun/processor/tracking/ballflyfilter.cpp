@@ -302,8 +302,7 @@ bool FlyFilter::approachPinvApplicable(const FlyFilter::PinvResult &pinvRes) con
     // if z0 is so far lower than 0 or vz is very low, the flight trajectory might never reach the ground plane,
     // this leads to problems later
     const bool reconstructionReachesGround = vz*vz + GRAVITY*z0*2 >= 0;
-    return  z0 > -0.5 && (z0 < 1 || (m_flightReconstructions.size() > 0 && z0 < 4)) && vz > 1
-            && vz < 10
+    return  vz > 1 && vz < 10
             && (std::isnan(vToProj) || vToProj < 0.7)
             && reconstructionReachesGround;
 }
@@ -448,7 +447,6 @@ bool FlyFilter::detectionSpeed() const
 
 bool FlyFilter::detectionPinv(const FlyFilter::PinvResult &pinvRes) const
 {
-    const float z0 = pinvRes.z0;
     const float vz = pinvRes.vz;
 
     const float maxFlightDurationHalf = vz / GRAVITY;
@@ -456,10 +454,6 @@ bool FlyFilter::detectionPinv(const FlyFilter::PinvResult &pinvRes) const
     const float maxHeight = vz*maxFlightDurationHalf - (GRAVITY * 0.5f) *maxFlightDurationHalf*maxFlightDurationHalf;
     const float timeElapsed = m_kickFrames.back().time - m_kickFrames.at(m_shotStartFrame).time;
 
-    const float flightDistGroundCalc = vz*timeElapsed;
-    const float flightDistMeasured = (m_kickFrames.front().ballPos - m_kickFrames.back().ballPos).norm();
-    debug("pinv detection/flight dist calc", flightDistGroundCalc);
-    debug("pinv detection/flight dist measured", flightDistMeasured);
     debug("pinv detection/t", timeElapsed);
     debug("pinv detection/max flightDuration", maxFlightDuration);
     debug("pinv detection/max height", maxHeight);
@@ -473,12 +467,11 @@ bool FlyFilter::detectionPinv(const FlyFilter::PinvResult &pinvRes) const
         }
     }
 
-    return  z0 > -0.4 && z0 < 1.5 && vz > 1 && vz < 10
+    return  vz > 1 && vz < 10
             && pinvRes.reconstructionError < 0.003f
             && pinvRes.groundSpeed.norm() > 1.5
             && timeElapsed < maxFlightDuration
             && maxHeight > 0.1
-            && std::abs(flightDistGroundCalc-flightDistMeasured) < std::min(flightDistGroundCalc, flightDistMeasured)/3
             && (m_kickFrames.size() - m_shotStartFrame) > 8;
 }
 
