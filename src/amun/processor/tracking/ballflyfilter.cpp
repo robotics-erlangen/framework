@@ -32,8 +32,6 @@ static const int MAX_FRAMES_PER_FLIGHT = 200; // 60Hz, 3 seconds in the air
 static const int ADDITIONAL_DATA_INSERTION = 1; // these additional are for the position bias
 static const float ACCEPT_DIST = 0.35;
 static const float INITIAL_BIAS_STRENGTH = 0.1f;
-static const int APPROACH_SWITCH_FRAMENO = 16;
-
 static const float GRAVITY = 9.81;
 
 FlyFilter::FlyFilter(const VisionFrame& frame, CameraInfo* cameraInfo, const FieldTransform &transform) :
@@ -196,16 +194,6 @@ FlyFilter::PinvResult FlyFilter::calcPinv()
     return res;
 }
 
-Eigen::Vector2f FlyFilter::intersectDirection(const PinvResult &pinvRes) const
-{
-    if (m_kickFrames.size() < 10 && m_kickFrames.at(m_shotStartFrame).absSpeed < 1) {
-        debug("intersection dir", "ball to robot");
-        return m_kickFrames.at(m_shotStartFrame).ballPos - m_kickFrames.at(m_shotStartFrame).robotPos;
-    } else {
-        debug("intersection dir", "pinv");
-        return pinvRes.groundSpeed;
-    }
-}
 
 auto FlyFilter::constrainedReconstruction(Eigen::Vector2f shotStartPos, Eigen::Vector2f groundSpeed,
                                           float startTime, int startFrame) const -> BallFlight
@@ -270,10 +258,15 @@ auto FlyFilter::approachPinvApply(const PinvResult &pinvRes) const -> BallFlight
     return result;
 }
 
-auto FlyFilter::approachIntersectApply(const PinvResult &pinvRes) const -> BallFlight
+Eigen::Vector2f FlyFilter::approxGroundDirection() const
+{
+    return m_kickFrames.at(m_shotStartFrame).dribblerPos - m_kickFrames.at(m_shotStartFrame).robotPos;
+}
+
+auto FlyFilter::approachShotDirectionApply() const -> BallFlight
 {
     const ChipDetection firstInTheAir = m_kickFrames.at(m_shotStartFrame);
-    BallFlight reconstruction = constrainedReconstruction(firstInTheAir.ballPos, intersectDirection(pinvRes),
+    BallFlight reconstruction = constrainedReconstruction(firstInTheAir.ballPos, approxGroundDirection(),
                                                           firstInTheAir.time, m_shotStartFrame);
     reconstruction.flightStartTime = reconstruction.flightStartTime - 0.01f; // -10ms, actual kick was before
     return reconstruction;
@@ -299,21 +292,23 @@ bool FlyFilter::approachPinvApplicable(const FlyFilter::PinvResult &pinvRes) con
 
     const float z0 = pinvRes.z0;
     const float vz = pinvRes.vz;
+    const int frames = (m_kickFrames.size() - m_shotStartFrame);
     // if z0 is so far lower than 0 or vz is very low, the flight trajectory might never reach the ground plane,
     // this leads to problems later
     const bool reconstructionReachesGround = vz*vz + GRAVITY*z0*2 >= 0;
     return  vz > 1 && vz < 10
             && (std::isnan(vToProj) || vToProj < 0.7)
-            && reconstructionReachesGround;
+            && reconstructionReachesGround
+            && ((frames > 5 && m_kickFrames.at(m_shotStartFrame).absSpeed > 1) || frames > 10);
 }
 
-bool FlyFilter::approachIntersectApplicable(const PinvResult &pinvRes) const
+bool FlyFilter::approachShotDirectionApplicable() const
 {
     // the calulated speed direction should not differ to much from the projection
     const Eigen::Vector2f center = m_kickFrames.first().ballPos;
-    const Eigen::Vector2f groundSpeed = intersectDirection(pinvRes);
+    const Eigen::Vector2f groundSpeed = approxGroundDirection();
     const double vToProj = innerAngle(center, m_kickFrames.back().ballPos, center + groundSpeed);
-    debug("vToProjIntersection", vToProj);
+    debug("vToProjShotDir", vToProj);
 
     // calculated direction has to lie between projection and camera
     const Eigen::Vector3f cam3d = m_cameraInfo->cameraPosition.value(m_kickFrames.back().cameraId);
@@ -323,29 +318,22 @@ bool FlyFilter::approachIntersectApplicable(const PinvResult &pinvRes) const
     debug("angle v", angleSpeed);
     debug("angle proj", angleProjection);
 
-    return angleSpeed < angleProjection && vToProj < 0.7 && (m_kickFrames.size() - m_shotStartFrame) > 5;
+    return angleSpeed < angleProjection && vToProj < 0.7
+            && (m_kickFrames.size() - m_shotStartFrame) > 5
+            && (m_kickFrames.size() - m_shotStartFrame) < 20;
 }
 
 auto FlyFilter::parabolicFlightReconstruct(const PinvResult& pinvRes) const -> std::optional<BallFlight>
 {
-    if (approachPinvApplicable(pinvRes) && m_kickFrames.size() > APPROACH_SWITCH_FRAMENO) {
+    if (approachPinvApplicable(pinvRes)) {
         debug("chip approach", "pinv");
         return {approachPinvApply(pinvRes)};
+    } else if (approachShotDirectionApplicable()) {
+        debug("chip approach", "shot direction");
+        return {approachShotDirectionApply()};
     } else {
-        const Eigen::Vector2f lastBall = m_kickFrames.back().ballPos;
-        const Eigen::Vector3f cam3d = m_cameraInfo->cameraPosition.value(m_kickFrames.back().cameraId);
-        const Eigen::Vector2f cam(cam3d(0), cam3d(1));
-        const Eigen::Vector2f center = m_kickFrames.first().ballPos;
-        const double intersectionAngle = innerAngle(center, cam, lastBall);
-        debug("intersection angle", intersectionAngle);
-
-        if (intersectionAngle > 0.4 && approachIntersectApplicable(pinvRes)) { // angle low
-            debug("chip approach", "intersection");
-            return {approachIntersectApply(pinvRes)};
-        } else {
-            debug("chip approach", "unavailable");
-            return {};
-        }
+        debug("chip approach", "unavailable");
+        return {};
     }
 }
 
@@ -753,7 +741,7 @@ void FlyFilter::updateBouncing(qint64 time)
             minShotLineDist = std::min(minShotLineDist, std::abs(dist));
         }
 
-        // if the shot is sufficiently curved, reconstruct the flight with intersection fitting
+        // if the shot is sufficiently curved, reconstruct the flight with constrained least squares fitting
         if (maxShotLineDist - minShotLineDist > 0.05f && framesSinceBounce > 4) {
             const BallFlight reconstruction = constrainedReconstruction(currentFlight.flightStartPos, currentFlight.groundSpeed,
                                                                currentFlight.flightStartTime, currentFlight.startFrame);

@@ -101,14 +101,14 @@ private:
 
     PinvResult calcPinv();
 
-    Eigen::Vector2f intersectDirection(const PinvResult &pinvRes) const;
+    Eigen::Vector2f approxGroundDirection() const;
     BallFlight constrainedReconstruction(Eigen::Vector2f shotStartPos, Eigen::Vector2f groundSpeed, float startTime, int startFrame) const;
 
     BallFlight approachPinvApply(const PinvResult& pinvRes) const;
-    BallFlight approachIntersectApply(const PinvResult &pinvRes) const;
+    BallFlight approachShotDirectionApply() const;
 
     bool approachPinvApplicable(const PinvResult& pinvRes) const;
-    bool approachIntersectApplicable(const PinvResult &pinvRes) const;
+    bool approachShotDirectionApplicable() const;
 
     std::optional<BallFlight> parabolicFlightReconstruct(const PinvResult &pinvRes) const;
     void resetFlightReconstruction();
