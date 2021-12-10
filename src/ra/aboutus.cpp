@@ -23,13 +23,22 @@
 
 #include "git/gitconfig.h"
 
+#include <QRegularExpression>
+
 AboutUs::AboutUs(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::AboutUs)
 {
     ui->setupUi(this);
     ui->commitLabel->setText(gitconfig::getErforceCommitHash());
-    ui->diffText->setText(gitconfig::getErforceCommitDiff());
+
+    const QString diffText(gitconfig::getErforceCommitDiff());
+    QString escaped = diffText.toHtmlEscaped();
+    for (int i = 0;i<2;i++) {
+        escaped.replace(QRegularExpression("\n\\+(.*|)\n"), "\n<font color=\"green\">+\\1</font>\n");
+        escaped.replace(QRegularExpression("\n\\-(.*|)\n"), "\n<font color=\"red\">-\\1</font>\n");
+    }
+    ui->diffText->setHtml(QString("<pre>%1</pre>").arg(escaped));
 }
 
 AboutUs::~AboutUs()
