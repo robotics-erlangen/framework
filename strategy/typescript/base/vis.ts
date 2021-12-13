@@ -28,6 +28,7 @@ let amunLocal = amun;
 import { Coordinates } from "base/coordinates";
 import * as pb from "base/protobuf";
 import { Position, Vector } from "base/vector";
+import * as World from "base/world";
 
 
 export class Color {
@@ -373,3 +374,45 @@ export function addPathRaw(name: string, points: Position[], color: Color = gcol
 	}
 }
 
+export function addFieldVisualization(name: string, f: (pos: Vector) => Color, pixelWidth: number, pixelHeight: number,
+		drawCornerTL?: Vector, drawCornerBR?: Vector) {
+
+	if (!drawCornerTL) {
+		drawCornerTL = new Vector(-World.Geometry.FieldWidthHalf - World.Geometry.BoundaryWidth,
+			-World.Geometry.FieldHeightHalf - World.Geometry.BoundaryWidth);
+	} else {
+		drawCornerTL = Coordinates.toGlobal(drawCornerTL);
+	}
+	if (!drawCornerBR) {
+		drawCornerBR = new Vector(World.Geometry.FieldWidthHalf + World.Geometry.BoundaryWidth,
+			World.Geometry.FieldHeightHalf + World.Geometry.BoundaryWidth);
+	} else {
+		drawCornerBR = Coordinates.toGlobal(drawCornerBR);
+	}
+	let data = new Uint8Array(pixelWidth * pixelHeight * 4);
+	const fieldSize = drawCornerBR - drawCornerTL;
+	for (let y = 0;y < pixelHeight;y++) {
+		for (let x = 0;x < pixelWidth;x++) {
+			const pos = new Vector((x + 0.5) / pixelWidth * fieldSize.x,
+									(y + 0.5) / pixelHeight * fieldSize.y) + drawCornerTL;
+			const color = f(Coordinates.toLocal(pos));
+			const baseIndex = (y * pixelWidth + x) * 4;
+			data.set([color.blue, color.green, color.red, color.alpha], baseIndex);
+		}
+	}
+	amunLocal.addVisualization({name: name, image: {
+		width: pixelWidth,
+		height: pixelHeight,
+		data: data,
+		draw_area: {
+			topleft: {
+				x: drawCornerTL.x,
+				y: drawCornerTL.y
+			},
+			bottomright: {
+				x: drawCornerBR.x,
+				y: drawCornerBR.y
+			}
+		}
+	}} as any);
+}
