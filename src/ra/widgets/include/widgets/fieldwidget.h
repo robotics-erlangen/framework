@@ -192,6 +192,7 @@ private:
     void drawLines(QPainter *painter, QRectF rect, bool cosmetic);
     void drawGoal(QPainter *painter, float side, bool cosmetic);
     QGraphicsItem* createCircle(const QPen &pen, const QBrush &brush, const amun::Visualization &vis);
+    QGraphicsItem* createFieldFunction(const amun::Visualization &vis);
     QGraphicsItem* createPolygon(const QPen &pen, const QBrush &brush, const amun::Visualization &vis);
     QGraphicsItem* createPath(const QPen &pen, const QBrush &brush, const amun::Visualization &vis);
     void switchScene(int scene);

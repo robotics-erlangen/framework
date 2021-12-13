@@ -148,6 +148,15 @@ static bool jsValueToProtobufField(Isolate *isolate, Local<Value> value, Local<C
     }
     const google::protobuf::Reflection *refl = message.GetReflection();
 
+
+    if (field->type() == google::protobuf::FieldDescriptor::Type::TYPE_BYTES) {
+        const Local<Uint8Array> data = Local<Uint8Array>::Cast(value);
+        std::string ownValues(data->Length(), 1);
+        data->CopyContents(ownValues.data(), ownValues.size());
+        refl->SetString(&message, field, ownValues);
+        return true;
+    }
+
     switch (field->cpp_type()) {
     case google::protobuf::FieldDescriptor::CPPTYPE_INT32:
     {

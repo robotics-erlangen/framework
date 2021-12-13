@@ -185,27 +185,31 @@ std::ostream& printField(std::ostream& os, const FieldDescriptor* field) {
     }
     os << ": ";
 
-    switch (field->cpp_type()) {
-        case FieldDescriptor::CPPTYPE_INT32:
-        case FieldDescriptor::CPPTYPE_INT64:
-        case FieldDescriptor::CPPTYPE_UINT32:
-        case FieldDescriptor::CPPTYPE_UINT64:
-        case FieldDescriptor::CPPTYPE_DOUBLE:
-        case FieldDescriptor::CPPTYPE_FLOAT:
-            os << "number";
-            break;
-        case FieldDescriptor::CPPTYPE_BOOL:
-            os << "boolean";
-            break;
-        case FieldDescriptor::CPPTYPE_STRING:
-            os << "string";
-            break;
-        case FieldDescriptor::CPPTYPE_MESSAGE:
-            os << field->message_type()->full_name();
-            break;
-        case FieldDescriptor::CPPTYPE_ENUM:
-            os << field->enum_type()->full_name();
-            break;
+    if (field->type() == google::protobuf::FieldDescriptor::Type::TYPE_BYTES) {
+        os <<"Uint8Array";
+    } else {
+        switch (field->cpp_type()) {
+            case FieldDescriptor::CPPTYPE_INT32:
+            case FieldDescriptor::CPPTYPE_INT64:
+            case FieldDescriptor::CPPTYPE_UINT32:
+            case FieldDescriptor::CPPTYPE_UINT64:
+            case FieldDescriptor::CPPTYPE_DOUBLE:
+            case FieldDescriptor::CPPTYPE_FLOAT:
+                os << "number";
+                break;
+            case FieldDescriptor::CPPTYPE_BOOL:
+                os << "boolean";
+                break;
+            case FieldDescriptor::CPPTYPE_STRING:
+                os << "string";
+                break;
+            case FieldDescriptor::CPPTYPE_MESSAGE:
+                os << field->message_type()->full_name();
+                break;
+            case FieldDescriptor::CPPTYPE_ENUM:
+                os << field->enum_type()->full_name();
+                break;
+        }
     }
 
     if (field->is_repeated()) {

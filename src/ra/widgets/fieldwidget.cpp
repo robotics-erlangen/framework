@@ -714,7 +714,42 @@ void FieldWidget::updateVisualizations(const amun::DebugValues &v)
         if (vis.has_path() && vis.path().point_size() > 1) {
             m_visualizationItems << createPath(pen, brush, vis);
         }
+
+        if (vis.has_image()) {
+            m_visualizationItems << createFieldFunction(vis);
+        }
     }
+}
+
+QGraphicsItem* FieldWidget::createFieldFunction(const amun::Visualization &vis)
+{
+    QGraphicsPixmapItem *item = new QGraphicsPixmapItem;
+
+    if (vis.image().data().size() != vis.image().width() * vis.image().height() * 4) {
+        std::cerr <<"Error: image visualization data size does not match width * height"<<std::endl;
+        return item;
+    }
+
+    QRectF drawRect = m_fieldRect;
+    if (vis.image().has_draw_area()) {
+        drawRect.setLeft(vis.image().draw_area().topleft().x());
+        drawRect.setRight(vis.image().draw_area().bottomright().x());
+        drawRect.setTop(vis.image().draw_area().topleft().y());
+        drawRect.setBottom(vis.image().draw_area().bottomright().y());
+    }
+
+    QTransform transform = QTransform::fromTranslate(drawRect.left(), drawRect.top());
+    transform.scale(drawRect.width() / vis.image().width(), drawRect.height() / vis.image().height());
+    item->setTransform(transform);
+
+    const uint8_t* data = (uint8_t*)(vis.image().data().data());
+    const QImage image(data, vis.image().width(), vis.image().height(), vis.image().width() * 4, QImage::Format_ARGB32);
+    const QPixmap p = QPixmap::fromImage(image);
+
+    item->setPixmap(p);
+    item->setZValue(vis.background() ? 1.0f : 10.0f);
+    m_scene->addItem(item);
+    return item;
 }
 
 QGraphicsItem* FieldWidget::createCircle(const QPen &pen, const QBrush &brush, const amun::Visualization &vis)
