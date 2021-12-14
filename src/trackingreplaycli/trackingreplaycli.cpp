@@ -74,7 +74,8 @@ int main(int argc, char* argv[])
     });
 
     LogFileReader logfile;
-    if (!logfile.open(parser.positionalArguments().first())) {
+    const QStringList arguments = parser.positionalArguments();
+    if (!logfile.open(arguments.first())) {
         qFatal("Error: could not open logfile");
     }
 

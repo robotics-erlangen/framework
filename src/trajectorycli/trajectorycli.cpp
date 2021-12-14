@@ -104,7 +104,8 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    QString path = parser.positionalArguments().first();
+    const QStringList arguments = parser.positionalArguments();
+    QString path = arguments.first();
 
     std::vector<Situation> situations;
 

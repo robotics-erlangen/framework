@@ -52,18 +52,19 @@ int main(int argc, char* argv[])
     // parse command line
     parser.process(app);
 
-    int argCount = parser.positionalArguments().size();
+    const QStringList arguments = parser.positionalArguments();
+    int argCount = arguments.size();
     if (argCount != 2) {
         parser.showHelp(1);
     }
 
-    VisionLogReader reader(parser.positionalArguments()[0]);
+    VisionLogReader reader(arguments[0]);
     if (!reader.errorMessage().isEmpty()) {
         qDebug() <<"Could not read input log: "<<reader.errorMessage();
         exit(1);
     }
 
-    VisionLogWriter writer(parser.positionalArguments()[1]);
+    VisionLogWriter writer(arguments[1]);
     if (!writer.isOpen()) {
         qDebug() <<"Could not open output log";
         exit(1);

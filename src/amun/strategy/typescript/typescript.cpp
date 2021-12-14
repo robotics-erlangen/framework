@@ -235,7 +235,8 @@ QString Typescript::resolveJsToTs(QString fileQString, uint32_t lineUint, uint32
         if (tsSourcemap.open(QIODevice::ReadOnly | QIODevice::Text)) {
             QByteArray arr(tsSourcemap.readAll());
             SourceMap::RevisionThree sourceMap = SourceMap::RevisionThree::fromJson(arr);
-            QString tsFileName = absJSDir.canonicalPath() + "/" + *(sourceMap.sources().begin()); // assume that there is only one sourceFile for any js file
+            const QStringList sources = sourceMap.sources();
+            QString tsFileName = absJSDir.canonicalPath() + "/" + sources.first(); // assume that there is only one sourceFile for any js file
             SourceMap::Position jsPos(lineUint, columnUint);
             auto decodedMapping = sourceMap.decodedMappings<SourceMap::Data<SourceMap::Extension::Interpolation>>();
             SourceMap::Mapping<SourceMap::Extension::Interpolation> mapping(decodedMapping);

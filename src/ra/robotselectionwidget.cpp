@@ -100,7 +100,6 @@ RobotSelectionWidget::RobotSelectionWidget(QWidget *parent) :
     m_model = new QStandardItemModel(this);
     ui->robots->setModel(m_model);
     connect(ui->robots, SIGNAL(doubleClicked(QModelIndex)), SLOT(showConfigDialog(QModelIndex)));
-    emit enableInternalAutoref(false);
 
     connect(this, SIGNAL(setUseDarkColors(bool)), ui->blue, SLOT(setUseDarkColors(bool)));
     connect(this, SIGNAL(setUseDarkColors(bool)), ui->yellow, SLOT(setUseDarkColors(bool)));

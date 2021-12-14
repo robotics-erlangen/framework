@@ -321,7 +321,8 @@ void NetworkTransceiver::handleResponse()
                     emit sendSSLSimError(sslErrors);
                 }
             });
-        if (!res.ParseFromArray(datagram.data().data(), datagram.data().size())) {
+        const QByteArray data = datagram.data();
+        if (!res.ParseFromArray(data.data(), data.size())) {
             errors->set_time(m_timer->currentTime());
             hadErrors = true;
             std::string result = "Error connected simulator (response unreadable)";

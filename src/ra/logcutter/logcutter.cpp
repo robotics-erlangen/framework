@@ -99,7 +99,7 @@ void LogCutter::startProcess()
     m_processor = new LogProcessor(inputFiles, outputFile, options, this);
     connect(m_processor, &LogProcessor::progressUpdate, this, &LogCutter::updateProgress);
     connect(m_processor, &LogProcessor::error, this, &LogCutter::updateError);
-    connect(m_processor, &LogProcessor::finished, this, &LogCutter::updateFinished);
+    connect(m_processor, &LogProcessor::finishedProcessing, this, &LogCutter::updateFinished);
 
     m_processor->start();
     ui->progressLbl->setText("Loading logfiles");

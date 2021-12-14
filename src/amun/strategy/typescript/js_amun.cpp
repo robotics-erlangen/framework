@@ -109,7 +109,7 @@ static void amunGetWorldState(const FunctionCallbackInfo<Value>& args)
     for (const auto &robot : (t->isBlue() ? state.blue() : state.yellow())) {
         ownTeamIds.push_back(robot.id());
     }
-    for (const auto response : t->worldState().radio_response()) {
+    for (const auto &response : t->worldState().radio_response()) {
         if (std::find(ownTeamIds.begin(), ownTeamIds.end(), response.id()) != ownTeamIds.end()) {
             state.add_radio_response()->CopyFrom(response);
         }

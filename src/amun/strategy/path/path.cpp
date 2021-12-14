@@ -46,7 +46,7 @@ Path::Path(uint32_t rng_seed) :
 
 Path::~Path()
 {
-    reset();
+    Path::reset();
 }
 
 void Path::reset()

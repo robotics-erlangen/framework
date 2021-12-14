@@ -63,7 +63,7 @@ static LogFileFinder::LogFileQuality compareHash(const logfile::Uid& timeline, c
     }
 
     //check for fullmatch: foreach timeline search FULL / PERFECT in logfile
-    bool localMatch;
+    bool localMatch = false;
     for (int i = 0; i < timeline.parts_size(); ++i) {
         localMatch = false;
         for (int j = 0; j < logfile.parts_size(); ++j) {
@@ -82,7 +82,7 @@ static LogFileFinder::LogFileQuality compareHash(const logfile::Uid& timeline, c
     }
 
     //check for no match: foreach timeline No_Match in any logfile -> no match
-    bool noMatch;
+    bool noMatch = false;
     for (int i = 0; i < timeline.parts_size(); ++i) {
         noMatch = true;
         for (int j = 0; j < logfile.parts_size(); ++j) {
@@ -106,7 +106,7 @@ void LogFileFinder::addDirectory(const QString& s, logfile::LogOffer* offers)
 {
     QDir dir(s);
     QFileInfoList files(dir.entryInfoList({"*.log"}, QDir::Files | QDir::Readable));
-    for(QFileInfo info : files) {
+    for(const QFileInfo &info : files) {
         QString filename = info.absoluteFilePath();
         SeqLogFileReader slfr;
         auto* entry = offers->add_entries();

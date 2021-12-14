@@ -58,13 +58,14 @@ int main(int argc, char* argv[])
     parser.addOption(outputDirOption);
     parser.process(app);
 
-    int argCount = parser.positionalArguments().size();
+    const QStringList arguments = parser.positionalArguments();
+    int argCount = arguments.size();
     if (argCount < 1) {
         parser.showHelp(1);
         app.exit(1);
     }
 
-    VisionLogReader logFileIn(parser.positionalArguments().first());
+    VisionLogReader logFileIn(arguments.first());
     if (!logFileIn.errorMessage().isEmpty()) {
         qDebug() <<logFileIn.errorMessage();
         app.exit(-1);

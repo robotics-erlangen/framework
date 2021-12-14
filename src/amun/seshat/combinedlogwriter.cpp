@@ -27,6 +27,7 @@
 #include <QDateTime>
 #include <QSettings>
 #include <QCoreApplication>
+#include <QVector>
 
 namespace CombinedLogWriterInternal {
     class SignalSource: public QObject {
@@ -109,7 +110,7 @@ void CombinedLogWriter::sendBacklogStatus(int lastNPackets)
     }
     // source is located in another thread, but when no signals/slots are used this is fine
     std::shared_ptr<StatusSource> source = m_backlogWriter->makeStatusSource();
-    QList<Status> packets;
+    QVector<Status> packets;
     packets.reserve(source->packetCount());
     for (int i = std::max(0, source->packetCount() - lastNPackets);i<source->packetCount();i++) {
         packets.append(source->readStatus(i));

@@ -65,7 +65,7 @@ public:
 
 signals:
     void progressUpdate(const QString& progress);
-    void finished();
+    void finishedProcessing();
     void error(const QString &message);
     void outputSelected(LogFileWriter* writer);
 

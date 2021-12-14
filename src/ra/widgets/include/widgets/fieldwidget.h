@@ -59,7 +59,7 @@ private:
         VisionBall() : ball(nullptr) {}
         VisionBall(QGraphicsEllipseItem *ellipse) : ball(ellipse) {}
         QGraphicsEllipseItem *ball;
-        bool seenThisFrame;
+        bool seenThisFrame = false;
     };
 
     typedef QMultiMap<qint64, QGraphicsEllipseItem *> TraceMap;

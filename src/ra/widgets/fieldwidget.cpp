@@ -2275,11 +2275,11 @@ void FieldWidget::saveSituationTypescript(int trackingFromInt)
 void FieldWidget::restoreSituation()
 {
     QList<int> yellowIds;
-    for (auto robot : m_lastSimulatorState.yellow_robots()) {
+    for (const auto &robot : m_lastSimulatorState.yellow_robots()) {
         yellowIds.append(robot.id());
     }
     QList<int> blueIds;
-    for (auto robot : m_lastSimulatorState.blue_robots()) {
+    for (const auto &robot : m_lastSimulatorState.blue_robots()) {
         blueIds.append(robot.id());
     }
     emit selectRobots(yellowIds, blueIds);

@@ -286,8 +286,9 @@ void TeamWidget::addEntryPoint(QMenu *menu, const QString &name, const QString &
         const QString nameLeft = name.left(idx);
         const QString nameRight = name.right(name.length() - idx - 1);
         QAction *action = NULL;
-        if (!menu->actions().isEmpty()) {
-            action = menu->actions().last();
+        const QList<QAction*> actions = menu->actions();
+        if (!actions.isEmpty()) {
+            action = actions.last();
         }
 
         QMenu *subMenu;

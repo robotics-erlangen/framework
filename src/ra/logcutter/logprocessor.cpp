@@ -195,7 +195,7 @@ void LogProcessor::run()
     // cleanup
     qDeleteAll(logreaders);
 
-    emit finished();
+    emit finishedProcessing();
 }
 
 // skip uninteresting states

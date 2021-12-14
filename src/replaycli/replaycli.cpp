@@ -125,8 +125,9 @@ int main(int argc, char* argv[])
 
     QList<std::function<QPair<std::shared_ptr<StatusSource>, QString>(QString)>> openFunctions =
         {&VisionLogLiveConverter::tryOpen, &LogFileReader::tryOpen};
-    for (auto openFunction : openFunctions) {
-        auto openResult = openFunction(parser.positionalArguments().first());
+    for (const auto &openFunction : openFunctions) {
+        const QStringList arguments = parser.positionalArguments();
+        auto openResult = openFunction(arguments.first());
 
         if (openResult.first != nullptr) {
             logfile = openResult.first;

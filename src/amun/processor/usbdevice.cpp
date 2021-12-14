@@ -89,7 +89,7 @@ USBDevice::USBDevice(void *device) :
 
 USBDevice::~USBDevice()
 {
-    close();
+    USBDevice::close();
 
     libusb_unref_device(m_data->device);
     delete m_data;

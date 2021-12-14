@@ -44,15 +44,16 @@ int main(int argc, char* argv[])
     parser.addOption(outputDirOption);
     parser.process(app);
 
-    int argCount = parser.positionalArguments().size();
+    const QStringList arguments = parser.positionalArguments();
+    int argCount = arguments.size();
     if (argCount < 1) {
         parser.showHelp(1);
         app.exit(1);
     }
 
     LogFileReader logfileIn;
-    if (!logfileIn.open(parser.positionalArguments().first())) {
-        std::cerr <<"Could not open file: "<<parser.positionalArguments().first().toStdString()<<std::endl;
+    if (!logfileIn.open(arguments.first())) {
+        std::cerr <<"Could not open file: "<<arguments.first().toStdString()<<std::endl;
         exit(1);
     }
 

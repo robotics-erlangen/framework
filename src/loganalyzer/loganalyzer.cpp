@@ -124,7 +124,7 @@ static void ablateAtOffset(int offset, QMap<QString, double> &fieldSizes, LogFil
     }
     unsigned long fullSize = multipleStatusSize(packets);
     QMap<QString, double> partialSizes = testAblations(packets, {}, "", amun::Status::descriptor(), fullSize);
-    for (QString key : partialSizes.keys()) {
+    for (const QString &key : partialSizes.keys()) {
         fieldSizes[key] += partialSizes[key];
     }
 }
@@ -203,12 +203,13 @@ int main(int argc, char* argv[])
     // parse command line
     parser.process(app);
 
-    if (parser.positionalArguments().size() != 2) {
+    const QStringList arguments = parser.positionalArguments();
+    if (arguments.size() != 2) {
         parser.showHelp(1);
     }
 
     LogFileReader logfile;
-    QString logfileName = parser.positionalArguments()[0];
+    QString logfileName = arguments[0];
     QByteArray lognameBytes = logfileName.toUtf8();
     if (!logfile.open(logfileName)){
         qFatal("Error reading logfile %s: %s", lognameBytes.constData(), logfile.errorMsg().toUtf8().constData());
@@ -216,9 +217,9 @@ int main(int argc, char* argv[])
 
     if (parser.isSet(randomizedGroups)) {
         int iterations = parser.value(randomizedGroups).toInt();
-        ablateRandomized(parser.positionalArguments()[1], logfile, iterations, !parser.isSet(dontShowProgress), !parser.isSet(dontSaveIntermediateResults));
+        ablateRandomized(arguments[1], logfile, iterations, !parser.isSet(dontShowProgress), !parser.isSet(dontSaveIntermediateResults));
     } else {
-        ablate(parser.positionalArguments()[1], logfile, !parser.isSet(dontShowProgress), !parser.isSet(dontSaveIntermediateResults));
+        ablate(arguments[1], logfile, !parser.isSet(dontShowProgress), !parser.isSet(dontSaveIntermediateResults));
     }
 
     return 0;
