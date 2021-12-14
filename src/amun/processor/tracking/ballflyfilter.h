@@ -115,6 +115,9 @@ private:
     std::optional<BallFlight> parabolicFlightReconstruct(const PinvResult &pinvRes) const;
     void resetFlightReconstruction();
 
+    float chipShotError(const PinvResult &pinvRes) const;
+    float linearShotError() const;
+
     struct Prediction {
         Prediction(Eigen::Vector2f pos2, float z, Eigen::Vector2f speed2, float vz, Eigen::Vector2f touchdown) :
             pos(Eigen::Vector3f(pos2.x(),pos2.y(),z)), speed(Eigen::Vector3f(speed2.x(),speed2.y(),vz)), touchdownPos(touchdown) {}

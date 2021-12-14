@@ -284,6 +284,86 @@ static double innerAngle(Eigen::Vector2f center, Eigen::Vector2f A, Eigen::Vecto
     return acos( (dx21*dx31 + dy21*dy31) / (m12 * m13) );
 }
 
+float FlyFilter::chipShotError(const PinvResult &pinvRes) const
+{
+    const int startFrame = m_shotStartFrame+2;
+    const ChipDetection firstInTheAir = m_kickFrames.at(m_shotStartFrame);
+
+    float error = 0;
+    for (int i = startFrame;i<m_kickFrames.size();i++) {
+        const float t_i = m_kickFrames.at(i).captureTime - firstInTheAir.captureTime;
+        Eigen::Vector2f groundPos = pinvRes.startPos + pinvRes.groundSpeed * t_i;
+        float pz = pinvRes.z0 + pinvRes.vz * t_i - 0.5f * GRAVITY * t_i * t_i;
+        Eigen::Vector3f p(groundPos.x(), groundPos.y(), pz);
+
+        const Eigen::Vector3f cam = m_cameraInfo->cameraPosition.value(m_kickFrames.at(0).cameraId);
+        const float lambda = -cam(2) / (cam(2)-p(2));
+        const Eigen::Vector3f predGround = cam + (cam-p)*lambda;
+
+        const float dist = (Eigen::Vector2f(predGround.x(), predGround.y()) - m_kickFrames.at(i).ballPos).norm();
+        error += dist;
+    }
+
+    plot("flight error", error / m_kickFrames.size());
+    return error;
+}
+
+float FlyFilter::linearShotError() const
+{
+    const int startFrame = m_shotStartFrame+2;
+    const ChipDetection firstInTheAir = m_kickFrames.at(startFrame);
+
+    const int MAX_ENTRIES = 2*(m_kickFrames.size() - startFrame + 1);
+    Eigen::MatrixXf solver = Eigen::MatrixXf::Zero(MAX_ENTRIES, 4);
+    Eigen::VectorXf positions = Eigen::VectorXf::Zero(MAX_ENTRIES);
+
+    for (int i=startFrame; i < m_kickFrames.size(); i++) {
+        const float t_i = m_kickFrames.at(i).captureTime - firstInTheAir.captureTime;
+
+        const int baseIndex = (i - startFrame) * 2;
+        solver.row(baseIndex) = Eigen::Vector4f(1, 0, t_i, 0);
+        positions(baseIndex) = m_kickFrames.at(i).ballPos.x();
+
+        solver.row(baseIndex + 1) = Eigen::Vector4f(0, 1, 0, t_i);
+        positions(baseIndex + 1) = m_kickFrames.at(i).ballPos.y();
+    }
+
+    const Eigen::VectorXf simpleShotParameters = solver.colPivHouseholderQr().solve(positions);
+
+    Eigen::Vector2f startPos = Eigen::Vector2f(simpleShotParameters(0), simpleShotParameters(1));
+    Eigen::Vector2f startSpeed = Eigen::Vector2f(simpleShotParameters(2), simpleShotParameters(3));
+    const Eigen::Vector2f groundDir = startSpeed.normalized();
+
+    for (int i=startFrame; i < m_kickFrames.size(); i++) {
+        const float t_i = m_kickFrames.at(i).captureTime - firstInTheAir.captureTime;
+
+        const int baseIndex = (i - startFrame) * 2;
+        solver.row(baseIndex) = Eigen::Vector4f(1, 0, t_i * groundDir.x(), -0.5f * t_i * t_i * groundDir.x());
+        positions(baseIndex) = m_kickFrames.at(i).ballPos.x();
+
+        solver.row(baseIndex + 1) = Eigen::Vector4f(0, 1, t_i * groundDir.y(), -0.5f * t_i * t_i * groundDir.y());
+        positions(baseIndex + 1) = m_kickFrames.at(i).ballPos.y();
+    }
+
+    const Eigen::VectorXf accelerationShotParameters = solver.colPivHouseholderQr().solve(positions);
+    if (accelerationShotParameters(3) >= 0) {
+        startPos = Eigen::Vector2f(accelerationShotParameters(0), accelerationShotParameters(1));
+        startSpeed = groundDir * accelerationShotParameters(2);
+    }
+    const Eigen::Vector2f acc = groundDir * std::max(0.0f, accelerationShotParameters(3));
+
+    float error = 0;
+    for (int i = startFrame;i<m_kickFrames.size();i++) {
+        const float t_i = m_kickFrames.at(i).captureTime - firstInTheAir.captureTime;
+        const Eigen::Vector2f pos = startPos + startSpeed * t_i - 0.5f * t_i * t_i * acc;
+        const float dist = (pos - m_kickFrames.at(i).ballPos).norm();
+        error += dist;
+    }
+
+    plot("ground error", error / m_kickFrames.size());
+    return error;
+}
+
 bool FlyFilter::approachPinvApplicable(const FlyFilter::PinvResult &pinvRes) const
 {
     const Eigen::Vector2f center = m_kickFrames.first().ballPos;
@@ -293,13 +373,15 @@ bool FlyFilter::approachPinvApplicable(const FlyFilter::PinvResult &pinvRes) con
     const float z0 = pinvRes.z0;
     const float vz = pinvRes.vz;
     const int frames = (m_kickFrames.size() - m_shotStartFrame);
+    const float shotErrorFactor = m_flightReconstructions.size() > 0 ? 1.0f : 1.5f;
     // if z0 is so far lower than 0 or vz is very low, the flight trajectory might never reach the ground plane,
     // this leads to problems later
     const bool reconstructionReachesGround = vz*vz + GRAVITY*z0*2 >= 0;
     return  vz > 1 && vz < 10
             && (std::isnan(vToProj) || vToProj < 0.7)
             && reconstructionReachesGround
-            && ((frames > 5 && m_kickFrames.at(m_shotStartFrame).absSpeed > 1) || frames > 10);
+            && ((frames > 5 && m_kickFrames.at(m_shotStartFrame).absSpeed > 1) || frames > 10)
+            && linearShotError() > chipShotError(pinvRes) * shotErrorFactor;
 }
 
 bool FlyFilter::approachShotDirectionApplicable() const
@@ -320,7 +402,7 @@ bool FlyFilter::approachShotDirectionApplicable() const
 
     return angleSpeed < angleProjection && vToProj < 0.7
             && (m_kickFrames.size() - m_shotStartFrame) > 5
-            && (m_kickFrames.size() - m_shotStartFrame) < 20;
+            && (m_kickFrames.size() - m_shotStartFrame) < 15;
 }
 
 auto FlyFilter::parabolicFlightReconstruct(const PinvResult& pinvRes) const -> std::optional<BallFlight>
@@ -606,7 +688,7 @@ void FlyFilter::processVisionFrame(const VisionFrame& frame)
                 const auto reconstruction = parabolicFlightReconstruct(pinvRes);
                 if (reconstruction.has_value()) {
                     m_flightReconstructions.resize(1);
-                    m_flightReconstructions[0]= *reconstruction;
+                    m_flightReconstructions[0] = *reconstruction;
                 } else {
                     m_flightReconstructions.clear();
                 }
@@ -816,7 +898,6 @@ int FlyFilter::chooseDetection(const std::vector<VisionFrame> &frames) const
 void FlyFilter::writeBallState(world::Ball *ball, qint64 predictionTime, const QVector<RobotInfo> &, qint64)
 {
     const Prediction& p = predictTrajectory(toLocalTime(predictionTime));
-
 
     ball->set_p_x(p.pos.x());
     ball->set_p_y(p.pos.y());
