@@ -113,7 +113,7 @@ int BallGroundCollisionFilter::chooseDetection(const std::vector<VisionFrame> &f
     for (std::size_t i = 0;i<frames.size();i++) {
         const VisionFrame &frame = frames[i];
         const Eigen::Vector2f framePos(frame.x, frame.y);
-        const float reportedBallDist = (m_lastReportedBallPos - framePos).norm();
+        const float reportedBallDist = m_dribbleOffset.has_value() ? (m_lastReportedBallPos - framePos).norm() : std::numeric_limits<float>::max();
         const float groundFilterDist = m_groundFilter.distanceTo(framePos);
 
         const float dist = std::min(reportedBallDist, groundFilterDist);
