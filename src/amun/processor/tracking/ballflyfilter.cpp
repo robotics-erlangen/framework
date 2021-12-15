@@ -137,7 +137,6 @@ FlyFilter::PinvResult FlyFilter::calcPinv()
         m_pinvDataInserted = i;
     }
 
-
     Eigen::VectorXf pi;
     float startDistance = 0;
     const float MAX_DISTANCE = 0.03f;
@@ -193,7 +192,6 @@ FlyFilter::PinvResult FlyFilter::calcPinv()
 
     return res;
 }
-
 
 auto FlyFilter::constrainedReconstruction(Eigen::Vector2f shotStartPos, Eigen::Vector2f groundSpeed,
                                           float startTime, int startFrame) const -> BallFlight
@@ -384,25 +382,18 @@ bool FlyFilter::approachPinvApplicable(const FlyFilter::PinvResult &pinvRes) con
             && linearShotError() > chipShotError(pinvRes) * shotErrorFactor;
 }
 
-bool FlyFilter::approachShotDirectionApplicable() const
+bool FlyFilter::approachShotDirectionApplicable(const BallFlight &reconstruction) const
 {
     // the calulated speed direction should not differ to much from the projection
     const Eigen::Vector2f center = m_kickFrames.first().ballPos;
     const Eigen::Vector2f groundSpeed = approxGroundDirection();
     const double vToProj = innerAngle(center, m_kickFrames.back().ballPos, center + groundSpeed);
-    debug("vToProjShotDir", vToProj);
 
-    // calculated direction has to lie between projection and camera
-    const Eigen::Vector3f cam3d = m_cameraInfo->cameraPosition.value(m_kickFrames.back().cameraId);
-    const Eigen::Vector2f cam(cam3d(0), cam3d(1));
-    const double angleSpeed = innerAngle(center, cam, center + groundSpeed);
-    const double angleProjection = innerAngle(center, cam, m_kickFrames.back().ballPos);
-    debug("angle v", angleSpeed);
-    debug("angle proj", angleProjection);
-
-    return angleSpeed < angleProjection && vToProj < 0.7
+    return vToProj < 0.7
             && (m_kickFrames.size() - m_shotStartFrame) > 5
-            && (m_kickFrames.size() - m_shotStartFrame) < 15;
+            && (m_kickFrames.size() - m_shotStartFrame) < 15
+            && reconstruction.zSpeed > 1 && reconstruction.zSpeed < 10
+            && reconstruction.groundSpeed.norm() < 10;
 }
 
 auto FlyFilter::parabolicFlightReconstruct(const PinvResult& pinvRes) const -> std::optional<BallFlight>
@@ -410,13 +401,15 @@ auto FlyFilter::parabolicFlightReconstruct(const PinvResult& pinvRes) const -> s
     if (approachPinvApplicable(pinvRes)) {
         debug("chip approach", "pinv");
         return {approachPinvApply(pinvRes)};
-    } else if (approachShotDirectionApplicable()) {
-        debug("chip approach", "shot direction");
-        return {approachShotDirectionApply()};
-    } else {
-        debug("chip approach", "unavailable");
-        return {};
     }
+
+    const BallFlight shotDirReconstruction = approachShotDirectionApply();
+    if (approachShotDirectionApplicable(shotDirReconstruction)) {
+        debug("chip approach", "shot direction");
+        return {shotDirReconstruction};
+    }
+    debug("chip approach", "unavailable");
+    return {};
 }
 
 bool FlyFilter::detectionCurviness() const

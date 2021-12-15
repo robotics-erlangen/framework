@@ -110,7 +110,7 @@ private:
     BallFlight approachShotDirectionApply() const;
 
     bool approachPinvApplicable(const PinvResult& pinvRes) const;
-    bool approachShotDirectionApplicable() const;
+    bool approachShotDirectionApplicable(const BallFlight &reconstruction) const;
 
     std::optional<BallFlight> parabolicFlightReconstruct(const PinvResult &pinvRes) const;
     void resetFlightReconstruction();
