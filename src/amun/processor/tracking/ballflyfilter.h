@@ -25,6 +25,8 @@
 #include "protobuf/ssl_detection.pb.h"
 #include "protobuf/world.pb.h"
 
+#include <optional>
+
 class FlyFilter : public AbstractBallFilter
 {
 public:
