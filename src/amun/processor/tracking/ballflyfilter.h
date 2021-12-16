@@ -41,14 +41,6 @@ public:
     bool isActive() const;
 
 private:
-    struct PinvResult {
-        Eigen::Vector2f startPos;
-        Eigen::Vector2f groundSpeed;
-        float z0;
-        float vz;
-        float reconstructionError;
-    };
-
     enum ShootCommand {
         NONE = 0,
         LINEAR = 1,
@@ -80,6 +72,7 @@ private:
         Eigen::Vector2f groundSpeed;
         float zSpeed; // at the flight start time
         int startFrame; // the first frame in m_kickFrames that this flight uses
+        float reconstructionError; // the specifics might vary with the reconstruction method
 
         bool hasBounced(float time) const;
         // returns the estimated flight that will occur after the next bounce
@@ -92,29 +85,28 @@ private:
     float toLocalTime(qint64 time) const; // returns a result in seconds, relative to the initialization of the filter
 
     bool detectionSpeed() const;
-    bool detectionPinv(const PinvResult &pinvRes) const;
-    bool detectChip(const PinvResult &pinvRes) const;
+    bool detectionPinv(const BallFlight &pinvRes) const;
+    bool detectChip(const BallFlight &pinvRes) const;
 
     bool checkIsShot() const;
     bool checkIsDribbling() const;
     bool collision() const;
     unsigned numMeasurementsWithOwnCamera() const;
 
-    PinvResult calcPinv();
+    std::optional<BallFlight> calcPinv();
 
     Eigen::Vector2f approxGroundDirection() const;
     BallFlight constrainedReconstruction(Eigen::Vector2f shotStartPos, Eigen::Vector2f groundSpeed, float startTime, int startFrame) const;
 
-    BallFlight approachPinvApply(const PinvResult& pinvRes) const;
     BallFlight approachShotDirectionApply() const;
 
-    bool approachPinvApplicable(const PinvResult& pinvRes) const;
+    bool approachPinvApplicable(const BallFlight &pinvRes) const;
     bool approachShotDirectionApplicable(const BallFlight &reconstruction) const;
 
-    std::optional<BallFlight> parabolicFlightReconstruct(const PinvResult &pinvRes) const;
+    std::optional<BallFlight> parabolicFlightReconstruct(const BallFlight &pinvRes) const;
     void resetFlightReconstruction();
 
-    float chipShotError(const PinvResult &pinvRes) const;
+    float chipShotError(const BallFlight &pinvRes) const;
     float linearShotError() const;
 
     struct Prediction {
