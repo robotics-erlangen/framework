@@ -30,7 +30,6 @@ static const float FLOOR_DAMPING_Z = 0.55f; // robocup 2016: 0.67
 static const float FLOOR_DAMPING_GROUND = 0.7f; // heavily dependant on ball spin
 static const int MAX_FRAMES_PER_FLIGHT = 200; // 60Hz, 3 seconds in the air
 static const int ADDITIONAL_DATA_INSERTION = 1; // these additional are for the position bias
-static const float ACCEPT_DIST = 0.35;
 static const float INITIAL_BIAS_STRENGTH = 0.1f;
 static const float GRAVITY = 9.81;
 
@@ -412,55 +411,6 @@ auto FlyFilter::parabolicFlightReconstruct(const PinvResult& pinvRes) const -> s
     return {};
 }
 
-bool FlyFilter::detectionCurviness() const
-{
-    if (m_kickFrames.size() < 5) {
-        return false;
-    }
-
-    // for a correct refSpeed, search first measurement from current camera
-    const int currentCamera = m_kickFrames.back().cameraId;
-    const auto firstFromCamera = std::find_if(m_kickFrames.begin(), m_kickFrames.begin() + (m_kickFrames.size() - 1), [currentCamera](const auto &f) {
-         return f.cameraId == currentCamera;
-    });
-    const ChipDetection firstInTheAir = firstFromCamera == m_kickFrames.end() ? m_kickFrames.at(m_shotStartFrame) : *firstFromCamera;
-    const float refSpeed = (firstInTheAir.ballPos - m_kickFrames.back().ballPos).norm()
-                     / (m_kickFrames.back().captureTime - firstInTheAir.captureTime);
-
-    if (m_kickFrames.size() < 8 && refSpeed < 2) {
-        // reflection shots often have a distinct slope at low speeds
-        return false;
-    }
-
-    const Eigen::Vector3f camPos = m_cameraInfo->cameraPosition.value(m_kickFrames.first().cameraId);
-
-    QList<double> angles;
-    const Eigen::Vector2f dp = m_kickFrames.at(0).ballPos;
-    for (int j=2; j<m_kickFrames.size(); j++) {
-        // start at 2 because first angle is too noisy
-        const Eigen::Vector2f ball = m_kickFrames.at(j).ballPos;
-        double angle = atan2(camPos(1) - dp(1), camPos(0) - dp(0)) -
-                        atan2(ball(1) - dp(1), ball(0) - dp(0));
-        angle = fmod(angle + 2*M_PI, 2*M_PI); // norm to 0..2pi
-        angles.append(angle);
-    }
-
-    double xSum = 0;
-    double angleSum = 0;
-    double xSumSq = 0;
-    double angleXSum = 0;
-    for(int i=0; i<angles.size(); i++) {
-        xSum += i;
-        xSumSq += i*i;
-        angleSum += angles.at(i);
-        angleXSum += i*angles.at(i);
-    }
-    const double slope = (angles.size() * angleXSum - xSum * angleSum) / (angles.size() * xSumSq - xSum * xSum);
-    debug("detection angle/slope", slope);
-
-    return std::abs(slope) > std::max(-0.03212*m_kickFrames.size() + 0.4873, 0.06);
-}
-
 bool FlyFilter::detectionSpeed() const
 {
     // Tries to detect chips that are not curvy due to the shot ligning
@@ -505,7 +455,7 @@ bool FlyFilter::detectionSpeed() const
     debug("detection speed/avg", avg);
     debug("detection speed/last", speeds.back());
 
-    return slope > 0.005 && speeds.size() > 15;
+    return slope > 0.005 && speeds.size() > 15 && numMeasurementsWithOwnCamera() > 10;
 }
 
 bool FlyFilter::detectionPinv(const FlyFilter::PinvResult &pinvRes) const
@@ -552,27 +502,15 @@ bool FlyFilter::checkIsDribbling() const
 bool FlyFilter::detectChip(const PinvResult &pinvRes) const
 {
     if (m_shootCommand == ShootCommand::CHIP) {
-        debug("kick command", "chip");
+        debug("detection source", "chip");
         return true;
     }
     if (detectionSpeed()) {
-        debug("kick command", "unavailable");
-        const Eigen::Vector3f cam3d = m_cameraInfo->cameraPosition.value(m_kickFrames.back().cameraId);
-        const Eigen::Vector2f cam(cam3d(0), cam3d(1));
-        const double angleToCam = innerAngle(m_kickFrames.first().ballPos, cam, m_kickFrames.back().ballPos);
-
-        if (numMeasurementsWithOwnCamera() > 10) { // MAGIC
-            debug("detection/speed", true);
-            return true;
-        }
-        debug("angle to cam", angleToCam);
-        if (angleToCam > 0.45 && detectionCurviness()) {
-            debug("detection/angle", true);
-            return true;
-        }
+        debug("detection source", "speed");
+        return true;
     }
     if (detectionPinv(pinvRes)) {
-        debug("detection/pinv", true);
+        debug("detection source", "pinv");
         return true;
     }
     return false;
@@ -858,6 +796,8 @@ FlyFilter::Prediction FlyFilter::predictTrajectory(float time) const
 
 int FlyFilter::chooseDetection(const std::vector<VisionFrame> &frames) const
 {
+    const float ACCEPT_DIST = 0.35;
+
     // acceptance depends on prediction which makes no sense when not active
     // for activation of the filter the acceptance is not necessary
     // as the ground filter will accept a ball lying at the ground

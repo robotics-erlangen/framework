@@ -91,7 +91,6 @@ private:
     ChipDetection createChipDetection(const VisionFrame& frame) const;
     float toLocalTime(qint64 time) const; // returns a result in seconds, relative to the initialization of the filter
 
-    bool detectionCurviness() const;
     bool detectionSpeed() const;
     bool detectionPinv(const PinvResult &pinvRes) const;
     bool detectChip(const PinvResult &pinvRes) const;
