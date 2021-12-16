@@ -710,6 +710,13 @@ void FlyFilter::updateBouncing(qint64 time)
     if (t > 0.3f && hasBounced) {
         const BallFlight afterBounce = m_flightReconstructions.back().afterBounce(m_kickFrames.size() - 1);
         m_flightReconstructions.append(afterBounce);
+
+        const float distToDetection = (afterBounce.flightStartPos - m_kickFrames.back().ballPos).norm();
+        if (m_flightReconstructions.size() > 2 && distToDetection > 0.3f) {
+            debug("abort bad bounce", true);
+            resetFlightReconstruction();
+            return;
+        }
     }
 
     const int bounceFrame = detectBouncing();
