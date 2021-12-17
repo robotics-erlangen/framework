@@ -75,11 +75,13 @@ private:
     void invalidateBall(qint64 currentTime);
     void invalidateRobots(RobotMap &map, qint64 currentTime);
 
-    QList<RobotFilter *> getBestRobots(qint64 currentTime);
-    void trackBallDetections(const SSL_DetectionFrame &frame, qint64 receiveTime, const QList<RobotFilter *> &bestRobots,
-                             qint64 visionProcessingDelay);
+    QList<RobotFilter*> getBestRobots(qint64 currentTime, int desiredCamera);
+    void trackBallDetections(const SSL_DetectionFrame &frame, qint64 receiveTime, qint64 visionProcessingDelay);
     void trackRobot(RobotMap& robotMap, const SSL_DetectionRobot &robot, qint64 receiveTime, qint32 cameraId, qint64 visionProcessingDelay,
                     bool teamIsYellow);
+
+    BallTracker* bestBallFilter();
+    void prioritizeBallFilters();
 
 private:
     typedef QPair<robot::RadioCommand, qint64> RadioCommand;
@@ -105,9 +107,6 @@ private:
     RobotMap m_robotFilterYellow;
     RobotMap m_robotFilterBlue;
 
-    BallTracker* bestBallFilter();
-    void prioritizeBallFilters();
-
     bool m_aoiEnabled;
     float m_aoi_x1;
     float m_aoi_y1;
@@ -117,6 +116,9 @@ private:
     QList<QString> m_errorMessages;
     QList<std::pair<SSL_WrapperPacket, qint64>> m_detectionWrappers;
     std::unique_ptr<FieldTransform> m_fieldTransform;
+
+    // if possible, select robots from this camera
+    int m_desiredRobotCamera = -1;
 
     // differences between tracker and speedtracker
     const bool m_robotsOnly;

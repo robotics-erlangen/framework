@@ -20,8 +20,6 @@
 
 #include "filter.h"
 
-const qint64 PRIMARY_TIMEOUT = 42*1000*1000; // timeout for switching from primary camera
-
 Filter::Filter(qint64 last_time) :
     m_lastTime(last_time),
     m_lastPrimaryTime(0),
@@ -32,25 +30,4 @@ Filter::Filter(qint64 last_time) :
 
 Filter::~Filter()
 {
-}
-
-// Used for handling of camera overlap. Algorithm:
-// Each filter has a primary camera that is used as the main source of vision input.
-// The other cameras data are applied with a much higher measurement error covariance.
-// This circumvents problems with small calibration errors.
-// If two consecutive frames are missing, the primary camera is switched.
-// To prevent velocity spikes the model covariance of the position is increased for one step.
-bool Filter::checkCamera(qint32 cameraId, qint64 time)
-{
-    bool cameraSwitched = false;
-    // switch to the new camera if the primary camera data is too old
-    if (m_lastPrimaryTime + PRIMARY_TIMEOUT < time) {
-        // check if the camera was actually switched
-        cameraSwitched = (m_primaryCamera != cameraId);
-        m_primaryCamera = cameraId;
-    }
-    if (cameraId == m_primaryCamera) {
-        m_lastPrimaryTime = time;
-    }
-    return cameraSwitched;
 }

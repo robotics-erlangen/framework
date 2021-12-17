@@ -49,14 +49,11 @@ class RobotFilter : public Filter
 {
 public:
     RobotFilter(const SSL_DetectionRobot &robot, qint64 lastTime, bool teamIsYellow);
-    ~RobotFilter() override;
-    RobotFilter(const RobotFilter&) = delete;
-    RobotFilter& operator=(const RobotFilter&) = delete;
 
     void update(qint64 time);
     void get(world::Robot *robot, const FieldTransform &transform, bool noRawData);
 
-    void addVisionFrame(qint32 cameraId, const SSL_DetectionRobot &robot, qint64 time, qint64 visionProcessingTime);
+    void addVisionFrame(qint32 cameraId, const SSL_DetectionRobot &robot, qint64 time, qint64 visionProcessingTime, bool switchCamera);
     void addRadioCommand(const robot::Command &radioCommand, qint64 time);
 
     float distanceTo(const SSL_DetectionRobot &robot) const;
@@ -65,12 +62,13 @@ public:
 private:
     struct VisionFrame
     {
-        VisionFrame(qint32 cameraId, const SSL_DetectionRobot &detection, qint64 time, qint64 vPT)
-            : cameraId(cameraId), detection(detection), time(time), visionProcessingTime(vPT) {}
+        VisionFrame(qint32 cameraId, const SSL_DetectionRobot &detection, qint64 time, qint64 vPT, bool switchCam)
+            : cameraId(cameraId), detection(detection), time(time), visionProcessingTime(vPT), switchCamera(switchCam) {}
         qint32 cameraId;
         SSL_DetectionRobot detection;
         qint64 time;
         qint64 visionProcessingTime;
+        bool switchCamera;
     };
     typedef QPair<robot::Command, qint64> RadioCommand;
     typedef KalmanFilter<6, 3> Kalman;
@@ -81,15 +79,18 @@ private:
     void invalidateRobotCommand(qint64 time);
     double limitAngle(double angle) const;
 
+    static Kalman::Vector observationFromDetection(const SSL_DetectionRobot &robot);
+
+private:
     uint m_id;
     bool m_teamIsYellow;
     // for debugging
     QMap<int, world::RobotPosition> m_lastRaw;
     QList<world::RobotPosition> m_measurements;
 
-    Kalman *m_kalman;
+    Kalman m_kalman;
     // m_lastTime is inherited from Filter
-    Kalman *m_futureKalman;
+    Kalman m_futureKalman;
     qint64 m_futureTime;
     RadioCommand m_lastRadioCommand;
     RadioCommand m_futureRadioCommand;

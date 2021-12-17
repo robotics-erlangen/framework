@@ -31,12 +31,11 @@ public:
 
 public:
     qint64 lastUpdate() const { return m_lastTime; }
+    qint64 lastPrimaryTime() const { return m_lastPrimaryTime; }
     quint32 primaryCamera() const { return m_primaryCamera; }
     int frameCounter() const { return m_frameCounter; }
 
 protected:
-    bool checkCamera(qint32 cameraId, qint64 time);
-
     qint64 m_lastTime;
     qint64 m_lastPrimaryTime;
     qint32 m_primaryCamera;
