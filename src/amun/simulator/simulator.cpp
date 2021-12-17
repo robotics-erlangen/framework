@@ -94,6 +94,7 @@ struct camun::simulator::SimulatorData
     float robotReplyPacketLoss;
     float missingBallDetections;
     bool dribblePerfect;
+    float missingRobotDetections;
 };
 
 static void simulatorTickCallback(btDynamicsWorld *world, btScalar timeStep)
@@ -167,6 +168,7 @@ Simulator::Simulator(const Timer *timer, const amun::SimulatorSetup &setup, bool
     m_data->robotReplyPacketLoss = 0;
     m_data->missingBallDetections = 0;
     m_data->dribblePerfect = false;
+    m_data->missingRobotDetections = 0;
 
     // no robots after initialisation
 
@@ -452,8 +454,12 @@ std::tuple<QList<QByteArray>, QByteArray, qint64> Simulator::createVisionPacket(
 
                 for (std::size_t cameraId = 0; cameraId < numCameras; ++cameraId) {
 
-
                     if (!checkCameraID(cameraId, robotPos, m_data->cameraPositions, m_data->cameraOverlap)) {
+                        continue;
+                    }
+
+                    bool missingRobot = m_data->missingRobotDetections > 0 && m_data->rng.uniformFloat(0, 1) <= m_data->missingRobotDetections;
+                    if (missingRobot) {
                         continue;
                     }
 
@@ -780,6 +786,10 @@ void Simulator::handleCommand(const Command &command)
 
             if (realism.has_missing_ball_detections()) {
                 m_data->missingBallDetections = realism.missing_ball_detections();
+            }
+
+            if (realism.has_missing_robot_detections()) {
+                m_data->missingRobotDetections = realism.missing_robot_detections();
             }
 
             if (realism.has_vision_delay()) {

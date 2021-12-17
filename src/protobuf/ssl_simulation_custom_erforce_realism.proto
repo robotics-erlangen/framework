@@ -36,7 +36,7 @@ message RealismConfigErForce {
     optional float robot_command_loss = 10;
     // The percentage of robot reply messages that are "lost in transit" [0-1]
     optional float robot_response_loss = 11;
-    // The percentage of times the ball is erroneously not "seen" by the camera [0-1]
+    // The percentage of times the ball is erroneously not "seen" by a camera [0-1]
     optional float missing_ball_detections = 12;
     // Sending out the vision data is delayed by this time after capturing the positions [ns]
     optional int64 vision_delay = 13;
@@ -46,4 +46,6 @@ message RealismConfigErForce {
     optional bool simulate_dribbling = 15;
     // Simulates an offset of all reported object positions (robots, ball) at this magnitude [m]
     optional float object_position_offset = 16;
+    // The percentage of times a robot is erroneously not "seen" by a camera [0-1]
+    optional float missing_robot_detections = 17;
 }

@@ -55,6 +55,7 @@ SimulatorConfigWidget::SimulatorConfigWidget(QWidget *parent) :
     connect(ui->spinStdDevBallArea, SIGNAL(valueChanged(double)), SLOT(sendAll()));
     connect(ui->spinDribblerBallDetections, SIGNAL(valueChanged(double)), SLOT(sendAll()));
     connect(ui->spinMissingDetections, SIGNAL(valueChanged(double)), SLOT(sendAll()));
+    connect(ui->spinMissingRobotDetections, SIGNAL(valueChanged(double)), SLOT(sendAll()));
 
     connect(ui->chkSimulateDribbling, &QCheckBox::stateChanged, this, &SimulatorConfigWidget::sendAll);
 
@@ -128,10 +129,12 @@ void SimulatorConfigWidget::realismPresetChanged(QString name)
     ui->spinVisionDelay->setValue(config.vision_delay() / 1000000LL); // from ns to ms
     ui->spinProcessingTime->setValue(config.vision_processing_time() / 1000000LL);
     ui->chkSimulateDribbling->setChecked(config.simulate_dribbling());
+    ui->spinMissingRobotDetections->setValue(config.missing_robot_detections() * 100.0f);
 
     bool enableNoise = ui->spinStddevBall->value() != 0 || ui->spinStddevRobotPos->value() != 0 ||
                        ui->spinStddevRobotPhi->value() != 0 || ui->spinStdDevBallArea->value() != 0 ||
-                       ui->spinDribblerBallDetections->value() != 0 || ui->spinMissingDetections->value() != 0;
+                       ui->spinDribblerBallDetections->value() != 0 || ui->spinMissingDetections->value() != 0 ||
+                       ui->spinMissingRobotDetections->value() != 0;
     ui->chkEnableNoise->setChecked(enableNoise);
 }
 
@@ -160,6 +163,7 @@ void SimulatorConfigWidget::sendAll()
         realism->set_dribbler_ball_detections(isEnabled ? ui->spinDribblerBallDetections->value() : 0);
         realism->set_missing_ball_detections(isEnabled ? ui->spinMissingDetections->value() / 100.0f : 0);
         realism->set_simulate_dribbling(isEnabled ? ui->chkSimulateDribbling->isChecked() : false);
+        realism->set_missing_robot_detections(isEnabled ? ui->spinMissingRobotDetections->value() / 100.0f : 0);
     }
 
     // invisible ball
