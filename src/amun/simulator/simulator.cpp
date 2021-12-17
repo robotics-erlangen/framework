@@ -412,15 +412,18 @@ std::tuple<QList<QByteArray>, QByteArray, qint64> Simulator::createVisionPacket(
     auto* ball = simState.mutable_ball();
     m_data->ball->writeBallState(ball);
 
-    bool missingBall = m_data->missingBallDetections > 0 && m_data->rng.uniformFloat(0, 1) <= m_data->missingBallDetections;
     const btVector3 ballPosition = m_data->ball->position() / SIMULATOR_SCALE;
-    if (m_time - m_lastBallSendTime >= m_minBallDetectionTime && !missingBall) {
+    if (m_time - m_lastBallSendTime >= m_minBallDetectionTime) {
         m_lastBallSendTime = m_time;
-
 
         for (std::size_t cameraId = 0; cameraId < numCameras; ++cameraId) {
             // at least one id is always valid
             if (!checkCameraID(cameraId, ballPosition, m_data->cameraPositions, m_data->cameraOverlap)) {
+                continue;
+            }
+
+            bool missingBall = m_data->missingBallDetections > 0 && m_data->rng.uniformFloat(0, 1) <= m_data->missingBallDetections;
+            if (missingBall) {
                 continue;
             }
 
@@ -460,7 +463,6 @@ std::tuple<QList<QByteArray>, QByteArray, qint64> Simulator::createVisionPacket(
                     } else {
                         robot->update(detections[cameraId].add_robots_yellow(), m_data->stddevRobot, m_data->stddevRobotPhi, m_time, positionOffset);
                     }
-
 
                     // once in a while, add a ball mis-detection at a corner of the dribbler
                     // in real games, this happens because the ball detection light beam used by many teams is red
