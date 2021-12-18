@@ -48,6 +48,21 @@ else()
     set(LIB_GCC libgcc_s_dw2-1.dll)
 endif()
 
+if(CMAKE_CROSS_COMPILING AND MINGW)
+    set(COPY_GCC_DLL_COMMANDS ${CMAKE_SOURCE_DIR}/data/scripts/copydlldeps.sh -c
+		-f ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ra.exe
+		--destdir ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+		--srcdir ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+		--srcdir ${CMAKE_PREFIX_PATH}/bin)
+else()
+    set(COPY_GCC_DLL_COMMANDS ${CMAKE_COMMAND} -E copy_if_different
+		$ENV{MINGW_PREFIX}/bin/${LIB_GCC}
+		$ENV{MINGW_PREFIX}/bin/libstdc++-6.dll
+		$ENV{MINGW_PREFIX}/bin/libwinpthread-1.dll
+		$ENV{MINGW_PREFIX}/bin/libssp-0.dll
+            ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+endif()
+
 add_custom_target(assemble
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/config ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/config
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/data ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/data
@@ -70,12 +85,7 @@ add_custom_target(assemble
 		$<TARGET_FILE:Qt5::QWindowsIntegrationPlugin>
             ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/platforms
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${GAMECONTROLLER_FULL_PATH} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-		$ENV{MINGW_PREFIX}/bin/${LIB_GCC}
-		$ENV{MINGW_PREFIX}/bin/libstdc++-6.dll
-		$ENV{MINGW_PREFIX}/bin/libwinpthread-1.dll
-		$ENV{MINGW_PREFIX}/bin/libssp-0.dll
-            ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+    COMMAND ${COPY_GCC_DLL_COMMANDS}
 )
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)

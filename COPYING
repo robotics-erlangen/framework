@@ -64,6 +64,10 @@ strategy/typescript/base/random.ts
  * Copyright 1997 - 2002 Takuji Nishimura and Makoto Matsumoto
  * Modified by Sean McCullough
  * Licensed under BSD 3-Clause License (BSD New) (http://opensource.org/licenses/BSD-3-Clause)
+ 
+data/scripts/copydlldeps.sh
+ * Copyright 2016 Lars Holger Engelhard - DL5RCW, 2014 Tiancheng "Timothy" Gu
+ * Licensed under the MIT License, see file for more details
 
 
 
