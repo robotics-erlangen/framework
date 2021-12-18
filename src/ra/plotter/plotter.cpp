@@ -367,7 +367,7 @@ void Plotter::handleStatus(const Status &status, bool backlogStatus)
 
         for (int i = 0; i < worldState.radio_response_size(); i++) {
             const robot::RadioResponse &response = worldState.radio_response(i);
-            const QString name = QString(QStringLiteral("%1-%2")).arg(response.generation()).arg(response.id());
+            const QString name = QString(QStringLiteral("%1-%2-%3")).arg(response.generation()).arg(response.is_blue() ? "blue" : "yellow").arg(response.id());
             const float responseTime = (response.time() - m_startTime) * 1E-9f;
             parseMessage(response, QString(QStringLiteral("RadioResponse.%1")).arg(name), responseTime);
             parseMessage(response.estimated_speed(), QString(QStringLiteral("RadioResponse.%1.estimatedSpeed")).arg(name), responseTime);
@@ -376,7 +376,7 @@ void Plotter::handleStatus(const Status &status, bool backlogStatus)
 
     for (int i = 0; i < status->radio_command_size(); i++) {
         const robot::RadioCommand &command = status->radio_command(i);
-        const QString name = QString(QStringLiteral("%1-%2")).arg(command.generation()).arg(command.id());
+        const QString name = QString(QStringLiteral("%1-%2-%3")).arg(command.generation()).arg(command.is_blue() ? "blue" : "yellow").arg(command.id());
 
         const robot::Command &cmd = command.command();
         parseMessage(cmd, QString(QStringLiteral("RadioCommand.%1")).arg(name), time);
