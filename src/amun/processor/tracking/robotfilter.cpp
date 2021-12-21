@@ -419,6 +419,7 @@ RobotInfo RobotFilter::getRobotInfo() const
     const auto& cmd = m_lastRadioCommand.first;
     result.chipCommand = cmd.has_kick_style() && cmd.kick_style() == robot::Command::Chip;;
     result.linearCommand = cmd.has_kick_style() && cmd.kick_style() == robot::Command::Linear;
+    result.dribblerActive = cmd.has_dribbler() && cmd.dribbler() > 0;
 
     result.identifier = m_id + (m_teamIsYellow ? 0 : 100);
 

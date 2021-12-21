@@ -42,6 +42,7 @@ struct RobotInfo {
     float angularVelocity = 0;
     bool chipCommand = false;
     bool linearCommand = false;
+    bool dribblerActive = false;
     int identifier = std::numeric_limits<int>::max(); // uniquely identifies each robot, stays constant over time (includes id and team)
 };
 

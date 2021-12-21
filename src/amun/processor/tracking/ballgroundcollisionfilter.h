@@ -47,9 +47,11 @@ private:
         Eigen::Vector2f ballOffset;
         // the position the ball would be in assuming the robot does not dribble (but possibly pushes the ball)
         Eigen::Vector2f pushingBallPos;
+        Eigen::Vector2f stopDribblingPos;
         int robotIdentifier;
         bool forceDribbleMode;
         bool isIntersecting;
+        bool dribblerActive;
     };
 
 private:
