@@ -53,33 +53,6 @@ static Eigen::Vector2f perpendicular(const Eigen::Vector2f dir)
     return Eigen::Vector2f(dir.y(), -dir.x());
 }
 
-void BallGroundCollisionFilter::processVisionFrame(const VisionFrame& frame)
-{
-    // Filter out 'intersections' where the ball did not truly intersect the ball
-    // but was just close and then got invisible for a frame.
-    // In these cases rotateAndDribble or other code activates, but the filter does not need to be reset.
-    const bool trueIntersection = m_dribbleOffset &&
-            ((m_dribbleOffset->isIntersecting && !m_dribbleOffset->forceDribbleMode) || m_invisibleFrames > 5);
-    if (trueIntersection) {
-        // Reset the filter during dribbling so that the ball speed is
-        // computed properly once the ball is visible again
-        m_groundFilter.reset(frame);
-    }
-    m_dribbleOffset.reset();
-
-    m_feasiblyInvisible = false;
-    m_lastUpdateTime = frame.time;
-    m_lastVisionFrame = frame;
-    m_invisibleFrames = 0;
-
-    m_groundFilter.processVisionFrame(frame);
-    // TODO: fix the 0 time and is the +1 still necessary?
-    m_groundFilter.writeBallState(&m_pastBallState, frame.time + 1, {}, 0);
-
-    checkVolleyShot(frame);
-    updateDribbleAndRotate(frame);
-}
-
 void BallGroundCollisionFilter::updateDribbleAndRotate(const VisionFrame &frame)
 {
     // detects if the ball is directly in front of the robots dribbler
@@ -263,6 +236,69 @@ static bool isBallVisible(Eigen::Vector2f pos, const RobotInfo &robot, float rob
     return (!inRadius || frontOfDribbler) && !hasIntersection;
 }
 
+static float distanceToLineSegment(Eigen::Vector2f lineStart, Eigen::Vector2f lineEnd, Eigen::Vector2f pos)
+{
+    const Eigen::Vector2f dir = (lineEnd - lineStart).normalized();
+    const Eigen::Vector2f offset = pos - lineStart;
+    if (offset.dot(dir) < 0) {
+        return offset.norm();
+    }
+    const Eigen::Vector2f d = pos - lineEnd;
+    if (d.dot(dir) > 0) {
+        return d.norm();
+    }
+    return std::abs(d.x() * dir.y() - d.y() * dir.x());
+}
+
+// WARNING: in contrast to isBallVisible, this function assumes the robot to be a perfect cylinder, without indentation for the dribbler
+static float distToRobotShadow(Eigen::Vector2f pos, const RobotInfo &robot, float robotRadius, float robotHeight, Eigen::Vector3f cameraPos)
+{
+    const Eigen::Vector3f toBall = Eigen::Vector3f(pos.x(), pos.y(), BALL_RADIUS) - cameraPos;
+    const float length = (cameraPos.z() - robotHeight) / (cameraPos.z() - BALL_RADIUS);
+    const Eigen::Vector3f projected = cameraPos + toBall * length;
+    const Eigen::Vector2f projected2D(projected.x(), projected.y());
+    return distanceToLineSegment(pos, projected2D, robot.robotPos) - robotRadius;
+}
+
+bool BallGroundCollisionFilter::isBallCloseToRobotShadow(const VisionFrame &frame) const
+{
+    const Eigen::Vector3f camPos = m_cameraInfo->cameraPosition[m_primaryCamera];
+    const Eigen::Vector2f ballPos(frame.x, frame.y);
+    const float shadowDist = distToRobotShadow(ballPos, frame.robot, ROBOT_RADIUS, ROBOT_HEIGHT, camPos);
+    const float robotDist = (ballPos - frame.robot.robotPos).norm();
+    return shadowDist < 0.02f && robotDist > ROBOT_RADIUS + 0.03f;
+}
+
+void BallGroundCollisionFilter::processVisionFrame(const VisionFrame& frame)
+{
+    // Filter out 'intersections' where the ball did not truly intersect the ball
+    // but was just close and then got invisible for a frame.
+    // In these cases rotateAndDribble or other code activates, but the filter does not need to be reset.
+    const bool trueIntersection = m_dribbleOffset &&
+            ((m_dribbleOffset->isIntersecting && !m_dribbleOffset->forceDribbleMode) || m_invisibleFrames > 5);
+    if (trueIntersection) {
+        // Reset the filter during dribbling so that the ball speed is
+        // computed properly once the ball is visible again
+        m_groundFilter.reset(frame);
+    }
+    m_dribbleOffset.reset();
+
+    m_feasiblyInvisible = false;
+    m_lastUpdateTime = frame.time;
+    m_lastVisionFrame = frame;
+    m_invisibleFrames = 0;
+
+    const bool closeToShadow = isBallCloseToRobotShadow(frame);
+    m_groundFilter.setObservationStdDev(closeToShadow ? 0.02f : 0.003f);
+
+    m_groundFilter.processVisionFrame(frame);
+    // TODO: fix the 0 time and is the +1 still necessary?
+    m_groundFilter.writeBallState(&m_pastBallState, frame.time + 1, {}, 0);
+
+    checkVolleyShot(frame);
+    updateDribbleAndRotate(frame);
+}
+
 BallGroundCollisionFilter::BallOffsetInfo::BallOffsetInfo(Eigen::Vector2f projectedBallPos, const RobotInfo &robot, bool forceDribbling, bool intersecting)
 {
     robotIdentifier = robot.identifier;
@@ -442,8 +478,12 @@ void BallGroundCollisionFilter::updateEmptyFrame(qint64 frameTime, const QVector
     // before becoming invisible if the robot is driving up to it.
     // This creates a persistent ball speed that can be problematic.
     // Therefore, this code resets the ball to the last detection in that case.
-    if (m_invisibleFrames == 3 && pastSpeed.norm() < 0.05f && !m_dribbleOffset) {
-        m_groundFilter.reset(m_lastVisionFrame);
+    const bool closeToShadow = isBallCloseToRobotShadow(m_lastVisionFrame);
+    if (m_invisibleFrames == 3 && pastSpeed.norm() < 0.05f && !m_dribbleOffset && closeToShadow) {
+        VisionFrame resetFrame = m_lastVisionFrame;
+        resetFrame.x = m_pastBallState.p_x();
+        resetFrame.y = m_pastBallState.p_y();
+        m_groundFilter.reset(resetFrame);
         m_groundFilter.writeBallState(&m_pastBallState, m_lastVisionFrame.time + 1, robots, 0);
         pastPos = Eigen::Vector2f{m_pastBallState.p_x(), m_pastBallState.p_y()};
         pastSpeed = Eigen::Vector2f{m_pastBallState.v_x(), m_pastBallState.v_y()};

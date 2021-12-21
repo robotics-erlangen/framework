@@ -62,6 +62,7 @@ private:
     void updateDribbleAndRotate(const VisionFrame &frame);
     void checkVolleyShot(const VisionFrame &frame);
     void updateEmptyFrame(qint64 frameTime, const QVector<RobotInfo> &robots);
+    bool isBallCloseToRobotShadow(const VisionFrame &frame) const;
 
 private:
     GroundFilter m_groundFilter;

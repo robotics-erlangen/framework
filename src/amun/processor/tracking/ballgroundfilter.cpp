@@ -42,6 +42,11 @@ void GroundFilter::reset(const VisionFrame& frame)
     x(1) = frame.y;
     m_kalman.reset(new Kalman(x));
     m_kalman->H = Kalman::MatrixM::Identity();
+
+    // a good calibration should also work with 0.002 0.002 or a bit less
+    // if the ball isn't moving then 0.001 0.001 should be enough
+    setObservationStdDev(0.003f);
+
     m_lastUpdate = frame.time;
 }
 
@@ -139,6 +144,15 @@ void GroundFilter::predict(qint64 time)
     m_kalman->predict(false);
 }
 
+void GroundFilter::setObservationStdDev(float deviation)
+{
+    // measurement covariance matrix
+    Kalman::MatrixMM R = Kalman::MatrixMM::Zero();
+    R(0, 0) = deviation;
+    R(1, 1) = deviation;
+    m_kalman->R = R.cwiseProduct(R); // squares all entries
+}
+
 void GroundFilter::processVisionFrame(const VisionFrame& frame)
 {
     predict(frame.time);
@@ -147,13 +161,6 @@ void GroundFilter::processVisionFrame(const VisionFrame& frame)
     m_kalman->z(0) = frame.x;
     m_kalman->z(1) = frame.y;
 
-    // measurement covariance matrix
-    Kalman::MatrixMM R = Kalman::MatrixMM::Zero();
-    // a good calibration should also work with 0.002 0.002 or a bit less
-    // if the ball isn't moving then 0.001 0.001 should be enough
-    R(0, 0) = 0.003;
-    R(1, 1) = 0.003;
-    m_kalman->R = R.cwiseProduct(R); // quadriert alle einträge
     m_kalman->update();
     m_lastUpdate = frame.time;
 }
