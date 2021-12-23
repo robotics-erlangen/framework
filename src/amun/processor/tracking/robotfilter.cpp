@@ -420,6 +420,7 @@ RobotInfo RobotFilter::getRobotInfo() const
     result.chipCommand = cmd.has_kick_style() && cmd.kick_style() == robot::Command::Chip;;
     result.linearCommand = cmd.has_kick_style() && cmd.kick_style() == robot::Command::Linear;
     result.dribblerActive = cmd.has_dribbler() && cmd.dribbler() > 0;
+    result.kickPower = cmd.has_kick_power() ? cmd.kick_power() : 0;
 
     result.identifier = m_id + (m_teamIsYellow ? 0 : 100);
 

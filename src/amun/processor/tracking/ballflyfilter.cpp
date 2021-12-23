@@ -354,6 +354,12 @@ float FlyFilter::linearShotError() const
     return error;
 }
 
+static float maxBallHeight(const float vz)
+{
+    const float maxFlightDurationHalf = vz / GRAVITY;
+    return vz * maxFlightDurationHalf - (GRAVITY * 0.5f) * maxFlightDurationHalf * maxFlightDurationHalf;
+}
+
 bool FlyFilter::approachPinvApplicable(const BallFlight &pinvRes) const
 {
     const Eigen::Vector2f center = m_kickFrames.first().ballPos;
@@ -380,7 +386,8 @@ bool FlyFilter::approachShotDirectionApplicable(const BallFlight &reconstruction
             && (m_kickFrames.size() - m_shotStartFrame) > 5
             && (m_kickFrames.size() - m_shotStartFrame) < 15
             && reconstruction.zSpeed > 1 && reconstruction.zSpeed < 10
-            && reconstruction.groundSpeed.norm() < 10;
+            && reconstruction.groundSpeed.norm() < 10
+            && maxBallHeight(reconstruction.zSpeed) > 0.3f;
 }
 
 auto FlyFilter::parabolicFlightReconstruct(const BallFlight& pinvRes) const -> std::optional<BallFlight>
@@ -449,9 +456,8 @@ bool FlyFilter::detectionSpeed() const
 bool FlyFilter::detectionPinv(const BallFlight &pinvRes) const
 {
     const float vz = pinvRes.zSpeed;
-    const float maxFlightDurationHalf = vz / GRAVITY;
-    const float maxFlightDuration = maxFlightDurationHalf*2;
-    const float maxHeight = vz*maxFlightDurationHalf - (GRAVITY * 0.5f) *maxFlightDurationHalf*maxFlightDurationHalf;
+    const float maxFlightDuration = vz / GRAVITY * 2.0f;
+    const float maxHeight = maxBallHeight(pinvRes.zSpeed);
     const float timeElapsed = m_kickFrames.back().time - pinvRes.flightStartTime;
 
     if (m_kickFrames.front().cameraId != m_kickFrames.back().cameraId) {
@@ -467,7 +473,7 @@ bool FlyFilter::detectionPinv(const BallFlight &pinvRes) const
             && pinvRes.reconstructionError < 0.003f
             && pinvRes.groundSpeed.norm() > 1.5
             && timeElapsed < maxFlightDuration
-            && maxHeight > 0.1
+            && maxHeight > 0.3f
             && (m_kickFrames.size() - m_shotStartFrame) > 8;
 }
 
@@ -520,8 +526,13 @@ auto FlyFilter::createChipDetection(const VisionFrame& frame) const -> ChipDetec
         absSpeed = (reportedBallPos-m_shotDetectionWindow.back().ballPos).norm() / timeDiff;
     }
 
-    const ShootCommand shootCommand = frame.linearCommand ? (frame.chipCommand ? ShootCommand::BOTH : ShootCommand::LINEAR) :
-                                                            (frame.chipCommand ? ShootCommand::CHIP : ShootCommand::NONE);
+    const RobotInfo &robot = frame.robot;
+    ShootCommand shootCommand = robot.linearCommand ? (robot.chipCommand ? ShootCommand::BOTH : ShootCommand::LINEAR) :
+                                                        (robot.chipCommand ? ShootCommand::CHIP : ShootCommand::NONE);
+    if (robot.kickPower > 0 && robot.kickPower < 0.5f) {
+        // actively prevent the fly filter from activating, the result for such a short chip will not be good
+        shootCommand = ShootCommand::LINEAR;
+    }
 
     const float captureTime = toLocalTime(frame.captureTime);
     return ChipDetection(dribblerSpeed, absSpeed, timeSinceInit, captureTime,
