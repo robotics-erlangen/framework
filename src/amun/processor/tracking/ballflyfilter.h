@@ -69,6 +69,7 @@ private:
     struct BallFlight {
         Eigen::Vector2f flightStartPos;
         float flightStartTime; // seconds
+        float captureFlightStartTime; // the start time on the vision pc
         Eigen::Vector2f groundSpeed;
         float zSpeed; // at the flight start time
         int startFrame; // the first frame in m_kickFrames that this flight uses

@@ -179,6 +179,7 @@ auto FlyFilter::calcPinv() -> std::optional<BallFlight>
     result.groundSpeed = groundSpeed;
     result.flightStartPos = startPos + groundSpeed * atGroundTime;
     result.flightStartTime = firstInTheAir.time + atGroundTime;
+    result.captureFlightStartTime = firstInTheAir.captureTime + atGroundTime;
     result.zSpeed = vz - GRAVITY * atGroundTime;
     result.startFrame = m_shotStartFrame;
     result.reconstructionError = piError / (m_kickFrames.size() - m_shotStartFrame);
@@ -241,6 +242,7 @@ auto FlyFilter::constrainedReconstruction(Eigen::Vector2f shotStartPos, Eigen::V
     BallFlight result;
     result.flightStartPos = shotStartPos;
     result.flightStartTime = startTime;
+    result.captureFlightStartTime = startTime;
     result.groundSpeed = groundSpeed.normalized() * values(1);
     result.zSpeed = values(0);
     result.startFrame = startFrame;
@@ -258,7 +260,8 @@ auto FlyFilter::approachShotDirectionApply() const -> BallFlight
     const ChipDetection firstInTheAir = m_kickFrames.at(m_shotStartFrame);
     BallFlight reconstruction = constrainedReconstruction(firstInTheAir.ballPos, approxGroundDirection(),
                                                           firstInTheAir.time, m_shotStartFrame);
-    reconstruction.flightStartTime = reconstruction.flightStartTime - 0.01f; // -10ms, actual kick was before
+    reconstruction.flightStartTime -= 0.01f; // -10ms, actual kick was before
+    reconstruction.captureFlightStartTime -= 0.01f; // -10ms, actual kick was before
     return reconstruction;
 }
 
@@ -281,7 +284,7 @@ float FlyFilter::chipShotError(const BallFlight &pinvRes) const
 
     float error = 0;
     for (int i = startFrame;i<m_kickFrames.size();i++) {
-        const float t_i = m_kickFrames.at(i).time - pinvRes.flightStartTime;
+        const float t_i = m_kickFrames.at(i).captureTime - pinvRes.captureFlightStartTime;
         Eigen::Vector2f groundPos = pinvRes.flightStartPos + pinvRes.groundSpeed * t_i;
         float pz = pinvRes.zSpeed * t_i - 0.5f * GRAVITY * t_i * t_i;
         Eigen::Vector3f p(groundPos.x(), groundPos.y(), pz);
@@ -691,6 +694,7 @@ auto FlyFilter::BallFlight::afterBounce(int newStartFrame) const -> BallFlight
 
     BallFlight bounced;
     bounced.flightStartTime = this->flightStartTime + flightDuration;
+    bounced.captureFlightStartTime = this->captureFlightStartTime + flightDuration;
     bounced.zSpeed = this->zSpeed * FLOOR_DAMPING_Z;
     // only the initial estimate
     bounced.groundSpeed = this->groundSpeed * FLOOR_DAMPING_GROUND;
@@ -706,6 +710,7 @@ auto FlyFilter::BallFlight::betweenChipFrames(const ChipDetection &first, const 
     BallFlight result;
     result.flightStartPos = first.ballPos;
     result.flightStartTime = first.time;
+    result.captureFlightStartTime = first.captureTime;
     result.groundSpeed = (last.ballPos - first.ballPos) / flightTime;
     result.zSpeed = GRAVITY * flightTime / 2.0f;
     result.startFrame = startFrame;
