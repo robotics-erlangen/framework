@@ -19,35 +19,41 @@
 # ***************************************************************************
 
 include(ExternalProject)
+include(ExternalProjectHelper)
 
 set(LIBGIT_SUBPATH "lib/${CMAKE_STATIC_LIBRARY_PREFIX}git2${CMAKE_STATIC_LIBRARY_SUFFIX}")
 
 find_package(OpenSSL REQUIRED)
-find_package(CURL REQUIRED)
+find_package(PCRE)
+find_package(PCRE2)
 ExternalProject_Add(project_libgit2
-    URL https://github.com/libgit2/libgit2/archive/v0.27.5.tar.gz
+    URL https://downloads.robotics-erlangen.de/libgitv1.3.0.zip
+    URL_HASH SHA256=26bc8d7d04cdc10941a3c0c9dfa1b5b248a2b108154f1b6b4b5054a5bab2646e
     DOWNLOAD_NO_PROGRESS true
     CMAKE_ARGS
         -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
         -DBUILD_SHARED_LIBS:STRING=OFF
-        -DUSE_EXT_HTTP_PARSER:STRING=OFF
         -DUSE_BUNDLED_ZLIB:STRING=ON
         -DUSE_SSH:STRING=OFF
-        -DSHA1_BACKEND:STRING=OpenSSL
         -DCMAKE_C_COMPILER:PATH=${CMAKE_C_COMPILER}
         -DCMAKE_BUILD_TYPE:STRING=Release
+        -DCMAKE_C_FLAGS:STRING=${CMAKE_C_FLAGS}
     BUILD_BYPRODUCTS
             "<INSTALL_DIR>/${LIBGIT_SUBPATH}"
 )
+
+EPHelper_Mark_For_Download(project_libgit2)
+EPHelper_Add_Cleanup(project_libgit2 bin include lib share)
+EPHelper_Add_Clobber(project_libgit2 ${CMAKE_CURRENT_LIST_DIR}/stub.patch)
 
 externalproject_get_property(project_libgit2 install_dir)
 
 add_library(lib::git2 UNKNOWN IMPORTED)
 add_dependencies(lib::git2 project_libgit2)
 # cmake enforces that the include directory exists
-file(MAKE_DIRECTORY "${install_dir}/include/git-2.0")
+file(MAKE_DIRECTORY "${install_dir}/include/")
 set_target_properties(lib::git2 PROPERTIES
     IMPORTED_LOCATION "${install_dir}/${LIBGIT_SUBPATH}"
-    INTERFACE_LINK_LIBRARIES "${install_dir}/${LIBGIT_SUBPATH};${OPENSSL_LIBRARIES};${CURL_LIBRARIES};${LIBSSH2_LIBRARIES}"
-    INTERFACE_INCLUDE_DIRECTORIES "${install_dir}/include/git-2.0"
+    INTERFACE_LINK_LIBRARIES "${install_dir}/${LIBGIT_SUBPATH};${OPENSSL_LIBRARIES};${PCRE_LIBRARIES};${PCRE2_LIBRARIES}"
+    INTERFACE_INCLUDE_DIRECTORIES "${install_dir}/include/"
 )

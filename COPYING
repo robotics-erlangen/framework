@@ -69,6 +69,10 @@ data/scripts/copydlldeps.sh
  * Copyright 2016 Lars Holger Engelhard - DL5RCW, 2014 Tiancheng "Timothy" Gu
  * Licensed under the MIT License, see file for more details
 
+cmake/FindPCRE*
+ * Copyright 2007 - 2009 LuaDist by Peter Kapec <kapecp@gmail.com>
+ * Licensed under MIT License (MIT) (http://opensource.org/licenses/mit-license.php)
+
 
 
 Used libraries by license:
