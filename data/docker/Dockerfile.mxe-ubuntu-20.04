@@ -1,0 +1,29 @@
+FROM ubuntu:20.04 AS build-stage
+
+ARG DEBIAN_FRONTEND=noninteractive
+RUN set -xe; \
+	# Install dependencies
+	apt-get update; \
+	apt-get install --no-install-recommends -y \
+		git gcc make ca-certificates autoconf automake autopoint bash bison bzip2 flex g++ g++-multilib gettext git gperf intltool \
+		libc6-dev-i386 libgdk-pixbuf2.0-dev libltdl-dev libssl-dev libtool-bin libxml-parser-perl \
+        lzip make openssl p7zip-full patch perl python ruby sed unzip wget xz-utils; \
+	# Build MXE \
+	git clone https://github.com/mxe/mxe.git; \
+	cd mxe; \
+    git checkout 02852a7b690aa411ce2a2089deea25a7292a33d6; \
+    make gcc cmake MXE_TARGETS='x86_64-w64-mingw32.shared' MXE_PLUGIN_DIRS='plugins/gcc11'; \
+    
+    # Cleanup
+    rm -r log; \
+    rm -r pkg; \
+    apt-get remove -y \
+		ca-certificates autoconf automake autopoint bison bzip2 flex g++ g++-multilib gettext gperf intltool \
+		libc6-dev-i386 libgdk-pixbuf2.0-dev libltdl-dev libssl-dev libtool-bin libxml-parser-perl \
+        lzip openssl p7zip-full patch perl python ruby unzip xz-utils; \
+	apt-get autoremove -y; \
+	apt-get clean -y; \
+	rm -rf /var/lib/apt/lists/*;
+
+FROM alpine:3
+COPY --from=build-stage /mxe /mxe

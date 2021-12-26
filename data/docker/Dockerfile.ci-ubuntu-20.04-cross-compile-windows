@@ -1,0 +1,23 @@
+FROM ubuntu:20.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+# apt-key will warn to not parse its output if not set
+ARG APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1
+
+RUN set -xe; \
+	apt-get update; \
+	apt-get install --no-install-recommends -y make g++ patch git git-lfs ca-certificates curl gnupg software-properties-common lsb-release; \
+	apt-key adv \
+        --keyserver keyserver.ubuntu.com \
+        --recv-keys 86B72ED9; \
+    add-apt-repository \
+        "deb [arch=amd64] https://pkg.mxe.cc/repos/apt `lsb_release -sc` main"; \
+    apt-get update;\
+	apt-get install --no-install-recommends -y \
+		mxe-x86-64-w64-mingw32.shared-libusb1 mxe-x86-64-w64-mingw32.shared-protobuf mxe-x86-64-w64-mingw32.shared-qt5; \
+	git lfs install;
+
+ENV MXE_ROOT_DIR=/mxe
+ENV PATH="${MXE_ROOT_DIR}/usr/bin/:${MXE_ROOT_DIR}/usr/x86_64-pc-linux-gnu/bin:/usr/lib/mxe/usr/bin/:/usr/lib/mxe/usr/x86_64-pc-linux-gnu/bin:${PATH}"
+
+COPY --from=roboticserlangen/win-cross:version-1 /mxe /mxe
