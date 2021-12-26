@@ -22,7 +22,6 @@
 
 #include <lua.hpp>
 #include <QList>
-#include <QtEndian>
 #include <functional>
 #include <v8.h>
 #include <cmath>
