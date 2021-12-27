@@ -186,8 +186,7 @@ void Connector::setRobotConfiguration(int numRobots, const QString &generation)
         yellow.add_robot()->CopyFrom(gen.default_());
         yellow.mutable_robot(i)->set_id(i);
         blue.add_robot()->CopyFrom(gen.default_());
-        // do not duplicate IDs, amun can not control two robots with the same id
-        blue.mutable_robot(i)->set_id(i + numRobots);
+        blue.mutable_robot(i)->set_id(i > 15 ? i : (15 - i));
     }
 
     Command command(new amun::Command);
