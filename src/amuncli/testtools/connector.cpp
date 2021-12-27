@@ -243,12 +243,16 @@ void Connector::start()
     emit sendCommand(command);
 }
 
-void Connector::handleStrategyStatus(const amun::StatusStrategy &strategy)
+void Connector::handleStrategyStatus(const amun::StatusStrategy &strategy, qint64 time)
 {
     if (strategy.state() == amun::StatusStrategy::FAILED) {
         const auto& it = std::find_if_not(m_options.begin(), m_options.end(), [](const std::pair<std::string, OptionInfo>& p){ return p.second.hasBeenFlipped; });
         if (m_exitCode != 0 || it == m_options.end()) {
-            delayedExit(m_exitCode);
+            if (m_backlogDir != "") {
+                m_backlogList.push_back({time, "STRATEGY_CRASH"});
+            } else {
+                delayedExit(m_exitCode);
+            }
         } else {
             std::cout << "Rerunning with option \"" << it->first <<"\" set to "<<(!it->second.value ? "true" : "false")<< std::endl;
             it->second.hasBeenFlipped = true;
@@ -276,6 +280,18 @@ void Connector::sendFlipOption(const std::string &name)
     optionChange->set_value(!m_options[name].value);
 
     emit sendCommand(command);
+}
+
+void Connector::reportEvents()
+{
+    if (m_reportEvents) {
+        std::cout <<std::endl<<"Events:"<<std::endl;
+        auto eventTypeDesc = gameController::GameEvent::Type_descriptor();
+        for (auto el : m_eventCounter) {
+            std::cout <<eventTypeDesc->FindValueByNumber(el.first)->name()<<": "<<el.second<<std::endl;
+        }
+        m_reportEvents = false;
+    }
 }
 
 void Connector::handleStatus(const Status &status)
@@ -320,23 +336,14 @@ void Connector::handleStatus(const Status &status)
 
     if (status->has_status_strategy()) {
         const auto& strategy = status->status_strategy().status();
-        handleStrategyStatus(strategy);
+        handleStrategyStatus(strategy, status->time());
     }
 
     if (m_simulationStartTime == 0) {
         m_simulationStartTime = status->time();
     }
     if (status->time() - m_simulationStartTime >= m_simulationRunningTime) {
-
-        if (m_reportEvents) {
-            std::cout <<std::endl<<"Events:"<<std::endl;
-            auto eventTypeDesc = gameController::GameEvent::Type_descriptor();
-            for (auto el : m_eventCounter) {
-                std::cout <<eventTypeDesc->FindValueByNumber(el.first)->name()<<": "<<el.second<<std::endl;
-            }
-            m_reportEvents = false;
-        }
-
+        reportEvents();
         delayedExit(0);
     }
 
@@ -364,6 +371,11 @@ void Connector::handleStatus(const Status &status)
         auto p = m_backlogList.first();
         m_backlogList.pop_front();
         stopAmunAndSaveBacklog(p.second);
+
+        if (p.second == "STRATEGY_CRASH") {
+            reportEvents();
+            delayedExit(m_exitCode);
+        }
     }
 }
 

@@ -79,11 +79,12 @@ signals:
 
 private:
     void addStrategyLoad(amun::CommandStrategy *strategy, const QString &initScript, const QString &entryPoint);
-    void handleStrategyStatus(const amun::StatusStrategy &strategy);
+    void handleStrategyStatus(const amun::StatusStrategy &strategy, qint64 time);
     void sendFlipOption(const std::string &name);
     void delayedExit(int exitCode);
     void performExit(int exit);
     void stopAmunAndSaveBacklog(QString directory);
+    void reportEvents();
 
     struct OptionInfo {
         bool value;
