@@ -35,16 +35,24 @@ bool EndInObstacleSampler::compute(const TrajectoryInput &input)
         m_bestEndPointDistance = prevBestDistance * 1.3f;
     }
 
+    // compute where the robot would stop when braking immediately
+    // in case the acceleration model is not simple, compute the trajectory instead of directly computing the position
+    const SpeedProfile stop = AlphaTimeTrajectory::calculateTrajectory(input.v0, Vector(0, 0), 0, 0, input.acceleration, input.maxSpeed, 0, false);
+    const Vector stopPoint = input.s0 + stop.endPos() * 1.01f;
+
     // TODO: sample closer if we are already close
     const int ITERATIONS = 60;
     for (int i = 0;i<ITERATIONS;i++) {
         if (i == int(ITERATIONS / PARAMETER(EndInObstacleSampler, 1, 3, 10)) && !isValid) {
             m_bestEndPointDistance = std::numeric_limits<float>::infinity();
+            // test just stopping now
+            testEndPoint(input, stopPoint);
         }
         int randVal = m_rng->uniformInt() % 1024;
         Vector testPoint;
         const int RANDOM_END_RANGE = PARAMETER(EndInObstacleSampler, 1, 300, 700);
-        const int RANDOM_BEST_RANGE = PARAMETER(EndInObstacleSampler, 1, 500, 700);
+        const int RANDOM_BEST_RANGE = PARAMETER(EndInObstacleSampler, 1, 400, 700);
+        const int RANDOM_STOPPOINT_RANGE = PARAMETER(EndInObstacleSampler, 1, 200, 700);
         if (randVal < RANDOM_END_RANGE) {
             // sample random point around actual end point
             float testRadius = std::min(m_bestEndPointDistance, PARAMETER(EndInObstacleSampler, 0, 0.3f, 3));
@@ -53,6 +61,10 @@ bool EndInObstacleSampler::compute(const TrajectoryInput &input)
             // sample random point around last best end point
             float testRadius = std::min(m_bestEndPointDistance, PARAMETER(EndInObstacleSampler, 0, 0.3f, 3));
             testPoint = m_bestEndPoint + Vector(m_rng->uniformFloat(-testRadius, testRadius), m_rng->uniformFloat(-testRadius, testRadius));
+        } else if (randVal < RANDOM_END_RANGE + RANDOM_BEST_RANGE + RANDOM_STOPPOINT_RANGE) {
+            // sample random point around the position the robot will stop
+            float testRadius = std::min(m_bestEndPointDistance, PARAMETER(EndInObstacleSampler, 0, 0.5f, 3));
+            testPoint = stopPoint + Vector(m_rng->uniformFloat(-testRadius, testRadius), m_rng->uniformFloat(-testRadius, testRadius));
         } else {
             // sample random point in field
             testPoint = randomPointInField();
