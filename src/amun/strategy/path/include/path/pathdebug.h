@@ -46,6 +46,7 @@ public:
 #ifdef PATHFINDING_DEBUG
     void debug(const QString &key, float value);
     void debug(const QString &key, const QString &value);
+    void log(const QString &text);
     void debugCircle(const QString &name, Vector center, float radius, PathDebugColor color = PathDebugColor::BLACK);
     void debugPath(const QString &name, const std::vector<Vector> &points, PathDebugColor color = PathDebugColor::BLACK);
     void debugLine(const QString &name, Vector start, Vector end, PathDebugColor color = PathDebugColor::BLACK);
@@ -54,6 +55,7 @@ public:
 #else
     void debug(const QString&, float) {}
     void debug(const QString&, const QString&) {}
+    void log(const QString&) {}
     void debugCircle(const QString&, Vector, float, PathDebugColor = PathDebugColor::BLACK) {}
     void debugPath(const QString&, const QVector<Vector>&, PathDebugColor = PathDebugColor::BLACK) {}
     void debugLine(const QString&, Vector, Vector, PathDebugColor = PathDebugColor::BLACK) {}
@@ -64,6 +66,7 @@ public:
 signals:
     void gotDebug(const amun::DebugValue &debug);
     void gotVisualization(const amun::Visualization &vis);
+    void gotLog(const QString &text);
 
 private:
     void setColor(amun::Pen *pen, PathDebugColor color);

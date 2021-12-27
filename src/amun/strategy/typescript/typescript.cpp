@@ -309,6 +309,11 @@ void Typescript::handleDebug(const amun::DebugValue &debug)
     addDebug()->CopyFrom(debug);
 }
 
+void Typescript::handleLog(const QString &text)
+{
+    log(text);
+}
+
 void Typescript::handleVisualization(const amun::Visualization &vis)
 {
     addVisualization()->CopyFrom(vis);

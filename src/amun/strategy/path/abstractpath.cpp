@@ -26,6 +26,7 @@ AbstractPath::AbstractPath(uint32_t rng_seed) :
     m_rng(new RNG(rng_seed))
 {
     connect(&m_debug, SIGNAL(gotDebug(amun::DebugValue)), this, SIGNAL(gotDebug(amun::DebugValue)));
+    connect(&m_debug, SIGNAL(gotLog(QString)), this, SIGNAL(gotLog(QString)));
     connect(&m_debug, SIGNAL(gotVisualization(amun::Visualization)), this, SIGNAL(gotVisualization(amun::Visualization)));
 }
 

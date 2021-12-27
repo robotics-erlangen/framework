@@ -41,6 +41,11 @@ void PathDebug::debug(const QString &key, const QString &value)
     emit gotDebug(debugValue);
 }
 
+void PathDebug::log(const QString &text)
+{
+    emit gotLog(text);
+}
+
 void PathDebug::setColor(amun::Pen *pen, PathDebugColor color)
 {
     switch (color) {

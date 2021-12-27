@@ -102,6 +102,7 @@ private slots:
     void onCompileSuccess();
 
     void handleDebug(const amun::DebugValue &debug);
+    void handleLog(const QString &text);
     void handleVisualization(const amun::Visualization &vis);
 
 private:

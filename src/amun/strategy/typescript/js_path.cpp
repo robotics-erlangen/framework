@@ -57,6 +57,7 @@ public:
     {
         if (tp != nullptr) {
             connect(tp, SIGNAL(gotDebug(amun::DebugValue)), t, SLOT(handleDebug(amun::DebugValue)));
+            connect(tp, SIGNAL(gotLog(QString)), t, SLOT(handleLog(QString)));
             connect(tp, SIGNAL(gotVisualization(amun::Visualization)), t, SLOT(handleVisualization(amun::Visualization)));
         }
     }

@@ -50,6 +50,7 @@ public:
 
 signals:
     void gotDebug(const amun::DebugValue &debug);
+    void gotLog(const QString &text);
     void gotVisualization(const amun::Visualization &vis);
 
 protected:
