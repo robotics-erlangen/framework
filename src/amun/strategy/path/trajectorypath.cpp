@@ -239,9 +239,10 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Tra
         for (unsigned int i = 0;i<generationInfo.size();i++) {
             const auto &info = generationInfo[i];
             const SpeedProfile &trajectory = info.profile;
-            float partTime = trajectory.time();
+            const float partTime = trajectory.time();
 
-            if (partTime > 20 || std::isinf(partTime) || std::isnan(partTime) || partTime < 0) {
+            const float maxTime = 20 / input.maxSpeed;
+            if (partTime > maxTime || std::isinf(partTime) || std::isnan(partTime) || partTime < 0) {
                 qDebug() <<"Error: trying to use invalid trajectory";
                 return {};
             }
