@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+# https://cmake.org/cmake/help/latest/manual/cmake-policies.7.html
+# https://cmake.org/cmake/help/latest/variable/CMAKE_POLICY_DEFAULT_CMPNNNN.html
+POLICIES=(0017,0020)
+
+SCRIPT=$(readlink -f "$0")
+SCRIPTPATH=$(dirname "$SCRIPT")
+MXE_TOOLCHAIN_LOCATION=$SCRIPTPATH/mxe-conf.cmake
+
+unset NO_MXE_TOOLCHAIN
+if echo -- "$@" | grep -Ewq "(--build|--install|-E|--system-information)" ; then
+    NO_MXE_TOOLCHAIN=1
+fi
+if [[ "$NO_MXE_TOOLCHAIN" == "1" ]]; then
+    # see https://github.com/mxe/mxe/issues/932
+    exec "$MXE_ROOT_DIR/usr/x86_64-pc-linux-gnu/bin/cmake" "$@"
+else
+    echo "== Using custom MXE wrapper"
+    echo "     - cmake version 3.20.1"
+    echo "     - warnings for unused CMAKE_POLICY_DEFAULT variables can be ignored"
+    echo "== Using MXE toolchain: $MXE_TOOLCHAIN_LOCATION"
+    echo "== Using MXE runresult: $MXE_ROOT_DIR/usr/share/cmake/modules/TryRunResults.cmake"
+    if ! ( echo "$@" | grep --silent "DCMAKE_BUILD_TYPE" ) ; then
+        echo '== Adding "-DCMAKE_BUILD_TYPE=Release"'
+        set -- "-DCMAKE_BUILD_TYPE=Release" "$@"
+    fi
+    exec "$MXE_ROOT_DIR/usr/x86_64-pc-linux-gnu/bin/cmake" \
+              -DCMAKE_TOOLCHAIN_FILE="$MXE_TOOLCHAIN_LOCATION" \
+              `eval echo -DCMAKE_POLICY_DEFAULT_CMP{$POLICIES}=NEW` \
+              -C"$MXE_ROOT_DIR/usr/share/cmake/modules/TryRunResults.cmake" "$@"
+fi
