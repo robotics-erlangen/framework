@@ -47,6 +47,32 @@ stages:
   variables:
     TEST_PATTERN: "."
 
+cross-compile-ra:
+  script:
+    - mkdir -p build
+    - cd build
+    - ../cmake/mxe-cmake-wrapper -DDOWNLOAD_V8=TRUE -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON ..
+    # limit average load to enforce some load distribution between different ninja instances
+    # only compile ra, otherwise the artifact .zip of the bin folder will be to large
+    - ../cmake/mxe-cmake-wrapper --build . --target ra -- -l $(( $(nproc) * 3 / 2))
+    - ../cmake/mxe-cmake-wrapper --build . --target assemble --
+  stage: build
+  cache:
+    # Increase the number in the cache key to start with
+    # a fresh build cache. This is only useful in case of
+    # build system bug and/or updates of ExternalProjects!
+    key: "$CI_JOB_NAME-2"
+    paths:
+      - build/
+  artifacts:
+    paths:
+      - build/bin/
+    expire_in: 1 day
+  image: ci:ubuntu-20.04-cross-compile-windows
+  only:
+    - schedules
+
+
 .sanitize-template:
   script:
     - "sh strategy/typescript/setup.sh"
