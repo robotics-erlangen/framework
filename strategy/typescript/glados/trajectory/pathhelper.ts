@@ -514,24 +514,29 @@ function addRobotObstacles(path: Path, robot: FriendlyRobot, targetPosition: Pos
 			if (robot.pos.distanceToLineSegment(r.pos, estimatedPosition) >= robot.radius + r.radius
 					&&  r.pos.distanceTo(estimatedPosition) > 0.0001) {
 
-				let absSpeed = r.speed.length();
-				let breakTime = absSpeed / r.acceleration.aBrakeFMax;
-				if (breakTime < estimationTime || useCMA) {
-					// They can break in the estimation. This means that leavingTime would be INF.
-					// TODO: we can trim the obstacle
-					// For now, we keep the fixed obstacle
-					path.addLine(r.pos.x, r.pos.y, estimatedPosition.x, estimatedPosition.y,
-						r.radius + safetyDistance, `OwnRobot_${r.id}`, Priorities.ROBOT);
+				if (!useCMA && path.hasOpponentRobotObstacle()) {
+					path.addOpponentRobotObstacle(r, Priorities.ROBOT);
 				} else {
-					// leavingTime is the time until the robot will have left the obstacle fully if he breaks as hard as possible.
-					let leavingTime = (-absSpeed + Math.sqrt(absSpeed * absSpeed + 2 * r.acceleration.aBrakeFMax * (absSpeed * estimationTime + r.radius))) / r.acceleration.aBrakeFMax;
-					path.addMovingLine(0, leavingTime, r.pos, new Vector(0, 0), new Vector(0, 0), estimatedPosition, new Vector(0, 0), new Vector(0, 0), r.radius + safetyDistance, Priorities.ROBOT);
+					const absSpeed = r.speed.length();
+					const brakeTime = absSpeed / r.acceleration.aBrakeFMax;
+					if (brakeTime < estimationTime || useCMA) {
+						// They can break in the estimation. This means that leavingTime would be INF.
+						// TODO: we can trim the obstacle
+						// For now, we keep the fixed obstacle
+						path.addLine(r.pos.x, r.pos.y, estimatedPosition.x, estimatedPosition.y,
+							r.radius + safetyDistance, `OwnRobot_${r.id}`, Priorities.ROBOT);
+					} else {
+						// leavingTime is the time until the robot will have left the obstacle fully if he breaks as hard as possible.
+						let leavingTime = (-absSpeed + Math.sqrt(absSpeed * absSpeed + 2 * r.acceleration.aBrakeFMax * (absSpeed * estimationTime + r.radius))) / r.acceleration.aBrakeFMax;
+						path.addMovingLine(0, leavingTime, r.pos, new Vector(0, 0), new Vector(0, 0), estimatedPosition, new Vector(0, 0), new Vector(0, 0), r.radius + safetyDistance, Priorities.ROBOT);
+					}
+					if (!robotIsSlow && !useCMA) {
+						path.addMovingCircle(0, 0.8, r.pos, r.speed, new Vector(0, 0), r.radius + safetyDistance, Priorities.ROBOT);
+					}
 				}
-				if (!robotIsSlow && !useCMA) {
-					path.addMovingCircle(0, 0.8, r.pos, r.speed, new Vector(0, 0), r.radius + safetyDistance, Priorities.ROBOT);
-				}
+
 			} else {
-				path.addCircle(r.pos.x, r.pos.y, r.radius + safetyDistance, `OwnRobot_${r.id}`, Priorities.ROBOT);
+				path.addCircle(r.pos.x, r.pos.y, r.radius + safetyDistance, `OppRobot_${r.id}`, Priorities.ROBOT);
 			}
 		}
 	}
