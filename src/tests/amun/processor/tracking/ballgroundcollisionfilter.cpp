@@ -36,6 +36,7 @@
 #include <iostream>
 #include <map>
 #include <QDebug>
+#include <optional>
 
 // real ball pos and tracked ball pos
 struct TrackedStateInfo {
