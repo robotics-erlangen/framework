@@ -61,6 +61,7 @@ public:
     void addMovingCircle(Vector startPos, Vector speed, Vector acc, float startTime, float endTime, float radius, int prio);
     void addMovingLine(Vector startPos1, Vector speed1, Vector acc1, Vector startPos2, Vector speed2, Vector acc2, float startTime, float endTime, float width, int prio);
     void addFriendlyRobotTrajectoryObstacle(std::vector<TrajectoryPoint> *obstacle, int prio, float radius);
+    void addOpponentRobotObstacle(Vector startPos, Vector speed, int prio);
 
     void collectMovingObstacles();
 
@@ -78,11 +79,11 @@ public:
         return false;
     }
 
-    bool isInMovingObstacle(const std::vector<MovingObstacles::MovingObstacle *> &obstacles, Vector point, float time) const;
+    bool isInMovingObstacle(const std::vector<MovingObstacles::MovingObstacle *> &obstacles, Vector point, float time, Vector speed) const;
     bool isTrajectoryInObstacle(const SpeedProfile &profile, float timeOffset, Vector startPos) const;
     // return {min distance of trajectory to obstacles, min distance of last point to obstacles}
     std::pair<ZonedIntersection, ZonedIntersection> minObstacleDistance(const SpeedProfile &profile, float timeOffset, Vector startPos, float safetyMargin) const;
-    float minObstacleDistancePoint(Vector pos, float time, bool checkStatic, bool checkDynamic) const;
+    float minObstacleDistancePoint(Vector pos, float time, Vector speed, bool checkStatic, bool checkDynamic) const;
 
     // collectobstacles must have been called before calling this function
     void serialize(pathfinding::WorldState *state) const;
@@ -103,6 +104,7 @@ private:
     std::vector<MovingObstacles::MovingCircle> m_movingCircles;
     std::vector<MovingObstacles::MovingLine> m_movingLines;
     std::vector<MovingObstacles::FriendlyRobotObstacle> m_friendlyRobotObstacles;
+    std::vector<MovingObstacles::OpponentRobotObstacle> m_opponentRobotObstacles;
     std::vector<MovingObstacles::MovingObstacle*> m_movingObstacles;
 
     int m_outOfFieldPriority = 1;

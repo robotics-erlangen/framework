@@ -59,6 +59,11 @@ message FriendlyRobotObstacle {
     repeated TrajectoryPoint robot_trajectory = 1;
 };
 
+message OpponentRobotObstacle {
+    optional Vector start_pos = 1;
+    optional Vector speed = 2;
+};
+
 message Obstacle {
     optional string name = 1;
     optional int32 prio = 2;
@@ -73,6 +78,7 @@ message Obstacle {
         MovingCircleObstacle moving_circle = 9;
         MovingLineObstacle moving_line = 10;
         FriendlyRobotObstacle friendly_robot = 11;
+        OpponentRobotObstacle opponent_robot = 12;
     };
 };
 

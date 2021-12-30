@@ -182,7 +182,7 @@ std::pair<float, float> SpeedProfile1D::offsetAndSpeedForTime(float time, float 
 }
 
 template<typename AccelerationProfile>
-void SpeedProfile1D::trajectoryPositions(std::vector<Vector> &outPoints, std::size_t outIndex, float timeInterval, float positionOffset, float slowDownTime) const
+void SpeedProfile1D::trajectoryPositions(std::vector<std::pair<Vector, Vector>> &outPoints, std::size_t outIndex, float timeInterval, float positionOffset, float slowDownTime) const
 {
     AccelerationProfile acceleration(profile[counter-1].t, slowDownTime);
 
@@ -196,7 +196,8 @@ void SpeedProfile1D::trajectoryPositions(std::vector<Vector> &outPoints, std::si
         float segmentTime = acceleration.timeForSegment(profile[i], profile[i+1]);
         while (totalTime + segmentTime >= nextDesiredTime) {
             auto inf = acceleration.partialSegmentOffsetAndSpeed(profile[i], profile[i+1], nextDesiredTime);
-            outPoints[resultCounter][outIndex] = offset + inf.first;
+            outPoints[resultCounter].first[outIndex] = offset + inf.first;
+            outPoints[resultCounter].second[outIndex] = inf.second;
             resultCounter++;
             nextDesiredTime += timeInterval;
 
@@ -209,7 +210,8 @@ void SpeedProfile1D::trajectoryPositions(std::vector<Vector> &outPoints, std::si
     }
 
     while (resultCounter < outPoints.size()) {
-        outPoints[resultCounter][outIndex] = offset;
+        outPoints[resultCounter].first[outIndex] = offset;
+        outPoints[resultCounter].second[outIndex] = profile[counter-1].v;
         resultCounter++;
     }
 }
@@ -288,8 +290,8 @@ std::pair<Vector, Vector> SpeedProfile::positionAndSpeedForTime(float time) cons
     }
 }
 
-std::vector<Vector> SpeedProfile::trajectoryPositions(Vector offset, std::size_t count, float timeInterval) const {
-    std::vector<Vector> result(count);
+std::vector<std::pair<Vector, Vector>> SpeedProfile::trajectoryPositions(Vector offset, std::size_t count, float timeInterval) const {
+    std::vector<std::pair<Vector, Vector>> result(count);
     if (slowDownTime == 0.0f) {
         xProfile.trajectoryPositions<ConstantAcceleration>(result, 0, timeInterval, offset.x, 0);
         yProfile.trajectoryPositions<ConstantAcceleration>(result, 1, timeInterval, offset.y, 0);

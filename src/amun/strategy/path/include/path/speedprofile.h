@@ -55,7 +55,7 @@ public:
 
     // outIndex can be 0 or 1, writing the result to the x or y coordinate of the vectors
     template<typename AccelerationProfile>
-    void trajectoryPositions(std::vector<Vector> &outPoints, std::size_t outIndex, float timeInterval, float positionOffset, float slowDownTime) const;
+    void trajectoryPositions(std::vector<std::pair<Vector, Vector>> &outPoints, std::size_t outIndex, float timeInterval, float positionOffset, float slowDownTime) const;
 
     void integrateTime() {
         float totalTime = 0;
@@ -102,7 +102,7 @@ public:
     Vector endPos() const;
     // returns {position, speed}
     std::pair<Vector, Vector> positionAndSpeedForTime(float time) const;
-    std::vector<Vector> trajectoryPositions(Vector offset, std::size_t count, float timeInterval) const;
+    std::vector<std::pair<Vector, Vector>> trajectoryPositions(Vector offset, std::size_t count, float timeInterval) const;
     BoundingBox calculateBoundingBox(Vector offset) const;
 
     Vector endSpeed() const {

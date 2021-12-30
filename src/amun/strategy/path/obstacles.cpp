@@ -393,7 +393,7 @@ MovingObstacles::MovingCircle::MovingCircle(const pathfinding::Obstacle &obstacl
     endTime(circle.end_time())
 { }
 
-bool MovingObstacles::MovingCircle::intersects(Vector pos, float time) const
+bool MovingObstacles::MovingCircle::intersects(Vector pos, float time, Vector) const
 {
     if (time < startTime || time > endTime) {
         return false;
@@ -403,7 +403,7 @@ bool MovingObstacles::MovingCircle::intersects(Vector pos, float time) const
     return centerAtTime.distanceSq(pos) < radius * radius;
 }
 
-float MovingObstacles::MovingCircle::distance(Vector pos, float time) const
+float MovingObstacles::MovingCircle::distance(Vector pos, float time, Vector) const
 {
     if (time < startTime || time > endTime) {
         return std::numeric_limits<float>::max();
@@ -413,7 +413,7 @@ float MovingObstacles::MovingCircle::distance(Vector pos, float time) const
     return centerAtTime.distance(pos) - radius;
 }
 
-ZonedIntersection MovingObstacles::MovingCircle::zonedDistance(const Vector &pos, float time, float nearRadius) const
+ZonedIntersection MovingObstacles::MovingCircle::zonedDistance(const Vector &pos, float time, float nearRadius, Vector) const
 {
     if (time < startTime || time > endTime) {
         return ZonedIntersection::FAR_AWAY;
@@ -483,7 +483,7 @@ MovingObstacles::MovingLine::MovingLine(const pathfinding::Obstacle &obstacle, c
     endTime(line.end_time())
 { }
 
-bool MovingObstacles::MovingLine::intersects(Vector pos, float time) const
+bool MovingObstacles::MovingLine::intersects(Vector pos, float time, Vector) const
 {
     if (time < startTime || time > endTime) {
         return false;
@@ -494,7 +494,7 @@ bool MovingObstacles::MovingLine::intersects(Vector pos, float time) const
     return LineSegment(p1, p2).distanceSq(pos) < radius * radius;
 }
 
-float MovingObstacles::MovingLine::distance(Vector pos, float time) const
+float MovingObstacles::MovingLine::distance(Vector pos, float time, Vector) const
 {
     if (time < startTime || time > endTime) {
         return std::numeric_limits<float>::max();
@@ -509,7 +509,7 @@ float MovingObstacles::MovingLine::distance(Vector pos, float time) const
     return LineSegment(p1, p2).distance(pos) - radius;
 }
 
-ZonedIntersection MovingObstacles::MovingLine::zonedDistance(const Vector &pos, float time, float nearRadius) const
+ZonedIntersection MovingObstacles::MovingLine::zonedDistance(const Vector &pos, float time, float nearRadius, Vector) const
 {
     if (time < startTime || time > endTime) {
         return ZonedIntersection::FAR_AWAY;
@@ -645,19 +645,19 @@ MovingObstacles::FriendlyRobotObstacle &MovingObstacles::FriendlyRobotObstacle::
     return *this;
 }
 
-bool MovingObstacles::FriendlyRobotObstacle::intersects(Vector pos, float time) const
+bool MovingObstacles::FriendlyRobotObstacle::intersects(Vector pos, float time, Vector) const
 {
     unsigned long index = std::min(static_cast<unsigned long>(trajectory->size()-1), static_cast<unsigned long>(time / timeInterval));
     return (*trajectory)[index].pos.distanceSq(pos) < radius * radius;
 }
 
-float MovingObstacles::FriendlyRobotObstacle::distance(Vector pos, float time) const
+float MovingObstacles::FriendlyRobotObstacle::distance(Vector pos, float time, Vector) const
 {
     unsigned long index = std::min(static_cast<unsigned long>(trajectory->size()-1), static_cast<unsigned long>(time / timeInterval));
     return (*trajectory)[index].pos.distance(pos) - radius;
 }
 
-ZonedIntersection MovingObstacles::FriendlyRobotObstacle::zonedDistance(const Vector &pos, float time, float nearRadius) const
+ZonedIntersection MovingObstacles::FriendlyRobotObstacle::zonedDistance(const Vector &pos, float time, float nearRadius, Vector) const
 {
     unsigned long index = std::min(static_cast<unsigned long>(trajectory->size()-1), static_cast<unsigned long>(time / timeInterval));
     return computeZonedIntersection((*trajectory)[index].pos.distanceSq(pos), radius, nearRadius);
@@ -672,4 +672,64 @@ void MovingObstacles::FriendlyRobotObstacle::serializeChild(pathfinding::Obstacl
         setVector(p.speed, point->mutable_speed());
         point->set_time(p.time);
     }
+}
+
+MovingObstacles::OpponentRobotObstacle::OpponentRobotObstacle(int prio, float baseRadius, Vector start, Vector speed) :
+    MovingObstacle(prio, baseRadius + ROBOT_RADIUS * 1.5f),
+    startPos(start),
+    speed(speed),
+    absSpeed(speed.length())
+{ }
+
+MovingObstacles::OpponentRobotObstacle::OpponentRobotObstacle(const pathfinding::Obstacle &obstacle, const pathfinding::OpponentRobotObstacle &circle) :
+    MovingObstacle(obstacle),
+    startPos(deserializeVector(circle.start_pos())),
+    speed(deserializeVector(circle.speed())),
+    absSpeed(speed.length())
+{ }
+
+bool MovingObstacles::OpponentRobotObstacle::intersects(Vector pos, float time, Vector ownSpeed) const
+{
+    if (time > MAX_TIME) {
+        return false;
+    }
+    float t = time;
+    Vector centerAtTime = startPos + speed * t;
+    return centerAtTime.distanceSq(pos) < radius * radius;
+}
+
+float MovingObstacles::OpponentRobotObstacle::distance(Vector pos, float time, Vector ownSpeed) const
+{
+    if (time > MAX_TIME) {
+        return std::numeric_limits<float>::max();
+    }
+    float t = time;
+    Vector centerAtTime = startPos + speed * t;
+    return centerAtTime.distance(pos) - radius;
+}
+
+ZonedIntersection MovingObstacles::OpponentRobotObstacle::zonedDistance(const Vector &pos, float time, float nearRadius, Vector ownSpeed) const
+{
+    if (time > MAX_TIME) {
+        return ZonedIntersection::FAR_AWAY;
+    }
+    float t = time;
+    Vector centerAtTime = startPos + speed * t;
+    return computeZonedIntersection(centerAtTime.distanceSq(pos), radius, nearRadius);
+}
+
+BoundingBox MovingObstacles::OpponentRobotObstacle::boundingBox() const
+{
+    auto xRange = range1D(startPos.x, speed.x, 0, 0, MAX_TIME);
+    auto yRange = range1D(startPos.y, speed.y, 0, 0, MAX_TIME);
+    BoundingBox result({xRange.first, yRange.first}, {xRange.second, yRange.second});
+    result.addExtraRadius(radius);
+    return result;
+}
+
+void MovingObstacles::OpponentRobotObstacle::serializeChild(pathfinding::Obstacle *obstacle) const
+{
+    auto circle = obstacle->mutable_moving_circle();
+    setVector(startPos, circle->mutable_start_pos());
+    setVector(speed, circle->mutable_speed());
 }

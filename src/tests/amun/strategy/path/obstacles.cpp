@@ -316,38 +316,38 @@ TEST(Obstacles, Line_BoundingBox) {
 
 TEST(Obstacles, MovingCircle_Intersects) {
     MovingCircle c(0, 1, Vector(1, 1), Vector(1, 0), Vector(0, 0), 0, 100);
-    ASSERT_TRUE(c.intersects(Vector(1, 1), 0));
-    ASSERT_TRUE(c.intersects(Vector(0.01, 1), 0));
-    ASSERT_FALSE(c.intersects(Vector(1, 1), 1.1));
-    ASSERT_TRUE(c.intersects(Vector(11, 1), 10));
+    ASSERT_TRUE(c.intersects(Vector(1, 1), 0, Vector(0, 0)));
+    ASSERT_TRUE(c.intersects(Vector(0.01, 1), 0, Vector(0, 0)));
+    ASSERT_FALSE(c.intersects(Vector(1, 1), 1.1, Vector(0, 0)));
+    ASSERT_TRUE(c.intersects(Vector(11, 1), 10, Vector(0, 0)));
 
     // start time
     c = MovingCircle(0, 1, Vector(0, 0), Vector(0, 1), Vector(0, 0), 5, 100);
-    ASSERT_FALSE(c.intersects(Vector(0, 0), 4.99));
-    ASSERT_TRUE(c.intersects(Vector(0, 0), 5));
+    ASSERT_FALSE(c.intersects(Vector(0, 0), 4.99, Vector(0, 0)));
+    ASSERT_TRUE(c.intersects(Vector(0, 0), 5, Vector(0, 0)));
 
     // end time
     c = MovingCircle(0, 1, Vector(0, 0), Vector(1, 0), Vector(0, 0), 0, 1);
-    ASSERT_TRUE(c.intersects(Vector(1, 0), 1));
-    ASSERT_FALSE(c.intersects(Vector(1, 0), 1.1));
+    ASSERT_TRUE(c.intersects(Vector(1, 0), 1, Vector(0, 0)));
+    ASSERT_FALSE(c.intersects(Vector(1, 0), 1.1, Vector(0, 0)));
 
     // acc
     c = MovingCircle(0, 1, Vector(0, 0), Vector(1, 0), Vector(0, 1), 0, 100);
-    ASSERT_FALSE(c.intersects(Vector(10, 0), 10));
-    ASSERT_TRUE(c.intersects(Vector(10, 50), 10));
+    ASSERT_FALSE(c.intersects(Vector(10, 0), 10, Vector(0, 0)));
+    ASSERT_TRUE(c.intersects(Vector(10, 50), 10, Vector(0, 0)));
 }
 
 TEST(Obstacles, MovingCircle_Distance) {
     MovingCircle c(0, 1, Vector(0, 0), Vector(1, 0), Vector(0, 1), 0, 10);
-    ASSERT_FLOAT_EQ(c.distance(Vector(0, 0), 0), -1);
-    ASSERT_FLOAT_EQ(c.distance(Vector(1, 0), 0), 0);
-    ASSERT_FLOAT_EQ(c.distance(Vector(10, 0), 0), 9);
-    ASSERT_FLOAT_EQ(c.distance(Vector(0, 0.5), 1), 0);
-    ASSERT_FLOAT_EQ(c.distance(Vector(10, 50), 10), -1);
+    ASSERT_FLOAT_EQ(c.distance(Vector(0, 0), 0, Vector(0, 0)), -1);
+    ASSERT_FLOAT_EQ(c.distance(Vector(1, 0), 0, Vector(0, 0)), 0);
+    ASSERT_FLOAT_EQ(c.distance(Vector(10, 0), 0, Vector(0, 0)), 9);
+    ASSERT_FLOAT_EQ(c.distance(Vector(0, 0.5), 1, Vector(0, 0)), 0);
+    ASSERT_FLOAT_EQ(c.distance(Vector(10, 50), 10, Vector(0, 0)), -1);
 
     c = MovingCircle(0, 1, Vector(0, 0), Vector(0, 0), Vector(0, 0), 1, 2);
-    ASSERT_FLOAT_EQ(c.distance(Vector(0, 0), 0), std::numeric_limits<float>::max());
-    ASSERT_FLOAT_EQ(c.distance(Vector(0, 0), 2.001), std::numeric_limits<float>::max());
+    ASSERT_FLOAT_EQ(c.distance(Vector(0, 0), 0, Vector(0, 0)), std::numeric_limits<float>::max());
+    ASSERT_FLOAT_EQ(c.distance(Vector(0, 0), 2.001, Vector(0, 0)), std::numeric_limits<float>::max());
 }
 
 static void testDerivativeDistanceRandomizedMoving(std::function<std::unique_ptr<MovingObstacle>(std::function<float()>)> generator) {
@@ -365,33 +365,33 @@ static void testDerivativeDistanceRandomizedMoving(std::function<std::unique_ptr
             Vector pos = Vector(makeFloat(), makeFloat());
             float time = std::abs(makeFloat()) / 5;
 
-            float dist = o->distance(pos, time);
+            float dist = o->distance(pos, time, Vector(0, 0));
 
             if (dist <= 0) {
-                ASSERT_TRUE(o->intersects(pos, time));
+                ASSERT_TRUE(o->intersects(pos, time, Vector(0, 0)));
             } else {
-                ASSERT_FALSE(o->intersects(pos, time));
+                ASSERT_FALSE(o->intersects(pos, time, Vector(0, 0)));
             }
 
-            auto d1 = o->zonedDistance(pos, time, 0);
+            auto d1 = o->zonedDistance(pos, time, 0, Vector(0, 0));
             ASSERT_EQ(d1, dist <= 0 ? ZonedIntersection::IN_OBSTACLE : ZonedIntersection::FAR_AWAY);
 
             if (dist > 0) {
                 if (dist == std::numeric_limits<float>::max()) {
-                    ASSERT_EQ(o->zonedDistance(pos, time, 1), ZonedIntersection::FAR_AWAY);
-                    ASSERT_EQ(o->zonedDistance(pos, time, 100000), ZonedIntersection::FAR_AWAY);
+                    ASSERT_EQ(o->zonedDistance(pos, time, 1, Vector(0, 0)), ZonedIntersection::FAR_AWAY);
+                    ASSERT_EQ(o->zonedDistance(pos, time, 100000, Vector(0, 0)), ZonedIntersection::FAR_AWAY);
                 } else {
-                    auto d2 = o->zonedDistance(pos, time, dist / 2);
+                    auto d2 = o->zonedDistance(pos, time, dist / 2, Vector(0, 0));
                     ASSERT_EQ(d2, ZonedIntersection::FAR_AWAY);
 
-                    auto d3 = o->zonedDistance(pos, time, dist * 0.99f);
+                    auto d3 = o->zonedDistance(pos, time, dist * 0.99f, Vector(0, 0));
                     ASSERT_EQ(d3, ZonedIntersection::FAR_AWAY);
 
-                    auto d4 = o->zonedDistance(pos, time, dist * 1.01f);
+                    auto d4 = o->zonedDistance(pos, time, dist * 1.01f, Vector(0, 0));
                     ASSERT_EQ(d4, ZonedIntersection::NEAR_OBSTACLE);
                 }
             } else {
-                auto d5 = o->zonedDistance(pos, time, 1);
+                auto d5 = o->zonedDistance(pos, time, 1, Vector(0, 0));
                 ASSERT_EQ(d5, ZonedIntersection::IN_OBSTACLE);
             }
         }
@@ -503,8 +503,8 @@ TEST(Obstacles, MovingLine_Distance) {
         MovingLine l(0, 1, p1, v1, acc1, p2, v2, acc2, t0, t1);
         Vector pos = Vector(makeFloat(), makeFloat());
 
-        ASSERT_EQ(l.distance(pos, t0 - 0.01), std::numeric_limits<float>::max());
-        ASSERT_EQ(l.distance(pos, t1 + 0.01), std::numeric_limits<float>::max());
+        ASSERT_EQ(l.distance(pos, t0 - 0.01, Vector(0, 0)), std::numeric_limits<float>::max());
+        ASSERT_EQ(l.distance(pos, t1 + 0.01, Vector(0, 0)), std::numeric_limits<float>::max());
 
         float extraTime = r() / float(r.max()) * (t1 - t0);
 
@@ -513,7 +513,7 @@ TEST(Obstacles, MovingLine_Distance) {
 
         Line line(nullptr, 0, 1, start, end);
 
-        ASSERT_LE(std::abs(l.distance(pos, t0 + extraTime) - line.distance(pos)), 0.001f);
+        ASSERT_LE(std::abs(l.distance(pos, t0 + extraTime, Vector(0, 0)) - line.distance(pos)), 0.001f);
     }
 }
 
@@ -588,9 +588,9 @@ TEST(Obstacles, FriendlyRobot_Distance) {
                                         {Vector(1, 0.5), Vector(0, 0), 1.5}};
     FriendlyRobotObstacle o(&points, 0.5, 0);
 
-    ASSERT_FLOAT_EQ(o.distance(Vector(0, 0), 0), -0.5);
-    ASSERT_FLOAT_EQ(o.distance(Vector(1, 0.5), 4), -0.5);
-    ASSERT_FLOAT_EQ(o.distance(Vector(2, 0), 1.25), 0.5);
+    ASSERT_FLOAT_EQ(o.distance(Vector(0, 0), 0, Vector(0, 0)), -0.5);
+    ASSERT_FLOAT_EQ(o.distance(Vector(1, 0.5), 4, Vector(0, 0)), -0.5);
+    ASSERT_FLOAT_EQ(o.distance(Vector(2, 0), 1.25, Vector(0, 0)), 0.5);
 }
 
 TEST(Obstacles, FriendlyRobot_Intersects) {
@@ -600,13 +600,13 @@ TEST(Obstacles, FriendlyRobot_Intersects) {
                                         {Vector(1, 0.5), Vector(0, 0), 1.5}};
     FriendlyRobotObstacle o(&points, 0.5, 0);
 
-    ASSERT_TRUE(o.intersects(Vector(0, 0), 0));
-    ASSERT_TRUE(o.intersects(Vector(0.49, 0), 0));
-    ASSERT_TRUE(o.intersects(Vector(0.49, 0), 0.49));
-    ASSERT_TRUE(o.intersects(Vector(1, 0), 1));
-    ASSERT_TRUE(o.intersects(Vector(1, 0.5), 10));
-    ASSERT_FALSE(o.intersects(Vector(1, 0.5), 0));
-    ASSERT_FALSE(o.intersects(Vector(2, 0), 1.2));
+    ASSERT_TRUE(o.intersects(Vector(0, 0), 0, Vector(0, 0)));
+    ASSERT_TRUE(o.intersects(Vector(0.49, 0), 0, Vector(0, 0)));
+    ASSERT_TRUE(o.intersects(Vector(0.49, 0), 0.49, Vector(0, 0)));
+    ASSERT_TRUE(o.intersects(Vector(1, 0), 1, Vector(0, 0)));
+    ASSERT_TRUE(o.intersects(Vector(1, 0.5), 10, Vector(0, 0)));
+    ASSERT_FALSE(o.intersects(Vector(1, 0.5), 0, Vector(0, 0)));
+    ASSERT_FALSE(o.intersects(Vector(2, 0), 1.2, Vector(0, 0)));
 }
 
 TEST(Obstacles, FriendlyRobot_ZonedDistance) {
@@ -616,14 +616,14 @@ TEST(Obstacles, FriendlyRobot_ZonedDistance) {
                                         {Vector(1, 0.5), Vector(0, 0), 1.5}};
     FriendlyRobotObstacle o(&points, 0.5, 0);
 
-    ASSERT_EQ(o.zonedDistance(Vector(0, 0), 0, 0.1), ZonedIntersection::IN_OBSTACLE);
-    ASSERT_EQ(o.zonedDistance(Vector(0.49, 0), 0, 0.1), ZonedIntersection::IN_OBSTACLE);
-    ASSERT_EQ(o.zonedDistance(Vector(0.49, 0), 0.49, 0.1), ZonedIntersection::IN_OBSTACLE);
-    ASSERT_EQ(o.zonedDistance(Vector(1, 0), 1, 0.1), ZonedIntersection::IN_OBSTACLE);
-    ASSERT_EQ(o.zonedDistance(Vector(1, 0.5), 10, 0.1), ZonedIntersection::IN_OBSTACLE);
-    ASSERT_EQ(o.zonedDistance(Vector(1, 0.5), 0, 0.1), ZonedIntersection::FAR_AWAY);
-    ASSERT_EQ(o.zonedDistance(Vector(2, 0), 1.2, 0.1), ZonedIntersection::FAR_AWAY);
-    ASSERT_EQ(o.zonedDistance(Vector(1.7, 0), 1.2, 0.3), ZonedIntersection::NEAR_OBSTACLE);
+    ASSERT_EQ(o.zonedDistance(Vector(0, 0), 0, 0.1, Vector(0, 0)), ZonedIntersection::IN_OBSTACLE);
+    ASSERT_EQ(o.zonedDistance(Vector(0.49, 0), 0, 0.1, Vector(0, 0)), ZonedIntersection::IN_OBSTACLE);
+    ASSERT_EQ(o.zonedDistance(Vector(0.49, 0), 0.49, 0.1, Vector(0, 0)), ZonedIntersection::IN_OBSTACLE);
+    ASSERT_EQ(o.zonedDistance(Vector(1, 0), 1, 0.1, Vector(0, 0)), ZonedIntersection::IN_OBSTACLE);
+    ASSERT_EQ(o.zonedDistance(Vector(1, 0.5), 10, 0.1, Vector(0, 0)), ZonedIntersection::IN_OBSTACLE);
+    ASSERT_EQ(o.zonedDistance(Vector(1, 0.5), 0, 0.1, Vector(0, 0)), ZonedIntersection::FAR_AWAY);
+    ASSERT_EQ(o.zonedDistance(Vector(2, 0), 1.2, 0.1, Vector(0, 0)), ZonedIntersection::FAR_AWAY);
+    ASSERT_EQ(o.zonedDistance(Vector(1.7, 0), 1.2, 0.3, Vector(0, 0)), ZonedIntersection::NEAR_OBSTACLE);
 }
 
 TEST(Obstacles, FriendlyRobot_BoundingBox) {

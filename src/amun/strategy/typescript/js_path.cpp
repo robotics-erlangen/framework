@@ -413,6 +413,19 @@ static void trajectoryAddRobotTrajectoryObstacle(const FunctionCallbackInfo<Valu
     static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value())->trajectoryPath()->world().addFriendlyRobotTrajectoryObstacle(obstacle, prio, radius);
 }
 
+static void trajectoryAddOpponentRobotObstacle(const FunctionCallbackInfo<Value> &args)
+{
+    Isolate * isolate = args.GetIsolate();
+    float x, y, speedX, speedY, priority;
+
+    if (!verifyNumber(isolate, args[0], x) || !verifyNumber(isolate, args[1], y) ||
+            !verifyNumber(isolate, args[2], speedX) || !verifyNumber(isolate, args[3], speedY) ||
+            !verifyNumber(isolate, args[4], priority)) {
+        return;
+    }
+    static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value())->trajectoryPath()->world().addOpponentRobotObstacle(Vector(x, y), Vector(speedX, speedY), priority);
+}
+
 static void trajectoryMaxIntersectingObstaclePrio(const FunctionCallbackInfo<Value> &args)
 {
     Isolate * isolate = args.GetIsolate();
@@ -498,7 +511,8 @@ static QList<CallbackInfo> trajectoryPathCallbacks = {
     { "getTrajectoryAsObstacle", trajectoryGetLastTrajectoryAsRobotObstacle},
     { "addRobotTrajectoryObstacle", trajectoryAddRobotTrajectoryObstacle},
     { "maxIntersectingObstaclePrio", trajectoryMaxIntersectingObstaclePrio},
-    { "setRobotId",         trajectorySetRobotId}};
+    { "setRobotId",         trajectorySetRobotId},
+    { "addOpponentRobotObstacle",   trajectoryAddOpponentRobotObstacle}};
 
 static void pathCreateNew(const FunctionCallbackInfo<Value>& args)
 {

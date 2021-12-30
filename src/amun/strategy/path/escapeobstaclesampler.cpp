@@ -130,7 +130,9 @@ auto EscapeObstacleSampler::rateEscapingTrajectory(const TrajectoryInput &input,
     for (int i = 0;i<samples;i++) {
         float time = i * SAMPLING_INTERVAL;
 
-        Vector pos = speedProfile.positionAndSpeedForTime(time).first + input.s0;
+        const std::pair<Vector, Vector> posSpeed = speedProfile.positionAndSpeedForTime(time);
+        const Vector pos = posSpeed.first + input.s0;
+        const Vector speed = posSpeed.second;
         int obstaclePriority = -1;
         if (!m_world.pointInPlayfield(pos, m_world.radius())) {
             obstaclePriority = m_world.outOfFieldPriority();
@@ -148,7 +150,7 @@ auto EscapeObstacleSampler::rateEscapingTrajectory(const TrajectoryInput &input,
             }
         }
         for (const auto o : m_world.movingObstacles()) {
-            if (o->prio > obstaclePriority && o->intersects(pos, time + input.t0)) {
+            if (o->prio > obstaclePriority && o->intersects(pos, time + input.t0, speed)) {
                 obstaclePriority = o->prio;
             }
         }

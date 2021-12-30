@@ -31,7 +31,7 @@ import { log } from "base/amun";
 import { Coordinates } from "base/coordinates";
 import * as Option from "base/option";
 import * as pb from "base/protobuf";
-import { FriendlyRobot } from "base/robot";
+import { FriendlyRobot, Robot } from "base/robot";
 import { Position, Speed, Vector } from "base/vector";
 import * as vis from "base/vis";
 
@@ -222,6 +222,7 @@ interface PathObjectTrajectory extends PathObjectCommon {
 	addRobotTrajectoryObstacle(obstacle: TrajectoryObstacle, priority: number, radius: number): void;
 	maxIntersectingObstaclePrio(): number;
 	setRobotId?(id: number): void;
+	addOpponentRobotObstacle?(startX: number, startY: number, speedX: number, speedY: number, prio: number): void;
 }
 
 interface AmunPath {
@@ -515,6 +516,22 @@ export class Path {
 		this._trajectoryInst.addRobotTrajectoryObstacle(robot.path._trajectoryInst.getTrajectoryAsObstacle(), prio, radius);
 		if (!isPerformanceMode) {
 			vis.addCircle(this.getObstacleString(), robot.pos, 2 * robot.radius, vis.colors.goldHalf, false, undefined, undefined, robot.radius);
+		}
+	}
+
+	hasOpponentRobotObstacle(): boolean {
+		return this._trajectoryInst.addOpponentRobotObstacle !== undefined;
+	}
+
+	addOpponentRobotObstacle(robot: Robot, prio: number) {
+		if (!this._trajectoryInst.addOpponentRobotObstacle) {
+			throw new Error("Can not add opponent robot obstacle, update Ra to fix!");
+		}
+		const start = Coordinates.toGlobal(robot.pos);
+		const speed = Coordinates.toGlobal(robot.speed);
+		this._trajectoryInst.addOpponentRobotObstacle(start.x, start.y, speed.x, speed.y, prio);
+		if (!isPerformanceMode) {
+			vis.addCircle(this.getObstacleString(), robot.pos, 1.5 * robot.radius, vis.colors.orchidHalf, false, undefined, undefined, robot.radius * 0.5);
 		}
 	}
 

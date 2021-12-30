@@ -128,7 +128,7 @@ std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPat
 
     // check if start point is in obstacle
     std::vector<TrajectorySampler::TrajectoryGenerationInfo> escapeObstacle;
-    if (m_world.isInStaticObstacle(obstacles, input.s0) || m_world.isInMovingObstacle(m_world.movingObstacles(), input.s0, 0)) {
+    if (m_world.isInStaticObstacle(obstacles, input.s0) || m_world.isInMovingObstacle(m_world.movingObstacles(), input.s0, 0, input.v0)) {
         if (!testSampler(input, pathfinding::EscapeObstacleSampler)) {
             // no fallback for now
             return {};
