@@ -25,11 +25,13 @@ add_executable(trajectory-cli
     common.cpp
     endinobstacleoptimizer.cpp
     alphatimetrajectoryoptimizer.cpp
+    collisiontest.cpp
 )
 target_link_libraries(trajectory-cli
     amun::path_parameter_optimization
     Qt5::Core
     shared::core
+    amun::seshat
 )
 target_include_directories(trajectory-cli
     PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"

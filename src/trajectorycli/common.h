@@ -43,3 +43,11 @@ void optimizeStandardSamplerPoints(const std::vector<Situation> &situations, con
 void optimizeEndInObstacleParameters(std::vector<Situation> situations);
 
 void optimizeAlphaTimeTrajectoryParameters(std::vector<Situation> situations);
+
+enum class CollisionTestType {
+    RANDOM,
+    BLOCKED_LINE,
+    ADVERSARIAL
+};
+
+int testCollisions(CollisionTestType testType, int scenarioCount, bool useOldObstacle, bool writeLogs);

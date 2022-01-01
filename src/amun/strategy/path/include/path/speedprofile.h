@@ -78,6 +78,13 @@ public:
     static TrajectoryPosInfo1D calculateEndPos1D(float v0, float v1, float hintDist, float acc, float vMax);
     void calculate1DTrajectory(float v0, float v1, float extraTime, bool directionPositive, float acc, float vMax);
 
+    void printDebug() {
+        for (int i = 0;i<(int)counter;i++) {
+            std::cout <<"("<<profile[i].t<<": "<<profile[i].v<<") ";
+        }
+        std::cout <<std::endl;
+    }
+
 private:
     void createFreeExtraTimeSegment(float beforeSpeed, float v, float nextSpeed, float time, float acc, float desiredVMax);
     static std::pair<float, float> freeExtraTimeDistance(float v, float time, float acc, float vMax);
@@ -116,6 +123,13 @@ public:
     Vector initialAcceleration() const {
         return Vector((xProfile.profile[1].v - xProfile.profile[0].v) / (xProfile.profile[1].t - xProfile.profile[0].t),
                 (yProfile.profile[1].v - yProfile.profile[0].v) / (yProfile.profile[1].t - yProfile.profile[0].t));
+    }
+
+    void printDebug() {
+        std::cout <<"X: ";
+        xProfile.printDebug();
+        std::cout <<"Y: ";
+        yProfile.printDebug();
     }
 
     // only works properly for trajectories without slowdown

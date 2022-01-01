@@ -67,7 +67,6 @@ static TrajectoryInput deserializeTrajectoryInput(const pathfinding::TrajectoryI
     return result;
 }
 
-
 int main(int argc, char* argv[])
 {
     QCoreApplication app(argc, argv);
@@ -88,9 +87,25 @@ int main(int argc, char* argv[])
     parser.addOption(endInObstacle);
     QCommandLineOption alphaTime("a", "Optimize the alpha time trajectory search parameters");
     parser.addOption(alphaTime);
+    QCommandLineOption countCollisions("c", "Count collisions in random scenarios");
+    parser.addOption(countCollisions);
 
     // parse command line
     parser.process(app);
+
+    if (parser.isSet(countCollisions)) {
+        const bool USE_OLD_OBSTACLE = false;
+        const bool SAVE_LOGS = false;
+
+        const int SCENARIOS = 500;
+        const int randomCollisions = testCollisions(CollisionTestType::RANDOM, SCENARIOS, USE_OLD_OBSTACLE, SAVE_LOGS);
+        std::cout <<"Random: "<<randomCollisions<<"/"<<SCENARIOS<<std::endl;
+        const int blockCollisions = testCollisions(CollisionTestType::BLOCKED_LINE, SCENARIOS, USE_OLD_OBSTACLE, SAVE_LOGS);
+        std::cout <<"Block line: "<<blockCollisions<<"/"<<SCENARIOS<<std::endl;
+        const int adversaryCollisions = testCollisions(CollisionTestType::ADVERSARIAL, SCENARIOS, USE_OLD_OBSTACLE, SAVE_LOGS);
+        std::cout <<"Adversarial: "<<adversaryCollisions<<"/"<<SCENARIOS<<std::endl;
+        return 0;
+    }
 
     int argCount = parser.positionalArguments().size();
     if (argCount != 1) {
@@ -98,7 +113,8 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    if (!parser.isSet(standardSampler) && !parser.isSet(endInObstacle) && !parser.isSet(alphaTime)) {
+    if (!parser.isSet(standardSampler) && !parser.isSet(endInObstacle) && !parser.isSet(alphaTime)
+            && !parser.isSet(countCollisions)) {
         qDebug() <<"At lest one optimizer must be run!";
         parser.showHelp(1);
         return 0;

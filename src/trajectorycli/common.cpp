@@ -46,6 +46,12 @@ void optimizeParameters(std::vector<Situation> situations, ParameterCategory cat
     float bestScore = computeScore(situations);
 
     std::cout <<"The default parameters have a score of: "<<bestScore / situations.size()<<std::endl;
+
+    if (parameterDefs.size() == 0) {
+        std::cout <<"No parameters found for this optimization target, terminating!"<<std::endl;
+        return;
+    }
+
     std::cout <<"Searching for better parameters..."<<std::endl;
 
     RNG rng(42);
