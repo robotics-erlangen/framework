@@ -7,7 +7,7 @@ ENV LANG=C.UTF-8
 RUN set -xe; \
 	apt-get update; \
 	apt-get install --no-install-recommends -y \
-		libprotobuf-dev qtbase5-dev libqt5opengl5-dev libusb-1.0-0-dev libsdl2-dev libqt5svg5-dev \
+		libprotobuf-dev qtbase5-dev libqt5opengl5-dev libusb-1.0-0-dev libsdl2-dev libqt5svg5-dev libssl-dev\
 		cmake g++ protobuf-compiler ninja-build make ccache lld patch gdb valgrind \
 		git git-lfs python2 xz-utils python3 python-is-python2 \
 		ca-certificates curl gnupg apt-transport-https htop \

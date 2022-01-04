@@ -10,6 +10,7 @@ In order to build the framework, you will need:
 - `cmake` >= `3.5` (`3.7` on Windows)
 - `g++` >= `4.6`
 - `Qt` >= `5.9` (**NOT** `5.9.[0-2]` on Windows)
+- `libssl`
 
 Also, `protobuf` >= `2.6.0` is required, but will be built from source when no
 suitable version is found.
@@ -53,14 +54,14 @@ faster.
 #### Ubuntu 18.04/20.04
 The package names are
 ```
-cmake protobuf-compiler libprotobuf-dev qtbase5-dev libqt5opengl5-dev g++ libusb-1.0-0-dev libsdl2-dev libqt5svg5-dev
+cmake protobuf-compiler libprotobuf-dev qtbase5-dev libqt5opengl5-dev g++ libusb-1.0-0-dev libsdl2-dev libqt5svg5-dev libssl-dev
 ```
 where `protobuf-compiler` and `libprotobuf-dev` will be built from source if
 not already installed.
 #### Manjaro
 The package names are
 ```
-cmake qt5-base patch pck-conf sdl2 libusb pkgconf
+cmake qt5-base patch pck-conf sdl2 libusb pkgconf openssl
 ```
 There is a provided `protobuf` package, however its current version breaks
 compilation. It is advisable to let the build system build `protobuf` from

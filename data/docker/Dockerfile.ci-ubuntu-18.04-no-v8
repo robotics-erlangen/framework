@@ -2,6 +2,7 @@ FROM ubuntu:18.04
 
 ENV PATH="/usr/lib/ccache:/usr/local/gcc-arm-none-eabi-7-2018-q2-update/bin:$PATH"
 ENV CCACHE_DIR="/ccache/ubuntu-18.04-no-v8"
+ENV LANG=C.UTF-8
 
 ARG DEBIAN_FRONTEND=noninteractive
 # apt-key will warn to not parse its output if not set
@@ -11,7 +12,7 @@ ARG APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1
 RUN set -xe; \
 	apt-get update; \
 	DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
-		protobuf-compiler libprotobuf-dev qtbase5-dev libqt5opengl5-dev libsdl2-dev libusb-1.0-0-dev \
+		protobuf-compiler libprotobuf-dev qtbase5-dev libqt5opengl5-dev libsdl2-dev libusb-1.0-0-dev libssl-dev \
 		cmake ninja-build ccache g++ python3 \
 		luarocks unzip \
 		ca-certificates curl apt-transport-https gnupg \
