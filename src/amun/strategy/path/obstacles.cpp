@@ -74,7 +74,7 @@ inline static ZonedIntersection computeZonedIntersection(float distSq, float rad
 
 inline static ZonedIntersection computeZonedIntersectionLinear(float dist, float radius, float nearRadius)
 {
-    if (dist < radius) {
+    if (dist <= radius) {
         return ZonedIntersection::IN_OBSTACLE;
     } else if (dist <= radius + nearRadius) {
         return ZonedIntersection::NEAR_OBSTACLE;
@@ -675,27 +675,39 @@ void MovingObstacles::FriendlyRobotObstacle::serializeChild(pathfinding::Obstacl
 }
 
 MovingObstacles::OpponentRobotObstacle::OpponentRobotObstacle(int prio, float baseRadius, Vector start, Vector speed) :
-    MovingObstacle(prio, baseRadius + ROBOT_RADIUS * 1.5f),
+    MovingObstacle(prio, baseRadius + ROBOT_RADIUS),
     startPos(start),
-    speed(speed),
-    absSpeed(speed.length())
+    speed(speed)
 { }
 
 MovingObstacles::OpponentRobotObstacle::OpponentRobotObstacle(const pathfinding::Obstacle &obstacle, const pathfinding::OpponentRobotObstacle &circle) :
     MovingObstacle(obstacle),
     startPos(deserializeVector(circle.start_pos())),
-    speed(deserializeVector(circle.speed())),
-    absSpeed(speed.length())
+    speed(deserializeVector(circle.speed()))
 { }
+
+static float safetyDistance(const Vector ownSpeed, const Vector oppSpeed)
+{
+    const float SLOW_ROBOT = 0.3;
+
+    float safetyDistance = std::max(0.0f, std::min(1.0f, ownSpeed.distance(oppSpeed) * (1.0f / 1.25f)) * 0.15f - 0.05f);
+    if (ownSpeed.lengthSquared() < 0.5f * 0.5f) {
+        safetyDistance = std::min(safetyDistance, 0.02f);
+    }
+    if (ownSpeed.lengthSquared() < SLOW_ROBOT * SLOW_ROBOT && oppSpeed.lengthSquared() < SLOW_ROBOT * SLOW_ROBOT) {
+        safetyDistance = safetyDistance - 0.02;
+    }
+    return safetyDistance;
+}
 
 bool MovingObstacles::OpponentRobotObstacle::intersects(Vector pos, float time, Vector ownSpeed) const
 {
     if (time > MAX_TIME) {
         return false;
     }
-    float t = time;
-    Vector centerAtTime = startPos + speed * t;
-    return centerAtTime.distanceSq(pos) < radius * radius;
+    const float totalRadius = radius + safetyDistance(ownSpeed, speed);
+    const Vector centerAtTime = startPos + speed * time;
+    return centerAtTime.distanceSq(pos) < totalRadius * totalRadius;
 }
 
 float MovingObstacles::OpponentRobotObstacle::distance(Vector pos, float time, Vector ownSpeed) const
@@ -703,9 +715,9 @@ float MovingObstacles::OpponentRobotObstacle::distance(Vector pos, float time, V
     if (time > MAX_TIME) {
         return std::numeric_limits<float>::max();
     }
-    float t = time;
-    Vector centerAtTime = startPos + speed * t;
-    return centerAtTime.distance(pos) - radius;
+    const float totalRadius = radius + safetyDistance(ownSpeed, speed);
+    const Vector centerAtTime = startPos + speed * time;
+    return centerAtTime.distance(pos) - totalRadius;
 }
 
 ZonedIntersection MovingObstacles::OpponentRobotObstacle::zonedDistance(const Vector &pos, float time, float nearRadius, Vector ownSpeed) const
@@ -713,23 +725,25 @@ ZonedIntersection MovingObstacles::OpponentRobotObstacle::zonedDistance(const Ve
     if (time > MAX_TIME) {
         return ZonedIntersection::FAR_AWAY;
     }
-    float t = time;
-    Vector centerAtTime = startPos + speed * t;
-    return computeZonedIntersection(centerAtTime.distanceSq(pos), radius, nearRadius);
+    const float totalRadius = radius + safetyDistance(ownSpeed, speed);
+    const Vector centerAtTime = startPos + speed * time;
+    const float distSq = centerAtTime.distanceSq(pos);
+    return computeZonedIntersection(distSq, totalRadius, nearRadius);
 }
 
 BoundingBox MovingObstacles::OpponentRobotObstacle::boundingBox() const
 {
-    auto xRange = range1D(startPos.x, speed.x, 0, 0, MAX_TIME);
-    auto yRange = range1D(startPos.y, speed.y, 0, 0, MAX_TIME);
+    const float maxSafetyDistance = safetyDistance(Vector(-5, 0), Vector(5, 0));
+    const auto xRange = range1D(startPos.x, speed.x, 0, 0, MAX_TIME);
+    const auto yRange = range1D(startPos.y, speed.y, 0, 0, MAX_TIME);
     BoundingBox result({xRange.first, yRange.first}, {xRange.second, yRange.second});
-    result.addExtraRadius(radius);
+    result.addExtraRadius(radius + maxSafetyDistance);
     return result;
 }
 
 void MovingObstacles::OpponentRobotObstacle::serializeChild(pathfinding::Obstacle *obstacle) const
 {
-    auto circle = obstacle->mutable_moving_circle();
+    auto circle = obstacle->mutable_opponent_robot();
     setVector(startPos, circle->mutable_start_pos());
     setVector(speed, circle->mutable_speed());
 }

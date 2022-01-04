@@ -264,7 +264,6 @@ namespace MovingObstacles {
     private:
         Vector startPos;
         Vector speed;
-        float absSpeed;
 
         static constexpr float MAX_TIME = 0.8f;
         static constexpr float ROBOT_RADIUS = 0.09f;

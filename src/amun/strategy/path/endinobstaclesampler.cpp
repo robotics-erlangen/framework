@@ -102,10 +102,8 @@ bool EndInObstacleSampler::testEndPoint(const TrajectoryInput &input, Vector end
     isValid = true;
     m_bestEndPoint = endPoint;
 
-    result.resize(1);
-    result[0].profile = direct;
-    result[0].desiredDistance = desiredDistance;
-
+    result.clear();
+    result.push_back(TrajectoryGenerationInfo(direct, desiredDistance));
     return true;
 }
 

@@ -249,15 +249,8 @@ float StandardSampler::checkSample(const TrajectoryInput &input, const StandardT
     m_bestResultInfo.sample = sample;
 
     m_generationInfo.clear();
-    TrajectoryGenerationInfo infoFirstPart;
-    infoFirstPart.profile = firstPart;
-    infoFirstPart.desiredDistance = firstPartPosition;
-    m_generationInfo.push_back(infoFirstPart);
-
-    TrajectoryGenerationInfo infoSecondPart;
-    infoSecondPart.profile = secondPart;
-    infoSecondPart.desiredDistance = secondPartOffset;
-    m_generationInfo.push_back(infoSecondPart);
+    m_generationInfo.push_back(TrajectoryGenerationInfo(firstPart, firstPartPosition));
+    m_generationInfo.push_back(TrajectoryGenerationInfo(secondPart, secondPartOffset));
     return biasedTrajectoryTime;
 }
 

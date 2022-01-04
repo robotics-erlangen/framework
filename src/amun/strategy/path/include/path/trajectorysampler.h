@@ -42,7 +42,9 @@ class TrajectorySampler {
 public:
 
     struct TrajectoryGenerationInfo {
-        SpeedProfile profile = SpeedProfile(0);
+        TrajectoryGenerationInfo(const SpeedProfile &profile, const Vector desiredDistance) :
+            profile(profile), desiredDistance(desiredDistance) {}
+        SpeedProfile profile;
         Vector desiredDistance;
     };
 

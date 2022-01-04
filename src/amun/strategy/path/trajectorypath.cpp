@@ -185,9 +185,8 @@ std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPat
         auto obstacleDistances = m_world.minObstacleDistance(direct, 0, input.s0, StandardSampler::OBSTACLE_AVOIDANCE_RADIUS);
         if (obstacleDistances.first == ZonedIntersection::FAR_AWAY ||
                 (obstacleDistances.first == ZonedIntersection::NEAR_OBSTACLE && obstacleDistances.second == ZonedIntersection::NEAR_OBSTACLE)) {
-            TrajectorySampler::TrajectoryGenerationInfo info;
-            info.profile = direct;
-            info.desiredDistance = input.distance;
+
+            const TrajectorySampler::TrajectoryGenerationInfo info(direct, input.distance);
             return concat(escapeObstacle, {info});
         }
         if (obstacleDistances.first == ZonedIntersection::NEAR_OBSTACLE) {
@@ -201,9 +200,7 @@ std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPat
     }
     // the standard sampler might fail since it regards the direct trajectory as the best result
     if (directTrajectoryScore < std::numeric_limits<float>::max()) {
-        TrajectorySampler::TrajectoryGenerationInfo info;
-        info.profile = direct;
-        info.desiredDistance = input.distance;
+        const TrajectorySampler::TrajectoryGenerationInfo info(direct, input.distance);
         return concat(escapeObstacle, {info});
     }
 
@@ -334,7 +331,7 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Tra
             result.insert(result.end(), newPoints.begin(), newPoints.end());
 
             totalTime += partTime;
-            totalOffset += endPos + correctionOffset;
+            totalOffset += info.desiredDistance;
         }
 
         return result;

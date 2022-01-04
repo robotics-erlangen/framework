@@ -99,11 +99,8 @@ bool EscapeObstacleSampler::compute(const TrajectoryInput &input)
         if (!bestRating.endsSafely) {
             return false;
         }
-        TrajectoryGenerationInfo info;
         bestProfile.limitToTime(bestRating.escapeTime);
-        info.profile = bestProfile;
-        info.desiredDistance = bestProfile.endPos();
-        m_generationInfo.push_back(info);
+        m_generationInfo.push_back(TrajectoryGenerationInfo(bestProfile, bestProfile.endPos()));
     }
     return true;
 }

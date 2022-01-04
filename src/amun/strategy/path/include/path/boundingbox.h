@@ -27,8 +27,8 @@
 class BoundingBox {
 public:
     BoundingBox(Vector topLeft, Vector bottomRight);
-    bool isInside(Vector p);
-    bool intersects(const BoundingBox &other);
+    bool isInside(Vector p) const;
+    bool intersects(const BoundingBox &other) const;
     void mergePoint(Vector p);
     void addExtraRadius(float radius);
 
@@ -45,13 +45,13 @@ inline BoundingBox::BoundingBox(Vector topLeft, Vector bottomRight) :
     right(std::max(topLeft.x, bottomRight.x))
 { }
 
-inline bool BoundingBox::isInside(Vector p)
+inline bool BoundingBox::isInside(Vector p) const
 {
     return p.y <= top && p.y >= bottom &&
             p.x >= left && p.x <= right;
 }
 
-inline bool BoundingBox::intersects(const BoundingBox &other)
+inline bool BoundingBox::intersects(const BoundingBox &other) const
 {
     if (other.bottom > top) {
         return false;
