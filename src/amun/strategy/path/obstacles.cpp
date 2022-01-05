@@ -663,6 +663,22 @@ ZonedIntersection MovingObstacles::FriendlyRobotObstacle::zonedDistance(const Ve
     return computeZonedIntersection((*trajectory)[index].pos.distanceSq(pos), radius, nearRadius);
 }
 
+Vector MovingObstacles::FriendlyRobotObstacle::projectOut(Vector v, float extraDistance) const
+{
+    if (trajectory->back().speed.lengthSquared() > 0.05f) {
+        return v;
+    }
+    const Vector stopPos = trajectory->back().pos;
+    const float dist = v.distance(stopPos);
+    if (dist < 0.01f) {
+        return stopPos + Vector(radius + extraDistance, 0);
+    }
+    if (dist >= radius) {
+        return v;
+    }
+    return stopPos + (v - stopPos) * ((radius + extraDistance) / dist);
+}
+
 void MovingObstacles::FriendlyRobotObstacle::serializeChild(pathfinding::Obstacle *obstacle) const
 {
     auto robot = obstacle->mutable_friendly_robot();

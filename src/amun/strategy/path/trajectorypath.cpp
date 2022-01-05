@@ -149,17 +149,20 @@ std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPat
     }
 
     // check if end point is in obstacle
-    if (m_world.isInStaticObstacle(obstacles, input.s1)) {
+    if (m_world.isInStaticObstacle(obstacles, input.s1) || m_world.isInFriendlyStopPos(input.s1)) {
+        const float PROJECT_DISTANCE = 0.03f;
         for (const StaticObstacles::Obstacle *o : obstacles) {
             float dist = o->distance(input.s1);
             if (dist > -0.2 && dist < 0) {
-                input.s1 = o->projectOut(input.s1, 0.03f);
+                input.s1 = o->projectOut(input.s1, PROJECT_DISTANCE);
             }
+        }
+        for (const MovingObstacles::MovingObstacle *o : m_world.movingObstacles()) {
+            input.s1 = o->projectOut(input.s1, PROJECT_DISTANCE);
         }
         input.distance = input.s1 - input.s0;
         // test again, might have been moved into another obstacle
-        // TODO: check moving obstacles with minimum
-        if (m_world.isInStaticObstacle(obstacles, input.s1)) {
+        if (m_world.isInStaticObstacle(obstacles, input.s1) || m_world.isInFriendlyStopPos(input.s1)) {
             if (testSampler(input, pathfinding::EndInObstacleSampler)) {
                 return concat(escapeObstacle, m_endInObstacleSampler.getResult());
             }

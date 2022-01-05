@@ -169,6 +169,8 @@ namespace MovingObstacles {
         virtual ZonedIntersection zonedDistance(const Vector &pos, float time, float nearRadius, Vector ownSpeed) const = 0;
         // TODO: it might be possible to also use the trajectory max. time to make the obstacles smaller
         virtual BoundingBox boundingBox() const = 0;
+        // projects out of the position that the obstacle will have at t = inf (if it is still present)
+        virtual Vector projectOut(Vector v, float extraDistance) const { return v; }
 
         void serialize(pathfinding::Obstacle *obstacle) const {
             obstacle->set_prio(prio);
@@ -239,6 +241,7 @@ namespace MovingObstacles {
         float distance(Vector pos, float time, Vector ownSpeed) const override;
         ZonedIntersection zonedDistance(const Vector &pos, float time, float nearRadius, Vector ownSpeed) const override;
         BoundingBox boundingBox() const override { return bound; }
+        Vector projectOut(Vector v, float extraDistance) const override;
 
         void serializeChild(pathfinding::Obstacle *obstacle) const override;
 

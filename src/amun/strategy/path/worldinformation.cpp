@@ -226,6 +226,16 @@ float WorldInformation::minObstacleDistancePoint(Vector pos, float time, Vector 
     return minDistance;
 }
 
+bool WorldInformation::isInFriendlyStopPos(const Vector pos) const
+{
+    for (const auto &o : m_friendlyRobotObstacles) {
+        if (o.intersects(pos, 200, Vector(0, 0))) {
+            return true;
+        }
+    }
+    return false;
+}
+
 std::pair<ZonedIntersection, ZonedIntersection> WorldInformation::minObstacleDistance(const SpeedProfile &profile, float timeOffset, Vector startPos, float safetyMargin) const
 {
     float totalTime = profile.time();

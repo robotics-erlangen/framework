@@ -84,6 +84,7 @@ public:
     // return {min distance of trajectory to obstacles, min distance of last point to obstacles}
     std::pair<ZonedIntersection, ZonedIntersection> minObstacleDistance(const SpeedProfile &profile, float timeOffset, Vector startPos, float safetyMargin) const;
     float minObstacleDistancePoint(Vector pos, float time, Vector speed, bool checkStatic, bool checkDynamic) const;
+    bool isInFriendlyStopPos(const Vector pos) const;
 
     // collectobstacles must have been called before calling this function
     void serialize(pathfinding::WorldState *state) const;
