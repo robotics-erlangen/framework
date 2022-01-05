@@ -297,8 +297,6 @@ void Connector::handleStatus(const Status &status)
 {
     emit backlogStatus(status);
 
-//    qDebug() <<QString::fromStdString(status->DebugString());
-
     m_logfile.writeStatus(status);
 
     QSet<amun::DebugSource> expectedSources;
@@ -318,6 +316,16 @@ void Connector::handleStatus(const Status &status)
             }
             if (!m_isSilent) {
                 TestTools::dumpLog(debug, m_exitCode);
+
+                // allow the strategy/autoref/pathfinding... to create backlogs by printing logging a string like "amun.requestBacklog(INTERNAL_ERROR)"
+                for (const amun::StatusLog &entry: debug.log()) {
+                    const QString line = QString::fromStdString(entry.text());
+                    const QRegExp regex("amuncli\\.requestBacklog\\((.*)\\)$");
+                    if (regex.indexIn(line) != -1) {
+                        const QString errorName = regex.capturedTexts().at(1);
+                        m_backlogList.push_back({status->time(), errorName});
+                    }
+                }
             }
         }
     }
