@@ -129,6 +129,7 @@ export const colors = {
 	blackHalf: fromRGBA(0, 0, 0, 127),
 	white: fromRGBA(255, 255, 255, 255),
 	whiteHalf: fromRGBA(255, 255, 255, 127),
+	whiteQuarter: fromRGBA(255, 255, 255, 64),
 	grey: fromRGBA(127, 127, 127, 255),
 	greyHalf: fromRGBA(127, 127, 127, 127),
 

@@ -524,7 +524,7 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 		let directionVector = Vector.fromPolar(targetDir, 0.09);
 		vis.addPath("MoveTo", [targetPos, targetPos + directionVector], vis.colors.yellowHalf);
 		if (endSpeed != undefined && endSpeed.length() > 0.001) {
-			vis.addPath("MoveTo", [targetPos, targetPos + endSpeed], vis.colors.whiteHalf);
+			vis.addPath("MoveTo", [targetPos, targetPos + endSpeed], vis.colors.whiteQuarter);
 		}
 
 
