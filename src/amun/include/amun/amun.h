@@ -139,7 +139,7 @@ private:
 
     CompilerRegistry m_compilerRegistry;
 
-    ProtobufFileSaver *m_pathInputSaver;
+    std::unique_ptr<ProtobufFileSaver> m_pathInputSaver[2];
     Seshat *m_seshat;
 
     CommandConverter *m_commandConverter;

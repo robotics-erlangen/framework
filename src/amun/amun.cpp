@@ -127,7 +127,8 @@ Amun::Amun(bool simulatorOnly, QObject *parent) :
 
     m_networkInterfaceWatcher = (!m_simulatorOnly) ? new NetworkInterfaceWatcher(this) : nullptr;
 
-    m_pathInputSaver = new ProtobufFileSaver("pathinput.pathlog", "KHONSU PATHFINDING LOG", this);
+    m_pathInputSaver[0].reset(new ProtobufFileSaver("pathinput-blue.pathlog", "KHONSU PATHFINDING LOG", this));
+    m_pathInputSaver[1].reset(new ProtobufFileSaver("pathinput-yellow.pathlog", "KHONSU PATHFINDING LOG", this));
 
     m_gitRecorderThread = new QThread(this);
 }
@@ -204,7 +205,8 @@ void Amun::start()
         connect(this, &Amun::gotCommandForGC, m_processor->getInternalGameController(), &SSLGameController::handleCommand);
 
         Q_ASSERT(m_strategy[i] == nullptr);
-        m_strategy[i] = new Strategy(m_timer, strategy, m_debugHelper[i], &m_compilerRegistry, m_gameControllerConnection[i], i == 2, false, m_pathInputSaver);
+        ProtobufFileSaver *pathInput = m_pathInputSaver[std::min(1, i)].get();
+        m_strategy[i] = new Strategy(m_timer, strategy, m_debugHelper[i], &m_compilerRegistry, m_gameControllerConnection[i], i == 2, false, pathInput);
         m_strategy[i]->moveToThread(m_strategyThread[i]);
         connect(m_strategyThread[i], SIGNAL(finished()), m_strategy[i], SLOT(deleteLater()));
 
