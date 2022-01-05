@@ -47,4 +47,21 @@ inline bool loadConfiguration(const QString &configFile, google::protobuf::Messa
     return true;
 }
 
+inline void saveConfiguration(const QString &configFile, google::protobuf::Message *message)
+{
+    QString fullFilename = QString(ERFORCE_CONFDIR) + configFile + ".txt";
+    QFile file(fullFilename);
+    if (!file.open(QFile::WriteOnly)) {
+        std::cout <<"Could not open configuration file "<<fullFilename.toStdString()<<std::endl;
+        return;
+    }
+
+    std::string output;
+    google::protobuf::TextFormat::Printer printer;
+    printer.PrintToString(*message, &output);
+
+    file.write(output.data(), output.length());
+    file.close();
+}
+
 #endif // CONFIGURATION_H
