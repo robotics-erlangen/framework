@@ -240,7 +240,7 @@ std::pair<ZonedIntersection, ZonedIntersection> WorldInformation::minObstacleDis
 {
     float totalTime = profile.time();
     ZonedIntersection totalIntersection = ZonedIntersection::FAR_AWAY;
-    float lastPointDistance = 0;
+    float lastPointDistance = std::numeric_limits<float>::max();
 
     const int DIVISIONS = 40;
 
@@ -254,12 +254,12 @@ std::pair<ZonedIntersection, ZonedIntersection> WorldInformation::minObstacleDis
 
         trajectoryTimes[i] = time + timeOffset;
 
-        if (i == DIVISIONS-1) {
-            float minDistance = minObstacleDistancePoint(pos, time + timeOffset, speed, true, true);
+        if (i == 0 || i == DIVISIONS-1) {
+            const float minDistance = minObstacleDistancePoint(pos, time + timeOffset, speed, true, true);
             if (minDistance < 0) {
                 return {ZonedIntersection::IN_OBSTACLE, ZonedIntersection::IN_OBSTACLE};
             }
-            lastPointDistance = minDistance;
+            lastPointDistance = std::min(lastPointDistance, minDistance);
         }
     }
 

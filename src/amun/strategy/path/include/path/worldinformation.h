@@ -81,7 +81,7 @@ public:
 
     bool isInMovingObstacle(const std::vector<MovingObstacles::MovingObstacle *> &obstacles, Vector point, float time, Vector speed) const;
     bool isTrajectoryInObstacle(const SpeedProfile &profile, float timeOffset, Vector startPos) const;
-    // return {min distance of trajectory to obstacles, min distance of last point to obstacles}
+    // return {min distance of trajectory to obstacles, min distances of first and last points to obstacles}
     std::pair<ZonedIntersection, ZonedIntersection> minObstacleDistance(const SpeedProfile &profile, float timeOffset, Vector startPos, float safetyMargin) const;
     float minObstacleDistancePoint(Vector pos, float time, Vector speed, bool checkStatic, bool checkDynamic) const;
     bool isInFriendlyStopPos(const Vector pos) const;
