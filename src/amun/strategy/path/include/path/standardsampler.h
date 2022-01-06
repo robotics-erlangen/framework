@@ -66,11 +66,11 @@ public:
     void setDirectTrajectoryScore(float score) { m_directTrajectoryScore = score; }
 
     static constexpr float OBSTACLE_AVOIDANCE_RADIUS = 0.1f;
-    static constexpr float OBSTACLE_AVOIDANCE_BONUS = 1.2f;
+    static constexpr float OBSTACLE_AVOIDANCE_BONUS = 0.2f;
 
     // a negative return value indicates that the input was invalid or worse and a positive value is the score of the successfull check
     float checkSample(const TrajectoryInput &input, const StandardTrajectorySample &sample, const float currentBestTime);
-    static float trajectoryScore(float time, bool isNearObstacle, bool isEndFarFromObstacle);
+    static float trajectoryScore(float time, float obstacleDistance);
 
 private:
     struct StandardSamplerBestTrajectoryInfo {

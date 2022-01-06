@@ -186,14 +186,14 @@ std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPat
     float directTrajectoryScore = std::numeric_limits<float>::max();
     if (direct.isValid()) {
         auto obstacleDistances = m_world.minObstacleDistance(direct, 0, input.s0, StandardSampler::OBSTACLE_AVOIDANCE_RADIUS);
-        if (obstacleDistances.first == ZonedIntersection::FAR_AWAY ||
-                (obstacleDistances.first == ZonedIntersection::NEAR_OBSTACLE && obstacleDistances.second == ZonedIntersection::NEAR_OBSTACLE)) {
 
+        if (obstacleDistances.first > StandardSampler::OBSTACLE_AVOIDANCE_RADIUS ||
+                (obstacleDistances.first > 0 && obstacleDistances.second < StandardSampler::OBSTACLE_AVOIDANCE_RADIUS)) {
             const TrajectorySampler::TrajectoryGenerationInfo info(direct, input.distance);
             return concat(escapeObstacle, {info});
         }
-        if (obstacleDistances.first == ZonedIntersection::NEAR_OBSTACLE) {
-            directTrajectoryScore = StandardSampler::trajectoryScore(direct.time(), true, true);
+        if (obstacleDistances.first > 0) {
+            directTrajectoryScore = StandardSampler::trajectoryScore(direct.time(), obstacleDistances.first);
         }
     }
 

@@ -236,10 +236,10 @@ bool WorldInformation::isInFriendlyStopPos(const Vector pos) const
     return false;
 }
 
-std::pair<ZonedIntersection, ZonedIntersection> WorldInformation::minObstacleDistance(const SpeedProfile &profile, float timeOffset, Vector startPos, float safetyMargin) const
+std::pair<float, float> WorldInformation::minObstacleDistance(const SpeedProfile &profile, float timeOffset, Vector startPos, float safetyMargin) const
 {
     float totalTime = profile.time();
-    ZonedIntersection totalIntersection = ZonedIntersection::FAR_AWAY;
+    float totalMinDistance = std::numeric_limits<float>::max();
     float lastPointDistance = std::numeric_limits<float>::max();
 
     const int DIVISIONS = 40;
@@ -257,7 +257,7 @@ std::pair<ZonedIntersection, ZonedIntersection> WorldInformation::minObstacleDis
         if (i == 0 || i == DIVISIONS-1) {
             const float minDistance = minObstacleDistancePoint(pos, time + timeOffset, speed, true, true);
             if (minDistance < 0) {
-                return {ZonedIntersection::IN_OBSTACLE, ZonedIntersection::IN_OBSTACLE};
+                return {minDistance, minDistance};
             }
             lastPointDistance = std::min(lastPointDistance, minDistance);
         }
@@ -272,7 +272,7 @@ std::pair<ZonedIntersection, ZonedIntersection> WorldInformation::minObstacleDis
     // this must be done before adding the safety margin to the trajectory bounding box
     if (!pointInPlayfield(Vector(trajectoryBox.left, trajectoryBox.top), m_radius) ||
             !pointInPlayfield(Vector(trajectoryBox.right, trajectoryBox.bottom), m_radius)) {
-        return {ZonedIntersection::IN_OBSTACLE, ZonedIntersection::IN_OBSTACLE};
+        return {-1, -1};
     }
 
     trajectoryBox.addExtraRadius(safetyMargin);
@@ -280,11 +280,11 @@ std::pair<ZonedIntersection, ZonedIntersection> WorldInformation::minObstacleDis
     for (auto obstacle : m_obstacles) {
         if (obstacle->boundingBox().intersects(trajectoryBox)) {
             for (std::size_t i = 0;i<DIVISIONS;i++) {
-                ZonedIntersection intersection = obstacle->zonedDistance(trajectoryPoints[i].first, safetyMargin);
-                if (intersection == ZonedIntersection::IN_OBSTACLE) {
-                    return {intersection, intersection};
-                } else if (intersection == ZonedIntersection::NEAR_OBSTACLE) {
-                    totalIntersection = intersection;
+                const float dist = obstacle->zonedDistance(trajectoryPoints[i].first, safetyMargin);
+                if (dist < 0) {
+                    return {dist, dist};
+                } else if (dist < safetyMargin) {
+                    totalMinDistance = std::min(dist, totalMinDistance);
                 }
             }
         }
@@ -293,11 +293,11 @@ std::pair<ZonedIntersection, ZonedIntersection> WorldInformation::minObstacleDis
     for (auto obstacle : m_movingObstacles) {
         if (obstacle->boundingBox().intersects(trajectoryBox)) {
             for (std::size_t i = 0;i<DIVISIONS;i++) {
-                ZonedIntersection intersection = obstacle->zonedDistance(trajectoryPoints[i].first, trajectoryTimes[i], safetyMargin, trajectoryPoints[i].second);
-                if (intersection == ZonedIntersection::IN_OBSTACLE) {
-                    return {intersection, intersection};
-                } else if (intersection == ZonedIntersection::NEAR_OBSTACLE) {
-                    totalIntersection = intersection;
+                const float dist = obstacle->zonedDistance(trajectoryPoints[i].first, trajectoryTimes[i], safetyMargin, trajectoryPoints[i].second);
+                if (dist < 0) {
+                    return {dist, dist};
+                } else if (dist < safetyMargin) {
+                    totalMinDistance = std::min(dist, totalMinDistance);
                 }
             }
 
@@ -308,11 +308,11 @@ std::pair<ZonedIntersection, ZonedIntersection> WorldInformation::minObstacleDis
                     const float AFTER_STOP_INTERVAL = 0.03f;
                     for (std::size_t i = 0;i<std::size_t((AFTER_STOP_AVOIDANCE_TIME - totalTime) * (1.0f / AFTER_STOP_INTERVAL));i++) {
                         float t = timeOffset + totalTime + i * AFTER_STOP_INTERVAL;
-                        ZonedIntersection intersection = obstacle->zonedDistance(trajectoryPoints.back().first, t, safetyMargin, trajectoryPoints.back().second);
-                        if (intersection == ZonedIntersection::IN_OBSTACLE) {
-                            return {intersection, intersection};
-                        } else if (intersection == ZonedIntersection::NEAR_OBSTACLE) {
-                            totalIntersection = intersection;
+                        const float dist = obstacle->zonedDistance(trajectoryPoints.back().first, t, safetyMargin, trajectoryPoints.back().second);
+                        if (dist < 0) {
+                            return {dist, dist};
+                        } else if (dist < safetyMargin) {
+                            totalMinDistance = std::min(dist, totalMinDistance);
                         }
                     }
                 }
@@ -320,8 +320,7 @@ std::pair<ZonedIntersection, ZonedIntersection> WorldInformation::minObstacleDis
         }
     }
 
-    ZonedIntersection lastPointIntersection = lastPointDistance < safetyMargin ? ZonedIntersection::NEAR_OBSTACLE : ZonedIntersection::FAR_AWAY;
-    return {totalIntersection, lastPointIntersection};
+    return {totalMinDistance, lastPointDistance};
 }
 
 void WorldInformation::serialize(pathfinding::WorldState *state) const
@@ -366,7 +365,7 @@ void WorldInformation::deserialize(const pathfinding::WorldState &state)
         } else if (obstacle.has_friendly_robot()) {
             MovingObstacles::FriendlyRobotObstacle robot(obstacle, obstacle.friendly_robot());
             m_friendlyRobotObstacles.push_back(robot);
-        } else if (obstacle.has_opponent_robot()) { // TODO: check has opponent robot
+        } else if (obstacle.has_opponent_robot()) {
             MovingObstacles::OpponentRobotObstacle robot(obstacle, obstacle.opponent_robot());
             m_opponentRobotObstacles.push_back(robot);
         } else {

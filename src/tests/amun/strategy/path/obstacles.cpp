@@ -55,11 +55,11 @@ TEST(Obstacles, Circle_DistanceLineSegment) {
 
 TEST(Obstacles, Circle_ZonedDistance) {
     Circle c(nullptr, 0, 1, Vector(1, 1));
-    ASSERT_EQ(c.zonedDistance(Vector(1, 1), 0.5), ZonedIntersection::IN_OBSTACLE);
-    ASSERT_EQ(c.zonedDistance(Vector(1, 1.99), 0.5), ZonedIntersection::IN_OBSTACLE);
-    ASSERT_EQ(c.zonedDistance(Vector(1, 2.01), 0.5), ZonedIntersection::NEAR_OBSTACLE);
-    ASSERT_EQ(c.zonedDistance(Vector(1, 2.49), 0.5), ZonedIntersection::NEAR_OBSTACLE);
-    ASSERT_EQ(c.zonedDistance(Vector(1, 2.51), 0.5), ZonedIntersection::FAR_AWAY);
+    ASSERT_LE(c.zonedDistance(Vector(1, 1), 0.5), 0);
+    ASSERT_LE(c.zonedDistance(Vector(1, 1.99), 0.5), 0);
+    ASSERT_LE(c.zonedDistance(Vector(1, 2.01), 0.5), 0.5);
+    ASSERT_LE(c.zonedDistance(Vector(1, 2.49), 0.5), 0.5);
+    ASSERT_GE(c.zonedDistance(Vector(1, 2.51), 0.5), 0.5);
 }
 
 TEST(Obstacles, Circle_ProjectOut) {
@@ -197,21 +197,25 @@ static void testDerivativeDistanceRandomized(std::function<std::unique_ptr<Obsta
             Vector pos = Vector(makeFloat(), makeFloat());
             float dist = o->distance(pos);
 
-            auto d1 = o->zonedDistance(pos, 0);
-            ASSERT_EQ(d1, dist <= 0 ? ZonedIntersection::IN_OBSTACLE : ZonedIntersection::FAR_AWAY);
+            const float d1 = o->zonedDistance(pos, 0);
+            if (dist < 0) {
+                ASSERT_FLOAT_EQ(dist, d1);
+            } else {
+                ASSERT_GE(d1, 0);
+            }
 
             if (dist > 0) {
                 auto d2 = o->zonedDistance(pos, dist / 2);
-                ASSERT_EQ(d2, ZonedIntersection::FAR_AWAY);
+                ASSERT_GE(d2, dist / 2);
 
                 auto d3 = o->zonedDistance(pos, dist * 0.999f);
-                ASSERT_EQ(d3, ZonedIntersection::FAR_AWAY);
+                ASSERT_GE(d3, dist * 0.999f);
 
                 auto d4 = o->zonedDistance(pos, dist * 1.001f);
-                ASSERT_EQ(d4, ZonedIntersection::NEAR_OBSTACLE);
+                ASSERT_FLOAT_EQ(d4, dist);
             } else {
                 auto d5 = o->zonedDistance(pos, 1);
-                ASSERT_EQ(d5, ZonedIntersection::IN_OBSTACLE);
+                ASSERT_FLOAT_EQ(d5, dist);
             }
         }
     }
@@ -373,26 +377,12 @@ static void testDerivativeDistanceRandomizedMoving(std::function<std::unique_ptr
                 ASSERT_FALSE(o->intersects(pos, time, Vector(0, 0)));
             }
 
-            auto d1 = o->zonedDistance(pos, time, 0, Vector(0, 0));
-            ASSERT_EQ(d1, dist <= 0 ? ZonedIntersection::IN_OBSTACLE : ZonedIntersection::FAR_AWAY);
-
-            if (dist > 0) {
-                if (dist == std::numeric_limits<float>::max()) {
-                    ASSERT_EQ(o->zonedDistance(pos, time, 1, Vector(0, 0)), ZonedIntersection::FAR_AWAY);
-                    ASSERT_EQ(o->zonedDistance(pos, time, 100000, Vector(0, 0)), ZonedIntersection::FAR_AWAY);
-                } else {
-                    auto d2 = o->zonedDistance(pos, time, dist / 2, Vector(0, 0));
-                    ASSERT_EQ(d2, ZonedIntersection::FAR_AWAY);
-
-                    auto d3 = o->zonedDistance(pos, time, dist * 0.99f, Vector(0, 0));
-                    ASSERT_EQ(d3, ZonedIntersection::FAR_AWAY);
-
-                    auto d4 = o->zonedDistance(pos, time, dist * 1.01f, Vector(0, 0));
-                    ASSERT_EQ(d4, ZonedIntersection::NEAR_OBSTACLE);
-                }
+            const float safety = std::abs(makeFloat() / 5);
+            const float d1 = o->zonedDistance(pos, time, safety, Vector(0, 0));
+            if (dist < safety) {
+                ASSERT_FLOAT_EQ(dist, d1);
             } else {
-                auto d5 = o->zonedDistance(pos, time, 1, Vector(0, 0));
-                ASSERT_EQ(d5, ZonedIntersection::IN_OBSTACLE);
+                ASSERT_GE(d1 , safety);
             }
         }
     }
@@ -616,14 +606,14 @@ TEST(Obstacles, FriendlyRobot_ZonedDistance) {
                                         {Vector(1, 0.5), Vector(0, 0), 1.5}};
     FriendlyRobotObstacle o(&points, 0.5, 0);
 
-    ASSERT_EQ(o.zonedDistance(Vector(0, 0), 0, 0.1, Vector(0, 0)), ZonedIntersection::IN_OBSTACLE);
-    ASSERT_EQ(o.zonedDistance(Vector(0.49, 0), 0, 0.1, Vector(0, 0)), ZonedIntersection::IN_OBSTACLE);
-    ASSERT_EQ(o.zonedDistance(Vector(0.49, 0), 0.49, 0.1, Vector(0, 0)), ZonedIntersection::IN_OBSTACLE);
-    ASSERT_EQ(o.zonedDistance(Vector(1, 0), 1, 0.1, Vector(0, 0)), ZonedIntersection::IN_OBSTACLE);
-    ASSERT_EQ(o.zonedDistance(Vector(1, 0.5), 10, 0.1, Vector(0, 0)), ZonedIntersection::IN_OBSTACLE);
-    ASSERT_EQ(o.zonedDistance(Vector(1, 0.5), 0, 0.1, Vector(0, 0)), ZonedIntersection::FAR_AWAY);
-    ASSERT_EQ(o.zonedDistance(Vector(2, 0), 1.2, 0.1, Vector(0, 0)), ZonedIntersection::FAR_AWAY);
-    ASSERT_EQ(o.zonedDistance(Vector(1.7, 0), 1.2, 0.3, Vector(0, 0)), ZonedIntersection::NEAR_OBSTACLE);
+    ASSERT_LE(o.zonedDistance(Vector(0, 0), 0, 0.1, Vector(0, 0)), 0);
+    ASSERT_LE(o.zonedDistance(Vector(0.49, 0), 0, 0.1, Vector(0, 0)), 0);
+    ASSERT_LE(o.zonedDistance(Vector(0.49, 0), 0.49, 0.1, Vector(0, 0)), 0);
+    ASSERT_LE(o.zonedDistance(Vector(1, 0), 1, 0.1, Vector(0, 0)), 0);
+    ASSERT_LE(o.zonedDistance(Vector(1, 0.5), 10, 0.1, Vector(0, 0)), 0);
+    ASSERT_GE(o.zonedDistance(Vector(1, 0.5), 0, 0.1, Vector(0, 0)), 0.1);
+    ASSERT_GE(o.zonedDistance(Vector(2, 0), 1.2, 0.1, Vector(0, 0)), 0.1);
+    ASSERT_LE(o.zonedDistance(Vector(1.7, 0), 1.2, 0.3, Vector(0, 0)), 0.3);
 }
 
 TEST(Obstacles, FriendlyRobot_BoundingBox) {

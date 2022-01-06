@@ -63,7 +63,6 @@ bool StandardSampler::compute(const TrajectoryInput &input)
         computePrecomputed(input);
     }
 
-
     return m_bestResultInfo.valid;
 }
 
@@ -182,11 +181,11 @@ Vector StandardSampler::randomSpeed(float maxSpeed)
     return testSpeed;
 }
 
-float StandardSampler::trajectoryScore(float time, bool isNearObstacle, bool isEndFarFromObstacle)
+float StandardSampler::trajectoryScore(float time, float obstacleDistance)
 {
     float obstacleDistExtraTime = 1;
-    if (isNearObstacle && isEndFarFromObstacle) {
-        obstacleDistExtraTime = OBSTACLE_AVOIDANCE_BONUS;
+    if (obstacleDistance < OBSTACLE_AVOIDANCE_RADIUS) {
+        obstacleDistExtraTime = 1.0f + ((OBSTACLE_AVOIDANCE_RADIUS - obstacleDistance) / OBSTACLE_AVOIDANCE_RADIUS) * OBSTACLE_AVOIDANCE_BONUS;
     }
     float biasedTrajectoryTime = time * obstacleDistExtraTime;
     return biasedTrajectoryTime;
@@ -228,17 +227,17 @@ float StandardSampler::checkSample(const TrajectoryInput &input, const StandardT
         return -1;
     }
     // TODO: end point might also be close to the target?
-    ZonedIntersection firstPartIntersection = m_world.minObstacleDistance(firstPart, input.t0, input.s0, OBSTACLE_AVOIDANCE_RADIUS).first;
-    if (firstPartIntersection == ZonedIntersection::IN_OBSTACLE) {
+    const float firstPartDistance = m_world.minObstacleDistance(firstPart, input.t0, input.s0, OBSTACLE_AVOIDANCE_RADIUS).first;
+    if (firstPartDistance < 0) {
         return -1;
     }
     // TODO: calculate the offset while calculating the trajectory
-    auto secondPartIntersection = m_world.minObstacleDistance(secondPart, input.t0 + firstPartTime, input.s1 - secondPartOffset, OBSTACLE_AVOIDANCE_RADIUS);
-    if (secondPartIntersection.first == ZonedIntersection::IN_OBSTACLE) {
+    const float secondPartDistance = m_world.minObstacleDistance(secondPart, input.t0 + firstPartTime, input.s1 - secondPartOffset, OBSTACLE_AVOIDANCE_RADIUS).first;
+    if (secondPartDistance < 0) {
         return -1;
     }
-    bool anyNearObstacle = firstPartIntersection == ZonedIntersection::NEAR_OBSTACLE || secondPartIntersection.first == ZonedIntersection::NEAR_OBSTACLE;
-    float biasedTrajectoryTime = trajectoryScore(firstPartTime + secondPartTime, anyNearObstacle, secondPartIntersection.second == ZonedIntersection::FAR_AWAY);
+    const float obstacleDist = std::min(firstPartDistance, secondPartDistance);
+    const float biasedTrajectoryTime = trajectoryScore(firstPartTime + secondPartTime, obstacleDist);
     if (biasedTrajectoryTime > bestTime - MINIMUM_TIME_IMPROVEMENT) {
         return -1;
     }
