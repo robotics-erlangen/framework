@@ -32,10 +32,16 @@ add_custom_command(
 add_library(gitconfig STATIC
     ${CMAKE_CURRENT_BINARY_DIR}/gitconfig.cpp
     include/git/gitconfig.h
+    gitlive.cpp
     )
 
 target_include_directories(gitconfig
     INTERFACE include
     PRIVATE include/git
 )
+
+target_link_libraries(gitconfig
+    PRIVATE lib::git2
+)
+
 add_library(shared::gitconfig ALIAS gitconfig)

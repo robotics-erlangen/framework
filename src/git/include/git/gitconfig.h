@@ -20,9 +20,12 @@
 
 #ifndef GITCONFIG_H
 #define GITCONFIG_H
+#include <string>
 namespace gitconfig {
     // These functions are used to avoid recompilation whenever the current hash and diff changes.
     const char* const getErforceCommitDiff();
     const char* const getErforceCommitHash();
+    std::string getLiveCommitHash(const char* path);
+    std::string getLiveCommitDiff(const char* path);
 }
 #endif // GITCONFIG_H
