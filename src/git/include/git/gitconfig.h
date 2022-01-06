@@ -26,6 +26,13 @@ namespace gitconfig {
     const char* const getErforceCommitDiff();
     const char* const getErforceCommitHash();
     std::string getLiveCommitHash(const char* path);
+    /**
+     * Return the result of `git diff-index HEAD -p --no-color` at run time,
+     * restricted to changes in path
+     *
+     * This function expects `path` to be absolute and canonical
+     * without '.' or '..'.
+     */
     std::string getLiveCommitDiff(const char* path);
 }
 #endif // GITCONFIG_H

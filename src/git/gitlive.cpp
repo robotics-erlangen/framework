@@ -19,7 +19,6 @@
  ***************************************************************************/
 
 #include "gitconfig.h"
-
 #include "git2/global.h"
 #include "git2/repository.h"
 #include "git2/refs.h"
@@ -27,11 +26,16 @@
 #include "git2/commit.h"
 #include "git2/diff.h"
 #include "git2/buffer.h"
+#include "git2/errors.h"
+
 
 #include <iostream>
 #include <memory>
 
 #include <cassert>
+#include <cstring>
+
+#include <vector>
 
 #define GIT_RAII(pointer, cleanup) std::unique_ptr<std::remove_reference<decltype(*pointer)>::type, void(*)(decltype(pointer))> raii_##pointer{pointer, cleanup}
 
@@ -73,6 +77,21 @@ static int print_to_std_string(const git_diff_delta *, const git_diff_hunk *, co
     return 0;
 }
 
+static char* copy_string(const char* in) {
+    std::size_t len = strlen(in) + 1;
+    char* out = new char[len];
+    std::strcpy(out, in);
+    return out;
+}
+
+static void delete_string_vector(std::vector<char*>* vec) {
+    for(char* c : *vec) {
+        delete[] c;
+    }
+    vec->clear();
+    delete vec;
+}
+
 std::string gitconfig::getLiveCommitDiff(const char* path) {
     int exitcode;
     git_libgit2_init();
@@ -84,6 +103,9 @@ std::string gitconfig::getLiveCommitDiff(const char* path) {
         return "error in git_repository_open_ext" + std::to_string(exitcode);
     }
     GIT_RAII(repo, git_repository_free);
+
+    const char* workdir = git_repository_workdir(repo);
+    const char* relpath = path + std::strlen(workdir);
 
     git_oid head_oid;
     exitcode = git_reference_name_to_id(&head_oid, repo, "HEAD");
@@ -106,8 +128,24 @@ std::string gitconfig::getLiveCommitDiff(const char* path) {
     }
     GIT_RAII(tree, git_tree_free);
 
+    /* Set up diff_paths to hold more than one (copied) path
+     * Has to be copied to make sure it is no longer const
+     * Uses GIT_RAII and new std::vector instead of a std::vector on stack
+     * to free the content char* on destruction, too
+     */
+    auto diff_paths = new std::vector<char*>();
+    GIT_RAII(diff_paths, delete_string_vector);
+    diff_paths->push_back(copy_string(relpath));
+
+
+    git_diff_options o = {
+        .version = GIT_DIFF_OPTIONS_VERSION,
+        .flags = GIT_DIFF_NORMAL,
+        .ignore_submodules = GIT_SUBMODULE_IGNORE_NONE,
+        .pathspec = {.strings= diff_paths->data(), .count = diff_paths->size()}
+    };
     git_diff* diff;
-    exitcode = git_diff_tree_to_workdir(&diff, repo, tree, NULL);
+    exitcode = git_diff_tree_to_workdir(&diff, repo, tree, &o);
     if (exitcode) {
         return "error in git_diff_tree_to_workdir" + std::to_string(exitcode);
     }
