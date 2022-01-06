@@ -42,11 +42,18 @@ namespace gitconfig {
      */
     const char* const getErforceReliableCommitHash();
 
+    struct TreeDescriptor {
+        std::string hash; /* The result of `git rev-parse ABC` */
+        std::string diff; /* The result of diff-index ABC -p --no-color */
+        std::string min_hash; /* An optional result of `git rev-parse DEF` that is not consistant with diff, but that (assuming it is found on your repository) should create a quite small diff */
+        std::string error; /* If any error occured, this will be a description of said error, otherwise empty */
+    };
+
     /**
      * Return the result of `git rev-parse HEAD` at run time,
      * for a folder or file under version control at path
      */
-    std::string getLiveCommitHash(const char* path);
+//    std::string getLiveCommitHash(const char* path);
     /**
      * Return the result of `git diff-index HEAD -p --no-color` at run time,
      * restricted to changes in path
@@ -54,7 +61,16 @@ namespace gitconfig {
      * This function expects `path` to be absolute and canonical
      * without '.' or '..'. It also expects to be ending in a /.
      */
-    std::string getLiveCommitDiff(const char* path);
+//    std::string getLiveCommitDiff(const char* path);
+
+    /**
+     * Return the TreeDescriptor for either master@{u} or HEAD at run time,
+     * changes restricted to path.
+     *
+     * This function expected `path` to be absolute and canonical
+     * without '.' or '..'. It also expects to be ending in a /.
+     */
+    TreeDescriptor getLiveCommit(const char* path);
 
     /**
      * Return the diff between the state denoted by orig_hash and orig_diff on the one side,

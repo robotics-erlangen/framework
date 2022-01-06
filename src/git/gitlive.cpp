@@ -110,13 +110,8 @@ static void populate_oid(Git_tree_raii& in, const char* path, const char* tree_i
     }
 }
 
-static void populate_tree(Git_tree_raii& in, const char* path, const char* tree_ish) {
+static void fill_tree(Git_tree_raii& in) {
     int exitcode;
-
-    populate_oid(in, path, tree_ish);
-    if (in.errorMsg.size() != 0) {
-        return;
-    }
     exitcode = git_commit_lookup(&in.commit, in.repo, &in.oid);
     if (exitcode) {
         in.commit = nullptr;
@@ -132,6 +127,15 @@ static void populate_tree(Git_tree_raii& in, const char* path, const char* tree_
     }
 }
 
+static void populate_tree(Git_tree_raii& in, const char* path, const char* tree_ish) {
+    populate_oid(in, path, tree_ish);
+    if (in.errorMsg.size() != 0) {
+        return;
+    }
+
+    fill_tree(in);
+}
+
 static void populate_gitdiffconfig(Git_tree_raii& in, const char* path) {
     const char* workdir = git_repository_workdir(in.repo);
     const char* relpath = path + std::strlen(workdir);
@@ -144,29 +148,21 @@ static void populate_gitdiffconfig(Git_tree_raii& in, const char* path) {
     };
 }
 
-static std::string getLiveCommitHash(const char* path, const char* tree_ish) {
-    QMutexLocker lock{&mutex};
-    git_libgit2_init();
-    std::unique_ptr<void, void(*)(void*)> raii_libgit2{nullptr, [](void* ptr) {git_libgit2_shutdown();}};
-
-    Git_tree_raii data;
-    populate_oid(data, path, tree_ish);
-    if (data.errorMsg.size() != 0) {
-        return data.errorMsg;
-    }
-
+static std::string getLiveCommitHashFromTree(const Git_tree_raii& data) {
     std::string out;
     out.resize(GIT_OID_HEXSZ+1);
     assert(out.size() >= GIT_OID_HEXSZ + 1);
 
     git_oid_tostr(out.data(), out.size(), &data.oid);
-
     return out;
 }
-
+/*
 std::string gitconfig::getLiveCommitHash(const char* path) {
+    QMutexLocker lock{&mutex};
+    std::cout << "DEBUG: " << ::getLiveCommitHash(path, "master@{u}") << std::endl;
     return ::getLiveCommitHash(path, "HEAD");
 }
+*/
 
 struct HunkDiff {
     char* hunk_header = nullptr;
@@ -246,18 +242,6 @@ static int print_to_vector_file_diff(const git_diff_delta *, const git_diff_hunk
     return 0;
 }
 
-static int print_to_std_string(const git_diff_delta *, const git_diff_hunk *, const git_diff_line *l, void* payload) {
-    std::string* out = static_cast<std::string*>(payload);
-
-    if (l->origin == GIT_DIFF_LINE_CONTEXT ||
-        l->origin == GIT_DIFF_LINE_ADDITION ||
-        l->origin == GIT_DIFF_LINE_DELETION)
-        out->push_back(l->origin);
-
-    out->append(l->content, l->content_len);
-    return 0;
-}
-
 static std::string convert_file_diffs_to_string(std::vector<FileDiff>&& data) {
     std::string out;
     std::string errors;
@@ -272,9 +256,13 @@ static std::string convert_file_diffs_to_string(std::vector<FileDiff>&& data) {
             out += std::move(hit->text);
         }
     }
+    if (errors.size() != 0) {
+        return out + "\n Errors: " + errors;
+    }
     return out;
 }
 
+/*
 std::string gitconfig::getLiveCommitDiff(const char* path) {
     int exitcode;
 
@@ -320,6 +308,55 @@ std::string gitconfig::getLiveCommitDiff(const char* path) {
 
 
 //    return out;
+}
+
+*/
+
+gitconfig::TreeDescriptor gitconfig::getLiveCommit(const char* path) {
+    int exitcode;
+
+    QMutexLocker lock{&mutex};
+    git_libgit2_init();
+    std::unique_ptr<void, void(*)(void*)> raii_libgit2{nullptr, [](void* ptr) {git_libgit2_shutdown();}};
+
+    gitconfig::TreeDescriptor out;
+
+    Git_tree_raii master_data, head_data;
+    populate_oid(master_data, path, "master@{u}");
+    populate_oid(head_data, path, "HEAD");
+    if (master_data.errorMsg.size() != 0 && head_data.errorMsg.size() != 0) {
+        out.error = master_data.errorMsg;
+        return out;
+    }
+    Git_tree_raii &active_data = (master_data.errorMsg.size() == 0) ? master_data : head_data;
+    fill_tree(active_data);
+    if (active_data.errorMsg.size() != 0) {
+        out.error = active_data.errorMsg;
+        return out;
+    }
+
+    populate_gitdiffconfig(active_data, path);
+
+    git_diff* diff;
+    exitcode = git_diff_tree_to_workdir(&diff, active_data.repo, active_data.tree, &active_data.diffopt);
+    if (exitcode) {
+        out.error = "error in git_diff_tree_to_workdir" + std::to_string(exitcode);
+        return out;
+    }
+    GIT_RAII(diff, git_diff_free);
+
+    std::vector<FileDiff> diffout;
+    exitcode = git_diff_print(diff, GIT_DIFF_FORMAT_PATCH, print_to_vector_file_diff, &diffout);
+    if (exitcode) {
+        out.error = "error in git_diff_print" + std::to_string(exitcode);
+        return out;
+    }
+
+    out.diff = convert_file_diffs_to_string(std::move(diffout));
+    out.hash = getLiveCommitHashFromTree(active_data);
+    out.min_hash = getLiveCommitHashFromTree(head_data);
+
+    return out;
 }
 
 std::string gitconfig::calculateDiff(const char* repository, const char* orig_hash, const char* orig_diff, const char* diff_hash) {
