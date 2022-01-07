@@ -26,6 +26,7 @@ add_executable(trajectory-cli
     endinobstacleoptimizer.cpp
     alphatimetrajectoryoptimizer.cpp
     collisiontest.cpp
+    trajectorytiming.cpp
 )
 target_link_libraries(trajectory-cli
     amun::path_parameter_optimization

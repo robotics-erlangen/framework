@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2020 Andreas Wendler                                        *
+ *   Copyright 2022 Andreas Wendler                                        *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,38 +18,39 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#pragma once
+#include "common.h"
+#include "path/trajectorypath.h"
+#include "core/timer.h"
 
-#include "path/trajectorysampler.h"
-#include "path/parameterization.h"
-#include "protobuf/pathfinding.pb.h"
+void checkTiming(std::vector<Situation> situations)
+{
+    qint64 timeDiff = 0;
+    const int ITERATIONS = 1;
 
-#include <vector>
-#include <functional>
+    for (int i = 0;i<ITERATIONS;i++) {
+        int maxRobotId = 0;
+        for (const auto &sit : situations) {
+            maxRobotId = std::max(maxRobotId, sit.world.robotId());
+        }
+        std::vector<std::unique_ptr<TrajectoryPath>> pathfindings; // on per robot, as during normal ra usages
+        for (int i = 0;i<maxRobotId + 1;i++) {
+            pathfindings.push_back(std::make_unique<TrajectoryPath>(42, nullptr, pathfinding::None));
+        }
 
-struct Situation {
-    WorldInformation world;
-    TrajectoryInput input;
-    pathfinding::InputSourceType sourceType;
-};
+        const qint64 startTime = Timer::systemTime();
 
-// generic paramter optimization
-void optimizeParameters(std::vector<Situation> situations, ParameterCategory category,
-                        std::function<void(std::vector<Situation>&)> initialRun,
-                        std::function<float(std::vector<Situation>&)> computeScore);
+        for (const auto &situation : situations) {
+            auto &path = pathfindings[situation.world.robotId()];
+            path->world() = situation.world;
 
-void optimizeStandardSamplerPoints(const std::vector<Situation> &situations, const QString &outFilename);
+            const auto &input = situation.input;
+            path->calculateTrajectory(input.s0, input.v0, input.s1, input.v1, input.maxSpeed, input.acceleration);
+        }
 
-void optimizeEndInObstacleParameters(std::vector<Situation> situations);
+        const qint64 endTime = Timer::systemTime();
+        timeDiff += endTime - startTime;
+    }
 
-void optimizeAlphaTimeTrajectoryParameters(std::vector<Situation> situations);
-
-enum class CollisionTestType {
-    RANDOM,
-    BLOCKED_LINE,
-    ADVERSARIAL
-};
-
-int testCollisions(CollisionTestType testType, int scenarioCount, bool useOldObstacle, bool writeLogs);
-
-void checkTiming(std::vector<Situation> situations);
+    const float iterationTimeMs = (timeDiff / situations.size()) / 1000000.0f;
+    std::cout <<"Time: "<<iterationTimeMs / ITERATIONS<<" ms per call"<<std::endl;
+}

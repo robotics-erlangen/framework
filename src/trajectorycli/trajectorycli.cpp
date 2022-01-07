@@ -89,6 +89,8 @@ int main(int argc, char* argv[])
     parser.addOption(alphaTime);
     QCommandLineOption countCollisions("c", "Count collisions in random scenarios");
     parser.addOption(countCollisions);
+    QCommandLineOption computeTiming("t", "Compute trajectory pathfinding timing");
+    parser.addOption(computeTiming);
 
     // parse command line
     parser.process(app);
@@ -114,7 +116,7 @@ int main(int argc, char* argv[])
     }
 
     if (!parser.isSet(standardSampler) && !parser.isSet(endInObstacle) && !parser.isSet(alphaTime)
-            && !parser.isSet(countCollisions)) {
+            && !parser.isSet(countCollisions) && !parser.isSet(computeTiming)) {
         qDebug() <<"At lest one optimizer must be run!";
         parser.showHelp(1);
         return 0;
@@ -185,6 +187,14 @@ int main(int argc, char* argv[])
             exit(1);
         }
         optimizeAlphaTimeTrajectoryParameters(situations);
+    }
+
+    if (parser.isSet(computeTiming)) {
+        if (sourceSoFar != pathfinding::AllSamplers) {
+            std::cerr <<"Error: trying to use pathfinding inputs not collected for the whole trajectorypath!"<<std::endl;
+            exit(1);
+        }
+        checkTiming(situations);
     }
 
     return 0;
