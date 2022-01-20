@@ -26,6 +26,15 @@ set(LIBGIT_SUBPATH "lib/${CMAKE_STATIC_LIBRARY_PREFIX}git2${CMAKE_STATIC_LIBRARY
 find_package(OpenSSL REQUIRED)
 find_package(PCRE)
 find_package(PCRE2)
+
+set(LIBGIT_INCLUDE_LIBS "")
+list(APPEND LIBGIT_INCLUDE_LIBS ${OPENSSL_LIBRARIES})
+list(APPEND LIBGIT_INCLUDE_LIBS ${PCRE_LIBRARIES})
+list(APPEND LIBGIT_INCLUDE_LIBS ${PCRE2_LIBRARIES})
+if(WIN32)
+	list(APPEND LIBGIT_INCLUDE_LIBS ws2_32)
+endif()
+
 ExternalProject_Add(project_libgit2
     URL https://downloads.robotics-erlangen.de/libgitv1.3.0.zip
     URL_HASH SHA256=26bc8d7d04cdc10941a3c0c9dfa1b5b248a2b108154f1b6b4b5054a5bab2646e
@@ -55,6 +64,6 @@ add_dependencies(lib::git2 project_libgit2)
 file(MAKE_DIRECTORY "${install_dir}/include/")
 set_target_properties(lib::git2 PROPERTIES
     IMPORTED_LOCATION "${install_dir}/${LIBGIT_SUBPATH}"
-    INTERFACE_LINK_LIBRARIES "${install_dir}/${LIBGIT_SUBPATH};${OPENSSL_LIBRARIES};${PCRE_LIBRARIES};${PCRE2_LIBRARIES}"
+    INTERFACE_LINK_LIBRARIES "${install_dir}/${LIBGIT_SUBPATH};${LIBGIT_INCLUDE_LIBS}"
     INTERFACE_INCLUDE_DIRECTORIES "${install_dir}/include/"
 )
