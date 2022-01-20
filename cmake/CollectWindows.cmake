@@ -48,6 +48,12 @@ else()
     set(LIB_GCC libgcc_s_dw2-1.dll)
 endif()
 
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(PACK_SUFFIX -x64)
+else()
+    set(PACK_SUFFIX)
+endif()
+
 if(CMAKE_CROSS_COMPILING AND MINGW)
     set(COPY_GCC_DLL_COMMANDS ${CMAKE_SOURCE_DIR}/data/scripts/copydlldeps.sh -c
 		-f ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ra.exe
@@ -60,6 +66,8 @@ else()
 		$ENV{MINGW_PREFIX}/bin/libstdc++-6.dll
 		$ENV{MINGW_PREFIX}/bin/libwinpthread-1.dll
 		$ENV{MINGW_PREFIX}/bin/libssp-0.dll
+		$ENV{MINGW_PREFIX}/bin/libssl-1_1${PACK_SUFFIX}.dll
+		$ENV{MINGW_PREFIX}/bin/libcrypto-1_1${PACK_SUFFIX}.dll
             ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 endif()
 
@@ -88,11 +96,6 @@ add_custom_target(assemble
     COMMAND ${COPY_GCC_DLL_COMMANDS}
 )
 
-if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    set(PACK_SUFFIX -x64)
-else()
-    set(PACK_SUFFIX)
-endif()
 
 add_custom_target(pack
 	COMMAND bash ${CMAKE_SOURCE_DIR}/data/pkg/win-pack.sh ${CMAKE_COMMAND} ${CMAKE_SOURCE_DIR} ${PACK_SUFFIX}
