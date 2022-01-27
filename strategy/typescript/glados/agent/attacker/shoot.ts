@@ -110,29 +110,6 @@ export class Shoot extends Behavior {
 			: undefined;
 	}
 
-	private static _shootGoalPossible(robot: FriendlyRobot, attackPosition: Position | undefined): [boolean, number | undefined] {
-		let [sg_target, angle, sg_dirty] = ShootGoalUtil.updateTarget(robot, undefined, false, attackPosition);
-
-		if (sg_dirty) {
-			return [false, angle];
-		}
-
-		if (BaseRef.hasTooManyFriendlyRobots()) {
-			return [false, undefined];
-		}
-
-		if (World.Ball.speed.length() > 1.2) {
-			return [ObserverShoot.volleyPossible(robot, sg_target), undefined];
-		}
-
-		if (attackPosition != undefined && Field.distanceToOpponentDefenseArea(attackPosition, 0) > 1
-				&& Robot.isPressed(robot, attackPosition)) {
-			return [false, angle];
-		}
-
-		return [true, angle];
-	}
-
 	private _checkForManualAlly() {
 		this._manualFlag = false;
 		for (let [sender, passSuggestion] of this._messaging.receive(MessageType.passSuggestion).entries()) {
@@ -173,7 +150,7 @@ export class Shoot extends Behavior {
 		}
 
 		// perform clean goal shots if possible
-		if (Shoot._shootGoalPossible(this._robot, this._attackPosition)[0]) {
+		if (ShootGoalUtil.shootGoalPossible(this._robot, this._attackPosition)[0]) {
 			return {
 				task: "shootgoal",
 				pos: World.Geometry.OpponentGoal,
@@ -226,7 +203,7 @@ export class Shoot extends Behavior {
 					for (let angle = -CONE_WIDTH / 2;angle <= CONE_WIDTH / 2;angle += ANGLE_STEP) {
 						// check for possible goalshot opportunity
 						let newAttackPosition = this._attackPosition + Vector.fromPolar(attackAngle + angle, dist);
-						let [possible, freeAngle] = Shoot._shootGoalPossible(this._robot, newAttackPosition);
+						let [possible, freeAngle] = ShootGoalUtil.shootGoalPossible(this._robot, newAttackPosition);
 						if (possible && freeAngle != undefined && freeAngle > bestFreeAngle) {
 							bestFreeAngle = freeAngle;
 							bestAttackPosition = newAttackPosition;

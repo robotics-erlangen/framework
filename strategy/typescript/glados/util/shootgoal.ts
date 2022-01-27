@@ -1,5 +1,7 @@
 import * as Cache from "base/cache";
+import * as Field from "base/field";
 import * as geom from "base/geom";
+import * as Referee from "base/referee";
 import { FriendlyRobot } from "base/robot";
 import { Position, Speed, Vector } from "base/vector";
 import * as World from "base/world";
@@ -7,6 +9,8 @@ let G = World.Geometry;
 
 import * as Ball from "glados/observer/ball";
 import * as Goal from "glados/observer/goal";
+import * as Robot from "glados/observer/robot";
+import { volleyPossible } from "glados/observer/shoot";
 import { Interval } from "glados/util/interval";
 
 interface FutureRobot {
@@ -178,4 +182,30 @@ export const updateTarget: UpdateTarget = Cache.forFrame((ownRobot, oldTarget, o
 	}
 
 	return [targetPoint, targetWidth, dirty];
+});
+
+type ShootGoalPossible = (robot: FriendlyRobot, attackPosition?: Readonly<Position> | undefined)
+	=> [boolean, number | undefined];
+
+export const shootGoalPossible: ShootGoalPossible = Cache.forFrame((robot, attackPosition) => {
+	const [sg_target, angle, sg_dirty] = updateTarget(robot, undefined, false, attackPosition);
+
+	if (sg_dirty) {
+		return [false, angle];
+	}
+
+	if (Referee.hasTooManyFriendlyRobots()) {
+		return [false, undefined];
+	}
+
+	if (World.Ball.speed.length() > 1.2) {
+		return [volleyPossible(robot, sg_target), undefined];
+	}
+
+	if (attackPosition != undefined && Field.distanceToOpponentDefenseArea(attackPosition, 0) > 1
+			&& Robot.isPressed(robot, attackPosition)) {
+		return [false, angle];
+	}
+
+	return [true, angle];
 });
