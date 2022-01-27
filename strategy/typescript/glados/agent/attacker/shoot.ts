@@ -9,7 +9,7 @@ import * as World from "base/world";
 
 import { Agent } from "glados/agent/base/agent";
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
-import { MessageType } from "glados/control/messaging";
+import { formatTimestamp, MessageType } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 import * as Robot from "glados/observer/robot";
@@ -520,9 +520,8 @@ export class Shoot extends Behavior {
 		debug.set("decision", this._decision.task);
 		for (let [k, v] of Object.entries(this._decision)) {
 			if (k !== "task") {
-				let value = String(v);
 				if (k === "time") {
-					v = `${v - World.Time} (${value})`;
+					v = formatTimestamp(v);
 				}
 				debug.set("decision/" + String(k), v);
 			}
