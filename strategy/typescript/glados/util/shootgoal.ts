@@ -16,7 +16,7 @@ interface FutureRobot {
 	isFriendly: boolean;
 }
 
-type GetRobotLists = (ownRobot: FriendlyRobot) => [FutureRobot[], FutureRobot[]];
+type GetRobotLists = (ownRobot: Readonly<FriendlyRobot>) => [FutureRobot[], FutureRobot[]];
 /**
  * Returns the lists of interfering robots (with and without the keeper)
  * @see _getRobotLists
@@ -36,6 +36,11 @@ export const getRobotLists: GetRobotLists = Cache.forFrame((ownRobot) => {
 
 	// consider all robots (also our ones)
 	for (let r of World.Robots) {
+		/* This is erroneously flags Readonly<FriendlyRobot> and Robot as
+		 * having no overlap
+		 * TODO Remove this once #819/#820 are fixed
+		 */
+		// @ts-ignore
 		if (r !== ownRobot) {
 			// crude estimate of how much time the robot has before the ball has passed it
 			// robots near the ball won't have moved for the full extrapolation time by then
@@ -58,7 +63,7 @@ export const getRobotLists: GetRobotLists = Cache.forFrame((ownRobot) => {
  * @param oldSectorMid - The position that was chosen in the last frame
  * @returns The rating
  */
-export function rateSector(sector: Interval<any>, oldSectorMid?: number): number {
+export function rateSector(sector: Readonly<Interval<unknown>>, oldSectorMid?: number): number {
 	let sectorWidth = sector[1] - sector[0];
 
 	let hysteresisFactor = 1;
@@ -78,8 +83,8 @@ export function rateSector(sector: Interval<any>, oldSectorMid?: number): number
  * @returns The midpoint of the chosen sector
  * @returns The witdh of the chosen sector
  */
-export function findTarget(ownRobot: FriendlyRobot, viewPos: Position, ignoreGoalie: boolean,
-		oldTarget?: Position): [Position, number] {
+export function findTarget(ownRobot: Readonly<FriendlyRobot>, viewPos: Readonly<Position>, ignoreGoalie: boolean,
+		oldTarget?: Readonly<Position>): [Position, number] {
 	let goalStart = (G.OpponentGoalRight - viewPos).angle();
 	let goalEnd = (G.OpponentGoalLeft - viewPos).angle();
 
@@ -133,7 +138,7 @@ export function findTarget(ownRobot: FriendlyRobot, viewPos: Position, ignoreGoa
 }
 
 type UpdateTarget =
-	(ownRobot: FriendlyRobot, oldTarget: Position | undefined, oldDirty: boolean, attackPosition?: Position)
+	(ownRobot: Readonly<FriendlyRobot>, oldTarget: Readonly<Position> | undefined, oldDirty: boolean, attackPosition?: Readonly<Position>)
 		=> [Position, number, boolean];
 
 const TIME_UNTIL_MIN_ANGLE = 5;
