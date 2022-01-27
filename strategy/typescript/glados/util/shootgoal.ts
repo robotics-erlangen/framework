@@ -16,7 +16,15 @@ interface FutureRobot {
 	isFriendly: boolean;
 }
 
-function _getRobotLists(ownRobot: FriendlyRobot): [FutureRobot[], FutureRobot[]] {
+type GetRobotLists = (ownRobot: FriendlyRobot) => [FutureRobot[], FutureRobot[]];
+/**
+ * Returns the lists of interfering robots (with and without the keeper)
+ * @see _getRobotLists
+ * @param ownRobot - The robot that will shoot the ball
+ * @returns The list of all interfering robots
+ * @returns The above list without the opponent keeper
+ */
+export const getRobotLists: GetRobotLists = Cache.forFrame((ownRobot) => {
 	// constant extrapolation time
 	// after this reaction time the robots tend to block the shot
 	// thus further extrapolation does not really make sense
@@ -42,15 +50,7 @@ function _getRobotLists(ownRobot: FriendlyRobot): [FutureRobot[], FutureRobot[]]
 		}
 	}
 	return [robotList, robotListWithoutKeeper];
-}
-/**
- * Returns the lists of interfering robots (with and without the keeper)
- * @see _getRobotLists
- * @param ownRobot - The robot that will shoot the ball
- * @returns The list of all interfering robots
- * @returns The above list without the opponent keeper
- */
-export let getRobotLists: (ownRobot: FriendlyRobot) => [FutureRobot[], FutureRobot[]] = Cache.forFrame(_getRobotLists);
+});
 
 /**
  * Returns a rating for a given sector, prioritizing already chosen ones
@@ -132,9 +132,22 @@ export function findTarget(ownRobot: FriendlyRobot, viewPos: Position, ignoreGoa
 	return [targetPoint, bestSectorWidth];
 }
 
-let TIME_UNTIL_MIN_ANGLE = 5;
-function _updateTarget(ownRobot: FriendlyRobot, oldTarget: Position | undefined, oldDirty: boolean,
-		attackPosition?: Position): [Position, number, boolean] {
+type UpdateTarget =
+	(ownRobot: FriendlyRobot, oldTarget: Position | undefined, oldDirty: boolean, attackPosition?: Position)
+		=> [Position, number, boolean];
+
+const TIME_UNTIL_MIN_ANGLE = 5;
+/**
+ * Decides on where to shoot
+ * @param ownRobot - The robot that will shoot the ball
+ * @param oldTarget - The target position that was chosen in the last frame
+ * @param oldDirty - Whether the dirty flag was set in the last frame
+ * @param attackPosition - If set, use this position instead of robot dribbler
+ * @returns The midpoint of the chosen sector
+ * @returns The width of the chosen sector
+ * @returns The dirty flag
+ */
+export const updateTarget: UpdateTarget = Cache.forFrame((ownRobot, oldTarget, oldDirty, attackPosition) => {
 	// compute viewPos relative to the current robot pos
 	let viewPos = attackPosition || (ownRobot.pos + Vector.fromPolar(ownRobot.dir, ownRobot.shootRadius + World.Ball.radius));
 
@@ -160,16 +173,4 @@ function _updateTarget(ownRobot: FriendlyRobot, oldTarget: Position | undefined,
 	}
 
 	return [targetPoint, targetWidth, dirty];
-}
-/**
- * Decides on where to shoot
- * @param ownRobot - The robot that will shoot the ball
- * @param oldTarget - The target position that was chosen in the last frame
- * @param oldDirty - Whether the dirty flag was set in the last frame
- * @param attackPosition - If set, use this position instead of robot dribbler
- * @returns The midpoint of the chosen sector
- * @returns The width of the chosen sector
- * @returns The dirty flag
- */
-export let updateTarget: (ownRobot: FriendlyRobot, oldTarget: Position | undefined, oldDirty: boolean,
-		attackPosition?: Position) => [Position, number, boolean] = Cache.forFrame(_updateTarget);
+});
