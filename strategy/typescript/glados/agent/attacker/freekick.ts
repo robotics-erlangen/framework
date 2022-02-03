@@ -91,8 +91,7 @@ export class FreeKick extends Behavior {
 			< distanceToBall + this._robot.radius + World.Ball.radius + 0.02;
 
 		this._dirty = ShootGoalUtil.updateTarget(this._robot, undefined, this._dirty, World.Ball.pos)[2];
-		let shootgoalPossible = !this._dirty && World.Ball.pos.y > -0.2  &&
-			(World.RefereeState === "DirectOffensive" || World.RefereeState === "KickoffOffensive");
+		const [shootgoalPossible,] = ShootGoalUtil.shootGoalPossible(this._robot, World.Ball.pos);
 
 		// prepare -> wait
 		if (this._state === State.Prepare && nearBall) {

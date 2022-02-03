@@ -198,6 +198,10 @@ export const shootGoalPossible: ShootGoalPossible = Cache.forFrame((robot, attac
 		return [false, undefined];
 	}
 
+	if (World.RefereeState === "KickoffOffensive") {
+		return [true, angle];
+	}
+
 	if (World.Ball.speed.length() > 1.2) {
 		return [volleyPossible(robot, sg_target), undefined];
 	}
