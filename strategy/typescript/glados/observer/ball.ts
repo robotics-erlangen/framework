@@ -572,6 +572,19 @@ function updateBallPlacementRobots() {
 			deleteElement(r, ballPlacementRobots);
 		}
 	}
+
+	// find all ballPlacementRobots that were removed from the field
+	let toRemove = [];
+	for (let r of ballPlacementRobots) {
+		if (!World.OpponentRobots.includes(r)) {
+			toRemove.push(r);
+		}
+	}
+
+	// remove them
+	for (let r of toRemove) {
+		deleteElement(r, ballPlacementRobots);
+	}
 }
 
 let lastIsStanding = false;
