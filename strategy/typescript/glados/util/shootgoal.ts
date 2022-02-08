@@ -8,6 +8,7 @@ import * as World from "base/world";
 let G = World.Geometry;
 
 import * as Ball from "glados/observer/ball";
+import * as Crash from "glados/observer/crash";
 import * as Goal from "glados/observer/goal";
 import * as Robot from "glados/observer/robot";
 import { volleyPossible } from "glados/observer/shoot";
@@ -198,8 +199,18 @@ export const shootGoalPossible: ShootGoalPossible = Cache.forFrame((robot, attac
 		return [false, undefined];
 	}
 
-	if (World.RefereeState === "KickoffOffensive") {
+	if (Crash.isCrashed()) {
 		return [true, angle];
+	}
+
+	/* Far shots seldom hit the goal, however don't want to be too cautious. A
+	 * better variant would be to
+	 * - Calculate the time it takes for an opponent to block the shot
+	 * - Compare that to the time the ball needs to travel
+	 * For now, this shall do
+	 */
+	if (World.Ball.pos.distanceTo(sg_target) > 4.5) {
+		return [false, angle];
 	}
 
 	if (World.Ball.speed.length() > 1.2) {
