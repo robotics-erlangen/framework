@@ -34,6 +34,7 @@ import { FriendlyRobot } from "base/robot";
 import { Position, Speed, Vector } from "base/vector";
 import * as vis from "base/vis";
 
+
 interface Obstacle {
 	name: string | undefined;
 	prio: number;
@@ -410,6 +411,10 @@ export class Path {
 	/** WARNING: only adds the obstacle to the trajectory path finding */
 	addMovingLine(startTime: number, endTime: number, startPos1: Position, speed1: Speed, acc1: Vector,
 			startPos2: Position, speed2: Speed, acc2: Vector, width: number, priority: number) {
+		// enables a more expensive, but also a little more
+		// useful visualization for moving lines
+		const useNewVisualization = false;
+
 		startPos1 = Coordinates.toGlobal(startPos1);
 		speed1 = Coordinates.toGlobal(speed1);
 		acc1 = Coordinates.toGlobal(acc1);
@@ -422,20 +427,40 @@ export class Path {
 		}
 
 		if (!isPerformanceMode) {
-			let positions1 = [], positions2 = [];
-			let SAMPLES = (acc1.x === 0 && acc1.y === 0 && acc2.x === 0 && acc2.y === 0) ? 2 : 10;
-			let timeStep = (endTime - startTime) / (SAMPLES - 1);
-			for (let i = 0;i < SAMPLES;i++) {
-				let time = i * timeStep;
-				let pos1 = startPos1 + speed1 * time + acc1 * (0.5 * time * time);
-				let pos2 = startPos2 + speed2 * time + acc2 * (0.5 * time * time);
-				positions1.push(pos1);
-				positions2.push(pos2);
+			if (useNewVisualization) {
+				if (acc1.equals(new Vector(0, 0))
+						&& acc2.equals(new Vector(0, 0))
+						&& speed1.equals(new Vector(0, 0))
+						&& speed2.equals(new Vector(0, 0))) {
+					// both ends are stationary
+					vis.addPathRaw(this.getObstacleString(), [startPos1, startPos2], vis.colors.orange.setAlpha(127), undefined, undefined, width);
+				} else {
+					const SAMPLES = 5;
+					let timeStep = (endTime - startTime) / (SAMPLES - 1);
+					for (let i = 0; i < SAMPLES; i++) {
+						let time = i * timeStep;
+						let pos1 = startPos1 + speed1 * time + acc1 * (0.5 * time * time);
+						let pos2 = startPos2 + speed2 * time + acc2 * (0.5 * time * time);
+						let alpha = 0.5 * 0.5 ** (startTime + time);
+						vis.addPathRaw(this.getObstacleString(), [pos1, pos2], vis.colors.orange.setAlpha(255 * alpha), undefined, undefined, width);
+					}
+				}
+			} else {
+				let positions1 = [], positions2 = [];
+				let SAMPLES = (acc1.x === 0 && acc1.y === 0 && acc2.x === 0 && acc2.y === 0) ? 2 : 10;
+				let timeStep = (endTime - startTime) / (SAMPLES - 1);
+				for (let i = 0;i < SAMPLES;i++) {
+					let time = i * timeStep;
+					let pos1 = startPos1 + speed1 * time + acc1 * (0.5 * time * time);
+					let pos2 = startPos2 + speed2 * time + acc2 * (0.5 * time * time);
+					positions1.push(pos1);
+					positions2.push(pos2);
+				}
+				vis.addPathRaw(this.getObstacleString(), [startPos1, positions1[SAMPLES - 1]], vis.colors.orangeHalf, undefined, undefined, width);
+				vis.addPathRaw(this.getObstacleString(), [startPos2, positions2[SAMPLES - 1]], vis.colors.orangeHalf, undefined, undefined, width);
+				vis.addPathRaw(this.getObstacleString(), positions1, vis.colors.orangeHalf);
+				vis.addPathRaw(this.getObstacleString(), positions2, vis.colors.orangeHalf);
 			}
-			vis.addPathRaw(this.getObstacleString(), [startPos1, positions1[SAMPLES - 1]], vis.colors.orangeHalf, undefined, undefined, width);
-			vis.addPathRaw(this.getObstacleString(), [startPos2, positions2[SAMPLES - 1]], vis.colors.orangeHalf, undefined, undefined, width);
-			vis.addPathRaw(this.getObstacleString(), positions1, vis.colors.orangeHalf);
-			vis.addPathRaw(this.getObstacleString(), positions2, vis.colors.orangeHalf);
 		}
 
 		this._trajectoryInst.addMovingLine(startTime, endTime, startPos1.x, startPos1.y,
