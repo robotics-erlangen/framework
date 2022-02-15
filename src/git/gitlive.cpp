@@ -65,6 +65,84 @@ std::string gitconfig::getLiveCommitHash(const char* path) {
     return out;
 }
 
+struct HunkDiff {
+    char* hunk_header = nullptr;
+    size_t hunk_header_len = 0;
+    std::string text;
+
+    ~HunkDiff() {
+        free(hunk_header);
+    }
+
+    explicit HunkDiff(const char* line, size_t len) {
+        hunk_header = static_cast<char*>(malloc(sizeof(char) * len));
+        strncpy(hunk_header, line, len);
+        hunk_header_len = len;
+    }
+
+    HunkDiff(const HunkDiff&) = delete;
+    HunkDiff(HunkDiff&& other) : text(std::move(other.text)) {
+        this->hunk_header = other.hunk_header;
+        this->hunk_header_len = other.hunk_header_len;
+        other.hunk_header = nullptr;
+        other.hunk_header_len = 0;
+    }
+    HunkDiff& operator=(const HunkDiff&) = delete;
+};
+
+struct FileDiff {
+    char* file_header = nullptr;
+    size_t file_header_len = 0;
+    std::vector<HunkDiff> hunks;
+    std::string errorMsgs;
+
+    ~FileDiff() {
+        free(file_header);
+    }
+
+    explicit FileDiff(const char* line, size_t len) {
+        file_header = static_cast<char*>(malloc(sizeof(char) * len));
+        strncpy(file_header, line, len);
+        file_header_len = len;
+    }
+
+    FileDiff(const FileDiff&) = delete;
+    FileDiff(FileDiff&& other) : hunks(std::move(other.hunks)), errorMsgs(std::move(other.errorMsgs)) {
+        this->file_header = other.file_header;
+        this->file_header_len = other.file_header_len;
+        other.file_header = nullptr;
+        other.file_header_len = 0;
+    }
+    FileDiff& operator=(const FileDiff&) = delete;
+};
+
+static int print_to_vector_file_diff(const git_diff_delta *, const git_diff_hunk *, const git_diff_line *l, void* payload) {
+    std::vector<FileDiff>* out = static_cast<std::vector<FileDiff>*>(payload);
+    switch(l->origin) {
+        case GIT_DIFF_LINE_FILE_HDR:
+            out->emplace_back(l->content, l->content_len);
+            break;
+        case GIT_DIFF_LINE_HUNK_HDR:
+            out->back().hunks.emplace_back(l->content, l->content_len);
+            break;
+        case GIT_DIFF_LINE_CONTEXT:
+        case GIT_DIFF_LINE_ADDITION:
+        case GIT_DIFF_LINE_DELETION:
+            out->back().hunks.back().text.push_back(l->origin);
+            out->back().hunks.back().text.append(l->content, l->content_len);
+            break;
+        default:
+            out->back().errorMsgs.append("Error in ");
+            out->back().errorMsgs.append(__func__);
+            out->back().errorMsgs.append(" : unknown l->origin: ");
+            out->back().errorMsgs.push_back(l->origin);
+            out->back().errorMsgs.push_back('\n');
+            out->back().errorMsgs.append(l->content, l->content_len);
+            break;
+    }
+    return 0;
+}
+
 static int print_to_std_string(const git_diff_delta *, const git_diff_hunk *, const git_diff_line *l, void* payload) {
     std::string* out = static_cast<std::string*>(payload);
 
@@ -90,6 +168,22 @@ static void delete_string_vector(std::vector<char*>* vec) {
     }
     vec->clear();
     delete vec;
+}
+static std::string convert_file_diffs_to_string(std::vector<FileDiff>&& data) {
+    std::string out;
+    std::string errors;
+    for(auto it = data.begin(); it != data.end(); ++it) {
+        if (it->errorMsgs.size() != 0) {
+            errors += it->errorMsgs;
+        }
+        if (it->hunks.size() == 0) continue;
+        out.append(it->file_header, it->file_header_len);
+        for(auto hit = it->hunks.begin(); hit != it->hunks.end(); ++hit) {
+            out.append(hit->hunk_header, hit->hunk_header_len);
+            out += std::move(hit->text);
+        }
+    }
+    return out;
 }
 
 std::string gitconfig::getLiveCommitDiff(const char* path) {
@@ -140,7 +234,7 @@ std::string gitconfig::getLiveCommitDiff(const char* path) {
 
     git_diff_options o = {
         .version = GIT_DIFF_OPTIONS_VERSION,
-        .flags = GIT_DIFF_NORMAL,
+        .flags = GIT_DIFF_IGNORE_WHITESPACE_EOL,
         .ignore_submodules = GIT_SUBMODULE_IGNORE_NONE,
         .pathspec = {.strings= diff_paths->data(), .count = diff_paths->size()}
     };
@@ -153,11 +247,26 @@ std::string gitconfig::getLiveCommitDiff(const char* path) {
 
     std::string out;
 
+    std::vector<FileDiff> otherout;
+
     exitcode = git_diff_print(diff, GIT_DIFF_FORMAT_PATCH, print_to_std_string, &out);
     if (exitcode) {
         return "error in git_diff_print" + std::to_string(exitcode);
     }
 
+    exitcode = git_diff_print(diff, GIT_DIFF_FORMAT_PATCH, print_to_vector_file_diff, &otherout);
+    if (exitcode) {
+        return "error in git_diff_print" + std::to_string(exitcode);
+    }
 
-    return out;
+    std::string newout = convert_file_diffs_to_string(std::move(otherout));
+
+    if (newout != out) {
+        return "error: Linux based difference where we should not expect any";
+    }
+
+    return newout;
+
+
+//    return out;
 }
