@@ -37,11 +37,17 @@
 
 #include <vector>
 
+#include <QMutexLocker>
+
 #define GIT_RAII(pointer, cleanup) std::unique_ptr<std::remove_reference<decltype(*pointer)>::type, void(*)(decltype(pointer))> raii_##pointer{pointer, cleanup}
 
 
+QMutex mutex;
+
 std::string gitconfig::getLiveCommitHash(const char* path) {
     int exitcode;
+
+    QMutexLocker lock{&mutex};
     git_libgit2_init();
     std::unique_ptr<void, void(*)(void*)> raii_libgit2{nullptr, [](void* ptr) {git_libgit2_shutdown();}};
     git_repository* repo;
@@ -188,6 +194,8 @@ static std::string convert_file_diffs_to_string(std::vector<FileDiff>&& data) {
 
 std::string gitconfig::getLiveCommitDiff(const char* path) {
     int exitcode;
+
+    QMutexLocker lock{&mutex};
     git_libgit2_init();
     std::unique_ptr<void, void(*)(void*)> raii_libgit2{nullptr, [](void* ptr) {git_libgit2_shutdown();}};
 
