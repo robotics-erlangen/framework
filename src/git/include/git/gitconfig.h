@@ -31,7 +31,7 @@ namespace gitconfig {
      * restricted to changes in path
      *
      * This function expects `path` to be absolute and canonical
-     * without '.' or '..'.
+     * without '.' or '..'. It also expects to be ending in a /.
      */
     std::string getLiveCommitDiff(const char* path);
 }

@@ -44,7 +44,7 @@
 
 QMutex mutex;
 
-std::string gitconfig::getLiveCommitHash(const char* path) {
+static std::string getLiveCommitHash(const char* path, const char* tree_ish) {
     int exitcode;
 
     QMutexLocker lock{&mutex};
@@ -58,7 +58,7 @@ std::string gitconfig::getLiveCommitHash(const char* path) {
     GIT_RAII(repo, git_repository_free);
 
     git_oid head_oid;
-    exitcode = git_reference_name_to_id(&head_oid, repo, "HEAD");
+    exitcode = git_reference_name_to_id(&head_oid, repo, tree_ish);
     if (exitcode) {
         return "error in git_reference_name_to_id" + std::to_string(exitcode);
     }
@@ -69,6 +69,10 @@ std::string gitconfig::getLiveCommitHash(const char* path) {
     git_oid_tostr(out.data(), out.size(), &head_oid);
 
     return out;
+}
+
+std::string gitconfig::getLiveCommitHash(const char* path) {
+    return ::getLiveCommitHash(path, "HEAD");
 }
 
 struct HunkDiff {
