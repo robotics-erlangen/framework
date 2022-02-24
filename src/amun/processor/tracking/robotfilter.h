@@ -90,9 +90,25 @@ private:
     QMap<int, world::RobotPosition> m_lastRaw;
     QList<world::RobotPosition> m_measurements;
 
-    Kalman m_kalman;
+    // use a custom holder for the copy constructor
+    // WARNING: the Kalman object must not be directly put into the object,
+    // it requires special alignment that may or may not be given as member varibles
+    // (and keep in mind that windows still has a 32 bit build, integers may have a different size there)
+    struct KalmanHolder
+    {
+        KalmanHolder(const Kalman::Vector &init) : filter(std::make_unique<Kalman>(init)) {}
+        KalmanHolder(const KalmanHolder &other) : filter(std::make_unique<Kalman>(*other.filter)) {}
+        void operator=(const KalmanHolder &other) { *filter = *other.filter; }
+        Kalman *operator->() { return filter.get(); }
+        Kalman const *operator->() const { return filter.get(); }
+
+    private:
+        std::unique_ptr<Kalman> filter;
+    };
+
+    KalmanHolder m_kalman;
     // m_lastTime is inherited from Filter
-    Kalman m_futureKalman;
+    KalmanHolder m_futureKalman;
     qint64 m_futureTime;
     RadioCommand m_lastRadioCommand;
     RadioCommand m_futureRadioCommand;

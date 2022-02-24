@@ -35,9 +35,9 @@ RobotFilter::RobotFilter(const SSL_DetectionRobot &robot, qint64 lastTime, bool 
     m_futureTime(0)
 {
     // we can only observe the position
-    m_kalman.H(0, 0) = 1.0;
-    m_kalman.H(1, 1) = 1.0;
-    m_kalman.H(2, 2) = 1.0;
+    m_kalman->H(0, 0) = 1.0;
+    m_kalman->H(1, 1) = 1.0;
+    m_kalman->H(2, 2) = 1.0;
 
     resetFutureKalman();
 }
@@ -60,10 +60,10 @@ void RobotFilter::resetFutureKalman()
     m_futureKalman = m_kalman;
     m_futureTime = m_lastTime;
 
-    m_futureKalman.H = Kalman::MatrixM::Zero();
-    m_futureKalman.H(0, 3) = 1.0;
-    m_futureKalman.H(1, 4) = 1.0;
-    m_futureKalman.H(2, 5) = 1.0;
+    m_futureKalman->H = Kalman::MatrixM::Zero();
+    m_futureKalman->H(0, 3) = 1.0;
+    m_futureKalman->H(1, 4) = 1.0;
+    m_futureKalman->H(2, 5) = 1.0;
 }
 
 // updates the filter to the best possible prediction for the given time
@@ -137,7 +137,7 @@ void RobotFilter::invalidateRobotCommand(qint64 time)
 void RobotFilter::predict(qint64 time, bool updateFuture, bool permanentUpdate, bool cameraSwitched, const RadioCommand &cmd)
 {
     // just assume that the prediction step is the same for now and the future
-    Kalman* kalman = (updateFuture) ? &m_futureKalman : &m_kalman;
+    KalmanHolder& kalman = (updateFuture) ? m_futureKalman : m_kalman;
     const qint64 lastTime = (updateFuture) ? m_futureTime : m_lastTime;
     const double timeDiff = (time - lastTime) * 1E-9;
     Q_ASSERT(timeDiff >= 0);
@@ -270,11 +270,11 @@ void RobotFilter::applyVisionFrame(const VisionFrame &frame)
         m_lastPrimaryTime = frame.time;
     }
 
-    const float pRot = m_kalman.state()(2);
+    const float pRot = m_kalman->state()(2);
     const float pRotLimited = limitAngle(pRot);
     if (pRot != pRotLimited) {
         // prevent rotation windup
-        m_kalman.modifyState(2, pRotLimited);
+        m_kalman->modifyState(2, pRotLimited);
     }
     float rot = frame.detection.orientation() + M_PI_2;
     // prevent discontinuities
@@ -290,9 +290,9 @@ void RobotFilter::applyVisionFrame(const VisionFrame &frame)
     p.set_vision_processing_time(frame.visionProcessingTime);
     m_measurements.append(p);
 
-    m_kalman.z(0) = p.p_x();
-    m_kalman.z(1) = p.p_y();
-    m_kalman.z(2) = p.phi();
+    m_kalman->z(0) = p.p_x();
+    m_kalman->z(1) = p.p_y();
+    m_kalman->z(2) = p.phi();
 
     Kalman::MatrixMM R = Kalman::MatrixMM::Zero();
     if (frame.cameraId == m_primaryCamera) {
@@ -310,19 +310,19 @@ void RobotFilter::applyVisionFrame(const VisionFrame &frame)
         R(1, 1) = 0.02;
         R(2, 2) = 0.03;
     }
-    m_kalman.R = R.cwiseProduct(R);
-    m_kalman.update();
+    m_kalman->R = R.cwiseProduct(R);
+    m_kalman->update();
 }
 
 void RobotFilter::get(world::Robot *robot, const FieldTransform &transform, bool noRawData)
 {
-    float px = m_futureKalman.state()(0);
-    float py = m_futureKalman.state()(1);
-    float phi = m_futureKalman.state()(2);
+    float px = m_futureKalman->state()(0);
+    float py = m_futureKalman->state()(1);
+    float phi = m_futureKalman->state()(2);
     // convert to global coordinates
-    float vx = m_futureKalman.state()(3);
-    float vy = m_futureKalman.state()(4);
-    float omega = m_futureKalman.state()(5);
+    float vx = m_futureKalman->state()(3);
+    float vy = m_futureKalman->state()(4);
+    float omega = m_futureKalman->state()(5);
 
     phi = transform.applyAngle(phi);
     float transformedPX = transform.applyPosX(px, py);
@@ -381,8 +381,8 @@ float RobotFilter::distanceTo(const SSL_DetectionRobot &robot) const
     b(1) = robot.x() / 1000.0;
 
     Eigen::Vector2f p;
-    p(0) = m_kalman.state()(0);
-    p(1) = m_kalman.state()(1);
+    p(0) = m_kalman->state()(0);
+    p(1) = m_kalman->state()(1);
 
     return (b - p).norm();
 }
@@ -406,14 +406,14 @@ RobotInfo RobotFilter::getRobotInfo() const
     const float DRIBBLER_DIST = 0.08;
 
     RobotInfo result;
-    result.robotPos = Eigen::Vector2f(m_futureKalman.state()(0), m_futureKalman.state()(1));
-    float phi = limitAngle(m_futureKalman.state()(2));
+    result.robotPos = Eigen::Vector2f(m_futureKalman->state()(0), m_futureKalman->state()(1));
+    float phi = limitAngle(m_futureKalman->state()(2));
     result.dribblerPos = result.robotPos + DRIBBLER_DIST * Eigen::Vector2f(cos(phi), sin(phi));
-    result.speed = Eigen::Vector2f(m_futureKalman.state()[3], m_futureKalman.state()[4]);
-    result.angularVelocity = m_futureKalman.state()(5);
+    result.speed = Eigen::Vector2f(m_futureKalman->state()[3], m_futureKalman->state()[4]);
+    result.angularVelocity = m_futureKalman->state()(5);
 
-    result.pastRobotPos = Eigen::Vector2f(m_kalman.state()(0), m_kalman.state()(1));
-    phi = limitAngle(m_kalman.state()(2));
+    result.pastRobotPos = Eigen::Vector2f(m_kalman->state()(0), m_kalman->state()(1));
+    phi = limitAngle(m_kalman->state()(2));
     result.pastDribblerPos = result.pastRobotPos + DRIBBLER_DIST * Eigen::Vector2f(cos(phi), sin(phi));
 
     const auto& cmd = m_lastRadioCommand.first;
