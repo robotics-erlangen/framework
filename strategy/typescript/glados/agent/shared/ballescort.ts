@@ -23,6 +23,7 @@ export class BallEscort extends Behavior {
 		let [minOppRobot, minOppTime] = Ball.firstRobotAtBall(World.OpponentRobots);
 
 		if (minOppTime === Infinity) {
+			// TODO firstRobotAtBall does not call minTimeToBall anymore
 			// firstRobotAtBall calls minTimeToBall which assumes the robot wants to look at it's opponent's goal
 			// This can lead to situations where the function returns Infinity even though it wouldn't if we checked
 			// with a different position (here: the ball position while receiving a pass)

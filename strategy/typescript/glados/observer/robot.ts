@@ -4,6 +4,7 @@ import * as debug from "base/debug";
 import * as Field from "base/field";
 import * as Referee from "base/referee";
 import { Robot } from "base/robot";
+import { RelTime } from "base/timing";
 import { Position, Speed, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
@@ -185,7 +186,7 @@ function resetMinTimeToBallNoTarget() {
 	_minTimeToBallNoTarget = new Map<Robot, number>();
 }
 
-export function minTimeToBallNoTarget(robot: Robot): number {
+export function minTimeToBallNoTarget(robot: Robot): RelTime {
 	if (_minTimeToBallNoTarget.has(robot)) {
 		return <number> _minTimeToBallNoTarget.get(robot);
 	}

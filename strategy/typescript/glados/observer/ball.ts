@@ -2,7 +2,7 @@ import { Ball } from "base/ball";
 import * as Cache from "base/cache";
 import * as debug from "base/debug";
 import * as geom from "base/geom";
-import { some } from "base/listutil";
+import { min, some } from "base/listutil";
 import * as MathUtil from "base/mathutil";
 import * as plot from "base/plot";
 import * as Referee from "base/referee";
@@ -15,25 +15,18 @@ import * as World from "base/world";
 import * as Physics from "glados/observer/physics";
 import * as ObserverRobot from "glados/observer/robot";
 
-function _firstRobotAtBall(robotlist: Robot[]): [Robot | undefined, RelTime] {
-	let minTime: RelTime = Infinity;
-	let minRobot: Robot | undefined = undefined;
-	for (let r of robotlist) {
-		let time =  ObserverRobot.minTimeToBallNoTarget(r);
-		if (time < minTime) {
-			minTime = time;
-			minRobot = r;
-		}
-	}
-	return [minRobot, minTime];
-}
+type FirstRobotAtBall = (robotlist: Robot[]) => [Robot | undefined, RelTime];
 /**
- * Returns the first robot that can reach the ball, along with the estimated time
+ * Returns the first robot that can reach the ball, along with the estimated
+ * time. The robot need not look toward its opponent goal.
+ *
  * @param robotlist - All robots that should be considered (e.g. World.FriendlyRobots)
  * @returns The fastest robot
- * @returns The estimated time (the robot will look towards its opponent goal)
+ * @returns The estimated time
  */
-export let firstRobotAtBall: ((robotlist: Robot[]) => [Robot | undefined, RelTime]) = Cache.forFrame(_firstRobotAtBall);
+export const firstRobotAtBall: FirstRobotAtBall = Cache.forFrame(
+	(robotlist: Robot[]) => min(robotlist, ObserverRobot.minTimeToBallNoTarget)
+);
 
 function _opponentBallDribbler(): Robot | undefined {
 	let MAX_SPEED_DIFF = 1.5;
