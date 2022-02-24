@@ -42,31 +42,93 @@
 #define GIT_RAII(pointer, cleanup) std::unique_ptr<std::remove_reference<decltype(*pointer)>::type, void(*)(decltype(pointer))> raii_##pointer{pointer, cleanup}
 
 
-QMutex mutex;
+struct Git_tree_raii {
 
-static std::string getLiveCommitHash(const char* path, const char* tree_ish) {
+    Git_tree_raii() = default;
+    ~Git_tree_raii() {
+        for(char* e : subpaths) {
+            delete[] e;
+        }
+        if (tree) {
+            git_tree_free(tree);
+        }
+        if (commit) {
+            git_commit_free(commit);
+        }
+        if (repo) {
+            git_repository_free(repo);
+        }
+    }
+    Git_tree_raii(const Git_tree_raii&) = delete;
+    Git_tree_raii& operator=(const Git_tree_raii&) = delete;
+
+    std::string errorMsg;
+    git_repository* repo = nullptr;
+    git_oid oid;
+    git_commit* commit = nullptr;
+    git_tree* tree = nullptr;
+    std::vector<char*> subpaths;
+};
+
+QMutex mutex{QMutex::Recursive};
+
+/* Populates Git_tree_raii with repo and oid,
+ * assummes mutex to be locked and libgit running */
+static void populate_oid(Git_tree_raii& in, const char* path, const char* tree_ish) {
     int exitcode;
 
+    exitcode = git_repository_open_ext(&in.repo, path, 0, NULL);
+    if (exitcode) {
+        in.repo = nullptr;
+        in.errorMsg = "error in git_repository_open_ext " + std::to_string(exitcode);
+        return;
+    }
+
+    exitcode = git_reference_name_to_id(&in.oid, in.repo, tree_ish);
+    if (exitcode) {
+        in.errorMsg = "error in git_reference_name_to_id " + std::to_string(exitcode);
+        return;
+    }
+}
+
+static void populate_tree(Git_tree_raii& in, const char* path, const char* tree_ish) {
+    int exitcode;
+
+    populate_oid(in, path, tree_ish);
+    if (in.errorMsg.size() != 0) {
+        return;
+    }
+    exitcode = git_commit_lookup(&in.commit, in.repo, &in.oid);
+    if (exitcode) {
+        in.commit = nullptr;
+        in.errorMsg = "error in git_commit_lookup" + std::to_string(exitcode);
+        return;
+    }
+
+    exitcode = git_commit_tree(&in.tree, in.commit);
+    if (exitcode) {
+        in.tree = nullptr;
+        in.errorMsg = "error in git_commit_tree" + std::to_string(exitcode);
+        return;
+    }
+}
+
+static std::string getLiveCommitHash(const char* path, const char* tree_ish) {
     QMutexLocker lock{&mutex};
     git_libgit2_init();
     std::unique_ptr<void, void(*)(void*)> raii_libgit2{nullptr, [](void* ptr) {git_libgit2_shutdown();}};
-    git_repository* repo;
-    exitcode = git_repository_open_ext(&repo, path, 0, NULL);
-    if (exitcode) {
-        return "error in git_repository_open_ext" + std::to_string(exitcode);
-    }
-    GIT_RAII(repo, git_repository_free);
 
-    git_oid head_oid;
-    exitcode = git_reference_name_to_id(&head_oid, repo, tree_ish);
-    if (exitcode) {
-        return "error in git_reference_name_to_id" + std::to_string(exitcode);
+    Git_tree_raii data;
+    populate_oid(data, path, tree_ish);
+    if (data.errorMsg.size() != 0) {
+        return data.errorMsg;
     }
+
     std::string out;
     out.resize(GIT_OID_HEXSZ+1);
     assert(out.size() >= GIT_OID_HEXSZ + 1);
 
-    git_oid_tostr(out.data(), out.size(), &head_oid);
+    git_oid_tostr(out.data(), out.size(), &data.oid);
 
     return out;
 }
@@ -172,13 +234,6 @@ static char* copy_string(const char* in) {
     return out;
 }
 
-static void delete_string_vector(std::vector<char*>* vec) {
-    for(char* c : *vec) {
-        delete[] c;
-    }
-    vec->clear();
-    delete vec;
-}
 static std::string convert_file_diffs_to_string(std::vector<FileDiff>&& data) {
     std::string out;
     std::string errors;
@@ -203,55 +258,28 @@ std::string gitconfig::getLiveCommitDiff(const char* path) {
     git_libgit2_init();
     std::unique_ptr<void, void(*)(void*)> raii_libgit2{nullptr, [](void* ptr) {git_libgit2_shutdown();}};
 
-    git_repository* repo;
-    exitcode = git_repository_open_ext(&repo, path, 0, NULL);
-    if (exitcode) {
-        return "error in git_repository_open_ext" + std::to_string(exitcode);
+    Git_tree_raii data;
+    populate_tree(data, path, "HEAD");
+    if (data.errorMsg.size() != 0) {
+        return data.errorMsg;
     }
-    GIT_RAII(repo, git_repository_free);
-
-    const char* workdir = git_repository_workdir(repo);
+    const char* workdir = git_repository_workdir(data.repo);
     const char* relpath = path + std::strlen(workdir);
 
-    git_oid head_oid;
-    exitcode = git_reference_name_to_id(&head_oid, repo, "HEAD");
-    if (exitcode) {
-        return "error in git_reference_name_to_id" + std::to_string(exitcode);
-    }
-
-    git_commit *head;
-    exitcode = git_commit_lookup(&head, repo, &head_oid);
-    if (exitcode) {
-        return "error in git_commit_lookup" + std::to_string(exitcode);
-    }
-    GIT_RAII(head, git_commit_free);
+    std::cout << "Workdir: " << workdir << ", relpath: " << relpath << std::endl;
 
 
-    git_tree* tree;
-    exitcode = git_commit_tree(&tree, head);
-    if (exitcode) {
-        return "error in git_commit_tree" + std::to_string(exitcode);
-    }
-    GIT_RAII(tree, git_tree_free);
-
-    /* Set up diff_paths to hold more than one (copied) path
-     * Has to be copied to make sure it is no longer const
-     * Uses GIT_RAII and new std::vector instead of a std::vector on stack
-     * to free the content char* on destruction, too
-     */
-    auto diff_paths = new std::vector<char*>();
-    GIT_RAII(diff_paths, delete_string_vector);
-    diff_paths->push_back(copy_string(relpath));
+    data.subpaths.push_back(copy_string(relpath));
 
 
     git_diff_options o = {
         .version = GIT_DIFF_OPTIONS_VERSION,
         .flags = GIT_DIFF_IGNORE_WHITESPACE_EOL,
         .ignore_submodules = GIT_SUBMODULE_IGNORE_NONE,
-        .pathspec = {.strings= diff_paths->data(), .count = diff_paths->size()}
+        .pathspec = {.strings= data.subpaths.data(), .count = data.subpaths.size()}
     };
     git_diff* diff;
-    exitcode = git_diff_tree_to_workdir(&diff, repo, tree, &o);
+    exitcode = git_diff_tree_to_workdir(&diff, data.repo, data.tree, &o);
     if (exitcode) {
         return "error in git_diff_tree_to_workdir" + std::to_string(exitcode);
     }
