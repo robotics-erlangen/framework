@@ -30,11 +30,8 @@
  * @param rate - a function calculating a rating for a given list entry
  * @returns the minimum of the list
  */
-export function min<T>(list: T[], rate: (a: T) => number): [T, number] {
-	if (amun.isDebug && list.length === 0) {
-		throw new Error("The minimum of an empty list is undefined");
-	}
-	let currentMin: T;
+export function min<T>(list: T[], rate: (a: T) => number): [T | undefined, number] {
+	let currentMin: T | undefined = undefined;
 	let minRating = Infinity;
 	for (const i of list) {
 		const rating = rate(i);
@@ -43,7 +40,7 @@ export function min<T>(list: T[], rate: (a: T) => number): [T, number] {
 			minRating = rating;
 		}
 	}
-	return [ currentMin!, minRating ];
+	return [ currentMin, minRating ];
 }
 
 /**
@@ -53,11 +50,8 @@ export function min<T>(list: T[], rate: (a: T) => number): [T, number] {
  * @param rate - a function calculating a rating for a given list entry
  * @returns the maximum of the list
  */
-export function max<T>(list: T[], rate: (a: T) => number): [T, number] {
-	if (amun.isDebug && list.length === 0) {
-		throw new Error("The maximum of an empty list is undefined");
-	}
-	let currentMax: T;
+export function max<T>(list: T[], rate: (a: T) => number): [T | undefined, number] {
+	let currentMax: T | undefined = undefined;
 	let maxRating = -Infinity;
 	for (const i of list) {
 		const rating = rate(i);
@@ -66,7 +60,7 @@ export function max<T>(list: T[], rate: (a: T) => number): [T, number] {
 			maxRating = rating;
 		}
 	}
-	return [ currentMax!, maxRating ];
+	return [ currentMax, maxRating ];
 }
 
 /**
