@@ -16,6 +16,7 @@ export class BaseListUtil extends UnitTest {
 		let [result, value] = ListUtil.min(array, (x) => 10 - x);
 		this.assert_equal(result, 9);
 		this.assert_equal(value, 1);
+		this.assert_equal(ListUtil.min([] as number[], (a) => a)[0], undefined);
 	}
 
 	private testMax() {
@@ -24,6 +25,8 @@ export class BaseListUtil extends UnitTest {
 		let [result, value] = ListUtil.max(array, (x) => 10 - x);
 		this.assert_equal(result, 0);
 		this.assert_equal(value, 10);
+
+		this.assert_equal(ListUtil.max([] as number[], (a) => a)[0], undefined);
 	}
 
 	private testSome() {
