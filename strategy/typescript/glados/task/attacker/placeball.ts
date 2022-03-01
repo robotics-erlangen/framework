@@ -293,7 +293,7 @@ export class PlaceBall extends Task {
 				this._robot.setDribblerSpeed(PULL_DRIBBLER_SPEED);
 				// For _nearestFieldPos, see in calculateOffset
 				if (this._stateChanged) {
-					this._currentTargetPos = Field.limitToField(this._robot.pos) - this._borderOffsetAverage!;
+					this._currentTargetPos = Field.limitToField(this._robot.pos, -this._robot.radius - World.Ball.radius) - this._borderOffsetAverage!;
 				}
 				this._robot.trajectory.update(CurvedMaxAccel, this._currentTargetPos!, this._borderOffsetAverage!.angle(), MAX_PULL_SPEED, undefined, MAX_PULL_ACCEL);
 
@@ -547,7 +547,7 @@ export class PlaceBall extends Task {
 		let ballVisible = this._ball.isPositionValid();
 
 		let usedBallPos = BallObserver.getRealisticBallPos();
-		this._nearestFieldPos = Field.limitToField(usedBallPos);
+		this._nearestFieldPos = Field.limitToField(usedBallPos, -this._robot.radius - World.Ball.radius);
 
 		if (usedBallPos.distanceTo(this._placementPos) > OFFSET_DISTANCE
 				&& ballVisible) {
