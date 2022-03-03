@@ -29,6 +29,7 @@
 
 import { log } from "base/amun";
 import { Coordinates } from "base/coordinates";
+import * as Option from "base/option";
 import * as pb from "base/protobuf";
 import { FriendlyRobot } from "base/robot";
 import { Position, Speed, Vector } from "base/vector";
@@ -238,6 +239,10 @@ path = undefined;
 let teamIsBlue = amun.isBlue();
 let isPerformanceMode = amun.getPerformanceMode();
 
+// enables a more expensive, but also a little more
+// useful visualization for moving lines
+const USE_NEW_MOVING_LINE_VIS = Option.addOption("Use new moving line visualization", false);
+
 // only to be used for unit tests
 export function getOriginalPath(): any {
 	return pathLocal;
@@ -411,10 +416,6 @@ export class Path {
 	/** WARNING: only adds the obstacle to the trajectory path finding */
 	addMovingLine(startTime: number, endTime: number, startPos1: Position, speed1: Speed, acc1: Vector,
 			startPos2: Position, speed2: Speed, acc2: Vector, width: number, priority: number) {
-		// enables a more expensive, but also a little more
-		// useful visualization for moving lines
-		const useNewVisualization = false;
-
 		startPos1 = Coordinates.toGlobal(startPos1);
 		speed1 = Coordinates.toGlobal(speed1);
 		acc1 = Coordinates.toGlobal(acc1);
@@ -427,7 +428,7 @@ export class Path {
 		}
 
 		if (!isPerformanceMode) {
-			if (useNewVisualization) {
+			if (USE_NEW_MOVING_LINE_VIS) {
 				if (acc1.equals(new Vector(0, 0))
 						&& acc2.equals(new Vector(0, 0))
 						&& speed1.equals(new Vector(0, 0))
