@@ -291,7 +291,16 @@ export class FreeKick extends Behavior {
 				if (this._task != undefined && this._task instanceof TaskPass) {
 					this._task.updateTarget(pass.target!, pass.ballPos, undefined, pass.time);
 				}
-				return [TaskPass, [ pass.target, pass.ballPos, pass.chip, World.Ball.pos, pass.time ], restartTask];
+				return [
+					TaskPass, [{
+						targetRobot: pass.target,
+						targetPos: pass.ballPos,
+						chip: pass.chip,
+						ballReceiptPos: World.Ball.pos,
+						targetTime: pass.time,
+					}],
+					restartTask
+				];
 		}
 	}
 

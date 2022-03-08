@@ -552,7 +552,16 @@ export class Shoot extends Behavior {
 			this._messaging.sendBroadcast(MessageType.passInfo, [{ target: target,
 				ballPos: ballPos, time: passReceiveTime }]);
 
-			return [Pass, [ target, ballPos, chipOverride, this._lastIncomingPassInfoPos, this._decision.time, targetSpeed]];
+			return [
+				Pass, [{
+					targetRobot: target,
+					targetPos: ballPos,
+					chip: chipOverride,
+					ballReceiptPos: this._lastIncomingPassInfoPos,
+					targetTime: this._decision.time,
+					targetSpeed,
+				}],
+			];
 		}
 
 		if (this._decision.task === "chipToPos") {

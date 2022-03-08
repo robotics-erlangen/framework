@@ -85,7 +85,15 @@ export class HandleBall extends Behavior {
 					this._messaging.sendBroadcast(MessageType.passInfo, [{ target: this._pass.target,
 						ballPos: this._pass.ballPos, time: this._pass.time}]);
 				}
-				return [Pass, [ this._pass.target, this._pass.ballPos, true, undefined, undefined, undefined, true]];
+
+				return [
+					Pass, [{
+						targetRobot: this._pass.target,
+						targetPos: this._pass.ballPos,
+						chip: true,
+						highPrecision: true,
+					}],
+				];
 			}
 			if (World.Time - this._timeBegin < 7) {
 				return [MoveToStaticBall];

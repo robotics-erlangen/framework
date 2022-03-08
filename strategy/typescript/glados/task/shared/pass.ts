@@ -13,6 +13,16 @@ import { Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import * as Rating from "glados/util/rating";
 
+interface Parameters {
+	targetRobot?: FriendlyRobot;
+	targetPos?: Position;
+	chip?: boolean;
+	ballReceiptPos?: Position;
+	targetTime?: number;
+	targetSpeed?: number;
+	highPrecision?: boolean;
+}
+
 let CHIP_PASS_DISTANCE_FACTOR = 0.4;
 let MIN_PASS_SPEED = 1;
 let DEFAULT_PASS_SPEED = 3;
@@ -41,31 +51,33 @@ export class Pass extends Task {
 
 	private _shoot: Shoot;
 
-	constructor(behavior: Behavior, targetRobot?: FriendlyRobot, targetPos?: Position, chip?: boolean,
-			ballReceiptPos?: Position, targetTime?: number, targetSpeed?: number, highPrecision = false) {
+	constructor(behavior: Behavior, parameters: Parameters) {
 		super(behavior);
-		this._targetRobot = targetRobot;
-		this._targetTime = targetTime;
-		this._chipOverride = chip != undefined;
-		this._chip = chip === true;
-		this._passSpeed = targetSpeed != undefined ? targetSpeed : (this._targetRobot ? this._targetRobot.constants.passSpeed : DEFAULT_PASS_SPEED);
-		this._ballReceiptPos = ballReceiptPos;
-		this._highPrecision = highPrecision;
+
+		this._targetRobot = parameters.targetRobot;
+		this._targetTime = parameters.targetTime;
+		this._chipOverride = parameters.chip !== undefined;
+		this._chip = parameters.chip === true;
+		this._passSpeed = parameters.targetSpeed
+			?? this._targetRobot?.constants.passSpeed
+			?? DEFAULT_PASS_SPEED;
+		this._ballReceiptPos = parameters.ballReceiptPos;
+		this._highPrecision = parameters.highPrecision === true;
 
 		// retrieve targetPos from messages if no argument was given
 		let pos: Position;
-		if (targetPos == undefined) {
-			if (targetRobot == undefined) {
+		if (parameters.targetPos == undefined) {
+			if (parameters.targetRobot == undefined) {
 				throw new Error("anonymous passes need to have a targetPos");
 			}
-			let sugg = this._messaging.receive(MessageType.passSuggestion).get(targetRobot);
+			let sugg = this._messaging.receive(MessageType.passSuggestion).get(parameters.targetRobot);
 			if (sugg != undefined) {
 				pos = sugg.ballPos;
 			} else {
-				pos = targetRobot.dribblerPos;
+				pos = parameters.targetRobot.dribblerPos;
 			}
 		} else {
-			pos = targetPos;
+			pos = parameters.targetPos;
 		}
 		this._targetPos = pos;
 

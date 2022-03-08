@@ -213,7 +213,12 @@ export class BallPlacement extends Move {
 
 				taskAssignments[this.SHOOTER] = Assignment.create({
 					class: Pass,
-					params: [ this.RECEIVER, World.BallPlacementPos, false, undefined, undefined, PASS_TARGET_SPEED],
+					params: [{
+						targetRobot: this.RECEIVER,
+						targetPos: World.BallPlacementPos,
+						chip: false,
+						targetSpeed: PASS_TARGET_SPEED,
+					}],
 					restart: this._stateChanged
 				});
 				taskAssignments[this.RECEIVER] = Assignment.create({
