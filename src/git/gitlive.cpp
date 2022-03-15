@@ -28,6 +28,8 @@
 #include "git2/diff.h"
 #include "git2/buffer.h"
 #include "git2/errors.h"
+#include "git2/apply.h"
+#include "git2/index.h"
 
 
 #include <iostream>
@@ -318,4 +320,57 @@ std::string gitconfig::getLiveCommitDiff(const char* path) {
 
 
 //    return out;
+}
+
+std::string gitconfig::calculateDiff(const char* repository, const char* orig_hash, const char* orig_diff, const char* diff_hash) {
+    int exitcode;
+
+    QMutexLocker lock{&mutex};
+    git_libgit2_init();
+    std::unique_ptr<void, void(*)(void*)> raii_libgit2{nullptr, [](void* ptr) {git_libgit2_shutdown();}};
+
+
+    Git_tree_raii data;
+    populate_tree(data, repository, orig_hash);
+    if (data.errorMsg.size() != 0) {
+        return "error in setting up the old hash: " + data.errorMsg;
+    }
+
+    git_diff* from_input;
+    exitcode = git_diff_from_buffer(&from_input, orig_diff, std::strlen(orig_diff));
+    if (exitcode) {
+        return "error: Cannot rebuild git_diff";
+    }
+    GIT_RAII(from_input, git_diff_free);
+
+    git_index* custom_index;
+    exitcode = git_apply_to_tree(&custom_index, data.repo, data.tree, from_input, NULL);
+    if (exitcode) {
+        return "error: Cannot apply to tree";
+    }
+    GIT_RAII(custom_index, git_index_free);
+
+
+    Git_tree_raii data_to_diff_to;
+    populate_tree(data_to_diff_to, repository, diff_hash);
+    if (data_to_diff_to.errorMsg.size() != 0) {
+        return "error in setting up the new hash: " + data.errorMsg;
+    }
+
+    populate_gitdiffconfig(data_to_diff_to, repository);
+
+    git_diff* new_diff;
+    exitcode = git_diff_tree_to_index(&new_diff, data_to_diff_to.repo, data_to_diff_to.tree, custom_index, &data_to_diff_to.diffopt);
+    if (exitcode) {
+        return "error: Cannot calculate new diff";
+    }
+    GIT_RAII(new_diff, git_diff_free);
+
+    std::vector<FileDiff> file_diff;
+    exitcode = git_diff_print(new_diff, GIT_DIFF_FORMAT_PATCH, print_to_vector_file_diff, &file_diff);
+    if (exitcode) {
+        return "error in git_diff_print" + std::to_string(exitcode);
+    }
+
+    return convert_file_diffs_to_string(std::move(file_diff));
 }

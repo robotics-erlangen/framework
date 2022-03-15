@@ -46,5 +46,21 @@ namespace gitconfig {
      * without '.' or '..'. It also expects to be ending in a /.
      */
     std::string getLiveCommitDiff(const char* path);
+
+    /**
+     * Return the diff between the state denoted by orig_hash and orig_diff on the one side,
+     * and diff_hash on the other side.
+     * The result can be observed with the following git commands:
+     * ```
+     *  git checkout orig_hash
+     *  git checkout -b new_branch
+     *  git apply orig_diff
+     *  git commit -m "TEMP"
+     *  git diff new_branch diff_hash -- repository
+     *  ```
+     *
+     *  Except that this function does not create any temporary branches or commits
+     */
+    std::string calculateDiff(const char* repository, const char* orig_hash, const char* orig_diff, const char* diff_hash);
 }
 #endif // GITCONFIG_H
