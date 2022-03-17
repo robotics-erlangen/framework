@@ -25,16 +25,25 @@
 #include "compilerregistry.h"
 #include "scriptstate.h"
 
+
 AbstractStrategyScript::AbstractStrategyScript(const Timer *timer, StrategyType type, ScriptState& scriptState, CompilerRegistry* registry) :
     m_scriptState(scriptState),
     m_timer(timer),
     m_type(type),
     m_hasDebugger(false),
-    m_compilerRegistry(registry)
-{ }
+    m_compilerRegistry(registry),
+    m_gitDiffHelper(std::make_unique<GitDiffHelper>()),
+    m_gitHelperThread(new QThread())
+{
+    m_gitDiffHelper->moveToThread(m_gitHelperThread);
+    connect(this, &AbstractStrategyScript::startGitDiff, m_gitDiffHelper.get(), &GitDiffHelper::startGitDiff);
+    connect(m_gitDiffHelper.get(), &GitDiffHelper::gitDiffDone, this, &AbstractStrategyScript::finishGitDiff);
+    m_gitHelperThread->start();
+}
 
 AbstractStrategyScript::~AbstractStrategyScript()
 {
+    m_gitDiffHelper->deleteLater();
     m_gameControllerConnection->closeConnection();
 }
 
@@ -149,6 +158,8 @@ void AbstractStrategyScript::loadScript(const QString &filename, const QString &
     m_geometry.CopyFrom(geometry);
     m_team.CopyFrom(team);
 
+    emit startGitDiff(filename);
+
     if (loadUnderlying) {
         loadScript(filename, entryPoint);
     }
@@ -164,4 +175,8 @@ bool AbstractStrategyScript::process(double &pathPlanning, const world::State &w
     m_userInput.CopyFrom(userInput);
 
     return process(pathPlanning);
+}
+
+void AbstractStrategyScript::finishGitDiff(QString hash, QString diff) {
+    emit sendGitDiff(hash, diff);
 }

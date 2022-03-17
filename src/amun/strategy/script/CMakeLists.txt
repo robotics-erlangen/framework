@@ -37,6 +37,7 @@ add_library(script STATIC
 
 target_link_libraries(script
     PUBLIC amun::gamecontroller
+    PUBLIC gitconfig
 
     PRIVATE shared::core
     PUBLIC shared::protobuf

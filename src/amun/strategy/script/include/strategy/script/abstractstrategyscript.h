@@ -31,17 +31,36 @@
 #include "protobuf/userinput.pb.h"
 #include "protobuf/world.pb.h"
 #include "strategytype.h"
+#include "git/gitconfig.h"
 #include <QObject>
 #include <QString>
 #include <QStringList>
 #include <QDir>
 #include <QList>
+#include <QThread>
 
 class DebugHelper;
 class Timer;
 
 class CompilerRegistry;
 class ScriptState;
+
+class GitDiffHelper : public QObject {
+	Q_OBJECT
+signals:
+    void gitDiffDone(QString hash, QString diff);
+
+public slots:
+    void startGitDiff(QString path) {
+        auto dir = QFileInfo(path).dir();
+        dir.cdUp();
+        const std::string gitPath = dir.canonicalPath().append('/').toStdString();
+        const auto gitTree = gitconfig::getLiveCommit(gitPath.c_str());
+        const auto hash = QString::fromStdString(gitTree.hash);
+        const auto diff = QString::fromStdString(gitTree.diff);
+        emit gitDiffDone(hash, diff);
+    }
+};
 
 class AbstractStrategyScript : public QObject
 {
@@ -121,6 +140,9 @@ signals:
     void sendMixedTeamInfo(const QByteArray &data);
     void changeLoadState(amun::StatusStrategy::STATE state);
 
+	void startGitDiff(QString path);
+	void sendGitDiff(QString hash, QString diff);
+
 protected:
     bool chooseEntryPoint(QString entryPoint);
     virtual void loadScript(const QString &filename, const QString &entryPoint) = 0;
@@ -152,6 +174,12 @@ protected:
     CompilerRegistry* m_compilerRegistry;
 private:
     amun::DebugValues* m_debugValues = nullptr;
+
+	std::unique_ptr<GitDiffHelper> m_gitDiffHelper;
+    QThread* m_gitHelperThread;
+
+public slots:
+	void finishGitDiff(QString hash, QString diff);
 };
 
 #endif // ABSTRACTSTRATEGYSCRIPT_H
