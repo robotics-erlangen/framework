@@ -22,6 +22,7 @@
 #include "git2/global.h"
 #include "git2/repository.h"
 #include "git2/refs.h"
+#include "git2/revparse.h"
 #include "git2/tree.h"
 #include "git2/commit.h"
 #include "git2/diff.h"
@@ -84,9 +85,18 @@ static void populate_oid(Git_tree_raii& in, const char* path, const char* tree_i
         return;
     }
 
-    exitcode = git_reference_name_to_id(&in.oid, in.repo, tree_ish);
+    git_object *tmp;
+    exitcode = git_revparse_single(&tmp, in.repo, tree_ish);
     if (exitcode) {
-        in.errorMsg = "error in git_reference_name_to_id " + std::to_string(exitcode);
+        in.errorMsg = "error in git_revparse_single " + std::to_string(exitcode);
+        git_object_free(tmp);
+        return;
+    }
+
+    exitcode = git_oid_cpy(&in.oid, git_object_id(tmp));
+    git_object_free(tmp);
+    if (exitcode) {
+        in.errorMsg = "error in git_oid_cpy " + std::to_string(exitcode);
         return;
     }
 }
