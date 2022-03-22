@@ -42,6 +42,12 @@
 
 #define GIT_RAII(pointer, cleanup) std::unique_ptr<std::remove_reference<decltype(*pointer)>::type, void(*)(decltype(pointer))> raii_##pointer{pointer, cleanup}
 
+static char* copy_string(const char* in) {
+    std::size_t len = strlen(in) + 1;
+    char* out = new char[len];
+    std::strcpy(out, in);
+    return out;
+}
 
 struct Git_tree_raii {
 
@@ -69,6 +75,7 @@ struct Git_tree_raii {
     git_commit* commit = nullptr;
     git_tree* tree = nullptr;
     std::vector<char*> subpaths;
+    git_diff_options diffopt;
 };
 
 QMutex mutex{QMutex::Recursive};
@@ -121,6 +128,18 @@ static void populate_tree(Git_tree_raii& in, const char* path, const char* tree_
         in.errorMsg = "error in git_commit_tree" + std::to_string(exitcode);
         return;
     }
+}
+
+static void populate_gitdiffconfig(Git_tree_raii& in, const char* path) {
+    const char* workdir = git_repository_workdir(in.repo);
+    const char* relpath = path + std::strlen(workdir);
+    in.subpaths.push_back(copy_string(relpath));
+    in.diffopt = {
+        .version = GIT_DIFF_OPTIONS_VERSION,
+        .flags = GIT_DIFF_IGNORE_WHITESPACE_EOL,
+        .ignore_submodules = GIT_SUBMODULE_IGNORE_NONE,
+        .pathspec = {.strings= in.subpaths.data(), .count = in.subpaths.size()}
+    };
 }
 
 static std::string getLiveCommitHash(const char* path, const char* tree_ish) {
@@ -237,13 +256,6 @@ static int print_to_std_string(const git_diff_delta *, const git_diff_hunk *, co
     return 0;
 }
 
-static char* copy_string(const char* in) {
-    std::size_t len = strlen(in) + 1;
-    char* out = new char[len];
-    std::strcpy(out, in);
-    return out;
-}
-
 static std::string convert_file_diffs_to_string(std::vector<FileDiff>&& data) {
     std::string out;
     std::string errors;
@@ -273,23 +285,10 @@ std::string gitconfig::getLiveCommitDiff(const char* path) {
     if (data.errorMsg.size() != 0) {
         return data.errorMsg;
     }
-    const char* workdir = git_repository_workdir(data.repo);
-    const char* relpath = path + std::strlen(workdir);
+    populate_gitdiffconfig(data, path);
 
-    std::cout << "Workdir: " << workdir << ", relpath: " << relpath << std::endl;
-
-
-    data.subpaths.push_back(copy_string(relpath));
-
-
-    git_diff_options o = {
-        .version = GIT_DIFF_OPTIONS_VERSION,
-        .flags = GIT_DIFF_IGNORE_WHITESPACE_EOL,
-        .ignore_submodules = GIT_SUBMODULE_IGNORE_NONE,
-        .pathspec = {.strings= data.subpaths.data(), .count = data.subpaths.size()}
-    };
     git_diff* diff;
-    exitcode = git_diff_tree_to_workdir(&diff, data.repo, data.tree, &o);
+    exitcode = git_diff_tree_to_workdir(&diff, data.repo, data.tree, &data.diffopt);
     if (exitcode) {
         return "error in git_diff_tree_to_workdir" + std::to_string(exitcode);
     }
