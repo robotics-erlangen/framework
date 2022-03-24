@@ -23,8 +23,20 @@
 #include <string>
 namespace gitconfig {
     // These functions are used to avoid recompilation whenever the current hash and diff changes.
+    /**
+     * Return the result of `git diff-index HEAD -p --no-color --ignore-cr-at-eol` at built time,
+     * restricted to changes that are relevant for the binary (/src and /cmake)
+     */
     const char* const getErforceCommitDiff();
+    /**
+     * Return the result of `git rev-parse HEAD` at built time.
+     */
     const char* const getErforceCommitHash();
+
+    /**
+     * Return the result of `git rev-parse HEAD` at run time,
+     * for a folder or file under version control at path
+     */
     std::string getLiveCommitHash(const char* path);
     /**
      * Return the result of `git diff-index HEAD -p --no-color` at run time,
