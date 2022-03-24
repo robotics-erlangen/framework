@@ -32,6 +32,15 @@ namespace gitconfig {
      * Return the result of `git rev-parse HEAD` at built time.
      */
     const char* const getErforceCommitHash();
+    /**
+     * Return the result of `git diff-index master@{u} -p --no-color --ignore-cr-at-eol` at built time,
+     * restricted to changes that are relevant for the binary (/src and /cmake)
+     */
+    const char* const getErforceReliableCommitDiff();
+    /**
+     * Return the result of `git rev-parse master@{u}` at built time.
+     */
+    const char* const getErforceReliableCommitHash();
 
     /**
      * Return the result of `git rev-parse HEAD` at run time,

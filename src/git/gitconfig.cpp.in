@@ -21,9 +21,17 @@
 #include "gitconfig.h"
 
 const char* const gitconfig::getErforceCommitDiff() {
-    return "${GIT_DIFF}";
+    return "${GIT_DIFF_HEAD}";
 }
 
 const char* const gitconfig::getErforceCommitHash() {
-    return "${GIT_COMMIT}";
+    return "${GIT_COMMIT_HEAD}";
+}
+
+const char* const gitconfig::getErforceReliableCommitDiff() {
+    return "${GIT_DIFF_MASTER}";
+}
+
+const char* const gitconfig::getErforceReliableCommitHash() {
+    return "${GIT_COMMIT_MASTER}";
 }

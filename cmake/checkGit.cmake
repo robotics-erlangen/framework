@@ -30,20 +30,36 @@
 # It touches the following file: (to be run again next time even if no file has changed)
 # STAMP
 
-execute_process(WORKING_DIRECTORY ${GIT_BASE_DIR}
-    OUTPUT_VARIABLE GIT_DIFF
-    COMMAND git diff-index HEAD -p --no-color --ignore-cr-at-eol ${GIT_BASE_DIR}/src ${GIT_BASE_DIR}/cmake
-)
+macro(set_git_vars)
+    if(NOT ${ARGC} EQUAL 2)
+        message(FATAL_ERROR "set_git_vars needs exactly two arguments")
+    endif()
+    execute_process(WORKING_DIRECTORY ${GIT_BASE_DIR}
+        OUTPUT_VARIABLE GIT_DIFF_${ARGV0}
+        COMMAND git diff-index ${ARGV1} -p --no-color --ignore-cr-at-eol ${GIT_BASE_DIR}/src ${GIT_BASE_DIR}/cmake
+    )
 
-execute_process(WORKING_DIRECTORY ${GIT_BASE_DIR}
-    OUTPUT_VARIABLE GIT_COMMIT
-    COMMAND git rev-parse HEAD
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-)
+    execute_process(WORKING_DIRECTORY ${GIT_BASE_DIR}
+        OUTPUT_VARIABLE GIT_COMMIT_${ARGV0}
+        COMMAND git rev-parse ${ARGV1}
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+endmacro()
 
-string(REGEX REPLACE "[\\]" "\\\\\\\\" GIT_DIFF "${GIT_DIFF}")
-string(REGEX REPLACE "[?]" "\\\\?" GIT_DIFF "${GIT_DIFF}")
-string(REGEX REPLACE "\n" "\\\\n" GIT_DIFF "${GIT_DIFF}")
+macro(c_escape)
+    if(NOT ${ARGC} EQUAL 1)
+        message(FATAL_ERROR "c_escape needs exactly one argument")
+    endif()
+    string(REGEX REPLACE "[\\]" "\\\\\\\\" ${ARGV0} "${${ARGV0}}")
+    string(REGEX REPLACE "[?]" "\\\\?" ${ARGV0} "${${ARGV0}}")
+    string(REGEX REPLACE "\n" "\\\\n" ${ARGV0} "${${ARGV0}}")
+endmacro()
+
+set_git_vars(HEAD HEAD)
+set_git_vars(MASTER master@{u})
+
+c_escape(GIT_DIFF_HEAD)
+c_escape(GIT_DIFF_MASTER)
 
 configure_file(${SOURCE} ${TARGET} ESCAPE_QUOTES)
 
