@@ -969,7 +969,7 @@ void FieldWidget::updateDetection()
             m_rollingBall->hide();
             m_flyingBall->hide();
         }
-        
+
         if (m_showVision) {
             m_visionCurrentlyDisplayed = true;
             for (int i = 0; i < worldState.vision_frames_size(); ++i) {
@@ -1348,11 +1348,14 @@ void FieldWidget::setTrueRobot(const world::SimRobot& robot, const robot::Specs 
         createRobotItem(r, specs, color, robot.id(), RobotVisualisation::VISION);
     }
 
-    QQuaternion q{robot.rotation().real(), robot.rotation().i(), robot.rotation().j(), robot.rotation().k()}; // see simrobot.cpp
+    QQuaternion q{robot.rotation().real(), robot.rotation().i(), robot.rotation().j(), robot.rotation().k()};
     QVector3D forwards{0, 1, 0};
     QVector3D rotated = q.rotatedVector(forwards);
-    float phi = -atan2(rotated.z(), rotated.y());
-    phi = m_virtualFieldTransform.applyAngle(phi) * 180 / M_PI + 180;
+    float phi = -atan2(rotated.x(), rotated.y());
+    phi = m_virtualFieldTransform.applyAngle(phi) * 180 / M_PI;
+    if (phi < 0) {
+        phi += 360;
+    }
 
     bool update = false;
     const QPointF pos = m_virtualFieldTransform.applyPosition({robot.p_x(), robot.p_y()});
@@ -2096,7 +2099,7 @@ void FieldWidget::drawLines(QPainter *painter, QRectF rect, bool cosmetic)
     painter->setPen(pen);
 
     {
-        
+
         // defense areas
         if (geometry.type() == world::Geometry::TYPE_2014) {
             float dr = geometry.defense_radius();

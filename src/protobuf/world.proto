@@ -154,10 +154,10 @@ message SimBall {
 }
 
 message Quaternion {
-    required float real = 1;
-    required float i = 2;
-    required float j = 3;
-    required float k = 4;
+    required float i = 1;
+    required float j = 2;
+    required float k = 3;
+    required float real = 4;
 }
 
 message SimRobot {

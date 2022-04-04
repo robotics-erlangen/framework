@@ -310,20 +310,20 @@ TEST_F(FastSimulatorTest, DriveRobotForwardBlue) {
     test.handleSimulatorTruth = [&x, &y, &phi, &init, &rotation] (auto truth) {
         ASSERT_EQ(truth.blue_robots_size(), 1);
         for (const auto& robot : truth.blue_robots()) {
-            QQuaternion q{robot.rotation().real(), robot.rotation().i(), robot.rotation().j(), robot.rotation().k()}; // see simrobot.cpp
+            QQuaternion q{robot.rotation().real(), robot.rotation().i(), robot.rotation().j(), robot.rotation().k()};
             QVector3D forwards{0, 1, 0};
             QVector3D rotated = q.rotatedVector(forwards);
             if (!init) {
                 x = robot.p_x();
                 y = robot.p_y();
                 //stolen from fieldwidget
-                phi = -atan2(rotated.z(), rotated.y());
+                phi = -atan2(rotated.x(), rotated.y());
                 init = true;
                 rotation = q;
             } else {
                 ASSERT_LE(std::abs(robot.p_x() - x), 1e-2);
                 ASSERT_LE(std::abs(robot.p_y() - y), 1e-2);
-                ASSERT_LE(std::abs(-atan2(rotated.z(), rotated.y()) - phi), 5.f / 180 * M_PI);
+                ASSERT_LE(std::abs(-atan2(rotated.x(), rotated.y()) - phi), 5.f / 180 * M_PI);
             }
 
         }
@@ -390,20 +390,20 @@ TEST_F(FastSimulatorTest, DriveRobotRightBlue) {
     test.handleSimulatorTruth = [&x, &y, &phi, &init, &rotation] (auto truth) {
         ASSERT_EQ(truth.blue_robots_size(), 1);
         for (const auto& robot : truth.blue_robots()) {
-            QQuaternion q{robot.rotation().real(), robot.rotation().i(), robot.rotation().j(), robot.rotation().k()}; // see simrobot.cpp
+            QQuaternion q{robot.rotation().real(), robot.rotation().i(), robot.rotation().j(), robot.rotation().k()};
             QVector3D forwards{0, 1, 0};
             QVector3D rotated = q.rotatedVector(forwards);
             if (!init) {
                 x = robot.p_x();
                 y = robot.p_y();
                 //stolen from fieldwidget
-                phi = -atan2(rotated.z(), rotated.y());
+                phi = -atan2(rotated.x(), rotated.y());
                 init = true;
                 rotation = q;
             } else {
                 ASSERT_LE(std::abs(robot.p_x() - x), 1e-2);
                 ASSERT_LE(std::abs(robot.p_y() - y), 1e-2);
-                ASSERT_LE(std::abs(-atan2(rotated.z(), rotated.y()) - phi), 5.f / 180 * M_PI);
+                ASSERT_LE(std::abs(-atan2(rotated.x(), rotated.y()) - phi), 5.f / 180 * M_PI);
             }
 
         }
@@ -470,20 +470,20 @@ TEST_F(FastSimulatorTest, DriveRobotForwardYellow) {
     test.handleSimulatorTruth = [&x, &y, &phi, &init, &rotation] (auto truth) {
         ASSERT_EQ(truth.yellow_robots_size(), 1);
         for (const auto& robot : truth.yellow_robots()) {
-            QQuaternion q{robot.rotation().real(), robot.rotation().i(), robot.rotation().j(), robot.rotation().k()}; // see simrobot.cpp
+            QQuaternion q{robot.rotation().real(), robot.rotation().i(), robot.rotation().j(), robot.rotation().k()};
             QVector3D forwards{0, 1, 0};
             QVector3D rotated = q.rotatedVector(forwards);
             if (!init) {
                 x = robot.p_x();
                 y = robot.p_y();
                 //stolen from fieldwidget
-                phi = -atan2(rotated.z(), rotated.y());
+                phi = -atan2(rotated.x(), rotated.y());
                 init = true;
                 rotation = q;
             } else {
                 ASSERT_LE(std::abs(robot.p_x() - x), 1e-2);
                 ASSERT_LE(std::abs(robot.p_y() - y), 1e-2);
-                ASSERT_LE(std::abs(-atan2(rotated.z(), rotated.y()) - phi), 5.f / 180 * M_PI);
+                ASSERT_LE(std::abs(-atan2(rotated.x(), rotated.y()) - phi), 5.f / 180 * M_PI);
             }
 
         }
@@ -550,20 +550,20 @@ TEST_F(FastSimulatorTest, DriveRobotLeftYellow) {
     test.handleSimulatorTruth = [&x, &y, &phi, &init, &rotation] (auto truth) {
         ASSERT_EQ(truth.yellow_robots_size(), 1);
         for (const auto& robot : truth.yellow_robots()) {
-            QQuaternion q{robot.rotation().real(), robot.rotation().i(), robot.rotation().j(), robot.rotation().k()}; // see simrobot.cpp
+            QQuaternion q{robot.rotation().real(), robot.rotation().i(), robot.rotation().j(), robot.rotation().k()};
             QVector3D forwards{0, 1, 0};
             QVector3D rotated = q.rotatedVector(forwards);
             if (!init) {
                 x = robot.p_x();
                 y = robot.p_y();
                 //stolen from fieldwidget
-                phi = -atan2(rotated.z(), rotated.y());
+                phi = -atan2(rotated.x(), rotated.y());
                 init = true;
                 rotation = q;
             } else {
                 ASSERT_LE(std::abs(robot.p_x() - x), 1e-2);
                 ASSERT_LE(std::abs(robot.p_y() - y), 1e-2);
-                ASSERT_LE(std::abs(-atan2(rotated.z(), rotated.y()) - phi), 5.f / 180 * M_PI);
+                ASSERT_LE(std::abs(-atan2(rotated.x(), rotated.y()) - phi), 5.f / 180 * M_PI);
             }
 
         }
@@ -630,18 +630,18 @@ TEST_F(FastSimulatorTest, UnaffectedRobotsByCommands) {
         ASSERT_EQ(truth.blue_robots_size(), 2);
         int i = -2;
         auto checkRobot = [&i, init, &x, &y, &phi](const auto& robot) {
-            QQuaternion q{robot.rotation().real(), robot.rotation().i(), robot.rotation().j(), robot.rotation().k()}; // see simrobot.cpp
+            QQuaternion q{robot.rotation().real(), robot.rotation().i(), robot.rotation().j(), robot.rotation().k()};
             QVector3D forwards{0, 1, 0};
             QVector3D rotated = q.rotatedVector(forwards);
             if (!init) {
                 x[i] = robot.p_x();
                 y[i] = robot.p_y();
                 //stolen from fieldwidget
-                phi[i] = -atan2(rotated.z(), rotated.y());
+                phi[i] = -atan2(rotated.x(), rotated.y());
             } else {
                 ASSERT_LE(std::abs(robot.p_x() - x[i]), 1e-2);
                 ASSERT_LE(std::abs(robot.p_y() - y[i]), 1e-2);
-                ASSERT_LE(std::abs(-atan2(rotated.z(), rotated.y()) - phi[i]), 5.f / 180 * M_PI);
+                ASSERT_LE(std::abs(-atan2(rotated.x(), rotated.y()) - phi[i]), 5.f / 180 * M_PI);
             }
         };
         for (const auto& robot : truth.blue_robots()) {

@@ -558,10 +558,10 @@ void SimRobot::update(world::SimRobot* robot, SimBall *ball) const
 
     const btQuaternion q = transform.getRotation();
     auto * rotation = robot->mutable_rotation();
-    rotation->set_real(q.getX());
-    rotation->set_i(q.getY());
-    rotation->set_j(q.getZ());
-    rotation->set_k(q.getW());
+    rotation->set_i(q.getX());
+    rotation->set_j(q.getY());
+    rotation->set_k(q.getZ());
+    rotation->set_real(q.getW());
 
     const btVector3 velocity = m_body->getLinearVelocity() / SIMULATOR_SCALE;
     robot->set_v_x(velocity.x());
@@ -593,7 +593,7 @@ void SimRobot::restoreState(const world::SimRobot &robot)
 {
     btVector3 position(robot.p_x(), robot.p_y(), robot.p_z());
     m_body->getWorldTransform().setOrigin(position * SIMULATOR_SCALE);
-    btQuaternion rotation(robot.rotation().real(), robot.rotation().i(), robot.rotation().j(), robot.rotation().k());
+    btQuaternion rotation(robot.rotation().i(), robot.rotation().j(), robot.rotation().k(), robot.rotation().real());
     m_body->getWorldTransform().setRotation(rotation);
     btVector3 velocity(robot.v_x(), robot.v_y(), robot.v_z());
     m_body->setLinearVelocity(velocity * SIMULATOR_SCALE);
