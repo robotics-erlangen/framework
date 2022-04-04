@@ -361,9 +361,9 @@ TEST_F(FastSimulatorTest, DriveRobotForwardBlue) {
         for (const auto& robot : truth.blue_robots()) {
             QVector3D forwards{0, -0.5, 0};
             QVector3D rotated = rotation.rotatedVector(forwards);
-            ASSERT_LE(std::abs(robot.v_x() + rotated.z()), 2e-2);
-            ASSERT_LE(std::abs(robot.v_y() + rotated.y()), 2e-2);
-            ASSERT_LE(std::abs(robot.v_z() + rotated.x()), 2e-2);
+            ASSERT_LE(std::abs(robot.v_x() - rotated.x()), 2e-2);
+            ASSERT_LE(std::abs(robot.v_y() - rotated.y()), 2e-2);
+            ASSERT_LE(std::abs(robot.v_z() - rotated.z()), 2e-2);
             if (!init) {
                 ox = robot.p_x();
                 oy = robot.p_y();
@@ -372,9 +372,9 @@ TEST_F(FastSimulatorTest, DriveRobotForwardBlue) {
             } else {
                 QVector3D distance{0, static_cast<float>(-0.5 * time / 1e9), 0};
                 rotated = rotation.rotatedVector(distance);
-                ASSERT_LE(std::abs(robot.p_x() + rotated.z() - ox), 5e-2);
-                ASSERT_LE(std::abs(robot.p_y() + rotated.y() - oy), 5e-2);
-                ASSERT_LE(std::abs(robot.p_z() + rotated.x() - oz), 5e-2);
+                ASSERT_LE(std::abs(robot.p_x() - rotated.x() - ox), 5e-2);
+                ASSERT_LE(std::abs(robot.p_y() - rotated.y() - oy), 5e-2);
+                ASSERT_LE(std::abs(robot.p_z() - rotated.z() - oz), 5e-2);
             }
         }
     };
@@ -439,22 +439,22 @@ TEST_F(FastSimulatorTest, DriveRobotRightBlue) {
     test.handleSimulatorTruth = [rotation, &time, &ox, &oy, &oz, &init](auto truth) {
         ASSERT_EQ(truth.blue_robots_size(), 1);
         for (const auto& robot : truth.blue_robots()) {
-            QVector3D forwards{0, 0, -0.5};
-            QVector3D rotated = rotation.rotatedVector(forwards);
-            ASSERT_LE(std::abs(robot.v_x() + rotated.z()), 2e-2);
-            ASSERT_LE(std::abs(robot.v_y() + rotated.y()), 2e-2);
-            ASSERT_LE(std::abs(robot.v_z() + rotated.x()), 2e-2);
+            QVector3D right{0.5, 0, 0};
+            QVector3D rotated = rotation.rotatedVector(right);
+            ASSERT_LE(std::abs(robot.v_x() - rotated.x()), 2e-2);
+            ASSERT_LE(std::abs(robot.v_y() - rotated.y()), 2e-2);
+            ASSERT_LE(std::abs(robot.v_z() - rotated.z()), 2e-2);
             if (!init) {
                 ox = robot.p_x();
                 oy = robot.p_y();
                 oz = robot.p_z();
                 init = true;
             } else {
-                QVector3D distance{0, 0, static_cast<float>(-0.5 * time / 1e9)};
+                QVector3D distance{static_cast<float>(0.5 * time / 1e9), 0, 0};
                 rotated = rotation.rotatedVector(distance);
-                ASSERT_LE(std::abs(robot.p_x() + rotated.z() - ox), 5e-2);
-                ASSERT_LE(std::abs(robot.p_y() + rotated.y() - oy), 5e-2);
-                ASSERT_LE(std::abs(robot.p_z() + rotated.x() - oz), 5e-2);
+                ASSERT_LE(std::abs(robot.p_x() - rotated.x() - ox), 5e-2);
+                ASSERT_LE(std::abs(robot.p_y() - rotated.y() - oy), 5e-2);
+                ASSERT_LE(std::abs(robot.p_z() - rotated.z() - oz), 5e-2);
             }
         }
     };
@@ -521,9 +521,9 @@ TEST_F(FastSimulatorTest, DriveRobotForwardYellow) {
         for (const auto& robot : truth.yellow_robots()) {
             QVector3D forwards{0, -0.5, 0};
             QVector3D rotated = rotation.rotatedVector(forwards);
-            ASSERT_LE(std::abs(robot.v_x() + rotated.z()), 2e-2);
-            ASSERT_LE(std::abs(robot.v_y() + rotated.y()), 2e-2);
-            ASSERT_LE(std::abs(robot.v_z() + rotated.x()), 2e-2);
+            ASSERT_LE(std::abs(robot.v_x() - rotated.x()), 2e-2);
+            ASSERT_LE(std::abs(robot.v_y() - rotated.y()), 2e-2);
+            ASSERT_LE(std::abs(robot.v_z() - rotated.z()), 2e-2);
             if (!init) {
                 ox = robot.p_x();
                 oy = robot.p_y();
@@ -532,9 +532,9 @@ TEST_F(FastSimulatorTest, DriveRobotForwardYellow) {
             } else {
                 QVector3D distance{0, static_cast<float>(-0.5 * time / 1e9), 0};
                 rotated = rotation.rotatedVector(distance);
-                ASSERT_LE(std::abs(robot.p_x() + rotated.z() - ox), 5e-2);
-                ASSERT_LE(std::abs(robot.p_y() + rotated.y() - oy), 5e-2);
-                ASSERT_LE(std::abs(robot.p_z() + rotated.x() - oz), 5e-2);
+                ASSERT_LE(std::abs(robot.p_x() - rotated.x() - ox), 5e-2);
+                ASSERT_LE(std::abs(robot.p_y() - rotated.y() - oy), 5e-2);
+                ASSERT_LE(std::abs(robot.p_z() - rotated.z() - oz), 5e-2);
             }
         }
     };
@@ -599,22 +599,22 @@ TEST_F(FastSimulatorTest, DriveRobotLeftYellow) {
     test.handleSimulatorTruth = [rotation, &time, &ox, &oy, &oz, &init](auto truth) {
         ASSERT_EQ(truth.yellow_robots_size(), 1);
         for (const auto& robot : truth.yellow_robots()) {
-            QVector3D forwards{0, 0, 0.5};
-            QVector3D rotated = rotation.rotatedVector(forwards);
-            ASSERT_LE(std::abs(robot.v_x() + rotated.z()), 2e-2);
-            ASSERT_LE(std::abs(robot.v_y() + rotated.y()), 2e-2);
-            ASSERT_LE(std::abs(robot.v_z() + rotated.x()), 2e-2);
+            QVector3D left{-0.5, 0, 0};
+            QVector3D rotated = rotation.rotatedVector(left);
+            ASSERT_LE(std::abs(robot.v_x() - rotated.x()), 2e-2);
+            ASSERT_LE(std::abs(robot.v_y() - rotated.y()), 2e-2);
+            ASSERT_LE(std::abs(robot.v_z() - rotated.z()), 2e-2);
             if (!init) {
                 ox = robot.p_x();
                 oy = robot.p_y();
                 oz = robot.p_z();
                 init = true;
             } else {
-                QVector3D distance{0, 0, static_cast<float>(0.5 * time / 1e9)};
+                QVector3D distance{static_cast<float>(-0.5 * time / 1e9), 0, 0};
                 rotated = rotation.rotatedVector(distance);
-                ASSERT_LE(std::abs(robot.p_x() + rotated.z() - ox), 5e-2);
-                ASSERT_LE(std::abs(robot.p_y() + rotated.y() - oy), 5e-2);
-                ASSERT_LE(std::abs(robot.p_z() + rotated.x() - oz), 5e-2);
+                ASSERT_LE(std::abs(robot.p_x() - rotated.x() - ox), 5e-2);
+                ASSERT_LE(std::abs(robot.p_y() - rotated.y() - oy), 5e-2);
+                ASSERT_LE(std::abs(robot.p_z() - rotated.z() - oz), 5e-2);
             }
         }
     };
