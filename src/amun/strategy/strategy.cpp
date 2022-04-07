@@ -573,6 +573,7 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint, bo
             fail(QString("No strategy handler for file %1").arg(filename));
             return;
         }
+        connect(m_strategy, &AbstractStrategyScript::sendGitDiff, this, &Strategy::receiveGitDiff);
     }
 
     if (m_scriptState.isDebugEnabled && m_scriptState.debugHelper) {
@@ -720,6 +721,8 @@ void Strategy::setStrategyStatus(Status &status, amun::StatusStrategy::STATE sta
             strategy->set_has_debugger(true);
         }
     }
+
+    m_currentState = state;
 }
 
 Status Strategy::takeStrategyDebugStatus()
@@ -760,4 +763,13 @@ amun::DebugSource Strategy::debugSource() const
         return amun::Autoref;
     }
     qFatal("Internal error");
+}
+
+void Strategy::receiveGitDiff(QString hash, QString diff) {
+    Status status(new amun::Status);
+    setStrategyStatus(status, m_currentState);
+    *status->mutable_status_strategy()->mutable_status()->mutable_git_hash() = hash.toStdString();
+    *status->mutable_status_strategy()->mutable_status()->mutable_git_diff() = diff.toStdString();
+
+    emit sendStatus(status);
 }

@@ -98,6 +98,7 @@ private slots:
     void searchUid(QString uid);
     void requestUidInsertWindow();
     void changeDivision(world::Geometry::Division division);
+	void handleGitDiff(const Status &status);
 
 private:
     void toggleHorusModeWidgets(bool enable);

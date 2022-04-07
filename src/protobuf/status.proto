@@ -27,6 +27,8 @@ message StatusStrategy {
     // deprecated = 6
     optional bool has_debugger = 7;
     repeated StrategyOption options = 8;
+	optional string git_hash = 9;
+	optional string git_diff = 10;
 }
 
 message StatusStrategyWrapper {

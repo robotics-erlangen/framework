@@ -43,6 +43,8 @@ AbstractStrategyScript::AbstractStrategyScript(const Timer *timer, StrategyType 
 
 AbstractStrategyScript::~AbstractStrategyScript()
 {
+    // TODO think more about cleanup of thread and helper object
+    m_gitHelperThread->quit();
     m_gitDiffHelper->deleteLater();
     m_gameControllerConnection->closeConnection();
 }

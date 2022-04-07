@@ -81,6 +81,7 @@ private slots:
     void reload();
     void sendCommand(const Command &command);
     void loadStateChanged(amun::StatusStrategy::STATE state);
+    void receiveGitDiff(QString hash, QString diff);
 
 private:
     static void initV8();
@@ -124,6 +125,9 @@ private:
     CompilerRegistry* m_compilerRegistry;
 
     std::shared_ptr<GameControllerConnection> m_gameControllerConnection;
+
+	// TODO does this need a default value?
+	amun::StatusStrategy::STATE m_currentState;
 
 #ifdef V8_FOUND
     static std::unique_ptr<v8::Platform> static_platform;
