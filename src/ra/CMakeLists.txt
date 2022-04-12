@@ -31,6 +31,10 @@ add_library(ra-horus STATIC
     configdialog.h
     inputwidget.cpp
     inputwidget.h
+    gitinfodialog.cpp
+    gitinfodialog.h
+    gitinfowidget.cpp
+    gitinfowidget.h
     mainwindow.cpp
     mainwindow.h
     refereewidget.cpp
@@ -71,6 +75,8 @@ set(UI_SOURCES
     aboutus.ui
     configdialog.ui
     inputwidget.ui
+    gitinfodialog.ui
+    gitinfowidget.ui
     mainwindow.ui
     refereewidget.ui
     robotselectionwidget.ui

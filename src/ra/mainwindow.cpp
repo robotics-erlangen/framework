@@ -83,6 +83,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     ui->actionPlotter->setIcon(QIcon("icon:32/plotter.png"));
     ui->actionConfiguration->setIcon(QIcon("icon:32/preferences-system.png"));
     ui->actionAboutUs->setIcon(QIcon("icon:question.svg"));
+    ui->actionGitInfo->setIcon(QIcon("icon:git-icon.svg"));
 
     ui->actionQuit->setShortcut(QKeySequence::Quit);
 
@@ -142,6 +143,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     connect(m_configDialog, SIGNAL(useNumKeysForReferee(bool)), this, SLOT(udpateSpeedActionsEnabled()));
 
     m_aboutUs = new AboutUs(this);
+    m_gitInfo = new GitInfoDialog(this);
 
     connect(ui->options, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
 
@@ -184,6 +186,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
 
     connect(ui->actionConfiguration, SIGNAL(triggered()), SLOT(showConfigDialog()));
     connect(ui->actionAboutUs, SIGNAL(triggered()), m_aboutUs, SLOT(exec()));
+    connect(ui->actionGitInfo, SIGNAL(triggered()), m_gitInfo, SLOT(exec()));
     connect(ui->actionPlotter, SIGNAL(triggered()), this, SLOT(showPlotter()));
     connect(ui->actionAutoPause, SIGNAL(toggled(bool)), ui->simulator, SLOT(setEnableAutoPause(bool)));
     connect(ui->actionUseLocation, SIGNAL(toggled(bool)), this, SLOT(useLogfileLocation(bool)));

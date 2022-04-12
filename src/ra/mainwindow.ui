@@ -364,6 +364,7 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionAboutUs"/>
+   <addaction name="actionGitInfo"/>
   </widget>
   <action name="actionPlotter">
    <property name="text">
@@ -775,6 +776,11 @@
   <action name="actionAboutUs">
    <property name="text">
     <string>AboutUs</string>
+   </property>
+  </action>
+  <action name="actionGitInfo">
+   <property name="text">
+    <string>GitInfo</string>
    </property>
   </action>
  </widget>

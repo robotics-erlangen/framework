@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>GitInfoDialog</class>
+ <widget class="QDialog" name="GitInfoDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>300</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QTabWidget" name="tabWidget">
+     <property name="tabPosition">
+      <enum>QTabWidget::North</enum>
+     </property>
+     <property name="tabShape">
+      <enum>QTabWidget::Rounded</enum>
+     </property>
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="GitInfoWidget" name="raDiff">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <attribute name="title">
+       <string>Ra</string>
+      </attribute>
+     </widget>
+     <widget class="GitInfoWidget" name="configDiff">
+      <attribute name="title">
+       <string>Config</string>
+      </attribute>
+     </widget>
+     <widget class="GitInfoWidget" name="strategyBlueDiff">
+      <attribute name="title">
+       <string>Blue</string>
+      </attribute>
+     </widget>
+     <widget class="GitInfoWidget" name="strategyYellowDiff">
+      <attribute name="title">
+       <string>Yellow</string>
+      </attribute>
+     </widget>
+     <widget class="GitInfoWidget" name="autorefDiff">
+      <attribute name="title">
+       <string>Autoref</string>
+      </attribute>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>GitInfoWidget</class>
+   <extends>QWidget</extends>
+   <header>gitinfowidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <tabstops>
+  <tabstop>tabWidget</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>

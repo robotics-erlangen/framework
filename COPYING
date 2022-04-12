@@ -25,6 +25,10 @@ data/icons/ra*:
  *     Removed everything except the head
  * Licensed under CC BY SA 3.0 Unported <http://creativecommons.org/licenses/by-sa/3.0/deed.en>
 
+data/icons/git-icon.svg:
+ * Copyright 2022 Git Logo by Jason Long
+ * Licensed under CC BY 3.0 https://creativecommons.org/licenses/by/3.0/
+
 data/icons/*/whistle*:
  * Public Domain 2007 kelan <https://openclipart.org/detail/5370/whistle-by-kelan>
 
