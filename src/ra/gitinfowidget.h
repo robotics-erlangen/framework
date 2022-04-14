@@ -34,6 +34,8 @@ class GitInfoWidget : public QWidget
 public:
     explicit GitInfoWidget(QWidget *parent = nullptr);
     ~GitInfoWidget();
+    void setGitDiff(const QString& text);
+    void setGitHash(const QString& text);
 
 private:
     Ui::GitInfoWidget *ui;

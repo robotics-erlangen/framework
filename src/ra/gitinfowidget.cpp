@@ -32,3 +32,13 @@ GitInfoWidget::~GitInfoWidget()
 {
     delete ui;
 }
+
+void GitInfoWidget::setGitDiff(const QString& text)
+{
+    ui->diffText->setText(text);
+}
+
+void GitInfoWidget::setGitHash(const QString& text)
+{
+    ui->hashLabel->setText("Hash: " + text);
+}

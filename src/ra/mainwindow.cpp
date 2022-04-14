@@ -226,6 +226,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     connect(this, SIGNAL(gotStatus(Status)), ui->logManager, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), ui->replay, SIGNAL(gotStatus(Status)));
     connect(this, &MainWindow::gotStatus, m_logTimeLabel, &LogLabel::handleStatus);
+    connect(this, &MainWindow::gotStatus, m_gitInfo, &GitInfoDialog::handleStatus);
 
     connect(ui->field, &FieldWidget::selectRobots, ui->robots, &RobotSelectionWidget::selectRobots);
 
@@ -669,8 +670,6 @@ void MainWindow::handleStatus(const Status &status)
         }
     }
 
-    handleGitDiff(status);
-
     emit gotStatus(status);
 }
 
@@ -960,38 +959,5 @@ void MainWindow::changeDivision(world::Geometry::Division division) {
         case world::Geometry_Division_B:
             updateSimulatorSetup("simulator/2020B");
             break;
-    }
-}
-
-void MainWindow::handleGitDiff(const Status &status) {
-    if (status->has_status_strategy()) {
-        const auto strategyStatusWrapper = status->status_strategy();
-
-        const auto strategyStatus = strategyStatusWrapper.status();
-        if (strategyStatus.has_git_hash()) {
-            switch (strategyStatusWrapper.type()) {
-                case amun::StatusStrategyWrapper::StrategyType::StatusStrategyWrapper_StrategyType_BLUE: {
-                    std::cout << "blue" << std::endl;
-                    break;
-                }
-                case amun::StatusStrategyWrapper::StrategyType::StatusStrategyWrapper_StrategyType_YELLOW: {
-                    std::cout << "yellow" << std::endl;
-                    break;
-                }
-                case amun::StatusStrategyWrapper::StrategyType::StatusStrategyWrapper_StrategyType_REPLAY_BLUE: {
-                    std::cout << "replay blue" << std::endl;
-                    break;
-                }
-                case amun::StatusStrategyWrapper::StrategyType::StatusStrategyWrapper_StrategyType_REPLAY_YELLOW: {
-                    std::cout << "replay yellow" << std::endl;
-                    break;
-                }
-                case amun::StatusStrategyWrapper::StrategyType::StatusStrategyWrapper_StrategyType_AUTOREF: {
-                    std::cout << "autoref" << std::endl;
-                    break;
-                }
-            }
-            std::cout << strategyStatus.git_hash() << ":\n" << strategyStatus.git_diff() << std::endl;
-        }
     }
 }

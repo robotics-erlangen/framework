@@ -21,6 +21,7 @@
 #ifndef GITINFODIALOG_H
 #define GITINFODIALOG_H
 
+#include "protobuf/status.h"
 #include <QDialog>
 
 namespace Ui {
@@ -34,6 +35,9 @@ class GitInfoDialog : public QDialog
 public:
     explicit GitInfoDialog(QWidget *parent = nullptr);
     ~GitInfoDialog();
+
+public slots:
+    void handleStatus(const Status &status);
 
 private:
     Ui::GitInfoDialog *ui;
