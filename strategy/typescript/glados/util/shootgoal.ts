@@ -1,9 +1,12 @@
 import * as Cache from "base/cache";
+import * as Constants from "base/constants";
 import * as Field from "base/field";
 import * as geom from "base/geom";
+import * as MathUtil from "base/mathutil";
 import * as Referee from "base/referee";
 import { FriendlyRobot } from "base/robot";
 import { Position, Speed, Vector } from "base/vector";
+import * as vis from "base/vis";
 import * as World from "base/world";
 let G = World.Geometry;
 
@@ -209,7 +212,9 @@ export const shootGoalPossible: ShootGoalPossible = Cache.forFrame((robot, attac
 	 * - Compare that to the time the ball needs to travel
 	 * For now, this shall do
 	 */
-	if (World.Ball.pos.distanceTo(sg_target) > 4.5) {
+	let attackPos = attackPosition != undefined ? attackPosition : robot.pos;
+	let hitLikelyhood = shootGoalLikelyhood(attackPos, sg_target);
+	if (hitLikelyhood < 0.5) {
 		return [false, angle];
 	}
 
@@ -221,6 +226,54 @@ export const shootGoalPossible: ShootGoalPossible = Cache.forFrame((robot, attac
 			&& Robot.isPressed(robot, attackPosition)) {
 		return [false, angle];
 	}
+	if (attackPosition == undefined) {
+		attackPosition = robot.pos;
+	}
 
 	return [true, angle];
 });
+
+function getInterceptAcceleration(position: Position, speed: Vector, robotRadius: number, attackPosition: Position, dirShoot: Vector): number {
+	let closestPoint = (position - attackPosition).dot(dirShoot) * dirShoot + attackPosition;
+	if (Field.isInDefenseArea(closestPoint, robotRadius, false)) {
+		closestPoint = Field.limitToAllowedField(closestPoint, 0);
+	}
+	let tAtPos = (closestPoint - attackPosition).length() / Constants.maxBallSpeed;
+	let distance = closestPoint - position;
+	let result = (distance - speed * tAtPos).length() / (tAtPos * tAtPos);
+	return result;
+}
+
+function shootGoalLikelyhood(attackPosition: Position, sgTarget: Position): number {
+	let tAttack = (attackPosition - World.Ball.pos).length() / World.Ball.speed.length();
+	const maxVelocityApprox = 3.5;
+	let vecShoot = sgTarget - attackPosition;
+	let distanceShoot = vecShoot.length();
+	let tShoot = distanceShoot / Constants.maxBallSpeed;
+	let dirShoot = vecShoot / distanceShoot;
+
+	let endRange = new Vector(maxVelocityApprox, 0) * tShoot;
+	let upperBound = sgTarget + endRange;
+	let lowerBound = sgTarget - endRange;
+
+	vis.addPolygon("shootGoalLikelyhoodZone", [attackPosition, lowerBound, upperBound], vis.colors.skyBlue, true);
+
+	let likelyhoodToBeIntercepted = 0;
+	for (let robot of World.OpponentRobots) {
+		let futurePosition: Vector = robot.pos + robot.speed * tAttack;
+		if (robot !== World.OpponentKeeper
+			&& (geom.isInTriangle(attackPosition, lowerBound, upperBound, robot.pos) || geom.isInTriangle(attackPosition, lowerBound, upperBound, futurePosition))) {
+			let currentApprox = getInterceptAcceleration(robot.pos, robot.speed, robot.radius, attackPosition, dirShoot);
+			let futureApprox = getInterceptAcceleration(futurePosition, robot.speed, robot.radius, attackPosition, dirShoot);
+			let pessimisticApprox = Math.min(currentApprox, futureApprox);
+			const maxAccelerationApprox = 7;
+			let interceptLikelyhood = 1 - (Math.min(pessimisticApprox, maxAccelerationApprox) / maxAccelerationApprox);
+			likelyhoodToBeIntercepted += interceptLikelyhood;
+		}
+	}
+	let maxLikelyhoodToBeIntercepted = Constants.maxTeamSize[World.DIVISION] / 2;
+	const maxDistance = 6;
+	const dangerousDistance = 2.5;
+	let distanceScaleFactor = 1 - MathUtil.bound(0, (distanceShoot - dangerousDistance) / (maxDistance - dangerousDistance), 1);
+	return distanceScaleFactor * (1 - Math.min(likelyhoodToBeIntercepted, maxLikelyhoodToBeIntercepted) / maxLikelyhoodToBeIntercepted);
+}
