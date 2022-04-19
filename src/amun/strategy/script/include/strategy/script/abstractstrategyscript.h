@@ -122,7 +122,7 @@ signals:
     void sendMixedTeamInfo(const QByteArray &data);
     void changeLoadState(amun::StatusStrategy::STATE state);
 
-	void recordGitDiff(QDir path, bool changed);
+	void recordGitDiff(const QString& path, bool changed);
 
 protected:
     bool chooseEntryPoint(QString entryPoint);

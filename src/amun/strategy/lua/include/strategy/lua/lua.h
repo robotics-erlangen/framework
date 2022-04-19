@@ -63,7 +63,7 @@ private:
     void removeLuaFunction(const char *module, const char *key);
 
 private slots:
-    void requestRecording(QString file);
+    void requestRecording();
 
 private:
     lua_State *m_state;

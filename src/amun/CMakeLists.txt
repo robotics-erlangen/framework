@@ -39,6 +39,7 @@ add_library(amun STATIC
     optionsmanager.h
     commandconverter.cpp
     commandconverter.h
+	gitinforecorder.cpp
 	gitinforecorder.h
 )
 target_link_libraries(amun

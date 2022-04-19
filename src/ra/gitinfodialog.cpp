@@ -30,41 +30,30 @@ GitInfoDialog::GitInfoDialog(QWidget *parent) :
 
 void GitInfoDialog::handleStatus(const Status& status)
 {
-    if (status->has_status_strategy()) {
-        const auto strategyStatusWrapper = status->status_strategy();
+    if (status->has_git_info()) {
+        const auto gitInfo = status->git_info();
 
-        const auto strategyStatus = strategyStatusWrapper.status();
         GitInfoWidget* infoWidget;
-        if (strategyStatus.has_git_hash()) {
-            switch (strategyStatusWrapper.type()) {
-                case amun::StatusStrategyWrapper::StrategyType::StatusStrategyWrapper_StrategyType_BLUE: {
-                    infoWidget = ui->strategyBlueDiff;
-                    break;
-                }
-                case amun::StatusStrategyWrapper::StrategyType::StatusStrategyWrapper_StrategyType_YELLOW: {
-                    infoWidget = ui->strategyYellowDiff;
-                    break;
-                }
-                case amun::StatusStrategyWrapper::StrategyType::StatusStrategyWrapper_StrategyType_AUTOREF: {
-                    infoWidget = ui->autorefDiff;
-                    break;
-                }
-                case amun::StatusStrategyWrapper::StrategyType::StatusStrategyWrapper_StrategyType_REPLAY_BLUE: {
-                    std::cerr << "Received git info for replay blue!" << std::endl;
-                    return;
-                }
-                case amun::StatusStrategyWrapper::StrategyType::StatusStrategyWrapper_StrategyType_REPLAY_YELLOW: {
-                    std::cerr << "Received git info for replay yellow!" << std::endl;
-                    return;
-                }
-                default: {
-                    std::cerr << "Received git info for unknown source!" << std::endl;
-                    return;
-                }
+        switch (gitInfo.kind()) {
+            case amun::GitInfo_Kind_BLUE: {
+                infoWidget = ui->strategyBlueDiff;
+                break;
             }
-            infoWidget->setGitHash(QString::fromStdString(strategyStatus.git_hash()));
-            infoWidget->setGitDiff(QString::fromStdString(strategyStatus.git_diff()));
+            case amun::GitInfo_Kind_YELLOW: {
+                infoWidget = ui->strategyYellowDiff;
+                break;
+            }
+            case amun::GitInfo_Kind_AUTOREF: {
+                infoWidget = ui->autorefDiff;
+                break;
+            }
+            default: {
+                std::cerr << "Received git info for unknown source!" << std::endl;
+                return;
+            }
         }
+        infoWidget->setGitHash(QString::fromStdString(gitInfo.hash()));
+        infoWidget->setGitDiff(QString::fromStdString(gitInfo.diff()));
     }
 }
 

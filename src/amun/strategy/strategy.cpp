@@ -765,6 +765,6 @@ amun::DebugSource Strategy::debugSource() const
     qFatal("Internal error");
 }
 
-void Strategy::requestGitRecording(QDir dir, bool changed) {
-    emit recordGitDiff(dir, changed, m_type);
+void Strategy::requestGitRecording(const QString& dir, bool changed) {
+    emit recordGitDiff(dir, changed, static_cast<int>(m_type));
 }

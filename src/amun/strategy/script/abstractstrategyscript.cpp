@@ -153,7 +153,7 @@ void AbstractStrategyScript::loadScript(const QString &filename, const QString &
 
     auto dir = QFileInfo(m_filename).dir();
     dir.cdUp();
-    emit recordGitDiff(dir, false);
+    emit recordGitDiff(dir.canonicalPath(), false);
 
     if (loadUnderlying) {
         loadScript(filename, entryPoint);

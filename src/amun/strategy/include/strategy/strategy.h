@@ -70,7 +70,7 @@ signals:
     void sendStrategyCommands(bool blue, const QList<RobotCommandInfo> &commands, qint64 time);
     void sendHalt(bool blue);
     void startReadingStatus();
-	void recordGitDiff(QDir dir, bool changed, StrategyType type);
+	void recordGitDiff(QString dir, bool changed, int type);
 
 public slots:
     void handleStatus(const Status &status);
@@ -83,7 +83,7 @@ private slots:
     void reload();
     void sendCommand(const Command &command);
     void loadStateChanged(amun::StatusStrategy::STATE state);
-    void requestGitRecording(QDir dir, bool changed);
+    void requestGitRecording(const QString& dir, bool changed);
 
 private:
     static void initV8();

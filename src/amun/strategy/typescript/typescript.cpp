@@ -591,7 +591,7 @@ void Typescript::onCompileStarted()
     emit changeLoadState(amun::StatusStrategy::COMPILING);
     auto dir = QFileInfo(m_filename).dir();
     dir.cdUp();
-    emit recordGitDiff(dir, true);
+    emit recordGitDiff(dir.canonicalPath(), true);
 }
 
 void Typescript::onCompileWarning(const QString &message)

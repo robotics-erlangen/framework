@@ -27,8 +27,21 @@ message StatusStrategy {
     // deprecated = 6
     optional bool has_debugger = 7;
     repeated StrategyOption options = 8;
-	optional string git_hash = 9;
-	optional string git_diff = 10;
+}
+
+message GitInfo {
+    enum Kind {
+        BLUE = 1;
+        YELLOW = 2;
+        AUTOREF = 3;
+        RA = 4;
+        CONFIG = 5;
+    }
+    required Kind kind = 1;
+    required string hash = 2;
+    required string diff = 3;
+    required string min_hash = 4;
+    required string error = 5;
 }
 
 message StatusStrategyWrapper {
@@ -123,6 +136,7 @@ message Status {
     optional uint64 original_frame_number = 28;
     optional StatusStrategyWrapper status_strategy = 29;
     optional UiResponse pure_ui_response = 30; // NOTE: ANY STATUS containing this message will not be serialized in a log.
+    optional GitInfo git_info = 31;
 }
 
 // This message can be used for pure user-ui-response.

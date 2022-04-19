@@ -24,48 +24,20 @@
 
 #include <QObject>
 #include <QString>
-#include <QDir>
+#include <QMap>
 #include <QSet>
-
-enum class GitInfoKind {
-	BLUE, YELLOW, AUTOREF, REPLAY_BLUE, REPLAY_YELLOW, RA, CONFIG
-};
 
 class GitInfoRecorder : public QObject {
 	Q_OBJECT
 
 private:
-	QSet<QString> alreadyRecordedDirectories;
+	QMap<QString, QSet<int>> alreadyRecordedDirectories;
 
 signals:
     void sendStatus(const Status &status);
 
 public slots:
-	void startGitDiffStrategy(const QDir& dir, bool changed, StrategyType type) {
-		GitInfoKind infoKind;
-		switch (type) {
-			case StrategyType::BLUE:
-				infoKind = GitInfoKind::BLUE;
-				break;
-			case StrategyType::YELLOW:
-				infoKind = GitInfoKind::BLUE;
-				break;
-			case StrategyType::AUTOREF:
-				infoKind = GitInfoKind::BLUE;
-				break;
-		}
-		startGitDiff(dir, changed, infoKind);
-	}
+	void startGitDiffStrategy(const QString& dir, bool changed, int type);
 
-    void startGitDiff(const QDir& dir, bool changed, GitInfoKind infoKind) {
-		QString canonicalPath = dir.canonicalPath();
-		if (changed || !alreadyRecordedDirectories.contains(canonicalPath)) {
-			alreadyRecordedDirectories.insert(canonicalPath);
-			const std::string gitPath = canonicalPath.append("/").toStdString();
-			const auto gitTree = gitconfig::getLiveCommit(gitPath.c_str());
-			const auto hash = QString::fromStdString(gitTree.hash);
-			const auto diff = QString::fromStdString(gitTree.diff);
-
-		}
-    }
+    void startGitDiff(QString canonicalPath, bool changed, amun::GitInfo::Kind infoKind);
 };

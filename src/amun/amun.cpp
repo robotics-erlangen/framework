@@ -334,6 +334,7 @@ void Amun::stop()
     for (int i = 0;i<5;i++) {
         m_strategyThread[i]->quit();
     }
+    m_gitRecorderThread->quit();
 
     // wait for threads
     m_processorThread->wait();
@@ -347,6 +348,7 @@ void Amun::stop()
     // As the strategy may still be writing to debugHelper, we can only start quitting as soon as the starategy is dead for sure.
     m_debugHelperThread->quit();
     m_debugHelperThread->wait();
+    m_gitRecorderThread->wait();
 
     delete m_optionsManager;
 
@@ -369,6 +371,7 @@ void Amun::stop()
     }
     m_processor = nullptr;
     m_integrator = nullptr;
+    m_gitInfoRecorder = nullptr;
 }
 
 void Amun::setupReceiver(Receiver *&receiver, const QHostAddress &address, quint16 port)
