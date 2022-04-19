@@ -54,7 +54,6 @@ public:
 
 public slots:
     void handleStatus(const Status &status);
-    void resendAll(bool send);
     void saveConfig();
     void setUseDarkColors(bool useDark) { m_useDarkColors = useDark; updateStyleSheet(); }
 

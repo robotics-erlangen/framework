@@ -444,23 +444,6 @@ void TeamWidget::selectEntryPoint(QAction* action)
     selectEntryPoint(action->data().toString());
 }
 
-void TeamWidget::resendAll(bool send)
-{
-    if (send && !m_filename.isEmpty() && !m_entryPoint.isEmpty()) {
-        Command command(new amun::Command);
-        amun::CommandStrategy *strategy = commandStrategyFromType(command);
-        amun::CommandStrategyLoad *strategyLoad = strategy->mutable_load();
-
-        strategyLoad->set_filename(m_filename.toStdString());
-        strategyLoad->set_entry_point(m_entryPoint.toStdString());
-        strategy->set_auto_reload(m_reloadAction->isChecked());
-        strategy->set_enable_debug(m_debugAction->isChecked());
-        strategy->set_performance_mode(m_performanceAction->isChecked());
-
-        emit sendCommand(command);
-    }
-}
-
 void TeamWidget::sendReload()
 {
     Command command(new amun::Command);
