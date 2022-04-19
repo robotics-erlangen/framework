@@ -62,11 +62,15 @@ private:
     void replaceLuaFunction(const char *module, const char *key, lua_CFunction replacement);
     void removeLuaFunction(const char *module, const char *key);
 
+private slots:
+    void requestRecording(QString file);
+
 private:
     lua_State *m_state;
     FileWatcher *m_watcher;
 
     qint64 m_startTime;
+
 };
 
 #endif // LUA_H

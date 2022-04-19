@@ -22,6 +22,7 @@
 #define AMUN_H
 
 #include "strategy/script/compilerregistry.h"
+#include "strategy/script/strategytype.h"
 #include "gamecontroller/gamecontrollerconnection.h"
 #include "protobuf/command.h"
 #include "protobuf/status.h"
@@ -45,6 +46,7 @@ class ProtobufFileSaver;
 class OptionsManager;
 class Seshat;
 class CommandConverter;
+class GitInfoRecorder;
 
 namespace camun {
     namespace simulator {
@@ -102,6 +104,7 @@ private:
     QThread *m_simulatorThread;
     QThread *m_strategyThread[5];
     QThread *m_debugHelperThread;
+    QThread *m_gitRecorderThread;
 
     Processor *m_processor;
     Transceiver *m_transceiver;
@@ -140,6 +143,7 @@ private:
     Seshat *m_seshat;
 
     CommandConverter *m_commandConverter;
+	GitInfoRecorder *m_gitInfoRecorder;
 };
 
 #endif // AMUN_H

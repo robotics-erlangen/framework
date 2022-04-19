@@ -37,6 +37,7 @@
 #include "strategy/strategy.h"
 #include "networkinterfacewatcher.h"
 #include "seshat/seshat.h"
+#include "gitinforecorder.h"
 #include <QMetaType>
 #include <QThread>
 #include <QList>
@@ -79,7 +80,8 @@ Amun::Amun(bool simulatorOnly, QObject *parent) :
     m_useAutoref(true),
     m_networkInterfaceWatcher(nullptr),
     m_seshat(new Seshat(20, this)),
-    m_commandConverter(nullptr)
+    m_commandConverter(nullptr),
+    m_gitInfoRecorder(nullptr)
 {
     qRegisterMetaType<QNetworkInterface>("QNetworkInterface");
     qRegisterMetaType<Command>("Command");
@@ -126,6 +128,8 @@ Amun::Amun(bool simulatorOnly, QObject *parent) :
     m_networkInterfaceWatcher = (!m_simulatorOnly) ? new NetworkInterfaceWatcher(this) : nullptr;
 
     m_pathInputSaver = new ProtobufFileSaver("pathinput.pathlog", "KHONSU PATHFINDING LOG", this);
+
+    m_gitRecorderThread = new QThread(this);
 }
 
 /*!
@@ -162,6 +166,10 @@ void Amun::start()
     connect(this, SIGNAL(gotCommand(Command)), m_optionsManager, SLOT(handleCommand(Command)));
     connect(m_optionsManager, SIGNAL(sendStatus(Status)), SLOT(handleStatus(Status)));
 
+    m_gitInfoRecorder = new GitInfoRecorder;
+    m_gitInfoRecorder->moveToThread(m_gitRecorderThread);
+    connect(m_gitRecorderThread, SIGNAL(finished()), m_gitInfoRecorder, SLOT(deleteLater()));
+    connect(m_gitInfoRecorder, &GitInfoRecorder::sendStatus, this, &Amun::handleStatus);
 
     connect(this, SIGNAL(gotCommand(Command)), m_seshat, SLOT(handleCommand(Command)));
     connect(m_seshat, &Seshat::sendUi, this, &Amun::sendStatus);
@@ -212,6 +220,7 @@ void Amun::start()
         // relay status and debug information of strategy
         connect(m_strategy[i], SIGNAL(sendStatus(Status)), SLOT(handleStatus(Status)));
         connect(m_strategy[i], SIGNAL(sendStatus(Status)), m_optionsManager, SLOT(handleStatus(Status)));
+        connect(m_strategy[i], &Strategy::recordGitDiff, m_gitInfoRecorder, &GitInfoRecorder::startGitDiffStrategy);
     }
 
     // replay strategies and connections
@@ -307,6 +316,7 @@ void Amun::start()
         m_strategyThread[i]->start();
     }
     m_debugHelperThread->start();
+    m_gitRecorderThread->start();
 }
 
 /*!

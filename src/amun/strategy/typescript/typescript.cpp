@@ -589,6 +589,9 @@ bool Typescript::loadJavascript(const QString &filename, const QString &entryPoi
 void Typescript::onCompileStarted()
 {
     emit changeLoadState(amun::StatusStrategy::COMPILING);
+    auto dir = QFileInfo(m_filename).dir();
+    dir.cdUp();
+    emit recordGitDiff(dir, true);
 }
 
 void Typescript::onCompileWarning(const QString &message)

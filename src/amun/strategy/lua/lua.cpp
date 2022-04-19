@@ -308,6 +308,7 @@ Lua::Lua(const Timer *timer, StrategyType type, ScriptState& scriptState, bool d
     // create file system watcher
     m_watcher = new FileWatcher(this);
     connect(m_watcher, SIGNAL(fileChanged(QString)), SIGNAL(requestReload()));
+    connect(m_watcher, SIGNAL(fileChanged(QString)), SIGNAL(requestRecording()));
 
     // timeout hook
     lua_sethook(m_state, luaDebugHook, LUA_MASKCOUNT, 1000000);
@@ -538,4 +539,11 @@ void Lua::setupPackageLoader()
 
     lua_pop(m_state, 1);
     // end customize package table
+}
+
+void Lua::requestRecording(QString file)
+{
+	auto dir = QFileInfo(m_filename).dir();
+	dir.cdUp();
+	emit recordGitDiff(dir, true);
 }

@@ -28,6 +28,7 @@
 #include "protobuf/status.h"
 #include "strategy/script/scriptstate.h"
 #include "strategy/script/strategytype.h"
+#include <QDir>
 #include <QString>
 #include <QStringList>
 #include <memory>
@@ -69,6 +70,7 @@ signals:
     void sendStrategyCommands(bool blue, const QList<RobotCommandInfo> &commands, qint64 time);
     void sendHalt(bool blue);
     void startReadingStatus();
+	void recordGitDiff(QDir dir, bool changed, StrategyType type);
 
 public slots:
     void handleStatus(const Status &status);
@@ -81,7 +83,7 @@ private slots:
     void reload();
     void sendCommand(const Command &command);
     void loadStateChanged(amun::StatusStrategy::STATE state);
-    void receiveGitDiff(QString hash, QString diff);
+    void requestGitRecording(QDir dir, bool changed);
 
 private:
     static void initV8();

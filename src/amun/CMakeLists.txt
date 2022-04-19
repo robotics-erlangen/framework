@@ -39,6 +39,7 @@ add_library(amun STATIC
     optionsmanager.h
     commandconverter.cpp
     commandconverter.h
+	gitinforecorder.h
 )
 target_link_libraries(amun
     PRIVATE shared::core
@@ -51,6 +52,7 @@ target_link_libraries(amun
     PRIVATE Qt5::Network
     PUBLIC amun::gamecontroller
     PUBLIC amun::internalreferee
+    PUBLIC gitconfig
 )
 target_include_directories(amun
     INTERFACE include
