@@ -36,6 +36,13 @@ public:
     ~GitInfoWidget();
     void updateGitInfo(const std::string& hash, const std::string& diff, const std::string& min_hash, const std::string& error);
 	void updateWidget();
+    void load();
+
+public:
+	QString name;
+
+private:
+    void save();
 
 private:
     Ui::GitInfoWidget *ui;

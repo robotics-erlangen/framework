@@ -22,6 +22,8 @@
 #include "ui_gitinfowidget.h"
 #include "git/gitconfig.h"
 
+#include <QSettings>
+
 enum class DiffOptions {
     ORIGINAL, MIN_HASH, HEAD, MASTER, CUSTOM
 };
@@ -48,6 +50,7 @@ GitInfoWidget::GitInfoWidget(QWidget *parent) :
 
 GitInfoWidget::~GitInfoWidget()
 {
+    save();
     delete ui;
 }
 
@@ -110,4 +113,22 @@ void GitInfoWidget::updateCustomDiffHash()
 {
     m_diffHash = ui->customDiffHashEdit->text().toStdString();
     updateWidget();
+}
+
+void GitInfoWidget::save()
+{
+    const auto pathName = "GitInfo/" + name;
+    QSettings s;
+    s.setValue(pathName + "/relativePath", ui->relativePathEdit->text());
+    s.setValue(pathName + "/customDiffHash", ui->customDiffHashEdit->text());
+    s.setValue(pathName + "/diffToComboBox", ui->diffToComboBox->currentIndex());
+}
+
+void GitInfoWidget::load()
+{
+    const auto pathName = "GitInfo/" + name;
+    QSettings s;
+    ui->relativePathEdit->setText(s.value(pathName + "/relativePath").toString());
+    ui->customDiffHashEdit->setText(s.value(pathName + "/customDiffHash").toString());
+    ui->diffToComboBox->setCurrentIndex(s.value(pathName + "/diffToComboBox").toInt());
 }

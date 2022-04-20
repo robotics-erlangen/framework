@@ -26,6 +26,17 @@ GitInfoDialog::GitInfoDialog(QWidget *parent) :
     ui(new Ui::GitInfoDialog)
 {
     ui->setupUi(this);
+    ui->autorefDiff->name = "Autoref";
+    ui->strategyBlueDiff->name = "Blue";
+    ui->strategyYellowDiff->name = "Yellow";
+    ui->raDiff->name = "Ra";
+    ui->configDiff->name = "Config";
+
+    ui->autorefDiff->load();
+    ui->strategyBlueDiff->load();
+    ui->strategyYellowDiff->load();
+    ui->raDiff->load();
+    ui->configDiff->load();
 }
 
 void GitInfoDialog::handleStatus(const Status& status)
