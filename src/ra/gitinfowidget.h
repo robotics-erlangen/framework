@@ -34,11 +34,18 @@ class GitInfoWidget : public QWidget
 public:
     explicit GitInfoWidget(QWidget *parent = nullptr);
     ~GitInfoWidget();
-    void setGitDiff(const QString& text);
-    void setGitHash(const QString& text);
+    void updateGitInfo(const std::string& hash, const std::string& diff, const std::string& min_hash, const std::string& error);
+	void updateWidget();
 
 private:
     Ui::GitInfoWidget *ui;
+    std::string m_hash, m_diff, m_min_hash, m_error, m_relativePath, m_diffHash;
+	bool showOrigDiff = true;
+
+private slots:
+	void updateRelativePath();
+	void updateDiffHash(int index);
+	void updateCustomDiffHash();
 };
 
 #endif // GITINFOWIDGET_H

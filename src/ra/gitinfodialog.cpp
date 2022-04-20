@@ -52,8 +52,7 @@ void GitInfoDialog::handleStatus(const Status& status)
                 return;
             }
         }
-        infoWidget->setGitHash(QString::fromStdString(gitInfo.hash()));
-        infoWidget->setGitDiff(QString::fromStdString(gitInfo.diff()));
+        infoWidget->updateGitInfo(gitInfo.hash(), gitInfo.diff(), gitInfo.min_hash(), gitInfo.error());
     }
 }
 
