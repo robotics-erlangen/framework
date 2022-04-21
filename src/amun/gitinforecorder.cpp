@@ -47,7 +47,7 @@ void GitInfoRecorder::startGitDiff(QString canonicalPath, bool changed, amun::Gi
         const auto diff = QString::fromStdString(gitTree.diff);
 
         Status status(new amun::Status);
-        auto gitInfo = status->mutable_git_info();
+        auto gitInfo = status->add_git_info();
         gitInfo->set_kind(infoKind);
         *gitInfo->mutable_hash() = gitTree.hash;
         *gitInfo->mutable_diff() = gitTree.diff;
@@ -59,7 +59,7 @@ void GitInfoRecorder::startGitDiff(QString canonicalPath, bool changed, amun::Gi
 
 void GitInfoRecorder::recordRaGitDiff() {
     Status status(new amun::Status);
-    auto gitInfo = status->mutable_git_info();
+    auto gitInfo = status->add_git_info();
     gitInfo->set_kind(amun::GitInfo_Kind_RA);
     *gitInfo->mutable_hash() = gitconfig::getErforceReliableCommitHash();
     *gitInfo->mutable_diff() = gitconfig::getErforceReliableCommitDiff();

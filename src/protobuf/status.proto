@@ -136,7 +136,7 @@ message Status {
     optional uint64 original_frame_number = 28;
     optional StatusStrategyWrapper status_strategy = 29;
     optional UiResponse pure_ui_response = 30; // NOTE: ANY STATUS containing this message will not be serialized in a log.
-    optional GitInfo git_info = 31;
+    repeated GitInfo git_info = 31;
 }
 
 // This message can be used for pure user-ui-response.

@@ -41,8 +41,7 @@ GitInfoDialog::GitInfoDialog(QWidget *parent) :
 
 void GitInfoDialog::handleStatus(const Status& status)
 {
-    if (status->has_git_info()) {
-        const auto gitInfo = status->git_info();
+    for(const auto& gitInfo : status->git_info()) {
 
         GitInfoWidget* infoWidget;
         switch (gitInfo.kind()) {
