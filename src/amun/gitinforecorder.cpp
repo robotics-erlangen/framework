@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include "gitinforecorder.h"
+#include "git/gitconfig.h"
 
 void GitInfoRecorder::startGitDiffStrategy(const QString& dir, bool changed, int type) {
     amun::GitInfo::Kind infoKind;
@@ -54,4 +55,15 @@ void GitInfoRecorder::startGitDiff(QString canonicalPath, bool changed, amun::Gi
         *gitInfo->mutable_error() = gitTree.error;
         sendStatus(status);
     }
+}
+
+void GitInfoRecorder::recordRaGitDiff() {
+    Status status(new amun::Status);
+    auto gitInfo = status->mutable_git_info();
+    gitInfo->set_kind(amun::GitInfo_Kind_RA);
+    *gitInfo->mutable_hash() = gitconfig::getErforceReliableCommitHash();
+    *gitInfo->mutable_diff() = gitconfig::getErforceReliableCommitDiff();
+    *gitInfo->mutable_min_hash() = gitconfig::getErforceCommitHash();
+    *gitInfo->mutable_error() = "";
+    sendStatus(status);
 }

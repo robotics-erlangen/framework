@@ -40,4 +40,5 @@ public slots:
 	void startGitDiffStrategy(const QString& dir, bool changed, int type);
 
     void startGitDiff(QString canonicalPath, bool changed, amun::GitInfo::Kind infoKind);
+    void recordRaGitDiff();
 };

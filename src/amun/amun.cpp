@@ -170,6 +170,10 @@ void Amun::start()
     m_gitInfoRecorder->moveToThread(m_gitRecorderThread);
     connect(m_gitRecorderThread, SIGNAL(finished()), m_gitInfoRecorder, SLOT(deleteLater()));
     connect(m_gitInfoRecorder, &GitInfoRecorder::sendStatus, this, &Amun::handleStatus);
+    {
+        QObject signalSource;
+        connect(&signalSource, &QObject::destroyed, m_gitInfoRecorder, &GitInfoRecorder::recordRaGitDiff);
+    }
 
     connect(this, SIGNAL(gotCommand(Command)), m_seshat, SLOT(handleCommand(Command)));
     connect(m_seshat, &Seshat::sendUi, this, &Amun::sendStatus);

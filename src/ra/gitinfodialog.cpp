@@ -58,6 +58,10 @@ void GitInfoDialog::handleStatus(const Status& status)
                 infoWidget = ui->autorefDiff;
                 break;
             }
+            case amun::GitInfo_Kind_RA: {
+                infoWidget = ui->raDiff;
+                break;
+            }
             default: {
                 std::cerr << "Received git info for unknown source!" << std::endl;
                 return;
