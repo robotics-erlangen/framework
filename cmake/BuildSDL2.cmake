@@ -34,6 +34,7 @@ if (UNIX AND NOT APPLE)
             DOWNLOAD_NO_PROGRESS true
             CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
             BUILD_BYPRODUCTS "<INSTALL_DIR>/${LIBSDL_SUBPATH}"
+            DOWNLOAD_DIR "${DEPENDENCY_DOWNLOADS}"
         )
         EPHelper_Mark_For_Download(project_sdl2)
 
@@ -78,6 +79,7 @@ elseif(MINGW)
         BUILD_BYPRODUCTS
             "<INSTALL_DIR>/${LIBSDL_SUBPATH}"
             "<INSTALL_DIR>/${LIBSDL_LIBSUBPATH}"
+        DOWNLOAD_DIR "${DEPENDENCY_DOWNLOADS}"
     )
     EPHelper_Mark_For_Download(project_sdl2)
 

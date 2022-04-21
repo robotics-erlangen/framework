@@ -133,6 +133,9 @@ if(UNIX AND NOT APPLE)
     find_package(Jemalloc)
 endif()
 find_package(USB)
+
+set(DEPENDENCY_DOWNLOADS "${CMAKE_BINARY_DIR}/dependencies")
+
 if(MINGW AND NOT TARGET lib::usb)
     include(BuildUSB)
 endif()

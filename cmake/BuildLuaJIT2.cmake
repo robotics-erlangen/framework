@@ -71,6 +71,7 @@ ExternalProject_Add(project_luajit
     BUILD_BYPRODUCTS "<INSTALL_DIR>/${LUAJIT_SUBPATH}"
     INSTALL_COMMAND make install ${LUAJIT_FLAGS} PREFIX=${SPACE_FREE_INSTALL_DIR} ${LUAJIT_INSTALL_FLAGS}
         ${LUAJIT_EXTRA_COMMANDS}
+    DOWNLOAD_DIR "${DEPENDENCY_DOWNLOADS}"
 )
 EPHelper_Add_Cleanup(project_luajit bin include lib share)
 EPHelper_Add_Clobber(project_luajit ${LUAJIT_PATCH_FILE})

@@ -40,6 +40,7 @@ ExternalProject_Add(project_libgit2
         -DCMAKE_C_FLAGS:STRING=${CMAKE_C_FLAGS}
     BUILD_BYPRODUCTS
             "<INSTALL_DIR>/${LIBGIT_SUBPATH}"
+    DOWNLOAD_DIR "${DEPENDENCY_DOWNLOADS}"
 )
 
 EPHelper_Mark_For_Download(project_libgit2)

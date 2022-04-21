@@ -52,6 +52,7 @@ ExternalProject_Add(project_bullet
         "<INSTALL_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}BulletDynamics${CMAKE_STATIC_LIBRARY_SUFFIX}"
         "<INSTALL_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}BulletCollision${CMAKE_STATIC_LIBRARY_SUFFIX}"
         "<INSTALL_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}LinearMath${CMAKE_STATIC_LIBRARY_SUFFIX}"
+    DOWNLOAD_DIR "${DEPENDENCY_DOWNLOADS}"
 )
 EPHelper_Add_Cleanup(project_bullet bin include lib share)
 EPHelper_Add_Clobber(project_bullet ${BULLET_PATCH_FILE})

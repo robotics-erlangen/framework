@@ -43,6 +43,7 @@ if(MINGW)
         BUILD_BYPRODUCTS
             "<INSTALL_DIR>/${LIBUSB_SUBPATH}"
             "<INSTALL_DIR>/${LIBUSB_SUBPATH}.a"
+        DOWNLOAD_DIR "${DEPENDENCY_DOWNLOADS}"
     )
     EPHelper_Mark_For_Download(project_usb)
 

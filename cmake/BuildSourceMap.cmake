@@ -35,6 +35,7 @@ ExternalProject_Add(project_sourcemap
     BUILD_BYPRODUCTS
         "<BINARY_DIR>/${LIBSM_SUBPATH}"
     INSTALL_COMMAND ""
+    DOWNLOAD_DIR "${DEPENDENCY_DOWNLOADS}"
 )
 EPHelper_Add_Cleanup(project_sourcemap bin include lib share)
 EPHelper_Add_Clobber(project_sourcemap ${SOURCEMAP_PATCH_FILE})

@@ -119,6 +119,7 @@ if((NOT V8_OUTPUT_DIR OR NOT V8_INCLUDE_DIR) AND DOWNLOAD_V8)
             BUILD_COMMAND ""
             INSTALL_COMMAND ""
             DOWNLOAD_NO_PROGRESS true
+            DOWNLOAD_DIR "${DEPENDENCY_DOWNLOADS}"
         )
         EPHelper_Add_Cleanup(v8_download bin include lib share)
         EPHelper_Add_Clobber(v8_download ${CMAKE_CURRENT_LIST_DIR}/stub.patch)

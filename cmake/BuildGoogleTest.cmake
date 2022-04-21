@@ -39,6 +39,7 @@ ExternalProject_Add(project_googletest
     BUILD_BYPRODUCTS
     "<INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/${CMAKE_STATIC_LIBRARY_PREFIX}gtest${CMAKE_STATIC_LIBRARY_SUFFIX}"
     "<INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/${CMAKE_STATIC_LIBRARY_PREFIX}gtest_main${CMAKE_STATIC_LIBRARY_SUFFIX}"
+    DOWNLOAD_DIR "${DEPENDENCY_DOWNLOADS}"
 )
 EPHelper_Add_Cleanup(project_googletest bin include ${CMAKE_INSTALL_LIBDIR} share)
 EPHelper_Add_Clobber(project_googletest "${GOOGLETEST_PATCH_FILE}")

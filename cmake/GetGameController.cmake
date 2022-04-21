@@ -47,6 +47,7 @@ ExternalProject_Add(gamecontroller_download
     BUILD_COMMAND ""
     INSTALL_COMMAND ""
     DOWNLOAD_NO_PROGRESS true
+    DOWNLOAD_DIR "${DEPENDENCY_DOWNLOADS}"
 )
 EPHelper_Add_Cleanup(gamecontroller_download bin include lib share)
 EPHelper_Add_Clobber(gamecontroller_download ${CMAKE_CURRENT_LIST_DIR}/stub.patch)

@@ -33,6 +33,7 @@ ExternalProject_Add(project_eigen
         -DCMAKE_CXX_COMPILER:PATH=${CMAKE_CXX_COMPILER}
         -DCMAKE_MAKE_PROGRAM:PATH=${CMAKE_MAKE_PROGRAM}
         -DCMAKE_INSTALL_MESSAGE:STRING=NEVER
+    DOWNLOAD_DIR ${DEPENDENCY_DOWNLOADS}
 )
 EPHelper_Add_Cleanup(project_eigen bin include lib share)
 EPHelper_Add_Clobber(project_eigen ${CMAKE_CURRENT_LIST_DIR}/stub.patch)
