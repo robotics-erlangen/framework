@@ -23,12 +23,12 @@ include(ExternalProjectHelper)
 
 if(MINGW)
     set(LUAJIT_SUBPATH "lib/lua51${CMAKE_SHARED_LIBRARY_SUFFIX}")
-	set(LUAJIT_EXTRA_COMMANDS
-		COMMAND ${CMAKE_COMMAND} -E copy <BINARY_DIR>/src/lua51.dll <INSTALL_DIR>/${LUAJIT_SUBPATH}
-	)
+    set(LUAJIT_EXTRA_COMMANDS
+        COMMAND ${CMAKE_COMMAND} -E copy <BINARY_DIR>/src/lua51.dll <INSTALL_DIR>/${LUAJIT_SUBPATH}
+    )
 else()
     set(LUAJIT_SUBPATH "lib/${CMAKE_STATIC_LIBRARY_PREFIX}luajit-5.1${CMAKE_STATIC_LIBRARY_SUFFIX}")
-	set(LUAJIT_EXTRA_COMMANDS "")
+    set(LUAJIT_EXTRA_COMMANDS "")
 endif()
 
 if(CMAKE_CROSS_COMPILING AND MINGW)
@@ -70,7 +70,7 @@ ExternalProject_Add(project_luajit
     BUILD_COMMAND make clean && make amalg ${LUAJIT_FLAGS}
     BUILD_BYPRODUCTS "<INSTALL_DIR>/${LUAJIT_SUBPATH}"
     INSTALL_COMMAND make install ${LUAJIT_FLAGS} PREFIX=${SPACE_FREE_INSTALL_DIR} ${LUAJIT_INSTALL_FLAGS}
-	${LUAJIT_EXTRA_COMMANDS}
+        ${LUAJIT_EXTRA_COMMANDS}
 )
 EPHelper_Add_Cleanup(project_luajit bin include lib share)
 EPHelper_Add_Clobber(project_luajit ${LUAJIT_PATCH_FILE})

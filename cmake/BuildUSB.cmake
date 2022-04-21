@@ -27,37 +27,37 @@ if(MINGW)
         set(BITS 64)
     endif()
 
-	include(ExternalProject)
-	include(ExternalProjectHelper)
-	ExternalProject_Add(project_usb
-		EXCLUDE_FROM_ALL true
-		URL http://www.robotics-erlangen.de/downloads/libraries/libusb-1.0.21.7z
+    include(ExternalProject)
+    include(ExternalProjectHelper)
+    ExternalProject_Add(project_usb
+        EXCLUDE_FROM_ALL true
+        URL http://www.robotics-erlangen.de/downloads/libraries/libusb-1.0.21.7z
         URL_HASH SHA256=acdde63a40b1477898aee6153f9d91d1a2e8a5d93f832ca8ab876498f3a6d2b8
-		DOWNLOAD_NO_PROGRESS true
-		CONFIGURE_COMMAND ""
-		BUILD_COMMAND ""
-		BUILD_IN_SOURCE true
-		INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/MinGW${BITS}/dll/libusb-1.0.dll <INSTALL_DIR>/bin
-		COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/MinGW${BITS}/dll/libusb-1.0.dll.a <INSTALL_DIR>/bin
-		COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include <INSTALL_DIR>/include
+        DOWNLOAD_NO_PROGRESS true
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+        BUILD_IN_SOURCE true
+        INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/MinGW${BITS}/dll/libusb-1.0.dll <INSTALL_DIR>/bin
+        COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/MinGW${BITS}/dll/libusb-1.0.dll.a <INSTALL_DIR>/bin
+        COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include <INSTALL_DIR>/include
         BUILD_BYPRODUCTS
             "<INSTALL_DIR>/${LIBUSB_SUBPATH}"
             "<INSTALL_DIR>/${LIBUSB_SUBPATH}.a"
-	)
-	EPHelper_Mark_For_Download(project_usb)
+    )
+    EPHelper_Mark_For_Download(project_usb)
 
-	externalproject_get_property(project_usb install_dir)
-	add_library(lib::usb UNKNOWN IMPORTED)
-	# cmake enforces that the include directory exists
-	file(MAKE_DIRECTORY "${install_dir}/include/libusb-1.0")
-	set_target_properties(lib::usb PROPERTIES
-		IMPORTED_LOCATION "${install_dir}/${LIBUSB_SUBPATH}"
-		INTERFACE_LINK_LIBRARIES "${install_dir}/${LIBUSB_SUBPATH}.a"
-		INTERFACE_INCLUDE_DIRECTORIES "${install_dir}/include/libusb-1.0"
-	)
-	add_dependencies(lib::usb project_usb)
-	set(USB_FOUND true)
-	message(STATUS "Building libusb 1.0.21")
+    externalproject_get_property(project_usb install_dir)
+    add_library(lib::usb UNKNOWN IMPORTED)
+    # cmake enforces that the include directory exists
+    file(MAKE_DIRECTORY "${install_dir}/include/libusb-1.0")
+    set_target_properties(lib::usb PROPERTIES
+        IMPORTED_LOCATION "${install_dir}/${LIBUSB_SUBPATH}"
+        INTERFACE_LINK_LIBRARIES "${install_dir}/${LIBUSB_SUBPATH}.a"
+        INTERFACE_INCLUDE_DIRECTORIES "${install_dir}/include/libusb-1.0"
+    )
+    add_dependencies(lib::usb project_usb)
+    set(USB_FOUND true)
+    message(STATUS "Building libusb 1.0.21")
 else()
     message(WARNING "Get libusb for transmitter support")
     set(USB_FOUND false)

@@ -40,11 +40,11 @@ ExternalProject_Add(project_protobuf
         -DCMAKE_CXX_FLAGS:STRING=-std=gnu++11
         # the tests fail to build :-(
         -Dprotobuf_BUILD_TESTS:BOOL=OFF
-	STEP_TARGETS install
+    STEP_TARGETS install
 )
 # the byproducts are available after the install step
 ExternalProject_Add_Step(project_protobuf out
-	DEPENDEES install
+    DEPENDEES install
     BYPRODUCTS
         "<INSTALL_DIR>/${PROTOBUF_SUBPATH}"
         "<INSTALL_DIR>/${PROTOC_SUBPATH}"
