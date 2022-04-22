@@ -22,6 +22,7 @@
 #include "backlogwriter.h"
 #include "logfilewriter.h"
 #include "statussource.h"
+#include "longlivingstatuscache.h"
 
 #include <QThread>
 #include <QDateTime>
@@ -69,7 +70,8 @@ CombinedLogWriter::CombinedLogWriter(bool replay, int backlogLength) :
     m_logFileThread(NULL),
     m_lastTime(0),
     m_isLoggingEnabled(true),
-    m_signalSource(new SignalSource(this))
+    m_signalSource(new SignalSource(this)),
+    m_statusCache(new LongLivingStatusCache(this))
 {
     // start backlog writer thread
     m_backlogThread = new QThread();
@@ -169,25 +171,6 @@ void CombinedLogWriter::handleStatus(Status status)
         status->set_time(m_lastTime);
     }
 
-    // keep team configurations for the logfile
-    if (status->has_team_yellow()) {
-        m_yellowTeam.CopyFrom(status->team_yellow());
-    }
-    if (status->has_team_blue()) {
-        m_blueTeam.CopyFrom(status->team_blue());
-    }
-
-    if (status->has_world_state()) {
-        for (const auto &vision : status->world_state().vision_frames()) {
-            if (vision.has_geometry()) {
-                for (const auto &calib : vision.geometry().calib()) {
-                    // avoid copying the vision geometry since it is rather large (around 1kb)
-                    m_lastVisionGeometryStatus[calib.camera_id()] = status;
-                }
-            }
-        }
-    }
-
     // keep team names for the logfile
     if (status->has_game_state()) {
         const amun::GameState &state = status->game_state();
@@ -197,6 +180,8 @@ void CombinedLogWriter::handleStatus(Status status)
         const SSL_Referee_TeamInfo &teamYellow = state.yellow();
         m_yellowTeamName = QString::fromStdString(teamYellow.name());
     }
+
+    m_statusCache->handleStatus(status);
 
     if (status->has_pure_ui_response()) {
         return;
@@ -251,9 +236,8 @@ void CombinedLogWriter::saveBackLog()
 {
     const QString filename = createLogFilename();
 
-    Status status(new amun::Status);
-    status->mutable_team_yellow()->CopyFrom(m_yellowTeam);
-    status->mutable_team_blue()->CopyFrom(m_blueTeam);
+    Status status{getTeamStatus()};
+    status->clear_time();
 
     m_signalSource->emitSaveBacklog(filename, status, true);
 }
@@ -309,40 +293,14 @@ QString CombinedLogWriter::createLogFilename() const
 
 Status CombinedLogWriter::getTeamStatus()
 {
-    Status status(new amun::Status);
-    status->set_time(m_lastTime);
-    status->mutable_team_yellow()->CopyFrom(m_yellowTeam);
-    status->mutable_team_blue()->CopyFrom(m_blueTeam);
-    return status;
-}
-
-Status CombinedLogWriter::getVisionGeometryStatus()
-{
-    Status status(new amun::Status);
-    status->set_time(m_lastTime);
-    if (m_lastVisionGeometryStatus.size() > 0) {
-        auto *world = status->mutable_world_state();
-        world->set_time(m_lastTime);
-        for (int id : m_lastVisionGeometryStatus.keys()) {
-            for (const auto &vision : m_lastVisionGeometryStatus[id]->world_state().vision_frames()) {
-                if (vision.has_geometry()) {
-                    world->add_vision_frames()->mutable_geometry()->CopyFrom(vision.geometry());
-                    world->add_vision_frame_times(m_lastTime);
-                }
-            }
-        }
-    }
-    return status;
+    return m_statusCache->getTeamStatus();
 }
 
 void CombinedLogWriter::startLogfile()
 {
-    // add an empty status to the front of the log since applications like tracking replay might skip the first frame
-    Status emptyStatus(new amun::Status);
-    emptyStatus->set_time(m_lastTime);
-    m_logFile->writeStatus(emptyStatus);
-    m_logFile->writeStatus(getTeamStatus());
-    m_logFile->writeStatus(getVisionGeometryStatus());
+    connect(m_statusCache, &LongLivingStatusCache::sendStatus, m_logFile, &LogFileWriter::writeStatus);
+    m_statusCache->publish();
+    disconnect(m_statusCache, &LongLivingStatusCache::sendStatus, m_logFile, &LogFileWriter::writeStatus);
     m_logState = LogState::LOGGING;
 }
 

@@ -36,6 +36,7 @@ class QThread;
 class QDateTime;
 class QLabel;
 class StatusSource;
+class LongLivingStatusCache;
 namespace CombinedLogWriterInternal {
     class SignalSource;
 }
@@ -69,7 +70,6 @@ private:
     void recordButtonToggled(bool enabled, QString overwriteFilename);
     void useLogfileLocation(bool enabled);
     void sendIsLogging(bool log);
-    Status getVisionGeometryStatus();
 
 private:
     enum class LogState {
@@ -84,13 +84,10 @@ private:
     LogFileWriter *m_logFile;
     QThread *m_logFileThread;
 
-    robot::Team m_yellowTeam;
-    robot::Team m_blueTeam;
     QString m_yellowTeamName;
     QString m_blueTeamName;
 
     // camera id -> geometry (each geometry only has at most 1 camera calibration)
-    QMap<int, Status> m_lastVisionGeometryStatus;
     qint64 m_lastTime;
 
     bool m_isLoggingEnabled;
@@ -98,6 +95,8 @@ private:
     CombinedLogWriterInternal::SignalSource *m_signalSource;
 
     QList<Status> m_zeroTimeStatus;
+
+    LongLivingStatusCache *m_statusCache;
 };
 
 #endif // COMBINEDLOGWRITER_H

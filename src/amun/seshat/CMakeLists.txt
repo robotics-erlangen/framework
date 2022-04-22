@@ -46,6 +46,8 @@ add_library(seshat STATIC
     visionconverter.cpp
     logfilefinder.cpp
     logfilefinder.h
+    longlivingstatuscache.cpp
+    longlivingstatuscache.h
 )
 
 target_link_libraries(seshat
