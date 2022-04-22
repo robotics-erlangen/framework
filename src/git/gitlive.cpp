@@ -338,7 +338,7 @@ gitconfig::TreeDescriptor gitconfig::getLiveCommit(const char* path) {
     populate_gitdiffconfig(active_data, path);
 
     git_diff* diff;
-    exitcode = git_diff_tree_to_workdir(&diff, active_data.repo, active_data.tree, &active_data.diffopt);
+    exitcode = git_diff_tree_to_workdir_with_index(&diff, active_data.repo, active_data.tree, &active_data.diffopt);
     if (exitcode) {
         out.error = "error in git_diff_tree_to_workdir" + std::to_string(exitcode);
         return out;
