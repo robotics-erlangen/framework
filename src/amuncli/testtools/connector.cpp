@@ -47,7 +47,7 @@ Connector::Connector(QObject *parent) :
     QObject(parent),
     m_backlogWriter(20)
 {
-    connect(this, SIGNAL(saveBacklogFile(QString, Status, bool)), &m_backlogWriter, SLOT(saveBacklog(QString, Status, bool)));
+    connect(this, SIGNAL(saveBacklogFile(QString, bool)), &m_backlogWriter, SLOT(saveBacklog(QString, bool)));
     connect(this, SIGNAL(backlogStatus(Status)), &m_backlogWriter, SLOT(handleStatus(Status)));
     connect(&m_backlogWriter, SIGNAL(finishedBacklogSave()), this, SLOT(continueAmun()));
     connect(&m_referee, SIGNAL(sendCommand(Command)), this, SIGNAL(sendCommand(Command)));
@@ -383,7 +383,7 @@ void Connector::stopAmunAndSaveBacklog(QString directory) {
 
     const QString date = CombinedLogWriter::dateTimeToString(QDateTime::currentDateTime()).replace(":", "");
     QString pathName = fullDir.path() + QString("/backlog%1.log").arg(date);
-    emit saveBacklogFile(pathName, m_teamStatus, false);
+    emit saveBacklogFile(pathName/*, m_teamStatus*/, false);
 }
 
 void Connector::continueAmun()

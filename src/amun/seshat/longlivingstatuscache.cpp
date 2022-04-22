@@ -45,7 +45,10 @@ void LongLivingStatusCache::handleStatus(const Status& status) {
     }
 }
 
-void LongLivingStatusCache::publish() {
+void LongLivingStatusCache::publish(bool debug) {
+    if (m_lastTime == 0) {
+        return;
+    }
     Status emptyStatus(new amun::Status);
     emptyStatus->set_time(m_lastTime);
     emit sendStatus(emptyStatus);

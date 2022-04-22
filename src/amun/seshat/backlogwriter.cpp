@@ -20,6 +20,7 @@
 
 #include "backlogwriter.h"
 #include "logfilewriter.h"
+#include "longlivingstatuscache.h"
 #include <QString>
 #include <QByteArray>
 #include <QCoreApplication>
@@ -52,7 +53,7 @@ void BacklogStatusSource::readPackets(int startPacket, int count)
 }
 
 
-BacklogWriter::BacklogWriter(unsigned seconds) : m_packets(BACKLOG_SIZE_PER_SECOND * seconds), m_timings(BACKLOG_SIZE_PER_SECOND * seconds)
+BacklogWriter::BacklogWriter(unsigned seconds) : m_packets(BACKLOG_SIZE_PER_SECOND * seconds), m_timings(BACKLOG_SIZE_PER_SECOND * seconds), m_cache(new LongLivingStatusCache(this))
 {
     connect(this, SIGNAL(clearData()), this, SLOT(clear()), Qt::QueuedConnection);
 }
@@ -67,6 +68,10 @@ void BacklogWriter::handleStatus(const Status &status)
     QByteArray packetData;
     packetData.resize(status->ByteSize());
     if (status->IsInitialized() && status->SerializeToArray(packetData.data(), packetData.size())) {
+        if (m_packets.isFull()) {
+            Status discarded = packetFromByteArray(m_packets.first());
+            m_cache->handleStatus(discarded);
+        }
         // compress the status to save a lot of memory, but be quick
         // the packets are uncompressed before writing to a logfile
         m_packets.append(qCompress(packetData, 1));
@@ -82,7 +87,7 @@ Status BacklogWriter::packetFromByteArray(QByteArray packetData)
     return status;
 }
 
-void BacklogWriter::saveBacklog(QString filename, Status teamStatus, bool processEvents)
+void BacklogWriter::saveBacklog(QString filename/*, Status teamStatus*/, bool processEvents)
 {
     if (m_packets.size() == 0) {
         return;
@@ -90,8 +95,9 @@ void BacklogWriter::saveBacklog(QString filename, Status teamStatus, bool proces
     emit enableBacklogSave(false);
     LogFileWriter writer;
     if (writer.open(filename)) {
-        teamStatus->set_time(packetFromByteArray(m_packets.first())->time());
-        writer.writeStatus(teamStatus);
+        connect(m_cache, &LongLivingStatusCache::sendStatus, &writer, &LogFileWriter::writeStatus);
+        m_cache->publish();
+        disconnect(m_cache, &LongLivingStatusCache::sendStatus, &writer, &LogFileWriter::writeStatus);
 
         QContiguousCache<QByteArray> packetCopy = m_packets;
         packetCopy.normalizeIndexes();

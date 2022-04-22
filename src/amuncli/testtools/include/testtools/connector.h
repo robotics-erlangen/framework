@@ -72,7 +72,7 @@ public slots:
 
 signals:
     void sendCommand(const Command &command);
-    void saveBacklogFile(QString filename, Status teamStatus, bool processEvents);
+    void saveBacklogFile(QString filename/*, Status teamStatus*/, bool processEvents);
     void backlogStatus(Status);
 
 private:

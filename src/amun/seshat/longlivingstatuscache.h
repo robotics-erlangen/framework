@@ -38,7 +38,7 @@ signals:
 
 public:
     Status getTeamStatus();
-    void publish();
+    void publish(bool debug = false);
     void handleStatus(const Status& s);
 
 private:
@@ -49,6 +49,6 @@ private:
     robot::Team m_blueTeam;
     // camera id -> geometry (each geometry only has at most 1 camera calibration)
     QMap<int, Status> m_lastVisionGeometryStatus;
-    qint64 m_lastTime;
+    qint64 m_lastTime = 0;
 };
 #endif

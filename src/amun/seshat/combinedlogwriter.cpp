@@ -38,7 +38,7 @@ namespace CombinedLogWriterInternal {
         SignalSource(QObject* parent = nullptr) : QObject(parent) {}
 
     signals:
-        void saveBacklogFile(QString filename, const Status &status, bool processEvents);
+        void saveBacklogFile(QString filename, bool processEvents);
         void gotStatusForRecording(const Status &status);
         void gotStatusForBacklog(const Status &status);
 
@@ -49,7 +49,7 @@ namespace CombinedLogWriterInternal {
     };
 
     void SignalSource::emitSaveBacklog(QString filename, const Status &status, bool processEvents) {
-        emit saveBacklogFile(filename, status, processEvents);
+        emit saveBacklogFile(filename, processEvents);
     }
 
     void SignalSource::emitStatusToRecording(const Status &status) {
@@ -82,7 +82,7 @@ CombinedLogWriter::CombinedLogWriter(bool replay, int backlogLength) :
 
     connect(m_backlogWriter, SIGNAL(enableBacklogSave(bool)), this, SLOT(enableLogging(bool)));
     connect(m_signalSource, SIGNAL(gotStatusForBacklog(Status)), m_backlogWriter, SLOT(handleStatus(Status)));
-    connect(m_signalSource, SIGNAL(saveBacklogFile(QString,Status,bool)), m_backlogWriter, SLOT(saveBacklog(QString,Status,bool)));
+    connect(m_signalSource, SIGNAL(saveBacklogFile(QString,bool)), m_backlogWriter, SLOT(saveBacklog(QString,bool)));
     connect(this, SIGNAL(resetBacklog()), m_backlogWriter, SLOT(clear()));
 }
 
@@ -299,8 +299,10 @@ Status CombinedLogWriter::getTeamStatus()
 void CombinedLogWriter::startLogfile()
 {
     connect(m_statusCache, &LongLivingStatusCache::sendStatus, m_logFile, &LogFileWriter::writeStatus);
+    connect(m_statusCache, &LongLivingStatusCache::sendStatus, m_backlogWriter, &BacklogWriter::handleStatus);
     m_statusCache->publish();
     disconnect(m_statusCache, &LongLivingStatusCache::sendStatus, m_logFile, &LogFileWriter::writeStatus);
+    disconnect(m_statusCache, &LongLivingStatusCache::sendStatus, m_backlogWriter, &BacklogWriter::handleStatus);
     m_logState = LogState::LOGGING;
 }
 

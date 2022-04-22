@@ -28,6 +28,7 @@
 
 class QString;
 class QByteArray;
+class LongLivingStatusCache;
 
 class BacklogStatusSource : public StatusSource
 {
@@ -64,11 +65,11 @@ signals:
     void clearData();
     void finishedBacklogSave();
 
-private slots:
+public slots:
     // these slots must be called in the same thread
     void clear();
     void handleStatus(const Status &status);
-    void saveBacklog(QString filename, Status teamStatus, bool processEvents);
+    void saveBacklog(QString filename/*, Status teamStatus*/, bool processEvents);
 
 private:
     Status packetFromByteArray(QByteArray packetData);
@@ -79,6 +80,7 @@ private:
 
     QContiguousCache<QByteArray> m_packets;
     QContiguousCache<qint64> m_timings;
+    LongLivingStatusCache *m_cache;
 
 };
 
