@@ -28,6 +28,7 @@ let amunLocal = amun;
 import { Ball as BallClass } from "base/ball";
 import * as Constants from "base/constants";
 import { Coordinates } from "base/coordinates";
+import * as debug from "base/debug";
 import * as MathUtil from "base/mathutil";
 // let mixedTeam = require "base/mixedteam"
 import * as pb from "base/protobuf";
@@ -472,6 +473,7 @@ function _updateGameState(state: pb.amun.GameState) {
 		friendlyKeeper = undefined;
 	}
 
+	debug.set("opponent keeper ID", opponentKeeperId);
 	let opponentKeeper: Robot | undefined = OpponentRobotsById[opponentKeeperId];
 	if (opponentKeeper && !opponentKeeper.isVisible) {
 		opponentKeeper = undefined;
