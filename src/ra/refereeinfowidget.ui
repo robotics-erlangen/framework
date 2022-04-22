@@ -152,7 +152,7 @@
          <item>
           <widget class="QLabel" name="keeperIdYellow">
            <property name="text">
-            <string>11</string>
+            <string>0</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>

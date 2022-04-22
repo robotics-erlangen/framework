@@ -27,6 +27,9 @@ RefereeInfoWidget::RefereeInfoWidget(QWidget *parent) :
 {
     ui->setupUi(this);
     setStyleSheets(false);
+
+    ui->keeperIdYellow->setNum(static_cast<int>(m_yellowKeeperId));
+    ui->keeperIdBlue->setNum(static_cast<int>(m_blueKeeperId));
 }
 
 RefereeInfoWidget::~RefereeInfoWidget()
