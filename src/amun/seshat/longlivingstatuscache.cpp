@@ -43,6 +43,9 @@ void LongLivingStatusCache::handleStatus(const Status& status) {
     if (status->has_time()) {
         m_lastTime = status->time();
     }
+    for(const auto& gitInfo: status->git_info()) {
+        m_lastGitInfos[gitInfo.kind()] = status;
+    }
 }
 
 void LongLivingStatusCache::publish(bool debug) {
@@ -54,6 +57,7 @@ void LongLivingStatusCache::publish(bool debug) {
     emit sendStatus(emptyStatus);
     emit sendStatus(getTeamStatus());
     emit sendStatus(getVisionGeometryStatus());
+    emit sendStatus(getGitStatus());
 }
 
 Status LongLivingStatusCache::getTeamStatus()
@@ -78,6 +82,20 @@ Status LongLivingStatusCache::getVisionGeometryStatus()
                     world->add_vision_frames()->mutable_geometry()->CopyFrom(vision.geometry());
                     world->add_vision_frame_times(m_lastTime);
                 }
+            }
+        }
+    }
+    return status;
+}
+
+Status LongLivingStatusCache::getGitStatus()
+{
+    Status status{new amun::Status};
+    status->set_time(m_lastTime);
+    for(amun::GitInfo::Kind k : m_lastGitInfos.keys()) {
+        for(const auto& info : m_lastGitInfos[k]->git_info()) {
+            if (k == info.kind()) {
+                status->add_git_info()->CopyFrom(info);
             }
         }
     }

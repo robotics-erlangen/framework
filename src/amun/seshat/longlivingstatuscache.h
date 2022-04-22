@@ -43,12 +43,14 @@ public:
 
 private:
     Status getVisionGeometryStatus();
+    Status getGitStatus();
 
 private:
     robot::Team m_yellowTeam;
     robot::Team m_blueTeam;
     // camera id -> geometry (each geometry only has at most 1 camera calibration)
     QMap<int, Status> m_lastVisionGeometryStatus;
+    QMap<amun::GitInfo::Kind, Status> m_lastGitInfos;
     qint64 m_lastTime = 0;
 };
 #endif
