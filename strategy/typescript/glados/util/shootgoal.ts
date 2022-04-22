@@ -1,5 +1,6 @@
 import * as Cache from "base/cache";
 import * as Constants from "base/constants";
+import * as debug from "base/debug";
 import * as Field from "base/field";
 import * as geom from "base/geom";
 import * as MathUtil from "base/mathutil";
@@ -214,6 +215,8 @@ export const shootGoalPossible: ShootGoalPossible = Cache.forFrame((robot, attac
 	 */
 	let attackPos = attackPosition != undefined ? attackPosition : robot.pos;
 	let hitLikelyhood = shootGoalLikelyhood(attackPos, sg_target);
+	vis.addPath("shootGoalLikelyhoodZone", [robot.pos, sg_target], vis.colors.skyBlueHalf, false, undefined, 0.1);
+	debug.set("goalLikelyhood", hitLikelyhood);
 	if (hitLikelyhood < 0.5) {
 		return [false, angle];
 	}
@@ -239,6 +242,9 @@ function getInterceptAcceleration(position: Position, speed: Vector, robotRadius
 		closestPoint = Field.limitToAllowedField(closestPoint, 0);
 	}
 	let tAtPos = (closestPoint - attackPosition).length() / Constants.maxBallSpeed;
+	if (tAtPos <= 0.01) {
+		return 0;
+	}
 	let distance = closestPoint - position;
 	let result = (distance - speed * tAtPos).length() / (tAtPos * tAtPos);
 	return result;
@@ -256,13 +262,13 @@ function shootGoalLikelyhood(attackPosition: Position, sgTarget: Position): numb
 	let upperBound = sgTarget + endRange;
 	let lowerBound = sgTarget - endRange;
 
-	vis.addPolygon("shootGoalLikelyhoodZone", [attackPosition, lowerBound, upperBound], vis.colors.skyBlue, true);
-
 	let likelyhoodToBeIntercepted = 0;
 	for (let robot of World.OpponentRobots) {
 		let futurePosition: Vector = robot.pos + robot.speed * tAttack;
 		if (robot !== World.OpponentKeeper
 			&& (geom.isInTriangle(attackPosition, lowerBound, upperBound, robot.pos) || geom.isInTriangle(attackPosition, lowerBound, upperBound, futurePosition))) {
+			// try to estimate the likelyhood of a opponent robot to intercept the ball
+			// by approximating the necessary acceleration to achieve that
 			let currentApprox = getInterceptAcceleration(robot.pos, robot.speed, robot.radius, attackPosition, dirShoot);
 			let futureApprox = getInterceptAcceleration(futurePosition, robot.speed, robot.radius, attackPosition, dirShoot);
 			let pessimisticApprox = Math.min(currentApprox, futureApprox);
@@ -272,8 +278,8 @@ function shootGoalLikelyhood(attackPosition: Position, sgTarget: Position): numb
 		}
 	}
 	let maxLikelyhoodToBeIntercepted = Constants.maxTeamSize[World.DIVISION] / 2;
-	const maxDistance = 6;
-	const dangerousDistance = 2.5;
+	const maxDistance = 6; // if the distance is > than maxDistance we assume the kick has no chance of hitting the goal
+	const dangerousDistance = 2.5; // if the distance is smaller than dangerousDistance we assume that the chances of hitting the goal are high
 	let distanceScaleFactor = 1 - MathUtil.bound(0, (distanceShoot - dangerousDistance) / (maxDistance - dangerousDistance), 1);
 	return distanceScaleFactor * (1 - Math.min(likelyhoodToBeIntercepted, maxLikelyhoodToBeIntercepted) / maxLikelyhoodToBeIntercepted);
 }
