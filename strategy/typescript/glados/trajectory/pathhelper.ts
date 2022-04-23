@@ -416,7 +416,7 @@ function setDefaultObstacles(path: Path, robot: FriendlyRobot, targetPosition: P
 	addBallObstacle(robot, ignoreBall, stopBallDistance, extraBallDistance);
 
 	if (!ignoreGoals) {
-		addGoalObstacle(path, robot, ignoreDefenseArea || false, ignoreOpponentDefenseArea || false);
+		addGoalObstacle(path, robot, ignoreDefenseArea || World.RefereeState === "BallPlacementOffensive", ignoreOpponentDefenseArea || World.RefereeState === "BallPlacementOffensive");
 	}
 }
 
