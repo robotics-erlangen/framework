@@ -65,7 +65,7 @@ export abstract class Objective {
 	 * zone if the main attacker is in no other zone.
 	 * @see glados/group/supporter
 	 */
-	abstract getSupporterZones(supporter: FriendlyRobot[]): Zone[];
+	abstract getSupporterZones(supporter: FriendlyRobot[], mainAttackerPos: Position | undefined): Zone[];
 
 	/**
 	 * Whether the objective is fit to continue execution.

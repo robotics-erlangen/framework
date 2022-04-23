@@ -1,5 +1,6 @@
 import { FriendlyRobot } from "base/robot";
 import { parameterizeClass } from "base/types";
+import { Position } from "base/vector";
 import * as World from "base/world";
 
 import { DoubleTouchGuard } from "glados/agent/attacker/doubletouchguard";
@@ -49,7 +50,7 @@ export class Midfield extends Objective {
 		return ball.pos.y < G.FieldHeightQuarter;
 	}
 
-	getSupporterZones = (participants: FriendlyRobot[]): Zone[] => {
+	getSupporterZones = (participants: FriendlyRobot[], _mainAttackerPos: Position | undefined): Zone[] => {
 		const TOTAL_LEFT = -G.FieldWidthHalf;
 		const TOTAL_RIGHT = G.FieldWidthHalf;
 		const TOTAL_TOP = G.FieldHeightHalf;

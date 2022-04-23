@@ -79,11 +79,16 @@ export function getRandomPosition(boundaries: Boundaries, borderWidth = 0.2): Po
 	const randomRange = 1 - 2 * borderWidth;
 	const zoneWidth = boundaries.right - boundaries.left;
 	const zoneHeight = boundaries.top - boundaries.bottom;
-	let pos;
-	do {
+	let pos: Position | undefined;
+	const MAX_TRIES = 10;
+	for (let i = 0; i < MAX_TRIES; ++i) {
 		const x = (MathUtil.random() * randomRange + borderWidth) * zoneWidth + boundaries.left;
 		const y = (MathUtil.random() * randomRange + borderWidth) * zoneHeight + boundaries.bottom;
 		pos = new Vector(x, y);
-	} while (Field.isInOpponentDefenseArea(pos, borderWidth));
+		if (!Field.isInOpponentDefenseArea(pos, borderWidth)) {
+			return pos;
+		}
+	}
+	pos = Field.limitToAllowedField(pos!);
 	return pos;
 }

@@ -73,19 +73,20 @@ export class Support implements Group {
 			}
 		}
 
-		// update zones if necessary
-		if (robots.length !== this._supportCount) {
-			this._supportCount = robots.length;
-			this._zones = objective.getSupporterZones(robots);
-			// reset empty zone hysteresis
-			this._emptyZone = undefined;
-
-			updateAssignments = true;
-		}
 		// choose which zone is occupied by the mainAttacker
 		let mainAttackerPos = undefined;
 		if (mainAttacker) {
 			mainAttackerPos = messaging.receiveSingleSender(MessageType.attackPosition)[1] || mainAttacker.pos;
+		}
+
+		// update zones if necessary
+		if (robots.length !== this._supportCount) {
+			this._supportCount = robots.length;
+			this._zones = objective.getSupporterZones(robots, mainAttackerPos);
+			// reset empty zone hysteresis
+			this._emptyZone = undefined;
+
+			updateAssignments = true;
 		}
 		this._chooseEmptyZone(mainAttackerPos);
 
