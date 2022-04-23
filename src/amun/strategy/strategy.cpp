@@ -325,7 +325,8 @@ bool Strategy::updateTeam(const robot::Team &team, StrategyType teamType, bool i
     if (team.robot_size() > 0) {
         m_anyRobotSpec.CopyFrom(team.robot(0));
     }
-    if (team.robot_size() != 0 && (!m_scriptState.isRunningInLogplayer || isReplayTeam)
+    if ((!m_scriptState.isRunningInLogplayer || team.robot_size() != 0)
+            && (!m_scriptState.isRunningInLogplayer || isReplayTeam)
             && m_type == teamType
             && team.SerializeAsString() != m_team.SerializeAsString()) {
         m_team.CopyFrom(team);
