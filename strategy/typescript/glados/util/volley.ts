@@ -123,6 +123,10 @@ export function calcVOutTeamCoordinates(v_out_length: number, ballSpeed: Speed, 
 			throw new Error("Volley sanitity check failed!");
 		}
 	}
+	if (isNaN(x_res) || isNaN(y_res)) {
+		throw new Error("calcVOutTeamCoordinates produced NaN");
+	}
+
 	return [x_res, y_res];
 }
 
