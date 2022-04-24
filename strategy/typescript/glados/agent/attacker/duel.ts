@@ -46,7 +46,16 @@ export class Duel extends Behavior {
 			return false;
 		}
 
-		if (World.Ball.detectionQuality < 0.2 && this._active) {
+		let robotInArea: boolean = false;
+		const MAX_DISTANCE = 0.5;
+		for (let robot of World.OpponentRobots) {
+			if (robot.pos.distanceTo(this._robot.pos) < MAX_DISTANCE || robot.pos.distanceTo(World.Ball.pos) < MAX_DISTANCE) {
+				robotInArea = true;
+				break;
+			}
+		}
+
+		if (World.Ball.detectionQuality < 0.2 && this._active && robotInArea) {
 			debug.set("duel check", "invisible ball");
 			return true;
 		}
