@@ -129,6 +129,9 @@ void GitInfoWidget::load()
     const auto pathName = "GitInfo/" + name;
     QSettings s;
     ui->relativePathEdit->setText(s.value(pathName + "/relativePath").toString());
+    m_relativePath = ui->relativePathEdit->text().toStdString();
     ui->customDiffHashEdit->setText(s.value(pathName + "/customDiffHash").toString());
+    m_diffHash = ui->customDiffHashEdit->text().toStdString();
     ui->diffToComboBox->setCurrentIndex(s.value(pathName + "/diffToComboBox").toInt());
+    updateWidget();
 }
