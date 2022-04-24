@@ -144,7 +144,8 @@ static void populate_gitdiffconfig(Git_tree_raii& in, const char* path) {
         .version = GIT_DIFF_OPTIONS_VERSION,
         .flags = GIT_DIFF_IGNORE_WHITESPACE_EOL,
         .ignore_submodules = GIT_SUBMODULE_IGNORE_NONE,
-        .pathspec = {.strings= in.subpaths.data(), .count = in.subpaths.size()}
+        .pathspec = {.strings= in.subpaths.data(), .count = in.subpaths.size()},
+        .context_lines = 3,
     };
 }
 
