@@ -130,6 +130,7 @@ export class Shoot extends Behavior {
 		this._passFrames = 0;
 		this._decisionFrames = 0;
 		this._wasPressed = Robot.isPressed(this._robot);
+		let do_pseudopass = false;
 
 		if (Math.abs(this._robot.pos.x) < G.DefenseWidth + 1
 				&& this._robot.pos.y < -(G.FieldHeightHalf - G.DefenseHeight - 1)) {
@@ -162,13 +163,14 @@ export class Shoot extends Behavior {
 		let passSuggestions = this._messaging.receive(MessageType.passSuggestion);
 		let pass = Attack.choosePassFromSuggestions(this._robot, passSuggestions, {
 			earliestAttackTime,
+			attackPosition: this._attackPosition,
 			currentPassPos: this._prevPassPos,
 			considerTiming: true,
 			ratePass: this._ratePass,
 		})[0];
 
 		// consider chipping forward
-		let passRating = pass ? this._ratePass(this._robot, pass, earliestAttackTime, true) : 0;
+		let passRating = pass ? this._ratePass(this._robot, pass, earliestAttackTime, this._attackPosition, true) : 0;
 		if (ENABLE_PSEUDO_PASS && this._attackPosition && passRating < MIN_PASS_RATING
 				&&  Field.distanceToDefenseAreaSq(this._attackPosition, false) > 2
 				&&  World.Ball.speed.length() < 1
@@ -196,9 +198,11 @@ export class Shoot extends Behavior {
 
 			if (closestOppDist >= OPPONENT_DISTANCE_THRESHOLD) {
 				let attackAngle = (G.OpponentGoal - this._attackPosition).angle();
+				let bestRating = passRating;
 
 				let bestFreeAngle = 0;
 				let bestAttackPosition = undefined;
+				let currentPass = pass;
 				for (let dist = MIN_DISTANCE;dist <= MAX_DISTANCE;dist += DISTANCE_STEP) {
 					for (let angle = -CONE_WIDTH / 2;angle <= CONE_WIDTH / 2;angle += ANGLE_STEP) {
 						// check for possible goalshot opportunity
@@ -207,6 +211,20 @@ export class Shoot extends Behavior {
 						if (possible && freeAngle != undefined && freeAngle > bestFreeAngle) {
 							bestFreeAngle = freeAngle;
 							bestAttackPosition = newAttackPosition;
+						}
+						// look for better pass opportunities
+						let newPass = Attack.choosePassFromSuggestions(this._robot, passSuggestions, {
+							earliestAttackTime,
+							attackPosition: newAttackPosition,
+							currentPassPos: currentPass ? currentPass!.ballPos : this._prevPassPos,
+							considerTiming: false,
+							ratePass: this._ratePass,
+						})[0];
+						let newPassRating = newPass ? this._ratePass(this._robot, newPass, earliestAttackTime, newAttackPosition, false) : 0;
+						if (newPassRating > bestRating && newPassRating > MIN_PASS_RATING) {
+							bestRating = newPassRating;
+							pass = {target: this._robot, ballPos: newAttackPosition, time: World.Time};
+							do_pseudopass = true;
 						}
 					}
 				}
@@ -226,7 +244,11 @@ export class Shoot extends Behavior {
 				}
 
 				// short chip forward
-				if (pass == undefined || this._ratePass(this._robot, pass, earliestAttackTime, true) < MIN_PASS_RATING) {
+				let relevantRating = 0;
+				if (pass) {
+					relevantRating = do_pseudopass ? bestRating : this._ratePass(this._robot, pass, earliestAttackTime, this._attackPosition, true);
+				}
+				if (pass == undefined || relevantRating < MIN_PASS_RATING) {
 					let newAttackPosition = this._attackPosition + Vector.fromPolar(attackAngle, (MAX_DISTANCE - MIN_DISTANCE) / 2 + MIN_DISTANCE);
 					let passVector = (newAttackPosition - this._attackPosition).withLength(0.5);
 					if (Attack.isPassAllowed(this._attackPosition, this._attackPosition + passVector)) {
@@ -366,7 +388,7 @@ export class Shoot extends Behavior {
 
 			let absAngleDiff = ballSpeed.absoluteAngleDiff(passVector);
 
-			if (ballSpeed.lengthSq() > 0.3 * 0.3 && passVector.lengthSq() > 0.05 * 0.05 && absAngleDiff > Math.PI/2 && Ball.wasShot(0.2)) {
+			if (ballSpeed.lengthSq() > 0.3 * 0.3 && passVector.lengthSq() > 0.05 * 0.05 && absAngleDiff > Math.PI / 2 && Ball.wasShot(0.2)) {
 				debug.set("redeciding", "TRUE (passPos overtaken)");
 				return true;
 			}

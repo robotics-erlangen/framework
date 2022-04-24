@@ -49,10 +49,11 @@ interface PassObject {
  * @param robot - The pass sender / main attacker
  * @param pass - A pass object (target: Robot, ballPos: Vector, time: number)
  * @param earliestAttackTime - The value of the earliestAttackTime message
+ * @param attackPosition - The value of the attackPosition message
  * @param considerTiming - true if the pass is given as soon as possible, false if we can wait
  * @returns a rating between 0 and 1 (1 = perfect, 0 = poor)
  */
-export type PassRater = (robot: FriendlyRobot, pass: PassObject, earliestAttackTime: number | undefined, considerTiming: boolean) => number;
+export type PassRater = (robot: FriendlyRobot, pass: PassObject, earliestAttackTime: number | undefined, attackPosition: Vector | undefined, considerTiming: boolean, debug?: boolean, log?: boolean) => number;
 
 const passShootTime = (robot: FriendlyRobot, pass: PassObject, earliestAttackTime: number | undefined) => {
 	if (earliestAttackTime != undefined) {
@@ -165,7 +166,7 @@ const ratePassIntersections = (robot: FriendlyRobot, pass: PassObject, shootPos:
 	return rating;
 };
 
-const _defaultRatePass: PassRater = (robot, pass, earliestAttackTime, considerTiming) => {
+const _defaultRatePass: PassRater = (robot, pass, earliestAttackTime, attackPosition, considerTiming) => {
 	if (robot === World.FriendlyKeeper && G.FieldHeightHalf - Math.abs(pass.ballPos.y) < 4) {
 		return 0;
 	}
@@ -189,7 +190,7 @@ const _defaultRatePass: PassRater = (robot, pass, earliestAttackTime, considerTi
 		return 0;
 	}
 
-	let shootPos = Physics.ballAtTime(World.Ball, shootTime).pos;
+	let shootPos = attackPosition ?? Physics.ballAtTime(World.Ball, shootTime).pos;
 
 	if (considerTiming) {
 		rating *= ratePassTiming(robot, pass, shootTime, shootPos);
@@ -223,7 +224,7 @@ const _defaultRatePass: PassRater = (robot, pass, earliestAttackTime, considerTi
 	return rating;
 };
 
-const _midfieldRatePass: PassRater = (robot, pass, earliestAttackTime, considerTiming) => {
+const _midfieldRatePass: PassRater = (robot, pass, earliestAttackTime, attackPosition, considerTiming) => {
 	if (robot === World.FriendlyKeeper && G.FieldHeightHalf - Math.abs(pass.ballPos.y) < 4) {
 		return 0;
 	}
@@ -247,7 +248,7 @@ const _midfieldRatePass: PassRater = (robot, pass, earliestAttackTime, considerT
 		return 0;
 	}
 
-	let shootPos = Physics.ballAtTime(World.Ball, shootTime).pos;
+	let shootPos = attackPosition ?? Physics.ballAtTime(World.Ball, shootTime).pos;
 
 	if (considerTiming) {
 		rating *= ratePassTiming(robot, pass, shootTime, shootPos);
@@ -282,6 +283,8 @@ export const midfieldRatePass = Cache.forFrame(_midfieldRatePass);
 interface ChoosePassOptions {
 	/** The value of the earliestAttackTime message */
 	earliestAttackTime?: number;
+	/** The value of the attackPoisition message */
+	attackPosition?: Position;
 	/** The ballPos of the last frame, used for stability */
 	currentPassPos?: Position;
 	/** True if the pass is given as soon as possible, false if we can wait */
@@ -309,7 +312,7 @@ export function choosePass(robot: FriendlyRobot, passes: PassObject[], options: 
 	let bestPass: PassObject | undefined;
 	let bestPassRating = -Infinity;
 	for (let pass of passes) {
-		let rating = options.ratePass(robot, pass, options.earliestAttackTime, options.considerTiming);
+		let rating = options.ratePass(robot, pass, options.earliestAttackTime, options.attackPosition, options.considerTiming);
 		if (rating > 0) {
 			// give a bonus if the pos is near the currentPassPos
 			if (options.currentPassPos) {
@@ -358,6 +361,8 @@ interface SortPassesFromSuggestionsOptions {
 	considerTiming: boolean;
 	/** the value of the earliestAttackTime message */
 	earliestAttackTime?: number;
+	/** the value of the attackPosition message */
+	attackPosition?: Position;
 	/** the ballPositions of the last frame, used for stability */
 	currentPassPositions?: Position[];
 	/** number between 0 and 1, ratings lower than the threshold won't be included (unless we would have none otherwise) */
@@ -386,7 +391,7 @@ export function sortPassesFromSuggestions(robot: FriendlyRobot, passSuggestions:
 	let passes: (PassObject & {rating: number})[] = [];
 	for (let [sender, sugg] of passSuggestions.entries()) {
 		let pass = {target: sender, ballPos: sugg.ballPos, time: sugg.time};
-		let rating = options.ratePass(robot, pass, options.earliestAttackTime, options.considerTiming);
+		let rating = options.ratePass(robot, pass, options.earliestAttackTime, options.attackPosition, options.considerTiming);
 		// give a bonus if the pos is near the currentPassPos
 		if (options.currentPassPositions != undefined) {
 			let ratingHystDistance = options.customHysteresis;

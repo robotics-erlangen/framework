@@ -115,6 +115,7 @@ export class FreeKick extends Behavior {
 				const earliestAttackTime = this._messaging.receiveSingleSender(MessageType.earliestAttackTime, true)[1];
 				this._passList = Attack.sortPassesFromSuggestions(this._robot, passSuggestions, {
 					earliestAttackTime,
+					attackPosition: undefined,
 					considerTiming: false,
 					ratePass: this._ratePass,
 				});
@@ -207,6 +208,7 @@ export class FreeKick extends Behavior {
 				let passSuggestions = this._messaging.receive(MessageType.passSuggestion);
 				let newPass = Attack.choosePassFromSuggestions(this._robot, passSuggestions, {
 					earliestAttackTime: this._messaging.receiveSingleSender(MessageType.earliestAttackTime, true)[1],
+					attackPosition: undefined,
 					currentPassPos: pass.ballPos,
 					considerTiming: false,
 					customHysteresis: 0.05,

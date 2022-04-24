@@ -73,6 +73,7 @@ export class HandleBall extends Behavior {
 			const earliestAttackTime = this._messaging.receiveSingleSender(MessageType.earliestAttackTime, true)[1];
 			this._pass = Attack.choosePassFromSuggestions(this._robot, suggestions, {
 				earliestAttackTime,
+				attackPosition: undefined,
 				currentPassPos: this._pass?.ballPos,
 				considerTiming: false,
 				ratePass: Attack.defaultRatePass,
