@@ -32,7 +32,9 @@ export class DefenseChip extends Task {
 			this.forceShoot._forceShootTimer = undefined;
 		}
 
-		let dribblerOffset = (World.Ball.pos - this._robot.pos).withLength(this._robot.shootRadius + World.Ball.radius);
+		// rather move to close to the ball than not close enough
+		const SAFETY_OFFSET = 0.02;
+		let dribblerOffset = (World.Ball.pos - this._robot.pos).withLength(this._robot.shootRadius + World.Ball.radius - SAFETY_OFFSET);
 		let moveDest = World.Ball.pos - dribblerOffset;
 		let moveTime = moveDest.distanceTo(this._robot.pos) / Math.min(this._robot.speed.length(), 1);
 		let futureBall =  Physics.ballAtTime(World.Ball, moveTime);
