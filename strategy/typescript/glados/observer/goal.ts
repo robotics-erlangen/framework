@@ -394,6 +394,11 @@ function _predictShot(allShots: boolean = false, includeInvisible: boolean = tru
 				let [dirx, diry] = Volley.calcVOutTeamCoordinates(Constants.maxBallSpeed, futureBallSpeed, robotAngle,
 					minRobotSpeed, "opp");
 				ballSpeed = new Vector(dirx, diry).normalized();
+
+				if (ballSpeed.isNan()) {
+					throw new Error("ballSpeed NaN in predictShot (fast ball volley)");
+				}
+
 				if (!allShots) {
 					vis.addPath("o/goal: predictShot: receives pass", [passReceiver.robot.pos, pos], vis.colors.pink);
 					vis.addCircle("o/goal: predictShot: receives pass", pos, passReceiver.robot.radius, vis.colors.pink, false);
