@@ -537,6 +537,7 @@ export class FriendlyRobot extends Robot {
 
 	/** Halts robot */
 	halt() {
+		this.path.setHalted();
 		this.setControllerInput({});
 	}
 

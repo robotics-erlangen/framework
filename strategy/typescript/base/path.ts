@@ -304,6 +304,10 @@ export class Path {
 		return `obstacles: ${this._robotId}${teamLetter}`;
 	}
 
+	setHalted() {
+		this.lastWasTrajectoryPath = false;
+	}
+
 	getTrajectory(startPos: Position, startSpeed: Speed, endPos: Position, endSpeed: Speed, maxSpeed: number, acceleration: number): { pos: Position, speed: Speed, time: number}[] {
 		this.lastWasTrajectoryPath = true;
 		this.addObstaclesToPath(this._trajectoryInst);
