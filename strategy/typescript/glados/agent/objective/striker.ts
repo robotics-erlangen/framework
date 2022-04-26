@@ -64,14 +64,27 @@ export class Striker extends Objective {
 
 		let zones: Zone[] = [];
 
-		// create the regressive zone
-		{
+		// create the regressive zone(s)
+		if (participants.length <= 8) {
 			const boundaries = { left: TOTAL_LEFT, right: TOTAL_RIGHT, top: MIDFIELD_OFFENSIVE_SPLIT, bottom: TOTAL_BOTTOM };
 			const defaultPos = getRandomPosition(boundaries);
 			zones.push({ boundaries, defaultPos });
 			--remainingZones;
+		} else {
+			// technically always zero on a normal field, but maybe not on every geometry
+			const midPoint = (TOTAL_LEFT - TOTAL_RIGHT) / 2 + TOTAL_RIGHT;
+			const boundaries0 = { left: TOTAL_LEFT, right: midPoint, top: MIDFIELD_OFFENSIVE_SPLIT, bottom: TOTAL_BOTTOM };
+			const defaultPos0 = getRandomPosition(boundaries0);
+			zones.push({ boundaries: boundaries0, defaultPos: defaultPos0 });
+
+			const boundaries1 = { left: midPoint, right: TOTAL_RIGHT, top: MIDFIELD_OFFENSIVE_SPLIT, bottom: TOTAL_BOTTOM };
+			const defaultPos1 = getRandomPosition(boundaries1);
+			zones.push({ boundaries: boundaries1, defaultPos: defaultPos1 });
+
+			remainingZones -= 2;
 		}
 
+		// should probably never undefined, but just in case it is fall back to trivially splitting the zones
 		if (mainAttackerPos == undefined) {
 			// create offensive zones
 			const zoneWidth = (TOTAL_RIGHT - TOTAL_LEFT) / remainingZones;
@@ -86,58 +99,93 @@ export class Striker extends Objective {
 				zones.push({ boundaries, defaultPos });
 			}
 		} else {
+			const DEFENSE_AREA_CUT_OFF_Y = G.FieldHeightHalf - G.DefenseHeight;
+			const LOWER_DEFENSE_AREA_CUT_OFF_X = -G.DefenseWidthHalf;
+			const UPPER_DEFENSE_AREA_CUT_OFF_X = G.DefenseWidthHalf;
+
 			let boundaryList: SplitZone[] = [];
-			// TODO handle main aggressive
-			const MAX_SPLIT = 3;
 			if (remainingZones > 0) {
 				let firstBoundary = { boundaries: { left: TOTAL_LEFT, right: TOTAL_RIGHT, top: TOTAL_TOP, bottom: MIDFIELD_OFFENSIVE_SPLIT }, splitCount: 0};
 				boundaryList.push(firstBoundary);
+				/* The basic idea of the following is to split the zones repeatedly.
+				 * The zones split next is the one closest to the main attacker, unless it already has been split MAX_SPLIT times,
+				 * to keep the zones at a useful size.
+				 * If the zone contains the defense area lines, split it along those lines, otherwise split it in the middle.
+				 * In the case one of the resulting zones contains the defense area and can be split into two new zones a way that
+				 * one zone lies completely inside the defense area and the other one completely outside the defense area do this
+				 * and only keep the zone outside the defense area. */
 				for (let i = 1; i < remainingZones; ++i) {
-					let minDist = Infinity;
-					let boundaryIndex: number = 0;
-					for (let j = 0; j < boundaryList.length; ++j) {
-						const splitZone = boundaryList[j];
-						if (splitZone.splitCount >= MAX_SPLIT) {
-							continue;
-						}
-						const corner1 = new Vector(splitZone.boundaries.left, splitZone.boundaries.bottom);
-						const corner2 = new Vector(splitZone.boundaries.right, splitZone.boundaries.top);
-						if (geom.insideRect(corner1, corner2, mainAttackerPos)) {
-							boundaryIndex = j;
-							break;
+					const boundaryIndex = this.findClosestZoneToMainAttacker(mainAttackerPos, boundaryList);
+
+					const currentSplitZone = boundaryList[boundaryIndex];
+					const currentBoundary = currentSplitZone.boundaries;
+					const splitCount = currentSplitZone.splitCount;
+					const newSplitCount = splitCount + 1;
+					const rightLeft = currentBoundary.right - currentBoundary.left;
+					const topBottom = currentBoundary.top - currentBoundary.bottom;
+					const rightLeftBigger = Math.abs(rightLeft) > Math.abs(topBottom);
+					// choose splitting axis
+					if (rightLeftBigger) {
+						let newBoundaryMidRightLeft: number;
+						if (currentBoundary.right > UPPER_DEFENSE_AREA_CUT_OFF_X && currentBoundary.left < UPPER_DEFENSE_AREA_CUT_OFF_X) {
+							// check if whole defense area is inside boundaries
+							if (currentBoundary.left < LOWER_DEFENSE_AREA_CUT_OFF_X) {
+								const mainAttackerPosToLowerDefenseArea = Math.abs(mainAttackerPos.x - LOWER_DEFENSE_AREA_CUT_OFF_X);
+								const mainAttackerPosToUpperDefenseArea = Math.abs(mainAttackerPos.x - UPPER_DEFENSE_AREA_CUT_OFF_X);
+								if (mainAttackerPosToLowerDefenseArea < mainAttackerPosToUpperDefenseArea) {
+									newBoundaryMidRightLeft = LOWER_DEFENSE_AREA_CUT_OFF_X;
+								} else {
+									newBoundaryMidRightLeft = UPPER_DEFENSE_AREA_CUT_OFF_X;
+								}
+							} else {
+								newBoundaryMidRightLeft = UPPER_DEFENSE_AREA_CUT_OFF_X;
+							}
+						} else if (currentBoundary.right > LOWER_DEFENSE_AREA_CUT_OFF_X && currentBoundary.left < LOWER_DEFENSE_AREA_CUT_OFF_X) {
+							newBoundaryMidRightLeft = LOWER_DEFENSE_AREA_CUT_OFF_X;
+						} else {
+							newBoundaryMidRightLeft = rightLeft / 2 + currentBoundary.left;
 						}
 
-						const distX = Math.min(Math.abs(mainAttackerPos.x - splitZone.boundaries.right),
-												Math.abs(mainAttackerPos.x - splitZone.boundaries.left));
-						const distY = Math.min(Math.abs(mainAttackerPos.y - splitZone.boundaries.top),
-												Math.abs(mainAttackerPos.y - splitZone.boundaries.bottom));
-						const dist = Math.min(distX, distY);
-						if (dist < minDist) {
-							minDist = dist;
-							boundaryIndex = j;
-						}
-					}
-					const divideSplitZone = boundaryList[boundaryIndex];
-					const divideBoundary = divideSplitZone.boundaries;
-					const splitCount = divideSplitZone.splitCount;
-					const newSplitCount = splitCount + 1;
-					const rightLeft = divideBoundary.right - divideBoundary.left;
-					const topBottom = divideBoundary.top - divideBoundary.bottom;
-					const rightLeftBigger = Math.abs(rightLeft) > Math.abs(topBottom);
-					if (rightLeftBigger) {
-						const newBoundaryMidRightLeft = rightLeft / 2 + divideBoundary.left;
-						const newBoundary0 = { boundaries: { left: divideBoundary.left, right: newBoundaryMidRightLeft,
-							top: divideBoundary.top, bottom: divideBoundary.bottom }, splitCount: newSplitCount};
-						const newBoundary1 = { boundaries: { left: newBoundaryMidRightLeft, right: divideBoundary.right,
-							top: divideBoundary.top, bottom: divideBoundary.bottom }, splitCount: newSplitCount};
+						const boundaryContainsDefenseArea = currentBoundary.top > DEFENSE_AREA_CUT_OFF_Y
+													&& currentBoundary.bottom < DEFENSE_AREA_CUT_OFF_Y;
+						// check if the new boundary can be reduced to not contain the defense area
+						const cutoutDefenseArea0 = boundaryContainsDefenseArea
+													&& newBoundaryMidRightLeft === UPPER_DEFENSE_AREA_CUT_OFF_X
+													&& currentBoundary.left === LOWER_DEFENSE_AREA_CUT_OFF_X;
+						const newBoundary0Top = cutoutDefenseArea0 ? DEFENSE_AREA_CUT_OFF_Y : currentBoundary.top;
+
+						const newBoundary0 = { boundaries: { left: currentBoundary.left, right: newBoundaryMidRightLeft,
+							top: newBoundary0Top, bottom: currentBoundary.bottom }, splitCount: newSplitCount };
+
+						// check if the new boundary can be reduced to not contain the defense area
+						const cutoutDefenseArea1 = boundaryContainsDefenseArea
+													&& currentBoundary.right === UPPER_DEFENSE_AREA_CUT_OFF_X
+													&& newBoundaryMidRightLeft === LOWER_DEFENSE_AREA_CUT_OFF_X;
+						const newBoundary1Top = cutoutDefenseArea1 ? DEFENSE_AREA_CUT_OFF_Y : currentBoundary.top;
+						const newBoundary1 = { boundaries: { left: newBoundaryMidRightLeft, right: currentBoundary.right,
+							top: newBoundary1Top, bottom: currentBoundary.bottom }, splitCount: newSplitCount };
 						boundaryList[boundaryIndex] = newBoundary0;
 						boundaryList.push(newBoundary1);
 					} else {
-						const newBoundaryTopBottom = topBottom / 2 + divideBoundary.bottom;
-						const newBoundary0 = { boundaries: { left: divideBoundary.left, right: divideBoundary.right,
-							top: newBoundaryTopBottom, bottom: divideBoundary.bottom }, splitCount: newSplitCount};
-						const newBoundary1 = { boundaries: { left: divideBoundary.left, right: divideBoundary.right,
-							top: divideBoundary.top, bottom: newBoundaryTopBottom }, splitCount: newSplitCount};
+						const containsDefenseArea = currentBoundary.top > DEFENSE_AREA_CUT_OFF_Y
+													&& currentBoundary.bottom < DEFENSE_AREA_CUT_OFF_Y;
+						const newBoundaryTopBottom = containsDefenseArea ? DEFENSE_AREA_CUT_OFF_Y : topBottom / 2 + currentBoundary.bottom;
+						const newBoundary0 = { boundaries: { left: currentBoundary.left, right: currentBoundary.right,
+							top: newBoundaryTopBottom, bottom: currentBoundary.bottom }, splitCount: newSplitCount };
+
+						// check if the new boundary can be reduced to not contain the defense area
+						const newBoundary1ContainsDefenseAreaUpper = currentBoundary.left > UPPER_DEFENSE_AREA_CUT_OFF_X
+																		&& currentBoundary.right < UPPER_DEFENSE_AREA_CUT_OFF_X;
+						const newBoundary1ContainsDefenseAreaLower = currentBoundary.left > LOWER_DEFENSE_AREA_CUT_OFF_X
+																		&& currentBoundary.right < LOWER_DEFENSE_AREA_CUT_OFF_X;
+						const newBoundary1Left: number = newBoundary1ContainsDefenseAreaUpper
+														? UPPER_DEFENSE_AREA_CUT_OFF_X
+														: currentBoundary.left;
+						const newBoundary1Right: number = newBoundary1ContainsDefenseAreaLower
+														? LOWER_DEFENSE_AREA_CUT_OFF_X
+														: currentBoundary.right;
+						const newBoundary1 = { boundaries: { left: newBoundary1Left, right: newBoundary1Right,
+							top: currentBoundary.top, bottom: newBoundaryTopBottom }, splitCount: newSplitCount };
 						boundaryList[boundaryIndex] = newBoundary0;
 						boundaryList.push(newBoundary1);
 					}
@@ -153,5 +201,35 @@ export class Striker extends Objective {
 		}
 
 		return zones;
+	}
+
+	private findClosestZoneToMainAttacker(mainAttackerPos: Position, boundaryList: SplitZone[]): number {
+		const MAX_SPLIT = 3;
+		let minDist = Infinity;
+		let boundaryIndex: number = 0;
+		for (let j = 0; j < boundaryList.length; ++j) {
+			const splitZone = boundaryList[j];
+			if (splitZone.splitCount >= MAX_SPLIT) {
+				continue;
+			}
+			const corner1 = new Vector(splitZone.boundaries.left, splitZone.boundaries.bottom);
+			const corner2 = new Vector(splitZone.boundaries.right, splitZone.boundaries.top);
+			// if zone contains mainAttackerPos it's obviously always the closest
+			if (geom.insideRect(corner1, corner2, mainAttackerPos)) {
+				boundaryIndex = j;
+				break;
+			}
+
+			const distX = Math.min(Math.abs(mainAttackerPos.x - splitZone.boundaries.right),
+									Math.abs(mainAttackerPos.x - splitZone.boundaries.left));
+			const distY = Math.min(Math.abs(mainAttackerPos.y - splitZone.boundaries.top),
+									Math.abs(mainAttackerPos.y - splitZone.boundaries.bottom));
+			const dist = Math.min(distX, distY);
+			if (dist < minDist) {
+				minDist = dist;
+				boundaryIndex = j;
+			}
+		}
+		return boundaryIndex;
 	}
 }
