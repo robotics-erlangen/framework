@@ -29,7 +29,7 @@ export class Support extends Behavior {
 	}
 
 	addDebugInfo() {
-		debug.set(undefined, "Default");
+		debug.set(undefined, this.constructor.name);
 		debug.set("Sampling", this._supportParams.samplingCtor.name);
 	}
 
