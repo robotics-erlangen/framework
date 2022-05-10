@@ -361,14 +361,12 @@ export class Shoot extends Behavior {
 		// redecide if during a pseudo pass, the ball overtakes the pass pos
 		// this is moderately likely to happen during chaseBall
 		if (!Robot.isPressed(this._robot) && ENABLE_PSEUDO_PASS && this._decision.task === "pass" && this._decision.target === this._robot) {
-			let attackPosition = this._attackPosition || World.Ball.pos;
-			let passVector = (this._decision.pos - attackPosition).withLength(0.4);
+			let passVector = this._decision.pos - World.Ball.pos;
+			let ballSpeed = World.Ball.speed;
 
-			let upperAngle = (new Vector(-G.FieldWidthHalf, G.FieldHeightHalf) - attackPosition).angle();
-			let lowerAngle = (new Vector(G.FieldWidthHalf, G.FieldHeightHalf) - attackPosition).angle();
-			let passAngle = passVector.angle();
+			let absAngleDiff = ballSpeed.absoluteAngleDiff(passVector);
 
-			if (World.Ball.pos.distanceToSq(this._decision.pos) < 0.2 * 0.2 || (passAngle < upperAngle && passAngle > lowerAngle)) {
+			if (ballSpeed.lengthSq() > 0.3 * 0.3 && passVector.lengthSq() > 0.05 * 0.05 && absAngleDiff > Math.PI/2 && Ball.wasShot(0.2)) {
 				debug.set("redeciding", "TRUE (passPos overtaken)");
 				return true;
 			}
