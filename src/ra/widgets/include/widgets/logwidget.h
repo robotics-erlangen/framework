@@ -49,7 +49,9 @@ private:
     qint64 m_lastDate;
     bool m_hideLogToggles;
     bool m_logBlueStrategy;
+    bool m_logBlueReplayStrategy;
     bool m_logYellowStrategy;
+    bool m_logYellowReplayStrategy;
     bool m_logAutoref;
     QList<QString> m_lastAutorefOutput;
 };

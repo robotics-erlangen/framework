@@ -30,7 +30,9 @@ LogWidget::LogWidget(QWidget *parent) :
     m_lastDate(0),
     m_hideLogToggles(false),
     m_logBlueStrategy(true),
+    m_logBlueReplayStrategy(true),
     m_logYellowStrategy(true),
+    m_logYellowReplayStrategy(true),
     m_logAutoref(true)
 {
     const int MAX_BLOCKS = 1000;
@@ -105,9 +107,15 @@ void LogWidget::handleStatus(const Status &status)
                 prefix = "R";
                 break;
             case amun::ReplayBlue:
+                if (!m_logBlueReplayStrategy) {
+                    continue;
+                }
                 prefix = "BR";
                 break;
             case amun::ReplayYellow:
+                if (!m_logYellowReplayStrategy) {
+                    continue;
+                }
                 prefix = "YR";
                 break;
             case amun::GameController:
@@ -165,6 +173,18 @@ void LogWidget::contextMenuEvent(QContextMenuEvent *event)
         autoref->setChecked(m_logAutoref);
         autoref->setData(amun::Autoref);
         connect(autoref, SIGNAL(triggered(bool)), SLOT(setLogVisibility(bool)));
+
+        QAction* blueReplay = menu->addAction("Replay Blue");
+        blueReplay->setCheckable(true);
+        blueReplay->setChecked(m_logBlueReplayStrategy);
+        blueReplay->setData(amun::ReplayBlue);
+        connect(blueReplay, SIGNAL(triggered(bool)), SLOT(setLogVisibility(bool)));
+
+        QAction* yellowReplay = menu->addAction("Replay Yellow");
+        yellowReplay->setCheckable(true);
+        yellowReplay->setChecked(m_logYellowReplayStrategy);
+        yellowReplay->setData(amun::ReplayYellow);
+        connect(yellowReplay, SIGNAL(triggered(bool)), SLOT(setLogVisibility(bool)));
     }
 
     menu->exec(event->globalPos());
@@ -180,5 +200,9 @@ void LogWidget::setLogVisibility(bool visible)
         m_logYellowStrategy = visible;
     } else if (source == amun::Autoref) {
         m_logAutoref = visible;
+    } else if (source == amun::ReplayBlue) {
+        m_logBlueReplayStrategy = visible;
+    } else if (source == amun::ReplayYellow) {
+        m_logYellowReplayStrategy = visible;
     }
 }
