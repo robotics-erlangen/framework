@@ -145,8 +145,8 @@ static void populate_gitdiffconfig(Git_tree_raii& in, const char* path) {
         .flags = GIT_DIFF_IGNORE_WHITESPACE_EOL,
         .ignore_submodules = GIT_SUBMODULE_IGNORE_NONE,
         .pathspec = {.strings= in.subpaths.data(), .count = in.subpaths.size()},
-        .context_lines = 3,
     };
+    in.diffopt.context_lines = 3;
 }
 
 static std::string getLiveCommitHashFromTree(const Git_tree_raii& data) {

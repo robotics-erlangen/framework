@@ -8,7 +8,7 @@ Currently, the software is also manually tested and proven to run for openSuse L
 
 In order to build the framework, you will need:
 - `cmake` >= `3.5` (`3.7` on Windows)
-- `g++` >= `4.6`
+- `g++` >= `7.5`
 - `Qt` >= `5.9` (**NOT** `5.9.[0-2]` on Windows)
 - `libssl`
 
