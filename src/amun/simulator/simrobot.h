@@ -73,6 +73,7 @@ private:
     float bound(float acceleration, float oldSpeed, float speedupLimit, float brakeLimit) const;
     void calculateDribblerMove(const btVector3 pos, const btQuaternion rot, const btVector3 linVel, float omega);
     void dribble(SimBall *ball, float speed);
+    bool handleMoveCommand();
 
     RNG *m_rng;
     robot::Specs m_specs;

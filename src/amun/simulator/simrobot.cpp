@@ -191,26 +191,8 @@ void SimRobot::setDribbleMode(bool perfectDribbler)
     m_perfectDribbler = perfectDribbler;
 }
 
-void SimRobot::begin(SimBall *ball, double time)
+bool SimRobot::handleMoveCommand()
 {
-    m_commandTime += time;
-    m_inStandby = false;
-    //m_inStandby = m_command.standby();
-
-    // after 0.1s without new command reset to stop
-    if (m_commandTime > 0.1) {
-        m_sslCommand.Clear();
-        // the real robot switches to standby after a short delay
-        m_inStandby = true;
-    }
-
-    // enable dribbler if necessary
-    if (!m_inStandby && m_sslCommand.has_dribbler_speed() && m_sslCommand.dribbler_speed() > 0) {
-        dribble(ball, m_sslCommand.dribbler_speed());
-    } else {
-        stopDribbling();
-    }
-
     auto sendPartialCoordError = [this](const std::string& msg){
         SSLSimError error{new sslsim::SimulatorError};
         error->set_code("PARTIAL_COORD");
@@ -228,24 +210,24 @@ void SimRobot::begin(SimBall *ball, double time)
     if (m_move.has_x()) {
         if (!m_move.has_y() || (!m_move.has_orientation() && !m_move.by_force())) {
             sendPartialCoordError(message + " position ");
-            return;
+            return true;
         } else {
             moveCommand = true;
         }
     } else if (m_move.has_y()) {
             sendPartialCoordError(message + " position (no x)");
-        return;
+        return true;
     }
 
     if (m_move.has_v_x()) {
         if (!m_move.has_v_y()) {
             sendPartialCoordError(message + " velocity");
-            return;
+            return true;
         }
         moveCommand = true;
     } else if (m_move.has_v_y()) {
         sendPartialCoordError(message + " velocity (no x)");
-        return;
+        return true;
     }
 
     if (m_move.has_v_angular()) {
@@ -265,7 +247,7 @@ void SimRobot::begin(SimBall *ball, double time)
             error->set_code("VELOCITY_FORCE");
             error->set_message("Velocities != 0 and by_force are incompatible");
             emit sendSSLSimError(error, ErrorSource::CONFIG);
-            return;
+            return true;
         }
     } // TODO: check for force and orientation
 
@@ -321,6 +303,32 @@ void SimRobot::begin(SimBall *ball, double time)
             // reset is neccessary, as the command is only sent once
             // without one canceling it
         }
+        return true;
+    }
+    return false;
+}
+
+void SimRobot::begin(SimBall *ball, double time)
+{
+    m_commandTime += time;
+    m_inStandby = false;
+    //m_inStandby = m_command.standby();
+
+    // after 0.1s without new command reset to stop
+    if (m_commandTime > 0.1) {
+        m_sslCommand.Clear();
+        // the real robot switches to standby after a short delay
+        m_inStandby = true;
+    }
+
+    // enable dribbler if necessary
+    if (!m_inStandby && m_sslCommand.has_dribbler_speed() && m_sslCommand.dribbler_speed() > 0) {
+        dribble(ball, m_sslCommand.dribbler_speed());
+    } else {
+        stopDribbling();
+    }
+
+    if (handleMoveCommand()) {
         return;
     }
 
