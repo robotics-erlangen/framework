@@ -31,7 +31,6 @@ default {
   shoot_radius: 0.067
   dribbler_height: 0.04
   type: Regular
-  pattern_rotation: 0
 }
 robot {
   id: 0

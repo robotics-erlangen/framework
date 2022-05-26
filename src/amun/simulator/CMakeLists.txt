@@ -41,6 +41,7 @@ target_link_libraries(simulator
     PRIVATE lib::bullet
     PUBLIC Qt5::Core
     PRIVATE Qt5::Gui
+    PRIVATE lib::eigen
 )
 target_include_directories(simulator
     INTERFACE include

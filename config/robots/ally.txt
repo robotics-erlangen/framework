@@ -1,7 +1,6 @@
 default {
   generation: 9999
   year: 2012
-  type: Ally
   id: 0
   radius: 0.089
   height: 0.147
@@ -31,6 +30,11 @@ default {
   }
   shoot_radius: 0.074
   dribbler_height: 0.04
+  type: Ally
+  simulation_limits {
+    a_speedup_wheel_max: 35
+    a_brake_wheel_max: 30
+  }
 }
 robot {
   id: 0

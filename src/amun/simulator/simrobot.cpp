@@ -26,6 +26,7 @@
 #include "simrobot.h"
 #include "simulator.h"
 #include <cmath>
+#include <QDebug>
 
 using namespace camun::simulator;
 
@@ -118,6 +119,9 @@ SimRobot::SimRobot(RNG *rng, const robot::Specs &specs, btDiscreteDynamicsWorld 
     m_dribblerConstraint = new btHingeConstraint(*m_body, *dribblerBody, localA, localB);
     m_dribblerConstraint->enableAngularMotor(false, 0, 0);
     m_world->addConstraint(m_dribblerConstraint, true);
+
+    generateVelocityCoupling();
+//    reportAccelerationLimits();
 }
 
 SimRobot::~SimRobot()
@@ -401,6 +405,7 @@ void SimRobot::begin(SimBall *ball, double time)
     const float error_v_s = v_d_local.x() - v_s;
     const float error_v_f = v_d_local.y() - v_f;
     const float error_omega = boundSpeed(output_omega) - omega;
+    // TODO: additional enforcement of robot max speed
 
     error_sum_v_s += error_v_s;
     error_sum_v_f += error_v_f;
@@ -418,13 +423,9 @@ void SimRobot::begin(SimBall *ball, double time)
     // as a certain part of the acceleration is required to compensate damping, the robot will run into a speed limit!
     // bound acceleration
     // the speed limit is acceleration * accelScale / V
-    float a_f = V*v_f + K*error_v_f + K_I*error_sum_v_f;
-    float a_s = V*v_s + K*error_v_s + K_I*error_sum_v_s;
+    const float a_f = V*v_f + K*error_v_f + K_I*error_sum_v_f;
+    const float a_s = V*v_s + K*error_v_s + K_I*error_sum_v_s;
 
-    const float accelScale = 2.f; // let robot accelerate / brake faster than the accelerator does
-    a_f = bound(a_f, v_f, accelScale*m_specs.strategy().a_speedup_f_max(), accelScale*m_specs.strategy().a_brake_f_max());
-    a_s = bound(a_s, v_s, accelScale*m_specs.strategy().a_speedup_s_max(), accelScale*m_specs.strategy().a_brake_s_max());
-    const btVector3 force(a_s*m_specs.mass(), a_f*m_specs.mass(), 0);
 
     // localInertia.z() / SIMULATOR_SCALE^2 \approx 1/12*mass*(robot_width^2+robot_depth^2)
     // (1-(1-angular_damping)^timestep)/timestep * localInertia.z()/SIMULATOR_SCALE^2 - compensates damping
@@ -433,14 +434,93 @@ void SimRobot::begin(SimBall *ball, double time)
     const float K_I_phi = /*0*0.2/1000; //*/ 0.f;
 
     const float a_phi = V_phi*omega + K_phi*error_omega + K_I_phi*error_sum_omega;
-    const float a_phi_bound = bound(a_phi, omega, accelScale*m_specs.strategy().a_speedup_phi_max(), accelScale*m_specs.strategy().a_brake_phi_max());
-    const btVector3 torque(0, 0, a_phi_bound * 0.007884f);
+    const bool useBasicAccelLimit = !m_specs.has_simulation_limits();
 
+    float a_phi_bound, a_s_bound, a_f_bound;
+    if (useBasicAccelLimit) {
+        const float accelScale = 2.0f; // let robot accelerate / brake faster than the accelerator does
+        a_f_bound = bound(a_f, v_f, accelScale*m_specs.strategy().a_speedup_f_max(), accelScale*m_specs.strategy().a_brake_f_max());
+        a_s_bound = bound(a_s, v_s, accelScale*m_specs.strategy().a_speedup_s_max(), accelScale*m_specs.strategy().a_brake_s_max());
+        a_phi_bound = bound(a_phi, omega, accelScale*m_specs.strategy().a_speedup_phi_max(), accelScale*m_specs.strategy().a_brake_phi_max());
+    } else {
+        const Eigen::Vector3f limited = limitAcceleration(a_f, a_s, a_phi, v_f, v_s, omega);
+        a_s_bound = limited[0];
+        a_f_bound = limited[1];
+        a_phi_bound = limited[2];
+    }
+
+    const btVector3 force(a_s_bound*m_specs.mass(), a_f_bound*m_specs.mass(), 0);
+    const btVector3 torque(0, 0, a_phi_bound * 0.007884f);
     if (force.length2() > 0 || torque.length2() > 0) {
         m_body->activate();
         m_body->applyCentralForce(t * force * SIMULATOR_SCALE);
         m_body->applyTorque(torque * SIMULATOR_SCALE * SIMULATOR_SCALE);
     }
+}
+
+void SimRobot::generateVelocityCoupling()
+{
+    // TODO: configurable wheel angles
+    // parameters for generation 2014, d=0.045
+    // taken from the firmware velocity controller (and adapted to rps instead of rpm)
+    const float d = 0.045f;
+    const float X_FRONT = 1.0f / M_PI / d * std::cos(35.0f / 360.0f * 2 * M_PI);
+    const float X_REAR = 1.0f / M_PI / d * std::cos(45.0f / 360.0f * 2 * M_PI);
+    const float Y_FRONT = 1.0f / M_PI / d * std::sin(35.0f / 360.0f * 2 * M_PI);
+    const float Y_REAR = 1.0f / M_PI / d * std::sin(45.0f / 360.0f * 2 * M_PI);
+    // TODO: use robot radius to compute this
+    const float PHI = 29.7 / 60;
+
+    m_velocityCoupling.row(0) = Eigen::Vector3f{X_FRONT, Y_FRONT, -PHI};
+    m_velocityCoupling.row(1) = Eigen::Vector3f{-X_REAR, Y_REAR, -PHI};
+    m_velocityCoupling.row(2) = Eigen::Vector3f{-X_REAR, -Y_REAR, -PHI};
+    m_velocityCoupling.row(3) = Eigen::Vector3f{X_FRONT, -Y_FRONT, -PHI};
+
+    m_inverseCoupling = m_velocityCoupling.completeOrthogonalDecomposition();
+}
+
+Eigen::Vector3f SimRobot::limitAcceleration(float a_f, float a_s, float a_phi, float v_f, float v_s, float omega) const
+{
+    const float wheelAccel = m_specs.simulation_limits().a_speedup_wheel_max();
+    const float wheelDecel = m_specs.simulation_limits().a_brake_wheel_max();
+
+    const Eigen::Vector3f speed{v_s, v_f, omega};
+    const Eigen::Vector4f wheelSpeed = m_velocityCoupling * speed;
+
+    const Eigen::Vector3f acceleration{a_s, a_f, a_phi};
+    Eigen::Vector4f limitedWheelAcceleration = m_velocityCoupling * acceleration;
+    for (std::size_t i = 0;i<4;i++) {
+        limitedWheelAcceleration[i] = bound(limitedWheelAcceleration[i], wheelSpeed[i], wheelAccel, wheelDecel);
+    }
+
+    return m_inverseCoupling.solve(limitedWheelAcceleration);
+}
+
+void SimRobot::reportAccelerationLimits() const
+{
+    float tf = 1000, ts = 0, tphi = 0;
+    Eigen::Vector3f limited = limitAcceleration(tf, ts, tphi, 0.1, 0, 0);
+    qDebug() <<"speedup forward: "<<limited[1];
+    tf = 0, ts = 1000, tphi = 0;
+    limited = limitAcceleration(tf, ts, tphi, 0, 0.1, 0);
+    qDebug() <<"speedup sideward: "<<limited[0];
+    tf = 0, ts = 0, tphi = 1000;
+    limited = limitAcceleration(tf, ts, tphi, 0, 0, 0.1);
+    qDebug() <<"speedup rot: "<<limited[2];
+
+    tf = -1000, ts = 0, tphi = 0;
+    limited = limitAcceleration(tf, ts, tphi, 0.1, 0, 0);
+    qDebug() <<"brake forward: "<<limited[1];
+    tf = 0, ts = -1000, tphi = 0;
+    limited = limitAcceleration(tf, ts, tphi, 0, 0.1, 0);
+    qDebug() <<"brake sideward: "<<limited[0];
+    tf = 0, ts = 0, tphi = -1000;
+    limited = limitAcceleration(tf, ts, tphi, 0, 0, 0.1);
+    qDebug() <<"brake rot: "<<limited[2];
+
+    qDebug() <<"\nNote that some this acceleration is required to overcome friction and maintain the current velocity";
+
+    // TODO: max speed sideward, forward, rotation
 }
 
 // copy-paste from accelerator

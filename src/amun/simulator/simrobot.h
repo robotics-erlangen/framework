@@ -25,6 +25,8 @@
 #include "protobuf/robot.pb.h"
 #include "protobuf/sslsim.h"
 #include <QList>
+#include <Eigen/Dense>
+#include <Eigen/QR>
 #include <btBulletDynamicsCommon.h>
 
 class RNG;
@@ -72,8 +74,12 @@ private:
     btVector3 relativeBallSpeed(SimBall *ball) const;
     float bound(float acceleration, float oldSpeed, float speedupLimit, float brakeLimit) const;
     void calculateDribblerMove(const btVector3 pos, const btQuaternion rot, const btVector3 linVel, float omega);
+    // returns {a_s, a_f, a_phi} bounded
+    Eigen::Vector3f limitAcceleration(float a_f, float a_s, float a_phi, float v_f, float v_s, float omega) const;
     void dribble(SimBall *ball, float speed);
     bool handleMoveCommand();
+    void reportAccelerationLimits() const;
+    void generateVelocityCoupling();
 
     RNG *m_rng;
     robot::Specs m_specs;
@@ -108,6 +114,9 @@ private:
     bool m_perfectDribbler = false;
 
     qint64 m_lastSendTime = 0;
+
+    Eigen::Matrix<float, 4, 3> m_velocityCoupling;
+    Eigen::CompleteOrthogonalDecomposition<Eigen::Matrix<float, 4, 3>> m_inverseCoupling;
 };
 
 #endif // SIMROBOT_H
