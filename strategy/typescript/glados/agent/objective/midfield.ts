@@ -50,7 +50,7 @@ export class Midfield extends Objective {
 		return ball.pos.y < G.FieldHeightQuarter;
 	}
 
-	getSupporterZones = (participants: FriendlyRobot[], _mainAttackerPos: Position | undefined): Zone[] => {
+	getSupporterZones = (participants: FriendlyRobot[], mainAttackerPos: Position | undefined): Zone[] => {
 		const TOTAL_LEFT = -G.FieldWidthHalf;
 		const TOTAL_RIGHT = G.FieldWidthHalf;
 		const TOTAL_TOP = G.FieldHeightHalf;
@@ -58,32 +58,44 @@ export class Midfield extends Objective {
 		const MIDFIELD_OFFENSIVE_SPLIT = G.FieldHeightHalf / 3;
 
 		let remainingZones = participants.length + 1; // one zone will stay empty
-		const zones: Zone[] = [];
+		let zones: Zone[] = [];
 
-		// create one offensive zone
-		{
-			const boundaries = {
-				left: TOTAL_LEFT,
-				right: TOTAL_RIGHT,
-				top: TOTAL_TOP,
-				bottom: MIDFIELD_OFFENSIVE_SPLIT
-			};
-			const defaultPos = getRandomPosition(boundaries);
-			zones.push({ boundaries, defaultPos });
-			--remainingZones;
-		}
+		if (mainAttackerPos == undefined) {
+			// create one offensive zone
+			{
+				const boundaries = {
+					left: TOTAL_LEFT,
+					right: TOTAL_RIGHT,
+					top: TOTAL_TOP,
+					bottom: MIDFIELD_OFFENSIVE_SPLIT
+				};
+				const defaultPos = getRandomPosition(boundaries);
+				zones.push({ boundaries, defaultPos });
+				--remainingZones;
+			}
 
-		// create midfield zones
-		const zoneWidth = (TOTAL_RIGHT - TOTAL_LEFT) / remainingZones;
-		for (let i = 0; i < remainingZones; ++i) {
-			const boundaries = {
-				left: TOTAL_LEFT + i * zoneWidth,
-				right: TOTAL_LEFT + (i + 1) * zoneWidth,
-				top: MIDFIELD_OFFENSIVE_SPLIT,
-				bottom: TOTAL_BOTTOM
-			};
-			const defaultPos = getRandomPosition(boundaries);
-			zones.push({ boundaries, defaultPos });
+			// create midfield zones
+			const zoneWidth = (TOTAL_RIGHT - TOTAL_LEFT) / remainingZones;
+			for (let i = 0; i < remainingZones; ++i) {
+				const boundaries = {
+					left: TOTAL_LEFT + i * zoneWidth,
+					right: TOTAL_LEFT + (i + 1) * zoneWidth,
+					top: MIDFIELD_OFFENSIVE_SPLIT,
+					bottom: TOTAL_BOTTOM
+				};
+				const defaultPos = getRandomPosition(boundaries);
+				zones.push({ boundaries, defaultPos });
+			}
+		} else {
+			const startBoundaries =  participants.length > 1
+				? [
+					{ left: TOTAL_LEFT, right: TOTAL_RIGHT, top: TOTAL_TOP, bottom: MIDFIELD_OFFENSIVE_SPLIT },
+					{ left: TOTAL_LEFT, right: TOTAL_RIGHT, top: MIDFIELD_OFFENSIVE_SPLIT, bottom: TOTAL_BOTTOM }
+				]
+				: [{ left: TOTAL_LEFT, right: TOTAL_RIGHT, top: TOTAL_TOP, bottom: TOTAL_BOTTOM }];
+			const newZones = this.splitZonesClosestToMainAttacker(mainAttackerPos, remainingZones - startBoundaries.length + 1, startBoundaries);
+
+			zones = zones.concat(newZones);
 		}
 
 		return zones;
