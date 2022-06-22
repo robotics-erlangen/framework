@@ -51,6 +51,7 @@ ExternalProject_Add(project_libgit2
     BUILD_BYPRODUCTS
             "<INSTALL_DIR>/${LIBGIT_SUBPATH}"
     DOWNLOAD_DIR "${DEPENDENCY_DOWNLOADS}"
+    TEST_COMMAND "<BINARY_DIR>/libgit2_clar" "-xclone::nonetwork" "-xremote::httpproxy::env" "-xrefs::revparse::date" "-xstream::registration::tls"
 )
 
 EPHelper_Mark_For_Download(project_libgit2)
