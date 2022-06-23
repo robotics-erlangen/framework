@@ -112,7 +112,8 @@ export class Support implements Group {
 		for (let zone of this._zones) {
 			if (zone !== this._emptyZone) {
 				zoneList.push(zone);
-				vis.addPolygon("g/support: Zones", UtilZone.zoneToPolygon(zone), vis.colors.gold);
+				const color = World.TeamIsBlue ? vis.colors.skyBlue : vis.colors.gold;
+				vis.addPolygon("g/support: Zones", UtilZone.zoneToPolygon(zone), color);
 			}
 		}
 
