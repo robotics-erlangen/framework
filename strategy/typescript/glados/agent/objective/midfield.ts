@@ -10,7 +10,7 @@ import { Shoot } from "glados/agent/attacker/shoot";
 import { Support } from "glados/agent/attacker/support";
 import { Agent } from "glados/agent/base/agent";
 import { CheckableList } from "glados/agent/base/behavior";
-import { BallLike, Objective } from "glados/agent/base/objective";
+import { BallLike, Objective, SplitZone } from "glados/agent/base/objective";
 import { MidfieldSampling } from "glados/task/ability/midfieldsampling";
 import { midfieldRatePass } from "glados/util/attack";
 import { getRandomPosition, Zone } from "glados/util/zone";
@@ -87,12 +87,12 @@ export class Midfield extends Objective {
 				zones.push({ boundaries, defaultPos });
 			}
 		} else {
-			const startBoundaries =  participants.length > 1
+			const startBoundaries: SplitZone[] =  participants.length > 1
 				? [
-					{ left: TOTAL_LEFT, right: TOTAL_RIGHT, top: TOTAL_TOP, bottom: MIDFIELD_OFFENSIVE_SPLIT },
-					{ left: TOTAL_LEFT, right: TOTAL_RIGHT, top: MIDFIELD_OFFENSIVE_SPLIT, bottom: TOTAL_BOTTOM }
+					{ boundaries: { left: TOTAL_LEFT, right: TOTAL_RIGHT, top: TOTAL_TOP, bottom: MIDFIELD_OFFENSIVE_SPLIT }, timesDivisible: 1 },
+					{ boundaries: { left: TOTAL_LEFT, right: TOTAL_RIGHT, top: MIDFIELD_OFFENSIVE_SPLIT, bottom: TOTAL_BOTTOM }, timesDivisible: 3},
 				]
-				: [{ left: TOTAL_LEFT, right: TOTAL_RIGHT, top: TOTAL_TOP, bottom: TOTAL_BOTTOM }];
+				: [{ boundaries: { left: TOTAL_LEFT, right: TOTAL_RIGHT, top: TOTAL_TOP, bottom: TOTAL_BOTTOM }, timesDivisible: 1}];
 			const newZones = this.splitZonesClosestToMainAttacker(mainAttackerPos, remainingZones - startBoundaries.length + 1, startBoundaries);
 
 			zones = zones.concat(newZones);

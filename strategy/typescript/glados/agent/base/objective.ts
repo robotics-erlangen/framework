@@ -18,10 +18,10 @@ export interface RunnerCtors {
 	support: CheckableConstructor;
 }
 
-	interface SplitZone {
-		boundaries: Boundaries;
-		splitCount: number;
-	}
+export interface SplitZone {
+	boundaries: Boundaries;
+	timesDivisible: number;
+}
 
 /**
  * The base class for objectives.
@@ -87,20 +87,16 @@ export abstract class Objective {
 		return this._toString();
 	}
 
-	protected splitZonesClosestToMainAttacker(mainAttackerPos: Position, remainingZones: number, startBoundaries: Boundaries[]): Zone[] {
+	protected splitZonesClosestToMainAttacker(mainAttackerPos: Position, remainingZones: number, startBoundaries: SplitZone[]): Zone[] {
 		const DEFENSE_AREA_CUT_OFF_Y = World.Geometry.FieldHeightHalf - World.Geometry.DefenseHeight;
 		const LOWER_DEFENSE_AREA_CUT_OFF_X = -World.Geometry.DefenseWidthHalf;
 		const UPPER_DEFENSE_AREA_CUT_OFF_X = World.Geometry.DefenseWidthHalf;
 
-		let boundaryList: SplitZone[] = [];
+		let boundaryList: SplitZone[] = startBoundaries;
 		if (remainingZones > 0) {
-			let startSplitCount = Math.floor(startBoundaries.length / 2);
-			boundaryList = startBoundaries.map((boundaries) => {
-					return { boundaries, splitCount: startSplitCount }
-				});
 
 			/* The basic idea of the following is to split the zones repeatedly.
-			 * The zones split next is the one closest to the main attacker, unless it already has been split MAX_SPLIT times,
+			 * The zones split next is the one closest to the main attacker, unless it's timesDivisible counter is 0
 			 * to keep the zones at a useful size.
 			 * If the zone contains the defense area lines, split it along those lines, otherwise split it in the middle.
 			 * In the case one of the resulting zones contains the defense area and can be split into two new zones a way that
@@ -111,8 +107,8 @@ export abstract class Objective {
 
 				const currentSplitZone = boundaryList[boundaryIndex];
 				const currentBoundary = currentSplitZone.boundaries;
-				const splitCount = currentSplitZone.splitCount;
-				const newSplitCount = splitCount + 1;
+				const timesDivisible = currentSplitZone.timesDivisible;
+				const newTimesDivisible = timesDivisible - 1;
 				const rightLeft = currentBoundary.right - currentBoundary.left;
 				const topBottom = currentBoundary.top - currentBoundary.bottom;
 				const rightLeftBigger = Math.abs(rightLeft) > Math.abs(topBottom);
@@ -152,7 +148,7 @@ export abstract class Objective {
 					const newBoundary0Top = cutoutDefenseArea0 ? DEFENSE_AREA_CUT_OFF_Y : currentBoundary.top;
 
 					const newBoundary0 = { boundaries: { left: currentBoundary.left, right: newBoundaryMidRightLeft,
-						top: newBoundary0Top, bottom: currentBoundary.bottom }, splitCount: newSplitCount };
+						top: newBoundary0Top, bottom: currentBoundary.bottom }, timesDivisible: newTimesDivisible };
 
 					// check if the new boundary can be reduced to not contain the defense area
 					const cutoutDefenseArea1 = boundaryContainsDefenseArea
@@ -160,7 +156,7 @@ export abstract class Objective {
 						&& newBoundaryMidRightLeft === LOWER_DEFENSE_AREA_CUT_OFF_X;
 					const newBoundary1Top = cutoutDefenseArea1 ? DEFENSE_AREA_CUT_OFF_Y : currentBoundary.top;
 					const newBoundary1 = { boundaries: { left: newBoundaryMidRightLeft, right: currentBoundary.right,
-						top: newBoundary1Top, bottom: currentBoundary.bottom }, splitCount: newSplitCount };
+						top: newBoundary1Top, bottom: currentBoundary.bottom }, timesDivisible: newTimesDivisible };
 
 					boundaryList[boundaryIndex] = newBoundary0;
 					boundaryList.push(newBoundary1);
@@ -169,7 +165,7 @@ export abstract class Objective {
 						&& currentBoundary.bottom < DEFENSE_AREA_CUT_OFF_Y;
 					const newBoundaryTopBottom = containsDefenseArea ? DEFENSE_AREA_CUT_OFF_Y : topBottom / 2 + currentBoundary.bottom;
 					const newBoundary0 = { boundaries: { left: currentBoundary.left, right: currentBoundary.right,
-						top: newBoundaryTopBottom, bottom: currentBoundary.bottom }, splitCount: newSplitCount };
+						top: newBoundaryTopBottom, bottom: currentBoundary.bottom }, timesDivisible: newTimesDivisible };
 
 					// check if the new boundary can be reduced to not contain the defense area
 					const newBoundary1ContainsDefenseAreaUpper = currentBoundary.left > UPPER_DEFENSE_AREA_CUT_OFF_X
@@ -183,7 +179,7 @@ export abstract class Objective {
 						? LOWER_DEFENSE_AREA_CUT_OFF_X
 						: currentBoundary.right;
 					const newBoundary1 = { boundaries: { left: newBoundary1Left, right: newBoundary1Right,
-						top: currentBoundary.top, bottom: newBoundaryTopBottom }, splitCount: newSplitCount };
+						top: currentBoundary.top, bottom: newBoundaryTopBottom }, timesDivisible: newTimesDivisible };
 
 					boundaryList[boundaryIndex] = newBoundary0;
 					boundaryList.push(newBoundary1);
@@ -200,12 +196,11 @@ export abstract class Objective {
 	}
 
 	protected findClosestZoneToMainAttacker(mainAttackerPos: Position, boundaryList: SplitZone[]): number {
-		const MAX_SPLIT = 3;
 		let minDist = Infinity;
 		let boundaryIndex: number = 0;
 		for (let j = 0; j < boundaryList.length; ++j) {
 			const splitZone = boundaryList[j];
-			if (splitZone.splitCount >= MAX_SPLIT) {
+			if (splitZone.timesDivisible <= 0) {
 				continue;
 			}
 			const corner1 = new Vector(splitZone.boundaries.left, splitZone.boundaries.bottom);

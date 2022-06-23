@@ -10,7 +10,7 @@ import { Shoot } from "glados/agent/attacker/shoot";
 import { Support } from "glados/agent/attacker/support";
 import { Agent } from "glados/agent/base/agent";
 import { CheckableList } from "glados/agent/base/behavior";
-import { BallLike, Objective } from "glados/agent/base/objective";
+import { BallLike, Objective, SplitZone } from "glados/agent/base/objective";
 import { StrikerSampling } from "glados/task/ability/strikersampling";
 import { defaultRatePass } from "glados/util/attack";
 import { getRandomPosition, Zone } from "glados/util/zone";
@@ -57,28 +57,15 @@ export class Striker extends Objective {
 
 		let zones: Zone[] = [];
 
-		// create the regressive zone(s)
-		if (participants.length <= 8) {
+		// should probably never undefined, but just in case it is fall back to trivially splitting the zones
+		if (mainAttackerPos == undefined) {
+			// create the regressive zone(s)
 			const boundaries = { left: TOTAL_LEFT, right: TOTAL_RIGHT, top: MIDFIELD_OFFENSIVE_SPLIT, bottom: TOTAL_BOTTOM };
 			const defaultPos = getRandomPosition(boundaries);
 			zones.push({ boundaries, defaultPos });
+
 			--remainingZones;
-		} else {
-			// technically always zero on a normal field, but maybe not on every geometry
-			const midPoint = (TOTAL_LEFT - TOTAL_RIGHT) / 2 + TOTAL_RIGHT;
-			const boundaries0 = { left: TOTAL_LEFT, right: midPoint, top: MIDFIELD_OFFENSIVE_SPLIT, bottom: TOTAL_BOTTOM };
-			const defaultPos0 = getRandomPosition(boundaries0);
-			zones.push({ boundaries: boundaries0, defaultPos: defaultPos0 });
 
-			const boundaries1 = { left: midPoint, right: TOTAL_RIGHT, top: MIDFIELD_OFFENSIVE_SPLIT, bottom: TOTAL_BOTTOM };
-			const defaultPos1 = getRandomPosition(boundaries1);
-			zones.push({ boundaries: boundaries1, defaultPos: defaultPos1 });
-
-			remainingZones -= 2;
-		}
-
-		// should probably never undefined, but just in case it is fall back to trivially splitting the zones
-		if (mainAttackerPos == undefined) {
 			// create offensive zones
 			const zoneWidth = (TOTAL_RIGHT - TOTAL_LEFT) / remainingZones;
 			for (let i = 0; i < remainingZones; ++i) {
@@ -92,8 +79,12 @@ export class Striker extends Objective {
 				zones.push({ boundaries, defaultPos });
 			}
 		} else {
-			const startBoundaries = { left: TOTAL_LEFT, right: TOTAL_RIGHT, top: TOTAL_TOP, bottom: MIDFIELD_OFFENSIVE_SPLIT };
-			const newZones = this.splitZonesClosestToMainAttacker(mainAttackerPos, remainingZones, [startBoundaries]);
+			const startBoundaries: SplitZone[] = participants.length > 1
+				? [{ boundaries: { left: TOTAL_LEFT, right: TOTAL_RIGHT, top: TOTAL_TOP, bottom: MIDFIELD_OFFENSIVE_SPLIT }, timesDivisible: 3},
+					{ boundaries: { left: TOTAL_LEFT, right: TOTAL_RIGHT, top: MIDFIELD_OFFENSIVE_SPLIT, bottom: TOTAL_BOTTOM }, timesDivisible: 1}]
+				: [{ boundaries: { left: TOTAL_LEFT, right: TOTAL_RIGHT, top: TOTAL_TOP, bottom: MIDFIELD_OFFENSIVE_SPLIT }, timesDivisible: 3}];
+
+			const newZones = this.splitZonesClosestToMainAttacker(mainAttackerPos, remainingZones - startBoundaries.length + 1, startBoundaries);
 
 			zones = zones.concat(newZones);
 		}
