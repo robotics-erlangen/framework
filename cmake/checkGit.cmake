@@ -22,13 +22,20 @@
 # This cmake file is build as a script that is triggered by src/config/CMakeLists.txt
 # to make sure the git-stuff is not done at configure time, but for every build time.
 # It requires the following Variables:
-# TARGET (The location of the file after processing), GIT_BASE_DIR (CMAKE_SOURCE_DIR), SOURCE (The file to be processed), STAMP (The file to be touched)
+# TARGET (The location of the file after processing), GIT_BASE_DIR (CMAKE_SOURCE_DIR), SOURCE (The file to be processed), STAMP (The file to be touched), ESCAPE (True if we need to escape curly braces for git )
 
 # It created the following file:
 # TARGET
 
 # It touches the following file: (to be run again next time even if no file has changed)
 # STAMP
+
+
+if(${ESCAPE})
+    set(MASTER_TREEISH "master@\\\\{u\\\\}")
+else()
+    set(MASTER_TREEISH "master@{u}")
+endif()
 
 macro(set_git_vars)
     if(NOT ${ARGC} EQUAL 2)
@@ -56,7 +63,7 @@ macro(c_escape)
 endmacro()
 
 set_git_vars(HEAD HEAD)
-set_git_vars(MASTER master@{u})
+set_git_vars(MASTER ${MASTER_TREEISH})
 
 c_escape(GIT_DIFF_HEAD)
 c_escape(GIT_DIFF_MASTER)
