@@ -186,7 +186,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
 
     connect(ui->actionConfiguration, SIGNAL(triggered()), SLOT(showConfigDialog()));
     connect(ui->actionAboutUs, SIGNAL(triggered()), m_aboutUs, SLOT(exec()));
-    connect(ui->actionGitInfo, SIGNAL(triggered()), m_gitInfo, SLOT(exec()));
+    connect(ui->actionGitInfo, SIGNAL(triggered()), m_gitInfo, SLOT(show()));
     connect(ui->actionPlotter, SIGNAL(triggered()), this, SLOT(showPlotter()));
     connect(ui->actionAutoPause, SIGNAL(toggled(bool)), ui->simulator, SLOT(setEnableAutoPause(bool)));
     connect(ui->actionUseLocation, SIGNAL(toggled(bool)), this, SLOT(useLogfileLocation(bool)));
