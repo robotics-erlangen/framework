@@ -376,6 +376,22 @@ gitconfig::TreeDescriptor gitconfig::getLiveCommit(const char* path) {
     return out;
 }
 
+static int git_apply_ignore_whitespace_eol(const char *a, size_t a_n, const char *b, size_t b_n) {
+    size_t i = 0;
+    for(; i < a_n && i < b_n; ++i) {
+        if(a[i] != b[i]) break;
+	if(a[i] == '\n') return !(a_n == b_n);
+    }
+    /* Check if it is only whitespace after i */
+    for(size_t j=i; j < a_n; ++j) {
+        if(!std::isspace(a[j])) return 1;
+    }
+    for(size_t j=i; j < b_n; ++j) {
+        if(!std::isspace(b[j])) return 1;
+    }
+    return 0;
+}
+
 std::string gitconfig::calculateDiff(const char* repository, const char* orig_hash, const char* orig_diff, const char* diff_hash) {
     int exitcode;
 
@@ -398,7 +414,9 @@ std::string gitconfig::calculateDiff(const char* repository, const char* orig_ha
     GIT_RAII(from_input, git_diff_free);
 
     git_index* custom_index;
-    exitcode = git_apply_to_tree(&custom_index, data.repo, data.tree, from_input, NULL);
+    git_apply_options app_opts = GIT_APPLY_OPTIONS_INIT;
+    app_opts.compare_cb = git_apply_ignore_whitespace_eol;
+    exitcode = git_apply_to_tree(&custom_index, data.repo, data.tree, from_input, &app_opts);
     if (exitcode) {
         return create_libgit_error_msg(exitcode, "error: Cannot apply to tree");
     }
