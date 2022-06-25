@@ -22,7 +22,7 @@
 #include "ui_gitinfodialog.h"
 
 GitInfoDialog::GitInfoDialog(QWidget *parent) :
-    QDialog(parent),
+    QDialog(parent, Qt::Window),
     ui(new Ui::GitInfoDialog)
 {
     ui->setupUi(this);
