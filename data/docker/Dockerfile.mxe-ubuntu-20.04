@@ -1,5 +1,7 @@
 FROM ubuntu:20.04 AS build-stage
 
+ENV LANG=C.UTF-8
+
 ARG DEBIAN_FRONTEND=noninteractive
 RUN set -xe; \
 	# Install dependencies
