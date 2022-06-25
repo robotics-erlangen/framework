@@ -44,6 +44,22 @@
 
 #define GIT_RAII(pointer, cleanup) std::unique_ptr<std::remove_reference<decltype(*pointer)>::type, void(*)(decltype(pointer))> raii_##pointer{pointer, cleanup}
 
+static std::string create_libgit_error_msg(int error, const char* message) {
+    const git_error *lgerr;
+    std::string out = message;
+    const char *lg2msg = "", *lg2spacer = "";
+    if ((lgerr = git_error_last()) != NULL && lgerr->message != NULL) {
+        lg2msg = lgerr->message;
+        lg2spacer = " - ";
+    }
+    out += " [";
+    out += std::to_string(error);
+    out += "]";
+    out += lg2spacer;
+    out += lg2msg;
+    return out;
+}
+
 static char* copy_string(const char* in) {
     std::size_t len = strlen(in) + 1;
     char* out = new char[len];
@@ -377,14 +393,14 @@ std::string gitconfig::calculateDiff(const char* repository, const char* orig_ha
     git_diff* from_input;
     exitcode = git_diff_from_buffer(&from_input, orig_diff, std::strlen(orig_diff));
     if (exitcode) {
-        return "error: Cannot rebuild git_diff";
+        return create_libgit_error_msg(exitcode, "error: Cannot rebuild git_diff");
     }
     GIT_RAII(from_input, git_diff_free);
 
     git_index* custom_index;
     exitcode = git_apply_to_tree(&custom_index, data.repo, data.tree, from_input, NULL);
     if (exitcode) {
-        return "error: Cannot apply to tree";
+        return create_libgit_error_msg(exitcode, "error: Cannot apply to tree");
     }
     GIT_RAII(custom_index, git_index_free);
 
@@ -400,14 +416,14 @@ std::string gitconfig::calculateDiff(const char* repository, const char* orig_ha
     git_diff* new_diff;
     exitcode = git_diff_tree_to_index(&new_diff, data_to_diff_to.repo, data_to_diff_to.tree, custom_index, &data_to_diff_to.diffopt);
     if (exitcode) {
-        return "error: Cannot calculate new diff";
+        return create_libgit_error_msg(exitcode, "error: Cannot calculate new diff");
     }
     GIT_RAII(new_diff, git_diff_free);
 
     std::vector<FileDiff> file_diff;
     exitcode = git_diff_print(new_diff, GIT_DIFF_FORMAT_PATCH, print_to_vector_file_diff, &file_diff);
     if (exitcode) {
-        return "error in git_diff_print" + std::to_string(exitcode);
+        return create_libgit_error_msg(exitcode, "error in git_diff_print");
     }
 
     return convert_file_diffs_to_string(std::move(file_diff));
