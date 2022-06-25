@@ -200,7 +200,7 @@ export class Shoot {
 	}
 
 	private _getState(targetPos: Position, futureBall: Physics.BallLike, futureBallTime: number,
-			targetTime: number | undefined, chaseFutureBall: Physics.BallLike): ShootState {
+			targetTime: number | undefined, chaseFutureBall: Physics.BallLike, chaseBallTime: number): ShootState {
 
 		if (this.ballInDribbler && HAS_STRONG_DRIBBLER) {
 			return ShootState.RotateWithBall;
@@ -220,8 +220,9 @@ export class Shoot {
 		let sidewardsBallSpeed = Math.abs(World.Ball.speed.dot(sidewardsVector));
 		let chaseBallAngle = CHASE_BALL_ANGLE + (this._state === ShootState.ChaseBall ? 1 : -1) * CHASE_BALL_ANGLE_HYST;
 		let sidewardsSpeedLimit = CHASE_BALL_SIDE_SPEED + (this._state === ShootState.ChaseBall ? 1 : -1) * CHASE_BALL_SIDE_SPEED_HYST;
+		const minBallHeight = World.Ball.posZ + chaseBallTime * World.Ball.speedZ - 0.5 * 9.81 * chaseBallTime * chaseBallTime;
 		if (chaseFutureBall.speed.length() > restingBallSpeed
-				&& angleDiff < chaseBallAngle && (World.Ball.speed.dot(relativeBallPos) > 0 || World.Ball.posZ > 0)
+				&& angleDiff < chaseBallAngle && (World.Ball.speed.dot(relativeBallPos) > 0 || minBallHeight > 0.3)
 				&& World.Ball.speed.dot(chaseFutureBall.pos - this._robot.pos) > 0
 				&& sidewardsBallSpeed < sidewardsSpeedLimit
 				&& !Field.isInOpponentDefenseArea(World.Ball.pos, 0)) {
@@ -452,13 +453,13 @@ export class Shoot {
 		return shootBallPos;
 	}
 
-	private _calculateChaseFutureBall(targetPos: Position) {
+	private _calculateChaseFutureBall(targetPos: Position) : [Physics.BallLike, number] {
 		let dribblerOffset = (targetPos - World.Ball.pos).withLength(this._robot.shootRadius + World.Ball.radius);
 		let moveDest = World.Ball.pos - dribblerOffset;
 		let moveTime = moveDest.distanceTo(this._robot.pos) / Math.min(this._robot.speed.length(), 1);
 		let futureBall =  Physics.ballAtTime(World.Ball, moveTime);
 		vis.addCircle("t/a/shoot chase future ball", futureBall.pos, 0.03, vis.colors.orange);
-		return futureBall;
+		return [futureBall, moveTime];
 	}
 
 	private _shootChaseBall(targetPos: Position, targetSpeed: number, futureBall: Physics.BallLike) {
@@ -594,9 +595,10 @@ export class Shoot {
 		this.targetRobotDir = (targetPos - this._robot.pos).angle();
 		let [futureBall, futureBallTime] = this._calculateFutureBall(ballReceiptPos);
 		debug.set("Shoot/futureBallTime", futureBallTime);
-		let chaseFutureBall = this._calculateChaseFutureBall(targetPos);
+		let [chaseFutureBall, chaseBallTime] = this._calculateChaseFutureBall(targetPos);
 
-		this._state = this._getState(targetPos, futureBall, futureBallTime, targetTime, chaseFutureBall);
+		this._state = this._getState(targetPos, futureBall, futureBallTime, targetTime,
+			chaseFutureBall, chaseBallTime);
 		debug.set("Shoot/State", this._state);
 
 		this._linearShoot = linearShoot;
