@@ -39,7 +39,7 @@ ExternalProject_Add(project_libgit2
     URL https://downloads.robotics-erlangen.de/libgitv1.3.0.zip
     URL_HASH SHA256=26bc8d7d04cdc10941a3c0c9dfa1b5b248a2b108154f1b6b4b5054a5bab2646e
     DOWNLOAD_NO_PROGRESS true
-    PATCH_COMMAND cat ${CMAKE_CURRENT_LIST_DIR}/libgit.patch | patch -Rp1
+    PATCH_COMMAND cat ${CMAKE_CURRENT_LIST_DIR}/libgit.patch | patch -p1
     CMAKE_ARGS
         -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
         -DBUILD_SHARED_LIBS:STRING=OFF

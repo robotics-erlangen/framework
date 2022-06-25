@@ -1,12 +1,126 @@
---- plg2_s_signature_mod.c	2022-06-22 12:26:03.940567986 +0200
-+++ project_libgit2/src/signature.c	2021-09-27 22:09:50.000000000 +0200
-@@ -168,8 +168,7 @@
+diff --git a/include/git2/apply.h b/include/git2/apply.h
+index bc637df1c..9e43888e1 100644
+--- a/include/git2/apply.h
++++ b/include/git2/apply.h
+@@ -62,6 +62,24 @@ typedef enum {
+ 	GIT_APPLY_CHECK = (1 << 0),
+ } git_apply_flags_t;
+ 
++
++/**
++ * When applying a text-based hunk, callback that will be made per line of context. Lines of context are not 0-terminated.
++ *
++ * When the callback:
++ * - returns 0, the two lines of context specified by a and a_n on the one hand, and b and b_n on the other hand, are considered equal
++ * - returns !=0, the two lines of context are not considered equal
++ *
++ * @param a A line of context on side a
++ * @param a_n The length of a
++ * @param b A line of context on side b
++ * @param b_n The length of b
++ */
++typedef int GIT_CALLBACK(git_compare_context)(
++	const char *a,
++	size_t a_n,
++	const char *b,
++	size_t b_n);
+ /**
+  * Apply options structure
+  *
+@@ -84,6 +102,9 @@ typedef struct {
+ 
+ 	/** Bitmask of git_apply_flags_t */
+ 	unsigned int flags;
++
++	/** When trying to determine if the context is matching, use this function instead of memcmp */
++	git_compare_context compare_cb;
+ } git_apply_options;
+ 
+ #define GIT_APPLY_OPTIONS_VERSION 1
+diff --git a/src/apply.c b/src/apply.c
+index 7c65cd79d..ace20d14d 100644
+--- a/src/apply.c
++++ b/src/apply.c
+@@ -98,10 +98,17 @@ static void patch_image_free(patch_image *image)
+ 	git_vector_free(&image->lines);
+ }
+ 
++static int default_compare_context(const char *a, size_t a_n, const char *b, size_t b_n) {
++	if (a_n != b_n)
++		return 1;
++	return memcmp(a, b, b_n);
++}
++
+ static bool match_hunk(
+ 	patch_image *image,
+ 	patch_image *preimage,
+-	size_t linenum)
++	size_t linenum,
++	git_compare_context cmp)
+ {
+ 	bool match = 0;
+ 	size_t i;
+@@ -118,8 +125,7 @@ static bool match_hunk(
+ 		git_diff_line *preimage_line = git_vector_get(&preimage->lines, i);
+ 		git_diff_line *image_line = git_vector_get(&image->lines, linenum + i);
+ 
+-		if (preimage_line->content_len != image_line->content_len ||
+-			memcmp(preimage_line->content, image_line->content, image_line->content_len) != 0) {
++		if (cmp(preimage_line->content, preimage_line->content_len, image_line->content, image_line->content_len) != 0) {
+ 			match = 0;
+ 			break;
+ 		}
+@@ -132,7 +138,8 @@ static bool find_hunk_linenum(
+ 	size_t *out,
+ 	patch_image *image,
+ 	patch_image *preimage,
+-	size_t linenum)
++	size_t linenum,
++	git_compare_context cmp)
+ {
+ 	size_t max = git_vector_length(&image->lines);
+ 	bool match;
+@@ -140,7 +147,7 @@ static bool find_hunk_linenum(
+ 	if (linenum > max)
+ 		linenum = max;
+ 
+-	match = match_hunk(image, preimage, linenum);
++	match = match_hunk(image, preimage, linenum, cmp);
+ 
+ 	*out = linenum;
+ 	return match;
+@@ -190,6 +197,7 @@ static int apply_hunk(
+ 	apply_hunks_ctx *ctx)
+ {
+ 	patch_image preimage = PATCH_IMAGE_INIT, postimage = PATCH_IMAGE_INIT;
++	git_compare_context cmp = NULL;
+ 	size_t line_num, i;
+ 	int error = 0;
+ 
+@@ -249,7 +257,12 @@ static int apply_hunk(
+ 		line_num = 0;
+ 	}
+ 
+-	if (!find_hunk_linenum(&line_num, image, &preimage, line_num)) {
++	cmp = ctx->opts.compare_cb;
++	if (!cmp) {
++		cmp = default_compare_context;
++	}
++
++	if (!find_hunk_linenum(&line_num, image, &preimage, line_num, cmp)) {
+ 		error = apply_err("hunk at line %d did not apply",
+ 			hunk->hunk.new_start);
+ 		goto done;
+diff --git a/src/signature.c b/src/signature.c
+index 1efda212a..1e23f94e6 100644
+--- a/src/signature.c
++++ b/src/signature.c
+@@ -168,7 +168,7 @@ int git_signature_now(git_signature **sig_out, const char *name, const char *ema
  	time(&now);
  	utc_tm = p_gmtime_r(&now, &_utc);
  	utc_tm->tm_isdst = -1;
--    offset = mktime(utc_tm) - now;
--//	offset = (time_t)difftime(now, mktime(utc_tm));
-+	offset = (time_t)difftime(now, mktime(utc_tm));
+-	offset = (time_t)difftime(now, mktime(utc_tm));
++	offset = mktime(utc_tm) - now;
  	offset /= 60;
  
  	if (git_signature_new(&sig, name, email, now, (int)offset) < 0)
