@@ -127,34 +127,40 @@ export class Support extends Task {
 
 		let bestPoint = undefined;
 		let bestScore = -Infinity;
-		for (let x = grid_point_dist_x * 0.5 - G.FieldWidthHalf;x <= G.FieldWidthHalf; x += grid_point_dist_x) {
-			if (x > left && x < right) {
-				for (let y = grid_point_dist_y * 0.5 - G.FieldHeightHalf; y <= G.FieldHeightHalf; y += grid_point_dist_y) {
-					if (y > bottom && y < top) {
-						let candidatePoint = new Vector(x, y);
-						candidatePoint = Field.limitToAllowedField(candidatePoint, -(3 * this._robot.radius + 0.1));
-						if (geom.insideRect(new Vector(left, bottom), new Vector(right, top), candidatePoint)) {
-							let score = this._sampling.evalLocation(candidatePoint, bestScore);
-							let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
-							let firstHysteresis = false;
-							if (passInfoTable) {
-								for (let passInfo of passInfoTable) {
-									if (passInfo.ballPos.distanceToSq(candidatePoint) < 0.01 * 0.01) {
-										score = score + 0.1;
-										firstHysteresis = true;
-									}
-								}
-							}
-							if (!firstHysteresis && this._passDestSuggestion &&
-									this._passDestSuggestion.distanceToSq(candidatePoint) < 0.01 * 0.01) {
-								score += 0.05;
-							}
-							if (score > bestScore) {
-								bestScore = score;
-								bestPoint = candidatePoint;
-							}
+		for (let x = grid_point_dist_x * 0.5 - G.FieldWidthHalf; x <= G.FieldWidthHalf; x += grid_point_dist_x) {
+			if (x <= left || x >= right) {
+				continue;
+			}
+
+			for (let y = grid_point_dist_y * 0.5 - G.FieldHeightHalf; y <= G.FieldHeightHalf; y += grid_point_dist_y) {
+				if (y <= bottom || y >= top) {
+					continue;
+				}
+
+				let candidatePoint = new Vector(x, y);
+				candidatePoint = Field.limitToAllowedField(candidatePoint, -(3 * this._robot.radius + 0.1));
+				if (!geom.insideRect(new Vector(left, bottom), new Vector(right, top), candidatePoint)) {
+					continue;
+				}
+
+				let score = this._sampling.evalLocation(candidatePoint, bestScore);
+				let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
+				let firstHysteresis = false;
+				if (passInfoTable) {
+					for (let passInfo of passInfoTable) {
+						if (passInfo.ballPos.distanceToSq(candidatePoint) < 0.01 * 0.01) {
+							score = score + 0.1;
+							firstHysteresis = true;
 						}
 					}
+				}
+				if (!firstHysteresis && this._passDestSuggestion &&
+						this._passDestSuggestion.distanceToSq(candidatePoint) < 0.01 * 0.01) {
+					score += 0.05;
+				}
+				if (score > bestScore) {
+					bestScore = score;
+					bestPoint = candidatePoint;
 				}
 			}
 		}
