@@ -25,7 +25,7 @@
 #include "radiocommand2014.h"
 #include <stdint.h>
 
-static const uint8_t robot2018_address[] = { 0x60, 0xE8, 0xE4, 0xC7 };
+static const uint8_t robot2018_address[] = { 0x40, 0xE8, 0xE4, 0xC7 };
 STATIC_ASSERT(sizeof(robot2018_address) == NRF_ADDRESS_SIZE,robot2018_address_has_wrong_size);
 
 static const int16_t RADIOCOMMAND2018_V_MAX = 32767;
