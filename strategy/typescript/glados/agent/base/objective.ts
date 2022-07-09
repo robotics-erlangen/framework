@@ -33,24 +33,27 @@ export interface SplitZone {
  * implemented in a subclass of the Objective class.
  */
 export abstract class Objective {
-	private readonly _maRunner: Checkable;
-	private readonly _supportRunnerCtor: CheckableConstructor;
+	private _maRunner?: Checkable;
+	private readonly _runnerCtors: RunnerCtors;
 	private readonly _supportRunner = new Map<Agent, Checkable>();
+
 	/** Whether the objective was activated during a freekick */
 	private readonly _freekick: boolean;
 
-	constructor(maAgent: Agent, runnerCtor: RunnerCtors) {
+	constructor(runnerCtor: RunnerCtors) {
+		this._runnerCtors = runnerCtor;
 		this._freekick = Referee.isFriendlyFreeKickState()
 			|| World.RefereeState === "BallPlacementOffensive" && Referee.isFriendlyFreeKickState(World.NextRefereeState);
-		const ctor = this._freekick
-			? runnerCtor.freekick
-			: runnerCtor.ma;
-		this._maRunner = new ctor(maAgent);
-		this._supportRunnerCtor = runnerCtor.support;
 	}
 
 	/** Get the {@link Checkable} that can be checked by the main attacker */
-	getMaRunner(): Checkable {
+	getMaRunner(maAgent: Agent): Checkable {
+		if (!this._maRunner) {
+			const ctor = this._freekick
+				? this._runnerCtors.freekick
+				: this._runnerCtors.ma;
+			this._maRunner = new ctor(maAgent);
+		}
 		return this._maRunner;
 	}
 
@@ -60,7 +63,7 @@ export abstract class Objective {
 	 */
 	getSupportRunner(agent: Agent): Checkable {
 		if (this._supportRunner[agent] === undefined) {
-			this._supportRunner[agent] = new this._supportRunnerCtor(agent);
+			this._supportRunner[agent] = new this._runnerCtors.support(agent);
 		}
 		return this._supportRunner[agent]!;
 	}
@@ -245,5 +248,5 @@ export interface ObjectiveConstructor {
 	 * @returns true iff the objective could start running under the current conditions
 	 */
 	canStart(ball: BallLike): boolean;
-	new(maAgent: Agent): Objective;
+	new(): Objective;
 }

@@ -8,7 +8,6 @@ import { FreeKick } from "glados/agent/attacker/freekick";
 import { PassTiming } from "glados/agent/attacker/passtiming";
 import { Shoot } from "glados/agent/attacker/shoot";
 import { Support } from "glados/agent/attacker/support";
-import { Agent } from "glados/agent/base/agent";
 import { CheckableList } from "glados/agent/base/behavior";
 import { BallLike, Objective, SplitZone } from "glados/agent/base/objective";
 import { MidfieldSampling } from "glados/task/ability/midfieldsampling";
@@ -18,8 +17,8 @@ import { getRandomPosition, Zone } from "glados/util/zone";
 const G = World.Geometry;
 
 export class Midfield extends Objective {
-	constructor(maAgent: Agent) {
-		super(maAgent, {
+	constructor() {
+		super({
 			ma: Midfield.MA_RUNNER,
 			freekick: Midfield.FREEKICK_RUNNER,
 			support: Midfield.SUPPORT_RUNNER

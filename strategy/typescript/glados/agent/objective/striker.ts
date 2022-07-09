@@ -8,7 +8,6 @@ import { FreeKick } from "glados/agent/attacker/freekick";
 import { PassTiming } from "glados/agent/attacker/passtiming";
 import { Shoot } from "glados/agent/attacker/shoot";
 import { Support } from "glados/agent/attacker/support";
-import { Agent } from "glados/agent/base/agent";
 import { CheckableList } from "glados/agent/base/behavior";
 import { BallLike, Objective, SplitZone } from "glados/agent/base/objective";
 import { StrikerSampling } from "glados/task/ability/strikersampling";
@@ -18,8 +17,8 @@ import { getRandomPosition, Zone } from "glados/util/zone";
 const G = World.Geometry;
 
 export class Striker extends Objective {
-	constructor(maAgent: Agent) {
-		super(maAgent, {
+	constructor() {
+		super({
 			ma: Striker.MA_RUNNER,
 			freekick: Striker.FREEKICK_RUNNER,
 			support: Striker.SUPPORT_RUNNER

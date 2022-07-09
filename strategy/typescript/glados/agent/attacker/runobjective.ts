@@ -23,7 +23,7 @@ export class RunObjective implements Checkable {
 				throw new Error("Propagated objective through agent on non main attacker");
 			}
 
-			this._runner = this._agent.objective.getMaRunner();
+			this._runner = this._agent.objective.getMaRunner(this._agent);
 			// This may happen if the objective was not constructed by this
 			// agents instance of SelectObjective, e.g if the main attacker
 			// switched from defender to attacker

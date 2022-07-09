@@ -154,7 +154,7 @@ export class BallEscort extends Behavior {
 		 */
 		if (this._isDefender) {
 			if (!this._objective) {
-				this._objective = new Midfield(this._agent);
+				this._objective = new Midfield();
 			}
 			this._messaging.sendBroadcast(MessageType.selectedObjective, this._objective);
 		}

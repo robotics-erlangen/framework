@@ -47,7 +47,7 @@ export class HandleBall extends Behavior {
 	_updateTask(): TaskAssignment<typeof Keeper> | TaskAssignment<typeof Pass> | TaskAssignment<typeof KeeperChipAway>
 			| TaskAssignment<typeof AggressiveKeeper> | TaskAssignment<typeof MoveToStaticBall> {
 		if (!this._objective) {
-			this._objective = new Midfield(this._agent);
+			this._objective = new Midfield();
 		}
 		this._messaging.sendBroadcast(MessageType.selectedObjective, this._objective);
 

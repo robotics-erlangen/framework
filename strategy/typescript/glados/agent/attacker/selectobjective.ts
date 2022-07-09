@@ -135,7 +135,7 @@ export class SelectObjective implements Checkable {
 				reuse = false;
 				break;
 			case RestartMode.FORCE_KEEPING: {
-				if (lastObjective?.getMaRunner().agent().robot() !== robot) {
+				if (lastObjective?.getMaRunner(this._agent).agent().robot() !== robot) {
 					reuse = false;
 					throwInDebug("Objective restart mode is FORCE_KEEPING, but it was sent by someone else");
 					break;
@@ -145,7 +145,7 @@ export class SelectObjective implements Checkable {
 			}
 			case RestartMode.DEFER:
 				reuse = lastObjective !== undefined
-					&& lastObjective.getMaRunner().agent().robot() === robot
+					&& lastObjective.getMaRunner(this._agent).agent().robot() === robot
 					&& lastObjective.canContinue({ pos });
 				break;
 		}
@@ -155,7 +155,7 @@ export class SelectObjective implements Checkable {
 		if (!reuse) {
 			const objectiveCtor = SelectObjective.OBJECTIVES.find((ctor) => ctor.canStart({ pos }));
 			if (objectiveCtor) {
-				nextObjective = new objectiveCtor(this._agent);
+				nextObjective = new objectiveCtor();
 			}
 		} else {
 			if (!lastObjective) {

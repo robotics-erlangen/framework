@@ -242,7 +242,7 @@ export class HandleBall extends Behavior {
 		const isMainAttacker = this._messaging.receiveTrainer(MessageType.mainAttacker) === this._robot;
 		if (isMainAttacker) {
 			if (!this._objective) {
-				this._objective = new Midfield(this._agent);
+				this._objective = new Midfield();
 			}
 			this._messaging.sendBroadcast(MessageType.selectedObjective, this._objective);
 		} else {
