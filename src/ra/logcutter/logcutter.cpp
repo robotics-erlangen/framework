@@ -95,6 +95,9 @@ void LogCutter::startProcess()
     if (ui->cutSimulated->isChecked()) {
         options |= LogProcessor::CutSimulated;
     }
+    if (ui->cutGit->isChecked()) {
+        options |= LogProcessor::CutGit;
+    }
 
     m_processor = new LogProcessor(inputFiles, outputFile, options, this);
     connect(m_processor, &LogProcessor::progressUpdate, this, &LogCutter::updateProgress);

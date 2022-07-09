@@ -61,6 +61,7 @@ int main(int argc, char* argv[])
     QCommandLineOption cutVisualizations("cut-visualizations", "Remove visualizations");
     QCommandLineOption cutPlot("cut-plot", "Remove plotted values");
     QCommandLineOption removeDebugValues("remove-debug-values", "Remove all debug values. This is equivalent to setting cut-debug-tree, cut-visualizations, cut-plot and cut-log-output");
+    QCommandLineOption cutGit("cut-git", "Remove the git information");
 
     parser.addOption(flags);
     parser.addOption(cutHalt);
@@ -73,6 +74,7 @@ int main(int argc, char* argv[])
     parser.addOption(cutVisualizations);
     parser.addOption(cutPlot);
     parser.addOption(removeDebugValues);
+    parser.addOption(cutGit);
 
     // parse command line
     parser.process(app);
@@ -107,6 +109,8 @@ int main(int argc, char* argv[])
             options |= O::CutPlot;
         if (parser.isSet(removeDebugValues))
             options |= O::CutDebugTree | O::CutLogOutput | O::CutVisualizations | O::CutPlot;
+        if (parser.isSet(cutGit))
+            options |= O::CutGit;
     }
 
     std::cout << "[ DEBUG] " << parser.value(outputLog).toStdString() << std::endl;

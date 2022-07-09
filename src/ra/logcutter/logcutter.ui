@@ -109,6 +109,13 @@
     </widget>
    </item>
    <item>
+    <widget class="QCheckBox" name="cutGit">
+     <property name="text">
+      <string>Remove all git infos</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QPushButton" name="processBtn">
      <property name="text">
       <string>Process</string>

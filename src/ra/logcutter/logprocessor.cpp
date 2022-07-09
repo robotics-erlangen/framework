@@ -351,6 +351,10 @@ qint64 LogProcessor::filterLog(SeqLogFileReader &reader, Exchanger *writer, Exch
         }
         removeDebugOutput(status);
 
+        if (m_options & CutGit) {
+            status->clear_git_info();
+        }
+
         insertHashInfo(status, loguid, currentFrame - 1);
 
         if (!modStatus.isNull()) {
