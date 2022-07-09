@@ -548,29 +548,50 @@ export class MessageBox {
 	 * trainer.
 	 * @param type - Which message to send
 	 * @param data - The message data
+	 * @param impersonation - Send the message in the name of someone else.
+	 * Only the trainer is allowed to do this. Note, that for non repeated
+	 * messages, messages sent by the impersonated sender will be overwritten.
+	 *
+	 * TODO Replace with proper sender types, see #936
+	 */
+	sendBroadcast(type: MessageType.selectedObjective, data: DataOf<MessageType.selectedObjective>, impersonation?: MessageOrigin): void;
+	/**
+	 * Send a broadcast message. Will be received by all robots and the
+	 * trainer.
+	 * @param type - Which message to send
+	 * @param data - The message data
 	 */
 	sendBroadcast<M extends SendBroadcast>(type: M, data: DataOf<M>): void;
-	sendBroadcast<M extends SendBroadcast | SendBroadcastNoData>(type: M, data: DataOf<M>): void {
+	sendBroadcast<M extends SendBroadcast | SendBroadcastNoData>(type: M, data: DataOf<M>, impersonation?: MessageOrigin): void {
 		if (type === MessageType.plannedAttackTime && (data === -Infinity || data === Infinity)) throw new Error("Invalid PAttackTime");
 		if (type === MessageType.earliestAttackTime && (data === -Infinity || data === Infinity)) throw new Error("Invalid EAttackTime");
-		this.sendGeneric(type, "all", data, false);
+		this.sendGeneric(type, "all", data, false, impersonation);
 	}
 
-	// for trainer -> trainer messages
-	private debugTrainerMessage(type: MessageType, data: any, repeated: boolean, messageCount: number) {
+	// for trainer -> trainer and impersonated messages
+	private debugTrainerMessage(type: MessageType, data: any, repeated: boolean, messageCount: number, impersonation?: MessageOrigin) {
 		debug.pushtop("Trainer -> Trainer Inbox");
+
+		const messageName = impersonation && impersonation !== "trainer"
+			? `${MessageType[type]} (as Agent ${impersonation.id})`
+			: MessageType[type];
+
 		if (repeated) {
-			debug.push(MessageType[type]);
+			debug.push(messageName);
 			debug.set("" + (messageCount - 1), data);
 			debug.pop(); // message type
 		} else {
-			debug.set(MessageType[type], data);
+			debug.set(messageName, data);
 		}
 		debug.pop(); // Trainer -> Trainer Inbox
 	}
 
 	// TODO: more specific send methods for the different cases to improve performance
-	private sendGeneric<M extends MessageType>(type: M, receiver: "all" | "trainer" | FriendlyRobot, data: DataOf<M>, repeated: boolean) {
+	private sendGeneric<M extends MessageType>(type: M, receiver: "all" | "trainer" | FriendlyRobot, data: DataOf<M>, repeated: boolean, impersonation?: MessageOrigin) {
+		if (impersonation !== undefined && this.origin !== "trainer") {
+			throw new Error("Only the trainer is allowed to impersonate agents");
+		}
+
 		// although a sender is adressing a robot, a message is delivered
 		// to the corresponding agent. This ensures that a robot only receives
 		// messages sent in frames where he has had the current agent
@@ -591,24 +612,26 @@ export class MessageBox {
 			receiveBox = new Map<FriendlyRobot, any>();
 			messageBox.set(receiver, receiveBox);
 		}
-		let senderRobot = (this.origin === "trainer") ? "trainer" : this.origin;
+
+		const sender = impersonation ?? this.origin;
 
 		let messageCount = 0;
 		if (repeated) {
-			let collection = receiveBox.get(senderRobot);
+			let collection = receiveBox.get(sender);
 			if (collection == undefined) {
 				collection = [];
 			}
 			collection.push(data);
 			messageCount = collection.length;
-			receiveBox.set(senderRobot, collection);
+			receiveBox.set(sender, collection);
 		} else {
-			receiveBox.set(senderRobot, data);
+			receiveBox.set(sender, data);
 		}
 
 		// debug messages from the trainer to itself directly, since they can be immediately received
-		if (receiver === "trainer" && this.origin === "trainer") {
-			this.debugTrainerMessage(type, data, repeated, messageCount);
+		if (impersonation !== undefined
+				|| (receiver === "trainer" && this.origin === "trainer")) {
+			this.debugTrainerMessage(type, data, repeated, messageCount, impersonation);
 		}
 	}
 
