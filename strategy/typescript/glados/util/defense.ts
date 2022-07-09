@@ -12,7 +12,6 @@ import * as World from "base/world";
 import * as Ball from "glados/observer/ball";
 import * as Goal from "glados/observer/goal";
 import * as Physics from "glados/observer/physics";
-import * as ObserverRobot from "glados/observer/robot";
 import * as Rating from "glados/util/rating";
 
 let G = World.Geometry;
@@ -183,72 +182,46 @@ export function getClosestRobot<R extends {pos: Position}>(robotlist: R[], pos: 
 	return [minRobot, minDist];
 }
 
-function _ratePassThreats(): Map<Robot, number> {
-	let dangerousness: Map<Robot, number> = new Map<Robot, number>();
-	let futureBallPos = Goal.predictShot()[0];
-	for (let opp of World.OpponentRobots) {
-		// TODO comment
-		let angleBallOppGoal = (futureBallPos - opp.pos).absoluteAngleDiff(
-			World.Geometry.FriendlyGoal - opp.pos);
-		let angleOppGoalY = (opp.pos - World.Geometry.FriendlyGoal).absoluteAngleDiff(new Vector(0, 1));
-		let distOppGoal = opp.pos.distanceTo(World.Geometry.FriendlyGoal);
+function approxBallToRobotTime(opp: Robot, approxBallPos: Position): number {
+	const dir = approxBallPos - World.Ball.pos;
 
-		let ratingAngleBallOppGoal = Rating.valueToRating(angleBallOppGoal, 120 * Math.PI / 180, 80 * Math.PI / 180);
-		let ratingAngleOppGoalY = Rating.valueToRating(angleOppGoalY, 85 * Math.PI / 180, 70 * Math.PI / 180);
-		let ratingDistOppGoal = Rating.valueToRating(distOppGoal,
-			World.Geometry.FieldHeight * 0.85, World.Geometry.FieldHeight * 0.4);
+	let ballLike = { pos: World.Ball.pos, speed: dir.normalized() * Constants.allowedMaxBallSpeed, maxSpeed: Constants.allowedMaxBallSpeed,
+		posZ: 0, initSpeedZ: 0, speedZ: 0 };
 
-		let rating = ratingAngleBallOppGoal * ratingAngleOppGoalY * ratingDistOppGoal;
-		dangerousness.set(opp, rating);
-	}
-	return dangerousness;
+	const timeBallToRobot = Physics.ballTravelTime(ballLike, dir.length());
+	const timeRobotToBall = Physics.robotTimeToPos(opp, approxBallPos, new Vector(0, 0))[0];
+
+	let timeWhole = Math.max(timeBallToRobot, timeRobotToBall);
+
+	const robotDirToGoal = approxBallPos - World.Geometry.FriendlyGoal;
+
+	// the current approach ignores the possibility that the robot can't shoot volley
+	// and has to turn with the ball towards the goal
+	// if you read this because you want to improve this function, maybe think about that
+
+	ballLike.pos = approxBallPos;
+	ballLike.speed = robotDirToGoal.normalized() * Constants.allowedMaxBallSpeed;
+	const timeBallToGoal = Physics.ballTravelTime(ballLike, robotDirToGoal.length());
+	timeWhole += timeBallToGoal;
+	return timeWhole;
 }
-export let ratePassThreats: () => Map<Robot, number> = Cache.forFrame(_ratePassThreats);
 
-function _rateVolleyGoalShotThreats(): Map<Robot, number> {
-	let dangerousness: Map<Robot, number> = new Map<Robot, number>();
-	if (World.Ball.speed.length() > 1.5) {
-		for (let opp of World.OpponentRobots) {
-			let rating = 1;
-			if (!ObserverRobot.hadBall(opp, 0.2)) {
-				let angleBallOppGoal = (World.Ball.pos - opp.pos).absoluteAngleDiff(
-						World.Geometry.FriendlyGoal - opp.pos);
-				let angleBallSpeedOpp = World.Ball.speed.absoluteAngleDiff(opp.pos - World.Ball.pos);
-				let ratingAngleBallOppGoal = Rating.valueToRating(angleBallOppGoal, 85 * Math.PI / 180, 65 * Math.PI / 180);
-				let ratingAngleBallSpeedOpp = Rating.valueToRating(angleBallSpeedOpp, 45 * Math.PI / 180, 30 * Math.PI / 180);
-				rating = ratingAngleBallOppGoal * ratingAngleBallSpeedOpp;
-			}
-			let absAngleOppDirGoal = Math.abs(geom.normalizeAngle(
-					opp.dir - (World.Geometry.FriendlyGoal - opp.pos).angle()));
-			let ratingAbsAngleOppDirGoal = Rating.valueToRating(absAngleOppDirGoal, 60 * Math.PI / 180, 20 * Math.PI / 180);
-			dangerousness.set(opp, rating * ratingAbsAngleOppDirGoal);
-		}
-	}
-	return dangerousness;
-}
-export let rateVolleyGoalShotThreats: () => Map<Robot, number> = Cache.forFrame(_rateVolleyGoalShotThreats);
+function approxOppTimeToShootGoal(): Map<Robot, number> {
+	let times: Map<Robot, number> = new Map<Robot, number>();
 
-function rateProximityThreats(): Map<Robot, number> {
-	let dangerousness: Map<Robot, number> = new Map<Robot, number>();
 	for (let opp of World.OpponentRobots) {
-		dangerousness.set(opp, 0.01 * Rating.valueToRating(opp.pos.distanceTo(World.Geometry.FriendlyGoal), World.Geometry.FieldHeightHalf, 0));
+		const approxOppTime = approxBallToRobotTime(opp, opp.dribblerPos);
+		const approxPredictShotTime = approxBallToRobotTime(opp, Goal.predictShot()[0]);
+		const timeWhole = Math.min(approxOppTime, approxPredictShotTime);
+
+		times.set(opp, Rating.valueToRating(timeWhole, 4, 0));
 	}
-	return dangerousness;
+
+	return times;
 }
 
 function _rateOpponentDangerousness(): Map<Robot, number> {
-	let passThreats = ratePassThreats();
-	let goalThreats = rateVolleyGoalShotThreats();
-	let proximityThreats = rateProximityThreats();
-
-	let dangerousness: Map<Robot, number> = new Map<Robot, number>();
-	for (let opp of World.OpponentRobots) {
-		let passDangerousness = passThreats.get(opp) || 0;
-		let goalDangerousness = goalThreats.get(opp) || 0;
-		let proximityDangerousness = <number> proximityThreats.get(opp);
-		dangerousness.set(opp, Math.max(passDangerousness, Math.max(goalDangerousness, proximityDangerousness)));
-	}
-
+	const dangerousness = approxOppTimeToShootGoal();
 	debug.set("dangerousness", dangerousness);
 	return dangerousness;
 }
