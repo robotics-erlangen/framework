@@ -78,6 +78,11 @@ export abstract class Objective {
 
 	/**
 	 * Whether the objective is fit to continue execution.
+	 *
+	 * Note that at the time of writing, some pieces of code keep the objective
+	 * alive without checking canContinue (search for senders of
+	 * selectedObjective for examples)
+	 *
 	 * @param ball - The ball to use in e.g. ball position checks (the same as in canStart)
 	 */
 	abstract canContinue(ball: BallLike): boolean;

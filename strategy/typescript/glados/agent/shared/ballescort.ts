@@ -1,3 +1,4 @@
+import { throwInDebug } from "base/amun";
 import * as debug from "base/debug";
 import * as Field from "base/field";
 import * as Geom from "base/geom";
@@ -7,7 +8,6 @@ import * as World from "base/world";
 
 import { Agent } from "glados/agent/base/agent";
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
-import { Midfield } from "glados/agent/objective/midfield";
 import { MessageType } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
@@ -16,7 +16,6 @@ import { BallEscort as BallEscortTask } from "glados/task/shared/ballescort";
 
 export class BallEscort extends Behavior {
 	private _isDefender: boolean;
-	private _objective?: Midfield;
 	_minRobot: Robot | undefined = undefined;
 
 	private _checkOpponentTimings(): [Robot | undefined, number] {
@@ -56,10 +55,6 @@ export class BallEscort extends Behavior {
 	constructor(agent: Agent, isDefender: boolean) {
 		super(agent);
 		this._isDefender = isDefender;
-	}
-
-	_stop() {
-		this._objective = undefined;
 	}
 
 	check(): Behavior | undefined {
@@ -153,10 +148,12 @@ export class BallEscort extends Behavior {
 		 * SelectObjective.
 		 */
 		if (this._isDefender) {
-			if (!this._objective) {
-				this._objective = new Midfield();
+			const [, receivedObjective] = this._messaging.receiveSingleSender(MessageType.selectedObjective);
+			if (receivedObjective) {
+				this._messaging.sendBroadcast(MessageType.selectedObjective, receivedObjective);
+			} else {
+				throwInDebug("a/s/ballescort: No objective to propagate");
 			}
-			this._messaging.sendBroadcast(MessageType.selectedObjective, this._objective);
 		}
 
 		return [BallEscortTask, [this._minRobot]];

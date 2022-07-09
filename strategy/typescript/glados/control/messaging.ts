@@ -784,6 +784,19 @@ export class MessageBox {
 		}
 		return mtypeBox.get("all");
 	}
+
+	public cancel<M extends MessageType>(type: M): void {
+		/* Most of the time, it probably is a bad idea to cancel messages, so
+		 * we restrict this ability a bit. It is most sensical for the trainer
+		 * to be able to do this, since it is an overseer. The same can't be
+		 * said for normal agents.
+		 */
+		if (this.origin !== "trainer") {
+			throw new Error("Only the trainer is allowed to cancel messages");
+		}
+
+		this.messaging._newMessages[type]?.clear();
+	}
 }
 
 export class Messaging {

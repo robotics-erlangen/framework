@@ -1,3 +1,4 @@
+import { throwInDebug } from "base/amun";
 import * as debug from "base/debug";
 import * as Field from "base/field";
 import * as geom from "base/geom";
@@ -8,8 +9,6 @@ import * as vis from "base/vis";
 import * as World from "base/world";
 
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
-import { Objective } from "glados/agent/base/objective";
-import { Midfield } from "glados/agent/objective/midfield";
 import { MessageType } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
 import * as Goal from "glados/observer/goal";
@@ -41,13 +40,11 @@ function rateRobot(robot: FriendlyRobot) {
 export class HandleBall extends Behavior {
 	private _taskDecision: string | undefined = undefined;
 	private _forceDefenderFrameCounter: number = 0;
-	private _objective: Objective | undefined;
 	private _lastDuelWasWon: boolean = false;
 
 	_stop() {
 		this._taskDecision = undefined;
 		this._forceDefenderFrameCounter = 0;
-		this._objective = undefined;
 		this._lastDuelWasWon = false;
 	}
 
@@ -240,13 +237,18 @@ export class HandleBall extends Behavior {
 	_updateTask(): TaskAssignment<typeof InterceptPass> | TaskAssignment<typeof Duel> |
 			TaskAssignment<typeof CenterBack> {
 		const isMainAttacker = this._messaging.receiveTrainer(MessageType.mainAttacker) === this._robot;
+
 		if (isMainAttacker) {
-			if (!this._objective) {
-				this._objective = new Midfield();
+			const [, receivedObjective] = this._messaging.receiveSingleSender(MessageType.selectedObjective, true);
+			/* Everytime we have a main attacker, we need an objective. *Maybe*
+			 * we want the same logic as SelectObjective here, for now we
+			 * simply keep the old objective alive
+			 */
+			if (!receivedObjective) {
+				throwInDebug("a/d/handleball: No objective to propagate");
+			} else {
+				this._messaging.sendBroadcast(MessageType.selectedObjective, receivedObjective);
 			}
-			this._messaging.sendBroadcast(MessageType.selectedObjective, this._objective);
-		} else {
-			this._objective = undefined;
 		}
 
 		let selfDefenseDist = Field.distanceToFriendlyDefenseArea(this._robot.pos, this._robot.radius);

@@ -1,3 +1,4 @@
+import { throwInDebug } from "base/amun";
 import * as debug from "base/debug";
 import * as Field from "base/field";
 import * as Referee from "base/referee";
@@ -6,8 +7,6 @@ import { Position } from "base/vector";
 import * as World from "base/world";
 
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
-import { Objective } from "glados/agent/base/objective";
-import { Midfield } from "glados/agent/objective/midfield";
 import { MessageType } from "glados/control/messaging";
 import * as Physics from "glados/observer/physics";
 import { MoveToStaticBall } from "glados/task/attacker/movetostaticball";
@@ -21,11 +20,9 @@ import * as Defense from "glados/util/defense";
 export class HandleBall extends Behavior {
 	private _pass: {target?: FriendlyRobot, ballPos: Position, time: number} | undefined;
 	private _timeBegin: number | undefined = undefined;
-	private _objective: Objective | undefined;
 
 	_stop() {
 		this._timeBegin = undefined;
-		this._objective = undefined;
 	}
 
 	check(): Behavior | undefined {
@@ -46,10 +43,12 @@ export class HandleBall extends Behavior {
 
 	_updateTask(): TaskAssignment<typeof Keeper> | TaskAssignment<typeof Pass> | TaskAssignment<typeof KeeperChipAway>
 			| TaskAssignment<typeof AggressiveKeeper> | TaskAssignment<typeof MoveToStaticBall> {
-		if (!this._objective) {
-			this._objective = new Midfield();
+		const [, receivedObjective] = this._messaging.receiveSingleSender(MessageType.selectedObjective, true);
+		if (receivedObjective) {
+			this._messaging.sendBroadcast(MessageType.selectedObjective, receivedObjective);
+		} else {
+			throwInDebug("a/k/handleball: No objective to propagate");
 		}
-		this._messaging.sendBroadcast(MessageType.selectedObjective, this._objective);
 
 		let endPos = Physics.ballAtTime(World.Ball, Infinity).pos;
 		let startInside = Field.isInFriendlyDefenseArea(World.Ball.pos, -World.Ball.radius - this._robot.radius);

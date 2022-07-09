@@ -5,12 +5,35 @@ import * as vis from "base/vis";
 import * as World from "base/world";
 
 import { ExclusiveRole, MessageBox, MessageType } from "glados/control/messaging";
+import * as Attack from "glados/util/attack";
+import * as UtilObjective from "glados/util/objective";
 import { LeveledRating } from "glados/util/rating";
 
+export type ExclusiveRoleApplication = [ExclusiveRole, LeveledRating];
 
 const ROLE_HYSTERESIS = 0.05;
 
-export type ExclusiveRoleApplication = [ExclusiveRole, LeveledRating];
+const EXCLUSIVE_ROLE_START: { [K in ExclusiveRole]?: (messaging: MessageBox, winner: FriendlyRobot) => void } = {
+	[MessageType.mainAttacker]: (messaging, winner) => {
+		const lastIncomingPassInfo = Attack.lastIncomingPassInfo(
+			winner, messaging.receiveSingleSender(MessageType.passInfo));
+
+		// Use the position where we plan to receive the pass if available
+		const pos = UtilObjective.nextBallPosition(lastIncomingPassInfo);
+		const objectiveCtor = UtilObjective.selectNewObjective({ pos });
+		if (!objectiveCtor) {
+			return;
+		}
+
+		const objective = new objectiveCtor();
+		debug.set("trainer objective", objective.toString());
+		/* There probably currently is a main attacker that already sent an
+		 * objective.
+		 */
+		messaging.cancel(MessageType.selectedObjective);
+		messaging.sendBroadcast(MessageType.selectedObjective, objective, winner);
+	},
+};
 
 export class Roles {
 	_exclusiveRoles: Map<ExclusiveRole, FriendlyRobot> = new Map<ExclusiveRole, FriendlyRobot>();
@@ -60,6 +83,13 @@ export class Roles {
 			debug.pop(); // role
 			let bestRobot = LeveledRating.findBestRating(applications);
 			if (bestRobot) {
+				/* Either there was noone in this exclusive role or the robot
+				 * changed
+				 */
+				if (this._exclusiveRoles[role] !== bestRobot) {
+					EXCLUSIVE_ROLE_START[role]?.(this._messaging, bestRobot);
+				}
+
 				exclusiveRoles[role] = bestRobot;
 				this._messaging.sendBroadcast(role, bestRobot);
 

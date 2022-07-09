@@ -12,6 +12,7 @@ import { Midfield } from "glados/agent/objective/midfield";
 import { Striker } from "glados/agent/objective/striker";
 import { MessageType } from "glados/control/messaging";
 import * as Attack from "glados/util/attack";
+import * as UtilObjective from "glados/util/objective";
 
 enum RestartMode {
 	/**
@@ -117,15 +118,11 @@ export class SelectObjective implements Checkable {
 		debug.set("freekick restart", freekickRestart);
 
 		// Use the position where we plan to receive the pass if available
-		const pos: Readonly<Vector> = World.RefereeState === "BallPlacementOffensive"
-			? World.BallPlacementPos!
-			: lastIncomingPassInfo
-			? lastIncomingPassInfo.ballPos
-			: World.Ball.pos;
+		const pos = UtilObjective.nextBallPosition(lastIncomingPassInfo);
 
 		/*
-		 * Take from messaging (and not as an instance variable here) to allow
-		 * continued objective use after a MA defender-attacker switch
+		 * Take from messaging to allow continued objective use after a MA
+		 * defender-attacker switch
 		 */
 		const [, lastObjective] = messaging.receiveSingleSender(MessageType.selectedObjective, true);
 
@@ -153,7 +150,7 @@ export class SelectObjective implements Checkable {
 
 		let nextObjective;
 		if (!reuse) {
-			const objectiveCtor = SelectObjective.OBJECTIVES.find((ctor) => ctor.canStart({ pos }));
+			const objectiveCtor = UtilObjective.selectNewObjective({ pos });
 			if (objectiveCtor) {
 				nextObjective = new objectiveCtor();
 			}
