@@ -39,8 +39,10 @@ export const systemLatency = 0.04;
 /** possible position error from vision [m] */
 export const positionError = 0.005;
 
-/** maximum allowed shooting speed [m/s] */
+/** maximum shooting speed [m/s] to use for safe shooting */
 export const maxBallSpeed = 6.1;
+/** maximum allowed shooting speed [m/s] */
+export const allowedMaxBallSpeed = 6.5;
 
 export const maxDribbleDistance = 1;
 
