@@ -60,6 +60,29 @@ Processor.addPre(new PreProc());
 // import {BallAnalyzer} from "glados/observer/ballAnalyzer";
 // Processor.addPre(new BallAnalyzer)
 
+class PostProc implements Process {
+	private takingAdvantage: boolean = false;
+
+	run() {
+		if (GameController.isConnected()) {
+			if (!this.takingAdvantage && Referee.hasTooManyOpponentRobots() && ObserverReferee.shouldTakeAdvantage()) {
+				log("Taking advantage");
+				GameController.sendAdvantageReponse("continue");
+				this.takingAdvantage = true;
+			} else if (this.takingAdvantage && !(Referee.hasTooManyOpponentRobots() && ObserverReferee.shouldTakeAdvantage())) {
+				log("Stopping advantage");
+				GameController.sendAdvantageReponse("stop");
+				this.takingAdvantage = false;
+			}
+		}
+	}
+
+	isFinished(): boolean {
+		return false;
+	}
+}
+Processor.addPost(new PostProc());
+
 let frameCount = 0;
 function wrapper(func: () => boolean) {
 	return function() {

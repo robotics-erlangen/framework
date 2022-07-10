@@ -27,6 +27,7 @@ const amunLocal = amun;
 
 import { throwInDebug } from "base/amun";
 import { gameController } from "base/protobuf";
+import * as Referee from "base/referee";
 import * as World from "base/world";
 
 type ConnectionState = "CONNECTED" | "UNCONNECTED";
@@ -40,6 +41,7 @@ let message: gameController.ControllerToTeam | undefined = undefined;
 export function _update() {
 	message = undefined;
 	if (World.TeamName === "ER-Force" && (World.OpponentTeamName !== "ER-Force" || World.TeamIsBlue)) {
+	// if (World.TeamIsBlue) {
 		if (amunLocal.connectGameController()) {
 			if (state === "UNCONNECTED") {
 				state = "CONNECTED";
@@ -80,3 +82,23 @@ export function requestDesiredKeeper(id: number) {
 export function requestSubstitution() {
 	amunLocal.sendGameControllerMessage("TeamToController", { substitute_bot: true });
 }
+
+// use a custom type instead of the protobuf one because this is nicer
+type AdvantageReponse = "stop" | "continue";
+
+/**
+ * Respond with an advantage choice.
+ * Will crash in debug if we are not allowed to make this choice.
+ * @param resp - "continue" if we wish to continue playing after the foul, "stop" otherwise
+ */
+export function sendAdvantageReponse(resp: AdvantageReponse) {
+	if (amunLocal.isDebug && !Referee.hasTooManyOpponentRobots()) {
+		throw new Error("Trying to send advantage reponse while no foul occured. This will be rejected");
+	}
+	amunLocal.sendGameControllerMessage("TeamToController", {
+		advantage_choice: resp === "continue"
+			? gameController.AdvantageChoice.CONTINUE
+			: gameController.AdvantageChoice.STOP
+	});
+}
+

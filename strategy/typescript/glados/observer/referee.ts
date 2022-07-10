@@ -1,11 +1,14 @@
 import { log } from "base/amun";
+import * as debug from "base/debug";
 import * as Field from "base/field";
 import * as GameController from "base/gamecontroller";
 import * as pb from "base/protobuf";
 import * as BaseRef from "base/referee";
+import { Robot } from "base/robot";
 import { Position, Speed } from "base/vector";
 import * as World from "base/world";
 
+import * as ObsvBall from "glados/observer/ball";
 import * as Error from "glados/observer/error";
 
 let G = World.Geometry;
@@ -115,4 +118,36 @@ export function checkChooseKeeper() {
 		lastChooseKeeperCommand = World.Time;
 		GameController.requestDesiredKeeper(robotId);
 	}
+}
+
+
+export function shouldTakeAdvantage(): boolean {
+	if (ObsvBall.wasShot(2) && ObsvBall.ballHeadingForGoal(World.Ball, false) && !ObsvBall.isSlowBall()) {
+		debug.set("advantage check", "own goal shot");
+		return true;
+	}
+
+	const MIN_DEFENSE_DISTANCE = 0.2 * World.Geometry.FieldHeight;
+	if (Field.distanceToDefenseArea(ObsvBall.getRealisticBallPos(), World.Ball.radius, false) < MIN_DEFENSE_DISTANCE
+			&& Field.isInAllowedField(ObsvBall.getRealisticBallPos(), 0)) {
+		debug.set("advantage check", "close to opponent defense");
+		return true;
+	}
+
+	// Suppose we're in a group stage.
+	// If we have a small lead chances are that we won't win with a big score, meaning wasting time for the other team is a good idea,
+	// since chances are that we either win with a small lead or end in a draw, but if we end in a draw the score doesn't matter as much.
+	// If we have a big lead we don't want to waste time (wasting time means in this case trying to shoot a goal against more robots than
+	// necessary), because we can probably shoot more goals (meaning playing more time against less robots could make the difference between
+	// a 8:0 and a 10:0 result) and end with a big lead.
+	// In case we're in an elimination match we basically always want the advantage, because the opponents can't close the score difference
+	// during this, but if we lead by more than two goals we don't lose a lot by not choosing advantage.
+	const scoreDifference = World.FriendlyScore - World.OpponentScore;
+	if (scoreDifference > 0 && scoreDifference < 3) {
+		debug.set("advantage check", "leading with <3 goals");
+		return true;
+	}
+
+	debug.set("advantage check", "default");
+	return false;
 }
