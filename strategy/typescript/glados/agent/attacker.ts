@@ -24,14 +24,6 @@ import { MessageType } from "glados/control/messaging";
 
 export class Attacker extends Agent {
 	beOffensive: boolean = false;
-	/**
-	 * Set by the main attacker to the currently active objective.
-	 *
-	 * The objective needs to be stored on the agent to allow the main attacker
-	 * to run an objective in the same frame he selected it, but at a later
-	 * point in the priority list
-	 */
-	objective?: Objective;
 
 	_run() {
 		if (this._activeBehavior) {

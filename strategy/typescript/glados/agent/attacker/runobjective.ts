@@ -17,27 +17,22 @@ export class RunObjective implements Checkable {
 	check(): Behavior | undefined {
 		const messaging = this._agent.messaging();
 
-		if (this._agent.objective !== undefined) {
-			const isMainAttacker = messaging.receiveTrainer(MessageType.mainAttacker) === this._agent.robot();
-			if (!isMainAttacker) {
-				throw new Error("Propagated objective through agent on non main attacker");
-			}
+		const [, receivedObjective] = messaging.receiveSingleSender(MessageType.selectedObjective, true);
+		if (!receivedObjective) {
+			return undefined;
+		}
 
-			this._runner = this._agent.objective.getMaRunner(this._agent);
-			// This may happen if the objective was not constructed by this
-			// agents instance of SelectObjective, e.g if the main attacker
-			// switched from defender to attacker
-			if (this._runner.agent() !== this._agent) {
-				this._runner.setAgent(this._agent);
-			}
-		} else {
-			const [, receivedObjective] = messaging.receiveSingleSender(MessageType.selectedObjective);
+		const isMainAttacker = messaging.receiveTrainer(MessageType.mainAttacker) === this._agent.robot();
 
-			if (!receivedObjective) {
-				return undefined;
-			}
+		this._runner = isMainAttacker
+			? receivedObjective.getMaRunner(this._agent)
+			: receivedObjective.getSupportRunner(this._agent);
 
-			this._runner = receivedObjective.getSupportRunner(this._agent);
+		// This may happen if the objective was not constructed by this
+		// agents instance of SelectObjective, e.g if the main attacker
+		// switched from defender to attacker
+		if (this._runner.agent() !== this._agent) {
+			this._runner.setAgent(this._agent);
 		}
 
 		return this._runner.check();

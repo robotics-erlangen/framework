@@ -106,8 +106,6 @@ export class SelectObjective implements Checkable {
 
 		const isMainAttacker = messaging.receiveTrainer(MessageType.mainAttacker) === robot;
 		if (!isMainAttacker) {
-			// This may be set if this agent used to be MA
-			this._agent.objective = undefined;
 			return undefined;
 		}
 
@@ -162,8 +160,6 @@ export class SelectObjective implements Checkable {
 		}
 		debug.set("objective", nextObjective?.toString());
 
-		this._agent.objective = nextObjective;
-
 		if (nextObjective) {
 			messaging.sendBroadcast(MessageType.selectedObjective, nextObjective);
 		}
@@ -198,8 +194,6 @@ export class SelectObjective implements Checkable {
 		if (!(agent instanceof Attacker)) {
 			throw new Error("a/a/selectobjective may only be used on attackers");
 		}
-		agent.objective = this._agent.objective;
-		this._agent.objective = undefined;
 		this._agent = agent;
 	}
 }
