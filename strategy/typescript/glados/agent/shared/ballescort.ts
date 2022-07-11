@@ -148,7 +148,7 @@ export class BallEscort extends Behavior {
 		 * SelectObjective.
 		 */
 		if (this._isDefender) {
-			const [, receivedObjective] = this._messaging.receiveSingleSender(MessageType.selectedObjective);
+			const [, receivedObjective] = this._messaging.receiveSingleSender(MessageType.selectedObjective, true);
 			if (receivedObjective) {
 				this._messaging.sendBroadcast(MessageType.selectedObjective, receivedObjective);
 			} else {
