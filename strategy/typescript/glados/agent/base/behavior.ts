@@ -6,6 +6,8 @@ import { Agent } from "glados/agent/base/agent";
 import { MessageBox } from "glados/control/messaging";
 import { Task, TaskConstructor, TaskParameters } from "glados/task/base";
 
+export const CONTINUE_TASK = Symbol("CONTINUE_TASK");
+
 export type BaseTaskAssignment = [TaskConstructor, any[]?, boolean?];
 
 export type TaskAssignment<T extends TaskConstructor> =
@@ -107,7 +109,7 @@ export abstract class Behavior implements Checkable {
 	// by the main behavior in order to use the task assignment of the deferred behavior
 	// a deferred behavior will be terminated as soon as it is not called in at least one frame
 	// this function MUST only be called in _updateTask
-	runDeferredBehavior(behavior: BehaviorConstructor, restart: boolean): BaseTaskAssignment {
+	runDeferredBehavior(behavior: BehaviorConstructor, restart: boolean): BaseTaskAssignment | typeof CONTINUE_TASK {
 		if (this._deferredBehavior == undefined || !(this._deferredBehavior instanceof behavior) || restart) {
 			this._deferredBehavior = new behavior(this._agent);
 			this._deferredBehavior.start();
@@ -124,7 +126,19 @@ export abstract class Behavior implements Checkable {
 
 	run() {
 		this._deferredBehaviorRunning = false;
-		let [bestTask, parameters, forceNewTask] = this._updateTask();
+
+		const taskUpdate = this._updateTask();
+
+		if (taskUpdate === CONTINUE_TASK) {
+			if (this._task === undefined) {
+				// This is not really recoverable
+				throw new Error("Trying to continue task while none was selected before");
+			}
+
+			return;
+		}
+
+		const [bestTask, parameters, forceNewTask] = taskUpdate;
 		// terminate the deferred behavior if it has not been run this frame
 		if (!this._deferredBehaviorRunning && this._deferredBehavior != undefined) {
 			// stopping _deferredBehavior is unnecessary, as it goes out of scope.
@@ -175,7 +189,7 @@ export abstract class Behavior implements Checkable {
 	}
 
 	// chooses and returns a task and its parameters
-	abstract _updateTask(): BaseTaskAssignment;
+	abstract _updateTask(): BaseTaskAssignment | typeof CONTINUE_TASK;
 
 	_applyForMainAttacker(target?: Position, endSpeedLength?: number, overrideRating?: number) {
 		this._mainAttackerParameters = [ target, endSpeedLength, overrideRating ];
