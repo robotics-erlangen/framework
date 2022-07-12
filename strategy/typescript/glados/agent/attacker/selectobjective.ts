@@ -77,12 +77,6 @@ function determineFreekickRestartMode(oldRefereeState: World.RefereeStateType, o
 }
 
 export class SelectObjective implements Checkable {
-	/** Use a simple priority list for now */
-	static OBJECTIVES: ObjectiveConstructor[] = [
-		Midfield,
-		Striker,
-	];
-
 	private _agent: Attacker;
 	private _cachedNextRefereeState: World.RefereeStateType = "";
 	private _cachedRefereeState: World.RefereeStateType = "";

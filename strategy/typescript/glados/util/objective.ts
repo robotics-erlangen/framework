@@ -3,11 +3,13 @@ import * as World from "base/world";
 
 import { BallLike, ObjectiveConstructor } from "glados/agent/base/objective";
 import { Midfield } from "glados/agent/objective/midfield";
+import { PassThroughDefense } from "glados/agent/objective/passthroughdefense";
 import { Striker } from "glados/agent/objective/striker";
 import { PassInfo } from "glados/util/attack";
 
 const OBJECTIVES: ObjectiveConstructor[] = [
 	Midfield,
+	PassThroughDefense,
 	Striker,
 ];
 
