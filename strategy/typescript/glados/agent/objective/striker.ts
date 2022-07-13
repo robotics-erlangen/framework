@@ -78,12 +78,18 @@ export class Striker extends Objective {
 				zones.push({ boundaries, defaultPos });
 			}
 		} else {
-			const startBoundaries: SplitZone[] = participants.length > 1
-				? [{ boundaries: { left: TOTAL_LEFT, right: TOTAL_RIGHT, top: TOTAL_TOP, bottom: MIDFIELD_OFFENSIVE_SPLIT }, timesDivisible: 3},
-					{ boundaries: { left: TOTAL_LEFT, right: TOTAL_RIGHT, top: MIDFIELD_OFFENSIVE_SPLIT, bottom: TOTAL_BOTTOM }, timesDivisible: 1}]
-				: [{ boundaries: { left: TOTAL_LEFT, right: TOTAL_RIGHT, top: TOTAL_TOP, bottom: MIDFIELD_OFFENSIVE_SPLIT }, timesDivisible: 3}];
+			const useRegressiveZone = participants.length > 3;
+			const offensiveSplitZone = { boundaries: { left: TOTAL_LEFT, right: TOTAL_RIGHT, top: TOTAL_TOP, bottom: MIDFIELD_OFFENSIVE_SPLIT }, timesDivisible: 3};
+			// if the regressive zone is used splitZonesClosestToMainAttacker should use produce one zone less
+			const remainingZonesOffensive = remainingZones - (useRegressiveZone ? 1 : 0);
+			let newZones = this.splitZonesClosestToMainAttacker(mainAttackerPos, remainingZonesOffensive, [offensiveSplitZone]);
+			remainingZones -= newZones.length;
 
-			const newZones = this.splitZonesClosestToMainAttacker(mainAttackerPos, remainingZones - startBoundaries.length + 1, startBoundaries);
+			if (useRegressiveZone) {
+				const regressiveSplitZone = { boundaries: { left: TOTAL_LEFT, right: TOTAL_RIGHT, top: MIDFIELD_OFFENSIVE_SPLIT, bottom: TOTAL_BOTTOM }, timesDivisible: 1};
+				const newRegressiveZones = this.splitZonesClosestToMainAttacker(mainAttackerPos, remainingZones - 1, [regressiveSplitZone]);
+				newZones = newZones.concat(newRegressiveZones);
+			}
 
 			zones = zones.concat(newZones);
 		}
