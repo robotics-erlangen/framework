@@ -36,6 +36,8 @@ Tracker::Tracker(bool robotsOnly, bool isSpeedTracker) :
     m_geometryUpdated(false),
     m_hasVisionData(false),
     m_virtualFieldEnabled(false),
+    m_lastSlowVisionFrame(0),
+    m_numSlowVisionFrames(0),
     m_currentBallFilter(nullptr),
     m_aoiEnabled(false),
     m_aoi_x1(0.0f),
@@ -132,6 +134,41 @@ void Tracker::process(qint64 currentTime)
 
         const SSL_DetectionFrame &detection = wrapper.detection();
         const qint64 visionProcessingTime = (detection.t_sent() - detection.t_capture()) * 1E9;
+
+        /* Misconfigured or slow vision computers may produce detection frames
+         * with a large processing time. We discard these frames later since
+         * they are considered too old to be relevant.
+         */
+        auto isVisionProcessingSlow = [this, currentTime, visionProcessingTime]() -> bool {
+            constexpr qint64 VISION_WARN_TIME = 40 * 1E6; // 40ms to ns
+            if (visionProcessingTime >= VISION_WARN_TIME) {
+                m_numSlowVisionFrames++;
+                m_lastSlowVisionFrame = currentTime;
+            }
+
+            /* There may be outliers on the vision computer. We only want to warn
+             * if the delay is continously high
+             */
+            if (m_lastSlowVisionFrame + 10E9 < currentTime) {
+                m_numSlowVisionFrames = 0;
+            }
+
+            /* There should be around 75 detections per second, warn if one third
+             * is bad (25 per second) for around five seconds in a ten second
+             * period
+             */
+            return m_numSlowVisionFrames > 125;
+        };
+
+        if (isVisionProcessingSlow()) {
+            m_errorMessages.append(QString(
+                "<font color=\"red\">WARNING:</font> Multiple vision detection frames with a high processing time. These may be discarded."
+            ));
+
+            // Reset to avoid log spam
+            m_numSlowVisionFrames = 0;
+        }
+
         // time on the field for which the frame was captured as seen by this computers clock
         const qint64 sourceTime = p.time - visionProcessingTime - m_systemDelay;
 

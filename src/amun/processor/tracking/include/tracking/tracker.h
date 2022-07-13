@@ -101,6 +101,11 @@ private:
     QMap<qint32, qint64> m_lastUpdateTime; // indexed by camera id
     QList<Packet> m_visionPackets;
 
+    /** The last time a slow vision frame was received. Timestamp on a local clock */
+    qint64 m_lastSlowVisionFrame;
+    /** The number of slow vision frames received in the recent past */
+    int m_numSlowVisionFrames;
+
     QList<BallTracker*> m_ballFilter;
     BallTracker* m_currentBallFilter;
 
