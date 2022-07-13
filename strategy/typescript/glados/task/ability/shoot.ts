@@ -287,7 +287,8 @@ export class Shoot {
 		if (this._rightOrientation) {
 			debug.set("Shoot/shootCommand", this._linearShoot ? "linear" : "chip");
 			if (this._linearShoot) {
-				this._robot.shoot(kickSpeed, true);
+				debug.set("Shoot/kickSpeed", kickSpeed);
+				this._robot.shoot(kickSpeed);
 			} else {
 				let dist = World.Ball.pos.distanceTo(targetPos);
 				this._robot.chip(dist);
