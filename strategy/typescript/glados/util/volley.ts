@@ -87,9 +87,10 @@ type VolleyObserver = (ballSpeed: Speed, viewPos: Position, targetPos: Position,
  * @returns x,y - The velocity of the shot ball is Vector(x,y) (in team coordinates)
  */
 export function calcVOutTeamCoordinates(v_out_length: number, ballSpeed: Speed, phi: number,
-		robotSpeed: Speed, robotId: number | "opp"): [number, number] {
+		robotSpeed: Speed, robotId: number | "opp"): [number, number] | undefined {
 	let relativeSpeed = ballSpeed - robotSpeed;
 	let [v_refl_x, v_refl_y] = calcVOutFromVS(0, relativeSpeed.length(), phi, relativeSpeed.angle(), robotId);
+
 	let sinp = Math.sin(phi);
 	let cosp = Math.cos(phi);
 	// calcVOut(x,v_in, phi, alpha) = cosp * x + v_refl_x, sinp * x + v_refl_y
@@ -109,9 +110,18 @@ export function calcVOutTeamCoordinates(v_out_length: number, ballSpeed: Speed, 
 	let sqrt1 = 2 * bcos + 2 * dsin;
 	sqrt1 = sqrt1 * sqrt1;
 	let sqrt2 = -4 * (b * b + d * d - v_out_length * v_out_length);
+
+	if (sqrt1 + sqrt2 < 0) {
+		// Minimal possible speed is greater than v_out_length
+		// return undefined and handle this edgecase by caller
+		amun.log("calcVOutTeamCoordinates produced NaN");
+		return undefined;
+	}
+
 	let v_s = 0.5 * (Math.sqrt(sqrt1 + sqrt2) - 2 * bcos - 2 * dsin);
 	let x_res = cosp * v_s + v_refl_glob_x;
 	let y_res = sinp * v_s + v_refl_glob_y;
+
 	// TODO: remove these sanity checks if they don't fail for a while
 	{
 		let [x,y] = calcVOutFromVS(v_s, relativeSpeed.length(), phi, relativeSpeed.angle(), robotId);
@@ -128,6 +138,28 @@ export function calcVOutTeamCoordinates(v_out_length: number, ballSpeed: Speed, 
 	}
 
 	return [x_res, y_res];
+}
+
+
+export function calculateMinimalVOutTeamCoordinates(ballSpeed: Speed, phi: number, robotSpeed: Speed,
+	robotId: number | "opp"): [number, number] {
+		let relativeSpeed = ballSpeed - robotSpeed;
+		let [v_refl_x, v_refl_y] = calcVOutFromVS(0, relativeSpeed.length(), phi, relativeSpeed.angle(), robotId);
+
+		let sinp = Math.sin(phi);
+		let cosp = Math.cos(phi);
+		let v_refl_x_glob = v_refl_x + robotSpeed.x;
+		let v_refl_y_glob = v_refl_y + robotSpeed.y;
+
+		// calcVOut(x,v_in, phi, alpha) = cosp * x + v_refl_x, sinp * x + v_refl_y
+		// v_out.length() = sqrt((cosp * x + v_refl_x)^2 + (sinp * x + v_refl_y)^2)
+		// d v_out / d x = 1/(2 v_out) * (2* (cosp * x + v_refl_x) * cosp + 2 * (sinp * x + v_refl_y) * sinp)
+		// d v_out / d x = 0 => 2* (cosp * x + v_refl_x) * cosp + 2 * (sinp * x + v_refl_y) * sinp) = 0
+		// => 2 * (cos^2p + sin^2p) * x = - 2 (cosp v_refl_x + sinp v_refl_y)
+		// => x = - (cosp v_refl_x + sinp v_refl_y)
+
+		let x_min = - (cosp * v_refl_x_glob + sinp * v_refl_y_glob);
+		return [cosp * x_min + v_refl_x_glob, sinp * x_min + v_refl_y_glob];
 }
 
 /**

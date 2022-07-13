@@ -237,8 +237,13 @@ function getInvisibleBallPrediction(): [Position | undefined, Speed | undefined,
 				// FIXME: volley for moving robots does not consider the friction of the carpet, because it is calculating everything
 				// in robot coordinates
 				// robot.speed as param for ballspeed is choosen, because that is the best estimate if there is no visible ball
-				let [dirx, diry] = Volley.calcVOutTeamCoordinates(Constants.maxBallSpeed, robot.speed, robot.dir, robot.speed, "opp");
-				let ballSpeed = new Vector(dirx, diry);
+				let v_out = Volley.calcVOutTeamCoordinates(Constants.maxBallSpeed, robot.speed, robot.dir, robot.speed, "opp");
+
+				if (v_out === undefined) {
+					v_out = Volley.calculateMinimalVOutTeamCoordinates(robot.speed, robot.dir, robot.speed, "opp");
+				}
+
+				let ballSpeed = new Vector(v_out[0], v_out[1]);
 				let dribblerPos = robot.pos + robotDir.withLength(robot.shootRadius);
 				let intersection = geom.intersectLineLine(G.FriendlyGoal, new Vector(1, 0),
 					dribblerPos, ballSpeed)[0];
@@ -391,9 +396,12 @@ function _predictShot(allShots: boolean = false, includeInvisible: boolean = tru
 				let futureBallSpeed = Physics.ballAtTime(World.Ball, ballRollTime).speed;
 				// TODO: Check what happens if futureBallSpeed.length() is zero
 				let robotAngle = passReceiver.robot.dir;
-				let [dirx, diry] = Volley.calcVOutTeamCoordinates(Constants.maxBallSpeed, futureBallSpeed, robotAngle,
+				let v_out = Volley.calcVOutTeamCoordinates(Constants.maxBallSpeed, futureBallSpeed, robotAngle,
 					minRobotSpeed, "opp");
-				ballSpeed = new Vector(dirx, diry).normalized();
+				if (v_out === undefined) {
+					v_out = Volley.calculateMinimalVOutTeamCoordinates(futureBallSpeed, robotAngle, minRobotSpeed, "opp");
+				}
+				ballSpeed = new Vector(v_out[0], v_out[1]).normalized();
 
 				if (ballSpeed.isNan()) {
 					throw new Error("ballSpeed NaN in predictShot (fast ball volley)");
