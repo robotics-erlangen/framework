@@ -123,10 +123,10 @@ export class Armada extends Move {
 
 			for (let i = 1;i < 5;i++) {
 				if (passInfo != undefined && this._positions[i - 1].distanceTo(passInfo.ballPos) < 0.1) {
-					taskAssignments[this._robots[this._assignment[i - 1]]]
+					taskAssignments[this._robots[this._assignment[i - 1] + 1]]
 						= Assignment.create({class: AcceptPass, params: [this._positions[i - 1], 0.1]});
 				} else {
-					taskAssignments[this._robots[this._assignment[i - 1]]]
+					taskAssignments[this._robots[this._assignment[i - 1] + 1]]
 						= Assignment.create({ class: MoveToPos, params: [{ pos: this._positions[i - 1], suggestPass: true }] }); // offer other positions for redeciding
 				}
 			}
