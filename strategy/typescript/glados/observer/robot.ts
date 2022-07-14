@@ -3,7 +3,7 @@ import * as Constants from "base/constants";
 import * as debug from "base/debug";
 import * as Field from "base/field";
 import * as Referee from "base/referee";
-import { Robot } from "base/robot";
+import { FriendlyRobot, Robot } from "base/robot";
 import { RelTime } from "base/timing";
 import { Position, Speed, Vector } from "base/vector";
 import * as vis from "base/vis";
@@ -280,6 +280,36 @@ export function doubleTouchingRobot(): Robot | undefined {
 	return _doubleTouchingRobot;
 }
 
+
+const _dribblingStart = new Map<FriendlyRobot, Position | undefined>();
+function updateDribblingStart() {
+	for (const robot of World.FriendlyRobots) {
+		const hysteresis = _dribblingStart[robot]
+			? 0.25 * World.Ball.radius : 0;
+
+		const ballDist = robot.pos.distanceTo(World.Ball.pos);
+		const dribbling = ballDist < robot.radius + World.Ball.radius + hysteresis;
+
+		if (dribbling && !_dribblingStart[robot]) {
+			_dribblingStart[robot] = World.Ball.pos;
+		} else if (!dribbling) {
+			_dribblingStart.delete(robot);
+		}
+	}
+}
+
+/**
+ * Returns the position of the ball at the time a robot started dribbling. As
+ * per the rules, dribbling distance is measured according to the ball
+ * position.
+ *
+ * @param robot - The robot to check. For now, only friendly robots are measured
+ * @returns The position of the ball at the time robot started dribbling
+ */
+export function dribblingStartFor(robot: FriendlyRobot): Position | undefined {
+	return _dribblingStart[robot];
+}
+
 function calculateWayForPosition(pos: Position, radius: number, friendly: boolean): number {
 	let goal = friendly ? World.Geometry.FriendlyGoal : World.Geometry.OpponentGoal;
 	if (Math.abs(pos.y) > World.Geometry.FieldHeightHalf) {
@@ -379,4 +409,5 @@ export function _update() {
 	// Needs to be called after updateOwnStandardShooter() since it uses
 	// ownStandardShooter() for detection
 	updateDoubleTouchingRobot();
+	updateDribblingStart();
 }
