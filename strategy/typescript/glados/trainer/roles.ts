@@ -25,10 +25,23 @@ const EXCLUSIVE_ROLE_START: { [K in ExclusiveRole]?: (messaging: MessageBox, win
 			return;
 		}
 
-		const objective = new objectiveCtor();
+		const [, oldObjective] = messaging.receiveSingleSender(MessageType.selectedObjective);
+
+		let objective;
+		if (oldObjective instanceof objectiveCtor) {
+			debug.set("trainer objective/continue", true);
+			objective = oldObjective;
+		} else {
+			debug.set("trainer objective/continue", false);
+			objective = new objectiveCtor();
+		}
+
 		debug.set("trainer objective", objective.toString());
 		/* There probably currently is a main attacker that already sent an
 		 * objective.
+		 *
+		 * TODO Replace impersonation with something else. This may require the
+		 * receiveSingleSender to specify receiveOwn
 		 */
 		messaging.cancel(MessageType.selectedObjective);
 		messaging.sendBroadcast(MessageType.selectedObjective, objective, winner);

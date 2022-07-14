@@ -48,7 +48,21 @@ export abstract class Objective {
 
 	/** Get the {@link Checkable} that can be checked by the main attacker */
 	getMaRunner(maAgent: Agent): Checkable {
-		if (!this._maRunner) {
+		/* To keep supporter state, objectives have to live across main
+		 * attacker switches. Thus we have to check here whether a new main
+		 * attacker is registering
+		 */
+		if (!this._maRunner || this._maRunner.agent() !== maAgent) {
+			/* If an agent was supporter, then becomes main attacker and
+			 * switches back to supporter, we probably don't want to keep the
+			 * old supporter state
+			 *
+			 * We could also call stop on the old instance, but there *should*
+			 * be no real difference, as stop *should* put the behavior in the
+			 * same state as its construction.
+			 */
+			this._supportRunner.delete(maAgent);
+
 			const ctor = this._freekick
 				? this._runnerCtors.freekick
 				: this._runnerCtors.ma;
