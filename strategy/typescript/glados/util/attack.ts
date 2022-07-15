@@ -214,6 +214,10 @@ const _defaultRatePass: PassRater = (robot, pass, earliestAttackTime, attackPosi
 	let goalAngleRating = Rating.valueToRating(goalAngle, 0, 50 / 180 * Math.PI);
 	rating = rating * (1 - goalAngleWeight + goalAngleWeight * goalAngleRating);
 
+	// decrease rating of passes far away from the goal
+	let goalDistance = (G.OpponentGoal - pass.ballPos).length();
+	rating = rating * Rating.valueToRating(goalDistance, G.FieldHeightHalf * 1.5, G.DefenseHeight * 2);
+
 	if (!amun.isPerformanceMode) {
 		vis.addCircle("u/a/ratePass", shootPos, 0.1, vis.colors.blue, true);
 		vis.addPath("u/a/ratePass", [shootPos, pass.ballPos], vis.colors.red);
