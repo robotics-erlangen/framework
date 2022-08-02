@@ -15,6 +15,11 @@ Please measure both fricition value (for example by passing a few passes), and t
 Please also measure floor damping (TODO: How to actually do that) and insert int in
 amun/processor/tracking/ballflyfilter.cpp `const float floorDamping`.
 
+## Radio Channels
+During the RoboCup, each team gets assigned a number of frequencies to use.
+The frequencies should be input into `firmware-interface/radiocommand.h`.
+Each transceiver and every robot should be flashed with these frequencies and the correct channel should be selected in Ra.
+
 ## Divisions
 Ra detects divisions based on the geometry of the field.
 Make sure config/division-dimensions.txt is updated with the correct field sizes for division A and B
