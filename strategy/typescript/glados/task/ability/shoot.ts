@@ -186,8 +186,9 @@ export class Shoot {
 			return false;
 		}
 
-		let robotTime = Physics.robotTimeToPos(this._robot, moveDest, new Vector(0, 0))[0];
-		if (robotTime < futureBallTime + 0.1) {
+		const robotTime = Physics.robotTimeToPos(this._robot, moveDest, new Vector(0, 0))[0];
+		const hysteresis = this._catchBallActive ? 0 : 0.1;
+		if (robotTime < futureBallTime + hysteresis + 0.1) {
 			return false;
 		}
 
