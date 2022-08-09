@@ -82,9 +82,6 @@ namespace v8helper {
     template<typename Target>
     v8::Local<Target> installCallbacks(v8::Isolate* isolate, v8::Local<Target> target, const QList<CallbackInfo>& callbacks, v8::Local<v8::Value> data);
 
-    template<typename TargetType>
-    v8::Local<TargetType> createWithCallbacks(v8::Isolate* isolate, const QList<CallbackInfo>& callbacks, v8::Local<v8::Value> data);
-
     /**
      * Embed a pointer into an external. The pointer will be free'd once the JS
      * GC collects the embedding JS object.
