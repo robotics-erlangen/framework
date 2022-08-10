@@ -11,6 +11,7 @@ import * as World from "base/world";
 
 import { DirectRotation } from "glados/trajectory/directrotation";
 import * as PathHelper from "glados/trajectory/pathhelper";
+import * as Rating from "glados/util/rating";
 
 type Trajectory = { pos: Position, speed: Speed, time: number}[];
 
@@ -169,21 +170,23 @@ export class TrajectoryPath extends TrajectoryHandler {
 		}
 		this.lastTrajectory = trajectory;
 
+		let timeToEnd =	TrajectoryPath.trajectoryTime(trajectory);
+
 		// generate trajectory to reach path finding result
 
 		// calculate rotation
 		let rotationExponentialTime = 0.1;
 		let rotationAccelerationFactor = 1;
 
+		const rotationFactor = 0.2 + 0.8 * Rating.valueToRating(timeToEnd, 1.5, 0.5);
+
 		let rotAccelerate = Math.abs(this._robot.acceleration
-			? this._robot.acceleration.aSpeedupPhiMax : 1.0) * rotationAccelerationFactor;
+			? this._robot.acceleration.aSpeedupPhiMax : 1.0) * rotationAccelerationFactor * rotationFactor;
 		let rotBrake = -Math.abs(this._robot.acceleration
-			? this._robot.acceleration.aBrakePhiMax : 1.0) * rotationAccelerationFactor;
-		let rotMaxSpeed = this._robot.maxAngularSpeed;
+			? this._robot.acceleration.aBrakePhiMax : 1.0) * rotationAccelerationFactor * rotationFactor;
+		let rotMaxSpeed = this._robot.maxAngularSpeed * rotationFactor;
 		let [angularSpeed, angularAccel] = this.rotationCalculation.calculateRotationHysteresis(robotDir,
 			this._robot.angularSpeed, targetDir, rotAccelerate, rotBrake, rotMaxSpeed, rotationExponentialTime);
-
-		let timeToEnd =	TrajectoryPath.trajectoryTime(trajectory);
 
 		// finish and return trajectory
 		let queryTime;
