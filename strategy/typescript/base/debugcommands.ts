@@ -162,7 +162,7 @@ export function moveObjects(ball?: BallInfo, friendlyRobots?: RobotState[], oppo
 	if (!amun.isDebug) {
 		throw new Error("only works in debug mode");
 	}
-	if (World.WorldStateSource !== pb.world.WorldSource.INTERNAL_SIMULATION) {
+	if (World.WorldStateSource() !== pb.world.WorldSource.INTERNAL_SIMULATION) {
 		throw new Error("This can only be used in the internal simulator!");
 	}
 

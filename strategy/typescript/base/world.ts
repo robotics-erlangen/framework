@@ -64,8 +64,6 @@ export let OpponentKeeper: Robot | undefined;
 export let Robots: Robot[] = [];
 /** True if we are the blue team, otherwise we're yellow */
 export let TeamIsBlue: boolean = false;
-/** True if the world is simulated */
-export let WorldStateSource: pb.world.WorldSource = pb.world.WorldSource.REAL_LIFE;
 /** True if playing on the large field */
 export let IsLargeField: boolean = false;
 /** True if the current strategy run is a replay run */
@@ -77,6 +75,15 @@ export let IsReplay: boolean = false;
  */
 export let MixedTeam: pb.ssl.TeamPlan | undefined = undefined;
 export let SelectedOptions = undefined;
+
+/** True if the world is simulated */
+let _WorldStateSource: pb.world.WorldSource | undefined = undefined;
+export function WorldStateSource(): pb.world.WorldSource {
+	if (_WorldStateSource === undefined) {
+		throw new Error("WorldStateSource can not be accessed at load-time");
+	}
+	return _WorldStateSource;
+}
 
 export let TeamName: string = "";
 export let OpponentTeamName: string = "";
@@ -316,16 +323,16 @@ export function _updateWorld(state: pb.world.State) {
 	if (Time <= 0) {
 		throw new Error("Invalid Time. Outdated ra version!");
 	}
-	const prevWorldSource = WorldStateSource;
+	const prevWorldSource = _WorldStateSource;
 	if (state.world_source != undefined) {
-		if (state.world_source !== WorldStateSource) {
-			WorldStateSource = state.world_source;
+		if (state.world_source !== _WorldStateSource) {
+			_WorldStateSource = state.world_source;
 		}
 	} else if (state.is_simulated != undefined) {
-		WorldStateSource = state.is_simulated ? pb.world.WorldSource.INTERNAL_SIMULATION : pb.world.WorldSource.REAL_LIFE;
+		_WorldStateSource = state.is_simulated ? pb.world.WorldSource.INTERNAL_SIMULATION : pb.world.WorldSource.REAL_LIFE;
 	}
-	if (WorldStateSource !== prevWorldSource) {
-		Constants.switchSimulatorConstants(WorldStateSource !== pb.world.WorldSource.REAL_LIFE);
+	if (_WorldStateSource !== prevWorldSource) {
+		Constants.switchSimulatorConstants(_WorldStateSource !== pb.world.WorldSource.REAL_LIFE);
 	}
 
 	let radioResponses: pb.robot.RadioResponse[] = state.radio_response || [];
