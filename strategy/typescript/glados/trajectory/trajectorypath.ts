@@ -120,7 +120,7 @@ export class TrajectoryPath extends TrajectoryHandler {
 		let futureStartPos = robotPos;
 		let futureStartSpeed = robotSpeed;
 		let usePositionControl = robotPos.distanceTo(targetPos) > 0.2 && this.lastTrajectory.length > 0
-			&& World.WorldStateSource === pb.world.WorldSource.REAL_LIFE;
+			&& World.WorldStateSource() === pb.world.WorldSource.REAL_LIFE;
 		if (usePositionControl) {
 			let [testPos, testSpeed] = TrajectoryPath.calculateClosestPoint(robotPos, robotSpeed, this.lastTrajectory, 0);
 			vis.addCircle("trajectory-closest", Coordinates.toLocal(testPos), 0.03, vis.colors.red);
@@ -188,7 +188,7 @@ export class TrajectoryPath extends TrajectoryHandler {
 		// finish and return trajectory
 		let queryTime;
 		let startDriving = false;
-		if (World.WorldStateSource !== pb.world.WorldSource.REAL_LIFE) {
+		if (World.WorldStateSource() !== pb.world.WorldSource.REAL_LIFE) {
 			if (timeToEnd < 0.4) {
 				queryTime = Math.min(0.1, (0.4 - timeToEnd) / 4);
 			} else {

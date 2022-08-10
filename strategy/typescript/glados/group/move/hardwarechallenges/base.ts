@@ -315,7 +315,7 @@ export abstract class HardwareChallengeBase extends Move {
 
 		this.showVis();
 
-		if (World.WorldStateSource === pb.world.WorldSource.INTERNAL_SIMULATION && amun.isDebug) {
+		if (World.WorldStateSource() === pb.world.WorldSource.INTERNAL_SIMULATION && amun.isDebug) {
 			// use existing ids for each team (e.g. team yellow might not have a robot with id 0 as in the JSON)
 			let numberFriendlies = Math.min(this.friendlyTransforms.length, this._robots.length);
 			let blueRobots: RobotState[] = [];

@@ -89,7 +89,7 @@ export function realisticCardsOpponent() {
 
 let lastChooseKeeperCommand = 0;
 export function checkChooseKeeper() {
-	if (World.WorldStateSource === pb.world.WorldSource.REAL_LIFE) {
+	if (World.WorldStateSource() === pb.world.WorldSource.REAL_LIFE) {
 		return;
 	}
 	if (World.RefereeState !== "Stop") {

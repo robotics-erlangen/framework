@@ -6,7 +6,7 @@ import { MoveToPos } from "glados/task/shared/movetopos";
 
 export class MoveCommand extends Behavior {
 	check(): Behavior | undefined {
-		return this._robot.moveCommand != undefined && World.WorldStateSource !== pb.world.WorldSource.INTERNAL_SIMULATION
+		return this._robot.moveCommand != undefined && World.WorldStateSource() !== pb.world.WorldSource.INTERNAL_SIMULATION
 			? this
 			: undefined;
 	}
