@@ -39,6 +39,7 @@ public:
     int chooseDetection(const std::vector<VisionFrame> &frames) const override;
 
     bool isFeasiblyInvisible() const { return m_feasiblyInvisible; };
+    float getMaxSpeed() const { return m_maxSpeed; }
 
 private:
     struct BallOffsetInfo {
@@ -62,9 +63,11 @@ private:
                                     const Eigen::Vector2f pastPos, const Eigen::Vector2f currentPos) const;
     void updateDribbling(const QVector<RobotInfo> &robots);
     void updateDribbleAndRotate(const VisionFrame &frame);
+    void updateMaxSpeed(const VisionFrame &frame, float lastSpeedLength, Eigen::Vector2f lastPos);
     void checkVolleyShot(const VisionFrame &frame);
     void updateEmptyFrame(qint64 frameTime, const QVector<RobotInfo> &robots);
     bool isBallCloseToRobotShadow(const VisionFrame &frame) const;
+    void resetFilter(const VisionFrame &frame);
 
 private:
     GroundFilter m_groundFilter;
@@ -84,6 +87,12 @@ private:
     // dribble and rotate
     qint32 m_inDribblerFrames = 0;
     std::optional<BallOffsetInfo> m_rotateAndDribbleOffset;
+
+    // ball shot speed detection
+    float m_maxSpeed = 0;
+    int m_framesDecelerating = 0;
+    bool m_ballWasNearRobot = false;
+    float m_highestSpeed = 0;
 
     const float DRIBBLING_ROBOT_VISIBILITY_FACTOR = 1.03f;
 };

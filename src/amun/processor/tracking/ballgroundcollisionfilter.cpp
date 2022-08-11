@@ -45,12 +45,53 @@ BallGroundCollisionFilter::BallGroundCollisionFilter(const BallGroundCollisionFi
     m_hadRobotIntersection(filter.m_hadRobotIntersection),
     m_lastValidSpeed(filter.m_lastValidSpeed),
     m_inDribblerFrames(filter.m_inDribblerFrames),
-    m_rotateAndDribbleOffset(filter.m_rotateAndDribbleOffset)
+    m_rotateAndDribbleOffset(filter.m_rotateAndDribbleOffset),
+    m_maxSpeed(filter.m_maxSpeed),
+    m_framesDecelerating(filter.m_framesDecelerating),
+    m_ballWasNearRobot(filter.m_ballWasNearRobot),
+    m_highestSpeed(filter.m_highestSpeed)
 { }
 
 static Eigen::Vector2f perpendicular(const Eigen::Vector2f dir)
 {
     return Eigen::Vector2f(dir.y(), -dir.x());
+}
+
+void BallGroundCollisionFilter::updateMaxSpeed(const VisionFrame &frame, float lastSpeedLength, Eigen::Vector2f lastPos)
+{
+    // this code was taken from base/ball, with improvements
+    const float MAXSPEED_MIN_ROBOT_DIST = 0.1f;
+    const int NUM_DECELERATION_FRAMES = 3;
+
+    const Eigen::Vector2f speed{m_pastBallState.v_x(), m_pastBallState.v_y()};
+    const float speedLength = speed.norm();
+    const Eigen::Vector2f pos{m_pastBallState.p_x(), m_pastBallState.p_y()};
+
+    if (speed.norm() - lastSpeedLength > 0.2f) {
+        m_framesDecelerating = 0;
+    } else {
+        m_framesDecelerating++;
+    }
+    // if the ball does not accelerate extremely for NUM_DECELERATION_FRAMES frames straight, the current velocity
+    // is taken as the maximum ball speed
+    if (m_framesDecelerating <= NUM_DECELERATION_FRAMES) {
+        if ((frame.robot.pastRobotPos - pos).norm() < MAXSPEED_MIN_ROBOT_DIST ||
+                (frame.robot.pastRobotPos - lastPos).norm() < MAXSPEED_MIN_ROBOT_DIST) {
+            m_ballWasNearRobot = true;
+        }
+        m_highestSpeed = std::max(m_highestSpeed, speedLength);
+    }
+
+    if (m_framesDecelerating == NUM_DECELERATION_FRAMES) {
+        if (m_ballWasNearRobot) {
+            m_maxSpeed = m_highestSpeed;
+        }
+        m_ballWasNearRobot = false;
+        m_highestSpeed = 0;
+    }
+    if (m_maxSpeed < speedLength) {
+        m_maxSpeed = m_maxSpeed + 0.5f * (speedLength - m_maxSpeed);
+    }
 }
 
 void BallGroundCollisionFilter::updateDribbleAndRotate(const VisionFrame &frame)
@@ -269,7 +310,14 @@ bool BallGroundCollisionFilter::isBallCloseToRobotShadow(const VisionFrame &fram
     return shadowDist < 0.02f && robotDist > ROBOT_RADIUS + 0.03f;
 }
 
-void BallGroundCollisionFilter::processVisionFrame(const VisionFrame& frame)
+void BallGroundCollisionFilter::resetFilter(const VisionFrame &frame)
+{
+    m_groundFilter.reset(frame);
+    m_framesDecelerating = 0;
+    m_ballWasNearRobot = true;
+}
+
+void BallGroundCollisionFilter::processVisionFrame(const VisionFrame &frame)
 {
     // Filter out 'intersections' where the ball did not truly intersect the ball
     // but was just close and then got invisible for a frame.
@@ -279,7 +327,7 @@ void BallGroundCollisionFilter::processVisionFrame(const VisionFrame& frame)
     if (trueIntersection) {
         // Reset the filter during dribbling so that the ball speed is
         // computed properly once the ball is visible again
-        m_groundFilter.reset(frame);
+        resetFilter(frame);
     }
     m_dribbleOffset.reset();
 
@@ -291,12 +339,16 @@ void BallGroundCollisionFilter::processVisionFrame(const VisionFrame& frame)
     const bool closeToShadow = isBallCloseToRobotShadow(frame);
     m_groundFilter.setObservationStdDev(closeToShadow ? 0.02f : 0.003f);
 
+    const Eigen::Vector2f lastSpeed{m_pastBallState.v_x(), m_pastBallState.v_y()};
+    const Eigen::Vector2f lastPos{m_pastBallState.p_x(), m_pastBallState.p_y()};
+
     m_groundFilter.processVisionFrame(frame);
     // TODO: fix the 0 time and is the +1 still necessary?
     m_groundFilter.writeBallState(&m_pastBallState, frame.time + 1, {}, 0);
 
     checkVolleyShot(frame);
     updateDribbleAndRotate(frame);
+    updateMaxSpeed(frame, lastSpeed.norm(), lastPos);
 }
 
 BallGroundCollisionFilter::BallOffsetInfo::BallOffsetInfo(Eigen::Vector2f projectedBallPos, const RobotInfo &robot, bool forceDribbling, bool intersecting)
@@ -369,7 +421,7 @@ void BallGroundCollisionFilter::checkVolleyShot(const VisionFrame &frame)
     const bool noDribbling = currentSpeed.norm() - frame.robot.speed.norm() > 2.0f
             || m_lastValidSpeed - frame.robot.speed.norm() > 2.0f;
     if (!hasIntersection && m_hadRobotIntersection && noDribbling) {
-        m_groundFilter.reset(frame);
+        resetFilter(frame);
         m_groundFilter.processVisionFrame(frame);
         m_groundFilter.writeBallState(&m_pastBallState, frame.time + 1, {}, 0);
     }
@@ -498,7 +550,7 @@ void BallGroundCollisionFilter::updateEmptyFrame(qint64 frameTime, const QVector
         VisionFrame resetFrame = m_lastVisionFrame;
         resetFrame.x = m_pastBallState.p_x();
         resetFrame.y = m_pastBallState.p_y();
-        m_groundFilter.reset(resetFrame);
+        resetFilter(resetFrame);
         m_groundFilter.writeBallState(&m_pastBallState, m_lastVisionFrame.time + 1, robots, 0);
         pastPos = Eigen::Vector2f{m_pastBallState.p_x(), m_pastBallState.p_y()};
         pastSpeed = Eigen::Vector2f{m_pastBallState.v_x(), m_pastBallState.v_y()};

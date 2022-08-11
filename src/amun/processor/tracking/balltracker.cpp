@@ -141,6 +141,8 @@ void BallTracker::get(world::Ball *ball, const FieldTransform &transform, bool r
         debug("active", "ground filter");
         m_groundFilter->writeBallState(ball, m_lastUpdateTime, robots, lastCameraFrameTime);
     }
+    // the flight tracker does not have a max speed, therefore, the ground tracker max speed is always used
+    ball->set_max_speed(m_groundFilter->getMaxSpeed());
 
     float transformedPX = transform.applyPosX(ball->p_x(), ball->p_y());
     float transformedPY = transform.applyPosY(ball->p_x(), ball->p_y());
