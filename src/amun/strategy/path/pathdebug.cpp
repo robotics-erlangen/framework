@@ -72,6 +72,9 @@ void PathDebug::setColor(amun::Pen *pen, PathDebugColor color)
     case PathDebugColor::TURQUOISE:
         pen->mutable_color()->set_green(255);
         pen->mutable_color()->set_blue(255);
+    case PathDebugColor::ORANGE:
+        pen->mutable_color()->set_red(255);
+        pen->mutable_color()->set_green(127);
         break;
     }
 }
