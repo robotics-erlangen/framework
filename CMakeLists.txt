@@ -22,12 +22,19 @@ cmake_minimum_required(VERSION 3.5.0)
 project(erforce)
 enable_testing()
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-if(POLICY CMP0071) # compatibility with CMake 3.10.0
-    cmake_policy(SET CMP0071 OLD)
+
+#
+# Policies
+#
+
+if (POLICY CMP0071)
+    cmake_policy(SET CMP0071 NEW)
 endif()
+
 if(POLICY CMP0072)
     cmake_policy(SET CMP0072 NEW)
 endif()
+
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG(-std=c++17 HAVE_C17)
 if (NOT HAVE_C17)
