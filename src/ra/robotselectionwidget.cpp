@@ -200,7 +200,7 @@ void RobotSelectionWidget::init(QWidget *window, InputManager *inputManager)
     ui->robots->setItemDelegate(m_itemDelegate);
 }
 
-void RobotSelectionWidget::load()
+void RobotSelectionWidget::loadStrategies()
 {
     QSettings s;
     s.beginGroup("Strategy");
@@ -214,8 +214,6 @@ void RobotSelectionWidget::load()
 
     ui->blue->setRecentScripts(m_recentScripts);
     ui->yellow->setRecentScripts(m_recentScripts);
-
-    loadRobots();
 
     ui->blue->load();
     ui->yellow->load();

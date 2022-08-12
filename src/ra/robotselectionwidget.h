@@ -82,7 +82,8 @@ public slots:
 
 public:
     void init(QWidget *window, InputManager *inputManager);
-    void load();
+    void loadRobots();
+    void loadStrategies();
     void save();
     void forceAutoReload(bool force);
     robot::Specs specs(const QModelIndex &index) const;
@@ -93,7 +94,6 @@ private slots:
     void showConfigDialog(const QModelIndex &index);
 
 private:
-    void loadRobots();
     void loadRobots(const QString &group, RobotWidget::Team team);
     void saveRobots(const QString &group, RobotWidget::Team team);
     bool validate(const robot::Generation &g);

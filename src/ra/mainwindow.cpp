@@ -267,14 +267,6 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
         simulatorSetupChanged(selectedAction);
     }
 
-    // restore configuration and initialize everything
-    ui->input->load();
-    ui->robots->load();
-    ui->visualization->load();
-    m_configDialog->load();
-    ui->referee->load();
-    ui->simulatorConfig->load();
-
     // hide options dock by default
     ui->dockOptions->hide();
 
@@ -303,6 +295,24 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
 
     ui->actionEnableTransceiver->setChecked(ui->actionSimulator->isChecked() ? m_transceiverSimulator : m_transceiverRealWorld);
     ui->actionChargeKicker->setChecked(ui->actionSimulator->isChecked() ? m_chargeSimulator : m_chargeRealWorld);
+
+    // restore configuration and initialize everything
+    ui->input->load();
+    ui->visualization->load();
+    m_configDialog->load();
+    ui->simulatorConfig->load();
+    ui->robots->loadRobots();
+    // HACK: wait for a short time before loading the strategies and autoref
+    // This is to prevent repeated reloading of the strategies.
+    // Since the reloading takes more time than 10ms, this is an overall win when starting Ra.
+    // It is necessary since the geometry updates have to propagate through multiple threads
+    // while the strategy load commands are directly moved to the strategy threads.
+    // Therefore, they can arrive before the geometry changes, leading to strategy reloads.
+    QThread::msleep(10);
+    // WARNING: these two loads must always be the last and in this exact order
+    // Only then is the number of strategy reloads minimized
+    ui->referee->load();
+    ui->robots->loadStrategies();
 
     // playback speed shortcuts
     QSignalMapper *mapper = new QSignalMapper(this);
