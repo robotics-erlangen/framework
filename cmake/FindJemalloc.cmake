@@ -63,7 +63,7 @@ find_library(JEMALLOC_LIBRARY
 )
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(JEMALLOC
+find_package_handle_standard_args(Jemalloc
   FOUND_VAR JEMALLOC_FOUND
   REQUIRED_VARS
     JEMALLOC_LIBRARY
