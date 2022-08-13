@@ -30,7 +30,6 @@ Certain features require additional libraries:
     * [Manjaro](#manjaro)
     * [Open Suse](#open-suse)
   * [Building V8 (optional)](#building-v8-optional-needed-for-javascript-support)
-    * [Building V8 inside Docker](#building-v8-inside-docker)
   * [Building Ra](#building-the-framework)
 - [Windows](#windows)
   * [Setup](#setup)
@@ -89,39 +88,14 @@ instead of the normale cmake command (`cmake ..`)
 ### Building V8 (optional, needed for Javascript support)
 Note, that this is **not required** for the simulator.
 
-It is also possible to specify for cmake to download a precompiled V8 version,
-but it might not support all operating systems or distributions.
+There are multiple options to obtain V8 binaries.
 
-To build V8, `git` and `python2` are required to be executable commands.
-The package names are
+1. Download the precompiled version through CMake by specifying the `DOWNLOAD_V8` option.
+To do so, invoke `cmake` using `cmake -DDOWNLOAD_V8=ON`
+This might not support all operating systems or distributions.
 
-| Distribution       | Packages              |
-|--------------------|-----------------------|
-| Ubuntu 20.04       | `git python2` |
-| Ubuntu 18.04       | `git python` |
-| Manjaro            | `git python2` |
-
-Also, the `python` command needs to be available and point to `python2`. On
-Ubuntu 18.04, this is already the case when installing these
-packages. **On Ubuntu 20.04 and Manjaro** you'll need to **temporarily** symlink
-`python` to point to `python2` with
-```
-$ sudo ln -nfs /usr/bin/python{2,}
-```
-Remember to undo the link later, either by linking back to `python3` or by
-deleting the symlink, depending on your system's default.
-
-On Ubuntu 20.04, you can also install `python-is-python2`.
-
-Finally, run the following in the repository root directory
-```
-$ libs/v8/build.sh
-```
-
-#### Building V8 inside Docker
-You can also build V8 inside a Docker container and copy out the result. Take a
-look at [`data/docker/README.md`](data/docker/README.md).
-
+2. Build V8 yourself.
+Take a look at [`data/scripts/README.md`](data/scripts/README.md).
 ### Building the Framework
 
 The recommended way of building a project with CMake is by doing an
@@ -238,7 +212,7 @@ the following steps:
   Then select the folder containing the `winusbcompat.inf`.
 
 ## macOS
-Homebrew requires Xcode and Command Line Utilities. 
+Homebrew requires Xcode and Command Line Utilities.
 
 Install Xcode from the App Store, run it once and then install the utilities with:
 ```

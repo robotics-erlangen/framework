@@ -1,0 +1,185 @@
+#!/usr/bin/env bash
+
+BOLD=$(tput bold)
+RESET=$(tput sgr0)
+
+# exit on error and when undefined variables are accessed
+set -euo pipefail
+
+# make sure the current working directory is the repository root
+cd "$(dirname "$0")/../../"
+
+usage() {
+	echo "Usage: $(basename "${BASH_SOURCE[0]}") [--dry-run] <v8 version (internal)> <ubuntu version number (dd.dd)>"
+	exit 1
+}
+
+DRY_RUN=false
+
+while [[ "$#" -gt 2 ]]; do
+	case "$1" in
+	"--dry-run")
+		DRY_RUN=true
+		shift
+		;;
+	*)
+		usage
+		;;
+	esac
+done
+
+if [[ "$#" -ne 2 ]]; then
+	usage
+fi
+
+if [[ ! "$1" =~ ^[0-9]+$ ]]; then
+	usage
+fi
+V8_VERSION="$1"
+
+#
+# Make sure the local repository ships a V8 build script suitable for building
+# <v8 version (internal)>
+#
+case "$V8_VERSION" in
+1)
+	ALLOWED_V8_HASH="6a41721a2889b84cb2f3b920fbdc40b96347597a"
+	;;
+*)
+	echo "ERROR: Unsupported internal V8 version";
+	exit 1
+esac
+
+if ! grep --quiet "V8_BASE_REVISION=$ALLOWED_V8_HASH" libs/v8/build.sh; then
+	echo "ERROR: The local repository's libs/v8/build.sh script does not build the expected V8 version $V8_VERSION"
+	exit 1
+fi
+
+if [[ ! "$2" =~ ^[0-9][0-9].[0-9][0-9]$ ]]; then
+	usage
+fi
+UBUNTU_VERSION="$2"
+
+# Remove V8 and Ubuntu version from arguments
+shift 2
+
+fail_with_unsupported_combination() {
+	echo "ERROR: Unsupported combination of V8 version ($V8_VERSION) and Ubuntu version ($UBUNTU_VERSION)"
+	exit 1
+}
+
+#
+# Specify dependencies
+#
+case "$V8_VERSION" in
+1)
+	APT_DEPENDENCIES=(
+		"git" "ca-certificates" "curl" "xz-utils"
+		"pkg-config" "libxml2-dev" "build-essential"
+	)
+
+	case "$UBUNTU_VERSION" in
+	"18.04")
+		APT_DEPENDENCIES+=("python")
+		;;
+	"20.04")
+		APT_DEPENDENCIES+=("python2 python-is-python2")
+		;;
+	*)
+		fail_with_unsupported_combination
+		;;
+	esac
+	;;
+esac
+
+#
+# List kept files
+#
+case "$V8_VERSION" in
+1)
+	KEEPLIST=(
+		"v8"
+		"v8/v8"
+		"v8/v8/include"
+		"v8/v8/include/libplatform"
+		"v8/v8/include/libplatform/libplatform-export.h"
+		"v8/v8/include/libplatform/v8-tracing.h"
+		"v8/v8/include/libplatform/libplatform.h"
+		"v8/v8/include/v8-inspector.h"
+		"v8/v8/include/v8config.h"
+		"v8/v8/include/v8-util.h"
+		"v8/v8/include/v8.h"
+		"v8/v8/include/v8-version.h"
+		"v8/v8/include/v8-profiler.h"
+		"v8/v8/include/v8-inspector-protocol.h"
+		"v8/v8/include/v8-value-serializer-version.h"
+		"v8/v8/include/v8-testing.h"
+		"v8/v8/include/v8-version-string.h"
+		"v8/v8/include/v8-platform.h"
+		"v8/v8/out"
+		"v8/v8/out/x64.release"
+		"v8/v8/out/x64.release/libicui18n.so"
+		"v8/v8/out/x64.release/libicuuc.so"
+		"v8/v8/out/x64.release/libv8_libplatform.so"
+		"v8/v8/out/x64.release/natives_blob.bin"
+		"v8/v8/out/x64.release/libv8.so"
+		"v8/v8/out/x64.release/snapshot_blob.bin"
+		"v8/v8/out/x64.release/libv8_libbase.so"
+		"v8/v8/out/x64.release/icudtl.dat"
+	)
+	;;
+esac
+
+# Write Dockerfile to directory.
+# docker build - (i.e. read from stdin) does not support dockerignore
+DOCKERFILE_DIR=$(mktemp --directory)
+trap 'rm -rf $DOCKERFILE_DIR' EXIT
+
+cat <<-EOF >"$DOCKERFILE_DIR/Dockerfile"
+	FROM ubuntu:$UBUNTU_VERSION AS build-stage
+
+	COPY libs/v8 v8
+
+	ARG DEBIAN_FRONTEND=noninteractive
+	SHELL ["/bin/bash", "-c"]
+	RUN set -xe; \\
+	    # Install dependencies \\
+	    apt-get update; \\
+	    apt-get install --no-install-recommends -y ${APT_DEPENDENCIES[@]}; \\
+	    # Silence git warning \\
+	    git config --global advice.detachedHead off; \\
+	    # Build V8 \\
+	    v8/build.sh; \\
+	    # Delete unneeded artifacts \\
+	    printf "%s\n" ${KEEPLIST[@]} >/KEEPLIST; \\
+	    comm -2 -3 <(find v8 | sort) <(sort KEEPLIST) | xargs rm -rf;
+
+	FROM alpine:3
+	COPY --from=build-stage /v8/v8 /v8/v8
+EOF
+
+cat <<-EOF >"$DOCKERFILE_DIR/Dockerfile.dockerignore"
+	*
+	!/libs/v8/build.sh
+	!/libs/v8/patches/*
+EOF
+
+if [[ "$DRY_RUN" = true ]]; then
+	echo "${BOLD}Used Dockerfile${RESET}" 1>&2;
+	cat "$DOCKERFILE_DIR/Dockerfile"
+	echo "${BOLD}Used .dockerignore${RESET}" 1>&2;
+	cat "$DOCKERFILE_DIR/Dockerfile.dockerignore"
+	exit 0
+fi
+
+# For some reason, the
+# COPY --from=build-stage ...
+# is cached even if the base image for build-stage changes. For example: when
+# first building for 20.04 and then for 22.04, the 22.04 COPY will directly
+# copy the contents of the 20.04 build stage. Until we figure out why, use
+# --no-cache
+sudo docker buildx build \
+	--no-cache \
+	--tag "roboticserlangen/v8:version-$V8_VERSION-ubuntu-$UBUNTU_VERSION" \
+	--file "$DOCKERFILE_DIR/Dockerfile" \
+	.

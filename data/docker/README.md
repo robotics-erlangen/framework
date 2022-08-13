@@ -19,19 +19,6 @@ $ docker build -t sometag -f data/docker/Dockerfile.something .
 - [Simulator-CLI](#simulator-cli)
 - [Robocup Setup](#robocup-setup)
 
-## V8 images
-These images are available from Docker Hub at [`roboticserlangen/v8`](https://hub.docker.com/r/roboticserlangen/v8) They are
-tagged as `version-{x}-ubuntu-{y}` where `x` is a counter we bump when changing
-something about V8 and `y` is the used Ubuntu Version (e.g. `20.04`)
-
-There is a script at `data/scripts/package_docker_v8` that can be used to
-extract the V8 binaries out of such an image. Use it like this
-```bash
-$ ./package_docker_v8 sometag
-$ # e.g.
-$ ./package_docker_v8 version-1-ubuntu-20.04
-```
-
 ## CI images
 These images need to be available on the CI runner host. Take a look at
 `.gitlab-ci.yml` for the required tag names.
