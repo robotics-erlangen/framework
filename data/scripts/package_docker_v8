@@ -7,13 +7,23 @@ RESET=$(tput sgr0)
 set -euo pipefail
 
 usage() {
-    echo "Usage: $(basename "$BASH_SOURCE") <image tag>"
+    echo "Usage: $(basename "${BASH_SOURCE[0]}") <image tag>"
     exit 1
 }
 
 if [[ $# -ne 1 ]]; then
     usage
 fi
+
+function cleanup() {
+    echo "${BOLD}Cleaning up${RESET}"
+    rm -rf libs
+    if [[ -n "${id+x}" ]]; then
+        sudo docker rm -v "$id"
+    fi
+    rm -f v8.tar
+}
+trap cleanup EXIT
 
 if [[ -e "libs" ]]; then
     echo "'libs' directory already exists in the current folder. It would be overwritten"
@@ -23,20 +33,15 @@ mkdir libs
 
 tag=$1
 
-echo "${BOLD}Pulling 'roboticserlangen/v8:$tag'${RESET}"
-docker pull "roboticserlangen/v8:$tag"
-
 echo "${BOLD}Creating container${RESET}"
-id="$(docker create roboticserlangen/v8:$tag)"
+id="$(sudo docker create roboticserlangen/v8:"$tag")"
 
 echo "${BOLD}Copying out V8${RESET}"
-docker cp "$id":/v8 - > v8.tar
+# Warning, that > is not affected by sudo.
+# This is deliberate to let the resulting file be owned by the caller
+# shellcheck disable=SC2024
+sudo docker cp "$id":/v8 - >v8.tar
 tar xf v8.tar -C libs
 
 echo "${BOLD}Packaging V8 into 'v8-${tag}.tar.gz'${RESET}"
 tar cfz "v8-${tag}.tar.gz" libs
-
-echo "${BOLD}Cleaning up${RESET}"
-rm -r libs v8.tar
-docker rm -v $id
-
