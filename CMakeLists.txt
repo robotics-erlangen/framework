@@ -35,6 +35,10 @@ if(POLICY CMP0072)
     cmake_policy(SET CMP0072 NEW)
 endif()
 
+if (POLICY CMP0114)
+    cmake_policy(SET CMP0114 OLD)
+endif()
+
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG(-std=c++17 HAVE_C17)
 if (NOT HAVE_C17)
