@@ -126,6 +126,7 @@ message State {
     // robot states predicted without trajectories, only from vision data
     repeated Robot simple_tracking_yellow = 11;
     repeated Robot simple_tracking_blue = 12;
+    optional Ball simple_tracking_ball = 17;
     // debug information from the simulator
     repeated SimulatorState reality = 13;
     // data for tracking replay and vision extraction

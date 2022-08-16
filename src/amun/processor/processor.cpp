@@ -122,7 +122,7 @@ Processor::Processor(const Timer *timer, bool isReplay) :
     m_timer(timer),
     m_tracker(new Tracker(false, false)),
     m_speedTracker(new Tracker(true, true)),
-    m_simpleTracker(new Tracker(true, false)),
+    m_simpleTracker(new Tracker(false, false)),
     m_mixedTeamInfoSet(false),
     m_refereeInternalActive(isReplay),
     m_lastFlipped(false),
@@ -178,6 +178,9 @@ Status Processor::assembleStatus(qint64 time, bool resetRaw)
     Status simplePredictionStatus = m_simpleTracker->worldState(time, resetRaw);
     status->mutable_world_state()->mutable_simple_tracking_blue()->CopyFrom(simplePredictionStatus->world_state().blue());
     status->mutable_world_state()->mutable_simple_tracking_yellow()->CopyFrom(simplePredictionStatus->world_state().yellow());
+    if (simplePredictionStatus->world_state().has_ball()) {
+        status->mutable_world_state()->mutable_simple_tracking_ball()->CopyFrom(simplePredictionStatus->world_state().ball());
+    }
     if (!m_extraVision.empty()) {
         for(const QByteArray& data : m_extraVision) {
             status->mutable_world_state()->add_reality()->ParseFromArray(data.data(), data.size());

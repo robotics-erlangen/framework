@@ -368,6 +368,9 @@ world::State Strategy::assembleWorldState()
             worldState.clear_blue();
             worldState.mutable_blue()->CopyFrom(worldState.simple_tracking_blue());
         }
+        if (m_type == StrategyType::AUTOREF && worldState.has_simple_tracking_ball()) {
+            worldState.mutable_ball()->CopyFrom(worldState.simple_tracking_ball());
+        }
     }
     return worldState;
 }
