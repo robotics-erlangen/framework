@@ -44,19 +44,7 @@ find_path(V8_INCLUDE_DIR
 )
 
 if(V8_INCLUDE_DIR AND EXISTS "${V8_INCLUDE_DIR}/v8-version.h")
-    file(STRINGS "${V8_INCLUDE_DIR}/v8-version.h" V8_VERSION_MAJOR_LINE REGEX "^#define[ \t]+V8_MAJOR_VERSION[ \t]+([0-9]+)$")
-    file(STRINGS "${V8_INCLUDE_DIR}/v8-version.h" V8_VERSION_MINOR_LINE REGEX "^#define[ \t]+V8_MINOR_VERSION[ \t]+([0-9]+)$")
-    file(STRINGS "${V8_INCLUDE_DIR}/v8-version.h" V8_VERSION_PATCH_LINE REGEX "^#define[ \t]+V8_PATCH_LEVEL[ \t]+([0-9]+)$")
-    string(REGEX REPLACE "^#define[ \t]+V8_MAJOR_VERSION[ \t]+([0-9]+)$" "\\1" V8_VERSION_MAJOR "${V8_VERSION_MAJOR_LINE}")
-    string(REGEX REPLACE "^#define[ \t]+V8_MINOR_VERSION[ \t]+([0-9]+)$" "\\1" V8_VERSION_MINOR "${V8_VERSION_MINOR_LINE}")
-    string(REGEX REPLACE "^#define[ \t]+V8_PATCH_LEVEL[ \t]+([0-9]+)$" "\\1" V8_VERSION_PATCH "${V8_VERSION_PATCH_LINE}")
-    set(V8_VERSION ${V8_VERSION_MAJOR}.${V8_VERSION_MINOR}.${V8_VERSION_PATCH})
-    unset(V8_VERSION_MAJOR_LINE)
-    unset(V8_VERSION_MINOR_LINE)
-    unset(V8_VERSION_PATCH_LINE)
-    unset(V8_VERSION_MAJOR)
-    unset(V8_VERSION_MINOR)
-    unset(V8_VERSION_PATCH)
+    include (${CMAKE_SOURCE_DIR}/cmake/CheckV8Version.cmake)
 endif()
 
 if(MINGW AND CMAKE_SIZEOF_VOID_P EQUAL 4)
@@ -120,6 +108,7 @@ if((NOT V8_OUTPUT_DIR OR NOT V8_INCLUDE_DIR) AND DOWNLOAD_V8)
             INSTALL_COMMAND ""
             DOWNLOAD_NO_PROGRESS true
             DOWNLOAD_DIR "${DEPENDENCY_DOWNLOADS}"
+            TEST_COMMAND ${CMAKE_COMMAND} -D V8_INCLUDE_DIR=<SOURCE_DIR>/${V8_PRECOMPILED_INCLUDE_SUFFIX} -D REQUESTED_V8_VERSION=${V8_VERSION} -P ${CMAKE_SOURCE_DIR}/cmake/CheckV8Version.cmake
         )
         EPHelper_Add_Cleanup(v8_download bin include lib share)
         EPHelper_Add_Clobber(v8_download ${CMAKE_CURRENT_LIST_DIR}/stub.patch)
