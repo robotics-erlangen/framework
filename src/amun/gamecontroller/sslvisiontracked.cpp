@@ -52,7 +52,7 @@ void SSLVisionTracked::setRobot(gameController::TrackedRobot *robot, const world
     robot->mutable_robot_id()->set_id(original.id());
     robot->mutable_robot_id()->set_team(isBlue ? gameController::Team::BLUE : gameController::Team::YELLOW);
     setVector2(robot->mutable_pos(), original.p_x(), original.p_y());
-    robot->set_orientation(original.phi() + M_PI_2);
+    robot->set_orientation(m_fieldTransform.applyAngle(original.phi() - M_PI_2));
     setVector2(robot->mutable_vel(), original.v_x(), original.v_y());
     robot->set_vel_angular(original.omega());
     // TODO: visibility
