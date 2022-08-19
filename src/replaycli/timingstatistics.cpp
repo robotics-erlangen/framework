@@ -20,7 +20,82 @@
 
 #include "timingstatistics.h"
 
+#include <QDir>
+#include <QString>
+#include <QtGlobal>
 #include <iomanip>
+#include <iostream>
+
+void StdoutWriter::printRun(int run, double totalTime, double average)
+{
+    std::cout << "Total: "<< totalTime << " s"<<std::endl;
+    std::cout << "Average: " << average << " ms" << std::endl;
+}
+
+void StdoutWriter::printHistogram(int run, const QVector<int>& timeHistogram)
+{
+    (void) run;
+
+    std::cout << std::endl<< "Histogram:" << std::endl;
+    for (int i = 0; i < timeHistogram.size(); ++i) {
+        std::cout << i << " ms: " << timeHistogram[i] << std::endl;
+    }
+}
+
+void StdoutWriter::printCumulativeHistogram(int run, const QVector<double>& perFramePercentage)
+{
+    (void) run;
+
+    std::cout << std::endl << "Histogram (cumulative):" << std::endl;
+    for (int i = 0; i < perFramePercentage.size(); ++i) {
+        std::cout << std::setprecision(4) << i << " ms: " << perFramePercentage[i] << std::endl;
+    }
+}
+
+CSVWriter::CSVWriter(const QFileInfo& baseFile, bool openHistogram, bool openCumulativeHistogram)
+{
+    Q_ASSERT(!baseFile.isDir());
+    const QDir baseDir = baseFile.dir();
+    const QString baseFileName = baseFile.fileName();
+
+    const QString runFileName = baseDir.filePath(baseFileName + ".runs.csv");
+    runFile.open(runFileName.toStdString().c_str());
+    Q_ASSERT(runFile.is_open());
+    runFile << "\"run\",\"total_s\",\"average_ms\"" << std::endl;
+
+    if (openHistogram) {
+        const QString fileName = baseDir.filePath(baseFileName + ".histogram.csv");
+        histFile.open(fileName.toStdString().c_str());
+        Q_ASSERT(histFile.is_open());
+        histFile << "\"run\",\"frametime\",\"count\"" << std::endl;
+    }
+
+    if (openCumulativeHistogram) {
+        const QString fileName = baseDir.filePath(baseFileName + ".cumulative.csv");
+        cumulativeHistFile.open(fileName.toStdString().c_str());
+        Q_ASSERT(cumulativeHistFile.is_open());
+        cumulativeHistFile << "\"run\",\"frametime\",\"percentage\"" << std::endl;
+    }
+}
+
+void CSVWriter::printRun(int run, double totalTime, double average) {
+    Q_ASSERT(runFile.is_open());
+    runFile << run << "," << totalTime << "," << average << std::endl;
+}
+
+void CSVWriter::printHistogram(int run, const QVector<int>& timeHistogram) {
+    Q_ASSERT(histFile.is_open());
+    for (int i = 0; i < timeHistogram.size(); ++i) {
+        histFile << run << "," << i << "," << timeHistogram[i] << std::endl;
+    }
+}
+
+void CSVWriter::printCumulativeHistogram(int run, const QVector<double>& perFramePercentages) {
+    Q_ASSERT(cumulativeHistFile.is_open());
+    for (int i = 0; i < perFramePercentages.size(); ++i) {
+        cumulativeHistFile << run << "," << std::setprecision(4) << i << "," << perFramePercentages[i] << std::endl;
+    }
+}
 
 void TimingStatistics::handleStatus(const Status &status)
 {
@@ -48,29 +123,31 @@ void TimingStatistics::handleStatus(const Status &status)
     }
 }
 
-void TimingStatistics::printStatistics(bool showHistogram, bool showCumulativeHistogram)
+void TimingStatistics::printStatistics(int run, bool showHistogram, bool showCumulativeHistogram)
 {
     if (m_saveAllData) {
         for (float time : m_timings) {
             std::cout <<time<<std::endl;
         }
     } else {
-        std::cout <<"Total: "<<m_totalTime<<" s"<<std::endl;
-        std::cout <<"Average: "<<1000.0 * m_totalTime / m_counter<<" ms"<<std::endl;
+        m_writer->printRun(run, m_totalTime, 1000.0 * m_totalTime / m_counter);
+
         if (showHistogram) {
-            std::cout <<std::endl<<"Histogram:"<<std::endl;
-            for (int i = 0;i<m_timeHistogram.size();i++) {
-                std::cout <<i<<" ms: "<<m_timeHistogram[i]<<std::endl;
-            }
+            m_writer->printHistogram(run, m_timeHistogram);
         }
+
         if (showCumulativeHistogram) {
-            std::cout <<std::endl<<"Histogram (cumulative):"<<std::endl;
+            QVector<double> perFramePercentages;
+            perFramePercentages.reserve(m_timeHistogram.size());
+
             int total = 0;
             int totalFrames = std::accumulate(m_timeHistogram.begin(), m_timeHistogram.end(), 0);
-            for (int i = 0;i<m_timeHistogram.size();i++) {
+            for (int i = 0; i < m_timeHistogram.size(); ++i) {
                 total += m_timeHistogram[i];
-                std::cout <<std::setprecision(4)<<i<<" ms: "<<100.0 * double(total) / double(totalFrames)<<std::endl; // show in percent
+                perFramePercentages.push_back(100.0 * double(total) / double(totalFrames));
             }
+
+            m_writer->printCumulativeHistogram(run, perFramePercentages);
         }
     }
 }

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2018 Andreas Wendler                                        *
+ *   Copyright 2022 Andreas Wendler, Paul Bergmann                         *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -21,25 +21,57 @@
 #ifndef TIMINGSTATISTICS_H
 #define TIMINGSTATISTICS_H
 
+#include <QFileInfo>
 #include <QObject>
 #include <QVector>
+#include <fstream>
+#include <memory>
+#include <optional>
 #include <vector>
 
 #include "protobuf/status.h"
+
+struct TimingWriter {
+    virtual ~TimingWriter() = default;
+
+    virtual void printRun(int run, double totalTime, double average) = 0;
+    virtual void printHistogram(int run, const QVector<int>& timeHistogram) = 0;
+    virtual void printCumulativeHistogram(int run, const QVector<double>& perframepercentage) = 0;
+};
+
+struct StdoutWriter : public TimingWriter {
+    void printRun(int run, double totalTime, double average) override;
+    void printHistogram(int run, const QVector<int>& timeHistogram) override;
+    void printCumulativeHistogram(int run, const QVector<double>& perFramePercentage) override;
+};
+
+class CSVWriter : public TimingWriter {
+public:
+    CSVWriter(const QFileInfo& baseFile, bool openHistogram, bool openCumulativeHistogram);
+
+    void printRun(int run, double totalTime, double average) override;
+    void printHistogram(int run, const QVector<int>& timeHistogram) override;
+    void printCumulativeHistogram(int run, const QVector<double>& perFramePercentage) override;
+private:
+    std::ofstream runFile;
+    std::ofstream histFile;
+    std::ofstream cumulativeHistFile;
+};
 
 class TimingStatistics : public QObject
 {
     Q_OBJECT
 public:
-    TimingStatistics(bool isBlue, bool saveAllData = false, int frames = 0) :
-        m_isBlue(isBlue), m_saveAllData(saveAllData) { m_timings.reserve(frames); }
-    void printStatistics(bool showHistogram, bool showCumulativeHistogram);
+    TimingStatistics(bool isBlue, TimingWriter* writer, bool saveAllData = false, int frames = 0) :
+        m_isBlue(isBlue), m_writer(writer), m_saveAllData(saveAllData) { m_timings.reserve(frames); }
+    void printStatistics(int run, bool showHistogram, bool showCumulativeHistogram);
 
 public slots:
     void handleStatus(const Status &status);
 
 private:
     bool m_isBlue;
+    TimingWriter* m_writer;
     bool m_saveAllData;
     int m_counter = 0;
     double m_totalTime = 0.0;
