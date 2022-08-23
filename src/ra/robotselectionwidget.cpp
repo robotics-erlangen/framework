@@ -299,6 +299,8 @@ void RobotSelectionWidget::loadRobots()
     }
 
     sendTeams();
+
+    emit sendIsSimulator(m_isSimulator);
 }
 
 void RobotSelectionWidget::loadRobots(const QString &group, RobotWidget::Team team)
