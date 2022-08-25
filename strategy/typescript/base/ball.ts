@@ -47,8 +47,6 @@ export class Ball {
 	posZ: number = 0;
 	/** Upwards speed in m/s */
 	speedZ: number = 0;
-	/** Current deceleration that is assumed to break the ball */
-	deceleration: number = 0;
 	maxSpeed: number = 0;
 	initSpeedZ: number = 0;
 	touchdownPos: Vector | undefined;
@@ -196,13 +194,6 @@ export class Ball {
 		}
 
 		plot.addPlot("Ball.maxSpeed", this.maxSpeed);
-
-		// set the deceleration depending on the ball's state (sliding or rolling)
-		if (this.speed.length() > Constants.ballSwitchRatio * this.maxSpeed) {
-			this.deceleration = Constants.fastBallDeceleration;
-		} else {
-			this.deceleration = Constants.ballDeceleration;
-		}
 	}
 
 	/**

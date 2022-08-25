@@ -256,7 +256,7 @@ export function calcPhi(robot: FriendlyRobot, ballSpeed: Speed, viewPos: Positio
 
 	// calculate required shoot speed
 	let dist = targetPos.distanceTo(viewPos);
-	let abs_v_out = robot.calculateShootSpeed(targetSpeed, dist);
+	let abs_v_out = Physics.calculateShootSpeed(robot, targetSpeed, dist);
 	if (targetSpeed === Infinity) { // FIXME: Robocup HACK. Necessary would be a detection that increases abs_v_out by a value, because we can rely on some reflection-speed. Only v_s is limited by this._robot.maxShotLinear.
 		abs_v_out = robot.maxShotLinear + DEFAULT_DAMPING_FACTOR().mu_y * v_in; // FIXME: This calculation is bullshit
 	}

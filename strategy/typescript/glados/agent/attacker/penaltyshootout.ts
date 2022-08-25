@@ -30,7 +30,7 @@ let DRIBBLING_DISTANCE = 0.035; // Ball and Robot must be at least this far apar
 
 function getKeeperTime(post: Position, turntime: RelTime, ball: {pos: Position, speed: Speed, radius: number, maxSpeed: number}, keeper: Robot) {
 	let pos = ball.pos + ball.speed * turntime;
-	let startspeed = Const.maxBallSpeed - Const.fastBallDeceleration * turntime;
+	let startspeed = Const.maxBallSpeed - World.BallModel.FastBallDeceleration * turntime;
 	let shootdir = (post - pos).normalized();
 	let startpos = pos - shootdir * ((Const.maxBallSpeed + startspeed) / 2 * turntime);
 

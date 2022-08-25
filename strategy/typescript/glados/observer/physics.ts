@@ -3,7 +3,7 @@ import * as Constants from "base/constants";
 import * as Field from "base/field";
 import * as geom from "base/geom";
 import * as MathUtil from "base/mathutil";
-import { Robot, RobotAccelerationProfile } from "base/robot";
+import { FriendlyRobot, Robot, RobotAccelerationProfile } from "base/robot";
 import { RelTime } from "base/timing";
 import { Position, Speed, Vector } from "base/vector";
 import * as World from "base/world";
@@ -29,10 +29,10 @@ export interface BallLike {
  * @returns The distance the ball travels until switch time
  */
 export function ballSwitchParameters(ball: BallLike): [number, number, number] {
-	let a_slide = Constants.fastBallDeceleration;
-	let a_roll = Constants.ballDeceleration;
+	let a_slide = World.BallModel.FastBallDeceleration;
+	let a_roll = World.BallModel.BallDeceleration;
 	let v_max = ball.maxSpeed;
-	let v_switch = Constants.ballSwitchRatio * v_max;
+	let v_switch = World.BallModel.BallSwitchRatio * v_max;
 	let v_current = ball.speed.length();
 	let t_switch, s_switch;
 	if (v_current > v_switch) {
@@ -59,14 +59,14 @@ export function ballAtTime(ball: BallLike, time: number): BallLike & {radius: nu
 
 	// a_slide: the negative acceleration while the ball is sliding [m/s^2]
 	// a_roll: the negative acceleration while the ball is rolling [m/s^2]
-	let a_slide = Constants.fastBallDeceleration;
-	let a_roll = Constants.ballDeceleration;
+	let a_slide = World.BallModel.FastBallDeceleration;
+	let a_roll = World.BallModel.BallDeceleration;
 
 	// v_max: the speed at which the ball was shot [m/s]
 	// v_switch: the speed of the ball at the moment where the ball starts rolling [m/s]
 	// v_current: the speed of the ball, now [m/s]
 	let v_max = ball.maxSpeed;
-	let v_switch = Constants.ballSwitchRatio * v_max;
+	let v_switch = World.BallModel.BallSwitchRatio * v_max;
 	let v_current = ball.speed.length();
 
 	// t_switch: the moment the ball starts rolling, from now [s]
@@ -132,14 +132,14 @@ export function ballAtTimeExperimental(ball: BallLike & {posZ: number, speedZ: n
 
 	// a_slide: the negative acceleration while the ball is sliding [m/s^2]
 	// a_roll: the negative acceleration while the ball is rolling [m/s^2]
-	let a_slide = Constants.fastBallDeceleration;
-	let a_roll = Constants.ballDeceleration;
+	let a_slide = World.BallModel.FastBallDeceleration;
+	let a_roll = World.BallModel.BallDeceleration;
 
 	// v_max: the speed at which the ball was shot [m/s]
 	// v_switch: the speed of the ball at the moment where the ball starts rolling [m/s]
 	// v_current: the speed of the ball, now [m/s]
 	let v_max = ball.maxSpeed;
-	let v_switch = Constants.ballSwitchRatio * v_max;
+	let v_switch = World.BallModel.BallSwitchRatio * v_max;
 	let v_current = ball.speed.length();
 
 	// t_switch: the moment the ball starts rolling, from now [s]
@@ -174,7 +174,7 @@ export function ballAtTimeExperimental(ball: BallLike & {posZ: number, speedZ: n
 
 		while (impactTime < time - timePassed) { // subsequent bouncing
 			timePassed = timePassed + impactTime;
-			v0 = impactSpeed * Constants.floorDamping;
+			v0 = impactSpeed * World.BallModel.FloorDampingZ;
 			h0 = 0;
 
 			let liftTime = v0 / 9.81;
@@ -258,7 +258,7 @@ function ballFlightTime(ball: BallLike & {initSpeedZ: number, speedZ: number, po
 
 	while (flightDist < distance) { // subsequent bouncing
 		timePassed = timePassed + flightTime;
-		result.initSpeedZ = result.initSpeedZ * Constants.floorDamping;
+		result.initSpeedZ = result.initSpeedZ * World.BallModel.FloorDampingZ;
 		liftTime = result.initSpeedZ / 9.81;
 		let flightHeight = result.initSpeedZ * liftTime - (9.81 / 2) * liftTime * liftTime;
 		if (flightHeight < 0.03) { // consider ball rolling
@@ -299,14 +299,14 @@ export function ballTravelledDistance(ball: BallLike, time: number): number {
 
 	// a_slide: the negative acceleration while the ball is sliding [m/s^2]
 	// a_roll: the negative acceleration while the ball is rolling [m/s^2]
-	let a_slide = Constants.fastBallDeceleration;
-	let a_roll = Constants.ballDeceleration;
+	let a_slide = World.BallModel.FastBallDeceleration;
+	let a_roll = World.BallModel.BallDeceleration;
 
 	// v_max: the speed at which the ball was shot [m/s]
 	// v_switch: the speed of the ball at the moment where the ball starts rolling [m/s]
 	// v_current: the speed of the ball, now [m/s]
 	let v_max = ball.maxSpeed;
-	let v_switch = Constants.ballSwitchRatio * v_max;
+	let v_switch = World.BallModel.BallSwitchRatio * v_max;
 	let v_current = ball.speed.length();
 
 	// t_switch: the moment the ball starts rolling, from now [s]
@@ -346,7 +346,7 @@ export function ballTravelledDistance(ball: BallLike, time: number): number {
 export function calculateChipSpeed(dist: number): number {
 	// this flightDistance can be further investigated
 	// also, a spinning ball could be considered
-	let flightDistance = Constants.floorDamping * dist;
+	let flightDistance = World.BallModel.FloorDampingZ * dist;
 
 	// flight time t = 2 * vz/g => v = (t*g) / 2  (1)
 	// t = distance / vground                     (2)
@@ -424,14 +424,14 @@ export function checkedBallTravelTime(ball: BallLike & {posZ: number, initSpeedZ
 export function ballRollTime(ball: {speed: Speed, maxSpeed: number}, distance: number): number {
 	// a_slide: the negative acceleration while the ball is sliding [m/s^2]
 	// a_roll: the negative acceleration while the ball is rolling [m/s^2]
-	let a_slide = Constants.fastBallDeceleration;
-	let a_roll = Constants.ballDeceleration;
+	let a_slide = World.BallModel.FastBallDeceleration;
+	let a_roll = World.BallModel.BallDeceleration;
 
 	// v_max: the speed at which the ball was shot [m/s]
 	// v_switch: the speed of the ball at the moment where the ball starts rolling [m/s]
 	// v_current: the speed of the ball, now [m/s]
 	let v_max = ball.maxSpeed;
-	let v_switch = Constants.ballSwitchRatio * v_max;
+	let v_switch = World.BallModel.BallSwitchRatio * v_max;
 	let v_current = ball.speed.length();
 
 	// t_switch: the moment the ball starts rolling, from now [s]
@@ -494,14 +494,14 @@ export function checkedBallRollTime(ball: BallLike, pos: Position): number {
 export function ballStopTime(ball: {speed: Speed, maxSpeed: number}): number {
 	// a_slide: the negative acceleration while the ball is sliding [m/s^2]
 	// a_roll: the negative acceleration while the ball is rolling [m/s^2]
-	let a_slide = Constants.fastBallDeceleration;
-	let a_roll = Constants.ballDeceleration;
+	let a_slide = World.BallModel.FastBallDeceleration;
+	let a_roll = World.BallModel.BallDeceleration;
 
 	// v_max: the speed at which the ball was shot [m/s]
 	// v_switch: the speed of the ball at the moment where the ball starts rolling [m/s]
 	// v_current: the speed of the ball, now [m/s]
 	let v_max = ball.maxSpeed;
-	let v_switch = Constants.ballSwitchRatio * v_max;
+	let v_switch = World.BallModel.BallSwitchRatio * v_max;
 	let v_current = ball.speed.length();
 
 	let t_slide = 0;
@@ -1255,4 +1255,47 @@ export function robotTimeToBall(robot: Robot, ball: BallLike & {radius: number},
 	// local time1 = amun.getCurrentTime()
 	// plot.aggregate("robotTimeToBall", time1 - time0)
 	return t_ball;
+}
+
+/**
+ * Calculate shoot speed neccessary for linear shoot to reach the target with a certain speed.
+ * This is limited to maxShootLinear and maxBallSpeed.
+ * @param destSpeed - Ball speed at destination [m/s]
+ * @param distance - Distance to chip [m]
+ * @param ignoreLimit - Don't enforce rule given shoot speed limit, if true
+ * @returns Speed to shoot with [m/s]
+ */
+export function calculateShootSpeed(robot: FriendlyRobot, destSpeed: number, distance: number, ignoreLimit: boolean = false): number {
+	let maxShot = ignoreLimit ? robot.maxShotLinear : Math.min(robot.maxShotLinear, Constants.maxBallSpeed);
+	if (destSpeed >= maxShot) {
+		return maxShot;
+	}
+
+	let fastBallBrake = World.BallModel.FastBallDeceleration;
+	let slowBallBrake = World.BallModel.BallDeceleration;
+	let ballSwitchRatio = World.BallModel.BallSwitchRatio;
+
+	// solve(v_0+a_f*t_end=v_d, t_end);
+	// solve(integrate(v_0+t*a_f,t, 0, t_end)=d,v_0);
+	let v_fast = Math.sqrt(destSpeed * destSpeed - 2 * fastBallBrake * distance);
+
+	if (v_fast < maxShot && v_fast * ballSwitchRatio < destSpeed) {
+		return v_fast;
+	}
+
+	// solve(v_0*switch=v_0+a_f*t_mid, t_mid);
+	// solve(v_0+a_f*t_mid+a_s*(t_end-t_mid)=v_d, t_end);
+	// solve(integrate(v_0+a_f*t,t,0,t_mid)+integrate(v_0+a_f*t_mid+a_s*(t-t_mid),t,t_mid,t_end)=d, v_0);
+	let a_s = slowBallBrake;
+	let a_f = fastBallBrake;
+	let sw = ballSwitchRatio;
+	let d = distance;
+	let v_d = destSpeed;
+	let v_0 = Math.sqrt(a_f * (2 * a_s * d - v_d * v_d) / ((a_s - a_f) * sw * sw - a_s));
+
+	if (v_0 > maxShot) {
+		return maxShot;
+	} else {
+		return v_0;
+	}
 }

@@ -631,10 +631,10 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 				// phi = atan(v * v / r * MY * G)
 				// G. acceleration of gravity\
 				// MY. friction of the carpet, m_ball * Costants.fastBallDeceleration = MY * m_ball * G
-				// -> MY * G = Constants.fastBallDeceleration
+				// -> MY * G = World.BallModel.FastBallDeceleration
 				// we assume v = r, so phi = atan (v / Constants.fBD)
 				let speed = speedVector.length();
-				let phi = -Math.atan(speed / Math.abs(Constants.fastBallDeceleration));
+				let phi = -Math.atan(speed / Math.abs(World.BallModel.FastBallDeceleration));
 				targetDir = targetDir + sgn * phi;
 			}
 		} else {

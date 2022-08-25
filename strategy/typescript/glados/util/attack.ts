@@ -135,7 +135,7 @@ const ratePassIntersections = (robot: FriendlyRobot, pass: PassObject, shootPos:
 			}
 
 			// calculate the time the ball needs to arrive at the intersection point
-			const shootSpeed = new Vector(1,1).withLength(robot.calculateShootSpeed(3, shootPos.distanceTo(pass.ballPos))); // direction doesn't actually matter
+			const shootSpeed = new Vector(1,1).withLength(Physics.calculateShootSpeed(robot, 3, shootPos.distanceTo(pass.ballPos))); // direction doesn't actually matter
 			const fakeBall = {speed: shootSpeed, maxSpeed: shootSpeed.length()};
 			const ballRollTime = Physics.ballRollTime(fakeBall, passInterception.distanceTo(shootPos) - World.Ball.radius - opp.shootRadius);
 			if (ballRollTime === Infinity) {

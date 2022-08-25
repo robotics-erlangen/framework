@@ -3,6 +3,7 @@ import * as Constants from "base/constants";
 import * as Coordinates from "base/coordinates";
 import { Robot } from "base/robot";
 import { Position, Speed, Vector } from "base/vector";
+import * as World from "base/world";
 
 import { UnitTest } from "glados/test/unit/unittest";
 
@@ -93,12 +94,9 @@ export class BaseBall extends UnitTest {
 		this.assert_equal(ball.framesDecelerating, 3);
 		this.assert_equal(ball.maxSpeed, ballSpeed.length());
 
-		this.assert_equal(ball.deceleration, Constants.fastBallDeceleration);
-
 		// stop ball
-		ballSpeed = ballSpeed.withX(ballSpeed.x * Constants.ballSwitchRatio - 0.01);
+		ballSpeed = ballSpeed.withX(ballSpeed.x * World.BallModel.BallSwitchRatio - 0.01);
 		ball._update(this.ballData(ballPos, ballSpeed, 0, 0), time);
-		this.assert_equal(ball.deceleration, Constants.ballDeceleration);
 	}
 
 	private testSpeedTrackingWithoutRobot() {

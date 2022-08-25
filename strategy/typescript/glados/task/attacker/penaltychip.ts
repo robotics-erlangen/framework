@@ -94,7 +94,7 @@ export class PenaltyChip extends Task {
 		if (n === 1) {
 			return Math.min(distance - 0.05, maxReliableDistance);
 		} else if (n === 2) {
-			return Math.min(distance - 0.05, maxReliableDistance) / (1 + Constants.floorDamping);
+			return Math.min(distance - 0.05, maxReliableDistance) / (1 + World.BallModel.FloorDampingZ);
 		} else {
 			return Math.min(distance / 2 , maxReliableDistance);
 		}
@@ -180,7 +180,7 @@ function checkBall(robot: Robot, ball: {pos: Position, radius: number}) {
 }
 
 function checkBounces(distance: number, ball: {pos: Position}) {
-	let length2 = distance * Constants.floorDamping;
+	let length2 = distance * World.BallModel.FloorDampingZ;
 	let remainingDist = ball.pos.distanceTo(G.OpponentGoal) - distance;
 	if (remainingDist < length2) {
 		if (maxHeight(length2) > robotHeight &&
@@ -189,7 +189,7 @@ function checkBounces(distance: number, ball: {pos: Position}) {
 			return "2nd bounce too high";
 		}
 	}
-	let length3 = length2 * Constants.floorDamping;
+	let length3 = length2 * World.BallModel.FloorDampingZ;
 	remainingDist = remainingDist - length2;
 	if (remainingDist < length3) {
 		if (maxHeight(length3) > robotHeight &&

@@ -50,7 +50,7 @@ export class GladosPhysics extends UnitTest {
 					id: 0
 				});
 
-				const shootSpeed = robot.calculateShootSpeed(endSpeed, distance, true);
+				const shootSpeed = Physics.calculateShootSpeed(robot, endSpeed, distance, true);
 
 				if (shootSpeed >= Constants.maxBallSpeed) {
 					continue;

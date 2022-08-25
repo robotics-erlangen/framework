@@ -331,7 +331,7 @@ function _predictShot(allShots: boolean = false, includeInvisible: boolean = tru
 		}
 
 		if (allShots || Field.isInField(volleyPos, 0)) { // if a volley is possible
-			let lengthOfBallMovement = 0.5 * ballSpeed.lengthSq() / (-Constants.ballDeceleration);
+			let lengthOfBallMovement = 0.5 * ballSpeed.lengthSq() / (-World.BallModel.BallDeceleration);
 			let lineSegments = Field.allowedLineSegments(pos, ballSpeed, lengthOfBallMovement);
 			if (!allShots) {
 				for (let line of lineSegments) {

@@ -13,7 +13,7 @@ export function ballPassTime(shootPos: Position, passPos: Position, targetRobot:
 	if (destSpeedLength == undefined) {
 		destSpeedLength = targetRobot ? targetRobot.constants.passSpeed : MIN_PASS_SPEED;
 	}
-	let shootSpeed = shootRobot.calculateShootSpeed(destSpeedLength, dist, false);
+	let shootSpeed = Physics.calculateShootSpeed(shootRobot, destSpeedLength, dist, false);
 	let shootBall = {
 		pos: shootPos,
 		speed: (passPos - shootPos).withLength(shootSpeed),
