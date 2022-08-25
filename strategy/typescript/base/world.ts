@@ -26,7 +26,6 @@
 
 let amunLocal = amun;
 import { Ball as BallClass } from "base/ball";
-import * as Constants from "base/constants";
 import { Coordinates } from "base/coordinates";
 import * as debug from "base/debug";
 import * as MathUtil from "base/mathutil";
@@ -84,6 +83,27 @@ export function WorldStateSource(): pb.world.WorldSource {
 	}
 	return _WorldStateSource;
 }
+
+export interface BallModelType {
+	/**
+	 * acceleration which brakes the ball [m/s^2]
+	 * measured by looking at the ball speed graph in the plotter
+	 */
+	BallDeceleration: number;
+
+	/** accerlation which brakes the ball until it is rolling [m/s^2] */
+	FastBallDeceleration: number;
+
+	/** if ball is slower than switchRatio * shootSpeed then switch from fast to normal ball deceleration */
+	BallSwitchRatio: number;
+
+	/** vertical speed damping coeffient for a ball hitting the ground */
+	FloorDampingZ: number;
+
+	/** Speed damping coefficient for the ground velocity during volley shots */
+	FloorDampingXY: number;
+}
+export let BallModel: BallModelType = <BallModelType> {};
 
 export let TeamName: string = "";
 export let OpponentTeamName: string = "";
@@ -263,6 +283,23 @@ function updateDivision(geom: pb.world.Geometry) {
 	}
 }
 
+let hasRaBallModel: boolean = false;
+export function switchBallModelConstants(isSimulated: boolean) {
+	// WARNING: these are only kept for compatibility reasons and replays
+	// DO NOT EVER MODIFY these values, they can be updated in the Ra UI
+	if (isSimulated) {
+		BallModel.BallDeceleration = -0.35;
+		BallModel.FastBallDeceleration = -4.5;
+		BallModel.BallSwitchRatio = 0.69;
+	} else {
+		BallModel.BallDeceleration = -0.343;
+		BallModel.FastBallDeceleration = -3.73375;
+		BallModel.BallSwitchRatio = 0.7;
+	}
+	BallModel.FloorDampingZ = 0.55;
+	BallModel.FloorDampingXY = 1;
+}
+
 // Setup field geometry
 function _updateGeometry(geom: pb.world.Geometry) {
 	let wgeom = <GeometryType> Geometry;
@@ -306,6 +343,17 @@ function _updateGeometry(geom: pb.world.Geometry) {
 	wgeom.BoundaryWidth = geom.boundary_width;
 
 	IsLargeField = wgeom.FieldWidth > 5 && wgeom.FieldHeight > 7;
+
+	hasRaBallModel = geom.ball_model != undefined;
+	if (geom.ball_model != undefined) {
+		BallModel.BallDeceleration = -geom.ball_model.slow_deceleration!;
+		BallModel.FastBallDeceleration = -geom.ball_model.fast_deceleration!;
+		BallModel.BallSwitchRatio = geom.ball_model.switch_ratio!;
+		BallModel.FloorDampingXY = geom.ball_model.xy_damping!;
+		BallModel.FloorDampingZ = geom.ball_model.z_damping!;
+	} else {
+		switchBallModelConstants(false);
+	}
 }
 
 export function _updateWorld(state: pb.world.State) {
@@ -331,8 +379,8 @@ export function _updateWorld(state: pb.world.State) {
 	} else if (state.is_simulated != undefined) {
 		_WorldStateSource = state.is_simulated ? pb.world.WorldSource.INTERNAL_SIMULATION : pb.world.WorldSource.REAL_LIFE;
 	}
-	if (_WorldStateSource !== prevWorldSource) {
-		Constants.switchSimulatorConstants(_WorldStateSource !== pb.world.WorldSource.REAL_LIFE);
+	if (_WorldStateSource !== prevWorldSource && !hasRaBallModel) {
+		switchBallModelConstants(_WorldStateSource !== pb.world.WorldSource.REAL_LIFE);
 	}
 
 	let radioResponses: pb.robot.RadioResponse[] = state.radio_response || [];

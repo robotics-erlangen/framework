@@ -69,6 +69,8 @@ add_library(ra-horus STATIC
     loggingsuite.cpp
     logfileselectiondialog.cpp
     logfileselectiondialog.h
+    fieldparameters.cpp
+    fieldparameters.h
 )
 
 set(UI_SOURCES
@@ -87,6 +89,7 @@ set(UI_SOURCES
     savedirectorydialog.ui
     refereeinfowidget.ui
     logfileselectiondialog.ui
+    fieldparameters.ui
 )
 
 qt5_wrap_ui(UIC_SOURCES ${UI_SOURCES})

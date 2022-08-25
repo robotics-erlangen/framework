@@ -155,6 +155,9 @@ Processor::Processor(const Timer *timer, bool isReplay) :
     connect(timer, &Timer::scalingChanged, this, &Processor::setScaling);
 
     loadConfiguration("division-dimensions", &m_divisionDimensions, false);
+
+    loadConfiguration(ballModelConfigFile(m_simulatorEnabled), &m_ballModel, false);
+    m_ballModelUpdated = true;
 }
 
 /*!
@@ -174,6 +177,10 @@ Processor::~Processor()
 
 Status Processor::assembleStatus(qint64 time, bool resetRaw)
 {
+    if (m_ballModelUpdated) {
+        // TODO: handle geometry entirely in processor?
+        m_tracker->setGeometryUpdated();
+    }
     Status status = m_tracker->worldState(time, resetRaw);
     Status simplePredictionStatus = m_simpleTracker->worldState(time, resetRaw);
     status->mutable_world_state()->mutable_simple_tracking_blue()->CopyFrom(simplePredictionStatus->world_state().blue());
@@ -192,6 +199,9 @@ Status Processor::assembleStatus(qint64 time, bool resetRaw)
 
     if (status->has_geometry()) {
         world::Geometry* geometry = status->mutable_geometry();
+
+        geometry->mutable_ball_model()->CopyFrom(m_ballModel);
+        m_ballModelUpdated = false;
 
         if (std::abs(m_divisionDimensions.field_height_b() - geometry->field_height()) <= m_divisionDimensions.field_height_b()*0.1 && std::abs(m_divisionDimensions.field_width_b() - geometry->field_width()) <= m_divisionDimensions.field_width_b()*0.1) {
             geometry->set_division(world::Geometry_Division_B);
@@ -214,6 +224,15 @@ world::WorldSource Processor::currentWorldSource() const
         return world::WorldSource::INTERNAL_SIMULATION;
     } else {
         return world::WorldSource::EXTERNAL_SIMULATION;
+    }
+}
+
+QString Processor::ballModelConfigFile(bool isSimulator)
+{
+    if (isSimulator) {
+        return "field-properties/simulator";
+    } else{
+        return "field-properties/field";
     }
 }
 
@@ -423,7 +442,7 @@ void Processor::handleSimulatorExtraVision(const QByteArray &data)
     m_extraVision.append(data);
 }
 
-void Processor::handleMixedTeamInfo(const QByteArray &data, qint64 time)
+void Processor::handleMixedTeamInfo(const QByteArray &data, qint64)
 {
     m_mixedTeamInfo.Clear();
     m_mixedTeamInfoSet = true;
@@ -454,6 +473,7 @@ void Processor::setTeam(const robot::Team &t, Team &team)
 void Processor::handleCommand(const Command &command)
 {
     bool teamsChanged = false;
+    bool simulatorEnabledBefore = m_simulatorEnabled;
 
     if (command->has_set_team_blue()) {
         setTeam(command->set_team_blue(), m_blueTeam);
@@ -505,6 +525,16 @@ void Processor::handleCommand(const Command &command)
             m_externalSimulatorEnabled = t.use_network();
             m_simulatorEnabled = m_internalSimulatorEnabled || m_externalSimulatorEnabled;
         }
+    }
+
+    if (command->has_tracking() && command->tracking().has_ball_model()) {
+        m_ballModel.CopyFrom(command->tracking().ball_model());
+        saveConfiguration(ballModelConfigFile(m_simulatorEnabled), &m_ballModel);
+        m_ballModelUpdated = true;
+    }
+    if (simulatorEnabledBefore != m_simulatorEnabled) {
+        loadConfiguration(ballModelConfigFile(m_simulatorEnabled), &m_ballModel, false);
+        m_ballModelUpdated = true;
     }
 }
 

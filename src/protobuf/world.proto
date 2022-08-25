@@ -35,6 +35,17 @@ message Geometry {
     optional float defense_height = 17 [default = 1.0];
     optional GeometryType type = 18 [default = TYPE_2014];
     optional Division division = 19 [default = A];
+    optional BallModel ball_model = 20;
+}
+
+message BallModel {
+    // rolling friction
+    optional float fast_deceleration = 1;
+    optional float slow_deceleration = 2;
+    optional float switch_ratio = 3;
+    // bounce friction
+    optional float z_damping = 4;
+    optional float xy_damping = 5;
 }
 
 message DivisionDimensions {

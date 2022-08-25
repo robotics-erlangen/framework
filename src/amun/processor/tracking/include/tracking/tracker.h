@@ -67,6 +67,7 @@ public:
     void handleCommand(const amun::CommandTracking &command, qint64 time);
     void reset();
     void finishProcessing(); // has to be called after all calls to worldState for one frame
+    void setGeometryUpdated() { m_geometryUpdated = true; }
 
 private:
     void updateCamera(const SSL_GeometryCameraCalibration &c, QString sender);

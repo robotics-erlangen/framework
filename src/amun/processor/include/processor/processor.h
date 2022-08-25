@@ -94,6 +94,7 @@ private:
     void injectUserControl(Status &status, bool isBlue);
     Status assembleStatus(qint64 time, bool resetRaw);
     world::WorldSource currentWorldSource() const;
+    static QString ballModelConfigFile(bool isSimulator);
 
     void sendTeams();
 
@@ -122,6 +123,8 @@ private:
     bool m_transceiverEnabled;
 
     world::DivisionDimensions m_divisionDimensions;
+    world::BallModel m_ballModel;
+    bool m_ballModelUpdated = false;
 };
 
 #endif // PROCESSOR_H

@@ -95,7 +95,7 @@
      <x>0</x>
      <y>0</y>
      <width>905</width>
-     <height>22</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_Game">
@@ -365,6 +365,15 @@
    </attribute>
    <addaction name="actionAboutUs"/>
    <addaction name="actionGitInfo"/>
+  </widget>
+  <widget class="QDockWidget" name="dockFieldParameters">
+   <property name="windowTitle">
+    <string>Field Parameters</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="FieldParameters" name="fieldParameters"/>
   </widget>
   <action name="actionPlotter">
    <property name="text">
@@ -871,6 +880,12 @@
    <class>SimulatorConfigWidget</class>
    <extends>QWidget</extends>
    <header>simulatorconfigwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>FieldParameters</class>
+   <extends>QWidget</extends>
+   <header>fieldparameters.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

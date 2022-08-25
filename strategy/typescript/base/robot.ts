@@ -559,47 +559,4 @@ export class FriendlyRobot extends Robot {
 			this._standbyTick = false;
 		}
 	}
-
-	/**
-	 * Calculate shoot speed neccessary for linear shoot to reach the target with a certain speed.
-	 * This is limited to maxShootLinear and maxBallSpeed.
-	 * @param destSpeed - Ball speed at destination [m/s]
-	 * @param distance - Distance to chip [m]
-	 * @param ignoreLimit - Don't enforce rule given shoot speed limit, if true
-	 * @returns Speed to shoot with [m/s]
-	 */
-	calculateShootSpeed(destSpeed: number, distance: number, ignoreLimit: boolean = false): number {
-		let maxShot = ignoreLimit ? this.maxShotLinear : Math.min(this.maxShotLinear, Constants.maxBallSpeed);
-		if (destSpeed >= maxShot) {
-			return maxShot;
-		}
-
-		let fastBallBrake = Constants.fastBallDeceleration;
-		let slowBallBrake = Constants.ballDeceleration;
-		let ballSwitchRatio = Constants.ballSwitchRatio;
-
-		// solve(v_0+a_f*t_end=v_d, t_end);
-		// solve(integrate(v_0+t*a_f,t, 0, t_end)=d,v_0);
-		let v_fast = Math.sqrt(destSpeed * destSpeed - 2 * fastBallBrake * distance);
-
-		if (v_fast < maxShot && v_fast * ballSwitchRatio < destSpeed) {
-			return v_fast;
-		}
-
-		// solve(v_0*switch=v_0+a_f*t_mid, t_mid);
-		// solve(v_0+a_f*t_mid+a_s*(t_end-t_mid)=v_d, t_end);
-		// solve(integrate(v_0+a_f*t,t,0,t_mid)+integrate(v_0+a_f*t_mid+a_s*(t-t_mid),t,t_mid,t_end)=d, v_0);
-		let a_s = slowBallBrake;
-		let a_f = fastBallBrake;
-		let sw = ballSwitchRatio;
-		let d = distance;
-		let v_d = destSpeed;
-		let v_0 = Math.sqrt(a_f * (2 * a_s * d - v_d * v_d) / ((a_s - a_f) * sw * sw - a_s));
-
-		if (v_0 > maxShot) {
-			return maxShot;
-		} else {
-			return v_0;
-		}
-	}
 }

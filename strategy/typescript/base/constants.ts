@@ -50,26 +50,11 @@ export const maxRobotRadius = 0.09;
 
 export const maxRobotHeight = 0.15;
 
-/** vertical speed damping coeffient for a ball hitting the ground */
-export const floorDamping = 0.55;
-
 /** maximum allowed driving speed during stop states [m/s] */
 export const stopSpeed = 1.5;
 
 /** minimum speed difference with which a collision foul is considered crashing [m/s] */
 export const crashingSpeedDifference = 1.5;
-
-/**
- * acceleration which brakes the ball [m/s^2]
- * measured by looking at the ball speed graph in the plotter
- */
-export let ballDeceleration: number;
-
-/** accerlation which brakes the ball until it is rolling [m/s^2] */
-export let fastBallDeceleration: number;
-
-/** if ball is slower than switchRatio * shootSpeed then switch from fast to normal ball deceleration */
-export let ballSwitchRatio: number;
 
 /** Get the maximum allowed number of robots for the given division. */
 export const maxTeamSize: ReadonlyRec<{ [K in typeof DIVISION]: number }> = {
@@ -81,19 +66,3 @@ export const maxTeamSize: ReadonlyRec<{ [K in typeof DIVISION]: number }> = {
 	"A": 11,
 	"B": 6,
 };
-
-export function switchSimulatorConstants(isSimulated: boolean) {
-	if (isSimulated) {
-		ballDeceleration = -0.35;
-		fastBallDeceleration = -4.5;
-		ballSwitchRatio = 0.69;
-	} else {
-
-		ballDeceleration = -0.343;
-		fastBallDeceleration = -3.73375;
-		ballSwitchRatio = 0.7;
-	}
-}
-
-switchSimulatorConstants(false);
-

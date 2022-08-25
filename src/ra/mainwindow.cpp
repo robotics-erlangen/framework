@@ -146,6 +146,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     m_gitInfo = new GitInfoDialog(this);
 
     connect(ui->options, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
+    connect(ui->fieldParameters, &FieldParameters::sendCommand, this, &MainWindow::sendCommand);
 
     ui->blueDebugger->setStrategy(amun::DebugSource::StrategyBlue);
     connect(ui->blueDebugger, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
@@ -227,6 +228,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     connect(this, SIGNAL(gotStatus(Status)), ui->replay, SIGNAL(gotStatus(Status)));
     connect(this, &MainWindow::gotStatus, m_logTimeLabel, &LogLabel::handleStatus);
     connect(this, &MainWindow::gotStatus, m_gitInfo, &GitInfoDialog::handleStatus);
+    connect(this, &MainWindow::gotStatus, ui->fieldParameters, &FieldParameters::handleStatus);
 
     connect(ui->field, &FieldWidget::selectRobots, ui->robots, &RobotSelectionWidget::selectRobots);
 
