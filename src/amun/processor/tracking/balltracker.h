@@ -35,7 +35,7 @@ class DribbleFilter;
 class BallTracker : public Filter
 {
 public:
-    BallTracker(const VisionFrame &frame, CameraInfo* cameraInfo, const FieldTransform &transform);
+    BallTracker(const VisionFrame &frame, CameraInfo* cameraInfo, const FieldTransform &transform, const world::BallModel &ballModel);
     BallTracker(const BallTracker& previousFilter, qint32 primaryCamera);
     ~BallTracker() override;
     BallTracker(const BallTracker&) = delete;

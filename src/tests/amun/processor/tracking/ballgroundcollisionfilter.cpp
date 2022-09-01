@@ -94,6 +94,10 @@ SimulationController::SimulationController(int predictTimeOffsetMs, RealismConfi
     m_simulator.seedPRGN(14986);
     loadRobots(2, 0);
 
+    world::BallModel ballModel;
+    loadConfiguration("cpptests/ballmodel", &ballModel, false);
+    m_tracker.setBallModel(ballModel);
+
     Command c(new amun::Command);
     c->mutable_simulator()->set_enable(true);
     c->mutable_transceiver()->set_charge(true);

@@ -23,8 +23,8 @@
 
 // TODO maybe exclude z axis from kalman filter
 
-GroundFilter::GroundFilter(const VisionFrame& frame, CameraInfo* cameraInfo, const FieldTransform &transform) :
-    AbstractBallFilter(frame, cameraInfo, transform)
+GroundFilter::GroundFilter(const VisionFrame& frame, CameraInfo* cameraInfo, const FieldTransform &transform, const world::BallModel &ballModel) :
+    AbstractBallFilter(frame, cameraInfo, transform, ballModel)
 {
     reset(frame);
 }
@@ -66,7 +66,7 @@ void GroundFilter::predict(qint64 time)
     m_kalman->B = m_kalman->F;
 
     // simple ball rolling friction estimation
-    const float deceleration = 0.4f * timeDiff;
+    const float deceleration = m_ballModel.slow_deceleration() * timeDiff;
     const Kalman::Vector d = m_kalman->baseState();
     const double v = std::sqrt(d(3) * d(3) + d(4) * d(4));
     const double phi = std::atan2(d(4), d(3));

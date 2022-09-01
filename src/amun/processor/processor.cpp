@@ -536,6 +536,11 @@ void Processor::handleCommand(const Command &command)
         loadConfiguration(ballModelConfigFile(m_simulatorEnabled), &m_ballModel, false);
         m_ballModelUpdated = true;
     }
+    if (m_ballModelUpdated) {
+        m_tracker->setBallModel(m_ballModel);
+        m_speedTracker->setBallModel(m_ballModel);
+        m_simpleTracker->setBallModel(m_ballModel);
+    }
 }
 
 void Processor::resetTracking()

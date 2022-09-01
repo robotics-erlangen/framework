@@ -22,7 +22,7 @@
 #include "ballflyfilter.h"
 #include "ballgroundcollisionfilter.h"
 
-BallTracker::BallTracker(const VisionFrame &frame, CameraInfo *cameraInfo, const FieldTransform &transform) :
+BallTracker::BallTracker(const VisionFrame &frame, CameraInfo *cameraInfo, const FieldTransform &transform, const world::BallModel &ballModel) :
     Filter(frame.time),
     m_lastUpdateTime(frame.time),
     m_cameraInfo(cameraInfo),
@@ -33,8 +33,8 @@ BallTracker::BallTracker(const VisionFrame &frame, CameraInfo *cameraInfo, const
     m_cachedDistToCamera(0)
 {
     m_primaryCamera = frame.cameraId;
-    m_groundFilter = new BallGroundCollisionFilter(frame, cameraInfo, transform);
-    m_flyFilter = new FlyFilter(frame, cameraInfo, transform);
+    m_groundFilter = new BallGroundCollisionFilter(frame, cameraInfo, transform, ballModel);
+    m_flyFilter = new FlyFilter(frame, cameraInfo, transform, ballModel);
 }
 
 BallTracker::BallTracker(const BallTracker& previousFilter, qint32 primaryCamera) :

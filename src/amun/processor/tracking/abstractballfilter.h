@@ -86,18 +86,27 @@ public:
 
 protected:
     // initial filter construction
-    AbstractBallFilter(const VisionFrame& frame, CameraInfo* cameraInfo, const FieldTransform &transform) :
-        m_cameraInfo(cameraInfo), m_primaryCamera(frame.cameraId), m_fieldTransform(transform) {}
+    AbstractBallFilter(const VisionFrame& frame, CameraInfo* cameraInfo, const FieldTransform &transform, const world::BallModel &ballModel) :
+        m_cameraInfo(cameraInfo),
+        m_primaryCamera(frame.cameraId),
+        m_fieldTransform(transform),
+        m_ballModel(ballModel)
+    {}
 
     // create a copy of the filter in a different camera for border crossing
     AbstractBallFilter(const AbstractBallFilter& filter, qint32 primaryCamera) :
-        m_cameraInfo(filter.m_cameraInfo), m_primaryCamera(primaryCamera), m_fieldTransform(filter.m_fieldTransform) {}
+        m_cameraInfo(filter.m_cameraInfo),
+        m_primaryCamera(primaryCamera),
+        m_fieldTransform(filter.m_fieldTransform),
+        m_ballModel(filter.m_ballModel)
+    {}
 
     virtual ~AbstractBallFilter() {}
 
     CameraInfo* m_cameraInfo;
     int m_primaryCamera;
     const FieldTransform &m_fieldTransform;
+    const world::BallModel &m_ballModel;
 
 #ifdef ENABLE_TRACKING_DEBUG
     mutable amun::DebugValues m_debug;

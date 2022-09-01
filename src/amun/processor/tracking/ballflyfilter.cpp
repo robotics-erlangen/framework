@@ -26,15 +26,13 @@
 #include <Eigen/SVD>
 #include <QDebug>
 
-static const float FLOOR_DAMPING_Z = 0.55f; // robocup 2016: 0.67
-static const float FLOOR_DAMPING_GROUND = 0.7f; // heavily dependant on ball spin
 static const int MAX_FRAMES_PER_FLIGHT = 200; // 60Hz, 3 seconds in the air
 static const int ADDITIONAL_DATA_INSERTION = 1; // these additional are for the position bias
 static const float INITIAL_BIAS_STRENGTH = 0.1f;
 static const float GRAVITY = 9.81;
 
-FlyFilter::FlyFilter(const VisionFrame& frame, CameraInfo* cameraInfo, const FieldTransform &transform) :
-    AbstractBallFilter(frame, cameraInfo, transform),
+FlyFilter::FlyFilter(const VisionFrame& frame, CameraInfo* cameraInfo, const FieldTransform &transform, const world::BallModel &ballModel) :
+    AbstractBallFilter(frame, cameraInfo, transform, ballModel),
     m_initTime(frame.time)
 {
     resetFlightReconstruction();
@@ -688,16 +686,16 @@ Eigen::Vector2f FlyFilter::BallFlight::touchdownPos() const
     return flightStartPos + groundSpeed * flightDuration;
 }
 
-auto FlyFilter::BallFlight::afterBounce(int newStartFrame) const -> BallFlight
+auto FlyFilter::BallFlight::afterBounce(int newStartFrame, const world::BallModel &ballModel) const -> BallFlight
 {
     const float flightDuration = 2 * zSpeed / GRAVITY;
 
     BallFlight bounced;
     bounced.flightStartTime = this->flightStartTime + flightDuration;
     bounced.captureFlightStartTime = this->captureFlightStartTime + flightDuration;
-    bounced.zSpeed = this->zSpeed * FLOOR_DAMPING_Z;
+    bounced.zSpeed = this->zSpeed * ballModel.z_damping();
     // only the initial estimate
-    bounced.groundSpeed = this->groundSpeed * FLOOR_DAMPING_GROUND;
+    bounced.groundSpeed = this->groundSpeed * ballModel.xy_damping();
     bounced.flightStartPos = touchdownPos();
     bounced.startFrame = newStartFrame;
     bounced.reconstructionError = this->reconstructionError;
@@ -724,7 +722,7 @@ void FlyFilter::updateBouncing(qint64 time)
     const float t = toLocalTime(time) - m_kickFrames.at(m_shotStartFrame).time;
     const bool hasBounced = m_flightReconstructions.back().hasBounced(toLocalTime(time));
     if (t > 0.3f && hasBounced) {
-        const BallFlight afterBounce = m_flightReconstructions.back().afterBounce(m_kickFrames.size() - 1);
+        const BallFlight afterBounce = m_flightReconstructions.back().afterBounce(m_kickFrames.size() - 1, m_ballModel);
         m_flightReconstructions.append(afterBounce);
 
         const float distToDetection = (afterBounce.flightStartPos - m_kickFrames.back().ballPos).norm();
@@ -744,7 +742,7 @@ void FlyFilter::updateBouncing(qint64 time)
         const BallFlight fixedFlight = BallFlight::betweenChipFrames(m_kickFrames.at(startFrame),
                                                                      m_kickFrames.at(bounceFrame), startFrame);
         m_flightReconstructions.back() = fixedFlight;
-        m_flightReconstructions.append(fixedFlight.afterBounce(bounceFrame));
+        m_flightReconstructions.append(fixedFlight.afterBounce(bounceFrame, m_ballModel));
     }
 
     const int framesSinceBounce = m_kickFrames.size() - 1 - m_flightReconstructions.back().startFrame;
@@ -792,7 +790,7 @@ FlyFilter::Prediction FlyFilter::predictTrajectory(float time) const
 {
     BallFlight flight = m_flightReconstructions.back();
     if (flight.hasBounced(time)) {
-        flight = flight.afterBounce(m_kickFrames.size() - 1);
+        flight = flight.afterBounce(m_kickFrames.size() - 1, m_ballModel);
     }
 
     const float relativeTime = time - flight.flightStartTime;

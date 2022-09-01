@@ -68,6 +68,7 @@ public:
     void reset();
     void finishProcessing(); // has to be called after all calls to worldState for one frame
     void setGeometryUpdated() { m_geometryUpdated = true; }
+    void setBallModel(const world::BallModel &ballModel) { m_ballModel.CopyFrom(ballModel); }
 
 private:
     void updateCamera(const SSL_GeometryCameraCalibration &c, QString sender);
@@ -98,6 +99,7 @@ private:
     bool m_geometryUpdated;
     bool m_hasVisionData;
     bool m_virtualFieldEnabled;
+    world::BallModel m_ballModel;
 
     QMap<qint32, qint64> m_lastUpdateTime; // indexed by camera id
     QList<Packet> m_visionPackets;

@@ -621,7 +621,7 @@ void Tracker::trackBallDetections(const SSL_DetectionFrame &frame, qint64 receiv
                 bt = new BallTracker(*acceptingFilterWithOtherCamId[i], cameraId);
             } else {
                 // create new Ball Filter without initial movement
-                bt = new BallTracker(ballFrames[i], m_cameraInfo, *m_fieldTransform);
+                bt = new BallTracker(ballFrames[i], m_cameraInfo, *m_fieldTransform, m_ballModel);
             }
             m_ballFilter.append(bt);
             bt->addVisionFrame(ballFrames[i]);

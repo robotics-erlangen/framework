@@ -30,7 +30,7 @@
 class FlyFilter : public AbstractBallFilter
 {
 public:
-    explicit FlyFilter(const VisionFrame& frame, CameraInfo* cameraInfo, const FieldTransform &transform);
+    explicit FlyFilter(const VisionFrame& frame, CameraInfo* cameraInfo, const FieldTransform &transform, const world::BallModel &ballModel);
     FlyFilter(const FlyFilter &filter) = default;
 
     void processVisionFrame(const VisionFrame& frame) override;
@@ -77,7 +77,7 @@ private:
 
         bool hasBounced(float time) const;
         // returns the estimated flight that will occur after the next bounce
-        BallFlight afterBounce(int newStartFrame) const;
+        BallFlight afterBounce(int newStartFrame, const world::BallModel &ballModel) const;
         Eigen::Vector2f touchdownPos() const;
         static BallFlight betweenChipFrames(const ChipDetection &first, const ChipDetection &last, int startFrame);
     };

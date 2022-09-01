@@ -26,9 +26,9 @@ const float BALL_RADIUS = 0.0215f;
 const float ROBOT_RADIUS = 0.09f;
 const float ROBOT_HEIGHT = 0.15f;
 
-BallGroundCollisionFilter::BallGroundCollisionFilter(const VisionFrame &frame, CameraInfo* cameraInfo, const FieldTransform &transform) :
-    AbstractBallFilter(frame, cameraInfo, transform),
-    m_groundFilter(frame, cameraInfo, transform),
+BallGroundCollisionFilter::BallGroundCollisionFilter(const VisionFrame &frame, CameraInfo* cameraInfo, const FieldTransform &transform, const world::BallModel &ballModel) :
+    AbstractBallFilter(frame, cameraInfo, transform, ballModel),
+    m_groundFilter(frame, cameraInfo, transform, ballModel),
     m_lastVisionFrame(frame)
 { }
 
