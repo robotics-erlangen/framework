@@ -88,6 +88,21 @@ interface CoordinatesType {
 	 * @param data - angle to convert
 	 */
 	toVision(num: number): number;
+	/**
+	 * Converts vision coordinates to strategy local coordinates
+	 * @param data - vector to convert
+	 */
+	fromVision(pos: Vector): Vector;
+	/**
+	 * Converts vision coordinates to strategy local coordinates
+	 * @param data - vector to convert
+	 */
+	fromVision(pos: Readonly<Vector>): Readonly<Vector>;
+	/**
+	 * Converts vision coordinates to strategy local coordinates
+	 * @param data - angle to convert
+	 */
+	fromVision(pos: number): number;
 }
 
 class Invert implements CoordinatesType {
@@ -128,6 +143,20 @@ class Invert implements CoordinatesType {
 			return new Vector(-vector.y, vector.x);
 		}
 	}
+	fromVision(data: any): any {
+		if (typeof(data) === "number") {
+			// rotate 270 degrees
+			let num = data as number + Math.PI * 1.5;
+			if (num > 2.0 * Math.PI) {
+				num -= 2.0 * Math.PI;
+			}
+			return num;
+		} else {
+			// meter to millimeter
+			let vector = data as Vector * 0.001;
+			return new Vector(vector.y, -vector.x);
+		}
+	}
 }
 
 class Pass implements CoordinatesType {
@@ -152,6 +181,20 @@ class Pass implements CoordinatesType {
 			// meter to millimeter
 			let vector = data as Vector * 1000;
 			return new Vector(vector.y, -vector.x);
+		}
+	}
+	fromVision(data: any): any {
+		if (typeof(data) === "number") {
+			// rotate 90 degrees
+			let num = data as number + Math.PI * 0.5;
+			if (num > 2.0 * Math.PI) {
+				num -= 2.0 * Math.PI;
+			}
+			return num;
+		} else {
+			// meter to millimeter
+			let vector = data as Vector * 0.001;
+			return new Vector(-vector.y, vector.x);
 		}
 	}
 }
