@@ -319,6 +319,9 @@ export class FriendlyRobot extends Robot {
 	/** command used when robots are dragged with the mouse (fields: time, pos (global)) (optional) */
 	moveCommand: {time: number, pos: Position} | undefined;
 
+	centerToDribbler: number | undefined;
+
+
 	// private attributes
 	private _kickStyle?: pb.robot.Command.KickStyle;
 	private _kickPower: number = 0;
@@ -373,6 +376,10 @@ export class FriendlyRobot extends Robot {
 		this.isFriendly = true;
 		this.trajectory = new Trajectory(this);
 		this.path = new Path(this.id);
+
+		if (specs.angle != undefined) {
+			this.centerToDribbler = this.radius * Math.sin((Math.PI - specs.angle) * 0.5);
+		}
 	}
 
 	_updatePathBoundaries(geometry: GeomType, aoi: pb.world.TrackingAOI | undefined) {
