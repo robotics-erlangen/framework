@@ -20,6 +20,7 @@
 
 #include "trackingreplay.h"
 #include "core/timer.h"
+#include "core/configuration.h"
 
 TrackingReplay::TrackingReplay(Timer *timer) :
     m_timer(timer),
@@ -32,6 +33,16 @@ TrackingReplay::TrackingReplay(Timer *timer) :
     // disable the internal game controller and just use the referee packets from the log
     Command command(new amun::Command);
     command->mutable_referee()->set_active(false);
+
+    // default ball model with the values used in the tracking before the global ball model was used
+    // necessary for correct tracking replay of older logs
+    world::BallModel ballModel;
+    loadConfiguration("field-properties/simulator", &ballModel, false);
+    ballModel.set_slow_deceleration(0.4f);
+    ballModel.set_z_damping(0.55f);
+    ballModel.set_xy_damping(0.7f);
+    command->mutable_tracking()->mutable_ball_model()->CopyFrom(ballModel);
+
     m_replayProcessor.handleCommand(command);
 }
 
@@ -77,6 +88,11 @@ void TrackingReplay::handleStatus(const Status &status)
     if (status->has_team_yellow()) {
         Command command(new amun::Command);
         command->mutable_set_team_yellow()->CopyFrom(status->team_yellow());
+        m_replayProcessor.handleCommand(command);
+    }
+    if (status->has_geometry() && status->geometry().has_ball_model()) {
+        Command command(new amun::Command);
+        command->mutable_tracking()->mutable_ball_model()->CopyFrom(status->geometry().ball_model());
         m_replayProcessor.handleCommand(command);
     }
 

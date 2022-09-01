@@ -125,6 +125,7 @@ private:
     world::DivisionDimensions m_divisionDimensions;
     world::BallModel m_ballModel;
     bool m_ballModelUpdated = false;
+    const bool m_saveBallModel;
 };
 
 #endif // PROCESSOR_H

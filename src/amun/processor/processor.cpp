@@ -127,7 +127,8 @@ Processor::Processor(const Timer *timer, bool isReplay) :
     m_refereeInternalActive(isReplay),
     m_lastFlipped(false),
     m_gameController(new SSLGameController(timer)),
-    m_transceiverEnabled(isReplay)
+    m_transceiverEnabled(isReplay),
+    m_saveBallModel(!isReplay)
 {
     // keep two separate referee states
     m_referee = new Referee();
@@ -529,7 +530,9 @@ void Processor::handleCommand(const Command &command)
 
     if (command->has_tracking() && command->tracking().has_ball_model()) {
         m_ballModel.CopyFrom(command->tracking().ball_model());
-        saveConfiguration(ballModelConfigFile(m_simulatorEnabled), &m_ballModel);
+        if (m_saveBallModel) {
+            saveConfiguration(ballModelConfigFile(m_simulatorEnabled), &m_ballModel);
+        }
         m_ballModelUpdated = true;
     }
     if (simulatorEnabledBefore != m_simulatorEnabled) {
