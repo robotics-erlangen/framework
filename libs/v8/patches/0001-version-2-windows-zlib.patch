@@ -1,0 +1,52 @@
+From da28243533ac971ba327f39c0f2599e8267b71a4 Mon Sep 17 00:00:00 2001
+From: Paul Bergmann <paul.bergmann@robotics-erlangen.de>
+Date: Fri, 9 Sep 2022 17:11:33 +0200
+Subject: [PATCH] version-2-windows-zlib
+
+---
+ .patched | 1 +
+ BUILD.gn | 6 +++---
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+ create mode 100644 .patched
+
+diff --git a/.patched b/.patched
+new file mode 100644
+index 0000000..f7cc343
+--- /dev/null
++++ b/.patched
+@@ -0,0 +1 @@
++b1f56b4a8a7cf9f707f7966104278777f9994b13
+diff --git a/BUILD.gn b/BUILD.gn
+index ee7483e..24d01f1 100644
+--- a/BUILD.gn
++++ b/BUILD.gn
+@@ -28,7 +28,7 @@ config("zlib_internal_config") {
+     defines += [ "ZLIB_DEBUG" ]
+   }
+ 
+-  if (is_win && !is_clang) {
++  if (is_win && !is_clang && !is_mingw) {
+     # V8 supports building with msvc, these silence some warnings that
+     # causes compilation to fail (https://crbug.com/1255096).
+     cflags = [
+@@ -93,7 +93,7 @@ source_set("zlib_adler32_simd") {
+       "adler32_simd.h",
+     ]
+ 
+-    if (!is_win || is_clang) {
++    if (!is_win || is_mingw || is_clang) {
+       cflags = [ "-mssse3" ]
+     }
+   }
+@@ -222,7 +222,7 @@ source_set("zlib_crc32_simd") {
+       "crc_folding.c",
+     ]
+ 
+-    if (!is_win || is_clang) {
++    if (!is_win || is_mingw || is_clang) {
+       cflags = [
+         "-msse4.2",
+         "-mpclmul",
+-- 
+2.37.2
+

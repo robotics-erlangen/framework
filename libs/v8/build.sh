@@ -1,10 +1,14 @@
 #!/bin/bash
 set -e
 
-DEPOT_TOOLS_REVISION=41be80f6159c6c91914dbfc4dcd6b59d183f9f3b
-V8_BASE_REVISION=6a41721a2889b84cb2f3b920fbdc40b96347597a
-BUILD_REVISION=adaab113d20dbac883ef911e55995fb6c8da9947
-ICU_REVISION=297a4dd02b9d36c92ab9b4f121e433c9c3bc14f8
+DEPOT_TOOLS_REVISION=13c50b466bc3fb40a32edda827029701aaa6a7d8
+V8_BASE_REVISION=b1f56b4a8a7cf9f707f7966104278777f9994b13
+BUILD_REVISION=7aa22279f03f25ac8919a3a72bc03af7f56512f4
+ICU_REVISION=50ec7b3822a90d73aa761b21fc941b485a1cb9d6
+ZLIB_REVISION=64bbf988543996eb8df9a86877b32917187eba8f
+
+# Stop depot_tools from trying to download Visual Studio
+export DEPOT_TOOLS_WIN_TOOLCHAIN=0
 
 # predictable working directory
 cd "$(dirname "$0")"
@@ -181,39 +185,70 @@ if [[ "$IS_MINGW" == 1 ]]; then
 
     if ! already_patched "v8"; then
         echo "### Patching V8"
-        patch_safely "v8" "patches/0001-mingw-build.patch" "$V8_BASE_REVISION"
+        patch_safely "v8" "patches/0001-version-2-windows-v8.patch" "$V8_BASE_REVISION"
     fi
 
     if ! already_patched "v8/build"; then
         echo "### Patching V8/build"
-        patch_safely "v8/build" "patches/0001-build-mingw-build.patch" "$BUILD_REVISION";
+        patch_safely "v8/build" "patches/0001-version-2-windows-build.patch" "$BUILD_REVISION"
     fi
 
     if ! already_patched "v8/third_party/icu"; then
         echo "### Patching V8/icu"
-        patch_safely "v8/third_party/icu" "patches/0001-icu-mingw-build.patch" "$ICU_REVISION";
+        patch_safely "v8/third_party/icu" "patches/0001-version-2-windows-icu.patch" "$ICU_REVISION"
     fi
 
+    if ! already_patched "v8/third_party/zlib"; then
+        echo "### Patching V8/zlib"
+        patch_safely "v8/third_party/zlib" "patches/0001-version-2-windows-zlib.patch" "$ZLIB_REVISION"
+    fi
+elif [[ "$IS_LINUX" == 1 ]]; then
+    gclient sync
+
+    if ! already_patched "v8"; then
+        echo "### Patching V8"
+        patch_safely "v8" "patches/0001-version-2-linux-v8.patch" "$V8_BASE_REVISION"
+    fi
+
+    if ! already_patched "v8/build"; then
+        echo "### Patching V8/build"
+        patch_safely "v8/build" "patches/0001-version-2-linux-build.patch" "$BUILD_REVISION"
+    fi
 else
     if [[ "$(git -C "v8" rev-parse --verify HEAD)" != "$V8_BASE_REVISION" ]]; then
         git -C "v8" checkout $V8_BASE_REVISION
     fi
     gclient sync
-
-    if ! already_patched "v8/build"; then
-        echo "### Patching V8/build"
-        patch_safely "v8/build" "patches/0001-macos-sdk-search.patch" "$BUILD_REVISION"
-    fi
 fi
 
 GN_ARGS=(
+    # V8 recommends not just turning off debug mode, but also building an
+    # official build for performance reasons
     "is_debug=false"
+    "is_official_build=true"
     # V8 ships its own libc++. We want to link against Ra which uses the
     # System libc++ so we should use the system libc++ in V8 as well
     "use_custom_libcxx=false"
     "use_custom_libcxx_for_host=false"
-    "v8_static_library=false"
-    "is_component_build=true"
+    # When this was set up, component builds (i.e. builds into a shared
+    # library) segfaulted while compiling official builds. The size difference
+    # should be neglible, as long as the V8 archive is stripped (it is when
+    # built in docker)
+    "v8_monolithic=true"
+    "v8_use_external_startup_data=false"
+    # Official builds use LTO by default. However, the generated library
+    # can a) not be linked to Ra on many systems due to differing compilers
+    # and b) is huge and can not be stripped with standard tools
+    "use_thin_lto=false"
+    # V8 wants to use control flow integrity instrumentation by default,
+    # however that requires LTO
+    "is_cfi=false"
+    # Strip most debug symbols.
+    # Level 1 emits file name and line number information.
+    # Level 0 disabled source level debugging but call stacks still have
+    # function names
+    "symbol_level=0"
+    "v8_symbol_level=0"
 )
 
 if [[ "$IS_MINGW32" == 1 ]]; then
@@ -224,24 +259,48 @@ else
     OUT_DIR="out/x64.release"
 fi
 
+if [[ "$IS_LINUX" == 1 ]]; then
+    echo "### Using profile guided optimization"
+
+    PROFILE="v8-version2-b1f56b4a8a7c.profdata"
+    PROFDATA_PATH="$(readlink --canonicalize "$PROFILE")"
+    if [[ ! -r "$PROFDATA_PATH" ]]; then
+        curl --fail --silent --show-error --output "$PROFDATA_PATH" \
+            "https://downloads.robotics-erlangen.de/$PROFILE"
+    fi
+
+    GN_ARGS+=(
+        # Settings for profile guided optimization
+        # This leads to a significant speedup
+        "chrome_pgo_phase=2"
+        "pgo_data_path=\"$PROFDATA_PATH\""
+    )
+else
+    GN_ARGS+=("chrome_pgo_phase=0")
+fi
+
 if [[ "$IS_MINGW32" == 1 ]]; then
     GN_ARGS+=(
-        "custom_toolchain=\"//build/toolchain/win:gcc_x86\""
+        "custom_toolchain=\"//build/toolchain/win:mingw_x86\""
         "is_clang=false"
         "treat_warnings_as_errors=false"
     )
 elif [[ "$IS_MINGW64" == 1 ]]; then
     GN_ARGS+=(
-        "custom_toolchain=\"//build/toolchain/win:gcc_x64\""
+        "custom_toolchain=\"//build/toolchain/win:mingw_x64\""
         "is_clang=false"
         "treat_warnings_as_errors=false"
     )
 fi
 
+if [[ "$IS_MINGW" == 1 ]]; then
+    GN_ARGS+=("v8_enable_system_instrumentation=false")
+fi
+
 cd v8
 mkdir -p "$OUT_DIR"
 gn gen "$OUT_DIR" --args="${GN_ARGS[*]}"
-ninja -C "$OUT_DIR"
+ninja -C "$OUT_DIR" v8_monolith
 
 # # Building V8 with clang on windows
 

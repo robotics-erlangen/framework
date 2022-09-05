@@ -171,7 +171,7 @@ include(BuildLibGit2)
 include(BuildLuaJIT2)
 include(BuildGoogleTest)
 include(GetGameController)
-find_package(V8 6.8)
+find_package(V8 10.5.7)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 add_subdirectory(src)

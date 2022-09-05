@@ -1,0 +1,34 @@
+From 1efd0314ebf26a6b68b64c81d7e3e9c457f6e299 Mon Sep 17 00:00:00 2001
+From: Paul Bergmann <paul.bergmann@robotics-erlangen.de>
+Date: Mon, 5 Sep 2022 18:35:59 +0200
+Subject: [PATCH] version-2-linux-v8
+
+---
+ .patched | 1 +
+ DEPS     | 2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+ create mode 100644 .patched
+
+diff --git a/.patched b/.patched
+new file mode 100644
+index 00000000..f7cc3438
+--- /dev/null
++++ b/.patched
+@@ -0,0 +1 @@
++b1f56b4a8a7cf9f707f7966104278777f9994b13
+diff --git a/DEPS b/DEPS
+index 80b0e086..c05a56c4 100644
+--- a/DEPS
++++ b/DEPS
+@@ -91,7 +91,7 @@ deps = {
+   'base/trace_event/common':
+     Var('chromium_url') + '/chromium/src/base/trace_event/common.git' + '@' + 'd115b033c4e53666b535cbd1985ffe60badad082',
+   'build':
+-    Var('chromium_url') + '/chromium/src/build.git' + '@' + '7aa22279f03f25ac8919a3a72bc03af7f56512f4',
++    Var('chromium_url') + '/chromium/src/build.git' + '@' + '19256a1a91902774af41e36c2d35aa13a7ddfbc6',
+   'buildtools':
+     Var('chromium_url') + '/chromium/src/buildtools.git' + '@' + 'a4506d5d63a5a13a8c9ae8b29f67f7e3c3bc192b',
+   'buildtools/clang_format/script':
+-- 
+2.37.2
+

@@ -65,6 +65,7 @@ void throwError(Isolate* isolate, StringType text)
 template<typename Target>
 Local<Target> installCallbacks(Isolate* isolate, Local<Target> target, const QList<CallbackInfo>& callbacks, const CallbackDataMapper& dataMapper)
 {
+    Local<Context> context = isolate->GetCurrentContext();
     for (const auto& callback : callbacks) {
         auto functionTemplate = FunctionTemplate::New(isolate, callback.function, dataMapper(callback),
                 Local<Signature>(), 0, ConstructorBehavior::kThrow, SideEffectType::kHasSideEffect);
@@ -72,7 +73,8 @@ Local<Target> installCallbacks(Isolate* isolate, Local<Target> target, const QLi
 
         auto name = v8string(isolate, callback.name);
         function->SetName(name);
-        target->Set(name, function);
+        target->Set(context, name, function).Check();
+
     }
     return target;
 }

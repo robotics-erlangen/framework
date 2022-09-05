@@ -1,0 +1,52 @@
+From 057b943e22613f55909ee4627bf0d19d777cce2e Mon Sep 17 00:00:00 2001
+From: Paul Bergmann <paul.bergmann@robotics-erlangen.de>
+Date: Fri, 2 Sep 2022 13:23:19 +0200
+Subject: [PATCH] version-2-windows-icu
+
+---
+ .patched | 1 +
+ BUILD.gn | 6 +++---
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+ create mode 100644 .patched
+
+diff --git a/.patched b/.patched
+new file mode 100644
+index 00000000..f7cc3438
+--- /dev/null
++++ b/.patched
+@@ -0,0 +1 @@
++b1f56b4a8a7cf9f707f7966104278777f9994b13
+diff --git a/BUILD.gn b/BUILD.gn
+index 6086f328..3d916dbc 100644
+--- a/BUILD.gn
++++ b/BUILD.gn
+@@ -79,7 +79,7 @@ config("icu_code") {
+     "U_CHARSET_IS_UTF8=1",
+   ]
+ 
+-  if (is_win) {
++  if (is_win && !is_mingw) {
+     # Disable some compiler warnings.
+     cflags += [
+       "/wd4005",  # Macro redefinition.
+@@ -99,7 +99,7 @@ config("icu_code") {
+         "_SILENCE_CXX17_C_HEADER_DEPRECATION_WARNING",
+       ]
+     }
+-  } else if (is_linux || is_chromeos || is_android || icu_is_in_fuchsia) {
++  } else if (is_linux || is_chromeos || is_android || icu_is_in_fuchsia || is_mingw) {
+     cflags += [ "-Wno-unused-function" ]
+   }
+   if (is_clang) {
+@@ -121,7 +121,7 @@ config("icu_code") {
+       "-Wno-ambiguous-reversed-operator",
+     ]
+   }
+-  if (is_clang || is_linux || is_chromeos || is_android || icu_is_in_fuchsia) {
++  if (is_clang || is_linux || is_chromeos || is_android || icu_is_in_fuchsia || is_mingw) {
+     cflags += [
+       # ICU uses its own deprecated functions.
+       "-Wno-deprecated-declarations",
+-- 
+2.37.2
+

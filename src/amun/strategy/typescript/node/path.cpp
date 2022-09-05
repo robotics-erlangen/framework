@@ -67,7 +67,7 @@ void Node::path::resolve(const FunctionCallbackInfo<Value>& args) {
             continue;
         }
 
-        QString currentSegment = *String::Utf8Value(args[currentArg]);
+        QString currentSegment = *String::Utf8Value(isolate, args[currentArg]);
 
         if (!constructedPath.isEmpty()) {
             constructedPath.prepend("/");

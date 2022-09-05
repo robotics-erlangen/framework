@@ -28,6 +28,7 @@ If it is required you build V8 yourself, take a look at the script to find the d
 Providing the correct `python` binary is of particular importance.
 V8 version 1 requires the global `python` binary (i.e. without suffix) to point to `python2`.
 Depending on your distribution, the global `python` binary may point to `python3` by default.
+V8 version 2 requires a global `python3` binary.
 
 ### Packaging V8
 There is a script at `data/scripts/package_docker_v8` that can be used to extract the V8 binaries out of such an image.

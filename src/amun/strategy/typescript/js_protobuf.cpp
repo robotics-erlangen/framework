@@ -112,6 +112,7 @@ static Local<Value> repeatedFieldToJs(Isolate *isolate, const google::protobuf::
 Local<Value> protobufToJs(Isolate *isolate, const google::protobuf::Message &message)
 {
     Local<Object> result = Object::New(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
 
     // iterate over message fields
     for (int i = 0; i < message.GetDescriptor()->field_count(); i++) {
@@ -123,13 +124,13 @@ Local<Value> protobufToJs(Isolate *isolate, const google::protobuf::Message &mes
             int fieldSize = refl->FieldSize(message, field);
             Local<Array> array = Array::New(isolate, fieldSize);
             for (int r = 0; r < fieldSize; r++) {
-                array->Set(r, repeatedFieldToJs(isolate, message, field, r));
+                array->Set(context, r, repeatedFieldToJs(isolate, message, field, r)).Check();
             }
-            result->Set(name, array);
+            result->Set(context, name, array).Check();
         } else {
             const google::protobuf::Reflection *refl = message.GetReflection();
             if (refl->HasField(message, field)) {
-                result->Set(name, protobufFieldToJs(isolate, message, field));
+                result->Set(context, name, protobufFieldToJs(isolate, message, field)).Check();
             }
         }
     }
@@ -220,21 +221,20 @@ static bool jsValueToProtobufField(Isolate *isolate, Local<Value> value, Local<C
 
     case google::protobuf::FieldDescriptor::CPPTYPE_BOOL:
     {
-        bool result;
-        if (!value->BooleanValue(c).To(&result)) {
+        if (!value->IsBoolean()) {
             return false;
         }
-        refl->SetBool(&message, field, result);
+        refl->SetBool(&message, field, value->BooleanValue(isolate));
         break;
     }
 
     case google::protobuf::FieldDescriptor::CPPTYPE_STRING:
-        refl->SetString(&message, field, *String::Utf8Value(value));
+        refl->SetString(&message, field, *String::Utf8Value(isolate, value));
         break;
 
     case google::protobuf::FieldDescriptor::CPPTYPE_ENUM:
     {
-        String::Utf8Value stringValue(value);
+        String::Utf8Value stringValue(isolate, value);
         const google::protobuf::EnumValueDescriptor *value = field->enum_type()->FindValueByName(*stringValue);
         if (value) {
             refl->SetEnum(&message, field, value);
@@ -320,21 +320,20 @@ static bool jsValueToRepeatedProtobufField(Isolate *isolate, Local<Value> value,
 
     case google::protobuf::FieldDescriptor::CPPTYPE_BOOL:
     {
-        bool result;
-        if (!value->BooleanValue(c).To(&result)) {
+        if (!value->IsBoolean()) {
             return false;
         }
-        refl->AddBool(&message, field, result);
+        refl->AddBool(&message, field, value->BooleanValue(isolate));
         break;
     }
 
     case google::protobuf::FieldDescriptor::CPPTYPE_STRING:
-        refl->AddString(&message, field, *String::Utf8Value(value));
+        refl->AddString(&message, field, *String::Utf8Value(isolate, value));
         break;
 
     case google::protobuf::FieldDescriptor::CPPTYPE_ENUM:
     {
-        String::Utf8Value stringValue(value);
+        String::Utf8Value stringValue(isolate, value);
         const google::protobuf::EnumValueDescriptor *value = field->enum_type()->FindValueByName(*stringValue);
         if (value) {
             refl->AddEnum(&message, field, value);
@@ -363,6 +362,8 @@ static bool jsPartToProtobuf(Isolate *isolate, Local<Value> value, Local<Context
         return false;
     }
 
+    Local<Context> context = isolate->GetCurrentContext();
+
     // iterate over message fields
     for (int i = 0; i < message.GetDescriptor()->field_count(); i++) {
         const google::protobuf::FieldDescriptor *field = message.GetDescriptor()->field(i);
@@ -370,7 +371,7 @@ static bool jsPartToProtobuf(Isolate *isolate, Local<Value> value, Local<Context
         // get value from table and check its existence
         Local<String> name = v8string(isolate, field->name());
         if (object->Has(c, name).ToChecked()) {
-            Local<Value> v = object->Get(name);
+            Local<Value> v = object->Get(context, name).ToLocalChecked();
             if (field->is_repeated()) {
                 if (!v->IsArray()) {
                     if (v->IsNullOrUndefined()) {

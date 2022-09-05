@@ -1,0 +1,546 @@
+From 4869f1f6808506d827c3f7f98363155b0b036df3 Mon Sep 17 00:00:00 2001
+From: Paul Bergmann <paul.bergmann@robotics-erlangen.de>
+Date: Fri, 2 Sep 2022 13:18:57 +0200
+Subject: [PATCH] version-2-windows-v8
+
+---
+ .patched                                   |  1 +
+ BUILD.gn                                   | 26 +++++++++++++---------
+ DEPS                                       | 21 +++--------------
+ src/base/bits.h                            |  4 ++--
+ src/base/export-template.h                 |  1 -
+ src/base/functional.cc                     |  4 ++--
+ src/base/platform/platform-win32.cc        |  7 ++++--
+ src/base/platform/time.cc                  | 13 ++++++++---
+ src/codegen/arm/assembler-arm.cc           |  4 ++--
+ src/compiler/machine-operator-reducer.cc   |  2 +-
+ src/diagnostics/arm/disasm-arm.cc          |  2 +-
+ src/execution/arm/simulator-arm.cc         |  6 ++---
+ src/execution/loong64/simulator-loong64.cc |  4 ++--
+ src/execution/mips/simulator-mips.cc       |  4 ++--
+ src/execution/mips64/simulator-mips64.cc   |  4 ++--
+ src/execution/ppc/simulator-ppc.cc         |  4 ++--
+ src/profiler/heap-snapshot-generator.cc    |  2 +-
+ test/cctest/BUILD.gn                       |  2 +-
+ test/unittests/BUILD.gn                    |  2 +-
+ third_party/googletest/BUILD.gn            |  4 +++-
+ 20 files changed, 59 insertions(+), 58 deletions(-)
+ create mode 100644 .patched
+
+diff --git a/.patched b/.patched
+new file mode 100644
+index 0000000..f7cc343
+--- /dev/null
++++ b/.patched
+@@ -0,0 +1 @@
++b1f56b4a8a7cf9f707f7966104278777f9994b13
+diff --git a/BUILD.gn b/BUILD.gn
+index 686fac5..9edbd84 100644
+--- a/BUILD.gn
++++ b/BUILD.gn
+@@ -1237,14 +1237,17 @@ config("toolchain") {
+ 
+   if (v8_current_cpu == "x86") {
+     defines += [ "V8_TARGET_ARCH_IA32" ]
+-    if (is_win) {
++    if (is_mingw) {
++      # Ensure no surprising artifacts from 80bit double math with x86.
++      cflags += [ "-msse2", "-mfpmath=sse" ]
++    } else if (is_win) {
+       # Ensure no surprising artifacts from 80bit double math with x86.
+       cflags += [ "/arch:SSE2" ]
+     }
+   }
+   if (v8_current_cpu == "x64") {
+     defines += [ "V8_TARGET_ARCH_X64" ]
+-    if (is_win) {
++    if (is_win && !is_mingw) {
+       # Increase the initial stack size. The default is 1MB, this is 2MB. This
+       # applies only to executables and shared libraries produced by V8 since
+       # ldflags are not pushed to dependants.
+@@ -1333,7 +1336,7 @@ config("toolchain") {
+     }
+   }
+ 
+-  if (is_win) {
++  if (is_win && !is_mingw) {
+     cflags += [
+       "/wd4245",  # Conversion with signed/unsigned mismatch.
+       "/wd4267",  # Conversion with possible loss of data.
+@@ -1355,7 +1358,7 @@ config("toolchain") {
+     ]
+   }
+ 
+-  if (!is_clang && is_win) {
++  if (!is_clang && is_win && !is_mingw) {
+     cflags += [
+       "/wd4506",  # Benign "no definition for inline function"
+ 
+@@ -1496,7 +1499,7 @@ config("toolchain") {
+     ]
+   }
+ 
+-  if (!is_clang && !is_win) {
++  if (!is_clang && !is_win || is_mingw) {
+     cflags += [
+       # Disable gcc warnings for optimizations based on the assumption that
+       # signed overflow does not occur. Generates false positives (see
+@@ -4235,7 +4238,8 @@ v8_source_set("v8_base_without_compiler") {
+   visibility = [ ":*" ]  # Only targets in this file can depend on this.
+ 
+   # Split static libraries on windows into two.
+-  split_count = 2
++  # MinGW can handle the huge static library, thus behave just like the other platforms
++  # split_count = 2
+ 
+   sources = [
+     ### gcmole(all) ###
+@@ -5480,16 +5484,16 @@ v8_component("v8_libbase") {
+     defines += [ "_CRT_RAND_S" ]  # for rand_s()
+ 
+     libs = [
+-      "dbghelp.lib",
+-      "winmm.lib",
+-      "ws2_32.lib",
++      "dbghelp",
++      "winmm",
++      "ws2_32",
+     ]
+ 
+     if (v8_enable_system_instrumentation) {
+       libs += [ "advapi32.lib" ]  # Needed for TraceLoggingProvider.h
+     }
+ 
+-    data_deps += [ "//build/win:runtime_libs" ]
++    # data_deps += [ "//build/win:runtime_libs" ]
+   }
+ 
+   if (v8_current_cpu == "mips" || v8_current_cpu == "mips64") {
+@@ -5668,7 +5672,7 @@ v8_source_set("v8_heap_base") {
+     "src/heap/base/worklist.cc",
+   ]
+ 
+-  if (is_clang || !is_win) {
++  if (is_clang || is_mingw || !is_win) {
+     if (current_cpu == "x64") {
+       sources += [ "src/heap/base/asm/x64/push_registers_asm.cc" ]
+     } else if (current_cpu == "x86") {
+diff --git a/DEPS b/DEPS
+index 80b0e08..d2db1ff 100644
+--- a/DEPS
++++ b/DEPS
+@@ -91,7 +91,7 @@ deps = {
+   'base/trace_event/common':
+     Var('chromium_url') + '/chromium/src/base/trace_event/common.git' + '@' + 'd115b033c4e53666b535cbd1985ffe60badad082',
+   'build':
+-    Var('chromium_url') + '/chromium/src/build.git' + '@' + '7aa22279f03f25ac8919a3a72bc03af7f56512f4',
++    Var('chromium_url') + '/chromium/src/build.git' + '@' + '632a7d8844f28958957f7abb026a524c33d5b918',
+   'buildtools':
+     Var('chromium_url') + '/chromium/src/buildtools.git' + '@' + 'a4506d5d63a5a13a8c9ae8b29f67f7e3c3bc192b',
+   'buildtools/clang_format/script':
+@@ -240,7 +240,7 @@ deps = {
+   'third_party/googletest/src':
+     Var('chromium_url') + '/external/github.com/google/googletest.git' + '@' + 'af29db7ec28d6df1c7f0f745186884091e602e07',
+   'third_party/icu':
+-    Var('chromium_url') + '/chromium/deps/icu.git' + '@' + '50ec7b3822a90d73aa761b21fc941b485a1cb9d6',
++    Var('chromium_url') + '/chromium/deps/icu.git' + '@' + 'b2b9efb7285edb559e436c79f71bb1280e715f07',
+   'third_party/instrumented_libraries':
+     Var('chromium_url') + '/chromium/src/third_party/instrumented_libraries.git' + '@' + 'e09c4b66b6e87116eb190651421f1a6e2f3b9c52',
+   'third_party/ittapi': {
+@@ -286,7 +286,7 @@ deps = {
+       'condition': 'checkout_android',
+   },
+   'third_party/zlib':
+-    Var('chromium_url') + '/chromium/src/third_party/zlib.git'+ '@' + '64bbf988543996eb8df9a86877b32917187eba8f',
++    Var('chromium_url') + '/chromium/src/third_party/zlib.git'+ '@' + 'b89661225e88b3061273c6862311bdd15c5eeb3b',
+   'tools/clang':
+     Var('chromium_url') + '/chromium/src/tools/clang.git' + '@' + '0ca99b7456f6522fd7f3b2198f355f1851d1e9f4',
+   'tools/luci-go': {
+@@ -558,13 +558,6 @@ hooks = [
+                 '-s', 'build/ciopfs.sha1',
+     ]
+   },
+-  {
+-    # Update the Windows toolchain if necessary.
+-    'name': 'win_toolchain',
+-    'pattern': '.',
+-    'condition': 'checkout_win',
+-    'action': ['python3', 'build/vs_toolchain.py', 'update', '--force'],
+-  },
+   {
+     # Update the Mac toolchain if necessary.
+     'name': 'mac_toolchain',
+@@ -572,14 +565,6 @@ hooks = [
+     'condition': 'checkout_mac',
+     'action': ['python3', 'build/mac_toolchain.py'],
+   },
+-  {
+-    # Note: On Win, this should run after win_toolchain, as it may use it.
+-    'name': 'clang',
+-    'pattern': '.',
+-    # clang not supported on aix
+-    'condition': 'host_os != "aix"',
+-    'action': ['python3', 'tools/clang/scripts/update.py'],
+-  },
+   {
+     'name': 'clang_tidy',
+     'pattern': '.',
+diff --git a/src/base/bits.h b/src/base/bits.h
+index 49d4557..95eaf0a 100644
+--- a/src/base/bits.h
++++ b/src/base/bits.h
+@@ -212,12 +212,12 @@ inline uint32_t RoundDownToPowerOfTwo32(uint32_t value) {
+ 
+ 
+ // Precondition: 0 <= shift < 32
+-inline constexpr uint32_t RotateRight32(uint32_t value, uint32_t shift) {
++inline constexpr uint32_t _RotateRight32(uint32_t value, uint32_t shift) {
+   return (value >> shift) | (value << ((32 - shift) & 31));
+ }
+ 
+ // Precondition: 0 <= shift < 32
+-inline constexpr uint32_t RotateLeft32(uint32_t value, uint32_t shift) {
++inline constexpr uint32_t _RotateLeft32(uint32_t value, uint32_t shift) {
+   return (value << shift) | (value >> ((32 - shift) & 31));
+ }
+ 
+diff --git a/src/base/export-template.h b/src/base/export-template.h
+index 861cfe4..0211fd5 100644
+--- a/src/base/export-template.h
++++ b/src/base/export-template.h
+@@ -153,7 +153,6 @@
+ 
+ EXPORT_TEMPLATE_TEST(DEFAULT, );
+ EXPORT_TEMPLATE_TEST(DEFAULT, __attribute__((visibility("default"))));
+-EXPORT_TEMPLATE_TEST(MSVC_HACK, __declspec(dllexport));
+ EXPORT_TEMPLATE_TEST(DEFAULT, __declspec(dllimport));
+ 
+ #undef EXPORT_TEMPLATE_TEST
+diff --git a/src/base/functional.cc b/src/base/functional.cc
+index dffb91f..80593ca 100644
+--- a/src/base/functional.cc
++++ b/src/base/functional.cc
+@@ -73,11 +73,11 @@ size_t hash_combine(size_t seed, size_t value) {
+   const uint32_t c2 = 0x1B873593;
+ 
+   value *= c1;
+-  value = bits::RotateRight32(value, 15);
++  value = bits::_RotateRight32(value, 15);
+   value *= c2;
+ 
+   seed ^= value;
+-  seed = bits::RotateRight32(seed, 13);
++  seed = bits::_RotateRight32(seed, 13);
+   seed = seed * 5 + 0xE6546B64;
+ #else
+   const uint64_t m = uint64_t{0xC6A4A7935BD1E995};
+diff --git a/src/base/platform/platform-win32.cc b/src/base/platform/platform-win32.cc
+index 4857a25..8c31d8b 100644
+--- a/src/base/platform/platform-win32.cc
++++ b/src/base/platform/platform-win32.cc
+@@ -75,8 +75,6 @@ inline void MemoryFence() {
+   __asm__ __volatile__("xchgl %%eax,%0 ":"=r" (barrier));
+ }
+ 
+-#endif  // __MINGW64_VERSION_MAJOR
+-
+ 
+ int localtime_s(tm* out_tm, const time_t* time) {
+   tm* posix_local_time_struct = localtime_r(time, out_tm);
+@@ -84,6 +82,7 @@ int localtime_s(tm* out_tm, const time_t* time) {
+   return 0;
+ }
+ 
++#endif  // __MINGW64_VERSION_MAJOR
+ 
+ int fopen_s(FILE** pFile, const char* filename, const char* mode) {
+   *pFile = fopen(filename, mode);
+@@ -543,6 +542,7 @@ void OS::ExitProcess(int exit_code) {
+   // marked [[noreturn]] though, since it can also be used to terminate another
+   // process.
+   UNREACHABLE();
++  while(true);
+ }
+ 
+ // ----------------------------------------------------------------------------
+@@ -1068,6 +1068,9 @@ bool OS::CanReserveAddressSpace() {
+          UnmapViewOfFile2 != nullptr;
+ }
+ 
++#define MEM_RESERVE_PLACEHOLDER 0x00040000
++#define MEM_REPLACE_PLACEHOLDER 0x00040000
++
+ // static
+ Optional<AddressSpaceReservation> OS::CreateAddressSpaceReservation(
+     void* hint, size_t size, size_t alignment,
+diff --git a/src/base/platform/time.cc b/src/base/platform/time.cc
+index f5f4189..4bd0c59 100644
+--- a/src/base/platform/time.cc
++++ b/src/base/platform/time.cc
+@@ -84,7 +84,7 @@ V8_INLINE int64_t GetFuchsiaThreadTicks() {
+   CHECK_EQ(status, ZX_OK);
+   return info.total_runtime / v8::base::Time::kNanosecondsPerMicrosecond;
+ }
+-#elif V8_OS_POSIX
++#elif V8_OS_POSIX || V8_OS_WIN
+ // Helper function to get results from clock_gettime() and convert to a
+ // microsecond timebase. Minimum requirement is MONOTONIC_CLOCK to be supported
+ // on the system. FreeBSD 6 has CLOCK_MONOTONIC but defines
+@@ -159,8 +159,9 @@ inline bool IsHighResolutionTimer(clockid_t clk_id) {
+   // in sub-microsecond range, assume a low resolution timer.
+   return false;
+ }
++#endif  // V8_OS_DARWIN
+ 
+-#elif V8_OS_WIN
++#if V8_OS_WIN
+ // Returns the current value of the performance counter.
+ V8_INLINE uint64_t QPCNowRaw() {
+   LARGE_INTEGER perf_counter_now = {};
+@@ -172,7 +173,7 @@ V8_INLINE uint64_t QPCNowRaw() {
+   USE(result);
+   return perf_counter_now.QuadPart;
+ }
+-#endif  // V8_OS_DARWIN
++#endif
+ 
+ }  // namespace
+ 
+@@ -849,6 +850,12 @@ void ThreadTicks::WaitUntilInitializedWin() {
+     ::Sleep(10);
+ }
+ 
++#ifdef __MINGW64_VERSION_MAJOR
++extern "C" {
++  extern unsigned __int64 __rdtsc(void);
++}
++#endif
++
+ #ifdef V8_HOST_ARCH_ARM64
+ #define ReadCycleCounter() _ReadStatusReg(ARM64_PMCCNTR_EL0)
+ #else
+diff --git a/src/codegen/arm/assembler-arm.cc b/src/codegen/arm/assembler-arm.cc
+index 645edb1..d6bd643 100644
+--- a/src/codegen/arm/assembler-arm.cc
++++ b/src/codegen/arm/assembler-arm.cc
+@@ -1075,7 +1075,7 @@ bool FitsShifter(uint32_t imm32, uint32_t* rotate_imm, uint32_t* immed_8,
+     }
+     // For 0xF000000F, rotate by 16 to get 0x000FF000 and continue as if it
+     // were that case.
+-    uint32_t imm32_rot16 = base::bits::RotateLeft32(imm32, 16);
++    uint32_t imm32_rot16 = base::bits::_RotateLeft32(imm32, 16);
+     half_trailing_zeros =
+         base::bits::CountTrailingZerosNonZero(imm32_rot16) / 2;
+     imm8 = imm32_rot16 >> (half_trailing_zeros * 2);
+@@ -5137,7 +5137,7 @@ Instr Assembler::PatchMovwImmediate(Instr instruction, uint32_t immediate) {
+ int Assembler::DecodeShiftImm(Instr instr) {
+   int rotate = Instruction::RotateValue(instr) * 2;
+   int immed8 = Instruction::Immed8Value(instr);
+-  return base::bits::RotateRight32(immed8, rotate);
++  return base::bits::_RotateRight32(immed8, rotate);
+ }
+ 
+ Instr Assembler::PatchShiftImm(Instr instr, int immed) {
+diff --git a/src/compiler/machine-operator-reducer.cc b/src/compiler/machine-operator-reducer.cc
+index a676063..13794ed 100644
+--- a/src/compiler/machine-operator-reducer.cc
++++ b/src/compiler/machine-operator-reducer.cc
+@@ -321,7 +321,7 @@ Reduction MachineOperatorReducer::Reduce(Node* node) {
+       Int32BinopMatcher m(node);
+       if (m.right().Is(0)) return Replace(m.left().node());  // x ror 0 => x
+       if (m.IsFoldable()) {  // K ror K => K  (K stands for arbitrary constants)
+-        return ReplaceInt32(base::bits::RotateRight32(
++        return ReplaceInt32(base::bits::_RotateRight32(
+             m.left().ResolvedValue(), m.right().ResolvedValue() & 31));
+       }
+       break;
+diff --git a/src/diagnostics/arm/disasm-arm.cc b/src/diagnostics/arm/disasm-arm.cc
+index 01b697b..da7dd68 100644
+--- a/src/diagnostics/arm/disasm-arm.cc
++++ b/src/diagnostics/arm/disasm-arm.cc
+@@ -227,7 +227,7 @@ void Decoder::PrintShiftRm(Instruction* instr) {
+ void Decoder::PrintShiftImm(Instruction* instr) {
+   int rotate = instr->RotateValue() * 2;
+   int immed8 = instr->Immed8Value();
+-  int imm = base::bits::RotateRight32(immed8, rotate);
++  int imm = base::bits::_RotateRight32(immed8, rotate);
+   out_buffer_pos_ += base::SNPrintF(out_buffer_ + out_buffer_pos_, "#%d", imm);
+ }
+ 
+diff --git a/src/execution/arm/simulator-arm.cc b/src/execution/arm/simulator-arm.cc
+index a8fcfcb..8d9c58f 100644
+--- a/src/execution/arm/simulator-arm.cc
++++ b/src/execution/arm/simulator-arm.cc
+@@ -1359,7 +1359,7 @@ int32_t Simulator::GetShiftRm(Instruction* instr, bool* carry_out) {
+         if (shift_amount == 0) {
+           *carry_out = c_flag_;
+         } else {
+-          result = base::bits::RotateRight32(result, shift_amount);
++          result = base::bits::_RotateRight32(result, shift_amount);
+           *carry_out = (static_cast<uint32_t>(result) >> 31) != 0;
+         }
+         break;
+@@ -1436,7 +1436,7 @@ int32_t Simulator::GetShiftRm(Instruction* instr, bool* carry_out) {
+           *carry_out = c_flag_;
+         } else {
+           // Avoid undefined behavior. Rotating by multiples of 32 is no-op.
+-          result = base::bits::RotateRight32(result, shift_amount & 31);
++          result = base::bits::_RotateRight32(result, shift_amount & 31);
+           *carry_out = (static_cast<uint32_t>(result) >> 31) != 0;
+         }
+         break;
+@@ -1455,7 +1455,7 @@ int32_t Simulator::GetShiftRm(Instruction* instr, bool* carry_out) {
+ int32_t Simulator::GetImm(Instruction* instr, bool* carry_out) {
+   int rotate = instr->RotateValue() * 2;
+   int immed8 = instr->Immed8Value();
+-  int imm = base::bits::RotateRight32(immed8, rotate);
++  int imm = base::bits::_RotateRight32(immed8, rotate);
+   *carry_out = (rotate == 0) ? c_flag_ : (imm < 0);
+   return imm;
+ }
+diff --git a/src/execution/loong64/simulator-loong64.cc b/src/execution/loong64/simulator-loong64.cc
+index 63e610a..50bfe82 100644
+--- a/src/execution/loong64/simulator-loong64.cc
++++ b/src/execution/loong64/simulator-loong64.cc
+@@ -3581,7 +3581,7 @@ void Simulator::DecodeTypeOp14() {
+                      Registers::Name(rd_reg()), rd(), Registers::Name(rj_reg()),
+                      rj(), ui5());
+         alu32_out = static_cast<int32_t>(
+-            base::bits::RotateRight32(static_cast<const uint32_t>(rj_u()),
++            base::bits::_RotateRight32(static_cast<const uint32_t>(rj_u()),
+                                       static_cast<const uint32_t>(ui5())));
+         SetResult(rd_reg(), static_cast<int64_t>(alu32_out));
+       } else if (instr_.Bits(17, 16) == 0b01) {
+@@ -3741,7 +3741,7 @@ void Simulator::DecodeTypeOp17() {
+                    Registers::Name(rd_reg()), rd(), Registers::Name(rj_reg()),
+                    rj(), Registers::Name(rk_reg()), rk());
+       alu_out = static_cast<int32_t>(
+-          base::bits::RotateRight32(static_cast<const uint32_t>(rj_u()),
++          base::bits::_RotateRight32(static_cast<const uint32_t>(rj_u()),
+                                     static_cast<const uint32_t>(rk_u() % 32)));
+       SetResult(rd_reg(), alu_out);
+       break;
+diff --git a/src/execution/mips/simulator-mips.cc b/src/execution/mips/simulator-mips.cc
+index cc19517..bdc8e23 100644
+--- a/src/execution/mips/simulator-mips.cc
++++ b/src/execution/mips/simulator-mips.cc
+@@ -3833,7 +3833,7 @@ void Simulator::DecodeTypeRegisterSPECIAL() {
+         // Logical right-rotate of a word by a fixed number of bits. This
+         // is special case of SRL instruction, added in MIPS32 Release 2.
+         // RS field is equal to 00001.
+-        alu_out = base::bits::RotateRight32(rt_u(), sa());
++        alu_out = base::bits::_RotateRight32(rt_u(), sa());
+       }
+       SetResult(rd_reg(), static_cast<int32_t>(alu_out));
+       break;
+@@ -3854,7 +3854,7 @@ void Simulator::DecodeTypeRegisterSPECIAL() {
+         // Logical right-rotate of a word by a variable number of bits.
+         // This is special case od SRLV instruction, added in MIPS32
+         // Release 2. SA field is equal to 00001.
+-        alu_out = base::bits::RotateRight32(rt_u(), rs_u());
++        alu_out = base::bits::_RotateRight32(rt_u(), rs_u());
+       }
+       SetResult(rd_reg(), static_cast<int32_t>(alu_out));
+       break;
+diff --git a/src/execution/mips64/simulator-mips64.cc b/src/execution/mips64/simulator-mips64.cc
+index f6577fb..5f25971 100644
+--- a/src/execution/mips64/simulator-mips64.cc
++++ b/src/execution/mips64/simulator-mips64.cc
+@@ -3916,7 +3916,7 @@ void Simulator::DecodeTypeRegisterSPECIAL() {
+         // is special case of SRL instruction, added in MIPS32 Release 2.
+         // RS field is equal to 00001.
+         alu_out = static_cast<int32_t>(
+-            base::bits::RotateRight32(static_cast<const uint32_t>(rt_u()),
++            base::bits::_RotateRight32(static_cast<const uint32_t>(rt_u()),
+                                       static_cast<const uint32_t>(sa())));
+       } else {
+         UNREACHABLE();
+@@ -3981,7 +3981,7 @@ void Simulator::DecodeTypeRegisterSPECIAL() {
+         // This is special case od SRLV instruction, added in MIPS32
+         // Release 2. SA field is equal to 00001.
+         alu_out = static_cast<int32_t>(
+-            base::bits::RotateRight32(static_cast<const uint32_t>(rt_u()),
++            base::bits::_RotateRight32(static_cast<const uint32_t>(rt_u()),
+                                       static_cast<const uint32_t>(rs_u())));
+       }
+       SetResult(rd_reg(), alu_out);
+diff --git a/src/execution/ppc/simulator-ppc.cc b/src/execution/ppc/simulator-ppc.cc
+index 563fd73..23a1bb0 100644
+--- a/src/execution/ppc/simulator-ppc.cc
++++ b/src/execution/ppc/simulator-ppc.cc
+@@ -1922,7 +1922,7 @@ void Simulator::ExecuteGeneric(Instruction* instr) {
+       int sh = instr->Bits(15, 11);
+       int mb = instr->Bits(10, 6);
+       int me = instr->Bits(5, 1);
+-      uint32_t result = base::bits::RotateLeft32(rs_val, sh);
++      uint32_t result = base::bits::_RotateLeft32(rs_val, sh);
+       int mask = 0;
+       if (mb < me + 1) {
+         int bit = 0x80000000 >> mb;
+@@ -1964,7 +1964,7 @@ void Simulator::ExecuteGeneric(Instruction* instr) {
+       }
+       int mb = instr->Bits(10, 6);
+       int me = instr->Bits(5, 1);
+-      uint32_t result = base::bits::RotateLeft32(rs_val, sh);
++      uint32_t result = base::bits::_RotateLeft32(rs_val, sh);
+       int mask = 0;
+       if (mb < me + 1) {
+         int bit = 0x80000000 >> mb;
+diff --git a/src/profiler/heap-snapshot-generator.cc b/src/profiler/heap-snapshot-generator.cc
+index 4b85fe5..15564d3 100644
+--- a/src/profiler/heap-snapshot-generator.cc
++++ b/src/profiler/heap-snapshot-generator.cc
+@@ -397,7 +397,7 @@ HeapSnapshot::HeapSnapshot(HeapProfiler* profiler,
+   static_assert(kSystemPointerSize != 4 || sizeof(HeapGraphEdge) == 12);
+   static_assert(kSystemPointerSize != 8 || sizeof(HeapGraphEdge) == 24);
+   static_assert(kSystemPointerSize != 4 || sizeof(HeapEntry) == 32);
+-#if V8_CC_MSVC
++#if V8_CC_MSVC || __MINGW32__
+   static_assert(kSystemPointerSize != 8 || sizeof(HeapEntry) == 48);
+ #else   // !V8_CC_MSVC
+   static_assert(kSystemPointerSize != 8 || sizeof(HeapEntry) == 40);
+diff --git a/test/cctest/BUILD.gn b/test/cctest/BUILD.gn
+index e1666aa..af324c8 100644
+--- a/test/cctest/BUILD.gn
++++ b/test/cctest/BUILD.gn
+@@ -405,7 +405,7 @@ v8_source_set("cctest_sources") {
+     }
+   }
+ 
+-  if (is_win) {
++  if (is_win && !is_mingw) {
+     # This warning is benignly triggered by the U16 and U32 macros in
+     # bytecode-utils.h.
+     # C4309: 'static_cast': truncation of constant value
+diff --git a/test/unittests/BUILD.gn b/test/unittests/BUILD.gn
+index 59115c6..11075b3 100644
+--- a/test/unittests/BUILD.gn
++++ b/test/unittests/BUILD.gn
+@@ -659,7 +659,7 @@ v8_source_set("unittests_sources") {
+     ]
+   }
+ 
+-  if (is_win) {
++  if (is_win && !is_mingw) {
+     # This warning is benignly triggered by the U16 and U32 macros in
+     # bytecode-utils.h.
+     # C4309: 'static_cast': truncation of constant value
+diff --git a/third_party/googletest/BUILD.gn b/third_party/googletest/BUILD.gn
+index bc82c63..21bbd9b 100644
+--- a/third_party/googletest/BUILD.gn
++++ b/third_party/googletest/BUILD.gn
+@@ -32,8 +32,10 @@ config("gtest_config") {
+     "src/googletest/include",
+   ]
+ 
+-  if (is_win) {
++  if (is_win && !is_mingw) {
+     cflags = [ "/wd4800" ]  # Unused variable warning.
++  } else if (is_mingw) {
++    cflags = [ "-Wno-unused-variable" ]
+   }
+ }
+ 
+-- 
+2.37.2
+

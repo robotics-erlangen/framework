@@ -63,7 +63,7 @@ namespace Node {
 
         QMap<QString, std::shared_ptr<QFile>> m_fileDescriptors;
 
-        std::shared_ptr<QFile> extractFD(v8::Local<v8::String> fd);
+        std::shared_ptr<QFile> extractFD(v8::Isolate* isolate, v8::Local<v8::String> fd);
 
         static void mkdirSync(const v8::FunctionCallbackInfo<v8::Value>& args);
         static void statSync(const v8::FunctionCallbackInfo<v8::Value>& args);

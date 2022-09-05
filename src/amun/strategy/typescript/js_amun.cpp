@@ -81,12 +81,14 @@ static void amunIsReplay(const FunctionCallbackInfo<Value>& args)
 static void amunGetSelectedOptions(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = args.GetIsolate();
+    Local<Context> context = isolate->GetCurrentContext();
+
     Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
     Local<Array> result = Array::New(isolate, t->scriptState().selectedOptions.length());
     unsigned int ctr = 0;
     for (const QString &option: t->scriptState().selectedOptions) {
         Local<String> opt = v8string(isolate, option);
-        result->Set(Integer::NewFromUnsigned(isolate, ctr++), opt);
+        result->Set(context, Integer::NewFromUnsigned(isolate, ctr++), opt).Check();
     }
     args.GetReturnValue().Set(result);
 }
@@ -152,12 +154,12 @@ static bool toUintChecked(Isolate *isolate, Local<Value> value, uint &result)
 
 static bool toBoolChecked(Isolate *isolate, Local<Value> value, bool &result)
 {
-    Maybe<bool> maybeValue = value->BooleanValue(isolate->GetCurrentContext());
-    if (!maybeValue.To(&result)) {
+    if (!value->IsBoolean()) {
         Local<String> errorMessage = v8string(isolate, "Argument has to be a boolean");
         isolate->ThrowException(Exception::Error(errorMessage));
         return false;
     }
+    result = value->BooleanValue(isolate);
     return true;
 }
 
@@ -209,6 +211,7 @@ static void amunSetCommand(const FunctionCallbackInfo<Value>& args)
 static void amunSetCommands(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = args.GetIsolate();
+    Local<Context> context = isolate->GetCurrentContext();
     Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
 
     // set robot movement command
@@ -218,18 +221,19 @@ static void amunSetCommands(const FunctionCallbackInfo<Value>& args)
     Local<Array> commands = Local<Array>::Cast(args[0]);
     QList<RobotCommandInfo> robotCommands;
     for (unsigned int i = 0;i<commands->Length();i++) {
-        Local<Value> commandObject = commands->Get(i);
+        Local<Value> commandObject = commands->Get(context, i).ToLocalChecked();
         if (!commandObject->IsArray()) {
             throwError(isolate, "Argument is not an array");
             return;
         }
         Local<Array> commandArray = Local<Array>::Cast(commandObject);
         RobotCommandInfo robotCommand;
-        if (!toUintChecked(isolate, commandArray->Get(0), robotCommand.generation) || !toUintChecked(isolate, commandArray->Get(1), robotCommand.robotId)) {
+        if (!toUintChecked(isolate, commandArray->Get(context, 0).ToLocalChecked(), robotCommand.generation)
+                || !toUintChecked(isolate, commandArray->Get(context, 1).ToLocalChecked(), robotCommand.robotId)) {
             return;
         }
         robotCommand.command = RobotCommand(new robot::Command);
-        if (!jsToProtobuf(isolate, commandArray->Get(2), isolate->GetCurrentContext(), *robotCommand.command)) {
+        if (!jsToProtobuf(isolate, commandArray->Get(context, 2).ToLocalChecked(), isolate->GetCurrentContext(), *robotCommand.command)) {
             return;
         }
         robotCommands.append(robotCommand);
@@ -308,6 +312,7 @@ static void amunAddCircleSimple(const FunctionCallbackInfo<Value>& args)
 static void amunAddPathSimple(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = args.GetIsolate();
+    Local<Context> context = isolate->GetCurrentContext();
     Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
 
     float r, g, b, alpha, width;
@@ -364,7 +369,8 @@ static void amunAddPathSimple(const FunctionCallbackInfo<Value>& args)
         }
         for (unsigned int i = 0;i<points->Length();i+=2) {
             float x, y;
-            if (!verifyNumber(isolate, points->Get(i), x) || !verifyNumber(isolate, points->Get(i+1), y)) {
+            if (!verifyNumber(isolate, points->Get(context, i).ToLocalChecked(), x)
+                    || !verifyNumber(isolate, points->Get(context, i + 1).ToLocalChecked(), y)) {
                 throwError(isolate, "Array has to contain numbers");
                 return;
             }
@@ -387,6 +393,7 @@ static void amunAddPathSimple(const FunctionCallbackInfo<Value>& args)
 static void amunAddPolygonSimple(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = args.GetIsolate();
+    Local<Context> context = isolate->GetCurrentContext();
     Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
 
     float r, g, b, alpha;
@@ -426,7 +433,8 @@ static void amunAddPolygonSimple(const FunctionCallbackInfo<Value>& args)
     }
     for (unsigned int i = 0;i<points->Length();i+=2) {
         float x, y;
-        if (!verifyNumber(isolate, points->Get(i), x) || !verifyNumber(isolate, points->Get(i+1), y)) {
+        if (!verifyNumber(isolate, points->Get(context, i).ToLocalChecked(), x)
+                || !verifyNumber(isolate, points->Get(context, i + 1).ToLocalChecked(), y)) {
             throwError(isolate, "Array has to contain numbers");
             return;
         }
@@ -449,9 +457,9 @@ static void amunAddDebug(const FunctionCallbackInfo<Value>& args)
     if (value->IsNumber()) {
         debugValue->set_float_value(float(value->NumberValue(context).ToChecked()));
     } else if (value->IsBoolean()) {
-        debugValue->set_bool_value(value->BooleanValue(context).ToChecked());
+        debugValue->set_bool_value(value->BooleanValue(isolate));
     } else if (value->IsString()) {
-        debugValue->set_string_value(*String::Utf8Value(value));
+        debugValue->set_string_value(*String::Utf8Value(isolate, value));
     } else if (value->IsUndefined()) {
         debugValue->set_string_value("<undefined>");
     } else {
@@ -654,7 +662,7 @@ static void amunDebuggerSend(const FunctionCallbackInfo<Value>& args)
         return;
     }
     Local<String> message = args[0]->ToString(isolate->GetCurrentContext()).ToLocalChecked();
-    d->dispatchProtocolMessage((uint8_t*)*String::Utf8Value(isolate, message), message->Utf8Length());
+    d->dispatchProtocolMessage((uint8_t*)*String::Utf8Value(isolate, message), message->Utf8Length(isolate));
 }
 
 static void amunTerminateExecution(const FunctionCallbackInfo<Value>& args)
@@ -676,7 +684,7 @@ static void amunSendGameControllerMessage(const FunctionCallbackInfo<Value>& arg
     if (!checkNumberOfArguments(args.GetIsolate(), 2, args.Length())) {
         return;
     }
-    QString type = *String::Utf8Value(args[0]);
+    QString type = *String::Utf8Value(isolate, args[0]);
     std::unique_ptr<google::protobuf::Message> message;
     if (type == "TeamRegistration") {
         message.reset(new gameController::TeamRegistration);
@@ -736,7 +744,7 @@ static void amunTryCatch(const FunctionCallbackInfo<Value>& args)
     Local<Function> thenFun = Local<Function>::Cast(args[1]);
     Local<Function> catchBlock = Local<Function>::Cast(args[2]);
     Local<Object> element = Local<Object>::Cast(args[3]);
-    bool printStackTrace = Local<Boolean>::Cast(args[4])->BooleanValue();
+    bool printStackTrace = Local<Boolean>::Cast(args[4])->BooleanValue(isolate);
     t->tryCatch(tryBlock, thenFun, catchBlock, element, printStackTrace);
 }
 
@@ -806,15 +814,17 @@ void registerAmunJsCallbacks(Isolate *isolate, Local<Object> global, Typescript 
         { "resolveJsToTs",  amunResolveJsToTs}
     };
 
+    Local<Context> context = isolate->GetCurrentContext();
+
     Local<Object> amunObject = Object::New(isolate);
     auto data = External::New(isolate, t);
     installCallbacks(isolate, amunObject, callbacks, data);
 
     // add a field to tell the strategy that this ra instance supports option default values and other features
     Local<String> optionDefaultSupport = v8string(isolate, "SUPPORTS_OPTION_DEFAULT");
-    amunObject->Set(optionDefaultSupport, Boolean::New(isolate, true));
-    amunObject->Set(v8string(isolate, "SUPPORTS_EFFICIENT_PATHVIS"), Boolean::New(isolate, true));
+    amunObject->Set(context, optionDefaultSupport, Boolean::New(isolate, true)).Check();
+    amunObject->Set(context, v8string(isolate, "SUPPORTS_EFFICIENT_PATHVIS"), Boolean::New(isolate, true)).Check();
 
     Local<String> amunStr = v8string(isolate, "amun");
-    global->Set(amunStr, amunObject);
+    global->Set(context, amunStr, amunObject).Check();
 }

@@ -1,0 +1,38 @@
+From 5742209b20fcdacbb8eeb3d16abacd5e18710628 Mon Sep 17 00:00:00 2001
+From: Paul Bergmann <paul.bergmann@robotics-erlangen.de>
+Date: Sun, 21 Aug 2022 12:52:39 +0200
+Subject: [PATCH] version-2-linux-build
+
+- The linux.pgo.txt input seems to be only required when
+  update_pgo_profiles is run. We simply provide a hardcoded path to the
+  pgo data, however the build still fails if linux.pgo.txt is not
+  present (which is the case)
+---
+ .patched                     | 1 +
+ config/compiler/pgo/BUILD.gn | 2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+ create mode 100644 .patched
+
+diff --git a/.patched b/.patched
+new file mode 100644
+index 000000000..f7cc34381
+--- /dev/null
++++ b/.patched
+@@ -0,0 +1 @@
++b1f56b4a8a7cf9f707f7966104278777f9994b13
+diff --git a/config/compiler/pgo/BUILD.gn b/config/compiler/pgo/BUILD.gn
+index 3a5e64d5b..ac81653ab 100644
+--- a/config/compiler/pgo/BUILD.gn
++++ b/config/compiler/pgo/BUILD.gn
+@@ -57,7 +57,7 @@ config("pgo_optimization_flags") {
+       }
+     } else if (is_linux || is_chromeos_lacros) {
+       _pgo_target = "linux"
+-      inputs = [ "//chrome/build/linux.pgo.txt" ]
++      inputs = []
+     }
+ 
+     if (_pgo_target != "" && pgo_data_path == "") {
+-- 
+2.37.2
+

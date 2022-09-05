@@ -62,7 +62,7 @@ find_path(V8_OUTPUT_DIR_DYNAMIC
         ${CMAKE_SOURCE_DIR}/libs/v8/v8/out/${V8_ARCHITECTURE}.release
 )
 find_path(V8_OUTPUT_DIR_STATIC
-    NAMES obj/${CMAKE_STATIC_LIBRARY_PREFIX}v8_base${CMAKE_STATIC_LIBRARY_SUFFIX}
+    NAMES obj/${CMAKE_STATIC_LIBRARY_PREFIX}v8_monolith${CMAKE_STATIC_LIBRARY_SUFFIX}
     HINTS $ENV{V8_OUTPUT_DIR}
     NO_DEFAULT_PATH
     NO_CMAKE_FIND_ROOT_PATH
@@ -79,23 +79,19 @@ if (NOT V8_OUTPUT_DIR)
 endif()
 
 if((NOT V8_OUTPUT_DIR OR NOT V8_INCLUDE_DIR) AND DOWNLOAD_V8)
-    if(MINGW)
-        set(V8_PRECOMPILED_DOWNLOAD "http://downloads.robotics-erlangen.de/software-precompiled/v8-7.0-windows.zip")
-        set(V8_PRECOMPILED_HASH f9db8ad1a1483f649ddf9ad5a1fa29c46e4ecbb6b0fe31c53916794da74edbb8)
-        # not elegant, but the values must be known at configure time, before v8 is downloaded
-        set(V8_PRECOMPILED_INCLUDE_SUFFIX "include")
-        set(V8_PRECOMPILED_OUTPUT_SUFFIX "out/x64.release")
-        set(V8_VERSION "7.0.0")
-        set(V8_IS_DYNAMIC FALSE)
+    if(MINGW32)
+        set(V8_PRECOMPILED_DOWNLOAD "http://downloads.robotics-erlangen.de/software-precompiled/v8-version2-windows-x86.zip")
+        set(V8_PRECOMPILED_HASH "b211960171de4aa26835a8d719973ef030b26e1112a1df901882479309de643b")
+    elseif(MINGW64)
+        set(V8_PRECOMPILED_DOWNLOAD "http://downloads.robotics-erlangen.de/software-precompiled/v8-version2-windows-x86_64.zip")
+        set(V8_PRECOMPILED_HASH "78d8134808c0b57c5c8d595c7fff974f45e72cd78ef0cb88d50e916eea25c1b6")
     elseif(UNIX AND NOT APPLE)
-        set(V8_PRECOMPILED_DOWNLOAD "http://downloads.robotics-erlangen.de/software-precompiled/v8-7.0-ubuntu-20-04.zip")
-        set(V8_PRECOMPILED_HASH 40df9024ed012d248467fc04437b76a77fddd3a8989ea659dbcd6d18854c241d)
-        # not elegant, but the values must be known at configure time, before v8 is downloaded
-        set(V8_PRECOMPILED_INCLUDE_SUFFIX "include")
-        set(V8_PRECOMPILED_OUTPUT_SUFFIX "out/x64.release")
-        set(V8_VERSION "7.0.0")
-        set(V8_IS_DYNAMIC TRUE)
+        set(V8_PRECOMPILED_DOWNLOAD "http://downloads.robotics-erlangen.de/software-precompiled/v8-version2-ubuntu-22.04.tar.gz")
+        set(V8_PRECOMPILED_HASH "9a38d9eff6e020ceb6004c5d56b45b83dfff03330230ce2c27ff8c1453bcb503")
     endif()
+
+    set(V8_IS_DYNAMIC FALSE)
+    set(V8_VERSION "10.5.7")
 
     message("Could not find V8 - downloading a precompiled version")
 
@@ -108,17 +104,19 @@ if((NOT V8_OUTPUT_DIR OR NOT V8_INCLUDE_DIR) AND DOWNLOAD_V8)
             INSTALL_COMMAND ""
             DOWNLOAD_NO_PROGRESS true
             DOWNLOAD_DIR "${DEPENDENCY_DOWNLOADS}"
-            TEST_COMMAND ${CMAKE_COMMAND} -D V8_INCLUDE_DIR=<SOURCE_DIR>/${V8_PRECOMPILED_INCLUDE_SUFFIX} -D REQUESTED_V8_VERSION=${V8_VERSION} -P ${CMAKE_SOURCE_DIR}/cmake/CheckV8Version.cmake
+            TEST_COMMAND ${CMAKE_COMMAND} -D V8_INCLUDE_DIR=<SOURCE_DIR>/include -D REQUESTED_V8_VERSION=${V8_VERSION} -P ${CMAKE_SOURCE_DIR}/cmake/CheckV8Version.cmake
         )
         EPHelper_Add_Cleanup(v8_download bin include lib share)
         EPHelper_Add_Clobber(v8_download ${CMAKE_CURRENT_LIST_DIR}/stub.patch)
         EPHelper_Mark_For_Download(v8_download)
 
         ExternalProject_Get_property(v8_download SOURCE_DIR)
-        set(V8_INCLUDE_DIR "${SOURCE_DIR}/${V8_PRECOMPILED_INCLUDE_SUFFIX}")
-        set(V8_OUTPUT_DIR "${SOURCE_DIR}/${V8_PRECOMPILED_OUTPUT_SUFFIX}")
+        set(V8_INCLUDE_DIR "${SOURCE_DIR}/include")
+        set(V8_OUTPUT_DIR "${SOURCE_DIR}/out/${V8_ARCHITECTURE}.release")
 
         file(MAKE_DIRECTORY "${V8_INCLUDE_DIR}")
+    else()
+        message(FATAL_ERROR "There is no V8 download available for your platform")
     endif()
 endif()
 
@@ -140,9 +138,6 @@ mark_as_advanced(
 if(V8_FOUND)
     if(NOT V8_IS_DYNAMIC)
         message("Statically linking V8")
-        if(NOT MINGW)
-            message("Please rebuild V8 at your convenience")
-        endif()
     endif()
 
     add_library(lib::v8 UNKNOWN IMPORTED)
@@ -153,7 +148,7 @@ if(V8_FOUND)
     if(V8_IS_DYNAMIC)
         set_target_properties(lib::v8 PROPERTIES IMPORTED_LOCATION "${V8_OUTPUT_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}v8${CMAKE_SHARED_LIBRARY_SUFFIX}")
     else()
-        set_target_properties(lib::v8 PROPERTIES IMPORTED_LOCATION "${V8_OUTPUT_DIR}/obj/${CMAKE_STATIC_LIBRARY_PREFIX}v8_base${CMAKE_STATIC_LIBRARY_SUFFIX}")
+        set_target_properties(lib::v8 PROPERTIES IMPORTED_LOCATION "${V8_OUTPUT_DIR}/obj/${CMAKE_STATIC_LIBRARY_PREFIX}v8_monolith${CMAKE_STATIC_LIBRARY_SUFFIX}")
     endif()
 
     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
@@ -178,19 +173,12 @@ if(V8_FOUND)
         )
         set_property(TARGET lib::v8 APPEND PROPERTY INTERFACE_LINK_LIBRARIES ${V8_LIBS})
         set(V8_DLL
-		    $<TARGET_FILE:lib::v8>
+            $<TARGET_FILE:lib::v8>
             ${V8_LIBS}
         )
     else()
         set_property(TARGET lib::v8 APPEND PROPERTY INTERFACE_LINK_LIBRARIES
-            ${V8_OUTPUT_DIR}/obj/${CMAKE_STATIC_LIBRARY_PREFIX}v8_base${CMAKE_STATIC_LIBRARY_SUFFIX}
-            ${V8_OUTPUT_DIR}/obj/${CMAKE_STATIC_LIBRARY_PREFIX}v8_external_snapshot${CMAKE_STATIC_LIBRARY_SUFFIX}
-            ${V8_OUTPUT_DIR}/obj/${CMAKE_STATIC_LIBRARY_PREFIX}v8_libbase${CMAKE_STATIC_LIBRARY_SUFFIX}
-            ${V8_OUTPUT_DIR}/obj/${CMAKE_STATIC_LIBRARY_PREFIX}v8_libplatform${CMAKE_STATIC_LIBRARY_SUFFIX}
-            ${V8_OUTPUT_DIR}/obj/${CMAKE_STATIC_LIBRARY_PREFIX}v8_libsampler${CMAKE_STATIC_LIBRARY_SUFFIX}
-            ${V8_OUTPUT_DIR}/obj/src/inspector/${CMAKE_STATIC_LIBRARY_PREFIX}inspector${CMAKE_STATIC_LIBRARY_SUFFIX}
-            ${V8_OUTPUT_DIR}/obj/third_party/icu/${CMAKE_STATIC_LIBRARY_PREFIX}icui18n${CMAKE_STATIC_LIBRARY_SUFFIX}
-            ${V8_OUTPUT_DIR}/obj/third_party/icu/${CMAKE_STATIC_LIBRARY_PREFIX}icuuc${CMAKE_STATIC_LIBRARY_SUFFIX}
+            ${V8_OUTPUT_DIR}/obj/${CMAKE_STATIC_LIBRARY_PREFIX}v8_monolith${CMAKE_STATIC_LIBRARY_SUFFIX}
         )
         set(V8_DLL)
     endif()
@@ -206,26 +194,18 @@ if(V8_FOUND)
             -lshlwapi
             -lssp
         )
-        if(NOT V8_IS_DYNAMIC)
-            set_property(TARGET lib::v8 APPEND PROPERTY INTERFACE_LINK_LIBRARIES
-                # strip binary in release mode to keep file size below 1,2GB
-                $<$<CONFIG:Release>:-Wl,-s>
-            )
-        endif()
     elseif(LINUX)
         set_property(TARGET lib::v8 APPEND PROPERTY INTERFACE_LINK_LIBRARIES
             -lrt
             -ldl
             Threads::Threads
         )
-   endif()
+    endif()
 
     macro(v8_copy_deps target)
         add_custom_command(TARGET ${target} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 ${V8_OUTPUT_DIR}/icudtl.dat
-                ${V8_OUTPUT_DIR}/natives_blob.bin
-                ${V8_OUTPUT_DIR}/snapshot_blob.bin
                     $<TARGET_FILE_DIR:${target}>
         )
     endmacro()

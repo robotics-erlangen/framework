@@ -78,6 +78,12 @@ target_link_libraries(typescript
     PRIVATE shared::protobuf
 )
 
+if(NOT MINGW32)
+    target_compile_definitions(typescript
+        PUBLIC V8_COMPRESS_POINTERS=1 V8_31BIT_SMIS_ON_64BIT_ARCH=1
+    )
+endif()
+
 target_include_directories(typescript
     INTERFACE include
     PRIVATE include/strategy/typescript

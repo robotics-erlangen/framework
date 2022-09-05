@@ -54,6 +54,12 @@ if(V8_FOUND)
         PRIVATE lib::v8
         PRIVATE amun::strategy::typescript
     )
+
+    if(NOT MINGW32)
+        target_compile_definitions(strategy
+            PRIVATE V8_COMPRESS_POINTERS=1 V8_31BIT_SMIS_ON_64BIT_ARCH=1
+        )
+    endif()
 endif()
 
 add_library(amun::strategy ALIAS strategy)

@@ -69,10 +69,11 @@ InternalTypescriptCompiler::~InternalTypescriptCompiler()
 static Local<Array> createStringArray(Isolate* isolate, const QList<QString>& values)
 {
     EscapableHandleScope handleScope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
     Local<Array> array = Array::New(isolate, values.size());
     for (int i = 0; i < values.size(); ++i) {
         Local<String> current = v8string(isolate, values[i]);
-        array->Set(i, current);
+        array->Set(context, i, current).Check();
     }
     return handleScope.Escape(array);
 }
@@ -80,8 +81,9 @@ static Local<Array> createStringArray(Isolate* isolate, const QList<QString>& va
 template <typename T>
 static void addObjectField(Isolate* isolate, Local<Object> target, QString name, Local<T> value)
 {
+    Local<Context> context = isolate->GetCurrentContext();
     Local<String> fieldName = v8string(isolate, name);
-    target->Set(fieldName, value);
+    target->Set(context, fieldName, value).Check();
 }
 
 void InternalTypescriptCompiler::initializeEnvironment()
@@ -89,7 +91,6 @@ void InternalTypescriptCompiler::initializeEnvironment()
     Isolate::CreateParams create_params;
     m_arrayAllocator.reset(ArrayBuffer::Allocator::NewDefaultAllocator());
     create_params.array_buffer_allocator = m_arrayAllocator.get();
-    V8::SetFlagsFromString("--expose_gc", 12);
     m_isolate = Isolate::New(create_params);
     m_isolate->SetRAILMode(PERFORMANCE_LOAD);
     Isolate::Scope isolateScope(m_isolate);
@@ -125,12 +126,12 @@ void InternalTypescriptCompiler::initializeEnvironment()
         addObjectField(m_isolate, process, "argv", argv);
     }
     {
-        Local<Function> exit = Function::New(m_isolate, &exitCompilation, thisValue);
+        Local<Function> exit = Function::New(context, &exitCompilation, thisValue).ToLocalChecked();
         addObjectField(m_isolate, process, "exit", exit);
     }
     {
         Local<Object> stdoutObject = Object::New(m_isolate);
-        Local<Function> write = Function::New(m_isolate, &stdoutCallback, thisValue);
+        Local<Function> write = Function::New(context, &stdoutCallback, thisValue).ToLocalChecked();
         addObjectField(m_isolate, stdoutObject, "write", write);
         addObjectField(m_isolate, process, "stdout", stdoutObject);
     }
@@ -142,15 +143,15 @@ void InternalTypescriptCompiler::initializeEnvironment()
         Local<Object> env = Object::New(m_isolate);
         addObjectField(m_isolate, process, "env", env);
 
-        Local<Function> cwd = Function::New(m_isolate, &InternalTypescriptCompiler::processCwdCallback, thisValue);
+        Local<Function> cwd = Function::New(context, &InternalTypescriptCompiler::processCwdCallback, thisValue).ToLocalChecked();
         addObjectField(m_isolate, process, "cwd", cwd);
     }
     {
         // TODO may needs to be implemented for watch mode
-        Local<Function> setTimeout = Function::New(m_isolate, nullptr);
+        Local<Function> setTimeout = Function::New(context, nullptr).ToLocalChecked();
         addObjectField(m_isolate, global, "setTimeout", setTimeout);
 
-        Local<Function> clearTimeout = Function::New(m_isolate, nullptr);
+        Local<Function> clearTimeout = Function::New(context, nullptr).ToLocalChecked();
         addObjectField(m_isolate, global, "clearTimeout", clearTimeout);
 
         Local<String> filename = v8string(m_isolate, m_compilerPath);
@@ -191,7 +192,7 @@ void InternalTypescriptCompiler::requireCallback(const FunctionCallbackInfo<Valu
         isolate->ThrowException(exceptionText);
         return;
     }
-    std::string moduleName = *String::Utf8Value(args[0]);
+    std::string moduleName = *String::Utf8Value(isolate, args[0]);
 
     auto tsc = static_cast<InternalTypescriptCompiler*>(Local<External>::Cast(args.Data())->Value());
     Node::ObjectContainer* moduleContainer = tsc->m_requireNamespace->get(moduleName);
@@ -279,7 +280,12 @@ std::pair<InternalTypescriptCompiler::CompileResult, QString> InternalTypescript
     running = true;
     bool exitcodeValid = script->Run(context).ToLocal(&exitCodeValue);
     if (running) {
-        handleExitcode(exitcodeValid, exitcodeValid ? exitCodeValue->Int32Value() : -1);
+        handleExitcode(
+            exitcodeValid,
+            exitcodeValid
+                ? exitCodeValue->Int32Value(context).ToChecked()
+                : -1
+        );
     } else {
         m_isolate->CancelTerminateExecution();
     }

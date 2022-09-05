@@ -44,6 +44,7 @@
 
 using v8::Array;
 using v8::BigInt;
+using v8::Context;
 using v8::Date;
 using v8::External;
 using v8::Function;
@@ -132,22 +133,24 @@ void Node::fs::FileStat::sizeGetter(Local<String> property, const PropertyCallba
 void Node::fs::FileStat::sizeSetter(Local<String> property, Local<Value> value, const PropertyCallbackInfo<void>& info) {
     Local<Object> self = info.Holder();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(OBJECT_FILESTAT_INDEX));
+    Local<Context> context = info.GetIsolate()->GetCurrentContext();
     auto fileStat = static_cast<Node::fs::FileStat*>(wrap->Value());
-    fileStat->size = value->Int32Value();
+    fileStat->size = value->Int32Value(context).ToChecked();
 }
 
 void Node::fs::FileStat::mtimeGetter(Local<String> property, const PropertyCallbackInfo<Value>& info) {
     Local<Object> self = info.Holder();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(OBJECT_FILESTAT_INDEX));
     auto fileStat = static_cast<Node::fs::FileStat*>(wrap->Value());
-    info.GetReturnValue().Set(Date::New(info.GetIsolate(), fileStat->mtimeMs));
+    info.GetReturnValue().Set(Date::New(info.GetIsolate()->GetCurrentContext(), fileStat->mtimeMs).ToLocalChecked());
 }
 
 void Node::fs::FileStat::mtimeSetter(Local<String> property, Local<Value> value, const PropertyCallbackInfo<void>& info) {
     Local<Object> self = info.Holder();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(OBJECT_FILESTAT_INDEX));
+    Local<Context> context = info.GetIsolate()->GetCurrentContext();
     auto fileStat = static_cast<Node::fs::FileStat*>(wrap->Value());
-    fileStat->mtimeMs = value->NumberValue();
+    fileStat->mtimeMs = value->NumberValue(context).ToChecked();
 }
 
 void Node::fs::FileStat::isDirectory(const FunctionCallbackInfo<Value>& info) {
@@ -164,8 +167,8 @@ void Node::fs::FileStat::isFile(const FunctionCallbackInfo<Value>& info) {
     info.GetReturnValue().Set(fileStat->type == FileStat::Type::File);
 }
 
-std::shared_ptr<QFile> Node::fs::extractFD(Local<String> fd) {
-    auto fdIt = m_fileDescriptors.find(*String::Utf8Value(fd));
+std::shared_ptr<QFile> Node::fs::extractFD(Isolate* isolate, Local<String> fd) {
+    auto fdIt = m_fileDescriptors.find(*String::Utf8Value(isolate, fd));
     if (fdIt == m_fileDescriptors.end())
         return std::shared_ptr<QFile>();
     return fdIt.value();
@@ -177,7 +180,7 @@ void Node::fs::mkdirSync(const FunctionCallbackInfo<Value>& args) {
         throwError(fs->m_isolate, "mkdirSync needs the first argument to be a string");
         return;
     }
-    QString name = *String::Utf8Value(args[0]);
+    QString name = *String::Utf8Value(args.GetIsolate(), args[0]);
     QDir dir;
     dir.mkpath(buildPath(fs->m_path, name));
 }
@@ -188,7 +191,7 @@ void Node::fs::statSync(const FunctionCallbackInfo<Value>& args) {
         throwError(fs->m_isolate, "statSync needs the first argument to be a string");
         return;
     }
-    QString name = buildPath(fs->m_path, *String::Utf8Value(args[0]));
+    QString name = buildPath(fs->m_path, *String::Utf8Value(args.GetIsolate(), args[0]));
 
     auto isolate = fs->m_isolate;
     Local<ObjectTemplate> fileStatTemplate = fs->m_fileStatTemplate.Get(isolate);
@@ -208,7 +211,7 @@ void Node::fs::readFileSync(const FunctionCallbackInfo<Value>& args) {
         return;
     }
 
-    QString fileName = buildPath(fs->m_path, *String::Utf8Value(args[0]));
+    QString fileName = buildPath(fs->m_path, *String::Utf8Value(isolate, args[0]));
     QFile file(fileName);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         throwError(fs->m_isolate, QString("file '%1' could not be opened").arg(fileName));
@@ -233,10 +236,10 @@ void Node::fs::openSync(const FunctionCallbackInfo<Value>& args) {
         throwError(fs->m_isolate, "openSync with more than 2 arguments is not supported");
         return;
     }
-    QString fileName = buildPath(fs->m_path, *String::Utf8Value(args[0]));
+    QString fileName = buildPath(fs->m_path, *String::Utf8Value(isolate, args[0]));
     QFile file(fileName);
 
-    QString modeString = args.Length() >= 2 ? *String::Utf8Value(args[1]) : "r";
+    QString modeString = args.Length() >= 2 ? *String::Utf8Value(isolate, args[1]) : "r";
     QIODevice::OpenMode mode;
     if (modeString == "a") {
         mode = QIODevice::Append;
@@ -291,7 +294,7 @@ void Node::fs::writeSync(const FunctionCallbackInfo<Value>& args) {
     }
     // TODO check if used with buffer or string
 
-    std::shared_ptr<QFile> fd = fs->extractFD(args[0].As<String>());
+    std::shared_ptr<QFile> fd = fs->extractFD(isolate, args[0].As<String>());
     if (!fd) {
         throwError(fs->m_isolate, "writeSync called with invalid file descriptor");
         return;
@@ -310,7 +313,7 @@ void Node::fs::writeSync(const FunctionCallbackInfo<Value>& args) {
         }
     }
 
-    QString encoding = args.Length() >= 4 && args[3]->IsString() ? *String::Utf8Value(args[3]) : "utf8";
+    QString encoding = args.Length() >= 4 && args[3]->IsString() ? *String::Utf8Value(isolate, args[3]) : "utf8";
 
     Local<String> stringArg = args[1].As<String>();
     // WriteOneByte seems to want to write a 0 Byte
@@ -344,7 +347,7 @@ void Node::fs::closeSync(const FunctionCallbackInfo<Value>& args) {
         throwError(fs->m_isolate, "closeSync needs exactly one string argument");
         return;
     }
-    std::shared_ptr<QFile> fd = fs->extractFD(args[0].As<String>());
+    std::shared_ptr<QFile> fd = fs->extractFD(args.GetIsolate(), args[0].As<String>());
     if (!fd) {
         throwError(fs->m_isolate, "closeSync called with invalid file descriptor");
         return;
@@ -356,6 +359,8 @@ void Node::fs::closeSync(const FunctionCallbackInfo<Value>& args) {
 
 void Node::fs::readdirSync(const FunctionCallbackInfo<Value>& args) {
     auto isolate = args.GetIsolate();
+    Local<Context> context = isolate->GetCurrentContext();
+
     auto fs = static_cast<Node::fs*>(Local<External>::Cast(args.Data())->Value());
     if (args.Length() != 1 || !args[0]->IsString()) {
         throwError(fs->m_isolate, "readdirSync needs exactly 1 string argument");
@@ -375,7 +380,7 @@ void Node::fs::readdirSync(const FunctionCallbackInfo<Value>& args) {
     for (int i = 0; i < entries.length(); ++i) {
         const QString& entry = entries[i];
         Local<String> entryConverted = v8string(isolate, entry);
-        result->Set(i, entryConverted);
+        result->Set(context, i, entryConverted).Check();
     }
     args.GetReturnValue().Set(result);
 }

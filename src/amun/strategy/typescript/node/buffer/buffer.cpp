@@ -114,7 +114,7 @@ void Node::Buffer::Instance::toString(const FunctionCallbackInfo<Value>& args) {
     auto buffer = static_cast<Node::Buffer*>(Local<External>::Cast(args.Data())->Value());
     Local<External> wrap = args.Holder()->GetInternalField(Node::Buffer::Instance::OBJECT_INSTANCE_INDEX).As<External>();
     auto instance = static_cast<Node::Buffer::Instance*>(wrap->Value());
-    QString encoding = (args.Length() >= 1 && args[0]->IsString()) ? *String::Utf8Value(args[0]) : "utf8";
+    QString encoding = (args.Length() >= 1 && args[0]->IsString()) ? *String::Utf8Value(isolate, args[0]) : "utf8";
     uint32_t begin = 0, end=instance->m_data.length();
 
     if (encoding != "utf8") {
@@ -150,7 +150,7 @@ void Node::Buffer::from(const FunctionCallbackInfo<Value>& args) {
         return;
     }
 
-    QString encoding = (args.Length() >= 2 && args[1]->IsString()) ? *String::Utf8Value(args[1]) : "utf8";
+    QString encoding = (args.Length() >= 2 && args[1]->IsString()) ? *String::Utf8Value(isolate, args[1]) : "utf8";
 
     Local<String> input = args[0].As<String>();
     from(args, input, buffer, encoding);

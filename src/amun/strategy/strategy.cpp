@@ -71,6 +71,12 @@ void Strategy::initV8() {
     v8::V8::InitializeExternalStartupData(QCoreApplication::applicationFilePath().toUtf8().data());
     static_platform = v8::platform::NewDefaultPlatform();
     v8::V8::InitializePlatform(static_platform.get());
+    /* tsc_internal:InternalTypescriptCompiler and v8utility:embedToExternal
+     * require this to be set.
+     *
+     * In recent V8 versions, flags need to be set before initializing V8
+     */
+    v8::V8::SetFlagsFromString("--expose_gc", 12);
     v8::V8::Initialize();
 }
 #else
