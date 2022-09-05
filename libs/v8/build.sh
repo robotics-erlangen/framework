@@ -9,6 +9,11 @@ ICU_REVISION=297a4dd02b9d36c92ab9b4f121e433c9c3bc14f8
 # predictable working directory
 cd "$(dirname "$0")"
 
+# Check whether the directory given through $1 already as a patch applied
+function already_patched {(
+    cd "$1" && [[ -e .patched && "$(cat .patched)" == "$V8_BASE_REVISION" ]]
+)}
+
 IS_LINUX=0
 IS_MAC=0
 IS_MINGW=0
@@ -103,69 +108,81 @@ EOF
     trap '-' EXIT
 fi
 
-cd v8
+# Enter the directory given through $1
+# Apply the patch given through $2
+# If this fails, reset to the commit given through $3
+#
+# *Do not use in an if statement* as set -e is ignored in if statements. If the
+# if statement contains a function invocation, it is ignored for every line in
+# the function. This is true even in subshells that use set -e by themselves
+function patch_safely {(
+    set -e
 
-function fakeuser {
+    DIR="$1"
+    PATCH="$(readlink --canonicalize "$2")"
+    BASE_COMMIT="$3"
+
+    if already_patched "$DIR"; then
+        return 0
+    fi
+
+    cd "$DIR"
+    function checkout_base {
+        git checkout "$BASE_COMMIT"
+    }
+    checkout_base
+
+    trap checkout_base EXIT
+    # Commit hashes should be stable as other patches may rely on them
+    # - Use a stable committer
+    # - Use a stable commit date
+    # - Do not GPG sign
     git config user.name "patch"
     git config user.email "noreply@robotics-erlangen.de"
-}
+    git am --no-gpg-sign --committer-date-is-author-date "$PATCH"
+
+    trap '-' EXIT
+
+    cd "$OLD_DIR"
+    return 0
+)}
+
 if [[ "$IS_MINGW" == 1 ]]; then
-    if [[ ! -e .patched || "$(cat .patched)" != "$V8_BASE_REVISION" ]]; then
-        function v8base {
-            git checkout $V8_BASE_REVISION
-        }
-        trap v8base EXIT
-        v8base
-        fakeuser
-        git am ../patches/0001-mingw-build.patch
-        # only run gclient once on mingw as it's rather slow
+    # Only run gclient once on mingw as it is rather slow
+    if ! already_patched "v8"; then
+        cd v8;
         gclient sync
-        trap '-' EXIT
+        cd ..
     fi
 
-    cd build
-    if [[ ! -e .patched || "$(cat .patched)" != "$V8_BASE_REVISION" ]]; then
-        function buildbase {
-            git checkout $BUILD_REVISION
-        }
-        trap buildbase EXIT
-        buildbase
-        fakeuser
-        git am ../../patches/0001-build-mingw-build.patch
-        trap '-' EXIT
+    if ! already_patched "v8"; then
+        echo "### Patching V8"
+        patch_safely "v8" "patches/0001-mingw-build.patch" "$V8_BASE_REVISION"
     fi
 
-    cd ../third_party/icu
-    if [[ ! -e .patched || "$(cat .patched)" != "$V8_BASE_REVISION" ]]; then
-        function icubase {
-            git checkout $ICU_REVISION
-        }
-        trap icubase EXIT
-        icubase
-        fakeuser
-        git am ../../../patches/0001-icu-mingw-build.patch
-        trap '-' EXIT
+    if ! already_patched "v8/build"; then
+        echo "### Patching V8/build"
+        patch_safely "v8/build" "patches/0001-build-mingw-build.patch" "$BUILD_REVISION";
     fi
-    cd ../..
+
+    if ! already_patched "v8/third_party/icu"; then
+        echo "### Patching V8/icu"
+        patch_safely "v8/third_party/icu" "patches/0001-icu-mingw-build.patch" "$ICU_REVISION";
+    fi
+
 else
-    if [[ "$(git rev-parse --verify HEAD)" != "$V8_BASE_REVISION" ]]; then
-        git checkout $V8_BASE_REVISION
+    if [[ "$(git -C "v8" rev-parse --verify HEAD)" != "$V8_BASE_REVISION" ]]; then
+        git -C "v8" checkout $V8_BASE_REVISION
     fi
     gclient sync
 
-    cd build
-    if [[ ! -e .patched || "$(cat .patched)" != "$V8_BASE_REVISION" ]]; then
-        function buildbase {
-            git checkout $BUILD_REVISION
-        }
-        trap buildbase EXIT
-        buildbase
-        fakeuser
-        git am ../../patches/0001-macos-sdk-search.patch
-        trap '-' EXIT
+    if ! already_patched "v8/build"; then
+        echo "### Patching V8/build"
+        patch_safely "v8/build" "patches/0001-macos-sdk-search.patch" "$BUILD_REVISION"
     fi
-    cd ..
 fi
+
+cd v8
 
 if [[ "$IS_MINGW32" == 1 ]]; then
     mkdir -p out/x86.release
