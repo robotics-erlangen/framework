@@ -206,21 +206,42 @@ else
     fi
 fi
 
-cd v8
+GN_ARGS=(
+    "is_debug=false"
+    # V8 ships its own libc++. We want to link against Ra which uses the
+    # System libc++ so we should use the system libc++ in V8 as well
+    "use_custom_libcxx=false"
+    "use_custom_libcxx_for_host=false"
+    "v8_static_library=false"
+    "is_component_build=true"
+)
 
 if [[ "$IS_MINGW32" == 1 ]]; then
-    mkdir -p out/x86.release
-    gn gen out/x86.release --args="is_debug=false target_cpu=\"x86\" is_component_build=true v8_static_library=false use_custom_libcxx=false use_custom_libcxx_for_host=false custom_toolchain=\"//build/toolchain/win:gcc_x86\" is_clang=false treat_warnings_as_errors=false"
-    ninja -C out/x86.release
-elif [[ "$IS_MINGW64" == 1 ]]; then
-    mkdir -p out/x64.release
-    gn gen out/x64.release --args="is_debug=false target_cpu=\"x64\" is_component_build=true v8_static_library=false use_custom_libcxx=false use_custom_libcxx_for_host=false custom_toolchain=\"//build/toolchain/win:gcc_x64\" is_clang=false treat_warnings_as_errors=false"
-    ninja -C out/x64.release
+    GN_ARGS+=("target_cpu=\"x86\"")
+    OUT_DIR="out/x86.release"
 else
-    mkdir -p out/x64.release
-    gn gen out/x64.release --args="is_debug=false target_cpu=\"x64\" is_component_build=true v8_static_library=false use_custom_libcxx=false use_custom_libcxx_for_host=false"
-    ../depot_tools/ninja -C out/x64.release
+    GN_ARGS+=("target_cpu=\"x64\"")
+    OUT_DIR="out/x64.release"
 fi
+
+if [[ "$IS_MINGW32" == 1 ]]; then
+    GN_ARGS+=(
+        "custom_toolchain=\"//build/toolchain/win:gcc_x86\""
+        "is_clang=false"
+        "treat_warnings_as_errors=false"
+    )
+elif [[ "$IS_MINGW64" == 1 ]]; then
+    GN_ARGS+=(
+        "custom_toolchain=\"//build/toolchain/win:gcc_x64\""
+        "is_clang=false"
+        "treat_warnings_as_errors=false"
+    )
+fi
+
+cd v8
+mkdir -p "$OUT_DIR"
+gn gen "$OUT_DIR" --args="${GN_ARGS[*]}"
+ninja -C "$OUT_DIR"
 
 # # Building V8 with clang on windows
 
