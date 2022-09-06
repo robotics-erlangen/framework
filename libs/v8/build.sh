@@ -14,6 +14,30 @@ function already_patched {(
     cd "$1" && [[ -e .patched && "$(cat .patched)" == "$V8_BASE_REVISION" ]]
 )}
 
+# Check whether the local V8 copy has the expected version (i.e. it does not
+# stem from an old exection of the build script)
+function check_local_v8 {
+    [[ -d "v8" ]] || return 0
+    LOCAL_REVISION="$(git -C "v8" rev-parse --verify HEAD)"
+    [[ "$LOCAL_REVISION" == "$V8_BASE_REVISION" ]] && return 0
+    already_patched "v8" && return 0
+
+    QUESTION=(
+        "Your local V8 copy does not have the expected version"
+        "It was most likely created by a different version of this script."
+        "It has to *be deleted and created newly* to continue."
+        "Do you want to do that now? [y/N]"
+    )
+    read -p "${QUESTION[*]}" -n 1 -r
+    if [[ ! "$REPLY" =~ ^[Yy]$ ]]; then
+        echo "Exiting..."
+        exit 1
+    fi
+
+    rm -rf v8 depot_tools
+}
+check_local_v8
+
 IS_LINUX=0
 IS_MAC=0
 IS_MINGW=0
