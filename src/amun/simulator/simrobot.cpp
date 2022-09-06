@@ -159,7 +159,13 @@ void SimRobot::dribble(SimBall *ball, float speed)
             localA.setIdentity();
             localB.setIdentity();
 
-            auto worldToRobot = m_body->getWorldTransform().inverse();
+            auto robotWorldTransform = m_body->getWorldTransform();
+            // set the constraint position for the robot to the same height as the ball
+            // this prevents the robot from toppling over due to forces in the z direction
+            auto modifiedRobotPos = robotWorldTransform.getOrigin();
+            modifiedRobotPos.setZ(0);
+            robotWorldTransform.setOrigin(modifiedRobotPos);
+            const auto worldToRobot = robotWorldTransform.inverse();
             localA.setOrigin(worldToRobot * ball->position());
             localA.setRotation(btQuaternion(worldToRobot * btVector3(0, 1, 0), M_PI_2));
             localB.setRotation(btQuaternion(worldToRobot * btVector3(0, 1, 0), M_PI_2));
