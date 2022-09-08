@@ -317,6 +317,23 @@ void BallGroundCollisionFilter::resetFilter(const VisionFrame &frame)
     m_ballWasNearRobot = true;
 }
 
+static Eigen::Vector2f unprojectRelativePosition(Eigen::Vector2f relativePos, const RobotInfo &robot)
+{
+    const Eigen::Vector2f toDribbler = (robot.dribblerPos - robot.robotPos).normalized();
+    const Eigen::Vector2f relativeBallPos = relativePos.x() * toDribbler +
+                                            relativePos.y() * perpendicular(toDribbler);
+    return robot.robotPos + relativeBallPos;
+}
+
+static Eigen::Vector2f computeDribblingBallSpeed(const RobotInfo &robot, Eigen::Vector2f relativePosition)
+{
+    const Eigen::Vector2f absoluteOffset = unprojectRelativePosition(relativePosition, robot) - robot.robotPos;
+    const float distToRobot = absoluteOffset.norm();
+    const float tangentialLength = robot.angularVelocity * distToRobot;
+    const Eigen::Vector2f tangential = -perpendicular(absoluteOffset.normalized()) * tangentialLength;
+    return robot.speed + tangential;
+}
+
 void BallGroundCollisionFilter::processVisionFrame(const VisionFrame &frame)
 {
     // Filter out 'intersections' where the ball did not truly intersect the ball
@@ -328,6 +345,8 @@ void BallGroundCollisionFilter::processVisionFrame(const VisionFrame &frame)
         // Reset the filter during dribbling so that the ball speed is
         // computed properly once the ball is visible again
         resetFilter(frame);
+        const Eigen::Vector2f currentBallSpeed = computeDribblingBallSpeed(frame.robot, m_dribbleOffset->ballOffset);
+        m_groundFilter.setSpeed(currentBallSpeed);
     }
     m_dribbleOffset.reset();
 
@@ -351,25 +370,22 @@ void BallGroundCollisionFilter::processVisionFrame(const VisionFrame &frame)
     updateMaxSpeed(frame, lastSpeed.norm(), lastPos);
 }
 
+static Eigen::Vector2f computeRelativePosition(const Eigen::Vector2f &ballPos, const RobotInfo &robot)
+{
+    const Eigen::Vector2f toDribbler = (robot.dribblerPos - robot.robotPos).normalized();
+    return Eigen::Vector2f{(ballPos - robot.robotPos).dot(toDribbler),
+                           (ballPos - robot.robotPos).dot(perpendicular(toDribbler))};
+}
+
 BallGroundCollisionFilter::BallOffsetInfo::BallOffsetInfo(Eigen::Vector2f projectedBallPos, const RobotInfo &robot, bool forceDribbling, bool intersecting)
 {
     robotIdentifier = robot.identifier;
-    const Eigen::Vector2f toDribbler = (robot.dribblerPos - robot.robotPos).normalized();
-    ballOffset = Eigen::Vector2f{(projectedBallPos - robot.robotPos).dot(toDribbler),
-                                (projectedBallPos - robot.robotPos).dot(perpendicular(toDribbler))};
+    ballOffset = computeRelativePosition(projectedBallPos, robot);
     forceDribbleMode = forceDribbling;
     pushingBallPos = projectedBallPos;
     stopDribblingPos = projectedBallPos;
     isIntersecting = intersecting;
     dribblerActive = false;
-}
-
-static Eigen::Vector2f unprojectRelativePosition(Eigen::Vector2f relativePos, const RobotInfo &robot)
-{
-    const Eigen::Vector2f toDribbler = (robot.dribblerPos - robot.robotPos).normalized();
-    const Eigen::Vector2f relativeBallPos = relativePos.x() * toDribbler +
-                                            relativePos.y() * perpendicular(toDribbler);
-    return robot.robotPos + relativeBallPos;
 }
 
 static void setBallData(world::Ball *ball, Eigen::Vector2f pos, Eigen::Vector2f speed, bool writeSpeed)
@@ -436,15 +452,6 @@ void BallGroundCollisionFilter::writeBallState(world::Ball *ball, qint64 time, c
     computeBallState(ball, time, robots, lastCameraFrameTime);
     debugLine("new speed", ball->p_x(), ball->p_y(), ball->p_x() + ball->v_x(), ball->p_y() + ball->v_y());
     m_lastReportedBallPos = Eigen::Vector2f(ball->p_x(), ball->p_y());
-}
-
-static Eigen::Vector2f computeDribblingBallSpeed(const RobotInfo &robot, Eigen::Vector2f relativePosition)
-{
-    const Eigen::Vector2f absoluteOffset = unprojectRelativePosition(relativePosition, robot) - robot.robotPos;
-    const float distToRobot = absoluteOffset.norm();
-    const float tangentialLength = robot.angularVelocity * distToRobot;
-    const Eigen::Vector2f tangential = -perpendicular(absoluteOffset.normalized()) * tangentialLength;
-    return robot.speed + tangential;
 }
 
 void BallGroundCollisionFilter::updateDribbling(const QVector<RobotInfo> &robots)
@@ -527,7 +534,8 @@ bool BallGroundCollisionFilter::checkBallRobotIntersection(world::Ball *ball, co
 
     const auto intersection = intersectLineSegmentRobot(outsideRobotPastPos, currentPos, robot, ROBOT_RADIUS);
     if (intersection) {
-        setBallData(ball, *intersection, robot.speed, overwriteBallSpeed);
+        const Eigen::Vector2f ballSpeed = computeDribblingBallSpeed(robot, computeRelativePosition(*intersection, robot));
+        setBallData(ball, *intersection, ballSpeed, overwriteBallSpeed);
         debug("ground filter mode", "shot at robot");
         return true;
     }

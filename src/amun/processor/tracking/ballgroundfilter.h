@@ -41,6 +41,7 @@ public:
     void reset(const VisionFrame& frame);
     float distanceTo(Eigen::Vector2f objPos) const;
     void setObservationStdDev(float deviation);
+    void setSpeed(Eigen::Vector2f speed);
 
 private:
     std::unique_ptr<Kalman> m_kalman;

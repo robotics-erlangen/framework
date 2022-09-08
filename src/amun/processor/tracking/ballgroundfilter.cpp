@@ -50,6 +50,12 @@ void GroundFilter::reset(const VisionFrame& frame)
     m_lastUpdate = frame.time;
 }
 
+void GroundFilter::setSpeed(Eigen::Vector2f speed)
+{
+    m_kalman->modifyState(3, speed.x());
+    m_kalman->modifyState(4, speed.y());
+}
+
 void GroundFilter::predict(qint64 time)
 {
     if (time == m_lastUpdate) {
