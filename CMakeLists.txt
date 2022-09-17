@@ -23,6 +23,14 @@ project(erforce)
 enable_testing()
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
+if(MINGW)
+    if(CMAKE_SIZEOF_VOID_P EQUAL 4)
+        set(MINGW32 TRUE)
+    elseif(CMAKE_SIZEOF_VOID_P EQUAL 8)
+        set(MINGW64 TRUE)
+    endif()
+endif()
+
 #
 # Policies
 #
@@ -63,7 +71,7 @@ if(MINGW)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mno-ms-bitfields")
 
     # sse floats are already the default for x64
-    if(CMAKE_SIZEOF_VOID_P EQUAL 4)
+    if(MINGW32)
         # use sse floats, not the insane x87 fpu where intermediate values
         # may have up to 80bit precision, instead of the expected 32bit for floats
         SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse2 -mfpmath=sse")

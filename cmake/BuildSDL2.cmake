@@ -63,7 +63,7 @@ elseif(MINGW)
     string(REPLACE " " "\\ " SPACE_FREE_INSTALL_DIR "${SPACE_FREE_INSTALL_DIR}")
 
     set(ARCH i686-w64-mingw32)
-    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    if(MINGW64)
         set(ARCH x86_64-w64-mingw32)
     endif()
 

@@ -47,7 +47,7 @@ if(V8_INCLUDE_DIR AND EXISTS "${V8_INCLUDE_DIR}/v8-version.h")
     include (${CMAKE_SOURCE_DIR}/cmake/CheckV8Version.cmake)
 endif()
 
-if(MINGW AND CMAKE_SIZEOF_VOID_P EQUAL 4)
+if(MINGW32)
     set(V8_ARCHITECTURE x86)
 else()
     set(V8_ARCHITECTURE x64)

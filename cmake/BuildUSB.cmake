@@ -23,7 +23,7 @@ if(MINGW)
     set(LIBUSB_SUBPATH "bin/libusb-1.0${CMAKE_SHARED_LIBRARY_SUFFIX}")
 
     set(BITS 32)
-    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    if(MINGW64)
         set(BITS 64)
     endif()
 
