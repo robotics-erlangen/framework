@@ -1,5 +1,5 @@
 # ***************************************************************************
-# *   Copyright 2015 Michael Bleier, Philipp Nordhus                        *
+# *   Copyright 2016 Michael Eischer                                        *
 # *   Robotics Erlangen e.V.                                                *
 # *   http://www.robotics-erlangen.de/                                      *
 # *   info@robotics-erlangen.de                                             *
@@ -18,27 +18,20 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-# firmware
-add_subdirectory(firmware)
 
-# libs
-add_subdirectory(config)
-add_subdirectory(git)
-add_subdirectory(core)
-add_subdirectory(protobuf)
-add_subdirectory(amun)
-add_subdirectory(visionlog)
-add_subdirectory(timeline)
-add_subdirectory(underbots_simulator)
-
-# apps
-add_subdirectory(ra)
-add_subdirectory(logplayer)
-add_subdirectory(amuncli)
-add_subdirectory(replaycli)
-add_subdirectory(visionanalyzer)
-add_subdirectory(logcuttercli)
-add_subdirectory(loganalyzer)
-add_subdirectory(trajectorycli)
-add_subdirectory(tests)
-add_subdirectory(simulator)
+add_executable(underbots-simulator
+        main.cpp
+)
+#target_link_libraries(amun-cli
+#    amun::amun
+#    Qt5::Core
+#    amuncli::testtools
+#)
+#v8_copy_deps(amun-cli)
+#target_include_directories(amun-cli
+#    PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
+#    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
+#)
+#if (TARGET lib::jemalloc)
+#    target_link_libraries(amun-cli lib::jemalloc)
+#endif()
