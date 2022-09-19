@@ -20,18 +20,22 @@
 
 
 add_executable(underbots-simulator
+        simulator.hpp
+
         main.cpp
+        simulator.cpp
 )
-#target_link_libraries(amun-cli
-#    amun::amun
-#    Qt5::Core
-#    amuncli::testtools
-#)
+target_link_libraries(underbots-simulator
+    amun::simulator
+    Qt5::Core
+    shared::core
+)
 #v8_copy_deps(amun-cli)
-#target_include_directories(amun-cli
-#    PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
-#    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
-#)
+target_include_directories(underbots-simulator
+    PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
+#    INTERFACE "${CMAKE_SOURCE_DIR}/amun/simulator/include"
+)
 #if (TARGET lib::jemalloc)
 #    target_link_libraries(amun-cli lib::jemalloc)
 #endif()
