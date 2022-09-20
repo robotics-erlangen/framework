@@ -37,7 +37,7 @@ class TrackingReplay;
 class Receiver;
 class Strategy;
 class Timer;
-class Transceiver;
+class RadioSystem;
 class NetworkTransceiver;
 class QHostAddress;
 class Integrator;
@@ -97,7 +97,7 @@ private:
 
 private:
     QThread *m_processorThread;
-    QThread *m_transceiverThread;
+    QThread *m_radioThread;
     QThread *m_networkThread;
     QThread *m_simulatorThread;
     QThread *m_strategyThread[5];
@@ -105,7 +105,7 @@ private:
     QThread *m_gitRecorderThread;
 
     Processor *m_processor;
-    Transceiver *m_transceiver;
+    RadioSystem *m_radio;
     NetworkTransceiver *m_networkTransceiver;
     camun::simulator::Simulator *m_simulator;
     Receiver *m_referee;

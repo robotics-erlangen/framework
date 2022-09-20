@@ -18,8 +18,8 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef TRANSCEIVER_H
-#define TRANSCEIVER_H
+#ifndef RADIOSYSTEM_H
+#define RADIOSYSTEM_H
 
 #include "protobuf/command.h"
 #include "protobuf/status.h"
@@ -32,7 +32,7 @@ class Timer;
 class USBThread;
 class USBDevice;
 
-class Transceiver : public QObject
+class RadioSystem : public QObject
 {
     Q_OBJECT
 
@@ -55,10 +55,10 @@ private:
     };
 
 public:
-    explicit Transceiver(const Timer *timer);
-    ~Transceiver() override;
-    Transceiver(const Transceiver&) = delete;
-    Transceiver& operator=(const Transceiver&) = delete;
+    explicit RadioSystem(const Timer *timer);
+    ~RadioSystem() override;
+    RadioSystem(const RadioSystem&) = delete;
+    RadioSystem& operator=(const RadioSystem&) = delete;
 
 signals:
     void sendStatus(const Status &status);
@@ -123,4 +123,4 @@ private:
     int m_droppedCommands;
 };
 
-#endif // TRANSCEIVER_H
+#endif // RADIOSYSTEM_H

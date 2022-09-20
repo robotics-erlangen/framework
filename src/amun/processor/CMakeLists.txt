@@ -23,7 +23,7 @@ add_subdirectory(tracking)
 add_library(processor STATIC
     include/processor/networktransceiver.h
     include/processor/processor.h
-    include/processor/transceiver.h
+    include/processor/radiosystem.h
     include/processor/referee.h
     include/processor/integrator.h
     include/processor/trackingreplay.h
@@ -37,7 +37,7 @@ add_library(processor STATIC
     networktransceiver.cpp
     processor.cpp
     referee.cpp
-    transceiver.cpp
+    radiosystem.cpp
     integrator.cpp
     trackingreplay.cpp
 )

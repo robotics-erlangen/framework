@@ -24,7 +24,7 @@
 #include "firmware-interface/transceiver2012.h"
 #include "firmware-interface/radiocommand2014.h"
 #include "firmware-interface/radiocommand2018.h"
-#include "transceiver.h"
+#include "radiosystem.h"
 #include "usbthread.h"
 #include "usbdevice.h"
 #include <QTimer>
@@ -42,7 +42,7 @@ typedef struct
 } __attribute__ ((packed)) TransceiverPingData;
 
 
-Transceiver::Transceiver(const Timer *timer) :
+RadioSystem::RadioSystem(const Timer *timer) :
     m_charge(false),
     m_packetCounter(0),
     m_context(nullptr),
@@ -58,14 +58,14 @@ Transceiver::Transceiver(const Timer *timer) :
 
     m_timeoutTimer = new QTimer(this);
     m_timeoutTimer->setSingleShot(true);
-    connect(m_timeoutTimer, &QTimer::timeout, this, &Transceiver::timeout);
+    connect(m_timeoutTimer, &QTimer::timeout, this, &RadioSystem::timeout);
 
     m_processTimer = new QTimer(this);
     m_processTimer->setSingleShot(true);
-    connect(m_processTimer, &QTimer::timeout, this, &Transceiver::process);
+    connect(m_processTimer, &QTimer::timeout, this, &RadioSystem::process);
 }
 
-Transceiver::~Transceiver()
+RadioSystem::~RadioSystem()
 {
     close();
 #ifdef USB_FOUND
@@ -73,7 +73,7 @@ Transceiver::~Transceiver()
 #endif
 }
 
-void Transceiver::handleRadioCommands(const QList<robot::RadioCommand> &commands, qint64 processingStart)
+void RadioSystem::handleRadioCommands(const QList<robot::RadioCommand> &commands, qint64 processingStart)
 {
     m_commands = commands;
     m_processingStart = processingStart;
@@ -84,7 +84,7 @@ void Transceiver::handleRadioCommands(const QList<robot::RadioCommand> &commands
     m_processTimer->start(0);
 }
 
-void Transceiver::process()
+void RadioSystem::process()
 {
     Status status(new amun::Status);
     const qint64 transceiver_start = Timer::systemTime();
@@ -96,7 +96,7 @@ void Transceiver::process()
     emit sendStatus(status);
 }
 
-void Transceiver::handleCommand(const Command &command)
+void RadioSystem::handleCommand(const Command &command)
 {
     if (command->has_simulator()) {
         if (command->simulator().has_enable()) {
@@ -136,7 +136,7 @@ void Transceiver::handleCommand(const Command &command)
     }
 }
 
-void Transceiver::handleTeam(const robot::Team &team)
+void RadioSystem::handleTeam(const robot::Team &team)
 {
     for (int i = 0; i < team.robot_size(); ++i) {
         const robot::Specs &spec = team.robot(i);
@@ -144,7 +144,7 @@ void Transceiver::handleTeam(const robot::Team &team)
     }
 }
 
-void Transceiver::open()
+void RadioSystem::open()
 {
 #ifdef USB_FOUND
     if (m_context == nullptr) {
@@ -201,7 +201,7 @@ void Transceiver::open()
 #endif // USB_FOUND
 }
 
-bool Transceiver::ensureOpen()
+bool RadioSystem::ensureOpen()
 {
     if (!m_device && Timer::systemTime() > m_onlyRestartAfterTimestamp) {
         open();
@@ -210,7 +210,7 @@ bool Transceiver::ensureOpen()
     return m_connectionState == State::CONNECTED;
 }
 
-void Transceiver::close(const QString &errorMsg, qint64 restartDelayInNs)
+void RadioSystem::close(const QString &errorMsg, qint64 restartDelayInNs)
 {
 #ifdef USB_FOUND
     // close and cleanup
@@ -233,12 +233,12 @@ void Transceiver::close(const QString &errorMsg, qint64 restartDelayInNs)
 #endif // USB_FOUND
 }
 
-void Transceiver::timeout()
+void RadioSystem::timeout()
 {
     close("Transceiver is not responding", (qint64)100*1000*1000);
 }
 
-bool Transceiver::write(const char *data, qint64 size)
+bool RadioSystem::write(const char *data, qint64 size)
 {
 #ifdef USB_FOUND
     if (!m_device) {
@@ -256,7 +256,7 @@ bool Transceiver::write(const char *data, qint64 size)
     return true;
 }
 
-void Transceiver::receive()
+void RadioSystem::receive()
 {
 #ifdef USB_FOUND
     if (!m_device) {
@@ -316,7 +316,7 @@ void Transceiver::receive()
 #endif // USB_FOUND
 }
 
-void Transceiver::handleInitPacket(const char *data, uint size)
+void RadioSystem::handleInitPacket(const char *data, uint size)
 {
     // only allowed during handshake
     if (m_connectionState != State::HANDSHAKE || size < 2) {
@@ -344,7 +344,7 @@ void Transceiver::handleInitPacket(const char *data, uint size)
     sendTransceiverConfiguration();
 }
 
-void Transceiver::handlePingPacket(const char *data, uint size)
+void RadioSystem::handlePingPacket(const char *data, uint size)
 {
     if (size < sizeof(TransceiverPingData)) {
         return;
@@ -358,7 +358,7 @@ void Transceiver::handlePingPacket(const char *data, uint size)
     m_timeoutTimer->stop();
 }
 
-void Transceiver::handleStatusPacket(const char *data, uint size)
+void RadioSystem::handleStatusPacket(const char *data, uint size)
 {
     if (size < sizeof(TransceiverStatusPacket)) {
         return;
@@ -373,7 +373,7 @@ void Transceiver::handleStatusPacket(const char *data, uint size)
     m_droppedCommands = 0;
 }
 
-void Transceiver::handleDatagramPacket(const char *data, uint size)
+void RadioSystem::handleDatagramPacket(const char *data, uint size)
 {
     Status status(new amun::Status);
     amun::DebugValues *debug = status->add_debug();
@@ -385,7 +385,7 @@ void Transceiver::handleDatagramPacket(const char *data, uint size)
     emit sendStatus(status);
 }
 
-float Transceiver::calculateDroppedFramesRatio(uint generation, uint id, uint8_t counter, int skipedFrames)
+float RadioSystem::calculateDroppedFramesRatio(uint generation, uint id, uint8_t counter, int skipedFrames)
 {
     // get frame counter, is created with default values if not existing
     DroppedFrameCounter &c = m_droppedFrames[qMakePair(generation, id)];
@@ -418,7 +418,7 @@ float Transceiver::calculateDroppedFramesRatio(uint generation, uint id, uint8_t
     return c.droppedFramesRatio;
 }
 
-void Transceiver::handleResponsePacket(QList<robot::RadioResponse> &responses, const char *data, uint size, qint64 time)
+void RadioSystem::handleResponsePacket(QList<robot::RadioResponse> &responses, const char *data, uint size, qint64 time)
 {
     const RadioResponseHeader *header = (const RadioResponseHeader *)data;
     size -= sizeof(RadioResponseHeader);
@@ -525,7 +525,7 @@ void Transceiver::handleResponsePacket(QList<robot::RadioResponse> &responses, c
     }
 }
 
-void Transceiver::addRobot2014Command(int id, const robot::Command &command, bool charge, quint8 packetCounter, QByteArray &usb_packet)
+void RadioSystem::addRobot2014Command(int id, const robot::Command &command, bool charge, quint8 packetCounter, QByteArray &usb_packet)
 {
     // copy command
     RadioCommand2014 data;
@@ -593,7 +593,7 @@ void Transceiver::addRobot2014Command(int id, const robot::Command &command, boo
     usb_packet.append((const char*) &data, sizeof(data));
 }
 
-void Transceiver::addRobot2014Sync(qint64 processingDelay, quint8 packetCounter, QByteArray &usb_packet)
+void RadioSystem::addRobot2014Sync(qint64 processingDelay, quint8 packetCounter, QByteArray &usb_packet)
 {
     // processing usually takes a few hundred microseconds, bound to 2ms to avoid outliers
     processingDelay = qMin((qint64)2*1000*1000, processingDelay);
@@ -630,7 +630,7 @@ void Transceiver::addRobot2014Sync(qint64 processingDelay, quint8 packetCounter,
     usb_packet.append((const char*) &data, sizeof(data));
 }
 
-void Transceiver::addRobot2018Command(int id, const robot::Command &command, bool charge, quint8 packetCounter, QByteArray &usb_packet)
+void RadioSystem::addRobot2018Command(int id, const robot::Command &command, bool charge, quint8 packetCounter, QByteArray &usb_packet)
 {
     // copy command
     RadioCommand2018 data;
@@ -698,7 +698,7 @@ void Transceiver::addRobot2018Command(int id, const robot::Command &command, boo
     usb_packet.append((const char*) &data, sizeof(data));
 }
 
-void Transceiver::addRobot2018Sync(qint64 processingDelay, quint8 packetCounter, QByteArray &usb_packet)
+void RadioSystem::addRobot2018Sync(qint64 processingDelay, quint8 packetCounter, QByteArray &usb_packet)
 {
     // processing usually takes a few hundred microseconds, bound to 2ms to avoid outliers
     processingDelay = qMin((qint64)2*1000*1000, processingDelay);
@@ -739,7 +739,7 @@ void Transceiver::addRobot2018Sync(qint64 processingDelay, quint8 packetCounter,
     usb_packet.append((const char*) &data, sizeof(data));
 }
 
-void Transceiver::addPingPacket(qint64 time, QByteArray &usb_packet)
+void RadioSystem::addPingPacket(qint64 time, QByteArray &usb_packet)
 {
     // Append ping packet with current timestamp
     TransceiverCommandPacket senderCommand;
@@ -753,7 +753,7 @@ void Transceiver::addPingPacket(qint64 time, QByteArray &usb_packet)
     usb_packet.append((const char*) &ping, sizeof(ping));
 }
 
-void Transceiver::addStatusPacket(QByteArray &usb_packet)
+void RadioSystem::addStatusPacket(QByteArray &usb_packet)
 {
     // request count of dropped usb packets
     TransceiverCommandPacket senderCommand;
@@ -763,7 +763,7 @@ void Transceiver::addStatusPacket(QByteArray &usb_packet)
     usb_packet.append((const char*) &senderCommand, sizeof(senderCommand));
 }
 
-void Transceiver::sendCommand(const QList<robot::RadioCommand> &commands, bool charge, qint64 processingStart)
+void RadioSystem::sendCommand(const QList<robot::RadioCommand> &commands, bool charge, qint64 processingStart)
 {
     if (!ensureOpen()) {
         return;
@@ -827,7 +827,7 @@ void Transceiver::sendCommand(const QList<robot::RadioCommand> &commands, bool c
     }
 }
 
-void Transceiver::sendTransceiverConfiguration()
+void RadioSystem::sendTransceiverConfiguration()
 {
     // configure transceiver frequency
     TransceiverCommandPacket senderCommand;
@@ -843,7 +843,7 @@ void Transceiver::sendTransceiverConfiguration()
     write(usb_packet.data(), usb_packet.size());
 }
 
-void Transceiver::sendInitPacket()
+void RadioSystem::sendInitPacket()
 {
     // send init handshake
     TransceiverCommandPacket senderCommand;
