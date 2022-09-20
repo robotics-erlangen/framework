@@ -20,10 +20,7 @@
 
 
 add_executable(underbots-simulator
-        simulator.hpp
-
         main.cpp
-        simulator.cpp
 )
 target_link_libraries(underbots-simulator
     amun::simulator

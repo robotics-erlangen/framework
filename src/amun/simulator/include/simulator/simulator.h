@@ -32,6 +32,11 @@
 #include <tuple>
 #include <random>
 
+#include "protobuf/ssl_simulation_robot_control.pb.h"
+#include "protobuf/ssl_simulation_robot_feedback.pb.h"
+#include "protobuf/ssl_simulation_config.pb.h"
+#include "protobuf/ssl_simulation_error.pb.h"
+
 // higher values break the rolling friction of the ball
 const float SIMULATOR_SCALE = 10.0f;
 const float SUB_TIMESTEP = 1/200.f;
@@ -71,6 +76,17 @@ public:
     Simulator& operator=(const Simulator&) = delete;
     void handleSimulatorTick(double timeStep);
     void seedPRGN(uint32_t seed);
+
+    void stepSimulation(float time_s);
+    std::vector<sslsim::RobotFeedback> handleRobotControl(const sslsim::RobotControl& msg, bool is_blue);
+    std::vector<sslsim::RobotFeedback> handleYellowRobotControl(sslsim::RobotControl msg);
+    std::vector<sslsim::RobotFeedback> handleBlueRobotControl(sslsim::RobotControl msg);
+    void handleSimulatorCommand(sslsim::SimulatorCommand msg);
+    std::vector<SSL_WrapperPacket> getSSLWrapperPackets();
+    // Sometimes the simulation has to run before errors are detected, so provide
+    // a separate function the caller can check whenever they want
+    std::vector<sslsim::SimulatorError> getErrors();
+
 
 signals:
     void gotPacket(const QByteArray &data, qint64 time, QString sender);

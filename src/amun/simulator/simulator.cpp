@@ -963,3 +963,231 @@ void Simulator::safelyTeleportBall(const float x, const float y)
         }
     }
 }
+
+void Simulator::stepSimulation(float time_s) {
+    m_data->dynamicsWorld->stepSimulation(time_s, 10, SUB_TIMESTEP);
+    m_time += static_cast<qint64>(time_s * 1E9);
+}
+
+std::vector<sslsim::RobotFeedback> Simulator::handleRobotControl(const sslsim::RobotControl& msg, bool is_blue) {
+    // collect responses from robots
+    QList<robot::RadioResponse> responses;
+    for (const sslsim::RobotCommand& command : msg.robot_commands()) {
+
+        if (m_data->robotCommandPacketLoss > 0 && m_data->rng.uniformFloat(0, 1) <= m_data->robotCommandPacketLoss) {
+            continue;
+        }
+
+        // pass radio command to robot that matches the id
+        const auto id = command.id();
+        SimulatorData* data = m_data;
+        auto time = m_time;
+        auto charge = m_charge;
+        auto fabricateResponse = [data, &responses, time, charge, &id, &command](const Simulator::RobotMap& map, const bool* isBlue) {
+            if (!map.contains(id)) return;
+            robot::RadioResponse response = map[id].first->setCommand(command, data->ball, charge,
+                                                                      data->robotCommandPacketLoss, data->robotReplyPacketLoss);
+            response.set_time(time);
+
+            if (isBlue != nullptr) {
+                response.set_is_blue(*isBlue);
+            }
+            // only collect valid responses
+            if (response.IsInitialized()) {
+                if (data->robotReplyPacketLoss == 0 || data->rng.uniformFloat(0, 1) > data->robotReplyPacketLoss) {
+                    responses.append(response);
+                }
+            }
+        };
+        if (is_blue) {
+            fabricateResponse(m_data->robotsBlue, &is_blue);
+        } else {
+            fabricateResponse(m_data->robotsYellow, &is_blue);
+        }
+    }
+
+    // Conversion copied from src/simulator/simulator.cpp : RobotCommandAdaptor::handleRobotResponse
+    std::vector<sslsim::RobotFeedback> robot_feedback;
+    for(const auto& response : responses) {
+        if (response.has_is_blue() && response.is_blue() == is_blue && response.has_ball_detected()) {
+            sslsim::RobotFeedback feedback;
+            feedback.set_id(response.id());
+            feedback.set_dribbler_ball_contact(response.ball_detected());
+            robot_feedback.emplace_back(feedback);
+        }
+    }
+
+    return robot_feedback;
+}
+
+std::vector<sslsim::RobotFeedback> Simulator::handleYellowRobotControl(sslsim::RobotControl msg) {
+    handleRobotControl(msg, false);
+}
+
+std::vector<sslsim::RobotFeedback> Simulator::handleBlueRobotControl(sslsim::RobotControl msg) {
+    handleRobotControl(msg, true);
+}
+
+std::vector<sslsim::SimulatorError> Simulator::getErrors() {
+    QList<SSLSimError> aggregated_errors;
+    for(auto source : {ErrorSource::BLUE, ErrorSource::YELLOW, ErrorSource::CONFIG}) {
+        aggregated_errors.append(m_aggregator->getAggregates(source));
+    }
+
+    // Deduplicate aggregated_errors by appending their code and message, and checking against
+    // the set of existing aggregated_errors
+    std::set<std::string> error_set;
+    std::vector<sslsim::SimulatorError> errors;
+    for(const auto& e : aggregated_errors) {
+        std::string combined_error_str = e->code();
+        combined_error_str.append(e->message());
+        if(error_set.insert(combined_error_str).second) {
+            errors.emplace_back(*e);
+        }
+    }
+
+    return errors;
+}
+
+void Simulator::handleSimulatorCommand(sslsim::SimulatorCommand msg) {
+    Command command = Command(new amun::Command);
+
+    amun::CommandSimulator simulator;
+    sslsim::SimulatorControl ssl_control;
+    *simulator.mutable_ssl_control() = msg.control();
+    *command->mutable_simulator() = simulator;
+
+    handleCommand(command);
+}
+
+std::vector<SSL_WrapperPacket> Simulator::getSSLWrapperPackets() {
+    // Copied from createVisionPacket, just without the serialization at the end
+    const std::size_t numCameras = m_data->reportedCameraSetup.size();
+    world::SimulatorState simState;
+    simState.set_time(m_time);
+
+    std::vector<SSL_DetectionFrame> detections(numCameras);
+    for (std::size_t i = 0;i<numCameras;i++) {
+        initializeDetection(&detections[i], i);
+    }
+
+    auto* ball = simState.mutable_ball();
+    m_data->ball->writeBallState(ball);
+
+    const btVector3 ballPosition = m_data->ball->position() / SIMULATOR_SCALE;
+    if (m_time - m_lastBallSendTime >= m_minBallDetectionTime) {
+        m_lastBallSendTime = m_time;
+
+        for (std::size_t cameraId = 0; cameraId < numCameras; ++cameraId) {
+            // at least one id is always valid
+            if (!checkCameraID(cameraId, ballPosition, m_data->cameraPositions, m_data->cameraOverlap)) {
+                continue;
+            }
+
+            bool missingBall = m_data->missingBallDetections > 0 && m_data->rng.uniformFloat(0, 1) <= m_data->missingBallDetections;
+            if (missingBall) {
+                continue;
+            }
+
+            // get ball position
+            const btVector3 positionOffset = positionOffsetForCamera(m_data->objectPositionOffset, m_data->cameraPositions[cameraId]);
+            bool visible = m_data->ball->update(detections[cameraId].add_balls(), m_data->stddevBall, m_data->stddevBallArea, m_data->cameraPositions[cameraId],
+                                                m_data->enableInvisibleBall, m_data->ballVisibilityThreshold, positionOffset);
+            if (!visible) {
+                detections[cameraId].clear_balls();
+            }
+        }
+    }
+
+    // get robot positions
+    for (bool teamIsBlue : {true, false}) {
+        auto &team = teamIsBlue ? m_data->robotsBlue : m_data->robotsYellow;
+
+        for (const auto& it : team) {
+            SimRobot* robot = it.first;
+            auto* robotProto = teamIsBlue ? simState.add_blue_robots() : simState.add_yellow_robots();
+            robot->update(robotProto, m_data->ball);
+
+            if (m_time - robot->getLastSendTime() >= m_minRobotDetectionTime) {
+                const float timeDiff = (m_time - robot->getLastSendTime()) * 1E-9;
+                const btVector3 robotPos = robot->position() / SIMULATOR_SCALE;
+
+                for (std::size_t cameraId = 0; cameraId < numCameras; ++cameraId) {
+
+                    if (!checkCameraID(cameraId, robotPos, m_data->cameraPositions, m_data->cameraOverlap)) {
+                        continue;
+                    }
+
+                    bool missingRobot = m_data->missingRobotDetections > 0 && m_data->rng.uniformFloat(0, 1) <= m_data->missingRobotDetections;
+                    if (missingRobot) {
+                        continue;
+                    }
+
+                    const btVector3 positionOffset = positionOffsetForCamera(m_data->objectPositionOffset, m_data->cameraPositions[cameraId]);
+                    if (teamIsBlue) {
+                        robot->update(detections[cameraId].add_robots_blue(), m_data->stddevRobot, m_data->stddevRobotPhi, m_time, positionOffset);
+                    } else {
+                        robot->update(detections[cameraId].add_robots_yellow(), m_data->stddevRobot, m_data->stddevRobotPhi, m_time, positionOffset);
+                    }
+
+                    // once in a while, add a ball mis-detection at a corner of the dribbler
+                    // in real games, this happens because the ball detection light beam used by many teams is red
+                    float detectionProb = timeDiff * m_data->ballDetectionsAtDribbler;
+                    if (m_data->ballDetectionsAtDribbler > 0 && m_data->rng.uniformFloat(0, 1) < detectionProb) {
+                        // always on the right side of the dribbler for now
+                        if (!m_data->ball->addDetection(detections[cameraId].add_balls(), robot->dribblerCorner(false) / SIMULATOR_SCALE,
+                                                        m_data->stddevRobot, 0, m_data->cameraPositions[cameraId], false, 0, positionOffset)) {
+                            detections[cameraId].mutable_balls()->DeleteSubrange(detections[cameraId].balls_size()-1, 1);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    std::vector<SSL_WrapperPacket> packets;
+    packets.reserve(numCameras);
+
+    // add a wrapper packet for all detections (also for empty ones).
+    // The reason is that other teams might rely on the fact that these detections are in regular intervals.
+    for (auto &frame : detections) {
+
+        // if multiple balls are reported, shuffle them randomly (the tracking might have systematic errors depending on the ball order)
+        if (frame.balls_size() > 1) {
+            std::shuffle(frame.mutable_balls()->begin(), frame.mutable_balls()->end(), rand_shuffle_src);
+        }
+
+        SSL_WrapperPacket packet;
+        packet.mutable_detection()->CopyFrom(frame);
+        packets.push_back(packet);
+    }
+
+    // add field geometry
+    if (packets.size() == 0) {
+        packets.push_back(SSL_WrapperPacket());
+    }
+    SSL_GeometryData *geometry = packets[0].mutable_geometry();
+    SSL_GeometryFieldSize *field = geometry->mutable_field();
+    convertToSSlGeometry(m_data->geometry, field);
+
+    const btVector3 positionErrorSimScale = btVector3(0.3f, 0.7f, 0.05f).normalized() * m_data->cameraPositionError;
+    btVector3 positionErrorVisionScale{0, 0, positionErrorSimScale.z() * 1000};
+    coordinates::toVision(positionErrorSimScale, positionErrorVisionScale);
+    for (const auto &calibration : m_data->reportedCameraSetup) {
+        auto calib = geometry->add_calib();
+        calib->CopyFrom(calibration);
+        calib->set_derived_camera_world_tx(calib->derived_camera_world_tx() + positionErrorVisionScale.x());
+        calib->set_derived_camera_world_ty(calib->derived_camera_world_ty() + positionErrorVisionScale.y());
+        calib->set_derived_camera_world_tz(calib->derived_camera_world_tz() + positionErrorVisionScale.z());
+    }
+
+    // add ball model to geometry data
+    geometry->mutable_models()->mutable_straight_two_phase()->set_acc_roll(-0.35);
+    geometry->mutable_models()->mutable_straight_two_phase()->set_acc_slide(-4.5);
+    geometry->mutable_models()->mutable_straight_two_phase()->set_k_switch(0.69);
+    geometry->mutable_models()->mutable_chip_fixed_loss()->set_damping_z(0.566);
+    geometry->mutable_models()->mutable_chip_fixed_loss()->set_damping_xy_first_hop(0.715);
+    geometry->mutable_models()->mutable_chip_fixed_loss()->set_damping_xy_other_hops(1);
+
+    return packets;
+}
