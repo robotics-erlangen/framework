@@ -21,9 +21,11 @@
 #ifndef SIMULATOR_H
 #define SIMULATOR_H
 
+#include "core/timer.h"
 #include "protobuf/command.h"
 #include "protobuf/status.h"
 #include "protobuf/sslsim.h"
+#include <QFile>
 #include <QList>
 #include <QMap>
 #include <QPair>
@@ -31,6 +33,7 @@
 #include <QByteArray>
 #include <tuple>
 #include <random>
+#include <google/protobuf/text_format.h>
 
 #include "protobuf/ssl_simulation_robot_control.pb.h"
 #include "protobuf/ssl_simulation_robot_feedback.pb.h"
@@ -63,6 +66,27 @@ namespace camun {
     }
 }
 
+namespace {
+    amun::SimulatorSetup loadSetupFromFile(std::string absolute_filepath) {
+        QFile file(QString::fromStdString(absolute_filepath));
+        if (!file.open(QFile::ReadOnly))
+        {
+            std::cerr <<
+                      "Could not open configuration file " << absolute_filepath
+                      << std::endl;
+        }
+
+        QString str = file.readAll();
+        file.close();
+
+        std::string s = qPrintable(str);
+        google::protobuf::TextFormat::Parser parser;
+        amun::SimulatorSetup er_force_sim_setup;
+        parser.ParseFromString(s, &er_force_sim_setup);
+        return er_force_sim_setup;
+    }
+}
+
 class camun::simulator::Simulator : public QObject
 {
     Q_OBJECT
@@ -70,6 +94,7 @@ class camun::simulator::Simulator : public QObject
 public:
     typedef QMap<unsigned int, QPair<SimRobot*, unsigned int>> RobotMap; /*First int: ID, Second int: Generation*/
 
+    explicit Simulator(std::string absolute_filepath);
     explicit Simulator(const Timer *timer, const amun::SimulatorSetup &setup, bool useManualTrigger = false);
     ~Simulator() override;
     Simulator(const Simulator&) = delete;
@@ -145,5 +170,6 @@ private:
 
     std::mt19937 rand_shuffle_src = std::mt19937(std::random_device()());
 };
+
 
 #endif // SIMULATOR_H

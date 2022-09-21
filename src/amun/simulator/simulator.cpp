@@ -103,6 +103,9 @@ static void simulatorTickCallback(btDynamicsWorld *world, btScalar timeStep)
     sim->handleSimulatorTick(timeStep);
 }
 
+Simulator::Simulator(std::string absolute_filepath) : Simulator(nullptr, loadSetupFromFile(absolute_filepath), true){
+}
+
 /*!
  * \class Simulator
  * \ingroup simulator
@@ -172,7 +175,7 @@ Simulator::Simulator(const Timer *timer, const amun::SimulatorSetup &setup, bool
 
     // no robots after initialisation
 
-    connect(timer, &Timer::scalingChanged, this, &Simulator::setScaling);
+//    connect(timer, &Timer::scalingChanged, this, &Simulator::setScaling);
 }
 
 // does delete all Simrobots in the RobotMap, does not clear map
@@ -1055,6 +1058,9 @@ void Simulator::handleSimulatorCommand(sslsim::SimulatorCommand msg) {
     amun::CommandSimulator simulator;
     sslsim::SimulatorControl ssl_control;
     *simulator.mutable_ssl_control() = msg.control();
+    // Clear to avoid the code path where we read from m_timer in handleCommand(), which
+    // we set to nullptr in our custom constructor
+    simulator.clear_enable();
     *command->mutable_simulator() = simulator;
 
     handleCommand(command);

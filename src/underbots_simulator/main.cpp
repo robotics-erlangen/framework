@@ -9,27 +9,10 @@
 
 int main(int argc, char* argv[])
 {
-//    QString full_filename = "../../../../config/simulator/2020.txt" ;
-//    QString full_filename = "/home/mathew/projects/ER-Force-Simulator/config/simulator/2020.txt";
-    QString full_filename = "/home/mathew/Projects/ER-Force-Simulator/config/simulator/2020.txt";
-    QFile file(full_filename);
-    if (!file.open(QFile::ReadOnly))
-    {
-        std::cerr <<
-        "Could not open configuration file " << full_filename.toStdString()
-                   << std::endl;
-    }
+    std::string full_filename = "/home/mathew/Projects/ER-Force-Simulator/config/simulator/2020.txt";
 
-    QString str = file.readAll();
-    file.close();
+    auto simulator = camun::simulator::Simulator(full_filename);
 
-    std::string s = qPrintable(str);
-    google::protobuf::TextFormat::Parser parser;
-    amun::SimulatorSetup er_force_sim_setup;
-    parser.ParseFromString(s, &er_force_sim_setup);
-
-    auto* timer = new Timer();
-    auto simulator = camun::simulator::Simulator(timer, er_force_sim_setup, true);
 
     sslsim::SimulatorCommand command;
     sslsim::SimulatorControl control;
