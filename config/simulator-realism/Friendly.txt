@@ -14,3 +14,4 @@ vision_delay: 35000000
 simulate_dribbling: true
 object_position_offset: 0.02
 vision_processing_time: 10000000
+missing_robot_detections: 0.02

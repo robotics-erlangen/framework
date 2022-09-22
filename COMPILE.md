@@ -116,6 +116,15 @@ In order to download and use the precompiled V8, use:
 cmake -DDOWNLOAD_V8=TRUE ..
 ```
 
+The framework has an "easy mode" version we use to introduce new members to our software.
+It disables some of the features to make it less likely for new people to accidentally change something they didn't want to change.
+For example the simulator, kicker and internal referee can't be disabled in this version.
+It also changes the default config to make it easier to just start, e.g. select all robots.
+To build the easy mode version use:
+```
+cmake -DEASY_MODE=TRUE ..
+```
+
 To be able to use the USB transceiver / JTAG programmer the rights for udev have to be modified.
 This only needs to be done once.
 ```

@@ -274,16 +274,19 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
 
     const uint INITIAL_CONFIG_ID = isRa ? 1 : 2;
     loadConfig(true, INITIAL_CONFIG_ID);
+
+#ifndef EASY_MODE
     // switch configuration keys
-//    QSignalMapper *switchConfigMapper = new QSignalMapper(this);
-//    for (uint i = 0;i<10;i++) {
-//        QAction *action = new QAction(this);
-//        action->setShortcut(QKeySequence(static_cast<Qt::Key>(static_cast<unsigned int>((Qt::ALT + Qt::Key_0) + i))));
-//        connect(action, SIGNAL(triggered()), switchConfigMapper, SLOT(map()));
-//        switchConfigMapper->setMapping(action, int(i));
-//        addAction(action);
-//    }
-//    connect(switchConfigMapper, SIGNAL(mapped(int)), SLOT(switchToWidgetConfiguration(int)));
+    QSignalMapper *switchConfigMapper = new QSignalMapper(this);
+    for (uint i = 0;i<10;i++) {
+        QAction *action = new QAction(this);
+        action->setShortcut(QKeySequence(static_cast<Qt::Key>(static_cast<unsigned int>((Qt::ALT + Qt::Key_0) + i))));
+        connect(action, SIGNAL(triggered()), switchConfigMapper, SLOT(map()));
+        switchConfigMapper->setMapping(action, int(i));
+        addAction(action);
+    }
+    connect(switchConfigMapper, SIGNAL(mapped(int)), SLOT(switchToWidgetConfiguration(int)));
+#endif
 
     ui->actionSimulator->setChecked(s.value("Simulator/Enabled").toBool());
     ui->actionInternalReferee->setChecked(s.value("Referee/Internal").toBool());
@@ -383,6 +386,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     switchToWidgetConfiguration(INITIAL_CONFIG_ID, true);
     udpateSpeedActionsEnabled();
 
+#ifdef EASY_MODE
     ui->actionSimulator->setChecked(true);
     ui->actionSimulator->setEnabled(false);
     ui->actionInternalReferee->setChecked(true);
@@ -393,6 +397,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     ui->actionChargeKicker->setEnabled(false);
     ui->actionEnableTransceiver->setChecked(true);
     ui->actionEnableTransceiver->setEnabled(false);
+#endif
 }
 
 MainWindow::~MainWindow()
@@ -874,7 +879,11 @@ void MainWindow::toggleHorusModeWidgets(bool enable)
     ui->actionStepBack->setEnabled(enable);
     ui->actionStepForward->setEnabled(enable);
     ui->actionTogglePause->setEnabled(enable);
+#ifdef EASY_MODE
     ui->actionShowBacklog->setEnabled(false);
+#else
+    ui->actionShowBacklog->setEnabled(!enable);
+#endif
     ui->referee->setEnabled(!enable);
     ui->simulator->setEnabled(!enable);
     ui->simulatorConfig->setEnabled(!enable);

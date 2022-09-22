@@ -87,8 +87,14 @@ void SimulatorConfigWidget::load()
         ui->realismPreset->addItem(shownFilename);
     }
 
+#ifdef EASY_MODE
+    const auto defaultPreset = "Friendly";
+#else
+    const auto defaultPreset = "Realistic";
+#endif
+
     QSettings s;
-    QString selectedFile = s.value("SimulatorConfig/RealismPreset", "Friendly").toString();
+    QString selectedFile = s.value("SimulatorConfig/RealismPreset", defaultPreset).toString();
 
     ui->realismPreset->setCurrentText(selectedFile);
 }

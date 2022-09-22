@@ -359,10 +359,12 @@ void RobotSelectionWidget::loadRobotsFromGroup(bool simulator)
         loadRobots("SimulatorBlueTeam", RobotWidget::Blue, &hasSimRobots);
         loadRobots("SimulatorYellowTeam", RobotWidget::Yellow, &hasSimRobots);
         loadRobots("SimulatorSharedTeam", RobotWidget::Mixed, &hasSimRobots);
+#ifdef EASY_MODE
         if (!hasSimRobots) {
             int generation = 3;
             selectTeamForGeneration(generation, 0 /* unused */, RobotWidget::Select11v11);
         }
+#endif
     } else {
         loadRobots("BlueTeam", RobotWidget::Blue, nullptr);
         loadRobots("YellowTeam", RobotWidget::Yellow, nullptr);
