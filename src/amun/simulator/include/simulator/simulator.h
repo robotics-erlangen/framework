@@ -21,7 +21,7 @@
 #ifndef SIMULATOR_H
 #define SIMULATOR_H
 
-#include "core/timer.h"
+//#include "core/timer.h"
 #include "protobuf/command.h"
 #include "protobuf/status.h"
 #include "protobuf/sslsim.h"
@@ -32,6 +32,7 @@
 #include <QQueue>
 #include <QByteArray>
 #include <tuple>
+#include <list>
 #include <random>
 #include <google/protobuf/text_format.h>
 
@@ -111,6 +112,26 @@ public:
     // Sometimes the simulation has to run before errors are detected, so provide
     // a separate function the caller can check whenever they want
     std::vector<sslsim::SimulatorError> getErrors();
+    std::vector<uint8_t> getSSLWraperPacketBytes() {
+        auto packets = getSSLWrapperPackets();
+        if(!packets.empty())
+        {
+            SSL_WrapperPacket msg = packets[0];
+            std::vector<uint8_t> foo(msg.ByteSizeLong());
+            if(foo.data() != nullptr) {
+                msg.SerializeToArray(foo.data(), msg.ByteSizeLong());
+
+            }
+            return foo;
+        }
+        return {};
+
+//            std::array<std::byte, msg.ByteSizeLong()> ret;
+//            msg.SerializeToArray()
+//        }
+//        SSL_WrapperPacket msg = getSSLWraperPackets()
+    };
+
 
 
 signals:
@@ -170,6 +191,5 @@ private:
 
     std::mt19937 rand_shuffle_src = std::mt19937(std::random_device()());
 };
-
 
 #endif // SIMULATOR_H

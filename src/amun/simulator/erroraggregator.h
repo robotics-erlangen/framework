@@ -20,6 +20,7 @@
 
 #ifndef SIM_AGGREGATOR_H
 #define SIM_AGGREGATOR_H
+
 #include <QObject>
 #include <QMap>
 #include "protobuf/sslsim.h"

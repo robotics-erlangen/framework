@@ -29,7 +29,6 @@ add_subdirectory(protobuf)
 add_subdirectory(amun)
 add_subdirectory(visionlog)
 add_subdirectory(timeline)
-add_subdirectory(underbots_simulator)
 
 # apps
 add_subdirectory(ra)
