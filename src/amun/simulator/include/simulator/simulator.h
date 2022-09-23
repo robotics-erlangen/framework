@@ -88,6 +88,8 @@ namespace {
     }
 }
 
+using SerializedMsg = std::vector<uint8_t>;
+
 class camun::simulator::Simulator : public QObject
 {
     Q_OBJECT
@@ -103,36 +105,45 @@ public:
     void handleSimulatorTick(double timeStep);
     void seedPRGN(uint32_t seed);
 
+    template <typename T>
+    std::vector<uint8_t> serializeProto(const T& msg) {
+        size_t msg_size_bytes = msg.ByteSizeLong();
+        std::vector<uint8_t> data(msg_size_bytes);
+        if(data.data() != nullptr) {
+            msg.SerializeToArray(data.data(), msg_size_bytes);
+        }
+        return data;
+    }
+    template <typename T>
+    T parseProto(const SerializedMsg& msg) {
+        T parsed_msg;
+        if(!parsed_msg.ParseFromArray(msg.data(), msg.size())) {
+            // TODO: error
+        }
+        return parsed_msg;
+    }
+
     void stepSimulation(float time_s);
-    std::vector<sslsim::RobotFeedback> handleRobotControl(const sslsim::RobotControl& msg, bool is_blue);
-    std::vector<sslsim::RobotFeedback> handleYellowRobotControl(sslsim::RobotControl msg);
-    std::vector<sslsim::RobotFeedback> handleBlueRobotControl(sslsim::RobotControl msg);
+
+    // TODO you are here: restore these functions to use the actual proto types
+    // and wrap them all to return and take bytes as parameters (maybe double check params don't work)
+    sslsim::RobotControlResponse handleRobotControl(const sslsim::RobotControl& msg, bool is_blue);
+    sslsim::RobotControlResponse handleYellowRobotControl(sslsim::RobotControl msg);
+    sslsim::RobotControlResponse handleBlueRobotControl(sslsim::RobotControl msg);
     void handleSimulatorCommand(sslsim::SimulatorCommand msg);
     std::vector<SSL_WrapperPacket> getSSLWrapperPackets();
     // Sometimes the simulation has to run before errors are detected, so provide
     // a separate function the caller can check whenever they want
+    // Returns std::vector<sslsim::SimulatorError>
     std::vector<sslsim::SimulatorError> getErrors();
-    std::vector<uint8_t> getSSLWraperPacketBytes() {
-        auto packets = getSSLWrapperPackets();
-        if(!packets.empty())
-        {
-            SSL_WrapperPacket msg = packets[0];
-            std::vector<uint8_t> foo(msg.ByteSizeLong());
-            if(foo.data() != nullptr) {
-                msg.SerializeToArray(foo.data(), msg.ByteSizeLong());
 
-            }
-            return foo;
-        }
-        return {};
-
-//            std::array<std::byte, msg.ByteSizeLong()> ret;
-//            msg.SerializeToArray()
-//        }
-//        SSL_WrapperPacket msg = getSSLWraperPackets()
-    };
-
-
+    // Even though some of these could be overloaded and share names with the above, it's easier
+    // for pybind to disambiguate types with different names
+    SerializedMsg handleSerializedYellowRobotControl(SerializedMsg msg);
+    SerializedMsg handleSerializedBlueRobotControl(SerializedMsg msg);
+    void handleSerializedSimulatorCommand(SerializedMsg msg);
+    std::vector<SerializedMsg> getSerializedSSLWrapperPackets();
+    std::vector<SerializedMsg> getSerializedErrors();
 
 signals:
     void gotPacket(const QByteArray &data, qint64 time, QString sender);

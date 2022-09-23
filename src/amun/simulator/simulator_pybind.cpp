@@ -4,11 +4,14 @@
 
 namespace py=pybind11;
 
-PYBIND11_MODULE(pysimulator, m) {
+PYBIND11_MODULE(erforce_simulator, m) {
     py::class_<camun::simulator::Simulator>(m, "Simulator")
             .def(py::init<std::string>())
-            .def("get_ssl_wrapper_packet_bytes", &camun::simulator::Simulator::getSSLWraperPacketBytes)
             .def("step_simulation", &camun::simulator::Simulator::stepSimulation)
-//            .def("get_ssl_wrapper_packets", &camun::simulator::Simulator::getSSLWrapperPackets)
+            .def("get_serialized_ssl_wrapper_packets", &camun::simulator::Simulator::getSerializedSSLWrapperPackets)
+            .def("get_serialized_errors", &camun::simulator::Simulator::getSerializedErrors)
+            .def("handle_yellow_robot_control", &camun::simulator::Simulator::handleSerializedYellowRobotControl)
+            .def("handle_blue_robot_control", &camun::simulator::Simulator::handleSerializedBlueRobotControl)
+            .def("handle_simulator_command", &camun::simulator::Simulator::handleSerializedSimulatorCommand)
             ;
 }

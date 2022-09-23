@@ -972,9 +972,9 @@ void Simulator::stepSimulation(float time_s) {
     m_time += static_cast<qint64>(time_s * 1E9);
 }
 
-std::vector<sslsim::RobotFeedback> Simulator::handleRobotControl(const sslsim::RobotControl& msg, bool is_blue) {
-    // collect responses from robots
-    QList<robot::RadioResponse> responses;
+sslsim::RobotControlResponse Simulator::handleRobotControl(const sslsim::RobotControl& msg, bool is_blue) {
+    // collect radio_responses from robots
+    QList<robot::RadioResponse> radio_responses;
     for (const sslsim::RobotCommand& command : msg.robot_commands()) {
 
         if (m_data->robotCommandPacketLoss > 0 && m_data->rng.uniformFloat(0, 1) <= m_data->robotCommandPacketLoss) {
@@ -986,7 +986,7 @@ std::vector<sslsim::RobotFeedback> Simulator::handleRobotControl(const sslsim::R
         SimulatorData* data = m_data;
         auto time = m_time;
         auto charge = m_charge;
-        auto fabricateResponse = [data, &responses, time, charge, &id, &command](const Simulator::RobotMap& map, const bool* isBlue) {
+        auto fabricateResponse = [data, &radio_responses, time, charge, &id, &command](const Simulator::RobotMap& map, const bool* isBlue) {
             if (!map.contains(id)) return;
             robot::RadioResponse response = map[id].first->setCommand(command, data->ball, charge,
                                                                       data->robotCommandPacketLoss, data->robotReplyPacketLoss);
@@ -995,10 +995,10 @@ std::vector<sslsim::RobotFeedback> Simulator::handleRobotControl(const sslsim::R
             if (isBlue != nullptr) {
                 response.set_is_blue(*isBlue);
             }
-            // only collect valid responses
+            // only collect valid radio_responses
             if (response.IsInitialized()) {
                 if (data->robotReplyPacketLoss == 0 || data->rng.uniformFloat(0, 1) > data->robotReplyPacketLoss) {
-                    responses.append(response);
+                    radio_responses.append(response);
                 }
             }
         };
@@ -1010,25 +1010,33 @@ std::vector<sslsim::RobotFeedback> Simulator::handleRobotControl(const sslsim::R
     }
 
     // Conversion copied from src/simulator/simulator.cpp : RobotCommandAdaptor::handleRobotResponse
-    std::vector<sslsim::RobotFeedback> robot_feedback;
-    for(const auto& response : responses) {
-        if (response.has_is_blue() && response.is_blue() == is_blue && response.has_ball_detected()) {
+    sslsim::RobotControlResponse response;
+    for(const auto& radio_response : radio_responses) {
+        if (radio_response.has_is_blue() && radio_response.is_blue() == is_blue && radio_response.has_ball_detected()) {
             sslsim::RobotFeedback feedback;
-            feedback.set_id(response.id());
-            feedback.set_dribbler_ball_contact(response.ball_detected());
-            robot_feedback.emplace_back(feedback);
+            feedback.set_id(radio_response.id());
+            feedback.set_dribbler_ball_contact(radio_response.ball_detected());
+            *response.add_feedback() = feedback;
         }
     }
 
-    return robot_feedback;
+    return response;
 }
 
-std::vector<sslsim::RobotFeedback> Simulator::handleYellowRobotControl(sslsim::RobotControl msg) {
-    handleRobotControl(msg, false);
+sslsim::RobotControlResponse Simulator::handleYellowRobotControl(sslsim::RobotControl msg) {
+    return handleRobotControl(msg, false);
 }
 
-std::vector<sslsim::RobotFeedback> Simulator::handleBlueRobotControl(sslsim::RobotControl msg) {
-    handleRobotControl(msg, true);
+SerializedMsg Simulator::handleSerializedYellowRobotControl(SerializedMsg msg) {
+    return serializeProto(handleYellowRobotControl(parseProto<sslsim::RobotControl>(msg)));
+}
+
+sslsim::RobotControlResponse Simulator::handleBlueRobotControl(sslsim::RobotControl msg) {
+    return handleRobotControl(msg, true);
+}
+
+SerializedMsg Simulator::handleSerializedBlueRobotControl(SerializedMsg msg) {
+    return serializeProto(handleBlueRobotControl(parseProto<sslsim::RobotControl>(msg)));
 }
 
 std::vector<sslsim::SimulatorError> Simulator::getErrors() {
@@ -1052,6 +1060,14 @@ std::vector<sslsim::SimulatorError> Simulator::getErrors() {
     return errors;
 }
 
+std::vector<SerializedMsg> Simulator::getSerializedErrors() {
+    std::vector<SerializedMsg> errors;
+    for(const auto& e : getErrors()) {
+        errors.emplace_back(serializeProto(e));
+    }
+    return errors;
+}
+
 void Simulator::handleSimulatorCommand(sslsim::SimulatorCommand msg) {
     Command command = Command(new amun::Command);
 
@@ -1064,6 +1080,11 @@ void Simulator::handleSimulatorCommand(sslsim::SimulatorCommand msg) {
     *command->mutable_simulator() = simulator;
 
     handleCommand(command);
+}
+
+void Simulator::handleSerializedSimulatorCommand(SerializedMsg msg) {
+    auto command = parseProto<sslsim::SimulatorCommand>(msg);
+    handleSimulatorCommand(command);
 }
 
 std::vector<SSL_WrapperPacket> Simulator::getSSLWrapperPackets() {
@@ -1196,4 +1217,12 @@ std::vector<SSL_WrapperPacket> Simulator::getSSLWrapperPackets() {
     geometry->mutable_models()->mutable_chip_fixed_loss()->set_damping_xy_other_hops(1);
 
     return packets;
+}
+
+std::vector<SerializedMsg> Simulator::getSerializedSSLWrapperPackets() {
+    std::vector<std::vector<uint8_t>> serialized_packets;
+    for(const auto& p : getSSLWrapperPackets()) {
+        serialized_packets.emplace_back(serializeProto(p));
+    }
+    return serialized_packets;
 }

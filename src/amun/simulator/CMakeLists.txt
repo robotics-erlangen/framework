@@ -57,19 +57,17 @@ add_library(amun::simulator ALIAS simulator)
 
 include(FetchContent)
 
-set(PYTHON_EXECUTABLE /home/mathew/.pyenv/versions/underbots/bin/python)
 FetchContent_Declare(
         pybind11
         GIT_REPOSITORY https://github.com/pybind/pybind11.git
         GIT_TAG        v2.10.0
         GIT_SHALLOW    TRUE
 )
+# Must match the pyenv environment from the underbots setup scripts
+set(PYTHON_EXECUTABLE $ENV{HOME}/.pyenv/versions/underbots/bin/python)
 FetchContent_MakeAvailable(pybind11)
 
-#set(PYTHON_EXECUTABLE /home/mathew/.pyenv/versions/underbots/bin/python)
-#set(PYTHON_LIBRARY /home/mathew/.pyenv/versions/3.9.7/lib/libpython3.9.a)
-#set(PYTHON_INCLUDE_DIR /home/mathew/.pyenv/versions/3.9.7/include/python3.9/)
-pybind11_add_module(pysimulator simulator_pybind.cpp)
-target_link_libraries(pysimulator
+pybind11_add_module(erforce_simulator simulator_pybind.cpp)
+target_link_libraries(erforce_simulator
         PUBLIC amun::simulator
 )
