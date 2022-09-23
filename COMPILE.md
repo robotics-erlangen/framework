@@ -69,7 +69,7 @@ source.
 #### Open Suse
 The required packages can be installed with
 ```
-sudo zypper install git cmake libqt5-qtbase-devel libusb-1_0-devel libqt5-qtsvg-devel python2-pip libudev-devel patch glu-devel
+sudo zypper install git cmake libqt5-qtbase-devel libusb-1_0-devel libqt5-qtsvg-devel python2-pip libudev-devel patch glu-devel openssl-devel
 ```
 
 For building V8 you need to select pip2 as pip, with
