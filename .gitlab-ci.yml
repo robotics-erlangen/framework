@@ -126,9 +126,9 @@ compile-ra-20.04:
   extends: .compile-ra-schedule
   image: ci:ubuntu-20.04
 
-compile-ra-21.04:
+compile-ra-22.04:
   extends: .compile-ra-schedule
-  image: ci:ubuntu-21.04
+  image: ci:ubuntu-22.04
 
 .test-schedule:
   extends: .test-template
@@ -156,12 +156,12 @@ tests-20.04:
     - compile-ra-20.04
   needs: [compile-ra-20.04]
 
-tests-21.04:
+tests-22.04:
   extends: .test-schedule
-  image: ci:ubuntu-21.04
+  image: ci:ubuntu-22.04
   dependencies:
-    - compile-ra-21.04
-  needs: [compile-ra-21.04]
+    - compile-ra-22.04
+  needs: [compile-ra-22.04]
 
 
 .sanitize-schedule:
@@ -184,7 +184,7 @@ sanitize-20.04:
   image: ci:ubuntu-20.04
   needs: [tests-20.04]
 
-sanitize-21.04:
+sanitize-22.04:
   extends: .sanitize-schedule
-  image: ci:ubuntu-21.04
-  needs: [tests-21.04]
+  image: ci:ubuntu-22.04
+  needs: [tests-22.04]
