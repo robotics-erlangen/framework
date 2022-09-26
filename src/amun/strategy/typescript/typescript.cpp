@@ -142,6 +142,7 @@ void Typescript::createGlobalScope()
     global->Set(context, objectName, Object::New(m_isolate)).Check();
     m_context.Reset(m_isolate, context);
 
+    m_inspectorHolder.reset();
     m_inspectorHolder.reset(new InspectorHolder(m_isolate, m_context));
     m_checkForScriptTimeout->setTimeoutCallback(scriptTimeoutCallback, m_inspectorHolder.get());
     m_internalDebugger.reset(new InternalDebugger(m_isolate, this));
@@ -158,6 +159,7 @@ bool Typescript::canHandle(const QString &filename)
 void Typescript::setInspectorHandler(AbstractInspectorHandler *handler)
 {
     if (m_inspectorHolder->hasInspectorHandler()) {
+        m_inspectorHolder.reset();
         m_inspectorHolder.reset(new InspectorHolder(m_isolate, m_context));
         m_checkForScriptTimeout->setTimeoutCallback(scriptTimeoutCallback, m_inspectorHolder.get());
     }
@@ -166,6 +168,7 @@ void Typescript::setInspectorHandler(AbstractInspectorHandler *handler)
 
 void Typescript::removeInspectorHandler()
 {
+    m_inspectorHolder.reset();
     m_inspectorHolder.reset(new InspectorHolder(m_isolate, m_context));
     m_checkForScriptTimeout->setTimeoutCallback(scriptTimeoutCallback, m_inspectorHolder.get());
     m_internalDebugger.reset(new InternalDebugger(m_isolate, this));
