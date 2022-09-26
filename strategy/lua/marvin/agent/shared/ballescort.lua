@@ -40,7 +40,7 @@ function BallEscort:_checkOpponentTimings()
 end
 
 function BallEscort:_isReachabilityOk(oppTime, ownTime)
-	if not (oppTime < math.huge) then
+	if oppTime >= math.huge then
 		return true
 	end
 

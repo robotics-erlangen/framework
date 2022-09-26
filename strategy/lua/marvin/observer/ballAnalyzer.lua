@@ -124,10 +124,10 @@ function BallAnalyzer:analyze()
 		log("sl: "..slippingFriction.." | ro: "..rollingFriction)
 		if startRolling > startRolling2 then
 			startRolling2 = startRolling + 1
-			running = not (startRolling2 > #accelerationArray) -- out of boundaries
+			running = startRolling2 <= #accelerationArray -- out of boundaries
 		else
 			startRolling2 = startRolling - 1
-			running = not (startRolling2 < 1) -- out of boundaries
+			running = startRolling2 >= 1 -- out of boundaries
 		end
 		if running then
 			endSliding2 = startRolling2 - 1

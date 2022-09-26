@@ -370,20 +370,20 @@ function Defense.mulCornerFactor(way, sec, distance)
 		local defenseHeight = G.DefenseHeight
 		local defenseWidth = G.DefenseWidth
 		local factor = Defense.cornerFactor
-		switchSecMul[1] = function(_way)
-			return _way
+		switchSecMul[1] = function(way2)
+			return way2
 		end
-		switchSecMul[2] = function(_way)
-			return defenseHeight + (_way - defenseHeight) * factor
+		switchSecMul[2] = function(way2)
+			return defenseHeight + (way2 - defenseHeight) * factor
 		end
-		switchSecMul[3] = function(_way, _distance)
-			return _way + (math.pi/2 * _distance * (factor-1))
+		switchSecMul[3] = function(way2, distance2)
+			return way2 + (math.pi/2 * distance2 * (factor-1))
 		end
-		switchSecMul[4] = function(_way)
-			return defenseHeight + defenseWidth + (_way - defenseHeight - defenseWidth) * factor
+		switchSecMul[4] = function(way2)
+			return defenseHeight + defenseWidth + (way2 - defenseHeight - defenseWidth) * factor
 		end
-		switchSecMul[5] = function(_way, _distance)
-			return _way + (math.pi * _distance * (factor-1))
+		switchSecMul[5] = function(way2, distance2)
+			return way2 + (math.pi * distance2 * (factor-1))
 		end
 	end
 	return switchSecMul[sec](way, distance)

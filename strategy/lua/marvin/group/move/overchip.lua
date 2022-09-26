@@ -24,7 +24,7 @@ function Overchip.canStart()
 	return Referee.isFriendlyFreeKickState()
 			and World.Time - Referee.lastStateChangeTime() < 2 -- move should not start if freekick state is already running for some time
 			and G.FieldHeightHalf - (G.DefenseRadius + DISTANCE_TO_DEFENSE_AREA) - World.Ball.pos.y > MIN_RUNWAY_LENGTH -- how much room we need
-			and not (World.Ball.pos.y < -G.FieldHeightHalf * 1/3)
+			and World.Ball.pos.y >= -G.FieldHeightHalf * 1/3
 			and math.abs(World.Ball.pos.x) > G.FieldWidthHalf * 3/4
 			and not Overchip._runwayObstructed()
 end
