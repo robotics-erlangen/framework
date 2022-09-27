@@ -91,10 +91,8 @@ export class Moves implements Group {
 			numCandidateRobots += messaging.receive(MessageType.attackerFlag).size;
 			numCandidateRobots += messaging.receive(MessageType.defenderFlag).size;
 			for (let move of this.moveList) {
-				if (move.canStart()) {
-					if (numCandidateRobots >= move.MIN_ROBOTS) {
-						candidates.push(move);
-					}
+				if (numCandidateRobots >= move.MIN_ROBOTS && move.canStart(numCandidateRobots)) {
+					candidates.push(move);
 				}
 			}
 

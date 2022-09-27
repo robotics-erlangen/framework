@@ -93,7 +93,15 @@ export abstract class Move {
 	public abstract static ALLOW_EXTRA_ATTACKERS: boolean;
 	public static NAME: string = "";
 
-	public abstract static canStart(): boolean;
+	/**
+	 * Checks whether a move is suitable for execution in the current
+	 * situation.
+	 * @param numCandidateRobots - The maximum number of robots that would be
+	 * available for the move. The move can still request more or less robots
+	 * later (through MAX_ROBOTS/wantedMaxRobots)
+	 * @returns whether the move is suitable for execution
+	 */
+	public abstract static canStart(numCandidateRobots: number): boolean;
 	public abstract _canContinue(): boolean;
 	protected abstract _updateTasks(): MoveParameters;
 }
