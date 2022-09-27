@@ -410,7 +410,8 @@
     <string>&amp;Record file</string>
    </property>
    <property name="toolTip">
-    <string>Record File</string>
+    <string>Records what you see on the field, until
+toggled again (disables the backlog when active)</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+R</string>
@@ -490,7 +491,10 @@
     <string>20s</string>
    </property>
    <property name="toolTip">
-    <string>Save Backlog</string>
+    <string>Saves the last 20s of simulation
+If you are currently playing a backlog in Horus mode,
+you are precisely watching this 20s, so this button saves
+what you are watching.</string>
    </property>
   </action>
   <action name="actionSaveBackloglog">
@@ -501,7 +505,8 @@
     <string>20s (log)</string>
    </property>
    <property name="toolTip">
-    <string>Save Backloglog</string>
+    <string>Does nothing in Ra mode, and saves the last 20s
+of continuous playback (including replay).</string>
    </property>
   </action>
   <action name="actionSave20s">
@@ -761,7 +766,8 @@
     <string>Record file</string>
    </property>
    <property name="toolTip">
-    <string>Record Loglog</string>
+    <string>Records what you see on the field, until
+toggled again (disables the backlog when active)</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+R</string>
