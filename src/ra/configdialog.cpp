@@ -47,10 +47,10 @@ const FieldWidgetAction DEFAULT_ROBOT_DOUBLE_CLICK_ACTION = FieldWidgetAction::T
 const QString DEFAULT_ROBOT_DOUBLE_CLICK_SEARCH_STRING_2020 = ".*: <id>";
 const QString DEFAULT_ROBOT_DOUBLE_CLICK_SEARCH_STRING = ".*: <id><team-s>";
 
-const FieldWidgetAction DEFAULT_ROBOT_CTRL_CLICK_ACTION = FieldWidgetAction::None;
-const QString DEFAULT_ROBOT_CTRL_CLICK_SEARCH_STRING = "";
+const FieldWidgetAction DEFAULT_ROBOT_CTRL_CLICK_ACTION = FieldWidgetAction::SetDebugSearch;
+const QString DEFAULT_ROBOT_CTRL_CLICK_SEARCH_STRING = "<team>/agent <id>";
 
-const QString DEFAULT_NUMBER_KEYS_USAGE = "Internal Referee";
+const QString DEFAULT_NUMBER_KEYS_USAGE = "Simulator Speed";
 const QString CURRENT_CONFIG_DATE = "20210112";
 const QString PREALL_CONFIG_DATE = "20201212";
 
@@ -104,7 +104,7 @@ void ConfigDialog::sendConfiguration()
     emit sendCommand(command);
 
     emit useDarkModeColors(ui->uiDarkMode->isChecked());
-    emit useNumKeysForReferee(ui->numKeyUsage->currentText() == DEFAULT_NUMBER_KEYS_USAGE);
+    emit useNumKeysForReferee(ui->numKeyUsage->currentText() != DEFAULT_NUMBER_KEYS_USAGE);
 
     emit setRobotDoubleClickAction(static_cast<FieldWidgetAction>(ui->doubleClickAction->currentData().toInt()),
                                    ui->doubleClickSearch->text());
@@ -221,7 +221,7 @@ void ConfigDialog::apply()
 
 bool ConfigDialog::numKeysUsedForReferee() const
 {
-    return ui->numKeyUsage->currentText() == DEFAULT_NUMBER_KEYS_USAGE;
+    return ui->numKeyUsage->currentText() != DEFAULT_NUMBER_KEYS_USAGE;
 }
 
 QString ConfigDialog::robotActionString(FieldWidgetAction action)
