@@ -34,6 +34,7 @@ add_executable(cpptests
     amun/seshat/combinedlogwriter.cpp
     amun/seshat/logfilereader.cpp
     amun/simulator/simulator.cpp
+    amun/processor/radio_address.cpp
     amun/processor/tracking/ballgroundcollisionfilter.cpp
 )
 

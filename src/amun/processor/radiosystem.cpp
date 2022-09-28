@@ -25,9 +25,12 @@
 #include "firmware-interface/radiocommand2014.h"
 #include "firmware-interface/radiocommand2018.h"
 #include "radiosystem.h"
+#include "radio_address.h"
 #include "usbthread.h"
 #include "usbdevice.h"
 #include <QTimer>
+
+using namespace Radio;
 
 static_assert(sizeof(RadioCommand2014) == 23, "Expected radio command packet of size 23");
 static_assert(sizeof(RadioResponse2014) == 10, "Expected radio response packet of size 10");
@@ -578,19 +581,10 @@ void RadioSystem::addRobot2014Command(int id, const robot::Command &command, boo
         data.cur_omega = RADIOCOMMAND2014_INVALID_SPEED;
     }
 
-    // set address
-    TransceiverCommandPacket senderCommand;
-    senderCommand.command = COMMAND_SEND_NRF24;
-    senderCommand.size = sizeof(data) + sizeof(TransceiverSendNRF24Packet);
-
-    TransceiverSendNRF24Packet targetAddress;
-    memcpy(targetAddress.address, robot2014_address, sizeof(robot2014_address));
-    targetAddress.address[0] |= id;
-    targetAddress.expectedResponseSize = sizeof(RadioResponseHeader) + sizeof(RadioResponse2014);
-
-    usb_packet.append((const char*) &senderCommand, sizeof(senderCommand));
-    usb_packet.append((const char*) &targetAddress, sizeof(targetAddress));
-    usb_packet.append((const char*) &data, sizeof(data));
+    addSendCommand(
+        usb_packet, Address { Unicast, Generation::Gen2014, id },
+        sizeof(RadioResponseHeader) + sizeof(RadioResponse2014),
+        reinterpret_cast<const char *>(&data), sizeof(data));
 }
 
 void RadioSystem::addRobot2014Sync(qint64 processingDelay, quint8 packetCounter, QByteArray &usb_packet)
@@ -615,19 +609,14 @@ void RadioSystem::addRobot2014Sync(qint64 processingDelay, quint8 packetCounter,
     data.counter = packetCounter;
     data.time_offset = (processingDelay + syncPacketDelay) / 1000;
 
-    TransceiverCommandPacket senderCommand;
-    senderCommand.command = COMMAND_SEND_NRF24;
-    senderCommand.size = sizeof(data) + sizeof(TransceiverSendNRF24Packet);
-
-    TransceiverSendNRF24Packet targetAddress;
-    memcpy(targetAddress.address, robot_datagram, sizeof(robot_datagram));
-    // broadcast (0x1f) to generation 2014 (0x20)
-    targetAddress.address[0] = 0x1f | 0x20;
-    targetAddress.expectedResponseSize = 0;
-
-    usb_packet.append((const char*) &senderCommand, sizeof(senderCommand));
-    usb_packet.append((const char*) &targetAddress, sizeof(targetAddress));
-    usb_packet.append((const char*) &data, sizeof(data));
+    addSendCommand(
+        usb_packet, Address { Broadcast, Generation::Gen2014 },
+        // Use a expected response size of 1 to add a delay of 240 us to
+        // workaround reception issues our custom built nrf receivers fail to
+        // receive their command packet if it immediatelly follows the sync
+        // packet adding the delay fixes the problem reliably
+        1,
+        reinterpret_cast<const char *>(&data), sizeof(data));
 }
 
 void RadioSystem::addRobot2018Command(int id, const robot::Command &command, bool charge, quint8 packetCounter, QByteArray &usb_packet)
@@ -683,19 +672,10 @@ void RadioSystem::addRobot2018Command(int id, const robot::Command &command, boo
         data.cur_omega = RADIOCOMMAND2018_INVALID_SPEED;
     }
 
-    // set address
-    TransceiverCommandPacket senderCommand;
-    senderCommand.command = COMMAND_SEND_NRF24;
-    senderCommand.size = sizeof(data) + sizeof(TransceiverSendNRF24Packet);
-
-    TransceiverSendNRF24Packet targetAddress;
-    memcpy(targetAddress.address, robot2018_address, sizeof(robot2018_address));
-    targetAddress.address[0] |= id;
-    targetAddress.expectedResponseSize = sizeof(RadioResponseHeader) + sizeof(RadioResponse2018);
-
-    usb_packet.append((const char*) &senderCommand, sizeof(senderCommand));
-    usb_packet.append((const char*) &targetAddress, sizeof(targetAddress));
-    usb_packet.append((const char*) &data, sizeof(data));
+    addSendCommand(
+        usb_packet, Address { Unicast, Generation::Gen2018, id },
+        sizeof(RadioResponseHeader) + sizeof(RadioResponse2018),
+        reinterpret_cast<const char *>(&data), sizeof(data));
 }
 
 void RadioSystem::addRobot2018Sync(qint64 processingDelay, quint8 packetCounter, QByteArray &usb_packet)
@@ -720,23 +700,58 @@ void RadioSystem::addRobot2018Sync(qint64 processingDelay, quint8 packetCounter,
     data.counter = packetCounter;
     data.time_offset = (processingDelay + syncPacketDelay) / 1000;
 
+
+    addSendCommand(
+        usb_packet, Address { Broadcast, Generation::Gen2018 },
+        // Use a expected response size of 1 to add a delay of 240 us to
+        // workaround reception issues our custom built nrf receivers fail to
+        // receive their command packet if it immediatelly follows the sync
+        // packet adding the delay fixes the problem reliably
+        1,
+        reinterpret_cast<const char *>(&data), sizeof(data));
+}
+
+void RadioSystem::addSendCommand(QByteArray &usb_packet, const Radio::Address &target, size_t expectedResponseSize, const char *data, size_t len)
+{
     TransceiverCommandPacket senderCommand;
     senderCommand.command = COMMAND_SEND_NRF24;
-    senderCommand.size = sizeof(data) + sizeof(TransceiverSendNRF24Packet);
+    senderCommand.size = len + sizeof(TransceiverSendNRF24Packet);
+
+    const auto getTargetAddress = [&](int broadcastGenerationTag, const uint8_t unicastAddressTemplate[], size_t addressTemplateLength) -> TransceiverSendNRF24Packet {
+        TransceiverSendNRF24Packet targetAddress;
+
+        if (target.isBroadcast()) {
+            // robot_datagram is used to broadcast both at generation 2014 and 2018
+            memcpy(targetAddress.address, robot_datagram, sizeof(robot_datagram));
+            // broadcast (0x1f) to generation with broadcastGenerationTag
+            targetAddress.address[0] |= 0x1f | broadcastGenerationTag;
+        } else {
+            memcpy(targetAddress.address, unicastAddressTemplate, addressTemplateLength);
+            targetAddress.address[0] |= target.unicastTarget();
+        }
+
+        targetAddress.expectedResponseSize = expectedResponseSize;
+
+        return targetAddress;
+    };
 
     TransceiverSendNRF24Packet targetAddress;
-    memcpy(targetAddress.address, robot_datagram, sizeof(robot_datagram));
-    // broadcast (0x1f) to generation 2018
-    targetAddress.address[0] = 0x1f | robot2018_address[0];
-    // add a delay of 240 us to workaround reception issues
-    // our custom built nrf receivers fail to receive their command packet
-    // if it immediatelly follows the sync packet
-    // adding the delay fixes the problem reliably
-    targetAddress.expectedResponseSize = 1;
+    switch (target.generation) {
+    case Radio::Generation::Gen2014:
+        targetAddress = getTargetAddress(
+            0x20, robot2014_address, sizeof(robot2014_address)
+        );
+        break;
+    case Radio::Generation::Gen2018:
+        targetAddress = getTargetAddress(
+            robot2018_address[0], robot2018_address, sizeof(robot2018_address)
+        );
+        break;
+    }
 
     usb_packet.append((const char*) &senderCommand, sizeof(senderCommand));
     usb_packet.append((const char*) &targetAddress, sizeof(targetAddress));
-    usb_packet.append((const char*) &data, sizeof(data));
+    usb_packet.append((const char*) data, len);
 }
 
 void RadioSystem::addPingPacket(qint64 time, QByteArray &usb_packet)

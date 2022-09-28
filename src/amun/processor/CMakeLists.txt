@@ -23,6 +23,7 @@ add_subdirectory(tracking)
 add_library(processor STATIC
     include/processor/networktransceiver.h
     include/processor/processor.h
+    include/processor/radio_address.h
     include/processor/radiosystem.h
     include/processor/referee.h
     include/processor/integrator.h

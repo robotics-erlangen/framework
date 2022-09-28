@@ -31,6 +31,7 @@ class QTimer;
 class Timer;
 class USBThread;
 class USBDevice;
+namespace Radio { class Address; }
 
 class RadioSystem : public QObject
 {
@@ -96,6 +97,8 @@ private:
     // for now the 2018 functions mostly copy paste of the 2014 functions
     void addRobot2018Command(int id, const robot::Command &command, bool charge, quint8 packetCounter, QByteArray &usb_packet);
     void addRobot2018Sync(qint64 processingDelay, quint8 packetCounter, QByteArray &usb_packet);
+
+    void addSendCommand(QByteArray &usb_packet, const Radio::Address &target, size_t expectedResponseSize, const char *data, size_t len);
 
     void addPingPacket(qint64 time, QByteArray &usb_packet);
     void addStatusPacket(QByteArray &usb_packet);
