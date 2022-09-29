@@ -30,7 +30,6 @@
 #include "widgets/refereestatuswidget.h"
 #include "savedirectorydialog.h"
 #include "logcutter/logcutter.h"
-#include "protobuf/geometry.h"
 #include "logopener.h"
 #include "loglabel.h"
 #include "logfileselectiondialog.h"
@@ -51,6 +50,7 @@
 #include <QUrl>
 #include <QMessageBox>
 #include <QInputDialog>
+#include <QTabBar>
 
 MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     QMainWindow(parent),
@@ -522,13 +522,53 @@ void MainWindow::loadConfig(bool doRestoreGeometry, uint configId)
         restoreGeometry(s.value("Geometry").toByteArray());
     }
     if (s.value("State").isNull()) {
-        tabifyDockWidget(ui->dockSimulator, ui->dockInput);
-        tabifyDockWidget(ui->dockInput, ui->dockVisualization);
-        tabifyDockWidget(ui->dockRobots, ui->dockBlueDebugger);
-        tabifyDockWidget(ui->dockRobots, ui->dockYellowDebugger);
 
-        ui->dockBlueDebugger->close();
-        ui->dockYellowDebugger->close();
+        // The intention here is to first hide all the widgets and then only show the ones that should be part of the default configuration.
+        // Since there seems to be no elegant way to hide all the QDockWidgets this for loop with dynamic_casts will have to do.
+        // The alternative would be to manually hide all the widgets that we don't want to show as a default, but then we would have to
+        // manually add this every time we create a new widget.
+        for (const auto child : children()) {
+            const auto childWidget = dynamic_cast<QDockWidget*>(child);
+            if (childWidget != nullptr) {
+                // Toolbars should not be hidden
+                const auto childToolBar = dynamic_cast<QToolBar*>(child);
+                if (childToolBar == nullptr) {
+                    childWidget->hide();
+                }
+            }
+        }
+
+        tabifyDockWidget(ui->dockVisualization, ui->dockSimulator);
+        tabifyDockWidget(ui->dockSimulator, ui->dockSimConfig);
+        tabifyDockWidget(ui->dockRobots, ui->dockReferee);
+
+        ui->dockSimulator->show();
+        ui->dockSimConfig->show();
+        ui->dockVisualization->show();
+
+        ui->dockReferee->show();
+        ui->dockRobots->show();
+
+        ui->dockTiming->show();
+
+        const auto width = ui->splitterH->size().width();
+        const auto debugTreeWidth = width / 5;
+        const auto fieldWidgetWidth = width - debugTreeWidth;
+        ui->splitterH->setSizes({debugTreeWidth, fieldWidgetWidth});
+
+        const auto height = ui->splitterV->size().width();
+        const auto consoleHeight = height / 5;
+        const auto fieldWidgetHeight = height - consoleHeight;
+        ui->splitterV->setSizes({fieldWidgetHeight, consoleHeight});
+
+        // This selects the uppermost Tab of the tabifiedDockWidgets
+        // Sadly has to be after the show calls, because currentIndex refers to the visible widgets
+        for (const auto child : children()) {
+            const auto childTabBar = dynamic_cast<QTabBar*>(child);
+            if (childTabBar != nullptr) {
+                childTabBar->setCurrentIndex(0);
+            }
+        }
     }
     restoreState(s.value("State").toByteArray());
     ui->splitterV->restoreState(s.value("SplitterV").toByteArray());
