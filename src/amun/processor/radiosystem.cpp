@@ -21,13 +21,16 @@
 
 #include "core/timer.h"
 #include "firmware-interface/radiocommand.h"
-#include "firmware-interface/transceiver2012.h"
 #include "firmware-interface/radiocommand2014.h"
 #include "firmware-interface/radiocommand2018.h"
-#include "radiosystem.h"
+#include "firmware-interface/transceiver2012.h"
 #include "radio_address.h"
-#include "usbthread.h"
+#include "radiosystem.h"
+#include "transceiver2015.h"
 #include "usbdevice.h"
+#include "usbthread.h"
+#include <QByteArray>
+#include <QList>
 #include <QTimer>
 
 using namespace Radio;
@@ -37,28 +40,14 @@ static_assert(sizeof(RadioResponse2014) == 10, "Expected radio response packet o
 static_assert(sizeof(RadioCommand2018) == 23, "Expected radio command packet of size 23");
 static_assert(sizeof(RadioResponse2018) == 10, "Expected radio response packet of size 10");
 
-const int PROTOCOL_VERSION = 5;
-
-typedef struct
-{
-    int64_t time;
-} __attribute__ ((packed)) TransceiverPingData;
-
-
 RadioSystem::RadioSystem(const Timer *timer) :
     m_charge(false),
     m_packetCounter(0),
-    m_context(nullptr),
-    m_device(nullptr),
-    m_connectionState(State::DISCONNECTED),
     m_simulatorEnabled(false),
     m_onlyRestartAfterTimestamp(0),
     m_timer(timer),
     m_droppedCommands(0)
 {
-    // default channel
-    m_configuration.set_channel(10);
-
     m_timeoutTimer = new QTimer(this);
     m_timeoutTimer->setSingleShot(true);
     connect(m_timeoutTimer, &QTimer::timeout, this, &RadioSystem::timeout);
@@ -66,14 +55,6 @@ RadioSystem::RadioSystem(const Timer *timer) :
     m_processTimer = new QTimer(this);
     m_processTimer->setSingleShot(true);
     connect(m_processTimer, &QTimer::timeout, this, &RadioSystem::process);
-}
-
-RadioSystem::~RadioSystem()
-{
-    close();
-#ifdef USB_FOUND
-    delete m_context;
-#endif
 }
 
 void RadioSystem::handleRadioCommands(const QList<robot::RadioCommand> &commands, qint64 processingStart)
@@ -105,7 +86,7 @@ void RadioSystem::handleCommand(const Command &command)
         if (command->simulator().has_enable()) {
             m_simulatorEnabled = command->simulator().enable();
             if (m_simulatorEnabled) {
-                close();
+                closeTransceiver();
             }
         }
     }
@@ -114,19 +95,14 @@ void RadioSystem::handleCommand(const Command &command)
         const amun::CommandTransceiver &t = command->transceiver();
         if (t.has_enable() && !m_simulatorEnabled) {
             if (t.enable()) {
-                open();
+                openTransceiver();
             } else {
-                close();
+                closeTransceiver();
             }
         }
 
         if (t.has_charge()) {
             m_charge = t.charge();
-        }
-
-        if (t.has_configuration()) {
-            m_configuration = t.configuration();
-            sendTransceiverConfiguration();
         }
     }
 
@@ -136,6 +112,10 @@ void RadioSystem::handleCommand(const Command &command)
 
     if (command->has_set_team_yellow()) {
         handleTeam(command->set_team_yellow());
+    }
+
+    if (m_transceiverLayer) {
+        m_transceiverLayer->handleCommand(command);
     }
 }
 
@@ -147,245 +127,90 @@ void RadioSystem::handleTeam(const robot::Team &team)
     }
 }
 
-void RadioSystem::open()
+void RadioSystem::openTransceiver()
 {
-#ifdef USB_FOUND
-    if (m_context == nullptr) {
-        m_context = new USBThread();
+    Transceiver2015 *newTransceiver = [this]() -> Transceiver2015 * {
+        if (m_transceiverLayer) {
+            return nullptr;
+        }
+
+        return new Transceiver2015 { m_timer, this };
+    }();
+
+    if (newTransceiver) {
+        m_transceiverLayer = newTransceiver;
+
+        connect(m_transceiverLayer, &Transceiver2015::sendStatus, this, &RadioSystem::sendStatus);
+        connect(m_transceiverLayer, &Transceiver2015::errorOccurred, this, &RadioSystem::transceiverErrorOccurred);
+        connect(m_transceiverLayer, &Transceiver2015::sendRawRadioResponses, this, &RadioSystem::onRawRadioResponse);
+        connect(m_transceiverLayer, &Transceiver2015::deviceResponded, this, &RadioSystem::transceiverResponded);
     }
 
-    close();
-
-    // get transceiver
-    QList<USBDevice*> devices = USBDevice::getDevices(0x03eb, 0x6127, m_context);
-    if (devices.isEmpty()) {
-        Status status(new amun::Status);
-        status->mutable_transceiver()->set_active(false);
-        status->mutable_transceiver()->set_error("Device not found!");
-        emit sendStatus(status);
-        m_connectionState = State::DISCONNECTED;
+    if (!m_transceiverLayer) {
         return;
     }
 
-    // just assumes it's the first matching device
-    USBDevice *device = devices.takeFirst();
-    qDeleteAll(devices);
-
-    m_device = device;
-    connect(m_device, SIGNAL(readyRead()), SLOT(receive()));
-
-    // try to open the communication channel
-    if (!device->open(QIODevice::ReadWrite)) {
-        close();
-        return;
+    if (m_transceiverLayer->open()) {
+        m_timeoutTimer->start(500);
     }
+}
 
-    // publish transceiver status
-    Status status(new amun::Status);
-    status->mutable_transceiver()->set_active(true);
-    status->mutable_transceiver()->set_error("Handshake");
-    emit sendStatus(status);
+void RadioSystem::closeTransceiver()
+{
+    delete m_transceiverLayer;
+    m_transceiverLayer = nullptr;
 
-    // send protocol handshake
-    // the transceiver should return the highest supported version <= hostConfig->protocolVersion
-    // if the version is higher/less than supported by the host, then the connection will fail
-    m_connectionState = State::HANDSHAKE;
-    // don't get stuck if the transceiver doesn't answer / has too old firmware
-    m_timeoutTimer->start(500);
-    sendInitPacket();
-
-    return;
-#else
-    Status status(new amun::Status);
-    status->mutable_transceiver()->set_active(false);
-    status->mutable_transceiver()->set_error("Compiled without libusb support!");
-    emit sendStatus(status);
-    return;
-#endif // USB_FOUND
+    m_timeoutTimer->stop();
 }
 
 bool RadioSystem::ensureOpen()
 {
-    if (!m_device && Timer::systemTime() > m_onlyRestartAfterTimestamp) {
-        open();
-        return false;
+    const bool isOpen = m_transceiverLayer->isOpen();
+    if (!isOpen && Timer::systemTime() > m_onlyRestartAfterTimestamp) {
+        openTransceiver();
     }
-    return m_connectionState == State::CONNECTED;
+    return isOpen;
 }
 
-void RadioSystem::close(const QString &errorMsg, qint64 restartDelayInNs)
+void RadioSystem::transceiverErrorOccurred(const QString &errorMsg, qint64 restartDelayInNs)
 {
-#ifdef USB_FOUND
-    // close and cleanup
-    if (m_device != nullptr) {
-        Status status(new amun::Status);
-        status->mutable_transceiver()->set_active(false);
-        if (errorMsg.isNull()) {
-            status->mutable_transceiver()->set_error(m_device->errorString().toStdString());
-        } else {
-            status->mutable_transceiver()->set_error(errorMsg.toStdString());
-        }
-        emit sendStatus(status);
+    closeTransceiver();
 
-        delete m_device;
-        m_device = nullptr;
-        m_timeoutTimer->stop();
-    }
-    m_connectionState = State::DISCONNECTED;
+    Status status { new amun::Status };
+    status->mutable_transceiver()->set_active(false);
+    status->mutable_transceiver()->set_error(errorMsg.toStdString());
+    emit sendStatus(status);
+
     m_onlyRestartAfterTimestamp = Timer::systemTime() + restartDelayInNs;
-#endif // USB_FOUND
+}
+
+void RadioSystem::transceiverResponded()
+{
+    m_timeoutTimer->stop();
+
+    if (m_droppedCommands > 0) {
+        Status status { new amun::Status };
+        status->mutable_transceiver()->set_active(true);
+        status->mutable_transceiver()->set_dropped_commands(m_droppedCommands);
+
+        m_droppedCommands = 0;
+    }
 }
 
 void RadioSystem::timeout()
 {
-    close("Transceiver is not responding", (qint64)100*1000*1000);
+    transceiverErrorOccurred("Transceiver is not responding", (qint64)100*1000*1000);
 }
 
-bool RadioSystem::write(const QByteArray &packet)
+void RadioSystem::onRawRadioResponse(qint64 receiveTime, const QList<QByteArray> &rawResponses)
 {
-#ifdef USB_FOUND
-    if (!m_device) {
-        return false;
-    }
-
-    // close radio link on errors
-    // transmission usually either succeeds completely or fails horribly
-    // write does not actually guarantee complete delivery!
-    if (m_device->write(packet) < 0) {
-        close();
-        return false;
-    }
-#endif // USB_FOUND
-    return true;
-}
-
-void RadioSystem::receive()
-{
-#ifdef USB_FOUND
-    if (!m_device) {
-        return;
-    }
-
-    const int maxSize = 512;
-    char buffer[maxSize];
     QList<robot::RadioResponse> responses;
 
-    // read until no further data is available
-    const int size = m_device->read(buffer, maxSize);
-    if (size == -1) {
-        close();
-        return;
-    }
-
-    const qint64 receiveTime = m_timer->currentTime();
-
-    int pos = 0;
-    while (pos < size) {
-        // check header size
-        if (pos + (int)sizeof(TransceiverResponsePacket) > size) {
-            break;
-        }
-
-        const TransceiverResponsePacket *header = (const TransceiverResponsePacket*) &buffer[pos];
-        // check command content size
-        if (pos + (int)sizeof(TransceiverResponsePacket) + header->size > size) {
-            break;
-        }
-
-        pos += sizeof(TransceiverResponsePacket);
-        // handle command
-        switch (header->command) {
-        case COMMAND_INIT_REPLY:
-            handleInitPacket(&buffer[pos], header->size);
-            break;
-        case COMMAND_PING_REPLY:
-            handlePingPacket(&buffer[pos], header->size);
-            break;
-        case COMMAND_STATUS_REPLY:
-            handleStatusPacket(&buffer[pos], header->size);
-            break;
-        case COMMAND_REPLY_FROM_ROBOT:
-            handleResponsePacket(responses, &buffer[pos], header->size, receiveTime);
-            break;
-        case COMMAND_DATAGRAM_RECEIVED:
-            handleDatagramPacket(&buffer[pos], header->size);
-            break;
-        }
-
-        pos += header->size;
+    for (const QByteArray &packet : rawResponses) {
+        handleResponsePacket(responses, packet.data(), packet.size(), receiveTime);
     }
 
     emit sendRadioResponses(responses);
-#endif // USB_FOUND
-}
-
-void RadioSystem::handleInitPacket(const char *data, uint size)
-{
-    // only allowed during handshake
-    if (m_connectionState != State::HANDSHAKE || size < 2) {
-        close("Invalid reply from transceiver", (qint64)10*1000*1000*1000);
-        return;
-    }
-
-    const TransceiverInitPacket *handshake = (const TransceiverInitPacket *)data;
-    if (handshake->protocolVersion < PROTOCOL_VERSION) {
-        close("Outdated firmware", (qint64)10*1000*1000*1000);
-        return;
-    } else if (handshake->protocolVersion > PROTOCOL_VERSION) {
-        close("Not yet supported transceiver firmware", (qint64)10*1000*1000*1000);
-        return;
-    }
-
-    m_connectionState = State::CONNECTED;
-    m_timeoutTimer->stop();
-
-    Status status(new amun::Status);
-    status->mutable_transceiver()->set_active(true);
-    emit sendStatus(status);
-
-    // send channel informations
-    sendTransceiverConfiguration();
-}
-
-void RadioSystem::handlePingPacket(const char *data, uint size)
-{
-    if (size < sizeof(TransceiverPingData)) {
-        return;
-    }
-
-    const TransceiverPingData *ping = (const TransceiverPingData *)data;
-    Status status(new amun::Status);
-    status->mutable_timing()->set_transceiver_rtt((Timer::systemTime() - ping->time) * 1E-9f);
-    emit sendStatus(status);
-    // stop ping timeout timer
-    m_timeoutTimer->stop();
-}
-
-void RadioSystem::handleStatusPacket(const char *data, uint size)
-{
-    if (size < sizeof(TransceiverStatusPacket)) {
-        return;
-    }
-
-    const TransceiverStatusPacket *transceiverStatus = (const TransceiverStatusPacket *)data;
-    Status status(new amun::Status);
-    status->mutable_transceiver()->set_active(true);
-    status->mutable_transceiver()->set_dropped_usb_packets(transceiverStatus->droppedPackets);
-    status->mutable_transceiver()->set_dropped_commands(m_droppedCommands);
-    emit sendStatus(status);
-    m_droppedCommands = 0;
-}
-
-void RadioSystem::handleDatagramPacket(const char *data, uint size)
-{
-    Status status(new amun::Status);
-    amun::DebugValues *debug = status->add_debug();
-    debug->set_source(amun::RadioResponse);
-    QString debugMessage = QString("[Length: %1] %2").arg(size).arg(QString::fromUtf8(data, size));
-    amun::StatusLog *logEntry = debug->add_log();
-    logEntry->set_timestamp(m_timer->currentTime());
-    logEntry->set_text(debugMessage.toStdString());
-    emit sendStatus(status);
 }
 
 float RadioSystem::calculateDroppedFramesRatio(uint generation, uint id, uint8_t counter, int skipedFrames)
@@ -581,7 +406,7 @@ void RadioSystem::addRobot2014Command(int id, const robot::Command &command, boo
         data.cur_omega = RADIOCOMMAND2014_INVALID_SPEED;
     }
 
-    addSendCommand(
+    m_transceiverLayer->addSendCommand(
         usb_packet, Address { Unicast, Generation::Gen2014, id },
         sizeof(RadioResponseHeader) + sizeof(RadioResponse2014),
         reinterpret_cast<const char *>(&data), sizeof(data));
@@ -609,7 +434,7 @@ void RadioSystem::addRobot2014Sync(qint64 processingDelay, quint8 packetCounter,
     data.counter = packetCounter;
     data.time_offset = (processingDelay + syncPacketDelay) / 1000;
 
-    addSendCommand(
+    m_transceiverLayer->addSendCommand(
         usb_packet, Address { Broadcast, Generation::Gen2014 },
         // Use a expected response size of 1 to add a delay of 240 us to
         // workaround reception issues our custom built nrf receivers fail to
@@ -672,7 +497,7 @@ void RadioSystem::addRobot2018Command(int id, const robot::Command &command, boo
         data.cur_omega = RADIOCOMMAND2018_INVALID_SPEED;
     }
 
-    addSendCommand(
+    m_transceiverLayer->addSendCommand(
         usb_packet, Address { Unicast, Generation::Gen2018, id },
         sizeof(RadioResponseHeader) + sizeof(RadioResponse2018),
         reinterpret_cast<const char *>(&data), sizeof(data));
@@ -700,8 +525,7 @@ void RadioSystem::addRobot2018Sync(qint64 processingDelay, quint8 packetCounter,
     data.counter = packetCounter;
     data.time_offset = (processingDelay + syncPacketDelay) / 1000;
 
-
-    addSendCommand(
+    m_transceiverLayer->addSendCommand(
         usb_packet, Address { Broadcast, Generation::Gen2018 },
         // Use a expected response size of 1 to add a delay of 240 us to
         // workaround reception issues our custom built nrf receivers fail to
@@ -711,76 +535,9 @@ void RadioSystem::addRobot2018Sync(qint64 processingDelay, quint8 packetCounter,
         reinterpret_cast<const char *>(&data), sizeof(data));
 }
 
-void RadioSystem::addSendCommand(QByteArray &usb_packet, const Radio::Address &target, size_t expectedResponseSize, const char *data, size_t len)
-{
-    TransceiverCommandPacket senderCommand;
-    senderCommand.command = COMMAND_SEND_NRF24;
-    senderCommand.size = len + sizeof(TransceiverSendNRF24Packet);
-
-    const auto getTargetAddress = [&](int broadcastGenerationTag, const uint8_t unicastAddressTemplate[], size_t addressTemplateLength) -> TransceiverSendNRF24Packet {
-        TransceiverSendNRF24Packet targetAddress;
-
-        if (target.isBroadcast()) {
-            // robot_datagram is used to broadcast both at generation 2014 and 2018
-            memcpy(targetAddress.address, robot_datagram, sizeof(robot_datagram));
-            // broadcast (0x1f) to generation with broadcastGenerationTag
-            targetAddress.address[0] |= 0x1f | broadcastGenerationTag;
-        } else {
-            memcpy(targetAddress.address, unicastAddressTemplate, addressTemplateLength);
-            targetAddress.address[0] |= target.unicastTarget();
-        }
-
-        targetAddress.expectedResponseSize = expectedResponseSize;
-
-        return targetAddress;
-    };
-
-    TransceiverSendNRF24Packet targetAddress;
-    switch (target.generation) {
-    case Radio::Generation::Gen2014:
-        targetAddress = getTargetAddress(
-            0x20, robot2014_address, sizeof(robot2014_address)
-        );
-        break;
-    case Radio::Generation::Gen2018:
-        targetAddress = getTargetAddress(
-            robot2018_address[0], robot2018_address, sizeof(robot2018_address)
-        );
-        break;
-    }
-
-    usb_packet.append((const char*) &senderCommand, sizeof(senderCommand));
-    usb_packet.append((const char*) &targetAddress, sizeof(targetAddress));
-    usb_packet.append((const char*) data, len);
-}
-
-void RadioSystem::addPingPacket(qint64 time, QByteArray &usb_packet)
-{
-    // Append ping packet with current timestamp
-    TransceiverCommandPacket senderCommand;
-    senderCommand.command = COMMAND_PING;
-    senderCommand.size = sizeof(TransceiverPingData);
-
-    TransceiverPingData ping;
-    ping.time = time;
-
-    usb_packet.append((const char*) &senderCommand, sizeof(senderCommand));
-    usb_packet.append((const char*) &ping, sizeof(ping));
-}
-
-void RadioSystem::addStatusPacket(QByteArray &usb_packet)
-{
-    // request count of dropped usb packets
-    TransceiverCommandPacket senderCommand;
-    senderCommand.command = COMMAND_STATUS;
-    senderCommand.size = 0;
-
-    usb_packet.append((const char*) &senderCommand, sizeof(senderCommand));
-}
-
 void RadioSystem::sendCommand(const QList<robot::RadioCommand> &commands, bool charge, qint64 processingStart)
 {
-    if (!ensureOpen()) {
+    if (!m_transceiverLayer || !ensureOpen()) {
         return;
     }
 
@@ -824,52 +581,20 @@ void RadioSystem::sendCommand(const QList<robot::RadioCommand> &commands, bool c
         }
     }
 
-    addPingPacket(time, usb_packet);
+    m_transceiverLayer->addPingPacket(time, usb_packet);
     if (m_packetCounter == 255) {
-        addStatusPacket(usb_packet);
+        m_transceiverLayer->addStatusPacket(usb_packet);
     }
 
     // Workaround for usb problems if packet size is a multiple of transfer size
     if (usb_packet.size() % 64 == 0) {
-        addPingPacket(time, usb_packet);
+        m_transceiverLayer->addPingPacket(time, usb_packet);
     }
 
-    write(usb_packet);
+    m_transceiverLayer->write(usb_packet);
 
     // only restart timeout if not yet active
     if (!m_timeoutTimer->isActive()) {
         m_timeoutTimer->start(1000);
     }
-}
-
-void RadioSystem::sendTransceiverConfiguration()
-{
-    // configure transceiver frequency
-    TransceiverCommandPacket senderCommand;
-    senderCommand.command = COMMAND_SET_FREQUENCY;
-    senderCommand.size = sizeof(TransceiverSetFrequencyPacket);
-
-    TransceiverSetFrequencyPacket config;
-    config.channel = m_configuration.channel();
-
-    QByteArray usb_packet;
-    usb_packet.append((const char *) &senderCommand, sizeof(senderCommand));
-    usb_packet.append((const char *) &config, sizeof(config));
-    write(usb_packet);
-}
-
-void RadioSystem::sendInitPacket()
-{
-    // send init handshake
-    TransceiverCommandPacket senderCommand;
-    senderCommand.command = COMMAND_INIT;
-    senderCommand.size = sizeof(TransceiverInitPacket);
-
-    TransceiverInitPacket config;
-    config.protocolVersion = PROTOCOL_VERSION;
-
-    QByteArray usb_packet;
-    usb_packet.append((const char *) &senderCommand, sizeof(senderCommand));
-    usb_packet.append((const char *) &config, sizeof(config));
-    write(usb_packet);
 }

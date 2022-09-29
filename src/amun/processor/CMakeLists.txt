@@ -41,6 +41,8 @@ add_library(processor STATIC
     radiosystem.cpp
     integrator.cpp
     trackingreplay.cpp
+    transceiver2015.cpp
+    transceiver2015.h
 )
 target_link_libraries(processor
     PRIVATE shared::core

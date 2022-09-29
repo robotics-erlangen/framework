@@ -1,0 +1,97 @@
+/***************************************************************************
+ *   Copyright 2022 Michael Bleier, Michael Eischer, Jan Kallwies,         *
+ *       Philipp Nordhus, Paul Bergmann                                    *
+ *   Robotics Erlangen e.V.                                                *
+ *   http://www.robotics-erlangen.de/                                      *
+ *   info@robotics-erlangen.de                                             *
+ *                                                                         *
+ *   This program is free software: you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation, either version 3 of the License, or     *
+ *   any later version.                                                    *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
+ ***************************************************************************/
+
+#ifndef TRANSCEIVER2015_H
+#define TRANSCEIVER2015_H
+
+#include "protobuf/command.h"
+#include "protobuf/status.h"
+#include <QObject>
+
+class QByteArray;
+class QString;
+class Timer;
+class USBDevice;
+class USBThread;
+namespace Radio { class Address; }
+
+class Transceiver2015 : public QObject
+{
+    Q_OBJECT
+
+private:
+    enum class State {
+        DISCONNECTED,
+        HANDSHAKE,
+        CONNECTED
+    };
+
+public:
+    Transceiver2015(const Transceiver2015&) = delete;
+    Transceiver2015& operator=(const Transceiver2015&) = delete;
+
+    explicit Transceiver2015(const Timer *timer, QObject *parent = nullptr);
+    ~Transceiver2015() override;
+
+    bool isOpen() const {
+        return m_device && m_connectionState == State::CONNECTED;
+    }
+    bool open();
+    bool write(const QByteArray &packet);
+
+    void addSendCommand(QByteArray &usb_packet, const Radio::Address &target, size_t expectedResponseSize, const char *data, size_t len);
+
+    void addPingPacket(qint64 time, QByteArray &usb_packet);
+    void addStatusPacket(QByteArray &usb_packet);
+
+signals:
+    void sendStatus(const Status &status);
+    void errorOccurred(const QString &errorMsg, qint64 restartDelayInNs = 0);
+    void sendRawRadioResponses(qint64 receiveTime, const QList<QByteArray> &rawResponses);
+    void deviceResponded();
+
+public slots:
+    void handleCommand(const Command &command);
+
+private slots:
+    void onReadyRead();
+
+private:
+    void close();
+
+    void handleInitPacket(const char *data, uint size);
+    void handlePingPacket(const char *data, uint size);
+    void handleStatusPacket(const char *data, uint size);
+    void handleDatagramPacket(const char *data, uint size);
+
+    void sendInitPacket();
+    void sendTransceiverConfiguration();
+
+private:
+    State m_connectionState = State::DISCONNECTED;
+    USBThread *m_context = nullptr;
+    USBDevice *m_device = nullptr;
+    const Timer *m_timer = nullptr;
+
+    amun::TransceiverConfiguration m_configuration;
+};
+
+#endif // TRANSCEIVER2015_H

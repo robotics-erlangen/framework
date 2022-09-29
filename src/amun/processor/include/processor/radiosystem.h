@@ -29,9 +29,7 @@
 
 class QTimer;
 class Timer;
-class USBThread;
-class USBDevice;
-namespace Radio { class Address; }
+class Transceiver2015;
 
 class RadioSystem : public QObject
 {
@@ -49,17 +47,8 @@ private:
             droppedFramesRatio(0), lastDroppedFrames(-1) {}
     };
 
-    enum class State {
-        DISCONNECTED,
-        HANDSHAKE,
-        CONNECTED
-    };
-
 public:
     explicit RadioSystem(const Timer *timer);
-    ~RadioSystem() override;
-    RadioSystem(const RadioSystem&) = delete;
-    RadioSystem& operator=(const RadioSystem&) = delete;
 
 signals:
     void sendStatus(const Status &status);
@@ -71,25 +60,19 @@ public slots:
 
 private slots:
     void process();
-    void receive();
+    void transceiverErrorOccurred(const QString &errorMsg, qint64 restartDelayInNs);
+    void transceiverResponded();
     void timeout();
+    void onRawRadioResponse(qint64 receiveTime, const QList<QByteArray> &rawResponses);
 
 private:
-    void open();
+    void openTransceiver();
+    void closeTransceiver();
     bool ensureOpen();
-    void close(const QString &errorMsg = QString(), qint64 restartDelayInNs = 0);
-    bool write(const QByteArray &packet);
 
-    void handleInitPacket(const char *data, uint size);
-    void handlePingPacket(const char *data, uint size);
-    void handleStatusPacket(const char *data, uint size);
-    void handleDatagramPacket(const char *data, uint size);
     float calculateDroppedFramesRatio(uint generation, uint id, uint8_t counter, int skipedFrames);
     void handleResponsePacket(QList<robot::RadioResponse> &response, const char *data, uint size, qint64 time);
     void handleTeam(const robot::Team &team);
-
-    void sendInitPacket();
-    void sendTransceiverConfiguration();
 
     void addRobot2014Command(int id, const robot::Command &command, bool charge, quint8 packetCounter, QByteArray &usb_packet);
     void addRobot2014Sync(qint64 processingDelay, quint8 packetCounter, QByteArray &usb_packet);
@@ -98,25 +81,17 @@ private:
     void addRobot2018Command(int id, const robot::Command &command, bool charge, quint8 packetCounter, QByteArray &usb_packet);
     void addRobot2018Sync(qint64 processingDelay, quint8 packetCounter, QByteArray &usb_packet);
 
-    void addSendCommand(QByteArray &usb_packet, const Radio::Address &target, size_t expectedResponseSize, const char *data, size_t len);
-
-    void addPingPacket(qint64 time, QByteArray &usb_packet);
-    void addStatusPacket(QByteArray &usb_packet);
     void sendCommand(const QList<robot::RadioCommand> &commands, bool charge, qint64 processingStart);
 
 private:
     bool m_charge;
-    amun::TransceiverConfiguration m_configuration;
     QMap<QPair<uint, uint>, DroppedFrameCounter> m_droppedFrames;
     QMap<QPair<uint, uint>, uint> m_ir_param;
     QMap<quint8, qint64> m_frameTimes;
 
     quint8 m_packetCounter;
-    USBThread *m_context;
-    USBDevice *m_device;
     QTimer *m_timeoutTimer;
     QTimer *m_processTimer;
-    State m_connectionState;
     bool m_simulatorEnabled;
     qint64 m_onlyRestartAfterTimestamp;
 
@@ -124,6 +99,8 @@ private:
     QList<robot::RadioCommand> m_commands;
     qint64 m_processingStart;
     int m_droppedCommands;
+
+    Transceiver2015 *m_transceiverLayer = nullptr;
 };
 
 #endif // RADIOSYSTEM_H
