@@ -396,6 +396,8 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     ui->actionEnableTransceiver->setChecked(true);
     ui->actionEnableTransceiver->setEnabled(false);
 #endif
+
+    showMaximized();
 }
 
 MainWindow::~MainWindow()
