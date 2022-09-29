@@ -272,9 +272,6 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     // hide options dock by default
     ui->dockOptions->hide();
 
-    const uint INITIAL_CONFIG_ID = isRa ? 1 : 2;
-    loadConfig(true, INITIAL_CONFIG_ID);
-
 #ifndef EASY_MODE
     // switch configuration keys
     QSignalMapper *switchConfigMapper = new QSignalMapper(this);
@@ -383,6 +380,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     // setup data distribution
     connect(this, SIGNAL(gotStatus(Status)), m_logOpener, SLOT(handleStatus(Status)));
 
+    const uint INITIAL_CONFIG_ID = isRa ? 1 : 2;
     switchToWidgetConfiguration(INITIAL_CONFIG_ID, true);
     udpateSpeedActionsEnabled();
 
