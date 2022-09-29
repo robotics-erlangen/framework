@@ -106,6 +106,7 @@ static void simulatorTickCallback(btDynamicsWorld *world, btScalar timeStep)
 }
 
 Simulator::Simulator(std::string absolute_filepath) : Simulator(nullptr, loadSetupFromFile(absolute_filepath), true){
+//    std::cout << "\n\nMAKE SIMULATOR\n\n" << std::endl;
 }
 
 /*!
@@ -1238,12 +1239,15 @@ template<class T>
 static bool convertSpecsToErForce(T outGen, const sslsim::RobotSpecs& in) // @return false: Error occured
 {
     if (!in.has_mass()) {
+        std::cout << "\n\n1" << std::endl;
         return false;
     }
     if (!in.has_limits()) {
+        std::cout << "\n\n2" << std::endl;
         return false;
     }
     if (!in.has_center_to_dribbler()) {
+        std::cout << "\n\n3" << std::endl;
         return false;
     }
     sslsim::RobotSpecErForce rsef;
@@ -1255,40 +1259,51 @@ static bool convertSpecsToErForce(T outGen, const sslsim::RobotSpecs& in) // @re
         }
     }
     if (!rsefInitialized) {
+        std::cout << "\n\n4" << std::endl;
         return false;
     }
     if (!rsef.has_shoot_radius()) {
+        std::cout << "\n\n5" << std::endl;
         return false;
     }
     /*if (!rsef.has_dribbler_height()) {
         return false;
     }*/
     if (!rsef.has_dribbler_width()) {
+        std::cout << "\n\n6" << std::endl;
         return false;
     }
     const sslsim::RobotLimits& lim = in.limits();
     if (!lim.has_acc_speedup_absolute_max()) {
+        std::cout << "\n\n7" << std::endl;
         return false;
     }
     if (!lim.has_acc_speedup_angular_max()) {
+        std::cout << "\n\n8" << std::endl;
         return false;
     }
     if (!lim.has_acc_brake_absolute_max()) {
+        std::cout << "\n\n9" << std::endl;
         return false;
     }
     if (!lim.has_acc_brake_angular_max()) {
+        std::cout << "\n\n10" << std::endl;
         return false;
     }
     if (!lim.has_vel_absolute_max()) {
+        std::cout << "\n\n11" << std::endl;
         return false;
     }
     if (!lim.has_vel_angular_max()) {
+        std::cout << "\n\n12" << std::endl;
         return false;
     }
     if (!in.id().has_id()) {
+        std::cout << "\n\n13" << std::endl;
         return false;
     }
     if (!in.id().has_team()) {
+        std::cout << "\n\n14" << std::endl;
         return false;
     }
     robot::Specs* out = outGen(in.id().team() == gameController::BLUE);
@@ -1414,7 +1429,8 @@ static void setError(sslsim::SimulatorError* error, SimError code, SimErrorSourc
 
 #define SCALE_UP(OBJ, ATTR) do{if((OBJ).has_##ATTR()) (OBJ).set_##ATTR((OBJ).ATTR() * 1e3);} while(0)
 
-void Simulator::handleSimulatorCommand2(sslsim::SimulatorCommand simcom, bool is_blue) {
+sslsim::SimulatorResponse Simulator::handleSimulatorCommand2(sslsim::SimulatorCommand simcom, bool is_blue) {
+    std::cout << "CALLING HANDLE SIMULATOR COMMAND 2" << std::endl;
     sslsim::SimulatorResponse response;
     if (simcom.has_control()) {
         Command c{new amun::Command};
@@ -1451,6 +1467,7 @@ void Simulator::handleSimulatorCommand2(sslsim::SimulatorCommand simcom, bool is
         }
 
         if (config.robot_specs_size() > 0) {
+            std::cout << "have robot specs" << std::endl;
             Command c{new amun::Command};
             robot::Team* blueTeam = nullptr;
             robot::Team* yellowTeam = nullptr;
@@ -1470,10 +1487,12 @@ void Simulator::handleSimulatorCommand2(sslsim::SimulatorCommand simcom, bool is
                                                      }
                         , spec);
                 if (!success) {
+                    std::cout << "Got error while setting robot specs" << std::endl;
                     setError(response.add_errors(), SimError::MISSING_SPEC, SimErrorSource::CONTROLLER, spec.DebugString());
                     newSz--;
                 }
             }
+            std::cout << "handling specs command" << std::endl;
 //            log(stdout, "Updated to %d robots\n", newSz);
             handleCommandWrapper(c);
 //            emit sendCommand(c);
@@ -1490,6 +1509,7 @@ void Simulator::handleSimulatorCommand2(sslsim::SimulatorCommand simcom, bool is
             }
         }
     }
+    return response;
 
 }
 
@@ -1502,7 +1522,7 @@ void Simulator::handleCommandWrapper(const Command &command) {
 
     handleCommand(command);
 }
-void Simulator::handleSerializedSimulatorCommand2(SerializedMsg msg) {
+SerializedMsg Simulator::handleSerializedSimulatorCommand2(SerializedMsg msg) {
     auto command = parseProto<sslsim::SimulatorCommand>(msg);
-    handleSimulatorCommand2(command, true);
+    return serializeProto(handleSimulatorCommand2(command, true));
 }
