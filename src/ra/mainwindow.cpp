@@ -536,18 +536,25 @@ void MainWindow::loadConfig(bool doRestoreGeometry, uint configId)
             }
         }
 
-        tabifyDockWidget(ui->dockVisualization, ui->dockSimulator);
-        tabifyDockWidget(ui->dockSimulator, ui->dockSimConfig);
-        tabifyDockWidget(ui->dockRobots, ui->dockReferee);
+        if (configId % 2 == 1) {
+            // ra config
+            tabifyDockWidget(ui->dockVisualization, ui->dockSimulator);
+            tabifyDockWidget(ui->dockSimulator, ui->dockSimConfig);
+            tabifyDockWidget(ui->dockRobots, ui->dockReferee);
 
-        ui->dockSimulator->show();
-        ui->dockSimConfig->show();
-        ui->dockVisualization->show();
+            ui->dockSimulator->show();
+            ui->dockSimConfig->show();
+            ui->dockVisualization->show();
 
-        ui->dockReferee->show();
-        ui->dockRobots->show();
+            ui->dockReferee->show();
+            ui->dockRobots->show();
 
-        ui->dockTiming->show();
+            ui->dockTiming->show();
+        } else {
+            // horus config
+            ui->dockVisualization->show();
+            ui->dockReplay->show();
+        }
 
         const auto width = ui->splitterH->size().width();
         const auto debugTreeWidth = width / 5;
