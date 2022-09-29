@@ -78,7 +78,7 @@ private:
     void open();
     bool ensureOpen();
     void close(const QString &errorMsg = QString(), qint64 restartDelayInNs = 0);
-    bool write(const char *data, qint64 size);
+    bool write(const QByteArray &packet);
 
     void handleInitPacket(const char *data, uint size);
     void handlePingPacket(const char *data, uint size);

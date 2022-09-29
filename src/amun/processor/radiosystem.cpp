@@ -241,7 +241,7 @@ void RadioSystem::timeout()
     close("Transceiver is not responding", (qint64)100*1000*1000);
 }
 
-bool RadioSystem::write(const char *data, qint64 size)
+bool RadioSystem::write(const QByteArray &packet)
 {
 #ifdef USB_FOUND
     if (!m_device) {
@@ -251,7 +251,7 @@ bool RadioSystem::write(const char *data, qint64 size)
     // close radio link on errors
     // transmission usually either succeeds completely or fails horribly
     // write does not actually guarantee complete delivery!
-    if (m_device->write(data, size) < 0) {
+    if (m_device->write(packet) < 0) {
         close();
         return false;
     }
@@ -834,7 +834,7 @@ void RadioSystem::sendCommand(const QList<robot::RadioCommand> &commands, bool c
         addPingPacket(time, usb_packet);
     }
 
-    write(usb_packet.data(), usb_packet.size());
+    write(usb_packet);
 
     // only restart timeout if not yet active
     if (!m_timeoutTimer->isActive()) {
@@ -855,7 +855,7 @@ void RadioSystem::sendTransceiverConfiguration()
     QByteArray usb_packet;
     usb_packet.append((const char *) &senderCommand, sizeof(senderCommand));
     usb_packet.append((const char *) &config, sizeof(config));
-    write(usb_packet.data(), usb_packet.size());
+    write(usb_packet);
 }
 
 void RadioSystem::sendInitPacket()
@@ -871,5 +871,5 @@ void RadioSystem::sendInitPacket()
     QByteArray usb_packet;
     usb_packet.append((const char *) &senderCommand, sizeof(senderCommand));
     usb_packet.append((const char *) &config, sizeof(config));
-    write(usb_packet.data(), usb_packet.size());
+    write(usb_packet);
 }
