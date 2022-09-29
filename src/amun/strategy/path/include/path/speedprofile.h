@@ -78,6 +78,12 @@ public:
     static TrajectoryPosInfo1D calculateEndPos1D(float v0, float v1, float hintDist, float acc, float vMax);
     void calculate1DTrajectory(float v0, float v1, float extraTime, bool directionPositive, float acc, float vMax);
 
+    // Creates a single acceleration and brake segment that takes exactly "time" seconds
+    // and travels "distance" meters. The acceleration can become arbitrarily large.
+    // Maximum speed is not considered and has to be checked by the caller.
+    // Limitations: sign(v0) == sign(distance) && (sign(v1) == sign(distance) || v1 == 0)
+    void create1DAccelerationByDistance(float v0, float v1, float time, float distance);
+
     void printDebug() {
         for (int i = 0;i<(int)counter;i++) {
             std::cout <<"("<<profile[i].t<<": "<<profile[i].v<<") ";

@@ -480,3 +480,53 @@ void SpeedProfile1D::calculate1DTrajectory(float v0, float v1, float extraTime, 
         createFreeExtraTimeSegment(v0, closerSpeed, v1, extraTime, acc, desiredVMax);
     }
 }
+
+// equation must be solvable
+static float solveSq(float a, float b, float c)
+{
+    if (a == 0) {
+        if (b == 0) {
+            assert(false);
+        } else {
+            return -c / b;
+        }
+    }
+
+    float det = b * b - 4 * a * c;
+    if (det < 0) {
+        assert(false);
+    } else if (det == 0) {
+        return -b / (2 * a);
+    }
+    det = std::sqrt(det);
+    const float t2 = (-b - std::copysign(det, b)) / (2 * a);
+    const float t1 = c / (a * t2);
+
+    return std::max(t1, t2);
+}
+
+void SpeedProfile1D::create1DAccelerationByDistance(float v0, float v1, float time, float distance)
+{
+    assert(std::signbit(v0) == std::signbit(distance) && (std::signbit(v1) == std::signbit(distance) || v1 == 0));
+    profile[0] = {v0, 0};
+
+    // necessary condition for this function to work correctly:
+    // const float directAcc = 0.5f * (v0 + v1) * std::abs(v0 - v1) / distance;
+    // const float directTime = std::abs(v0 - v1) / directAcc;
+    // assert(directTime > time || std::abs(v0) < 0.0001f);
+
+    const float a = 1.0f / distance;
+    const float b = -2.0f / time;
+    const float v0Abs = std::abs(v0);
+    const float v1Abs = std::abs(v1);
+    const float c = 1.0f / time * (v0Abs + v1Abs) - 1.0f / (2.0f * distance) * (v0Abs * v0Abs + v1Abs * v1Abs);
+    const float solution = solveSq(a, b, c);
+    const float midSpeed = std::copysign(solution, v0);
+
+    const float acc = 1.0f / (2.0f * distance) * (2.0f * midSpeed * midSpeed - v0Abs * v0Abs - v1Abs * v1Abs);
+    const float accInv = 1.0f / acc;
+
+    profile[1] = {midSpeed, std::abs(v0 - midSpeed) * accInv};
+    profile[2] = {v1, std::abs(v1 - midSpeed) * accInv};
+    counter = 3;
+}

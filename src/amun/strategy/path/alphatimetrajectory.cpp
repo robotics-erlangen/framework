@@ -214,8 +214,10 @@ SpeedProfile AlphaTimeTrajectory::findTrajectory(Vector v0, Vector v1, Vector po
 
         Vector necessaryAcc = necessaryAcceleration(v0, position);
         float accLength = necessaryAcc.length();
-        float timeDiff = std::abs(std::abs(v0.x) / necessaryAcc.x - std::abs(v0.y) / necessaryAcc.y);
-        if (accLength > acc && accLength < acc * MAX_ACCELERATION_FACTOR && timeDiff < 0.1f) {
+        const Vector times(std::abs(v0.x) / necessaryAcc.x, std::abs(v0.y) / necessaryAcc.y);
+        const float timeDiff = std::abs(times.x - times.y);
+        const bool directionMatches = std::signbit(v0.x) == std::signbit(position.x) && std::signbit(v0.y) == std::signbit(position.y);
+        if (directionMatches && accLength > acc && accLength < acc * MAX_ACCELERATION_FACTOR && slowDownTime == 0.0f) {
             result.valid = true;
             result.slowDownTime = 0;
             result.xProfile.counter = 2;
@@ -224,7 +226,23 @@ SpeedProfile AlphaTimeTrajectory::findTrajectory(Vector v0, Vector v1, Vector po
             result.yProfile.counter = 2;
             result.yProfile.profile[0] = {v0.y, 0};
             result.yProfile.profile[1] = {0, std::abs(v0.y / necessaryAcc.y)};
-            return result;
+            if (timeDiff < 0.1f) {
+                return result;
+            } else {
+                if (times.x > times.y) {
+                    result.xProfile.create1DAccelerationByDistance(v0.x, 0, times.y, position.x);
+                    result.xProfile.integrateTime();
+                } else {
+                    result.yProfile.create1DAccelerationByDistance(v0.y, 0, times.x, position.y);
+                    result.yProfile.integrateTime();
+                }
+                const float accX = (result.xProfile.profile[1].v - result.xProfile.profile[0].v) / (result.xProfile.profile[1].t - result.xProfile.profile[0].t);
+                const float accY = (result.yProfile.profile[1].v - result.yProfile.profile[0].v) / (result.yProfile.profile[1].t - result.yProfile.profile[0].t);
+                const float totalAcc = std::sqrt(accX * accX + accY * accY);
+                if (totalAcc < acc * MAX_ACCELERATION_FACTOR && result.endPos().distanceSq(position) < 0.01f * 0.01f) {
+                    return result;
+                }
+            }
         }
     }
 
