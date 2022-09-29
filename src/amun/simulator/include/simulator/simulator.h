@@ -131,6 +131,8 @@ public:
     sslsim::RobotControlResponse handleYellowRobotControl(sslsim::RobotControl msg);
     sslsim::RobotControlResponse handleBlueRobotControl(sslsim::RobotControl msg);
     void handleSimulatorCommand(sslsim::SimulatorCommand msg);
+    void handleCommandWrapper(const Command& command);
+    void handleSimulatorCommand2(sslsim::SimulatorCommand command, bool is_blue);
     std::vector<SSL_WrapperPacket> getSSLWrapperPackets();
     // Sometimes the simulation has to run before errors are detected, so provide
     // a separate function the caller can check whenever they want
@@ -142,6 +144,7 @@ public:
     SerializedMsg handleSerializedYellowRobotControl(SerializedMsg msg);
     SerializedMsg handleSerializedBlueRobotControl(SerializedMsg msg);
     void handleSerializedSimulatorCommand(SerializedMsg msg);
+    void handleSerializedSimulatorCommand2(SerializedMsg msg);
     std::vector<SerializedMsg> getSerializedSSLWrapperPackets();
     std::vector<SerializedMsg> getSerializedErrors();
 

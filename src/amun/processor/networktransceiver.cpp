@@ -164,13 +164,13 @@ static void convertSpecs(const robot::Specs& in, T outGen, bool blueTeam, bool* 
         }
         MAX_WITH_OPTION(in.strategy(), a_brake_f_max, a_brake_s_max, found, result);
         if (found) {
-            robotLimits->set_acc_brake_absolute_max(result);
+            ->set_acc_brake_absolute_max(result);
         }
         if (in.strategy().has_a_speedup_phi_max()) {
-            robotLimits->set_acc_speedup_angular_max(in.strategy().a_speedup_phi_max());
+            ->set_acc_speedup_angular_max(in.strategy().a_speedup_phi_max());
         }
         if (in.strategy().has_a_brake_phi_max()) {
-            robotLimits->set_acc_brake_angular_max(in.strategy().a_brake_phi_max());
+            ->set_acc_brake_angular_max(in.strategy().a_brake_phi_max());
         }
     }
     if (in.has_shoot_radius()) {

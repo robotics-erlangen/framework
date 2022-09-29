@@ -23,6 +23,8 @@
 #include "core/timer.h"
 #include "core/coordinates.h"
 #include "protobuf/ssl_wrapper.pb.h"
+#include "protobuf/ssl_simulation_config.pb.h"
+#include "protobuf/ssl_simulation_custom_erforce_robot_spec.pb.h"
 #include "protobuf/geometry.h"
 #include "simball.h"
 #include "simfield.h"
@@ -1225,4 +1227,282 @@ std::vector<SerializedMsg> Simulator::getSerializedSSLWrapperPackets() {
         serialized_packets.emplace_back(serializeProto(p));
     }
     return serialized_packets;
+}
+
+//TODO: Always update the following constant if the robotSpecs did change,
+// either disregard the new field and just increase the expected number if the new field is useless to our simulator,
+// or convert it properly and update this number.
+constexpr int expected_specs_fields = 10 + 3;
+constexpr int functionToFixForSpecs = __LINE__;
+template<class T>
+static bool convertSpecsToErForce(T outGen, const sslsim::RobotSpecs& in) // @return false: Error occured
+{
+    if (!in.has_mass()) {
+        return false;
+    }
+    if (!in.has_limits()) {
+        return false;
+    }
+    if (!in.has_center_to_dribbler()) {
+        return false;
+    }
+    sslsim::RobotSpecErForce rsef;
+    bool rsefInitialized = false;
+    for(const auto& cus : in.custom()) {
+        if (cus.UnpackTo(&rsef)) {
+            rsefInitialized = true;
+            break;
+        }
+    }
+    if (!rsefInitialized) {
+        return false;
+    }
+    if (!rsef.has_shoot_radius()) {
+        return false;
+    }
+    /*if (!rsef.has_dribbler_height()) {
+        return false;
+    }*/
+    if (!rsef.has_dribbler_width()) {
+        return false;
+    }
+    const sslsim::RobotLimits& lim = in.limits();
+    if (!lim.has_acc_speedup_absolute_max()) {
+        return false;
+    }
+    if (!lim.has_acc_speedup_angular_max()) {
+        return false;
+    }
+    if (!lim.has_acc_brake_absolute_max()) {
+        return false;
+    }
+    if (!lim.has_acc_brake_angular_max()) {
+        return false;
+    }
+    if (!lim.has_vel_absolute_max()) {
+        return false;
+    }
+    if (!lim.has_vel_angular_max()) {
+        return false;
+    }
+    if (!in.id().has_id()) {
+        return false;
+    }
+    if (!in.id().has_team()) {
+        return false;
+    }
+    robot::Specs* out = outGen(in.id().team() == gameController::BLUE);
+    out->set_year(1970);
+    out->set_generation(0);
+    out->set_id(in.id().id());
+    out->set_type(robot::Specs_GenerationType_Regular);
+    out->set_radius(in.radius());
+    out->set_height(in.height());
+    out->set_mass(in.mass());
+    out->set_v_max(lim.vel_absolute_max());
+    out->set_omega_max(lim.vel_angular_max());
+    if (in.has_max_linear_kick_speed()) {
+        out->set_shot_linear_max(in.max_linear_kick_speed());
+    } else {
+        out->set_shot_linear_max(100);
+    }
+    if (in.has_max_chip_kick_speed()) {
+        out->set_shot_chip_max(coordinates::chipDistanceFromChipVel(in.max_chip_kick_speed()));
+    } else {
+        out->set_shot_chip_max(100);
+    }
+
+    out->set_dribbler_width(rsef.dribbler_width());
+    auto* acc = out->mutable_strategy();
+
+    acc->set_a_speedup_f_max(lim.acc_speedup_absolute_max());
+    acc->set_a_speedup_s_max(lim.acc_speedup_absolute_max());
+    acc->set_a_speedup_phi_max(lim.acc_speedup_angular_max());
+    acc->set_a_brake_f_max(lim.acc_brake_absolute_max());
+    acc->set_a_brake_s_max(lim.acc_brake_absolute_max());
+    acc->set_a_brake_phi_max(lim.acc_brake_angular_max());
+
+    out->set_shoot_radius(rsef.shoot_radius());
+    out->set_dribbler_height(0.04/*rsef.dribbler_height()*/); //FIXME: We use only our specs, because we don't know if dribbling will be possible at all with any other values :/
+
+
+    // cos(angle / 2 ) = center_to_dribbler / radius
+    const float ratio = in.center_to_dribbler() / in.radius();
+    out->set_angle(2 * acosf(ratio));
+    return true;
+    /*
+// Movement limits for a robot
+message RobotLimits {
+// Max absolute speed-up acceleration [m/s^2]
+optional float acc_speedup_absolute_max = 1;
+// Max angular speed-up acceleration [rad/s^2]
+optional float acc_speedup_angular_max = 2;
+// Max absolute brake acceleration [m/s^2]
+optional float acc_brake_absolute_max = 3;
+// Max angular brake acceleration [rad/s^2]
+optional float acc_brake_angular_max = 4;
+// Max absolute velocity [m/s]
+optional float vel_absolute_max = 5;
+// Max angular velocity [rad/s]
+optional float vel_angular_max = 6;
+*/
+}
+
+enum class SimError {
+    UNSUPPORTED_VELOCITY,
+    UNSUPPORTED_ANGLE,
+    UNREADABLE,
+    MISSING_SPEC,
+    INVALID_REALISM,
+};
+
+enum class SimErrorSource {
+    CONTROLLER,
+    BLUE_TEAM,
+    YELLOW_TEAM,
+};
+
+static void setError(sslsim::SimulatorError* error, SimError code, SimErrorSource source, std::string appendix = "") {
+    const char* codeStr = nullptr;
+    std::string message;
+    switch(code) {
+        case SimError::UNREADABLE:
+            codeStr = "UNREADABLE";
+            message = "The received message was unreadable " + appendix;
+            break;
+        case SimError::UNSUPPORTED_VELOCITY:
+            codeStr = "VELOCITY_TYPE";
+            message = "The received message had a velocity type unsupported by this simulator " + appendix;
+            break;
+        case SimError::UNSUPPORTED_ANGLE:
+            codeStr = "ANGLE_VALUE";
+            message = "The received kick angle was not equal to either 0 or 45 " + appendix;
+            break;
+        case SimError::MISSING_SPEC:
+            codeStr = "INVALID_SPEC";
+            message = "The received spec is missing one of the required fields for this simulator " + appendix;
+            break;
+        case SimError::INVALID_REALISM:
+            codeStr = "INVALID_REALISM";
+            message = "The received realism is not conforming to the realism configuration for this simulator " + appendix;
+            break;
+        default:
+//            log(stderr, "Unmanaged SimError for message\n");
+            break;
+    }
+    if (!codeStr || message.size() == 0) {
+        return;
+    }
+    error->set_code(codeStr);
+    error->set_message(message);
+
+    const char* sourceStr = [source]() {
+        switch (source) {
+            case SimErrorSource::CONTROLLER:
+                return "CONTROLLER";
+            case SimErrorSource::BLUE_TEAM:
+                return "BLUE";
+            case SimErrorSource::YELLOW_TEAM:
+                return "YELLOW";
+            default:
+                return "INVALID";
+        }
+    }();
+
+//    log(stderr, "[%-10s - %-15s] %s\n", sourceStr, codeStr, message.c_str());
+}
+
+#define SCALE_UP(OBJ, ATTR) do{if((OBJ).has_##ATTR()) (OBJ).set_##ATTR((OBJ).ATTR() * 1e3);} while(0)
+
+void Simulator::handleSimulatorCommand2(sslsim::SimulatorCommand simcom, bool is_blue) {
+    sslsim::SimulatorResponse response;
+    if (simcom.has_control()) {
+        Command c{new amun::Command};
+        auto* sslControl = c->mutable_simulator()->mutable_ssl_control();
+        sslControl->CopyFrom(simcom.control());
+        if (sslControl->has_teleport_ball()) {
+            auto* teleportBall = sslControl->mutable_teleport_ball();
+            SCALE_UP(*teleportBall, x);
+            SCALE_UP(*teleportBall, y);
+            SCALE_UP(*teleportBall, z);
+            SCALE_UP(*teleportBall, vx);
+            SCALE_UP(*teleportBall, vy);
+            SCALE_UP(*teleportBall, vz);
+        }
+        for(sslsim::TeleportRobot& robot : *sslControl->mutable_teleport_robot()) {
+            SCALE_UP(robot, x);
+            SCALE_UP(robot, y);
+            SCALE_UP(robot, v_x);
+            SCALE_UP(robot, v_y);
+        }
+        handleCommandWrapper(c);
+//        emit sendCommand(c);
+    }
+    if (simcom.has_config()) {
+        const auto& config{simcom.config()};
+
+        if (config.has_geometry()) {
+            Command c{new amun::Command};
+            auto* setup = c->mutable_simulator()->mutable_simulator_setup();
+            convertFromSSlGeometry(config.geometry().field(), *(setup->mutable_geometry()));
+            setup->mutable_camera_setup()->CopyFrom(config.geometry().calib());
+            handleCommandWrapper(c);
+//            emit sendCommand(c);
+        }
+
+        if (config.robot_specs_size() > 0) {
+            Command c{new amun::Command};
+            robot::Team* blueTeam = nullptr;
+            robot::Team* yellowTeam = nullptr;
+            auto newSz = config.robot_specs_size();
+            for (const auto& spec : config.robot_specs()) {
+                bool success = convertSpecsToErForce([&blueTeam, &yellowTeam, &c](bool isBlue){
+                                                         if (isBlue) {
+                                                             if (blueTeam == nullptr) {
+                                                                 blueTeam = c->mutable_set_team_blue();
+                                                             }
+                                                             return blueTeam->add_robot();
+                                                         }
+                                                         if (yellowTeam == nullptr) {
+                                                             yellowTeam = c->mutable_set_team_yellow();
+                                                         }
+                                                         return yellowTeam->add_robot();
+                                                     }
+                        , spec);
+                if (!success) {
+                    setError(response.add_errors(), SimError::MISSING_SPEC, SimErrorSource::CONTROLLER, spec.DebugString());
+                    newSz--;
+                }
+            }
+//            log(stdout, "Updated to %d robots\n", newSz);
+            handleCommandWrapper(c);
+//            emit sendCommand(c);
+        }
+        if (config.has_realism_config()) {
+            for(const auto& c : config.realism_config().custom()) {
+                RealismConfigErForce rcef;
+                if (c.UnpackTo(&rcef)) {
+                    Command c{new amun::Command};
+                    c->mutable_simulator()->mutable_realism_config()->CopyFrom(rcef);
+                    handleCommandWrapper(c);
+//                    emit sendCommand(c);
+                }
+            }
+        }
+    }
+
+}
+
+void Simulator::handleCommandWrapper(const Command &command) {
+    if(command->has_simulator()) {
+        // Clear to avoid the code path where we read from m_timer in handleCommand(), which
+        // we set to nullptr in our custom constructor
+        command->mutable_simulator()->clear_enable();
+    }
+
+    handleCommand(command);
+}
+void Simulator::handleSerializedSimulatorCommand2(SerializedMsg msg) {
+    auto command = parseProto<sslsim::SimulatorCommand>(msg);
+    handleSimulatorCommand2(command, true);
 }

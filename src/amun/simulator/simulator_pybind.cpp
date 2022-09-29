@@ -13,5 +13,6 @@ PYBIND11_MODULE(erforce_simulator, m) {
             .def("handle_yellow_robot_control", &camun::simulator::Simulator::handleSerializedYellowRobotControl)
             .def("handle_blue_robot_control", &camun::simulator::Simulator::handleSerializedBlueRobotControl)
             .def("handle_simulator_command", &camun::simulator::Simulator::handleSerializedSimulatorCommand)
+            .def("handle_simulator_command_2", &camun::simulator::Simulator::handleSerializedSimulatorCommand2)
             ;
 }
