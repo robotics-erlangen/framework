@@ -205,9 +205,6 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     connect(ui->actionStepForward, SIGNAL(triggered()), ui->logManager, SIGNAL(stepForward()));
     connect(ui->actionTogglePause, SIGNAL(triggered()), ui->logManager, SIGNAL(togglePaused()));
 
-    connect(ui->referee, SIGNAL(enableInternalAutoref(bool)), ui->robots, SIGNAL(enableInternalAutoref(bool)));
-    connect(ui->actionInternalReferee, SIGNAL(toggled(bool)), ui->robots, SIGNAL(enableInternalAutoref(bool)));
-
     // setup data distribution
     connect(this, SIGNAL(gotStatus(Status)), ui->field, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), m_plotter, SLOT(handleStatus(Status)));
