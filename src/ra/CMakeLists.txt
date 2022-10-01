@@ -59,6 +59,8 @@ add_library(ra-horus STATIC
     savedirectorydialog.h
     strategysearch.cpp
     strategysearch.h
+    strategyselectionwidget.cpp
+    strategyselectionwidget.h
     logopener.cpp
     logopener.h
     refereeinfowidget.cpp
@@ -87,6 +89,7 @@ set(UI_SOURCES
     simulatorwidget.ui
     simulatorconfigwidget.ui
     savedirectorydialog.ui
+    strategyselectionwidget.ui
     refereeinfowidget.ui
     logfileselectiondialog.ui
     fieldparameters.ui

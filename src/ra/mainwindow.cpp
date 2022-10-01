@@ -126,6 +126,9 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     connect(m_inputManager, SIGNAL(sendRefereeCommand(SSL_Referee::Command)), m_internalReferee, SLOT(changeCommand(SSL_Referee::Command)));
     ui->input->init(m_inputManager);
 
+    connect(ui->strategies, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
+    ui->strategies->init(this);
+
     connect(ui->robots, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
     connect(ui->actionSimulator, SIGNAL(toggled(bool)), ui->robots, SLOT(setIsSimulator(bool)));
     ui->robots->init(this, m_inputManager);
@@ -138,7 +141,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     connect(m_configDialog, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
     connect(m_configDialog, SIGNAL(useDarkModeColors(bool)), ui->referee, SLOT(setStyleSheets(bool)));
     connect(m_configDialog, SIGNAL(useDarkModeColors(bool)), ui->refereeinfo, SLOT(setStyleSheets(bool)));
-    connect(m_configDialog, SIGNAL(useDarkModeColors(bool)), ui->robots, SIGNAL(setUseDarkColors(bool)));
+    connect(m_configDialog, SIGNAL(useDarkModeColors(bool)), ui->strategies, SIGNAL(setUseDarkColors(bool)));
     connect(m_configDialog, SIGNAL(useDarkModeColors(bool)), ui->replay, SIGNAL(setUseDarkColors(bool)));
     connect(m_configDialog, SIGNAL(useNumKeysForReferee(bool)), this, SLOT(udpateSpeedActionsEnabled()));
 
@@ -311,7 +314,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     // WARNING: these two loads must always be the last and in this exact order
     // Only then is the number of strategy reloads minimized
     ui->referee->load();
-    ui->robots->loadStrategies();
+    ui->strategies->loadStrategies();
 
     // playback speed shortcuts
     QSignalMapper *mapper = new QSignalMapper(this);
@@ -339,6 +342,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     connect(ui->actionSaveConfiguration, SIGNAL(triggered(bool)), this, SLOT(saveConfig()));
     connect(ui->actionSaveConfiguration, SIGNAL(triggered(bool)), ui->input, SLOT(saveConfig()));
     connect(ui->actionSaveConfiguration, SIGNAL(triggered(bool)), ui->referee, SLOT(saveConfig()));
+    connect(ui->actionSaveConfiguration, SIGNAL(triggered(bool)), ui->strategies, SLOT(saveConfig()));
     connect(ui->actionSaveConfiguration, SIGNAL(triggered(bool)), ui->robots, SLOT(saveConfig()));
     connect(ui->actionSaveConfiguration, SIGNAL(triggered(bool)), ui->field, SLOT(saveConfig()));
     connect(ui->actionSaveConfiguration, SIGNAL(triggered(bool)), ui->timing, SLOT(saveConfig()));
@@ -366,7 +370,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
 
     setAcceptDrops(true);
 
-    ui->replay->setRecentScriptList(ui->robots->recentScriptsList());
+    ui->replay->setRecentScriptList(ui->strategies->recentScriptsList());
     connect(ui->replay, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
     connect(ui->logManager, &LogSlider::sendCommand, this, &MainWindow::sendCommand);
     connect(&m_amun, SIGNAL(gotStatus(Status)), SLOT(handleStatus(Status)));
@@ -413,7 +417,7 @@ void MainWindow::closeEvent(QCloseEvent *e)
     m_plotter->close();
 
     // unblock stopped strategies
-    ui->robots->shutdown();
+    ui->strategies->shutdown();
     ui->referee->shutdownInternalAutoref();
 
     QMainWindow::closeEvent(e);
@@ -545,6 +549,7 @@ void MainWindow::loadConfig(bool doRestoreGeometry, uint configId)
             ui->dockSimConfig->show();
             ui->dockVisualization->show();
 
+            ui->dockStrategy->show();
             ui->dockReferee->show();
             ui->dockRobots->show();
 
@@ -818,7 +823,7 @@ void MainWindow::setInternalRefereeEnabled(bool enabled)
         ui->dockReferee->setVisible(true);
     }
     // force auto reload of strategies if external referee is used
-    ui->robots->forceAutoReload(!enabled);
+    ui->strategies->forceAutoReload(!enabled);
     ui->referee->forceAutoReload(!enabled);
 
     ui->field->internalRefereeEnabled(enabled);
@@ -931,6 +936,7 @@ void MainWindow::toggleHorusModeWidgets(bool enable)
     ui->referee->setEnabled(!enable);
     ui->simulator->setEnabled(!enable);
     ui->simulatorConfig->setEnabled(!enable);
+    ui->strategies->enableContent(!enable);
     ui->robots->enableContent(!enable);
     ui->actionRecordLogLog->setEnabled(enable);
     ui->actionRecordLogLog->setVisible(enable);

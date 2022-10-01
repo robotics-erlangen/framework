@@ -15,12 +15,6 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="TeamWidget" name="blue" native="true"/>
-   </item>
-   <item>
-    <widget class="TeamWidget" name="yellow" native="true"/>
-   </item>
-   <item>
     <widget class="QTreeView" name="robots">
      <property name="uniformRowHeights">
       <bool>true</bool>

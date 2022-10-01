@@ -55,11 +55,9 @@ public:
     ~RobotSelectionWidget() override;
     RobotSelectionWidget(const RobotSelectionWidget&) = delete;
     RobotSelectionWidget& operator=(const RobotSelectionWidget&) = delete;
-    void shutdown();
     void enableContent(bool enable);
     void resend();
     void setColor(bool blue);
-    std::shared_ptr<QStringList> recentScriptsList() const { return m_recentScripts; }
 
 signals:
     void setTeam(uint generation, uint id, RobotWidget::Team team);
@@ -68,24 +66,20 @@ signals:
     void sendRadioResponse(const robot::RadioResponse &response);
     void generationChanged(uint generation, RobotWidget::Team team);
     void setRobotExchangeIcon(uint generation, uint id, bool exchange);
-    void enableInternalAutoref(bool enable);
-    void setUseDarkColors(bool useDark);
     void sendIsSimulator(bool simulator);
 
 public slots:
     void selectTeam(uint generation, uint id, RobotWidget::Team team);
     void selectTeamForGeneration(uint generation, uint id, RobotWidget::Team team);
     void selectInputDeviceForGeneration(uint generation, const QString &inputDevice);
-    void saveConfig(bool saveTeams = true);
+    void saveConfig();
     void setIsSimulator(bool simulator);
     void selectRobots(const QList<int> &yellow, const QList<int> &blue);
 
 public:
     void init(QWidget *window, InputManager *inputManager);
     void loadRobots();
-    void loadStrategies();
     void save();
-    void forceAutoReload(bool force);
     robot::Specs specs(const QModelIndex &index) const;
     static robot::Specs specs(const robot::Specs &robot, const robot::Specs &def);
 
@@ -110,7 +104,6 @@ private:
     Ui::RobotSelectionWidget *ui;
     QStandardItemModel *m_model;
     QMap<uint, Generation> m_generations;
-    std::shared_ptr<QStringList> m_recentScripts;
     ItemDelegate *m_itemDelegate;
     bool m_contentDisabled;
     bool m_isSimulator;

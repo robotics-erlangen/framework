@@ -299,6 +299,34 @@
    </attribute>
    <widget class="TimingWidget" name="timing"/>
   </widget>
+  <widget class="QDockWidget" name="dockStrategy">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>69</width>
+     <height>42</height>
+    </size>
+   </property>
+   <property name="windowTitle">
+    <string>Strategies</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="StrategySelectionWidget" name="strategies">
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+   </widget>
+  </widget>
   <widget class="QDockWidget" name="dockRobots">
    <property name="windowTitle">
     <string>Robots</string>
@@ -858,6 +886,12 @@ toggled again (disables the backlog when active)</string>
    <class>InputWidget</class>
    <extends>QWidget</extends>
    <header>inputwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>StrategySelectionWidget</class>
+   <extends>QWidget</extends>
+   <header>strategyselectionwidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>

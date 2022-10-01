@@ -23,7 +23,6 @@
 #include "robotselectionwidget.h"
 #include "robotspecsdialog.h"
 #include "robotwidget.h"
-#include "strategysearch.h"
 #include "ui_robotselectionwidget.h"
 #include <google/protobuf/text_format.h>
 #include <QDebug>
@@ -100,20 +99,17 @@ RobotSelectionWidget::RobotSelectionWidget(QWidget *parent) :
     m_model = new QStandardItemModel(this);
     ui->robots->setModel(m_model);
     connect(ui->robots, SIGNAL(doubleClicked(QModelIndex)), SLOT(showConfigDialog(QModelIndex)));
-
-    connect(this, SIGNAL(setUseDarkColors(bool)), ui->blue, SLOT(setUseDarkColors(bool)));
-    connect(this, SIGNAL(setUseDarkColors(bool)), ui->yellow, SLOT(setUseDarkColors(bool)));
 }
 
 RobotSelectionWidget::~RobotSelectionWidget()
 {
-    saveConfig(false);
+    saveConfig();
 
     delete ui;
     delete m_itemDelegate;
 }
 
-void RobotSelectionWidget::saveConfig(bool saveTeams)
+void RobotSelectionWidget::saveConfig()
 {
     QSettings s;
     s.beginGroup("Robots");
@@ -128,10 +124,6 @@ void RobotSelectionWidget::saveConfig(bool saveTeams)
     s.endArray();
     s.endGroup();
 
-    s.beginGroup("Strategy");
-    s.setValue("RecentScripts", *m_recentScripts);
-    s.endGroup();
-
     if (m_isSimulator) {
         saveRobots("SimulatorBlueTeam", RobotWidget::Blue);
         saveRobots("SimulatorYellowTeam", RobotWidget::Yellow);
@@ -139,11 +131,6 @@ void RobotSelectionWidget::saveConfig(bool saveTeams)
     } else {
         saveRobots("BlueTeam", RobotWidget::Blue);
         saveRobots("YellowTeam", RobotWidget::Yellow);
-    }
-
-    if (saveTeams) {
-        ui->blue->saveConfig();
-        ui->yellow->saveConfig();
     }
 }
 
@@ -170,16 +157,8 @@ void RobotSelectionWidget::setColor(bool blue)
     }
 }
 
-void RobotSelectionWidget::shutdown()
-{
-    ui->yellow->shutdown();
-    ui->blue->shutdown();
-}
-
 void RobotSelectionWidget::enableContent(bool enable)
 {
-    ui->blue->enableContent(enable);
-    ui->yellow->enableContent(enable);
     ui->robots->viewport()->setEnabled(enable);
     m_contentDisabled = !enable;
 }
@@ -188,37 +167,8 @@ void RobotSelectionWidget::init(QWidget *window, InputManager *inputManager)
 {
     connect(window, SIGNAL(gotStatus(Status)), SLOT(handleStatus(Status)));
 
-    connect(window, SIGNAL(gotStatus(Status)), ui->blue, SLOT(handleStatus(Status)));
-    connect(ui->blue, SIGNAL(sendCommand(Command)), window, SLOT(sendCommand(Command)));
-    connect(window, SIGNAL(gotStatus(Status)), ui->yellow, SLOT(handleStatus(Status)));
-    connect(ui->yellow, SIGNAL(sendCommand(Command)), window, SLOT(sendCommand(Command)));
-
-    ui->blue->init(amun::StatusStrategyWrapper::BLUE);
-    ui->yellow->init(amun::StatusStrategyWrapper::YELLOW);
-
     m_itemDelegate = new ItemDelegate(inputManager, this);
     ui->robots->setItemDelegate(m_itemDelegate);
-}
-
-void RobotSelectionWidget::loadStrategies()
-{
-    QSettings s;
-    s.beginGroup("Strategy");
-    QStringList newRecent = s.value("RecentScripts").toStringList();
-    s.endGroup();
-
-    newRecent = ra::sanitizeRecentScripts(newRecent, { "init.ts", "init.lua" });
-    ra::searchForStrategies(newRecent, QDir::homePath() + "/Robotics/strategy/typescript/", "init.ts");
-    ra::searchForStrategies(newRecent, QString(ERFORCE_STRATEGYDIR) + "lua/", "init.lua");
-    ra::searchForStrategies(newRecent, QString(ERFORCE_STRATEGYDIR) + "typescript/", "init.ts");
-    m_recentScripts = std::make_shared<QStringList>(newRecent);
-
-    ui->blue->setRecentScripts(m_recentScripts);
-    ui->yellow->setRecentScripts(m_recentScripts);
-
-    ui->blue->load();
-    ui->yellow->load();
-    m_isInitialized = true;
 }
 
 void RobotSelectionWidget::loadRobots()
@@ -497,12 +447,6 @@ void RobotSelectionWidget::save()
         }
         saveGeneration(generation.filename, g);
     }
-}
-
-void RobotSelectionWidget::forceAutoReload(bool force)
-{
-    ui->blue->forceAutoReload(force);
-    ui->yellow->forceAutoReload(force);
 }
 
 robot::Specs RobotSelectionWidget::specs(const QModelIndex &index) const
