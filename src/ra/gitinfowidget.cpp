@@ -66,12 +66,20 @@ void GitInfoWidget::updateGitInfo(const std::string& newHash, const std::string&
 
 void GitInfoWidget::updateWidget()
 {
+    QString diffText;
     if (showOrigDiff) {
-        ui->diffText->setText(QString::fromStdString(m_diff));
+        diffText = QString::fromStdString(m_diff);
     } else {
         const auto newDiff = gitconfig::calculateDiff(m_relativePath.c_str(), m_hash.c_str(), m_diff.c_str(), m_diffHash.c_str());
-        ui->diffText->setText(QString::fromStdString(newDiff));
+        diffText = QString::fromStdString(newDiff);
     }
+
+    QString escaped = diffText.toHtmlEscaped();
+    for (int i = 0;i<2;i++) {
+        escaped.replace(QRegularExpression("\n\\+(.*|)\n"), "\n<font color=\"green\">+\\1</font>\n");
+        escaped.replace(QRegularExpression("\n\\-(.*|)\n"), "\n<font color=\"red\">-\\1</font>\n");
+    }
+    ui->diffText->setHtml(QString("<pre>%1</pre>").arg(escaped));
 }
 
 void GitInfoWidget::updateRelativePath()
