@@ -201,6 +201,9 @@ To compile Ra, run the following commands
 $ libs/v8/build.sh
 $ mkdir build-win && cd build-win
 $ cmake -GNinja -DCMAKE_PREFIX_PATH="$USED_QT" -DCMAKE_BUILD_TYPE=Release ..
+```
+Then close the shell to reset the PATH variable and in the new shell you can build with
+```
 $ cmake --build .
 $ cmake --build . --target assemble
 ```
