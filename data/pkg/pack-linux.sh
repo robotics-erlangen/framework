@@ -18,15 +18,11 @@ function finish {
 trap finish EXIT
 
 mkdir --parents "$SCRATCH/build/bin"
-mkdir --parents "$SCRATCH/libs/v8/v8"
 
 cp --recursive strategy "$SCRATCH/"
 cp build/bin/ra \
 	build/bin/icudtl.dat \
-	build/bin/natives_blob.bin \
-	build/bin/snapshot_blob.bin \
 	"$SCRATCH/build/bin"
-cp --recursive libs/v8/v8 "$SCRATCH/libs/v8"
 cp --recursive libs/tsc "$SCRATCH/libs"
 cp --recursive \
 	config \
@@ -35,7 +31,7 @@ cp --recursive \
 
 cat <<EOF >"$SCRATCH/start.sh"
 #!/usr/bin/env bash
-LD_LIBRARY_PATH=libs/v8/v8/out/x64.release exec build/bin/ra"
+exec build/bin/ra"
 EOF
 chmod +x "$SCRATCH/start.sh"
 
