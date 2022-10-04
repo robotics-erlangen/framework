@@ -89,4 +89,8 @@ if (TARGET Qt5::Svg)
     )
 endif()
 
+if(${EASY_MODE})
+	target_compile_definitions(widgets PRIVATE EASY_MODE)
+endif()
+
 add_library(ra::widgets ALIAS widgets)

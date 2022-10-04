@@ -169,7 +169,20 @@ void TeamWidget::load()
 {
     QSettings s;
     s.beginGroup(teamTypeName());
-    m_filename = s.value("Script").toString();
+
+    const auto previousFilename = s.value("Script").toString();
+    if (previousFilename != "") {
+        m_filename = previousFilename;
+    } else if (m_recentScripts != nullptr) {
+#ifdef EASY_MODE
+        const auto tsInitRegex = QRegularExpression(".*.ts");
+        const QStringList typescriptStrategies = m_recentScripts->filter(tsInitRegex);
+        if (typescriptStrategies.length() > 0) {
+            m_filename = typescriptStrategies.first();
+        }
+#endif
+    }
+
     m_entryPoint = s.value("EntryPoint").toString();
     m_reloadAction->setChecked(s.value("AutoReload").toBool());
     m_performanceAction->setChecked(s.value("PerformanceMode", true).toBool());
