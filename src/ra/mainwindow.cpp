@@ -130,7 +130,11 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     ui->strategies->init(this);
 
     connect(ui->robots, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
+#ifdef EASY_MODE
+    ui->robots->setIsSimulator(true);
+#else
     connect(ui->actionSimulator, SIGNAL(toggled(bool)), ui->robots, SLOT(setIsSimulator(bool)));
+#endif
     ui->robots->init(this, m_inputManager);
 
     connect(ui->simulator, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
