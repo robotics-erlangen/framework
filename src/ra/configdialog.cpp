@@ -41,8 +41,6 @@ const bool DEFAULT_CONTROL_YELLOW = false;
 const QString DEFAULT_MIXED_HOST = QStringLiteral("");
 const uint DEFAULT_MIXED_PORT = SSL_MIXED_TEAM_PORT;
 
-const bool DEFAULT_UI_DARK_MODE_COLORS = false;
-
 const FieldWidgetAction DEFAULT_ROBOT_DOUBLE_CLICK_ACTION = FieldWidgetAction::ToggleVisualization;
 const QString DEFAULT_ROBOT_DOUBLE_CLICK_SEARCH_STRING_2020 = ".*: <id>";
 const QString DEFAULT_ROBOT_DOUBLE_CLICK_SEARCH_STRING = ".*: <id><team-s>";
@@ -103,7 +101,6 @@ void ConfigDialog::sendConfiguration()
 
     emit sendCommand(command);
 
-    emit useDarkModeColors(ui->uiDarkMode->isChecked());
     emit useNumKeysForReferee(ui->numKeyUsage->currentText() != DEFAULT_NUMBER_KEYS_USAGE);
 
     emit setRobotDoubleClickAction(static_cast<FieldWidgetAction>(ui->doubleClickAction->currentData().toInt()),
@@ -136,7 +133,6 @@ void ConfigDialog::load()
     ui->mixedHost->setText(s.value("Mixed/Host", DEFAULT_MIXED_HOST).toString());
     ui->mixedPort->setValue(s.value("Mixed/Port", DEFAULT_MIXED_PORT).toUInt());
 
-    ui->uiDarkMode->setChecked(s.value("Ui/DarkModeColors", DEFAULT_UI_DARK_MODE_COLORS).toBool());
     ui->numKeyUsage->setCurrentText(s.value("Ui/NumKeyUsage", DEFAULT_NUMBER_KEYS_USAGE).toString());
 
     FieldWidgetAction robotDoubleClick = static_cast<FieldWidgetAction>(s.value("Ui/RobotDoubleClickAction", static_cast<int>(DEFAULT_ROBOT_DOUBLE_CLICK_ACTION)).toInt());
@@ -175,7 +171,6 @@ void ConfigDialog::reset()
     ui->networkPortYellow->setValue(DEFAULT_NETWORK_PORT_YELLOW);
     ui->mixedHost->setText(DEFAULT_MIXED_HOST);
     ui->mixedPort->setValue(DEFAULT_MIXED_PORT);
-    ui->uiDarkMode->setChecked(DEFAULT_UI_DARK_MODE_COLORS);
     ui->doubleClickAction->setCurrentText(robotActionString(DEFAULT_ROBOT_DOUBLE_CLICK_ACTION));
     ui->doubleClickSearch->setText(DEFAULT_ROBOT_DOUBLE_CLICK_SEARCH_STRING);
     ui->ctrlClickAction->setCurrentText(robotActionString(DEFAULT_ROBOT_CTRL_CLICK_ACTION));
@@ -205,8 +200,6 @@ void ConfigDialog::apply()
 
     s.setValue("Mixed/Host", ui->mixedHost->text());
     s.setValue("Mixed/Port", ui->mixedPort->value());
-
-    s.setValue(("Ui/DarkModeColors"), ui->uiDarkMode->isChecked());
 
     s.setValue("Ui/RobotDoubleClickAction", ui->doubleClickAction->currentData().toInt());
     s.setValue("Ui/RobotDoubleClickSearch", ui->doubleClickSearch->text());

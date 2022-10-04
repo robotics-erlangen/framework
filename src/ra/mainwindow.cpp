@@ -143,10 +143,6 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
 
     m_configDialog = new ConfigDialog(this);
     connect(m_configDialog, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
-    connect(m_configDialog, SIGNAL(useDarkModeColors(bool)), ui->referee, SLOT(setStyleSheets(bool)));
-    connect(m_configDialog, SIGNAL(useDarkModeColors(bool)), ui->refereeinfo, SLOT(setStyleSheets(bool)));
-    connect(m_configDialog, SIGNAL(useDarkModeColors(bool)), ui->strategies, SIGNAL(setUseDarkColors(bool)));
-    connect(m_configDialog, SIGNAL(useDarkModeColors(bool)), ui->replay, SIGNAL(setUseDarkColors(bool)));
     connect(m_configDialog, SIGNAL(useNumKeysForReferee(bool)), this, SLOT(udpateSpeedActionsEnabled()));
 
     m_aboutUs = new AboutUs(this);
@@ -403,6 +399,14 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
 #endif
 
     showMaximized();
+
+    const int backgroundValue = palette().brush(QPalette::Window).color().value();
+    const int foregroundValue = palette().brush(QPalette::WindowText).color().value();
+    const bool isDarkMode = backgroundValue < foregroundValue;
+    ui->referee->setStyleSheets(isDarkMode);
+    ui->refereeinfo->setStyleSheets(isDarkMode);
+    ui->strategies->setUseDarkColors(isDarkMode);
+    ui->replay->setUseDarkColors(isDarkMode);
 }
 
 MainWindow::~MainWindow()

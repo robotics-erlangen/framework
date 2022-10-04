@@ -38,10 +38,10 @@ public:
     ~RefereeInfoWidget() override;
     RefereeInfoWidget(const RefereeInfoWidget&) = delete;
     RefereeInfoWidget& operator=(const RefereeInfoWidget&) = delete;
+    void setStyleSheets(bool useDark);
 
 public slots:
     void handleStatus(const Status &status);
-    void setStyleSheets(bool useDark);
 
 private:
     static QString createStyleSheet(const QColor &color);

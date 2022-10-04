@@ -44,6 +44,7 @@ public:
     void load();
     void shutdownInternalAutoref();
     void forceAutoReload(bool force);
+    void setStyleSheets(bool useDark);
 
 signals:
     void changeCommand(SSL_Referee::Command command);
@@ -59,7 +60,6 @@ signals:
 public slots:
     void handleStatus(const Status &status);
     void saveConfig();
-    void setStyleSheets(bool useDark);
     void enableNumberShortcuts(bool enable);
 
 private slots:
