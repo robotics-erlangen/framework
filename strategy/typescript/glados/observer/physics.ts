@@ -830,13 +830,23 @@ export function robotMinEndspeed(robot: Robot, pos: Position, time: number): Spe
 
 	// binary search
 	// resolution
-	let epsilon_v = 0.05;
+	const epsilon_v = 0.05;
 
 	let v = maxSpeed / 2;
 	let delta_v = maxSpeed / 4;
 
+	let bestSpeed = maxSpeed;
+	let bestTimeDiff = Math.abs(time - maxTime);
+
 	while (delta_v > epsilon_v) {
-		let t = robotTimeToPos(robot, pos, direction * v)[0];
+		const t = robotTimeToPos(robot, pos, direction * v)[0];
+
+		const timeDiff = Math.abs(t - time);
+		if (timeDiff < bestTimeDiff) {
+			bestTimeDiff = timeDiff;
+			bestSpeed = v;
+		}
+
 		if (t < time) {
 			v = v - delta_v;
 		} else {
@@ -845,7 +855,7 @@ export function robotMinEndspeed(robot: Robot, pos: Position, time: number): Spe
 		delta_v = delta_v / 2;
 	}
 
-	return direction * v;
+	return direction * bestSpeed;
 }
 
 
