@@ -29,9 +29,6 @@ interface Ray {
 }
 
 export class Defense {
-	private ZONE_POS_LEFT: Position = new Vector(-G.FieldWidthQuarter, G.FieldHeightQuarter / 2);
-	private ZONE_POS_RIGHT: Position = new Vector(G.FieldWidthQuarter, G.FieldHeightQuarter / 2);
-
 	private _manmarkTargets: Map<Robot, number> = new Map(); 					// opponent -> rating
 	private _manmarkAssignments: Map<Robot, FriendlyRobot> = new Map(); 		// opponent -> defender
 	private _centerbackAssignments: FriendlyRobot[] = [];
@@ -42,12 +39,6 @@ export class Defense {
 
 	private _previousManmarkAssignments: Map<Robot, FriendlyRobot> = new Map(); // opponent -> defender
 	private _previousPiggyAssignments: Map<Robot, FriendlyRobot> = new Map(); 	// opponent -> defender
-	private _previousBallCenterbacks: FriendlyRobot[] = [];
-
-	private _ballIsLeft: boolean = false;
-
-	private _zoneDefenderPosLeft: Position;
-	private _zoneDefenderPosRight: Position;
 
 	private _centerbackIntersectionsRemoved = [false, false];
 
@@ -56,16 +47,6 @@ export class Defense {
 	constructor(messaging: MessageBox) {
 		this._messaging = messaging;
 
-		this._zoneDefenderPosLeft = UtilDefense.manMarkPos({
-			pos: this.ZONE_POS_LEFT,
-			radius: Constants.maxRobotRadius,
-			speed: new Vector(0, 0)
-		});
-		this._zoneDefenderPosRight = UtilDefense.manMarkPos({
-			pos: this.ZONE_POS_RIGHT,
-			radius: Constants.maxRobotRadius,
-			speed: new Vector(0, 0)
-		});
 		this._scrappedPiggyTargets = [];
 		// TODO Zonenverteidigung porten
 		// this._zonePosHysteresis = {}
@@ -398,7 +379,6 @@ export class Defense {
 	public _assignDefenders(): void {
 		this._previousManmarkAssignments = new Map(this._manmarkAssignments);
 		this._previousPiggyAssignments = new Map(this._piggyAssignments);
-		this._previousBallCenterbacks = this._centerbackAssignments.slice();
 		this._manmarkAssignments = new Map();
 
 		if (Referee.isNonGameStage()) {
