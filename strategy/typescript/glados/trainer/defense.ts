@@ -216,7 +216,7 @@ export class Defense {
 	private _assignPiggies(defenders: FriendlyRobot[], nPiggies: number): void {
 		// assign piggies
 		while (defenders.length > 0 && nPiggies > 0) {
-			let target = findMostViableTarget(this._piggyTargets, defenders, this._previousPiggyAssignments);
+			let target = findMostViableTarget(this._piggyTargets, defenders, this._previousPiggyAssignments)[0];
 			if (target == undefined) {
 				break;
 			}
@@ -390,26 +390,9 @@ export class Defense {
 
 		let defenders = [...this._messaging.receive(MessageType.defenderFlag).keys()];
 
-		// if needDefaultCB then
-		// 	local volleyDangerousness = UtilDefense.rateVolleyGoalShotThreats()
-		// 	for let robot of World.OpponentRobots do
-		// 		if volleyDangerousness[robot] and volleyDangerousness[robot] > 0.5 then
-		// 			for _ = 1,2 do
-		// 				local defaultCB = UtilDefense.getClosestRobot(defenders, UtilDefense.centerBackPos(World.Ball.pos))
-		// 				if defaultCB then
-		// 					table.removeValue(defenders, defaultCB)
-		// 					this._send.roleAssignment(defaultCB,
-		// 						{name = "CenterBack", params: { World.Ball }})
-		// 				end
-		// 			end
-		// 			break
-		// 		end
-		// 	end
-		// end
-
 		this._assignBallCenterbacks(defenders);
 
-		let nPiggies = determineNumberOfPiggies(defenders.length, this._manmarkTargets, this._piggyTargets);
+		let nPiggies = determineNumberOfPiggies(defenders, this._manmarkTargets, this._piggyTargets, this._previousPiggyAssignments);
 		let nReservedDefenders = nPiggies;
 
 		this._assignManmarkDefenders(defenders, nReservedDefenders);
@@ -439,9 +422,10 @@ export interface ZoneDefenseRoleAssignment {
 
 export type RoleAssignment = CenterBackRoleAssignment | ManMarkRoleAssignment | PiggyRoleAssignment | ZoneDefenseRoleAssignment;
 
-function determineNumberOfPiggies(defenderCount: number, manmarkTargets: Map<Robot, number>, piggyTargets: Map<Robot, number>): number {
+function determineNumberOfPiggies(defenders: FriendlyRobot[], manmarkTargets: Map<Robot, number>,
+		piggyTargets: Map<Robot, number>, previousPiggyAssignments: Map<Robot, FriendlyRobot>): number {
 	debug.push("piggy count");
-	debug.set("defender count", defenderCount);
+	debug.set("defender count", defenders.length);
 
 	if (Referee.isKickoffState()) {
 		debug.pop();
@@ -473,15 +457,19 @@ function determineNumberOfPiggies(defenderCount: number, manmarkTargets: Map<Rob
 			}
 		}
 		debug.set("relevantManMarkTargets", nRelevantManMarkTargets);
-		piggieCount = Math.max(0, defenderCount - nRelevantManMarkTargets);
+		piggieCount = Math.max(0, defenders.length - nRelevantManMarkTargets);
 	}
 
 	if (piggieCount > 0) {
 		let nRelevantPiggyTargets = 0;
-		for (let viability of piggyTargets.values()) {
-			if (viability > viabilityThreshold) {
-				nRelevantPiggyTargets++;
+		let targetCopy = new Map(piggyTargets);
+		while (targetCopy.size > 0) {
+			let [target, viability] = findMostViableTarget(targetCopy, defenders, previousPiggyAssignments);
+			if (target == undefined || viability < viabilityThreshold) {
+				break;
 			}
+			nRelevantPiggyTargets++;
+			targetCopy.delete(target);
 		}
 		debug.set("relevantPiggyTargets", nRelevantPiggyTargets);
 		piggieCount = Math.min(piggieCount, nRelevantPiggyTargets);
@@ -490,7 +478,7 @@ function determineNumberOfPiggies(defenderCount: number, manmarkTargets: Map<Rob
 	return piggieCount;
 }
 
-function findMostViableTarget(piggyTargets: Map<Robot, number>, defenders: FriendlyRobot[], previousAssignments: Map<Robot, FriendlyRobot>): Robot | undefined {
+function findMostViableTarget(piggyTargets: Map<Robot, number>, defenders: FriendlyRobot[], previousAssignments: Map<Robot, FriendlyRobot>): [Robot | undefined, number] {
 	let highestViability = -Infinity;
 	let mostViableTarget: Robot | undefined = undefined;
 	for (let [target, viability] of piggyTargets.entries()) {
@@ -498,7 +486,7 @@ function findMostViableTarget(piggyTargets: Map<Robot, number>, defenders: Frien
 		if (previousAssignments.has(target)) {
 			defenders
 				.filter((def) => previousAssignments[target] === def)
-				.forEach((_) => viability += 0.3);
+				.forEach((_) => viability += 0.1);
 		}
 		if (viability > highestViability) {
 			highestViability = viability;
@@ -506,5 +494,5 @@ function findMostViableTarget(piggyTargets: Map<Robot, number>, defenders: Frien
 		}
 	}
 
-	return mostViableTarget;
+	return [mostViableTarget, highestViability];
 }
