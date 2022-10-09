@@ -227,6 +227,7 @@ function _rateOpponentDangerousness(): Map<Robot, number> {
 }
 export let rateOpponentDangerousness: () => Map<Robot, number> = Cache.forFrame(_rateOpponentDangerousness);
 
+let lastPassViability: Map<Robot, number> = new Map();
 function _rateOpponentPassViability(): Map<Robot, number> {
 	if (!amun.isPerformanceMode) {
 		debug.push("Util Defense");
@@ -245,7 +246,9 @@ function _rateOpponentPassViability(): Map<Robot, number> {
 		}
 
 		// ignore opponents close to enemy defense area
-		if (opp.pos.y > G.FieldHeightHalf - G.DefenseHeight - 1) {
+		const lastExited = lastPassViability[opp] || 0;
+		const hysteresis = lastExited === 0 ? -0.1 : 0;
+		if (opp.pos.y > G.FieldHeightHalf - G.DefenseHeight - 1 + hysteresis) {
 			passViability.set(opp, 0);
 			continue;
 		}
@@ -291,6 +294,8 @@ function _rateOpponentPassViability(): Map<Robot, number> {
 		debug.pop();
 		debug.pop();
 	}
+
+	lastPassViability = new Map(passViability);
 
 	debug.set("passViability", passViability);
 	return passViability;
