@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2022 Michel Schmid                       *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,48 +18,52 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#include "config/config.h"
-#include "mainwindow.h"
-#include <clocale>
-#include <QApplication>
-#include <QDir>
-#include <QIcon>
-#include <QCommandLineParser>
-#include <QDebug>
-#include <QStyle>
-#include <QStyleFactory>
+#ifndef CUSTOMPALETTEWIDGET_H
+#define CUSTOMPALETTEWIDGET_H
 
-int main(int argc, char* argv[])
-{
-    QApplication app(argc, argv);
-    app.setApplicationName("Ra");
-    app.setOrganizationName("ER-Force");
-// available starting with Qt 5.1
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 1, 0))
-    qApp->setAttribute(Qt::AA_UseHighDpiPixmaps);
-#endif
-#ifdef Q_OS_OSX
-    if (QDir::currentPath() == "/") {
-        QDir::setCurrent(QDir::homePath());
-    }
-#endif
+#include <QWidget>
+#include <QPushButton>
+#include <QLabel>
 
-    std::setlocale(LC_NUMERIC, "C");
-
-    QDir::addSearchPath("icon", QString(ERFORCE_DATADIR) + "/icons");
-
-    QCommandLineParser parser;
-    parser.setApplicationDescription("Ra");
-    parser.addHelpOption();
-    QCommandLineOption tournamentOption({"t", "game", "tournament"}, "Tournament mode");
-    parser.addOption(tournamentOption);
-    parser.process(app);
-
-    MainWindow window(parser.isSet(tournamentOption), true);
-
-    window.show();
-
-    // qApp->setStyleSheet("");
-
-    return app.exec();
+namespace Ui {
+class CustomPaletteWidget;
 }
+
+struct CustomPalette {
+    QColor foreground;
+    QColor background;
+    QColor alternateBackground;
+    QColor disabled;
+    QColor highlight;
+    QColor link;
+};
+
+class CustomPaletteWidget : public QWidget
+{
+    Q_OBJECT
+
+public:
+    explicit CustomPaletteWidget(QWidget *parent = nullptr);
+    ~CustomPaletteWidget();
+	CustomPalette getCustomPalette() const { return m_palette; };
+	void save();
+	void load();
+
+
+private:
+    Ui::CustomPaletteWidget *ui;
+
+	void chooseColor(QPushButton* button, const QLabel* label, QColor& color);
+
+    CustomPalette m_palette;
+
+private slots:
+	void chooseForegroundColor(bool);
+	void chooseBackgroundColor(bool);
+	void chooseAlternateBackgroundColor(bool);
+	void chooseDisabledColor(bool);
+	void chooseHighlightColor(bool);
+	void chooseLinkColor(bool);
+};
+
+#endif // CUSTOMPALETTEWIDGET_H

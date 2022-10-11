@@ -144,6 +144,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     m_configDialog = new ConfigDialog(this);
     connect(m_configDialog, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
     connect(m_configDialog, SIGNAL(useNumKeysForReferee(bool)), this, SLOT(udpateSpeedActionsEnabled()));
+    connect(m_configDialog, SIGNAL(setPalette(QPalette)), this, SLOT(updatePalette(QPalette)));
 
     m_aboutUs = new AboutUs(this);
     m_gitInfo = new GitInfoDialog(this);
@@ -1050,4 +1051,14 @@ void MainWindow::changeDivision(world::Geometry::Division division) {
             updateSimulatorSetup("simulator/2020B");
             break;
     }
+}
+
+void MainWindow::updatePalette(QPalette palette) {
+    const int backgroundValue = palette.brush(QPalette::Window).color().value();
+    const int foregroundValue = palette.brush(QPalette::WindowText).color().value();
+    const bool isDarkMode = backgroundValue < foregroundValue;
+    ui->referee->setStyleSheets(isDarkMode);
+    ui->refereeinfo->setStyleSheets(isDarkMode);
+    ui->strategies->setUseDarkColors(isDarkMode);
+    ui->replay->setUseDarkColors(isDarkMode);
 }

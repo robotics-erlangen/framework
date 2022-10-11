@@ -27,6 +27,8 @@ add_subdirectory(widgets)
 add_library(ra-horus STATIC
     aboutus.cpp
     aboutus.h
+	custompalettewidget.cpp
+	custompalettewidget.h
     configdialog.cpp
     configdialog.h
     inputwidget.cpp
@@ -77,6 +79,7 @@ add_library(ra-horus STATIC
 
 set(UI_SOURCES
     aboutus.ui
+	custompalettewidget.ui
     configdialog.ui
     inputwidget.ui
     gitinfodialog.ui

@@ -99,6 +99,7 @@ private slots:
     void searchUid(QString uid);
     void requestUidInsertWindow();
     void changeDivision(world::Geometry::Division division);
+    void updatePalette(QPalette palette);
 
 private:
     void toggleHorusModeWidgets(bool enable);
