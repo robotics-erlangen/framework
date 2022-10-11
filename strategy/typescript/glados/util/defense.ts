@@ -169,11 +169,14 @@ export function dangerousBallTowardsDefense(opp: boolean = false): boolean {
 	return false;
 }
 
-export function getClosestRobot<R extends {pos: Position}>(robotlist: R[], pos: Position): [R | undefined, number] {
+export function getClosestRobot<R extends {pos: Position}>(robotlist: R[], pos: Position, distance?: (r: R, p: Position) => number): [R | undefined, number] {
+	if (distance == undefined) {
+		distance = (r: R, p: Position) => r.pos.distanceTo(p);
+	}
 	let minDist = Infinity;
 	let minRobot = undefined;
 	for (let r of robotlist) {
-		let dist = r.pos.distanceTo(pos);
+		let dist = distance(r, pos);
 		if (dist < minDist) {
 			minDist = dist;
 			minRobot = r;

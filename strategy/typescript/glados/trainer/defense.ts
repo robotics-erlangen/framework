@@ -16,6 +16,7 @@ import * as Physics from "glados/observer/physics";
 import * as ObserverRobot from "glados/observer/robot";
 import { head } from "glados/util/collections";
 import * as UtilDefense from "glados/util/defense";
+import * as Rating from "glados/util/rating";
 
 let G = World.Geometry;
 
@@ -278,6 +279,7 @@ export class Defense {
 		}
 	}
 
+	private lastDefaultCB: FriendlyRobot | undefined;
 	private _assignBallCenterbacks(defenders: FriendlyRobot[]): void {
 		const ROBOT_TIME_MARGIN_LOW = 0;
 		const ROBOT_TIME_MARGIN_HIGH = 0.1;
@@ -349,6 +351,7 @@ export class Defense {
 				this._centerbackAssignments.push(closestAsFriendly);
 				defenders.splice(defenders.indexOf(closestAsFriendly), 1);
 				didBallCB = true;
+				this.lastDefaultCB = closestAsFriendly;
 				this._messaging.send(
 					MessageType.roleAssignment,
 					closestAsFriendly,
@@ -368,12 +371,24 @@ export class Defense {
 			let needDefaultDB = !Referee.isDefensiveCornerKick() && !Referee.isFriendlyFreeKickState();
 			if (needDefaultDB) {
 				let futureBallPosCB = UtilDefense.calculateBallPosition()[0];
-				let defaultCB = UtilDefense.getClosestRobot(defenders, futureBallPosCB)[0];
+				const hysteresisDistance = (r: FriendlyRobot, pos: Position) => {
+					const ballDist = World.Ball.pos.distanceTo(pos);
+					const hysteresisSize = 0.6 * Rating.valueToRating(ballDist, 2, 5);
+					const hysteresis = r === this.lastDefaultCB ? -hysteresisSize : 0;
+					return r.pos.distanceTo(pos) + hysteresis;
+				};
+				const defaultCB = UtilDefense.getClosestRobot(defenders, futureBallPosCB, hysteresisDistance)[0];
 				if (defaultCB != undefined) {
 					defenders.splice(defenders.indexOf(defaultCB), 1);
+					this.lastDefaultCB = defaultCB;
+					didBallCB = true;
 					this._messaging.send(MessageType.roleAssignment, defaultCB, { name: "CenterBack", params: { pos: World.Ball.pos } });
 				}
 			}
+		}
+
+		if (!didBallCB) {
+			this.lastDefaultCB = undefined;
 		}
 	}
 
