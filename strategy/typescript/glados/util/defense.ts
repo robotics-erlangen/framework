@@ -150,7 +150,7 @@ export let centerBackPos: (targetPos: Position, targetDir?: RelativePosition) =>
 
 // if the ball will reach our defense area with at least that speed, stay defender
 let DANGEROUS_BALL_SPEED = 3.0;
-let lastWasDangerousBall = false;
+let lastWasDangerousBall: Map<boolean, boolean> = new Map();
 export function dangerousBallTowardsDefense(opp: boolean = false): boolean {
 	const BALL_SPEED_HYST = 0.2;
 	// if the ball rolls towards our defense area with high speed, stay defender
@@ -159,13 +159,13 @@ export function dangerousBallTowardsDefense(opp: boolean = false): boolean {
 		let timeToDefenseLine = Physics.ballRollTime(World.Ball,
 			World.Ball.pos.distanceTo(defenseLineIntersection));
 		let speedAtDefenseLine = Physics.ballAtTime(World.Ball, timeToDefenseLine).speed.length();
-		const ballSpeedLimit = lastWasDangerousBall ? DANGEROUS_BALL_SPEED - BALL_SPEED_HYST : DANGEROUS_BALL_SPEED;
+		const ballSpeedLimit = lastWasDangerousBall[opp] ? DANGEROUS_BALL_SPEED - BALL_SPEED_HYST : DANGEROUS_BALL_SPEED;
 		if (speedAtDefenseLine > ballSpeedLimit) {
-			lastWasDangerousBall = true;
+			lastWasDangerousBall[opp] = true;
 			return true;
 		}
 	}
-	lastWasDangerousBall = false;
+	lastWasDangerousBall[opp] = false;
 	return false;
 }
 
