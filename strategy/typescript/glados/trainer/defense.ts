@@ -391,6 +391,7 @@ export class Defense {
 		this._previousManmarkAssignments = new Map(this._manmarkAssignments);
 		this._previousPiggyAssignments = new Map(this._piggyAssignments);
 		this._manmarkAssignments = new Map();
+		this._piggyAssignments = new Map();
 
 		if (Referee.isNonGameStage()) {
 			return;
