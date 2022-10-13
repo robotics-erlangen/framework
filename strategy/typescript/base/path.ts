@@ -536,6 +536,7 @@ export class Path {
 		this._trajectoryInst.addOpponentRobotObstacle(start.x, start.y, speed.x, speed.y, prio);
 		if (!isPerformanceMode) {
 			vis.addCircle(this.getObstacleString(), robot.pos, 1.5 * robot.radius, vis.colors.orchidHalf, false, undefined, undefined, robot.radius * 0.5);
+			vis.addPath(this.getObstacleString(), [robot.pos, robot.pos + robot.speed], vis.colors.orchidHalf);
 		}
 	}
 
