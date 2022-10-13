@@ -49,8 +49,6 @@ export class Defense {
 		this._messaging = messaging;
 
 		this._scrappedPiggyTargets = [];
-		// TODO Zonenverteidigung porten
-		// this._zonePosHysteresis = {}
 	}
 
 	private _updateManmarkTargets(): void {
@@ -99,7 +97,8 @@ export class Defense {
 		}
 	}
 
-	private _nextManmarkAssignment(defenders: FriendlyRobot[]): [Robot, FriendlyRobot] | undefined {
+	private lastManmarkOrder: Map<number, Robot> = new Map();
+	private nextManmarkAssignment(defenders: FriendlyRobot[], counter: number): [Robot, FriendlyRobot] | undefined {
 		if (defenders.length === 0) {
 			return undefined;
 		}
@@ -110,6 +109,9 @@ export class Defense {
 			defenders
 				.filter((defender) => defender === this._previousManmarkAssignments[robot])
 				.forEach((_) => dangerousness += 0.2);
+			if (this.lastManmarkOrder[counter] === robot) {
+				dangerousness += 0.1;
+			}
 			if (dangerousness > highestDangerousness) {
 				highestDangerousness = dangerousness;
 				mostDangerousRobot = robot;
@@ -157,32 +159,25 @@ export class Defense {
 			this._manmarkAssignments[mostDangerousRobot] = <FriendlyRobot> bestDefender;
 			this._manmarkTargets.delete(mostDangerousRobot);
 
+			this.lastManmarkOrder[counter] = mostDangerousRobot;
+
 			return [mostDangerousRobot, <FriendlyRobot> bestDefender];
 		}
 
 		return undefined;
 	}
 
-	// _checkZoneDefender (zonePos) {
-	// 	let rating = 0
-	// 	for (robot, _ in pairs(this._manmarkAssignments)) {
-	// 		let dist = zonePos.distanceTo(robot.pos)
-	// 		rating = rating + Rating.valueToRating(dist, World.Geometry.FieldHeightHalf / 3, 0)
-	// 	}
-	// 	let decision = this._zonePosHysteresis[zonePos] ? rating < 0.6 : rating < 0.3 || not Referee.isStopState()
-	// 	this._zonePosHysteresis[zonePos] = decision
-	// 	return decision
-	// }
-
 	private _assignManmarkDefenders(defenders: FriendlyRobot[], nReservedDefenders: number) {
+		let counter = 0;
 		while (defenders.length - nReservedDefenders > 0) {
-			let assignment = this._nextManmarkAssignment(defenders);
+			let assignment = this.nextManmarkAssignment(defenders, counter);
 			if (assignment == undefined) {
 				break;
 			}
 			let [manmarkTarget, manmarker] = assignment;
 			defenders.splice(defenders.indexOf(manmarker), 1);
 			this._messaging.send(MessageType.roleAssignment, manmarker, { name: "ManMark", params: [manmarkTarget] });
+			counter++;
 		}
 	}
 
