@@ -825,6 +825,12 @@ void MainWindow::setSimulatorEnabled(bool enabled)
     ui->actionEnableTransceiver->setChecked(ui->actionSimulator->isChecked() ? m_transceiverSimulator : m_transceiverRealWorld);
     ui->actionChargeKicker->setChecked(ui->actionSimulator->isChecked() ? m_chargeSimulator : m_chargeRealWorld);
 
+    if (enabled) {
+        ui->actionDisableTransceiver->setShortcut(QKeySequence());
+    } else {
+        ui->actionDisableTransceiver->setShortcut(QKeySequence(Qt::Key_Escape));
+    }
+
     udpateSpeedActionsEnabled();
 
     m_transceiverStatus->setVisible(!enabled);
