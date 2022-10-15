@@ -81,7 +81,9 @@ export class Duel extends Behavior {
 							let robotTime = Physics.robotTimeToPos(opp, pointOnBallLine, new Vector(0, 0))[0];
 							let ballOffset = World.Ball.speed.withLength(World.Ball.radius + opp.shootRadius);
 							let ballTime = Physics.checkedBallRollTime(World.Ball, pointOnBallLine - ballOffset);
-							if (ballTime > robotTime + 0.1) {
+
+							const hysteresis = this._active ? 0 : 0.1;
+							if (ballTime > robotTime + hysteresis) {
 								firstAtBall = false;
 								break;
 							}
