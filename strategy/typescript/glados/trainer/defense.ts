@@ -258,7 +258,8 @@ export class Defense {
 			}
 			// for dribbling robots, limit the intersections to ones going into the goal
 			let goallineIntersection = geom.intersectLineLine(pos, direction, G.FriendlyGoal, new Vector(1, 0))[0];
-			if (isDribbling && goallineIntersection != undefined && Math.abs(goallineIntersection.x) > G.GoalWidth / 2) {
+			if (isDribbling && goallineIntersection != undefined && Math.abs(goallineIntersection.x) > G.GoalWidth / 2
+					&& Math.abs(goallineIntersection.x) < G.FieldWidthHalf * 1.5) {
 				let goalSide = new Vector(MathUtil.sign(goallineIntersection.x) * G.GoalWidth / 2, G.FriendlyGoal.y);
 				this._createIntersections(result, pos, goalSide - pos, radius, index, false);
 				return;
