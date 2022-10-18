@@ -1916,9 +1916,9 @@ void FieldWidget::wheelEvent(QWheelEvent *event)
 
     float scaleFactor = 1;
     if (!numPixels.isNull()) {
-        scaleFactor = std::pow(1.2, numPixels.y() / 15.f);
+        scaleFactor = std::pow(1.2, m_scrollSensitivity * numPixels.y() / 15.f);
     } else if (!numDegrees.isNull()) {
-        scaleFactor = std::pow(1.2, numDegrees.y() / 15.f);
+        scaleFactor = std::pow(1.2, m_scrollSensitivity * numDegrees.y() / 15.f);
     }
 
     // transform centered on the mouse cursor
@@ -2370,4 +2370,8 @@ void FieldWidget::switchScene(int scene)
         m_worldState.append(m_drawScenes[m_currentScene].lastWorldState[m_trackingFrom]);
         updateDetection();
     }
+}
+
+void FieldWidget::setScrollSensitivity(float sensitivity) {
+    m_scrollSensitivity = sensitivity;
 }

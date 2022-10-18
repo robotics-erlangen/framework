@@ -122,6 +122,7 @@ public slots:
     void toggleStrategyVisualizations();
     void setRegularVisualizationsEnabled(bool blue, bool enabled);
     void internalRefereeEnabled(bool enabled);
+    void setScrollSensitivity(float sensitivity);
 
 protected:
     void keyPressEvent(QKeyEvent *event) override;
@@ -305,6 +306,8 @@ private:
     TrackingFrom m_trackingFrom;
     world::SimulatorState m_lastSimulatorState;
     int m_statesWithoutSimulatorReality = 0;
+
+    float m_scrollSensitivity = 1.0;
 };
 
 #endif // FIELDWIDGET_H

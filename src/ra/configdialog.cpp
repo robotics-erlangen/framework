@@ -163,6 +163,8 @@ void ConfigDialog::sendConfiguration()
     emit setRobotCtrlClickAction(static_cast<FieldWidgetAction>(ui->ctrlClickAction->currentData().toInt()),
                                  ui->ctrlClickSearch->text());
 
+    emit setScrollSensitivity(ui->scrollSensitivitySpinBox->value());
+
     const auto style = QStyleFactory::create(ui->qStyle->currentText());
     const auto colorSchemeSetting = ui->colorScheme->currentText();
     QPalette palette;

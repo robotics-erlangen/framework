@@ -48,6 +48,7 @@ signals:
     void setRobotDoubleClickAction(FieldWidgetAction action, QString searchString);
     void setRobotCtrlClickAction(FieldWidgetAction action, QString searchString);
 	void setPalette(QPalette palette);
+    void setScrollSensitivity(float sensitivity);
 
 public slots:
     void load();

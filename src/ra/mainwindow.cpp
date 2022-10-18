@@ -173,6 +173,9 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     connect(m_robotCtrlClickAction, SIGNAL(setDebugFilterString(QString)), ui->debugTree, SLOT(setFilter(QString)));
     connect(m_robotCtrlClickAction, SIGNAL(toggleVisualization(QString)), ui->visualization, SLOT(toggleVisualization(QString)));
 
+    connect(m_configDialog, &ConfigDialog::setScrollSensitivity,
+            ui->field, &FieldWidget::setScrollSensitivity);
+
     // setup visualization only parts of the ui
     connect(ui->visualization, SIGNAL(itemsChanged(QStringList)), ui->field, SLOT(visualizationsChanged(QStringList)));
 
