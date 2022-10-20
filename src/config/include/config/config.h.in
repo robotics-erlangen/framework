@@ -27,7 +27,7 @@ static const char* const ERFORCE_CONFDIR = "./config/";
 static const char* const ERFORCE_LIBDIR = "./libs/";
 static const char* const ERFORCE_STRATEGYDIR = "./strategy/";
 static const char* const ERFORCE_AUTOREFDIR = "./autoref";
-
+static const char* const GAMECONTROLLER_EXECUTABLE_LOCATION = "${GAMECONTROLLER_FILE_NAME}";
 #elif defined(_WIN32)
 static const char* const ERFORCE_DATADIR = "./data/";
 static const char* const ERFORCE_CONFDIR = "./config/";
