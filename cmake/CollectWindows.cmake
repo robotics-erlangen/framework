@@ -97,7 +97,7 @@ add_custom_target(assemble
 
 
 add_custom_target(pack
-	COMMAND bash ${CMAKE_SOURCE_DIR}/data/pkg/win-pack.sh ${CMAKE_COMMAND} ${CMAKE_SOURCE_DIR} ${PACK_SUFFIX}
+	COMMAND bash ${CMAKE_SOURCE_DIR}/data/pkg/pack-windows.sh ${CMAKE_COMMAND} ${CMAKE_SOURCE_DIR} ${PACK_SUFFIX}
 	WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
 	DEPENDS amun-cli logplayer ra visionanalyzer assemble
 )

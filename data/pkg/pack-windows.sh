@@ -38,7 +38,7 @@ shortrev=""
 suffix="$3"
 
 if [[ ! -e "$cmake" ]] ; then
-	echo "Usage: win-pack.sh /path/to/cmake [/path/to/software/repository]"
+	echo "Usage: pack-windows.sh /path/to/cmake [/path/to/software/repository]"
 	echo "Must run from the build bin directory!"
 	return 1
 fi
