@@ -31,7 +31,7 @@ cp --recursive \
 
 cat <<EOF >"$SCRATCH/start.sh"
 #!/usr/bin/env bash
-exec build/bin/ra"
+exec build/bin/ra
 EOF
 chmod +x "$SCRATCH/start.sh"
 
