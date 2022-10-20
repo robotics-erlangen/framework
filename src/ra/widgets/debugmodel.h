@@ -43,6 +43,7 @@ public:
     void setDebugIfCurrent(const amun::DebugValues &debug, const QSet<QString> &debug_expanded);
     void setDebug(const amun::DebugValues &debug, const QSet<QString> &debug_expanded, bool content = true);
     void setFilterRegEx(const QString &filterKey, const QString &filterValue);
+    bool hasItems() const;
 
 private:
     void addRootItem(const QString &name, int sourceId);

@@ -47,6 +47,9 @@ private slots:
     void handleStatus(const Status &status);
     void filterChanged(const QString &filter);
 
+signals:
+    void triggerBreakpoint();
+
 private:
     Ui::DebugWidget *ui;
     QString m_filterDefaultStyleSheet;

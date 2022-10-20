@@ -52,6 +52,7 @@ public:
     void setPaused(bool p);
     int getLastFrame();
     uint getFrame();
+    void pause();
 
 public slots:
     void seekPacket(int packet);
@@ -88,6 +89,7 @@ private:
     int m_exactSliderValue;
     bool m_scroll;
     bool m_openAtEnd = false;
+    bool m_isPaused = true;
 };
 
 #endif // LOGMANAGER_H

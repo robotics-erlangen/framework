@@ -68,6 +68,13 @@ DebugTreeWidget::~DebugTreeWidget()
     s.setValue("Debug/TreeHeader", header()->saveState());
 }
 
+void DebugTreeWidget::checkBreak()
+{
+    if (m_breakOnItem && m_modelTree->hasItems()) {
+        emit triggerBreak();
+    }
+}
+
 void DebugTreeWidget::setFilterRegEx(const QString &keyFilter, const QString &valueFilter)
 {
     m_modelTree->setFilterRegEx(keyFilter, valueFilter);
@@ -78,6 +85,7 @@ void DebugTreeWidget::setFilterRegEx(const QString &keyFilter, const QString &va
             m_modelTree->setDebugIfCurrent(debug, m_expanded);
         }
     }
+    checkBreak();
 }
 
 void DebugTreeWidget::handleStatus(const Status &status)
@@ -100,6 +108,8 @@ void DebugTreeWidget::updateTree()
             m_modelTree->setDebug(debug, m_expanded);
         }
     }
+    checkBreak();
+
     // don't show it a second time
     m_status.clear();
 }

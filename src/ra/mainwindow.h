@@ -100,6 +100,7 @@ private slots:
     void requestUidInsertWindow();
     void changeDivision(world::Geometry::Division division);
     void updatePalette(QPalette palette);
+    void pauseAll();
 
 private:
     void toggleHorusModeWidgets(bool enable);

@@ -29,6 +29,8 @@ DebugWidget::DebugWidget(QWidget *parent) :
     ui->setupUi(this);
     connect(ui->filter, SIGNAL(textChanged(QString)), SLOT(filterChanged(QString)));
     connect(ui->filter, SIGNAL(returnPressed()), ui->filter, SLOT(clear()));
+    connect(ui->checkBreakOnFind, &QCheckBox::stateChanged, ui->tree, &DebugTreeWidget::setBreakOnItem);
+    connect(ui->tree, &DebugTreeWidget::triggerBreak, this, &DebugWidget::triggerBreakpoint);
     m_filterDefaultStyleSheet = ui->filter->styleSheet();
     QString filterDescription = "Filter the debug tree\n"\
             "Seperate filters for key and value by using ':'\n"\

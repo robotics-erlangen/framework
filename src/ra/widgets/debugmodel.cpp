@@ -72,6 +72,15 @@ void DebugModel::addRootItem(const QString &name, int sourceId)
     m_itemRoots[sourceId] = item;
 }
 
+bool DebugModel::hasItems() const
+{
+    int total = 0;
+    for (QStandardItem *item : m_itemRoots) {
+        total += item->rowCount();
+    }
+    return total > 0;
+}
+
 void DebugModel::clearData()
 {
     for (int sourceId: m_itemRoots.keys()) {

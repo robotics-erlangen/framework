@@ -37,6 +37,7 @@ public:
     DebugTreeWidget(const DebugTreeWidget&) = delete;
     DebugTreeWidget& operator=(const DebugTreeWidget&) = delete;
     void setFilterRegEx(const QString &keyFilter, const QString &valueFilter);
+    void setBreakOnItem(bool b) { m_breakOnItem = b; }
 
 public slots:
     void clearData();
@@ -47,9 +48,13 @@ private slots:
     void debugExpanded(const QModelIndex &index);
     void debugCollapsed(const QModelIndex &index);
 
+signals:
+    void triggerBreak();
+
 private:
     void load();
     void save();
+    void checkBreak();
 
     DebugModel *m_modelTree;
     QTreeView *m_treeView;
@@ -57,6 +62,7 @@ private:
     QHash<int, Status> m_status;
     QHash<int, Status> m_lastStatus;
     GuiTimer *m_guiTimer;
+    bool m_breakOnItem = false;
 };
 
 #endif // DEBUGTREEWIDGET_H

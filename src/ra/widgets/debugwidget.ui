@@ -29,7 +29,24 @@
    <item row="0" column="0">
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <widget class="QLineEdit" name="filter"/>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QCheckBox" name="checkBreakOnFind">
+         <property name="toolTip">
+          <string>Stop simulation or playback when elements are visible in the debug tree</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="filter"/>
+       </item>
+      </layout>
      </item>
      <item>
       <widget class="DebugTreeWidget" name="tree" native="true"/>

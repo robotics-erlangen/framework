@@ -182,6 +182,8 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     m_plotter = new Plotter();
     connect(m_plotter, SIGNAL(spacePressed()), this, SLOT(togglePause()));
 
+    connect(ui->debugTree, SIGNAL(triggerBreakpoint()), SLOT(pauseAll()));
+
     // connect the menu actions
     connect(ui->actionEnableTransceiver, SIGNAL(toggled(bool)), SLOT(setTransceiver(bool)));
     connect(ui->actionDisableTransceiver, SIGNAL(triggered(bool)), SLOT(disableTransceiver()));
@@ -451,6 +453,17 @@ void MainWindow::togglePause()
         ui->simulator->toggleSimulatorRunning();
     } else {
         ui->actionTogglePause->trigger();
+    }
+}
+
+void MainWindow::pauseAll()
+{
+    if (m_currentWidgetConfiguration % 2 == 1) {
+        if (ui->actionSimulator->isChecked()) {
+            ui->simulator->stop();
+        }
+    } else {
+        ui->logManager->pause();
     }
 }
 

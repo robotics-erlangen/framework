@@ -215,8 +215,17 @@ QString LogSlider::formatTime(qint64 time)
            .arg((int) (dtime * 1000) % 1000, 3, 10, QChar('0'));
 }
 
+void LogSlider::pause()
+{
+    // TODO: this could exhibit race conditions with amun
+    if (!m_isPaused) {
+        ui->btnPlay->click();
+    }
+}
+
 void LogSlider::setPaused(bool p)
 {
+    m_isPaused = p;
     bool hasIcon = !QIcon::fromTheme("media-playback-start").isNull();
     const QString playText("Play");
     const QString pauseText("Pause");
