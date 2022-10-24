@@ -74,12 +74,12 @@ private:
     void handleResponsePacket(QList<robot::RadioResponse> &response, const char *data, uint size, qint64 time);
     void handleTeam(const robot::Team &team);
 
-    void addRobot2014Command(int id, const robot::Command &command, bool charge, quint8 packetCounter, QByteArray &usb_packet);
-    void addRobot2014Sync(qint64 processingDelay, quint8 packetCounter, QByteArray &usb_packet);
+    void addRobot2014Command(int id, const robot::Command &command, bool charge, quint8 packetCounter);
+    void addRobot2014Sync(qint64 processingDelay, quint8 packetCounter);
 
     // for now the 2018 functions mostly copy paste of the 2014 functions
-    void addRobot2018Command(int id, const robot::Command &command, bool charge, quint8 packetCounter, QByteArray &usb_packet);
-    void addRobot2018Sync(qint64 processingDelay, quint8 packetCounter, QByteArray &usb_packet);
+    void addRobot2018Command(int id, const robot::Command &command, bool charge, quint8 packetCounter);
+    void addRobot2018Sync(qint64 processingDelay, quint8 packetCounter);
 
     void sendCommand(const QList<robot::RadioCommand> &commands, bool charge, qint64 processingStart);
 

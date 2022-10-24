@@ -24,9 +24,9 @@
 
 #include "protobuf/command.h"
 #include "protobuf/status.h"
+#include <QByteArray>
 #include <QObject>
 
-class QByteArray;
 class QString;
 class Timer;
 class USBDevice;
@@ -54,14 +54,17 @@ public:
     bool isOpen() const {
         return m_device && m_connectionState == State::CONNECTED;
     }
+
+    void newCycle() { m_packet.resize(0); }
+
     bool open();
-    bool write(const QByteArray &packet);
 
-    void addSendCommand(QByteArray &usb_packet, const Radio::Address &target, size_t expectedResponseSize, const char *data, size_t len);
+    void addSendCommand(const Radio::Address &target, size_t expectedResponseSize, const char *data, size_t len);
 
-    void addPingPacket(qint64 time, QByteArray &usb_packet);
-    void addStatusPacket(QByteArray &usb_packet);
+    void addPingPacket(qint64 time);
+    void addStatusPacket();
 
+    void flush(qint64 time);
 signals:
     void sendStatus(const Status &status);
     void errorOccurred(const QString &errorMsg, qint64 restartDelayInNs = 0);
@@ -75,6 +78,7 @@ private slots:
     void onReadyRead();
 
 private:
+    bool write(const QByteArray &packet);
     void close();
 
     void handleInitPacket(const char *data, uint size);
@@ -92,6 +96,8 @@ private:
     const Timer *m_timer = nullptr;
 
     amun::TransceiverConfiguration m_configuration;
+
+    QByteArray m_packet;
 };
 
 #endif // TRANSCEIVER2015_H

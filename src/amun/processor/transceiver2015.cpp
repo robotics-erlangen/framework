@@ -103,7 +103,7 @@ bool Transceiver2015::open()
 #endif // USB_FOUND
 }
 
-void Transceiver2015::addSendCommand(QByteArray &usb_packet, const Radio::Address &target, size_t expectedResponseSize, const char *data, size_t len)
+void Transceiver2015::addSendCommand(const Radio::Address &target, size_t expectedResponseSize, const char *data, size_t len)
 {
     TransceiverCommandPacket senderCommand;
     senderCommand.command = COMMAND_SEND_NRF24;
@@ -141,12 +141,12 @@ void Transceiver2015::addSendCommand(QByteArray &usb_packet, const Radio::Addres
         break;
     }
 
-    usb_packet.append((const char*) &senderCommand, sizeof(senderCommand));
-    usb_packet.append((const char*) &targetAddress, sizeof(targetAddress));
-    usb_packet.append((const char*) data, len);
+    m_packet.append((const char*) &senderCommand, sizeof(senderCommand));
+    m_packet.append((const char*) &targetAddress, sizeof(targetAddress));
+    m_packet.append((const char*) data, len);
 }
 
-void Transceiver2015::addPingPacket(qint64 time, QByteArray &usb_packet)
+void Transceiver2015::addPingPacket(qint64 time)
 {
     // Append ping packet with current timestamp
     TransceiverCommandPacket senderCommand;
@@ -156,18 +156,28 @@ void Transceiver2015::addPingPacket(qint64 time, QByteArray &usb_packet)
     TransceiverPingData ping;
     ping.time = time;
 
-    usb_packet.append((const char*) &senderCommand, sizeof(senderCommand));
-    usb_packet.append((const char*) &ping, sizeof(ping));
+    m_packet.append((const char*) &senderCommand, sizeof(senderCommand));
+    m_packet.append((const char*) &ping, sizeof(ping));
 }
 
-void Transceiver2015::addStatusPacket(QByteArray &usb_packet)
+void Transceiver2015::addStatusPacket()
 {
     // request count of dropped usb packets
     TransceiverCommandPacket senderCommand;
     senderCommand.command = COMMAND_STATUS;
     senderCommand.size = 0;
 
-    usb_packet.append((const char*) &senderCommand, sizeof(senderCommand));
+    m_packet.append((const char*) &senderCommand, sizeof(senderCommand));
+}
+
+void Transceiver2015::flush(qint64 time)
+{
+    // Workaround for usb problems if packet size is a multiple of transfer size
+    if (m_packet.size() % 64 == 0) {
+        addPingPacket(time);
+    }
+
+    write(m_packet);
 }
 
 void Transceiver2015::handleCommand(const Command &command)

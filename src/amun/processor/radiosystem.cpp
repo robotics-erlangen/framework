@@ -353,7 +353,7 @@ void RadioSystem::handleResponsePacket(QList<robot::RadioResponse> &responses, c
     }
 }
 
-void RadioSystem::addRobot2014Command(int id, const robot::Command &command, bool charge, quint8 packetCounter, QByteArray &usb_packet)
+void RadioSystem::addRobot2014Command(int id, const robot::Command &command, bool charge, quint8 packetCounter)
 {
     // copy command
     RadioCommand2014 data;
@@ -407,12 +407,12 @@ void RadioSystem::addRobot2014Command(int id, const robot::Command &command, boo
     }
 
     m_transceiverLayer->addSendCommand(
-        usb_packet, Address { Unicast, Generation::Gen2014, id },
+        Address { Unicast, Generation::Gen2014, id },
         sizeof(RadioResponseHeader) + sizeof(RadioResponse2014),
         reinterpret_cast<const char *>(&data), sizeof(data));
 }
 
-void RadioSystem::addRobot2014Sync(qint64 processingDelay, quint8 packetCounter, QByteArray &usb_packet)
+void RadioSystem::addRobot2014Sync(qint64 processingDelay, quint8 packetCounter)
 {
     // processing usually takes a few hundred microseconds, bound to 2ms to avoid outliers
     processingDelay = qMin((qint64)2*1000*1000, processingDelay);
@@ -435,7 +435,7 @@ void RadioSystem::addRobot2014Sync(qint64 processingDelay, quint8 packetCounter,
     data.time_offset = (processingDelay + syncPacketDelay) / 1000;
 
     m_transceiverLayer->addSendCommand(
-        usb_packet, Address { Broadcast, Generation::Gen2014 },
+        Address { Broadcast, Generation::Gen2014 },
         // Use a expected response size of 1 to add a delay of 240 us to
         // workaround reception issues our custom built nrf receivers fail to
         // receive their command packet if it immediatelly follows the sync
@@ -444,7 +444,7 @@ void RadioSystem::addRobot2014Sync(qint64 processingDelay, quint8 packetCounter,
         reinterpret_cast<const char *>(&data), sizeof(data));
 }
 
-void RadioSystem::addRobot2018Command(int id, const robot::Command &command, bool charge, quint8 packetCounter, QByteArray &usb_packet)
+void RadioSystem::addRobot2018Command(int id, const robot::Command &command, bool charge, quint8 packetCounter)
 {
     // copy command
     RadioCommand2018 data;
@@ -498,12 +498,12 @@ void RadioSystem::addRobot2018Command(int id, const robot::Command &command, boo
     }
 
     m_transceiverLayer->addSendCommand(
-        usb_packet, Address { Unicast, Generation::Gen2018, id },
+        Address { Unicast, Generation::Gen2018, id },
         sizeof(RadioResponseHeader) + sizeof(RadioResponse2018),
         reinterpret_cast<const char *>(&data), sizeof(data));
 }
 
-void RadioSystem::addRobot2018Sync(qint64 processingDelay, quint8 packetCounter, QByteArray &usb_packet)
+void RadioSystem::addRobot2018Sync(qint64 processingDelay, quint8 packetCounter)
 {
     // processing usually takes a few hundred microseconds, bound to 2ms to avoid outliers
     processingDelay = qMin((qint64)2*1000*1000, processingDelay);
@@ -526,7 +526,7 @@ void RadioSystem::addRobot2018Sync(qint64 processingDelay, quint8 packetCounter,
     data.time_offset = (processingDelay + syncPacketDelay) / 1000;
 
     m_transceiverLayer->addSendCommand(
-        usb_packet, Address { Broadcast, Generation::Gen2018 },
+        Address { Broadcast, Generation::Gen2018 },
         // Use a expected response size of 1 to add a delay of 240 us to
         // workaround reception issues our custom built nrf receivers fail to
         // receive their command packet if it immediatelly follows the sync
@@ -554,18 +554,17 @@ void RadioSystem::sendCommand(const QList<robot::RadioCommand> &commands, bool c
     const qint64 time = Timer::systemTime();
     m_frameTimes[m_packetCounter] = time;
 
-    // used for packet assembly
-    QByteArray usb_packet;
+    m_transceiverLayer->newCycle();
 
     bool hasRobot2014Commands = generations.contains(3);
     if (hasRobot2014Commands) {
         const qint64 completionTime = m_timer->currentTime();
-        addRobot2014Sync(processingStart - completionTime, m_packetCounter, usb_packet);
+        addRobot2014Sync(processingStart - completionTime, m_packetCounter);
     }
     bool hasRobot2018Commands = generations.contains(4);
     if (hasRobot2018Commands) {
         const qint64 completionTime = m_timer->currentTime();
-        addRobot2018Sync(processingStart - completionTime, m_packetCounter, usb_packet);
+        addRobot2018Sync(processingStart - completionTime, m_packetCounter);
     }
 
     QMapIterator<uint, RobotList> it(generations);
@@ -574,24 +573,19 @@ void RadioSystem::sendCommand(const QList<robot::RadioCommand> &commands, bool c
 
         foreach (const robot::RadioCommand &radio_command, it.value()) {
             if (it.key() == 3) { // 2014 generation
-                addRobot2014Command(radio_command.id(), radio_command.command(), charge, m_packetCounter, usb_packet);
+                addRobot2014Command(radio_command.id(), radio_command.command(), charge, m_packetCounter);
             } else if (it.key() == 4) { // 2018 / 2020 generation
-                addRobot2018Command(radio_command.id(), radio_command.command(), charge, m_packetCounter, usb_packet);
+                addRobot2018Command(radio_command.id(), radio_command.command(), charge, m_packetCounter);
             }
         }
     }
 
-    m_transceiverLayer->addPingPacket(time, usb_packet);
+    m_transceiverLayer->addPingPacket(time);
     if (m_packetCounter == 255) {
-        m_transceiverLayer->addStatusPacket(usb_packet);
+        m_transceiverLayer->addStatusPacket();
     }
 
-    // Workaround for usb problems if packet size is a multiple of transfer size
-    if (usb_packet.size() % 64 == 0) {
-        m_transceiverLayer->addPingPacket(time, usb_packet);
-    }
-
-    m_transceiverLayer->write(usb_packet);
+    m_transceiverLayer->flush(time);
 
     // only restart timeout if not yet active
     if (!m_timeoutTimer->isActive()) {
