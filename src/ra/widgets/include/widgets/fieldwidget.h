@@ -174,7 +174,7 @@ private:
     void updateGeometry();
     void updateInfoText();
     void updateVisualizations();
-    void updateVisualizations(const amun::DebugValues &v);
+    void updateVisualizations(const amun::DebugValues &v, const bool grey = false);
     void clearTeamData(RobotMap &team);
     void updateTeam(RobotMap &team, QHash<uint, robot::Specs> &specsMap, const robot::Team &specs);
     void setBall(const world::Ball &ball);

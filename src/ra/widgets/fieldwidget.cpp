@@ -640,13 +640,15 @@ void FieldWidget::updateVisualizations()
     foreach (const Status &v, m_drawScenes[m_currentScene].visualizations) {
         for (const auto& debug: v->debug()) {
             if (m_visibleVisSources.value(debug.source())) {
-                updateVisualizations(debug);
+                const bool grey = (debug.source() == amun::DebugSource::StrategyYellow && m_actionShowYellowReplayVis->isChecked() && m_actionShowYellowReplayVis->isEnabled())
+                    || (debug.source() == amun::DebugSource::StrategyBlue && m_actionShowBlueReplayVis->isChecked() && m_actionShowBlueReplayVis->isEnabled());
+                updateVisualizations(debug, grey);
             }
         }
     }
 }
 
-void FieldWidget::updateVisualizations(const amun::DebugValues &v)
+void FieldWidget::updateVisualizations(const amun::DebugValues &v, const bool grey)
 {
     // use introspection to iterate through the visualizations
     const google::protobuf::RepeatedPtrField<amun::Visualization> &viss = v.visualization();
@@ -685,11 +687,18 @@ void FieldWidget::updateVisualizations(const amun::DebugValues &v)
                 }
             }
             if (vis.pen().has_color()) {
-                pen.setColor(QColor(
-                                 vis.pen().color().red(),
-                                 vis.pen().color().green(),
-                                 vis.pen().color().blue(),
-                                 vis.pen().color().alpha()));
+                QColor col(
+                        vis.pen().color().red(),
+                        vis.pen().color().green(),
+                        vis.pen().color().blue(),
+                        vis.pen().color().alpha());
+
+                if (grey) {
+                    int h, s, v, a;
+                    col.getHsv(&h, &s, &v, &a);
+                    col = QColor::fromHsv(h, s / 2, v, a / 4);
+                }
+                pen.setColor(col);
             }
             if (vis.has_width()) {
                 pen.setWidthF(vis.width());
@@ -700,7 +709,13 @@ void FieldWidget::updateVisualizations(const amun::DebugValues &v)
 
         // configure brush
         if (vis.has_brush()) {
-            brush = QBrush(QColor(vis.brush().red(), vis.brush().green(), vis.brush().blue(), vis.brush().alpha()));
+            QColor col(QColor(vis.brush().red(), vis.brush().green(), vis.brush().blue(), vis.brush().alpha()));
+            if (grey) {
+                int h, s, v, a;
+                col.getHsv(&h, &s, &v, &a);
+                col = QColor::fromHsv(h, s / 2, v, a / 4);
+            }
+            brush = QBrush(col);
         }
 
         if (vis.has_circle()) {
