@@ -934,17 +934,17 @@ void MainWindow::horusMode()
 
 void MainWindow::toggleHorusModeWidgets(bool enable)
 {
+#ifdef EASY_MODE
+    ui->actionGoLive->setEnabled(false);
+#else
     ui->actionGoLive->setEnabled(enable);
+#endif
     ui->actionFrameBack->setEnabled(enable);
     ui->actionFrameForward->setEnabled(enable);
     ui->actionStepBack->setEnabled(enable);
     ui->actionStepForward->setEnabled(enable);
     ui->actionTogglePause->setEnabled(enable);
-#ifdef EASY_MODE
-    ui->actionShowBacklog->setEnabled(false);
-#else
     ui->actionShowBacklog->setEnabled(!enable);
-#endif
     ui->referee->setEnabled(!enable);
     ui->simulator->setEnabled(!enable);
     ui->simulatorConfig->setEnabled(!enable);
