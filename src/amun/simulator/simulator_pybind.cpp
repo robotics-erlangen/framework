@@ -9,10 +9,9 @@ PYBIND11_MODULE(erforce_simulator, m) {
             .def(py::init<std::string>())
             .def("step_simulation", &camun::simulator::Simulator::stepSimulation)
             .def("get_serialized_ssl_wrapper_packets", &camun::simulator::Simulator::getSerializedSSLWrapperPackets)
-            .def("get_serialized_errors", &camun::simulator::Simulator::getSerializedErrors)
+            .def("get_and_clear_serialized_errors", &camun::simulator::Simulator::getAndClearSerializedErrors)
             .def("handle_yellow_robot_control", &camun::simulator::Simulator::handleSerializedYellowRobotControl)
             .def("handle_blue_robot_control", &camun::simulator::Simulator::handleSerializedBlueRobotControl)
             .def("handle_simulator_command", &camun::simulator::Simulator::handleSerializedSimulatorCommand)
-            .def("handle_simulator_command_2", &camun::simulator::Simulator::handleSerializedSimulatorCommand2)
             ;
 }

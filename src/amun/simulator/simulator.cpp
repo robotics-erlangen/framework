@@ -1042,9 +1042,10 @@ SerializedMsg Simulator::handleSerializedBlueRobotControl(SerializedMsg msg) {
     return serializeProto(handleBlueRobotControl(parseProto<sslsim::RobotControl>(msg)));
 }
 
-std::vector<sslsim::SimulatorError> Simulator::getErrors() {
+std::vector<sslsim::SimulatorError> Simulator::getAndClearErrors() {
     QList<SSLSimError> aggregated_errors;
     for(auto source : {ErrorSource::BLUE, ErrorSource::YELLOW, ErrorSource::CONFIG}) {
+        // getAggregates clears the errors as well
         aggregated_errors.append(m_aggregator->getAggregates(source));
     }
 
@@ -1063,31 +1064,12 @@ std::vector<sslsim::SimulatorError> Simulator::getErrors() {
     return errors;
 }
 
-std::vector<SerializedMsg> Simulator::getSerializedErrors() {
+std::vector<SerializedMsg> Simulator::getAndClearSerializedErrors() {
     std::vector<SerializedMsg> errors;
-    for(const auto& e : getErrors()) {
+    for(const auto& e : getAndClearErrors()) {
         errors.emplace_back(serializeProto(e));
     }
     return errors;
-}
-
-void Simulator::handleSimulatorCommand(sslsim::SimulatorCommand msg) {
-    Command command = Command(new amun::Command);
-
-    amun::CommandSimulator simulator;
-    sslsim::SimulatorControl ssl_control;
-    *simulator.mutable_ssl_control() = msg.control();
-    // Clear to avoid the code path where we read from m_timer in handleCommand(), which
-    // we set to nullptr in our custom constructor
-    simulator.clear_enable();
-    *command->mutable_simulator() = simulator;
-
-    handleCommand(command);
-}
-
-void Simulator::handleSerializedSimulatorCommand(SerializedMsg msg) {
-    auto command = parseProto<sslsim::SimulatorCommand>(msg);
-    handleSimulatorCommand(command);
 }
 
 std::vector<SSL_WrapperPacket> Simulator::getSSLWrapperPackets() {
@@ -1429,7 +1411,7 @@ static void setError(sslsim::SimulatorError* error, SimError code, SimErrorSourc
 
 #define SCALE_UP(OBJ, ATTR) do{if((OBJ).has_##ATTR()) (OBJ).set_##ATTR((OBJ).ATTR() * 1e3);} while(0)
 
-sslsim::SimulatorResponse Simulator::handleSimulatorCommand2(sslsim::SimulatorCommand simcom, bool is_blue) {
+sslsim::SimulatorResponse Simulator::handleSimulatorCommand(sslsim::SimulatorCommand simcom, bool is_blue) {
     std::cout << "CALLING HANDLE SIMULATOR COMMAND 2" << std::endl;
     sslsim::SimulatorResponse response;
     if (simcom.has_control()) {
@@ -1522,7 +1504,7 @@ void Simulator::handleCommandWrapper(const Command &command) {
 
     handleCommand(command);
 }
-SerializedMsg Simulator::handleSerializedSimulatorCommand2(SerializedMsg msg) {
+SerializedMsg Simulator::handleSerializedSimulatorCommand(SerializedMsg msg) {
     auto command = parseProto<sslsim::SimulatorCommand>(msg);
-    return serializeProto(handleSimulatorCommand2(command, true));
+    return serializeProto(handleSimulatorCommand(command, true));
 }

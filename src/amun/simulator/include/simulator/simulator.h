@@ -125,28 +125,24 @@ public:
 
     void stepSimulation(float time_s);
 
-    // TODO you are here: restore these functions to use the actual proto types
-    // and wrap them all to return and take bytes as parameters (maybe double check params don't work)
     sslsim::RobotControlResponse handleRobotControl(const sslsim::RobotControl& msg, bool is_blue);
     sslsim::RobotControlResponse handleYellowRobotControl(sslsim::RobotControl msg);
     sslsim::RobotControlResponse handleBlueRobotControl(sslsim::RobotControl msg);
-    void handleSimulatorCommand(sslsim::SimulatorCommand msg);
     void handleCommandWrapper(const Command& command);
-    sslsim::SimulatorResponse handleSimulatorCommand2(sslsim::SimulatorCommand command, bool is_blue);
+    sslsim::SimulatorResponse handleSimulatorCommand(sslsim::SimulatorCommand command, bool is_blue);
     std::vector<SSL_WrapperPacket> getSSLWrapperPackets();
     // Sometimes the simulation has to run before errors are detected, so provide
     // a separate function the caller can check whenever they want
     // Returns std::vector<sslsim::SimulatorError>
-    std::vector<sslsim::SimulatorError> getErrors();
+    std::vector<sslsim::SimulatorError> getAndClearErrors();
 
     // Even though some of these could be overloaded and share names with the above, it's easier
     // for pybind to disambiguate types with different names
     SerializedMsg handleSerializedYellowRobotControl(SerializedMsg msg);
     SerializedMsg handleSerializedBlueRobotControl(SerializedMsg msg);
-    void handleSerializedSimulatorCommand(SerializedMsg msg);
-    SerializedMsg handleSerializedSimulatorCommand2(SerializedMsg msg);
+    SerializedMsg handleSerializedSimulatorCommand(SerializedMsg msg);
     std::vector<SerializedMsg> getSerializedSSLWrapperPackets();
-    std::vector<SerializedMsg> getSerializedErrors();
+    std::vector<SerializedMsg> getAndClearSerializedErrors();
 
 signals:
     void gotPacket(const QByteArray &data, qint64 time, QString sender);
