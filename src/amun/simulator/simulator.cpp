@@ -1414,7 +1414,6 @@ static void setError(sslsim::SimulatorError* error, SimError code, SimErrorSourc
 #define SCALE_UP(OBJ, ATTR) do{if((OBJ).has_##ATTR()) (OBJ).set_##ATTR((OBJ).ATTR() * 1e3);} while(0)
 
 sslsim::SimulatorResponse Simulator::handleSimulatorCommand(sslsim::SimulatorCommand simcom, bool is_blue) {
-    std::cout << "CALLING HANDLE SIMULATOR COMMAND 2" << std::endl;
     sslsim::SimulatorResponse response;
     if (simcom.has_control()) {
         Command c{new amun::Command};
