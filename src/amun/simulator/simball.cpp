@@ -363,7 +363,11 @@ void SimBall::kick(const btVector3 &power)
 
 void SimBall::writeTrueBallState(gameController::TrackedBall *ball) const {
     // Copied from writeBallState()
-    const btVector3 ballPosition = m_body->getWorldTransform().getOrigin() / SIMULATOR_SCALE;
+//    const btVector3 ballPosition = m_body->getWorldTransform().getOrigin() / SIMULATOR_SCALE;
+
+    btTransform transform;
+    m_motionState->getWorldTransform(transform);
+    btVector3 ballPosition = transform.getOrigin() / SIMULATOR_SCALE;
     ball->mutable_pos()->set_x(ballPosition.getX());
     ball->mutable_pos()->set_y(ballPosition.getY());
     ball->mutable_pos()->set_z(ballPosition.getZ());
