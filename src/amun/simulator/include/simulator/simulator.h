@@ -130,11 +130,12 @@ public:
     sslsim::RobotControlResponse handleBlueRobotControl(sslsim::RobotControl msg);
     void handleCommandWrapper(const Command& command);
     sslsim::SimulatorResponse handleSimulatorCommand(sslsim::SimulatorCommand command, bool is_blue);
-    std::vector<SSL_WrapperPacket> getSSLWrapperPackets();
+    std::vector<SSL_WrapperPacket> getSslWrapperPackets(bool add_noise=true);
     // Sometimes the simulation has to run before errors are detected, so provide
     // a separate function the caller can check whenever they want
     // Returns std::vector<sslsim::SimulatorError>
     std::vector<sslsim::SimulatorError> getAndClearErrors();
+    SSL_WrapperPacket getTrueStateSslWrapperPacket();
 
     // Even though some of these could be overloaded and share names with the above, it's easier
     // for pybind to disambiguate types with different names
@@ -143,6 +144,7 @@ public:
     SerializedMsg handleSerializedSimulatorCommand(SerializedMsg msg);
     std::vector<SerializedMsg> getSerializedSSLWrapperPackets();
     std::vector<SerializedMsg> getAndClearSerializedErrors();
+    SerializedMsg getSerializedTrueStateSslWrapperPacket();
 
 signals:
     void gotPacket(const QByteArray &data, qint64 time, QString sender);

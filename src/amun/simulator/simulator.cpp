@@ -1072,8 +1072,9 @@ std::vector<SerializedMsg> Simulator::getAndClearSerializedErrors() {
     return errors;
 }
 
-std::vector<SSL_WrapperPacket> Simulator::getSSLWrapperPackets() {
+std::vector<SSL_WrapperPacket> Simulator::getSslWrapperPackets(bool add_noise) {
     // Copied from createVisionPacket, just without the serialization at the end
+    // and with an extra condition around adding any noise/variation
     const std::size_t numCameras = m_data->reportedCameraSetup.size();
     world::SimulatorState simState;
     simState.set_time(m_time);
@@ -1087,7 +1088,7 @@ std::vector<SSL_WrapperPacket> Simulator::getSSLWrapperPackets() {
     m_data->ball->writeBallState(ball);
 
     const btVector3 ballPosition = m_data->ball->position() / SIMULATOR_SCALE;
-    if (m_time - m_lastBallSendTime >= m_minBallDetectionTime) {
+    if (m_time - m_lastBallSendTime >= m_minBallDetectionTime && add_noise) {
         m_lastBallSendTime = m_time;
 
         for (std::size_t cameraId = 0; cameraId < numCameras; ++cameraId) {
@@ -1120,7 +1121,7 @@ std::vector<SSL_WrapperPacket> Simulator::getSSLWrapperPackets() {
             auto* robotProto = teamIsBlue ? simState.add_blue_robots() : simState.add_yellow_robots();
             robot->update(robotProto, m_data->ball);
 
-            if (m_time - robot->getLastSendTime() >= m_minRobotDetectionTime) {
+            if (m_time - robot->getLastSendTime() >= m_minRobotDetectionTime && add_noise) {
                 const float timeDiff = (m_time - robot->getLastSendTime()) * 1E-9;
                 const btVector3 robotPos = robot->position() / SIMULATOR_SCALE;
 
@@ -1205,8 +1206,8 @@ std::vector<SSL_WrapperPacket> Simulator::getSSLWrapperPackets() {
 }
 
 std::vector<SerializedMsg> Simulator::getSerializedSSLWrapperPackets() {
-    std::vector<std::vector<uint8_t>> serialized_packets;
-    for(const auto& p : getSSLWrapperPackets()) {
+    std::vector<SerializedMsg> serialized_packets;
+    for(const auto& p : getSslWrapperPackets()) {
         serialized_packets.emplace_back(serializeProto(p));
     }
     return serialized_packets;
@@ -1507,4 +1508,18 @@ void Simulator::handleCommandWrapper(const Command &command) {
 SerializedMsg Simulator::handleSerializedSimulatorCommand(SerializedMsg msg) {
     auto command = parseProto<sslsim::SimulatorCommand>(msg);
     return serializeProto(handleSimulatorCommand(command, true));
+}
+
+SSL_WrapperPacket Simulator::getTrueStateSslWrapperPacket() {
+    std::vector<SSL_WrapperPacket> packets = getSslWrapperPackets(/*add_noise=*/false);
+    if(packets.size() != 1) {
+        throw std::runtime_error("Getting true simulator state: Expected exactly 1 SSL_WrapperPacket");
+    }
+
+    return packets[0];
+}
+
+SerializedMsg Simulator::getSerializedTrueStateSslWrapperPacket() {
+    SerializedMsg serialized_packet = serializeProto(getTrueStateSslWrapperPacket());
+    return serialized_packet;
 }
