@@ -25,6 +25,7 @@
 #include "protobuf/command.h"
 #include "protobuf/status.h"
 #include "protobuf/sslsim.h"
+#include "protobuf/ssl_vision_detection_tracked.pb.h"
 #include <QFile>
 #include <QList>
 #include <QMap>
@@ -135,7 +136,7 @@ public:
     // a separate function the caller can check whenever they want
     // Returns std::vector<sslsim::SimulatorError>
     std::vector<sslsim::SimulatorError> getAndClearErrors();
-    SSL_WrapperPacket getTrueStateSslWrapperPacket();
+    gameController::TrackedFrame getTrueStateTrackedFrame();
 
     // Even though some of these could be overloaded and share names with the above, it's easier
     // for pybind to disambiguate types with different names
@@ -144,7 +145,7 @@ public:
     SerializedMsg handleSerializedSimulatorCommand(SerializedMsg msg);
     std::vector<SerializedMsg> getSerializedSSLWrapperPackets();
     std::vector<SerializedMsg> getAndClearSerializedErrors();
-    SerializedMsg getSerializedTrueStateSslWrapperPacket();
+    SerializedMsg getSerializedTrueStateTrackedFrame();
 
 signals:
     void gotPacket(const QByteArray &data, qint64 time, QString sender);

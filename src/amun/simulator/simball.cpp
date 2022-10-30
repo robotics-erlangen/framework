@@ -360,3 +360,15 @@ void SimBall::kick(const btVector3 &power)
     // const btVector3 p = transform.getOrigin() / SIMULATOR_SCALE;
     // qDebug() << "kick at" << p.x() << p.y();
 }
+
+void SimBall::writeTrueBallState(gameController::TrackedBall *ball) const {
+    // Copied from writeBallState()
+    const btVector3 ballPosition = m_body->getWorldTransform().getOrigin() / SIMULATOR_SCALE;
+    ball->mutable_pos()->set_x(ballPosition.getX());
+    ball->mutable_pos()->set_y(ballPosition.getY());
+    ball->mutable_pos()->set_z(ballPosition.getZ());
+    const btVector3 ballSpeed = speed() / SIMULATOR_SCALE;
+    ball->mutable_vel()->set_x(ballSpeed.getX());
+    ball->mutable_vel()->set_y(ballSpeed.getY());
+    ball->mutable_vel()->set_z(ballSpeed.getZ());
+}

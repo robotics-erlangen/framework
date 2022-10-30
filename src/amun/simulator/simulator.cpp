@@ -24,6 +24,7 @@
 #include "core/coordinates.h"
 #include "protobuf/ssl_wrapper.pb.h"
 #include "protobuf/ssl_simulation_config.pb.h"
+#include "protobuf/ssl_game_controller_common.pb.h"
 #include "protobuf/ssl_simulation_custom_erforce_robot_spec.pb.h"
 #include "protobuf/geometry.h"
 #include "simball.h"
@@ -1510,16 +1511,36 @@ SerializedMsg Simulator::handleSerializedSimulatorCommand(SerializedMsg msg) {
     return serializeProto(handleSimulatorCommand(command, true));
 }
 
-SSL_WrapperPacket Simulator::getTrueStateSslWrapperPacket() {
-    std::vector<SSL_WrapperPacket> packets = getSslWrapperPackets(/*add_noise=*/false);
-    if(packets.size() != 1) {
-        throw std::runtime_error("Getting true simulator state: Expected exactly 1 SSL_WrapperPacket");
-    }
+gameController::TrackedFrame Simulator::getTrueStateTrackedFrame() {
+    gameController::TrackedFrame frame;
 
-    return packets[0];
+    frame.set_frame_number(0); // Dummy value
+    frame.set_timestamp(static_cast<double>(m_time) * 1E-9);
+
+    gameController::TrackedBall ball;
+    m_data->ball->writeTrueBallState(&ball);
+    *frame.add_balls() = ball;
+
+    auto getRobotStates = [&frame](const Simulator::RobotMap& robots, bool is_blue) {
+        for(const auto& it : robots) {
+            gameController::TrackedRobot robot;
+            it.first->updateTrueState(&robot);
+            robot.mutable_robot_id()->set_team(is_blue ? gameController::Team::BLUE : gameController::Team::YELLOW);
+        }
+    };
+
+    getRobotStates(m_data->robotsBlue, true);
+    getRobotStates(m_data->robotsYellow, false);
+
+    return frame;
 }
 
-SerializedMsg Simulator::getSerializedTrueStateSslWrapperPacket() {
-    SerializedMsg serialized_packet = serializeProto(getTrueStateSslWrapperPacket());
+SerializedMsg Simulator::getSerializedTrueStateTrackedFrame() {
+    SerializedMsg serialized_packet = serializeProto(getTrueStateTrackedFrame());
     return serialized_packet;
 }
+
+//SerializedMsg Simulator::getSerializedTrueStateSslWrapperPacket() {
+//    SerializedMsg serialized_packet = serializeProto(getTrueStateTrackedFrame());
+//    return serialized_packet;
+//}
