@@ -18,12 +18,13 @@ function finish {
 trap finish EXIT
 
 mkdir --parents "$SCRATCH/build/bin"
+mkdir "$SCRATCH/libs"
 
 cp --recursive strategy "$SCRATCH/"
 cp build/bin/ra \
 	build/bin/icudtl.dat \
 	"$SCRATCH/build/bin"
-cp --recursive libs/tsc "$SCRATCH/libs"
+cp --recursive libs/tsc "$SCRATCH/libs/tsc"
 cp --recursive \
 	config \
 	data \
