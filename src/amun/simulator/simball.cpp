@@ -366,7 +366,8 @@ void SimBall::writeTrueBallState(gameController::TrackedBall *ball) const {
 
     // The coordinate system internal to the simulator is rotated 90-degrees from the SSL
     // coordinate system (ie. positive x in SSL is positive Y in sim, and positive Y in SSL
-    // is negative X in sim), so we transform to SSL coordinates here
+    // is negative X in sim), so we transform to SSL coordinates here.
+    // Normally the "camera" logic handles this but we're skipping it here.
     const btVector3 ballPosition = m_body->getWorldTransform().getOrigin() / SIMULATOR_SCALE;
     ball->mutable_pos()->set_x(ballPosition.getY());
     ball->mutable_pos()->set_y(-ballPosition.getX());
