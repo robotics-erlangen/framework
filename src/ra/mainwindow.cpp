@@ -276,7 +276,6 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     // hide options dock by default
     ui->dockOptions->hide();
 
-#ifndef EASY_MODE
     // switch configuration keys
     QSignalMapper *switchConfigMapper = new QSignalMapper(this);
     for (uint i = 0;i<10;i++) {
@@ -287,7 +286,6 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
         addAction(action);
     }
     connect(switchConfigMapper, SIGNAL(mapped(int)), SLOT(switchToWidgetConfiguration(int)));
-#endif
 
     ui->actionSimulator->setChecked(s.value("Simulator/Enabled").toBool());
     ui->actionInternalReferee->setChecked(s.value("Referee/Internal").toBool());
