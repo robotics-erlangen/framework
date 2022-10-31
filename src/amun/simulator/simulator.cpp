@@ -1525,6 +1525,7 @@ gameController::TrackedFrame Simulator::getTrueStateTrackedFrame() {
             gameController::TrackedRobot robot;
             it.first->updateTrueState(&robot);
             robot.mutable_robot_id()->set_team(is_blue ? gameController::Team::BLUE : gameController::Team::YELLOW);
+            *frame.add_robots() = robot;
         }
     };
 
