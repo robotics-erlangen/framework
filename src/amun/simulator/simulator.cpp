@@ -106,8 +106,12 @@ static void simulatorTickCallback(btDynamicsWorld *world, btScalar timeStep)
     sim->handleSimulatorTick(timeStep);
 }
 
-Simulator::Simulator(std::string absolute_filepath) : Simulator(nullptr, loadSetupFromFile(absolute_filepath), true){
-//    std::cout << "\n\nMAKE SIMULATOR\n\n" << std::endl;
+Simulator::Simulator(std::string geometry_config_absolute_filepath, std::string realism_config_absolute_filepath) : Simulator(nullptr, loadSetupFromFile(geometry_config_absolute_filepath), true){
+    Command command(new amun::Command);
+    if (!loadConfiguration(realism_config_absolute_filepath, command->mutable_simulator()->mutable_realism_config(), true)) {
+        throw std::runtime_error("Unable to load realism config file");
+    }
+    this->handleCommand(command);
 }
 
 /*!

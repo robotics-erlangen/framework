@@ -87,6 +87,23 @@ namespace {
         parser.ParseFromString(s, &er_force_sim_setup);
         return er_force_sim_setup;
     }
+
+    inline bool loadConfiguration(const std::string absolute_filepath, google::protobuf::Message *message, bool allowPartial)
+    {
+        QFile file(QString::fromStdString(absolute_filepath));
+        if (!file.open(QFile::ReadOnly)) {
+            std::cout <<"Could not open configuration file "<<absolute_filepath<<std::endl;
+            return false;
+        }
+        QString str = file.readAll();
+        file.close();
+        std::string s = qPrintable(str);
+
+        google::protobuf::TextFormat::Parser parser;
+        parser.AllowPartialMessage(allowPartial);
+        parser.ParseFromString(s, message);
+        return true;
+    }
 }
 
 using SerializedMsg = std::vector<uint8_t>;
@@ -98,7 +115,7 @@ class camun::simulator::Simulator : public QObject
 public:
     typedef QMap<unsigned int, QPair<SimRobot*, unsigned int>> RobotMap; /*First int: ID, Second int: Generation*/
 
-    explicit Simulator(std::string absolute_filepath);
+    explicit Simulator(std::string geometry_config_absolute_filepath, std::string realism_config_absolute_filepath);
     explicit Simulator(const Timer *timer, const amun::SimulatorSetup &setup, bool useManualTrigger = false);
     ~Simulator() override;
     Simulator(const Simulator&) = delete;

@@ -6,7 +6,7 @@ namespace py=pybind11;
 
 PYBIND11_MODULE(erforce_simulator, m) {
     py::class_<camun::simulator::Simulator>(m, "Simulator")
-            .def(py::init<std::string>())
+            .def(py::init<std::string, std::string>())
             .def("step_simulation", &camun::simulator::Simulator::stepSimulation)
             .def("get_serialized_ssl_wrapper_packets", &camun::simulator::Simulator::getSerializedSSLWrapperPackets)
             .def("get_serialized_true_state_tracked_frame", &camun::simulator::Simulator::getSerializedTrueStateTrackedFrame)
