@@ -7,7 +7,7 @@ import { FriendlyRobot } from "base/robot";
 import { Vector } from "base/vector";
 
 import { MessageBox, MessageType } from "glados/control/messaging";
-import { Assignment, Move } from "glados/group/move/base";
+import { Assignment, Move, MoveParameters } from "glados/group/move/base";
 import { MoveToPos } from "glados/task/shared/movetopos";
 
 // This line creates the Tutorial-class.
@@ -17,6 +17,7 @@ export class Tutorial extends Move {
 	// if both are the same number we get exactly that number.
 	public static MIN_ROBOTS: number = 3;
 	public static MAX_ROBOTS: number = 3;
+	public static ALLOW_EXTRA_ATTACKERS: boolean = false;
 
 	// if you need any additional attributes, define them here
 	// you can then initialise them in the constructor
@@ -47,7 +48,7 @@ export class Tutorial extends Move {
 
 	// This function is called every frame and needs to return an assignment for each robot.
 	// Robots that don't get an assignment no longer participate in the move!
-	public _updateTasks(): [Map<FriendlyRobot, Assignment>, undefined] {
+	public _updateTasks(): MoveParameters {
 
 		// The task assignments are returned as a map.
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
@@ -58,8 +59,11 @@ export class Tutorial extends Move {
 		// Depending on the task you may need parameters, these can be passed as a array.
 		// For example, MoveToPos needs a position to drive to.
 		// Pay attention you have to restart the task if you change the vector
-		taskAssignments[this._robots[i]] = Assignment.create({class: MoveToPos, params: [new Vector(0,0)], restart: false}));
+		taskAssignments[this._robots[i]] = Assignment.create({class: MoveToPos, params: [{pos: new Vector(0,0)}], restart: false});
 
-		return [taskAssignments, undefined];
+		return {
+			assignments: taskAssignments,
+			mainAttacker: undefined,
+		};
 	}
 }
