@@ -62,7 +62,7 @@ public:
 
     // only valid after call to precomputeSegment
     inline float segmentOffset(SpeedProfile1D::VT first, SpeedProfile1D::VT second) const {
-        if (second.t <= slowDownStartTime || first.v == second.v) {
+        if (second.t <= slowDownStartTime || first.v == second.v || first.t == second.t) {
             return simpleAcceleration.segmentOffset(first, second);
         }
         float diffSign = sign(second.v - v0);
@@ -73,7 +73,7 @@ public:
 
     // only valid after call to precomputeSegment
     inline std::pair<float, float> partialSegmentOffsetAndSpeed(SpeedProfile1D::VT first, SpeedProfile1D::VT second, float transformedT0, float time) const {
-        if (time <= slowDownStartTime || first.v == second.v) {
+        if (time <= slowDownStartTime || first.v == second.v || first.t == second.t) {
             return simpleAcceleration.partialSegmentOffsetAndSpeed(first, second, transformedT0, time);
         }
         const float slowdownT0 = first.t > slowDownStartTime ? transformedT0 : slowDownStartTime;
