@@ -1,7 +1,7 @@
 # Note: if this directive is deleted, the default image is specified by the
 # runner configuration (ci.robotics-erlangen.de:/etc/gitlab-runner/config.toml
 default:
-  image: ci:ubuntu-18.04
+  image: ci:ubuntu-20.04
 
 stages:
   - build
