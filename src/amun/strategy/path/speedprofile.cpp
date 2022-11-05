@@ -36,10 +36,11 @@ public:
         return (first.v + second.v) * 0.5f * (second.t - first.t);
     }
 
-    inline std::pair<float, float> partialSegmentOffsetAndSpeed(SpeedProfile1D::VT first, SpeedProfile1D::VT second, float time) const {
-        float diff = second.t == first.t ? 1 : (time - first.t) / (second.t - first.t);
-        float speed = first.v + diff * (second.v - first.v);
-        float partDist = (first.v + speed) * 0.5f * (time - first.t);
+    inline std::pair<float, float> partialSegmentOffsetAndSpeed(SpeedProfile1D::VT first, SpeedProfile1D::VT second, float transformedT0, float time) const {
+        const float timeDiff = time - transformedT0;
+        const float diff = second.t == first.t ? 1 : timeDiff / (second.t - first.t);
+        const float speed = first.v + diff * (second.v - first.v);
+        const float partDist = (first.v + speed) * 0.5f * timeDiff;
         return {partDist, speed};
     }
 
@@ -71,11 +72,12 @@ public:
     }
 
     // only valid after call to precomputeSegment
-    inline std::pair<float, float> partialSegmentOffsetAndSpeed(SpeedProfile1D::VT first, SpeedProfile1D::VT second, float time) const {
+    inline std::pair<float, float> partialSegmentOffsetAndSpeed(SpeedProfile1D::VT first, SpeedProfile1D::VT second, float transformedT0, float time) const {
         if (time <= slowDownStartTime || first.v == second.v) {
-            return simpleAcceleration.partialSegmentOffsetAndSpeed(first, second, time);
+            return simpleAcceleration.partialSegmentOffsetAndSpeed(first, second, transformedT0, time);
         }
-        float tm = time - t0;
+        const float slowdownT0 = first.t > slowDownStartTime ? transformedT0 : slowDownStartTime;
+        const float tm = time - slowdownT0;
         float diffSign = sign(second.v - v0);
         float invSegmentTime = 1.0f / segmentTime;
         float speed = v0 + tm * diffSign * a0 + 0.5f * tm * tm * diffSign * (a1 - a0) * invSegmentTime;
@@ -98,8 +100,9 @@ public:
         if (second.t <= slowDownStartTime || first.v == second.v) {
             return;
         }
+        float t0;
         if (first.t < slowDownStartTime) {
-            auto partial = simpleAcceleration.partialSegmentOffsetAndSpeed(first, second, slowDownStartTime);
+            auto partial = simpleAcceleration.partialSegmentOffsetAndSpeed(first, second, first.t, slowDownStartTime);
             partialDistance = partial.first;
             v0 = partial.second;
             t0 = slowDownStartTime;
@@ -130,7 +133,7 @@ private:
     ConstantAcceleration simpleAcceleration;
 
     // precomputed from segment
-    float v0 = 0, t0 = 0;
+    float v0 = 0;
     float a0 = 0, a1 = 0;
     float segmentTime = 0; // time of the segment (slow down part only)
     float partialDistance = 0;
@@ -171,8 +174,8 @@ std::pair<float, float> SpeedProfile1D::offsetAndSpeedForTime(float time, float 
     for (unsigned int i = 0;i<counter-1;i++) {
         acceleration.precomputeSegment(profile[i], profile[i+1]);
         float segmentTime = acceleration.timeForSegment(profile[i], profile[i+1]);
-        if (totalTime + segmentTime >= time) {
-            auto inf = acceleration.partialSegmentOffsetAndSpeed(profile[i], profile[i+1], time);
+        if (totalTime + segmentTime > time) {
+            auto inf = acceleration.partialSegmentOffsetAndSpeed(profile[i], profile[i+1], totalTime, time);
             return {offset + inf.first, inf.second};
         }
         offset += acceleration.segmentOffset(profile[i], profile[i+1]);
@@ -195,7 +198,7 @@ void SpeedProfile1D::trajectoryPositions(std::vector<std::pair<Vector, Vector>> 
         acceleration.precomputeSegment(profile[i], profile[i+1]);
         float segmentTime = acceleration.timeForSegment(profile[i], profile[i+1]);
         while (totalTime + segmentTime >= nextDesiredTime) {
-            auto inf = acceleration.partialSegmentOffsetAndSpeed(profile[i], profile[i+1], nextDesiredTime);
+            auto inf = acceleration.partialSegmentOffsetAndSpeed(profile[i], profile[i+1], totalTime, nextDesiredTime);
             outPoints[resultCounter].first[outIndex] = offset + inf.first;
             outPoints[resultCounter].second[outIndex] = inf.second;
             resultCounter++;
