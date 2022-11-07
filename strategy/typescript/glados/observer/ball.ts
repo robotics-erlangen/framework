@@ -160,6 +160,23 @@ function getBallOwner(robotlist: Robot[], lastBallOwner?: Robot) {
 	return lastBallOwner;
 }
 
+let previousBallOwner: Robot | undefined;
+function updateLastBallOwner() {
+	if (friendlyBallOwnerTime() > opponentBallOwnerTime()) {
+		previousBallOwner = friendlyBallOwner() ? friendlyBallOwner() : previousBallOwner;
+	} else {
+		previousBallOwner = opponentBallOwner() ? opponentBallOwner() : previousBallOwner;
+	}
+}
+
+/**
+ * Returns the last robot that was considered a ball owner
+ * @returns previousBallOwner robot - the last ball owning robot, or undefined if there is none
+ */
+export function lastBallOwner(): Robot | undefined {
+	return previousBallOwner;
+}
+
 
 let lastBallOwnerFriendly: Robot | undefined;
 let lastFriendlyBallOwnerTime: AbsTime = 0;
@@ -691,6 +708,7 @@ export function _update() {
 	updateIsSlowBall();
 	updateOpponentBallOwner();
 	updateFriendlyBallOwner();
+	updateLastBallOwner();
 	updateFriendlyBallOwnershipTime();
 	updateBallPlacementRobots();
 	updateIsStanding();
