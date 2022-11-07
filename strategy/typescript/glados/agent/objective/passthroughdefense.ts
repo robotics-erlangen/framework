@@ -5,12 +5,14 @@ import { Position, Vector } from "base/vector";
 import * as World from "base/world";
 
 import { DoubleTouchGuard } from "glados/agent/attacker/doubletouchguard";
+import { FeintPass } from "glados/agent/attacker/feintpass";
 import { FreeKick } from "glados/agent/attacker/freekick";
 import { PassTiming } from "glados/agent/attacker/passtiming";
 import { Shoot } from "glados/agent/attacker/shoot";
 import { Support } from "glados/agent/attacker/support";
 import { CheckableList } from "glados/agent/base/behavior";
 import { BallLike, Objective, SplitZone } from "glados/agent/base/objective";
+import { BreakPass } from "glados/agent/shared/breakpass";
 import { StrikerSampling } from "glados/task/ability/strikersampling";
 import { defaultRatePass } from "glados/util/attack";
 import { Boundaries, getRandomPosition, Zone } from "glados/util/zone";
@@ -36,7 +38,11 @@ export class PassThroughDefense extends Objective {
 		PassTiming,
 		parameterizeClass(Shoot, defaultRatePass),
 	]);
-	private static readonly SUPPORT_RUNNER = parameterizeClass(Support, { isStriker: false, samplingCtor: StrikerSampling });
+	private static readonly SUPPORT_RUNNER = parameterizeClass(CheckableList, [
+		parameterizeClass(FeintPass, { isStriker: false, samplingCtor: StrikerSampling }),
+		BreakPass,
+		parameterizeClass(Support, { isStriker: false, samplingCtor: StrikerSampling }),
+	]);
 
 	static robotsInAreaAroundDefense() {
 		const offset = 1.0;

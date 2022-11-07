@@ -17,9 +17,7 @@ import { SelectObjective } from "glados/agent/attacker/selectobjective";
 import { Stop } from "glados/agent/attacker/stop";
 import { Agent } from "glados/agent/base/agent";
 import { CheckableConstructor } from "glados/agent/base/behavior";
-import { Objective } from "glados/agent/base/objective";
 import { BallEscort } from "glados/agent/shared/ballescort";
-import { BreakPass } from "glados/agent/shared/breakpass";
 import { PenaltyPassiveDefense } from "glados/agent/shared/penaltypassivedefense";
 import { MessageType } from "glados/control/messaging";
 
@@ -49,7 +47,6 @@ export class Attacker extends Agent {
 			DuelAssistant,
 			parameterizeClass(BallEscort, false),
 			DribblingGuard,
-			BreakPass,
 			RunObjective,
 			Default,
 		];

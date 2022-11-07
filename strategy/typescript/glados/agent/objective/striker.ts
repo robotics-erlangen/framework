@@ -4,12 +4,14 @@ import { Position } from "base/vector";
 import * as World from "base/world";
 
 import { DoubleTouchGuard } from "glados/agent/attacker/doubletouchguard";
+import { FeintPass } from "glados/agent/attacker/feintpass";
 import { FreeKick } from "glados/agent/attacker/freekick";
 import { PassTiming } from "glados/agent/attacker/passtiming";
 import { Shoot } from "glados/agent/attacker/shoot";
 import { Support } from "glados/agent/attacker/support";
 import { CheckableList } from "glados/agent/base/behavior";
 import { BallLike, Objective, SplitZone } from "glados/agent/base/objective";
+import { BreakPass } from "glados/agent/shared/breakpass";
 import { StrikerSampling } from "glados/task/ability/strikersampling";
 import { defaultRatePass } from "glados/util/attack";
 import { getRandomPosition, Zone } from "glados/util/zone";
@@ -26,16 +28,22 @@ export class Striker extends Objective {
 	}
 
 	private static readonly MA_RUNNER = parameterizeClass(CheckableList, [
+		BreakPass,
 		PassTiming,
 		parameterizeClass(Shoot, defaultRatePass),
 	]);
 	private static readonly FREEKICK_RUNNER = parameterizeClass(CheckableList, [
+		BreakPass,
 		parameterizeClass(FreeKick, defaultRatePass),
 		DoubleTouchGuard,
 		PassTiming,
 		parameterizeClass(Shoot, defaultRatePass),
 	]);
-	private static readonly SUPPORT_RUNNER = parameterizeClass(Support, { isStriker: true, samplingCtor: StrikerSampling });
+	private static readonly SUPPORT_RUNNER = parameterizeClass(CheckableList, [
+		parameterizeClass(FeintPass, { isStriker: true, samplingCtor: StrikerSampling }),
+		BreakPass,
+		parameterizeClass(Support, { isStriker: true, samplingCtor: StrikerSampling })
+	]);
 
 	static canStart(_ball: BallLike) {
 		return true;
