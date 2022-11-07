@@ -570,7 +570,7 @@ export class Shoot extends Behavior {
 			this._prevPassPos = this._decision.pos;
 
 			this._messaging.sendBroadcast(MessageType.passInfo, [{ target: target,
-				ballPos: ballPos, time: passReceiveTime }]);
+				ballPos: ballPos, time: passReceiveTime, passSpeed: targetSpeed !== undefined ? targetSpeed : this._robot.constants.passSpeed }]);
 
 			return [
 				Pass, [{

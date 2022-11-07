@@ -29,6 +29,8 @@ export interface PassInfo {
 	time: number;
 	/** Whether the ball will be chipped */
 	chip?: boolean;
+	/** Speed with which the ball will be shot */
+	passSpeed: number;
 }
 
 export interface PassSuggestion {
@@ -427,6 +429,7 @@ export function sortPassesFromSuggestions(robot: FriendlyRobot, passSuggestions:
 			ballPos: sugg.ballPos,
 			time: sugg.time,
 			chip: sugg.chip,
+			passSpeed: robot.constants.passSpeed,
 			rating,
 		});
 	}

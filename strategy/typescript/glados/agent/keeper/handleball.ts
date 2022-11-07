@@ -84,7 +84,7 @@ export class HandleBall extends Behavior {
 						this._task.updateTarget(this._pass.target, this._pass.ballPos, true);
 					}
 					this._messaging.sendBroadcast(MessageType.passInfo, [{ target: this._pass.target,
-						ballPos: this._pass.ballPos, time: this._pass.time }]);
+						ballPos: this._pass.ballPos, time: this._pass.time, passSpeed: this._robot.constants.passSpeed }]);
 				}
 
 				return [

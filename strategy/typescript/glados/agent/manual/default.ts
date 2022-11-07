@@ -52,7 +52,7 @@ export class Default extends Behavior {
 		} else {
 			let target = <FriendlyRobot> this._shootTarget;
 			let ballPos = target.pos + Vector.fromPolar(target.dir, World.Ball.radius + target.shootRadius);
-			this._messaging.sendBroadcast(MessageType.passInfo, [{ target: target, ballPos: ballPos, time: World.Time }]);
+			this._messaging.sendBroadcast(MessageType.passInfo, [{ target: target, ballPos: ballPos, time: World.Time, passSpeed: this._robot.constants.passSpeed }]);
 			return [Pass, [ this._shootTarget! ]];
 		}
 	}
