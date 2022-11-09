@@ -204,20 +204,21 @@ float StandardSampler::checkSample(const TrajectoryInput &input, const StandardT
     }
 
     const float slowDownTime = input.exponentialSlowDown ? SpeedProfile::SLOW_DOWN_TIME : 0;
-    SpeedProfile secondPart = AlphaTimeTrajectory::calculateTrajectory(sample.getMidSpeed(), input.v1, sample.getTime(),
+    SpeedProfile secondPart = AlphaTimeTrajectory::calculateTrajectory(Vector(0, 0), sample.getMidSpeed(), input.v1, sample.getTime(),
                                                                        sample.getAngle(), input.acceleration, input.maxSpeed, slowDownTime, true);
 
-    float secondPartTime = secondPart.time();
-    Vector secondPartOffset = secondPart.endPos();
+    const float secondPartTime = secondPart.time();
+    const Vector secondPartOffset = secondPart.endPosition(); // startpos is (0, 0), computes offset of trajectory
+    secondPart.setStartPos(input.s1 - secondPartOffset);
     if (secondPartTime > bestTime - MINIMUM_TIME_IMPROVEMENT) {
         return -1;
     }
 
     // calculate first part trajectory
-    Vector firstPartPosition = input.distance - secondPartOffset;
-    float firstPartSlowDownTime = input.exponentialSlowDown ? std::max(0.0f, SpeedProfile::SLOW_DOWN_TIME - secondPartTime) : 0.0f;
-    SpeedProfile firstPart = AlphaTimeTrajectory::findTrajectory(input.v0, sample.getMidSpeed(), firstPartPosition, input.acceleration,
-                                                                 input.maxSpeed, firstPartSlowDownTime, false, false);
+    const Vector firstPartTarget = input.s1 - secondPartOffset;
+    const float firstPartSlowDownTime = input.exponentialSlowDown ? std::max(0.0f, SpeedProfile::SLOW_DOWN_TIME - secondPartTime) : 0.0f;
+    const SpeedProfile firstPart = AlphaTimeTrajectory::findTrajectory(input.s0, input.v0, sample.getMidSpeed(), firstPartTarget, input.acceleration,
+                                                                       input.maxSpeed, firstPartSlowDownTime, false, false);
     if (!firstPart.isValid()) {
         return -1;
     }
@@ -227,12 +228,12 @@ float StandardSampler::checkSample(const TrajectoryInput &input, const StandardT
         return -1;
     }
     // TODO: end point might also be close to the target?
-    const float firstPartDistance = m_world.minObstacleDistance(firstPart, input.t0, input.s0, OBSTACLE_AVOIDANCE_RADIUS).first;
+    const float firstPartDistance = m_world.minObstacleDistance(firstPart, input.t0, OBSTACLE_AVOIDANCE_RADIUS).first;
     if (firstPartDistance < 0) {
         return -1;
     }
     // TODO: calculate the offset while calculating the trajectory
-    const float secondPartDistance = m_world.minObstacleDistance(secondPart, input.t0 + firstPartTime, input.s1 - secondPartOffset, OBSTACLE_AVOIDANCE_RADIUS).first;
+    const float secondPartDistance = m_world.minObstacleDistance(secondPart, input.t0 + firstPartTime, OBSTACLE_AVOIDANCE_RADIUS).first;
     if (secondPartDistance < 0) {
         return -1;
     }
@@ -248,8 +249,8 @@ float StandardSampler::checkSample(const TrajectoryInput &input, const StandardT
     m_bestResultInfo.sample = sample;
 
     m_generationInfo.clear();
-    m_generationInfo.push_back(TrajectoryGenerationInfo(firstPart, firstPartPosition));
-    m_generationInfo.push_back(TrajectoryGenerationInfo(secondPart, secondPartOffset));
+    m_generationInfo.push_back(TrajectoryGenerationInfo(firstPart, firstPartTarget));
+    m_generationInfo.push_back(TrajectoryGenerationInfo(secondPart, input.s1));
     return biasedTrajectoryTime;
 }
 

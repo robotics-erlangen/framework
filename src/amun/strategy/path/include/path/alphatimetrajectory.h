@@ -31,15 +31,15 @@ class AlphaTimeTrajectory
 public:
     // helper functions
     static float minimumTime(Vector startSpeed, Vector endSpeed, float acc, bool fastEndSpeed);
-    static Vector minTimePos(Vector v0, Vector v1, float acc, float slowDownTime);
+    static Vector minTimePos(Vector s0, Vector v0, Vector v1, float acc, float slowDownTime);
 
     // search for position
-    static SpeedProfile findTrajectory(Vector v0, Vector v1, Vector position, float acc, float vMax, float slowDownTime, bool highPrecision, bool fastEndSpeed);
+    static SpeedProfile findTrajectory(Vector s0, Vector v0, Vector v1, Vector targetPos, float acc, float vMax, float slowDownTime, bool highPrecision, bool fastEndSpeed);
 
     // speed profile output
     // any input is valid as long as time is not negative
     // if minTime is given, it must be the value of minTimeFastEndSped(v0, v1, acc)
-    static SpeedProfile calculateTrajectory(Vector v0, Vector v1, float time, float angle, float acc, float vMax,
+    static SpeedProfile calculateTrajectory(Vector s0, Vector v0, Vector v1, float time, float angle, float acc, float vMax,
                                             float slowDownTime, bool fastEndSpeed, float minTime = -1);
 
 private:
@@ -50,7 +50,7 @@ private:
 
     // pos only
     // WARNING: assumes that the input is valid and solvable (minimumTime must be included)
-    static TrajectoryPosInfo2D calculatePosition(Vector v0, Vector v1, float time, float angle, float acc, float vMax, bool fastEndSpeed);
+    static TrajectoryPosInfo2D calculatePosition(Vector s0, Vector v0, Vector v1, float time, float angle, float acc, float vMax, bool fastEndSpeed);
 
     static constexpr float REGULAR_TARGET_PRECISION = 0.01f;
     static constexpr float HIGH_QUALITY_TARGET_PRECISION = 0.0002f;

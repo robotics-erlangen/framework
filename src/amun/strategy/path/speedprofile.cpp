@@ -140,11 +140,11 @@ private:
 };
 
 template<typename AccelerationProfile>
-float SpeedProfile1D::endOffset(float slowDownTime) const
+float SpeedProfile1D::endPosition(float slowDownTime) const
 {
     AccelerationProfile acceleration(profile[counter-1].t, slowDownTime);
 
-    float offset = 0;
+    float offset = s0;
     for (unsigned int i = 0;i<counter-1;i++) {
         acceleration.precomputeSegment(profile[i], profile[i+1]);
         offset += acceleration.segmentOffset(profile[i], profile[i+1]);
@@ -169,7 +169,7 @@ std::pair<float, float> SpeedProfile1D::offsetAndSpeedForTime(float time, float 
 {
     AccelerationProfile acceleration(profile[counter-1].t, slowDownTime);
 
-    float offset = 0;
+    float offset = s0;
     float totalTime = 0;
     for (unsigned int i = 0;i<counter-1;i++) {
         acceleration.precomputeSegment(profile[i], profile[i+1]);
@@ -185,11 +185,11 @@ std::pair<float, float> SpeedProfile1D::offsetAndSpeedForTime(float time, float 
 }
 
 template<typename AccelerationProfile>
-void SpeedProfile1D::trajectoryPositions(std::vector<std::pair<Vector, Vector>> &outPoints, std::size_t outIndex, float timeInterval, float positionOffset, float slowDownTime) const
+void SpeedProfile1D::trajectoryPositions(std::vector<std::pair<Vector, Vector>> &outPoints, std::size_t outIndex, float timeInterval, float slowDownTime) const
 {
     AccelerationProfile acceleration(profile[counter-1].t, slowDownTime);
 
-    float offset = positionOffset;
+    float offset = s0;
     float totalTime = 0;
 
     float nextDesiredTime = 0;
@@ -224,10 +224,10 @@ std::pair<float, float> SpeedProfile1D::calculateRange(float slowDownTime) const
 {
     AccelerationProfile acceleration(profile[counter-1].t, slowDownTime);
 
-    float minPos = 0;
-    float maxPos = 0;
+    float minPos = s0;
+    float maxPos = s0;
 
-    float offset = 0;
+    float offset = s0;
     for (unsigned int i = 0;i<counter-1;i++) {
         // check segments crossing zero speed, the trajectory makes a curve here
         if ((profile[i].v > 0) != (profile[i+1].v > 0)) {
@@ -261,19 +261,21 @@ void SpeedProfile1D::limitToTime(float time)
 }
 
 
-Vector SpeedProfile::endPos() const {
+Vector SpeedProfile::endPosition() const
+{
     if (slowDownTime == 0) {
-        float xOffset = xProfile.endOffset<ConstantAcceleration>(slowDownTime);
-        float yOffset = yProfile.endOffset<ConstantAcceleration>(slowDownTime);
-        return Vector(xOffset, yOffset);
+        const float xPos = xProfile.endPosition<ConstantAcceleration>(slowDownTime);
+        const float yPos = yProfile.endPosition<ConstantAcceleration>(slowDownTime);
+        return Vector(xPos, yPos);
     } else {
-        float xOffset = xProfile.endOffset<SlowdownAcceleration>(slowDownTime);
-        float yOffset = yProfile.endOffset<SlowdownAcceleration>(slowDownTime);
-        return Vector(xOffset, yOffset);
+        const float xPos = xProfile.endPosition<SlowdownAcceleration>(slowDownTime);
+        const float yPos = yProfile.endPosition<SlowdownAcceleration>(slowDownTime);
+        return Vector(xPos, yPos);
     }
 }
 
-float SpeedProfile::time() const {
+float SpeedProfile::time() const
+{
     if (slowDownTime == 0.0f) {
         return std::max(xProfile.profile[xProfile.counter-1].t, yProfile.profile[yProfile.counter-1].t);
     } else {
@@ -293,19 +295,19 @@ std::pair<Vector, Vector> SpeedProfile::positionAndSpeedForTime(float time) cons
     }
 }
 
-std::vector<std::pair<Vector, Vector>> SpeedProfile::trajectoryPositions(Vector offset, std::size_t count, float timeInterval) const {
+std::vector<std::pair<Vector, Vector>> SpeedProfile::trajectoryPositions(std::size_t count, float timeInterval) const {
     std::vector<std::pair<Vector, Vector>> result(count);
     if (slowDownTime == 0.0f) {
-        xProfile.trajectoryPositions<ConstantAcceleration>(result, 0, timeInterval, offset.x, 0);
-        yProfile.trajectoryPositions<ConstantAcceleration>(result, 1, timeInterval, offset.y, 0);
+        xProfile.trajectoryPositions<ConstantAcceleration>(result, 0, timeInterval, 0);
+        yProfile.trajectoryPositions<ConstantAcceleration>(result, 1, timeInterval, 0);
     } else {
-        xProfile.trajectoryPositions<SlowdownAcceleration>(result, 0, timeInterval, offset.x, slowDownTime);
-        yProfile.trajectoryPositions<SlowdownAcceleration>(result, 1, timeInterval, offset.y, slowDownTime);
+        xProfile.trajectoryPositions<SlowdownAcceleration>(result, 0, timeInterval, slowDownTime);
+        yProfile.trajectoryPositions<SlowdownAcceleration>(result, 1, timeInterval, slowDownTime);
     }
     return result;
 }
 
-BoundingBox SpeedProfile::calculateBoundingBox(Vector offset) const
+BoundingBox SpeedProfile::calculateBoundingBox() const
 {
     std::pair<float, float> xRange, yRange;
     if (slowDownTime == 0) {
@@ -315,7 +317,7 @@ BoundingBox SpeedProfile::calculateBoundingBox(Vector offset) const
         xRange = xProfile.calculateRange<SlowdownAcceleration>(slowDownTime);
         yRange = yProfile.calculateRange<SlowdownAcceleration>(slowDownTime);
     }
-    return BoundingBox(offset + Vector(xRange.first, yRange.first), offset + Vector(xRange.second, yRange.second));
+    return BoundingBox(Vector(xRange.first, yRange.first), Vector(xRange.second, yRange.second));
 }
 
 std::vector<TrajectoryPoint> SpeedProfile::getTrajectoryPoints() const
@@ -329,7 +331,7 @@ std::vector<TrajectoryPoint> SpeedProfile::getTrajectoryPoints() const
 
     std::vector<TrajectoryPoint> result;
     result.reserve(xProfile.counter + yProfile.counter);
-    result.push_back({Vector(0, 0), Vector(xProfile.profile[0].v, yProfile.profile[0].v), 0});
+    result.push_back({Vector(xProfile.s0, yProfile.s0), Vector(xProfile.profile[0].v, yProfile.profile[0].v), 0});
 
     std::size_t xIndex = 0;
     std::size_t yIndex = 0;

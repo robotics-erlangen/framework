@@ -42,10 +42,10 @@ class TrajectorySampler {
 public:
 
     struct TrajectoryGenerationInfo {
-        TrajectoryGenerationInfo(const SpeedProfile &profile, const Vector desiredDistance) :
-            profile(profile), desiredDistance(desiredDistance) {}
+        TrajectoryGenerationInfo(const SpeedProfile &profile, const Vector desiredTargetPos) :
+            profile(profile), desiredTargetPos(desiredTargetPos) {}
         SpeedProfile profile;
-        Vector desiredDistance;
+        Vector desiredTargetPos;
     };
 
     TrajectorySampler(RNG *rng, const WorldInformation &world, PathDebug &debug) :

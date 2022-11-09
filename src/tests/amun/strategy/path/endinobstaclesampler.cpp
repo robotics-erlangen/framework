@@ -78,31 +78,29 @@ static Vector optimizeCloseness(std::function<void(WorldInformation&)> obstacleA
     }
 
     // check if the trajectory intersects any obstacles
-    Vector offset = input.s0;
     float timeOffset = 0;
     for (const auto &info : result) {
-        if (world.isTrajectoryInObstacle(info.profile, timeOffset, offset)) {
+        if (world.isTrajectoryInObstacle(info.profile, timeOffset)) {
             // ASSERT_FALSE does not work here since a return value is necessary
             return Vector(0, 0);
         }
-        offset += info.profile.endPos();
         timeOffset += info.profile.time();
     }
 
-    return result[0].desiredDistance;
+    return result[0].desiredTargetPos;
 }
 
 // tests the complete optimization
 TEST(EndInObstacleSampler, WholeSampling) {
     {
-        Vector s0(1, 1);
-        Vector s1(5, 5);
-        TrajectoryInput input = constructBasicInput(s0, s1);
-        auto addObst = [&](WorldInformation &world) {
+        const Vector s0(1, 1);
+        const Vector s1(5, 5);
+        const TrajectoryInput input = constructBasicInput(s0, s1);
+        const auto addObst = [&](WorldInformation &world) {
             world.addCircle(s1.x, s1.y, 2, "circle around target", 50);
         };
 
-        Vector target = optimizeCloseness(addObst, input) + s0;
+        const Vector target = optimizeCloseness(addObst, input);
 
         ASSERT_GE(s1.distance(target), 2);
         ASSERT_LE(s1.distance(target), 2.1);
@@ -112,29 +110,29 @@ TEST(EndInObstacleSampler, WholeSampling) {
     }
 
     {
-        Vector s0(1, 1);
-        Vector s1(5, 5);
-        TrajectoryInput input = constructBasicInput(s0, s1);
-        auto addObst = [&](WorldInformation &world) {
+        const Vector s0(1, 1);
+        const Vector s1(5, 5);
+        const TrajectoryInput input = constructBasicInput(s0, s1);
+        const auto addObst = [&](WorldInformation &world) {
             world.addRect(s1.x - 0.3, 10, 10, -10, "rect around target", 50, 0);
         };
 
-        Vector target = optimizeCloseness(addObst, input) + s0;
-        Vector desiredTarget = s1 + Vector(-0.3, 0);
+        const Vector target = optimizeCloseness(addObst, input);
+        const Vector desiredTarget = s1 + Vector(-0.3, 0);
         ASSERT_LE(desiredTarget.distance(target), 0.1);
     }
 
     // test with a moving obstacle that has a large end time
     {
-        Vector s0(1, 1);
-        Vector s1(5, 5);
-        TrajectoryInput input = constructBasicInput(s0, s1);
-        auto addObst = [&](WorldInformation &world) {
+        const Vector s0(1, 1);
+        const Vector s1(5, 5);
+        const TrajectoryInput input = constructBasicInput(s0, s1);
+        const auto addObst = [&](WorldInformation &world) {
             world.addCircle(s1.x, s1.y, 1, "circle around target", 50);
             world.addMovingCircle(s1, Vector(0, 0), Vector(0, 0), 0, 100, 1.5, 50);
         };
 
-        Vector target = optimizeCloseness(addObst, input) + s0;
+        const Vector target = optimizeCloseness(addObst, input);
 
         ASSERT_GE(s1.distance(target), 1.5);
         ASSERT_LE(s1.distance(target), 1.6);

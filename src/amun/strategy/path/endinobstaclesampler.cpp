@@ -37,8 +37,8 @@ bool EndInObstacleSampler::compute(const TrajectoryInput &input)
 
     // compute where the robot would stop when braking immediately
     // in case the acceleration model is not simple, compute the trajectory instead of directly computing the position
-    const SpeedProfile stop = AlphaTimeTrajectory::calculateTrajectory(input.v0, Vector(0, 0), 0, 0, input.acceleration, input.maxSpeed, 0, false);
-    const Vector stopPoint = input.s0 + stop.endPos() * 1.01f;
+    const SpeedProfile stop = AlphaTimeTrajectory::calculateTrajectory(input.s0, input.v0, Vector(0, 0), 0, 0, input.acceleration, input.maxSpeed, 0, false);
+    const Vector stopPoint = stop.endPosition();
 
     // TODO: sample closer if we are already close
     const int ITERATIONS = 60;
@@ -87,14 +87,13 @@ bool EndInObstacleSampler::testEndPoint(const TrajectoryInput &input, Vector end
     }
 
     // no slowdown here, we are not even were we want to be
-    Vector desiredDistance = endPoint - input.s0;
-    SpeedProfile direct = AlphaTimeTrajectory::findTrajectory(input.v0, Vector(0, 0), desiredDistance,
-                                                              input.acceleration, input.maxSpeed, 0, false, false);
+    const SpeedProfile direct = AlphaTimeTrajectory::findTrajectory(input.s0, input.v0, Vector(0, 0), endPoint,
+                                                                    input.acceleration, input.maxSpeed, 0, false, false);
 
     if (!direct.isValid()) {
         return false;
     }
-    if (m_world.isTrajectoryInObstacle(direct, input.t0, input.s0)) {
+    if (m_world.isTrajectoryInObstacle(direct, input.t0)) {
         return false;
     }
 
@@ -103,7 +102,7 @@ bool EndInObstacleSampler::testEndPoint(const TrajectoryInput &input, Vector end
     m_bestEndPoint = endPoint;
 
     result.clear();
-    result.push_back(TrajectoryGenerationInfo(direct, desiredDistance));
+    result.push_back(TrajectoryGenerationInfo(direct, endPoint));
     return true;
 }
 

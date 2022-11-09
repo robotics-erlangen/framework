@@ -139,10 +139,10 @@ std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPat
         escapeObstacle = m_escapeObstacleSampler.getResult();
 
         // assume no slowDownTime
-        Vector startOffset = escapeObstacle[0].profile.endPos();
-        Vector startSpeed = escapeObstacle[0].profile.endSpeed();
+        const Vector startPos = escapeObstacle[0].profile.endPosition();
+        const Vector startSpeed = escapeObstacle[0].profile.endSpeed();
 
-        input.s0 += startOffset;
+        input.s0 = startPos;
         input.distance = input.s1 - input.s0;
         input.v0 = startSpeed;
         input.t0 = escapeObstacle[0].profile.time();
@@ -178,18 +178,19 @@ std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPat
     }
 
     // check direct trajectory
-    float directSlowDownTime = input.exponentialSlowDown ? SpeedProfile::SLOW_DOWN_TIME : 0.0f;
-    bool useHighPrecision = input.distance.length() < 0.1f && input.v1 == Vector(0, 0) && input.v0.length() < 0.2f;
-    const SpeedProfile direct = AlphaTimeTrajectory::findTrajectory(input.v0, input.v1, input.distance, input.acceleration, input.maxSpeed,
+    const float directSlowDownTime = input.exponentialSlowDown ? SpeedProfile::SLOW_DOWN_TIME : 0.0f;
+    const bool useHighPrecision = input.distance.length() < 0.1f && input.v1 == Vector(0, 0) && input.v0.length() < 0.2f;
+    const SpeedProfile direct = AlphaTimeTrajectory::findTrajectory(input.s0, input.v0, input.v1, input.s1, input.acceleration, input.maxSpeed,
                                                                     directSlowDownTime, useHighPrecision, true);
 
     float directTrajectoryScore = std::numeric_limits<float>::max();
     if (direct.isValid()) {
-        auto obstacleDistances = m_world.minObstacleDistance(direct, 0, input.s0, StandardSampler::OBSTACLE_AVOIDANCE_RADIUS);
+        auto obstacleDistances = m_world.minObstacleDistance(direct, 0, StandardSampler::OBSTACLE_AVOIDANCE_RADIUS);
 
         if (obstacleDistances.first > StandardSampler::OBSTACLE_AVOIDANCE_RADIUS ||
                 (obstacleDistances.first > 0 && obstacleDistances.second < StandardSampler::OBSTACLE_AVOIDANCE_RADIUS)) {
-            const TrajectorySampler::TrajectoryGenerationInfo info(direct, input.distance);
+
+            const TrajectorySampler::TrajectoryGenerationInfo info(direct, input.s1);
             return concat(escapeObstacle, {info});
         }
         if (obstacleDistances.first > 0) {
@@ -203,7 +204,7 @@ std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPat
     }
     // the standard sampler might fail since it regards the direct trajectory as the best result
     if (directTrajectoryScore < std::numeric_limits<float>::max()) {
-        const TrajectorySampler::TrajectoryGenerationInfo info(direct, input.distance);
+        const TrajectorySampler::TrajectoryGenerationInfo info(direct, input.s1);
         return concat(escapeObstacle, {info});
     }
 
@@ -244,7 +245,6 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Tra
     m_currentTrajectory.clear();
 
     {
-        Vector startPos = input.s0;
         float currentTime = 0; // time in a trajectory part
         float currentTotalTime = 0; // time from the beginning
         const int SAMPLES_PER_TRAJECTORY = 40;
@@ -261,8 +261,7 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Tra
             }
 
             // trajectory positions are not perfect, move them slightly to reach the desired position perfectly
-            Vector endPos = trajectory.endPos();
-            Vector correctionOffset = info.desiredDistance - endPos;
+            const Vector correctionOffset = info.desiredTargetPos - trajectory.endPosition();
 
             bool wasAtEndPoint = false;
             while (true) {
@@ -283,13 +282,12 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Tra
                 TrajectoryPoint p;
                 p.time = currentTotalTime;
                 p.speed = posSpeed.second;
-                p.pos = startPos + posSpeed.first + correctionOffset * (currentTime / partTime);
+                p.pos = posSpeed.first + correctionOffset * (currentTime / partTime);
                 m_currentTrajectory.push_back(p);
 
                 currentTime += samplingInterval;
                 currentTotalTime += samplingInterval;
             }
-            startPos += endPos + correctionOffset;
         }
     }
 
@@ -297,7 +295,6 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Tra
     {
         std::vector<TrajectoryPoint> result;
         float totalTime = 0;
-        Vector totalOffset = input.s0;
         for (unsigned int i = 0;i<generationInfo.size();i++) {
             const auto &info = generationInfo[i];
             const SpeedProfile &trajectory = info.profile;
@@ -325,16 +322,15 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Tra
             }
 
             // trajectory positions are not perfect, move them slightly to reach the desired position perfectly
-            Vector endPos = trajectory.endPos();
-            Vector correctionOffset = info.desiredDistance - endPos;
+            const Vector correctionOffset = info.desiredTargetPos - trajectory.endPosition();
+
             for (auto &point : newPoints) {
-                point.pos += totalOffset + correctionOffset * point.time / partTime;
+                point.pos += correctionOffset * point.time / partTime;
                 point.time += totalTime;
             }
             result.insert(result.end(), newPoints.begin(), newPoints.end());
 
             totalTime += partTime;
-            totalOffset += info.desiredDistance;
         }
 
         return result;

@@ -36,6 +36,7 @@ public:
 
     VT profile[4];
     unsigned int counter = 0;
+    float s0 = 0;
 
 public:
 
@@ -45,7 +46,7 @@ public:
     std::pair<float, float> calculateRange(float slowDownTime) const;
 
     template<typename AccelerationProfile>
-    float endOffset(float slowDownTime) const;
+    float endPosition(float slowDownTime) const;
 
     // returns {offset, speed}
     template<typename AccelerationProfile>
@@ -55,7 +56,7 @@ public:
 
     // outIndex can be 0 or 1, writing the result to the x or y coordinate of the vectors
     template<typename AccelerationProfile>
-    void trajectoryPositions(std::vector<std::pair<Vector, Vector>> &outPoints, std::size_t outIndex, float timeInterval, float positionOffset, float slowDownTime) const;
+    void trajectoryPositions(std::vector<std::pair<Vector, Vector>> &outPoints, std::size_t outIndex, float timeInterval, float slowDownTime) const;
 
     void integrateTime() {
         float totalTime = 0;
@@ -112,11 +113,11 @@ public:
 
     bool isValid() const { return valid; }
     float time() const;
-    Vector endPos() const;
+    Vector endPosition() const;
     // returns {position, speed}
     std::pair<Vector, Vector> positionAndSpeedForTime(float time) const;
-    std::vector<std::pair<Vector, Vector>> trajectoryPositions(Vector offset, std::size_t count, float timeInterval) const;
-    BoundingBox calculateBoundingBox(Vector offset) const;
+    std::vector<std::pair<Vector, Vector>> trajectoryPositions(std::size_t count, float timeInterval) const;
+    BoundingBox calculateBoundingBox() const;
 
     Vector endSpeed() const {
         return Vector(xProfile.profile[xProfile.counter-1].v, yProfile.profile[yProfile.counter-1].v);
@@ -129,6 +130,11 @@ public:
     Vector initialAcceleration() const {
         return Vector((xProfile.profile[1].v - xProfile.profile[0].v) / (xProfile.profile[1].t - xProfile.profile[0].t),
                 (yProfile.profile[1].v - yProfile.profile[0].v) / (yProfile.profile[1].t - yProfile.profile[0].t));
+    }
+
+    void setStartPos(Vector pos) {
+        xProfile.s0 = pos.x;
+        yProfile.s0 = pos.y;
     }
 
     void printDebug() {

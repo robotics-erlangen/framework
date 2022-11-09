@@ -65,11 +65,11 @@ static Robot updateOpponent(const Robot &opp, const Scenario &s, const Robot &fr
         return Robot(Vector(opp.pos.x, friendlyRobot.pos.y), Vector(0, friendlyRobot.speed.y));
     } else if (s.testType == CollisionTestType::ADVERSARIAL) {
         const Vector target = friendlyRobot.pos;
-        const SpeedProfile evil = AlphaTimeTrajectory::findTrajectory(opp.speed, friendlyRobot.speed * (-1), target - opp.pos,
+        const SpeedProfile evil = AlphaTimeTrajectory::findTrajectory(opp.pos, opp.speed, friendlyRobot.speed * (-1), target,
                                                                       ACCELERATION, MAX_SPEED, 0, false, true);
         if (evil.isValid()) {
             const auto values = evil.positionAndSpeedForTime(0.01f);
-            return Robot(values.first + opp.pos, values.second);
+            return Robot(values.first, values.second);
         }
     }
     return updateRobotConstantAcceleration(opp, s.opponentAcceleration, MAX_SPEED);
@@ -268,15 +268,14 @@ static bool testScenarioCollision(const Scenario &s, QString logname, bool useOl
 
 static bool opponentCloseToRobot(const Scenario &s)
 {
-    const Vector dist = s.targetPos - s.ownStart.pos;
-    const SpeedProfile direct = AlphaTimeTrajectory::findTrajectory(s.ownStart.speed, Vector(0, 0), dist, ACCELERATION, MAX_SPEED, 0, true, false);
+    const SpeedProfile direct = AlphaTimeTrajectory::findTrajectory(s.ownStart.pos, s.ownStart.speed, Vector(0, 0), s.targetPos, ACCELERATION, MAX_SPEED, 0, true, false);
     if (!direct.isValid()) {
         return true;
     }
     const float totalTime = direct.time() + 0.5f;
     const float timeInterval = 0.01f;
     const int DIVISIONS = std::min(300, std::max(3, int(totalTime / timeInterval)));
-    const auto positions = direct.trajectoryPositions(s.ownStart.pos, DIVISIONS, timeInterval);
+    const auto positions = direct.trajectoryPositions(DIVISIONS, timeInterval);
     Robot currentOpponent = s.oppStart;
     for (unsigned int i = 0;i<positions.size();i++) {
         const float time = i * timeInterval;

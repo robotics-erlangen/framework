@@ -123,7 +123,7 @@ void PathDebug::debugLine(const QString &name, Vector start, Vector end, PathDeb
     emit gotVisualization(vis);
 }
 
-void PathDebug::debugTrajectory(const QString &name, const SpeedProfile &trajectory, Vector offset, PathDebugColor color)
+void PathDebug::debugTrajectory(const QString &name, const SpeedProfile &trajectory, PathDebugColor color)
 {
     if (!trajectory.isValid()) {
         return;
@@ -131,7 +131,7 @@ void PathDebug::debugTrajectory(const QString &name, const SpeedProfile &traject
     const int VIS_POINTS = 35;
     float timeInterval = trajectory.time() / float(VIS_POINTS-1);
 
-    const std::vector<std::pair<Vector, Vector>> points = trajectory.trajectoryPositions(offset, VIS_POINTS, timeInterval);
+    const std::vector<std::pair<Vector, Vector>> points = trajectory.trajectoryPositions(VIS_POINTS, timeInterval);
     std::vector<Vector> positions;
     positions.reserve(points.size());
     for (const auto &point : points) {

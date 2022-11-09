@@ -165,9 +165,9 @@ bool WorldInformation::isInMovingObstacle(const std::vector<MovingObstacles::Mov
     return false;
 }
 
-bool WorldInformation::isTrajectoryInObstacle(const SpeedProfile &profile, float timeOffset, Vector startPos) const
+bool WorldInformation::isTrajectoryInObstacle(const SpeedProfile &profile, float timeOffset) const
 {
-    BoundingBox trajectoryBoundingBox = profile.calculateBoundingBox(startPos);
+    BoundingBox trajectoryBoundingBox = profile.calculateBoundingBox();
     std::vector<const StaticObstacles::Obstacle*> intersectingStaticObstacles;
     intersectingStaticObstacles.reserve(m_obstacles.size());
     for (const StaticObstacles::Obstacle *o : m_obstacles) {
@@ -187,7 +187,7 @@ bool WorldInformation::isTrajectoryInObstacle(const SpeedProfile &profile, float
     const float timeInterval = 0.025f;
     const int divisions = std::ceil(totalTime / timeInterval);
 
-    const auto trajectoryPoints = profile.trajectoryPositions(startPos, divisions, timeInterval);
+    const auto trajectoryPoints = profile.trajectoryPositions(divisions, timeInterval);
 
     for (int i = 0;i<divisions;i++) {
         const float time = i * timeInterval;
@@ -237,7 +237,7 @@ bool WorldInformation::isInFriendlyStopPos(const Vector pos) const
     return false;
 }
 
-std::pair<float, float> WorldInformation::minObstacleDistance(const SpeedProfile &profile, float timeOffset, Vector startPos, float safetyMargin) const
+std::pair<float, float> WorldInformation::minObstacleDistance(const SpeedProfile &profile, float timeOffset, float safetyMargin) const
 {
     float totalTime = profile.time();
     float totalMinDistance = std::numeric_limits<float>::max();
@@ -245,7 +245,7 @@ std::pair<float, float> WorldInformation::minObstacleDistance(const SpeedProfile
 
     const int DIVISIONS = 40;
 
-    std::vector<std::pair<Vector, Vector>> trajectoryPoints = profile.trajectoryPositions(startPos, DIVISIONS, totalTime * (1.0f / (DIVISIONS-1)));
+    const std::vector<std::pair<Vector, Vector>> trajectoryPoints = profile.trajectoryPositions(DIVISIONS, totalTime * (1.0f / (DIVISIONS-1)));
     std::vector<float> trajectoryTimes(DIVISIONS);
 
     for (int i = 0;i<DIVISIONS;i++) {
