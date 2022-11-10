@@ -25,14 +25,6 @@
 #include "speedprofile.h"
 #include <vector>
 
-struct RobotState {
-    RobotState() = default;
-    RobotState(Vector pos, Vector speed) :
-        pos(pos), speed(speed) {}
-    Vector pos;
-    Vector speed;
-};
-
 
 class AlphaTimeTrajectory
 {

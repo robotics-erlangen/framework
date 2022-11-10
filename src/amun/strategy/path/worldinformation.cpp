@@ -191,10 +191,10 @@ bool WorldInformation::isTrajectoryInObstacle(const SpeedProfile &profile, float
 
     for (int i = 0;i<divisions;i++) {
         const float time = i * timeInterval;
-        if (isInStaticObstacle(intersectingStaticObstacles, trajectoryPoints[i].first)) {
+        if (isInStaticObstacle(intersectingStaticObstacles, trajectoryPoints[i].pos)) {
             return true;
         }
-        if (isInMovingObstacle(intersectingMovingObstacles, trajectoryPoints[i].first, time + timeOffset, trajectoryPoints[i].second)) {
+        if (isInMovingObstacle(intersectingMovingObstacles, trajectoryPoints[i].pos, time + timeOffset, trajectoryPoints[i].speed)) {
             return true;
         }
     }
@@ -245,13 +245,13 @@ std::pair<float, float> WorldInformation::minObstacleDistance(const SpeedProfile
 
     const int DIVISIONS = 40;
 
-    const std::vector<std::pair<Vector, Vector>> trajectoryPoints = profile.trajectoryPositions(DIVISIONS, totalTime * (1.0f / (DIVISIONS-1)));
+    const std::vector<RobotState> trajectoryPoints = profile.trajectoryPositions(DIVISIONS, totalTime * (1.0f / (DIVISIONS-1)));
     std::vector<float> trajectoryTimes(DIVISIONS);
 
     for (int i = 0;i<DIVISIONS;i++) {
         const float time = totalTime * i * (1.0f / float(DIVISIONS-1));
-        const Vector pos = trajectoryPoints[i].first;
-        const Vector speed = trajectoryPoints[i].second;
+        const Vector pos = trajectoryPoints[i].pos;
+        const Vector speed = trajectoryPoints[i].speed;
 
         trajectoryTimes[i] = time + timeOffset;
 
@@ -264,9 +264,9 @@ std::pair<float, float> WorldInformation::minObstacleDistance(const SpeedProfile
         }
     }
 
-    BoundingBox trajectoryBox(trajectoryPoints[0].first, trajectoryPoints[1].first);
+    BoundingBox trajectoryBox(trajectoryPoints[0].pos, trajectoryPoints[1].pos);
     for (int i = 2;i<DIVISIONS;i++) {
-        trajectoryBox.mergePoint(trajectoryPoints[i].first);
+        trajectoryBox.mergePoint(trajectoryPoints[i].pos);
     }
 
     // check if the trajectory is in the playing field
@@ -281,7 +281,7 @@ std::pair<float, float> WorldInformation::minObstacleDistance(const SpeedProfile
     for (auto obstacle : m_obstacles) {
         if (obstacle->boundingBox().intersects(trajectoryBox)) {
             for (std::size_t i = 0;i<DIVISIONS;i++) {
-                const float dist = obstacle->zonedDistance(trajectoryPoints[i].first, safetyMargin);
+                const float dist = obstacle->zonedDistance(trajectoryPoints[i].pos, safetyMargin);
                 if (dist < 0) {
                     return {dist, dist};
                 } else if (dist < safetyMargin) {
@@ -294,7 +294,7 @@ std::pair<float, float> WorldInformation::minObstacleDistance(const SpeedProfile
     for (auto obstacle : m_movingObstacles) {
         if (obstacle->boundingBox().intersects(trajectoryBox)) {
             for (std::size_t i = 0;i<DIVISIONS;i++) {
-                const float dist = obstacle->zonedDistance(trajectoryPoints[i].first, trajectoryTimes[i], safetyMargin, trajectoryPoints[i].second);
+                const float dist = obstacle->zonedDistance(trajectoryPoints[i].pos, trajectoryTimes[i], safetyMargin, trajectoryPoints[i].speed);
                 if (dist < 0) {
                     return {dist, dist};
                 } else if (dist < safetyMargin) {
@@ -309,7 +309,7 @@ std::pair<float, float> WorldInformation::minObstacleDistance(const SpeedProfile
                     const float AFTER_STOP_INTERVAL = 0.03f;
                     for (std::size_t i = 0;i<std::size_t((AFTER_STOP_AVOIDANCE_TIME - totalTime) * (1.0f / AFTER_STOP_INTERVAL));i++) {
                         float t = timeOffset + totalTime + i * AFTER_STOP_INTERVAL;
-                        const float dist = obstacle->zonedDistance(trajectoryPoints.back().first, t, safetyMargin, trajectoryPoints.back().second);
+                        const float dist = obstacle->zonedDistance(trajectoryPoints.back().pos, t, safetyMargin, trajectoryPoints.back().speed);
                         if (dist < 0) {
                             return {dist, dist};
                         } else if (dist < safetyMargin) {

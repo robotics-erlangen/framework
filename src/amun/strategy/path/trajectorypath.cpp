@@ -275,8 +275,8 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Tra
 
                 TrajectoryPoint p;
                 p.time = currentTotalTime;
-                p.speed = posSpeed.second;
-                p.pos = posSpeed.first + correctionOffset * (currentTime / partTime);
+                p.speed = posSpeed.speed;
+                p.pos = posSpeed.pos + correctionOffset * (currentTime / partTime);
                 m_currentTrajectory.push_back(p);
 
                 currentTime += samplingInterval;
@@ -308,9 +308,9 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Tra
                 for (std::size_t i = 0;i<EXPONENTIAL_SLOW_DOWN_SAMPLE_COUNT;i++) {
                     TrajectoryPoint p;
                     p.time = i * partTime / float(EXPONENTIAL_SLOW_DOWN_SAMPLE_COUNT - 1);
-                    auto posSpeed = trajectory.positionAndSpeedForTime(p.time);
-                    p.pos = posSpeed.first;
-                    p.speed = posSpeed.second;
+                    const auto state = trajectory.positionAndSpeedForTime(p.time);
+                    p.pos = state.pos;
+                    p.speed = state.speed;
                     newPoints.push_back(p);
                 }
             }

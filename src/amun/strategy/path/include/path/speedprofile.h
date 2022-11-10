@@ -27,6 +27,14 @@
 
 #include <vector>
 
+struct RobotState {
+    RobotState() = default;
+    RobotState(Vector pos, Vector speed) :
+        pos(pos), speed(speed) {}
+    Vector pos;
+    Vector speed;
+};
+
 class SpeedProfile1D {
 public:
     struct VT {
@@ -56,7 +64,7 @@ public:
 
     // outIndex can be 0 or 1, writing the result to the x or y coordinate of the vectors
     template<typename AccelerationProfile>
-    void trajectoryPositions(std::vector<std::pair<Vector, Vector>> &outPoints, std::size_t outIndex, float timeInterval, float slowDownTime) const;
+    void trajectoryPositions(std::vector<RobotState> &outPoints, std::size_t outIndex, float timeInterval, float slowDownTime) const;
 
     void integrateTime() {
         float totalTime = 0;
@@ -114,9 +122,8 @@ public:
     bool isValid() const { return valid; }
     float time() const;
     Vector endPosition() const;
-    // returns {position, speed}
-    std::pair<Vector, Vector> positionAndSpeedForTime(float time) const;
-    std::vector<std::pair<Vector, Vector>> trajectoryPositions(std::size_t count, float timeInterval) const;
+    RobotState positionAndSpeedForTime(float time) const;
+    std::vector<RobotState> trajectoryPositions(std::size_t count, float timeInterval) const;
     BoundingBox calculateBoundingBox() const;
 
     Vector endSpeed() const {

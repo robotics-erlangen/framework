@@ -185,7 +185,7 @@ std::pair<float, float> SpeedProfile1D::offsetAndSpeedForTime(float time, float 
 }
 
 template<typename AccelerationProfile>
-void SpeedProfile1D::trajectoryPositions(std::vector<std::pair<Vector, Vector>> &outPoints, std::size_t outIndex, float timeInterval, float slowDownTime) const
+void SpeedProfile1D::trajectoryPositions(std::vector<RobotState> &outPoints, std::size_t outIndex, float timeInterval, float slowDownTime) const
 {
     AccelerationProfile acceleration(profile[counter-1].t, slowDownTime);
 
@@ -199,8 +199,8 @@ void SpeedProfile1D::trajectoryPositions(std::vector<std::pair<Vector, Vector>> 
         float segmentTime = acceleration.timeForSegment(profile[i], profile[i+1]);
         while (totalTime + segmentTime >= nextDesiredTime) {
             auto inf = acceleration.partialSegmentOffsetAndSpeed(profile[i], profile[i+1], totalTime, nextDesiredTime);
-            outPoints[resultCounter].first[outIndex] = offset + inf.first;
-            outPoints[resultCounter].second[outIndex] = inf.second;
+            outPoints[resultCounter].pos[outIndex] = offset + inf.first;
+            outPoints[resultCounter].speed[outIndex] = inf.second;
             resultCounter++;
             nextDesiredTime += timeInterval;
 
@@ -213,8 +213,8 @@ void SpeedProfile1D::trajectoryPositions(std::vector<std::pair<Vector, Vector>> 
     }
 
     while (resultCounter < outPoints.size()) {
-        outPoints[resultCounter].first[outIndex] = offset;
-        outPoints[resultCounter].second[outIndex] = profile[counter-1].v;
+        outPoints[resultCounter].pos[outIndex] = offset;
+        outPoints[resultCounter].speed[outIndex] = profile[counter-1].v;
         resultCounter++;
     }
 }
@@ -283,20 +283,22 @@ float SpeedProfile::time() const
     }
 }
 
-std::pair<Vector, Vector> SpeedProfile::positionAndSpeedForTime(float time) const {
+RobotState SpeedProfile::positionAndSpeedForTime(float time) const
+{
     if (slowDownTime == 0.0f) {
-        auto x = xProfile.offsetAndSpeedForTime<ConstantAcceleration>(time, 0);
-        auto y = yProfile.offsetAndSpeedForTime<ConstantAcceleration>(time, 0);
-        return {Vector(x.first, y.first), Vector(x.second, y.second)};
+        const auto x = xProfile.offsetAndSpeedForTime<ConstantAcceleration>(time, 0);
+        const auto y = yProfile.offsetAndSpeedForTime<ConstantAcceleration>(time, 0);
+        return RobotState(Vector(x.first, y.first), Vector(x.second, y.second));
     } else {
-        auto x = xProfile.offsetAndSpeedForTime<SlowdownAcceleration>(time, slowDownTime);
-        auto y = yProfile.offsetAndSpeedForTime<SlowdownAcceleration>(time, slowDownTime);
-        return {Vector(x.first, y.first), Vector(x.second, y.second)};
+        const auto x = xProfile.offsetAndSpeedForTime<SlowdownAcceleration>(time, slowDownTime);
+        const auto y = yProfile.offsetAndSpeedForTime<SlowdownAcceleration>(time, slowDownTime);
+        return RobotState(Vector(x.first, y.first), Vector(x.second, y.second));
     }
 }
 
-std::vector<std::pair<Vector, Vector>> SpeedProfile::trajectoryPositions(std::size_t count, float timeInterval) const {
-    std::vector<std::pair<Vector, Vector>> result(count);
+std::vector<RobotState> SpeedProfile::trajectoryPositions(std::size_t count, float timeInterval) const
+{
+    std::vector<RobotState> result(count);
     if (slowDownTime == 0.0f) {
         xProfile.trajectoryPositions<ConstantAcceleration>(result, 0, timeInterval, 0);
         yProfile.trajectoryPositions<ConstantAcceleration>(result, 1, timeInterval, 0);
@@ -342,17 +344,17 @@ std::vector<TrajectoryPoint> SpeedProfile::getTrajectoryPoints() const
 
         if (std::abs(xNext - yNext) < SAME_POINT_EPSILON) {
             float time = (xNext + yNext) / 2.0f;
-            auto posSpeed = positionAndSpeedForTime(time);
-            result.push_back({posSpeed.first, posSpeed.second, time});
+            const auto state = positionAndSpeedForTime(time);
+            result.push_back({state.pos, state.speed, time});
             xIndex++;
             yIndex++;
         } else if (xNext < yNext) {
-            auto posSpeed = positionAndSpeedForTime(xNext);
-            result.push_back({posSpeed.first, posSpeed.second, xNext});
+            const auto state = positionAndSpeedForTime(xNext);
+            result.push_back({state.pos, state.speed, xNext});
             xIndex++;
         } else {
-            auto posSpeed = positionAndSpeedForTime(yNext);
-            result.push_back({posSpeed.first, posSpeed.second, yNext});
+            const auto state = positionAndSpeedForTime(yNext);
+            result.push_back({state.pos, state.speed, yNext});
             yIndex++;
         }
     }
@@ -360,7 +362,7 @@ std::vector<TrajectoryPoint> SpeedProfile::getTrajectoryPoints() const
     // compensate for the missing exponential slowdown by adding a segment with zero speed
     if (slowDownTime != 0.0f) {
         float endTime = time();
-        result.push_back({positionAndSpeedForTime(endTime).first, result.back().speed, endTime});
+        result.push_back({positionAndSpeedForTime(endTime).pos, result.back().speed, endTime});
     }
 
     return result;

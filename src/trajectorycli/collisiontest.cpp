@@ -61,8 +61,7 @@ static RobotState updateOpponent(const RobotState &opp, const Scenario &s, const
         const RobotState targetState(target, friendlyRobot.speed * (-1));
         const SpeedProfile evil = AlphaTimeTrajectory::findTrajectory(opp, targetState, ACCELERATION, MAX_SPEED, 0, false, true);
         if (evil.isValid()) {
-            const auto values = evil.positionAndSpeedForTime(0.01f);
-            return RobotState(values.first, values.second);
+            return evil.positionAndSpeedForTime(0.01f);
         }
     }
     return updateRobotConstantAcceleration(opp, s.opponentAcceleration, MAX_SPEED);
@@ -273,13 +272,12 @@ static bool opponentCloseToRobot(const Scenario &s)
     RobotState currentOpponent = s.oppStart;
     for (unsigned int i = 0;i<positions.size();i++) {
         const float time = i * timeInterval;
-        const auto ownData = direct.positionAndSpeedForTime(time);
-        const Vector ownPos = ownData.first;
-        const float dist = currentOpponent.pos.distance(ownPos);
+        const auto ownState = direct.positionAndSpeedForTime(time);
+        const float dist = currentOpponent.pos.distance(ownState.pos);
         if (dist < 0.3f) {
             return true;
         }
-        currentOpponent = updateOpponent(currentOpponent, s, RobotState(ownPos, ownData.second));
+        currentOpponent = updateOpponent(currentOpponent, s, ownState);
     }
     return false;
 }
