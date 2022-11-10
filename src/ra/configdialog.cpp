@@ -114,7 +114,13 @@ ConfigDialog::ConfigDialog(QWidget *parent) :
 
     connect(ui->colorScheme, SIGNAL(currentIndexChanged(int)), this, SLOT(changedPalette(int)));
     m_defaultPalette = palette();
-    ui->qStyle->addItems(QStyleFactory::keys());
+
+    const auto availableStyles = QStyleFactory::keys();
+    ui->qStyle->addItems(availableStyles);
+
+    if (availableStyles.size() == 2 && availableStyles.contains("Fusion")) {
+        ui->qStyle->setCurrentText("Fusion");
+    }
 
     ui->customColors->hide();
 
