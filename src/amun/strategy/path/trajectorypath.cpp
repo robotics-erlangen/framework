@@ -47,11 +47,8 @@ std::vector<TrajectoryPoint> TrajectoryPath::calculateTrajectory(Vector s0, Vect
     }
 
     TrajectoryInput input;
-    input.v0 = v0;
-    input.v1 = v1;
-    input.distance = s1 - s0;
-    input.s0 = s0;
-    input.s1 = s1;
+    input.start = RobotState(s0, v0);
+    input.target = RobotState(s1, v1);
     input.t0 = 0;
     input.exponentialSlowDown = v1 == Vector(0, 0);
     input.maxSpeed = maxSpeed;
@@ -70,11 +67,10 @@ static void setVector(Vector v, pathfinding::Vector *out)
 static void serializeTrajectoryInput(const TrajectoryInput &input, pathfinding::TrajectoryInput *result)
 {
     // t0 is not serialized, since it is only added during the computation
-    setVector(input.v0, result->mutable_v0());
-    setVector(input.v1, result->mutable_v1());
-    setVector(input.distance, result->mutable_distance());
-    setVector(input.s0, result->mutable_s0());
-    setVector(input.s1, result->mutable_s1());
+    setVector(input.start.speed, result->mutable_v0());
+    setVector(input.target.speed, result->mutable_v1());
+    setVector(input.start.pos, result->mutable_s0());
+    setVector(input.target.pos, result->mutable_s1());
     result->set_max_speed(input.maxSpeed);
     result->set_acceleration(input.acceleration);
 }
@@ -128,7 +124,7 @@ std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPat
 
     // check if start point is in obstacle
     std::vector<TrajectorySampler::TrajectoryGenerationInfo> escapeObstacle;
-    if (m_world.isInStaticObstacle(obstacles, input.s0) || m_world.isInMovingObstacle(m_world.movingObstacles(), input.s0, 0, input.v0)) {
+    if (m_world.isInStaticObstacle(obstacles, input.start.pos) || m_world.isInMovingObstacle(m_world.movingObstacles(), input.start.pos, 0, input.start.speed)) {
         if (!testSampler(input, pathfinding::EscapeObstacleSampler)) {
             // no fallback for now
             return {};
@@ -142,27 +138,24 @@ std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPat
         const Vector startPos = escapeObstacle[0].profile.endPosition();
         const Vector startSpeed = escapeObstacle[0].profile.endSpeed();
 
-        input.s0 = startPos;
-        input.distance = input.s1 - input.s0;
-        input.v0 = startSpeed;
+        input.start = RobotState(startPos, startSpeed);
         input.t0 = escapeObstacle[0].profile.time();
     }
 
     // check if end point is in obstacle
-    if (m_world.isInStaticObstacle(obstacles, input.s1) || m_world.isInFriendlyStopPos(input.s1)) {
+    if (m_world.isInStaticObstacle(obstacles, input.target.pos) || m_world.isInFriendlyStopPos(input.target.pos)) {
         const float PROJECT_DISTANCE = 0.03f;
         for (const StaticObstacles::Obstacle *o : obstacles) {
-            float dist = o->distance(input.s1);
+            float dist = o->distance(input.target.pos);
             if (dist > -0.2 && dist < 0) {
-                input.s1 = o->projectOut(input.s1, PROJECT_DISTANCE);
+                input.target.pos = o->projectOut(input.target.pos, PROJECT_DISTANCE);
             }
         }
         for (const MovingObstacles::MovingObstacle *o : m_world.movingObstacles()) {
-            input.s1 = o->projectOut(input.s1, PROJECT_DISTANCE);
+            input.target.pos = o->projectOut(input.target.pos, PROJECT_DISTANCE);
         }
-        input.distance = input.s1 - input.s0;
         // test again, might have been moved into another obstacle
-        if (m_world.isInStaticObstacle(obstacles, input.s1) || m_world.isInFriendlyStopPos(input.s1)) {
+        if (m_world.isInStaticObstacle(obstacles, input.target.pos) || m_world.isInFriendlyStopPos(input.target.pos)) {
             if (testSampler(input, pathfinding::EndInObstacleSampler)) {
                 return concat(escapeObstacle, m_endInObstacleSampler.getResult());
             }
@@ -179,8 +172,9 @@ std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPat
 
     // check direct trajectory
     const float directSlowDownTime = input.exponentialSlowDown ? SpeedProfile::SLOW_DOWN_TIME : 0.0f;
-    const bool useHighPrecision = input.distance.length() < 0.1f && input.v1 == Vector(0, 0) && input.v0.length() < 0.2f;
-    const SpeedProfile direct = AlphaTimeTrajectory::findTrajectory(input.s0, input.v0, input.v1, input.s1, input.acceleration, input.maxSpeed,
+    const float targetDistance = (input.target.pos - input.start.pos).length();
+    const bool useHighPrecision = targetDistance < 0.1f && input.target.speed == Vector(0, 0) && input.start.speed.length() < 0.2f;
+    const SpeedProfile direct = AlphaTimeTrajectory::findTrajectory(input.start, input.target, input.acceleration, input.maxSpeed,
                                                                     directSlowDownTime, useHighPrecision, true);
 
     float directTrajectoryScore = std::numeric_limits<float>::max();
@@ -190,7 +184,7 @@ std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPat
         if (obstacleDistances.first > StandardSampler::OBSTACLE_AVOIDANCE_RADIUS ||
                 (obstacleDistances.first > 0 && obstacleDistances.second < StandardSampler::OBSTACLE_AVOIDANCE_RADIUS)) {
 
-            const TrajectorySampler::TrajectoryGenerationInfo info(direct, input.s1);
+            const TrajectorySampler::TrajectoryGenerationInfo info(direct, input.target.pos);
             return concat(escapeObstacle, {info});
         }
         if (obstacleDistances.first > 0) {
@@ -204,7 +198,7 @@ std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPat
     }
     // the standard sampler might fail since it regards the direct trajectory as the best result
     if (directTrajectoryScore < std::numeric_limits<float>::max()) {
-        const TrajectorySampler::TrajectoryGenerationInfo info(direct, input.s1);
+        const TrajectorySampler::TrajectoryGenerationInfo info(direct, input.target.pos);
         return concat(escapeObstacle, {info});
     }
 
@@ -226,11 +220,11 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Tra
 {
     if (generationInfo.size() == 0) {
         TrajectoryPoint p1;
-        p1.pos = input.s0;
+        p1.pos = input.start.pos;
         p1.time = 0;
-        p1.speed = input.v0;
+        p1.speed = input.start.speed;
         TrajectoryPoint p2;
-        p2.pos = input.s0;
+        p2.pos = input.start.pos;
         p2.time = 0;
         p2.speed = Vector(0, 0);
         return {p1, p2};

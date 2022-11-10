@@ -68,7 +68,8 @@ bool StandardSampler::compute(const TrajectoryInput &input)
 
 void StandardSampler::computeLive(const TrajectoryInput &input, const StandardSamplerBestTrajectoryInfo &lastFrameInfo)
 {
-    Vector defaultSpeed = input.distance * (std::max(2.5f, input.distance.length() / 2) / input.distance.length());
+    const Vector targetDistance = input.target.pos - input.start.pos;
+    Vector defaultSpeed = targetDistance * (std::max(2.5f, targetDistance.length() / 2) / targetDistance.length());
     // limit default speed to allowed speed
     if (defaultSpeed.lengthSquared() > input.maxSpeedSquared) {
         defaultSpeed = defaultSpeed / defaultSpeed.length();
@@ -156,9 +157,9 @@ void StandardSampler::computePrecomputed(const TrajectoryInput &input)
     }
 
     // check pre-computed points
-    float distance = input.distance.length();
+    const float targetDistance = (input.target.pos - input.start.pos).length();
     for (const auto &segment : m_precomputedPoints) {
-        if (segment.minDistance <= distance && segment.maxDistance >= distance) {
+        if (segment.minDistance <= targetDistance && segment.maxDistance >= targetDistance) {
             for (const auto &sample : segment.precomputedPoints) {
                 StandardTrajectorySample denormalized = sample.denormalize(input);
                 if (denormalized.getMidSpeed().lengthSquared() >= input.maxSpeedSquared) {
@@ -196,7 +197,7 @@ float StandardSampler::checkSample(const TrajectoryInput &input, const StandardT
     const float bestTime = std::min(m_directTrajectoryScore, currentBestTime);
 
     // do not use this minimum time improvement for very low distances
-    const float MINIMUM_TIME_IMPROVEMENT = input.distance.lengthSquared() > 1 ? 0.05f : 0.0f;
+    const float MINIMUM_TIME_IMPROVEMENT = (input.target.pos - input.start.pos).lengthSquared() > 1 ? 0.05f : 0.0f;
 
     // construct second part from mid point data
     if (sample.getTime() < 0) {
@@ -204,26 +205,28 @@ float StandardSampler::checkSample(const TrajectoryInput &input, const StandardT
     }
 
     const float slowDownTime = input.exponentialSlowDown ? SpeedProfile::SLOW_DOWN_TIME : 0;
-    SpeedProfile secondPart = AlphaTimeTrajectory::calculateTrajectory(Vector(0, 0), sample.getMidSpeed(), input.v1, sample.getTime(),
+    const RobotState secondStartState(Vector(0, 0), sample.getMidSpeed());
+    SpeedProfile secondPart = AlphaTimeTrajectory::calculateTrajectory(secondStartState, input.target.speed, sample.getTime(),
                                                                        sample.getAngle(), input.acceleration, input.maxSpeed, slowDownTime, true);
 
     const float secondPartTime = secondPart.time();
     const Vector secondPartOffset = secondPart.endPosition(); // startpos is (0, 0), computes offset of trajectory
-    secondPart.setStartPos(input.s1 - secondPartOffset);
+    secondPart.setStartPos(input.target.pos - secondPartOffset);
     if (secondPartTime > bestTime - MINIMUM_TIME_IMPROVEMENT) {
         return -1;
     }
 
     // calculate first part trajectory
-    const Vector firstPartTarget = input.s1 - secondPartOffset;
+    const Vector firstPartTarget = input.target.pos - secondPartOffset;
     const float firstPartSlowDownTime = input.exponentialSlowDown ? std::max(0.0f, SpeedProfile::SLOW_DOWN_TIME - secondPartTime) : 0.0f;
-    const SpeedProfile firstPart = AlphaTimeTrajectory::findTrajectory(input.s0, input.v0, sample.getMidSpeed(), firstPartTarget, input.acceleration,
+    const RobotState firstTargetState(firstPartTarget, sample.getMidSpeed());
+    const SpeedProfile firstPart = AlphaTimeTrajectory::findTrajectory(input.start, firstTargetState, input.acceleration,
                                                                        input.maxSpeed, firstPartSlowDownTime, false, false);
     if (!firstPart.isValid()) {
         return -1;
     }
 
-    float firstPartTime = firstPart.time();
+    const float firstPartTime = firstPart.time();
     if (firstPartTime + secondPartTime > bestTime - MINIMUM_TIME_IMPROVEMENT) {
         return -1;
     }
@@ -250,7 +253,7 @@ float StandardSampler::checkSample(const TrajectoryInput &input, const StandardT
 
     m_generationInfo.clear();
     m_generationInfo.push_back(TrajectoryGenerationInfo(firstPart, firstPartTarget));
-    m_generationInfo.push_back(TrajectoryGenerationInfo(secondPart, input.s1));
+    m_generationInfo.push_back(TrajectoryGenerationInfo(secondPart, input.target.pos));
     return biasedTrajectoryTime;
 }
 
@@ -304,8 +307,8 @@ void StandardTrajectorySample::deserialize(const pathfinding::StandardSamplerPoi
 StandardTrajectorySample StandardTrajectorySample::denormalize(const TrajectoryInput &input) const
 {
     StandardTrajectorySample normalized = *this;
-    Vector toTarget = (input.s1 - input.s0).normalized();
-    Vector sideWays = toTarget.perpendicular();
+    const Vector toTarget = (input.target.pos - input.start.pos).normalized();
+    const Vector sideWays = toTarget.perpendicular();
     normalized.setMidSpeed(toTarget * getMidSpeed().x - sideWays * getMidSpeed().y);
     normalized.setAngle(normalized.getAngle() + toTarget.angle());
     while (normalized.getAngle() > 2.0 * M_PI) normalized.setAngle(normalized.getAngle() - 2.0 * M_PI);

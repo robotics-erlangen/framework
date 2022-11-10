@@ -30,7 +30,8 @@
 class RNG;
 
 struct TrajectoryInput {
-    Vector v0, v1, distance, s0, s1;
+    RobotState start;
+    RobotState target;
     float t0 = 0;
     bool exponentialSlowDown;
     float maxSpeed;

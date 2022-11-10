@@ -37,7 +37,7 @@ bool EndInObstacleSampler::compute(const TrajectoryInput &input)
 
     // compute where the robot would stop when braking immediately
     // in case the acceleration model is not simple, compute the trajectory instead of directly computing the position
-    const SpeedProfile stop = AlphaTimeTrajectory::calculateTrajectory(input.s0, input.v0, Vector(0, 0), 0, 0, input.acceleration, input.maxSpeed, 0, false);
+    const SpeedProfile stop = AlphaTimeTrajectory::calculateTrajectory(input.start, Vector(0, 0), 0, 0, input.acceleration, input.maxSpeed, 0, false);
     const Vector stopPoint = stop.endPosition();
 
     // TODO: sample closer if we are already close
@@ -56,7 +56,7 @@ bool EndInObstacleSampler::compute(const TrajectoryInput &input)
         if (randVal < RANDOM_END_RANGE) {
             // sample random point around actual end point
             float testRadius = std::min(m_bestEndPointDistance, PARAMETER(EndInObstacleSampler, 0, 0.3f, 3));
-            testPoint = input.s1 + Vector(m_rng->uniformFloat(-testRadius, testRadius), m_rng->uniformFloat(-testRadius, testRadius));
+            testPoint = input.target.pos + Vector(m_rng->uniformFloat(-testRadius, testRadius), m_rng->uniformFloat(-testRadius, testRadius));
         } else if (randVal < RANDOM_END_RANGE + RANDOM_BEST_RANGE || m_bestEndPointDistance < PARAMETER(EndInObstacleSampler, 0, 0.3f, 3)) {
             // sample random point around last best end point
             float testRadius = std::min(m_bestEndPointDistance, PARAMETER(EndInObstacleSampler, 0, 0.3f, 3));
@@ -76,7 +76,7 @@ bool EndInObstacleSampler::compute(const TrajectoryInput &input)
 
 bool EndInObstacleSampler::testEndPoint(const TrajectoryInput &input, Vector endPoint)
 {
-    float targetDistance = endPoint.distance(input.s1);
+    float targetDistance = endPoint.distance(input.target.pos);
     if (targetDistance > m_bestEndPointDistance - 0.01f) {
         return false;
     }
@@ -87,8 +87,9 @@ bool EndInObstacleSampler::testEndPoint(const TrajectoryInput &input, Vector end
     }
 
     // no slowdown here, we are not even were we want to be
-    const SpeedProfile direct = AlphaTimeTrajectory::findTrajectory(input.s0, input.v0, Vector(0, 0), endPoint,
-                                                                    input.acceleration, input.maxSpeed, 0, false, false);
+    const RobotState targetState(endPoint, Vector(0, 0));
+    const SpeedProfile direct = AlphaTimeTrajectory::findTrajectory(input.start, targetState, input.acceleration,
+                                                                    input.maxSpeed, 0, false, false);
 
     if (!direct.isValid()) {
         return false;

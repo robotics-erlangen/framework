@@ -93,7 +93,6 @@ message WorldState {
 message TrajectoryInput {
     optional Vector v0 = 1;
     optional Vector v1 = 2;
-    optional Vector distance = 3;
     optional Vector s0 = 4;
     optional Vector s1 = 5;
     optional float max_speed = 6;

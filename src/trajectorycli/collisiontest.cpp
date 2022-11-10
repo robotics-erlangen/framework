@@ -31,54 +31,47 @@ const float MAX_SPEED = 3.0f;
 const float ACCELERATION = 3.0f;
 const float ROBOT_RADIUS = 0.09f;
 
-struct Robot {
-    Robot() {}
-    Robot(Vector p, Vector v): pos(p), speed(v) {}
-    Vector pos;
-    Vector speed;
-};
-
 struct Scenario {
     CollisionTestType testType;
 
-    Robot ownStart;
+    RobotState ownStart;
     Vector targetPos;
 
-    Robot oppStart;
+    RobotState oppStart;
     // only for testType == RANDOM
     Vector opponentAcceleration;
 };
 
-static Robot updateRobotConstantAcceleration(const Robot &robot, const Vector acc, const float maxSpeed, const float maxAccel = ACCELERATION)
+static RobotState updateRobotConstantAcceleration(const RobotState &robot, const Vector acc, const float maxSpeed, const float maxAccel = ACCELERATION)
 {
     const Vector acceleration = acc.length() < maxAccel ? acc : (acc.normalized() * maxAccel);
     const float t = 0.01f;
     const Vector speed = robot.speed + acceleration * t;
     const Vector withMaxSpeed = speed.length() < maxSpeed ? speed : (speed.normalized() * maxSpeed);
     const Vector pos = robot.pos + robot.speed * t + acceleration * (0.5f * t * t);
-    return Robot(pos, withMaxSpeed);
+    return RobotState(pos, withMaxSpeed);
 }
 
-static Robot updateOpponent(const Robot &opp, const Scenario &s, const Robot &friendlyRobot)
+static RobotState updateOpponent(const RobotState &opp, const Scenario &s, const RobotState &friendlyRobot)
 {
     if (s.testType == CollisionTestType::BLOCKED_LINE) {
-        return Robot(Vector(opp.pos.x, friendlyRobot.pos.y), Vector(0, friendlyRobot.speed.y));
+        return RobotState(Vector(opp.pos.x, friendlyRobot.pos.y), Vector(0, friendlyRobot.speed.y));
     } else if (s.testType == CollisionTestType::ADVERSARIAL) {
         const Vector target = friendlyRobot.pos;
-        const SpeedProfile evil = AlphaTimeTrajectory::findTrajectory(opp.pos, opp.speed, friendlyRobot.speed * (-1), target,
-                                                                      ACCELERATION, MAX_SPEED, 0, false, true);
+        const RobotState targetState(target, friendlyRobot.speed * (-1));
+        const SpeedProfile evil = AlphaTimeTrajectory::findTrajectory(opp, targetState, ACCELERATION, MAX_SPEED, 0, false, true);
         if (evil.isValid()) {
             const auto values = evil.positionAndSpeedForTime(0.01f);
-            return Robot(values.first, values.second);
+            return RobotState(values.first, values.second);
         }
     }
     return updateRobotConstantAcceleration(opp, s.opponentAcceleration, MAX_SPEED);
 }
 
-static Robot robotAtTime(const Robot &robot, const Vector acc, const float time)
+static RobotState robotAtTime(const RobotState &robot, const Vector acc, const float time)
 {
     if (acc.length() < 0.001f) {
-        return Robot(robot.pos + robot.speed * time, robot.speed);
+        return RobotState(robot.pos + robot.speed * time, robot.speed);
     }
     const float a = acc.x * acc.x + acc.y * acc.y;
     const float b = robot.speed.x * acc.x + robot.speed.y * acc.y;
@@ -87,19 +80,19 @@ static Robot robotAtTime(const Robot &robot, const Vector acc, const float time)
     if (time < maxSpeedTime) {
         const Vector pos = robot.pos + robot.speed * time + acc * (0.5f * time * time);
         const Vector speed = robot.speed + acc * time;
-        return Robot(pos, speed);
+        return RobotState(pos, speed);
     }
     const Vector maxSpeedPos = robot.pos + robot.speed * maxSpeedTime + acc * (0.5f * maxSpeedTime * maxSpeedTime);
     const Vector maxSpeedSpeed = robot.speed + acc * maxSpeedTime;
     const float extraTime = time - maxSpeedTime;
     const Vector maxSpeedDist = maxSpeedSpeed * extraTime;
-    return Robot(maxSpeedPos + maxSpeedDist, maxSpeedSpeed);
+    return RobotState(maxSpeedPos + maxSpeedDist, maxSpeedSpeed);
 }
 
-static Robot robotOnTrajectory(const std::vector<TrajectoryPoint> &trajectory, float time)
+static RobotState robotOnTrajectory(const std::vector<TrajectoryPoint> &trajectory, float time)
 {
     if (trajectory.size() == 0) {
-        return Robot(Vector(0, 0), Vector(0, 0));
+        return RobotState(Vector(0, 0), Vector(0, 0));
     }
     for (unsigned int i = 0;i < trajectory.size() - 1;i++) {
         const TrajectoryPoint next = trajectory[i + 1];
@@ -108,13 +101,13 @@ static Robot robotOnTrajectory(const std::vector<TrajectoryPoint> &trajectory, f
             const float tFactor = (time - current.time) / (next.time - current.time);
             const Vector v = current.speed +  (next.speed - current.speed) * tFactor;
             const Vector pos = current.pos + (current.speed + v) * 0.5 * (time - current.time);
-            return Robot(pos, v);
+            return RobotState(pos, v);
         }
     }
-    return Robot(trajectory[trajectory.size() - 1].pos, trajectory[trajectory.size() - 1].speed);
+    return RobotState(trajectory[trajectory.size() - 1].pos, trajectory[trajectory.size() - 1].speed);
 }
 
-static bool isCollision(const Robot own, const Robot opp)
+static bool isCollision(const RobotState &own, const RobotState &opp)
 {
     if (own.pos.distance(opp.pos) > ROBOT_RADIUS * 2) {
         return false;
@@ -132,7 +125,7 @@ static bool isCollision(const Robot own, const Robot opp)
     return false;
 }
 
-static void writeRobot(world::Robot *outRobot, Robot robot)
+static void writeRobot(world::Robot *outRobot, const RobotState &robot)
 {
     outRobot->set_id(0);
     outRobot->set_p_x(robot.pos.x);
@@ -148,7 +141,7 @@ static float valueToRating(float value, float zero, float one)
     return std::max(0.0f, std::min(1.0f, (value - zero) / (one - zero)));
 }
 
-static void addSimpleRobotObstacle(TrajectoryPath &path, const Robot &friendlyRobot, const Robot &opponent)
+static void addSimpleRobotObstacle(TrajectoryPath &path, const RobotState &friendlyRobot, const RobotState &opponent)
 {
     const float SLOW_ROBOT = 0.3;
     const float estimationTime = 0.1; // just a fixed time for now
@@ -202,8 +195,8 @@ static bool testScenarioCollision(const Scenario &s, QString logname, bool useOl
         }
     }
 
-    Robot currentRobot = s.ownStart;
-    Robot currentOpponent = s.oppStart;
+    RobotState currentRobot = s.ownStart;
+    RobotState currentOpponent = s.oppStart;
     float currentTime = 0;
     while (true) {
         if (writeLog) {
@@ -239,7 +232,7 @@ static bool testScenarioCollision(const Scenario &s, QString logname, bool useOl
         const auto trajectory = path.calculateTrajectory(currentRobot.pos, currentRobot.speed, s.targetPos, Vector(0, 0), MAX_SPEED, ACCELERATION);
 
         currentOpponent = updateOpponent(currentOpponent, s, currentRobot);
-        const Robot nextRobot = robotOnTrajectory(trajectory, 0.01f);
+        const RobotState nextRobot = robotOnTrajectory(trajectory, 0.01f);
         // limit acceleration
         if (path.maxIntersectingObstaclePrio() == 80) {
             currentRobot = updateRobotConstantAcceleration(currentRobot, currentRobot.speed * (-5), MAX_SPEED, ACCELERATION);
@@ -268,7 +261,8 @@ static bool testScenarioCollision(const Scenario &s, QString logname, bool useOl
 
 static bool opponentCloseToRobot(const Scenario &s)
 {
-    const SpeedProfile direct = AlphaTimeTrajectory::findTrajectory(s.ownStart.pos, s.ownStart.speed, Vector(0, 0), s.targetPos, ACCELERATION, MAX_SPEED, 0, true, false);
+    const RobotState targetState(s.targetPos, Vector(0, 0));
+    const SpeedProfile direct = AlphaTimeTrajectory::findTrajectory(s.ownStart, targetState, ACCELERATION, MAX_SPEED, 0, true, false);
     if (!direct.isValid()) {
         return true;
     }
@@ -276,7 +270,7 @@ static bool opponentCloseToRobot(const Scenario &s)
     const float timeInterval = 0.01f;
     const int DIVISIONS = std::min(300, std::max(3, int(totalTime / timeInterval)));
     const auto positions = direct.trajectoryPositions(DIVISIONS, timeInterval);
-    Robot currentOpponent = s.oppStart;
+    RobotState currentOpponent = s.oppStart;
     for (unsigned int i = 0;i<positions.size();i++) {
         const float time = i * timeInterval;
         const auto ownData = direct.positionAndSpeedForTime(time);
@@ -285,7 +279,7 @@ static bool opponentCloseToRobot(const Scenario &s)
         if (dist < 0.3f) {
             return true;
         }
-        currentOpponent = updateOpponent(currentOpponent, s, Robot(ownPos, ownData.second));
+        currentOpponent = updateOpponent(currentOpponent, s, RobotState(ownPos, ownData.second));
     }
     return false;
 }
@@ -304,10 +298,10 @@ static bool isCollisionAvoidable(RNG &rng, const Scenario &s)
     for (int j = 0;j<200;j++) {
         bool collision = false;
         const Vector ownAcc = rng.normalVector(1).normalized() * ACCELERATION;
-        Robot currentOpponent = s.oppStart;
+        RobotState currentOpponent = s.oppStart;
         for (int i = 0;i<100;i++) {
             const float time = i * 0.01f;
-            const Robot ownRobot = robotAtTime(s.ownStart, ownAcc, time);
+            const RobotState ownRobot = robotAtTime(s.ownStart, ownAcc, time);
             if (ownRobot.pos.distance(currentOpponent.pos) < ROBOT_RADIUS * 2) {
                 collision = true;
             }

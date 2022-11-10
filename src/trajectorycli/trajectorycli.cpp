@@ -42,16 +42,16 @@ static TrajectoryInput deserializeTrajectoryInput(const pathfinding::TrajectoryI
 {
     TrajectoryInput result;
     if (input.has_v0()) {
-        result.v0 = deserializeVector(input.v0());
+        result.start.speed = deserializeVector(input.v0());
     }
     if (input.has_v1()) {
-        result.v1 = deserializeVector(input.v1());
+        result.target.speed = deserializeVector(input.v1());
     }
     if (input.has_s0()) {
-        result.s0 = deserializeVector(input.s0());
+        result.start.pos = deserializeVector(input.s0());
     }
     if (input.has_s1()) {
-        result.s1 = deserializeVector(input.s1());
+        result.target.pos = deserializeVector(input.s1());
     }
     if (input.has_max_speed()) {
         result.maxSpeed = input.max_speed();
@@ -60,8 +60,7 @@ static TrajectoryInput deserializeTrajectoryInput(const pathfinding::TrajectoryI
         result.acceleration = input.acceleration();
     }
 
-    result.distance = result.s1 - result.s0;
-    result.exponentialSlowDown = result.v1 == Vector(0, 0);
+    result.exponentialSlowDown = result.target.speed == Vector(0, 0);
     result.maxSpeedSquared = result.maxSpeed * result.maxSpeed;
 
     return result;

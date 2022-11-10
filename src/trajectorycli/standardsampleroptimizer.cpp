@@ -163,7 +163,7 @@ static std::vector<std::vector<Situation>> segmentSituations(const std::vector<S
         segmentedSituations.push_back({});
     }
     for (const auto &s : situations) {
-        float distance = s.input.s0.distance(s.input.s1);
+        const float distance = s.input.start.pos.distance(s.input.target.pos);
         std::size_t segment = static_cast<std::size_t>(SCENARIO_SEGMENTS * distance / MAX_DISTANCE);
         segment = std::min(SCENARIO_SEGMENTS-1, segment);
         segmentedSituations[segment].push_back(s);

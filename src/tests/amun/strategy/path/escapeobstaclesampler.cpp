@@ -38,13 +38,10 @@ static WorldInformation constructWorld() {
 
 static TrajectoryInput constructBasicInput(Vector s0, Vector s1) {
     TrajectoryInput input;
-    input.v0 = Vector(0, 0);
-    input.v1 = Vector(0, 0);
-    input.distance = s1 - s0;
-    input.s0 = s0;
-    input.s1 = s1;
+    input.start = RobotState(s0, Vector(0, 0));
+    input.target = RobotState(s1, Vector(0, 0));
     input.t0 = 0;
-    input.exponentialSlowDown = input.v1 == Vector(0, 0);
+    input.exponentialSlowDown = input.target.speed == Vector(0, 0);
     input.maxSpeed = 3;
     input.maxSpeedSquared = input.maxSpeed * input.maxSpeed;
     input.acceleration = 3.5;
@@ -77,7 +74,7 @@ static Vector optimizeEscape(std::function<void(WorldInformation&)> obstacleAdde
         return Vector(0, 0);
     }
 
-    return result[0].desiredTargetPos - input.s0;
+    return result[0].desiredTargetPos - input.start.pos;
 }
 
 // tests the complete optimization

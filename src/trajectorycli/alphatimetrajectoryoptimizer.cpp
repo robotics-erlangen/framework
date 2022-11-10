@@ -44,7 +44,7 @@ static int evaluateSearch(const std::vector<Situation> &situations)
         path->world().collectMovingObstacles();
 
         const auto &input = situation.input;
-        path->calculateTrajectory(input.s0, input.v0, input.s1, input.v1, input.maxSpeed, input.acceleration);
+        path->calculateTrajectory(input.start.pos, input.start.speed, input.target.pos, input.target.speed, input.maxSpeed, input.acceleration);
     }
 
     return AlphaTimeTrajectory::searchIterationCounter;
