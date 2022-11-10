@@ -113,6 +113,12 @@ if((NOT V8_OUTPUT_DIR OR NOT V8_INCLUDE_DIR OR NOT ${V8_VERSION} MATCHES ${V8_FI
         ExternalProject_Get_property(v8_download SOURCE_DIR)
         set(V8_INCLUDE_DIR "${SOURCE_DIR}/include")
         set(V8_OUTPUT_DIR "${SOURCE_DIR}/out/${V8_ARCHITECTURE}.release")
+        # the byproducts are available after the build step
+        ExternalProject_Add_Step(v8_download out
+            DEPENDEES build
+            BYPRODUCTS
+                "${V8_OUTPUT_DIR}/obj/${CMAKE_STATIC_LIBRARY_PREFIX}v8_monolith${CMAKE_STATIC_LIBRARY_SUFFIX}"
+        )
 
         file(MAKE_DIRECTORY "${V8_INCLUDE_DIR}")
     else()
