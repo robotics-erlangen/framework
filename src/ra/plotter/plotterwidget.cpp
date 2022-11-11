@@ -20,7 +20,6 @@
 
 #include "plotterwidget.h"
 #include "plot.h"
-#include "texturecache.h"
 #include "guihelper/guitimer.h"
 #include <QCursor>
 #include <QLabel>
@@ -46,7 +45,7 @@ const QList<QColor> PlotterWidget::m_colors = QList<QColor>()
         << "gray";
 
 PlotterWidget::PlotterWidget(QWidget *parent) :
-    QGLWidget(parent),
+    QOpenGLWidget(parent),
     m_font(QGuiApplication::font()),
     m_time(0.0),
     m_yMin(-5.0),
@@ -59,7 +58,6 @@ PlotterWidget::PlotterWidget(QWidget *parent) :
     setCursor(Qt::CrossCursor);
 
     m_colorQueue = m_colors;
-    m_textureCache = new TextureCache(context());
 
     // redraw timer
     m_guiTimer = new GuiTimer(30, this);
@@ -69,7 +67,6 @@ PlotterWidget::PlotterWidget(QWidget *parent) :
 
 PlotterWidget::~PlotterWidget()
 {
-    delete m_textureCache;
 }
 
 void PlotterWidget::updateView()
@@ -77,7 +74,7 @@ void PlotterWidget::updateView()
     if (!isVisible()) {
         return;
     }
-    updateGL();
+    QWidget::update();
 }
 
 void PlotterWidget::paintGL()
@@ -411,7 +408,9 @@ void PlotterWidget::renderText(int x, int y, const QString & str, const QColor c
     QPixmap pixmap;
     QString cacheKey = str + color.name();
     QFontMetrics fm(m_font);
-    if (!m_textureCache->find(cacheKey, &textureId, &pixmap)) {
+
+    const auto texture_iterator = m_textureMap.find(cacheKey);
+    if (texture_iterator == m_textureMap.end()) {
         QRect textSize = fm.boundingRect(str);
         qreal dpr = devicePixelRatio();
         pixmap = QPixmap((textSize.width()+4)*dpr, (textSize.height()+4)*dpr);
@@ -423,7 +422,9 @@ void PlotterWidget::renderText(int x, int y, const QString & str, const QColor c
             painter.setPen(color);
             painter.drawText(2, fm.ascent()+2, str);
         }
-        textureId = m_textureCache->insert(cacheKey, pixmap);
+        m_textureMap.insert(cacheKey, pixmap);
+    } else {
+        pixmap = *texture_iterator;
     }
 
     QPointF pos(x-2, y-2-fm.ascent());
@@ -434,7 +435,7 @@ void PlotterWidget::renderText(int x, int y, const QString & str, const QColor c
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    drawTexture(QRectF(pos, pixmap.size()/pixmap.devicePixelRatio()), textureId);
+    m_painter.drawPixmap(QRectF(pos, pixmap.size()/pixmap.devicePixelRatio()), pixmap, QRectF(QPointF(0, 0), QPointF(1, 1)));
     glDisable(GL_BLEND);
 
     // restore matrix

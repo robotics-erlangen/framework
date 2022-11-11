@@ -19,7 +19,7 @@
  ***************************************************************************/
 
 #include "plot.h"
-#include <QGLWidget>
+#include <QOpenGLWidget>
 #include <limits>
 
 Plot::Plot(const QString &name, QObject *parent) :

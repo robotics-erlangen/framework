@@ -27,7 +27,7 @@
 #include <QMenu>
 #include <cmath>
 #include <QGraphicsRectItem>
-#include <QGLWidget>
+#include <QOpenGLWidget>
 #include <QSettings>
 #include <QLabel>
 #include <QFileDialog>
@@ -1510,9 +1510,7 @@ void FieldWidget::setAntialiasing(bool enable)
 void FieldWidget::setOpenGL(bool enable)
 {
     if (enable) {
-        QGLFormat format;
-        format.setSampleBuffers(true);
-        setViewport(new QGLWidget(format));
+        setViewport(new QOpenGLWidget());
         setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
     } else {
         setViewport(new QWidget);

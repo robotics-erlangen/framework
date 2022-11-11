@@ -28,8 +28,6 @@ add_library(plotter STATIC
     plotter.cpp
     plotterwidget.cpp
     plotterwidget.h
-    texturecache.cpp
-    texturecache.h
 )
 
 set(UI_SOURCES
