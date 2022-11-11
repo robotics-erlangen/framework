@@ -26,6 +26,7 @@
 #include <vector>
 
 
+// WARNING: generated trajectories may exceed the maximum velocity by a factor of up to sqrt(2) in rare cases
 class AlphaTimeTrajectory
 {
 public:
