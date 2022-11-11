@@ -231,6 +231,18 @@ export class AttackRatio {
 		if (World.FriendlyKeeper && World.FriendlyKeeper.isVisible) {
 			defenders = defenders - 1;
 		}
+		// Math.max(0, defenders) should only be necessary in the if above,
+		// but has to happen after the if, because the following scenario being
+		// possible due to messaging delay:
+		// - the keeper is not visible, so the above if is not entered
+		// - a move with MIN_ROBOTS = 2 activates, because we have 2 FriendlyRobots
+		// 	 and sends MessageType.moveInfo with moveInfo.attackers === 2.
+		// - In the next frame one of the robots drops out of the vision and vanishes
+		// - This means World.FriendlyRobots.length === 1, but we receive moveInfo.attackers === 2
+		//   from the last frame, which results in the weird case of having negative defenders.
+		// The move dies in the same frame, because it does not have enough robots anymore,
+		// meaning this should not cause any noticable logical problems, but it would cause
+		// a crash without clamping the defenders to 0.
 		defenders = Math.max(0, defenders);
 		// [attackers, defenders] = Ally.updateRoleNumbers(attackers, defenders);
 		return [attackers, defenders];
