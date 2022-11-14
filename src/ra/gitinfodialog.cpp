@@ -41,6 +41,12 @@ GitInfoDialog::GitInfoDialog(QWidget *parent) :
 
 void GitInfoDialog::handleStatus(const Status& status)
 {
+    // necessary to avoid race conditions
+    if (m_logCanResetGitInfo) {
+        m_logHasGitInfo |= status->git_info().size() > 0;
+        m_logCanResetGitInfo = false;
+    }
+
     for(const auto& gitInfo : status->git_info()) {
 
         GitInfoWidget* infoWidget;
@@ -67,6 +73,31 @@ void GitInfoDialog::handleStatus(const Status& status)
             }
         }
         infoWidget->updateGitInfo(gitInfo.hash(), gitInfo.diff(), gitInfo.min_hash(), gitInfo.error());
+    }
+
+    if (status->has_pure_ui_response()) {
+        auto response = status->pure_ui_response();
+        if (response.has_log_open()) {
+            const auto& logInfo = response.log_open();
+            if (logInfo.success()) {
+                m_logHasGitInfo = false;
+            }
+        }
+    }
+}
+
+void GitInfoDialog::handleCommand(const Command& command)
+{
+    if (command->has_playback()
+            && command->playback().has_run_playback()) {
+        const auto infowidgets = { ui->strategyBlueDiff, ui->strategyYellowDiff, ui->autorefDiff, ui->raDiff };
+        for (GitInfoWidget* infoWidget : infowidgets) {
+            const bool hideGitInfo = !m_logHasGitInfo && command->playback().run_playback();
+            if (hideGitInfo) {
+                m_logCanResetGitInfo = true;
+            }
+            infoWidget->changeReplayMode(hideGitInfo);
+        }
     }
 }
 

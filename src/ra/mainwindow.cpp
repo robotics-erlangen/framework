@@ -817,6 +817,7 @@ void MainWindow::requestUidInsertWindow()
 
 void MainWindow::sendCommand(const Command &command)
 {
+    m_gitInfo->handleCommand(command);
     emit m_amun.sendCommand(command);
 }
 

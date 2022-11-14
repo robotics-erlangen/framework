@@ -57,7 +57,6 @@ GitInfoWidget::~GitInfoWidget()
 void GitInfoWidget::updateGitInfo(const std::string& newHash, const std::string& newDiff, const std::string& newMin_hash, const std::string& newError)
 {
     m_hash = newHash;
-    ui->hashLabel->setText("Hash: " + QString::fromStdString(m_hash));
     m_diff = newDiff;
     m_min_hash = newMin_hash;
     m_error = newError;
@@ -66,6 +65,8 @@ void GitInfoWidget::updateGitInfo(const std::string& newHash, const std::string&
 
 void GitInfoWidget::updateWidget()
 {
+    ui->hashLabel->setText("Hash: " + QString::fromStdString(m_hash));
+
     QString diffText;
     if (showOrigDiff) {
         diffText = QString::fromStdString(m_diff);
@@ -142,4 +143,14 @@ void GitInfoWidget::load()
     m_diffHash = ui->customDiffHashEdit->text().toStdString();
     ui->diffToComboBox->setCurrentIndex(s.value(pathName + "/diffToComboBox").toInt());
     updateWidget();
+}
+
+void GitInfoWidget::changeReplayMode(const bool hide)
+{
+    if (hide) {
+        ui->hashLabel->setText("No git information found (yet)!");
+        ui->diffText->setText("");
+    } else {
+        updateWidget();
+    }
 }

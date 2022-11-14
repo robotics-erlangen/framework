@@ -22,6 +22,7 @@
 #define GITINFODIALOG_H
 
 #include "protobuf/status.h"
+#include "protobuf/command.h"
 #include <QDialog>
 
 namespace Ui {
@@ -38,9 +39,12 @@ public:
 
 public slots:
     void handleStatus(const Status &status);
+    void handleCommand(const Command &status);
 
 private:
     Ui::GitInfoDialog *ui;
+    bool m_logHasGitInfo = false;
+    bool m_logCanResetGitInfo = true;
 };
 
 #endif // GITINFODIALOG_H

@@ -37,6 +37,7 @@ public:
     void updateGitInfo(const std::string& hash, const std::string& diff, const std::string& min_hash, const std::string& error);
 	void updateWidget();
     void load();
+    void changeReplayMode(const bool playback);
 
 public:
 	QString name;
