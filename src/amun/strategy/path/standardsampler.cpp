@@ -220,18 +220,18 @@ float StandardSampler::checkSample(const TrajectoryInput &input, const StandardT
     const Vector firstPartTarget = input.target.pos - secondPartOffset;
     const float firstPartSlowDownTime = input.exponentialSlowDown ? std::max(0.0f, SpeedProfile::SLOW_DOWN_TIME - secondPartTime) : 0.0f;
     const RobotState firstTargetState(firstPartTarget, sample.getMidSpeed());
-    const SpeedProfile firstPart = AlphaTimeTrajectory::findTrajectory(input.start, firstTargetState, input.acceleration,
-                                                                       input.maxSpeed, firstPartSlowDownTime, false, false);
-    if (!firstPart.isValid()) {
+    const auto firstPart = AlphaTimeTrajectory::findTrajectory(input.start, firstTargetState, input.acceleration,
+                                                               input.maxSpeed, firstPartSlowDownTime, false, false);
+    if (!firstPart) {
         return -1;
     }
 
-    const float firstPartTime = firstPart.time();
+    const float firstPartTime = firstPart->time();
     if (firstPartTime + secondPartTime > bestTime - MINIMUM_TIME_IMPROVEMENT) {
         return -1;
     }
     // TODO: end point might also be close to the target?
-    const float firstPartDistance = m_world.minObstacleDistance(firstPart, input.t0, OBSTACLE_AVOIDANCE_RADIUS).first;
+    const float firstPartDistance = m_world.minObstacleDistance(firstPart.value(), input.t0, OBSTACLE_AVOIDANCE_RADIUS).first;
     if (firstPartDistance < 0) {
         return -1;
     }
@@ -252,7 +252,7 @@ float StandardSampler::checkSample(const TrajectoryInput &input, const StandardT
     m_bestResultInfo.sample = sample;
 
     m_generationInfo.clear();
-    m_generationInfo.push_back(TrajectoryGenerationInfo(firstPart, firstPartTarget));
+    m_generationInfo.push_back(TrajectoryGenerationInfo(firstPart.value(), firstPartTarget));
     m_generationInfo.push_back(TrajectoryGenerationInfo(secondPart, input.target.pos));
     return biasedTrajectoryTime;
 }

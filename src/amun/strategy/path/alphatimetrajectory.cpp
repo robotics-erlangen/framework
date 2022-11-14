@@ -208,8 +208,8 @@ static Vector necessaryAcceleration(Vector v0, Vector distance)
                   v0.y * std::abs(v0.y) * 0.5f / distance.y);
 }
 
-SpeedProfile AlphaTimeTrajectory::findTrajectory(const RobotState &start, const RobotState &target, float acc, float vMax,
-                                                 float slowDownTime, bool highPrecision, bool fastEndSpeed)
+std::optional<SpeedProfile> AlphaTimeTrajectory::findTrajectory(const RobotState &start, const RobotState &target, float acc, float vMax,
+                                                                float slowDownTime, bool highPrecision, bool fastEndSpeed)
 {
     const float MAX_ACCELERATION_FACTOR = 1.2f;
 
@@ -227,7 +227,6 @@ SpeedProfile AlphaTimeTrajectory::findTrajectory(const RobotState &start, const 
         const float timeDiff = std::abs(times.x - times.y);
         const bool directionMatches = std::signbit(v0.x) == std::signbit(targetOffset.x) && std::signbit(v0.y) == std::signbit(targetOffset.y);
         if (directionMatches && accLength > acc && accLength < acc * MAX_ACCELERATION_FACTOR && slowDownTime == 0.0f) {
-            result.valid = true;
             result.slowDownTime = 0;
             result.xProfile.counter = 2;
             result.xProfile.profile[0] = {v0.x, 0};
@@ -340,11 +339,10 @@ SpeedProfile AlphaTimeTrajectory::findTrajectory(const RobotState &start, const 
         lastAngleDiff = currentAngleDiff;
         currentAngle += currentAngleDiff * angleFactor;
     }
-    result.valid = false;
 #ifdef ACTIVE_PATHFINDING_PARAMETER_OPTIMIZATION
     searchIterationCounter += ITERATIONS;
 #endif
-    return result;
+    return {};
 }
 
 #ifdef ACTIVE_PATHFINDING_PARAMETER_OPTIMIZATION

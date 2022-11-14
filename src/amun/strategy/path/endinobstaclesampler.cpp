@@ -88,13 +88,13 @@ bool EndInObstacleSampler::testEndPoint(const TrajectoryInput &input, Vector end
 
     // no slowdown here, we are not even were we want to be
     const RobotState targetState(endPoint, Vector(0, 0));
-    const SpeedProfile direct = AlphaTimeTrajectory::findTrajectory(input.start, targetState, input.acceleration,
-                                                                    input.maxSpeed, 0, false, false);
+    const auto direct = AlphaTimeTrajectory::findTrajectory(input.start, targetState, input.acceleration,
+                                                            input.maxSpeed, 0, false, false);
 
-    if (!direct.isValid()) {
+    if (!direct) {
         return false;
     }
-    if (m_world.isTrajectoryInObstacle(direct, input.t0)) {
+    if (m_world.isTrajectoryInObstacle(direct.value(), input.t0)) {
         return false;
     }
 
@@ -103,7 +103,7 @@ bool EndInObstacleSampler::testEndPoint(const TrajectoryInput &input, Vector end
     m_bestEndPoint = endPoint;
 
     result.clear();
-    result.push_back(TrajectoryGenerationInfo(direct, endPoint));
+    result.push_back(TrajectoryGenerationInfo(direct.value(), endPoint));
     return true;
 }
 

@@ -115,11 +115,8 @@ public:
     SpeedProfile1D xProfile;
     SpeedProfile1D yProfile;
 
-    bool valid = true;
-
     float slowDownTime;
 
-    bool isValid() const { return valid; }
     float time() const;
     Vector endPosition() const;
     RobotState positionAndSpeedForTime(float time) const;

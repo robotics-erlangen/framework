@@ -174,21 +174,21 @@ std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPat
     const float directSlowDownTime = input.exponentialSlowDown ? SpeedProfile::SLOW_DOWN_TIME : 0.0f;
     const float targetDistance = (input.target.pos - input.start.pos).length();
     const bool useHighPrecision = targetDistance < 0.1f && input.target.speed == Vector(0, 0) && input.start.speed.length() < 0.2f;
-    const SpeedProfile direct = AlphaTimeTrajectory::findTrajectory(input.start, input.target, input.acceleration, input.maxSpeed,
-                                                                    directSlowDownTime, useHighPrecision, true);
+    const auto direct = AlphaTimeTrajectory::findTrajectory(input.start, input.target, input.acceleration, input.maxSpeed,
+                                                            directSlowDownTime, useHighPrecision, true);
 
     float directTrajectoryScore = std::numeric_limits<float>::max();
-    if (direct.isValid()) {
-        auto obstacleDistances = m_world.minObstacleDistance(direct, 0, StandardSampler::OBSTACLE_AVOIDANCE_RADIUS);
+    if (direct) {
+        auto obstacleDistances = m_world.minObstacleDistance(direct.value(), 0, StandardSampler::OBSTACLE_AVOIDANCE_RADIUS);
 
         if (obstacleDistances.first > StandardSampler::OBSTACLE_AVOIDANCE_RADIUS ||
                 (obstacleDistances.first > 0 && obstacleDistances.second < StandardSampler::OBSTACLE_AVOIDANCE_RADIUS)) {
 
-            const TrajectorySampler::TrajectoryGenerationInfo info(direct, input.target.pos);
+            const TrajectorySampler::TrajectoryGenerationInfo info(direct.value(), input.target.pos);
             return concat(escapeObstacle, {info});
         }
         if (obstacleDistances.first > 0) {
-            directTrajectoryScore = StandardSampler::trajectoryScore(direct.time(), obstacleDistances.first);
+            directTrajectoryScore = StandardSampler::trajectoryScore(direct->time(), obstacleDistances.first);
         }
     }
 
@@ -198,7 +198,7 @@ std::vector<TrajectorySampler::TrajectoryGenerationInfo> TrajectoryPath::findPat
     }
     // the standard sampler might fail since it regards the direct trajectory as the best result
     if (directTrajectoryScore < std::numeric_limits<float>::max()) {
-        const TrajectorySampler::TrajectoryGenerationInfo info(direct, input.target.pos);
+        const TrajectorySampler::TrajectoryGenerationInfo info(direct.value(), input.target.pos);
         return concat(escapeObstacle, {info});
     }
 

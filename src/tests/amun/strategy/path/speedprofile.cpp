@@ -154,9 +154,7 @@ TEST(AlphaTimeTrajectory, calculateTrajectory) {
         const float slowDown = rng.uniform() > 0.5 ? rng.uniformFloat(0, SpeedProfile::SLOW_DOWN_TIME) : 0;
         const bool fastEndSpeed = rng.uniform() > 0.5;
 
-        const SpeedProfile profile = AlphaTimeTrajectory::calculateTrajectory(RobotState(Vector(1, 2), v0), v1, time, angle, acc, maxSpeed, slowDown, fastEndSpeed);
-
-        ASSERT_TRUE(profile.isValid());
+        const auto profile = AlphaTimeTrajectory::calculateTrajectory(RobotState(Vector(1, 2), v0), v1, time, angle, acc, maxSpeed, slowDown, fastEndSpeed);
 
         // generic checks
         checkTrajectorySimple(profile, v0, v1, acc, fastEndSpeed);

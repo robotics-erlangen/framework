@@ -59,9 +59,9 @@ static RobotState updateOpponent(const RobotState &opp, const Scenario &s, const
     } else if (s.testType == CollisionTestType::ADVERSARIAL) {
         const Vector target = friendlyRobot.pos;
         const RobotState targetState(target, friendlyRobot.speed * (-1));
-        const SpeedProfile evil = AlphaTimeTrajectory::findTrajectory(opp, targetState, ACCELERATION, MAX_SPEED, 0, false, true);
-        if (evil.isValid()) {
-            return evil.positionAndSpeedForTime(0.01f);
+        const auto evil = AlphaTimeTrajectory::findTrajectory(opp, targetState, ACCELERATION, MAX_SPEED, 0, false, true);
+        if (evil) {
+            return evil->positionAndSpeedForTime(0.01f);
         }
     }
     return updateRobotConstantAcceleration(opp, s.opponentAcceleration, MAX_SPEED);
@@ -261,18 +261,18 @@ static bool testScenarioCollision(const Scenario &s, QString logname, bool useOl
 static bool opponentCloseToRobot(const Scenario &s)
 {
     const RobotState targetState(s.targetPos, Vector(0, 0));
-    const SpeedProfile direct = AlphaTimeTrajectory::findTrajectory(s.ownStart, targetState, ACCELERATION, MAX_SPEED, 0, true, false);
-    if (!direct.isValid()) {
+    const auto direct = AlphaTimeTrajectory::findTrajectory(s.ownStart, targetState, ACCELERATION, MAX_SPEED, 0, true, false);
+    if (!direct) {
         return true;
     }
-    const float totalTime = direct.time() + 0.5f;
+    const float totalTime = direct->time() + 0.5f;
     const float timeInterval = 0.01f;
     const int DIVISIONS = std::min(300, std::max(3, int(totalTime / timeInterval)));
-    const auto positions = direct.trajectoryPositions(DIVISIONS, timeInterval);
+    const auto positions = direct->trajectoryPositions(DIVISIONS, timeInterval);
     RobotState currentOpponent = s.oppStart;
     for (unsigned int i = 0;i<positions.size();i++) {
         const float time = i * timeInterval;
-        const auto ownState = direct.positionAndSpeedForTime(time);
+        const auto ownState = direct->positionAndSpeedForTime(time);
         const float dist = currentOpponent.pos.distance(ownState.pos);
         if (dist < 0.3f) {
             return true;

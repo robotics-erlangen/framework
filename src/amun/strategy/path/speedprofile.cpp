@@ -324,10 +324,6 @@ BoundingBox SpeedProfile::calculateBoundingBox() const
 
 std::vector<TrajectoryPoint> SpeedProfile::getTrajectoryPoints() const
 {
-    if (!isValid()) {
-        return {};
-    }
-
     // speed changes less than this time apart are grouped into one trajectory point
     const float SAME_POINT_EPSILON = 0.005f;
 

@@ -35,7 +35,7 @@ public:
     static Vector minTimePos(const RobotState &start, Vector v1, float acc, float slowDownTime);
 
     // search for position
-    static SpeedProfile findTrajectory(const RobotState &start, const RobotState &target, float acc, float vMax, float slowDownTime, bool highPrecision, bool fastEndSpeed);
+    static std::optional<SpeedProfile> findTrajectory(const RobotState &start, const RobotState &target, float acc, float vMax, float slowDownTime, bool highPrecision, bool fastEndSpeed);
 
     // speed profile output
     // any input is valid as long as time is not negative
