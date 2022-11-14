@@ -104,7 +104,9 @@ class SpeedProfile
 public:
     static constexpr float SLOW_DOWN_TIME = 0.2f;
 
-    SpeedProfile(float slowDownTime) : slowDownTime(slowDownTime) {}
+    SpeedProfile(Vector startPos, float slowDownTime) : slowDownTime(slowDownTime) {
+        setStartPos(startPos);
+    }
 
     float time() const;
     Vector endPosition() const;

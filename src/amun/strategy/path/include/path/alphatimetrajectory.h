@@ -53,6 +53,7 @@ private:
     // pos only
     // WARNING: assumes that the input is valid and solvable (minimumTime must be included)
     static TrajectoryPosInfo2D calculatePosition(const RobotState &start, Vector v1, float time, float angle, float acc, float vMax, bool fastEndSpeed);
+    static std::optional<SpeedProfile> tryDirectBrake(const RobotState &start, const RobotState &target, float acc, float slowDownTime);
 
     static constexpr float REGULAR_TARGET_PRECISION = 0.01f;
     static constexpr float HIGH_QUALITY_TARGET_PRECISION = 0.0002f;
