@@ -396,7 +396,7 @@ function _predictShot(allShots: boolean = false, includeInvisible: boolean = tru
 				let futureBallSpeed = Physics.ballAtTime(World.Ball, ballRollTime).speed;
 				// TODO: Check what happens if futureBallSpeed.length() is zero
 				let robotAngle = passReceiver.robot.dir;
-				let v_out = Volley.calcVOutTeamCoordinates(Constants.maxBallSpeed, futureBallSpeed, robotAngle,
+				let v_out = Volley.calcVOutTeamCoordinates(Constants.allowedMaxBallSpeed, futureBallSpeed, robotAngle,
 					minRobotSpeed, "opp");
 				if (v_out === undefined) {
 					v_out = Volley.calculateMinimalVOutTeamCoordinates(futureBallSpeed, robotAngle, minRobotSpeed, "opp");
