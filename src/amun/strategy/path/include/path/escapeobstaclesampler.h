@@ -28,8 +28,8 @@ class EscapeObstacleSampler : public TrajectorySampler
 {
 public:
     EscapeObstacleSampler(RNG *rng, const WorldInformation &world, PathDebug &debug) : TrajectorySampler(rng, world, debug) {}
-    bool compute(const TrajectoryInput &input) override;
-    const std::vector<TrajectoryGenerationInfo> &getResult() const override { return m_generationInfo; }
+    bool compute(const TrajectoryInput &input) final override;
+    const std::vector<TrajectoryGenerationInfo> &getResult() const final override { return m_generationInfo; }
     int getMaxIntersectingObstaclePrio() const { return m_maxIntersectingObstaclePrio; }
     void resetMaxIntersectingObstaclePrio() { m_maxIntersectingObstaclePrio = -1; }
     void updateFrom(const EscapeObstacleSampler &other);

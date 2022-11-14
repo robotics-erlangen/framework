@@ -295,7 +295,7 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Tra
             float partTime = trajectory.time();
 
             std::vector<TrajectoryPoint> newPoints;
-            if (partTime > info.profile.slowDownTime * 1.5f) {
+            if (partTime > info.profile.getSlowDownTime() * 1.5f) {
                 // when the trajectory is far longer than the exponential slow down part, omit it from the result (to minimize it)
                 newPoints = trajectory.getTrajectoryPoints();
 

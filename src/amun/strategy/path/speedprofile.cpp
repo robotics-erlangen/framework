@@ -260,6 +260,23 @@ void SpeedProfile1D::limitToTime(float time)
     }
 }
 
+void SpeedProfile1D::integrateTime()
+{
+    float totalTime = 0;
+    for (unsigned int i = 0;i<counter;i++) {
+        totalTime += profile[i].t;
+        profile[i].t = totalTime;
+    }
+}
+
+void SpeedProfile1D::printDebug()
+{
+    for (int i = 0;i<(int)counter;i++) {
+        std::cout <<"("<<profile[i].t<<": "<<profile[i].v<<") ";
+    }
+    std::cout <<std::endl;
+}
+
 
 Vector SpeedProfile::endPosition() const
 {

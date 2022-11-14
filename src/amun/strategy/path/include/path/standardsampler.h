@@ -61,8 +61,8 @@ class StandardSampler : public TrajectorySampler
 {
 public:
     StandardSampler(RNG *rng, const WorldInformation &world, PathDebug &debug, bool usePrecomputation = true);
-    bool compute(const TrajectoryInput &input) override;
-    const std::vector<TrajectoryGenerationInfo> &getResult() const override { return m_generationInfo; }
+    bool compute(const TrajectoryInput &input) final override;
+    const std::vector<TrajectoryGenerationInfo> &getResult() const final override { return m_generationInfo; }
     void setDirectTrajectoryScore(float score) { m_directTrajectoryScore = score; }
 
     static constexpr float OBSTACLE_AVOIDANCE_RADIUS = 0.1f;

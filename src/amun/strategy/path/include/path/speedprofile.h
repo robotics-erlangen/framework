@@ -27,6 +27,9 @@
 
 #include <vector>
 
+class AlphaTimeTrajectory;
+class SpeedProfile;
+
 struct RobotState {
     RobotState() = default;
     RobotState(Vector pos, Vector speed) :
@@ -41,12 +44,6 @@ public:
         float v;
         float t;
     };
-
-    VT profile[4];
-    unsigned int counter = 0;
-    float s0 = 0;
-
-public:
 
     void limitToTime(float time);
 
@@ -66,13 +63,7 @@ public:
     template<typename AccelerationProfile>
     void trajectoryPositions(std::vector<RobotState> &outPoints, std::size_t outIndex, float timeInterval, float slowDownTime) const;
 
-    void integrateTime() {
-        float totalTime = 0;
-        for (unsigned int i = 0;i<counter;i++) {
-            totalTime += profile[i].t;
-            profile[i].t = totalTime;
-        }
-    }
+    void integrateTime();
 
     struct TrajectoryPosInfo1D {
         float endPos;
@@ -93,16 +84,19 @@ public:
     // Limitations: sign(v0) == sign(distance) && (sign(v1) == sign(distance) || v1 == 0)
     void create1DAccelerationByDistance(float v0, float v1, float time, float distance);
 
-    void printDebug() {
-        for (int i = 0;i<(int)counter;i++) {
-            std::cout <<"("<<profile[i].t<<": "<<profile[i].v<<") ";
-        }
-        std::cout <<std::endl;
-    }
+    void printDebug();
 
 private:
     void createFreeExtraTimeSegment(float beforeSpeed, float v, float nextSpeed, float time, float acc, float desiredVMax);
     static std::pair<float, float> freeExtraTimeDistance(float v, float time, float acc, float vMax);
+
+private:
+    VT profile[4];
+    unsigned int counter = 0;
+    float s0 = 0;
+
+    friend class AlphaTimeTrajectory;
+    friend class SpeedProfile;
 };
 
 class SpeedProfile
@@ -111,11 +105,6 @@ public:
     static constexpr float SLOW_DOWN_TIME = 0.2f;
 
     SpeedProfile(float slowDownTime) : slowDownTime(slowDownTime) {}
-
-    SpeedProfile1D xProfile;
-    SpeedProfile1D yProfile;
-
-    float slowDownTime;
 
     float time() const;
     Vector endPosition() const;
@@ -156,6 +145,16 @@ public:
 
     // WARNING: this function does NOT create points for the slow down time. Use other functions if that is necessary
     std::vector<TrajectoryPoint> getTrajectoryPoints() const;
+
+    float getSlowDownTime() const { return slowDownTime; }
+
+private:
+    SpeedProfile1D xProfile;
+    SpeedProfile1D yProfile;
+
+    float slowDownTime;
+
+    friend class AlphaTimeTrajectory;
 };
 
 #endif // SPEEDPROFILE_H
