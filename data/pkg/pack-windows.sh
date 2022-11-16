@@ -52,6 +52,6 @@ if [[ -n "$repo" ]]; then
 	fi
 fi
 
-outfile="ra-win${shortrev}${suffix}.7z"
-"${cmake}" -E tar cf "${outfile}" --format=7zip -- *.dll *.exe icudtl.dat config data platforms libs
+outfile="ra-win${shortrev}${suffix}.zip"
+"${cmake}" -E tar cf "${outfile}" --format=zip -- *.dll ra.exe icudtl.dat config data platforms libs
 echo "Packed ra as $outfile"
