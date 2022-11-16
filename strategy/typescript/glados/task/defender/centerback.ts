@@ -72,12 +72,11 @@ export class CenterBack extends Task {
 				World.Geometry.FieldHeightHalf) - this._robot.pos).angle();
 		let fromGoalAngle = (this._robot.pos - World.Geometry.FriendlyGoal).angle();
 
-		let hystAngle = 5 * Math.PI / 180;
+		const hystAngle = 5 * Math.PI / 180;
+		const hysteresis = this._lookingToGoal ? hystAngle : -hystAngle;
 		let dir = toBallAngle;
-		if ((this._lookingToGoal && toBallAngle < toCornerLeftAngle + hystAngle  &&
-				toBallAngle > toCornerRightAngle + hystAngle)  ||
-				(toBallAngle < toCornerLeftAngle - hystAngle  &&
-				toBallAngle > toCornerRightAngle - hystAngle)) {
+		if (toBallAngle < toCornerLeftAngle + hysteresis &&
+				toBallAngle > toCornerRightAngle + hysteresis) {
 			dir = toGoalAngle;
 			this._lookingToGoal = true;
 		} else {
@@ -93,7 +92,7 @@ export class CenterBack extends Task {
 		}
 		let chipActivationAngle = Math.PI / 6;
 		let isGame = World.RefereeState === "Game" || World.RefereeState === "GameForce";
-		if (isGame && dir > chipActivationAngle && dir < Math.PI - chipActivationAngle  &&
+		if (isGame && toBallAngle > chipActivationAngle && toBallAngle < Math.PI - chipActivationAngle  &&
 				Vector.fromAngle(dir).absoluteAngleDiff(destinationPos - G.FriendlyGoal) < Math.PI
 					&&  World.Ball.pos.distanceTo(this._robot.pos) < 1
 					&&  this._robot.pos.distanceTo(destinationPos) < 1) {
