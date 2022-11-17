@@ -48,7 +48,7 @@ export class Tutorial extends Move {
 	public _updateTasks(): MoveParameters {
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
 
-		taskAssignments[this._robots[0]] = Assignment.create({class: MoveToPos, params: [{ pos: new Vector(0,0) }]});
+		taskAssignments[this._robots[0]] = Assignment.create({class: MoveToPos, params: [{ pos: new Vector(0,0) }], restart: true});
 
 		return {
 			assignments: taskAssignments,
