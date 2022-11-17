@@ -54,6 +54,10 @@ inline double RNG::uniform()
     return uniformInt() / 4294967296.0;
 }
 
+/*!
+ * \brief Generate a random floating point number in the range [min, max]
+ * \return A random number drawn from a uniform distribution [min, max]
+ */
 inline float RNG::uniformFloat(float min, float max)
 {
     return min + (uniformInt() / 4294967296.0f) * (max - min);
