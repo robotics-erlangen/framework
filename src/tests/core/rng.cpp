@@ -105,10 +105,13 @@ TEST_F(RNGTest, uniformFloatBounds) {
 }
 
 TEST_F(RNGTest, seeding) {
+    // the number of doubles added to values per run
+    constexpr int NUMS_PER_RUN = 12;
+
     ASSERT_NE(seed, 0);
     const int runs = 50;
     std::vector<double> values;
-    values.reserve(runs*10);
+    values.reserve(runs * NUMS_PER_RUN);
 
     for (int i=0; i < runs; ++i) {
         values.push_back(r.uniform());
@@ -116,6 +119,9 @@ TEST_F(RNGTest, seeding) {
         values.push_back(r.uniformPositive());
         values.push_back(r.uniformFloat(4, 8));
         auto vu = r.uniformVector();
+        values.push_back(vu.x);
+        values.push_back(vu.y);
+        auto vui = r.uniformVectorIn(Vector(2, 5), Vector(-10, 12));
         values.push_back(vu.x);
         values.push_back(vu.y);
         values.push_back(r.normal(1));
@@ -129,18 +135,21 @@ TEST_F(RNGTest, seeding) {
     r.seed(seed);
 
     for(int i=0; i < runs; ++i) {
-        ASSERT_EQ(r.uniform(), values[i*10]);
-        ASSERT_EQ(r.uniformInt(), values[i*10+1]);
-        ASSERT_EQ(r.uniformPositive(), values[i*10+2]);
-        ASSERT_EQ(r.uniformFloat(4, 8), values[i*10+3]);
+        ASSERT_EQ(r.uniform(), values[i * NUMS_PER_RUN]);
+        ASSERT_EQ(r.uniformInt(), values[i * NUMS_PER_RUN + 1]);
+        ASSERT_EQ(r.uniformPositive(), values[i * NUMS_PER_RUN + 2]);
+        ASSERT_EQ(r.uniformFloat(4, 8), values[i * NUMS_PER_RUN + 3]);
         auto vu = r.uniformVector();
-        ASSERT_EQ(vu.x, values[i*10+4]);
-        ASSERT_EQ(vu.y, values[i*10+5]);
-        ASSERT_EQ(r.normal(1), values[i*10+6]);
+        ASSERT_EQ(vu.x, values[i * NUMS_PER_RUN + 4]);
+        ASSERT_EQ(vu.y, values[i * NUMS_PER_RUN + 5]);
+        auto vui = r.uniformVectorIn(Vector(2, 5), Vector(-10, 12));
+        ASSERT_EQ(vu.x, values[i * NUMS_PER_RUN + 6]);
+        ASSERT_EQ(vu.y, values[i * NUMS_PER_RUN + 7]);
+        ASSERT_EQ(r.normal(1), values[i * NUMS_PER_RUN + 8]);
         auto vn = r.normalVector(1);
-        ASSERT_EQ(vn.x, values[i*10+7]);
-        ASSERT_EQ(vn.y, values[i*10+8]);
-        ASSERT_EQ(r.normal(5, 25), values[i*10+9]);
+        ASSERT_EQ(vn.x, values[i * NUMS_PER_RUN + 9]);
+        ASSERT_EQ(vn.y, values[i * NUMS_PER_RUN + 10]);
+        ASSERT_EQ(r.normal(5, 25), values[i * NUMS_PER_RUN + 11]);
     }
 }
 
@@ -278,6 +287,11 @@ TEST_F(RNGTest, independedUniform) {
 TEST_F(RNGTest, independedUniformVec) {
     const int runs = 10'000; // has to be larger than 35
     KSTest(runs, [this](){auto v = this->r.uniformVector(); return v.x+ v.y;}, F2_uniform);
+}
+
+TEST_F(RNGTest, independedUniformVecIn) {
+    const int runs = 10'000; // has to be larger than 35
+    KSTest(runs, [this](){auto v = (this->r.uniformVectorIn(Vector(3, -2), Vector(5, 0)) - Vector(3, -2)) / 2; return v.x+ v.y;}, F2_uniform);
 }
 
 TEST_F(RNGTest, multipleIndependendUniform) {
