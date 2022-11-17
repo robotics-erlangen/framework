@@ -92,7 +92,7 @@ private:
         QMap<TrackingFrom, Status> lastWorldState;
         world::Geometry geometry;
         // save status to avoid copying the debug values
-        QMap<int, Status> visualizations;
+        QMap<amun::DebugSource, Status> visualizations;
     };
 
 public:
@@ -249,8 +249,8 @@ private:
     unsigned int m_currentScene = 0;
     QVector<DrawScene> m_drawScenes;
 
-    QMap<int, bool> m_visibleVisSources;
-    QMap<int, int> m_debugSourceCounter;
+    QMap<amun::DebugSource, bool> m_visibleVisSources;
+    QMap<amun::DebugSource, int> m_debugSourceCounter;
     bool m_visualizationsUpdated;
     amun::GameState m_gameState;
 

@@ -637,11 +637,19 @@ void FieldWidget::updateVisualizations()
     qDeleteAll(m_visualizationItems);
     m_visualizationItems.clear();
 
-    foreach (const Status &v, m_drawScenes[m_currentScene].visualizations) {
+    const bool yellowReplayRunning = m_actionShowYellowReplayVis->isEnabled()
+            && m_actionShowYellowReplayVis->isChecked()
+            && m_debugSourceCounter.contains(amun::DebugSource::ReplayYellow)
+            && m_debugSourceCounter[amun::DebugSource::ReplayYellow] >= 0;
+    const bool blueReplayRunning = m_actionShowBlueReplayVis->isChecked()
+            && m_actionShowBlueReplayVis->isEnabled()
+            && m_debugSourceCounter.contains(amun::DebugSource::ReplayBlue)
+            && m_debugSourceCounter[amun::DebugSource::ReplayBlue] >= 0;
+    for (const Status &v : m_drawScenes[m_currentScene].visualizations) {
         for (const auto& debug: v->debug()) {
             if (m_visibleVisSources.value(debug.source())) {
-                const bool grey = (debug.source() == amun::DebugSource::StrategyYellow && m_actionShowYellowReplayVis->isChecked() && m_actionShowYellowReplayVis->isEnabled())
-                    || (debug.source() == amun::DebugSource::StrategyBlue && m_actionShowBlueReplayVis->isChecked() && m_actionShowBlueReplayVis->isEnabled());
+                const bool grey = (debug.source() == amun::DebugSource::StrategyYellow && yellowReplayRunning)
+                    || (debug.source() == amun::DebugSource::StrategyBlue && blueReplayRunning);
                 updateVisualizations(debug, grey);
             }
         }
