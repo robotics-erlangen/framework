@@ -25,6 +25,10 @@
 
 // tests both SpeedProfile and AlphaTimeTrajectory
 
+static Vector makePos(RNG &rng, float fieldSizeHalf) {
+    return rng.uniformVectorIn(Vector(-fieldSizeHalf, -fieldSizeHalf), Vector(fieldSizeHalf, fieldSizeHalf));
+}
+
 static Vector makeSpeed(RNG &rng, float maxSpeed) {
     Vector v = rng.uniformVector() * maxSpeed - rng.uniformVector() * maxSpeed;
     while (v.length() >= maxSpeed) {
@@ -113,6 +117,10 @@ static void checkBoundingBox(SpeedProfile trajectory) {
     ASSERT_LE(std::abs(fromPoints.bottom - direct.bottom), 0.01f);
 }
 
+static void checkEndPosition(SpeedProfile trajectory, Vector expected) {
+    const Vector got = trajectory.endPosition();
+    ASSERT_LE((got - expected).length(), 0.01f);
+}
 
 static void checkLimitToTime(const SpeedProfile profile, RNG &rng) {
     const float timeLimit = rng.uniformFloat(profile.time() * 0.1f, profile.time());
@@ -139,6 +147,15 @@ static void checkDistanceIncrease(const Vector v0, const float time, const float
     ASSERT_LT((p2.endPosition() - p1.endPosition()).length(), (p3.endPosition() - p1.endPosition()).length());
 }
 
+static void checkBasic(RNG &rng, const SpeedProfile &profile, const Vector v0, const Vector v1, const float maxSpeed, const float acc, const float slowDownTime, const bool fastEndSpeed) {
+    checkTrajectorySimple(profile, v0, v1, acc, fastEndSpeed);
+    checkBoundingBox(profile);
+    checkMaxSpeed(profile, maxSpeed);
+    if (slowDownTime == 0) {
+        checkLimitToTime(profile, rng);
+    }
+}
+
 TEST(AlphaTimeTrajectory, calculateTrajectory) {
     RNG rng(1);
 
@@ -157,14 +174,43 @@ TEST(AlphaTimeTrajectory, calculateTrajectory) {
         const auto profile = AlphaTimeTrajectory::calculateTrajectory(RobotState(Vector(1, 2), v0), v1, time, angle, acc, maxSpeed, slowDown, fastEndSpeed);
 
         // generic checks
-        checkTrajectorySimple(profile, v0, v1, acc, fastEndSpeed);
+        checkBasic(rng, profile, v0, v1, maxSpeed, acc, slowDown, fastEndSpeed);
         checkDistanceIncrease(v0, time, maxSpeed, acc, angle);
-        checkBoundingBox(profile);
-        checkMaxSpeed(profile, maxSpeed);
-        if (slowDown == 0) {
-            checkLimitToTime(profile, rng);
-        }
     }
+}
+
+TEST(AlphaTimeTrajectory, findTrajectory) {
+    constexpr int RUNS = 10'000;
+
+    RNG rng(2);
+
+    int fails = 0;
+    for (int i = 0; i < RUNS; i++) {
+        const float maxSpeed = rng.uniformFloat(0.3, 5);
+
+        const Vector s0 = makePos(rng, 2);
+        const Vector v0 = makeSpeed(rng, maxSpeed);
+        const Vector s1 = rng.uniform() > 0.9 ? makePos(rng, 5) : (s0 + makePos(rng, 0.1));
+        const Vector v1 = rng.uniform() > 0.9 ? Vector(0, 0) : makeSpeed(rng, maxSpeed);
+
+        const float acc = rng.uniformFloat(0.5, 4);
+        const float slowDownTime = rng.uniform() > 0.5 ? rng.uniformFloat(0, SpeedProfile::SLOW_DOWN_TIME) : 0;
+        const bool highPrecision = rng.uniform() > 0.5;
+        const bool fastEndSpeed = rng.uniform() > 0.5;
+
+        const auto profileOpt = AlphaTimeTrajectory::findTrajectory(RobotState(s0, v0), RobotState(s1, v1), acc, maxSpeed, slowDownTime, highPrecision, fastEndSpeed);
+        if (!profileOpt) {
+            fails += 1;
+            continue;
+        }
+        const auto profile = profileOpt.value();
+
+        // generic checks
+        checkBasic(rng, profile, v0, v1, maxSpeed, acc, slowDownTime, fastEndSpeed);
+        checkEndPosition(profile, s1);
+    }
+
+    ASSERT_LT((float)fails / RUNS, 0.01f);
 }
 
 // TODO: test total time
