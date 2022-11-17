@@ -71,8 +71,9 @@ private:
     QPointF mapFromScene(double x, double y, double z);
 
     qreal devicePixelRatio() const;
-    void renderText(int x, int y, const QString & str, const QColor color);
-    void renderText(double x, double y, double z, const QString &str, const QColor color);
+    void prepareRenderText(int x, int y, const QString & str, const QColor color);
+    void prepareRenderText(double x, double y, double z, const QString &str, const QColor color);
+	void renderTexts();
 
 private:
     QMap<QString, const Plot*> m_plots;
@@ -95,6 +96,12 @@ private:
     bool m_drawMeasurementHelper;
 
     QPainter m_painter;
+
+    struct RenderTextInfo {
+        QPixmap pixmap;
+        QPointF pos;
+    };
+    std::vector<RenderTextInfo> m_texts;
 
     static const QList<QColor> m_colors;
 };
