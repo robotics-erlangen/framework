@@ -1,4 +1,5 @@
 import { throwInDebug } from "base/amun";
+import { maxTimeBallDefenseArea } from "base/constants";
 import * as debug from "base/debug";
 import * as Field from "base/field";
 import * as Referee from "base/referee";
@@ -95,7 +96,9 @@ export class HandleBall extends Behavior {
 					}],
 				];
 			}
-			if (World.Time - this._timeBegin < 7) {
+			// if maxTimeBallDefenceArea is exceeded, the ball is chipped away
+			const bufferTime = 1;
+			if (World.Time - this._timeBegin < maxTimeBallDefenseArea[World.DIVISION] - bufferTime) {
 				return [MoveToStaticBall];
 			} else {
 				return [KeeperChipAway];
