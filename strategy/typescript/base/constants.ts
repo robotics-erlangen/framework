@@ -50,6 +50,17 @@ export const maxRobotRadius = 0.09;
 
 export const maxRobotHeight = 0.15;
 
+/** maximum time keeper may keep the ball in defence area [s] */
+export const maxTimeBallDefenseArea: ReadonlyRec<{ [K in typeof DIVISION]: number }> = {
+	/**
+	 * 5 is given as default for the empty string. Old logs don't have
+	 * World.DIVISION set and are assumed to be division A
+	 */
+	"": 5,
+	"A": 5,
+	"B": 10,
+};
+
 /** maximum allowed driving speed during stop states [m/s] */
 export const stopSpeed = 1.5;
 
