@@ -21,6 +21,7 @@ interface Parameters {
 	targetTime?: number;
 	targetSpeed?: number;
 	highPrecision?: boolean;
+	ignoreCrash?: boolean;
 }
 
 let CHIP_PASS_DISTANCE_FACTOR = 0.4;
@@ -48,6 +49,7 @@ export class Pass extends Task {
 	private _passSpeed: number;
 	private _ballReceiptPos: Position | undefined;
 	private _highPrecision: boolean;
+	private ignoreCrash: boolean;
 
 	private _shoot: Shoot;
 
@@ -63,6 +65,7 @@ export class Pass extends Task {
 			?? DEFAULT_PASS_SPEED;
 		this._ballReceiptPos = parameters.ballReceiptPos;
 		this._highPrecision = parameters.highPrecision === true;
+		this.ignoreCrash = parameters.ignoreCrash === true;
 
 		// retrieve targetPos from messages if no argument was given
 		let pos: Position;
@@ -112,7 +115,7 @@ export class Pass extends Task {
 		let isFreekickLike = Referee.isFriendlyFreeKickState()
 			|| World.RefereeState === "KickoffOffensive"
 			|| this._highPrecision
-			|| ObserverCrash.isCrashed();
+			|| (!this.ignoreCrash && ObserverCrash.isCrashed());
 
 		if (isFreekickLike) {
 			maxAngleError = 2.5 * Math.PI / 180;
