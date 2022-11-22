@@ -25,6 +25,7 @@ local Robot = require "observer/robot"
 local Error = require "observer/error"
 local Goal = require "observer/goal"
 local plot = require "../base/plot"
+local Option = require "../base/option"
 
 local preproc = Class("Process.PreProc", require "../base/process")
 function preproc:run()
@@ -91,4 +92,6 @@ local wrapper = function (func)
 	return debugger.dumpLocalsOnError(f)
 end
 
-return {name = "Marvin", entrypoints = Entrypoints.get(wrapper)}
+local result = {name = "Marvin", entrypoints = Entrypoints.get(wrapper)}
+result[Option.getExportName()] = Option.getExportedOptions();
+return result
