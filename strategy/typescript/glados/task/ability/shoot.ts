@@ -2,6 +2,7 @@ import * as debug from "base/debug";
 import * as Field from "base/field";
 import * as geom from "base/geom";
 import * as MathUtil from "base/mathutil";
+import * as Option from "base/option";
 import * as Referee from "base/referee";
 import { FriendlyRobot } from "base/robot";
 import { AbsTime } from "base/timing";
@@ -55,7 +56,7 @@ const CHASE_BALL_SIDE_SPEED_HYST = 0.25;
  */
 const VOLLEY_ANGLE = 70 * Math.PI / 180;
 const VOLLEY_ANGLE_HYST = 5 * Math.PI / 180;
-const VOLLEY_ENABLED = true;
+const VOLLEY_ENABLED = !Option.addOption("Disable Volley", false);
 
 // direct movement
 const EXTRA_MOVE_SPEED_LIMIT = 0.5;
