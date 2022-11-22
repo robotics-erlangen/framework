@@ -63,11 +63,13 @@ TEST(Obstacles, Circle_ZonedDistance) {
 }
 
 TEST(Obstacles, Circle_ProjectOut) {
-    Circle c(nullptr, 0, 1, Vector(0, 0));
+    const Circle c{nullptr, 0, 1, Vector(0, 0)};
     ASSERT_FLOAT_EQ(c.projectOut(Vector(0.5, 0), 0.5).distance(Vector(1.5, 0)), 0);
     ASSERT_FLOAT_EQ(c.projectOut(Vector(-0.5, 0), 0.5).distance(Vector(-1.5, 0)), 0);
     ASSERT_FLOAT_EQ(c.projectOut(Vector(0, 0.5), 0.5).distance(Vector(0, 1.5)), 0);
     ASSERT_FLOAT_EQ(c.projectOut(Vector(0, -0.5), 0.5).distance(Vector(0, -1.5)), 0);
+    // position exactly at the center of the circle, can be projected in any direction (also checks for NaN)
+    ASSERT_FLOAT_EQ(c.projectOut(Vector(0, 0), 0).length(), 1);
 }
 
 TEST(Obstacles, Circle_BoundingBox) {
@@ -316,6 +318,20 @@ TEST(Obstacles, Line_BoundingBox) {
     ASSERT_FLOAT_EQ(b.right, 1.5);
     ASSERT_FLOAT_EQ(b.top, 1.5);
     ASSERT_FLOAT_EQ(b.bottom, -0.5);
+}
+
+TEST(Obstacles, Line_projectOut) {
+    const Line l{nullptr, 0, 0.5f, Vector(0, 0), Vector(3, 0)};
+    // middle part
+    ASSERT_FLOAT_EQ(l.projectOut(Vector(1, 0.1), 0.5).distance(Vector(1, 1)), 0);
+    ASSERT_FLOAT_EQ(l.projectOut(Vector(1, -0.1), 0.5).distance(Vector(1, -1)), 0);
+    // around first point
+    ASSERT_FLOAT_EQ(l.projectOut(Vector(-0.1, 0), 0.5).distance(Vector(-1, 0)), 0);
+    ASSERT_FLOAT_EQ(l.projectOut(Vector(0, 0.1), 0.5).distance(Vector(0, 1)), 0);
+    ASSERT_FLOAT_EQ(l.projectOut(Vector(0, -0.1), 0.5).distance(Vector(0, -1)), 0);
+    ASSERT_FLOAT_EQ(l.projectOut(Vector(0.1, 0), 0.5).x, 0.1f);
+    ASSERT_FLOAT_EQ(std::abs(l.projectOut(Vector(0.1, 0), 0.5).y), 1.0f);
+    ASSERT_LE(l.projectOut(Vector(0, 0), 0.5).x, 0);
 }
 
 TEST(Obstacles, MovingCircle_Intersects) {
