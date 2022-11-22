@@ -21,6 +21,7 @@
 #include "obstacles.h"
 #include <QDebug>
 
+constexpr float PROJECT_EPSILON = 0.0001f;
 
 static void setVector(Vector v, pathfinding::Vector *out)
 {
@@ -77,11 +78,21 @@ float StaticObstacles::Circle::zonedDistance(const Vector &v, float nearRadius) 
 
 Vector StaticObstacles::Circle::projectOut(Vector v, float extraDistance) const
 {
-    float dist = v.distance(center);
+    const float dist = v.distance(center);
     if (dist >= radius) {
         return v;
     }
-    return center + (v - center) * ((radius + extraDistance) / dist);
+    const float totalProjectRadius = radius + extraDistance;
+    if (dist < PROJECT_EPSILON) {
+        // project towards the center if possible
+        if (center.distanceSq(Vector(0, 0)) < radius) {
+            // not possible, just pick a direction
+            return center + Vector(totalProjectRadius, 0);
+        } else {
+            return center - center.normalized() * totalProjectRadius;
+        }
+    }
+    return center + (v - center) * (totalProjectRadius / dist);
 }
 
 BoundingBox StaticObstacles::Circle::boundingBox() const
@@ -116,12 +127,16 @@ float StaticObstacles::Line::distance(const LineSegment &segment) const
 
 Vector StaticObstacles::Line::projectOut(Vector v, float extraDistance) const
 {
-    float dist = segment.distance(v);
+    const float dist = segment.distance(v);
     if (dist >= radius) {
         return v;
     }
-    Vector closest = segment.closestPoint(v);
-    return closest + (v - closest) * ((radius + extraDistance) / dist);
+    const float totalProjectRadius = radius + extraDistance;
+    const Vector closest = segment.closestPoint(v);
+    if (v.distanceSq(closest) < PROJECT_EPSILON) {
+        return closest + segment.normal() * totalProjectRadius;
+    }
+    return closest + (v - closest) * (totalProjectRadius / dist);
 }
 
 BoundingBox StaticObstacles::Line::boundingBox() const
