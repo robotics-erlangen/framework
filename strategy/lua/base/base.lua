@@ -53,6 +53,7 @@ require "../base/plot"
 require "../base/robot"
 require "../base/vis"
 require "../base/world"
+require "../base/option"
 debugger._loadBaseDebug()
 
 -- prevent access to internal APIs
