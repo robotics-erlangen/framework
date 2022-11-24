@@ -73,10 +73,11 @@ export class CenterBack extends Task {
 		let fromGoalAngle = (this._robot.pos - World.Geometry.FriendlyGoal).angle();
 
 		const hystAngle = 5 * Math.PI / 180;
-		const hysteresis = this._lookingToGoal ? hystAngle : -hystAngle;
 		let dir = toBallAngle;
-		if (toBallAngle < toCornerLeftAngle + hysteresis &&
-				toBallAngle > toCornerRightAngle + hysteresis) {
+		if ((this._lookingToGoal && toBallAngle < toCornerLeftAngle + hystAngle  &&
+				toBallAngle > toCornerRightAngle + hystAngle)  ||
+				(toBallAngle < toCornerLeftAngle - hystAngle  &&
+				toBallAngle > toCornerRightAngle - hystAngle)) {
 			dir = toGoalAngle;
 			this._lookingToGoal = true;
 		} else {
