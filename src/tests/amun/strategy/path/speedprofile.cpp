@@ -118,8 +118,13 @@ static void checkBoundingBox(SpeedProfile trajectory) {
 }
 
 static void checkEndPosition(SpeedProfile trajectory, Vector expected) {
-    const Vector got = trajectory.endPosition();
-    ASSERT_LE((got - expected).length(), 0.01f);
+    const Vector endPos = trajectory.endPosition();
+    ASSERT_VECTOR_EQ(endPos, expected);
+
+    const float offset = 1e-6;
+    const float time = trajectory.time();
+    const auto closeToEnd = trajectory.positionAndSpeedForTime(time - offset);
+    ASSERT_LE(closeToEnd.pos.distance(expected - closeToEnd.speed * offset), 0.001);
 }
 
 static void checkLimitToTime(const SpeedProfile profile, RNG &rng) {
@@ -195,7 +200,7 @@ TEST(AlphaTimeTrajectory, findTrajectory) {
 
         const float acc = rng.uniformFloat(0.5, 4);
         const float slowDownTime = rng.uniform() > 0.5 ? rng.uniformFloat(0, SpeedProfile::SLOW_DOWN_TIME) : 0;
-        const bool highPrecision = rng.uniform() > 0.5;
+        const bool highPrecision = (rng.uniform() > 0.5);
         const bool fastEndSpeed = rng.uniform() > 0.5;
 
         const auto profileOpt = AlphaTimeTrajectory::findTrajectory(RobotState(s0, v0), RobotState(s1, v1), acc, maxSpeed, slowDownTime, highPrecision, fastEndSpeed);

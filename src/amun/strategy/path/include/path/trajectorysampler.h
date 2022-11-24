@@ -23,6 +23,7 @@
 
 #include "alphatimetrajectory.h"
 #include "worldinformation.h"
+#include "speedprofile.h"
 #include "pathdebug.h"
 #include "core/vector.h"
 #include <vector>
@@ -41,14 +42,6 @@ struct TrajectoryInput {
 
 class TrajectorySampler {
 public:
-
-    struct TrajectoryGenerationInfo {
-        TrajectoryGenerationInfo(const SpeedProfile &profile, const Vector desiredTargetPos) :
-            profile(profile), desiredTargetPos(desiredTargetPos) {}
-        SpeedProfile profile;
-        Vector desiredTargetPos;
-    };
-
     TrajectorySampler(RNG *rng, const WorldInformation &world, PathDebug &debug) :
         m_rng(rng),
         m_world(world),
@@ -59,7 +52,7 @@ public:
     virtual ~TrajectorySampler() {}
     // returns true on finding a valid trajectory
     virtual bool compute(const TrajectoryInput &input) = 0;
-    virtual const std::vector<TrajectoryGenerationInfo> &getResult() const = 0;
+    virtual const std::vector<SpeedProfile> &getResult() const = 0;
 
 protected:
     RNG *m_rng;

@@ -28,7 +28,7 @@ class EndInObstacleSampler : public TrajectorySampler
 public:
     EndInObstacleSampler(RNG *rng, const WorldInformation &world, PathDebug &debug) : TrajectorySampler(rng, world, debug) {}
     bool compute(const TrajectoryInput &input) final override;
-    const std::vector<TrajectoryGenerationInfo> &getResult() const final override { return result; }
+    const std::vector<SpeedProfile> &getResult() const final override { return result; }
     float getTargetDistance() const { return m_bestEndPointDistance; }
 
 private:
@@ -40,7 +40,7 @@ private:
     float m_bestEndPointDistance = std::numeric_limits<float>::max();
 
     bool isValid;
-    std::vector<TrajectoryGenerationInfo> result;
+    std::vector<SpeedProfile> result;
 };
 
 #endif // ENDINOBSTACLESAMPLER_H

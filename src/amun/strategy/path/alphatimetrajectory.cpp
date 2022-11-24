@@ -320,6 +320,7 @@ std::optional<SpeedProfile> AlphaTimeTrajectory::findTrajectory(const RobotState
 #ifdef ACTIVE_PATHFINDING_PARAMETER_OPTIMIZATION
             searchIterationCounter += i;
 #endif
+            result.setCorrectionOffset(target.pos - endPos);
             return result;
         }
 

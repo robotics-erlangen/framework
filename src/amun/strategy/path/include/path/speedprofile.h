@@ -45,6 +45,8 @@ public:
         float t;
     };
 
+public:
+
     void limitToTime(float time);
 
     template<typename AccelerationProfile>
@@ -94,6 +96,7 @@ private:
     VT profile[4];
     unsigned int counter = 0;
     float s0 = 0;
+    float correctionOffsetPerSecond = 0;
 
     friend class AlphaTimeTrajectory;
     friend class SpeedProfile;
@@ -130,6 +133,11 @@ public:
     void setStartPos(Vector pos) {
         xProfile.s0 = pos.x;
         yProfile.s0 = pos.y;
+    }
+
+    void setCorrectionOffset(Vector offset) {
+        xProfile.correctionOffsetPerSecond = offset.x / xProfile.timeWithSlowdown(slowDownTime);
+        yProfile.correctionOffsetPerSecond = offset.y / yProfile.timeWithSlowdown(slowDownTime);
     }
 
     void printDebug() {

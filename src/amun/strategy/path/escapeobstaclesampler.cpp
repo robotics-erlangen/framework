@@ -95,12 +95,12 @@ bool EscapeObstacleSampler::compute(const TrajectoryInput &input)
         }
         m_maxIntersectingObstaclePrio = bestRating.maxPrio;
 
-        m_generationInfo.clear();
+        m_result.clear();
         if (!bestRating.endsSafely) {
             return false;
         }
         bestProfile.limitToTime(bestRating.escapeTime);
-        m_generationInfo.push_back(TrajectoryGenerationInfo(bestProfile, bestProfile.endPosition()));
+        m_result.push_back(bestProfile);
     }
     return true;
 }

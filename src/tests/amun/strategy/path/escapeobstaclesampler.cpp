@@ -74,7 +74,7 @@ static Vector optimizeEscape(std::function<void(WorldInformation&)> obstacleAdde
         return Vector(0, 0);
     }
 
-    return result[0].desiredTargetPos - input.start.pos;
+    return result[0].endPosition() - input.start.pos;
 }
 
 // tests the complete optimization

@@ -251,9 +251,9 @@ float StandardSampler::checkSample(const TrajectoryInput &input, const StandardT
     m_bestResultInfo.valid = true;
     m_bestResultInfo.sample = sample;
 
-    m_generationInfo.clear();
-    m_generationInfo.push_back(TrajectoryGenerationInfo(firstPart.value(), firstPartTarget));
-    m_generationInfo.push_back(TrajectoryGenerationInfo(secondPart, input.target.pos));
+    m_result.clear();
+    m_result.push_back(firstPart.value());
+    m_result.push_back(secondPart);
     return biasedTrajectoryTime;
 }
 
