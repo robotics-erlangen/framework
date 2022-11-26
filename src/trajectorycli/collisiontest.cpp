@@ -98,12 +98,12 @@ static RobotState robotOnTrajectory(const std::vector<TrajectoryPoint> &trajecto
         if (next.time > time) {
             const TrajectoryPoint current = trajectory[i];
             const float tFactor = (time - current.time) / (next.time - current.time);
-            const Vector v = current.speed +  (next.speed - current.speed) * tFactor;
-            const Vector pos = current.pos + (current.speed + v) * 0.5 * (time - current.time);
+            const Vector v = current.state.speed +  (next.state.speed - current.state.speed) * tFactor;
+            const Vector pos = current.state.pos + (current.state.speed + v) * 0.5 * (time - current.time);
             return RobotState(pos, v);
         }
     }
-    return RobotState(trajectory[trajectory.size() - 1].pos, trajectory[trajectory.size() - 1].speed);
+    return RobotState(trajectory[trajectory.size() - 1].state.pos, trajectory[trajectory.size() - 1].state.speed);
 }
 
 static bool isCollision(const RobotState &own, const RobotState &opp)

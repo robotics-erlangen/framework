@@ -588,10 +588,10 @@ TEST(Obstacles, MovingLine_BoundingBox_Randomized) {
 }
 
 TEST(Obstacles, FriendlyRobot_Distance) {
-    std::vector<TrajectoryPoint> points{{Vector(0, 0), Vector(0, 0), 0},
-                                        {Vector(0.5, 0), Vector(0, 0), 0.5},
-                                        {Vector(1, 0), Vector(0, 0), 1},
-                                        {Vector(1, 0.5), Vector(0, 0), 1.5}};
+    std::vector<TrajectoryPoint> points{{{Vector(0, 0), Vector(0, 0)}, 0},
+                                        {{Vector(0.5, 0), Vector(0, 0)}, 0.5},
+                                        {{Vector(1, 0), Vector(0, 0)}, 1},
+                                        {{Vector(1, 0.5), Vector(0, 0)}, 1.5}};
     FriendlyRobotObstacle o(&points, 0.5, 0);
 
     ASSERT_FLOAT_EQ(o.distance(Vector(0, 0), 0, Vector(0, 0)), -0.5);
@@ -600,10 +600,10 @@ TEST(Obstacles, FriendlyRobot_Distance) {
 }
 
 TEST(Obstacles, FriendlyRobot_Intersects) {
-    std::vector<TrajectoryPoint> points{{Vector(0, 0), Vector(0, 0), 0},
-                                        {Vector(0.5, 0), Vector(0, 0), 0.5},
-                                        {Vector(1, 0), Vector(0, 0), 1},
-                                        {Vector(1, 0.5), Vector(0, 0), 1.5}};
+    std::vector<TrajectoryPoint> points{{{Vector(0, 0), Vector(0, 0)}, 0},
+                                        {{Vector(0.5, 0), Vector(0, 0)}, 0.5},
+                                        {{Vector(1, 0), Vector(0, 0)}, 1},
+                                        {{Vector(1, 0.5), Vector(0, 0)}, 1.5}};
     FriendlyRobotObstacle o(&points, 0.5, 0);
 
     ASSERT_TRUE(o.intersects(Vector(0, 0), 0, Vector(0, 0)));
@@ -616,10 +616,10 @@ TEST(Obstacles, FriendlyRobot_Intersects) {
 }
 
 TEST(Obstacles, FriendlyRobot_ZonedDistance) {
-    std::vector<TrajectoryPoint> points{{Vector(0, 0), Vector(0, 0), 0},
-                                        {Vector(0.5, 0), Vector(0, 0), 0.5},
-                                        {Vector(1, 0), Vector(0, 0), 1},
-                                        {Vector(1, 0.5), Vector(0, 0), 1.5}};
+    std::vector<TrajectoryPoint> points{{{Vector(0, 0), Vector(0, 0)}, 0},
+                                        {{Vector(0.5, 0), Vector(0, 0)}, 0.5},
+                                        {{Vector(1, 0), Vector(0, 0)}, 1},
+                                        {{Vector(1, 0.5), Vector(0, 0)}, 1.5}};
     FriendlyRobotObstacle o(&points, 0.5, 0);
 
     ASSERT_LE(o.zonedDistance(Vector(0, 0), 0, 0.1, Vector(0, 0)), 0);
@@ -633,10 +633,10 @@ TEST(Obstacles, FriendlyRobot_ZonedDistance) {
 }
 
 TEST(Obstacles, FriendlyRobot_BoundingBox) {
-    std::vector<TrajectoryPoint> points{{Vector(0, 0), Vector(0, 0), 0},
-                                        {Vector(0.5, 0), Vector(0, 0), 0.5},
-                                        {Vector(1, 0), Vector(0, 0), 1},
-                                        {Vector(1, 0.5), Vector(0, 0), 1.5}};
+    std::vector<TrajectoryPoint> points{{{Vector(0, 0), Vector(0, 0)}, 0},
+                                        {{Vector(0.5, 0), Vector(0, 0)}, 0.5},
+                                        {{Vector(1, 0), Vector(0, 0)}, 1},
+                                        {{Vector(1, 0.5), Vector(0, 0)}, 1.5}};
     FriendlyRobotObstacle o(&points, 0.5, 0);
 
     auto b = o.boundingBox();

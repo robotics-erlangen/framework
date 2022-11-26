@@ -354,7 +354,8 @@ std::vector<TrajectoryPoint> SpeedProfile::getTrajectoryPoints() const
 
     std::vector<TrajectoryPoint> result;
     result.reserve(xProfile.counter + yProfile.counter);
-    result.push_back({Vector(xProfile.s0, yProfile.s0), Vector(xProfile.profile[0].v, yProfile.profile[0].v), 0});
+    const RobotState startState{Vector(xProfile.s0, yProfile.s0), Vector(xProfile.profile[0].v, yProfile.profile[0].v)};
+    result.emplace_back(startState, 0);
 
     std::size_t xIndex = 0;
     std::size_t yIndex = 0;
@@ -366,24 +367,24 @@ std::vector<TrajectoryPoint> SpeedProfile::getTrajectoryPoints() const
         if (std::abs(xNext - yNext) < SAME_POINT_EPSILON) {
             float time = (xNext + yNext) / 2.0f;
             const auto state = positionAndSpeedForTime(time);
-            result.push_back({state.pos, state.speed, time});
+            result.emplace_back(state, time);
             xIndex++;
             yIndex++;
         } else if (xNext < yNext) {
             const auto state = positionAndSpeedForTime(xNext);
-            result.push_back({state.pos, state.speed, xNext});
+            result.emplace_back(state, xNext);
             xIndex++;
         } else {
             const auto state = positionAndSpeedForTime(yNext);
-            result.push_back({state.pos, state.speed, yNext});
+            result.emplace_back(state, yNext);
             yIndex++;
         }
     }
 
     // compensate for the missing exponential slowdown by adding a segment with zero speed
     if (slowDownTime != 0.0f) {
-        float endTime = time();
-        result.push_back({positionAndSpeedForTime(endTime).pos, result.back().speed, endTime});
+        const float endTime = time();
+        result.emplace_back(positionAndSpeedForTime(endTime), endTime);
     }
 
     return result;

@@ -560,11 +560,11 @@ MovingObstacles::FriendlyRobotObstacle::FriendlyRobotObstacle() :
 MovingObstacles::FriendlyRobotObstacle::FriendlyRobotObstacle(std::vector<TrajectoryPoint> *trajectory, float radius, int prio) :
     MovingObstacle(prio, radius),
     trajectory(trajectory),
-    bound(trajectory->at(0).pos, trajectory->at(1).pos)
+    bound(trajectory->at(0).state.pos, trajectory->at(1).state.pos)
 {
     timeInterval = trajectory->at(1).time - trajectory->at(0).time;
     for (std::size_t i = 2;i<trajectory->size();i++) {
-        bound.mergePoint(trajectory->at(i).pos);
+        bound.mergePoint(trajectory->at(i).state.pos);
     }
     bound.addExtraRadius(radius);
 }
@@ -574,20 +574,19 @@ MovingObstacles::FriendlyRobotObstacle::FriendlyRobotObstacle(const pathfinding:
     bound(Vector(1000, 1000), Vector(1000, 1000)) // outside of the field
 {
     for (const pathfinding::TrajectoryPoint &point : robot.robot_trajectory()) {
-        TrajectoryPoint p;
-        p.pos = deserializeVector(point.pos());
-        p.speed = deserializeVector(point.speed());
-        p.time = point.time();
-        ownData.push_back(p);
+        const Vector pos = deserializeVector(point.pos());
+        const Vector speed = deserializeVector(point.speed());
+        const float time = point.time();
+        ownData.emplace_back(RobotState{pos, speed}, time);
     }
     trajectory = &ownData;
     timeInterval = trajectory->size() > 1 ? trajectory->at(1).time - trajectory->at(0).time : 1;
 
     // compute bound from trajectory
     if (trajectory->size() > 1) {
-        bound = BoundingBox(trajectory->at(0).pos, trajectory->at(1).pos);
+        bound = BoundingBox(trajectory->at(0).state.pos, trajectory->at(1).state.pos);
         for (std::size_t i = 2;i<trajectory->size();i++) {
-            bound.mergePoint(trajectory->at(i).pos);
+            bound.mergePoint(trajectory->at(i).state.pos);
         }
         bound.addExtraRadius(radius);
     }
@@ -650,27 +649,27 @@ MovingObstacles::FriendlyRobotObstacle &MovingObstacles::FriendlyRobotObstacle::
 bool MovingObstacles::FriendlyRobotObstacle::intersects(Vector pos, float time, Vector) const
 {
     unsigned long index = std::min(static_cast<unsigned long>(trajectory->size()-1), static_cast<unsigned long>(time / timeInterval));
-    return (*trajectory)[index].pos.distanceSq(pos) < radius * radius;
+    return (*trajectory)[index].state.pos.distanceSq(pos) < radius * radius;
 }
 
 float MovingObstacles::FriendlyRobotObstacle::distance(Vector pos, float time, Vector) const
 {
     unsigned long index = std::min(static_cast<unsigned long>(trajectory->size()-1), static_cast<unsigned long>(time / timeInterval));
-    return (*trajectory)[index].pos.distance(pos) - radius;
+    return (*trajectory)[index].state.pos.distance(pos) - radius;
 }
 
 float MovingObstacles::FriendlyRobotObstacle::zonedDistance(const Vector &pos, float time, float nearRadius, Vector) const
 {
     unsigned long index = std::min(static_cast<unsigned long>(trajectory->size()-1), static_cast<unsigned long>(time / timeInterval));
-    return computeZonedIntersection((*trajectory)[index].pos.distanceSq(pos), radius, nearRadius);
+    return computeZonedIntersection((*trajectory)[index].state.pos.distanceSq(pos), radius, nearRadius);
 }
 
 Vector MovingObstacles::FriendlyRobotObstacle::projectOut(Vector v, float extraDistance) const
 {
-    if (trajectory->back().speed.lengthSquared() > 0.05f) {
+    if (trajectory->back().state.speed.lengthSquared() > 0.05f) {
         return v;
     }
-    const Vector stopPos = trajectory->back().pos;
+    const Vector stopPos = trajectory->back().state.pos;
     const float dist = v.distance(stopPos);
     if (dist < 0.01f) {
         return stopPos + Vector(radius + extraDistance, 0);
@@ -684,10 +683,10 @@ Vector MovingObstacles::FriendlyRobotObstacle::projectOut(Vector v, float extraD
 void MovingObstacles::FriendlyRobotObstacle::serializeChild(pathfinding::Obstacle *obstacle) const
 {
     auto robot = obstacle->mutable_friendly_robot();
-    for (TrajectoryPoint p : *trajectory) {
+    for (const TrajectoryPoint &p : *trajectory) {
         auto point = robot->add_robot_trajectory();
-        setVector(p.pos, point->mutable_pos());
-        setVector(p.speed, point->mutable_speed());
+        setVector(p.state.pos, point->mutable_pos());
+        setVector(p.state.speed, point->mutable_speed());
         point->set_time(p.time);
     }
 }

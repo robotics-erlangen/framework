@@ -136,10 +136,10 @@ void WorldInformation::addFriendlyRobotTrajectoryObstacle(std::vector<Trajectory
     }
     float maxDistSq = 0;
     for (const TrajectoryPoint &p : *obstacle) {
-        maxDistSq = std::max(maxDistSq, p.pos.distanceSq((*obstacle)[0].pos));
+        maxDistSq = std::max(maxDistSq, p.state.pos.distanceSq((*obstacle)[0].state.pos));
     }
     if (maxDistSq < 0.03f * 0.03f) {
-        addCircle(obstacle->at(0).pos.x, obstacle->at(0).pos.y, radius + std::sqrt(maxDistSq), nullptr, prio);
+        addCircle(obstacle->at(0).state.pos.x, obstacle->at(0).state.pos.y, radius + std::sqrt(maxDistSq), nullptr, prio);
         return;
     }
     MovingObstacles::FriendlyRobotObstacle o(obstacle, radius + m_radius, prio);

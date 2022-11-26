@@ -221,14 +221,8 @@ std::vector<SpeedProfile> TrajectoryPath::findPath(TrajectoryInput input)
 std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<SpeedProfile> &profiles, const TrajectoryInput &input)
 {
     if (profiles.size() == 0) {
-        TrajectoryPoint p1;
-        p1.pos = input.start.pos;
-        p1.time = 0;
-        p1.speed = input.start.speed;
-        TrajectoryPoint p2;
-        p2.pos = input.start.pos;
-        p2.time = 0;
-        p2.speed = Vector(0, 0);
+        const TrajectoryPoint p1{input.start, 0};
+        const TrajectoryPoint p2{RobotState{input.start.pos, Vector(0, 0)}, 0};
         return {p1, p2};
     }
 
@@ -269,13 +263,8 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Spe
                     }
                 }
 
-                auto posSpeed = profile.positionAndSpeedForTime(currentTime);
-
-                TrajectoryPoint p;
-                p.time = currentTotalTime;
-                p.speed = posSpeed.speed;
-                p.pos = posSpeed.pos;
-                m_currentTrajectory.push_back(p);
+                const auto state = profile.positionAndSpeedForTime(currentTime);
+                m_currentTrajectory.emplace_back(state, currentTotalTime);
 
                 currentTime += samplingInterval;
                 currentTotalTime += samplingInterval;
@@ -303,12 +292,9 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Spe
                 const std::size_t EXPONENTIAL_SLOW_DOWN_SAMPLE_COUNT = 10;
                 newPoints.reserve(EXPONENTIAL_SLOW_DOWN_SAMPLE_COUNT);
                 for (std::size_t i = 0;i<EXPONENTIAL_SLOW_DOWN_SAMPLE_COUNT;i++) {
-                    TrajectoryPoint p;
-                    p.time = i * partTime / float(EXPONENTIAL_SLOW_DOWN_SAMPLE_COUNT - 1);
-                    const auto state = profile.positionAndSpeedForTime(p.time);
-                    p.pos = state.pos;
-                    p.speed = state.speed;
-                    newPoints.push_back(p);
+                    const float time = i * partTime / float(EXPONENTIAL_SLOW_DOWN_SAMPLE_COUNT - 1);
+                    const auto state = profile.positionAndSpeedForTime(time);
+                    newPoints.emplace_back(state, time);
                 }
             }
 

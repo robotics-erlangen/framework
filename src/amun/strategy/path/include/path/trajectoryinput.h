@@ -43,8 +43,9 @@ struct TrajectoryInput {
 
 struct TrajectoryPoint
 {
-    Vector pos;
-    Vector speed;
+    TrajectoryPoint(const RobotState &state, const float time) :
+        state(state), time(time) {}
+    RobotState state;
     float time;
 };
 

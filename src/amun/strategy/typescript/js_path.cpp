@@ -334,10 +334,10 @@ static void trajectoryPathGet(const FunctionCallbackInfo<Value>& args)
     Local<String> timeString = v8string(isolate, "time");
     for (const auto &p : trajectory) {
         Local<Object> pathPart = Object::New(isolate);
-        pathPart->Set(context, pxString, Number::New(isolate, double(p.pos.x))).Check();
-        pathPart->Set(context, pyString, Number::New(isolate, double(p.pos.y))).Check();
-        pathPart->Set(context, vxString, Number::New(isolate, double(p.speed.x))).Check();
-        pathPart->Set(context, vyString, Number::New(isolate, double(p.speed.y))).Check();
+        pathPart->Set(context, pxString, Number::New(isolate, double(p.state.pos.x))).Check();
+        pathPart->Set(context, pyString, Number::New(isolate, double(p.state.pos.y))).Check();
+        pathPart->Set(context, vxString, Number::New(isolate, double(p.state.speed.x))).Check();
+        pathPart->Set(context, vyString, Number::New(isolate, double(p.state.speed.y))).Check();
         pathPart->Set(context, timeString, Number::New(isolate, double(p.time))).Check();
         result->Set(context, i++, pathPart).Check();
     }
