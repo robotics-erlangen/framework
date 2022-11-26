@@ -23,6 +23,7 @@
 
 #include "boundingbox.h"
 #include "linesegment.h"
+#include "trajectoryinput.h"
 #include "protobuf/pathfinding.pb.h"
 #include <QByteArray>
 #include <vector>
@@ -141,13 +142,6 @@ namespace StaticObstacles {
     };
 
 }
-
-struct TrajectoryPoint
-{
-    Vector pos;
-    Vector speed;
-    float time;
-};
 
 namespace MovingObstacles {
 

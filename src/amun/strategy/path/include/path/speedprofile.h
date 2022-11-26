@@ -23,20 +23,12 @@
 
 #include "core/vector.h"
 #include "boundingbox.h"
-#include "obstacles.h" // for TrajectoryPoint
+#include "trajectoryinput.h"
 
 #include <vector>
 
 class AlphaTimeTrajectory;
 class SpeedProfile;
-
-struct RobotState {
-    RobotState() = default;
-    RobotState(Vector pos, Vector speed) :
-        pos(pos), speed(speed) {}
-    Vector pos;
-    Vector speed;
-};
 
 class SpeedProfile1D {
 public:
@@ -140,12 +132,7 @@ public:
         yProfile.correctionOffsetPerSecond = offset.y / yProfile.timeWithSlowdown(slowDownTime);
     }
 
-    void printDebug() {
-        std::cout <<"X: ";
-        xProfile.printDebug();
-        std::cout <<"Y: ";
-        yProfile.printDebug();
-    }
+    void printDebug();
 
     // only works properly for trajectories without slowdown
     void limitToTime(float time) {

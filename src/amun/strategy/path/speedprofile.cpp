@@ -20,6 +20,9 @@
 
 #include "speedprofile.h"
 
+#include <iostream>
+#include <cassert>
+
 static float sign(float x)
 {
     return x < 0.0f ? -1.0f : 1.0f;
@@ -554,4 +557,12 @@ void SpeedProfile1D::create1DAccelerationByDistance(float v0, float v1, float ti
     profile[1] = {midSpeed, std::abs(v0 - midSpeed) * accInv};
     profile[2] = {v1, std::abs(v1 - midSpeed) * accInv};
     counter = 3;
+}
+
+void SpeedProfile::printDebug()
+{
+    std::cout <<"X: ";
+    xProfile.printDebug();
+    std::cout <<"Y: ";
+    yProfile.printDebug();
 }

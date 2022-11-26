@@ -22,11 +22,10 @@
 #define TRAJECTORYPATH_H
 
 #include "abstractpath.h"
-#include "alphatimetrajectory.h"
-#include "trajectorysampler.h"
 #include "endinobstaclesampler.h"
 #include "multiescapesampler.h"
 #include "standardsampler.h"
+#include "trajectoryinput.h"
 #include "core/vector.h"
 #include "protobuf/pathfinding.pb.h"
 #include <vector>
@@ -41,7 +40,7 @@ public:
     std::vector<TrajectoryPoint> calculateTrajectory(Vector s0, Vector v0, Vector s1, Vector v1, float maxSpeed, float acceleration);
     // is guaranteed to be equally spaced in time
     std::vector<TrajectoryPoint> *getCurrentTrajectory() { return &m_currentTrajectory; }
-    int maxIntersectingObstaclePrio() const { return m_escapeObstacleSampler.getMaxIntersectingObstaclePrio(); }
+    int maxIntersectingObstaclePrio() const;
 
 private:
     // copy input so that the modification does not affect the getResultPath function

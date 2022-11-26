@@ -92,6 +92,11 @@ void TrajectoryPath::savePathfindingInput(const TrajectoryInput &input)
     m_inputSaver->saveMessage(task);
 }
 
+int TrajectoryPath::maxIntersectingObstaclePrio() const
+{
+    return m_escapeObstacleSampler.getMaxIntersectingObstaclePrio();
+}
+
 bool TrajectoryPath::testSampler(const TrajectoryInput &input, pathfinding::InputSourceType type)
 {
     if (m_captureType == type && m_inputSaver != nullptr) {

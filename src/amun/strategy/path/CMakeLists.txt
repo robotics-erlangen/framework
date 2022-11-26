@@ -39,6 +39,7 @@ set(path_files
     include/path/speedprofile.h
     include/path/multiescapesampler.h
     include/path/parameterization.h
+    include/path/trajectoryinput.h
 
     abstractpath.cpp
     alphatimetrajectory.cpp

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2019 Andreas Wendler                                        *
+ *   Copyright 2022 Andreas Wendler                                        *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,37 +18,34 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef TRAJECTORYSAMPLER_H
-#define TRAJECTORYSAMPLER_H
+#ifndef TRAJECTORYINPUT_H
+#define TRAJECTORYINPUT_H
 
-#include "alphatimetrajectory.h"
-#include "worldinformation.h"
-#include "speedprofile.h"
-#include "pathdebug.h"
-#include "trajectoryinput.h"
 #include "core/vector.h"
-#include <vector>
 
-class RNG;
-
-class TrajectorySampler {
-public:
-    TrajectorySampler(RNG *rng, const WorldInformation &world, PathDebug &debug) :
-        m_rng(rng),
-        m_world(world),
-        m_debug(debug) {}
-    TrajectorySampler(const TrajectorySampler &) = delete;
-    TrajectorySampler& operator=(const TrajectorySampler&) = delete;
-
-    virtual ~TrajectorySampler() {}
-    // returns true on finding a valid trajectory
-    virtual bool compute(const TrajectoryInput &input) = 0;
-    virtual const std::vector<SpeedProfile> &getResult() const = 0;
-
-protected:
-    RNG *m_rng;
-    const WorldInformation &m_world;
-    PathDebug &m_debug;
+struct RobotState {
+    RobotState() = default;
+    RobotState(Vector pos, Vector speed) :
+        pos(pos), speed(speed) {}
+    Vector pos;
+    Vector speed;
 };
 
-#endif // TRAJECTORYSAMPLER_H
+struct TrajectoryInput {
+    RobotState start;
+    RobotState target;
+    float t0 = 0;
+    bool exponentialSlowDown;
+    float maxSpeed;
+    float maxSpeedSquared;
+    float acceleration;
+};
+
+struct TrajectoryPoint
+{
+    Vector pos;
+    Vector speed;
+    float time;
+};
+
+#endif // TRAJECTORYINPUT_H
