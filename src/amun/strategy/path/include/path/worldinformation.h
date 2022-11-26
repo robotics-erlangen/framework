@@ -79,12 +79,12 @@ public:
         return false;
     }
 
-    bool isInMovingObstacle(const std::vector<MovingObstacles::MovingObstacle *> &obstacles, Vector point, float time, Vector speed) const;
+    bool isInMovingObstacle(const std::vector<MovingObstacles::MovingObstacle *> &obstacles, const TrajectoryPoint &point) const;
     bool isTrajectoryInObstacle(const SpeedProfile &profile, float timeOffset) const;
     // return {min distance of trajectory to obstacles, min distances of first and last points to obstacles}
     // distances are only accurate up to safetyMargin
     std::pair<float, float> minObstacleDistance(const SpeedProfile &profile, float timeOffset, float safetyMargin) const;
-    float minObstacleDistancePoint(Vector pos, float time, Vector speed, bool checkStatic, bool checkDynamic) const;
+    float minObstacleDistancePoint(const TrajectoryPoint &point, bool checkStatic, bool checkDynamic) const;
     bool isInFriendlyStopPos(const Vector pos) const;
 
     // collectobstacles must have been called before calling this function

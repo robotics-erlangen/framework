@@ -145,7 +145,7 @@ auto EscapeObstacleSampler::rateEscapingTrajectory(const TrajectoryInput &input,
             }
         }
         for (const auto o : m_world.movingObstacles()) {
-            if (o->prio > obstaclePriority && o->intersects(state.pos, time + input.t0, state.speed)) {
+            if (o->prio > obstaclePriority && o->intersects({state, time + input.t0})) {
                 obstaclePriority = o->prio;
             }
         }

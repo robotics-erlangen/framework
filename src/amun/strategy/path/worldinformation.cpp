@@ -152,13 +152,13 @@ void WorldInformation::addOpponentRobotObstacle(Vector startPos, Vector speed, i
 }
 
 // obstacle checking
-bool WorldInformation::isInMovingObstacle(const std::vector<MovingObstacles::MovingObstacle*> &obstacles, Vector point, float time, Vector speed) const
+bool WorldInformation::isInMovingObstacle(const std::vector<MovingObstacles::MovingObstacle*> &obstacles, const TrajectoryPoint &point) const
 {
-    if (time >= IGNORE_MOVING_OBSTACLE_THRESHOLD) {
+    if (point.time >= IGNORE_MOVING_OBSTACLE_THRESHOLD) {
         return false;
     }
     for (const auto o : obstacles) {
-        if (o->intersects(point, time, speed)) {
+        if (o->intersects(point)) {
             return true;
         }
     }
@@ -194,20 +194,21 @@ bool WorldInformation::isTrajectoryInObstacle(const SpeedProfile &profile, float
         if (isInStaticObstacle(intersectingStaticObstacles, trajectoryPoints[i].pos)) {
             return true;
         }
-        if (isInMovingObstacle(intersectingMovingObstacles, trajectoryPoints[i].pos, time + timeOffset, trajectoryPoints[i].speed)) {
+        const TrajectoryPoint point{trajectoryPoints[i], time + timeOffset};
+        if (isInMovingObstacle(intersectingMovingObstacles, point)) {
             return true;
         }
     }
     return false;
 }
 
-float WorldInformation::minObstacleDistancePoint(Vector pos, float time, Vector speed, bool checkStatic, bool checkDynamic) const
+float WorldInformation::minObstacleDistancePoint(const TrajectoryPoint &point, bool checkStatic, bool checkDynamic) const
 {
     float minDistance = std::numeric_limits<float>::max();
     // static obstacles
     if (checkStatic) {
         for (const auto obstacle : m_obstacles) {
-            float d = obstacle->distance(pos);
+            float d = obstacle->distance(point.state.pos);
             if (d <= 0) {
                 return d;
             }
@@ -215,9 +216,9 @@ float WorldInformation::minObstacleDistancePoint(Vector pos, float time, Vector 
         }
     }
     // moving obstacles
-    if (time < IGNORE_MOVING_OBSTACLE_THRESHOLD && checkDynamic) {
+    if (point.time < IGNORE_MOVING_OBSTACLE_THRESHOLD && checkDynamic) {
         for (const auto o : m_movingObstacles) {
-            float d = o->distance(pos, time, speed);
+            const float d = o->distance(point);
             if (d <= 0) {
                 return d;
             }
@@ -230,7 +231,7 @@ float WorldInformation::minObstacleDistancePoint(Vector pos, float time, Vector 
 bool WorldInformation::isInFriendlyStopPos(const Vector pos) const
 {
     for (const auto &o : m_friendlyRobotObstacles) {
-        if (o.intersects(pos, 200, Vector(0, 0))) {
+        if (o.intersects({{pos, Vector(0, 0)}, 200})) {
             return true;
         }
     }
@@ -239,7 +240,7 @@ bool WorldInformation::isInFriendlyStopPos(const Vector pos) const
 
 std::pair<float, float> WorldInformation::minObstacleDistance(const SpeedProfile &profile, float timeOffset, float safetyMargin) const
 {
-    float totalTime = profile.time();
+    const float totalTime = profile.time();
     float totalMinDistance = std::numeric_limits<float>::max();
     float lastPointDistance = std::numeric_limits<float>::max();
 
@@ -250,13 +251,11 @@ std::pair<float, float> WorldInformation::minObstacleDistance(const SpeedProfile
 
     for (int i = 0;i<DIVISIONS;i++) {
         const float time = totalTime * i * (1.0f / float(DIVISIONS-1));
-        const Vector pos = trajectoryPoints[i].pos;
-        const Vector speed = trajectoryPoints[i].speed;
-
         trajectoryTimes[i] = time + timeOffset;
 
         if (i == 0 || i == DIVISIONS-1) {
-            const float minDistance = minObstacleDistancePoint(pos, time + timeOffset, speed, true, true);
+            const TrajectoryPoint point{trajectoryPoints[i], time + timeOffset};
+            const float minDistance = minObstacleDistancePoint(point, true, true);
             if (minDistance < 0) {
                 return {minDistance, minDistance};
             }
@@ -294,7 +293,7 @@ std::pair<float, float> WorldInformation::minObstacleDistance(const SpeedProfile
     for (auto obstacle : m_movingObstacles) {
         if (obstacle->boundingBox().intersects(trajectoryBox)) {
             for (std::size_t i = 0;i<DIVISIONS;i++) {
-                const float dist = obstacle->zonedDistance(trajectoryPoints[i].pos, trajectoryTimes[i], safetyMargin, trajectoryPoints[i].speed);
+                const float dist = obstacle->zonedDistance({trajectoryPoints[i], trajectoryTimes[i]}, safetyMargin);
                 if (dist < 0) {
                     return {dist, dist};
                 } else if (dist < safetyMargin) {
@@ -308,8 +307,8 @@ std::pair<float, float> WorldInformation::minObstacleDistance(const SpeedProfile
                 if (totalTime < AFTER_STOP_AVOIDANCE_TIME) {
                     const float AFTER_STOP_INTERVAL = 0.03f;
                     for (std::size_t i = 0;i<std::size_t((AFTER_STOP_AVOIDANCE_TIME - totalTime) * (1.0f / AFTER_STOP_INTERVAL));i++) {
-                        float t = timeOffset + totalTime + i * AFTER_STOP_INTERVAL;
-                        const float dist = obstacle->zonedDistance(trajectoryPoints.back().pos, t, safetyMargin, trajectoryPoints.back().speed);
+                        const float t = timeOffset + totalTime + i * AFTER_STOP_INTERVAL;
+                        const float dist = obstacle->zonedDistance({trajectoryPoints.back(), t}, safetyMargin);
                         if (dist < 0) {
                             return {dist, dist};
                         } else if (dist < safetyMargin) {

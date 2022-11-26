@@ -150,10 +150,10 @@ namespace MovingObstacles {
         MovingObstacle(const pathfinding::Obstacle &obstacle) : prio(obstacle.prio()), radius(obstacle.radius()) {}
         virtual ~MovingObstacle() {}
 
-        virtual bool intersects(Vector pos, float time, Vector ownSpeed) const = 0;
+        virtual bool intersects(const TrajectoryPoint &point) const = 0;
         /// returns float max if the obstacle is not present anymore at the given time
-        virtual float distance(Vector pos, float time, Vector ownSpeed) const = 0;
-        virtual float zonedDistance(const Vector &pos, float time, float nearRadius, Vector ownSpeed) const = 0;
+        virtual float distance(const TrajectoryPoint &point) const = 0;
+        virtual float zonedDistance(const TrajectoryPoint &point, float nearRadius) const = 0;
         // TODO: it might be possible to also use the trajectory max. time to make the obstacles smaller
         virtual BoundingBox boundingBox() const = 0;
         // projects out of the position that the obstacle will have at t = inf (if it is still present)
@@ -173,9 +173,9 @@ namespace MovingObstacles {
     struct MovingCircle : public MovingObstacle {
         MovingCircle(int prio, float radius, Vector start, Vector speed, Vector acc, float t0, float t1);
         MovingCircle(const pathfinding::Obstacle &obstacle, const pathfinding::MovingCircleObstacle &circle);
-        bool intersects(Vector pos, float time, Vector ownSpeed) const override;
-        float distance(Vector pos, float time, Vector ownSpeed) const override;
-        float zonedDistance(const Vector &pos, float time, float nearRadius, Vector ownSpeed) const override;
+        bool intersects(const TrajectoryPoint &point) const override;
+        float distance(const TrajectoryPoint &point) const override;
+        float zonedDistance(const TrajectoryPoint &point, float nearRadius) const override;
         BoundingBox boundingBox() const override;
 
         void serializeChild(pathfinding::Obstacle *obstacle) const override;
@@ -193,9 +193,9 @@ namespace MovingObstacles {
                    Vector start2, Vector speed2, Vector acc2, float t0, float t1);
         MovingLine(const pathfinding::Obstacle &obstacle, const pathfinding::MovingLineObstacle &line);
 
-        bool intersects(Vector pos, float time, Vector ownSpeed) const override;
-        float distance(Vector pos, float time, Vector ownSpeed) const override;
-        float zonedDistance(const Vector &pos, float time, float nearRadius, Vector ownSpeed) const override;
+        bool intersects(const TrajectoryPoint &point) const override;
+        float distance(const TrajectoryPoint &point) const override;
+        float zonedDistance(const TrajectoryPoint &point, float nearRadius) const override;
         BoundingBox boundingBox() const override;
 
         void serializeChild(pathfinding::Obstacle *obstacle) const override;
@@ -224,9 +224,9 @@ namespace MovingObstacles {
         FriendlyRobotObstacle &operator=(const FriendlyRobotObstacle &other);
         FriendlyRobotObstacle &operator=(FriendlyRobotObstacle &&other);
 
-        bool intersects(Vector pos, float time, Vector ownSpeed) const override;
-        float distance(Vector pos, float time, Vector ownSpeed) const override;
-        float zonedDistance(const Vector &pos, float time, float nearRadius, Vector ownSpeed) const override;
+        bool intersects(const TrajectoryPoint &point) const override;
+        float distance(const TrajectoryPoint &point) const override;
+        float zonedDistance(const TrajectoryPoint &point, float nearRadius) const override;
         BoundingBox boundingBox() const override { return bound; }
         Vector projectOut(Vector v, float extraDistance) const override;
 
@@ -244,9 +244,9 @@ namespace MovingObstacles {
     struct OpponentRobotObstacle : public MovingObstacle {
         OpponentRobotObstacle(int prio, float baseRadius, Vector start, Vector speed);
         OpponentRobotObstacle(const pathfinding::Obstacle &obstacle, const pathfinding::OpponentRobotObstacle &circle);
-        bool intersects(Vector pos, float time, Vector ownSpeed) const override;
-        float distance(Vector pos, float time, Vector ownSpeed) const override;
-        float zonedDistance(const Vector &pos, float time, float nearRadius, Vector ownSpeed) const override;
+        bool intersects(const TrajectoryPoint &point) const override;
+        float distance(const TrajectoryPoint &point) const override;
+        float zonedDistance(const TrajectoryPoint &point, float nearRadius) const override;
         BoundingBox boundingBox() const override;
 
         void serializeChild(pathfinding::Obstacle *obstacle) const override;

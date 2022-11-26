@@ -76,13 +76,13 @@ bool EndInObstacleSampler::compute(const TrajectoryInput &input)
 
 bool EndInObstacleSampler::testEndPoint(const TrajectoryInput &input, Vector endPoint)
 {
-    float targetDistance = endPoint.distance(input.target.pos);
+    const float targetDistance = endPoint.distance(input.target.pos);
     if (targetDistance > m_bestEndPointDistance - 0.01f) {
         return false;
     }
 
     // try to keep at least 3 cm distance to static obstacles
-    if (m_world.minObstacleDistancePoint(endPoint, 0, Vector(0, 0), true, false) < 0.03f) {
+    if (m_world.minObstacleDistancePoint({{endPoint, Vector(0, 0)}, 0}, true, false) < 0.03f) {
         return false;
     }
 

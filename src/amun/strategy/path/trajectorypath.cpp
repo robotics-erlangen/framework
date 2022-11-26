@@ -128,7 +128,8 @@ std::vector<SpeedProfile> TrajectoryPath::findPath(TrajectoryInput input)
 
     // check if start point is in obstacle
     std::vector<SpeedProfile> escapeObstacle;
-    if (m_world.isInStaticObstacle(obstacles, input.start.pos) || m_world.isInMovingObstacle(m_world.movingObstacles(), input.start.pos, 0, input.start.speed)) {
+    const TrajectoryPoint startState{input.start, 0};
+    if (m_world.isInStaticObstacle(obstacles, input.start.pos) || m_world.isInMovingObstacle(m_world.movingObstacles(), startState)) {
         if (!testSampler(input, pathfinding::EscapeObstacleSampler)) {
             // no fallback for now
             return {};
