@@ -173,13 +173,6 @@ void PlotterWidget::drawCoordSys()
         glVertex2d(m_time - m_duration + m_offset, floorf(m_yMin) + i);
         glVertex2d(m_time + m_offset, floorf(m_yMin) + i);
     }
-    #ifdef AUTOREF_DIR
-    // illustrate allowed shooting speed
-    glColor3f(250, 0, 0);
-    glVertex2d(m_time - m_duration + m_offset, 8);
-    glVertex2d(m_time + m_offset, 8);
-    glColor3f(0.75, 0.75, 0.75); // reset color
-    #endif
 
     // vertical lines
     for (int i = 0; i <= m_duration; i++) {
