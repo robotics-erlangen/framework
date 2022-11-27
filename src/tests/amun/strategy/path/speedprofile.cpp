@@ -47,11 +47,11 @@ static void ASSERT_VECTOR_EQ(Vector v1, Vector v2) {
 static void checkTrajectorySimple(SpeedProfile trajectory, Vector v0, Vector v1, float acc, bool fastEndSpeed) {
 
     // check start speed
-    ASSERT_VECTOR_EQ(trajectory.positionAndSpeedForTime(0).speed, v0);
+    ASSERT_VECTOR_EQ(trajectory.stateAtTime(0).speed, v0);
 
     // check end speed
     if (!fastEndSpeed) {
-        ASSERT_VECTOR_EQ(trajectory.positionAndSpeedForTime(trajectory.time()).speed, v1);
+        ASSERT_VECTOR_EQ(trajectory.stateAtTime(trajectory.time()).speed, v1);
         ASSERT_VECTOR_EQ(trajectory.endSpeed(), v1);
     } else {
         ASSERT_LE(trajectory.endSpeed().length(), v1.length());
@@ -64,11 +64,11 @@ static void checkTrajectorySimple(SpeedProfile trajectory, Vector v0, Vector v1,
     const std::vector<RobotState> bulkPositions = trajectory.trajectoryPositions(SEGMENTS, timeDiff);
 
 
-    Vector lastPos = trajectory.positionAndSpeedForTime(0).pos;
-    Vector lastSpeed = trajectory.positionAndSpeedForTime(0).speed;
+    Vector lastPos = trajectory.stateAtTime(0).pos;
+    Vector lastSpeed = trajectory.stateAtTime(0).speed;
     for (int i = 0;i<SEGMENTS;i++) {
         const float time = i * timeDiff;
-        const auto state = trajectory.positionAndSpeedForTime(time);
+        const auto state = trajectory.stateAtTime(time);
         const Vector speed = state.speed;
 
         ASSERT_LE((bulkPositions[i].pos).distance(state.pos), 0.01);
@@ -97,7 +97,7 @@ static void checkMaxSpeed(SpeedProfile trajectory, float maxSpeed) {
     const int SEGMENTS = 100;
     for (int i = 0;i<SEGMENTS;i++) {
         const float time = i * trajectory.time() / float(SEGMENTS - 1);
-        const Vector speed = trajectory.positionAndSpeedForTime(time).speed;
+        const Vector speed = trajectory.stateAtTime(time).speed;
 
         ASSERT_LE(speed.length(), maxSpeed * MAX_FASTER_FACTOR);
     }
@@ -123,7 +123,7 @@ static void checkEndPosition(SpeedProfile trajectory, Vector expected) {
 
     const float offset = 1e-6;
     const float time = trajectory.time();
-    const auto closeToEnd = trajectory.positionAndSpeedForTime(time - offset);
+    const auto closeToEnd = trajectory.stateAtTime(time - offset);
     ASSERT_LE(closeToEnd.pos.distance(expected - closeToEnd.speed * offset), 0.001);
 }
 
@@ -134,8 +134,8 @@ static void checkLimitToTime(const SpeedProfile profile, RNG &rng) {
     ASSERT_FLOAT_EQ(limited.time(), timeLimit);
     for (int i = 0;i<100;i++) {
         const float t = i * timeLimit / 99.0f;
-        const auto sp1 = profile.positionAndSpeedForTime(t);
-        const auto sp2 = limited.positionAndSpeedForTime(t);
+        const auto sp1 = profile.stateAtTime(t);
+        const auto sp2 = limited.stateAtTime(t);
 
         ASSERT_VECTOR_EQ(sp1.pos, sp2.pos);
         ASSERT_VECTOR_EQ(sp1.speed, sp2.speed);

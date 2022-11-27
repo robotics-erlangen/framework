@@ -127,7 +127,7 @@ auto EscapeObstacleSampler::rateEscapingTrajectory(const TrajectoryInput &input,
     for (int i = 0;i<samples;i++) {
         float time = i * SAMPLING_INTERVAL;
 
-        const auto state = speedProfile.positionAndSpeedForTime(time);
+        const auto state = speedProfile.stateAtTime(time);
         int obstaclePriority = -1;
         if (!m_world.pointInPlayfield(state.pos, m_world.radius())) {
             obstaclePriority = m_world.outOfFieldPriority();

@@ -105,7 +105,7 @@ public:
 
     float time() const;
     Vector endPosition() const;
-    RobotState positionAndSpeedForTime(float time) const;
+    RobotState stateAtTime(float time) const;
     std::vector<RobotState> trajectoryPositions(std::size_t count, float timeInterval) const;
     BoundingBox calculateBoundingBox() const;
 

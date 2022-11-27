@@ -325,7 +325,7 @@ float SpeedProfile::time() const
     }
 }
 
-RobotState SpeedProfile::positionAndSpeedForTime(float time) const
+RobotState SpeedProfile::stateAtTime(float time) const
 {
     if (slowDownTime == 0.0f) {
         const auto x = xProfile.offsetAndSpeedForTime<ConstantAcceleration>(time, 0);
@@ -383,16 +383,16 @@ std::vector<TrajectoryPoint> SpeedProfile::getTrajectoryPoints() const
 
         if (std::abs(xNext - yNext) < SAME_POINT_EPSILON) {
             float time = (xNext + yNext) / 2.0f;
-            const auto state = positionAndSpeedForTime(time);
+            const auto state = stateAtTime(time);
             result.emplace_back(state, time);
             xIndex++;
             yIndex++;
         } else if (xNext < yNext) {
-            const auto state = positionAndSpeedForTime(xNext);
+            const auto state = stateAtTime(xNext);
             result.emplace_back(state, xNext);
             xIndex++;
         } else {
-            const auto state = positionAndSpeedForTime(yNext);
+            const auto state = stateAtTime(yNext);
             result.emplace_back(state, yNext);
             yIndex++;
         }
@@ -401,7 +401,7 @@ std::vector<TrajectoryPoint> SpeedProfile::getTrajectoryPoints() const
     // compensate for the missing exponential slowdown by adding a segment with zero speed
     if (slowDownTime != 0.0f) {
         const float endTime = time();
-        result.emplace_back(positionAndSpeedForTime(endTime), endTime);
+        result.emplace_back(stateAtTime(endTime), endTime);
     }
 
     return result;

@@ -264,7 +264,7 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Spe
                     }
                 }
 
-                const auto state = profile.positionAndSpeedForTime(currentTime);
+                const auto state = profile.stateAtTime(currentTime);
                 m_currentTrajectory.emplace_back(state, currentTotalTime);
 
                 currentTime += samplingInterval;
@@ -294,7 +294,7 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Spe
                 newPoints.reserve(EXPONENTIAL_SLOW_DOWN_SAMPLE_COUNT);
                 for (std::size_t i = 0;i<EXPONENTIAL_SLOW_DOWN_SAMPLE_COUNT;i++) {
                     const float time = i * partTime / float(EXPONENTIAL_SLOW_DOWN_SAMPLE_COUNT - 1);
-                    const auto state = profile.positionAndSpeedForTime(time);
+                    const auto state = profile.stateAtTime(time);
                     newPoints.emplace_back(state, time);
                 }
             }
