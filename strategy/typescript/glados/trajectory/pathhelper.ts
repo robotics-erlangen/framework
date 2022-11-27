@@ -179,7 +179,10 @@ function addBallObstacle(robot: FriendlyRobot, ignoreBall?: boolean, stopBallDis
 }
 
 function addGoalObstacle(path: Path, robot: FriendlyRobot, ignoreDefense: boolean, ignoreOppDefense: boolean) {
-	let gw = G.GoalWallWidth / 2;
+	const gw = G.GoalWallWidth / 2;
+	// tasks like placeball may increase the field border for the pathfinding,
+	// ensure that no robot tries to drive behind the goal
+	const depth = G.GoalDepth + 0.5;
 	// add goal obstacles for the field half the robot is in
 	// TODO: wenn nicht keeper: eine fette linie oder so
 	if (robot.pos.y < 0) {
@@ -188,16 +191,16 @@ function addGoalObstacle(path: Path, robot: FriendlyRobot, ignoreDefense: boolea
 					G.FriendlyGoalLeft.x - gw, G.FriendlyGoalLeft.y - G.GoalDepth - gw, gw, "OwnGoal_Left", Priorities.GOAL);
 			path.addLine(G.FriendlyGoalRight.x + gw, G.FriendlyGoalRight.y - gw,
 					G.FriendlyGoalRight.x + gw, G.FriendlyGoalRight.y - G.GoalDepth - gw, gw, "OwnGoal_Right", Priorities.GOAL);
-			path.addLine(G.FriendlyGoalLeft.x - gw, G.FriendlyGoalLeft.y - G.GoalDepth - gw,
-					G.FriendlyGoalRight.x + gw, G.FriendlyGoalRight.y - G.GoalDepth - gw, gw, "OwnGoal_Back", Priorities.GOAL);
+			path.addRect(G.FriendlyGoalLeft.x - G.GoalWallWidth, G.FriendlyGoalLeft.y - G.GoalDepth,
+					G.FriendlyGoalRight.x + G.GoalWallWidth, G.FriendlyGoalRight.y - depth, 0, "OwnGoal_Back", Priorities.GOAL);
 		}
 	} else if (ignoreOppDefense) {
 		path.addLine(G.OpponentGoalLeft.x - gw, G.OpponentGoalLeft.y + gw,
 				G.OpponentGoalLeft.x - gw, G.OpponentGoalLeft.y + G.GoalDepth + gw, gw, "OppGoal_Left", Priorities.GOAL);
 		path.addLine(G.OpponentGoalRight.x + gw, G.OpponentGoalRight.y + gw,
 				G.OpponentGoalRight.x + gw, G.OpponentGoalRight.y + G.GoalDepth + gw, gw, "OppGoal_Right", Priorities.GOAL);
-		path.addLine(G.OpponentGoalLeft.x - gw, G.OpponentGoalLeft.y + G.GoalDepth + gw,
-				G.OpponentGoalRight.x + gw, G.OpponentGoalRight.y + G.GoalDepth + gw, gw, "OppGoal_Center", Priorities.GOAL);
+		path.addRect(G.OpponentGoalLeft.x - G.GoalWallWidth, G.OpponentGoalLeft.y + G.GoalDepth,
+				G.OpponentGoalRight.x + G.GoalWallWidth, G.OpponentGoalRight.y + depth, 0, "OppGoal_Back", Priorities.GOAL);
 	}
 }
 
