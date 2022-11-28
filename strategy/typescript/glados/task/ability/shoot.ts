@@ -217,10 +217,12 @@ export class Shoot {
 		let restingBallSpeed = RESTING_BALL_SPEED + (this._state === ShootState.ChaseBall ? -1 : 1) * RESTING_BALL_SPEED_HYST;
 		let shootVector = targetPos - chaseFutureBall.pos;
 		let angleDiff = chaseFutureBall.speed.absoluteAngleDiff(shootVector);
+
 		let relativeBallPos = World.Ball.pos - this._robot.pos;
 		let sidewardsVector = shootVector.perpendicular().normalized();
 		let sidewardsBallSpeed = Math.abs(World.Ball.speed.dot(sidewardsVector));
 		let chaseBallAngle = CHASE_BALL_ANGLE + (this._state === ShootState.ChaseBall ? 1 : -1) * CHASE_BALL_ANGLE_HYST;
+
 		let sidewardsSpeedLimit = CHASE_BALL_SIDE_SPEED + (this._state === ShootState.ChaseBall ? 1 : -1) * CHASE_BALL_SIDE_SPEED_HYST;
 		const minBallHeight = World.Ball.posZ + chaseBallTime * World.Ball.speedZ - 0.5 * 9.81 * chaseBallTime * chaseBallTime;
 		if (chaseFutureBall.speed.length() > restingBallSpeed
@@ -243,7 +245,8 @@ export class Shoot {
 		}
 
 		// don't redecide if the ball is very close
-		if (this._state !== ShootState.Unknown && futureBallTime < 0.3) {
+		let remainingTime = this._state === ShootState.ChaseBall ? chaseBallTime : futureBallTime;
+		if (this._state !== ShootState.Unknown && remainingTime < 0.3) {
 			return this._state;
 		}
 
