@@ -131,6 +131,16 @@ static void checkEndPosition(const SpeedProfile trajectory, const Vector expecte
         const Vector endPos = trajectory.stateAtTime(time + 1.0f).pos;
         ASSERT_VECTOR_EQ(endPos, expected);
     }
+    {
+        const int steps = 20;
+        const int extraSteps = 10;
+        const int totalSteps = steps + extraSteps;
+        const float timeStep = time / (float)(steps - 1);
+        const auto states = trajectory.trajectoryPositions(totalSteps, timeStep);
+        for (int i = steps; i < totalSteps; i++) {
+            ASSERT_VECTOR_EQ(states[i].pos, expected);
+        }
+    }
 
     const float offset = 1e-6;
     const auto closeToEnd = trajectory.stateAtTime(time - offset);

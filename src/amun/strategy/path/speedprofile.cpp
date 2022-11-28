@@ -235,7 +235,7 @@ void SpeedProfile1D::trajectoryPositions(std::vector<RobotState> &outPoints, std
     }
 
     while (resultCounter < outPoints.size()) {
-        outPoints[resultCounter].pos[outIndex] = offset;
+        outPoints[resultCounter].pos[outIndex] = offset + totalTime * correctionOffsetPerSecond;
         outPoints[resultCounter].speed[outIndex] = profile[counter-1].v;
         resultCounter++;
     }
