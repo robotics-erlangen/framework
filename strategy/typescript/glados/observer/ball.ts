@@ -36,11 +36,27 @@ function _opponentBallDribbler(): Robot | undefined {
 	const slowBall = isSlowBall();
 	let bestRobot: Robot | undefined = undefined;
 	let bestDist = Infinity;
+
+	// returns whether the robot moves toward the future ball position
+	// velocity and whether the robot can actually reach the ball is ignored
+	// the idea is to check whether the velocity vectors of the robot and the ball meet somewhere in the future
+	// meaning they build a valid triangle if vector length is ignored
+	// If they point to the same side of the Robot-to-Ball vector and the sum of the angles to this vector is < 180°
+	// then it is a triangle
+	function checkIfPossibleFutureCollisionWithBall(robot: Robot): boolean {
+		const fromRobotToBall = (World.Ball.pos - robot.pos).normalized();
+		const angleRobotSpeedToBallPos = fromRobotToBall.dot(robot.speed.normalized());
+		const angleBallSpeedToBallRobotPos = (-fromRobotToBall).dot(World.Ball.speed.normalized());
+		const pointToSameSide = angleRobotSpeedToBallPos * angleBallSpeedToBallRobotPos > 0;
+		return pointToSameSide && (Math.acos(angleRobotSpeedToBallPos) + Math.acos(angleBallSpeedToBallRobotPos)) < Math.PI;
+	}
+
 	for (let robot of World.OpponentRobots) {
 		let distance = robot.pos.distanceTo(World.Ball.pos);
 		let direction = Vector.fromAngle(robot.dir);
+
 		if (robot.speed.distanceTo(World.Ball.speed) < MAX_SPEED_DIFF
-				&& (slowBall || robot.speed.angleDiff(World.Ball.speed) < MAX_ANGLE_TO_BALL_SPEED)
+				&& (slowBall || (robot.speed.angleDiff(World.Ball.speed) < MAX_ANGLE_TO_BALL_SPEED) || checkIfPossibleFutureCollisionWithBall(robot))
 				&& distance < MAX_DISTANCE && distance < bestDist
 				&& World.Ball.posZ < 0.1
 				&& direction.absoluteAngleDiff(World.Ball.pos - robot.pos) < MAX_ANGLE_TO_BALL_POS) {
