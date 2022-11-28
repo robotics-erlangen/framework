@@ -32,7 +32,7 @@ local function invertOptionName(name, defaultValue)
 	if defaultValue then
 		return name
 	else
-		return name + INVERTED_OPTION_TAG
+		return name .. INVERTED_OPTION_TAG
 	end
 end
 
@@ -43,7 +43,7 @@ end
  * @param defaultValue The default value of the option
  * @returns The value of the option for the current strategy execution
  *]]
-function Option:addOption(name, defaultValue)
+function Option.addOption(name, defaultValue)
 	options[name] = defaultValue
 
 	if not isFirstExecution then
@@ -52,7 +52,7 @@ function Option:addOption(name, defaultValue)
 
 	local selectedOptions = getSelectedOptions()
 	if not supportsDefaultValues and defaultValue == false then
-		name = invertOptionName(name, defaultValue);
+		name = invertOptionName(name, defaultValue)
 		local exists = false
 		for _,option in ipairs(selectedOptions) do
 			if option == name then
@@ -80,8 +80,10 @@ function Option:getExportedOptions()
 		return options
 	else
 		local simpleOptions = {}
-		for name,defaultValue in ipairs(options) do
-			simpleOptions.push(invertOptionName(name, defaultValue))
+		local i = 1;
+		for name,defaultValue in pairs(options) do
+			simpleOptions[i] = invertOptionName(name, defaultValue)
+			i = i + 1
 		end
 		return simpleOptions
 	end
