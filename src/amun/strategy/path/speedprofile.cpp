@@ -191,19 +191,19 @@ std::pair<float, float> SpeedProfile1D::offsetAndSpeedForTime(float time, float 
 {
     AccelerationProfile acceleration(profile[counter-1].t, slowDownTime);
 
-    float offset = s0 + time * correctionOffsetPerSecond;
+    float offset = s0;
     float totalTime = 0;
     for (unsigned int i = 0;i<counter-1;i++) {
         const auto precomputation = acceleration.precomputeSegment(profile[i], profile[i+1]);
         const float segmentTime = acceleration.timeForSegment(profile[i], profile[i+1], precomputation);
         if (totalTime + segmentTime > time) {
             const auto inf = acceleration.partialSegmentOffsetAndSpeed(profile[i], profile[i+1], precomputation, totalTime, time);
-            return {offset + inf.first, inf.second};
+            return {offset + time * correctionOffsetPerSecond + inf.first, inf.second};
         }
         offset += acceleration.segmentOffset(profile[i], profile[i+1], precomputation);
         totalTime += segmentTime;
     }
-    return {offset, profile[counter-1].v};
+    return {offset + totalTime * correctionOffsetPerSecond, profile[counter-1].v};
 }
 
 template<typename AccelerationProfile>

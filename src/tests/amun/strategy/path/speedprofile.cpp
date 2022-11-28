@@ -117,14 +117,24 @@ static void checkBoundingBox(SpeedProfile trajectory) {
     ASSERT_LE(std::abs(fromPoints.bottom - direct.bottom), 0.01f);
 }
 
-static void checkEndPosition(SpeedProfile trajectory, Vector expected) {
-    const Vector endPos = trajectory.endPosition();
-    ASSERT_VECTOR_EQ(endPos, expected);
+static void checkEndPosition(const SpeedProfile trajectory, const Vector expected) {
+    const float time = trajectory.time();
+    {
+        const Vector endPos = trajectory.endPosition();
+        ASSERT_VECTOR_EQ(endPos, expected);
+    }
+    {
+        const Vector endPos = trajectory.stateAtTime(time).pos;
+        ASSERT_VECTOR_EQ(endPos, expected);
+    }
+    {
+        const Vector endPos = trajectory.stateAtTime(time + 1.0f).pos;
+        ASSERT_VECTOR_EQ(endPos, expected);
+    }
 
     const float offset = 1e-6;
-    const float time = trajectory.time();
     const auto closeToEnd = trajectory.stateAtTime(time - offset);
-    ASSERT_LE(closeToEnd.pos.distance(expected - closeToEnd.speed * offset), 0.001);
+    ASSERT_VECTOR_EQ(closeToEnd.pos, expected - closeToEnd.speed * offset);
 }
 
 static void checkLimitToTime(const SpeedProfile profile, RNG &rng) {
