@@ -217,7 +217,7 @@ export class PlaceBall extends Task {
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
 
 		// Extend field boundary so that the robot can pull the ball to the field from further out
-		const extraBorder = 0.1;
+		const extraBorder = World.Geometry.BoundaryWidth + 0.1;
 		this._robot.path.setBoundary(
 			-(World.Geometry.FieldWidthHalf + extraBorder),
 			-(World.Geometry.FieldHeightHalf + extraBorder),
