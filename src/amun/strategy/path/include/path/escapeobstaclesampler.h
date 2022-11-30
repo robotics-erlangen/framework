@@ -41,7 +41,7 @@ private:
         bool endsSafely = false; // if the trajectory ends in a safe point
         float escapeTime = 0; // the point in time where the trajectory is safe to leave
 
-        bool isBetterThan(const TrajectoryRating &other);
+        bool isBetterThan(const TrajectoryRating &other) const;
     };
     TrajectoryRating rateEscapingTrajectory(const TrajectoryInput &input, const SpeedProfile &speedProfile) const;
 

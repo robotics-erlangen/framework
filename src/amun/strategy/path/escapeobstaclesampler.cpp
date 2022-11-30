@@ -21,7 +21,7 @@
 #include "escapeobstaclesampler.h"
 #include "core/rng.h"
 
-bool EscapeObstacleSampler::TrajectoryRating::isBetterThan(const TrajectoryRating &other)
+bool EscapeObstacleSampler::TrajectoryRating::isBetterThan(const TrajectoryRating &other) const
 {
     if (endsSafely && !other.endsSafely) {
         return true;
@@ -41,67 +41,67 @@ bool EscapeObstacleSampler::TrajectoryRating::isBetterThan(const TrajectoryRatin
 
 bool EscapeObstacleSampler::compute(const TrajectoryInput &input)
 {
-    // first stage: find a path that quickly exists all obstacles
-    // the second stage is executed by the regular standard sampler
-    {
-        // try last frames trajectory
-        SpeedProfile bestProfile = AlphaTimeTrajectory::calculateTrajectory(input.start, Vector(0, 0), m_bestEscapingTime, m_bestEscapingAngle,
-                                                                            input.acceleration, input.maxSpeed, 0, false);
-        auto bestRating = rateEscapingTrajectory(input, bestProfile);
+    // objective: find a path that quickly exists all obstacles
+    // driving to the goal is then executed by the regular standard sampler
 
-        // the last trajectory (bestProfile) could stop directly in front of a new obstacle (optimized to minimize the
-        // travel time in the current obstacle).
-        // But since the robot moved in the 10 ms since the last frame, the last trajectory might have been pushed into the
-        // new obstacle, invaldiating it.
-        // Therefore, just check with a few time offsets (more than just 0.01 in case of varying pathfinding call frequency)
-        for (float timeOffset : {0.01f, 0.02f, 0.05f}) {
-            if (m_bestEscapingTime < timeOffset) {
-                continue;
-            }
-            SpeedProfile profile = AlphaTimeTrajectory::calculateTrajectory(input.start, Vector(0, 0), m_bestEscapingTime - timeOffset, m_bestEscapingAngle,
-                                                                            input.acceleration, input.maxSpeed, 0, false);
-            auto rating = rateEscapingTrajectory(input, profile);
-            if (rating.isBetterThan(bestRating)) {
-                bestRating = rating;
-                bestProfile = profile;
-                m_bestEscapingTime -= timeOffset;
-            }
+    // try last frames trajectory
+    SpeedProfile bestProfile = AlphaTimeTrajectory::calculateTrajectory(input.start, Vector(0, 0), m_bestEscapingTime, m_bestEscapingAngle,
+                                                                        input.acceleration, input.maxSpeed, 0, false);
+    auto bestRating = rateEscapingTrajectory(input, bestProfile);
+
+    // the last trajectory (bestProfile) could stop directly in front of a new obstacle (optimized to minimize the
+    // travel time in the current obstacle).
+    // But since the robot moved in the 10 ms since the last frame, the last trajectory might have been pushed into the
+    // new obstacle, invaldiating it.
+    // Therefore, just check with a few time offsets (more than just 0.01 in case of varying pathfinding call frequency)
+    for (float timeOffset : {0.01f, 0.02f, 0.05f}) {
+        const float testTime = m_bestEscapingTime - timeOffset;
+        if (testTime < 0) {
+            continue;
         }
-
-        for (int i = 0;i<25;i++) {
-            float time, angle;
-            if (m_rng->uniformInt() % 2 == 0) {
-                // random sampling
-                if (!bestRating.endsSafely) {
-                    time = m_rng->uniformFloat(0.001f, 6.0f);
-                } else {
-                    time = m_rng->uniformFloat(0.001f, 2.0f);
-                }
-                angle = m_rng->uniformFloat(0, float(2 * M_PI));
-            } else {
-                // sample around current best point
-                time = std::max(0.001f, m_bestEscapingTime + m_rng->uniformFloat(-0.1f, 0.1f));
-                angle = m_bestEscapingAngle + m_rng->uniformFloat(-0.1f, 0.1f);
-            }
-
-            SpeedProfile profile = AlphaTimeTrajectory::calculateTrajectory(input.start, Vector(0, 0), time, angle, input.acceleration, input.maxSpeed, 0, false);
-            auto rating = rateEscapingTrajectory(input, profile);
-            if (rating.isBetterThan(bestRating)) {
-                bestRating = rating;
-                bestProfile = profile;
-                m_bestEscapingTime = time;
-                m_bestEscapingAngle = angle;
-            }
+        const SpeedProfile profile = AlphaTimeTrajectory::calculateTrajectory(input.start, Vector(0, 0), testTime, m_bestEscapingAngle,
+                                                                              input.acceleration, input.maxSpeed, 0, false);
+        const auto rating = rateEscapingTrajectory(input, profile);
+        if (rating.isBetterThan(bestRating)) {
+            bestRating = rating;
+            bestProfile = profile;
+            m_bestEscapingTime = testTime;
         }
-        m_maxIntersectingObstaclePrio = bestRating.maxPrio;
-
-        m_result.clear();
-        if (!bestRating.endsSafely) {
-            return false;
-        }
-        bestProfile.limitToTime(bestRating.escapeTime);
-        m_result.push_back(bestProfile);
     }
+
+    for (int i = 0;i<25;i++) {
+        float time, angle;
+        if (m_rng->uniformInt() % 2 == 0) {
+            // random sampling
+            if (!bestRating.endsSafely) {
+                time = m_rng->uniformFloat(0.001f, 6.0f);
+            } else {
+                time = m_rng->uniformFloat(0.001f, 2.0f);
+            }
+            angle = m_rng->uniformFloat(0, float(2 * M_PI));
+        } else {
+            // sample around current best point
+            time = std::max(0.001f, m_bestEscapingTime + m_rng->uniformFloat(-0.1f, 0.1f));
+            angle = m_bestEscapingAngle + m_rng->uniformFloat(-0.1f, 0.1f);
+        }
+
+        const SpeedProfile profile = AlphaTimeTrajectory::calculateTrajectory(input.start, Vector(0, 0), time, angle, input.acceleration, input.maxSpeed, 0, false);
+        const auto rating = rateEscapingTrajectory(input, profile);
+        if (rating.isBetterThan(bestRating)) {
+            bestRating = rating;
+            bestProfile = profile;
+            m_bestEscapingTime = time;
+            m_bestEscapingAngle = angle;
+        }
+    }
+    m_maxIntersectingObstaclePrio = bestRating.maxPrio;
+
+    m_result.clear();
+    if (!bestRating.endsSafely) {
+        return false;
+    }
+    bestProfile.limitToTime(bestRating.escapeTime);
+    m_result.push_back(bestProfile);
     return true;
 }
 
@@ -118,14 +118,14 @@ auto EscapeObstacleSampler::rateEscapingTrajectory(const TrajectoryInput &input,
     const float SAMPLING_INTERVAL = 0.03f;
 
     const float totalTime = speedProfile.time();
-    int samples = int(totalTime / SAMPLING_INTERVAL) + 1;
+    const int samples = int(totalTime / SAMPLING_INTERVAL) + 1;
 
     TrajectoryRating result;
 
     int goodSamples = 0;
     float fineTime = totalTime;
     for (int i = 0;i<samples;i++) {
-        float time = i * SAMPLING_INTERVAL;
+        const float time = i * SAMPLING_INTERVAL;
 
         const auto state = speedProfile.stateAtTime(time);
         int obstaclePriority = -1;
@@ -134,7 +134,7 @@ auto EscapeObstacleSampler::rateEscapingTrajectory(const TrajectoryInput &input,
         }
         for (const auto obstacle : m_world.obstacles()) {
             if (obstacle->prio > obstaclePriority) {
-                float distance = obstacle->distance(state.pos);
+                const float distance = obstacle->distance(state.pos);
                 if (result.maxPrio == -1) {
                     // when the trajectory does not intersect any obstacles, we want to stay as far away as possible from them
                     result.maxPrioTime = std::min(result.maxPrioTime, distance);
@@ -151,7 +151,7 @@ auto EscapeObstacleSampler::rateEscapingTrajectory(const TrajectoryInput &input,
         }
         if (obstaclePriority == -1) {
             goodSamples++;
-            float boundaryTime = result.maxPrio >= 0 ? OUT_OF_OBSTACLE_TIME : LONG_OUF_OF_OBSTACLE_TIME;
+            const float boundaryTime = result.maxPrio >= 0 ? OUT_OF_OBSTACLE_TIME : LONG_OUF_OF_OBSTACLE_TIME;
             if (goodSamples > boundaryTime * (1.0f / SAMPLING_INTERVAL) && fineTime == totalTime) {
                 fineTime = time;
             }
