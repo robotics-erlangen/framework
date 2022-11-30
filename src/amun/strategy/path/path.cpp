@@ -26,7 +26,7 @@
 #include <sys/time.h>
 #include <QDebug>
 
-using namespace StaticObstacles;
+using namespace Obstacles;
 
 /*!
  * \class Path
@@ -115,9 +115,9 @@ Vector Path::evalSpline(const robot::Spline &spline, float t) const
 }
 
 //! @brief calculate how far we are standing in the (multiple) obstacles
-float Path::calculateObstacleCoverage(const Vector &v, const QVector<const Obstacle*> &obstacles, float robotRadius) const {
+float Path::calculateObstacleCoverage(const Vector &v, const QVector<const StaticObstacle*> &obstacles, float robotRadius) const {
     float d_sum = 0;
-    for (QVector<const Obstacle*>::const_iterator it = obstacles.constBegin();
+    for (QVector<const StaticObstacle*>::const_iterator it = obstacles.constBegin();
                 it != obstacles.constEnd(); ++it) {
         float d = (*it)->distance(v) - robotRadius;
         if (d < 0) {
@@ -127,7 +127,7 @@ float Path::calculateObstacleCoverage(const Vector &v, const QVector<const Obsta
     return d_sum;
 }
 
-bool Path::checkMovementRelativeToObstacles(const LineSegment &segment, const QVector<const Obstacle*> &obstacles, float radius) const {
+bool Path::checkMovementRelativeToObstacles(const LineSegment &segment, const QVector<const StaticObstacle*> &obstacles, float radius) const {
     Vector p = segment.start();
     Vector step = segment.end() - segment.start();
     const float l = step.length();
@@ -143,15 +143,15 @@ bool Path::checkMovementRelativeToObstacles(const LineSegment &segment, const QV
     }
 
     // split obstacle lists, the amount of start obstacles is decreasing for each tree
-    QVector<const Obstacle *> startObstacles;
-    QVector<const Obstacle *> otherObstacles;
+    QVector<const StaticObstacle *> startObstacles;
+    QVector<const StaticObstacle *> otherObstacles;
     int maxObstaclePrio = -1;
 
     {
-    QVarLengthArray<const Obstacle *, 100> tmpObstacles;
+    QVarLengthArray<const StaticObstacle *, 100> tmpObstacles;
     tmpObstacles.reserve(obstacles.size() - 1);
     // allow moving from an obstacle with high prio into one with lower prio
-    foreach (const Obstacle *o, obstacles) {
+    foreach (const StaticObstacle *o, obstacles) {
         if (o->distance(p) < radius) {
             if (o->prio > maxObstaclePrio) {
                 startObstacles.clear();
@@ -163,7 +163,7 @@ bool Path::checkMovementRelativeToObstacles(const LineSegment &segment, const QV
         }
     }
     otherObstacles.reserve(tmpObstacles.size());
-    for (const Obstacle *o: tmpObstacles) {
+    for (const StaticObstacle *o: tmpObstacles) {
         if (o->prio >= maxObstaclePrio) {
             otherObstacles.append(o);
         }
@@ -542,11 +542,11 @@ const KdTree::Node * Path::extend(KdTree *tree, const KdTree::Node *fromNode, co
     return tree->insert(extended, newInObstacle, fromNode);
 }
 
-bool Path::test(const Vector &v, float radius, const QVector<const Obstacle*> &obstacles) const {
+bool Path::test(const Vector &v, float radius, const QVector<const StaticObstacle*> &obstacles) const {
     if (!m_world.pointInPlayfield(v, radius)) {
         return false;
     }
-    for(QVector<const Obstacle*>::const_iterator it = obstacles.constBegin();
+    for(QVector<const StaticObstacle*>::const_iterator it = obstacles.constBegin();
                 it != obstacles.constEnd(); ++it) {
         if ((*it)->distance(v) < radius) {
             return false;
@@ -556,9 +556,9 @@ bool Path::test(const Vector &v, float radius, const QVector<const Obstacle*> &o
     return true;
 }
 
-bool Path::test(const LineSegment &segment, float radius, const QVector<const Obstacle*> &obstacles) const
+bool Path::test(const LineSegment &segment, float radius, const QVector<const StaticObstacle*> &obstacles) const
 {
-    for (QVector<const Obstacle*>::const_iterator it = obstacles.constBegin();
+    for (QVector<const StaticObstacle*>::const_iterator it = obstacles.constBegin();
                 it != obstacles.constEnd(); ++it) {
         if ((*it)->distance(segment) < radius) {
             return false;

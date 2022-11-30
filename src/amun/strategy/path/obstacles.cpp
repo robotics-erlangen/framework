@@ -37,28 +37,27 @@ static Vector deserializeVector(const pathfinding::Vector &v)
     return result;
 }
 
-StaticObstacles::Obstacle::Obstacle(const pathfinding::Obstacle &obstacle)
+Obstacles::StaticObstacle::StaticObstacle(const pathfinding::Obstacle &obstacle) :
+    Obstacle(obstacle)
 {
     if (obstacle.has_name()) {
         name = QByteArray::fromStdString(obstacle.name());
     }
-    prio = obstacle.has_prio() ? obstacle.prio() : 0;
-    radius = obstacle.has_radius() ? obstacle.radius() : 0;
 }
 
 
 // static obstacles
-StaticObstacles::Circle::Circle(const pathfinding::Obstacle &obstacle, const pathfinding::CircleObstacle &circle) :
-    Obstacle(obstacle),
+Obstacles::Circle::Circle(const pathfinding::Obstacle &obstacle, const pathfinding::CircleObstacle &circle) :
+    StaticObstacle(obstacle),
     center(deserializeVector(circle.center()))
 { }
 
-float StaticObstacles::Circle::distance(const Vector &v) const
+float Obstacles::Circle::distance(const Vector &v) const
 {
     return v.distance(center) - radius;
 }
 
-float StaticObstacles::Circle::distance(const LineSegment &segment) const
+float Obstacles::Circle::distance(const LineSegment &segment) const
 {
     return segment.distance(center) - radius;
 }
@@ -71,12 +70,12 @@ inline static float computeZonedIntersection(float distSq, float radius, float n
     return 10000.0f;
 }
 
-float StaticObstacles::Circle::zonedDistance(const Vector &v, float nearRadius) const
+float Obstacles::Circle::zonedDistance(const Vector &v, float nearRadius) const
 {
     return computeZonedIntersection(v.distanceSq(center), radius, nearRadius);
 }
 
-Vector StaticObstacles::Circle::projectOut(Vector v, float extraDistance) const
+Vector Obstacles::Circle::projectOut(Vector v, float extraDistance) const
 {
     const float dist = v.distance(center);
     if (dist >= radius) {
@@ -95,37 +94,37 @@ Vector StaticObstacles::Circle::projectOut(Vector v, float extraDistance) const
     return center + (v - center) * (totalProjectRadius / dist);
 }
 
-BoundingBox StaticObstacles::Circle::boundingBox() const
+BoundingBox Obstacles::Circle::boundingBox() const
 {
     return BoundingBox(center - Vector(radius, radius), center + Vector(radius, radius));
 }
 
-void StaticObstacles::Circle::serializeChild(pathfinding::Obstacle *obstacle) const
+void Obstacles::Circle::serializeChild(pathfinding::Obstacle *obstacle) const
 {
     setVector(center, obstacle->mutable_circle()->mutable_center());
 }
 
-StaticObstacles::Line::Line(const pathfinding::Obstacle &obstacle, const pathfinding::LineObstacle &line) :
-    Obstacle(obstacle),
+Obstacles::Line::Line(const pathfinding::Obstacle &obstacle, const pathfinding::LineObstacle &line) :
+    StaticObstacle(obstacle),
     segment(deserializeVector(line.start()), deserializeVector(line.end()))
 { }
 
-float StaticObstacles::Line::distance(const Vector &v) const
+float Obstacles::Line::distance(const Vector &v) const
 {
     return segment.distance(v) - radius;
 }
 
-float StaticObstacles::Line::zonedDistance(const Vector &v, float nearRadius) const
+float Obstacles::Line::zonedDistance(const Vector &v, float nearRadius) const
 {
     return computeZonedIntersection(segment.distanceSq(v), radius, nearRadius);
 }
 
-float StaticObstacles::Line::distance(const LineSegment &segment) const
+float Obstacles::Line::distance(const LineSegment &segment) const
 {
     return segment.distance(this->segment) - radius;
 }
 
-Vector StaticObstacles::Line::projectOut(Vector v, float extraDistance) const
+Vector Obstacles::Line::projectOut(Vector v, float extraDistance) const
 {
     const float dist = segment.distance(v);
     if (dist >= radius) {
@@ -139,7 +138,7 @@ Vector StaticObstacles::Line::projectOut(Vector v, float extraDistance) const
     return closest + (v - closest) * (totalProjectRadius / dist);
 }
 
-BoundingBox StaticObstacles::Line::boundingBox() const
+BoundingBox Obstacles::Line::boundingBox() const
 {
     BoundingBox b(segment.start() - Vector(radius, radius), segment.start() +  Vector(radius, radius));
     b.mergePoint(segment.end() - Vector(radius, radius));
@@ -147,21 +146,21 @@ BoundingBox StaticObstacles::Line::boundingBox() const
     return b;
 }
 
-void StaticObstacles::Line::serializeChild(pathfinding::Obstacle *obstacle) const
+void Obstacles::Line::serializeChild(pathfinding::Obstacle *obstacle) const
 {
     auto line = obstacle->mutable_line();
     setVector(segment.start(), line->mutable_start());
     setVector(segment.end(), line->mutable_end());
 }
 
-StaticObstacles::Rect::Rect() :
-    Obstacle(nullptr, 0, 0),
+Obstacles::Rect::Rect() :
+    StaticObstacle(nullptr, 0, 0),
     bottomLeft(Vector(0, 0)),
     topRight(Vector(0, 0))
 { }
 
-StaticObstacles::Rect::Rect(const char* name, int prio, float x1, float y1, float x2, float y2, float radius) :
-    Obstacle(name, prio, radius)
+Obstacles::Rect::Rect(const char* name, int prio, float x1, float y1, float x2, float y2, float radius) :
+    StaticObstacle(name, prio, radius)
 {
     bottomLeft.x = std::min(x1, x2);
     bottomLeft.y = std::min(y1, y2);
@@ -169,13 +168,13 @@ StaticObstacles::Rect::Rect(const char* name, int prio, float x1, float y1, floa
     topRight.y = std::max(y1, y2);
 }
 
-StaticObstacles::Rect::Rect(const pathfinding::Obstacle &obstacle, const pathfinding::RectObstacle &rect) :
-    Obstacle(obstacle),
+Obstacles::Rect::Rect(const pathfinding::Obstacle &obstacle, const pathfinding::RectObstacle &rect) :
+    StaticObstacle(obstacle),
     bottomLeft(deserializeVector(rect.bottom_left())),
     topRight(deserializeVector(rect.top_right()))
 { }
 
-float StaticObstacles::Rect::distance(const Vector &v) const
+float Obstacles::Rect::distance(const Vector &v) const
 {
     float distX = std::max(bottomLeft.x - v.x, v.x - topRight.x);
     float distY = std::max(bottomLeft.y - v.y, v.y - topRight.y);
@@ -191,7 +190,7 @@ float StaticObstacles::Rect::distance(const Vector &v) const
     }
 }
 
-float StaticObstacles::Rect::zonedDistance(const Vector &v, float nearRadius) const
+float Obstacles::Rect::zonedDistance(const Vector &v, float nearRadius) const
 {
     float distX = std::max(bottomLeft.x - v.x, v.x - topRight.x);
     float distY = std::max(bottomLeft.y - v.y, v.y - topRight.y);
@@ -207,7 +206,7 @@ float StaticObstacles::Rect::zonedDistance(const Vector &v, float nearRadius) co
     }
 }
 
-Vector StaticObstacles::Rect::projectOut(Vector v, float extraDistance) const
+Vector Obstacles::Rect::projectOut(Vector v, float extraDistance) const
 {
     if (distance(v) > radius) {
         return v;
@@ -240,7 +239,7 @@ Vector StaticObstacles::Rect::projectOut(Vector v, float extraDistance) const
     }
 }
 
-float StaticObstacles::Rect::distance(const LineSegment &segment) const
+float Obstacles::Rect::distance(const LineSegment &segment) const
 {
     // check if end is inside the rectangle
     if (segment.end().x >= bottomLeft.x && segment.end().x <= topRight.x
@@ -264,20 +263,20 @@ float StaticObstacles::Rect::distance(const LineSegment &segment) const
     return std::min(std::min(distTop, distBottom), std::min(distLeft, distRight)) - radius;
 }
 
-BoundingBox StaticObstacles::Rect::boundingBox() const
+BoundingBox Obstacles::Rect::boundingBox() const
 {
     return BoundingBox(bottomLeft - Vector(radius, radius), topRight +  Vector(radius, radius));
 }
 
-void StaticObstacles::Rect::serializeChild(pathfinding::Obstacle *obstacle) const
+void Obstacles::Rect::serializeChild(pathfinding::Obstacle *obstacle) const
 {
     auto rect = obstacle->mutable_rectangle();
     setVector(topRight, rect->mutable_top_right());
     setVector(bottomLeft, rect->mutable_bottom_left());
 }
 
-StaticObstacles::Triangle::Triangle(const char *name, int prio, float radius, Vector a, Vector b, Vector c) :
-    Obstacle(name, prio, radius)
+Obstacles::Triangle::Triangle(const char *name, int prio, float radius, Vector a, Vector b, Vector c) :
+    StaticObstacle(name, prio, radius)
 {
     // ensure that the triangle is oriented counter-clockwise
     const float det = Vector::det(a, b, c);
@@ -292,14 +291,14 @@ StaticObstacles::Triangle::Triangle(const char *name, int prio, float radius, Ve
     }
 }
 
-StaticObstacles::Triangle::Triangle(const pathfinding::Obstacle &obstacle, const pathfinding::TriangleObstacle &tri) :
-    Obstacle(obstacle),
+Obstacles::Triangle::Triangle(const pathfinding::Obstacle &obstacle, const pathfinding::TriangleObstacle &tri) :
+    StaticObstacle(obstacle),
     p1(deserializeVector(tri.p1())),
     p2(deserializeVector(tri.p2())),
     p3(deserializeVector(tri.p3()))
 { }
 
-float StaticObstacles::Triangle::distance(const Vector &v) const
+float Obstacles::Triangle::distance(const Vector &v) const
 {
     // positive det == left, negative det == right
     const float det1 = Vector::det(p2, p3, v) / p2.distance(p3);
@@ -326,12 +325,12 @@ float StaticObstacles::Triangle::distance(const Vector &v) const
     return distance - radius;
 }
 
-float StaticObstacles::Triangle::zonedDistance(const Vector &v, float) const
+float Obstacles::Triangle::zonedDistance(const Vector &v, float) const
 {
     return distance(v);
 }
 
-float StaticObstacles::Triangle::distance(const LineSegment &segment) const
+float Obstacles::Triangle::distance(const LineSegment &segment) const
 {
     // at least one segment intersects a triangle side
     const LineSegment seg1(p1, p2);
@@ -355,7 +354,7 @@ float StaticObstacles::Triangle::distance(const LineSegment &segment) const
     return std::max(std::min(dseg1, std::min(dseg2, dseg3)) - radius, 0.f);
 }
 
-BoundingBox StaticObstacles::Triangle::boundingBox() const
+BoundingBox Obstacles::Triangle::boundingBox() const
 {
     BoundingBox b(p1 - Vector(radius, radius), p1 +  Vector(radius, radius));
     b.mergePoint(p2 - Vector(radius, radius));
@@ -365,7 +364,7 @@ BoundingBox StaticObstacles::Triangle::boundingBox() const
     return b;
 }
 
-void StaticObstacles::Triangle::serializeChild(pathfinding::Obstacle *obstacle) const
+void Obstacles::Triangle::serializeChild(pathfinding::Obstacle *obstacle) const
 {
     auto tri = obstacle->mutable_triangle();
     setVector(p1, tri->mutable_p1());
@@ -377,8 +376,8 @@ void StaticObstacles::Triangle::serializeChild(pathfinding::Obstacle *obstacle) 
 
 // moving obstacles
 
-MovingObstacles::MovingCircle::MovingCircle(int prio, float radius, Vector start, Vector speed, Vector acc, float t0, float t1) :
-    MovingObstacle(prio, radius),
+Obstacles::MovingCircle::MovingCircle(int prio, float radius, Vector start, Vector speed, Vector acc, float t0, float t1) :
+    Obstacle(prio, radius),
     startPos(start),
     speed(speed),
     acc(acc),
@@ -386,8 +385,8 @@ MovingObstacles::MovingCircle::MovingCircle(int prio, float radius, Vector start
     endTime(t1)
 { }
 
-MovingObstacles::MovingCircle::MovingCircle(const pathfinding::Obstacle &obstacle, const pathfinding::MovingCircleObstacle &circle) :
-    MovingObstacle(obstacle),
+Obstacles::MovingCircle::MovingCircle(const pathfinding::Obstacle &obstacle, const pathfinding::MovingCircleObstacle &circle) :
+    Obstacle(obstacle),
     startPos(deserializeVector(circle.start_pos())),
     speed(deserializeVector(circle.speed())),
     acc(deserializeVector(circle.acc())),
@@ -395,7 +394,7 @@ MovingObstacles::MovingCircle::MovingCircle(const pathfinding::Obstacle &obstacl
     endTime(circle.end_time())
 { }
 
-bool MovingObstacles::MovingCircle::intersects(const TrajectoryPoint &point) const
+bool Obstacles::MovingCircle::intersects(const TrajectoryPoint &point) const
 {
     if (point.time < startTime || point.time > endTime) {
         return false;
@@ -405,7 +404,7 @@ bool MovingObstacles::MovingCircle::intersects(const TrajectoryPoint &point) con
     return centerAtTime.distanceSq(point.state.pos) < radius * radius;
 }
 
-float MovingObstacles::MovingCircle::distance(const TrajectoryPoint &point) const
+float Obstacles::MovingCircle::distance(const TrajectoryPoint &point) const
 {
     if (point.time < startTime || point.time > endTime) {
         return std::numeric_limits<float>::max();
@@ -415,7 +414,7 @@ float MovingObstacles::MovingCircle::distance(const TrajectoryPoint &point) cons
     return centerAtTime.distance(point.state.pos) - radius;
 }
 
-float MovingObstacles::MovingCircle::zonedDistance(const TrajectoryPoint &point, float nearRadius) const
+float Obstacles::MovingCircle::zonedDistance(const TrajectoryPoint &point, float nearRadius) const
 {
     if (point.time < startTime || point.time > endTime) {
         return 10000.0f;
@@ -441,7 +440,7 @@ static std::pair<float, float> range1D(float p0, float speed, float acc, float s
     return {std::min(p0, endPos), std::max(p0, endPos)};
 }
 
-BoundingBox MovingObstacles::MovingCircle::boundingBox() const
+BoundingBox Obstacles::MovingCircle::boundingBox() const
 {
     auto xRange = range1D(startPos.x, speed.x, acc.x, startTime, endTime);
     auto yRange = range1D(startPos.y, speed.y, acc.y, startTime, endTime);
@@ -450,7 +449,7 @@ BoundingBox MovingObstacles::MovingCircle::boundingBox() const
     return result;
 }
 
-void MovingObstacles::MovingCircle::serializeChild(pathfinding::Obstacle *obstacle) const
+void Obstacles::MovingCircle::serializeChild(pathfinding::Obstacle *obstacle) const
 {
     auto circle = obstacle->mutable_moving_circle();
     setVector(startPos, circle->mutable_start_pos());
@@ -460,9 +459,9 @@ void MovingObstacles::MovingCircle::serializeChild(pathfinding::Obstacle *obstac
     circle->set_end_time(endTime);
 }
 
-MovingObstacles::MovingLine::MovingLine(int prio, float radius, Vector start1, Vector speed1, Vector acc1,
+Obstacles::MovingLine::MovingLine(int prio, float radius, Vector start1, Vector speed1, Vector acc1,
            Vector start2, Vector speed2, Vector acc2, float t0, float t1) :
-    MovingObstacle(prio, radius),
+    Obstacle(prio, radius),
     startPos1(start1),
     speed1(speed1),
     acc1(acc1),
@@ -473,8 +472,8 @@ MovingObstacles::MovingLine::MovingLine(int prio, float radius, Vector start1, V
     endTime(t1)
 { }
 
-MovingObstacles::MovingLine::MovingLine(const pathfinding::Obstacle &obstacle, const pathfinding::MovingLineObstacle &line) :
-    MovingObstacle(obstacle),
+Obstacles::MovingLine::MovingLine(const pathfinding::Obstacle &obstacle, const pathfinding::MovingLineObstacle &line) :
+    Obstacle(obstacle),
     startPos1(deserializeVector(line.start_pos1())),
     speed1(deserializeVector(line.speed1())),
     acc1(deserializeVector(line.acc1())),
@@ -485,7 +484,7 @@ MovingObstacles::MovingLine::MovingLine(const pathfinding::Obstacle &obstacle, c
     endTime(line.end_time())
 { }
 
-bool MovingObstacles::MovingLine::intersects(const TrajectoryPoint &point) const
+bool Obstacles::MovingLine::intersects(const TrajectoryPoint &point) const
 {
     if (point.time < startTime || point.time > endTime) {
         return false;
@@ -496,7 +495,7 @@ bool MovingObstacles::MovingLine::intersects(const TrajectoryPoint &point) const
     return LineSegment(p1, p2).distanceSq(point.state.pos) < radius * radius;
 }
 
-float MovingObstacles::MovingLine::distance(const TrajectoryPoint &point) const
+float Obstacles::MovingLine::distance(const TrajectoryPoint &point) const
 {
     if (point.time < startTime || point.time > endTime) {
         return std::numeric_limits<float>::max();
@@ -511,7 +510,7 @@ float MovingObstacles::MovingLine::distance(const TrajectoryPoint &point) const
     return LineSegment(p1, p2).distance(point.state.pos) - radius;
 }
 
-float MovingObstacles::MovingLine::zonedDistance(const TrajectoryPoint &point, float nearRadius) const
+float Obstacles::MovingLine::zonedDistance(const TrajectoryPoint &point, float nearRadius) const
 {
     if (point.time < startTime || point.time > endTime) {
         return 10000.0f;
@@ -526,7 +525,7 @@ float MovingObstacles::MovingLine::zonedDistance(const TrajectoryPoint &point, f
     return computeZonedIntersection(LineSegment(p1, p2).distanceSq(point.state.pos), radius, nearRadius);
 }
 
-BoundingBox MovingObstacles::MovingLine::boundingBox() const
+BoundingBox Obstacles::MovingLine::boundingBox() const
 {
     auto xRange1 = range1D(startPos1.x, speed1.x, acc1.x, startTime, endTime);
     auto yRange1 = range1D(startPos1.y, speed1.y, acc1.y, startTime, endTime);
@@ -539,7 +538,7 @@ BoundingBox MovingObstacles::MovingLine::boundingBox() const
     return result;
 }
 
-void MovingObstacles::MovingLine::serializeChild(pathfinding::Obstacle *obstacle) const
+void Obstacles::MovingLine::serializeChild(pathfinding::Obstacle *obstacle) const
 {
     auto circle = obstacle->mutable_moving_circle();
     setVector(startPos1, circle->mutable_start_pos());
@@ -552,13 +551,13 @@ void MovingObstacles::MovingLine::serializeChild(pathfinding::Obstacle *obstacle
     circle->set_end_time(endTime);
 }
 
-MovingObstacles::FriendlyRobotObstacle::FriendlyRobotObstacle() :
-    MovingObstacle(0, 0),
+Obstacles::FriendlyRobotObstacle::FriendlyRobotObstacle() :
+    Obstacle(0, 0),
     bound(Vector(0, 0), Vector(0, 0))
 { }
 
-MovingObstacles::FriendlyRobotObstacle::FriendlyRobotObstacle(std::vector<TrajectoryPoint> *trajectory, float radius, int prio) :
-    MovingObstacle(prio, radius),
+Obstacles::FriendlyRobotObstacle::FriendlyRobotObstacle(std::vector<TrajectoryPoint> *trajectory, float radius, int prio) :
+    Obstacle(prio, radius),
     trajectory(trajectory),
     bound(trajectory->at(0).state.pos, trajectory->at(1).state.pos)
 {
@@ -569,8 +568,8 @@ MovingObstacles::FriendlyRobotObstacle::FriendlyRobotObstacle(std::vector<Trajec
     bound.addExtraRadius(radius);
 }
 
-MovingObstacles::FriendlyRobotObstacle::FriendlyRobotObstacle(const pathfinding::Obstacle &obstacle, const pathfinding::FriendlyRobotObstacle &robot) :
-    MovingObstacle(obstacle),
+Obstacles::FriendlyRobotObstacle::FriendlyRobotObstacle(const pathfinding::Obstacle &obstacle, const pathfinding::FriendlyRobotObstacle &robot) :
+    Obstacle(obstacle),
     bound(Vector(1000, 1000), Vector(1000, 1000)) // outside of the field
 {
     for (const pathfinding::TrajectoryPoint &point : robot.robot_trajectory()) {
@@ -592,8 +591,8 @@ MovingObstacles::FriendlyRobotObstacle::FriendlyRobotObstacle(const pathfinding:
     }
 }
 
-MovingObstacles::FriendlyRobotObstacle::FriendlyRobotObstacle(const MovingObstacles::FriendlyRobotObstacle &other) :
-    MovingObstacles::MovingObstacle(other),
+Obstacles::FriendlyRobotObstacle::FriendlyRobotObstacle(const Obstacles::FriendlyRobotObstacle &other) :
+    Obstacles::Obstacle(other),
     trajectory(other.trajectory),
     timeInterval(other.timeInterval),
     bound(other.bound),
@@ -604,8 +603,8 @@ MovingObstacles::FriendlyRobotObstacle::FriendlyRobotObstacle(const MovingObstac
     }
 }
 
-MovingObstacles::FriendlyRobotObstacle::FriendlyRobotObstacle(MovingObstacles::FriendlyRobotObstacle &&other) :
-    MovingObstacles::MovingObstacle(other),
+Obstacles::FriendlyRobotObstacle::FriendlyRobotObstacle(Obstacles::FriendlyRobotObstacle &&other) :
+    Obstacles::Obstacle(other),
     trajectory(std::move(other.trajectory)),
     timeInterval(other.timeInterval),
     bound(other.bound),
@@ -616,7 +615,7 @@ MovingObstacles::FriendlyRobotObstacle::FriendlyRobotObstacle(MovingObstacles::F
     }
 }
 
-MovingObstacles::FriendlyRobotObstacle &MovingObstacles::FriendlyRobotObstacle::operator=(const FriendlyRobotObstacle &other)
+Obstacles::FriendlyRobotObstacle &Obstacles::FriendlyRobotObstacle::operator=(const FriendlyRobotObstacle &other)
 {
     prio = other.prio;
     radius = other.radius;
@@ -631,7 +630,7 @@ MovingObstacles::FriendlyRobotObstacle &MovingObstacles::FriendlyRobotObstacle::
     return *this;
 }
 
-MovingObstacles::FriendlyRobotObstacle &MovingObstacles::FriendlyRobotObstacle::operator=(FriendlyRobotObstacle &&other)
+Obstacles::FriendlyRobotObstacle &Obstacles::FriendlyRobotObstacle::operator=(FriendlyRobotObstacle &&other)
 {
     prio = other.prio;
     radius = other.radius;
@@ -646,25 +645,25 @@ MovingObstacles::FriendlyRobotObstacle &MovingObstacles::FriendlyRobotObstacle::
     return *this;
 }
 
-bool MovingObstacles::FriendlyRobotObstacle::intersects(const TrajectoryPoint &point) const
+bool Obstacles::FriendlyRobotObstacle::intersects(const TrajectoryPoint &point) const
 {
     const unsigned long index = std::min(static_cast<unsigned long>(trajectory->size()-1), static_cast<unsigned long>(point.time / timeInterval));
     return (*trajectory)[index].state.pos.distanceSq(point.state.pos) < radius * radius;
 }
 
-float MovingObstacles::FriendlyRobotObstacle::distance(const TrajectoryPoint &point) const
+float Obstacles::FriendlyRobotObstacle::distance(const TrajectoryPoint &point) const
 {
     const unsigned long index = std::min(static_cast<unsigned long>(trajectory->size()-1), static_cast<unsigned long>(point.time / timeInterval));
     return (*trajectory)[index].state.pos.distance(point.state.pos) - radius;
 }
 
-float MovingObstacles::FriendlyRobotObstacle::zonedDistance(const TrajectoryPoint &point, float nearRadius) const
+float Obstacles::FriendlyRobotObstacle::zonedDistance(const TrajectoryPoint &point, float nearRadius) const
 {
     const unsigned long index = std::min(static_cast<unsigned long>(trajectory->size()-1), static_cast<unsigned long>(point.time / timeInterval));
     return computeZonedIntersection((*trajectory)[index].state.pos.distanceSq(point.state.pos), radius, nearRadius);
 }
 
-Vector MovingObstacles::FriendlyRobotObstacle::projectOut(Vector v, float extraDistance) const
+Vector Obstacles::FriendlyRobotObstacle::projectOut(Vector v, float extraDistance) const
 {
     if (trajectory->back().state.speed.lengthSquared() > 0.05f) {
         return v;
@@ -680,7 +679,7 @@ Vector MovingObstacles::FriendlyRobotObstacle::projectOut(Vector v, float extraD
     return stopPos + (v - stopPos) * ((radius + extraDistance) / dist);
 }
 
-void MovingObstacles::FriendlyRobotObstacle::serializeChild(pathfinding::Obstacle *obstacle) const
+void Obstacles::FriendlyRobotObstacle::serializeChild(pathfinding::Obstacle *obstacle) const
 {
     auto robot = obstacle->mutable_friendly_robot();
     for (const TrajectoryPoint &p : *trajectory) {
@@ -691,14 +690,14 @@ void MovingObstacles::FriendlyRobotObstacle::serializeChild(pathfinding::Obstacl
     }
 }
 
-MovingObstacles::OpponentRobotObstacle::OpponentRobotObstacle(int prio, float baseRadius, Vector start, Vector speed) :
-    MovingObstacle(prio, baseRadius + ROBOT_RADIUS),
+Obstacles::OpponentRobotObstacle::OpponentRobotObstacle(int prio, float baseRadius, Vector start, Vector speed) :
+    Obstacle(prio, baseRadius + ROBOT_RADIUS),
     startPos(start),
     speed(speed)
 { }
 
-MovingObstacles::OpponentRobotObstacle::OpponentRobotObstacle(const pathfinding::Obstacle &obstacle, const pathfinding::OpponentRobotObstacle &circle) :
-    MovingObstacle(obstacle),
+Obstacles::OpponentRobotObstacle::OpponentRobotObstacle(const pathfinding::Obstacle &obstacle, const pathfinding::OpponentRobotObstacle &circle) :
+    Obstacle(obstacle),
     startPos(deserializeVector(circle.start_pos())),
     speed(deserializeVector(circle.speed()))
 { }
@@ -717,7 +716,7 @@ static float safetyDistance(const Vector ownSpeed, const Vector oppSpeed)
     return safetyDistance;
 }
 
-bool MovingObstacles::OpponentRobotObstacle::intersects(const TrajectoryPoint &point) const
+bool Obstacles::OpponentRobotObstacle::intersects(const TrajectoryPoint &point) const
 {
     if (point.time > MAX_TIME) {
         return false;
@@ -727,7 +726,7 @@ bool MovingObstacles::OpponentRobotObstacle::intersects(const TrajectoryPoint &p
     return centerAtTime.distanceSq(point.state.pos) < totalRadius * totalRadius;
 }
 
-float MovingObstacles::OpponentRobotObstacle::distance(const TrajectoryPoint &point) const
+float Obstacles::OpponentRobotObstacle::distance(const TrajectoryPoint &point) const
 {
     if (point.time > MAX_TIME) {
         return std::numeric_limits<float>::max();
@@ -737,7 +736,7 @@ float MovingObstacles::OpponentRobotObstacle::distance(const TrajectoryPoint &po
     return centerAtTime.distance(point.state.pos) - totalRadius;
 }
 
-float MovingObstacles::OpponentRobotObstacle::zonedDistance(const TrajectoryPoint &point, float nearRadius) const
+float Obstacles::OpponentRobotObstacle::zonedDistance(const TrajectoryPoint &point, float nearRadius) const
 {
     if (point.time > MAX_TIME) {
         return 10000.0f;
@@ -748,7 +747,7 @@ float MovingObstacles::OpponentRobotObstacle::zonedDistance(const TrajectoryPoin
     return computeZonedIntersection(distSq, totalRadius, nearRadius);
 }
 
-BoundingBox MovingObstacles::OpponentRobotObstacle::boundingBox() const
+BoundingBox Obstacles::OpponentRobotObstacle::boundingBox() const
 {
     const float maxSafetyDistance = safetyDistance(Vector(-5, 0), Vector(5, 0));
     const auto xRange = range1D(startPos.x, speed.x, 0, 0, MAX_TIME);
@@ -758,7 +757,7 @@ BoundingBox MovingObstacles::OpponentRobotObstacle::boundingBox() const
     return result;
 }
 
-void MovingObstacles::OpponentRobotObstacle::serializeChild(pathfinding::Obstacle *obstacle) const
+void Obstacles::OpponentRobotObstacle::serializeChild(pathfinding::Obstacle *obstacle) const
 {
     auto circle = obstacle->mutable_opponent_robot();
     setVector(startPos, circle->mutable_start_pos());

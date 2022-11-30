@@ -50,10 +50,10 @@ void WorldInformation::clearObstacles()
 
 void WorldInformation::addToAllStaticObstacleRadius(float additionalRadius)
 {
-    for (StaticObstacles::Circle &c: m_circleObstacles) { c.radius += additionalRadius; }
-    for (StaticObstacles::Rect &r: m_rectObstacles) { r.radius += additionalRadius; }
-    for (StaticObstacles::Triangle &t: m_triangleObstacles) { t.radius += additionalRadius; }
-    for (StaticObstacles::Line &l: m_lineObstacles) { l.radius += additionalRadius; }
+    for (Obstacles::Circle &c: m_circleObstacles) { c.radius += additionalRadius; }
+    for (Obstacles::Rect &r: m_rectObstacles) { r.radius += additionalRadius; }
+    for (Obstacles::Triangle &t: m_triangleObstacles) { t.radius += additionalRadius; }
+    for (Obstacles::Line &l: m_lineObstacles) { l.radius += additionalRadius; }
 }
 
 void WorldInformation::addCircle(float x, float y, float radius, const char* name, int prio)
@@ -68,7 +68,7 @@ void WorldInformation::addLine(float x1, float y1, float x2, float y2, float wid
 
 void WorldInformation::addRect(float x1, float y1, float x2, float y2, const char* name, int prio, float radius)
 {
-    StaticObstacles::Rect r(name, prio, x1, y1, x2, y2, radius);
+    Obstacles::Rect r(name, prio, x1, y1, x2, y2, radius);
     m_rectObstacles.push_back(r);
 }
 
@@ -80,10 +80,10 @@ void WorldInformation::addTriangle(float x1, float y1, float x2, float y2, float
 void WorldInformation::collectObstacles() const
 {
     m_obstacles.clear();
-    for (const StaticObstacles::Circle &c: m_circleObstacles) { m_obstacles.append(&c); }
-    for (const StaticObstacles::Rect &r: m_rectObstacles) { m_obstacles.append(&r); }
-    for (const StaticObstacles::Triangle &t: m_triangleObstacles) { m_obstacles.append(&t); }
-    for (const StaticObstacles::Line &l: m_lineObstacles) { m_obstacles.append(&l); }
+    for (const Obstacles::Circle &c: m_circleObstacles) { m_obstacles.append(&c); }
+    for (const Obstacles::Rect &r: m_rectObstacles) { m_obstacles.append(&r); }
+    for (const Obstacles::Triangle &t: m_triangleObstacles) { m_obstacles.append(&t); }
+    for (const Obstacles::Line &l: m_lineObstacles) { m_obstacles.append(&l); }
 }
 
 void WorldInformation::collectMovingObstacles()
@@ -142,7 +142,7 @@ void WorldInformation::addFriendlyRobotTrajectoryObstacle(std::vector<Trajectory
         addCircle(obstacle->at(0).state.pos.x, obstacle->at(0).state.pos.y, radius + std::sqrt(maxDistSq), nullptr, prio);
         return;
     }
-    MovingObstacles::FriendlyRobotObstacle o(obstacle, radius + m_radius, prio);
+    Obstacles::FriendlyRobotObstacle o(obstacle, radius + m_radius, prio);
     m_friendlyRobotObstacles.push_back(o);
 }
 
@@ -152,7 +152,7 @@ void WorldInformation::addOpponentRobotObstacle(Vector startPos, Vector speed, i
 }
 
 // obstacle checking
-bool WorldInformation::isInMovingObstacle(const std::vector<MovingObstacles::MovingObstacle*> &obstacles, const TrajectoryPoint &point) const
+bool WorldInformation::isInMovingObstacle(const std::vector<Obstacles::Obstacle*> &obstacles, const TrajectoryPoint &point) const
 {
     if (point.time >= IGNORE_MOVING_OBSTACLE_THRESHOLD) {
         return false;
@@ -168,16 +168,16 @@ bool WorldInformation::isInMovingObstacle(const std::vector<MovingObstacles::Mov
 bool WorldInformation::isTrajectoryInObstacle(const SpeedProfile &profile, float timeOffset) const
 {
     BoundingBox trajectoryBoundingBox = profile.calculateBoundingBox();
-    std::vector<const StaticObstacles::Obstacle*> intersectingStaticObstacles;
+    std::vector<const Obstacles::StaticObstacle*> intersectingStaticObstacles;
     intersectingStaticObstacles.reserve(m_obstacles.size());
-    for (const StaticObstacles::Obstacle *o : m_obstacles) {
+    for (const Obstacles::StaticObstacle *o : m_obstacles) {
         if (o->boundingBox().intersects(trajectoryBoundingBox)) {
             intersectingStaticObstacles.push_back(o);
         }
     }
-    std::vector<MovingObstacles::MovingObstacle*> intersectingMovingObstacles;
+    std::vector<Obstacles::Obstacle*> intersectingMovingObstacles;
     intersectingMovingObstacles.reserve(m_movingObstacles.size());
-    for (MovingObstacles::MovingObstacle *o : m_movingObstacles) {
+    for (Obstacles::Obstacle *o : m_movingObstacles) {
         if (o->boundingBox().intersects(trajectoryBoundingBox)) {
             intersectingMovingObstacles.push_back(o);
         }
@@ -333,28 +333,28 @@ void WorldInformation::deserialize(const pathfinding::WorldState &state)
 
     for (const auto &obstacle : state.obstacles()) {
         if (obstacle.has_circle()) {
-            StaticObstacles::Circle circle(obstacle, obstacle.circle());
+            Obstacles::Circle circle(obstacle, obstacle.circle());
             m_circleObstacles.push_back(circle);
         } else if (obstacle.has_triangle()) {
-            StaticObstacles::Triangle triangle(obstacle, obstacle.triangle());
+            Obstacles::Triangle triangle(obstacle, obstacle.triangle());
             m_triangleObstacles.push_back(triangle);
         } else if (obstacle.has_line()) {
-            StaticObstacles::Line line(obstacle, obstacle.line());
+            Obstacles::Line line(obstacle, obstacle.line());
             m_lineObstacles.push_back(line);
         } else if (obstacle.has_rectangle()) {
-            StaticObstacles::Rect rect(obstacle, obstacle.rectangle());
+            Obstacles::Rect rect(obstacle, obstacle.rectangle());
             m_rectObstacles.push_back(rect);
         } else if (obstacle.has_moving_circle()) {
-            MovingObstacles::MovingCircle circle(obstacle, obstacle.moving_circle());
+            Obstacles::MovingCircle circle(obstacle, obstacle.moving_circle());
             m_movingCircles.push_back(circle);
         } else if (obstacle.has_moving_line()) {
-            MovingObstacles::MovingLine line(obstacle, obstacle.moving_line());
+            Obstacles::MovingLine line(obstacle, obstacle.moving_line());
             m_movingLines.push_back(line);
         } else if (obstacle.has_friendly_robot()) {
-            MovingObstacles::FriendlyRobotObstacle robot(obstacle, obstacle.friendly_robot());
+            Obstacles::FriendlyRobotObstacle robot(obstacle, obstacle.friendly_robot());
             m_friendlyRobotObstacles.push_back(robot);
         } else if (obstacle.has_opponent_robot()) {
-            MovingObstacles::OpponentRobotObstacle robot(obstacle, obstacle.opponent_robot());
+            Obstacles::OpponentRobotObstacle robot(obstacle, obstacle.opponent_robot());
             m_opponentRobotObstacles.push_back(robot);
         } else {
             qDebug() <<"Invalid or unknown obstacle";
@@ -371,6 +371,6 @@ void WorldInformation::deserialize(const pathfinding::WorldState &state)
         m_robotId = state.robot_id();
     }
     if (state.has_boundary()) {
-        m_boundary = StaticObstacles::Rect(pathfinding::Obstacle(), state.boundary());
+        m_boundary = Obstacles::Rect(pathfinding::Obstacle(), state.boundary());
     }
 }

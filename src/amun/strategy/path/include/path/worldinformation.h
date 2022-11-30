@@ -35,7 +35,7 @@ public:
     bool isRadiusValid() { return m_radius >= 0.f; }
     void setBoundary(float x1, float y1, float x2, float y2);
     float radius() const { return m_radius; }
-    const StaticObstacles::Rect &boundary() const { return m_boundary; }
+    const Obstacles::Rect &boundary() const { return m_boundary; }
     void setOutOfFieldObstaclePriority(int prio) { m_outOfFieldPriority = prio; }
     int outOfFieldPriority() const { return m_outOfFieldPriority; }
     void setRobotId(int id) { m_robotId = id; }
@@ -44,9 +44,9 @@ public:
     // world obstacles
     void clearObstacles();
     // only valid after a call to collectObstacles, may become invalid after the calling function returns!
-    QVector<const StaticObstacles::Obstacle*> &obstacles() const { return m_obstacles; }
+    QVector<const Obstacles::StaticObstacle*> &obstacles() const { return m_obstacles; }
     void addToAllStaticObstacleRadius(float additionalRadius);
-    const std::vector<MovingObstacles::MovingObstacle*> &movingObstacles() const { return m_movingObstacles; }
+    const std::vector<Obstacles::Obstacle*> &movingObstacles() const { return m_movingObstacles; }
 
     // static obstacles
     void addCircle(float x, float y, float radius, const char *name, int prio);
@@ -79,7 +79,7 @@ public:
         return false;
     }
 
-    bool isInMovingObstacle(const std::vector<MovingObstacles::MovingObstacle *> &obstacles, const TrajectoryPoint &point) const;
+    bool isInMovingObstacle(const std::vector<Obstacles::Obstacle *> &obstacles, const TrajectoryPoint &point) const;
     bool isTrajectoryInObstacle(const SpeedProfile &profile, float timeOffset) const;
     // return {min distance of trajectory to obstacles, min distances of first and last points to obstacles}
     // distances are only accurate up to safetyMargin
@@ -96,22 +96,22 @@ public:
     WorldInformation& operator=(const WorldInformation &world) = default;
 
 private:
-    mutable QVector<const StaticObstacles::Obstacle*> m_obstacles;
+    mutable QVector<const Obstacles::StaticObstacle*> m_obstacles;
 
-    std::vector<StaticObstacles::Circle> m_circleObstacles;
-    std::vector<StaticObstacles::Rect> m_rectObstacles;
-    std::vector<StaticObstacles::Triangle> m_triangleObstacles;
-    std::vector<StaticObstacles::Line> m_lineObstacles;
+    std::vector<Obstacles::Circle> m_circleObstacles;
+    std::vector<Obstacles::Rect> m_rectObstacles;
+    std::vector<Obstacles::Triangle> m_triangleObstacles;
+    std::vector<Obstacles::Line> m_lineObstacles;
 
-    std::vector<MovingObstacles::MovingCircle> m_movingCircles;
-    std::vector<MovingObstacles::MovingLine> m_movingLines;
-    std::vector<MovingObstacles::FriendlyRobotObstacle> m_friendlyRobotObstacles;
-    std::vector<MovingObstacles::OpponentRobotObstacle> m_opponentRobotObstacles;
-    std::vector<MovingObstacles::MovingObstacle*> m_movingObstacles;
+    std::vector<Obstacles::MovingCircle> m_movingCircles;
+    std::vector<Obstacles::MovingLine> m_movingLines;
+    std::vector<Obstacles::FriendlyRobotObstacle> m_friendlyRobotObstacles;
+    std::vector<Obstacles::OpponentRobotObstacle> m_opponentRobotObstacles;
+    std::vector<Obstacles::Obstacle*> m_movingObstacles;
 
     int m_outOfFieldPriority = 1;
 
-    StaticObstacles::Rect m_boundary;
+    Obstacles::Rect m_boundary;
     float m_radius = -1.0f;
     int m_robotId = 0;
 

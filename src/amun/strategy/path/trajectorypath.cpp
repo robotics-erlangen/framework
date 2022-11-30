@@ -150,13 +150,13 @@ std::vector<SpeedProfile> TrajectoryPath::findPath(TrajectoryInput input)
     // check if end point is in obstacle
     if (m_world.isInStaticObstacle(obstacles, input.target.pos) || m_world.isInFriendlyStopPos(input.target.pos)) {
         const float PROJECT_DISTANCE = 0.03f;
-        for (const StaticObstacles::Obstacle *o : obstacles) {
+        for (const Obstacles::StaticObstacle *o : obstacles) {
             float dist = o->distance(input.target.pos);
             if (dist > -0.2 && dist < 0) {
                 input.target.pos = o->projectOut(input.target.pos, PROJECT_DISTANCE);
             }
         }
-        for (const MovingObstacles::MovingObstacle *o : m_world.movingObstacles()) {
+        for (const Obstacles::Obstacle *o : m_world.movingObstacles()) {
             input.target.pos = o->projectOut(input.target.pos, PROJECT_DISTANCE);
         }
         // test again, might have been moved into another obstacle

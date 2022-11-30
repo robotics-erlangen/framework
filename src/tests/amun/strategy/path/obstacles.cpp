@@ -24,8 +24,7 @@
 #include <functional>
 #include <random>
 
-using namespace StaticObstacles;
-using namespace MovingObstacles;
+using namespace Obstacles;
 
 TEST(Obstacles, Circle_Distance) {
     Circle c(nullptr, 0, 1, Vector(0, 0));
@@ -146,7 +145,7 @@ TEST(Obstacles, Rect_ProjectOut) {
 }
 
 // tests distance functions that can be computed with the use of the point distance
-static void testDerivativeDistanceRandomized(std::function<std::unique_ptr<Obstacle>(std::function<float()>)> generator) {
+static void testDerivativeDistanceRandomized(std::function<std::unique_ptr<StaticObstacle>(std::function<float()>)> generator) {
     const float BOX_SIZE = 20.0f;
 
     std::mt19937 r(0);
@@ -370,7 +369,7 @@ TEST(Obstacles, MovingCircle_Distance) {
     ASSERT_FLOAT_EQ(c.distance({{Vector(0, 0), Vector(0, 0)}, 2.001}), std::numeric_limits<float>::max());
 }
 
-static void testDerivativeDistanceRandomizedMoving(std::function<std::unique_ptr<MovingObstacle>(std::function<float()>)> generator) {
+static void testDerivativeDistanceRandomizedMoving(std::function<std::unique_ptr<Obstacle>(std::function<float()>)> generator) {
     const float BOX_SIZE = 20.0f;
 
     std::mt19937 r(0);

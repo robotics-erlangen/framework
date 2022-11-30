@@ -68,10 +68,10 @@ private:
     const KdTree::Node * rasterPath(const LineSegment &segment, const KdTree::Node * lastNode, float step_size);
 
     bool test(const LineSegment &segment, float radius) const;
-    bool test(const LineSegment &segment, float radius, const QVector<const StaticObstacles::Obstacle*> &obstacles) const;
-    bool test(const Vector &v, float radius, const QVector<const StaticObstacles::Obstacle*> &obstacles) const;
-    float calculateObstacleCoverage(const Vector &v, const QVector<const StaticObstacles::Obstacle*> &obstacles, float robotRadius) const;
-    bool checkMovementRelativeToObstacles(const LineSegment &segment, const QVector<const StaticObstacles::Obstacle*> &obstacles, float radius) const;
+    bool test(const LineSegment &segment, float radius, const QVector<const Obstacles::StaticObstacle*> &obstacles) const;
+    bool test(const Vector &v, float radius, const QVector<const Obstacles::StaticObstacle*> &obstacles) const;
+    float calculateObstacleCoverage(const Vector &v, const QVector<const Obstacles::StaticObstacle*> &obstacles, float robotRadius) const;
+    bool checkMovementRelativeToObstacles(const LineSegment &segment, const QVector<const Obstacles::StaticObstacle*> &obstacles, float radius) const;
     float outsidePlayfieldCoverage(const Vector &point, float radius) const;
 
     Vector findValidPoint(const LineSegment &segment, float radius) const;
@@ -85,7 +85,7 @@ private:
     QVector<Vector> m_waypoints;
     QVector<Vector> m_seedTargets;
 
-    StaticObstacles::Rect m_sampleRect;
+    Obstacles::Rect m_sampleRect;
     float m_p_dest;
     float m_p_wp;
     const float m_stepSize;
