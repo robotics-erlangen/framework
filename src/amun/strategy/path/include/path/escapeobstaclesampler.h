@@ -37,9 +37,10 @@ public:
 private:
     struct TrajectoryRating {
         int maxPrio = -1;
-        float maxPrioTime = 100000;
+        float maxPrioTime = std::numeric_limits<float>::infinity();
         bool endsSafely = false; // if the trajectory ends in a safe point
         float escapeTime = 0; // the point in time where the trajectory is safe to leave
+        float minObstacleDistance = std::numeric_limits<float>::infinity();
 
         bool isBetterThan(const TrajectoryRating &other) const;
     };

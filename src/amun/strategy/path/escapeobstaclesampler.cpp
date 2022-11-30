@@ -36,6 +36,9 @@ bool EscapeObstacleSampler::TrajectoryRating::isBetterThan(const TrajectoryRatin
     if (maxPrioTime < other.maxPrioTime) {
         return true;
     }
+    if (minObstacleDistance > 0 && minObstacleDistance > other.minObstacleDistance) {
+        return true;
+    }
     return false;
 }
 
@@ -116,6 +119,7 @@ auto EscapeObstacleSampler::rateEscapingTrajectory(const TrajectoryInput &input,
     const float OUT_OF_OBSTACLE_TIME = 0.1f;
     const float LONG_OUF_OF_OBSTACLE_TIME = 1.5f; // used when the trajectory has not yet intersected any obstacle
     const float SAMPLING_INTERVAL = 0.03f;
+    const float ZONE_RADIUS = 0.2f;
 
     const float totalTime = speedProfile.time();
     const int samples = int(totalTime / SAMPLING_INTERVAL) + 1;
@@ -134,14 +138,12 @@ auto EscapeObstacleSampler::rateEscapingTrajectory(const TrajectoryInput &input,
         }
         for (const auto obstacle : m_world.obstacles()) {
             if (obstacle->prio > obstaclePriority) {
-                const float distance = obstacle->distance(state.pos);
-                if (result.maxPrio == -1) {
-                    // when the trajectory does not intersect any obstacles, we want to stay as far away as possible from them
-                    result.maxPrioTime = std::min(result.maxPrioTime, distance);
-                }
+                const float distance = obstacle->zonedDistance(state.pos, ZONE_RADIUS);
                 if (distance < 0) {
                     obstaclePriority = obstacle->prio;
                 }
+                // when the trajectory does not intersect any obstacles, we want to stay as far away as possible from them
+                result.minObstacleDistance = std::min(result.minObstacleDistance, distance);
             }
         }
         for (const auto o : m_world.movingObstacles()) {
