@@ -268,9 +268,8 @@ static bool opponentCloseToRobot(const Scenario &s)
     const float totalTime = direct->time() + 0.5f;
     const float timeInterval = 0.01f;
     const int DIVISIONS = std::min(300, std::max(3, int(totalTime / timeInterval)));
-    const auto positions = direct->trajectoryPositions(DIVISIONS, timeInterval);
     RobotState currentOpponent = s.oppStart;
-    for (unsigned int i = 0;i<positions.size();i++) {
+    for (int i = 0;i<DIVISIONS;i++) {
         const float time = i * timeInterval;
         const auto ownState = direct->stateAtTime(time);
         const float dist = currentOpponent.pos.distance(ownState.pos);

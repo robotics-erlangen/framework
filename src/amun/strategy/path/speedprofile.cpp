@@ -207,7 +207,7 @@ std::pair<float, float> SpeedProfile1D::offsetAndSpeedForTime(float time, float 
 }
 
 template<typename AccelerationProfile>
-void SpeedProfile1D::trajectoryPositions(std::vector<RobotState> &outPoints, std::size_t outIndex, float timeInterval, float slowDownTime) const
+void SpeedProfile1D::trajectoryPositions(std::vector<TrajectoryPoint> &outPoints, std::size_t outIndex, float timeInterval, float slowDownTime) const
 {
     AccelerationProfile acceleration(profile[counter-1].t, slowDownTime);
 
@@ -221,8 +221,8 @@ void SpeedProfile1D::trajectoryPositions(std::vector<RobotState> &outPoints, std
         float segmentTime = acceleration.timeForSegment(profile[i], profile[i+1], precomputation);
         while (totalTime + segmentTime >= nextDesiredTime) {
             const auto inf = acceleration.partialSegmentOffsetAndSpeed(profile[i], profile[i+1], precomputation, totalTime, nextDesiredTime);
-            outPoints[resultCounter].pos[outIndex] = offset + inf.first + correctionOffsetPerSecond * nextDesiredTime;
-            outPoints[resultCounter].speed[outIndex] = inf.second;
+            outPoints[resultCounter].state.pos[outIndex] = offset + inf.first + correctionOffsetPerSecond * nextDesiredTime;
+            outPoints[resultCounter].state.speed[outIndex] = inf.second;
             resultCounter++;
             nextDesiredTime += timeInterval;
 
@@ -235,8 +235,8 @@ void SpeedProfile1D::trajectoryPositions(std::vector<RobotState> &outPoints, std
     }
 
     while (resultCounter < outPoints.size()) {
-        outPoints[resultCounter].pos[outIndex] = offset + totalTime * correctionOffsetPerSecond;
-        outPoints[resultCounter].speed[outIndex] = profile[counter-1].v;
+        outPoints[resultCounter].state.pos[outIndex] = offset + totalTime * correctionOffsetPerSecond;
+        outPoints[resultCounter].state.speed[outIndex] = profile[counter-1].v;
         resultCounter++;
     }
 }
@@ -338,9 +338,12 @@ RobotState SpeedProfile::stateAtTime(float time) const
     }
 }
 
-std::vector<RobotState> SpeedProfile::trajectoryPositions(std::size_t count, float timeInterval) const
+std::vector<TrajectoryPoint> SpeedProfile::trajectoryPositions(std::size_t count, float timeInterval, float timeOffset) const
 {
-    std::vector<RobotState> result(count);
+    std::vector<TrajectoryPoint> result(count);
+    for (std::size_t i = 0;i<count;i++) {
+        result[i].time = timeOffset + i * timeInterval;
+    }
     if (slowDownTime == 0.0f) {
         xProfile.trajectoryPositions<ConstantAcceleration>(result, 0, timeInterval, 0);
         yProfile.trajectoryPositions<ConstantAcceleration>(result, 1, timeInterval, 0);

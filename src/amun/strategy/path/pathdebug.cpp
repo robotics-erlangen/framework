@@ -128,11 +128,11 @@ void PathDebug::debugTrajectory(const QString &name, const SpeedProfile &traject
     const int VIS_POINTS = 35;
     float timeInterval = trajectory.time() / float(VIS_POINTS-1);
 
-    const std::vector<RobotState> points = trajectory.trajectoryPositions(VIS_POINTS, timeInterval);
+    const auto points = trajectory.trajectoryPositions(VIS_POINTS, timeInterval, 0);
     std::vector<Vector> positions;
     positions.reserve(points.size());
     for (const auto &point : points) {
-        positions.push_back(point.pos);
+        positions.push_back(point.state.pos);
     }
     debugPath(name, positions, color);
 }

@@ -61,7 +61,7 @@ static void checkTrajectorySimple(SpeedProfile trajectory, Vector v0, Vector v1,
 
     const int SEGMENTS = 100;
     const float timeDiff = trajectory.time() / float(SEGMENTS - 1);
-    const std::vector<RobotState> bulkPositions = trajectory.trajectoryPositions(SEGMENTS, timeDiff);
+    const auto bulkPositions = trajectory.trajectoryPositions(SEGMENTS, timeDiff, 0.0f);
 
 
     Vector lastPos = trajectory.stateAtTime(0).pos;
@@ -71,8 +71,9 @@ static void checkTrajectorySimple(SpeedProfile trajectory, Vector v0, Vector v1,
         const auto state = trajectory.stateAtTime(time);
         const Vector speed = state.speed;
 
-        ASSERT_LE((bulkPositions[i].pos).distance(state.pos), 0.01);
-        ASSERT_LE((bulkPositions[i].speed).distance(state.speed), 0.01);
+        ASSERT_LE((bulkPositions[i].state.pos).distance(state.pos), 0.01);
+        ASSERT_LE((bulkPositions[i].state.speed).distance(state.speed), 0.01);
+        ASSERT_FLOAT_EQ(bulkPositions[i].time, time);
 
         // check acceleration limit
         const float diff = speed.distance(lastSpeed) / timeDiff;
@@ -104,10 +105,10 @@ static void checkMaxSpeed(SpeedProfile trajectory, float maxSpeed) {
 }
 
 static void checkBoundingBox(SpeedProfile trajectory) {
-    const auto manyPositions = trajectory.trajectoryPositions(1000, trajectory.time() / 999);
-    BoundingBox fromPoints(manyPositions[0].pos, manyPositions[0].pos);
+    const auto manyPositions = trajectory.trajectoryPositions(1000, trajectory.time() / 999, 0.0f);
+    BoundingBox fromPoints(manyPositions[0].state.pos, manyPositions[0].state.pos);
     for (const auto &p : manyPositions) {
-        fromPoints.mergePoint(p.pos);
+        fromPoints.mergePoint(p.state.pos);
     }
 
     const BoundingBox direct = trajectory.calculateBoundingBox();
@@ -136,9 +137,9 @@ static void checkEndPosition(const SpeedProfile trajectory, const Vector expecte
         const int extraSteps = 10;
         const int totalSteps = steps + extraSteps;
         const float timeStep = time / (float)(steps - 1);
-        const auto states = trajectory.trajectoryPositions(totalSteps, timeStep);
+        const auto states = trajectory.trajectoryPositions(totalSteps, timeStep, 0.0f);
         for (int i = steps; i < totalSteps; i++) {
-            ASSERT_VECTOR_EQ(states[i].pos, expected);
+            ASSERT_VECTOR_EQ(states[i].state.pos, expected);
         }
     }
 

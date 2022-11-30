@@ -43,6 +43,7 @@ struct TrajectoryInput {
 
 struct TrajectoryPoint
 {
+    TrajectoryPoint() = default;
     TrajectoryPoint(const RobotState &state, const float time) :
         state(state), time(time) {}
     RobotState state;

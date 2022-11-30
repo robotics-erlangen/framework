@@ -187,14 +187,12 @@ bool WorldInformation::isTrajectoryInObstacle(const SpeedProfile &profile, float
     const float timeInterval = 0.025f;
     const int divisions = std::ceil(totalTime / timeInterval);
 
-    const auto trajectoryPoints = profile.trajectoryPositions(divisions, timeInterval);
+    const auto trajectoryPoints = profile.trajectoryPositions(divisions, timeInterval, timeOffset);
 
-    for (int i = 0;i<divisions;i++) {
-        const float time = i * timeInterval;
-        if (isInStaticObstacle(intersectingStaticObstacles, trajectoryPoints[i].pos)) {
+    for (const TrajectoryPoint &point : trajectoryPoints) {
+        if (isInStaticObstacle(intersectingStaticObstacles, point.state.pos)) {
             return true;
         }
-        const TrajectoryPoint point{trajectoryPoints[i], time + timeOffset};
         if (isInMovingObstacle(intersectingMovingObstacles, point)) {
             return true;
         }
@@ -246,27 +244,17 @@ std::pair<float, float> WorldInformation::minObstacleDistance(const SpeedProfile
 
     const int DIVISIONS = 40;
 
-    const std::vector<RobotState> trajectoryPoints = profile.trajectoryPositions(DIVISIONS, totalTime * (1.0f / (DIVISIONS-1)));
-    std::vector<float> trajectoryTimes(DIVISIONS);
+    const auto trajectoryPoints = profile.trajectoryPositions(DIVISIONS, totalTime * (1.0f / (DIVISIONS-1)), timeOffset);
 
-    for (int i = 0;i<DIVISIONS;i++) {
-        const float time = totalTime * i * (1.0f / float(DIVISIONS-1));
-        trajectoryTimes[i] = time + timeOffset;
-
-        if (i == 0 || i == DIVISIONS-1) {
-            const TrajectoryPoint point{trajectoryPoints[i], time + timeOffset};
-            const float minDistance = minObstacleDistancePoint(point, true, true);
-            if (minDistance < 0) {
-                return {minDistance, minDistance};
-            }
-            lastPointDistance = std::min(lastPointDistance, minDistance);
+    for (int i : {0, DIVISIONS - 1}) {
+        const float minDistance = minObstacleDistancePoint(trajectoryPoints[i], true, true);
+        if (minDistance < 0) {
+            return {minDistance, minDistance};
         }
+        lastPointDistance = std::min(lastPointDistance, minDistance);
     }
 
-    BoundingBox trajectoryBox(trajectoryPoints[0].pos, trajectoryPoints[1].pos);
-    for (int i = 2;i<DIVISIONS;i++) {
-        trajectoryBox.mergePoint(trajectoryPoints[i].pos);
-    }
+    BoundingBox trajectoryBox = profile.calculateBoundingBox();
 
     // check if the trajectory is in the playing field
     // this must be done before adding the safety margin to the trajectory bounding box
@@ -279,8 +267,8 @@ std::pair<float, float> WorldInformation::minObstacleDistance(const SpeedProfile
 
     for (auto obstacle : m_obstacles) {
         if (obstacle->boundingBox().intersects(trajectoryBox)) {
-            for (std::size_t i = 0;i<DIVISIONS;i++) {
-                const float dist = obstacle->zonedDistance(trajectoryPoints[i].pos, safetyMargin);
+            for (const auto &point : trajectoryPoints) {
+                const float dist = obstacle->zonedDistance(point.state.pos, safetyMargin);
                 if (dist < 0) {
                     return {dist, dist};
                 } else if (dist < safetyMargin) {
@@ -292,8 +280,8 @@ std::pair<float, float> WorldInformation::minObstacleDistance(const SpeedProfile
 
     for (auto obstacle : m_movingObstacles) {
         if (obstacle->boundingBox().intersects(trajectoryBox)) {
-            for (std::size_t i = 0;i<DIVISIONS;i++) {
-                const float dist = obstacle->zonedDistance({trajectoryPoints[i], trajectoryTimes[i]}, safetyMargin);
+            for (const auto &point : trajectoryPoints) {
+                const float dist = obstacle->zonedDistance(point, safetyMargin);
                 if (dist < 0) {
                     return {dist, dist};
                 } else if (dist < safetyMargin) {
@@ -308,7 +296,7 @@ std::pair<float, float> WorldInformation::minObstacleDistance(const SpeedProfile
                     const float AFTER_STOP_INTERVAL = 0.03f;
                     for (std::size_t i = 0;i<std::size_t((AFTER_STOP_AVOIDANCE_TIME - totalTime) * (1.0f / AFTER_STOP_INTERVAL));i++) {
                         const float t = timeOffset + totalTime + i * AFTER_STOP_INTERVAL;
-                        const float dist = obstacle->zonedDistance({trajectoryPoints.back(), t}, safetyMargin);
+                        const float dist = obstacle->zonedDistance({trajectoryPoints.back().state, t}, safetyMargin);
                         if (dist < 0) {
                             return {dist, dist};
                         } else if (dist < safetyMargin) {
