@@ -1,6 +1,7 @@
 import * as Constants from "base/constants";
 import { Coordinates } from "base/coordinates";
 import * as Field from "base/field";
+import * as Option from "base/option";
 import * as pb from "base/protobuf";
 import * as Referee from "base/referee";
 import { FriendlyRobot } from "base/robot";
@@ -56,6 +57,10 @@ class PID {
 		return output;
 	}
 }
+
+// enables a more expensive, but also a little more
+// useful visualization for moving lines
+const DETAILED_TRAJECTORY = Option.addOption("Use detailed trajectory", false);
 
 export class TrajectoryPath extends TrajectoryHandler {
 	private rotationCalculation: DirectRotation = new DirectRotation();
@@ -323,8 +328,6 @@ export class TrajectoryPath extends TrajectoryHandler {
 	}
 
 	private static visualizeTrajectory(trajectory: Trajectory, color: any) {
-
-		const DETAILED_TRAJECTORY = false;
 		const MIN_POINT_DISTANCE = DETAILED_TRAJECTORY ? 0.005 : 0.1; // minimum distance between points to draw both
 
 		if (trajectory.length === 0) {
