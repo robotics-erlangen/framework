@@ -82,7 +82,7 @@ bool EndInObstacleSampler::testEndPoint(const TrajectoryInput &input, Vector end
     }
 
     // try to keep at least 3 cm distance to static obstacles
-    if (m_world.minObstacleDistancePoint({{endPoint, Vector(0, 0)}, 0}, true, false) < 0.03f) {
+    if (m_world.minObstacleDistancePoint({{endPoint, Vector(0, 0)}, 10000}) < 0.03f) {
         return false;
     }
 

@@ -44,9 +44,11 @@ public:
     // world obstacles
     void clearObstacles();
     // only valid after a call to collectObstacles, may become invalid after the calling function returns!
-    QVector<const Obstacles::StaticObstacle*> &obstacles() const { return m_obstacles; }
-    void addToAllStaticObstacleRadius(float additionalRadius);
+    QVector<const Obstacles::StaticObstacle*> &staticObstacles() const { return m_staticObstacles; }
     const std::vector<Obstacles::Obstacle*> &movingObstacles() const { return m_movingObstacles; }
+    const std::vector<Obstacles::Obstacle*> &obstacles() const { return m_obstacles; }
+
+    void addToAllStaticObstacleRadius(float additionalRadius);
 
     // static obstacles
     void addCircle(float x, float y, float radius, const char *name, int prio);
@@ -79,12 +81,11 @@ public:
         return false;
     }
 
-    bool isInMovingObstacle(const std::vector<Obstacles::Obstacle *> &obstacles, const TrajectoryPoint &point) const;
     bool isTrajectoryInObstacle(const SpeedProfile &profile, float timeOffset) const;
     // return {min distance of trajectory to obstacles, min distances of first and last points to obstacles}
     // distances are only accurate up to safetyMargin
     std::pair<float, float> minObstacleDistance(const SpeedProfile &profile, float timeOffset, float safetyMargin) const;
-    float minObstacleDistancePoint(const TrajectoryPoint &point, bool checkStatic, bool checkDynamic) const;
+    float minObstacleDistancePoint(const TrajectoryPoint &point) const;
     bool isInFriendlyStopPos(const Vector pos) const;
 
     // collectobstacles must have been called before calling this function
@@ -96,7 +97,9 @@ public:
     WorldInformation& operator=(const WorldInformation &world) = default;
 
 private:
-    mutable QVector<const Obstacles::StaticObstacle*> m_obstacles;
+    std::vector<Obstacles::Obstacle*> m_obstacles;
+    mutable QVector<const Obstacles::StaticObstacle*> m_staticObstacles;
+    std::vector<Obstacles::Obstacle*> m_movingObstacles;
 
     std::vector<Obstacles::Circle> m_circleObstacles;
     std::vector<Obstacles::Rect> m_rectObstacles;
@@ -107,7 +110,6 @@ private:
     std::vector<Obstacles::MovingLine> m_movingLines;
     std::vector<Obstacles::FriendlyRobotObstacle> m_friendlyRobotObstacles;
     std::vector<Obstacles::OpponentRobotObstacle> m_opponentRobotObstacles;
-    std::vector<Obstacles::Obstacle*> m_movingObstacles;
 
     int m_outOfFieldPriority = 1;
 

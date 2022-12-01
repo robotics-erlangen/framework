@@ -138,17 +138,12 @@ auto EscapeObstacleSampler::rateEscapingTrajectory(const TrajectoryInput &input,
         }
         for (const auto obstacle : m_world.obstacles()) {
             if (obstacle->prio > obstaclePriority) {
-                const float distance = obstacle->zonedDistance(state.pos, ZONE_RADIUS);
+                const float distance = obstacle->zonedDistance({state, time + input.t0}, ZONE_RADIUS);
                 if (distance < 0) {
                     obstaclePriority = obstacle->prio;
                 }
                 // when the trajectory does not intersect any obstacles, we want to stay as far away as possible from them
                 result.minObstacleDistance = std::min(result.minObstacleDistance, distance);
-            }
-        }
-        for (const auto o : m_world.movingObstacles()) {
-            if (o->prio > obstaclePriority && o->intersects({state, time + input.t0})) {
-                obstaclePriority = o->prio;
             }
         }
         if (obstaclePriority == -1) {

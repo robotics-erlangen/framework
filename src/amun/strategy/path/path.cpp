@@ -245,8 +245,8 @@ Path::List Path::get(float start_x, float start_y, float end_x, float end_y)
     m_sampleRect.bottomLeft = Vector(middle.x - x_half, middle.y - y_half);
     m_sampleRect.topRight = Vector(middle.x + x_half, middle.y + y_half);
 
-    bool startingInObstacle = !m_world.pointInPlayfield(start, radius) || !test(start, radius, m_world.obstacles());
-    bool endingInObstacle = !m_world.pointInPlayfield(end, radius) || !test(end, radius, m_world.obstacles());
+    bool startingInObstacle = !m_world.pointInPlayfield(start, radius) || !test(start, radius, m_world.staticObstacles());
+    bool endingInObstacle = !m_world.pointInPlayfield(end, radius) || !test(end, radius, m_world.staticObstacles());
 
     // setup tree rooted at the start
     delete m_treeStart;
@@ -425,7 +425,7 @@ void Path::simplify(QVector<Vector> &points, float radius)
     // every point before this index is inside the start obstacles
     int split = points.size();
     for (int i = 0; i < points.size(); ++i) {
-        if (m_world.pointInPlayfield(points[i], m_world.radius()) && test(points[i], radius, m_world.obstacles())) {
+        if (m_world.pointInPlayfield(points[i], m_world.radius()) && test(points[i], radius, m_world.staticObstacles())) {
             split = i;
             break;
         }
@@ -444,7 +444,7 @@ void Path::simplify(QVector<Vector> &points, float radius)
             // if start point is in obstacle check that the robot leaves the obstacles
             // otherwise use the default check
             LineSegment seg(points[start_index], points[end_index]);
-            if ((start_index < split && checkMovementRelativeToObstacles(seg, m_world.obstacles(), radius))
+            if ((start_index < split && checkMovementRelativeToObstacles(seg, m_world.staticObstacles(), radius))
                     || (start_index >= split && test(seg, radius))) {
                 split -= std::min(std::max(0, split - start_index - 1), end_index - start_index - 1);
                 for (int i = 0; i < end_index - start_index - 1; i++) {
@@ -522,7 +522,7 @@ const KdTree::Node * Path::extend(KdTree *tree, const KdTree::Node *fromNode, co
         // The new point is only valid if its farther away from the obstacles than right now
         // checking for outsidePlayfieldCoverage is not neccessary as target is always inside the playfield
         // and thus extended can't leave it
-        success = checkMovementRelativeToObstacles(LineSegment(from, extended), m_world.obstacles(), radius);
+        success = checkMovementRelativeToObstacles(LineSegment(from, extended), m_world.staticObstacles(), radius);
     } else { // otherwise test the new path for obstacles
         success = m_world.pointInPlayfield(extended, m_world.radius()) && test(LineSegment(from, extended), radius);
     }
@@ -536,7 +536,7 @@ const KdTree::Node * Path::extend(KdTree *tree, const KdTree::Node *fromNode, co
     // once every obstacle was left, reentering one is impossible
     // thus only test obstacleCoverage if we're currently in an obstacle
     if (inObstacle) {
-        newInObstacle = !m_world.pointInPlayfield(extended, m_world.radius()) || !test(extended, radius, m_world.obstacles());
+        newInObstacle = !m_world.pointInPlayfield(extended, m_world.radius()) || !test(extended, radius, m_world.staticObstacles());
     }
     // Extend tree
     return tree->insert(extended, newInObstacle, fromNode);
@@ -570,7 +570,7 @@ bool Path::test(const LineSegment &segment, float radius, const QVector<const St
 
 bool Path::test(const LineSegment &segment, float radius) const
 {
-    return test(segment, radius, m_world.obstacles());
+    return test(segment, radius, m_world.staticObstacles());
 }
 
 Vector Path::findValidPoint(const LineSegment &segment, float radius) const
