@@ -68,19 +68,7 @@ public:
     void collectMovingObstacles();
 
     // obstacle checking for points and trajectories
-    template<typename container>
-    bool isInStaticObstacle(const container &obstacles, Vector point) const {
-        if (!pointInPlayfield(point, m_radius)) {
-            return true;
-        }
-        for (const auto obstacle : obstacles) {
-            if (obstacle->distance(point) < 0) {
-                return true;
-            }
-        }
-        return false;
-    }
-
+    bool isInStaticObstacle(Vector point) const;
     bool isTrajectoryInObstacle(const SpeedProfile &profile, float timeOffset) const;
     // return {min distance of trajectory to obstacles, min distances of first and last points to obstacles}
     // distances are only accurate up to safetyMargin

@@ -21,6 +21,7 @@
 #include "worldinformation.h"
 
 #include <QDebug>
+#include <algorithm>
 
 void WorldInformation::setRadius(float r)
 {
@@ -181,6 +182,14 @@ bool WorldInformation::isTrajectoryInObstacle(const SpeedProfile &profile, float
         }
     }
     return false;
+}
+
+bool WorldInformation::isInStaticObstacle(Vector point) const
+{
+    if (!pointInPlayfield(point, m_radius)) {
+        return true;
+    }
+    return std::any_of(m_staticObstacles.cbegin(), m_staticObstacles.cend(), [point](auto o) { return o->distance(point) <= 0; });
 }
 
 float WorldInformation::minObstacleDistancePoint(const TrajectoryPoint &point) const

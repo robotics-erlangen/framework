@@ -114,8 +114,6 @@ bool TrajectoryPath::testSampler(const TrajectoryInput &input, pathfinding::Inpu
 
 std::vector<SpeedProfile> TrajectoryPath::findPath(TrajectoryInput input)
 {
-    const auto &staticObstacles = m_world.staticObstacles();
-
     m_escapeObstacleSampler.resetMaxIntersectingObstaclePrio();
 
     m_world.addToAllStaticObstacleRadius(m_world.radius());
@@ -148,9 +146,9 @@ std::vector<SpeedProfile> TrajectoryPath::findPath(TrajectoryInput input)
     }
 
     // check if end point is in obstacle
-    if (m_world.isInStaticObstacle(staticObstacles, input.target.pos) || m_world.isInFriendlyStopPos(input.target.pos)) {
+    if (m_world.isInStaticObstacle(input.target.pos) || m_world.isInFriendlyStopPos(input.target.pos)) {
         const float PROJECT_DISTANCE = 0.03f;
-        for (const Obstacles::StaticObstacle *o : staticObstacles) {
+        for (const Obstacles::StaticObstacle *o : m_world.staticObstacles()) {
             float dist = o->distance(input.target.pos);
             if (dist > -0.2 && dist < 0) {
                 input.target.pos = o->projectOut(input.target.pos, PROJECT_DISTANCE);
@@ -160,7 +158,7 @@ std::vector<SpeedProfile> TrajectoryPath::findPath(TrajectoryInput input)
             input.target.pos = o->projectOut(input.target.pos, PROJECT_DISTANCE);
         }
         // test again, might have been moved into another obstacle
-        if (m_world.isInStaticObstacle(staticObstacles, input.target.pos) || m_world.isInFriendlyStopPos(input.target.pos)) {
+        if (m_world.isInStaticObstacle(input.target.pos) || m_world.isInFriendlyStopPos(input.target.pos)) {
             if (testSampler(input, pathfinding::EndInObstacleSampler)) {
                 return concat(escapeObstacle, m_endInObstacleSampler.getResult());
             }
