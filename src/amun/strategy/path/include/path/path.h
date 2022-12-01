@@ -50,7 +50,7 @@ public:
     void reset() override;
 
     void addSeedTarget(float x, float y);
-    bool testSpline(const robot::Spline &spline, float radius) const;
+    bool testSpline(const robot::Spline &spline, float radius);
 
     // path finding
     void setProbabilities(float p_dest, float p_wp);

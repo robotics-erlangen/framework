@@ -44,7 +44,7 @@ public:
     // world obstacles
     void clearObstacles();
     // only valid after a call to collectObstacles, may become invalid after the calling function returns!
-    QVector<const Obstacles::StaticObstacle*> &staticObstacles() const { return m_staticObstacles; }
+    const QVector<const Obstacles::StaticObstacle*> &staticObstacles() const { return m_staticObstacles; }
     const std::vector<Obstacles::Obstacle*> &movingObstacles() const { return m_movingObstacles; }
     const std::vector<Obstacles::Obstacle*> &obstacles() const { return m_obstacles; }
 
@@ -56,7 +56,7 @@ public:
     void addRect(float x1, float y1, float x2, float y2, const char *name, int prio, float radius);
     void addTriangle(float x1, float y1, float x2, float y2, float x3, float y3, float lineWidth, const char *name, int prio);
 
-    void collectObstacles() const;
+    void collectObstacles();
     bool pointInPlayfield(const Vector &point, float radius) const;
 
     // moving obstacles
@@ -64,8 +64,6 @@ public:
     void addMovingLine(Vector startPos1, Vector speed1, Vector acc1, Vector startPos2, Vector speed2, Vector acc2, float startTime, float endTime, float width, int prio);
     void addFriendlyRobotTrajectoryObstacle(std::vector<TrajectoryPoint> *obstacle, int prio, float radius);
     void addOpponentRobotObstacle(Vector startPos, Vector speed, int prio);
-
-    void collectMovingObstacles();
 
     // obstacle checking for points and trajectories
     bool isInStaticObstacle(Vector point) const;
@@ -86,7 +84,7 @@ public:
 
 private:
     std::vector<Obstacles::Obstacle*> m_obstacles;
-    mutable QVector<const Obstacles::StaticObstacle*> m_staticObstacles;
+    QVector<const Obstacles::StaticObstacle*> m_staticObstacles;
     std::vector<Obstacles::Obstacle*> m_movingObstacles;
 
     std::vector<Obstacles::Circle> m_circleObstacles;

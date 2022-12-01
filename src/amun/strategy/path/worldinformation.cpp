@@ -78,17 +78,14 @@ void WorldInformation::addTriangle(float x1, float y1, float x2, float y2, float
     m_triangleObstacles.emplace_back(name, prio, lineWidth, Vector(x1, y1), Vector(x2, y2), Vector(x3, y3));
 }
 
-void WorldInformation::collectObstacles() const
+void WorldInformation::collectObstacles()
 {
     m_staticObstacles.clear();
     for (const Obstacles::Circle &c: m_circleObstacles) { m_staticObstacles.append(&c); }
     for (const Obstacles::Rect &r: m_rectObstacles) { m_staticObstacles.append(&r); }
     for (const Obstacles::Triangle &t: m_triangleObstacles) { m_staticObstacles.append(&t); }
     for (const Obstacles::Line &l: m_lineObstacles) { m_staticObstacles.append(&l); }
-}
 
-void WorldInformation::collectMovingObstacles()
-{
     m_obstacles.clear();
     for (auto &c: m_circleObstacles) { m_obstacles.push_back(&c); }
     for (auto &r: m_rectObstacles) { m_obstacles.push_back(&r); }

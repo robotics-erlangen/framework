@@ -118,7 +118,6 @@ std::vector<SpeedProfile> TrajectoryPath::findPath(TrajectoryInput input)
 
     m_world.addToAllStaticObstacleRadius(m_world.radius());
     m_world.collectObstacles();
-    m_world.collectMovingObstacles();
 
     if (m_captureType == pathfinding::AllSamplers && m_inputSaver != nullptr) {
         savePathfindingInput(input);

@@ -57,7 +57,6 @@ static Vector optimizeCloseness(std::function<void(WorldInformation&)> obstacleA
     WorldInformation world = constructWorld();
     obstacleAdder(world);
     world.collectObstacles();
-    world.collectMovingObstacles();
 
     PathDebug debug;
     RNG rng(1);

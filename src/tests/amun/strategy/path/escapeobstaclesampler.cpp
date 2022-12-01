@@ -56,7 +56,6 @@ static Vector optimizeEscape(std::function<void(WorldInformation&)> obstacleAdde
     WorldInformation world = constructWorld();
     obstacleAdder(world);
     world.collectObstacles();
-    world.collectMovingObstacles();
 
     PathDebug debug;
     RNG rng(1);

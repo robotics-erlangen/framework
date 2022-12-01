@@ -51,7 +51,6 @@ static float evaluateParameters(const std::vector<float> &optimalValues, const s
         const auto &situation = situations[i];
         world = situation.world;
         world.collectObstacles();
-        world.collectMovingObstacles();
 
         EndInObstacleSampler &sampler = *samplers[world.robotId()].get();
 

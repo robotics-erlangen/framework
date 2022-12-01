@@ -27,7 +27,6 @@ void optimizeParameters(std::vector<Situation> situations, ParameterCategory cat
 {
     for (Situation &situation : situations) {
         situation.world.collectObstacles();
-        situation.world.collectMovingObstacles();
     }
 
     std::cout <<"Finding optimizable parameters"<<std::endl;

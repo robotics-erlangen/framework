@@ -70,7 +70,7 @@ void Path::clearObstaclesCustom()
     m_seedTargets.clear();
 }
 
-bool Path::testSpline(const robot::Spline &spline, float radius) const
+bool Path::testSpline(const robot::Spline &spline, float radius)
 {
     // check if any parts of the given spline collides with an obstacle
     const float start = spline.t_start();

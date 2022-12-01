@@ -183,7 +183,6 @@ static std::pair<std::vector<Situation>, std::vector<Situation>> checkPossible(c
     for (std::size_t i = 0;i<ITERATIONS;i++) {
         for (auto & a : impossible) {
             a.world.collectObstacles();
-            a.world.collectMovingObstacles();
         }
         auto result = evaluateSample(rng, impossible, randomSample(rng, GENERAL_MAX_SPEED, 10));
         std::vector<Situation> nextImpossible;
@@ -225,7 +224,6 @@ void optimizeStandardSamplerPoints(const std::vector<Situation> &situations, con
         // collect obstacles, do this as late as possible to avoid changes to the memory where obstacles are stored (due to copying situations)
         for (auto &s : sc) {
             s.world.collectObstacles();
-            s.world.collectMovingObstacles();
         }
 
         float minDist = float(i) * MAX_DISTANCE / SCENARIO_SEGMENTS;
