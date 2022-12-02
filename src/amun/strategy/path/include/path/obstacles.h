@@ -27,6 +27,7 @@
 #include "protobuf/pathfinding.pb.h"
 #include <QByteArray>
 #include <vector>
+#include <limits>
 
 namespace Obstacles {
 
@@ -35,9 +36,13 @@ namespace Obstacles {
         Obstacle(const pathfinding::Obstacle &obstacle) : prio(obstacle.prio()), radius(obstacle.radius()) {}
         virtual ~Obstacle() {}
 
-        virtual bool intersects(const TrajectoryPoint &point) const = 0;
+        bool intersects(const TrajectoryPoint &point) const {
+            return zonedDistance(point, 0) <= 0;
+        }
         /// returns float max if the obstacle is not present anymore at the given time
-        virtual float distance(const TrajectoryPoint &point) const = 0;
+        float distance(const TrajectoryPoint &point) const {
+                return zonedDistance(point, std::numeric_limits<float>::infinity());
+        }
         virtual float zonedDistance(const TrajectoryPoint &point, float nearRadius) const = 0;
         // TODO: it might be possible to also use the trajectory max. time to make the obstacles smaller
         virtual BoundingBox boundingBox() const = 0;
@@ -63,12 +68,6 @@ namespace Obstacles {
         StaticObstacle(const char *name, int prio, float radius) : Obstacle(prio, radius), name(name) {}
         StaticObstacle(const pathfinding::Obstacle &obstacle);
 
-        bool intersects(const TrajectoryPoint &point) const final override {
-            return zonedDistance(point.state.pos, 0) < 0;
-        }
-        virtual float distance(const TrajectoryPoint &point) const final override {
-            return distance(point.state.pos);
-        }
         virtual float zonedDistance(const TrajectoryPoint &point, float nearRadius) const final override {
             return zonedDistance(point.state.pos, nearRadius);
         }
@@ -166,8 +165,7 @@ namespace Obstacles {
     struct MovingCircle : public Obstacle {
         MovingCircle(int prio, float radius, Vector start, Vector speed, Vector acc, float t0, float t1);
         MovingCircle(const pathfinding::Obstacle &obstacle, const pathfinding::MovingCircleObstacle &circle);
-        bool intersects(const TrajectoryPoint &point) const override;
-        float distance(const TrajectoryPoint &point) const override;
+
         float zonedDistance(const TrajectoryPoint &point, float nearRadius) const override;
         BoundingBox boundingBox() const override;
 
@@ -186,8 +184,6 @@ namespace Obstacles {
                    Vector start2, Vector speed2, Vector acc2, float t0, float t1);
         MovingLine(const pathfinding::Obstacle &obstacle, const pathfinding::MovingLineObstacle &line);
 
-        bool intersects(const TrajectoryPoint &point) const override;
-        float distance(const TrajectoryPoint &point) const override;
         float zonedDistance(const TrajectoryPoint &point, float nearRadius) const override;
         BoundingBox boundingBox() const override;
 
@@ -217,8 +213,6 @@ namespace Obstacles {
         FriendlyRobotObstacle &operator=(const FriendlyRobotObstacle &other);
         FriendlyRobotObstacle &operator=(FriendlyRobotObstacle &&other);
 
-        bool intersects(const TrajectoryPoint &point) const override;
-        float distance(const TrajectoryPoint &point) const override;
         float zonedDistance(const TrajectoryPoint &point, float nearRadius) const override;
         BoundingBox boundingBox() const override { return bound; }
         Vector projectOut(Vector v, float extraDistance) const override;
@@ -237,8 +231,7 @@ namespace Obstacles {
     struct OpponentRobotObstacle : public Obstacle {
         OpponentRobotObstacle(int prio, float baseRadius, Vector start, Vector speed);
         OpponentRobotObstacle(const pathfinding::Obstacle &obstacle, const pathfinding::OpponentRobotObstacle &circle);
-        bool intersects(const TrajectoryPoint &point) const override;
-        float distance(const TrajectoryPoint &point) const override;
+
         float zonedDistance(const TrajectoryPoint &point, float nearRadius) const override;
         BoundingBox boundingBox() const override;
 
