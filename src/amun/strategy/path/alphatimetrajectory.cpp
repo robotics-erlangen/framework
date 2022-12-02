@@ -74,7 +74,6 @@ static float adjustAngle(Vector startSpeed, Vector endSpeed, float time, float a
 
     float circleCircumference = float(2 * M_PI) - gapSizeHalfX * 4 - gapSizeHalfY * 4;
     float circumferenceFactor = circleCircumference / float(2 * M_PI);
-    angle = normalizeAnglePositive(angle);
     angle *= circumferenceFactor;
 
     angle += gapSizeHalfX;
@@ -177,13 +176,11 @@ Vector AlphaTimeTrajectory::minTimePos(const RobotState &start, Vector v1, float
         // construct speed profile for slowing down to zero
         SpeedProfile profile(Vector(0, 0), slowDownTime);
         profile.setStartPos(start.pos);
-        profile.xProfile.counter = 2;
-        profile.xProfile.profile[0] = {start.speed.x, 0};
-        profile.xProfile.profile[1] = {v1.x, minTime};
+        profile.xProfile.profile.push_back({start.speed.x, 0});
+        profile.xProfile.profile.push_back({v1.x, minTime});
 
-        profile.yProfile.counter = 2;
-        profile.yProfile.profile[0] = {start.speed.y, 0};
-        profile.yProfile.profile[1] = {v1.y, minTime};
+        profile.yProfile.profile.push_back({start.speed.y, 0});
+        profile.yProfile.profile.push_back({v1.y, minTime});
 
         return profile.endPosition();
     }
@@ -222,12 +219,13 @@ std::optional<SpeedProfile> AlphaTimeTrajectory::tryDirectBrake(const RobotState
     if (directionMatches && accLength > acc && accLength < acc * MAX_ACCELERATION_FACTOR && slowDownTime == 0.0f) {
         SpeedProfile result(start.pos, slowDownTime);
         result.slowDownTime = 0;
-        result.xProfile.counter = 2;
-        result.xProfile.profile[0] = {v0.x, 0};
-        result.xProfile.profile[1] = {0, std::abs(v0.x / necessaryAcc.x)};
-        result.yProfile.counter = 2;
-        result.yProfile.profile[0] = {v0.y, 0};
-        result.yProfile.profile[1] = {0, std::abs(v0.y / necessaryAcc.y)};
+
+        result.xProfile.profile.push_back({v0.x, 0});
+        result.xProfile.profile.push_back({0, std::abs(v0.x / necessaryAcc.x)});
+
+        result.yProfile.profile.push_back({v0.y, 0});
+        result.yProfile.profile.push_back({0, std::abs(v0.y / necessaryAcc.y)});
+
         if (timeDiff < 0.1f) {
             return result;
         } else {

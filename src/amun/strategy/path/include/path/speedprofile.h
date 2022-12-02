@@ -30,6 +30,40 @@
 class AlphaTimeTrajectory;
 class SpeedProfile;
 
+template<typename T, std::size_t n>
+class StaticVector {
+
+public:
+    void push_back(const T &e) {
+        elements[counter] = e;
+        counter++;
+    }
+
+    const T& operator[](std::size_t index) const {
+        return elements[index];
+    }
+
+    T& operator[](std::size_t index) {
+        return elements[index];
+    }
+
+    const T& back() const {
+        return elements[counter - 1];
+    }
+
+    std::size_t size() const {
+        return counter;
+    }
+
+    void resize(std::size_t numElements) {
+        counter = numElements;
+    }
+
+private:
+    std::array<T, n> elements;
+    int counter = 0;
+};
+
 class SpeedProfile1D {
 public:
     struct VT {
@@ -85,8 +119,7 @@ private:
     static std::pair<float, float> freeExtraTimeDistance(float v, float time, float acc, float vMax);
 
 private:
-    VT profile[4];
-    unsigned int counter = 0;
+    StaticVector<VT, 4> profile;
     float s0 = 0;
     float correctionOffsetPerSecond = 0;
 
@@ -110,11 +143,11 @@ public:
     BoundingBox calculateBoundingBox() const;
 
     Vector endSpeed() const {
-        return Vector(xProfile.profile[xProfile.counter-1].v, yProfile.profile[yProfile.counter-1].v);
+        return Vector(xProfile.profile.back().v, yProfile.profile.back().v);
     }
 
     Vector continuationSpeed() const {
-        return Vector(xProfile.profile[xProfile.counter / 2].v, yProfile.profile[yProfile.counter / 2].v);
+        return Vector(xProfile.profile[xProfile.profile.size() / 2].v, yProfile.profile[yProfile.profile.size() / 2].v);
     }
 
     Vector initialAcceleration() const {
