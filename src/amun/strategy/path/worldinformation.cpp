@@ -153,17 +153,20 @@ void WorldInformation::addOpponentRobotObstacle(Vector startPos, Vector speed, i
 
 // obstacle checking
 
+std::vector<Obstacles::Obstacle*> WorldInformation::intersectingObstacles(const SpeedProfile &trajectory) const
+{
+    const BoundingBox boundingBox = trajectory.calculateBoundingBox();
+    std::vector<Obstacles::Obstacle*> intersectingObstacles;
+    intersectingObstacles.reserve(m_obstacles.size());
+    std::copy_if(m_obstacles.begin(), m_obstacles.end(), std::back_inserter(intersectingObstacles),
+                 [&boundingBox](auto o) { return o->boundingBox().intersects(boundingBox); });
+    return intersectingObstacles;
+}
+
 bool WorldInformation::isTrajectoryInObstacle(const SpeedProfile &profile, float timeOffset) const
 {
     // TODO: field border??
-    BoundingBox trajectoryBoundingBox = profile.calculateBoundingBox();
-    std::vector<Obstacles::Obstacle*> intersectingObstacles;
-    intersectingObstacles.reserve(m_obstacles.size());
-    for (const auto o : m_obstacles) {
-        if (o->boundingBox().intersects(trajectoryBoundingBox)) {
-            intersectingObstacles.push_back(o);
-        }
-    }
+    const auto obstacles = intersectingObstacles(profile);
 
     const float totalTime = profile.time();
     const float timeInterval = 0.025f;
@@ -172,7 +175,7 @@ bool WorldInformation::isTrajectoryInObstacle(const SpeedProfile &profile, float
     const auto trajectoryPoints = profile.trajectoryPositions(divisions, timeInterval, timeOffset);
 
     for (const TrajectoryPoint &point : trajectoryPoints) {
-        for (const auto o : intersectingObstacles) {
+        for (const auto o : obstacles) {
             if (o->intersects(point)) {
                 return true;
             }

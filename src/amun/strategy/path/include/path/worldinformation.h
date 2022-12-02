@@ -74,6 +74,8 @@ public:
     float minObstacleDistancePoint(const TrajectoryPoint &point) const;
     bool isInFriendlyStopPos(const Vector pos) const;
 
+    std::vector<Obstacles::Obstacle*> intersectingObstacles(const SpeedProfile &trajectory) const;
+
     // collectobstacles must have been called before calling this function
     void serialize(pathfinding::WorldState *state) const;
     // collect obstacles must be called after calling this and before using it
