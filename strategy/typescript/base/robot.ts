@@ -330,7 +330,7 @@ export class FriendlyRobot extends Robot {
 	private _dribblerSpeed: number = 0;
 	private _standbyTimer: number = -1;
 	private _standbyTick: boolean = false;
-	private _controllerInput: ControllerInput | {} = {};
+	private _controllerInput: ControllerInput | undefined = undefined;
 
 	private _dribblerSpeedVisualized = false;
 
@@ -428,7 +428,8 @@ export class FriendlyRobot extends Robot {
 			dribbler: this._dribblerSpeed,
 			standby: standby
 		};
-		if (this._controllerInput !== {}) {
+
+		if (this._controllerInput != undefined) {
 			let input: ControllerInput = <ControllerInput> this._controllerInput;
 			result.controller = input;
 			result.v_f = input.v_f;
@@ -442,7 +443,7 @@ export class FriendlyRobot extends Robot {
 		// keep current time for use by setStandby
 		this._currentTime = time;
 		// bypass override check in setControllerInput
-		this._controllerInput = {}; // halt robot by default
+		this._controllerInput = undefined; // halt robot by default
 		this.shootDisable(); // disable shoot
 		this._dribblerSpeedVisualized = false;
 		this.setDribblerSpeed(0); // stop dribbler
@@ -467,7 +468,7 @@ export class FriendlyRobot extends Robot {
 	 */
 	setControllerInput(input: ControllerInput) {
 		// Forbid overriding controller input except with halt
-		if (input && input.spline && (this._controllerInput === {} || (<ControllerInput> this._controllerInput).spline)) {
+		if (input && input.spline && this._controllerInput != undefined && this._controllerInput.spline) {
 			throw new Error("Setting controller input twice");
 		}
 		this._controllerInput = input;
