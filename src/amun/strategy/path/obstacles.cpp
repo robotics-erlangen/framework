@@ -148,7 +148,7 @@ BoundingBox Obstacles::Line::boundingBox() const
 
 void Obstacles::Line::serializeChild(pathfinding::Obstacle *obstacle) const
 {
-    auto line = obstacle->mutable_line();
+    const auto line = obstacle->mutable_line();
     setVector(segment.start(), line->mutable_start());
     setVector(segment.end(), line->mutable_end());
 }
@@ -181,8 +181,8 @@ float Obstacles::Rect::distance(const Vector &v) const
 
 float Obstacles::Rect::zonedDistance(const Vector &v, float nearRadius) const
 {
-    float distX = std::max(bottomLeft.x - v.x, v.x - topRight.x);
-    float distY = std::max(bottomLeft.y - v.y, v.y - topRight.y);
+    const float distX = std::max(bottomLeft.x - v.x, v.x - topRight.x);
+    const float distY = std::max(bottomLeft.y - v.y, v.y - topRight.y);
 
     if (distX >= 0 && distY >= 0) { // distance to corner
         return computeZonedIntersection(distX*distX + distY*distY, radius, nearRadius);
@@ -204,10 +204,10 @@ Vector Obstacles::Rect::projectOut(Vector v, float extraDistance) const
     if ((v.x > bottomLeft.x && v.x < topRight.x) || (v.y > bottomLeft.y && v.y < topRight.y)) {
         // project the point out toward a side
 
-        float rightDist = LineSegment(topRight, Vector(topRight.x, bottomLeft.y)).distance(v);
-        float bottomDist = LineSegment(Vector(topRight.x, bottomLeft.y), bottomLeft).distance(v);
-        float leftDist = LineSegment(bottomLeft, Vector(bottomLeft.x, topRight.y)).distance(v);
-        float topDist = LineSegment(Vector(bottomLeft.x, topRight.y), topRight).distance(v);
+        const float rightDist = LineSegment(topRight, Vector(topRight.x, bottomLeft.y)).distance(v);
+        const float bottomDist = LineSegment(Vector(topRight.x, bottomLeft.y), bottomLeft).distance(v);
+        const float leftDist = LineSegment(bottomLeft, Vector(bottomLeft.x, topRight.y)).distance(v);
+        const float topDist = LineSegment(Vector(bottomLeft.x, topRight.y), topRight).distance(v);
 
         if (rightDist < std::min({bottomDist, leftDist, topDist})) {
             return Vector(topRight.x + radius + extraDistance, v.y);
@@ -241,13 +241,13 @@ float Obstacles::Rect::distance(const LineSegment &segment) const
         return -radius;
     }
 
-    Vector bottom_right(topRight.x, bottomLeft.y);
-    Vector top_left(bottomLeft.x, topRight.y);
+    const Vector bottom_right(topRight.x, bottomLeft.y);
+    const Vector top_left(bottomLeft.x, topRight.y);
 
-    float distTop = segment.distance(LineSegment(top_left, topRight));
-    float distBottom = segment.distance(LineSegment(bottomLeft, bottom_right));
-    float distLeft = segment.distance(LineSegment(top_left, bottomLeft));
-    float distRight = segment.distance(LineSegment(topRight, bottom_right));
+    const float distTop = segment.distance(LineSegment(top_left, topRight));
+    const float distBottom = segment.distance(LineSegment(bottomLeft, bottom_right));
+    const float distLeft = segment.distance(LineSegment(top_left, bottomLeft));
+    const float distRight = segment.distance(LineSegment(topRight, bottom_right));
 
     return std::min(std::min(distTop, distBottom), std::min(distLeft, distRight)) - radius;
 }
@@ -259,7 +259,7 @@ BoundingBox Obstacles::Rect::boundingBox() const
 
 void Obstacles::Rect::serializeChild(pathfinding::Obstacle *obstacle) const
 {
-    auto rect = obstacle->mutable_rectangle();
+    const auto rect = obstacle->mutable_rectangle();
     setVector(topRight, rect->mutable_top_right());
     setVector(bottomLeft, rect->mutable_bottom_left());
 }
@@ -395,15 +395,15 @@ float Obstacles::MovingCircle::zonedDistance(const TrajectoryPoint &point, float
 
 static std::pair<float, float> range1D(float p0, float speed, float acc, float startTime, float endTime)
 {
-    float timeDiff = endTime - startTime;
-    float endPos = p0 + speed * timeDiff + acc * (0.5f * timeDiff * timeDiff);
+    const float timeDiff = endTime - startTime;
+    const float endPos = p0 + speed * timeDiff + acc * (0.5f * timeDiff * timeDiff);
 
     if (acc == 0.0f) {
         return {std::min(p0, endPos), std::max(p0, endPos)};
     }
-    float zeroSpeedTime = std::abs(speed / acc);
+    const float zeroSpeedTime = std::abs(speed / acc);
     if ((speed < 0) != (acc < 0) && zeroSpeedTime <= endTime - startTime) {
-        float zeroSpeedPos = p0 + speed * zeroSpeedTime + acc * (0.5f * zeroSpeedTime * zeroSpeedTime);
+        const float zeroSpeedPos = p0 + speed * zeroSpeedTime + acc * (0.5f * zeroSpeedTime * zeroSpeedTime);
         return {std::min({p0, endPos, zeroSpeedPos}), std::max({p0, endPos, zeroSpeedPos})};
     }
     return {std::min(p0, endPos), std::max(p0, endPos)};
@@ -411,8 +411,8 @@ static std::pair<float, float> range1D(float p0, float speed, float acc, float s
 
 BoundingBox Obstacles::MovingCircle::boundingBox() const
 {
-    auto xRange = range1D(startPos.x, speed.x, acc.x, startTime, endTime);
-    auto yRange = range1D(startPos.y, speed.y, acc.y, startTime, endTime);
+    const auto xRange = range1D(startPos.x, speed.x, acc.x, startTime, endTime);
+    const auto yRange = range1D(startPos.y, speed.y, acc.y, startTime, endTime);
     BoundingBox result({xRange.first, yRange.first}, {xRange.second, yRange.second});
     result.addExtraRadius(radius);
     return result;
@@ -420,7 +420,7 @@ BoundingBox Obstacles::MovingCircle::boundingBox() const
 
 void Obstacles::MovingCircle::serializeChild(pathfinding::Obstacle *obstacle) const
 {
-    auto circle = obstacle->mutable_moving_circle();
+    const auto circle = obstacle->mutable_moving_circle();
     setVector(startPos, circle->mutable_start_pos());
     setVector(speed, circle->mutable_speed());
     setVector(acc, circle->mutable_acc());
@@ -470,11 +470,11 @@ float Obstacles::MovingLine::zonedDistance(const TrajectoryPoint &point, float n
 
 BoundingBox Obstacles::MovingLine::boundingBox() const
 {
-    auto xRange1 = range1D(startPos1.x, speed1.x, acc1.x, startTime, endTime);
-    auto yRange1 = range1D(startPos1.y, speed1.y, acc1.y, startTime, endTime);
+    const auto xRange1 = range1D(startPos1.x, speed1.x, acc1.x, startTime, endTime);
+    const auto yRange1 = range1D(startPos1.y, speed1.y, acc1.y, startTime, endTime);
     BoundingBox result({xRange1.first, yRange1.first}, {xRange1.second, yRange1.second});
-    auto xRange2 = range1D(startPos2.x, speed2.x, acc2.x, startTime, endTime);
-    auto yRange2 = range1D(startPos2.y, speed2.y, acc2.y, startTime, endTime);
+    const auto xRange2 = range1D(startPos2.x, speed2.x, acc2.x, startTime, endTime);
+    const auto yRange2 = range1D(startPos2.y, speed2.y, acc2.y, startTime, endTime);
     result.mergePoint({xRange2.first, yRange2.first});
     result.mergePoint({xRange2.second, yRange2.second});
     result.addExtraRadius(radius);
@@ -612,7 +612,7 @@ Vector Obstacles::FriendlyRobotObstacle::projectOut(Vector v, float extraDistanc
 
 void Obstacles::FriendlyRobotObstacle::serializeChild(pathfinding::Obstacle *obstacle) const
 {
-    auto robot = obstacle->mutable_friendly_robot();
+    const auto robot = obstacle->mutable_friendly_robot();
     for (const TrajectoryPoint &p : *trajectory) {
         auto point = robot->add_robot_trajectory();
         setVector(p.state.pos, point->mutable_pos());
@@ -670,7 +670,7 @@ BoundingBox Obstacles::OpponentRobotObstacle::boundingBox() const
 
 void Obstacles::OpponentRobotObstacle::serializeChild(pathfinding::Obstacle *obstacle) const
 {
-    auto circle = obstacle->mutable_opponent_robot();
+    const auto circle = obstacle->mutable_opponent_robot();
     setVector(startPos, circle->mutable_start_pos());
     setVector(speed, circle->mutable_speed());
 }

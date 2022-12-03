@@ -28,7 +28,7 @@ bool EndInObstacleSampler::compute(const TrajectoryInput &input)
 {
     // TODO: possibly dont use search trajectory generation but time and angle directly?
     // check last best end point
-    float prevBestDistance = m_bestEndPointDistance;
+    const float prevBestDistance = m_bestEndPointDistance;
     m_bestEndPointDistance = std::numeric_limits<float>::infinity();
     isValid = false;
     if (!testEndPoint(input, m_bestEndPoint)) {
@@ -55,15 +55,15 @@ bool EndInObstacleSampler::compute(const TrajectoryInput &input)
         const int RANDOM_STOPPOINT_RANGE = PARAMETER(EndInObstacleSampler, 1, 200, 700);
         if (randVal < RANDOM_END_RANGE) {
             // sample random point around actual end point
-            float testRadius = std::min(m_bestEndPointDistance, PARAMETER(EndInObstacleSampler, 0, 0.3f, 3));
+            const float testRadius = std::min(m_bestEndPointDistance, PARAMETER(EndInObstacleSampler, 0, 0.3f, 3));
             testPoint = input.target.pos + Vector(m_rng->uniformFloat(-testRadius, testRadius), m_rng->uniformFloat(-testRadius, testRadius));
         } else if (randVal < RANDOM_END_RANGE + RANDOM_BEST_RANGE || m_bestEndPointDistance < PARAMETER(EndInObstacleSampler, 0, 0.3f, 3)) {
             // sample random point around last best end point
-            float testRadius = std::min(m_bestEndPointDistance, PARAMETER(EndInObstacleSampler, 0, 0.3f, 3));
+            const float testRadius = std::min(m_bestEndPointDistance, PARAMETER(EndInObstacleSampler, 0, 0.3f, 3));
             testPoint = m_bestEndPoint + Vector(m_rng->uniformFloat(-testRadius, testRadius), m_rng->uniformFloat(-testRadius, testRadius));
         } else if (randVal < RANDOM_END_RANGE + RANDOM_BEST_RANGE + RANDOM_STOPPOINT_RANGE) {
             // sample random point around the position the robot will stop
-            float testRadius = std::min(m_bestEndPointDistance, PARAMETER(EndInObstacleSampler, 0, 0.5f, 3));
+            const float testRadius = std::min(m_bestEndPointDistance, PARAMETER(EndInObstacleSampler, 0, 0.5f, 3));
             testPoint = stopPoint + Vector(m_rng->uniformFloat(-testRadius, testRadius), m_rng->uniformFloat(-testRadius, testRadius));
         } else {
             // sample random point in field
@@ -109,7 +109,7 @@ bool EndInObstacleSampler::testEndPoint(const TrajectoryInput &input, Vector end
 
 Vector EndInObstacleSampler::randomPointInField()
 {
-    auto bound = m_world.boundary();
+    const auto bound = m_world.boundary();
     return Vector(m_rng->uniformFloat(bound.bottomLeft.x, bound.topRight.x),
                   m_rng->uniformFloat(bound.bottomLeft.y, bound.topRight.y));
 }

@@ -276,7 +276,7 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Spe
         float totalTime = 0;
         for (unsigned int i = 0; i < profiles.size(); i++) {
             const SpeedProfile &profile = profiles[i];
-            float partTime = profile.time();
+            const float partTime = profile.time();
 
             std::vector<TrajectoryPoint> newPoints;
             if (partTime > profile.getSlowDownTime() * 1.5f) {

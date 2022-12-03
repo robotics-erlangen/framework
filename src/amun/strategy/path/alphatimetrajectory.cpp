@@ -38,8 +38,8 @@ static float normalizeAnglePositive(float angle)
 // returns endspeed as the closest value of startSpeed on [0, endSpeed]
 static Vector minTimeEndSpeed(Vector startSpeed, Vector endSpeed)
 {
-    float endSpeedX = std::max(std::min(startSpeed.x, std::max(endSpeed.x, 0.0f)), std::min(endSpeed.x, 0.0f));
-    float endSpeedY = std::max(std::min(startSpeed.y, std::max(endSpeed.y, 0.0f)), std::min(endSpeed.y, 0.0f));
+    const float endSpeedX = std::max(std::min(startSpeed.x, std::max(endSpeed.x, 0.0f)), std::min(endSpeed.x, 0.0f));
+    const float endSpeedY = std::max(std::min(startSpeed.y, std::max(endSpeed.y, 0.0f)), std::min(endSpeed.y, 0.0f));
     return Vector(endSpeedX, endSpeedY);
 }
 
@@ -60,20 +60,20 @@ static float adjustAngle(Vector startSpeed, Vector endSpeed, float time, float a
     // => x = sin^-1(|startSpeed.x| / (time * acc))
     // WARNING: only solvable when |startSpeed.x| <= time
     // -> this also applies to all other cases, see below
-    Vector diff = endSpeed - startSpeed;
-    Vector absDiff(std::abs(diff.x), std::abs(diff.y));
+    const Vector diff = endSpeed - startSpeed;
+    const Vector absDiff(std::abs(diff.x), std::abs(diff.y));
     if (absDiff.x > time * acc || absDiff.y > time * acc) {
         // sometimes happens because of floating point inaccuracies
         return angle;
     }
     // offset to ensure that values directly on the border of an invalid segment are not treated as invalid later
     const float FLOATING_POINT_OFFSET = 0.001f;
-    float gapSizeHalfX = std::asin(absDiff.x / (time * acc)) + FLOATING_POINT_OFFSET;
+    const float gapSizeHalfX = std::asin(absDiff.x / (time * acc)) + FLOATING_POINT_OFFSET;
     // solution gaps are now [-fS, fS] and [pi - fS, pi + fS]
-    float gapSizeHalfY = std::asin(absDiff.y / (time * acc)) + FLOATING_POINT_OFFSET;
+    const float gapSizeHalfY = std::asin(absDiff.y / (time * acc)) + FLOATING_POINT_OFFSET;
 
-    float circleCircumference = float(2 * M_PI) - gapSizeHalfX * 4 - gapSizeHalfY * 4;
-    float circumferenceFactor = circleCircumference / float(2 * M_PI);
+    const float circleCircumference = float(2 * M_PI) - gapSizeHalfX * 4 - gapSizeHalfY * 4;
+    const float circumferenceFactor = circleCircumference / float(2 * M_PI);
     angle *= circumferenceFactor;
 
     angle += gapSizeHalfX;
@@ -94,7 +94,7 @@ float AlphaTimeTrajectory::minimumTime(Vector startSpeed, Vector endSpeed, float
     if (fastEndSpeed) {
         endSpeed = minTimeEndSpeed(startSpeed, endSpeed);
     }
-    Vector diff = endSpeed - startSpeed;
+    const Vector diff = endSpeed - startSpeed;
     return diff.length() / acc;
 }
 
@@ -135,8 +135,8 @@ SpeedProfile AlphaTimeTrajectory::calculateTrajectory(const RobotState &start, V
     time += minTime;
 
     angle = adjustAngle(v0, v1, time, angle, acc, fastEndSpeed);
-    float alphaX = std::sin(angle);
-    float alphaY = std::cos(angle);
+    const float alphaX = std::sin(angle);
+    const float alphaY = std::cos(angle);
 
     SpeedProfile result(start.pos, slowDownTime);
 
@@ -144,9 +144,9 @@ SpeedProfile AlphaTimeTrajectory::calculateTrajectory(const RobotState &start, V
         result.xProfile.calculate1DTrajectoryFastEndSpeed(v0.x, v1.x, time, alphaX > 0, acc * std::abs(alphaX), vMax * std::abs(alphaX));
         result.yProfile.calculate1DTrajectoryFastEndSpeed(v0.y, v1.y, time, alphaY > 0, acc * std::abs(alphaY), vMax * std::abs(alphaY));
     } else {
-        Vector diff = v1 - v0;
-        float restTimeX = (time - std::abs(diff.x) / (acc * std::abs(alphaX)));
-        float restTimeY = (time - std::abs(diff.y) / (acc * std::abs(alphaY)));
+        const Vector diff = v1 - v0;
+        const float restTimeX = (time - std::abs(diff.x) / (acc * std::abs(alphaX)));
+        const float restTimeY = (time - std::abs(diff.y) / (acc * std::abs(alphaY)));
 
         result.xProfile.calculate1DTrajectory(v0.x, v1.x, restTimeX, alphaX > 0, acc * std::abs(alphaX), vMax * std::abs(alphaX));
         result.yProfile.calculate1DTrajectory(v0.y, v1.y, restTimeY, alphaY > 0, acc * std::abs(alphaY), vMax * std::abs(alphaY));
@@ -168,7 +168,7 @@ static Vector centerTimePos(const RobotState &start, Vector endSpeed, float time
 
 Vector AlphaTimeTrajectory::minTimePos(const RobotState &start, Vector v1, float acc, float slowDownTime)
 {
-    float minTime = minimumTime(start.speed, v1, acc, false);
+    const float minTime = minimumTime(start.speed, v1, acc, false);
     if (slowDownTime == 0.0f) {
         return (start.speed + v1) * (minTime * 0.5f);
     } else {

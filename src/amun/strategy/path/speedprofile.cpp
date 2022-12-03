@@ -129,7 +129,7 @@ public:
         }
         float t0;
         if (first.t < slowDownStartTime) {
-            auto partial = simpleAcceleration.partialSegmentOffsetAndSpeed(first, second, result.constantPrecomputation, first.t, slowDownStartTime);
+            const auto partial = simpleAcceleration.partialSegmentOffsetAndSpeed(first, second, result.constantPrecomputation, first.t, slowDownStartTime);
             result.partialDistance = partial.first;
             result.v0 = partial.second;
             t0 = slowDownStartTime;
@@ -218,7 +218,7 @@ void SpeedProfile1D::trajectoryPositions(std::vector<TrajectoryPoint> &outPoints
     std::size_t resultCounter = 0;
     for (unsigned int i = 0;i<profile.size()-1;i++) {
         const auto precomputation = acceleration.precomputeSegment(profile[i], profile[i+1]);
-        float segmentTime = acceleration.timeForSegment(profile[i], profile[i+1], precomputation);
+        const float segmentTime = acceleration.timeForSegment(profile[i], profile[i+1], precomputation);
         while (totalTime + segmentTime >= nextDesiredTime) {
             const auto inf = acceleration.partialSegmentOffsetAndSpeed(profile[i], profile[i+1], precomputation, totalTime, nextDesiredTime);
             outPoints[resultCounter].state.pos[outIndex] = offset + inf.first + correctionOffsetPerSecond * nextDesiredTime;
@@ -380,11 +380,11 @@ std::vector<TrajectoryPoint> SpeedProfile::getTrajectoryPoints() const
     std::size_t yIndex = 0;
 
     while (xIndex < xProfile.profile.size()-1 && yIndex < yProfile.profile.size()-1) {
-        float xNext = xProfile.profile[xIndex + 1].t;
-        float yNext = yProfile.profile[yIndex + 1].t;
+        const float xNext = xProfile.profile[xIndex + 1].t;
+        const float yNext = yProfile.profile[yIndex + 1].t;
 
         if (std::abs(xNext - yNext) < SAME_POINT_EPSILON) {
-            float time = (xNext + yNext) / 2.0f;
+            const float time = (xNext + yNext) / 2.0f;
             const auto state = stateAtTime(time);
             result.emplace_back(state, time);
             xIndex++;
@@ -417,18 +417,18 @@ static float constantDistance(float v, float time)
 
 static float dist(float v0, float v1, float acc)
 {
-    float time = std::abs(v0 - v1) / acc;
+    const float time = std::abs(v0 - v1) / acc;
     return 0.5f * (v0 + v1) * time;
 }
 
 std::pair<float, float> SpeedProfile1D::freeExtraTimeDistance(float v, float time, float acc, float vMax)
 {
-    float toMaxTime = 2.0f * std::abs(vMax - v) / acc;
+    const float toMaxTime = 2.0f * std::abs(vMax - v) / acc;
     if (toMaxTime < time) {
         return {2 * dist(v, vMax, acc) +
                constantDistance(vMax, time - toMaxTime), vMax};
     } else {
-        float v1 = (v > vMax ? -1.0f : 1.0f) * acc * time / 2 + v;
+        const float v1 = (v > vMax ? -1.0f : 1.0f) * acc * time / 2 + v;
         return {2.0f * dist(v, v1, acc), v1};
     }
 }
@@ -437,36 +437,36 @@ auto SpeedProfile1D::calculateEndPos1D(float v0, float v1, float hintDist, float
 {
     // basically the same as calculate1DTrajectory, but with position only
     // see the comments there if necessary
-    float desiredVMax = hintDist < 0 ? -vMax : vMax;
+    const float desiredVMax = hintDist < 0 ? -vMax : vMax;
     if (hintDist == 0.0f) {
         return {dist(v0, v1, acc), std::max(v0, v1)};
     } else if ((v0 < desiredVMax) != (v1 < desiredVMax)) {
         return {dist(v0, v1, acc) + constantDistance(desiredVMax, std::abs(hintDist)), desiredVMax};
     } else {
         // check whether v0 or v1 is closer to the desired max speed
-        bool v0Closer = std::abs(v0 - desiredVMax) < std::abs(v1 - desiredVMax);
-        float closerSpeed = v0Closer ? v0 : v1;
-        auto extraDistance = freeExtraTimeDistance(closerSpeed, std::abs(hintDist), acc, desiredVMax);
+        const bool v0Closer = std::abs(v0 - desiredVMax) < std::abs(v1 - desiredVMax);
+        const float closerSpeed = v0Closer ? v0 : v1;
+        const auto extraDistance = freeExtraTimeDistance(closerSpeed, std::abs(hintDist), acc, desiredVMax);
         return {extraDistance.first + dist(v0, v1, acc), extraDistance.second};
     }
 }
 
 static SpeedProfile1D::VT adjustEndSpeed(float v0, float v1, float time, bool directionPositive, float acc)
 {
-    float invAcc = 1.0f / acc;
+    const float invAcc = 1.0f / acc;
 
     // idea: compute the speed that would be reached after accelerating in the desired direction
-    float speedAfterT = v0 + (directionPositive ? 1.0f : -1.0f) * (time * acc);
+    const float speedAfterT = v0 + (directionPositive ? 1.0f : -1.0f) * (time * acc);
     // bound that speed to the allowed endspeed range [0, v1]
-    float boundedSpeed = std::max(std::min(speedAfterT, std::max(v1, 0.0f)), std::min(v1, 0.0f));
+    const float boundedSpeed = std::max(std::min(speedAfterT, std::max(v1, 0.0f)), std::min(v1, 0.0f));
     // compute the time it would take to reach boundedSpeed from v0
-    float necessaryTime = std::abs(v0 - boundedSpeed) * invAcc;
+    const float necessaryTime = std::abs(v0 - boundedSpeed) * invAcc;
     return {boundedSpeed, time - necessaryTime};
 }
 
 SpeedProfile1D::TrajectoryPosInfo1D SpeedProfile1D::calculateEndPos1DFastSpeed(float v0, float v1, float time, bool directionPositive, float acc, float vMax)
 {
-    SpeedProfile1D::VT endValues = adjustEndSpeed(v0, v1, time, directionPositive, acc);
+    const SpeedProfile1D::VT endValues = adjustEndSpeed(v0, v1, time, directionPositive, acc);
     if (endValues.t == 0.0f) {
         return {(v0 + endValues.v) * 0.5f * time, directionPositive ? std::max(v0, v1) : std::min(v0, v1)};
     } else {
@@ -477,7 +477,7 @@ SpeedProfile1D::TrajectoryPosInfo1D SpeedProfile1D::calculateEndPos1DFastSpeed(f
 
 void SpeedProfile1D::calculate1DTrajectoryFastEndSpeed(float v0, float v1, float time, bool directionPositive, float acc, float vMax)
 {
-    SpeedProfile1D::VT endValues = adjustEndSpeed(v0, v1, time, directionPositive, acc);
+    const SpeedProfile1D::VT endValues = adjustEndSpeed(v0, v1, time, directionPositive, acc);
     if (endValues.t == 0.0f) {
         profile.push_back({v0, 0});
         profile.push_back({endValues.v, std::abs(endValues.v - v0) / acc});

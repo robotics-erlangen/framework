@@ -111,7 +111,7 @@ void StandardSampler::computeLive(const TrajectoryInput &input, const StandardSa
             }
             angle = m_rng->uniformFloat(0, float(2 * M_PI));
             // TODO: adjust max time
-            float maxTime = m_bestResultInfo.valid ? std::max(0.01f, m_bestResultInfo.time - 0.1f) : 5.0f;
+            const float maxTime = m_bestResultInfo.valid ? std::max(0.01f, m_bestResultInfo.time - 0.1f) : 5.0f;
 
             time = m_rng->uniformFloat(0, maxTime);
         } else {
@@ -188,7 +188,7 @@ float StandardSampler::trajectoryScore(float time, float obstacleDistance)
     if (obstacleDistance < OBSTACLE_AVOIDANCE_RADIUS) {
         obstacleDistExtraTime = 1.0f + ((OBSTACLE_AVOIDANCE_RADIUS - obstacleDistance) / OBSTACLE_AVOIDANCE_RADIUS) * OBSTACLE_AVOIDANCE_BONUS;
     }
-    float biasedTrajectoryTime = time * obstacleDistExtraTime;
+    const float biasedTrajectoryTime = time * obstacleDistExtraTime;
     return biasedTrajectoryTime;
 }
 

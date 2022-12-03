@@ -39,16 +39,16 @@ bool MultiEscapeSampler::compute(const TrajectoryInput &input)
     TrajectoryInput zeroV0Input = input;
     zeroV0Input.start.speed = Vector(0, 0);
     // TODO: in principle, this sampler can be simplified since the result is always a straight line
-    bool zeroValid = m_zeroV0Sampler.compute(zeroV0Input);
+    const bool zeroValid = m_zeroV0Sampler.compute(zeroV0Input);
     if (zeroValid) {
-        Vector initialAcc = m_zeroV0Sampler.getResult()[0].initialAcceleration();
-        float accInV0 = initialAcc.dot(input.start.speed);
+        const Vector initialAcc = m_zeroV0Sampler.getResult()[0].initialAcceleration();
+        const float accInV0 = initialAcc.dot(input.start.speed);
         m_resultIsZeroV0 = accInV0 <= 0;
     } else {
         m_resultIsZeroV0 = false;
     }
     if (!m_resultIsZeroV0) {
-          bool valid = m_regularSampler.compute(input);
+          const bool valid = m_regularSampler.compute(input);
           return valid;
     } else {
         m_regularSampler.updateFrom(m_zeroV0Sampler);

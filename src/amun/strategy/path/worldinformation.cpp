@@ -69,7 +69,7 @@ void WorldInformation::addLine(float x1, float y1, float x2, float y2, float wid
 
 void WorldInformation::addRect(float x1, float y1, float x2, float y2, const char* name, int prio, float radius)
 {
-    Obstacles::Rect r(name, prio, x1, y1, x2, y2, radius);
+    const Obstacles::Rect r(name, prio, x1, y1, x2, y2, radius);
     m_rectObstacles.push_back(r);
 }
 
@@ -142,7 +142,7 @@ void WorldInformation::addFriendlyRobotTrajectoryObstacle(std::vector<Trajectory
         addCircle(obstacle->at(0).state.pos.x, obstacle->at(0).state.pos.y, radius + std::sqrt(maxDistSq), nullptr, prio);
         return;
     }
-    Obstacles::FriendlyRobotObstacle o(obstacle, radius + m_radius, prio);
+    const Obstacles::FriendlyRobotObstacle o(obstacle, radius + m_radius, prio);
     m_friendlyRobotObstacles.push_back(o);
 }
 
@@ -296,28 +296,28 @@ void WorldInformation::deserialize(const pathfinding::WorldState &state)
 
     for (const auto &obstacle : state.obstacles()) {
         if (obstacle.has_circle()) {
-            Obstacles::Circle circle(obstacle, obstacle.circle());
+            const Obstacles::Circle circle(obstacle, obstacle.circle());
             m_circleObstacles.push_back(circle);
         } else if (obstacle.has_triangle()) {
-            Obstacles::Triangle triangle(obstacle, obstacle.triangle());
+            const Obstacles::Triangle triangle(obstacle, obstacle.triangle());
             m_triangleObstacles.push_back(triangle);
         } else if (obstacle.has_line()) {
-            Obstacles::Line line(obstacle, obstacle.line());
+            const Obstacles::Line line(obstacle, obstacle.line());
             m_lineObstacles.push_back(line);
         } else if (obstacle.has_rectangle()) {
-            Obstacles::Rect rect(obstacle, obstacle.rectangle());
+            const Obstacles::Rect rect(obstacle, obstacle.rectangle());
             m_rectObstacles.push_back(rect);
         } else if (obstacle.has_moving_circle()) {
-            Obstacles::MovingCircle circle(obstacle, obstacle.moving_circle());
+            const Obstacles::MovingCircle circle(obstacle, obstacle.moving_circle());
             m_movingCircles.push_back(circle);
         } else if (obstacle.has_moving_line()) {
-            Obstacles::MovingLine line(obstacle, obstacle.moving_line());
+            const Obstacles::MovingLine line(obstacle, obstacle.moving_line());
             m_movingLines.push_back(line);
         } else if (obstacle.has_friendly_robot()) {
-            Obstacles::FriendlyRobotObstacle robot(obstacle, obstacle.friendly_robot());
+            const Obstacles::FriendlyRobotObstacle robot(obstacle, obstacle.friendly_robot());
             m_friendlyRobotObstacles.push_back(robot);
         } else if (obstacle.has_opponent_robot()) {
-            Obstacles::OpponentRobotObstacle robot(obstacle, obstacle.opponent_robot());
+            const Obstacles::OpponentRobotObstacle robot(obstacle, obstacle.opponent_robot());
             m_opponentRobotObstacles.push_back(robot);
         } else {
             qDebug() <<"Invalid or unknown obstacle";

@@ -24,7 +24,7 @@
 void PathDebug::debug(const QString &key, float value)
 {
     amun::DebugValue debugValue;
-    QByteArray array = key.toLocal8Bit();
+    const QByteArray array = key.toLocal8Bit();
     const char* k = array.data();
     debugValue.set_key(k);
     debugValue.set_float_value(value);
@@ -34,7 +34,7 @@ void PathDebug::debug(const QString &key, float value)
 void PathDebug::debug(const QString &key, const QString &value)
 {
     amun::DebugValue debugValue;
-    QByteArray array = key.toLocal8Bit();
+    const QByteArray array = key.toLocal8Bit();
     const char* k = array.data();
     debugValue.set_key(k);
     debugValue.set_string_value(value.toStdString());
@@ -125,8 +125,8 @@ void PathDebug::debugLine(const QString &name, Vector start, Vector end, PathDeb
 
 void PathDebug::debugTrajectory(const QString &name, const SpeedProfile &trajectory, PathDebugColor color)
 {
-    const int VIS_POINTS = 35;
-    float timeInterval = trajectory.time() / float(VIS_POINTS-1);
+    const int VIS_POINTS = 150;
+    const float timeInterval = trajectory.time() / float(VIS_POINTS-1);
 
     const auto points = trajectory.trajectoryPositions(VIS_POINTS, timeInterval, 0);
     std::vector<Vector> positions;
