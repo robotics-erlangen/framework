@@ -28,6 +28,8 @@ add_library(lua STATIC
     lua_path.h
     lua_protobuf.cpp
     lua_protobuf.h
+    lua_eigen.cpp
+    lua_eigen.h
 )
 
 target_include_directories(lua
@@ -42,6 +44,7 @@ target_link_libraries(lua
 
     PRIVATE amun::path
     PUBLIC amun::strategy::script
+    PUBLIC lib::eigen
 )
 
 add_library(amun::strategy::lua ALIAS lua)

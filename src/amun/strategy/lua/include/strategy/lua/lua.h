@@ -24,6 +24,7 @@
 #include <lua.hpp>
 #include <QString>
 #include <QStringList>
+#include <Eigen/Dense>
 #include "strategy/script/abstractstrategyscript.h"
 #include "strategy/script/strategytype.h"
 

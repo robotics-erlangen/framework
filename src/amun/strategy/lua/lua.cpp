@@ -22,6 +22,7 @@
 #include "lua_amun.h"
 #include "lua_path.h"
 #include "lua_protobuf.h"
+#include "lua_eigen.h"
 #include "core/timer.h"
 #include "strategy/script/debughelper.h"
 #include "strategy/script/filewatcher.h"
@@ -535,6 +536,8 @@ void Lua::setupPackageLoader()
     lua_setfield(m_state, -2, "amun");
     lua_pushcfunction(m_state, pathRegister);
     lua_setfield(m_state, -2, "path");
+    lua_pushcfunction(m_state, eigenRegister);
+    lua_setfield(m_state, -2, "eigen");
     lua_pop(m_state, 1);
 
     lua_pop(m_state, 1);
