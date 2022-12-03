@@ -293,7 +293,7 @@ void SpeedProfile1D::integrateTime()
     }
 }
 
-void SpeedProfile1D::printDebug()
+void SpeedProfile1D::printDebug() const
 {
     for (std::size_t i = 0;i<profile.size();i++) {
         std::cout <<"("<<profile[i].t<<": "<<profile[i].v<<") ";
@@ -576,7 +576,7 @@ SpeedProfile1D SpeedProfile1D::create1DAccelerationByDistance(float v0, float v1
     return result;
 }
 
-void SpeedProfile::printDebug()
+void SpeedProfile::printDebug() const
 {
     std::cout <<"X: ";
     xProfile.printDebug();
@@ -584,7 +584,18 @@ void SpeedProfile::printDebug()
     yProfile.printDebug();
 }
 
+static float speedForTime(SpeedProfile1D::VT first, SpeedProfile1D::VT second, float time)
+{
+    const float timeDiff = time - first.t;
+    const float diff = second.t == first.t ? 1 : timeDiff / (second.t - first.t);
+    const float speed = first.v + diff * (second.v - first.v);
+    return speed;
+}
+
 Trajectory::Trajectory(const SpeedProfile &trajectory) :
+    s0({trajectory.xProfile.s0, trajectory.yProfile.s0}),
+    correctionOffsetPerSecond ({trajectory.xProfile.correctionOffsetPerSecond, trajectory.yProfile.correctionOffsetPerSecond}),
+    slowDownTime(trajectory.slowDownTime),
     oldTrajectory(trajectory)
 {
     const float SAME_POINT_EPSILON = 0.0001f;
@@ -599,25 +610,34 @@ Trajectory::Trajectory(const SpeedProfile &trajectory) :
         const float xNext = x[xIndex].t;
         const float yNext = y[yIndex].t;
 
-        const Vector speed{x[xIndex].v, y[yIndex].v};
 
         if (std::abs(xNext - yNext) < SAME_POINT_EPSILON) {
-            const float time = (xNext + yNext) / 2.0f;
+            const float time = (xNext + yNext) * 0.5f;
+            const Vector speed{x[xIndex].v, y[yIndex].v};
             profile.push_back({speed, time});
             xIndex++;
             yIndex++;
         } else if (xNext < yNext) {
+            const float vy = speedForTime(y[yIndex - 1], y[yIndex], xNext);
+            const Vector speed{x[xIndex].v, vy};
             profile.push_back({speed, xNext});
             xIndex++;
         } else {
+            const float vx = speedForTime(x[xIndex - 1], x[xIndex], yNext);
+            const Vector speed{vx, y[yIndex].v};
             profile.push_back({speed, yNext});
             yIndex++;
         }
     }
 
-    s0 = {trajectory.xProfile.s0, trajectory.yProfile.s0};
-    correctionOffsetPerSecond = {trajectory.xProfile.correctionOffsetPerSecond, trajectory.yProfile.correctionOffsetPerSecond};
-    slowDownTime = trajectory.slowDownTime;
+    while (xIndex < x.size()) {
+        profile.push_back({Vector{x[xIndex].v, y.back().v}, x[xIndex].t});
+        xIndex++;
+    }
+    while (yIndex < y.size()) {
+        profile.push_back({Vector{x.back().v, y[yIndex].v}, y[yIndex].t});
+        yIndex++;
+    }
 }
 
 void Trajectory::limitToTime(float time)

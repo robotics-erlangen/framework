@@ -111,7 +111,7 @@ public:
     // Limitations: sign(v0) == sign(distance) && (sign(v1) == sign(distance) || v1 == 0)
     [[nodiscard]] static SpeedProfile1D create1DAccelerationByDistance(float v0, float v1, float time, float distance);
 
-    void printDebug();
+    void printDebug() const;
 
 private:
     void createFreeExtraTimeSegment(float beforeSpeed, float v, float nextSpeed, float time, float acc, float desiredVMax);
@@ -153,7 +153,7 @@ private:
     std::vector<TrajectoryPoint> trajectoryPositions(std::size_t count, float timeInterval, float timeOffset) const;
     BoundingBox calculateBoundingBox() const;
 
-    void printDebug();
+    void printDebug() const;
 
     // only works properly for trajectories without slowdown
     void limitToTime(float time) {
