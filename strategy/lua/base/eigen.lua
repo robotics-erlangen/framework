@@ -23,6 +23,57 @@ module "eigen"
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 *************************************************************************]]
 
+--- Creates a new matrix
+-- @class function
+-- @name Eigen:()
+-- @param x number - the number of rows for the matrix
+-- @param y number - the number of cols for the matrix
+-- @return matrix - the newly created matrix, all fields have unspecified values
+
+--[[
+separator for luadoc]]--
+
+--- Gets the dimesions for a given matrix
+-- @class function
+-- @name matrix::size
+-- @param self matrix - the matrix to work on
+-- @return r, c - the rows (r) and columns (c) of the given matrix
+
+--[[
+separator for luadoc]]--
+
+--- Creates the transposed matrix
+-- @class function
+-- @name matrix::transposed
+-- @param self matrix - the matrix to work on
+-- @return matrix - the newly created transposed matrix of self
+
+
+--[[
+separator for luadoc]]--
+
+
+--- Calulate x so that self * x = rhs
+-- Self needs to be either positive semidefinite or negative semidefinite
+-- to allow to call this function correctly
+-- No diagnostics are required if self is not either kind of semidifinite
+-- Using Eigen::ldlt (see https://eigen.tuxfamily.org/dox/group__TutorialLinearAlgebra.html)
+-- @class function
+-- @name matrix::solve
+-- @param self matrix - the matrix to work on
+-- @param rhs matrix - the right hand side matrix
+-- @return matrix - the newly created matrix that solves self * x = rhs
+
+--[[
+separator for luadoc]]--
+
+--- create a string-represenation for the matrix
+-- @class function
+-- @name tostring(matrix)
+-- @param self matrix - the matrix to display
+-- @return string - the text represenation of self
+
+
 require "eigen"
 -- luacheck: globals eigen
 local eigen = eigen
