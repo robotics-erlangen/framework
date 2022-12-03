@@ -230,10 +230,10 @@ std::optional<Trajectory> AlphaTimeTrajectory::tryDirectBrake(const RobotState &
             return Trajectory{result};
         } else {
             if (times.x > times.y) {
-                result.xProfile.create1DAccelerationByDistance(v0.x, 0, times.y, targetOffset.x);
+                result.xProfile = SpeedProfile1D::create1DAccelerationByDistance(v0.x, 0, times.y, targetOffset.x);
                 result.xProfile.integrateTime();
             } else {
-                result.yProfile.create1DAccelerationByDistance(v0.y, 0, times.x, targetOffset.y);
+                result.yProfile = SpeedProfile1D::create1DAccelerationByDistance(v0.y, 0, times.x, targetOffset.y);
                 result.yProfile.integrateTime();
             }
             const float accX = (result.xProfile.profile[1].v - result.xProfile.profile[0].v) / (result.xProfile.profile[1].t - result.xProfile.profile[0].t);

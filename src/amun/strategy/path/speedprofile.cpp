@@ -549,7 +549,7 @@ static float solveSq(float a, float b, float c)
     return std::max(t1, t2);
 }
 
-void SpeedProfile1D::create1DAccelerationByDistance(float v0, float v1, float time, float distance)
+SpeedProfile1D SpeedProfile1D::create1DAccelerationByDistance(float v0, float v1, float time, float distance)
 {
     assert(std::signbit(v0) == std::signbit(distance) && (std::signbit(v1) == std::signbit(distance) || v1 == 0));
 
@@ -569,9 +569,11 @@ void SpeedProfile1D::create1DAccelerationByDistance(float v0, float v1, float ti
     const float acc = 1.0f / (2.0f * distance) * (2.0f * midSpeed * midSpeed - v0Abs * v0Abs - v1Abs * v1Abs);
     const float accInv = 1.0f / acc;
 
-    profile.push_back({v0, 0});
-    profile.push_back({midSpeed, std::abs(v0 - midSpeed) * accInv});
-    profile.push_back({v1, std::abs(v1 - midSpeed) * accInv});
+    SpeedProfile1D result;
+    result.profile.push_back({v0, 0});
+    result.profile.push_back({midSpeed, std::abs(v0 - midSpeed) * accInv});
+    result.profile.push_back({v1, std::abs(v1 - midSpeed) * accInv});
+    return result;
 }
 
 void SpeedProfile::printDebug()

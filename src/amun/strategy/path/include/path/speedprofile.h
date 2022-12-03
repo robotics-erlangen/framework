@@ -109,7 +109,7 @@ public:
     // and travels "distance" meters. The acceleration can become arbitrarily large.
     // Maximum speed is not considered and has to be checked by the caller.
     // Limitations: sign(v0) == sign(distance) && (sign(v1) == sign(distance) || v1 == 0)
-    void create1DAccelerationByDistance(float v0, float v1, float time, float distance);
+    [[nodiscard]] static SpeedProfile1D create1DAccelerationByDistance(float v0, float v1, float time, float distance);
 
     void printDebug();
 
