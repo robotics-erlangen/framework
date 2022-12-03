@@ -67,14 +67,14 @@ public:
 
     // obstacle checking for points and trajectories
     bool isInStaticObstacle(Vector point) const;
-    bool isTrajectoryInObstacle(const SpeedProfile &profile, float timeOffset) const;
+    bool isTrajectoryInObstacle(const Trajectory &profile, float timeOffset) const;
     // return {min distance of trajectory to obstacles, min distances of first and last points to obstacles}
     // distances are only accurate up to safetyMargin
-    std::pair<float, float> minObstacleDistance(const SpeedProfile &profile, float timeOffset, float safetyMargin) const;
+    std::pair<float, float> minObstacleDistance(const Trajectory &profile, float timeOffset, float safetyMargin) const;
     float minObstacleDistancePoint(const TrajectoryPoint &point) const;
     bool isInFriendlyStopPos(const Vector pos) const;
 
-    std::vector<Obstacles::Obstacle*> intersectingObstacles(const SpeedProfile &trajectory) const;
+    std::vector<Obstacles::Obstacle*> intersectingObstacles(const Trajectory &trajectory) const;
 
     // collectobstacles must have been called before calling this function
     void serialize(pathfinding::WorldState *state) const;

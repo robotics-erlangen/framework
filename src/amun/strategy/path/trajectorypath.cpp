@@ -75,9 +75,9 @@ static void serializeTrajectoryInput(const TrajectoryInput &input, pathfinding::
     result->set_acceleration(input.acceleration);
 }
 
-static std::vector<SpeedProfile> concat(const std::vector<SpeedProfile> &a, const std::vector<SpeedProfile> &b)
+static std::vector<Trajectory> concat(const std::vector<Trajectory> &a, const std::vector<Trajectory> &b)
 {
-    std::vector<SpeedProfile> result;
+    std::vector<Trajectory> result;
     result.insert(result.end(), a.begin(), a.end());
     result.insert(result.end(), b.begin(), b.end());
     return result;
@@ -112,7 +112,7 @@ bool TrajectoryPath::testSampler(const TrajectoryInput &input, pathfinding::Inpu
     return false;
 }
 
-std::vector<SpeedProfile> TrajectoryPath::findPath(TrajectoryInput input)
+std::vector<Trajectory> TrajectoryPath::findPath(TrajectoryInput input)
 {
     m_escapeObstacleSampler.resetMaxIntersectingObstaclePrio();
 
@@ -124,7 +124,7 @@ std::vector<SpeedProfile> TrajectoryPath::findPath(TrajectoryInput input)
     }
 
     // check if start point is in obstacle
-    std::vector<SpeedProfile> escapeObstacle;
+    std::vector<Trajectory> escapeObstacle;
     const TrajectoryPoint startState{input.start, 0};
     if (m_world.minObstacleDistancePoint(startState) <= 0.0f) {
         if (!testSampler(input, pathfinding::EscapeObstacleSampler)) {
@@ -216,7 +216,7 @@ std::vector<SpeedProfile> TrajectoryPath::findPath(TrajectoryInput input)
     return {};
 }
 
-std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<SpeedProfile> &profiles, const TrajectoryInput &input)
+std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Trajectory> &profiles, const TrajectoryInput &input)
 {
     if (profiles.size() == 0) {
         const TrajectoryPoint p1{input.start, 0};
@@ -225,7 +225,7 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Spe
     }
 
     float toEndTime = 0;
-    for (const SpeedProfile& profile : profiles) {
+    for (const Trajectory& profile : profiles) {
         toEndTime += profile.time();
     }
 
@@ -238,7 +238,7 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Spe
         const int SAMPLES_PER_TRAJECTORY = 40;
         const float samplingInterval = toEndTime / (SAMPLES_PER_TRAJECTORY * profiles.size());
         for (unsigned int i = 0; i < profiles.size(); i++) {
-            const SpeedProfile &profile = profiles[i];
+            const Trajectory &profile = profiles[i];
             const float partTime = profile.time();
 
             const float maxTime = 20 / input.maxSpeed;
@@ -275,7 +275,7 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Spe
         std::vector<TrajectoryPoint> result;
         float totalTime = 0;
         for (unsigned int i = 0; i < profiles.size(); i++) {
-            const SpeedProfile &profile = profiles[i];
+            const Trajectory &profile = profiles[i];
             const float partTime = profile.time();
 
             std::vector<TrajectoryPoint> newPoints;

@@ -51,7 +51,7 @@ public:
     void debugCircle(const QString &name, Vector center, float radius, PathDebugColor color = PathDebugColor::BLACK);
     void debugPath(const QString &name, const std::vector<Vector> &points, PathDebugColor color = PathDebugColor::BLACK);
     void debugLine(const QString &name, Vector start, Vector end, PathDebugColor color = PathDebugColor::BLACK);
-    void debugTrajectory(const QString &name, const SpeedProfile &trajectory, PathDebugColor color = PathDebugColor::BLACK);
+    void debugTrajectory(const QString &name, const Trajectory &trajectory, PathDebugColor color = PathDebugColor::BLACK);
     void debugBoundingBox(const QString &name, const BoundingBox &boundingBox, PathDebugColor color = PathDebugColor::BLACK);
     void addImage(const char *name, int resX, int resY, Vector c1, Vector c2, const std::vector<unsigned char> &data)
     {
@@ -95,7 +95,7 @@ public:
     void debugCircle(const QString&, Vector, float, PathDebugColor = PathDebugColor::BLACK) {}
     void debugPath(const QString&, const QVector<Vector>&, PathDebugColor = PathDebugColor::BLACK) {}
     void debugLine(const QString&, Vector, Vector, PathDebugColor = PathDebugColor::BLACK) {}
-    void debugTrajectory(const QString&, const SpeedProfile&, Vector, PathDebugColor = PathDebugColor::BLACK) {}
+    void debugTrajectory(const QString&, const Trajectory&, Vector, PathDebugColor = PathDebugColor::BLACK) {}
     void debugBoundingBox(const QString &, const BoundingBox &, PathDebugColor = PathDebugColor::BLACK) {}
 #endif
 

@@ -71,7 +71,7 @@ void MultiEscapeSampler::resetMaxIntersectingObstaclePrio()
     m_regularSampler.resetMaxIntersectingObstaclePrio();
 }
 
-const std::vector<SpeedProfile>& MultiEscapeSampler::getResult() const
+const std::vector<Trajectory> &MultiEscapeSampler::getResult() const
 {
     if (m_resultIsZeroV0) {
         return m_zeroV0Sampler.getResult();

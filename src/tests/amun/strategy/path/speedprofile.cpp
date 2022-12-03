@@ -44,7 +44,7 @@ static void ASSERT_VECTOR_EQ(Vector v1, Vector v2) {
 
 // checks without fast endspeed and without slowdown
 // v0 and v1 must be slower than maxSpeed
-static void checkTrajectorySimple(SpeedProfile trajectory, Vector v0, Vector v1, float acc, bool fastEndSpeed) {
+static void checkTrajectorySimple(const Trajectory &trajectory, Vector v0, Vector v1, float acc, bool fastEndSpeed) {
 
     // check start speed
     ASSERT_VECTOR_EQ(trajectory.stateAtTime(0).speed, v0);
@@ -91,7 +91,7 @@ static void checkTrajectorySimple(SpeedProfile trajectory, Vector v0, Vector v1,
     }
 }
 
-static void checkMaxSpeed(SpeedProfile trajectory, float maxSpeed) {
+static void checkMaxSpeed(const Trajectory &trajectory, float maxSpeed) {
 
     const float MAX_FASTER_FACTOR = std::sqrt(2);
 
@@ -104,7 +104,7 @@ static void checkMaxSpeed(SpeedProfile trajectory, float maxSpeed) {
     }
 }
 
-static void checkBoundingBox(SpeedProfile trajectory) {
+static void checkBoundingBox(const Trajectory &trajectory) {
     const auto manyPositions = trajectory.trajectoryPositions(1000, trajectory.time() / 999, 0.0f);
     BoundingBox fromPoints(manyPositions[0].state.pos, manyPositions[0].state.pos);
     for (const auto &p : manyPositions) {
@@ -118,7 +118,7 @@ static void checkBoundingBox(SpeedProfile trajectory) {
     ASSERT_LE(std::abs(fromPoints.bottom - direct.bottom), 0.01f);
 }
 
-static void checkEndPosition(const SpeedProfile trajectory, const Vector expected) {
+static void checkEndPosition(const Trajectory &trajectory, const Vector expected) {
     const float time = trajectory.time();
     {
         const Vector endPos = trajectory.endPosition();
@@ -148,9 +148,9 @@ static void checkEndPosition(const SpeedProfile trajectory, const Vector expecte
     ASSERT_VECTOR_EQ(closeToEnd.pos, expected - closeToEnd.speed * offset);
 }
 
-static void checkLimitToTime(const SpeedProfile profile, RNG &rng) {
+static void checkLimitToTime(const Trajectory &profile, RNG &rng) {
     const float timeLimit = rng.uniformFloat(profile.time() * 0.1f, profile.time());
-    SpeedProfile limited = profile;
+    Trajectory limited = profile;
     limited.limitToTime(timeLimit);
     ASSERT_FLOAT_EQ(limited.time(), timeLimit);
     for (int i = 0;i<100;i++) {
@@ -166,14 +166,14 @@ static void checkLimitToTime(const SpeedProfile profile, RNG &rng) {
 static void checkDistanceIncrease(const Vector v0, const float time, const float maxSpeed, const float acc, const float angle) {
 
     // more time must result in more distance traveled
-    const SpeedProfile p1 = AlphaTimeTrajectory::calculateTrajectory(RobotState(Vector(0, 0), v0), Vector(0, 0), time, angle, acc, maxSpeed, 0, false);
-    const SpeedProfile p2 = AlphaTimeTrajectory::calculateTrajectory(RobotState(Vector(0, 0), v0), Vector(0, 0), time + 0.1, angle, acc, maxSpeed, 0, false);
-    const SpeedProfile p3 = AlphaTimeTrajectory::calculateTrajectory(RobotState(Vector(0, 0), v0), Vector(0, 0), time + 0.2, angle, acc, maxSpeed, 0, false);
+    const Trajectory p1 = AlphaTimeTrajectory::calculateTrajectory(RobotState(Vector(0, 0), v0), Vector(0, 0), time, angle, acc, maxSpeed, 0, false);
+    const Trajectory p2 = AlphaTimeTrajectory::calculateTrajectory(RobotState(Vector(0, 0), v0), Vector(0, 0), time + 0.1, angle, acc, maxSpeed, 0, false);
+    const Trajectory p3 = AlphaTimeTrajectory::calculateTrajectory(RobotState(Vector(0, 0), v0), Vector(0, 0), time + 0.2, angle, acc, maxSpeed, 0, false);
 
     ASSERT_LT((p2.endPosition() - p1.endPosition()).length(), (p3.endPosition() - p1.endPosition()).length());
 }
 
-static void checkBasic(RNG &rng, const SpeedProfile &profile, const Vector v0, const Vector v1, const float maxSpeed, const float acc, const float slowDownTime, const bool fastEndSpeed) {
+static void checkBasic(RNG &rng, const Trajectory &profile, const Vector v0, const Vector v1, const float maxSpeed, const float acc, const float slowDownTime, const bool fastEndSpeed) {
     checkTrajectorySimple(profile, v0, v1, acc, fastEndSpeed);
     checkBoundingBox(profile);
     checkMaxSpeed(profile, maxSpeed);

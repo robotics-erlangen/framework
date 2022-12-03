@@ -48,8 +48,8 @@ bool EscapeObstacleSampler::compute(const TrajectoryInput &input)
     // driving to the goal is then executed by the regular standard sampler
 
     // try last frames trajectory
-    SpeedProfile bestProfile = AlphaTimeTrajectory::calculateTrajectory(input.start, Vector(0, 0), m_bestEscapingTime, m_bestEscapingAngle,
-                                                                        input.acceleration, input.maxSpeed, 0, false);
+    Trajectory bestProfile = AlphaTimeTrajectory::calculateTrajectory(input.start, Vector(0, 0), m_bestEscapingTime, m_bestEscapingAngle,
+                                                                      input.acceleration, input.maxSpeed, 0, false);
     auto bestRating = rateEscapingTrajectory(input, bestProfile);
 
     // the last trajectory (bestProfile) could stop directly in front of a new obstacle (optimized to minimize the
@@ -62,7 +62,7 @@ bool EscapeObstacleSampler::compute(const TrajectoryInput &input)
         if (testTime < 0) {
             continue;
         }
-        const SpeedProfile profile = AlphaTimeTrajectory::calculateTrajectory(input.start, Vector(0, 0), testTime, m_bestEscapingAngle,
+        const Trajectory profile = AlphaTimeTrajectory::calculateTrajectory(input.start, Vector(0, 0), testTime, m_bestEscapingAngle,
                                                                               input.acceleration, input.maxSpeed, 0, false);
         const auto rating = rateEscapingTrajectory(input, profile);
         if (rating.isBetterThan(bestRating)) {
@@ -88,7 +88,7 @@ bool EscapeObstacleSampler::compute(const TrajectoryInput &input)
             angle = m_bestEscapingAngle + m_rng->uniformFloat(-0.1f, 0.1f);
         }
 
-        const SpeedProfile profile = AlphaTimeTrajectory::calculateTrajectory(input.start, Vector(0, 0), time, angle, input.acceleration, input.maxSpeed, 0, false);
+        const Trajectory profile = AlphaTimeTrajectory::calculateTrajectory(input.start, Vector(0, 0), time, angle, input.acceleration, input.maxSpeed, 0, false);
         const auto rating = rateEscapingTrajectory(input, profile);
         if (rating.isBetterThan(bestRating)) {
             bestRating = rating;
@@ -114,7 +114,7 @@ void EscapeObstacleSampler::updateFrom(const EscapeObstacleSampler &other)
     m_bestEscapingAngle = other.m_bestEscapingAngle;
 }
 
-auto EscapeObstacleSampler::rateEscapingTrajectory(const TrajectoryInput &input, const SpeedProfile &speedProfile) const -> TrajectoryRating
+auto EscapeObstacleSampler::rateEscapingTrajectory(const TrajectoryInput &input, const Trajectory &speedProfile) const -> TrajectoryRating
 {
     const float OUT_OF_OBSTACLE_TIME = 0.1f;
     const float LONG_OUF_OF_OBSTACLE_TIME = 1.5f; // used when the trajectory has not yet intersected any obstacle

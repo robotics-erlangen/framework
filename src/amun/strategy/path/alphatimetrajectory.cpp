@@ -125,7 +125,7 @@ AlphaTimeTrajectory::TrajectoryPosInfo2D AlphaTimeTrajectory::calculatePosition(
     return {Vector(xInfo.endPos, yInfo.endPos) + start.pos, Vector(xInfo.increaseAtSpeed, yInfo.increaseAtSpeed)};
 }
 
-SpeedProfile AlphaTimeTrajectory::calculateTrajectory(const RobotState &start, Vector v1, float time, float angle, float acc, float vMax,
+Trajectory AlphaTimeTrajectory::calculateTrajectory(const RobotState &start, Vector v1, float time, float angle, float acc, float vMax,
                                                       float slowDownTime, bool fastEndSpeed, float minTime)
 {
     const Vector v0 = start.speed;
@@ -154,7 +154,7 @@ SpeedProfile AlphaTimeTrajectory::calculateTrajectory(const RobotState &start, V
 
     result.xProfile.integrateTime();
     result.yProfile.integrateTime();
-    return result;
+    return Trajectory{result};
 }
 
 // functions for position search
@@ -204,7 +204,7 @@ static Vector necessaryAcceleration(Vector v0, Vector distance)
                   v0.y * std::abs(v0.y) * 0.5f / distance.y);
 }
 
-std::optional<SpeedProfile> AlphaTimeTrajectory::tryDirectBrake(const RobotState &start, const RobotState &target, float acc, float slowDownTime)
+std::optional<Trajectory> AlphaTimeTrajectory::tryDirectBrake(const RobotState &start, const RobotState &target, float acc, float slowDownTime)
 {
     const float MAX_ACCELERATION_FACTOR = 1.2f;
 
@@ -227,7 +227,7 @@ std::optional<SpeedProfile> AlphaTimeTrajectory::tryDirectBrake(const RobotState
         result.yProfile.profile.push_back({0, std::abs(v0.y / necessaryAcc.y)});
 
         if (timeDiff < 0.1f) {
-            return result;
+            return Trajectory{result};
         } else {
             if (times.x > times.y) {
                 result.xProfile.create1DAccelerationByDistance(v0.x, 0, times.y, targetOffset.x);
@@ -240,14 +240,14 @@ std::optional<SpeedProfile> AlphaTimeTrajectory::tryDirectBrake(const RobotState
             const float accY = (result.yProfile.profile[1].v - result.yProfile.profile[0].v) / (result.yProfile.profile[1].t - result.yProfile.profile[0].t);
             const float totalAcc = std::sqrt(accX * accX + accY * accY);
             if (totalAcc < acc * MAX_ACCELERATION_FACTOR && result.endPosition().distanceSq(target.pos) < 0.01f * 0.01f) {
-                return result;
+                return Trajectory{result};
             }
         }
     }
     return {};
 }
 
-std::optional<SpeedProfile> AlphaTimeTrajectory::findTrajectory(const RobotState &start, const RobotState &target, float acc, float vMax,
+std::optional<Trajectory> AlphaTimeTrajectory::findTrajectory(const RobotState &start, const RobotState &target, float acc, float vMax,
                                                                 float slowDownTime, bool highPrecision, bool fastEndSpeed)
 {
     if (target.speed == Vector(0, 0)) {
@@ -298,7 +298,7 @@ std::optional<SpeedProfile> AlphaTimeTrajectory::findTrajectory(const RobotState
 
         Vector endPos;
         float assumedSpeed;
-        SpeedProfile result(start.pos, slowDownTime);
+        Trajectory result{start.pos, slowDownTime};
         if (slowDownTime > 0) {
             result = calculateTrajectory(start, target.speed, currentTime, currentAngle, acc, vMax, slowDownTime, fastEndSpeed, minTime);
             endPos = result.endPosition();

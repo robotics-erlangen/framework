@@ -37,7 +37,7 @@ bool EndInObstacleSampler::compute(const TrajectoryInput &input)
 
     // compute where the robot would stop when braking immediately
     // in case the acceleration model is not simple, compute the trajectory instead of directly computing the position
-    const SpeedProfile stop = AlphaTimeTrajectory::calculateTrajectory(input.start, Vector(0, 0), 0, 0, input.acceleration, input.maxSpeed, 0, false);
+    const Trajectory stop = AlphaTimeTrajectory::calculateTrajectory(input.start, Vector(0, 0), 0, 0, input.acceleration, input.maxSpeed, 0, false);
     const Vector stopPoint = stop.endPosition();
 
     // TODO: sample closer if we are already close

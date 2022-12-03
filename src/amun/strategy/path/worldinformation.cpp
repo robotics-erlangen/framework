@@ -153,7 +153,7 @@ void WorldInformation::addOpponentRobotObstacle(Vector startPos, Vector speed, i
 
 // obstacle checking
 
-std::vector<Obstacles::Obstacle*> WorldInformation::intersectingObstacles(const SpeedProfile &trajectory) const
+std::vector<Obstacles::Obstacle*> WorldInformation::intersectingObstacles(const Trajectory &trajectory) const
 {
     const BoundingBox boundingBox = trajectory.calculateBoundingBox();
     std::vector<Obstacles::Obstacle*> intersectingObstacles;
@@ -163,7 +163,7 @@ std::vector<Obstacles::Obstacle*> WorldInformation::intersectingObstacles(const 
     return intersectingObstacles;
 }
 
-bool WorldInformation::isTrajectoryInObstacle(const SpeedProfile &profile, float timeOffset) const
+bool WorldInformation::isTrajectoryInObstacle(const Trajectory &profile, float timeOffset) const
 {
     // TODO: field border??
     const auto obstacles = intersectingObstacles(profile);
@@ -215,7 +215,7 @@ bool WorldInformation::isInFriendlyStopPos(const Vector pos) const
     return false;
 }
 
-std::pair<float, float> WorldInformation::minObstacleDistance(const SpeedProfile &profile, float timeOffset, float safetyMargin) const
+std::pair<float, float> WorldInformation::minObstacleDistance(const Trajectory &profile, float timeOffset, float safetyMargin) const
 {
     const float totalTime = profile.time();
     float totalMinDistance = std::numeric_limits<float>::max();

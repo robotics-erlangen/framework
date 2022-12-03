@@ -76,7 +76,7 @@ static Vector optimizeCloseness(std::function<void(WorldInformation&)> obstacleA
 
     // check if the trajectory intersects any obstacles
     float timeOffset = 0;
-    for (const SpeedProfile &profile : result) {
+    for (const Trajectory &profile : result) {
         if (world.isTrajectoryInObstacle(profile, timeOffset)) {
             // ASSERT_FALSE does not work here since a return value is necessary
             return Vector(0, 0);

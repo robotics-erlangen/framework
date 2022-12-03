@@ -581,3 +581,54 @@ void SpeedProfile::printDebug()
     std::cout <<"Y: ";
     yProfile.printDebug();
 }
+
+Trajectory::Trajectory(const SpeedProfile &trajectory) :
+    oldTrajectory(trajectory)
+{
+    const float SAME_POINT_EPSILON = 0.0001f;
+
+    std::size_t xIndex = 0;
+    std::size_t yIndex = 0;
+
+    const auto &x = trajectory.xProfile.profile;
+    const auto &y = trajectory.yProfile.profile;
+
+    while (xIndex < x.size() && yIndex < y.size()) {
+        const float xNext = x[xIndex].t;
+        const float yNext = y[yIndex].t;
+
+        const Vector speed{x[xIndex].v, y[yIndex].v};
+
+        if (std::abs(xNext - yNext) < SAME_POINT_EPSILON) {
+            const float time = (xNext + yNext) / 2.0f;
+            profile.push_back({speed, time});
+            xIndex++;
+            yIndex++;
+        } else if (xNext < yNext) {
+            profile.push_back({speed, xNext});
+            xIndex++;
+        } else {
+            profile.push_back({speed, yNext});
+            yIndex++;
+        }
+    }
+
+    s0 = {trajectory.xProfile.s0, trajectory.yProfile.s0};
+    correctionOffsetPerSecond = {trajectory.xProfile.correctionOffsetPerSecond, trajectory.yProfile.correctionOffsetPerSecond};
+    slowDownTime = trajectory.slowDownTime;
+}
+
+void Trajectory::limitToTime(float time)
+{
+    oldTrajectory.limitToTime(time);
+
+    for (unsigned int i = 0;i<profile.size()-1;i++) {
+        if (profile[i+1].t >= time) {
+            const float diff = profile[i+1].t == profile[i].t ? 1 : (time - profile[i].t) / (profile[i+1].t - profile[i].t);
+            const Vector speed = profile[i].v + (profile[i+1].v - profile[i].v) * diff;
+            profile[i+1] = {speed, time};
+            profile.resize(i+2);
+            return;
+        }
+    }
+}
