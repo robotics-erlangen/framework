@@ -474,7 +474,12 @@ export class Shoot extends Behavior {
 			return true;
 		}
 
-		if (this._decision.pos != undefined && Ball.receivesPass(this._robot)) {
+		if (this._decision.pos != undefined
+				&& Ball.receivesPass(this._robot)
+				// Avoid messaging loop in case a Support sends a different
+				// pass suggestion during the frame we have choosen the first
+				// suggestion.
+				&& (this._decision.task !== "pass" || this._passFrames > 2)) {
 			let shootAngle = World.Ball.speed.absoluteAngleDiff(this._robot.pos - this._decision.pos);
 			if (shootAngle > geom.degreeToRadian(75)) {
 				debug.set("redeciding", `TRUE (large angle)${suffixDebugString}`);
