@@ -41,3 +41,6 @@ add_subdirectory(loganalyzer)
 add_subdirectory(trajectorycli)
 add_subdirectory(tests)
 add_subdirectory(simulator)
+
+#info
+configure_file(defs.txt.in defs.txt)
