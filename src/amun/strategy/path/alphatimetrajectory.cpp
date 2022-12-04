@@ -142,7 +142,7 @@ Trajectory AlphaTimeTrajectory::calculateTrajectory(const RobotState &start, Vec
     const Vector v0 = start.speed;
 
     // note that this also checks for very small differences that just square to zero
-    if ((v1 - v0).lengthSquared() == 0) {
+    if ((v1 - v0).lengthSquared() == 0 && time < 0.0001f) {
         const float EPSILON = 0.00001f;
         SpeedProfile result(start.pos, slowDownTime);
         result.xProfile.profile.push_back({v0.x, 0});
