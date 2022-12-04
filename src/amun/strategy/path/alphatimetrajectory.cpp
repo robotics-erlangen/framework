@@ -67,7 +67,7 @@ static float adjustAngle(Vector startSpeed, Vector endSpeed, float time, float a
         return angle;
     }
     // offset to ensure that values directly on the border of an invalid segment are not treated as invalid later
-    const float FLOATING_POINT_OFFSET = 0.001f;
+    const float FLOATING_POINT_OFFSET = 0.0005f;
     const float gapSizeHalfX = std::asin(absDiff.x / (time * acc)) + FLOATING_POINT_OFFSET;
     // solution gaps are now [-fS, fS] and [pi - fS, pi + fS]
     const float gapSizeHalfY = std::asin(absDiff.y / (time * acc)) + FLOATING_POINT_OFFSET;
@@ -125,6 +125,17 @@ AlphaTimeTrajectory::TrajectoryPosInfo2D AlphaTimeTrajectory::calculatePosition(
     return {Vector(xInfo.endPos, yInfo.endPos) + start.pos, Vector(xInfo.increaseAtSpeed, yInfo.increaseAtSpeed)};
 }
 
+Trajectory AlphaTimeTrajectory::minTimeTrajectory(const RobotState &start, Vector v1, float slowDownTime, float minTime)
+{
+    SpeedProfile profile(start.pos, slowDownTime);
+    profile.xProfile.profile.push_back({start.speed.x, 0});
+    profile.xProfile.profile.push_back({v1.x, minTime});
+
+    profile.yProfile.profile.push_back({start.speed.y, 0});
+    profile.yProfile.profile.push_back({v1.y, minTime});
+    return Trajectory{profile};
+}
+
 Trajectory AlphaTimeTrajectory::calculateTrajectory(const RobotState &start, Vector v1, float time, float angle, float acc, float vMax,
                                                       float slowDownTime, bool fastEndSpeed, float minTime)
 {
@@ -145,6 +156,11 @@ Trajectory AlphaTimeTrajectory::calculateTrajectory(const RobotState &start, Vec
     if (minTime < 0) {
         minTime = minimumTime(v0, v1, acc, fastEndSpeed);
     }
+
+    if (time < 0.0005f) {
+        return minTimeTrajectory(start, v1, slowDownTime, minTime);
+    }
+
     time += minTime;
 
     angle = adjustAngle(v0, v1, time, angle, acc, fastEndSpeed);
@@ -187,15 +203,8 @@ Vector AlphaTimeTrajectory::minTimePos(const RobotState &start, Vector v1, float
     } else {
         // assumes that slowDownTime can only be given with v1 = (0, 0)
         // construct speed profile for slowing down to zero
-        SpeedProfile profile(Vector(0, 0), slowDownTime);
-        profile.setStartPos(start.pos);
-        profile.xProfile.profile.push_back({start.speed.x, 0});
-        profile.xProfile.profile.push_back({v1.x, minTime});
-
-        profile.yProfile.profile.push_back({start.speed.y, 0});
-        profile.yProfile.profile.push_back({v1.y, minTime});
-
-        return profile.endPosition();
+        const auto minTrajectory = minTimeTrajectory(start, v1, slowDownTime, minTime);
+        return minTrajectory.endPosition();
     }
 }
 
