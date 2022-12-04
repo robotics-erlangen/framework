@@ -26,6 +26,7 @@
 #include "trajectoryinput.h"
 
 #include <vector>
+#include <array>
 
 class AlphaTimeTrajectory;
 class SpeedProfile;
