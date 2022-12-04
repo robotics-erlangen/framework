@@ -129,6 +129,19 @@ Trajectory AlphaTimeTrajectory::calculateTrajectory(const RobotState &start, Vec
                                                       float slowDownTime, bool fastEndSpeed, float minTime)
 {
     const Vector v0 = start.speed;
+
+    // note that this also checks for very small differences that just square to zero
+    if ((v1 - v0).lengthSquared() == 0) {
+        const float EPSILON = 0.00001f;
+        SpeedProfile result(start.pos, slowDownTime);
+        result.xProfile.profile.push_back({v0.x, 0});
+        result.xProfile.profile.push_back({v0.x, EPSILON});
+
+        result.yProfile.profile.push_back({v0.y, 0});
+        result.yProfile.profile.push_back({v0.y, EPSILON});
+        return Trajectory{result};
+    }
+
     if (minTime < 0) {
         minTime = minimumTime(v0, v1, acc, fastEndSpeed);
     }
