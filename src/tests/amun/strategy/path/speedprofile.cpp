@@ -215,10 +215,9 @@ TEST(AlphaTimeTrajectory, calculateTrajectory) {
 TEST(AlphaTimeTrajectory, findTrajectory) {
     constexpr int RUNS = 10'000;
 
-    RNG rng(2);
-
     int fails = 0;
     for (int i = 0; i < RUNS; i++) {
+        RNG rng(i + 1);
         const float maxSpeed = rng.uniformFloat(0.3, 5);
 
         const Vector s0 = makePos(rng, 2);
