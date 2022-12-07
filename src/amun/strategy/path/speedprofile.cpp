@@ -85,7 +85,7 @@ public:
 
     inline float segmentOffset(SpeedProfile1D::VT first, SpeedProfile1D::VT second, const SegmentPrecomputation &precomp) const
     {
-        if (second.t <= slowDownStartTime || first.v == second.v || first.t == second.t) {
+        if (second.t <= slowDownStartTime || first.t == second.t) {
             return simpleAcceleration.segmentOffset(first, second, precomp.constantPrecomputation);
         }
         const float diffSign = sign(second.v - precomp.v0);
@@ -97,7 +97,7 @@ public:
     inline std::pair<float, float> partialSegmentOffsetAndSpeed(SpeedProfile1D::VT first, SpeedProfile1D::VT second, const SegmentPrecomputation &precomp,
                                                                 float transformedT0, float time) const
     {
-        if (time <= slowDownStartTime || first.v == second.v || first.t == second.t) {
+        if (time <= slowDownStartTime || first.t == second.t) {
             return simpleAcceleration.partialSegmentOffsetAndSpeed(first, second, precomp.constantPrecomputation, transformedT0, time);
         }
         const float slowdownT0 = first.t > slowDownStartTime ? transformedT0 : slowDownStartTime;
@@ -111,7 +111,7 @@ public:
 
     inline float timeForSegment(SpeedProfile1D::VT first, SpeedProfile1D::VT second, const SegmentPrecomputation &precomp) const
     {
-        if (second.t <= slowDownStartTime || first.v == second.v) {
+        if (second.t <= slowDownStartTime) {
             return second.t - first.t;
         } else if (first.t < slowDownStartTime) {
             return slowDownStartTime - first.t + precomp.segmentTime;
@@ -124,7 +124,7 @@ public:
     {
         SegmentPrecomputation result;
         result.constantPrecomputation = simpleAcceleration.precomputeSegment(first, second);
-        if (second.t <= slowDownStartTime || first.v == second.v) {
+        if (second.t <= slowDownStartTime) {
             return result;
         }
         float t0;
@@ -139,17 +139,26 @@ public:
             t0 = first.t;
         }
         const float baseAcc = std::abs(first.v - second.v) / (second.t - first.t);
-        const float toEndTime0 = endTime - t0;
-        const float toEndTime1 = endTime - second.t;
-        result.a0 = baseAcc * (MIN_ACC_FACTOR + (1 - MIN_ACC_FACTOR) * toEndTime0 / SpeedProfile::SLOW_DOWN_TIME);
-        result.a1 = baseAcc * (MIN_ACC_FACTOR + (1 - MIN_ACC_FACTOR) * toEndTime1 / SpeedProfile::SLOW_DOWN_TIME);
+        const float accelerationFactor0 = computeAcceleration(endTime - t0);
+        const float accelerationFactor1 = computeAcceleration(endTime - second.t);
+        result.a0 = baseAcc * accelerationFactor0;
+        result.a1 = baseAcc * accelerationFactor1;
 
-        const float averageAcc = (result.a0 + result.a1) * 0.5f;
-        result.segmentTime = std::abs(result.v0 - second.v) / averageAcc;
+        result.segmentTime = 2.0f * (second.t - t0) / (accelerationFactor0 + accelerationFactor1);
 
         // a = a0 + t * (a1 - a0) / t1
         // v = v0 + t * a0 + t^2 * 0.5 * (a1 - a0) / t1
         return result;
+    }
+
+private:
+    static inline float computeAcceleration(float timeToEnd)
+    {
+        const float totalTime = 2 / (1 + MIN_ACC_FACTOR);
+        const float aFactor = (MIN_ACC_FACTOR - 1.0f) / totalTime;
+
+        const float tFactor = 1 - timeToEnd / SpeedProfile::SLOW_DOWN_TIME;
+        return std::sqrt(1 + 2 * tFactor * aFactor);
     }
 
 private:
