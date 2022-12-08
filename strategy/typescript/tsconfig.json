@@ -21,7 +21,7 @@
 		"baseUrl": ".",
 
 		"plugins": [
-			{ "name": "tslint-language-service" }
+			{ "name": "typescript-eslint-language-service" }
 		]
 	},
 	"include": [
@@ -94,6 +94,7 @@
 		"glados/trajectory/ballrotate.ts",
 		"glados/tutorials/t1Move/movestub.ts",
 		"glados/util/debug.ts",
-		"glados/util/io.ts"
+		"glados/util/io.ts",
+		"node_modules/**/*.ts"
 	]
 }
