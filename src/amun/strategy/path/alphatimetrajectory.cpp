@@ -261,8 +261,9 @@ std::optional<Trajectory> AlphaTimeTrajectory::tryDirectBrake(const RobotState &
             const float accX = (result.xProfile.profile[1].v - result.xProfile.profile[0].v) / (result.xProfile.profile[1].t - result.xProfile.profile[0].t);
             const float accY = (result.yProfile.profile[1].v - result.yProfile.profile[0].v) / (result.yProfile.profile[1].t - result.yProfile.profile[0].t);
             const float totalAcc = std::sqrt(accX * accX + accY * accY);
-            if (totalAcc < acc * MAX_ACCELERATION_FACTOR && result.endPosition().distanceSq(target.pos) < 0.01f * 0.01f) {
-                return Trajectory{result};
+            const Trajectory converted{result};
+            if (totalAcc < acc * MAX_ACCELERATION_FACTOR && converted.endPosition().distanceSq(target.pos) < 0.01f * 0.01f) {
+                return converted;
             }
         }
     }

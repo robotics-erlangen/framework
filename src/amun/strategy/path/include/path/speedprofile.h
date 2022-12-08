@@ -72,25 +72,6 @@ public:
     };
 
 public:
-
-    void limitToTime(float time);
-
-    template<typename AccelerationProfile>
-    std::pair<float, float> calculateRange(float slowDownTime) const;
-
-    template<typename AccelerationProfile>
-    float endPosition(float slowDownTime) const;
-
-    // returns {offset, speed}
-    template<typename AccelerationProfile>
-    std::pair<float, float> offsetAndSpeedForTime(float time, float slowDownTime) const;
-
-    float timeWithSlowdown(float slowDownTime) const;
-
-    // outIndex can be 0 or 1, writing the result to the x or y coordinate of the vectors
-    template<typename AccelerationProfile>
-    void trajectoryPositions(std::vector<TrajectoryPoint> &outPoints, std::size_t outIndex, float timeInterval, float slowDownTime) const;
-
     void integrateTime();
 
     struct TrajectoryPosInfo1D {
@@ -112,8 +93,6 @@ public:
     // Limitations: sign(v0) == sign(distance) && (sign(v1) == sign(distance) || v1 == 0)
     [[nodiscard]] static SpeedProfile1D create1DAccelerationByDistance(float v0, float v1, float time, float distance);
 
-    void printDebug() const;
-
 private:
     void createFreeExtraTimeSegment(float beforeSpeed, float v, float nextSpeed, float time, float acc, float desiredVMax);
     static std::pair<float, float> freeExtraTimeDistance(float v, float time, float acc, float vMax);
@@ -134,36 +113,9 @@ public:
     static constexpr float SLOW_DOWN_TIME = 0.2f;
 
     SpeedProfile(Vector startPos, float slowDownTime) : slowDownTime(slowDownTime) {
-        setStartPos(startPos);
+        xProfile.s0 = startPos.x;
+        yProfile.s0 = startPos.y;
     }
-
-    void setStartPos(Vector pos) {
-        xProfile.s0 = pos.x;
-        yProfile.s0 = pos.y;
-    }
-
-    void setCorrectionOffset(Vector offset) {
-        xProfile.correctionOffsetPerSecond = offset.x / xProfile.timeWithSlowdown(slowDownTime);
-        yProfile.correctionOffsetPerSecond = offset.y / yProfile.timeWithSlowdown(slowDownTime);
-    }
-
-private:
-    float time() const;
-    Vector endPosition() const;
-    RobotState stateAtTime(float time) const;
-    std::vector<TrajectoryPoint> trajectoryPositions(std::size_t count, float timeInterval, float timeOffset) const;
-    BoundingBox calculateBoundingBox() const;
-
-    void printDebug() const;
-
-    // only works properly for trajectories without slowdown
-    void limitToTime(float time) {
-        xProfile.limitToTime(time);
-        yProfile.limitToTime(time);
-    }
-
-    // WARNING: this function does NOT create points for the slow down time. Use other functions if that is necessary
-    std::vector<TrajectoryPoint> getTrajectoryPoints() const;
 
 private:
     SpeedProfile1D xProfile;
@@ -183,7 +135,7 @@ public:
         float t;
     };
 
-    Trajectory(Vector startPos, float slowDownTime) : oldTrajectory(startPos, slowDownTime) {}
+    Trajectory(Vector startPos, float slowDownTime) : s0(startPos), slowDownTime(slowDownTime) {}
     explicit Trajectory(const SpeedProfile &trajectory);
 
     float getSlowDownTime() const { return slowDownTime; }
@@ -192,23 +144,19 @@ public:
     void limitToTime(float time);
 
     void setCorrectionOffset(Vector offset) {
-        oldTrajectory.setCorrectionOffset(offset);
-        correctionOffsetPerSecond = {oldTrajectory.xProfile.correctionOffsetPerSecond, oldTrajectory.yProfile.correctionOffsetPerSecond};
+        correctionOffsetPerSecond = offset / time();
     }
 
     void setStartPos(Vector pos) {
-        oldTrajectory.setStartPos(pos);
         s0 = pos;
     }
 
 
-    float time() const { return oldTrajectory.time(); }
-    Vector endPosition() const { return oldTrajectory.endPosition(); }
-    RobotState stateAtTime(float time) const { return oldTrajectory.stateAtTime(time); }
-    std::vector<TrajectoryPoint> trajectoryPositions(std::size_t count, float timeInterval, float timeOffset) const {
-        return oldTrajectory.trajectoryPositions(count, timeInterval, timeOffset);
-    }
-    BoundingBox calculateBoundingBox() const { return oldTrajectory.calculateBoundingBox(); }
+    float time() const;
+    Vector endPosition() const;
+    RobotState stateAtTime(float time) const;
+    std::vector<TrajectoryPoint> trajectoryPositions(std::size_t count, float timeInterval, float timeOffset) const;
+    BoundingBox calculateBoundingBox() const;
 
     Vector endSpeed() const {
         return profile.back().v;
@@ -222,19 +170,32 @@ public:
         return (profile[1].v - profile[0].v) / (profile[1].t - profile[0].t);
     }
 
-    void printDebug() { oldTrajectory.printDebug(); }
+    void printDebug() const;
 
     // WARNING: this function does NOT create points for the slow down time. Use other functions if that is necessary
-    std::vector<TrajectoryPoint> getTrajectoryPoints() const { return oldTrajectory.getTrajectoryPoints(); }
+    std::vector<TrajectoryPoint> getTrajectoryPoints() const;
 
 private:
-    StaticVector<VT, 6> profile;
-    Vector s0;
-    Vector correctionOffsetPerSecond;
-    float slowDownTime;
+    template<typename AccelerationProfile>
+    Vector endPosition() const;
 
-    // only during refactoring
-    SpeedProfile oldTrajectory;
+    template<typename AccelerationProfile>
+    RobotState stateAtTime(float time) const;
+
+    template<typename AccelerationProfile>
+    std::vector<TrajectoryPoint> trajectoryPositions(std::size_t count, float timeInterval, float timeOffset) const;
+
+    template<typename AccelerationProfile>
+    BoundingBox calculateBoundingBox() const;
+
+    template<typename AccelerationProfile>
+    std::vector<TrajectoryPoint> getTrajectoryPoints() const;
+
+private:
+    StaticVector<VT, 6> profile{};
+    Vector s0{0, 0};
+    Vector correctionOffsetPerSecond{0, 0};
+    float slowDownTime{0};
 };
 
 #endif // SPEEDPROFILE_H

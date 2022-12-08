@@ -80,6 +80,10 @@ public:
         return std::atan2(x, y) + float(2 * M_PI);
     }
 
+    Vector abs() const  {
+        return {std::abs(x), std::abs(y)};
+    }
+
     friend std::ostream& operator<<(std::ostream &stream, const Vector v);
 
 public:
