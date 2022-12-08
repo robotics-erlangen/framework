@@ -49,7 +49,7 @@ bool EscapeObstacleSampler::compute(const TrajectoryInput &input)
 
     // try last frames trajectory
     Trajectory bestProfile = AlphaTimeTrajectory::calculateTrajectory(input.start, Vector(0, 0), m_bestEscapingTime, m_bestEscapingAngle,
-                                                                      input.acceleration, input.maxSpeed, 0, false);
+                                                                      input.acceleration, input.maxSpeed, 0, EndSpeed::EXACT);
     auto bestRating = rateEscapingTrajectory(input, bestProfile);
 
     // the last trajectory (bestProfile) could stop directly in front of a new obstacle (optimized to minimize the
@@ -63,7 +63,7 @@ bool EscapeObstacleSampler::compute(const TrajectoryInput &input)
             continue;
         }
         const Trajectory profile = AlphaTimeTrajectory::calculateTrajectory(input.start, Vector(0, 0), testTime, m_bestEscapingAngle,
-                                                                              input.acceleration, input.maxSpeed, 0, false);
+                                                                            input.acceleration, input.maxSpeed, 0, EndSpeed::EXACT);
         const auto rating = rateEscapingTrajectory(input, profile);
         if (rating.isBetterThan(bestRating)) {
             bestRating = rating;
@@ -88,7 +88,7 @@ bool EscapeObstacleSampler::compute(const TrajectoryInput &input)
             angle = m_bestEscapingAngle + m_rng->uniformFloat(-0.1f, 0.1f);
         }
 
-        const Trajectory profile = AlphaTimeTrajectory::calculateTrajectory(input.start, Vector(0, 0), time, angle, input.acceleration, input.maxSpeed, 0, false);
+        const Trajectory profile = AlphaTimeTrajectory::calculateTrajectory(input.start, Vector(0, 0), time, angle, input.acceleration, input.maxSpeed, 0, EndSpeed::EXACT);
         const auto rating = rateEscapingTrajectory(input, profile);
         if (rating.isBetterThan(bestRating)) {
             bestRating = rating;

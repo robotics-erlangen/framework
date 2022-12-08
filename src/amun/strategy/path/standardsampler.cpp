@@ -207,7 +207,7 @@ float StandardSampler::checkSample(const TrajectoryInput &input, const StandardT
     const float slowDownTime = input.exponentialSlowDown ? SlowdownAcceleration::SLOW_DOWN_TIME : 0;
     const RobotState secondStartState(Vector(0, 0), sample.getMidSpeed());
     Trajectory secondPart = AlphaTimeTrajectory::calculateTrajectory(secondStartState, input.target.speed, sample.getTime(),
-                                                                     sample.getAngle(), input.acceleration, input.maxSpeed, slowDownTime, true);
+                                                                     sample.getAngle(), input.acceleration, input.maxSpeed, slowDownTime, EndSpeed::FAST);
 
     const float secondPartTime = secondPart.time();
     const Vector secondPartOffset = secondPart.endPosition(); // startpos is (0, 0), computes offset of trajectory
@@ -221,7 +221,7 @@ float StandardSampler::checkSample(const TrajectoryInput &input, const StandardT
     const float firstPartSlowDownTime = input.exponentialSlowDown ? std::max(0.0f, SlowdownAcceleration::SLOW_DOWN_TIME - secondPartTime) : 0.0f;
     const RobotState firstTargetState(firstPartTarget, sample.getMidSpeed());
     const auto firstPart = AlphaTimeTrajectory::findTrajectory(input.start, firstTargetState, input.acceleration,
-                                                               input.maxSpeed, firstPartSlowDownTime, false);
+                                                               input.maxSpeed, firstPartSlowDownTime, EndSpeed::EXACT);
     if (!firstPart) {
         return -1;
     }

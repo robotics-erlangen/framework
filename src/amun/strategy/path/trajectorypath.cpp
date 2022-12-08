@@ -176,7 +176,7 @@ std::vector<Trajectory> TrajectoryPath::findPath(TrajectoryInput input)
     const float directSlowDownTime = input.exponentialSlowDown ? SlowdownAcceleration::SLOW_DOWN_TIME : 0.0f;
     const float targetDistance = (input.target.pos - input.start.pos).length();
     const auto direct = AlphaTimeTrajectory::findTrajectory(input.start, input.target, input.acceleration, input.maxSpeed,
-                                                            directSlowDownTime, true);
+                                                            directSlowDownTime, EndSpeed::FAST);
 
     float directTrajectoryScore = std::numeric_limits<float>::max();
     if (direct) {
