@@ -53,7 +53,7 @@ function twoDice(x: number): number {
 	}
 	if (x < 7) {
 		return 15 / 36; // + (3,3), (2, 4), (1, 5)
-	} else /*if ( x < 8 )*/ {
+	} else /* if ( x < 8 ) */ {
 		return 21 / 36; // + (3, 4), (2, 5), (1, 6)
 	}
 }

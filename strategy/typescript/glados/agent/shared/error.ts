@@ -52,7 +52,7 @@ export class Error extends Behavior {
 				}
 			}
 		}
-		return undefined;*/
+		return undefined; */
 	}
 
 	start() {

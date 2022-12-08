@@ -69,7 +69,7 @@ export class GladosObserverBall extends UnitTest {
 			maxBallSpeed: 5.45
 		}];
 		// TODO: test 4 currently failes. Once if passes, re-enable it again
-		this.addSituationTest("receivespass", this.testReceivesPass, [s1, s2, s3, /*s4*/]);
+		this.addSituationTest("receivespass", this.testReceivesPass, [s1, s2, s3, /* s4 */]);
 	}
 
 	private testReceivesPass(testInfo: ReceivesPassInfo) {

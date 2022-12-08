@@ -78,12 +78,12 @@ export class DribbleCircle extends Task {
 
 		this._robot.setDribblerSpeed(1);
 		this._robot.trajectory.update(Direct, this._speed, this._speed.angle());
-		/*let angle = ((1/this._radius)*(World.Time) % 1000) % (Math.PI * 2);
+		/* let angle = ((1/this._radius)*(World.Time) % 1000) % (Math.PI * 2);
 		vis.addCircle("TESTVIS", this._startPos, this._radius);
 		let pos = this._startPos + Vector.fromPolar(angle, this._radius);
 		let dir = pos.angle();
 
-		this._robot.trajectory.update(ToTarget, pos, angle + Math.PI/2, 1);*/
+		this._robot.trajectory.update(ToTarget, pos, angle + Math.PI/2, 1); */
 
 	}
 }
