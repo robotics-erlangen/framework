@@ -318,7 +318,7 @@ export class BaseGeom extends UnitTest {
 		}
 	}
 
-		private testGeomCenter() {
+	private testGeomCenter() {
 		// circle
 		let circle = [];
 		for (let i = 0; i < 360; ++i) {

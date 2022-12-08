@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/indent */
 import * as pb from "base/protobuf";
 
 export const partialAmun: any = {

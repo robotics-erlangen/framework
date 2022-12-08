@@ -32,7 +32,7 @@ export class WindshieldWiper extends Move {
 				&&  World.Ball.pos.y > 3 * G.FieldHeightHalf / 5;
 			// return true
 		}
-			return false;
+		return false;
 	}
 
 	public _canContinue(): boolean {

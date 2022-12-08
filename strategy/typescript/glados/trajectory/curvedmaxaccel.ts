@@ -104,8 +104,8 @@ function _calculateCurveSpeedLimits(waypoints: Position[], accelLimit: number, m
 			}
 			maxSpeedProfile.push([maxStartSpeed, maxEndSpeed, actualDist, true]); // curved part
 			vis.addPathRaw("waypoints"
-// ..tostring(i)
-, [prev - lastPathDir.withLength(startDist), prev + newPathDir.withLength(endDist)], vis.colors.blue);
+				// ..tostring(i)
+				, [prev - lastPathDir.withLength(startDist), prev + newPathDir.withLength(endDist)], vis.colors.blue);
 			xRemaining = newPathDir.length() - endDist; // >= newPathDir.length() / 2
 		}
 		// update path segments
@@ -585,9 +585,9 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 		// dribble. backward. speed & accel, forward brake
 		let accelerate = Math.abs(this._robot.acceleration.aSpeedupFMax) * accelerationFactor; // * (dribble and 0.2 or 1)
 		let brake = -Math.abs(this._robot.acceleration.aBrakeFMax) * accelerationFactor  * (dribble ? 0.8 : 1);
-	// 	if dribble then
-	// 		maxSpeed = 0.5
-	// 	end
+		// 	if dribble then
+		// 		maxSpeed = 0.5
+		// 	end
 
 		// smooth first corner
 		_preprocessPath(waypoints, maxError, robotPos, robotSpeed);

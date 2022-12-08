@@ -43,11 +43,6 @@ interface Target {
 let privateCenterBackPositions: Map<FriendlyRobot, {pos: Position, target: Target | undefined, way: number}> = new Map();
 let centerBackPositions: Map<FriendlyRobot, {pos: Position, target: Target | undefined, way: number, time?: number}> = new Map();
 
-				// 	["pos"] = final_pos,
-				// 	["target"] = t.target,
-				// 	["way"] = way,
-				// 	["time"] = (i.n == 1) and i.time or math.huge
-				// }
 export interface Point {
 	/** The position the centerback should drive to */
 	pos: Position;

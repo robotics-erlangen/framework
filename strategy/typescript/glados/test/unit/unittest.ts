@@ -30,6 +30,7 @@ export class UnitTest {
 				let failedSubTests = 0;
 				for (let i = 0;i < situations.length;i++) {
 					let situationFileName = situations[i][0];
+					// eslint-disable-next-line @typescript-eslint/no-require-imports
 					const worldData = require(situationFileName).partialAmun;
 					if (typeof worldData !== "object" || typeof worldData.getWorldState !== "function" ||
 							typeof worldData.getGeometry !== "function" || typeof worldData.isBlue !== "function" ||
@@ -48,6 +49,7 @@ export class UnitTest {
 					amun = worldOverlayedAmun;
 					path = safePath;
 
+					// eslint-disable-next-line @typescript-eslint/no-require-imports
 					let [_, world, testFile] = require(["base/base", "base/world", currentFileName], true,
 						{"base/amun": fakeAmunModule, "base/error": {}});
 					world.update();

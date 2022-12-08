@@ -372,7 +372,7 @@ export abstract class HardwareChallengeBase extends Move {
 			}
 		}
 		return {assignments: taskAssignments};
-	}
+	};
 
 	protected reset() {
 		HardwareChallengeBase.initialized = false;

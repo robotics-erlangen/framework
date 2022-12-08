@@ -28,7 +28,7 @@ import * as ErrorObserver from "glados/observer/error";
 import * as Goal from "glados/observer/goal";
 import * as ObserverReferee from "glados/observer/referee";
 import * as Robot from "glados/observer/robot";
-import { lowFPSObserver } from "glados/observer/lowfps"
+import { lowFPSObserver } from "glados/observer/lowfps";
 
 import "glados/test/observer/index";
 // require "test/situation/index";

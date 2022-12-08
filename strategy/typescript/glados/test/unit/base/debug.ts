@@ -29,7 +29,7 @@ export class BaseDebug extends UnitTest {
 		 * function and. Thus, we make the assertion there and just call the
 		 * function.
 		 */
-		// tslint:disable-next-line
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		const testInstance = this;
 
 		const three: { [name: string]: () => void } = {

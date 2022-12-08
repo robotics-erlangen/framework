@@ -55,7 +55,7 @@ export class PassThroughDefense extends Objective {
 	canContinue = (ball: BallLike) => {
 		const opponentDefendersCount = PassThroughDefense.robotsInAreaAroundDefense();
 		return opponentDefendersCount < 5 || ball.pos.y > G.FieldHeightHalf - G.DefenseHeight * 2;
-	}
+	};
 
 	getSupporterZones = (participants: FriendlyRobot[], mainAttackerPos: Position | undefined): Zone[] => {
 		const TOTAL_LEFT = -G.FieldWidthHalf;
@@ -154,5 +154,5 @@ export class PassThroughDefense extends Objective {
 		}
 
 		return zones;
-	}
+	};
 }

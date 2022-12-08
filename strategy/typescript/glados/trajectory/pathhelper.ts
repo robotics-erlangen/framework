@@ -308,8 +308,10 @@ function addFriendlyPassObstacle(path: Path, robot: FriendlyRobot, messaging: Me
 			}
 		}
 		let passInfoTable = messaging.receiveSingleSender(MessageType.passInfo)[1];
-		if (passInfoTable && dangerTime !== Infinity) { // dangerTime === Infinity will be true if stop ball hit (therefore no plannedAttackTime exists), while beeing totally unreasonable (like on the other edge of the field)
-														// FIXME: Why are we still calling shoot in this situation?
+
+		// dangerTime === Infinity will be true if stop ball hit (therefore no plannedAttackTime exists), while beeing totally unreasonable (like on the other edge of the field)
+		// FIXME: Why are we still calling shoot in this situation?
+		if (passInfoTable && dangerTime !== Infinity) {
 			for (let passInfo of passInfoTable) {
 				// don't block the pass receiver
 				if (passInfo.target && passInfo.target !== robot) {

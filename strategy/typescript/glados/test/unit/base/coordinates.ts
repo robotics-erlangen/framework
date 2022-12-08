@@ -15,7 +15,7 @@ export class BaseCoordinates extends UnitTest {
 	}
 
 	private wrapTeamColor(teamIsBlue: boolean, method: Function) {
-		// tslint:disable-next-line
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		const classThis = this;
 		return function() {
 			C._setIsBlue(teamIsBlue);

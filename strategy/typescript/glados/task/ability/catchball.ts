@@ -352,8 +352,8 @@ export class CatchBall {
 			// the robot has to move around the predicted ball to reach the catch pos
 			return CatchMethod.Around;
 		} else if (moveDest.distanceTo(currentBall.pos) > robotTargetSpacing
-			// the ball is not between the robot and the catch pos
-			// the ball hasn't yet moved past the robot (TODO better calculation than the dot product?)
+				// the ball is not between the robot and the catch pos
+				// the ball hasn't yet moved past the robot (TODO better calculation than the dot product?)
 				||  (currentBall.pos - this._robot.pos).dot(predictedBall.pos - currentBall.pos) <= 0) {
 			return CatchMethod.Stop;
 		} else {

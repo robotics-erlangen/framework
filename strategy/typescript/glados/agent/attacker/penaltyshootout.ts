@@ -35,7 +35,7 @@ function getKeeperTime(post: Position, turntime: RelTime, ball: {pos: Position, 
 	let startpos = pos - shootdir * ((Const.maxBallSpeed + startspeed) / 2 * turntime);
 
 	let startBall = {pos : startpos, speed : shootdir * startspeed,
-			radius : ball.radius, maxSpeed : Const.maxBallSpeed};
+		radius : ball.radius, maxSpeed : Const.maxBallSpeed};
 	if (ball.speed.lengthSq() > 3 * 3) {
 		startBall = ball;
 	}
@@ -145,7 +145,7 @@ export class PenaltyShootout extends Behavior {
 		}
 		let lastContact = this._contactPoint;
 		let addDistance = lastContact ? Math.max(0, lastContact.distanceTo(getRealisticBallPos()) - 0.5) * 3 : 0.2;
-			this._futureKeeper.pos = this._futureKeeper.pos + (World.OpponentKeeper || this._futureKeeper).speed * 0.4;
+		this._futureKeeper.pos = this._futureKeeper.pos + (World.OpponentKeeper || this._futureKeeper).speed * 0.4;
 		if (this._state === "pass") {
 			this._futureKeeper.pos = this._futureKeeper.pos + (this._robot.pos - this._futureKeeper.pos).withLength(this._robot.speed.length() / 3);
 		}

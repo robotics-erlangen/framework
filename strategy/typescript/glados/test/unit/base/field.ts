@@ -45,7 +45,7 @@ export class BaseField extends UnitTest {
 
 	private initHelper(ruleversion: string) {
 		BaseField.World.RULEVERSION = ruleversion;
-		// tslint:disable-next-line
+		// eslint-disable-next-line @typescript-eslint/no-require-imports
 		this.Field = require("base/field", true, BaseField.getOverlays());
 	}
 

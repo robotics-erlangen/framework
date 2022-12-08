@@ -41,7 +41,7 @@ export class RotateAndShoot {
 
 		let rotate = 0.4 * (2 * Math.PI) * invert;
 		// if (Math.abs(geom.getAngleDiff(this._robot.dir, destAngle)) < 8 * Math.PI / 180) {
-			this._robot.shoot(Infinity);
+		this._robot.shoot(Infinity);
 		// }
 
 

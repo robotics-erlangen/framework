@@ -471,7 +471,7 @@ export class BallPlacement extends Move {
 					if (this.forceSetBackInvisible) {
 						nextState = State.WAIT_FOR_SET_BACK;
 					} else {
-					nextState = State.WAIT_FOR_BALL_STOP;
+						nextState = State.WAIT_FOR_BALL_STOP;
 					}
 				}
 

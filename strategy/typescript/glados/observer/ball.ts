@@ -413,7 +413,7 @@ function updateIsDangerousDuelSituation() {
 	}
 
 	// if World.Ball.speed.length() < ballPosBufferMaxBallSpeed then
-		ballPosBuffer.set(World.Time, World.Ball.pos);
+	ballPosBuffer.set(World.Time, World.Ball.pos);
 	// end
 }
 

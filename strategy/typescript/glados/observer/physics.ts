@@ -1026,7 +1026,7 @@ export function robotRotationTime(robot: RobotRotationTimeInput, targetAngle: nu
 			 * of instability
 			 */
 			return minBrakeTime;
-				// - Math.sqrt(initialSpeed ** 2 - 2 * maxBrake * angleDiffInDirection);
+			// - Math.sqrt(initialSpeed ** 2 - 2 * maxBrake * angleDiffInDirection);
 		}
 
 		/*

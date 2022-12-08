@@ -256,8 +256,8 @@ export class AttackRatio {
 				robots.push(forcedChange.robot);
 				const robotIsAttacker = this._messaging.receive(MessageType.attackerFlag).has(forcedChange.robot);
 				if (robotIsAttacker && forcedChange.destPool === "attacker" ||
-					!robotIsAttacker && forcedChange.destPool === "defender") {
-						throw new Error("Invalid forcePoolChange message");
+						!robotIsAttacker && forcedChange.destPool === "defender") {
+					throw new Error("Invalid forcePoolChange message");
 				}
 			}
 		}

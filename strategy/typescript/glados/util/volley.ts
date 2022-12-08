@@ -142,24 +142,24 @@ export function calcVOutTeamCoordinates(v_out_length: number, ballSpeed: Speed, 
 
 
 export function calculateMinimalVOutTeamCoordinates(ballSpeed: Speed, phi: number, robotSpeed: Speed,
-	robotId: number | "opp"): [number, number] {
-		let relativeSpeed = ballSpeed - robotSpeed;
-		let [v_refl_x, v_refl_y] = calcVOutFromVS(0, relativeSpeed.length(), phi, relativeSpeed.angle(), robotId);
+		robotId: number | "opp"): [number, number] {
+	let relativeSpeed = ballSpeed - robotSpeed;
+	let [v_refl_x, v_refl_y] = calcVOutFromVS(0, relativeSpeed.length(), phi, relativeSpeed.angle(), robotId);
 
-		let sinp = Math.sin(phi);
-		let cosp = Math.cos(phi);
-		let v_refl_x_glob = v_refl_x + robotSpeed.x;
-		let v_refl_y_glob = v_refl_y + robotSpeed.y;
+	let sinp = Math.sin(phi);
+	let cosp = Math.cos(phi);
+	let v_refl_x_glob = v_refl_x + robotSpeed.x;
+	let v_refl_y_glob = v_refl_y + robotSpeed.y;
 
-		// calcVOut(x,v_in, phi, alpha) = cosp * x + v_refl_x, sinp * x + v_refl_y
-		// v_out.length() = sqrt((cosp * x + v_refl_x)^2 + (sinp * x + v_refl_y)^2)
-		// d v_out / d x = 1/(2 v_out) * (2* (cosp * x + v_refl_x) * cosp + 2 * (sinp * x + v_refl_y) * sinp)
-		// d v_out / d x = 0 => 2* (cosp * x + v_refl_x) * cosp + 2 * (sinp * x + v_refl_y) * sinp) = 0
-		// => 2 * (cos^2p + sin^2p) * x = - 2 (cosp v_refl_x + sinp v_refl_y)
-		// => x = - (cosp v_refl_x + sinp v_refl_y)
+	// calcVOut(x,v_in, phi, alpha) = cosp * x + v_refl_x, sinp * x + v_refl_y
+	// v_out.length() = sqrt((cosp * x + v_refl_x)^2 + (sinp * x + v_refl_y)^2)
+	// d v_out / d x = 1/(2 v_out) * (2* (cosp * x + v_refl_x) * cosp + 2 * (sinp * x + v_refl_y) * sinp)
+	// d v_out / d x = 0 => 2* (cosp * x + v_refl_x) * cosp + 2 * (sinp * x + v_refl_y) * sinp) = 0
+	// => 2 * (cos^2p + sin^2p) * x = - 2 (cosp v_refl_x + sinp v_refl_y)
+	// => x = - (cosp v_refl_x + sinp v_refl_y)
 
-		let x_min = - (cosp * v_refl_x_glob + sinp * v_refl_y_glob);
-		return [cosp * x_min + v_refl_x_glob, sinp * x_min + v_refl_y_glob];
+	let x_min = - (cosp * v_refl_x_glob + sinp * v_refl_y_glob);
+	return [cosp * x_min + v_refl_x_glob, sinp * x_min + v_refl_y_glob];
 }
 
 /**

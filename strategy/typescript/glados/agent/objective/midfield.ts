@@ -47,7 +47,7 @@ export class Midfield extends Objective {
 
 	canContinue = (ball: BallLike) => {
 		return ball.pos.y < G.FieldHeightQuarter;
-	}
+	};
 
 	getSupporterZones = (participants: FriendlyRobot[], mainAttackerPos: Position | undefined): Zone[] => {
 		const TOTAL_LEFT = -G.FieldWidthHalf;
@@ -98,5 +98,5 @@ export class Midfield extends Objective {
 		}
 
 		return zones;
-	}
+	};
 }

@@ -4,7 +4,7 @@
  * all rights reserved to him.
  */
 
-/* tslint:disable */
+/* eslint-disable */
 
 /*
   I've wrapped Makoto Matsumoto and Takuji Nishimura's code in a namespace

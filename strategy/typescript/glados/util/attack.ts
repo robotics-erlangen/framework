@@ -700,7 +700,7 @@ export function lastIncomingPassInfo(robot: FriendlyRobot, passInfo: ReadonlyRec
 	}
 	if (passInfoTable != undefined) {
 		for (let passInfoEntry of passInfoTable) {
-// 			TODO?: this code ignores annonymous passes
+			// TODO?: this code ignores annonymous passes
 			if (passInfoEntry.target === robot) {
 				incomingPassInfo = passInfoEntry;
 			}

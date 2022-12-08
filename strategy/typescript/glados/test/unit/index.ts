@@ -77,17 +77,20 @@ function runTests(moduleNames: string[]) {
 		amun = <any> safeAmun;
 		path = safePathCopy;
 		amun.luaRandomSetSeed(4711);
-		if (pcall(() => {
+		const testFunction = () => {
+			// eslint-disable-next-line @typescript-eslint/no-require-imports
 			let test: typeof UnitTest = require(module, true, {"base/amun": fakeAmunModule}).testClass;
 			let overlays = test.getOverlays();
 			if (Object.keys(overlays).length > 0) {
 				// if overlays are used, the environment has to be loaded again
+				// eslint-disable-next-line @typescript-eslint/no-require-imports
 				test = require(module, true, {"base/amun": fakeAmunModule, ...overlays}).testClass;
 			}
 			let testInstance = new test();
 			failedCounter += testInstance.runTests(log, module, fakeAmunModule, safePathCopy, safeAmun);
 
-			})) {
+		};
+		if (pcall(testFunction)) {
 			failedCounter++;
 		}
 

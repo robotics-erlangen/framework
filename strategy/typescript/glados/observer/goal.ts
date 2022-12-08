@@ -284,7 +284,7 @@ function _predictShot(allShots: boolean = false, includeInvisible: boolean = tru
 		let [invisibleBallPos, invisibleBallSpeed, oppRobot] = getInvisibleBallPrediction();
 		if (invisibleBallPos) {
 			vis.addCircle("o/goal: predictShot: invisible ball", oppRobot!.pos, oppRobot!.radius, vis.colors.white, false);
-				vis.addPath("o/goal: predictShot: invisible ball", [oppRobot!.pos, oppRobot!.pos + invisibleBallSpeed! * 10], vis.colors.white);
+			vis.addPath("o/goal: predictShot: invisible ball", [oppRobot!.pos, oppRobot!.pos + invisibleBallSpeed! * 10], vis.colors.white);
 			return [invisibleBallPos, invisibleBallSpeed!, true, undefined, true];
 		}
 	}

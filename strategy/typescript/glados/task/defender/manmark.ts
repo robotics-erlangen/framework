@@ -84,8 +84,8 @@ export class ManMark extends Task {
 			// 	moveDest = this._moveToNearBlock(futureBall, closestOpponentRobot)
 			// else
 			// 	ignoreBall = true
-				moveDest = preferredPos + (World.Geometry.FriendlyGoal - preferredPos).withLength(
-							World.Ball.radius + this._robot.shootRadius);
+			moveDest = preferredPos + (World.Geometry.FriendlyGoal - preferredPos).withLength(
+						World.Ball.radius + this._robot.shootRadius);
 			// end
 		}
 
