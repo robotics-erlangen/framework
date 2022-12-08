@@ -355,6 +355,14 @@ SpeedProfile1D SpeedProfile1D::create1DAccelerationByDistance(float v0, float v1
     return result;
 }
 
+SpeedProfile1D SpeedProfile1D::createLinearSpeedSegment(float v0, float v1, float time)
+{
+    SpeedProfile1D result;
+    result.profile.push_back({v0, 0});
+    result.profile.push_back({v1, time});
+    return result;
+}
+
 static float speedForTime(SpeedProfile1D::VT first, SpeedProfile1D::VT second, float time)
 {
     const float timeDiff = time - first.t;

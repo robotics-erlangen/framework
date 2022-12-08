@@ -79,6 +79,8 @@ public:
         float increaseAtSpeed;
     };
 
+    [[nodiscard]] static SpeedProfile1D createLinearSpeedSegment(float v0, float v1, float time);
+
     // helper functions
     // WARNING: assumes that the input is valid and solvable
     static TrajectoryPosInfo1D calculateEndPos1DFastSpeed(float v0, float v1, float time, bool directionPositive, float acc, float vMax);
@@ -93,6 +95,10 @@ public:
     // Limitations: sign(v0) == sign(distance) && (sign(v1) == sign(distance) || v1 == 0)
     [[nodiscard]] static SpeedProfile1D create1DAccelerationByDistance(float v0, float v1, float time, float distance);
 
+    float initialAcceleration() const {
+        return (profile[1].v - profile[0].v) / (profile[1].t - profile[0].t);
+    }
+
 private:
     void createFreeExtraTimeSegment(float beforeSpeed, float v, float nextSpeed, float time, float acc, float desiredVMax);
     static std::pair<float, float> freeExtraTimeDistance(float v, float time, float acc, float vMax);
@@ -100,7 +106,6 @@ private:
 private:
     StaticVector<VT, 4> profile;
 
-    friend class AlphaTimeTrajectory;
     friend class Trajectory;
 };
 

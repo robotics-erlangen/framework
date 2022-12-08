@@ -127,12 +127,8 @@ AlphaTimeTrajectory::TrajectoryPosInfo2D AlphaTimeTrajectory::calculatePosition(
 
 Trajectory AlphaTimeTrajectory::minTimeTrajectory(const RobotState &start, Vector v1, float slowDownTime, float minTime)
 {
-    SpeedProfile1D x, y;
-    x.profile.push_back({start.speed.x, 0});
-    x.profile.push_back({v1.x, minTime});
-
-    y.profile.push_back({start.speed.y, 0});
-    y.profile.push_back({v1.y, minTime});
+    const SpeedProfile1D x = SpeedProfile1D::createLinearSpeedSegment(start.speed.x, v1.x, minTime);
+    const SpeedProfile1D y = SpeedProfile1D::createLinearSpeedSegment(start.speed.y, v1.y, minTime);
     return Trajectory{x, y, start.pos, slowDownTime};
 }
 
@@ -144,13 +140,8 @@ Trajectory AlphaTimeTrajectory::calculateTrajectory(const RobotState &start, Vec
     // note that this also checks for very small differences that just square to zero
     if ((v1 - v0).lengthSquared() == 0 && time < 0.0001f) {
         const float EPSILON = 0.00001f;
-
-        SpeedProfile1D x, y;
-        x.profile.push_back({v0.x, 0});
-        x.profile.push_back({v0.x, EPSILON});
-
-        y.profile.push_back({v0.y, 0});
-        y.profile.push_back({v0.y, EPSILON});
+        const SpeedProfile1D x = SpeedProfile1D::createLinearSpeedSegment(v0.x, v0.x, EPSILON);
+        const SpeedProfile1D y = SpeedProfile1D::createLinearSpeedSegment(v0.y, v0.y, EPSILON);
         return Trajectory{x, y, start.pos, slowDownTime};
     }
 
@@ -242,12 +233,8 @@ std::optional<Trajectory> AlphaTimeTrajectory::tryDirectBrake(const RobotState &
     const bool directionMatches = std::signbit(v0.x) == std::signbit(targetOffset.x) && std::signbit(v0.y) == std::signbit(targetOffset.y);
     if (directionMatches && accLength > acc && accLength < acc * MAX_ACCELERATION_FACTOR && slowDownTime == 0.0f) {
 
-        SpeedProfile1D x, y;
-        x.profile.push_back({v0.x, 0});
-        y.profile.push_back({0, std::abs(v0.x / necessaryAcc.x)});
-
-        x.profile.push_back({v0.y, 0});
-        y.profile.push_back({0, std::abs(v0.y / necessaryAcc.y)});
+        SpeedProfile1D x = SpeedProfile1D::createLinearSpeedSegment(v0.x, 0, std::abs(v0.x / necessaryAcc.x));
+        SpeedProfile1D y = SpeedProfile1D::createLinearSpeedSegment(v0.y, 0, std::abs(v0.y / necessaryAcc.y));
 
         if (timeDiff < 0.1f) {
             return Trajectory{x, y, start.pos, slowDownTime};
@@ -259,8 +246,8 @@ std::optional<Trajectory> AlphaTimeTrajectory::tryDirectBrake(const RobotState &
                 y = SpeedProfile1D::create1DAccelerationByDistance(v0.y, 0, times.x, targetOffset.y);
                 y.integrateTime();
             }
-            const float accX = (x.profile[1].v - x.profile[0].v) / (x.profile[1].t - x.profile[0].t);
-            const float accY = (y.profile[1].v - y.profile[0].v) / (y.profile[1].t - y.profile[0].t);
+            const float accX = x.initialAcceleration();
+            const float accY = y.initialAcceleration();
             const float totalAcc = std::sqrt(accX * accX + accY * accY);
             const Trajectory converted{x, y, start.pos, slowDownTime};
             if (totalAcc < acc * MAX_ACCELERATION_FACTOR && converted.endPosition().distanceSq(target.pos) < 0.01f * 0.01f) {
