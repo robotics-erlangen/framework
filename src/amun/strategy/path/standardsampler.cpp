@@ -221,7 +221,7 @@ float StandardSampler::checkSample(const TrajectoryInput &input, const StandardT
     const float firstPartSlowDownTime = input.exponentialSlowDown ? std::max(0.0f, SlowdownAcceleration::SLOW_DOWN_TIME - secondPartTime) : 0.0f;
     const RobotState firstTargetState(firstPartTarget, sample.getMidSpeed());
     const auto firstPart = AlphaTimeTrajectory::findTrajectory(input.start, firstTargetState, input.acceleration,
-                                                               input.maxSpeed, firstPartSlowDownTime, false, false);
+                                                               input.maxSpeed, firstPartSlowDownTime, false);
     if (!firstPart) {
         return -1;
     }

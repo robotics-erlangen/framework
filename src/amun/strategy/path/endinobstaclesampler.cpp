@@ -89,7 +89,7 @@ bool EndInObstacleSampler::testEndPoint(const TrajectoryInput &input, Vector end
     // no slowdown here, we are not even were we want to be
     const RobotState targetState(endPoint, Vector(0, 0));
     const auto direct = AlphaTimeTrajectory::findTrajectory(input.start, targetState, input.acceleration,
-                                                            input.maxSpeed, 0, false, false);
+                                                            input.maxSpeed, 0, false);
 
     if (!direct) {
         return false;

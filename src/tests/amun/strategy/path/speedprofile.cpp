@@ -227,10 +227,9 @@ TEST(AlphaTimeTrajectory, findTrajectory) {
 
         const float acc = rng.uniformFloat(0.5, 4);
         const float slowDownTime = rng.uniform() > 0.5 ? rng.uniformFloat(0, SlowdownAcceleration::SLOW_DOWN_TIME) : 0;
-        const bool highPrecision = (rng.uniform() > 0.5);
         const bool fastEndSpeed = rng.uniform() > 0.5;
 
-        const auto profileOpt = AlphaTimeTrajectory::findTrajectory(RobotState(s0, v0), RobotState(s1, v1), acc, maxSpeed, slowDownTime, highPrecision, fastEndSpeed);
+        const auto profileOpt = AlphaTimeTrajectory::findTrajectory(RobotState(s0, v0), RobotState(s1, v1), acc, maxSpeed, slowDownTime, fastEndSpeed);
         if (!profileOpt) {
             fails += 1;
             continue;

@@ -59,7 +59,7 @@ static RobotState updateOpponent(const RobotState &opp, const Scenario &s, const
     } else if (s.testType == CollisionTestType::ADVERSARIAL) {
         const Vector target = friendlyRobot.pos;
         const RobotState targetState(target, friendlyRobot.speed * (-1));
-        const auto evil = AlphaTimeTrajectory::findTrajectory(opp, targetState, ACCELERATION, MAX_SPEED, 0, false, true);
+        const auto evil = AlphaTimeTrajectory::findTrajectory(opp, targetState, ACCELERATION, MAX_SPEED, 0, true);
         if (evil) {
             return evil->stateAtTime(0.01f);
         }
@@ -261,7 +261,7 @@ static bool testScenarioCollision(const Scenario &s, QString logname, bool useOl
 static bool opponentCloseToRobot(const Scenario &s)
 {
     const RobotState targetState(s.targetPos, Vector(0, 0));
-    const auto direct = AlphaTimeTrajectory::findTrajectory(s.ownStart, targetState, ACCELERATION, MAX_SPEED, 0, true, false);
+    const auto direct = AlphaTimeTrajectory::findTrajectory(s.ownStart, targetState, ACCELERATION, MAX_SPEED, 0, false);
     if (!direct) {
         return true;
     }

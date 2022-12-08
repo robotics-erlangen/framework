@@ -259,8 +259,14 @@ std::optional<Trajectory> AlphaTimeTrajectory::tryDirectBrake(const RobotState &
 }
 
 std::optional<Trajectory> AlphaTimeTrajectory::findTrajectory(const RobotState &start, const RobotState &target, float acc, float vMax,
-                                                                float slowDownTime, bool highPrecision, bool fastEndSpeed)
+                                                                float slowDownTime, bool fastEndSpeed)
 {
+    const float HIGH_PRECISION_DISTANCE_THRESHOLD = 0.1f;
+    const float HIGH_PRECISION_SPEED_THRESHOLD = 0.2f;
+    const bool highPrecision = (start.pos.distanceSq(target.pos) < HIGH_PRECISION_DISTANCE_THRESHOLD * HIGH_PRECISION_DISTANCE_THRESHOLD)
+        && target.speed == Vector(0, 0)
+        && start.speed.lengthSquared() < HIGH_PRECISION_SPEED_THRESHOLD * HIGH_PRECISION_SPEED_THRESHOLD;
+
     if (target.speed == Vector(0, 0)) {
         fastEndSpeed = false; // using fast end speed is more computationally intensive
 
