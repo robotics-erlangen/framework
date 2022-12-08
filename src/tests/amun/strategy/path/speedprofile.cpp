@@ -194,7 +194,7 @@ TEST(AlphaTimeTrajectory, calculateTrajectory) {
         const float time = rng.uniformFloat(0.005, 5);
         const float angle = rng.uniformFloat(0, 2 * M_PI);
         const float acc = rng.uniformFloat(0.5, 4);
-        const float slowDown = rng.uniform() > 0.5 ? rng.uniformFloat(0, SpeedProfile::SLOW_DOWN_TIME) : 0;
+        const float slowDown = rng.uniform() > 0.5 ? rng.uniformFloat(0, Trajectory::SLOW_DOWN_TIME) : 0;
         const bool fastEndSpeed = rng.uniform() > 0.5;
 
         const auto profile = AlphaTimeTrajectory::calculateTrajectory(RobotState(Vector(1, 2), v0), v1, time, angle, acc, maxSpeed, slowDown, fastEndSpeed);
@@ -220,7 +220,7 @@ TEST(AlphaTimeTrajectory, findTrajectory) {
         const Vector v1 = rng.uniform() > 0.9 ? Vector(0, 0) : makeSpeed(rng, maxSpeed);
 
         const float acc = rng.uniformFloat(0.5, 4);
-        const float slowDownTime = rng.uniform() > 0.5 ? rng.uniformFloat(0, SpeedProfile::SLOW_DOWN_TIME) : 0;
+        const float slowDownTime = rng.uniform() > 0.5 ? rng.uniformFloat(0, Trajectory::SLOW_DOWN_TIME) : 0;
         const bool highPrecision = (rng.uniform() > 0.5);
         const bool fastEndSpeed = rng.uniform() > 0.5;
 

@@ -80,7 +80,7 @@ public:
 
     SlowdownAcceleration2D(float totalSimpleTime, float slowDownTime) :
         slowDownStartTime(totalSimpleTime - slowDownTime),
-        endTime(totalSimpleTime + SpeedProfile::SLOW_DOWN_TIME - slowDownTime),
+        endTime(totalSimpleTime + Trajectory::SLOW_DOWN_TIME - slowDownTime),
         simpleAcceleration(totalSimpleTime, slowDownTime)
     { }
 
@@ -164,7 +164,7 @@ private:
         const float totalTime = 2 / (1 + MIN_ACC_FACTOR);
         const float aFactor = (MIN_ACC_FACTOR - 1.0f) / totalTime;
 
-        const float tFactor = 1 - timeToEnd / SpeedProfile::SLOW_DOWN_TIME;
+        const float tFactor = 1 - timeToEnd / Trajectory::SLOW_DOWN_TIME;
         return std::sqrt(1 + 2 * tFactor * aFactor);
     }
 
@@ -250,14 +250,16 @@ SpeedProfile1D::TrajectoryPosInfo1D SpeedProfile1D::calculateEndPos1DFastSpeed(f
     }
 }
 
-void SpeedProfile1D::calculate1DTrajectoryFastEndSpeed(float v0, float v1, float time, bool directionPositive, float acc, float vMax)
+SpeedProfile1D SpeedProfile1D::calculate1DTrajectoryFastEndSpeed(float v0, float v1, float time, bool directionPositive, float acc, float vMax)
 {
     const SpeedProfile1D::VT endValues = adjustEndSpeed(v0, v1, time, directionPositive, acc);
     if (endValues.t == 0.0f) {
-        profile.push_back({v0, 0});
-        profile.push_back({endValues.v, std::abs(endValues.v - v0) / acc});
+        SpeedProfile1D result;
+        result.profile.push_back({v0, 0});
+        result.profile.push_back({endValues.v, std::abs(endValues.v - v0) / acc});
+        return result;
     } else {
-        calculate1DTrajectory(v0, endValues.v, endValues.t, directionPositive, acc, vMax);
+        return calculate1DTrajectory(v0, endValues.v, endValues.t, directionPositive, acc, vMax);
     }
 }
 
@@ -275,13 +277,14 @@ void SpeedProfile1D::createFreeExtraTimeSegment(float beforeSpeed, float v, floa
     }
 }
 
-void SpeedProfile1D::calculate1DTrajectory(float v0, float v1, float extraTime, bool directionPositive, float acc, float vMax)
+SpeedProfile1D SpeedProfile1D::calculate1DTrajectory(float v0, float v1, float extraTime, bool directionPositive, float acc, float vMax)
 {
-    profile.push_back({v0, 0});
+    SpeedProfile1D result;
+    result.profile.push_back({v0, 0});
 
     const float desiredVMax = directionPositive ? vMax : -vMax;
     if (extraTime == 0.0f) {
-        profile.push_back({v1, std::abs(v0 - v1) / acc});
+        result.profile.push_back({v1, std::abs(v0 - v1) / acc});
     } else if ((v0 < desiredVMax) != (v1 < desiredVMax)) {
         // we need to cross the maximum speed because either abs(v0) or abs(v1) exceed it
         // therefore, a segment reaching desiredMax from v0 is created,
@@ -289,15 +292,16 @@ void SpeedProfile1D::calculate1DTrajectory(float v0, float v1, float extraTime, 
         // and one going from desiredVMax to v1
         const float accInv = 1.0f / acc;
 
-        profile.push_back({desiredVMax, std::abs(v0 - desiredVMax) * accInv});
-        profile.push_back({desiredVMax, extraTime});
-        profile.push_back({v1, std::abs(v1 - desiredVMax) * accInv});
+        result.profile.push_back({desiredVMax, std::abs(v0 - desiredVMax) * accInv});
+        result.profile.push_back({desiredVMax, extraTime});
+        result.profile.push_back({v1, std::abs(v1 - desiredVMax) * accInv});
     } else {
         // check whether v0 or v1 is closer to the desired max speed
         const bool v0Closer = std::abs(v0 - desiredVMax) < std::abs(v1 - desiredVMax);
         const float closerSpeed = v0Closer ? v0 : v1;
-        createFreeExtraTimeSegment(v0, closerSpeed, v1, extraTime, acc, desiredVMax);
+        result.createFreeExtraTimeSegment(v0, closerSpeed, v1, extraTime, acc, desiredVMax);
     }
+    return result;
 }
 
 // equation must be solvable
@@ -359,18 +363,18 @@ static float speedForTime(SpeedProfile1D::VT first, SpeedProfile1D::VT second, f
     return speed;
 }
 
-Trajectory::Trajectory(const SpeedProfile &trajectory) :
-    s0({trajectory.xProfile.s0, trajectory.yProfile.s0}),
-    correctionOffsetPerSecond ({trajectory.xProfile.correctionOffsetPerSecond, trajectory.yProfile.correctionOffsetPerSecond}),
-    slowDownTime(trajectory.slowDownTime)
+Trajectory::Trajectory(const SpeedProfile1D &xProfile, const SpeedProfile1D &yProfile,
+                       Vector startPos, float slowDownTime) :
+    s0(startPos),
+    slowDownTime(slowDownTime)
 {
     const float SAME_POINT_EPSILON = 0.0001f;
 
     std::size_t xIndex = 0;
     std::size_t yIndex = 0;
 
-    const auto &x = trajectory.xProfile.profile;
-    const auto &y = trajectory.yProfile.profile;
+    const auto &x = xProfile.profile;
+    const auto &y = yProfile.profile;
 
     while (xIndex < x.size() && yIndex < y.size()) {
         const float xNext = x[xIndex].t;

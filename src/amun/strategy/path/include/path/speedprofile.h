@@ -82,10 +82,10 @@ public:
     // helper functions
     // WARNING: assumes that the input is valid and solvable
     static TrajectoryPosInfo1D calculateEndPos1DFastSpeed(float v0, float v1, float time, bool directionPositive, float acc, float vMax);
-    void calculate1DTrajectoryFastEndSpeed(float v0, float v1, float time, bool directionPositive, float acc, float vMax);
+    [[nodiscard]] static SpeedProfile1D calculate1DTrajectoryFastEndSpeed(float v0, float v1, float time, bool directionPositive, float acc, float vMax);
 
     static TrajectoryPosInfo1D calculateEndPos1D(float v0, float v1, float hintDist, float acc, float vMax);
-    void calculate1DTrajectory(float v0, float v1, float extraTime, bool directionPositive, float acc, float vMax);
+    [[nodiscard]] static SpeedProfile1D calculate1DTrajectory(float v0, float v1, float extraTime, bool directionPositive, float acc, float vMax);
 
     // Creates a single acceleration and brake segment that takes exactly "time" seconds
     // and travels "distance" meters. The acceleration can become arbitrarily large.
@@ -99,29 +99,6 @@ private:
 
 private:
     StaticVector<VT, 4> profile;
-    float s0 = 0;
-    float correctionOffsetPerSecond = 0;
-
-    friend class AlphaTimeTrajectory;
-    friend class SpeedProfile;
-    friend class Trajectory;
-};
-
-class SpeedProfile
-{
-public:
-    static constexpr float SLOW_DOWN_TIME = 0.2f;
-
-    SpeedProfile(Vector startPos, float slowDownTime) : slowDownTime(slowDownTime) {
-        xProfile.s0 = startPos.x;
-        yProfile.s0 = startPos.y;
-    }
-
-private:
-    SpeedProfile1D xProfile;
-    SpeedProfile1D yProfile;
-
-    float slowDownTime;
 
     friend class AlphaTimeTrajectory;
     friend class Trajectory;
@@ -130,13 +107,16 @@ private:
 class Trajectory {
 public:
 
+    static constexpr float SLOW_DOWN_TIME = 0.2f;
+
     struct VT {
         Vector v;
         float t;
     };
 
-    Trajectory(Vector startPos, float slowDownTime) : s0(startPos), slowDownTime(slowDownTime) {}
-    explicit Trajectory(const SpeedProfile &trajectory);
+    Trajectory() = default;
+    Trajectory(const SpeedProfile1D &xProfile, const SpeedProfile1D &yProfile,
+               Vector startPos, float slowDownTime);
 
     float getSlowDownTime() const { return slowDownTime; }
 
