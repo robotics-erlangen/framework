@@ -2,7 +2,7 @@ add_test(NAME lua-luacheck-base
     COMMAND luacheck -q .
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/strategy/lua/base")
 
-add_test(NAME typescript-tslint
+add_test(NAME typescript-eslint
     COMMAND npm run lint
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/strategy/typescript")
 

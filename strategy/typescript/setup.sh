@@ -35,9 +35,16 @@ fi
 
 echo "${FBOLD}Installing packages from npm...${FNORMAL}"
 
-if ! npm install; then
-	die "Failed to run npm install"
+if ! npm ci; then
+	if ! npm install; then
+		die "Failed to run npm install"
+	fi
 fi
+
+echo "${FBOLD}Fixing node_modules/@types/index.d.ts${FNORMAL}"
+# for whatever reason @types/json5/index.d.ts has some unnecessary unexpected character in the beginning,
+# that crashes our compiler if not removed
+tail +4c node_modules/@types/json5/index.d.ts > tmpIndex.ts && mv tmpIndex.ts node_modules/@types/json5/index.d.ts
 
 echo "${FBOLD}Copying custom typescript compiler${FNORMAL}"
 

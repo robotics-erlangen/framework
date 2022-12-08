@@ -1,11 +1,18 @@
 {
   "scripts": {
-    "lint": "tslint -p tsconfig.json -c tslint.yaml",
-    "lint-fix": "tslint -p tsconfig.json -c tslint.yaml --fix"
+    "lint": "eslint --ext .js,.ts .",
+    "lint-fix": "eslint --ext .js,.ts --fix"
   },
   "devDependencies": {
-    "tslint": "6.1.1",
-    "typescript-tslint-plugin": "^0.5.5"
+    "@typescript-eslint/eslint-plugin": "5.26.0",
+    "@typescript-eslint/eslint-plugin-tslint": "5.26.0",
+    "@typescript-eslint/parser": "5.26.0",
+    "eslint": "^8.29.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-jsdoc": "^39.6.4",
+    "eslint-plugin-no-null": "^1.0.2",
+    "eslint-plugin-unicorn": "^45.0.1",
+    "typescript-eslint-language-service": "^5.0.0"
   },
   "dependencies": {
     "typescript": "4.9.3"

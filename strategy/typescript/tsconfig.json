@@ -21,7 +21,7 @@
 		"baseUrl": ".",
 
 		"plugins": [
-			{ "name": "tslint-language-service" }
+			{ "name": "typescript-eslint-language-service" }
 		]
 	},
 	"include": [
@@ -29,6 +29,7 @@
 	],
 	"exclude": [
 		"base/mixedteam.ts",
-		"base/table.ts"
+		"base/table.ts",
+		"node_modules/**/*.ts"
 	]
 }
