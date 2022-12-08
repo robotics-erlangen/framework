@@ -232,7 +232,7 @@ interface AmunPath {
 	createTrajectoryPath(): PathObjectTrajectory;
 }
 
-declare var path: any;
+declare let path: any;
 let pathLocal: any = path;
 
 path = undefined;

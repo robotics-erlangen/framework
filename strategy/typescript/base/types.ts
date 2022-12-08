@@ -30,7 +30,7 @@ import { Vector } from "base/vector";
  *          parameter of `ctor`
  */
 export function parameterizeClass<
-	TargetType extends {},
+	TargetType extends object,
 	HeadArg extends any,
 	TailArgs extends any[],
 >(ctor: new(head: HeadArg, ...tail: TailArgs) => TargetType, ...tail: TailArgs) {
@@ -39,8 +39,8 @@ export function parameterizeClass<
 	 * extended.
 	 * @see https://github.com/microsoft/TypeScript/issues/4890#issuecomment-141879451
 	 */
-	const castedCtor = ctor as new(head: HeadArg, ...tail: TailArgs) => {};
-	const parameterizedCtor = class extends castedCtor {
+	const castedCtor = ctor as new(head: HeadArg, ...tail: TailArgs) => object;
+	const parameterizedCtor =  class extends castedCtor {
 		constructor(head: HeadArg) {
 			super(head, ...tail);
 		}

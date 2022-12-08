@@ -180,6 +180,7 @@ export function wrap<T extends Function>(key: string, fn: T): T {
 	// otherwise the returned function will will have the local this as this
 	const newFn = function(this: any) {
 		push(key);
+		// eslint-disable-next-line no-invalid-this
 		const ret = fn.apply(this, arguments);
 		pop();
 		return ret;

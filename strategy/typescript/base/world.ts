@@ -538,26 +538,26 @@ function _updateGameState(state: pb.amun.GameState) {
 	OpponentKeeper = opponentKeeper;
 
 
-// 	optional sint32 stage_time_left = 2;
-// 	message TeamInfo {
-// 		// The team's name (empty string if operator has not typed anything).
-// 		required string name = 1;
-// 		// The number of goals scored by the team during normal play and overtime.
-// 		required uint32 score = 2;
-// 		// The number of red cards issued to the team since the beginning of the game.
-// 		required uint32 red_cards = 3;
-// 		// The amount of time (in microseconds) left on each yellow card issued to the team.
-// 		// If no yellow cards are issued, this array has no elements.
-// 		// Otherwise, times are ordered from smallest to largest.
-// 		repeated uint32 yellow_card_times = 4 [packed=true];
-// 		// The total number of yellow cards ever issued to the team.
-// 		required uint32 yellow_cards = 5;
-// 		// The number of timeouts this team can still call.
-// 		// If in a timeout right now, that timeout is excluded.
-// 		required uint32 timeouts = 6;
-// 		// The number of microseconds of timeout this team can use.
-// 		required uint32 timeout_time = 7;
-// 	}
+	// 	optional sint32 stage_time_left = 2;
+	// 	message TeamInfo {
+	// 		// The team's name (empty string if operator has not typed anything).
+	// 		required string name = 1;
+	// 		// The number of goals scored by the team during normal play and overtime.
+	// 		required uint32 score = 2;
+	// 		// The number of red cards issued to the team since the beginning of the game.
+	// 		required uint32 red_cards = 3;
+	// 		// The amount of time (in microseconds) left on each yellow card issued to the team.
+	// 		// If no yellow cards are issued, this array has no elements.
+	// 		// Otherwise, times are ordered from smallest to largest.
+	// 		repeated uint32 yellow_card_times = 4 [packed=true];
+	// 		// The total number of yellow cards ever issued to the team.
+	// 		required uint32 yellow_cards = 5;
+	// 		// The number of timeouts this team can still call.
+	// 		// If in a timeout right now, that timeout is excluded.
+	// 		required uint32 timeouts = 6;
+	// 		// The number of microseconds of timeout this team can use.
+	// 		required uint32 timeout_time = 7;
+	// 	}
 
 	FriendlyYellowCards = [];
 	if (friendlyTeamInfo.yellow_card_times != undefined) {
