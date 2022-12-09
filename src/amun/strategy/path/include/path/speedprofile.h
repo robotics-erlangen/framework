@@ -83,10 +83,10 @@ public:
 
     // helper functions
     // WARNING: assumes that the input is valid and solvable
-    static TrajectoryPosInfo1D calculateEndPos1DFastSpeed(float v0, float v1, float time, bool directionPositive, float acc, float vMax);
+    [[nodiscard]] static TrajectoryPosInfo1D calculateEndPos1DFastSpeed(float v0, float v1, float time, bool directionPositive, float acc, float vMax);
     [[nodiscard]] static SpeedProfile1D calculate1DTrajectoryFastEndSpeed(float v0, float v1, float time, bool directionPositive, float acc, float vMax);
 
-    static TrajectoryPosInfo1D calculateEndPos1D(float v0, float v1, float hintDist, float acc, float vMax);
+    [[nodiscard]] static TrajectoryPosInfo1D calculateEndPos1D(float v0, float v1, float hintDist, float acc, float vMax);
     [[nodiscard]] static SpeedProfile1D calculate1DTrajectory(float v0, float v1, float extraTime, bool directionPositive, float acc, float vMax);
 
     // Creates a single acceleration and brake segment that takes exactly "time" seconds
@@ -158,22 +158,6 @@ public:
     void printDebug() const;
 
     // WARNING: this function does NOT create points for the slow down time. Use other functions if that is necessary
-    std::vector<TrajectoryPoint> getTrajectoryPoints() const;
-
-private:
-    template<typename AccelerationProfile>
-    Vector endPosition() const;
-
-    template<typename AccelerationProfile>
-    RobotState stateAtTime(float time) const;
-
-    template<typename AccelerationProfile>
-    std::vector<TrajectoryPoint> trajectoryPositions(std::size_t count, float timeInterval, float timeOffset) const;
-
-    template<typename AccelerationProfile>
-    BoundingBox calculateBoundingBox() const;
-
-    template<typename AccelerationProfile>
     std::vector<TrajectoryPoint> getTrajectoryPoints() const;
 
 private:

@@ -374,7 +374,8 @@ static float speedForTime(SpeedProfile1D::VT first, SpeedProfile1D::VT second, f
 Trajectory::Trajectory(const SpeedProfile1D &xProfile, const SpeedProfile1D &yProfile,
                        Vector startPos, float slowDownTime) :
     s0(startPos),
-    slowDownTime(slowDownTime)
+    // 0 would be at the exact end of the trajectory, thus sometimes creating problems
+    slowDownTime(slowDownTime == 0 ? -1 : slowDownTime)
 {
     const float SAME_POINT_EPSILON = 0.0001f;
 
@@ -419,7 +420,7 @@ Trajectory::Trajectory(const SpeedProfile1D &xProfile, const SpeedProfile1D &yPr
 }
 
 float Trajectory::time() const {
-    if (slowDownTime == 0) {
+    if (slowDownTime == -1) {
         return profile.back().t;
     }
 
@@ -445,10 +446,9 @@ void Trajectory::limitToTime(float time)
     }
 }
 
-template<typename AccelerationProfile>
 Vector Trajectory::endPosition() const
 {
-    AccelerationProfile acceleration(profile.back().t, slowDownTime);
+    SlowdownAcceleration2D acceleration(profile.back().t, slowDownTime);
 
     Vector offset = s0;
     float totalTime = 0;
@@ -460,19 +460,9 @@ Vector Trajectory::endPosition() const
     return offset + correctionOffsetPerSecond * totalTime;
 }
 
-Vector Trajectory::endPosition() const
-{
-    if (slowDownTime == 0) {
-        return endPosition<ConstantAcceleration2D>();
-    } else {
-        return endPosition<SlowdownAcceleration2D>();
-    }
-}
-
-template<typename AccelerationProfile>
 RobotState Trajectory::stateAtTime(float time) const
 {
-    AccelerationProfile acceleration(profile.back().t, slowDownTime);
+    SlowdownAcceleration2D acceleration(profile.back().t, slowDownTime);
 
     Vector offset = s0;
     float totalTime = 0;
@@ -489,19 +479,9 @@ RobotState Trajectory::stateAtTime(float time) const
     return {offset + correctionOffsetPerSecond * totalTime, profile.back().v};
 }
 
-RobotState Trajectory::stateAtTime(float time) const
-{
-    if (slowDownTime == 0) {
-        return stateAtTime<ConstantAcceleration2D>(time);
-    } else {
-        return stateAtTime<SlowdownAcceleration2D>(time);
-    }
-}
-
-template<typename AccelerationProfile>
 std::vector<TrajectoryPoint> Trajectory::trajectoryPositions(std::size_t count, float timeInterval, float timeOffset) const
 {
-    AccelerationProfile acceleration(profile.back().t, slowDownTime);
+    SlowdownAcceleration2D acceleration(profile.back().t, slowDownTime);
 
     std::vector<TrajectoryPoint> result(count);
     for (std::size_t i = 0;i<count;i++) {
@@ -540,19 +520,9 @@ std::vector<TrajectoryPoint> Trajectory::trajectoryPositions(std::size_t count, 
     return result;
 }
 
-std::vector<TrajectoryPoint> Trajectory::trajectoryPositions(std::size_t count, float timeInterval, float timeOffset) const
-{
-    if (slowDownTime == 0) {
-        return trajectoryPositions<ConstantAcceleration2D>(count, timeInterval, timeOffset);
-    } else {
-        return trajectoryPositions<SlowdownAcceleration2D>(count, timeInterval, timeOffset);
-    }
-}
-
-template<typename AccelerationProfile>
 BoundingBox Trajectory::calculateBoundingBox() const
 {
-    AccelerationProfile acceleration(profile.back().t, slowDownTime);
+    SlowdownAcceleration2D acceleration(profile.back().t, slowDownTime);
 
     Vector minPos = s0;
     Vector maxPos = s0;
@@ -584,19 +554,9 @@ BoundingBox Trajectory::calculateBoundingBox() const
     return {minPos, maxPos};
 }
 
-BoundingBox Trajectory::calculateBoundingBox() const
-{
-    if (slowDownTime == 0) {
-        return calculateBoundingBox<ConstantAcceleration2D>();
-    } else {
-        return calculateBoundingBox<SlowdownAcceleration2D>();
-    }
-}
-
-template<typename AccelerationProfile>
 std::vector<TrajectoryPoint> Trajectory::getTrajectoryPoints() const
 {
-    AccelerationProfile acceleration(profile.back().t, slowDownTime);
+    SlowdownAcceleration2D acceleration(profile.back().t, slowDownTime);
 
     std::vector<TrajectoryPoint> result;
     result.reserve(profile.size() + 1);
@@ -614,20 +574,11 @@ std::vector<TrajectoryPoint> Trajectory::getTrajectoryPoints() const
     }
 
     // compensate for the missing exponential slowdown by adding a segment with zero speed
-    if (slowDownTime != 0.0f) {
+    if (slowDownTime != -1) {
         result.emplace_back(RobotState{offset, profile.back().v}, time);
     }
 
     return result;
-}
-
-std::vector<TrajectoryPoint> Trajectory::getTrajectoryPoints() const
-{
-    if (slowDownTime == 0) {
-        return getTrajectoryPoints<ConstantAcceleration2D>();
-    } else {
-        return getTrajectoryPoints<SlowdownAcceleration2D>();
-    }
 }
 
 void Trajectory::printDebug() const
