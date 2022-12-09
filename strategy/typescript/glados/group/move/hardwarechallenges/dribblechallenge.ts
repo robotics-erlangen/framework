@@ -34,7 +34,7 @@ export class DribbleChallenge extends HardwareChallengeBase {
 		}
 
 		this.customObstacles = this.opponentTransforms.map((transform) => {
-			let name: string = "dribbleObstacleY" + transform.pos.x;
+			let name: string = `dribbleObstacleY${transform.pos.x}`;
 			return {
 				type: "circle",
 				x: transform.pos.x,

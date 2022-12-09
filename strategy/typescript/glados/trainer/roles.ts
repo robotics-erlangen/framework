@@ -91,7 +91,7 @@ export class Roles {
 			}
 			debug.push(MessageType[role]);
 			for (let [robot, application] of applications.entries()) {
-				debug.set("" + (robot.id), application._ratingArray);
+				debug.set(`${robot.id}`, application._ratingArray);
 			}
 			debug.pop(); // role
 			let bestRobot = LeveledRating.findBestRating(applications);
@@ -106,7 +106,7 @@ export class Roles {
 				exclusiveRoles[role] = bestRobot;
 				this._messaging.sendBroadcast(role, bestRobot);
 
-				vis.addCircle("tr/roles: " + MessageType[role], bestRobot.pos, 0.12,
+				vis.addCircle(`tr/roles: ${MessageType[role]}`, bestRobot.pos, 0.12,
 					World.TeamIsBlue ? vis.colors.blue : vis.colors.yellow, true, true);
 			}
 		}

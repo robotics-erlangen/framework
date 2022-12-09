@@ -103,7 +103,7 @@ export class MainCoordinator extends Coordinator {
 		if (this._pools[oldPool].removeRobot(changingRobot)) {
 			this._pools[newPool].takeRobot([changingRobot], this._messaging);
 		} else if (changingRobot !== World.FriendlyKeeper) {
-			throw new Error("invalid pool change request from " + changingRobot.id);
+			throw new Error(`invalid pool change request from ${changingRobot.id}`);
 		}
 	}
 
@@ -115,10 +115,10 @@ export class MainCoordinator extends Coordinator {
 			throw new Error("invalid pool change from Keeper");
 		}
 		if (!this._pools[oldPool1].removeRobot(changingRobot1)) {
-			throw new Error("invalid pool change request from " + changingRobot1.id);
+			throw new Error(`invalid pool change request from ${changingRobot1.id}`);
 		}
 		if (!this._pools[newPool1].removeRobot(changingRobot2)) {
-			throw new Error("invalid pool change request from " + changingRobot2.id);
+			throw new Error(`invalid pool change request from ${changingRobot2.id}`);
 		}
 
 		this._pools[newPool1].takeRobot([changingRobot1], this._messaging);

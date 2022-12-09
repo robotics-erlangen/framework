@@ -17,7 +17,7 @@ let G = World.Geometry;
 const VISUALIZE_SAMPLING = false;
 
 function visualizeRating(name: string, pos: Position, rating: number) {
-	vis.addCircle("t/a/strikersampling: " + name, pos, 0.06,
+	vis.addCircle(`t/a/strikersampling: ${name}`, pos, 0.06,
 		vis.fromTemperature(1 - rating), true);
 }
 

@@ -161,7 +161,7 @@ export abstract class HardwareChallengeBase extends Move {
 			}
 
 			let obstacleTransform = this.opponentTransforms[i];
-			let obstacleName: string = "opponentObstacle" + i;
+			let obstacleName: string = `opponentObstacle${i}`;
 			customObstacles.push({
 				type: "circle",
 				x: obstacleTransform.pos.x,
@@ -173,7 +173,7 @@ export abstract class HardwareChallengeBase extends Move {
 
 		for (let i = 1; i < this.friendlyTransforms.length; ++i) {
 			let obstacleTransform = this.friendlyTransforms[i];
-			let obstacleName: string = "friendlyObstacle" + i;
+			let obstacleName: string = `friendlyObstacle${i}`;
 			customObstacles.push({
 				type: "circle",
 				x: obstacleTransform.pos.x,
@@ -234,7 +234,7 @@ export abstract class HardwareChallengeBase extends Move {
 		let customObstacles: Obstacle[] = [];
 		for (let i = 0; i < this.opponentTransforms.length; ++i) {
 			let obstacleTransform = this.opponentTransforms[i];
-			let obstacleName: string = "opponentObstacle" + i;
+			let obstacleName: string = `opponentObstacle${i}`;
 			customObstacles.push({
 				type: "circle",
 				x: obstacleTransform.pos.x,

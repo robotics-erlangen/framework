@@ -37,32 +37,32 @@ let fakeAmunModule = {
 
 const testPrefix = "glados/test/unit/";
 const tests: {[name: string]: string} = {
-	"BaseBall": testPrefix + "base/ball",
-	"BaseCache": testPrefix + "base/cache",
-	"BaseCoordinates": testPrefix + "base/coordinates",
-	"BaseDebug": testPrefix + "base/debug",
-	"BaseEntrypoints": testPrefix + "base/entrypoints",
-	"BaseField": testPrefix + "base/field",
-	"BaseGeom": testPrefix + "base/geom",
-	"BaseMathUtil": testPrefix + "base/mathutil",
-	"BaseListUtil": testPrefix + "base/listutil",
-	"BaseProcessor": testPrefix + "base/processor",
-	"BaseTryCatch": testPrefix + "base/trycatch",
-	"BaseTypes": testPrefix + "base/types",
-	"BaseVector": testPrefix + "base/vector",
-	"GladosMessaging": testPrefix + "glados/messaging",
-	"GladosMoveshelper": testPrefix + "glados/moveshelper",
-	"GladosPools": testPrefix + "glados/pools",
-	"GladosUnitTest": testPrefix + "glados/unittest",
-	"GladosPhysics": testPrefix + "glados/physics",
-	"GladosRoles": testPrefix + "glados/roles",
-	"GladosZone": testPrefix + "glados/zone",
-	"GladosBehavior": testPrefix + "glados/behavior",
-	"GladosObserverBall": testPrefix + "glados/ball",
-	"GladosObserverRobot": testPrefix + "glados/robot",
-	"GladosAbilityShoot": testPrefix + "glados/shoot",
-	"GladosMainattacker": testPrefix + "glados/mainattacker",
-	"GladosCenterback": testPrefix + "glados/centerback",
+	"BaseBall": `${testPrefix}base/ball`,
+	"BaseCache": `${testPrefix}base/cache`,
+	"BaseCoordinates": `${testPrefix}base/coordinates`,
+	"BaseDebug": `${testPrefix}base/debug`,
+	"BaseEntrypoints": `${testPrefix}base/entrypoints`,
+	"BaseField": `${testPrefix}base/field`,
+	"BaseGeom": `${testPrefix}base/geom`,
+	"BaseMathUtil": `${testPrefix}base/mathutil`,
+	"BaseListUtil": `${testPrefix}base/listutil`,
+	"BaseProcessor": `${testPrefix}base/processor`,
+	"BaseTryCatch": `${testPrefix}base/trycatch`,
+	"BaseTypes": `${testPrefix}base/types`,
+	"BaseVector": `${testPrefix}base/vector`,
+	"GladosMessaging": `${testPrefix}glados/messaging`,
+	"GladosMoveshelper": `${testPrefix}glados/moveshelper`,
+	"GladosPools": `${testPrefix}glados/pools`,
+	"GladosUnitTest": `${testPrefix}glados/unittest`,
+	"GladosPhysics": `${testPrefix}glados/physics`,
+	"GladosRoles": `${testPrefix}glados/roles`,
+	"GladosZone": `${testPrefix}glados/zone`,
+	"GladosBehavior": `${testPrefix}glados/behavior`,
+	"GladosObserverBall": `${testPrefix}glados/ball`,
+	"GladosObserverRobot": `${testPrefix}glados/robot`,
+	"GladosAbilityShoot": `${testPrefix}glados/shoot`,
+	"GladosMainattacker": `${testPrefix}glados/mainattacker`,
+	"GladosCenterback": `${testPrefix}glados/centerback`,
 };
 
 function runTests(moduleNames: string[]) {
@@ -116,7 +116,7 @@ Entrypoints.add("Unit Tests/ all", function() {
 });
 
 for (let [name, test] of Object.entries(tests)) {
-	Entrypoints.add("Unit Tests/" + name, function() {
+	Entrypoints.add(`Unit Tests/${name}`, function() {
 		runTests([test]);
 		return false;
 	});

@@ -45,7 +45,7 @@ export class AgentPool {
 			// first: get immuneRobots.
 			let [taken, remaining] = ListUtil.partition(agents, (x: Agent) => this.isImmune(x));
 			if (taken.length > this._robotLimit) {
-				throw new Error("More immunes than allowed Robots: " + this._robotLimit);
+				throw new Error(`More immunes than allowed Robots: ${this._robotLimit}`);
 			}
 			// sort with by decreasing importance
 			remaining.sort(sortByRating);
@@ -103,7 +103,7 @@ export class AgentPool {
 
 	setRobotLimit(robotLimit: number) {
 		if (robotLimit < 0) {
-			throw new Error("We don't allow negative robot limits: " + robotLimit);
+			throw new Error(`We don't allow negative robot limits: ${robotLimit}`);
 		}
 		this._robotLimit = robotLimit;
 	}

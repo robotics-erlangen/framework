@@ -14,7 +14,7 @@ let measurementIndex = 0;
 function updateStationary() {
 	debug.pushtop("crash.stationary");
 	for (let robot of World.OpponentRobots) {
-		debug.push("Robot " + robot.id);
+		debug.push(`Robot ${robot.id}`);
 		debug.set(undefined, robot);
 
 		// Then check for standard deviation of the last few positions

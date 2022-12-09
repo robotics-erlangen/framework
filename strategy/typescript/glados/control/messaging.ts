@@ -578,7 +578,7 @@ export class MessageBox {
 
 		if (repeated) {
 			debug.push(messageName);
-			debug.set("" + (messageCount - 1), data);
+			debug.set(`${messageCount - 1}`, data);
 			debug.pop(); // message type
 		} else {
 			debug.set(messageName, data);

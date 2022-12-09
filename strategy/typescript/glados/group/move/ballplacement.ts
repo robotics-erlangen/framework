@@ -356,10 +356,10 @@ export class BallPlacement extends Move {
 		}
 
 		if (taskAssignments[this.SHOOTER] == undefined) {
-			throw new Error("SHOOTER has no task assigned in state="  +  this._state);
+			throw new Error(`SHOOTER has no task assigned in state=${this._state}`);
 		}
 		if (taskAssignments[this.RECEIVER] == undefined) {
-			throw new Error("RECEIVER has not task assigned in state="  +  this._state);
+			throw new Error(`RECEIVER has not task assigned in state=${this._state}`);
 		}
 		return {
 			assignments: taskAssignments,

@@ -45,7 +45,7 @@ export class LeveledRating {
 		} else {
 			// todo
 			this._ratingArray = new Array(0);
-			throw new Error("MessageType not implemented: " + type);
+			throw new Error(`MessageType not implemented: ${type}`);
 		}
 		this._ratingArray = new Array(length);
 		this.clear();

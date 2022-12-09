@@ -14,7 +14,7 @@ export class UnitTest {
 	// returns the number of failed test cases
 	public runTests(log: Function, currentFileName: string, fakeAmunModule: any, safePath: any, safeAmun: any): number {
 		let failedCounter = 0;
-		log(this.constructor.name + ":");
+		log(`${this.constructor.name}:`);
 		const amunBefore = amun;
 		const pathBefore = path;
 		for (let [name, [test, situations]] of Object.entries(this.tests)) {

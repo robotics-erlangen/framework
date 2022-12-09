@@ -202,7 +202,7 @@ let scriptInfos: ScriptInfo[] = [];
 function handleNotification(notification: string) {
 	let notificationObject = JSON.parse(notification);
 	if (!notificationObject.method) {
-		log("Invalid notification from debugger: " + notification);
+		log(`Invalid notification from debugger: ${notification}`);
 		return;
 	}
 	switch (notificationObject.method) {
@@ -305,7 +305,7 @@ function handleNotification(notification: string) {
 function handleResponse(response: string) {
 	const reponseObject: any = JSON.parse(response);
 	if (!reponseObject) {
-		log("Invalid response from debugger: " + response);
+		log(`Invalid response from debugger: ${response}`);
 		return;
 	}
 	if (getPropertiesResponseMap.has(reponseObject.id)) {

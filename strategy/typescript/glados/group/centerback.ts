@@ -112,12 +112,12 @@ function assignRobotsToPoints(robotList: FriendlyRobot[], pointList: Point[], re
 		if (amun.isDebug) {
 			for (let point of pointList) {
 				if (Array.from(resultAssignment.values()).indexOf(point) < 0 && substitutedPoints.indexOf(point) < 0) {
-					throw new Error("point that is not covered: "  +  String(point));
+					throw new Error(`point that is not covered: ${point}`);
 				}
 			}
 			for (let robot of robotList) {
 				if (!resultAssignment.has(robot)) {
-					throw new Error("robot that is not covered: "  +  String(robot));
+					throw new Error(`robot that is not covered: ${robot}`);
 				}
 			}
 		}
@@ -134,7 +134,7 @@ function assignRobotsToPoints(robotList: FriendlyRobot[], pointList: Point[], re
 		if (amun.isDebug) {
 			for (let robot of robotList) {
 				if (!resultAssignment.has(robot)) {
-					throw new Error("robot that is not covered: " + String(robot));
+					throw new Error(`robot that is not covered: ${robot}`);
 				}
 			}
 		}

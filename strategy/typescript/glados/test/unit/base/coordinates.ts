@@ -8,9 +8,9 @@ export class BaseCoordinates extends UnitTest {
 		super();
 		C._setIsBlue(true);
 		for (let [teamName, teamIsBlue] of [["yellow team - ", false], ["blue team - ", true]]) {
-			this.addTest(teamName + "vector", this.wrapTeamColor(teamIsBlue as boolean, this.testVector));
-			this.addTest(teamName + "direction", this.wrapTeamColor(teamIsBlue as boolean, this.testDirection));
-			this.addTest(teamName + "list", this.wrapTeamColor(teamIsBlue as boolean, this.testList));
+			this.addTest(`${teamName}vector`, this.wrapTeamColor(teamIsBlue as boolean, this.testVector));
+			this.addTest(`${teamName}direction`, this.wrapTeamColor(teamIsBlue as boolean, this.testDirection));
+			this.addTest(`${teamName}list`, this.wrapTeamColor(teamIsBlue as boolean, this.testList));
 		}
 	}
 

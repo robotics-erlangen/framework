@@ -65,7 +65,7 @@ export class Error extends Behavior {
 	}
 
 	errorMsg() {
-		let out = String(this._robot.id)  +  ": ";
+		let out = `${this._robot.id}: `;
 		let msgParts: string[] = [];
 		let errorData = ErrorObserver.getErrorTable(this._robot);
 		out = `${out}battery: ${ErrorObserver.getAverageBatterySate(this._robot)} `;
@@ -73,37 +73,37 @@ export class Error extends Behavior {
 			return out;
 		}
 		if (errorData.motor_1_error) {
-			msgParts.push("motor 1 error" + String(errorData.motor_1_error));
+			msgParts.push(`motor 1 error${errorData.motor_1_error}`);
 		}
 		if (errorData.motor_2_error) {
-			msgParts.push("motor 2 error" + String(errorData.motor_2_error));
+			msgParts.push(`motor 2 error${errorData.motor_2_error}`);
 		}
 		if (errorData.motor_3_error) {
-			msgParts.push("motor 3 error" + String(errorData.motor_3_error));
+			msgParts.push(`motor 3 error${errorData.motor_3_error}`);
 		}
 		if (errorData.motor_4_error) {
-			msgParts.push("motor 4 error" + String(errorData.motor_4_error));
+			msgParts.push(`motor 4 error${errorData.motor_4_error}`);
 		}
 		if (errorData.dribbler_error) {
-			msgParts.push("dribber error" + String(errorData.dribbler_error));
+			msgParts.push(`dribber error${errorData.dribbler_error}`);
 		}
 		if (errorData.kicker_error) {
-			msgParts.push("kicker error" + String(errorData.kicker_error));
+			msgParts.push(`kicker error${errorData.kicker_error}`);
 		}
 		if (errorData.motorOverheatedError) {
-			msgParts.push("motor overheat" + String(errorData.motorOverheatedError));
+			msgParts.push(`motor overheat${errorData.motorOverheatedError}`);
 		}
 		if (errorData.motor_encoder_error) {
-			msgParts.push("motor encoder" + String(errorData.motor_encoder_error));
+			msgParts.push(`motor encoder${errorData.motor_encoder_error}`);
 		}
 		if (errorData.main_sensor_error) {
-			msgParts.push("main sensor" + String(errorData.main_sensor_error));
+			msgParts.push(`main sensor${errorData.main_sensor_error}`);
 		}
 		if (errorData.kicker_beak_beam_error) {
-			msgParts.push("kicker beam error" + String(errorData.kicker_beak_beam_error));
+			msgParts.push(`kicker beam error${errorData.kicker_beak_beam_error}`);
 		}
 		if (errorData.temperature) {
-			msgParts.push("temperature: " + String(errorData.temperature));
+			msgParts.push(`temperature: ${errorData.temperature}`);
 		}
 		return out + msgParts.toString();
 	}

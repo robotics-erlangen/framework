@@ -45,7 +45,7 @@ export abstract class Agent {
 			AgentError,
 			...this.getBehaviors(),
 		]);
-		this._debugIdStr = "Agent " + this._robot.id;
+		this._debugIdStr = `Agent ${this._robot.id}`;
 	}
 
 	abstract getBehaviors(): CheckableConstructor[];

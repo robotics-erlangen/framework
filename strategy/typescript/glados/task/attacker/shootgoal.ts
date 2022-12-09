@@ -102,7 +102,7 @@ export class ShootGoal extends Task {
 		}
 
 		if (locked) {
-			mode = mode + " (locked)";
+			mode = `${mode} (locked)`;
 		}
 
 		debug.set("mode", mode);

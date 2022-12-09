@@ -17,7 +17,7 @@ function visualizeRating(name: string, pos: Position, rating: number) {
 		return;
 	}
 
-	vis.addCircle("t/a/MidfieldSampling: " + name, pos, 0.06,
+	vis.addCircle(`t/a/MidfieldSampling: ${name}`, pos, 0.06,
 		vis.fromTemperature(1 - rating), true);
 }
 

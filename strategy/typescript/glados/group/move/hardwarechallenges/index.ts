@@ -10,5 +10,5 @@ let challenges: (typeof Move)[] = [
 
 for (let challenge of challenges) {
 	let name = challenge.NAME === "" ? challenge.name : challenge.NAME;
-	Entrypoints.add("HardwareChallenge/"  + name, createEntrypoint(challenge));
+	Entrypoints.add(`HardwareChallenge/${name}`, createEntrypoint(challenge));
 }

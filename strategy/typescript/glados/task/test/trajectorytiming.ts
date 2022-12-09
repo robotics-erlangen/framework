@@ -42,8 +42,8 @@ export class TrajectoryTiming extends Task {
 		if (!this.tryingToReachSpeed && this._robot.pos.distanceTo(this.currentTarget) < 0.02 && this._robot.speed.length() < 0.05) {
 			// the robot reached the desired position
 			if (this.timeToPosPredictedTime >= 0) {
-				amun.log("Trajectory error: " + (this.trajectoryPredictedTime - (World.Time - this.driveStartTime)));
-				amun.log("RTTPos error: " + (this.timeToPosPredictedTime - (World.Time - this.driveStartTime)));
+				amun.log(`Trajectory error: ${this.trajectoryPredictedTime - (World.Time - this.driveStartTime)}`);
+				amun.log(`RTTPos error: ${this.timeToPosPredictedTime - (World.Time - this.driveStartTime)}`);
 			}
 			this.currentTarget = new Vector((MathUtil.random() * 2 - 1) * World.Geometry.FieldWidthHalf * 0.6,
 				(MathUtil.random() * 2 - 1) * World.Geometry.FieldHeightHalf * 0.6);

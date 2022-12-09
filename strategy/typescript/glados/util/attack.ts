@@ -562,7 +562,7 @@ function printPassInfo(robot: {shootRadius: number} & Physics.RobotLike, passInf
 		debug.set("passInfo", hysteresisPassInfo);
 		if (hysteresisPassInfo) {
 			for (let [k, v] of Object.entries(hysteresisPassInfo)) {
-				debug.set("hyseresis " + String(k), v);
+				debug.set(`hyseresis ${k}`, v);
 			}
 		}
 		debug.pop();

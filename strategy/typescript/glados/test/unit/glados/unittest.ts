@@ -35,7 +35,7 @@ export class GladosUnitTest extends UnitTest {
 			this.assert_equal(World.Ball.pos.y, -1);
 			this.assert_equal(World.RefereeState, "Halt");
 		} else {
-			throw new Error("Unknown test case number " + situation);
+			throw new Error(`Unknown test case number ${situation}`);
 		}
 	}
 

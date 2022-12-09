@@ -85,7 +85,7 @@ export class ShootPenalty extends Task {
 				if (keeperInsideDefArea) { // detect random keeper movement
 					if ((keeper.speed.x > keeperMoveSpeedThreshold && this._lookDir === "Left")  ||
 						(keeper.speed.x < -keeperMoveSpeedThreshold && this._lookDir === "Right")) {
-						log("keeper x speed: "  +  keeper.speed.x);
+						log(`keeper x speed: ${keeper.speed.x}`);
 						this._targetPos = cornerPoint(this._lookDir);
 					}
 				}

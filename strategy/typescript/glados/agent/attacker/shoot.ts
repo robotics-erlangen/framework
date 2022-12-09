@@ -430,7 +430,7 @@ export class Shoot extends Behavior {
 
 		// redecide if the passReciever no longer offers that pass
 		if (redecideNoLongerOffered) {
-			debug.set("redeciding", "TRUE (dropped suggestion)" + suffixDebugString);
+			debug.set("redeciding", `TRUE (dropped suggestion)${suffixDebugString}`);
 		}
 
 		// redecide if the attackPosition changed a lot
@@ -438,43 +438,43 @@ export class Shoot extends Behavior {
 		// two frames are necessary since prevAttackPosition is the attackposition from two frames ago, so the old executed task
 		if (this._attackPosition && this._prevAttackPosition
 				&&  this._attackPosition.distanceTo(this._prevAttackPosition) > 0.3 && this._decisionFrames > 2) {
-			debug.set("redeciding", "TRUE (attackPosition)" + suffixDebugString);
+			debug.set("redeciding", `TRUE (attackPosition)${suffixDebugString}`);
 			return true;
 		}
 
 		// redecide if the last decision was the fallback one
 		if (this._decision.quality === "fallback") {
-			debug.set("redeciding", "TRUE (fallback)" + suffixDebugString);
+			debug.set("redeciding", `TRUE (fallback)${suffixDebugString}`);
 			return true;
 		}
 
 		if (!this._wasPressed && Robot.isPressed(this._robot)) {
-			debug.set("redeciding", "TRUE (pressed)" + suffixDebugString);
+			debug.set("redeciding", `TRUE (pressed)${suffixDebugString}`);
 			return true;
 		}
 
 		// don't redecide if we are close to shoot a stationary ball
 		if (World.Ball.speed.lengthSq() < 0.5 * 0.5 && World.Ball.pos.distanceToSq(this._robot.pos) < (0.2 + this._robot.radius) * (0.2 + this._robot.radius)) {
-			debug.set("redeciding", "FALSE (stationary)" + suffixDebugString);
+			debug.set("redeciding", `FALSE (stationary)${suffixDebugString}`);
 			return false;
 		}
 
 		// redecide if after a certain time
 		if (World.Time >= this._nextDecisionTime) {
-			debug.set("redeciding", "TRUE (nextDecisionTime)" + suffixDebugString);
+			debug.set("redeciding", `TRUE (nextDecisionTime)${suffixDebugString}`);
 			return true;
 		}
 
 		if (this._decision.pos != undefined && Ball.receivesPass(this._robot)) {
 			let shootAngle = World.Ball.speed.absoluteAngleDiff(this._robot.pos - this._decision.pos);
 			if (shootAngle > 75 * Math.PI / 180) {
-				debug.set("redeciding", "TRUE (large angle)" + suffixDebugString);
+				debug.set("redeciding", `TRUE (large angle)${suffixDebugString}`);
 				return true;
 			}
 		}
 
 
-		debug.set("redeciding", "FALSE (default)" + suffixDebugString);
+		debug.set("redeciding", `FALSE (default)${suffixDebugString}`);
 		return false;
 	}
 
@@ -520,7 +520,7 @@ export class Shoot extends Behavior {
 				if (k === "time") {
 					v = formatTimestamp(v);
 				}
-				debug.set("decision/" + String(k), v);
+				debug.set(`decision/${k}`, v);
 			}
 		}
 

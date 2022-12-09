@@ -451,7 +451,7 @@ function _calculateSpeed(robotId: number, waypoints: Position[], maxSpeedProfile
 	let speedVector = moveDir.withLength(speed);
 	let accelVector = moveDir.withLength(accel);
 
-	plot.addPlot(String(robotId)  +  ".speed", speed);
+	plot.addPlot(`${robotId}.speed`, speed);
 	// debug.set("speed", speedVector)
 	// debug.set("accel", accelVector)
 
