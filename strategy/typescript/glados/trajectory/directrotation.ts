@@ -21,7 +21,7 @@ export class DirectRotation {
 	}
 
 	private static calculateRotation(currentDir: number, currentOmegaParam: number, targetDir: number,
-		accelerate: number, brake: number, maxSpeed: number, exponentialTime: number, feedforwardSpeed: number): [number, number] {
+			accelerate: number, brake: number, maxSpeed: number, exponentialTime: number, feedforwardSpeed: number): [number, number] {
 		let currentOmega = currentOmegaParam - feedforwardSpeed;
 		let fullBrakeTime = Math.abs(currentOmega / brake);
 		// how far the robot will rotate even if it brakes with maximum speed

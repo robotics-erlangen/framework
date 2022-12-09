@@ -484,7 +484,7 @@ export class Path {
 		if (!isPerformanceMode) {
 			vis.addPolygonRaw(this.getObstacleString(),
 					[new Vector(start_x, start_y), new Vector(start_x, stop_y), new Vector(stop_x, stop_y),
-					new Vector(stop_x, start_y)], vis.colors.redHalf, true);
+						new Vector(stop_x, start_y)], vis.colors.redHalf, true);
 		} else {
 			// avoid string allocations in ra
 			name = undefined;

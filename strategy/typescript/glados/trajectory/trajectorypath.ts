@@ -275,7 +275,7 @@ export class TrajectoryPath extends TrajectoryHandler {
 		vis.addPath("trajectory-speeds", points, vis.colors.blue);
 		for (let i = 0;i < 5;i++) {
 			vis.addPath("trajectory-speeds", [Coordinates.toLocal(new Vector(i, 0)),
-						Coordinates.toLocal(new Vector(i, 5))], vis.colors.red);
+				Coordinates.toLocal(new Vector(i, 5))], vis.colors.red);
 		}
 	}
 

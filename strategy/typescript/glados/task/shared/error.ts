@@ -10,22 +10,25 @@ import { ToTarget } from "glados/trajectory/totarget";
 let G = World.Geometry;
 
 // [robotId] => (firstLocationId, secondLocationId)
-let EXCHANGE_TARGET = [{firstPosI : 0, secPosI: 17},
-						{firstPosI: 1, secPosI: 16},
-						{firstPosI: 2, secPosI: 15},
-						{firstPosI: 3, secPosI: 14},
-						{firstPosI: 4, secPosI: 13},
-						{firstPosI: 5, secPosI: 12},
-						{firstPosI: 6, secPosI: 23},
-						{firstPosI: 7, secPosI: 22},
-						{firstPosI: 8, secPosI: 21},
-						{firstPosI: 9, secPosI: 20},
-						{firstPosI: 10,secPosI: 19},
-						{firstPosI: 5, secPosI: 12},
-						{firstPosI: 2, secPosI: 15},
-						{firstPosI: 10,secPosI: 19},
-						{firstPosI: 0,secPosI: 17},
-						{firstPosI: 11,secPosI: 18}];
+let EXCHANGE_TARGET = [
+	{firstPosI : 0, secPosI: 17},
+	{firstPosI: 1, secPosI: 16},
+	{firstPosI: 2, secPosI: 15},
+	{firstPosI: 3, secPosI: 14},
+	{firstPosI: 4, secPosI: 13},
+	{firstPosI: 5, secPosI: 12},
+	{firstPosI: 6, secPosI: 23},
+	{firstPosI: 7, secPosI: 22},
+	{firstPosI: 8, secPosI: 21},
+	{firstPosI: 9, secPosI: 20},
+	{firstPosI: 10,secPosI: 19},
+	{firstPosI: 5, secPosI: 12},
+	{firstPosI: 2, secPosI: 15},
+	{firstPosI: 10,secPosI: 19},
+	{firstPosI: 0,secPosI: 17},
+	{firstPosI: 11,secPosI: 18}
+];
+
 let X0 = -1;
 let B = 0.33;
 let L = 0.25;

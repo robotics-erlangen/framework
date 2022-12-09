@@ -52,13 +52,11 @@ module.exports = {
                 }
             }
         ],
+        // for issues with this see: https://github.com/typescript-eslint/typescript-eslint/issues/1824
         "@typescript-eslint/indent": [
-            // TODO
-            "off",
+            "error",
             "tab",
             {
-                // TODO
-                "ArrayExpression": "off",
                 "CallExpression": {
                     // TODO sometimes 1 and sometimes 2
                     "arguments": "off"
@@ -67,16 +65,30 @@ module.exports = {
                     "parameters": 2
                 },
                 "FunctionExpression": {
-                    // TODO sometimes 1 and sometimes 2
-                    "parameters": "off"
+                    "parameters": 2
                 },
                 "SwitchCase": 1,
                 "ignoredNodes": [
                     "ConditionalExpression",
                     "TSUnionType",
                     "TSFunctionType",
+                    // TODO maybe don't ignore this
                     "TSDeclareFunction",
-                ]
+
+                    // this ignores cases where the return type is in the next line,
+                    // because @typescript-eslint/indent can't handle these correctly
+                    "FunctionDeclaration > TSArrayType",
+                    "FunctionDeclaration > TSConditionalType",
+                    "FunctionDeclaration > TSConstructorType",
+                    "FunctionDeclaration > TSIntersectionType",
+                    "FunctionDeclaration > TSMappedType",
+                    "FunctionDeclaration > TSLiteralType",
+                    "FunctionDeclaration > TSRestType",
+                    "FunctionDeclaration > TSThisType",
+                    "FunctionDeclaration > TSTupleType",
+                    "FunctionDeclaration > TSTypeAnnotation",
+                    "FunctionDeclaration > TSTypeReference",
+              ]
             }
         ],
         "@typescript-eslint/member-delimiter-style": [

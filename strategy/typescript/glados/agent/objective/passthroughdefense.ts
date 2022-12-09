@@ -89,7 +89,8 @@ export class PassThroughDefense extends Objective {
 
 		let left: Boundaries[] = [];
 		if (remainingZones > 4 || (remainingZones === 4 && mainAttackerRelativePos === RelativeMAPos.LEFT)) {
-			left = [{ top: TOTAL_TOP, bottom: DEFENSE_AREA_Y_HALF, left: -DEFENSE_AREA_X_ZONE_END, right: -DEFENSE_AREA_X },
+			left = [
+				{ top: TOTAL_TOP, bottom: DEFENSE_AREA_Y_HALF, left: -DEFENSE_AREA_X_ZONE_END, right: -DEFENSE_AREA_X },
 				{ top: DEFENSE_AREA_Y_HALF, bottom: DEFENSE_AREA_Y, left: -DEFENSE_AREA_X_ZONE_END, right: -DEFENSE_AREA_X }
 			];
 			remainingZones -= 2;
@@ -100,8 +101,9 @@ export class PassThroughDefense extends Objective {
 
 		let right: Boundaries[] = [];
 		if (remainingZones > 4 || (remainingZones === 3 && mainAttackerRelativePos === RelativeMAPos.RIGHT)) {
-			right = [{ top: TOTAL_TOP, bottom: DEFENSE_AREA_Y_HALF, left: DEFENSE_AREA_X, right: DEFENSE_AREA_X_ZONE_END },
-					{ top: DEFENSE_AREA_Y_HALF, bottom: DEFENSE_AREA_Y, left: DEFENSE_AREA_X, right: DEFENSE_AREA_X_ZONE_END }
+			right = [
+				{ top: TOTAL_TOP, bottom: DEFENSE_AREA_Y_HALF, left: DEFENSE_AREA_X, right: DEFENSE_AREA_X_ZONE_END },
+				{ top: DEFENSE_AREA_Y_HALF, bottom: DEFENSE_AREA_Y, left: DEFENSE_AREA_X, right: DEFENSE_AREA_X_ZONE_END }
 			];
 			remainingZones -= 2;
 		} else if (remainingZones > 1 || (remainingZones > 0 && mainAttackerRelativePos === RelativeMAPos.RIGHT)) {
@@ -112,13 +114,15 @@ export class PassThroughDefense extends Objective {
 		let top: Boundaries[] = [];
 		if (remainingZones > 2) {
 			const THIRD = TOP_ZONE_X * 1 / 3;
-			top = [{ top: DEFENSE_AREA_Y, bottom: DEFENSE_AREA_Y_ZONE_END, left: THIRD, right: TOP_ZONE_X },
+			top = [
+				{ top: DEFENSE_AREA_Y, bottom: DEFENSE_AREA_Y_ZONE_END, left: THIRD, right: TOP_ZONE_X },
 				{ top: DEFENSE_AREA_Y, bottom: DEFENSE_AREA_Y_ZONE_END, left: -THIRD, right: THIRD },
 				{ top: DEFENSE_AREA_Y, bottom: DEFENSE_AREA_Y_ZONE_END, left: -TOP_ZONE_X, right: -THIRD }
 			];
 			remainingZones -= 3;
 		} else if (remainingZones > 1) {
-			top = [{ top: DEFENSE_AREA_Y, bottom: DEFENSE_AREA_Y_ZONE_END, left: 0, right: TOP_ZONE_X },
+			top = [
+				{ top: DEFENSE_AREA_Y, bottom: DEFENSE_AREA_Y_ZONE_END, left: 0, right: TOP_ZONE_X },
 				{ top: DEFENSE_AREA_Y, bottom: DEFENSE_AREA_Y_ZONE_END, left: -TOP_ZONE_X, right: 0 }
 			];
 			remainingZones -= 2;
