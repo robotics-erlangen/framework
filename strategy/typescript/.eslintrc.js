@@ -47,14 +47,14 @@ module.exports = {
                     "Symbol": {
                         "message": "Avoid using the 'Symbol' type. Did you mean 'symbol'?"
                     },
-                    // TODO
                     "Function": false,
                     "Object": false
                 }
             }
         ],
         "@typescript-eslint/indent": [
-            "error",
+            // TODO
+            "off",
             "tab",
             {
                 // TODO
@@ -80,11 +80,11 @@ module.exports = {
             }
         ],
         "@typescript-eslint/member-delimiter-style": [
-            "off",
+            "error",
             {
                 "multiline": {
                     "delimiter": "semi",
-                    "requireLast": false
+                    "requireLast": true
                 },
                 "singleline": {
                     "delimiter": "semi",
@@ -109,6 +109,7 @@ module.exports = {
             "error",
             "always"
         ],
+        // TODO
         "arrow-body-style": "off",
         "arrow-parens": [
             "error",
@@ -128,12 +129,11 @@ module.exports = {
         ],
         "eol-last": "error",
         "eqeqeq": [
-            // TODO
+            // TODO allow undefined
             "off",
             "smart"
         ],
         "import/order": "error",
-        "indent": "off",
         "jsdoc/check-alignment": "error",
         "jsdoc/check-indentation": "off",
         // "jsdoc/newline-after-description": "error",
@@ -186,23 +186,29 @@ module.exports = {
         "no-invalid-this": "error",
         "no-new-wrappers": "error",
         "no-null/no-null": "error",
+        // TODO
         "no-redeclare": "off",
         "no-return-await": "error",
         "no-sparse-arrays": "error",
         "no-template-curly-in-string": "error",
-        "no-throw-literal": "off",
+        "no-throw-literal": "error",
         "no-trailing-spaces": "error",
         "no-unused-labels": "error",
         "no-var": "error",
         "prefer-object-spread": "error",
+        // TODO
         "prefer-template": "off",
         "quote-props": [
             "error",
             "consistent"
         ],
-        "quotes": "off",
         "radix": "error",
+
+        // turned off because there are overriding @typescript versions
+        "quotes": "off",
         "semi": "off",
+        "indent": "off",
+
         "space-before-function-paren": [
             "error",
             "never"
@@ -212,13 +218,21 @@ module.exports = {
             "never"
         ],
         "spaced-comment": [
-            // TODO
-            "off",
+            "error",
             "always",
             {
-                "markers": [
-                    "/"
-                ]
+                "line": {
+                    "markers": [
+                        "/"
+                    ]
+                },
+                "block": {
+                    "balanced": true,
+                    "exceptions": ["*"],
+                    "markers": [
+                        "*"
+                    ]
+                }
             }
         ],
         "unicorn/prefer-switch": [

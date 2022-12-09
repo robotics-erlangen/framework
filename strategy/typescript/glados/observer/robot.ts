@@ -16,12 +16,12 @@ export interface RobotDynamics {
 	maxSpeed: number;
 	maxAngularSpeed: number;
 	acceleration: {
-		aSpeedupFMax: number,
-		aBrakeFMax: number,
-		aSpeedupSMax: number,
-		aBrakeSMax: number,
-		aSpeedupPhiMax: number,
-		aBrakePhiMax: number,
+		aSpeedupFMax: number;
+		aBrakeFMax: number;
+		aSpeedupSMax: number;
+		aBrakeSMax: number;
+		aSpeedupPhiMax: number;
+		aBrakePhiMax: number;
 	};
 }
 

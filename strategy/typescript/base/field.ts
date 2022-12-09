@@ -323,7 +323,7 @@ interface IntersectionsType {
 }
 
 function intersectionsRayDefenseArea_2018(pos: Position, dir: RelativePosition, extraDistance: number, friendly: boolean):
-		{pos: Position, way: number, sec: number}[] {
+		{pos: Position; way: number; sec: number}[] {
 	let corners: Vector[] = [];
 	corners[0] = new Vector(G.DefenseWidthHalf + extraDistance, G.FieldHeightHalf);
 	corners[1] = new Vector(G.DefenseWidthHalf, G.FieldHeightHalf - G.DefenseHeight - extraDistance);
@@ -335,7 +335,7 @@ function intersectionsRayDefenseArea_2018(pos: Position, dir: RelativePosition, 
 
 	let f = friendly ? -1 : 1;
 	let way = 0;
-	let intersections: {pos: Position, way: number, sec: number}[] = [];
+	let intersections: {pos: Position; way: number; sec: number}[] = [];
 	for (let i = 0;i < corners.length;i++) {
 		let v = corners[i];
 		// intersections on lines
@@ -407,7 +407,7 @@ function defenseIntersectionByWay_2018(way: number, extraDistance: number, frien
 }
 
 function intersectionsRayDefenseArea_2017(pos: Position, dir: RelativePosition, extraDistance: number = 0,
-		friendly: boolean = false): [{pos: Position, l1: number}[], number] {
+		friendly: boolean = false): [{pos: Position; l1: number}[], number] {
 	// calculate defense radius
 	let radius = G.DefenseRadius + extraDistance;
 	if (radius < 0) {
@@ -430,7 +430,7 @@ function intersectionsRayDefenseArea_2017(pos: Position, dir: RelativePosition, 
 	let to_friendly = geom.normalizeAnglePositive(oppadd - Math.PI / 2);
 
 	// calculate intersection points with defense arcs
-	let intersections: {pos: Vector, l1: number}[] = [];
+	let intersections: {pos: Vector; l1: number}[] = [];
 	let ileft = intersectRayArc(pos, dir, leftCenter, radius, to_opponent, to_friendly);
 	for (let i of ileft) {
 		intersections.push({pos: i[0], l1: (Math.PI / 2 - i[1]) * radius});
@@ -450,7 +450,7 @@ function intersectionsRayDefenseArea_2017(pos: Position, dir: RelativePosition, 
 }
 
 function intersectionsRayDefenseArea_2017Wrapper(pos: Position, dir: RelativePosition, extraDistance: number = 0,
-		friendly: boolean = false): {pos: Position, l1: number}[] {
+		friendly: boolean = false): {pos: Position; l1: number}[] {
 	return intersectionsRayDefenseArea_2017(pos, dir, extraDistance, friendly)[0];
 }
 

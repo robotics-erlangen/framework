@@ -47,15 +47,15 @@ interface TriangleObstacle {
 export type Obstacle = CircleObstacle | LineObstacle | RectObstacle | TriangleObstacle;
 
 export type Parameters = {
-	pos: Position,
-	dir?: number,
-	endSpeedLength?: number,
-	customObstacles?: Obstacle[],
-	suggestPass?: boolean,
-	ignoreDefaultObstacles?: boolean,
-	ignoreBallPlacement?: boolean
-	ignoreBall?: boolean,
-	useCMA?: boolean
+	pos: Position;
+	dir?: number;
+	endSpeedLength?: number;
+	customObstacles?: Obstacle[];
+	suggestPass?: boolean;
+	ignoreDefaultObstacles?: boolean;
+	ignoreBallPlacement?: boolean;
+	ignoreBall?: boolean;
+	useCMA?: boolean;
 };
 
 export class MoveToPos extends Task {

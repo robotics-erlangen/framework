@@ -1,8 +1,10 @@
+.eslintrc.js
 node_modules
 built
 glados/lib
 base/mixedteam.ts
 base/table.ts
+base/protobuf.ts
 glados/agent/ally.ts
 glados/agent/base/simpleagent.ts
 glados/agent/manual/default.ts

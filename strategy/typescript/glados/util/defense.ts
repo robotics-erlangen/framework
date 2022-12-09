@@ -34,7 +34,7 @@ export let PENALTY_LINE_DISTANCE = 0.35; // prevent robots from crossing the pen
 export let MARKING_DISTANCE = 0.6;
 export let OFFENSIVE_MARKING_DISTANCE = 0.3;
 
-function _manMarkPos(opponent: { pos: Position, radius: number, speed: Speed }): Position {
+function _manMarkPos(opponent: { pos: Position; radius: number; speed: Speed }): Position {
 	// use the position at which the robot would brake if it started immediately
 	let targetPos = Physics.robotBrakePos({pos: opponent.pos, speed: opponent.speed});
 	if (World.Ball.pos.y > G.FieldHeightHalf * 0.7 && World.Ball.speed.length() < 0.5 && Referee.isStopState()) {
@@ -83,7 +83,7 @@ function _manMarkPos(opponent: { pos: Position, radius: number, speed: Speed }):
 
 	return targetPos;
 }
-export let manMarkPos: (opponent: { pos: Position, radius: number, speed: Speed }) => Position = Cache.forFrame(_manMarkPos);
+export let manMarkPos: (opponent: { pos: Position; radius: number; speed: Speed }) => Position = Cache.forFrame(_manMarkPos);
 
 let lastWasOutOfField = false;
 function _piggyPos(opponent: Robot): Position {
@@ -411,7 +411,7 @@ export function divCornerFactor(way: number, distance: number): number {
 
 
 let keeperShouldBeMAHysteresis = false;
-function behindCenterbacks(keeper: FriendlyRobot, object: {pos: Position, radius: number}): boolean {
+function behindCenterbacks(keeper: FriendlyRobot, object: {pos: Position; radius: number}): boolean {
 	const hyst = keeperShouldBeMAHysteresis ? 0.1 : 0;
 	const defenseDistance = keeper.radius + keeper.shootRadius + hyst;
 	return Field.distanceToFriendlyDefenseArea(object.pos, object.radius) < defenseDistance;

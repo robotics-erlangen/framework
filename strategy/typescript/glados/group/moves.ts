@@ -34,8 +34,8 @@ export class Moves implements Group {
 	moveList: typeof Move[];
 	_numAttackersSent: boolean = false;
 	_chosenMove: undefined | {
-		ctor: typeof Move,
-		requestedRobots: number,
+		ctor: typeof Move;
+		requestedRobots: number;
 	};
 	_currentMove: Move | undefined;
 	_participatingRobots: FriendlyRobot[] = [];

@@ -43,7 +43,7 @@ export class WindshieldWiper extends Move {
 	}
 
 	private _state: string;
-	private _distances: {distance: number, robot: FriendlyRobot}[];
+	private _distances: {distance: number; robot: FriendlyRobot}[];
 	private _positions: Position[];
 
 	constructor(robots: FriendlyRobot[], messaging: MessageBox) {

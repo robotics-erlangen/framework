@@ -11,14 +11,14 @@ import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
 
 export type Parameters = {
-	pos: Position,
-	dir?: number,
-	endSpeedLength?: number,
-	customObstacles?: Obstacle[],
-	ignoreDefaultObstacles?: boolean,
-	ignoreBallPlacement?: boolean
-	ignoreBall?: boolean,
-	useCMA?: boolean
+	pos: Position;
+	dir?: number;
+	endSpeedLength?: number;
+	customObstacles?: Obstacle[];
+	ignoreDefaultObstacles?: boolean;
+	ignoreBallPlacement?: boolean;
+	ignoreBall?: boolean;
+	useCMA?: boolean;
 };
 
 function isBallValid(): boolean {

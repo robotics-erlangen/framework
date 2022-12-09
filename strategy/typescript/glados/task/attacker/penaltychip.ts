@@ -100,7 +100,7 @@ export class PenaltyChip extends Task {
 		}
 	}
 
-	static check(ball: {pos: Position, speed: Vector, radius: number}, robot: Robot) {
+	static check(ball: {pos: Position; speed: Vector; radius: number}, robot: Robot) {
 		let keeper = World.OpponentKeeper;
 		if (keeper == undefined) {
 			return false;
@@ -172,7 +172,7 @@ function checkAngle(ball: {speed: Vector}, robot: Robot) {
 	// -- }
 	return false;
 }
-function checkBall(robot: Robot, ball: {pos: Position, radius: number}) {
+function checkBall(robot: Robot, ball: {pos: Position; radius: number}) {
 	if (ellipticDistance(robot, ball.pos) > ball.radius + 0.02) {
 		return "fail has ball";
 	}

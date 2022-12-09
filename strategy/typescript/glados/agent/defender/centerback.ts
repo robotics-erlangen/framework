@@ -5,7 +5,7 @@ import { MessageType } from "glados/control/messaging";
 import { CenterBack as CenterBackTask } from "glados/task/defender/centerback";
 
 export class CenterBack extends Behavior {
-	_lastTarget: {pos: Position, dir: RelativePosition} | undefined = undefined;
+	_lastTarget: {pos: Position; dir: RelativePosition} | undefined = undefined;
 
 	_stop() {
 		this._lastTarget = undefined;
@@ -20,7 +20,7 @@ export class CenterBack extends Behavior {
 
 	_updateTask(): TaskAssignment<typeof CenterBackTask> {
 		let role = this._messaging.receiveTrainer(MessageType.roleAssignment);
-		let target = <{pos: Vector, dir: Vector, time: number}> role!.params;
+		let target = <{pos: Vector; dir: Vector; time: number}> role!.params;
 		let restart = target !== this._lastTarget;
 		this._lastTarget = target;
 

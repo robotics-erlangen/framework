@@ -34,7 +34,7 @@ type Decision = {
 	pos: Position;
 	quality: "clean" | "fallback";
 } | {
-	pos?: undefined
+	pos?: undefined;
 	task: "none";
 } | {
 	task: "shootgoal";

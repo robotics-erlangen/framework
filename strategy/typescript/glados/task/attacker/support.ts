@@ -51,7 +51,7 @@ export class Support extends Task {
 	private _passDestSuggestion: Position | undefined;
 
 	private _moveDest: Position | undefined = undefined;
-	private _zone: {defaultPos: Position, boundaries: {left: number, right: number, top: number, bottom: number}} | undefined = undefined;
+	private _zone: {defaultPos: Position; boundaries: {left: number; right: number; top: number; bottom: number}} | undefined = undefined;
 	private _reEvaluateTimestamp: number = 0;
 
 	private _obstacleTable: PathHelper.PathHelperParameters;

@@ -8,22 +8,22 @@ import { TaskConstructor, TaskParameters } from "glados/task/base";
 export { MessageBox } from "glados/control/messaging";
 
 type AssignmentWithTask<T extends TaskConstructor> = ([] extends TaskParameters<T> ? {
-	class: T,
-	params?: TaskParameters<T>,
-	restart?: boolean
+	class: T;
+	params?: TaskParameters<T>;
+	restart?: boolean;
 } : {
-	class: T,
-	params: TaskParameters<T>,
-	restart?: boolean
+	class: T;
+	params: TaskParameters<T>;
+	restart?: boolean;
 }) | {
-	class: "none",
-	params?: undefined,
-	restart?: undefined
+	class: "none";
+	params?: undefined;
+	restart?: undefined;
 };
 
 type AssignmentWithBehavior<T extends BehaviorConstructor> = {
-	behavior: T,
-	restart?: boolean
+	behavior: T;
+	restart?: boolean;
 };
 
 export class Assignment {

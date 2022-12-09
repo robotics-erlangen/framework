@@ -309,7 +309,7 @@ export class Defense {
 		// go over all intersections
 		this._centerbackAssignments = [];
 		let timeSum = 0;
-		let currentBall: Physics.BallLike & { posZ: number, initSpeedZ: number, speedZ: number } = World.Ball;
+		let currentBall: Physics.BallLike & { posZ: number; initSpeedZ: number; speedZ: number } = World.Ball;
 		let didBallCB = false;
 		for (let info of intersectionInfos) {
 			let intersection = geom.intersectLineLine(World.Geometry.FriendlyGoal, new Vector(1, 0), info.startPos, info.startDirection);
@@ -415,7 +415,7 @@ export class Defense {
 
 export interface CenterBackRoleAssignment {
 	name: "CenterBack";
-	params: { pos: Position, dir?: RelativePosition, time?: number };
+	params: { pos: Position; dir?: RelativePosition; time?: number };
 }
 
 export interface ManMarkRoleAssignment {

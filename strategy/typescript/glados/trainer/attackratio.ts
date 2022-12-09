@@ -248,7 +248,7 @@ export class AttackRatio {
 		return [attackers, defenders];
 	}
 
-	changingRobots(): {robot: FriendlyRobot, isAttacker: boolean}[] {
+	changingRobots(): {robot: FriendlyRobot; isAttacker: boolean}[] {
 		let robots = [];
 		let forcePoolChangeMsg = this._messaging.receiveTrainerRepeated(MessageType.forcePoolChange);
 		if (forcePoolChangeMsg) {

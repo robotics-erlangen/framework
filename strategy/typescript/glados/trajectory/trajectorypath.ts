@@ -14,7 +14,7 @@ import { DirectRotation } from "glados/trajectory/directrotation";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import * as Rating from "glados/util/rating";
 
-type Trajectory = { pos: Position, speed: Speed, time: number}[];
+type Trajectory = { pos: Position; speed: Speed; time: number}[];
 
 class PID {
 	p: number;

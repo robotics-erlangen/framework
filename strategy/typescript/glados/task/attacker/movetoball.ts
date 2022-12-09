@@ -17,7 +17,7 @@ const obstacleTable : PathHelper.PathHelperParameters = {
 	ignoreDefenseArea: true,
 	ignoreOpponentDefenseArea: false,
 };
-interface Ball {pos: Position; radius: number; speed: Speed; maxSpeed: number;}
+interface Ball {pos: Position; radius: number; speed: Speed; maxSpeed: number}
 export class MoveToBall extends Task {
 	private _ball : Ball;
 	private _viewdir : Vector;

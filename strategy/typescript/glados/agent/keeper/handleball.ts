@@ -19,7 +19,7 @@ import * as Attack from "glados/util/attack";
 import * as Defense from "glados/util/defense";
 
 export class HandleBall extends Behavior {
-	private _pass: {target?: FriendlyRobot, ballPos: Position, time: number} | undefined;
+	private _pass: {target?: FriendlyRobot; ballPos: Position; time: number} | undefined;
 	private _timeBegin: number | undefined = undefined;
 
 	_stop() {

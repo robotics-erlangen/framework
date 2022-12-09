@@ -18,10 +18,10 @@ import { ToTarget } from "glados/trajectory/totarget";
 
 export class PenaltyShootoutGoal extends Task {
 	private _shoot: Shoot;
-	private _ball: {pos: Position, speed: Vector, radius: number};
+	private _ball: {pos: Position; speed: Vector; radius: number};
 	private _dest: Position;
 
-	constructor(behavior: Behavior, dest: Position, ball: {pos: Position, speed: Vector, radius: number} = World.Ball) {
+	constructor(behavior: Behavior, dest: Position, ball: {pos: Position; speed: Vector; radius: number} = World.Ball) {
 		super(behavior);
 		this._shoot = new Shoot(this);
 		// this._pos = pos;

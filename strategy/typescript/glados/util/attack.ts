@@ -607,7 +607,7 @@ function _checkPassInfos(robot: FriendlyRobot, passInfoTable: ReadonlyRec<PassIn
 	}
 }
 
-let checkedPassInfoPerRobot = new Map<FriendlyRobot, {result: boolean, message: ReadonlyRec<PassInfo> | undefined}>();
+let checkedPassInfoPerRobot = new Map<FriendlyRobot, {result: boolean; message: ReadonlyRec<PassInfo> | undefined}>();
 
 /**
  * {@link _checkPassInfos }

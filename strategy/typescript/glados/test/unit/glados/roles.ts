@@ -12,7 +12,7 @@ function robotStub(id: number): FriendlyRobot {
 }
 
 function agentStub(robotStub: FriendlyRobot) {
-	let agent: {robot(): FriendlyRobot, isAgent(): boolean} = {
+	let agent: {robot(): FriendlyRobot; isAgent(): boolean} = {
 		robot: function() { return robotStub; },
 		isAgent: function() { return true; }
 	};

@@ -240,7 +240,7 @@ export class FreeKick extends Behavior {
 		}
 
 
-		type PassInfo = {target: FriendlyRobot, ballPos: Position, time: number};
+		type PassInfo = {target: FriendlyRobot; ballPos: Position; time: number};
 		if (this._passList != undefined && this._state === State.Pass) {
 			this._messaging.sendBroadcast(MessageType.passInfo, [<PassInfo> this._pass]);
 		} else if (this._passList != undefined) {

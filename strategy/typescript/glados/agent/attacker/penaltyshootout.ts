@@ -28,7 +28,7 @@ let G = World.Geometry;
 let DISTANCE_TO_DEFENSE_AREA = 0.6; // the furthest we'll go before we shoot
 let DRIBBLING_DISTANCE = 0.035; // Ball and Robot must be at least this far apart to reset dribbling
 
-function getKeeperTime(post: Position, turntime: RelTime, ball: {pos: Position, speed: Speed, radius: number, maxSpeed: number}, keeper: Robot) {
+function getKeeperTime(post: Position, turntime: RelTime, ball: {pos: Position; speed: Speed; radius: number; maxSpeed: number}, keeper: Robot) {
 	let pos = ball.pos + ball.speed * turntime;
 	let startspeed = Const.maxBallSpeed - World.BallModel.FastBallDeceleration * turntime;
 	let shootdir = (post - pos).normalized();
@@ -63,7 +63,7 @@ export class PenaltyShootout extends Behavior {
 	private _baseDribblePos: Position = new Vector(0, G.FieldHeightHalf);
 	private _addX: number = 0;
 	private _state: string | undefined;
-	private _futureKeeper: {pos: Position, speed: Speed, radius: number} = {pos: G.OpponentGoal, speed: new Vector(0,0.1), radius: 0.09};
+	private _futureKeeper: {pos: Position; speed: Speed; radius: number} = {pos: G.OpponentGoal, speed: new Vector(0,0.1), radius: 0.09};
 	private _ball = {pos : getRealisticBallPos(), speed : World.Ball.speed, radius : World.Ball.radius, time : World.Time, maxSpeed: 0, quality : 1};
 	private _dribblePos: Position | undefined = undefined;
 	private _shootPos: Position = G.OpponentGoal;

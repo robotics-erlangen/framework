@@ -105,7 +105,7 @@ function runTests(moduleNames: string[]) {
 
 	// throw at the end so that the tests are not repeated infinitely
 	// throw a string instead of an error to avoid a (useless) stacktrace.
-	// tslint:disable-next-line:no-string-throw
+	// eslint-disable-next-line no-throw-literal
 	throw `os.exit(${failedCounter})`;
 
 }
