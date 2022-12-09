@@ -109,7 +109,6 @@ module.exports = {
             "error",
             "always"
         ],
-        // TODO
         "arrow-body-style": "off",
         "arrow-parens": [
             "error",
@@ -128,11 +127,6 @@ module.exports = {
             "multi-line"
         ],
         "eol-last": "error",
-        "eqeqeq": [
-            // TODO allow undefined
-            "off",
-            "smart"
-        ],
         "import/order": "error",
         "jsdoc/check-alignment": "error",
         "jsdoc/check-indentation": "off",
@@ -186,9 +180,27 @@ module.exports = {
         "no-invalid-this": "error",
         "no-new-wrappers": "error",
         "no-null/no-null": "error",
-        // TODO
         "no-redeclare": "off",
+        "@typescript-eslint/no-redeclare": [
+            "error",
+            {
+                "ignoreDeclarationMerge": true
+            }
+        ],
         "no-return-await": "error",
+        "eqeqeq": "off",
+        // this is a workaround, because eqeqeq does not allow making undefined an exception
+        "no-restricted-syntax": [
+            "error",
+            {
+                "selector": "BinaryExpression[operator='=='][left.name!='undefined'][right.name!='undefined']",
+                "message": "Comparison with == is only allowed when comparing with undefined, because JavaScript is cursed. Use === instead."
+            },
+            {
+                "selector": "BinaryExpression[operator='!='][left.name!='undefined'][right.name!='undefined']",
+                "message": "Comparison with != is only allowed when comparing with undefined, because JavaScript is cursed. Use !== instead."
+            },
+        ],
         "no-sparse-arrays": "error",
         "no-template-curly-in-string": "error",
         "no-throw-literal": "error",
@@ -196,7 +208,6 @@ module.exports = {
         "no-unused-labels": "error",
         "no-var": "error",
         "prefer-object-spread": "error",
-        // TODO
         "prefer-template": "error",
         "quote-props": [
             "error",
