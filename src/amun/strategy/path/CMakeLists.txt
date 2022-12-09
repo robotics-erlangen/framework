@@ -40,6 +40,7 @@ set(path_files
     include/path/multiescapesampler.h
     include/path/parameterization.h
     include/path/trajectoryinput.h
+    include/path/accelerationprofile.h
 
     abstractpath.cpp
     alphatimetrajectory.cpp

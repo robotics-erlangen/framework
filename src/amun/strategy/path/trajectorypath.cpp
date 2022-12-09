@@ -173,7 +173,7 @@ std::vector<Trajectory> TrajectoryPath::findPath(TrajectoryInput input)
     }
 
     // check direct trajectory
-    const float directSlowDownTime = input.exponentialSlowDown ? Trajectory::SLOW_DOWN_TIME : 0.0f;
+    const float directSlowDownTime = input.exponentialSlowDown ? SlowdownAcceleration::SLOW_DOWN_TIME : 0.0f;
     const float targetDistance = (input.target.pos - input.start.pos).length();
     const bool useHighPrecision = targetDistance < 0.1f && input.target.speed == Vector(0, 0) && input.start.speed.length() < 0.2f;
     const auto direct = AlphaTimeTrajectory::findTrajectory(input.start, input.target, input.acceleration, input.maxSpeed,

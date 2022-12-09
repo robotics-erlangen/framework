@@ -24,6 +24,7 @@
 #include "core/vector.h"
 #include "boundingbox.h"
 #include "trajectoryinput.h"
+#include "accelerationprofile.h"
 
 #include <vector>
 #include <array>
@@ -111,13 +112,6 @@ private:
 
 class Trajectory {
 public:
-
-    static constexpr float SLOW_DOWN_TIME = 0.2f;
-
-    struct VT {
-        Vector v;
-        float t;
-    };
 
     Trajectory() = default;
     Trajectory(const SpeedProfile1D &xProfile, const SpeedProfile1D &yProfile,
