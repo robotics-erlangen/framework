@@ -157,7 +157,7 @@ export function sendRefereeCommand(refereeCommand: string, gameStage?: string, b
  * @param friendlyRobots - friendly by id
  * @param opponentRobots - opponent robots by id
  */
-export type BallInfo = { pos: Vector, posZ?: number, speed: Vector, speedZ?: number };
+export type BallInfo = { pos: Vector; posZ?: number; speed: Vector; speedZ?: number };
 export function moveObjects(ball?: BallInfo, friendlyRobots?: RobotState[], opponentRobots?: RobotState[]) {
 	if (!amun.isDebug) {
 		throw new Error("only works in debug mode");

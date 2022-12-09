@@ -317,7 +317,7 @@ export class FriendlyRobot extends Robot {
 	/** command from input devices (fields: speed, omega, kickStyle, kickPower, dribblerSpeed) */
 	userControl: UserControl | undefined;
 	/** command used when robots are dragged with the mouse (fields: time, pos (global)) (optional) */
-	moveCommand: {time: number, pos: Position} | undefined;
+	moveCommand: {time: number; pos: Position} | undefined;
 
 	centerToDribbler: number | undefined;
 

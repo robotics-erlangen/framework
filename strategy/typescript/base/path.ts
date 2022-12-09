@@ -308,12 +308,12 @@ export class Path {
 		this.lastWasTrajectoryPath = false;
 	}
 
-	getTrajectory(startPos: Position, startSpeed: Speed, endPos: Position, endSpeed: Speed, maxSpeed: number, acceleration: number): { pos: Position, speed: Speed, time: number}[] {
+	getTrajectory(startPos: Position, startSpeed: Speed, endPos: Position, endSpeed: Speed, maxSpeed: number, acceleration: number): { pos: Position; speed: Speed; time: number}[] {
 		this.lastWasTrajectoryPath = true;
 		this.addObstaclesToPath(this._trajectoryInst);
 		let t = this._trajectoryInst.calculateTrajectory(startPos.x, startPos.y, startSpeed.x,
 			startSpeed.y, endPos.x, endPos.y, endSpeed.x, endSpeed.y, maxSpeed, acceleration);
-		let result: { pos: Position, speed: Speed, time: number }[] = [];
+		let result: { pos: Position; speed: Speed; time: number }[] = [];
 		for (let p of t) {
 			result.push({ pos: new Vector(p.px, p.py), speed: new Vector(p.vx, p.vy), time: p.time});
 		}
