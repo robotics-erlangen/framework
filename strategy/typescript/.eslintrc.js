@@ -197,7 +197,7 @@ module.exports = {
         "no-var": "error",
         "prefer-object-spread": "error",
         // TODO
-        "prefer-template": "off",
+        "prefer-template": "error",
         "quote-props": [
             "error",
             "consistent"

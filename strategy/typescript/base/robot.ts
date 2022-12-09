@@ -294,7 +294,7 @@ export class Robot implements RobotState {
 			this.maxSpeed = accel.vmax;
 			this.maxAngularSpeed = accel.vangular;
 			this.acceleration = accel.profile;
-			amun.log("updated specs with team " + teamname);
+			amun.log(`updated specs with team ${teamname}`);
 		}
 	}
 }

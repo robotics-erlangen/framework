@@ -111,7 +111,7 @@ export function sendRefereeCommand(refereeCommand: string, gameStage?: string, b
 	if (gameStage != undefined) {
 		state.stage = <pb.SSL_Referee.Stage> stageUnmapping[gameStage];
 		if (state.stage == undefined) {
-			throw new Error("Invalid game stage name: "  +  gameStage);
+			throw new Error(`Invalid game stage name: ${gameStage}`);
 		}
 	}
 
@@ -127,7 +127,7 @@ export function sendRefereeCommand(refereeCommand: string, gameStage?: string, b
 		// map "refereeState" to command
 		state.command = <pb.SSL_Referee.Command> commandUnmapping[command];
 		if (state.command == undefined) {
-			throw new Error("Invalid referee command name: "  +  refereeCommand);
+			throw new Error(`Invalid referee command name: ${refereeCommand}`);
 		}
 		state.command_counter = 1; // trigger command update
 	}

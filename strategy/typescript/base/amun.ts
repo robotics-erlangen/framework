@@ -176,7 +176,7 @@ export function _hideFunctions() {
 
 	const makeDisabledFunction = function(name: string) {
 		function DISABLED_FUNCTION(..._: any[]): any {
-			throw new Error("Usage of disabled amun function " + name);
+			throw new Error(`Usage of disabled amun function ${name}`);
 		}
 		return DISABLED_FUNCTION;
 	};
