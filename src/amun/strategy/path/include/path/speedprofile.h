@@ -152,7 +152,7 @@ public:
     void printDebug() const;
 
     // WARNING: this function does NOT create points for the slow down time. Use other functions if that is necessary
-    std::vector<TrajectoryPoint> getTrajectoryPoints() const;
+    std::vector<TrajectoryPoint> getTrajectoryPoints(float t0) const;
 
 private:
     StaticVector<VT, 6> profile{};

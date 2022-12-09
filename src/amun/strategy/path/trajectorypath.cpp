@@ -274,33 +274,24 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Tra
     {
         std::vector<TrajectoryPoint> result;
         float totalTime = 0;
-        for (unsigned int i = 0; i < profiles.size(); i++) {
-            const Trajectory &profile = profiles[i];
-            const float partTime = profile.time();
+        for (const Trajectory &trajectory : profiles) {
+            const float partTime = trajectory.time();
 
             std::vector<TrajectoryPoint> newPoints;
-            if (partTime > profile.getSlowDownTime() * 1.5f) {
+            if (partTime > trajectory.getSlowDownTime() * 2.0f) {
                 // when the trajectory is far longer than the exponential slow down part, omit it from the result (to minimize it)
-                newPoints = profile.getTrajectoryPoints();
+                newPoints = trajectory.getTrajectoryPoints(totalTime);
 
             } else {
-                // we are close to, or in the exponential slow down phase
+                // we are close to, or in the slow down phase
 
                 // a small sample count is fine since the absolute time to the target is very low
-                const std::size_t EXPONENTIAL_SLOW_DOWN_SAMPLE_COUNT = 10;
-                newPoints.reserve(EXPONENTIAL_SLOW_DOWN_SAMPLE_COUNT);
-                for (std::size_t i = 0;i<EXPONENTIAL_SLOW_DOWN_SAMPLE_COUNT;i++) {
-                    const float time = i * partTime / float(EXPONENTIAL_SLOW_DOWN_SAMPLE_COUNT - 1);
-                    const auto state = profile.stateAtTime(time);
-                    newPoints.emplace_back(state, time);
-                }
+                const std::size_t SLOW_DOWN_SAMPLE_COUNT = 10;
+                const float timeInterval = partTime / float(SLOW_DOWN_SAMPLE_COUNT - 1);
+                newPoints = trajectory.trajectoryPositions(SLOW_DOWN_SAMPLE_COUNT, timeInterval, totalTime);
             }
 
-            for (auto &point : newPoints) {
-                point.time += totalTime;
-            }
             result.insert(result.end(), newPoints.begin(), newPoints.end());
-
             totalTime += partTime;
         }
 

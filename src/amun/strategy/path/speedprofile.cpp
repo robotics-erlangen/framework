@@ -402,14 +402,14 @@ BoundingBox Trajectory::calculateBoundingBox() const
     return {minPos, maxPos};
 }
 
-std::vector<TrajectoryPoint> Trajectory::getTrajectoryPoints() const
+std::vector<TrajectoryPoint> Trajectory::getTrajectoryPoints(float t0) const
 {
     SlowdownAcceleration acceleration(profile.back().t, slowDownTime);
 
     std::vector<TrajectoryPoint> result;
-    result.reserve(profile.size() + 1);
+    result.reserve(profile.size() + 2);
 
-    result.emplace_back(RobotState{s0, profile[0].v}, 0);
+    result.emplace_back(RobotState{s0, profile[0].v}, t0);
 
     Vector offset = s0;
     float time = 0;
@@ -418,12 +418,12 @@ std::vector<TrajectoryPoint> Trajectory::getTrajectoryPoints() const
         offset += acceleration.segmentOffset(profile[i], profile[i+1], precomputation);
         time += acceleration.timeForSegment(profile[i], profile[i+1], precomputation);
 
-        result.emplace_back(RobotState{offset, profile[i+1].v}, time);
+        result.emplace_back(RobotState{offset, profile[i+1].v}, time + t0);
     }
 
     // compensate for the missing exponential slowdown by adding a segment with zero speed
     if (slowDownTime != -1) {
-        result.emplace_back(RobotState{offset, profile.back().v}, time);
+        result.emplace_back(RobotState{offset, profile.back().v}, time + t0);
     }
 
     return result;
