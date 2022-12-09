@@ -206,99 +206,99 @@ function handleNotification(notification: string) {
 		return;
 	}
 	switch (notificationObject.method) {
-	case "Debugger.scriptParsed":
-		scriptInfos.push(notificationObject.params);
-		break;
-	case "Debugger.paused":
-		if (amun.isDebug && pauseSimulatorOnError) {
-			amun.sendCommand({
-				pause_simulator: {
-					// use UI reason to allow unpausing the simulator later
-					reason: pb.amun.PauseSimulatorReason.Ui,
-					pause: true
-				}
-			});
-		} else {
-			// since dumping out all variables take some time, we stop all robots  so that they do not crash into things
-			World.haltOwnRobots();
-			World.setRobotCommands();
-		}
-
-		getPropertiesResponseMap.clear();
-		___globalpleasedontuseinregularcode.debugSet = debug.set;
-		___globalpleasedontuseinregularcode.debugExtraParams = debug.getInitialExtraParams();
-
-		let pausedInfo: DebuggerPaused = notificationObject.params;
-		if (exceptionCounter === 0) {
-			debug.pushtop("Stack trace");
-		} else {
-			debug.pushtop(`Stack trace ${exceptionCounter}`);
-		}
-		exceptionCounter += 1;
-		debug.set("Globals", undefined);
-		let level = 0;
-		let globalDumped = false;
-		for (let callFrame of pausedInfo.callFrames) {
-			const fileSplit = callFrame.url.split("/");
-			let shortFile = fileSplit[fileSplit.length - 1];
-			shortFile = shortFile.replace(".js", "");
-			let functionName = `${level}: ${shortFile}::`;
-			if (callFrame.functionName.length === 0) {
-				functionName += "<anonymous>";
-			} else {
-				functionName += callFrame.functionName;
-			}
-			if (callFrame.this.objectId) {
-				const evaluate: DebuggerEvaluateOnCallFrame = {
-					callFrameId: callFrame.callFrameId,
-					expression: `amun.debugSet("${functionName}/this", this);`,
-					throwOnSideEffect: false
-				};
-				sendMessage("Debugger.evaluateOnCallFrame", evaluate);
-			}
-			for (let scope of callFrame.scopeChain) {
-				let typeName = `${functionName}/${scope.type}/`;
-				if (scope.type === "global") {
-					if (globalDumped) {
-						continue;
+		case "Debugger.scriptParsed":
+			scriptInfos.push(notificationObject.params);
+			break;
+		case "Debugger.paused":
+			if (amun.isDebug && pauseSimulatorOnError) {
+				amun.sendCommand({
+					pause_simulator: {
+						// use UI reason to allow unpausing the simulator later
+						reason: pb.amun.PauseSimulatorReason.Ui,
+						pause: true
 					}
-					typeName = "Globals/";
-				}
-				if (scope.object.objectId) {
-					getPropertiesResponseMap[messageCounter + 1] = {
-						baseDebugString: typeName,
-						callFrame: callFrame.callFrameId
-					};
-					let getProperties: RuntimeGetPropertiesRequest = {
-						objectId: scope.object.objectId,
-						generatePreview: true,
-						ownProperties: true
-					};
-					sendMessage("Runtime.getProperties", getProperties);
-					getProperties.ownProperties = false;
-					getProperties.accessorPropertiesOnly = true;
-					getPropertiesResponseMap[messageCounter + 1] = {
-						baseDebugString: typeName,
-						callFrame: callFrame.callFrameId
-					};
-					sendMessage("Runtime.getProperties", getProperties);
-				}
+				});
+			} else {
+				// since dumping out all variables take some time, we stop all robots  so that they do not crash into things
+				World.haltOwnRobots();
+				World.setRobotCommands();
 			}
-			level++;
-		}
 
-		if (notificationObject.params.reason === "Script timeout") {
-			// in case of a script timeout, print the stack trace here instead of in c++,
-			// as the termination must be executed and the stack trace is unreachable afterwards
-			amun.log("<font color=\"red\">Script timeout</font>");
-			for (let callFrame of pausedInfo.callFrames) {
-				let resolved = resolveJsToTs(callFrame.url, callFrame.location.lineNumber, callFrame.location.columnNumber);
-				amun.log(`<font color=\"red\">at ${callFrame.functionName} (${resolved})</font>`);
+			getPropertiesResponseMap.clear();
+			___globalpleasedontuseinregularcode.debugSet = debug.set;
+			___globalpleasedontuseinregularcode.debugExtraParams = debug.getInitialExtraParams();
+
+			let pausedInfo: DebuggerPaused = notificationObject.params;
+			if (exceptionCounter === 0) {
+				debug.pushtop("Stack trace");
+			} else {
+				debug.pushtop(`Stack trace ${exceptionCounter}`);
 			}
-			terminateExecution();
-		}
-		sendMessage("Debugger.resume");
-		break;
+			exceptionCounter += 1;
+			debug.set("Globals", undefined);
+			let level = 0;
+			let globalDumped = false;
+			for (let callFrame of pausedInfo.callFrames) {
+				const fileSplit = callFrame.url.split("/");
+				let shortFile = fileSplit[fileSplit.length - 1];
+				shortFile = shortFile.replace(".js", "");
+				let functionName = `${level}: ${shortFile}::`;
+				if (callFrame.functionName.length === 0) {
+					functionName += "<anonymous>";
+				} else {
+					functionName += callFrame.functionName;
+				}
+				if (callFrame.this.objectId) {
+					const evaluate: DebuggerEvaluateOnCallFrame = {
+						callFrameId: callFrame.callFrameId,
+						expression: `amun.debugSet("${functionName}/this", this);`,
+						throwOnSideEffect: false
+					};
+					sendMessage("Debugger.evaluateOnCallFrame", evaluate);
+				}
+				for (let scope of callFrame.scopeChain) {
+					let typeName = `${functionName}/${scope.type}/`;
+					if (scope.type === "global") {
+						if (globalDumped) {
+							continue;
+						}
+						typeName = "Globals/";
+					}
+					if (scope.object.objectId) {
+						getPropertiesResponseMap[messageCounter + 1] = {
+							baseDebugString: typeName,
+							callFrame: callFrame.callFrameId
+						};
+						let getProperties: RuntimeGetPropertiesRequest = {
+							objectId: scope.object.objectId,
+							generatePreview: true,
+							ownProperties: true
+						};
+						sendMessage("Runtime.getProperties", getProperties);
+						getProperties.ownProperties = false;
+						getProperties.accessorPropertiesOnly = true;
+						getPropertiesResponseMap[messageCounter + 1] = {
+							baseDebugString: typeName,
+							callFrame: callFrame.callFrameId
+						};
+						sendMessage("Runtime.getProperties", getProperties);
+					}
+				}
+				level++;
+			}
+
+			if (notificationObject.params.reason === "Script timeout") {
+				// in case of a script timeout, print the stack trace here instead of in c++,
+				// as the termination must be executed and the stack trace is unreachable afterwards
+				amun.log("<font color=\"red\">Script timeout</font>");
+				for (let callFrame of pausedInfo.callFrames) {
+					let resolved = resolveJsToTs(callFrame.url, callFrame.location.lineNumber, callFrame.location.columnNumber);
+					amun.log(`<font color=\"red\">at ${callFrame.functionName} (${resolved})</font>`);
+				}
+				terminateExecution();
+			}
+			sendMessage("Debugger.resume");
+			break;
 	}
 }
 
