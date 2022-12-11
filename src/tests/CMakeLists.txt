@@ -29,6 +29,7 @@ add_executable(cpptests
     amun/strategy/path/obstacles.cpp
     amun/strategy/path/endinobstaclesampler.cpp
     amun/strategy/path/escapeobstaclesampler.cpp
+    amun/strategy/path/trajectorypath.cpp
     amun/amun.cpp
     amun/seshat/combinedlogwriter.cpp
     amun/seshat/logfilereader.cpp
