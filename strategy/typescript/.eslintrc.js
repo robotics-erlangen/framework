@@ -68,15 +68,18 @@ module.exports = {
                     "parameters": 2
                 },
                 "SwitchCase": 1,
+                // these nodes are ignored, because the rules can not be configured in a way, that we are
+                // happy with yet, see above issue
                 "ignoredNodes": [
                     "ConditionalExpression",
                     "TSUnionType",
                     "TSFunctionType",
-                    // TODO maybe don't ignore this
                     "TSDeclareFunction",
 
                     // this ignores cases where the return type is in the next line,
                     // because @typescript-eslint/indent can't handle these correctly
+                    // the selector syntax x > y means every y that has x as a direct
+                    // parent in the AST
                     "FunctionDeclaration > TSArrayType",
                     "FunctionDeclaration > TSConditionalType",
                     "FunctionDeclaration > TSConstructorType",
@@ -104,7 +107,8 @@ module.exports = {
                 }
             }
         ],
-        // "@typescript-eslint/naming-convention": "error",
+        // TODO
+        "@typescript-eslint/naming-convention": "off",
         "@typescript-eslint/no-misused-new": "error",
         "@typescript-eslint/no-parameter-properties": "error",
         "@typescript-eslint/no-require-imports": "error",
@@ -139,10 +143,11 @@ module.exports = {
             "multi-line"
         ],
         "eol-last": "error",
+        // TODO check out eslint-plugin-import for import order rules and stuff
         "import/order": "error",
         "jsdoc/check-alignment": "error",
         "jsdoc/check-indentation": "off",
-        // "jsdoc/newline-after-description": "error",
+        "jsdoc/newline-after-description": "off",
         "linebreak-style": [
             "error",
             "unix"
@@ -270,9 +275,15 @@ module.exports = {
             {
                 "rules": {
                     "encoding": true,
+                    // TODO maybe replace with whitespace eslint rules, see below
                     "import-spacing": true,
+                    // TODO not portable with no-restricted-syntax rule
+                    // maybe write custom plugin for that
                     "no-unnecessary-callback-wrapper": true,
+                    // TODO maybe replace with eslint-plugin-sonarjs
                     "prefer-while": true,
+                    // TODO maybe replace with eslint rules space-in-parens, space-before-blocks,
+                    // no-space-before-semi, space-after-keywords, no-multi-spaces
                     "whitespace": [
                         true,
                         "check-branch",
