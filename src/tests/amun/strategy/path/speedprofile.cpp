@@ -63,6 +63,8 @@ static void checkTrajectorySimple(const Trajectory &trajectory, Vector v0, Vecto
     const float timeDiff = trajectory.time() / float(SEGMENTS - 1);
     const auto bulkPositions = trajectory.trajectoryPositions(SEGMENTS, timeDiff, 0.0f);
 
+    // TODO: test t0
+    Trajectory::Iterator it{trajectory, 0};
 
     Vector lastPos = trajectory.stateAtTime(0).pos;
     Vector lastSpeed = trajectory.stateAtTime(0).speed;
@@ -73,7 +75,12 @@ static void checkTrajectorySimple(const Trajectory &trajectory, Vector v0, Vecto
 
         ASSERT_LE((bulkPositions[i].state.pos).distance(state.pos), 0.01);
         ASSERT_LE((bulkPositions[i].state.speed).distance(state.speed), 0.01);
-        ASSERT_FLOAT_EQ(bulkPositions[i].time, time);
+        ASSERT_LE(bulkPositions[i].time - time, 0.0001f);
+
+        const auto itState = it.next(timeDiff);
+        ASSERT_LE((itState.state.pos).distance(state.pos), 0.01);
+        ASSERT_LE((itState.state.speed).distance(state.speed), 0.01);
+        ASSERT_LE(itState.time - time, 0.0001f);
 
         // check acceleration limit
         const float diff = speed.distance(lastSpeed) / timeDiff;

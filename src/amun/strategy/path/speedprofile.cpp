@@ -20,6 +20,8 @@
 
 #include "speedprofile.h"
 
+#include "core/run_out_of_scope.h"
+
 #include <iostream>
 #include <cassert>
 
@@ -435,4 +437,40 @@ void Trajectory::printDebug() const
         std::cout <<"("<<profile[i].t<<": "<<profile[i].v<<") ";
     }
     std::cout <<std::endl;
+}
+
+Trajectory::Iterator::Iterator(const Trajectory &trajectory, const float startTimeOffset) :
+    trajectory(trajectory),
+    startTimeOffset(startTimeOffset),
+    segmentStartOffset(trajectory.s0),
+    acceleration(trajectory.profile.back().t, trajectory.slowDownTime)
+{
+    precomputation = acceleration.precomputeSegment(trajectory.profile[0], trajectory.profile[1]);
+    segmentEndTime = acceleration.timeForSegment(trajectory.profile[0], trajectory.profile[1], precomputation);
+}
+
+TrajectoryPoint Trajectory::Iterator::next(const float timeOffset)
+{
+    RUN_WHEN_OUT_OF_SCOPE({currentTime += timeOffset;});
+
+    while (currentTime > segmentEndTime && currentIndex + 1 < trajectory.profile.size()) {
+        segmentStartOffset += acceleration.segmentOffset(trajectory.profile[currentIndex], trajectory.profile[currentIndex+1], precomputation);
+        segmentStartTime = segmentEndTime;
+        currentIndex++;
+        if (currentIndex + 1 < trajectory.profile.size()) {
+            precomputation = acceleration.precomputeSegment(trajectory.profile[currentIndex], trajectory.profile[currentIndex+1]);
+            segmentEndTime += acceleration.timeForSegment(trajectory.profile[currentIndex], trajectory.profile[currentIndex+1], precomputation);
+        }
+    }
+
+    if (currentIndex + 1 == trajectory.profile.size()) {
+        const Vector pos = segmentStartOffset + trajectory.correctionOffsetPerSecond * segmentEndTime;
+        return TrajectoryPoint{RobotState{pos, trajectory.profile.back().v}, currentTime + startTimeOffset};
+    }
+
+    const auto partialState = acceleration.partialSegmentOffsetAndSpeed(trajectory.profile[currentIndex], trajectory.profile[currentIndex+1],
+                                                                        precomputation, segmentStartTime, currentTime);
+    const Vector pos = partialState.first + segmentStartOffset + trajectory.correctionOffsetPerSecond * currentTime;
+    const RobotState state{pos, partialState.second};
+    return TrajectoryPoint{state, currentTime + startTimeOffset};
 }

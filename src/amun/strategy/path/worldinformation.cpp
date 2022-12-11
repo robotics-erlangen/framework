@@ -172,9 +172,9 @@ bool WorldInformation::isTrajectoryInObstacle(const Trajectory &profile, float t
     const float timeInterval = 0.025f;
     const int divisions = std::ceil(totalTime / timeInterval);
 
-    const auto trajectoryPoints = profile.trajectoryPositions(divisions, timeInterval, timeOffset);
-
-    for (const TrajectoryPoint &point : trajectoryPoints) {
+    Trajectory::Iterator iterator{profile, timeOffset};
+    for (int i = 0;i<divisions;i++) {
+        const auto point = iterator.next(timeInterval);
         for (const auto o : obstacles) {
             if (o->intersects(point)) {
                 return true;

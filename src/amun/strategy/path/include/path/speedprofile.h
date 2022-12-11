@@ -154,6 +154,26 @@ public:
     // WARNING: this function does NOT create points for the slow down time. Use other functions if that is necessary
     std::vector<TrajectoryPoint> getTrajectoryPoints(float t0) const;
 
+    class Iterator {
+    public:
+        Iterator(const Trajectory &trajectory, const float startTimeOffset);
+        TrajectoryPoint next(const float timeOffset);
+
+    private:
+        const Trajectory &trajectory;
+        float startTimeOffset;
+        // offset at the start of current segment
+        Vector segmentStartOffset;
+        // time at the start and end of the current segment
+        float segmentStartTime{0};
+        float segmentEndTime{0};
+        // index of the first VT slice of the current segment
+        std::size_t currentIndex{0};
+        float currentTime{0};
+        SlowdownAcceleration acceleration;
+        SlowdownAcceleration::SegmentPrecomputation precomputation;
+    };
+
 private:
     StaticVector<VT, 6> profile{};
     Vector s0{0, 0};

@@ -128,19 +128,21 @@ auto EscapeObstacleSampler::rateEscapingTrajectory(const TrajectoryInput &input,
 
     TrajectoryRating result;
 
+    Trajectory::Iterator it{speedProfile, input.t0};
+
     int goodSamples = 0;
     float fineTime = totalTime;
     for (int i = 0;i<samples;i++) {
         const float time = i * SAMPLING_INTERVAL;
 
-        const auto state = speedProfile.stateAtTime(time);
+        const auto point = it.next(SAMPLING_INTERVAL);
         int obstaclePriority = -1;
-        if (!m_world.pointInPlayfield(state.pos, m_world.radius())) {
+        if (!m_world.pointInPlayfield(point.state.pos, m_world.radius())) {
             obstaclePriority = m_world.outOfFieldPriority();
         }
         for (const auto obstacle : obstacles) {
             if (obstacle->prio > obstaclePriority) {
-                const float distance = obstacle->zonedDistance({state, time + input.t0}, ZONE_RADIUS);
+                const float distance = obstacle->zonedDistance(point, ZONE_RADIUS);
                 if (distance < 0) {
                     obstaclePriority = obstacle->prio;
                 }
