@@ -219,6 +219,8 @@ std::vector<Trajectory> TrajectoryPath::findPath(TrajectoryInput input)
 std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Trajectory> &profiles, const TrajectoryInput &input)
 {
     if (profiles.size() == 0) {
+        m_currentTrajectory = {{input.start, 0}, {RobotState{input.start.pos, Vector(0, 0)}, 0.01f}};
+
         const TrajectoryPoint p1{input.start, 0};
         const TrajectoryPoint p2{RobotState{input.start.pos, Vector(0, 0)}, 0};
         return {p1, p2};
@@ -226,75 +228,52 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Tra
 
     float toEndTime = 0;
     for (const Trajectory& profile : profiles) {
+        const float time = profile.time();
+
+        const float maxTime = 20 / input.maxSpeed;
+        if (time > maxTime || std::isinf(time) || std::isnan(time) || time < 0) {
+            qDebug() <<"Error: trying to use invalid trajectory";
+            return {};
+        }
+
         toEndTime += profile.time();
     }
 
-    // sample the resulting trajectories in equal time intervals for friendly robot obstacles
+
     m_currentTrajectory.clear();
+    std::vector<TrajectoryPoint> result;
 
-    {
-        float currentTime = 0; // time in a trajectory part
-        float currentTotalTime = 0; // time from the beginning
-        const int SAMPLES_PER_TRAJECTORY = 40;
-        const float samplingInterval = toEndTime / (SAMPLES_PER_TRAJECTORY * profiles.size());
-        for (unsigned int i = 0; i < profiles.size(); i++) {
-            const Trajectory &profile = profiles[i];
-            const float partTime = profile.time();
+    float startOffset = 0;
+    float totalTime = 0;
+    const int SAMPLES_PER_TRAJECTORY = 40;
+    const float samplingInterval = toEndTime / (SAMPLES_PER_TRAJECTORY * profiles.size());
+    for (unsigned int i = 0; i < profiles.size(); i++) {
+        const Trajectory &trajectory = profiles[i];
+        const float partTime = trajectory.time();
 
-            const float maxTime = 20 / input.maxSpeed;
-            if (partTime > maxTime || std::isinf(partTime) || std::isnan(partTime) || partTime < 0) {
-                qDebug() <<"Error: trying to use invalid trajectory";
-                return {};
-            }
+        // sample the resulting trajectories in equal time intervals for friendly robot obstacles
+        Trajectory::Iterator it{trajectory, totalTime};
+        // make sure that all samples are in uniform time intervals even across trajectories
+        it.next(startOffset);
+        const int baseSamples = std::floor((partTime - startOffset) / samplingInterval);
+        const int allSamples = baseSamples + (i == profiles.size() - 1 ? 1 : 0);
+        std::generate_n(std::back_inserter(m_currentTrajectory), allSamples, [&]() { return it.next(samplingInterval); });
+        startOffset += allSamples * samplingInterval - partTime;
 
-            bool wasAtEndPoint = false;
-            while (true) {
-                if (currentTime > partTime) {
-                    if (i < profiles.size() - 1) {
-                        currentTime -= partTime;
-                        break;
-                    } else {
-                        if (wasAtEndPoint) {
-                            break;
-                        }
-                        wasAtEndPoint = true;
-                    }
-                }
-
-                const auto state = profile.stateAtTime(currentTime);
-                m_currentTrajectory.emplace_back(state, currentTotalTime);
-
-                currentTime += samplingInterval;
-                currentTotalTime += samplingInterval;
-            }
+        // use the smaller, more efficient trajectory points for transfer and usage to the strategy
+        std::vector<TrajectoryPoint> newPoints;
+        if (partTime > trajectory.getSlowDownTime() * 2.0f) {
+            // when the trajectory is far longer than the exponential slow down part, omit it from the result (to minimize it)
+            newPoints = trajectory.getTrajectoryPoints(totalTime);
+        } else {
+            // we are close to, or in the slow down phase
+            const std::size_t SLOW_DOWN_SAMPLE_COUNT = 10;
+            const float timeInterval = partTime / float(SLOW_DOWN_SAMPLE_COUNT - 1);
+            newPoints = trajectory.trajectoryPositions(SLOW_DOWN_SAMPLE_COUNT, timeInterval, totalTime);
         }
+        result.insert(result.end(), newPoints.begin(), newPoints.end());
+
+        totalTime += partTime;
     }
-
-    // use the smaller, more efficient trajectory points for transfer and usage to the strategy
-    {
-        std::vector<TrajectoryPoint> result;
-        float totalTime = 0;
-        for (const Trajectory &trajectory : profiles) {
-            const float partTime = trajectory.time();
-
-            std::vector<TrajectoryPoint> newPoints;
-            if (partTime > trajectory.getSlowDownTime() * 2.0f) {
-                // when the trajectory is far longer than the exponential slow down part, omit it from the result (to minimize it)
-                newPoints = trajectory.getTrajectoryPoints(totalTime);
-
-            } else {
-                // we are close to, or in the slow down phase
-
-                // a small sample count is fine since the absolute time to the target is very low
-                const std::size_t SLOW_DOWN_SAMPLE_COUNT = 10;
-                const float timeInterval = partTime / float(SLOW_DOWN_SAMPLE_COUNT - 1);
-                newPoints = trajectory.trajectoryPositions(SLOW_DOWN_SAMPLE_COUNT, timeInterval, totalTime);
-            }
-
-            result.insert(result.end(), newPoints.begin(), newPoints.end());
-            totalTime += partTime;
-        }
-
-        return result;
-   }
+    return result;
 }
