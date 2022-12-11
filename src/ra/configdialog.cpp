@@ -56,6 +56,8 @@ const QString DEFAULT_NUMBER_KEYS_USAGE = "Simulator Speed";
 const QString CURRENT_CONFIG_DATE = "20210112";
 const QString PREALL_CONFIG_DATE = "20201212";
 
+const float DEFAULT_SCROLL_SENSITIVITY = 1;
+
 static QPalette createQPalette(const QColor foreground, const QColor background, const QColor alternateBackground,
                                const QColor disabled, const QColor highlight, const QColor link) {
     QPalette palette;
@@ -259,6 +261,8 @@ void ConfigDialog::load()
 
     }
 
+    ui->scrollSensitivitySpinBox->setValue(s.value("Ui/ScrollSensitivity", DEFAULT_SCROLL_SENSITIVITY).toDouble());
+
     if (s.contains("Ui/QStyle")) {
         const auto loadedQStyle = s.value("Ui/QStyle").toString();
         if (QStyleFactory::keys().contains(loadedQStyle)) {
@@ -293,6 +297,7 @@ void ConfigDialog::reset()
     ui->ctrlClickAction->setCurrentText(robotActionString(DEFAULT_ROBOT_CTRL_CLICK_ACTION));
     ui->ctrlClickSearch->setText(DEFAULT_ROBOT_CTRL_CLICK_SEARCH_STRING);
     ui->numKeyUsage->setCurrentText(DEFAULT_NUMBER_KEYS_USAGE);
+    ui->scrollSensitivitySpinBox->setValue(DEFAULT_SCROLL_SENSITIVITY);
 
     sendConfiguration();
 }
@@ -329,6 +334,8 @@ void ConfigDialog::apply()
     s.setValue("Ui/QStyle", ui->qStyle->currentText());
     s.setValue("Ui/ColorScheme", ui->colorScheme->currentText());
     ui->customColors->save();
+
+    s.setValue("Ui/ScrollSensitivity", ui->scrollSensitivitySpinBox->value());
 
     sendConfiguration();
 }
