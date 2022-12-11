@@ -420,12 +420,12 @@ std::vector<TrajectoryPoint> Trajectory::getTrajectoryPoints(float t0) const
         offset += acceleration.segmentOffset(profile[i], profile[i+1], precomputation);
         time += acceleration.timeForSegment(profile[i], profile[i+1], precomputation);
 
-        result.emplace_back(RobotState{offset, profile[i+1].v}, time + t0);
+        result.emplace_back(RobotState{offset + correctionOffsetPerSecond * time, profile[i+1].v}, time + t0);
     }
 
     // compensate for the missing exponential slowdown by adding a segment with zero speed
     if (slowDownTime != -1) {
-        result.emplace_back(RobotState{offset, profile.back().v}, time + t0);
+        result.emplace_back(RobotState{offset + correctionOffsetPerSecond * time, profile.back().v}, time + t0);
     }
 
     return result;
