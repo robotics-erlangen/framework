@@ -353,7 +353,7 @@ export class FriendlyRobot extends Robot {
 		}
 		if (specs.dribbler_width != undefined) {
 			this.dribblerWidth = specs.dribbler_width;
-		} else {// estimate dribbler width
+		} else { // estimate dribbler width
 			this.dribblerWidth = 2 * Math.sqrt(this.radius * this.radius - this.shootRadius * this.shootRadius);
 		}
 		this.maxSpeed = specs.v_max != undefined ? specs.v_max : 2;
