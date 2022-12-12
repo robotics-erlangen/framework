@@ -32,7 +32,7 @@
 **************************************************************************/
 
 // the order of imports is important here, so proper grouping is impossible
-// tslint:disable
+/* eslint-disable import/order */
 
 import "base/error";
 
