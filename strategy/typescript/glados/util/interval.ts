@@ -101,6 +101,7 @@ export function getLargest<T>(intervals: Interval<T>[]): Interval<T> | undefined
  * @param D - Minimum distance of the searched point to its nearest boarder.
  * This means that it can only lie in an interval with size 2*D or bigger
  */
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export function getClosestPoint(mergedIntervals: AnyInterval[], Q: number, D: number): number | undefined {
 	let biggestSector = undefined;
 	let bestMinDist = Infinity;
@@ -135,6 +136,7 @@ export function getClosestPoint(mergedIntervals: AnyInterval[], Q: number, D: nu
  * @param D - Minimum distance of the searched point to its nearest boarder.
  * This means that it can only lie in an interval with size 2*D or bigger
  */
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export function getFurthestPoint(mergedIntervals: AnyInterval[], Q: number, D: number): number | undefined {
 	let nearestSector = undefined;
 	let bestMaxDist = -Infinity;

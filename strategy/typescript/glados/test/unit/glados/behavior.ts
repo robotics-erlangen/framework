@@ -50,6 +50,7 @@ export class GladosBehavior extends UnitTest {
 		this.addTest("test_CheckableList_agent", this.test_CheckableList_agent);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	private test_Behavior_agent() {
 		const robot = { tag: "A" };
 		const agentOne = mockAgent("A", robot);
@@ -61,20 +62,22 @@ export class GladosBehavior extends UnitTest {
 		this.assert_equal(behavior.agent(), agentTwo);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	private test_CheckableList_check() {
-		const CheckableA = mockCheckable("A", false);
-		const CheckableB = mockCheckable("B", true);
-		const list = new CheckableList(mockAgent("check"), [ CheckableA, CheckableB ]);
-		this.assert_true(list.check() instanceof CheckableB);
+		const CHECKABLE_A = mockCheckable("A", false);
+		const CHECKABLE_B = mockCheckable("B", true);
+		const list = new CheckableList(mockAgent("check"), [ CHECKABLE_A, CHECKABLE_B ]);
+		this.assert_true(list.check() instanceof CHECKABLE_B);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	private test_CheckableList_agent() {
-		const CheckableA = mockCheckable("A", true);
+		const CHECKABLE_A = mockCheckable("A", true);
 
 		const agentOne = mockAgent("A");
 		const agentTwo = mockAgent("B");
 
-		const list = new CheckableList(agentOne, [ CheckableA ]);
+		const list = new CheckableList(agentOne, [ CHECKABLE_A ]);
 
 		this.assert_equal(list.agent(), agentOne);
 		this.assert_equal(list.check()!.agent(), agentOne);

@@ -24,9 +24,9 @@ interface Parameters {
 	ignoreCrash?: boolean;
 }
 
-let CHIP_PASS_DISTANCE_FACTOR = 0.4;
-let MIN_PASS_SPEED = 1;
-let DEFAULT_PASS_SPEED = 3;
+const CHIP_PASS_DISTANCE_FACTOR = 0.4;
+const MIN_PASS_SPEED = 1;
+const DEFAULT_PASS_SPEED = 3;
 
 function ratePass(attackPos: Position, targetPos: Position): number {
 	let shortestDist = Infinity;

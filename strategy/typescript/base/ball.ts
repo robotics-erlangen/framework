@@ -101,10 +101,10 @@ export class Ball {
 		}
 
 		// check if the ball pos or speed are invalid (might result from tracking) -> then ignore the update
-		let nextPos = Coordinates.toLocal(new Vector(data.p_x, data.p_y));
-		let nextSpeed = Coordinates.toLocal(new Vector(data.v_x, data.v_y));
-		let extraDist = 2;
-		let SIZE_LIMIT = 1000;
+		const nextPos = Coordinates.toLocal(new Vector(data.p_x, data.p_y));
+		const nextSpeed = Coordinates.toLocal(new Vector(data.v_x, data.v_y));
+		const extraDist = 2;
+		const SIZE_LIMIT = 1000;
 		if (nextPos.isNan() || nextSpeed.isNan() || Math.abs(nextPos.x) > SIZE_LIMIT ||
 			Math.abs(nextPos.y) > SIZE_LIMIT || Math.abs(nextSpeed.x) > SIZE_LIMIT || Math.abs(nextSpeed.y) > SIZE_LIMIT) {
 			this._updateLostBall(time);

@@ -36,7 +36,7 @@ import "glados/test/observer/index";
 // require "test/unit/index";
 import "glados/test/unit/index";
 import "glados/observer/modificationchecker";
-// tslint:enable
+/* eslint-enable import/order */
 
 class PreProc implements Process {
 	run() {

@@ -49,6 +49,7 @@ export class BaseField extends UnitTest {
 		this.Field = require("base/field", true, BaseField.getOverlays());
 	}
 
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	private testDistanceToDefenseArea_2018() {
 		this.initHelper("2018");
 
@@ -79,6 +80,7 @@ export class BaseField extends UnitTest {
 		this.assert_false(this.Field.isInDefenseArea(pos, -this.G.DefenseHeight / 2 - 0.0001, false));
 	}
 
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	private testDistanceToDefenseArea_2017() {
 		this.initHelper("2017");
 
@@ -104,6 +106,7 @@ export class BaseField extends UnitTest {
 		this.assert_false(this.Field.isInDefenseArea(pos, -this.G.DefenseRadius - 0.0001));
 	}
 
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	private testIntersectDefenseArea_2018() {
 		this.initHelper("2018");
 

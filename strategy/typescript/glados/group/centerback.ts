@@ -359,7 +359,7 @@ export class CenterBack implements Group {
 		for (let i of intersections) {
 			i.targets.sort(lessthan_targets);
 		}
-		let EPSILON = 0.005;
+		const EPSILON = 0.005;
 		let necessaryDefensePoint = undefined;
 
 		// calculate final positions for important robots

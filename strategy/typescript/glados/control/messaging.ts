@@ -443,7 +443,7 @@ type ReceivedData<M extends MessageType> = M extends any
  * Thus we can just filter out the names to get a list of all possible
  * variants.
  */
-export const MessageTypeList: MessageType[] = Object.keys(MessageType)
+export const MESSAGE_TYPE_LIST: MessageType[] = Object.keys(MessageType)
 	.map((key) => parseInt(key, 10))
 	.filter((key) => !isNaN(key));
 

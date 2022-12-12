@@ -32,6 +32,7 @@ const debuggerSend = amun.debuggerSend;
 const terminateExecution = amun.terminateExecution;
 const resolveJsToTs = amun.resolveJsToTs;
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 declare let ___globalpleasedontuseinregularcode: any;
 
 // set this to true if you want the simulator to pause on errors

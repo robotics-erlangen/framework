@@ -11,12 +11,12 @@ import { StopAttack } from "glados/task/attacker/stopattack";
 import { ChipToPos } from "glados/task/shared/chiptopos";
 import { MoveToPos } from "glados/task/shared/movetopos";
 import { valueToRating } from "glados/util/rating";
-let G = World.Geometry;
+const G = World.Geometry;
 
 
 
 const FIRST_CONTACT_POS_OFFSET_X: number = (1 / 12) * G.DefenseWidth;
-const FIRST_CONTACT_POS_OFFSET_y: number = (4 / 12) * G.DefenseHeight; // 0.1;
+const FIRST_CONTACT_POS_OFFSET_Y: number = (4 / 12) * G.DefenseHeight; // 0.1;
 const CONTACT_POS_OFFSET: number = (1 / 12) * G.DefenseHeight;
 const RECIEVER_POS_Y: number = (2 / 5) * G.DefenseHeight;
 // move stops before the ball arrives the attacker
@@ -70,7 +70,7 @@ export class CrossShoot extends Move {
 
 	_updateTasks(): MoveParameters {
 		let startContactPosY = new Vector(Math.sign(World.Ball.pos.x) * G.DefenseWidthHalf -
-			Math.sign(World.Ball.pos.x) * FIRST_CONTACT_POS_OFFSET_X, G.OpponentGoal.y - G.DefenseHeight + FIRST_CONTACT_POS_OFFSET_y);
+			Math.sign(World.Ball.pos.x) * FIRST_CONTACT_POS_OFFSET_X, G.OpponentGoal.y - G.DefenseHeight + FIRST_CONTACT_POS_OFFSET_Y);
 		let endContactPosY = new Vector(Math.sign(World.Ball.pos.x) * G.DefenseWidthHalf -
 			Math.sign(World.Ball.pos.x) * FIRST_CONTACT_POS_OFFSET_X, G.OpponentGoal.y - G.DefenseHeight + CONTACT_POS_OFFSET);
 		let alpha = valueToRating(World.Ball.pos.y, CORNER_KICK_POS_Y, GOAL_KICK_POS_Y);

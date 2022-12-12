@@ -21,7 +21,7 @@ export function valueToRating(value: number, zero: number, one: number): number 
 	return MathUtil.bound(0, (value - zero) / (one - zero), 1);
 }
 
-const Levels : Map<MessageType, number> = new Map([
+const levels : Map<MessageType, number> = new Map([
 	[MessageType.mainAttacker, 3],
 	[MessageType.duelAssistant, 1],
 	[MessageType.interceptPass, 1],
@@ -38,8 +38,8 @@ export class LeveledRating {
 	constructor(type: MessageType | undefined, customNumLevels: number | undefined = undefined) {
 		let length = 0;
 
-		if (type !== undefined && Levels.has(type)) {
-			length = Levels[type]!;
+		if (type !== undefined && levels.has(type)) {
+			length = levels[type]!;
 		} else if (customNumLevels !== undefined) {
 			length = customNumLevels;
 		} else {

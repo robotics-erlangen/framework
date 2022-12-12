@@ -19,10 +19,10 @@ import * as Volley from "glados/util/volley"; // only for calcPhi
 
 
 /** Safety distance to ball */
-let DIST_ERROR = 0.025;
-let SIDE_DEPTH = 0.015;
+const DIST_ERROR = 0.025;
+const SIDE_DEPTH = 0.015;
 /** Reduce obstacle size by one millimeter to avoid collisions */
-let OBSTACLE_EPSILON = 0.001;
+const OBSTACLE_EPSILON = 0.001;
 
 enum CatchMethod {
 	Around = "Around",
@@ -383,7 +383,7 @@ export class CatchBall {
 			}
 
 			path.addLine(predictedBallShift.x, predictedBallShift.y, minBallShift.x, minBallShift.y,
-					predictedBall.radius - OBSTACLE_EPSILON + extraDist, "ball", PathHelper.Priorities.CATCH_BALL);
+					predictedBall.radius - OBSTACLE_EPSILON + extraDist, "ball", PathHelper.PRIORITIES.CATCH_BALL);
 			vis.addPath("t/a/catchball: CatchBall", [predictedBallShift, minBallShift], vis.colors.greenHalf, undefined, undefined, 2 * (predictedBall.radius - OBSTACLE_EPSILON + extraDist));
 
 			// prevent robot from colliding with the ball
@@ -396,23 +396,23 @@ export class CatchBall {
 			// if both predictions are near each othe the robot must still be able to reach predictedBall
 			let antiCollisionDist = Math.min(obstacleErrorDist, robotBallDist);
 			// PAULTAG obstacle um den ball nicht umzufahren
-			path.addCircle(minBall.pos.x, minBall.pos.y, minBall.radius - OBSTACLE_EPSILON + antiCollisionDist, "ball2", PathHelper.Priorities.CATCH_BALL);
+			path.addCircle(minBall.pos.x, minBall.pos.y, minBall.radius - OBSTACLE_EPSILON + antiCollisionDist, "ball2", PathHelper.PRIORITIES.CATCH_BALL);
 			vis.addCircle("t/a/catchball: CatchBall", minBall.pos, minBall.radius + antiCollisionDist, vis.colors.redHalf);
 		} else {
 			// no need to prevent collision with minBall, if both are the same
 			// PAULTAG obstacle um den ball nicht umzufahren wenn predicted position und aktuelle nicht so auseinander liegen -> kein schlauch
-			path.addCircle(predictedBall.pos.x, predictedBall.pos.y, predictedBall.radius - OBSTACLE_EPSILON, "ball", PathHelper.Priorities.CATCH_BALL);
+			path.addCircle(predictedBall.pos.x, predictedBall.pos.y, predictedBall.radius - OBSTACLE_EPSILON, "ball", PathHelper.PRIORITIES.CATCH_BALL);
 		}
 		vis.addCircle("t/a/catchball: CatchBall", predictedBall.pos, predictedBall.radius, vis.colors.greenHalf);
 
 	}
 
 	_createHuntingBallObstacle(path: Path, viewDir: number, predictedBall: BallLike) {
-		path.addCircle(predictedBall.pos.x, predictedBall.pos.y, predictedBall.radius - OBSTACLE_EPSILON, "ball", PathHelper.Priorities.CATCH_BALL);
+		path.addCircle(predictedBall.pos.x, predictedBall.pos.y, predictedBall.radius - OBSTACLE_EPSILON, "ball", PathHelper.PRIORITIES.CATCH_BALL);
 		vis.addCircle("t/a/catchball: CatchBall", predictedBall.pos, predictedBall.radius, vis.colors.skyBlueHalf);
 
 		let frontEnd = predictedBall.pos + Vector.fromPolar(viewDir, 0.3);
-		path.addLine(predictedBall.pos.x, predictedBall.pos.y, frontEnd.x, frontEnd.y, predictedBall.radius - OBSTACLE_EPSILON, "ballForward", PathHelper.Priorities.CATCH_BALL);
+		path.addLine(predictedBall.pos.x, predictedBall.pos.y, frontEnd.x, frontEnd.y, predictedBall.radius - OBSTACLE_EPSILON, "ballForward", PathHelper.PRIORITIES.CATCH_BALL);
 		vis.addPath("t/a/catchball: CatchBall", [predictedBall.pos, frontEnd], vis.colors.skyBlueHalf, undefined, undefined, 2 * (predictedBall.radius - OBSTACLE_EPSILON));
 	}
 
@@ -431,9 +431,9 @@ export class CatchBall {
 		let corridorRightNear = predictedBall.pos + rightOfs;
 		let corridorRightFar = corridorRightNear + depthOfs;
 		if (Ball.isSlowBall()) {
-			path.addLine(corridorLeftNear.x, corridorLeftNear.y, corridorLeftFar.x, corridorLeftFar.y, corridorRadius, "ball_corridor1", PathHelper.Priorities.CATCH_BALL);
-			path.addLine(corridorLeftFar.x, corridorLeftFar.y, corridorRightFar.x, corridorRightFar.y, corridorRadius, "ball_corridor2", PathHelper.Priorities.CATCH_BALL);
-			path.addLine(corridorRightFar.x, corridorRightFar.y, corridorRightNear.x, corridorRightNear.y, corridorRadius, "ball_corridor3", PathHelper.Priorities.CATCH_BALL);
+			path.addLine(corridorLeftNear.x, corridorLeftNear.y, corridorLeftFar.x, corridorLeftFar.y, corridorRadius, "ball_corridor1", PathHelper.PRIORITIES.CATCH_BALL);
+			path.addLine(corridorLeftFar.x, corridorLeftFar.y, corridorRightFar.x, corridorRightFar.y, corridorRadius, "ball_corridor2", PathHelper.PRIORITIES.CATCH_BALL);
+			path.addLine(corridorRightFar.x, corridorRightFar.y, corridorRightNear.x, corridorRightNear.y, corridorRadius, "ball_corridor3", PathHelper.PRIORITIES.CATCH_BALL);
 
 			// visualize obstacles
 			vis.addPath("t/a/catchball: MoveCorridor", [corridorLeftNear, corridorLeftFar, corridorRightFar, corridorRightNear], vis.colors.redHalf, undefined, undefined, 2 * corridorRadius);
@@ -452,7 +452,7 @@ export class CatchBall {
 		let negRightFar = predictedBall.pos + negRightOfs + negBaseDepthOfs;
 
 		if (Ball.isSlowBall()) {
-			path.addLine(negLeftFar.x, negLeftFar.y, negRightFar.x, negRightFar.y, negativeRadius, "ball_negcorridor2", PathHelper.Priorities.CATCH_BALL);
+			path.addLine(negLeftFar.x, negLeftFar.y, negRightFar.x, negRightFar.y, negativeRadius, "ball_negcorridor2", PathHelper.PRIORITIES.CATCH_BALL);
 
 			// visualize obstacles
 			vis.addPath("t/a/catchball: NegMoveCorridor", [negLeftFar, negRightFar], vis.colors.orangeHalf, undefined, undefined, 2 * effectiveObstacleRadius);

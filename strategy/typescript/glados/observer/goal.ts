@@ -14,7 +14,7 @@ import * as Rating from "glados/util/rating";
 import * as Volley from "glados/util/volley";
 
 
-let G = World.Geometry;
+const G = World.Geometry;
 
 /**
  * Returns a list of all non-free sectors.
@@ -208,7 +208,7 @@ function getInvisibleBallPrediction(): [Position | undefined, Speed | undefined,
 		// get the last tracked ball state
 
 		// check if it is close to the defense area
-		let MAX_DEFENSE_DIST = 2.5;
+		const MAX_DEFENSE_DIST = 2.5;
 		if (Field.distanceToFriendlyDefenseArea(lastRawdataBallPos, 0) > MAX_DEFENSE_DIST  &&
 				Field.distanceToFriendlyDefenseArea(World.Ball.pos, 0) > MAX_DEFENSE_DIST) {
 			return [];
@@ -264,7 +264,7 @@ function getInvisibleBallPrediction(): [Position | undefined, Speed | undefined,
 	return [];
 }
 
-let BEST_ROBOT_HYSTERESIS = 1.1;
+const BEST_ROBOT_HYSTERESIS = 1.1;
 let lastBestRobotId: number | undefined = undefined;
 interface PassReceiver {
 	robot: Robot;

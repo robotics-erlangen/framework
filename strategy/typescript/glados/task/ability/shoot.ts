@@ -133,7 +133,7 @@ export class Shoot {
 			let distToBall = moveDest.distanceTo(World.Ball.pos);
 			let obstacleSize = Rating.valueToRating(distToBall, 0.2, 0.4) * (World.Ball.radius + 0.01);
 			if (obstacleSize > 0) {
-				this._robot.path.addCircle(World.Ball.pos.x, World.Ball.pos.y, obstacleSize, "t/a/shoot ball", PathHelper.Priorities.BALL);
+				this._robot.path.addCircle(World.Ball.pos.x, World.Ball.pos.y, obstacleSize, "t/a/shoot ball", PathHelper.PRIORITIES.BALL);
 			}
 		}
 	}

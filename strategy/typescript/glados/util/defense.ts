@@ -14,7 +14,7 @@ import * as Goal from "glados/observer/goal";
 import * as Physics from "glados/observer/physics";
 import * as Rating from "glados/util/rating";
 
-let G = World.Geometry;
+const G = World.Geometry;
 
 
 export function centerBackDistanceToDefenseArea() {
@@ -26,13 +26,13 @@ export function centerBackDistanceToDefenseArea() {
 	return 0.08;
 }
 
-export let centerBackDefaultPos = new Vector(0, -World.Geometry.FieldHeightHalf + World.Geometry.DefenseHeight + 0.09 + 0.02);
+export const centerBackDefaultPos = new Vector(0, -World.Geometry.FieldHeightHalf + World.Geometry.DefenseHeight + 0.09 + 0.02);
 
-export let POSITION_PADDING = 0.02; // safety distance
-export let PENALTY_LINE_DISTANCE = 0.35; // prevent robots from crossing the penalty line
+export const POSITION_PADDING = 0.02; // safety distance
+export const PENALTY_LINE_DISTANCE = 0.35; // prevent robots from crossing the penalty line
 
-export let MARKING_DISTANCE = 0.6;
-export let OFFENSIVE_MARKING_DISTANCE = 0.3;
+export const MARKING_DISTANCE = 0.6;
+export const OFFENSIVE_MARKING_DISTANCE = 0.3;
 
 function _manMarkPos(opponent: { pos: Position; radius: number; speed: Speed }): Position {
 	// use the position at which the robot would brake if it started immediately
@@ -149,8 +149,8 @@ export let centerBackPos: (targetPos: Position, targetDir?: RelativePosition) =>
 	Cache.forFrame(_centerBackPos);
 
 // if the ball will reach our defense area with at least that speed, stay defender
-let DANGEROUS_BALL_SPEED = 3.0;
-let lastWasDangerousBall: Map<boolean, boolean> = new Map();
+const DANGEROUS_BALL_SPEED = 3.0;
+const lastWasDangerousBall: Map<boolean, boolean> = new Map();
 export function dangerousBallTowardsDefense(opp: boolean = false): boolean {
 	const BALL_SPEED_HYST = 0.2;
 	// if the ball rolls towards our defense area with high speed, stay defender

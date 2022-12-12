@@ -48,6 +48,7 @@ export class Assignment {
 	}
 
 	// add a function to the type so that a simple assignment with {class: ..., behavior: ... etc} does not work
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	private __functionForNonAssignability() {}
 }
 

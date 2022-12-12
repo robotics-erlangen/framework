@@ -356,10 +356,10 @@ export function calculateChipSpeed(dist: number): number {
 }
 
 export function robotBrakePos(robot: {pos: Position; speed: Speed; acceleration?: RobotAccelerationProfile}): Position {
-	let BREAK_DEFAULT = 5; // rather overestimate than underestimte the opponent
-	let brkAcc = robot.acceleration ? robot.acceleration.aBrakeFMax : BREAK_DEFAULT;
-	let robotSpeed = robot.speed.length();
-	let brkLength = 0.5 * robotSpeed * robotSpeed / brkAcc;
+	const BREAK_DEFAULT = 5; // rather overestimate than underestimte the opponent
+	const brkAcc = robot.acceleration ? robot.acceleration.aBrakeFMax : BREAK_DEFAULT;
+	const robotSpeed = robot.speed.length();
+	const brkLength = 0.5 * robotSpeed * robotSpeed / brkAcc;
 	return robot.pos + robot.speed.withLength(brkLength);
 }
 
@@ -620,10 +620,10 @@ export function robotTimeToPos(robot: RobotLike, endPos: Position, endSpeedVecto
 
 	// check if brake and return is necessary (BAT)
 	if (endSpeed < currentSpeed) {
-		let BATspeedDiff = currentSpeed - endSpeed;
-		let BATtime = BATspeedDiff / hardBrakeAccel;
-		let BATdist = 0.5 * hardBrakeAccel * BATtime * BATtime + endSpeed * BATtime;
-		if (BATdist > endPos.distanceTo(startPos)) {
+		const BAT_SPEED_DIFF = currentSpeed - endSpeed;
+		const BAT_TIME = BAT_SPEED_DIFF / hardBrakeAccel;
+		const BAT_DIST = 0.5 * hardBrakeAccel * BAT_TIME * BAT_TIME + endSpeed * BAT_TIME;
+		if (BAT_DIST > endPos.distanceTo(startPos)) {
 			radius = 0;
 			maxCurveSpeed = 0.001;
 		}
@@ -711,9 +711,9 @@ export function robotTimeToPos(robot: RobotLike, endPos: Position, endSpeedVecto
 	let distDiff = 0.5 * accelDiff * timeDiff * timeDiff + minSpeed * timeDiff;
 	let distSym = Math.max(0, remainingDist - distDiff);
 
-	let A = 0.5 * speedupAccel * brakeAccel / (speedupAccel + brakeAccel);
-	let B = plateauSpeed;
-	let C = -distSym;
+	const A = 0.5 * speedupAccel * brakeAccel / (speedupAccel + brakeAccel);
+	const B = plateauSpeed;
+	const C = -distSym;
 
 	// A,distSym: positive
 	let timeSym = MathUtil.solveSq(A, B, C)[0]!;

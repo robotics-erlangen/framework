@@ -29,11 +29,11 @@ export const firstRobotAtBall: FirstRobotAtBall = Cache.forFrame(
 );
 
 function _opponentBallDribbler(): Robot | undefined {
-	let MAX_SPEED_DIFF = 1.5;
-	let MAX_DISTANCE = 0.5;
-	let MAX_ANGLE_TO_BALL_POS = 60 / 180 * Math.PI;
-	let MAX_ANGLE_TO_BALL_SPEED = 10 / 180 * Math.PI;
-	let slowBall = isSlowBall();
+	const MAX_SPEED_DIFF = 1.5;
+	const MAX_DISTANCE = 0.5;
+	const MAX_ANGLE_TO_BALL_POS = 60 / 180 * Math.PI;
+	const MAX_ANGLE_TO_BALL_SPEED = 10 / 180 * Math.PI;
+	const slowBall = isSlowBall();
 	let bestRobot: Robot | undefined = undefined;
 	let bestDist = Infinity;
 	for (let robot of World.OpponentRobots) {

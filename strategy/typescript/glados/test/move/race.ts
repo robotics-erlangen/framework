@@ -5,9 +5,9 @@ import * as World from "base/world";
 import { Assignment, MessageBox, Move, MoveParameters } from "glados/group/move/base";
 import { MoveToPos } from "glados/task/shared/movetopos";
 
-let Y_END = -(-World.Geometry.FieldHeightHalf + World.Geometry.DefenseHeight + 0.5);
-let Y_START = -World.Geometry.FieldHeightHalf + World.Geometry.DefenseHeight + 0.5;
-let TOLERANCE = 0.02;
+const Y_END = -(-World.Geometry.FieldHeightHalf + World.Geometry.DefenseHeight + 0.5);
+const Y_START = -World.Geometry.FieldHeightHalf + World.Geometry.DefenseHeight + 0.5;
+const TOLERANCE = 0.02;
 
 export class Race extends Move {
 

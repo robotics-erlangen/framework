@@ -14,7 +14,7 @@ import { ToTarget } from "glados/trajectory/totarget";
 
 
 function evaluateInterceptPos(robot: FriendlyRobot, pos: Position): [number, number, number | undefined] {
-	let OPP_EXTRA_TIME = 0.05;
+	const OPP_EXTRA_TIME = 0.05;
 
 	// checks if the pos is behind our robot
 	if (pos.y < robot.pos.y + 2 * robot.radius) {

@@ -18,7 +18,7 @@ import { head } from "glados/util/collections";
 import * as UtilDefense from "glados/util/defense";
 import * as Rating from "glados/util/rating";
 
-let G = World.Geometry;
+const G = World.Geometry;
 
 interface Ray {
 	startPos: Position;

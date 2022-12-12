@@ -4,8 +4,8 @@ import * as World from "base/world";
 
 import { Task } from "glados/task/base";
 
-let FORCE_SHOOT_DELAY = 0.03; // delay forced kick by this time
-let ENABLE_FORCE_SHOOT = false;
+const FORCE_SHOOT_DELAY = 0.03; // delay forced kick by this time
+const ENABLE_FORCE_SHOOT = false;
 
 // when using this ability, make sure to set this._forceShootTimer to nil
 // if the kick was canceled but the task stays active

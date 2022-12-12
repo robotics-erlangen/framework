@@ -23,10 +23,10 @@ import { StopAttack } from "glados/task/attacker/stopattack";
 import { MoveToPos } from "glados/task/shared/movetopos";
 
 
-let G = World.Geometry;
+const G = World.Geometry;
 
-let DISTANCE_TO_DEFENSE_AREA = 0.6; // the furthest we'll go before we shoot
-let DRIBBLING_DISTANCE = 0.035; // Ball and Robot must be at least this far apart to reset dribbling
+const DISTANCE_TO_DEFENSE_AREA = 0.6; // the furthest we'll go before we shoot
+const DRIBBLING_DISTANCE = 0.035; // Ball and Robot must be at least this far apart to reset dribbling
 
 function getKeeperTime(post: Position, turntime: RelTime, ball: {pos: Position; speed: Speed; radius: number; maxSpeed: number}, keeper: Robot) {
 	let pos = ball.pos + ball.speed * turntime;

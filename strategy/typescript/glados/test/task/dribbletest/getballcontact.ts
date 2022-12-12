@@ -80,7 +80,7 @@ export class GetBallContact extends Task {
 
 		switch (currentState) {
 			case State.GO_TO_STARTPOSITION:
-				this._robot.path.addCircle(World.Ball.pos.x, World.Ball.pos.y, World.Ball.radius * 4, undefined, PathHelper.Priorities.BALL);
+				this._robot.path.addCircle(World.Ball.pos.x, World.Ball.pos.y, World.Ball.radius * 4, undefined, PathHelper.PRIORITIES.BALL);
 				this._robot.trajectory.update(ToTarget, this._startPos, (1 / 2) * Math.PI, 1);
 
 				break;

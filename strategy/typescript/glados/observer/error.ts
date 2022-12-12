@@ -19,7 +19,7 @@ type ErrorTable = {[name: string]: number};
 
 let errorTables = new Map<FriendlyRobot, ErrorTable>();
 let batteryTable: Map<FriendlyRobot, RingBuffer> = new Map<FriendlyRobot, RingBuffer>();
-let BATTERY_TABLE_SIZE = 50;
+const BATTERY_TABLE_SIZE = 50;
 let lastStopTime = 0;
 
 export function getAverageBatterySate(robot: FriendlyRobot): number {

@@ -9,7 +9,7 @@ import * as Robot from "glados/test/observer/robot";
 type Module = { [fn: string]: () => void };
 
 // Loads every test
-const Tests: { [name: string]: Module } = {
+const TESTS: { [name: string]: Module } = {
 	Ball,
 	Defense,
 	Goal,
@@ -19,7 +19,7 @@ const Tests: { [name: string]: Module } = {
 
 const TEST_NAME_REGEX = /^test(.+)/;
 
-for (const [name, mod] of Object.entries(Tests)) {
+for (const [name, mod] of Object.entries(TESTS)) {
 	for (const [functionName, fn] of Object.entries(mod)) {
 		const testname = TEST_NAME_REGEX.exec(functionName);
 		if (!testname) {

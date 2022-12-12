@@ -232,7 +232,7 @@ export class ShootGoal extends Task {
 			}
 
 			if (onlyOppOcc.length > 0 && this._desperateTargetPoint == undefined) {
-				let EPSILON = 0.0001;
+				const EPSILON = 0.0001;
 				// state: desperate clean
 				do {
 					let selectedInterval = undefined;

@@ -176,14 +176,14 @@ export class Shoot extends Behavior {
 				&&  World.Ball.speed.length() < 1
 				&&  Math.abs(this._attackPosition.y) < 5 / 6 * G.FieldWidthHalf) {
 
-			let MIN_DISTANCE = 0.1;
-			let MAX_DISTANCE = 0.5;
-			let DISTANCE_STEP = 0.1;
+			const MIN_DISTANCE = 0.1;
+			const MAX_DISTANCE = 0.5;
+			const DISTANCE_STEP = 0.1;
 
-			let CONE_WIDTH = 90 / 180 * Math.PI;
-			let ANGLE_STEP = 15 / 180 * Math.PI;
+			const CONE_WIDTH = 90 / 180 * Math.PI;
+			const ANGLE_STEP = 15 / 180 * Math.PI;
 
-			let OPPONENT_DISTANCE_THRESHOLD = 1;
+			const OPPONENT_DISTANCE_THRESHOLD = 1;
 
 			// look for close opponents
 			let closestOppDist = Infinity;

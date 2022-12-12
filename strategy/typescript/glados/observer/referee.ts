@@ -11,7 +11,7 @@ import * as World from "base/world";
 import * as ObsvBall from "glados/observer/ball";
 import * as Error from "glados/observer/error";
 
-let G = World.Geometry;
+const G = World.Geometry;
 
 interface BallLike {
 	pos: Position;

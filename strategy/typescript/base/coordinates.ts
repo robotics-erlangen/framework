@@ -199,6 +199,7 @@ class Pass implements CoordinatesType {
 	}
 }
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export let Coordinates: CoordinatesType;
 
 export function _setIsBlue(teamIsBlue: boolean) {

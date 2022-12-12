@@ -19,7 +19,7 @@ const G = World.Geometry;
 // =====================//
 const distToPost = 0.08; // distance of the target point on goal line to the post
 const changeThreshold = 0.5; // set 0 if opponent keeper follows look Dir every time
-const KeeperPosTolerance = 0.04; // if keeper's distance to the goals center is bigger, we will choose the big free sector
+const keeperPosTolerance = 0.04; // if keeper's distance to the goals center is bigger, we will choose the big free sector
 const shootErrorThreshold = 4.0 * Math.PI / 180; // maximum angle error
 const keeperMoveSpeedThreshold = 0.5; // for random keeper movement detection
 
@@ -91,7 +91,7 @@ export class ShootPenalty extends Task {
 				}
 			} else {// choose a corner
 				if (keeperInsideDefArea) {
-					if (Math.abs(keeper.pos.x) > KeeperPosTolerance) {
+					if (Math.abs(keeper.pos.x) > keeperPosTolerance) {
 						if (keeper.pos.x > 0) {
 							this._cornerChange = (this._lookDir !== "Left");
 							this._lookDir = "Left";

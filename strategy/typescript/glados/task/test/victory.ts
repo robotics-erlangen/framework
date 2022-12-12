@@ -6,8 +6,8 @@ import { Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
 
-let NUM_OF_REVOLUTIONS = 3;
-let ANGULAR_SPEED_FACTOR = 0.8; // the higher it is, the longer it takes
+const NUM_OF_REVOLUTIONS = 3;
+const ANGULAR_SPEED_FACTOR = 0.8; // the higher it is, the longer it takes
 
 export class Victory extends Task {
 

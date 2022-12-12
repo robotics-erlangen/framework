@@ -7,10 +7,10 @@ import { Direct } from "glados/trajectory/direct";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
 
-let G = World.Geometry;
+const G = World.Geometry;
 
 // [robotId] => (firstLocationId, secondLocationId)
-let EXCHANGE_TARGET = [
+const EXCHANGE_TARGET = [
 	{firstPosI : 0, secPosI: 17},
 	{firstPosI: 1, secPosI: 16},
 	{firstPosI: 2, secPosI: 15},
@@ -29,9 +29,9 @@ let EXCHANGE_TARGET = [
 	{firstPosI: 11,secPosI: 18}
 ];
 
-let X0 = -1;
-let B = 0.33;
-let L = 0.25;
+const X0 = -1;
+const B = 0.33;
+const L = 0.25;
 
 export class Error extends Task {
 	_id: number;

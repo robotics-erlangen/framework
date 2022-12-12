@@ -8,7 +8,7 @@ import { MessageBox, MessageType } from "glados/control/messaging";
 import { Group } from "glados/trainer/groups";
 import * as UtilZone from "glados/util/zone";
 
-let G = World.Geometry;
+const G = World.Geometry;
 
 export class Support implements Group {
 	readonly name = "support";

@@ -14,7 +14,7 @@ import * as Shoot from "glados/observer/shoot";
 import * as Defense from "glados/util/defense";
 import * as Rating from "glados/util/rating";
 
-let G = World.Geometry;
+const G = World.Geometry;
 
 export interface PassInfo {
 	/** The target of an upcoming pass */
@@ -681,7 +681,7 @@ export function isPassAllowed(startPos: Position, endPos: Position): boolean {
 	return true;
 }
 
-let InvalidationCounter = new Map<FriendlyRobot, number>();
+let invalidationCounter = new Map<FriendlyRobot, number>();
 let _lastIncomingPassInfo = new Map<FriendlyRobot, PassInfo>();
 let lastIPIUpdateTime = new Map<FriendlyRobot, number>();
 
@@ -695,8 +695,8 @@ export function lastIncomingPassInfo(robot: FriendlyRobot, passInfo: ReadonlyRec
 	let incomingPassInfo = undefined;
 	let passInfoTable = passInfo[1];
 
-	if (!InvalidationCounter.has(robot)) {
-		InvalidationCounter[robot] = 0;
+	if (!invalidationCounter.has(robot)) {
+		invalidationCounter[robot] = 0;
 	}
 	if (passInfoTable != undefined) {
 		for (let passInfoEntry of passInfoTable) {
@@ -710,15 +710,15 @@ export function lastIncomingPassInfo(robot: FriendlyRobot, passInfo: ReadonlyRec
 		return _lastIncomingPassInfo[robot];
 	} else if (incomingPassInfo) {
 		_lastIncomingPassInfo[robot] = incomingPassInfo;
-		InvalidationCounter[robot] = 0;
+		invalidationCounter[robot] = 0;
 		lastIPIUpdateTime[robot] = World.Time;
 	} else if (!Ball.isAccelerating() && !Ball.receivesPass(robot)) {
-		InvalidationCounter[robot] = InvalidationCounter[robot]! + 1;
+		invalidationCounter[robot] = invalidationCounter[robot]! + 1;
 		lastIPIUpdateTime[robot] = World.Time;
 	}
-	if (InvalidationCounter[robot] === 5) {
+	if (invalidationCounter[robot] === 5) {
 		_lastIncomingPassInfo.delete(robot);
-		InvalidationCounter[robot] = 0;
+		invalidationCounter[robot] = 0;
 	}
 	return _lastIncomingPassInfo[robot];
 }

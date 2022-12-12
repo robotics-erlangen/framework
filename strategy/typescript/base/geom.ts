@@ -26,6 +26,7 @@
 import * as MathUtil from "base/mathutil";
 import { Position, RelativePosition, Vector } from "base/vector";
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function intersectCircleCircle_OLD(c1: Position, r1: number, c2: Position, r2: number): [Position?, Position?] {
 	let dist = c1.distanceTo(c2);
 	if (dist > r1 + r2) {
@@ -63,14 +64,14 @@ function intersectCircleCircle_OLD(c1: Position, r1: number, c2: Position, r2: n
 export let intersectCircleCircle = intersectCircleCircleCos;
 
 function intersectCircleCircleCos(c1: Position, r1: number, c2: Position, r2: number): [Position?, Position?] {
-	let dist = c1.distanceTo(c2);
+	const dist = c1.distanceTo(c2);
 	// check for invalid triangles
 	if (r1 > r2 + dist || r2 > r1 + dist || dist > r1 + r2) {
 		return [];
 	}
 
-	let cosR1 = (r1 * r1 + dist * dist - r2 * r2) /  (2 * dist);
-	let M = (c2 - c1) * (cosR1 / dist);
+	const cosR1 = (r1 * r1 + dist * dist - r2 * r2) /  (2 * dist);
+	const M = (c2 - c1) * (cosR1 / dist);
 	let [res1, res2, l1, l2] = intersectLineCircle(c1 + M, M.perpendicular(), c1, r1);
 
 	if (res1 == undefined) {

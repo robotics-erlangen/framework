@@ -16,7 +16,7 @@ import { MoveToPos } from "glados/task/shared/movetopos";
 import * as Attack from "glados/util/attack";
 import * as MovesHelper from "glados/util/moveshelper";
 
-let G = World.Geometry;
+const G = World.Geometry;
 
 function getRobotsInRect(c1: Position, c2: Position, robots: Robot[], buffer: number): Robot[] {
 	let r: Robot[] = [];

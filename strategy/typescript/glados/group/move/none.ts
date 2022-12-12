@@ -5,7 +5,7 @@ import { Armada } from "glados/group/move/armada";
 import { Assignment, Move, MoveParameters } from "glados/group/move/base";
 import { WindshieldWiper } from "glados/group/move/windshieldwiper";
 
-let G = World.Geometry;
+const G = World.Geometry;
 
 export class None extends Move {
 	static MIN_ROBOTS: number = 5;

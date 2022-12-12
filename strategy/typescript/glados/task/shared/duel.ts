@@ -18,27 +18,27 @@ import * as PathHelper from "glados/trajectory/pathhelper";
 import * as UtilDefense from "glados/util/defense";
 
 
-let STAY_BEHIND_OPP_ANGLE = 120 / 180 * Math.PI;
-let STAY_BEHIND_OPP_HYSTERESIS = 10 / 180 * Math.PI;
-let SIDEWARDS_ANGLE_MAX = 30 / 180 * Math.PI;
-let SIDEWARDS_ANGLE_SCALE = 1 / 3;
+const STAY_BEHIND_OPP_ANGLE = 120 / 180 * Math.PI;
+const STAY_BEHIND_OPP_HYSTERESIS = 10 / 180 * Math.PI;
+const SIDEWARDS_ANGLE_MAX = 30 / 180 * Math.PI;
+const SIDEWARDS_ANGLE_SCALE = 1 / 3;
 
-let BLOCK_DIST_MAX = 0.08;
-let BLOCK_DIST_HYSTERESIS = 0.02;
+const BLOCK_DIST_MAX = 0.08;
+const BLOCK_DIST_HYSTERESIS = 0.02;
 
-let BLOCK_POS_ALPHA = 0.1;
-let BLOCK_POS_PRECISION = 0.01;
+const BLOCK_POS_ALPHA = 0.1;
+const BLOCK_POS_PRECISION = 0.01;
 
-let DEFENSE_AREA_MIN_DISTANCE = 0.04;
+const DEFENSE_AREA_MIN_DISTANCE = 0.04;
 
-let BEFORE_OPPONENT_HYSTERESIS = 0.2;
-let BEFORE_OPPONENT_TIME = 0.3;
+const BEFORE_OPPONENT_HYSTERESIS = 0.2;
+const BEFORE_OPPONENT_TIME = 0.3;
 
-let CLOSE_TO_OPP_HYSTERESIS = 0.09;
-let CLOSE_TO_OPP_DISTANCE = 0.5;
+const CLOSE_TO_OPP_HYSTERESIS = 0.09;
+const CLOSE_TO_OPP_DISTANCE = 0.5;
 
 
-let OPPONENT_DEFENSE_AREA_MIN_DISTANCE = 0.1;
+const OPPONENT_DEFENSE_AREA_MIN_DISTANCE = 0.1;
 
 export class Duel extends Task {
 	private _opposer: Robot | undefined;

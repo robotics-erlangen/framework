@@ -18,8 +18,8 @@ import { CurvedMaxAccel as ToTarget } from "glados/trajectory/curvedmaxaccel";
 import * as PathHelper from "glados/trajectory/pathhelper";
 
 
-let G = World.Geometry;
-let GOAL_NORMAL = new Vector(0, 1);
+const G = World.Geometry;
+const GOAL_NORMAL = new Vector(0, 1);
 
 export class Keeper extends Task {
 	private _defendCorner: boolean = false;

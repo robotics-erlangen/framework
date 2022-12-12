@@ -1,6 +1,6 @@
 import * as debug from "base/debug";
 
-import { dumpMessages, MessageBox, MessageType, MessageTypeList, Messaging } from "glados/control/messaging";
+import { dumpMessages, MessageBox, MessageType, MESSAGE_TYPE_LIST, Messaging } from "glados/control/messaging";
 import { Groups } from "glados/trainer/groups";
 import { Roles } from "glados/trainer/roles";
 
@@ -21,7 +21,7 @@ export class Trainer {
 
 	_debugInbox(str: string) {
 		debug.pushtop(str);
-		for (const type of MessageTypeList) {
+		for (const type of MESSAGE_TYPE_LIST) {
 			dumpMessages(type, this._messaging.receiveGeneric(type));
 		}
 		debug.pop(); // Trainer Inbox

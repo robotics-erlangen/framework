@@ -16,7 +16,7 @@ import { MoveToPos } from "glados/task/shared/movetopos";
 import * as Attack from "glados/util/attack";
 import * as MovesHelper from "glados/util/moveshelper";
 
-let G = World.Geometry;
+const G = World.Geometry;
 
 // the armada has 4 steps to form stairs, depending on ball distance
 const POSITIONS_ORIG: Position[] = [

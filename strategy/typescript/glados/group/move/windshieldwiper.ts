@@ -16,7 +16,7 @@ import { Support } from "glados/task/attacker/support";
 import * as Attack from "glados/util/attack";
 import * as MovesHelper from "glados/util/moveshelper";
 
-let G = World.Geometry;
+const G = World.Geometry;
 
 const WINDSHIELD_WIPER_FREEKICK = parameterizeClass(FreeKick, Attack.defaultRatePass);
 

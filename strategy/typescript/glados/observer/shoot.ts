@@ -6,7 +6,7 @@ import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 import * as Rating from "glados/util/rating";
 
-let MIN_PASS_SPEED = 2.5;
+const MIN_PASS_SPEED = 2.5;
 export function ballPassTime(shootPos: Position, passPos: Position, targetRobot: FriendlyRobot | undefined,
 		destSpeedLength: number | undefined, shootRobot: FriendlyRobot): number {
 	let dist = shootPos.distanceTo(passPos);

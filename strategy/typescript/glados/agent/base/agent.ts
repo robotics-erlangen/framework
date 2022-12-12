@@ -11,7 +11,7 @@ import { Behavior, CheckableConstructor, CheckableList, MainAttackerParameters a
 import { Error as AgentError } from "glados/agent/shared/error";
 import { Halt } from "glados/agent/shared/halt";
 import { MoveCommand } from "glados/agent/shared/movecommand";
-import { dumpMessages, MessageBox, MessageType, MessageTypeList, Messaging } from "glados/control/messaging";
+import { dumpMessages, MessageBox, MessageType, MESSAGE_TYPE_LIST, Messaging } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 import * as Robot from "glados/observer/robot";
@@ -19,8 +19,8 @@ import { MainAttackerParameters as TaskMAParams, Task } from "glados/task/base";
 import * as UtilDefense from "glados/util/defense";
 import * as Rating from "glados/util/rating";
 
-let MEASURE_TIMING = false;
-let MAX_RATING_TIME_BOOST = 0.1;
+const MEASURE_TIMING = false;
+const MAX_RATING_TIME_BOOST = 0.1;
 
 export abstract class Agent {
 	_robot: FriendlyRobot;
@@ -116,13 +116,13 @@ export abstract class Agent {
 		if (World.Time !== Agent._dumpAllTime) {
 			Agent._dumpAllTime = World.Time;
 			debug.pushtop("Global Inbox");
-			for (const type of MessageTypeList) {
+			for (const type of MESSAGE_TYPE_LIST) {
 				dumpMessages(type, this._messaging.receiveAllInbox(type));
 			}
 			debug.pop(); // Global Inbox
 		}
 		debug.push("Inbox");
-		for (const type of MessageTypeList) {
+		for (const type of MESSAGE_TYPE_LIST) {
 			dumpMessages(type, this._messaging.receiveNoBroadcast(type));
 		}
 		debug.pop(); // Inbox

@@ -217,6 +217,7 @@ export function calcVOutFromVS(v_s: number, v_in: number, phi: number, alpha: nu
 	return [x, y];
 }
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function volley_Jf(v_s: number, phi: number, alpha: number, v_in: number,
 		robotId: number | "opp"): [number, number, number, number] {
 	if (World.WorldStateSource() !== pb.world.WorldSource.INTERNAL_SIMULATION && (robotId < 0 || robotId > 15)) {

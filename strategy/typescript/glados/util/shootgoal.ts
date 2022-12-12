@@ -9,7 +9,7 @@ import { FriendlyRobot } from "base/robot";
 import { Position, Speed, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
-let G = World.Geometry;
+const G = World.Geometry;
 
 import * as Ball from "glados/observer/ball";
 import * as Crash from "glados/observer/crash";

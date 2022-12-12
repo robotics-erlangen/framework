@@ -9,7 +9,7 @@ import { ManMark } from "glados/task/defender/manmark";
 import { MoveToPos } from "glados/task/shared/movetopos";
 import * as MovesHelper from "glados/util/moveshelper";
 
-let G = World.Geometry;
+const G = World.Geometry;
 
 function getTarget(prevTarget: Robot | undefined, fallbackPos: Position): [Robot, boolean] | [] {
 	let maxDist = 2.5;

@@ -7,7 +7,7 @@ import { Task } from "glados/task/base";
 import { CurvedMaxAccel } from "glados/trajectory/curvedmaxaccel";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import * as Defense from "glados/util/defense";
-let G = World.Geometry;
+const G = World.Geometry;
 
 const MANMARKDISTANCE = 0.3;
 const SPEEDOFFSET = 0.07;

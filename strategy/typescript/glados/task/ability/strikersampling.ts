@@ -12,7 +12,7 @@ import * as ObserverShoot from "glados/observer/shoot";
 import { Task } from "glados/task/base";
 import * as Rating from "glados/util/rating";
 
-let G = World.Geometry;
+const G = World.Geometry;
 
 const VISUALIZE_SAMPLING = false;
 

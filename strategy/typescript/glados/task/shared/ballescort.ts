@@ -31,7 +31,7 @@ export class BallEscort extends Task {
 		let ballOutPos = Field.nextLineCut(World.Ball.pos, World.Ball.speed);
 		if (ballOutPos) {
 			this._robot.path.addLine(World.Ball.pos.x, World.Ball.pos.y, ballOutPos.x, ballOutPos.y, this._robot.radius,
-				"Ballescort", PathHelper.Priorities.INNER_BALL);
+				"Ballescort", PathHelper.PRIORITIES.INNER_BALL);
 		}
 
 		this._robot.trajectory.update(ToTarget, pos, (this._robot.pos - World.Ball.pos).angle());

@@ -277,7 +277,7 @@ export class FreeKick extends Behavior {
 
 		let prepareRobotAngle = Attack.freekickPrepareRobotAngle();
 
-		let PASS_TIMEFRAME = 3;
+		const PASS_TIMEFRAME = 3;
 		switch (this._state) {
 			case State.Prepare:
 				this._messaging.sendBroadcast(MessageType.plannedAttackTime, Referee.lastStateChangeTime() + PASS_TIMEFRAME);

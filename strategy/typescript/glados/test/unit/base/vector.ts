@@ -3,7 +3,7 @@ import { Vector } from "base/vector";
 
 import { UnitTest } from "glados/test/unit/unittest";
 
-let EPS = 1E-12;
+const EPS = 1E-12;
 
 export class BaseVector extends UnitTest {
 	constructor() {
