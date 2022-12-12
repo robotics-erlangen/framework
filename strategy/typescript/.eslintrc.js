@@ -58,7 +58,6 @@ module.exports = {
             "tab",
             {
                 "CallExpression": {
-                    // TODO sometimes 1 and sometimes 2
                     "arguments": "off"
                 },
                 "FunctionDeclaration": {
@@ -143,8 +142,29 @@ module.exports = {
             "multi-line"
         ],
         "eol-last": "error",
-        // TODO check out eslint-plugin-import for import order rules and stuff
-        "import/order": "error",
+        "import/order": [
+            "error",
+            {
+                "newlines-between": "always",
+                "pathGroups": [
+                    {
+                        "pattern": "base/**",
+                        "group": "parent",
+                        "position": "before",
+                    },
+                    {
+                        "pattern": "glados/**",
+                        "group": "sibling",
+                        "position": "after",
+                    },
+                ],
+                "pathGroupsExcludedImportTypes": ["parent", "sibling"],
+                "warnOnUnassignedImports": true,
+                "alphabetize": {
+                    "order": "asc",
+                }
+            }
+        ],
         "jsdoc/check-alignment": "error",
         "jsdoc/check-indentation": "off",
         "jsdoc/newline-after-description": "off",
