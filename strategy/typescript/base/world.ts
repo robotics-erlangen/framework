@@ -24,6 +24,8 @@
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
 
+/* eslint-disable @typescript-eslint/naming-convention */
+
 let amunLocal = amun;
 import { Ball as BallClass } from "base/ball";
 import { Coordinates } from "base/coordinates";

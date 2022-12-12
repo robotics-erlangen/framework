@@ -84,36 +84,36 @@ export function fromHSVA(hue: number, saturation: number, value: number, alpha: 
 	let c = value * saturation;
 	let x = c * (1 - Math.abs((hue * 6) % 2 - 1));
 	let m = value - c;
-	let r_, g_, b_ : number;
-	r_ = c;
-	g_ = x;
-	b_ = 0;
+	let r, g, b : number;
+	r = c;
+	g = x;
+	b = 0;
 	if (hue * 6 > 1) {
-		r_ = x;
-		g_ = c;
-		b_ = 0;
+		r = x;
+		g = c;
+		b = 0;
 	}
 	if (hue * 6 > 2) {
-		r_ = 0;
-		g_ = c;
-		b_ = x;
+		r = 0;
+		g = c;
+		b = x;
 	}
 	if (hue * 6 > 3) {
-		r_ = 0;
-		g_ = x;
-		b_ = c;
+		r = 0;
+		g = x;
+		b = c;
 	}
 	if (hue * 6 > 4) {
-		r_ = x;
-		g_ = 0;
-		b_ = c;
+		r = x;
+		g = 0;
+		b = c;
 	}
 	if (hue * 6 > 5) {
-		r_ = c;
-		g_ = 0;
-		b_ = x;
+		r = c;
+		g = 0;
+		b = x;
 	}
-	return fromRGBA((r_ + m) * 255, (g_ + m) * 255, (b_ + m) * 255, alpha);
+	return fromRGBA((r + m) * 255, (g + m) * 255, (b + m) * 255, alpha);
 }
 
 type Style = pb.amun.Pen.Style;
@@ -306,20 +306,20 @@ export function addAxisAlignedRectangle(name: string, corner1: Position, corner2
  * @param startAngle - the starting angle of the missing pizza piece
  * @param endAngle - the end angle of the missing pizza piece
  */
-let N_corners = 25;
+const N_CORNERS = 25;
 export function addPizza(name: string, center: Position, radius: number,
 		startAngle: number, endAngle: number, color?: Color, isFilled?: boolean, background?: boolean, style?: Style) {
 	let points = [center + Vector.fromPolar(startAngle, radius), center, center + Vector.fromPolar(endAngle, radius)];
-	if ((startAngle - endAngle) % (2 * Math.PI) < 2 * Math.PI / N_corners) {
+	if ((startAngle - endAngle) % (2 * Math.PI) < 2 * Math.PI / N_CORNERS) {
 		addPolygon(name, points, color, isFilled, background, style);
 	} else {
-		let wStart = Math.ceil(N_corners * endAngle / (2 * Math.PI));
-		let wEnd = Math.floor(N_corners * startAngle / (2 * Math.PI));
+		let wStart = Math.ceil(N_CORNERS * endAngle / (2 * Math.PI));
+		let wEnd = Math.floor(N_CORNERS * startAngle / (2 * Math.PI));
 		if (wEnd < wStart) {
-			wEnd = wEnd + N_corners;
+			wEnd = wEnd + N_CORNERS;
 		}
 		for (let w = wStart; w < wEnd; w++) {
-			let angle = w * Math.PI * 2 / N_corners;
+			let angle = w * Math.PI * 2 / N_CORNERS;
 			points.push(center + Vector.fromPolar(angle, radius));
 		}
 		addPolygon(name, points, color, isFilled, background, style);

@@ -380,8 +380,8 @@ export class Path {
 
 		if (!isPerformanceMode) {
 			let positions = [];
-			let SAMPLES = (acc.x === 0 && acc.y === 0) ? 2 : 10;
-			let timeStep = (endTime - startTime) / (SAMPLES - 1);
+			const SAMPLES = (acc.x === 0 && acc.y === 0) ? 2 : 10;
+			const timeStep = (endTime - startTime) / (SAMPLES - 1);
 			for (let i = 0;i < SAMPLES;i++) {
 				let time = i * timeStep;
 				let pos = startPos + speed * time + acc * (0.5 * time * time);
@@ -453,8 +453,8 @@ export class Path {
 				}
 			} else {
 				let positions1 = [], positions2 = [];
-				let SAMPLES = (acc1.x === 0 && acc1.y === 0 && acc2.x === 0 && acc2.y === 0) ? 2 : 10;
-				let timeStep = (endTime - startTime) / (SAMPLES - 1);
+				const SAMPLES = (acc1.x === 0 && acc1.y === 0 && acc2.x === 0 && acc2.y === 0) ? 2 : 10;
+				const timeStep = (endTime - startTime) / (SAMPLES - 1);
 				for (let i = 0;i < SAMPLES;i++) {
 					let time = i * timeStep;
 					let pos1 = startPos1 + speed1 * time + acc1 * (0.5 * time * time);

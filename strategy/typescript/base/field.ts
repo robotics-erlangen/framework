@@ -24,13 +24,15 @@
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
 
+/* eslint-disable @typescript-eslint/naming-convention */
+
 import * as geom from "base/geom";
 import * as MathUtil from "base/mathutil";
 import * as Referee from "base/referee";
 import { Position, RelativePosition, Vector } from "base/vector";
 import * as World from "base/world";
 
-let G: Readonly<World.GeometryType> = World.Geometry;
+const G: Readonly<World.GeometryType> = World.Geometry;
 
 /**
  * Returns the nearest position inside the field (extended by boundaryWidth)

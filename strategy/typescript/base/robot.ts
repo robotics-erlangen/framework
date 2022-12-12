@@ -59,11 +59,13 @@ interface ControllerInput {
 	spline?: any;
 }
 
+/* eslint-disable @typescript-eslint/naming-convention */
 interface GeomType {
 	FieldWidthHalf: number;
 	FieldHeightHalf: number;
 	BoundaryWidth: number;
 }
+/* eslint-enable @typescript-eslint/naming-convention */
 
 export interface UserControl {
 	speed: Speed;
@@ -233,8 +235,8 @@ export class Robot implements RobotState {
 		}
 
 		// interpolate vector used for correction to circumvent noise
-		let MIN_COMPENSATION = 0.005;
-		let BOUND_COMPENSATION_ANGLE = 70 / 180 * Math.PI;
+		const MIN_COMPENSATION = 0.005;
+		const BOUND_COMPENSATION_ANGLE = 70 / 180 * Math.PI;
 		if (lclen < MIN_COMPENSATION) {
 			latencyCompensation = new Vector(0, 0);
 		} else if (lclen < 2 * MIN_COMPENSATION) {
@@ -417,7 +419,7 @@ export class FriendlyRobot extends Robot {
 	}
 
 	_command() {
-		let STANDBY_DELAY = 30;
+		const STANDBY_DELAY = 30;
 		let standby = this._standbyTimer >= 0 && (this._currentTime - this._standbyTimer > STANDBY_DELAY);
 
 		let result: pb.robot.Command = {

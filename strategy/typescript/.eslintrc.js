@@ -107,7 +107,119 @@ module.exports = {
             }
         ],
         // TODO
-        "@typescript-eslint/naming-convention": "off",
+        "@typescript-eslint/naming-convention": [
+            "off",
+            {
+                "selector": "variable",
+                "format": ["camelCase", "snake_case"],
+                "leadingUnderscore": "allow",
+            },
+            {
+                "selector": "variable",
+                "format": ["camelCase", "snake_case", "UPPER_CASE"],
+                "modifiers": ["const"],
+                "leadingUnderscore": "allow",
+            },
+
+            {
+                "selector": "function",
+                "format": ["camelCase", "snake_case"],
+                "leadingUnderscore": "allow",
+            },
+
+            {
+                "selector": "parameter",
+                "format": ["camelCase", "snake_case"],
+                "leadingUnderscore": "allow",
+            },
+
+            {
+                "selector": "classProperty",
+                "format": ["camelCase", "snake_case"],
+                "leadingUnderscore": "allow",
+            },
+            {
+                "selector": "classProperty",
+                "format": ["camelCase", "snake_case", "UPPER_CASE"],
+                "modifiers": ["static"],
+                "leadingUnderscore": "allow",
+            },
+            {
+                "selector": "classProperty",
+                "format": ["UPPER_CASE"],
+                "modifiers": ["readonly"],
+                "leadingUnderscore": "allow",
+            },
+
+            {
+                "selector": "objectLiteralProperty",
+                "format": null,
+                "leadingUnderscore": "allow",
+            },
+
+            {
+                "selector": "typeProperty",
+                "format": ["camelCase", "snake_case"],
+                "leadingUnderscore": "allow",
+            },
+
+            {
+                "selector": "parameterProperty",
+                "format": ["camelCase"],
+            },
+
+            {
+                "selector": "classMethod",
+                "format": ["camelCase", "snake_case"],
+                "leadingUnderscore": "allow",
+            },
+
+            {
+                "selector": "objectLiteralMethod",
+                "format": ["camelCase"],
+            },
+
+            {
+                "selector": "typeMethod",
+                "format": ["camelCase"],
+            },
+
+            {
+                "selector": "accessor",
+                "format": ["camelCase"],
+                "leadingUnderscore": "allow",
+            },
+
+            {
+                "selector": "enumMember",
+                "format": ["camelCase", "PascalCase", "UPPER_CASE"],
+            },
+
+            {
+                "selector": "class",
+                "format": ["PascalCase"],
+            },
+
+            {
+                "selector": "interface",
+                "format": ["PascalCase"],
+            },
+
+            {
+                "selector": "typeAlias",
+                "format": ["PascalCase"],
+            },
+
+            {
+                "selector": "enum",
+                "format": ["PascalCase"],
+            },
+
+            {
+                "selector": "typeParameter",
+                "format": ["PascalCase"],
+            },
+        ],
         "@typescript-eslint/no-misused-new": "error",
         "@typescript-eslint/no-parameter-properties": "error",
         "@typescript-eslint/no-require-imports": "error",
