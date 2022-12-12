@@ -116,7 +116,7 @@ export class ShootoutKeeper extends Task {
 				}
 			} else if (touchLineIntersection) { // no nearBaseline
 				chipPos = touchLineIntersection;
-			} else {// probably because ball is out of field
+			} else { // probably because ball is out of field
 				chipPos = G.OpponentGoal;
 			}
 			let chipDist = World.Ball.pos.distanceTo(chipPos) - CHIP_IMPACT_DIST_FROM_BORDER;

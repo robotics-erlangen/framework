@@ -299,7 +299,7 @@ function _calculate1DSpeedProfile(maxSpeedProfile: [number, number, number, bool
 
 		if (linearSpeedChange) { // used for curves
 			_addLinearSpeedSegment(speedProfile, startSpeed, endSpeed, distance, accelerate, brake);
-		} else {// accelerate to at most start speed
+		} else { // accelerate to at most start speed
 			_addLinearSpeedSegment(speedProfile, startSpeed, startSpeed, distance, accelerate, brake);
 		}
 		// add braking down to endSpeed

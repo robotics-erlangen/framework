@@ -286,7 +286,7 @@ export class BaseMathUtil extends UnitTest {
 	private testIndependendUniform() {
 		const runs = 10000;
 		MathUtil.randomseed(155);
-		this.kSTest(runs, () => {let first = MathUtil.random(); let snd = MathUtil.random(); return first + snd;}, twoUniformDistributionFunction);
+		this.kSTest(runs, () => { let first = MathUtil.random(); let snd = MathUtil.random(); return first + snd; }, twoUniformDistributionFunction);
 	}
 
 	private testMultipleUniform() {
@@ -304,7 +304,7 @@ export class BaseMathUtil extends UnitTest {
 		for (let i = 0; i < 10; ++i) {
 			for (let j = i + 1; j < 10; ++j) {
 				let cnt = 0;
-				this.kSTest(runs, () => { let first = arr[i][cnt]; let snd = arr[j][cnt]; cnt++; return first + snd;}, twoUniformDistributionFunction);
+				this.kSTest(runs, () => { let first = arr[i][cnt]; let snd = arr[j][cnt]; cnt++; return first + snd; }, twoUniformDistributionFunction);
 			}
 		}
 	}
@@ -325,7 +325,7 @@ export class BaseMathUtil extends UnitTest {
 		for (let i = 0; i < 10; ++i) {
 			for (let j = i + 1; j < 10; ++j) {
 				let cnt = 0;
-				this.kSTest(runs, () => { let first = arr[i][cnt]; let snd = arr[j][cnt]; cnt++; return first + snd;}, twoUniformDistributionFunction);
+				this.kSTest(runs, () => { let first = arr[i][cnt]; let snd = arr[j][cnt]; cnt++; return first + snd; }, twoUniformDistributionFunction);
 			}
 		}
 	}
@@ -361,7 +361,7 @@ export class BaseMathUtil extends UnitTest {
 		for (let i = 0; i < 10; ++i) {
 			for (let j = i + 1; j < 10; ++j) {
 				let cnt = 0;
-				this.kSTest(runs, () => { let first = arr[i][cnt]; let snd = arr[j][cnt]; cnt++; return first + snd;}, twoDice);
+				this.kSTest(runs, () => { let first = arr[i][cnt]; let snd = arr[j][cnt]; cnt++; return first + snd; }, twoDice);
 			}
 		}
 	}

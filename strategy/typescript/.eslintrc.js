@@ -369,7 +369,8 @@ module.exports = {
         "semi": "off",
         "indent": "off",
 
-        "space-before-function-paren": [
+        "space-before-function-paren": "off",
+        "@typescript-eslint/space-before-function-paren": [
             "error",
             "never"
         ],
@@ -377,6 +378,61 @@ module.exports = {
             "error",
             "never"
         ],
+        "space-before-blocks": "off",
+        "@typescript-eslint/space-before-blocks": "error",
+        "keyword-spacing": "off",
+        "@typescript-eslint/keyword-spacing": "off",
+
+        "arrow-spacing": "error",
+        "block-spacing": "error",
+        "func-call-spacing": "off",
+        "@typescript-eslint/func-call-spacing": "error",
+        "key-spacing": "error",
+        "switch-colon-spacing": "error",
+        "template-curly-spacing": "error",
+        "rest-spread-spacing": "error",
+        "quotes": [
+            "error",
+            "double",
+        ],
+        "@typescript-eslint/space-infix-ops": "error",
+
+        // TODO
+        "array-bracket-spacing": [
+            "off",
+            "never",
+            {
+                "objectsInArrays": true
+            }
+        ],
+        "comma-spacing": "off",
+        "@typescript-eslint/comma-spacing": "off",
+        "semi-spacing": "off",
+        "no-multi-spaces": "off",
+        "object-curly-spacing": [
+            "off",
+            "always",
+        ],
+        "@typescript-eslint/object-curly-spacing": [
+            "off",
+            "always",
+        ],
+        "space-unary-ops": [
+            "off",
+            {
+                "words": true,
+                "nonwords": false,
+            }
+        ],
+        "@typescript-eslint/type-annotation-spacing": "off",
+
+        // TODO these is working, but do we want it?
+        "new-parens": "error",
+        "linebreak-style": [
+            "error",
+            "unix",
+        ],
+
         "spaced-comment": [
             "error",
             "always",
@@ -407,27 +463,18 @@ module.exports = {
             {
                 "rules": {
                     "encoding": true,
-                    // TODO maybe replace with whitespace eslint rules, see below
-                    "import-spacing": true,
                     // TODO not portable with no-restricted-syntax rule
                     // maybe write custom plugin for that
                     "no-unnecessary-callback-wrapper": true,
                     // TODO maybe replace with eslint-plugin-sonarjs
                     "prefer-while": true,
-                    // TODO maybe replace with eslint rules space-in-parens, space-before-blocks,
-                    // no-space-before-semi, space-after-keywords, no-multi-spaces
+                    // TODO maybe replace with eslint rules
+                    // currently none found for these
                     "whitespace": [
                         true,
-                        "check-branch",
-                        "check-decl",
-                        "check-operator",
-                        "check-module",
-                        "check-seperator",
-                        "check-rest-spread",
                         "check-type",
                         "check-typecast",
                         "check-type-operator",
-                        "check-preblock"
                     ]
                 }
             }

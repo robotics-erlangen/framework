@@ -116,7 +116,7 @@ export class AttackRatio {
 				attackRatio = 1;
 				divBattackRatio = 1;
 			}
-		} else {// Game, GameForce
+		} else { // Game, GameForce
 			if (this._opponentFreeKickAT != undefined) {
 				attackRatio = this._opponentFreeKickAT;
 				divBattackRatio = this._opponentFreeKickAT;

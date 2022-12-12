@@ -32,8 +32,8 @@ export class PenaltyShootoutGoal extends Task {
 		let robot = this._robot;
 		let ball = this._ball;
 		let obstacleTable : PathHelper.PathHelperParameters = {
-			ignoreBall : true,
-			ignorePass : true,
+			ignoreBall: true,
+			ignorePass: true,
 			ignoreDefenseArea: true,
 			ignoreOpponentDefenseArea: false,
 		};

@@ -12,8 +12,8 @@ import * as PathHelper from "glados/trajectory/pathhelper";
 
 
 const obstacleTable : PathHelper.PathHelperParameters = {
-	ignoreBall : true,
-	ignorePass : true,
+	ignoreBall: true,
+	ignorePass: true,
 	ignoreDefenseArea: true,
 	ignoreOpponentDefenseArea: false,
 };

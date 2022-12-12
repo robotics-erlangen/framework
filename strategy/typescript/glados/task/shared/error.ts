@@ -11,7 +11,7 @@ const G = World.Geometry;
 
 // [robotId] => (firstLocationId, secondLocationId)
 const EXCHANGE_TARGET = [
-	{firstPosI : 0, secPosI: 17},
+	{firstPosI: 0, secPosI: 17},
 	{firstPosI: 1, secPosI: 16},
 	{firstPosI: 2, secPosI: 15},
 	{firstPosI: 3, secPosI: 14},

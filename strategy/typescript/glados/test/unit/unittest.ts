@@ -207,7 +207,7 @@ export class UnitTest {
 	}
 
 	protected assert_error(a: () => void) {
-		tryCatchThen(a, () => {}, () => {throw new Error("Assert failed: function did not produce error");});
+		tryCatchThen(a, () => {}, () => { throw new Error("Assert failed: function did not produce error"); });
 	}
 
 	protected assert_lte(a: number, b: number) {

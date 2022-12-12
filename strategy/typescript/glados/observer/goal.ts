@@ -179,7 +179,7 @@ export function allFreeSectors<R extends {pos: Position; radius: number}>(viewPo
 		// for i,sector in ipairs(freeSectors) do
 		// 	debug.set("Fsectors["+i+"]", "{"+sector[1]+", "+sector[2]+"}")
 		// end
-	} else {// no free sector
+	} else { // no free sector
 		freeSectors = [];
 	}
 	// remove sectors that are broader than 2pi

@@ -250,7 +250,7 @@ export class CenterBack implements Group {
 					timeAroundDefenseArea + smallerHyst > targetTime) {
 				// mark one intersection with one bot to be necessary, and continue with reduced n for the rest.
 				intersections.push({
-					waypos:  way,
+					waypos: way,
 					wayrange: 2 * robot_radius + distanceBetweenDefenders,
 					n: 1,
 					targets: [{target: target, way: way, n: 1}],

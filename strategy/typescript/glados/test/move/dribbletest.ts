@@ -189,7 +189,7 @@ export class DribbleTest extends Move {
 				this._ballLossCounter += 1;
 			}
 
-			if (this._ballLossCounter >= TEST_MAX_TRY_COUNTER) {// || this._dribblerSpeed > 1) {
+			if (this._ballLossCounter >= TEST_MAX_TRY_COUNTER) { // || this._dribblerSpeed > 1) {
 				this._ballLossCounter = 0;
 				this._movementSpeed = INITIAL_MOVEMENT_SPEED;
 				this._rotationSpeed = INITIAL_ROTATION_SPEED;

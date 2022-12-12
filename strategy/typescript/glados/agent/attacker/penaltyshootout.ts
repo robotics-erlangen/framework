@@ -34,8 +34,8 @@ function getKeeperTime(post: Position, turntime: RelTime, ball: {pos: Position; 
 	let shootdir = (post - pos).normalized();
 	let startpos = pos - shootdir * ((Const.maxBallSpeed + startspeed) / 2 * turntime);
 
-	let startBall = {pos : startpos, speed : shootdir * startspeed,
-		radius : ball.radius, maxSpeed : Const.maxBallSpeed};
+	let startBall = {pos: startpos, speed: shootdir * startspeed,
+		radius: ball.radius, maxSpeed: Const.maxBallSpeed};
 	if (ball.speed.lengthSq() > 3 * 3) {
 		startBall = ball;
 	}
@@ -64,7 +64,7 @@ export class PenaltyShootout extends Behavior {
 	private _addX: number = 0;
 	private _state: string | undefined;
 	private _futureKeeper: {pos: Position; speed: Speed; radius: number} = {pos: G.OpponentGoal, speed: new Vector(0,0.1), radius: 0.09};
-	private _ball = {pos : getRealisticBallPos(), speed : World.Ball.speed, radius : World.Ball.radius, time : World.Time, maxSpeed: 0, quality : 1};
+	private _ball = {pos: getRealisticBallPos(), speed: World.Ball.speed, radius: World.Ball.radius, time: World.Time, maxSpeed: 0, quality: 1};
 	private _dribblePos: Position | undefined = undefined;
 	private _shootPos: Position = G.OpponentGoal;
 
@@ -79,7 +79,7 @@ export class PenaltyShootout extends Behavior {
 		this._addX = 0;
 		this._state = undefined;
 		this._futureKeeper = {pos: G.OpponentGoal, speed: new Vector(0,0.1), radius: 0.09};
-		this._ball = {pos : getRealisticBallPos(), speed : World.Ball.speed, radius : World.Ball.radius, time : World.Time, maxSpeed: 0, quality : 1};
+		this._ball = {pos: getRealisticBallPos(), speed: World.Ball.speed, radius: World.Ball.radius, time: World.Time, maxSpeed: 0, quality: 1};
 		this._dribblePos = undefined;
 	}
 
@@ -141,7 +141,7 @@ export class PenaltyShootout extends Behavior {
 	}
 	private _updateShootGoal() {
 		if (World.OpponentKeeper  &&  World.OpponentKeeper.pos) {
-			this._futureKeeper = {pos : World.OpponentKeeper.pos, speed: World.OpponentKeeper.speed, radius : World.OpponentKeeper.radius};
+			this._futureKeeper = {pos: World.OpponentKeeper.pos, speed: World.OpponentKeeper.speed, radius: World.OpponentKeeper.radius};
 		}
 		let lastContact = this._contactPoint;
 		let addDistance = lastContact ? Math.max(0, lastContact.distanceTo(getRealisticBallPos()) - 0.5) * 3 : 0.2;

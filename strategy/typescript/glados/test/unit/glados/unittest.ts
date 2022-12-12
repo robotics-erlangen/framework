@@ -137,9 +137,9 @@ export class GladosUnitTest extends UnitTest {
 
 		this.assert_error(() => { this.assert_vector_not_equal(new Vector(0, 0), new Vector(0, 0)); });
 
-		this.assert_error(() => {this.assert_vector_equal_eps(new Vector(0, 0), new Vector(0, 0.5), 0.4); });
-		this.assert_error(() => {this.assert_vector_equal_eps(new Vector(0, 0), new Vector(0.25, 0.25), 0.3); });
-		this.assert_error(() => {this.assert_vector_equal_eps(new Vector(0, 0), new Vector(1, 0.5), 0.5); });
+		this.assert_error(() => { this.assert_vector_equal_eps(new Vector(0, 0), new Vector(0, 0.5), 0.4); });
+		this.assert_error(() => { this.assert_vector_equal_eps(new Vector(0, 0), new Vector(0.25, 0.25), 0.3); });
+		this.assert_error(() => { this.assert_vector_equal_eps(new Vector(0, 0), new Vector(1, 0.5), 0.5); });
 
 		this.assert_error(() => { this.assert_false(true); });
 		this.assert_error(() => { this.assert_false(0); });

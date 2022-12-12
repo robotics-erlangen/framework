@@ -88,7 +88,7 @@ export class AggressiveKeeper extends Task {
 				}
 			} else if (touchLineIntersection != undefined) { // no nearBaseline
 				chipPos = touchLineIntersection;
-			} else {// probably because ball is out of field
+			} else { // probably because ball is out of field
 				chipPos = World.Geometry.OpponentGoal;
 			}
 			let chipDist = World.Ball.pos.distanceTo(chipPos) - CHIP_IMPACT_DIST_FROM_BORDER;

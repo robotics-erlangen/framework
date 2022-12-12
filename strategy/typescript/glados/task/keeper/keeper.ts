@@ -191,7 +191,7 @@ export class Keeper extends Task {
 		} else if (atkDir.y < 0) {
 			let k = MathUtil.bound(0, (atkPos.y + 2) / 2 * 0.6, 0.5);
 			moveTo = intersectPos * (1 - k) + new Vector(0, -G.FieldHeightHalf + keeperGoalDistance + this._robot.radius) * k;
-		} else {// don't know where to go, just center in the goal / corner
+		} else { // don't know where to go, just center in the goal / corner
 			moveTo = fallbackPos;
 		}
 

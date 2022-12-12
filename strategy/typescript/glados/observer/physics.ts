@@ -275,7 +275,7 @@ function ballFlightTime(ball: BallLike & {initSpeedZ: number; speedZ: number; po
 		result.posZ = result.posZ + result.initSpeedZ * t - 0.5 * 9.81 * t * t;
 		result.speedZ = result.speedZ - t * 9.81;
 		return [result, timePassed, 0];
-	} else {// ball is rolling
+	} else { // ball is rolling
 		result.pos = result.pos + result.speed * timePassed;
 		result.posZ = 0;
 		result.speedZ = 0;
@@ -390,7 +390,7 @@ export function ballTravelTime(ball: BallLike & {posZ: number; initSpeedZ: numbe
 		let [newBall, time, restDist] = ballFlightTime(ball, distance);
 		if (restDist > 0) { // bouncing over
 			return time + ballRollTime(newBall, restDist);
-		} else {// ball still in the air or bouncing
+		} else { // ball still in the air or bouncing
 			return time;
 		}
 	} else {

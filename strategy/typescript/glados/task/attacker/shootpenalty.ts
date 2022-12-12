@@ -89,7 +89,7 @@ export class ShootPenalty extends Task {
 						this._targetPos = cornerPoint(this._lookDir);
 					}
 				}
-			} else {// choose a corner
+			} else { // choose a corner
 				if (keeperInsideDefArea) {
 					if (Math.abs(keeper.pos.x) > keeperPosTolerance) {
 						if (keeper.pos.x > 0) {
