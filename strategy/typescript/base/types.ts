@@ -40,11 +40,32 @@ export function parameterizeClass<
 	 * @see https://github.com/microsoft/TypeScript/issues/4890#issuecomment-141879451
 	 */
 	const castedCtor = ctor as new(head: HeadArg, ...tail: TailArgs) => {};
-	return class extends castedCtor {
+	const parameterizedCtor = class extends castedCtor {
 		constructor(head: HeadArg) {
 			super(head, ...tail);
 		}
 	} as new(head: HeadArg) => TargetType;
+
+	/* Callers/later users may want to query the name of the returned class
+	 * (e.g. through instances via this.constructor.name or through the class
+	 * itself via parameterizeClass(...).name)
+	 *
+	 * The class does not inherit the name (it is anonymous), thus we need to
+	 * pass through the name. The field is not writable by normal means, thus
+	 * we need to use Object.defineProperty. It would also be possible to add a
+	 * static computed property, however TypeScript prohibits this.
+	 *
+	 * The property descriptor is configured like the default descriptor for
+	 * the name field.
+	 */
+	Object.defineProperty(parameterizedCtor, "name", {
+		"configurable": true,
+		"enumerable": false,
+		"value": ctor.name,
+		"writable": false,
+	});
+
+	return parameterizedCtor;
 }
 
 declare global {

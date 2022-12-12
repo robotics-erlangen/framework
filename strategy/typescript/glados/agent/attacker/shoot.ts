@@ -597,7 +597,7 @@ export class Shoot extends Behavior {
 	}
 
 	addDebugInfo() {
-		debug.set(undefined, "Shoot");
+		debug.set(undefined, this.constructor.name);
 		debug.set("ratePass", this._ratePass.name);
 	}
 }
