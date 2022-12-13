@@ -153,21 +153,6 @@ static void testDerivativeDistanceRandomized(std::function<std::unique_ptr<Stati
         return r() / float(r.max()) * BOX_SIZE - BOX_SIZE * 0.5f;
     };
 
-    // basic point distance test
-    for (int i = 0;i<10000;i++) {
-        auto o = generator(makeFloat);
-        Vector pos(Vector(makeFloat(), makeFloat()));
-
-        float dist = o->distance(pos);
-
-        float minDist = std::numeric_limits<float>::max();
-        for (Vector p : o->corners()) {
-            minDist = std::min(minDist, p.distance(pos));
-        }
-
-        ASSERT_LE(dist, minDist - o->radius + 0.001f);
-    }
-
     // test line segment distance
     for (int i = 0;i<500;i++) {
         auto o = generator(makeFloat);

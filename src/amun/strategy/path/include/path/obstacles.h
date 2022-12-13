@@ -75,7 +75,6 @@ namespace Obstacles {
         virtual float distance(const Vector &v) const = 0;
         // returns the exact distance if it less than nearRadius, some value higher than nearRadius otherwise
         virtual float zonedDistance(const Vector &v, float nearRadius) const = 0;
-        virtual std::vector<Vector> corners() const = 0;
         /**
          * @brief Returns the distance to the given line segment.
          * Negative distances for lines inside or partially inside the obstacle are
@@ -98,7 +97,6 @@ namespace Obstacles {
         float zonedDistance(const Vector &v, float nearRadius) const override;
         Vector projectOut(Vector v, float extraDistance) const override;
         BoundingBox boundingBox() const override;
-        std::vector<Vector> corners() const override { return {center}; }
 
         void serializeChild(pathfinding::Obstacle *obstacle) const override;
 
@@ -118,7 +116,6 @@ namespace Obstacles {
         float zonedDistance(const Vector &v, float nearRadius) const override;
         Vector projectOut(Vector v, float extraDistance) const override;
         BoundingBox boundingBox() const override;
-        std::vector<Vector> corners() const override { return {bottomLeft, Vector(bottomLeft.x, topRight.y), topRight, Vector(topRight.x, bottomLeft.y)}; }
 
         void serializeChild(pathfinding::Obstacle *obstacle) const override;
 
@@ -136,7 +133,6 @@ namespace Obstacles {
         float distance(const LineSegment &segment) const override;
         float zonedDistance(const Vector &v, float nearRadius) const override;
         BoundingBox boundingBox() const override;
-        std::vector<Vector> corners() const override { return {p1, p2, p3}; }
 
         void serializeChild(pathfinding::Obstacle *obstacle) const override;
 
@@ -154,7 +150,6 @@ namespace Obstacles {
         float zonedDistance(const Vector &v, float nearRadius) const override;
         Vector projectOut(Vector v, float extraDistance) const override;
         BoundingBox boundingBox() const override;
-        std::vector<Vector> corners() const override { return {segment.start(), segment.end()}; }
 
         void serializeChild(pathfinding::Obstacle *obstacle) const override;
 
