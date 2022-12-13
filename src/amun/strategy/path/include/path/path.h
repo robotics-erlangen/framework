@@ -50,7 +50,7 @@ public:
     void reset() override;
 
     void addSeedTarget(float x, float y);
-    bool testSpline(const robot::Spline &spline, float radius);
+    bool testSpline(const robot::Spline &spline);
 
     // path finding
     void setProbabilities(float p_dest, float p_wp);
@@ -67,16 +67,16 @@ private:
     const KdTree::Node * extend(KdTree *tree, const KdTree::Node *fromNode, const Vector &to, float radius, float stepSize);
     const KdTree::Node * rasterPath(const LineSegment &segment, const KdTree::Node * lastNode, float step_size);
 
-    bool test(const LineSegment &segment, float radius) const;
-    bool test(const LineSegment &segment, float radius, const QVector<const Obstacles::StaticObstacle*> &obstacles) const;
+    bool test(const LineSegment &segment) const;
+    bool test(const LineSegment &segment, const QVector<const Obstacles::StaticObstacle*> &obstacles) const;
     bool test(const Vector &v, float radius, const QVector<const Obstacles::StaticObstacle*> &obstacles) const;
     float calculateObstacleCoverage(const Vector &v, const QVector<const Obstacles::StaticObstacle*> &obstacles, float robotRadius) const;
     bool checkMovementRelativeToObstacles(const LineSegment &segment, const QVector<const Obstacles::StaticObstacle*> &obstacles, float radius) const;
     float outsidePlayfieldCoverage(const Vector &point, float radius) const;
 
-    Vector findValidPoint(const LineSegment &segment, float radius) const;
+    Vector findValidPoint(const LineSegment &segment) const;
     void simplify(QVector<Vector> &points, float radius);
-    void cutCorners(QVector<Vector> &points, float radius);
+    void cutCorners(QVector<Vector> &points);
     void calculateCorridor(const Vector &start, List &list, float radius);
 
     virtual void clearObstaclesCustom() override;

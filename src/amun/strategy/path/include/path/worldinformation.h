@@ -48,8 +48,6 @@ public:
     const std::vector<Obstacles::Obstacle*> &movingObstacles() const { return m_movingObstacles; }
     const std::vector<Obstacles::Obstacle*> &obstacles() const { return m_obstacles; }
 
-    void addToAllStaticObstacleRadius(float additionalRadius);
-
     // static obstacles
     void addCircle(float x, float y, float radius, const char *name, int prio);
     void addLine(float x1, float y1, float x2, float y2, float width, const char *name, int prio);

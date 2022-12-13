@@ -27,9 +27,11 @@
 
 #include <functional>
 
+const float RADIUS = 0.08f;
+
 static WorldInformation constructWorld() {
     WorldInformation world;
-    world.setRadius(0.08f);
+    world.setRadius(RADIUS);
     world.setBoundary(-10, -10, 10, 10); // just some dummy field
     world.setOutOfFieldObstaclePriority(50);
     world.setRobotId(0);
@@ -99,8 +101,8 @@ TEST(EndInObstacleSampler, WholeSampling) {
 
         const Vector target = optimizeCloseness(addObst, input);
 
-        ASSERT_GE(s1.distance(target), 2);
-        ASSERT_LE(s1.distance(target), 2.1);
+        ASSERT_GE(s1.distance(target), 2 + RADIUS);
+        ASSERT_LE(s1.distance(target), 2.1 + RADIUS);
 
         // TODO: enable this test if the sampler also optimizes the time to the target pos
         // ASSERT_LE(target.distance(Vector(3, 3)), 0.2);
@@ -116,7 +118,7 @@ TEST(EndInObstacleSampler, WholeSampling) {
 
         const Vector target = optimizeCloseness(addObst, input);
         const Vector desiredTarget = s1 + Vector(-0.3, 0);
-        ASSERT_LE(desiredTarget.distance(target), 0.1);
+        ASSERT_LE(desiredTarget.distance(target), 0.1 + RADIUS);
     }
 
     // test with a moving obstacle that has a large end time
@@ -131,7 +133,7 @@ TEST(EndInObstacleSampler, WholeSampling) {
 
         const Vector target = optimizeCloseness(addObst, input);
 
-        ASSERT_GE(s1.distance(target), 1.5);
-        ASSERT_LE(s1.distance(target), 1.6);
+        ASSERT_GE(s1.distance(target), 1.5 + RADIUS);
+        ASSERT_LE(s1.distance(target), 1.6 + RADIUS);
     }
 }

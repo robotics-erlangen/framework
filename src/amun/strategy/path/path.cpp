@@ -70,7 +70,7 @@ void Path::clearObstaclesCustom()
     m_seedTargets.clear();
 }
 
-bool Path::testSpline(const robot::Spline &spline, float radius)
+bool Path::testSpline(const robot::Spline &spline)
 {
     // check if any parts of the given spline collides with an obstacle
     const float start = spline.t_start();
@@ -98,7 +98,7 @@ bool Path::testSpline(const robot::Spline &spline, float radius)
             continue;
         }
 
-        if (!test(LineSegment(points[i-1], points[i]), radius)) {
+        if (!test(LineSegment(points[i-1], points[i]))) {
             return false;
         }
     }
@@ -117,9 +117,8 @@ Vector Path::evalSpline(const robot::Spline &spline, float t) const
 //! @brief calculate how far we are standing in the (multiple) obstacles
 float Path::calculateObstacleCoverage(const Vector &v, const QVector<const StaticObstacle*> &obstacles, float robotRadius) const {
     float d_sum = 0;
-    for (QVector<const StaticObstacle*>::const_iterator it = obstacles.constBegin();
-                it != obstacles.constEnd(); ++it) {
-        float d = (*it)->distance(v) - robotRadius;
+    for (auto it = obstacles.constBegin(); it != obstacles.constEnd(); ++it) {
+        const float d = (*it)->distance(v);
         if (d < 0) {
             d_sum += std::min(2*robotRadius, -d);
         }
@@ -152,7 +151,7 @@ bool Path::checkMovementRelativeToObstacles(const LineSegment &segment, const QV
     tmpObstacles.reserve(obstacles.size() - 1);
     // allow moving from an obstacle with high prio into one with lower prio
     foreach (const StaticObstacle *o, obstacles) {
-        if (o->distance(p) < radius) {
+        if (o->distance(p) < 0) {
             if (o->prio > maxObstaclePrio) {
                 startObstacles.clear();
                 maxObstaclePrio = o->prio;
@@ -206,7 +205,7 @@ bool Path::checkMovementRelativeToObstacles(const LineSegment &segment, const QV
             if (d_sum > last_d_sum) {
                 return false;
             } else if (d_sum == 0.f && i < numSteps) {
-                if (!test(LineSegment(p, segment.end()), radius, startObstacles)) {
+                if (!test(LineSegment(p, segment.end()), startObstacles)) {
                     return false;
                 }
                 break;
@@ -217,7 +216,7 @@ bool Path::checkMovementRelativeToObstacles(const LineSegment &segment, const QV
         }
     }
     // new obstacles musn't be entered
-    return test(segment, radius, otherObstacles);
+    return test(segment, otherObstacles);
 }
 
 void Path::setProbabilities(float p_dest, float p_wp)
@@ -263,7 +262,7 @@ Path::List Path::get(float start_x, float start_y, float end_x, float end_y)
         if (start == end) {
             pathCompleted = true;
         // otherwise we have to test if the direct way is free
-        } else if (test(LineSegment(start, end), radius)) {
+        } else if (test(LineSegment(start, end))) {
             pathCompleted = true;
             const KdTree::Node *nearestNode = m_treeStart->nearest(start);
             // raster path for usage as waypoint cache
@@ -362,9 +361,9 @@ Path::List Path::get(float start_x, float start_y, float end_x, float end_y)
         if (nearestNode != nullptr) {
             const Vector lineStart = points.last();
             Vector bestPos = findValidPoint(
-                        LineSegment(lineStart, m_treeEnd->position(nearestNode)), radius);
+                        LineSegment(lineStart, m_treeEnd->position(nearestNode)));
             if (lineStart != bestPos && m_world.pointInPlayfield(bestPos, radius)
-                    && test(LineSegment(lineStart, bestPos), radius)) {
+                    && test(LineSegment(lineStart, bestPos))) {
                 points.append(bestPos);
             }
         }
@@ -391,7 +390,7 @@ Path::List Path::get(float start_x, float start_y, float end_x, float end_y)
     // cut corners serveral times
     for (int i = 0; i < 3; ++i) {
         simplify(points, radius);
-        cutCorners(points, radius);
+        cutCorners(points);
     }
     // final cleanup
     simplify(points, radius);
@@ -445,7 +444,7 @@ void Path::simplify(QVector<Vector> &points, float radius)
             // otherwise use the default check
             LineSegment seg(points[start_index], points[end_index]);
             if ((start_index < split && checkMovementRelativeToObstacles(seg, m_world.staticObstacles(), radius))
-                    || (start_index >= split && test(seg, radius))) {
+                    || (start_index >= split && test(seg))) {
                 split -= std::min(std::max(0, split - start_index - 1), end_index - start_index - 1);
                 for (int i = 0; i < end_index - start_index - 1; i++) {
                     points.removeAt(start_index + 1);
@@ -524,7 +523,7 @@ const KdTree::Node * Path::extend(KdTree *tree, const KdTree::Node *fromNode, co
         // and thus extended can't leave it
         success = checkMovementRelativeToObstacles(LineSegment(from, extended), m_world.staticObstacles(), radius);
     } else { // otherwise test the new path for obstacles
-        success = m_world.pointInPlayfield(extended, m_world.radius()) && test(LineSegment(from, extended), radius);
+        success = m_world.pointInPlayfield(extended, m_world.radius()) && test(LineSegment(from, extended));
     }
 
     // No valid path
@@ -548,7 +547,7 @@ bool Path::test(const Vector &v, float radius, const QVector<const StaticObstacl
     }
     for(QVector<const StaticObstacle*>::const_iterator it = obstacles.constBegin();
                 it != obstacles.constEnd(); ++it) {
-        if ((*it)->distance(v) < radius) {
+        if ((*it)->distance(v) < 0) {
             return false;
         }
     }
@@ -556,11 +555,11 @@ bool Path::test(const Vector &v, float radius, const QVector<const StaticObstacl
     return true;
 }
 
-bool Path::test(const LineSegment &segment, float radius, const QVector<const StaticObstacle*> &obstacles) const
+bool Path::test(const LineSegment &segment, const QVector<const StaticObstacle*> &obstacles) const
 {
     for (QVector<const StaticObstacle*>::const_iterator it = obstacles.constBegin();
                 it != obstacles.constEnd(); ++it) {
-        if ((*it)->distance(segment) < radius) {
+        if ((*it)->distance(segment) < 0) {
             return false;
         }
     }
@@ -568,12 +567,12 @@ bool Path::test(const LineSegment &segment, float radius, const QVector<const St
     return true;
 }
 
-bool Path::test(const LineSegment &segment, float radius) const
+bool Path::test(const LineSegment &segment) const
 {
-    return test(segment, radius, m_world.staticObstacles());
+    return test(segment, m_world.staticObstacles());
 }
 
-Vector Path::findValidPoint(const LineSegment &segment, float radius) const
+Vector Path::findValidPoint(const LineSegment &segment) const
 {
     // find the point using a binary search
     const Vector &lineStart = segment.start();
@@ -583,7 +582,7 @@ Vector Path::findValidPoint(const LineSegment &segment, float radius) const
 
     while (dist > 0.001f) {
         Vector mid = (end + start) / 2;
-        if (m_world.pointInPlayfield(mid, m_world.radius()) && test(LineSegment(lineStart, mid), radius)) {
+        if (m_world.pointInPlayfield(mid, m_world.radius()) && test(LineSegment(lineStart, mid))) {
             start = mid;
         } else {
             end = mid;
@@ -594,7 +593,7 @@ Vector Path::findValidPoint(const LineSegment &segment, float radius) const
     return (start + end)/2;
 }
 
-void Path::cutCorners(QVector<Vector> &points, float radius)
+void Path::cutCorners(QVector<Vector> &points)
 {
     for (int i = 1; i < points.size() - 1; i++) {
         const Vector left = points[i - 1];
@@ -620,7 +619,7 @@ void Path::cutCorners(QVector<Vector> &points, float radius)
             step /= 2;
             // don't check whether the new points are inside the playfield
             // only obstacles are important here, thus paths into the playfield can be smoothed
-            if (test(line, radius)) {
+            if (test(line)) {
                 lastGood = dist;
                 dist += step;
             } else {

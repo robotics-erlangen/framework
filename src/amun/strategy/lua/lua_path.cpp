@@ -211,8 +211,8 @@ static int pathTest(lua_State *L)
         luaL_error(L, "t_start (%f) has to be less than t_end (%f)", spline.t_start(), spline.t_end());
     }
 
-    const float radius = verifyNumber(L, 3);
-    const bool ret = p->testSpline(spline, radius);
+    verifyNumber(L, 3);
+    const bool ret = p->testSpline(spline);
     lua_pushboolean(L, ret);
 
     updateTiming(L, (Timer::systemTime() - t) * 1E-9);

@@ -49,33 +49,25 @@ void WorldInformation::clearObstacles()
     m_opponentRobotObstacles.clear();
 }
 
-void WorldInformation::addToAllStaticObstacleRadius(float additionalRadius)
-{
-    for (Obstacles::Circle &c: m_circleObstacles) { c.radius += additionalRadius; }
-    for (Obstacles::Rect &r: m_rectObstacles) { r.radius += additionalRadius; }
-    for (Obstacles::Triangle &t: m_triangleObstacles) { t.radius += additionalRadius; }
-    for (Obstacles::Line &l: m_lineObstacles) { l.radius += additionalRadius; }
-}
-
 void WorldInformation::addCircle(float x, float y, float radius, const char* name, int prio)
 {
-    m_circleObstacles.emplace_back(name, prio, radius, Vector(x, y));
+    m_circleObstacles.emplace_back(name, prio, radius + m_radius, Vector(x, y));
 }
 
 void WorldInformation::addLine(float x1, float y1, float x2, float y2, float width, const char* name, int prio)
 {
-    m_lineObstacles.emplace_back(name, prio, width, Vector(x1, y1), Vector(x2, y2));
+    m_lineObstacles.emplace_back(name, prio, width + m_radius, Vector(x1, y1), Vector(x2, y2));
 }
 
 void WorldInformation::addRect(float x1, float y1, float x2, float y2, const char* name, int prio, float radius)
 {
-    const Obstacles::Rect r(name, prio, x1, y1, x2, y2, radius);
+    const Obstacles::Rect r(name, prio, x1, y1, x2, y2, radius + m_radius);
     m_rectObstacles.push_back(r);
 }
 
 void WorldInformation::addTriangle(float x1, float y1, float x2, float y2, float x3, float y3, float lineWidth, const char *name, int prio)
 {
-    m_triangleObstacles.emplace_back(name, prio, lineWidth, Vector(x1, y1), Vector(x2, y2), Vector(x3, y3));
+    m_triangleObstacles.emplace_back(name, prio, lineWidth + m_radius, Vector(x1, y1), Vector(x2, y2), Vector(x3, y3));
 }
 
 void WorldInformation::collectObstacles()

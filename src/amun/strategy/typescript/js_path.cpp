@@ -246,11 +246,7 @@ static void pathTest(QTPath *wrapper, const FunctionCallbackInfo<Value>& args, i
         return;
     }
 
-    float radius;
-    if (!verifyNumber(args.GetIsolate(), args[1 + offset], radius)) {
-        return;
-    }
-    const bool ret = wrapper->path()->testSpline(spline, radius);
+    const bool ret = wrapper->path()->testSpline(spline);
     args.GetReturnValue().Set(Boolean::New(args.GetIsolate(), ret));
 
     wrapper->typescript()->addPathTime((Timer::systemTime() - t) / 1E9);
