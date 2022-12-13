@@ -513,15 +513,15 @@ BoundingBox Obstacles::MovingLine::boundingBox() const
 
 void Obstacles::MovingLine::serializeChild(pathfinding::Obstacle *obstacle) const
 {
-    auto circle = obstacle->mutable_moving_circle();
-    setVector(startPos1, circle->mutable_start_pos());
-    setVector(speed1, circle->mutable_speed());
-    setVector(acc1, circle->mutable_acc());
-    setVector(startPos2, circle->mutable_start_pos());
-    setVector(speed2, circle->mutable_speed());
-    setVector(acc2, circle->mutable_acc());
-    circle->set_start_time(startTime);
-    circle->set_end_time(endTime);
+    auto line = obstacle->mutable_moving_line();
+    setVector(startPos1, line->mutable_start_pos1());
+    setVector(speed1, line->mutable_speed1());
+    setVector(acc1, line->mutable_acc1());
+    setVector(startPos2, line->mutable_start_pos2());
+    setVector(speed2, line->mutable_speed2());
+    setVector(acc2, line->mutable_acc2());
+    line->set_start_time(startTime);
+    line->set_end_time(endTime);
 }
 
 bool Obstacles::MovingLine::operator==(const Obstacle &otherObst) const
