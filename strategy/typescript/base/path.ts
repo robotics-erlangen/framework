@@ -176,7 +176,7 @@ interface PathObjectRRT extends PathObjectCommon {
 	 * Tests a given path for collisions with any obstacle.
 	 * The spline is based on the global coordinate system!
 	 * @param path - minimum required corridor size
-	 * @param radius - radius
+	 * @param radius - radius (must be the robot radius)
 	 * @returns true if no collision is detected
 	 */
 	test(path: pb.robot.Spline, radius: number): boolean;
