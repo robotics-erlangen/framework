@@ -21,6 +21,8 @@
 #include "gtest/gtest.h"
 #include "path/trajectorypath.h"
 #include "core/rng.h"
+#include "core/protobuffilesaver.h"
+#include "core/protobuffilereader.h"
 
 #include <iostream>
 
@@ -63,4 +65,59 @@ TEST(TrajectoryPath, calculateTrajectory) {
 
         ASSERT_EQ(obstaclePoints->at(0).time, 0);
     }
+}
+
+TEST(TrajectoryPath, serialize) {
+
+    QString filename{"temp"};
+    QString fileStart{"TEST"};
+    ProtobufFileSaver saver(filename, fileStart);
+    TrajectoryPath path(1, &saver, pathfinding::InputSourceType::AllSamplers);
+    WorldInformation &world = path.world();
+    world.setRadius(0.07f);
+    world.setRobotId(5);
+    world.setBoundary(-3, -3, 3, 3);
+    world.setOutOfFieldObstaclePriority(91);
+
+    world.addCircle(1, 2, 3, nullptr, 4);
+    world.addLine(1, 2, 3, 4, 5, nullptr, 6);
+    world.addRect(1, 2, 3, 4, nullptr, 5, 6);
+    world.addTriangle(1, 2, 3, 4, 5, 6, 7, nullptr, 8);
+    world.addMovingCircle(Vector{0, 1}, Vector{2, 3}, Vector{0, 0.1}, 5, 6, 0.1, 8);
+    world.addMovingLine(Vector{5, 6}, Vector{7, 8}, Vector{9, 10}, Vector{11, 12}, Vector{13, 14}, Vector{15, 16}, 11, 12, 0.15, 42);
+    world.addOpponentRobotObstacle(Vector{3, 4}, Vector{5, 6}, 7);
+
+    std::vector<TrajectoryPoint> friendlyObstacle = {{{Vector{0, 0}, Vector{1, 1}}, 0}, {{Vector{2, 2}, Vector{0, 0}}, 1},
+                                                    {{Vector{3, 3}, Vector{1, 0}}, 2}, {{Vector{4, 4}, Vector{0, 1}}, 3}};
+    world.addFriendlyRobotTrajectoryObstacle(&friendlyObstacle, 9, 0.2f);
+
+    path.calculateTrajectory(Vector{0, 0}, Vector{1, 1}, Vector{2, 2}, Vector{3, 3}, 4, 5);
+
+    // otherwise the file could not be opened in the file reader
+    saver.close();
+
+    pathfinding::PathFindingTask situation;
+    ProtobufFileReader reader;
+    ASSERT_TRUE(reader.open(filename, fileStart));
+    ASSERT_TRUE(reader.readNext(situation));
+    ASSERT_TRUE(situation.has_state());
+
+    TrajectoryPath recPath{3, nullptr, pathfinding::InputSourceType::None};
+    WorldInformation &reconstructed = recPath.world();
+    reconstructed.deserialize(situation.state());
+
+    recPath.calculateTrajectory(Vector{0, 0}, Vector{1, 1}, Vector{2, 2}, Vector{3, 3}, 4, 5);
+
+    ASSERT_EQ(world.radius(), reconstructed.radius());
+    ASSERT_EQ(world.robotId(), reconstructed.robotId());
+    ASSERT_EQ(world.boundary(), reconstructed.boundary());
+    ASSERT_EQ(world.outOfFieldPriority(), reconstructed.outOfFieldPriority());
+
+    ASSERT_EQ(world.obstacles().size(), reconstructed.obstacles().size());
+
+    const auto &originalObstacles = world.obstacles();
+    const auto &reconstructedObstacles = reconstructed.obstacles();
+
+    ASSERT_TRUE(std::equal(originalObstacles.begin(), originalObstacles.end(), reconstructedObstacles.begin(),
+                           [](const Obstacles::Obstacle *a, const Obstacles::Obstacle *b) { return (*a) == (*b); }));
 }

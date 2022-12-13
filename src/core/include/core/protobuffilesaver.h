@@ -38,6 +38,8 @@ public:
     // may be called from any thread
     void saveMessage(const google::protobuf::Message &message);
 
+    void close() { m_file.close(); }
+
 private:
     void open();
 

@@ -55,6 +55,8 @@ namespace Obstacles {
             serializeChild(obstacle);
         }
         virtual void serializeChild(pathfinding::Obstacle *obstacle) const = 0;
+        virtual bool operator==(const Obstacle &other) const = 0;
+        bool operator!=(const Obstacle &other) const { return !(*this == other); }
 
         int prio;
         float radius;
@@ -99,6 +101,7 @@ namespace Obstacles {
         BoundingBox boundingBox() const override;
 
         void serializeChild(pathfinding::Obstacle *obstacle) const override;
+        bool operator==(const Obstacle &otherObst) const override;
 
     private:
         Vector center;
@@ -118,6 +121,7 @@ namespace Obstacles {
         BoundingBox boundingBox() const override;
 
         void serializeChild(pathfinding::Obstacle *obstacle) const override;
+        bool operator==(const Obstacle &otherObst) const override;
 
         Vector bottomLeft;
         Vector topRight;
@@ -135,6 +139,7 @@ namespace Obstacles {
         BoundingBox boundingBox() const override;
 
         void serializeChild(pathfinding::Obstacle *obstacle) const override;
+        bool operator==(const Obstacle &otherObst) const override;
 
     private:
         Vector p1, p2, p3;
@@ -152,6 +157,7 @@ namespace Obstacles {
         BoundingBox boundingBox() const override;
 
         void serializeChild(pathfinding::Obstacle *obstacle) const override;
+        bool operator==(const Obstacle &otherObst) const override;
 
     private:
         LineSegment segment;
@@ -165,6 +171,7 @@ namespace Obstacles {
         BoundingBox boundingBox() const override;
 
         void serializeChild(pathfinding::Obstacle *obstacle) const override;
+        bool operator==(const Obstacle &otherObst) const override;
 
     private:
         Vector startPos;
@@ -183,6 +190,7 @@ namespace Obstacles {
         BoundingBox boundingBox() const override;
 
         void serializeChild(pathfinding::Obstacle *obstacle) const override;
+        bool operator==(const Obstacle &otherObst) const override;
 
     private:
         Vector startPos1;
@@ -213,6 +221,7 @@ namespace Obstacles {
         Vector projectOut(Vector v, float extraDistance) const override;
 
         void serializeChild(pathfinding::Obstacle *obstacle) const override;
+        bool operator==(const Obstacle &otherObst) const override;
 
     private:
         std::vector<TrajectoryPoint> *trajectory;
@@ -231,6 +240,7 @@ namespace Obstacles {
         BoundingBox boundingBox() const override;
 
         void serializeChild(pathfinding::Obstacle *obstacle) const override;
+        bool operator==(const Obstacle &otherObst) const override;
 
     private:
         Vector startPos;

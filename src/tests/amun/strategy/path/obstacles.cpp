@@ -87,6 +87,24 @@ TEST(Obstacles, Circle_BoundingBox) {
     ASSERT_EQ(b2.bottom, 0.5);
 }
 
+TEST(Obstacles, Circle_Equals) {
+    Circle c(nullptr, 1, 1, Vector(1, 2));
+    ASSERT_EQ(c, c);
+
+    Obstacle &a = c;
+    ASSERT_EQ(a, a);
+
+    Circle c2 = c;
+    c2.prio = 99;
+    ASSERT_NE(c, c2);
+
+    c2 = c; c2.radius = 99;
+    ASSERT_NE(c, c2);
+
+    Circle c3(nullptr, 1, 1, Vector(5, 5));
+    ASSERT_NE(c, c3);
+}
+
 TEST(Obstacles, Rect_Distance) {
     Rect r(nullptr, 0, 1, 1, 3, 2, 0);
     // boundary

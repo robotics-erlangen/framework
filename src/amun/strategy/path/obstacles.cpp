@@ -104,6 +104,12 @@ void Obstacles::Circle::serializeChild(pathfinding::Obstacle *obstacle) const
     setVector(center, obstacle->mutable_circle()->mutable_center());
 }
 
+bool Obstacles::Circle::operator==(const Obstacle &otherObst) const
+{
+    const Obstacles::Circle &other = dynamic_cast<const Obstacles::Circle&>(otherObst);
+    return prio == other.prio && radius == other.radius && center == other.center;
+}
+
 Obstacles::Line::Line(const pathfinding::Obstacle &obstacle, const pathfinding::LineObstacle &line) :
     StaticObstacle(obstacle),
     segment(deserializeVector(line.start()), deserializeVector(line.end()))
@@ -151,6 +157,12 @@ void Obstacles::Line::serializeChild(pathfinding::Obstacle *obstacle) const
     const auto line = obstacle->mutable_line();
     setVector(segment.start(), line->mutable_start());
     setVector(segment.end(), line->mutable_end());
+}
+
+bool Obstacles::Line::operator==(const Obstacle &otherObst) const
+{
+    const Obstacles::Line &other = dynamic_cast<const Obstacles::Line&>(otherObst);
+    return prio == other.prio && radius == other.radius && segment.start() == other.segment.start() && segment.end() == other.segment.end();
 }
 
 Obstacles::Rect::Rect() :
@@ -264,6 +276,12 @@ void Obstacles::Rect::serializeChild(pathfinding::Obstacle *obstacle) const
     setVector(bottomLeft, rect->mutable_bottom_left());
 }
 
+bool Obstacles::Rect::operator==(const Obstacle &otherObst) const
+{
+    const Obstacles::Rect &other = dynamic_cast<const Obstacles::Rect&>(otherObst);
+    return prio == other.prio && radius == other.radius && bottomLeft == other.bottomLeft && topRight == other.topRight;
+}
+
 Obstacles::Triangle::Triangle(const char *name, int prio, float radius, Vector a, Vector b, Vector c) :
     StaticObstacle(name, prio, radius)
 {
@@ -361,6 +379,11 @@ void Obstacles::Triangle::serializeChild(pathfinding::Obstacle *obstacle) const
     setVector(p3, tri->mutable_p3());
 }
 
+bool Obstacles::Triangle::operator==(const Obstacle &otherObst) const
+{
+    const Obstacles::Triangle &other = dynamic_cast<const Obstacles::Triangle&>(otherObst);
+    return prio == other.prio && radius == other.radius && p1 == other.p1 && p2 == other.p2 && p2 == other.p2;
+}
 
 
 // moving obstacles
@@ -428,6 +451,13 @@ void Obstacles::MovingCircle::serializeChild(pathfinding::Obstacle *obstacle) co
     circle->set_end_time(endTime);
 }
 
+bool Obstacles::MovingCircle::operator==(const Obstacle &otherObst) const
+{
+    const Obstacles::MovingCircle &other = dynamic_cast<const Obstacles::MovingCircle&>(otherObst);
+    return prio == other.prio && radius == other.radius && startPos == other.startPos && speed == other.speed
+            && acc == other.acc && startTime == other.startTime && endTime == other.endTime;
+}
+
 Obstacles::MovingLine::MovingLine(int prio, float radius, Vector start1, Vector speed1, Vector acc1,
            Vector start2, Vector speed2, Vector acc2, float t0, float t1) :
     Obstacle(prio, radius),
@@ -492,6 +522,14 @@ void Obstacles::MovingLine::serializeChild(pathfinding::Obstacle *obstacle) cons
     setVector(acc2, circle->mutable_acc());
     circle->set_start_time(startTime);
     circle->set_end_time(endTime);
+}
+
+bool Obstacles::MovingLine::operator==(const Obstacle &otherObst) const
+{
+    const Obstacles::MovingLine &other = dynamic_cast<const Obstacles::MovingLine&>(otherObst);
+    return prio == other.prio && radius == other.radius && startPos1 == other.startPos1 && speed1 == other.speed1
+            && acc1 == other.acc1 && startPos2 == other.startPos2 && speed2 == other.speed2
+            && acc2 == other.acc2 && startTime == other.startTime && endTime == other.endTime;
 }
 
 Obstacles::FriendlyRobotObstacle::FriendlyRobotObstacle() :
@@ -621,6 +659,16 @@ void Obstacles::FriendlyRobotObstacle::serializeChild(pathfinding::Obstacle *obs
     }
 }
 
+bool Obstacles::FriendlyRobotObstacle::operator==(const Obstacle &otherObst) const
+{
+    const Obstacles::FriendlyRobotObstacle &other = dynamic_cast<const Obstacles::FriendlyRobotObstacle&>(otherObst);
+
+    if (prio != other.prio || radius != other.radius || trajectory->size() != other.trajectory->size()) return false;
+    return std::equal(trajectory->begin(), trajectory->end(), other.trajectory->begin(), [](TrajectoryPoint a, TrajectoryPoint b) {
+        return a.time == b.time && a.state.pos == b.state.pos && a.state.speed == b.state.speed;
+    });
+}
+
 Obstacles::OpponentRobotObstacle::OpponentRobotObstacle(int prio, float baseRadius, Vector start, Vector speed) :
     Obstacle(prio, baseRadius + ROBOT_RADIUS),
     startPos(start),
@@ -673,4 +721,10 @@ void Obstacles::OpponentRobotObstacle::serializeChild(pathfinding::Obstacle *obs
     const auto circle = obstacle->mutable_opponent_robot();
     setVector(startPos, circle->mutable_start_pos());
     setVector(speed, circle->mutable_speed());
+}
+
+bool Obstacles::OpponentRobotObstacle::operator==(const Obstacle &otherObst) const
+{
+    const Obstacles::OpponentRobotObstacle &other = dynamic_cast<const Obstacles::OpponentRobotObstacle&>(otherObst);
+    return prio == other.prio && radius == other.radius && startPos == other.startPos && speed == other.speed;
 }
