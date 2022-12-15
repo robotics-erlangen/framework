@@ -351,9 +351,11 @@ function _predictShot(allShots: boolean = false, includeInvisible: boolean = tru
 						bestPointOnLine = pointOnLine;
 					}
 				}
-				if (!allShots && Math.sin(robot.dir) > 0) {
+				const ignoredAngleRange = 0.7;
+				if(!allShots && Math.abs(geom.getAngleDiff(robot.dir, Math.PI / 2)) <= ignoredAngleRange) {
 					continue;
 				}
+
 				let ballRollTime = Physics.checkedBallRollTime(World.Ball, bestPointOnLine);
 				let offsetLength = Math.min(robot.shootRadius + World.Ball.radius, robot.pos.distanceTo(bestPointOnLine));
 				let catchPos = bestPointOnLine + (robot.pos - bestPointOnLine).withLength(offsetLength);
