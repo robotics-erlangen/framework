@@ -297,23 +297,7 @@ function _predictShot(allShots: boolean = false, includeInvisible: boolean = tru
 
 	let oppBallOwner = Ball.opponentBallOwner();
 	let oppBallDribbler = Ball.opponentBallDribbler();
-	if (oppBallDribbler && World.RefereeState !== "Stop") {
-		let rotCondNum = rotationConditionNumber();
-		isShot = !(rotCondNum !== undefined && rotCondNum > 1e-2);
-		isDribbling = true;
-		// NOTE: use World.Ball instead of futureBall is fine, as the shot is assumed to be imminent.
-		let relativeSpeedLength = World.Ball.speed - oppBallDribbler.speed;
-		let [dirx, diry] = Volley.calcVOutFromVOutAbs(Constants.maxBallSpeed, relativeSpeedLength.length(), oppBallDribbler.dir, relativeSpeedLength.angle(), "opp");
-		ballSpeed = (new Vector(dirx, diry) + oppBallDribbler.speed).normalized();
-		if (!allShots) {
-			vis.addCircle("o/goal: predictShot: dribbling robot", oppBallDribbler.pos, oppBallDribbler.radius, vis.colors.blue, false);
-			vis.addPath("o/goal: predictShot: dribbling robot", [oppBallDribbler.pos, oppBallDribbler.pos + ballSpeed * 10], vis.colors.blue);
-		}
-	} else if (oppBallOwner != undefined && Ball.isSlowBall()) {
-		// if opponent is close to ball use its orientation
-		ballSpeed = Vector.fromAngle(oppBallOwner.dir);
-		isDribbling = true;
-	} else if (!Ball.isSlowBall()) {
+	if (!Ball.isSlowBall()) {
 		// FIXME as the ball is moving also use pass check if it slightly misses the goal
 		// TODO check whether an opponent robot may deflect the ball inside the keeper area?
 		// check if there's a robot which may recieve the pass
@@ -352,7 +336,7 @@ function _predictShot(allShots: boolean = false, includeInvisible: boolean = tru
 					}
 				}
 				const ignoredAngleRange = 0.7;
-				if(!allShots && Math.abs(geom.getAngleDiff(robot.dir, Math.PI / 2)) <= ignoredAngleRange) {
+				if (!allShots && Math.abs(geom.getAngleDiff(robot.dir, Math.PI / 2)) <= ignoredAngleRange) {
 					continue;
 				}
 
@@ -418,6 +402,22 @@ function _predictShot(allShots: boolean = false, includeInvisible: boolean = tru
 			}
 		}
 		isShot = true;
+	} else if (oppBallDribbler && World.RefereeState !== "Stop") {
+		let rotCondNum = rotationConditionNumber();
+		isShot = !(rotCondNum !== undefined && rotCondNum > 1e-2);
+		isDribbling = true;
+		// NOTE: use World.Ball instead of futureBall is fine, as the shot is assumed to be imminent.
+		let relativeSpeedLength = World.Ball.speed - oppBallDribbler.speed;
+		let [dirx, diry] = Volley.calcVOutFromVOutAbs(Constants.maxBallSpeed, relativeSpeedLength.length(), oppBallDribbler.dir, relativeSpeedLength.angle(), "opp");
+		ballSpeed = (new Vector(dirx, diry) + oppBallDribbler.speed).normalized();
+		if (!allShots) {
+			vis.addCircle("o/goal: predictShot: dribbling robot", oppBallDribbler.pos, oppBallDribbler.radius, vis.colors.blue, false);
+			vis.addPath("o/goal: predictShot: dribbling robot", [oppBallDribbler.pos, oppBallDribbler.pos + ballSpeed * 10], vis.colors.blue);
+		}
+	} else if (oppBallOwner != undefined && Ball.isSlowBall()) {
+		// if opponent is close to ball use its orientation
+		ballSpeed = Vector.fromAngle(oppBallOwner.dir);
+		isDribbling = true;
 	} else {
 		// otherwise use center of directions to goal posts
 		// FIXME: check
