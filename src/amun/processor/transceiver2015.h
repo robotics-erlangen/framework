@@ -24,6 +24,7 @@
 
 #include "protobuf/command.h"
 #include "protobuf/status.h"
+#include "transceiverlayer.h"
 #include <QByteArray>
 #include <QObject>
 
@@ -33,7 +34,7 @@ class USBDevice;
 class USBThread;
 namespace Radio { class Address; }
 
-class Transceiver2015 : public QObject
+class Transceiver2015 : public TransceiverLayer
 {
     Q_OBJECT
 
@@ -51,28 +52,23 @@ public:
     explicit Transceiver2015(const Timer *timer, QObject *parent = nullptr);
     ~Transceiver2015() override;
 
-    bool isOpen() const {
+    bool isOpen() const final {
         return m_device && m_connectionState == State::CONNECTED;
     }
 
-    void newCycle() { m_packet.resize(0); }
+    void newCycle() final { m_packet.resize(0); }
 
-    bool open();
+    bool open() final;
 
-    void addSendCommand(const Radio::Address &target, size_t expectedResponseSize, const char *data, size_t len);
+    void addSendCommand(const Radio::Address &target, size_t expectedResponseSize, const char *data, size_t len) final;
 
-    void addPingPacket(qint64 time);
-    void addStatusPacket();
+    void addPingPacket(qint64 time) final;
+    void addStatusPacket() final;
 
-    void flush(qint64 time);
-signals:
-    void sendStatus(const Status &status);
-    void errorOccurred(const QString &errorMsg, qint64 restartDelayInNs = 0);
-    void sendRawRadioResponses(qint64 receiveTime, const QList<QByteArray> &rawResponses);
-    void deviceResponded();
+    void flush(qint64 time) final;
 
 public slots:
-    void handleCommand(const Command &command);
+    void handleCommand(const Command &command) final;
 
 private slots:
     void onReadyRead();

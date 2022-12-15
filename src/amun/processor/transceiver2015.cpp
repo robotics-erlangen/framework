@@ -40,7 +40,7 @@ typedef struct
 const int PROTOCOL_VERSION = 5;
 
 Transceiver2015::Transceiver2015(const Timer *timer, QObject *parent) :
-    QObject(parent),
+    TransceiverLayer(parent),
     m_timer(timer)
 {
     // default channel

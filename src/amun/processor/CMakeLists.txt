@@ -43,6 +43,7 @@ add_library(processor STATIC
     trackingreplay.cpp
     transceiver2015.cpp
     transceiver2015.h
+    transceiverlayer.h
 )
 target_link_libraries(processor
     PRIVATE shared::core

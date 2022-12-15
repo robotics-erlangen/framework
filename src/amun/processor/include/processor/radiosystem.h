@@ -29,7 +29,7 @@
 
 class QTimer;
 class Timer;
-class Transceiver2015;
+class TransceiverLayer;
 
 class RadioSystem : public QObject
 {
@@ -100,7 +100,7 @@ private:
     qint64 m_processingStart;
     int m_droppedCommands;
 
-    Transceiver2015 *m_transceiverLayer = nullptr;
+    TransceiverLayer *m_transceiverLayer = nullptr;
 };
 
 #endif // RADIOSYSTEM_H

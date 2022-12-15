@@ -129,7 +129,7 @@ void RadioSystem::handleTeam(const robot::Team &team)
 
 void RadioSystem::openTransceiver()
 {
-    Transceiver2015 *newTransceiver = [this]() -> Transceiver2015 * {
+    TransceiverLayer *newTransceiver = [this]() -> TransceiverLayer * {
         if (m_transceiverLayer) {
             return nullptr;
         }
@@ -140,10 +140,10 @@ void RadioSystem::openTransceiver()
     if (newTransceiver) {
         m_transceiverLayer = newTransceiver;
 
-        connect(m_transceiverLayer, &Transceiver2015::sendStatus, this, &RadioSystem::sendStatus);
-        connect(m_transceiverLayer, &Transceiver2015::errorOccurred, this, &RadioSystem::transceiverErrorOccurred);
-        connect(m_transceiverLayer, &Transceiver2015::sendRawRadioResponses, this, &RadioSystem::onRawRadioResponse);
-        connect(m_transceiverLayer, &Transceiver2015::deviceResponded, this, &RadioSystem::transceiverResponded);
+        connect(m_transceiverLayer, &TransceiverLayer::sendStatus, this, &RadioSystem::sendStatus);
+        connect(m_transceiverLayer, &TransceiverLayer::errorOccurred, this, &RadioSystem::transceiverErrorOccurred);
+        connect(m_transceiverLayer, &TransceiverLayer::sendRawRadioResponses, this, &RadioSystem::onRawRadioResponse);
+        connect(m_transceiverLayer, &TransceiverLayer::deviceResponded, this, &RadioSystem::transceiverResponded);
     }
 
     if (!m_transceiverLayer) {
