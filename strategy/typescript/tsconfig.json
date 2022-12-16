@@ -30,6 +30,7 @@
 	"exclude": [
 		"base/mixedteam.ts",
 		"base/table.ts",
-		"node_modules/**/*.ts"
+		"node_modules/**/*.ts",
+		"eslint-plugin-erforce/**"
 	]
 }

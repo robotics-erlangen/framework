@@ -239,8 +239,6 @@ std::ostream& printMessage(std::ostream& os, const Descriptor* desc) {
 std::ostream& generateProtobufTypings(std::ostream& os) {
     auto usedTypes = allUsedTypes();
 
-    os << "/* tslint:disable */" << std::endl << std::endl;
-
     for (auto desc : usedTypes.enums) {
         printEnum(os, desc);
     }
