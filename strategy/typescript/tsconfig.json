@@ -95,6 +95,7 @@
 		"glados/tutorials/t1Move/movestub.ts",
 		"glados/util/debug.ts",
 		"glados/util/io.ts",
-		"node_modules/**/*.ts"
+		"node_modules/**/*.ts",
+		"eslint-plugin-erforce/**"
 	]
 }

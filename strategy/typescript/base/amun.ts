@@ -8,8 +8,6 @@
  * This API may only be used by coded that provides a mapping between Amun and Strategy
  */
 
-/* tslint:disable:prefer-method-signature */
-
 /**************************************************************************
 *   Copyright 2015 Alexander Danzer, Michael Eischer, Philipp Nordhus     *
 *   Robotics Erlangen e.V.                                                *
