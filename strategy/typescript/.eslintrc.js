@@ -25,6 +25,7 @@ module.exports = {
         "eslint-plugin-jsdoc",
         "eslint-plugin-import",
         "eslint-plugin-unicorn",
+        "eslint-plugin-sonarjs",
         "@typescript-eslint",
         "@typescript-eslint/tslint"
     ],
@@ -458,6 +459,33 @@ module.exports = {
             }
         ],
         "use-isnan": "error",
+
+        "sonarjs/prefer-while": "error",
+        // "sonarjs/no-all-duplicated-branches": "error",
+        "sonarjs/no-element-overwrite": "error",
+        "sonarjs/no-empty-collection": "error",
+        "sonarjs/no-extra-arguments": "error",
+        "sonarjs/no-identical-conditions": "error",
+        // "sonarjs/no-identical-expressions": "error",
+        "sonarjs/no-ignored-return": "error",
+        "sonarjs/no-one-iteration-loop": "error",
+        "sonarjs/no-use-of-empty-return-value": "error",
+        "sonarjs/non-existent-operator": "error",
+        // "sonarjs/no-collapsible-if": "error",
+        "sonarjs/no-collection-size-mischeck": "error",
+        // "sonarjs/no-duplicated-branches": "error",
+        "sonarjs/no-gratuitous-expressions": "error",
+        // "sonarjs/no-identical-functions": "error",
+        "sonarjs/no-redundant-boolean": "error",
+        "sonarjs/no-redundant-jump": "error",
+        "sonarjs/no-same-line-conditional": "error",
+        // "sonarjs/no-unused-collection": "error",
+        // "sonarjs/prefer-single-boolean-return": "error",
+
+        // maybe keep this?
+        // "sonarjs/no-duplicate-string": "error",
+        // "sonarjs/prefer-immediate-return": "error",
+
         "@typescript-eslint/tslint/config": [
             "error",
             {
@@ -466,15 +494,11 @@ module.exports = {
                     // TODO not portable with no-restricted-syntax rule
                     // maybe write custom plugin for that
                     "no-unnecessary-callback-wrapper": true,
-                    // TODO maybe replace with eslint-plugin-sonarjs
-                    "prefer-while": true,
                     // TODO maybe replace with eslint rules
-                    // currently none found for these
+                    // currently none found for this
                     "whitespace": [
                         true,
-                        "check-type",
                         "check-typecast",
-                        "check-type-operator",
                     ]
                 }
             }
