@@ -210,8 +210,51 @@ static void saveResult(const std::vector<PrecomputationSegmentInfo> &segments, c
     fileSaver.saveMessage(data);
 }
 
+static void showTotalScore(std::vector<Situation> allSituations)
+{
+    const float FAILURE_SCORE = 5;
+    PathDebug debug;
+
+    RNG rng{1};
+
+    const int MAX_ROBOTS = 21;
+    std::vector<WorldInformation> worlds{MAX_ROBOTS, WorldInformation{}};
+    std::vector<StandardSampler> samplers;
+    for (int i = 0;i<MAX_ROBOTS;i++) {
+        samplers.emplace_back(&rng, worlds[i], debug, true);
+    }
+
+    int foundPath = 0;
+    int foundNoPath = 0;
+    float score = 0;
+    int counter = 0;
+    for (auto &sit : allSituations) {
+        rng.seed(++counter);
+
+        StandardSampler &sampler = samplers.at(sit.world.robotId());
+        WorldInformation &world = worlds.at(sit.world.robotId());
+        world = sit.world;
+        world.collectObstacles();
+        if (sampler.compute(sit.input)) {
+            foundPath++;
+
+            // TODO: use a better metric here
+            score += sampler.getScore();
+        } else {
+            foundNoPath++;
+        }
+    }
+
+    std::cout <<"Found soluation in "<<foundPath<<" / "<<allSituations.size()<<" situations"<<std::endl;
+    std::cout <<"Average score: "<<(score / foundPath)<<std::endl;
+    std::cout <<"Score with failures: "<<((score + FAILURE_SCORE * foundNoPath) / allSituations.size())<<std::endl;
+}
+
 void optimizeStandardSamplerPoints(const std::vector<Situation> &situations, const QString &outFilename)
 {
+    std::cout <<"Score of current precomputation:"<<std::endl;
+    showTotalScore(situations);
+
     auto seperated = checkPossible(situations);
     auto segmentedSituations = segmentSituations(seperated.first);
 

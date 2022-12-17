@@ -64,6 +64,7 @@ public:
     bool compute(const TrajectoryInput &input) final override;
     const std::vector<Trajectory> &getResult() const final override { return m_result; }
     void setDirectTrajectoryScore(float score) { m_directTrajectoryScore = score; }
+    float getScore() const { return m_bestResultInfo.time; }
 
     static constexpr float OBSTACLE_AVOIDANCE_RADIUS = 0.1f;
     static constexpr float OBSTACLE_AVOIDANCE_BONUS = 0.2f;

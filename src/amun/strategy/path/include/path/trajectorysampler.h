@@ -37,8 +37,6 @@ public:
         m_rng(rng),
         m_world(world),
         m_debug(debug) {}
-    TrajectorySampler(const TrajectorySampler &) = delete;
-    TrajectorySampler& operator=(const TrajectorySampler&) = delete;
 
     virtual ~TrajectorySampler() {}
     // returns true on finding a valid trajectory
