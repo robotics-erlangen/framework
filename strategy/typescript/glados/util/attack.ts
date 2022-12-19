@@ -201,6 +201,7 @@ const _defaultRatePass: PassRater = (robot, pass, earliestAttackTime, attackPosi
 	// rate angle shooter-goal-receiver
 	let shooterGoalReceiverAngle = (shootPos - G.OpponentGoal).absoluteAngleDiff(
 			pass.ballPos - G.OpponentGoal);
+	// eslint-disable-next-line sonarjs/no-identical-expressions
 	let shooterGoalReceiverRating = Rating.valueToRating(shooterGoalReceiverAngle, 0, 180 / 180 * Math.PI);
 	let shooterGoalReceiverWeight = 0.5;
 	rating = rating * (1 - shooterGoalReceiverWeight + shooterGoalReceiverWeight * shooterGoalReceiverRating);

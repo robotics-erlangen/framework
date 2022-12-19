@@ -122,7 +122,7 @@ export class PenaltyShootout extends Behavior {
 		let timeLeft = getKeeperTime(robot.pos + toleftPost, turntimeLeft, ball, keeper);
 		let timeRight = getKeeperTime(robot.pos + torightPost, turntimeRight, ball, keeper);
 
-		if (timeRight === 0 && timeRight === 0) {
+		if (timeRight === 0 && timeLeft === 0) {
 			return [false, 0, 0];
 		}
 		let weightLeft = timeLeft / (turntimeLeft + 0.2);

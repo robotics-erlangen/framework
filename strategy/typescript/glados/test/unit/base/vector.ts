@@ -103,6 +103,7 @@ export class BaseVector extends UnitTest {
 		this.assert_equal(vec_copy.y, 1);
 	}
 
+	/* eslint-disable sonarjs/no-identical-expressions */
 	private testIsNan() {
 		let vec = new Vector(0, 0);
 		this.assert_false(vec.isNan());
@@ -113,6 +114,7 @@ export class BaseVector extends UnitTest {
 		vec = new Vector(0, 0 / 0);
 		this.assert_true(vec.isNan());
 	}
+	/* eslint-enable sonarjs/no-identical-expressions */
 
 	private testLength() {
 		let vecLen = new Vector(3, -4);
