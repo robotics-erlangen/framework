@@ -50,7 +50,7 @@ export let FriendlyRobots: FriendlyRobot[] = [];
 /** Own robots which currently aren't tracked */
 export let FriendlyInvisibleRobots: FriendlyRobot[] = [];
 /** List of own robots with robot id as index */
-export let FriendlyRobotsById: {[index: number]: FriendlyRobot} = {};
+export let FriendlyRobotsById: { [index: number]: FriendlyRobot } = {};
 /** List of all own robots in an arbitary order */
 export let FriendlyRobotsAll: FriendlyRobot[] = [];
 /** Own keeper if on field or nil */
@@ -58,7 +58,7 @@ export let FriendlyKeeper: FriendlyRobot | undefined;
 /** List of opponent robots in an arbitary order */
 export let OpponentRobots: Robot[] = [];
 /** List of opponent robots with robot id as index */
-export let OpponentRobotsById: {[index: number]: Robot} = {};
+export let OpponentRobotsById: { [index: number]: Robot } = {};
 /** Opponent keeper if on field or nil */
 export let OpponentKeeper: Robot | undefined;
 /** Every visible robot in an arbitary order */
@@ -256,7 +256,7 @@ export function update() {
 
 /** Creates generation specific robot object for own team */
 export function _updateTeam(state: pb.robot.Team) {
-	let friendlyRobotsById: {[index: number]: FriendlyRobot} = {};
+	let friendlyRobotsById: { [index: number]: FriendlyRobot } = {};
 	let friendlyRobotsAll: FriendlyRobot[] = [];
 	for (let rdata of state.robot || []) {
 		let robot = new FriendlyRobot(rdata); // No generation types for now
@@ -328,18 +328,18 @@ function _updateGeometry(geom: pb.world.Geometry) {
 	wgeom.DefenseHeight = geom.defense_height != undefined ? geom.defense_height : geom.defense_radius;
 	wgeom.DefenseWidthHalf = (geom.defense_width != undefined ? geom.defense_width : geom.defense_stretch) / 2;
 
-	wgeom.FriendlyPenaltySpot = new Vector(0, - wgeom.FieldHeightHalf + geom.penalty_spot_from_field_line_dist);
+	wgeom.FriendlyPenaltySpot = new Vector(0, -wgeom.FieldHeightHalf + geom.penalty_spot_from_field_line_dist);
 	wgeom.OpponentPenaltySpot = new Vector(0, wgeom.FieldHeightHalf - geom.penalty_spot_from_field_line_dist);
 	wgeom.PenaltyLine = wgeom.OpponentPenaltySpot.y - geom.penalty_line_from_spot_dist;
 	wgeom.OwnPenaltyLine = wgeom.FriendlyPenaltySpot.y + geom.penalty_line_from_spot_dist;
 
 	// The goal posts are on the field lines
-	wgeom.FriendlyGoal = new Vector(0, - wgeom.FieldHeightHalf);
-	wgeom.FriendlyGoalLeft = new Vector(- wgeom.GoalWidth / 2, wgeom.FriendlyGoal.y);
+	wgeom.FriendlyGoal = new Vector(0, -wgeom.FieldHeightHalf);
+	wgeom.FriendlyGoalLeft = new Vector(-wgeom.GoalWidth / 2, wgeom.FriendlyGoal.y);
 	wgeom.FriendlyGoalRight = new Vector(wgeom.GoalWidth / 2, wgeom.FriendlyGoal.y);
 
 	wgeom.OpponentGoal = new Vector(0, wgeom.FieldHeightHalf);
-	wgeom.OpponentGoalLeft = new Vector(- wgeom.GoalWidth / 2, wgeom.OpponentGoal.y);
+	wgeom.OpponentGoalLeft = new Vector(-wgeom.GoalWidth / 2, wgeom.OpponentGoal.y);
 	wgeom.OpponentGoalRight = new Vector(wgeom.GoalWidth / 2, wgeom.OpponentGoal.y);
 
 	wgeom.BoundaryWidth = geom.boundary_width;
@@ -393,7 +393,7 @@ export function _updateWorld(state: pb.world.State) {
 	let dataFriendly = TeamIsBlue ? state.blue : state.yellow;
 	if (dataFriendly) {
 		// sort data by robot id
-		let dataById: {[id: number]: pb.world.Robot} = {};
+		let dataById: { [id: number]: pb.world.Robot } = {};
 		for (let rdata of dataFriendly) {
 			dataById[rdata.id] = rdata;
 		}
@@ -407,7 +407,7 @@ export function _updateWorld(state: pb.world.State) {
 			let robotResponses: pb.robot.RadioResponse[] = [];
 			for (let response of radioResponses) {
 				if (response.generation === robot.generation
-						&&  response.id === robot.id) {
+						&& response.id === robot.id) {
 					robotResponses.push(response);
 				}
 			}
@@ -465,7 +465,7 @@ export function _updateWorld(state: pb.world.State) {
 	return state.has_vision_data !== false;
 }
 
-let gameStageMapping: {[name: string]: string} = {
+let gameStageMapping: { [name: string]: string } = {
 	NORMAL_FIRST_HALF_PRE: "FirstHalfPre",
 	NORMAL_FIRST_HALF: "FirstHalf",
 	NORMAL_HALF_TIME: "HalfTime",
@@ -615,14 +615,14 @@ export function _updateUserInput(input: pb.amun.UserInput) {
 		// cache the movecommands for 0.3 seconds if it not there every frame
 		for (let robot of FriendlyRobotsAll) {
 			// < 0 for going back in logfiles while replaying
-			if (robot.moveCommand && (Time - robot.moveCommand.time > 0.3  ||
+			if (robot.moveCommand && (Time - robot.moveCommand.time > 0.3 ||
 					Time - robot.moveCommand.time < 0)) {
 				robot.moveCommand = undefined;
 			}
 		}
 		for (let cmd of input.move_command) {
 			if (FriendlyRobotsById[cmd.id]) {
-				FriendlyRobotsById[cmd.id].moveCommand = {time: Time, pos: Coordinates.toGlobal(new Vector(cmd.p_x || 0, cmd.p_y || 0))};
+				FriendlyRobotsById[cmd.id].moveCommand = { time: Time, pos: Coordinates.toGlobal(new Vector(cmd.p_x || 0, cmd.p_y || 0)) };
 			} else {
 				let teamColorString = TeamIsBlue ? "blue" : "yellow";
 				amunLocal.log(`<font color="red">WARNING: </font>please select robot ${cmd.id} for team ${teamColorString} for pulling it`);

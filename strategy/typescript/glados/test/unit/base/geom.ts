@@ -69,12 +69,12 @@ export class BaseGeom extends UnitTest {
 		{
 			let [ret4, l4] = geom.intersectCircleCircle(new Vector(0, 0), 2, new Vector(2, 0), 0);
 			this.assert_undefined(l4);
-			this.assert_equal_eps(ret4!.distanceToSq(new Vector(2,0)), 0, EPS);
-			this.assert_vector_equal(ret4, new Vector(2,0));
+			this.assert_equal_eps(ret4!.distanceToSq(new Vector(2, 0)), 0, EPS);
+			this.assert_vector_equal(ret4, new Vector(2, 0));
 		}
 		{
 			let [ret6, l6] = geom.intersectCircleCircle(new Vector(0, 0), 2, new Vector(2, 0), EPS);
-			this.assert_equal_eps(ret6!.distanceToSq(new Vector(2,0)), 0, EPS * EPS);
+			this.assert_equal_eps(ret6!.distanceToSq(new Vector(2, 0)), 0, EPS * EPS);
 		}
 		{
 			let [ret7, l7] = geom.intersectCircleCircle(new Vector(0, 0), 2, new Vector(2, 4), 1);
@@ -200,8 +200,8 @@ export class BaseGeom extends UnitTest {
 	}
 
 	private testGetTangesToCircle() {
-		let [tp1, tp2] = geom.getTangentsToCircle(new Vector(4,3), new Vector(0,0), 3);
-		if (tp1!.distanceToSq(new Vector(0,3)) > EPS) {
+		let [tp1, tp2] = geom.getTangentsToCircle(new Vector(4, 3), new Vector(0, 0), 3);
+		if (tp1!.distanceToSq(new Vector(0, 3)) > EPS) {
 			[tp2, tp1] = [tp1, tp2];
 		}
 		this.assert_vector_equal_eps(tp1, new Vector(0, 3), EPS);
@@ -215,7 +215,7 @@ export class BaseGeom extends UnitTest {
 		this.assert_vector_equal_eps(tp4, new Vector(3, 0), EPS);
 
 		let [tp5, tp6] = geom.getTangentsToCircle(new Vector(3, 0), new Vector(0, 0), 3);
-		this.assert_vector_equal_eps(tp5, new Vector(3,0), EPS);
+		this.assert_vector_equal_eps(tp5, new Vector(3, 0), EPS);
 		this.assert_undefined(tp6);
 
 		let [tp7, tp8] = geom.getTangentsToCircle(new Vector(2, 0), new Vector(0, 0), 3);
@@ -226,7 +226,7 @@ export class BaseGeom extends UnitTest {
 	private testGetInnerTangensToCircle() {
 		let [i1, t1, t2] = geom.getInnerTangentsToCircles(new Vector(0, 0), 3, new Vector(8, 0), 3);
 		this.assert_vector_equal_eps(i1, new Vector(4, 0), EPS);
-		let [s1, s2] = [ new Vector(9 / 4, -3 / 4 * Math.sqrt(7)), new Vector(9 / 4, 3 / 4 * Math.sqrt(7)) ];
+		let [s1, s2] = [new Vector(9 / 4, -3 / 4 * Math.sqrt(7)), new Vector(9 / 4, 3 / 4 * Math.sqrt(7))];
 		if (s1.distanceToSq(t1!) > EPS * EPS) {
 			[s1, s2] = [s2, s1];
 		}
@@ -433,7 +433,7 @@ export class BaseGeom extends UnitTest {
 		this.assert_equal(geom.bisectingAngle(piHalf, -piHalf), 0);
 
 		this.assert_equal(geom.bisectingAngle((pi / 4), -(pi / 4)), 0);
-		this.assert_equal(geom.bisectingAngle((pi * 3  / 4), -(pi * 3 / 4)), pi);
+		this.assert_equal(geom.bisectingAngle((pi * 3 / 4), -(pi * 3 / 4)), pi);
 		this.assert_equal(geom.bisectingAngle((pi * 3 / 4), (pi / 4)), (pi / 2));
 		this.assert_equal(geom.bisectingAngle(-(pi * 3 / 4), -(pi / 4)), -(pi / 2));
 

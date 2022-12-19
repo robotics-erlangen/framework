@@ -65,7 +65,7 @@ export class Support implements Group {
 		// update assignments if necessary
 		let updateAssignments = this._lastRobots == undefined || this._lastAssignments == undefined || robots.length !== this._lastRobots.length;
 		if (!updateAssignments) {
-			for (let i = 0;i < robots.length;i++) {
+			for (let i = 0; i < robots.length; i++) {
 				if (robots[i] !== (this._lastRobots as FriendlyRobot[])[i]) {
 					updateAssignments = true;
 					break;

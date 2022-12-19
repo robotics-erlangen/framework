@@ -45,7 +45,7 @@ interface MainattackerInfo {
 	file: string;
 	desiredMAId: number;
 	previousMAId: number;
-	parameters: {[id: number]: MainAttackerParameters};
+	parameters: { [id: number]: MainAttackerParameters };
 	robotsToTest: number[];
 	maxSpeed: number;
 }

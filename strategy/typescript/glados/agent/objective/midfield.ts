@@ -86,12 +86,12 @@ export class Midfield extends Objective {
 				zones.push({ boundaries, defaultPos });
 			}
 		} else {
-			const startBoundaries: SplitZone[] =  participants.length > 1
+			const startBoundaries: SplitZone[] = participants.length > 1
 				? [
 					{ boundaries: { left: TOTAL_LEFT, right: TOTAL_RIGHT, top: TOTAL_TOP, bottom: MIDFIELD_OFFENSIVE_SPLIT }, timesDivisible: 1 },
-					{ boundaries: { left: TOTAL_LEFT, right: TOTAL_RIGHT, top: MIDFIELD_OFFENSIVE_SPLIT, bottom: TOTAL_BOTTOM }, timesDivisible: 3},
+					{ boundaries: { left: TOTAL_LEFT, right: TOTAL_RIGHT, top: MIDFIELD_OFFENSIVE_SPLIT, bottom: TOTAL_BOTTOM }, timesDivisible: 3 },
 				]
-				: [{ boundaries: { left: TOTAL_LEFT, right: TOTAL_RIGHT, top: TOTAL_TOP, bottom: TOTAL_BOTTOM }, timesDivisible: 1}];
+				: [{ boundaries: { left: TOTAL_LEFT, right: TOTAL_RIGHT, top: TOTAL_TOP, bottom: TOTAL_BOTTOM }, timesDivisible: 1 }];
 			const newZones = this.splitZonesClosestToMainAttacker(mainAttackerPos, remainingZones - startBoundaries.length + 1, startBoundaries);
 
 			zones = zones.concat(newZones);

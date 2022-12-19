@@ -18,10 +18,10 @@ import { ToTarget } from "glados/trajectory/totarget";
 
 export class PenaltyShootoutGoal extends Task {
 	private _shoot: Shoot;
-	private _ball: {pos: Position; speed: Vector; radius: number};
+	private _ball: { pos: Position; speed: Vector; radius: number };
 	private _dest: Position;
 
-	constructor(behavior: Behavior, dest: Position, ball: {pos: Position; speed: Vector; radius: number} = World.Ball) {
+	constructor(behavior: Behavior, dest: Position, ball: { pos: Position; speed: Vector; radius: number } = World.Ball) {
 		super(behavior);
 		this._shoot = new Shoot(this);
 		// this._pos = pos;
@@ -31,7 +31,7 @@ export class PenaltyShootoutGoal extends Task {
 	run() {
 		let robot = this._robot;
 		let ball = this._ball;
-		let obstacleTable : PathHelper.PathHelperParameters = {
+		let obstacleTable: PathHelper.PathHelperParameters = {
 			ignoreBall: true,
 			ignorePass: true,
 			ignoreDefenseArea: true,
@@ -46,7 +46,7 @@ export class PenaltyShootoutGoal extends Task {
 		let pos = ball.pos + ball.speed * 0.5;
 		r = this._dest - robot.pos;
 		s = r.withLength(Const.maxBallSpeed) - ball.speed;
-		pos = pos + s.withLength(- robot.shootRadius - ball.radius);
+		pos = pos + s.withLength(-robot.shootRadius - ball.radius);
 		robot.trajectory.update(ToTarget, pos, s.angle(), undefined, ball.speed * 1.1);
 		robot.setDribblerSpeed(0.5);
 	}

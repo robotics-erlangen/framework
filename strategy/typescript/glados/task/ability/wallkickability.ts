@@ -31,7 +31,7 @@ export class WallkickAbility {
 		this._robot = robot;
 	}
 
-	_wallkick(restart : boolean) {
+	_wallkick(restart: boolean) {
 		let obstacleTable: PathHelper.PathHelperParameters = {
 			ignoreDefenseArea: true,
 			ignoreOpponentDefenseArea: true,
@@ -46,11 +46,11 @@ export class WallkickAbility {
 			}
 			if (this._firstBallPosWallkick.distanceTo(World.Ball.pos) > 0.1 || this._calculateOnce) {
 				if (usedBallPos.x > 0 && usedBallPos.y > this._placementPos.y) {
-					this._wallKickAngle = - WALLKICK_ANGLE_UP;
+					this._wallKickAngle = -WALLKICK_ANGLE_UP;
 				} else if (usedBallPos.x > 0 && usedBallPos.y < this._placementPos.y) {
 					this._wallKickAngle = WALLKICK_ANGLE_UP;
 				} else if (usedBallPos.x < 0 && usedBallPos.y > this._placementPos.y) {
-					this._wallKickAngle = - WALLKICK_ANGLE_DOWN;
+					this._wallKickAngle = -WALLKICK_ANGLE_DOWN;
 				} else if (usedBallPos.x < 0 && usedBallPos.y < this._placementPos.y) {
 					this._wallKickAngle = WALLKICK_ANGLE_DOWN;
 				}

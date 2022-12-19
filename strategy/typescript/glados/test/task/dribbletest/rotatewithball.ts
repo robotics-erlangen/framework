@@ -18,14 +18,14 @@ export class RotateWithBall extends Task {
 	private static _isInitialised: boolean = false;
 
 
-	private _rotationSpeed : number;
-	private _dribblerSpeed : number;
-	private _acceleration : number;
-	private _curRotationSpeed : number = 0;
+	private _rotationSpeed: number;
+	private _dribblerSpeed: number;
+	private _acceleration: number;
+	private _curRotationSpeed: number = 0;
 
-	private _lastTime : number = World.Time;
+	private _lastTime: number = World.Time;
 
-	private _finishedRound : boolean = true;
+	private _finishedRound: boolean = true;
 
 
 	constructor(behavior: Behavior, rotationSpeed: number, dribblerSpeed: number, acceleration: number) {
@@ -54,13 +54,13 @@ export class RotateWithBall extends Task {
 	public run() {
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, { ignorePass: true, ignoreBall: true, ignoreDefenseArea: true, ignoreOpponentDefenseArea: true });
 
-		let targetPosition : Position = World.Ball.pos;
+		let targetPosition: Position = World.Ball.pos;
 		let ownPosition: Position = this._robot.pos;
 		let offset = this._robot.shootRadius + World.Ball.radius;
-		let speed : Speed = new Vector(0, 0);
+		let speed: Speed = new Vector(0, 0);
 
-		let angle : number = (targetPosition - ownPosition).angle();
-		let robotRotation : number = this._robot.dir;
+		let angle: number = (targetPosition - ownPosition).angle();
+		let robotRotation: number = this._robot.dir;
 
 
 		if (robotRotation < (1 / 4) * Math.PI && this._finishedRound) {

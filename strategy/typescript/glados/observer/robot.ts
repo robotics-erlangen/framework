@@ -45,8 +45,8 @@ let opponentDynamics: RobotDynamics = {
 		aBrakePhiMax: 0,
 	}
 };
-let friendlyDynamics: RobotDynamics = {...opponentDynamics};
-friendlyDynamics.acceleration = {...friendlyDynamics.acceleration};
+let friendlyDynamics: RobotDynamics = { ...opponentDynamics };
+friendlyDynamics.acceleration = { ...friendlyDynamics.acceleration };
 
 export function estimateRobotDynamics() {
 	if (World.TimeDiff < 0.001) {
@@ -54,7 +54,7 @@ export function estimateRobotDynamics() {
 		return;
 	}
 
-	let nullVector = new Vector(0,0);
+	let nullVector = new Vector(0, 0);
 	let invTimeDiff = (1 / World.TimeDiff);
 	let currentLocalSpeed: Map<Robot, Speed> = new Map<Robot, Speed>();
 	let currentRotation: Map<Robot, number> = new Map<Robot, number>();
@@ -64,7 +64,7 @@ export function estimateRobotDynamics() {
 		thisRobotSpeed = new Vector(Math.abs(thisRobotSpeed.x), Math.abs(thisRobotSpeed.y));
 		let letRobotDir = Math.abs(robot.angularSpeed);
 		if (lastLocalSpeed.has(robot)) {
-			let accel = (thisRobotSpeed - <Speed> lastLocalSpeed.get(robot)) * invTimeDiff;  // classic derivative without smoothing
+			let accel = (thisRobotSpeed - <Speed> lastLocalSpeed.get(robot)) * invTimeDiff; // classic derivative without smoothing
 			accelerationSmoothed.set(robot, accel * alpha + (accelerationSmoothed.get(robot) || nullVector) * (1 - alpha)); // smoothed acceleration curve
 		}
 		if (lastRotation.has(robot)) {
@@ -348,8 +348,8 @@ export function timeAroundDefenseAreaByWay(robot: Robot, robotWay: number | unde
 	drivePoints.unshift(robot.pos);
 	drivePoints.push(<Position> targetPos);
 	let totalTime = 0;
-	let fakeRobot = {speed: robot.speed, maxSpeed: robot.maxSpeed, acceleration: robot.acceleration, pos: robot.pos};
-	for (let i = 1;i < drivePoints.length;i++) {
+	let fakeRobot = { speed: robot.speed, maxSpeed: robot.maxSpeed, acceleration: robot.acceleration, pos: robot.pos };
+	for (let i = 1; i < drivePoints.length; i++) {
 		fakeRobot.pos = drivePoints[i - 1];
 		let es = new Vector(0, 0);
 		if (i === drivePoints.length - 1 && endSpeed != undefined) {

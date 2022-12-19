@@ -37,6 +37,6 @@ export class Tutorial extends Task {
 		// each handler needs different parameters
 		// the needed parameters for a handler are listed in the update function of the respective file in "glados/trajectory"
 		// note that the function also returns something, although that is not relevant for this assignment
-		this._robot.trajectory.update(ToTarget, new Vector(0,0), this._dir, undefined, undefined);
+		this._robot.trajectory.update(ToTarget, new Vector(0, 0), this._dir, undefined, undefined);
 	}
 }

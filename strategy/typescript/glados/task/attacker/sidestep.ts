@@ -40,7 +40,7 @@ function draw(table: DebugTable) {
 	vis.addPath("sideStep", [t.ballPos, t.ballPos + t.ccw.withLength(t.ccwDist)], vis.fromTemperature(t.ccwRating));
 }
 
-type PassInfo = {target: FriendlyRobot; ballPos: Position; time: number};
+type PassInfo = { target: FriendlyRobot; ballPos: Position; time: number };
 
 export class SideStep extends Task {
 	private _debugTable: DebugTable;

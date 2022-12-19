@@ -69,7 +69,7 @@ interface Spline {
 }
 
 /** Splines, target position, time to reach the target */
-export type TrajectoryResult = [{spline: Spline[]}, Position, number];
+export type TrajectoryResult = [{ spline: Spline[] }, Position, number];
 
 /** Base class for trajectory planning */
 export abstract class TrajectoryHandler {

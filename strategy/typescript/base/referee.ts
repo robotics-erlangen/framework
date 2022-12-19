@@ -31,7 +31,7 @@ import * as vis from "base/vis";
 import * as World from "base/world";
 
 // states, in which we must keep a dist of 50cm
-const stopStates: {[state: string]: boolean} = {
+const stopStates: { [state: string]: boolean } = {
 	Stop: true,
 	KickoffDefensivePrepare: true,
 	KickoffDefensive: true,
@@ -42,48 +42,48 @@ const stopStates: {[state: string]: boolean} = {
 };
 
 // states in which the maximum speed is 1.5 m/s
-const slowDriveStates: {[state: string]: boolean} = {
+const slowDriveStates: { [state: string]: boolean } = {
 	Stop: true
 };
 
-const friendlyFreeKickStates: {[state: string]: boolean} = {
+const friendlyFreeKickStates: { [state: string]: boolean } = {
 	DirectOffensive: true,
 	IndirectOffensive: true
 };
 
-const opponentFreeKickStates: {[state: string]: boolean} = {
+const opponentFreeKickStates: { [state: string]: boolean } = {
 	DirectDefensive: true,
 	IndirectDefensive: true
 };
 
-const friendlyKickoffStates: {[state: string]: boolean} = {
+const friendlyKickoffStates: { [state: string]: boolean } = {
 	KickoffOffensivePrepare: true,
 	KickoffOffensive: true
 };
 
-const opponentKickoffStates: {[state: string]: boolean} = {
+const opponentKickoffStates: { [state: string]: boolean } = {
 	KickoffDefensivePrepare: true,
 	KickoffDefensive: true
 };
 
-const opponentPenaltyStates: {[state: string]: boolean} = {
+const opponentPenaltyStates: { [state: string]: boolean } = {
 	PenaltyDefensivePrepare: true,
 	PenaltyDefensive: true,
 	PenaltyDefensiveRunning: true
 };
 
-const friendlyPenaltyStates: {[state: string]: boolean} = {
+const friendlyPenaltyStates: { [state: string]: boolean } = {
 	PenaltyOffensivePrepare: true,
 	PenaltyOffensive: true,
 	PenaltyOffensiveRunning: true
 };
 
-const gameStates: {[state: string]: boolean} = {
+const gameStates: { [state: string]: boolean } = {
 	Game: true,
 	GameForce: true
 };
 
-const nonGameStages: {[state: string]: boolean} = {
+const nonGameStages: { [state: string]: boolean } = {
 	FirstHalfPre: true,
 	HalfTime: true,
 	SecondHalfPre: true,
@@ -185,7 +185,7 @@ export function isOffensiveCornerKick(): boolean {
 	let refState = World.RefereeState;
 	return (refState === "DirectOffensive" ||
 			refState === "IndirectOffensive")
-		&&  goalLine - ballPos.y < cornerDist
+		&& goalLine - ballPos.y < cornerDist
 		&& (leftLine - ballPos.x > -cornerDist || rightLine - ballPos.x < cornerDist);
 }
 
@@ -198,16 +198,16 @@ export function isDefensiveCornerKick(): boolean {
 	let refState = World.RefereeState;
 	return (refState === "DirectDefensive" ||
 		refState === "IndirectDefensive" || refState === "Stop")
-		&&  -goalLine - ballPos.y > -cornerDist
+		&& -goalLine - ballPos.y > -cornerDist
 		&& (leftLine - ballPos.x > -cornerDist || rightLine - ballPos.x < cornerDist);
 }
 
 /** Draw areas forbidden by the current referee command */
 export function illustrateRefereeStates() {
 	if (World.RefereeState === "PenaltyDefensivePrepare" || World.RefereeState === "PenaltyDefensive") {
-		vis.addPath("penaltyDistanceAllowed", [new Vector(-2,World.Geometry.OwnPenaltyLine), new Vector(2,World.Geometry.OwnPenaltyLine)], vis.colors.red);
+		vis.addPath("penaltyDistanceAllowed", [new Vector(-2, World.Geometry.OwnPenaltyLine), new Vector(2, World.Geometry.OwnPenaltyLine)], vis.colors.red);
 	} else if (World.RefereeState === "PenaltyOffensivePrepare" || World.RefereeState === "PenaltyOffensive") {
-		vis.addPath("penaltyDistanceAllowed", [new Vector(-2,World.Geometry.PenaltyLine), new Vector(2,World.Geometry.PenaltyLine)], vis.colors.red);
+		vis.addPath("penaltyDistanceAllowed", [new Vector(-2, World.Geometry.PenaltyLine), new Vector(2, World.Geometry.PenaltyLine)], vis.colors.red);
 	} else if (isStopState()) {
 		vis.addCircle("stopstateBallDist", World.Ball.pos, 0.5, vis.colors.redHalf, true);
 	}
@@ -250,7 +250,7 @@ let lastTouchPos: Position;
 let touchDist = World.Ball.radius + maxRobotRadius;
 let fieldHeightHalf = World.Geometry.FieldHeightHalf;
 let fieldWidthHalf = World.Geometry.FieldWidthHalf;
-let noBallTouchStates: {[name: string]: boolean} = {
+let noBallTouchStates: { [name: string]: boolean } = {
 	Halt: true,
 	Stop: true,
 	KickoffOffensivePrepare: true,
@@ -287,7 +287,7 @@ let lastFlightTime = 0;
 export function checkTouching() {
 	let ballPos = World.Ball.pos;
 	// only consider touches when playing
-	if (noBallTouchStates[World.RefereeState]  ||
+	if (noBallTouchStates[World.RefereeState] ||
 			Math.abs(ballPos.x) > fieldWidthHalf || Math.abs(ballPos.y) > fieldHeightHalf) {
 		return;
 	}

@@ -40,7 +40,7 @@ export class BaseField extends UnitTest {
 	}
 
 	public static getOverlays() {
-		return {"base/world": this.World, "base/referee": this.Referee};
+		return { "base/world": this.World, "base/referee": this.Referee };
 	}
 
 	private initHelper(ruleversion: string) {

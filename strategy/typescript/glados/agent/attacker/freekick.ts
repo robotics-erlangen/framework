@@ -91,7 +91,7 @@ export class FreeKick extends Behavior {
 			< distanceToBall + this._robot.radius + World.Ball.radius + 0.02;
 
 		this._dirty = ShootGoalUtil.updateTarget(this._robot, undefined, this._dirty, World.Ball.pos)[2];
-		const [shootgoalPossible,] = ShootGoalUtil.shootGoalPossible(this._robot, World.Ball.pos);
+		const [shootgoalPossible, _] = ShootGoalUtil.shootGoalPossible(this._robot, World.Ball.pos);
 
 		// prepare -> wait
 		if (this._state === State.Prepare && nearBall) {
@@ -108,7 +108,7 @@ export class FreeKick extends Behavior {
 			if (shootgoalPossible) {
 				this._state = State.ShootGoal;
 				this._passList = undefined;
-			} else if (timeRunningOut)  {
+			} else if (timeRunningOut) {
 				this._state = State.ShootGoal;
 			} else if (World.Time - <number> this._waitStartTime > MIN_WAIT_TIME) {
 				let passSuggestions = this._messaging.receive(MessageType.passSuggestion);
@@ -240,7 +240,7 @@ export class FreeKick extends Behavior {
 		}
 
 
-		type PassInfo = {target: FriendlyRobot; ballPos: Position; time: number};
+		type PassInfo = { target: FriendlyRobot; ballPos: Position; time: number };
 		if (this._passList != undefined && this._state === State.Pass) {
 			this._messaging.sendBroadcast(MessageType.passInfo, [<PassInfo> this._pass]);
 		} else if (this._passList != undefined) {
@@ -281,13 +281,13 @@ export class FreeKick extends Behavior {
 		switch (this._state) {
 			case State.Prepare:
 				this._messaging.sendBroadcast(MessageType.plannedAttackTime, Referee.lastStateChangeTime() + PASS_TIMEFRAME);
-				return [MoveToStaticBall, [ prepareRobotAngle, distanceToBall ], stateChanged];
+				return [MoveToStaticBall, [prepareRobotAngle, distanceToBall], stateChanged];
 			case State.ShootGoal:
-				return [ShootGoal, [ undefined, undefined, timeRunningOut, true]];
+				return [ShootGoal, [undefined, undefined, timeRunningOut, true]];
 			case State.Wait:
 			case State.PassPrepare:
 				this._messaging.sendBroadcast(MessageType.plannedAttackTime, Referee.lastStateChangeTime() + PASS_TIMEFRAME);
-				return [MoveToStaticBall, [ prepareRobotAngle ], stateChanged];
+				return [MoveToStaticBall, [prepareRobotAngle], stateChanged];
 			case State.Pass:
 				const pass = <Pass> this._pass;
 				if (this._task != undefined && this._task instanceof TaskPass) {

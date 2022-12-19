@@ -16,7 +16,7 @@ export function makeSingleTaskMove(task: any): typeof Move {
 		}
 
 		static canStart() {
-			return  true;
+			return true;
 		}
 
 		_canContinue() {

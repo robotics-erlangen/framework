@@ -66,7 +66,7 @@ export class GladosBehavior extends UnitTest {
 	private test_CheckableList_check() {
 		const CHECKABLE_A = mockCheckable("A", false);
 		const CHECKABLE_B = mockCheckable("B", true);
-		const list = new CheckableList(mockAgent("check"), [ CHECKABLE_A, CHECKABLE_B ]);
+		const list = new CheckableList(mockAgent("check"), [CHECKABLE_A, CHECKABLE_B]);
 		this.assert_true(list.check() instanceof CHECKABLE_B);
 	}
 
@@ -77,7 +77,7 @@ export class GladosBehavior extends UnitTest {
 		const agentOne = mockAgent("A");
 		const agentTwo = mockAgent("B");
 
-		const list = new CheckableList(agentOne, [ CHECKABLE_A ]);
+		const list = new CheckableList(agentOne, [CHECKABLE_A]);
 
 		this.assert_equal(list.agent(), agentOne);
 		this.assert_equal(list.check()!.agent(), agentOne);

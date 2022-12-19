@@ -174,7 +174,7 @@ export const updateTarget: UpdateTarget = Cache.forFrame((ownRobot, oldTarget, o
 	let dirtyCheckAngle = 2.5 / 180 * Math.PI + maxExtraAngle * Math.max(0, 1 - ballOwnershipDuration / TIME_UNTIL_MIN_ANGLE);
 	// log("dirtyCheckAngle: "+tostring(dirtyCheckAngle/Math.PI * 180))
 	let dirtyCheckAngleHysteresis = 0.3 * Math.PI / 180;
-	let dirty = targetWidth < dirtyCheckAngle - dirtyCheckAngleHysteresis  ||
+	let dirty = targetWidth < dirtyCheckAngle - dirtyCheckAngleHysteresis ||
 		(oldDirty && targetWidth < dirtyCheckAngle + dirtyCheckAngleHysteresis);
 
 	// search a second time if necessary

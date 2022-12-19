@@ -17,21 +17,21 @@ export class DribbleCircle extends Task {
 	private static _isFinished: boolean = false;
 	private static _isInitialised: boolean = false;
 
-	private _startPos : Position;
+	private _startPos: Position;
 
-	private _movementSpeed : number;
-	private _dribblerSpeed : number;
-	private _acceleration : number;
-	private _radius : number;
-	private _carpetFriction : number;
-	private _ballMass : number;
+	private _movementSpeed: number;
+	private _dribblerSpeed: number;
+	private _acceleration: number;
+	private _radius: number;
+	private _carpetFriction: number;
+	private _ballMass: number;
 
 
-	private _speed : Speed;
+	private _speed: Speed;
 
-	private _lastTime : number = World.Time;
+	private _lastTime: number = World.Time;
 
-	private _finishedRound : boolean = true;
+	private _finishedRound: boolean = true;
 
 
 	constructor(behavior: Behavior, movementSpeed: number, dribblerSpeed: number, acceleration: number, radius: number, carpetFriction: number, ballMass: number) {

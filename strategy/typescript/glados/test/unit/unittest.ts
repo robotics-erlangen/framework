@@ -5,9 +5,9 @@ import { Vector } from "base/vector";
 declare let path: any;
 
 export class UnitTest {
-	private tests: {[name: string]: [Function, [string, any][]]} = {};
+	private tests: { [name: string]: [Function, [string, any][]] } = {};
 
-	public static getOverlays(): {[moduleName: string]: any} {
+	public static getOverlays(): { [moduleName: string]: any } {
 		return {};
 	}
 
@@ -28,7 +28,7 @@ export class UnitTest {
 
 				log(`&nbsp;&nbsp;${name} :`);
 				let failedSubTests = 0;
-				for (let i = 0;i < situations.length;i++) {
+				for (let i = 0; i < situations.length; i++) {
 					let situationFileName = situations[i][0];
 					// eslint-disable-next-line @typescript-eslint/no-require-imports
 					const worldData = require(situationFileName).partialAmun;
@@ -45,13 +45,13 @@ export class UnitTest {
 						logMessages.push(values);
 					}
 
-					let worldOverlayedAmun = {...safeAmun, ...worldData, log: storingLog};
+					let worldOverlayedAmun = { ...safeAmun, ...worldData, log: storingLog };
 					amun = worldOverlayedAmun;
 					path = safePath;
 
 					// eslint-disable-next-line @typescript-eslint/no-require-imports
 					let [_, world, testFile] = require(["base/base", "base/world", currentFileName], true,
-						{"base/amun": fakeAmunModule, "base/error": {}});
+						{ "base/amun": fakeAmunModule, "base/error": {} });
 					world.update();
 					Cache.resetFrame();
 
@@ -122,7 +122,7 @@ export class UnitTest {
 			return true;
 		}
 		if (a instanceof Object && b instanceof Object) {
-			let allKeys: {[index: string]: boolean} = {};
+			let allKeys: { [index: string]: boolean } = {};
 			for (let key of Object.keys(a)) {
 				allKeys[key] = true;
 			}

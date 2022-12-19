@@ -33,13 +33,13 @@ function ballShotFastAtRobot(robot: FriendlyRobot): boolean {
 }
 
 export class CenterBack extends Task {
-	private _preliminaryCenterbackTarget: {pos: Position};
+	private _preliminaryCenterbackTarget: { pos: Position };
 	private _lookingToGoal: boolean = true;
 	private _obstacleTable: PathHelper.PathHelperParameters;
 	private _forceShoot: ForceShoot;
 
 	// centerbackTarget has to be updated by the caller
-	constructor(behavior: Behavior, centerbackTarget: {pos: Position}) {
+	constructor(behavior: Behavior, centerbackTarget: { pos: Position }) {
 		super(behavior);
 
 		if (centerbackTarget == undefined) {
@@ -74,9 +74,9 @@ export class CenterBack extends Task {
 
 		const hystAngle = 5 * Math.PI / 180;
 		let dir = toBallAngle;
-		if ((this._lookingToGoal && toBallAngle < toCornerLeftAngle + hystAngle  &&
-				toBallAngle > toCornerRightAngle + hystAngle)  ||
-				(toBallAngle < toCornerLeftAngle - hystAngle  &&
+		if ((this._lookingToGoal && toBallAngle < toCornerLeftAngle + hystAngle &&
+				toBallAngle > toCornerRightAngle + hystAngle) ||
+				(toBallAngle < toCornerLeftAngle - hystAngle &&
 				toBallAngle > toCornerRightAngle - hystAngle)) {
 			dir = toGoalAngle;
 			this._lookingToGoal = true;
@@ -93,10 +93,10 @@ export class CenterBack extends Task {
 		}
 		let chipActivationAngle = Math.PI / 6;
 		let isGame = World.RefereeState === "Game" || World.RefereeState === "GameForce";
-		if (isGame && toBallAngle > chipActivationAngle && toBallAngle < Math.PI - chipActivationAngle  &&
+		if (isGame && toBallAngle > chipActivationAngle && toBallAngle < Math.PI - chipActivationAngle &&
 				Vector.fromAngle(dir).absoluteAngleDiff(destinationPos - G.FriendlyGoal) < Math.PI
-					&&  World.Ball.pos.distanceTo(this._robot.pos) < 1
-					&&  this._robot.pos.distanceTo(destinationPos) < 1) {
+					&& World.Ball.pos.distanceTo(this._robot.pos) < 1
+					&& this._robot.pos.distanceTo(destinationPos) < 1) {
 			debug.set("chip", true);
 			this._forceShoot._doForceShoot();
 

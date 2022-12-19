@@ -11,7 +11,7 @@ import * as PathHelper from "glados/trajectory/pathhelper";
 
 
 
-const obstacleTable : PathHelper.PathHelperParameters = {
+const obstacleTable: PathHelper.PathHelperParameters = {
 	ignoreBall: true,
 	ignorePass: true,
 	ignoreDefenseArea: true,
@@ -19,10 +19,10 @@ const obstacleTable : PathHelper.PathHelperParameters = {
 };
 interface Ball {pos: Position; radius: number; speed: Speed; maxSpeed: number}
 export class MoveToBall extends Task {
-	private _ball : Ball;
-	private _viewdir : Vector;
-	private _startTime : AbsTime;
-	private _lastTime : RelTime | undefined;
+	private _ball: Ball;
+	private _viewdir: Vector;
+	private _startTime: AbsTime;
+	private _lastTime: RelTime | undefined;
 
 	constructor(behavior: Behavior, viewDir: Vector, ball: Ball = World.Ball) {
 		super(behavior);

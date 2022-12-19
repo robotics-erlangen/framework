@@ -2,7 +2,7 @@ import * as ListUtil from "base/listutil";
 import { FriendlyRobot } from "base/robot";
 
 import { Agent } from "glados/agent/base/agent";
-import { MessageType,  Messaging } from "glados/control/messaging";
+import { MessageType, Messaging } from "glados/control/messaging";
 
 // sort in descending order
 function sortByRating(a1: Agent, a2: Agent): number {

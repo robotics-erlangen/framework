@@ -30,6 +30,6 @@ export class Piggy extends Behavior {
 
 		debug.set("target", this._opp.id);
 
-		return [PiggyTask, [ this._opp ], restartTask];
+		return [PiggyTask, [this._opp], restartTask];
 	}
 }

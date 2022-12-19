@@ -8,7 +8,7 @@ import { MessageBox, MessageType } from "glados/control/messaging";
 import { MoveToPos } from "glados/task/shared/movetopos";
 import * as Rating from "glados/util/rating";
 
-const USE_EXCHANGE_POS_UP =  true;
+const USE_EXCHANGE_POS_UP = true;
 const EXCHANGE_POSITION_DOWN = new Vector(World.Geometry.FieldWidthHalf, 0); // false
 const EXCHANGE_POS_UP = new Vector(-World.Geometry.FieldWidthHalf, 0); // true
 
@@ -34,7 +34,7 @@ export class Exchange extends Behavior {
 		let rating = rateRobot(this._robot, this._messaging);
 		let ratingArg: Rating.LeveledRating = new Rating.LeveledRating(MessageType.exchangeRobot);
 		ratingArg.setRating(0, rating);
-		this._messaging.sendToTrainerRepeated(MessageType.exclusiveRole, [ MessageType.exchangeRobot, ratingArg ]);
+		this._messaging.sendToTrainerRepeated(MessageType.exclusiveRole, [MessageType.exchangeRobot, ratingArg]);
 
 		return this._messaging.receiveTrainer(MessageType.exchangeRobot) === this._robot
 			? this
@@ -54,7 +54,7 @@ export class Exchange extends Behavior {
 			 */
 			this._applyForMainAttacker(undefined, undefined, -Infinity);
 		}
-		amun.setRobotExchangeSymbol(this._robot.generation, this._robot.id,true);
+		amun.setRobotExchangeSymbol(this._robot.generation, this._robot.id, true);
 		return [MoveToPos, [{ pos: exchangePos }]];
 	}
 }

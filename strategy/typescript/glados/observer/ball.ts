@@ -41,9 +41,9 @@ function _opponentBallDribbler(): Robot | undefined {
 		let direction = Vector.fromAngle(robot.dir);
 		if (robot.speed.distanceTo(World.Ball.speed) < MAX_SPEED_DIFF
 				&& (slowBall || robot.speed.angleDiff(World.Ball.speed) < MAX_ANGLE_TO_BALL_SPEED)
-				&&  distance < MAX_DISTANCE && distance < bestDist
-				&&  World.Ball.posZ < 0.1
-				&&  direction.absoluteAngleDiff(World.Ball.pos - robot.pos) < MAX_ANGLE_TO_BALL_POS) {
+				&& distance < MAX_DISTANCE && distance < bestDist
+				&& World.Ball.posZ < 0.1
+				&& direction.absoluteAngleDiff(World.Ball.pos - robot.pos) < MAX_ANGLE_TO_BALL_POS) {
 			bestRobot = robot;
 			bestDist = distance;
 		}
@@ -63,7 +63,7 @@ export function ballHeadingForGoal(ball: Ball, ownGoal: boolean): boolean {
 	let friendlyFactor = ownGoal ? 1 : -1;
 	let goalCenter = ownGoal ? World.Geometry.FriendlyGoal : World.Geometry.OpponentGoal;
 	let [_, lambda] = geom.intersectLineLine(goalCenter, new Vector(1, 0), ball.pos, ball.speed);
-	return lambda != undefined &&  Math.abs(lambda) < World.Geometry.GoalWidth / 2 + 0.2 && World.Ball.speed.y * friendlyFactor < 0;
+	return lambda != undefined && Math.abs(lambda) < World.Geometry.GoalWidth / 2 + 0.2 && World.Ball.speed.y * friendlyFactor < 0;
 }
 
 
@@ -137,7 +137,7 @@ function getBallOwner(robotlist: Robot[], lastBallOwner?: Robot) {
 
 	// set new lastBallOwner or null, if no robot is near ball
 	if ((minDist + BALL_OWN_HYSTERESIS) < lastDist
-			||  (ballOwner == undefined &&  lastDist >= ballOwnDistance + BALL_OWN_HYSTERESIS)) {
+			|| (ballOwner == undefined && lastDist >= ballOwnDistance + BALL_OWN_HYSTERESIS)) {
 		lastBallOwner = ballOwner;
 	}
 
@@ -195,7 +195,7 @@ function updateFriendlyBallOwnershipTime() {
 		friendlyBallOwnershipTime = 0;
 		curFriendlyBallOwnershipDuration = 0;
 	} else if (friendlyBallOwnershipTime === 0 && friendlyBallOwnerTime() > opponentBallOwnerTime()
-			&&  lastStateChangeTime != undefined && lastStateChangeTime < friendlyBallOwnerTime()) {
+			&& lastStateChangeTime != undefined && lastStateChangeTime < friendlyBallOwnerTime()) {
 		friendlyBallOwnershipTime = friendlyBallOwnerTime();
 	} else if (friendlyBallOwnershipTime !== 0) {
 		curFriendlyBallOwnershipDuration = World.Time - friendlyBallOwnershipTime;
@@ -558,7 +558,7 @@ function updateBallPlacementRobots() {
 		return;
 	}
 	for (let r of World.OpponentRobots) {
-		if (r.pos.distanceTo(getRealisticBallPos()) < (BP_CLOSE_DIS + World.Ball.radius + r.radius)  && r.speed.lengthSq() < BP_SLOW_SPEED_SQ) {
+		if (r.pos.distanceTo(getRealisticBallPos()) < (BP_CLOSE_DIS + World.Ball.radius + r.radius) && r.speed.lengthSq() < BP_SLOW_SPEED_SQ) {
 			insertElement(r, ballPlacementRobots);
 		}
 		if (r.pos.distanceToSq(getRealisticBallPos()) > BP_FAR_DIS_SQ || r.speed.lengthSq() > BP_FAST_SPEED_SQ) {
@@ -603,7 +603,7 @@ const numberOfMeasurements = 6;
 /** Used to index the last <numberOfMeasurements> measured positions and speeds */
 let lastIndex = 0;
 let standardVector = new Vector(0, 0);
-let lastBallPositions : Vector[] = new Array(numberOfMeasurements);
+let lastBallPositions: Vector[] = new Array(numberOfMeasurements);
 let lastSpeedVectors: Vector[] = new Array(numberOfMeasurements);
 for (let i = 0; i < numberOfMeasurements; i++) {
 	lastBallPositions[i] = standardVector;
@@ -615,7 +615,7 @@ function updateIsStanding() {
 	// Randomly generarted noise speeds will statistically cancel each other out
 	// Speed vectors which point in the general same direction will add up
 	let condSameDirection = true;
-	let speedMean = new Vector(0,0);
+	let speedMean = new Vector(0, 0);
 	for (let i = 0; i < lastSpeedVectors.length; i++) {
 		speedMean = speedMean + lastSpeedVectors[i];
 	}
@@ -632,7 +632,7 @@ function updateIsStanding() {
 	lastIndex = (lastIndex + 1) % numberOfMeasurements;
 
 	// mean position
-	let positionMean = new Vector(0,0);
+	let positionMean = new Vector(0, 0);
 	for (let i = 0; i < lastBallPositions.length; i++) {
 		positionMean = positionMean + lastBallPositions[i];
 	}

@@ -176,7 +176,7 @@ export class DribbleChallenge extends HardwareChallengeBase {
 				params: [],
 				restart: false
 			});
-			return {assignments: taskAssignments};
+			return { assignments: taskAssignments };
 		}
 
 		if (this.left && this.getBallPosition().y - this.getCurrentGatePosition().y < -0.1) {
@@ -191,10 +191,10 @@ export class DribbleChallenge extends HardwareChallengeBase {
 
 		taskAssignments[this._robots[0]] = Assignment.create({
 			class: DribbleToPos,
-			params: [{pos: DribbleChallenge.currentTargetPosition, customObstacles: this.customObstacles, useCMA: true, ignoreDefaultObstacles: true}],
+			params: [{ pos: DribbleChallenge.currentTargetPosition, customObstacles: this.customObstacles, useCMA: true, ignoreDefaultObstacles: true }],
 			restart: restart
 		});
 
-		return {assignments: taskAssignments};
+		return { assignments: taskAssignments };
 	}
 }

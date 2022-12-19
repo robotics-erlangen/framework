@@ -15,7 +15,7 @@ interface RingBuffer {
 	outliers: Outliers;
 	[index: number]: number;
 }
-type ErrorTable = {[name: string]: number};
+type ErrorTable = { [name: string]: number };
 
 let errorTables = new Map<FriendlyRobot, ErrorTable>();
 let batteryTable: Map<FriendlyRobot, RingBuffer> = new Map<FriendlyRobot, RingBuffer>();
@@ -30,7 +30,7 @@ export function getAverageBatterySate(robot: FriendlyRobot): number {
 }
 
 function initBatteryTable(robot: FriendlyRobot) {
-	batteryTable.set(robot, {size: 0, next: 1, sum: 0, outliers: {size: 0, next: 1, sum: 0}});
+	batteryTable.set(robot, { size: 0, next: 1, sum: 0, outliers: { size: 0, next: 1, sum: 0 } });
 }
 
 function insertRingBuffer(ringbuffer: any, value: number) {
@@ -51,7 +51,7 @@ function insertRingBuffer(ringbuffer: any, value: number) {
 		ringbuffer.sum = ringbuffer.sum + value - ringbuffer[ringbuffer.next];
 	}
 	ringbuffer[ringbuffer.next] = value;
-	ringbuffer.next = ringbuffer.next + 1 %  BATTERY_TABLE_SIZE;
+	ringbuffer.next = ringbuffer.next + 1 % BATTERY_TABLE_SIZE;
 }
 
 function addBatteryState(robot: FriendlyRobot, newBatteryState: number) {
@@ -65,7 +65,7 @@ function addBatteryState(robot: FriendlyRobot, newBatteryState: number) {
 		if (Math.abs(avg - newBatteryState) > 0.2) {
 			if (robotBatteryTable!.outliers.size > 15) {
 				batteryTable[robot] = <any> robotBatteryTable!.outliers;
-				batteryTable[robot]!.outliers = {size: 0};
+				batteryTable[robot]!.outliers = { size: 0 };
 				addBatteryState(robot, newBatteryState);
 				return;
 			}
@@ -73,7 +73,7 @@ function addBatteryState(robot: FriendlyRobot, newBatteryState: number) {
 			return;
 		}
 	}
-	robotBatteryTable!.outliers = {size: 0};
+	robotBatteryTable!.outliers = { size: 0 };
 	insertRingBuffer(robotBatteryTable, newBatteryState);
 }
 
@@ -187,7 +187,7 @@ function updateSpeedError() {
 				} else if (!speedError.has(robot)) {
 					speedError[robot] = 1;
 				}
-			} else if (speedError.has(robot) && speedError[robot]! >= 10 && (speedError[robot]! <= 300  ||
+			} else if (speedError.has(robot) && speedError[robot]! >= 10 && (speedError[robot]! <= 300 ||
 				robot.speed.lengthSq() > halfSpeed * halfSpeed)) {
 				speedError[robot] = speedError[robot]! - 10;
 			}

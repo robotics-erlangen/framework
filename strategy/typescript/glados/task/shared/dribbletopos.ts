@@ -106,7 +106,7 @@ export class DribbleToPos extends Task {
 		let preliminaryTargetPos: Position;
 		let noObstaclesInArea = true;
 		if (!DribbleToPos.currentlyDribbling && this.obstacleToAvoid == undefined) {
-			preliminaryTargetPos = this.getBallPosition() + (this._robot.radius - World.Ball.radius) *  -directionRobotToBall;
+			preliminaryTargetPos = this.getBallPosition() + (this._robot.radius - World.Ball.radius) * -directionRobotToBall;
 
 			for (let obstacle of this.customObstacles) {
 				if (obstacle.type !== "circle" || !obstacle.name.startsWith("dribble")) {

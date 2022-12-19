@@ -27,7 +27,7 @@ const G = World.Geometry;
  * @param insertRobots - Set to true iff you want the robots included in its sector
  * @returns occupiedSectors All unsorted, unmerged occupied sectors
  */
-export function getOccupiedSectors<R extends {pos: Position; radius: number}>(viewPos: Position, robotList: R[],
+export function getOccupiedSectors<R extends { pos: Position; radius: number }>(viewPos: Position, robotList: R[],
 		startAngle: number, endAngle: number, insertRobots: boolean = false): Interval.Interval<R>[] {
 	if (endAngle < startAngle) { // normalize angles
 		endAngle = endAngle + 2 * Math.PI;
@@ -68,7 +68,7 @@ export function getOccupiedSectors<R extends {pos: Position; radius: number}>(vi
 	return occupiedSectors;
 }
 
-export function getFreeSectors<R extends {pos: Position; radius: number}>(viewPos: Position, robotList: R[],
+export function getFreeSectors<R extends { pos: Position; radius: number }>(viewPos: Position, robotList: R[],
 		startAngle: number, endAngle: number): Interval.Interval<R>[] {
 	if (endAngle < startAngle) { // normalize angles
 		endAngle = endAngle + 2 * Math.PI;
@@ -86,7 +86,7 @@ export function getFreeSectors<R extends {pos: Position; radius: number}>(viewPo
  * @param opp - True for opponent goal, false for friendly goal
  * @returns a List of free sectors [startAngle, endAngle] ascending by start angle
  */
-export function freeSectors<R extends {pos: Position; radius: number}>(viewPos: Position, robotList: R[], opp: boolean): Interval.Interval<R>[] {
+export function freeSectors<R extends { pos: Position; radius: number }>(viewPos: Position, robotList: R[], opp: boolean): Interval.Interval<R>[] {
 	if ((opp ? 1 : -1) * viewPos.y > G.FieldHeightHalf) {
 		// log("viewPos is behind the goal.")
 		return [];
@@ -108,7 +108,7 @@ export function freeSectors<R extends {pos: Position; radius: number}>(viewPos: 
  * @param opp - True for opponent goal, false for friendly goal
  * @returns The largest free sector
  */
-export function largestFreeSector<R extends {pos: Position; radius: number}>(viewPos: Position, robotList: R[], opp: boolean): Interval.Interval<R> | undefined {
+export function largestFreeSector<R extends { pos: Position; radius: number }>(viewPos: Position, robotList: R[], opp: boolean): Interval.Interval<R> | undefined {
 	let unoccupiedSectors = freeSectors(viewPos, robotList, opp); // get list of all unoccupied sectors
 	return Interval.getLargest(unoccupiedSectors);
 }
@@ -118,14 +118,14 @@ export function largestFreeSector<R extends {pos: Position; radius: number}>(vie
  * @param viewPos - Position from which the free angles should be found
  * @param robotList - All robot objects that should be considered
  */
-export function allFreeSectors<R extends {pos: Position; radius: number}>(viewPos: Position, robotList: R[]): Interval.Interval<R>[] {
+export function allFreeSectors<R extends { pos: Position; radius: number }>(viewPos: Position, robotList: R[]): Interval.Interval<R>[] {
 	let occupiedSectors = getOccupiedSectors(viewPos, robotList, 0, 2 * Math.PI);
 	// for i,sector in ipairs(occupiedSectors) do
 	// 	debug.set("osectors["+i+"]", "{"+sector[1]+", "+sector[2]+"}")
 	// end
 	let matching = undefined;
 	let deleted: number[] = [];
-	for (let i = 0;i < occupiedSectors.length;i++) {
+	for (let i = 0; i < occupiedSectors.length; i++) {
 		let sector = occupiedSectors[i];
 		if (sector[0] === 0) {
 			if (matching != undefined) {
@@ -151,7 +151,7 @@ export function allFreeSectors<R extends {pos: Position; radius: number}>(viewPo
 			}
 		}
 	}
-	for (let i = deleted.length;i >= 0;i--) {
+	for (let i = deleted.length; i >= 0; i--) {
 		occupiedSectors.splice(deleted[i], 1);
 	}
 	Interval.sort(occupiedSectors);
@@ -183,7 +183,7 @@ export function allFreeSectors<R extends {pos: Position; radius: number}>(viewPo
 		freeSectors = [];
 	}
 	// remove sectors that are broader than 2pi
-	for (let i = freeSectors.length - 1;i >= 0;i--) {
+	for (let i = freeSectors.length - 1; i >= 0; i--) {
 		if (Math.abs(freeSectors[i][1] - freeSectors[i][0]) > 2 * Math.PI) {
 			freeSectors.splice(i, 1);
 		}
@@ -209,7 +209,7 @@ function getInvisibleBallPrediction(): [Position | undefined, Speed | undefined,
 
 		// check if it is close to the defense area
 		const MAX_DEFENSE_DIST = 2.5;
-		if (Field.distanceToFriendlyDefenseArea(lastRawdataBallPos, 0) > MAX_DEFENSE_DIST  &&
+		if (Field.distanceToFriendlyDefenseArea(lastRawdataBallPos, 0) > MAX_DEFENSE_DIST &&
 				Field.distanceToFriendlyDefenseArea(World.Ball.pos, 0) > MAX_DEFENSE_DIST) {
 			return [];
 		}
@@ -375,8 +375,8 @@ function _predictShot(allShots: boolean = false, includeInvisible: boolean = tru
 				}
 
 				if (weightedDistance > 0) {
-					passReceivers.push({robot: robot, dist: weightedDistance, ballTime: ballRollTime,
-						catchPos: catchPos});
+					passReceivers.push({ robot: robot, dist: weightedDistance, ballTime: ballRollTime,
+						catchPos: catchPos });
 					if (!allShots) {
 						vis.addPath("o/goal: predictShot: to catch position", [robot.pos, catchPos], vis.colors.red);
 					}

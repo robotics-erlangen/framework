@@ -172,9 +172,9 @@ export class Shoot extends Behavior {
 		// consider chipping forward
 		let passRating = pass ? this._ratePass(this._robot, pass, earliestAttackTime, this._attackPosition, true) : 0;
 		if (ENABLE_PSEUDO_PASS && this._attackPosition && passRating < MIN_PASS_RATING
-				&&  Field.distanceToDefenseAreaSq(this._attackPosition, false) > 2
-				&&  World.Ball.speed.length() < 1
-				&&  Math.abs(this._attackPosition.y) < 5 / 6 * G.FieldWidthHalf) {
+				&& Field.distanceToDefenseAreaSq(this._attackPosition, false) > 2
+				&& World.Ball.speed.length() < 1
+				&& Math.abs(this._attackPosition.y) < 5 / 6 * G.FieldWidthHalf) {
 
 			const MIN_DISTANCE = 0.1;
 			const MAX_DISTANCE = 0.5;
@@ -203,8 +203,8 @@ export class Shoot extends Behavior {
 				let bestFreeAngle = 0;
 				let bestAttackPosition = undefined;
 				let currentPass = pass;
-				for (let dist = MIN_DISTANCE;dist <= MAX_DISTANCE;dist += DISTANCE_STEP) {
-					for (let angle = -CONE_WIDTH / 2;angle <= CONE_WIDTH / 2;angle += ANGLE_STEP) {
+				for (let dist = MIN_DISTANCE; dist <= MAX_DISTANCE; dist += DISTANCE_STEP) {
+					for (let angle = -CONE_WIDTH / 2; angle <= CONE_WIDTH / 2; angle += ANGLE_STEP) {
 						// check for possible goalshot opportunity
 						let newAttackPosition = this._attackPosition + Vector.fromPolar(attackAngle + angle, dist);
 						let [possible, freeAngle] = ShootGoalUtil.shootGoalPossible(this._robot, newAttackPosition);
@@ -223,7 +223,7 @@ export class Shoot extends Behavior {
 						let newPassRating = newPass ? this._ratePass(this._robot, newPass, earliestAttackTime, newAttackPosition, false) : 0;
 						if (newPassRating > bestRating && newPassRating > MIN_PASS_RATING) {
 							bestRating = newPassRating;
-							pass = {target: this._robot, ballPos: newAttackPosition, time: World.Time};
+							pass = { target: this._robot, ballPos: newAttackPosition, time: World.Time };
 							do_pseudopass = true;
 						}
 					}
@@ -437,7 +437,7 @@ export class Shoot extends Behavior {
 		// don't if it is the first or second frame after a suggestion, as this is a valid situation for CB to change the attack Position a lot
 		// two frames are necessary since prevAttackPosition is the attackposition from two frames ago, so the old executed task
 		if (this._attackPosition && this._prevAttackPosition
-				&&  this._attackPosition.distanceTo(this._prevAttackPosition) > 0.3 && this._decisionFrames > 2) {
+				&& this._attackPosition.distanceTo(this._prevAttackPosition) > 0.3 && this._decisionFrames > 2) {
 			debug.set("redeciding", `TRUE (attackPosition)${suffixDebugString}`);
 			return true;
 		}
@@ -526,7 +526,7 @@ export class Shoot extends Behavior {
 
 		// return shoot goal if the decision says so
 		if (this._decision.task === "shootgoal") {
-			return [ShootGoal, [ this._lastIncomingPassInfoPos ]];
+			return [ShootGoal, [this._lastIncomingPassInfoPos]];
 		}
 
 		// time the pass
@@ -563,7 +563,7 @@ export class Shoot extends Behavior {
 			// update target if the decision changed
 			// creating a new task instance would mess up catchBall
 			if (this._task != undefined && this._task instanceof Pass
-			&&  (this._decision.pos !== this._prevPassPos || Math.abs(this._decision.time - this._prevTime) > 0.1)) {
+			&& (this._decision.pos !== this._prevPassPos || Math.abs(this._decision.time - this._prevTime) > 0.1)) {
 				this._task.updateTarget(this._decision.target, this._decision.pos, chipOverride, this._decision.time, targetSpeed);
 				this._prevTime = this._decision.time;
 			}

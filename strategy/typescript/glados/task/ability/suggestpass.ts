@@ -41,7 +41,7 @@ export class SuggestPass {
 
 		anonymous = anonymous || false;
 		this._messaging.sendBroadcast(MessageType.passSuggestion,
-			{ ballPos: destBallPos, time: receiveTime , anonymous: anonymous, chip: chip, manual: false});
+			{ ballPos: destBallPos, time: receiveTime, anonymous: anonymous, chip: chip, manual: false });
 	}
 
 	_suggestPassRobotPosition(destRobotPos: Position, attackPos: Position = World.Ball.pos, relativeTime?: number,

@@ -65,7 +65,7 @@ export interface Checkable {
 }
 
 export abstract class Behavior implements Checkable {
-	protected get  _messaging(): MessageBox {
+	protected get _messaging(): MessageBox {
 		return this._agent.messaging();
 	}
 
@@ -192,7 +192,7 @@ export abstract class Behavior implements Checkable {
 	abstract _updateTask(): BaseTaskAssignment | typeof CONTINUE_TASK;
 
 	_applyForMainAttacker(target?: Position, endSpeedLength?: number, overrideRating?: number) {
-		this._mainAttackerParameters = [ target, endSpeedLength, overrideRating ];
+		this._mainAttackerParameters = [target, endSpeedLength, overrideRating];
 	}
 
 	mainAttackerParameters(activeBehavior?: Behavior): [MainAttackerParameters | undefined, boolean] {

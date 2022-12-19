@@ -86,11 +86,11 @@ export class BaseCoordinates extends UnitTest {
 	}
 
 	private testList(teamIsBlue: boolean) {
-		let list: [Vector, Vector, number] = [ new Vector(0, 1), new Vector(1, 2), Math.PI / 4 ];
+		let list: [Vector, Vector, number] = [new Vector(0, 1), new Vector(1, 2), Math.PI / 4];
 		let list2 = C.Coordinates.listToGlobal(list as any);
 
 		if (teamIsBlue) {
-			this.assert_deep_equal([ -list[0], -list[1], Math.PI * 5 / 4 ], list2);
+			this.assert_deep_equal([-list[0], -list[1], Math.PI * 5 / 4], list2);
 		} else {
 			this.assert_deep_equal(list, list2);
 		}

@@ -147,7 +147,7 @@ export class StopAttack extends Task {
 			let middleAngle = (boundedAngle + boundedOppDirection) / 2;
 			pos = ballPos + Vector.fromPolar(middleAngle, stopRadius);
 			// try to reflect the ball to the opponents goal
-			let hypotheticalBall = {pos: ballPos, speed: (pos - ballPos).withLength(Constants.maxBallSpeed), maxSpeed: Constants.maxBallSpeed, posZ: 0, initSpeedZ: 0, speedZ: 0};
+			let hypotheticalBall = { pos: ballPos, speed: (pos - ballPos).withLength(Constants.maxBallSpeed), maxSpeed: Constants.maxBallSpeed, posZ: 0, initSpeedZ: 0, speedZ: 0 };
 			let time = Physics.ballTravelTime(hypotheticalBall, (ballPos - pos).length());
 			let futureBall = Physics.ballAtTime(hypotheticalBall, time);
 			driveAngle = Volley.calcPhi(this._robot, futureBall.speed, pos, World.Geometry.OpponentGoal, Infinity)[0];

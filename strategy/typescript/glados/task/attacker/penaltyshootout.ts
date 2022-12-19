@@ -13,7 +13,7 @@ interface Ball {
 export class PenaltyShootout extends Task {
 	private _shoot: Shoot;
 
-	private _ball : Ball;
+	private _ball: Ball;
 
 	constructor(behavior: Behavior, ball: Ball) {
 		super(behavior);

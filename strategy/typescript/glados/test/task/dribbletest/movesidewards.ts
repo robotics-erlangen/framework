@@ -33,16 +33,16 @@ export class MoveSidewards extends Task {
 
 	private _currentState: State = State.GO_TO_X0;
 
-	private _movementSpeed : number;
-	private _dribblerSpeed : number;
-	private _acceleration : number;
+	private _movementSpeed: number;
+	private _dribblerSpeed: number;
+	private _acceleration: number;
 
-	private _x0ArrivalFlag : boolean = true;
-	private _topArrivalFlag : boolean = false;
-	private _botArrivalFlag : boolean = false;
-	private _x0ArrivalTime : number = 0;
-	private _topArrivalTime : number = 0;
-	private _botArrivalTime : number = 0;
+	private _x0ArrivalFlag: boolean = true;
+	private _topArrivalFlag: boolean = false;
+	private _botArrivalFlag: boolean = false;
+	private _x0ArrivalTime: number = 0;
+	private _topArrivalTime: number = 0;
+	private _botArrivalTime: number = 0;
 
 
 	constructor(behavior: Behavior, movementSpeed: number, dribblerSpeed: number, acceleration: number) {
@@ -68,7 +68,7 @@ export class MoveSidewards extends Task {
 	}
 
 	public run() {
-		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, { ignorePass: true, ignoreBall: true, ignoreDefenseArea: true, ignoreOpponentDefenseArea: true});
+		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, { ignorePass: true, ignoreBall: true, ignoreDefenseArea: true, ignoreOpponentDefenseArea: true });
 
 		let currentState = this._currentState;
 		this._currentState = this._getNextState(currentState);

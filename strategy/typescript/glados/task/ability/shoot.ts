@@ -194,7 +194,7 @@ export class Shoot {
 		}
 
 		if (!this._catchBallActive && robotTime < 0.7 && World.Ball.speed.lengthSq() > 0.3
-				&&  World.Ball.speed.dot(this._robot.pos - World.Ball.pos) > 0) {
+				&& World.Ball.speed.dot(this._robot.pos - World.Ball.pos) > 0) {
 			return false;
 		}
 
@@ -302,7 +302,7 @@ export class Shoot {
 	}
 
 	// returns if we should wait for the pass target and the attack time
-	private computePassTiming(targetPos: Position, targetTime: AbsTime | undefined, kickSpeed: number, futureBallPos: Position) : [boolean, number] {
+	private computePassTiming(targetPos: Position, targetTime: AbsTime | undefined, kickSpeed: number, futureBallPos: Position): [boolean, number] {
 		let ballTravelTime = undefined;
 		let waitWithShot = false;
 		if (targetTime != undefined) {
@@ -368,8 +368,8 @@ export class Shoot {
 
 		let hasBallSideOffset = this._directMovement ? 0.02 : 0;
 		this._directMovement = this._robot.hasBall(World.Ball, hasBallSideOffset, hasBallDistance)
-			&&  Math.abs(geom.normalizeAngle((World.Ball.pos - this._robot.pos).angle() - shootDir)) < maxSidewardsAngle
-			&&  Math.abs(geom.normalizeAngle(this._robot.dir - shootDir)) < maxOrientationAngle
+			&& Math.abs(geom.normalizeAngle((World.Ball.pos - this._robot.pos).angle() - shootDir)) < maxSidewardsAngle
+			&& Math.abs(geom.normalizeAngle(this._robot.dir - shootDir)) < maxOrientationAngle
 			&& !ballInDefense;
 
 		debug.set("Shoot/AngleError", geom.normalizeAngle(Math.abs(this._robot.dir - shootDir)) * 180 / Math.PI);
@@ -459,11 +459,11 @@ export class Shoot {
 		return shootBallPos;
 	}
 
-	private _calculateChaseFutureBall(targetPos: Position) : [Physics.BallLike, number] {
+	private _calculateChaseFutureBall(targetPos: Position): [Physics.BallLike, number] {
 		let dribblerOffset = (targetPos - World.Ball.pos).withLength(this._robot.shootRadius + World.Ball.radius);
 		let moveDest = World.Ball.pos - dribblerOffset;
 		let moveTime = moveDest.distanceTo(this._robot.pos) / Math.min(this._robot.speed.length(), 1);
-		let futureBall =  Physics.ballAtTime(World.Ball, moveTime);
+		let futureBall = Physics.ballAtTime(World.Ball, moveTime);
 		vis.addCircle("t/a/shoot chase future ball", futureBall.pos, 0.03, vis.colors.orange);
 		return [futureBall, moveTime];
 	}

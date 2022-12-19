@@ -11,7 +11,7 @@ import * as World from "base/world";
 
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
-import { ellipticDistance, getRealisticBallPos  } from "glados/observer/ball";
+import { ellipticDistance, getRealisticBallPos } from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 import * as ORobot from "glados/observer/robot";
 import { Dribble } from "glados/task/attacker/dribble";
@@ -28,27 +28,27 @@ const G = World.Geometry;
 const DISTANCE_TO_DEFENSE_AREA = 0.6; // the furthest we'll go before we shoot
 const DRIBBLING_DISTANCE = 0.035; // Ball and Robot must be at least this far apart to reset dribbling
 
-function getKeeperTime(post: Position, turntime: RelTime, ball: {pos: Position; speed: Speed; radius: number; maxSpeed: number}, keeper: Robot) {
+function getKeeperTime(post: Position, turntime: RelTime, ball: { pos: Position; speed: Speed; radius: number; maxSpeed: number }, keeper: Robot) {
 	let pos = ball.pos + ball.speed * turntime;
 	let startspeed = Const.maxBallSpeed - World.BallModel.FastBallDeceleration * turntime;
 	let shootdir = (post - pos).normalized();
 	let startpos = pos - shootdir * ((Const.maxBallSpeed + startspeed) / 2 * turntime);
 
-	let startBall = {pos: startpos, speed: shootdir * startspeed,
-		radius: ball.radius, maxSpeed: Const.maxBallSpeed};
+	let startBall = { pos: startpos, speed: shootdir * startspeed,
+		radius: ball.radius, maxSpeed: Const.maxBallSpeed };
 	if (ball.speed.lengthSq() > 3 * 3) {
 		startBall = ball;
 	}
 	vis.addPath("a/a/penaltyshootout: startBall", [startpos, pos], vis.colors.green);
 	vis.addPath("a/a/penaltyshootout: startBall", [pos, post], vis.colors.black);
-	let time: number = Physics.robotTimeToBall(keeper, startBall, G.OpponentGoal,0);
+	let time: number = Physics.robotTimeToBall(keeper, startBall, G.OpponentGoal, 0);
 	if (time !== Infinity) return 0;
 	let dir = shootdir.perpendicular();
 	let r = (keeper.pos - startpos).dot(dir);
 	let f = (r < 0 ? -1 : 1);
 	r = Math.max(f * r - Const.maxRobotRadius, 0.001);
 	let v = keeper.speed.dot(dir) * f;
-	let a = - keeper.acceleration.aSpeedupSMax;
+	let a = -keeper.acceleration.aSpeedupSMax;
 	time = (-v + Math.sqrt(v * v - 4 * a * r)) / (2 * a);
 	// }
 	return time;
@@ -63,8 +63,8 @@ export class PenaltyShootout extends Behavior {
 	private _baseDribblePos: Position = new Vector(0, G.FieldHeightHalf);
 	private _addX: number = 0;
 	private _state: string | undefined;
-	private _futureKeeper: {pos: Position; speed: Speed; radius: number} = {pos: G.OpponentGoal, speed: new Vector(0,0.1), radius: 0.09};
-	private _ball = {pos: getRealisticBallPos(), speed: World.Ball.speed, radius: World.Ball.radius, time: World.Time, maxSpeed: 0, quality: 1};
+	private _futureKeeper: { pos: Position; speed: Speed; radius: number } = { pos: G.OpponentGoal, speed: new Vector(0, 0.1), radius: 0.09 };
+	private _ball = { pos: getRealisticBallPos(), speed: World.Ball.speed, radius: World.Ball.radius, time: World.Time, maxSpeed: 0, quality: 1 };
 	private _dribblePos: Position | undefined = undefined;
 	private _shootPos: Position = G.OpponentGoal;
 
@@ -78,8 +78,8 @@ export class PenaltyShootout extends Behavior {
 		this._baseDribblePos = new Vector(0, G.FieldHeightHalf);
 		this._addX = 0;
 		this._state = undefined;
-		this._futureKeeper = {pos: G.OpponentGoal, speed: new Vector(0,0.1), radius: 0.09};
-		this._ball = {pos: getRealisticBallPos(), speed: World.Ball.speed, radius: World.Ball.radius, time: World.Time, maxSpeed: 0, quality: 1};
+		this._futureKeeper = { pos: G.OpponentGoal, speed: new Vector(0, 0.1), radius: 0.09 };
+		this._ball = { pos: getRealisticBallPos(), speed: World.Ball.speed, radius: World.Ball.radius, time: World.Time, maxSpeed: 0, quality: 1 };
 		this._dribblePos = undefined;
 	}
 
@@ -137,11 +137,11 @@ export class PenaltyShootout extends Behavior {
 		} else {
 			this._shootPos = robot.pos + toleftPost;
 		}
-		return [weight,timeRight,timeLeft];
+		return [weight, timeRight, timeLeft];
 	}
 	private _updateShootGoal() {
-		if (World.OpponentKeeper  &&  World.OpponentKeeper.pos) {
-			this._futureKeeper = {pos: World.OpponentKeeper.pos, speed: World.OpponentKeeper.speed, radius: World.OpponentKeeper.radius};
+		if (World.OpponentKeeper && World.OpponentKeeper.pos) {
+			this._futureKeeper = { pos: World.OpponentKeeper.pos, speed: World.OpponentKeeper.speed, radius: World.OpponentKeeper.radius };
 		}
 		let lastContact = this._contactPoint;
 		let addDistance = lastContact ? Math.max(0, lastContact.distanceTo(getRealisticBallPos()) - 0.5) * 3 : 0.2;
@@ -170,13 +170,13 @@ export class PenaltyShootout extends Behavior {
 			debug.pop();
 			vis.addCircle("a/a/penaltyshootout: futureKeeper", this._futureKeeper.pos, 0.1, vis.colors.green, false);
 
-			let [weight,tright,tleft] = this._checkFreeGoal();
+			let [weight, tright, tleft] = this._checkFreeGoal();
 			debug.push("Free Goal Criteria", String(weight));
 			debug.set("TimeRight", String(tright));
 			debug.set("TimeLeft", String(tleft));
 			debug.pop();
 
-			if (this._shootGoalFlag  ||  criteriaPos  ||  criteriaTime  ||  // criteriaAngle ||
+			if (this._shootGoalFlag || criteriaPos || criteriaTime || // criteriaAngle ||
 					(weight !== false && ellipticDistance(this._robot, this._ball.pos) < this._ball.radius + 0.02)) {
 				this._shootGoalFlag = true;
 			}
@@ -224,7 +224,7 @@ export class PenaltyShootout extends Behavior {
 		vis.addCircle("a/a/penalty: ball", ball.pos, 0.05, vis.colors.orchid, true);
 	}
 
-	_updateTask() : TaskAssignment<typeof ShootGoal> | TaskAssignment<typeof MoveToStaticBall> |
+	_updateTask(): TaskAssignment<typeof ShootGoal> | TaskAssignment<typeof MoveToStaticBall> |
 			TaskAssignment<typeof MoveToBall> | TaskAssignment<typeof StopAttack> |
 			TaskAssignment<typeof PenaltyChip> | TaskAssignment<typeof Dribble> |
 			TaskAssignment<typeof MoveToPos> {
@@ -238,7 +238,7 @@ export class PenaltyShootout extends Behavior {
 		debug.set("ShootGoalFlag", this._shootGoalFlag);
 		let lastContact = this._contactPoint;
 		let robotPos = this._robot.pos;
-		let freeway : number = this._state === "pass" ? 0.1 : 0;
+		let freeway: number = this._state === "pass" ? 0.1 : 0;
 		let distanceToContact;
 		if (lastContact) {
 			vis.addCircle("1test", lastContact, 1, vis.colors.green, false);
@@ -255,7 +255,7 @@ export class PenaltyShootout extends Behavior {
 			return [MoveToStaticBall, [Math.PI / 2, 0.1]];
 		} else if (distanceToContact > 1 - 0.05) {
 			// return [StopAttack];
-			return [ MoveToPos, [{
+			return [MoveToPos, [{
 				pos: World.Ball.pos - new Vector(0, 0.5),
 				dir: (new Vector(0, 1)).angle(),
 				useCMA: true
@@ -263,10 +263,10 @@ export class PenaltyShootout extends Behavior {
 		} else if (chipMode !== false) {
 			debug.set("chipMode", chipMode);
 			return [PenaltyChip, [this._ball, chipMode]];
-		} else if (!lastContact  ||  robotPos.distanceTo(this._ball.pos) > this._robot.radius + World.Ball.radius + freeway) {
+		} else if (!lastContact || robotPos.distanceTo(this._ball.pos) > this._robot.radius + World.Ball.radius + freeway) {
 			return [MoveToBall, [G.OpponentGoal - this._robot.pos]];
 		} else if (this._shootGoalFlag) {
-			return [ShootGoal,[this._shootPos, this._ball]];// , nil, true
+			return [ShootGoal, [this._shootPos, this._ball]];// , nil, true
 		} else {
 
 			this._state = "dribble";

@@ -40,7 +40,7 @@ export function parameterizeClass<
 	 * @see https://github.com/microsoft/TypeScript/issues/4890#issuecomment-141879451
 	 */
 	const castedCtor = ctor as new(head: HeadArg, ...tail: TailArgs) => object;
-	const parameterizedCtor =  class extends castedCtor {
+	const parameterizedCtor = class extends castedCtor {
 		constructor(head: HeadArg) {
 			super(head, ...tail);
 		}

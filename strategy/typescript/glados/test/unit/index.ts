@@ -6,7 +6,7 @@ import { pcall } from "base/trycatch";
 import "glados/test/unit/tests";
 import { UnitTest } from "glados/test/unit/unittest";
 
-const safeAmunFunctions : {[name: string]: boolean} = {
+const safeAmunFunctions: { [name: string]: boolean } = {
 	"getWorldState": true, "getGeometry": true, "getTeam": true, "isBlue": true,
 	"getGameState": true, "getUserInput": true, "getStrategyPath": true,
 	"getSelectedOptions": true, "getPerformanceMode": true, "isReplay": true,
@@ -14,7 +14,7 @@ const safeAmunFunctions : {[name: string]: boolean} = {
 	"luaRandom": true, "luaRandomSetSeed": true
 };
 
-let safeAmun: {[name: string]: any} = {};
+let safeAmun: { [name: string]: any } = {};
 
 function noOp() {}
 safeAmun = {};
@@ -26,7 +26,7 @@ for (let name in fullAmun) {
 	}
 }
 
-let safePathCopy = Object.freeze({...getOriginalPath()});
+let safePathCopy = Object.freeze({ ...getOriginalPath() });
 
 declare let path: any;
 
@@ -36,7 +36,7 @@ let fakeAmunModule = {
 };
 
 const testPrefix = "glados/test/unit/";
-const tests: {[name: string]: string} = {
+const tests: { [name: string]: string } = {
 	"BaseBall": `${testPrefix}base/ball`,
 	"BaseCache": `${testPrefix}base/cache`,
 	"BaseCoordinates": `${testPrefix}base/coordinates`,
@@ -79,12 +79,12 @@ function runTests(moduleNames: string[]) {
 		amun.luaRandomSetSeed(4711);
 		const testFunction = () => {
 			// eslint-disable-next-line @typescript-eslint/no-require-imports
-			let test: typeof UnitTest = require(module, true, {"base/amun": fakeAmunModule}).testClass;
+			let test: typeof UnitTest = require(module, true, { "base/amun": fakeAmunModule }).testClass;
 			let overlays = test.getOverlays();
 			if (Object.keys(overlays).length > 0) {
 				// if overlays are used, the environment has to be loaded again
 				// eslint-disable-next-line @typescript-eslint/no-require-imports
-				test = require(module, true, {"base/amun": fakeAmunModule, ...overlays}).testClass;
+				test = require(module, true, { "base/amun": fakeAmunModule, ...overlays }).testClass;
 			}
 			let testInstance = new test();
 			failedCounter += testInstance.runTests(log, module, fakeAmunModule, safePathCopy, safeAmun);

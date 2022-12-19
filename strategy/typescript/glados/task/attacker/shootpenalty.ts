@@ -53,7 +53,7 @@ export class ShootPenalty extends Task {
 	constructor(behavior: Behavior) {
 		super(behavior);
 		this._lookDir = "Right";
-		if (MathUtil.randomInt([1,2]) < 2) {
+		if (MathUtil.randomInt([1, 2]) < 2) {
 			this._lookDir = "Left";
 		}
 		this._waitTime = MathUtil.random() * 5 + 2;
@@ -78,12 +78,12 @@ export class ShootPenalty extends Task {
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
 		if (this._targetPos == undefined) {
 			let keeper = World.OpponentKeeper!;
-			let keeperInsideDefArea =  keeper != undefined && Field.isInOpponentDefenseArea(keeper.pos, keeper.radius);
+			let keeperInsideDefArea = keeper != undefined && Field.isInOpponentDefenseArea(keeper.pos, keeper.radius);
 			debug.set("keeperInsideDefArea", keeperInsideDefArea);
 			if (World.Time - this._startTime < this._waitTime) {
 				this._shoot._catchBall._catchBall(cornerPoint(this._lookDir), Constants.positionError + DIST_TO_BALL);
 				if (keeperInsideDefArea) { // detect random keeper movement
-					if ((keeper.speed.x > keeperMoveSpeedThreshold && this._lookDir === "Left")  ||
+					if ((keeper.speed.x > keeperMoveSpeedThreshold && this._lookDir === "Left") ||
 						(keeper.speed.x < -keeperMoveSpeedThreshold && this._lookDir === "Right")) {
 						log(`keeper x speed: ${keeper.speed.x}`);
 						this._targetPos = cornerPoint(this._lookDir);

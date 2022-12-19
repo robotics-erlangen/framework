@@ -150,7 +150,7 @@ export class PlaceBall extends Task {
 	private _wallKickTryTime: number | undefined = undefined;
 	private _wallkick: WallkickAbility;
 	private _restartWallkick: boolean = false;
-	private _firstPosWallkick: Vector = new Vector(0,0);
+	private _firstPosWallkick: Vector = new Vector(0, 0);
 
 	// Needed for back up
 	// True if the previous ball moving state was PUSH_TO_POS, false otherwise
@@ -184,11 +184,11 @@ export class PlaceBall extends Task {
 
 		vis.addCircle("PlaceBall/Placement Pos", this._placementPos, OFFSET_DISTANCE, vis.colors.orange);
 		if (this._placementOffsetAverage != undefined) {
-			vis.addPath("PlaceBall/Placement Pos", [ this._placementPos, this._placementPos + this._placementOffsetAverage ], vis.colors.black);
+			vis.addPath("PlaceBall/Placement Pos", [this._placementPos, this._placementPos + this._placementOffsetAverage], vis.colors.black);
 		}
 		vis.addCircle("PlaceBall/Border Pos", this._nearestFieldPos!, OFFSET_DISTANCE, vis.colors.orange);
 		if (this._borderOffsetAverage != undefined) {
-			vis.addPath("PlaceBall/Border Pos", [ this._nearestFieldPos!, this._nearestFieldPos! + this._borderOffsetAverage ], vis.colors.black);
+			vis.addPath("PlaceBall/Border Pos", [this._nearestFieldPos!, this._nearestFieldPos! + this._borderOffsetAverage], vis.colors.black);
 		}
 
 		let oldState = this._state;

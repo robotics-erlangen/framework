@@ -198,7 +198,7 @@ export class ShootGoal extends Task {
 
 			if (!disabled) {
 
-				let occupied = Goal.getOccupiedSectors(ballReceiptPos, World.OpponentRobots,  0, Math.PI, true); // TODO extrapolate them
+				let occupied = Goal.getOccupiedSectors(ballReceiptPos, World.OpponentRobots, 0, Math.PI, true); // TODO extrapolate them
 				Interval.sort(occupied);
 				Interval.merge(occupied);
 

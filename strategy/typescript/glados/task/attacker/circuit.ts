@@ -15,7 +15,7 @@ export class Circuit extends Task {
 	private _radius: number;
 	private _passPos: Position | undefined;
 	private _anonym: boolean;
-	private _obstacleTable : PathHelper.PathHelperParameters = {
+	private _obstacleTable: PathHelper.PathHelperParameters = {
 		ignorePass: true
 	};
 

@@ -38,6 +38,6 @@ export class PenaltyPassiveDefense extends Behavior {
 			}
 		];
 
-		return [MoveToPos, [{pos: pos, customObstacles: PENALTYOBSTACLE}], true];
+		return [MoveToPos, [{ pos: pos, customObstacles: PENALTYOBSTACLE }], true];
 	}
 }

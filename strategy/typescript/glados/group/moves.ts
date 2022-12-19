@@ -97,7 +97,7 @@ export class Moves implements Group {
 			}
 
 			if (candidates.length > 0) {
-				let index = MathUtil.randomInt([0,candidates.length - 1]);
+				let index = MathUtil.randomInt([0, candidates.length - 1]);
 				const chosenMove = candidates[index];
 				n_attackers = Math.min(numCandidateRobots, chosenMove.wantedMaxRobots(numCandidateRobots));
 				attackers = [];

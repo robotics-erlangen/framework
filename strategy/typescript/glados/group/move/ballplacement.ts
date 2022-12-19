@@ -95,10 +95,10 @@ export class BallPlacement extends Move {
 
 	private invisible: boolean = false;
 	private forceSetBackInvisible: boolean = false;
-	private setBackPosInvisible: Position = new Vector(0,0);
+	private setBackPosInvisible: Position = new Vector(0, 0);
 
 	private _wallKickTryTime: number | undefined = undefined;
-	private _firstPosWallkick: Vector = new Vector(0,0);
+	private _firstPosWallkick: Vector = new Vector(0, 0);
 
 	constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 		super(robots, messaging);
@@ -181,7 +181,7 @@ export class BallPlacement extends Move {
 				});
 				taskAssignments[this.SHOOTER] = Assignment.create({
 					class: PlaceBall,
-					params: [ Field.limitToField(BallObserver.getRealisticBallPos(), -TOLERANCE) ],
+					params: [Field.limitToField(BallObserver.getRealisticBallPos(), -TOLERANCE)],
 					restart: this._stateChanged
 				});
 
@@ -200,7 +200,7 @@ export class BallPlacement extends Move {
 					params: [{
 						pos: this._computedShooterPos,
 						ignoreDefaultObstacles: true,
-						customObstacles: [ EXTENDED_BALL_OBSTACLE ],
+						customObstacles: [EXTENDED_BALL_OBSTACLE],
 						ignoreBallPlacement: true,
 					}],
 					restart: true
@@ -247,7 +247,7 @@ export class BallPlacement extends Move {
 					intersection = Field.nextLineCut(BallObserver.getRealisticBallPos(), ballSpeed) || BallObserver.getRealisticBallPos();
 				}
 
-				vis.addPath("g/m/ballplacement", [ this.RECEIVER.pos, intersection, BallObserver.getRealisticBallPos() ], vis.colors.red);
+				vis.addPath("g/m/ballplacement", [this.RECEIVER.pos, intersection, BallObserver.getRealisticBallPos()], vis.colors.red);
 
 				// Stop moving if the ball is near the receiver
 				// We don't use halt because Halt could possibly stop the dribbler from spinning
@@ -342,7 +342,7 @@ export class BallPlacement extends Move {
 
 				taskAssignments[this.SHOOTER] = Assignment.create({
 					class: Wallkick,
-					params: [ this._ballPlacementPos],
+					params: [this._ballPlacementPos],
 					restart: this._stateChanged
 				});
 				taskAssignments[this.RECEIVER] = Assignment.create({
@@ -433,7 +433,7 @@ export class BallPlacement extends Move {
 				nextState = State.PULL_TO_FIELD;
 				if (Field.isInField(usedBallPos) &&
 						!(Field.isInFriendlyGoal(usedBallPos) || Field.isInOpponentGoal(usedBallPos))
-						&&  this.SHOOTER.pos.distanceTo(usedBallPos) > Constants.stopBallDistance / 3) {
+						&& this.SHOOTER.pos.distanceTo(usedBallPos) > Constants.stopBallDistance / 3) {
 					nextState = State.WAIT_FOR_BALL_STOP;
 				}
 
@@ -442,10 +442,10 @@ export class BallPlacement extends Move {
 			case State.GET_INTO_POSITION: {
 				nextState = State.GET_INTO_POSITION;
 				if (World.Ball.speed.length() > BALL_STOP_SPEED
-						||  usedBallPos.distanceTo(this._ballStartPos) > MAX_BALL_DISTANCE) {
+						|| usedBallPos.distanceTo(this._ballStartPos) > MAX_BALL_DISTANCE) {
 					nextState = State.WAIT_FOR_BALL_STOP;
 				} else if (this.SHOOTER.pos.distanceTo(this._computedShooterPos) < ARRIVED_DISTANCE
-						&&  this.RECEIVER.pos.distanceTo(this._computedReceiverPos) < ARRIVED_DISTANCE) {
+						&& this.RECEIVER.pos.distanceTo(this._computedReceiverPos) < ARRIVED_DISTANCE) {
 					nextState = State.EXECUTE_PASS;
 				}
 

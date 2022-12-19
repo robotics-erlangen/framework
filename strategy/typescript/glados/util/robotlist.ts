@@ -9,7 +9,7 @@ export let join: (listA: Robot[], listB: Robot[]) => Robot[] = Cache.forFrame(_j
 
 function _excludeRobot(list: Robot[], robot: Robot): Robot[] {
 	let result = list.slice();
-	for (let i = 0;i < list.length;i++) {
+	for (let i = 0; i < list.length; i++) {
 		let r = list[i];
 		if (r === robot) {
 			result.splice(i, 1);

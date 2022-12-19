@@ -19,7 +19,7 @@ import * as Attack from "glados/util/attack";
 import * as Defense from "glados/util/defense";
 
 export class HandleBall extends Behavior {
-	private _pass: {target?: FriendlyRobot; ballPos: Position; time: number} | undefined;
+	private _pass: { target?: FriendlyRobot; ballPos: Position; time: number } | undefined;
 	private _timeBegin: number | undefined = undefined;
 
 	_stop() {
@@ -84,7 +84,7 @@ export class HandleBall extends Behavior {
 						this._task.updateTarget(this._pass.target, this._pass.ballPos, true);
 					}
 					this._messaging.sendBroadcast(MessageType.passInfo, [{ target: this._pass.target,
-						ballPos: this._pass.ballPos, time: this._pass.time}]);
+						ballPos: this._pass.ballPos, time: this._pass.time }]);
 				}
 
 				return [

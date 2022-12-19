@@ -53,7 +53,7 @@ export class KickOffDefensive extends Move {
 
 	public static canStart(): boolean {
 		return World.RefereeState === "KickoffDefensivePrepare"
-				||  World.RefereeState === "KickoffDefensive";
+				|| World.RefereeState === "KickoffDefensive";
 	}
 
 	private _fallbackPos = [
@@ -69,8 +69,8 @@ export class KickOffDefensive extends Move {
 		super(robots, messaging);
 
 
-		let positions = [ new Vector(0, 0) ];
-		for (let i = 0;i < this._robots.length - 1;i++) {
+		let positions = [new Vector(0, 0)];
+		for (let i = 0; i < this._robots.length - 1; i++) {
 			positions.push(this._fallbackPos[i]);
 		}
 		this._assignments = MovesHelper.assignRobots(this._robots, positions);
@@ -78,7 +78,7 @@ export class KickOffDefensive extends Move {
 
 	_canContinue(): boolean {
 		return World.RefereeState === "KickoffDefensivePrepare"
-				||  World.RefereeState === "KickoffDefensive";
+				|| World.RefereeState === "KickoffDefensive";
 	}
 
 	_updateTasks(): MoveParameters {
@@ -91,14 +91,14 @@ export class KickOffDefensive extends Move {
 
 		if (this._robots.length > 1) {
 			if (this._targetLeft) {
-				taskAssignments[this._robots[this._assignments[1]]] = Assignment.create({ class: ManMark, params: [ this._targetLeft ], restart: restartLeft });
+				taskAssignments[this._robots[this._assignments[1]]] = Assignment.create({ class: ManMark, params: [this._targetLeft], restart: restartLeft });
 			} else {
 				taskAssignments[this._robots[this._assignments[1]]] = Assignment.create({ class: MoveToPos, params: [{ pos: this._fallbackPos[0] }] });
 			}
 		}
 		if (this._robots.length > 2) {
 			if (this._targetRight) {
-				taskAssignments[this._robots[this._assignments[2]]] = Assignment.create({ class: ManMark, params: [ this._targetRight ], restart: restartRight });
+				taskAssignments[this._robots[this._assignments[2]]] = Assignment.create({ class: ManMark, params: [this._targetRight], restart: restartRight });
 			} else {
 				taskAssignments[this._robots[this._assignments[2]]] = Assignment.create({ class: MoveToPos, params: [{ pos: this._fallbackPos[1] }] });
 			}

@@ -40,7 +40,7 @@ export class GetBallContact extends Task {
 
 	private _stateChangeTime = World.Time;
 
-	private _initDribblerSpeed : number;
+	private _initDribblerSpeed: number;
 
 	private _offset: number = this._robot.shootRadius + World.Ball.radius;
 

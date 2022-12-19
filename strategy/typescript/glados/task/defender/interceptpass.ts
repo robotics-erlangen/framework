@@ -54,7 +54,7 @@ function calculateInterceptPos(robot: FriendlyRobot): [Position | undefined, num
 	if (lastPositions.has(robot) && World.Ball.speed.lengthSq() > 0.5 * 0.5) {
 		const [lastPos, lastTime] = <[Position, number]> lastPositions[robot];
 		const [pos, dist] = lastPos.orthogonalProjection(World.Ball.pos, World.Ball.pos + World.Ball.speed);
-		if (dist > 0.2 || World.Time - lastTime > 0.5  ||
+		if (dist > 0.2 || World.Time - lastTime > 0.5 ||
 				World.Ball.speed.dot(lastPos - World.Ball.pos) < -0.1) {
 			lastPositions.delete(robot);
 		} else {
@@ -76,7 +76,7 @@ function calculateInterceptPos(robot: FriendlyRobot): [Position | undefined, num
 	let bestRating = -Infinity;
 	let bestRatingOppTime = Infinity;
 	let posTime: number | undefined;
-	for (let i = -1;i <= 10;i++) {
+	for (let i = -1; i <= 10; i++) {
 		let futureBallPos: Position | undefined;
 		let rating = 0;
 

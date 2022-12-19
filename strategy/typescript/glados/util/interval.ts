@@ -11,7 +11,7 @@ export function merge(sortedIntervals: AnyInterval[]) {
 	}
 	let currentInterval = sortedIntervals[0];
 	let n = 0;
-	for (let i = 1;i < sortedIntervals.length;i++) {
+	for (let i = 1; i < sortedIntervals.length; i++) {
 		let interval = sortedIntervals[i];
 		if (interval[0] <= currentInterval[1]) {
 			// join overlapping intervals
@@ -46,7 +46,7 @@ export function negate<T>(mergedIntervals: Interval<T>[], outerStart: number, ou
 	let chunkStart = outerStart; // end of previous sector
 	let negated: Interval<T>[] = [];
 
-	for (let i = 0;i < mergedIntervals.length;i++) {
+	for (let i = 0; i < mergedIntervals.length; i++) {
 		let interval = mergedIntervals[i];
 		if (interval[0] > chunkStart) {
 			negated.push([chunkStart, interval[0]]);

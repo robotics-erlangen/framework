@@ -28,18 +28,18 @@ export class RescueRobot extends Task {
 			this._rotation = geom.getAngleDiff(frontDir, backwardsDir);
 
 			// if field center is on the left while moving forward
-			if (geom.checkTriangleOrientation(this._robot.pos, this._robot.pos + Vector.fromAngle(backwardsDir), new Vector(0,0)) >= 0) {
+			if (geom.checkTriangleOrientation(this._robot.pos, this._robot.pos + Vector.fromAngle(backwardsDir), new Vector(0, 0)) >= 0) {
 				this._speeds = [
 					new Vector(1, 0), // forward
 					new Vector(-1, 0), // backward
 					new Vector(0, -1), // left
-					new Vector(0 , 1) // right
+					new Vector(0, 1) // right
 				];
 			} else {
 				this._speeds = [
 					new Vector(1, 0), // forward
 					new Vector(-1, 0), // backward
-					new Vector(0 , 1), // right
+					new Vector(0, 1), // right
 					new Vector(0, -1) // left
 				];
 			}

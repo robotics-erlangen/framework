@@ -202,7 +202,7 @@ export class BaseMathUtil extends UnitTest {
 	}
 
 	private testAverage() {
-		let array = [ 1, 2, 3, 4, 0 ];
+		let array = [1, 2, 3, 4, 0];
 		this.assert_equal(MathUtil.average(array), 2);
 		this.assert_equal(MathUtil.average(array, 0, 5), 2);
 		this.assert_equal(MathUtil.average(array, 1, 4), 3);
@@ -210,7 +210,7 @@ export class BaseMathUtil extends UnitTest {
 	}
 
 	private testVariance() {
-		let array = [ 1, 2, 3, 4, 0 ];
+		let array = [1, 2, 3, 4, 0];
 		this.assert_equal(MathUtil.variance(array), 2);
 		this.assert_equal(MathUtil.variance(array, 2), 2);
 		this.assert_equal(MathUtil.variance(array, undefined, 0, 5), 2);
@@ -292,7 +292,7 @@ export class BaseMathUtil extends UnitTest {
 	private testMultipleUniform() {
 		const runs = 1000;
 		MathUtil.randomseed(155);
-		let arr : number[][] = [];
+		let arr: number[][] = [];
 
 		for (let i = 0; i < 10; ++i) {
 			arr.push([]);
@@ -333,10 +333,10 @@ export class BaseMathUtil extends UnitTest {
 	private testIntegerDistribution() {
 		const runs = 10000;
 		MathUtil.randomseed(155);
-		this.kSTest(runs, () => MathUtil.randomInt([1, 6]), integerDistribution(1,6));
-		this.kSTest(runs, () => MathUtil.randomInt([3, 6]), integerDistribution(3,6));
-		this.kSTest(runs, () => MathUtil.randomInt([3, 60]), integerDistribution(3,60));
-		this.kSTest(runs, () => MathUtil.randomInt([0, 45]), integerDistribution(0,45));
+		this.kSTest(runs, () => MathUtil.randomInt([1, 6]), integerDistribution(1, 6));
+		this.kSTest(runs, () => MathUtil.randomInt([3, 6]), integerDistribution(3, 6));
+		this.kSTest(runs, () => MathUtil.randomInt([3, 60]), integerDistribution(3, 60));
+		this.kSTest(runs, () => MathUtil.randomInt([0, 45]), integerDistribution(0, 45));
 	}
 
 	private testTwoDice() {

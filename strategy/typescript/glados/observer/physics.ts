@@ -51,7 +51,7 @@ export function ballSwitchParameters(ball: BallLike): [number, number, number] {
  * @param time - The number of seconds from now on
  * @returns The predicted ball as a ball-like structure
  */
-export function ballAtTime(ball: BallLike, time: number): BallLike & {radius: number} {
+export function ballAtTime(ball: BallLike, time: number): BallLike & { radius: number } {
 	// formulas used:
 	// v = a * t + v0
 	// t = (v - v0) / a
@@ -76,7 +76,7 @@ export function ballAtTime(ball: BallLike, time: number): BallLike & {radius: nu
 
 	// result: the ball-like returned object
 	// since we don't do collision calculation, maxSpeed always stays the same
-	let result: BallLike & {radius: number} = <BallLike & {radius: number}> {radius: ball.radius, maxSpeed: ball.maxSpeed};
+	let result: BallLike & { radius: number } = <BallLike & { radius: number }> { radius: ball.radius, maxSpeed: ball.maxSpeed };
 
 	// the sliding stage
 	if (v_current > v_switch) {
@@ -124,7 +124,7 @@ export function ballAtTime(ball: BallLike, time: number): BallLike & {radius: nu
  * @param time - The number of seconds from now on
  * @returns The predicted ball as a ball-like structure
  */
-export function ballAtTimeExperimental(ball: BallLike & {posZ: number; speedZ: number}, time: number): BallLike {
+export function ballAtTimeExperimental(ball: BallLike & { posZ: number; speedZ: number }, time: number): BallLike {
 	// formulas used:
 	// v = a * t + v0
 	// t = (v - v0) / a
@@ -246,7 +246,7 @@ export function ballAtTimeExperimental(ball: BallLike & {posZ: number; speedZ: n
  * @returns Ball, number, number - predicted ball, time, distance left
  * The third return value indicates how much distance is left when the ball stopped bouncing
  */
-function ballFlightTime(ball: BallLike & {initSpeedZ: number; speedZ: number; posZ: number}, distance: number): [BallLike, number, number] {
+function ballFlightTime(ball: BallLike & { initSpeedZ: number; speedZ: number; posZ: number }, distance: number): [BallLike, number, number] {
 	let liftTime = ball.initSpeedZ / 9.81;
 	let timeAlreadyFlying = (ball.initSpeedZ - ball.speedZ) / 9.81;
 	let flightTime = (2 * liftTime) - timeAlreadyFlying;
@@ -254,7 +254,7 @@ function ballFlightTime(ball: BallLike & {initSpeedZ: number; speedZ: number; po
 	let flightDistDone = 0;
 	let timePassed = 0;
 
-	let result = {pos: ball.pos, speedZ: ball.speedZ, posZ: ball.posZ, initSpeedZ: ball.initSpeedZ!, speed: ball.speed, radius: ball.radius, maxSpeed: ball.maxSpeed};
+	let result = { pos: ball.pos, speedZ: ball.speedZ, posZ: ball.posZ, initSpeedZ: ball.initSpeedZ!, speed: ball.speed, radius: ball.radius, maxSpeed: ball.maxSpeed };
 
 	while (flightDist < distance) { // subsequent bouncing
 		timePassed = timePassed + flightTime;
@@ -355,7 +355,7 @@ export function calculateChipSpeed(dist: number): number {
 	return Math.sqrt((flightDistance * 9.81) / 2);
 }
 
-export function robotBrakePos(robot: {pos: Position; speed: Speed; acceleration?: RobotAccelerationProfile}): Position {
+export function robotBrakePos(robot: { pos: Position; speed: Speed; acceleration?: RobotAccelerationProfile }): Position {
 	const BREAK_DEFAULT = 5; // rather overestimate than underestimte the opponent
 	const brkAcc = robot.acceleration ? robot.acceleration.aBrakeFMax : BREAK_DEFAULT;
 	const robotSpeed = robot.speed.length();
@@ -385,7 +385,7 @@ export function chipPassTime(startPos: Position, endPos: Position): number {
  * @param distance - The distance in meter
  * @returns The estimated time
  */
-export function ballTravelTime(ball: BallLike & {posZ: number; initSpeedZ: number; speedZ: number}, distance: number): number {
+export function ballTravelTime(ball: BallLike & { posZ: number; initSpeedZ: number; speedZ: number }, distance: number): number {
 	if (ball.posZ > 0 || ball.initSpeedZ > 0) { // ball is flying
 		let [newBall, time, restDist] = ballFlightTime(ball, distance);
 		if (restDist > 0) { // bouncing over
@@ -403,7 +403,7 @@ export function ballTravelTime(ball: BallLike & {posZ: number; initSpeedZ: numbe
  * Checks if the position lies in front of the ball +- 90 degrees
  * If the pos is behind the ball, negative infinity is returned
  */
-export function checkedBallTravelTime(ball: BallLike & {posZ: number; initSpeedZ: number; speedZ: number}, pos: Position): number {
+export function checkedBallTravelTime(ball: BallLike & { posZ: number; initSpeedZ: number; speedZ: number }, pos: Position): number {
 	let toPos = pos - ball.pos;
 	if (ball.speed.dot(toPos) > 0) {
 		let distance = ball.pos.distanceTo(pos);
@@ -421,7 +421,7 @@ export function checkedBallTravelTime(ball: BallLike & {posZ: number; initSpeedZ
  * @param distance - The distance in meter
  * @returns The estimated time
  */
-export function ballRollTime(ball: {speed: Speed; maxSpeed: number}, distance: number): number {
+export function ballRollTime(ball: { speed: Speed; maxSpeed: number }, distance: number): number {
 	// a_slide: the negative acceleration while the ball is sliding [m/s^2]
 	// a_roll: the negative acceleration while the ball is rolling [m/s^2]
 	let a_slide = World.BallModel.FastBallDeceleration;
@@ -491,7 +491,7 @@ export function checkedBallRollTime(ball: BallLike, pos: Position): number {
  * @param ball - A ball-like structure
  * @returns The estimated stop time
  */
-export function ballStopTime(ball: {speed: Speed; maxSpeed: number}): number {
+export function ballStopTime(ball: { speed: Speed; maxSpeed: number }): number {
 	// a_slide: the negative acceleration while the ball is sliding [m/s^2]
 	// a_roll: the negative acceleration while the ball is rolling [m/s^2]
 	let a_slide = World.BallModel.FastBallDeceleration;
@@ -541,7 +541,7 @@ export const ballOutTime: ((ball: BallLike, offset?: number) => number) = Cache.
  * @param ball - A ball-like structure
  * @returns The estimated landing position
  */
-export function ballLandPos(ball: BallLike & {speedZ: number; posZ: number}): Position {
+export function ballLandPos(ball: BallLike & { speedZ: number; posZ: number }): Position {
 	let topHeight = Math.max(0, ball.posZ + ball.speedZ * ball.speedZ / (2 * 9.81));
 	let timeToTop = ball.speedZ / 9.81;
 	let timeToFloor = Math.sqrt(2 * topHeight / 9.81);
@@ -860,7 +860,7 @@ export function robotMinEndspeed(robot: Robot, pos: Position, time: number): Spe
 
 
 /** Calculates the time the robot needs to move to the position next to the ball at given t_ball */
-export function robotTimeForBallTime(robot: Robot, ball: BallLike & {radius: number}, targetPos: Position | undefined,
+export function robotTimeForBallTime(robot: Robot, ball: BallLike & { radius: number }, targetPos: Position | undefined,
 		endSpeedLength: number, t_ball: number): number {
 	let x_ball = ballAtTime(ball, t_ball).pos;
 	let axis: Vector;
@@ -1064,7 +1064,7 @@ export function robotRotationTime(robot: RobotRotationTimeInput, targetAngle: nu
 	return Math.min(timeForClockwise, timeForCounterClockwise);
 }
 
-function rttbSpecialCases(robot: Robot, ball: BallLike & {radius: number}, targetPos: Position | undefined, endSpeedLength: number,
+function rttbSpecialCases(robot: Robot, ball: BallLike & { radius: number }, targetPos: Position | undefined, endSpeedLength: number,
 		t_max: number, t_out: number): [number | undefined, number | undefined] {
 	// calculate time required when the robot is directly hit by the ball
 	let frontOffset: Position;
@@ -1102,7 +1102,7 @@ function rttbSpecialCases(robot: Robot, ball: BallLike & {radius: number}, targe
 	// The instability is increased as predicting the fasted position
 	// where to catch the ball on the dribber gets more important.
 	if (Math.abs(lambda!) < robot.dribblerWidth / 2 + 0.01 && ballTimeToHitPos < 0.25
-			&&  ball.speed.dot(ballHitPos! - ball.pos) > 0) {
+			&& ball.speed.dot(ballHitPos! - ball.pos) > 0) {
 		if (ballTimeToHitPos <= t_max) {
 			return [undefined, ballTimeToHitPos];
 		} else {
@@ -1122,14 +1122,14 @@ function rttbSpecialCases(robot: Robot, ball: BallLike & {radius: number}, targe
 	return [t_max, undefined];
 }
 
-function rttbQuadraticSampling(robot: Robot, ball: BallLike & {radius: number}, targetPos: Position | undefined, endSpeedLength: number,
+function rttbQuadraticSampling(robot: Robot, ball: BallLike & { radius: number }, targetPos: Position | undefined, endSpeedLength: number,
 		t_max: number, t_stop: number, t_out: number): [undefined, number] | [number, number | undefined] {
 	const N_SAMPLES = 10;
 
 	let robot_times: number[] = [];
 	let ball_times: number[] = [];
 
-	for (let i = 0;i < N_SAMPLES;i++) {
+	for (let i = 0; i < N_SAMPLES; i++) {
 		// calculate interval
 		let i_normalized = i / (N_SAMPLES - 1);
 		let step_quadratic = 0.5 * i_normalized * i_normalized + 0.5 * i_normalized;
@@ -1145,7 +1145,7 @@ function rttbQuadraticSampling(robot: Robot, ball: BallLike & {radius: number}, 
 	// check if the first maximum is > 0 (if it exists)
 	let t_ball_bsearch_start = undefined;
 	let t_ball_bsearch_end = undefined;
-	for (let i = 1;i < N_SAMPLES;i++) {
+	for (let i = 1; i < N_SAMPLES; i++) {
 		// search the first zero crossing
 		let timediff0 = ball_times[i - 1] - robot_times[i - 1];
 		let timediff1 = ball_times[i] - robot_times[i];
@@ -1169,7 +1169,7 @@ function rttbQuadraticSampling(robot: Robot, ball: BallLike & {radius: number}, 
 	return [t_ball_bsearch_start, t_ball_bsearch_end];
 }
 
-function rttbBinarySearch(robot: Robot, ball: BallLike & {radius: number}, targetPos: Position | undefined, endSpeedLength: number,
+function rttbBinarySearch(robot: Robot, ball: BallLike & { radius: number }, targetPos: Position | undefined, endSpeedLength: number,
 		t_ball_bsearch_start: number, t_ball_bsearch_end: number): number {
 	if (t_ball_bsearch_start < 0 || t_ball_bsearch_end < t_ball_bsearch_start) {
 		throw new Error("");
@@ -1206,7 +1206,7 @@ function rttbBinarySearch(robot: Robot, ball: BallLike & {radius: number}, targe
  * @param lastTime - Last result of robotTimeToBall for the given parameters
  * @returns The estimated time
  */
-export function robotTimeToBall(robot: Robot, ball: BallLike & {radius: number}, targetPos: Position | undefined,
+export function robotTimeToBall(robot: Robot, ball: BallLike & { radius: number }, targetPos: Position | undefined,
 		endSpeedLength: number, lastTime?: number): number {
 	// local time0 = amun.getCurrentTime()
 	// if the ball is extremely slow, consider it as stationary

@@ -34,8 +34,8 @@ export class BaseCache extends UnitTest {
 		}
 		let cached = Cache.forFrame(foo);
 
-		let a = cached(1,2,3);
-		let b = cached(2,3,4);
+		let a = cached(1, 2, 3);
+		let b = cached(2, 3, 4);
 		this.assert_not_equal(a, b);
 	}
 
@@ -68,9 +68,9 @@ export class BaseCache extends UnitTest {
 		let c = cached(undefined, 7);
 		let d = cached(undefined, undefined, undefined, 5);
 		this.assert_deep_equal(a, []);
-		this.assert_deep_equal(b, [ "bla" ]);
-		this.assert_deep_equal(c, [ undefined, 7 ]);
-		this.assert_deep_equal(d, [ undefined, undefined, undefined, 5 ]);
+		this.assert_deep_equal(b, ["bla"]);
+		this.assert_deep_equal(c, [undefined, 7]);
+		this.assert_deep_equal(d, [undefined, undefined, undefined, 5]);
 	}
 
 	private testSideEffects() {
@@ -95,14 +95,14 @@ export class BaseCache extends UnitTest {
 	private testHeavy() {
 		function heavy() {
 			let a = 0;
-			for (let i = 0;i < 1000000;i++) {
+			for (let i = 0; i < 1000000; i++) {
 				a = a + i;
 			}
 		}
 		let cached = Cache.forFrame(heavy);
 
 		// some number-crunching for time-measuring
-		for (let i = 0;i < 100000;i++) {
+		for (let i = 0; i < 100000; i++) {
 			cached();
 		}
 		this.assert_true(true);

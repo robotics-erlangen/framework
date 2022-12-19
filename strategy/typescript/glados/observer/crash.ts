@@ -3,11 +3,11 @@ import { Robot } from "base/robot";
 import { Position, Vector } from "base/vector";
 import * as World from "base/world";
 
-let lastStationary: Map<Robot, boolean> = new Map<Robot,boolean>();
+let lastStationary: Map<Robot, boolean> = new Map<Robot, boolean>();
 const STD_THRESHOLD = 0.008;
 const STD_HYSTERESIS = 0.0005;
 const NUMBER_OF_MEASUREMENTS = 10;
-const zeroVector = new Vector(0,0);
+const zeroVector = new Vector(0, 0);
 let lastRobotPositions: Map<Robot, Position[]> = new Map<Robot, Position[]>();
 
 let measurementIndex = 0;

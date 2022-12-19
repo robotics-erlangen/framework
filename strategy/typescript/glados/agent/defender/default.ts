@@ -6,10 +6,10 @@ import * as Defense from "glados/util/defense";
 
 
 export class Default extends Behavior {
-	_customBall: {pos: Position; dir: RelativePosition | undefined} = {pos: new Vector(0, 0), dir: new Vector(1, 0)};
+	_customBall: { pos: Position; dir: RelativePosition | undefined } = { pos: new Vector(0, 0), dir: new Vector(1, 0) };
 
 	_stop() {
-		this._customBall = {pos: new Vector(0, 0), dir: new Vector(1, 0)};
+		this._customBall = { pos: new Vector(0, 0), dir: new Vector(1, 0) };
 	}
 
 	check(): Behavior | undefined {
@@ -23,6 +23,6 @@ export class Default extends Behavior {
 		this._customBall.pos = fieldPos;
 		this._customBall.dir = fieldDir;
 
-		return [CenterBack, [ target ]];
+		return [CenterBack, [target]];
 	}
 }

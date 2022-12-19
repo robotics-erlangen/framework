@@ -8,11 +8,11 @@ import { Roles } from "glados/trainer/roles";
 import { LeveledRating } from "glados/util/rating";
 
 function robotStub(id: number): FriendlyRobot {
-	return new FriendlyRobot(<pb.robot.Specs> {id: id});
+	return new FriendlyRobot(<pb.robot.Specs> { id: id });
 }
 
 function agentStub(robotStub: FriendlyRobot) {
-	let agent: {robot(): FriendlyRobot; isAgent(): boolean} = {
+	let agent: { robot(): FriendlyRobot; isAgent(): boolean } = {
 		robot: function() { return robotStub; },
 		isAgent: function() { return true; }
 	};

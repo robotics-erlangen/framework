@@ -23,7 +23,7 @@ const AGENTS = {
 };
 
 // @return: returns an int i s.t. list[list.length-1] and list[i] have opposite values for isAttacker, undefined if there is none
-function findPair(list: {isAttacker: boolean}[]): number | undefined {
+function findPair(list: { isAttacker: boolean }[]): number | undefined {
 	if (list.length < 2) {
 		return undefined;
 	}
@@ -36,7 +36,7 @@ function findPair(list: {isAttacker: boolean}[]): number | undefined {
 
 export class MainCoordinator extends Coordinator {
 	constructor(trainer: MainTrainer) {
-		let pools: {[name: string]: AgentPool} = {
+		let pools: { [name: string]: AgentPool } = {
 			// manual: new AgentPool(Agents.Manual),
 			// ally: new AgentPool(Agents.Ally),
 			keeper: new AgentPool(AGENTS.Keeper),
@@ -47,9 +47,9 @@ export class MainCoordinator extends Coordinator {
 		let poolGroups: AgentPool[][] = [
 			// [ pools.manual ],
 			// [ pools.ally ],
-			[ pools.keeper ],
-			[ pools.defense, pools.attack ],
-			[ pools.hidden ]
+			[pools.keeper],
+			[pools.defense, pools.attack],
+			[pools.hidden]
 		];
 		super(trainer, pools, poolGroups);
 	}

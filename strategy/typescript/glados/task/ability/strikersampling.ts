@@ -141,7 +141,7 @@ export class StrikerSampling {
 
 		// rating demerit for steep passes, as these often miss due to volley inaccuracy
 		if (G.DefenseWidth != undefined && Math.abs(ballPos.x) > G.DefenseWidth / 2
-				&&  World.Ball.pos.y > 1.5 * G.DefenseHeight) {
+				&& World.Ball.pos.y > 1.5 * G.DefenseHeight) {
 			let demeritWeight = 0.3;
 			let distanceRatingDemerit = Rating.valueToRating(distToGoal, G.DefenseWidth / 2, minDist * 1.2);
 			rating = (1 - demeritWeight) * rating + demeritWeight * distanceRatingDemerit;

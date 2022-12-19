@@ -7,11 +7,11 @@ import { UnitTest } from "glados/test/unit/unittest";
 import { LeveledRating } from "glados/util/rating";
 
 function robotStub(id: number): FriendlyRobot {
-	return new FriendlyRobot(<pb.robot.Specs> {id: id});
+	return new FriendlyRobot(<pb.robot.Specs> { id: id });
 }
 
 function agentStub(robotStub: FriendlyRobot) {
-	let agent: {robot(): FriendlyRobot; isAgent(): boolean} = {
+	let agent: { robot(): FriendlyRobot; isAgent(): boolean } = {
 		robot: function() { return robotStub; },
 		isAgent: function() { return true; }
 	};
@@ -50,9 +50,9 @@ export class GladosMessaging extends UnitTest {
 		this.assert_not_undefined(agent2Box.receive(MessageType.moveDest).get(agent3.robot()));
 
 		let rating2 = new LeveledRating(MessageType.mainAttacker);
-		rating2.setRating(0,1);
+		rating2.setRating(0, 1);
 		let rating1 = new LeveledRating(MessageType.mainAttacker);
-		rating1.setRating(0,0.5);
+		rating1.setRating(0, 0.5);
 		agent2Box.sendToTrainerRepeated(MessageType.exclusiveRole, [MessageType.mainAttacker, rating2]);
 		agent1Box.sendToTrainerRepeated(MessageType.exclusiveRole, [MessageType.mainAttacker, rating1]);
 

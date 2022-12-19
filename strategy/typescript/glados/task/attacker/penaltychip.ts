@@ -22,7 +22,7 @@ const robotRadius = Constants.maxRobotRadius;
 const maxReliableDistance = 3.5;
 const goalBallheight = G.GoalHeight - (World.Ball.radius * 2 + 0.04);
 const wrongCalib = 1.0;
-let blockmodes : boolean[] = [true, false, false];
+let blockmodes: boolean[] = [true, false, false];
 
 const bufferTime = 0.00;
 // -- "y(t)=-g*t*t + chipGradient*t*v_x"
@@ -89,18 +89,18 @@ export class PenaltyChip extends Task {
 		this._robot.trajectory.update(ToTarget, pos, dir);
 	}
 
-	private static distanceMode(n: number, ball: {pos: Position}) {
+	private static distanceMode(n: number, ball: { pos: Position }) {
 		let distance = ball.pos.distanceTo(G.OpponentGoal);
 		if (n === 1) {
 			return Math.min(distance - 0.05, maxReliableDistance);
 		} else if (n === 2) {
 			return Math.min(distance - 0.05, maxReliableDistance) / (1 + World.BallModel.FloorDampingZ);
 		} else {
-			return Math.min(distance / 2 , maxReliableDistance);
+			return Math.min(distance / 2, maxReliableDistance);
 		}
 	}
 
-	static check(ball: {pos: Position; speed: Vector; radius: number}, robot: Robot) {
+	static check(ball: { pos: Position; speed: Vector; radius: number }, robot: Robot) {
 		let keeper = World.OpponentKeeper;
 		if (keeper == undefined) {
 			return false;
@@ -153,7 +153,7 @@ export class PenaltyChip extends Task {
 		return 1;
 	}
 }
-function checkAngle(ball: {speed: Vector}, robot: Robot) {
+function checkAngle(ball: { speed: Vector }, robot: Robot) {
 	let toLeftPost = G.OpponentGoal - new Vector(G.GoalWidth / 2 - 0.06, 0) - robot.pos;
 	let toRightPost = G.OpponentGoal + new Vector(G.GoalWidth / 2 - 0.06, 0) - robot.pos;
 	let minchipDistance = 1;
@@ -172,14 +172,14 @@ function checkAngle(ball: {speed: Vector}, robot: Robot) {
 	// -- }
 	return false;
 }
-function checkBall(robot: Robot, ball: {pos: Position; radius: number}) {
+function checkBall(robot: Robot, ball: { pos: Position; radius: number }) {
 	if (ellipticDistance(robot, ball.pos) > ball.radius + 0.02) {
 		return "fail has ball";
 	}
 	return false;
 }
 
-function checkBounces(distance: number, ball: {pos: Position}) {
+function checkBounces(distance: number, ball: { pos: Position }) {
 	let length2 = distance * World.BallModel.FloorDampingZ;
 	let remainingDist = ball.pos.distanceTo(G.OpponentGoal) - distance;
 	if (remainingDist < length2) {
@@ -201,9 +201,9 @@ function checkBounces(distance: number, ball: {pos: Position}) {
 	return false;
 }
 
-function checkShot(distance: number, robot: Robot, ball: {pos: Position}, keeper: Robot) {
+function checkShot(distance: number, robot: Robot, ball: { pos: Position }, keeper: Robot) {
 	let minDist = p_x_t0(distance);
-	if ((minDist + robotRadius) * 2 +  bufferTime * robot.speed.length() > distance) {
+	if ((minDist + robotRadius) * 2 + bufferTime * robot.speed.length() > distance) {
 		return "fail min distance";
 	}
 	let toGoal = (G.OpponentGoal - robot.pos).normalized();
@@ -227,7 +227,7 @@ function checkShot(distance: number, robot: Robot, ball: {pos: Position}, keeper
 }
 
 
-function getShotVector(ball: {speed: Vector}, robot: Robot) {
+function getShotVector(ball: { speed: Vector }, robot: Robot) {
 	let minchipDistance = 1;
 	let speedSq = g * minchipDistance / chipGradient;
 	let shotSpeedSq = speedSq - ball.speed.lengthSq();

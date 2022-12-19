@@ -51,7 +51,7 @@ export class Support extends Task {
 	private _passDestSuggestion: Position | undefined;
 
 	private _moveDest: Position | undefined = undefined;
-	private _zone: {defaultPos: Position; boundaries: {left: number; right: number; top: number; bottom: number}} | undefined = undefined;
+	private _zone: { defaultPos: Position; boundaries: { left: number; right: number; top: number; bottom: number } } | undefined = undefined;
 	private _reEvaluateTimestamp: number = 0;
 
 	private _obstacleTable: PathHelper.PathHelperParameters;
@@ -66,7 +66,7 @@ export class Support extends Task {
 		this._manualPassDest = manualPassDest;
 		this._passDestSuggestion = manualPassDest;
 
-		this._obstacleTable  = {
+		this._obstacleTable = {
 			ignoreBall: false,
 			task: this,
 		};
@@ -90,7 +90,7 @@ export class Support extends Task {
 		let nextCandidateTimestamp = Infinity;
 		for (let [r, time] of timestamps.entries()) {
 			if (nextCandidate == undefined || time < nextCandidateTimestamp
-					||  time === nextCandidateTimestamp && r.id < nextCandidate.id) {
+					|| time === nextCandidateTimestamp && r.id < nextCandidate.id) {
 				nextCandidate = r;
 				nextCandidateTimestamp = time;
 			}
@@ -195,7 +195,7 @@ export class Support extends Task {
 		// be close to the defense area to catch possible stray shots
 		let cbDistToDefenseArea = UtilDefense.centerBackDistanceToDefenseArea();
 		if (this._passDestSuggestion && !Referee.isFriendlyFreeKickState()
-				&&  Field.distanceToDefenseArea(this._passDestSuggestion, cbDistToDefenseArea, false) < 0.8) {
+				&& Field.distanceToDefenseArea(this._passDestSuggestion, cbDistToDefenseArea, false) < 0.8) {
 
 			let intersection = Field.intersectRayDefenseArea(this._moveDest!, G.OpponentGoal - this._moveDest!, cbDistToDefenseArea + 0.3, false)[0];
 			this._moveDest = intersection || this._moveDest;

@@ -61,7 +61,7 @@ export class Keeper extends Task {
 		let defenseLineStart, defenseLineEnd, fallbackPos;
 		// corners should be defended and atkPos is outside the goal
 		if (this._defendCorner && (Math.abs(atkPos.x) > goalWidthHalf
-				||  atkPos.y < G.FriendlyGoal.y - G.GoalDepth)) {
+				|| atkPos.y < G.FriendlyGoal.y - G.GoalDepth)) {
 			debug.set("mode", "defend corner");
 			// defend short corner
 			// line starts a goal post, stay as near to the goal as possible
@@ -132,7 +132,7 @@ export class Keeper extends Task {
 			successfulIntersection = (lambdaDef === lambdaBounded);
 			if (lambdaDef === lambdaBounded
 					// add some safety cm to detect shots towards the goal posts even without precise ball direction
-					||  defenseDir.length() >= 0.01 && Math.abs(lambdaDef - lambdaBounded) < 0.05 / defenseDir.length()) {
+					|| defenseDir.length() >= 0.01 && Math.abs(lambdaDef - lambdaBounded) < 0.05 / defenseDir.length()) {
 				successfulIntersection = true;
 			}
 			// limit to positions on the line segment!
@@ -222,7 +222,7 @@ export class Keeper extends Task {
 		let ballToRobot = this._robot.pos - World.Ball.pos;
 		if ((World.RefereeState === "Game" || World.RefereeState === "GameForce")
 				&& World.Ball.speed.absoluteAngleDiff(ballToRobot) < chipActivationAngle
-				&&  World.Ball.pos.distanceTo(this._robot.pos) < 1) {
+				&& World.Ball.pos.distanceTo(this._robot.pos) < 1) {
 			debug.set("chip", true);
 			this._robot.chip(3);
 			this._forceShoot._doForceShoot();

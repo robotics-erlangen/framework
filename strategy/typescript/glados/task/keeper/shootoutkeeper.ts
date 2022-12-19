@@ -47,7 +47,7 @@ export class ShootoutKeeper extends Task {
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, OBSTACLE_TABLE);
 
 		let moveDest;
-		let endspeed = new Vector(0,0);
+		let endspeed = new Vector(0, 0);
 		let ballSpeed = World.Ball.speed;
 		let viewDir = World.Ball.pos - SAFE_GOAL_MID;
 

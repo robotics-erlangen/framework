@@ -76,7 +76,7 @@ export class BaseBall extends UnitTest {
 		let robotPos = new Vector(0, 0);
 		robot.pos = robotPos;
 		let ballSpeed = new Vector(2, 0.0);
-		for (let i = 0;i < 4;i++) {
+		for (let i = 0; i < 4; i++) {
 			ball._update(this.ballData(ballPos, ballSpeed, 0, 0), time, undefined, [robot]);
 		}
 		this.assert_equal(ball.framesDecelerating, 3);
@@ -88,7 +88,7 @@ export class BaseBall extends UnitTest {
 		this.assert_equal(ball.framesDecelerating, 4);
 
 		ballSpeed = new Vector(0.5, 0);
-		for (let i = 0;i < 4;i++) {
+		for (let i = 0; i < 4; i++) {
 			ball._update(this.ballData(ballPos, ballSpeed, 0, 0), time, undefined, [robot]);
 		}
 		this.assert_equal(ball.framesDecelerating, 3);
@@ -110,7 +110,7 @@ export class BaseBall extends UnitTest {
 		let robotPos = new Vector(2, 3);
 		robot.pos = robotPos;
 		let ballSpeed = new Vector(2, 0.0);
-		for (let i = 0;i < 4;i++) {
+		for (let i = 0; i < 4; i++) {
 			ball._update(this.ballData(ballPos, ballSpeed, 0, 0), time, undefined, [robot]);
 		}
 		this.assert_equal(ball.framesDecelerating, 3);

@@ -412,14 +412,14 @@ export class BaseVector extends UnitTest {
 
 	private testRandom() {
 		MathUtil.randomseed(0);
-		for (let i = 0;i < 100;i++) {
+		for (let i = 0; i < 100; i++) {
 			let rand = Vector.random(1);
 			// should be unlikely enough to never happen
 			this.assert_less_than(rand.length(), 100);
 		}
 
 		let center = new Vector(10000, 10000);
-		for (let i = 0;i < 100;i++) {
+		for (let i = 0; i < 100; i++) {
 			let rand = Vector.random(1, center);
 			// should be unlikely enough to never happen
 			this.assert_less_than(rand.distanceTo(center), 100);
@@ -427,7 +427,7 @@ export class BaseVector extends UnitTest {
 
 		let rand = Vector.random(1);
 		let hasOther = false;
-		for (let i = 0;i < 10;i++) {
+		for (let i = 0; i < 10; i++) {
 			hasOther = hasOther || (rand !== Vector.random(1));
 		}
 		this.assert_true(hasOther);

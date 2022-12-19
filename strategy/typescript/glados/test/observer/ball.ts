@@ -25,7 +25,7 @@ export function testReceivesPass() {
 
 let isShotCooldown = 0.3;
 let lastShootTime = 0;
-let lastShootRobotPos: Position | undefined  = undefined;
+let lastShootRobotPos: Position | undefined = undefined;
 
 export function testIsShot() {
 	const r = Ball.isShot();

@@ -37,7 +37,7 @@ export class Tutorial2 extends Move {
 				let r = this._robots[i];
 				let angle = (i - 1) * 2 / 3 * Math.PI;
 				let pos = Vector.fromAngle(angle);
-				taskAssignments.set(this._robots[i], Assignment.create({class: MoveToPos, params: [{ pos }]}));
+				taskAssignments.set(this._robots[i], Assignment.create({ class: MoveToPos, params: [{ pos }] }));
 
 				if (r.pos.distanceTo(pos) > 0.1) {
 					this._init = true;
@@ -47,7 +47,7 @@ export class Tutorial2 extends Move {
 		} else {
 
 			for (let i = 0; i < this._robots.length; i++) {
-				taskAssignments.set(this._robots[i], Assignment.create({class: TutorialTask, params: [i]}));
+				taskAssignments.set(this._robots[i], Assignment.create({ class: TutorialTask, params: [i] }));
 			}
 		}
 

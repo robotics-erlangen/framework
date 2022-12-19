@@ -21,9 +21,9 @@ const G = World.Geometry;
 // the armada has 4 steps to form stairs, depending on ball distance
 const POSITIONS_ORIG: Position[] = [
 	new Vector(G.FieldWidthHalf * -0.6, G.FieldWidthHalf * -0.25),
-	new Vector(G.FieldWidthHalf * -0.2, G.FieldWidthHalf *  0),
-	new Vector(G.FieldWidthHalf *  0.2, G.FieldWidthHalf *  0.25),
-	new Vector(G.FieldWidthHalf *  0.6, G.FieldWidthHalf *  0.5),
+	new Vector(G.FieldWidthHalf * -0.2, G.FieldWidthHalf * 0),
+	new Vector(G.FieldWidthHalf * 0.2, G.FieldWidthHalf * 0.25),
+	new Vector(G.FieldWidthHalf * 0.6, G.FieldWidthHalf * 0.5),
 ];
 
 const MAX_RANDOM_POSITION_OFFSET = 0.8;
@@ -54,16 +54,16 @@ export class Armada extends Move {
 
 	constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 		super(robots, messaging);
-		this._circleCenter = new Vector(0,0) + getRandomOffsetVector();
+		this._circleCenter = new Vector(0, 0) + getRandomOffsetVector();
 		this._positions = [];
 		this._maxShootingAngle = 60 / 180 * Math.PI;
 		this._startedSendPassPos = false;
 	}
 
 	static canStart() {
-		return  World.Ball.pos.y > 4 * G.FieldHeightHalf / 5 && Armada.Referee.opponentTouchedLast()
-			&&  Math.abs(World.Ball.pos.x) > G.FieldWidthHalf / 2
-			&&  World.RefereeState === "Stop";
+		return World.Ball.pos.y > 4 * G.FieldHeightHalf / 5 && Armada.Referee.opponentTouchedLast()
+			&& Math.abs(World.Ball.pos.x) > G.FieldWidthHalf / 2
+			&& World.RefereeState === "Stop";
 	}
 
 	_canContinue() {
@@ -71,8 +71,8 @@ export class Armada extends Move {
 			return true;
 		}
 		return World.Ball.pos.y > 4 * G.FieldHeightHalf / 5 - 0.2
-			&&  Math.abs(World.Ball.pos.x) > G.FieldWidthHalf / 2 - 0.2
-			&&  World.RefereeState === "Stop";
+			&& Math.abs(World.Ball.pos.x) > G.FieldWidthHalf / 2 - 0.2
+			&& World.RefereeState === "Stop";
 	}
 
 	_updateTasks(): MoveParameters {
@@ -90,7 +90,7 @@ export class Armada extends Move {
 			this._assignment = undefined;
 		} else if (Armada.Referee.isFriendlyFreeKickState() && this._positions.length === 0) {
 			// calculate position
-			for (let i = 0;i < 4;i++) {
+			for (let i = 0; i < 4; i++) {
 				let pos = POSITIONS_ORIG[i];
 				if (World.Ball.pos.x > 0) {
 					pos = new Vector(-pos.x, pos.y);
@@ -113,18 +113,18 @@ export class Armada extends Move {
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
 		if (World.RefereeState === "Stop") {
 			taskAssignments[this._robots[0]] = Assignment.create({ class: StopAttack, params: [] });
-			taskAssignments[this._robots[1]] = Assignment.create({ class: Circuit, params: [ this._circleCenter, Math.PI * 0.0 ], restart: this._startedSendPassPos });
-			taskAssignments[this._robots[2]] = Assignment.create({ class: Circuit, params: [ this._circleCenter, Math.PI * 0.5 ], restart: this._startedSendPassPos });
-			taskAssignments[this._robots[3]] = Assignment.create({ class: Circuit, params: [ this._circleCenter, Math.PI * 1.0 ], restart: this._startedSendPassPos });
-			taskAssignments[this._robots[4]] = Assignment.create({ class: Circuit, params: [ this._circleCenter, Math.PI * 1.5 ], restart: this._startedSendPassPos });
+			taskAssignments[this._robots[1]] = Assignment.create({ class: Circuit, params: [this._circleCenter, Math.PI * 0.0], restart: this._startedSendPassPos });
+			taskAssignments[this._robots[2]] = Assignment.create({ class: Circuit, params: [this._circleCenter, Math.PI * 0.5], restart: this._startedSendPassPos });
+			taskAssignments[this._robots[3]] = Assignment.create({ class: Circuit, params: [this._circleCenter, Math.PI * 1.0], restart: this._startedSendPassPos });
+			taskAssignments[this._robots[4]] = Assignment.create({ class: Circuit, params: [this._circleCenter, Math.PI * 1.5], restart: this._startedSendPassPos });
 			this._startedSendPassPos = false;
 		} else if (startMoving && this._assignment != undefined) {
 			taskAssignments[this._robots[0]] = Assignment.createBehaviorAssignment({ behavior: ARMADA_FREEKICK });
 
-			for (let i = 1;i < 5;i++) {
+			for (let i = 1; i < 5; i++) {
 				if (passInfo != undefined && this._positions[i - 1].distanceTo(passInfo.ballPos) < 0.1) {
 					taskAssignments[this._robots[this._assignment[i - 1] + 1]]
-						= Assignment.create({class: AcceptPass, params: [this._positions[i - 1], 0.1]});
+						= Assignment.create({ class: AcceptPass, params: [this._positions[i - 1], 0.1] });
 				} else {
 					taskAssignments[this._robots[this._assignment[i - 1] + 1]]
 						= Assignment.create({ class: MoveToPos, params: [{ pos: this._positions[i - 1], suggestPass: true }] }); // offer other positions for redeciding
@@ -132,9 +132,9 @@ export class Armada extends Move {
 			}
 		} else {
 			taskAssignments[this._robots[0]] = Assignment.createBehaviorAssignment({ behavior: ARMADA_FREEKICK });
-			for (let i = 1;i < 5;i++) {
-				taskAssignments[this._robots[i]] = Assignment.create({ class: Circuit, params: [ this._circleCenter,
-					Math.PI * 0.5 * (i - 1), undefined, this._positions[i - 1], true ], restart: !this._startedSendPassPos });
+			for (let i = 1; i < 5; i++) {
+				taskAssignments[this._robots[i]] = Assignment.create({ class: Circuit, params: [this._circleCenter,
+					Math.PI * 0.5 * (i - 1), undefined, this._positions[i - 1], true], restart: !this._startedSendPassPos });
 			}
 			this._startedSendPassPos = true;
 		}

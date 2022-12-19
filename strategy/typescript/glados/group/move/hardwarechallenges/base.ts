@@ -54,8 +54,8 @@ export abstract class HardwareChallengeBase extends Move {
 			speedZ: 0,
 		};
 
-		let yellowRobots = positions.bots.filter((x: any) =>  x.id.color === "YELLOW");
-		let blueRobots = positions.bots.filter((x: any) =>  x.id.color === "BLUE");
+		let yellowRobots = positions.bots.filter((x: any) => x.id.color === "YELLOW");
+		let blueRobots = positions.bots.filter((x: any) => x.id.color === "BLUE");
 
 		let getTransform: ((jsonBot: any) => RobotState) = (jsonBot) => {
 			// necessary transformation, because moveObjects assumes local coordinates
@@ -194,13 +194,13 @@ export abstract class HardwareChallengeBase extends Move {
 
 		taskAssignments[this._robots[0]] = Assignment.create({
 			class: MoveToPos,
-			params: [{pos: pos, dir: dir, endSpeedLength: 0, customObstacles: customObstacles}],
+			params: [{ pos: pos, dir: dir, endSpeedLength: 0, customObstacles: customObstacles }],
 			// restart if obstacle changed
 			restart: resetMoveToPos
 		});
 
 		this.assignFriendlyMoves(1, taskAssignments);
-		return {assignments: taskAssignments};
+		return { assignments: taskAssignments };
 	}
 
 	private placeBall(): MoveParameters | undefined {
@@ -225,7 +225,7 @@ export abstract class HardwareChallengeBase extends Move {
 		});
 
 		this.assignFriendlyMoves(1, taskAssignments);
-		return {assignments: taskAssignments};
+		return { assignments: taskAssignments };
 	}
 
 	private assignFriendlyMoves(startIndex: number, taskAssignments: Map<FriendlyRobot, Assignment>): boolean {
@@ -258,7 +258,7 @@ export abstract class HardwareChallengeBase extends Move {
 
 			taskAssignments[this._robots[i]] = Assignment.create({
 				class: MoveToPos,
-				params: [{pos: transform.pos, dir: transform.dir, endSpeedLength: 0, customObstacles: customObstacles}],
+				params: [{ pos: transform.pos, dir: transform.dir, endSpeedLength: 0, customObstacles: customObstacles }],
 				restart: true
 			});
 		}
@@ -343,7 +343,7 @@ export abstract class HardwareChallengeBase extends Move {
 					this.numberOfInsufficientFriendlyRobots = this._robots.length;
 					this.numberOfInsufficientOpponentRobots = World.OpponentRobots.length;
 					amun.log("Not enough robots. Friendly robots present:\n", this._robots.length, "/", this.friendlyTransforms.length, "\n",
-							"Opponent robots present: ",World.OpponentRobots.length, "/", this.opponentTransforms.length);
+							"Opponent robots present: ", World.OpponentRobots.length, "/", this.opponentTransforms.length);
 				}
 			}
 
@@ -371,7 +371,7 @@ export abstract class HardwareChallengeBase extends Move {
 				amun.log("Press Halt to finish initialization.");
 			}
 		}
-		return {assignments: taskAssignments};
+		return { assignments: taskAssignments };
 	};
 
 	protected reset() {

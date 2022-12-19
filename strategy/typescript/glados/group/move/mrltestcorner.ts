@@ -56,7 +56,7 @@ export class MrlTestCorner extends Move {
 	public static ALLOW_EXTRA_ATTACKERS = false;
 
 	public static canStart(): boolean {
-		return  World.Ball.pos.y > 4 * G.FieldHeightHalf / 5 && MrlTestCorner.Referee.opponentTouchedLast()
+		return World.Ball.pos.y > 4 * G.FieldHeightHalf / 5 && MrlTestCorner.Referee.opponentTouchedLast()
 			&& Math.abs(World.Ball.pos.x) > G.FieldWidthHalf / 2
 			&& World.RefereeState === "Stop";
 	}
@@ -76,7 +76,7 @@ export class MrlTestCorner extends Move {
 			new Vector(-0.3, G.OpponentGoal.y - goalDist)
 		];
 		this._distractorAttackPos = [];
-		for (let i = 0;i < 3;i++) {
+		for (let i = 0; i < 3; i++) {
 			this._distractorAttackPos.push(this._distractorPositions[i] - new Vector((i) * 0.3 + 0.3, 0.5));
 		}
 
@@ -89,8 +89,8 @@ export class MrlTestCorner extends Move {
 			return true;
 		}
 		return World.Ball.pos.y > 4 * G.FieldHeightHalf / 5 - 0.2
-			&&  Math.abs(World.Ball.pos.x) > G.FieldWidthHalf / 2 - 0.2
-			&&  World.RefereeState === "Stop";
+			&& Math.abs(World.Ball.pos.x) > G.FieldWidthHalf / 2 - 0.2
+			&& World.RefereeState === "Stop";
 	}
 
 
@@ -119,8 +119,8 @@ export class MrlTestCorner extends Move {
 		let buffer = 0.1;
 		taskAssignments[this._robots[1]] = taskAssignment(passInfoTable, this._activeRobotInitPos, this._activeRobotShootPos, this._robots[1], 0);
 
-		let enemyRobots = getRobotsInRect(this._distractorPositions[0], this._distractorPositions[2] + new Vector(-0.6,0.4), World.OpponentRobots, buffer);
-		for (let i = 0;i < 3;i++) {
+		let enemyRobots = getRobotsInRect(this._distractorPositions[0], this._distractorPositions[2] + new Vector(-0.6, 0.4), World.OpponentRobots, buffer);
+		for (let i = 0; i < 3; i++) {
 			taskAssignments[this._robots[i + 2]] = taskAssignment(passInfoTable, this._distractorPositions[i], this._distractorAttackPos[i], this._robots[i + 2], enemyRobots.length);
 		}
 

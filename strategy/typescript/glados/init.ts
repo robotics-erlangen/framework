@@ -12,7 +12,7 @@ import * as Option from "base/option";
 import * as plot from "base/plot";
 import { Process } from "base/process";
 import * as Processor from "base/processor";
-import * as  Referee from "base/referee";
+import * as Referee from "base/referee";
 import * as World from "base/world";
 
 import "glados/control/maincoordinator";
@@ -112,6 +112,6 @@ function wrapper(func: () => boolean) {
 	};
 }
 
-let result: any = {name: "GLaDOS", entrypoints: Entrypoints.get(wrapper)};
+let result: any = { name: "GLaDOS", entrypoints: Entrypoints.get(wrapper) };
 result[Option.getExportName()] = Option.getExportedOptions();
 export const scriptInfo = result;

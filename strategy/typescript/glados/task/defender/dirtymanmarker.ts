@@ -30,7 +30,7 @@ export class DirtyManMarker extends Task {
 	}
 
 	public run() {
-		let pos = new Vector(0,0);
+		let pos = new Vector(0, 0);
 
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, this.obstacleTable);
 

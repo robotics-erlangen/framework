@@ -128,7 +128,7 @@ export class HandleBall extends Behavior {
 	private _checkInterceptPass() {
 
 		let isInterceptPass = this._taskDecision === "interceptpass"
-								||  (this._messaging.receiveTrainer(MessageType.interceptPass) === this._robot);
+								|| (this._messaging.receiveTrainer(MessageType.interceptPass) === this._robot);
 
 		// don't if we want to intercept our own pass
 		let [sender, passInfoTable] = this._messaging.receiveSingleSender(MessageType.passInfo);
@@ -179,7 +179,7 @@ export class HandleBall extends Behavior {
 		let rating = rateRobot(this._robot);
 		let ratingArg: Rating.LeveledRating = new Rating.LeveledRating(MessageType.interceptPass);
 		ratingArg.setRating(0, rating);
-		this._messaging.sendToTrainerRepeated(MessageType.exclusiveRole, [ MessageType.interceptPass, ratingArg ]);
+		this._messaging.sendToTrainerRepeated(MessageType.exclusiveRole, [MessageType.interceptPass, ratingArg]);
 		return (this._messaging.receiveTrainer(MessageType.interceptPass) === this._robot);
 
 	}
@@ -200,7 +200,7 @@ export class HandleBall extends Behavior {
 
 	check(): Behavior | undefined {
 		if (Referee.isFriendlyFreeKickState() || Referee.isStopState() || Referee.isKickoffState()
-				||  Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius)) {
+				|| Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius)) {
 			return undefined;
 		}
 
@@ -222,9 +222,9 @@ export class HandleBall extends Behavior {
 
 		if (this._taskDecision !== "forcedefender") {
 			if ((mainAttacker === this._robot
-					||  this._taskDecision === "attacker"
-					||  this._taskDecision === "duel")
-					&&  this._taskDecision !== "interceptpass") {
+					|| this._taskDecision === "attacker"
+					|| this._taskDecision === "duel")
+					&& this._taskDecision !== "interceptpass") {
 				this._applyForMainAttacker();
 			}
 		}
@@ -264,7 +264,7 @@ export class HandleBall extends Behavior {
 			return [CenterBack, [cbGroup.target]];
 		}
 
-		if (this._taskDecision === "attacker"  ||
+		if (this._taskDecision === "attacker" ||
 			((this._messaging.receiveTrainer(MessageType.mainAttacker) === this._robot) &&
 				(this._messaging.receiveTrainer(MessageType.interceptPass) === this._robot))) {
 			this._messaging.sendToTrainer(MessageType.poolChangeRequest, "attacker");

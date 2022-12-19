@@ -54,17 +54,17 @@ export class DuelAssistant extends Task {
 			let sign = ballPos.x > 0 ? 1 : -1;
 			angleOffset = sign * (Math.PI / 2);
 		}
-		let friendlyPos : Vector = this._duelist!.pos;
-		let opponentPos : Vector = this._opponent!.pos;
-		let opponentDir : number = this._opponent!.dir;
-		let duelVector : Vector = opponentPos - friendlyPos;
-		let totalOffset : Vector = duelVector.complexMultiplication(Vector.fromAngle(angleOffset)).withLength(3 * this._robot.radius);
+		let friendlyPos: Vector = this._duelist!.pos;
+		let opponentPos: Vector = this._opponent!.pos;
+		let opponentDir: number = this._opponent!.dir;
+		let duelVector: Vector = opponentPos - friendlyPos;
+		let totalOffset: Vector = duelVector.complexMultiplication(Vector.fromAngle(angleOffset)).withLength(3 * this._robot.radius);
 
 		let agressivePositionMode = this._lastPositionMode;
 		let angleDiff = Math.abs(Geom.normalizeAngle(World.Geometry.FriendlyGoal.angle() - opponentDir));
 
 		if (angleDiff < Math.PI / 2) {
-			let intersection = Geom.intersectLineLine(opponentPos, Vector.fromAngle(opponentDir), World.Geometry.FriendlyGoal, new Vector(1,0))[0];
+			let intersection = Geom.intersectLineLine(opponentPos, Vector.fromAngle(opponentDir), World.Geometry.FriendlyGoal, new Vector(1, 0))[0];
 			if (intersection === undefined || Math.abs(intersection.x) > World.Geometry.FieldWidthHalf + HYSTERESIS_BASELINE) {
 				agressivePositionMode = true;
 			} else if (Math.abs(intersection.x) < World.Geometry.FieldWidthHalf - HYSTERESIS_BASELINE) {
@@ -96,7 +96,7 @@ export class DuelAssistant extends Task {
 		debug.set("agressivePositionMode", agressivePositionMode);
 		debug.pop();
 
-		let pos : Vector;
+		let pos: Vector;
 		if (agressivePositionMode) {
 			pos = opponentPos + Vector.fromPolar(opponentDir, 3 * this._robot.radius);
 		} else {

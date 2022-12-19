@@ -15,14 +15,14 @@ import * as Rating from "glados/util/rating";
 const G = World.Geometry;
 const adjustWay = World.RULEVERSION === "2018";
 
-function lessthan_intersections(i1: {waypos: number}, i2: {waypos: number}): number {
+function lessthan_intersections(i1: { waypos: number }, i2: { waypos: number }): number {
 	return i1.waypos - i2.waypos;
 }
-function lessthan_targets(t1: {way: number}, t2: {way: number}): number {
+function lessthan_targets(t1: { way: number }, t2: { way: number }): number {
 	return t1.way - t2.way;
 }
 
-function lessthan_robots(r1: {pos: Position}, r2: {pos: Position}): number {
+function lessthan_robots(r1: { pos: Position }, r2: { pos: Position }): number {
 	let a1 = (r1.pos - G.FriendlyGoal).angle();
 	let a2 = (r2.pos - G.FriendlyGoal).angle();
 	if (a1 < -Math.PI / 2) {
@@ -40,8 +40,8 @@ interface Target {
 	dir?: RelativePosition;
 }
 
-let privateCenterBackPositions: Map<FriendlyRobot, {pos: Position; target: Target | undefined; way: number}> = new Map();
-let centerBackPositions: Map<FriendlyRobot, {pos: Position; target: Target | undefined; way: number; time?: number}> = new Map();
+let privateCenterBackPositions: Map<FriendlyRobot, { pos: Position; target: Target | undefined; way: number }> = new Map();
+let centerBackPositions: Map<FriendlyRobot, { pos: Position; target: Target | undefined; way: number; time?: number }> = new Map();
 
 export interface Point {
 	/** The position the centerback should drive to */
@@ -65,9 +65,9 @@ function assignRobotsToPoints(robotList: FriendlyRobot[], pointList: Point[], re
 		// to solve merging problems, assign from necessaryWay towards outside. If one target gets overlapped by doing so, the robot will be inserted like the target had never existed.
 		let lastWay = necessaryWay;
 		let offset = robotList.length - pointList.length;
-		for (let i = 0;i < offset;i++) {
+		for (let i = 0; i < offset; i++) {
 			let way = lastWay + delta * (isLeft ? -1 : 1);
-			let point =  {
+			let point = {
 				pos: Field.defenseIntersectionByWay(way, radius, true)!,
 				target: undefined,
 				way: way,
@@ -76,7 +76,7 @@ function assignRobotsToPoints(robotList: FriendlyRobot[], pointList: Point[], re
 			lastWay = way;
 		}
 		let substitutedPoints: Point[] = [];
-		for (let i = 0;i < pointList.length;i++) {
+		for (let i = 0; i < pointList.length; i++) {
 			const point = pointList[i];
 			if (isLeft) {
 				if (point.way > lastWay - delta) {
@@ -95,7 +95,7 @@ function assignRobotsToPoints(robotList: FriendlyRobot[], pointList: Point[], re
 			} else {
 				if (point.way < lastWay + delta) {
 					let way = lastWay + delta;
-					let newPoint =  {
+					let newPoint = {
 						pos: Field.defenseIntersectionByWay(way, radius, true)!,
 						target: undefined,
 						way: way,
@@ -246,14 +246,14 @@ export class CenterBack implements Group {
 			let n = rlist.length;
 			let biggerHyst = this._lastLocked ? 0.2 : 0;
 			let smallerHyst = this._lastLocked ? 0.6 : 0.4;
-			if (targetTime + biggerHyst > timeAroundDefenseArea  &&
+			if (targetTime + biggerHyst > timeAroundDefenseArea &&
 					timeAroundDefenseArea + smallerHyst > targetTime) {
 				// mark one intersection with one bot to be necessary, and continue with reduced n for the rest.
 				intersections.push({
 					waypos: way,
 					wayrange: 2 * robot_radius + distanceBetweenDefenders,
 					n: 1,
-					targets: [{target: target, way: way, n: 1}],
+					targets: [{ target: target, way: way, n: 1 }],
 					necessary: true,
 					time: targetTime
 				});
@@ -269,7 +269,7 @@ export class CenterBack implements Group {
 				waypos: way,
 				wayrange: occupiedWay,
 				n: n,
-				targets: [{target: target, way: way, n: n}],
+				targets: [{ target: target, way: way, n: n }],
 				necessary: false,
 				time: targetTime
 			});
@@ -281,11 +281,11 @@ export class CenterBack implements Group {
 		let merged = true;
 		while (merged) {
 			merged = false;
-			for (let ix = 0;ix < intersections.length;ix++) {
+			for (let ix = 0; ix < intersections.length; ix++) {
 				let i = intersections[ix];
 				let imin = i.waypos - i.wayrange / 2;
 				let imax = i.waypos + i.wayrange / 2;
-				for (let jx = 0;jx < intersections.length;jx++) {
+				for (let jx = 0; jx < intersections.length; jx++) {
 					let j = intersections[jx];
 					if (ix !== jx) {
 						let jmin = j.waypos - j.wayrange / 2;
@@ -293,7 +293,7 @@ export class CenterBack implements Group {
 						if (imax > jmin && jmax > imin) {
 							if (i.necessary || j.necessary) {
 								// locals for n(ecessary) and u(nnecessary)
-								let n,u, ux, nmin, umin, nmax, umax;
+								let n, u, ux, nmin, umin, nmax, umax;
 								if (j.necessary) {
 									n = j, u = i;
 									ux = ix;
@@ -308,8 +308,8 @@ export class CenterBack implements Group {
 								// handle necessary object n. Two necessary are not possible
 								// first, move full robots to one side
 								let disBetweenCenterOfCB = 2 * robot_radius + distanceBetweenDefenders;
-								let fullRobotMax = Math.min(Math.max(Math.floor((umax - n.waypos) / disBetweenCenterOfCB),0),u.n);
-								let fullRobotMin = Math.min(Math.max(Math.floor((n.waypos - umin) / disBetweenCenterOfCB),0),u.n);
+								let fullRobotMax = Math.min(Math.max(Math.floor((umax - n.waypos) / disBetweenCenterOfCB), 0), u.n);
+								let fullRobotMin = Math.min(Math.max(Math.floor((n.waypos - umin) / disBetweenCenterOfCB), 0), u.n);
 								nmax = nmax + disBetweenCenterOfCB * fullRobotMax;
 								nmin = nmin - disBetweenCenterOfCB * fullRobotMin;
 								n.waypos = (nmax + nmin) / 2;
@@ -322,7 +322,7 @@ export class CenterBack implements Group {
 									j.targets = i.targets;
 								}
 								n.targets = i.targets.concat(j.targets);
-								intersections.splice(ux,1);
+								intersections.splice(ux, 1);
 								merged = true;
 								break;
 							} else {
@@ -369,14 +369,14 @@ export class CenterBack implements Group {
 			let nCounter = 0;
 			let way = i.waypos - i.wayrange / 2 + delta / 2;
 			for (let t of i.targets) {
-				for (let _ = 0;_ < t.n;_++) {
+				for (let _ = 0; _ < t.n; _++) {
 					let realWay = way;
 					if (adjustWay) {
 						realWay = UtilDefense.divCornerFactor(way, extraDistance);
 					}
 					let final_pos = Field.defenseIntersectionByWay(realWay, extraDistance, true)!; // defenseIntersectionByWay can handle outOfBounds correctly (extended DefArea)
 					vis.addCircle("g/centerback: Positions", final_pos, 0.1, vis.colors.skyBlue);
-					vis.addPath("g/centerback: Positions", [final_pos, t.target.pos],  vis.colors.skyBlue);
+					vis.addPath("g/centerback: Positions", [final_pos, t.target.pos], vis.colors.skyBlue);
 					vis.addCircle("g/centerback: Target", t.target.pos, 0.1, vis.colors.red);
 					let point = {
 						pos: final_pos,
@@ -412,7 +412,7 @@ export class CenterBack implements Group {
 			if (defensePoints.length !== sortedRobots.length) {
 				throw new Error();
 			}
-			for (let i = 0;i < sortedRobots.length;i++) {
+			for (let i = 0; i < sortedRobots.length; i++) {
 				centerBackPositions[sortedRobots[i]] = defensePoints[i];
 			}
 		} else {
@@ -420,7 +420,7 @@ export class CenterBack implements Group {
 			centerBackPositions[idealBot] = necessaryDefensePoint!;
 			// second: partition the world in pre and post idealBot / defensePoint
 			let indexRobot = sortedRobots.indexOf(idealBot);
-			let firstRobots = sortedRobots.slice(0,indexRobot);
+			let firstRobots = sortedRobots.slice(0, indexRobot);
 			let secondRobots = sortedRobots.slice(indexRobot + 1);
 			let indexPoint = defensePoints.indexOf(necessaryDefensePoint!);
 			let firstPoints = defensePoints.slice(0, indexPoint);
@@ -456,7 +456,7 @@ export class CenterBack implements Group {
 			}
 			let pos = <Position> Field.defenseIntersectionByWay(target_way, extraDistance, true);
 			vis.addCircle("g/centerback: Positions", pos, 0.1, vis.colors.greenHalf);
-			privateCenterBackPositions[robot] = {pos: pos, target: target, way: target_way};
+			privateCenterBackPositions[robot] = { pos: pos, target: target, way: target_way };
 		}
 	}
 

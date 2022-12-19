@@ -33,13 +33,13 @@ export class Direct extends TrajectoryHandler {
 			rotateSpeed = MathUtil.bound(-limitRot, error_phi * k_omega, limitRot);
 		}
 
-		let spline = [ {t_start: 0, t_end: Infinity,
+		let spline = [{ t_start: 0, t_end: Infinity,
 			x: { a0: robotPos.x, a1: speed.x, a2: accel.x / 2, a3: 0 },
 			y: { a0: robotPos.y, a1: speed.y, a2: accel.y / 2, a3: 0 },
-			phi: { a0: robotDir, a1: rotateSpeed, a2: 0, a3: 0}
-		} ];
+			phi: { a0: robotDir, a1: rotateSpeed, a2: 0, a3: 0 }
+		}];
 
-		return [{spline: spline}, this._robot.pos, 0];
+		return [{ spline: spline }, this._robot.pos, 0];
 	}
 
 	canHandle(...args: any[]) {

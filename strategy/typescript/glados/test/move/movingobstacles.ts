@@ -62,7 +62,7 @@ export class MovingObstacles extends Move {
 
 	constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 		super(robots, messaging);
-		for (let i = 0;i <= 10;i++) {
+		for (let i = 0; i <= 10; i++) {
 			let y = (i - 5) / 1.5;
 			this.obstacles.push(new AlternatingObstacle(new Vector(World.Geometry.FieldWidthHalf * 0.9, y),
 				new Vector(-World.Geometry.FieldWidthHalf * 0.9, y), 1.5, 0.2, i / 12));
@@ -70,7 +70,7 @@ export class MovingObstacles extends Move {
 	}
 
 	static canStart() {
-		return  true;
+		return true;
 	}
 
 	_canContinue() {
@@ -91,7 +91,7 @@ export class MovingObstacles extends Move {
 		}
 
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
-		taskAssignments[this._robots[0]] = Assignment.create({ class: DirectDrive, params: [ this.targetPos ], restart: changed });
+		taskAssignments[this._robots[0]] = Assignment.create({ class: DirectDrive, params: [this.targetPos], restart: changed });
 		return {
 			assignments: taskAssignments,
 			mainAttacker: this._robots[0]

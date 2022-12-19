@@ -36,7 +36,7 @@ export class Defense {
 
 	private _piggyTargets: Map<Robot, number> = new Map(); 						// opponent -> rating
 	private _scrappedPiggyTargets: Robot[];
-	private _piggyAssignments: Map<Robot, FriendlyRobot> = new Map();  			// opponent -> defender
+	private _piggyAssignments: Map<Robot, FriendlyRobot> = new Map(); // opponent -> defender
 
 	private _previousManmarkAssignments: Map<Robot, FriendlyRobot> = new Map(); // opponent -> defender
 	private _previousPiggyAssignments: Map<Robot, FriendlyRobot> = new Map(); 	// opponent -> defender
@@ -264,7 +264,7 @@ export class Defense {
 				this._createIntersections(result, pos, goalSide - pos, radius, index, false);
 				return;
 			} else {
-				result.push({ startPos: pos, startDirection: direction, pos: intersections[0].pos, way: intersections[0].way});
+				result.push({ startPos: pos, startDirection: direction, pos: intersections[0].pos, way: intersections[0].way });
 			}
 		}
 
@@ -351,12 +351,12 @@ export class Defense {
 				this._messaging.send(
 					MessageType.roleAssignment,
 					closestAsFriendly,
-					{ name: "CenterBack", params: { pos: info.startPos, dir: info.startDirection, time: rollTime }}
+					{ name: "CenterBack", params: { pos: info.startPos, dir: info.startDirection, time: rollTime } }
 				);
 				if (!amun.isPerformanceMode) {
 					vis.addCircle("tr/defense: ball intersection", info.startPos, 0.08, vis.colors.yellow);
 					vis.addCircle("tr/defense: ball intersection", info.pos, 0.12, vis.colors.red);
-					vis.addPath("tr/defense: ball intersection", [ info.startPos, info.pos ], vis.colors.red);
+					vis.addPath("tr/defense: ball intersection", [info.startPos, info.pos], vis.colors.red);
 				}
 			}
 		}

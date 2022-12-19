@@ -17,18 +17,18 @@ export class PullBall extends Task {
 	private static _isFinished: boolean = false;
 	private static _isInitialised: boolean = false;
 
-	private _movementSpeed : number;
-	private _dribblerSpeed : number;
-	private _acceleration : number;
+	private _movementSpeed: number;
+	private _dribblerSpeed: number;
+	private _acceleration: number;
 
-	private _startPos : Position;
-	private _target : Position;
+	private _startPos: Position;
+	private _target: Position;
 
-	private _curTarget : Position;
-	private _curMovementSpeed : number;
+	private _curTarget: Position;
+	private _curMovementSpeed: number;
 
-	private _startArrivalTime : number = 0;
-	private _startArrivalFlag : boolean = false;
+	private _startArrivalTime: number = 0;
+	private _startArrivalFlag: boolean = false;
 
 
 	constructor(behavior: Behavior, movementSpeed: number, dribblerSpeed: number, acceleration: number) {
@@ -63,7 +63,7 @@ export class PullBall extends Task {
 	}
 
 	public run() {
-		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, { ignorePass: true, ignoreBall: true, ignoreDefenseArea: true, ignoreOpponentDefenseArea: true});
+		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, { ignorePass: true, ignoreBall: true, ignoreDefenseArea: true, ignoreOpponentDefenseArea: true });
 
 
 		if (this._robot.pos.distanceTo(this._curTarget) <= 0.01) {

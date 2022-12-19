@@ -107,7 +107,7 @@ export class Duel extends Task {
 
 	private _contest() {
 		this._rotating = this._rotating && Ball.getRealisticBallPos().y > -World.Geometry.FieldHeightHalf / 3
-			||  Ball.getRealisticBallPos().y > -World.Geometry.FieldHeightHalf / 6;
+			|| Ball.getRealisticBallPos().y > -World.Geometry.FieldHeightHalf / 6;
 
 		if (this._rotating) {
 			debug.set("duel-state", "contest - rotate");
@@ -118,7 +118,7 @@ export class Duel extends Task {
 		}
 
 		if (this._robot.dir > 0 && this._robot.dir < Math.PI && Ball.getRealisticBallPos().y > 0.2
-				&&  !ObserverRobot.hadBall(<Robot> this._opposer, 0)) {
+				&& !ObserverRobot.hadBall(<Robot> this._opposer, 0)) {
 			this._robot.shoot(7.5);
 		}
 
@@ -150,7 +150,7 @@ export class Duel extends Task {
 		} else {
 			let sidewardsAngle = Math.min(
 				(Math.PI - Math.abs(oppDir)) * SIDEWARDS_ANGLE_SCALE, SIDEWARDS_ANGLE_MAX);
-			targetAngle = sidewardsAngle * (- MathUtil.sign(oppDir));
+			targetAngle = sidewardsAngle * (-MathUtil.sign(oppDir));
 			ballDist = this._robot.radius + World.Ball.radius;
 		}
 

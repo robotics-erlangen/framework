@@ -53,7 +53,7 @@ export const PRIORITIES = {
 
 function addSeedTargets(path: Path, robot: FriendlyRobot) {
 	if (path.addSeedTarget && robot.speed.length() > 0.1) {
-		let angleMod = [ -SEED_ANGLE_MOD, 0, SEED_ANGLE_MOD ];
+		let angleMod = [-SEED_ANGLE_MOD, 0, SEED_ANGLE_MOD];
 		for (let angle of angleMod) {
 			let seedTarget = robot.pos + (robot.speed * SEED_PREDICT_TIME).rotated(angle);
 			path.addSeedTarget(seedTarget.x, seedTarget.y);
@@ -64,8 +64,8 @@ function addSeedTargets(path: Path, robot: FriendlyRobot) {
 
 
 const GOAL_AREA = [
-	new Vector(-G.GoalWidth / 2 - 0.04,G.FieldHeightHalf + G.GoalDepth + 0.04),
-	new Vector(G.GoalWidth / 2 + 0.04,G.FieldHeightHalf - G.GoalDepth - 0.04)
+	new Vector(-G.GoalWidth / 2 - 0.04, G.FieldHeightHalf + G.GoalDepth + 0.04),
+	new Vector(G.GoalWidth / 2 + 0.04, G.FieldHeightHalf - G.GoalDepth - 0.04)
 ];
 const GOAL_AREA_FRIENDLY = [
 	-GOAL_AREA[0],
@@ -208,7 +208,7 @@ function addGoalObstacle(path: Path, robot: FriendlyRobot, ignoreDefense: boolea
 
 function _isGoalShot(): boolean {
 	if (World.Ball.speed.length() > 0.5) {
-		let [intersection, lambda1, lambda2] = geom.intersectLineLine(G.OpponentGoal, new Vector(1,0), World.Ball.pos, World.Ball.speed);
+		let [intersection, lambda1, lambda2] = geom.intersectLineLine(G.OpponentGoal, new Vector(1, 0), World.Ball.pos, World.Ball.speed);
 		if (intersection && Math.abs(lambda1!) < G.GoalWidth / 2 + 0.2) {
 			if (lambda2! > 0 && Physics.checkedBallRollTime(World.Ball, intersection) < Infinity) {
 				return true;
@@ -240,7 +240,7 @@ function addGoalObstacleShot(path: Path, robot: FriendlyRobot, messaging: Messag
 	let distAttackPosOpponentGoal = attackPos.distanceToSq(goal);
 	let distBallOpponentGoal = World.Ball.pos.distanceToSq(goal);
 	if (distRobotOpponentGoal > distAttackPosOpponentGoal
-			&&  distRobotOpponentGoal > distBallOpponentGoal) {
+			&& distRobotOpponentGoal > distBallOpponentGoal) {
 		return false;
 	}
 
@@ -321,8 +321,8 @@ function addFriendlyPassObstacle(path: Path, robot: FriendlyRobot, messaging: Me
 						path.addLine(endPoint.x, endPoint.y, dangerPos.x, dangerPos.y, radius, "pass2", PRIORITIES.PASS_BALL_STRIKER);
 						path.addLine(startPoint.x, startPoint.y, endPoint.x, endPoint.y, radiusRobot, "pass2", PRIORITIES.PASS_BALL_STRIKER);
 					} else {
-						let ballTime = Physics.ballRollTime({speed: new Vector(Constants.maxBallSpeed, 0),
-							maxSpeed: Constants.maxBallSpeed}, dangerPos.distanceTo(endPoint));
+						let ballTime = Physics.ballRollTime({ speed: new Vector(Constants.maxBallSpeed, 0),
+							maxSpeed: Constants.maxBallSpeed }, dangerPos.distanceTo(endPoint));
 						let shortEndPoint = dangerPos + (endPoint - dangerPos).normalized();
 						if (ballTime > 5) {
 							ballTime = 5;
@@ -469,7 +469,7 @@ function addRobotObstacles(path: Path, robot: FriendlyRobot, targetPosition: Pos
 				let estimatedPosition = r.pos + r.speed * estimationTime;
 				// only use estimated position if it doesn't collide with the robot
 				if (robot.pos.distanceToLineSegment(r.pos, estimatedPosition) >= robot.radius + r.radius
-						&&  r.pos.distanceTo(estimatedPosition) > 0.0001) {
+						&& r.pos.distanceTo(estimatedPosition) > 0.0001) {
 					path.addLine(r.pos.x, r.pos.y, estimatedPosition.x, estimatedPosition.y,
 						r.radius + safetyDistance, `OwnRobot_${r.id}`, PRIORITIES.ROBOT);
 				} else {
@@ -518,7 +518,7 @@ function addRobotObstacles(path: Path, robot: FriendlyRobot, targetPosition: Pos
 			let estimatedPosition = r.pos + r.speed * estimationTime;
 			// only use estimated position if it doesn't collide with the robot
 			if (robot.pos.distanceToLineSegment(r.pos, estimatedPosition) >= robot.radius + r.radius
-					&&  r.pos.distanceTo(estimatedPosition) > 0.0001) {
+					&& r.pos.distanceTo(estimatedPosition) > 0.0001) {
 
 				if (!useCMA && path.hasOpponentRobotObstacle()) {
 					path.addOpponentRobotObstacle(r, PRIORITIES.ROBOT);
@@ -604,7 +604,7 @@ export function getObstacleParam(robot: FriendlyRobot, type: ParameterType): any
 	if (!obstacles.has(robot)) {
 		throw new Error(`getObstacleParam got called before setDefaultObstaclesByTable for robot ${robot.id}`);
 	}
-	return (obstacles.get(robot) as {[name: string]: any})[type];
+	return (obstacles.get(robot) as { [name: string]: any })[type];
 }
 
 export function setDefaultObstaclesByTable(path: Path, robot: FriendlyRobot, params: PathHelperParameters) {
@@ -614,7 +614,7 @@ export function setDefaultObstaclesByTable(path: Path, robot: FriendlyRobot, par
 
 	path.clearObstacles();
 
-	let obst = {...params};
+	let obst = { ...params };
 	obst["path"] = path || robot.path;
 	obst["pathRadius"] = obst.pathRadius != undefined ? obst.pathRadius : robot.radius;
 	obst["stopBallDistance"] = obst.stopBallDistance != undefined ? obst.stopBallDistance : Constants.stopBallDistance;
@@ -625,7 +625,7 @@ export function insertObstacles(robot: FriendlyRobot, isCMA: boolean, targetPosi
 	if (!obstacles.has(robot)) {
 		throw new Error("insertObstacles called without setDefaultObstacles");
 	}
-	let p = obstacles.get(robot) as PathHelperParameters & {path: Path};
+	let p = obstacles.get(robot) as PathHelperParameters & { path: Path };
 	setDefaultObstacles(p.path, robot, targetPosition, p.ignoreBall, p.ignoreGoals, p.ignoreDefenseArea,
 		p.pathRadius, p.stopBallDistance, p.noSeedTarget, p.ignoreOpponentDefenseArea, p.extraBallDistance);
 	const messaging = p.task?.behavior().agent().messaging();

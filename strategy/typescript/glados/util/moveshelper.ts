@@ -23,7 +23,7 @@ export function volleyCircle(point1: Position, point2: Position, theta: number):
  * @param positions - List of positions to assign the remaining robots to
  * @returns the assignments. Use like this: robots[assignment[i]] -> assign to positions[i]
  */
-export function assignRobots(robots: {pos: Position}[], positions: Position[]): number[] {
+export function assignRobots(robots: { pos: Position }[], positions: Position[]): number[] {
 	if (robots.length !== positions.length) {
 		throw new Error("Moveshelper: unmatching number of robots and positions!");
 	}

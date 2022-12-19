@@ -52,7 +52,7 @@ function initMus() {
 	mus[8] = DEFAULT_DAMPING_FACTOR();
 	mus[9] = DEFAULT_DAMPING_FACTOR();
 	mus[10] = DEFAULT_DAMPING_FACTOR();
-	mus[11] = { mu_x: 0.5, mu_y: 0.04};
+	mus[11] = { mu_x: 0.5, mu_y: 0.04 };
 	mus[12] = DEFAULT_DAMPING_FACTOR();
 	mus[13] = DEFAULT_DAMPING_FACTOR();
 	mus[14] = DEFAULT_DAMPING_FACTOR();
@@ -124,7 +124,7 @@ export function calcVOutTeamCoordinates(v_out_length: number, ballSpeed: Speed, 
 
 	// TODO: remove these sanity checks if they don't fail for a while
 	{
-		let [x,y] = calcVOutFromVS(v_s, relativeSpeed.length(), phi, relativeSpeed.angle(), robotId);
+		let [x, y] = calcVOutFromVS(v_s, relativeSpeed.length(), phi, relativeSpeed.angle(), robotId);
 		x = x + robotSpeed.x;
 		y = y + robotSpeed.y;
 		if (Math.abs(Math.sqrt(x * x + y * y) - v_out_length) > 1e-5
@@ -158,7 +158,7 @@ export function calculateMinimalVOutTeamCoordinates(ballSpeed: Speed, phi: numbe
 	// => 2 * (cos^2p + sin^2p) * x = - 2 (cosp v_refl_x + sinp v_refl_y)
 	// => x = - (cosp v_refl_x + sinp v_refl_y)
 
-	let x_min = - (cosp * v_refl_x_glob + sinp * v_refl_y_glob);
+	let x_min = -(cosp * v_refl_x_glob + sinp * v_refl_y_glob);
 	return [cosp * x_min + v_refl_x_glob, sinp * x_min + v_refl_y_glob];
 }
 
@@ -251,7 +251,7 @@ function volley_Jf(v_s: number, phi: number, alpha: number, v_in: number,
 export function calcPhi(robot: FriendlyRobot, ballSpeed: Speed, viewPos: Position, targetPos: Position,
 		targetSpeed: number, volleyObserver?: VolleyObserver): [number, number] {
 	// relative ball speed
-	ballSpeed =  ballSpeed - robot.speed; // FIXME: future robot speed not current robot speed
+	ballSpeed = ballSpeed - robot.speed; // FIXME: future robot speed not current robot speed
 	let v_in = ballSpeed.length();
 	let alpha = ballSpeed.angle();
 
@@ -280,7 +280,7 @@ export function calcPhi(robot: FriendlyRobot, ballSpeed: Speed, viewPos: Positio
 	let robotId = robot.id;
 	let visData: number[] = [];
 
-	for (let i = 1;i <= 5;i++) {
+	for (let i = 1; i <= 5; i++) {
 		let [j11, j12, j21, j22] = volley_Jf(v_s, phi, alpha, v_in, robotId);
 		let det = j11 * j22 - j21 * j12;
 		let k11 = j22 / det;

@@ -6,12 +6,12 @@ import { MainTrainer } from "glados/trainer/maintrainer";
 
 export class Coordinator {
 	_trainer: MainTrainer;
-	_pools: {[name: string]: AgentPool};
+	_pools: { [name: string]: AgentPool };
 	_poolGroups: AgentPool[][];
 	_poolsList: AgentPool[] = [];
 	_messaging: Messaging;
 
-	constructor(trainer: MainTrainer, pools: {[name: string]: AgentPool}, poolGroups: AgentPool[][]) {
+	constructor(trainer: MainTrainer, pools: { [name: string]: AgentPool }, poolGroups: AgentPool[][]) {
 		this._trainer = trainer;
 		// list of agentPools
 		this._pools = pools;
@@ -49,7 +49,7 @@ export class Coordinator {
 		}
 
 		// find unassigned robots
-		let occupiedRobots: {[id: number]: boolean} = {};
+		let occupiedRobots: { [id: number]: boolean } = {};
 		for (let pool of this._poolsList) {
 			for (let robot of pool.robots()) {
 				occupiedRobots[robot.id] = true;

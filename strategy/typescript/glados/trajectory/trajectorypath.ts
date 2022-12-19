@@ -14,7 +14,7 @@ import { DirectRotation } from "glados/trajectory/directrotation";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import * as Rating from "glados/util/rating";
 
-type Trajectory = { pos: Position; speed: Speed; time: number}[];
+type Trajectory = { pos: Position; speed: Speed; time: number }[];
 
 class PID {
 	p: number;
@@ -157,12 +157,12 @@ export class TrajectoryPath extends TrajectoryHandler {
 		// same thing if no trajectory was found (to prevent driving further into obstacles)
 		if ((robotSpeed.length() > 1 && this._robot.path.maxIntersectingObstaclePrio() === PathHelper.PRIORITIES.ROBOT) ||
 				trajectory.length === 0) {
-			let spline = [ {t_start: 0, t_end: Infinity,
+			let spline = [{ t_start: 0, t_end: Infinity,
 				x: { a0: robotPos.x, a1: 0, a2: 0, a3: 0 },
 				y: { a0: robotPos.y, a1: 0, a2: 0, a3: 0 },
 				phi: { a0: robotDir, a1: 0, a2: 0, a3: 0 }
-			} ];
-			return [{spline: spline}, Coordinates.toLocal(targetPos), TrajectoryPath.trajectoryTime(trajectory)];
+			}];
+			return [{ spline: spline }, Coordinates.toLocal(targetPos), TrajectoryPath.trajectoryTime(trajectory)];
 		}
 
 		if (TRAJECTORY_PATH_DEBUG) {
@@ -243,13 +243,13 @@ export class TrajectoryPath extends TrajectoryHandler {
 			vis.addPathRaw("Position Control", [robotPos, robotPos + posDiff + speedDiff], vis.colors.red);
 		}
 
-		let spline = [ {t_start: 0, t_end: Infinity,
+		let spline = [{ t_start: 0, t_end: Infinity,
 			x: { a0: robotPos.x, a1: speed.x, a2: acc.x / 2, a3: 0 },
 			y: { a0: robotPos.y, a1: speed.y, a2: acc.y / 2, a3: 0 },
 			phi: { a0: robotDir, a1: angularSpeed, a2: angularAccel / 2, a3: 0 }
-		} ];
+		}];
 
-		return [{spline: spline}, Coordinates.toLocal(targetPos), timeToEnd];
+		return [{ spline: spline }, Coordinates.toLocal(targetPos), timeToEnd];
 	}
 
 	private static trajectoryTime(trajectory: Trajectory) {
@@ -268,19 +268,19 @@ export class TrajectoryPath extends TrajectoryHandler {
 
 	private static plotSpeed(trajectory: Trajectory) {
 		let points = [];
-		for (let i = 0;i < trajectory.length;i++) {
+		for (let i = 0; i < trajectory.length; i++) {
 			let pos = new Vector(trajectory[i].speed.length(), trajectory[i].time);
 			points.push(Coordinates.toLocal(pos));
 		}
 		vis.addPath("trajectory-speeds", points, vis.colors.blue);
-		for (let i = 0;i < 5;i++) {
+		for (let i = 0; i < 5; i++) {
 			vis.addPath("trajectory-speeds", [Coordinates.toLocal(new Vector(i, 0)),
 				Coordinates.toLocal(new Vector(i, 5))], vis.colors.red);
 		}
 	}
 
 	private static speedAtTime(time: number, trajectory: Trajectory): Speed {
-		for (let i = 0;i < trajectory.length - 1;i++) {
+		for (let i = 0; i < trajectory.length - 1; i++) {
 			let next = trajectory[i + 1];
 			if (next.time > time) {
 				let current = trajectory[i];
@@ -299,7 +299,7 @@ export class TrajectoryPath extends TrajectoryHandler {
 		if (trajectory.length === 0) {
 			return new Vector(0, 0);
 		}
-		for (let i = 0;i < trajectory.length - 1;i++) {
+		for (let i = 0; i < trajectory.length - 1; i++) {
 			let next = trajectory[i + 1];
 			if (next.time > time) {
 				let current = trajectory[i];
@@ -316,7 +316,7 @@ export class TrajectoryPath extends TrajectoryHandler {
 	}
 
 	private static accAtTime(time: number, trajectory: Trajectory): Vector {
-		for (let i = 0;i < trajectory.length - 1;i++) {
+		for (let i = 0; i < trajectory.length - 1; i++) {
 			let next = trajectory[i + 1];
 			if (next.time > time) {
 				let current = trajectory[i];
@@ -339,7 +339,7 @@ export class TrajectoryPath extends TrajectoryHandler {
 		let lastDrawn = trajectory[0].pos;
 
 		const SAMPLES = DETAILED_TRAJECTORY ? 40 : 20;
-		for (let i = 0;i < SAMPLES;i++) {
+		for (let i = 0; i < SAMPLES; i++) {
 			let time = i * totalTime / (SAMPLES - 1);
 			let pos = TrajectoryPath.posAtTime(time, trajectory);
 			if (i === 0 || i === SAMPLES - 1 || pos.distanceTo(lastDrawn) > MIN_POINT_DISTANCE) {
@@ -354,7 +354,7 @@ export class TrajectoryPath extends TrajectoryHandler {
 		let bestPos = position, bestSpeed = speed;
 		let bestTime = Infinity;
 		let bestDistance = Infinity;
-		for (let i = 0;i < 50;i++) {
+		for (let i = 0; i < 50; i++) {
 			let time = i / 1000;
 			let pos = TrajectoryPath.posAtTime(time, trajectory);
 			let speed = TrajectoryPath.speedAtTime(time, trajectory);

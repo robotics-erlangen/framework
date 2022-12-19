@@ -21,7 +21,7 @@ export function valueToRating(value: number, zero: number, one: number): number 
 	return MathUtil.bound(0, (value - zero) / (one - zero), 1);
 }
 
-const levels : Map<MessageType, number> = new Map([
+const levels: Map<MessageType, number> = new Map([
 	[MessageType.mainAttacker, 3],
 	[MessageType.duelAssistant, 1],
 	[MessageType.interceptPass, 1],
@@ -51,7 +51,7 @@ export class LeveledRating {
 		this.clear();
 	}
 
-	public setRating(level: number, v : number) {
+	public setRating(level: number, v: number) {
 		this._ratingArray[level] = v;
 		if (level > this._maxFilled) {
 			this._maxFilled = level;
@@ -65,19 +65,19 @@ export class LeveledRating {
 	public static clone(rating: ReadonlyRec<LeveledRating>): LeveledRating {
 		let result = new LeveledRating(undefined, rating._ratingArray.length);
 		result._maxFilled = rating._maxFilled;
-		for (let i = 0;i < rating._ratingArray.length;i++) {
+		for (let i = 0; i < rating._ratingArray.length; i++) {
 			result._ratingArray[i] = rating._ratingArray[i];
 		}
 		return result;
 	}
 
-	public static findBestRating<T>(ratings: Map<T, LeveledRating>) : T | undefined {
+	public static findBestRating<T>(ratings: Map<T, LeveledRating>): T | undefined {
 		const first = head(ratings);
 		if (!first) {
 			return undefined;
 		}
 
-		let best : [[T, LeveledRating], number | undefined ] = [first,first[1]._ratingArray[0]];
+		let best: [[T, LeveledRating], number | undefined ] = [first, first[1]._ratingArray[0]];
 		let levels = first[1]._ratingArray.length;
 		for (let level = 0; level < levels; level++) {
 			best[1] = best[0][1]._maxFilled < level ? best[1] : best[0][1]._ratingArray[level];

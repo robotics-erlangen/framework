@@ -19,7 +19,7 @@ export class None extends Move {
 	_updateTasks(): MoveParameters {
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
 		for (let r of this._robots) {
-			taskAssignments[r] = Assignment.create({class: "none"});
+			taskAssignments[r] = Assignment.create({ class: "none" });
 		}
 		return {
 			assignments: taskAssignments,
@@ -32,8 +32,8 @@ export class None extends Move {
 			return true;
 		}
 		return World.Ball.pos.y > 4 * G.FieldHeightHalf / 5 - 0.2
-			&&  Math.abs(World.Ball.pos.x) > G.FieldWidthHalf / 2 - 0.2
-			&&  World.RefereeState === "Stop";
+			&& Math.abs(World.Ball.pos.x) > G.FieldWidthHalf / 2 - 0.2
+			&& World.RefereeState === "Stop";
 	}
 
 	static canStart(): boolean {

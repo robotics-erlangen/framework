@@ -84,7 +84,7 @@ export function fromHSVA(hue: number, saturation: number, value: number, alpha: 
 	let c = value * saturation;
 	let x = c * (1 - Math.abs((hue * 6) % 2 - 1));
 	let m = value - c;
-	let r, g, b : number;
+	let r, g, b: number;
 	r = c;
 	g = x;
 	b = 0;
@@ -214,7 +214,7 @@ export function addCircleRaw(name: string, center: Position, radius: number, col
 		let t: pb.amun.Visualization = {
 			name: name, pen: { color: color, style: style },
 			brush: brush, width: lineWidth,
-			circle: {p_x: center.x, p_y: center.y, radius: radius},
+			circle: { p_x: center.x, p_y: center.y, radius: radius },
 			background: background
 		};
 		amunLocal.addVisualization(t);
@@ -256,7 +256,7 @@ export function addPolygonRaw(name: string, points: Position[], color?: Color,
 		amunLocal.addVisualization({
 			name: name, pen: { color: color, style: style },
 			brush: brush, width: 0.01,
-			polygon: {point: points},
+			polygon: { point: points },
 			background: background
 		});
 	} else {
@@ -347,7 +347,7 @@ export function addPathRaw(name: string, points: Position[], color: Color = gcol
 		amunLocal.addVisualization({
 			name: name, pen: { color: color, style: style },
 			width: lineWidth,
-			path: {point: points},
+			path: { point: points },
 			background: background
 		});
 	} else {
@@ -359,7 +359,7 @@ export function addPathRaw(name: string, points: Position[], color: Color = gcol
 			allData[3] = color.alpha;
 			allData[4] = lineWidth;
 			allData[5] = background ? 1 : 0;
-			for (let i = 0;i < points.length;i++) {
+			for (let i = 0; i < points.length; i++) {
 				allData[6 + i * 2] = points[i].x;
 				allData[6 + i * 2 + 1] = points[i].y;
 			}
@@ -392,8 +392,8 @@ export function addFieldVisualization(name: string, f: (pos: Vector) => Color, p
 	}
 	let data = new Uint8Array(pixelWidth * pixelHeight * 4);
 	const fieldSize = drawCornerBR - drawCornerTL;
-	for (let y = 0;y < pixelHeight;y++) {
-		for (let x = 0;x < pixelWidth;x++) {
+	for (let y = 0; y < pixelHeight; y++) {
+		for (let x = 0; x < pixelWidth; x++) {
 			const pos = new Vector((x + 0.5) / pixelWidth * fieldSize.x,
 									(y + 0.5) / pixelHeight * fieldSize.y) + drawCornerTL;
 			const color = f(Coordinates.toLocal(pos));
@@ -401,7 +401,7 @@ export function addFieldVisualization(name: string, f: (pos: Vector) => Color, p
 			data.set([color.blue, color.green, color.red, color.alpha], baseIndex);
 		}
 	}
-	amunLocal.addVisualization({name: name, image: {
+	amunLocal.addVisualization({ name: name, image: {
 		width: pixelWidth,
 		height: pixelHeight,
 		data: data,
@@ -415,5 +415,5 @@ export function addFieldVisualization(name: string, f: (pos: Vector) => Color, p
 				y: drawCornerBR.y
 			}
 		}
-	}} as any);
+	} } as any);
 }

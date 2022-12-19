@@ -11,7 +11,7 @@ export class BaseListUtil extends UnitTest {
 	}
 
 	private testMin() {
-		let array = [1,0,4,5,7,6,3,3,9];
+		let array = [1, 0, 4, 5, 7, 6, 3, 3, 9];
 		this.assert_equal(ListUtil.min(array, (x) => x)[0], 0);
 		let [result, value] = ListUtil.min(array, (x) => 10 - x);
 		this.assert_equal(result, 9);
@@ -20,7 +20,7 @@ export class BaseListUtil extends UnitTest {
 	}
 
 	private testMax() {
-		let array = [1,0,4,5,7,6,3,3,9];
+		let array = [1, 0, 4, 5, 7, 6, 3, 3, 9];
 		this.assert_equal(ListUtil.max(array, (x) => x)[0], 9);
 		let [result, value] = ListUtil.max(array, (x) => 10 - x);
 		this.assert_equal(result, 0);
@@ -30,14 +30,14 @@ export class BaseListUtil extends UnitTest {
 	}
 
 	private testSome() {
-		let array = [1,0,4,5,7,6,3,3,9];
+		let array = [1, 0, 4, 5, 7, 6, 3, 3, 9];
 		this.assert_true(ListUtil.some(array, (x) => x % 2 === 0));
 		this.assert_false(ListUtil.some(array, (x) => x === 2));
 		this.assert_true(ListUtil.some(array, (x) => x === 7));
 	}
 
 	private testPartition() {
-		let array = [1,0,3,2,4,7,6,9];
+		let array = [1, 0, 3, 2, 4, 7, 6, 9];
 		let [accept, reject] = ListUtil.partition(array, (x) => x % 2 === 0);
 		this.assert_true(ListUtil.some(accept, (x) => x === 0));
 		this.assert_true(ListUtil.some(accept, (x) => x === 2));

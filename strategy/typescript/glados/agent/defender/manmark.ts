@@ -19,13 +19,13 @@ export class ManMark extends Behavior {
 	_opp: Robot | undefined = undefined;
 	_restartTask: boolean = true;
 	_wasCenterback: boolean = false;
-	_manmarkInfo: {pos: Position; id: number} = {pos: new Vector(0, 0), id: 0};
+	_manmarkInfo: { pos: Position; id: number } = { pos: new Vector(0, 0), id: 0 };
 
 	_stop() {
 		this._opp = undefined;
 		this._restartTask = true;
 		this._wasCenterback = false;
-		this._manmarkInfo = {pos: new Vector(0, 0), id: 0};
+		this._manmarkInfo = { pos: new Vector(0, 0), id: 0 };
 	}
 
 	check(): Behavior | undefined {
@@ -58,7 +58,7 @@ export class ManMark extends Behavior {
 				let defenseAreaIntersection = Field.intersectRayDefenseArea(World.Ball.pos, World.Ball.speed, 0, true)[0];
 				if (defenseAreaIntersection && World.Ball.pos.distanceTo(defenseAreaIntersection)
 						> World.Ball.pos.distanceTo(this._robot.pos)
-						&&  (this._robot.pos - World.Ball.pos).dot(World.Ball.speed) > 0) {
+						&& (this._robot.pos - World.Ball.pos).dot(World.Ball.speed) > 0) {
 					return [Duel];
 				}
 			}
@@ -75,12 +75,12 @@ export class ManMark extends Behavior {
 		let markingPosThreshold = wasCenterback ? markingPosNearHigh : markingPosNearLow;
 		let oppDefenseDist = Field.distanceToFriendlyDefenseArea(this._opp.pos, this._opp.radius);
 		if (markingPosDefenseDist < markingPosThreshold || oppDefenseDist <= 0 || Referee.isStopState() || Referee.isFriendlyFreeKickState()
-				||  World.RefereeState === "KickoffOffensivePrepare" || World.RefereeState === "KickoffOffensive") {
+				|| World.RefereeState === "KickoffOffensivePrepare" || World.RefereeState === "KickoffOffensive") {
 			this._wasCenterback = true;
 			// for interpreting debug outputs
 			this._manmarkInfo.id = this._opp.id;
 			this._manmarkInfo.pos = dest;
-			return [CenterBack, [ this._manmarkInfo ], this._restartTask];
+			return [CenterBack, [this._manmarkInfo], this._restartTask];
 		}
 
 		// if we are still near the defense area but want to move away, disguise as a centerback
@@ -90,6 +90,6 @@ export class ManMark extends Behavior {
 			// this._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: "centerback", payload: {} });
 		}
 
-		return [ManMarkTask, [ this._opp ], this._restartTask];
+		return [ManMarkTask, [this._opp], this._restartTask];
 	}
 }

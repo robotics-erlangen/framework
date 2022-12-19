@@ -68,9 +68,9 @@ function setupPath() {
 	}
 
 	pathInstance.setBoundary(
-		-geometry.FieldWidthHalf  - geometry.BoundaryWidth - 0.02,
+		-geometry.FieldWidthHalf - geometry.BoundaryWidth - 0.02,
 		-geometry.FieldHeightHalf - geometry.BoundaryWidth - 0.02,
-		geometry.FieldWidthHalf  + geometry.BoundaryWidth + 0.02,
+		geometry.FieldWidthHalf + geometry.BoundaryWidth + 0.02,
 		geometry.FieldHeightHalf + geometry.BoundaryWidth + 0.02,
 	);
 

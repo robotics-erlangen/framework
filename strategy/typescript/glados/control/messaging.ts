@@ -801,8 +801,8 @@ export class MessageBox {
 
 export class Messaging {
 
-	_newMessages: {[type: number]: Map<MessageOrigin | "all" | "allBoxMerged", any | any[]>} = {}; // is reset every frame
-	_deliveredMessages: {[type: number]: Map<MessageOrigin | "all" | "allBoxMerged", any | any[]>} = {}; // reference to the newMessages table of the last last frame
+	_newMessages: { [type: number]: Map<MessageOrigin | "all" | "allBoxMerged", any | any[]> } = {}; // is reset every frame
+	_deliveredMessages: { [type: number]: Map<MessageOrigin | "all" | "allBoxMerged", any | any[]> } = {}; // reference to the newMessages table of the last last frame
 	// messages are stored in the following format:
 	// messages = {
 	// 	messageTypeA = {

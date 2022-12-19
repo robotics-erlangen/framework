@@ -253,7 +253,7 @@ export class CatchBall {
 		return [this._catchTime, moveDest + Vector.fromAngle(viewDir) * (this._robot.shootRadius + World.Ball.radius)];
 	}
 
-	_calculateHitTime(ball: BallLike & {maxSpeed: number}) {
+	_calculateHitTime(ball: BallLike & { maxSpeed: number }) {
 		// first check if the ball is inside the robot
 		if (isBallInRobot(this._robot, ball)) {
 			// that means the ball is about to be reflected by the robot
@@ -344,17 +344,17 @@ export class CatchBall {
 		let robotHit = lambda3 != undefined ? (lambda3 >= 0 && lambda3 <= 1) : lambda4 != undefined && (lambda4 >= 0 && lambda4 <= 1);
 
 		let robotMovement = moveDest.distanceToSq(this._robot.pos) > this._robot.radius * this._robot.radius
-								&&  moveDest - this._robot.pos
-								||  this._robot.speed;
+								&& moveDest - this._robot.pos
+								|| this._robot.speed;
 
 		if (ballHit ? robotHit : lambda2 === Infinity && lambda4 === Infinity
-			||  (robotMovement.absoluteAngleDiff(World.Ball.pos - moveDest) > 87 / 180 * Math.PI)) {
+			|| (robotMovement.absoluteAngleDiff(World.Ball.pos - moveDest) > 87 / 180 * Math.PI)) {
 			// the robot has to move around the predicted ball to reach the catch pos
 			return CatchMethod.Around;
 		} else if (moveDest.distanceTo(currentBall.pos) > robotTargetSpacing
 				// the ball is not between the robot and the catch pos
 				// the ball hasn't yet moved past the robot (TODO better calculation than the dot product?)
-				||  (currentBall.pos - this._robot.pos).dot(predictedBall.pos - currentBall.pos) <= 0) {
+				|| (currentBall.pos - this._robot.pos).dot(predictedBall.pos - currentBall.pos) <= 0) {
 			return CatchMethod.Stop;
 		} else {
 			return CatchMethod.Hunt;
@@ -378,7 +378,7 @@ export class CatchBall {
 
 			// if the robot is closer to the predicted ball then the ball I can shorten the obstacle
 			if ((robotDistToPredictedBall + 2 * this._robot.radius + ball.radius) < ballDistToPredictedBall
-				||  robotDistToPredictedBall < 2 * this._robot.radius + minBall.radius) {
+				|| robotDistToPredictedBall < 2 * this._robot.radius + minBall.radius) {
 				predictedBallShift = minBall.pos - (minBall.pos - predictedBall.pos).withLength(ball.radius + 0.02);
 			}
 
@@ -442,7 +442,7 @@ export class CatchBall {
 		// Obstacle checking is done as: distance(robot, obstacle) < robot.radius + obstacle.radius
 		// Negative obstacle radius allow to keep the robot center constrainted without blocking large portions of the field
 		let effectiveObstacleRadius = this._robot.radius;
-		let negativeRadius = - this._robot.radius + effectiveObstacleRadius;
+		let negativeRadius = -this._robot.radius + effectiveObstacleRadius;
 		let moveWidth = this._robot.dribblerWidth + 2 * SIDE_DEPTH;
 
 		let negRightOfs = Vector.fromPolar(viewDir, moveWidth / 2).perpendicular();

@@ -29,7 +29,7 @@ export class WindshieldWiper extends Move {
 	public static canStart(): boolean {
 		if (WindshieldWiper.Referee.isFriendlyFreeKickState()) {
 			return Math.abs(World.Ball.pos.x) > G.FieldWidthHalf / 2
-				&&  World.Ball.pos.y > 3 * G.FieldHeightHalf / 5;
+				&& World.Ball.pos.y > 3 * G.FieldHeightHalf / 5;
 			// return true
 		}
 		return false;
@@ -43,7 +43,7 @@ export class WindshieldWiper extends Move {
 	}
 
 	private _state: string;
-	private _distances: {distance: number; robot: FriendlyRobot}[];
+	private _distances: { distance: number; robot: FriendlyRobot }[];
 	private _positions: Position[];
 
 	constructor(robots: FriendlyRobot[], messaging: MessageBox) {
@@ -58,7 +58,7 @@ export class WindshieldWiper extends Move {
 		}
 		this._distances.sort((a: { distance: number }, b: { distance: number }) => a.distance - b.distance);
 		this._positions = [];
-		for (let i = 0;i < this._robots.length;i++) {
+		for (let i = 0; i < this._robots.length; i++) {
 			this._positions.push(new Vector((MathUtil.sign(World.Ball.pos.x)) * (i / WindshieldWiper.MAX_ROBOTS - 0.5) * G.FieldWidth * 0.75, G.FieldHeightQuarter * (8 / (5 + i))));
 		}
 	}
@@ -92,7 +92,7 @@ export class WindshieldWiper extends Move {
 		let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
 		let pos = this._positions;
 		let acceptingRobots = new Set<number>();
-		for (let i = 1;i < this._robots.length;i++) {
+		for (let i = 1; i < this._robots.length; i++) {
 			if (passInfoTable && Attack.checkPassInfos(distances[i].robot, passInfoTable, false)[0]) {
 				acceptingRobots.add(i);
 			}
@@ -113,9 +113,9 @@ export class WindshieldWiper extends Move {
 			});
 		}
 		if (acceptingRobots.size > 0) {
-			for (let i = 1;i < this._robots.length;i++) {
+			for (let i = 1; i < this._robots.length; i++) {
 				if (acceptingRobots.has(i)) {
-					taskAssignments[distances[i].robot] = Assignment.create({ class: AcceptPass});
+					taskAssignments[distances[i].robot] = Assignment.create({ class: AcceptPass });
 				} else {
 					const defaultPos = pos[i];
 					let acceptPos = this.calcAcceptPos(pos[i], this._robots[i].radius);

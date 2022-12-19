@@ -69,8 +69,8 @@ export class BallEscort extends Behavior {
 		}
 
 		if (!(World.RefereeState === "Game" || World.RefereeState === "GameForce")
-				||  !Referee.opponentTouchedLast()
-				||  Ball.wasShot(shotHysteresis)) {
+				|| !Referee.opponentTouchedLast()
+				|| Ball.wasShot(shotHysteresis)) {
 			return undefined;
 		}
 

@@ -36,7 +36,7 @@ export const OFFENSIVE_MARKING_DISTANCE = 0.3;
 
 function _manMarkPos(opponent: { pos: Position; radius: number; speed: Speed }): Position {
 	// use the position at which the robot would brake if it started immediately
-	let targetPos = Physics.robotBrakePos({pos: opponent.pos, speed: opponent.speed});
+	let targetPos = Physics.robotBrakePos({ pos: opponent.pos, speed: opponent.speed });
 	if (World.Ball.pos.y > G.FieldHeightHalf * 0.7 && World.Ball.speed.length() < 0.5 && Referee.isStopState()) {
 		let dist = opponent.radius + Constants.maxRobotRadius + OFFENSIVE_MARKING_DISTANCE;
 		targetPos = targetPos + (World.Ball.pos - targetPos).withLength(dist);
@@ -111,7 +111,7 @@ function _calculateBallPositionField(): [Position, RelativePosition | undefined]
 		let goalLineIntersection = geom.intersectLineLine(targetPos,
 			targetDir, World.Geometry.FriendlyGoal, new Vector(1, 0))[0];
 		let extraWidth = wasGoalLineIntersection ? 0.25 : 0.15;
-		if (goalLineIntersection  &&
+		if (goalLineIntersection &&
 				Math.abs(goalLineIntersection.x) < World.Geometry.GoalWidth / 2 + extraWidth) {
 			wasGoalLineIntersection = true;
 			return [targetPos, targetDir];
@@ -169,7 +169,7 @@ export function dangerousBallTowardsDefense(opp: boolean = false): boolean {
 	return false;
 }
 
-export function getClosestRobot<R extends {pos: Position}>(robotlist: R[], pos: Position, distance?: (r: R, p: Position) => number): [R | undefined, number] {
+export function getClosestRobot<R extends { pos: Position }>(robotlist: R[], pos: Position, distance?: (r: R, p: Position) => number): [R | undefined, number] {
 	if (distance == undefined) {
 		distance = (r: R, p: Position) => r.pos.distanceTo(p);
 	}
@@ -321,7 +321,7 @@ export function findBestPointToBlockOpponentShot(robot: FriendlyRobot, boundaryO
 
 	// calculate time to the new positions
 	let timeToLeftThird = Physics.robotTimeToPos(robot, leftThird, new Vector(0, 0))[0];
-	let timeToRightThird = Physics.robotTimeToPos(robot, rightThird, new Vector(0,0))[0];
+	let timeToRightThird = Physics.robotTimeToPos(robot, rightThird, new Vector(0, 0))[0];
 
 	// depending on which time is smaller recursively call the function with new boundaries
 	if (timeToLeftThird < timeToRightThird) {
@@ -411,7 +411,7 @@ export function divCornerFactor(way: number, distance: number): number {
 
 
 let keeperShouldBeMAHysteresis = false;
-function behindCenterbacks(keeper: FriendlyRobot, object: {pos: Position; radius: number}): boolean {
+function behindCenterbacks(keeper: FriendlyRobot, object: { pos: Position; radius: number }): boolean {
 	const hyst = keeperShouldBeMAHysteresis ? 0.1 : 0;
 	const defenseDistance = keeper.radius + keeper.shootRadius + hyst;
 	return Field.distanceToFriendlyDefenseArea(object.pos, object.radius) < defenseDistance;

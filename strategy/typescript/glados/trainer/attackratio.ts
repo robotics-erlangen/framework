@@ -35,7 +35,7 @@ export class AttackRatio {
 		let ball = World.Ball;
 		let refState = World.RefereeState;
 		let nextRefState = World.NextRefereeState;
-		if ((this._ballInOpponentFieldHalf && ball.pos.y < -1.5)  ||
+		if ((this._ballInOpponentFieldHalf && ball.pos.y < -1.5) ||
 			(!this._ballInOpponentFieldHalf && ball.pos.y > 1.5)) {
 			this._ballInOpponentFieldHalf = !this._ballInOpponentFieldHalf;
 		}
@@ -139,7 +139,7 @@ export class AttackRatio {
 		// increase attackRatio if we have more robots
 		let enemies = expectedEnemies - Referee.realisticCardsOpponent();
 		if (enemies < Math.min(expectedEnemies, World.FriendlyRobots.length)) {
-			attackRatio = Math.max(attackRatio, Math.min(attackRatio + 1 , 2.0 / 3 * expectedEnemies));
+			attackRatio = Math.max(attackRatio, Math.min(attackRatio + 1, 2.0 / 3 * expectedEnemies));
 		}
 
 		// allow a defender to promote if a pass is ongoing.
@@ -180,7 +180,7 @@ export class AttackRatio {
 		}
 
 		if (mainAttackerIsDefender && this._previousMainAttacker && !previousMainAttackerIsDefender
-				&&  Field.distanceToFriendlyDefenseArea(this._previousMainAttacker.pos, this._previousMainAttacker.radius) < 0.5) {
+				&& Field.distanceToFriendlyDefenseArea(this._previousMainAttacker.pos, this._previousMainAttacker.radius) < 0.5) {
 			// being either a defender or an attacker is not a completet partitioning of an agents state
 			// it could also be currently hidden
 			let isAttacker = false;
@@ -248,7 +248,7 @@ export class AttackRatio {
 		return [attackers, defenders];
 	}
 
-	changingRobots(): {robot: FriendlyRobot; isAttacker: boolean}[] {
+	changingRobots(): { robot: FriendlyRobot; isAttacker: boolean }[] {
 		let robots = [];
 		let forcePoolChangeMsg = this._messaging.receiveTrainerRepeated(MessageType.forcePoolChange);
 		if (forcePoolChangeMsg) {
@@ -267,7 +267,7 @@ export class AttackRatio {
 
 		let robotList = [];
 		for (let r of robots) {
-			robotList.push({ robot: r, isAttacker: this._messaging.receive(MessageType.attackerFlag).has(r)});
+			robotList.push({ robot: r, isAttacker: this._messaging.receive(MessageType.attackerFlag).has(r) });
 		}
 
 		return robotList;

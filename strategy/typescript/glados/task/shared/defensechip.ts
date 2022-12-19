@@ -11,7 +11,7 @@ import { Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
 
-const obstacleTable : PathHelper.PathHelperParameters = {
+const obstacleTable: PathHelper.PathHelperParameters = {
 	ignoreBall: true,
 	ignorePass: true,
 	ignoreDefenseArea: false,
@@ -37,7 +37,7 @@ export class DefenseChip extends Task {
 		let dribblerOffset = (World.Ball.pos - this._robot.pos).withLength(this._robot.shootRadius + World.Ball.radius - SAFETY_OFFSET);
 		let moveDest = World.Ball.pos - dribblerOffset;
 		let moveTime = moveDest.distanceTo(this._robot.pos) / Math.min(this._robot.speed.length(), 1);
-		let futureBall =  Physics.ballAtTime(World.Ball, moveTime);
+		let futureBall = Physics.ballAtTime(World.Ball, moveTime);
 		vis.addCircle("t/s/defensechip chase future ball", futureBall.pos, 0.03, vis.colors.orange);
 
 		moveDest = futureBall.pos - dribblerOffset;

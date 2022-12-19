@@ -52,10 +52,10 @@ function _calculateCurveSpeedLimits(waypoints: Position[], accelLimit: number, m
 	// {startSpeed, endSpeed, distance, linearSpeedChange}
 	// if not linear, then startSpeed is the maximum allowed speed, brakes down to endSpeed as late as possible
 	// !!! for every entry except the first. distance ~= 0 !!!
-	let maxSpeedProfile: [number, number, number, boolean?][] = [ [startSpeed, maxSpeed, 0] ];
+	let maxSpeedProfile: [number, number, number, boolean?][] = [[startSpeed, maxSpeed, 0]];
 
 	// to calculate an angle two line segments are necessary
-	for (let i = 2; i < waypoints.length;i++) {
+	for (let i = 2; i < waypoints.length; i++) {
 		let newPathDir = waypoints[i] - prev;
 		// limit angle for extremely sharp corners
 		let angleDiff = Math.min(lastPathDir.absoluteAngleDiff(newPathDir), Math.PI - 0.001);
@@ -144,7 +144,7 @@ function _backpropagateSpeedLimit(speedProfile: number[][], maxSpeed: number, br
 	}
 
 	let distance = 0;
-	for (let i = speedProfile.length - 2;i >= 0;i--) {
+	for (let i = speedProfile.length - 2; i >= 0; i--) {
 		let entry = speedProfile[i];
 		let nextEntry = speedProfile[i + 1]; // only used for acceleration calculations
 
@@ -181,7 +181,7 @@ function _backpropagateSpeedLimit(speedProfile: number[][], maxSpeed: number, br
 				// solve(v_0=v_0+a*t_mid+b*(t_end-t_mid),t_end);
 				// assume(a > 0);assume(b < 0);assume(d > 0);assume(t_end>t_mid);
 				// ratsimp(integrate(v_0+a*t,t,0,t_mid)+integrate(v_0+a*t_mid+b*(t-t_mid),t,t_mid,t_end)=d);
-				let v_0 = switchSpeed, a = oldAccel, b = brake,d = missingDistance;
+				let v_0 = switchSpeed, a = oldAccel, b = brake, d = missingDistance;
 				let t1 = MathUtil.solveSq(b - a, 2 * (b - a) * v_0, -2 * b * d)[0];
 				if (t1 != undefined && t1 > 0) {
 					switchTime = switchTime + t1;
@@ -270,7 +270,7 @@ function _addLinearSpeedSegment(speedProfile: number[][], startSpeed: number, en
 // brake must be a negative value
 // speed profile for forward movement, the speed limits in maxSpeedProfile are derived from sidewards movement limits
 function _calculate1DSpeedProfile(maxSpeedProfile: [number, number, number, boolean?][], accelerate: number, brake: number): number[][] {
-	let speedProfile = [ [0, maxSpeedProfile[0][0]] ]; // begin with start speed
+	let speedProfile = [[0, maxSpeedProfile[0][0]]]; // begin with start speed
 	let initialSpeed = speedProfile[0][1];
 	// handle negative start speed by braking and moving back
 	if (initialSpeed < 0) {
@@ -287,7 +287,7 @@ function _calculate1DSpeedProfile(maxSpeedProfile: [number, number, number, bool
 	}
 
 	// skip maxSpeedProfile entry containing the current robot and max speed
-	for (let i = 1;i < maxSpeedProfile.length;i++) {
+	for (let i = 1; i < maxSpeedProfile.length; i++) {
 		let segment = maxSpeedProfile[i];
 		let startSpeed = segment[0];
 		let endSpeed = segment[1];
@@ -312,7 +312,7 @@ function _calculate1DSpeedProfile(maxSpeedProfile: [number, number, number, bool
 function _decreaseDistance(speedProfile: number[][], cutoffDistance: number): number {
 	let currentDistance = 0;
 	let cutoffAfter = 1; // always keep the first speedProfile segment
-	for (let i = speedProfile.length - 2;i >= 0;i--) {
+	for (let i = speedProfile.length - 2; i >= 0; i--) {
 		let segmentDistance = (speedProfile[i + 1][1] + speedProfile[i][1]) / 2 * (speedProfile[i + 1][0] - speedProfile[i][0]);
 
 		if (currentDistance <= cutoffDistance && cutoffDistance < currentDistance + segmentDistance) {
@@ -370,7 +370,7 @@ function _injectExponentialFalloff(speedProfile: number[][], exponentialTime: nu
 			// actualDistance decreases when getting closer to the target
 			let time = 2 * exponentialTime; // initial guess
 			let expTime = timeFactor * exponentialTime;
-			for (let i = 0;i < 10;i++) {
+			for (let i = 0; i < 10; i++) {
 				let e = Math.exp(-k * time);
 				// only consider endSpeedLen for a distance of expTime * endSpeedLen
 				let err = Math.max(0, time - expTime) * endSpeedLen - e * expDistance + actualDistance;
@@ -404,7 +404,7 @@ function _injectExponentialFalloff(speedProfile: number[][], exponentialTime: nu
 
 function _speedAtTime(speedProfile: number[][], time: number): number {
 	let endIdx = speedProfile.length;
-	for (let i = 1;i < speedProfile.length;i++) {
+	for (let i = 1; i < speedProfile.length; i++) {
 		if (speedProfile[i][0] >= time) {
 			endIdx = i;
 			break;
@@ -490,7 +490,7 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 
 		// convert waypoints to vectors and draw
 		let waypointsVector: Position[] = [];
-		for (let i = 0;i < waypoints.length;i++) {
+		for (let i = 0; i < waypoints.length; i++) {
 			waypointsVector.push(new Vector(waypoints[i].p_x, waypoints[i].p_y));
 		}
 
@@ -562,12 +562,12 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 			targetDir = Coordinates.toGlobal(targetDir);
 			let [angularSpeed, angularAccel] = this.rotationCalculation.calculateRotationHysteresis(robotDir, this._robot.angularSpeed, targetDir,
 				rotAccelerate, rotBrake, rotMaxSpeed, rotationExponentialTime);
-			let spline = [ {t_start: 0, t_end: Infinity,
+			let spline = [{ t_start: 0, t_end: Infinity,
 				x: { a0: robotPos.x, a1: endSpeed.x, a2: 0, a3: 0 },
 				y: { a0: robotPos.y, a1: endSpeed.y, a2: 0, a3: 0 },
-				phi: { a0: robotDir, a1: angularSpeed, a2: angularAccel / 2, a3: 0}
-			} ];
-			return [{spline: spline}, targetPos, 0];
+				phi: { a0: robotDir, a1: angularSpeed, a2: angularAccel / 2, a3: 0 }
+			}];
+			return [{ spline: spline }, targetPos, 0];
 		}
 
 
@@ -584,7 +584,7 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 
 		// dribble. backward. speed & accel, forward brake
 		let accelerate = Math.abs(this._robot.acceleration.aSpeedupFMax) * accelerationFactor; // * (dribble and 0.2 or 1)
-		let brake = -Math.abs(this._robot.acceleration.aBrakeFMax) * accelerationFactor  * (dribble ? 0.8 : 1);
+		let brake = -Math.abs(this._robot.acceleration.aBrakeFMax) * accelerationFactor * (dribble ? 0.8 : 1);
 		// 	if dribble then
 		// 		maxSpeed = 0.5
 		// 	end
@@ -643,14 +643,14 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 		let [angularSpeed, angularAccel] = this.rotationCalculation.calculateRotationHysteresis(robotDir,
 			this._robot.angularSpeed, targetDir, rotAccelerate, rotBrake, rotMaxSpeed, rotationExponentialTime);
 
-		let spline = [ {t_start: 0, t_end: Infinity,
+		let spline = [{ t_start: 0, t_end: Infinity,
 			x: { a0: robotPos.x, a1: speedVector.x, a2: accelVector.x / 2, a3: 0 },
 			y: { a0: robotPos.y, a1: speedVector.y, a2: accelVector.y / 2, a3: 0 },
-			phi: { a0: robotDir, a1: angularSpeed, a2: angularAccel / 2, a3: 0}
-		} ];
+			phi: { a0: robotDir, a1: angularSpeed, a2: angularAccel / 2, a3: 0 }
+		}];
 
 		let endTime = speedProfile[speedProfile.length - 1][1];
-		return [{spline: spline}, targetPos, endTime];
+		return [{ spline: spline }, targetPos, endTime];
 	}
 
 	canHandle(...args: any[]): boolean {

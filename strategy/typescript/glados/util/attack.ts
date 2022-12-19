@@ -127,7 +127,7 @@ const ratePassIntersections = (robot: FriendlyRobot, pass: PassObject, shootPos:
 
 		// rate opponent's ability to intercept the pass
 		if (!validIntersection && orthogonalProjection.distanceToLineSegment(shootPos, pass.ballPos) < 1
-					&&  opp !== World.OpponentKeeper) {
+					&& opp !== World.OpponentKeeper) {
 			const passInterception = orthogonalProjection.distanceToLineSegment(shootPos, pass.ballPos) > 0.5
 				? pass.ballPos : orthogonalProjection;
 			if (!amun.isPerformanceMode) {
@@ -135,8 +135,8 @@ const ratePassIntersections = (robot: FriendlyRobot, pass: PassObject, shootPos:
 			}
 
 			// calculate the time the ball needs to arrive at the intersection point
-			const shootSpeed = new Vector(1,1).withLength(Physics.calculateShootSpeed(robot, 3, shootPos.distanceTo(pass.ballPos))); // direction doesn't actually matter
-			const fakeBall = {speed: shootSpeed, maxSpeed: shootSpeed.length()};
+			const shootSpeed = new Vector(1, 1).withLength(Physics.calculateShootSpeed(robot, 3, shootPos.distanceTo(pass.ballPos))); // direction doesn't actually matter
+			const fakeBall = { speed: shootSpeed, maxSpeed: shootSpeed.length() };
 			const ballRollTime = Physics.ballRollTime(fakeBall, passInterception.distanceTo(shootPos) - World.Ball.radius - opp.shootRadius);
 			if (ballRollTime === Infinity) {
 				throw new Error("Planning unreachable pass");
@@ -148,13 +148,13 @@ const ratePassIntersections = (robot: FriendlyRobot, pass: PassObject, shootPos:
 			if (!amun.isPerformanceMode) {
 				vis.addPath("u/a/ratePass", [opp.pos, opp.pos + projectedSpeed], vis.colors.pink, true);
 			}
-			const fakeRobot = {acceleration: opp.acceleration, pos: opp.pos, maxSpeed: opp.maxSpeed, speed: projectedSpeed};
+			const fakeRobot = { acceleration: opp.acceleration, pos: opp.pos, maxSpeed: opp.maxSpeed, speed: projectedSpeed };
 
 			let timeToPos = 0;
 			const minDist = World.Ball.radius + opp.radius;
 			if (opp.pos.distanceTo(passInterception) > minDist) {
 				let hitPoint = passInterception + (opp.pos - passInterception).withLength(minDist);
-				timeToPos = Physics.robotTimeToPos(fakeRobot, hitPoint, new Vector(0,0))[0];
+				timeToPos = Physics.robotTimeToPos(fakeRobot, hitPoint, new Vector(0, 0))[0];
 			}
 
 			const passRating = Rating.valueToRating(timeToPos, ballRollTime - 1, ballRollTime + 0.5);
@@ -351,12 +351,12 @@ export function choosePassFromSuggestions(robot: FriendlyRobot,
 		if (sugg.anonymous) {
 			target = undefined;
 		}
-		passes.push({target: target, ballPos: sugg.ballPos, time: sugg.time, manual: sugg.manual });
+		passes.push({ target: target, ballPos: sugg.ballPos, time: sugg.time, manual: sugg.manual });
 	}
 	return choosePass(robot, passes, options);
 }
 
-function sortByRating(a: {rating: number}, b: {rating: number}): number {
+function sortByRating(a: { rating: number }, b: { rating: number }): number {
 	return b.rating - a.rating;
 }
 
@@ -392,9 +392,9 @@ export function sortPassesFromSuggestions(robot: FriendlyRobot, passSuggestions:
 		options.customHysteresis = 0.1;
 	}
 
-	let passes: (PassObject & {rating: number})[] = [];
+	let passes: (PassObject & { rating: number })[] = [];
 	for (let [sender, sugg] of passSuggestions.entries()) {
-		let pass = {target: sender, ballPos: sugg.ballPos, time: sugg.time};
+		let pass = { target: sender, ballPos: sugg.ballPos, time: sugg.time };
 		let rating = options.ratePass(robot, pass, options.earliestAttackTime, options.attackPosition, options.considerTiming);
 		// give a bonus if the pos is near the currentPassPos
 		if (options.currentPassPositions != undefined) {
@@ -415,12 +415,12 @@ export function sortPassesFromSuggestions(robot: FriendlyRobot, passSuggestions:
 		if (sugg.anonymous) {
 			target = undefined;
 		}
-		passes.push({target: target, ballPos: sugg.ballPos, time: sugg.time, rating: rating, chip: sugg.chip});
+		passes.push({ target: target, ballPos: sugg.ballPos, time: sugg.time, rating: rating, chip: sugg.chip });
 	}
 
 	passes.sort(sortByRating);
 
-	for (let i = 1;i < passes.length;i++) {
+	for (let i = 1; i < passes.length; i++) {
 		if (passes[i].rating < options.threshold) {
 			passes.splice(i, 1);
 		}
@@ -455,7 +455,7 @@ function _currentPlannedMainAttacker(passInfoSender: FriendlyRobot | undefined, 
 		lastCPMA = undefined;
 		// lastCPMATime only gets set if the pass is on the way.
 		// at that point lastPasser won't get set -> don't delete lastPasser
-		if (lastPasser && !Robot.hadBall(lastPasser,0.2)) {
+		if (lastPasser && !Robot.hadBall(lastPasser, 0.2)) {
 			lastPasser = undefined;
 		}
 	}
@@ -482,7 +482,7 @@ function _currentPlannedMainAttacker(passInfoSender: FriendlyRobot | undefined, 
 	debug.pop();
 
 	if (lastPasser && Ball.wasShot(0.5) === lastPasser
-			&&  World.Ball.speed.length() > 3 && lastReceiver && World.Ball.speed.absoluteAngleDiff(
+			&& World.Ball.speed.length() > 3 && lastReceiver && World.Ball.speed.absoluteAngleDiff(
 				lastReceiver.pos - World.Ball.pos) < 45 / 180 * Math.PI) {
 		lastCPMA = lastReceiver;
 		lastCPMATime = World.Time;
@@ -545,7 +545,7 @@ export function shootGoalViewPos(shootDest: Position, attackPos: Position): Posi
 // Attack.checkForGoalShot = Cache.forFrame(Attack.checkForGoalShot)
 
 const BUFFER_TIME = 0.8;
-function printPassInfo(robot: {shootRadius: number} & Physics.RobotLike, passInfo: ReadonlyRec<PassInfo> | undefined, hysteresis: boolean | undefined,
+function printPassInfo(robot: { shootRadius: number } & Physics.RobotLike, passInfo: ReadonlyRec<PassInfo> | undefined, hysteresis: boolean | undefined,
 		hysteresisPassInfo: ReadonlyRec<PassInfo> | undefined) {
 	if (passInfo) {
 		let robotPos = passInfo.ballPos + (passInfo.ballPos - World.Ball.pos).withLength(robot.shootRadius + World.Ball.radius);
@@ -571,7 +571,7 @@ function printPassInfo(robot: {shootRadius: number} & Physics.RobotLike, passInf
 }
 
 /** The time between the arrival of the robot and the ball */
-function calculatePassInfoTiming(robot: {shootRadius: number} & Physics.RobotLike, passInfo: ReadonlyRec<PassInfo> | undefined,
+function calculatePassInfoTiming(robot: { shootRadius: number } & Physics.RobotLike, passInfo: ReadonlyRec<PassInfo> | undefined,
 		passIncoming?: boolean, absRobotTime?: number): number {
 	if (passInfo != undefined) {
 		let robotPos = passInfo.ballPos + (passInfo.ballPos - World.Ball.pos).withLength(robot.shootRadius + World.Ball.radius);
@@ -607,7 +607,7 @@ function _checkPassInfos(robot: FriendlyRobot, passInfoTable: ReadonlyRec<PassIn
 	}
 }
 
-let checkedPassInfoPerRobot = new Map<FriendlyRobot, {result: boolean; message: ReadonlyRec<PassInfo> | undefined}>();
+let checkedPassInfoPerRobot = new Map<FriendlyRobot, { result: boolean; message: ReadonlyRec<PassInfo> | undefined }>();
 
 /**
  * {@link _checkPassInfos }
@@ -617,7 +617,7 @@ export function checkPassInfos(robot: FriendlyRobot, passInfoTable: Readonly<Pas
 	let preResult = cachedPassInfo ? cachedPassInfo.result : undefined;
 	let preMessage = cachedPassInfo ? cachedPassInfo.message : undefined;
 	let [message, result, time] = _checkPassInfos(robot, passInfoTable, preResult, preMessage, passIncoming, absRobotTime);
-	checkedPassInfoPerRobot[robot] = {message: message, result: result};
+	checkedPassInfoPerRobot[robot] = { message: message, result: result };
 	return [result, time];
 }
 
@@ -631,7 +631,7 @@ export function checkPassInfos(robot: FriendlyRobot, passInfoTable: Readonly<Pas
  * @returns if we have to start to move
  */
 export function checkPassInfoFromPosition(robot: FriendlyRobot, passInfo: PassInfo | undefined, position: Position,
-		speed: Speed = new Vector(0,0), passIncoming?: boolean) {
+		speed: Speed = new Vector(0, 0), passIncoming?: boolean) {
 	if (position) {
 		let fakeRobot = {
 			acceleration: robot.acceleration,

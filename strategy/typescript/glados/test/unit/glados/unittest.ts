@@ -60,8 +60,8 @@ export class GladosUnitTest extends UnitTest {
 		this.assert_deep_equal(false, false);
 		this.assert_deep_equal([], []);
 		this.assert_deep_equal([1, 2, 3], [1, 2, 3]);
-		this.assert_deep_equal({a: 1, b: 2}, {a: 1, b: 2});
-		this.assert_deep_equal({a: 1, b: 2}, {b: 2, a: 1});
+		this.assert_deep_equal({ a: 1, b: 2 }, { a: 1, b: 2 });
+		this.assert_deep_equal({ a: 1, b: 2 }, { b: 2, a: 1 });
 		this.assert_deep_equal(new Vector(0, 0), new Vector(0, 0));
 
 		this.assert_vector_equal(new Vector(0, 0), new Vector(0, 0));
@@ -127,8 +127,8 @@ export class GladosUnitTest extends UnitTest {
 		this.assert_error(() => { this.assert_deep_equal(0, false); });
 		this.assert_error(() => { this.assert_equal([1, 2, 3], [1, 2]); });
 		this.assert_error(() => { this.assert_equal([1, 2], [1, 2, 3]); });
-		this.assert_error(() => { this.assert_equal({a: 1, b: 2}, {a: 1, b: 511}); });
-		this.assert_error(() => { this.assert_equal({a: 1, b: 511}, {a: 1, b: 2}); });
+		this.assert_error(() => { this.assert_equal({ a: 1, b: 2 }, { a: 1, b: 511 }); });
+		this.assert_error(() => { this.assert_equal({ a: 1, b: 511 }, { a: 1, b: 2 }); });
 		this.assert_error(() => { this.assert_equal(new Vector(0, 0), new Vector(0, 1)); });
 
 		this.assert_error(() => { this.assert_vector_equal(undefined, undefined); });

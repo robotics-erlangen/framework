@@ -51,7 +51,7 @@ export class Groups {
 		let groupApplications = this._messaging.receiveRepeated(MessageType.groupApplication);
 
 		// groupname -> { robot -> payload }
-		let robotApplications: {[groupName: string]: Map<FriendlyRobot, unknown>} = {};
+		let robotApplications: { [groupName: string]: Map<FriendlyRobot, unknown> } = {};
 
 		for (let group of this._groupList) {
 			robotApplications[group.name] = new Map<FriendlyRobot, unknown>();

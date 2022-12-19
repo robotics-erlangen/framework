@@ -151,7 +151,7 @@ export class PassThroughDefense extends Objective {
 				zones.push({ boundaries, defaultPos });
 			}
 		} else if (remainingZones > 0) {
-			const startBoundaries: SplitZone[] = [{ boundaries: { left: TOTAL_LEFT, right: TOTAL_RIGHT, top: DEFENSE_AREA_Y_ZONE_END, bottom: TOTAL_BOTTOM }, timesDivisible: 4}];
+			const startBoundaries: SplitZone[] = [{ boundaries: { left: TOTAL_LEFT, right: TOTAL_RIGHT, top: DEFENSE_AREA_Y_ZONE_END, bottom: TOTAL_BOTTOM }, timesDivisible: 4 }];
 
 			const newZones = this.splitZonesClosestToMainAttacker(mainAttackerPos, remainingZones - startBoundaries.length + 1, startBoundaries);
 			zones = zones.concat(newZones);

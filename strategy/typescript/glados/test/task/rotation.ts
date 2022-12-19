@@ -12,7 +12,7 @@ const jump = -30;
 export class RotTest extends Task {
 	private _index: number;
 	private _nextJump: boolean;
-	private _obstacleTable : PathHelper.PathHelperParameters = {
+	private _obstacleTable: PathHelper.PathHelperParameters = {
 		ignorePass: true
 	};
 	constructor(behavior: Behavior) {

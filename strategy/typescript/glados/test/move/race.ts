@@ -59,7 +59,7 @@ export class Race extends Move {
 			}
 		}
 
-		for (let i = 0;i < this._robots.length;i++) {
+		for (let i = 0; i < this._robots.length; i++) {
 			taskAssignments[this._robots[i]] = Assignment.create({
 				class: MoveToPos,
 				params: [{ pos: new Vector(-0.5 * (this._robots.length + 1) + i + 2, this._atStart ? Y_END : Y_START) }],

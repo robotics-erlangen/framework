@@ -34,7 +34,7 @@ export function createEntrypoint(move: typeof Move) {
 	return function() {
 		if (coord == undefined) {
 			let moveGroup = new MoveGroup();
-			moveGroup.moveList =  [move];
+			moveGroup.moveList = [move];
 
 			let groupList: any[] = [new CenterBackGroup(), new SupportGroup(), moveGroup];
 

@@ -51,7 +51,7 @@ export abstract class Task {
 	}
 
 	setMainAttackerParameters(target: Position, endSpeedLength: number, overwriteRating?: number) {
-		this._mainAttackerParameters = [ target, endSpeedLength, overwriteRating ];
+		this._mainAttackerParameters = [target, endSpeedLength, overwriteRating];
 	}
 
 	mainAttackerParameters(): MainAttackerParameters | undefined {

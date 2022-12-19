@@ -11,7 +11,7 @@ import { MainTrainer } from "glados/trainer/maintrainer";
 
 
 function robotStub(id: number) {
-	let r = new FriendlyRobot(<pb.robot.Specs> {id: id});
+	let r = new FriendlyRobot(<pb.robot.Specs> { id: id });
 	r.isVisible = true;
 	r.pos = new Vector(0, 0);
 	r.speed = new Vector(0, 0);
@@ -40,7 +40,7 @@ export class GladosPools extends UnitTest {
 		_setIsBlue(true);
 		let allFriendlyRobotsOrig = World.FriendlyRobotsAll;
 		let refereeStateOrig = World.RefereeState;
-		(World as any).FriendlyRobotsAll = [ robotStub(1), robotStub(2) ];
+		(World as any).FriendlyRobotsAll = [robotStub(1), robotStub(2)];
 		(World as any).RefereeState = "Halt";
 
 		let mainTrainer = new MainTrainer(undefined);
