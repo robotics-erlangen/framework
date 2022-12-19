@@ -221,12 +221,9 @@ export function isPlausiblyStillOppFreekick(): boolean {
 let posInFreekick: Position | undefined;
 let freekickStartTime = World.Time;
 function updateStillFreekick() {
-	if (isOpponentFreeKickState() ||
-			isOpponentKickoffState()) {
-		if (!posInFreekick) {
-			posInFreekick = World.Ball.pos;
-			freekickStartTime = World.Time;
-		}
+	if ((isOpponentFreeKickState() || isOpponentKickoffState()) && !posInFreekick) {
+		posInFreekick = World.Ball.pos;
+		freekickStartTime = World.Time;
 	}
 	const maxFreekickTime = World.DIVISION === "A" ? 5 : 10;
 	if (!isGameState() && !isOpponentFreeKickState() &&
