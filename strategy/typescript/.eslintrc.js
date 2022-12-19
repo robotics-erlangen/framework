@@ -461,8 +461,7 @@ module.exports = {
         "sonarjs/non-existent-operator": "error",
         "sonarjs/no-collapsible-if": "error",
         "sonarjs/no-collection-size-mischeck": "error",
-        // 2 problems
-        // "sonarjs/no-duplicated-branches": "error",
+        "sonarjs/no-duplicated-branches": "error",
         "sonarjs/no-gratuitous-expressions": "error",
         // 1 problem
         // "sonarjs/no-identical-functions": "error",

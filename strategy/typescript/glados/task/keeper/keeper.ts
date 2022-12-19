@@ -171,11 +171,8 @@ export class Keeper extends Task {
 					moveTo = intersectPos;
 				}
 			}
-			if (Referee.isOpponentPenaltyState()) {
-				// during penalty the keeper has to touch the goalline
-				moveTo = intersectPos;
-			} else if (moveTo.y < defenseLineStart.y) {
-				// prevent moving into the goal
+			if (Referee.isOpponentPenaltyState() // during penalty the keeper has to touch the goalline
+					|| moveTo.y < defenseLineStart.y) { // prevent moving into the goal
 				moveTo = intersectPos;
 			}
 

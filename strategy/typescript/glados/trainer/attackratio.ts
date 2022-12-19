@@ -92,6 +92,7 @@ export class AttackRatio {
 			} else if (checkedPos.y > 1.2) {
 				attackRatio = 8; // Throw-In Offensive
 				divBattackRatio = 4;
+			// eslint-disable-next-line sonarjs/no-duplicated-branches
 			} else {
 				attackRatio = 5; // Throw-In Offensive
 				divBattackRatio = 3;
