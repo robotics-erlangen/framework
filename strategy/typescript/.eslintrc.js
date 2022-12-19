@@ -94,9 +94,8 @@ module.exports = {
                 }
             }
         ],
-        // TODO
         "@typescript-eslint/naming-convention": [
-            "off",
+            "error",
             {
                 "selector": "variable",
                 "format": ["camelCase", "snake_case"],
@@ -128,13 +127,19 @@ module.exports = {
             },
             {
                 "selector": "classProperty",
-                "format": ["camelCase", "snake_case", "UPPER_CASE"],
+                "format": ["UPPER_CASE"],
+                "modifiers": ["static", "readonly"],
+                "leadingUnderscore": "allow",
+            },
+            {
+                "selector": "classProperty",
+                "format": ["camelCase", "snake_case"],
                 "modifiers": ["static"],
                 "leadingUnderscore": "allow",
             },
             {
                 "selector": "classProperty",
-                "format": ["UPPER_CASE"],
+                "format": ["camelCase", "UPPER_CASE"],
                 "modifiers": ["readonly"],
                 "leadingUnderscore": "allow",
             },
@@ -441,6 +446,7 @@ module.exports = {
         ],
         "use-isnan": "error",
 
+        // TODO enable rest of sonarjs lints
         "sonarjs/prefer-while": "error",
         // 3 problems
         // "sonarjs/no-all-duplicated-branches": "error",
@@ -457,7 +463,7 @@ module.exports = {
         // 18 problems
         // "sonarjs/no-collapsible-if": "error",
         "sonarjs/no-collection-size-mischeck": "error",
-        // 2 problems, probably not though?
+        // 2 problems
         // "sonarjs/no-duplicated-branches": "error",
         "sonarjs/no-gratuitous-expressions": "error",
         // 1 problem
@@ -467,14 +473,6 @@ module.exports = {
         "sonarjs/no-same-line-conditional": "error",
         // 1 problem, could be ignored
         // "sonarjs/no-unused-collection": "error",
-        // 9 problems
-        // "sonarjs/prefer-single-boolean-return": "error",
-
-        // maybe keep this?
-        // 19 problems, mainly debug tree
-        // "sonarjs/no-duplicate-string": "error",
-        // 11 problems
-        // "sonarjs/prefer-immediate-return": "error",
 
         "erforce/no-unnecessary-function-wrapper": "error",
         "erforce/check-typecast-spacing": "error",
