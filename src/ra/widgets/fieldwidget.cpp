@@ -2255,10 +2255,15 @@ void FieldWidget::takeScreenshot()
 
         QSvgGenerator file;
         file.setFileName(filename);
-        file.setSize(QSize(drawRect.width(), drawRect.height()));
+        const auto &geometry = m_drawScenes[m_currentScene].geometry;
+        const float scale = 100;
+        const float width = scale * geometry.field_height();
+        const float height = scale * geometry.field_width();
+        const QRectF outputRect{-width / 2, -height / 2, width, height};
+        file.setViewBox(outputRect);
         file.setTitle("Ra screenshot");
         QPainter painter(&file);
-        render(&painter, QRectF(), drawRect);
+        render(&painter, outputRect, drawRect);
 
         // reset cache mode of text elements
         for (auto &team : {m_robotsBlue, m_robotsYellow}) {
