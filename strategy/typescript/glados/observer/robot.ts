@@ -389,10 +389,9 @@ function _isPressed(robot: Robot, attackPos?: Position): boolean {
 
 	let radius = 2.5;
 	for (let opp of World.OpponentRobots) {
-		if (opp.pos.distanceToSq(blockPos) < radius * radius) {
-			if (Physics.robotTimeToPos(opp, blockPos, new Vector(0, 0))[0] < 1) {
-				return true;
-			}
+		if (opp.pos.distanceToSq(blockPos) < radius * radius
+				&& Physics.robotTimeToPos(opp, blockPos, new Vector(0, 0))[0] < 1) {
+			return true;
 		}
 	}
 	return false;

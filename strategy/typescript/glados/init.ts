@@ -99,10 +99,10 @@ function wrapper(func: () => boolean) {
 		Processor.pre();
 		// let time1 = amun.getCurrentTime();
 		// plot.addPlot("preproc time", (time1 - time0));
-		if (!func()) { // Entrypoint has to return true if robots shouldn't be stopped on halt
-			if (World.RefereeState === "Halt") {
-				World.haltOwnRobots();
-			}
+		const executionResult = func();
+		// Entrypoint has to return true if robots shouldn't be stopped on halt
+		if (!executionResult && World.RefereeState === "Halt") {
+			World.haltOwnRobots();
 		}
 		World.setRobotCommands();
 		Processor.post();

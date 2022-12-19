@@ -82,12 +82,12 @@ export class ShootPenalty extends Task {
 			debug.set("keeperInsideDefArea", keeperInsideDefArea);
 			if (World.Time - this._startTime < this._waitTime) {
 				this._shoot._catchBall._catchBall(cornerPoint(this._lookDir), Constants.positionError + DIST_TO_BALL);
-				if (keeperInsideDefArea) { // detect random keeper movement
-					if ((keeper.speed.x > keeperMoveSpeedThreshold && this._lookDir === "Left") ||
-						(keeper.speed.x < -keeperMoveSpeedThreshold && this._lookDir === "Right")) {
-						log(`keeper x speed: ${keeper.speed.x}`);
-						this._targetPos = cornerPoint(this._lookDir);
-					}
+				// detect random keeper movement
+				if (keeperInsideDefArea
+						&& ((keeper.speed.x > keeperMoveSpeedThreshold && this._lookDir === "Left")
+							|| (keeper.speed.x < -keeperMoveSpeedThreshold && this._lookDir === "Right"))) {
+					log(`keeper x speed: ${keeper.speed.x}`);
+					this._targetPos = cornerPoint(this._lookDir);
 				}
 			} else { // choose a corner
 				if (keeperInsideDefArea) {

@@ -145,25 +145,24 @@ export class FreeKick extends Behavior {
 
 		// check for anonymous pass
 		let restartTask = this._redeciding;
-		if (this._state === State.PassPrepare || this._state === State.Pass) {
-			if (this._pass != undefined && this._pass.target == undefined) {
-				// try to find the target
-				// look for a suggestion that matches our pass
-				let passSuggestions = this._messaging.receive(MessageType.passSuggestion);
-				const earliestAttackTime = this._messaging.receiveSingleSender(MessageType.earliestAttackTime, true)[1];
-				let passes = Attack.sortPassesFromSuggestions(this._robot, passSuggestions, {
-					earliestAttackTime,
-					considerTiming: false,
-					threshold: 0,
-					ratePass: this._ratePass,
-				});
-				if (passes) {
-					for (let pass of passes) {
-						if (pass.target != undefined && pass.ballPos.distanceTo(this._pass.ballPos) < 0.1) {
-							this._pass.target = pass.target;
-							if (this._state === State.Pass) {
-								restartTask = true;
-							}
+		if ((this._state === State.PassPrepare || this._state === State.Pass)
+				&& this._pass != undefined && this._pass.target == undefined) {
+			// try to find the target
+			// look for a suggestion that matches our pass
+			let passSuggestions = this._messaging.receive(MessageType.passSuggestion);
+			const earliestAttackTime = this._messaging.receiveSingleSender(MessageType.earliestAttackTime, true)[1];
+			let passes = Attack.sortPassesFromSuggestions(this._robot, passSuggestions, {
+				earliestAttackTime,
+				considerTiming: false,
+				threshold: 0,
+				ratePass: this._ratePass,
+			});
+			if (passes) {
+				for (let pass of passes) {
+					if (pass.target != undefined && pass.ballPos.distanceTo(this._pass.ballPos) < 0.1) {
+						this._pass.target = pass.target;
+						if (this._state === State.Pass) {
+							restartTask = true;
 						}
 					}
 				}

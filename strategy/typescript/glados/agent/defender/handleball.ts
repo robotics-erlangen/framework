@@ -220,13 +220,12 @@ export class HandleBall extends Behavior {
 
 		debug.set("HandleBall", this._taskDecision);
 
-		if (this._taskDecision !== "forcedefender") {
-			if ((mainAttacker === this._robot
+		if (this._taskDecision !== "forcedefender"
+				&& (mainAttacker === this._robot
 					|| this._taskDecision === "attacker"
 					|| this._taskDecision === "duel")
-					&& this._taskDecision !== "interceptpass") {
-				this._applyForMainAttacker();
-			}
+				&& this._taskDecision !== "interceptpass") {
+			this._applyForMainAttacker();
 		}
 
 		return (mainAttacker === this._robot) || (this._messaging.receiveTrainer(MessageType.interceptPass) === this._robot)

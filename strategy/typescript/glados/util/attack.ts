@@ -525,19 +525,16 @@ export function cancelCurrentPlannedMainAttacker(): void {
  */
 export function shootGoalViewPos(shootDest: Position, attackPos: Position): Position | undefined {
 	// if we want to shoot a goal
-	if (shootDest) {
-		if (G.OpponentGoal.distanceToSq(shootDest) <= G.GoalWidth * G.GoalWidth / 4) {
-			return attackPos;
-		}
+	if (shootDest && G.OpponentGoal.distanceToSq(shootDest) <= G.GoalWidth * G.GoalWidth / 4) {
+		return attackPos;
 	}
 
 	// if the ball is rolling towards the opponent goal
 	if (World.Ball.speed.length() > 3) {
 		let [intersection, l1, l2] = geom.intersectLineLine(World.Ball.pos, World.Ball.speed, G.OpponentGoal, new Vector(1, 0));
-		if (intersection && Math.abs(l2!) < G.GoalWidth / 2 + 0.2 && l1! > 0) {
-			if (Physics.checkedBallRollTime(World.Ball, intersection) < Infinity) {
-				return World.Ball.pos;
-			}
+		if (intersection && Math.abs(l2!) < G.GoalWidth / 2 + 0.2 && l1! > 0
+				&& Physics.checkedBallRollTime(World.Ball, intersection) < Infinity) {
+			return World.Ball.pos;
 		}
 	}
 

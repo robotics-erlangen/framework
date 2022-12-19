@@ -192,16 +192,14 @@ export abstract class Agent {
 			}
 
 			// if we have the ball, the time is 0
-			if (timeToBall === Infinity || (timeToBallDetailed != undefined && timeToBallDetailed === Infinity)) {
-				if (World.Ball.pos.distanceTo(this._robot.dribblerPos) < 0.15) {
-					if (World.Ball.speed.dot(this._robot.pos - World.Ball.pos) > 0) {
-						if (timeToBall === Infinity) {
-							timeToBall = 0;
-						}
-						if (timeToBallDetailed != undefined && timeToBallDetailed === Infinity) {
-							timeToBallDetailed = 0;
-						}
-					}
+			if ((timeToBall === Infinity || (timeToBallDetailed != undefined && timeToBallDetailed === Infinity))
+					&& World.Ball.pos.distanceTo(this._robot.dribblerPos) < 0.15
+					&& World.Ball.speed.dot(this._robot.pos - World.Ball.pos) > 0) {
+				if (timeToBall === Infinity) {
+					timeToBall = 0;
+				}
+				if (timeToBallDetailed != undefined && timeToBallDetailed === Infinity) {
+					timeToBallDetailed = 0;
 				}
 			}
 

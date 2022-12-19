@@ -508,11 +508,9 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 				vis.addCircleRaw("waypoints", robotPos, 0.05, vis.colors.orangeHalf);
 			}
 			return [];
-		} else if (waypointsVector.length === 2) {
+		} else if (waypointsVector.length === 2 && waypointsVector[0].distanceTo(waypointsVector[1]) < 0.0001) {
 			// distance error < 0.1 mm
-			if (waypointsVector[0].distanceTo(waypointsVector[1]) < 0.0001) {
-				return [];
-			}
+			return [];
 		}
 
 		return waypointsVector;

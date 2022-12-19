@@ -54,13 +54,13 @@ export class AcceptPass extends Task {
 				} else {
 					directPass = true;
 				}
-			} else if (pass.target == undefined) {
-				if (this._passPos == undefined || this._passPos.distanceTo(pass.ballPos) < this._distance) {
-					if (passInfo != undefined) {
-						throwErrorAcceptPass = true;
-					}
-					passInfo = pass;
+			} else if (pass.target == undefined
+						&& (this._passPos == undefined
+							|| this._passPos.distanceTo(pass.ballPos) < this._distance)) {
+				if (passInfo != undefined) {
+					throwErrorAcceptPass = true;
 				}
+				passInfo = pass;
 			}
 		}
 

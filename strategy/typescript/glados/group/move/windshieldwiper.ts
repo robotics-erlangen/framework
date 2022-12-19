@@ -68,10 +68,8 @@ export class WindshieldWiper extends Move {
 		let circle = center1.y < center2.y ? center1 : center2;
 		let posToShiftFrom = (World.Ball.pos + G.OpponentGoal) / 2;
 		let acceptPos = geom.intersectLineCircle(posToShiftFrom, pos - posToShiftFrom, circle, radius)[0];
-		if (acceptPos != undefined) {
-			if (Field.isInOpponentDefenseArea(acceptPos, 1.5 * robotRadius)) {
-				acceptPos = Field.intersectRayDefenseArea(pos, posToShiftFrom - pos, 1.5 * robotRadius, false)[0];
-			}
+		if (acceptPos != undefined && Field.isInOpponentDefenseArea(acceptPos, 1.5 * robotRadius)) {
+			acceptPos = Field.intersectRayDefenseArea(pos, posToShiftFrom - pos, 1.5 * robotRadius, false)[0];
 		}
 		return acceptPos;
 	}

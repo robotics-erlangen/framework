@@ -459,8 +459,7 @@ module.exports = {
         "sonarjs/no-one-iteration-loop": "error",
         "sonarjs/no-use-of-empty-return-value": "error",
         "sonarjs/non-existent-operator": "error",
-        // 18 problems
-        // "sonarjs/no-collapsible-if": "error",
+        "sonarjs/no-collapsible-if": "error",
         "sonarjs/no-collection-size-mischeck": "error",
         // 2 problems
         // "sonarjs/no-duplicated-branches": "error",

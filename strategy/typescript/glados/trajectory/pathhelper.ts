@@ -209,10 +209,9 @@ function addGoalObstacle(path: Path, robot: FriendlyRobot, ignoreDefense: boolea
 function _isGoalShot(): boolean {
 	if (World.Ball.speed.length() > 0.5) {
 		let [intersection, lambda1, lambda2] = geom.intersectLineLine(G.OpponentGoal, new Vector(1, 0), World.Ball.pos, World.Ball.speed);
-		if (intersection && Math.abs(lambda1!) < G.GoalWidth / 2 + 0.2) {
-			if (lambda2! > 0 && Physics.checkedBallRollTime(World.Ball, intersection) < Infinity) {
-				return true;
-			}
+		if (intersection && Math.abs(lambda1!) < G.GoalWidth / 2 + 0.2
+				&& lambda2! > 0 && Physics.checkedBallRollTime(World.Ball, intersection) < Infinity) {
+			return true;
 		}
 	}
 	return false;
@@ -252,10 +251,8 @@ function addGoalObstacleShot(path: Path, robot: FriendlyRobot, messaging: Messag
 		viewPos = World.Ball.pos;
 		shootSpeed = World.Ball.speed.length();
 		disablePass = true;
-	} else if (shootDest) {
-		if (G.OpponentGoal.distanceToSq(shootDest) <= G.GoalWidth * G.GoalWidth / 4) {
-			viewPos = attackPos;
-		}
+	} else if (shootDest && G.OpponentGoal.distanceToSq(shootDest) <= G.GoalWidth * G.GoalWidth / 4) {
+		viewPos = attackPos;
 	}
 	if (viewPos) {
 		let leftGoal = G.OpponentGoalLeft;

@@ -182,21 +182,19 @@ function checkBall(robot: Robot, ball: { pos: Position; radius: number }) {
 function checkBounces(distance: number, ball: { pos: Position }) {
 	let length2 = distance * World.BallModel.FloorDampingZ;
 	let remainingDist = ball.pos.distanceTo(G.OpponentGoal) - distance;
-	if (remainingDist < length2) {
-		if (maxHeight(length2) > robotHeight &&
-				p_x_t0(length2, goalBallheight) < remainingDist &&
-				length2 - p_x_t0(length2, goalBallheight) > remainingDist) {
-			return "2nd bounce too high";
-		}
+	if (remainingDist < length2
+			&& maxHeight(length2) > robotHeight
+			&& p_x_t0(length2, goalBallheight) < remainingDist
+			&& length2 - p_x_t0(length2, goalBallheight) > remainingDist) {
+		return "2nd bounce too high";
 	}
 	let length3 = length2 * World.BallModel.FloorDampingZ;
 	remainingDist = remainingDist - length2;
-	if (remainingDist < length3) {
-		if (maxHeight(length3) > robotHeight &&
-				p_x_t0(length3, goalBallheight) < remainingDist &&
-				length3 - p_x_t0(length3, goalBallheight) > remainingDist) {
-			return "3rd bounce too high";
-		}
+	if (remainingDist < length3
+			&& maxHeight(length3) > robotHeight
+			&& p_x_t0(length3, goalBallheight) < remainingDist
+			&& length3 - p_x_t0(length3, goalBallheight) > remainingDist) {
+		return "3rd bounce too high";
 	}
 	return false;
 }
