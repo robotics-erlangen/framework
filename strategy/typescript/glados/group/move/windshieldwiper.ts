@@ -21,9 +21,9 @@ const G = World.Geometry;
 const WINDSHIELD_WIPER_FREEKICK = parameterizeClass(FreeKick, Attack.defaultRatePass);
 
 export class WindshieldWiper extends Move {
-	public static MIN_ROBOTS: number = 1;
-	public static MAX_ROBOTS: number = 5;
-	public static ALLOW_EXTRA_ATTACKERS = false;
+	public static readonly MIN_ROBOTS: number = 1;
+	public static readonly MAX_ROBOTS: number = 5;
+	public static readonly ALLOW_EXTRA_ATTACKERS = false;
 
 
 	public static canStart(): boolean {

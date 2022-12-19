@@ -5,11 +5,11 @@ import { Task } from "glados/task/base";
 
 export function makeSingleTaskMove(task: any): typeof Move {
 	class SingleTaskMove extends Move {
-		public static MIN_ROBOTS: number = 1;
-		public static MAX_ROBOTS: number = 1;
-		public static ALLOW_EXTRA_ATTACKERS: boolean = false;
+		public static readonly MIN_ROBOTS: number = 1;
+		public static readonly MAX_ROBOTS: number = 1;
+		public static readonly ALLOW_EXTRA_ATTACKERS: boolean = false;
 
-		public static NAME: string = task.name;
+		public static readonly NAME: string = task.name;
 
 		constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 			super(robots, messaging);

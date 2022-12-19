@@ -25,17 +25,17 @@ export class Striker extends Objective {
 		});
 	}
 
-	private static MA_RUNNER = parameterizeClass(CheckableList, [
+	private static readonly MA_RUNNER = parameterizeClass(CheckableList, [
 		PassTiming,
 		parameterizeClass(Shoot, defaultRatePass),
 	]);
-	private static FREEKICK_RUNNER = parameterizeClass(CheckableList, [
+	private static readonly FREEKICK_RUNNER = parameterizeClass(CheckableList, [
 		parameterizeClass(FreeKick, defaultRatePass),
 		DoubleTouchGuard,
 		PassTiming,
 		parameterizeClass(Shoot, defaultRatePass),
 	]);
-	private static SUPPORT_RUNNER = parameterizeClass(Support, { isStriker: true, samplingCtor: StrikerSampling });
+	private static readonly SUPPORT_RUNNER = parameterizeClass(Support, { isStriker: true, samplingCtor: StrikerSampling });
 
 	static canStart(_ball: BallLike) {
 		return true;

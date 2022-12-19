@@ -8,9 +8,9 @@ import { WindshieldWiper } from "glados/group/move/windshieldwiper";
 const G = World.Geometry;
 
 export class None extends Move {
-	static MIN_ROBOTS: number = 5;
-	static MAX_ROBOTS: number = 9;
-	static ALLOW_EXTRA_ATTACKERS = false;
+	static readonly MIN_ROBOTS: number = 5;
+	static readonly MAX_ROBOTS: number = 9;
+	static readonly ALLOW_EXTRA_ATTACKERS = false;
 
 	static wantedMaxRobots(): number {
 		return World.DIVISION === "B" ? 5 : 9;

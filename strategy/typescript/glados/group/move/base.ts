@@ -62,6 +62,7 @@ export abstract class Move {
 	protected _robots: FriendlyRobot[];
 	protected _messaging: MessageBox;
 
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	protected static Referee: typeof Referee = Referee;
 
 	constructor(robots: FriendlyRobot[], messaging: MessageBox) {
@@ -89,10 +90,10 @@ export abstract class Move {
 
 	// abstract members
 
-	public abstract static MAX_ROBOTS: number;
-	public abstract static MIN_ROBOTS: number;
-	public abstract static ALLOW_EXTRA_ATTACKERS: boolean;
-	public static NAME: string = "";
+	public abstract static readonly MAX_ROBOTS: number;
+	public abstract static readonly MIN_ROBOTS: number;
+	public abstract static readonly ALLOW_EXTRA_ATTACKERS: boolean;
+	public static readonly NAME: string = "";
 
 	/**
 	 * Checks whether a move is suitable for execution in the current

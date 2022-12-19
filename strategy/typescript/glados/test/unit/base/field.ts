@@ -3,6 +3,7 @@ import { Vector } from "base/vector";
 import { UnitTest } from "glados/test/unit/unittest";
 
 export class BaseField extends UnitTest {
+	/* eslint-disable @typescript-eslint/naming-convention */
 	private static World = {
 		Geometry: {
 			FieldHeightHalf: 4.5,
@@ -25,6 +26,7 @@ export class BaseField extends UnitTest {
 			return false;
 		}
 	};
+	/* eslint-enable @typescript-eslint/naming-convention */
 
 	constructor() {
 		super();

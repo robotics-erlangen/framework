@@ -495,8 +495,8 @@ export class Shoot {
 		}
 	}
 
-	private static MIN_TIME: number = 0.2;
-	private static DISTRACTION_PERCENTAGE: number = 0.9;
+	private static readonly MIN_TIME: number = 0.2;
+	private static readonly DISTRACTION_PERCENTAGE: number = 0.9;
 	private _shootVolley(targetPos: Position, targetSpeed: number, futureBall: Physics.BallLike, futureBallTime: number) {
 		let [targetDir, kickSpeed] = Volley.calcPhi(this._robot, futureBall.speed, futureBall.pos, targetPos, targetSpeed);
 		this.targetRobotDir = targetDir;

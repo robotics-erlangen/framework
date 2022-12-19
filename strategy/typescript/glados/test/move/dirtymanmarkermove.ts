@@ -5,9 +5,9 @@ import { Assignment, MessageBox, Move, MoveParameters } from "glados/group/move/
 import { DirtyManMarker } from "glados/task/defender/dirtymanmarker";
 
 export class DirtyManMarkerMove extends Move {
-	public static MIN_ROBOTS: number = 1;
-	public static MAX_ROBOTS: number = 1;
-	public static ALLOW_EXTRA_ATTACKERS: boolean = false;
+	public static readonly MIN_ROBOTS: number = 1;
+	public static readonly MAX_ROBOTS: number = 1;
+	public static readonly ALLOW_EXTRA_ATTACKERS: boolean = false;
 
 	constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 		super(robots, messaging);

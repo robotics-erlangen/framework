@@ -44,7 +44,7 @@ const obstacleTable: PathHelper.PathHelperParameters = {
 
 
 export class BreakPass extends Task {
-	static BUFFER_TIME = 0.7;
+	static readonly BUFFER_TIME = 0.7;
 
 	static calculateBreakPos: (robot: FriendlyRobot) => [Position, Speed, number] =
 		Cache.forFrame(calculateBreakPos);

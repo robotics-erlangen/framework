@@ -28,9 +28,9 @@ const GOAL_KICK_POS_Y: number = G.OpponentGoal.y - 1;
 
 
 export class CrossShoot extends Move {
-	public static MIN_ROBOTS: number = 6;
-	public static MAX_ROBOTS: number = 6;
-	public static ALLOW_EXTRA_ATTACKERS = false;
+	public static readonly MIN_ROBOTS: number = 6;
+	public static readonly MAX_ROBOTS: number = 6;
+	public static readonly ALLOW_EXTRA_ATTACKERS = false;
 	private pos: Vector[] = [];
 	private timeBegin: number | undefined = undefined;
 	private waitTwoSeconds: number | undefined = undefined;

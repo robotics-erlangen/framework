@@ -61,9 +61,9 @@ const BALL_MASS = 1;
 
 
 export class DribbleTest extends Move {
-	private static MIN_TIME_IN_STATE = 0.1;
-	public static MIN_ROBOTS: number = 1;
-	public static MAX_ROBOTS: number = 1;
+	private static readonly MIN_TIME_IN_STATE = 0.1;
+	public static readonly MIN_ROBOTS: number = 1;
+	public static readonly MAX_ROBOTS: number = 1;
 	public static readonly ALLOW_EXTRA_ATTACKERS = false;
 
 

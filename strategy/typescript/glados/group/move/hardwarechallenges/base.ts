@@ -14,9 +14,9 @@ import { MoveToPos, Obstacle } from "glados/task/shared/movetopos";
 import * as PathHelper from "glados/trajectory/pathhelper";
 
 export abstract class HardwareChallengeBase extends Move {
-	public static MIN_ROBOTS: number = 1;
-	public static MAX_ROBOTS: number = 1;
-	public static ALLOW_EXTRA_ATTACKERS = false;
+	public static readonly MIN_ROBOTS: number = 1;
+	public static readonly MAX_ROBOTS: number = 1;
+	public static readonly ALLOW_EXTRA_ATTACKERS = false;
 
 	// override with specific challenge
 	protected challengeNumber: 1 | 2 | 3 | 4 | undefined = undefined;

@@ -19,9 +19,9 @@ const G = World.Geometry;
 const KICKOFF_FREEKICK = parameterizeClass(FreeKick, Attack.defaultRatePass);
 
 export class KickOff extends Move {
-	public static MIN_ROBOTS: number = 2;
-	public static MAX_ROBOTS: number = 5;
-	public static ALLOW_EXTRA_ATTACKERS = false;
+	public static readonly MIN_ROBOTS: number = 2;
+	public static readonly MAX_ROBOTS: number = 5;
+	public static readonly ALLOW_EXTRA_ATTACKERS = false;
 
 	static canStart() {
 		return World.RefereeState === "KickoffOffensivePrepare"

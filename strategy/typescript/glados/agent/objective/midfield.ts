@@ -25,17 +25,17 @@ export class Midfield extends Objective {
 		});
 	}
 
-	private static MA_RUNNER = parameterizeClass(CheckableList, [
+	private static readonly MA_RUNNER = parameterizeClass(CheckableList, [
 		PassTiming,
 		parameterizeClass(Shoot, midfieldRatePass),
 	]);
-	private static FREEKICK_RUNNER = parameterizeClass(CheckableList, [
+	private static readonly FREEKICK_RUNNER = parameterizeClass(CheckableList, [
 		parameterizeClass(FreeKick, midfieldRatePass),
 		DoubleTouchGuard,
 		PassTiming,
 		parameterizeClass(Shoot, midfieldRatePass),
 	]);
-	private static SUPPORT_RUNNER = parameterizeClass(Support, { isStriker: false, samplingCtor: MidfieldSampling });
+	private static readonly SUPPORT_RUNNER = parameterizeClass(Support, { isStriker: false, samplingCtor: MidfieldSampling });
 
 	static canStart(ball: BallLike) {
 		if (World.DIVISION === "B") {
