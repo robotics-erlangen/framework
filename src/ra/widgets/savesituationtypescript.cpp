@@ -28,7 +28,12 @@
 
 static QString formatJson(QString input, QMap<QString, QString> enumReplacements)
 {
-    input.replace("\n ", "\n\t");
+    if (input.startsWith("{")) {
+        input.prepend("\t\t");
+    }
+    input.replace("\n ", "\n\t\t\t");
+    input.replace("\n{", "\n\t\t{");
+    input.replace("\n}", "\n\t\t}");
     for (int i = 0;i<10;i++) {
         input.replace("\t ", "\t\t");
     }
@@ -86,35 +91,33 @@ void saveSituationTypescript(TrackingFrom useTrackingFrom, world::State worldSta
     QTextStream situation(&file);
     situation <<"import * as pb from \"base/protobuf\";\n\n";
     situation <<"export const partialAmun: any = {\n";
-    situation <<"getWorldState(): pb.world.State {\nreturn "<<formatJson(QString::fromStdString(worldJson),
-                                                                         {{"world_source", "pb.world.WorldSource"}})<<";\n},\n\n";
+    situation <<"\tgetWorldState(): pb.world.State {\n\t\treturn "<<formatJson(QString::fromStdString(worldJson),
+                                                                         {{"world_source", "pb.world.WorldSource"}})<<";\n\t},\n\n";
 
     QString formattedGeometry = formatJson(QString::fromStdString(geomtryJson),
                                            {{"type", "pb.world.Geometry.GeometryType"}, {"division", "pb.world.Geometry.Division"}});
-    situation <<"getGeometry(): pb.world.Geometry {\nreturn "<<formattedGeometry<<";\n},\n\n";
+    situation <<"\tgetGeometry(): pb.world.Geometry {\n\t\treturn "<<formattedGeometry<<";\n\t},\n\n";
 
-    situation <<"isBlue(): boolean { return "<<(useTrackingFrom == TrackingFrom::BLUE ? "true" : "false")<<"; },\n\n";
+    situation <<"\tisBlue(): boolean { return "<<(useTrackingFrom == TrackingFrom::BLUE ? "true" : "false")<<"; },\n\n";
 
     QString formattedGameState = formatJson(QString::fromStdString(gameStateJson),
                                             {{"stage", "pb.SSL_Referee.Stage"}, {"state", "pb.amun.GameState.State"}});
-    situation <<"getGameState(): pb.amun.GameState {\nreturn "<<formattedGameState<<";\n},\n\n";
+    situation <<"\tgetGameState(): pb.amun.GameState {\n\t\treturn "<<formattedGameState<<";\n\t},\n\n";
 
-    if (useTrackingFrom == TrackingFrom::BLUE) {
-        situation <<"getTeam(): pb.robot.Team {\nreturn { robot: [";
-        for (const robot::Specs &robot : blueRobots) {
-            std::string robotString;
-            google::protobuf::util::MessageToJsonString(robot, &robotString, printOptions);
-            situation <<formatJson(QString::fromStdString(robotString), {{"type", "pb.robot.Specs.GenerationType"}})<<",\n";
+    const auto robots = useTrackingFrom == TrackingFrom::BLUE ? blueRobots : yellowRobots;
+    situation <<"\tgetTeam(): pb.robot.Team {\n\t\treturn { robot: [";
+    bool first = true;
+    for (const robot::Specs &robot : robots) {
+        std::string robotString;
+        google::protobuf::util::MessageToJsonString(robot, &robotString, printOptions);
+        QString formattedString = formatJson(QString::fromStdString(robotString), {{"type", "pb.robot.Specs.GenerationType"}});
+        if (first) {
+            formattedString.remove(0, 2);
+            first = false;
         }
-        situation<<"]};\n},\n";
-    } else { // the autoref gets the yellow team information
-        situation <<"getTeam(): pb.robot.Team {\nreturn { robot: [";
-        for (const robot::Specs &robot : yellowRobots) {
-            std::string robotString;
-            google::protobuf::util::MessageToJsonString(robot, &robotString, printOptions);
-            situation <<formatJson(QString::fromStdString(robotString), {{"type", "pb.robot.Specs.GenerationType"}})<<",\n";
-        }
-        situation<<"]};\n},\n";
+        situation << formattedString <<",\n";
     }
+
+    situation<<"\t\t] };\n\t},\n";
     situation <<"};\n";
 }
