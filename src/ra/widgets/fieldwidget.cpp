@@ -2091,7 +2091,11 @@ void FieldWidget::drawBackground(QPainter *painter, const QRectF &rect)
     // draw field lines twice
     // first with a cosmetic pen
     // and again with a two dimensional pen
-    drawLines(painter, rect1, true);
+    if (!m_isExportingScreenshot) {
+        // do not render cosmetic lines when exporting to SVG
+        // these lines create issues when inkscape processes them, making the result unusable
+        drawLines(painter, rect1, true);
+    }
     drawLines(painter, rect1, false);
 
     // penalty points
@@ -2263,7 +2267,9 @@ void FieldWidget::takeScreenshot()
         file.setViewBox(outputRect);
         file.setTitle("Ra screenshot");
         QPainter painter(&file);
+        m_isExportingScreenshot = true;
         render(&painter, outputRect, drawRect);
+        m_isExportingScreenshot = false;
 
         // reset cache mode of text elements
         for (auto &team : {m_robotsBlue, m_robotsYellow}) {

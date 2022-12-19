@@ -308,6 +308,7 @@ private:
     int m_statesWithoutSimulatorReality = 0;
 
     float m_scrollSensitivity = 1.0;
+    bool m_isExportingScreenshot = false;
 };
 
 #endif // FIELDWIDGET_H
