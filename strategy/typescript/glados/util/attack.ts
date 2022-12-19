@@ -226,6 +226,12 @@ const _defaultRatePass: PassRater = (robot, pass, earliestAttackTime, attackPosi
 	let goalDistance = (G.OpponentGoal - pass.ballPos).length();
 	rating = rating * Rating.valueToRating(goalDistance, G.FieldHeightHalf * 1.5, G.DefenseHeight * 2);
 
+	// decrease rating of passes where the ball needs to travel through the accepting robot
+	if ((shootPos - World.Ball.pos).angleDiff(pass.ballPos - World.Ball.pos) < (Math.PI / 180) * 5 &&
+		(shootPos - World.Ball.pos).lengthSq() > (pass.ballPos - World.Ball.pos).lengthSq()) {
+		rating = rating * 0.1;
+	}
+
 	if (!amun.isPerformanceMode) {
 		vis.addCircle("u/a/ratePass", shootPos, 0.1, vis.colors.blue, true);
 		vis.addPath("u/a/ratePass", [shootPos, pass.ballPos], vis.colors.red);
@@ -275,6 +281,12 @@ const _midfieldRatePass: PassRater = (robot, pass, earliestAttackTime, attackPos
 	rating *= rateOwnDefenseArea(robot, pass, shootPos);
 
 	rating *= ratePassIntersections(robot, pass, shootPos);
+
+	// decrease rating of passes where the ball needs to travel through the accepting robot
+	if ((shootPos - World.Ball.pos).angleDiff(pass.ballPos - World.Ball.pos) < (Math.PI / 180) * 5 &&
+		(shootPos - World.Ball.pos).lengthSq() > (pass.ballPos - World.Ball.pos).lengthSq()) {
+		rating = rating * 0.1;
+	}
 
 	if (!amun.isPerformanceMode) {
 		vis.addCircle("u/a/ratePass", shootPos, 0.1, vis.colors.blue, true);
