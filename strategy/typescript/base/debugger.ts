@@ -198,7 +198,7 @@ interface ResponseInfo {
 
 let getPropertiesResponseMap: Map<number, ResponseInfo> = new Map<number, ResponseInfo>();
 
-
+// eslint-disable-next-line sonarjs/no-unused-collection
 let scriptInfos: ScriptInfo[] = [];
 function handleNotification(notification: string) {
 	let notificationObject = JSON.parse(notification);
