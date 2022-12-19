@@ -468,8 +468,7 @@ module.exports = {
         "sonarjs/no-redundant-boolean": "error",
         "sonarjs/no-redundant-jump": "error",
         "sonarjs/no-same-line-conditional": "error",
-        // 1 problem, could be ignored
-        // "sonarjs/no-unused-collection": "error",
+        "sonarjs/no-unused-collection": "error",
 
         "erforce/no-unnecessary-function-wrapper": "error",
         "erforce/check-typecast-spacing": "error",
