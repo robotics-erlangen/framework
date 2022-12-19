@@ -336,7 +336,7 @@ export class Shoot {
 		let speedupFactor;
 
 		const shootMorePrecise = Referee.isFriendlyFreeKickState()
-			|| Referee.isFriendlyFreeKickState()
+			|| Referee.isFriendlyKickoffState()
 			|| World.RefereeState === "BallPlacementOffensive"
 			|| ObserverCrash.isCrashed();
 
