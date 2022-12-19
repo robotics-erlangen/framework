@@ -203,7 +203,7 @@ type TrajectoryPathResult = {
 }[];
 
 // just some impossible to create type, is actually a C++ external
-type TrajectoryObstacle = number & {_tag: "Trajectory obstacle"};
+type TrajectoryObstacle = number & { _tag: "Trajectory obstacle" };
 
 interface PathObjectTrajectory extends PathObjectCommon {
 	calculateTrajectory(startX: number, startY: number, startSpeedX: number, startSpeedY: number,
@@ -308,14 +308,14 @@ export class Path {
 		this.lastWasTrajectoryPath = false;
 	}
 
-	getTrajectory(startPos: Position, startSpeed: Speed, endPos: Position, endSpeed: Speed, maxSpeed: number, acceleration: number): { pos: Position; speed: Speed; time: number}[] {
+	getTrajectory(startPos: Position, startSpeed: Speed, endPos: Position, endSpeed: Speed, maxSpeed: number, acceleration: number): { pos: Position; speed: Speed; time: number }[] {
 		this.lastWasTrajectoryPath = true;
 		this.addObstaclesToPath(this._trajectoryInst);
 		let t = this._trajectoryInst.calculateTrajectory(startPos.x, startPos.y, startSpeed.x,
 			startSpeed.y, endPos.x, endPos.y, endSpeed.x, endSpeed.y, maxSpeed, acceleration);
 		let result: { pos: Position; speed: Speed; time: number }[] = [];
 		for (let p of t) {
-			result.push({ pos: new Vector(p.px, p.py), speed: new Vector(p.vx, p.vy), time: p.time});
+			result.push({ pos: new Vector(p.px, p.py), speed: new Vector(p.vx, p.vy), time: p.time });
 		}
 		return result;
 	}
@@ -365,7 +365,7 @@ export class Path {
 			// avoid string allocations in ra
 			name = undefined;
 		}
-		this.circleObstacles.push({x: x, y: y, radius: radius, name: name, prio: prio});
+		this.circleObstacles.push({ x: x, y: y, radius: radius, name: name, prio: prio });
 	}
 
 	/** WARNING: only adds the obstacle to the trajectory path finding */
@@ -382,7 +382,7 @@ export class Path {
 			let positions = [];
 			const SAMPLES = (acc.x === 0 && acc.y === 0) ? 2 : 10;
 			const timeStep = (endTime - startTime) / (SAMPLES - 1);
-			for (let i = 0;i < SAMPLES;i++) {
+			for (let i = 0; i < SAMPLES; i++) {
 				let time = i * timeStep;
 				let pos = startPos + speed * time + acc * (0.5 * time * time);
 				positions.push(pos);
@@ -414,8 +414,8 @@ export class Path {
 			// avoid string allocations in ra
 			name = undefined;
 		}
-		this.lineObstacles.push({start_x: start_x, start_y: start_y, stop_x: stop_x, stop_y: stop_y,
-			radius: radius, name: name, prio: prio});
+		this.lineObstacles.push({ start_x: start_x, start_y: start_y, stop_x: stop_x, stop_y: stop_y,
+			radius: radius, name: name, prio: prio });
 	}
 
 	/** WARNING: only adds the obstacle to the trajectory path finding */
@@ -455,7 +455,7 @@ export class Path {
 				let positions1 = [], positions2 = [];
 				const SAMPLES = (acc1.x === 0 && acc1.y === 0 && acc2.x === 0 && acc2.y === 0) ? 2 : 10;
 				const timeStep = (endTime - startTime) / (SAMPLES - 1);
-				for (let i = 0;i < SAMPLES;i++) {
+				for (let i = 0; i < SAMPLES; i++) {
 					let time = i * timeStep;
 					let pos1 = startPos1 + speed1 * time + acc1 * (0.5 * time * time);
 					let pos2 = startPos2 + speed2 * time + acc2 * (0.5 * time * time);
@@ -489,8 +489,8 @@ export class Path {
 			// avoid string allocations in ra
 			name = undefined;
 		}
-		this.rectObstacles.push({start_x: start_x, start_y: start_y, stop_x: stop_x, stop_y: stop_y,
-			radius: radius, name: name, prio: prio});
+		this.rectObstacles.push({ start_x: start_x, start_y: start_y, stop_x: stop_x, stop_y: stop_y,
+			radius: radius, name: name, prio: prio });
 	}
 
 	addTriangle(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number,
@@ -512,8 +512,8 @@ export class Path {
 			// avoid string allocations in ra
 			name = undefined;
 		}
-		this.triangleObstacles.push({x1: x1, y1: y1, x2: x2, y2: y2, x3: x3, y3: y3,
-			lineWidth: lineWidth, name: name, prio: prio});
+		this.triangleObstacles.push({ x1: x1, y1: y1, x2: x2, y2: y2, x3: x3, y3: y3,
+			lineWidth: lineWidth, name: name, prio: prio });
 	}
 
 	addFriendlyRobotObstacle(robot: FriendlyRobot, radius: number, prio: number) {

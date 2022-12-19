@@ -28,7 +28,7 @@ import { log } from "base/amun";
 
 let debugStack: string[] = [""];
 
-let joinCache: {[prefix: string]: {[name: string]: string}} = {};
+let joinCache: { [prefix: string]: { [name: string]: string } } = {};
 
 function prefixName(name?: string): string {
 	let prefix = debugStack[debugStack.length - 1];
@@ -90,7 +90,7 @@ export function pop() {
 export function getInitialExtraParams(): object {
 	let visited = new Map<object, string>();
 	let tableCounter = [0];
-	return [ visited, tableCounter ];
+	return [visited, tableCounter];
 }
 
 /**

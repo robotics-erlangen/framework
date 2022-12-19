@@ -135,7 +135,7 @@ export class Robot implements RobotState {
 	// private attributes
 	private _toStringCache: string = "";
 	protected _currentTime: number = 0;
-	protected _hasBall: {[offset: number]: boolean} = {};
+	protected _hasBall: { [offset: number]: boolean } = {};
 
 	/**
 	 * Creates a new robot object.
@@ -279,14 +279,14 @@ export class Robot implements RobotState {
 			return false;
 		// in hysteresis area without having had the ball
 		} else if (offset >= this.dribblerWidth / 2 - 2 * Constants.positionError + sideOffset
-					&&  !this._hasBall[sideOffset]) {
+					&& !this._hasBall[sideOffset]) {
 			return false;
 		}
 
 		const latencyXHysteresis = this._hasBall[sideOffset] ? latencyCompensation.x / 2 : 0;
 
 		this._hasBall[sideOffset] = relpos.x > this.shootRadius * (-1.5)
-					&&  relpos.x < latencyCompensation.x + latencyXHysteresis &&  ball.posZ < Constants.maxRobotHeight * 1.2; // *1.2 to compensate for vision error
+					&& relpos.x < latencyCompensation.x + latencyXHysteresis && ball.posZ < Constants.maxRobotHeight * 1.2; // *1.2 to compensate for vision error
 		return this._hasBall[sideOffset];
 	}
 
@@ -315,11 +315,11 @@ export class FriendlyRobot extends Robot {
 	path: Path;
 	trajectory: Trajectory;
 	/** response from the robot, only set if there is a current response */
-	radioResponse: pb.robot.RadioResponse  | undefined;
+	radioResponse: pb.robot.RadioResponse | undefined;
 	/** command from input devices (fields: speed, omega, kickStyle, kickPower, dribblerSpeed) */
 	userControl: UserControl | undefined;
 	/** command used when robots are dragged with the mouse (fields: time, pos (global)) (optional) */
-	moveCommand: {time: number; pos: Position} | undefined;
+	moveCommand: { time: number; pos: Position } | undefined;
 
 	centerToDribbler: number | undefined;
 
@@ -389,9 +389,9 @@ export class FriendlyRobot extends Robot {
 			this.path.setBoundary(aoi.x1, aoi.y1, aoi.x2, aoi.y2);
 		} else {
 			this.path.setBoundary(
-				-geometry.FieldWidthHalf  - geometry.BoundaryWidth - 0.02,
+				-geometry.FieldWidthHalf - geometry.BoundaryWidth - 0.02,
 				-geometry.FieldHeightHalf - geometry.BoundaryWidth - 0.02,
-				geometry.FieldWidthHalf  + geometry.BoundaryWidth + 0.02,
+				geometry.FieldWidthHalf + geometry.BoundaryWidth + 0.02,
 				geometry.FieldHeightHalf + geometry.BoundaryWidth + 0.02);
 		}
 	}

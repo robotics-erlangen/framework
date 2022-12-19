@@ -33,7 +33,7 @@ function getFromCache(cached: Map<any, any>, params: any[]): any {
 	params.unshift(pcount);
 
 	let entry = cached;
-	for (let i = 0; i < pcount + 1;i++) {
+	for (let i = 0; i < pcount + 1; i++) {
 		let param = params[i];
 		if (param == undefined) {
 			param = undefinedObj;
@@ -58,7 +58,7 @@ function setInCache(cached: Map<any, any>, params: any[], result: any | any[]) {
 	params.unshift(pcount);
 
 	let entry: Map<any, any> | any = cached;
-	for (let i = 0;i < pcount + 1;i++) {
+	for (let i = 0; i < pcount + 1; i++) {
 		let param = params[i];
 		// undefined can't be used as a map index
 		if (param == undefined) {
@@ -110,7 +110,7 @@ function makeCached <F extends Function>(f: F, keepForever: boolean): F {
 		}
 		return result;
 	});
-	Object.defineProperty(cachedFunc, "name", {value: f.name, writable: false});
+	Object.defineProperty(cachedFunc, "name", { value: f.name, writable: false });
 	return cachedFunc;
 }
 

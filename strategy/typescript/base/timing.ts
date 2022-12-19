@@ -24,7 +24,7 @@ import * as plot from "base/plot";
 export type AbsTime = number;
 export type RelTime = number;
 
-let startTimes: {[name: string]: number} = {};
+let startTimes: { [name: string]: number } = {};
 
 export function start(name: string, robotId: number) {
 	let key = `${name}.${robotId}`;

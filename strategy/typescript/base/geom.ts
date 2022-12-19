@@ -70,7 +70,7 @@ function intersectCircleCircleCos(c1: Position, r1: number, c2: Position, r2: nu
 		return [];
 	}
 
-	const cosR1 = (r1 * r1 + dist * dist - r2 * r2) /  (2 * dist);
+	const cosR1 = (r1 * r1 + dist * dist - r2 * r2) / (2 * dist);
 	const M = (c2 - c1) * (cosR1 / dist);
 	let [res1, res2, l1, l2] = intersectLineCircle(c1 + M, M.perpendicular(), c1, r1);
 
@@ -84,8 +84,8 @@ function intersectCircleCircleCos(c1: Position, r1: number, c2: Position, r2: nu
 }
 
 export function boundRect(p1: Position, pos: Position, p2: Position): Position {
-	return new Vector(MathUtil.bound(Math.min(p1.x,p2.x), pos.x, Math.max(p1.x,p2.x)),
-						MathUtil.bound(Math.min(p1.y,p2.y), pos.y, Math.max(p1.y,p2.y)));
+	return new Vector(MathUtil.bound(Math.min(p1.x, p2.x), pos.x, Math.max(p1.x, p2.x)),
+						MathUtil.bound(Math.min(p1.y, p2.y), pos.y, Math.max(p1.y, p2.y)));
 	// return new Vector(MathUtil.bound(min.x, pos.x, max.x), MathUtil.bound(min.y, pos.y, max.y))
 }
 
@@ -147,7 +147,7 @@ export function intersectLineCircle(offset: Position, dir: RelativePosition, cen
  * lambda1, lambda2, lambda3, lambda4 can be undefined if no intersection exists or +/-Infinity if the line is inside the corridor
  * the intersection with their lambdas are sorted so that lambda1 <= lambda2
  */
-export function intersectLineCorridor(offset : Position, direction: RelativePosition, offsetCorridor: Position,
+export function intersectLineCorridor(offset: Position, direction: RelativePosition, offsetCorridor: Position,
 		directionCorridor: RelativePosition, widthHalf: number): [Position?, Position?, number?, number?, number?, number?] {
 	if (directionCorridor.equals(new Vector(0, 0))) {
 		throw new Error("intersectLineCorridor: directionCorridor can not be a 0 vector");

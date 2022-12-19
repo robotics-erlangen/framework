@@ -337,8 +337,8 @@ export function runDebugger() {
 		sendMessage("Console.enable");
 		sendMessage("Debugger.enable");
 		sendMessage("Runtime.enable");
-		sendMessage("Debugger.setAsyncCallStackDepth", {maxDepth: 4});
-		sendMessage("Debugger.setPauseOnExceptions", {state: "all"});
+		sendMessage("Debugger.setAsyncCallStackDepth", { maxDepth: 4 });
+		sendMessage("Debugger.setPauseOnExceptions", { state: "all" });
 	}
 }
 runDebugger();

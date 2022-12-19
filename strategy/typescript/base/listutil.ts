@@ -40,7 +40,7 @@ export function min<T>(list: T[], rate: (a: T) => number): [T | undefined, numbe
 			minRating = rating;
 		}
 	}
-	return [ currentMin, minRating ];
+	return [currentMin, minRating];
 }
 
 /**
@@ -60,7 +60,7 @@ export function max<T>(list: T[], rate: (a: T) => number): [T | undefined, numbe
 			maxRating = rating;
 		}
 	}
-	return [ currentMax, maxRating ];
+	return [currentMax, maxRating];
 }
 
 /**

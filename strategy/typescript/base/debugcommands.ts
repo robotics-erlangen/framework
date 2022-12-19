@@ -143,7 +143,7 @@ export function sendRefereeCommand(refereeCommand: string, gameStage?: string, b
 	if (pos != undefined) {
 		pos = pos * 1000;
 		pos = Coordinates.toGlobal(pos);
-		state.designated_position = {x: pos.x, y: pos.y};
+		state.designated_position = { x: pos.x, y: pos.y };
 	}
 	amunLocal.sendRefereeCommand(state);
 }
@@ -200,7 +200,7 @@ export function moveObjects(ball?: BallInfo, friendlyRobots?: RobotState[], oppo
 			let pos = Coordinates.toVision(robot.pos);
 			let speed = Coordinates.toVision(robot.speed);
 			return {
-				id: {id: robot.id, team: team},
+				id: { id: robot.id, team: team },
 				x: pos.x, y: pos.y, orientation: Coordinates.toVision(robot.dir),
 				v_x: speed.x, v_y: speed.y, v_angular: robot.angularSpeed
 			};
@@ -214,5 +214,5 @@ export function moveObjects(ball?: BallInfo, friendlyRobots?: RobotState[], oppo
 		simCommand.teleport_robot = simCommand.teleport_robot.concat(createTeleportCommandsForRobots(opponentRobots, opponent));
 	}
 
-	amun.sendCommand({ simulator: {ssl_control: simCommand}, tracking: { reset: true } });
+	amun.sendCommand({ simulator: { ssl_control: simCommand }, tracking: { reset: true } });
 }

@@ -46,8 +46,8 @@ export function add(name: string, func: EntryPointFunction) {
  * which should call the basic runtime functions
  * @returns Entrypoints table for passing to Ra
  */
-export function get(wrapper: EntryPointWrapper): { [name: string]: Function} {
-	let wrapped: { [name: string]: Function} = {};
+export function get(wrapper: EntryPointWrapper): { [name: string]: Function } {
+	let wrapped: { [name: string]: Function } = {};
 	for (let name in entries) {
 		wrapped[name] = wrapper(entries[name]);
 	}

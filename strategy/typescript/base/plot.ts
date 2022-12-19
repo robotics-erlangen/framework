@@ -36,8 +36,8 @@ export function addPlot(name: string, value: number) {
 }
 
 
-let aggregated: {[name: string]: number} = {};
-let lastAggregated: {[name: string]: number} = {};
+let aggregated: { [name: string]: number } = {};
+let lastAggregated: { [name: string]: number } = {};
 export function _plotAggregated() {
 	for (let k in aggregated) {
 		addPlot(k, aggregated[k]);

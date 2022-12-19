@@ -384,37 +384,31 @@ module.exports = {
             "double",
         ],
         "@typescript-eslint/space-infix-ops": "error",
-
-        // TODO
-        "array-bracket-spacing": [
-            "off",
-            "never",
-            {
-                "objectsInArrays": true
-            }
-        ],
         "comma-spacing": "off",
-        "@typescript-eslint/comma-spacing": "off",
-        "semi-spacing": "off",
-        "no-multi-spaces": "off",
-        "object-curly-spacing": [
-            "off",
-            "always",
-        ],
-        "@typescript-eslint/object-curly-spacing": [
-            "off",
-            "always",
-        ],
+        "@typescript-eslint/comma-spacing": "error",
+        "semi-spacing": "error",
+        "no-multi-spaces": "error",
         "space-unary-ops": [
-            "off",
+            "error",
             {
                 "words": true,
                 "nonwords": false,
+                "overrides": {
+                    "typeof": false,
+                }
             }
         ],
-        "@typescript-eslint/type-annotation-spacing": "off",
+        "@typescript-eslint/type-annotation-spacing": "error",
+        "array-bracket-spacing": [
+            "error",
+            "never",
+        ],
+        "object-curly-spacing": "off",
+        "@typescript-eslint/object-curly-spacing": [
+            "error",
+            "always",
+        ],
 
-        // TODO these is working, but do we want it?
         "new-parens": "error",
         "linebreak-style": [
             "error",
@@ -448,29 +442,38 @@ module.exports = {
         "use-isnan": "error",
 
         "sonarjs/prefer-while": "error",
+        // 3 problems
         // "sonarjs/no-all-duplicated-branches": "error",
         "sonarjs/no-element-overwrite": "error",
         "sonarjs/no-empty-collection": "error",
         "sonarjs/no-extra-arguments": "error",
         "sonarjs/no-identical-conditions": "error",
+        // 7 problems (4 can be ignored)
         // "sonarjs/no-identical-expressions": "error",
         "sonarjs/no-ignored-return": "error",
         "sonarjs/no-one-iteration-loop": "error",
         "sonarjs/no-use-of-empty-return-value": "error",
         "sonarjs/non-existent-operator": "error",
+        // 18 problems
         // "sonarjs/no-collapsible-if": "error",
         "sonarjs/no-collection-size-mischeck": "error",
+        // 2 problems, probably not though?
         // "sonarjs/no-duplicated-branches": "error",
         "sonarjs/no-gratuitous-expressions": "error",
+        // 1 problem
         // "sonarjs/no-identical-functions": "error",
         "sonarjs/no-redundant-boolean": "error",
         "sonarjs/no-redundant-jump": "error",
         "sonarjs/no-same-line-conditional": "error",
+        // 1 problem, could be ignored
         // "sonarjs/no-unused-collection": "error",
+        // 9 problems
         // "sonarjs/prefer-single-boolean-return": "error",
 
         // maybe keep this?
+        // 19 problems, mainly debug tree
         // "sonarjs/no-duplicate-string": "error",
+        // 11 problems
         // "sonarjs/prefer-immediate-return": "error",
 
         "erforce/no-unnecessary-function-wrapper": "error",

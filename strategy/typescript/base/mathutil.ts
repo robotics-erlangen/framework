@@ -65,7 +65,7 @@ function produceRandom(seed?: number): RandomLike {
 	if (USE_LUA_PRNG) {
 		amunCopy.luaRandomSetSeed(seed);
 		// as changing luaRandom fires a strategy reload, we can safely assume that _random is either a luaPRNG or undefined
-		return _random == undefined ? new ExtendedRandom({nextNumber53: amunCopy.luaRandom}) : _random;
+		return _random == undefined ? new ExtendedRandom({ nextNumber53: amunCopy.luaRandom }) : _random;
 	} else {
 		return new Random(seed);
 	}
@@ -230,7 +230,7 @@ export function sign(value: number): -1 | 0 | 1 {
 
 export function average(array: number[], indexStart: number = 0, indexEnd: number = array.length): number {
 	let sum = 0;
-	for (let i = indexStart;i < indexEnd;i++) {
+	for (let i = indexStart; i < indexEnd; i++) {
 		sum += array[i];
 	}
 	return sum / (indexEnd - indexStart);
