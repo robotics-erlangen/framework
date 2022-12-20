@@ -46,6 +46,8 @@ private:
     };
 
 public:
+    static Radio::DevicePresence devicePresence();
+
     Transceiver2015(const Transceiver2015&) = delete;
     Transceiver2015& operator=(const Transceiver2015&) = delete;
 

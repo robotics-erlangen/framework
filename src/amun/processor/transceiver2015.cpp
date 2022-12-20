@@ -29,6 +29,8 @@
 #include "usbthread.h"
 #include <QByteArray>
 #include <QString>
+#include <algorithm>
+#include <libusb.h>
 
 using namespace Radio;
 
@@ -38,6 +40,32 @@ typedef struct
 } __attribute__ ((packed)) TransceiverPingData;
 
 const int PROTOCOL_VERSION = 5;
+
+constexpr qint16 TRANSCEIVER2015_VENDOR_ID  = 0x03eb;
+constexpr qint16 TRANSCEIVER2015_PRODUCT_ID = 0x6127;
+
+Radio::DevicePresence Transceiver2015::devicePresence()
+{
+#ifdef USB_FOUND
+    libusb_init(nullptr);
+
+    libusb_device** deviceList = nullptr;
+    const int n = libusb_get_device_list(nullptr, &deviceList);
+    const bool found = std::any_of(deviceList, deviceList + n, [](libusb_device *device) -> bool {
+        libusb_device_descriptor descriptor;
+        // always succeeds if libusb version >= 1.0.16
+        libusb_get_device_descriptor(device, &descriptor);
+        return descriptor.idVendor == TRANSCEIVER2015_VENDOR_ID
+            && descriptor.idProduct == TRANSCEIVER2015_PRODUCT_ID;
+    });
+    libusb_free_device_list(deviceList, true);
+
+    return found
+        ? DevicePresence::Present : DevicePresence::Unplugged;
+#else
+    return DevicePresence::Unsupported;
+#endif // USB_FOUND
+}
 
 Transceiver2015::Transceiver2015(const Timer *timer, QObject *parent) :
     TransceiverLayer(parent),
@@ -64,7 +92,7 @@ bool Transceiver2015::open()
 
     close();
 
-    QList<USBDevice*> devices = USBDevice::getDevices(0x03eb, 0x6127, m_context);
+    QList<USBDevice*> devices = USBDevice::getDevices(TRANSCEIVER2015_VENDOR_ID, TRANSCEIVER2015_PRODUCT_ID, m_context);
     if (devices.isEmpty()) {
         emit errorOccurred("Device not found");
         return false;

@@ -32,6 +32,9 @@
 #include <QByteArray>
 #include <QList>
 #include <QTimer>
+#include <algorithm>
+#include <array>
+#include <functional>
 
 using namespace Radio;
 
@@ -134,7 +137,28 @@ void RadioSystem::openTransceiver()
             return nullptr;
         }
 
-        return new Transceiver2015 { m_timer, this };
+        struct Info {
+            DevicePresence presence;
+            std::function<TransceiverLayer *()> create;
+        } possibleDevices[] = {
+            { Transceiver2015::devicePresence(), [this]() { return new Transceiver2015 { m_timer, this }; } },
+        };
+
+        const auto isPresent = [](const Info& info) { return info.presence == DevicePresence::Present; };
+
+        auto firstPresent = std::find_if(std::begin(possibleDevices), std::end(possibleDevices), isPresent);
+
+        if (firstPresent == std::end(possibleDevices)) {
+            transceiverErrorOccurred("No device present", 0);
+            return nullptr;
+        }
+
+        if (std::any_of(firstPresent + 1, std::end(possibleDevices), isPresent)) {
+            transceiverErrorOccurred("Multiple devices present", 0);
+            return nullptr;
+        }
+
+        return firstPresent->create();
     }();
 
     if (newTransceiver) {
