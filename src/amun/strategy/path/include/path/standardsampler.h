@@ -30,6 +30,11 @@ public:
     StandardTrajectorySample() {}
     StandardTrajectorySample(float time, float angle, Vector midSpeed) : time(time), angle(angle), midSpeed(midSpeed) {}
 
+    bool operator==(const StandardTrajectorySample &other)
+    {
+        return time == other.time && angle == other.angle && midSpeed == other.midSpeed;
+    }
+
     float getTime() const { return time; }
     float getAngle() const { return angle; }
     Vector getMidSpeed() const { return midSpeed; }
@@ -60,7 +65,8 @@ struct PrecomputationSegmentInfo {
 class StandardSampler : public TrajectorySampler
 {
 public:
-    StandardSampler(RNG *rng, const WorldInformation &world, PathDebug &debug, bool usePrecomputation = true);
+    StandardSampler(RNG *rng, const WorldInformation &world, PathDebug &debug);
+
     bool compute(const TrajectoryInput &input) final override;
     const std::vector<Trajectory> &getResult() const final override { return m_result; }
     void setDirectTrajectoryScore(float score) { m_directTrajectoryScore = score; }
@@ -69,30 +75,74 @@ public:
     static constexpr float OBSTACLE_AVOIDANCE_RADIUS = 0.1f;
     static constexpr float OBSTACLE_AVOIDANCE_BONUS = 0.2f;
 
-    // a negative return value indicates that the input was invalid or worse and a positive value is the score of the successfull check
-    float checkSample(const TrajectoryInput &input, const StandardTrajectorySample &sample, const float currentBestTime);
+    enum class ScoreType {
+        EXACT,
+        WORSE_THAN
+    };
+    struct SampleScore {
+        ScoreType type;
+        // interpretation depends on the score type
+        // lower scores are better
+        float score;
+    };
+
+    virtual SampleScore checkSample(const TrajectoryInput &input, const StandardTrajectorySample &sample, const float currentBestTime);
     static float trajectoryScore(float time, float obstacleDistance);
 
-private:
+protected:
     struct StandardSamplerBestTrajectoryInfo {
         float time = 0;
         bool valid = false;
         StandardTrajectorySample sample;
     };
-
-private:
     Vector randomSpeed(float maxSpeed);
-    void computeLive(const TrajectoryInput &input, const StandardSamplerBestTrajectoryInfo &lastFrameInfo);
-    void computePrecomputed(const TrajectoryInput &input);
 
-private:
+protected:
+    // functions that need be implemented for an optimizable sampler
+    virtual void computeSamples(const TrajectoryInput &input, const StandardSamplerBestTrajectoryInfo &lastFrameInfo) = 0;
+    virtual int numSamples() const = 0;
+    virtual void randomizeSample(int index) = 0;
+    virtual void modifySample(int index) = 0;
+    virtual void save(QString filename) const = 0;
+
+protected:
     float m_directTrajectoryScore = std::numeric_limits<float>::max();
     StandardSamplerBestTrajectoryInfo m_bestResultInfo;
 
     std::vector<Trajectory> m_result;
+};
 
-    // precomputation
+class PrecomputedStandardSampler : public StandardSampler
+{
+public:
+    PrecomputedStandardSampler(RNG *rng, const WorldInformation &world, PathDebug &debug);
+    void copyPrecomputation(const PrecomputedStandardSampler &other) { m_precomputedPoints = other.m_precomputedPoints; }
+
+    int numSamples() const override;
+    void randomizeSample(int index) override;
+    void modifySample(int index) override;
+    void save(QString filename) const override;
+
+protected:
+    void computeSamples(const TrajectoryInput &input, const StandardSamplerBestTrajectoryInfo&) override;
+    StandardTrajectorySample& getSample(int i);
+
+private:
     std::vector<PrecomputationSegmentInfo> m_precomputedPoints;
+};
+
+class LiveStandardSampler : public StandardSampler
+{
+public:
+    LiveStandardSampler(RNG *rng, const WorldInformation &world, PathDebug &debug);
+
+    int numSamples() const override { return 0; }
+    void randomizeSample(int) override {}
+    void modifySample(int) override {}
+    void save(QString) const override { }
+
+private:
+    void computeSamples(const TrajectoryInput &input, const StandardSamplerBestTrajectoryInfo&) override;
 };
 
 #endif // STANDARDSAMPLER_H

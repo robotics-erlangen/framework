@@ -21,25 +21,13 @@
 #include "standardsampler.h"
 #include "core/rng.h"
 #include "core/protobuffilereader.h"
+#include "core/protobuffilesaver.h"
 #include "config/config.h"
 #include <QDebug>
 
-StandardSampler::StandardSampler(RNG *rng, const WorldInformation &world, PathDebug &debug, bool usePrecomputation) :
+StandardSampler::StandardSampler(RNG *rng, const WorldInformation &world, PathDebug &debug) :
     TrajectorySampler(rng, world, debug)
-{
-    if (usePrecomputation) {
-        // load precomputed points
-        ProtobufFileReader reader;
-        reader.open(QString(ERFORCE_DATADIR) + "precomputation/standardsampler.prec", "KHONSU PRECOMPUTATION");
-        pathfinding::StandardSamplerPrecomputation precomp;
-        reader.readNext(precomp);
-        for (const auto &a : precomp.segments()) {
-            PrecomputationSegmentInfo segment;
-            segment.deserialize(a);
-            m_precomputedPoints.push_back(segment);
-        }
-    }
-}
+{ }
 
 bool StandardSampler::compute(const TrajectoryInput &input)
 {
@@ -56,17 +44,16 @@ bool StandardSampler::compute(const TrajectoryInput &input)
         checkSample(input, lastTrajectoryInfo.sample, m_bestResultInfo.time);
     }
 
-    // if no precomputation is found, fall back to live sampling
-    if (m_precomputedPoints.size() == 0) {
-        computeLive(input, lastTrajectoryInfo);
-    } else {
-        computePrecomputed(input);
-    }
+    computeSamples(input, lastTrajectoryInfo);
 
     return m_bestResultInfo.valid;
 }
 
-void StandardSampler::computeLive(const TrajectoryInput &input, const StandardSamplerBestTrajectoryInfo &lastFrameInfo)
+LiveStandardSampler::LiveStandardSampler(RNG *rng, const WorldInformation &world, PathDebug &debug) :
+    StandardSampler(rng, world, debug)
+{ }
+
+void LiveStandardSampler::computeSamples(const TrajectoryInput &input, const StandardSamplerBestTrajectoryInfo &lastFrameInfo)
 {
     const Vector targetDistance = input.target.pos - input.start.pos;
     Vector defaultSpeed = targetDistance * (std::max(2.5f, targetDistance.length() / 2) / targetDistance.length());
@@ -133,7 +120,77 @@ void StandardSampler::computeLive(const TrajectoryInput &input, const StandardSa
     }
 }
 
-void StandardSampler::computePrecomputed(const TrajectoryInput &input)
+PrecomputedStandardSampler::PrecomputedStandardSampler(RNG *rng, const WorldInformation &world, PathDebug &debug) :
+    StandardSampler(rng, world, debug)
+{
+    // load precomputed points
+    ProtobufFileReader reader;
+    reader.open(QString(ERFORCE_DATADIR) + "precomputation/standardsampler.prec", "KHONSU PRECOMPUTATION");
+    pathfinding::StandardSamplerPrecomputation precomp;
+    reader.readNext(precomp);
+    for (const auto &a : precomp.segments()) {
+        PrecomputationSegmentInfo segment;
+        segment.deserialize(a);
+        m_precomputedPoints.push_back(segment);
+    }
+
+    // check validity
+    assert (m_precomputedPoints.size() > 0);
+    for (const auto &segment : m_precomputedPoints) {
+        (void)segment;
+        assert(segment.precomputedPoints.size() == m_precomputedPoints[0].precomputedPoints.size());
+    }
+}
+
+int PrecomputedStandardSampler::numSamples() const
+{
+    return m_precomputedPoints.size() * m_precomputedPoints[0].precomputedPoints.size();
+}
+
+static constexpr  float MAX_SPEED = 3.5f;
+void PrecomputedStandardSampler::randomizeSample(int index)
+{
+    const int segment = m_precomputedPoints[0].precomputedPoints.size();
+    const float maxDistance = m_precomputedPoints[segment].maxDistance;
+
+    StandardTrajectorySample &sample = getSample(index);
+    sample.midSpeed = randomSpeed(MAX_SPEED);
+    sample.time = m_rng->uniformFloat(0.001f, std::min(6.0f, 2.0f * maxDistance));
+    sample.angle = m_rng->uniformFloat(0, 7);
+}
+
+void PrecomputedStandardSampler::modifySample(int index)
+{
+    StandardTrajectorySample &sample = getSample(index);
+
+    const float radius = 0.1f;
+    sample.midSpeed += m_rng->uniformVectorIn(Vector(-radius, -radius), Vector(radius, radius));
+    if (sample.midSpeed.length() > MAX_SPEED) {
+        sample.midSpeed = sample.midSpeed.normalized() * MAX_SPEED;
+    }
+    sample.time = std::max(0.001f, sample.time + m_rng->uniformFloat(-0.1f, 0.1f));
+    sample.angle += m_rng->uniformFloat(-0.1f, 0.1f);
+}
+
+StandardTrajectorySample& PrecomputedStandardSampler::getSample(int i)
+{
+    assert(i >= 0 && i < numSamples());
+    const int pointsPerSegment = m_precomputedPoints[0].precomputedPoints.size();
+    return m_precomputedPoints[i / pointsPerSegment].precomputedPoints[i % pointsPerSegment];
+}
+
+void PrecomputedStandardSampler::save(QString filename) const
+{
+    pathfinding::StandardSamplerPrecomputation data;
+    for (const auto &point : m_precomputedPoints) {
+        point.serialize(data.add_segments());
+    }
+
+    ProtobufFileSaver fileSaver(filename, "KHONSU PRECOMPUTATION");
+    fileSaver.saveMessage(data);
+}
+
+void PrecomputedStandardSampler::computeSamples(const TrajectoryInput &input, const StandardSamplerBestTrajectoryInfo&)
 {
     // check points randomly around the last frames result to improve it
     for (int i = 0;i<20;i++) {
@@ -192,7 +249,7 @@ float StandardSampler::trajectoryScore(float time, float obstacleDistance)
     return biasedTrajectoryTime;
 }
 
-float StandardSampler::checkSample(const TrajectoryInput &input, const StandardTrajectorySample &sample, const float currentBestTime)
+StandardSampler::SampleScore StandardSampler::checkSample(const TrajectoryInput &input, const StandardTrajectorySample &sample, const float currentBestTime)
 {
     const float bestTime = std::min(m_directTrajectoryScore, currentBestTime);
 
@@ -201,7 +258,7 @@ float StandardSampler::checkSample(const TrajectoryInput &input, const StandardT
 
     // construct second part from mid point data
     if (sample.getTime() < 0) {
-        return -1;
+        return {ScoreType::EXACT, std::numeric_limits<float>::max()};
     }
 
     const float slowDownTime = input.exponentialSlowDown ? SlowdownAcceleration::SLOW_DOWN_TIME : 0;
@@ -213,37 +270,38 @@ float StandardSampler::checkSample(const TrajectoryInput &input, const StandardT
     const Vector secondPartOffset = secondPart.endPosition(); // startpos is (0, 0), computes offset of trajectory
     secondPart.setStartPos(input.target.pos - secondPartOffset);
     if (secondPartTime > bestTime - MINIMUM_TIME_IMPROVEMENT) {
-        return -1;
+        return {ScoreType::WORSE_THAN, secondPartTime};
     }
 
     // calculate first part trajectory
     const Vector firstPartTarget = input.target.pos - secondPartOffset;
     const float firstPartSlowDownTime = input.exponentialSlowDown ? std::max(0.0f, SlowdownAcceleration::SLOW_DOWN_TIME - secondPartTime) : 0.0f;
     const RobotState firstTargetState(firstPartTarget, sample.getMidSpeed());
-    const auto firstPart = AlphaTimeTrajectory::findTrajectory(input.start, firstTargetState, input.acceleration,
-                                                               input.maxSpeed, firstPartSlowDownTime, EndSpeed::EXACT);
-    if (!firstPart) {
-        return -1;
+    const auto firstPartOpt = AlphaTimeTrajectory::findTrajectory(input.start, firstTargetState, input.acceleration,
+                                                                  input.maxSpeed, firstPartSlowDownTime, EndSpeed::EXACT);
+    if (!firstPartOpt) {
+        return {ScoreType::EXACT, std::numeric_limits<float>::max()};
     }
+    const Trajectory &firstPart = firstPartOpt.value();
 
-    const float firstPartTime = firstPart->time();
+    const float firstPartTime = firstPart.time();
     if (firstPartTime + secondPartTime > bestTime - MINIMUM_TIME_IMPROVEMENT) {
-        return -1;
+        return {ScoreType::WORSE_THAN, firstPartTime + secondPartTime};
     }
     // TODO: end point might also be close to the target?
-    const float firstPartDistance = m_world.minObstacleDistance(firstPart.value(), input.t0, OBSTACLE_AVOIDANCE_RADIUS).first;
+    const float firstPartDistance = m_world.minObstacleDistance(firstPart, input.t0, OBSTACLE_AVOIDANCE_RADIUS).first;
     if (firstPartDistance < 0) {
-        return -1;
+        return {ScoreType::EXACT, std::numeric_limits<float>::max()};
     }
     // TODO: calculate the offset while calculating the trajectory
     const float secondPartDistance = m_world.minObstacleDistance(secondPart, input.t0 + firstPartTime, OBSTACLE_AVOIDANCE_RADIUS).first;
     if (secondPartDistance < 0) {
-        return -1;
+        return {ScoreType::EXACT, std::numeric_limits<float>::max()};
     }
     const float obstacleDist = std::min(firstPartDistance, secondPartDistance);
     const float biasedTrajectoryTime = trajectoryScore(firstPartTime + secondPartTime, obstacleDist);
     if (biasedTrajectoryTime > bestTime - MINIMUM_TIME_IMPROVEMENT) {
-        return -1;
+        return {ScoreType::EXACT, biasedTrajectoryTime};
     }
 
     // trajectory is possible, better than previous trajectory
@@ -252,9 +310,9 @@ float StandardSampler::checkSample(const TrajectoryInput &input, const StandardT
     m_bestResultInfo.sample = sample;
 
     m_result.clear();
-    m_result.push_back(firstPart.value());
+    m_result.push_back(firstPart);
     m_result.push_back(secondPart);
-    return biasedTrajectoryTime;
+    return {ScoreType::EXACT, biasedTrajectoryTime};
 }
 
 void PrecomputationSegmentInfo::serialize(pathfinding::StandardSamplerPrecomputationSegment *segment) const

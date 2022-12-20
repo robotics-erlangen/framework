@@ -50,7 +50,7 @@ private:
     void savePathfindingInput(const TrajectoryInput &input);
 
 private:
-    StandardSampler m_standardSampler;
+    PrecomputedStandardSampler m_standardSampler;
     EndInObstacleSampler m_endInObstacleSampler;
     MultiEscapeSampler m_escapeObstacleSampler;
 
