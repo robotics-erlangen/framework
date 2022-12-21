@@ -194,13 +194,13 @@ void PrecomputedStandardSampler::resetSamples()
 {
     PrecomputationSegment segment;
     segment.minDistance = 0;
-    segment.maxDistance = 20;
+    segment.maxDistance = std::numeric_limits<float>::infinity();
     segment.samples.push_back({});
     m_precomputation = {segment};
     randomizeSample(0);
 }
 
-bool PrecomputedStandardSampler::trySplit()
+bool PrecomputedStandardSampler::trySplit(const std::vector<TrajectoryInput> &inputs)
 {
     const int MAX_SAMPLES = 32;
     const int MAX_SEGMENTS = 16;
@@ -211,8 +211,17 @@ bool PrecomputedStandardSampler::trySplit()
     } else if (m_precomputation.size() < MAX_SEGMENTS) {
         std::vector<PrecomputationSegment> segments;
         for (const auto &segment : m_precomputation) {
+            std::vector<float> distances;
+            for (const auto &input : inputs) {
+                const float dist = input.target.pos.distance(input.start.pos);
+                if (dist >= segment.minDistance && dist <= segment.maxDistance) {
+                    distances.push_back(dist);
+                }
+            }
+            std::sort(distances.begin(), distances.end());
+
+            const float midDistance = distances[distances.size() / 2];
             segments.push_back(segment);
-            const float midDistance = (segment.minDistance + segment.maxDistance) / 2.0f;
             segments.back().maxDistance = midDistance;
             segments.push_back(segment);
             segments.back().minDistance = midDistance;

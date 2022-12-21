@@ -96,7 +96,7 @@ protected:
     virtual void modifySample(int index) = 0;
     virtual void save(QString filename) const = 0;
     virtual void resetSamples() = 0;
-    virtual bool trySplit() { return false; }
+    virtual bool trySplit(const std::vector<TrajectoryInput>&) { return false; }
 
 protected:
     float m_directTrajectoryScore = std::numeric_limits<float>::max();
@@ -116,7 +116,7 @@ public:
     void modifySample(int index) override;
     void save(QString filename) const override;
     void resetSamples() override;
-    bool trySplit() override;
+    bool trySplit(const std::vector<TrajectoryInput> &inputs) override;
 
 protected:
     void computeSamples(const TrajectoryInput &input, const StandardSamplerBestTrajectoryInfo&) override;

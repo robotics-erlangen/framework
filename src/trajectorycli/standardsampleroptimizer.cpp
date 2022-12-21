@@ -161,6 +161,9 @@ static void optimizeGeneric(const std::vector<Situation> &situations, const QStr
     const int ITERATIONS_PER_SAMPLE = 200;
     const int TOTAL_RANDOM_PERCENTAGE = 10;
 
+    std::vector<TrajectoryInput> allInputs{situations.size()};
+    std::transform(situations.begin(), situations.end(), allInputs.begin(), [](auto &sit) { return sit.input; });
+
     WorldInformation world;
     PathDebug debug;
     RNG rng{1};
@@ -178,7 +181,7 @@ static void optimizeGeneric(const std::vector<Situation> &situations, const QStr
     for (std::size_t i = 0;;i++) {
 
         if ((i + 1) % (ITERATIONS_PER_SAMPLE * numSamples) == 0) {
-            const bool hasSplit = sampler.trySplit();
+            const bool hasSplit = sampler.trySplit(allInputs);
             numSamples = sampler.numSamples();
             if (hasSplit) {
                 std::cout <<"Split into "<<numSamples<<" samples!"<<std::endl;
