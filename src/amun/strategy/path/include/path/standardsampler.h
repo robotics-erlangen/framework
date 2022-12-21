@@ -53,15 +53,6 @@ public:
     Vector midSpeed = Vector(0, 0);
 };
 
-struct PrecomputationSegmentInfo {
-    float minDistance;
-    float maxDistance;
-    std::vector<StandardTrajectorySample> precomputedPoints;
-
-    void serialize(pathfinding::StandardSamplerPrecomputationSegment *segment) const;
-    void deserialize(const pathfinding::StandardSamplerPrecomputationSegment &segment);
-};
-
 class StandardSampler : public TrajectorySampler
 {
 public:
@@ -104,6 +95,8 @@ protected:
     virtual void randomizeSample(int index) = 0;
     virtual void modifySample(int index) = 0;
     virtual void save(QString filename) const = 0;
+    virtual void resetSamples() = 0;
+    virtual bool trySplit() { return false; }
 
 protected:
     float m_directTrajectoryScore = std::numeric_limits<float>::max();
@@ -116,19 +109,30 @@ class PrecomputedStandardSampler : public StandardSampler
 {
 public:
     PrecomputedStandardSampler(RNG *rng, const WorldInformation &world, PathDebug &debug);
-    void copyPrecomputation(const PrecomputedStandardSampler &other) { m_precomputedPoints = other.m_precomputedPoints; }
+    void copyPrecomputation(const PrecomputedStandardSampler &other) { m_precomputation = other.m_precomputation; }
 
     int numSamples() const override;
     void randomizeSample(int index) override;
     void modifySample(int index) override;
     void save(QString filename) const override;
+    void resetSamples() override;
+    bool trySplit() override;
 
 protected:
     void computeSamples(const TrajectoryInput &input, const StandardSamplerBestTrajectoryInfo&) override;
     StandardTrajectorySample& getSample(int i);
 
 private:
-    std::vector<PrecomputationSegmentInfo> m_precomputedPoints;
+    struct PrecomputationSegment {
+        float minDistance;
+        float maxDistance;
+        std::vector<StandardTrajectorySample> samples;
+
+        void serialize(pathfinding::StandardSamplerPrecomputationSegment *segment) const;
+        void deserialize(const pathfinding::StandardSamplerPrecomputationSegment &segment);
+    };
+
+    std::vector<PrecomputationSegment> m_precomputation;
 };
 
 class LiveStandardSampler : public StandardSampler
@@ -139,7 +143,8 @@ public:
     int numSamples() const override { return 0; }
     void randomizeSample(int) override {}
     void modifySample(int) override {}
-    void save(QString) const override { }
+    void save(QString) const override {}
+    void resetSamples() override {}
 
 private:
     void computeSamples(const TrajectoryInput &input, const StandardSamplerBestTrajectoryInfo&) override;

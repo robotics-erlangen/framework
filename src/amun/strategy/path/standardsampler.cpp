@@ -129,29 +129,29 @@ PrecomputedStandardSampler::PrecomputedStandardSampler(RNG *rng, const WorldInfo
     pathfinding::StandardSamplerPrecomputation precomp;
     reader.readNext(precomp);
     for (const auto &a : precomp.segments()) {
-        PrecomputationSegmentInfo segment;
+        PrecomputationSegment segment;
         segment.deserialize(a);
-        m_precomputedPoints.push_back(segment);
+        m_precomputation.push_back(segment);
     }
 
     // check validity
-    assert (m_precomputedPoints.size() > 0);
-    for (const auto &segment : m_precomputedPoints) {
+    assert (m_precomputation.size() > 0);
+    for (const auto &segment : m_precomputation) {
         (void)segment;
-        assert(segment.precomputedPoints.size() == m_precomputedPoints[0].precomputedPoints.size());
+        assert(segment.samples.size() == m_precomputation[0].samples.size());
     }
 }
 
 int PrecomputedStandardSampler::numSamples() const
 {
-    return m_precomputedPoints.size() * m_precomputedPoints[0].precomputedPoints.size();
+    return m_precomputation.size() * m_precomputation[0].samples.size();
 }
 
-static constexpr  float MAX_SPEED = 3.5f;
+static constexpr float MAX_SPEED = 3.5f;
 void PrecomputedStandardSampler::randomizeSample(int index)
 {
-    const int segment = m_precomputedPoints[0].precomputedPoints.size();
-    const float maxDistance = m_precomputedPoints[segment].maxDistance;
+    const int segment = index / m_precomputation[0].samples.size();
+    const float maxDistance = m_precomputation[segment].maxDistance;
 
     StandardTrajectorySample &sample = getSample(index);
     sample.midSpeed = randomSpeed(MAX_SPEED);
@@ -175,19 +175,52 @@ void PrecomputedStandardSampler::modifySample(int index)
 StandardTrajectorySample& PrecomputedStandardSampler::getSample(int i)
 {
     assert(i >= 0 && i < numSamples());
-    const int pointsPerSegment = m_precomputedPoints[0].precomputedPoints.size();
-    return m_precomputedPoints[i / pointsPerSegment].precomputedPoints[i % pointsPerSegment];
+    const int pointsPerSegment = m_precomputation[0].samples.size();
+    return m_precomputation[i / pointsPerSegment].samples[i % pointsPerSegment];
 }
 
 void PrecomputedStandardSampler::save(QString filename) const
 {
     pathfinding::StandardSamplerPrecomputation data;
-    for (const auto &point : m_precomputedPoints) {
+    for (const auto &point : m_precomputation) {
         point.serialize(data.add_segments());
     }
 
     ProtobufFileSaver fileSaver(filename, "KHONSU PRECOMPUTATION");
     fileSaver.saveMessage(data);
+}
+
+void PrecomputedStandardSampler::resetSamples()
+{
+    PrecomputationSegment segment;
+    segment.minDistance = 0;
+    segment.maxDistance = 20;
+    segment.samples.push_back({});
+    m_precomputation = {segment};
+    randomizeSample(0);
+}
+
+bool PrecomputedStandardSampler::trySplit()
+{
+    const int MAX_SAMPLES = 32;
+    const int MAX_SEGMENTS = 16;
+    if (m_precomputation.size() == 1 && m_precomputation[0].samples.size() < MAX_SAMPLES) {
+        auto &samples = m_precomputation[0].samples;
+        samples.insert(samples.end(), samples.begin(), samples.end());
+        return true;
+    } else if (m_precomputation.size() < MAX_SEGMENTS) {
+        std::vector<PrecomputationSegment> segments;
+        for (const auto &segment : m_precomputation) {
+            segments.push_back(segment);
+            const float midDistance = (segment.minDistance + segment.maxDistance) / 2.0f;
+            segments.back().maxDistance = midDistance;
+            segments.push_back(segment);
+            segments.back().minDistance = midDistance;
+        }
+        m_precomputation = segments;
+        return true;
+    }
+    return false;
 }
 
 void PrecomputedStandardSampler::computeSamples(const TrajectoryInput &input, const StandardSamplerBestTrajectoryInfo&)
@@ -215,9 +248,9 @@ void PrecomputedStandardSampler::computeSamples(const TrajectoryInput &input, co
 
     // check pre-computed points
     const float targetDistance = (input.target.pos - input.start.pos).length();
-    for (const auto &segment : m_precomputedPoints) {
+    for (const auto &segment : m_precomputation) {
         if (segment.minDistance <= targetDistance && segment.maxDistance >= targetDistance) {
-            for (const auto &sample : segment.precomputedPoints) {
+            for (const auto &sample : segment.samples) {
                 StandardTrajectorySample denormalized = sample.denormalize(input);
                 if (denormalized.getMidSpeed().lengthSquared() >= input.maxSpeedSquared) {
                     denormalized.setMidSpeed(denormalized.getMidSpeed().normalized() * input.maxSpeed);
@@ -315,16 +348,16 @@ StandardSampler::SampleScore StandardSampler::checkSample(const TrajectoryInput 
     return {ScoreType::EXACT, biasedTrajectoryTime};
 }
 
-void PrecomputationSegmentInfo::serialize(pathfinding::StandardSamplerPrecomputationSegment *segment) const
+void PrecomputedStandardSampler::PrecomputationSegment::serialize(pathfinding::StandardSamplerPrecomputationSegment *segment) const
 {
     segment->set_min_distance(minDistance);
     segment->set_max_distance(maxDistance);
-    for (const auto &sample : precomputedPoints) {
+    for (const auto &sample : samples) {
         sample.serialize(segment->add_precomputed_points());
     }
 }
 
-void PrecomputationSegmentInfo::deserialize(const pathfinding::StandardSamplerPrecomputationSegment &segment)
+void PrecomputedStandardSampler::PrecomputationSegment::deserialize(const pathfinding::StandardSamplerPrecomputationSegment &segment)
 {
     if (segment.has_min_distance()) {
         minDistance = segment.min_distance();
@@ -335,7 +368,7 @@ void PrecomputationSegmentInfo::deserialize(const pathfinding::StandardSamplerPr
     for (const auto &point : segment.precomputed_points()) {
         StandardTrajectorySample s;
         s.deserialize(point);
-        precomputedPoints.push_back(s);
+        samples.push_back(s);
     }
 }
 

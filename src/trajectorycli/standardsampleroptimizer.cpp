@@ -158,15 +158,16 @@ static float samplerScore(const std::vector<Situation> &situations, const Precom
 
 static void optimizeGeneric(const std::vector<Situation> &situations, const QString &outFilename)
 {
-    const std::size_t SAMPLE_TEST_COUNT = 600000;
+    const int ITERATIONS_PER_SAMPLE = 200;
     const int TOTAL_RANDOM_PERCENTAGE = 10;
 
     WorldInformation world;
     PathDebug debug;
     RNG rng{1};
     PrecomputedStandardSampler sampler{&rng, world, debug};
+    sampler.resetSamples();
 
-    const int numSamples = sampler.numSamples();
+    int numSamples = sampler.numSamples();
     for (int i = 0;i<numSamples;i++) {
         sampler.randomizeSample(i);
     }
@@ -174,7 +175,16 @@ static void optimizeGeneric(const std::vector<Situation> &situations, const QStr
     SamplerCache cache{situations.size()};
     float currentScore = samplerScore(situations, sampler, cache);
     int betterCounter = 0;
-    for (std::size_t i = 0;i<SAMPLE_TEST_COUNT;i++) {
+    for (std::size_t i = 0;;i++) {
+
+        if ((i + 1) % (ITERATIONS_PER_SAMPLE * numSamples) == 0) {
+            const bool hasSplit = sampler.trySplit();
+            numSamples = sampler.numSamples();
+            if (hasSplit) {
+                std::cout <<"Split into "<<numSamples<<" samples!"<<std::endl;
+            }
+        }
+
         PrecomputedStandardSampler testSampler{sampler};
         const int modifyId = i % numSamples;
         if (rng.uniformInt() % 100 < TOTAL_RANDOM_PERCENTAGE) {
