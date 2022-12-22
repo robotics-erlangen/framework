@@ -48,9 +48,9 @@ export class Keeper extends Task {
 		// how far the ball is off to the sides
 		// use hysteresis to prevent flickering between positions
 		let sideAngle = GOAL_NORMAL.absoluteAngleDiff(atkPos - G.FriendlyGoal);
-		if (sideAngle > 45 / 180 * Math.PI) {
+		if (sideAngle > geom.degreeToRadian(45)) {
 			this._defendCorner = true;
-		} else if (sideAngle < 30 / 180 * Math.PI) {
+		} else if (sideAngle < geom.degreeToRadian(30)) {
 			this._defendCorner = false;
 		}
 

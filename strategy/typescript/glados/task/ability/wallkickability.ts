@@ -1,3 +1,4 @@
+import * as geom from "base/geom";
 import { FriendlyRobot } from "base/robot";
 import { Position, RelativePosition, Vector } from "base/vector";
 import * as World from "base/world";
@@ -11,8 +12,8 @@ const G = World.Geometry;
 
 const WALLKICK_SPEED = 2.5;
 const START_DIST_WALLKICK = 0.18;
-const WALLKICK_ANGLE_UP = 20 * Math.PI / 180;
-const WALLKICK_ANGLE_DOWN = 160 * Math.PI / 180;
+const WALLKICK_ANGLE_UP = geom.degreeToRadian(20);
+const WALLKICK_ANGLE_DOWN = geom.degreeToRadian(160);
 const ENSURE_CONTACT_DIRECT_SPEED = 0.12;
 
 export class WallkickAbility {

@@ -72,7 +72,7 @@ export class CenterBack extends Task {
 				World.Geometry.FieldHeightHalf) - this._robot.pos).angle();
 		let fromGoalAngle = (this._robot.pos - World.Geometry.FriendlyGoal).angle();
 
-		const hystAngle = 5 * Math.PI / 180;
+		const hystAngle = geom.degreeToRadian(5);
 		let dir = toBallAngle;
 		if ((this._lookingToGoal && toBallAngle < toCornerLeftAngle + hystAngle &&
 				toBallAngle > toCornerRightAngle + hystAngle) ||
@@ -84,7 +84,7 @@ export class CenterBack extends Task {
 			this._lookingToGoal = false;
 		}
 
-		let maxAngleTilt = 40 * Math.PI / 180;
+		let maxAngleTilt = geom.degreeToRadian(40);
 		dir = geom.normalizeAnglePositive(dir + 0.5 * Math.PI) - 0.5 * Math.PI;
 		dir = MathUtil.bound(fromGoalAngle - maxAngleTilt, dir, fromGoalAngle + maxAngleTilt);
 

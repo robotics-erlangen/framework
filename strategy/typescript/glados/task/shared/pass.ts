@@ -1,4 +1,5 @@
 import * as debug from "base/debug";
+import * as geom from "base/geom";
 import * as Referee from "base/referee";
 import { FriendlyRobot } from "base/robot";
 import { Position, Vector } from "base/vector";
@@ -111,14 +112,14 @@ export class Pass extends Task {
 		debug.set("targetRobot", this._targetRobot);
 		debug.set("targetPos", this._targetPos);
 
-		let maxAngleError = 3.5 * Math.PI / 180;
+		let maxAngleError = geom.degreeToRadian(3.5);
 		let isFreekickLike = Referee.isFriendlyFreeKickState()
 			|| World.RefereeState === "KickoffOffensive"
 			|| this._highPrecision
 			|| (!this.ignoreCrash && ObserverCrash.isCrashed());
 
 		if (isFreekickLike) {
-			maxAngleError = 2.5 * Math.PI / 180;
+			maxAngleError = geom.degreeToRadian(2.5);
 		}
 
 		let attackPosition = this._messaging.receiveSingleSender(MessageType.attackPosition, true)[1] || World.Ball.pos;

@@ -1,3 +1,4 @@
+import * as geom from "base/geom";
 import { Vector } from "base/vector";
 
 import { Behavior } from "glados/agent/base/behavior";
@@ -21,7 +22,7 @@ export class RotTest extends Task {
 		this._nextJump = true;
 	}
 	run() {
-		let angle = this._index * degree / 180 * Math.PI;
+		let angle = geom.degreeToRadian(this._index * degree);
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, this._obstacleTable);
 		this._robot.trajectory.update(ToTarget, new Vector(1, 1), angle);
 		this._index += 1;

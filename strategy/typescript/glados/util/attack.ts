@@ -89,7 +89,7 @@ const rateVolley = (robot: FriendlyRobot, pass: PassObject, shootPos: Position) 
 
 	const volleyAngle = World.Ball.speed.absoluteAngleDiff(shootPos - pass.ballPos);
 	const volleyWeight = 0.3;
-	const volleyRating = Rating.valueToRating(volleyAngle, 65 / 180 * Math.PI, 50 / 180 * Math.PI);
+	const volleyRating = Rating.valueToRating(volleyAngle, geom.degreeToRadian(65), geom.degreeToRadian(50));
 	return 1 - volleyWeight + volleyWeight * volleyRating;
 };
 
@@ -201,8 +201,7 @@ const _defaultRatePass: PassRater = (robot, pass, earliestAttackTime, attackPosi
 	// rate angle shooter-goal-receiver
 	let shooterGoalReceiverAngle = (shootPos - G.OpponentGoal).absoluteAngleDiff(
 			pass.ballPos - G.OpponentGoal);
-	// eslint-disable-next-line sonarjs/no-identical-expressions
-	let shooterGoalReceiverRating = Rating.valueToRating(shooterGoalReceiverAngle, 0, 180 / 180 * Math.PI);
+	let shooterGoalReceiverRating = Rating.valueToRating(shooterGoalReceiverAngle, 0, geom.degreeToRadian(180));
 	let shooterGoalReceiverWeight = 0.5;
 	rating = rating * (1 - shooterGoalReceiverWeight + shooterGoalReceiverWeight * shooterGoalReceiverRating);
 
@@ -212,7 +211,7 @@ const _defaultRatePass: PassRater = (robot, pass, earliestAttackTime, attackPosi
 
 	let goalAngle = (G.OpponentGoalRight - pass.ballPos).absoluteAngleDiff(G.OpponentGoalLeft - pass.ballPos);
 	let goalAngleWeight = 0.5;
-	let goalAngleRating = Rating.valueToRating(goalAngle, 0, 50 / 180 * Math.PI);
+	let goalAngleRating = Rating.valueToRating(goalAngle, 0, geom.degreeToRadian(50));
 	rating = rating * (1 - goalAngleWeight + goalAngleWeight * goalAngleRating);
 
 	// decrease rating of passes far away from the goal
@@ -484,14 +483,14 @@ function _currentPlannedMainAttacker(passInfoSender: FriendlyRobot | undefined, 
 
 	if (lastPasser && Ball.wasShot(0.5) === lastPasser
 			&& World.Ball.speed.length() > 3 && lastReceiver && World.Ball.speed.absoluteAngleDiff(
-				lastReceiver.pos - World.Ball.pos) < 45 / 180 * Math.PI) {
+				lastReceiver.pos - World.Ball.pos) < geom.degreeToRadian(45)) {
 		lastCPMA = lastReceiver;
 		lastCPMATime = World.Time;
 		return lastCPMA;
 	}
 
 	if (lastCPMA && World.Ball.speed.length() > 1 && World.Ball.speed.absoluteAngleDiff(
-				lastCPMA.pos - World.Ball.pos) < 45 / 180 * Math.PI) {
+				lastCPMA.pos - World.Ball.pos) < geom.degreeToRadian(45)) {
 		lastCPMATime = World.Time;
 		return lastCPMA;
 	}

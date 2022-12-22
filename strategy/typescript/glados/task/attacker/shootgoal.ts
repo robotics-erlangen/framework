@@ -1,5 +1,6 @@
 import * as debug from "base/debug";
 import * as Field from "base/field";
+import * as geom from "base/geom";
 import * as MathUtil from "base/mathutil";
 import * as Referee from "base/referee";
 import { Robot as OpponentRobot } from "base/robot";
@@ -161,7 +162,7 @@ export class ShootGoal extends Task {
 		this.localTarget = new Vector(localTargetX, this._shootTargetPoint!.y);
 
 		if (!this._desperate) {
-			this._desperate = this._shootTargetWidth < 0.5 * Math.PI / 180;
+			this._desperate = this._shootTargetWidth < geom.degreeToRadian(0.5);
 		}
 
 		let receivesPass = Ball.receivesPass(this._robot);
@@ -177,16 +178,16 @@ export class ShootGoal extends Task {
 			// perform a linear shot
 			let targetWidth = this._shootTargetWidth != undefined ? this._shootTargetWidth : Infinity;
 			this.lastWasChip = false;
-			this.lastShootInfo = [this.localTarget, Infinity, undefined, ballReceiptPos, Math.min(10 * Math.PI / 180, targetWidth)];
+			this.lastShootInfo = [this.localTarget, Infinity, undefined, ballReceiptPos, Math.min(geom.degreeToRadian(10), targetWidth)];
 		} else {
-			let maxAngleError = 10 * Math.PI / 180;
+			let maxAngleError = geom.degreeToRadian(10);
 			// prevent icing
 			if (World.Ball.pos.y < 0) {
-				maxAngleError = 2 * Math.PI / 180;
+				maxAngleError = geom.degreeToRadian(2);
 			}
 
 			if (Referee.isFriendlyFreeKickState() || World.RefereeState === "KickoffOffensive") {
-				maxAngleError = 0.5 * Math.PI / 180;
+				maxAngleError = geom.degreeToRadian(0.5);
 			}
 
 			ballReceiptPos = ballReceiptPos || World.Ball.pos;

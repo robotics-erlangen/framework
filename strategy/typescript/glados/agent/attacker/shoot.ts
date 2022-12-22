@@ -140,7 +140,7 @@ export class Shoot extends Behavior {
 			const isGame = World.RefereeState === "Game" || World.RefereeState === "GameForce";
 			if (isGame
 					&& !obscured
-					&& Vector.fromAngle(this._robot.dir).absoluteAngleDiff(this._robot.pos - G.FriendlyGoal) < 90 * Math.PI / 180
+					&& Vector.fromAngle(this._robot.dir).absoluteAngleDiff(this._robot.pos - G.FriendlyGoal) < geom.degreeToRadian(90)
 					&& Robot.hadBall(this._robot, 0)) {
 				return {
 					task: "chipAwayFromDefenseArea",
@@ -180,8 +180,8 @@ export class Shoot extends Behavior {
 			const MAX_DISTANCE = 0.5;
 			const DISTANCE_STEP = 0.1;
 
-			const CONE_WIDTH = 90 / 180 * Math.PI;
-			const ANGLE_STEP = 15 / 180 * Math.PI;
+			const CONE_WIDTH = geom.degreeToRadian(90);
+			const ANGLE_STEP = geom.degreeToRadian(15);
 
 			const OPPONENT_DISTANCE_THRESHOLD = 1;
 
@@ -339,7 +339,7 @@ export class Shoot extends Behavior {
 			const isGame = World.RefereeState === "Game" || World.RefereeState === "GameForce";
 			if (!isGame
 					|| obscured
-					|| Vector.fromAngle(this._robot.dir).absoluteAngleDiff(this._robot.pos - G.FriendlyGoal) > 100 * Math.PI / 180
+					|| Vector.fromAngle(this._robot.dir).absoluteAngleDiff(this._robot.pos - G.FriendlyGoal) > geom.degreeToRadian(100)
 					|| !Robot.hadBall(this._robot, 0.1)) {
 				debug.set("redeciding", "TRUE (stop chipAway)");
 				return true;
@@ -347,7 +347,7 @@ export class Shoot extends Behavior {
 		} else if (Math.abs(this._robot.pos.x) < G.DefenseWidth + 0.9
 				&& this._robot.pos.y < -(G.FieldHeightHalf - G.DefenseHeight - 0.9)
 				&& !this.isChipObscured()
-				&& Vector.fromAngle(this._robot.dir).absoluteAngleDiff(this._robot.pos - G.FriendlyGoal) < 80 * Math.PI / 180
+				&& Vector.fromAngle(this._robot.dir).absoluteAngleDiff(this._robot.pos - G.FriendlyGoal) < geom.degreeToRadian(80)
 				&& Robot.controlsBall(this._robot, 0.1)) {
 
 			debug.set("redeciding", "TRUE (consider chipAway)");
@@ -467,7 +467,7 @@ export class Shoot extends Behavior {
 
 		if (this._decision.pos != undefined && Ball.receivesPass(this._robot)) {
 			let shootAngle = World.Ball.speed.absoluteAngleDiff(this._robot.pos - this._decision.pos);
-			if (shootAngle > 75 * Math.PI / 180) {
+			if (shootAngle > geom.degreeToRadian(75)) {
 				debug.set("redeciding", `TRUE (large angle)${suffixDebugString}`);
 				return true;
 			}

@@ -86,7 +86,7 @@ export class StrikerSampling {
 
 		let minRating = 0.5;
 		let volleyAngle = World.Ball.speed.absoluteAngleDiff(this._attackPosition - ballPos);
-		let volleySuccessProbability = Rating.valueToRating(volleyAngle, 65 / 180 * Math.PI, 50 / 180 * Math.PI);
+		let volleySuccessProbability = Rating.valueToRating(volleyAngle, geom.degreeToRadian(65), geom.degreeToRadian(50));
 		let rating = volleySuccessProbability * (1 - minRating) + minRating;
 
 		if (!amun.isPerformanceMode && VISUALIZE_SAMPLING) {
@@ -99,7 +99,7 @@ export class StrikerSampling {
 	goalAngle(ballPos: Position): number {
 		let minRating = 0.0;
 		let angle = (World.Geometry.OpponentGoalRight - ballPos).absoluteAngleDiff(World.Geometry.OpponentGoalLeft - ballPos);
-		let rating = Rating.valueToRating(angle, 0, 20 / 180 * Math.PI) * (1 - minRating) + minRating;
+		let rating = Rating.valueToRating(angle, 0, geom.degreeToRadian(20)) * (1 - minRating) + minRating;
 
 		if (!amun.isPerformanceMode && VISUALIZE_SAMPLING) {
 			visualizeRating("goalAngle", ballPos, rating);
@@ -158,7 +158,7 @@ export class StrikerSampling {
 		// the smaller the radius is, the more positions are viable for volley
 
 		let minRating = 0.6;
-		let radius = geom.inscribedAngle(ballPos, World.Geometry.OpponentGoal, 60 / 180 * Math.PI)[2];
+		let radius = geom.inscribedAngle(ballPos, World.Geometry.OpponentGoal, geom.degreeToRadian(60))[2];
 		let rating = Rating.valueToRating(radius, 2, 0.5);
 
 		return rating * (1 - minRating) + minRating;

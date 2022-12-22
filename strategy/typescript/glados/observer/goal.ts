@@ -324,7 +324,7 @@ function _predictShot(allShots: boolean = false, includeInvisible: boolean = tru
 		}
 		let ballLineDistance = Math.abs(usedGoalPost.orthogonalDistance(pos, pos + ballSpeed));
 		let ballLinePos = usedGoalPost.orthogonalProjection(pos, pos + ballSpeed)[0];
-		let volleyPosDistance = ballLineDistance / Math.tan(Math.PI * 75 / 180);
+		let volleyPosDistance = ballLineDistance / Math.tan(geom.degreeToRadian(75));
 		let volleyPos = ballLinePos + ballSpeed.withLength(volleyPosDistance);
 		if (!allShots) {
 			vis.addCircle("o/goal: predictShot: last volley pos", volleyPos, 0.1);

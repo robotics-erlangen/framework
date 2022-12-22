@@ -348,7 +348,7 @@ export class CatchBall {
 								|| this._robot.speed;
 
 		if (ballHit ? robotHit : lambda2 === Infinity && lambda4 === Infinity
-			|| (robotMovement.absoluteAngleDiff(World.Ball.pos - moveDest) > 87 / 180 * Math.PI)) {
+			|| (robotMovement.absoluteAngleDiff(World.Ball.pos - moveDest) > geom.degreeToRadian(87))) {
 			// the robot has to move around the predicted ball to reach the catch pos
 			return CatchMethod.Around;
 		} else if (moveDest.distanceTo(currentBall.pos) > robotTargetSpacing

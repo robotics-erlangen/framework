@@ -31,8 +31,8 @@ export const firstRobotAtBall: FirstRobotAtBall = Cache.forFrame(
 function _opponentBallDribbler(): Robot | undefined {
 	const MAX_SPEED_DIFF = 1.5;
 	const MAX_DISTANCE = 0.5;
-	const MAX_ANGLE_TO_BALL_POS = 60 / 180 * Math.PI;
-	const MAX_ANGLE_TO_BALL_SPEED = 10 / 180 * Math.PI;
+	const MAX_ANGLE_TO_BALL_POS = geom.degreeToRadian(60);
+	const MAX_ANGLE_TO_BALL_SPEED = geom.degreeToRadian(10);
 	const slowBall = isSlowBall();
 	let bestRobot: Robot | undefined = undefined;
 	let bestDist = Infinity;
@@ -226,9 +226,9 @@ function updateReceivesPass() {
 	 * hysteresis if the ball is closer as the angle between ball and dribbler
 	 * tends to get more unstable the closer the ball is to the robot
 	 */
-	const coneWidthSmall = 50 * Math.PI / 180;
-	const coneWidthMedium = 65 * Math.PI / 180;
-	const coneWidthLarge = 120 * Math.PI / 180;
+	const coneWidthSmall = geom.degreeToRadian(50);
+	const coneWidthMedium = geom.degreeToRadian(65);
+	const coneWidthLarge = geom.degreeToRadian(120);
 
 	let newBallRecipients: Map<Robot, boolean> = new Map<Robot, boolean>();
 	for (let robot of World.Robots) {
@@ -376,7 +376,7 @@ function updateIsShot() {
 			if (ObserverRobot.hadBall(r, 0.3)) {
 				const anglediff = Math.abs(geom.getAngleDiff(r.dir, World.Ball.speed.angle()));
 				// the ball has to be shot in the approximate direction the robot is facing
-				const condDirection = (anglediff < 45 / 180 * Math.PI);
+				const condDirection = (anglediff < geom.degreeToRadian(45));
 				// the ball has to be 0.1m/s faster than the robot
 				const condFasterThanRobot = (ballSpeedLength > 0.1 + r.speed.length());
 				const condAwayFromRobot = World.Ball.pos.distanceTo(r.pos) > r.radius + 0.08;

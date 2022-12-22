@@ -27,6 +27,7 @@ import { accelerationsByTeam, RobotSpecs } from "base/accelerations";
 import { throwInDebug } from "base/amun";
 import * as Constants from "base/constants";
 import { Coordinates } from "base/coordinates";
+import * as geom from "base/geom";
 import * as MathUtil from "base/mathutil";
 import { Path } from "base/path";
 import * as pb from "base/protobuf";
@@ -101,7 +102,7 @@ export class Robot implements RobotState {
 		hasBallDistance: 0.04, // 4 cm, robots where the balls distance to the dribbler is less than 2cm are considered to have the ball [m]
 		passSpeed: 3, // speed with which the ball should arrive at the pass target  [m/s]
 		shootDriveSpeed: 0.2, // how fast the shoot task drives at the ball [m/s]
-		minAngleError: 4 / 180 * Math.PI // minimal angular precision that the shoot task guarantees [in radians]
+		minAngleError: geom.degreeToRadian(4) // minimal angular precision that the shoot task guarantees [in radians]
 	};
 
 	// See RobotState
@@ -236,7 +237,7 @@ export class Robot implements RobotState {
 
 		// interpolate vector used for correction to circumvent noise
 		const MIN_COMPENSATION = 0.005;
-		const BOUND_COMPENSATION_ANGLE = 70 / 180 * Math.PI;
+		const BOUND_COMPENSATION_ANGLE = geom.degreeToRadian(70);
 		if (lclen < MIN_COMPENSATION) {
 			latencyCompensation = new Vector(0, 0);
 		} else if (lclen < 2 * MIN_COMPENSATION) {

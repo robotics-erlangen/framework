@@ -45,8 +45,8 @@ const WOBBLING_BALL_SPEED_HYST = 0.2;
  * If the ball movement direction and the shoot direction differ less than CHASE_BALL_ANGLE
  * we chase the ball instead of stopping it
  */
-const CHASE_BALL_ANGLE = 70 * Math.PI / 180;
-const CHASE_BALL_ANGLE_HYST = 5 * Math.PI / 180;
+const CHASE_BALL_ANGLE = geom.degreeToRadian(70);
+const CHASE_BALL_ANGLE_HYST = geom.degreeToRadian(5);
 const CHASE_BALL_SIDE_SPEED = 1.25;
 const CHASE_BALL_SIDE_SPEED_HYST = 0.25;
 
@@ -54,8 +54,8 @@ const CHASE_BALL_SIDE_SPEED_HYST = 0.25;
  * if inverse ball movement direction and the shoot direction differ less than VOLLEY_ANGLE
  * we can shoot the ball as soon as it touches the dribbler instead of stopping it
  */
-const VOLLEY_ANGLE = 70 * Math.PI / 180;
-const VOLLEY_ANGLE_HYST = 5 * Math.PI / 180;
+const VOLLEY_ANGLE = geom.degreeToRadian(70);
+const VOLLEY_ANGLE_HYST = geom.degreeToRadian(5);
 const VOLLEY_ENABLED = !Option.addOption("Disable Volley", false);
 
 // direct movement
@@ -71,8 +71,8 @@ const CHIP_PASS_DISTANCE_FACTOR = 0.4;
  * if the robot view direction and the shoot direction differ less than MIN_PRECISION
  * the robot is allowed to shoot the ball
  */
-const MIN_PRECISION = 3.5 * Math.PI / 180;
-const MIN_PRECISION_CHASE = 6 * Math.PI / 180;
+const MIN_PRECISION = geom.degreeToRadian(3.5);
+const MIN_PRECISION_CHASE = geom.degreeToRadian(6);
 
 // if the robot can rotate in place with the ball without loosing it
 const HAS_STRONG_DRIBBLER = false;
@@ -283,7 +283,7 @@ export class Shoot {
 
 	private _sendShootCommand(kickSpeed: number, targetPos: Position, targetDir: number) {
 		let angleDiff = Math.abs(geom.normalizeAngle(this._robot.dir - targetDir));
-		debug.set("Shoot/angleDiff (degrees)", angleDiff * 180 / Math.PI);
+		debug.set("Shoot/angleDiff (degrees)", geom.radianToDegree(angleDiff));
 
 		let threshhold = this._precision * (this._rightOrientation ? 1.2 : 0.8);
 		this._rightOrientation = angleDiff < threshhold;
@@ -341,14 +341,14 @@ export class Shoot {
 			|| ObserverCrash.isCrashed();
 
 		if (shootMorePrecise) {
-			maxSidewardsAngle = 30 * Math.PI / 180;
-			maxOrientationAngle = 2 * Math.PI / 180;
+			maxSidewardsAngle = geom.degreeToRadian(30);
+			maxOrientationAngle = geom.degreeToRadian(2);
 			minCatchBallDistance = 0.01;
 			hasBallDistance = 0.04;
 			speedupFactor = 0.4;
 		} else {
-			maxSidewardsAngle = 30 * Math.PI / 180;
-			maxOrientationAngle = 8 * Math.PI / 180;
+			maxSidewardsAngle = geom.degreeToRadian(30);
+			maxOrientationAngle = geom.degreeToRadian(8);
 			minCatchBallDistance = 0.00;
 			hasBallDistance = 0.1;
 			speedupFactor = 0.8;
@@ -372,7 +372,7 @@ export class Shoot {
 			&& Math.abs(geom.normalizeAngle(this._robot.dir - shootDir)) < maxOrientationAngle
 			&& !ballInDefense;
 
-		debug.set("Shoot/AngleError", geom.normalizeAngle(Math.abs(this._robot.dir - shootDir)) * 180 / Math.PI);
+		debug.set("Shoot/AngleError", geom.radianToDegree(geom.normalizeAngle(Math.abs(this._robot.dir - shootDir))));
 
 		let [targetDir, kickSpeed] = Volley.calcPhi(this._robot, futureBall.speed, futureBall.pos, targetPos, targetSpeed); // TODO: calcPhi with stopped ball is questionable
 		let [wait, attackTime] = this.computePassTiming(targetPos, targetTime, kickSpeed, futureBall.pos);

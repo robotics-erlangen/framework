@@ -1,6 +1,6 @@
 import * as Const from "base/constants";
 import * as debug from "base/debug";
-import { normalizeAngle } from "base/geom";
+import * as geom from "base/geom";
 import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
@@ -40,7 +40,7 @@ export class PenaltyShootoutGoal extends Task {
 		PathHelper.setDefaultObstaclesByTable(robot.path, robot, obstacleTable);
 		let r = this._dest - robot.pos;
 		let s = r.withLength(Const.maxBallSpeed) - ball.speed;
-		if (Math.abs(normalizeAngle(s.angle() - robot.dir)) < 1 * Math.PI / 180) {
+		if (Math.abs(geom.normalizeAngle(s.angle() - robot.dir)) < geom.degreeToRadian(1)) {
 			robot.shoot(Const.maxBallSpeed - robot.speed.length());
 		}
 		let pos = ball.pos + ball.speed * 0.5;

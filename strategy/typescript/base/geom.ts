@@ -339,6 +339,14 @@ export function isInTriangle(a: Position, b: Position, c: Position, p: Position)
 	return v >= 0 && u + v <= 1;
 }
 
+export function degreeToRadian(angleInDegree: number): number {
+	return angleInDegree * Math.PI / 180;
+}
+
+export function radianToDegree(angleInRadian: number): number {
+	return angleInRadian * 180 / Math.PI;
+}
+
 /**
  * Normalizes angle to value in interval [-pi, +pi].
  * @param angle - angle in radians

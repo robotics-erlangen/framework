@@ -170,10 +170,10 @@ export const updateTarget: UpdateTarget = Cache.forFrame((ownRobot, oldTarget, o
 
 	// update decision if we ignore the goalie and check for ricochets
 	let ballOwnershipDuration = Ball.friendlyBallOwnershipDuration();
-	let maxExtraAngle = 1.5 / 180 * Math.PI;
-	let dirtyCheckAngle = 2.5 / 180 * Math.PI + maxExtraAngle * Math.max(0, 1 - ballOwnershipDuration / TIME_UNTIL_MIN_ANGLE);
+	let maxExtraAngle = geom.degreeToRadian(1.5);
+	let dirtyCheckAngle = geom.degreeToRadian(2.5) + maxExtraAngle * Math.max(0, 1 - ballOwnershipDuration / TIME_UNTIL_MIN_ANGLE);
 	// log("dirtyCheckAngle: "+tostring(dirtyCheckAngle/Math.PI * 180))
-	let dirtyCheckAngleHysteresis = 0.3 * Math.PI / 180;
+	let dirtyCheckAngleHysteresis = geom.degreeToRadian(0.3);
 	let dirty = targetWidth < dirtyCheckAngle - dirtyCheckAngleHysteresis ||
 		(oldDirty && targetWidth < dirtyCheckAngle + dirtyCheckAngleHysteresis);
 

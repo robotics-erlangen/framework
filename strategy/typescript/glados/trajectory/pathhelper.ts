@@ -17,7 +17,7 @@ import * as Rating from "glados/util/rating";
 
 const G: Readonly<World.GeometryType> = World.Geometry;
 const POSITION_PADDING = 0.02;
-const SEED_ANGLE_MOD = 2 / 180 * Math.PI;
+const SEED_ANGLE_MOD = geom.degreeToRadian(2);
 const SEED_PREDICT_TIME = 0.5;
 
 // this bool is a hack for the hardware challenge

@@ -56,7 +56,7 @@ export class Armada extends Move {
 		super(robots, messaging);
 		this._circleCenter = new Vector(0, 0) + getRandomOffsetVector();
 		this._positions = [];
-		this._maxShootingAngle = 60 / 180 * Math.PI;
+		this._maxShootingAngle = geom.degreeToRadian(60);
 		this._startedSendPassPos = false;
 	}
 

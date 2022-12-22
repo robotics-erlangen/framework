@@ -64,7 +64,7 @@ export class WindshieldWiper extends Move {
 	}
 
 	calcAcceptPos(pos: Vector, robotRadius: number): Vector | undefined {
-		let [center1, center2, radius] = MovesHelper.volleyCircle(World.Ball.pos, G.OpponentGoal, 55 / 180 * Math.PI);
+		let [center1, center2, radius] = MovesHelper.volleyCircle(World.Ball.pos, G.OpponentGoal, geom.degreeToRadian(55));
 		let circle = center1.y < center2.y ? center1 : center2;
 		let posToShiftFrom = (World.Ball.pos + G.OpponentGoal) / 2;
 		let acceptPos = geom.intersectLineCircle(posToShiftFrom, pos - posToShiftFrom, circle, radius)[0];

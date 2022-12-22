@@ -18,9 +18,9 @@ import * as PathHelper from "glados/trajectory/pathhelper";
 import * as UtilDefense from "glados/util/defense";
 
 
-const STAY_BEHIND_OPP_ANGLE = 120 / 180 * Math.PI;
-const STAY_BEHIND_OPP_HYSTERESIS = 10 / 180 * Math.PI;
-const SIDEWARDS_ANGLE_MAX = 30 / 180 * Math.PI;
+const STAY_BEHIND_OPP_ANGLE = geom.degreeToRadian(120);
+const STAY_BEHIND_OPP_HYSTERESIS = geom.degreeToRadian(10);
+const SIDEWARDS_ANGLE_MAX = geom.degreeToRadian(30);
 const SIDEWARDS_ANGLE_SCALE = 1 / 3;
 
 const BLOCK_DIST_MAX = 0.08;

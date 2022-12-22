@@ -1,5 +1,6 @@
 import { Coordinates } from "base/coordinates";
 import { BallInfo, moveObjects, sendRefereeCommand } from "base/debugcommands";
+import * as geom from "base/geom";
 import * as pb from "base/protobuf";
 import { FriendlyRobot, Robot, RobotState } from "base/robot";
 import { Vector } from "base/vector";
@@ -104,7 +105,7 @@ export abstract class HardwareChallengeBase extends Move {
 		const allowedAngleError = previouslyCorrect ? 6 : 4;
 		const maxDistance = previouslyCorrect ? 0.05 : 0.02;
 
-		const LOW = (allowedAngleError / 180) * Math.PI;
+		const LOW = geom.degreeToRadian(allowedAngleError);
 		const HIGH = 2.0 * Math.PI - LOW;
 		return (robot.pos - transform.pos).length() < maxDistance && (angleDiff < LOW || angleDiff > HIGH);
 	}
@@ -286,10 +287,10 @@ export abstract class HardwareChallengeBase extends Move {
 
 	private showVis() {
 		for (let transform of this.opponentTransforms) {
-			vis.addPizza("HWChallenge/ObstaclePosition", transform.pos, this._robots[0].radius, transform.dir + 5 * 180 / Math.PI + Math.PI, transform.dir - 5 * 180 / Math.PI + Math.PI, vis.colors.yellow, false);
+			vis.addPizza("HWChallenge/ObstaclePosition", transform.pos, this._robots[0].radius, 2 * Math.PI + transform.dir - geom.degreeToRadian(20), transform.dir + geom.degreeToRadian(20), vis.colors.yellow, false);
 		}
 		for (let transform of this.friendlyTransforms) {
-			vis.addPizza("HWChallenge/FriendlyPosition", transform.pos, this._robots[0].radius, transform.dir + 5 * 180 / Math.PI + Math.PI, transform.dir - 5 * 180 / Math.PI + Math.PI, vis.colors.blue, false);
+			vis.addPizza("HWChallenge/FriendlyPosition", transform.pos, this._robots[0].radius, 2 * Math.PI + transform.dir - geom.degreeToRadian(20), transform.dir + geom.degreeToRadian(20), vis.colors.blue, false);
 		}
 		vis.addCircle("HWChallenge/BallPosition", this.ballPos.pos, World.Ball.radius, vis.colors.mediumPurple, false);
 	}

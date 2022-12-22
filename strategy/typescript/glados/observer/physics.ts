@@ -867,7 +867,7 @@ export interface RobotRotationTimeInput {
  */
 export function robotRotationTime(robot: RobotRotationTimeInput, targetAngle: number): RelTime {
 	/** Cut off low angle differences to prevent instabilities */
-	const tolerance = 5 * Math.PI / 180;
+	const tolerance = geom.degreeToRadian(5);
 
 	const maxAcceleration = robot.acceleration.aSpeedupPhiMax;
 	const maxBrake = robot.acceleration.aBrakePhiMax;

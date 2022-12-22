@@ -2,6 +2,7 @@ import { log } from "base/amun";
 import * as Constants from "base/constants";
 import * as debug from "base/debug";
 import * as Field from "base/field";
+import * as geom from "base/geom";
 import * as MathUtil from "base/mathutil";
 import { Position } from "base/vector";
 import * as vis from "base/vis";
@@ -20,7 +21,7 @@ const G = World.Geometry;
 const distToPost = 0.08; // distance of the target point on goal line to the post
 const changeThreshold = 0.5; // set 0 if opponent keeper follows look Dir every time
 const keeperPosTolerance = 0.04; // if keeper's distance to the goals center is bigger, we will choose the big free sector
-const shootErrorThreshold = 4.0 * Math.PI / 180; // maximum angle error
+const shootErrorThreshold = geom.degreeToRadian(4.0); // maximum angle error
 const keeperMoveSpeedThreshold = 0.5; // for random keeper movement detection
 
 const obstacleTable: PathHelper.PathHelperParameters = {

@@ -1,3 +1,4 @@
+import * as geom from "base/geom";
 import { FriendlyRobot } from "base/robot";
 import { Position } from "base/vector";
 import * as World from "base/world";
@@ -26,7 +27,7 @@ export function ballPassTime(shootPos: Position, passPos: Position, targetRobot:
 export function volleyPossible(passRobot: FriendlyRobot, targetPos: Position): boolean {
 	if (Ball.receivesPass(passRobot)) {
 		let volleyAngle = (targetPos - passRobot.pos).absoluteAngleDiff(World.Ball.pos - passRobot.pos);
-		if (volleyAngle < 66 * Math.PI / 180) {
+		if (volleyAngle < geom.degreeToRadian(66)) {
 			return true;
 		}
 	}

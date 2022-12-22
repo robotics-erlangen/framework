@@ -69,7 +69,7 @@ function BallCycle:_init () {
 	this._circleCenter = World.Ball.pos
 	this._circleRadius = 0.6
 	this._currentRefereeState = World.RefereeState
-	this._maxShootingAngle = 60 / 180 * Math.PI
+	this._maxShootingAngle = geom.degreeToRadians(60)
 	this._positions = {}
 	this._assignment = {}
 }

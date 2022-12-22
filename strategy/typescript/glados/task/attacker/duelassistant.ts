@@ -44,7 +44,7 @@ export class DuelAssistant extends Task {
 		const HYSTERESIS_DISTANCE = 0.3;
 		const HYSTERESIS_BASELINE = 0.5;
 		const HYSTERESIS_ORTHOGONAL_DISTANCE = 0.2 * this._robot.radius;
-		const HYSTERESIS_ANGLE = 7 * Math.PI / 180;
+		const HYSTERESIS_ANGLE = Geom.degreeToRadian(7);
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, { task: this });
 		this._update();
 		let angleOffset = Math.PI / 2;
@@ -86,7 +86,7 @@ export class DuelAssistant extends Task {
 			let duelAngleDiff = Math.abs((robotPos - opponentPos).angleDiff(Vector.fromAngle(opponentDir)));
 			duelAngleDiff += this._lastPositionMode ? HYSTERESIS_ANGLE : -HYSTERESIS_ANGLE;
 
-			if (orthogonalDistance <= 2 * robot.radius && distance <= 6 * robot.radius && duelAngleDiff <= 70 * Math.PI / 180) {
+			if (orthogonalDistance <= 2 * robot.radius && distance <= 6 * robot.radius && duelAngleDiff <= Geom.degreeToRadian(70)) {
 				agressivePositionMode = false;
 			}
 		}

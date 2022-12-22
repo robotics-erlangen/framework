@@ -1,3 +1,4 @@
+import * as geom from "base/geom";
 import { FriendlyRobot } from "base/robot";
 import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
@@ -138,7 +139,7 @@ export class MidfieldSampling {
 			let passPos = msg.ballPos;
 			let volleyAngle = passReceiveVec.absoluteAngleDiff(passPos - ballPos);
 			// Note: 90 degrees is not a good volley, but pass opportunities to strikers should still be rewarded
-			let volleySuccessProbability = Rating.valueToRating(volleyAngle, 90 / 180 * Math.PI, 50 / 180 * Math.PI);
+			let volleySuccessProbability = Rating.valueToRating(volleyAngle, geom.degreeToRadian(90), geom.degreeToRadian(50));
 			rating = rating + ratingWeight * volleySuccessProbability;
 		}
 
@@ -156,7 +157,7 @@ export class MidfieldSampling {
 
 		let minRating = 0.6;
 		let volleyAngle = World.Ball.speed.absoluteAngleDiff(this._attackPosition - ballPos);
-		let volleySuccessProbability = Rating.valueToRating(volleyAngle, 65 / 180 * Math.PI, 50 / 180 * Math.PI);
+		let volleySuccessProbability = Rating.valueToRating(volleyAngle, geom.degreeToRadian(65), geom.degreeToRadian(50));
 		let rating = volleySuccessProbability * (1 - minRating) + minRating;
 
 		if (!amun.isPerformanceMode) {

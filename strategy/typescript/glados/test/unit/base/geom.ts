@@ -286,7 +286,7 @@ export class BaseGeom extends UnitTest {
 		area = geom.calcTriangleArea(new Vector(0, 0), new Vector(0, 6), new Vector(3, 3));
 		this.assert_equal_eps(area, 9, EPS);
 		for (let i = 1; i < 90; ++i) {
-			let alpha = i * Math.PI / 180;
+			let alpha = geom.degreeToRadian(i);
 			let intersect = geom.intersectCircleCircle(new Vector(3, 4), Math.sqrt(2 * (2.5) * (2.5) * (1 - Math.cos(2 * alpha))), new Vector(1.5, 2), 2.5)[0]!;
 			area = geom.calcTriangleArea(new Vector(0, 0), new Vector(3, 4), intersect);
 			// sin = opposite / hypotenuse
@@ -322,7 +322,7 @@ export class BaseGeom extends UnitTest {
 		// circle
 		let circle = [];
 		for (let i = 0; i < 360; ++i) {
-			let alpha = i * Math.PI / 180;
+			let alpha = geom.degreeToRadian(i);
 			circle.push(Vector.fromAngle(alpha));
 		}
 		this.assert_vector_equal_eps(geom.center(circle), new Vector(0, 0), EPS);

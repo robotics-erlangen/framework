@@ -101,7 +101,7 @@ export class PenaltyShootout extends Behavior {
 		}
 	}
 
-	private angleUncertanty: number = 3 * Math.PI / 180;
+	private angleUncertanty: number = geom.degreeToRadian(3);
 	private turnspeed: number = 1;
 
 	private _checkFreeGoal() {

@@ -97,7 +97,7 @@ export class MrlTestCorner extends Move {
 	_updateTasks(): MoveParameters {
 
 		// draw circles where robots cannot shoot a volley
-		let [center1, center2, radius] = MovesHelper.volleyCircle(World.Ball.pos, G.OpponentGoal, 55 / 180 * Math.PI);
+		let [center1, center2, radius] = MovesHelper.volleyCircle(World.Ball.pos, G.OpponentGoal, geom.degreeToRadian(55));
 		let circle = center1.y < center2.y ? center1 : center2;
 
 		if (this._activeRobotShootPos.distanceTo(circle) <= radius) {
