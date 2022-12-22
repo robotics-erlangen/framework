@@ -463,8 +463,7 @@ module.exports = {
         "sonarjs/no-collection-size-mischeck": "error",
         "sonarjs/no-duplicated-branches": "error",
         "sonarjs/no-gratuitous-expressions": "error",
-        // 1 problem
-        // "sonarjs/no-identical-functions": "error",
+        "sonarjs/no-identical-functions": "error",
         "sonarjs/no-redundant-boolean": "error",
         "sonarjs/no-redundant-jump": "error",
         "sonarjs/no-same-line-conditional": "error",
