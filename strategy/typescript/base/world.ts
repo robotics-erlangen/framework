@@ -450,13 +450,9 @@ export function _updateWorld(state: pb.world.State) {
 	Robots = FriendlyRobots.slice();
 	Robots = Robots.concat(OpponentRobots);
 
-	// convert mixed team info
-	if (state.mixed_team_info && state.mixed_team_info.plans) {
-		// MixedTeam = mixedTeam.decodeData(state.mixed_team_info.plans);
-		MixedTeam = undefined;
-	} else {
-		MixedTeam = undefined;
-	}
+	// mixed team has never been fully ported or at least used since we moved to TypeScript,
+	// so it is always set to undefined
+	MixedTeam = undefined;
 
 	// update aoi data
 	AoI = state.tracking_aoi;
