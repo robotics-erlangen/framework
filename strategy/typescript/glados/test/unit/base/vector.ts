@@ -9,7 +9,6 @@ export class BaseVector extends UnitTest {
 	constructor() {
 		super();
 		this.addTest("constructor", this.testConstructor);
-		this.addTest("attributes", this.testAttributes);
 		this.addTest("operators", this.testOperators);
 		this.addTest("withX", this.testWithX);
 		this.addTest("withY", this.testWithY);
@@ -31,12 +30,6 @@ export class BaseVector extends UnitTest {
 	}
 
 	private testConstructor() {
-		let vec = new Vector(1, 2);
-		this.assert_equal(vec.x, 1);
-		this.assert_equal(vec.y, 2);
-	}
-
-	private testAttributes() {
 		let vec = new Vector(1, 2);
 		this.assert_equal(vec.x, 1);
 		this.assert_equal(vec.y, 2);
