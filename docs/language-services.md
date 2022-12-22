@@ -1,7 +1,7 @@
 # Tests and linting
 Both Lua and Typescript strategy scripts are linted and tested to perform some
 basic validity and style checks. For Lua, linting is done by *luacheck*, for
-Typescript by *tslint*. *python2* is required for some additional checks.
+Typescript by *eslint*. *python2* is required for some additional checks.
 
 To run the unit tests and linter, execute the following in your build folder
 ```
@@ -9,7 +9,7 @@ make check
 ```
 
 ## Typescript
-Typescript linting is done with a project local installation of *tslint*. IntelliSense is provided by *tsserver*.
+Typescript linting is done with a project local installation of *eslint*. IntelliSense is provided by *tsserver*.
 
 To make use of those, you first need to install *npm* which is usually distributed
 alongside [NodeJS](https://nodejs.org). On most modern Linux Systems, it should
@@ -27,16 +27,35 @@ Windows:
 ### Editor integration
 
 #### Visual Studio Code
-Visual Studio Code has a Typescript plugin installed by default. You'll need
-You will also need [Microsoft's `tslint` plugin](https://marketplace.visualstudio.com/items?itemName=ms-vscode.vscode-typescript-tslint-plugin).
+Visual Studio Code has a Typescript plugin installed by default.
 If you make sure to open the `strategy/typescript` folder (not the base
 `software` folder) in VS Code, it should automatically use the project-local
 `node_modules` folder. You can verify this, check [the Microsoft docs](https://code.visualstudio.com/docs/typescript/typescript-compiling#_using-the-workspace-version-of-typescript)
+If not you can change the TypeScript version by clicking on the curly braces
+next to the "TypeScript" Button on the bottom left. Click on it then click
+select version and select the workspace version.
 
 #### Vim8/Neovim
 There are multiple plugins providing language server integration for Vim but I use and recommend [`coc.nvim`](https://github.com/neoclide/coc.nvim). For the setup:
 1. Install [`coc.nvim`](https://github.com/neoclide/coc.nvim)
-2. Run `:CocInstall coc-tsserver coc-tslint-plugin coc-json`
+2. Run `:CocInstall coc-tsserver coc-json`
+3. (optional) If coc-tsserver detects a global installation of TypeScript it will use that first, but that can be avoided by setting "tsserver.useLocalTsdk": true in the coc settings
+(which can be easily accessed with the :CocConfig command)
+
+#### Helix
+1. Install the typescript-language-server in a way that it's in your PATH.
+  Recommended:
+    npm install -g typescript typescript-language-server
+    The global TypeScript installation is required here, but it's automatically in the PATH.
+  Alternatively install the language server locally:
+    npm install typescript-language-server
+    and add the local strategy/typescript/node_modules/.bin/ to your PATH.
+2. Add a config file under strategy/typescript/.helix/languages.toml with the following contents:
+    [[language]]
+    name = "typescript"
+    config = { tsserver = { "path" = "node_modules/.bin/tsserver" } }
+  but use the absolute path of the node_modules, e.g.
+  "/home/user/robotics/software/strategy/typescript/node_modules/.bin/tsserver"
 
 ## Luacheck
 Install according to the following platform dependent instructions.
@@ -82,4 +101,3 @@ Install the *linter-luacheck* package.
 Install _[Package Control](https://packagecontrol.io/installation)_. Then use it to install
 - *SublimeLinter*
 - *SublimeLinter-luacheck*
-- *SublimeLinter-tslint*
