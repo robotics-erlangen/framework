@@ -10,6 +10,7 @@ export class Default extends Behavior {
 	}
 
 	_updateTask(): TaskAssignment<typeof Keeper> { // | TaskAssignment<typeof RandomKeeper> {
+		// eslint-disable-next-line sonarjs/no-all-duplicated-branches
 		if (World.GameStage === "PenaltyShootout" && World.RefereeState === "PenaltyDefensive") {
 			return [Keeper];
 			// return [RandomKeeper];

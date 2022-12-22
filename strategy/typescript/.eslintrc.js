@@ -446,10 +446,8 @@ module.exports = {
         ],
         "use-isnan": "error",
 
-        // TODO enable rest of sonarjs lints
         "sonarjs/prefer-while": "error",
-        // 3 problems
-        // "sonarjs/no-all-duplicated-branches": "error",
+        "sonarjs/no-all-duplicated-branches": "error",
         "sonarjs/no-element-overwrite": "error",
         "sonarjs/no-empty-collection": "error",
         "sonarjs/no-extra-arguments": "error",
@@ -471,6 +469,5 @@ module.exports = {
 
         "erforce/no-unnecessary-function-wrapper": "error",
         "erforce/check-typecast-spacing": "error",
-        // TODO maybe do UTF-8 encoding check?
     }
 };
