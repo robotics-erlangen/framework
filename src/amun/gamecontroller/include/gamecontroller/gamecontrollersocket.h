@@ -29,10 +29,10 @@
 
 class QObject;
 
-class ExternalGameController
+class GameControllerSocket
 {
 public:
-    ExternalGameController(quint16 port, QObject *parent = nullptr);
+    GameControllerSocket(quint16 port, QObject *parent = nullptr);
     bool connectGameController();
     void closeConnection();
     bool receiveGameControllerMessage(google::protobuf::Message *type);

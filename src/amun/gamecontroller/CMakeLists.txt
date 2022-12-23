@@ -19,15 +19,15 @@
 # ***************************************************************************
 
 add_library(gamecontroller STATIC
-    include/gamecontroller/externalgamecontroller.h
-    include/gamecontroller/gamecontrollerconnection.h
-    include/gamecontroller/sslgamecontroller.h
+    include/gamecontroller/gamecontrollersocket.h
+    include/gamecontroller/internalgamecontroller.h
+    include/gamecontroller/strategygamecontrollermediator.h
 
-    externalgamecontroller.cpp
-    gamecontrollerconnection.cpp
-    sslgamecontroller.cpp
+    gamecontrollersocket.cpp
+    internalgamecontroller.cpp
     sslvisiontracked.cpp
     sslvisiontracked.h
+    strategygamecontrollermediator.cpp
 )
 target_link_libraries(gamecontroller
     PUBLIC shared::core

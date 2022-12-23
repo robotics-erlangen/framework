@@ -23,7 +23,7 @@
 
 #include "strategy/script/compilerregistry.h"
 #include "strategy/script/strategytype.h"
-#include "gamecontroller/gamecontrollerconnection.h"
+#include "gamecontroller/strategygamecontrollermediator.h"
 #include "protobuf/command.h"
 #include "protobuf/status.h"
 #include <QObject>
@@ -113,7 +113,7 @@ private:
     Receiver *m_mixedTeam;
     Strategy *m_strategy[3];
     DebugHelper *m_debugHelper[3];
-    std::shared_ptr<GameControllerConnection> m_gameControllerConnection[3];
+    std::shared_ptr<StrategyGameControllerMediator> m_gameControllerConnection[3];
     Strategy *m_replayStrategy[2];
     OptionsManager *m_optionsManager = nullptr;
     BlockingStrategyReplay *m_strategyBlocker[2];

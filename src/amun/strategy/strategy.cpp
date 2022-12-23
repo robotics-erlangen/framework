@@ -90,7 +90,7 @@ void Strategy::initV8() { }
  * \param type can be blue or yellow team or autoref
  */
 Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, CompilerRegistry* registry,
-                   std::shared_ptr<GameControllerConnection> &gameControllerConnection, bool internalAutoref,
+                   std::shared_ptr<StrategyGameControllerMediator> &gameControllerConnection, bool internalAutoref,
                    bool isLogplayer, ProtobufFileSaver *pathInputSaver) :
     m_p(new StrategyPrivate),
     m_timer(timer),

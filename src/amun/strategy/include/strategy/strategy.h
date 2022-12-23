@@ -22,7 +22,7 @@
 #define STRATEGY_H
 
 
-#include "gamecontroller/gamecontrollerconnection.h"
+#include "gamecontroller/strategygamecontrollermediator.h"
 #include "protobuf/command.h"
 #include "protobuf/robotcommand.h"
 #include "protobuf/status.h"
@@ -53,7 +53,7 @@ class Strategy : public QObject
 
 public:
     Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, CompilerRegistry* registry,
-             std::shared_ptr<GameControllerConnection> &gameControllerConnection, bool internalAutoref = false,
+             std::shared_ptr<StrategyGameControllerMediator> &gameControllerConnection, bool internalAutoref = false,
              bool isLogplayer = false, ProtobufFileSaver *pathInputSaver = nullptr);
     ~Strategy() override;
     Strategy(const Strategy&) = delete;
@@ -126,7 +126,7 @@ private:
 
     CompilerRegistry* m_compilerRegistry;
 
-    std::shared_ptr<GameControllerConnection> m_gameControllerConnection;
+    std::shared_ptr<StrategyGameControllerMediator> m_gameControllerConnection;
 
 	// TODO does this need a default value?
 	amun::StatusStrategy::STATE m_currentState;

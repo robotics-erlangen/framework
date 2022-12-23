@@ -21,8 +21,8 @@
 #ifndef GAMECONTROLLERCONNECTION_H
 #define GAMECONTROLLERCONNECTION_H
 
-#include "externalgamecontroller.h"
-#include "sslgamecontroller.h"
+#include "gamecontrollersocket.h"
+#include "internalgamecontroller.h"
 #include "protobuf/ssl_game_controller_common.pb.h"
 #include "protobuf/ssl_game_controller_auto_ref.pb.h"
 #include <google/protobuf/message.h>
@@ -30,13 +30,13 @@
 #include <QList>
 #include <memory>
 
-class GameControllerConnection : public QObject
+class StrategyGameControllerMediator : public QObject
 {
     Q_OBJECT
 
 public:
-    GameControllerConnection(bool isAutoref);
-    GameControllerConnection(SSLGameController *internalGameController, bool isAutoref);
+    StrategyGameControllerMediator(bool isAutoref);
+    StrategyGameControllerMediator(InternalGameController *internalGameController, bool isAutoref);
     bool connectGameController();
     void closeConnection();
     bool receiveGameControllerMessage(google::protobuf::Message *type);
@@ -57,7 +57,7 @@ private:
     bool m_isAutoref;
 
     QList<gameController::ControllerReply> m_internalGameControllerReplies;
-    ExternalGameController m_externalGameControllerConnection;
+    GameControllerSocket m_externalGameControllerConnection;
 };
 
 #endif // GAMECONTROLLERCONNECTION_H

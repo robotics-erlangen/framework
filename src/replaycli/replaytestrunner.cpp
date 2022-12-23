@@ -18,7 +18,7 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#include "gamecontroller/gamecontrollerconnection.h"
+#include "gamecontroller/strategygamecontrollermediator.h"
 #include "replaytestrunner.h"
 #include "testtools/testtools.h"
 #include <QCoreApplication>
@@ -48,7 +48,7 @@ Command createLoadCommand(bool asBlue, QString initScript, QString entryPoint, b
 
 ReplayTestRunner::ReplayTestRunner(QString testFile, StrategyType type, CompilerRegistry* compilerRegistry) :
     m_compilerRegistry(compilerRegistry),
-    m_gameControllerConnection(new GameControllerConnection(false)),
+    m_gameControllerConnection(new StrategyGameControllerMediator(false)),
     m_testStrategy(&m_timer, type, nullptr, m_compilerRegistry, m_gameControllerConnection, false, true),
     m_exitCode(255),
     m_type(type),

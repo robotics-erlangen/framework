@@ -18,7 +18,8 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#include "sslgamecontroller.h"
+#include "internalgamecontroller.h"
+
 #include "sslvisiontracked.h"
 #include "protobuf/geometry.h"
 #include "core/timer.h"
@@ -33,7 +34,7 @@
 
 static const QString SENDER_NAME_FOR_REFEREE = "Internal/SSL Game Controller";
 
-SSLGameController::SSLGameController(const Timer *timer, QObject *parent) :
+InternalGameController::InternalGameController(const Timer *timer, QObject *parent) :
     QObject(parent),
     m_timer(timer),
     m_gcCIProtocolConnection(GC_CI_PORT_START, this)
@@ -41,12 +42,12 @@ SSLGameController::SSLGameController(const Timer *timer, QObject *parent) :
     m_gcCIProtocolConnection.setRefereeHost("127.0.0.1");
 }
 
-SSLGameController::~SSLGameController()
+InternalGameController::~InternalGameController()
 {
     stop();
 }
 
-void SSLGameController::stop()
+void InternalGameController::stop()
 {
     if (m_gcProcess) {
         m_deliberatlyStopped = true;
@@ -56,7 +57,7 @@ void SSLGameController::stop()
     }
 }
 
-void SSLGameController::handleGCStdout()
+void InternalGameController::handleGCStdout()
 {
     const bool LOG_MESSAGES = false;
 
@@ -76,7 +77,7 @@ void SSLGameController::handleGCStdout()
     }
 }
 
-void SSLGameController::handleStatus(const Status &status)
+void InternalGameController::handleStatus(const Status &status)
 {
     if (!m_trackedVisionGenerator || !m_isEnabled) {
         return;
@@ -154,7 +155,7 @@ void SSLGameController::handleStatus(const Status &status)
     }
 }
 
-bool SSLGameController::isPositionFreeToEnterRobot(Vector pos, const world::State &worldState)
+bool InternalGameController::isPositionFreeToEnterRobot(Vector pos, const world::State &worldState)
 {
     const Vector ballPos(worldState.ball().p_x(), worldState.ball().p_y());
     if (pos.distance(ballPos) < 3) {
@@ -175,7 +176,7 @@ bool SSLGameController::isPositionFreeToEnterRobot(Vector pos, const world::Stat
     return true;
 }
 
-void SSLGameController::handleNumberOfRobots(const world::State &worldState)
+void InternalGameController::handleNumberOfRobots(const world::State &worldState)
 {
     const Vector substitutionPos1(m_fieldWidth / 2, 0);
     const Vector substitutionPos2(-m_fieldWidth / 2, 0);
@@ -273,7 +274,7 @@ void SSLGameController::handleNumberOfRobots(const world::State &worldState)
     }
 }
 
-bool SSLGameController::sendCiInput(const gameController::CiInput &input)
+bool InternalGameController::sendCiInput(const gameController::CiInput &input)
 {
     if (m_queuedInputs.size() > 0 && m_gcCIProtocolConnection.connectGameController()) {
         QVector<gameController::CiInput> inputs = m_queuedInputs;
@@ -322,7 +323,7 @@ bool SSLGameController::sendCiInput(const gameController::CiInput &input)
     return false;
 }
 
-void SSLGameController::handleBallTeleportation(const SSL_Referee &referee)
+void InternalGameController::handleBallTeleportation(const SSL_Referee &referee)
 {
     // checks for halt after both teams failed placement, teleports the ball correctly and continues the game
     bool hasFailedBlue = false, hasFailedYellow = false;
@@ -368,7 +369,7 @@ void SSLGameController::handleBallTeleportation(const SSL_Referee &referee)
     }
 }
 
-void SSLGameController::handleGameEvent(std::shared_ptr<gameController::AutoRefToController> message)
+void InternalGameController::handleGameEvent(std::shared_ptr<gameController::AutoRefToController> message)
 {
     if (!message->has_game_event()) {
         return;
@@ -389,7 +390,7 @@ static gameController::Command makeCommand(gameController::Command::Type type, b
     return command;
 }
 
-gameController::Command SSLGameController::mapCommand(SSL_Referee::Command command)
+gameController::Command InternalGameController::mapCommand(SSL_Referee::Command command)
 {
     const std::map<SSL_Referee::Command, gameController::Command> commandMap = {
         {SSL_Referee::HALT, makeCommand(gameController::Command::HALT, false, true)},
@@ -417,7 +418,7 @@ gameController::Command SSLGameController::mapCommand(SSL_Referee::Command comma
     return it->second;
 }
 
-void SSLGameController::handleRefereeUpdate(const SSL_Referee &newState, bool delayedSending)
+void InternalGameController::handleRefereeUpdate(const SSL_Referee &newState, bool delayedSending)
 {
     gameController::CiInput ciInput;
     ciInput.set_timestamp(m_timer->currentTime());
@@ -488,7 +489,7 @@ void SSLGameController::handleRefereeUpdate(const SSL_Referee &newState, bool de
     }
 }
 
-void SSLGameController::handleGuiCommand(const QByteArray &data)
+void InternalGameController::handleGuiCommand(const QByteArray &data)
 {
     SSL_Referee newState;
     newState.ParseFromArray(data.data(), data.size());
@@ -503,7 +504,7 @@ void SSLGameController::handleGuiCommand(const QByteArray &data)
     handleRefereeUpdate(newState, false);
 }
 
-void SSLGameController::handleCommand(const amun::CommandReferee &refereeCommand)
+void InternalGameController::handleCommand(const amun::CommandReferee &refereeCommand)
 {
     if (refereeCommand.has_command()) {
         const std::string &c = refereeCommand.command();
@@ -514,7 +515,7 @@ void SSLGameController::handleCommand(const amun::CommandReferee &refereeCommand
     }
 }
 
-void SSLGameController::gcFinished(int, QProcess::ExitStatus)
+void InternalGameController::gcFinished(int, QProcess::ExitStatus)
 {
     if (m_deliberatlyStopped) {
         updateCurrentStatus(amun::StatusGameController::STOPPED);
@@ -523,14 +524,14 @@ void SSLGameController::gcFinished(int, QProcess::ExitStatus)
     }
 }
 
-void SSLGameController::setFlip(bool flip)
+void InternalGameController::setFlip(bool flip)
 {
     if (m_trackedVisionGenerator) {
         m_trackedVisionGenerator->setFlip(flip);
     }
 }
 
-void SSLGameController::setEnabled(bool enabled)
+void InternalGameController::setEnabled(bool enabled)
 {
     if (enabled == m_isEnabled) {
         return;
@@ -544,7 +545,7 @@ void SSLGameController::setEnabled(bool enabled)
     }
 }
 
-int SSLGameController::findFreePort(int startingFrom)
+int InternalGameController::findFreePort(int startingFrom)
 {
     for (int i = 0;i<10;i++) {
         int port = startingFrom + i;
@@ -559,7 +560,7 @@ int SSLGameController::findFreePort(int startingFrom)
     return startingFrom;
 }
 
-void SSLGameController::updateCurrentStatus(amun::StatusGameController::GameControllerState state)
+void InternalGameController::updateCurrentStatus(amun::StatusGameController::GameControllerState state)
 {
     m_currentState = state;
 
@@ -568,7 +569,7 @@ void SSLGameController::updateCurrentStatus(amun::StatusGameController::GameCont
     emit sendStatus(status);
 }
 
-void SSLGameController::start()
+void InternalGameController::start()
 {
     m_nonResponseCounter = 0;
     m_deliberatlyStopped = false;
@@ -619,8 +620,8 @@ void SSLGameController::start()
     // set the GC working directory so that all produced files (config/state store) end up there and not scattered
     m_gcProcess->setWorkingDirectory(QString("%1/gamecontroller").arg(ERFORCE_CONFDIR));
 
-    connect(m_gcProcess, &QProcess::readyReadStandardOutput, this, &SSLGameController::handleGCStdout);
-    connect(m_gcProcess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this, &SSLGameController::gcFinished);
+    connect(m_gcProcess, &QProcess::readyReadStandardOutput, this, &InternalGameController::handleGCStdout);
+    connect(m_gcProcess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this, &InternalGameController::gcFinished);
 
     m_gcProcess->start(gameControllerExecutable, arguments, QIODevice::ReadOnly);
 }

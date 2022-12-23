@@ -62,7 +62,7 @@ void Connector::compileStrategy(QCoreApplication &app, QString initScript)
     setIsInCompileMode(true);
     Timer timer;
     timer.setTime(0, 1.0);
-    std::shared_ptr<GameControllerConnection> connection(new GameControllerConnection(false));
+    auto connection = std::make_shared<StrategyGameControllerMediator>(false);
     CompilerRegistry compilerRegistry;
     Strategy strategy(&timer, StrategyType::YELLOW, nullptr, &compilerRegistry, connection);
 

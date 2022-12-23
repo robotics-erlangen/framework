@@ -25,7 +25,7 @@
 #include "referee.h"
 #include "core/timer.h"
 #include "core/configuration.h"
-#include "gamecontroller/sslgamecontroller.h"
+#include "gamecontroller/internalgamecontroller.h"
 #include "tracking/tracker.h"
 #include "config/config.h"
 #include <cmath>
@@ -126,7 +126,7 @@ Processor::Processor(const Timer *timer, bool isReplay) :
     m_mixedTeamInfoSet(false),
     m_refereeInternalActive(isReplay),
     m_lastFlipped(false),
-    m_gameController(new SSLGameController(timer)),
+    m_gameController(new InternalGameController(timer)),
     m_transceiverEnabled(isReplay),
     m_saveBallModel(!isReplay)
 {
@@ -137,13 +137,13 @@ Processor::Processor(const Timer *timer, bool isReplay) :
     m_gameControllerThread = new QThread(this);
     m_gameControllerThread->setObjectName("game controller thread");
     m_gameController->moveToThread(m_gameControllerThread);
-    connect(m_gameControllerThread, &QThread::finished, m_gameController, &SSLGameController::deleteLater);
+    connect(m_gameControllerThread, &QThread::finished, m_gameController, &InternalGameController::deleteLater);
     m_gameControllerThread->start();
 
-    connect(m_gameController, &SSLGameController::sendStatus, this, &Processor::sendStatus);
-    connect(m_gameController, &SSLGameController::gotPacketForReferee, m_refereeInternal, &Referee::handlePacket);
-    connect(this, &Processor::sendStatus, m_gameController, &SSLGameController::handleStatus);
-    connect(this, &Processor::setFlipped, m_gameController, &SSLGameController::setFlip);
+    connect(m_gameController, &InternalGameController::sendStatus, this, &Processor::sendStatus);
+    connect(m_gameController, &InternalGameController::gotPacketForReferee, m_refereeInternal, &Referee::handlePacket);
+    connect(this, &Processor::sendStatus, m_gameController, &InternalGameController::handleStatus);
+    connect(this, &Processor::setFlipped, m_gameController, &InternalGameController::setFlip);
 
     /* Connect only the m_referee (not m_refereeInternal) as host changes are
      * only relevant for external game controllers.

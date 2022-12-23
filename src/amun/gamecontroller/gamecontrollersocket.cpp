@@ -18,22 +18,22 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#include "externalgamecontroller.h"
+#include "gamecontrollersocket.h"
 #include <google/protobuf/util/delimited_message_util.h>
 
-ExternalGameController::ExternalGameController(quint16 port, QObject *parent) :
+GameControllerSocket::GameControllerSocket(quint16 port, QObject *parent) :
     m_gameControllerSocket(parent),
     m_port(port)
 {
     m_gameControllerSocket.setSocketOption(QAbstractSocket::LowDelayOption, 1);
 }
 
-void ExternalGameController::closeConnection()
+void GameControllerSocket::closeConnection()
 {
     m_gameControllerSocket.close();
 }
 
-bool ExternalGameController::connectGameController()
+bool GameControllerSocket::connectGameController()
 {
     if (m_gameControllerSocket.state() == QAbstractSocket::ConnectedState) {
         return true;
@@ -44,7 +44,7 @@ bool ExternalGameController::connectGameController()
     return false;
 }
 
-bool ExternalGameController::receiveGameControllerMessage(google::protobuf::Message *type)
+bool GameControllerSocket::receiveGameControllerMessage(google::protobuf::Message *type)
 {
     if (connectGameController()) {
         QByteArray data = m_gameControllerSocket.readAll();
@@ -76,7 +76,7 @@ bool ExternalGameController::receiveGameControllerMessage(google::protobuf::Mess
     return false;
 }
 
-bool ExternalGameController::sendGameControllerMessage(const google::protobuf::Message *message)
+bool GameControllerSocket::sendGameControllerMessage(const google::protobuf::Message *message)
 {
     if (connectGameController()) {
         google::protobuf::uint32 messageLength = message->ByteSize();
@@ -97,7 +97,7 @@ bool ExternalGameController::sendGameControllerMessage(const google::protobuf::M
     return false;
 }
 
-void ExternalGameController::setRefereeHost(QString host)
+void GameControllerSocket::setRefereeHost(QString host)
 {
     QHostAddress hostAddress(host);
     if (hostAddress != m_gameControllerHost) {

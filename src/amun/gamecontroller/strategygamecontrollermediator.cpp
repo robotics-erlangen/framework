@@ -20,32 +20,32 @@
 
 #include <cstdint>
 
-#include "gamecontrollerconnection.h"
+#include "strategygamecontrollermediator.h"
 #include "core/sslprotocols.h"
 
 static constexpr std::uint16_t getExternalPort(bool isAutoref) {
     return isAutoref ? SSL_AUTOREF_TO_GC_PORT : SSL_TEAM_TO_GC_PORT;
 }
 
-GameControllerConnection::GameControllerConnection(SSLGameController *internalGameController, bool isAutoref) :
+StrategyGameControllerMediator::StrategyGameControllerMediator(InternalGameController *internalGameController, bool isAutoref) :
     m_isAutoref(isAutoref),
     m_externalGameControllerConnection(getExternalPort(m_isAutoref), this)
 {
-    connect(this, &GameControllerConnection::gotMessageForInternalGameController, internalGameController, &SSLGameController::handleGameEvent);
-    connect(internalGameController, &SSLGameController::gotControllerReply, this, &GameControllerConnection::handleInternalGameControllerReply);
+    connect(this, &StrategyGameControllerMediator::gotMessageForInternalGameController, internalGameController, &InternalGameController::handleGameEvent);
+    connect(internalGameController, &InternalGameController::gotControllerReply, this, &StrategyGameControllerMediator::handleInternalGameControllerReply);
 }
 
-GameControllerConnection::GameControllerConnection(bool isAutoref) :
+StrategyGameControllerMediator::StrategyGameControllerMediator(bool isAutoref) :
     m_isAutoref(isAutoref),
     m_externalGameControllerConnection(getExternalPort(m_isAutoref), this)
 { }
 
-void GameControllerConnection::handleInternalGameControllerReply(const gameController::ControllerReply &reply)
+void StrategyGameControllerMediator::handleInternalGameControllerReply(const gameController::ControllerReply &reply)
 {
     m_internalGameControllerReplies.push_back(reply);
 }
 
-void GameControllerConnection::switchInternalGameController(bool isInternal)
+void StrategyGameControllerMediator::switchInternalGameController(bool isInternal)
 {
     if (isInternal && !m_useInternalGameController) {
         closeConnection();
@@ -53,12 +53,12 @@ void GameControllerConnection::switchInternalGameController(bool isInternal)
     m_useInternalGameController = isInternal;
 }
 
-void GameControllerConnection::handleRefereeHost(QString host)
+void StrategyGameControllerMediator::handleRefereeHost(QString host)
 {
     m_externalGameControllerConnection.setRefereeHost(host);
 }
 
-bool GameControllerConnection::connectGameController()
+bool StrategyGameControllerMediator::connectGameController()
 {
     if (m_isAutoref && m_useInternalGameController) {
         return true;
@@ -67,13 +67,13 @@ bool GameControllerConnection::connectGameController()
     }
 }
 
-void GameControllerConnection::closeConnection()
+void StrategyGameControllerMediator::closeConnection()
 {
     m_internalGameControllerReplies.clear();
     m_externalGameControllerConnection.closeConnection();
 }
 
-bool GameControllerConnection::receiveGameControllerMessage(google::protobuf::Message *type)
+bool StrategyGameControllerMediator::receiveGameControllerMessage(google::protobuf::Message *type)
 {
     if (m_isAutoref && m_useInternalGameController) {
         if (m_internalGameControllerReplies.size() > 0) {
@@ -87,7 +87,7 @@ bool GameControllerConnection::receiveGameControllerMessage(google::protobuf::Me
     }
 }
 
-bool GameControllerConnection::sendGameControllerMessage(const google::protobuf::Message *message, const QString &messageType)
+bool StrategyGameControllerMediator::sendGameControllerMessage(const google::protobuf::Message *message, const QString &messageType)
 {
     if (m_isAutoref && m_useInternalGameController) {
         // registration messages are not handled by the game controller

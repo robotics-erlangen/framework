@@ -50,7 +50,7 @@ private:
 private:
     Timer m_timer;
     CompilerRegistry* m_compilerRegistry;
-    std::shared_ptr<GameControllerConnection> m_gameControllerConnection;
+    std::shared_ptr<StrategyGameControllerMediator> m_gameControllerConnection;
     Strategy m_testStrategy;
     int m_exitCode;
     StrategyType m_type;

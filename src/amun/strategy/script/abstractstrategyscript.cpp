@@ -40,7 +40,7 @@ AbstractStrategyScript::~AbstractStrategyScript()
     m_gameControllerConnection->closeConnection();
 }
 
-void AbstractStrategyScript::setGameControllerConnection(std::shared_ptr<GameControllerConnection> &connection)
+void AbstractStrategyScript::setGameControllerConnection(std::shared_ptr<StrategyGameControllerMediator> &connection)
 {
     m_gameControllerConnection = connection;
 }

@@ -197,12 +197,12 @@ void Amun::start()
         connect(m_debugHelper[i], SIGNAL(sendStatus(Status)), SLOT(handleStatus(Status)));
         connect(m_debugHelperThread, SIGNAL(finished()), m_debugHelper[i], SLOT(deleteLater()));
 
-        m_gameControllerConnection[i].reset(new GameControllerConnection(m_processor->getInternalGameController(), i == 2));
+        m_gameControllerConnection[i].reset(new StrategyGameControllerMediator(m_processor->getInternalGameController(), i == 2));
         m_gameControllerConnection[i]->moveToThread(m_strategyThread[i]);
-        connect(m_processor, &Processor::refereeHostChanged, m_gameControllerConnection[i].get(), &GameControllerConnection::handleRefereeHost);
-        connect(this, &Amun::useInternalGameController, m_gameControllerConnection[i].get(), &GameControllerConnection::switchInternalGameController);
-        connect(this, &Amun::useInternalGameController, m_processor->getInternalGameController(), &SSLGameController::setEnabled);
-        connect(this, &Amun::gotCommandForGC, m_processor->getInternalGameController(), &SSLGameController::handleCommand);
+        connect(m_processor, &Processor::refereeHostChanged, m_gameControllerConnection[i].get(), &StrategyGameControllerMediator::handleRefereeHost);
+        connect(this, &Amun::useInternalGameController, m_gameControllerConnection[i].get(), &StrategyGameControllerMediator::switchInternalGameController);
+        connect(this, &Amun::useInternalGameController, m_processor->getInternalGameController(), &InternalGameController::setEnabled);
+        connect(this, &Amun::gotCommandForGC, m_processor->getInternalGameController(), &InternalGameController::handleCommand);
 
         Q_ASSERT(m_strategy[i] == nullptr);
         ProtobufFileSaver *pathInput = m_pathInputSaver[std::min(1, i)].get();
@@ -285,7 +285,7 @@ void Amun::start()
     createSimulator(defaultSimulatorSetup);
     connect(m_processor, SIGNAL(setFlipped(bool)), m_simulator, SLOT(setFlipped(bool)));
 
-    connect(m_processor->getInternalGameController(), &SSLGameController::sendCommand, this, &Amun::handleCommand);
+    connect(m_processor->getInternalGameController(), &InternalGameController::sendCommand, this, &Amun::handleCommand);
 
     if (!m_simulatorOnly) {
         Q_ASSERT(m_transceiver == nullptr);

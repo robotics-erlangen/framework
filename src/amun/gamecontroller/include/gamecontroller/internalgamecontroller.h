@@ -24,7 +24,7 @@
 #include <QProcess>
 #include <QVector>
 #include <memory>
-#include "externalgamecontroller.h"
+#include "gamecontrollersocket.h"
 #include "protobuf/status.h"
 #include "protobuf/command.h"
 #include "protobuf/ssl_gc_ci.pb.h"
@@ -34,12 +34,12 @@
 class Timer;
 class SSLVisionTracked;
 
-class SSLGameController : public QObject
+class InternalGameController : public QObject
 {
     Q_OBJECT
 public:
-    SSLGameController(const Timer *timer, QObject *parent = nullptr);
-    ~SSLGameController();
+    InternalGameController(const Timer *timer, QObject *parent = nullptr);
+    ~InternalGameController();
 
     void handleGameEvent(std::shared_ptr<gameController::AutoRefToController> message);
 
@@ -76,7 +76,7 @@ private:
     const Timer *m_timer;
     bool m_isEnabled = false;
     QProcess *m_gcProcess = nullptr;
-    ExternalGameController m_gcCIProtocolConnection;
+    GameControllerSocket m_gcCIProtocolConnection;
     std::unique_ptr<SSLVisionTracked> m_trackedVisionGenerator;
     SSL_Referee m_lastReferee;
     std::string m_geometryString;
