@@ -58,10 +58,11 @@ signals:
     void sendStrategyStatus(const Status &status);
     void sendRadioCommands(const QList<robot::RadioCommand> &commands, qint64 processingStart);
     void setFlipped(bool flipped);
+    void refereeHostChanged(QString host);
 
 public slots:
     void setScaling(double scaling);
-    void handleRefereePacket(const QByteArray &data, qint64 time);
+    void handleRefereePacket(const QByteArray &data, qint64 time, QString sender);
     void handleVisionPacket(const QByteArray &data, qint64 time, QString sender);
     void handleSimulatorExtraVision(const QByteArray &data);
     void handleMixedTeamInfo(const QByteArray &data, qint64 time);

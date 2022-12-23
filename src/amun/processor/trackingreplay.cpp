@@ -22,6 +22,8 @@
 #include "core/timer.h"
 #include "core/configuration.h"
 
+static const QString SENDER_NAME_FOR_REFEREE = "TrackingReplay";
+
 TrackingReplay::TrackingReplay(Timer *timer) :
     m_timer(timer),
     m_replayProcessor(timer, true),
@@ -101,7 +103,7 @@ void TrackingReplay::handleStatus(const Status &status)
         const SSL_Referee referee = m_refereeExtractor.convertGameState(status->game_state(), status->time());
         QByteArray data(referee.ByteSize(), 0);
         if (referee.SerializeToArray(data.data(), data.size())) {
-            m_replayProcessor.handleRefereePacket(data, status->time());
+            m_replayProcessor.handleRefereePacket(data, status->time(), SENDER_NAME_FOR_REFEREE);
         }
     }
 

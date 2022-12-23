@@ -31,6 +31,8 @@
 #include <QFile>
 #include <QTcpServer>
 
+static const QString SENDER_NAME_FOR_REFEREE = "Internal/SSL Game Controller";
+
 SSLGameController::SSLGameController(const Timer *timer, QObject *parent) :
     QObject(parent),
     m_timer(timer),
@@ -306,7 +308,7 @@ bool SSLGameController::sendCiInput(const gameController::CiInput &input)
             QByteArray packetData;
             packetData.resize(referee.ByteSize());
             if (referee.SerializeToArray(packetData.data(), packetData.size())) {
-                emit gotPacketForReferee(packetData);
+                emit gotPacketForReferee(packetData, SENDER_NAME_FOR_REFEREE);
                 handleBallTeleportation(referee);
             }
         }
@@ -493,7 +495,7 @@ void SSLGameController::handleGuiCommand(const QByteArray &data)
 
     // if the GC is not currently activated, directly rout the commands from the UI to the internal referee
     if (!m_isEnabled) {
-        emit gotPacketForReferee(data);
+        emit gotPacketForReferee(data, SENDER_NAME_FOR_REFEREE);
         m_lastReferee = newState;
         return;
     }

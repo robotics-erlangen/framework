@@ -145,6 +145,11 @@ Processor::Processor(const Timer *timer, bool isReplay) :
     connect(this, &Processor::sendStatus, m_gameController, &SSLGameController::handleStatus);
     connect(this, &Processor::setFlipped, m_gameController, &SSLGameController::setFlip);
 
+    /* Connect only the m_referee (not m_refereeInternal) as host changes are
+     * only relevant for external game controllers.
+     */
+    connect(m_referee, &Referee::refereeHostChanged, this, &Processor::refereeHostChanged);
+
     // start processing
     m_trigger = new QTimer(this);
     connect(m_trigger, SIGNAL(timeout()), SLOT(process()));
@@ -420,9 +425,9 @@ void Processor::injectRawSpeedIfAvailable(robot::RadioCommand *radioCommand, con
     }
 }
 
-void Processor::handleRefereePacket(const QByteArray &data, qint64 /*time*/)
+void Processor::handleRefereePacket(const QByteArray &data, qint64 /*time*/, QString sender)
 {
-    m_referee->handlePacket(data);
+    m_referee->handlePacket(data, sender);
     // ensure that tournament mode works even if the simulator is stopped
     if (m_referee->isGameRunning() && m_simulatorEnabled && !m_trigger->isActive()) {
         Status status = Status(new amun::Status);

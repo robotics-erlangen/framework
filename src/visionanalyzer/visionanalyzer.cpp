@@ -35,6 +35,9 @@
 #include "processor/referee.h"
 #include <QThread>
 #include <QDebug>
+#include <QString>
+
+static const QString SENDER_NAME_FOR_REFEREE = "VisionAnalyzer";
 
 int main(int argc, char* argv[])
 {
@@ -131,7 +134,7 @@ int main(int argc, char* argv[])
                 if (msg_type == VisionLog::MessageType::MESSAGE_SSL_VISION_2014) {
                     tracker.queuePacket(visionFrame, receiveTimeNanos, "logfile");
                 } else if (msg_type == VisionLog::MessageType::MESSAGE_SSL_REFBOX_2013) {
-                    ref.handlePacket(visionFrame);
+                    ref.handlePacket(visionFrame, SENDER_NAME_FOR_REFEREE);
                     if (ref.getFlipped() != lastFlipped) {
                         tracker.setFlip(ref.getFlipped());
                         lastFlipped = ref.getFlipped();

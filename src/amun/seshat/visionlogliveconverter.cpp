@@ -21,6 +21,10 @@
 #include "visionlogliveconverter.h"
 #include "visionlog/visionlogreader.h"
 
+#include <QString>
+
+static const QString SENDER_NAME_FOR_REFEREE = "VisionLogLiveConverter";
+
 VisionLogLiveConverter::VisionLogLiveConverter(VisionLogReader *file) :
     m_referee(),
     m_tracker(false, false),
@@ -78,7 +82,7 @@ qint64 VisionLogLiveConverter::processPacket(int packet, qint64 nextProcess)
     if (type == VisionLog::MessageType::MESSAGE_SSL_VISION_2014) {
         m_tracker.queuePacket(m_visionFrame, header.first, "logfile");
     } else if (type == VisionLog::MessageType::MESSAGE_SSL_REFBOX_2013) {
-        m_referee.handlePacket(m_visionFrame);
+        m_referee.handlePacket(m_visionFrame, SENDER_NAME_FOR_REFEREE);
         if (m_referee.getFlipped() != m_lastFlipped) {
             m_tracker.setFlip(m_referee.getFlipped());
             m_lastFlipped = m_referee.getFlipped();

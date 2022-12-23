@@ -188,6 +188,10 @@ message SSL_Referee {
         repeated ProposedGameEvent proposed_game_events = 14 [deprecated = true];
         repeated GameEventProposalGroup game_event_proposals = 17;
 
+	// A random UUID of the source that is kept constant at the source while running
+	// If multiple sources are broadcasting to the same network, this id can be used to identify individual sources
+	optional string source_identifier = 18;
+
         // The time in microseconds that is remaining until the current action times out
         // The time will not be reset. It can get negative.
         // An autoRef would raise an appropriate event, if the time gets negative.

@@ -47,11 +47,33 @@ Referee::Referee() :
  * \brief Processes a referee command packet
  * \param data The packet to process
  */
-void Referee::handlePacket(const QByteArray &data)
+void Referee::handlePacket(const QByteArray &data, const QString &sender)
 {
     SSL_Referee packet;
     if (!packet.ParseFromArray(data.data(), data.size())) {
         return;
+    }
+
+    if (!packet.has_source_identifier() || packet.source_identifier() != m_sourceIdentifier) {
+        if (packet.has_source_identifier()) {
+            m_sourceIdentifier = packet.source_identifier();
+        } else {
+            m_sourceIdentifier.clear();
+        }
+
+        /* The sender field is not always relevant, e.g. it is not when
+         * - the Referee is called by the VisionAnalyzer; there is no strategy
+         *   connecting to the game controller
+         * - The internal referee is used.
+         * Also, the source_identifier may not be set in such cases.
+         *
+         * The refereeHostChanged signal is probably/hopefully not connected in
+         * such cases. In case it is, we require the sender to be set in order
+         * to provide a useful debugging output if something breaks here.
+         */
+        Q_ASSERT(!sender.isNull() && !sender.isEmpty());
+
+        emit refereeHostChanged(sender);
     }
 
     // TODO: any use for the timestamps?

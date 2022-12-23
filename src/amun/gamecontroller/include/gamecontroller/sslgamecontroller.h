@@ -58,7 +58,7 @@ private:
 
 signals:
     void sendStatus(const Status &status);
-    void gotPacketForReferee(const QByteArray &data);
+    void gotPacketForReferee(const QByteArray &data, QString sender);
     void gotControllerReply(const gameController::ControllerReply &reply);
     void sendCommand(const Command &command);
 

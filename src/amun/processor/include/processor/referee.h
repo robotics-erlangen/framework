@@ -27,7 +27,9 @@
 #include <optional>
 #include <QByteArray>
 #include <QObject>
+#include <QString>
 #include <memory>
+#include <string>
 
 class Referee : public QObject
 {
@@ -41,9 +43,12 @@ public:
     bool getFlipped() const { return m_flipped; }
 
 public slots:
-    void handlePacket(const QByteArray &data);
+    void handlePacket(const QByteArray &data, const QString &sender);
     void process(const world::State &worldState);
     bool isGameRunning();
+
+signals:
+    void refereeHostChanged(QString host);
 
 private:
     static amun::GameState::State processCommand(SSL_Referee::Command command, amun::GameState::State currentState);
@@ -55,6 +60,11 @@ private:
     quint32 m_counter;
     bool m_flipped;
     std::optional<SSL_Referee::Command> m_lastCommand;
+
+    /** source_identifier of the game controller instance messages were last
+     * received from
+     */
+    std::string m_sourceIdentifier;
 };
 
 #endif // REFEREE_H

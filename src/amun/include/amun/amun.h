@@ -70,7 +70,6 @@ signals:
     void gotCommand(const Command &command);
     void updateVisionPort(quint16 port);
     void updateRefereePort(quint16 port);
-    void gotRefereeHost(QString hostName);
     void useInternalGameController(bool useInternal);
     void gotCommandForGC(const amun::CommandReferee &command);
 
@@ -84,7 +83,6 @@ public slots:
 private slots:
     void handleStatus(const Status &status);
     void handleReplayStatus(const Status &status);
-    void handleRefereePacket(QByteArray, qint64, QString host);
     void handleStatusForReplay(const Status &status);
     void handleCommandLocally(const Command& command);
 
