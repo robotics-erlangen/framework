@@ -29,7 +29,6 @@ RUN set -xe; \
 	rm -rf /var/lib/apt/lists/* ; \
 	# Setup linters \
 	luarocks install luacheck; \
-	npm install -g tslint@6.1.1 typescript@3.8.3; \
 	# Setup ARM GCC \
 	wget -q https://developer.arm.com/-/media/Files/downloads/gnu-rm/7-2018q2/gcc-arm-none-eabi-7-2018-q2-update-linux.tar.bz2 -O gcc-arm.tbz2; \
 	echo 299ebd3f1c2c90930d28ab82e5d8d6c0 gcc-arm.tbz2 > arm.md5; \

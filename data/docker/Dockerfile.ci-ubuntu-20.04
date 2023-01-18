@@ -24,7 +24,6 @@ RUN set -xe; \
 	apt-get update; \
 	apt-get install -y --no-install-recommends nodejs; \
 	# setup linters \
-	npm install -g tslint@6.1.1 typescript@3.8.3; \
 	luarocks install luacheck; \
 	# cleanup apt \
 	apt-get clean; \
