@@ -63,6 +63,7 @@ const tests: { [name: string]: string } = {
 	"GladosAbilityShoot": `${testPrefix}glados/shoot`,
 	"GladosMainattacker": `${testPrefix}glados/mainattacker`,
 	"GladosCenterback": `${testPrefix}glados/centerback`,
+	"GladosDuel": `${testPrefix}glados/duel`,
 };
 
 function runTests(moduleNames: string[]) {
