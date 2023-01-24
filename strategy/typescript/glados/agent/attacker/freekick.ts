@@ -105,9 +105,11 @@ export class FreeKick extends Behavior {
 		const MAX_TIMEFRAME = Referee.isFriendlyFreeKickState() ? 4 : 8;
 		let timeRunningOut = World.Time - Referee.lastStateChangeTime() >= MAX_TIMEFRAME;
 		if (this._state === State.Wait) {
+			this._passList = undefined;
+			this._pass = undefined;
+
 			if (shootgoalPossible || timeRunningOut) {
 				this._state = State.ShootGoal;
-				this._passList = undefined;
 			} else if (World.Time - <number> this._waitStartTime > MIN_WAIT_TIME) {
 				let passSuggestions = this._messaging.receive(MessageType.passSuggestion);
 				const earliestAttackTime = this._messaging.receiveSingleSender(MessageType.earliestAttackTime, true)[1];
@@ -237,8 +239,8 @@ export class FreeKick extends Behavior {
 		}
 
 
-		if (this._passList != undefined && this._state === State.Pass) {
-			this._messaging.sendBroadcast(MessageType.passInfo, [<Attack.PassInfo> this._pass]);
+		if (this._pass !== undefined && this._state === State.Pass) {
+			this._messaging.sendBroadcast(MessageType.passInfo, [this._pass]);
 		} else if (this._passList != undefined) {
 			this._messaging.sendBroadcast(MessageType.passInfo, this._passList);
 		}
