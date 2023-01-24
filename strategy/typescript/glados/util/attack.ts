@@ -17,8 +17,12 @@ import * as Rating from "glados/util/rating";
 const G = World.Geometry;
 
 export interface PassInfo {
-	/** The target of an upcoming pass */
-	target: FriendlyRobot;
+	/** The target of an upcoming pass.
+	 *
+	 * If this field is undefined, the pass currently is anonymous and the
+	 * final receiver shall be set later.
+	 */
+	target?: FriendlyRobot;
 	/** The position the ball should be at when the time reaches {@link time} */
 	ballPos: Position;
 	/** At this time the ball should be at {@link ballPos} */

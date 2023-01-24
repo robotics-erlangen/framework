@@ -11,6 +11,7 @@ import { SuggestPass } from "glados/task/ability/suggestpass";
 import { Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
+import { PassInfo } from "glados/util/attack";
 import * as Rating from "glados/util/rating";
 const G = World.Geometry;
 
@@ -39,8 +40,6 @@ function draw(table: DebugTable) {
 	vis.addPath("sideStep", [t.ballPos, t.ballPos + t.cw.withLength(t.cwDist)], vis.fromTemperature(t.cwRating));
 	vis.addPath("sideStep", [t.ballPos, t.ballPos + t.ccw.withLength(t.ccwDist)], vis.fromTemperature(t.ccwRating));
 }
-
-type PassInfo = { target: FriendlyRobot; ballPos: Position; time: number };
 
 export class SideStep extends Task {
 	private _debugTable: DebugTable;
