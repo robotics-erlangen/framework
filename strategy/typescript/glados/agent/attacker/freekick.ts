@@ -34,13 +34,11 @@ interface Pass {
 }
 
 export class FreeKick extends Behavior {
-	_startTime: number = 0;
 	_state: State = State.Prepare;
 	_dirty: boolean = false;
 	_passList: Pass[] | undefined = undefined;
 	_pass: Pass | undefined = undefined;
 	_waitStartTime: number | undefined = undefined;
-	_redeciding: boolean = false;
 	_ratePass: Attack.PassRater;
 
 	constructor(agent: Agent, ratePass: Attack.PassRater) {
@@ -49,17 +47,11 @@ export class FreeKick extends Behavior {
 	}
 
 	_stop() {
-		this._startTime = 0;
 		this._state = State.Prepare;
 		this._dirty = false;
 		this._passList = undefined;
 		this._pass = undefined;
 		this._waitStartTime = undefined;
-		this._redeciding = false;
-	}
-
-	start() {
-		this._startTime = World.Time;
 	}
 
 	check(): Behavior | undefined {
@@ -144,7 +136,7 @@ export class FreeKick extends Behavior {
 		}
 
 		// check for anonymous pass
-		let restartTask = this._redeciding;
+		let restartTask = false;
 		if ((this._state === State.PassPrepare || this._state === State.Pass)
 				&& this._pass != undefined && this._pass.target == undefined) {
 			// try to find the target
