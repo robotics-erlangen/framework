@@ -429,7 +429,7 @@ export function sortPassesFromSuggestions(robot: FriendlyRobot, passSuggestions:
 			passes.splice(i, 1);
 		}
 	}
-	return passes.length > 0 ? passes : undefined;
+	return passes;
 }
 
 /**
