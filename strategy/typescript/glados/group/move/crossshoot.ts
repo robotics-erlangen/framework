@@ -49,7 +49,7 @@ export class CrossShoot extends Move {
 	}
 
 	_canContinue() {
-		if (Referee.isGameState()) {
+		if (CrossShoot.Referee.isGameState()) {
 			if (this.timeBegin == undefined) {
 				this.timeBegin = World.Time;
 			}
