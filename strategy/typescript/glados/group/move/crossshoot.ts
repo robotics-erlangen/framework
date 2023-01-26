@@ -40,9 +40,12 @@ export class CrossShoot extends Move {
 		super(robots, messaging);
 	}
 	static canStart() {
+		// _canContinue must not fail during freekick state if this move is to be allowed to start in freekick state
+		// - don't waste time by restarting different moves
 		return G.FieldHeightHalf - (2 / 3) * G.DefenseHeight < World.Ball.pos.y
 			&& G.DefenseWidthHalf + (1 / 4) * G.DefenseWidthHalf < Math.abs(World.Ball.pos.x)
-			&& World.RefereeState === "Stop" && CrossShoot.Referee.opponentTouchedLast();
+			&& (World.RefereeState === "Stop" && CrossShoot.Referee.opponentTouchedLast()
+				|| CrossShoot.Referee.isFriendlyFreeKickState());
 	}
 
 	_canContinue() {

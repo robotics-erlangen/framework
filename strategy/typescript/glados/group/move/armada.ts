@@ -61,9 +61,13 @@ export class Armada extends Move {
 	}
 
 	static canStart() {
-		return World.Ball.pos.y > 4 * G.FieldHeightHalf / 5 && Armada.Referee.opponentTouchedLast()
+		// _canContinue must not fail during freekick state if this move is to be allowed to start in freekick state
+		// - don't waste time by restarting different moves
+		return World.Ball.pos.y > 4 * G.FieldHeightHalf / 5
 			&& Math.abs(World.Ball.pos.x) > G.FieldWidthHalf / 2
-			&& World.RefereeState === "Stop";
+			&& (World.RefereeState === "Stop"
+				&& Armada.Referee.opponentTouchedLast()
+				|| Armada.Referee.isFriendlyFreeKickState());
 	}
 
 	_canContinue() {
