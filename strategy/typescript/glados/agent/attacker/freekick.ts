@@ -26,13 +26,6 @@ enum State {
 	Pass = "Pass",
 }
 
-interface Pass {
-	target?: FriendlyRobot;
-	ballPos: Position;
-	time: number;
-	chip?: boolean;
-}
-
 export class FreeKick extends Behavior {
 	_state: {
 		tag: State.Prepare | State.Wait | State.ShootGoal;
@@ -40,8 +33,8 @@ export class FreeKick extends Behavior {
 		passList?: undefined;
 	} | {
 		tag: State.PassPrepare | State.Pass;
-		pass: Pass;
-		passList: Pass[];
+		pass: Attack.PassInfo;
+		passList: Attack.PassInfo[];
 	} = { tag: State.Prepare };
 
 	_dirty: boolean = false;

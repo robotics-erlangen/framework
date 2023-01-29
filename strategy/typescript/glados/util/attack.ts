@@ -27,6 +27,8 @@ export interface PassInfo {
 	ballPos: Position;
 	/** At this time the ball should be at {@link ballPos} */
 	time: number;
+	/** Whether the ball will be chipped */
+	chip?: boolean;
 }
 
 export interface PassSuggestion {
@@ -396,7 +398,7 @@ export function sortPassesFromSuggestions(robot: FriendlyRobot, passSuggestions:
 		options.customHysteresis = 0.1;
 	}
 
-	let passes: (PassObject & { rating: number })[] = [];
+	const passes: (PassInfo & { rating: number })[] = [];
 	for (let [sender, sugg] of passSuggestions.entries()) {
 		let pass = { target: sender, ballPos: sugg.ballPos, time: sugg.time };
 		let rating = options.ratePass(robot, pass, options.earliestAttackTime, options.attackPosition, options.considerTiming);
@@ -419,7 +421,14 @@ export function sortPassesFromSuggestions(robot: FriendlyRobot, passSuggestions:
 		if (sugg.anonymous) {
 			target = undefined;
 		}
-		passes.push({ target: target, ballPos: sugg.ballPos, time: sugg.time, rating: rating, chip: sugg.chip });
+
+		passes.push({
+			target,
+			ballPos: sugg.ballPos,
+			time: sugg.time,
+			chip: sugg.chip,
+			rating,
+		});
 	}
 
 	passes.sort(sortByRating);
