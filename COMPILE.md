@@ -30,7 +30,7 @@ Certain features require additional libraries:
     * [Manjaro](#manjaro)
     * [Open Suse](#open-suse)
   * [Building V8 (optional)](#building-v8-optional-needed-for-javascript-support)
-  * [Building Ra](#building-the-framework)
+  * [Building the Framework](#building-the-framework)
 - [Windows](#windows)
   * [Setup](#setup)
   * [Compiling](#compiling)
