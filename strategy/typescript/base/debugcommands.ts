@@ -32,45 +32,70 @@ import * as World from "base/world";
 let amunLocal = amun;
 
 // See stageMapping in World
-let stageNames = {
-	FirstHalfPre: "NORMAL_FIRST_HALF_PRE",
-	FirstHalf: "NORMAL_FIRST_HALF",
-	HalfTime: "NORMAL_HALF_TIME",
-	SecondHalfPre: "NORMAL_SECOND_HALF_PRE",
-	SecondHalf: "NORMAL_SECOND_HALF",
+const stageNames: Readonly<Record<World.GameStageType, pb.SSL_Referee.Stage>> = {
+	FirstHalfPre: pb.SSL_Referee.Stage.NORMAL_FIRST_HALF_PRE,
+	FirstHalf: pb.SSL_Referee.Stage.NORMAL_FIRST_HALF,
+	HalfTime: pb.SSL_Referee.Stage.NORMAL_HALF_TIME,
+	SecondHalfPre: pb.SSL_Referee.Stage.NORMAL_SECOND_HALF_PRE,
+	SecondHalf: pb.SSL_Referee.Stage.NORMAL_SECOND_HALF,
 
-	ExtraTimeBreak: "EXTRA_TIME_BREAK",
-	ExtraFirstHalfPre: "EXTRA_FIRST_HALF_PRE",
-	ExtraFirstHalf: "EXTRA_FIRST_HALF",
-	ExtraHalfTime: "EXTRA_HALF_TIME",
-	ExtraSecondHalfPre: "EXTRA_SECOND_HALF_PRE",
-	ExtraSecondHalf: "EXTRA_SECOND_HALF",
+	ExtraTimeBreak: pb.SSL_Referee.Stage.EXTRA_TIME_BREAK,
+	ExtraFirstHalfPre: pb.SSL_Referee.Stage.EXTRA_FIRST_HALF_PRE,
+	ExtraFirstHalf: pb.SSL_Referee.Stage.EXTRA_FIRST_HALF,
+	ExtraHalfTime: pb.SSL_Referee.Stage.EXTRA_HALF_TIME,
+	ExtraSecondHalfPre: pb.SSL_Referee.Stage.EXTRA_SECOND_HALF_PRE,
+	ExtraSecondHalf: pb.SSL_Referee.Stage.EXTRA_SECOND_HALF,
 
-	PenaltyShootoutBreak: "PENALTY_SHOOTOUT_BREAK",
-	PenaltyShootout: "PENALTY_SHOOTOUT",
-	PostGame: "POST_GAME"
+	PenaltyShootoutBreak: pb.SSL_Referee.Stage.PENALTY_SHOOTOUT_BREAK,
+	PenaltyShootout: pb.SSL_Referee.Stage.PENALTY_SHOOTOUT,
+	PostGame: pb.SSL_Referee.Stage.POST_GAME,
 };
-let stageUnmapping: Map<string, string> = new Map(Object.entries(stageNames));
 
-let commandNames = {
-	Start: "NORMAL_START", // special value to start kickoff and penalty
-	Halt: "HALT",
-	Stop: "STOP",
-	GameForce: "FORCE_START",
-	KickoffYellowPrepare: "PREPARE_KICKOFF_YELLOW",
-	KickoffBluePrepare: "PREPARE_KICKOFF_BLUE",
-	PenaltyYellowPrepare: "PREPARE_PENALTY_YELLOW",
-	PenaltyBluePrepare: "PREPARE_PENALTY_BLUE",
-	DirectYellow: "DIRECT_FREE_YELLOW",
-	DirectBlue: "DIRECT_FREE_BLUE",
-	IndirectYellow: "INDIRECT_FREE_YELLOW",
-	IndirectBlue: "INDIRECT_FREE_BLUE",
-	TimeoutYellow: "TIMEOUT_YELLOW",
-	TimeoutBlue: "TIMEOUT_B(LUE",
-	BallPlacementBlue: "BALL_PLACEMENT_BLUE",
-	BallPlacementYellow: "BALL_PLACEMENT_YELLOW"
+/** Similar to {@link World.RefereeStateType}. However, as this represents a
+ * command and not a state, it
+ * - includes "Start" as a special value to start kickoff and penalty
+ * - omits "{Kickoff,Penalty}{Offensive,Defensive}{,Running}" as kickoffs and
+ *   penalties should be started via the corresponding prepare command, followed
+ *   by "Start"
+ */
+type DebugRefereeCommand = "Start" | "Halt" | "Stop" | "GameForce"
+	| "KickoffOffensivePrepare" | "KickoffDefensivePrepare"
+	| "PenaltyOffensivePrepare" | "PenaltyDefensivePrepare"
+	| "DirectOffensive" | "DirectDefensive"
+	| "IndirectOffensive" | "IndirectDefensive"
+	| "TimeoutOffensive" | "TimeoutDefensive"
+	| "BallPlacementDefensive" | "BallPlacementOffensive";
+
+type ReplaceOffensiveDefensive<T extends string> = T extends `${infer P}Offensive${infer S}`
+	? `${P}Yellow${S}`
+	: T extends `${infer P}Defensive${infer S}`
+	? `${P}Blue${S}`
+	: T;
+
+/** Amun requires debug commands to be specified for a concrete team (i.e.
+ * yellow/blue), not relative to the currently running script (i.e.
+ * offensive/defensive)
+ */
+type AbsoluteDebugRefereeCommand = ReplaceOffensiveDefensive<DebugRefereeCommand>;
+
+const commandNames: Readonly<Record<AbsoluteDebugRefereeCommand, pb.SSL_Referee.Command>> = {
+	Start: pb.SSL_Referee.Command.NORMAL_START,
+	Halt: pb.SSL_Referee.Command.HALT,
+	Stop: pb.SSL_Referee.Command.STOP,
+	GameForce: pb.SSL_Referee.Command.FORCE_START,
+	KickoffYellowPrepare: pb.SSL_Referee.Command.PREPARE_KICKOFF_YELLOW,
+	KickoffBluePrepare: pb.SSL_Referee.Command.PREPARE_KICKOFF_BLUE,
+	PenaltyYellowPrepare: pb.SSL_Referee.Command.PREPARE_PENALTY_YELLOW,
+	PenaltyBluePrepare: pb.SSL_Referee.Command.PREPARE_PENALTY_BLUE,
+	DirectYellow: pb.SSL_Referee.Command.DIRECT_FREE_YELLOW,
+	DirectBlue: pb.SSL_Referee.Command.DIRECT_FREE_BLUE,
+	IndirectYellow: pb.SSL_Referee.Command.INDIRECT_FREE_YELLOW,
+	IndirectBlue: pb.SSL_Referee.Command.INDIRECT_FREE_BLUE,
+	TimeoutYellow: pb.SSL_Referee.Command.TIMEOUT_YELLOW,
+	TimeoutBlue: pb.SSL_Referee.Command.TIMEOUT_BLUE,
+	BallPlacementBlue: pb.SSL_Referee.Command.BALL_PLACEMENT_BLUE,
+	BallPlacementYellow: pb.SSL_Referee.Command.BALL_PLACEMENT_YELLOW,
 };
-let commandUnmapping: Map<string, string> = new Map(Object.entries(commandNames));
 
 /**
  * Set referee command. The new values are not visible before the next frame!
@@ -83,7 +108,7 @@ let commandUnmapping: Map<string, string> = new Map(Object.entries(commandNames)
  * @param blueKeeperID - blue keeper id
  * @param yellowKeeperID - yellow keeper id
  */
-export function sendRefereeCommand(refereeCommand: string, gameStage?: string, blueKeeperID?: number, yellowKeeperID?: number, pos?: Position) {
+export function sendRefereeCommand(refereeCommand: DebugRefereeCommand, gameStage?: World.GameStageType, blueKeeperID?: number, yellowKeeperID?: number, pos?: Position) {
 	if (amunLocal.isDebug === false) {
 		throw new Error("only works in debug mode");
 	}
@@ -109,7 +134,7 @@ export function sendRefereeCommand(refereeCommand: string, gameStage?: string, b
 
 	// update gamestage
 	if (gameStage != undefined) {
-		state.stage = <pb.SSL_Referee.Stage> stageUnmapping[gameStage];
+		state.stage = stageNames[gameStage];
 		if (state.stage == undefined) {
 			throw new Error(`Invalid game stage name: ${gameStage}`);
 		}
@@ -118,14 +143,18 @@ export function sendRefereeCommand(refereeCommand: string, gameStage?: string, b
 	if (refereeCommand != undefined) {
 		// map referee command from team local to global naming
 		// that is revert *Offensive/Defensive to *Blue/Yellow
-		let command;
+		let command: AbsoluteDebugRefereeCommand;
 		if (World.TeamIsBlue) {
-			command = refereeCommand.replace("Offensive", "Blue").replace("Defensive", "Yellow");
+			command = refereeCommand
+				.replace("Offensive", "Blue")
+				.replace("Defensive", "Yellow") as AbsoluteDebugRefereeCommand;
 		} else {
-			command = refereeCommand.replace("Offensive", "Yellow").replace("Defensive", "Blue");
+			command = refereeCommand
+				.replace("Offensive", "Yellow")
+				.replace("Defensive", "Blue") as AbsoluteDebugRefereeCommand;
 		}
 		// map "refereeState" to command
-		state.command = <pb.SSL_Referee.Command> commandUnmapping[command];
+		state.command = commandNames[command];
 		if (state.command == undefined) {
 			throw new Error(`Invalid referee command name: ${refereeCommand}`);
 		}
