@@ -53,12 +53,25 @@ interface BallLike {
 	posZ: number;
 }
 
-interface ControllerInput {
-	v_f?: number;
-	v_s?: number;
-	omega?: number;
-	spline?: any;
-}
+export const REUSE_LAST_TRAJECTORY = Symbol("REUSE_LAST_TRAJECTORY");
+export const HALT = Symbol("HALT");
+
+export type ControllerInput =
+	typeof REUSE_LAST_TRAJECTORY
+	| typeof HALT
+	| TrajectoryCommand;
+
+export type TrajectoryCommand = {
+	spline: pb.robot.Spline[];
+	v_f?: undefined;
+	v_s?: undefined;
+	omega?: undefined;
+} | {
+	spline?: undefined;
+	v_f: number;
+	v_s: number;
+	omega: number;
+};
 
 /* eslint-disable @typescript-eslint/naming-convention */
 interface GeomType {
@@ -332,7 +345,7 @@ export class FriendlyRobot extends Robot {
 	private _dribblerSpeed: number = 0;
 	private _standbyTimer: number = -1;
 	private _standbyTick: boolean = false;
-	private _controllerInput: ControllerInput | undefined = undefined;
+	private _controllerInput: ControllerInput = REUSE_LAST_TRAJECTORY;
 
 	private _dribblerSpeedVisualized = false;
 
@@ -431,21 +444,25 @@ export class FriendlyRobot extends Robot {
 			standby: standby
 		};
 
-		if (this._controllerInput != undefined) {
-			let input: ControllerInput = <ControllerInput> this._controllerInput;
-			result.controller = input;
-			result.v_f = input.v_f;
-			result.v_s = input.v_s;
-			result.omega = input.omega;
+		if (this._controllerInput === HALT) {
+			result.controller = {};
+		} else if (this._controllerInput !== REUSE_LAST_TRAJECTORY) {
+			result.controller = {
+				spline: this._controllerInput.spline,
+			};
+			result.v_f = this._controllerInput.v_f;
+			result.v_s = this._controllerInput.v_s;
+			result.omega = this._controllerInput.omega;
 		}
+
 		return result;
 	}
 
 	_update(state: pb.world.Robot, time: number, radioResponses?: pb.robot.RadioResponse[]) {
 		// keep current time for use by setStandby
 		this._currentTime = time;
-		// bypass override check in setControllerInput
-		this._controllerInput = undefined; // halt robot by default
+		// Halt robot by default
+		this._controllerInput = HALT;
 		this.shootDisable(); // disable shoot
 		this._dribblerSpeedVisualized = false;
 		this.setDribblerSpeed(0); // stop dribbler
@@ -464,13 +481,15 @@ export class FriendlyRobot extends Robot {
 	}
 
 	/**
-	 * Set output from trajectory planing on robot
-	 * The robot is halted by default if no command is set for it. To tell a robot to follow its old trajectory call setControllerInput(undefined)
+	 * Set output from trajectory planing on robot. The robot is halted by
+	 * default if no command is set for it. To tell a robot to follow its old
+	 * trajectory, call
+	 *   setControllerInput(REUSE_LAST_TRAJECTORY)
 	 * @param input - Target points for the controller, in global coordinates!
 	 */
 	setControllerInput(input: ControllerInput) {
 		// Forbid overriding controller input except with halt
-		if (input && input.spline && this._controllerInput != undefined && this._controllerInput.spline) {
+		if (input !== HALT && this._controllerInput !== HALT) {
 			throw new Error("Setting controller input twice");
 		}
 		this._controllerInput = input;
@@ -541,7 +560,7 @@ export class FriendlyRobot extends Robot {
 	/** Halts robot */
 	halt() {
 		this.path.setHalted();
-		this.setControllerInput({});
+		this.setControllerInput(HALT);
 	}
 
 	/**
