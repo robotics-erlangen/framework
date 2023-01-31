@@ -24,8 +24,8 @@
 **************************************************************************/
 
 import { Coordinates } from "base/coordinates";
-import { Path } from "base/path";
-import { Position, Speed, Vector } from "base/vector";
+import type { FriendlyRobot, TrajectoryCommand } from "base/robot";
+import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
 
 export interface RobotAccelerationProfile {
@@ -37,39 +37,17 @@ export interface RobotAccelerationProfile {
 	aBrakePhiMax: number;
 }
 
-export interface RobotLike {
-	pos: Position;
-	speed: Speed;
-	id: number;
-	isVisible: boolean;
-	radius: number;
-	maxSpeed: number;
-	dir: number;
-	maxAngularSpeed: number;
-	angularSpeed: number;
-	acceleration: RobotAccelerationProfile;
-	prevMoveTo: Position | undefined;
-	setControllerInput(spline: any): any;
-	path: Path;
-}
-
-interface Polynomial {
-	a0: number;
-	a1: number;
-	a2: number;
-	a3: number;
-}
-
-interface Spline {
-	t_start: number;
-	t_end: number;
-	x: Polynomial;
-	y: Polynomial;
-	phi: Polynomial;
-}
+export type RobotLike = Pick<FriendlyRobot,
+	"pos" | "dir"
+	| "speed" | "maxSpeed"
+	| "id" | "radius"
+	| "isVisible"
+	| "maxAngularSpeed" | "angularSpeed"
+	| "acceleration" | "prevMoveTo" | "setControllerInput" | "path"
+>;
 
 /** Splines, target position, time to reach the target */
-export type TrajectoryResult = [{ spline: Spline[] }, Position, number];
+export type TrajectoryResult = [TrajectoryCommand, Position, number];
 
 /** Base class for trajectory planning */
 export abstract class TrajectoryHandler {
@@ -130,7 +108,7 @@ export class Trajectory {
 		}
 		let [splines, moveDest, moveTime] = this._handler.update(...args);
 
-		let splin: any;
+		let splin;
 		if (splines.spline != undefined) {
 			splin = splines.spline[0];
 		}
