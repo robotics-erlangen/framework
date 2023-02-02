@@ -734,12 +734,5 @@ export function lastIncomingPassInfo(robot: FriendlyRobot, passInfo: ReadonlyRec
 }
 
 export function freekickPrepareRobotAngle() {
-	// during the prepare states, position the robot so that it is between the
-	// field boundary and the ball. This ensures that the robot does not obscure the
-	// ball from the view of the camera, which can cause various problems during the freekick
-	let prepareRobotAngle = World.Ball.pos.x < 0 ? 0 : Math.PI;
-	if (Math.abs(World.Ball.pos.x) < 0.5) {
-		prepareRobotAngle = Math.PI / 2;
-	}
-	return prepareRobotAngle;
+	return Math.PI / 2;
 }
