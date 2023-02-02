@@ -41,6 +41,10 @@ if ! npm ci; then
 	fi
 fi
 
+echo "${FBOLD}Apply patch to typescript-eslint-language-service"
+patch -u node_modules/typescript-eslint-language-service/lib/eslint-adapter.js -i eslint-plugin-erforce/eslint-adapter.js.patch
+patch -u node_modules/typescript-eslint-language-service/lib/eslint-config-provider.js -i eslint-plugin-erforce/eslint-config-provider.js.patch
+
 echo "${FBOLD}Fixing node_modules/@types/index.d.ts${FNORMAL}"
 # for whatever reason @types/json5/index.d.ts has some unnecessary unexpected character in the beginning,
 # that crashes our compiler if not removed

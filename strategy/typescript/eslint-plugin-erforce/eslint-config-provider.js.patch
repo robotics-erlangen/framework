@@ -1,0 +1,21 @@
+--- node_modules/typescript-eslint-language-service/lib/eslint-config-provider.js	2023-02-02 23:27:20.048778950 +0100
++++ eslint-config-provider_patch.js	2023-02-02 23:27:08.628942334 +0100
+@@ -6,6 +6,7 @@
+ exports.ESLintConfigProvider = void 0;
+ const path_1 = __importDefault(require("path"));
+ const eslintrc_1 = require("@eslint/eslintrc");
++const path = require("path");
+ function getFactroyClass() {
+     return eslintrc_1.Legacy.CascadingConfigArrayFactory;
+ }
+@@ -50,8 +51,8 @@
+     resolveESLintIntrinsicConfigPath(name) {
+         let ret = undefined;
+         try {
+-            const fragments = require.resolve("eslint").split("node_modules/eslint");
+-            ret = [...fragments.slice(0, fragments.length - 1), `/conf/${name}.js`].join("node_modules/eslint");
++            const fragments = require.resolve("eslint").split(path.join("node_modules", "eslint"));
++            ret = path.join(...fragments.slice(0, fragments.length - 1), "node_modules", "eslint", "conf", `${name}.js`);
+         }
+         catch (e) {
+             this.log(e);

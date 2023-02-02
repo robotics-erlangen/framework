@@ -1,0 +1,19 @@
+--- node_modules/typescript-eslint-language-service/lib/eslint-adapter.js	2023-02-02 23:27:20.012112815 +0100
++++ eslint-adapter_patch.js	2023-02-02 23:26:31.336112346 +0100
+@@ -5,6 +5,7 @@
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.ESLintAdapter = exports.translateToCodeFixesFromESLintResult = exports.isIntersect = exports.translateToDiagnosticsFromESLintResult = void 0;
+ const typescript_1 = __importDefault(require("typescript"));
++const path_1 = require("path");
+ const eslint_1 = require("eslint");
+ const errors_1 = require("./errors");
+ const consts_1 = require("./consts");
+@@ -88,7 +89,7 @@
+             return [];
+         const configArray = this.configProvider.getConfigArrayForFile(fileName);
+         const configFileContent = configArray.extractConfig(fileName).toCompatibleObjectAsConfigFileContent();
+-        if (!isParserModuleNameValid(configFileContent.parser, "@typescript-eslint/parser")) {
++        if (!isParserModuleNameValid(configFileContent.parser, path_1.join("@typescript-eslint", "parser"))) {
+             throw new errors_1.InvalidParserError();
+         }
+         const parserOptions = (configFileContent.parserOptions ? configFileContent.parserOptions : {});
