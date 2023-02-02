@@ -20,6 +20,28 @@ module.exports = {
         }
       }
     },
+    "eqeqeq": {
+      create: function (context) {
+        return {
+          BinaryExpression(node) {
+            let childIsUndefined = ((node.left.type === "Identifier" && node.left.name === "undefined") || (node.right.type === "Identifier" && node.right.name === "undefined"));
+            if (!childIsUndefined) {
+                if (node.operator === "==") {
+                  context.report({
+                    node,
+                    message: "Comparison with == is only allowed when comparing with undefined, because JavaScript is cursed. Use === instead.",
+                  });
+                } else if (node.operator === "!=") {
+                  context.report({
+                    node,
+                    message: "Comparison with != is only allowed when comparing with undefined, because JavaScript is cursed. Use !== instead.",
+                  });
+                }
+            }
+          }
+        }
+      }
+    },
     "check-typecast-spacing": {
       create: function (context) {
         const sourceCode = context.getSourceCode();
