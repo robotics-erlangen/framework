@@ -339,9 +339,9 @@ std::vector<TrajectoryPoint> Trajectory::trajectoryPositions(std::size_t count, 
     }
 
     Vector offset = s0;
-    float totalTime = 0;
+    float totalTime = timeOffset;
 
-    float nextDesiredTime = 0;
+    float nextDesiredTime = timeOffset;
     std::size_t resultCounter = 0;
     for (unsigned int i = 0;i<profile.size()-1;i++) {
         const auto precomputation = acceleration.precomputeSegment(profile[i], profile[i+1]);
@@ -351,7 +351,7 @@ std::vector<TrajectoryPoint> Trajectory::trajectoryPositions(std::size_t count, 
             result[resultCounter].state.pos = offset + inf.first + correctionOffsetPerSecond * nextDesiredTime;
             result[resultCounter].state.speed = inf.second;
             resultCounter++;
-            nextDesiredTime = timeInterval * resultCounter;
+            nextDesiredTime = timeOffset + timeInterval * resultCounter;
 
             if (resultCounter == result.size()) {
                 return result;
