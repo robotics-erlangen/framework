@@ -351,7 +351,7 @@ std::vector<TrajectoryPoint> Trajectory::trajectoryPositions(std::size_t count, 
             result[resultCounter].state.pos = offset + inf.first + correctionOffsetPerSecond * nextDesiredTime;
             result[resultCounter].state.speed = inf.second;
             resultCounter++;
-            nextDesiredTime += timeInterval;
+            nextDesiredTime = timeInterval * resultCounter;
 
             if (resultCounter == result.size()) {
                 return result;
