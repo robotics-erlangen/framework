@@ -341,17 +341,15 @@ std::vector<TrajectoryPoint> Trajectory::trajectoryPositions(std::size_t count, 
     Vector offset = s0;
     float totalTime = timeOffset;
 
-    float nextDesiredTime = timeOffset;
     std::size_t resultCounter = 0;
     for (unsigned int i = 0;i<profile.size()-1;i++) {
         const auto precomputation = acceleration.precomputeSegment(profile[i], profile[i+1]);
         const float segmentTime = acceleration.timeForSegment(profile[i], profile[i+1], precomputation);
-        while (totalTime + segmentTime >= nextDesiredTime) {
-            const auto inf = acceleration.partialSegmentOffsetAndSpeed(profile[i], profile[i+1], precomputation, totalTime, nextDesiredTime);
-            result[resultCounter].state.pos = offset + inf.first + correctionOffsetPerSecond * nextDesiredTime;
+        while (totalTime + segmentTime >= result[resultCounter].time) {
+            const auto inf = acceleration.partialSegmentOffsetAndSpeed(profile[i], profile[i+1], precomputation, totalTime, result[resultCounter].time);
+            result[resultCounter].state.pos = offset + inf.first + correctionOffsetPerSecond * result[resultCounter].time;
             result[resultCounter].state.speed = inf.second;
             resultCounter++;
-            nextDesiredTime = timeOffset + timeInterval * resultCounter;
 
             if (resultCounter == result.size()) {
                 return result;
