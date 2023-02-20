@@ -22,6 +22,8 @@ export class Support implements Group {
 	_lastRobots: FriendlyRobot[] | undefined;
 	_lastAssignments: Map<UtilZone.Zone, FriendlyRobot> | undefined = undefined;
 
+	private objective: Objective | undefined = undefined;
+
 	_chooseEmptyZone(mainAttackerPos?: Position) {
 		let emptyZoneHysteresis = this._emptyZone ? 0.2 : 0;
 		if (mainAttackerPos != undefined) {
@@ -74,17 +76,26 @@ export class Support implements Group {
 		}
 
 		// choose which zone is occupied by the mainAttacker
-		let mainAttackerPos = undefined;
+		let mainAttackerPos: Position | undefined = undefined;
 		if (mainAttacker) {
 			mainAttackerPos = messaging.receiveSingleSender(MessageType.attackPosition)[1] || mainAttacker.pos;
 		}
 
+		// check if the main attacker entered another zone than its own
+		// this is better than checking if it left the empty zone, because it can leave the empty zone without
+		// necessarily entering another zone and we don't want to recompute the zones in that case
+		const mainAttackerPosChangedZone = mainAttackerPos !== undefined
+			&& this._zones.filter((zone) => zone !== this._emptyZone)
+				.some((zone) => UtilZone.isInZone(mainAttackerPos!, zone, -0.3));
+
 		// update zones if necessary
-		if (robots.length !== this._supportCount) {
+		if (robots.length !== this._supportCount || this.objective !== objective || mainAttackerPosChangedZone) {
 			this._supportCount = robots.length;
 			this._zones = objective.getSupporterZones(robots, mainAttackerPos);
 			// reset empty zone hysteresis
 			this._emptyZone = undefined;
+
+			this.objective = objective;
 
 			updateAssignments = true;
 		}
