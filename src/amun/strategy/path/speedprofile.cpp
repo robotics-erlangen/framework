@@ -307,7 +307,7 @@ Vector Trajectory::endPosition() const
         offset += acceleration.segmentOffset(profile[i], profile[i+1], precomputation);
         totalTime += acceleration.timeForSegment(profile[i], profile[i+1], precomputation);
     }
-    return offset + correctionOffsetPerSecond * totalTime;
+    return offset + correctionSpeed * totalTime;
 }
 
 RobotState Trajectory::stateAtTime(float time) const
@@ -321,12 +321,12 @@ RobotState Trajectory::stateAtTime(float time) const
         const float segmentTime = acceleration.timeForSegment(profile[i], profile[i+1], precomputation);
         if (totalTime + segmentTime > time) {
             const auto inf = acceleration.partialSegmentOffsetAndSpeed(profile[i], profile[i+1], precomputation, totalTime, time);
-            return {offset + correctionOffsetPerSecond * time + inf.first, inf.second};
+            return {offset + correctionSpeed * time + inf.first, inf.second};
         }
         offset += acceleration.segmentOffset(profile[i], profile[i+1], precomputation);
         totalTime += segmentTime;
     }
-    return {offset + correctionOffsetPerSecond * totalTime, profile.back().v};
+    return {offset + correctionSpeed * totalTime, profile.back().v};
 }
 
 std::vector<TrajectoryPoint> Trajectory::trajectoryPositions(std::size_t count, float timeInterval, float timeOffset) const
@@ -347,7 +347,7 @@ std::vector<TrajectoryPoint> Trajectory::trajectoryPositions(std::size_t count, 
         const float segmentTime = acceleration.timeForSegment(profile[i], profile[i+1], precomputation);
         while (totalTime + segmentTime >= result[resultCounter].time) {
             const auto inf = acceleration.partialSegmentOffsetAndSpeed(profile[i], profile[i+1], precomputation, totalTime, result[resultCounter].time);
-            result[resultCounter].state.pos = offset + inf.first + correctionOffsetPerSecond * result[resultCounter].time;
+            result[resultCounter].state.pos = offset + inf.first + correctionSpeed * result[resultCounter].time;
             result[resultCounter].state.speed = inf.second;
             resultCounter++;
 
@@ -360,7 +360,7 @@ std::vector<TrajectoryPoint> Trajectory::trajectoryPositions(std::size_t count, 
     }
 
     while (resultCounter < result.size()) {
-        result[resultCounter].state.pos = offset + correctionOffsetPerSecond * totalTime;
+        result[resultCounter].state.pos = offset + correctionSpeed * totalTime;
         result[resultCounter].state.speed = profile.back().v;
         resultCounter++;
     }
@@ -386,14 +386,14 @@ BoundingBox Trajectory::calculateBoundingBox() const
                 const VT zeroSegment{Vector{0, 0}, totalTime};
 
                 const auto precomputation = acceleration.precomputeSegment(profile[i], zeroSegment);
-                const Vector partialOffset = offset + acceleration.segmentOffset(profile[i], zeroSegment, precomputation) + correctionOffsetPerSecond * relTime;
+                const Vector partialOffset = offset + acceleration.segmentOffset(profile[i], zeroSegment, precomputation) + correctionSpeed * relTime;
                 minPos[j] = std::min(minPos[j], partialOffset[j]);
                 maxPos[j] = std::max(maxPos[j], partialOffset[j]);
             }
         }
 
         const auto precomputation = acceleration.precomputeSegment(profile[i], profile[i+1]);
-        offset += acceleration.segmentOffset(profile[i], profile[i+1], precomputation) + correctionOffsetPerSecond * (profile[i+1].t - profile[i].t);
+        offset += acceleration.segmentOffset(profile[i], profile[i+1], precomputation) + correctionSpeed * (profile[i+1].t - profile[i].t);
         minPos.x = std::min(minPos.x, offset.x);
         minPos.y = std::min(minPos.y, offset.y);
         maxPos.x = std::max(maxPos.x, offset.x);
@@ -418,12 +418,12 @@ std::vector<TrajectoryPoint> Trajectory::getTrajectoryPoints(float t0) const
         offset += acceleration.segmentOffset(profile[i], profile[i+1], precomputation);
         time += acceleration.timeForSegment(profile[i], profile[i+1], precomputation);
 
-        result.emplace_back(RobotState{offset + correctionOffsetPerSecond * time, profile[i+1].v}, time + t0);
+        result.emplace_back(RobotState{offset + correctionSpeed * time, profile[i+1].v}, time + t0);
     }
 
     // compensate for the missing exponential slowdown by adding a segment with zero speed
     if (slowDownTime != -1) {
-        result.emplace_back(RobotState{offset + correctionOffsetPerSecond * time, profile.back().v}, time + t0);
+        result.emplace_back(RobotState{offset + correctionSpeed * time, profile.back().v}, time + t0);
     }
 
     return result;
@@ -462,13 +462,13 @@ TrajectoryPoint Trajectory::Iterator::next(const float timeOffset)
     }
 
     if (currentIndex + 1 == trajectory.profile.size()) {
-        const Vector pos = segmentStartOffset + trajectory.correctionOffsetPerSecond * segmentEndTime;
+        const Vector pos = segmentStartOffset + trajectory.correctionSpeed * segmentEndTime;
         return TrajectoryPoint{RobotState{pos, trajectory.profile.back().v}, currentTime + startTimeOffset};
     }
 
     const auto partialState = acceleration.partialSegmentOffsetAndSpeed(trajectory.profile[currentIndex], trajectory.profile[currentIndex+1],
                                                                         precomputation, segmentStartTime, currentTime);
-    const Vector pos = partialState.first + segmentStartOffset + trajectory.correctionOffsetPerSecond * currentTime;
+    const Vector pos = partialState.first + segmentStartOffset + trajectory.correctionSpeed * currentTime;
     const RobotState state{pos, partialState.second};
     return TrajectoryPoint{state, currentTime + startTimeOffset};
 }

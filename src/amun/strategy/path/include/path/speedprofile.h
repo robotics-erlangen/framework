@@ -123,7 +123,7 @@ public:
     void limitToTime(float time);
 
     void setCorrectionOffset(Vector offset) {
-        correctionOffsetPerSecond = offset / time();
+        correctionSpeed = offset / time();
     }
 
     void setStartPos(Vector pos) {
@@ -177,7 +177,7 @@ public:
 private:
     StaticVector<VT, 6> profile{};
     Vector s0{0, 0};
-    Vector correctionOffsetPerSecond{0, 0};
+    Vector correctionSpeed{0, 0};
     float slowDownTime{0};
 };
 
