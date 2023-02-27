@@ -60,7 +60,7 @@ not already installed.
 #### Manjaro
 The package names are
 ```
-cmake qt5-base patch pck-conf sdl2 libusb pkgconf openssl
+cmake qt5-base patch base-devel sdl2 libusb pkgconf openssl
 ```
 There is a provided `protobuf` package, however its current version breaks
 compilation. It is advisable to let the build system build `protobuf` from
