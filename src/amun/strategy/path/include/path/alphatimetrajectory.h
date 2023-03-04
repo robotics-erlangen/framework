@@ -22,7 +22,7 @@
 #define ALPHATIMETRAJECTORY_H
 
 #include "core/vector.h"
-#include "speedprofile.h"
+#include "trajectory.h"
 #include <vector>
 #include <optional>
 

@@ -23,7 +23,7 @@
 
 #include "alphatimetrajectory.h"
 #include "worldinformation.h"
-#include "speedprofile.h"
+#include "trajectory.h"
 #include "pathdebug.h"
 #include "trajectoryinput.h"
 #include "core/vector.h"

@@ -38,7 +38,7 @@ set(path_files
     include/path/escapeobstaclesampler.h
     include/path/standardsampler.h
     include/path/pathdebug.h
-    include/path/speedprofile.h
+    include/path/trajectory.h
     include/path/multiescapesampler.h
     include/path/parameterization.h
     include/path/trajectoryinput.h
@@ -55,7 +55,7 @@ set(path_files
     escapeobstaclesampler.cpp
     standardsampler.cpp
     pathdebug.cpp
-    speedprofile.cpp
+    trajectory.cpp
     multiescapesampler.cpp
     parameterization.cpp
 )

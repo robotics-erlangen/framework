@@ -24,7 +24,7 @@ add_executable(cpptests
     core/run_out_of_scope.cpp
     core/coordinates.cpp
     amun/strategy/path/boundingbox.cpp
-    amun/strategy/path/speedprofile.cpp
+    amun/strategy/path/alphatimetrajectory.cpp
     amun/strategy/path/linesegment.cpp
     amun/strategy/path/obstacles.cpp
     amun/strategy/path/endinobstaclesampler.cpp

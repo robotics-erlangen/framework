@@ -18,7 +18,7 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#include "speedprofile.h"
+#include "trajectory.h"
 
 #include "core/run_out_of_scope.h"
 

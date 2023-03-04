@@ -23,7 +23,7 @@
 
 #include "trajectorysampler.h"
 #include "escapeobstaclesampler.h"
-#include "speedprofile.h"
+#include "trajectory.h"
 
 #include <vector>
 

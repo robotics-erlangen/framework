@@ -23,7 +23,7 @@
 #include "path/endinobstaclesampler.h"
 #include "path/worldinformation.h"
 #include "path/alphatimetrajectory.h"
-#include "path/speedprofile.h"
+#include "path/trajectory.h"
 
 #include <functional>
 
