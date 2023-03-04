@@ -25,7 +25,7 @@
 #include <iostream>
 #include <cassert>
 
-void SpeedProfile1D::integrateTime()
+void Trajectory1D::integrateTime()
 {
     float totalTime = 0;
     for (std::size_t i = 0;i<profile.size();i++) {
@@ -46,7 +46,7 @@ static float dist(float v0, float v1, float acc)
     return 0.5f * (v0 + v1) * time;
 }
 
-std::pair<float, float> SpeedProfile1D::freeExtraTimeDistance(float v, float time, float acc, float vMax)
+std::pair<float, float> Trajectory1D::freeExtraTimeDistance(float v, float time, float acc, float vMax)
 {
     const float toMaxTime = 2.0f * std::abs(vMax - v) / acc;
     if (toMaxTime < time) {
@@ -58,7 +58,7 @@ std::pair<float, float> SpeedProfile1D::freeExtraTimeDistance(float v, float tim
     }
 }
 
-auto SpeedProfile1D::calculateEndPos1D(float v0, float v1, float hintDist, float acc, float vMax) -> TrajectoryPosInfo1D
+auto Trajectory1D::calculateEndPos1D(float v0, float v1, float hintDist, float acc, float vMax) -> TrajectoryPosInfo1D
 {
     // basically the same as calculate1DTrajectory, but with position only
     // see the comments there if necessary
@@ -76,7 +76,7 @@ auto SpeedProfile1D::calculateEndPos1D(float v0, float v1, float hintDist, float
     }
 }
 
-static SpeedProfile1D::VT adjustEndSpeed(float v0, float v1, float time, bool directionPositive, float acc)
+static Trajectory1D::VT adjustEndSpeed(float v0, float v1, float time, bool directionPositive, float acc)
 {
     const float invAcc = 1.0f / acc;
 
@@ -89,9 +89,9 @@ static SpeedProfile1D::VT adjustEndSpeed(float v0, float v1, float time, bool di
     return {boundedSpeed, time - necessaryTime};
 }
 
-SpeedProfile1D::TrajectoryPosInfo1D SpeedProfile1D::calculateEndPos1DFastSpeed(float v0, float v1, float time, bool directionPositive, float acc, float vMax)
+Trajectory1D::TrajectoryPosInfo1D Trajectory1D::calculateEndPos1DFastSpeed(float v0, float v1, float time, bool directionPositive, float acc, float vMax)
 {
-    const SpeedProfile1D::VT endValues = adjustEndSpeed(v0, v1, time, directionPositive, acc);
+    const Trajectory1D::VT endValues = adjustEndSpeed(v0, v1, time, directionPositive, acc);
     if (endValues.t == 0.0f) {
         return {(v0 + endValues.v) * 0.5f * time, directionPositive ? std::max(v0, v1) : std::min(v0, v1)};
     } else {
@@ -100,11 +100,11 @@ SpeedProfile1D::TrajectoryPosInfo1D SpeedProfile1D::calculateEndPos1DFastSpeed(f
     }
 }
 
-SpeedProfile1D SpeedProfile1D::calculate1DTrajectoryFastEndSpeed(float v0, float v1, float time, bool directionPositive, float acc, float vMax)
+Trajectory1D Trajectory1D::calculate1DTrajectoryFastEndSpeed(float v0, float v1, float time, bool directionPositive, float acc, float vMax)
 {
-    const SpeedProfile1D::VT endValues = adjustEndSpeed(v0, v1, time, directionPositive, acc);
+    const Trajectory1D::VT endValues = adjustEndSpeed(v0, v1, time, directionPositive, acc);
     if (endValues.t == 0.0f) {
-        SpeedProfile1D result;
+        Trajectory1D result;
         result.profile.push_back({v0, 0});
         result.profile.push_back({endValues.v, std::abs(endValues.v - v0) / acc});
         return result;
@@ -113,7 +113,7 @@ SpeedProfile1D SpeedProfile1D::calculate1DTrajectoryFastEndSpeed(float v0, float
     }
 }
 
-void SpeedProfile1D::createFreeExtraTimeSegment(float beforeSpeed, float v, float nextSpeed, float time, float acc, float desiredVMax)
+void Trajectory1D::createFreeExtraTimeSegment(float beforeSpeed, float v, float nextSpeed, float time, float acc, float desiredVMax)
 {
     const float toMaxTime = 2.0f * std::abs(desiredVMax - v) / acc;
     if (toMaxTime < time) {
@@ -127,9 +127,9 @@ void SpeedProfile1D::createFreeExtraTimeSegment(float beforeSpeed, float v, floa
     }
 }
 
-SpeedProfile1D SpeedProfile1D::calculate1DTrajectory(float v0, float v1, float extraTime, bool directionPositive, float acc, float vMax)
+Trajectory1D Trajectory1D::calculate1DTrajectory(float v0, float v1, float extraTime, bool directionPositive, float acc, float vMax)
 {
-    SpeedProfile1D result;
+    Trajectory1D result;
     result.profile.push_back({v0, 0});
 
     const float desiredVMax = directionPositive ? vMax : -vMax;
@@ -178,7 +178,7 @@ static float solveSq(float a, float b, float c)
     return std::max(t1, t2);
 }
 
-SpeedProfile1D SpeedProfile1D::create1DAccelerationByDistance(float v0, float v1, float time, float distance)
+Trajectory1D Trajectory1D::create1DAccelerationByDistance(float v0, float v1, float time, float distance)
 {
     assert(std::signbit(v0) == std::signbit(distance) && (std::signbit(v1) == std::signbit(distance) || v1 == 0));
 
@@ -198,22 +198,22 @@ SpeedProfile1D SpeedProfile1D::create1DAccelerationByDistance(float v0, float v1
     const float acc = 1.0f / (2.0f * distance) * (2.0f * midSpeed * midSpeed - v0Abs * v0Abs - v1Abs * v1Abs);
     const float accInv = 1.0f / acc;
 
-    SpeedProfile1D result;
+    Trajectory1D result;
     result.profile.push_back({v0, 0});
     result.profile.push_back({midSpeed, std::abs(v0 - midSpeed) * accInv});
     result.profile.push_back({v1, std::abs(v1 - midSpeed) * accInv});
     return result;
 }
 
-SpeedProfile1D SpeedProfile1D::createLinearSpeedSegment(float v0, float v1, float time)
+Trajectory1D Trajectory1D::createLinearSpeedSegment(float v0, float v1, float time)
 {
-    SpeedProfile1D result;
+    Trajectory1D result;
     result.profile.push_back({v0, 0});
     result.profile.push_back({v1, time});
     return result;
 }
 
-static float speedForTime(SpeedProfile1D::VT first, SpeedProfile1D::VT second, float time)
+static float speedForTime(Trajectory1D::VT first, Trajectory1D::VT second, float time)
 {
     const float timeDiff = time - first.t;
     const float diff = second.t == first.t ? 1 : timeDiff / (second.t - first.t);
@@ -221,8 +221,7 @@ static float speedForTime(SpeedProfile1D::VT first, SpeedProfile1D::VT second, f
     return speed;
 }
 
-Trajectory::Trajectory(const SpeedProfile1D &xProfile, const SpeedProfile1D &yProfile,
-                       Vector startPos, float slowDownTime) :
+Trajectory::Trajectory(const Trajectory1D &xProfile, const Trajectory1D &yProfile, Vector startPos, float slowDownTime) :
     s0(startPos),
     // 0 would be at the exact end of the trajectory, thus sometimes creating problems
     slowDownTime(slowDownTime == 0 ? -1 : slowDownTime)

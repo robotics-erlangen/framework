@@ -108,17 +108,17 @@ AlphaTimeTrajectory::TrajectoryPosInfo2D AlphaTimeTrajectory::calculatePosition(
     const float alphaX = std::sin(angle);
     const float alphaY = std::cos(angle);
 
-    SpeedProfile1D::TrajectoryPosInfo1D xInfo, yInfo;
+    Trajectory1D::TrajectoryPosInfo1D xInfo, yInfo;
     if (endSpeedType == EndSpeed::FAST) {
-        xInfo = SpeedProfile1D::calculateEndPos1DFastSpeed(v0.x, v1.x, time, alphaX > 0, acc * std::abs(alphaX), vMax * std::abs(alphaX));
-        yInfo = SpeedProfile1D::calculateEndPos1DFastSpeed(v0.y, v1.y, time, alphaY > 0, acc * std::abs(alphaY), vMax * std::abs(alphaY));
+        xInfo = Trajectory1D::calculateEndPos1DFastSpeed(v0.x, v1.x, time, alphaX > 0, acc * std::abs(alphaX), vMax * std::abs(alphaX));
+        yInfo = Trajectory1D::calculateEndPos1DFastSpeed(v0.y, v1.y, time, alphaY > 0, acc * std::abs(alphaY), vMax * std::abs(alphaY));
     } else {
         const Vector diff = v1 - v0;
         const float restTimeX = (time - std::abs(diff.x) / (acc * std::abs(alphaX)));
         const float restTimeY = (time - std::abs(diff.y) / (acc * std::abs(alphaY)));
 
-        xInfo = SpeedProfile1D::calculateEndPos1D(v0.x, v1.x, sign(alphaX) * restTimeX, acc * std::abs(alphaX), vMax * std::abs(alphaX));
-        yInfo = SpeedProfile1D::calculateEndPos1D(v0.y, v1.y, sign(alphaY) * restTimeY, acc * std::abs(alphaY), vMax * std::abs(alphaY));
+        xInfo = Trajectory1D::calculateEndPos1D(v0.x, v1.x, sign(alphaX) * restTimeX, acc * std::abs(alphaX), vMax * std::abs(alphaX));
+        yInfo = Trajectory1D::calculateEndPos1D(v0.y, v1.y, sign(alphaY) * restTimeY, acc * std::abs(alphaY), vMax * std::abs(alphaY));
     }
 
 
@@ -127,8 +127,8 @@ AlphaTimeTrajectory::TrajectoryPosInfo2D AlphaTimeTrajectory::calculatePosition(
 
 Trajectory AlphaTimeTrajectory::minTimeTrajectory(const RobotState &start, Vector v1, float slowDownTime, float minTime)
 {
-    const SpeedProfile1D x = SpeedProfile1D::createLinearSpeedSegment(start.speed.x, v1.x, minTime);
-    const SpeedProfile1D y = SpeedProfile1D::createLinearSpeedSegment(start.speed.y, v1.y, minTime);
+    const Trajectory1D x = Trajectory1D::createLinearSpeedSegment(start.speed.x, v1.x, minTime);
+    const Trajectory1D y = Trajectory1D::createLinearSpeedSegment(start.speed.y, v1.y, minTime);
     return Trajectory{x, y, start.pos, slowDownTime};
 }
 
@@ -140,8 +140,8 @@ Trajectory AlphaTimeTrajectory::calculateTrajectory(const RobotState &start, Vec
     // note that this also checks for very small differences that just square to zero
     if ((v1 - v0).lengthSquared() == 0 && time < 0.0001f) {
         const float EPSILON = 0.00001f;
-        const SpeedProfile1D x = SpeedProfile1D::createLinearSpeedSegment(v0.x, v0.x, EPSILON);
-        const SpeedProfile1D y = SpeedProfile1D::createLinearSpeedSegment(v0.y, v0.y, EPSILON);
+        const Trajectory1D x = Trajectory1D::createLinearSpeedSegment(v0.x, v0.x, EPSILON);
+        const Trajectory1D y = Trajectory1D::createLinearSpeedSegment(v0.y, v0.y, EPSILON);
         return Trajectory{x, y, start.pos, slowDownTime};
     }
 
@@ -160,17 +160,17 @@ Trajectory AlphaTimeTrajectory::calculateTrajectory(const RobotState &start, Vec
     const float alphaY = std::cos(angle);
 
 
-    SpeedProfile1D x, y;
+    Trajectory1D x, y;
     if (endSpeedType == EndSpeed::FAST) {
-        x = SpeedProfile1D::calculate1DTrajectoryFastEndSpeed(v0.x, v1.x, time, alphaX > 0, acc * std::abs(alphaX), vMax * std::abs(alphaX));
-        y = SpeedProfile1D::calculate1DTrajectoryFastEndSpeed(v0.y, v1.y, time, alphaY > 0, acc * std::abs(alphaY), vMax * std::abs(alphaY));
+        x = Trajectory1D::calculate1DTrajectoryFastEndSpeed(v0.x, v1.x, time, alphaX > 0, acc * std::abs(alphaX), vMax * std::abs(alphaX));
+        y = Trajectory1D::calculate1DTrajectoryFastEndSpeed(v0.y, v1.y, time, alphaY > 0, acc * std::abs(alphaY), vMax * std::abs(alphaY));
     } else {
         const Vector diff = v1 - v0;
         const float restTimeX = (time - std::abs(diff.x) / (acc * std::abs(alphaX)));
         const float restTimeY = (time - std::abs(diff.y) / (acc * std::abs(alphaY)));
 
-        x = SpeedProfile1D::calculate1DTrajectory(v0.x, v1.x, restTimeX, alphaX > 0, acc * std::abs(alphaX), vMax * std::abs(alphaX));
-        y = SpeedProfile1D::calculate1DTrajectory(v0.y, v1.y, restTimeY, alphaY > 0, acc * std::abs(alphaY), vMax * std::abs(alphaY));
+        x = Trajectory1D::calculate1DTrajectory(v0.x, v1.x, restTimeX, alphaX > 0, acc * std::abs(alphaX), vMax * std::abs(alphaX));
+        y = Trajectory1D::calculate1DTrajectory(v0.y, v1.y, restTimeY, alphaY > 0, acc * std::abs(alphaY), vMax * std::abs(alphaY));
     }
 
     x.integrateTime();
@@ -233,17 +233,17 @@ std::optional<Trajectory> AlphaTimeTrajectory::tryDirectBrake(const RobotState &
     const bool directionMatches = std::signbit(v0.x) == std::signbit(targetOffset.x) && std::signbit(v0.y) == std::signbit(targetOffset.y);
     if (directionMatches && accLength > acc && accLength < acc * MAX_ACCELERATION_FACTOR && slowDownTime == 0.0f) {
 
-        SpeedProfile1D x = SpeedProfile1D::createLinearSpeedSegment(v0.x, 0, std::abs(v0.x / necessaryAcc.x));
-        SpeedProfile1D y = SpeedProfile1D::createLinearSpeedSegment(v0.y, 0, std::abs(v0.y / necessaryAcc.y));
+        Trajectory1D x = Trajectory1D::createLinearSpeedSegment(v0.x, 0, std::abs(v0.x / necessaryAcc.x));
+        Trajectory1D y = Trajectory1D::createLinearSpeedSegment(v0.y, 0, std::abs(v0.y / necessaryAcc.y));
 
         if (timeDiff < 0.1f) {
             return Trajectory{x, y, start.pos, slowDownTime};
         } else {
             if (times.x > times.y) {
-                x = SpeedProfile1D::create1DAccelerationByDistance(v0.x, 0, times.y, targetOffset.x);
+                x = Trajectory1D::create1DAccelerationByDistance(v0.x, 0, times.y, targetOffset.x);
                 x.integrateTime();
             } else {
-                y = SpeedProfile1D::create1DAccelerationByDistance(v0.y, 0, times.x, targetOffset.y);
+                y = Trajectory1D::create1DAccelerationByDistance(v0.y, 0, times.x, targetOffset.y);
                 y.integrateTime();
             }
             const float accX = x.initialAcceleration();

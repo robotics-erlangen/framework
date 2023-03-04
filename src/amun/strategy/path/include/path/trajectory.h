@@ -30,7 +30,6 @@
 #include <array>
 
 class AlphaTimeTrajectory;
-class SpeedProfile;
 
 template<typename T, std::size_t n>
 class StaticVector {
@@ -65,7 +64,7 @@ private:
     int counter = 0;
 };
 
-class SpeedProfile1D {
+class Trajectory1D {
 public:
     struct VT {
         float v;
@@ -80,21 +79,21 @@ public:
         float increaseAtSpeed;
     };
 
-    [[nodiscard]] static SpeedProfile1D createLinearSpeedSegment(float v0, float v1, float time);
+    [[nodiscard]] static Trajectory1D createLinearSpeedSegment(float v0, float v1, float time);
 
     // helper functions
     // WARNING: assumes that the input is valid and solvable
     [[nodiscard]] static TrajectoryPosInfo1D calculateEndPos1DFastSpeed(float v0, float v1, float time, bool directionPositive, float acc, float vMax);
-    [[nodiscard]] static SpeedProfile1D calculate1DTrajectoryFastEndSpeed(float v0, float v1, float time, bool directionPositive, float acc, float vMax);
+    [[nodiscard]] static Trajectory1D calculate1DTrajectoryFastEndSpeed(float v0, float v1, float time, bool directionPositive, float acc, float vMax);
 
     [[nodiscard]] static TrajectoryPosInfo1D calculateEndPos1D(float v0, float v1, float hintDist, float acc, float vMax);
-    [[nodiscard]] static SpeedProfile1D calculate1DTrajectory(float v0, float v1, float extraTime, bool directionPositive, float acc, float vMax);
+    [[nodiscard]] static Trajectory1D calculate1DTrajectory(float v0, float v1, float extraTime, bool directionPositive, float acc, float vMax);
 
     // Creates a single acceleration and brake segment that takes exactly "time" seconds
     // and travels "distance" meters. The acceleration can become arbitrarily large.
     // Maximum speed is not considered and has to be checked by the caller.
     // Limitations: sign(v0) == sign(distance) && (sign(v1) == sign(distance) || v1 == 0)
-    [[nodiscard]] static SpeedProfile1D create1DAccelerationByDistance(float v0, float v1, float time, float distance);
+    [[nodiscard]] static Trajectory1D create1DAccelerationByDistance(float v0, float v1, float time, float distance);
 
     float initialAcceleration() const {
         return (profile[1].v - profile[0].v) / (profile[1].t - profile[0].t);
@@ -114,8 +113,7 @@ class Trajectory {
 public:
 
     Trajectory() = default;
-    Trajectory(const SpeedProfile1D &xProfile, const SpeedProfile1D &yProfile,
-               Vector startPos, float slowDownTime);
+    Trajectory(const Trajectory1D &xProfile, const Trajectory1D &yProfile, Vector startPos, float slowDownTime);
 
     float getSlowDownTime() const { return slowDownTime; }
 
