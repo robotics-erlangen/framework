@@ -338,6 +338,8 @@ export class FriendlyRobot extends Robot {
 
 	centerToDribbler: number | undefined;
 
+	canShoot: boolean;
+	canDribble: boolean;
 
 	// private attributes
 	private _kickStyle?: pb.robot.Command.KickStyle;
@@ -397,6 +399,9 @@ export class FriendlyRobot extends Robot {
 		if (specs.angle != undefined) {
 			this.centerToDribbler = this.radius * Math.sin((Math.PI - specs.angle) * 0.5);
 		}
+
+		this.canShoot = specs.can_shoot !== undefined ? specs.can_shoot : true;
+		this.canDribble = specs.can_dribble !== undefined ? specs.can_dribble : true;
 	}
 
 	_updatePathBoundaries(geometry: GeomType, aoi: pb.world.TrackingAOI | undefined) {
