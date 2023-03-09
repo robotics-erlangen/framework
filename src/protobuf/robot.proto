@@ -49,6 +49,8 @@ message Specs
     reserved 20;
     // if not present, the 'acceleration' field is used instread (with an additional acceleration factor)
     optional SimulationLimits simulation_limits = 21;
+    optional bool can_shoot = 22 [default = true];
+    optional bool can_dribble = 23 [default = true];
 };
 
 message Generation

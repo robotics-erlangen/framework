@@ -35,6 +35,8 @@ default {
     a_speedup_wheel_max: 35
     a_brake_wheel_max: 30
   }
+  can_shoot: true
+  can_dribble: true
 }
 robot {
   id: 0

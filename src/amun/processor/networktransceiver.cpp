@@ -245,7 +245,7 @@ void NetworkTransceiver::handleCommand(const Command &command)
     }
     static bool sendMessage = true;
     if (sendMessage) {
-        const int highest_field = 21;
+        const int highest_field = 23;
         const int expected_fields = highest_field - 1;
         auto* desc = robot::Specs::descriptor();
         int real_fields = desc->field_count();
