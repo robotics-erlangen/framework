@@ -6,6 +6,7 @@ import * as World from "base/world";
 // import {Ally} from "glados/agent/ally";
 import { Attacker } from "glados/agent/attacker";
 import { Defender } from "glados/agent/defender";
+import { Dummy } from "glados/agent/dummy";
 import { Hidden } from "glados/agent/hidden";
 import { Keeper } from "glados/agent/keeper";
 import { AgentPool, AttackerPool } from "glados/control/agentpool";
@@ -19,7 +20,8 @@ const AGENTS = {
 	Defender: Defender,
 	Hidden: Hidden,
 	Keeper: Keeper,
-	// Manual: Manual
+	// Manual: Manual,
+	Dummy: Dummy
 };
 
 // @return: returns an int i s.t. list[list.length-1] and list[i] have opposite values for isAttacker, undefined if there is none
@@ -42,11 +44,13 @@ export class MainCoordinator extends Coordinator {
 			keeper: new AgentPool(AGENTS.Keeper),
 			defense: new AgentPool(AGENTS.Defender),
 			attack: new AttackerPool(AGENTS.Attacker),
-			hidden: new AgentPool(AGENTS.Hidden)
+			hidden: new AgentPool(AGENTS.Hidden),
+			dummy: new AgentPool(AGENTS.Dummy)
 		};
 		let poolGroups: AgentPool[][] = [
 			// [ pools.manual ],
 			// [ pools.ally ],
+			[pools.dummy],
 			[pools.keeper],
 			[pools.defense, pools.attack],
 			[pools.hidden]

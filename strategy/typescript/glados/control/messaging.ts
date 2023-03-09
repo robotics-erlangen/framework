@@ -107,6 +107,8 @@ export enum MessageType {
 	placingRobot,
 	/** Sent by the MA to inform support attackers about the current objective */
 	selectedObjective,
+	/** Sent by gr/dummy to assign zones to the dummy robots */
+	dummyZone,
 
 	// =======================
 	// === Exclusive roles ===
@@ -210,6 +212,11 @@ interface NormalDescriptor extends BaseDescriptor {
 		receiver: "robot";
 	};
 	[MessageType.supportZone]: {
+		data: Zone;
+		sender: "trainer";
+		receiver: "robot";
+	};
+	[MessageType.dummyZone]: {
 		data: Zone;
 		sender: "trainer";
 		receiver: "robot";
