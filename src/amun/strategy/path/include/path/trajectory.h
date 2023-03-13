@@ -73,6 +73,7 @@ public:
 
 public:
     void integrateTime();
+    void printDebug() const;
 
     struct TrajectoryPosInfo1D {
         float endPos;

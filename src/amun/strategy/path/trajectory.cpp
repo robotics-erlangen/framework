@@ -33,6 +33,13 @@ void Trajectory1D::integrateTime()
         profile[i].t = totalTime;
     }
 }
+void Trajectory1D::printDebug() const
+{
+    for (std::size_t i = 0;i<profile.size();i++) {
+        std::cout <<"("<<profile[i].t<<": "<<profile[i].v<<") ";
+    }
+    std::cout <<std::endl;
+}
 
 // trajectory calculation
 static float constantDistance(float v, float time)
