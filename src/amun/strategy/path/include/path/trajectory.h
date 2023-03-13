@@ -56,6 +56,15 @@ public:
         return elements[counter - 1];
     }
 
+    T& back() {
+        assert(counter > 0);
+        return elements[counter - 1];
+    }
+
+    std::size_t capacity() {
+        return n;
+    }
+
     std::size_t size() const {
         return counter;
     }
