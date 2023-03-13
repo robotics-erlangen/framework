@@ -26,6 +26,7 @@
 #include "trajectoryinput.h"
 #include "accelerationprofile.h"
 
+#include <cassert>
 #include <vector>
 #include <array>
 
@@ -35,19 +36,23 @@ template<typename T, std::size_t n>
 class StaticVector {
 public:
     void push_back(const T &e) {
+        assert(counter < n);
         elements[counter] = e;
         counter++;
     }
 
     const T& operator[](std::size_t index) const {
+        assert(index < n);
         return elements[index];
     }
 
     T& operator[](std::size_t index) {
+        assert(index < n);
         return elements[index];
     }
 
     const T& back() const {
+        assert(counter > 0);
         return elements[counter - 1];
     }
 
@@ -56,6 +61,7 @@ public:
     }
 
     void resize(std::size_t numElements) {
+        assert(numElements <= n);
         counter = numElements;
     }
 
