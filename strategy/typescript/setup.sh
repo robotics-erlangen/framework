@@ -38,14 +38,15 @@ fi
 echo "${FBOLD}Installing packages from npm...${FNORMAL}"
 
 if ! npm ci --prefix "${typescript_tooling_path}"; then
+	echo "Probably could not find package-lock.json. Now trying to install only with package.json"
 	if ! npm install --prefix "${typescript_tooling_path}"; then
 		die "Failed to run npm install"
 	fi
 fi
 
 echo "${FBOLD}Apply patch to typescript-eslint-language-service"
-patch -u "${typescript_tooling_path}"/node_modules/typescript-eslint-language-service/lib/eslint-adapter.js -i eslint-plugin-erforce/eslint-adapter.js.patch
-patch -u "${typescript_tooling_path}"/node_modules/typescript-eslint-language-service/lib/eslint-config-provider.js -i eslint-plugin-erforce/eslint-config-provider.js.patch
+patch -u "${typescript_tooling_path}"/node_modules/typescript-eslint-language-service/lib/eslint-adapter.js -i ../../tools/eslint-plugin-erforce/eslint-adapter.js.patch
+patch -u "${typescript_tooling_path}"/node_modules/typescript-eslint-language-service/lib/eslint-config-provider.js -i ../../tools/eslint-plugin-erforce/eslint-config-provider.js.patch
 
 echo "${FBOLD}Copying custom typescript compiler${FNORMAL}"
 
