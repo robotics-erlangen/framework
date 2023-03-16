@@ -16,6 +16,8 @@
 		"removeComments": true,
 		"sourceMap": true,
 		"allowJs": true,
+		"noResolve": true,
+		"typeRoots": [],
 
 		"outDir": "built/built",
 		"baseUrl": ".",
@@ -30,7 +32,6 @@
 	"exclude": [
 		"base/mixedteam.ts",
 		"base/table.ts",
-		"node_modules/**/*.ts",
 		"eslint-plugin-erforce/**"
 	]
 }
