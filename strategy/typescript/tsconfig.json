@@ -16,6 +16,8 @@
 		"removeComments": true,
 		"sourceMap": true,
 		"allowJs": true,
+		"noResolve": true,
+		"typeRoots": [],
 
 		"outDir": "built/built",
 		"baseUrl": ".",
@@ -63,11 +65,9 @@
 		"glados/test/move/defense.ts",
 		"glados/test/move/dribble.ts",
 		"glados/test/move/goalshot.ts",
-		"glados/test/move/interceptpass.ts",
 		"glados/test/move/keepertest.ts",
 		"glados/test/move/movesrc1.ts",
 		"glados/test/move/timetopos.ts",
-		"glados/test/move/volley.ts",
 		"glados/test/situation/duel.ts",
 		"glados/test/situation/goalkick.ts",
 		"glados/test/situation/index.ts",
@@ -95,7 +95,6 @@
 		"glados/tutorials/t1Move/movestub.ts",
 		"glados/util/debug.ts",
 		"glados/util/io.ts",
-		"node_modules/**/*.ts",
 		"eslint-plugin-erforce/**"
 	]
 }
