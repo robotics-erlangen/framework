@@ -1,13 +1,13 @@
 {
   "scripts": {
-    "lint": "eslint --ext .js,.ts .",
-    "lint-fix": "eslint --ext .js,.ts --fix ."
+    "lint": "eslint --config strategy/typescript/.eslintrc.js --ignore-path strategy/typescript/.eslintignore --ext .js,.ts strategy/typescript",
+    "lint-fix": "eslint --config strategy/typescript/.eslintrc.js --ext .js,.ts --fix strategy/typescript"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "5.26.0",
     "@typescript-eslint/parser": "5.26.0",
     "eslint": "^8.29.0",
-    "eslint-plugin-erforce": "file:eslint-plugin-erforce",
+    "eslint-plugin-erforce": "file:strategy/typescript/eslint-plugin-erforce",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-jsdoc": "^39.6.4",
     "eslint-plugin-no-null": "^1.0.2",

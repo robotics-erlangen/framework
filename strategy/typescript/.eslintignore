@@ -1,7 +1,7 @@
-.eslintrc.js
-node_modules
-built
-base/mixedteam.ts
-base/table.ts
-base/protobuf.ts
-eslint-plugin-erforce
+**/.eslintrc.js
+**/node_modules
+**/built
+**/base/mixedteam.ts
+**/base/table.ts
+**/base/protobuf.ts
+**/eslint-plugin-erforce

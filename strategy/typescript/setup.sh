@@ -1,5 +1,7 @@
 #!/bin/sh
 
+typescript_tooling_path="../.."
+
 FBOLD=""
 FNORMAL=""
 setup_pretty_printing() {
@@ -35,15 +37,15 @@ fi
 
 echo "${FBOLD}Installing packages from npm...${FNORMAL}"
 
-if ! npm ci; then
-	if ! npm install; then
+if ! npm ci --prefix "${typescript_tooling_path}"; then
+	if ! npm install --prefix "${typescript_tooling_path}"; then
 		die "Failed to run npm install"
 	fi
 fi
 
 echo "${FBOLD}Apply patch to typescript-eslint-language-service"
-patch -u node_modules/typescript-eslint-language-service/lib/eslint-adapter.js -i eslint-plugin-erforce/eslint-adapter.js.patch
-patch -u node_modules/typescript-eslint-language-service/lib/eslint-config-provider.js -i eslint-plugin-erforce/eslint-config-provider.js.patch
+patch -u "${typescript_tooling_path}"/node_modules/typescript-eslint-language-service/lib/eslint-adapter.js -i eslint-plugin-erforce/eslint-adapter.js.patch
+patch -u "${typescript_tooling_path}"/node_modules/typescript-eslint-language-service/lib/eslint-config-provider.js -i eslint-plugin-erforce/eslint-config-provider.js.patch
 
 echo "${FBOLD}Fixing node_modules/@types/index.d.ts${FNORMAL}"
 # for whatever reason @types/json5/index.d.ts has some unnecessary unexpected character in the beginning,
@@ -60,7 +62,7 @@ if [ ! -r "$CUSTOM_TSC_DIR" ]; then
 	die "Could not read from '$CUSTOM_TSC_DIR'"
 fi
 
-if ! cp -R "$CUSTOM_TSC_DIR/." "node_modules/typescript/lib/"; then
+if ! cp -R "$CUSTOM_TSC_DIR/." "${typescript_tooling_path}/node_modules/typescript/lib/"; then
 	die "Failed to copy files"
 fi
 
