@@ -1,6 +1,7 @@
 #!/bin/sh
 
-typescript_tooling_path="../.."
+SCRIPT_DIR=$(cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd)
+typescript_tooling_path="${SCRIPT_DIR}/../.."
 
 FBOLD=""
 FNORMAL=""
@@ -45,8 +46,8 @@ if ! npm ci --prefix "${typescript_tooling_path}"; then
 fi
 
 echo "${FBOLD}Apply patch to typescript-eslint-language-service"
-patch -u "${typescript_tooling_path}"/node_modules/typescript-eslint-language-service/lib/eslint-adapter.js -i ../../tools/eslint-plugin-erforce/eslint-adapter.js.patch
-patch -u "${typescript_tooling_path}"/node_modules/typescript-eslint-language-service/lib/eslint-config-provider.js -i ../../tools/eslint-plugin-erforce/eslint-config-provider.js.patch
+patch -u "${typescript_tooling_path}"/node_modules/typescript-eslint-language-service/lib/eslint-adapter.js -i "${typescript_tooling_path}"/tools/eslint-plugin-erforce/eslint-adapter.js.patch
+patch -u "${typescript_tooling_path}"/node_modules/typescript-eslint-language-service/lib/eslint-config-provider.js -i "${typescript_tooling_path}"/tools/eslint-plugin-erforce/eslint-config-provider.js.patch
 
 echo "${FBOLD}Copying custom typescript compiler${FNORMAL}"
 

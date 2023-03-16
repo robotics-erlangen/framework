@@ -17,7 +17,7 @@ be possible to insall it with your distributions respective package manager. If
 you choose to install it manually, it is necessary to add *Node*'s binary
 folder to your `PATH`.
 
-- Linux & MacOS: Run the `setup.sh` script located at `strategy/typescript`
+- Linux & MacOS: Run the `install_typescript_language_tools.sh` script located at `data/scripts`
 
 Windows:
 1. Open a Command Line and change directory to `strategy/typescript`
