@@ -1,7 +1,7 @@
 #!/bin/sh
 
-SCRIPT_DIR=$(cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd)
-typescript_tooling_path="${SCRIPT_DIR}/../.."
+SCRIPT_DIR=$(cd -- "$( dirname -- $( realpath "$0" ) )" &> /dev/null && pwd)
+TOP_LEVEL_DIR="${SCRIPT_DIR}/../.."
 
 FBOLD=""
 FNORMAL=""
@@ -38,28 +38,28 @@ fi
 
 echo "${FBOLD}Installing packages from npm...${FNORMAL}"
 
-if ! npm ci --prefix "${typescript_tooling_path}"; then
+if ! npm ci --prefix "${TOP_LEVEL_DIR}"; then
 	echo "Probably could not find package-lock.json. Now trying to install only with package.json"
-	if ! npm install --prefix "${typescript_tooling_path}"; then
+	if ! npm install --prefix "${TOP_LEVEL_DIR}"; then
 		die "Failed to run npm install"
 	fi
 fi
 
 echo "${FBOLD}Apply patch to typescript-eslint-language-service"
-patch -u "${typescript_tooling_path}"/node_modules/typescript-eslint-language-service/lib/eslint-adapter.js -i "${typescript_tooling_path}"/tools/eslint-plugin-erforce/eslint-adapter.js.patch
-patch -u "${typescript_tooling_path}"/node_modules/typescript-eslint-language-service/lib/eslint-config-provider.js -i "${typescript_tooling_path}"/tools/eslint-plugin-erforce/eslint-config-provider.js.patch
+patch -u "${TOP_LEVEL_DIR}"/node_modules/typescript-eslint-language-service/lib/eslint-adapter.js -i "${TOP_LEVEL_DIR}"/tools/eslint-plugin-erforce/eslint-adapter.js.patch
+patch -u "${TOP_LEVEL_DIR}"/node_modules/typescript-eslint-language-service/lib/eslint-config-provider.js -i "${TOP_LEVEL_DIR}"/tools/eslint-plugin-erforce/eslint-config-provider.js.patch
 
 echo "${FBOLD}Copying custom typescript compiler${FNORMAL}"
 
 # check for permission to read the tsc directory
 # (and for existence thereof)
 # note that files could still be unreadable
-CUSTOM_TSC_DIR="../../libs/tsc/built/local"
+CUSTOM_TSC_DIR="${TOP_LEVEL_DIR}/libs/tsc/built/local"
 if [ ! -r "$CUSTOM_TSC_DIR" ]; then
 	die "Could not read from '$CUSTOM_TSC_DIR'"
 fi
 
-if ! cp -R "$CUSTOM_TSC_DIR/." "${typescript_tooling_path}/node_modules/typescript/lib/"; then
+if ! cp -R "$CUSTOM_TSC_DIR/." "${TOP_LEVEL_DIR}/node_modules/typescript/lib/"; then
 	die "Failed to copy files"
 fi
 
