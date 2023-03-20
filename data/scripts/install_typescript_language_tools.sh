@@ -1,6 +1,6 @@
 #!/bin/sh
 
-SCRIPT_DIR=$(cd -- "$( dirname -- $( realpath "$0" ) )" &> /dev/null && pwd)
+SCRIPT_DIR="$( dirname -- $( realpath "$0" ) )"
 TOP_LEVEL_DIR="${SCRIPT_DIR}/../.."
 
 FBOLD=""
