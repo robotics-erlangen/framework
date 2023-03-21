@@ -38,6 +38,8 @@ fi
 
 echo "${FBOLD}Installing packages from npm...${FNORMAL}"
 
+# first try to use ci to make sure that existing packages are reinstalled, because we patch some of them
+# and just reinstalling them makes it easier to just always apply the patch and not having to check anything
 if ! npm ci --prefix "${TOP_LEVEL_DIR}"; then
 	echo "Probably could not find package-lock.json. Now trying to install only with package.json"
 	if ! npm install --prefix "${TOP_LEVEL_DIR}"; then
@@ -46,8 +48,10 @@ if ! npm ci --prefix "${TOP_LEVEL_DIR}"; then
 fi
 
 echo "${FBOLD}Apply patch to typescript-eslint-language-service"
-patch -u "${TOP_LEVEL_DIR}"/node_modules/typescript-eslint-language-service/lib/eslint-adapter.js -i "${TOP_LEVEL_DIR}"/tools/eslint-plugin-erforce/eslint-adapter.js.patch
-patch -u "${TOP_LEVEL_DIR}"/node_modules/typescript-eslint-language-service/lib/eslint-config-provider.js -i "${TOP_LEVEL_DIR}"/tools/eslint-plugin-erforce/eslint-config-provider.js.patch
+patch -u "${TOP_LEVEL_DIR}"/node_modules/typescript-eslint-language-service/lib/eslint-adapter.js \
+			-i "${TOP_LEVEL_DIR}"/tools/eslint-plugin-erforce/eslint-adapter.js.patch
+patch -u "${TOP_LEVEL_DIR}"/node_modules/typescript-eslint-language-service/lib/eslint-config-provider.js \
+			-i "${TOP_LEVEL_DIR}"/tools/eslint-plugin-erforce/eslint-config-provider.js.patch
 
 echo "${FBOLD}Copying custom typescript compiler${FNORMAL}"
 
