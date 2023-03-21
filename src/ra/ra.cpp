@@ -53,9 +53,13 @@ int main(int argc, char* argv[])
     parser.addHelpOption();
     QCommandLineOption tournamentOption({"t", "game", "tournament"}, "Tournament mode");
     parser.addOption(tournamentOption);
+
+    QCommandLineOption broadcastUiCommandsOption("broadcast-ui-commands", "Broadcasts the UI Commands to be used by external tools.");
+    parser.addOption(broadcastUiCommandsOption);
+
     parser.process(app);
 
-    MainWindow window(parser.isSet(tournamentOption), true);
+    MainWindow window(parser.isSet(tournamentOption), true, parser.isSet(broadcastUiCommandsOption));
 
     window.show();
 

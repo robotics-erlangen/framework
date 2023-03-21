@@ -52,7 +52,7 @@
 #include <QInputDialog>
 #include <QTabBar>
 
-MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
+MainWindow::MainWindow(bool tournamentMode, bool isRa, bool broadcastUiCommands, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     m_transceiverActive(false),
@@ -411,6 +411,10 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, QWidget *parent) :
     ui->refereeinfo->setStyleSheets(isDarkMode);
     ui->strategies->setUseDarkColors(isDarkMode);
     ui->replay->setUseDarkColors(isDarkMode);
+
+    if (broadcastUiCommands) {
+        m_uiCommandServer.emplace();
+    }
 }
 
 MainWindow::~MainWindow()
@@ -817,6 +821,9 @@ void MainWindow::requestUidInsertWindow()
 
 void MainWindow::sendCommand(const Command &command)
 {
+    if (m_uiCommandServer) {
+        m_uiCommandServer.value().send(command);
+    }
     m_gitInfo->handleCommand(command);
     emit m_amun.sendCommand(command);
 }

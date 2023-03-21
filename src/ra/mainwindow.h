@@ -25,9 +25,11 @@
 #include "aboutus.h"
 #include "gitinfodialog.h"
 #include "loggingsuite.h"
+#include "uicommandserver.h"
 #include <QMainWindow>
 #include <QSet>
 #include <QList>
+#include <optional>
 
 class BacklogWriter;
 class CombinedLogWriter;
@@ -56,7 +58,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(bool tournamentMode, bool isRa, QWidget *parent = 0);
+    explicit MainWindow(bool tournamentMode, bool isRa, bool broadcastUiCommands = false, QWidget *parent = 0);
     ~MainWindow() override;
     MainWindow(const MainWindow&) = delete;
     MainWindow& operator=(const MainWindow&) = delete;
@@ -134,6 +136,7 @@ private:
     QActionGroup* m_simulatorSetupGroup;
     RobotUIAction *m_robotDoubleClickAction;
     RobotUIAction *m_robotCtrlClickAction;
+    std::optional<UiCommandServer> m_uiCommandServer;
 
     bool m_transceiverRealWorld = false, m_transceiverSimulator = true;
     bool m_chargeRealWorld = false, m_chargeSimulator = true;
