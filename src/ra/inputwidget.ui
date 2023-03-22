@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>275</width>
-    <height>173</height>
+    <width>297</width>
+    <height>277</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -136,6 +136,13 @@
      </property>
      <property name="value">
       <double>0.020000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="0">
+    <widget class="QCheckBox" name="checkBroadcast">
+     <property name="text">
+      <string>Broadcast Commands</string>
      </property>
     </widget>
    </item>

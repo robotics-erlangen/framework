@@ -367,6 +367,8 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, bool broadcastUiCommands,
         cmd->mutable_strategy_yellow()->set_tournament_mode(true);
         cmd->mutable_strategy_autoref()->set_tournament_mode(true);
         sendCommand(cmd);
+
+        ui->input->disableBroadcastOption();
     }
 
     // logplayer mode connections
@@ -412,8 +414,13 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, bool broadcastUiCommands,
     ui->strategies->setUseDarkColors(isDarkMode);
     ui->replay->setUseDarkColors(isDarkMode);
 
-    if (broadcastUiCommands) {
-        m_uiCommandServer.emplace();
+    // don't broadcast in tournament mode
+    if (!tournamentMode) {
+        if (broadcastUiCommands) {
+            m_uiCommandServer.emplace();
+        }
+
+        connect(ui->input, &InputWidget::broadcastCommandsChanged, this, &MainWindow::broadcastCommandsChanged);
     }
 }
 
@@ -1089,4 +1096,13 @@ void MainWindow::updatePalette(QPalette palette) {
     ui->refereeinfo->setStyleSheets(isDarkMode);
     ui->strategies->setUseDarkColors(isDarkMode);
     ui->replay->setUseDarkColors(isDarkMode);
+}
+
+void MainWindow::broadcastCommandsChanged(const bool state)
+{
+    if (state && !m_uiCommandServer) {
+        m_uiCommandServer.emplace();
+    } else if (!state && m_uiCommandServer) {
+        m_uiCommandServer.reset();
+    }
 }

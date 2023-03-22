@@ -41,12 +41,19 @@ public:
 public:
     void init(InputManager *inputManager);
     void load();
+    void disableBroadcastOption();
+
+signals:
+    void broadcastCommandsChanged(bool);
 
 public slots:
     void saveConfig();
 
 private:
     Ui::InputWidget *ui;
+
+private slots:
+    void convertBroadcastState(int state);
 };
 
 #endif // INPUTWIDGET_H

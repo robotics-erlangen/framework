@@ -103,6 +103,7 @@ private slots:
     void changeDivision(world::Geometry::Division division);
     void updatePalette(QPalette palette);
     void pauseAll();
+    void broadcastCommandsChanged(const bool);
 
 private:
     void toggleHorusModeWidgets(bool enable);

@@ -22,12 +22,14 @@
 #include "input/inputmanager.h"
 #include "ui_inputwidget.h"
 #include <QSettings>
+#include <QDebug>
 
 InputWidget::InputWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::InputWidget)
 {
     ui->setupUi(this);
+    connect(ui->checkBroadcast, &QCheckBox::stateChanged, this, &InputWidget::convertBroadcastState);
 }
 
 InputWidget::~InputWidget()
@@ -71,4 +73,28 @@ void InputWidget::load()
     ui->checkGlobal->setChecked(s.value("Global").toBool());
     ui->gamepadDeadzone->setValue(s.value("Deadzone", 0.02).toDouble());
     s.endGroup();
+}
+
+void InputWidget::convertBroadcastState(int state)
+{
+    const auto actualState = static_cast<Qt::CheckState>(state);
+    switch (actualState) {
+        case Qt::CheckState::Checked: {
+            emit broadcastCommandsChanged(true);
+            break;
+        }
+        case Qt::CheckState::Unchecked: {
+            emit broadcastCommandsChanged(false);
+            break;
+        }
+        case Qt::CheckState::PartiallyChecked: {
+            qDebug() << "Error! Why is a QCheckBox PartiallyChecked?";
+            break;
+        }
+    }
+}
+
+void InputWidget::disableBroadcastOption()
+{
+    ui->checkBroadcast->setDisabled(true);
 }
