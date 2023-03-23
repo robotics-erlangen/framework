@@ -26,7 +26,6 @@ UiCommandServer::UiCommandServer(const quint16 sendPort, const quint16 bindPort)
     m_port(sendPort),
     m_net_address(QHostAddress(QHostAddress::LocalHost))
 {
-    m_socket.setSocketOption(QAbstractSocket::MulticastTtlOption, 1);
     m_socket.bind(m_net_address, bindPort);
 }
 
