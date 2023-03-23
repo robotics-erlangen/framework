@@ -4,6 +4,7 @@ import * as World from "base/world";
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
 import { BallEvadingMoveToPos } from "glados/task/defender/ballevadingmovetopos";
+import { getRandomPosition } from "glados/util/zone";
 
 
 export class Default extends Behavior {
@@ -32,7 +33,15 @@ export class Default extends Behavior {
 				let fieldHalfFactor = World.RefereeState.includes("PenaltyDefensive") ? 1 : -1;
 				pos = new Vector(zone.defaultPos.x, fieldHalfFactor * zone.defaultPos.y);
 			} else {
-				pos = zone.defaultPos;
+				if (this.lastPos) {
+					if (this._robot.pos.distanceTo(this.lastPos) < 0.01) {
+						pos = getRandomPosition(zone.boundaries, 0.1);
+					} else {
+						pos = this.lastPos;
+					}
+				} else {
+					pos = zone.defaultPos;
+				}
 			}
 		}
 
