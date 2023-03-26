@@ -1,3 +1,4 @@
+import * as Constants from "base/constants";
 import { Vector } from "base/vector";
 import * as World from "base/world";
 
@@ -32,6 +33,13 @@ export class Default extends Behavior {
 				// We are not allowed in the opponent half during these gamestates
 				let fieldHalfFactor = World.RefereeState.includes("PenaltyDefensive") ? 1 : -1;
 				pos = new Vector(zone.defaultPos.x, fieldHalfFactor * zone.defaultPos.y);
+			} else if (World.RefereeState === "DirectDefensive" || World.RefereeState === "BallPlacementDefensive") {
+				// Dont interfere with a stopattacker
+				let stopattackradius = Constants.stopBallDistance + World.Ball.radius + this._robot.radius + 0.2;
+				pos = this.lastPos ? this.lastPos : zone.defaultPos;
+				if (pos.distanceToSq(World.Ball.pos) < 1.5 * 1.5 * stopattackradius * stopattackradius) {
+					pos = World.Ball.pos + (pos - World.Ball.pos).withLength(1.6 * stopattackradius);
+				}
 			} else {
 				if (this.lastPos) {
 					if (this._robot.pos.distanceTo(this.lastPos) < 0.01) {
