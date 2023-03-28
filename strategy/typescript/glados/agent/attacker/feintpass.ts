@@ -207,42 +207,20 @@ export class FeintPass extends Behavior {
 							return this;
 						}
 					}
-				// If we can't reach the new pass, but the old one already was shot
-				} else if (wasPassShot) {
-					// Check if we can still reach our old pass
-					let ballTime = Physics.ballRollTime(World.Ball, World.Ball.pos.distanceTo(this._task.feintPos));
-					let robotTime = Physics.robotTimeToPos(this._robot, this._task.feintPos, new Vector(0, 0))[0];
-
-					let isOldPassReachable = robotTime < ballTime;
-					debug.set("isOldPassReachable", isOldPassReachable);
-					debug.set("feintPos", this._task.feintPos);
-					debug.set("ballTime", ballTime);
-					debug.set("robotTime", robotTime);
-					if (isOldPassReachable) {
-						// Continue feinting the old pass
-						this._applyForMainAttacker(undefined, undefined, 0);
-						this.restartTask = false;
-						return this;
-					}
-				}
-				// We can't reach the new one and the old pass is either dead or unreachable ---> do something else
-			// We aren't planning a pass, but our old pass was already shot
-			} else if (wasPassShot && this._task.feintPos !== undefined) {
-				// Check if we can still reach our old pass
-				let ballTime = Physics.ballRollTime(World.Ball, World.Ball.pos.distanceTo(this._task.feintPos));
-				let robotTime = Physics.robotTimeToPos(this._robot, this._task.feintPos, new Vector(0, 0))[0];
-
-				let isOldPassReachable = robotTime < ballTime;
-				debug.set("isOldPassReachable", isOldPassReachable);
-				debug.set("feintPos", this._task.feintPos);
-				debug.set("ballTime", ballTime);
-				debug.set("robotTime", robotTime);
-				if (isOldPassReachable) {
+				// If we can't reach the new pass, but the old one already was shot and we can reach it
+				} else if (wasPassShot && this.checkIsOldPassUnreachable(this._task.feintPos)) {
 					// Continue feinting the old pass
 					this._applyForMainAttacker(undefined, undefined, 0);
 					this.restartTask = false;
 					return this;
 				}
+				// We can't reach the new one and the old pass is either dead or unreachable ---> do something else
+			// We aren't planning a pass, but our old pass was already shot and we can reach it
+			} else if (wasPassShot && this._task.feintPos !== undefined && this.checkIsOldPassUnreachable(this._task.feintPos)) {
+				// Continue feinting the old pass
+				this._applyForMainAttacker(undefined, undefined, 0);
+				this.restartTask = false;
+				return this;
 			}
 			// We aren't planning a new pass and the old one is dead ---> do something else
 		// If we need to escape the passline now in order to reach our next pass
@@ -290,5 +268,19 @@ export class FeintPass extends Behavior {
 		} else {
 			return CONTINUE_TASK;
 		}
+	}
+
+	// needs feintPos as parameter since this._task.feintPos can be undefined, so this way the method can only be called in situations where
+	// feintPos is guaranteed to be defined
+	private checkIsOldPassUnreachable(feintPos: Position): boolean {
+		let ballTime = Physics.ballRollTime(World.Ball, World.Ball.pos.distanceTo(feintPos));
+		let robotTime = Physics.robotTimeToPos(this._robot, feintPos, new Vector(0, 0))[0];
+
+		let isOldPassReachable = robotTime < ballTime;
+		debug.set("isOldPassReachable", isOldPassReachable);
+		debug.set("feintPos", feintPos);
+		debug.set("ballTime", ballTime);
+		debug.set("robotTime", robotTime);
+		return isOldPassReachable;
 	}
 }
