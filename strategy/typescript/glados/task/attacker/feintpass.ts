@@ -213,7 +213,10 @@ export class FeintPassTask extends Task {
 			maxSpeed: this.relevantPassInfo.passSpeed,
 			radius: World.Ball.radius, posZ: 0 } as Physics.BallLike;
 
-		let ballTime = this.passWasShot ? Physics.ballRollTime(World.Ball, World.Ball.pos.distanceTo(this.feintPos)) : Physics.ballRollTime(futureShotBall, futureShotBall.pos.distanceTo(this.feintPos));
+		let ballTime = this.passWasShot
+			? Physics.ballRollTime(World.Ball, World.Ball.pos.distanceTo(this.feintPos))
+			: Physics.ballRollTime(futureShotBall, futureShotBall.pos.distanceTo(this.feintPos));
+
 		let triggerEvacuate = false;
 
 		let orthoProjection = this._robot.pos.orthogonalProjection(attackPosition, this.relevantPassInfo.ballPos)[0];
