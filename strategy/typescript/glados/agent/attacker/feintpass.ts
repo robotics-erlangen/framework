@@ -56,10 +56,7 @@ export class FeintPass extends Behavior {
 			let passPos = passInfo.ballPos;
 			let passSpeed = passInfo.passSpeed;
 			let passDist = passPos.distanceTo(attackPosition);
-			let hysteresis = 0;
-			if (this.lastFeintSamplings.has(passInfo)) {
-				hysteresis = PASS_DISTANCE_HYSTERESIS;
-			}
+			let hysteresis = this.lastFeintSamplings.has(passInfo) ? PASS_DISTANCE_HYSTERESIS : 0;
 
 			let possibleFeintPositions = [];
 			debug.set("passDistance", passDist);
