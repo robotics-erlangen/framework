@@ -647,10 +647,7 @@ void MainWindow::switchToWidgetConfiguration(int configId, bool forceUpdate)
 
 void MainWindow::simulatorSetupChanged(QAction * action)
 {
-    updateSimulatorSetup("simulator/" + action->text().replace("&", ""));
-}
-
-void MainWindow::updateSimulatorSetup(QString setupFile) {
+    const QString setupFile = "simulator/" + action->text().replace("&", "");
     Command command(new amun::Command);
     if (!loadConfiguration(setupFile, command->mutable_simulator()->mutable_simulator_setup(), false)) {
         return;
@@ -1085,14 +1082,41 @@ void MainWindow::openFile(QString fileName)
 }
 
 void MainWindow::changeDivision(world::Geometry::Division division) {
+    auto currentSetup = m_simulatorSetupGroup->checkedAction()->text().replace("&", "");
+    QString newSetup;
+    QString defaultSetup;
     switch (division) {
         case world::Geometry_Division_A:
-            updateSimulatorSetup("simulator/" + m_simulatorSetupGroup->checkedAction()->text().replace("&", ""));
+            newSetup = currentSetup.remove("B");
+            defaultSetup = "2023";
             break;
         case world::Geometry_Division_B:
-            updateSimulatorSetup("simulator/2020B");
+            if (currentSetup.endsWith("B")) {
+                newSetup = currentSetup;
+            } else {
+                newSetup = currentSetup + "B";
+            }
+            defaultSetup = "2023B";
             break;
     }
+    const auto setupActions = m_simulatorSetupGroup->actions();
+    // first try to find action for newSetup and if that fails try again with defaultSetup
+    for (const auto setup : { newSetup, defaultSetup }) {
+        const auto findResult = std::find_if(setupActions.begin(), setupActions.end(),
+            [&] (const auto action) {
+                return action->text() == setup;
+            });
+        // findResult is setupActions.end() iff setup could not be found
+        if (findResult != setupActions.end()) {
+            (*findResult)->setChecked(true);
+            // Qt documentation says that setChecked emits triggered(), but it apparently does not,
+            // so we manually have to tell the action to emit triggered()
+            (*findResult)->activate(QAction::ActionEvent::Trigger);
+            return;
+        }
+    }
+    std::cerr << "Failed to change divisions, because setup " << newSetup.toStdString()
+        << " and setup " << defaultSetup.toStdString() << " could not be found!" << std::endl;
 }
 
 void MainWindow::updatePalette(QPalette palette) {
