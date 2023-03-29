@@ -36,6 +36,7 @@ message Geometry {
     optional GeometryType type = 18 [default = TYPE_2014];
     optional Division division = 19 [default = A];
     optional BallModel ball_model = 20;
+    optional float corner_block_cathetus_length = 21;
 }
 
 message BallModel {
