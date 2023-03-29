@@ -51,6 +51,7 @@
 #include <QMessageBox>
 #include <QInputDialog>
 #include <QTabBar>
+#include <algorithm>
 
 MainWindow::MainWindow(bool tournamentMode, bool isRa, bool broadcastUiCommands, QWidget *parent) :
     QMainWindow(parent),
@@ -255,9 +256,15 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, bool broadcastUiCommands,
     m_simulatorSetupGroup = new QActionGroup(this);
     QString selectedFile = s.value("Simulator/SetupFile", "2023").toString();
     QAction *selectedAction = nullptr;
+    std::vector<QString> shownFileNames;
     while (dirIterator.hasNext()) {
         QFileInfo file(dirIterator.next());
         QString shownFilename = file.fileName().split(".").first();
+        shownFileNames.push_back(shownFilename);
+    }
+
+    std::sort(shownFileNames.begin(), shownFileNames.end(), std::greater<QString>());
+    for (const auto shownFilename : shownFileNames) {
         QAction *setupAction = new QAction(this);
         setupAction->setText(shownFilename);
         setupAction->setCheckable(true);
