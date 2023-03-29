@@ -1,5 +1,6 @@
 import * as constants from "base/constants";
 import * as debug from "base/debug";
+import * as MathUtil from "base/mathutil";
 import { FriendlyRobot } from "base/robot";
 import { Position, Vector } from "base/vector";
 import * as World from "base/world";
@@ -56,28 +57,27 @@ export class FeintPass extends Behavior {
 			let passPos = passInfo.ballPos;
 			let passSpeed = passInfo.passSpeed;
 			let passDist = passPos.distanceTo(attackPosition);
-			let hysteresis = this.lastFeintSamplings.has(passInfo) ? PASS_DISTANCE_HYSTERESIS : 0;
+			debug.set("passDistance", passDist);
+
+			// If there is a well-defined previous behaviour and we are close to one of the thresholds
+			if (this.lastFeintSamplings.has(passInfo)
+				&& (Math.abs(passDist - PASS_DIST_SMALL_THRESHOLD) < PASS_DISTANCE_HYSTERESIS
+				|| Math.abs(passDist - PASS_DIST_LARGE_THRESHOLD) < PASS_DISTANCE_HYSTERESIS)) {
+				// Hysteresis says: continue what you were doing before
+				feintSamplings[passInfo] = this.lastFeintSamplings[passInfo];
+			} else {
+				// Just make hard cuts
+				feintSamplings[passInfo] = MathUtil.bound(0, Math.floor((passDist - 1) / 2), 2);
+			}
 
 			let possibleFeintPositions = [];
-			debug.set("passDistance", passDist);
-			if (passDist <= PASS_DIST_SMALL_THRESHOLD - hysteresis) {
-				feintSamplings[passInfo] = 0;
-				continue;
-			} else if (passDist > PASS_DIST_SMALL_THRESHOLD + hysteresis && passDist <= PASS_DIST_LARGE_THRESHOLD - hysteresis) {
-				feintSamplings[passInfo] = 1;
-			} else if (passDist > PASS_DIST_LARGE_THRESHOLD + hysteresis) {
-				feintSamplings[passInfo] = 2;
-			} else {
-				feintSamplings[passInfo] = this.lastFeintSamplings[passInfo]!;
-			}
-
-			if (feintSamplings[passInfo]! > 0) {
+			if (feintSamplings[passInfo] > 0) {
 				possibleFeintPositions.push(0.5 * (attackPosition + passPos));
 			}
-			if (feintSamplings[passInfo]! > 1) {
+			if (feintSamplings[passInfo] > 1) {
 				possibleFeintPositions.push(attackPosition + 0.75 * (passPos - attackPosition));
 			}
-			if (feintSamplings[passInfo]! > 2) {
+			if (feintSamplings[passInfo] > 2) {
 				throw new Error("Currently only up to two feint positions per pass are supported");
 			}
 
