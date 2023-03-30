@@ -87,6 +87,7 @@ private slots:
     void liveMode();
     void showBacklogMode();
     void simulatorSetupChanged(QAction * action);
+    void simulateWithBoundariesChanged();
     void saveConfig();
     void switchToWidgetConfiguration(int configId, bool forceUpdate = false);
     void showDirectoryDialog();

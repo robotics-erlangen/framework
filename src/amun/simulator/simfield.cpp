@@ -48,8 +48,23 @@ SimField::SimField(btDiscreteDynamicsWorld *world, const world::Geometry &geomet
     // others
     addObject(m_plane, btTransform(btQuaternion(btVector3(1, 0, 0), M_PI), btVector3(0, 0, roomHeight) * SIMULATOR_SCALE), 0.3, 0.35);
 
-    addObject(m_plane, btTransform(btQuaternion(btVector3(1, 0, 0),  M_PI_2), btVector3(0,  totalHeight, 0) * SIMULATOR_SCALE), 0.3, 0.35);
-    addObject(m_plane, btTransform(btQuaternion(btVector3(1, 0, 0), -M_PI_2), btVector3(0, -totalHeight, 0) * SIMULATOR_SCALE), 0.3, 0.35);
+    // if boundary_width == 0.0 the game is played without boundary area and needs different colliders on the goal line
+    if (geometry.boundary_width() == 0.0) {
+        const auto goalLineBoundaryWidthHalf = 0.5 * (totalWidth - goalWidthHalf);
+        m_goalLineBoundaryShape.emplace(btVector3(goalLineBoundaryWidthHalf, 0.5, roomHeight * 0.5) * SIMULATOR_SCALE);
+        const auto shapeOffsetX = goalWidthHalf + goalLineBoundaryWidthHalf;
+        const auto shapeOffsetIntoVoidPositive = btVector3(0, 0.5, roomHeight * 0.5) * SIMULATOR_SCALE;
+        const auto identity = btQuaternion::getIdentity();
+        addObject(&m_goalLineBoundaryShape.value(), btTransform(identity, shapeOffsetIntoVoidPositive + btVector3(shapeOffsetX, totalHeight, 0) * SIMULATOR_SCALE), 0.3, 0.35);
+        addObject(&m_goalLineBoundaryShape.value(), btTransform(identity, shapeOffsetIntoVoidPositive + btVector3(-shapeOffsetX, totalHeight, 0) * SIMULATOR_SCALE), 0.3, 0.35);
+
+        const auto shapeOffsetIntoVoidNegative = btVector3(0, -0.5, roomHeight * 0.5) * SIMULATOR_SCALE;
+        addObject(&m_goalLineBoundaryShape.value(), btTransform(identity, shapeOffsetIntoVoidNegative + btVector3(shapeOffsetX, -totalHeight, 0) * SIMULATOR_SCALE), 0.3, 0.35);
+        addObject(&m_goalLineBoundaryShape.value(), btTransform(identity, shapeOffsetIntoVoidNegative + btVector3(-shapeOffsetX, -totalHeight, 0) * SIMULATOR_SCALE), 0.3, 0.35);
+    } else {
+        addObject(m_plane, btTransform(btQuaternion(btVector3(1, 0, 0),  M_PI_2), btVector3(0,  totalHeight, 0) * SIMULATOR_SCALE), 0.3, 0.35);
+        addObject(m_plane, btTransform(btQuaternion(btVector3(1, 0, 0), -M_PI_2), btVector3(0, -totalHeight, 0) * SIMULATOR_SCALE), 0.3, 0.35);
+    }
 
     addObject(m_plane, btTransform(btQuaternion(btVector3(0, 1, 0),  M_PI_2), btVector3(-totalWidth, 0, 0) * SIMULATOR_SCALE), 0.3, 0.35);
     addObject(m_plane, btTransform(btQuaternion(btVector3(0, 1, 0), -M_PI_2), btVector3( totalWidth, 0, 0) * SIMULATOR_SCALE), 0.3, 0.35);
@@ -77,15 +92,21 @@ SimField::SimField(btDiscreteDynamicsWorld *world, const world::Geometry &geomet
                 const auto baseTransform = btTransform(btQuaternion(btVector3(0, 0, 1), M_PI * multipleOfPi), shapeOffsetFromCorner);
                 auto cornerTransform = baseTransform;
                 cornerTransform.getOrigin() += btVector3(totalWidthOffset, totalHeight, 0) * SIMULATOR_SCALE;
-                auto goalTransform = baseTransform;
-                goalTransform.getOrigin() += btVector3(goalWidthOffset, totalHeight, 0) * SIMULATOR_SCALE;
 
                 if (negativeYHalf) {
                     cornerTransform = btTransform(btQuaternion(btVector3(0, 0, 1), M_PI)) * cornerTransform;
-                    goalTransform = btTransform(btQuaternion(btVector3(0, 0, 1), M_PI)) * goalTransform;
                 }
                 addObject(&m_cornerBlockShape.value(), cornerTransform, 0.3, 0.35);
-                addObject(&m_cornerBlockShape.value(), goalTransform, 0.3, 0.35);
+
+                // if boundary_width == 0.0 the game is played without boundary area and does not need the blocks around the goals
+                if (geometry.boundary_width() != 0.0) {
+                    auto goalTransform = baseTransform;
+                    goalTransform.getOrigin() += btVector3(goalWidthOffset, totalHeight, 0) * SIMULATOR_SCALE;
+                    if (negativeYHalf) {
+                        goalTransform = btTransform(btQuaternion(btVector3(0, 0, 1), M_PI)) * goalTransform;
+                    }
+                    addObject(&m_cornerBlockShape.value(), goalTransform, 0.3, 0.35);
+                }
             }
         }
     }
@@ -95,9 +116,13 @@ SimField::SimField(btDiscreteDynamicsWorld *world, const world::Geometry &geomet
         const float side = (goal == 0) ? -1.0f : 1.0f;
         const btQuaternion rot = btQuaternion::getIdentity();
 
-        addObject(m_goalSide, btTransform(rot, btVector3((goalWidthHalf - goalWallHalf), side * (height + goalDepthHalf), goalHeightHalf) * SIMULATOR_SCALE), 0.3, 0.5);
-        addObject(m_goalSide, btTransform(rot, btVector3(-(goalWidthHalf - goalWallHalf), side * (height + goalDepthHalf), goalHeightHalf) * SIMULATOR_SCALE), 0.3, 0.5);
-        addObject(m_goalBack, btTransform(rot, btVector3(0.0f, side * (height + goalDepth - goalWallHalf), goalHeightHalf) * SIMULATOR_SCALE), 0.1, 0.5);
+        // if the game is played without boundary area the goal stands on the outside of the line and not on the middle,
+        // so we have to offset the goals by line_width / 2
+        const auto lineWidthOffset = geometry.boundary_width() != 0.0 ? 0.0 : geometry.line_width() * 0.5;
+
+        addObject(m_goalSide, btTransform(rot, btVector3((goalWidthHalf - goalWallHalf), side * (height + goalDepthHalf + lineWidthOffset), goalHeightHalf) * SIMULATOR_SCALE), 0.3, 0.5);
+        addObject(m_goalSide, btTransform(rot, btVector3(-(goalWidthHalf - goalWallHalf), side * (height + goalDepthHalf + lineWidthOffset), goalHeightHalf) * SIMULATOR_SCALE), 0.3, 0.5);
+        addObject(m_goalBack, btTransform(rot, btVector3(0.0f, side * (height + goalDepth - goalWallHalf + lineWidthOffset), goalHeightHalf) * SIMULATOR_SCALE), 0.1, 0.5);
     }
 }
 

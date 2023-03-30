@@ -102,7 +102,7 @@
      <x>0</x>
      <y>0</y>
      <width>905</width>
-     <height>30</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_Game">
@@ -118,6 +118,7 @@
     <addaction name="actionChargeKicker"/>
     <addaction name="separator"/>
     <addaction name="simulatorSetup"/>
+    <addaction name="actionSimulateWithBoundaries"/>
    </widget>
    <widget class="QMenu" name="menuVideo">
     <property name="title">
@@ -831,6 +832,14 @@ toggled again (disables the backlog when active)</string>
   <action name="actionGitInfo">
    <property name="text">
     <string>GitInfo</string>
+   </property>
+  </action>
+  <action name="actionSimulateWithBoundaries">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Simulate with boundaries</string>
    </property>
   </action>
  </widget>

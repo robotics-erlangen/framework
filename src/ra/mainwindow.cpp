@@ -277,6 +277,9 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, bool broadcastUiCommands,
         }
     }
     connect(m_simulatorSetupGroup, SIGNAL(triggered(QAction*)), this, SLOT(simulatorSetupChanged(QAction*)));
+    connect(ui->actionSimulateWithBoundaries, &QAction::triggered, this, &MainWindow::simulateWithBoundariesChanged);
+    // restore actionSimulateWithBoundaries state, because it is needed in simulatorSetupChanged
+    ui->actionSimulateWithBoundaries->setChecked(s.value("Simulator/WithBoundaries").toBool());
     if (selectedAction) {
         selectedAction->setChecked(true);
         simulatorSetupChanged(selectedAction);
@@ -544,6 +547,7 @@ void MainWindow::saveConfig()
     s.setValue("Simulator/SetupFile", simulatorSetupFile);
     s.setValue("Simulator/AutoPause", ui->actionAutoPause->isChecked());
     s.setValue("Simulator/Enabled", ui->actionSimulator->isChecked());
+    s.setValue("Simulator/WithBoundaries", ui->actionSimulateWithBoundaries->isChecked());
     s.setValue("Referee/Internal", ui->actionInternalReferee->isChecked());
     s.setValue("InputDevices/Enabled", ui->actionInputDevices->isChecked());
     s.setValue("LogWriter/UseLocation", ui->actionUseLocation->isChecked());
@@ -651,6 +655,17 @@ void MainWindow::simulatorSetupChanged(QAction * action)
     Command command(new amun::Command);
     if (!loadConfiguration(setupFile, command->mutable_simulator()->mutable_simulator_setup(), false)) {
         return;
+    }
+
+    // change field setup to play with boundaries
+    if (ui->actionSimulateWithBoundaries->isChecked()) {
+        auto mutableSimulatorSetupGeometry = command->mutable_simulator()->mutable_simulator_setup()->mutable_geometry();
+        const auto boundaryWidthTotal = 2.0 * mutableSimulatorSetupGeometry->boundary_width();
+        const auto fieldHeight = mutableSimulatorSetupGeometry->field_height();
+        const auto fieldWidth = mutableSimulatorSetupGeometry->field_width();
+        mutableSimulatorSetupGeometry->set_field_height(fieldHeight);
+        mutableSimulatorSetupGeometry->set_field_width(fieldWidth);
+        mutableSimulatorSetupGeometry->set_boundary_width(0.0);
     }
 
     // reload the strategies / autoref
@@ -1136,4 +1151,8 @@ void MainWindow::broadcastCommandsChanged(const bool state)
     } else if (!state && m_uiCommandServer) {
         m_uiCommandServer.reset();
     }
+}
+
+void MainWindow::simulateWithBoundariesChanged() {
+    simulatorSetupChanged(m_simulatorSetupGroup->checkedAction());
 }
