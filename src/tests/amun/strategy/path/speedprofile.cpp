@@ -22,6 +22,10 @@
 #include <iostream>
 #include "path/alphatimetrajectory.h"
 #include "core/rng.h"
+#include "util.h"
+
+static const float REL_ERROR = 1e-7;
+static const float ABS_ERROR = 1e-4;
 
 // tests both SpeedProfile and AlphaTimeTrajectory
 
@@ -37,22 +41,17 @@ static Vector makeSpeed(RNG &rng, float maxSpeed) {
     return v;
 }
 
-static void ASSERT_VECTOR_EQ(Vector v1, Vector v2) {
-    ASSERT_LE(std::abs(v1.x - v2.x), 0.0001f);
-    ASSERT_LE(std::abs(v1.y - v2.y), 0.0001f);
-}
-
 // checks without fast endspeed and without slowdown
 // v0 and v1 must be slower than maxSpeed
 static void checkTrajectorySimple(const Trajectory &trajectory, Vector v0, Vector v1, float acc, EndSpeed endSpeedType) {
 
     // check start speed
-    ASSERT_VECTOR_EQ(trajectory.stateAtTime(0).speed, v0);
+    ASSERT_VECTOR_APPROX_EQ(trajectory.stateAtTime(0).speed, v0, REL_ERROR, ABS_ERROR);
 
     // check end speed
     if (endSpeedType == EndSpeed::EXACT) {
-        ASSERT_VECTOR_EQ(trajectory.stateAtTime(trajectory.time()).speed, v1);
-        ASSERT_VECTOR_EQ(trajectory.endSpeed(), v1);
+        ASSERT_VECTOR_APPROX_EQ(trajectory.stateAtTime(trajectory.time()).speed, v1, REL_ERROR, ABS_ERROR);
+        ASSERT_VECTOR_APPROX_EQ(trajectory.endSpeed(), v1, REL_ERROR, ABS_ERROR);
     } else {
         ASSERT_LE(trajectory.endSpeed().length(), v1.length());
     }
@@ -129,15 +128,15 @@ static void checkEndPosition(const Trajectory &trajectory, const Vector expected
     const float time = trajectory.time();
     {
         const Vector endPos = trajectory.endPosition();
-        ASSERT_VECTOR_EQ(endPos, expected);
+        ASSERT_VECTOR_APPROX_EQ(endPos, expected, REL_ERROR, ABS_ERROR);
     }
     {
         const Vector endPos = trajectory.stateAtTime(time).pos;
-        ASSERT_VECTOR_EQ(endPos, expected);
+        ASSERT_VECTOR_APPROX_EQ(endPos, expected, REL_ERROR, ABS_ERROR);
     }
     {
         const Vector endPos = trajectory.stateAtTime(time + 1.0f).pos;
-        ASSERT_VECTOR_EQ(endPos, expected);
+        ASSERT_VECTOR_APPROX_EQ(endPos, expected, REL_ERROR, ABS_ERROR);
     }
     {
         const int steps = 20;
@@ -146,13 +145,13 @@ static void checkEndPosition(const Trajectory &trajectory, const Vector expected
         const float timeStep = time / (float)(steps - 1);
         const auto states = trajectory.trajectoryPositions(totalSteps, timeStep, 0.0f);
         for (int i = steps; i < totalSteps; i++) {
-            ASSERT_VECTOR_EQ(states[i].state.pos, expected);
+            ASSERT_VECTOR_APPROX_EQ(states[i].state.pos, expected, REL_ERROR, ABS_ERROR);
         }
     }
 
     const float offset = 1e-6;
     const auto closeToEnd = trajectory.stateAtTime(time - offset);
-    ASSERT_VECTOR_EQ(closeToEnd.pos, expected - closeToEnd.speed * offset);
+    ASSERT_VECTOR_APPROX_EQ(closeToEnd.pos, expected - closeToEnd.speed * offset, REL_ERROR, ABS_ERROR);
 }
 
 static void checkLimitToTime(const Trajectory &profile, RNG &rng) {
@@ -165,8 +164,8 @@ static void checkLimitToTime(const Trajectory &profile, RNG &rng) {
         const auto sp1 = profile.stateAtTime(t);
         const auto sp2 = limited.stateAtTime(t);
 
-        ASSERT_VECTOR_EQ(sp1.pos, sp2.pos);
-        ASSERT_VECTOR_EQ(sp1.speed, sp2.speed);
+        ASSERT_VECTOR_APPROX_EQ(sp1.pos, sp2.pos, REL_ERROR, ABS_ERROR);
+        ASSERT_VECTOR_APPROX_EQ(sp1.speed, sp2.speed, REL_ERROR, ABS_ERROR);
     }
 }
 

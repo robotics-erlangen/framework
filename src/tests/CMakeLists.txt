@@ -40,6 +40,13 @@ add_executable(cpptests
 
 target_compile_definitions(cpptests PRIVATE AMUNCLI_DIR="${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 
+target_include_directories(cpptests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+
+if(V8_FOUND)
+    target_compile_definitions(cpptests PRIVATE V8_FOUND)
+    v8_copy_deps(cpptests)
+endif()
+
 target_link_libraries(cpptests
     lib::googletest
     amun::amun
