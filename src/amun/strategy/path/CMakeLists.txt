@@ -19,7 +19,9 @@
 # ***************************************************************************
 
 
-#add_compile_definitions(PATHFINDING_DEBUG)
+if("${PATHFINDING_DEBUG}" OR ${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+    add_compile_definitions(PATHFINDING_DEBUG)
+endif()
 
 set(path_files
     include/path/alphatimetrajectory.h
