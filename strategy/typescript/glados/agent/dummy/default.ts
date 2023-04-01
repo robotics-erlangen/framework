@@ -39,6 +39,9 @@ export class Default extends Behavior {
 				if (pos.distanceToSq(World.Ball.pos) < 1.5 * 1.5 * stopattackradius * stopattackradius) {
 					pos = World.Ball.pos + (pos - World.Ball.pos).withLength(1.6 * stopattackradius);
 				}
+			} else if (World.RefereeState === "Stop") {
+				// Stop during stop
+				pos = this.lastPos ? this.lastPos : zone.defaultPos;
 			} else {
 				if (this.lastPos) {
 					if (this._robot.pos.distanceTo(this.lastPos) < 0.01) {
@@ -53,7 +56,11 @@ export class Default extends Behavior {
 		}
 
 		let restart = this.lastPos !== undefined && this.lastPos !== pos;
-		this.lastPos = pos;
+
+		// If we just stand still because we didn't get a zone, we don't want to continue this in the next frame
+		// Otherwise it could seem like the robot is malfunctioning
+		this.lastPos = zone ? pos : undefined;
+
 		return [BallEvadingMoveToPos, [pos, undefined], restart];
 	}
 }
