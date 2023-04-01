@@ -15,7 +15,10 @@ const EXCHANGE_POS_UP = new Vector(-World.Geometry.FieldWidthHalf, 0); // true
 function rateRobot(robot: FriendlyRobot, messaging: MessageBox): number {
 	// chosen one should be choosen the whole time
 	if (messaging.receiveTrainer(MessageType.exchangeRobot) === robot) {
-		return 1;
+		return 3;
+	}
+	if (!robot.canDribble || !robot.canShoot) {
+		return 2;
 	}
 	// otherwise: distance to goal
 	let distance = robot.pos.distanceToSq(World.Geometry.OpponentGoal);

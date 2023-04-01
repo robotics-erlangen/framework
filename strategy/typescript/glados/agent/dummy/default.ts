@@ -7,7 +7,6 @@ import { MessageType } from "glados/control/messaging";
 import { BallEvadingMoveToPos } from "glados/task/defender/ballevadingmovetopos";
 import { getRandomPosition } from "glados/util/zone";
 
-
 export class Default extends Behavior {
 
 	private lastPos: Vector | undefined = undefined;
