@@ -55,7 +55,7 @@ export class Default extends Behavior {
 			}
 		}
 
-		let restart = this.lastPos !== undefined && this.lastPos !== pos;
+		let restart = this.lastPos === undefined || this.lastPos !== pos;
 
 		// If we just stand still because we didn't get a zone, we don't want to continue this in the next frame
 		// Otherwise it could seem like the robot is malfunctioning
