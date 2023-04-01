@@ -23,17 +23,19 @@ const IS_REACHABLE_TIMEDIFF = 0.5;
 export class FeintPass extends Behavior {
 
 	private lastFeintSamplings = new Map<PassInfo, number>();
-	private supportParams: SupportParameters;
+	private supportParams: SupportParameters | undefined;
 
 	private restartTask: boolean = false;
 	private nextPassInfo: PassInfo | undefined;
 	private nextSender: FriendlyRobot | undefined;
 	private nextFeintpos: Position | undefined;
 	private nextAttackPosition: Position | undefined;
+	private canDoPasses: boolean;
 
-	constructor(agent: Agent, supportParams: SupportParameters) {
+	constructor(agent: Agent, supportParams?: SupportParameters) {
 		super(agent);
 		this.supportParams = supportParams;
+		this.canDoPasses = supportParams !== undefined;
 	}
 
 	_stop() {
@@ -132,7 +134,8 @@ export class FeintPass extends Behavior {
 		let plannedAttackTime = this._messaging.receiveSingleSender(MessageType.plannedAttackTime)[1];
 
 		// If we don't have a zone yet, do something else
-		let zone = this._messaging.receiveTrainer(MessageType.supportZone);
+		let zoneType = this.canDoPasses ? MessageType.supportZone : MessageType.dummyZone;
+		let zone = this._messaging.receiveTrainer(zoneType);
 		if (zone == undefined) {
 			return undefined;
 		}
@@ -256,6 +259,9 @@ export class FeintPass extends Behavior {
 		let [acceptingPass, _timeLeft] = passInfoTable ? checkPassInfos(this._robot, passInfoTable, false, prevRobotTime) : [false, undefined];
 
 		if (acceptingPass) {
+			if (!this.canDoPasses) {
+				amun.log("Dummy can't accept Pass, this is a Bug!");
+			}
 			return [AcceptPass];
 		}
 

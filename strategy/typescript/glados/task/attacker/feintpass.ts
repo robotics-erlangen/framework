@@ -41,12 +41,13 @@ export class FeintPassTask extends Task {
 	private attackPosition: Position;
 	private _zone?: Zone;
 
-	private _reEvaluateTimestamp: number;
-	private _suggestPass: SuggestPass;
-	private _sampling: Sampling;
+	private _reEvaluateTimestamp: number | undefined;
+	private _suggestPass: SuggestPass | undefined;
+	private _sampling: Sampling | undefined;
 	private _passDestSuggestion: Position | undefined;
 
-	constructor(behavior: Behavior, supportParameters: SupportParameters, relevantPassInfo: PassInfo, passRobot: FriendlyRobot, feintPos: Position, attackPosition: Position) {
+	constructor(behavior: Behavior, supportParameters: SupportParameters | undefined, relevantPassInfo: PassInfo,
+			passRobot: FriendlyRobot, feintPos: Position, attackPosition: Position) {
 		super(behavior);
 
 		this.relevantPassInfo = relevantPassInfo;
@@ -54,14 +55,19 @@ export class FeintPassTask extends Task {
 		this.feintPos = feintPos;
 		this.attackPosition = attackPosition;
 
-		this._reEvaluateTimestamp = World.Time;
-		this._suggestPass = new SuggestPass(this);
-		this._sampling = new supportParameters.samplingCtor(this);
+		if (supportParameters) {
+			this._reEvaluateTimestamp = World.Time;
+			this._suggestPass = new SuggestPass(this);
+			this._sampling = new supportParameters.samplingCtor(this);
+		}
 		this.updateState(attackPosition);
 	}
 
 	// Copied from supportTask for now because it can't be moved to util/attack because it uses internal states
 	private _reEvaluatePassDest(): boolean {
+		if (this._reEvaluateTimestamp === undefined) {
+			throw new Error("FeintPass should not evaluate passDests if it can't do passes");
+		}
 		let timestamps = this._messaging.receive(MessageType.supportSamplingTimestamp, true);
 		let nextCandidate = undefined;
 		let nextCandidateTimestamp = Infinity;
@@ -84,6 +90,9 @@ export class FeintPassTask extends Task {
 	}
 
 	private _searchForPassDest() {
+		if (!this._sampling) {
+			throw new Error("FeintPass should not search for passDests if it can't do passes");
+		}
 		this._sampling.precalculate();
 
 		let grid_point_count_x = 16;
@@ -152,16 +161,18 @@ export class FeintPassTask extends Task {
 	}
 
 	run(): void {
-		this._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: "support" });
+		let groupName: "dummy" | "support" = this._suggestPass ? "support" : "dummy";
+		this._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: groupName });
 
 		// retrieve the assigned zone from the support group
-		this._zone = this._messaging.receiveTrainer(MessageType.supportZone);
+		let zoneType = this._suggestPass ? MessageType.supportZone : MessageType.dummyZone;
+		this._zone = this._messaging.receiveTrainer(zoneType);
 		if (this._zone == undefined) {
 			return;
 		}
 
 		// search for a good pass dest
-		if (this._reEvaluatePassDest()) {
+		if (this._suggestPass && this._reEvaluatePassDest()) {
 			this._searchForPassDest();
 		}
 
@@ -174,8 +185,9 @@ export class FeintPassTask extends Task {
 		debug.set("FeintpassTask/passRobot", this.passRobot.id);
 
 		let attackPosition = this._messaging.receiveSingleSender(MessageType.attackPosition)[1];
-		if (this._passDestSuggestion && attackPosition) {
-			this._suggestPass._suggestPass(this._passDestSuggestion, attackPosition, Physics.robotTimeToPos(this._robot, this._passDestSuggestion, new Vector(0, 0))[0]);
+		if (this._passDestSuggestion && attackPosition && this._suggestPass) {
+			this._suggestPass._suggestPass(this._passDestSuggestion, attackPosition,
+				Physics.robotTimeToPos(this._robot, this._passDestSuggestion, new Vector(0, 0))[0]);
 		}
 
 		let path = this._robot.path;
