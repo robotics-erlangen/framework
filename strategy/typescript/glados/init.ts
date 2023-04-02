@@ -88,6 +88,9 @@ function wrapper(func: () => boolean) {
 	return function() {
 		frameCount = frameCount + 1;
 		Debugger.runDebugger();
+
+		debug.set("isPerformanceMode", amun.isPerformanceMode);
+
 		if (!World.update()) {
 			if ((frameCount % 100) === 0) {
 				log("Waiting for vision data...");
