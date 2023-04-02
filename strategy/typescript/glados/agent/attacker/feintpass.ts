@@ -13,6 +13,7 @@ import { AcceptPass } from "glados/task/attacker/acceptpass";
 import { FeintPassTask } from "glados/task/attacker/feintpass";
 import { SupportParameters } from "glados/task/attacker/support";
 import { checkPassInfos, PassInfo } from "glados/util/attack";
+import { addDummyVisualizations } from "glados/util/dummy";
 import { isInZone, Zone } from "glados/util/zone";
 
 const PASS_DISTANCE_HYSTERESIS = 0.2;
@@ -254,6 +255,7 @@ export class FeintPass extends Behavior {
 	}
 
 	_updateTask(): TaskAssignment<typeof FeintPassTask> | TaskAssignment<typeof AcceptPass> | typeof CONTINUE_TASK {
+		addDummyVisualizations(this._robot);
 		let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
 		let prevRobotTime = (this._task instanceof AcceptPass) ? this._task.getLastTime() : undefined;
 		let [acceptingPass, _timeLeft] = passInfoTable ? checkPassInfos(this._robot, passInfoTable, false, prevRobotTime) : [false, undefined];

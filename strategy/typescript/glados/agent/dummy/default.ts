@@ -5,6 +5,7 @@ import * as World from "base/world";
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
 import { BallEvadingMoveToPos } from "glados/task/defender/ballevadingmovetopos";
+import { addDummyVisualizations } from "glados/util/dummy";
 import { getRandomPosition } from "glados/util/zone";
 
 export class Default extends Behavior {
@@ -20,6 +21,8 @@ export class Default extends Behavior {
 	}
 
 	_updateTask(): TaskAssignment<typeof BallEvadingMoveToPos> {
+
+		addDummyVisualizations(this._robot);
 
 		this._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: "dummy" });
 		let zone = this._messaging.receiveTrainer(MessageType.dummyZone);
