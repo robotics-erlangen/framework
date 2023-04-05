@@ -61,14 +61,20 @@ if(CMAKE_CROSS_COMPILING AND MINGW)
 		--srcdir ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
 		--srcdir ${CMAKE_PREFIX_PATH}/bin)
 else()
+		file(GLOB_RECURSE MINGW_LIB_SSL "$ENV{MINGW_PREFIX}/bin/libssl-*${PACK_SUFFIX}.dll")
+		file(GLOB_RECURSE MINGW_LIB_CRYPTO "$ENV{MINGW_PREFIX}/bin/libcrypto-*${PACK_SUFFIX}.dll")
+		file(GLOB_RECURSE MINGW_LIB_STDCXX "$ENV{MINGW_PREFIX}/bin/libstc++-*.dll")
+		file(GLOB_RECURSE MINGW_LIB_WINPTHREAD "$ENV{MINGW_PREFIX}/bin/libwinpthread-*.dll")
+		file(GLOB_RECURSE MINGW_LIB_SSP "$ENV{MINGW_PREFIX}/bin/libssp-*.dll")
+
     set(COPY_GCC_DLL_COMMANDS ${CMAKE_COMMAND} -E copy_if_different
-		$ENV{MINGW_PREFIX}/bin/${LIB_GCC}
-		$ENV{MINGW_PREFIX}/bin/libstdc++-6.dll
-		$ENV{MINGW_PREFIX}/bin/libwinpthread-1.dll
-		$ENV{MINGW_PREFIX}/bin/libssp-0.dll
-		$ENV{MINGW_PREFIX}/bin/libssl-1_1${PACK_SUFFIX}.dll
-		$ENV{MINGW_PREFIX}/bin/libcrypto-1_1${PACK_SUFFIX}.dll
-            ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+			$ENV{MINGW_PREFIX}/bin/${LIB_GCC}
+			${MINGW_LIB_STDCXX}
+			${MINGW_LIB_WINPTHREAD}
+			${MINGW_LIB_SSP}
+			${MINGW_LIB_SSL}
+			${MINGW_LIB_CRYPTO}
+			${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 endif()
 
 add_custom_target(assemble
