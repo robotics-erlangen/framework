@@ -616,6 +616,7 @@ void Strategy::close()
     m_strategy = nullptr;
 
     m_filename.clear();
+    m_entryPoint.clear();
 
     Status status(new amun::Status);
     setStrategyStatus(status, amun::StatusStrategy::CLOSED);
