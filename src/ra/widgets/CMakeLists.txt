@@ -37,6 +37,8 @@ add_library(widgets STATIC
     debugtreewidget.cpp
     debugtreewidget.h
     debugwidget.cpp
+    entrypointselectiontoolbutton.h
+    entrypointselectiontoolbutton.cpp
     fieldwidget.cpp
     goalselectionwidget.h
     goalselectionwidget.cpp

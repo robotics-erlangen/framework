@@ -20,6 +20,7 @@
 
 #include "teamwidget.h"
 #include "config/config.h"
+#include "entrypointselectiontoolbutton.h"
 #include "protobuf/command.pb.h"
 #include "protobuf/status.pb.h"
 #include <QAction>
@@ -29,6 +30,7 @@
 #include <QSettings>
 #include <QToolButton>
 #include <QMenu>
+#include <iterator>
 
 TeamWidget::TeamWidget(QWidget *parent) :
     QFrame(parent),
@@ -77,8 +79,6 @@ void TeamWidget::init(amun::StatusStrategyWrapper::StrategyType type)
     connect(action, SIGNAL(triggered()), SLOT(showOpenDialog()));
     connect(m_scriptMenu, SIGNAL(aboutToShow()), SLOT(prepareScriptMenu()));
 
-    m_entryPoints = new QMenu(this);
-
     m_btnOpen = new QToolButton;
     m_btnOpen->setText("Disabled");
     m_btnOpen->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
@@ -87,13 +87,8 @@ void TeamWidget::init(amun::StatusStrategyWrapper::StrategyType type)
     connect(m_btnOpen, SIGNAL(clicked()), SLOT(showOpenDialog()));
     hLayout->addWidget(m_btnOpen);
 
-    m_btnEntryPoint = new QToolButton;
-    m_btnEntryPoint->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-    m_btnEntryPoint->setText("<n/a>");
-    m_btnEntryPoint->setVisible(false);
-    m_btnEntryPoint->setPopupMode(QToolButton::InstantPopup);
-    m_btnEntryPoint->setMenu(m_entryPoints);
-    connect(m_btnEntryPoint, SIGNAL(triggered(QAction*)), SLOT(selectEntryPoint(QAction*)));
+    m_btnEntryPoint = new EntrypointSelectionToolButton { m_type };
+    connect(m_btnEntryPoint, &EntrypointSelectionToolButton::entrypointSelected, this, &TeamWidget::sendFilenameAndEntrypoint);
     hLayout->addWidget(m_btnEntryPoint);
 
     QIcon debugIcon;
@@ -192,7 +187,7 @@ void TeamWidget::load()
     s.endGroup();
 
     if (QFileInfo::exists(m_filename)) {
-        selectEntryPoint(m_entryPoint);
+        sendFilenameAndEntrypoint(m_entryPoint);
     }
 }
 
@@ -229,25 +224,16 @@ void TeamWidget::handleStatus(const Status &status)
     }
 
     if (strategy) {
-        // only show entrypoint selection if > 0 entry points available
-        m_btnEntryPoint->setVisible(strategy->entry_point_size() > 0);
+        m_lastSentEntrypoints.clear();
+        m_lastSentEntrypoints.reserve(strategy->entry_point_size());
+        const auto& lastSentEntrypoints = strategy->entry_point();
+        std::transform(
+            lastSentEntrypoints.begin(), lastSentEntrypoints.end(),
+            std::back_inserter(m_lastSentEntrypoints), &QString::fromStdString);
 
-        // rebuild entrypoint menu
-        m_entryPoints->clear();
-        for (int i = 0; i < strategy->entry_point_size(); i++) {
-            const QString name = QString::fromStdString(strategy->entry_point(i));
-            addEntryPoint(m_entryPoints, name, name);
-        }
-
-        // show entrypoint name
-        if (strategy->has_current_entry_point()) {
-            m_entryPoint = QString::fromStdString(strategy->current_entry_point());
-            QString shortEntryPoint = shortenEntrypointName(m_entryPoints, m_entryPoint, 20);
-            m_btnEntryPoint->setText(shortEntryPoint);
-        } else {
-            m_entryPoint = QString();
-            m_btnEntryPoint->setText("<n/a>");
-        }
+        m_btnEntryPoint->setEntrypointList(m_lastSentEntrypoints);
+        m_btnEntryPoint->setCurrentEntrypoint(strategy->has_current_entry_point()
+            ? QString::fromStdString(strategy->current_entry_point()) : QString{});
 
         // strategy name
         m_btnOpen->setText(QString::fromStdString(strategy->name()));
@@ -441,8 +427,10 @@ void TeamWidget::prepareScriptMenu()
     }
 }
 
-void TeamWidget::selectEntryPoint(const QString &entry_point)
+void TeamWidget::sendFilenameAndEntrypoint(const QString &entry_point)
 {
+    m_entryPoint = entry_point;
+
     Command command(new amun::Command);
     amun::CommandStrategyLoad *strategy = commandStrategyFromType(command)->mutable_load();
 
@@ -450,11 +438,6 @@ void TeamWidget::selectEntryPoint(const QString &entry_point)
     strategy->set_entry_point(entry_point.toStdString());
 
     emit sendCommand(command);
-}
-
-void TeamWidget::selectEntryPoint(QAction* action)
-{
-    selectEntryPoint(action->data().toString());
 }
 
 void TeamWidget::sendReload()

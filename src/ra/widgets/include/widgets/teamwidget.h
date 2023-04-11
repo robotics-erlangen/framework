@@ -29,6 +29,10 @@
 #include <QToolButton>
 #include <QStringList>
 #include <QPushButton>
+#include <QVector>
+#include <QString>
+
+class EntrypointSelectionToolButton;
 
 class TeamWidget : public QFrame
 {
@@ -60,8 +64,7 @@ public slots:
 private slots:
     void showOpenDialog();
     void open();
-    void selectEntryPoint(const QString &entry_point);
-    void selectEntryPoint(QAction* action);
+    void sendFilenameAndEntrypoint(const QString &entry_point);
     void closeScript();
     void prepareScriptMenu();
     void sendReload();
@@ -82,11 +85,11 @@ private:
 private:
     amun::StatusStrategyWrapper::StrategyType m_type;
     QToolButton *m_btnOpen;
-    QToolButton *m_btnEntryPoint;
+    QVector<QString> m_lastSentEntrypoints;
+    EntrypointSelectionToolButton *m_btnEntryPoint;
     QToolButton *m_btnReload;
     QToolButton *m_btnEnableDebug;
     QMenu *m_scriptMenu;
-    QMenu *m_entryPoints;
     QString m_filename;
     QString m_entryPoint;
     QAction *m_actionDisable;
