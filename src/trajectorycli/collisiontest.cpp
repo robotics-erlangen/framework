@@ -265,7 +265,7 @@ static bool opponentCloseToRobot(const Scenario &s)
     if (!direct) {
         return true;
     }
-    const float totalTime = direct->time() + 0.5f;
+    const float totalTime = direct->endTime() + 0.5f;
     const float timeInterval = 0.01f;
     const int DIVISIONS = std::min(300, std::max(3, int(totalTime / timeInterval)));
     RobotState currentOpponent = s.oppStart;

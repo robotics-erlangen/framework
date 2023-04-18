@@ -137,7 +137,7 @@ public:
     void limitToTime(float time);
 
     void setCorrectionOffset(Vector offset) {
-        correctionSpeed = offset / time();
+        correctionSpeed = offset / endTime();
     }
 
     void setStartPos(Vector pos) {
@@ -145,7 +145,7 @@ public:
     }
 
 
-    float time() const;
+    float endTime() const;
     Vector endPosition() const;
     RobotState stateAtTime(float time) const;
     std::vector<TrajectoryPoint> trajectoryPositions(std::size_t count, float timeInterval, float timeOffset) const;

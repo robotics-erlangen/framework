@@ -140,7 +140,7 @@ std::vector<Trajectory> TrajectoryPath::findPath(TrajectoryInput input)
         const Vector startSpeed = escapeObstacle[0].endSpeed();
 
         input.start = RobotState(startPos, startSpeed);
-        input.t0 = escapeObstacle[0].time();
+        input.t0 = escapeObstacle[0].endTime();
     }
 
     // check if end point is in obstacle
@@ -186,7 +186,7 @@ std::vector<Trajectory> TrajectoryPath::findPath(TrajectoryInput input)
             return concat(escapeObstacle, {direct.value()});
         }
         if (obstacleDistances.first > 0) {
-            directTrajectoryScore = StandardSampler::trajectoryScore(direct->time(), obstacleDistances.first);
+            directTrajectoryScore = StandardSampler::trajectoryScore(direct->endTime(), obstacleDistances.first);
         }
     }
 
@@ -225,7 +225,7 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Tra
 
     float toEndTime = 0;
     for (const Trajectory& profile : profiles) {
-        const float time = profile.time();
+        const float time = profile.endTime();
 
         const float maxTime = 20 / input.maxSpeed;
         if (time > maxTime || std::isinf(time) || std::isnan(time) || time < 0) {
@@ -233,7 +233,7 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Tra
             return {};
         }
 
-        toEndTime += profile.time();
+        toEndTime += profile.endTime();
     }
 
 
@@ -246,7 +246,7 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Tra
     const float samplingInterval = toEndTime / (SAMPLES_PER_TRAJECTORY * profiles.size());
     for (unsigned int i = 0; i < profiles.size(); i++) {
         const Trajectory &trajectory = profiles[i];
-        const float partTime = trajectory.time();
+        const float partTime = trajectory.endTime();
 
         // sample the resulting trajectories in equal time intervals for friendly robot obstacles
         Trajectory::Iterator it{trajectory, totalTime};

@@ -126,7 +126,7 @@ void PathDebug::debugLine(const QString &name, Vector start, Vector end, PathDeb
 void PathDebug::debugTrajectory(const QString &name, const Trajectory &trajectory, PathDebugColor color)
 {
     const int VIS_POINTS = 150;
-    const float timeInterval = trajectory.time() / float(VIS_POINTS-1);
+    const float timeInterval = trajectory.endTime() / float(VIS_POINTS-1);
 
     const auto points = trajectory.trajectoryPositions(VIS_POINTS, timeInterval, 0);
     std::vector<Vector> positions;

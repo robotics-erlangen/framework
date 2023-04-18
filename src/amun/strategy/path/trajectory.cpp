@@ -275,7 +275,7 @@ Trajectory::Trajectory(const Trajectory1D &xProfile, const Trajectory1D &yProfil
     }
 }
 
-float Trajectory::time() const {
+float Trajectory::endTime() const {
     if (slowDownTime == -1) {
         return profile.back().t;
     }

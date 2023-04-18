@@ -308,7 +308,7 @@ StandardSampler::SampleScore StandardSampler::checkSample(const TrajectoryInput 
     Trajectory secondPart = AlphaTimeTrajectory::calculateTrajectory(secondStartState, input.target.speed, sample.getTime(),
                                                                      sample.getAngle(), input.acceleration, input.maxSpeed, slowDownTime, EndSpeed::FAST);
 
-    const float secondPartTime = secondPart.time();
+    const float secondPartTime = secondPart.endTime();
     const Vector secondPartOffset = secondPart.endPosition(); // startpos is (0, 0), computes offset of trajectory
     secondPart.setStartPos(input.target.pos - secondPartOffset);
     if (secondPartTime > bestTime - MINIMUM_TIME_IMPROVEMENT) {
@@ -326,7 +326,7 @@ StandardSampler::SampleScore StandardSampler::checkSample(const TrajectoryInput 
     }
     const Trajectory &firstPart = firstPartOpt.value();
 
-    const float firstPartTime = firstPart.time();
+    const float firstPartTime = firstPart.endTime();
     if (firstPartTime + secondPartTime > bestTime - MINIMUM_TIME_IMPROVEMENT) {
         return {ScoreType::WORSE_THAN, firstPartTime + secondPartTime};
     }

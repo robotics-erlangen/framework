@@ -50,7 +50,7 @@ static void checkTrajectorySimple(const Trajectory &trajectory, Vector v0, Vecto
 
     // check end speed
     if (endSpeedType == EndSpeed::EXACT) {
-        ASSERT_VECTOR_APPROX_EQ(trajectory.stateAtTime(trajectory.time()).speed, v1, REL_ERROR, ABS_ERROR);
+        ASSERT_VECTOR_APPROX_EQ(trajectory.stateAtTime(trajectory.endTime()).speed, v1, REL_ERROR, ABS_ERROR);
         ASSERT_VECTOR_APPROX_EQ(trajectory.endSpeed(), v1, REL_ERROR, ABS_ERROR);
     } else {
         ASSERT_LE(trajectory.endSpeed().length(), v1.length());
@@ -59,7 +59,7 @@ static void checkTrajectorySimple(const Trajectory &trajectory, Vector v0, Vecto
     // TODO: test that end pos calculation matches
 
     const int SEGMENTS = 100;
-    const float timeDiff = trajectory.time() / float(SEGMENTS - 1);
+    const float timeDiff = trajectory.endTime() / float(SEGMENTS - 1);
     const auto bulkPositions = trajectory.trajectoryPositions(SEGMENTS, timeDiff, 0.0f);
 
     // TODO: test t0
@@ -103,7 +103,7 @@ static void checkMaxSpeed(const Trajectory &trajectory, float maxSpeed) {
 
     const int SEGMENTS = 100;
     for (int i = 0;i<SEGMENTS;i++) {
-        const float time = i * trajectory.time() / float(SEGMENTS - 1);
+        const float time = i * trajectory.endTime() / float(SEGMENTS - 1);
         const Vector speed = trajectory.stateAtTime(time).speed;
 
         ASSERT_LE(speed.length(), maxSpeed * MAX_FASTER_FACTOR);
@@ -111,7 +111,7 @@ static void checkMaxSpeed(const Trajectory &trajectory, float maxSpeed) {
 }
 
 static void checkBoundingBox(const Trajectory &trajectory) {
-    const auto manyPositions = trajectory.trajectoryPositions(1000, trajectory.time() / 999, 0.0f);
+    const auto manyPositions = trajectory.trajectoryPositions(1000, trajectory.endTime() / 999, 0.0f);
     BoundingBox fromPoints(manyPositions[0].state.pos, manyPositions[0].state.pos);
     for (const auto &p : manyPositions) {
         fromPoints.mergePoint(p.state.pos);
@@ -125,7 +125,7 @@ static void checkBoundingBox(const Trajectory &trajectory) {
 }
 
 static void checkEndPosition(const Trajectory &trajectory, const Vector expected) {
-    const float time = trajectory.time();
+    const float time = trajectory.endTime();
     {
         const Vector endPos = trajectory.endPosition();
         ASSERT_VECTOR_APPROX_EQ(endPos, expected, REL_ERROR, ABS_ERROR);
@@ -155,10 +155,10 @@ static void checkEndPosition(const Trajectory &trajectory, const Vector expected
 }
 
 static void checkLimitToTime(const Trajectory &profile, RNG &rng) {
-    const float timeLimit = rng.uniformFloat(profile.time() * 0.1f, profile.time());
+    const float timeLimit = rng.uniformFloat(profile.endTime() * 0.1f, profile.endTime());
     Trajectory limited = profile;
     limited.limitToTime(timeLimit);
-    ASSERT_FLOAT_EQ(limited.time(), timeLimit);
+    ASSERT_FLOAT_EQ(limited.endTime(), timeLimit);
     for (int i = 0;i<100;i++) {
         const float t = i * timeLimit / 99.0f;
         const auto sp1 = profile.stateAtTime(t);

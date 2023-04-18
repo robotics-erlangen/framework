@@ -121,7 +121,7 @@ auto EscapeObstacleSampler::rateEscapingTrajectory(const TrajectoryInput &input,
     const float SAMPLING_INTERVAL = 0.03f;
     const float ZONE_RADIUS = 0.2f;
 
-    const float totalTime = speedProfile.time();
+    const float totalTime = speedProfile.endTime();
     const int samples = int(totalTime / SAMPLING_INTERVAL) + 1;
 
     const auto obstacles = m_world.intersectingObstacles(speedProfile);

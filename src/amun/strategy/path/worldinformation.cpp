@@ -160,7 +160,7 @@ bool WorldInformation::isTrajectoryInObstacle(const Trajectory &profile, float t
     // TODO: field border??
     const auto obstacles = intersectingObstacles(profile);
 
-    const float totalTime = profile.time();
+    const float totalTime = profile.endTime();
     const float timeInterval = 0.025f;
     const int divisions = std::ceil(totalTime / timeInterval);
 
@@ -209,7 +209,7 @@ bool WorldInformation::isInFriendlyStopPos(const Vector pos) const
 
 std::pair<float, float> WorldInformation::minObstacleDistance(const Trajectory &profile, float timeOffset, float safetyMargin) const
 {
-    const float totalTime = profile.time();
+    const float totalTime = profile.endTime();
     float totalMinDistance = std::numeric_limits<float>::max();
     float lastPointDistance = std::numeric_limits<float>::max();
 
