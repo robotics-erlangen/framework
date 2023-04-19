@@ -120,4 +120,5 @@ TEST(TrajectoryPath, serialize) {
 
     ASSERT_TRUE(std::equal(originalObstacles.begin(), originalObstacles.end(), reconstructedObstacles.begin(),
                            [](const Obstacles::Obstacle *a, const Obstacles::Obstacle *b) { return (*a) == (*b); }));
+    QFile::remove(filename);
 }
