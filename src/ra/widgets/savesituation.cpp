@@ -21,25 +21,35 @@
 #include "savesituation.h"
 #include "protobuf/world.pb.h"
 #include "protobuf/ssl_referee.h"
+#include "core/vector.h"
+#include "core/coordinates.h"
 #include <QFileDialog>
 #include <QFile>
 #include <QTextStream>
 
 typedef google::protobuf::RepeatedPtrField<world::Robot> RobotPtr;
 
-static void writeRobots(QTextStream& situation, const RobotPtr& robots)
+static void writeRobots(QTextStream& situation, const RobotPtr& robots, bool is_blue)
 {
     for (RobotPtr::const_iterator iter = robots.begin(); iter != robots.end(); ++iter) {
-        situation <<"\t\t\t\t\t{"<<endl;
-        situation <<"\t\t\t\t\t\tid = "<<iter->id()<<","<<endl;
-        situation <<"\t\t\t\t\t\tp_x = "<<iter->p_x()<<","<<endl;
-        situation <<"\t\t\t\t\t\tp_y = "<<iter->p_y()<<","<<endl;
-        situation <<"\t\t\t\t\t\tphi = "<<iter->phi()<<","<<endl;
-        situation <<"\t\t\t\t\t\tposition = true,"<<endl;
-        situation <<"\t\t\t\t\t\tv_x = "<<iter->v_x()<<","<<endl;
-        situation <<"\t\t\t\t\t\tv_y = "<<iter->v_y()<<","<<endl;
-        situation <<"\t\t\t\t\t\tomega = "<<iter->omega()<<endl;
-        situation<<"\t\t\t\t\t},"<<endl;
+        situation <<"\t\t\t\t\t\t{"<<endl;
+        situation <<"\t\t\t\t\t\t\tid = {"<<endl;
+        situation <<"\t\t\t\t\t\t\t\tid = "<<iter->id()<<","<<endl;
+        situation <<"\t\t\t\t\t\t\t\tteam = \"" << (is_blue ? "BLUE": "YELLOW")<<"\""<<endl;
+        situation <<"\t\t\t\t\t\t\t},"<<endl;
+        Vector amunPos, visPos;
+        amunPos.x = iter->p_x();
+        amunPos.y = iter->p_y();
+        coordinates::toVision(amunPos, visPos);
+        situation <<"\t\t\t\t\t\t\tx = "<<visPos.x<<","<<endl;
+        situation <<"\t\t\t\t\t\t\ty = "<<visPos.y<<","<<endl;
+        situation <<"\t\t\t\t\t\t\torientation = "<<coordinates::toVisionRotation(iter->phi())<<","<<endl;
+        Vector visSpeed;
+        coordinates::toVisionVelocity(*iter, visSpeed);
+        situation <<"\t\t\t\t\t\t\tv_x = "<<visSpeed.x<<","<<endl;
+        situation <<"\t\t\t\t\t\t\tv_y = "<<visSpeed.y<<","<<endl;
+        situation <<"\t\t\t\t\t\t\tomega = "<<iter->omega()<<endl;
+        situation<<"\t\t\t\t\t\t},"<<endl;
     }
 }
 
@@ -67,31 +77,38 @@ void saveSituation(world::State worldState, amun::GameState gameState)
 
         // simulator command containing the ball and robots
         situation <<"\t\t\tsimulator = {"<<endl;
+        situation <<"\t\t\t\tssl_control = {"<<endl;
 
         if (worldState.has_ball()) {
-            situation <<"\t\t\t\tmove_ball = {"<<endl;
-            situation <<"\t\t\t\t\tp_x = "<<worldState.ball().p_x()<<","<<endl;
-            situation <<"\t\t\t\t\tp_y = "<<worldState.ball().p_y()<<","<<endl;
-            situation <<"\t\t\t\t\tp_z = "<<worldState.ball().p_z()<<","<<endl;
-            situation <<"\t\t\t\t\tposition = true,"<<endl;
-            situation <<"\t\t\t\t\tv_x = "<<worldState.ball().v_x()<<","<<endl;
-            situation <<"\t\t\t\t\tv_y = "<<worldState.ball().v_y()<<","<<endl;
-            situation <<"\t\t\t\t\tv_z = "<<worldState.ball().v_z()<<endl;
-            situation <<"\t\t\t\t},"<<endl; // move_ball
+            situation <<"\t\t\t\t\tteleport_ball = {"<<endl;
+            Vector amunPos, visPos;
+            amunPos.x = worldState.ball().p_x();
+            amunPos.y = worldState.ball().p_y();
+            coordinates::toVision(amunPos, visPos);
+            situation <<"\t\t\t\t\t\tx = "<<visPos.x<<","<<endl;
+            situation <<"\t\t\t\t\t\ty = "<<visPos.y<<","<<endl;
+            situation <<"\t\t\t\t\t\tz = "<<worldState.ball().p_z() * 1e3 <<","<<endl;
+            situation <<"\t\t\t\t\t\tteleport_safely = true,"<<endl;
+            Vector visSpeed;
+            coordinates::toVisionVelocity(worldState.ball(), visSpeed);
+            situation <<"\t\t\t\t\t\t\tvx = "<<visSpeed.x<<","<<endl;
+            situation <<"\t\t\t\t\t\t\tvy = "<<visSpeed.y<<","<<endl;
+            situation <<"\t\t\t\t\t\tvz = "<<worldState.ball().v_z() * 1e3 <<endl;
+            situation <<"\t\t\t\t\t},"<<endl; // move_ball
         }
+
+        situation << "\t\t\t\t\tteleport_robot = {" << endl;
 
         // robots
         if (worldState.yellow_size() > 0) {
-            situation <<"\t\t\t\tmove_yellow = {"<<endl;
-            writeRobots(situation, worldState.yellow());
-            situation<<"\t\t\t\t},"<<endl; // move_yellow
+            writeRobots(situation, worldState.yellow(), false);
         }
         if (worldState.blue_size() > 0) {
-            situation <<"\t\t\t\tmove_blue = {"<<endl;
-            writeRobots(situation, worldState.yellow());
-            situation<<"\t\t\t\t},"<<endl; // move_yellow
+            writeRobots(situation, worldState.blue(), true);
         }
 
+        situation << "\t\t\t\t\t},"<<endl; // teleport_robot
+        situation <<"\t\t\t\t}"<<endl; // ssl_control
         situation <<"\t\t\t}"<<endl; // simulator
         situation <<"\t\t}"<<endl; // command
         situation <<"\t\tamun.sendCommand(command)"<<endl;
@@ -114,6 +131,12 @@ void saveSituation(world::State worldState, amun::GameState gameState)
         if (gameState.has_yellow() && gameState.yellow().has_goalie()) {
             situation <<"\t\t\tyellow = { name = \"\", score = 0, red_cards = 0, yellow_cards = 0, timeouts = 0, timeout_time = 0, goalie = "<<gameState.yellow().goalie()<<" },"<<endl;
         }
+
+        // include the goals_flipped (noted as !blueteamonpositivehalf)
+        if (gameState.has_goals_flipped()) {
+            situation <<"\t\t\tblueTeamOnPositiveHalf = " << (!gameState.goals_flipped() ? "true" : "false") << ","<<endl;
+        }
+
         situation <<"\t\t}"<<endl; // referee
         situation <<"\t\tamun.sendRefereeCommand(referee)"<<endl;
 
