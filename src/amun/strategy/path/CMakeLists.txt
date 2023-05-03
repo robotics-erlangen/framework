@@ -18,11 +18,6 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-
-if("${PATHFINDING_DEBUG}" OR ${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-    add_compile_definitions(PATHFINDING_DEBUG)
-endif()
-
 set(path_files
     include/path/alphatimetrajectory.h
     include/path/abstractpath.h
@@ -88,3 +83,7 @@ target_include_directories(path_parameter_optimization
 
 add_library(amun::path_parameter_optimization ALIAS path_parameter_optimization)
 target_compile_definitions(path_parameter_optimization PUBLIC ACTIVE_PATHFINDING_PARAMETER_OPTIMIZATION)
+
+if("${PATHFINDING_DEBUG}" OR ${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+    target_compile_definitions(path PRIVATE PATHFINDING_DEBUG)
+endif()
