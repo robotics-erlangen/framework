@@ -28,6 +28,7 @@
 #include <QObject>
 #include <QVector>
 #include <QString>
+#include <functional>
 
 enum class PathDebugColor {
     BLACK,
