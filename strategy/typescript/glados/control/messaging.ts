@@ -6,6 +6,7 @@ import * as World from "base/world";
 
 import { Objective } from "glados/agent/base/objective";
 import { Point as CenterBackPoint } from "glados/group/centerback";
+import { FeintPassTarget } from "glados/group/feintpass";
 import { Assignment as MoveAssignment, MoveInfo } from "glados/group/moves";
 import { ForcePoolChange } from "glados/trainer/attackratio";
 import { RoleAssignment } from "glados/trainer/defense";
@@ -109,6 +110,8 @@ export enum MessageType {
 	selectedObjective,
 	/** Sent by gr/dummy to assign zones to the dummy robots */
 	dummyZone,
+	/** Sent by gr/feintpass to assign feint positions to robots */
+	feintPassTarget,
 
 	// =======================
 	// === Exclusive roles ===
@@ -330,6 +333,12 @@ interface NormalDescriptor extends BaseDescriptor {
 		data: MoveInfo;
 		sender: "trainer";
 		receiver: "broadcast";
+	};
+	[MessageType.feintPassTarget]: {
+		data: FeintPassTarget;
+		sender: "trainer";
+		receiver: "robot";
+		repeated: false;
 	};
 }
 

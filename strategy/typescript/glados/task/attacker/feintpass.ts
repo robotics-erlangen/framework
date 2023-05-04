@@ -219,11 +219,22 @@ export class FeintPassTask extends Task {
 
 	updateState(attackPosition: Position): void {
 		let plannedAttackTime = this._messaging.receiveSingleSender(MessageType.plannedAttackTime)[1];
+		let [sender, passInfoTable] = this._messaging.receiveSingleSender(MessageType.passInfo);
 
 		let futureShotBall = { pos: attackPosition,
 			speed: (this.relevantPassInfo.ballPos - this.attackPosition).withLength(this.relevantPassInfo.passSpeed),
 			maxSpeed: this.relevantPassInfo.passSpeed,
-			radius: World.Ball.radius, posZ: 0 } as Physics.BallLike;
+			radius: World.Ball.radius, posZ: 0
+		} as Physics.BallLike;
+
+		// TODO The state-free variant of this is bad, since it gives true if the pass dies
+		// Idea: Make an observer pass that tells you if a given pass is either still being planned, was already shot, is dead
+		if ((Robot.hadBall(this.passRobot, 0.3) && Ball.wasShot(0.1)) || !(
+			passInfoTable && passInfoTable.find((element) => element.target === this.relevantPassInfo.target) !== undefined &&
+			sender === this.passRobot
+		)) {
+			this.passWasShot = true;
+		}
 
 		let ballTime = this.passWasShot
 			? Physics.ballRollTime(World.Ball, World.Ball.pos.distanceTo(this.feintPos))
@@ -240,10 +251,6 @@ export class FeintPassTask extends Task {
 		debug.set("FeintpassTask/ballTime", ballTime);
 		if (plannedAttackTime !== undefined) {
 			debug.set("FeintpassTask/plannedAttackTime", plannedAttackTime - World.Time);
-		}
-
-		if ((Robot.hadBall(this.passRobot, 0.3) && Ball.wasShot(0.1))) {
-			this.passWasShot = true;
 		}
 
 		if (this.passWasShot || this.evacuate || (

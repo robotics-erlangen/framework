@@ -147,31 +147,51 @@ export class FeintPass extends Behavior {
 		// Check if we needed to accept the next planned pass last frame
 		let prevRobotTime = (this._task instanceof AcceptPass) ? this._task.getLastTime() : undefined;
 		let [acceptingPass, _timeLeft] = passInfoTable ? checkPassInfos(this._robot, passInfoTable, false, prevRobotTime) : [false, undefined];
-		let escapeToAccept = acceptingPass && this.nextAttackPosition && this.nextPassInfo;
+		let escapeToAccept = acceptingPass && this.nextAttackPosition !== undefined &&
+		 this.nextPassInfo !== undefined && this.nextSender !== undefined && this.nextFeintpos !== undefined;
 
 		debug.set("passPlanned", passPlanned);
 
-		// If we are doing a feint in the last frame
-		if (this._task instanceof FeintPassTask && !this._task.complete) {
+		let doFeintPass = false;
+		let lastFeintPassTarget = this._messaging.receiveTrainer(MessageType.feintPassTarget);
+		let passCompleted = this._task instanceof FeintPassTask ? this._task.complete : false;
+
+		// If we were doing a feint in the last frame and the pass is not already completed
+		if (lastFeintPassTarget !== undefined && !escapeToAccept && !passCompleted) {
+
 			debug.set("doingFeint", undefined);
 
-			// Update wasPassShot and evacuate
-			this._task.updateState(attackPosition);
+			if (this._task instanceof FeintPassTask) {
+				// Update wasPassShot and evacuate, if possible (otherwise the task will be newly constructed anyways)
+				this._task.updateState(attackPosition);
 
-			// Never abort during evacuation
-			if (this._task.evacuate) {
-				this._applyForMainAttacker(undefined, undefined, 0);
-				this.restartTask = false;
-				return this;
+				// Never abort during evacuation
+				if (this._task.evacuate) {
+					this._applyForMainAttacker(undefined, undefined, 0);
+					this.restartTask = false;
+					doFeintPass = true;
+
+					let feintTarget = { passRobot: this._task.passRobot,
+						passInfo: this._task.relevantPassInfo,
+						feintPos: this._task.feintPos
+					};
+
+					this._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: "feintpass", payload: feintTarget });
+				}
 			}
 
 			// Check if the pass of the feint was already shot
-			let wasPassShot = this._task.passWasShot;
+			// TODO The state-free variant of this is bad, since it gives true if the pass dies
+			// Idea: Make an observer pass that tells you if a given pass is either still being planned, was already shot, is dead
+			let wasPassShot = this._task instanceof FeintPassTask ? this._task.passWasShot : !(
+				passInfoTable && passInfoTable.find((element) => element.target === lastFeintPassTarget!.passInfo.target) !== undefined &&
+				sender === lastFeintPassTarget.passRobot
+			);
 			debug.set("wasPassShot", wasPassShot);
 
 			// Get info on the pass that we are feinting
-			let lastPassInfo = this._task.relevantPassInfo;
-			let lastPassRobot = this._task.passRobot;
+			let lastPassInfo = lastFeintPassTarget.passInfo;
+			let lastPassRobot = lastFeintPassTarget.passRobot;
 
 			// If we are planning a pass
 			if (passPlanned) {
@@ -185,18 +205,47 @@ export class FeintPass extends Behavior {
 					// And it is the same pass that we already feint
 					debug.set("samePass", samePass);
 					if (samePass && !wasPassShot) {
-						// Update info on this pass and continue
-						this._task.updatePass(passInfo, feintPos, attackPosition);
+
+						if (this._task instanceof FeintPassTask) {
+							// Update info on this pass and continue
+							this._task.updatePass(passInfo, feintPos, attackPosition);
+							this.restartTask = false;
+						} else {
+							// Need to reconstruct the old FeintPassTask
+							this.nextAttackPosition = attackPosition;
+							this.nextFeintpos = feintPos;
+							this.nextSender = lastFeintPassTarget.passRobot;
+							// Use the new passInfo for most recent timing info
+							this.nextPassInfo = passInfo;
+							this.restartTask = true;
+						}
+
 						this._applyForMainAttacker(undefined, undefined, 0);
-						this.restartTask = false;
-						return this;
+
+						doFeintPass = true;
+						let feintTarget = { passRobot: lastPassRobot, passInfo: passInfo, feintPos: feintPos };
+						this._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: "feintpass", payload: feintTarget });
 					} else {
 						// If it is a new pass
 						if (wasPassShot) {
 							// But our pass was already shot ---> keep feinting the current pass
 							this._applyForMainAttacker(undefined, undefined, 0);
-							this.restartTask = false;
-							return this;
+							if (this._task instanceof FeintPassTask) {
+								// Just reuse the current task if it still exists
+								this.restartTask = false;
+							} else {
+								// Else reconstruct it
+								this.nextAttackPosition = attackPosition;
+								// Explicitly don't update the feintPos here, since the new one belongs to the new pass
+								this.nextFeintpos = lastFeintPassTarget.feintPos;
+								this.nextPassInfo = lastPassInfo;
+								this.nextSender = lastPassRobot;
+								this.restartTask = true;
+							}
+
+							doFeintPass = true;
+							let feintTarget = { passRobot: lastPassRobot, passInfo: lastPassInfo, feintPos: lastFeintPassTarget.feintPos };
+							this._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: "feintpass", payload: feintTarget });
 						} else {
 							// Our pass wasn't shot yet ---> it is probably dead. Feint the new pass
 							this._applyForMainAttacker(undefined, undefined, 0);
@@ -205,23 +254,53 @@ export class FeintPass extends Behavior {
 							this.nextFeintpos = feintPos;
 							this.nextSender = sender;
 							this.nextPassInfo = passInfo;
-							return this;
+
+							doFeintPass = true;
+							let feintTarget = { passRobot: sender!, passInfo: passInfo, feintPos: feintPos };
+							this._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: "feintpass", payload: feintTarget });
 						}
 					}
 				// If we can't reach the new pass, but the old one already was shot and we can reach it
-				} else if (wasPassShot && this.checkIsOldPassUnreachable(this._task.feintPos)) {
+				} else if (wasPassShot && this.checkIsOldPassUnreachable(lastFeintPassTarget.feintPos)) {
 					// Continue feinting the old pass
 					this._applyForMainAttacker(undefined, undefined, 0);
-					this.restartTask = false;
-					return this;
+					if (this._task instanceof FeintPassTask) {
+						// Reuse the old task if possible
+						this.restartTask = false;
+					} else {
+						// Else reconstruct the old pass
+						this.restartTask = true;
+						this.nextAttackPosition = attackPosition;
+						this.nextFeintpos = lastFeintPassTarget.feintPos;
+						this.nextPassInfo = lastPassInfo;
+						this.nextSender = lastPassRobot;
+					}
+
+					doFeintPass = true;
+					let feintTarget = { passRobot: lastPassRobot, passInfo: lastPassInfo, feintPos: lastFeintPassTarget.feintPos };
+					this._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: "feintpass", payload: feintTarget });
 				}
 				// We can't reach the new one and the old pass is either dead or unreachable ---> do something else
 			// We aren't planning a pass, but our old pass was already shot and we can reach it
-			} else if (wasPassShot && this._task.feintPos !== undefined && this.checkIsOldPassUnreachable(this._task.feintPos)) {
+			} else if (wasPassShot && this.checkIsOldPassUnreachable(lastFeintPassTarget.feintPos)) {
 				// Continue feinting the old pass
 				this._applyForMainAttacker(undefined, undefined, 0);
-				this.restartTask = false;
-				return this;
+
+				if (this._task instanceof FeintPassTask) {
+					// Reuse the old task if possible
+					this.restartTask = false;
+				} else {
+					// Else reconstruct the old pass
+					this.restartTask = true;
+					this.nextAttackPosition = attackPosition;
+					this.nextFeintpos = lastFeintPassTarget.feintPos;
+					this.nextPassInfo = lastPassInfo;
+					this.nextSender = lastPassRobot;
+				}
+
+				doFeintPass = true;
+				let feintTarget = { passRobot: lastPassRobot, passInfo: lastPassInfo, feintPos: lastFeintPassTarget.feintPos };
+				this._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: "feintpass", payload: feintTarget });
 			}
 			// We aren't planning a new pass and the old one is dead ---> do something else
 		// If we need to escape the passline now in order to reach our next pass
@@ -232,7 +311,10 @@ export class FeintPass extends Behavior {
 			// This is very hacky
 			if (this._robot.pos.orthogonalDistance(this.nextAttackPosition!, this.nextPassInfo!.ballPos) < this._robot.radius + World.Ball.radius + 0.1) {
 				this._robot.path.addLine(World.Ball.pos.x, World.Ball.pos.y, this.nextPassInfo!.ballPos.x, this.nextPassInfo!.ballPos.y, this._robot.radius, "PassEvacuation", 1);
-				return this;
+
+				doFeintPass = true;
+				let feintTarget = { passRobot: this.nextSender!, passInfo: this.nextPassInfo!, feintPos: this.nextFeintpos! };
+				this._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: "feintpass", payload: feintTarget });
 			}
 
 		// We aren't already doing a feint but a pass is being planned
@@ -248,9 +330,17 @@ export class FeintPass extends Behavior {
 				this.nextFeintpos = feintPos;
 				this.nextSender = sender;
 				this.nextPassInfo = passInfo;
-				return this;
+
+				doFeintPass = true;
+				let feintTarget = { passRobot: sender!, passInfo: passInfo, feintPos: feintPos };
+				this._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: "feintpass", payload: feintTarget });
 			}
 		}
+
+		if (doFeintPass && this._messaging.receiveTrainer(MessageType.feintPassTarget)) {
+			return this;
+		}
+
 		return undefined;
 	}
 

@@ -3,6 +3,7 @@ import { FriendlyRobot } from "base/robot";
 import { MessageBox, MessageType } from "glados/control/messaging";
 import { CenterBack } from "glados/group/centerback";
 import { Dummy } from "glados/group/dummy";
+import { FeintPass } from "glados/group/feintpass";
 import { Moves } from "glados/group/moves";
 import { Support } from "glados/group/support";
 
@@ -21,7 +22,7 @@ type SingleApplication<G extends Group> = G extends any
 		: { name: G["name"]; payload: GroupPayload<G> }
 	: never;
 
-export type Application = SingleApplication<CenterBack | Moves | Support | Dummy>;
+export type Application = SingleApplication<CenterBack | Moves | Support | Dummy | FeintPass>;
 
 export class Groups {
 	_groupList: Group[];
@@ -33,7 +34,8 @@ export class Groups {
 			CenterBack,
 			Moves,
 			Support,
-			Dummy
+			Dummy,
+			FeintPass
 		];
 
 		this._groupList = [];
