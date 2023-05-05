@@ -32,6 +32,8 @@
 #include <QString>
 #include <QStringList>
 #include <memory>
+#include <QHash>
+#include <optional>
 
 class AbstractStrategyScript;
 class DebugHelper;
@@ -111,7 +113,12 @@ private:
     qint64 m_lastReplayTime = 0;
 
     QString m_filename;
+    /** Holds the currently loaded entrypoint */
     QString m_entryPoint;
+    /** The value is an entrypoint that will be selected when the game stage
+     * changes to the key */
+    QHash<SSL_Referee::Stage, QString> m_automatic_entrypoints;
+    std::optional<SSL_Referee::Stage> m_lastReceivedStage;
 
     QTimer *m_idleTimer;
     QTimer *m_reloadTimer;

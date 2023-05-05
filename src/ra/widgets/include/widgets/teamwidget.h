@@ -21,6 +21,7 @@
 #ifndef TEAMWIDGET_H
 #define TEAMWIDGET_H
 
+#include "automaticentrypointsstorage.h"
 #include "protobuf/command.h"
 #include "protobuf/status.h"
 #include <QKeyEvent>
@@ -63,6 +64,7 @@ public slots:
 
 private slots:
     void showOpenDialog();
+    void showAutomaticEntrypointDialog();
     void open();
     void sendFilenameAndEntrypoint(const QString &entry_point);
     void closeScript();
@@ -72,6 +74,7 @@ private slots:
     void sendEnableDebug(bool enable);
     void sendTriggerDebug();
     void sendPerformanceDebug(bool enable);
+    void sendAutomaticEntrypoints();
 
 private:
     void open(const QString &filename);
@@ -92,10 +95,12 @@ private:
     QMenu *m_scriptMenu;
     QString m_filename;
     QString m_entryPoint;
+    AutomaticEntrypointsStorage m_automaticEntrypoints;
     QAction *m_actionDisable;
     QAction *m_reloadAction;
     QAction *m_debugAction;
     QAction *m_performanceAction;
+    QAction *m_automaticEntrypointAction;
     bool m_userAutoReload;
     bool m_notification;
     bool m_compiling;

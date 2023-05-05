@@ -177,6 +177,30 @@ void Strategy::handleStatus(const Status &status)
         }
     }
 
+    auto checkAutomaticEntrypoint = [this, &status]() {
+        if (!status->has_game_state() || status->game_state().stage() == m_lastReceivedStage) {
+            return;
+        }
+
+        /* Ensure we dont overwrite the manual entrypoint when first starting
+         * Ra (even if after a crash). See handleCommand for an explanation as
+         * to why
+         */
+        const bool hadValue = m_lastReceivedStage.has_value();
+        m_lastReceivedStage = status->game_state().stage();
+        if (!hadValue) {
+            return;
+        }
+
+        auto it = m_automatic_entrypoints.find(status->game_state().stage());
+        if (it == m_automatic_entrypoints.end() || it.value() == m_entryPoint) {
+            return;
+        }
+
+        loadScript(m_filename, it.value());
+    };
+    checkAutomaticEntrypoint();
+
     if (!m_scriptState.isRunningInLogplayer) {
         if (status->has_world_state() && status->has_game_state()) {
             m_scriptState.currentStatus = status;
@@ -289,13 +313,55 @@ void Strategy::handleCommand(const Command &command)
         }
 
         if (cmd->has_load()) {
-            const QString filename = QString::fromStdString(cmd->load().filename());
-            QString entryPoint;
-            if (cmd->load().has_entry_point()) {
-                entryPoint = QString::fromStdString(cmd->load().entry_point());
+            const ::amun::CommandStrategyLoad &load = cmd->load();
+
+            const QString filename = QString::fromStdString(load.filename());
+
+            /* Entrypoint names are only meaningful in a singular script, so if
+             * a different one is loaded we want to clear them
+             */
+            if (filename != m_filename) {
+                m_automatic_entrypoints.clear();
             }
+
+            QString entryPoint;
+            if (load.has_entry_point()) {
+                entryPoint = QString::fromStdString(load.entry_point());
+            }
+
+            /* Explicitly do not load the automatic entrypoint here for two
+             * reasons:
+             * - This path is taken when Ra starts to load the initial strategy
+             *   script. During a game, the user may take a timeout and select
+             *   an entrypoint distinct from the automatic entrypoint. If Ra
+             *   crashes afterwards, we prefer that manual entrypoint
+             * - Loading an automatic entrypoint requires knowledge about the
+             *   current gamestate, so we'd either have to defer strategy
+             *   loading until we receive the first status packet or rely on
+             *   timing (...hacks)
+             */
             loadScript(filename, entryPoint);
             reloadStrategy = false; // already reloaded
+        }
+
+        if (cmd->has_automatic_entrypoints()) {
+            m_automatic_entrypoints.clear();
+
+            for (const auto& entrypoint_for_stage : cmd->automatic_entrypoints().mapping()) {
+                Q_ASSERT(!m_automatic_entrypoints.contains(entrypoint_for_stage.stage()));
+                /* The stage gets defaulted to NORMAL_FIRST_HALF. If we
+                 * really are in FIRST_HALF, there are frequent changes to
+                 * FIRST_HALF_PRE and FIRST_HALF, making it difficult to
+                 * detect whether Ra just crashed or the game actually
+                 * advanced and we want to load an automatic entrypoint. We
+                 * do not need automatic entrypoints in FIRST_HALF anyway
+                 * since we setup Ra manually before the game
+                 */
+                Q_ASSERT(entrypoint_for_stage.stage() != SSL_Referee::Stage::SSL_Referee_Stage_NORMAL_FIRST_HALF_PRE);
+                Q_ASSERT(entrypoint_for_stage.stage() != SSL_Referee::Stage::SSL_Referee_Stage_NORMAL_FIRST_HALF);
+
+                m_automatic_entrypoints.insert(entrypoint_for_stage.stage(), QString::fromStdString(entrypoint_for_stage.entry_point()));
+            }
         }
 
         if (cmd->has_close()) {
@@ -617,6 +683,7 @@ void Strategy::close()
 
     m_filename.clear();
     m_entryPoint.clear();
+    m_automatic_entrypoints.clear();
 
     Status status(new amun::Status);
     setStrategyStatus(status, amun::StatusStrategy::CLOSED);

@@ -32,7 +32,7 @@ EntrypointSelectionToolButton::EntrypointSelectionToolButton(amun::StatusStrateg
     m_entryPoints(new QMenu { this })
 
 {
-    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     setText("<n/a>");
     setVisible(false);
     setPopupMode(QToolButton::InstantPopup);

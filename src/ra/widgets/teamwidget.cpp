@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include "teamwidget.h"
+#include "automaticentrypointdialog.h"
 #include "config/config.h"
 #include "entrypointselectiontoolbutton.h"
 #include "protobuf/command.pb.h"
@@ -60,6 +61,20 @@ void TeamWidget::saveConfig()
     s.setValue("AutoReload", m_userAutoReload);
     s.setValue("EnableDebug", m_btnEnableDebug->isChecked());
     s.setValue("PerformanceMode", m_performanceAction->isChecked());
+
+    auto saveAutomaticEntrypoint = [&s](const QString& name, const QString& entrypoint) {
+        if (entrypoint.isNull()) {
+            s.remove(name);
+        } else {
+            s.setValue(name, entrypoint);
+        }
+    };
+    s.beginGroup("AutomaticEntrypoints");
+    saveAutomaticEntrypoint("game", m_automaticEntrypoints.forGame);
+    saveAutomaticEntrypoint("break", m_automaticEntrypoints.forBreak);
+    saveAutomaticEntrypoint("postgame", m_automaticEntrypoints.forPostgame);
+    s.endGroup();
+
     s.endGroup();
 }
 
@@ -119,6 +134,9 @@ void TeamWidget::init(amun::StatusStrategyWrapper::StrategyType type)
     m_performanceAction->setCheckable(true);
     m_performanceAction->setChecked(true);
     connect(m_performanceAction, SIGNAL(toggled(bool)), SLOT(sendPerformanceDebug(bool)));
+
+    m_automaticEntrypointAction = reload_menu->addAction("Edit automatic entrypoints");
+    connect(m_automaticEntrypointAction, &QAction::triggered, this, &TeamWidget::showAutomaticEntrypointDialog);
 
     m_btnReload = new QToolButton;
     m_btnReload->setToolTip("Reload script");
@@ -184,10 +202,18 @@ void TeamWidget::load()
     if (m_type != amun::StatusStrategyWrapper::AUTOREF) {
         m_btnEnableDebug->setChecked(s.value("EnableDebug", false).toBool());
     }
+
+    s.beginGroup("AutomaticEntrypoints");
+    m_automaticEntrypoints.forGame = s.value("game").toString();
+    m_automaticEntrypoints.forBreak = s.value("break").toString();
+    m_automaticEntrypoints.forPostgame = s.value("postgame").toString();
+    s.endGroup();
+
     s.endGroup();
 
     if (QFileInfo::exists(m_filename)) {
         sendFilenameAndEntrypoint(m_entryPoint);
+        sendAutomaticEntrypoints();
     }
 }
 
@@ -350,6 +376,25 @@ void TeamWidget::showOpenDialog()
     open(filename);
 }
 
+void TeamWidget::showAutomaticEntrypointDialog()
+{
+    AutomaticEntrypointDialog *dialog = new AutomaticEntrypointDialog { m_automaticEntrypoints, m_lastSentEntrypoints, m_type, this };
+    bool accepted = dialog->exec();
+
+    if (!accepted) {
+        return;
+    }
+
+    AutomaticEntrypointsStorage newlySelected = dialog->selectedEntrypoints();
+
+    if (newlySelected == m_automaticEntrypoints) {
+        return;
+    }
+
+    m_automaticEntrypoints = std::move(newlySelected);
+    sendAutomaticEntrypoints();
+}
+
 void TeamWidget::open()
 {
     QString filename = sender()->property("filename").toString();
@@ -485,6 +530,51 @@ void TeamWidget::sendPerformanceDebug(bool enable)
     amun::CommandStrategy *strategy = commandStrategyFromType(command);
 
     strategy->set_performance_mode(enable);
+    emit sendCommand(command);
+}
+
+void TeamWidget::sendAutomaticEntrypoints()
+{
+    if (m_automaticEntrypoints.allNull()) {
+        return;
+    }
+
+    Command command(new amun::Command);
+    amun::CommandStrategyAutomaticEntrypoints *automatic_entrypoints = commandStrategyFromType(command)->mutable_automatic_entrypoints();
+
+    auto add_mapping = [automatic_entrypoints](SSL_Referee::Stage stage, const QString& entrypoint) {
+        auto *mapping = automatic_entrypoints->add_mapping();
+        mapping->set_stage(stage);
+        mapping->set_entry_point(entrypoint.toStdString());
+    };
+
+    if (!m_automaticEntrypoints.forGame.isNull()) {
+        for (const auto stage : {
+                SSL_Referee::NORMAL_SECOND_HALF_PRE,
+                SSL_Referee::NORMAL_SECOND_HALF,
+                SSL_Referee::EXTRA_FIRST_HALF_PRE,
+                SSL_Referee::EXTRA_FIRST_HALF,
+                SSL_Referee::EXTRA_SECOND_HALF_PRE,
+                SSL_Referee::EXTRA_SECOND_HALF,
+                SSL_Referee::PENALTY_SHOOTOUT,
+            }) {
+            add_mapping(stage, m_automaticEntrypoints.forGame);
+        }
+    }
+    if (!m_automaticEntrypoints.forBreak.isNull()) {
+        for (const auto stage : {
+                SSL_Referee::NORMAL_HALF_TIME,
+                SSL_Referee::EXTRA_TIME_BREAK,
+                SSL_Referee::EXTRA_HALF_TIME,
+                SSL_Referee::PENALTY_SHOOTOUT_BREAK,
+            }) {
+            add_mapping(stage, m_automaticEntrypoints.forBreak);
+        }
+    }
+    if (!m_automaticEntrypoints.forPostgame.isNull()) {
+        add_mapping(SSL_Referee::POST_GAME, m_automaticEntrypoints.forPostgame);
+    }
+
     emit sendCommand(command);
 }
 
