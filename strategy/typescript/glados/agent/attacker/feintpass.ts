@@ -367,7 +367,11 @@ export class FeintPass extends Behavior {
 	// feintPos is guaranteed to be defined
 	private checkIsOldPassUnreachable(feintPos: Position): boolean {
 		let ballTime = Physics.ballRollTime(World.Ball, World.Ball.pos.distanceTo(feintPos));
-		let robotTime = Physics.robotTimeToPos(this._robot, feintPos, new Vector(0, 0))[0];
+		let dummyEvacuatePos = feintPos + (feintPos - this._robot.pos).withLength(2 * this._robot.radius);
+		let robotTime = Math.min(
+			Physics.robotTimeToPos(this._robot, feintPos, new Vector(0, 0))[0],
+			Physics.robotTimeToPos(this._robot, dummyEvacuatePos, (dummyEvacuatePos - this._robot.pos).withLength(this._robot.speed.length()))[0]
+		);
 
 		let isOldPassReachable = robotTime < ballTime;
 		debug.set("isOldPassReachable", isOldPassReachable);
