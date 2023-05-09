@@ -29,6 +29,7 @@ export class FeintPass extends Behavior {
 	private restartTask: boolean = false;
 	private nextPassInfo: PassInfo | undefined;
 	private nextSender: FriendlyRobot | undefined;
+	private lastSender: FriendlyRobot | undefined;
 	private nextFeintpos: Position | undefined;
 	private nextAttackPosition: Position | undefined;
 	private canDoPasses: boolean;
@@ -44,16 +45,22 @@ export class FeintPass extends Behavior {
 		this.restartTask = false;
 		this.nextPassInfo = undefined;
 		this.nextSender = undefined;
+		this.lastSender = undefined;
 		this.nextFeintpos = undefined;
 		this.nextAttackPosition = undefined;
 	}
 
-	private getFeintPosition(passInfoTable: ReadonlyRec<PassInfo[]>, attackPosition: Position, plannedAttackTime: number | undefined, zone: Zone):
-	[PassInfo | undefined, Position | undefined] {
+	private getFeintPosition(sender: FriendlyRobot | undefined, passInfoTable: ReadonlyRec<PassInfo[]>,
+			attackPosition: Position, plannedAttackTime: number | undefined, zone: Zone): [PassInfo | undefined, Position | undefined] {
 		let relevantPassInfoMessage = undefined;
 		let bestTime = Infinity;
 		let bestPosition = undefined;
 		let feintSamplings = new Map<PassInfo, number>();
+
+		// Reset lastFeintSamplings if the MA changed since the passes are guaranteed to be new
+		if (sender !== this.lastSender) {
+			this.lastFeintSamplings = new Map<PassInfo, number>();
+		}
 
 		for (let passInfo of passInfoTable) {
 
@@ -63,7 +70,9 @@ export class FeintPass extends Behavior {
 			debug.set("passDistance", passDist);
 
 			// If there is a well-defined previous behaviour and we are close to one of the thresholds
-			if (this.lastFeintSamplings.has(passInfo)
+			// Consider two passInfos to be the same if it came from the same MA (otherwise lastFeintSamplings will be empty)
+			// and have the same target
+			if (Array.from(this.lastFeintSamplings.keys()).find((element) => element.target === passInfo.target) !== undefined
 				&& (Math.abs(passDist - PASS_DIST_SMALL_THRESHOLD) < PASS_DISTANCE_HYSTERESIS
 				|| Math.abs(passDist - PASS_DIST_LARGE_THRESHOLD) < PASS_DISTANCE_HYSTERESIS)) {
 				// Hysteresis says: continue what you were doing before
@@ -126,6 +135,7 @@ export class FeintPass extends Behavior {
 			}
 		}
 		this.lastFeintSamplings = feintSamplings;
+		this.lastSender = sender;
 		return [relevantPassInfoMessage, bestPosition];
 	}
 
@@ -193,7 +203,7 @@ export class FeintPass extends Behavior {
 
 			// If we are planning a pass
 			if (passPlanned) {
-				let [passInfo, feintPos] = this.getFeintPosition(passInfoTable!, attackPosition, plannedAttackTime, zone);
+				let [passInfo, feintPos] = this.getFeintPosition(sender, passInfoTable!, attackPosition, plannedAttackTime, zone);
 
 				debug.set("isReachable", passInfo != undefined);
 
@@ -317,7 +327,7 @@ export class FeintPass extends Behavior {
 
 		// We aren't already doing a feint but a pass is being planned
 		} else if (passPlanned) {
-			let [passInfo, feintPos] = this.getFeintPosition(passInfoTable!, attackPosition, plannedAttackTime!, zone);
+			let [passInfo, feintPos] = this.getFeintPosition(sender, passInfoTable!, attackPosition, plannedAttackTime!, zone);
 			debug.set("newPassReachable", passInfo !== undefined);
 			// if the new pass is reachable
 			if (passInfo !== undefined && feintPos !== undefined) {
