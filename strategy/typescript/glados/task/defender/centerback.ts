@@ -34,7 +34,7 @@ function ballShotFastAtRobot(robot: FriendlyRobot): boolean {
 
 export class CenterBack extends Task {
 	private _preliminaryCenterbackTarget: { pos: Position };
-	private _lookingToGoal: boolean = true;
+	private _lookingTo: "goal" | "ball" = "goal";
 	private _obstacleTable: PathHelper.PathHelperParameters;
 	private _forceShoot: ForceShoot;
 
@@ -47,7 +47,7 @@ export class CenterBack extends Task {
 		}
 		this._preliminaryCenterbackTarget = centerbackTarget;
 
-		this._lookingToGoal = true;
+		this._lookingTo = "goal";
 		this._obstacleTable = {
 			ignoreBall: true,
 			task: this,
@@ -73,15 +73,16 @@ export class CenterBack extends Task {
 		let fromGoalAngle = (this._robot.pos - World.Geometry.FriendlyGoal).angle();
 
 		const hystAngle = geom.degreeToRadian(5);
-		let dir = toBallAngle;
-		if ((this._lookingToGoal && toBallAngle < toCornerLeftAngle + hystAngle &&
+		let dir;
+		if ((this._lookingTo === "goal" && toBallAngle < toCornerLeftAngle + hystAngle &&
 				toBallAngle > toCornerRightAngle + hystAngle) ||
 				(toBallAngle < toCornerLeftAngle - hystAngle &&
 				toBallAngle > toCornerRightAngle - hystAngle)) {
 			dir = toGoalAngle;
-			this._lookingToGoal = true;
+			this._lookingTo = "goal";
 		} else {
-			this._lookingToGoal = false;
+			dir = toBallAngle;
+			this._lookingTo = "ball";
 		}
 
 		let maxAngleTilt = geom.degreeToRadian(40);
