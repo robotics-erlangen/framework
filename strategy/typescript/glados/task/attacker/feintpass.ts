@@ -16,7 +16,7 @@ import { Sampling, SupportParameters } from "glados/task/attacker/support";
 import { Task } from "glados/task/base";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { TrajectoryPath } from "glados/trajectory/trajectorypath";
-import { PassInfo } from "glados/util/attack";
+import { currentPlannedMainAttacker, PassInfo } from "glados/util/attack";
 import { Zone } from "glados/util/zone";
 
 const G = World.Geometry;
@@ -227,11 +227,9 @@ export class FeintPassTask extends Task {
 			radius: World.Ball.radius, posZ: 0
 		} as Physics.BallLike;
 
-		// TODO The state-free variant of this is bad, since it gives true if the pass dies
-		// Idea: Make an observer pass that tells you if a given pass is either still being planned, was already shot, is dead
-		if ((Robot.hadBall(this.passRobot, 0.3) && Ball.wasShot(0.1)) || !(
-			passInfoTable && passInfoTable.find((element) => element.target === this.relevantPassInfo.target) !== undefined &&
-			sender === this.passRobot
+		if ((Robot.hadBall(this.passRobot, 0.3) && Ball.wasShot(0.1)) || (
+			passInfoTable !== undefined && ((currentPlannedMainAttacker(sender, passInfoTable) === this.relevantPassInfo.target
+			&& this.relevantPassInfo.target !== undefined) || sender === this.relevantPassInfo.target)
 		)) {
 			this.passWasShot = true;
 		}

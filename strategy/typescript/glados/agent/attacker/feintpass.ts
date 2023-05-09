@@ -12,7 +12,7 @@ import * as Physics from "glados/observer/physics";
 import { AcceptPass } from "glados/task/attacker/acceptpass";
 import { FeintPassTask } from "glados/task/attacker/feintpass";
 import { SupportParameters } from "glados/task/attacker/support";
-import { checkPassInfos, PassInfo } from "glados/util/attack";
+import { checkPassInfos, PassInfo, currentPlannedMainAttacker } from "glados/util/attack";
 import { addDummyVisualizations } from "glados/util/dummy";
 import { isInZone, Zone } from "glados/util/zone";
 
@@ -180,18 +180,16 @@ export class FeintPass extends Behavior {
 				}
 			}
 
-			// Check if the pass of the feint was already shot
-			// TODO The state-free variant of this is bad, since it gives true if the pass dies
-			// Idea: Make an observer pass that tells you if a given pass is either still being planned, was already shot, is dead
-			let wasPassShot = this._task instanceof FeintPassTask ? this._task.passWasShot : !(
-				passInfoTable && passInfoTable.find((element) => element.target === lastFeintPassTarget!.passInfo.target) !== undefined &&
-				sender === lastFeintPassTarget.passRobot
-			);
-			debug.set("wasPassShot", wasPassShot);
-
 			// Get info on the pass that we are feinting
 			let lastPassInfo = lastFeintPassTarget.passInfo;
 			let lastPassRobot = lastFeintPassTarget.passRobot;
+
+			// Check if the pass of the feint was already shot
+			let wasPassShot = this._task instanceof FeintPassTask ? this._task.passWasShot : (
+				passInfoTable !== undefined && ((currentPlannedMainAttacker(sender, passInfoTable) === lastPassInfo.target
+				&& lastPassInfo.target !== undefined) || sender === lastPassRobot)
+			);
+			debug.set("wasPassShot", wasPassShot);
 
 			// If we are planning a pass
 			if (passPlanned) {
