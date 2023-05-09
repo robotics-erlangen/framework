@@ -172,7 +172,7 @@ export class FeintPassTask extends Task {
 		}
 
 		// search for a good pass dest
-		if (this._suggestPass && this._reEvaluatePassDest()) {
+		if ((this._suggestPass && this._reEvaluatePassDest()) || !this._passDestSuggestion) {
 			this._searchForPassDest();
 		}
 
