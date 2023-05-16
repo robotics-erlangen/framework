@@ -88,7 +88,7 @@ void FieldParameters::handleStatus(const Status &status)
         applyModel(status->geometry().ball_model());
     }
     if (status->has_world_state() && status->world_state().has_is_simulated()) {
-        const QString text = status->world_state().is_simulated() ? "Simulator" : "Real Field";
+        const QString text = QString("World state: %0").arg(status->world_state().is_simulated() ? "Simulator" : "Real Field");
         ui->fieldTypeText->setText(text);
     }
     if (status->has_world_state()) {

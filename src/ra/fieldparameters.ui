@@ -25,7 +25,11 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>Field/Simulator</string>
+        <string>World state: Unknown</string>
+       </property>
+       <property name="toolTip">
+        <string>If the world is being simulated, the button below will import the values from the simulator config.
+If it's real field, it will import the values from the vision.</string>
        </property>
       </widget>
      </item>
@@ -33,6 +37,9 @@
       <widget class="QPushButton" name="useVisionParameters">
        <property name="text">
         <string>Use Vision Parameters</string>
+       </property>
+       <property name="toolTip">
+        <string>Import the current ball model and damping values broadcasted by the vision or the simulator.</string>
        </property>
       </widget>
      </item>
@@ -47,7 +54,10 @@
           <item>
            <widget class="QLabel" name="label_3">
             <property name="text">
-             <string>Fast Decel:</string>
+             <string>Fast Deceleration:</string>
+            </property>
+            <property name="toolTip">
+             <string>The deceleration the ball experiences in the first phase (ball sliding over the floor).</string>
             </property>
            </widget>
           </item>
@@ -59,6 +69,9 @@
             <property name="singleStep">
              <double>0.100000000000000</double>
             </property>
+            <property name="toolTip">
+             <string>The deceleration the ball experiences in the first phase (ball sliding over the floor).</string>
+            </property>
            </widget>
           </item>
          </layout>
@@ -68,7 +81,10 @@
           <item>
            <widget class="QLabel" name="label">
             <property name="text">
-             <string>Slow Decel:</string>
+             <string>Slow Deceleration:</string>
+            </property>
+            <property name="toolTip">
+             <string>The deceleration the ball experiences in the second phase (ball rolling over the floor).</string>
             </property>
            </widget>
           </item>
@@ -79,6 +95,9 @@
             </property>
             <property name="singleStep">
              <double>0.050000000000000</double>
+            </property>
+            <property name="toolTip">
+             <string>The deceleration the ball experiences in the second phase (ball rolling over the floor)</string>
             </property>
            </widget>
           </item>
@@ -91,6 +110,9 @@
             <property name="text">
              <string>Switch Ratio:</string>
             </property>
+            <property name="toolTip">
+             <string>The point at which the ball switches from sliding to rolling.</string>
+            </property>
            </widget>
           </item>
           <item>
@@ -100,6 +122,9 @@
             </property>
             <property name="singleStep">
              <double>0.010000000000000</double>
+            </property>
+            <property name="toolTip">
+             <string>The point at which the ball switches from sliding to rolling.</string>
             </property>
            </widget>
           </item>
@@ -111,7 +136,7 @@
      <item>
       <widget class="QGroupBox" name="groupBox_2">
        <property name="title">
-        <string>Bounce Friction</string>
+        <string>Bounce Damping</string>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
