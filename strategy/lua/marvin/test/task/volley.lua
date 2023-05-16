@@ -35,7 +35,7 @@ end
 
 function VolleyProcess:run()
 	-- abort if another robot touches the ball or the ball has nearly stopped
-	if World.Ball.speed:length() < 1 or (Ball.friendlyBallOwner() ~= nil and Ball.friendlyBallOwner() ~= self._robot) or Ball.opponentBallOwner() then
+	if World.Ball.speed:length() < 1 and World.Ball.pos:distanceTo(self._robot.pos) > (self._robot.radius + World.Ball.radius) * 2 or (Ball.friendlyBallOwner() ~= nil and Ball.friendlyBallOwner() ~= self._robot) or Ball.opponentBallOwner() then
 		self._isFinished = true
 		return
 	end
