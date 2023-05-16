@@ -15,7 +15,6 @@ import * as Crash from "glados/observer/crash";
 import * as Goal from "glados/observer/goal";
 import * as Physics from "glados/observer/physics";
 import * as ObserverRobot from "glados/observer/robot";
-import { head } from "glados/util/collections";
 import * as UtilDefense from "glados/util/defense";
 import * as Rating from "glados/util/rating";
 
@@ -60,18 +59,18 @@ export class Defense {
 			vis.addCircle("tr/defense: Dangerousness", robot.pos, 0.2, vis.fromTemperature(rating), true);
 		}
 
+		const defendedOpponentMessages = Array.from(this._messaging.receive(MessageType.defendedOpponent).entries());
 		for (let robot of World.OpponentRobots) {
 			// if we are already dueling the robot
 			// the duel robot has to block the shot already
-			// TODO shouldn't all defended opponents be checked? Did not change while porting but why wouldn't we?
-
-			const defendedOpponentMessage = head(this._messaging.receive(MessageType.defendedOpponent));
-			if (defendedOpponentMessage) {
-				const [sender, opponent] = defendedOpponentMessage;
-				const oppDribblerPos = opponent.pos + Vector.fromPolar(opponent.dir, opponent.shootRadius + World.Ball.radius);
-				if (opponent === robot && sender.pos.distanceToLineSegment(oppDribblerPos, G.FriendlyGoal) < sender.radius) {
-					continue;
-				}
+			const robotIsDuelled = defendedOpponentMessages
+				.filter(([_sender, opponent]) => opponent === robot)
+				.some(([sender, opponent]) => {
+					const oppDribblerPos = opponent.pos + Vector.fromPolar(opponent.dir, opponent.shootRadius + World.Ball.radius);
+					return sender.pos.distanceToLineSegment(oppDribblerPos, G.FriendlyGoal) < sender.radius;
+				});
+			if (robotIsDuelled) {
+				continue;
 			}
 
 			let alreadyTargeted = this._previousManmarkAssignments.has(robot);
