@@ -38,12 +38,19 @@ export interface Sampling {
 export type SamplingCtor = new(task: Task) => Sampling;
 
 /** Specifies parameterization for the {@link Support} task. */
-export interface SupportParameters {
+export type SupportParameters = {
 	/** If this is `true`, the striker flag will be sent */
 	isStriker: boolean;
 	/** The sampling strategy to use */
 	samplingCtor: SamplingCtor;
-}
+} & (
+{
+	manualDefaultPos?: undefined;
+	manualPassDest?: undefined;
+} | {
+	manualDefaultPos: Position;
+	manualPassDest: Position;
+});
 
 export class Support extends Task {
 	private _manualDefaultPos: Position | undefined;
@@ -60,11 +67,14 @@ export class Support extends Task {
 	private _sampling: Sampling;
 	private _isStriker: boolean;
 
-	constructor(behavior: Behavior, supportParameters: SupportParameters, manualDefaultPos?: Position, manualPassDest?: Position) {
+	constructor(behavior: Behavior, supportParameters: SupportParameters) {
 		super(behavior);
-		this._manualDefaultPos = manualDefaultPos;
-		this._manualPassDest = manualPassDest;
-		this._passDestSuggestion = manualPassDest;
+
+		if ("manualDefaultPos" in supportParameters) {
+			this._manualDefaultPos = supportParameters.manualDefaultPos;
+			this._manualPassDest = supportParameters.manualPassDest;
+			this._passDestSuggestion = supportParameters.manualPassDest;
+		}
 
 		this._obstacleTable = {
 			ignoreBall: false,

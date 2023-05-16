@@ -104,9 +104,12 @@ export class WindshieldWiper extends Move {
 			taskAssignments[distances[i].robot] = Assignment.create({
 				class: Support,
 				params: [
-					{ isStriker: true, samplingCtor: StrikerSampling },
-					defaultPos,
-					acceptPos,
+					{
+						isStriker: true,
+						samplingCtor: StrikerSampling,
+						manualDefaultPos: defaultPos,
+						manualPassDest: acceptPos,
+					}
 				]
 			});
 		}
@@ -124,9 +127,12 @@ export class WindshieldWiper extends Move {
 					taskAssignments[distances[i].robot] = Assignment.create({
 						class: Support,
 						params: [
-							{ isStriker: true, samplingCtor: StrikerSampling },
-							defaultPos,
-							acceptPos,
+							{
+								isStriker: true,
+								samplingCtor: StrikerSampling,
+								manualDefaultPos: defaultPos,
+								manualPassDest: acceptPos,
+							}
 						],
 						restart: true,
 					});

@@ -40,9 +40,12 @@ function taskAssignment(passInfoTable: any, pos1: Position, pos2: Position, robo
 		return Assignment.create({
 			class: Support,
 			params: [
-				{ isStriker: true, samplingCtor: StrikerSampling },
-				new Vector(pos1.x * ballSide, pos1.y),
-				new Vector(pos2.x * ballSide, pos2.y),
+				{
+					isStriker: true,
+					samplingCtor: StrikerSampling,
+					manualDefaultPos: new Vector(pos1.x * ballSide, pos1.y),
+					manualPassDest: new Vector(pos2.x * ballSide, pos2.y),
+				}
 			]
 		});
 	}

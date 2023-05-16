@@ -45,21 +45,21 @@ export class InterceptPassMove extends Move {
 			if (this.lastMainAttacker === this._robots[0]) {
 				taskAssignments[this._robots[0]] = Assignment.create({class: Pass, params: [{ targetRobot: this._robots[1], ignoreCrash: true }]});
 			} else {
-				taskAssignments[this._robots[0]] = Assignment.create({class: Support, params: [{ isStriker: false, samplingCtor: MidfieldSampling }, default1, default1]});
+				taskAssignments[this._robots[0]] = Assignment.create({class: Support, params: [{ isStriker: false, samplingCtor: MidfieldSampling, manualDefaultPos: default1, manualPassDest: default1}]});
 			}
 			mainAttacker = this._robots[0];
 		} else {
-			taskAssignments[this._robots[0]] = Assignment.create({class: Support, params: [{ isStriker: false, samplingCtor: MidfieldSampling }, default1, default1]});
+			taskAssignments[this._robots[0]] = Assignment.create({class: Support, params: [{ isStriker: false, samplingCtor: MidfieldSampling, manualDefaultPos: default1, manualPassDest: default1}]});
 		}
 		if (mainAttacker === undefined) {
 			if (this.lastMainAttacker === this._robots[1]) {
 				taskAssignments[this._robots[1]] = Assignment.create({class: Pass, params: [{ targetRobot: this._robots[0], ignoreCrash: true }]});
 			} else {
-				taskAssignments[this._robots[1]] = Assignment.create({class: Support, params: [{ isStriker: false, samplingCtor: MidfieldSampling }, default2, default2]});
+				taskAssignments[this._robots[1]] = Assignment.create({class: Support, params: [{ isStriker: false, samplingCtor: MidfieldSampling, manualDefaultPos: default2, manualPassDest: default2}]});
 			}
 			mainAttacker = this._robots[1];
 		} else {
-			taskAssignments[this._robots[1]] = Assignment.create({class: Support, params: [{ isStriker: false, samplingCtor: MidfieldSampling }, default2, default2]});
+			taskAssignments[this._robots[1]] = Assignment.create({class: Support, params: [{ isStriker: false, samplingCtor: MidfieldSampling, manualDefaultPos: default2, manualPassDest: default2}]});
 		}
 		this.lastMainAttacker = mainAttacker;
 		return { assignments: taskAssignments, mainAttacker: mainAttacker };

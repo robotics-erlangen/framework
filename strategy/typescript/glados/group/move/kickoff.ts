@@ -84,9 +84,12 @@ export class KickOff extends Move {
 					taskAssignments[this._robots[this._assignments[i + 1]]] = Assignment.create({
 						class: Support,
 						params: [
-							{ isStriker: true, samplingCtor: StrikerSampling },
-							this._assistantAndPassPos[i].assistantPos,
-							this._assistantAndPassPos[i].passDest,
+							{
+								isStriker: true,
+								samplingCtor: StrikerSampling,
+								manualDefaultPos: this._assistantAndPassPos[i].assistantPos,
+								manualPassDest: this._assistantAndPassPos[i].passDest,
+							}
 						]
 					});
 				}
