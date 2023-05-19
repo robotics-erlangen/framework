@@ -8,12 +8,9 @@ Ra uses the team name for deciding which team we are for the tournament mode.
 Check ra/mainwindow.h `TEAM_NAME` to be exactly your team name (as used by the game controller)
 
 ## Ball modell
-Ra uses the ball modell in the tracking to have a more realistic ball tracking.
-Please measure both fricition value (for example by passing a few passes), and the slower
-(ball rolling) has to inserted in amun/processor/tracking/ballgroundfilter.cpp in `GroundFilter::predict`
-
-Please also measure floor damping (TODO: How to actually do that) and insert int in
-amun/processor/tracking/ballflyfilter.cpp `const float floorDamping`.
+To import the ball model and damping parameters that are broadcasted by the vision, use the "Field Parameters" widget in Ra.
+The world state above the button should be "Real Field", if its simulator you are importing the values from the simulator config instead.
+After importing them you can fine adjust the values.
 
 ## Radio Channels
 During the RoboCup, each team gets assigned a number of frequencies to use.
