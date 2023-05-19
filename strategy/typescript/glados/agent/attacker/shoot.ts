@@ -397,7 +397,10 @@ export class Shoot extends Behavior {
 		// never redecide if the ball is imminent
 		let dribblerPos = this._robot.pos + (World.Ball.pos - this._robot.pos).withLength(
 			World.Ball.radius + this._robot.shootRadius);
-		if (Physics.checkedBallRollTime(World.Ball, dribblerPos) < 0.5) {
+		let ballTimeToDribbler = Physics.checkedBallRollTime(World.Ball, dribblerPos);
+
+		if (ballTimeToDribbler < 0.5 && !(ballTimeToDribbler < 0 &&
+			World.Ball.pos.distanceToSq(dribblerPos) > 4 * World.Ball.radius * World.Ball.radius)) {
 			debug.set("redeciding", "FALSE (imminent)");
 			return false;
 		}
