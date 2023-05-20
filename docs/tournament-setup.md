@@ -27,3 +27,8 @@ TODO: I have no idea. Apearantly it does something, but we don't know where to i
 ## Vision Port + Ref Port
 In the ra configuration dialog choose the correct ports for the tournament
 You'll get the correct value from the OC.
+
+# Tournament setup Strategy
+
+## Accelerations of opponent robots
+Figure out how fast each opponent team can drive and put that into `base/accelerations.ts`.
