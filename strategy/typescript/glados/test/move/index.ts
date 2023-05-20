@@ -12,6 +12,7 @@ import { InterceptPassMove } from "glados/test/move/interceptpass";
 import { MovingObstacles } from "glados/test/move/movingobstacles";
 import { Race } from "glados/test/move/race";
 import { makeSingleTaskMove } from "glados/test/move/singletaskmove";
+import { TIGERsTestGoalShot } from "glados/test/move/tigerstestgoalshot";
 import { Victory } from "glados/test/move/victory";
 import { Volley } from "glados/test/move/volley";
 import { RotTest } from "glados/test/task/rotation";
@@ -27,6 +28,7 @@ let moves: (typeof Move)[] = [
 	Volley,
 	makeSingleTaskMove(RotTest),
 	InterceptPassMove,
+	makeSingleTaskMove(TIGERsTestGoalShot)
 ];
 
 let coord: MainCoordinator | undefined = undefined;
