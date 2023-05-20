@@ -137,6 +137,11 @@ void saveSituation(world::State worldState, amun::GameState gameState)
             situation <<"\t\t\tblueTeamOnPositiveHalf = " << (!gameState.goals_flipped() ? "true" : "false") << ","<<endl;
         }
 
+        if (gameState.state() == amun::GameState_State_BallPlacementBlue || gameState.state() == amun::GameState_State_BallPlacementYellow) {
+            auto visPos = gameState.designated_position();
+            situation <<"\t\t\tdesignated_position = { x = " << visPos.x() << ", y = " << visPos.y() << " },"<<endl;
+        }
+
         situation <<"\t\t}"<<endl; // referee
         situation <<"\t\tamun.sendRefereeCommand(referee)"<<endl;
 
