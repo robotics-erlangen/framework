@@ -398,7 +398,7 @@ export class Path {
 
 	addLine(start_x: number, start_y: number, stop_x: number, stop_y: number, radius: number, name?: string, prio: number = 0) {
 		if (start_x === stop_x && start_y === stop_y) {
-			log("WARNING: start  &&  end points for a line obstacle are the same!");
+			this.addCircle(start_x, start_y, radius, name, prio);
 			return;
 		}
 		if (teamIsBlue) {
