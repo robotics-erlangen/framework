@@ -75,9 +75,9 @@ export class CenterBack extends Task {
 		const hystAngle = geom.degreeToRadian(5);
 		let dir;
 		if ((this._lookingTo === "goal" && toBallAngle < toCornerLeftAngle + hystAngle &&
-				toBallAngle > toCornerRightAngle + hystAngle) ||
+				toBallAngle > toCornerRightAngle - hystAngle) ||
 				(toBallAngle < toCornerLeftAngle - hystAngle &&
-				toBallAngle > toCornerRightAngle - hystAngle)) {
+				toBallAngle > toCornerRightAngle + hystAngle)) {
 			dir = toGoalAngle;
 			this._lookingTo = "goal";
 		} else {
