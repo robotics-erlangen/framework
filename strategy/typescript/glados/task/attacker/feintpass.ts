@@ -269,7 +269,11 @@ export class FeintPassTask extends Task {
 			this.evacuate = true;
 		}
 
-		if (Ball.lastBallOwner() !== this.passRobot && this.passWasShot) {
+		// feintpass task is completed if and only if:
+		// - the ball owner changed
+		// - the pass was shot
+		// - the ball was interrupted by any robot, so either accepted or redirected
+		if (Ball.lastBallOwner() !== this.passRobot && this.passWasShot && Ball.interruped()) {
 			this.complete = true;
 		}
 	}

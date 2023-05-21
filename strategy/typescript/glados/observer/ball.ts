@@ -698,6 +698,36 @@ function updateIsStanding() {
 	lastIsStanding = !(condSameDirection || condSpeed || condDeviation || condWasShot);
 }
 
+let wasInterrupted = false;
+export function interruped() {
+	return wasInterrupted;
+}
+
+let angleOld = World.Ball.speed.angle();
+let speedOld = World.Ball.speed.length();
+
+function updateInterrupted() {
+	// A ball is called interrupted if and only if:
+	// - the angle at which the ball was originally shot changed (> 28 degrees)
+	// - the speed at which the ball was originally travelling change drasticly (> 3 m/s)
+	let angleNew = World.Ball.speed.angle();
+	let speedNew = World.Ball.speed.length();
+
+	let angleDiff = Math.abs(geom.getAngleDiff(angleOld, angleNew));
+	let speedDiff = Math.abs(speedNew - speedOld);
+
+	debug.pushtop("Ball.interrupted");
+	debug.set("angleDiff", angleDiff);
+	debug.set("speedDiff", speedDiff);
+	debug.set("wasInterrupted", wasInterrupted);
+	debug.pop();
+
+	wasInterrupted = angleDiff > geom.degreeToRadian(28) || speedDiff > 3;
+
+	angleOld = angleNew;
+	speedOld = speedNew;
+}
+
 export function _update() {
 	updateReceivesPass();
 	updateIsAccelerating();
@@ -712,4 +742,5 @@ export function _update() {
 	updateFriendlyBallOwnershipTime();
 	updateBallPlacementRobots();
 	updateIsStanding();
+	updateInterrupted();
 }
