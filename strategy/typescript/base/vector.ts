@@ -363,6 +363,10 @@ export class Vector {
 		return new Vector(tmp * u + mean.x, tmp * v + mean.y);
 	}
 
+	static crossProdLength(firstVector: Vector, secondVector: Vector) {
+		return firstVector.x * secondVector.y - firstVector.y * secondVector.x;
+	}
+
 	/**
 	 * Check whether a given value is a vector
 	 * @param data - The value to test
