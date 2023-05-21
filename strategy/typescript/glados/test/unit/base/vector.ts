@@ -27,6 +27,7 @@ export class BaseVector extends UnitTest {
 		this.addTest("nearestPosOnLine+distanceToLineSegment", this.testNearestPosOnLineAndDistanceToLineSegment);
 		this.addTest("random", this.testRandom);
 		this.addTest("distanceToSq", this.testDistanceToSq);
+		this.addTest("crossProdLength", this.testCrossProdLength);
 	}
 
 	private testConstructor() {
@@ -432,6 +433,19 @@ export class BaseVector extends UnitTest {
 		let p1 = new Vector(0, 0);
 		let p2 = new Vector(0.5, 0);
 		this.assert_equal(0.25, p1.distanceToSq(p2));
+	}
+
+	private testCrossProdLength() {
+		let x = new Vector(1, 0);
+		let y = new Vector(0, 1);
+		this.assert_equal(Vector.crossProdLength(x, y), 1);
+		this.assert_equal(Vector.crossProdLength(y, x), -1);
+		this.assert_equal(Vector.crossProdLength(x, x), 0);
+		this.assert_equal(Vector.crossProdLength(y, y), 0);
+
+		let v = new Vector(1, 1).normalized();
+		this.assert_equal_eps(Vector.crossProdLength(x, v), Math.sin(Math.PI / 4), EPS);
+		this.assert_equal_eps(Vector.crossProdLength(y, v), -Math.sin(Math.PI / 4), EPS);
 	}
 }
 export let testClass = BaseVector;
