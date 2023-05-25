@@ -59,10 +59,10 @@ export class CenterBack extends Task {
 		this._messaging.sendToTrainerRepeated(MessageType.groupApplication,
 			{ name: "centerback", payload: this._preliminaryCenterbackTarget });
 
-		const pos_target = this._messaging.receiveTrainer(MessageType.centerBackPosTarget);
+		const posTarget = this._messaging.receiveTrainer(MessageType.centerBackPosTarget);
 
-		let destinationPos = pos_target ? pos_target.pos : UtilDefense.centerBackDefaultPos;
-		let destinationTime = (pos_target != undefined && pos_target.time != undefined) ? pos_target.time : Infinity;
+		let destinationPos = posTarget?.pos ?? UtilDefense.centerBackDefaultPos;
+		let destinationTime = posTarget?.time ?? Infinity;
 
 		let toBallAngle = (World.Ball.pos - this._robot.pos).angle();
 		let toGoalAngle = (World.Geometry.OpponentGoal - this._robot.pos).angle();
@@ -92,11 +92,11 @@ export class CenterBack extends Task {
 			this._forceShoot._forceShootTimer = undefined;
 		}
 		let chipActivationAngle = Math.PI / 6;
-		let isGame = World.RefereeState === "Game" || World.RefereeState === "GameForce";
-		if (isGame && toBallAngle > chipActivationAngle && toBallAngle < Math.PI - chipActivationAngle &&
-				Vector.fromAngle(dir).absoluteAngleDiff(destinationPos - G.FriendlyGoal) < Math.PI
-					&& World.Ball.pos.distanceTo(this._robot.pos) < 1
-					&& this._robot.pos.distanceTo(destinationPos) < 1) {
+		if (Referee.isGameState() && toBallAngle > chipActivationAngle
+				&& toBallAngle < Math.PI - chipActivationAngle
+				&& Vector.fromAngle(dir).absoluteAngleDiff(destinationPos - G.FriendlyGoal) < Math.PI
+				&& World.Ball.pos.distanceTo(this._robot.pos) < 1
+				&& this._robot.pos.distanceTo(destinationPos) < 1) {
 			debug.set("chip", true);
 			this._forceShoot._doForceShoot();
 
