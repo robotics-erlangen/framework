@@ -11,6 +11,7 @@ import * as World from "base/world";
 
 import { MessageBox, MessageType } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
+import * as Crash from "glados/observer/crash";
 import * as Goal from "glados/observer/goal";
 import * as Physics from "glados/observer/physics";
 import * as ObserverRobot from "glados/observer/robot";
@@ -288,10 +289,31 @@ export class Defense {
 		let ballDistance = Field.distanceToFriendlyDefenseArea(World.Ball.pos, 0);
 		let distanceToDefenseArea = UtilDefense.centerBackDistanceToDefenseArea();
 		let defenseExtraRadius = distanceToDefenseArea + Constants.maxRobotRadius;
+
+		// check if an opponent robot receives the pass and won't move out of the way
+		const opponentWillStopBall = World.OpponentRobots.filter((robot) => Ball.receivesPass(robot) && Crash.getStationary(robot))
+			.some((robot) => {
+				const vecBallToRobot = robot.pos - World.Ball.pos;
+				const tBallToRobot = Physics.ballTravelTime(World.Ball, vecBallToRobot.length());
+				// assume the fastest way for the robot to avoid the ball is moving perpendicular to vecBallToRobot
+				// considering Crash.getStationary has to be true for the robot this assumption should be reasonable
+				const ballAvoidingDirection = new Vector(vecBallToRobot.y, -vecBallToRobot.x).normalized();
+				const maxRobotVelocity = robot.maxSpeed * ballAvoidingDirection;
+				const tOppOutOfWay0 = Physics.robotTimeToPos(robot, robot.pos + robot.radius * ballAvoidingDirection, maxRobotVelocity)[0];
+				const tOppOutOfWay1 = Physics.robotTimeToPos(robot, robot.pos - robot.radius * ballAvoidingDirection, -maxRobotVelocity)[0];
+				// basically use the minimum of avoiding the robot to the "left" or to the "right"
+				const tOppOutOfWay = Math.min(tOppOutOfWay0, tOppOutOfWay1);
+				return tBallToRobot < tOppOutOfWay;
+			});
+
+		// compute all the interesting intersections of the current trajectory of the ball and predictShot with the defense area
 		let intersectionInfos: Ray[] = [];
-		if (ballDistance < 1 ? World.Ball.speed.length() > 0.2 : !Ball.isSlowBall()) {
+		// add intersections of current trajectory of the ball if the balls speed is dangerous and it is not stopped
+		if (!opponentWillStopBall && (ballDistance < 1 ? World.Ball.speed.length() > 0.2 : !Ball.isSlowBall())) {
 			this._createIntersections(intersectionInfos, World.Ball.pos, World.Ball.speed, defenseExtraRadius, 0, false);
 		}
+
+		// add intersections of predictShot with the defense area if we actually predict the ball to be shot
 		let [predicedPos, predicedDir, isShot, _, isDribbling] = Goal.predictShot(true);
 		if ((isShot || isDribbling) && (!predicedPos.equals(World.Ball.pos) || !predicedDir.equals(World.Ball.speed))) {
 			let numBefore = intersectionInfos.length;
