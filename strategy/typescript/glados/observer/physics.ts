@@ -721,6 +721,21 @@ export function robotTimeToPos(robot: RobotLike, endPos: Position, endSpeedVecto
 	return [currentTime + timeDiff + timeSym + expBrakeExtraTime, currentTime];
 }
 
+/**
+ * This is a very crude approximation for how far a robot can drive in a given time
+ * TODO: This is not a very tight upper bound
+ */
+export function robot1DMaxRangeInTime(robot: Robot, dir: Vector, time: RelTime): number {
+	let speedProjection = robot.speed.dot(dir.normalized());
+	let timeToMaxSpeed = (robot.maxSpeed - speedProjection) / robot.acceleration.aSpeedupFMax;
+	if (timeToMaxSpeed < time) {
+		return 1 / 2 * robot.acceleration.aSpeedupFMax * time * time + speedProjection * time;
+	} else {
+		return 1 / 2 * robot.acceleration.aSpeedupFMax * timeToMaxSpeed * timeToMaxSpeed
+		+ robot.maxSpeed * (time - timeToMaxSpeed)
+		+ speedProjection * time;
+	}
+}
 
 /**
  * Calculates the min endspeed for the robot to reach pos in the given time

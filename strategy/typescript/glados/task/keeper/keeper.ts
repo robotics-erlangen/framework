@@ -1,4 +1,5 @@
 import * as Constants from "base/constants";
+import { allowedMaxBallSpeed } from "base/constants";
 import * as debug from "base/debug";
 import * as Field from "base/field";
 import * as geom from "base/geom";
@@ -190,6 +191,41 @@ export class Keeper extends Task {
 			moveTo = intersectPos * (1 - k) + new Vector(0, -G.FieldHeightHalf + keeperGoalDistance + this._robot.radius) * k;
 		} else { // don't know where to go, just center in the goal / corner
 			moveTo = fallbackPos;
+		}
+
+		// bound the moveTo if the rotationConditionNumber is sufficiently large
+		let rotCondNum = Goal.rotationConditionNumber();
+		if (!isShot && rotCondNum !== undefined && rotCondNum > 1e-2) {
+			let shotBall = [
+				{ speed: (defenseLineEnd - World.Ball.pos).withLength(allowedMaxBallSpeed), maxSpeed: allowedMaxBallSpeed },
+				{ speed: (defenseLineStart - World.Ball.pos).withLength(allowedMaxBallSpeed), maxSpeed: allowedMaxBallSpeed }
+			];
+
+			let minBallTravelTime = [
+				Physics.ballRollTime(shotBall[0], (defenseLineEnd - World.Ball.pos).length()),
+				Physics.ballRollTime(shotBall[1], (defenseLineStart - World.Ball.pos).length())
+			];
+
+			let maxDistToCorner = [
+				MathUtil.bound(0, Physics.robot1DMaxRangeInTime(this._robot, defenseDir, minBallTravelTime[0]),
+				Math.min((this._robot.pos - defenseLineEnd).dot(-defenseDir.normalized()), 1 / 2 * defenseDir.length())),
+				MathUtil.bound(0, Physics.robot1DMaxRangeInTime(this._robot, -defenseDir, minBallTravelTime[1]),
+				Math.min((this._robot.pos - defenseLineStart).dot(defenseDir.normalized()), 1 / 2 * defenseDir.length()))
+			];
+
+			debug.set("maxDistToCorner", maxDistToCorner);
+
+			let bounds = [
+				defenseLineEnd - defenseDir.withLength(maxDistToCorner[0]),
+				defenseLineStart + defenseDir.withLength(maxDistToCorner[1])
+			];
+
+			vis.addCircle("keeper/bounds", bounds[0], 0.1, vis.colors.darkPurple, false);
+			vis.addCircle("keeper/bounds", bounds[1], 0.1, vis.colors.darkPurple, false);
+
+			moveTo = defenseDir.withLength(
+				MathUtil.bound(0, (moveTo - bounds[1]).dot(defenseDir.normalized()), (bounds[0] - bounds[1]).length())
+			) + bounds[1];
 		}
 
 		// use the large stop ball obstacle if we are not in our defense area yet
