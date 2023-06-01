@@ -298,7 +298,8 @@ function _predictShot(allShots: boolean = false, includeInvisible: boolean = tru
 	let oppBallOwner = Ball.opponentBallOwner();
 	let oppBallDribbler = Ball.opponentBallDribbler();
 	if (oppBallDribbler && World.RefereeState !== "Stop") {
-		isShot = true;
+		let rotCondNum = rotationConditionNumber();
+		isShot = !(rotCondNum !== undefined && rotCondNum > 1e-2);
 		isDribbling = true;
 		// NOTE: use World.Ball instead of futureBall is fine, as the shot is assumed to be imminent.
 		let relativeSpeedLength = World.Ball.speed - oppBallDribbler.speed;
@@ -425,6 +426,49 @@ function _predictShot(allShots: boolean = false, includeInvisible: boolean = tru
 
 	return [pos, ballSpeed, isShot, passReceivers, isDribbling];
 }
+
+const ATK_DIR_BUFFER_SIZE = 8;
+let atkDirBuffer: Vector[] = new Array(ATK_DIR_BUFFER_SIZE);
+let currentAtkDirBufferIndex = 0;
+let atkDirBufferFilled = false;
+
+function updateAtkDirBuffer() {
+	let [_, dir] = predictShot();
+	atkDirBuffer[currentAtkDirBufferIndex] = dir.normalized();
+	currentAtkDirBufferIndex = (currentAtkDirBufferIndex + 1) % ATK_DIR_BUFFER_SIZE;
+
+	if (currentAtkDirBufferIndex === 0) {
+		atkDirBufferFilled = true;
+	}
+}
+
+/**
+ * Calculates whether the direction from predictShot is rotating in a correlated manner.
+ * For this, it builds the mean from the pair-wise cross-product between the past directions
+ * in the buffer. Since the vectors inside the buffer are normalized, this is equivalent to
+ * taking the (signed) sine of the angles between each pair.
+ * @returns A number in [0, 1], where higher numbers mean a faster and more correlated rotation
+ */
+function _rotationConditionNumber(): number | undefined {
+	if (atkDirBufferFilled) {
+		let rotationConditionNumber = 0;
+		for (let indexOffset = 0; indexOffset < ATK_DIR_BUFFER_SIZE - 1; indexOffset++) {
+			let v = atkDirBuffer[(currentAtkDirBufferIndex + indexOffset) % ATK_DIR_BUFFER_SIZE];
+			let w = atkDirBuffer[(currentAtkDirBufferIndex + indexOffset + 1) % ATK_DIR_BUFFER_SIZE];
+			rotationConditionNumber += Vector.crossProdLength(v, w);
+		}
+		return Math.abs(rotationConditionNumber / ATK_DIR_BUFFER_SIZE);
+	}
+
+	return undefined;
+}
+
+/**
+ * Quantitative metric in [0, 1] which describes how correlated
+ * the rotation of the current prdictShot-direction is
+ */
+export let rotationConditionNumber = Cache.forFrame(_rotationConditionNumber);
+
 /**
  * Predicts the direction the ball will be shot into.
  * Checks for ball movement, opponents near the ball, tries to predict passes
@@ -439,4 +483,5 @@ export let predictShot = Cache.forFrame(_predictShot);
 
 export function _update() {
 	updateRobotPositions();
+	updateAtkDirBuffer();
 }
