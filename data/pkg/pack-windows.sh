@@ -53,5 +53,5 @@ if [[ -n "$repo" ]]; then
 fi
 
 outfile="ra-win${shortrev}${suffix}.zip"
-"${cmake}" -E tar cf "${outfile}" --format=zip -- *.dll ra.exe icudtl.dat config data platforms libs
+"${cmake}" -E tar cf "${outfile}" --format=zip -- *.dll ra.exe icudtl.dat config data platforms libs ssl-game-controller*.exe
 echo "Packed ra as $outfile"
