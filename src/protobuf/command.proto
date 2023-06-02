@@ -130,6 +130,7 @@ message CommandStrategyChangeOption {
 message CommandAmun {
     optional uint32 vision_port = 1;
     optional uint32 referee_port = 2;
+    optional uint32 tracker_port = 4;
     optional CommandStrategyChangeOption change_option = 3;
 }
 
