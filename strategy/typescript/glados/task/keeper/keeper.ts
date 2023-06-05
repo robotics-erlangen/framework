@@ -195,7 +195,8 @@ export class Keeper extends Task {
 
 		// bound the moveTo if the rotationConditionNumber is sufficiently large
 		let rotCondNum = Goal.rotationConditionNumber();
-		if (!isShot && rotCondNum !== undefined && rotCondNum > 1e-2) {
+		if ((!isShot && (rotCondNum !== undefined && rotCondNum > 1e-2)) ||
+			((rotCondNum === undefined || rotCondNum <= 1e-2) && !successfulIntersection)) {
 			let shotBall = [
 				{ speed: (defenseLineEnd - World.Ball.pos).withLength(allowedMaxBallSpeed), maxSpeed: allowedMaxBallSpeed },
 				{ speed: (defenseLineStart - World.Ball.pos).withLength(allowedMaxBallSpeed), maxSpeed: allowedMaxBallSpeed }
