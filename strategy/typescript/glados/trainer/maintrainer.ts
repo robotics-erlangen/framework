@@ -1,4 +1,4 @@
-import { AttackRatio } from "glados/trainer/attackratio";
+import { AttackRatio, AttackRatioKind } from "glados/trainer/attackratio";
 import { Defense } from "glados/trainer/defense";
 import { Trainer } from "glados/trainer/trainer";
 
@@ -19,9 +19,19 @@ export class MainTrainer extends Trainer {
 
 	fixAttackRatio() {
 		if (this._mode === "passive") {
-			this._attackRatio.attackRatio = () => 0;
+			this._attackRatio.attackRatio = () => {
+				return {
+					kind: AttackRatioKind.ConstantAttackers,
+					numberOfAttackers: 0,
+				};
+			};
 		} else if (this._mode === "aggressive") {
-			this._attackRatio.attackRatio = () => 11;
+			this._attackRatio.attackRatio = () => {
+				return {
+					kind: AttackRatioKind.ConstantDefenders,
+					numberOfDefenders: 0,
+				};
+			};
 		}
 	}
 

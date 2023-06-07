@@ -18,9 +18,26 @@ export interface ForcePoolChange {
 	destPool: "manual" | "ally" | "keeper" | "defender" | "attacker" | "hidden";
 }
 
+export enum AttackRatioKind {
+	Scalable,
+	ConstantAttackers,
+	ConstantDefenders,
+}
+
+export type AttackRatioResult = {
+	kind: AttackRatioKind.Scalable;
+	ratio: number;
+} | {
+	kind: AttackRatioKind.ConstantAttackers;
+	numberOfAttackers: number;
+} | {
+	kind: AttackRatioKind.ConstantDefenders;
+	numberOfDefenders: number;
+};
+
 export class AttackRatio {
 	_friendlyFreeKickOngoing: boolean = false;
-	_opponentFreeKickAT: number | undefined = undefined;
+	_opponentFreeKickAT: AttackRatioResult | undefined = undefined;
 	_ballInOpponentFieldHalf: boolean = false; // remember for hysteresis
 	_dangerousDuelSituation: boolean = false;
 	_previousMainAttacker: FriendlyRobot | undefined;
@@ -31,7 +48,7 @@ export class AttackRatio {
 		this._messaging = messaging;
 	}
 
-	attackRatio() {
+	attackRatio(): AttackRatioResult {
 		let ball = World.Ball;
 		let refState = World.RefereeState;
 		let nextRefState = World.NextRefereeState;
@@ -41,7 +58,10 @@ export class AttackRatio {
 		}
 
 		if (BaseRef.isOpponentFreeKickState(refState)) {
-			this._opponentFreeKickAT = 0;
+			this._opponentFreeKickAT = {
+				kind: AttackRatioKind.ConstantAttackers,
+				numberOfAttackers: 0,
+			};
 		} else if (refState !== "Game") {
 			this._opponentFreeKickAT = undefined;
 		} else {
@@ -67,15 +87,18 @@ export class AttackRatio {
 		}
 
 
-		let attackRatio: number;
-		let divBattackRatio: number;
+		let result: AttackRatioResult;
 
 		if (BaseRef.isFriendlyKickoffState(refState)) {
-			attackRatio = 8;
-			divBattackRatio = 4;
+			result = {
+				kind: AttackRatioKind.ConstantDefenders,
+				numberOfDefenders: 2,
+			};
 		} else if (BaseRef.isOpponentKickoffState(refState)) {
-			attackRatio = 4;
-			divBattackRatio = 3;
+			result = {
+				kind: AttackRatioKind.Scalable,
+				ratio: 4,
+			};
 		} else if (BaseRef.isFriendlyFreeKickState(refState)
 				|| (refState === "BallPlacementOffensive" && BaseRef.isFriendlyFreeKickState(nextRefState))) {
 			let checkedPos = refState === "BallPlacementOffensive"
@@ -83,75 +106,72 @@ export class AttackRatio {
 				: ball.pos;
 			let friendlyCorner = Field.isInOwnCorner(checkedPos, false);
 			let opponentCorner = Field.isInOwnCorner(checkedPos, true);
+			let attackRatio: number;
 			if (friendlyCorner) { // Goal-Kick Offensive
 				attackRatio = 5;
-				divBattackRatio = 3;
 			} else if (opponentCorner) { // Corner-Kick Offensive
 				attackRatio = 9;
-				divBattackRatio = 5;
 			} else if (checkedPos.y > 1.2) {
 				attackRatio = 8; // Throw-In Offensive
-				divBattackRatio = 4;
 			// eslint-disable-next-line sonarjs/no-duplicated-branches
 			} else {
 				attackRatio = 5; // Throw-In Offensive
-				divBattackRatio = 3;
 			}
+			result = {
+				kind: AttackRatioKind.Scalable,
+				ratio: attackRatio,
+			};
 		} else if (BaseRef.isOpponentFreeKickState(refState) || refState === "BallPlacementDefensive") {
 			let opponentCorner = Field.isInOwnCorner(ball.pos, true);
 			if (opponentCorner) {
-				attackRatio = 2;
-				divBattackRatio = 2;
+				result = {
+					kind: AttackRatioKind.ConstantAttackers,
+					numberOfAttackers: 2,
+				};
 			} else {
-				attackRatio = 1;
-				divBattackRatio = 1;
+				result = {
+					kind: AttackRatioKind.ConstantAttackers,
+					numberOfAttackers: 1,
+				};
 			}
 			if (this._opponentFreeKickAT != undefined) {
-				this._opponentFreeKickAT = (World.DIVISION === "A") ? attackRatio : divBattackRatio;
+				this._opponentFreeKickAT = result;
 			}
 		} else if (refState === "Stop") {
 			if (this._ballInOpponentFieldHalf) {
-				attackRatio = 4;
-				divBattackRatio = 2;
+				result = {
+					kind: AttackRatioKind.Scalable,
+					ratio: 4,
+				};
 			} else {
-				attackRatio = 1;
-				divBattackRatio = 1;
+				result = {
+					kind: AttackRatioKind.ConstantAttackers,
+					numberOfAttackers: 1,
+				};
 			}
 		} else { // Game, GameForce
 			if (this._opponentFreeKickAT != undefined) {
-				attackRatio = this._opponentFreeKickAT;
-				divBattackRatio = this._opponentFreeKickAT;
+				result = this._opponentFreeKickAT;
 			} else {
-				attackRatio = this._ballInOpponentFieldHalf ? 5 : 4;
-				divBattackRatio = this._ballInOpponentFieldHalf ? 3 : 2;
+				let attackRatio = this._ballInOpponentFieldHalf ? 5 : 4;
 				if (this._friendlyFreeKickOngoing) {
 					attackRatio = attackRatio + 1;
-					divBattackRatio = divBattackRatio + 1;
 				}
+				result = {
+					kind: AttackRatioKind.Scalable,
+					ratio: attackRatio,
+				};
 			}
 		}
 
 		const expectedEnemies = Constants.maxTeamSize[World.DIVISION];
-
-		if (World.DIVISION === "B") {
-			attackRatio = divBattackRatio;
-		}
-
 		// increase attackRatio if we have more robots
 		let enemies = expectedEnemies - Referee.realisticCardsOpponent();
-		if (enemies < Math.min(expectedEnemies, World.FriendlyRobots.length)) {
-			attackRatio = Math.max(attackRatio, Math.min(attackRatio + 1, 2.0 / 3 * expectedEnemies));
+		if (result.kind === AttackRatioKind.Scalable && enemies < Math.min(expectedEnemies, World.FriendlyRobots.length)) {
+			result.ratio = Math.max(result.ratio, Math.min(result.ratio + 1, 2.0 / 3 * expectedEnemies));
 		}
 
-		// allow a defender to promote if a pass is ongoing.
-		// The increased attackRatio will result in one defender promoting.
-		// a/defender adjust its rating to "I'm a bad defender" if recieving a pass,
-		// so the correct robot will be promoted.
-		let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
-		if (passInfoTable && attackRatio < 2) {
-			attackRatio = 2;
-		}
-		return attackRatio;
+		return result;
 	}
 
 	attackerDefenderDistribution(): [number, number] {
@@ -162,8 +182,34 @@ export class AttackRatio {
 
 		let attackRatio = this.attackRatio();
 
-		const expectedRobots = Constants.maxTeamSize[World.DIVISION];
-		let attackers = attackRatio > 0 ? Math.max(1, Math.floor(attackRatio / expectedRobots * World.FriendlyRobots.length)) : 0;
+		const robotCountWithoutKeeper = Math.max(0, World.FriendlyRobots.length - 1);
+		let attackers: number;
+		switch (attackRatio.kind) {
+			case AttackRatioKind.ConstantAttackers: {
+				attackers = Math.min(robotCountWithoutKeeper, attackRatio.numberOfAttackers);
+				break;
+			};
+			case AttackRatioKind.ConstantDefenders: {
+				attackers = Math.max(0, robotCountWithoutKeeper - attackRatio.numberOfDefenders);
+				break;
+			};
+			case AttackRatioKind.Scalable: {
+				// we always compute attackRatio with the maximum allowed robots in DivA in mind and scale it to the actual number of robots
+				// this should also work if we play DivB
+				const maxRobots = Constants.maxTeamSize["A"];
+				attackers = Math.max(1, Math.floor(attackRatio.ratio / maxRobots * World.FriendlyRobots.length));
+
+				// allow a defender to promote if a pass is ongoing.
+				// The increased attacker count will result in one defender promoting.
+				// a/defender adjust its rating to "I'm a bad defender" if receiving a pass,
+				// so the correct robot will be promoted.
+				let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
+				if (passInfoTable && attackers < 2) {
+					attackers = 2;
+				}
+				break;
+			};
+		}
 
 		let mainAttacker = this._messaging.receiveTrainer(MessageType.mainAttacker);
 
