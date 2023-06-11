@@ -160,7 +160,13 @@ export class Shoot extends Behavior {
 		}
 
 		const earliestAttackTime = this._messaging.receiveSingleSender(MessageType.earliestAttackTime, true)[1];
-		let passSuggestions = this._messaging.receive(MessageType.passSuggestion);
+
+		// if the MA is the only attacker it does not make sense to accept pass suggestions, because only defenders can suggest passes in this situation
+		// and if attackRatio sent onlySingleAttacker those defenders are not allowed to switch to the attacker role,
+		// which would be necessary for them to accept the pass -> we can't pass
+		const isOnlyAttacker = this._messaging.receiveTrainer(MessageType.onlySingleAttacker);
+		let passSuggestions = isOnlyAttacker ? new Map() : this._messaging.receive(MessageType.passSuggestion);
+
 		let pass = Attack.choosePassFromSuggestions(this._robot, passSuggestions, {
 			earliestAttackTime,
 			attackPosition: this._attackPosition,

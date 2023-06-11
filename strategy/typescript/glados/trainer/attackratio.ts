@@ -198,6 +198,11 @@ export class AttackRatio {
 		switch (attackRatio.kind) {
 			case AttackRatioKind.ConstantAttackers: {
 				attackers = Math.min(robotCountWithoutKeeper, attackRatio.numberOfAttackers);
+				// this is only necessary here, because if you're using ConstantDefenders to say 9 defenders you're doing something wrong
+				// and in the scalable case we allow additional attackers
+				if (attackRatio.numberOfAttackers === 1) {
+					this._messaging.sendBroadcast(MessageType.onlySingleAttacker);
+				}
 				break;
 			};
 			case AttackRatioKind.ConstantDefenders: {
