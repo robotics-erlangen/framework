@@ -183,6 +183,11 @@ export class Keeper extends Task {
 			// use moveTo position to be there as fast as possible
 			endSpeed = Physics.robotMinEndspeed(this._robot, moveTo, availableTime);
 
+			if (this._robot.pos.distanceToSq(moveTo) < 2 * 2 * this._robot.radius * this._robot.radius &&
+				World.Ball.pos.distanceToSq(moveTo) >= 1.5 * this._robot.pos.distanceToSq(moveTo)) {
+				endSpeed = new Vector(0, 0);
+			}
+
 			debug.set("endSpeed", endSpeed);
 
 		// block estimated shoot line
