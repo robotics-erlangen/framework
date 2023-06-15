@@ -523,7 +523,7 @@ std::tuple<QList<QByteArray>, QByteArray, qint64> Simulator::createVisionPacket(
 
     // add ball model to geometry data
     geometry->mutable_models()->mutable_straight_two_phase()->set_acc_roll(-0.35);
-    geometry->mutable_models()->mutable_straight_two_phase()->set_acc_slide(-4.5);
+    geometry->mutable_models()->mutable_straight_two_phase()->set_acc_slide(-3.9);
     geometry->mutable_models()->mutable_straight_two_phase()->set_k_switch(0.69);
     geometry->mutable_models()->mutable_chip_fixed_loss()->set_damping_z(0.566);
     geometry->mutable_models()->mutable_chip_fixed_loss()->set_damping_xy_first_hop(0.715);
