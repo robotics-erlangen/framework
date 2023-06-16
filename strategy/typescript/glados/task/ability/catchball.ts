@@ -101,8 +101,7 @@ export class CatchBall {
 		} else {
 			// reset time as the ball is accelerating
 			// should estimate the time quite good, but not overestimate it
-			let ms = maxSpeed != undefined ? maxSpeed : this._robot.maxSpeed;
-			let newCatchtime = Physics.robotTimeToBall(this._robot, ball, targetPos, ms, this._catchTime);
+			let newCatchtime = Physics.robotTimeToBall(this._robot, ball, targetPos, 0, this._catchTime);
 			if (this._catchTime == undefined || newCatchtime < this._catchTime - 0.3) {
 				this._catchTime = newCatchtime;
 			}
