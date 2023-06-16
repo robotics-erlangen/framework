@@ -576,12 +576,14 @@ export class Shoot extends Behavior {
 			this._messaging.sendBroadcast(MessageType.passInfo, [{ target: target,
 				ballPos: ballPos, time: passReceiveTime, passSpeed: targetSpeed !== undefined ? targetSpeed : this._robot.constants.passSpeed }]);
 
+			let ballReceiptPos = Ball.friendlyBallOwnerTime() > Ball.opponentBallOwnerTime() ? this._lastIncomingPassInfoPos : undefined;
+
 			return [
 				Pass, [{
 					targetRobot: target,
 					targetPos: ballPos,
 					chip: chipOverride,
-					ballReceiptPos: this._lastIncomingPassInfoPos,
+					ballReceiptPos: ballReceiptPos,
 					targetTime: this._decision.time,
 					targetSpeed,
 				}],
