@@ -329,8 +329,8 @@ export class FeintPass extends Behavior {
 		} else if (passPlanned) {
 			let [passInfo, feintPos] = this.getFeintPosition(sender, passInfoTable!, attackPosition, plannedAttackTime!, zone);
 			debug.set("newPassReachable", passInfo !== undefined);
-			// if the new pass is reachable
-			if (passInfo !== undefined && feintPos !== undefined) {
+			// if the new pass is reachable and is not ours to accept
+			if (passInfo !== undefined && feintPos !== undefined && passInfo.target !== this._robot) {
 				// Feint the pass
 				this._applyForMainAttacker(undefined, undefined, 0);
 				this.restartTask = true;
