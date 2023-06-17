@@ -1,4 +1,5 @@
 import * as Cache from "base/cache";
+import * as geom from "base/geom";
 import { FriendlyRobot } from "base/robot";
 import { Position, Speed, Vector } from "base/vector";
 import * as World from "base/world";
@@ -23,17 +24,39 @@ function calculateBreakPos(robot: FriendlyRobot): [Position, Speed, number] {
 
 
 	// calculate break position
-	let breakPos = robot.pos.orthogonalProjection(World.Ball.pos, World.Ball.pos + World.Ball.speed)[0];
+	let possibleBreakPos: Vector[] = [];
+	if (World.Ball.speed.lengthSq() > 0 && robot.speed.lengthSq() > 0) {
+		let [intersectBreakPos, _, _2] = geom.intersectLineLine(World.Ball.pos, World.Ball.speed, robot.pos, robot.speed);
 
-	// calculate end speed
-	let ballTimeToPos = Physics.ballTravelTime(World.Ball, breakPos.distanceTo(World.Ball.pos));
-	let minEndSpeed = Physics.robotMinEndspeed(robot, breakPos, ballTimeToPos);
+		// We might have a lot of speed when catching the Ball, so don't risk reflections towards our goal
+		// Also consider case where we are currently moving away from the passLine
+		if (intersectBreakPos && (intersectBreakPos - robot.pos).y >= 0 && (intersectBreakPos - robot.pos).dot(robot.speed) >= 0) {
+			possibleBreakPos.push(intersectBreakPos);
+		}
+	}
+	let orthoBreakPos = robot.pos.orthogonalProjection(World.Ball.pos, World.Ball.pos + World.Ball.speed)[0];
+	possibleBreakPos.push(orthoBreakPos);
 
-	// calculate waiting time
-	let timeToPos = Physics.robotTimeToPos(robot, breakPos, minEndSpeed)[0];
-	let waitingTime = ballTimeToPos - timeToPos;
+	let bestBreakPos: Vector | undefined = undefined;
+	let bestMinEndSpeed: Vector | undefined = undefined;
+	let bestWaitingTime: number | undefined = undefined;
+	for (let breakPos of possibleBreakPos) {
+		// calculate end speed
+		let ballTimeToPos = Physics.ballTravelTime(World.Ball, breakPos.distanceTo(World.Ball.pos));
+		let minEndSpeed = Physics.robotMinEndspeed(robot, breakPos, ballTimeToPos);
 
-	return [breakPos, minEndSpeed, waitingTime];
+		// calculate waiting time
+		let timeToPos = Physics.robotTimeToPos(robot, breakPos, minEndSpeed)[0];
+		let waitingTime = ballTimeToPos - timeToPos;
+
+		if (bestWaitingTime == undefined || waitingTime > bestWaitingTime) {
+			bestWaitingTime = waitingTime;
+			bestMinEndSpeed = minEndSpeed;
+			bestBreakPos = breakPos;
+		}
+	}
+
+	return [bestBreakPos!, bestMinEndSpeed!, bestWaitingTime!];
 }
 
 
@@ -41,7 +64,6 @@ const obstacleTable: PathHelper.PathHelperParameters = {
 	ignoreBall: true,
 	ignorePass: true
 };
-
 
 export class BreakPass extends Task {
 	static readonly BUFFER_TIME = 0.7;
@@ -62,6 +84,12 @@ export class BreakPass extends Task {
 		}
 
 		let robotEndDir = -World.Ball.speed;
+
+		if (this._robot.pos.distanceToSq(moveDest) < 2 * 2 * this._robot.radius * this._robot.radius &&
+			World.Ball.pos.distanceToSq(moveDest) >= 1.5 * this._robot.pos.distanceToSq(moveDest)) {
+			endSpeed = new Vector(0, 0);
+		}
+
 		this._robot.trajectory.update(ToTarget, moveDest, robotEndDir.angle(), undefined, endSpeed);
 	}
 }

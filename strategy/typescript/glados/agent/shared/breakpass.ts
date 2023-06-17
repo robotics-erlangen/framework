@@ -58,7 +58,8 @@ export class BreakPass extends Behavior {
 			breakPassThreshold = 0.1;
 		}
 		// pass is not breakable
-		if (waitingTime < (this._active ? -0.1 : 0)) {
+		let acceptableWaitTime = -2 * this._robot.radius / endSpeed.length();
+		if (waitingTime < acceptableWaitTime + (this._active ? -0.1 : 0)) {
 			debug.set("breakpass check", "pass is not breakable");
 			return undefined;
 		}
