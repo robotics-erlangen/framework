@@ -1062,13 +1062,32 @@ function rttbQuadraticSampling(robot: Robot, ball: BallLike & { radius: number }
 
 	let robot_times: number[] = [];
 	let ball_times: number[] = [];
+	// make sure that the direct path of robot into ballLine is being sampled
+	let special_t_ball: number | undefined;
+	if (World.Ball.speed.lengthSq() > 0 && robot.speed.lengthSq() > 0) {
+		let [intersection, lambda1, lambda2] = geom.intersectLineLine(World.Ball.pos, World.Ball.speed, robot.pos, robot.speed);
+		if (intersection) {
+			let special_ball_pos = intersection - World.Ball.speed.withLength(robot.shootRadius + World.Ball.radius);
+			special_t_ball = checkedBallRollTime(World.Ball, special_ball_pos);
+			if (special_t_ball === -Infinity) {
+				special_t_ball = undefined;
+			}
+		}
+	}
 
+	let extraSamples = 0;
 	for (let i = 0; i < N_SAMPLES; i++) {
 		// calculate interval
 		let i_normalized = i / (N_SAMPLES - 1);
 		let step_quadratic = 0.5 * i_normalized * i_normalized + 0.5 * i_normalized;
 		let t_ball = step_quadratic * t_max;
 		let t_robot = robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, t_ball);
+		if (i > 0 && special_t_ball !== undefined && t_ball > special_t_ball && extraSamples === 0) {
+			let special_t_robot = robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, special_t_ball);
+			ball_times.push(special_t_ball);
+			robot_times.push(special_t_robot);
+			extraSamples = 1;
+		}
 		ball_times.push(t_ball);
 		robot_times.push(t_robot);
 	}
@@ -1079,7 +1098,7 @@ function rttbQuadraticSampling(robot: Robot, ball: BallLike & { radius: number }
 	// check if the first maximum is > 0 (if it exists)
 	let t_ball_bsearch_start = undefined;
 	let t_ball_bsearch_end = undefined;
-	for (let i = 1; i < N_SAMPLES; i++) {
+	for (let i = 1; i < ball_times.length; i++) {
 		// search the first zero crossing
 		let timediff0 = ball_times[i - 1] - robot_times[i - 1];
 		let timediff1 = ball_times[i] - robot_times[i];
@@ -1095,7 +1114,7 @@ function rttbQuadraticSampling(robot: Robot, ball: BallLike & { radius: number }
 	// or if the ball is too fast, the robot cannot catch it at all
 	if (t_ball_bsearch_start == undefined) {
 		if (t_stop < t_out) {
-			return [undefined, robot_times[N_SAMPLES - 1]];
+			return [undefined, robot_times[robot_times.length - 1]];
 		} else {
 			return [undefined, Infinity];
 		}
