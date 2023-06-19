@@ -103,8 +103,13 @@ export class BreakPass extends Behavior {
 
 		// moveDest is behind the MA
 		if (mainAttacker && World.Ball.speed.dot(mainAttacker.pos - World.Ball.pos) < World.Ball.speed.dot(toPos)) {
-			debug.set("breakpass check", "behind MA");
-			return undefined;
+			let offset = (World.Ball.pos - mainAttacker.pos).withLength(this._robot.shootRadius + World.Ball.radius);
+			let timeToMA = Physics.checkedBallTravelTime(World.Ball, mainAttacker.pos + offset);
+			let futureBall = Physics.ballAtTimeExperimental(World.Ball, timeToMA);
+			if (timeToMA < 0 || futureBall.posZ == undefined || futureBall.posZ < mainAttacker.height) {
+				debug.set("breakpass check", "behind MA");
+				return undefined;
+			}
 		}
 
 		// do if already running and ball will hit the robot
@@ -116,17 +121,21 @@ export class BreakPass extends Behavior {
 		// main attacker will receive the pass
 		let attackPosition = this._messaging.receiveSingleSender(MessageType.attackPosition)[1];
 		if (attackPosition != undefined) {
-			const timeBallToTarget = Physics.ballRollTime(World.Ball, World.Ball.pos.distanceTo(attackPosition!));
-			const oppInPassZone = some(World.OpponentRobots, (opp) => {
-				// Check if the opponent could reach the ball faster than the ball its target
-				const hysteresis = this.lastOppFirstAtBall[opp] ? 0 : -0.1;
-				const oppFaster = ObserverRobot.minTimeToBall(opp) < timeBallToTarget + hysteresis;
-				this.lastOppFirstAtBall[opp] = oppFaster;
-				return oppFaster;
-			});
-			if (!oppInPassZone) {
-				debug.set("breakpass check", "main attacker will receive the ball");
-				return undefined;
+			let timeToMA = Physics.checkedBallTravelTime(World.Ball, attackPosition);
+			let futureBall = Physics.ballAtTimeExperimental(World.Ball, timeToMA);
+			if (timeToMA < 0 || futureBall.posZ == undefined || futureBall.posZ < this._robot.height) {
+				const timeBallToTarget = Physics.ballRollTime(World.Ball, World.Ball.pos.distanceTo(attackPosition!));
+				const oppInPassZone = some(World.OpponentRobots, (opp) => {
+					// Check if the opponent could reach the ball faster than the ball its target
+					const hysteresis = this.lastOppFirstAtBall[opp] ? 0 : -0.1;
+					const oppFaster = ObserverRobot.minTimeToBall(opp) < timeBallToTarget + hysteresis;
+					this.lastOppFirstAtBall[opp] = oppFaster;
+					return oppFaster;
+				});
+				if (!oppInPassZone) {
+					debug.set("breakpass check", "main attacker will receive the ball");
+					return undefined;
+				}
 			}
 		}
 

@@ -142,14 +142,23 @@ export class HandleBall extends Behavior {
 			return false;
 		}
 
-		// don't intercept chip kicks
-		if (Ball.isFlyingOrBouncing()) {
-			return false;
-		}
-
 		let [moveDest, moveTime] = InterceptPass.calculateInterceptPos(this._robot);
 		if (moveDest == undefined) {
 			return false;
+		}
+
+		vis.addCircle("InterceptPassPos", moveDest, 0.05, vis.colors.cyan, true);
+		vis.addPath("InterceptPassPos", [this._robot.pos, moveDest], vis.colors.cyan);
+		debug.set("moveTime", moveTime);
+
+		// don't intercept chip kicks
+		if (Ball.isFlyingOrBouncing()) {
+			let offset = (World.Ball.pos - moveDest).withLength(this._robot.shootRadius + World.Ball.radius);
+			let interceptTime = Physics.checkedBallTravelTime(World.Ball, moveDest + offset);
+			let futureBall = Physics.ballAtTimeExperimental(World.Ball, interceptTime);
+			if (interceptTime < 0 || futureBall.posZ == undefined || futureBall.posZ > World.Ball.radius) {
+				return false;
+			}
 		}
 
 		// don't if the time to intercept the pass is too high
@@ -157,10 +166,6 @@ export class HandleBall extends Behavior {
 		if (moveTime == undefined || moveTime > interceptionTimeLimit) {
 			return false;
 		}
-
-		vis.addCircle("InterceptPassPos", moveDest, 0.05, vis.colors.cyan, true);
-		vis.addPath("InterceptPassPos", [this._robot.pos, moveDest], vis.colors.cyan);
-		debug.set("moveTime", moveTime);
 
 		// don't intercept if there is no pass receiver
 		let receivers = Goal.predictShot()[3];
