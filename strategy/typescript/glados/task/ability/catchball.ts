@@ -308,7 +308,19 @@ export class CatchBall {
 		let timeToRobot = Physics.ballRollTime(ball, rollDist);
 		// timeToRobot is the upper bound for the catch time, musn't be an underestimation
 		// can be much lower if the robot moves towards the ball
-		return timeToRobot;
+
+		let orthogonalSpeed = this._robot.speed.orthogonalComponent(World.Ball.speed);
+		let orthoMovingRobot = {
+			pos: this._robot.pos, speed: orthogonalSpeed, maxSpeed: this._robot.maxSpeed, acceleration: this._robot.acceleration
+		};
+		let breakTime = Physics.robotTimeToPos(
+			orthoMovingRobot, this._robot.pos.nearestPosOnLine(World.Ball.pos, World.Ball.pos + World.Ball.speed.withLength(10)),
+			new Vector(0, 0)
+		)[0];
+		if (breakTime < timeToRobot) {
+			return timeToRobot;
+		}
+		return Infinity;
 	}
 
 	limitEndSpeedToField(moveDest: Position, endSpeed: Speed): Speed {
