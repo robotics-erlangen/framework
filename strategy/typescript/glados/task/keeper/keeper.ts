@@ -169,7 +169,7 @@ export class Keeper extends Task {
 
 				// Move back while blocking the shot
 				if (this._robot.pos.distanceTo(moveTo) < 0.5 * this._robot.radius &&
-					(this._robot.speed - this._robot.speed.dot(atkDir.withLength(1)) * this._robot.speed).lengthSq() < 0.01) {
+					(this._robot.speed.orthogonalComponent(atkDir)).lengthSq() < 0.01) {
 					moveTo = intersectPos;
 				}
 			}

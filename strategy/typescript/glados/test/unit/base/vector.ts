@@ -28,6 +28,7 @@ export class BaseVector extends UnitTest {
 		this.addTest("random", this.testRandom);
 		this.addTest("distanceToSq", this.testDistanceToSq);
 		this.addTest("crossProdLength", this.testCrossProdLength);
+		this.addTest("orthognalAndParallelComponents", this.testOrthogonalAndParallelComponent);
 	}
 
 	private testConstructor() {
@@ -446,6 +447,21 @@ export class BaseVector extends UnitTest {
 		let v = new Vector(1, 1).normalized();
 		this.assert_equal_eps(Vector.crossProdLength(x, v), Math.sin(Math.PI / 4), EPS);
 		this.assert_equal_eps(Vector.crossProdLength(y, v), -Math.sin(Math.PI / 4), EPS);
+	}
+
+	private testOrthogonalAndParallelComponent() {
+		let x = new Vector(1, 1);
+		this.assert_equal_eps((x.orthogonalComponent(new Vector(1, 0)) - new Vector(0, 1)).lengthSq(), 0, EPS * EPS);
+		this.assert_equal_eps((x.parallelComponent(new Vector(1, 0)) - new Vector(1, 0)).lengthSq(), 0, EPS * EPS);
+
+		// Test that the result is independent of the length of dir
+		this.assert_equal_eps((x.orthogonalComponent(new Vector(2, 0)) - new Vector(0, 1)).lengthSq(), 0, EPS * EPS);
+		this.assert_equal_eps((x.parallelComponent(new Vector(2, 0)) - new Vector(1, 0)).lengthSq(), 0, EPS * EPS);
+
+		// Test that for some random vector the docomposition
+		// x = x.orthogonalComponent(dir) + x.parallelComponent(dir)
+		let dir = new Vector(3.1415, 2.71828);
+		this.assert_equal_eps((x - x.orthogonalComponent(dir) - x.parallelComponent(dir)).lengthSq(), 0, EPS * EPS);
 	}
 }
 export let testClass = BaseVector;
