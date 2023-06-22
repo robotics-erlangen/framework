@@ -256,6 +256,30 @@ export class Vector {
 	}
 
 	/**
+	 * Computes the component of a vector orthogonal to a given direction
+	 * @param dir A vector pointing in the direction to be considered
+	 * @returns A vector orthogonal to dir such that this = orthogonalComponent(dir) + parallelComponent(dir)
+	 */
+	orthogonalComponent(dir: Vector) {
+		if (dir.lengthSq() === 0) {
+			return this;
+		}
+		return this - this.dot(dir.normalized()) * dir.normalized();
+	}
+
+	/**
+	 * Computes the component of a vector parallel to a given direction
+	 * @param dir A vector pointing in the direction to be considered
+	 * @returns A vector parallel to dir such that this = orthogonalComponent(dir) + parallelComponent(dir)
+	 */
+	parallelComponent(dir: Vector) {
+		if (dir.lengthSq() === 0) {
+			return new Vector(0, 0);
+		}
+		return this.dot(dir.normalized()) * dir.normalized();
+	}
+
+	/**
 	 * Distance to given line segment.
 	 * Calculates distance from current vector to nearest point on line segment from lineStart to lineEnd
 	 * @param lineStart - start of line
