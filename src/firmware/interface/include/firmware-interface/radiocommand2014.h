@@ -24,6 +24,10 @@
 #include "radiocommand.h"
 #include <stdint.h>
 
+#ifdef FIRMWARE
+#include "commonconf.h"
+#endif
+
 static const uint8_t robot2014_address[] = { 0x40, 0xE8, 0xE4, 0xC7 };
 STATIC_ASSERT(sizeof(robot2014_address) == NRF_ADDRESS_SIZE,robot2014_address_has_wrong_size);
 
@@ -63,6 +67,10 @@ typedef struct
     int8_t delta2_v_s; // mm/s
     int8_t delta2_v_f; // mm/s
     int8_t delta2_omega; // 5 mrad/s
+#ifdef RADIO_USE_HBC
+    uint8_t sync_counter;
+    int16_t time_offset; // microseconds
+#endif // TODO FIXME AAAA HACK please dont ask, fix post robocup
 } __attribute__ ((packed)) RadioCommand2014;
 
 enum RadioExtension2014 {
