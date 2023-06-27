@@ -152,8 +152,8 @@ Use the [cmake 3.15.5 installer](https://github.com/Kitware/CMake/releases/downl
 and select add to `PATH`.
 
 #### MSYS2
-Run the [installer](http://repo.msys2.org/distrib/x86_64/msys2-x86_64-20190524.exe)
-(use the default path `C:\msys64`). Open `MSYS2 MSYS` and run the following command
+Run the most recent [installer](http://repo.msys2.org/distrib/x86_64) (e.g. msys2-x86_64-20190524.exe)
+(use the default path `C:\msys64`). Open `MSYS2 MINGW64` (NOT MSYS2 UCRT) and run the following command
 ```
 $ pacman -Syu
 ```
@@ -161,11 +161,14 @@ Close the console when prompted and open it again
 ```
 $ pacman -Su
 # Dependencies for Ra
-$ pacman -S patch make mingw-w64-i686-gcc mingw-w64-i686-cmake mingw-w64-i686-ninja
+$ pacman -S patch make mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja
 # Dependencies for V8
 $ pacman -S python2 git
 ```
 Close the MSYS console.
+It is very helpful to set the home directory of mingw to your actual home directory (the default one is something like C:\msys2\mingw64\usr\home).
+To accomplish that you can set/create the environment variable HOME to whatever you want e.g. C:\Users\<insert your username>.
+If you don't know how to do that google "set environment variable windows".
 
 #### QT 5
 Run the [online installer](http://download.qt.io/official_releases/online_installers/qt-unified-windows-x86-online.exe) (use the default install path).
