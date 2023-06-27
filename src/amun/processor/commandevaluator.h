@@ -32,6 +32,8 @@ namespace world { class Robot; }
 class LocalSpeed;
 class GlobalSpeed;
 
+const float CONTROL_STEP = 0.01f;
+
 class CommandEvaluator
 {
     // no copy of this instance

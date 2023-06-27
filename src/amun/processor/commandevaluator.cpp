@@ -27,8 +27,6 @@
 #include <cmath>
 #include <QString>
 
-const float CONTROL_STEP = 0.01f;
-
 CommandEvaluator::CommandEvaluator(const robot::Specs &specs) :
     m_specs(specs),
     m_startTime(0),
