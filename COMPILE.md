@@ -217,6 +217,9 @@ $ cmake --build . --target pack
 Note than when doing this, the other calls to `cmake --build` are not necessary.
 ### Common problems
 
+#### Windows 10/11 - Problems with USB driver (e.g. radio device)
+Install [Zadig](https://zadig.akeo.ie/) try to find the device that causes problems (you may need to select "list all devices" for it to show up in the list) and then install the WinUSB driver for it.
+
 #### Windows 7 - Problems with USB driver installation
 In case windows does not automatically find the driver for the transceiver, follow
 the following steps:
