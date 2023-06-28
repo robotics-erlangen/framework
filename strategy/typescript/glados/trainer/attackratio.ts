@@ -208,7 +208,7 @@ export class AttackRatio {
 				// this is only necessary here, because if you're using ConstantDefenders to say 9 defenders you're doing something wrong
 				// and in the scalable case we allow additional attackers
 				if (attackRatio.numberOfAttackers === 1) {
-					this._messaging.sendBroadcast(MessageType.onlySingleAttacker);
+					onlySingleAttacker = true;
 				}
 				break;
 			};
@@ -281,6 +281,10 @@ export class AttackRatio {
 		this._dangerousDuelSituation = Ball.isDangerousDuelSituation(this._dangerousDuelSituation);
 		if (this._dangerousDuelSituation) {
 			attackers = attackers - 1;
+			// this is a dangerous situation where we don't want to risk the MA planning a pass and pools getting messed up
+			if (attackers <= 1) {
+				onlySingleAttacker = true;
+			}
 		}
 		debug.set("Dangerous Duel", this._dangerousDuelSituation);
 
@@ -289,6 +293,9 @@ export class AttackRatio {
 		}
 
 		attackers = Math.max(0, attackers);
+		if (onlySingleAttacker) {
+			this._messaging.sendBroadcast(MessageType.onlySingleAttacker);
+		}
 
 		debug.set("MainAttackerIsDefender", mainAttackerIsDefender);
 		debug.set("AttackRatio", attackRatio);
