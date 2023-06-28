@@ -12,3 +12,7 @@ export function addDummyVisualizations(robot: FriendlyRobot) {
 		robot.dir - Math.PI / 2, vis.colors.blackHalf, true);
 	}
 }
+
+export function isDummy(robot: FriendlyRobot): boolean {
+	return !robot.canDribble || !robot.canShoot;
+}

@@ -10,6 +10,7 @@ import { MessageBox, MessageType } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
 import * as Referee from "glados/observer/referee";
 import * as Robot from "glados/observer/robot";
+import * as DummyUtil from "glados/util/dummy";
 
 export type ChangePoolTo = "attacker" | "defender";
 
@@ -193,11 +194,17 @@ export class AttackRatio {
 
 		let attackRatio = this.attackRatio();
 
-		const robotCountWithoutKeeper = Math.max(0, World.FriendlyRobots.length - 1);
+		// We want to know the total number of robots that can be part of either the attacker or the defender pool
+		const usableRobotsWithoutKeeper = World.FriendlyRobots.filter((robot) => {
+			return robot !== World.FriendlyKeeper // keeper obviously can't be attacker or defender
+				&& !DummyUtil.isDummy(robot); // dummies exist in their own pool and can't be changed to a different one by design
+		}).length;
+
+		let onlySingleAttacker = false;
 		let attackers: number;
 		switch (attackRatio.kind) {
 			case AttackRatioKind.ConstantAttackers: {
-				attackers = Math.min(robotCountWithoutKeeper, attackRatio.numberOfAttackers);
+				attackers = Math.min(usableRobotsWithoutKeeper, attackRatio.numberOfAttackers);
 				// this is only necessary here, because if you're using ConstantDefenders to say 9 defenders you're doing something wrong
 				// and in the scalable case we allow additional attackers
 				if (attackRatio.numberOfAttackers === 1) {
@@ -206,7 +213,7 @@ export class AttackRatio {
 				break;
 			};
 			case AttackRatioKind.ConstantDefenders: {
-				attackers = Math.max(0, robotCountWithoutKeeper - attackRatio.numberOfDefenders);
+				attackers = Math.max(0, usableRobotsWithoutKeeper - attackRatio.numberOfDefenders);
 				break;
 			};
 			case AttackRatioKind.Scalable: {
@@ -215,7 +222,7 @@ export class AttackRatio {
 				// the keeper is neither defender nor attacker so we need to subtract 1
 				// this makes the attack ratio also more intuitive in Div A with 11 robots, because then ratio = 9 means 9/10 robots should be attacker
 				const maxRobotsWithoutKeeper = Constants.maxTeamSize["A"] - 1;
-				attackers = Math.max(1, Math.floor(attackRatio.ratio / maxRobotsWithoutKeeper * robotCountWithoutKeeper));
+				attackers = Math.max(1, Math.floor((attackRatio.ratio / maxRobotsWithoutKeeper) * usableRobotsWithoutKeeper));
 
 				// allow a defender to promote if a pass is ongoing.
 				// The increased attacker count will result in one defender promoting.

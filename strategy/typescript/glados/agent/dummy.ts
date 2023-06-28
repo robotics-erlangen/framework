@@ -5,6 +5,7 @@ import { FeintPass } from "glados/agent/attacker/feintpass";
 import { Agent } from "glados/agent/base/agent";
 import { BehaviorConstructor } from "glados/agent/base/behavior";
 import { Default } from "glados/agent/dummy/default";
+import * as DummyUtil from "glados/util/dummy";
 
 export class Dummy extends Agent {
 
@@ -18,7 +19,7 @@ export class Dummy extends Agent {
 
 	public static takeRobot(robots: FriendlyRobot[]): FriendlyRobot | undefined {
 		for (let robot of robots) {
-			if (robot.isVisible && (!robot.canDribble || !robot.canShoot)) {
+			if (robot.isVisible && DummyUtil.isDummy(robot)) {
 				return robot;
 			}
 		}
