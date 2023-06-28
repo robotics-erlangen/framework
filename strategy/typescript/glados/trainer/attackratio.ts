@@ -19,20 +19,25 @@ export interface ForcePoolChange {
 }
 
 export enum AttackRatioKind {
-	Scalable,
-	ConstantAttackers,
-	ConstantDefenders,
+	Scalable = "scalable",
+	ConstantAttackers = "constant attackers",
+	ConstantDefenders = "constant defenders",
 }
+
+
+// attack ratio is currently defined as x out of 10 robots, because it is defined as the currently available number of robots in Division A
+// that can be attacker/defender, so 11 - 1, because the keeper can't fill those roles
+type ValidAttackRatio = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 
 export type AttackRatioResult = {
 	kind: AttackRatioKind.Scalable;
-	ratio: number;
+	ratio: ValidAttackRatio;
 } | {
 	kind: AttackRatioKind.ConstantAttackers;
-	numberOfAttackers: number;
+	numberOfAttackers: ValidAttackRatio;
 } | {
 	kind: AttackRatioKind.ConstantDefenders;
-	numberOfDefenders: number;
+	numberOfDefenders: ValidAttackRatio;
 };
 
 export class AttackRatio {
@@ -106,7 +111,7 @@ export class AttackRatio {
 				: ball.pos;
 			let friendlyCorner = Field.isInOwnCorner(checkedPos, false);
 			let opponentCorner = Field.isInOwnCorner(checkedPos, true);
-			let attackRatio: number;
+			let attackRatio: ValidAttackRatio;
 			if (friendlyCorner) { // Goal-Kick Offensive
 				attackRatio = 5;
 			} else if (opponentCorner) { // Corner-Kick Offensive
@@ -157,10 +162,15 @@ export class AttackRatio {
 				if (this._friendlyFreeKickOngoing) {
 					attackRatio = attackRatio + 1;
 				}
-				result = {
-					kind: AttackRatioKind.Scalable,
-					ratio: attackRatio,
-				};
+
+				if (attackRatio >= 0 && attackRatio <= 10) {
+					result = {
+						kind: AttackRatioKind.Scalable,
+						ratio: <ValidAttackRatio> attackRatio,
+					};
+				} else {
+					throw new Error(`Invalid attackRatio ${attackRatio}! Needs to be between 0 and 10 (inclusive)`);
+				}
 			}
 		}
 
@@ -168,7 +178,8 @@ export class AttackRatio {
 		// increase attackRatio if we have more robots
 		let enemies = expectedEnemies - Referee.realisticCardsOpponent();
 		if (result.kind === AttackRatioKind.Scalable && enemies < Math.min(expectedEnemies, World.FriendlyRobots.length)) {
-			result.ratio = Math.max(result.ratio, Math.min(result.ratio + 1, 2.0 / 3 * expectedEnemies));
+			// type assertion here should be fine, since it can't be greater than 10 and this expression can't make values >= 0 negative
+			result.ratio = <ValidAttackRatio> Math.min(10, Math.max(result.ratio, Math.min(result.ratio + 1, 2.0 / 3 * expectedEnemies)));
 		}
 
 		return result;
@@ -196,8 +207,10 @@ export class AttackRatio {
 			case AttackRatioKind.Scalable: {
 				// we always compute attackRatio with the maximum allowed robots in DivA in mind and scale it to the actual number of robots
 				// this should also work if we play DivB
-				const maxRobots = Constants.maxTeamSize["A"];
-				attackers = Math.max(1, Math.floor(attackRatio.ratio / maxRobots * World.FriendlyRobots.length));
+				// the keeper is neither defender nor attacker so we need to subtract 1
+				// this makes the attack ratio also more intuitive in Div A with 11 robots, because then ratio = 9 means 9/10 robots should be attacker
+				const maxRobotsWithoutKeeper = Constants.maxTeamSize["A"] - 1;
+				attackers = Math.max(1, Math.floor(attackRatio.ratio / maxRobotsWithoutKeeper * robotCountWithoutKeeper));
 
 				// allow a defender to promote if a pass is ongoing.
 				// The increased attacker count will result in one defender promoting.
