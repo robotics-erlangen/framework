@@ -23,6 +23,17 @@
 #include <cmath>
 
 LocalSpeed::LocalSpeed(float v_s, float v_f, float omega) : v_s(v_s), v_f(v_f), omega(omega) {}
+LocalSpeed::LocalSpeed(const robot::SpeedVector &vector) {
+    if (vector.has_v_f()) {
+        v_f = vector.v_f();
+    }
+    if (vector.has_v_s()) {
+        v_s = vector.v_s();
+    }
+    if (vector.has_omega()) {
+        omega = vector.omega();
+    }
+}
 
 GlobalSpeed LocalSpeed::toGlobal(float phi) const {
     // rotate ccw

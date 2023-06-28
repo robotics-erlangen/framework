@@ -28,6 +28,7 @@ namespace robot { class SpeedVector; }
 class LocalSpeed {
 public:
     LocalSpeed(float v_s, float v_f, float omega);
+    LocalSpeed(const robot::SpeedVector &vector);
     GlobalSpeed toGlobal(float phi) const;
     void copyToSpeedVector(robot::SpeedVector &vector) const;
 
