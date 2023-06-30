@@ -117,13 +117,21 @@ Amun::Amun(bool simulatorOnly, QObject *parent) :
     // these threads just run an event loop
     // using the signal-slot mechanism the objects in these can be called
     m_processorThread = new QThread(this);
+    m_processorThread->setObjectName("Processor Thread");
+
     m_radioThread = new QThread(this);
+    m_radioThread->setObjectName("Radio Thread");
+
     m_networkThread = new QThread(this);
+    m_networkThread->setObjectName("Network Thread");
+
     m_simulatorThread = new QThread(this);
     for (int i = 0;i<5;i++) {
         m_strategyThread[i] = new QThread(this);
     }
+
     m_debugHelperThread = new QThread(this);
+    m_debugHelperThread->setObjectName("Debug Helper Thread");
 
     m_networkInterfaceWatcher = (!m_simulatorOnly) ? new NetworkInterfaceWatcher(this) : nullptr;
 
@@ -131,6 +139,7 @@ Amun::Amun(bool simulatorOnly, QObject *parent) :
     m_pathInputSaver[1].reset(new ProtobufFileSaver("pathinput-yellow.pathlog", "KHONSU PATHFINDING LOG", this));
 
     m_gitRecorderThread = new QThread(this);
+    m_gitRecorderThread->setObjectName("Git Recorder Thread");
 }
 
 /*!
