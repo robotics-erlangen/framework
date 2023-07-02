@@ -27,14 +27,6 @@
 
 namespace Radio { class Address; }
 
-namespace Radio {
-    enum class DevicePresence {
-        Present,
-        Unplugged,
-        Unsupported,
-    };
-}
-
 class TransceiverLayer : public QObject {
     Q_OBJECT
 public:

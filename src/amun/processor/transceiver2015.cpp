@@ -44,31 +44,55 @@ const int PROTOCOL_VERSION = 5;
 constexpr qint16 TRANSCEIVER2015_VENDOR_ID  = 0x09fb;
 constexpr qint16 TRANSCEIVER2015_PRODUCT_ID = 0x0de2;
 
-Radio::DevicePresence Transceiver2015::devicePresence()
+constexpr qint16 HBC_VENDOR_ID  = 0x09fb;
+constexpr qint16 HBC_PRODUCT_ID = 0x0de2;
+
+constexpr qint16 vidForKind(Transceiver2015::Kind kind) {
+    switch (kind) {
+        case Transceiver2015::Kind::Actual2015:
+            return TRANSCEIVER2015_VENDOR_ID;
+        case Transceiver2015::Kind::HBC:
+            return HBC_VENDOR_ID;
+    }
+}
+
+constexpr qint16 pidForKind(Transceiver2015::Kind kind) {
+    switch (kind) {
+        case Transceiver2015::Kind::Actual2015:
+            return TRANSCEIVER2015_PRODUCT_ID;
+        case Transceiver2015::Kind::HBC:
+            return HBC_PRODUCT_ID;
+    }
+}
+
+int Transceiver2015::numDevicesPresent(Kind kind)
 {
 #ifdef USB_FOUND
+    qint16 vid = vidForKind(kind);
+    qint16 pid = pidForKind(kind);
+
     libusb_init(nullptr);
 
     libusb_device** deviceList = nullptr;
     const int n = libusb_get_device_list(nullptr, &deviceList);
-    const bool found = std::any_of(deviceList, deviceList + n, [](libusb_device *device) -> bool {
+    const int num_found = std::count_if(deviceList, deviceList + n, [vid, pid](libusb_device *device) -> bool {
         libusb_device_descriptor descriptor;
         // always succeeds if libusb version >= 1.0.16
         libusb_get_device_descriptor(device, &descriptor);
-        return descriptor.idVendor == TRANSCEIVER2015_VENDOR_ID
-            && descriptor.idProduct == TRANSCEIVER2015_PRODUCT_ID;
+        return descriptor.idVendor == vid
+            && descriptor.idProduct == pid;
     });
     libusb_free_device_list(deviceList, true);
 
-    return found
-        ? DevicePresence::Present : DevicePresence::Unplugged;
+    return num_found;
 #else
-    return DevicePresence::Unsupported;
+    return 0;
 #endif // USB_FOUND
 }
 
-Transceiver2015::Transceiver2015(const Timer *timer, QObject *parent) :
+Transceiver2015::Transceiver2015(Kind kind, const Timer *timer, QObject *parent) :
     TransceiverLayer(parent),
+    m_kind(kind),
     m_timer(timer)
 {
     // default channel
@@ -92,7 +116,7 @@ bool Transceiver2015::open()
 
     close();
 
-    QList<USBDevice*> devices = USBDevice::getDevices(TRANSCEIVER2015_VENDOR_ID, TRANSCEIVER2015_PRODUCT_ID, m_context);
+    QList<USBDevice*> devices = USBDevice::getDevices(vidForKind(m_kind), pidForKind(m_kind), m_context);
     if (devices.isEmpty()) {
         emit errorOccurred("Device not found");
         return false;

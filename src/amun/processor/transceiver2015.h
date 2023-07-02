@@ -46,12 +46,17 @@ private:
     };
 
 public:
-    static Radio::DevicePresence devicePresence();
+    enum class Kind {
+        Actual2015,
+        HBC,
+    };
+public:
+    static int numDevicesPresent(Kind);
 
     Transceiver2015(const Transceiver2015&) = delete;
     Transceiver2015& operator=(const Transceiver2015&) = delete;
 
-    explicit Transceiver2015(const Timer *timer, QObject *parent = nullptr);
+    explicit Transceiver2015(Kind, const Timer *timer, QObject *parent = nullptr);
     ~Transceiver2015() override;
 
     bool isOpen() const final {
@@ -88,6 +93,11 @@ private:
     void sendTransceiverConfiguration();
 
 private:
+    /** Both Transceiver2015 and HBC use the same command protocol with
+     * different Vendor and Product IDs
+     */
+    Kind m_kind;
+
     State m_connectionState = State::DISCONNECTED;
     USBThread *m_context = nullptr;
     USBDevice *m_device = nullptr;

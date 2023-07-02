@@ -147,13 +147,19 @@ void RadioSystem::openTransceiver()
         }
 
         struct Info {
-            DevicePresence presence;
+            int numPresent;
             std::function<TransceiverLayer *()> create;
         } possibleDevices[] = {
-            { Transceiver2015::devicePresence(), [this]() { return new Transceiver2015 { m_timer, this }; } },
+            {
+                Transceiver2015::numDevicesPresent(Transceiver2015::Kind::Actual2015),
+                [this]() { return new Transceiver2015 { Transceiver2015::Kind::Actual2015, m_timer, this }; } },
+            {
+                Transceiver2015::numDevicesPresent(Transceiver2015::Kind::HBC),
+                [this]() { return new Transceiver2015 { Transceiver2015::Kind::HBC, m_timer, this }; } },
         };
 
-        const auto isPresent = [](const Info& info) { return info.presence == DevicePresence::Present; };
+
+        const auto isPresent = [](const Info& info) { return info.numPresent > 0; };
 
         auto firstPresent = std::find_if(std::begin(possibleDevices), std::end(possibleDevices), isPresent);
 
