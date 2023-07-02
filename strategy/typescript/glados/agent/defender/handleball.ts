@@ -44,8 +44,13 @@ export class HandleBall extends Behavior {
 
 	_stop() {
 		this._taskDecision = undefined;
-		this._forceDefenderFrameCounter = 0;
 		this._lastDuelWasWon = false;
+	}
+
+	start() {
+		if (DefUtil.dangerousBallTowardsDefense() || Ball.isAccelerating()) {
+			this._forceDefenderFrameCounter = 0;
+		}
 	}
 
 	private _checkDefender(): boolean {
