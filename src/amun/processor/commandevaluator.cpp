@@ -62,12 +62,24 @@ void CommandEvaluator::calculateCommand(const world::Robot *robot, qint64 worldT
     bool hasManualCommand = command.has_v_s() && command.has_v_f() && command.has_omega();
     GlobalSpeed output = evaluateInput(hasRobot, robotPhi, worldTime, command, debug, true, hasManualCommand);
 
-    prepareBaseSpeed(robot, worldTime);
+    if (hasRobot) {
+        // use the tracking data information
+        m_baseSpeed.v_x = robot->v_x();
+        m_baseSpeed.v_y = robot->v_y();
+        m_baseSpeed.omega = robot->omega();
+    }
+
+    if (m_baseSpeedTime == 0) {
+        m_baseSpeedTime = worldTime;
+    }
+
     LocalSpeed localOutputBase = m_baseSpeed.toLocal(robotPhi);
     // equal to CONTROL_STEP as long as the robot is tracked
     float timeStep = (worldTime - m_baseSpeedTime) * 1E-9;
     GlobalSpeed limitedOutput = limitAcceleration(robotPhi, output, m_baseSpeed, timeStep, hasManualCommand);
-    updateBaseSpeed(worldTime, limitedOutput);
+
+    m_baseSpeed = limitedOutput;
+    m_baseSpeedTime = worldTime;
 
     // predict robot rotation, assume the robot managed to follow the command
     const float robotPhiOne = robotPhi + (localOutputBase.omega + limitedOutput.omega) / 2 * timeStep;
@@ -295,20 +307,6 @@ GlobalSpeed CommandEvaluator::limitAcceleration(float robotPhi, const GlobalSpee
     return boundedSpeed;
 }
 
-void CommandEvaluator::prepareBaseSpeed(const world::Robot *robot, qint64 worldTime)
-{
-    if (robot) {
-        // use the tracking data information
-        m_baseSpeed.v_x = robot->v_x();
-        m_baseSpeed.v_y = robot->v_y();
-        m_baseSpeed.omega = robot->omega();
-    }
-
-    if (m_baseSpeedTime == 0) {
-        m_baseSpeedTime = worldTime;
-    }
-}
-
 float CommandEvaluator::boundAcceleration(float acceleration, float oldSpeed, float speedupLimit, float brakeLimit) const
 {
     // In case the robot needs to gain speed
@@ -319,12 +317,6 @@ float CommandEvaluator::boundAcceleration(float acceleration, float oldSpeed, fl
         // bound braking acceleration, in order to avoid fallover
         return qBound(-brakeLimit, acceleration, brakeLimit);
     }
-}
-
-void CommandEvaluator::updateBaseSpeed(qint64 worldTime, GlobalSpeed limitedOutput)
-{
-    m_baseSpeed = limitedOutput;
-    m_baseSpeedTime = worldTime;
 }
 
 void CommandEvaluator::drawSpeed(const world::Robot *robot, const GlobalSpeed &output, amun::DebugValues *debug)

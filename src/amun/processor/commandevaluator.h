@@ -61,8 +61,6 @@ private:
     void logInvalidCommand(amun::DebugValues *debug, qint64 worldTime);
     void drawSpline(amun::DebugValues *debug);
 
-    void prepareBaseSpeed(const world::Robot *robot, qint64 worldTime);
-    void updateBaseSpeed(qint64 worldTime, GlobalSpeed limitedOutput);
     GlobalSpeed limitAcceleration(float robotPhi, const GlobalSpeed &command, const GlobalSpeed &baseSpeed, float timeStep, bool hasManualCommand);
     float boundAcceleration(float acceleration, float oldSpeed, float speedupLimit, float brakeLimit) const;
     void drawSpeed(const world::Robot *robot, const GlobalSpeed &output, amun::DebugValues *debug);
