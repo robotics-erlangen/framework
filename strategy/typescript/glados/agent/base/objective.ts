@@ -109,7 +109,15 @@ export abstract class Objective {
 		return this._toString();
 	}
 
-	protected splitZonesClosestToMainAttacker(mainAttackerPos: Position, remainingZones: number, startBoundaries: SplitZone[]): Zone[] {
+	protected splitZonesClosestToMainAttacker(weightedAttackerPos: Position, participants: FriendlyRobot[], remainingZones: number, startBoundaries: SplitZone[]): Zone[] {
+		const meanPos = participants.map((robot) => robot.pos)
+			.reduce((accumulator, pos) => accumulator + pos, new Vector(0, 0))
+			 / participants.length;
+		// weightAttackerPos is two thirds of the way between the mean position of the robots and the mainAttackerPos
+		// this way we shift the center of the zone towards the main attacker, but reduce the distance the robots have
+		// to move to their new destination
+		weightedAttackerPos = (meanPos + weightedAttackerPos * 2) / 3;
+
 		const DEFENSE_AREA_CUT_OFF_Y = World.Geometry.FieldHeightHalf - World.Geometry.DefenseHeight;
 		const LOWER_DEFENSE_AREA_CUT_OFF_X = -World.Geometry.DefenseWidthHalf;
 		const UPPER_DEFENSE_AREA_CUT_OFF_X = World.Geometry.DefenseWidthHalf;
@@ -125,7 +133,7 @@ export abstract class Objective {
 			 * one zone lies completely inside the defense area and the other one completely outside the defense area do this
 			 * and only keep the zone outside the defense area. */
 			for (let i = 1; i < remainingZones; ++i) {
-				const boundaryIndex = this.findClosestZoneToMainAttacker(mainAttackerPos, boundaryList);
+				const boundaryIndex = this.findClosestZoneToMainAttacker(weightedAttackerPos, boundaryList);
 
 				const currentSplitZone = boundaryList[boundaryIndex];
 				const currentBoundary = currentSplitZone.boundaries;
@@ -143,8 +151,8 @@ export abstract class Objective {
 
 						// check if whole defense area is inside boundaries
 						if (currentBoundary.left < LOWER_DEFENSE_AREA_CUT_OFF_X) {
-							const mainAttackerPosToLowerDefenseArea = Math.abs(mainAttackerPos.x - LOWER_DEFENSE_AREA_CUT_OFF_X);
-							const mainAttackerPosToUpperDefenseArea = Math.abs(mainAttackerPos.x - UPPER_DEFENSE_AREA_CUT_OFF_X);
+							const mainAttackerPosToLowerDefenseArea = Math.abs(weightedAttackerPos.x - LOWER_DEFENSE_AREA_CUT_OFF_X);
+							const mainAttackerPosToUpperDefenseArea = Math.abs(weightedAttackerPos.x - UPPER_DEFENSE_AREA_CUT_OFF_X);
 							if (mainAttackerPosToLowerDefenseArea < mainAttackerPosToUpperDefenseArea) {
 								newBoundaryMidRightLeft = LOWER_DEFENSE_AREA_CUT_OFF_X;
 							} else {
