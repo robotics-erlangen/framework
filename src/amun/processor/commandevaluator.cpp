@@ -59,9 +59,6 @@ void CommandEvaluator::calculateCommand(const world::Robot *robot, qint64 worldT
 
     const bool hasRobot = (robot != nullptr);
 
-    // falls back to local coordinates if robot is invisible
-    const float robotPhi = robotToPhi(robot);
-
     // if the command contains desired speeds, the robot is being controlled manually
     // if command.local() is set to false and the robot is tracked, v_[sf] is actually v_[xy]
     bool hasManualCommand = command.has_v_s() && command.has_v_f() && command.has_omega();
@@ -73,32 +70,35 @@ void CommandEvaluator::calculateCommand(const world::Robot *robot, qint64 worldT
         m_baseSpeed.omega = robot->omega();
     }
 
-    LocalSpeed localOutputBase = m_baseSpeed.toLocal(robotPhi);
+    // falls back to local coordinates if robot is invisible
+    const float robotPhiBase = robotToPhi(robot);
+    LocalSpeed localOutputBase = m_baseSpeed.toLocal(robotPhiBase);
 
-    GlobalSpeed output = evaluateInput(hasRobot, robotPhi, worldTime, command, debug, true, hasManualCommand);
-    const float timeStep = (worldTime - m_baseSpeedTime) * 1E-9; // = CONTROL_STEP as long as the robot is tracked
-    GlobalSpeed limitedOutput = limitAcceleration(robotPhi, output, m_baseSpeed, timeStep, hasManualCommand);
+    const qint64 worldTimeOne = worldTime;
+    GlobalSpeed outputOne = evaluateInput(hasRobot, robotPhiBase, worldTimeOne, command, debug, true, hasManualCommand);
+    const float timeStepOne = (worldTimeOne - m_baseSpeedTime) * 1E-9; // = CONTROL_STEP as long as the robot is tracked
+    GlobalSpeed limitedOutputOne = limitAcceleration(robotPhiBase, outputOne, m_baseSpeed, timeStepOne, hasManualCommand);
     // predict robot rotation, assume the robot managed to follow the command
-    const float robotPhiOne = robotPhi + (localOutputBase.omega + limitedOutput.omega) / 2 * timeStep;
-    LocalSpeed localOutput = limitedOutput.toLocal(robotPhiOne);
+    const float robotPhiOne = robotPhiBase + (localOutputBase.omega + limitedOutputOne.omega) / 2 * timeStepOne;
+    LocalSpeed localOutputOne = limitedOutputOne.toLocal(robotPhiOne);
 
-    drawSpeed(robot, limitedOutput, debug);
+    drawSpeed(robot, limitedOutputOne, debug);
 
-    m_baseSpeed = limitedOutput;
-    m_baseSpeedTime = worldTime;
+    m_baseSpeed = limitedOutputOne;
+    m_baseSpeedTime = worldTimeOne;
 
-    const qint64 worldTimeTwo = worldTime + (qint64)(CONTROL_STEP * 1000 * 1000 * 1000);
+    const qint64 worldTimeTwo = worldTimeOne + (qint64)(CONTROL_STEP * 1000 * 1000 * 1000);
     GlobalSpeed outputTwo = evaluateInput(hasRobot, robotPhiOne, worldTimeTwo, command, debug, false, hasManualCommand);
     const float timeStepTwo = CONTROL_STEP;
-    GlobalSpeed limitedOutputTwo = limitAcceleration(robotPhiOne, outputTwo, limitedOutput, timeStepTwo, hasManualCommand);
-    const float robotPhiTwo = robotPhiOne + (limitedOutput.omega + limitedOutputTwo.omega) / 2 * CONTROL_STEP;
+    GlobalSpeed limitedOutputTwo = limitAcceleration(robotPhiOne, outputTwo, limitedOutputOne, timeStepTwo, hasManualCommand);
+    const float robotPhiTwo = robotPhiOne + (localOutputOne.omega + limitedOutputTwo.omega) / 2 * CONTROL_STEP;
     LocalSpeed localOutputTwo = limitedOutputTwo.toLocal(robotPhiTwo);
 
-    // localOutputBase is exactly one CONTROL_STEP before localOutput while the robot is tracked
+    // localOutputBase is exactly one CONTROL_STEP before localOutputOne while the robot is tracked
     // and therefore optimal. The baseSpeed of an untracked robot may be off by about one millisecond.
     // This is not compensated as precise control of the robot is not possible under these circumstances.
     localOutputBase.copyToSpeedVector(*command.mutable_output0());
-    localOutput.copyToSpeedVector(*command.mutable_output1());
+    localOutputOne.copyToSpeedVector(*command.mutable_output1());
     localOutputTwo.copyToSpeedVector(*command.mutable_output2());
 }
 
