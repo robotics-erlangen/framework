@@ -102,6 +102,7 @@ message Command
     }
 
     optional ControllerInput controller = 1;
+    // these fields are used for manual control; if local is false, v_[sf] actually contain v_[xy]
     optional float v_f = 2;
     optional float v_s = 3;
     optional float omega = 4;
