@@ -127,7 +127,7 @@ GlobalSpeed CommandEvaluator::evaluateInput(bool hasTrackedRobot, float robotPhi
         if (command.local() || !hasTrackedRobot) {
             output = evaluateLocalManualControl(command).toGlobal(robotPhi);
         } else {
-            output = evaluateManualControl(command);
+            output = evaluateGlobalManualControl(command);
         }
     } else if (hasTrackedRobot) {
         output = evaluateSplineAtTime(worldTime);
@@ -149,7 +149,7 @@ LocalSpeed CommandEvaluator::evaluateLocalManualControl(const robot::Command &co
     return LocalSpeed(v_s, v_f, omega);
 }
 
-GlobalSpeed CommandEvaluator::evaluateManualControl(const robot::Command &command)
+GlobalSpeed CommandEvaluator::evaluateGlobalManualControl(const robot::Command &command)
 {
     // v_s and v_f actually contain v_x and v_y
     float v_x = command.v_s();
