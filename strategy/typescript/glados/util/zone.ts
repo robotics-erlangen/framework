@@ -46,7 +46,7 @@ export function zoneToPolygon(zone: Zone): Position[] {
 	].map(([x, y]) => new Vector(x, y));
 }
 
-export function assignRobotsToZones(robotPositions: Map<FriendlyRobot, RobotLike>, zones: Zone[]): Map<Zone, FriendlyRobot> {
+export function assignRobotsToZones(robotPositions: Map<FriendlyRobot, RobotLike>, zones: Zone[], previousAssignments: Map<Zone, FriendlyRobot> | undefined = undefined): Map<Zone, FriendlyRobot> {
 	if (robotPositions.size !== zones.length) {
 		throw new Error("Mismatch between robot and zone count");
 	}
@@ -61,7 +61,23 @@ export function assignRobotsToZones(robotPositions: Map<FriendlyRobot, RobotLike
 		positions.push(pos);
 		robots.push(robot);
 	}
-	const zonePositions = zones.map((zone) => zone.defaultPos);
+	const previousZones = previousAssignments != undefined ? Array.from(previousAssignments.keys()) : [];
+	const zonePositions = zones.map((zone) => {
+		// check if the zone existed in the previous assignment and use the default pos of that, because that reduces flickering
+		// in the zone assignments, when recomputing them often
+		const prevZone = previousZones.find((prevZone: Zone) => (Math.abs(zone.boundaries.bottom - prevZone.boundaries.bottom)
+			+ Math.abs(zone.boundaries.top - prevZone.boundaries.top)
+			+ Math.abs(zone.boundaries.left - prevZone.boundaries.left)
+			+ Math.abs(zone.boundaries.right - prevZone.boundaries.right))
+			<= 0.1
+		);
+		if (prevZone != undefined) {
+			// it is important to set the zone.defaultPos here, because that guarantees, that the position is the same the next time
+			// this happens
+			zone.defaultPos = prevZone.defaultPos;
+		}
+		return zone.defaultPos;
+	});
 
 	const assignment = MovesHelper.assignRobots(positions, zonePositions);
 

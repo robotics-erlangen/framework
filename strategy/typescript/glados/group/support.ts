@@ -131,7 +131,7 @@ export class Support implements Group {
 
 		let robotZones;
 		if (updateAssignments) {
-			robotZones = UtilZone.assignRobotsToZones(robotPositions, zoneList);
+			robotZones = UtilZone.assignRobotsToZones(robotPositions, zoneList, this._lastAssignments);
 			if (!amun.isPerformanceMode) {
 				for (const [zone, robot] of robotZones.entries()) {
 					vis.addPath("g/support: Zone assignment", [zone.defaultPos, robot.pos], vis.colors.white);
