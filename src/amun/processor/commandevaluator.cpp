@@ -75,22 +75,26 @@ void CommandEvaluator::calculateCommand(const world::Robot *robot, qint64 worldT
     LocalSpeed localOutputBase = m_baseSpeed.toLocal(robotPhiBase);
 
     const qint64 worldTimeOne = worldTime;
-    GlobalSpeed outputOne = evaluateInput(hasRobot, robotPhiBase, worldTimeOne, command, debug, true, hasManualCommand);
+    GlobalSpeed outputOne = evaluateInput(hasRobot, robotPhiBase, worldTimeOne, command, debug, hasManualCommand);
     const float timeStepOne = (worldTimeOne - m_baseSpeedTime) * 1E-9; // = CONTROL_STEP as long as the robot is tracked
-    GlobalSpeed limitedOutputOne = limitAcceleration(robotPhiBase, outputOne, m_baseSpeed, timeStepOne, hasManualCommand);
+    GlobalSpeed limitedOutputOne = limitAcceleration(robotPhiBase, outputOne, timeStepOne, hasManualCommand);
     // predict robot rotation, assume the robot managed to follow the command
     const float robotPhiOne = robotPhiBase + (localOutputBase.omega + limitedOutputOne.omega) / 2 * timeStepOne;
     LocalSpeed localOutputOne = limitedOutputOne.toLocal(robotPhiOne);
 
+    if (hasRobot && !hasManualCommand) {
+        // splines only work if we know where the robot is and we arent controlling it by hand
+        drawSpline(debug);
+    }
     drawSpeed(robot, limitedOutputOne, debug);
 
     m_baseSpeed = limitedOutputOne;
     m_baseSpeedTime = worldTimeOne;
 
     const qint64 worldTimeTwo = worldTimeOne + (qint64)(CONTROL_STEP * 1000 * 1000 * 1000);
-    GlobalSpeed outputTwo = evaluateInput(hasRobot, robotPhiOne, worldTimeTwo, command, debug, false, hasManualCommand);
+    GlobalSpeed outputTwo = evaluateInput(hasRobot, robotPhiOne, worldTimeTwo, command, debug, hasManualCommand);
     const float timeStepTwo = CONTROL_STEP;
-    GlobalSpeed limitedOutputTwo = limitAcceleration(robotPhiOne, outputTwo, limitedOutputOne, timeStepTwo, hasManualCommand);
+    GlobalSpeed limitedOutputTwo = limitAcceleration(robotPhiOne, outputTwo, timeStepTwo, hasManualCommand);
     const float robotPhiTwo = robotPhiOne + (localOutputOne.omega + limitedOutputTwo.omega) / 2 * CONTROL_STEP;
     LocalSpeed localOutputTwo = limitedOutputTwo.toLocal(robotPhiTwo);
 
@@ -114,7 +118,7 @@ float CommandEvaluator::robotToPhi(const world::Robot *robot)
 }
 
 GlobalSpeed CommandEvaluator::evaluateInput(bool hasTrackedRobot, float robotPhi, qint64 worldTime, const robot::Command &command,
-                                            amun::DebugValues *debug, bool drawSplines, bool hasManualCommand)
+                                            amun::DebugValues *debug, bool hasManualCommand)
 {
     // default to stopping
     GlobalSpeed output(0, 0, 0);
@@ -126,10 +130,6 @@ GlobalSpeed CommandEvaluator::evaluateInput(bool hasTrackedRobot, float robotPhi
             output = evaluateManualControl(command);
         }
     } else if (hasTrackedRobot) {
-        if (drawSplines) {
-            // splines only work if we know where the robot is
-            drawSpline(debug);
-        }
         output = evaluateSplineAtTime(worldTime);
     }
 
@@ -274,17 +274,16 @@ void CommandEvaluator::drawSpline(amun::DebugValues *debug)
 
 // Limit acceleration and velocities in global coordinates
 // as the robots momentum is relative to the global frame
-GlobalSpeed CommandEvaluator::limitAcceleration(float robotPhi, const GlobalSpeed &command, const GlobalSpeed &baseSpeed, float timeStep,
-                                                bool hasManualCommand)
+GlobalSpeed CommandEvaluator::limitAcceleration(float robotPhi, const GlobalSpeed &command, float timeStep, bool hasManualCommand)
 {
     if (timeStep == 0) {
-        return baseSpeed;
+        return m_baseSpeed;
     }
 
     // Try to reach desired velocity within one step - would result in very high control output
-    const float a_d_x = (command.v_x - baseSpeed.v_x) * (1 / timeStep);
-    const float a_d_y = (command.v_y - baseSpeed.v_y) * (1 / timeStep);
-    const float a_d_phi = (command.omega - baseSpeed.omega) * (1 / timeStep);
+    const float a_d_x = (command.v_x - m_baseSpeed.v_x) * (1 / timeStep);
+    const float a_d_y = (command.v_y - m_baseSpeed.v_y) * (1 / timeStep);
+    const float a_d_phi = (command.omega - m_baseSpeed.omega) * (1 / timeStep);
 
     GlobalAcceleration desiredAccel(a_d_x, a_d_y, a_d_phi);
     LocalAcceleration localAccel = desiredAccel.toLocal(robotPhi);
@@ -300,7 +299,7 @@ GlobalSpeed CommandEvaluator::limitAcceleration(float robotPhi, const GlobalSpee
     GlobalAcceleration boundedAccel = localAccel.toGlobal(robotPhi);
 
     // Integrate bounded and scaled acceleration to velocity
-    GlobalSpeed boundedSpeed = baseSpeed;
+    GlobalSpeed boundedSpeed = m_baseSpeed;
     boundedSpeed.v_x += boundedAccel.a_x * timeStep;
     boundedSpeed.v_y += boundedAccel.a_y * timeStep;
     boundedSpeed.omega += boundedAccel.a_phi * timeStep;
