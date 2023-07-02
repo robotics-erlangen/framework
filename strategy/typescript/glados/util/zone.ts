@@ -3,6 +3,7 @@ import * as MathUtil from "base/mathutil";
 import { FriendlyRobot } from "base/robot";
 import { Position, Vector } from "base/vector";
 
+import { RobotLike } from "glados/observer/physics";
 import * as MovesHelper from "glados/util/moveshelper";
 
 export interface Boundaries {
@@ -45,7 +46,7 @@ export function zoneToPolygon(zone: Zone): Position[] {
 	].map(([x, y]) => new Vector(x, y));
 }
 
-export function assignRobotsToZones(robotPositions: Map<FriendlyRobot, Position>, zones: Zone[]): Map<Zone, FriendlyRobot> {
+export function assignRobotsToZones(robotPositions: Map<FriendlyRobot, RobotLike>, zones: Zone[]): Map<Zone, FriendlyRobot> {
 	if (robotPositions.size !== zones.length) {
 		throw new Error("Mismatch between robot and zone count");
 	}
@@ -54,10 +55,10 @@ export function assignRobotsToZones(robotPositions: Map<FriendlyRobot, Position>
 		return new Map<Zone, FriendlyRobot>();
 	}
 
-	const positions: { pos: Position }[] = [];
+	const positions: RobotLike[] = [];
 	const robots: FriendlyRobot[] = [];
 	for (const [robot, pos] of robotPositions.entries()) {
-		positions.push({ pos });
+		positions.push(pos);
 		robots.push(robot);
 	}
 	const zonePositions = zones.map((zone) => zone.defaultPos);

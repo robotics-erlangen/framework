@@ -5,6 +5,7 @@ import * as World from "base/world";
 
 import { Objective } from "glados/agent/base/objective";
 import { MessageBox, MessageType } from "glados/control/messaging";
+import { RobotLike } from "glados/observer/physics";
 import { Group } from "glados/trainer/groups";
 import * as UtilZone from "glados/util/zone";
 
@@ -105,7 +106,7 @@ export class Support implements Group {
 		updateAssignments = updateAssignments || this._emptyZone !== prevEmptyZone;
 
 		// assign the zones to the nearest supporters
-		let robotPositions = new Map<FriendlyRobot, Position>(); // robot -> pos
+		let robotPositions = new Map<FriendlyRobot, RobotLike>(); // robot -> pos
 		let passInfoTable = messaging.receiveSingleSender(MessageType.passInfo)[1];
 		for (let r of robots) {
 			let pos = r.pos;
@@ -116,7 +117,7 @@ export class Support implements Group {
 					}
 				}
 			}
-			robotPositions[r] = pos;
+			robotPositions[r] = { pos, speed: r.speed, maxSpeed: r.maxSpeed, acceleration: r.acceleration };
 		}
 
 		let zoneList: UtilZone.Zone[] = []; // { zone }

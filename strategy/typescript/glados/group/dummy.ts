@@ -1,9 +1,9 @@
 import { FriendlyRobot } from "base/robot";
-import { Position } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
 
 import { MessageBox, MessageType } from "glados/control/messaging";
+import { RobotLike } from "glados/observer/physics";
 import { Group } from "glados/trainer/groups";
 import { assignRobotsToZones, Boundaries, getRandomPosition, Zone, zoneToPolygon } from "glados/util/zone";
 
@@ -26,9 +26,9 @@ export class Dummy implements Group {
 
 			let zones = this.getDummyZones(robots);
 
-			let robotPosMap = new Map<FriendlyRobot, Position>();
+			let robotPosMap = new Map<FriendlyRobot, RobotLike>();
 			for (let robot of robots) {
-				robotPosMap[robot] = robot.pos;
+				robotPosMap[robot] = robot;
 			}
 			this.lastRobotZoneMap = assignRobotsToZones(robotPosMap, zones);
 			this.lastNumberOfParticipants = numberOfParticipants;

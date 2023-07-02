@@ -1,8 +1,9 @@
 import * as geom from "base/geom";
-import { Position } from "base/vector";
+import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
 
 import { computeMunkres, Matrix } from "glados/lib/munkres";
+import { RobotLike, robotTimeToPos } from "glados/observer/physics";
 
 /**
  * This functions draws the two circles, in which a volley pass it not possible.
@@ -23,7 +24,7 @@ export function volleyCircle(point1: Position, point2: Position, theta: number):
  * @param positions - List of positions to assign the remaining robots to
  * @returns the assignments. Use like this: robots[assignment[i]] -> assign to positions[i]
  */
-export function assignRobots(robots: { pos: Position }[], positions: Position[]): number[] {
+export function assignRobots(robots: RobotLike[], positions: Position[]): number[] {
 	if (robots.length !== positions.length) {
 		throw new Error("Moveshelper: unmatching number of robots and positions!");
 	}
@@ -36,7 +37,7 @@ export function assignRobots(robots: { pos: Position }[], positions: Position[])
 		for (let j = 0; j < positions.length; j++) {
 			// filling the mat with all distances between a robot and a position
 			// not squared to guarantee a planar graph (no crossing)
-			let dist = robots[i].pos.distanceTo(positions[j]);
+			const dist = robotTimeToPos(robots[i], positions[j], new Vector(0, 0))[0];
 			mat[i][j] = dist;
 		}
 	}
