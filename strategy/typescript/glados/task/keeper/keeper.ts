@@ -21,6 +21,7 @@ import * as PathHelper from "glados/trajectory/pathhelper";
 
 const G = World.Geometry;
 const GOAL_NORMAL = new Vector(0, 1);
+const GOAL_BUFFER = 0.3;
 
 export class Keeper extends Task {
 	private _defendCorner: boolean = false;
@@ -201,8 +202,18 @@ export class Keeper extends Task {
 
 		// bound the moveTo if the rotationConditionNumber is sufficiently large
 		let rotCondNum = Goal.rotationConditionNumber();
+
+		// Don't bound the keeper pos if predictShot just barely misses the goal for balls with spin
+		let [_, extendedIntersectGoal, extendedIntersectShot] = geom.intersectLineLine(
+			defenseLineStart - defenseDir.withLength(GOAL_BUFFER),
+			(1 + GOAL_BUFFER) * defenseDir,
+			atkPos,
+			atkDir
+		);
+
 		if ((!isShot && (rotCondNum !== undefined && rotCondNum > 1e-2)) ||
-			((rotCondNum === undefined || rotCondNum <= 1e-2) && !successfulIntersection)) {
+			((rotCondNum === undefined || rotCondNum <= 1e-2) && ((extendedIntersectShot == undefined || extendedIntersectShot < 0) ||
+			(extendedIntersectGoal == undefined || extendedIntersectGoal < 0 || extendedIntersectGoal > 1)))) {
 			let shotBall = [
 				{ speed: (defenseLineEnd - World.Ball.pos).withLength(allowedMaxBallSpeed), maxSpeed: allowedMaxBallSpeed },
 				{ speed: (defenseLineStart - World.Ball.pos).withLength(allowedMaxBallSpeed), maxSpeed: allowedMaxBallSpeed }
