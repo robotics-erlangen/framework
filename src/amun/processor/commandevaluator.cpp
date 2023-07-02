@@ -123,12 +123,11 @@ GlobalSpeed CommandEvaluator::evaluateInput(bool hasTrackedRobot, float robotPhi
     // default to stopping
     GlobalSpeed output(0, 0, 0);
 
-    if (hasManualCommand) {
-        if (command.local() || !hasTrackedRobot) {
-            output = evaluateLocalManualControl(command).toGlobal(robotPhi);
-        } else {
-            output = evaluateGlobalManualControl(command);
-        }
+    const bool isGlobal = !command.local() && hasTrackedRobot;
+    if (hasManualCommand && isGlobal) {
+        output = evaluateGlobalManualControl(command);
+    } else if (hasManualCommand) {
+        output = evaluateLocalManualControl(command).toGlobal(robotPhi);
     } else if (hasTrackedRobot) {
         output = evaluateSplineAtTime(worldTime);
     }
