@@ -33,8 +33,8 @@ namespace Radio {
     inline constexpr int TARGET_BROADCAST = -1;
 
     enum class Generation {
-        Gen2014,
-        Gen2018,
+        Gen2014 = 3,
+        Gen2018 = 4,
     };
 
     class Address {

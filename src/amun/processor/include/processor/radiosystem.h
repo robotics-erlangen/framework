@@ -23,6 +23,7 @@
 
 #include "protobuf/command.h"
 #include "protobuf/status.h"
+#include "radio_address.h"
 
 #include <QMap>
 #include <QPair>
@@ -70,7 +71,7 @@ private:
     void closeTransceiver();
     bool ensureOpen();
 
-    float calculateDroppedFramesRatio(uint generation, uint id, uint8_t counter, int skipedFrames);
+    float calculateDroppedFramesRatio(Radio::Generation generation, uint id, uint8_t counter, int skipedFrames);
     void handleResponsePacket(QList<robot::RadioResponse> &response, const char *data, uint size, qint64 time);
     void handleTeam(const robot::Team &team);
 
@@ -85,8 +86,8 @@ private:
 
 private:
     bool m_charge;
-    QMap<QPair<uint, uint>, DroppedFrameCounter> m_droppedFrames;
-    QMap<QPair<uint, uint>, uint> m_ir_param;
+    QMap<QPair<Radio::Generation, uint>, DroppedFrameCounter> m_droppedFrames;
+    QMap<QPair<Radio::Generation, uint>, uint> m_ir_param;
     QMap<quint8, qint64> m_frameTimes;
 
     quint8 m_packetCounter;

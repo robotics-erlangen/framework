@@ -24,7 +24,6 @@
 #include "firmware-interface/radiocommand2014.h"
 #include "firmware-interface/radiocommand2018.h"
 #include "firmware-interface/transceiver2012.h"
-#include "radio_address.h"
 #include "radiosystem.h"
 #include "transceiver2015.h"
 #include "usbdevice.h"
@@ -42,6 +41,15 @@ static_assert(sizeof(RadioCommand2014) == 23, "Expected radio command packet of 
 static_assert(sizeof(RadioResponse2014) == 10, "Expected radio response packet of size 10");
 static_assert(sizeof(RadioCommand2018) == 23, "Expected radio command packet of size 23");
 static_assert(sizeof(RadioResponse2018) == 10, "Expected radio response packet of size 10");
+
+static Radio::Generation uintToGeneration(uint pbGeneration) {
+    switch (pbGeneration) {
+        case (uint)Radio::Generation::Gen2014:
+            return Radio::Generation::Gen2014;
+        case (uint)Radio::Generation::Gen2018:
+            return Radio::Generation::Gen2018;
+    }
+}
 
 RadioSystem::RadioSystem(const Timer *timer) :
     m_charge(false),
@@ -126,7 +134,7 @@ void RadioSystem::handleTeam(const robot::Team &team)
 {
     for (int i = 0; i < team.robot_size(); ++i) {
         const robot::Specs &spec = team.robot(i);
-        m_ir_param[qMakePair(spec.generation(), spec.id())] = spec.ir_param();
+        m_ir_param[qMakePair(uintToGeneration(spec.generation()), spec.id())] = spec.ir_param();
     }
 }
 
@@ -237,7 +245,7 @@ void RadioSystem::onRawRadioResponse(qint64 receiveTime, const QList<QByteArray>
     emit sendRadioResponses(responses);
 }
 
-float RadioSystem::calculateDroppedFramesRatio(uint generation, uint id, uint8_t counter, int skipedFrames)
+float RadioSystem::calculateDroppedFramesRatio(Radio::Generation generation, uint id, uint8_t counter, int skipedFrames)
 {
     // get frame counter, is created with default values if not existing
     DroppedFrameCounter &c = m_droppedFrames[qMakePair(generation, id)];
@@ -281,11 +289,11 @@ void RadioSystem::handleResponsePacket(QList<robot::RadioResponse> &responses, c
 
         robot::RadioResponse r;
         r.set_time(time);
-        r.set_generation(3);
+        r.set_generation((uint)Radio::Generation::Gen2014);
         r.set_id(packet->id);
 
         int packet_loss = (packet->extension_id == EXTENSION_BASIC_STATUS) ? packet->packet_loss : -1;
-        float df = calculateDroppedFramesRatio(3, packet->id, packet->counter, packet_loss);
+        float df = calculateDroppedFramesRatio(Radio::Generation::Gen2014, packet->id, packet->counter, packet_loss);
         switch (packet->extension_id) {
         case EXTENSION_BASIC_STATUS:
             r.set_battery(packet->battery / 255.0f);
@@ -330,11 +338,11 @@ void RadioSystem::handleResponsePacket(QList<robot::RadioResponse> &responses, c
 
         robot::RadioResponse r;
         r.set_time(time);
-        r.set_generation(4);
+        r.set_generation((uint)Radio::Generation::Gen2018);
         r.set_id(packet->id);
 
         int packet_loss = (packet->extension_id == EXTENSION_BASIC_STATUS) ? packet->packet_loss : -1;
-        float df = calculateDroppedFramesRatio(4, packet->id, packet->counter, packet_loss);
+        float df = calculateDroppedFramesRatio(Radio::Generation::Gen2018, packet->id, packet->counter, packet_loss);
         switch (packet->extension_id) {
         case EXTENSION_BASIC_STATUS:
             r.set_battery(packet->battery / 255.0f);
@@ -416,7 +424,7 @@ void RadioSystem::addRobot2014Command(int id, const robot::Command &command, boo
 
     data.id = id;
     data.force_kick = command.force_kick();
-    data.ir_param = qBound<quint8>(0, m_ir_param[qMakePair(3, id)], 63);
+    data.ir_param = qBound<quint8>(0, m_ir_param[qMakePair(Generation::Gen2014, id)], 63);
     data.eject_sdcard = command.eject_sdcard();
     data.unused = 0;
 
@@ -507,7 +515,7 @@ void RadioSystem::addRobot2018Command(int id, const robot::Command &command, boo
 
     data.id = id;
     data.force_kick = command.force_kick();
-    data.ir_param = qBound<quint8>(0, m_ir_param[qMakePair(4, id)], 63);
+    data.ir_param = qBound<quint8>(0, m_ir_param[qMakePair(Radio::Generation::Gen2018, id)], 63);
     data.eject_sdcard = command.eject_sdcard();
     data.unused = 0;
 
@@ -567,10 +575,10 @@ void RadioSystem::sendCommand(const QList<robot::RadioCommand> &commands, bool c
 
     typedef QList<robot::RadioCommand> RobotList;
 
-    QMap<uint, RobotList> generations;
+    QMap<Radio::Generation, RobotList> generations;
     foreach (const robot::RadioCommand &robot, commands) {
         // group by generation
-        generations[robot.generation()].append(robot);
+        generations[uintToGeneration(robot.generation())].append(robot);
     }
 
     m_packetCounter++;
@@ -580,25 +588,25 @@ void RadioSystem::sendCommand(const QList<robot::RadioCommand> &commands, bool c
 
     m_transceiverLayer->newCycle();
 
-    bool hasRobot2014Commands = generations.contains(3);
+    bool hasRobot2014Commands = generations.contains(Radio::Generation::Gen2014);
     if (hasRobot2014Commands) {
         const qint64 completionTime = m_timer->currentTime();
         addRobot2014Sync(processingStart - completionTime, m_packetCounter);
     }
-    bool hasRobot2018Commands = generations.contains(4);
+    bool hasRobot2018Commands = generations.contains(Radio::Generation::Gen2018);
     if (hasRobot2018Commands) {
         const qint64 completionTime = m_timer->currentTime();
         addRobot2018Sync(processingStart - completionTime, m_packetCounter);
     }
 
-    QMapIterator<uint, RobotList> it(generations);
+    QMapIterator<Radio::Generation, RobotList> it(generations);
     while (it.hasNext()) {
         it.next();
 
         foreach (const robot::RadioCommand &radio_command, it.value()) {
-            if (it.key() == 3) { // 2014 generation
+            if (it.key() == Radio::Generation::Gen2014) {
                 addRobot2014Command(radio_command.id(), radio_command.command(), charge, m_packetCounter);
-            } else if (it.key() == 4) { // 2018 / 2020 generation
+            } else if (it.key() == Radio::Generation::Gen2018) {
                 addRobot2018Command(radio_command.id(), radio_command.command(), charge, m_packetCounter);
             }
         }
