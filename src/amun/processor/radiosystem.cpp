@@ -52,6 +52,10 @@ static Radio::Generation uintToGeneration(uint pbGeneration) {
     }
 }
 
+/* Used for RadioSystem::m_transceivers  to select the generation */
+constexpr size_t IndexGen2014 = 0;
+constexpr size_t IndexGen2020 = 1;
+
 RadioSystem::RadioSystem(const Timer *timer) :
     m_charge(false),
     m_packetCounter(0),
@@ -126,8 +130,12 @@ void RadioSystem::handleCommand(const Command &command)
         handleTeam(command->set_team_yellow());
     }
 
-    if (m_transceiverLayer) {
-        m_transceiverLayer->handleCommand(command);
+    for (const auto &generation : m_transceivers) {
+        for (TransceiverLayer *transceiver : generation) {
+            if (transceiver) {
+                transceiver->handleCommand(command);
+            }
+        }
     }
 }
 
@@ -141,11 +149,13 @@ void RadioSystem::handleTeam(const robot::Team &team)
 
 void RadioSystem::openTransceiver()
 {
-    TransceiverLayer *newTransceiver = [this]() -> TransceiverLayer * {
-        if (m_transceiverLayer) {
-            return nullptr;
+    bool createdNewTransceiver = [this]() -> bool {
+        if (anyTransceiverPresent()) {
+            return false;
         }
 
+        constexpr size_t IndexTransceiver2015 = 0;
+        constexpr size_t IndexHBC = 1;
         struct Info {
             int numPresent;
             std::function<TransceiverLayer *()> create;
@@ -158,57 +168,115 @@ void RadioSystem::openTransceiver()
                 [this]() { return new Transceiver2015 { Transceiver2015::Kind::HBC, m_timer, this }; } },
         };
 
-
-        const auto isPresent = [](const Info& info) { return info.numPresent > 0; };
-
-        auto firstPresent = std::find_if(std::begin(possibleDevices), std::end(possibleDevices), isPresent);
-
-        if (firstPresent == std::end(possibleDevices)) {
-            transceiverErrorOccurred("No device present", 0);
-            return nullptr;
+        if (possibleDevices[IndexTransceiver2015].numPresent > 1) {
+            transceiverErrorOccurred("More than one Transceiver 2015 is untested", 0);
+            return false;
         }
 
-        if (std::any_of(firstPresent + 1, std::end(possibleDevices), isPresent)) {
-            transceiverErrorOccurred("Multiple devices present", 0);
-            return nullptr;
+        if (std::any_of(
+                std::begin(possibleDevices),
+                std::end(possibleDevices),
+                [](const Info& info) { return info.numPresent > 2; })) {
+            transceiverErrorOccurred("More than two transceivers of a kind present", 0);
+            return false;
         }
 
-        return firstPresent->create();
+
+        for (int i = 0; i < possibleDevices[IndexTransceiver2015].numPresent; ++i) {
+            m_transceivers[IndexGen2014][i] = possibleDevices[IndexTransceiver2015].create();
+        }
+
+        for (int i = 0; i < possibleDevices[IndexHBC].numPresent; ++i) {
+            m_transceivers[IndexGen2020][i] = possibleDevices[IndexHBC].create();
+        }
+
+        return anyTransceiverPresent();
     }();
 
-    if (newTransceiver) {
-        m_transceiverLayer = newTransceiver;
+    if (createdNewTransceiver) {
+        for (const auto &generation : m_transceivers) {
+            for (TransceiverLayer *transceiver : generation) {
+                if (!transceiver) {
+                    continue;
+                }
 
-        connect(m_transceiverLayer, &TransceiverLayer::sendStatus, this, &RadioSystem::sendStatus);
-        connect(m_transceiverLayer, &TransceiverLayer::errorOccurred, this, &RadioSystem::transceiverErrorOccurred);
-        connect(m_transceiverLayer, &TransceiverLayer::sendRawRadioResponses, this, &RadioSystem::onRawRadioResponse);
-        connect(m_transceiverLayer, &TransceiverLayer::deviceResponded, this, &RadioSystem::transceiverResponded);
+                connect(transceiver, &TransceiverLayer::sendStatus, this, &RadioSystem::sendStatus);
+                connect(transceiver, &TransceiverLayer::errorOccurred, this, &RadioSystem::transceiverErrorOccurred);
+                connect(transceiver, &TransceiverLayer::sendRawRadioResponses, this, &RadioSystem::onRawRadioResponse);
+                // TODO We should keep a per device timeout
+                connect(transceiver, &TransceiverLayer::deviceResponded, this, &RadioSystem::transceiverResponded);
+            }
+        }
     }
 
-    if (!m_transceiverLayer) {
-        return;
-    }
-
-    if (m_transceiverLayer->open()) {
+    if (callOpenOnAllTransceivers()) {
         m_timeoutTimer->start(500);
     }
 }
 
 void RadioSystem::closeTransceiver()
 {
-    delete m_transceiverLayer;
-    m_transceiverLayer = nullptr;
+    for (const auto& generation : m_transceivers) {
+        for (TransceiverLayer *transceiver : generation) {
+            delete transceiver;
+        }
+    }
+    m_transceivers = {};
 
     m_timeoutTimer->stop();
 }
 
 bool RadioSystem::ensureOpen()
 {
-    const bool isOpen = m_transceiverLayer->isOpen();
-    if (!isOpen && Timer::systemTime() > m_onlyRestartAfterTimestamp) {
+    const bool allOpen = areAllTransceiversOpen();
+    if (!allOpen && Timer::systemTime() > m_onlyRestartAfterTimestamp) {
         openTransceiver();
     }
-    return isOpen;
+    return allOpen;
+}
+
+bool RadioSystem::anyTransceiverPresent() const
+{
+    for (const auto& generation : m_transceivers) {
+        for (const TransceiverLayer* transceiver : generation) {
+            if (transceiver) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool RadioSystem::areAllTransceiversOpen() const
+{
+    for (const auto& generation : m_transceivers) {
+        for (TransceiverLayer *transceiver : generation) {
+            if (!transceiver) {
+                continue;
+            }
+            if (!transceiver->isOpen()) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool RadioSystem::callOpenOnAllTransceivers()
+{
+    bool anyPresent = false;
+    bool success = true;
+    for (const auto& generation : m_transceivers) {
+        for (int i = 0; i < generation.size(); ++i) {
+            TransceiverLayer *transceiver = generation[i];
+            if (!transceiver) {
+                continue;
+            }
+            anyPresent = true;
+            success &= transceiver->open(i);
+        }
+    }
+    return anyPresent && success;
 }
 
 void RadioSystem::transceiverErrorOccurred(const QString &errorMsg, qint64 restartDelayInNs)
@@ -445,10 +513,16 @@ void RadioSystem::addRobot2014Command(int id, const robot::Command &command, boo
         data.cur_omega = RADIOCOMMAND2014_INVALID_SPEED;
     }
 
-    m_transceiverLayer->addSendCommand(
-        Address { Unicast, Generation::Gen2014, id },
-        sizeof(RadioResponseHeader) + sizeof(RadioResponse2014),
-        reinterpret_cast<const char *>(&data), sizeof(data));
+    for (TransceiverLayer *transceiver : m_transceivers[IndexGen2014]) {
+        if (!transceiver) {
+            continue;
+        }
+
+        transceiver->addSendCommand(
+            Address { Unicast, Generation::Gen2014, id },
+            sizeof(RadioResponseHeader) + sizeof(RadioResponse2014),
+            reinterpret_cast<const char *>(&data), sizeof(data));
+    }
 }
 
 void RadioSystem::addRobot2014Sync(qint64 processingDelay, quint8 packetCounter)
@@ -473,14 +547,20 @@ void RadioSystem::addRobot2014Sync(qint64 processingDelay, quint8 packetCounter)
     data.counter = packetCounter;
     data.time_offset = (processingDelay + syncPacketDelay) / 1000;
 
-    m_transceiverLayer->addSendCommand(
-        Address { Broadcast, Generation::Gen2014 },
-        // Use a expected response size of 1 to add a delay of 240 us to
-        // workaround reception issues our custom built nrf receivers fail to
-        // receive their command packet if it immediatelly follows the sync
-        // packet adding the delay fixes the problem reliably
-        1,
-        reinterpret_cast<const char *>(&data), sizeof(data));
+    for (TransceiverLayer *transceiver : m_transceivers[IndexGen2014]) {
+        if (!transceiver) {
+            continue;
+        }
+
+        transceiver->addSendCommand(
+            Address { Broadcast, Generation::Gen2014 },
+            // Use a expected response size of 1 to add a delay of 240 us to
+            // workaround reception issues our custom built nrf receivers fail to
+            // receive their command packet if it immediatelly follows the sync
+            // packet adding the delay fixes the problem reliably
+            1,
+            reinterpret_cast<const char *>(&data), sizeof(data));
+    }
 }
 
 void RadioSystem::addRobot2018Command(int id, const robot::Command &command, bool charge, quint8 packetCounter)
@@ -544,10 +624,16 @@ void RadioSystem::addRobot2018Command(int id, const robot::Command &command, boo
         data.cur_phi = RADIOCOMMAND2018_INVALID_SPEED;
     }
 
-    m_transceiverLayer->addSendCommand(
-        Address { Unicast, Generation::Gen2018, id },
-        sizeof(RadioResponseHeader) + sizeof(RadioResponse2018),
-        reinterpret_cast<const char *>(&data), sizeof(data));
+    for (TransceiverLayer *transceiver : m_transceivers[IndexGen2020]) {
+        if (!transceiver) {
+            continue;
+        }
+
+        transceiver->addSendCommand(
+            Address { Unicast, Generation::Gen2018, id },
+            sizeof(RadioResponseHeader) + sizeof(RadioResponse2018),
+            reinterpret_cast<const char *>(&data), sizeof(data));
+    }
 }
 
 void RadioSystem::addRobot2018Sync(qint64 processingDelay, quint8 packetCounter)
@@ -572,19 +658,25 @@ void RadioSystem::addRobot2018Sync(qint64 processingDelay, quint8 packetCounter)
     data.counter = packetCounter;
     data.time_offset = (processingDelay + syncPacketDelay) / 1000;
 
-    m_transceiverLayer->addSendCommand(
-        Address { Broadcast, Generation::Gen2018 },
-        // Use a expected response size of 1 to add a delay of 240 us to
-        // workaround reception issues our custom built nrf receivers fail to
-        // receive their command packet if it immediatelly follows the sync
-        // packet adding the delay fixes the problem reliably
-        1,
-        reinterpret_cast<const char *>(&data), sizeof(data));
+    for (TransceiverLayer *transceiver : m_transceivers[IndexGen2020]) {
+        if (!transceiver) {
+            continue;
+        }
+
+        transceiver->addSendCommand(
+            Address { Broadcast, Generation::Gen2018 },
+            // Use a expected response size of 1 to add a delay of 240 us to
+            // workaround reception issues our custom built nrf receivers fail to
+            // receive their command packet if it immediatelly follows the sync
+            // packet adding the delay fixes the problem reliably
+            1,
+            reinterpret_cast<const char *>(&data), sizeof(data));
+    }
 }
 
 void RadioSystem::sendCommand(const QList<robot::RadioCommand> &commands, bool charge, qint64 processingStart)
 {
-    if (!m_transceiverLayer || !ensureOpen()) {
+    if (!anyTransceiverPresent() || !ensureOpen()) {
         return;
     }
 
@@ -601,7 +693,13 @@ void RadioSystem::sendCommand(const QList<robot::RadioCommand> &commands, bool c
     const qint64 time = Timer::systemTime();
     m_frameTimes[m_packetCounter] = time;
 
-    m_transceiverLayer->newCycle();
+    for (const auto &generation : m_transceivers) {
+        for (TransceiverLayer *transceiver : generation) {
+            if (transceiver) {
+                transceiver->newCycle();
+            }
+        }
+    }
 
     bool hasRobot2014Commands = generations.contains(Radio::Generation::Gen2014);
     if (hasRobot2014Commands) {
@@ -627,12 +725,20 @@ void RadioSystem::sendCommand(const QList<robot::RadioCommand> &commands, bool c
         }
     }
 
-    m_transceiverLayer->addPingPacket(time);
-    if (m_packetCounter == 255) {
-        m_transceiverLayer->addStatusPacket();
-    }
+    for (const auto &generation : m_transceivers) {
+        for (TransceiverLayer *transceiver : generation) {
+            if (!transceiver) {
+                continue;
+            }
 
-    m_transceiverLayer->flush(time);
+            transceiver->addPingPacket(time);
+            if (m_packetCounter == 255) {
+                transceiver->addStatusPacket();
+            }
+
+            transceiver->flush(time);
+        }
+    }
 
     // only restart timeout if not yet active
     if (!m_timeoutTimer->isActive()) {

@@ -107,7 +107,7 @@ Transceiver2015::~Transceiver2015()
 #endif
 }
 
-bool Transceiver2015::open()
+bool Transceiver2015::open(int which)
 {
 #ifdef USB_FOUND
     if (!m_context) {
@@ -122,8 +122,12 @@ bool Transceiver2015::open()
         return false;
     }
 
-    // just assumes it's the first matching device
-    USBDevice *device = devices.takeFirst();
+    if (which >= devices.size()) {
+        emit errorOccurred("Trying to select out of bounds receiver");
+        return false;
+    }
+
+    USBDevice *device = devices.takeAt(which);
     qDeleteAll(devices);
 
     m_device = device;

@@ -38,7 +38,7 @@ public:
 
     virtual void newCycle() = 0;
 
-    virtual bool open() = 0;
+    virtual bool open(int which) = 0;
 
     virtual void addSendCommand(const Radio::Address &target, size_t expectedResponseSize, const char *data, size_t len) = 0;
 

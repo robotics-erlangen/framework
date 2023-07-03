@@ -65,7 +65,7 @@ public:
 
     void newCycle() final { m_packet.resize(0); }
 
-    bool open() final;
+    bool open(int which) final;
 
     void addSendCommand(const Radio::Address &target, size_t expectedResponseSize, const char *data, size_t len) final;
 

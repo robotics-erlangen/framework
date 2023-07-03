@@ -27,6 +27,7 @@
 
 #include <QMap>
 #include <QPair>
+#include <array>
 
 class QTimer;
 class Timer;
@@ -71,6 +72,10 @@ private:
     void closeTransceiver();
     bool ensureOpen();
 
+    bool anyTransceiverPresent() const;
+    bool areAllTransceiversOpen() const;
+    bool callOpenOnAllTransceivers();
+
     float calculateDroppedFramesRatio(Radio::Generation generation, uint id, uint8_t counter, int skipedFrames);
     void handleResponsePacket(QList<robot::RadioResponse> &response, const char *data, uint size, qint64 time);
     void handleTeam(const robot::Team &team);
@@ -101,7 +106,13 @@ private:
     qint64 m_processingStart;
     int m_droppedCommands;
 
-    TransceiverLayer *m_transceiverLayer = nullptr;
+    /** TransceiverLayer for two generations, up to two transceivers per
+     * generation at the same time.
+     *
+     * Thus, the first index is used to select the generation. The second index
+     * is used to select one of two transceivers.
+     */
+    std::array<std::array<TransceiverLayer *, 2>, 2> m_transceivers {};
 };
 
 #endif // RADIOSYSTEM_H
