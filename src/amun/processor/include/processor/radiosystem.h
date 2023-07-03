@@ -62,8 +62,8 @@ public slots:
 
 private slots:
     void process();
-    void transceiverErrorOccurred(const QString &errorMsg, qint64 restartDelayInNs);
-    void transceiverResponded();
+    void transceiverErrorOccurred(const QString &transceiverName, const QString &errorMsg, qint64 restartDelayInNs);
+    void transceiverResponded(const QString &transceiverName);
     void timeout();
     void onRawRadioResponse(qint64 receiveTime, const QList<QByteArray> &rawResponses);
 

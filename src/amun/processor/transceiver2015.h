@@ -27,8 +27,8 @@
 #include "transceiverlayer.h"
 #include <QByteArray>
 #include <QObject>
+#include <QString>
 
-class QString;
 class Timer;
 class USBDevice;
 class USBThread;
@@ -106,6 +106,8 @@ private:
     amun::TransceiverConfiguration m_configuration;
 
     QByteArray m_packet;
+
+    QString m_debugName;
 };
 
 #endif // TRANSCEIVER2015_H

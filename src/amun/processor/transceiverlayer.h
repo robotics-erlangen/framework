@@ -49,12 +49,18 @@ public:
 
 signals:
     void sendStatus(const Status &status);
-    void errorOccurred(const QString &errorMsg, qint64 restartDelayInNs = 0);
+    void errorOccurred(const QString &transceiverName, const QString &errorMsg, qint64 restartDelayInNs = 0);
     void sendRawRadioResponses(qint64 receiveTime, const QList<QByteArray> &rawResponses);
-    void deviceResponded();
+    void deviceResponded(const QString &transceiverName);
 
 public slots:
     virtual void handleCommand(const Command &command) = 0;
+
+protected:
+    /** When multiple transceivers of the same kind are used, this can be used
+     * to differentiate them
+     */
+    int m_which = -1;
 
 };
 

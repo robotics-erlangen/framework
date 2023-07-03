@@ -30,6 +30,8 @@
 #include <QSet>
 #include <QList>
 #include <optional>
+#include <QMap>
+#include <QString>
 
 class BacklogWriter;
 class CombinedLogWriter;
@@ -74,6 +76,17 @@ protected:
     void dragMoveEvent(QDragMoveEvent *event) override;
     void dragLeaveEvent(QDragLeaveEvent *event) override;
     void dropEvent(QDropEvent *event) override;
+
+private:
+    struct TransceiverStatusBuffer {
+        TransceiverStatusBuffer() {}
+        TransceiverStatusBuffer(const amun::StatusTransceiver&);
+
+        bool active = false;
+        QString error;
+        int32_t dropped_usb_packets = 0;
+        int32_t dropped_commands = 0;
+    };
 
 private slots:
     void handleStatus(const Status &status);
@@ -122,8 +135,11 @@ private:
     InternalReferee *m_internalReferee;
     ConfigDialog *m_configDialog;
     AboutUs *m_aboutUs;
-	GitInfoDialog *m_gitInfo;
+    GitInfoDialog *m_gitInfo;
     QLabel *m_transceiverStatus;
+    TransceiverStatusBuffer m_radioSystemStatus;
+    QMap<QString, TransceiverStatusBuffer> m_transceiverStatusBuffer;
+
     qint32 m_lastStageTime;
     LogLabel *m_logTimeLabel;
     Logsuite *m_loggingUiRa, *m_loggingUiHorus;

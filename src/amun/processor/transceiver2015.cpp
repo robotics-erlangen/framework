@@ -118,12 +118,12 @@ bool Transceiver2015::open(int which)
 
     QList<USBDevice*> devices = USBDevice::getDevices(vidForKind(m_kind), pidForKind(m_kind), m_context);
     if (devices.isEmpty()) {
-        emit errorOccurred("Device not found");
+        emit errorOccurred(m_debugName, "Device not found");
         return false;
     }
 
     if (which >= devices.size()) {
-        emit errorOccurred("Trying to select out of bounds receiver");
+        emit errorOccurred(m_debugName, "Trying to select out of bounds receiver");
         return false;
     }
 
@@ -135,13 +135,20 @@ bool Transceiver2015::open(int which)
 
     // try to open the communication channel
     if (!m_device->open(QIODevice::ReadWrite)) {
-        emit errorOccurred(m_device->errorString());
+        // TODO Should we close here?
+        emit errorOccurred(m_debugName, m_device->errorString());
         return false;
     }
+
+    m_which = which;
+    m_debugName = QString { "%1%2" }
+        .arg(m_kind == Kind::Actual2015 ? "T15" : "HBC")
+        .arg(m_which);
 
     // publish transceiver status
     Status status(new amun::Status);
     status->mutable_transceiver()->set_active(true);
+    status->mutable_transceiver()->set_name(m_debugName.toStdString());
     status->mutable_transceiver()->set_error("Handshake");
     emit sendStatus(status);
 
@@ -153,7 +160,7 @@ bool Transceiver2015::open(int which)
 
     return true;
 #else
-    emit errorOccurred("Compiled without libusb support!");
+    emit errorOccurred("T2015|HBC", "Compiled without libusb support!");
 
     return false;
 #endif // USB_FOUND
@@ -263,7 +270,7 @@ void Transceiver2015::onReadyRead()
     // read until no further data is available
     const int size = m_device->read(buffer, maxSize);
     if (size == -1) {
-        emit errorOccurred(m_device->errorString());
+        emit errorOccurred(m_debugName, m_device->errorString());
         return;
     }
 
@@ -320,7 +327,7 @@ bool Transceiver2015::write(const QByteArray &packet)
     // transmission usually either succeeds completely or fails horribly
     // write does not actually guarantee complete delivery!
     if (m_device->write(packet) < 0) {
-        emit errorOccurred(m_device->errorString());
+        emit errorOccurred(m_debugName, m_device->errorString());
         return false;
     }
 #endif // USB_FOUND
@@ -330,9 +337,11 @@ bool Transceiver2015::write(const QByteArray &packet)
 void Transceiver2015::close()
 {
 #ifdef USB_FOUND
+    m_which = -1;
     delete m_device;
     m_device = nullptr;
     m_connectionState = State::DISCONNECTED;
+    m_debugName.clear();
 #endif
 }
 
@@ -340,24 +349,25 @@ void Transceiver2015::handleInitPacket(const char *data, uint size)
 {
     // only allowed during handshake
     if (m_connectionState != State::HANDSHAKE || size < 2) {
-        emit errorOccurred("Invalid reply from transceiver", (qint64) 10 * 1000 * 1000 * 1000);
+        emit errorOccurred(m_debugName, "Invalid reply from transceiver", (qint64) 10 * 1000 * 1000 * 1000);
         return;
     }
 
     const TransceiverInitPacket *handshake = (const TransceiverInitPacket *)data;
     if (handshake->protocolVersion < PROTOCOL_VERSION) {
-        emit errorOccurred("Outdated firmware", (qint64) 10 * 1000 * 1000 * 1000);
+        emit errorOccurred(m_debugName, "Outdated firmware", (qint64) 10 * 1000 * 1000 * 1000);
         return;
     } else if (handshake->protocolVersion > PROTOCOL_VERSION) {
-        emit errorOccurred("Not yet supported transceiver firmware", (qint64) 10 * 1000 * 1000 * 1000);
+        emit errorOccurred(m_debugName, "Not yet supported transceiver firmware", (qint64) 10 * 1000 * 1000 * 1000);
         return;
     }
 
     m_connectionState = State::CONNECTED;
-    emit deviceResponded();
+    emit deviceResponded(m_debugName);
 
     Status status(new amun::Status);
     status->mutable_transceiver()->set_active(true);
+    status->mutable_transceiver()->set_name(m_debugName.toStdString());
     emit sendStatus(status);
 
     // send channel informations
@@ -375,7 +385,7 @@ void Transceiver2015::handlePingPacket(const char *data, uint size)
     status->mutable_timing()->set_transceiver_rtt((Timer::systemTime() - ping->time) * 1E-9f);
     emit sendStatus(status);
 
-    emit deviceResponded();
+    emit deviceResponded(m_debugName);
 }
 
 void Transceiver2015::handleStatusPacket(const char *data, uint size)
@@ -387,10 +397,11 @@ void Transceiver2015::handleStatusPacket(const char *data, uint size)
     const TransceiverStatusPacket *transceiverStatus = (const TransceiverStatusPacket *)data;
     Status status(new amun::Status);
     status->mutable_transceiver()->set_active(true);
+    status->mutable_transceiver()->set_name(m_debugName.toStdString());
     status->mutable_transceiver()->set_dropped_usb_packets(transceiverStatus->droppedPackets);
     emit sendStatus(status);
 
-    emit deviceResponded();
+    emit deviceResponded(m_debugName);
 }
 
 void Transceiver2015::handleDatagramPacket(const char *data, uint size)
@@ -404,7 +415,7 @@ void Transceiver2015::handleDatagramPacket(const char *data, uint size)
     logEntry->set_text(debugMessage.toStdString());
     emit sendStatus(status);
 
-    emit deviceResponded();
+    emit deviceResponded(m_debugName);
 }
 
 void Transceiver2015::sendInitPacket()

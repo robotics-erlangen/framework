@@ -169,7 +169,7 @@ void RadioSystem::openTransceiver()
         };
 
         if (possibleDevices[IndexTransceiver2015].numPresent > 1) {
-            transceiverErrorOccurred("More than one Transceiver 2015 is untested", 0);
+            transceiverErrorOccurred(QString{}, "More than one Transceiver 2015 is untested", 0);
             return false;
         }
 
@@ -177,10 +177,9 @@ void RadioSystem::openTransceiver()
                 std::begin(possibleDevices),
                 std::end(possibleDevices),
                 [](const Info& info) { return info.numPresent > 2; })) {
-            transceiverErrorOccurred("More than two transceivers of a kind present", 0);
+            transceiverErrorOccurred(QString{}, "More than two transceivers of a kind present", 0);
             return false;
         }
-
 
         for (int i = 0; i < possibleDevices[IndexTransceiver2015].numPresent; ++i) {
             m_transceivers[IndexGen2014][i] = possibleDevices[IndexTransceiver2015].create();
@@ -279,25 +278,30 @@ bool RadioSystem::callOpenOnAllTransceivers()
     return anyPresent && success;
 }
 
-void RadioSystem::transceiverErrorOccurred(const QString &errorMsg, qint64 restartDelayInNs)
+void RadioSystem::transceiverErrorOccurred(const QString &transceiverName, const QString &errorMsg, qint64 restartDelayInNs)
 {
     closeTransceiver();
 
     Status status { new amun::Status };
     status->mutable_transceiver()->set_active(false);
+    if (!transceiverName.isNull()) {
+        status->mutable_transceiver()->set_name(transceiverName.toStdString());
+    }
     status->mutable_transceiver()->set_error(errorMsg.toStdString());
     emit sendStatus(status);
 
     m_onlyRestartAfterTimestamp = Timer::systemTime() + restartDelayInNs;
 }
 
-void RadioSystem::transceiverResponded()
+void RadioSystem::transceiverResponded(const QString &transceiverName)
 {
+    Q_ASSERT(!transceiverName.isNull());
     m_timeoutTimer->stop();
 
     if (m_droppedCommands > 0) {
         Status status { new amun::Status };
         status->mutable_transceiver()->set_active(true);
+        status->mutable_transceiver()->set_name(transceiverName.toStdString());
         status->mutable_transceiver()->set_dropped_commands(m_droppedCommands);
 
         m_droppedCommands = 0;
@@ -306,7 +310,7 @@ void RadioSystem::transceiverResponded()
 
 void RadioSystem::timeout()
 {
-    transceiverErrorOccurred("Transceiver is not responding", (qint64)100*1000*1000);
+    transceiverErrorOccurred(QString{}, "Some transceiver is not responding", (qint64)100*1000*1000);
 }
 
 void RadioSystem::onRawRadioResponse(qint64 receiveTime, const QList<QByteArray> &rawResponses)

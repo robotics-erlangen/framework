@@ -88,7 +88,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, bool broadcastUiCommands,
     ui->actionQuit->setShortcut(QKeySequence::Quit);
 
     // setup status bar
-    m_transceiverStatus = new QLabel("<font color=\"red\">Transceiver</font>");
+    m_transceiverStatus = new QLabel("<font color=\"red\">SYS</font>");
     statusBar()->addWidget(m_transceiverStatus);
 
     m_logTimeLabel = new LogLabel();
@@ -687,39 +687,102 @@ void MainWindow::simulatorSetupChanged(QAction * action)
     setSimulatorEnabled(ui->actionSimulator->isChecked());
 }
 
+MainWindow::TransceiverStatusBuffer::TransceiverStatusBuffer(const amun::StatusTransceiver &status) :
+    active(status.active()),
+    error(status.has_error() ? QString::fromStdString(status.error()) : QString{}),
+    dropped_usb_packets(status.has_dropped_usb_packets() ? status.dropped_usb_packets() : 0),
+    dropped_commands(status.has_dropped_commands() ? status.dropped_commands() : 0)
+{
+}
+
 void MainWindow::handleStatus(const Status &status)
 {
     if (status->has_transceiver()) {
         const amun::StatusTransceiver &t = status->transceiver();
-        QString tooltip = "";
-        QString color = "red";
 
-        if (t.active()) {
-            color = "darkGreen";
+        if (t.has_name()) {
+            m_transceiverStatusBuffer.insert(
+                QString::fromStdString(t.name()),
+                TransceiverStatusBuffer { t }
+            );
 
-            if (t.dropped_usb_packets() > 0) {
-                color = "yellow";
-                tooltip += QString("\nDropped usb packets: %1").arg(t.dropped_usb_packets());
-            }
-            if (t.dropped_commands() > 0) {
-                color = "yellow";
-                tooltip += QString("\nDropped commands: %1").arg(t.dropped_commands());
-            }
-            tooltip = tooltip.mid(1);
+            m_radioSystemStatus.active = std::all_of(
+                m_transceiverStatusBuffer.constKeyValueBegin(), m_transceiverStatusBuffer.constKeyValueEnd(),
+                [](auto kv) { return kv.second.active; });
         } else {
-            color = "red";
+            /* This case triggers
+             * - If a log recorded prior to the introduction of multiple
+             *   transceiver support is played back
+             * - If the radio system itself sends a status
+             *
+             * In the first case, we use the active value of the received
+             * status. If multiple transceivers are implemented, we mark the
+             * system as active if every transceiver is active. Note that this
+             * breaks, if the system itself (i.e. !has_name()) would try to
+             * send out active itself
+             */
+            m_radioSystemStatus = TransceiverStatusBuffer { t };
+        }
+
+        if (!t.has_name() && !t.active()) {
+            /* We either disabled radio or a general error (i.e. in the radio
+             * system) occurred
+             *
+             * Note that this also triggers on transceiver timeouts for now,
+             * but we can't differentiate which transceiver timeouted for now
+             * so not displaying any specific information is fine
+             */
+            m_transceiverStatusBuffer.clear();
+        }
+
+        QString barText;
+        QString tooltip;
+        auto appendTransceiverStatus = [&barText, &tooltip](const QString &name, const TransceiverStatusBuffer &transceiverStatus, bool isFirst) {
+            if (!isFirst) {
+                barText.append(' ');
+            }
+            barText.append("<font color=\"");
+
+            const char *color;
+            if (transceiverStatus.dropped_commands > 0
+                    || transceiverStatus.dropped_usb_packets > 0) {
+                color = "yellow";
+
+                tooltip.append(name);
+                tooltip.append(" (");
+                if (transceiverStatus.dropped_commands > 0) {
+                    tooltip.append(QString { "CMDDrop %1" }.arg(transceiverStatus.dropped_commands));
+                }
+                if (transceiverStatus.dropped_usb_packets > 0) {
+                    tooltip.append(QString { " USBDrop %1" }.arg(transceiverStatus.dropped_usb_packets));
+                }
+                tooltip.append(") ");
+            } else if (transceiverStatus.active) {
+                color = "darkGreen";
+            } else {
+                color = "red";
+            }
+            barText.append(color);
+            barText.append("\">");
+
+            barText.append(name);
+
+            if (!transceiverStatus.error.isNull()) {
+                barText.append(" (");
+                barText.append(transceiverStatus.error);
+                barText.append(')');
+            }
+
+            barText.append("</font>");
+        };
+
+        appendTransceiverStatus("SYS", m_radioSystemStatus, true);
+        for (auto it = m_transceiverStatusBuffer.constBegin(); it != m_transceiverStatusBuffer.constEnd(); ++it) {
+            appendTransceiverStatus(it.key(), it.value(), false);
         }
 
         m_transceiverStatus->setToolTip(tooltip);
-
-        QString text = QString("<font color=\"%1\">Transceiver%2</font>").arg(color);
-        QString error = QString::fromStdString(t.error()).trimmed();
-        if (!error.isEmpty()) {
-            text = text.arg(": " + QString::fromStdString(t.error()));
-        } else {
-            text = text.arg("");
-        }
-        m_transceiverStatus->setText(text);
+        m_transceiverStatus->setText(barText);
     }
 
     if (status->has_game_state()) {
