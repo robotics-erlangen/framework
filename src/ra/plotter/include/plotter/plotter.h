@@ -67,7 +67,6 @@ private slots:
     void updateOffset(int pos);
 
     void setFreeze(bool freeze);
-    void plotContextMenu(const QPoint &pos);
     void clearSelection();
     void itemChanged(QStandardItem *item);
     void invalidatePlots();
@@ -101,7 +100,6 @@ private:
     QSet<QString> m_selection;
     QStandardItemModel m_model;
     LeafFilterProxyModel *m_proxy;
-    QMenu *m_plotMenu;
     bool m_playingBacklog;
     QList<Status> m_backlog;
 };

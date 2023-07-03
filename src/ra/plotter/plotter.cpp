@@ -68,6 +68,9 @@ Plotter::Plotter() :
     // connect freeze
     connect(ui->btnFreeze, SIGNAL(toggled(bool)), this, SLOT(setFreeze(bool)));
 
+    // connect btnClearAll
+    connect(ui->btnClearAll, SIGNAL(clicked()), this, SLOT(clearSelection()));
+
     // connect the plot widget
     m_timeLimit = ui->spinDuration->maximum();
     connect(ui->spinYMin, SIGNAL(valueChanged(double)), ui->widget, SLOT(setYMin(double)));
@@ -89,15 +92,6 @@ Plotter::Plotter() :
     actionSpacePressed->setShortcut(QKeySequence(Qt::Key_Space));
     connect(actionSpacePressed, &QAction::triggered, this,  &Plotter::spacePressed);
     addAction(actionSpacePressed);
-
-    // setup context menu for plot list
-    m_plotMenu = new QMenu(this);
-    QAction *actionClear = new QAction(QStringLiteral("Clear selection"), m_plotMenu);
-    connect(actionClear, SIGNAL(triggered()), this, SLOT(clearSelection()));
-    m_plotMenu->addAction(actionClear);
-
-    ui->tree->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(ui->tree, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(plotContextMenu(QPoint)));
 
     // restore geometry
     QSettings s;
@@ -183,11 +177,6 @@ void Plotter::loadSelection()
     }
 
     s.endGroup();
-}
-
-void Plotter::plotContextMenu(const QPoint &pos)
-{
-    m_plotMenu->popup(ui->tree->mapToGlobal(pos));
 }
 
 void Plotter::clearSelection()

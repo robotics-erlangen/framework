@@ -22,13 +22,29 @@
      <widget class="QWidget" name="layoutWidget">
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
-        <widget class="QToolButton" name="btnFreeze">
-         <property name="text">
-          <string>Freeze</string>
-         </property>
-         <property name="checkable">
-          <bool>true</bool>
-         </property>
+        <widget class="QWidget" name="buttonLayoutWidget">
+         <layout class="QHBoxLayout" name="buttonHorizontalLayout">
+          <property name="alignment">
+           <set>Qt::AlignLeft</set>
+          </property>
+          <item>
+           <widget class="QToolButton" name="btnFreeze">
+            <property name="text">
+             <string>Freeze</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolButton" name="btnClearAll">
+            <property name="text">
+             <string>Clear all</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </item>
        <item>
