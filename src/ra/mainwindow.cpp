@@ -88,10 +88,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, bool broadcastUiCommands,
     ui->actionQuit->setShortcut(QKeySequence::Quit);
 
     // setup status bar
-    m_transceiverStatus = new QLabel("Transceiver");
-    QPalette p = m_transceiverStatus->palette();
-    p.setColor(QPalette::WindowText, Qt::red);
-    m_transceiverStatus->setPalette(p);
+    m_transceiverStatus = new QLabel("<font color=\"red\">Transceiver</font>");
     statusBar()->addWidget(m_transceiverStatus);
 
     m_logTimeLabel = new LogLabel();
