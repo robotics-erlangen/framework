@@ -24,9 +24,18 @@ export class RunObjective implements Checkable {
 
 		const isMainAttacker = messaging.receiveTrainer(MessageType.mainAttacker) === this._agent.robot();
 
-		this._runner = isMainAttacker
-			? receivedObjective.getMaRunner(this._agent)
-			: receivedObjective.getSupportRunner(this._agent);
+		if (isMainAttacker) {
+			/* To keep supporter state, objectives have to live across main
+			* attacker switches. Thus we have to check here whether a new main
+			* attacker is registering
+			*/
+			if (receivedObjective.getMaRunner(this._agent).agent().robot() !== this._agent.robot()) {
+				receivedObjective.setMaRunner(this._agent);
+			}
+			this._runner = receivedObjective.getMaRunner(this._agent);
+		} else {
+			this._runner = receivedObjective.getSupportRunner(this._agent);
+		}
 
 		// This may happen if the objective was not constructed by this
 		// agents instance of SelectObjective, e.g if the main attacker

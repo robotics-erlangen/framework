@@ -134,7 +134,6 @@ export class SelectObjective implements Checkable {
 			}
 			case RestartMode.DEFER:
 				reuse = lastObjective !== undefined
-					&& lastObjective.getMaRunner(this._agent).agent().robot() === robot
 					&& lastObjective.canContinue({ pos });
 				break;
 		}
