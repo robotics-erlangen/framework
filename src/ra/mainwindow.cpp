@@ -56,7 +56,6 @@
 MainWindow::MainWindow(bool tournamentMode, bool isRa, bool broadcastUiCommands, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    m_transceiverActive(false),
     m_lastStageTime(0),
     m_isTournamentMode(tournamentMode),
     m_currentWidgetConfiguration(0)
@@ -698,9 +697,7 @@ void MainWindow::handleStatus(const Status &status)
         QString tooltip = "";
         QString color = "red";
 
-        m_transceiverActive = t.active();
-
-        if (m_transceiverActive) {
+        if (t.active()) {
             color = "darkGreen";
 
             if (t.dropped_usb_packets() > 0) {

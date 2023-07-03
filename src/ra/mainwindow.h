@@ -124,7 +124,6 @@ private:
     AboutUs *m_aboutUs;
 	GitInfoDialog *m_gitInfo;
     QLabel *m_transceiverStatus;
-    bool m_transceiverActive;
     qint32 m_lastStageTime;
     LogLabel *m_logTimeLabel;
     Logsuite *m_loggingUiRa, *m_loggingUiHorus;
