@@ -20,6 +20,7 @@
 
 #ifndef COORDINATEHELPER_H
 #define COORDINATEHELPER_H
+#include <optional>
 
 class GlobalSpeed;
 class GlobalAcceleration;
@@ -28,9 +29,11 @@ namespace robot { class SpeedVector; }
 class LocalSpeed {
 public:
     LocalSpeed(float v_s, float v_f, float omega);
-    LocalSpeed(const robot::SpeedVector &vector);
-    GlobalSpeed toGlobal(float phi) const;
+
+    std::optional<LocalSpeed> fromSpeedVector(const robot::SpeedVector &vector);
     void copyToSpeedVector(robot::SpeedVector &vector) const;
+
+    GlobalSpeed toGlobal(float phi) const;
 
     float v_s;
     float v_f;
@@ -40,6 +43,10 @@ public:
 class GlobalSpeed {
 public:
     GlobalSpeed(float v_x, float v_y, float omega);
+
+    std::optional<GlobalSpeed> fromSpeedVector(const robot::SpeedVector &vector);
+    void copyToSpeedVector(robot::SpeedVector &vector) const;
+
     LocalSpeed toLocal(float phi) const;
     bool isValid() const;
 

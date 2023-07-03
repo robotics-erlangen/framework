@@ -30,6 +30,7 @@ STATIC_ASSERT(sizeof(robot2018_address) == NRF_ADDRESS_SIZE,robot2018_address_ha
 
 static const int16_t RADIOCOMMAND2018_V_MAX = 32767;
 static const int16_t RADIOCOMMAND2018_OMEGA_MAX = 32767;
+static const int16_t RADIOCOMMAND2018_PHI_MAX = 32767;
 static const int16_t RADIOCOMMAND2018_DELTA_V_MAX = 127;
 static const int16_t RADIOCOMMAND2018_DELTA_OMEGA_MAX = 127;
 static const uint8_t RADIOCOMMAND2018_KICK_MAX = 255;
@@ -49,20 +50,20 @@ typedef struct
     uint8_t id:4;
     uint8_t force_kick:1;
     int8_t dribbler;
-    int16_t v_s; // mm/s
-    int16_t v_f; // mm/s
+    int16_t v_x; // mm/s
+    int16_t v_y; // mm/s
     int16_t omega; // mrad/s
     uint8_t ir_param:6;
     uint8_t eject_sdcard:1;
     uint8_t unused:1;
     int16_t cur_v_s; // mm/s
     int16_t cur_v_f; // mm/s
-    int16_t cur_omega; // mrad/s
-    int8_t delta1_v_s; // mm/s
-    int8_t delta1_v_f; // mm/s
+    int16_t cur_phi; // mrad
+    int8_t delta1_v_x; // mm/s
+    int8_t delta1_v_y; // mm/s
     int8_t delta1_omega; // 5 mrad/s
-    int8_t delta2_v_s; // mm/s
-    int8_t delta2_v_f; // mm/s
+    int8_t delta2_v_x; // mm/s
+    int8_t delta2_v_y; // mm/s
     int8_t delta2_omega; // 5 mrad/s
 } __attribute__ ((packed)) RadioCommand2018;
 

@@ -33,6 +33,7 @@
 #include <QTimer>
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <functional>
 
 using namespace Radio;
@@ -490,27 +491,27 @@ void RadioSystem::addRobot2018Command(int id, const robot::Command &command, boo
     } else {
         data.shot_power = qMin<quint32>(command.kick_power() / RADIOCOMMAND2018_LINEAR_MAX * RADIOCOMMAND2018_KICK_MAX, RADIOCOMMAND2018_KICK_MAX);
     }
-    data.v_s = qBound<qint32>(-RADIOCOMMAND2018_V_MAX, command.output0().v_s() * 1000.0f, RADIOCOMMAND2018_V_MAX);
-    data.v_f = qBound<qint32>(-RADIOCOMMAND2018_V_MAX, command.output0().v_f() * 1000.0f, RADIOCOMMAND2018_V_MAX);
+    data.v_x = qBound<qint32>(-RADIOCOMMAND2018_V_MAX, command.output0().v_x() * 1000.0f, RADIOCOMMAND2018_V_MAX);
+    data.v_y = qBound<qint32>(-RADIOCOMMAND2018_V_MAX, command.output0().v_y() * 1000.0f, RADIOCOMMAND2018_V_MAX);
     data.omega = qBound<qint32>(-RADIOCOMMAND2018_OMEGA_MAX, command.output0().omega() * 1000.0f, RADIOCOMMAND2018_OMEGA_MAX);
 
     const int OMEGA_QUANTIZATION = 5;
     const int V_QUANTIZATION = 2;
-    const float delta1_v_s = command.output1().v_s() - command.output0().v_s();
-    const float delta1_v_f = command.output1().v_f() - command.output0().v_f();
+    const float delta1_v_x = command.output1().v_x() - command.output0().v_x();
+    const float delta1_v_y = command.output1().v_y() - command.output0().v_y();
     const float delta1_omega = command.output1().omega() - command.output0().omega();
-    data.delta1_v_s = qBound<qint32>(-RADIOCOMMAND2018_DELTA_V_MAX, delta1_v_s * 1000.0f / V_QUANTIZATION, RADIOCOMMAND2018_DELTA_V_MAX);
-    data.delta1_v_f = qBound<qint32>(-RADIOCOMMAND2018_DELTA_V_MAX, delta1_v_f * 1000.0f / V_QUANTIZATION, RADIOCOMMAND2018_DELTA_V_MAX);
+    data.delta1_v_x = qBound<qint32>(-RADIOCOMMAND2018_DELTA_V_MAX, delta1_v_x * 1000.0f / V_QUANTIZATION, RADIOCOMMAND2018_DELTA_V_MAX);
+    data.delta1_v_y = qBound<qint32>(-RADIOCOMMAND2018_DELTA_V_MAX, delta1_v_y * 1000.0f / V_QUANTIZATION, RADIOCOMMAND2018_DELTA_V_MAX);
     data.delta1_omega = qBound<qint32>(-RADIOCOMMAND2018_DELTA_OMEGA_MAX, delta1_omega * (1000.0f / OMEGA_QUANTIZATION), RADIOCOMMAND2018_DELTA_OMEGA_MAX);
 
-    const float delta2_v_s = command.output2().v_s() - command.output1().v_s();
-    const float delta2_v_f = command.output2().v_f() - command.output1().v_f();
+    const float delta2_v_x = command.output2().v_x() - command.output1().v_x();
+    const float delta2_v_y = command.output2().v_y() - command.output1().v_y();
     // compensate for possible quantization errors
     const float sent_delta1_omega = data.delta1_omega * (OMEGA_QUANTIZATION / 1000.0f);
     const float omegaWithDelta1 = command.output0().omega() + sent_delta1_omega;
     const float delta2_omega = command.output2().omega() - omegaWithDelta1;
-    data.delta2_v_s = qBound<qint32>(-RADIOCOMMAND2018_DELTA_V_MAX, delta2_v_s * 1000.0f / V_QUANTIZATION, RADIOCOMMAND2018_DELTA_V_MAX);
-    data.delta2_v_f = qBound<qint32>(-RADIOCOMMAND2018_DELTA_V_MAX, delta2_v_f * 1000.0f / V_QUANTIZATION, RADIOCOMMAND2018_DELTA_V_MAX);
+    data.delta2_v_x = qBound<qint32>(-RADIOCOMMAND2018_DELTA_V_MAX, delta2_v_x * 1000.0f / V_QUANTIZATION, RADIOCOMMAND2018_DELTA_V_MAX);
+    data.delta2_v_y = qBound<qint32>(-RADIOCOMMAND2018_DELTA_V_MAX, delta2_v_y * 1000.0f / V_QUANTIZATION, RADIOCOMMAND2018_DELTA_V_MAX);
     data.delta2_omega = qBound<qint32>(-RADIOCOMMAND2018_DELTA_OMEGA_MAX, delta2_omega * (1000.0f / OMEGA_QUANTIZATION), RADIOCOMMAND2018_DELTA_OMEGA_MAX);
 
     data.id = id;
@@ -522,11 +523,19 @@ void RadioSystem::addRobot2018Command(int id, const robot::Command &command, boo
     if (command.has_cur_v_s()) {
         data.cur_v_s = qBound<qint32>(-RADIOCOMMAND2018_V_MAX, command.cur_v_s() * 1000.0f, RADIOCOMMAND2018_V_MAX);
         data.cur_v_f = qBound<qint32>(-RADIOCOMMAND2018_V_MAX, command.cur_v_f() * 1000.0f, RADIOCOMMAND2018_V_MAX);
-        data.cur_omega = qBound<qint32>(-RADIOCOMMAND2018_OMEGA_MAX, command.cur_omega() * 1000.0f, RADIOCOMMAND2018_OMEGA_MAX);
+
+        float phi = command.cur_phi();
+        while (phi < -M_PIf) {
+            phi += M_PIf * 2;
+        }
+        while (phi >= M_PIf) {
+            phi -= M_PIf * 2;
+        }
+        data.cur_phi = qBound<qint32>(-RADIOCOMMAND2018_PHI_MAX, phi * RADIOCOMMAND2018_PHI_MAX / M_PIf, RADIOCOMMAND2018_PHI_MAX);
     } else {
         data.cur_v_s = RADIOCOMMAND2018_INVALID_SPEED;
         data.cur_v_f = RADIOCOMMAND2018_INVALID_SPEED;
-        data.cur_omega = RADIOCOMMAND2018_INVALID_SPEED;
+        data.cur_phi = RADIOCOMMAND2018_INVALID_SPEED;
     }
 
     m_transceiverLayer->addSendCommand(

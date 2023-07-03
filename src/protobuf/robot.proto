@@ -90,6 +90,8 @@ message SpeedVector
 {
     optional float v_s = 1;
     optional float v_f = 2;
+    optional float v_x = 4;
+    optional float v_y = 5;
     optional float omega = 3;
 };
 
@@ -119,6 +121,9 @@ message Command
     optional bool eject_sdcard = 16;
     optional float cur_v_f = 17;
     optional float cur_v_s = 18;
+    optional float cur_v_x = 23;
+    optional float cur_v_y = 24;
+    optional float cur_phi = 25;
     optional float cur_omega = 19;
     optional SpeedVector output0 = 20;
     optional SpeedVector output1 = 21;

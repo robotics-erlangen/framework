@@ -70,9 +70,10 @@ void CommandEvaluator::calculateCommand(const world::Robot *robot, qint64 worldT
         m_baseSpeed.omega = robot->omega();
     }
 
+    GlobalSpeed outputBase = m_baseSpeed;
     // falls back to local coordinates if robot is invisible
     const float robotPhiBase = robotToPhi(robot);
-    LocalSpeed localOutputBase = m_baseSpeed.toLocal(robotPhiBase);
+    LocalSpeed localOutputBase = outputBase.toLocal(robotPhiBase);
 
     const qint64 worldTimeOne = worldTime;
     GlobalSpeed outputOne = evaluateInput(hasRobot, robotPhiBase, worldTimeOne, command, debug, hasManualCommand);
@@ -104,6 +105,17 @@ void CommandEvaluator::calculateCommand(const world::Robot *robot, qint64 worldT
     localOutputBase.copyToSpeedVector(*command.mutable_output0());
     localOutputOne.copyToSpeedVector(*command.mutable_output1());
     localOutputTwo.copyToSpeedVector(*command.mutable_output2());
+
+    // Its VERY IMPORTANT that the global speeds we write here to output[012]
+    // match with the locals speed we write above (localOutputBase is the local version
+    // of outputBase, etc). The angles for the local coordinates have to be phi0 = cur_phi, and
+    // then from there need to be calculated with phi1 = phi0 + (omega0 + omega1) * CONTROLSTEP / 2
+    // and phi2 = phi1 + (omega1 + omega2) * CONTROLSTEP / 2.
+    outputBase.copyToSpeedVector(*command.mutable_output0());
+    limitedOutputOne.copyToSpeedVector(*command.mutable_output1());
+    limitedOutputTwo.copyToSpeedVector(*command.mutable_output2());
+
+    command.set_cur_phi(robotPhiBase);
 }
 
 float CommandEvaluator::robotToPhi(const world::Robot *robot)
