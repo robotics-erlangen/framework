@@ -107,15 +107,16 @@ export class CenterBack extends Task {
 			}
 		}
 
+		const distToDefense = Field.distanceToFriendlyDefenseArea(this._robot.pos, this._robot.radius);
+		const centerbackDist = UtilDefense.centerBackDistanceToDefenseArea();
+
 		// centerbacks always have opponent robot obstacles during opponent ball placement,
 		// as we might get stuck on an opponent robot while trying to evade the ball placement obstacle
 		// and thus commit an interferred ball placement foul
-		this._obstacleTable.ignoreOpponentRobots = Field.distanceToFriendlyDefenseArea(this._robot.pos, this._robot.radius)
-			< 4 * this._robot.radius + UtilDefense.centerBackDistanceToDefenseArea() + 0.05 &&
-			World.RefereeState !== "BallPlacementDefensive";
+		this._obstacleTable.ignoreOpponentRobots = distToDefense < 4 * this._robot.radius + centerbackDist + 0.05
+			&& World.RefereeState !== "BallPlacementDefensive";
 
-		this._obstacleTable.ignoreFriendlyRobots = Field.distanceToFriendlyDefenseArea(this._robot.pos, this._robot.radius)
-			< 2 * this._robot.radius + UtilDefense.centerBackDistanceToDefenseArea() + 0.05
+		this._obstacleTable.ignoreFriendlyRobots = distToDefense < 2 * this._robot.radius + centerbackDist + 0.05
 			&& this._robot.pos.distanceTo(destinationPos) < 0.5;
 		this._obstacleTable.ignorePass = this._obstacleTable.ignoreFriendlyRobots;
 		this._obstacleTable.ignoreBall = this._obstacleTable.ignoreFriendlyRobots;
