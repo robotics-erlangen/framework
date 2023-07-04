@@ -34,15 +34,18 @@ export const PENALTY_LINE_DISTANCE = 0.35; // prevent robots from crossing the p
 export const MARKING_DISTANCE = 0.6;
 export const OFFENSIVE_MARKING_DISTANCE = 0.3;
 
+let lastBallWasInFriendlyHalf: boolean = false;
 function _manMarkPos(opponent: { pos: Position; radius: number; speed: Speed }): Position {
 	// use the position at which the robot would brake if it started immediately
 	let targetPos = Physics.robotBrakePos({ pos: opponent.pos, speed: opponent.speed });
+	let ballInFriendlyHalf = World.Ball.pos.y < (lastBallWasInFriendlyHalf ? 0.05 : -0.05);
 	if (World.Ball.pos.y > G.FieldHeightHalf * 0.7 && World.Ball.speed.length() < 0.5 && Referee.isStopState()) {
 		let dist = opponent.radius + Constants.maxRobotRadius + OFFENSIVE_MARKING_DISTANCE;
 		targetPos = targetPos + (World.Ball.pos - targetPos).withLength(dist);
 	} else {
 		let oppDistToGoal = targetPos.distanceTo(G.FriendlyGoal);
-		let markingDistance = MARKING_DISTANCE + Math.max(0, (oppDistToGoal - G.FieldHeightHalf * 0.8) * 0.5);
+		let cBBackOffDist = Math.max(0, (opponent.pos.y - (G.FieldHeightHalf - (G.DefenseHeight + opponent.radius + 0.8))) * 5);
+		let markingDistance = MARKING_DISTANCE + Math.max(0, (oppDistToGoal - G.FieldHeightHalf * 0.8) * 0.5) + (ballInFriendlyHalf ? cBBackOffDist : 0);
 		if (Referee.isFriendlyFreeKickState()) {
 			markingDistance = markingDistance + 0.4;
 		}
@@ -80,7 +83,7 @@ function _manMarkPos(opponent: { pos: Position; radius: number; speed: Speed }):
 	if (World.RefereeState === "PenaltyOffensivePrepare" || World.RefereeState === "PenaltyOffensive") {
 		targetPos = targetPos.withY(Math.min(targetPos.y, G.PenaltyLine - PENALTY_LINE_DISTANCE));
 	}
-
+	lastBallWasInFriendlyHalf = ballInFriendlyHalf;
 	return targetPos;
 }
 export let manMarkPos: (opponent: { pos: Position; radius: number; speed: Speed }) => Position = Cache.forFrame(_manMarkPos);
