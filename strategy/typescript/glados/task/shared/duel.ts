@@ -15,6 +15,7 @@ import { Task } from "glados/task/base";
 import { CurvedMaxAccel } from "glados/trajectory/curvedmaxaccel";
 import { Direct } from "glados/trajectory/direct";
 import * as PathHelper from "glados/trajectory/pathhelper";
+import * as UtilAttack from "glados/util/attack";
 import * as UtilDefense from "glados/util/defense";
 
 
@@ -268,23 +269,7 @@ export class Duel extends Task {
 		debug.set("moveDest dribbler", moveDest);
 
 		if (closestOpponentRobot && closestOpponentRobot.pos.y < 0) {
-			let defenseShadowLeftBase = moveDest + ((new Vector(-1, 0)) * (this._robot.radius + World.Ball.radius));
-			let defenseShadowRightBase = moveDest + ((new Vector(1, 0)) * (this._robot.radius + World.Ball.radius));
-			let [defenseShadowLeft, lambda1] = geom.intersectLineLine(this._futureBall!, defenseShadowLeftBase - this._futureBall!, World.Geometry.FriendlyGoal, new Vector(1, 0));
-			let [defenseShadowRight, lambda2] = geom.intersectLineLine(this._futureBall!, defenseShadowRightBase - this._futureBall!, World.Geometry.FriendlyGoal, new Vector(1, 0));
-
-			if (lambda1 !== undefined && lambda2 !== undefined && lambda1 > 0 && lambda2 > 0) {
-				defenseShadowLeft = new Vector(MathUtil.bound(World.Geometry.FriendlyGoalLeft.x, defenseShadowLeft!.x, World.Geometry.FriendlyGoalRight.x), defenseShadowLeft!.y);
-				defenseShadowRight = new Vector(MathUtil.bound(World.Geometry.FriendlyGoalLeft.x, defenseShadowRight!.x, World.Geometry.FriendlyGoalRight.x), defenseShadowRight!.y);
-			} else {
-				defenseShadowLeft = World.Geometry.FriendlyGoalLeft;
-				defenseShadowRight = World.Geometry.FriendlyGoalLeft;
-			}
-
-			vis.addPath("t/duel: sightCone", [World.Geometry.FriendlyGoalLeft, this._futureBall!, defenseShadowLeft, this._futureBall!, defenseShadowRight, this._futureBall!, World.Geometry.FriendlyGoalRight], vis.colors.black);
-			vis.addCircle("t/duel: sightCone", moveDest, this._robot.radius, vis.colors.black);
-
-			let defendedRatio = defenseShadowLeft.distanceTo(defenseShadowRight) / World.Geometry.FriendlyGoalLeft.distanceTo(World.Geometry.FriendlyGoalRight);
+			let defendedRatio = UtilAttack.goalDefenseRatio(this._futureBall!, this._robot, "t/duel: sightCone");
 			debug.set("defendedRatio", defendedRatio);
 
 			defendedRatio += this._lastDefendGoal ? DEFEND_GOAL_HYSTERESIS : -DEFEND_GOAL_HYSTERESIS;

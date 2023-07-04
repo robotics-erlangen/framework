@@ -2,6 +2,7 @@ import * as Cache from "base/cache";
 import * as debug from "base/debug";
 import * as Field from "base/field";
 import * as geom from "base/geom";
+import * as MathUtil from "base/mathutil";
 import { FriendlyRobot } from "base/robot";
 import { Position, Speed, Vector } from "base/vector";
 import * as vis from "base/vis";
@@ -750,4 +751,28 @@ export function lastIncomingPassInfo(robot: FriendlyRobot, passInfo: ReadonlyRec
 
 export function freekickPrepareRobotAngle() {
 	return Math.PI / 2;
+}
+
+export function goalDefenseRatio(attackPos: Position, opponent: { pos: Vector; radius: number }, visString?: string) {
+	let defenseShadowLeftBase = opponent.pos + ((new Vector(-1, 0)) * (opponent.radius + World.Ball.radius));
+	let defenseShadowRightBase = opponent.pos + ((new Vector(1, 0)) * (opponent.radius + World.Ball.radius));
+
+	let [defenseShadowLeft, lambda1] = geom.intersectLineLine(attackPos, defenseShadowLeftBase - attackPos, World.Geometry.FriendlyGoal, new Vector(1, 0));
+	let [defenseShadowRight, lambda2] = geom.intersectLineLine(attackPos, defenseShadowRightBase - attackPos, World.Geometry.FriendlyGoal, new Vector(1, 0));
+
+	if (lambda1 !== undefined && lambda2 !== undefined && lambda1 > 0 && lambda2 > 0) {
+		defenseShadowLeft = new Vector(MathUtil.bound(World.Geometry.FriendlyGoalLeft.x, defenseShadowLeft!.x, World.Geometry.FriendlyGoalRight.x), defenseShadowLeft!.y);
+		defenseShadowRight = new Vector(MathUtil.bound(World.Geometry.FriendlyGoalLeft.x, defenseShadowRight!.x, World.Geometry.FriendlyGoalRight.x), defenseShadowRight!.y);
+	} else {
+		defenseShadowLeft = World.Geometry.FriendlyGoalLeft;
+		defenseShadowRight = World.Geometry.FriendlyGoalLeft;
+	}
+
+	if (visString !== undefined) {
+		vis.addPath(visString, [World.Geometry.FriendlyGoalLeft, attackPos, defenseShadowLeft, attackPos, defenseShadowRight, attackPos, World.Geometry.FriendlyGoalRight], vis.colors.black);
+		vis.addCircle(visString, opponent.pos, opponent.radius, vis.colors.black);
+	}
+
+	let defendedRatio = defenseShadowLeft.distanceTo(defenseShadowRight) / World.Geometry.FriendlyGoalLeft.distanceTo(World.Geometry.FriendlyGoalRight);
+	return defendedRatio;
 }
