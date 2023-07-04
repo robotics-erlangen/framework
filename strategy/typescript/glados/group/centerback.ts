@@ -41,9 +41,6 @@ interface Target {
 	isShot?: boolean;
 }
 
-let privateCenterBackPositions: Map<FriendlyRobot, { pos: Position; target: Target | undefined; way: number }> = new Map();
-let centerBackPositions: Map<FriendlyRobot, { pos: Position; target: Target | undefined; way: number; time?: number }> = new Map();
-
 export interface Point {
 	/** The position the centerback should drive to */
 	pos: Position;
@@ -146,6 +143,9 @@ export class CenterBack implements Group {
 	public readonly name = "centerback";
 	private _lastLocked: boolean = false;
 
+	private privateCenterBackPositions: Map<FriendlyRobot, { pos: Position; target: Target | undefined; way: number }> = new Map();
+	private centerBackPositions: Map<FriendlyRobot, { pos: Position; target: Target | undefined; way: number; time?: number }> = new Map();
+
 	// TODO: Target are at the moment defined as table that contains a Vector (pos).
 	// They should be {pos= Vector, dir=Vector, time = number}
 	// where pos is the position in the field that should be covered,
@@ -228,14 +228,14 @@ export class CenterBack implements Group {
 		let intersections = [];
 		for (let [target, rlist] of robots.entries()) {
 			let targetPos = target.pos;
-			let cBPos, way, sec;
 			// centerBackPos will always return a way, as the target is limited to the field
-			[cBPos, way, sec] = UtilDefense.centerBackPos(targetPos, target.dir);
+			let [cBPos, way, sec] = UtilDefense.centerBackPos(targetPos, target.dir);
 			// check if the target is necessary but reachable
 			let idealBotPrel = <FriendlyRobot> UtilDefense.getClosestRobot(robotSet, cBPos)[0];
 
 			let targetTime = target.time != undefined ? target.time : Infinity;
 			// only consider the next timestamp
+			// this is the reason there is only one "necessary" target
 			if (targetTime > minTime) {
 				targetTime = Infinity;
 			}
@@ -247,6 +247,7 @@ export class CenterBack implements Group {
 			let n = rlist.length;
 			let biggerHyst = this._lastLocked ? 0.2 : 0;
 			let smallerHyst = this._lastLocked ? 0.6 : 0.4;
+			// this can only be true for the "necessary" target, because otherwise targetTime is Infinity
 			if (targetTime + biggerHyst > timeAroundDefenseArea &&
 					timeAroundDefenseArea + smallerHyst > targetTime || target.isShot) {
 				// mark one intersection with one bot to be necessary, and continue with reduced n for the rest.
@@ -293,37 +294,36 @@ export class CenterBack implements Group {
 						let jmax = j.waypos + j.wayrange / 2;
 						if (imax > jmin && jmax > imin) {
 							if (i.necessary || j.necessary) {
-								// locals for n(ecessary) and u(nnecessary)
-								let n, u, ux, nmin, umin, nmax, umax;
+								let necessary, unnecessary, unnecessaryX, necessaryMin, unnecessaryMin, necessaryMax, unnecessaryMax;
 								if (j.necessary) {
-									n = j, u = i;
-									ux = ix;
-									nmin = jmin, umin = imin;
-									nmax = jmax, umax = imax;
+									necessary = j, unnecessary = i;
+									unnecessaryX = ix;
+									necessaryMin = jmin, unnecessaryMin = imin;
+									necessaryMax = jmax, unnecessaryMax = imax;
 								} else {
-									n = i, u = j;
-									ux = jx;
-									nmin = imin, umin = jmin;
-									nmax = imax, umax = jmax;
+									necessary = i, unnecessary = j;
+									unnecessaryX = jx;
+									necessaryMin = imin, unnecessaryMin = jmin;
+									necessaryMax = imax, unnecessaryMax = jmax;
 								}
 								// handle necessary object n. Two necessary are not possible
 								// first, move full robots to one side
 								let disBetweenCenterOfCB = 2 * robot_radius + distanceBetweenDefenders;
-								let fullRobotMax = Math.min(Math.max(Math.floor((umax - n.waypos) / disBetweenCenterOfCB), 0), u.n);
-								let fullRobotMin = Math.min(Math.max(Math.floor((n.waypos - umin) / disBetweenCenterOfCB), 0), u.n);
-								nmax = nmax + disBetweenCenterOfCB * fullRobotMax;
-								nmin = nmin - disBetweenCenterOfCB * fullRobotMin;
-								n.waypos = (nmax + nmin) / 2;
-								n.wayrange = (nmax - nmin);
-								n.n = n.n + fullRobotMax + fullRobotMin;
+								let fullRobotMax = Math.min(Math.max(Math.floor((unnecessaryMax - necessary.waypos) / disBetweenCenterOfCB), 0), unnecessary.n);
+								let fullRobotMin = Math.min(Math.max(Math.floor((necessary.waypos - unnecessaryMin) / disBetweenCenterOfCB), 0), unnecessary.n);
+								necessaryMax = necessaryMax + disBetweenCenterOfCB * fullRobotMax;
+								necessaryMin = necessaryMin - disBetweenCenterOfCB * fullRobotMin;
+								necessary.waypos = (necessaryMax + necessaryMin) / 2;
+								necessary.wayrange = (necessaryMax - necessaryMin);
+								necessary.n = necessary.n + fullRobotMax + fullRobotMin;
 								// n.time shall not be modified
 								if (i.targets[0] == undefined) {
 									i.targets = j.targets;
 								} else if (j.targets[0] == undefined) {
 									j.targets = i.targets;
 								}
-								n.targets = i.targets.concat(j.targets);
-								intersections.splice(ux, 1);
+								necessary.targets = i.targets.concat(j.targets);
+								intersections.splice(unnecessaryX, 1);
 								merged = true;
 								break;
 							} else {
@@ -383,6 +383,8 @@ export class CenterBack implements Group {
 						pos: final_pos,
 						target: t.target,
 						way: way,
+						// we want the time for every non-important robot to be infinity, because t/d/centerback uses Physics.minEndSpeed to determine the end speed
+						// this means they try to arrive at their target position with 0 end velocity, which avoids them crashing into the important centerback
 						time: (i.n === 1) ? i.time : Infinity
 					};
 					if (necessaryWay != undefined && Math.abs(way - necessaryWay) < EPSILON) {
@@ -408,17 +410,17 @@ export class CenterBack implements Group {
 		sortedRobots.sort(lessthan_robots);
 
 		// store result (robot -> (pos, target, way))
-		centerBackPositions = new Map<FriendlyRobot, Point>();
+		this.centerBackPositions = new Map<FriendlyRobot, Point>();
 		if (idealBot == undefined) {
 			if (defensePoints.length !== sortedRobots.length) {
 				throw new Error();
 			}
 			for (let i = 0; i < sortedRobots.length; i++) {
-				centerBackPositions[sortedRobots[i]] = defensePoints[i];
+				this.centerBackPositions[sortedRobots[i]] = defensePoints[i];
 			}
 		} else {
 			// first: Assign the ideal bot to the necessary defense Point
-			centerBackPositions[idealBot] = necessaryDefensePoint!;
+			this.centerBackPositions[idealBot] = necessaryDefensePoint!;
 			// second: partition the world in pre and post idealBot / defensePoint
 			let indexRobot = sortedRobots.indexOf(idealBot);
 			let firstRobots = sortedRobots.slice(0, indexRobot);
@@ -426,12 +428,12 @@ export class CenterBack implements Group {
 			let indexPoint = defensePoints.indexOf(necessaryDefensePoint!);
 			let firstPoints = defensePoints.slice(0, indexPoint);
 			let secondPoints = defensePoints.slice(indexPoint + 1);
-			assignRobotsToPoints(firstRobots, firstPoints, centerBackPositions, necessaryDefensePoint!.way, true, delta, extraDistance);
-			assignRobotsToPoints(secondRobots, secondPoints, centerBackPositions, necessaryDefensePoint!.way, false, delta, extraDistance);
+			assignRobotsToPoints(firstRobots, firstPoints, this.centerBackPositions, necessaryDefensePoint!.way, true, delta, extraDistance);
+			assignRobotsToPoints(secondRobots, secondPoints, this.centerBackPositions, necessaryDefensePoint!.way, false, delta, extraDistance);
 		}
 
 		// calculate final positions for unimportant robots
-		privateCenterBackPositions = new Map<FriendlyRobot, Point>();
+		this.privateCenterBackPositions = new Map<FriendlyRobot, Point>();
 		for (let [robot, target] of unimportantApplications.entries()) {
 			// if the target is the ball, predict it
 			let targetPos = target.pos;
@@ -457,7 +459,7 @@ export class CenterBack implements Group {
 			}
 			let pos = <Position> Field.defenseIntersectionByWay(target_way, extraDistance, true);
 			vis.addCircle("g/centerback: Positions", pos, 0.1, vis.colors.greenHalf);
-			privateCenterBackPositions[robot] = { pos: pos, target: target, way: target_way };
+			this.privateCenterBackPositions[robot] = { pos: pos, target: target, way: target_way };
 		}
 	}
 
@@ -465,8 +467,8 @@ export class CenterBack implements Group {
 		this.calculateCenterBackPositions(messages);
 
 		for (let robot of messages.keys()) {
-			let pos_target = centerBackPositions[robot];
-			pos_target = pos_target || privateCenterBackPositions[robot];
+			let pos_target = this.centerBackPositions[robot];
+			pos_target = pos_target || this.privateCenterBackPositions[robot];
 			messaging.send(MessageType.centerBackPosTarget, robot, pos_target!);
 		}
 	}

@@ -278,6 +278,11 @@ export class Defense {
 	}
 
 	private lastDefaultCB: FriendlyRobot | undefined;
+	// assigns centerbacks for the current trajectory of the ball and predictShot if they intersect with the defense area
+	// both the trajectory of the ball and predictShot can intersect the defense area twice, but if both intersect twice
+	// we ignore the exit intersection of predictShot
+	// if we could not assign at least one centerback to one of these intersections we assign a default centerback for the
+	// current position of the ball without a specific direction
 	private _assignBallCenterbacks(defenders: FriendlyRobot[]): void {
 		const ROBOT_TIME_MARGIN_LOW = 0;
 		const ROBOT_TIME_MARGIN_HIGH = 0.1;
@@ -342,6 +347,7 @@ export class Defense {
 				timeSum += Physics.ballTravelTime(currentBall, currentBall.pos.distanceTo(info.startPos));
 				currentBall = {
 					pos: info.startPos,
+					// ballTravelTime only cares about the absolute value of the velocity, so the direction of the speed does not matter here
 					speed: new Vector(Constants.maxBallSpeed, 0), maxSpeed: Constants.maxBallSpeed,
 					posZ: 0, initSpeedZ: 0, speedZ: currentBall.speedZ
 				};
@@ -360,7 +366,7 @@ export class Defense {
 				break;
 			}
 			let toGoalLineDistance = intersection[0] ? info.pos.distanceTo(intersection[0]) : 10;
-			let robotTime = ObserverRobot.timeAroundDefenseAreaByWay(closestRobot, undefined, <any> info.pos, info.way!, defenseExtraRadius, true, 3);
+			let robotTime = ObserverRobot.timeAroundDefenseAreaByWay(closestRobot, undefined, info.pos, info.way!, defenseExtraRadius, true, 3);
 			let robotTimeMargin = this._centerbackAssignments.indexOf(closestRobot) >= 0 ? ROBOT_TIME_MARGIN_LOW : ROBOT_TIME_MARGIN_HIGH;
 			if ((robotTime + robotTimeMargin < rollTime
 					|| robotTime < rollTime && rollTime < ROBOT_TIME_MARGIN_HIGH
