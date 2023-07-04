@@ -200,15 +200,15 @@ export class AttackRatio {
 				&& !DummyUtil.isDummy(robot); // dummies exist in their own pool and can't be changed to a different one by design
 		}).length;
 
-		let onlySingleAttacker = false;
+		let limitedAttackers = false;
 		let attackers: number;
 		switch (attackRatio.kind) {
 			case AttackRatioKind.ConstantAttackers: {
 				attackers = Math.min(usableRobotsWithoutKeeper, attackRatio.numberOfAttackers);
 				// this is only necessary here, because if you're using ConstantDefenders to say 9 defenders you're doing something wrong
 				// and in the scalable case we allow additional attackers
-				if (attackRatio.numberOfAttackers === 1) {
-					onlySingleAttacker = true;
+				if (attackRatio.numberOfAttackers <= 1) {
+					limitedAttackers = true;
 				}
 				break;
 			};
@@ -283,7 +283,7 @@ export class AttackRatio {
 			attackers = attackers - 1;
 			// this is a dangerous situation where we don't want to risk the MA planning a pass and pools getting messed up
 			if (attackers <= 1) {
-				onlySingleAttacker = true;
+				limitedAttackers = true;
 			}
 		}
 		debug.set("Dangerous Duel", this._dangerousDuelSituation);
@@ -293,8 +293,8 @@ export class AttackRatio {
 		}
 
 		attackers = Math.max(0, attackers);
-		if (onlySingleAttacker) {
-			this._messaging.sendBroadcast(MessageType.onlySingleAttacker);
+		if (limitedAttackers) {
+			this._messaging.sendBroadcast(MessageType.limitedAttackerCount, attackers);
 		}
 
 		debug.set("MainAttackerIsDefender", mainAttackerIsDefender);

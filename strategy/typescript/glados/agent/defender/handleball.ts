@@ -273,9 +273,10 @@ export class HandleBall extends Behavior {
 			return [CenterBack, [cbGroup.target]];
 		}
 
-		if (this._taskDecision === "attacker" ||
+		if ((this._taskDecision === "attacker" ||
 			((this._messaging.receiveTrainer(MessageType.mainAttacker) === this._robot) &&
-				(this._messaging.receiveTrainer(MessageType.interceptPass) === this._robot))) {
+				(this._messaging.receiveTrainer(MessageType.interceptPass) === this._robot)))
+			&& this._messaging.receiveTrainer(MessageType.limitedAttackerCount) !== 0) {
 			this._messaging.sendToTrainer(MessageType.poolChangeRequest, "attacker");
 		}
 

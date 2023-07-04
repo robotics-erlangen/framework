@@ -114,7 +114,7 @@ export enum MessageType {
 	feintPassTarget,
 
 	/** Sent by trainer/attackratio to inform decisions made by the MA if it e.g. should accept pass suggestions */
-	onlySingleAttacker,
+	limitedAttackerCount,
 
 	// =======================
 	// === Exclusive roles ===
@@ -343,8 +343,8 @@ interface NormalDescriptor extends BaseDescriptor {
 		receiver: "robot";
 		repeated: false;
 	};
-	[MessageType.onlySingleAttacker]: {
-		data: true; // trainer messages need some kind of payload to work, because receiveTrainer only returns payload which is undefined if data is empty
+	[MessageType.limitedAttackerCount]: {
+		data: number; // amount of attackers
 		sender: "trainer";
 		receiver: "broadcast";
 		repeated: false;
