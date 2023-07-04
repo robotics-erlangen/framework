@@ -1064,11 +1064,11 @@ function rttbQuadraticSampling(robot: Robot, ball: BallLike & { radius: number }
 	let ball_times: number[] = [];
 	// make sure that the direct path of robot into ballLine is being sampled
 	let special_t_ball: number | undefined;
-	if (World.Ball.speed.lengthSq() > 0 && robot.speed.lengthSq() > 0) {
-		let [intersection, lambda1, lambda2] = geom.intersectLineLine(World.Ball.pos, World.Ball.speed, robot.pos, robot.speed);
+	if (ball.speed.lengthSq() > 0 && robot.speed.lengthSq() > 0) {
+		let [intersection, lambda1, lambda2] = geom.intersectLineLine(ball.pos, ball.speed, robot.pos, robot.speed);
 		if (intersection) {
-			let special_ball_pos = intersection - World.Ball.speed.withLength(robot.shootRadius + World.Ball.radius);
-			special_t_ball = checkedBallRollTime(World.Ball, special_ball_pos);
+			let special_ball_pos = intersection - ball.speed.withLength(robot.shootRadius + ball.radius);
+			special_t_ball = checkedBallRollTime(ball, special_ball_pos);
 			if (special_t_ball === -Infinity) {
 				special_t_ball = undefined;
 			}
