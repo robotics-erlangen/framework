@@ -168,6 +168,14 @@ void RadioSystem::openTransceiver()
                 [this]() { return new Transceiver2015 { Transceiver2015::Kind::HBC, m_timer, this }; } },
         };
 
+        if (std::all_of(
+                std::begin(possibleDevices),
+                std::end(possibleDevices),
+                [](const Info& info) { return info.numPresent == 0; })) {
+            transceiverErrorOccurred(QString{}, "No transceiver found", 0);
+            return false;
+        }
+
         if (possibleDevices[IndexTransceiver2015].numPresent > 1) {
             transceiverErrorOccurred(QString{}, "More than one Transceiver 2015 is untested", 0);
             return false;
