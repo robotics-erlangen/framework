@@ -56,7 +56,7 @@ public:
     Transceiver2015(const Transceiver2015&) = delete;
     Transceiver2015& operator=(const Transceiver2015&) = delete;
 
-    explicit Transceiver2015(Kind, const Timer *timer, QObject *parent = nullptr);
+    explicit Transceiver2015(USBThread *, Kind, const Timer *timer, QObject *parent = nullptr);
     ~Transceiver2015() override;
 
     bool isOpen() const final {

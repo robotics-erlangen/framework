@@ -62,7 +62,8 @@ RadioSystem::RadioSystem(const Timer *timer) :
     m_simulatorEnabled(false),
     m_onlyRestartAfterTimestamp(0),
     m_timer(timer),
-    m_droppedCommands(0)
+    m_droppedCommands(0),
+    m_context(new USBThread())
 {
     m_timeoutTimer = new QTimer(this);
     m_timeoutTimer->setSingleShot(true);
@@ -71,6 +72,11 @@ RadioSystem::RadioSystem(const Timer *timer) :
     m_processTimer = new QTimer(this);
     m_processTimer->setSingleShot(true);
     connect(m_processTimer, &QTimer::timeout, this, &RadioSystem::process);
+}
+
+RadioSystem::~RadioSystem()
+{
+    delete m_context;
 }
 
 void RadioSystem::handleRadioCommands(const QList<robot::RadioCommand> &commands, qint64 processingStart)
@@ -162,10 +168,10 @@ void RadioSystem::openTransceiver()
         } possibleDevices[] = {
             {
                 Transceiver2015::numDevicesPresent(Transceiver2015::Kind::Actual2015),
-                [this]() { return new Transceiver2015 { Transceiver2015::Kind::Actual2015, m_timer, this }; } },
+                [this]() { return new Transceiver2015 { m_context, Transceiver2015::Kind::Actual2015, m_timer, this }; } },
             {
                 Transceiver2015::numDevicesPresent(Transceiver2015::Kind::HBC),
-                [this]() { return new Transceiver2015 { Transceiver2015::Kind::HBC, m_timer, this }; } },
+                [this]() { return new Transceiver2015 { m_context, Transceiver2015::Kind::HBC, m_timer, this }; } },
         };
 
         if (std::all_of(

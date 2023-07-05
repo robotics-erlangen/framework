@@ -90,9 +90,10 @@ int Transceiver2015::numDevicesPresent(Kind kind)
 #endif // USB_FOUND
 }
 
-Transceiver2015::Transceiver2015(Kind kind, const Timer *timer, QObject *parent) :
+Transceiver2015::Transceiver2015(USBThread *context, Kind kind, const Timer *timer, QObject *parent) :
     TransceiverLayer(parent),
     m_kind(kind),
+    m_context(context),
     m_timer(timer)
 {
     // default channel
@@ -102,18 +103,11 @@ Transceiver2015::Transceiver2015(Kind kind, const Timer *timer, QObject *parent)
 Transceiver2015::~Transceiver2015()
 {
     close();
-#ifdef USB_FOUND
-    delete m_context;
-#endif
 }
 
 bool Transceiver2015::open(int which)
 {
 #ifdef USB_FOUND
-    if (!m_context) {
-        m_context = new USBThread();
-    }
-
     close();
 
     QList<USBDevice*> devices = USBDevice::getDevices(vidForKind(m_kind), pidForKind(m_kind), m_context);

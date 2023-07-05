@@ -32,6 +32,7 @@
 class QTimer;
 class Timer;
 class TransceiverLayer;
+class USBThread;
 
 class RadioSystem : public QObject
 {
@@ -51,6 +52,7 @@ private:
 
 public:
     explicit RadioSystem(const Timer *timer);
+    ~RadioSystem();
 
 signals:
     void sendStatus(const Status &status);
@@ -113,6 +115,8 @@ private:
      * is used to select one of two transceivers.
      */
     std::array<std::array<TransceiverLayer *, 2>, 2> m_transceivers {};
+
+    USBThread *m_context = nullptr;
 };
 
 #endif // RADIOSYSTEM_H
