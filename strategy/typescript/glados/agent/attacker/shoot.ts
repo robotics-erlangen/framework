@@ -141,7 +141,7 @@ export class Shoot extends Behavior {
 			if (isGame
 					&& !obscured
 					&& Vector.fromAngle(this._robot.dir).absoluteAngleDiff(this._robot.pos - G.FriendlyGoal) < geom.degreeToRadian(90)
-					&& Robot.hadBall(this._robot, 0)) {
+					&& (Robot.hadBall(this._robot, 0) || (Robot.hadBall(this._robot, 0.1) && Robot.isPressed(this._robot, this._attackPosition)))) {
 				return {
 					task: "chipAwayFromDefenseArea",
 					pos: this._robot.pos + Vector.fromAngle(this._robot.dir) * 2,
