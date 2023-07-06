@@ -149,22 +149,26 @@ export class CatchBall {
 		// Avoid driving into the defense area
 		if (predictedBall.pos && World.RefereeState !== "PenaltyOffensive" && World.RefereeState !== "BallPlacementOffensive" && this._robot !== World.FriendlyKeeper) {
 			let modified = false;
-			const EXTRA_DISTANCE = 0.05;
+			let extra_distance = 0.05;
+			if (Field.isInDefenseArea(predictedBall.pos, predictedBall.radius + 2 * this._robot.radius, true) ||
+				Field.isInDefenseArea(predictedBall.pos, predictedBall.radius + 2 * this._robot.radius, false)) {
+				extra_distance = 2 * this._robot.radius + 0.05;
+			}
 			// if the ball is already inside the defense area, we have to make sure to delay catching it until it has left the defense area.
 			// TODO: this can still get us into issues if we decide to pass, but will be an improvement if we try to shoot a goal.
 			// This cannot be done on the predicted ball, as intersectRayDefenseArea might be on the other side (x-axis), and the prediced ball can "go back in time"
-			if (!Field.isInAllowedField(World.Ball.pos, -World.Ball.radius - EXTRA_DISTANCE)) {
-				let legalPos = Field.intersectRayDefenseArea(World.Ball.pos, World.Ball.speed, World.Ball.radius + EXTRA_DISTANCE, false)[0];
+			if (!Field.isInAllowedField(World.Ball.pos, -World.Ball.radius - extra_distance)) {
+				let legalPos = Field.intersectRayDefenseArea(World.Ball.pos, World.Ball.speed, World.Ball.radius + extra_distance, false)[0];
 				if (legalPos != undefined) {
 					predictedBall.pos = legalPos;
 					modified = true;
 				}
 			}
-			if (!modified && !Field.isInAllowedField(predictedBall.pos, -World.Ball.radius - EXTRA_DISTANCE)) {
+			if (!modified && !Field.isInAllowedField(predictedBall.pos, -World.Ball.radius - extra_distance)) {
 				// QUICKFIX to prevent high speed movement towards defenseArea
 				// t/a/shoot for example does some calculations on the position that might move it out somewhat,
 				// therefore an extra buffer is needed
-				const totalExtraDistance = ball.radius + EXTRA_DISTANCE;
+				const totalExtraDistance = ball.radius + extra_distance;
 				if (!Ball.isSlowBall()) {
 					const cut = Field.nextAllowedFieldLineCut(ball.pos, ball.speed, totalExtraDistance)[0];
 					if (cut) {
