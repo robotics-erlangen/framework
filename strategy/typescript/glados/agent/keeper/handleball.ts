@@ -10,6 +10,7 @@ import * as World from "base/world";
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
 import * as Physics from "glados/observer/physics";
+import * as Robot from "glados/observer/robot";
 import { MoveToStaticBall } from "glados/task/attacker/movetostaticball";
 import { AggressiveKeeper } from "glados/task/keeper/aggressivekeeper";
 import { ChipAway as KeeperChipAway } from "glados/task/keeper/chipaway";
@@ -64,7 +65,9 @@ export class HandleBall extends Behavior {
 		if (startInside && endPos.y < World.Geometry.FriendlyGoal.y + 0.01) {
 			// if ball is inside defense area and will enter the goal -> block the ball
 			return [Keeper];
-		} else if (startInside && endInside && !ballBehindKeeper && suggestions) {
+		} else if (startInside && endInside && !ballBehindKeeper && suggestions ||
+			this._timeBegin !== undefined && World.Time - this._timeBegin < maxTimeBallDefenseArea[World.DIVISION]
+			&& Robot.hadBall(this._robot, 0.1)) {
 			// if ball is inside defense area and will not leave it -> we have time to act
 			// try to find a good pass
 			if (this._timeBegin == undefined) {
