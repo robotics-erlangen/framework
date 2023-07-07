@@ -61,6 +61,16 @@ private:
 
     bool m_yellowTimerZero = true;
     bool m_blueTimerZero = true;
+
+    bool m_yellowPlacementFailuresReached = false;
+    uint m_yellowPlacementFailures = 0;
+    bool m_bluePlacementFailuresReached = false;
+    uint m_bluePlacementFailures = 0;
+
+    uint m_yellowTimeoutsLeft = 4;
+    uint m_yellowTimeoutTime = 0;
+    uint m_blueTimeoutsLeft = 4;
+    uint m_blueTimeoutTime = 0;
 };
 
 #endif // REFEREEINFOWIDGET_H

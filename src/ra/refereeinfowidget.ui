@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>386</width>
-    <height>169</height>
+    <height>250</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -109,6 +109,48 @@
          </item>
          <item>
           <widget class="QLabel" name="redCardCountYellow">
+           <property name="text">
+            <string>0</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="timeoutsLeftDisplayYellow">
+         <item>
+          <widget class="QLabel" name="timeoutsLeftLabelYellow">
+           <property name="text">
+            <string>Timeouts Left:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="timeoutsLeftYellow">
+           <property name="text">
+            <string>4 (5:00)</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="placementFailuresDisplayYellow">
+         <item>
+          <widget class="QLabel" name="placementFailuresLabelYellow">
+           <property name="text">
+            <string>Placement:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="placementFailuresYellow">
            <property name="text">
             <string>0</string>
            </property>
@@ -249,6 +291,48 @@
          </item>
          <item>
           <widget class="QLabel" name="redCardCountBlue">
+           <property name="text">
+            <string>0</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="timeoutsLeftDisplayBlue">
+         <item>
+          <widget class="QLabel" name="timeoutsLeftLabelBlue">
+           <property name="text">
+            <string>Timeouts Left:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="timeoutsLeftBlue">
+           <property name="text">
+            <string>4 (5:00)</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="placementFailuresDisplayBlue">
+         <item>
+          <widget class="QLabel" name="placementFailuresLabelBlue">
+           <property name="text">
+            <string>Placement:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="placementFailuresBlue">
            <property name="text">
             <string>0</string>
            </property>

@@ -100,6 +100,69 @@ void RefereeInfoWidget::handleStatus(const Status &status)
             m_blueFouls = blueFouls;
             ui->foulCounterBlue->setNum(static_cast<int>(m_blueFouls));
         }
+
+        auto setBallPlacementFailuresReached = [](bool &bufferedReached, bool hasReached, QLabel *label) {
+            if (bufferedReached != hasReached) {
+                bufferedReached = hasReached;
+                label->setText(hasReached ? "Placement X:" : "Placement:");
+            }
+        };
+        if (state.yellow().has_ball_placement_failures_reached()) {
+            setBallPlacementFailuresReached(
+                m_yellowPlacementFailuresReached,
+                state.yellow().ball_placement_failures_reached(),
+                ui->placementFailuresLabelYellow);
+        }
+        if (state.blue().has_ball_placement_failures_reached()) {
+            setBallPlacementFailuresReached(
+                m_bluePlacementFailuresReached,
+                state.blue().ball_placement_failures_reached(),
+                ui->placementFailuresLabelBlue);
+        }
+
+        auto setBallPlacementFailures  = [](uint &bufferedFailures, uint failures, QLabel *label) {
+            if (bufferedFailures != failures) {
+                bufferedFailures = failures;
+                label->setNum(static_cast<int>(failures));
+            }
+        };
+        if (state.yellow().has_ball_placement_failures()) {
+            setBallPlacementFailures(
+                m_yellowPlacementFailures,
+                state.yellow().ball_placement_failures(),
+                ui->placementFailuresYellow);
+        }
+        if (state.blue().has_ball_placement_failures()) {
+            setBallPlacementFailures(
+                m_bluePlacementFailures,
+                state.blue().ball_placement_failures(),
+                ui->placementFailuresBlue);
+        }
+
+        auto setTimeoutLabel = [](uint &bufferedTimeoutsLeft, uint &bufferedTimeoutTime, const ::SSL_Referee::TeamInfo &info, QLabel *label) {
+            bool changed = false;
+            if (bufferedTimeoutsLeft != info.timeouts()) {
+                bufferedTimeoutsLeft = info.timeouts();
+                changed = true;
+            }
+
+            if (bufferedTimeoutTime != info.timeout_time()) {
+                bufferedTimeoutTime = info.timeout_time();
+                changed = true;
+            }
+
+            if (changed) {
+                uint timeoutTimeSeconds = bufferedTimeoutTime / 1000000;
+
+                const QString text = QString { "%1 (%2:%3)" }
+                    .arg(bufferedTimeoutsLeft)
+                    .arg(timeoutTimeSeconds / 60, 1, 10)
+                    .arg(timeoutTimeSeconds % 60, 2, 10, QChar('0'));
+                label->setText(text);
+            }
+        };
+        setTimeoutLabel(m_yellowTimeoutsLeft, m_yellowTimeoutTime, state.yellow(), ui->timeoutsLeftYellow);
+        setTimeoutLabel(m_blueTimeoutsLeft, m_blueTimeoutTime, state.blue(), ui->timeoutsLeftBlue);
     }
 
     if (status->has_geometry()) {
@@ -143,6 +206,10 @@ void RefereeInfoWidget::setStyleSheets(bool useDark) {
     ui->redCardTextLabelBlue->setStyleSheet(blue);
     ui->foulLabelTextBlue->setStyleSheet(blue);
     ui->foulCounterBlue->setStyleSheet(blue);
+    ui->placementFailuresLabelBlue->setStyleSheet(blue);
+    ui->placementFailuresBlue->setStyleSheet(blue);
+    ui->timeoutsLeftLabelBlue->setStyleSheet(blue);
+    ui->timeoutsLeftBlue->setStyleSheet(blue);
 
     ui->keeperIdYellow->setStyleSheet(yellow);
     ui->keeperTextLabelYellow->setStyleSheet(yellow);
@@ -152,4 +219,8 @@ void RefereeInfoWidget::setStyleSheets(bool useDark) {
     ui->redCardTextLabelYellow->setStyleSheet(yellow);
     ui->foulLabelTextYellow->setStyleSheet(yellow);
     ui->foulCounterYellow->setStyleSheet(yellow);
+    ui->placementFailuresLabelYellow->setStyleSheet(yellow);
+    ui->placementFailuresYellow->setStyleSheet(yellow);
+    ui->timeoutsLeftLabelYellow->setStyleSheet(yellow);
+    ui->timeoutsLeftYellow->setStyleSheet(yellow);
 }
