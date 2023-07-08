@@ -27,6 +27,7 @@ interface Ray {
 	way?: number;
 	resetSpeed?: boolean;
 	isDribbling?: boolean;
+	isShot?: boolean;
 }
 
 export class Defense {
@@ -298,6 +299,7 @@ export class Defense {
 			if (intersectionInfos.length > numBefore) {
 				intersectionInfos[numBefore].resetSpeed = true;
 				intersectionInfos[numBefore].isDribbling = isDribbling;
+				intersectionInfos[numBefore].isShot = isShot;
 			}
 		}
 
@@ -351,7 +353,7 @@ export class Defense {
 				this._messaging.send(
 					MessageType.roleAssignment,
 					closestAsFriendly,
-					{ name: "CenterBack", params: { pos: info.startPos, dir: info.startDirection, time: rollTime } }
+					{ name: "CenterBack", params: { pos: info.startPos, dir: info.startDirection, time: rollTime, isShot: isShot} }
 				);
 				if (!amun.isPerformanceMode) {
 					vis.addCircle("tr/defense: ball intersection", info.startPos, 0.08, vis.colors.yellow);
@@ -415,7 +417,7 @@ export class Defense {
 
 export interface CenterBackRoleAssignment {
 	name: "CenterBack";
-	params: { pos: Position; dir?: RelativePosition; time?: number };
+	params: { pos: Position; dir?: RelativePosition; time?: number; isShot?: boolean };
 }
 
 export interface ManMarkRoleAssignment {

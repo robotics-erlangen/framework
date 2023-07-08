@@ -38,6 +38,7 @@ interface Target {
 	pos: Position;
 	time?: number;
 	dir?: RelativePosition;
+	isShot?: boolean;
 }
 
 let privateCenterBackPositions: Map<FriendlyRobot, { pos: Position; target: Target | undefined; way: number }> = new Map();
@@ -247,7 +248,7 @@ export class CenterBack implements Group {
 			let biggerHyst = this._lastLocked ? 0.2 : 0;
 			let smallerHyst = this._lastLocked ? 0.6 : 0.4;
 			if (targetTime + biggerHyst > timeAroundDefenseArea &&
-					timeAroundDefenseArea + smallerHyst > targetTime) {
+					timeAroundDefenseArea + smallerHyst > targetTime || target.isShot) {
 				// mark one intersection with one bot to be necessary, and continue with reduced n for the rest.
 				intersections.push({
 					waypos: way,
