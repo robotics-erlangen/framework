@@ -141,10 +141,10 @@ export class Shoot {
 	private _calculateFutureBall(ballReceiptPos?: Position): [Physics.BallLike, number] {
 		let futureBallPos: Position;
 
-		const DEFENSE_AREA_EXTRA_DISTANCE = World.Ball.radius - 0.08;
+		const DEFENSE_AREA_EXTRA_DISTANCE = -this._robot.shootRadius - this._robot.radius;
 		const EXTRA_DISTANCE = World.Ball.radius - 0.05;
 		let extraDistance = EXTRA_DISTANCE;
-		if (Field.isInOpponentDefenseArea(World.Ball.pos, -DEFENSE_AREA_EXTRA_DISTANCE)) {
+		if (Field.isInOpponentDefenseArea(World.Ball.pos, -DEFENSE_AREA_EXTRA_DISTANCE) || Field.isInFriendlyDefenseArea(World.Ball.pos, -DEFENSE_AREA_EXTRA_DISTANCE)) {
 			extraDistance = DEFENSE_AREA_EXTRA_DISTANCE;
 		}
 
