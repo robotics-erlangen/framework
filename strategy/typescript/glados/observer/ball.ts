@@ -51,12 +51,35 @@ function _opponentBallDribbler(): Robot | undefined {
 		return pointToSameSide && (Math.acos(angleRobotSpeedToBallPos) + Math.acos(angleBallSpeedToBallRobotPos)) < Math.PI;
 	}
 
+	function checkPossiblePseudoDribbling(robot: Robot): boolean {
+		// Robot is in 60 degree cone behind ball
+		const robotBehindBall = Math.acos((robot.pos - World.Ball.pos).normalized().dot(-World.Ball.speed.normalized())) < geom.degreeToRadian(60);
+		// Robot looking at Ball
+		// Either the robot is looking straight at the ball, or it is looking at the next pass target
+		// In the second case, the robot has to compensate for the wring looking direction by movement
+		// Therefore the orthogonal components of speed and dir to the Ball speed will point in different directions
+		const robotLookingAtBall = Vector.fromAngle(robot.dir).absoluteAngleDiff(World.Ball.pos - robot.pos) < geom.degreeToRadian(20);
+		const orthogonalSpeedComponent = robot.speed.orthogonalComponent(World.Ball.speed);
+		const orthogonalDirComponent = Vector.fromAngle(robot.dir).orthogonalComponent(World.Ball.speed);
+		const movementCompensatesMismatch = orthogonalSpeedComponent.dot(orthogonalDirComponent) < 0;
+
+		// Robot parallel speed diff to ball small
+		const smallParallelSpeedDiff = (robot.speed.parallelComponent(World.Ball.speed) - World.Ball.speed).lengthSq() < 0.5 * 0.5;
+
+		return robotBehindBall && (robotLookingAtBall || movementCompensatesMismatch) && smallParallelSpeedDiff;
+	}
+
 	for (let robot of World.OpponentRobots) {
 		let distance = robot.pos.distanceTo(World.Ball.pos);
 		let direction = Vector.fromAngle(robot.dir);
 
 		if (robot.speed.distanceTo(World.Ball.speed) < MAX_SPEED_DIFF
-				&& (slowBall || (robot.speed.angleDiff(World.Ball.speed) < MAX_ANGLE_TO_BALL_SPEED) || checkIfPossibleFutureCollisionWithBall(robot))
+				&& (
+					slowBall ||
+					robot.speed.angleDiff(World.Ball.speed) < MAX_ANGLE_TO_BALL_SPEED ||
+					checkIfPossibleFutureCollisionWithBall(robot) ||
+					checkPossiblePseudoDribbling(robot)
+				)
 				&& distance < MAX_DISTANCE && distance < bestDist
 				&& World.Ball.posZ < 0.1
 				&& direction.absoluteAngleDiff(World.Ball.pos - robot.pos) < MAX_ANGLE_TO_BALL_POS) {
