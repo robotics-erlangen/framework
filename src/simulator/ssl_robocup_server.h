@@ -24,6 +24,7 @@
 #include <string>
 #include <QMutex>
 #include <QObject>
+#include "core/sslprotocols.h"
 using namespace std;
 
 class QUdpSocket;
@@ -36,7 +37,7 @@ friend class MultiStackRoboCupSSL;
 public:
     RoboCupSSLServer(QObject *parent=0,
                      const quint16 &port=10002,
-                     const string &net_address="224.5.23.2"
+                     const string &net_address=SSL_VISION_ADDRESS
                      );
 
     ~RoboCupSSLServer();
