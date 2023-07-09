@@ -81,8 +81,10 @@ static void CHECK_PRINTF log(FILE* stream, const char* fmt, ...) {
 class SSLVisionServer: public QObject {
     Q_OBJECT
 public:
-    SSLVisionServer(int port);
+    SSLVisionServer(int port, const string &net_address);
     void setPort(int port);
+    void setNetAddress(const string &net_address);
+
 
 public slots:
     void sendVisionData(const QByteArray& data, qint64 time, QString sender);
@@ -567,7 +569,7 @@ void RobotCommandAdaptor::sendRobotRespose(const sslsim::RobotControlResponse& o
 }
 
 
-SSLVisionServer::SSLVisionServer(int port): m_server(this, port)
+SSLVisionServer::SSLVisionServer(int port, const string &net_address): m_server(this, port, net_address)
 {
 }
 
@@ -578,6 +580,10 @@ void SSLVisionServer::sendVisionData(const QByteArray& data, qint64, QString)
 
 void SSLVisionServer::setPort(int port) {
     m_server.change_port(port);
+}
+
+void SSLVisionServer::setNetAddress(const string &net_address) {
+    m_server.change_address(net_address);
 }
 
 using camun::simulator::Simulator;
@@ -697,7 +703,7 @@ int main(int argc, char* argv[])
     Timer timer;
     RobotCommandAdaptor blue{true, &timer}, yellow{false, &timer};
     SimProxy sim{&timer};
-    SSLVisionServer vision{SSL_SIMULATED_VISION_PORT};
+    SSLVisionServer vision{SSL_SIMULATED_VISION_PORT, SSL_VISION_ADDRESS};
     SimulatorCommandAdaptor commands{&timer, &vision};
 
     blue.connect(&blue, &RobotCommandAdaptor::sendRadioCommands, &sim, &SimProxy::handleRadioCommands);
