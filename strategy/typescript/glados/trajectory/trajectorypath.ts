@@ -59,7 +59,7 @@ class PID {
 }
 
 // enables a more expensive, but also a little more
-// useful visualization for moving lines
+// useful visualization for trajectories
 const DETAILED_TRAJECTORY = Option.addOption("Use detailed trajectory", false);
 
 export class TrajectoryPath extends TrajectoryHandler {
