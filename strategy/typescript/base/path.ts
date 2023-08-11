@@ -36,34 +36,40 @@ import { Position, Speed, Vector } from "base/vector";
 import * as vis from "base/vis";
 
 
-interface Obstacle {
-	name: string | undefined;
-	prio: number;
+interface ObstacleCommon {
+	name?: string;
+	prio?: number;
 }
 
-interface CircleObstacle extends Obstacle {
+export interface CircleObstacle extends ObstacleCommon {
+	type: "circle";
 	center: Position;
 	radius: number;
 }
 
-interface LineObstacle extends Obstacle {
+export interface LineObstacle extends ObstacleCommon {
+	type: "line";
 	start: Position;
 	end: Position;
 	radius: number;
 }
 
-interface RectObstacle extends Obstacle {
+export interface RectObstacle extends ObstacleCommon {
+	type: "rect";
 	start: Position;
 	end: Position;
 	radius: number;
 }
 
-interface TriangleObstacle extends Obstacle {
+export interface TriangleObstacle extends ObstacleCommon {
+	type: "triangle";
 	p1: Position;
 	p2: Position;
 	p3: Position;
 	lineWidth: number;
 }
+
+export type Obstacle = CircleObstacle | LineObstacle | RectObstacle | TriangleObstacle;
 
 interface PathObjectCommon {
 	destroy(): void;
@@ -273,16 +279,16 @@ export class Path {
 
 	private addObstaclesToPath(path: PathObjectCommon) {
 		for (let circle of this.circleObstacles) {
-			path.addCircle(circle.center.x, circle.center.y, circle.radius, circle.name, circle.prio);
+			path.addCircle(circle.center.x, circle.center.y, circle.radius, circle.name, circle.prio ?? 0);
 		}
 		for (let line of this.lineObstacles) {
-			path.addLine(line.start.x, line.start.y, line.end.x, line.end.y, line.radius, line.name, line.prio);
+			path.addLine(line.start.x, line.start.y, line.end.x, line.end.y, line.radius, line.name, line.prio ?? 0);
 		}
 		for (let rect of this.rectObstacles) {
-			path.addRect(rect.start.x, rect.start.y, rect.end.x, rect.end.y, rect.name, rect.prio, rect.radius);
+			path.addRect(rect.start.x, rect.start.y, rect.end.x, rect.end.y, rect.name, rect.prio ?? 0, rect.radius);
 		}
 		for (let tri of this.triangleObstacles) {
-			path.addTriangle(tri.p1.x, tri.p1.y, tri.p2.x, tri.p2.y, tri.p3.x, tri.p3.y, tri.lineWidth, tri.name, tri.prio);
+			path.addTriangle(tri.p1.x, tri.p1.y, tri.p2.x, tri.p2.y, tri.p3.x, tri.p3.y, tri.lineWidth, tri.name, tri.prio ?? 0);
 		}
 	}
 
@@ -352,7 +358,7 @@ export class Path {
 			// avoid string allocations in ra
 			name = undefined;
 		}
-		this.circleObstacles.push({ center, radius, name, prio });
+		this.circleObstacles.push({ type: "circle", center, radius, name, prio });
 	}
 
 	/** WARNING: only adds the obstacle to the trajectory path finding */
@@ -399,7 +405,7 @@ export class Path {
 			// avoid string allocations in ra
 			name = undefined;
 		}
-		this.lineObstacles.push({ start, end, radius, name, prio });
+		this.lineObstacles.push({ type: "line", start, end, radius, name, prio });
 	}
 
 	/** WARNING: only adds the obstacle to the trajectory path finding */
@@ -468,7 +474,7 @@ export class Path {
 			// avoid string allocations in ra
 			name = undefined;
 		}
-		this.rectObstacles.push({ start, end, radius, name, prio });
+		this.rectObstacles.push({ type: "rect", start, end, radius, name, prio });
 	}
 
 	addTriangle(p1: Position, p2: Position, p3: Position, lineWidth: number, name?: string, prio: number = 0) {
@@ -481,7 +487,7 @@ export class Path {
 			// avoid string allocations in ra
 			name = undefined;
 		}
-		this.triangleObstacles.push({ p1, p2, p3, lineWidth, name, prio });
+		this.triangleObstacles.push({ type: "triangle", p1, p2, p3, lineWidth, name, prio });
 	}
 
 	addFriendlyRobotObstacle(robot: FriendlyRobot, radius: number, prio: number) {
