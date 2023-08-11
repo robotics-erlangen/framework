@@ -42,34 +42,26 @@ interface Obstacle {
 }
 
 interface CircleObstacle extends Obstacle {
-	x: number;
-	y: number;
+	center: Position;
 	radius: number;
 }
 
 interface LineObstacle extends Obstacle {
-	start_x: number;
-	start_y: number;
-	stop_x: number;
-	stop_y: number;
+	start: Position;
+	end: Position;
 	radius: number;
 }
 
 interface RectObstacle extends Obstacle {
-	start_x: number;
-	start_y: number;
-	stop_x: number;
-	stop_y: number;
+	start: Position;
+	end: Position;
 	radius: number;
 }
 
 interface TriangleObstacle extends Obstacle {
-	x1: number;
-	y1: number;
-	x2: number;
-	y2: number;
-	x3: number;
-	y3: number;
+	p1: Position;
+	p2: Position;
+	p3: Position;
 	lineWidth: number;
 }
 
@@ -281,18 +273,16 @@ export class Path {
 
 	private addObstaclesToPath(path: PathObjectCommon) {
 		for (let circle of this.circleObstacles) {
-			path.addCircle(circle.x, circle.y, circle.radius, circle.name, circle.prio);
+			path.addCircle(circle.center.x, circle.center.y, circle.radius, circle.name, circle.prio);
 		}
 		for (let line of this.lineObstacles) {
-			path.addLine(line.start_x, line.start_y, line.stop_x, line.stop_y,
-				line.radius, line.name, line.prio);
+			path.addLine(line.start.x, line.start.y, line.end.x, line.end.y, line.radius, line.name, line.prio);
 		}
 		for (let rect of this.rectObstacles) {
-			path.addRect(rect.start_x, rect.start_y, rect.stop_x, rect.stop_y, rect.name, rect.prio, rect.radius);
+			path.addRect(rect.start.x, rect.start.y, rect.end.x, rect.end.y, rect.name, rect.prio, rect.radius);
 		}
 		for (let tri of this.triangleObstacles) {
-			path.addTriangle(tri.x1, tri.y1, tri.x2, tri.y2, tri.x3, tri.y3, tri.lineWidth,
-				tri.name, tri.prio);
+			path.addTriangle(tri.p1.x, tri.p1.y, tri.p2.x, tri.p2.y, tri.p3.x, tri.p3.y, tri.lineWidth, tri.name, tri.prio);
 		}
 	}
 
@@ -354,18 +344,15 @@ export class Path {
 	}
 
 	// wrap add obstacle functions for automatic strategy to global coordinates conversion
-	addCircle(x: number, y: number, radius: number, name?: string, prio: number = 0) {
-		if (teamIsBlue) {
-			x = -x;
-			y = -y;
-		}
+	addCircle(center: Position, radius: number, name?: string, prio: number = 0) {
+		center = Coordinates.toGlobal(center);
 		if (!isPerformanceMode) {
-			vis.addCircleRaw(this.getObstacleString(), new Vector(x, y), radius, vis.colors.redHalf, true);
+			vis.addCircleRaw(this.getObstacleString(), center, radius, vis.colors.redHalf, true);
 		} else {
 			// avoid string allocations in ra
 			name = undefined;
 		}
-		this.circleObstacles.push({ x: x, y: y, radius: radius, name: name, prio: prio });
+		this.circleObstacles.push({ center, radius, name, prio });
 	}
 
 	/** WARNING: only adds the obstacle to the trajectory path finding */
@@ -396,26 +383,23 @@ export class Path {
 			speed.x, speed.y, acc.x, acc.y, radius, priority);
 	}
 
-	addLine(start_x: number, start_y: number, stop_x: number, stop_y: number, radius: number, name?: string, prio: number = 0) {
-		if (start_x === stop_x && start_y === stop_y) {
-			this.addCircle(start_x, start_y, radius, name, prio);
+	addLine(start: Position, end: Position, radius: number, name?: string, prio: number = 0) {
+		if (start === end) {
+			this.addCircle(start, radius, name, prio);
 			return;
 		}
-		if (teamIsBlue) {
-			start_x = -start_x;
-			start_y = -start_y;
-			stop_x = -stop_x;
-			stop_y = -stop_y;
-		}
+
+		start = Coordinates.toGlobal(start);
+		end = Coordinates.toGlobal(end);
+
 		if (!isPerformanceMode) {
-			vis.addPathRaw(this.getObstacleString(), [new Vector(start_x, start_y), new Vector(stop_x, stop_y)],
+			vis.addPathRaw(this.getObstacleString(), [start, end],
 					vis.colors.redHalf, undefined, undefined, 2 * radius);
 		} else {
 			// avoid string allocations in ra
 			name = undefined;
 		}
-		this.lineObstacles.push({ start_x: start_x, start_y: start_y, stop_x: stop_x, stop_y: stop_y,
-			radius: radius, name: name, prio: prio });
+		this.lineObstacles.push({ start, end, radius, name, prio });
 	}
 
 	/** WARNING: only adds the obstacle to the trajectory path finding */
@@ -474,46 +458,30 @@ export class Path {
 			acc2.x, acc2.y, width, priority);
 	}
 
-	addRect(start_x: number, start_y: number, stop_x: number, stop_y: number, radius: number, name?: string, prio: number = 0) {
-		if (teamIsBlue) {
-			start_x = -start_x;
-			start_y = -start_y;
-			stop_x = -stop_x;
-			stop_y = -stop_y;
-		}
+	addRect(start: Position, end: Position, radius: number, name?: string, prio: number = 0) {
+		start = Coordinates.toGlobal(start);
+		end = Coordinates.toGlobal(end);
 		if (!isPerformanceMode) {
 			vis.addPolygonRaw(this.getObstacleString(),
-					[new Vector(start_x, start_y), new Vector(start_x, stop_y), new Vector(stop_x, stop_y),
-						new Vector(stop_x, start_y)], vis.colors.redHalf, true);
+					[start, start.withY(end.y), end, end.withY(start.y)], vis.colors.redHalf, true);
 		} else {
 			// avoid string allocations in ra
 			name = undefined;
 		}
-		this.rectObstacles.push({ start_x: start_x, start_y: start_y, stop_x: stop_x, stop_y: stop_y,
-			radius: radius, name: name, prio: prio });
+		this.rectObstacles.push({ start, end, radius, name, prio });
 	}
 
-	addTriangle(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number,
-			lineWidth: number, name?: string, prio: number = 0) {
-		if (teamIsBlue) {
-			x1 = -x1;
-			y1 = -y1;
-			x2 = -x2;
-			y2 = -y2;
-			x3 = -x3;
-			y3 = -y3;
-		}
+	addTriangle(p1: Position, p2: Position, p3: Position, lineWidth: number, name?: string, prio: number = 0) {
+		p1 = Coordinates.toGlobal(p1);
+		p2 = Coordinates.toGlobal(p2);
+		p3 = Coordinates.toGlobal(p3);
 		if (!isPerformanceMode) {
-			let p1 = new Vector(x1, y1);
-			let p2 = new Vector(x2, y2);
-			let p3 = new Vector(x3, y3);
 			vis.addPolygonRaw(this.getObstacleString(), [p1, p2, p3], vis.colors.redHalf, true);
 		} else {
 			// avoid string allocations in ra
 			name = undefined;
 		}
-		this.triangleObstacles.push({ x1: x1, y1: y1, x2: x2, y2: y2, x3: x3, y3: y3,
-			lineWidth: lineWidth, name: name, prio: prio });
+		this.triangleObstacles.push({ p1, p2, p3, lineWidth, name, prio });
 	}
 
 	addFriendlyRobotObstacle(robot: FriendlyRobot, radius: number, prio: number) {
