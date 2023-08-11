@@ -252,6 +252,7 @@ export class Path {
 	private readonly _trajectoryInst: PathObjectTrajectory;
 	private readonly _robotId: number;
 
+	// these contain the obstacles in global coordinates
 	private circleObstacles: CircleObstacle[] = [];
 	private lineObstacles: LineObstacle[] = [];
 	private rectObstacles: RectObstacle[] = [];
@@ -349,16 +350,70 @@ export class Path {
 		this._trajectoryInst.setRadius(radius);
 	}
 
-	// wrap add obstacle functions for automatic strategy to global coordinates conversion
-	addCircle(center: Position, radius: number, name?: string, prio: number = 0) {
-		center = Coordinates.toGlobal(center);
-		if (!isPerformanceMode) {
-			vis.addCircleRaw(this.getObstacleString(), center, radius, vis.colors.redHalf, true);
-		} else {
+	addObstacle(obstacle: Obstacle) {
+		if (isPerformanceMode) {
 			// avoid string allocations in ra
-			name = undefined;
+			obstacle.name = undefined;
 		}
-		this.circleObstacles.push({ type: "circle", center, radius, name, prio });
+
+		switch (obstacle.type) {
+			case "circle": {
+				if (!isPerformanceMode) {
+					vis.addCircle(this.getObstacleString(), obstacle.center, obstacle.radius, vis.colors.redHalf, true);
+				}
+
+				// strategy to global coordinates conversion
+				obstacle.center = Coordinates.toGlobal(obstacle.center);
+				this.circleObstacles.push(obstacle);
+				break;
+			}
+			case "line": {
+				if (!isPerformanceMode) {
+					vis.addPath(this.getObstacleString(), [obstacle.start, obstacle.end], vis.colors.redHalf, true, undefined, 2 * obstacle.radius);
+				}
+
+				// strategy to global coordinates conversion
+				obstacle.start = Coordinates.toGlobal(obstacle.start);
+				obstacle.end = Coordinates.toGlobal(obstacle.end);
+				this.lineObstacles.push(obstacle);
+				break;
+			}
+			case "rect": {
+				if (!isPerformanceMode) {
+					vis.addPolygon(
+						this.getObstacleString(),
+						[obstacle.start, obstacle.start.withY(obstacle.end.y), obstacle.end, obstacle.end.withY(obstacle.start.y)],
+						vis.colors.redHalf, true
+					);
+				}
+
+				// strategy to global coordinates conversion
+				obstacle.start = Coordinates.toGlobal(obstacle.start);
+				obstacle.end = Coordinates.toGlobal(obstacle.end);
+				this.rectObstacles.push(obstacle);
+				break;
+			}
+			case "triangle": {
+				if (!isPerformanceMode) {
+					vis.addPolygon(
+						this.getObstacleString(),
+						[obstacle.p1, obstacle.p2, obstacle.p3],
+						vis.colors.redHalf, true
+					);
+				}
+
+				// strategy to global coordinates conversion
+				obstacle.p1 = Coordinates.toGlobal(obstacle.p1);
+				obstacle.p2 = Coordinates.toGlobal(obstacle.p2);
+				obstacle.p3 = Coordinates.toGlobal(obstacle.p3);
+				this.triangleObstacles.push(obstacle);
+				break;
+			}
+		}
+	}
+
+	addCircle(center: Position, radius: number, name?: string, prio: number = 0) {
+		this.addObstacle({ type: "circle", center, radius, name, prio });
 	}
 
 	/** WARNING: only adds the obstacle to the trajectory path finding */
@@ -390,22 +445,7 @@ export class Path {
 	}
 
 	addLine(start: Position, end: Position, radius: number, name?: string, prio: number = 0) {
-		if (start === end) {
-			this.addCircle(start, radius, name, prio);
-			return;
-		}
-
-		start = Coordinates.toGlobal(start);
-		end = Coordinates.toGlobal(end);
-
-		if (!isPerformanceMode) {
-			vis.addPathRaw(this.getObstacleString(), [start, end],
-					vis.colors.redHalf, undefined, undefined, 2 * radius);
-		} else {
-			// avoid string allocations in ra
-			name = undefined;
-		}
-		this.lineObstacles.push({ type: "line", start, end, radius, name, prio });
+		this.addObstacle({ type: "line", start, end, radius, name, prio });
 	}
 
 	/** WARNING: only adds the obstacle to the trajectory path finding */
@@ -465,29 +505,11 @@ export class Path {
 	}
 
 	addRect(start: Position, end: Position, radius: number, name?: string, prio: number = 0) {
-		start = Coordinates.toGlobal(start);
-		end = Coordinates.toGlobal(end);
-		if (!isPerformanceMode) {
-			vis.addPolygonRaw(this.getObstacleString(),
-					[start, start.withY(end.y), end, end.withY(start.y)], vis.colors.redHalf, true);
-		} else {
-			// avoid string allocations in ra
-			name = undefined;
-		}
-		this.rectObstacles.push({ type: "rect", start, end, radius, name, prio });
+		this.addObstacle({ type: "rect", start, end, radius, name, prio });
 	}
 
 	addTriangle(p1: Position, p2: Position, p3: Position, lineWidth: number, name?: string, prio: number = 0) {
-		p1 = Coordinates.toGlobal(p1);
-		p2 = Coordinates.toGlobal(p2);
-		p3 = Coordinates.toGlobal(p3);
-		if (!isPerformanceMode) {
-			vis.addPolygonRaw(this.getObstacleString(), [p1, p2, p3], vis.colors.redHalf, true);
-		} else {
-			// avoid string allocations in ra
-			name = undefined;
-		}
-		this.triangleObstacles.push({ type: "triangle", p1, p2, p3, lineWidth, name, prio });
+		this.addObstacle({ type: "triangle", p1, p2, p3, lineWidth, name, prio });
 	}
 
 	addFriendlyRobotObstacle(robot: FriendlyRobot, radius: number, prio: number) {
