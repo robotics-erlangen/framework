@@ -26,13 +26,10 @@ export class MoveToPos extends Task {
 	private _dir: number;
 	private _endSpeedLength: number;
 	private _obstacleTable: PathHelper.PathHelperParameters;
-	private _customObstacles: Obstacle[];
+	private _customObstacles: Obstacle[]; // a list of obstacles to be added to the path, see base/path
 	private _suggestPass: SuggestPass | undefined;
 	private useCMA: boolean;
 
-	// customObstacles is a table of obstacle tables
-	// An obstacle table contains a string field called type and parameters relevant for Path:addX
-	// Type can be "circle", "line", "rect" and "triangle"
 	constructor(behavior: Behavior, params: Parameters) {
 		super(behavior);
 
@@ -71,7 +68,7 @@ export class MoveToPos extends Task {
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, this._obstacleTable);
 
 		for (let obstacle of this._customObstacles) {
-			this._addCustomObstacle(obstacle);
+			this._robot.path.addObstacle(obstacle);
 		}
 
 		let endSpeed = (this._pos - this._robot.pos).withLength(this._endSpeedLength);
@@ -84,20 +81,6 @@ export class MoveToPos extends Task {
 
 		if (this._suggestPass != undefined) {
 			this._suggestPass._suggestPassRobotPosition(this._pos, undefined, time);
-		}
-	}
-
-	private _addCustomObstacle(obstInfo: Obstacle) {
-		let path = this._robot.path;
-		// If this gets changed, the comment before _init also needs to be updated
-		if (obstInfo.type === "circle") {
-			path.addCircle(obstInfo.center, obstInfo.radius, obstInfo.name);
-		} else if (obstInfo.type === "line") {
-			path.addLine(obstInfo.start, obstInfo.end, obstInfo.radius, obstInfo.name);
-		} else if (obstInfo.type === "rect") {
-			path.addRect(obstInfo.start, obstInfo.end, obstInfo.radius, obstInfo.name);
-		} else if (obstInfo.type === "triangle") {
-			path.addTriangle(obstInfo.p1, obstInfo.p2, obstInfo.p3, obstInfo.lineWidth, obstInfo.name);
 		}
 	}
 }

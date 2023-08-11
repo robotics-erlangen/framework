@@ -52,17 +52,7 @@ function setupPath() {
 	);
 
 	for (const obstacle of obstacles) {
-		switch (obstacle.type) {
-			case "circle":
-				pathInstance.addCircle(obstacle.center, obstacle.radius);
-				break;
-			case "line":
-				pathInstance.addLine(obstacle.start, obstacle.end, obstacle.radius);
-				break;
-			case "triangle":
-				pathInstance.addTriangle(obstacle.p1, obstacle.p2, obstacle.p3, obstacle.lineWidth);
-				break;
-		}
+		pathInstance.addObstacle(obstacle);
 	}
 	pathInstance.setRadius(Constants.maxRobotRadius);
 

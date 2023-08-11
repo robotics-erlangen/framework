@@ -30,7 +30,7 @@ export class DribbleToPos extends Task {
 	private dir: number;
 	private endSpeedLength: number;
 	private obstacleTable: PathHelper.PathHelperParameters;
-	private customObstacles: Obstacle[];
+	private customObstacles: Obstacle[]; // a list of obstacles to be added to the path, see base/path
 	private useCMA: boolean;
 
 	private static currentlyDribbling: boolean = false;
@@ -39,9 +39,6 @@ export class DribbleToPos extends Task {
 	private alternativeDirection: Vector = new Vector(0, 0);
 	private movingToPush: boolean = false;
 
-	// customObstacles is a table of obstacle tables
-	// An obstacle table contains a string field called type and parameters relevant for Path:addX
-	// Type can be "circle", "line", "rect" and "triangle"
 	constructor(behavior: Behavior, params: Parameters) {
 		super(behavior);
 
@@ -198,7 +195,7 @@ export class DribbleToPos extends Task {
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, this.obstacleTable);
 
 		for (let obstacle of this.customObstacles) {
-			this._addCustomObstacle(obstacle);
+			this._robot.path.addObstacle(obstacle);
 		}
 
 		let minMaxSpeed = (DribbleToPos.currentlyDribbling &&
@@ -216,20 +213,6 @@ export class DribbleToPos extends Task {
 			this._robot.trajectory.update(CurvedMaxAccel, targetPos, this.dir, maxSpeed, endSpeed, 0.5, DribbleToPos.currentlyDribbling);
 		} else {
 			this._robot.trajectory.update(ToTarget, targetPos, this.dir, maxSpeed, endSpeed);
-		}
-	}
-
-	private _addCustomObstacle(obstInfo: Obstacle) {
-		let path = this._robot.path;
-		// If this gets changed, the comment before _init also needs to be updated
-		if (obstInfo.type === "circle") {
-			path.addCircle(obstInfo.center, obstInfo.radius, obstInfo.name);
-		} else if (obstInfo.type === "line") {
-			path.addLine(obstInfo.start, obstInfo.end, obstInfo.radius, obstInfo.name);
-		} else if (obstInfo.type === "rect") {
-			path.addRect(obstInfo.start, obstInfo.end, obstInfo.radius, obstInfo.name);
-		} else if (obstInfo.type === "triangle") {
-			path.addTriangle(obstInfo.p1, obstInfo.p2, obstInfo.p3, obstInfo.lineWidth, obstInfo.name);
 		}
 	}
 }
