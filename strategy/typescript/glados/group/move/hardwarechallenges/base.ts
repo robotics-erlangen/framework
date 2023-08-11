@@ -1,6 +1,7 @@
 import { Coordinates } from "base/coordinates";
 import { BallInfo, moveObjects, sendRefereeCommand } from "base/debugcommands";
 import * as geom from "base/geom";
+import { Obstacle } from "base/path";
 import * as pb from "base/protobuf";
 import { FriendlyRobot, Robot, RobotState } from "base/robot";
 import { Vector } from "base/vector";
@@ -11,7 +12,7 @@ import { MessageBox } from "glados/control/messaging";
 import { Assignment, Move, MoveParameters } from "glados/group/move/base";
 import { END_DISTANCE, PlaceBall } from "glados/task/attacker/placeball";
 import { Halt } from "glados/task/shared/halt";
-import { MoveToPos, Obstacle } from "glados/task/shared/movetopos";
+import { MoveToPos } from "glados/task/shared/movetopos";
 import * as PathHelper from "glados/trajectory/pathhelper";
 
 export abstract class HardwareChallengeBase extends Move {

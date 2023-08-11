@@ -1,3 +1,4 @@
+import { Obstacle } from "base/path";
 import { FriendlyRobot } from "base/robot";
 import { Position, Vector } from "base/vector";
 import * as World from "base/world";
@@ -9,7 +10,6 @@ import * as Scenarios from "glados/group/move/hardwarechallenges/scenarios";
 import * as BallObserver from "glados/observer/ball";
 import { DribbleToPos } from "glados/task/shared/dribbletopos";
 import { Halt } from "glados/task/shared/halt";
-import { Obstacle } from "glados/task/shared/movetopos";
 
 export class DribbleChallenge extends HardwareChallengeBase {
 	protected challengeNumber: 1 | 2 | 3 | 4 | undefined = 3;

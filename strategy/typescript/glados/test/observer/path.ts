@@ -1,32 +1,9 @@
 import * as Constants from "base/constants";
 import { Coordinates } from "base/coordinates";
-import { Path, Waypoint } from "base/path";
-import { Position, Vector } from "base/vector";
+import { Path, Waypoint, Obstacle } from "base/path";
+import { Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
-
-interface CircleObstacle {
-	type: "Circle";
-	pos: Position;
-	radius: number;
-}
-
-interface LineObstacle {
-	type: "Line";
-	posStart: Position;
-	posEnd: Position;
-	radius: number;
-}
-
-interface TriangleObstacle {
-	type: "Triangle";
-	p1: Position;
-	p2: Position;
-	p3: Position;
-	lineWidth?: number;
-}
-
-type Obstacle = CircleObstacle | LineObstacle | TriangleObstacle;
 
 // Declare start, end and obstacles here
 let pointStart = Coordinates.toGlobal(new Vector(0, -0.35));
@@ -34,19 +11,19 @@ let pointEnd = Coordinates.toGlobal(new Vector(0, 1));
 
 let obstacles: Obstacle[] = [
 	{
-		type: "Line",
-		posStart: new Vector(-0.5, 0.1),
-		posEnd: new Vector(1, 0.1),
+		type: "line",
+		start: new Vector(-0.5, 0.1),
+		end: new Vector(1, 0.1),
 		radius: 0.02,
 	},
 	{
-		type: "Line",
-		posStart: new Vector(-0.5, -0.5),
-		posEnd: new Vector(0.5, -0.5),
+		type: "line",
+		start: new Vector(-0.5, -0.5),
+		end: new Vector(0.5, -0.5),
 		radius: 0.02,
 	},
 	{
-		type: "Triangle",
+		type: "triangle",
 		p1: new Vector(0.4, 0),
 		p2: new Vector(-1, 0.3),
 		p3: new Vector(-1, -0.3),
@@ -76,16 +53,15 @@ function setupPath() {
 
 	for (const obstacle of obstacles) {
 		switch (obstacle.type) {
-			case "Circle":
-				pathInstance.addCircle(obstacle.pos, obstacle.radius);
+			case "circle":
+				pathInstance.addCircle(obstacle.center, obstacle.radius);
 				break;
-			case "Line":
-				pathInstance.addLine(obstacle.posStart, obstacle.posEnd, obstacle.radius);
+			case "line":
+				pathInstance.addLine(obstacle.start, obstacle.end, obstacle.radius);
 				break;
-			case "Triangle": {
-				pathInstance.addTriangle(obstacle.p1, obstacle.p2, obstacle.p3, obstacle.lineWidth ?? 0);
+			case "triangle":
+				pathInstance.addTriangle(obstacle.p1, obstacle.p2, obstacle.p3, obstacle.lineWidth);
 				break;
-			}
 		}
 	}
 	pathInstance.setRadius(Constants.maxRobotRadius);
@@ -96,13 +72,13 @@ function setupPath() {
 function drawObstacles() {
 	for (const obstacle of obstacles) {
 		switch (obstacle.type) {
-			case "Circle":
-				vis.addCircle("obstacles", obstacle.pos, obstacle.radius, vis.colors.blue);
+			case "circle":
+				vis.addCircle("obstacles", obstacle.center, obstacle.radius, vis.colors.blue);
 				break;
-			case "Line":
-				vis.addPath("obstacles", [obstacle.posStart, obstacle.posEnd], vis.colors.blue);
+			case "line":
+				vis.addPath("obstacles", [obstacle.start, obstacle.end], vis.colors.blue);
 				break;
-			case "Triangle":
+			case "triangle":
 				vis.addPath("obstacles", [obstacle.p1, obstacle.p2], vis.colors.blue);
 				vis.addPath("obstacles", [obstacle.p2, obstacle.p3], vis.colors.blue);
 				vis.addPath("obstacles", [obstacle.p3, obstacle.p1], vis.colors.blue);

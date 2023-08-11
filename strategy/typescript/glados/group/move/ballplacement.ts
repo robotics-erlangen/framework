@@ -2,6 +2,7 @@ import * as Constants from "base/constants";
 import * as debug from "base/debug";
 import * as Field from "base/field";
 import * as geom from "base/geom";
+import { Obstacle } from "base/path";
 import { FriendlyRobot } from "base/robot";
 import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
@@ -14,7 +15,7 @@ import * as Physics from "glados/observer/physics";
 import { PlaceBall } from "glados/task/attacker/placeball";
 import { Wallkick } from "glados/task/attacker/wallkick";
 import { Halt } from "glados/task/shared/halt";
-import { MoveToPos, Obstacle } from "glados/task/shared/movetopos";
+import { MoveToPos } from "glados/task/shared/movetopos";
 import { Pass } from "glados/task/shared/pass";
 
 

@@ -1,3 +1,4 @@
+import { Obstacle } from "base/path";
 import { Position } from "base/vector";
 import * as World from "base/world";
 
@@ -7,36 +8,6 @@ import { Task } from "glados/task/base";
 import { CurvedMaxAccel } from "glados/trajectory/curvedmaxaccel";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
-
-export interface CircleObstacle {
-	type: "circle";
-	center: Position;
-	radius: number;
-	name: string;
-}
-interface LineObstacle {
-	type: "line";
-	start: Position;
-	end: Position;
-	radius: number;
-	name: string;
-}
-interface RectObstacle {
-	type: "rect";
-	start: Position;
-	end: Position;
-	radius: number;
-	name: string;
-}
-interface TriangleObstacle {
-	type: "triangle";
-	p1: Position;
-	p2: Position;
-	p3: Position;
-	lineWidth: number;
-	name: string;
-}
-export type Obstacle = CircleObstacle | LineObstacle | RectObstacle | TriangleObstacle;
 
 export type Parameters = {
 	pos: Position;

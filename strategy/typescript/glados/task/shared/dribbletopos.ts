@@ -1,3 +1,4 @@
+import { Obstacle, CircleObstacle } from "base/path";
 import { RobotLike } from "base/trajectory";
 import { Position, Vector } from "base/vector";
 import * as World from "base/world";
@@ -5,7 +6,6 @@ import * as World from "base/world";
 import { Behavior } from "glados/agent/base/behavior";
 import * as BallObserver from "glados/observer/ball";
 import { Task } from "glados/task/base";
-import { CircleObstacle, Obstacle } from "glados/task/shared/movetopos";
 import { CurvedMaxAccel } from "glados/trajectory/curvedmaxaccel";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import { ToTarget } from "glados/trajectory/totarget";
@@ -109,7 +109,7 @@ export class DribbleToPos extends Task {
 			preliminaryTargetPos = this.getBallPosition() + (this._robot.radius - World.Ball.radius) * -directionRobotToBall;
 
 			for (let obstacle of this.customObstacles) {
-				if (obstacle.type !== "circle" || !obstacle.name.startsWith("dribble")) {
+				if (obstacle.type !== "circle" || !obstacle.name?.startsWith("dribble")) {
 					continue;
 				}
 
