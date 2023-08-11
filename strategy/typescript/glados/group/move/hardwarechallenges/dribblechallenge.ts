@@ -37,8 +37,7 @@ export class DribbleChallenge extends HardwareChallengeBase {
 			let name: string = `dribbleObstacleY${transform.pos.x}`;
 			return {
 				type: "circle",
-				x: transform.pos.x,
-				y: transform.pos.y,
+				center: transform.pos,
 				radius: this._robots[0].radius * 1.1,
 				name: name
 			};

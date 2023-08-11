@@ -10,37 +10,29 @@ import { ToTarget } from "glados/trajectory/totarget";
 
 export interface CircleObstacle {
 	type: "circle";
-	x: number;
-	y: number;
+	center: Position;
 	radius: number;
 	name: string;
 }
 interface LineObstacle {
 	type: "line";
-	start_x: number;
-	start_y: number;
-	end_x: number;
-	end_y: number;
+	start: Position;
+	end: Position;
 	radius: number;
 	name: string;
 }
 interface RectObstacle {
 	type: "rect";
-	start_x: number;
-	start_y: number;
-	end_x: number;
-	end_y: number;
+	start: Position;
+	end: Position;
 	radius: number;
 	name: string;
 }
 interface TriangleObstacle {
 	type: "triangle";
-	x1: number;
-	y1: number;
-	x2: number;
-	y2: number;
-	x3: number;
-	y3: number;
+	p1: Position;
+	p2: Position;
+	p3: Position;
 	lineWidth: number;
 	name: string;
 }
@@ -128,13 +120,13 @@ export class MoveToPos extends Task {
 		let path = this._robot.path;
 		// If this gets changed, the comment before _init also needs to be updated
 		if (obstInfo.type === "circle") {
-			path.addCircle(obstInfo.x, obstInfo.y, obstInfo.radius, obstInfo.name);
+			path.addCircle(obstInfo.center, obstInfo.radius, obstInfo.name);
 		} else if (obstInfo.type === "line") {
-			path.addLine(obstInfo.start_x, obstInfo.start_y, obstInfo.end_x, obstInfo.end_y, obstInfo.radius, obstInfo.name);
+			path.addLine(obstInfo.start, obstInfo.end, obstInfo.radius, obstInfo.name);
 		} else if (obstInfo.type === "rect") {
-			path.addRect(obstInfo.start_x, obstInfo.start_y, obstInfo.end_x, obstInfo.end_y, obstInfo.radius, obstInfo.name);
+			path.addRect(obstInfo.start, obstInfo.end, obstInfo.radius, obstInfo.name);
 		} else if (obstInfo.type === "triangle") {
-			path.addTriangle(obstInfo.x1, obstInfo.y1, obstInfo.x2, obstInfo.y2, obstInfo.x3, obstInfo.y3, obstInfo.lineWidth, obstInfo.name);
+			path.addTriangle(obstInfo.p1, obstInfo.p2, obstInfo.p3, obstInfo.lineWidth, obstInfo.name);
 		}
 	}
 }

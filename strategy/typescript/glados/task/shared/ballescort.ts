@@ -30,8 +30,7 @@ export class BallEscort extends Task {
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, this._obstacleTable);
 		let ballOutPos = Field.nextLineCut(World.Ball.pos, World.Ball.speed);
 		if (ballOutPos) {
-			this._robot.path.addLine(World.Ball.pos.x, World.Ball.pos.y, ballOutPos.x, ballOutPos.y, this._robot.radius,
-				"Ballescort", PathHelper.PRIORITIES.INNER_BALL);
+			this._robot.path.addLine(World.Ball.pos, ballOutPos, this._robot.radius, "Ballescort", PathHelper.PRIORITIES.INNER_BALL);
 		}
 
 		this._robot.trajectory.update(ToTarget, pos, (this._robot.pos - World.Ball.pos).angle());

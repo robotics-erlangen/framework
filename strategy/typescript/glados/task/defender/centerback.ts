@@ -126,9 +126,7 @@ export class CenterBack extends Task {
 
 		let mainAttacker = this._messaging.receiveTrainer(MessageType.mainAttacker);
 		if (mainAttacker && Referee.isFriendlyFreeKickState() && World.Ball.pos.y < World.Geometry.FieldHeightHalf) {
-			let startPos = World.Ball.pos;
-			let endPos = mainAttacker.pos;
-			this._robot.path.addLine(startPos.x, startPos.y, endPos.x, endPos.y, mainAttacker.radius * 2 + 0.1, "", 100);
+			this._robot.path.addLine(World.Ball.pos, mainAttacker.pos, mainAttacker.radius * 2 + 0.1, "", 100);
 		}
 
 

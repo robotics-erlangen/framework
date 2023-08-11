@@ -1,5 +1,5 @@
 import * as Referee from "base/referee";
-import { Vector } from "base/vector";
+import { Vector, Position } from "base/vector";
 import * as World from "base/world";
 
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
@@ -8,8 +8,7 @@ import { MoveToPos } from "glados/task/shared/movetopos";
 const G = World.Geometry;
 
 export class PenaltyPassiveDefense extends Behavior {
-	protected startX: number = G.FieldWidth * -2.0;
-	protected startY: number = G.FieldHeight * -2.0;
+	protected startPos: Position = -new Vector(G.FieldWidth, G.FieldHeight) * 2;
 	protected endX: number = G.FieldWidth * 2.0;
 	protected endYOffset: number = 1.3;
 
@@ -26,18 +25,14 @@ export class PenaltyPassiveDefense extends Behavior {
 		let y = World.Ball.pos.y + this.yOffset;
 		let pos = new Vector(x, y);
 
-		const PENALTYOBSTACLE = [
-			{
-				type: "rect" as "rect",
-				start_x: this.startX,
-				start_y: this.startY,
-				end_x: this.endX,
-				end_y: World.Ball.pos.y + this.endYOffset,
-				radius: 0,
-				name: "a/a/penaltyPassive"
-			}
-		];
+		const penaltyObstacle = {
+			type: "rect" as "rect",
+			start: this.startPos,
+			end: new Vector(this.endX, World.Ball.pos.y + this.endYOffset),
+			radius: 0,
+			name: "a/a/penaltyPassive"
+		};
 
-		return [MoveToPos, [{ pos: pos, customObstacles: PENALTYOBSTACLE }], true];
+		return [MoveToPos, [{ pos: pos, customObstacles: [penaltyObstacle] }], true];
 	}
 }

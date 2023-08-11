@@ -165,8 +165,7 @@ export abstract class HardwareChallengeBase extends Move {
 			let obstacleName: string = `opponentObstacle${i}`;
 			customObstacles.push({
 				type: "circle",
-				x: obstacleTransform.pos.x,
-				y: obstacleTransform.pos.y,
+				center: obstacleTransform.pos,
 				radius: this._robots[0].radius * 1.05,
 				name: obstacleName
 			});
@@ -177,8 +176,7 @@ export abstract class HardwareChallengeBase extends Move {
 			let obstacleName: string = `friendlyObstacle${i}`;
 			customObstacles.push({
 				type: "circle",
-				x: obstacleTransform.pos.x,
-				y: obstacleTransform.pos.y,
+				center: obstacleTransform.pos,
 				radius: this._robots[0].radius * 1.05,
 				name: obstacleName
 			});
@@ -186,8 +184,7 @@ export abstract class HardwareChallengeBase extends Move {
 
 		customObstacles.push({
 			type: "circle",
-			x: World.Ball.pos.x,
-			y: World.Ball.pos.y,
+			center: World.Ball.pos,
 			radius: World.Ball.radius + 0.005,
 			name: "ballObstacle"
 		});
@@ -238,8 +235,7 @@ export abstract class HardwareChallengeBase extends Move {
 			let obstacleName: string = `opponentObstacle${i}`;
 			customObstacles.push({
 				type: "circle",
-				x: obstacleTransform.pos.x,
-				y: obstacleTransform.pos.y,
+				center: obstacleTransform.pos,
 				radius: this._robots[0].radius * 1.05,
 				name: obstacleName
 			});
@@ -247,8 +243,7 @@ export abstract class HardwareChallengeBase extends Move {
 
 		customObstacles.push({
 			type: "circle",
-			x: World.Ball.pos.x,
-			y: World.Ball.pos.y,
+			center: World.Ball.pos,
 			radius: World.Ball.radius + 0.005,
 			name: "ballObstacle"
 		});

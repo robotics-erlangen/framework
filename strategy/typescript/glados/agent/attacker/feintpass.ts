@@ -319,7 +319,7 @@ export class FeintPass extends Behavior {
 
 			// This is very hacky
 			if (this._robot.pos.orthogonalDistance(this.nextAttackPosition!, this.nextPassInfo!.ballPos) < this._robot.radius + World.Ball.radius + 0.1) {
-				this._robot.path.addLine(World.Ball.pos.x, World.Ball.pos.y, this.nextPassInfo!.ballPos.x, this.nextPassInfo!.ballPos.y, this._robot.radius, "PassEvacuation", 1);
+				this._robot.path.addLine(World.Ball.pos, this.nextPassInfo!.ballPos, this._robot.radius, "PassEvacuation", 1);
 
 				doFeintPass = true;
 				let feintTarget = { passRobot: this.nextSender!, passInfo: this.nextPassInfo!, feintPos: this.nextFeintpos! };

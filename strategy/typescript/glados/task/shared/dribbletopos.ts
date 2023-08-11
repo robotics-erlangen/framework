@@ -113,8 +113,7 @@ export class DribbleToPos extends Task {
 					continue;
 				}
 
-				let obstaclePos = new Vector(obstacle.x, obstacle.y);
-				let distanceToObstacle = (preliminaryTargetPos - obstaclePos).length();
+				let distanceToObstacle = (preliminaryTargetPos - obstacle.center).length();
 				if (distanceToObstacle < this._robot.radius * 3.0) {
 					noObstaclesInArea = false;
 				}
@@ -127,8 +126,7 @@ export class DribbleToPos extends Task {
 
 		if (this.obstacleToAvoid != undefined) {
 			this.obstacleToAvoid.radius *= 0.5;
-			const obstaclePos = new Vector(this.obstacleToAvoid.x, this.obstacleToAvoid.y);
-			this.alternativeDirection = (this.getBallPosition() - obstaclePos).normalized();
+			this.alternativeDirection = (this.getBallPosition() - this.obstacleToAvoid.center).normalized();
 			let angleDiffObstacle = this.alternativeDirection.angle() - (angleCurrentPosToBall + Math.PI);
 			while (angleDiffObstacle > 2 * Math.PI) {
 				angleDiffObstacle -= 2 * Math.PI;
@@ -225,13 +223,13 @@ export class DribbleToPos extends Task {
 		let path = this._robot.path;
 		// If this gets changed, the comment before _init also needs to be updated
 		if (obstInfo.type === "circle") {
-			path.addCircle(obstInfo.x, obstInfo.y, obstInfo.radius, obstInfo.name);
+			path.addCircle(obstInfo.center, obstInfo.radius, obstInfo.name);
 		} else if (obstInfo.type === "line") {
-			path.addLine(obstInfo.start_x, obstInfo.start_y, obstInfo.end_x, obstInfo.end_y, obstInfo.radius, obstInfo.name);
+			path.addLine(obstInfo.start, obstInfo.end, obstInfo.radius, obstInfo.name);
 		} else if (obstInfo.type === "rect") {
-			path.addRect(obstInfo.start_x, obstInfo.start_y, obstInfo.end_x, obstInfo.end_y, obstInfo.radius, obstInfo.name);
+			path.addRect(obstInfo.start, obstInfo.end, obstInfo.radius, obstInfo.name);
 		} else if (obstInfo.type === "triangle") {
-			path.addTriangle(obstInfo.x1, obstInfo.y1, obstInfo.x2, obstInfo.y2, obstInfo.x3, obstInfo.y3, obstInfo.lineWidth, obstInfo.name);
+			path.addTriangle(obstInfo.p1, obstInfo.p2, obstInfo.p3, obstInfo.lineWidth, obstInfo.name);
 		}
 	}
 }

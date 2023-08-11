@@ -77,59 +77,79 @@ function addFriendlyDefenseAreaObstacle(path: Path, robot: FriendlyRobot) {
 	if (World.FriendlyKeeper !== robot && robot.pos.y < 0
 			&& World.RefereeState !== "BallPlacementOffensive") {
 		if (World.RULEVERSION === "2018") {
-			path.addRect(G.FriendlyGoal.x - G.DefenseWidthHalf - POSITION_PADDING,
-					G.FriendlyGoal.y - 1,
-					G.FriendlyGoal.x + G.DefenseWidthHalf + POSITION_PADDING,
-					G.FriendlyGoal.y + G.DefenseHeight + POSITION_PADDING,
-					0, "DefenseArea", PRIORITIES.DEFENSE_AREA);
+			path.addRect(
+				G.FriendlyGoal - new Vector(G.DefenseWidthHalf + POSITION_PADDING, 1),
+				G.FriendlyGoal + new Vector(G.DefenseWidthHalf + POSITION_PADDING, G.DefenseHeight + POSITION_PADDING),
+				0, "DefenseArea", PRIORITIES.DEFENSE_AREA
+			);
 		} else {
-		// line with round end caps
-			path.addLine(G.FriendlyGoal.x - G.DefenseStretch / 2, G.FriendlyGoal.y,
-					G.FriendlyGoal.x + G.DefenseStretch / 2, G.FriendlyGoal.y,
-					G.DefenseRadius + POSITION_PADDING, "DefenseArea", PRIORITIES.DEFENSE_AREA);
+			// line with round end caps
+			path.addLine(
+				G.FriendlyGoal - new Vector(G.DefenseStretch / 2, 0),
+				G.FriendlyGoal + new Vector(G.DefenseStretch / 2, 0),
+				G.DefenseRadius + POSITION_PADDING,
+				"DefenseArea", PRIORITIES.DEFENSE_AREA
+			);
 		}
 		if (geom.insideRect(GOAL_AREA_FRIENDLY[0], GOAL_AREA_FRIENDLY[1], robot.pos) || Field.isInFriendlyDefenseArea(robot.pos, robot.radius)) {
-			path.addRect(GOAL_AREA_FRIENDLY[0].x, GOAL_AREA_FRIENDLY[0].y, GOAL_AREA_FRIENDLY[1].x, GOAL_AREA_FRIENDLY[1].y, 0, "EvacuateGoal", PRIORITIES.EVACUATE_GOAL);
+			path.addRect(GOAL_AREA_FRIENDLY[0], GOAL_AREA_FRIENDLY[1], 0, "EvacuateGoal", PRIORITIES.EVACUATE_GOAL);
 		}
 	}
 }
 
 function addOpponentDefenseAreaObstacle(path: Path, robot: FriendlyRobot, targetPosition: Position) {
-	// don't add obstacles for opponent defense area if the robot is in the friendly half
-	let oppDefAreaDist = Referee.isFriendlyFreeKickState() || Referee.isStopState() ? G.FreeKickDefenseDist + 0.05 : 0;
-	const priority = oppDefAreaDist === 0 ? PRIORITIES.DEFENSE_AREA : PRIORITIES.STOP_DEFENSE_AREA;
+	const isFreeKickOrStop = Referee.isFriendlyFreeKickState() || Referee.isStopState();
+	const oppDefAreaDist = isFreeKickOrStop ? G.FreeKickDefenseDist + 0.05 : 0;
+	const priority = isFreeKickOrStop ? PRIORITIES.STOP_DEFENSE_AREA : PRIORITIES.DEFENSE_AREA;
+
 	// TODO: adjust to rect with distance instead of larger rect
 	let distance = oppDefAreaDist + POSITION_PADDING;
-	if (robot.pos.y > 0 && (!Referee.isFriendlyPenaltyState()) &&
+
+	// don't add obstacles for opponent defense area if the robot is in the friendly half
+	if (robot.pos.y > 0 && !Referee.isFriendlyPenaltyState() &&
 			World.RefereeState !== "BallPlacementOffensive" && hardwareChallenge !== 0) {
 		if (World.RULEVERSION === "2018") {
-			path.addRect(G.OpponentGoal.x - G.DefenseWidthHalf - distance,
-					G.OpponentGoal.y - G.DefenseHeight - distance,
-					G.OpponentGoal.x + G.DefenseWidthHalf + distance,
-					G.OpponentGoal.y + 1,
-					0, "DefenseArea", priority);
+			path.addRect(
+				G.OpponentGoal - new Vector(G.DefenseWidthHalf + distance, G.DefenseHeight + distance),
+				G.OpponentGoal + new Vector(G.DefenseWidthHalf + distance, 1),
+				0, "DefenseArea", priority
+			);
 		} else {
-			path.addLine(G.OpponentGoal.x - G.DefenseStretch / 2, G.OpponentGoal.y,
-					G.OpponentGoal.x + G.DefenseStretch / 2, G.OpponentGoal.y,
-					G.DefenseRadius + POSITION_PADDING, "DefenseArea", priority);
+			path.addLine(
+				G.OpponentGoal - new Vector(G.DefenseStretch / 2, 0),
+				G.OpponentGoal + new Vector(G.DefenseStretch / 2, 0),
+				G.DefenseRadius + POSITION_PADDING,
+				"DefenseArea", priority);
 		}
 		if (geom.insideRect(GOAL_AREA[0], GOAL_AREA[1], robot.pos) || Field.isInOpponentDefenseArea(robot.pos, robot.radius * 2)) {
-			path.addRect(GOAL_AREA[0].x, GOAL_AREA[0].y, GOAL_AREA[1].x, GOAL_AREA[1].y, 0, "EvacuateGoal", priority === PRIORITIES.DEFENSE_AREA ? PRIORITIES.EVACUATE_GOAL : PRIORITIES.STOP_EVACUATE_GOAL);
+			const priority = isFreeKickOrStop ? PRIORITIES.STOP_EVACUATE_GOAL : PRIORITIES.EVACUATE_GOAL;
+			path.addRect(GOAL_AREA[0], GOAL_AREA[1], 0, "EvacuateGoal", priority);
 		}
 	}
 }
 
 function addOpponentFieldHalfObstacle(path: Path) {
 	if (World.RefereeState === "KickoffOffensive") {
-		path.addRect(-G.FieldWidthHalf - 0.5, G.FieldHeightHalf + 0.5,
-			-G.CenterCircleRadius, 0.02, 0, "OppFieldHalf", PRIORITIES.OPP_FIELD_HALF);
-		path.addRect(-G.CenterCircleRadius - 0.2, G.FieldHeightHalf + 0.5,
-			G.CenterCircleRadius + 0.2, G.CenterCircleRadius, 0, "OppFieldHalf", PRIORITIES.OPP_FIELD_HALF_INNER);
-		path.addRect(G.CenterCircleRadius, G.FieldHeightHalf + 0.5,
-			G.FieldWidthHalf + 0.5, 0.02, 0, "OppFieldHalf", PRIORITIES.OPP_FIELD_HALF);
+		path.addRect(
+			new Vector(-G.FieldWidthHalf - 0.5, G.FieldHeightHalf + 0.5),
+			new Vector(-G.CenterCircleRadius, POSITION_PADDING),
+			0, "OppFieldHalf", PRIORITIES.OPP_FIELD_HALF
+		);
+		path.addRect(
+			new Vector(-G.CenterCircleRadius - 0.2, G.FieldHeightHalf + 0.5),
+			new Vector(G.CenterCircleRadius + 0.2, G.CenterCircleRadius),
+			0, "OppFieldHalf", PRIORITIES.OPP_FIELD_HALF_INNER
+		);
+		path.addRect(
+			new Vector(G.CenterCircleRadius, G.FieldHeightHalf + 0.5),
+			new Vector(G.FieldWidthHalf + 0.5, POSITION_PADDING),
+			0, "OppFieldHalf", PRIORITIES.OPP_FIELD_HALF
+		);
 	} else {
-		path.addRect(-G.FieldWidthHalf - 0.5, G.FieldHeightHalf + 0.5,
-			G.FieldWidthHalf + 0.5, 0.02, 0, "OppFieldHalf", PRIORITIES.OPP_FIELD_HALF);
+		path.addRect(
+			new Vector(-G.FieldWidthHalf - 0.5, G.FieldHeightHalf + 0.5),
+			new Vector(G.FieldWidthHalf + 0.5, POSITION_PADDING),
+			0, "OppFieldHalf", PRIORITIES.OPP_FIELD_HALF);
 	}
 }
 
@@ -141,20 +161,22 @@ function addZonedBallObstacles(robot: FriendlyRobot, innerBallDistance?: number,
 
 	if (outerBallDistance != undefined) {
 		outermost = outerBallDistance * outerBallDistance;
-		robot.path.addCircle(ball.pos.x, ball.pos.y, ball.radius + outerBallDistance, "OuterBallObstacle", PRIORITIES.OUTER_BALL);
+		robot.path.addCircle(ball.pos, ball.radius + outerBallDistance, "OuterBallObstacle", PRIORITIES.OUTER_BALL);
 	}
 	if (distSq < outermost && innerBallDistance != undefined) {
 		outermost = innerBallDistance * innerBallDistance;
 		if (ball.speed.length() >= 0.3) {
-			let ballSpeedScale = ball.speed * 0.4;
-			robot.path.addLine(ball.pos.x, ball.pos.y, ball.pos.x + ballSpeedScale.x, ball.pos.y + ballSpeedScale.y, ball.radius + innerBallDistance,
+			robot.path.addLine(
+				ball.pos,
+				ball.pos + ball.speed * 0.4,
+				ball.radius + innerBallDistance,
 				"InnerBallObstacle", PRIORITIES.INNER_BALL);
 		} else {
-			robot.path.addCircle(ball.pos.x, ball.pos.y, ball.radius + innerBallDistance, "InnerBallObstacle", PRIORITIES.INNER_BALL);
+			robot.path.addCircle(ball.pos, ball.radius + innerBallDistance, "InnerBallObstacle", PRIORITIES.INNER_BALL);
 		}
 	}
 	if (distSq < outermost) {
-		robot.path.addCircle(ball.pos.x, ball.pos.y, ball.radius, "Ball", PRIORITIES.BALL);
+		robot.path.addCircle(ball.pos, ball.radius, "Ball", PRIORITIES.BALL);
 	}
 }
 
@@ -188,20 +210,40 @@ function addGoalObstacle(path: Path, robot: FriendlyRobot, ignoreDefense: boolea
 	// TODO: wenn nicht keeper: eine fette linie oder so
 	if (robot.pos.y < 0) {
 		if (ignoreDefense) {
-			path.addLine(G.FriendlyGoalLeft.x - gw, G.FriendlyGoalLeft.y - gw,
-					G.FriendlyGoalLeft.x - gw, G.FriendlyGoalLeft.y - G.GoalDepth - gw, gw, "OwnGoal_Left", PRIORITIES.GOAL);
-			path.addLine(G.FriendlyGoalRight.x + gw, G.FriendlyGoalRight.y - gw,
-					G.FriendlyGoalRight.x + gw, G.FriendlyGoalRight.y - G.GoalDepth - gw, gw, "OwnGoal_Right", PRIORITIES.GOAL);
-			path.addRect(G.FriendlyGoalLeft.x - G.GoalWallWidth, G.FriendlyGoalLeft.y - G.GoalDepth,
-					G.FriendlyGoalRight.x + G.GoalWallWidth, G.FriendlyGoalRight.y - depth, 0, "OwnGoal_Back", PRIORITIES.GOAL);
+			path.addLine(
+				G.FriendlyGoalLeft - new Vector(gw, gw),
+				G.FriendlyGoalLeft - new Vector(gw, G.GoalDepth + gw),
+				gw, "OwnGoal_Left", PRIORITIES.GOAL
+			);
+			path.addLine(
+				G.FriendlyGoalRight - new Vector(-gw, gw),
+				G.FriendlyGoalRight - new Vector(-gw, G.GoalDepth + gw),
+				gw, "OwnGoal_Right", PRIORITIES.GOAL
+			);
+
+			path.addRect(
+				G.FriendlyGoalLeft - new Vector(G.GoalWallWidth, G.GoalDepth),
+				G.FriendlyGoalRight + new Vector(G.GoalWallWidth, -depth),
+				0, "OwnGoal_Back", PRIORITIES.GOAL
+			);
 		}
 	} else if (ignoreOppDefense) {
-		path.addLine(G.OpponentGoalLeft.x - gw, G.OpponentGoalLeft.y + gw,
-				G.OpponentGoalLeft.x - gw, G.OpponentGoalLeft.y + G.GoalDepth + gw, gw, "OppGoal_Left", PRIORITIES.GOAL);
-		path.addLine(G.OpponentGoalRight.x + gw, G.OpponentGoalRight.y + gw,
-				G.OpponentGoalRight.x + gw, G.OpponentGoalRight.y + G.GoalDepth + gw, gw, "OppGoal_Right", PRIORITIES.GOAL);
-		path.addRect(G.OpponentGoalLeft.x - G.GoalWallWidth, G.OpponentGoalLeft.y + G.GoalDepth,
-				G.OpponentGoalRight.x + G.GoalWallWidth, G.OpponentGoalRight.y + depth, 0, "OppGoal_Back", PRIORITIES.GOAL);
+		path.addLine(
+			G.OpponentGoalLeft + new Vector(-gw, gw),
+			G.OpponentGoalLeft + new Vector(-gw, G.GoalDepth + gw),
+			gw, "OppGoal_Left", PRIORITIES.GOAL
+		);
+		path.addLine(
+			G.OpponentGoalRight + new Vector(gw, gw),
+			G.OpponentGoalRight + new Vector(gw, G.GoalDepth + gw),
+			gw, "OppGoal_Right", PRIORITIES.GOAL
+		);
+
+		path.addRect(
+			G.OpponentGoalLeft - new Vector(G.GoalWallWidth, -G.GoalDepth),
+			G.OpponentGoalRight + new Vector(G.GoalWallWidth, depth),
+			0, "OppGoal_Back", PRIORITIES.GOAL
+		);
 	}
 }
 
@@ -258,8 +300,11 @@ function addGoalObstacleShot(path: Path, robot: FriendlyRobot, messaging: Messag
 		let leftGoal = G.OpponentGoalLeft;
 		let rightGoal = G.OpponentGoalRight;
 		if (useCMA) {
-			path.addTriangle(viewPos.x, viewPos.y, leftGoal.x, leftGoal.y,
-				rightGoal.x, rightGoal.y, World.Ball.radius + 0.05, "goalShot", PRIORITIES.GOAL_SHOT);
+			path.addTriangle(
+				viewPos, leftGoal, rightGoal,
+				World.Ball.radius + 0.05,
+				"goalShot", PRIORITIES.GOAL_SHOT
+			);
 		} else {
 			// no need to calculate the actual time, in 3 seconds it will definitively have reached the goal
 			let t = attackTime - World.Time;
@@ -286,7 +331,7 @@ function addFriendlyPassObstacle(path: Path, robot: FriendlyRobot, messaging: Me
 		// ball - intercept
 		if (dangerPos.distanceToSq(World.Ball.pos) > epsilonSq) {
 			if (useCMA) {
-				path.addLine(World.Ball.pos.x, World.Ball.pos.y, dangerPos.x, dangerPos.y, radius, "pass1", PRIORITIES.PASS_MA_BALL);
+				path.addLine(World.Ball.pos, dangerPos, radius, "pass1", PRIORITIES.PASS_MA_BALL);
 			} else {
 				// if the ball is currently very slow, there is no need to add a dedicated obstacle here
 				if (dangerTime < Infinity) {
@@ -299,7 +344,7 @@ function addFriendlyPassObstacle(path: Path, robot: FriendlyRobot, messaging: Me
 		// MA - intercept
 		if (attackPosition && attackPosition.distanceToSq(mainAttacker.pos) > epsilonSq) {
 			if (useCMA) {
-				path.addLine(mainAttacker.pos.x, mainAttacker.pos.y, attackPosition.x, attackPosition.y, radiusRobot, "pass1", PRIORITIES.PASS_MA_BALL);
+				path.addLine(mainAttacker.pos, attackPosition, radiusRobot, "pass1", PRIORITIES.PASS_MA_BALL);
 			} else {
 				// this obstacle is not necessary for trajectory path finding since robot obstacles are handled differently
 			}
@@ -315,8 +360,8 @@ function addFriendlyPassObstacle(path: Path, robot: FriendlyRobot, messaging: Me
 					let startPoint = passInfo.target.pos;
 					let endPoint = passInfo.ballPos;
 					if (useCMA) {
-						path.addLine(endPoint.x, endPoint.y, dangerPos.x, dangerPos.y, radius, "pass2", PRIORITIES.PASS_BALL_STRIKER);
-						path.addLine(startPoint.x, startPoint.y, endPoint.x, endPoint.y, radiusRobot, "pass2", PRIORITIES.PASS_BALL_STRIKER);
+						path.addLine(endPoint, dangerPos, radius, "pass2", PRIORITIES.PASS_BALL_STRIKER);
+						path.addLine(startPoint, endPoint, radiusRobot, "pass2", PRIORITIES.PASS_BALL_STRIKER);
 					} else {
 						let ballTime = Physics.ballRollTime({ speed: new Vector(Constants.maxBallSpeed, 0),
 							maxSpeed: Constants.maxBallSpeed }, dangerPos.distanceTo(endPoint));
@@ -327,7 +372,7 @@ function addFriendlyPassObstacle(path: Path, robot: FriendlyRobot, messaging: Me
 						let t = dangerTime - World.Time;
 						path.addMovingCircle(t, t + ballTime, dangerPos, (endPoint - dangerPos).withLength(Constants.maxBallSpeed),
 							new Vector(0, 0), radius, PRIORITIES.PASS_BALL_STRIKER);
-						path.addLine(dangerPos.x, dangerPos.y, shortEndPoint.x, shortEndPoint.y, radiusRobot, "pass2", PRIORITIES.PASS_BALL_STRIKER);
+						path.addLine(dangerPos, shortEndPoint, radiusRobot, "pass2", PRIORITIES.PASS_BALL_STRIKER);
 					}
 				}
 
@@ -338,8 +383,10 @@ function addFriendlyPassObstacle(path: Path, robot: FriendlyRobot, messaging: Me
 
 function addPenaltyObstacle(path: Path) {
 	if (World.RefereeState === "PenaltyOffensivePrepare" || World.RefereeState === "PenaltyOffensive") {
-		path.addRect(-G.FieldWidthHalf - 1, G.OpponentGoalRight.y + 1,
-			G.FieldWidthHalf + 1, (G.OpponentGoalRight.y - (G.DefenseHeight + 0.45)), 0);
+		path.addRect(
+			new Vector(-G.FieldWidthHalf - 1, G.OpponentGoalRight.y + 1),
+			new Vector(G.FieldWidthHalf + 1, G.OpponentGoalRight.y - G.DefenseHeight - 0.45),
+			0);
 	}
 }
 
@@ -350,41 +397,35 @@ function addBallPlacementObstacle(path: Path, messaging: MessageBox | undefined)
 		}
 		if (World.Ball.pos.distanceToSq(World.BallPlacementPos) > 0.001) {
 			path.addLine(
-				World.Ball.pos.x,
-				World.Ball.pos.y,
-				World.BallPlacementPos.x,
-				World.BallPlacementPos.y,
+				World.Ball.pos,
+				World.BallPlacementPos,
 				Constants.stopBallDistance + 0.1,
 				"BallPlacement",
 				PRIORITIES.BALL_PLACEMENT
 			);
 		} else {
-			path.addCircle(World.Ball.pos.x, World.Ball.pos.y, Constants.stopBallDistance + 0.1, "BallPlacement");
+			path.addCircle(World.Ball.pos, Constants.stopBallDistance + 0.1, "BallPlacement");
 		}
 		if (messaging) {
 			let ballplacementRobot = messaging.receiveSingleSender(MessageType.placingRobot)[0];
 			if (ballplacementRobot) {
 				if (ballplacementRobot.pos.distanceTo(World.BallPlacementPos) > ballplacementRobot.radius) {
 					path.addLine(
-						ballplacementRobot.pos.x,
-						ballplacementRobot.pos.y,
-						World.BallPlacementPos.x,
-						World.BallPlacementPos.y,
+						ballplacementRobot.pos,
+						World.BallPlacementPos,
 						Constants.stopBallDistance + 0.1,
 						"BallPlacement",
 						PRIORITIES.BALL_PLACEMENT
 					);
 				} else {
-					path.addCircle(ballplacementRobot.pos.x, ballplacementRobot.pos.y, Constants.stopBallDistance + 0.1, "BallPlacement", PRIORITIES.BALL_PLACEMENT);
+					path.addCircle(ballplacementRobot.pos, Constants.stopBallDistance + 0.1, "BallPlacement", PRIORITIES.BALL_PLACEMENT);
 				}
 			}
 		}
 		for (let r of OBall.getBallPlacementRobots()) {
 			path.addLine(
-				r.pos.x,
-				r.pos.y,
-				World.BallPlacementPos.x,
-				World.BallPlacementPos.y,
+				r.pos,
+				World.BallPlacementPos,
 				Constants.stopBallDistance + 0.1,
 				"BallPlacement",
 				PRIORITIES.BALL_PLACEMENT
@@ -467,10 +508,13 @@ function addRobotObstacles(path: Path, robot: FriendlyRobot, targetPosition: Pos
 				// only use estimated position if it doesn't collide with the robot
 				if (robot.pos.distanceToLineSegment(r.pos, estimatedPosition) >= robot.radius + r.radius
 						&& r.pos.distanceTo(estimatedPosition) > 0.0001) {
-					path.addLine(r.pos.x, r.pos.y, estimatedPosition.x, estimatedPosition.y,
-						r.radius + safetyDistance, `OwnRobot_${r.id}`, PRIORITIES.ROBOT);
+					path.addLine(
+						r.pos, estimatedPosition,
+						r.radius + safetyDistance,
+						`OwnRobot_${r.id}`, PRIORITIES.ROBOT
+					);
 				} else {
-					path.addCircle(r.pos.x, r.pos.y, r.radius + safetyDistance, `OwnRobot_${r.id}`, PRIORITIES.ROBOT);
+					path.addCircle(r.pos, r.radius + safetyDistance, `OwnRobot_${r.id}`, PRIORITIES.ROBOT);
 				}
 			} else {
 				path.addFriendlyRobotObstacle(r, r.radius + 0.02, PRIORITIES.ROBOT);
@@ -526,8 +570,11 @@ function addRobotObstacles(path: Path, robot: FriendlyRobot, targetPosition: Pos
 						// They can break in the estimation. This means that leavingTime would be INF.
 						// TODO: we can trim the obstacle
 						// For now, we keep the fixed obstacle
-						path.addLine(r.pos.x, r.pos.y, estimatedPosition.x, estimatedPosition.y,
-							r.radius + safetyDistance, `OwnRobot_${r.id}`, PRIORITIES.ROBOT);
+						path.addLine(
+							r.pos, estimatedPosition,
+							r.radius + safetyDistance,
+							`OwnRobot_${r.id}`, PRIORITIES.ROBOT
+						);
 					} else {
 						// leavingTime is the time until the robot will have left the obstacle fully if he breaks as hard as possible.
 						let leavingTime = (-absSpeed + Math.sqrt(absSpeed * absSpeed + 2 * r.acceleration.aBrakeFMax * (absSpeed * estimationTime + r.radius))) / r.acceleration.aBrakeFMax;
@@ -539,7 +586,7 @@ function addRobotObstacles(path: Path, robot: FriendlyRobot, targetPosition: Pos
 				}
 
 			} else {
-				path.addCircle(r.pos.x, r.pos.y, r.radius + safetyDistance, `OppRobot_${r.id}`, PRIORITIES.ROBOT);
+				path.addCircle(r.pos, r.radius + safetyDistance, `OppRobot_${r.id}`, PRIORITIES.ROBOT);
 			}
 		}
 	}

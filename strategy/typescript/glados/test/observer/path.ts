@@ -77,22 +77,13 @@ function setupPath() {
 	for (const obstacle of obstacles) {
 		switch (obstacle.type) {
 			case "Circle":
-				pathInstance.addCircle(obstacle.pos.x, obstacle.pos.y, obstacle.radius);
+				pathInstance.addCircle(obstacle.pos, obstacle.radius);
 				break;
 			case "Line":
-				pathInstance.addLine(
-					obstacle.posStart.x, obstacle.posStart.y,
-					obstacle.posEnd.x, obstacle.posEnd.y,
-					obstacle.radius
-				);
+				pathInstance.addLine(obstacle.posStart, obstacle.posEnd, obstacle.radius);
 				break;
 			case "Triangle": {
-				pathInstance.addTriangle(
-					obstacle.p1.x, obstacle.p1.y,
-					obstacle.p2.x, obstacle.p2.y,
-					obstacle.p3.x, obstacle.p3.y,
-					obstacle.lineWidth ?? 0
-				);
+				pathInstance.addTriangle(obstacle.p1, obstacle.p2, obstacle.p3, obstacle.lineWidth ?? 0);
 				break;
 			}
 		}

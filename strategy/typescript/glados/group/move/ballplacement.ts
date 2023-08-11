@@ -121,8 +121,7 @@ export class BallPlacement extends Move {
 
 		const EXTENDED_BALL_OBSTACLE: Obstacle = {
 			type: "circle",
-			x: BallObserver.getRealisticBallPos().x,
-			y: BallObserver.getRealisticBallPos().y,
+			center: BallObserver.getRealisticBallPos(),
 			radius: 3 * World.Ball.radius,
 			name: "g/m/ballplacement Ball"
 		};
@@ -130,8 +129,7 @@ export class BallPlacement extends Move {
 			EXTENDED_BALL_OBSTACLE,
 			{
 				type: "circle",
-				x: this._ballPlacementPos.x,
-				y: this._ballPlacementPos.y,
+				center: this._ballPlacementPos,
 				radius: FINE_ADJUST_ZONE,
 				name: "g/m/ballplacement Receiver Zone"
 			}

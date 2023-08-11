@@ -196,16 +196,16 @@ export class FeintPassTask extends Task {
 			if (this.passWasShot) {
 				if (attackPosition) {
 					// Feinted pass is already shot --> new attackPosition is where the ball will be catched
-					path.addLine(World.Ball.pos.x, World.Ball.pos.y, attackPosition.x, attackPosition.y, this._robot.radius, "PassEvacuation", 1);
+					path.addLine(World.Ball.pos, attackPosition, this._robot.radius, "PassEvacuation", 1);
 				} else {
-					path.addLine(World.Ball.pos.x, World.Ball.pos.y, this.relevantPassInfo.ballPos.x, this.relevantPassInfo.ballPos.y, this._robot.radius, "PassEvacuation", 1);
+					path.addLine(World.Ball.pos, this.relevantPassInfo.ballPos, this._robot.radius, "PassEvacuation", 1);
 				}
 			} else {
 				if (attackPosition) {
-					path.addLine(attackPosition.x, attackPosition.y, this.relevantPassInfo.ballPos.x, this.relevantPassInfo.ballPos.y, this._robot.radius, "PassEvacuation", 1);
+					path.addLine(attackPosition, this.relevantPassInfo.ballPos, this._robot.radius, "PassEvacuation", 1);
 				} else {
 					// This case should probably never happen tm
-					path.addLine(World.Ball.pos.x, World.Ball.pos.y, this.relevantPassInfo.ballPos.x, this.relevantPassInfo.ballPos.y, this._robot.radius, "PassEvacuation", 1);
+					path.addLine(World.Ball.pos, this.relevantPassInfo.ballPos, this._robot.radius, "PassEvacuation", 1);
 				}
 			}
 		}
