@@ -72,11 +72,12 @@ export class FeintPass extends Behavior {
 			// If there is a well-defined previous behaviour and we are close to one of the thresholds
 			// Consider two passInfos to be the same if it came from the same MA (otherwise lastFeintSamplings will be empty)
 			// and have the same target
-			if (Array.from(this.lastFeintSamplings.keys()).find((element) => element.target === passInfo.target) !== undefined
+			let passInfoLastFrame = Array.from(this.lastFeintSamplings.keys()).find((element) => element.target === passInfo.target);
+			if (passInfoLastFrame !== undefined
 				&& (Math.abs(passDist - PASS_DIST_SMALL_THRESHOLD) < PASS_DISTANCE_HYSTERESIS
 				|| Math.abs(passDist - PASS_DIST_LARGE_THRESHOLD) < PASS_DISTANCE_HYSTERESIS)) {
 				// Hysteresis says: continue what you were doing before
-				feintSamplings[passInfo] = this.lastFeintSamplings[passInfo];
+				feintSamplings[passInfo] = this.lastFeintSamplings[passInfoLastFrame];
 			} else {
 				// Just make hard cuts
 				feintSamplings[passInfo] = MathUtil.bound(0, Math.floor((passDist - 1) / 2), 2);
