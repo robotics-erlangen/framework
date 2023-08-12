@@ -5,7 +5,7 @@ import subprocess
 
 EXPECTED_MAIL_DOMAIN = "robotics-erlangen.de"
 ALLOWED_MAIL_ADRESSES = ["info@robotics-erlangen.de"]
-EXTERNAL_CONTRIBUTORS = ["Dawid Kulikowski"]
+EXTERNAL_CONTRIBUTORS = ["Dawid Kulikowski", "emiel steerneman"]
 
 # umlaut translation
 translationTable = { ord('ä'): 'ae', ord('ö'): 'oe', ord('ü'): 'ue', ord('ß'): 'ss', ord('é'): 'e' }
