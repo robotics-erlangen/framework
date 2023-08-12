@@ -726,6 +726,9 @@ export function robotTimeToPos(robot: RobotLike, endPos: Position, endSpeedVecto
  * TODO: This is not a very tight upper bound
  */
 export function robot1DMaxRangeInTime(robot: Robot, dir: Vector, time: RelTime): number {
+	if (time === Infinity) {
+		return Infinity;
+	}
 	let speedProjection = robot.speed.dot(dir.normalized());
 	let timeToMaxSpeed = (robot.maxSpeed - speedProjection) / robot.acceleration.aSpeedupFMax;
 	if (timeToMaxSpeed < time) {
