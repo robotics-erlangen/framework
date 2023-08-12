@@ -43,7 +43,8 @@ export class FeintGoalShot extends Behavior {
 		if (this._messaging.receiveTrainer(MessageType.mainAttacker) === this._robot
 			&& Field.distanceToOpponentDefenseArea(this._robot.pos, this._robot.radius) < 1.5
 			&& (Robot.hadBall(this._robot, 0.1) || Ball.lastBallOwner() === this._robot)
-			&& Math.abs(this._robot.pos.x) < World.Geometry.DefenseWidthHalf) {
+			&& Math.abs(this._robot.pos.x) < World.Geometry.DefenseWidthHalf
+			&& Ball.isStanding()) {
 
 			if (World.OpponentKeeper == undefined) {
 				debug.set("return case", "no Keeper");
