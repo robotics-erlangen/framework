@@ -170,7 +170,7 @@ export class Shoot {
 		let futureBall = Physics.ballAtTime(World.Ball, ballTime);
 
 		if (World.Ball.pos.distanceTo(this._robot.pos) < this._robot.shootRadius + World.Ball.radius) {
-			futureBall.pos = this._robot.pos + Vector.fromPolar(this._robot.dir, this._robot.shootRadius + World.Ball.radius);
+			futureBall.pos = World.Ball.pos;
 			this._lastBallInsideRobotTime = World.Time;
 		}
 
