@@ -297,7 +297,17 @@ function _predictShot(allShots: boolean = false, includeInvisible: boolean = tru
 
 	let oppBallOwner = Ball.opponentBallOwner();
 	let oppBallDribbler = Ball.opponentBallDribbler();
-	if (!Ball.isSlowBall()) {
+
+	let ballDistToDribbler;
+	if (oppBallDribbler) {
+		ballDistToDribbler = (World.Ball.pos - oppBallDribbler.dribblerPos).parallelComponent(
+			Vector.fromAngle(oppBallDribbler.dir)
+		).length();
+	} else {
+		ballDistToDribbler = Infinity;
+	}
+
+	if (!Ball.isSlowBall() && ballDistToDribbler > 5 * World.Ball.radius) {
 		// FIXME as the ball is moving also use pass check if it slightly misses the goal
 		// TODO check whether an opponent robot may deflect the ball inside the keeper area?
 		// check if there's a robot which may recieve the pass
