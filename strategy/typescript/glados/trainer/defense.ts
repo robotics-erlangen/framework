@@ -353,7 +353,7 @@ export class Defense {
 				this._messaging.send(
 					MessageType.roleAssignment,
 					closestAsFriendly,
-					{ name: "CenterBack", params: { pos: info.startPos, dir: info.startDirection, time: rollTime, isShot: isShot} }
+					{ name: "CenterBack", params: { pos: info.startPos, dir: info.startDirection, time: rollTime, isShot: isShot } }
 				);
 				if (!amun.isPerformanceMode) {
 					vis.addCircle("tr/defense: ball intersection", info.startPos, 0.08, vis.colors.yellow);
