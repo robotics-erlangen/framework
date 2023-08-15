@@ -4,6 +4,7 @@ import { Position } from "base/vector";
 import * as World from "base/world";
 
 import { DoubleTouchGuard } from "glados/agent/attacker/doubletouchguard";
+import { FeintGoalShot } from "glados/agent/attacker/feintgoalshot";
 import { FeintPass } from "glados/agent/attacker/feintpass";
 import { FreeKick } from "glados/agent/attacker/freekick";
 import { PassTiming } from "glados/agent/attacker/passtiming";
@@ -30,6 +31,7 @@ export class Striker extends Objective {
 	private static readonly MA_RUNNER = parameterizeClass(CheckableList, [
 		BreakPass,
 		PassTiming,
+		FeintGoalShot,
 		parameterizeClass(Shoot, defaultRatePass),
 	]);
 	private static readonly FREEKICK_RUNNER = parameterizeClass(CheckableList, [
@@ -37,6 +39,7 @@ export class Striker extends Objective {
 		parameterizeClass(FreeKick, defaultRatePass),
 		DoubleTouchGuard,
 		PassTiming,
+		FeintGoalShot,
 		parameterizeClass(Shoot, defaultRatePass),
 	]);
 	private static readonly SUPPORT_RUNNER = parameterizeClass(CheckableList, [
