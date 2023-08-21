@@ -120,6 +120,6 @@ export class AttackerPool extends AgentPool {
 			return false;
 		}
 		let attackers = moveInfo.attackers;
-		return ListUtil.some(attackers, (a: (number | undefined)) => a === x.robot().id);
+		return attackers.some((a: (number | undefined)) => a === x.robot().id);
 	}
 }

@@ -6,7 +6,6 @@ export class BaseListUtil extends UnitTest {
 		super();
 		this.addTest("testMax", this.testMax);
 		this.addTest("testMin", this.testMin);
-		this.addTest("testSome", this.testSome);
 		this.addTest("testPartition", this.testPartition);
 	}
 
@@ -29,25 +28,18 @@ export class BaseListUtil extends UnitTest {
 		this.assert_equal(ListUtil.max([] as number[], (a) => a)[0], undefined);
 	}
 
-	private testSome() {
-		let array = [1, 0, 4, 5, 7, 6, 3, 3, 9];
-		this.assert_true(ListUtil.some(array, (x) => x % 2 === 0));
-		this.assert_false(ListUtil.some(array, (x) => x === 2));
-		this.assert_true(ListUtil.some(array, (x) => x === 7));
-	}
-
 	private testPartition() {
 		let array = [1, 0, 3, 2, 4, 7, 6, 9];
 		let [accept, reject] = ListUtil.partition(array, (x) => x % 2 === 0);
-		this.assert_true(ListUtil.some(accept, (x) => x === 0));
-		this.assert_true(ListUtil.some(accept, (x) => x === 2));
-		this.assert_true(ListUtil.some(accept, (x) => x === 4));
-		this.assert_true(ListUtil.some(accept, (x) => x === 6));
+		this.assert_true(accept.some((x) => x === 0));
+		this.assert_true(accept.some((x) => x === 2));
+		this.assert_true(accept.some((x) => x === 4));
+		this.assert_true(accept.some((x) => x === 6));
 		this.assert_equal(accept.length, 4);
-		this.assert_true(ListUtil.some(reject, (x) => x === 1));
-		this.assert_true(ListUtil.some(reject, (x) => x === 3));
-		this.assert_true(ListUtil.some(reject, (x) => x === 7));
-		this.assert_true(ListUtil.some(reject, (x) => x === 9));
+		this.assert_true(reject.some((x) => x === 1));
+		this.assert_true(reject.some((x) => x === 3));
+		this.assert_true(reject.some((x) => x === 7));
+		this.assert_true(reject.some((x) => x === 9));
 		this.assert_equal(reject.length, 4);
 	}
 }

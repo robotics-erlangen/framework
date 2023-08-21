@@ -1,6 +1,5 @@
 import * as debug from "base/debug";
 import * as Field from "base/field";
-import { some } from "base/listutil";
 import * as Referee from "base/referee";
 import { Robot } from "base/robot";
 import { Vector } from "base/vector";
@@ -125,7 +124,7 @@ export class BreakPass extends Behavior {
 			let futureBall = Physics.ballAtTimeExperimental(World.Ball, timeToMA);
 			if (timeToMA < 0 || futureBall.posZ == undefined || futureBall.posZ < this._robot.height) {
 				const timeBallToTarget = Physics.ballRollTime(World.Ball, World.Ball.pos.distanceTo(attackPosition!));
-				const oppInPassZone = some(World.OpponentRobots, (opp) => {
+				const oppInPassZone = World.OpponentRobots.some((opp) => {
 					// Check if the opponent could reach the ball faster than the ball its target
 					const hysteresis = this.lastOppFirstAtBall[opp] ? 0 : -0.1;
 					const oppFaster = ObserverRobot.minTimeToBall(opp) < timeBallToTarget + hysteresis;

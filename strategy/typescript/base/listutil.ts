@@ -64,22 +64,6 @@ export function max<T>(list: T[], rate: (a: T) => number): [T | undefined, numbe
 }
 
 /**
- * Checks if at least one element of list fullfills pred. Returns early if a
- * valid element is found.
- * @param list - The list to check
- * @param pred - The predicate to apply
- * @returns true if at least one element of list fullfills pred
- */
-export function some<T>(list: readonly T[], pred: (a: T) => boolean): boolean {
-	for (const elem of list) {
-		if (pred(elem)) {
-			return true;
-		}
-	}
-	return false;
-}
-
-/**
  * Paritions a list in two list.
  * The first return value will be a list with all elements fullfilling the pred,
  * the second return value a list with all element that do not fullfill the pred.

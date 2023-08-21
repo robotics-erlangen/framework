@@ -2,7 +2,7 @@ import { Ball } from "base/ball";
 import * as Cache from "base/cache";
 import * as debug from "base/debug";
 import * as geom from "base/geom";
-import { min, some } from "base/listutil";
+import { min } from "base/listutil";
 import * as MathUtil from "base/mathutil";
 import * as plot from "base/plot";
 import * as Referee from "base/referee";
@@ -340,7 +340,7 @@ function updateReceivesPass() {
 		 */
 		const coneAngleMin = ballDir - coneWidth / 2;
 
-		const robotInCone = some(checkForConePositions, (pos) => {
+		const robotInCone = checkForConePositions.some((pos) => {
 			const globalAngle = (pos - World.Ball.pos).angle();
 			return geom.normalizeAnglePositive(globalAngle - coneAngleMin) <= coneWidth;
 		});
