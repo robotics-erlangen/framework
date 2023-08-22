@@ -8,6 +8,7 @@ export class BaseListUtil extends UnitTest {
 		this.addTest("testMin", this.testMin);
 		this.addTest("testPartition", this.testPartition);
 		this.addTest("testRange", this.testRange);
+		this.addTest("testLinspace", this.testLinspace);
 	}
 
 	private testMin() {
@@ -55,6 +56,37 @@ export class BaseListUtil extends UnitTest {
 		this.assert_deep_equal(ListUtil.range(-1, -1), []);
 		this.assert_deep_equal(ListUtil.range(4, 4), []);
 		this.assert_deep_equal(ListUtil.range(4, 2), []);
+	}
+
+	private testLinspace() {
+		const args = [
+			[10, -1, 1],
+			[12, -10, 21],
+			[3, 0, 20],
+			[2, 0, 2],
+			[1, 0, 20],
+			[0, 0, 20],
+		];
+		for (const [len, min, max] of args) {
+			const lin = ListUtil.linspace(len, min, max);
+
+			// check length
+			this.assert_equal(lin.length, len);
+
+			// check only for lists with at least two elements
+			if (len >= 2) {
+				// check min and max
+				this.assert_equal_eps(Math.min(...lin), min, 1e-6);
+				this.assert_equal_eps(Math.max(...lin), max, 1e-6);
+
+				// check ascending order and step size
+				const step = lin[1] - lin[0];
+				for (let i = 0; i < len - 1; i++) {
+					this.assert_true(lin[i] < lin[i + 1]);
+					this.assert_equal_eps(lin[i + 1] - lin[i], step, 1e-6);
+				}
+			}
+		}
 	}
 }
 export let testClass = BaseListUtil;
