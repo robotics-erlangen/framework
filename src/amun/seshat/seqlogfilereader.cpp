@@ -138,6 +138,9 @@ bool SeqLogFileReader::readNextGroup()
     // read and decompress group
     m_currentGroup.clear();
     *m_stream >> m_currentGroup;
+    if (m_currentGroup.isEmpty()) {
+        return false;
+    }
     m_currentGroup = qUncompress(m_currentGroup);
     if (m_currentGroup.isEmpty()) {
         return false;
