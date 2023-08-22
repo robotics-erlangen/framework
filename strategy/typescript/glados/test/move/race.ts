@@ -1,3 +1,4 @@
+import * as ListUtil from "base/listutil";
 import { FriendlyRobot } from "base/robot";
 import { Vector } from "base/vector";
 import * as vis from "base/vis";
@@ -8,11 +9,6 @@ import { MoveToPos } from "glados/task/shared/movetopos";
 
 const G = World.Geometry;
 
-function linspace(n: number, a: number, b: number): number[] {
-	const step = n === 1 ? 0 : (b - a) / (n - 1);
-	return Array.from({ length: n }, (_, i) => a + step * i);
-}
-
 function nRobots(n: number, topLeft: Vector, bottomRight: Vector, driveDirection?: "x" | "y"): [Vector, Vector][] {
 	const x0 = topLeft.x;
 	const y0 = topLeft.y;
@@ -21,9 +17,9 @@ function nRobots(n: number, topLeft: Vector, bottomRight: Vector, driveDirection
 
 	driveDirection ??= (Math.abs(x1 - x0) > Math.abs(y1 - y0)) ? "x" : "y";
 	if (driveDirection === "x") {
-		return linspace(n, y0, y1).map((y) => [new Vector(x0, y), new Vector(x1, y)]);
+		return ListUtil.linspace(n, y0, y1).map((y) => [new Vector(x0, y), new Vector(x1, y)]);
 	} else {
-		return linspace(n, x0, x1).map((x) => [new Vector(x, y0), new Vector(x, y1)]);
+		return ListUtil.linspace(n, x0, x1).map((x) => [new Vector(x, y0), new Vector(x, y1)]);
 	}
 }
 
