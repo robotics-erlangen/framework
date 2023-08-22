@@ -7,6 +7,7 @@ export class BaseListUtil extends UnitTest {
 		this.addTest("testMax", this.testMax);
 		this.addTest("testMin", this.testMin);
 		this.addTest("testPartition", this.testPartition);
+		this.addTest("testRange", this.testRange);
 	}
 
 	private testMin() {
@@ -41,6 +42,19 @@ export class BaseListUtil extends UnitTest {
 		this.assert_true(reject.some((x) => x === 7));
 		this.assert_true(reject.some((x) => x === 9));
 		this.assert_equal(reject.length, 4);
+	}
+
+	private testRange() {
+		this.assert_deep_equal(ListUtil.range(0, 1), [0]);
+		this.assert_deep_equal(ListUtil.range(2, 4), [2, 3]);
+		this.assert_deep_equal(ListUtil.range(3, 10), [3, 4, 5, 6, 7, 8, 9]);
+		this.assert_deep_equal(ListUtil.range(0, 10), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+		this.assert_deep_equal(ListUtil.range(-2, 10), [-2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+		this.assert_deep_equal(ListUtil.range(0, 0), []);
+		this.assert_deep_equal(ListUtil.range(-1, -1), []);
+		this.assert_deep_equal(ListUtil.range(4, 4), []);
+		this.assert_deep_equal(ListUtil.range(4, 2), []);
 	}
 }
 export let testClass = BaseListUtil;

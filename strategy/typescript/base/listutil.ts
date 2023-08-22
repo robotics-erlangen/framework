@@ -4,7 +4,7 @@
  */
 
 /**************************************************************************
-*   Copyright 2018 Paul Bergmann                                          *
+*   Copyright 2018 Paul Bergmann, Christoph Schmidtmeier                  *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
 *   info@robotics-erlangen.de                                             *
@@ -89,4 +89,14 @@ export function partition<T>(list: T[], pred: (a: T) => boolean): [T[], T[]] {
  */
 export function flat<T>(list: T[][]): T[] {
 	return list.reduce((acc, val) => acc.concat(val), []);
+}
+
+/**
+ * Creates a new array containing all whole numbers from start inclusive to
+ * stop exclusive
+ * @param start - The start value (inclusive)
+ * @param stop - The stop value (exclusive)
+ */
+export function range(start: number, stop: number): number[] {
+	return Array.from({ length: stop - start }, (_, i) => start + i);
 }
