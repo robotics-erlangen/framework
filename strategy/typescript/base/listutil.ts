@@ -100,3 +100,15 @@ export function flat<T>(list: T[][]): T[] {
 export function range(start: number, stop: number): number[] {
 	return Array.from({ length: stop - start }, (_, i) => start + i);
 }
+
+/**
+ * Creates a new array of n evenly spaces numbers ranging from a to b, both
+ * inclusive
+ * @param n - The number of elements to generate
+ * @param a - The start value (inclusive)
+ * @param b - The end value (inclusive)
+ */
+export function linspace(n: number, a: number, b: number): number[] {
+	const step = n <= 1 ? 0 : (b - a) / (n - 1);
+	return range(0, n).map((i) => a + step * i);
+}
