@@ -237,7 +237,7 @@ Status Processor::assembleStatus(qint64 time, bool resetRaw)
                 geometry->set_division(world::Geometry_Division_B);
             } else {
                 if (std::abs(m_divisionDimensions.field_height_a() - geometry->field_height()) > m_divisionDimensions.field_height_a() * 0.1
-                        && std::abs(m_divisionDimensions.field_width_a() - geometry->field_width()) <= m_divisionDimensions.field_width_a() * 0.1) {
+                        && std::abs(m_divisionDimensions.field_width_a() - geometry->field_width()) > m_divisionDimensions.field_width_a() * 0.1) {
                     std::cerr << "Error, field size doesn't match either division. Dimensions in config/division-dimensions.txt are:\nDivision A: width:"<< m_divisionDimensions.field_width_a() << " height: " << m_divisionDimensions.field_height_a() << "\nDivision B: width:" << m_divisionDimensions.field_width_b() << " height: " << m_divisionDimensions.field_height_b() << "\nDefaulting to division A rules." << std::endl;
                 }
                 geometry->set_division(world::Geometry_Division_A);
