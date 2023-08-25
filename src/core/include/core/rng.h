@@ -72,7 +72,8 @@ inline float RNG::uniformFloat(float min, float max)
  */
 inline Vector RNG::uniformVector()
 {
-    return Vector(uniform(), uniform());
+    float x = uniform();
+    return Vector(x, uniform());
 }
 
 /*!
@@ -83,7 +84,8 @@ inline Vector RNG::uniformVector()
  */
 inline Vector RNG::uniformVectorIn(Vector min, Vector max)
 {
-    return Vector(uniformFloat(min.x, max.x), uniformFloat(min.y, max.y));
+    float x = uniformFloat(min.x, max.x);
+    return Vector(x, uniformFloat(min.y, max.y));
 }
 
 /*!
