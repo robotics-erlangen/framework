@@ -91,7 +91,7 @@ export class Race extends Move {
 		const x1 = bottomRight.x;
 		const y1 = bottomRight.y;
 
-		driveDirection ??= (Math.abs(x1 - x0) > Math.abs(y1 - y0)) ? "x" : "y";
+		driveDirection ??= (Math.abs(x1 - x0) > Math.abs(y1 - y0)) ? "y" : "x";
 		amun.log(driveDirection);
 		if (driveDirection === "x") {
 			return ListUtil.linspace(n, y0, y1).map((y) => [new Vector(x0, y), new Vector(x1, y)]);
