@@ -368,7 +368,7 @@ QString TeamWidget::shortenEntrypointName(const QMenu *menu, const QString &name
 
 void TeamWidget::showOpenDialog()
 {
-    QString filename = QFileDialog::getOpenFileName(this, "Open script", QString(), QString("Lua/Ts script entrypoint (init.lua init.ts)"));
+    QString filename = QFileDialog::getOpenFileName(this, "Open script", QString(), QString("Lua/Ts script entrypoint (init.lua init.ts this-filter-is-required-to-stop-this-from-breaking.see-commit-msg.i-hate-this.?)"));
     if (filename.isNull()) {
         return;
     }
