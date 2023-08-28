@@ -9,20 +9,6 @@ import { MoveToPos } from "glados/task/shared/movetopos";
 
 const G = World.Geometry;
 
-function nRobots(n: number, topLeft: Vector, bottomRight: Vector, driveDirection?: "x" | "y"): [Vector, Vector][] {
-	const x0 = topLeft.x;
-	const y0 = topLeft.y;
-	const x1 = bottomRight.x;
-	const y1 = bottomRight.y;
-
-	driveDirection ??= (Math.abs(x1 - x0) > Math.abs(y1 - y0)) ? "x" : "y";
-	if (driveDirection === "x") {
-		return ListUtil.linspace(n, y0, y1).map((y) => [new Vector(x0, y), new Vector(x1, y)]);
-	} else {
-		return ListUtil.linspace(n, x0, x1).map((x) => [new Vector(x, y0), new Vector(x, y1)]);
-	}
-}
-
 // explananation of the suffixes: [FMO][LR] = { friendly, mid, opponent } { left, right }
 // so CORNER_ML is the left end of the halfway line
 const CORNER_ML = new Vector(-G.FieldWidthHalf, 0);
@@ -97,6 +83,21 @@ export class Race extends Move {
 
 	static canStart() {
 		return true;
+	}
+
+	static nRobots(n: number, topLeft: Vector, bottomRight: Vector, driveDirection?: "x" | "y"): [Vector, Vector][] {
+		const x0 = topLeft.x;
+		const y0 = topLeft.y;
+		const x1 = bottomRight.x;
+		const y1 = bottomRight.y;
+
+		driveDirection ??= (Math.abs(x1 - x0) > Math.abs(y1 - y0)) ? "x" : "y";
+		amun.log(driveDirection);
+		if (driveDirection === "x") {
+			return ListUtil.linspace(n, y0, y1).map((y) => [new Vector(x0, y), new Vector(x1, y)]);
+		} else {
+			return ListUtil.linspace(n, x0, x1).map((x) => [new Vector(x, y0), new Vector(x, y1)]);
+		}
 	}
 
 	_canContinue() {
