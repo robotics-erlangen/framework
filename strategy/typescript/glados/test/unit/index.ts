@@ -50,6 +50,7 @@ const tests: { [name: string]: string } = {
 	"BaseTryCatch": `${testPrefix}base/trycatch`,
 	"BaseTypes": `${testPrefix}base/types`,
 	"BaseVector": `${testPrefix}base/vector`,
+	"BaseRingBuffer": `${testPrefix}base/ringbuffer`,
 	"GladosMessaging": `${testPrefix}glados/messaging`,
 	"GladosMoveshelper": `${testPrefix}glados/moveshelper`,
 	"GladosPools": `${testPrefix}glados/pools`,
