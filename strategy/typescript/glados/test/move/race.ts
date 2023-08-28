@@ -9,57 +9,83 @@ import { MoveToPos } from "glados/task/shared/movetopos";
 
 const G = World.Geometry;
 
-// explananation of the suffixes: [FMO][LR] = { friendly, mid, opponent } { left, right }
-// so CORNER_ML is the left end of the halfway line
-const CORNER_ML = new Vector(-G.FieldWidthHalf, 0);
-const CORNER_MR = new Vector(G.FieldWidthHalf, 0);
-const CORNER_FL = new Vector(-G.FieldWidthHalf, -G.FieldHeightHalf);
-const CORNER_FR = new Vector(G.FieldWidthHalf, -G.FieldHeightHalf);
-const CORNER_OL = new Vector(-G.FieldWidthHalf, G.FieldHeightHalf);
-const CORNER_OR = new Vector(G.FieldWidthHalf, G.FieldHeightHalf);
-
-// we dont want to drive exactly on the lines
-// so PADDING_FL is adds padding towards the friendly goal and towards the left
-const PADDING = 0.5;
-const PADDING_FL = new Vector(-PADDING, -PADDING);
-const PADDING_FR = new Vector(PADDING, -PADDING);
-const PADDING_OL = new Vector(-PADDING, PADDING);
-const PADDING_OR = new Vector(PADDING, PADDING);
-
-// presets
-/* eslint-disable no-unused-vars */
-const FRIENDLY_GOAL_EDGE: Vector[] = [CORNER_FR + PADDING_OL, CORNER_FL + PADDING_OR];
-const OPPONENT_GOAL_EDGE: Vector[] = [CORNER_OR + PADDING_FL, CORNER_OL + PADDING_FR];
-
-const FRIENDLY_RIGHT_EDGE: Vector[] = [CORNER_MR + PADDING_FL, CORNER_FR + PADDING_OL];
-const OPPONENT_RIGHT_EDGE: Vector[] = [CORNER_MR + PADDING_OL, CORNER_OR + PADDING_FL];
-
-const FRIENDLY_LEFT_EDGE: Vector[] = [CORNER_ML + PADDING_FR, CORNER_FL + PADDING_OR];
-const OPPONENT_LEFT_EDGE: Vector[] = [CORNER_ML + PADDING_OR, CORNER_OL + PADDING_FR];
-
-const FULL_RIGHT_EDGE: Vector[] = [CORNER_FR + PADDING_OL, CORNER_OR + PADDING_FL];
-const FULL_LEFT_EDGE: Vector[] = [CORNER_FL + PADDING_OR, CORNER_OL + PADDING_FR];
-/* eslint-enable no-unused-vars */
-
 export class Race extends Move {
-	/* for a single robot, just add the target positions in the lower list and it will cycle through them */
-	// private static readonly POSITIONS: Vector[][] = [
-	// 	[new Vector(-2, -2), new Vector(2, -2)],
-	// ];
+	/***********************************************************************
+	 * If you just want to quickly use this move, see search for           *
+	 * "Presets:" in this file for a list of common situations and turn on *
+	 * the "te/m/race: positions" visualization, else read the next        *
+	 * paragraph below for a more thorough explanation.                    *
+	 ***********************************************************************/
 
-	/* for multiple robots, just enter the number below */
-	// private static readonly POSITIONS: Vector[][] = nRobots(4, FRIENDLY_LEFT_EDGE[0], FRIENDLY_RIGHT_EDGE[1]);
+	/***********************************************************************
+	 * This move works by having a list of positions for each robot        *
+	 * through which it cycles. That's the POSITIONS array. For each list  *
+	 * in there, this move will have one robot cycling between those       *
+	 * positions.                                                          *
+	 *                                                                     *
+	 * If you just want N robots driving up and down in a predefined       *
+	 * rectangle, you can use the nRobots function, see its documentation. *
+	 ***********************************************************************/
 
-	/* this should work most of the time */
-	private static readonly POSITIONS: Vector[][] = nRobots(
-		World.FriendlyRobotsAll.length,
-		FRIENDLY_LEFT_EDGE[0],
-		FRIENDLY_RIGHT_EDGE[1]
-	);
+	/***********************************************************************
+	 * CORNERS defines some common points to use for this move. Namely, it *
+	 * defines the corners of the field, as well as the corners of each    *
+	 * field half, inset by PADDING to avoid having the robots drive on    *
+	 * the field lines and too close to the boundary of the field.         *
+	 *                                                                     *
+	 * [FO][MG][LR] = { friendly, opponent } { mid, goal } { left, right } *
+	 *                                                                     *
+	 *               OPPONENT HALF     FRIENDLY HALF                       *
+	 *                +-------------+-------------+                        *
+	 *                |             |             |                        *
+	 *                |  OGR   OMR  |  FMR   FGR  |    RIGHT               *
+	 *              +-+             |             +-+                      *
+	 *              | |             |             | |                      *
+	 *              +-+             |             +-+                      *
+	 *                |  OGL   OML  |  FML   FGL  |    LEFT                *
+	 *                |             |             |                        *
+	 *                +-------------+-------------+                        *
+	 *                                                                     *
+	 ***********************************************************************/
+	private static readonly PADDING = 0.5;
+	private static readonly CORNERS = {
+		FGL: new Vector(-G.FieldWidthHalf + Race.PADDING, -G.FieldHeightHalf + Race.PADDING),
+		FGR: new Vector(+G.FieldWidthHalf - Race.PADDING, -G.FieldHeightHalf + Race.PADDING),
+		FML: new Vector(-G.FieldWidthHalf + Race.PADDING, -Race.PADDING),
+		FMR: new Vector(+G.FieldWidthHalf - Race.PADDING, -Race.PADDING),
+		OGL: new Vector(-G.FieldWidthHalf + Race.PADDING, +G.FieldHeightHalf - Race.PADDING),
+		OGR: new Vector(+G.FieldWidthHalf - Race.PADDING, +G.FieldHeightHalf - Race.PADDING),
+		OML: new Vector(-G.FieldWidthHalf + Race.PADDING, +Race.PADDING),
+		OMR: new Vector(+G.FieldWidthHalf - Race.PADDING, +Race.PADDING),
+	};
 
+	/***********************************************************************
+	 * Presets:                                                            *
+	 * (a) have one robot drive back and forth between two positions       *
+	 * (b) have 4 robots drive back and forth in the friendly half         *
+	 * (c) have 4 robots drive back and forth in the opponent half         *
+	 * (d) have 4 robots drive back and forth on the full field            *
+	 ***********************************************************************/
+	/* (a) */ private static readonly POSITIONS: Vector[][] = [[new Vector(-2, -2), new Vector(2, -2)]];
+	/* (b) */ // private static readonly POSITIONS: Vector[][] = Race.nRobots(4, Race.CORNERS.FML, Race.CORNERS.FGR);
+	/* (c) */ // private static readonly POSITIONS: Vector[][] = Race.nRobots(4, Race.CORNERS.OML, Race.CORNERS.OGR);
+	/* (d) */ // private static readonly POSITIONS: Vector[][] = Race.nRobots(4, Race.CORNERS.FGL, Race.CORNERS.OGR);
+
+	/***********************************************************************
+	 * If you want the robots to wait for each other and only start        *
+	 * driving to the next position after everyone arrived at the          *
+	 * current target, you can set SYNC to true (that's the default).      *
+	 * If it is set to false, every robot cycles through its               *
+	 * positions independently of the others.                              *
+	 ***********************************************************************/
+	private static readonly SYNC: boolean = true;
+
+	/***********************************************************************
+	 * To control how close to its target each robot has to drive and how  *
+	 * slow it needs to be, you can use these parameters                   *
+	 ***********************************************************************/
 	private static readonly POS_TOLERANCE: number = 0.2;
 	private static readonly SPEED_TOLERANCE: number = 0.05;
-	private static readonly SYNC: boolean = false;
 
 	private static readonly N: number = Race.POSITIONS.length;
 	private static readonly COLORS: vis.Color[] = [
@@ -85,6 +111,19 @@ export class Race extends Move {
 		return true;
 	}
 
+	/**
+	 * Generate position pairs in a rectangle
+	 *
+	 * This function creates n line segments in the passed rectangle, parallel
+	 * to the axis specified in driveDirection or, if driveDirection is undefined,
+	 * parallel to the shorter side of the rectangle.
+	 *
+	 * @param n - number of pairs to generate
+	 * @param topLeft - top left corner of the rectangle
+	 * @param bottomRight - bottom right corner of the rectangle
+	 * @param driveDirection - alignment of the lines, if left out, the alignment that maximizes the space between the lines
+	 * @returns a list of pairs of points representing evenly spaced, parallel lines in the specified rectangle
+	 */
 	static nRobots(n: number, topLeft: Vector, bottomRight: Vector, driveDirection?: "x" | "y"): [Vector, Vector][] {
 		const x0 = topLeft.x;
 		const y0 = topLeft.y;
