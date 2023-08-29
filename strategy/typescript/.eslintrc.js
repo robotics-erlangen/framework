@@ -155,6 +155,12 @@ module.exports = {
                 "format": ["camelCase", "snake_case"],
                 "leadingUnderscore": "allow",
             },
+            {
+                "selector": "typeProperty",
+                "format": ["camelCase", "UPPER_CASE"],
+                "modifiers": ["readonly"],
+                "leadingUnderscore": "allow",
+            },
 
             {
                 "selector": "parameterProperty",

@@ -69,11 +69,9 @@ interface AmunPublic {
 	/** Send arbitrary commands. Only works in debug mode */
 	sendCommand(command: pb.amun.Command): void;
 
-	/* eslint-disable @typescript-eslint/naming-convention */
 	// ra version/feature tags
 	readonly SUPPORTS_OPTION_DEFAULT: boolean | undefined;
 	readonly SUPPORTS_EFFICIENT_PATHVIS: boolean | undefined;
-	/* eslint-enable @typescript-eslint/naming-convention */
 }
 
 /**
