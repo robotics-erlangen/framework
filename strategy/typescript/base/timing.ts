@@ -1,3 +1,8 @@
+/**
+ * @module timing
+ * Provides timers per robot.
+ */
+
 /**************************************************************************
 *   Copyright 2018 Andreas Wendler                                        *
 *   Robotics Erlangen e.V.                                                *

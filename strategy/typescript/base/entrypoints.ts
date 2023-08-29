@@ -1,6 +1,7 @@
 /**
  * @module entrypoints
  * Class to add new Entrypoints
+ * Entrypoints are functions exposed by the selected strategy script file and if selected will be executed every frame.
  */
 
 /**************************************************************************
