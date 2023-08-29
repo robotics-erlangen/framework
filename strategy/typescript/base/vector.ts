@@ -1,7 +1,7 @@
 /**
  * @module vector
  * 2D Vector class.
- * Support + - * /
+ * Supports + - * / with our custom typescript compiler.
  */
 
 /**************************************************************************

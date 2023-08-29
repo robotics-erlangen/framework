@@ -1,3 +1,9 @@
+/**
+ * @module trycatch
+ * Provides a custom implementation of trycatch, which is necessary,
+ * because the language try-catch construct would break the interaction with the C++ amun.
+ */
+
 /**************************************************************************
 *   Copyright 2019 Tobias Heineken,                                       *
 *   Robotics Erlangen e.V.                                                *

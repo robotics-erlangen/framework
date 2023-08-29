@@ -83,10 +83,18 @@ function intersectCircleCircleCos(c1: Position, r1: number, c2: Position, r2: nu
 	return [res1, res2];
 }
 
+/**
+ * Bound a position to be inside of a rectangle described by two points.
+ * The rectangle points p1 and p2 do not have to be sorted, meaning e.g. for a given pos both
+ * p1 = (1, 1), p2 = (2, -1) and p1 = (1, -1), p2 = (2, 1) return the same output.
+ * @param p1 - first point of rectangle
+ * @param pos - the position you want to bound
+ * @param p2 - second point of rectangle
+ * @returns the closest position to pos that is inside of the rectangle described by p1 and p2
+ */
 export function boundRect(p1: Position, pos: Position, p2: Position): Position {
 	return new Vector(MathUtil.bound(Math.min(p1.x, p2.x), pos.x, Math.max(p1.x, p2.x)),
 						MathUtil.bound(Math.min(p1.y, p2.y), pos.y, Math.max(p1.y, p2.y)));
-	// return new Vector(MathUtil.bound(min.x, pos.x, max.x), MathUtil.bound(min.y, pos.y, max.y))
 }
 
 /**
@@ -339,10 +347,20 @@ export function isInTriangle(a: Position, b: Position, c: Position, p: Position)
 	return v >= 0 && u + v <= 1;
 }
 
+/**
+ * Converts angle in degrees to angle in radians.
+ * @param angle - angle in degrees
+ * @returns angle in radians
+ */
 export function degreeToRadian(angleInDegree: number): number {
 	return angleInDegree * Math.PI / 180;
 }
 
+/**
+ * Converts angle in radians to angle in degrees.
+ * @param angle - angle in radians
+ * @returns angle in degrees
+ */
 export function radianToDegree(angleInRadian: number): number {
 	return angleInRadian * 180 / Math.PI;
 }
@@ -422,6 +440,13 @@ export function inscribedAngle(point1: Position, point2: Position, theta: number
 	return [centerOfCircleOne, centerOfCircleTwo, radius];
 }
 
+/**
+ * The corners don't have to be sorted, so corner1.x can be bigger or smaller than corner2.x without changing the result of this function.
+ * @param corner1 - first corner of rectangle
+ * @param corner2 - second corner of rectangle
+ * @param x - position to be tested
+ * @returns true if x is in rectangle described by corner1, corner2
+ */
 export function insideRect(corner1: Position, corner2: Position, x: Position): boolean {
 	let minCornerX, maxCornerX, minCornerY, maxCornerY;
 	if (corner1.x < corner2.x) {
@@ -438,7 +463,15 @@ export function insideRect(corner1: Position, corner2: Position, x: Position): b
 			minCornerY < x.y && x.y < maxCornerY;
 }
 
-export function isInStadium(a: Position, b: Position, radius: number, p: Position) {
+/**
+ * The positions a and b don't have to be sorted, so a.x can be bigger or smaller than b.x without changing the result of this function.
+ * @param a - first position of stadium
+ * @param b - second position of stadium
+ * @param radius - radius of sides of stadium
+ * @param p - position to be tested
+ * @returns true if p is in stadium described by positions a, b and the radius of its sides
+ */
+export function isInStadium(a: Position, b: Position, radius: number, p: Position): boolean {
 	const radiusSq = radius ** 2;
 	if (p.distanceToSq(a) < radiusSq) {
 		return true;
@@ -450,6 +483,13 @@ export function isInStadium(a: Position, b: Position, radius: number, p: Positio
 	return insideRect(a - offset, b + offset, p);
 }
 
+/**
+ * amin HAS to be smaller than amax for this to work.
+ * @param amin - minimum allowed angle
+ * @param val - angle to be bounded
+ * @param amax - maximum allowed angle
+ * @returns angle val bounded to be between amin vs amax
+ */
 export function angleBound(amin: number, val: number, amax: number): number {
 	if (val <= amax && val >= amin) return val;
 	let diffMin = Math.abs(getAngleDiff(amin, val));

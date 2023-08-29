@@ -1,6 +1,9 @@
 /**
  * @module field
  * Some field related utility functions
+ * A lot of these functions have separate implementations for the field setup pre 2018 and post 2018,
+ * because 2018 the defense area changed to being rectangular, but the exported functions should automatically
+ * choose the correct implementation.
  */
 
 /**************************************************************************

@@ -315,6 +315,7 @@ export class Robot implements RobotState {
 	}
 }
 
+/** Subclass of Robot with additional information that we only have for our own robots */
 export class FriendlyRobot extends Robot {
 	/** robot generation (-1 for unknown robots) */
 	generation: number;
@@ -437,7 +438,8 @@ export class FriendlyRobot extends Robot {
 			dribblerSpeed: command.dribbler };
 	}
 
-	_command() {
+	/** Construct the command for what the corresponding actual robot should do based on the current state of this FriendlyRobot */
+	_command(): pb.robot.Command {
 		const STANDBY_DELAY = 30;
 		let standby = this._standbyTimer >= 0 && (this._currentTime - this._standbyTimer > STANDBY_DELAY);
 
@@ -463,6 +465,7 @@ export class FriendlyRobot extends Robot {
 		return result;
 	}
 
+	/** update state of the FriendlyRobot that is dependent on the external world and radio responses, is supposed to be called once per frame */
 	_update(state: pb.world.Robot, time: number, radioResponses?: pb.robot.RadioResponse[]) {
 		// keep current time for use by setStandby
 		this._currentTime = time;

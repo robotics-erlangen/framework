@@ -19,11 +19,13 @@
 **************************************************************************/
 import { RobotAccelerationProfile } from "base/trajectory";
 
+/** Interface describing basic movement information of a team. */
 export interface RobotSpecs {
 	profile: RobotAccelerationProfile;
 	vmax: number;
 	vangular: number;
 }
 
+/** This map is meant to be filled with the measured RobotSpecs of opponent teams during tournaments. */
 export let accelerationsByTeam: Map<string, RobotSpecs> = new Map();
 

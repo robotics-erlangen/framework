@@ -44,6 +44,7 @@ export const maxBallSpeed = 6.1;
 /** maximum allowed shooting speed [m/s] */
 export const allowedMaxBallSpeed = 6.5;
 
+/** maximum allowed dribble distance before dribbled too far foul triggers [m] */
 export const maxDribbleDistance = 1;
 
 export const maxRobotRadius = 0.09;

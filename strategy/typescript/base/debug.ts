@@ -1,6 +1,17 @@
 /**
  * @module debug
  * Provides functions to set values on the debug tree
+ * The hierarchy is defined by '/' so e.g. "robot 2/pos" is a branch of "robot 2" in the debug tree.
+ * For ease of use a common prefix for the following calls to set can be pushed and later popped.
+ * @example
+ * // using only set
+ * debug.set("robot 2/pos", pos);
+ * debug.set("robot 2/speed", speed);
+ * // using push/pop
+ * debug.push("robot 2");
+ * debug.set("pos", pos);
+ * debug.set("speed", speed);
+ * debug.pop();
  */
 
 /**************************************************************************

@@ -31,9 +31,18 @@
 
 import * as pb from "base/protobuf";
 
+/**
+ * Interface of all the public functions the amun framework provides.
+ * These are actually meant to be used by the strategy code in contrast to the functions added in {@link Amun}.
+ */
 interface AmunPublic {
+	/**
+	 * The debug mode is supposed to be used for both functions that are not usable in real world circumstances (e.g. teleporting the ball) {@link sendCommand}
+	 * and for extra checks that might be too expensive to have them running all the time
+	 */
 	isDebug: boolean;
 	strategyPath: string;
+	/** The Performance mode is supposed to be used to toggle some optional parts of the code e.g. visualizations off to increase performance */
 	isPerformanceMode: boolean;
 	/**
 	 * Logs the equivalent of new String(value) to the log widget for each value of data, seperated by spaces
@@ -67,6 +76,11 @@ interface AmunPublic {
 	/* eslint-enable @typescript-eslint/naming-convention */
 }
 
+/**
+ * Interface of all the private functions the amun framework provides.
+ * These are only meant for initializing the state of all the base modules and should not be used outside of them.
+ * This means e.g. instead of directly reading amun.getWorldState() in strategy code you should just read the state of the base/world.
+ */
 interface Amun extends AmunPublic {
 	/** Returns world state */
 	getWorldState(): pb.world.State;
@@ -162,6 +176,7 @@ amun = {
 // only to be used for unit tests
 export let fullAmun: Amun;
 
+/** This function is used to turn the amun object of type {@link Amun} to an object of type {@link AmunPublic} */
 export function _hideFunctions() {
 	fullAmun = amun;
 	let isDebug = amun.isDebug;
@@ -229,6 +244,7 @@ export function _hideFunctions() {
 	};
 }
 
+// short cut for the commonly used log function
 export const log = amun.log;
 
 /**
