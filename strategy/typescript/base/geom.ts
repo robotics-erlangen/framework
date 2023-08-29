@@ -26,31 +26,6 @@
 import * as MathUtil from "base/mathutil";
 import { Position, RelativePosition, Vector } from "base/vector";
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
-function intersectCircleCircle_OLD(c1: Position, r1: number, c2: Position, r2: number): [Position?, Position?] {
-	let dist = c1.distanceTo(c2);
-	if (dist > r1 + r2) {
-		return [];
-	} else if (dist === r1 + r2) {
-		return [c1 + (c2 - c1) * 0.5];
-	} else if (dist < r1 + r2) {
-		let c1x = c1.x, c1y = c1.y, c2x = c2.x, c2y = c2.y;
-		let a1 = (r1 * r1 - r2 * r2 - c1x * c1x + c2x * c2x - c1y * c1y + c2y * c2y) / (2 * c2x - 2 * c1x);
-		let a2 = (c1y - c2y) / (c2x - c1x);
-		let k1 = 1 + (1 / (a2 * a2));
-		let k2 = 2 * c1x + (2 * c1y) / a2 + (2 * a1) / (a2 * a2);
-		let k3 = c1x * c1x + (a1 * a1) / (a2 * a2) + (2 * c1y * a1) / a2 + (c1y * c1y) - (r1 * r1);
-
-		let finalX1 = ((k2 / k1) / 2) + Math.sqrt(((k2 / k1) * (k2 / k1) / 4) - (k3 / k1));
-		let finalX2 = ((k2 / k1) / 2) - Math.sqrt(((k2 / k1) * (k2 / k1) / 4) - (k3 / k1));
-		let finalY1 = 1 / a2 * finalX1 - (a1 / a2);
-		let finalY2 = 1 / a2 * finalX2 - (a1 / a2);
-
-		return [new Vector(finalX1, finalY1), new Vector(finalX2, finalY2)];
-	}
-	return [];
-}
-
 /**
  * Intersects two circles.
  * Returns up to two intersections or nothing if no intersections exist.
