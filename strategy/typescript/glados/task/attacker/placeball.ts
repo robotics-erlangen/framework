@@ -5,6 +5,7 @@ import * as Field from "base/field";
 import * as geom from "base/geom";
 import * as MathUtil from "base/mathutil";
 import * as Referee from "base/referee";
+import { AccumVectorRingBuffer } from "base/ringbuffer";
 import { Position, RelativePosition, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
@@ -50,10 +51,10 @@ const DISTANCE_END_PLACING = 1;
  */
 const OFFSET_DISTANCE = 0.07;
 /**
- * The number of kept directions from the ball to a target position
+ * The number of kept directions from the ball to a target position (i.e. the size of the ring buffer)
  * @see PlaceBall._calculateOffsets
  */
-const OFFSET_FRAME_COUNT = 50;
+const OFFSET_BUFFER_SIZE = 50;
 
 const ENSURE_CONTACT_TIME = 0.5;
 const ENSURE_CONTACT_MAX_TIME = 2;
@@ -104,21 +105,15 @@ export class PlaceBall extends Task {
 	private _currentTargetPos: Position | undefined = undefined;
 
 	/**
-	 * The last OFFSET_FRAME_COUNT directions from the ball to the placement target position
+	 * The last OFFSET_BUFFER_SIZE directions from the ball to the placement target position
 	 * @see _calculateOffsets
 	 */
-	private _placementOffsets: RelativePosition[] = [];
+	private _placementOffsets: AccumVectorRingBuffer = new AccumVectorRingBuffer(OFFSET_BUFFER_SIZE);
 	/**
 	 * The direction from the ball to the placement target position
 	 * @see _calculateOffsets
 	 */
 	private _placementOffsetAverage: RelativePosition | undefined;
-	/**
-	 * Current frame used in the placement offset average calculation
-	 * @see _placementOffsetAverage
-	 * @see _calculateOffsets
-	 */
-	private _placementOffsetFrame = 0;
 
 	/**
 	 * The position inside the field, nearest to the ball
@@ -127,21 +122,15 @@ export class PlaceBall extends Task {
 	private _nearestFieldPos: Position | undefined = undefined;
 
 	/**
-	 * The last OFFSET_FRAME_COUNT directions from the ball to it's nearest field pos
+	 * The last OFFSET_BUFFER_SIZE directions from the ball to it's nearest field pos
 	 * @see _calculateOffsets
 	 */
-	private _borderOffsets: RelativePosition[] = [];
+	private _borderOffsets: AccumVectorRingBuffer = new AccumVectorRingBuffer(OFFSET_BUFFER_SIZE);
 	/**
 	 * The offset between the ball and the ball's nearest field pos
 	 * @see _calculateOffsets
 	 */
 	private _borderOffsetAverage: RelativePosition | undefined;
-	/**
-	 * Current frame used in the border offset average calculation
-	 * @see _borderOffsetAverage
-	 * @see _calculateOffsets
-	 */
-	private _borderOffsetFrame = 0;
 
 	private _barrierDetects = false;
 	private _hasBallTime: number | undefined = undefined;
@@ -545,24 +534,24 @@ export class PlaceBall extends Task {
 	}
 
 	private _calculateOffsets() {
-		let ballVisible = this._ball.isPositionValid();
-
-		let usedBallPos = BallObserver.getRealisticBallPos();
+		const usedBallPos = BallObserver.getRealisticBallPos();
 		this._nearestFieldPos = Field.limitToField(usedBallPos, -this._robot.radius - World.Ball.radius);
 
-		if (usedBallPos.distanceTo(this._placementPos) > OFFSET_DISTANCE
-				&& ballVisible) {
-			let currentOffset = (usedBallPos - this._placementPos).normalized();
-			this._placementOffsets[this._placementOffsetFrame] = currentOffset;
-			this._placementOffsetFrame = (this._placementOffsetFrame + 1) % OFFSET_FRAME_COUNT;
-			this._placementOffsetAverage = geom.center(this._placementOffsets).withLength(this.OFFSET_EXTRA_LENGTH);
+		// dont update offsets if ball is not visible
+		if (!this._ball.isPositionValid()) {
+			return;
 		}
 
-		if (usedBallPos.distanceTo(this._nearestFieldPos) > OFFSET_DISTANCE
-				&& ballVisible) {
-			this._borderOffsets[this._borderOffsetFrame] = (usedBallPos - this._nearestFieldPos).normalized();
-			this._borderOffsetFrame = (this._borderOffsetFrame + 1) % OFFSET_FRAME_COUNT;
-			this._borderOffsetAverage = geom.center(this._borderOffsets).withLength(this.OFFSET_EXTRA_LENGTH);
+		if (usedBallPos.distanceTo(this._placementPos) > OFFSET_DISTANCE) {
+			const offset = (usedBallPos - this._placementPos).normalized();
+			this._placementOffsets.putOrReplace(offset);
+			this._placementOffsetAverage = this._placementOffsets.mean()!.withLength(this.OFFSET_EXTRA_LENGTH);
+		}
+
+		if (usedBallPos.distanceTo(this._nearestFieldPos) > OFFSET_DISTANCE) {
+			const offset = (usedBallPos - this._nearestFieldPos).normalized();
+			this._borderOffsets.putOrReplace(offset);
+			this._borderOffsetAverage = this._borderOffsets.mean()!.withLength(this.OFFSET_EXTRA_LENGTH);
 		}
 	}
 }
