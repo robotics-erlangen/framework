@@ -7,6 +7,12 @@ declare let path: any;
 export class UnitTest {
 	private tests: { [name: string]: [Function, [string, any][]] } = {};
 
+	private static formatMessage(reason: string, msg?: () => string): string {
+		msg ??= () => "";
+		const sep = msg === undefined ? "" : ": ";
+		return `Assert failed: ${reason}${sep}${msg()}`;
+	}
+
 	public static getOverlays(): { [moduleName: string]: any } {
 		return {};
 	}
@@ -105,15 +111,15 @@ export class UnitTest {
 		this.tests[name] = [test, situations];
 	}
 
-	protected assert_equal(a: any, b: any) {
+	protected assert_equal(a: any, b: any, msg?: () => string) {
 		if (a !== b) {
-			throw new Error(`Assert failed: '${a}' is not equal to '${b}'`);
+			throw new Error(UnitTest.formatMessage(`'${a}' is not equal to '${b}'`, msg));
 		}
 	}
 
-	protected assert_not_equal(a: any, b: any) {
+	protected assert_not_equal(a: any, b: any, msg?: () => string) {
 		if (a === b) {
-			throw new Error(`Assert failed: both values are '${a}'`);
+			throw new Error(UnitTest.formatMessage(`both values are '${a}'`, msg));
 		}
 	}
 
@@ -142,116 +148,115 @@ export class UnitTest {
 		return false;
 	}
 
-	protected assert_deep_equal(a: any, b: any) {
+	protected assert_deep_equal(a: any, b: any, msg?: () => string) {
 		if (!UnitTest.deepEquals(a, b)) {
-			throw new Error(`Assert failed: '${a._toString()}' is not equal to '${b._toString()}'`);
+			throw new Error(UnitTest.formatMessage(`'${a._toString()}' is not equal to '${b._toString()}'`, msg));
 		}
 	}
 
-	protected assert_vector_equal(a: Vector | undefined, b: Vector | undefined) {
+	protected assert_vector_equal(a: Vector | undefined, b: Vector | undefined, msg?: () => string) {
 		if (a === undefined || b === undefined || !a.equals(b)) {
-			throw new Error(`Assert failed: '${a ? a._toString() : a}' is not equal to '${b ? b._toString() : b}'`);
+			throw new Error(UnitTest.formatMessage(`'${a ? a._toString() : a}' is not equal to '${b ? b._toString() : b}'`, msg));
 		}
 	}
 
-	protected assert_vector_not_equal(a: Vector | undefined, b: Vector | undefined) {
+	protected assert_vector_not_equal(a: Vector | undefined, b: Vector | undefined, msg?: () => string) {
 		if (a === undefined || b === undefined || a.equals(b)) {
-			throw new Error(`Assert failed: '${a ? a._toString() : a}' is equal to '${b ? b._toString() : b}'`);
+			throw new Error(UnitTest.formatMessage(`'${a ? a._toString() : a}' is equal to '${b ? b._toString() : b}'`, msg));
 		}
 	}
 
-	protected assert_vector_equal_eps(a: Vector | undefined, b: Vector | undefined, eps: number) {
-		this.assert_not_undefined(a);
-		this.assert_not_undefined(b);
+	protected assert_vector_equal_eps(a: Vector | undefined, b: Vector | undefined, eps: number, msg?: () => string) {
+		this.assert_not_undefined(a, msg);
+		this.assert_not_undefined(b, msg);
 		a = a!;
 		b = b!;
 		if (isNaN(a.distanceToSq(b)) || a.distanceToSq(b) > eps * eps) {
-			throw new Error(`Assert failes: '${a ? a._toString() : a}' is not equal to '${b ? b._toString() : b}'. Distance: '${a.distanceTo(b)}' > '${eps}'`);
+			throw new Error(UnitTest.formatMessage(`'${a ? a._toString() : a}' is not equal to '${b ? b._toString() : b}'. Distance: '${a.distanceTo(b)}' > '${eps}'`, msg));
 		}
 	}
 
-	protected assert_false(a: any) {
+	protected assert_false(a: any, msg?: () => string) {
 		if (a !== false) {
-			throw new Error(`Assert failed: '${a}' is not false`);
+			throw new Error(UnitTest.formatMessage(`'${a}' is not false`, msg));
 		}
 	}
 
-	protected assert_falsy(a: any) {
+	protected assert_falsy(a: any, msg?: () => string) {
 		if (a) {
-			throw new Error(`Assert failed: '${a}' is not falsy`);
+			throw new Error(UnitTest.formatMessage(`'${a}' is not falsy`, msg));
 		}
 	}
 
-	protected assert_true(a: any) {
+	protected assert_true(a: any, msg?: () => string) {
 		if (a !== true) {
-			throw new Error(`Assert failed: '${a}' is not true`);
+			throw new Error(UnitTest.formatMessage(`'${a}' is not true`, msg));
 		}
 	}
 
-	protected assert_truthy(a: any) {
+	protected assert_truthy(a: any, msg?: () => string) {
 		if (!a) {
-			throw new Error(`Assert failed: '${a}' is not truthy`);
+			throw new Error(UnitTest.formatMessage(`'${a}' is not truthy`, msg));
 		}
 	}
 
-	protected assert_not_undefined(a: any) {
+	protected assert_not_undefined(a: any, msg?: () => string) {
 		if (a === undefined) {
-			throw new Error(`Assert failed: '${a}' should not be undefined`);
+			throw new Error(UnitTest.formatMessage(`'${a}' should not be undefined`, msg));
 		}
 	}
 
-	protected assert_undefined(a: any) {
+	protected assert_undefined(a: any, msg?: () => string) {
 		if (a !== undefined) {
-			throw new Error(`Assert failed: '${a}' should be undefined`);
+			throw new Error(UnitTest.formatMessage(`'${a}' should be undefined`, msg));
 		}
 	}
 
-	protected assert_error(a: () => void) {
-		tryCatchThen(a, () => {}, () => { throw new Error("Assert failed: function did not produce error"); });
+	protected assert_error(a: () => void, msg?: () => string) {
+		tryCatchThen(a, () => {}, () => { throw new Error(UnitTest.formatMessage("function did not throw error", msg)); });
 	}
 
-	protected assert_lte(a: number, b: number) {
-		this.assert_not_nan(a);
-		this.assert_not_nan(b);
+	protected assert_lte(a: number, b: number, msg?: () => string) {
+		this.assert_not_nan(a, msg);
+		this.assert_not_nan(b, msg);
 		if (a > b) {
-			throw new Error(`Assert failed: ${a} is not less than or equal to ${b}`);
+			throw new Error(UnitTest.formatMessage(`${a} is not less than or equal to ${b}`, msg));
 		}
 	}
 
-	protected assert_equal_eps(a: number, b: number, eps: number) {
-		this.assert_not_nan(a);
-		this.assert_not_nan(b);
+	protected assert_equal_eps(a: number, b: number, eps: number, msg?: () => string) {
+		this.assert_not_nan(a, msg);
+		this.assert_not_nan(b, msg);
 		if (Math.abs(a - b) > eps) {
-			throw new Error(`Assert failed: diff between ${a} and ${b} (${Math.abs(a - b)} is greater than ${eps})`);
+			throw new Error(UnitTest.formatMessage(`diff between ${a} and ${b} (${Math.abs(a - b)} is greater than ${eps})`, msg));
 		}
 	}
 
-	protected assert_greater_than(a: number, b: number) {
-		this.assert_not_nan(a);
-		this.assert_not_nan(b);
+	protected assert_greater_than(a: number, b: number, msg?: () => string) {
+		this.assert_not_nan(a, msg);
+		this.assert_not_nan(b, msg);
 		if (a <= b) {
-			throw new Error(`Assert failed: ${a} is not greater than ${b}`);
+			throw new Error(UnitTest.formatMessage(`${a} is not greater than ${b}`, msg));
 		}
 	}
 
-	protected assert_less_than(a: number, b: number, lazyString?: () => string) {
-		this.assert_not_nan(a);
-		this.assert_not_nan(b);
+	protected assert_less_than(a: number, b: number, msg?: () => string) {
+		this.assert_not_nan(a, msg);
+		this.assert_not_nan(b, msg);
 		if (a >= b) {
-			lazyString = lazyString || (() => "");
-			throw new Error(`Assert failed: ${a} is not less than ${b}: ${lazyString()}`);
+			throw new Error(UnitTest.formatMessage(`${a} is not less than ${b}`, msg));
 		}
 	}
 
-	protected assert_not_nan(a: number) {
+	protected assert_not_nan(a: number, msg?: () => string) {
 		if (isNaN(a)) {
-			throw new Error(`Assert failed: ${a} is NaN`);
+			throw new Error(UnitTest.formatMessage(`${a} is NaN`, msg));
 		}
 	}
 
-	protected assert_nan(a: number) {
+	protected assert_nan(a: number, msg?: () => string) {
 		if (!isNaN(a)) {
-			throw new Error(`Assert failed: ${a} is not NaN`);
+			throw new Error(UnitTest.formatMessage(`${a} is not NaN`, msg));
 		}
 	}
 }
