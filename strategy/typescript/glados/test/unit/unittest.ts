@@ -160,21 +160,21 @@ export class UnitTest {
 		}
 	}
 
-	protected assert_vector_eq(a: Vector | undefined, b: Vector | undefined, msg?: () => string) {
-		if (a === undefined || b === undefined || !a.equals(b)) {
-			throw new Error(UnitTest.formatMessage(`'${a ? a._toString() : a}' is not equal to '${b ? b._toString() : b}'`, msg));
+	protected assert_vector_eq(a: Vector, b: Vector, msg?: () => string) {
+		if (!a.equals(b)) {
+			throw new Error(UnitTest.formatMessage(`'${a}' is not equal to '${b}'`, msg));
 		}
 	}
 
-	protected assert_vector_ne(a: Vector | undefined, b: Vector | undefined, msg?: () => string) {
-		if (a === undefined || b === undefined || a.equals(b)) {
-			throw new Error(UnitTest.formatMessage(`'${a ? a._toString() : a}' is equal to '${b ? b._toString() : b}'`, msg));
+	protected assert_vector_ne(a: Vector, b: Vector, msg?: () => string) {
+		if (a.equals(b)) {
+			throw new Error(UnitTest.formatMessage(`'${a}' is equal to '${b}'`, msg));
 		}
 	}
 
-	protected assert_vector_eq_eps(a: Vector | undefined, b: Vector | undefined, eps: number, msg?: () => string) {
-		if (a === undefined || b === undefined || isNaN(a.distanceToSq(b)) || a.distanceToSq(b) > eps * eps) {
-			throw new Error(UnitTest.formatMessage(`'${a ? a._toString() : a}' is not equal to '${b ? b._toString() : b}'. Distance: '${b ? a?.distanceTo(b) : undefined}' > '${eps}'`, msg));
+	protected assert_vector_eq_eps(a: Vector, b: Vector, eps: number, msg?: () => string) {
+		if (isNaN(a.distanceToSq(b)) || a.distanceToSq(b) > eps * eps) {
+			throw new Error(UnitTest.formatMessage(`'${a}' is not equal to '${b}'. Distance: '${a.distanceTo(b)}' > '${eps}'`, msg));
 		}
 	}
 

@@ -35,17 +35,20 @@ export class BaseGeom extends UnitTest {
 	private testIntersectCircleCircle() {
 		{
 			let [ret, r1] = geom.intersectCircleCircle(new Vector(0, 0), 2, new Vector(0, 1), 1);
-			this.assert_vector_eq_eps(ret, new Vector(0, 2), EPS);
+			this.assert_not_undefined(ret);
+			this.assert_vector_eq_eps(ret!, new Vector(0, 2), EPS);
 			this.assert_undefined(r1);
 		}
 		{
 			let [ret, r1] = geom.intersectCircleCircle(new Vector(0, 0), 2, new Vector(0, -1), 1);
-			this.assert_vector_eq_eps(ret, new Vector(0, -2), EPS);
+			this.assert_not_undefined(ret);
+			this.assert_vector_eq_eps(ret!, new Vector(0, -2), EPS);
 			this.assert_undefined(r1);
 		}
 		{
 			let [ret, r1] = geom.intersectCircleCircle(new Vector(0, 0), 1, new Vector(0, 2), 1);
-			this.assert_vector_eq(ret, new Vector(0, 1));
+			this.assert_not_undefined(ret);
+			this.assert_vector_eq(ret!, new Vector(0, 1));
 			this.assert_undefined(r1);
 		}
 		{
@@ -68,13 +71,15 @@ export class BaseGeom extends UnitTest {
 		}
 		{
 			let [ret4, l4] = geom.intersectCircleCircle(new Vector(0, 0), 2, new Vector(2, 0), 0);
+			this.assert_not_undefined(ret4);
+			this.assert_vector_eq(ret4!, new Vector(2, 0));
 			this.assert_undefined(l4);
-			this.assert_eq_eps(ret4!.distanceToSq(new Vector(2, 0)), 0, EPS);
-			this.assert_vector_eq(ret4, new Vector(2, 0));
 		}
 		{
 			let [ret6, l6] = geom.intersectCircleCircle(new Vector(0, 0), 2, new Vector(2, 0), EPS);
+			this.assert_not_undefined(ret6);
 			this.assert_eq_eps(ret6!.distanceToSq(new Vector(2, 0)), 0, EPS * EPS);
+			this.assert_undefined(l6);
 		}
 		{
 			let [ret7, l7] = geom.intersectCircleCircle(new Vector(0, 0), 2, new Vector(2, 4), 1);
@@ -118,8 +123,8 @@ export class BaseGeom extends UnitTest {
 		this.assert_not_undefined(l2);
 		this.assert_eq_eps(l2!, 1, EPS);
 		this.assert_eq_eps(l1!, 3, EPS);
-		this.assert_vector_eq(intersect2, new Vector(-1, 0));
-		this.assert_vector_eq(intersect1, new Vector(1, 0));
+		this.assert_vector_eq(intersect2!, new Vector(-1, 0));
+		this.assert_vector_eq(intersect1!, new Vector(1, 0));
 
 		// y direction
 		[intersect1, intersect2, l1, l2] = geom.intersectLineCircle(new Vector(0, -2), new Vector(0, 1), new Vector(0, 0), 1);
@@ -127,8 +132,8 @@ export class BaseGeom extends UnitTest {
 		this.assert_not_undefined(intersect2);
 		this.assert_not_undefined(l1);
 		this.assert_not_undefined(l2);
-		this.assert_vector_eq(intersect2, new Vector(0, -1));
-		this.assert_vector_eq(intersect1, new Vector(0, 1));
+		this.assert_vector_eq(intersect2!, new Vector(0, -1));
+		this.assert_vector_eq(intersect1!, new Vector(0, 1));
 		this.assert_eq_eps(l2!, 1, EPS);
 		this.assert_eq_eps(l1!, 3, EPS);
 
@@ -139,8 +144,8 @@ export class BaseGeom extends UnitTest {
 		this.assert_not_undefined(intersect2);
 		this.assert_not_undefined(l1);
 		this.assert_not_undefined(l2);
-		this.assert_vector_eq(intersect2, new Vector(0, -1));
-		this.assert_vector_eq(intersect1, new Vector(0, 1));
+		this.assert_vector_eq(intersect2!, new Vector(0, -1));
+		this.assert_vector_eq(intersect1!, new Vector(0, 1));
 		this.assert_eq_eps(l2!, -1, EPS);
 		this.assert_eq_eps(l1!, 1, EPS);
 
@@ -179,43 +184,54 @@ export class BaseGeom extends UnitTest {
 
 		// line perpendicular to corridor
 		[p1, p2, l1, l2] = geom.intersectLineCorridor(new Vector(0, 100), new Vector(0, -1), new Vector(1, 1), new Vector(1, 0), 0.5);
-		this.assert_vector_eq(p1, new Vector(0, 1.5));
-		this.assert_vector_eq(p2, new Vector(0, 0.5));
+		this.assert_not_undefined(p1);
+		this.assert_not_undefined(p2);
+		this.assert_vector_eq(p1!, new Vector(0, 1.5));
+		this.assert_vector_eq(p2!, new Vector(0, 0.5));
 		this.assert_eq(l1, 98.5);
 		this.assert_eq(l2, 99.5);
 
 		// regular case
 		[p1, p2, l1, l2] = geom.intersectLineCorridor(new Vector(0, 0), new Vector(1, 1), new Vector(2, 0), new Vector(0, 1), 1);
-		this.assert_vector_eq(p1, new Vector(1, 1));
-		this.assert_vector_eq(p2, new Vector(3, 3));
+		this.assert_not_undefined(p1);
+		this.assert_not_undefined(p2);
+		this.assert_vector_eq(p1!, new Vector(1, 1));
+		this.assert_vector_eq(p2!, new Vector(3, 3));
 		this.assert_eq(l1, 1);
 		this.assert_eq(l2, 3);
 
 		// corridor with width = 0
 		[p1, p2, l1, l2] = geom.intersectLineCorridor(new Vector(0, 0), new Vector(1, 1), new Vector(2, 0), new Vector(0, 1), 0);
-		this.assert_vector_eq(p1, new Vector(2, 2));
-		this.assert_vector_eq(p2, new Vector(2, 2));
+		this.assert_not_undefined(p1);
+		this.assert_not_undefined(p2);
+		this.assert_vector_eq(p1!, new Vector(2, 2));
+		this.assert_vector_eq(p2!, new Vector(2, 2));
 		this.assert_eq(l1, 2);
 		this.assert_eq(l2, 2);
 	}
 
 	private testGetTangesToCircle() {
 		let [tp1, tp2] = geom.getTangentsToCircle(new Vector(4, 3), new Vector(0, 0), 3);
+		this.assert_not_undefined(tp1);
+		this.assert_not_undefined(tp2);
 		if (tp1!.distanceToSq(new Vector(0, 3)) > EPS) {
 			[tp2, tp1] = [tp1, tp2];
 		}
-		this.assert_vector_eq_eps(tp1, new Vector(0, 3), EPS);
-		this.assert_vector_eq_eps(tp2, new Vector(72 / 25, -21 / 25), EPS);
+		this.assert_vector_eq_eps(tp1!, new Vector(0, 3), EPS);
+		this.assert_vector_eq_eps(tp2!, new Vector(72 / 25, -21 / 25), EPS);
 
 		let [tp3, tp4] = geom.getTangentsToCircle(new Vector(3, 3), new Vector(0, 0), 3);
+		this.assert_not_undefined(tp3);
+		this.assert_not_undefined(tp4);
 		if (tp3!.distanceToSq(new Vector(0, 3)) > EPS) {
 			[tp4, tp3] = [tp3, tp4];
 		}
-		this.assert_vector_eq_eps(tp3, new Vector(0, 3), EPS);
-		this.assert_vector_eq_eps(tp4, new Vector(3, 0), EPS);
+		this.assert_vector_eq_eps(tp3!, new Vector(0, 3), EPS);
+		this.assert_vector_eq_eps(tp4!, new Vector(3, 0), EPS);
 
 		let [tp5, tp6] = geom.getTangentsToCircle(new Vector(3, 0), new Vector(0, 0), 3);
-		this.assert_vector_eq_eps(tp5, new Vector(3, 0), EPS);
+		this.assert_not_undefined(tp5);
+		this.assert_vector_eq_eps(tp5!, new Vector(3, 0), EPS);
 		this.assert_undefined(tp6);
 
 		let [tp7, tp8] = geom.getTangentsToCircle(new Vector(2, 0), new Vector(0, 0), 3);
@@ -225,13 +241,16 @@ export class BaseGeom extends UnitTest {
 
 	private testGetInnerTangensToCircle() {
 		let [i1, t1, t2] = geom.getInnerTangentsToCircles(new Vector(0, 0), 3, new Vector(8, 0), 3);
-		this.assert_vector_eq_eps(i1, new Vector(4, 0), EPS);
+		this.assert_not_undefined(i1);
+		this.assert_vector_eq_eps(i1!, new Vector(4, 0), EPS);
 		let [s1, s2] = [new Vector(9 / 4, -3 / 4 * Math.sqrt(7)), new Vector(9 / 4, 3 / 4 * Math.sqrt(7))];
 		if (s1.distanceToSq(t1!) > EPS * EPS) {
 			[s1, s2] = [s2, s1];
 		}
-		this.assert_vector_eq_eps(t1, s1, EPS);
-		this.assert_vector_eq_eps(t2, s2, EPS);
+		this.assert_not_undefined(t1);
+		this.assert_not_undefined(t2);
+		this.assert_vector_eq_eps(t1!, s1, EPS);
+		this.assert_vector_eq_eps(t2!, s2, EPS);
 		this.assert_eq(geom.getInnerTangentsToCircles(new Vector(0, 0), 2, new Vector(3, 0), 2).length, 0);
 	}
 
@@ -269,7 +288,8 @@ export class BaseGeom extends UnitTest {
 		this.assert_undefined(l1);
 		this.assert_undefined(l2);
 		[ret1, l1, l2] = geom.intersectLinesByPoints(new Vector(0, 0), new Vector(0, 2), new Vector(3, 3), new Vector(2, 2));
-		this.assert_vector_eq_eps(ret1, new Vector(0, 0), EPS);
+		this.assert_not_undefined(ret1);
+		this.assert_vector_eq_eps(ret1!, new Vector(0, 0), EPS);
 		this.assert_eq_eps(l1!, 0, EPS);
 		this.assert_eq_eps(l2!, 3, EPS);
 		[ret1, l1, l2] = geom.intersectLinesByPoints(new Vector(0, 0), new Vector(0, 1), new Vector(1, 1), new Vector(1, 0));
@@ -465,8 +485,10 @@ export class BaseGeom extends UnitTest {
 			[c2, c1] = [c1, c2];
 		}
 		let [r1, r2] = geom.intersectCircleCircle(new Vector(0, 0), 5, new Vector(0, 5), 5);
-		this.assert_vector_eq_eps(c1, r1, EPS);
-		this.assert_vector_eq_eps(c2, r2, EPS);
+		this.assert_not_undefined(r1);
+		this.assert_not_undefined(r2);
+		this.assert_vector_eq_eps(c1, r1!, EPS);
+		this.assert_vector_eq_eps(c2, r2!, EPS);
 	}
 
 	private testInsideRect() {

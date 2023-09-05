@@ -131,9 +131,7 @@ export class GladosUnitTest extends UnitTest {
 		this.assert_error(() => { this.assert_eq({ a: 1, b: 511 }, { a: 1, b: 2 }); });
 		this.assert_error(() => { this.assert_eq(new Vector(0, 0), new Vector(0, 1)); });
 
-		this.assert_error(() => { this.assert_vector_eq(undefined, undefined); });
 		this.assert_error(() => { this.assert_vector_eq(new Vector(0, 0), new Vector(1, 0)); });
-		this.assert_error(() => { this.assert_vector_eq(undefined, new Vector(0, 0)); });
 
 		this.assert_error(() => { this.assert_vector_ne(new Vector(0, 0), new Vector(0, 0)); });
 
