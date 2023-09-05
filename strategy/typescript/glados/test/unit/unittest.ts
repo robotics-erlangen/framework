@@ -156,7 +156,7 @@ export class UnitTest {
 
 	protected assert_deep_eq(a: any, b: any, msg?: () => string) {
 		if (!UnitTest.deepEq(a, b)) {
-			throw new Error(UnitTest.formatMessage(`'${a._toString()}' is not equal to '${b._toString()}'`, msg));
+			throw new Error(UnitTest.formatMessage(`'${a}' is not equal to '${b}'`, msg));
 		}
 	}
 
