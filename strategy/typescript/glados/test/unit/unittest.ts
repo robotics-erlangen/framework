@@ -224,6 +224,14 @@ export class UnitTest {
 		tryCatchThen(a, () => {}, () => { throw new Error(UnitTest.formatMessage("function did not throw error", msg)); });
 	}
 
+	protected assert_ge(a: number, b: number, msg?: () => string) {
+		this.assert_not_nan(a, msg);
+		this.assert_not_nan(b, msg);
+		if (a < b) {
+			throw new Error(UnitTest.formatMessage(`${a} is not greater than or equal to ${b}`, msg));
+		}
+	}
+
 	protected assert_le(a: number, b: number, msg?: () => string) {
 		this.assert_not_nan(a, msg);
 		this.assert_not_nan(b, msg);
