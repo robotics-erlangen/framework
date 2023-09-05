@@ -57,7 +57,7 @@ export class GladosRoles extends UnitTest {
 
 			messaging.deliverMessages();
 
-			this.assert_equal(agent1Box.receiveTrainer(MessageType.mainAttacker), agent1.robot());
+			this.assert_eq(agent1Box.receiveTrainer(MessageType.mainAttacker), agent1.robot());
 		}
 	}
 }

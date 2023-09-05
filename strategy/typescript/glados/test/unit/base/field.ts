@@ -56,8 +56,8 @@ export class BaseField extends UnitTest {
 		this.initHelper("2018");
 
 		let pos = new Vector(0, 0);
-		this.assert_equal(this.Field.distanceToDefenseArea(pos, 3, false), 0.5);
-		this.assert_equal(this.Field.distanceToDefenseArea(pos, 3, true), 0.5);
+		this.assert_eq(this.Field.distanceToDefenseArea(pos, 3, false), 0.5);
+		this.assert_eq(this.Field.distanceToDefenseArea(pos, 3, true), 0.5);
 
 		this.assert_false(this.Field.isInDefenseArea(pos, 0.18, false));
 		this.assert_false(this.Field.isInDefenseArea(pos, 0.18, true));
@@ -87,8 +87,8 @@ export class BaseField extends UnitTest {
 		this.initHelper("2017");
 
 		let pos = new Vector(0, 0);
-		this.assert_equal(this.Field.distanceToDefenseArea(pos, 3, false), 0.5);
-		this.assert_equal(this.Field.distanceToDefenseArea(pos, 3, true), 0.5);
+		this.assert_eq(this.Field.distanceToDefenseArea(pos, 3, false), 0.5);
+		this.assert_eq(this.Field.distanceToDefenseArea(pos, 3, true), 0.5);
 		this.assert_false(this.Field.isInDefenseArea(pos, 0.18, false));
 		this.assert_false(this.Field.isInDefenseArea(pos, 0.18, true));
 		pos = new Vector(0.1, this.G.FieldHeightHalf);

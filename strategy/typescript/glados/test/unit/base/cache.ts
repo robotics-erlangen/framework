@@ -24,8 +24,8 @@ export class BaseCache extends UnitTest {
 		let cachedBar = Cache.forFrame(bar);
 		let cachedFoo = Cache.forFrame(foo);
 
-		this.assert_equal(bar.name, cachedBar.name);
-		this.assert_equal(foo.name, cachedFoo.name);
+		this.assert_eq(bar.name, cachedBar.name);
+		this.assert_eq(foo.name, cachedFoo.name);
 	}
 
 	private testDifferentArguments() {
@@ -36,7 +36,7 @@ export class BaseCache extends UnitTest {
 
 		let a = cached(1, 2, 3);
 		let b = cached(2, 3, 4);
-		this.assert_not_equal(a, b);
+		this.assert_ne(a, b);
 	}
 
 	private testUndefinedParameters() {
@@ -51,10 +51,10 @@ export class BaseCache extends UnitTest {
 		let c = cached(undefined, 7);
 		// equal to a
 		let d = cached(undefined, undefined, undefined);
-		this.assert_equal(a, 4);
-		this.assert_equal(b, 4);
-		this.assert_equal(c, 4);
-		this.assert_equal(d, 4);
+		this.assert_eq(a, 4);
+		this.assert_eq(b, 4);
+		this.assert_eq(c, 4);
+		this.assert_eq(d, 4);
 	}
 
 	private testParameters() {
@@ -67,10 +67,10 @@ export class BaseCache extends UnitTest {
 		let b = cached("bla");
 		let c = cached(undefined, 7);
 		let d = cached(undefined, undefined, undefined, 5);
-		this.assert_deep_equal(a, []);
-		this.assert_deep_equal(b, ["bla"]);
-		this.assert_deep_equal(c, [undefined, 7]);
-		this.assert_deep_equal(d, [undefined, undefined, undefined, 5]);
+		this.assert_deep_eq(a, []);
+		this.assert_deep_eq(b, ["bla"]);
+		this.assert_deep_eq(c, [undefined, 7]);
+		this.assert_deep_eq(d, [undefined, undefined, undefined, 5]);
 	}
 
 	private testSideEffects() {
@@ -84,12 +84,12 @@ export class BaseCache extends UnitTest {
 		let before = side;
 		cached();
 		let after = side;
-		this.assert_equal(before, after);
+		this.assert_eq(before, after);
 
 		Cache.resetFrame();
 		cached();
 		let afterReset = side;
-		this.assert_equal(after + 1, afterReset);
+		this.assert_eq(after + 1, afterReset);
 	}
 
 	private testHeavy() {
@@ -120,13 +120,13 @@ export class BaseCache extends UnitTest {
 		let mid = side;
 		cached();
 		let after = side;
-		this.assert_equal(before + 1, mid);
-		this.assert_equal(mid, after);
+		this.assert_eq(before + 1, mid);
+		this.assert_eq(mid, after);
 
 		Cache.resetFrame();
 		cached();
 		let afterReset = side;
-		this.assert_equal(after, afterReset);
+		this.assert_eq(after, afterReset);
 	}
 }
 export let testClass = BaseCache;

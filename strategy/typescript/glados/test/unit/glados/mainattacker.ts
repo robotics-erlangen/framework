@@ -92,7 +92,7 @@ export class GladosMainattacker extends UnitTest {
 		roles._chooseExclusiveRoles();
 
 		let ma = trainerBox.receiveTrainer(MessageType.mainAttacker);
-		this.assert_equal(ma, World.FriendlyRobotsById[info.desiredMAId]);
+		this.assert_eq(ma, World.FriendlyRobotsById[info.desiredMAId]);
 	}
 }
 export let testClass = GladosMainattacker;

@@ -47,7 +47,7 @@ export class GladosObserverBall extends UnitTest {
 
 		let firstRobot = Ball.firstRobotAtBall(World.OpponentRobots)[0];
 		this.assert_not_undefined(firstRobot);
-		this.assert_equal(firstRobot!.id, testInfo.robotId);
+		this.assert_eq(firstRobot!.id, testInfo.robotId);
 	}
 
 	private registerReceivesPassSituations() {
@@ -81,7 +81,7 @@ export class GladosObserverBall extends UnitTest {
 			Ball.setReceivesPass(robot, true);
 		}
 		Ball._update();
-		this.assert_equal(testInfo.shouldReceivePass, Ball.receivesPass(robot));
+		this.assert_eq(testInfo.shouldReceivePass, Ball.receivesPass(robot));
 	}
 }
 export let testClass = GladosObserverBall;

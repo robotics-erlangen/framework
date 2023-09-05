@@ -17,8 +17,8 @@ export class BaseTypes extends UnitTest {
 		}
 
 		const hasNameTest = Types.parameterizeClass(SomeWeirdName, 1);
-		this.assert_equal(SomeWeirdName.name, hasNameTest.name);
-		this.assert_equal(new SomeWeirdName(420, 42).constructor.name, new hasNameTest(42).constructor.name);
+		this.assert_eq(SomeWeirdName.name, hasNameTest.name);
+		this.assert_eq(new SomeWeirdName(420, 42).constructor.name, new hasNameTest(42).constructor.name);
 
 	}
 }

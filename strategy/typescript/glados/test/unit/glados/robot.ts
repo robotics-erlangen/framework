@@ -18,8 +18,8 @@ export class GladosObserverRobot extends UnitTest {
 			dribblerWidth: 1
 		});
 		amun.log(`left one = ${leftOne}, rightOne = ${rightOne}`);
-		this.assert_less_than(rightOne.distanceTo(new Vector(0.0, -0.5)), 0.01);
-		this.assert_less_than(leftOne.distanceTo(new Vector(0.0, 0.5)), 0.01);
+		this.assert_lt(rightOne.distanceTo(new Vector(0.0, -0.5)), 0.01);
+		this.assert_lt(leftOne.distanceTo(new Vector(0.0, 0.5)), 0.01);
 
 		// "Robot" looking with angle 90 (i.e in Positive y direction)
 		const [rightTwo, leftTwo] = Robot.getDribblerEdges({
@@ -27,8 +27,8 @@ export class GladosObserverRobot extends UnitTest {
 			dribblerPos: new Vector(0, 0),
 			dribblerWidth: 1,
 		});
-		this.assert_less_than(rightTwo.distanceTo(new Vector(0.5, 0)), 0.01);
-		this.assert_less_than(leftTwo.distanceTo(new Vector(-0.5, 0)), 0.01);
+		this.assert_lt(rightTwo.distanceTo(new Vector(0.5, 0)), 0.01);
+		this.assert_lt(leftTwo.distanceTo(new Vector(-0.5, 0)), 0.01);
 	}
 }
 

@@ -111,13 +111,13 @@ export class UnitTest {
 		this.tests[name] = [test, situations];
 	}
 
-	protected assert_equal(a: any, b: any, msg?: () => string) {
+	protected assert_eq(a: any, b: any, msg?: () => string) {
 		if (a !== b) {
 			throw new Error(UnitTest.formatMessage(`'${a}' is not equal to '${b}'`, msg));
 		}
 	}
 
-	protected assert_not_equal(a: any, b: any, msg?: () => string) {
+	protected assert_ne(a: any, b: any, msg?: () => string) {
 		if (a === b) {
 			throw new Error(UnitTest.formatMessage(`both values are '${a}'`, msg));
 		}
@@ -148,25 +148,25 @@ export class UnitTest {
 		return false;
 	}
 
-	protected assert_deep_equal(a: any, b: any, msg?: () => string) {
+	protected assert_deep_eq(a: any, b: any, msg?: () => string) {
 		if (!UnitTest.deepEquals(a, b)) {
 			throw new Error(UnitTest.formatMessage(`'${a._toString()}' is not equal to '${b._toString()}'`, msg));
 		}
 	}
 
-	protected assert_vector_equal(a: Vector | undefined, b: Vector | undefined, msg?: () => string) {
+	protected assert_vector_eq(a: Vector | undefined, b: Vector | undefined, msg?: () => string) {
 		if (a === undefined || b === undefined || !a.equals(b)) {
 			throw new Error(UnitTest.formatMessage(`'${a ? a._toString() : a}' is not equal to '${b ? b._toString() : b}'`, msg));
 		}
 	}
 
-	protected assert_vector_not_equal(a: Vector | undefined, b: Vector | undefined, msg?: () => string) {
+	protected assert_vector_ne(a: Vector | undefined, b: Vector | undefined, msg?: () => string) {
 		if (a === undefined || b === undefined || a.equals(b)) {
 			throw new Error(UnitTest.formatMessage(`'${a ? a._toString() : a}' is equal to '${b ? b._toString() : b}'`, msg));
 		}
 	}
 
-	protected assert_vector_equal_eps(a: Vector | undefined, b: Vector | undefined, eps: number, msg?: () => string) {
+	protected assert_vector_eq_eps(a: Vector | undefined, b: Vector | undefined, eps: number, msg?: () => string) {
 		this.assert_not_undefined(a, msg);
 		this.assert_not_undefined(b, msg);
 		a = a!;
@@ -216,7 +216,7 @@ export class UnitTest {
 		tryCatchThen(a, () => {}, () => { throw new Error(UnitTest.formatMessage("function did not throw error", msg)); });
 	}
 
-	protected assert_lte(a: number, b: number, msg?: () => string) {
+	protected assert_le(a: number, b: number, msg?: () => string) {
 		this.assert_not_nan(a, msg);
 		this.assert_not_nan(b, msg);
 		if (a > b) {
@@ -224,7 +224,7 @@ export class UnitTest {
 		}
 	}
 
-	protected assert_equal_eps(a: number, b: number, eps: number, msg?: () => string) {
+	protected assert_eq_eps(a: number, b: number, eps: number, msg?: () => string) {
 		this.assert_not_nan(a, msg);
 		this.assert_not_nan(b, msg);
 		if (Math.abs(a - b) > eps) {
@@ -232,7 +232,7 @@ export class UnitTest {
 		}
 	}
 
-	protected assert_greater_than(a: number, b: number, msg?: () => string) {
+	protected assert_gt(a: number, b: number, msg?: () => string) {
 		this.assert_not_nan(a, msg);
 		this.assert_not_nan(b, msg);
 		if (a <= b) {
@@ -240,7 +240,7 @@ export class UnitTest {
 		}
 	}
 
-	protected assert_less_than(a: number, b: number, msg?: () => string) {
+	protected assert_lt(a: number, b: number, msg?: () => string) {
 		this.assert_not_nan(a, msg);
 		this.assert_not_nan(b, msg);
 		if (a >= b) {

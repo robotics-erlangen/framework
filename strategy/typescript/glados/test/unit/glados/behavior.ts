@@ -57,9 +57,9 @@ export class GladosBehavior extends UnitTest {
 		const agentTwo = mockAgent("B", robot);
 
 		const behavior = new TestBehavior(agentOne);
-		this.assert_equal(behavior.agent(), agentOne);
+		this.assert_eq(behavior.agent(), agentOne);
 		behavior.setAgent(agentTwo);
-		this.assert_equal(behavior.agent(), agentTwo);
+		this.assert_eq(behavior.agent(), agentTwo);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/naming-convention
@@ -79,13 +79,13 @@ export class GladosBehavior extends UnitTest {
 
 		const list = new CheckableList(agentOne, [CHECKABLE_A]);
 
-		this.assert_equal(list.agent(), agentOne);
-		this.assert_equal(list.check()!.agent(), agentOne);
+		this.assert_eq(list.agent(), agentOne);
+		this.assert_eq(list.check()!.agent(), agentOne);
 
 		list.setAgent(agentTwo);
 
-		this.assert_equal(list.agent(), agentTwo);
-		this.assert_equal(list.check()!.agent(), agentTwo);
+		this.assert_eq(list.agent(), agentTwo);
+		this.assert_eq(list.check()!.agent(), agentTwo);
 	}
 }
 

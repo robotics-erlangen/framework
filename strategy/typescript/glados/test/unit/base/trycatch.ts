@@ -72,12 +72,12 @@ export class BaseTryCatch extends UnitTest {
 
 		// check that the error object will arrive correctly
 		let o: Object = new Object();
-		TryCatch.tryCatch(() => { throw o; }, (e: any) => { this.assert_equal(e, o); });
-		this.assert_error(() => TryCatch.tryCatch(fail, (e: any) => { this.assert_equal(e, o); }));
+		TryCatch.tryCatch(() => { throw o; }, (e: any) => { this.assert_eq(e, o); });
+		this.assert_error(() => TryCatch.tryCatch(fail, (e: any) => { this.assert_eq(e, o); }));
 
 		// check that the error object will arrive correctly from catch
-		TryCatch.tryCatch(() => { TryCatch.tryCatch(fail, () => { throw o; }); }, (e: any) => { this.assert_equal(e, o); });
-		this.assert_error(() => { TryCatch.tryCatch(() => { TryCatch.tryCatch(fail, () => { throw o; }); }, (e: any) => { this.assert_equal(e, new Object()); }); });
+		TryCatch.tryCatch(() => { TryCatch.tryCatch(fail, () => { throw o; }); }, (e: any) => { this.assert_eq(e, o); });
+		this.assert_error(() => { TryCatch.tryCatch(() => { TryCatch.tryCatch(fail, () => { throw o; }); }, (e: any) => { this.assert_eq(e, new Object()); }); });
 	}
 
 	private testTryCatchThen() {
@@ -114,8 +114,8 @@ export class BaseTryCatch extends UnitTest {
 
 		// check that the error object will arrive correctly
 		let o: Object = new Object();
-		TryCatch.tryCatchThen(() => { throw o; }, (e: any) => { this.assert_equal(e, o); }, ignore);
-		this.assert_error(() => TryCatch.tryCatchThen(fail, (e: any) => { this.assert_equal(e, o); }, ignore));
+		TryCatch.tryCatchThen(() => { throw o; }, (e: any) => { this.assert_eq(e, o); }, ignore);
+		this.assert_error(() => TryCatch.tryCatchThen(fail, (e: any) => { this.assert_eq(e, o); }, ignore));
 	}
 }
 export let testClass = BaseTryCatch;

@@ -20,7 +20,7 @@ export class MovesHelper extends UnitTest {
 		});
 		let positions = [new Vector(1, -1), new Vector(-1, -1)];
 		let assignments = assignRobots(robots, positions);
-		this.assert_deep_equal(assignments, [0, 1]);
+		this.assert_deep_eq(assignments, [0, 1]);
 	}
 	private testAssignRobotsForParallelogram() {
 		let robots = [new Vector(0, 1), new Vector(-1, 1)].map((pos, i) => {
@@ -30,7 +30,7 @@ export class MovesHelper extends UnitTest {
 		});
 		let positions = [new Vector(0, -1), new Vector(1, -1)];
 		let assignments = assignRobots(robots, positions);
-		this.assert_deep_equal(assignments, [1, 0]);
+		this.assert_deep_eq(assignments, [1, 0]);
 	}
 	private testAssignRobotsSameDistance() {
 		let robots = [new Vector(0, 0), new Vector(0, 2)].map((pos, i) => {
@@ -40,7 +40,7 @@ export class MovesHelper extends UnitTest {
 		});
 		let positions = [new Vector(0, -1), new Vector(0, 1)];
 		let assignments = assignRobots(robots, positions);
-		this.assert_deep_equal(assignments, [0, 1]);
+		this.assert_deep_eq(assignments, [0, 1]);
 	}
 	private testAssignRobotsNoCrossing() {
 		// check if someone is using distanceToSq instead of distanceTo
@@ -52,7 +52,7 @@ export class MovesHelper extends UnitTest {
 		});
 		let positions = [new Vector(2, -2), new Vector(4, -2), new Vector(3, -2)];
 		let assignments = assignRobots(robots, positions);
-		this.assert_deep_equal(assignments, [2, 0, 1]);
+		this.assert_deep_eq(assignments, [2, 0, 1]);
 	}
 
 }

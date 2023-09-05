@@ -29,15 +29,15 @@ export class BaseCoordinates extends UnitTest {
 			let vec2 = C.Coordinates.toGlobal(vec);
 			let vec3 = C.Coordinates.toLocal(vec);
 			if (teamIsBlue) {
-				this.assert_equal(vec2.x, -vec.x);
-				this.assert_equal(vec2.y, -vec.y);
-				this.assert_equal(vec3.x, -vec.x);
-				this.assert_equal(vec3.y, -vec.y);
+				this.assert_eq(vec2.x, -vec.x);
+				this.assert_eq(vec2.y, -vec.y);
+				this.assert_eq(vec3.x, -vec.x);
+				this.assert_eq(vec3.y, -vec.y);
 			} else {
-				this.assert_equal(vec2.x, vec.x);
-				this.assert_equal(vec2.y, vec.y);
-				this.assert_equal(vec3.x, vec.x);
-				this.assert_equal(vec3.y, vec.y);
+				this.assert_eq(vec2.x, vec.x);
+				this.assert_eq(vec2.y, vec.y);
+				this.assert_eq(vec3.x, vec.x);
+				this.assert_eq(vec3.y, vec.y);
 			}
 		}
 		{
@@ -45,15 +45,15 @@ export class BaseCoordinates extends UnitTest {
 			let vec2 = C.Coordinates.toGlobal(vec);
 			let vec3 = C.Coordinates.toLocal(vec);
 			if (teamIsBlue) {
-				this.assert_equal(vec2.x, -vec.x);
-				this.assert_equal(vec2.y, -vec.y);
-				this.assert_equal(vec3.x, -vec.x);
-				this.assert_equal(vec3.y, -vec.y);
+				this.assert_eq(vec2.x, -vec.x);
+				this.assert_eq(vec2.y, -vec.y);
+				this.assert_eq(vec3.x, -vec.x);
+				this.assert_eq(vec3.y, -vec.y);
 			} else {
-				this.assert_equal(vec2.x, vec.x);
-				this.assert_equal(vec2.y, vec.y);
-				this.assert_equal(vec3.x, vec.x);
-				this.assert_equal(vec3.y, vec.y);
+				this.assert_eq(vec2.x, vec.x);
+				this.assert_eq(vec2.y, vec.y);
+				this.assert_eq(vec3.x, vec.x);
+				this.assert_eq(vec3.y, vec.y);
 			}
 		}
 	}
@@ -64,11 +64,11 @@ export class BaseCoordinates extends UnitTest {
 			let dir2 = C.Coordinates.toGlobal(dir);
 			let dir3 = C.Coordinates.toLocal(dir);
 			if (teamIsBlue) {
-				this.assert_equal(dir2, dir + Math.PI);
-				this.assert_equal(dir3, dir + Math.PI);
+				this.assert_eq(dir2, dir + Math.PI);
+				this.assert_eq(dir3, dir + Math.PI);
 			} else {
-				this.assert_equal(dir2, dir);
-				this.assert_equal(dir3, dir);
+				this.assert_eq(dir2, dir);
+				this.assert_eq(dir3, dir);
 			}
 		}
 		{
@@ -76,11 +76,11 @@ export class BaseCoordinates extends UnitTest {
 			let dir2 = C.Coordinates.toGlobal(dir);
 			let dir3 = C.Coordinates.toLocal(dir);
 			if (teamIsBlue) {
-				this.assert_equal(dir2, dir - Math.PI);
-				this.assert_equal(dir3, dir - Math.PI);
+				this.assert_eq(dir2, dir - Math.PI);
+				this.assert_eq(dir3, dir - Math.PI);
 			} else {
-				this.assert_equal(dir2, dir);
-				this.assert_equal(dir3, dir);
+				this.assert_eq(dir2, dir);
+				this.assert_eq(dir3, dir);
 			}
 		}
 	}
@@ -90,9 +90,9 @@ export class BaseCoordinates extends UnitTest {
 		let list2 = C.Coordinates.listToGlobal(list as any);
 
 		if (teamIsBlue) {
-			this.assert_deep_equal([-list[0], -list[1], Math.PI * 5 / 4], list2);
+			this.assert_deep_eq([-list[0], -list[1], Math.PI * 5 / 4], list2);
 		} else {
-			this.assert_deep_equal(list, list2);
+			this.assert_deep_eq(list, list2);
 		}
 	}
 }

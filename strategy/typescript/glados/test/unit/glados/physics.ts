@@ -66,7 +66,7 @@ export class GladosPhysics extends UnitTest {
 				const rollTime = Physics.ballRollTime(ball, distance);
 				const ballAtEnd = Physics.ballAtTime(ball, rollTime);
 
-				this.assert_equal_eps(endSpeed, ballAtEnd.speed.x, 0.01);
+				this.assert_eq_eps(endSpeed, ballAtEnd.speed.x, 0.01);
 			}
 		}
 	}

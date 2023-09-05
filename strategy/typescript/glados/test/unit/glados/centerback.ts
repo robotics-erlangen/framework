@@ -37,7 +37,7 @@ export class GladosCenterback extends UnitTest {
 		let centerback = new CenterbackTask(behavior, { pos: info.centerbackTarget });
 		centerback.run();
 		if (info.shouldChip) {
-			this.assert_equal((robot as any)._kickStyle, pb.robot.Command.KickStyle.Chip);
+			this.assert_eq((robot as any)._kickStyle, pb.robot.Command.KickStyle.Chip);
 		} else {
 			this.assert_undefined((robot as any)._kickStyle);
 		}

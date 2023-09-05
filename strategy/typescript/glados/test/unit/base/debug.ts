@@ -13,14 +13,14 @@ export class BaseDebug extends UnitTest {
 		const one: any = () => {};
 		one.member = 42;
 		const oneWrapped = debug.wrap("unittest", one);
-		this.assert_equal(one.member, oneWrapped.member);
+		this.assert_eq(one.member, oneWrapped.member);
 
 		// make sure wrap respects the prototype
 		// who changes the prototype of a function anyways?
 		const two = () => {};
 		Object.setPrototypeOf(two, { someField: 42 });
 		const twoWrapped = debug.wrap("unittest", two);
-		this.assert_equal(Object.getPrototypeOf(two), Object.getPrototypeOf(twoWrapped));
+		this.assert_eq(Object.getPrototypeOf(two), Object.getPrototypeOf(twoWrapped));
 
 		/*
 		 * Make sure the wrapped function respects the `this` given by context
@@ -34,7 +34,7 @@ export class BaseDebug extends UnitTest {
 
 		const three: { [name: string]: () => void } = {
 			unwrapped: function() {
-				testInstance.assert_equal(this, three);
+				testInstance.assert_eq(this, three);
 			},
 		};
 		three.wrapped = debug.wrap("unittest", three.unwrapped);
@@ -49,7 +49,7 @@ export class BaseDebug extends UnitTest {
 		 */
 		const bindTarget = {};
 		const boundFunction = (function(this: any) {
-			testInstance.assert_equal(this, bindTarget);
+			testInstance.assert_eq(this, bindTarget);
 		}).bind(bindTarget);
 		const wrappedBoundFunction = debug.wrap("unittest", boundFunction);
 		boundFunction();

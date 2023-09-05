@@ -32,7 +32,7 @@ export class GladosDuel extends UnitTest {
 		trainerBox.sendBroadcast(MessageType.mainAttacker, robot);
 		messaging.deliverMessages();
 
-		this.assert_equal(behavior, behavior.check());
+		this.assert_eq(behavior, behavior.check());
 	}
 }
 export let testClass = GladosDuel;
