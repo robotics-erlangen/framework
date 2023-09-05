@@ -149,9 +149,7 @@ export class UnitTest {
 	}
 
 	protected assert_eq_eps(a: number, b: number, eps: number, msg?: () => string) {
-		this.assert_not_nan(a, msg);
-		this.assert_not_nan(b, msg);
-		if (Math.abs(a - b) > eps) {
+		if (isNaN(a) || isNaN(b) || Math.abs(a - b) > eps) {
 			throw new Error(UnitTest.formatMessage(`diff between ${a} and ${b} (${Math.abs(a - b)} is greater than ${eps})`, msg));
 		}
 	}
@@ -175,12 +173,8 @@ export class UnitTest {
 	}
 
 	protected assert_vector_eq_eps(a: Vector | undefined, b: Vector | undefined, eps: number, msg?: () => string) {
-		this.assert_not_undefined(a, msg);
-		this.assert_not_undefined(b, msg);
-		a = a!;
-		b = b!;
-		if (isNaN(a.distanceToSq(b)) || a.distanceToSq(b) > eps * eps) {
-			throw new Error(UnitTest.formatMessage(`'${a ? a._toString() : a}' is not equal to '${b ? b._toString() : b}'. Distance: '${a.distanceTo(b)}' > '${eps}'`, msg));
+		if (a === undefined || b === undefined || isNaN(a.distanceToSq(b)) || a.distanceToSq(b) > eps * eps) {
+			throw new Error(UnitTest.formatMessage(`'${a ? a._toString() : a}' is not equal to '${b ? b._toString() : b}'. Distance: '${b ? a?.distanceTo(b) : undefined}' > '${eps}'`, msg));
 		}
 	}
 
@@ -225,33 +219,25 @@ export class UnitTest {
 	}
 
 	protected assert_ge(a: number, b: number, msg?: () => string) {
-		this.assert_not_nan(a, msg);
-		this.assert_not_nan(b, msg);
-		if (a < b) {
+		if (isNaN(a) || isNaN(b) || a < b) {
 			throw new Error(UnitTest.formatMessage(`${a} is not greater than or equal to ${b}`, msg));
 		}
 	}
 
 	protected assert_le(a: number, b: number, msg?: () => string) {
-		this.assert_not_nan(a, msg);
-		this.assert_not_nan(b, msg);
-		if (a > b) {
+		if (isNaN(a) || isNaN(b) || a > b) {
 			throw new Error(UnitTest.formatMessage(`${a} is not less than or equal to ${b}`, msg));
 		}
 	}
 
 	protected assert_gt(a: number, b: number, msg?: () => string) {
-		this.assert_not_nan(a, msg);
-		this.assert_not_nan(b, msg);
-		if (a <= b) {
+		if (isNaN(a) || isNaN(b) || a <= b) {
 			throw new Error(UnitTest.formatMessage(`${a} is not greater than ${b}`, msg));
 		}
 	}
 
 	protected assert_lt(a: number, b: number, msg?: () => string) {
-		this.assert_not_nan(a, msg);
-		this.assert_not_nan(b, msg);
-		if (a >= b) {
+		if (isNaN(a) || isNaN(b) || a >= b) {
 			throw new Error(UnitTest.formatMessage(`${a} is not less than ${b}`, msg));
 		}
 	}
