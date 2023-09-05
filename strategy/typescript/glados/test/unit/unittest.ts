@@ -13,6 +13,31 @@ export class UnitTest {
 		return `Assert failed: ${reason}${sep}${msg()}`;
 	}
 
+	private static deepEq(a: any, b: any): boolean {
+		if (a === b) {
+			return true;
+		}
+		if (a instanceof Object && b instanceof Object) {
+			let allKeys: { [index: string]: boolean } = {};
+			for (let key of Object.keys(a)) {
+				allKeys[key] = true;
+			}
+			for (let key of Object.keys(b)) {
+				allKeys[key] = true;
+			}
+			for (let key of Object.keys(allKeys)) {
+				if (!(key in a) || !(key in b)) {
+					return false;
+				}
+				if (!UnitTest.deepEq(a[key], b[key])) {
+					return false;
+				}
+			}
+			return true;
+		}
+		return false;
+	}
+
 	public static getOverlays(): { [moduleName: string]: any } {
 		return {};
 	}
@@ -123,33 +148,16 @@ export class UnitTest {
 		}
 	}
 
-	static deepEquals(a: any, b: any): boolean {
-		if (a === b) {
-			return true;
+	protected assert_eq_eps(a: number, b: number, eps: number, msg?: () => string) {
+		this.assert_not_nan(a, msg);
+		this.assert_not_nan(b, msg);
+		if (Math.abs(a - b) > eps) {
+			throw new Error(UnitTest.formatMessage(`diff between ${a} and ${b} (${Math.abs(a - b)} is greater than ${eps})`, msg));
 		}
-		if (a instanceof Object && b instanceof Object) {
-			let allKeys: { [index: string]: boolean } = {};
-			for (let key of Object.keys(a)) {
-				allKeys[key] = true;
-			}
-			for (let key of Object.keys(b)) {
-				allKeys[key] = true;
-			}
-			for (let key of Object.keys(allKeys)) {
-				if (!(key in a) || !(key in b)) {
-					return false;
-				}
-				if (!UnitTest.deepEquals(a[key], b[key])) {
-					return false;
-				}
-			}
-			return true;
-		}
-		return false;
 	}
 
 	protected assert_deep_eq(a: any, b: any, msg?: () => string) {
-		if (!UnitTest.deepEquals(a, b)) {
+		if (!UnitTest.deepEq(a, b)) {
 			throw new Error(UnitTest.formatMessage(`'${a._toString()}' is not equal to '${b._toString()}'`, msg));
 		}
 	}
@@ -221,14 +229,6 @@ export class UnitTest {
 		this.assert_not_nan(b, msg);
 		if (a > b) {
 			throw new Error(UnitTest.formatMessage(`${a} is not less than or equal to ${b}`, msg));
-		}
-	}
-
-	protected assert_eq_eps(a: number, b: number, eps: number, msg?: () => string) {
-		this.assert_not_nan(a, msg);
-		this.assert_not_nan(b, msg);
-		if (Math.abs(a - b) > eps) {
-			throw new Error(UnitTest.formatMessage(`diff between ${a} and ${b} (${Math.abs(a - b)} is greater than ${eps})`, msg));
 		}
 	}
 
