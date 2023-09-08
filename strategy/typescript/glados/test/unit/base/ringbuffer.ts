@@ -12,6 +12,7 @@ export class BaseRingBuffer extends UnitTest {
 		this.addTest("remove", this.testRemove);
 		this.addTest("putOrReplace", this.testPutOrReplace);
 		this.addTest("put", this.testPut);
+		this.addTest("peekOrUndefined", this.testPeekOrUndefined);
 		this.addTest("peek", this.testPeek);
 		this.addTest("toArray", this.testToArray);
 	}
@@ -196,28 +197,36 @@ export class BaseRingBuffer extends UnitTest {
 		}
 	}
 
-	private testPeek() {
+	private testPeekOrUndefined() {
 		{
 			const rb = new RingBuffer(3);
 
-			this.assert_undefined(rb.peek());
+			this.assert_undefined(rb.peekOrUndefined());
 
 			rb.put(1);
 			this.assert_eq(rb.length(), 1);
-			this.assert_eq(rb.peek(), 1);
+			this.assert_eq(rb.peekOrUndefined(), 1);
+			this.assert_undefined(rb.peekOrUndefined(1));
+			this.assert_undefined(rb.peekOrUndefined(2));
 
 			rb.put(2);
 			this.assert_eq(rb.length(), 2);
-			this.assert_eq(rb.peek(), 1);
+			this.assert_eq(rb.peekOrUndefined(), 1);
+			this.assert_eq(rb.peekOrUndefined(1), 2);
+			this.assert_undefined(rb.peekOrUndefined(2));
 
 			rb.put(3);
 			this.assert_eq(rb.length(), 3);
-			this.assert_eq(rb.peek(), 1);
+			this.assert_eq(rb.peekOrUndefined(), 1);
+			this.assert_eq(rb.peekOrUndefined(1), 2);
+			this.assert_eq(rb.peekOrUndefined(2), 3);
 
 			this.assert_eq(rb.remove(), 1);
 			this.assert_eq(rb.length(), 2);
-			this.assert_eq(rb.peek(), 2);
-			this.assert_eq(rb.peek(), 2);
+			this.assert_eq(rb.peekOrUndefined(), 2);
+			this.assert_eq(rb.peekOrUndefined(), 2);
+			this.assert_eq(rb.peekOrUndefined(1), 3);
+			this.assert_undefined(rb.peekOrUndefined(2));
 
 			this.assert_deep_eq(rb.toArray(), [2, 3]);
 		}
@@ -225,13 +234,59 @@ export class BaseRingBuffer extends UnitTest {
 		{
 			const rb = new RingBuffer(4, [1, 2, 3]);
 
-			this.assert_eq(rb.peek(), 1);
+			this.assert_eq(rb.peekOrUndefined(), 1);
 			rb.put(4);
-			this.assert_eq(rb.peek(), 1);
+			this.assert_eq(rb.peekOrUndefined(), 1);
 			this.assert_eq(rb.remove(), 1);
-			this.assert_eq(rb.peek(), 2);
+			this.assert_eq(rb.peekOrUndefined(), 2);
 
 			this.assert_deep_eq(rb.toArray(), [2, 3, 4]);
+		}
+	}
+
+	private testPeek() {
+		{
+			const rb = new RingBuffer(3);
+			this.assert_eq(rb.length(), 0);
+			this.assert_error(() => rb.peek());
+		}
+
+		{
+			const rb = new RingBuffer(4, [1, 2, 3]);
+			this.assert_eq(rb.length(), 3);
+
+			this.assert_eq(rb.peek(0), 1);
+			this.assert_eq(rb.peek(1), 2);
+			this.assert_eq(rb.peek(2), 3);
+			this.assert_error(() => rb.peek(3));
+
+			this.assert_undefined(rb.putOrReplace(4));
+
+			this.assert_eq(rb.peek(0), 1);
+			this.assert_eq(rb.peek(1), 2);
+			this.assert_eq(rb.peek(2), 3);
+			this.assert_eq(rb.peek(3), 4);
+
+			this.assert_eq(rb.putOrReplace(5), 1);
+
+			this.assert_eq(rb.peek(0), 2);
+			this.assert_eq(rb.peek(1), 3);
+			this.assert_eq(rb.peek(2), 4);
+			this.assert_eq(rb.peek(3), 5);
+
+			this.assert_eq(rb.putOrReplace(6), 2);
+
+			this.assert_eq(rb.peek(0), 3);
+			this.assert_eq(rb.peek(1), 4);
+			this.assert_eq(rb.peek(2), 5);
+			this.assert_eq(rb.peek(3), 6);
+
+			this.assert_eq(rb.removeOrUndefined(), 3);
+
+			this.assert_eq(rb.peek(0), 4);
+			this.assert_eq(rb.peek(1), 5);
+			this.assert_eq(rb.peek(2), 6);
+			this.assert_error(() => rb.peek(3));
 		}
 	}
 
