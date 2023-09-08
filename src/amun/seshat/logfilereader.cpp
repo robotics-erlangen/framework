@@ -155,31 +155,40 @@ void LogFileReader::readPackets(int startPacket, int count)
     }
 }
 
+std::optional<QString> LogFileReader::logUIDFromStatus(const Status status) {
+    if (!status->has_log_id()) {
+        return {};
+    }
+    QString out = "";
+    auto id = status->log_id();
+    const char* sep = "";
+    for (const auto& part : id.parts()) {
+        out += sep;
+        out += QString::fromStdString(part.hash());
+        if (part.flags() != 0) {
+            out += ":";
+            out += QString::number(part.flags(), 16);
+        }
+        sep = "+";
+    }
+    return out;
+}
+
 QString LogFileReader::logUID()
 {
     SeqLogFileReader::Memento mem = m_reader.createMemento();
     m_reader.reset();
     Status status = m_reader.readStatus();
-    QString out = "";
-    if (!status->has_log_id()) {
-        out = "This log does not contain a log UID. To create one, just use the Logcutter on this log.";
-    } else {
-        auto id = status->log_id();
-        const char* sep = "";
-        for (const auto& part : id.parts()) {
-            out += sep;
-            out += QString::fromStdString(part.hash());
-            if (part.flags() != 0) {
-                out += ":";
-                out += QString::number(part.flags(), 16);
-            }
-            sep = "+";
-        }
+    const auto maybeId = LogFileReader::logUIDFromStatus(status);
+    if (!maybeId) {
+        return "This log does not contain a log UID. To create one, just use the Logcutter on this log.";
     }
+    auto id = maybeId.value();
+
     m_reader.applyMemento(mem);
-    int sz = out.size();
+    int sz = id.size();
     for (int i=50; i < sz; i += 50) {
-        out.insert(i, "\n");
+        id.insert(i, "\n");
     }
-    return out;
+    return id;
 }

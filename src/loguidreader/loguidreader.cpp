@@ -22,6 +22,7 @@
 #include <QCommandLineParser>
 #include <clocale>
 
+#include "seshat/logfilereader.h"
 #include "seshat/seqlogfilereader.h"
 
 int main(int argc, char* argv[]) {
@@ -46,22 +47,11 @@ int main(int argc, char* argv[]) {
         }
 
         const auto status = logfile.readStatus();
-
-        // evil code duplication form logfilereader.cpp
-        if (!status->has_log_id()) {
-            std::cout << "MISSING (run this log through the logcutter)";
-        } else {
-            auto id = status->log_id();
-            const char* sep = "";
-            for (const auto& part : id.parts()) {
-                std::cout << sep << part.hash();
-                if (part.flags() != 0) {
-                    std::cout << ":" << std::hex << part.flags();
-                }
-                sep = "+";
-            }
-        }
-        std::cout << "  " << filename.toStdString() << std::endl;
+        const auto maybeId = LogFileReader::logUIDFromStatus(status);
+        const std::string id = maybeId
+            ? maybeId.value().toStdString()
+            : "MISSING (run this log through the logcutter)";
+        std::cout << id << "  " << filename.toStdString() << std::endl;
     }
 
     return 0;

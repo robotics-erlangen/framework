@@ -30,12 +30,16 @@
 #include <QFile>
 #include <QList>
 
+#include <optional>
+
 class QMutex;
 
 class LogFileReader : public StatusSource
 {
     Q_OBJECT
 public:
+    static std::optional<QString> logUIDFromStatus(const Status status);
+
     // checks if the format matches and opens the log file if it applies
     static QPair<std::shared_ptr<StatusSource>, QString> tryOpen(QString filename);
     explicit LogFileReader();
