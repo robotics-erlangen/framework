@@ -4,12 +4,12 @@ import * as Field from "base/field";
 import * as GameController from "base/gamecontroller";
 import * as pb from "base/protobuf";
 import * as BaseRef from "base/referee";
+import { RingBuffer } from "base/ringbuffer";
 import { Robot } from "base/robot";
 import { Position, Speed } from "base/vector";
 import * as World from "base/world";
 
 import * as ObsvBall from "glados/observer/ball";
-import * as Error from "glados/observer/error";
 
 const G = World.Geometry;
 
@@ -71,7 +71,7 @@ let cntO = 0;
 export function realisticCardsOpponent() {
 	if (!BaseRef.hasTooManyOpponentRobots()) {
 		cntO = 0;
-	} else if (World.RefereeState !== "Stop" && World.Time - Error.getLastRefChange() > 0.5) {
+	} else if (World.RefereeState !== "Stop" && World.Time - getLastRefChange() > 0.5) {
 		cntO = cntO + 1;
 	}
 	if (cntO % 1500 === 1499) {
@@ -150,4 +150,43 @@ export function shouldTakeAdvantage(): boolean {
 
 	debug.set("advantage check", "default");
 	return false;
+}
+
+let lastStopTime = 0;
+
+// after updateRefereeState has run:
+//   - refereeStates.peek(0) is the state of the referee in the previous frame
+//   - refereeStates.peek(1) is the state of the referee in the current frame (== World.RefereeState)
+let refereeStates = new RingBuffer<World.RefereeStateType>(2, [World.RefereeState, World.RefereeState]);
+let lastRefChange: number;
+
+function updateRefereeState() {
+	refereeStates.putOrReplace(World.RefereeState);
+	if (refereeStates.peek(0) !== World.RefereeState) {
+		lastRefChange = World.Time;
+	}
+}
+
+function updateLastStopTime(isLeavingStop: boolean) {
+	if (isLeavingStop) {
+		lastStopTime = World.Time;
+	}
+}
+
+export function getLastRefChange(): number {
+	return lastRefChange;
+}
+
+export function getLastStopTime(): number {
+	return lastStopTime;
+}
+
+export function isLeavingStop() {
+	return refereeStates.peek(0) === "Stop" && World.RefereeState !== "Stop";
+}
+
+export function _update() {
+	updateRefereeState();
+	let leavingStop = isLeavingStop();
+	updateLastStopTime(leavingStop);
 }

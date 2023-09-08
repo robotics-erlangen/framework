@@ -49,6 +49,7 @@ class PreProc implements Process {
 		GameController._update();
 		lowFPSObserver.update();
 		Crash._update();
+		ObserverReferee._update();
 		ObserverReferee.checkChooseKeeper();
 	}
 

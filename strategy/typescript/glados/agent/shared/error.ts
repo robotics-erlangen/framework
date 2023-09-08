@@ -4,6 +4,7 @@ import * as World from "base/world";
 
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import * as ErrorObserver from "glados/observer/error";
+import * as ObserverReferee from "glados/observer/referee";
 import { Error as ErrorTask } from "glados/task/shared/error";
 
 const ERROR_TOLERANCE_PER_SEC = 3; // <- [0.5,1]
@@ -41,7 +42,7 @@ export class Error extends Behavior {
 			}
 			return undefined;
 		}
-		let gameTimespan = World.Time - ErrorObserver.getLastStopTime();
+		let gameTimespan = World.Time - ObserverReferee.getLastStopTime();
 
 		for (let [k, v] of Object.entries(errorTable)) {
 			if (gameTimespan > 2 && v > ERROR_TOLERANCE_PER_SEC * gameTimespan
@@ -111,7 +112,7 @@ export class Error extends Behavior {
 
 	_updateTask(): TaskAssignment<typeof ErrorTask> {
 		// local errorFound = next(ErrorObserver.getErrorTable(this._robot)) ~= nil
-		// if errorFound and World.Time == ErrorObserver.getLastRefChange() then
+		// if errorFound and World.Time == ObserverReferee.getLastStateChange() then
 		// 	log(this.errorMsg())
 		// end
 		return [ErrorTask];

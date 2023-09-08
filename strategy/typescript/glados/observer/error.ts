@@ -3,6 +3,8 @@ import * as Referee from "base/referee";
 import { FriendlyRobot } from "base/robot";
 import * as World from "base/world";
 
+import * as ObserverReferee from "glados/observer/referee";
+
 interface Outliers {
 	size: number;
 	next?: number;
@@ -20,7 +22,6 @@ type ErrorTable = { [name: string]: number };
 let errorTables = new Map<FriendlyRobot, ErrorTable>();
 let batteryTable: Map<FriendlyRobot, RingBuffer> = new Map<FriendlyRobot, RingBuffer>();
 const BATTERY_TABLE_SIZE = 50;
-let lastStopTime = 0;
 
 export function getAverageBatterySate(robot: FriendlyRobot): number {
 	if (!batteryTable.has(robot) || batteryTable.get(robot)!.size === 0) {
@@ -139,34 +140,6 @@ function updateErrorTables(isLeavingStop: boolean) {
 	}
 }
 
-let lastRefChange: number;
-let refereeState: string;
-
-function updateRefereeState() {
-	if (refereeState !== World.RefereeState) {
-		refereeState = World.RefereeState;
-		lastRefChange = World.Time;
-	}
-}
-
-function updateLastStopTime(isLeavingStop: boolean) {
-	if (isLeavingStop) {
-		lastStopTime = World.Time;
-	}
-}
-
-export function getLastRefChange(): number {
-	return lastRefChange;
-}
-
-export function getLastStopTime(): number {
-	return lastStopTime;
-}
-
-function isLeavingStop() {
-	return refereeState === "Stop" && World.RefereeState !== "Stop";
-}
-
 // we don't have any feedback by our robots. At least we have to assume its like that
 // We still want to be able to detect broken bots.
 // To do so, we use the previous moveTo. If it is far (~0.5m) from our current pos while our speed is slow we increase a counter.
@@ -205,14 +178,12 @@ export function getSpeedErrorCount(robot: FriendlyRobot): number {
 }
 
 export function _update() {
-	let leavingStop = isLeavingStop();
+	let leavingStop = ObserverReferee.isLeavingStop();
 	for (let r of World.FriendlyRobots) {
 		if (r.radioResponse && r.radioResponse.battery != undefined) {
 			addBatteryState(r, r.radioResponse.battery);
 		}
 	}
-	updateRefereeState();
-	updateLastStopTime(leavingStop);
 	updateErrorTables(leavingStop);
 	updateSpeedError();
 }
