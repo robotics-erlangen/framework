@@ -55,10 +55,11 @@ export class RingBuffer<T> {
 	/**
 	 * Increments a number modulo the size of this ringbuffer
 	 * @param x - the number to increment
-	 * @returns 0 if x + 1 == this._size, else x + 1
+	 * @param y - the increment, defaults to 1
+	 * @returns (x + y) % size of the ringbuffer
 	 */
-	private _inc(x: number): number {
-		return (x + 1) % this._size;
+	private _inc(x: number, y: number = 1): number {
+		return (x + y) % this._size;
 	}
 
 	/**
@@ -174,12 +175,30 @@ export class RingBuffer<T> {
 	}
 
 	/**
-	 * Returns the next value to be read from the ringbuffer without removing it
-	 * or undefined if the buffer is emtpy
-	 * @returns The next value to be read
+	 * Returns the next value to be read from the ringbuffer **after
+	 * i remove operations** without removing it or undefined if
+	 * the buffer is emtpy by then
+	 * @param i - how many elements to skip, defaults to 0
+	 * @returns The value or undefined if the buffer is empty
 	 */
-	public peek(): T | undefined {
-		return this._length === 0 ? undefined : this._buffer[this._read];
+	public peekOrUndefined(i: number = 0): T | undefined {
+		if (i < 0) {
+			throw Error(`peekOrUndefined(${i}) called with negative argument`);
+		}
+		return i < this._length ? this._buffer[this._inc(this._read, i)] : undefined;
+	}
+
+	/**
+	 * Returns the next value to be read from the ringbuffer **after
+	 * i remove operations** without removing it, or throws an error
+	 * if the buffer is emtpy by then
+	 * @returns The value
+	 */
+	public peek(i: number = 0): T {
+		if (i >= this._length) {
+			throw Error(`peek(${i}) called on ringbuffer of size ${this._size}`);
+		}
+		return this.peekOrUndefined(i)!;
 	}
 
 	/**
