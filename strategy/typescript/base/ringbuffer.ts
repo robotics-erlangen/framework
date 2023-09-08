@@ -52,6 +52,11 @@ export class RingBuffer<T> {
 		this._buffer.length = size;
 	}
 
+	/**
+	 * Increments a number modulo the size of this ringbuffer
+	 * @param x - the number to increment
+	 * @returns 0 if x + 1 == this._size, else x + 1
+	 */
 	private _inc(x: number): number {
 		return (x + 1) % this._size;
 	}
