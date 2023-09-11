@@ -83,7 +83,7 @@ export class RingBuffer<T> {
 	 * Gets the maximum number of elements that can be in the ringbuffer at the same time
 	 * @returns The size of the ringbuffer
 	 */
-	public size(): number {
+	public get size(): number {
 		return this._size;
 	}
 
@@ -91,7 +91,7 @@ export class RingBuffer<T> {
 	 * Gets the current number of elements that are in the ringbuffer
 	 * @returns The length of the ringbuffer
 	 */
-	public length(): number {
+	public get length(): number {
 		return this._length;
 	}
 
