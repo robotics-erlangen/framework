@@ -152,8 +152,6 @@ export function shouldTakeAdvantage(): boolean {
 	return false;
 }
 
-let lastStopTime = 0;
-
 // after updateRefereeState has run:
 //   - previousStates.peek(0) is the state of the referee in the previous frame
 //   - previousStates.peek(1) is the state of the referee in the current frame (== World.RefereeState)
@@ -167,18 +165,17 @@ function updatePreviousStates() {
 	}
 }
 
-function updateLastStopTime(isLeavingStop: boolean) {
-	if (isLeavingStop) {
-		lastStopTime = World.Time;
-	}
+let lastTimeInState = new Map<World.RefereeStateType, number>();
+function updateLastTimeInState() {
+	lastTimeInState[World.RefereeState] = World.Time;
 }
 
 export function getLastStateChange(): number {
 	return lastStateChange;
 }
 
-export function getLastStopTime(): number {
-	return lastStopTime;
+export function getLastTimeInState(state = World.RefereeState): number {
+	return lastTimeInState[state];
 }
 
 export function previousStateIfChanged(): World.RefereeStateType | undefined {
@@ -187,6 +184,5 @@ export function previousStateIfChanged(): World.RefereeStateType | undefined {
 
 export function _update() {
 	updatePreviousStates();
-	let leavingStop = previousStateIfChanged() === "Stop";
-	updateLastStopTime(leavingStop);
+	updateLastTimeInState();
 }

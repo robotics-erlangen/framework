@@ -42,7 +42,7 @@ export class Error extends Behavior {
 			}
 			return undefined;
 		}
-		let gameTimespan = World.Time - ObserverReferee.getLastStopTime();
+		let gameTimespan = World.Time - ObserverReferee.getLastTimeInState("Stop");
 
 		for (let [k, v] of Object.entries(errorTable)) {
 			if (gameTimespan > 2 && v > ERROR_TOLERANCE_PER_SEC * gameTimespan
