@@ -6,6 +6,7 @@ import { min } from "base/listutil";
 import * as MathUtil from "base/mathutil";
 import * as plot from "base/plot";
 import * as Referee from "base/referee";
+import { AccumVectorRingBuffer } from "base/ringbuffer";
 import { Robot } from "base/robot";
 import { AbsTime, RelTime } from "base/timing";
 import { Position, Speed, Vector } from "base/vector";
@@ -657,58 +658,28 @@ const deviationThreshold = 0.020;
 const numberOfMeasurements = 6;
 
 /** Used to index the last <numberOfMeasurements> measured positions and speeds */
-let lastIndex = 0;
-let standardVector = new Vector(0, 0);
-let lastBallPositions: Vector[] = new Array(numberOfMeasurements);
-let lastSpeedVectors: Vector[] = new Array(numberOfMeasurements);
-for (let i = 0; i < numberOfMeasurements; i++) {
-	lastBallPositions[i] = standardVector;
-	lastSpeedVectors[i] = standardVector;
-}
+const lastBallPositions = new AccumVectorRingBuffer(numberOfMeasurements);
+const lastBallSpeeds = new AccumVectorRingBuffer(numberOfMeasurements);
 
 function updateIsStanding() {
+	lastBallPositions.putOrReplace(World.Ball.pos);
+	lastBallSpeeds.putOrReplace(World.Ball.speed);
+
 	// Calculate the mean of the last <numberOfMeasurements> speed Vectors and check it's length
 	// Randomly generarted noise speeds will statistically cancel each other out
 	// Speed vectors which point in the general same direction will add up
-	let condSameDirection = true;
-	let speedMean = new Vector(0, 0);
-	for (let i = 0; i < lastSpeedVectors.length; i++) {
-		speedMean = speedMean + lastSpeedVectors[i];
-	}
+	const speedMean = lastBallSpeeds.mean()!;
+	const condSameDirection = speedMean.length() > speedMeanThreshold;
 
-	speedMean = speedMean + World.Ball.speed;
-	speedMean = speedMean / lastSpeedVectors.length;
-
-	condSameDirection = speedMean.length() > speedMeanThreshold;
-
-	lastSpeedVectors[lastIndex] = World.Ball.speed;
-
-	// Calculate standard deviation between last ball positions and their mean value
-	lastBallPositions[lastIndex] = World.Ball.pos;
-	lastIndex = (lastIndex + 1) % numberOfMeasurements;
-
-	// mean position
-	let positionMean = new Vector(0, 0);
-	for (let i = 0; i < lastBallPositions.length; i++) {
-		positionMean = positionMean + lastBallPositions[i];
-	}
-
-	positionMean = positionMean / lastBallPositions.length;
-
-	// calculate standard deviation
-	let sum = 0;
-	for (let i = 0; i < lastBallPositions.length; i++) {
-		sum = sum + (lastBallPositions[i] - positionMean).lengthSq();
-	}
-	sum = (sum / (lastBallPositions.length - 1));
-	let standardDeviation = Math.sqrt(sum);
-	let condDeviation = standardDeviation > deviationThreshold;
+	// Calculate standard deviation of last ball positions
+	const positionStdev = lastBallPositions.stdev() ?? 0;
+	const condDeviation = positionStdev > deviationThreshold;
 
 	// check for absolute local speed
-	let condSpeed = World.Ball.speed.length() > speedThreshold;
+	const condSpeed = World.Ball.speed.length() > speedThreshold;
 
 	// check if ball was recently shot
-	let condWasShot = wasShot(shootDeltaTime) != undefined;
+	const condWasShot = wasShot(shootDeltaTime) != undefined;
 
 	// log evaluation
 	debug.pushtop("Ball.isStanding");
