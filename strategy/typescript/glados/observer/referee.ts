@@ -181,12 +181,12 @@ export function getLastStopTime(): number {
 	return lastStopTime;
 }
 
-export function isLeavingStop() {
-	return previousStates.peek(0) === "Stop" && World.RefereeState !== "Stop";
+export function previousStateIfChanged(): World.RefereeStateType | undefined {
+	return previousStates.peek(0) !== World.RefereeState ? previousStates.peek(0) : undefined;
 }
 
 export function _update() {
 	updatePreviousStates();
-	let leavingStop = isLeavingStop();
+	let leavingStop = previousStateIfChanged() === "Stop";
 	updateLastStopTime(leavingStop);
 }

@@ -178,7 +178,7 @@ export function getSpeedErrorCount(robot: FriendlyRobot): number {
 }
 
 export function _update() {
-	let leavingStop = ObserverReferee.isLeavingStop();
+	let leavingStop = ObserverReferee.previousStateIfChanged() === "Stop";
 	for (let r of World.FriendlyRobots) {
 		if (r.radioResponse && r.radioResponse.battery != undefined) {
 			addBatteryState(r, r.radioResponse.battery);
