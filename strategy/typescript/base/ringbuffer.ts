@@ -23,10 +23,12 @@
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
 
+import { Vector } from "base/vector";
+
 export class RingBuffer<T> {
-	private _buffer: (T | undefined)[] = [];
-	private _size: number = 0;
-	private _length: number = 0;
+	protected _buffer: (T | undefined)[] = [];
+	protected _size: number = 0;
+	protected _length: number = 0;
 	private _read: number = 0;
 	private _write: number = 0;
 
@@ -236,3 +238,164 @@ export class RingBuffer<T> {
 	}
 }
 
+export class AccumNumberRingBuffer extends RingBuffer<number> {
+	private _total: number = 0;
+
+	/**
+	 * Creates a ringbuffer of size, prepopulated with values
+	 * @param size - The size of the ringbuffer
+	 * @param values - optional, initial content of the ringbuffer
+	 */
+	constructor(size: number, values: number[] = []) {
+		super(size, values);
+		this._total = values.reduce((a, b) => a + b, 0);
+	}
+
+	protected _onClear() {
+		this._total = 0;
+	}
+
+	protected _onRemove(element: number) {
+		this._total -= element;
+	}
+
+	protected _onPut(element: number) {
+		this._total += element;
+	}
+
+	/**
+	 * Returns the sum of all elements in the ringbuffer
+	 * @returns The sum of all elements in the ringbuffer
+	 */
+	public get total(): number {
+		return this._total;
+	}
+
+	/**
+	 * Returns the mean of all elements in the ringbuffer,
+	 * or undefined if the ringbuffer is empty
+	 * @returns the mean of all elements in the ringbuffer,
+	 * or undefined if the ringbuffer is empty
+	 */
+	public mean(): number | undefined {
+		return this._length === 0 ? undefined : this._total / this._length;
+	}
+
+	/**
+	 * Returns the variance of all elements in the ringbuffer,
+	 * or undefined if the ringbuffer is empty or contains only one element
+	 * @returns the variance of all elements in the ringbuffer,
+	 * or undefined if the ringbuffer is empty or contains only one element
+	 */
+	public variance(): number | undefined {
+		if (this._length <= 1) {
+			return undefined;
+		}
+		const mean = this.mean()!;
+		return this
+			.toArray()
+			.map((x) => (x - mean) ** 2)
+			.reduce((a, b) => a + b, 0)
+			/ (this._length - 1);
+	}
+
+	/**
+	 * Returns the standard deviation of all elements in the ringbuffer,
+	 * or undefined if the ringbuffer is empty or contains only one element
+	 * @returns the standard deviation of all elements in the ringbuffer,
+	 * or undefined if the ringbuffer is empty or contains only one element
+	 */
+	public stdev(): number | undefined {
+		const variance = this.variance();
+		return variance === undefined ? undefined : Math.sqrt(variance);
+	}
+
+	/**
+	 * Returns a string representation of the ringbuffer, used for base/debug
+	 * @returns A string representation of the ringbuffer
+	 */
+	public _toString() {
+		return `AccumNumberRingBuffer(size=${this._size}, total=${this._total}, ${this.toArray()})`;
+	}
+}
+
+export class AccumVectorRingBuffer extends RingBuffer<Vector> {
+	private _total: Vector = new Vector(0, 0);
+
+	/**
+	 * Creates a ringbuffer of size, prepopulated with values
+	 * @param size - The size of the ringbuffer
+	 * @param values - optional, initial content of the ringbuffer
+	 */
+	constructor(size: number, values: Vector[] = []) {
+		super(size, values);
+		this._total = values.reduce((a, b) => a + b, new Vector(0, 0));
+	}
+
+	protected _onClear() {
+		this._total = new Vector(0, 0);
+	}
+
+	protected _onRemove(element: Vector) {
+		this._total = this._total - element;
+	}
+
+	protected _onPut(element: Vector) {
+		this._total = this._total + element;
+	}
+
+	/**
+	 * Returns the sum of all elements in the ringbuffer
+	 * @returns The sum of all elements in the ringbuffer
+	 */
+	public get total(): Vector {
+		return this._total;
+	}
+
+	/**
+	 * Returns the mean of all elements in the ringbuffer,
+	 * or undefined if the ringbuffer is empty
+	 * @returns the mean of all elements in the ringbuffer,
+	 * or undefined if the ringbuffer is empty
+	 */
+	public mean(): Vector | undefined {
+		return this._length === 0 ? undefined : this._total / this._length;
+	}
+
+	/**
+	 * Returns the variance of all elements in the ringbuffer,
+	 * or undefined if the ringbuffer is empty or contains only one element
+	 * @returns the variance of all elements in the ringbuffer,
+	 * or undefined if the ringbuffer is empty or contains only one element
+	 */
+	public variance(): number | undefined {
+		if (this._length <= 1) {
+			return undefined;
+		}
+		const mean = this.mean()!;
+		return this
+			.toArray()
+			.map((x) => (x - mean).lengthSq())
+			.reduce((a, b) => a + b, 0)
+			/ (this._length - 1);
+	}
+
+	/**
+	 * Returns the standard deviation of all elements in the ringbuffer,
+	 * or undefined if the ringbuffer is empty or contains only one element
+	 * @returns the standard deviation of all elements in the ringbuffer,
+	 * or undefined if the ringbuffer is empty or contains only one element
+	 */
+	public stdev(): number | undefined {
+		const variance = this.variance();
+		return variance === undefined ? undefined : Math.sqrt(variance);
+	}
+
+	/**
+	 * Returns a string representation of the ringbuffer, used for base/debug
+	 * @returns A string representation of the ringbuffer
+	 */
+	public _toString() {
+		return `AccumVectorRingBuffer(size=${this._size}, total=${this._total}, ${this.toArray()})`;
+	}
+}

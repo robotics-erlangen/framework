@@ -1,20 +1,35 @@
-import { RingBuffer } from "base/ringbuffer";
+import { RingBuffer, AccumNumberRingBuffer, AccumVectorRingBuffer } from "base/ringbuffer";
+import { Vector } from "base/vector";
 
 import { UnitTest } from "glados/test/unit/unittest";
 
 export class BaseRingBuffer extends UnitTest {
 	constructor() {
 		super();
-		this.addTest("constructor", this.testConstructor);
-		this.addTest("isEmptyFull", this.testIsEmptyFull);
-		this.addTest("clear", this.testClear);
-		this.addTest("removeOrUndefined", this.testRemoveOrUndefined);
-		this.addTest("remove", this.testRemove);
-		this.addTest("putOrReplace", this.testPutOrReplace);
-		this.addTest("put", this.testPut);
-		this.addTest("peekOrUndefined", this.testPeekOrUndefined);
-		this.addTest("peek", this.testPeek);
-		this.addTest("toArray", this.testToArray);
+		this.addTest("new RingBuffer", this.testConstructor);
+		this.addTest("RingBuffer.isEmptyFull", this.testIsEmptyFull);
+		this.addTest("RingBuffer.clear", this.testClear);
+		this.addTest("RingBuffer.removeOrUndefined", this.testRemoveOrUndefined);
+		this.addTest("RingBuffer.remove", this.testRemove);
+		this.addTest("RingBuffer.putOrReplace", this.testPutOrReplace);
+		this.addTest("RingBuffer.put", this.testPut);
+		this.addTest("RingBuffer.peekOrUndefined", this.testPeekOrUndefined);
+		this.addTest("RingBuffer.peek", this.testPeek);
+		this.addTest("RingBuffer.toArray", this.testToArray);
+
+		this.addTest("new AccumNumberRingBuffer", this.testConstructorAccumNumber);
+		this.addTest("AccumNumberRingBuffer.clear", this.testClearAccumNumber);
+		this.addTest("AccumNumberRingBuffer.removeOrUndefined", this.testRemoveOrUndefinedAccumNumber);
+		this.addTest("AccumNumberRingBuffer.putOrReplace", this.testPutOrReplaceAccumNumber);
+		this.addTest("AccumNumberRingBuffer.mean", this.testMeanAccumNumber);
+		this.addTest("AccumNumberRingBuffer.variance", this.testVarianceAccumNumber);
+
+		this.addTest("new AccumVectorRingBuffer", this.testConstructorAccumVector);
+		this.addTest("AccumVectorRingBuffer.clear", this.testClearAccumVector);
+		this.addTest("AccumVectorRingBuffer.removeOrUndefined", this.testRemoveOrUndefinedAccumVector);
+		this.addTest("AccumVectorRingBuffer.putOrReplace", this.testPutOrReplaceAccumVector);
+		this.addTest("AccumVectorRingBuffer.mean", this.testMeanAccumVector);
+		this.addTest("AccumVectorRingBuffer.variance", this.testVarianceAccumVector);
 	}
 
 	private testConstructor() {
@@ -247,13 +262,13 @@ export class BaseRingBuffer extends UnitTest {
 	private testPeek() {
 		{
 			const rb = new RingBuffer(3);
-			this.assert_eq(rb.length(), 0);
+			this.assert_eq(rb.length, 0);
 			this.assert_error(() => rb.peek());
 		}
 
 		{
 			const rb = new RingBuffer(4, [1, 2, 3]);
-			this.assert_eq(rb.length(), 3);
+			this.assert_eq(rb.length, 3);
 
 			this.assert_eq(rb.peek(0), 1);
 			this.assert_eq(rb.peek(1), 2);
@@ -349,5 +364,244 @@ export class BaseRingBuffer extends UnitTest {
 			this.assert_deep_eq(rb.toArray(), []);
 		}
 	}
+
+
+	private testConstructorAccumNumber() {
+		{
+			const rb = new AccumNumberRingBuffer(12);
+			this.assert_eq(rb.total, 0);
+		}
+
+		{
+			const rb = new AccumNumberRingBuffer(10, [1, 2, 3]);
+			this.assert_eq(rb.total, 6);
+		}
+	}
+
+	private testClearAccumNumber() {
+		{
+			const rb = new AccumNumberRingBuffer(10, [1, 2, 3]);
+			this.assert_eq(rb.total, 6);
+			rb.clear();
+			this.assert_eq(rb.total, 0);
+		}
+	}
+
+	private testRemoveOrUndefinedAccumNumber() {
+		{
+			const rb = new AccumNumberRingBuffer(12);
+			this.assert_eq(rb.total, 0);
+			this.assert_undefined(rb.removeOrUndefined());
+			this.assert_eq(rb.total, 0);
+		}
+
+		{
+			const rb = new AccumNumberRingBuffer(10, [1, 2, 3]);
+			this.assert_eq(rb.total, 6);
+			this.assert_eq(rb.removeOrUndefined(), 1);
+			this.assert_eq(rb.total, 5);
+		}
+	}
+
+	private testPutOrReplaceAccumNumber() {
+		{
+			const rb = new AccumNumberRingBuffer(12);
+			this.assert_eq(rb.total, 0);
+			this.assert_undefined(rb.putOrReplace(10));
+			this.assert_eq(rb.total, 10);
+		}
+
+		{
+			const rb = new AccumNumberRingBuffer(10, [1, 2, 3]);
+			this.assert_eq(rb.total, 6);
+			this.assert_undefined(rb.putOrReplace(4));
+			this.assert_eq(rb.total, 10);
+		}
+
+		{
+			const rb = new AccumNumberRingBuffer(3, [1, 2, 3]);
+			this.assert_eq(rb.total, 6);
+			this.assert_eq(rb.putOrReplace(4), 1);
+			this.assert_eq(rb.total, 9);
+		}
+	}
+
+	private testMeanAccumNumber() {
+		{
+			const rb = new AccumNumberRingBuffer(12);
+			this.assert_undefined(rb.mean());
+			this.assert_undefined(rb.putOrReplace(10));
+			this.assert_eq(rb.mean()!, 10);
+		}
+
+		{
+			const rb = new AccumNumberRingBuffer(10, [1, 2, 3]);
+			this.assert_eq(rb.mean(), 2);
+			this.assert_undefined(rb.putOrReplace(4));
+			this.assert_eq(rb.mean(), 2.5);
+		}
+
+		{
+			const rb = new AccumNumberRingBuffer(3, [1, 2, 3]);
+			this.assert_eq(rb.mean(), 2);
+			this.assert_eq(rb.putOrReplace(4), 1);
+			this.assert_eq(rb.mean(), 3);
+		}
+	}
+
+	private testVarianceAccumNumber() {
+		{
+			const rb = new AccumNumberRingBuffer(12);
+			this.assert_undefined(rb.variance());
+			this.assert_undefined(rb.putOrReplace(10));
+			this.assert_undefined(rb.variance());
+			this.assert_undefined(rb.putOrReplace(10));
+			this.assert_eq(rb.variance(), 0);
+		}
+
+		{
+			const rb = new AccumNumberRingBuffer(10, [2, 2, 5]);
+			this.assert_eq(rb.mean(), 3);
+			this.assert_eq(rb.variance(), 3);
+			this.assert_eq(rb.remove(), 2);
+			this.assert_eq(rb.remove(), 2);
+			this.assert_undefined(rb.variance());
+		}
+
+		{
+			const rb = new AccumNumberRingBuffer(3, [1, 2, 3]);
+			this.assert_eq(rb.mean(), 2);
+			this.assert_eq(rb.variance(), 1);
+			this.assert_eq(rb.putOrReplace(4), 1);
+			this.assert_eq(rb.mean(), 3);
+			this.assert_eq(rb.variance(), 2.5);
+		}
+
+		{
+			const rb = new AccumNumberRingBuffer(4, [17, 12, -5, 8]);
+			this.assert_eq(rb.mean(), 8);
+			this.assert_eq_eps(rb.variance()!, (9 ** 2 + 4 ** 2 + 13 ** 2 + 0 ** 2) / 3, 1e-7);
+		}
+	}
+
+
+	private testConstructorAccumVector() {
+		{
+			const rb = new AccumVectorRingBuffer(12);
+			this.assert_vector_eq(rb.total, new Vector(0, 0));
+		}
+
+		{
+			const rb = new AccumVectorRingBuffer(10, [new Vector(1, 0), new Vector(2, 0), new Vector(0, 3)]);
+			this.assert_vector_eq(rb.total, new Vector(3, 3));
+		}
+	}
+
+	private testClearAccumVector() {
+		{
+			const rb = new AccumVectorRingBuffer(10, [new Vector(1, 0), new Vector(2, 0), new Vector(0, 3)]);
+			this.assert_vector_eq(rb.total, new Vector(3, 3));
+			rb.clear();
+			this.assert_vector_eq(rb.total, new Vector(0, 0));
+		}
+	}
+
+	private testRemoveOrUndefinedAccumVector() {
+		{
+			const rb = new AccumVectorRingBuffer(12);
+			this.assert_vector_eq(rb.total, new Vector(0, 0));
+			this.assert_undefined(rb.removeOrUndefined());
+			this.assert_vector_eq(rb.total, new Vector(0, 0));
+		}
+
+		{
+			const rb = new AccumVectorRingBuffer(10, [new Vector(1, 0), new Vector(2, 0), new Vector(0, 3)]);
+			this.assert_vector_eq(rb.total, new Vector(3, 3));
+			this.assert_vector_eq(rb.removeOrUndefined()!, new Vector(1, 0));
+			this.assert_vector_eq(rb.total, new Vector(2, 3));
+		}
+	}
+
+	private testPutOrReplaceAccumVector() {
+		{
+			const rb = new AccumVectorRingBuffer(12);
+			this.assert_vector_eq(rb.total, new Vector(0, 0));
+			this.assert_undefined(rb.putOrReplace(new Vector(10, 1)));
+			this.assert_vector_eq(rb.total, new Vector(10, 1));
+		}
+
+		{
+			const rb = new AccumVectorRingBuffer(10, [new Vector(1, 0), new Vector(2, 0), new Vector(0, 3)]);
+			this.assert_vector_eq(rb.total, new Vector(3, 3));
+			this.assert_undefined(rb.putOrReplace(new Vector(4, 0)));
+			this.assert_vector_eq(rb.total, new Vector(7, 3));
+		}
+
+		{
+			const rb = new AccumVectorRingBuffer(3, [new Vector(1, 0), new Vector(2, 0), new Vector(0, 3)]);
+			this.assert_vector_eq(rb.total, new Vector(3, 3));
+			this.assert_vector_eq(rb.putOrReplace(new Vector(4, 0))!, new Vector(1, 0));
+			this.assert_vector_eq(rb.total, new Vector(6, 3));
+		}
+	}
+
+	private testMeanAccumVector() {
+		{
+			const rb = new AccumVectorRingBuffer(12);
+			this.assert_undefined(rb.mean());
+			this.assert_undefined(rb.putOrReplace(new Vector(10, 1)));
+			this.assert_vector_eq(rb.mean()!, new Vector(10, 1));
+		}
+
+		{
+			const rb = new AccumVectorRingBuffer(10, [new Vector(1, 0), new Vector(2, 0), new Vector(0, 3)]);
+			this.assert_vector_eq(rb.mean()!, new Vector(1, 1));
+			this.assert_undefined(rb.putOrReplace(new Vector(5, 5)));
+			this.assert_vector_eq(rb.mean()!, new Vector(2, 2));
+		}
+
+		{
+			const rb = new AccumVectorRingBuffer(3, [new Vector(1, 0), new Vector(2, 0), new Vector(0, 3)]);
+			this.assert_vector_eq(rb.mean()!, new Vector(1, 1));
+			this.assert_vector_eq(rb.putOrReplace(new Vector(4, 0))!, new Vector(1, 0));
+			this.assert_vector_eq(rb.mean()!, new Vector(2, 1));
+		}
+	}
+
+	private testVarianceAccumVector() {
+		{
+			const rb = new AccumVectorRingBuffer(12);
+			this.assert_undefined(rb.variance());
+			this.assert_undefined(rb.putOrReplace(new Vector(2, -5)));
+			this.assert_undefined(rb.variance());
+			this.assert_undefined(rb.putOrReplace(new Vector(2, -5)));
+			this.assert_eq(rb.variance(), 0);
+		}
+
+		{
+			const rb = new AccumVectorRingBuffer(10, [new Vector(2, 0), new Vector(2, 0), new Vector(5, 0)]);
+			this.assert_vector_eq(rb.mean()!, new Vector(3, 0));
+			this.assert_eq(rb.variance(), 3);
+			this.assert_vector_eq(rb.remove(), new Vector(2, 0));
+			this.assert_vector_eq(rb.remove(), new Vector(2, 0));
+			this.assert_undefined(rb.variance());
+		}
+
+		{
+			const rb = new AccumVectorRingBuffer(3, [new Vector(0, 1), new Vector(0, 2), new Vector(0, 3)]);
+			this.assert_vector_eq(rb.mean()!, new Vector(0, 2));
+			this.assert_eq(rb.variance(), 1);
+			this.assert_vector_eq(rb.putOrReplace(new Vector(0, 4))!, new Vector(0, 1));
+			this.assert_vector_eq(rb.mean()!, new Vector(0, 3));
+			this.assert_eq(rb.variance(), 2.5);
+		}
+
+		{
+			const rb = new AccumVectorRingBuffer(10, [new Vector(0, 1), new Vector(3, 1), new Vector(6, 3), new Vector(11, 3)]);
+			this.assert_vector_eq(rb.mean()!, new Vector(5, 2));
+			this.assert_eq_eps(rb.variance()!, (5 ** 2 + 2 ** 2 + 1 ** 2 + 6 ** 2 + 1 ** 2 + 1 ** 2 + 1 ** 2 + 1 ** 2) / 3, 1e-7);
+		}
+	}
+
 }
 export let testClass = BaseRingBuffer;
