@@ -71,7 +71,7 @@ let cntO = 0;
 export function realisticCardsOpponent() {
 	if (!BaseRef.hasTooManyOpponentRobots()) {
 		cntO = 0;
-	} else if (World.RefereeState !== "Stop" && World.Time - getLastRefChange() > 0.5) {
+	} else if (World.RefereeState !== "Stop" && World.Time - getLastStateChange() > 0.5) {
 		cntO = cntO + 1;
 	}
 	if (cntO % 1500 === 1499) {
@@ -155,15 +155,15 @@ export function shouldTakeAdvantage(): boolean {
 let lastStopTime = 0;
 
 // after updateRefereeState has run:
-//   - refereeStates.peek(0) is the state of the referee in the previous frame
-//   - refereeStates.peek(1) is the state of the referee in the current frame (== World.RefereeState)
-let refereeStates = new RingBuffer<World.RefereeStateType>(2, [World.RefereeState, World.RefereeState]);
-let lastRefChange: number;
+//   - previousStates.peek(0) is the state of the referee in the previous frame
+//   - previousStates.peek(1) is the state of the referee in the current frame (== World.RefereeState)
+let previousStates = new RingBuffer<World.RefereeStateType>(2, [World.RefereeState, World.RefereeState]);
+let lastStateChange: number;
 
-function updateRefereeState() {
-	refereeStates.putOrReplace(World.RefereeState);
-	if (refereeStates.peek(0) !== World.RefereeState) {
-		lastRefChange = World.Time;
+function updatePreviousStates() {
+	previousStates.putOrReplace(World.RefereeState);
+	if (previousStates.peek(0) !== World.RefereeState) {
+		lastStateChange = World.Time;
 	}
 }
 
@@ -173,8 +173,8 @@ function updateLastStopTime(isLeavingStop: boolean) {
 	}
 }
 
-export function getLastRefChange(): number {
-	return lastRefChange;
+export function getLastStateChange(): number {
+	return lastStateChange;
 }
 
 export function getLastStopTime(): number {
@@ -182,11 +182,11 @@ export function getLastStopTime(): number {
 }
 
 export function isLeavingStop() {
-	return refereeStates.peek(0) === "Stop" && World.RefereeState !== "Stop";
+	return previousStates.peek(0) === "Stop" && World.RefereeState !== "Stop";
 }
 
 export function _update() {
-	updateRefereeState();
+	updatePreviousStates();
 	let leavingStop = isLeavingStop();
 	updateLastStopTime(leavingStop);
 }
