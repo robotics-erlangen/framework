@@ -25,6 +25,45 @@
 
 import { Vector } from "base/vector";
 
+/**
+ * A ringbuffer is a queue of fixed size, a datastructure
+ * to which you can append to one end and remove from the
+ * other. If all slots are already in use, the oldest element
+ * is overwritten.
+ *
+ * To create a ringbuffer of size N:
+ *     const rb = new RingBuffer<string>(N);
+ *
+ * If you want the buffer to contain some values:
+ *     const rb = new RingBuffer<string>(N, ["some", "value"]);
+ * but make sure to pass at most N values.
+ *
+ * To add an element to the buffer:
+ *     rb.put("new value");
+ * or
+ *     rb.putOrReplace("new value");
+ * put will throw an error, whereas putOrReplace will silently
+ * overwrite the oldest value if the buffer is full.
+ *
+ * To remove an element from the buffer:
+ *     const value: string = rb.remove();
+ * or
+ *     const value: string | undefined = rb.removeOrUndefined();
+ * or
+ *     const value: string = rb.removeOrUndefined() ?? "default-value";
+ * remove will throw an error, whereas removeOrUndefined will return
+ * undefined if the buffer is empty.
+ *
+ * To read the buffer:
+ *     const contents: string[] = rb.toArray();
+ * or
+ *     const nextValue: string = rb.peek();
+ *     const nextAfterThat: string = rb.peek(1);
+ *     const andAfterThat: string = rb.peek(2);
+ * or
+ *     const maybeNextValue: string = rb.peekOrUndefined(0);
+ *     const maybeNextAfterThat: string = rb.peekOrUndefined(1);
+ */
 export class RingBuffer<T> {
 	protected _buffer: (T | undefined)[] = [];
 	protected _size: number = 0;
@@ -238,6 +277,21 @@ export class RingBuffer<T> {
 	}
 }
 
+
+/**
+ * In addition to the methods {@link RingBuffer} provides,
+ * this class also keeps track of the running total of elements
+ * that are currently in the buffer. See {@link AccumVectorRingBuffer}
+ * for the same functionality for vectors.
+ *
+ * To access it, use:
+ *     const sum = rb.total;
+ *
+ * To get the average, variance and standard deviation:
+ *     const avg = rb.mean();
+ *     const var = rb.variance();
+ *     const std = rb.stdev();
+ */
 export class AccumNumberRingBuffer extends RingBuffer<number> {
 	private _total: number = 0;
 
@@ -319,6 +373,20 @@ export class AccumNumberRingBuffer extends RingBuffer<number> {
 	}
 }
 
+/**
+ * In addition to the methods {@link RingBuffer} provides,
+ * this class also keeps track of the running total of elements
+ * that are currently in the buffer. See {@link AccumNumberRingBuffer}
+ * for the same functionality for numbers.
+ *
+ * To access it, use:
+ *     const sum = rb.total;
+ *
+ * To get the average, variance and standard deviation:
+ *     const avg = rb.mean();
+ *     const var = rb.variance();
+ *     const std = rb.stdev();
+ */
 export class AccumVectorRingBuffer extends RingBuffer<Vector> {
 	private _total: Vector = new Vector(0, 0);
 
