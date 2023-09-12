@@ -2,6 +2,8 @@ import * as Cache from "base/cache";
 import * as Constants from "base/constants";
 import * as Field from "base/field";
 import * as geom from "base/geom";
+import * as ListUtil from "base/listutil";
+import { RingBuffer } from "base/ringbuffer";
 import { Robot } from "base/robot";
 import { Position, Speed, Vector } from "base/vector";
 import * as vis from "base/vis";
@@ -440,18 +442,11 @@ function _predictShot(allShots: boolean = false, includeInvisible: boolean = tru
 }
 
 const ATK_DIR_BUFFER_SIZE = 8;
-let atkDirBuffer: Vector[] = new Array(ATK_DIR_BUFFER_SIZE);
-let currentAtkDirBufferIndex = 0;
-let atkDirBufferFilled = false;
+const atkDirBuffer = new RingBuffer<Vector>(ATK_DIR_BUFFER_SIZE);
 
 function updateAtkDirBuffer() {
-	let [_, dir] = predictShot();
-	atkDirBuffer[currentAtkDirBufferIndex] = dir.normalized();
-	currentAtkDirBufferIndex = (currentAtkDirBufferIndex + 1) % ATK_DIR_BUFFER_SIZE;
-
-	if (currentAtkDirBufferIndex === 0) {
-		atkDirBufferFilled = true;
-	}
+	const [_, dir] = predictShot();
+	atkDirBuffer.putOrReplace(dir.normalized());
 }
 
 /**
@@ -462,17 +457,16 @@ function updateAtkDirBuffer() {
  * @returns A number in [0, 1], where higher numbers mean a faster and more correlated rotation
  */
 function _rotationConditionNumber(): number | undefined {
-	if (atkDirBufferFilled) {
-		let rotationConditionNumber = 0;
-		for (let indexOffset = 0; indexOffset < ATK_DIR_BUFFER_SIZE - 1; indexOffset++) {
-			let v = atkDirBuffer[(currentAtkDirBufferIndex + indexOffset) % ATK_DIR_BUFFER_SIZE];
-			let w = atkDirBuffer[(currentAtkDirBufferIndex + indexOffset + 1) % ATK_DIR_BUFFER_SIZE];
-			rotationConditionNumber += Vector.crossProdLength(v, w);
-		}
-		return Math.abs(rotationConditionNumber / ATK_DIR_BUFFER_SIZE);
+	if (!atkDirBuffer.isFull()) {
+		return undefined;
 	}
 
-	return undefined;
+	let rotationConditionNumber = 0;
+	const atkDirs = atkDirBuffer.toArray();
+	for (const [v, w] of ListUtil.zip(atkDirs, atkDirs.slice(1))) {
+		rotationConditionNumber += Vector.crossProdLength(v, w);
+	}
+	return Math.abs(rotationConditionNumber / atkDirBuffer.length);
 }
 
 /**
