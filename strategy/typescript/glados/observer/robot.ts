@@ -3,6 +3,7 @@ import * as Constants from "base/constants";
 import * as debug from "base/debug";
 import * as Field from "base/field";
 import * as Referee from "base/referee";
+import { RingBuffer } from "base/ringbuffer";
 import { FriendlyRobot, Robot } from "base/robot";
 import { RelTime } from "base/timing";
 import { Position, Speed, Vector } from "base/vector";
@@ -399,39 +400,33 @@ function _isPressed(robot: Robot, attackPos?: Position): boolean {
 export let isPressed: (robot: Robot, attackPos?: Position) => boolean = Cache.forFrame(_isPressed);
 
 const N_SAMPLES = 10;
-let velocityBuffer: Map<Robot, number[]> = new Map<Robot, number[]>();
-let indexMap: Map<Robot, number> = new Map<Robot, number>();
-let isDeceleratingMap: Map<Robot, boolean> = new Map<Robot, boolean>();
+const velocityBuffer = new Map<Robot, RingBuffer<number>>();
+const isDeceleratingMap = new Map<Robot, boolean>();
 
 function updateIsDecelerating() {
 	debug.push("isDecelerating");
 	for (let robot of World.Robots) {
 		// Initial filling
 		if (!velocityBuffer.get(robot)) {
-			velocityBuffer.set(robot, new Array(N_SAMPLES));
-			indexMap.set(robot, 0);
+			velocityBuffer.set(robot, new RingBuffer(N_SAMPLES));
 		}
-		let buffer = velocityBuffer.get(robot)!;
-		let currentIndex = indexMap.get(robot)!;
+		const buffer = velocityBuffer.get(robot)!;
 
-		if (buffer[(currentIndex - 1 + N_SAMPLES) % N_SAMPLES] === undefined ||
-		Math.abs(buffer[(currentIndex - 1 + N_SAMPLES) % N_SAMPLES] - robot.speed.length()) > 1e-7) {
-			buffer[currentIndex] = robot.speed.length();
-			indexMap.set(robot, (currentIndex + 1) % N_SAMPLES);
-		} else {
-			currentIndex = (currentIndex - 1 + N_SAMPLES) % N_SAMPLES;
+		const speed = robot.speed.length();
+		if (buffer.length === 0 || Math.abs(buffer.peek(0, "new") - speed) > 1e-7) {
+			buffer.putOrReplace(speed);
 		}
 
 		let numDiscordant = 0;
 		// Compute Kendall tau to identify trends
-		for (let i = 1; i < N_SAMPLES + 1; i++) {
-			for (let j = 1; j < i; j++) {
-				if (buffer[(i + currentIndex) % N_SAMPLES] < buffer[(j + currentIndex) % N_SAMPLES]) {
+		for (let i = 0; i < buffer.length; i++) {
+			for (let j = 0; j < i; j++) {
+				if (buffer.peek(i) < buffer.peek(j)) {
 					numDiscordant++;
 				}
 			}
 		}
-		let tau = 1 - (4 * numDiscordant / (N_SAMPLES * (N_SAMPLES - 1)));
+		let tau = 1 - (4 * numDiscordant / (buffer.length * (buffer.length - 1)));
 		isDeceleratingMap.set(robot, tau < (isDeceleratingMap.get(robot) ? -0.5 : -0.9));
 		debug.set(robot.id.toString(), tau);
 	}
