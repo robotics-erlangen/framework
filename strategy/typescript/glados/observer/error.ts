@@ -52,7 +52,7 @@ function insertRingBuffer(ringbuffer: any, value: number) {
 		ringbuffer.sum = ringbuffer.sum + value - ringbuffer[ringbuffer.next];
 	}
 	ringbuffer[ringbuffer.next] = value;
-	ringbuffer.next = ringbuffer.next + 1 % BATTERY_TABLE_SIZE;
+	ringbuffer.next = (ringbuffer.next + 1) % BATTERY_TABLE_SIZE;
 }
 
 function addBatteryState(robot: FriendlyRobot, newBatteryState: number) {
