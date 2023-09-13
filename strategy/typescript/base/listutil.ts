@@ -112,3 +112,13 @@ export function linspace(n: number, a: number, b: number): number[] {
 	const step = n <= 1 ? 0 : (b - a) / (n - 1);
 	return range(0, n).map((i) => a + step * i);
 }
+
+/**
+ * Creates a new array containing the elements of t and s in pairs,
+ * the returned array has the length of t or s, whichever is shorter
+ * @param t, s - The arrays to zip
+ */
+export function zip<T, S>(t: T[], s: S[]): [T, S][] {
+	const length = Math.min(t.length, s.length);
+	return Array.from({ length }, (_, i: number) => [t[i], s[i]]);
+}
