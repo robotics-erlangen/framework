@@ -9,6 +9,7 @@ export class BaseListUtil extends UnitTest {
 		this.addTest("testPartition", this.testPartition);
 		this.addTest("testRange", this.testRange);
 		this.addTest("testLinspace", this.testLinspace);
+		this.addTest("testZip", this.testZip);
 	}
 
 	private testMin() {
@@ -102,6 +103,16 @@ export class BaseListUtil extends UnitTest {
 				}
 			}
 		}
+	}
+
+	private testZip() {
+		this.assert_deep_eq(ListUtil.zip([], []), []);
+		this.assert_deep_eq(ListUtil.zip([1, 2, 3], []), []);
+		this.assert_deep_eq(ListUtil.zip([], ["a", "b", "c"]), []);
+
+		this.assert_deep_eq(ListUtil.zip(["a", "b", "c"], [1, 2, 3]), [["a", 1], ["b", 2], ["c", 3]]);
+		this.assert_deep_eq(ListUtil.zip(["a", "b"], [1, 2, 3]), [["a", 1], ["b", 2]]);
+		this.assert_deep_eq(ListUtil.zip(["a", "b", "c"], [1, 2]), [["a", 1], ["b", 2]]);
 	}
 }
 export let testClass = BaseListUtil;
