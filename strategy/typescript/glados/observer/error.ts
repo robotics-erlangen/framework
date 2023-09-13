@@ -1,82 +1,47 @@
 import * as pb from "base/protobuf";
 import * as Referee from "base/referee";
+import { AccumNumberRingBuffer } from "base/ringbuffer";
 import { FriendlyRobot } from "base/robot";
 import * as World from "base/world";
 
 import * as ObserverReferee from "glados/observer/referee";
 
-interface Outliers {
-	size: number;
-	next?: number;
-	sum?: number;
-}
-interface RingBuffer {
-	size: number;
-	sum: number;
-	next: number;
-	outliers: Outliers;
-	[index: number]: number;
-}
-type ErrorTable = { [name: string]: number };
-
-let errorTables = new Map<FriendlyRobot, ErrorTable>();
-let batteryTable: Map<FriendlyRobot, RingBuffer> = new Map<FriendlyRobot, RingBuffer>();
+type BatteryBuffer = { buffer: AccumNumberRingBuffer; outliers: AccumNumberRingBuffer };
 const BATTERY_TABLE_SIZE = 50;
+const batteryTable = new Map<FriendlyRobot, BatteryBuffer>();
 
 export function getAverageBatterySate(robot: FriendlyRobot): number {
-	if (!batteryTable.has(robot) || batteryTable.get(robot)!.size === 0) {
-		return 1;
-	}
-	return batteryTable.get(robot)!.sum / batteryTable.get(robot)!.size;
-}
-
-function initBatteryTable(robot: FriendlyRobot) {
-	batteryTable.set(robot, { size: 0, next: 1, sum: 0, outliers: { size: 0, next: 1, sum: 0 } });
-}
-
-function insertRingBuffer(ringbuffer: any, value: number) {
-	if (ringbuffer == undefined) {
-		return;
-	}
-
-	if (ringbuffer.next == undefined) {
-		ringbuffer.size = 0;
-		ringbuffer.next = 1;
-		ringbuffer.sum = 0;
-	}
-
-	if (ringbuffer.size < BATTERY_TABLE_SIZE) {
-		ringbuffer.sum = ringbuffer.sum + value;
-		ringbuffer.size = ringbuffer.size + 1;
-	} else {
-		ringbuffer.sum = ringbuffer.sum + value - ringbuffer[ringbuffer.next];
-	}
-	ringbuffer[ringbuffer.next] = value;
-	ringbuffer.next = (ringbuffer.next + 1) % BATTERY_TABLE_SIZE;
+	return batteryTable[robot]?.mean() ?? 1;
 }
 
 function addBatteryState(robot: FriendlyRobot, newBatteryState: number) {
-	let robotBatteryTable = batteryTable[robot];
-	if (robotBatteryTable == undefined) {
-		initBatteryTable(robot);
-		robotBatteryTable = batteryTable[robot];
+	if (!batteryTable.has(robot)) {
+		batteryTable[robot] = {
+			buffer: new AccumNumberRingBuffer(BATTERY_TABLE_SIZE),
+			outliers: new AccumNumberRingBuffer(BATTERY_TABLE_SIZE),
+		};
 	}
-	if (robotBatteryTable!.size === BATTERY_TABLE_SIZE) {
-		let avg = getAverageBatterySate(robot);
+	const robotBatteryTable: BatteryBuffer = batteryTable[robot]!;
+
+	if (robotBatteryTable.buffer.isFull()) {
+		const avg = robotBatteryTable.buffer.mean() ?? 1;
 		if (Math.abs(avg - newBatteryState) > 0.2) {
-			if (robotBatteryTable!.outliers.size > 15) {
-				batteryTable[robot] = <any> robotBatteryTable!.outliers;
-				batteryTable[robot]!.outliers = { size: 0 };
+			if (robotBatteryTable.outliers.length > 15) {
+				robotBatteryTable.buffer = robotBatteryTable.outliers;
+				robotBatteryTable.outliers = new AccumNumberRingBuffer(BATTERY_TABLE_SIZE);
 				addBatteryState(robot, newBatteryState);
 				return;
 			}
-			insertRingBuffer(robotBatteryTable!.outliers, newBatteryState);
+			robotBatteryTable.outliers.putOrReplace(newBatteryState);
 			return;
 		}
 	}
-	robotBatteryTable!.outliers = { size: 0 };
-	insertRingBuffer(robotBatteryTable, newBatteryState);
+	robotBatteryTable.outliers.clear();
+	robotBatteryTable.buffer.putOrReplace(newBatteryState);
 }
+
+type ErrorTable = { [name: string]: number };
+let errorTables = new Map<FriendlyRobot, ErrorTable>();
 
 export function getErrorTable(robot: FriendlyRobot) {
 	return errorTables[robot];
