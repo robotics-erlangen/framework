@@ -220,28 +220,46 @@ export class BaseRingBuffer extends UnitTest {
 
 			rb.put(1);
 			this.assert_eq(rb.length, 1);
-			this.assert_eq(rb.peekOrUndefined(), 1);
-			this.assert_undefined(rb.peekOrUndefined(1));
-			this.assert_undefined(rb.peekOrUndefined(2));
+
+			this.assert_eq(rb.peekOrUndefined(0, "old"), 1);
+			this.assert_undefined(rb.peekOrUndefined(1, "old"));
+			this.assert_undefined(rb.peekOrUndefined(2, "old"));
+
+			this.assert_eq(rb.peekOrUndefined(0, "new"), 1);
+			this.assert_undefined(rb.peekOrUndefined(1, "new"));
+			this.assert_undefined(rb.peekOrUndefined(2, "new"));
 
 			rb.put(2);
 			this.assert_eq(rb.length, 2);
-			this.assert_eq(rb.peekOrUndefined(), 1);
-			this.assert_eq(rb.peekOrUndefined(1), 2);
-			this.assert_undefined(rb.peekOrUndefined(2));
+
+			this.assert_eq(rb.peekOrUndefined(0, "old"), 1);
+			this.assert_eq(rb.peekOrUndefined(1, "old"), 2);
+			this.assert_undefined(rb.peekOrUndefined(2, "old"));
+			this.assert_eq(rb.peekOrUndefined(0, "new"), 2);
+			this.assert_eq(rb.peekOrUndefined(1, "new"), 1);
+			this.assert_undefined(rb.peekOrUndefined(2, "new"));
 
 			rb.put(3);
 			this.assert_eq(rb.length, 3);
-			this.assert_eq(rb.peekOrUndefined(), 1);
-			this.assert_eq(rb.peekOrUndefined(1), 2);
-			this.assert_eq(rb.peekOrUndefined(2), 3);
+
+			this.assert_eq(rb.peekOrUndefined(0, "old"), 1);
+			this.assert_eq(rb.peekOrUndefined(1, "old"), 2);
+			this.assert_eq(rb.peekOrUndefined(2, "old"), 3);
+			this.assert_eq(rb.peekOrUndefined(0, "new"), 3);
+			this.assert_eq(rb.peekOrUndefined(1, "new"), 2);
+			this.assert_eq(rb.peekOrUndefined(2, "new"), 1);
 
 			this.assert_eq(rb.remove(), 1);
 			this.assert_eq(rb.length, 2);
-			this.assert_eq(rb.peekOrUndefined(), 2);
-			this.assert_eq(rb.peekOrUndefined(), 2);
-			this.assert_eq(rb.peekOrUndefined(1), 3);
-			this.assert_undefined(rb.peekOrUndefined(2));
+
+			this.assert_eq(rb.peekOrUndefined(0, "old"), 2);
+			this.assert_eq(rb.peekOrUndefined(0, "old"), 2);
+			this.assert_eq(rb.peekOrUndefined(1, "old"), 3);
+			this.assert_undefined(rb.peekOrUndefined(2, "old"));
+			this.assert_eq(rb.peekOrUndefined(0, "new"), 3);
+			this.assert_eq(rb.peekOrUndefined(0, "new"), 3);
+			this.assert_eq(rb.peekOrUndefined(1, "new"), 2);
+			this.assert_undefined(rb.peekOrUndefined(2, "new"));
 
 			this.assert_deep_eq(rb.toArray(), [2, 3]);
 		}
@@ -269,39 +287,61 @@ export class BaseRingBuffer extends UnitTest {
 		{
 			const rb = new RingBuffer(4, [1, 2, 3]);
 			this.assert_eq(rb.length, 3);
+			this.assert_error(() => rb.peek(-1));
+			this.assert_error(() => rb.peek(-2));
 
-			this.assert_eq(rb.peek(0), 1);
-			this.assert_eq(rb.peek(1), 2);
-			this.assert_eq(rb.peek(2), 3);
-			this.assert_error(() => rb.peek(3));
+			this.assert_eq(rb.peek(0, "old"), 1);
+			this.assert_eq(rb.peek(1, "old"), 2);
+			this.assert_eq(rb.peek(2, "old"), 3);
+			this.assert_error(() => rb.peek(3, "old"));
+			this.assert_error(() => rb.peek(3, "new"));
+			this.assert_eq(rb.peek(2, "new"), 1);
+			this.assert_eq(rb.peek(1, "new"), 2);
+			this.assert_eq(rb.peek(0, "new"), 3);
 
 			this.assert_undefined(rb.putOrReplace(4));
 
-			this.assert_eq(rb.peek(0), 1);
-			this.assert_eq(rb.peek(1), 2);
-			this.assert_eq(rb.peek(2), 3);
-			this.assert_eq(rb.peek(3), 4);
+			this.assert_eq(rb.peek(0, "old"), 1);
+			this.assert_eq(rb.peek(1, "old"), 2);
+			this.assert_eq(rb.peek(2, "old"), 3);
+			this.assert_eq(rb.peek(3, "old"), 4);
+			this.assert_eq(rb.peek(3, "new"), 1);
+			this.assert_eq(rb.peek(2, "new"), 2);
+			this.assert_eq(rb.peek(1, "new"), 3);
+			this.assert_eq(rb.peek(0, "new"), 4);
 
 			this.assert_eq(rb.putOrReplace(5), 1);
 
-			this.assert_eq(rb.peek(0), 2);
-			this.assert_eq(rb.peek(1), 3);
-			this.assert_eq(rb.peek(2), 4);
-			this.assert_eq(rb.peek(3), 5);
+			this.assert_eq(rb.peek(0, "old"), 2);
+			this.assert_eq(rb.peek(1, "old"), 3);
+			this.assert_eq(rb.peek(2, "old"), 4);
+			this.assert_eq(rb.peek(3, "old"), 5);
+			this.assert_eq(rb.peek(3, "new"), 2);
+			this.assert_eq(rb.peek(2, "new"), 3);
+			this.assert_eq(rb.peek(1, "new"), 4);
+			this.assert_eq(rb.peek(0, "new"), 5);
 
 			this.assert_eq(rb.putOrReplace(6), 2);
 
-			this.assert_eq(rb.peek(0), 3);
-			this.assert_eq(rb.peek(1), 4);
-			this.assert_eq(rb.peek(2), 5);
-			this.assert_eq(rb.peek(3), 6);
+			this.assert_eq(rb.peek(0, "old"), 3);
+			this.assert_eq(rb.peek(1, "old"), 4);
+			this.assert_eq(rb.peek(2, "old"), 5);
+			this.assert_eq(rb.peek(3, "old"), 6);
+			this.assert_eq(rb.peek(3, "new"), 3);
+			this.assert_eq(rb.peek(2, "new"), 4);
+			this.assert_eq(rb.peek(1, "new"), 5);
+			this.assert_eq(rb.peek(0, "new"), 6);
 
 			this.assert_eq(rb.removeOrUndefined(), 3);
 
-			this.assert_eq(rb.peek(0), 4);
-			this.assert_eq(rb.peek(1), 5);
-			this.assert_eq(rb.peek(2), 6);
-			this.assert_error(() => rb.peek(3));
+			this.assert_eq(rb.peek(0, "old"), 4);
+			this.assert_eq(rb.peek(1, "old"), 5);
+			this.assert_eq(rb.peek(2, "old"), 6);
+			this.assert_error(() => rb.peek(3, "old"));
+			this.assert_error(() => rb.peek(3, "new"));
+			this.assert_eq(rb.peek(2, "new"), 4);
+			this.assert_eq(rb.peek(1, "new"), 5);
+			this.assert_eq(rb.peek(0, "new"), 6);
 		}
 	}
 

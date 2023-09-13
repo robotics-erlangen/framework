@@ -61,6 +61,8 @@ import { Vector } from "base/vector";
  *     const nextAfterThat: string = rb.peek(1);
  *     const andAfterThat: string = rb.peek(2);
  * or
+ *     const lastAddedValue: string = rb.peek(0, "new");
+ * or
  *     const maybeNextValue: string = rb.peekOrUndefined(0);
  *     const maybeNextAfterThat: string = rb.peekOrUndefined(1);
  */
@@ -216,30 +218,44 @@ export class RingBuffer<T> {
 	}
 
 	/**
-	 * Returns the next value to be read from the ringbuffer **after
-	 * i remove operations** without removing it or undefined if
-	 * the buffer is emtpy by then
+	 * If side is "old" (the default), returns the next value to
+	 * be read from the ringbuffer **after i remove operations**
+	 * without removing it or undefined if the buffer is emtpy
+	 * by then.
+	 * If side is "new", returns the i-th last value added to
+	 * the ringbuffer without removing it or undefined if the
+	 * buffer is emtpy by then.
+	 *
 	 * @param i - how many elements to skip, defaults to 0
+	 * @param side - from which side to index
 	 * @returns The value or undefined if the buffer is empty
 	 */
-	public peekOrUndefined(i: number = 0): T | undefined {
+	public peekOrUndefined(i: number = 0, side: "old" | "new" = "old"): T | undefined {
 		if (i < 0) {
-			throw Error(`peekOrUndefined(${i}) called with negative argument`);
+			throw Error(`peekOrUndefined(${i}, ${side}) called with negative argument`);
 		}
-		return i < this._length ? this._buffer[this._inc(this._read, i)] : undefined;
+		const index = side === "old" ? i : (this._length - i - 1);
+		return i < this._length ? this._buffer[this._inc(this._read, index)] : undefined;
 	}
 
 	/**
-	 * Returns the next value to be read from the ringbuffer **after
-	 * i remove operations** without removing it, or throws an error
-	 * if the buffer is emtpy by then
+	 * If side is "old" (the default), returns the next value to
+	 * be read from the ringbuffer **after i remove operations**
+	 * without removing it or throws an error if the buffer is
+	 * emtpy by then.
+	 * If side is "new", returns the i-th last value added to
+	 * the ringbuffer without removing it or throws an error
+	 * if the buffer is emtpy by then.
+	 *
+	 * @param i - how many elements to skip, defaults to 0
+	 * @param side - from which side to index
 	 * @returns The value
 	 */
-	public peek(i: number = 0): T {
+	public peek(i: number = 0, side: "old" | "new" = "old"): T {
 		if (i >= this._length) {
 			throw Error(`peek(${i}) called on ringbuffer of size ${this._size}`);
 		}
-		return this.peekOrUndefined(i)!;
+		return this.peekOrUndefined(i, side)!;
 	}
 
 	/**
