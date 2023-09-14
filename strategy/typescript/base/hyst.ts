@@ -42,7 +42,8 @@
  *
  * This module defines several generic hysteresis classes for this usecase,
  * such as:
- *   - LessThanHyst: a hysteresis for < comparisons
+ *   - LowerThanHyst: a hysteresis for < comparisons
+ *   - GreaterThanHyst: a hysteresis for > comparisons
  */
 
 /**************************************************************************
@@ -130,3 +131,70 @@ export class LessThanHyst implements Hyst<number, boolean> {
 		return this._toString();
 	}
 }
+
+/**
+ * A hysteresis for > comparisons.
+ *
+ * Use this class when comparing a noisy, continuous value with a constant,
+ * to avoid flickering of the result.
+ *
+ * See the documentation of this module for an example.
+ */
+export class GreaterThanHyst implements Hyst<number, boolean> {
+	private lessThan: LessThanHyst;
+
+	// these are just needed for toString()
+	private lowerBound: number;
+	private upperBound: number;
+
+	/**
+	 * Constructs a hysteresis for < comparisons.
+	 *
+	 * @param threshold - The right hand side of the comparison
+	 * @param hyst - The offset from the threshold needed for an input
+	 * to be less than or greater than the threshold
+	 * @param initialState - The initial state of the hysteresis
+	 */
+	constructor(threshold: number, hyst: number, initialState: boolean = false) {
+		this.lessThan = new LessThanHyst(threshold, hyst, !initialState);
+		this.lowerBound = threshold - hyst;
+		this.upperBound = threshold + hyst;
+	}
+
+	public get state(): boolean {
+		return !this.lessThan.state;
+	}
+
+	public set state(newState: boolean) {
+		this.lessThan.state = !newState;
+	}
+
+	/**
+	 * Updates the hysteresis
+	 *
+	 * @param x - The new value
+	 * @returns The new state of the hysteresis
+	 */
+	public update(x: number): boolean {
+		this.lessThan.update(x);
+		return this.state;
+	}
+
+
+	/**
+	 * Returns a string representation of the hysteresis, used for base/debug
+	 * @returns A string representation of the hysteresis
+	 */
+	public _toString() {
+		return `GreaterThanHyst(bounds: [${this.lowerBound}, ${this.upperBound}], state: ${this.state})`;
+	}
+
+	/**
+	 * Returns a string representation of the hysteresis
+	 * @returns A string representation of the hysteresis
+	 */
+	public toString() {
+		return this._toString();
+	}
+}
+
