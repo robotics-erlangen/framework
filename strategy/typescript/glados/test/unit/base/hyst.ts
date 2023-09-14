@@ -42,6 +42,8 @@ export class BaseHyst extends UnitTest {
 				(got, expected, input) => this.assert_eq(got, expected, () => `${hyst}.update(${input}) returned ${got} instead of ${expected}`)
 			);
 		}
+
+		this.assert_error(() => new LessThanHyst(10, -0.4)); // negative hyst value
 	}
 
 	private testGreaterThanHyst() {
@@ -71,6 +73,8 @@ export class BaseHyst extends UnitTest {
 				(got, expected, input) => this.assert_eq(got, expected, () => `${hyst}.update(${input}) returned ${got} instead of ${expected}`)
 			);
 		}
+
+		this.assert_error(() => new GreaterThanHyst(10, -0.4)); // negative hyst value
 	}
 }
 export let testClass = BaseHyst;
