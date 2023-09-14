@@ -44,6 +44,7 @@ const tests: { [name: string]: string } = {
 	"BaseEntrypoints": `${testPrefix}base/entrypoints`,
 	"BaseField": `${testPrefix}base/field`,
 	"BaseGeom": `${testPrefix}base/geom`,
+	"BaseHyst": `${testPrefix}base/hyst`,
 	"BaseMathUtil": `${testPrefix}base/mathutil`,
 	"BaseListUtil": `${testPrefix}base/listutil`,
 	"BaseProcessor": `${testPrefix}base/processor`,
