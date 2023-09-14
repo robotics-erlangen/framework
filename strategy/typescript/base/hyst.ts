@@ -45,6 +45,7 @@
  *   - LessThanHyst: a hysteresis for < comparisons
  *   - GreaterThanHyst: a hysteresis for > comparisons
  *   - InIntervalHyst: a hysteresis to check if a number is in an interval.
+ *   - MultiValueHyst: a hysteresis to check if a number is in one of several intervals.
  */
 
 /**************************************************************************
@@ -344,3 +345,118 @@ export class InIntervalHyst implements Hyst<number, boolean> {
 		return this._toString();
 	}
 }
+
+/**
+ * A hysteresis to check if a number is in one of several intervals.
+ *
+ * Use this class when checking if a noisy, continuous value is
+ * in one of many intervals, to avoid flickering of the result.
+ *
+ * hyst (<-|-> denotes transition regions):       0.2
+ *                  <-|->       <-|->    <-|->    <-|-> <-|->
+ * thresholds:        1           3       4.5       6     7
+ *             -------|-----------|--------|--------|-----|---------
+ * values:         A        B         C        D       E      F
+ *
+ * See the documentation of this module for an example.
+ */
+export class MultiValueHyst<T> implements Hyst<number, T> {
+	private lessThans: LessThanHyst[];
+	private values: T[];
+	private index: number;
+
+	/**
+	 * Constructs a hysteresis to check if a number is in one of several intervals.
+	 *
+	 * @param values - The values to return in the intervals
+	 * @param thresholds - The boundaries of the intervals, needs to
+	 * be one less threshold than there are values
+	 * @param hyst - The offset from the threshold needed for an input
+	 * to be less than or greater than a threshold
+	 * @param initialState - The initial state of the hysteresis
+	 */
+	constructor(values: T[], thresholds: number[], hyst: number, initialState: T = values[0]) {
+		if (values.length < 2) {
+			throw Error(`MultiValueHyst needs at least 2 values, but got only ${values.length} values`);
+		}
+		if (values.length !== thresholds.length + 1) {
+			throw Error(`MultiValueHyst needs n + 1 values for n thresholds, but got ${thresholds.length} thresholds for ${values.length} values`);
+		}
+
+		this.values = values;
+		this.index = values.indexOf(initialState);
+		if (this.index === -1) {
+			throw Error(`MultiValueHyst got initial state ${initialState}, which is not in possible values [${values}]`);
+		}
+
+		this.lessThans = thresholds.map((thresh, i) => new LessThanHyst(thresh, hyst, i > this.index));
+	}
+
+	public get state(): T {
+		return this.values[this.index];
+	}
+
+	public set state(newState: T) {
+		this.index = this.values.indexOf(newState);
+		if (this.index === -1) {
+			throw Error(`Trying to set state of MultiValueHyst to ${newState}, which is not in possible values [${this.values}]`);
+		}
+	}
+
+	/**
+	 * The thresholds are the boundaries of the intervals.
+	 * The first interval ranges from [-inf, thresh1],
+	 * the second one from  [thresh1, thresh2], and so on.
+	 * The for the size of the transition regions see {@link hyst}.
+	 *
+	 * @returns the right hand side of the comparison
+	 */
+	public get thresholds(): number[] {
+		return this.lessThans.map((lt) => lt.threshold);
+	}
+
+	/**
+	 * The hysteresis value defines the size of the transition
+	 * regions.
+	 *
+	 * @returns the hysteresis value
+	 */
+	public get hyst(): number {
+		// all lessThans have the same hyst value
+		return this.lessThans[0].hyst;
+	}
+
+	/**
+	 * Updates the hysteresis
+	 *
+	 * @param x - The new value
+	 * @returns The new state of the hysteresis
+	 */
+	public update(x: number): T {
+		this.index = 0;
+		for (const lessThan of this.lessThans) {
+			if (!lessThan.update(x)) {
+				this.index++;
+			}
+		}
+		return this.state;
+	}
+
+
+	/**
+	 * Returns a string representation of the hysteresis, used for base/debug
+	 * @returns A string representation of the hysteresis
+	 */
+	public _toString() {
+		return `MultiValueHyst(thresholds: [${this.thresholds}], hyst: ${this.hyst}, values: ${this.values}, state: ${this.state}=values[${this.index}])`;
+	}
+
+	/**
+	 * Returns a string representation of the hysteresis
+	 * @returns A string representation of the hysteresis
+	 */
+	public toString() {
+		return this._toString();
+	}
+}
+

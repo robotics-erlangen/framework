@@ -1,4 +1,4 @@
-import { Hyst, LessThanHyst, GreaterThanHyst, InIntervalHyst } from "base/hyst";
+import { Hyst, LessThanHyst, GreaterThanHyst, InIntervalHyst, MultiValueHyst } from "base/hyst";
 
 import { UnitTest } from "glados/test/unit/unittest";
 
@@ -8,6 +8,7 @@ export class BaseHyst extends UnitTest {
 		this.addTest("LessThanHyst", this.testLessThanHyst);
 		this.addTest("GreaterThanHyst", this.testGreaterThanHyst);
 		this.addTest("InIntervalHyst", this.testInIntervalHyst);
+		this.addTest("MultiValueHyst", this.testMultiValueHyst);
 	}
 
 	private testHystSequence<In, Out>(hyst: Hyst<In, Out>, io: [In, Out][], assert_fn: (got: Out, expected: Out, input: In) => void) {
@@ -114,6 +115,50 @@ export class BaseHyst extends UnitTest {
 
 		this.assert_error(() => new InIntervalHyst([1, 10], -0.4)); // negative hyst value
 		this.assert_error(() => new InIntervalHyst([10, 1], 0.4)); // empty interval
+	}
+
+	private testMultiValueHyst() {
+		const VALUES: string[] = ["a", "b", "c", "d", "e", "f"];
+		const IN_OUT: [number, string][] = [
+			[0, "a"],
+			[5, "a"],
+			[10, "a"],
+			[11, "a"],
+			[13, "b"],
+			[10, "b"],
+			[9, "b"],
+			[15, "b"],
+			[24, "c"],
+			[27, "c"],
+			[30, "c"],
+			[35, "d"],
+			[30, "d"],
+			[25, "c"],
+			[30, "c"],
+			[33, "d"],
+			[40, "d"],
+			[41, "d"],
+			[44, "e"],
+			[100, "f"],
+		];
+		const THRESHOLDS: number[] = [10, 20, 30, 40, 50];
+		const HYST: number = 2;
+
+		for (const initialState of VALUES) {
+			const hyst = new MultiValueHyst(VALUES, THRESHOLDS, HYST, initialState);
+			this.assert_eq(hyst.state, initialState);
+			this.testHystSequence(
+				hyst,
+				IN_OUT,
+				(got, expected, input) => this.assert_eq(got, expected, () => `${hyst}.update(${input}) returned ${got} instead of ${expected}`)
+			);
+		}
+
+		this.assert_error(() => new MultiValueHyst(["a"], [], 0.4)); // too few values
+		this.assert_error(() => new MultiValueHyst(["a", "b"], [], 0.4)); // too few thresholds
+		this.assert_error(() => new MultiValueHyst(["a", "b"], [1, 2], 0.4)); // too many thresholds
+		this.assert_error(() => new MultiValueHyst(["a", "b"], [1], -0.4)); // negative hyst value
+		this.assert_error(() => new MultiValueHyst(["a", "b"], [1], 0.4, "x")); // invalid initialState
 	}
 }
 export let testClass = BaseHyst;
