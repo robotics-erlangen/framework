@@ -93,6 +93,9 @@ export class LessThanHyst implements Hyst<number, boolean> {
 	 * @param initialState - The initial state of the hysteresis
 	 */
 	constructor(threshold: number, hyst: number, initialState: boolean = false) {
+		if (hyst < 0) {
+			throw Error(`trying to create hysteresis with a hysteresis value of ${hyst}`);
+		}
 		this.state = initialState;
 		this.lowerBound = threshold - hyst;
 		this.upperBound = threshold + hyst;
