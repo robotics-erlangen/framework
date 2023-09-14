@@ -42,8 +42,9 @@
  *
  * This module defines several generic hysteresis classes for this usecase,
  * such as:
- *   - LowerThanHyst: a hysteresis for < comparisons
+ *   - LessThanHyst: a hysteresis for < comparisons
  *   - GreaterThanHyst: a hysteresis for > comparisons
+ *   - InIntervalHyst: a hysteresis to check if a number is in an interval.
  */
 
 /**************************************************************************
@@ -123,7 +124,7 @@ export class LessThanHyst implements Hyst<number, boolean> {
 	 * @returns A string representation of the hysteresis
 	 */
 	public _toString() {
-		return `LowerThanHyst(bounds: [${this.lowerBound}, ${this.upperBound}], state: ${this.state})`;
+		return `LessThanHyst(bounds: [${this.lowerBound}, ${this.upperBound}], state: ${this.state})`;
 	}
 
 	/**
@@ -201,3 +202,87 @@ export class GreaterThanHyst implements Hyst<number, boolean> {
 	}
 }
 
+/**
+ * A hysteresis to check if a number is in an interval.
+ *
+ * Use this class when comparing a noisy, continuous value with a constant
+ * interval, to avoid flickering of the result.
+ *
+ * See the documentation of this module for an example.
+ */
+export class InIntervalHyst implements Hyst<number, boolean> {
+	// if the value is lower than the upper bound of the interval
+	// and greater than the lower bound, it is in the interval
+	private lessThan: LessThanHyst;
+	private greaterThan: GreaterThanHyst;
+
+	// these are just needed for toString()
+	private lowerBound: number;
+	private upperBound: number;
+	private hyst: number;
+
+	/**
+	 * Constructs a hysteresis to check if a number is in an interval.
+	 *
+	 * @param interval - Defines the lower and upper end of the interval,
+	 * as well as the hyst value.
+	 * @param initialState - The initial state of the hysteresis
+	 */
+	constructor(interval: [number, number], hyst: number, initialState: boolean = false) {
+		const [lower, upper] = interval;
+		if (lower > upper) {
+			throw Error(`trying to create interval hysteresis for interval [${lower}, ${upper}]`);
+		}
+
+		// regarding initialState: if it's true, everything works out nicely, but if it's false, this puts
+		// us in an invalid state where both lessThan and greaterThan are in the 'false' state, which can't
+		// actually happen through updating the hysteresis.
+		// But this doesn't cause any trouble as for the hysteresis to be in the 'true' state, both lessThan
+		// and greaterThan must be in the 'true' state.
+		this.lessThan = new LessThanHyst(upper, hyst, initialState);
+		this.greaterThan = new GreaterThanHyst(lower, hyst, initialState);
+
+		this.lowerBound = lower;
+		this.upperBound = upper;
+		this.hyst = hyst;
+	}
+
+	public get state(): boolean {
+		return this.lessThan.state && this.greaterThan.state;
+	}
+
+	public set state(newState: boolean) {
+		// see comment in the constructor for newState = false
+		this.lessThan.state = newState;
+		this.greaterThan.state = newState;
+	}
+
+	/**
+	 * Updates the hysteresis
+	 *
+	 * @param x - The new value
+	 * @returns The new state of the hysteresis
+	 */
+	public update(x: number): boolean {
+		this.lessThan.update(x);
+		this.greaterThan.update(x);
+		return this.state;
+	}
+
+
+	/**
+	 * Returns a string representation of the hysteresis, used for base/debug
+	 * @returns A string representation of the hysteresis
+	 */
+	public _toString() {
+		return `InIntervalHyst(interval: [${this.lowerBound}, ${this.upperBound}], hyst: ${this.hyst}, state: ${this.state})`;
+	}
+
+	/**
+	 * Returns a string representation of the hysteresis
+	 * @returns A string representation of the hysteresis
+	 */
+	public toString() {
+		return this._toString();
+	}
+}
