@@ -35,13 +35,13 @@ export class BaseRingBuffer extends UnitTest {
 	private testConstructor() {
 		{
 			const rb = new RingBuffer(12);
-			this.assert_eq(rb.size, 12);
+			this.assert_eq(rb.capacity, 12);
 			this.assert_eq(rb.length, 0);
 		}
 
 		{
 			const rb = new RingBuffer(10, [1, 2, 3]);
-			this.assert_eq(rb.size, 10);
+			this.assert_eq(rb.capacity, 10);
 			this.assert_eq(rb.length, 3);
 		}
 

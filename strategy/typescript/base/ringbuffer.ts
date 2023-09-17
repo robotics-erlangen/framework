@@ -26,12 +26,12 @@
 import { Vector } from "base/vector";
 
 /**
- * A ringbuffer is a queue of fixed size, a datastructure
+ * A ringbuffer is a queue of fixed capacity, a datastructure
  * to which you can append to one end and remove from the
  * other. If all slots are already in use, the oldest element
  * is overwritten.
  *
- * To create a ringbuffer of size N:
+ * To create a ringbuffer of capacity N:
  *     const rb = new RingBuffer<string>(N);
  *
  * If you want the buffer to contain some values:
@@ -68,41 +68,41 @@ import { Vector } from "base/vector";
  */
 export class RingBuffer<T> {
 	protected _buffer: (T | undefined)[] = [];
-	protected _size: number = 0;
+	protected _capacity: number = 0;
 	protected _length: number = 0;
 	private _read: number = 0;
 	private _write: number = 0;
 
 	/**
-	 * Creates a ringbuffer of size, prepopulated with values
-	 * @param size - The size of the ringbuffer
+	 * Creates a ringbuffer of capacity, prepopulated with values
+	 * @param capacity - The capacity of the ringbuffer
 	 * @param values - optional, initial content of the ringbuffer
 	 */
-	constructor(size: number, values: T[] = []) {
-		if (size <= 0) {
-			throw Error(`Trying to create a ringbuffer of size ${size}`);
+	constructor(capacity: number, values: T[] = []) {
+		if (capacity <= 0) {
+			throw Error(`Trying to create a ringbuffer of capacity ${capacity}`);
 		}
-		this._size = size;
+		this._capacity = capacity;
 		this._length = values.length;
 		this._read = 0;
 		this._write = values.length;
 
-		// creates a buffer of size from values, copying the list
-		if (values.length > size) {
-			throw Error(`Too many initial values for ringbuffer, got ${values} as initial values for a ringbuffer of size ${size}`);
+		// creates a buffer of capacity from values, copying the list
+		if (values.length > capacity) {
+			throw Error(`Too many initial values for ringbuffer, got ${values} as initial values for a ringbuffer of capacity ${capacity}`);
 		}
 		this._buffer = [...values];
-		this._buffer.length = size;
+		this._buffer.length = capacity;
 	}
 
 	/**
-	 * Increments a number modulo the size of this ringbuffer
+	 * Increments a number modulo the capacity of this ringbuffer
 	 * @param x - the number to increment
 	 * @param y - the increment, defaults to 1
-	 * @returns (x + y) % size of the ringbuffer
+	 * @returns (x + y) % capacity of the ringbuffer
 	 */
 	private _inc(x: number, y: number = 1): number {
-		return (x + y) % this._size;
+		return (x + y) % this._capacity;
 	}
 
 	/**
@@ -124,10 +124,10 @@ export class RingBuffer<T> {
 
 	/**
 	 * Gets the maximum number of elements that can be in the ringbuffer at the same time
-	 * @returns The size of the ringbuffer
+	 * @returns The capacity of the ringbuffer
 	 */
-	public get size(): number {
-		return this._size;
+	public get capacity(): number {
+		return this._capacity;
 	}
 
 	/**
@@ -151,7 +151,7 @@ export class RingBuffer<T> {
 	 * @returns true if the ringbuffer is full
 	 */
 	public isFull(): boolean {
-		return this._length === this._size;
+		return this._length === this._capacity;
 	}
 
 	/**
@@ -160,7 +160,7 @@ export class RingBuffer<T> {
 	public clear() {
 		this._length = 0;
 		this._buffer.length = 0;
-		this._buffer.length = this._size;
+		this._buffer.length = this._capacity;
 		this._onClear();
 	}
 
@@ -197,7 +197,7 @@ export class RingBuffer<T> {
 	 * @returns The overwritten value or undefined if the ringbuffer wasnt full
 	 */
 	public putOrReplace(x: T): T | undefined {
-		const ret = (this._length === this._size) ? this.removeOrUndefined()! : undefined;
+		const ret = (this._length === this._capacity) ? this.removeOrUndefined()! : undefined;
 
 		this._buffer[this._write] = x;
 		this._write = this._inc(this._write);
@@ -211,7 +211,7 @@ export class RingBuffer<T> {
 	 * @param x - The value to store
 	 */
 	public put(x: T) {
-		if (this._length === this._size) {
+		if (this._length === this._capacity) {
 			throw Error("put called on full ringbuffer");
 		}
 		this.putOrReplace(x);
@@ -253,7 +253,7 @@ export class RingBuffer<T> {
 	 */
 	public peek(i: number = 0, side: "old" | "new" = "old"): T {
 		if (i >= this._length) {
-			throw Error(`peek(${i}) called on ringbuffer of size ${this._size}`);
+			throw Error(`peek(${i}) called on ringbuffer of capacity ${this._capacity}`);
 		}
 		return this.peekOrUndefined(i, side)!;
 	}
@@ -263,14 +263,14 @@ export class RingBuffer<T> {
 	 * @returns An array containing all values currently in the buffer
 	 */
 	public toArray(): T[] {
-		if (this._read + this._length <= this._size) {
+		if (this._read + this._length <= this._capacity) {
 			return this._buffer
 				.slice(this._read, this._read + this._length)
 				.map((x) => x!);
 		} else {
 			return [
-				...this._buffer.slice(this._read, this._size),
-				...this._buffer.slice(0, this._read + this._length - this._size)
+				...this._buffer.slice(this._read, this._capacity),
+				...this._buffer.slice(0, this._read + this._length - this._capacity)
 			].map((x) => x!);
 		}
 	}
@@ -281,7 +281,7 @@ export class RingBuffer<T> {
 	 * @returns A string representation of the ringbuffer
 	 */
 	public _toString() {
-		return `RingBuffer(size=${this._size}, ${this.toArray()})`;
+		return `RingBuffer(capacity=${this._capacity}, ${this.toArray()})`;
 	}
 
 	/**
@@ -312,12 +312,12 @@ export class AccumNumberRingBuffer extends RingBuffer<number> {
 	private _total: number = 0;
 
 	/**
-	 * Creates a ringbuffer of size, prepopulated with values
-	 * @param size - The size of the ringbuffer
+	 * Creates a ringbuffer of capacity, prepopulated with values
+	 * @param capacity - The capacity of the ringbuffer
 	 * @param values - optional, initial content of the ringbuffer
 	 */
-	constructor(size: number, values: number[] = []) {
-		super(size, values);
+	constructor(capacity: number, values: number[] = []) {
+		super(capacity, values);
 		this._total = values.reduce((a, b) => a + b, 0);
 	}
 
@@ -385,7 +385,7 @@ export class AccumNumberRingBuffer extends RingBuffer<number> {
 	 * @returns A string representation of the ringbuffer
 	 */
 	public _toString() {
-		return `AccumNumberRingBuffer(size=${this._size}, total=${this._total}, ${this.toArray()})`;
+		return `AccumNumberRingBuffer(capacity=${this._capacity}, total=${this._total}, ${this.toArray()})`;
 	}
 }
 
@@ -407,12 +407,12 @@ export class AccumVectorRingBuffer extends RingBuffer<Vector> {
 	private _total: Vector = new Vector(0, 0);
 
 	/**
-	 * Creates a ringbuffer of size, prepopulated with values
-	 * @param size - The size of the ringbuffer
+	 * Creates a ringbuffer of capacity, prepopulated with values
+	 * @param capacity - The capacity of the ringbuffer
 	 * @param values - optional, initial content of the ringbuffer
 	 */
-	constructor(size: number, values: Vector[] = []) {
-		super(size, values);
+	constructor(capacity: number, values: Vector[] = []) {
+		super(capacity, values);
 		this._total = values.reduce((a, b) => a + b, new Vector(0, 0));
 	}
 
@@ -480,6 +480,6 @@ export class AccumVectorRingBuffer extends RingBuffer<Vector> {
 	 * @returns A string representation of the ringbuffer
 	 */
 	public _toString() {
-		return `AccumVectorRingBuffer(size=${this._size}, total=${this._total}, ${this.toArray()})`;
+		return `AccumVectorRingBuffer(capacity=${this._capacity}, total=${this._total}, ${this.toArray()})`;
 	}
 }
