@@ -36,13 +36,24 @@ export class BaseHyst extends UnitTest {
 		const HYST: number = 0.5;
 
 		for (const initialState of [false, true]) {
-			const hyst = new LessThanHyst(THRESHOLD, HYST, initialState);
-			this.assert_eq(hyst.state, initialState);
-			this.testHystSequence(
-				hyst,
-				IN_OUT,
-				(got, expected, input) => this.assert_eq(got, expected, () => `${hyst}.update(${input}) returned ${got} instead of ${expected}`)
-			);
+			{
+				const hyst = new LessThanHyst(THRESHOLD, HYST, initialState);
+				this.assert_eq(hyst.state, initialState);
+				this.testHystSequence(
+					hyst,
+					IN_OUT,
+					(got, expected, input) => this.assert_eq(got, expected, () => `${hyst}.update(${input}) returned ${got} instead of ${expected}`)
+				);
+			}
+			{
+				const hyst = LessThanHyst.fromBounds(THRESHOLD - HYST, THRESHOLD + HYST, initialState);
+				this.assert_eq(hyst.state, initialState);
+				this.testHystSequence(
+					hyst,
+					IN_OUT,
+					(got, expected, input) => this.assert_eq(got, expected, () => `${hyst}.update(${input}) returned ${got} instead of ${expected}`)
+				);
+			}
 		}
 
 		this.assert_error(() => new LessThanHyst(10, -0.4)); // negative hyst value
@@ -67,13 +78,24 @@ export class BaseHyst extends UnitTest {
 		const HYST: number = 0.5;
 
 		for (const initialState of [false, true]) {
-			const hyst = new GreaterThanHyst(THRESHOLD, HYST, initialState);
-			this.assert_eq(hyst.state, initialState);
-			this.testHystSequence(
-				hyst,
-				IN_OUT,
-				(got, expected, input) => this.assert_eq(got, expected, () => `${hyst}.update(${input}) returned ${got} instead of ${expected}`)
-			);
+			{
+				const hyst = new GreaterThanHyst(THRESHOLD, HYST, initialState);
+				this.assert_eq(hyst.state, initialState);
+				this.testHystSequence(
+					hyst,
+					IN_OUT,
+					(got, expected, input) => this.assert_eq(got, expected, () => `${hyst}.update(${input}) returned ${got} instead of ${expected}`)
+				);
+			}
+			{
+				const hyst = GreaterThanHyst.fromBounds(THRESHOLD - HYST, THRESHOLD + HYST, initialState);
+				this.assert_eq(hyst.state, initialState);
+				this.testHystSequence(
+					hyst,
+					IN_OUT,
+					(got, expected, input) => this.assert_eq(got, expected, () => `${hyst}.update(${input}) returned ${got} instead of ${expected}`)
+				);
+			}
 		}
 
 		this.assert_error(() => new GreaterThanHyst(10, -0.4)); // negative hyst value
