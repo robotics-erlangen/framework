@@ -104,6 +104,19 @@ export class LessThanHyst implements Hyst<number, boolean> {
 	}
 
 	/**
+	 * Constructs a hysteresis for < comparisons.
+	 *
+	 * @param lower - The lower threshold the value needs to cross to make this hysteresis return true
+	 * @param upper - The upper threshold the value needs to cross to make this hysteresis return false
+	 * @param initialState - The initial state of the hysteresis
+	 */
+	public static fromBounds(lower: number, upper: number, initialState: boolean = false): LessThanHyst {
+		const thresh = (lower + upper) / 2;
+		const hyst = (upper - lower) / 2;
+		return new LessThanHyst(thresh, hyst, initialState);
+	}
+
+	/**
 	 * The threshold is the right hand side of the comparison.
 	 * For this hysteresis to return true, the input needs to
 	 * be less than (threshold - hyst), and for this hysteresis
@@ -184,6 +197,19 @@ export class GreaterThanHyst implements Hyst<number, boolean> {
 	 */
 	constructor(threshold: number, hyst: number, initialState: boolean = false) {
 		this.lessThan = new LessThanHyst(threshold, hyst, !initialState);
+	}
+
+	/**
+	 * Constructs a hysteresis for > comparisons.
+	 *
+	 * @param lower - The lower threshold the value needs to cross to make this hysteresis return false
+	 * @param upper - The upper threshold the value needs to cross to make this hysteresis return true
+	 * @param initialState - The initial state of the hysteresis
+	 */
+	public static fromBounds(lower: number, upper: number, initialState: boolean = false): GreaterThanHyst {
+		const thresh = (lower + upper) / 2;
+		const hyst = (upper - lower) / 2;
+		return new GreaterThanHyst(thresh, hyst, initialState);
 	}
 
 	public get state(): boolean {
