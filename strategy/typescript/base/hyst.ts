@@ -46,6 +46,7 @@
  *   - GreaterThanHyst: a hysteresis for > comparisons
  *   - InIntervalHyst: a hysteresis to check if a number is in an interval.
  *   - MultiValueHyst: a hysteresis to check if a number is in one of several intervals.
+ *   - VectorHyst: a hysteresis to check if a vector is close to another one.
  */
 
 /**************************************************************************
@@ -67,6 +68,8 @@
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
+
+import { Vector } from "base/vector";
 
 export interface Hyst<In, Out> {
 	state: Out;
@@ -475,6 +478,81 @@ export class MultiValueHyst<T> implements Hyst<number, T> {
 	 */
 	public _toString() {
 		return `MultiValueHyst(thresholds: [${this.thresholds}], hyst: ${this.hyst}, values: ${this.values}, state: ${this.state}=values[${this.index}])`;
+	}
+
+	/**
+	 * Returns a string representation of the hysteresis
+	 * @returns A string representation of the hysteresis
+	 */
+	public toString() {
+		return this._toString();
+	}
+}
+
+/**
+ * A hysteresis to check if a vector is close to another one.
+ *
+ * Use this class when checking if a noisy vector is close to
+ * a target vector, to avoid flickering of the result.
+ *
+ * See the documentation of this module for an example.
+ */
+export class VectorHyst implements Hyst<Vector, boolean> {
+	private lessThan: LessThanHyst;
+	public readonly target: Vector;
+	public readonly threshold: number;
+	public readonly hyst: number;
+
+	/**
+	 * Constructs a hysteresis to check if a vector is close to another one.
+	 *
+	 * @param target - The targeted vector
+	 * @param thresh - the distance the input can be from the target to
+	 * still be considered close to it
+	 * @param hyst - The hysteresis value around dist
+	 * @param initialState - The initial state of the hysteresis
+	 */
+	constructor(target: Vector = new Vector(0, 0), threshold: number, hyst: number, initialState: boolean = false) {
+		if (threshold < 0) {
+			throw new Error(`dist has to be greater than 0, but is ${threshold}`);
+		}
+		if (hyst > threshold) {
+			throw new Error(`hyst needs to be less than threshold (=${threshold}), but is ${hyst}`);
+		}
+
+		// to avoid having to calculate a square root every update, choose the appropriate bounds for
+		// the squared distance
+		this.lessThan = LessThanHyst.fromBounds((threshold - hyst) ** 2, (threshold + hyst) ** 2, initialState);
+		this.target = target;
+		this.threshold = threshold;
+		this.hyst = hyst;
+	}
+
+	public get state(): boolean {
+		return this.lessThan.state;
+	}
+
+	public set state(newState: boolean) {
+		this.lessThan.state = newState;
+	}
+
+	/**
+	 * Updates the hysteresis
+	 *
+	 * @param x - The new value
+	 * @returns The new state of the hysteresis
+	 */
+	public update(x: Vector): boolean {
+		return this.lessThan.update(this.target.distanceToSq(x));
+	}
+
+
+	/**
+	 * Returns a string representation of the hysteresis, used for base/debug
+	 * @returns A string representation of the hysteresis
+	 */
+	public _toString() {
+		return `VectorHyst(target: ${this.target}, thresh: ${this.threshold}, hyst: ${this.hyst}, state: ${this.state})`;
 	}
 
 	/**

@@ -1,4 +1,5 @@
-import { Hyst, LessThanHyst, GreaterThanHyst, InIntervalHyst, MultiValueHyst } from "base/hyst";
+import { Hyst, LessThanHyst, GreaterThanHyst, InIntervalHyst, MultiValueHyst, VectorHyst } from "base/hyst";
+import { Vector } from "base/vector";
 
 import { UnitTest } from "glados/test/unit/unittest";
 
@@ -9,6 +10,7 @@ export class BaseHyst extends UnitTest {
 		this.addTest("GreaterThanHyst", this.testGreaterThanHyst);
 		this.addTest("InIntervalHyst", this.testInIntervalHyst);
 		this.addTest("MultiValueHyst", this.testMultiValueHyst);
+		this.addTest("VectorHyst", this.testVectorHyst);
 	}
 
 	private testHystSequence<In, Out>(hyst: Hyst<In, Out>, io: [In, Out][], assert_fn: (got: Out, expected: Out, input: In) => void) {
@@ -181,6 +183,43 @@ export class BaseHyst extends UnitTest {
 		this.assert_error(() => new MultiValueHyst(["a", "b"], [1, 2], 0.4)); // too many thresholds
 		this.assert_error(() => new MultiValueHyst(["a", "b"], [1], -0.4)); // negative hyst value
 		this.assert_error(() => new MultiValueHyst(["a", "b"], [1], 0.4, "x")); // invalid initialState
+	}
+
+	private testVectorHyst() {
+		const TARGET: Vector = new Vector(1, 2);
+		const IN_OUT: [Vector, boolean][] = [
+			[TARGET + new Vector(0, 0), true],
+			[TARGET + new Vector(1, 0), true],
+			[TARGET + new Vector(1, 1), true],
+			[TARGET + new Vector(0, 1), true],
+			[TARGET + new Vector(0, 2), true],
+			[TARGET + new Vector(-1, 3), false],
+			[TARGET + new Vector(-1, 4), false],
+			[TARGET + new Vector(0, 5), false],
+			[TARGET + new Vector(0, 6), false],
+			[TARGET + new Vector(1, 4), false],
+			[TARGET + new Vector(0, 3), false],
+			[TARGET + new Vector(0, 2), false],
+			[TARGET + new Vector(1, 1), false],
+			[TARGET + new Vector(0.5, 0), true],
+			[TARGET + new Vector(0, 0), true],
+		];
+		const DIST: number = 2;
+		const HYST: number = 1;
+
+		for (const initialState of [false, true]) {
+			const hyst = new VectorHyst(TARGET, DIST, HYST, initialState);
+			this.assert_eq(hyst.state, initialState);
+			this.testHystSequence(
+				hyst,
+				IN_OUT,
+				(got, expected, input) => this.assert_eq(got, expected, () => `${hyst}.update(${input}) returned ${got} instead of ${expected}`)
+			);
+		}
+
+		this.assert_error(() => new VectorHyst(new Vector(0, 0), 2, -0.4)); // negative hyst value
+		this.assert_error(() => new VectorHyst(new Vector(0, 0), 1, 2)); // hyst value too large
+		this.assert_error(() => new VectorHyst(new Vector(0, 0), -1, 2)); // negative dist
 	}
 }
 export let testClass = BaseHyst;
