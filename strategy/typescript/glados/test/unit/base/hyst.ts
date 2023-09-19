@@ -1,4 +1,4 @@
-import { Hyst, LessThanHyst, GreaterThanHyst, InIntervalHyst, MultiValueHyst, VectorHyst } from "base/hyst";
+import { Hyst, LessThanHyst, GreaterThanHyst, InIntervalHyst, MultiValueHyst, VectorHyst, AngleHyst } from "base/hyst";
 import { Vector } from "base/vector";
 
 import { UnitTest } from "glados/test/unit/unittest";
@@ -11,6 +11,7 @@ export class BaseHyst extends UnitTest {
 		this.addTest("InIntervalHyst", this.testInIntervalHyst);
 		this.addTest("MultiValueHyst", this.testMultiValueHyst);
 		this.addTest("VectorHyst", this.testVectorHyst);
+		this.addTest("AngleHyst", this.testAngleHyst);
 	}
 
 	private testHystSequence<In, Out>(hyst: Hyst<In, Out>, io: [In, Out][], assert_fn: (got: Out, expected: Out, input: In) => void) {
@@ -220,6 +221,68 @@ export class BaseHyst extends UnitTest {
 		this.assert_error(() => new VectorHyst(new Vector(0, 0), 2, -0.4)); // negative hyst value
 		this.assert_error(() => new VectorHyst(new Vector(0, 0), 1, 2)); // hyst value too large
 		this.assert_error(() => new VectorHyst(new Vector(0, 0), -1, 2)); // negative dist
+	}
+
+	private testAngleHyst() {
+		const TARGET: number = 2;
+		const IN_OUT: [number, boolean][] = [
+			[TARGET - 2.0, false],
+			[TARGET - 1.8, false],
+			[TARGET - 1.6, false],
+			[TARGET - 1.4, false],
+			[TARGET - 1.2, false],
+			[TARGET - 1.0, false],
+			[TARGET - 0.8, false],
+			[TARGET - 0.6, true],
+			[TARGET - 0.7, true],
+			[TARGET - 0.8, true],
+			[TARGET - 0.6, true],
+			[TARGET - 0.4, true],
+			[TARGET - 0.2, true],
+			[TARGET - 0.0, true],
+			[TARGET + 0.2, true],
+			[TARGET + 0.4, true],
+			[TARGET + 0.6, true],
+			[TARGET + 0.8, true],
+			[TARGET + 1.0, true],
+			[TARGET + 1.2, true],
+			[TARGET + 1.4, false],
+			[TARGET + 1.2, false],
+			[TARGET + 1.0, false],
+			[TARGET + 1.5, false],
+			[TARGET + 2.0, false],
+			[TARGET + 3.0, false],
+		];
+		const DIFF: number = 1;
+		const HYST: number = 0.3;
+
+		for (const initialState of [false, true]) {
+			for (const offset of [-2 * Math.PI, 0, 2 * Math.PI]) {
+				{
+					const hyst = new AngleHyst(TARGET + offset, DIFF, HYST, initialState);
+					this.assert_eq(hyst.state, initialState);
+					this.testHystSequence(
+						hyst,
+						IN_OUT,
+						(got, expected, input) => this.assert_eq(got, expected, () => `${hyst}.update(${input}) returned ${got} instead of ${expected}`)
+					);
+				}
+				{
+					const hyst = new AngleHyst(TARGET + offset, DIFF, HYST, initialState);
+					this.assert_eq(hyst.state, initialState);
+					this.testHystSequence(
+						hyst,
+						IN_OUT.map(([i, o]) => [i + offset, o]),
+						(got, expected, input) => this.assert_eq(got, expected, () => `${hyst}.update(${input}) returned ${got} instead of ${expected}`)
+					);
+				}
+			}
+		}
+
+		this.assert_error(() => new AngleHyst(0, 2, -0.4)); // negative hyst value
+		this.assert_error(() => new AngleHyst(0, -1, 1)); // hyst value too large
+		this.assert_error(() => new AngleHyst(0, -1, 2)); // negative diff
+		this.assert_error(() => new AngleHyst(0, 4, 2)); // diff greater than pi
 	}
 }
 export let testClass = BaseHyst;

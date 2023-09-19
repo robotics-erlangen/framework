@@ -47,6 +47,7 @@
  *   - InIntervalHyst: a hysteresis to check if a number is in an interval.
  *   - MultiValueHyst: a hysteresis to check if a number is in one of several intervals.
  *   - VectorHyst: a hysteresis to check if a vector is close to another one.
+ *   - AngleHyst: a hysteresis to check if an angle is close to another one.
  */
 
 /**************************************************************************
@@ -553,6 +554,100 @@ export class VectorHyst implements Hyst<Vector, boolean> {
 	 */
 	public _toString() {
 		return `VectorHyst(target: ${this.target}, thresh: ${this.threshold}, hyst: ${this.hyst}, state: ${this.state})`;
+	}
+
+	/**
+	 * Returns a string representation of the hysteresis
+	 * @returns A string representation of the hysteresis
+	 */
+	public toString() {
+		return this._toString();
+	}
+}
+
+/**
+ * A hysteresis to check if an angle is close to another one.
+ *
+ * Use this class when checking if a noisy angle is close to
+ * a target angle, to avoid flickering of the result.
+ *
+ * See the documentation of this module for an example.
+ */
+export class AngleHyst implements Hyst<number, boolean> {
+	private inInterval: InIntervalHyst;
+	public readonly target: number;
+
+	/**
+	 * Constructs a hysteresis to check if an angle is close to another one.
+	 *
+	 * @param target - The targeted angle
+	 * @param diff - the difference between the input and the target for the
+	 * input to still be close to it
+	 * @param hyst - The hysteresis value around diff
+	 * @param initialState - The initial state of the hysteresis
+	 */
+	constructor(target: number, diff: number, hyst: number, initialState: boolean = false) {
+		if (diff < 0) {
+			throw new Error(`diff has to be greater than 0, but is ${diff}`);
+		}
+		if (diff > Math.PI) {
+			throw new Error(`diff has to be less than pi, but is ${diff}`);
+		}
+		if (hyst > diff) {
+			throw new Error(`hyst needs to be less than diff (=${diff}), but is ${hyst}`);
+		}
+
+		this.inInterval = new InIntervalHyst([target - diff, target + diff], hyst, initialState);
+		this.target = target;
+	}
+
+	public get state(): boolean {
+		return this.inInterval.state;
+	}
+
+	public set state(newState: boolean) {
+		this.inInterval.state = newState;
+	}
+
+	public get diff(): number {
+		const [lower, upper] = this.inInterval.interval;
+		return (upper - lower) / 2;
+	}
+
+	public get hyst(): number {
+		return this.inInterval.hyst;
+	}
+
+	/**
+	 * Updates the hysteresis
+	 *
+	 * @param x - The new value
+	 * @returns The new state of the hysteresis
+	 */
+	public update(x: number): boolean {
+		// we normalize the input angle to the interval [target - pi, target + pi]
+		// because then we can simple check if the input is in the interval
+		// [target - diff, target + diff], which is exactly what inInterval does
+
+		const lower = this.target - Math.PI;
+		while (x < lower) {
+			x += 2 * Math.PI;
+		}
+
+		const upper = this.target + Math.PI;
+		while (x > upper) {
+			x -= 2 * Math.PI;
+		}
+		return this.inInterval.update(x);
+	}
+
+
+	/**
+	 * Returns a string representation of the hysteresis, used for base/debug
+	 * @returns A string representation of the hysteresis
+	 */
+	public _toString() {
+		return `AngleHyst(target: ${this.target}, diff: ${this.diff}, hyst: ${this.hyst}, state: ${this.state})`;
 	}
 
 	/**
