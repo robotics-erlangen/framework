@@ -59,7 +59,7 @@ export class BaseHyst extends UnitTest {
 			}
 		}
 
-		this.assert_error(() => new LessThanHyst(10, -0.4)); // negative hyst value
+		this.assert_error(() => new LessThanHyst(10, -0.4), () => "no error on negative hyst value");
 	}
 
 	private testGreaterThanHyst() {
@@ -101,7 +101,7 @@ export class BaseHyst extends UnitTest {
 			}
 		}
 
-		this.assert_error(() => new GreaterThanHyst(10, -0.4)); // negative hyst value
+		this.assert_error(() => new GreaterThanHyst(10, -0.4), () => "no error on negative hyst value");
 	}
 
 	private testInIntervalHyst() {
@@ -138,8 +138,8 @@ export class BaseHyst extends UnitTest {
 			);
 		}
 
-		this.assert_error(() => new InIntervalHyst([1, 10], -0.4)); // negative hyst value
-		this.assert_error(() => new InIntervalHyst([10, 1], 0.4)); // empty interval
+		this.assert_error(() => new InIntervalHyst([1, 10], -0.4), () => "no error on negative hyst value");
+		this.assert_error(() => new InIntervalHyst([10, 1], 0.4), () => "no error on empty interval");
 	}
 
 	private testMultiValueHyst() {
@@ -179,11 +179,11 @@ export class BaseHyst extends UnitTest {
 			);
 		}
 
-		this.assert_error(() => new MultiValueHyst(["a"], [], 0.4)); // too few values
-		this.assert_error(() => new MultiValueHyst(["a", "b"], [], 0.4)); // too few thresholds
-		this.assert_error(() => new MultiValueHyst(["a", "b"], [1, 2], 0.4)); // too many thresholds
-		this.assert_error(() => new MultiValueHyst(["a", "b"], [1], -0.4)); // negative hyst value
-		this.assert_error(() => new MultiValueHyst(["a", "b"], [1], 0.4, "x")); // invalid initialState
+		this.assert_error(() => new MultiValueHyst(["a"], [], 0.4), () => "no error on too few values");
+		this.assert_error(() => new MultiValueHyst(["a", "b"], [], 0.4), () => "no error on too few thresholds");
+		this.assert_error(() => new MultiValueHyst(["a", "b"], [1, 2], 0.4), () => "no error on too many thresholds");
+		this.assert_error(() => new MultiValueHyst(["a", "b"], [1], -0.4), () => "no error on negative hyst value");
+		this.assert_error(() => new MultiValueHyst(["a", "b"], [1], 0.4, "x"), () => "no error on invalid initialState");
 	}
 
 	private testVectorHyst() {
@@ -218,9 +218,9 @@ export class BaseHyst extends UnitTest {
 			);
 		}
 
-		this.assert_error(() => new VectorHyst(new Vector(0, 0), 2, -0.4)); // negative hyst value
-		this.assert_error(() => new VectorHyst(new Vector(0, 0), 1, 2)); // hyst value too large
-		this.assert_error(() => new VectorHyst(new Vector(0, 0), -1, 2)); // negative dist
+		this.assert_error(() => new VectorHyst(new Vector(0, 0), 2, -0.4), () => "no error on negative hyst value");
+		this.assert_error(() => new VectorHyst(new Vector(0, 0), 1, 2), () => "no error on hyst value too large");
+		this.assert_error(() => new VectorHyst(new Vector(0, 0), -1, 2), () => "no error on negative dist");
 	}
 
 	private testAngleHyst() {
@@ -279,10 +279,10 @@ export class BaseHyst extends UnitTest {
 			}
 		}
 
-		this.assert_error(() => new AngleHyst(0, 2, -0.4)); // negative hyst value
-		this.assert_error(() => new AngleHyst(0, -1, 1)); // hyst value too large
-		this.assert_error(() => new AngleHyst(0, -1, 2)); // negative diff
-		this.assert_error(() => new AngleHyst(0, 4, 2)); // diff greater than pi
+		this.assert_error(() => new AngleHyst(0, 2, -0.4), () => "no error on negative hyst value");
+		this.assert_error(() => new AngleHyst(0, -1, 1), () => "no error on hyst value too large");
+		this.assert_error(() => new AngleHyst(0, -1, 2), () => "no error on negative diff");
+		this.assert_error(() => new AngleHyst(0, 4, 2), () => "no error on diff greater than pi");
 	}
 }
 export let testClass = BaseHyst;
