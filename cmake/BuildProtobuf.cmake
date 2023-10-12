@@ -38,7 +38,7 @@ ExternalProject_Add(project_protobuf
         -DCMAKE_MAKE_PROGRAM:PATH=${CMAKE_MAKE_PROGRAM}
         -DCMAKE_INSTALL_MESSAGE:STRING=NEVER
         -DCMAKE_BUILD_TYPE:STRING=Release
-        -DCMAKE_CXX_FLAGS:STRING=-std=gnu++11
+        "-DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS} -std=gnu++11 -w"
         # the tests fail to build :-(
         -Dprotobuf_BUILD_TESTS:BOOL=OFF
     STEP_TARGETS install

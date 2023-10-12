@@ -35,6 +35,12 @@ if(WIN32)
 	list(APPEND LIBGIT_INCLUDE_LIBS ws2_32)
 endif()
 
+if("${CMAKE_C_FLAGS}" STREQUAL "")
+  set(LIB_GIT_C_FLAGS "-w")
+else()
+  set(LIB_GIT_C_FLAGS "${CMAKE_C_FLAGS} -w")
+endif()
+
 ExternalProject_Add(project_libgit2
     URL https://downloads.robotics-erlangen.de/libgitv1.3.0.zip
     URL_HASH SHA256=26bc8d7d04cdc10941a3c0c9dfa1b5b248a2b108154f1b6b4b5054a5bab2646e
@@ -48,7 +54,7 @@ ExternalProject_Add(project_libgit2
         -DWINHTTP:STRING=OFF
         -DCMAKE_C_COMPILER:PATH=${CMAKE_C_COMPILER}
         -DCMAKE_BUILD_TYPE:STRING=Release
-        -DCMAKE_C_FLAGS:STRING=${CMAKE_C_FLAGS}
+        -DCMAKE_C_FLAGS:STRING=${LIB_GIT_C_FLAGS}
     BUILD_BYPRODUCTS
             "<INSTALL_DIR>/${LIBGIT_SUBPATH}"
     DOWNLOAD_DIR "${DEPENDENCY_DOWNLOADS}"
