@@ -106,7 +106,6 @@ private:
     bool m_exchangeRobotUpdated;
 
     int m_lastBatteryLevel;
-    float m_smoothedBatteryLevel;
 
     QLabel *m_warning;
     QLabel *m_breakBeamError;
