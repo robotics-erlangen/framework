@@ -500,8 +500,23 @@ export class MultiValueHyst<T> implements Hyst<number, T> {
  */
 export class VectorHyst implements Hyst<Vector, boolean> {
 	private lessThan: LessThanHyst;
+
+	/**
+	 * The targeted value, the vector the input has to be close to
+	 * to make this hysteresis true
+	 */
 	public readonly target: Vector;
+
+	/**
+	 * The targeted angle, i.e. the angle in the center of the interval
+	 * (see the constructor comment for more context)
+	 */
 	public readonly threshold: number;
+
+	/**
+	 * The hysteresis value defines the size of the transition
+	 * regions
+	 */
 	public readonly hyst: number;
 
 	/**
@@ -575,15 +590,33 @@ export class VectorHyst implements Hyst<Vector, boolean> {
  */
 export class AngleHyst implements Hyst<number, boolean> {
 	private inInterval: InIntervalHyst;
+
+	/**
+	 * The targeted angle, i.e. the angle in the center of the interval
+	 * (see the constructor comment for more context)
+	 */
 	public readonly target: number;
 
 	/**
 	 * Constructs a hysteresis to check if an angle is close to another one.
 	 *
+	 * Representing angle intervals can be tricky, because of the discontinuity
+	 * normalized angles have. So instead of using normalized angles for the
+	 * interval bounds, we just allow non normalized angles, where the second
+	 * angle in the interval always has to be larger than the first one.
+	 *
+	 * In this case, we represent the angle interval as a targeted value and an
+	 * offset around it: [target - diff, target + diff]. That is the interval
+	 * the hysteresis is checking for.
+	 *
+	 * So to enter the interval (so the value was previously outside the interval
+	 * and the current state of the hysteresis is false), the value has to be in
+	 * [target - diff + hyst, target + diff - hyst].
+	 *
 	 * @param target - The targeted angle
 	 * @param diff - the difference between the input and the target for the
-	 * input to still be close to it
-	 * @param hyst - The hysteresis value around diff
+	 * input to still be in the interval
+	 * @param hyst - The hysteresis value around the interval
 	 * @param initialState - The initial state of the hysteresis
 	 */
 	constructor(target: number, diff: number, hyst: number, initialState: boolean = false) {
@@ -609,11 +642,23 @@ export class AngleHyst implements Hyst<number, boolean> {
 		this.inInterval.state = newState;
 	}
 
+	/**
+	 * The difference between the input and the target for the
+	 * input to still be in the interval
+	 *
+	 * @returns the hysteresis value
+	 */
 	public get diff(): number {
 		const [lower, upper] = this.inInterval.interval;
 		return (upper - lower) / 2;
 	}
 
+	/**
+	 * The hysteresis value defines the size of the transition
+	 * regions
+	 *
+	 * @returns the hysteresis value
+	 */
 	public get hyst(): number {
 		return this.inInterval.hyst;
 	}
@@ -626,8 +671,11 @@ export class AngleHyst implements Hyst<number, boolean> {
 	 */
 	public update(x: number): boolean {
 		// we normalize the input angle to the interval [target - pi, target + pi]
-		// because then we can simple check if the input is in the interval
+		// because then we can simply check if the input is in the interval
 		// [target - diff, target + diff], which is exactly what inInterval does
+		//
+		// This off-center normalization has the effect that the angle discontinuity
+		// is opposite of the interval we are interested in.
 
 		const lower = this.target - Math.PI;
 		while (x < lower) {
