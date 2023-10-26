@@ -205,6 +205,11 @@ $ libs/v8/build.sh
 $ mkdir build-win && cd build-win
 $ cmake -GNinja -DCMAKE_PREFIX_PATH="$USED_QT" -DCMAKE_BUILD_TYPE=Release ..
 ```
+To use precompiled V8, use the following commands instead of the commands above
+```
+$ mkdir build-win && cd build-win
+$ cmake -GNinja -DDOWNLOAD_V8=TRUE -DCMAKE_PREFIX_PATH="$USED_QT" -DCMAKE_BUILD_TYPE=Release ..
+```
 Then close the shell to reset the PATH variable and in the new shell you can build with
 ```
 $ cmake --build .
