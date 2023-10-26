@@ -84,6 +84,34 @@ export interface Hyst<In, Out> {
  * to avoid flickering of the result.
  *
  * See the documentation of this module for an example.
+ *
+ * How this class is intended to be used:
+ * Usually, when you want to check if a value is less than some threshold,
+ * you'd write
+ *
+ *     if (value < threshold) {
+ *         ...
+ *     }
+ *
+ * If value is a noisy value (for example, from the vision), this comparison
+ * will flicker. To prevent this, we need to add a hysteresis to this comparison:
+ *
+ *     if (this.belowThreshold.update(value)) {
+ *         ...
+ *     }
+ *
+ * And in the constructor of the object:
+ *
+ *     constructor() {
+ *         ...
+ *         this.belowThreshold = new LessThanHyst(threshold, HYST);
+ *     }
+ *
+ * The choice of HYST depends on multiple factors:
+ *   - how responsive the comparison must be. larger values for HYST lead to slower
+ *     (but more stable) decisions
+ *   - how noisy the value is: choosing HYST to small can still allow flickering
+ *   - ...
  */
 export class LessThanHyst implements Hyst<number, boolean> {
 	private lowerBound: number;
@@ -186,7 +214,8 @@ export class LessThanHyst implements Hyst<number, boolean> {
  * Use this class when comparing a noisy, continuous value with a constant,
  * to avoid flickering of the result.
  *
- * See the documentation of this module for an example.
+ * See the documentation of this module for an example and {@link LessThanHyst}
+ * for usage info.
  */
 export class GreaterThanHyst implements Hyst<number, boolean> {
 	private lessThan: LessThanHyst;
@@ -286,6 +315,31 @@ export class GreaterThanHyst implements Hyst<number, boolean> {
  * interval, to avoid flickering of the result.
  *
  * See the documentation of this module for an example.
+ *
+ * How this class is intended to be used:
+ * Usually, when you want to check if a value is less than some threshold,
+ * you'd write
+ *
+ *     if (a < value && value < b) {
+ *         ...
+ *     }
+ *
+ * If value is a noisy value (for example, from the vision), this comparison
+ * will flicker. To prevent this, we need to add a hysteresis to this comparison:
+ *
+ *     if (this.inInterval.update(value)) {
+ *         ...
+ *     }
+ *
+ * And in the constructor of the object:
+ *
+ *     constructor() {
+ *         ...
+ *         this.inInterval = new InIntervalHyst([a, b], HYST);
+ *     }
+ *
+ * Also see {@link LessThanHyst} more for more usage info and some tips for the
+ * choice of HYST.
  */
 export class InIntervalHyst implements Hyst<number, boolean> {
 	// if the value is lower than the upper bound of the interval
@@ -389,6 +443,9 @@ export class InIntervalHyst implements Hyst<number, boolean> {
  * values:         A        B         C        D       E      F
  *
  * See the documentation of this module for an example.
+ *
+ * Also see {@link LessThanHyst} and {@link InIntervalHyst} for usage info
+ * and some tips for the choice of HYST.
  */
 export class MultiValueHyst<T> implements Hyst<number, T> {
 	private lessThans: LessThanHyst[];
@@ -497,6 +554,31 @@ export class MultiValueHyst<T> implements Hyst<number, T> {
  * a target vector, to avoid flickering of the result.
  *
  * See the documentation of this module for an example.
+ *
+ * How this class is intended to be used:
+ * Usually, when you want to check if a vector is close to a target,
+ * you'd write
+ *
+ *     if (target.distanceToSq(v) < DIST * DIST) {
+ *         ...
+ *     }
+ *
+ * If v is a noisy value (for example, from the vision), this comparison
+ * will flicker. To prevent this, we need to add a hysteresis to this comparison:
+ *
+ *     if (this.closeToTarget.update(v)) {
+ *         ...
+ *     }
+ *
+ * And in the constructor of the object:
+ *
+ *     constructor() {
+ *         ...
+ *         this.closeToTarget = new VectorHyst(target, DIST, HYST);
+ *     }
+ *
+ * Also see {@link LessThanHyst} more for more usage info and some tips for the
+ * choice of HYST.
  */
 export class VectorHyst implements Hyst<Vector, boolean> {
 	private lessThan: LessThanHyst;
@@ -587,6 +669,32 @@ export class VectorHyst implements Hyst<Vector, boolean> {
  * a target angle, to avoid flickering of the result.
  *
  * See the documentation of this module for an example.
+ *
+ * How this class is intended to be used:
+ * Usually, when you want to check if an angle is in an interval,
+ * you'd write
+ *
+ *     const normalizedAngle = geom.normalizedAngle(angle);
+ *     if (0 < normalizedAngle && normalizedAngle < Math.PI) {
+ *         ...
+ *     }
+ *
+ * If angle is a noisy value (for example, from the vision), this comparison
+ * will flicker. To prevent this, we need to add a hysteresis to this comparison:
+ *
+ *     if (this.inAngleInterval.update(angle)) {
+ *         ...
+ *     }
+ *
+ * And in the constructor of the object:
+ *
+ *     constructor() {
+ *         ...
+ *         this.inAngleInterval = new AngleHyst(Math.PI / 2, Math.PI / 2, HYST);
+ *     }
+ *
+ * Also see {@link LessThanHyst} more for more usage info and some tips for the
+ * choice of HYST.
  */
 export class AngleHyst implements Hyst<number, boolean> {
 	private inInterval: InIntervalHyst;
@@ -666,7 +774,9 @@ export class AngleHyst implements Hyst<number, boolean> {
 	/**
 	 * Updates the hysteresis
 	 *
-	 * @param x - The new value
+	 * The angle x does not need to be normalized, this method takes care of that.
+	 *
+	 * @param x - The new value, does not need to be normalized
 	 * @returns The new state of the hysteresis
 	 */
 	public update(x: number): boolean {
