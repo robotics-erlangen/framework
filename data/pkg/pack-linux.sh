@@ -44,10 +44,10 @@ chmod +x "$SCRATCH/start.sh"
 
 git -C "$SCRATCH" init
 git -C "$SCRATCH" add -A
-git -C "$SCRATCH" commit \
-	--no-gpg-sign \
-	--author "Robotics Erlangen <info@robotics-erlangen.de>" \
-	-m "Initial Commit"
+git -c user.name="Robotics Erlangen" \
+	-c user.email="info@robotics-erlangen.de" \
+	-C "$SCRATCH" \
+	commit --no-gpg-sign -m "Initial Commit"
 
 FILE_NAME="software-linux-prebuilt-${CURRENT_HASH}.tar.gz"
 tar cfz "$FILE_NAME" --directory "$SCRATCH" .
