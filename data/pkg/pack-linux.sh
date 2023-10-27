@@ -9,6 +9,7 @@ cd "$(dirname "$0")"
 cd ../..
 
 CURRENT_HASH="$(git rev-parse --short=12 HEAD)"
+BUILD_DIR="${1:-build}"
 
 
 SCRATCH="$(mktemp --directory)"
@@ -20,15 +21,15 @@ trap finish EXIT
 mkdir --parents "$SCRATCH/build/bin"
 mkdir "$SCRATCH/libs"
 
-uses_RDD=$(echo "RELATIVE_DATA_DIRS" | gcc -include build/src/defs.txt -x c - -E -DCHEAT_DEFS_H_ERROR_ABORTION_DO_NOT_USE_IN_CODE_OR_WE_WILL_HATE_YOU -P)
+uses_RDD=$(echo "RELATIVE_DATA_DIRS" | gcc -include $BUILD_DIR/src/defs.txt -x c - -E -DCHEAT_DEFS_H_ERROR_ABORTION_DO_NOT_USE_IN_CODE_OR_WE_WILL_HATE_YOU -P)
 if [ $uses_RDD -ne 1 ];then
 	echo "Your build folder is not build with relativeDataDirs, we cannot make it work on other machines"
 	exit 1
 fi
 
 cp --recursive strategy "$SCRATCH/"
-cp build/bin/ra \
-	build/bin/icudtl.dat \
+cp $BUILD_DIR/bin/ra \
+	$BUILD_DIR/bin/icudtl.dat \
 	"$SCRATCH/build/bin"
 cp --recursive libs/tsc "$SCRATCH/libs/tsc"
 cp --recursive \
