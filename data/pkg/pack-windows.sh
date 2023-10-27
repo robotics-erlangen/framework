@@ -1,6 +1,7 @@
 #!/bin/bash
-# git revision detection adapted from https://github.com/rpavlik/cmake-modules/blob/master/GetGitRevisionDescription.cmake.in
+# YOU SHOULD NEVER RUN THIS SCRIPT YOURSELF, to pack for windows, use cmake --build . --target pack
 
+# git revision detection adapted from https://github.com/rpavlik/cmake-modules/blob/master/GetGitRevisionDescription.cmake.in
 find_gitrev() {
 	# output variable
 	gitrev="error"
