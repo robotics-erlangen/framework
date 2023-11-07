@@ -56,8 +56,8 @@ export class Moves implements Group {
 			if (move.MIN_ROBOTS > move.MAX_ROBOTS) {
 				throw new Error("Move: MIN_ROBOTS can't be greater than MAX_ROBOTS!");
 			}
-			if (move.MIN_ROBOTS < 1) {
-				throw new Error("Move: MIN_ROBOTS must be greater than 0!");
+			if (move.MIN_ROBOTS < 0) {
+				throw new Error("Move: MIN_ROBOTS must be greater than or equal to 0!");
 			}
 		}
 	}
@@ -152,9 +152,6 @@ export class Moves implements Group {
 		}
 
 		if (this._chosenMove && n_attackers != undefined) {
-			if (n_attackers == undefined || n_attackers === 0) {
-				throw new Error();
-			}
 			this._numAttackersSent = true;
 			messaging.sendBroadcast(MessageType.moveInfo, {
 				attackers: attackers!,
