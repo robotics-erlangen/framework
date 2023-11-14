@@ -1,7 +1,7 @@
 import { FriendlyRobot } from "base/robot";
 
-import { Exchange } from "glados/agent/attacker/exchange";
 import { FeintPass } from "glados/agent/attacker/feintpass";
+import { RemoveExtraRobot } from "glados/agent/attacker/removeextrarobot";
 import { Agent } from "glados/agent/base/agent";
 import { BehaviorConstructor } from "glados/agent/base/behavior";
 import { Default } from "glados/agent/dummy/default";
@@ -11,7 +11,7 @@ export class Dummy extends Agent {
 
 	public getBehaviors(): BehaviorConstructor[] {
 		return [
-			Exchange,
+			RemoveExtraRobot,
 			FeintPass,
 			Default
 		];
