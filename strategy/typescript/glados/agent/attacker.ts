@@ -8,7 +8,7 @@ import { Default } from "glados/agent/attacker/default";
 import { DribblingGuard } from "glados/agent/attacker/dribblingguard";
 import { Duel } from "glados/agent/attacker/duel";
 import { DuelAssistant } from "glados/agent/attacker/duelassistant";
-import { Exchange } from "glados/agent/attacker/exchange";
+import { RemoveExtraRobot } from "glados/agent/attacker/removeextrarobot";
 import { Move } from "glados/agent/attacker/move";
 import { PenaltyPassiveAttackerOffense } from "glados/agent/attacker/penaltypassiveattackeroffense";
 import { PenaltyShootout } from "glados/agent/attacker/penaltyshootout";
@@ -42,7 +42,7 @@ export class Attacker extends Agent {
 			PenaltyShootout,
 			PenaltyPassiveDefense,
 			PenaltyPassiveAttackerOffense,
-			Exchange,
+			RemoveExtraRobot,
 			Duel,
 			DuelAssistant,
 			parameterizeClass(BallEscort, false),

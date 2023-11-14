@@ -25,7 +25,12 @@ function rateRobot(robot: FriendlyRobot, messaging: MessageBox): number {
 	return Rating.valueToRating(distance, 0, World.Geometry.FieldHeight ** 2);
 
 }
-export class Exchange extends Behavior {
+
+/**
+ * When we have too many robots on the field, up to one robot chooses this
+ * behavior in order to be taken from the field
+ */
+export class RemoveExtraRobot extends Behavior {
 	check(): Behavior | undefined {
 		if (!BaseRef.hasTooManyFriendlyRobots()) {
 			return undefined;
