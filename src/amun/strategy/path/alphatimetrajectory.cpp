@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2019 Andreas Wendler                                        *
+ *   Copyright 2019 Andreas Wendler, Christoph Schmidtmeier                *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -101,8 +101,18 @@ float AlphaTimeTrajectory::minimumTime(Vector startSpeed, Vector endSpeed, float
 
 
 AlphaTimeTrajectory::TrajectoryPosInfo2D AlphaTimeTrajectory::calculatePosition(const RobotState &start, Vector v1, float time, float angle,
-                                                                                float acc, float vMax, EndSpeed endSpeedType)
+                                                                                float acc, float vMax, EndSpeed endSpeedType, float minTime)
 {
+    if (minTime < 0) {
+        minTime = minimumTime(start.speed, v1, acc, endSpeedType);
+    }
+
+    if (time < 0.0005f) {
+        return {(start.speed + v1) * 0.5f * minTime, v1};
+    }
+
+    time += minTime;
+
     const Vector v0 = start.speed;
     angle = adjustAngle(v0, v1, time, angle, acc, endSpeedType);
     const float alphaX = std::sin(angle);
@@ -322,7 +332,7 @@ std::optional<Trajectory> AlphaTimeTrajectory::findTrajectory(const RobotState &
             const Vector continuationSpeed = result.continuationSpeed();
             assumedSpeed = std::max(std::abs(continuationSpeed.x), std::abs(continuationSpeed.y));
         } else {
-            const auto trajectoryInfo = calculatePosition(start, target.speed, currentTime + minTime, currentAngle, acc, vMax, endSpeedType);
+            const auto trajectoryInfo = calculatePosition(start, target.speed, currentTime, currentAngle, acc, vMax, endSpeedType, minTime);
             endPos = trajectoryInfo.endPos;
             assumedSpeed = std::max(std::abs(trajectoryInfo.increaseAtSpeed.x), std::abs(trajectoryInfo.increaseAtSpeed.y));
         }
