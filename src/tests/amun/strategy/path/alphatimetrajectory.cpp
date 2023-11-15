@@ -246,27 +246,24 @@ TEST(AlphaTimeTrajectory, findTrajectory) {
 }
 
 TEST(AlphaTimeTrajectory, evilTrajectory) {
-    {   int i=5709;
-        RNG rng(i + 1);
-        const float maxSpeed = 0.936534;
+    const float maxSpeed = 0.936534;
 
-        const Vector s0 = Vector{1.05734, 1.79056};
-        const Vector v0 = Vector{-0.0109642, 0.394011};
-        const Vector s1 =  Vector{1.05753, 1.85192};
-	const Vector v1{0.0671549, -0.4183};
+    const Vector s0 = Vector{1.05734, 1.79056};
+    const Vector v0 = Vector{-0.0109642, 0.394011};
+    const Vector s1 = Vector{1.05753, 1.85192};
+    const Vector v1 = Vector{0.0671549, -0.4183};
 
-        const float acc = 1.47419;
-        const float slowDownTime = 0;
+    const float acc = 1.47419;
+    const float slowDownTime = 0;
 
-        const auto profileOpt = AlphaTimeTrajectory::findTrajectory(RobotState(s0, v0), RobotState(s1, v1), acc, maxSpeed, slowDownTime, EndSpeed::FAST);
-        if (!profileOpt) {
-            FAIL();
-        }
-        const auto profile = profileOpt.value();
-
-        // generic checks
-        checkTrajectorySimple(profile, v0, v1, acc, EndSpeed::FAST);
+    const auto profileOpt = AlphaTimeTrajectory::findTrajectory(RobotState(s0, v0), RobotState(s1, v1), acc, maxSpeed, slowDownTime, EndSpeed::FAST);
+    if (!profileOpt) {
+        FAIL();
     }
+    const auto profile = profileOpt.value();
+
+    // generic checks
+    checkTrajectorySimple(profile, v0, v1, acc, EndSpeed::FAST);
 }
 
 // TODO: test total time
