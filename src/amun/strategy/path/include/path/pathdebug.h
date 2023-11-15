@@ -24,7 +24,7 @@
 #include "protobuf/debug.pb.h"
 #include "core/vector.h"
 #include "boundingbox.h"
-#include "alphatimetrajectory.h"
+#include "trajectory.h"
 #include <QObject>
 #include <QVector>
 #include <QString>
