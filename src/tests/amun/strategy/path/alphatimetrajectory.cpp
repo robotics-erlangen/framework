@@ -191,9 +191,10 @@ static void checkBasic(RNG &rng, const Trajectory &profile, const Vector v0, con
 }
 
 TEST(AlphaTimeTrajectory, calculateTrajectory) {
-    RNG rng(1);
+    constexpr int RUNS = 10'000;
 
-    for (int i = 0;i<10000;i++) {
+    for (int i = 0; i < RUNS; i++) {
+        RNG rng(i + 1);
 
         const float maxSpeed = rng.uniformFloat(0.3, 5);
 
