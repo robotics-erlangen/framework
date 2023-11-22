@@ -22,6 +22,7 @@
 #define ALPHATIMETRAJECTORY_H
 
 #include "core/vector.h"
+#include "gtest/gtest.h"
 #include "trajectory.h"
 #include <vector>
 #include <optional>
@@ -35,6 +36,8 @@ enum class EndSpeed {
 // WARNING: generated trajectories may exceed the maximum velocity by a factor of up to sqrt(2) in rare cases
 class AlphaTimeTrajectory
 {
+    FRIEND_TEST(AlphaTimeTrajectory, calculateTrajectoryPositionInvariant);
+
 public:
     // helper functions
     static float minimumTime(Vector startSpeed, Vector endSpeed, float acc, EndSpeed endSpeedType);

@@ -58,6 +58,7 @@ set(path_files
 add_library(path STATIC ${path_files})
 target_link_libraries(path
     PRIVATE shared::core
+    PUBLIC lib::googletest
     PUBLIC shared::protobuf
     PUBLIC Qt5::Core
     PRIVATE shared::config
@@ -72,6 +73,7 @@ add_library(amun::path ALIAS path)
 add_library(path_parameter_optimization STATIC ${path_files})
 target_link_libraries(path_parameter_optimization
     PRIVATE shared::core
+    PUBLIC lib::googletest
     PUBLIC shared::protobuf
     PUBLIC Qt5::Core
     PRIVATE shared::config

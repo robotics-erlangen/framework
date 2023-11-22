@@ -245,4 +245,48 @@ TEST(AlphaTimeTrajectory, findTrajectory) {
     ASSERT_LT((float)fails / RUNS, 0.01f);
 }
 
+// there is a invariant, that must always be kept: that calculatePosition
+// always returns the end position of calculateTrajectory, because its
+// just a performance optimization used in the search (findTrajectory)
+TEST(AlphaTimeTrajectory, calculateTrajectoryPositionInvariant) {
+    constexpr int RUNS = 10'000;
+
+    for (int i = 0; i < RUNS; i++) {
+        RNG rng(i + 1);
+
+        const float maxSpeed = rng.uniformFloat(0.3, 5);
+
+        const Vector s0 = makePos(rng, 2);
+        const Vector v0 = makeSpeed(rng, maxSpeed);
+        const RobotState start{s0, v0};
+
+        const Vector v1 = rng.uniform() > 0.9 ? Vector(0, 0) : makeSpeed(rng, maxSpeed);
+        const float time = rng.uniformFloat(0.005, 5);
+        const float angle = rng.uniformFloat(0, 2 * M_PI);
+        const float acc = rng.uniformFloat(0.5, 4);
+        const float useSlowDown = rng.uniform() > 0.5;
+        const float slowDown = useSlowDown ? rng.uniformFloat(0, SlowdownAcceleration::SLOW_DOWN_TIME) : 0;
+        const EndSpeed endSpeedType = rng.uniform() > 0.5 ? EndSpeed::EXACT : EndSpeed::FAST;
+
+        const auto profile = AlphaTimeTrajectory::calculateTrajectory(start, v1, time, angle, acc, maxSpeed, slowDown, endSpeedType);
+        const auto posInfo = AlphaTimeTrajectory::calculatePosition(start, v1, time, angle, acc, maxSpeed, endSpeedType);
+
+        const auto trajEndPos = profile.endPosition();
+        const auto infoEndPos = posInfo.endPos;
+
+        // the error values for slowdown are really large, but calculatePosition
+        // has no knowledge of the slowdown, and in that case it suffices, that its
+        // just an approximation
+        const float relError = useSlowDown ? 0.2 : REL_ERROR;
+        const float absError = useSlowDown ? 0.35 : ABS_ERROR;
+
+        ASSERT_VECTOR_APPROX_EQ(trajEndPos, infoEndPos, relError, absError);
+
+        if (useSlowDown && endSpeedType == EndSpeed::EXACT) {
+            // check that the speed is in the same direction as the position error
+            ASSERT_LT(abs(v1.perpendicular().dot(infoEndPos - trajEndPos)), 1e-1);
+        }
+    }
+}
+
 // TODO: test total time
