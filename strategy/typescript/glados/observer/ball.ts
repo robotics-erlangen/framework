@@ -16,7 +16,7 @@ import * as World from "base/world";
 import * as Physics from "glados/observer/physics";
 import * as ObserverRobot from "glados/observer/robot";
 
-type FirstRobotAtBall = (robotlist: Robot[]) => [Robot | undefined, RelTime];
+type FirstRobotAtBall = (robotlist: readonly Robot[]) => [Robot | undefined, RelTime];
 /**
  * Returns the first robot that can reach the ball, along with the estimated
  * time. The robot need not look toward its opponent goal.
@@ -26,7 +26,7 @@ type FirstRobotAtBall = (robotlist: Robot[]) => [Robot | undefined, RelTime];
  * @returns The estimated time
  */
 export const firstRobotAtBall: FirstRobotAtBall = Cache.forFrame(
-	(robotlist: Robot[]) => min(robotlist, ObserverRobot.minTimeToBallNoTarget)
+	(robotlist: readonly Robot[]) => min(robotlist, ObserverRobot.minTimeToBallNoTarget)
 );
 
 function _opponentBallDribbler(): Robot | undefined {
@@ -130,7 +130,7 @@ export function ellipticDistance(robot: Robot, ballPos: Position): number {
  */
 const BALL_OWN_HYSTERESIS = 0.03;
 let ballOwnerEllipticCache: Map<string | Robot, number> = new Map<string | Robot, number>();
-function getBallOwner(robotlist: Robot[], lastBallOwner?: Robot) {
+function getBallOwner(robotlist: readonly Robot[], lastBallOwner?: Robot) {
 	if (!ballOwnerEllipticCache.has("ballInDangerRating")) {
 		let ballInDangerRating = 0;
 		for (let r of World.Robots) {

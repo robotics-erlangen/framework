@@ -172,7 +172,7 @@ export function dangerousBallTowardsDefense(opp: boolean = false): boolean {
 	return false;
 }
 
-export function getClosestRobot<R extends { pos: Position }>(robotlist: R[], pos: Position, distance?: (r: R, p: Position) => number): [R | undefined, number] {
+export function getClosestRobot<R extends { readonly pos: Position }>(robotlist: readonly R[], pos: Position, distance?: (r: R, p: Position) => number): [R | undefined, number] {
 	if (distance == undefined) {
 		distance = (r: R, p: Position) => r.pos.distanceTo(p);
 	}

@@ -18,7 +18,7 @@ import * as MovesHelper from "glados/util/moveshelper";
 
 const G = World.Geometry;
 
-function getRobotsInRect(c1: Position, c2: Position, robots: Robot[], buffer: number): Robot[] {
+function getRobotsInRect(c1: Position, c2: Position, robots: readonly Robot[], buffer: number): Robot[] {
 	let r: Robot[] = [];
 	vis.addAxisAlignedRectangle("g/m/mrlTestCorner: Rect", c1 + new Vector(-buffer, buffer), c2 + new Vector(buffer, -buffer), vis.colors.red);
 	for (let v of robots) {

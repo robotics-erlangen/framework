@@ -30,7 +30,7 @@
  * @param rate - a function calculating a rating for a given list entry
  * @returns the minimum of the list
  */
-export function min<T>(list: T[], rate: (a: T) => number): [T | undefined, number] {
+export function min<T>(list: readonly T[], rate: (a: T) => number): [T | undefined, number] {
 	let currentMin: T | undefined = undefined;
 	let minRating = Infinity;
 	for (const i of list) {
@@ -50,7 +50,7 @@ export function min<T>(list: T[], rate: (a: T) => number): [T | undefined, numbe
  * @param rate - a function calculating a rating for a given list entry
  * @returns the maximum of the list
  */
-export function max<T>(list: T[], rate: (a: T) => number): [T | undefined, number] {
+export function max<T>(list: readonly T[], rate: (a: T) => number): [T | undefined, number] {
 	let currentMax: T | undefined = undefined;
 	let maxRating = -Infinity;
 	for (const i of list) {
@@ -70,7 +70,7 @@ export function max<T>(list: T[], rate: (a: T) => number): [T | undefined, numbe
  * @param list - The list to check
  * @param pred - The predicate to apply
  */
-export function partition<T>(list: T[], pred: (a: T) => boolean): [T[], T[]] {
+export function partition<T>(list: readonly T[], pred: (a: T) => boolean): [T[], T[]] {
 	let accepted = [];
 	let rejected = [];
 	for (const elem of list) {
@@ -87,7 +87,7 @@ export function partition<T>(list: T[], pred: (a: T) => boolean): [T[], T[]] {
  * Creates a new array with all sub arrays elements concatinated into it
  * @param list - The list to flatten
  */
-export function flat<T>(list: T[][]): T[] {
+export function flat<T>(list: readonly T[][]): T[] {
 	return list.reduce((acc, val) => acc.concat(val), []);
 }
 
