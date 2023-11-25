@@ -46,23 +46,23 @@ export let AoI: pb.world.TrackingAOI | undefined = undefined;
 /** current Ball */
 export let Ball: BallClass = new BallClass();
 /** List of own robots in an arbitary order */
-export let FriendlyRobots: FriendlyRobot[] = [];
+export let FriendlyRobots: readonly FriendlyRobot[] = [];
 /** Own robots which currently aren't tracked */
-export let FriendlyInvisibleRobots: FriendlyRobot[] = [];
+export let FriendlyInvisibleRobots: readonly FriendlyRobot[] = [];
 /** List of own robots with robot id as index */
-export let FriendlyRobotsById: { [index: number]: FriendlyRobot } = {};
+export let FriendlyRobotsById: { readonly [index: number]: FriendlyRobot } = {};
 /** List of all own robots in an arbitary order */
-export let FriendlyRobotsAll: FriendlyRobot[] = [];
+export let FriendlyRobotsAll: readonly FriendlyRobot[] = [];
 /** Own keeper if on field or nil */
 export let FriendlyKeeper: FriendlyRobot | undefined;
 /** List of opponent robots in an arbitary order */
-export let OpponentRobots: Robot[] = [];
+export let OpponentRobots: readonly Robot[] = [];
 /** List of opponent robots with robot id as index */
-export let OpponentRobotsById: { [index: number]: Robot } = {};
+export let OpponentRobotsById: { readonly [index: number]: Robot } = {};
 /** Opponent keeper if on field or nil */
 export let OpponentKeeper: Robot | undefined;
 /** Every visible robot in an arbitary order */
-export let Robots: Robot[] = [];
+export let Robots: readonly Robot[] = [];
 /** True if we are the blue team, otherwise we're yellow */
 export let TeamIsBlue: boolean = false;
 /** True if playing on the large field */
@@ -399,8 +399,8 @@ export function _updateWorld(state: pb.world.State) {
 		}
 
 		// Update data of every own robot
-		FriendlyRobots = [];
-		FriendlyInvisibleRobots = [];
+		let newFriendlyRobots = [];
+		let newFriendlyInvisibleRobots = [];
 		for (let robot of FriendlyRobotsAll) {
 			// get responses for the current robot
 			// these are identified by the robot generation and id
@@ -416,34 +416,38 @@ export function _updateWorld(state: pb.world.State) {
 			robot._updatePathBoundaries(Geometry, AoI);
 			// sort robot into visible / not visible
 			if (robot.isVisible) {
-				FriendlyRobots.push(robot);
+				newFriendlyRobots.push(robot);
 			} else {
-				FriendlyInvisibleRobots.push(robot);
+				newFriendlyInvisibleRobots.push(robot);
 			}
 		}
+		FriendlyRobots = newFriendlyRobots;
+		FriendlyInvisibleRobots = newFriendlyInvisibleRobots;
 	}
 
 	let dataOpponent = TeamIsBlue ? state.yellow : state.blue;
 	if (dataOpponent) {
 		// only keep robots that are still existent
-		let opponentRobotsById = OpponentRobotsById;
-		OpponentRobots = [];
-		OpponentRobotsById = {};
+		let oldOpponentRobotsById = OpponentRobotsById as { [index: number]: Robot };
+		let newOpponentRobots: Robot[] = [];
+		let newOpponentRobotsById: { [index: number]: Robot } = {};
 		// just update every opponent robot
 		// robots that are invisible for more than one second are dropped by amun
 		for (let rdata of dataOpponent) {
-			let robot = opponentRobotsById[rdata.id];
-			delete opponentRobotsById[rdata.id];
+			let robot = oldOpponentRobotsById[rdata.id];
+			delete oldOpponentRobotsById[rdata.id];
 			if (!robot) {
 				robot = new Robot(rdata.id);
 			}
 			robot._updateOpponent(rdata, Time);
-			OpponentRobots.push(robot);
-			OpponentRobotsById[rdata.id] = robot;
+			newOpponentRobots.push(robot);
+			newOpponentRobotsById[rdata.id] = robot;
 		}
+		OpponentRobots = newOpponentRobots;
+		OpponentRobotsById = newOpponentRobotsById;
 		// mark dropped robots as invisible
-		for (let robotId in opponentRobotsById) {
-			opponentRobotsById[robotId]._updateOpponent(undefined, Time);
+		for (let robotId in oldOpponentRobotsById) {
+			oldOpponentRobotsById[robotId]._updateOpponent(undefined, Time);
 		}
 	}
 

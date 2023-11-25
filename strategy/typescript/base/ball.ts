@@ -90,7 +90,7 @@ export class Ball {
 	}
 
 	// Processes ball information from amun, passed by world
-	_update(data: world.Ball | undefined, time: number, geom?: GeometryType, robots?: Robot[]) {
+	_update(data: world.Ball | undefined, time: number, geom?: GeometryType, robots?: readonly Robot[]) {
 		this.hasRawData = false;
 		// WARNING: this is the quality BEFORE the frame
 		plot.addPlot("Ball.quality", this.detectionQuality);
@@ -151,7 +151,7 @@ export class Ball {
 		}
 	}
 
-	_updateTrackedState(data: world.Ball, lastSpeedLength: number, robots?: Robot[]) {
+	_updateTrackedState(data: world.Ball, lastSpeedLength: number, robots?: readonly Robot[]) {
 		// speed tracking
 
 		if (data.max_speed != undefined) {
