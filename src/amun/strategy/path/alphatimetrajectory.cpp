@@ -135,6 +135,7 @@ AlphaTimeTrajectory::TrajectoryPosInfo2D AlphaTimeTrajectory::calculatePosition(
     return {Vector(xInfo.endPos, yInfo.endPos) + start.pos, Vector(xInfo.increaseAtSpeed, yInfo.increaseAtSpeed)};
 }
 
+// this function assumes that, if endSpeedType is FAST, v1 has been adjusted with minTimeEndSpeed
 Trajectory AlphaTimeTrajectory::minTimeTrajectory(const RobotState &start, Vector v1, float slowDownTime, float minTime)
 {
     const Trajectory1D x = Trajectory1D::createLinearSpeedSegment(start.speed.x, v1.x, minTime);
@@ -160,6 +161,9 @@ Trajectory AlphaTimeTrajectory::calculateTrajectory(const RobotState &start, Vec
     }
 
     if (time < 0.0005f) {
+        if (endSpeedType == EndSpeed::FAST) {
+            v1 = minTimeEndSpeed(v0, v1);
+        }
         return minTimeTrajectory(start, v1, slowDownTime, minTime);
     }
 
