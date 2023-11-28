@@ -7,6 +7,7 @@ import * as World from "base/world";
 
 import { Behavior } from "glados/agent/base/behavior";
 import { formatTimestamp, MessageType } from "glados/control/messaging";
+import * as ObserverBall from "glados/observer/ball";
 import * as ObserverCrash from "glados/observer/crash";
 import * as ObserverShoot from "glados/observer/shoot";
 import { Shoot } from "glados/task/ability/shoot";
@@ -39,6 +40,11 @@ function ratePass(attackPos: Position, targetPos: Position): number {
 	}
 
 	return Rating.valueToRating(shortestDist, 0.5, 3);
+}
+
+function isOpponentClose(): boolean {
+	const [, oppTimeToBall] = ObserverBall.firstRobotAtBall(World.OpponentRobots);
+	return oppTimeToBall < 2.5;
 }
 
 export class Pass extends Task {
@@ -112,14 +118,18 @@ export class Pass extends Task {
 		debug.set("targetRobot", this._targetRobot);
 		debug.set("targetPos", this._targetPos);
 
-		let maxAngleError = geom.degreeToRadian(3.5);
 		let isFreekickLike = Referee.isFriendlyFreeKickState()
 			|| World.RefereeState === "KickoffOffensive"
 			|| this._highPrecision
 			|| (!this._ignoreCrash && ObserverCrash.isCrashed());
 
+		let maxAngleError;
 		if (isFreekickLike) {
 			maxAngleError = geom.degreeToRadian(2.5);
+		} else if (!isOpponentClose()) {
+			maxAngleError = geom.degreeToRadian(3);
+		} else {
+			maxAngleError = geom.degreeToRadian(3.5);
 		}
 
 		let attackPosition = this._messaging.receiveSingleSender(MessageType.attackPosition, true)[1] || World.Ball.pos;
