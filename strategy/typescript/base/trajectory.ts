@@ -53,7 +53,7 @@ export type TrajectoryResult = [TrajectoryCommand, Position, number];
 export abstract class TrajectoryHandler {
 	protected readonly _robot: RobotLike;
 
-	constructor(robot: RobotLike) {
+	public constructor(robot: RobotLike) {
 		this._robot = robot;
 	}
 
@@ -62,14 +62,14 @@ export abstract class TrajectoryHandler {
 	 * or should be reseted
 	 * canHandle is guaranteed to be called only after update was called at least once
 	 */
-	abstract canHandle(...args: any[]): boolean;
+	public abstract canHandle(...args: any[]): boolean;
 
 	/**
 	 * Data has to be in strategy coordinates!!! The trajectory module is responsible for the conversion
 	 * between strategy and global coordinates!
 	 * New data to use for updating, returns controllerInput, moveDest and moveTime
 	 */
-	abstract update(...args: any[]): TrajectoryResult;
+	public abstract update(...args: any[]): TrajectoryResult;
 }
 
 
@@ -85,7 +85,7 @@ export class Trajectory {
 	 * Must only be called by robot class!;
 	 * @param robot - robot to handle
 	 */
-	constructor(robot: RobotLike) {
+	public constructor(robot: RobotLike) {
 		this._robot = robot;
 	}
 
@@ -98,7 +98,7 @@ export class Trajectory {
 	 * @param args - passed on to trajectory handler
 	 * @returns move destination and time as returned by the trajectory handler
 	 */
-	update<T extends any[]>(handlerType: new (...a: any[]) => TrajH<T>, ...args: T): [Position, number] {
+	public update<T extends any[]>(handlerType: new (...a: any[]) => TrajH<T>, ...args: T): [Position, number] {
 		if (this._handler == undefined || !(this._handler instanceof handlerType) || !this._handler.canHandle(...args)) {
 			this._handler = new (handlerType as any)(this._robot);
 			// mostly for the typechecker

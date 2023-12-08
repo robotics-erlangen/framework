@@ -107,11 +107,11 @@ export interface RobotState {
  */
 export class Robot implements RobotState {
 
-	readonly ALLY_GENERATION_ID: number = 9999;
-	readonly GENERATION_2014_ID: number = 3;
+	public readonly ALLY_GENERATION_ID: number = 9999;
+	public readonly GENERATION_2014_ID: number = 3;
 
 	/** robot specific constants * (empty for opponents) */
-	constants: RobotConstants = {
+	public constants: RobotConstants = {
 		hasBallDistance: 0.04, // 4 cm, robots where the balls distance to the dribbler is less than 2cm are considered to have the ball [m]
 		passSpeed: 3, // speed with which the ball should arrive at the pass target  [m/s]
 		shootDriveSpeed: 0.2, // how fast the shoot task drives at the ball [m/s]
@@ -119,32 +119,32 @@ export class Robot implements RobotState {
 	};
 
 	// See RobotState
-	id: number;
-	pos: Position = new Vector(0, 0);
-	speed: Speed = new Vector(0, 0);
-	dir: number = 0;
-	angularSpeed: number = 0;
+	public id: number;
+	public pos: Position = new Vector(0, 0);
+	public speed: Speed = new Vector(0, 0);
+	public dir: number = 0;
+	public angularSpeed: number = 0;
 
 	/** true if own robot */
-	isFriendly: boolean;
+	public isFriendly: boolean;
 	/** True if robot is tracked */
-	isVisible: boolean = false;
+	public isVisible: boolean = false;
 	/** the robot's radius (defaults to 0.09m) */
-	radius: number;
-	shootRadius: number;
+	public radius: number;
+	public shootRadius: number;
 	/** Width of the dribbler */
-	dribblerWidth: number;
+	public dribblerWidth: number;
 	/** maximum speed */
-	maxSpeed: number;
+	public maxSpeed: number;
 	/** maximum angular speed */
-	maxAngularSpeed: number = 0;
+	public maxAngularSpeed: number = 0;
 	/** Acceleration and deceleration parameters: aSpeedupFMax, aSpeedupSMax, aSpeedupPhiMax, aBrakeFMax, aBrakeSMax, aBrakePhiMax */
-	acceleration: RobotAccelerationProfile;
+	public acceleration: RobotAccelerationProfile;
 	/** strategy time when the last radio response was handled * */
-	lastResponseTime: number = 0;
-	lostSince: number = 0;
+	public lastResponseTime: number = 0;
+	public lostSince: number = 0;
 	/** poition of the robots dribbler */
-	readonly dribblerPos: Readonly<Position> = new Vector(0, 0);
+	public readonly dribblerPos: Readonly<Position> = new Vector(0, 0);
 
 	// private attributes
 	private _toStringCache: string = "";
@@ -155,7 +155,7 @@ export class Robot implements RobotState {
 	 * Creates a new robot object.
 	 * @param id - The robot's id
 	 */
-	constructor(id: number) {
+	public constructor(id: number) {
 		this.radius = 0.09; // set default radius if no specs are available
 		this.dribblerWidth = 0.07; // just a good default guess
 		this.shootRadius = 0.067; // shoot radius of 2014 generation
@@ -174,7 +174,7 @@ export class Robot implements RobotState {
 		this.isFriendly = false;
 	}
 
-	_toString(): string {
+	public _toString(): string {
 		if (this._toStringCache !== "") {
 			return this._toStringCache;
 		}
@@ -186,11 +186,11 @@ export class Robot implements RobotState {
 		return this._toStringCache;
 	}
 
-	toString() {
+	public toString() {
 		return this._toString();
 	}
 
-	copyState(): RobotState {
+	public copyState(): RobotState {
 		/* Note that speed and pos are shallow copied. However, Vectors are
 		 * readonly and copy on write, so this is ok.
 		 *
@@ -207,7 +207,7 @@ export class Robot implements RobotState {
 	}
 
 	/** Reset robot commands and update data */
-	_updateOpponent(state: pb.world.Robot | undefined, time: number) {
+	public _updateOpponent(state: pb.world.Robot | undefined, time: number) {
 		// check if robot is tracked
 		if (state == undefined) {
 			if (this.isVisible !== false) {
@@ -233,7 +233,7 @@ export class Robot implements RobotState {
 	 * @param sideOffset - Extends the hasBall sidewards
 	 * @returns Has ball
 	 */
-	hasBall(ball: BallLike, sideOffset: number = 0, manualHasBallDistance: number = this.constants.hasBallDistance) {
+	public hasBall(ball: BallLike, sideOffset: number = 0, manualHasBallDistance: number = this.constants.hasBallDistance) {
 		let hasBallDistance = manualHasBallDistance;
 
 		// handle sidewards balls, add extra time for strategy timing jitter
@@ -304,7 +304,7 @@ export class Robot implements RobotState {
 		return this._hasBall[sideOffset];
 	}
 
-	updateSpecs(teamname: string) {
+	public updateSpecs(teamname: string) {
 		let accel = accelerationsByTeam[teamname];
 		if (accelerationsByTeam[teamname]) {
 			this.maxSpeed = accel.vmax;
@@ -318,28 +318,28 @@ export class Robot implements RobotState {
 /** Subclass of Robot with additional information that we only have for our own robots */
 export class FriendlyRobot extends Robot {
 	/** robot generation (-1 for unknown robots) */
-	generation: number;
+	public generation: number;
 	/** year robot was built in */
-	year: number;
-	maxShotLinear: number;
-	maxShotChip: number;
+	public year: number;
+	public maxShotLinear: number;
+	public maxShotChip: number;
 	/** the robot's height */
-	height: number;
+	public height: number;
 	/** moveTo from previous trajectory call or undefined */
-	prevMoveTo: Position | undefined;
-	path: Path;
-	trajectory: Trajectory;
+	public prevMoveTo: Position | undefined;
+	public path: Path;
+	public trajectory: Trajectory;
 	/** response from the robot, only set if there is a current response */
-	radioResponse: pb.robot.RadioResponse | undefined;
+	public radioResponse: pb.robot.RadioResponse | undefined;
 	/** command from input devices (fields: speed, omega, kickStyle, kickPower, dribblerSpeed) */
-	userControl: UserControl | undefined;
+	public userControl: UserControl | undefined;
 	/** command used when robots are dragged with the mouse (fields: time, pos (global)) (optional) */
-	moveCommand: { time: number; pos: Position } | undefined;
+	public moveCommand: { time: number; pos: Position } | undefined;
 
-	centerToDribbler: number | undefined;
+	public centerToDribbler: number | undefined;
 
-	canShoot: boolean;
-	canDribble: boolean;
+	public canShoot: boolean;
+	public canDribble: boolean;
 
 	// private attributes
 	private _kickStyle?: pb.robot.Command.KickStyle;
@@ -352,7 +352,7 @@ export class FriendlyRobot extends Robot {
 
 	private _dribblerSpeedVisualized = false;
 
-	constructor(specs: pb.robot.Specs) {
+	public constructor(specs: pb.robot.Specs) {
 		super(specs.id);
 
 		// set the robot specs
@@ -404,7 +404,7 @@ export class FriendlyRobot extends Robot {
 		this.canDribble = specs.can_dribble !== undefined ? specs.can_dribble : true;
 	}
 
-	_updatePathBoundaries(geometry: GeomType, aoi: pb.world.TrackingAOI | undefined) {
+	public _updatePathBoundaries(geometry: GeomType, aoi: pb.world.TrackingAOI | undefined) {
 		if (aoi != undefined) {
 			this.path.setBoundary(aoi.x1, aoi.y1, aoi.x2, aoi.y2);
 		} else {
@@ -416,7 +416,7 @@ export class FriendlyRobot extends Robot {
 		}
 	}
 
-	_updateUserControl(command: pb.robot.Command | undefined) {
+	public _updateUserControl(command: pb.robot.Command | undefined) {
 		if (command == undefined) {
 			this.userControl = undefined;
 			return;
@@ -439,7 +439,7 @@ export class FriendlyRobot extends Robot {
 	}
 
 	/** Construct the command for what the corresponding actual robot should do based on the current state of this FriendlyRobot */
-	_command(): pb.robot.Command {
+	public _command(): pb.robot.Command {
 		const STANDBY_DELAY = 30;
 		let standby = this._standbyTimer >= 0 && (this._currentTime - this._standbyTimer > STANDBY_DELAY);
 
@@ -466,7 +466,7 @@ export class FriendlyRobot extends Robot {
 	}
 
 	/** update state of the FriendlyRobot that is dependent on the external world and radio responses, is supposed to be called once per frame */
-	_update(state: pb.world.Robot, time: number, radioResponses?: pb.robot.RadioResponse[]) {
+	public _update(state: pb.world.Robot, time: number, radioResponses?: pb.robot.RadioResponse[]) {
 		// keep current time for use by setStandby
 		this._currentTime = time;
 		// Halt robot by default
@@ -495,7 +495,7 @@ export class FriendlyRobot extends Robot {
 	 *   setControllerInput(REUSE_LAST_TRAJECTORY)
 	 * @param input - Target points for the controller, in global coordinates!
 	 */
-	setControllerInput(input: ControllerInput) {
+	public setControllerInput(input: ControllerInput) {
 		// Forbid overriding controller input except with halt
 		if (input !== HALT && this._controllerInput !== HALT) {
 			throw new Error("Setting controller input twice");
@@ -504,7 +504,7 @@ export class FriendlyRobot extends Robot {
 	}
 
 	/** Disable shoot */
-	shootDisable() {
+	public shootDisable() {
 		this._kickStyle = undefined;
 		this._kickPower = 0;
 		this._forceKick = false;
@@ -517,7 +517,7 @@ export class FriendlyRobot extends Robot {
 	 * @param speed - Shoot speed [m/s]
 	 * @param ignoreLimit - Don't enforce shoot speed limit, if true
 	 */
-	shoot(speed: number, ignoreLimit: boolean = false) {
+	public shoot(speed: number, ignoreLimit: boolean = false) {
 		if (!ignoreLimit) {
 			speed = Math.min(Constants.maxBallSpeed, speed);
 		}
@@ -533,7 +533,7 @@ export class FriendlyRobot extends Robot {
 	 * @see shoot
 	 * @param distance - Chip distance [m]
 	 */
-	chip(distance: number) {
+	public chip(distance: number) {
 		distance = MathUtil.bound(0.05, distance, this.maxShotChip);
 		this._kickStyle = pb.robot.Command.KickStyle.Chip;
 		this._kickPower = distance;
@@ -541,7 +541,7 @@ export class FriendlyRobot extends Robot {
 	}
 
 	/** Force to robot to shoot, even if the IR is not triggered */
-	forceShoot() {
+	public forceShoot() {
 		this._forceKick = true;
 	}
 
@@ -549,7 +549,7 @@ export class FriendlyRobot extends Robot {
 	 * Enable dribbler
 	 * @param speed - robotspecific value between 0 and 1 (0 = off, 1 = on)
 	 */
-	setDribblerSpeed(speed: number) {
+	public setDribblerSpeed(speed: number) {
 		if (speed === 0 && this._dribblerSpeedVisualized) {
 			throwInDebug("Trying to reset dribbler speed after already setting it. The visualization will be wrong");
 		}
@@ -566,7 +566,7 @@ export class FriendlyRobot extends Robot {
 	}
 
 	/** Halts robot */
-	halt() {
+	public halt() {
 		this.path.setHalted();
 		this.setControllerInput(HALT);
 	}
@@ -575,7 +575,7 @@ export class FriendlyRobot extends Robot {
 	 * Set standby
 	 * @param standby - enable standby for robot if true
 	 */
-	setStandby(standby: boolean) {
+	public setStandby(standby: boolean) {
 		if (standby) {
 			// start timer
 			if (this._standbyTimer < 0) {

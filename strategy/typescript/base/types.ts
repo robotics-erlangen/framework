@@ -41,7 +41,7 @@ export function parameterizeClass<
 	 */
 	const castedCtor = ctor as new(head: HeadArg, ...tail: TailArgs) => object;
 	const parameterizedCtor = class extends castedCtor {
-		constructor(head: HeadArg) {
+		public constructor(head: HeadArg) {
 			super(head, ...tail);
 		}
 	} as new(head: HeadArg) => TargetType;

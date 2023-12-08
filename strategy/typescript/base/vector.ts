@@ -31,29 +31,29 @@ export class Vector {
 	public readonly x: number;
 	public readonly y: number;
 
-	constructor(x: number, y: number) {
+	public constructor(x: number, y: number) {
 		this.x = x;
 		this.y = y;
 	}
 
 	// functions used for operator overloading
-	add(other: Vector): Vector {
+	public add(other: Vector): Vector {
 		return new Vector(this.x + other.x, this.y + other.y);
 	}
 
-	sub(other: Vector): Vector {
+	public sub(other: Vector): Vector {
 		return new Vector(this.x - other.x, this.y - other.y);
 	}
 
-	mul(factor: number): Vector {
+	public mul(factor: number): Vector {
 		return new Vector(this.x * factor, this.y * factor);
 	}
 
-	div(factor: number): Vector {
+	public div(factor: number): Vector {
 		return new Vector(this.x / factor, this.y / factor);
 	}
 
-	unm(): Vector {
+	public unm(): Vector {
 		return new Vector(-this.x, -this.y);
 	}
 
@@ -61,7 +61,7 @@ export class Vector {
 	 * Creates a vector with the given x value
 	 * and the y value of the current vector
 	 */
-	withX(newX: number): Vector {
+	public withX(newX: number): Vector {
 		return new Vector(newX, this.y);
 	}
 
@@ -69,7 +69,7 @@ export class Vector {
 	 * Creates a vector with the given y value
 	 * and the x value of the current vector
 	 */
-	withY(newY: number): Vector {
+	public withY(newY: number): Vector {
 		return new Vector(this.x, newY);
 	}
 
@@ -77,23 +77,23 @@ export class Vector {
 	 * Checks for invalid vector
 	 * @returns True if a coordinate is NaN
 	 */
-	isNan(): boolean {
+	public isNan(): boolean {
 		return isNaN(this.x) || isNaN(this.y);
 	}
 
 	/**  Get vector length */
-	length(): number {
+	public length(): number {
 		let x = this.x;
 		let y = this.y;
 		return Math.sqrt(x * x + y * y);
 	}
 
-	equals(other: Vector): boolean {
+	public equals(other: Vector): boolean {
 		return this.x === other.x && this.y === other.y;
 	}
 
 	/** Get squared vector length */
-	lengthSq(): number {
+	public lengthSq(): number {
 		let x = this.x;
 		let y = this.y;
 		return x * x + y * y;
@@ -107,7 +107,7 @@ export class Vector {
 	 * Null vector will not be changed
 	 * @returns reference to this
 	 */
-	normalized(): Vector {
+	public normalized(): Vector {
 		let x = this.x;
 		let y = this.y;
 		let l = Math.sqrt(x * x + y * y);
@@ -125,7 +125,7 @@ export class Vector {
 	 * @param len - Length for the resulting vector
 	 * @returns vector with length len
 	 */
-	withLength(len: number): Vector {
+	public withLength(len: number): Vector {
 		if (len === 0) {
 			return new Vector(0, 0);
 		}
@@ -144,7 +144,7 @@ export class Vector {
 	 * Distance between vectors.
 	 * distance = (other - this).length()
 	 */
-	distanceTo(other: Vector): number {
+	public distanceTo(other: Vector): number {
 		let dx = other.x - this.x;
 		let dy = other.y - this.y;
 		return Math.sqrt(dx * dx + dy * dy);
@@ -154,14 +154,14 @@ export class Vector {
 	 * Distance between vectors squared.
 	 * distance = (other - this).lengthSq()
 	 */
-	distanceToSq(other: Vector): number {
+	public distanceToSq(other: Vector): number {
 		let dx = other.x - this.x;
 		let dy = other.y - this.y;
 		return dx * dx + dy * dy;
 	}
 
 	/** Calcualates dot product */
-	dot(other: Vector): number {
+	public dot(other: Vector): number {
 		return this.x * other.x + this.y * other.y;
 	}
 
@@ -169,7 +169,7 @@ export class Vector {
 	 * Vector direction in radians
 	 * @returns angle in interval [-pi, +pi]
 	 */
-	angle(): number {
+	public angle(): number {
 		return Math.atan2(this.y, this.x);
 	}
 
@@ -177,7 +177,7 @@ export class Vector {
 	 * Angle from current to other vector
 	 * @returns angle in interval [-pi, +pi]
 	 */
-	angleDiff(other: Vector): number {
+	public angleDiff(other: Vector): number {
 		if (this.lengthSq() === 0 || other.lengthSq() === 0) {
 			return 0;
 		}
@@ -188,7 +188,7 @@ export class Vector {
 	 * Absolute angle between current and other vector
 	 * @returns absolute angle in interval [0, +pi]
 	 */
-	absoluteAngleDiff(other: Vector): number {
+	public absoluteAngleDiff(other: Vector): number {
 		let thisLength = this.lengthSq();
 		let otherLength = other.lengthSq();
 		if (thisLength === 0 || otherLength === 0) {
@@ -202,7 +202,7 @@ export class Vector {
 	 * Returns perpendicular which is reached first when rotating clockwise.
 	 * Equals rotated(-Math.PI/2)
 	 */
-	perpendicular(): Vector {
+	public perpendicular(): Vector {
 		// rotate by 90 degree cw
 		return new Vector(this.y, -this.x);
 	}
@@ -212,7 +212,7 @@ export class Vector {
 	 * Angles are oriented counterclockwise
 	 * @param angle - angle in radians
 	 */
-	rotated(angle: number): Vector {
+	public rotated(angle: number): Vector {
 		let x = this.x;
 		let y = this.y;
 
@@ -230,7 +230,7 @@ export class Vector {
 	 * @returns projected point
 	 * @returns (signed) distance to line
 	 */
-	orthogonalProjection(linePoint1: Vector, linePoint2: Vector): [Vector, number] {
+	public orthogonalProjection(linePoint1: Vector, linePoint2: Vector): [Vector, number] {
 		let rv = linePoint2 - linePoint1;
 		if (rv.lengthSq() < 0.00001 * 0.00001) {
 			return [linePoint1, this.distanceTo(linePoint1)];
@@ -250,7 +250,7 @@ export class Vector {
 	 * @param linePoint2 - point of line
 	 * @returns distance to line
 	 */
-	orthogonalDistance(linePoint1: Vector, linePoint2: Vector): number {
+	public orthogonalDistance(linePoint1: Vector, linePoint2: Vector): number {
 		let [_, dist] = this.orthogonalProjection(linePoint1, linePoint2);
 		return dist;
 	}
@@ -260,7 +260,7 @@ export class Vector {
 	 * @param dir A vector pointing in the direction to be considered
 	 * @returns A vector orthogonal to dir such that this = orthogonalComponent(dir) + parallelComponent(dir)
 	 */
-	orthogonalComponent(dir: Vector) {
+	public orthogonalComponent(dir: Vector) {
 		if (dir.lengthSq() === 0) {
 			return this;
 		}
@@ -272,7 +272,7 @@ export class Vector {
 	 * @param dir A vector pointing in the direction to be considered
 	 * @returns A vector parallel to dir such that this = orthogonalComponent(dir) + parallelComponent(dir)
 	 */
-	parallelComponent(dir: Vector) {
+	public parallelComponent(dir: Vector) {
 		if (dir.lengthSq() === 0) {
 			return new Vector(0, 0);
 		}
@@ -285,7 +285,7 @@ export class Vector {
 	 * @param lineStart - start of line
 	 * @param lineEnd - end of line
 	 */
-	distanceToLineSegment(lineStart: Vector, lineEnd: Vector): number {
+	public distanceToLineSegment(lineStart: Vector, lineEnd: Vector): number {
 		let dir = (lineEnd - lineStart).normalized();
 		let d = this - lineStart;
 		if (d.dot(dir) < 0) {
@@ -305,9 +305,9 @@ export class Vector {
 	 * Calculates the point on a line segment with the shortest distance to a given point.
 	 * The distance between the line and the point equals the result of distanceToLineSegment
 	 * @param lineStart - the start point of the line
-	 * @param lineEnd - the end point of the line
+	 public * @param lineEnd - the end point of the line
 	 */
-	nearestPosOnLine(lineStart: Vector, lineEnd: Vector): Vector {
+	public nearestPosOnLine(lineStart: Vector, lineEnd: Vector): Vector {
 		let dir = (lineEnd - lineStart);
 		if ((this - lineStart).dot(dir) <= 0) {
 			return lineStart;
@@ -323,11 +323,11 @@ export class Vector {
 		return new Vector(x1, x2);
 	}
 
-	complexMultiplication(other: Vector): Vector {
+	public complexMultiplication(other: Vector): Vector {
 		return new Vector(this.x * other.x - this.y * other.y, this.x * other.y + this.y * other.x);
 	}
 
-	insideSector(startVector: Vector, endVector: Vector) {
+	public insideSector(startVector: Vector, endVector: Vector) {
 		let v1p = -startVector.perpendicular();
 		let v2p = endVector.perpendicular();
 		let b1 = this.dot(v1p) >= 0;
@@ -340,11 +340,11 @@ export class Vector {
 	}
 
 	// used for base debug
-	_toString() {
+	public _toString() {
 		return `Vector(${this.x.toFixed(2)}, ${this.y.toFixed(2)})`;
 	}
 
-	toString() {
+	public toString() {
 		return this._toString();
 	}
 
@@ -352,7 +352,7 @@ export class Vector {
 	 * Create unit vector with given direction
 	 * @param angle - Direction in radians
 	 */
-	static fromAngle(angle: number): Vector {
+	public static fromAngle(angle: number): Vector {
 		return new Vector(Math.cos(angle), Math.sin(angle));
 	}
 
@@ -361,7 +361,7 @@ export class Vector {
 	 * @param angle - Direction in radians
 	 * @param length - Length of the desired vector
 	 */
-	static fromPolar(angle: number, length: number): Vector {
+	public static fromPolar(angle: number, length: number): Vector {
 		return new Vector(Math.cos(angle) * length, Math.sin(angle) * length);
 	}
 
@@ -371,7 +371,7 @@ export class Vector {
 	 * @param mean - the middle point of the distribution
 	 * @returns the random point
 	 */
-	static random(sigma: number, mean: Vector = new Vector(0, 0)): Vector {
+	public static random(sigma: number, mean: Vector = new Vector(0, 0)): Vector {
 		let u: number, v: number, s: number;
 
 		do {
@@ -387,7 +387,7 @@ export class Vector {
 		return new Vector(tmp * u + mean.x, tmp * v + mean.y);
 	}
 
-	static crossProdLength(firstVector: Vector, secondVector: Vector) {
+	public static crossProdLength(firstVector: Vector, secondVector: Vector) {
 		return firstVector.x * secondVector.y - firstVector.y * secondVector.x;
 	}
 
@@ -396,7 +396,7 @@ export class Vector {
 	 * @param data - The value to test
 	 * @returns True, if data is a vector
 	 */
-	static isVector(data: any): boolean {
+	public static isVector(data: any): boolean {
 		return typeof(data) === "object" && data.constructor.name === "Vector";
 	}
 }

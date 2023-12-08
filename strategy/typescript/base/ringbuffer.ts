@@ -78,7 +78,7 @@ export class RingBuffer<T> {
 	 * @param capacity - The capacity of the ringbuffer
 	 * @param values - optional, initial content of the ringbuffer
 	 */
-	constructor(capacity: number, values: T[] = []) {
+	public constructor(capacity: number, values: T[] = []) {
 		if (capacity <= 0) {
 			throw Error(`Trying to create a ringbuffer of capacity ${capacity}`);
 		}
@@ -316,7 +316,7 @@ export class AccumNumberRingBuffer extends RingBuffer<number> {
 	 * @param capacity - The capacity of the ringbuffer
 	 * @param values - optional, initial content of the ringbuffer
 	 */
-	constructor(capacity: number, values: number[] = []) {
+	public constructor(capacity: number, values: number[] = []) {
 		super(capacity, values);
 		this._total = values.reduce((a, b) => a + b, 0);
 	}
@@ -411,7 +411,7 @@ export class AccumVectorRingBuffer extends RingBuffer<Vector> {
 	 * @param capacity - The capacity of the ringbuffer
 	 * @param values - optional, initial content of the ringbuffer
 	 */
-	constructor(capacity: number, values: Vector[] = []) {
+	public constructor(capacity: number, values: Vector[] = []) {
 		super(capacity, values);
 		this._total = values.reduce((a, b) => a + b, new Vector(0, 0));
 	}
