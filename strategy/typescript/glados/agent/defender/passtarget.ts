@@ -6,7 +6,7 @@ import { MessageType } from "glados/control/messaging";
 
 export class PassTarget extends Behavior {
 
-	check(): undefined {
+	public check(): undefined {
 		let cbGroup = this._messaging.receiveTrainer(MessageType.centerBackPosTarget);
 		if (cbGroup !== undefined && cbGroup.target) {
 			// TODO: we might need to stop a pass
@@ -28,7 +28,7 @@ export class PassTarget extends Behavior {
 		return undefined;
 	}
 
-	_updateTask(): any {
+	protected _updateTask(): any {
 		throw new Error("This behavior is not supposed to run");
 	}
 }

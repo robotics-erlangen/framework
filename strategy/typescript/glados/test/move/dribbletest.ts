@@ -84,7 +84,7 @@ export class DribbleTest extends Move {
 
 
 
-	constructor(robots: FriendlyRobot[], messaging: MessageBox) {
+	public constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 		super(robots, messaging);
 	}
 
@@ -92,7 +92,7 @@ export class DribbleTest extends Move {
 		return true;
 	}
 
-	public _canContinue() {
+	public canContinue(): boolean {
 		return true;
 	}
 

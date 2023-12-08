@@ -45,7 +45,7 @@ export class MoveSidewards extends Task {
 	private _botArrivalTime: number = 0;
 
 
-	constructor(behavior: Behavior, movementSpeed: number, dribblerSpeed: number, acceleration: number) {
+	public constructor(behavior: Behavior, movementSpeed: number, dribblerSpeed: number, acceleration: number) {
 		super(behavior);
 		this._movementSpeed = movementSpeed;
 		this._dribblerSpeed = dribblerSpeed;

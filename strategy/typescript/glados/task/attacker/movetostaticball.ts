@@ -13,7 +13,7 @@ export class MoveToStaticBall extends Task {
 	private _distanceToBall: number;
 	private _obstacleTable: PathHelper.PathHelperParameters;
 
-	constructor(behavior: Behavior, rotation = Math.PI / 2, distanceToBall = 0.03) {
+	public constructor(behavior: Behavior, rotation = Math.PI / 2, distanceToBall = 0.03) {
 		super(behavior);
 		this._rotation = rotation;
 		this._distanceToBall = distanceToBall;
@@ -21,7 +21,7 @@ export class MoveToStaticBall extends Task {
 		this._obstacleTable = { extraBallDistance: this._distanceToBall - 0.001, ignorePass: true, ignorePenaltyDistance: true };
 	}
 
-	run() {
+	public run() {
 		let absDistToBall = this._distanceToBall + this._robot.radius + World.Ball.radius;
 		let pos = World.Ball.pos - Vector.fromPolar(this._rotation, absDistToBall);
 

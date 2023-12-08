@@ -3,7 +3,7 @@ import * as debug from "base/debug";
 import { UnitTest } from "glados/test/unit/unittest";
 
 export class BaseDebug extends UnitTest {
-	constructor() {
+	public constructor() {
 		super();
 		this.addTest("wrap", this.testWrap);
 	}

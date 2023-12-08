@@ -15,12 +15,12 @@ export class Default extends Behavior {
 		return this;
 	}
 
-	_stop() {
+	protected _stop() {
 		this._outputCounter = 0;
 		this._activeSince = undefined;
 	}
 
-	_updateTask(): TaskAssignment<typeof Evacuate> {
+	protected _updateTask(): TaskAssignment<typeof Evacuate> {
 		if (this._activeSince === undefined) {
 			this._activeSince = World.Time;
 		}

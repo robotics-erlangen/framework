@@ -31,7 +31,7 @@ export class PullBall extends Task {
 	private _startArrivalFlag: boolean = false;
 
 
-	constructor(behavior: Behavior, movementSpeed: number, dribblerSpeed: number, acceleration: number) {
+	public constructor(behavior: Behavior, movementSpeed: number, dribblerSpeed: number, acceleration: number) {
 		super(behavior);
 		this._movementSpeed = movementSpeed;
 		this._dribblerSpeed = dribblerSpeed;

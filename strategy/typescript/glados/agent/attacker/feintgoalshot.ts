@@ -21,11 +21,11 @@ export class FeintGoalShot extends Behavior {
 	private lastKepperWasLeft: boolean = false;
 	private redecideCounter: number = 0;
 
-	constructor(agent: Agent) {
+	public constructor(agent: Agent) {
 		super(agent);
 	}
 
-	check(): Behavior | undefined {
+	public check(): Behavior | undefined {
 		if (this._messaging.receiveTrainer(MessageType.mainAttacker) !== this._robot) {
 			this.redecideCounter = 0;
 		}
@@ -120,12 +120,12 @@ export class FeintGoalShot extends Behavior {
 		return undefined;
 	}
 
-	stop() {
+	public stop() {
 		this.lastKepperWasLeft = false;
 		this._task = undefined;
 	}
 
-	_updateTask(): BaseTaskAssignment | typeof CONTINUE_TASK {
+	protected _updateTask(): BaseTaskAssignment | typeof CONTINUE_TASK {
 
 		// Do not redecide at all
 		if (this._task instanceof ShootGoal) {

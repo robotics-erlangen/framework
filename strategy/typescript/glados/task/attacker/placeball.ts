@@ -147,7 +147,7 @@ export class PlaceBall extends Task {
 	private _pushedBefore = false;
 
 
-	constructor(behavior: Behavior, placementPos?: Position) {
+	public constructor(behavior: Behavior, placementPos?: Position) {
 		super(behavior);
 
 		this._firstFrame = true;
@@ -168,7 +168,7 @@ export class PlaceBall extends Task {
 		this._wallkick = new WallkickAbility(this._robot, this._placementPos);
 	}
 
-	run() {
+	public run() {
 		this._calculateOffsets();
 
 		vis.addCircle("PlaceBall/Placement Pos", this._placementPos, OFFSET_DISTANCE, vis.colors.orange);

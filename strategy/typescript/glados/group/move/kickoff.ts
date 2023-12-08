@@ -23,13 +23,13 @@ export class KickOff extends Move {
 	public static readonly MAX_ROBOTS: number = 5;
 	public static readonly ALLOW_EXTRA_ATTACKERS = false;
 
-	static canStart() {
+	public static canStart() {
 		return World.RefereeState === "KickoffOffensivePrepare"
 			|| World.RefereeState === "KickoffOffensive";
 	}
 
 
-	static wantedMaxRobots(availableRobots: number): number {
+	public static wantedMaxRobots(availableRobots: number): number {
 		if (World.DIVISION === "B") {
 			return 3;
 		}
@@ -54,19 +54,19 @@ export class KickOff extends Move {
 
 	private _assignments: number[];
 
-	constructor(robots: FriendlyRobot[], messaging: MessageBox) {
+	public constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 		super(robots, messaging);
 		this._assistantAndPassPos = this._assistantAndPassPos.slice(0, this._robots.length - 1);
 		this._assignments = MovesHelper.assignRobots(this._robots, [new Vector(0, 0), ...this._assistantAndPassPos.map((p) => p.assistantPos)]);
 	}
 
 
-	_canContinue(): boolean {
+	public canContinue(): boolean {
 		return World.RefereeState === "KickoffOffensivePrepare"
 				|| World.RefereeState === "KickoffOffensive";
 	}
 
-	_updateTasks(): MoveParameters {
+	protected _updateTasks(): MoveParameters {
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
 
 		if (World.RefereeState === "KickoffOffensivePrepare") {

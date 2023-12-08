@@ -8,7 +8,7 @@ import { UnitTest } from "glados/test/unit/unittest";
 
 
 export class GladosPhysics extends UnitTest {
-	constructor() {
+	public constructor() {
 		super();
 		this.addTest("not modifying", this.notModifying);
 		this.addTest("ball model matching", this.ballModelMatching);

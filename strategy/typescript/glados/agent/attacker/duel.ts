@@ -22,7 +22,7 @@ export class Duel extends Behavior {
 	private _closerThanOpp: boolean = false;
 	private _lastChippedHysteresis: boolean = false;
 
-	_stop() {
+	protected _stop() {
 		this._opponentHasBall = false;
 		this._closerThanOpp = false;
 		this._lastChippedHysteresis = false;
@@ -185,7 +185,7 @@ export class Duel extends Behavior {
 	}
 
 
-	check(): Behavior | undefined {
+	public check(): Behavior | undefined {
 		let isMainAttacker = (this._messaging.receiveTrainer(MessageType.mainAttacker) === this._robot);
 		this._forceKeepingInPool = isMainAttacker;
 
@@ -201,7 +201,7 @@ export class Duel extends Behavior {
 	}
 
 
-	_updateTask(): TaskAssignment<typeof TaskDuel> {
+	protected _updateTask(): TaskAssignment<typeof TaskDuel> {
 		return [TaskDuel];
 	}
 }

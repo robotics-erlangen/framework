@@ -16,12 +16,12 @@ export class RotTest extends Task {
 	private _obstacleTable: PathHelper.PathHelperParameters = {
 		ignorePass: true
 	};
-	constructor(behavior: Behavior) {
+	public constructor(behavior: Behavior) {
 		super(behavior);
 		this._index = 0;
 		this._nextJump = true;
 	}
-	run() {
+	public run() {
 		let angle = geom.degreeToRadian(this._index * degree);
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, this._obstacleTable);
 		this._robot.trajectory.update(ToTarget, new Vector(1, 1), angle);

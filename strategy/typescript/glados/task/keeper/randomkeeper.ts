@@ -11,9 +11,9 @@ const DEST_SWITCH_DISTANCE = 0.02;
 const GOAL_DISTANCE = 0.06;
 
 export class RandomKeeper extends Task {
-	_nextX: number | undefined;
+	private _nextX: number | undefined;
 
-	run() {
+	public run() {
 		if (this._nextX == undefined || Math.abs(this._robot.pos.x - this._nextX) < DEST_SWITCH_DISTANCE) {
 			let bound = World.Geometry.GoalWidth / 2 - this._robot.radius;
 			this._nextX = MathUtil.random() * bound * 2 - bound;

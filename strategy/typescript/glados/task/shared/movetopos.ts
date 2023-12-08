@@ -30,7 +30,7 @@ export class MoveToPos extends Task {
 	private _suggestPass: SuggestPass | undefined;
 	private useCMA: boolean;
 
-	constructor(behavior: Behavior, params: Parameters) {
+	public constructor(behavior: Behavior, params: Parameters) {
 		super(behavior);
 
 		this._pos = params.pos;

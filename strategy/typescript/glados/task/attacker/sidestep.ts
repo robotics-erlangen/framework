@@ -49,7 +49,7 @@ export class SideStep extends Task {
 	private _suggestPass: SuggestPass;
 	private _remainingTime: number | undefined;
 
-	constructor(behavior: Behavior, passInfo: PassInfo, remainingFreeTime: number | undefined) {
+	public constructor(behavior: Behavior, passInfo: PassInfo, remainingFreeTime: number | undefined) {
 		super(behavior);
 		this._passInfo = passInfo;
 		let passBlocked = this._projectBotsOnLine(this._robot.pos, passInfo.ballPos) > MANMARK_DISTANCE_THRESHOLD;
@@ -110,7 +110,7 @@ export class SideStep extends Task {
 		}
 	}
 
-	run() {
+	public run() {
 		draw(this._debugTable);
 		if (this._messaging.receiveTrainer(MessageType.mainAttacker) !== this._robot) {
 			this._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: "support" });
@@ -141,7 +141,7 @@ export class SideStep extends Task {
 		this._robot.trajectory.update(ToTarget, this._feintPos, dir);
 	}
 
-	updateTime(newTime: number | undefined) {
+	public updateTime(newTime: number | undefined) {
 		this._remainingTime = newTime;
 	}
 }

@@ -3,11 +3,11 @@ import { RescueRobot } from "glados/task/hidden/rescuerobot";
 
 
 export class Default extends Behavior {
-	check(): Behavior {
+	public check(): Behavior {
 		return this;
 	}
 
-	_updateTask(): TaskAssignment<typeof RescueRobot> {
+	protected _updateTask(): TaskAssignment<typeof RescueRobot> {
 		return [RescueRobot];
 	}
 }

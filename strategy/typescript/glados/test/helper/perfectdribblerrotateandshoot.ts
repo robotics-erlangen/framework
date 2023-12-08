@@ -10,13 +10,13 @@ import * as Rating from "glados/util/rating";
 
 export class PerfectDribblerRotateAndShoot {
 
-	_robot: FriendlyRobot;
+	private _robot: FriendlyRobot;
 
-	constructor(task: Task) {
+	public constructor(task: Task) {
 		this._robot = task.behavior().agent().robot();
 	}
 
-	_rotateAndShoot(destAngle: number) {
+	public _rotateAndShoot(destAngle: number) {
 
 		let invert = this._robot.dir < destAngle ? 1 : -1;
 		let maxRotate = 0.4 * (2 * Math.PI) * invert;

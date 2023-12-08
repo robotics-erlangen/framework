@@ -76,12 +76,12 @@ export class Shoot extends Behavior {
 	 * @param agent - The agent this behavior will initially belong to
 	 * @param ratePass - The function to rate passes with
 	 */
-	constructor(agent: Agent, ratePass: Attack.PassRater) {
+	public constructor(agent: Agent, ratePass: Attack.PassRater) {
 		super(agent);
 		this._ratePass = ratePass;
 	}
 
-	_stop() {
+	protected _stop() {
 		this._nextDecisionTime = World.Time;
 		this._decision = { task: "none" };
 
@@ -487,7 +487,7 @@ export class Shoot extends Behavior {
 		return false;
 	}
 
-	_updateTask(): TaskAssignment<typeof Pass> | TaskAssignment<typeof ShootGoal> | TaskAssignment<typeof ChipToPos> | TaskAssignment<typeof StopAttack> | TaskAssignment<typeof DefenseChip> {
+	protected _updateTask(): TaskAssignment<typeof Pass> | TaskAssignment<typeof ShootGoal> | TaskAssignment<typeof ChipToPos> | TaskAssignment<typeof StopAttack> | TaskAssignment<typeof DefenseChip> {
 		let pressed = Robot.isPressed(this._robot);
 		let color = pressed ? vis.colors.redHalf : vis.colors.greenHalf;
 		vis.addCircle("a/a/shoot: pressed", this._robot.pos, 0.3, color, true);
@@ -608,7 +608,7 @@ export class Shoot extends Behavior {
 		throw new Error();
 	}
 
-	addDebugInfo() {
+	public addDebugInfo() {
 		debug.set(undefined, this.constructor.name);
 		debug.set("ratePass", this._ratePass.name);
 	}

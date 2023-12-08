@@ -68,14 +68,14 @@ export class PenaltyChip extends Task {
 	private _mode: number;
 
 
-	constructor(behavior: Behavior, ball: BallLike, mode: number) {
+	public constructor(behavior: Behavior, ball: BallLike, mode: number) {
 		super(behavior);
 		this._ball = ball;
 		this._mode = mode;
 		this._shoot = new Shoot(this);
 	}
 
-	run() {
+	public run() {
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
 		let shootlength = PenaltyChip.distanceMode(this._mode, this._ball);
 		debug.set("chip distance", shootlength);
@@ -100,7 +100,7 @@ export class PenaltyChip extends Task {
 		}
 	}
 
-	static check(ball: { pos: Position; speed: Vector; radius: number }, robot: Robot) {
+	public static check(ball: { pos: Position; speed: Vector; radius: number }, robot: Robot) {
 		let keeper = World.OpponentKeeper;
 		if (keeper == undefined) {
 			return false;

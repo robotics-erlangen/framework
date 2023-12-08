@@ -6,7 +6,7 @@ import { dribblingStartFor } from "glados/observer/robot";
 import { StopAttack } from "glados/task/attacker/stopattack";
 
 export class DribblingGuard extends Behavior {
-	check(): DribblingGuard | undefined {
+	public check(): DribblingGuard | undefined {
 		const dribbleStart = dribblingStartFor(this._robot);
 		if (!dribbleStart) {
 			return undefined;
@@ -22,7 +22,7 @@ export class DribblingGuard extends Behavior {
 			: undefined;
 	}
 
-	_updateTask(): TaskAssignment<typeof StopAttack> {
+	protected _updateTask(): TaskAssignment<typeof StopAttack> {
 		/* No need to drive the whole stop distance away */
 		return [StopAttack, [2 * this._robot.shootRadius]];
 	}

@@ -20,7 +20,7 @@ export class ApplyForMainattacker implements Checkable {
 		return this._agent.messaging();
 	}
 
-	constructor(agent: Agent) {
+	public constructor(agent: Agent) {
 		if (!(agent instanceof Attacker)) {
 			throw new Error("a/a/applyformainattacker may only be used on attackers");
 		}
@@ -28,7 +28,7 @@ export class ApplyForMainattacker implements Checkable {
 		this._robot = agent.robot();
 	}
 
-	check(): undefined {
+	public check(): undefined {
 		if (Referee.isOpponentPenaltyState()) {
 			this._applying = false;
 			return undefined;
@@ -71,19 +71,19 @@ export class ApplyForMainattacker implements Checkable {
 		return undefined;
 	}
 
-	mainAttackerParameters(): [MainAttackerParameters | undefined, false] {
+	public mainAttackerParameters(): [MainAttackerParameters | undefined, false] {
 		return [this._mainAttackerParameters, false];
 	}
 
-	clearMainAttackerParameters() {
+	public clearMainAttackerParameters() {
 		this._mainAttackerParameters = undefined;
 	}
 
-	agent() {
+	public agent() {
 		return this._agent;
 	}
 
-	setAgent(agent: Agent) {
+	public setAgent(agent: Agent) {
 		if (this._agent.robot() !== agent.robot()) {
 			throw new Error("Can't reuse checkable with different robot");
 		}

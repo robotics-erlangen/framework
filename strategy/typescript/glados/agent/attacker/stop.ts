@@ -8,13 +8,13 @@ import { StopAttack } from "glados/task/attacker/stopattack";
 
 
 export class Stop extends Behavior {
-	check(): Behavior | undefined {
+	public check(): Behavior | undefined {
 		return (Referee.isStopState() || Referee.isPlausiblyStillOppFreekick()) && this._messaging.receiveTrainer(MessageType.mainAttacker) === this._robot
 			? this
 			: undefined;
 	}
 
-	_updateTask(): TaskAssignment<typeof PlaceBall> | TaskAssignment<typeof StopAttack> {
+	protected _updateTask(): TaskAssignment<typeof PlaceBall> | TaskAssignment<typeof StopAttack> {
 		if (World.RefereeState === "BallPlacementOffensive") {
 			return [PlaceBall];
 		} else {

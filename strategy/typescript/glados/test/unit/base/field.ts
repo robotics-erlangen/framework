@@ -28,7 +28,7 @@ export class BaseField extends UnitTest {
 	};
 	/* eslint-enable @typescript-eslint/naming-convention */
 
-	constructor() {
+	public constructor() {
 		super();
 		this.addTest("distanceToDefenseArea_2018", this.testDistanceToDefenseArea_2018);
 		this.addTest("distanceToDefenseArea_2017", this.testDistanceToDefenseArea_2017);

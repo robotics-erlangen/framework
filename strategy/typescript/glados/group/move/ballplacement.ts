@@ -70,7 +70,7 @@ export class BallPlacement extends Move {
 		return World.RefereeState === "BallPlacementOffensive";
 	}
 
-	public _canContinue(): boolean {
+	public canContinue(): boolean {
 		return World.RefereeState === "BallPlacementOffensive";
 	}
 
@@ -101,7 +101,7 @@ export class BallPlacement extends Move {
 	private _wallKickTryTime: number | undefined = undefined;
 	private _firstPosWallkick: Vector = new Vector(0, 0);
 
-	constructor(robots: FriendlyRobot[], messaging: MessageBox) {
+	public constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 		super(robots, messaging);
 		this._ballPlacementPos = <Position> World.BallPlacementPos;
 		this.shooter = this._robots[0];
@@ -113,7 +113,7 @@ export class BallPlacement extends Move {
 
 	}
 
-	_updateTasks(): MoveParameters {
+	protected _updateTasks(): MoveParameters {
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
 
 		if (World.BallPlacementPos) {
@@ -366,7 +366,7 @@ export class BallPlacement extends Move {
 		};
 	}
 
-	_calculateEvadingPos() {
+	private _calculateEvadingPos() {
 		// Simple sampling from some preselected positions
 		// If no fitting position could be found (because the field is too small) the last used position is chosen as fallback
 		for (let pos of SHOOTER_EVADING_POSITIONS) {
@@ -377,7 +377,7 @@ export class BallPlacement extends Move {
 		}
 	}
 
-	_getNextState(currentState: string): State {
+	private _getNextState(currentState: string): State {
 		let nextState = State.INVALID;
 
 		let usedBallPos = BallObserver.getRealisticBallPos();

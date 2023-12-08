@@ -20,7 +20,7 @@ import { Boundaries, getRandomPosition, Zone } from "glados/util/zone";
 const G = World.Geometry;
 
 export class PassThroughDefense extends Objective {
-	constructor() {
+	public constructor() {
 		super({
 			ma: PassThroughDefense.MA_RUNNER,
 			freekick: PassThroughDefense.FREEKICK_RUNNER,
@@ -44,7 +44,7 @@ export class PassThroughDefense extends Objective {
 		parameterizeClass(Support, { isStriker: false, samplingCtor: StrikerSampling }),
 	]);
 
-	static robotsInAreaAroundDefense() {
+	private static robotsInAreaAroundDefense() {
 		const offset = 1.0;
 		const corner1 = new Vector(G.DefenseWidthHalf + offset, G.FieldHeightHalf - G.DefenseHeight - offset);
 		const corner2 = new Vector(-G.FieldWidthHalf - offset, G.FieldHeightHalf);
@@ -53,17 +53,17 @@ export class PassThroughDefense extends Objective {
 			.length;
 	}
 
-	static canStart(ball: BallLike) {
+	public static canStart(ball: BallLike) {
 		const opponentDefendersCount = PassThroughDefense.robotsInAreaAroundDefense();
 		return opponentDefendersCount > 6 && ball.pos.y > G.FieldHeightHalf - G.DefenseHeight * 5 / 3;
 	}
 
-	canContinue = (ball: BallLike) => {
+	public canContinue = (ball: BallLike) => {
 		const opponentDefendersCount = PassThroughDefense.robotsInAreaAroundDefense();
 		return opponentDefendersCount < 5 || ball.pos.y > G.FieldHeightHalf - G.DefenseHeight * 2;
 	};
 
-	getSupporterZones = (participants: FriendlyRobot[], mainAttackerPos: Position | undefined): Zone[] => {
+	public getSupporterZones = (participants: FriendlyRobot[], mainAttackerPos: Position | undefined): Zone[] => {
 		const TOTAL_LEFT = -G.FieldWidthHalf;
 		const TOTAL_RIGHT = G.FieldWidthHalf;
 		const TOTAL_TOP = G.FieldHeightHalf;

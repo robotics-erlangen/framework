@@ -4,7 +4,7 @@ import * as Robot from "glados/observer/robot";
 import { UnitTest } from "glados/test/unit/unittest";
 
 export class GladosObserverRobot extends UnitTest {
-	constructor() {
+	public constructor() {
 		super();
 
 		this.addTest("getDribblerEdges", this.testGetDribblerEdges);

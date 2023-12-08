@@ -39,7 +39,7 @@ import "glados/observer/modificationchecker";
 /* eslint-enable import/order */
 
 class PreProc implements Process {
-	run() {
+	public run() {
 		Ball._update();
 		Robot._update();
 		Referee.check();
@@ -53,7 +53,7 @@ class PreProc implements Process {
 		ObserverReferee.checkChooseKeeper();
 	}
 
-	isFinished(): boolean {
+	public isFinished(): boolean {
 		return false;
 	}
 }
@@ -64,7 +64,7 @@ Processor.addPre(new PreProc());
 class PostProc implements Process {
 	private takingAdvantage: boolean = false;
 
-	run() {
+	public run() {
 		if (GameController.isConnected()) {
 			if (!this.takingAdvantage && Referee.hasTooManyOpponentRobots() && ObserverReferee.shouldTakeAdvantage()) {
 				log("Taking advantage");
@@ -78,7 +78,7 @@ class PostProc implements Process {
 		}
 	}
 
-	isFinished(): boolean {
+	public isFinished(): boolean {
 		return false;
 	}
 }

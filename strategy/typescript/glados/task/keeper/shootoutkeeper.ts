@@ -38,7 +38,7 @@ const nearBaseLineDir = rightNearBasePoint - leftNearBasePoint;
 export class ShootoutKeeper extends Task {
 	private _forceShoot: ForceShoot;
 
-	constructor(behavior: Behavior) {
+	public constructor(behavior: Behavior) {
 		super(behavior);
 		this._forceShoot = new ForceShoot(this);
 	}
@@ -99,7 +99,7 @@ export class ShootoutKeeper extends Task {
 		this._robot.trajectory.update(ToTarget, moveDest, viewDir.angle(), undefined, endspeed);
 	}
 
-	_chipToBorderIfSafe() {
+	private _chipToBorderIfSafe() {
 		let robotPos = this._robot.pos;
 		let ballPos = World.Ball.pos;
 		let robotDir = ballPos - robotPos;

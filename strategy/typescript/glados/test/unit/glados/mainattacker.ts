@@ -10,33 +10,33 @@ import { UnitTest } from "glados/test/unit/unittest";
 import { Roles } from "glados/trainer/roles";
 
 class DummyBehavior extends Behavior {
-	check() {
+	public check() {
 		return this;
 	}
 
-	_updateTask(): TaskAssignment<typeof DummyTask> {
+	protected _updateTask(): TaskAssignment<typeof DummyTask> {
 		return [DummyTask];
 	}
 }
 
 class DummyTask extends Task {
-	run() {}
+	public run() {}
 }
 
 class DummyAgent extends Agent {
-	static takeRobot(_robots: FriendlyRobot[]): FriendlyRobot | undefined {
+	public static takeRobot(_robots: FriendlyRobot[]): FriendlyRobot | undefined {
 		return _robots[0];
 	}
 
-	getBehaviors(): CheckableConstructor[] {
+	public getBehaviors(): CheckableConstructor[] {
 		return [DummyBehavior];
 	}
 
-	keepRobot(): boolean {
+	public keepRobot(): boolean {
 		return true;
 	}
 
-	rateRobot(): number {
+	public rateRobot(): number {
 		return 1;
 	}
 }
@@ -52,7 +52,7 @@ interface MainattackerInfo {
 
 export class GladosMainattacker extends UnitTest {
 
-	constructor() {
+	public constructor() {
 		super();
 
 		const s1 = {
@@ -80,9 +80,9 @@ export class GladosMainattacker extends UnitTest {
 			agent._activeBehavior = behavior;
 			if (info.parameters[id]) {
 				const parameters = info.parameters[id]!;
-				behavior!._applyForMainAttacker(parameters[0], parameters[1], parameters[2]);
+				behavior!.applyForMainAttacker(parameters[0], parameters[1], parameters[2]);
 			} else {
-				behavior!._applyForMainAttacker();
+				behavior!.applyForMainAttacker();
 			}
 			agent._applyForMainAttacker(undefined);
 		}

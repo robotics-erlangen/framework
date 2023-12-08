@@ -4,13 +4,13 @@ import { UnitTest } from "glados/test/unit/unittest";
 import { isInZone } from "glados/util/zone";
 
 export class Zone extends UnitTest {
-	constructor() {
+	public constructor() {
 		super();
 		this.addTest("testInZone", this.testInZone);
 		this.addTest("testInZoneBoundary", this.testInZoneBoundary);
 	}
 
-	testInZone() {
+	private testInZone() {
 		const zone = {
 			boundaries: {
 				left: -2,
@@ -31,7 +31,7 @@ export class Zone extends UnitTest {
 		this.assert_false(isInZone(outPos, zone));
 	}
 
-	testInZoneBoundary() {
+	private testInZoneBoundary() {
 		const zone = {
 			boundaries: {
 				left: -2,

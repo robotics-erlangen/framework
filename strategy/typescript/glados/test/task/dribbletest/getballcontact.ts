@@ -46,7 +46,7 @@ export class GetBallContact extends Task {
 
 
 
-	constructor(behavior: Behavior, dribblerSpeed: number) {
+	public constructor(behavior: Behavior, dribblerSpeed: number) {
 		super(behavior);
 		this._currentState = State.GO_TO_STARTPOSITION;
 		GetBallContact._ready = false;
@@ -65,7 +65,7 @@ export class GetBallContact extends Task {
 
 
 
-	run() {
+	public run() {
 
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, { ignorePass: true, ignoreBall: true });
 		this._currentTargetPos = World.Ball.pos;

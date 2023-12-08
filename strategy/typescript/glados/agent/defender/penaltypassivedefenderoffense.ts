@@ -4,7 +4,7 @@ import { Behavior } from "glados/agent/base/behavior";
 import { Default } from "glados/agent/defender/default";
 
 export class PenaltyPassiveDefenderOffense extends Default {
-	check(): Behavior | undefined {
+	public check(): Behavior | undefined {
 		return Referee.isFriendlyPenaltyState() ? this : undefined;
 	}
 }

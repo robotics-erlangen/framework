@@ -24,14 +24,14 @@ export class MoveToBall extends Task {
 	private _startTime: AbsTime;
 	private _lastTime: RelTime | undefined;
 
-	constructor(behavior: Behavior, viewDir: Vector, ball: Ball = World.Ball) {
+	public constructor(behavior: Behavior, viewDir: Vector, ball: Ball = World.Ball) {
 		super(behavior);
 		this._ball = ball;
 		this._viewdir = viewDir.normalized();
 		this._startTime = World.Time;
 	}
 
-	run() {
+	public run() {
 		let robot = this._robot;
 		let ball = this._ball;
 		PathHelper.setDefaultObstaclesByTable(robot.path, robot, obstacleTable);

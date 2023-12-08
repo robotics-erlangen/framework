@@ -19,7 +19,7 @@ export class AcceptPass extends Task {
 	private _lastTime: number | undefined;
 	private _runCounter: number;
 
-	constructor(behavior: Behavior, manualPassPos?: Position, manualDistance = 0.1) {
+	public constructor(behavior: Behavior, manualPassPos?: Position, manualDistance = 0.1) {
 		super(behavior);
 		this._passPos = manualPassPos;
 		this._distance = manualDistance;
@@ -32,7 +32,7 @@ export class AcceptPass extends Task {
 		this._runCounter = 0;
 	}
 
-	run() {
+	public run() {
 		this._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: "support" });
 
 		let passInfo = undefined;
@@ -93,7 +93,7 @@ export class AcceptPass extends Task {
 		this.setMainAttackerParameters(World.Ball.pos, this._robot.maxSpeed);
 	}
 
-	getLastTime(): number | undefined {
+	public getLastTime(): number | undefined {
 		return this._lastTime;
 	}
 }

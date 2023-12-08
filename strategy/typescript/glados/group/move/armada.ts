@@ -46,13 +46,13 @@ export class Armada extends Move {
 	public static readonly MAX_ROBOTS: number = 5;
 	public static readonly ALLOW_EXTRA_ATTACKERS = false;
 
-	_circleCenter: Position;
-	_positions: Position[];
-	_maxShootingAngle: number;
-	_assignment: number[] | undefined;
-	_startedSendPassPos: boolean;
+	private _circleCenter: Position;
+	private _positions: Position[];
+	private _maxShootingAngle: number;
+	private _assignment: number[] | undefined;
+	private _startedSendPassPos: boolean;
 
-	constructor(robots: FriendlyRobot[], messaging: MessageBox) {
+	public constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 		super(robots, messaging);
 		this._circleCenter = new Vector(0, 0) + getRandomOffsetVector();
 		this._positions = [];
@@ -60,7 +60,7 @@ export class Armada extends Move {
 		this._startedSendPassPos = false;
 	}
 
-	static canStart() {
+	public static canStart() {
 		// _canContinue must not fail during freekick state if this move is to be allowed to start in freekick state
 		// - don't waste time by restarting different moves
 		return World.Ball.pos.y > 4 * G.FieldHeightHalf / 5
@@ -70,7 +70,7 @@ export class Armada extends Move {
 				|| Armada.Referee.isFriendlyFreeKickState());
 	}
 
-	_canContinue() {
+	public canContinue(): boolean {
 		if (Armada.Referee.isFriendlyFreeKickState()) {
 			return true;
 		}
@@ -79,7 +79,7 @@ export class Armada extends Move {
 			&& World.RefereeState === "Stop";
 	}
 
-	_updateTasks(): MoveParameters {
+	protected _updateTasks(): MoveParameters {
 		// draw circles where robots cannot shoot a volley
 		let [center1, center2, radius] = MovesHelper.volleyCircle(World.Ball.pos, G.OpponentGoal, this._maxShootingAngle);
 		let circle = center1.y < center2.y ? center1 : center2;

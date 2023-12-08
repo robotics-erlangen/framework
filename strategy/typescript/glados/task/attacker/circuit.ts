@@ -19,7 +19,7 @@ export class Circuit extends Task {
 		ignorePass: true
 	};
 
-	constructor(behavior: Behavior, center: Position, angleOffset: number, radius = 0.5, passPos?: Position, anonym = false) {
+	public constructor(behavior: Behavior, center: Position, angleOffset: number, radius = 0.5, passPos?: Position, anonym = false) {
 		super(behavior);
 		this._suggestPass = new SuggestPass(this);
 		this._center = center;
@@ -29,7 +29,7 @@ export class Circuit extends Task {
 		this._anonym = anonym;
 	}
 
-	run() {
+	public run() {
 		let angle = (World.Time % 1000) % (Math.PI * 2) + this._angleOffset;
 		let pos = this._center + Vector.fromPolar(angle, this._radius);
 		let dir = (World.Ball.pos - pos).angle();

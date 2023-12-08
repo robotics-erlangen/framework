@@ -13,7 +13,7 @@ export class BallEvadingMoveToPos extends Task {
 	private _dir: number | undefined;
 	private _obstacleTable: PathHelper.PathHelperParameters;
 
-	constructor(behavior: Behavior, pos: Position, dir: number | undefined) {
+	public constructor(behavior: Behavior, pos: Position, dir: number | undefined) {
 		super(behavior);
 		this._pos = pos;
 		this._dir = dir;
@@ -23,7 +23,7 @@ export class BallEvadingMoveToPos extends Task {
 		};
 	}
 
-	run() {
+	public run() {
 		let minDist = Constants.stopBallDistance + World.Ball.radius + this._robot.radius;
 
 		let pos = this._pos;

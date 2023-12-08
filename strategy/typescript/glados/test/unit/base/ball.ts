@@ -8,7 +8,7 @@ import * as World from "base/world";
 import { UnitTest } from "glados/test/unit/unittest";
 
 export class BaseBall extends UnitTest {
-	constructor() {
+	public constructor() {
 		super();
 		Coordinates._setIsBlue(true);
 		this.addTest("toString", this.testToString);

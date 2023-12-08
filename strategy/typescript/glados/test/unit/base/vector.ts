@@ -6,7 +6,7 @@ import { UnitTest } from "glados/test/unit/unittest";
 const EPS = 1E-12;
 
 export class BaseVector extends UnitTest {
-	constructor() {
+	public constructor() {
 		super();
 		this.addTest("constructor", this.testConstructor);
 		this.addTest("operators", this.testOperators);

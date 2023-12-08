@@ -19,7 +19,7 @@ export class DirtyManMarker extends Task {
 	private direction: Vector | undefined;
 	private oldpos: Vector | undefined;
 
-	constructor(behavior: Behavior, targetRobot: Robot) {
+	public constructor(behavior: Behavior, targetRobot: Robot) {
 		super(behavior);
 
 		this.targetRobot = targetRobot;

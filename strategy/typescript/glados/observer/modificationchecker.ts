@@ -11,7 +11,7 @@ let robotPositions: Map<Robot, Position> = new Map();
 let robotSpeeds: Map<Robot, Speed> = new Map();
 
 class ValueCollector implements Process {
-	run() {
+	public run() {
 		initialBallPosition = new Vector(World.Ball.pos.x, World.Ball.pos.y);
 		initialBallSpeed = new Vector(World.Ball.speed.x, World.Ball.speed.y);
 		if (!initialBallPosition.equals(initialBallPosition)) {
@@ -33,14 +33,14 @@ class ValueCollector implements Process {
 		}
 	}
 
-	isFinished() {
+	public isFinished() {
 		return false;
 	}
 }
 Processor.addPre(new ValueCollector());
 
 class ValueChecker implements Process {
-	run() {
+	public run() {
 		if (amun.isDebug) {
 			if (!World.Ball.pos.equals(initialBallPosition)) {
 				throw new Error("Ball position was changed during strategy execution!");
@@ -59,7 +59,7 @@ class ValueChecker implements Process {
 		}
 	}
 
-	isFinished() {
+	public isFinished() {
 		return false;
 	}
 }

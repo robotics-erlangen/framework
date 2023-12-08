@@ -8,19 +8,19 @@ import * as Physics from "glados/observer/physics";
 import { Task } from "glados/task/base";
 
 export class SuggestPass {
-	_robot: FriendlyRobot;
-	_task: Task;
+	private _robot: FriendlyRobot;
+	private _task: Task;
 
 	private get _messaging() {
 		return this._task.behavior().agent().messaging();
 	}
 
-	constructor(task: Task) {
+	public constructor(task: Task) {
 		this._robot = task.behavior().agent().robot();
 		this._task = task;
 	}
 
-	_suggestPass(destBallPos: Position, attackPos: Position = World.Ball.pos,
+	public _suggestPass(destBallPos: Position, attackPos: Position = World.Ball.pos,
 			relativeTime?: number, anonymous: boolean = false, chip: boolean = false) {
 		// check for mainAttacker
 		let mainAttacker = this._messaging.receiveTrainer(MessageType.mainAttacker);
@@ -44,7 +44,7 @@ export class SuggestPass {
 			{ ballPos: destBallPos, time: receiveTime, anonymous: anonymous, chip: chip, manual: false });
 	}
 
-	_suggestPassRobotPosition(destRobotPos: Position, attackPos: Position = World.Ball.pos, relativeTime?: number,
+	public _suggestPassRobotPosition(destRobotPos: Position, attackPos: Position = World.Ball.pos, relativeTime?: number,
 			anonymous?: boolean) {
 		let destBallPos = destRobotPos + (attackPos - destRobotPos).withLength(this._robot.shootRadius + World.Ball.radius);
 		this._suggestPass(destBallPos, attackPos, relativeTime, anonymous);

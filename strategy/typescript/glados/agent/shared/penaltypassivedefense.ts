@@ -15,11 +15,11 @@ export class PenaltyPassiveDefense extends Behavior {
 	// min 1.0m behind ball, 1.5 just in case
 	protected yOffset: number = 1.5;
 
-	check(): Behavior | undefined {
+	public check(): Behavior | undefined {
 		return Referee.isOpponentPenaltyState() ? this : undefined;
 	}
 
-	_updateTask(): TaskAssignment<typeof MoveToPos> {
+	protected _updateTask(): TaskAssignment<typeof MoveToPos> {
 		let x = (this._robot.id - World.FriendlyRobots[0].id + 0.5) * G.FieldWidth / World.MaxAllowedFriendlyRobots - G.FieldWidthHalf;
 
 		let y = World.Ball.pos.y + this.yOffset;

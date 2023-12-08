@@ -15,13 +15,13 @@ export class PenaltyShootout extends Task {
 
 	private _ball: Ball;
 
-	constructor(behavior: Behavior, ball: Ball) {
+	public constructor(behavior: Behavior, ball: Ball) {
 		super(behavior);
 		this._ball = ball;
 		this._shoot = new Shoot(this);
 	}
 
-	run() {
+	public run() {
 		const obstacleTable = {
 			task: this,
 		};

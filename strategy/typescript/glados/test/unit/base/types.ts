@@ -3,7 +3,7 @@ import * as Types from "base/types";
 import { UnitTest } from "glados/test/unit/unittest";
 
 export class BaseTypes extends UnitTest {
-	constructor() {
+	public constructor() {
 		super();
 		this.addTest("parameterizeClass", this.testParameterizeClass);
 	}
@@ -11,7 +11,7 @@ export class BaseTypes extends UnitTest {
 	private testParameterizeClass() {
 		/* Check whether parameterizeClass propagates the class name */
 		class SomeWeirdName {
-			constructor(_first: number, _second: number) {
+			public constructor(_first: number, _second: number) {
 				/* empty */
 			}
 		}

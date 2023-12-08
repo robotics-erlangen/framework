@@ -16,7 +16,7 @@ export class Piggy extends Task {
 	private _targetRobot: Robot;
 	private _suggestPass: SuggestPass;
 
-	constructor(behavior: Behavior, targetRobot: Robot) {
+	public constructor(behavior: Behavior, targetRobot: Robot) {
 		super(behavior);
 		if (targetRobot == undefined) {
 			throw new Error("Piggy task needs a target robot");
@@ -25,7 +25,7 @@ export class Piggy extends Task {
 		this._suggestPass = new SuggestPass(this);
 	}
 
-	run() {
+	public run() {
 		const obstacleTable = { task: this };
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
 

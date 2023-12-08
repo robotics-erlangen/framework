@@ -22,7 +22,7 @@ interface FirstRobotAtBallInfo {
 
 export class GladosObserverBall extends UnitTest {
 
-	constructor() {
+	public constructor() {
 		super();
 
 		this.registerReceivesPassSituations();

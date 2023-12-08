@@ -23,7 +23,7 @@ function ignore(): void {
 }
 
 export class BaseTryCatch extends UnitTest {
-	constructor() {
+	public constructor() {
 		super();
 		this.addTest("pcall", this.testPCall);
 		this.addTest("tryCatch", this.testTryCatch);

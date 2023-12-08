@@ -20,7 +20,7 @@ function agentStub(robotStub: FriendlyRobot) {
 }
 
 export class GladosRoles extends UnitTest {
-	constructor() {
+	public constructor() {
 		super();
 		this.addTest("hysteresis", this.testHysteresis);
 	}

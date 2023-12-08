@@ -84,7 +84,7 @@ export class Volley extends Move {
 		return !done;
 	}
 
-	_canContinue(): boolean {
+	canContinue(): boolean {
 		done = this._currentConfig >= this._configs.length;
 		return !done;
 	}

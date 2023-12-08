@@ -9,12 +9,12 @@ import * as Rating from "glados/util/rating";
 
 
 export class DuelAssistant extends Behavior {
-	_opponentHasBall: boolean = false;
-	_closerThanOpp: boolean = false;
-	_lastChippedHysteresis: boolean = false;
-	_lastTrue: number | undefined = undefined;
+	public _opponentHasBall: boolean = false;
+	public _closerThanOpp: boolean = false;
+	public _lastChippedHysteresis: boolean = false;
+	public _lastTrue: number | undefined = undefined;
 
-	_stop() {
+	protected _stop() {
 		this._opponentHasBall = false;
 		this._closerThanOpp = false;
 		this._lastChippedHysteresis = false;
@@ -37,7 +37,7 @@ export class DuelAssistant extends Behavior {
 
 	}
 
-	check(): Behavior | undefined {
+	public check(): Behavior | undefined {
 		if (this._robot === this._messaging.receiveTrainer(MessageType.mainAttacker)
 				|| this._robot === Robot.doubleTouchingRobot()) {
 			this._lastTrue = undefined;
@@ -81,7 +81,7 @@ export class DuelAssistant extends Behavior {
 	}
 
 
-	_updateTask(): TaskAssignment<typeof TaskDuelAssistant> {
+	protected _updateTask(): TaskAssignment<typeof TaskDuelAssistant> {
 		return [TaskDuelAssistant];
 	}
 }

@@ -40,21 +40,21 @@ export abstract class Objective {
 	/** Whether the objective was activated during a freekick */
 	private readonly _freekick: boolean;
 
-	constructor(runnerCtor: RunnerCtors) {
+	public constructor(runnerCtor: RunnerCtors) {
 		this._runnerCtors = runnerCtor;
 		this._freekick = Referee.isFriendlyFreeKickState()
 			|| World.RefereeState === "BallPlacementOffensive" && Referee.isFriendlyFreeKickState(World.NextRefereeState);
 	}
 
 	/** Get the {@link Checkable} that can be checked by the main attacker */
-	getMaRunner(maAgent: Agent): Checkable {
+	public getMaRunner(maAgent: Agent): Checkable {
 		if (!this._maRunner) {
 			this.setMaRunner(maAgent);
 		}
 		return this._maRunner!;
 	}
 
-	setMaRunner(maAgent: Agent) {
+	public setMaRunner(maAgent: Agent) {
 		/* If an agent was supporter, then becomes main attacker and
 		* switches back to supporter, we probably don't want to keep the
 		* old supporter state
@@ -75,7 +75,7 @@ export abstract class Objective {
 	 * Get a {@link Checkable} that can be checked by normal support attackers
 	 * @param agent - The support agent to retrieve the Checkable for
 	 */
-	getSupportRunner(agent: Agent): Checkable {
+	public getSupportRunner(agent: Agent): Checkable {
 		if (this._supportRunner[agent] === undefined) {
 			this._supportRunner[agent] = new this._runnerCtors.support(agent);
 		}
@@ -88,7 +88,7 @@ export abstract class Objective {
 	 * zone if the main attacker is in no other zone.
 	 * @see glados/group/supporter
 	 */
-	abstract getSupporterZones(supporter: FriendlyRobot[], mainAttackerPos: Position | undefined): Zone[];
+	public abstract getSupporterZones(supporter: FriendlyRobot[], mainAttackerPos: Position | undefined): Zone[];
 
 	/**
 	 * Whether the objective is fit to continue execution.
@@ -99,13 +99,13 @@ export abstract class Objective {
 	 *
 	 * @param ball - The ball to use in e.g. ball position checks (the same as in canStart)
 	 */
-	abstract canContinue(ball: BallLike): boolean;
+	public abstract canContinue(ball: BallLike): boolean;
 
-	_toString() {
+	public _toString() {
 		return `${this.constructor.name} (${this._freekick ? "Freekick" : "Normal"})`;
 	}
 
-	toString() {
+	public toString() {
 		return this._toString();
 	}
 

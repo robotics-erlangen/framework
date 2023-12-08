@@ -28,7 +28,7 @@ export class RotateWithBall extends Task {
 	private _finishedRound: boolean = true;
 
 
-	constructor(behavior: Behavior, rotationSpeed: number, dribblerSpeed: number, acceleration: number) {
+	public constructor(behavior: Behavior, rotationSpeed: number, dribblerSpeed: number, acceleration: number) {
 		super(behavior);
 
 		this._rotationSpeed = rotationSpeed;

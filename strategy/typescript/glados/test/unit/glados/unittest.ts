@@ -5,7 +5,7 @@ import * as World from "base/world";
 import { UnitTest } from "glados/test/unit/unittest";
 
 export class GladosUnitTest extends UnitTest {
-	constructor() {
+	public constructor() {
 		super();
 		this.addTest("assertionsNoFail", this.testAssertionsNoFail);
 		this.addTest("assertionsFail", this.testAssertionsFail);

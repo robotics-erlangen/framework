@@ -19,7 +19,7 @@ import { getRandomPosition, Zone } from "glados/util/zone";
 const G = World.Geometry;
 
 export class Midfield extends Objective {
-	constructor() {
+	public constructor() {
 		super({
 			ma: Midfield.MA_RUNNER,
 			freekick: Midfield.FREEKICK_RUNNER,
@@ -45,7 +45,7 @@ export class Midfield extends Objective {
 		parameterizeClass(Support, { isStriker: false, samplingCtor: MidfieldSampling })
 	]);
 
-	static canStart(ball: BallLike) {
+	public static canStart(ball: BallLike) {
 		if (World.DIVISION === "B") {
 			return false;
 		}
@@ -53,11 +53,11 @@ export class Midfield extends Objective {
 		return ball.pos.y < -G.FieldHeightQuarter / 2;
 	}
 
-	canContinue = (ball: BallLike) => {
+	public canContinue = (ball: BallLike) => {
 		return ball.pos.y < G.FieldHeightQuarter;
 	};
 
-	getSupporterZones = (participants: FriendlyRobot[], mainAttackerPos: Position | undefined): Zone[] => {
+	public getSupporterZones = (participants: FriendlyRobot[], mainAttackerPos: Position | undefined): Zone[] => {
 		const TOTAL_LEFT = -G.FieldWidthHalf;
 		const TOTAL_RIGHT = G.FieldWidthHalf;
 		const TOTAL_TOP = G.FieldHeightHalf;

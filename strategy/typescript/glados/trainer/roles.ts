@@ -49,15 +49,15 @@ const EXCLUSIVE_ROLE_START: { [K in ExclusiveRole]?: (messaging: MessageBox, win
 };
 
 export class Roles {
-	_exclusiveRoles: Map<ExclusiveRole, FriendlyRobot> = new Map<ExclusiveRole, FriendlyRobot>();
+	private _exclusiveRoles: Map<ExclusiveRole, FriendlyRobot> = new Map<ExclusiveRole, FriendlyRobot>();
 
-	_messaging: MessageBox;
+	private _messaging: MessageBox;
 
-	constructor(messaging: MessageBox) {
+	public constructor(messaging: MessageBox) {
 		this._messaging = messaging;
 	}
 
-	_chooseExclusiveRoles() {
+	public _chooseExclusiveRoles() {
 		let roleHysteresis = ROLE_HYSTERESIS;
 		if (Referee.isStopState()) {
 			roleHysteresis = 1;
@@ -91,7 +91,7 @@ export class Roles {
 			}
 			debug.push(MessageType[role]);
 			for (let [robot, application] of applications.entries()) {
-				debug.set(`${robot.id}`, application._ratingArray);
+				debug.set(`${robot.id}`, application.ratingArray);
 			}
 			debug.pop(); // role
 			let bestRobot = LeveledRating.findBestRating(applications);

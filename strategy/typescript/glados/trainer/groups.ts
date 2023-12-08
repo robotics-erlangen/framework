@@ -25,11 +25,11 @@ type SingleApplication<G extends Group> = G extends any
 export type Application = SingleApplication<CenterBack | Moves | Support | Dummy | FeintPass>;
 
 export class Groups {
-	_groupList: Group[];
+	private _groupList: Group[];
 
-	_messaging: MessageBox;
+	private _messaging: MessageBox;
 
-	constructor(messaging: MessageBox) {
+	public constructor(messaging: MessageBox) {
 		const groupClasses: GroupConstructor[] = [
 			CenterBack,
 			Moves,
@@ -46,11 +46,11 @@ export class Groups {
 		this._messaging = messaging;
 	}
 
-	setGroups(groupList: Group[]) {
+	public setGroups(groupList: Group[]) {
 		this._groupList = groupList;
 	}
 
-	_runGroups() {
+	public _runGroups() {
 		// robot -> { groupname -> application }
 		let groupApplications = this._messaging.receiveRepeated(MessageType.groupApplication);
 

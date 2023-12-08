@@ -15,7 +15,7 @@ export class ForceShoot {
 
 	private _robot: FriendlyRobot;
 
-	constructor(task: Task) {
+	public constructor(task: Task) {
 		this._robot = task.behavior().agent().robot();
 	}
 

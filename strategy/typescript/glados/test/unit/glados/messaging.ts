@@ -19,7 +19,7 @@ function agentStub(robotStub: FriendlyRobot) {
 }
 
 export class GladosMessaging extends UnitTest {
-	constructor() {
+	public constructor() {
 		super();
 		this.addTest("all", this.testAll);
 	}
@@ -58,7 +58,7 @@ export class GladosMessaging extends UnitTest {
 
 		// note that trainer can receive without calling deliverMessages() before
 		let applications = trainerBox.receiveRepeated(MessageType.exclusiveRole);
-		this.assert_eq(applications.get(agent1.robot())![0][1]._ratingArray[0], 0.5);
+		this.assert_eq(applications.get(agent1.robot())![0][1].ratingArray[0], 0.5);
 
 		trainerBox.sendBroadcast(MessageType.mainAttacker, agent2.robot());
 		this.assert_eq(trainerBox.receiveTrainer(MessageType.mainAttacker), agent2.robot());

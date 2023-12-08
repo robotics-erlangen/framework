@@ -4,7 +4,7 @@ import { Vector } from "base/vector";
 import { UnitTest } from "glados/test/unit/unittest";
 
 export class BaseHyst extends UnitTest {
-	constructor() {
+	public constructor() {
 		super();
 		this.addTest("LessThanHyst", this.testLessThanHyst);
 		this.addTest("GreaterThanHyst", this.testGreaterThanHyst);

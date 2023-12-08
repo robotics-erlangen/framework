@@ -33,25 +33,25 @@ interface Suggestion {
 export class MidfieldSampling {
 	// note that these values will never be read as long as the functions are used in the correct order
 	// they are present to please our compiler overlord
-	_attackPosition: Position = new Vector(0, 0);
-	_attackTime: number = World.Time;
-	_mainAttacker: FriendlyRobot | undefined = undefined;
-	_strikers: FriendlyRobot[] = [];
-	_strikerSuggestions: Map<FriendlyRobot, Suggestion> = new Map<FriendlyRobot, Suggestion>();
+	private _attackPosition: Position = new Vector(0, 0);
+	private _attackTime: number = World.Time;
+	private _mainAttacker: FriendlyRobot | undefined = undefined;
+	private _strikers: FriendlyRobot[] = [];
+	private _strikerSuggestions: Map<FriendlyRobot, Suggestion> = new Map<FriendlyRobot, Suggestion>();
 
-	_robot: FriendlyRobot;
-	_task: Task;
+	private _robot: FriendlyRobot;
+	private _task: Task;
 
 	private get _messaging() {
 		return this._task.behavior().agent().messaging();
 	}
 
-	constructor(task: Task) {
+	public constructor(task: Task) {
 		this._robot = task.behavior().agent().robot();
 		this._task = task;
 	}
 
-	_findStrikerPassSuggestions() {
+	private _findStrikerPassSuggestions() {
 		let passSuggestions = this._messaging.receive(MessageType.passSuggestion);
 		let strikerSuggestions: Map<FriendlyRobot, Suggestion> = new Map<FriendlyRobot, Suggestion>();
 		let strikers = this._messaging.receive(MessageType.strikerFlag);
@@ -68,7 +68,7 @@ export class MidfieldSampling {
 		this._strikerSuggestions = strikerSuggestions;
 	}
 
-	precalculate() {
+	public precalculate() {
 		this._mainAttacker = this._messaging.receiveTrainer(MessageType.mainAttacker);
 		let pos = this._messaging.receiveSingleSender(MessageType.attackPosition)[1];
 		let time = this._messaging.receiveSingleSender(MessageType.earliestAttackTime)[1];
@@ -78,7 +78,7 @@ export class MidfieldSampling {
 		this._findStrikerPassSuggestions();
 	}
 
-	closeOpponents(ballPos: Position) {
+	private closeOpponents(ballPos: Position) {
 		let minRating = 0.3;
 		let closestDistance = Infinity;
 
@@ -100,7 +100,7 @@ export class MidfieldSampling {
 		return rating;
 	}
 
-	movingAhead(ballPos: Position) {
+	private movingAhead(ballPos: Position) {
 		let minRating = 0.3;
 		let currentY = this._attackPosition.y;
 		let plannedY = ballPos.y;
@@ -113,7 +113,7 @@ export class MidfieldSampling {
 		return rating;
 	}
 
-	passDistance(ballPos: Position) {
+	private passDistance(ballPos: Position) {
 		let minRating = 0.7;
 		let dist = this._attackPosition.distanceTo(ballPos);
 		let rating = (1 - minRating) * Rating.valueToRating(dist, 6, 3) + minRating;
@@ -125,7 +125,7 @@ export class MidfieldSampling {
 		return rating;
 	}
 
-	volleyToStriker(ballPos: Position) {
+	private volleyToStriker(ballPos: Position) {
 		let minRating = 0.7;
 
 		let passSuggestions = this._strikerSuggestions;
@@ -150,7 +150,7 @@ export class MidfieldSampling {
 		return rating;
 	}
 
-	volleyPass(ballPos: Position) {
+	private volleyPass(ballPos: Position) {
 		if (!this._mainAttacker || !Ball.receivesPass(this._mainAttacker)) {
 			return 1;
 		}
@@ -167,7 +167,7 @@ export class MidfieldSampling {
 		return rating;
 	}
 
-	canReachInTime(ballPos: Position) {
+	private canReachInTime(ballPos: Position) {
 		if (!this._mainAttacker) {
 			return 1;
 		}
@@ -186,7 +186,7 @@ export class MidfieldSampling {
 		return rating;
 	}
 
-	evalLocation(ballPos: Position, bestScore: number) {
+	public evalLocation(ballPos: Position, bestScore: number) {
 		let score = 1;
 
 		score *= this.movingAhead(ballPos);

@@ -14,20 +14,20 @@ export class Tutorial2 extends Move {
 	public static readonly ALLOW_EXTRA_ATTACKERS: boolean = false;
 
 	private _init: boolean;
-	constructor(robots: FriendlyRobot[], messaging: MessageBox) {
+	public constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 		super(robots, messaging);
 		this._init = true;
 	}
 
-	static canStart() {
+	public static canStart() {
 		return true;
 	}
 
-	public _canContinue() {
+	public canContinue(): boolean {
 		return true;
 	}
 
-	public _updateTasks(): MoveParameters {
+	protected _updateTasks(): MoveParameters {
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
 
 		if (this._init) {

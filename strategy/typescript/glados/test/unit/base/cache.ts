@@ -3,7 +3,7 @@ import * as Cache from "base/cache";
 import { UnitTest } from "glados/test/unit/unittest";
 
 export class BaseCache extends UnitTest {
-	constructor() {
+	public constructor() {
 		super();
 		this.addTest("different arguments", this.testDifferentArguments);
 		this.addTest("undefined parameters", this.testUndefinedParameters);

@@ -28,11 +28,11 @@ export function feintPassTargetEquals(a: FeintPassTarget | undefined, b: FeintPa
 }
 
 export class FeintPass implements Group {
-	readonly name = "feintpass";
-	lastRobotFeintPosMap: Map<FriendlyRobot, FeintPassTarget> = new Map<FriendlyRobot, FeintPassTarget>();
-	lastMainAttacker: FriendlyRobot | undefined;
+	public readonly name = "feintpass";
+	private lastRobotFeintPosMap: Map<FriendlyRobot, FeintPassTarget> = new Map<FriendlyRobot, FeintPassTarget>();
+	private lastMainAttacker: FriendlyRobot | undefined;
 
-	run(messaging: MessageBox, messages: Map<FriendlyRobot, FeintPassTarget>) {
+	public run(messaging: MessageBox, messages: Map<FriendlyRobot, FeintPassTarget>) {
 		let robots = Array.from(messages.keys());
 
 		let robotFeintPosMap = new Map<FriendlyRobot, FeintPassTarget>();

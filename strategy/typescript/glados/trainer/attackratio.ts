@@ -42,19 +42,19 @@ export type AttackRatioResult = {
 };
 
 export class AttackRatio {
-	_friendlyFreeKickOngoing: boolean = false;
-	_opponentFreeKickAT: AttackRatioResult | undefined = undefined;
-	_ballInOpponentFieldHalf: boolean = false; // remember for hysteresis
-	_dangerousDuelSituation: boolean = false;
-	_previousMainAttacker: FriendlyRobot | undefined;
+	private _friendlyFreeKickOngoing: boolean = false;
+	private _opponentFreeKickAT: AttackRatioResult | undefined = undefined;
+	private _ballInOpponentFieldHalf: boolean = false; // remember for hysteresis
+	private _dangerousDuelSituation: boolean = false;
+	private _previousMainAttacker: FriendlyRobot | undefined;
 
-	_messaging: MessageBox;
+	private _messaging: MessageBox;
 
-	constructor(messaging: MessageBox) {
+	public constructor(messaging: MessageBox) {
 		this._messaging = messaging;
 	}
 
-	attackRatio(): AttackRatioResult {
+	public attackRatio(): AttackRatioResult {
 		let ball = World.Ball;
 		let refState = World.RefereeState;
 		let nextRefState = World.NextRefereeState;
@@ -186,7 +186,7 @@ export class AttackRatio {
 		return result;
 	}
 
-	attackerDefenderDistribution(): [number, number] {
+	public attackerDefenderDistribution(): [number, number] {
 
 		if (World.FriendlyRobots.length === 0) {
 			return [0, 0];
@@ -327,7 +327,7 @@ export class AttackRatio {
 		return [attackers, defenders];
 	}
 
-	changingRobots(): { robot: FriendlyRobot; isAttacker: boolean }[] {
+	public changingRobots(): { robot: FriendlyRobot; isAttacker: boolean }[] {
 		let robots = [];
 		let forcePoolChangeMsg = this._messaging.receiveTrainerRepeated(MessageType.forcePoolChange);
 		if (forcePoolChangeMsg) {

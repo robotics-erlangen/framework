@@ -16,26 +16,26 @@ import * as Defense from "glados/util/defense";
 
 
 export class ManMark extends Behavior {
-	_opp: Robot | undefined = undefined;
-	_restartTask: boolean = true;
-	_wasCenterback: boolean = false;
-	_manmarkInfo: { pos: Position; id: number } = { pos: new Vector(0, 0), id: 0 };
+	private _opp: Robot | undefined = undefined;
+	private _restartTask: boolean = true;
+	private _wasCenterback: boolean = false;
+	private _manmarkInfo: { pos: Position; id: number } = { pos: new Vector(0, 0), id: 0 };
 
-	_stop() {
+	protected _stop() {
 		this._opp = undefined;
 		this._restartTask = true;
 		this._wasCenterback = false;
 		this._manmarkInfo = { pos: new Vector(0, 0), id: 0 };
 	}
 
-	check(): Behavior | undefined {
+	public check(): Behavior | undefined {
 		let role = this._messaging.receiveTrainer(MessageType.roleAssignment);
 		return role != undefined && role.name === "ManMark"
 			? this
 			: undefined;
 	}
 
-	_updateTask(): TaskAssignment<typeof ManMarkTask> | TaskAssignment<typeof CenterBack> | TaskAssignment<typeof Duel> {
+	protected _updateTask(): TaskAssignment<typeof ManMarkTask> | TaskAssignment<typeof CenterBack> | TaskAssignment<typeof Duel> {
 		let roleAssignment = this._messaging.receiveTrainer(MessageType.roleAssignment);
 		if (roleAssignment == undefined || roleAssignment.name !== "ManMark") {
 			throw new Error();

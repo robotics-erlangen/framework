@@ -16,11 +16,11 @@ export class BreakPass extends Behavior {
 
 	private lastOppFirstAtBall: Map<Robot, boolean> = new Map();
 
-	_stop() {
+	protected _stop() {
 
 	}
 
-	check(): Behavior | undefined {
+	public check(): Behavior | undefined {
 		const mainAttacker = this._messaging.receiveTrainer(MessageType.mainAttacker);
 		const isMainAttacker = mainAttacker === this._robot;
 		if (isMainAttacker) {
@@ -142,7 +142,7 @@ export class BreakPass extends Behavior {
 		return this;
 	}
 
-	_updateTask(): TaskAssignment<typeof BreakPassTask> {
+	protected _updateTask(): TaskAssignment<typeof BreakPassTask> {
 		return [BreakPassTask];
 	}
 

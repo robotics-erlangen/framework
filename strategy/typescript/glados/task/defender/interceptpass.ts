@@ -127,10 +127,10 @@ let lastPositions = new Map<FriendlyRobot, [Position, number]>();
 
 export class InterceptPass extends Task {
 
-	static calculateInterceptPos: (robot: FriendlyRobot) => [Position | undefined, number | undefined, number, number] =
+	public static calculateInterceptPos: (robot: FriendlyRobot) => [Position | undefined, number | undefined, number, number] =
 		Cache.forFrame(calculateInterceptPos);
 
-	run() {
+	public run() {
 		let [moveDest, time, oppTime] = InterceptPass.calculateInterceptPos(this._robot);
 
 		if (moveDest == undefined) {
@@ -155,7 +155,7 @@ export class InterceptPass extends Task {
 
 		if (time != undefined && oppTime - time > 0.3 && time < 0.8) {
 			this.setMainAttackerParameters(World.Ball.pos, endSpeed.length());
-			this.behavior()._applyForMainAttacker();
+			this.behavior().applyForMainAttacker();
 		}
 
 		this._robot.trajectory.update(ToTarget, moveDest, dir, undefined, endSpeed);

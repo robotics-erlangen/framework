@@ -67,7 +67,7 @@ export class Support extends Task {
 	private _sampling: Sampling;
 	private _isStriker: boolean;
 
-	constructor(behavior: Behavior, supportParameters: SupportParameters) {
+	public constructor(behavior: Behavior, supportParameters: SupportParameters) {
 		super(behavior);
 
 		if ("manualDefaultPos" in supportParameters) {

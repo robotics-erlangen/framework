@@ -36,10 +36,10 @@ export class CrossShoot extends Move {
 	private waitTwoSeconds: number | undefined = undefined;
 	private restart: boolean = true;
 
-	constructor(robots: FriendlyRobot[], messaging: MessageBox) {
+	public constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 		super(robots, messaging);
 	}
-	static canStart() {
+	public static canStart() {
 		// _canContinue must not fail during freekick state if this move is to be allowed to start in freekick state
 		// - don't waste time by restarting different moves
 		return G.FieldHeightHalf - (2 / 3) * G.DefenseHeight < World.Ball.pos.y
@@ -48,7 +48,7 @@ export class CrossShoot extends Move {
 				|| CrossShoot.Referee.isFriendlyFreeKickState());
 	}
 
-	_canContinue() {
+	public canContinue(): boolean {
 		if (CrossShoot.Referee.isGameState()) {
 			if (this.timeBegin == undefined) {
 				this.timeBegin = World.Time;
@@ -71,7 +71,7 @@ export class CrossShoot extends Move {
 		return new Vector(start.x - beta * (start.x - end.x), start.y);
 	}
 
-	_updateTasks(): MoveParameters {
+	protected _updateTasks(): MoveParameters {
 		let startContactPosY = new Vector(Math.sign(World.Ball.pos.x) * G.DefenseWidthHalf -
 			Math.sign(World.Ball.pos.x) * FIRST_CONTACT_POS_OFFSET_X, G.OpponentGoal.y - G.DefenseHeight + FIRST_CONTACT_POS_OFFSET_Y);
 		let endContactPosY = new Vector(Math.sign(World.Ball.pos.x) * G.DefenseWidthHalf -

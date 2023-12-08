@@ -13,12 +13,12 @@ let obstacleTable: PathHelper.PathHelperParameters = {
 export class ChipAway extends Task {
 	private _shoot: Shoot;
 
-	constructor(behavior: Behavior) {
+	public constructor(behavior: Behavior) {
 		super(behavior);
 		this._shoot = new Shoot(this);
 	}
 
-	run() {
+	public run() {
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
 		// chip to opponent's defense line, so that the ball would roll into the goal's center
 		let oppGoal = World.Geometry.OpponentGoal;

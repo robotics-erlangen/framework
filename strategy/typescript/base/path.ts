@@ -260,7 +260,7 @@ export class Path {
 
 	private lastWasTrajectoryPath: boolean = false;
 
-	constructor(robotId: number) {
+	public constructor(robotId: number) {
 		this._inst = pathLocal.createPath();
 		this._trajectoryInst = pathLocal.createTrajectoryPath();
 		if (this._trajectoryInst.setRobotId) {
@@ -269,7 +269,7 @@ export class Path {
 		this._robotId = robotId;
 	}
 
-	robotId() {
+	public robotId() {
 		return this._robotId;
 	}
 
@@ -301,11 +301,11 @@ export class Path {
 		return `obstacles: ${this._robotId}${teamLetter}`;
 	}
 
-	setHalted() {
+	public setHalted() {
 		this.lastWasTrajectoryPath = false;
 	}
 
-	getTrajectory(startPos: Position, startSpeed: Speed, endPos: Position, endSpeed: Speed, maxSpeed: number, acceleration: number): { pos: Position; speed: Speed; time: number }[] {
+	public getTrajectory(startPos: Position, startSpeed: Speed, endPos: Position, endSpeed: Speed, maxSpeed: number, acceleration: number): { pos: Position; speed: Speed; time: number }[] {
 		this.lastWasTrajectoryPath = true;
 		this.addObstaclesToPath(this._trajectoryInst);
 		let t = this._trajectoryInst.calculateTrajectory(startPos.x, startPos.y, startSpeed.x,
@@ -317,26 +317,26 @@ export class Path {
 		return result;
 	}
 
-	getPath(x1: number, y1: number, x2: number, y2: number): Waypoint[] {
+	public getPath(x1: number, y1: number, x2: number, y2: number): Waypoint[] {
 		this.lastWasTrajectoryPath = false;
 		this.addObstaclesToPath(this._inst);
 		return this._inst.getPath(x1, y1, x2, y2);
 	}
 
-	lastFrameWasTrajectoryPath(): boolean {
+	public lastFrameWasTrajectoryPath(): boolean {
 		return this.lastWasTrajectoryPath;
 	}
 
-	setProbabilities(a: number, b: number) {
+	public setProbabilities(a: number, b: number) {
 		this._inst.setProbabilities(a, b);
 	}
 
-	setBoundary(x1: number, y1: number, x2: number, y2: number) {
+	public setBoundary(x1: number, y1: number, x2: number, y2: number) {
 		this._inst.setBoundary(x1, y1, x2, y2);
 		this._trajectoryInst.setBoundary(x1, y1, x2, y2);
 	}
 
-	clearObstacles() {
+	public clearObstacles() {
 		this._inst.clearObstacles();
 		this._trajectoryInst.clearObstacles();
 		this.circleObstacles.length = 0;
@@ -345,12 +345,12 @@ export class Path {
 		this.triangleObstacles.length = 0;
 	}
 
-	setRadius(radius: number) {
+	public setRadius(radius: number) {
 		this._inst.setRadius(radius);
 		this._trajectoryInst.setRadius(radius);
 	}
 
-	addObstacle(obstacle: Obstacle) {
+	public addObstacle(obstacle: Obstacle) {
 		if (isPerformanceMode) {
 			// avoid string allocations in ra
 			obstacle.name = undefined;
@@ -412,12 +412,12 @@ export class Path {
 		}
 	}
 
-	addCircle(center: Position, radius: number, name?: string, prio: number = 0) {
+	public addCircle(center: Position, radius: number, name?: string, prio: number = 0) {
 		this.addObstacle({ type: "circle", center, radius, name, prio });
 	}
 
 	/** WARNING: only adds the obstacle to the trajectory path finding */
-	addMovingCircle(startTime: number, endTime: number, startPos: Position, speed: Speed, acc: Vector, radius: number, priority: number) {
+	public addMovingCircle(startTime: number, endTime: number, startPos: Position, speed: Speed, acc: Vector, radius: number, priority: number) {
 		startPos = Coordinates.toGlobal(startPos);
 		speed = Coordinates.toGlobal(speed);
 		acc = Coordinates.toGlobal(acc);
@@ -444,12 +444,12 @@ export class Path {
 			speed.x, speed.y, acc.x, acc.y, radius, priority);
 	}
 
-	addLine(start: Position, end: Position, radius: number, name?: string, prio: number = 0) {
+	public addLine(start: Position, end: Position, radius: number, name?: string, prio: number = 0) {
 		this.addObstacle({ type: "line", start, end, radius, name, prio });
 	}
 
 	/** WARNING: only adds the obstacle to the trajectory path finding */
-	addMovingLine(startTime: number, endTime: number, startPos1: Position, speed1: Speed, acc1: Vector,
+	public addMovingLine(startTime: number, endTime: number, startPos1: Position, speed1: Speed, acc1: Vector,
 			startPos2: Position, speed2: Speed, acc2: Vector, width: number, priority: number) {
 		startPos1 = Coordinates.toGlobal(startPos1);
 		speed1 = Coordinates.toGlobal(speed1);
@@ -504,26 +504,26 @@ export class Path {
 			acc2.x, acc2.y, width, priority);
 	}
 
-	addRect(start: Position, end: Position, radius: number, name?: string, prio: number = 0) {
+	public addRect(start: Position, end: Position, radius: number, name?: string, prio: number = 0) {
 		this.addObstacle({ type: "rect", start, end, radius, name, prio });
 	}
 
-	addTriangle(p1: Position, p2: Position, p3: Position, lineWidth: number, name?: string, prio: number = 0) {
+	public addTriangle(p1: Position, p2: Position, p3: Position, lineWidth: number, name?: string, prio: number = 0) {
 		this.addObstacle({ type: "triangle", p1, p2, p3, lineWidth, name, prio });
 	}
 
-	addFriendlyRobotObstacle(robot: FriendlyRobot, radius: number, prio: number) {
+	public addFriendlyRobotObstacle(robot: FriendlyRobot, radius: number, prio: number) {
 		this._trajectoryInst.addRobotTrajectoryObstacle(robot.path._trajectoryInst.getTrajectoryAsObstacle(), prio, radius);
 		if (!isPerformanceMode) {
 			vis.addCircle(this.getObstacleString(), robot.pos, 2 * robot.radius, vis.colors.goldHalf, false, undefined, undefined, robot.radius);
 		}
 	}
 
-	hasOpponentRobotObstacle(): boolean {
+	public hasOpponentRobotObstacle(): boolean {
 		return this._trajectoryInst.addOpponentRobotObstacle !== undefined;
 	}
 
-	addOpponentRobotObstacle(robot: Robot, prio: number) {
+	public addOpponentRobotObstacle(robot: Robot, prio: number) {
 		if (!this._trajectoryInst.addOpponentRobotObstacle) {
 			throw new Error("Can not add opponent robot obstacle, update Ra to fix!");
 		}
@@ -536,7 +536,7 @@ export class Path {
 		}
 	}
 
-	addSeedTarget(x: number, y: number) {
+	public addSeedTarget(x: number, y: number) {
 		if (teamIsBlue) {
 			x = -x;
 			y = -y;
@@ -544,11 +544,11 @@ export class Path {
 		this._inst.addSeedTarget(x, y);
 	}
 
-	setOutOfFieldObstaclePriority(prio: number) {
+	public setOutOfFieldObstaclePriority(prio: number) {
 		this._trajectoryInst.setOutOfFieldPrio(prio);
 	}
 
-	maxIntersectingObstaclePrio(): number {
+	public maxIntersectingObstaclePrio(): number {
 		return this._trajectoryInst.maxIntersectingObstaclePrio();
 	}
 }

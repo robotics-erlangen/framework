@@ -8,7 +8,7 @@ import { ToTarget } from "glados/trajectory/totarget";
 export class DirectDrive extends Task {
 	private pos: Position;
 
-	constructor(behavior: Behavior, pos: Position) {
+	public constructor(behavior: Behavior, pos: Position) {
 		super(behavior);
 		this.pos = pos;
 	}

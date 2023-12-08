@@ -46,7 +46,7 @@ export class Defense {
 
 	private _messaging: MessageBox;
 
-	constructor(messaging: MessageBox) {
+	public constructor(messaging: MessageBox) {
 		this._messaging = messaging;
 
 		this._scrappedPiggyTargets = [];

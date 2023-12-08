@@ -18,6 +18,7 @@ module.exports = {
     ],
     "root": true,
     "rules": {
+        "@typescript-eslint/explicit-member-accessibility": "error",
         "@typescript-eslint/adjacent-overload-signatures": "error",
         "@typescript-eslint/ban-types": [
             "error",

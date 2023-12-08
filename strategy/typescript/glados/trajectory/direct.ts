@@ -8,7 +8,7 @@ export class Direct extends TrajectoryHandler {
 
 	// only targetDir or rotateSpeed may be passed!
 	// accel is optional
-	update(speed: Speed, targetDir?: number, rotateSpeed?: number, accel: Vector = new Vector(0, 0)): TrajectoryResult {
+	public update(speed: Speed, targetDir?: number, rotateSpeed?: number, accel: Vector = new Vector(0, 0)): TrajectoryResult {
 		speed = Coordinates.toGlobal(speed);
 		accel = Coordinates.toGlobal(accel);
 		// play motion controller
@@ -42,7 +42,7 @@ export class Direct extends TrajectoryHandler {
 		return [{ spline: spline }, this._robot.pos, 0];
 	}
 
-	canHandle(...args: any[]) {
+	public canHandle(...args: any[]) {
 		return true;
 	}
 }

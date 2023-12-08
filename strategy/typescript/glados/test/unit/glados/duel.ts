@@ -12,7 +12,7 @@ interface DuelInfo {
 
 export class GladosDuel extends UnitTest {
 
-	constructor() {
+	public constructor() {
 		super();
 
 		const s1 = {

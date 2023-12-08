@@ -23,19 +23,19 @@ const MEASURE_TIMING = false;
 const MAX_RATING_TIME_BOOST = 0.1;
 
 export abstract class Agent {
-	_robot: FriendlyRobot;
-	_messaging: MessageBox;
-	_behaviors: CheckableList;
-	_activeBehavior: Behavior | undefined;
-	_mainAttackerLastTime: number | undefined = undefined;
-	_debugIdStr: string;
+	protected _robot: FriendlyRobot;
+	protected _messaging: MessageBox;
+	protected _behaviors: CheckableList;
+	protected _activeBehavior: Behavior | undefined;
+	protected _mainAttackerLastTime: number | undefined = undefined;
+	protected _debugIdStr: string;
 
 	private static _dumpAllTime: number = 0;
 
 	// static method for pool
-	abstract static takeRobot(_robots: FriendlyRobot[]): FriendlyRobot | undefined;
+	public abstract static takeRobot(_robots: FriendlyRobot[]): FriendlyRobot | undefined;
 
-	constructor(robot: FriendlyRobot, messaging: Messaging) {
+	public constructor(robot: FriendlyRobot, messaging: Messaging) {
 		this._robot = robot;
 		this._messaging = messaging.registerAgent(this);
 		// behaviors are ordered by decreasing priority
@@ -48,16 +48,20 @@ export abstract class Agent {
 		this._debugIdStr = `Agent ${this._robot.id}`;
 	}
 
-	abstract getBehaviors(): CheckableConstructor[];
+	public get activeBehavior(): Behavior | undefined {
+		return this._activeBehavior;
+	}
 
-	_run() { }
+	public abstract getBehaviors(): CheckableConstructor[];
+
+	protected _run() { }
 
 	// for identificatio of agent like types, to avoid cyclic imports
-	isAgent(): boolean {
+	public isAgent(): boolean {
 		return true;
 	}
 
-	run() {
+	public run() {
 		debug.pushtop(this._debugIdStr);
 		debug.set(undefined, this.constructor.name);
 		this._dumpInbox();
@@ -70,7 +74,7 @@ export abstract class Agent {
 		debug.pop(); // Agent
 	}
 
-	_runBehavior(): Task | undefined {
+	private _runBehavior(): Task | undefined {
 		if (MEASURE_TIMING) {
 			timing.start("Behavior check", this._robot.id);
 		}
@@ -112,7 +116,7 @@ export abstract class Agent {
 		return this._activeBehavior != undefined ? this._activeBehavior.task() : undefined;
 	}
 
-	_dumpInbox() {
+	private _dumpInbox() {
 		if (World.Time !== Agent._dumpAllTime) {
 			Agent._dumpAllTime = World.Time;
 			debug.pushtop("Global Inbox");
@@ -128,7 +132,7 @@ export abstract class Agent {
 		debug.pop(); // Inbox
 	}
 
-	_runTask(task: Task | undefined) {
+	private _runTask(task: Task | undefined) {
 		if (MEASURE_TIMING) {
 			timing.start("Task", this._robot.id);
 		}
@@ -148,7 +152,7 @@ export abstract class Agent {
 		}
 	}
 
-	_applyForMainAttacker = debug.wrap("mainAttackerRating", (task: Task | undefined) => {
+	protected _applyForMainAttacker = debug.wrap("mainAttackerRating", (task: Task | undefined) => {
 		// the keeper just overrides this
 		let parameters: BehaviorMAParams | TaskMAParams | undefined = this._behaviors.mainAttackerParameters(this._activeBehavior)[0];
 
@@ -254,22 +258,22 @@ export abstract class Agent {
 		// debug.push("Locals dump")
 		// //debugger.dumpLocals(0)
 		// debug.pop()
-		debug.set("mainAttackerRating", ratingArg._ratingArray);
+		debug.set("mainAttackerRating", ratingArg.ratingArray);
 		this._messaging.sendToTrainerRepeated(MessageType.exclusiveRole, [MessageType.mainAttacker, ratingArg]);
 	});
 
 	// controls whether the robot may be kept in its pool
-	abstract keepRobot(): boolean;
+	public abstract keepRobot(): boolean;
 
 	// rate robot for deciding which robots to keep in the pool
 	// the robots with the lowest rating are removed until the robot limit is satisfied
-	abstract rateRobot(): number;
+	public abstract rateRobot(): number;
 
-	robot(): FriendlyRobot {
+	public robot(): FriendlyRobot {
 		return this._robot;
 	}
 
-	messaging(): MessageBox {
+	public messaging(): MessageBox {
 		return this._messaging;
 	}
 }

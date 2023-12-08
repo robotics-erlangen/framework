@@ -8,12 +8,12 @@ import { Group } from "glados/trainer/groups";
 import { assignRobotsToZones, Boundaries, getRandomPosition, Zone, zoneToPolygon } from "glados/util/zone";
 
 export class Dummy implements Group {
-	readonly name = "dummy";
-	lastNumberOfParticipants: number = 0;
-	lastRobotZoneMap: Map<Zone, FriendlyRobot> | undefined = undefined;
-	lastRefereeStateWasPenalty = false;
+	public readonly name = "dummy";
+	private lastNumberOfParticipants: number = 0;
+	private lastRobotZoneMap: Map<Zone, FriendlyRobot> | undefined = undefined;
+	private lastRefereeStateWasPenalty = false;
 
-	run(messaging: MessageBox, messages: Map<FriendlyRobot, undefined>) {
+	public run(messaging: MessageBox, messages: Map<FriendlyRobot, undefined>) {
 		let robots = Array.from(messages.keys());
 		let numberOfParticipants = robots.length;
 
@@ -46,7 +46,7 @@ export class Dummy implements Group {
 	}
 
 
-	getDummyZones(participants: FriendlyRobot[]): Zone[] {
+	public getDummyZones(participants: FriendlyRobot[]): Zone[] {
 	    let numberOfParticipants = participants.length;
 	    let zones: Zone[] = [];
 

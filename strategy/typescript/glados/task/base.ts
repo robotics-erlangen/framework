@@ -23,38 +23,38 @@ export type TaskParameters<T extends TaskConstructor> =
 export abstract class Task {
 	private _behavior: Behavior;
 	protected _robot: FriendlyRobot;
-	_mainAttackerParameters: MainAttackerParameters | undefined;
+	private _mainAttackerParameters: MainAttackerParameters | undefined;
 
 	protected get _messaging() {
 		return this._behavior.agent().messaging();
 	}
 
-	constructor(behavior: Behavior) {
+	public constructor(behavior: Behavior) {
 		this._behavior = behavior;
 		this._robot = behavior.agent().robot();
 		this.clearMainAttackerParameters();
 	}
 
-	behavior() {
+	public behavior() {
 		return this._behavior;
 	}
 
-	abstract run(): void;
+	public abstract run(): void;
 
 	// use for type stubs, to avoid cyclic imports
-	isTask(): boolean {
+	public isTask(): boolean {
 		return true;
 	}
 
-	clearMainAttackerParameters() {
+	public clearMainAttackerParameters() {
 		this._mainAttackerParameters = undefined;
 	}
 
-	setMainAttackerParameters(target: Position, endSpeedLength: number, overwriteRating?: number) {
+	public setMainAttackerParameters(target: Position, endSpeedLength: number, overwriteRating?: number) {
 		this._mainAttackerParameters = [target, endSpeedLength, overwriteRating];
 	}
 
-	mainAttackerParameters(): MainAttackerParameters | undefined {
+	public mainAttackerParameters(): MainAttackerParameters | undefined {
 		return this._mainAttackerParameters;
 	}
 }

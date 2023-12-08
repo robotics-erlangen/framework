@@ -9,19 +9,19 @@ export class DirtyManMarkerMove extends Move {
 	public static readonly MAX_ROBOTS: number = 1;
 	public static readonly ALLOW_EXTRA_ATTACKERS: boolean = false;
 
-	constructor(robots: FriendlyRobot[], messaging: MessageBox) {
+	public constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 		super(robots, messaging);
 	}
 
-	static canStart() {
+	public static canStart() {
 		return true;
 	}
 
-	_canContinue() {
+	public canContinue(): boolean {
 		return true;
 	}
 
-	_updateTasks(): MoveParameters {
+	protected _updateTasks(): MoveParameters {
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
 
 		taskAssignments[this._robots[0]] = Assignment.create({ class: DirtyManMarker, params: [World.OpponentRobots[0]] });

@@ -6,7 +6,7 @@ import * as Attack from "glados/util/attack";
 
 export class PassTiming extends Behavior {
 	private _remainingTime: number | undefined;
-	check(): Behavior | undefined {
+	public check(): Behavior | undefined {
 		let lastIncomingPassInfo = Attack.lastIncomingPassInfo(this._robot, this._messaging.receiveSingleSender(MessageType.passInfo));
 
 		if (this._messaging.receiveTrainer(MessageType.mainAttacker) !== this._robot) {
@@ -30,7 +30,7 @@ export class PassTiming extends Behavior {
 		return undefined;
 	}
 
-	_updateTask(): TaskAssignment<typeof SideStep> {
+	protected _updateTask(): TaskAssignment<typeof SideStep> {
 		if (this._task instanceof SideStep) {
 			(this._task as SideStep).updateTime(this._remainingTime);
 		}

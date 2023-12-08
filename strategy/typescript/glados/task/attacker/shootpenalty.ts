@@ -51,7 +51,7 @@ export class ShootPenalty extends Task {
 	private collectedBallPosition: Position;
 	private ballCounter: number = 0;
 
-	constructor(behavior: Behavior) {
+	public constructor(behavior: Behavior) {
 		super(behavior);
 		this._lookDir = "Right";
 		if (MathUtil.randomInt([1, 2]) < 2) {
@@ -66,7 +66,7 @@ export class ShootPenalty extends Task {
 		this.ballCounter = 1;
 	}
 
-	run() {
+	public run() {
 		if (World.Ball.isPositionValid() && World.Ball.detectionQuality > 0.4) {
 			this.collectedBallPosition = this.collectedBallPosition + World.Ball.pos;
 			this.ballCounter += 1;

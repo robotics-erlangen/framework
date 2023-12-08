@@ -34,7 +34,7 @@ export class DribbleCircle extends Task {
 	private _finishedRound: boolean = true;
 
 
-	constructor(behavior: Behavior, movementSpeed: number, dribblerSpeed: number, acceleration: number, radius: number, carpetFriction: number, ballMass: number) {
+	public constructor(behavior: Behavior, movementSpeed: number, dribblerSpeed: number, acceleration: number, radius: number, carpetFriction: number, ballMass: number) {
 		super(behavior);
 
 		this._movementSpeed = movementSpeed;

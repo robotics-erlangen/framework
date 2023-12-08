@@ -11,19 +11,19 @@ export function makeSingleTaskMove(task: any): typeof Move {
 
 		public static readonly NAME: string = task.name;
 
-		constructor(robots: FriendlyRobot[], messaging: MessageBox) {
+		public constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 			super(robots, messaging);
 		}
 
-		static canStart() {
+		public static canStart() {
 			return true;
 		}
 
-		_canContinue() {
+		public canContinue(): boolean {
 			return true;
 		}
 
-		_updateTasks(): MoveParameters {
+		protected _updateTasks(): MoveParameters {
 			let taskAssignments = new Map<FriendlyRobot, Assignment>();
 
 			taskAssignments[this._robots[0]] = Assignment.create({ class: task });

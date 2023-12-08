@@ -4,7 +4,7 @@ import { Vector } from "base/vector";
 import { UnitTest } from "glados/test/unit/unittest";
 
 export class BaseCoordinates extends UnitTest {
-	constructor() {
+	public constructor() {
 		super();
 		C._setIsBlue(true);
 		for (let [teamName, teamIsBlue] of [["yellow team - ", false], ["blue team - ", true]]) {

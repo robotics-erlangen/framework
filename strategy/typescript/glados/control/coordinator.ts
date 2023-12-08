@@ -5,13 +5,13 @@ import { Messaging } from "glados/control/messaging";
 import { MainTrainer } from "glados/trainer/maintrainer";
 
 export class Coordinator {
-	_trainer: MainTrainer;
-	_pools: { [name: string]: AgentPool };
-	_poolGroups: AgentPool[][];
-	_poolsList: AgentPool[] = [];
-	_messaging: Messaging;
+	protected _trainer: MainTrainer;
+	protected _pools: { [name: string]: AgentPool };
+	protected _poolGroups: AgentPool[][];
+	protected _poolsList: AgentPool[] = [];
+	protected _messaging: Messaging;
 
-	constructor(trainer: MainTrainer, pools: { [name: string]: AgentPool }, poolGroups: AgentPool[][]) {
+	public constructor(trainer: MainTrainer, pools: { [name: string]: AgentPool }, poolGroups: AgentPool[][]) {
 		this._trainer = trainer;
 		// list of agentPools
 		this._pools = pools;
@@ -26,7 +26,7 @@ export class Coordinator {
 		this._messaging = trainer._allMessaging;
 	}
 
-	run() {
+	public run() {
 		this._trainer.run();
 		this._postTrainerHook();
 
@@ -38,11 +38,11 @@ export class Coordinator {
 		}
 	}
 
-	_postTrainerHook() {
+	protected _postTrainerHook() {
 		// overwrite in subclasses
 	}
 
-	_updatePoolRobots() {
+	private _updatePoolRobots() {
 		// remove no longer needed / surplus robots from pools
 		for (let pool of this._poolsList) {
 			pool.cleanupRobots();

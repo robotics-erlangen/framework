@@ -30,12 +30,12 @@ let nearBaseLineDir = rightNearBasePoint - leftNearBasePoint;
 export class AggressiveKeeper extends Task {
 	private _forceShoot: ForceShoot;
 
-	constructor(behavior: Behavior) {
+	public constructor(behavior: Behavior) {
 		super(behavior);
 		this._forceShoot = new ForceShoot(this);
 	}
 
-	run() {
+	public run() {
 		const MAX_DIST_TO_DEFENSE_AREA = 0.3;
 
 		let safeGoalMid = World.Geometry.FriendlyGoal - new Vector(0, 0.05);
@@ -71,7 +71,7 @@ export class AggressiveKeeper extends Task {
 		this._robot.trajectory.update(CurvedMaxAccel, moveDest, viewDir.angle(), undefined, viewDir * 0.5);
 	}
 
-	_chipToBorderIfSafe() {
+	private _chipToBorderIfSafe() {
 		let robotPos = this._robot.pos;
 		let ballPos = World.Ball.pos;
 		let robotDir = ballPos - robotPos;

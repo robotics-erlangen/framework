@@ -39,7 +39,7 @@ export class CenterBack extends Task {
 	private _forceShoot: ForceShoot;
 
 	// centerbackTarget has to be updated by the caller
-	constructor(behavior: Behavior, centerbackTarget: { pos: Position }) {
+	public constructor(behavior: Behavior, centerbackTarget: { pos: Position }) {
 		super(behavior);
 
 		if (centerbackTarget == undefined) {
@@ -55,7 +55,7 @@ export class CenterBack extends Task {
 		this._forceShoot = new ForceShoot(this);
 	}
 
-	run() {
+	public run() {
 		this._messaging.sendToTrainerRepeated(MessageType.groupApplication,
 			{ name: "centerback", payload: this._preliminaryCenterbackTarget });
 

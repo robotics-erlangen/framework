@@ -17,27 +17,27 @@ import * as Rating from "glados/util/rating";
 type Trajectory = { pos: Position; speed: Speed; time: number }[];
 
 class PID {
-	p: number;
-	i: number;
-	d: number;
+	private p: number;
+	private i: number;
+	private d: number;
 
-	maxLength: number;
+	private maxLength: number;
 
-	integral: Vector = new Vector(0, 0);
-	previousError: Vector = new Vector(0, 0);
+	private integral: Vector = new Vector(0, 0);
+	private previousError: Vector = new Vector(0, 0);
 
-	constructor(maxLength: number, p: number, i: number, d: number) {
+	public constructor(maxLength: number, p: number, i: number, d: number) {
 		this.maxLength = maxLength;
 		this.p = p;
 		this.i = i;
 		this.d = d;
 	}
 
-	reset() {
+	public reset() {
 		this.integral = new Vector(0, 0);
 	}
 
-	update(error: Vector) {
+	public update(error: Vector) {
 		let timeDiff = World.TimeDiff;
 
 		let pOut = error * this.p;

@@ -19,7 +19,7 @@ export class BallTeleporter extends Move {
 	private _initBall: any;
 	private _shot: boolean = false;
 
-	constructor(robots: FriendlyRobot[], messaging: MessageBox) {
+	public constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 		super(robots, messaging);
 		this._initBall = {
 			pos: new Vector(0, 4.8),
@@ -33,11 +33,11 @@ export class BallTeleporter extends Move {
 		return true;
 	}
 
-	public _canContinue() {
+	public canContinue(): boolean {
 		return true;
 	}
 
-	public _updateTasks(): MoveParameters {
+	protected _updateTasks(): MoveParameters {
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
 		let robotPos = new Vector(0, -World.Geometry.FieldHeightHalf + World.Geometry.DefenseHeight + 0.3);
 		let ballPos = new Vector(0, World.Geometry.FieldHeightHalf - World.Geometry.DefenseHeight);

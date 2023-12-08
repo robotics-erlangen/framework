@@ -107,7 +107,7 @@ export class Race extends Move {
 
 	private posIndices: number[] = Race.POSITIONS.map((_) => 0);
 
-	static canStart() {
+	public static canStart() {
 		return true;
 	}
 
@@ -124,7 +124,7 @@ export class Race extends Move {
 	 * @param driveDirection - alignment of the lines, if left out, the alignment that maximizes the space between the lines
 	 * @returns a list of pairs of points representing evenly spaced, parallel lines in the specified rectangle
 	 */
-	static nRobots(n: number, topLeft: Vector, bottomRight: Vector, driveDirection?: "x" | "y"): [Vector, Vector][] {
+	private static _nRobots(n: number, topLeft: Vector, bottomRight: Vector, driveDirection?: "x" | "y"): [Vector, Vector][] {
 		const x0 = topLeft.x;
 		const y0 = topLeft.y;
 		const x1 = bottomRight.x;
@@ -139,11 +139,11 @@ export class Race extends Move {
 		}
 	}
 
-	_canContinue() {
+	public canContinue(): boolean {
 		return true;
 	}
 
-	_updateTasks(): MoveParameters {
+	protected _updateTasks(): MoveParameters {
 		let taskAssignments: Map<FriendlyRobot, Assignment> = new Map<FriendlyRobot, Assignment>();
 
 		const posReached = this._robots.map((r, i) => {

@@ -29,7 +29,7 @@ function getAgentForRobot(pool: any, robot: FriendlyRobot, poolName: string): an
 }
 
 export class GladosPools extends UnitTest {
-	constructor() {
+	public constructor() {
 		super();
 		this.addTest("all", this.testAll);
 	}

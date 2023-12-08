@@ -54,7 +54,7 @@ export class Pass extends Task {
 
 	private _shoot: Shoot;
 
-	constructor(behavior: Behavior, parameters: Parameters) {
+	public constructor(behavior: Behavior, parameters: Parameters) {
 		super(behavior);
 
 		this._targetRobot = parameters.targetRobot;
@@ -103,7 +103,7 @@ export class Pass extends Task {
 
 
 
-	run() {
+	public run() {
 		let obstacleTable = {
 			task: this,
 			ignoreBallPlacementObstacle: true

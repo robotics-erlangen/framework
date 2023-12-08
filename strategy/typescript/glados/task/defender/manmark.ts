@@ -27,7 +27,7 @@ export class ManMark extends Task {
 	private _obstacleTable: PathHelper.PathHelperParameters;
 
 
-	constructor(behavior: Behavior, targetRobot: Robot) {
+	public constructor(behavior: Behavior, targetRobot: Robot) {
 		super(behavior);
 		if (targetRobot == undefined) {
 			throw new Error("ManMark task needs a target robot");
@@ -39,7 +39,7 @@ export class ManMark extends Task {
 		};
 	}
 
-	run() {
+	public run() {
 		let preferredPos = Defense.manMarkPos(this._targetRobot);
 		let preferredDir = (World.Ball.pos - this._robot.pos).angle();
 

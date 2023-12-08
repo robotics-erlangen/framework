@@ -24,7 +24,7 @@ export class TIGERsTestGoalShot extends Task {
 	private lastBallInDribbler: boolean;
 	private framesInDribbler: number = 0;
 
-	constructor(behavior: Behavior) {
+	public constructor(behavior: Behavior) {
 		super(behavior);
 		this.rotateAndShoot = new PerfectDribblerRotateAndShoot(this);
 		this.lastWasWayTooFar = true;
@@ -45,7 +45,7 @@ export class TIGERsTestGoalShot extends Task {
 		}
 	}
 
-	run(): void {
+	public run(): void {
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
 		this._setObstacles();
 

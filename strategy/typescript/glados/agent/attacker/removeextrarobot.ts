@@ -31,7 +31,7 @@ function rateRobot(robot: FriendlyRobot, messaging: MessageBox): number {
  * behavior in order to be taken from the field
  */
 export class RemoveExtraRobot extends Behavior {
-	check(): Behavior | undefined {
+	public check(): Behavior | undefined {
 		if (!BaseRef.hasTooManyFriendlyRobots()) {
 			return undefined;
 		}
@@ -49,7 +49,7 @@ export class RemoveExtraRobot extends Behavior {
 			: undefined;
 	}
 
-	_updateTask(): TaskAssignment<typeof MoveToPos> {
+	protected _updateTask(): TaskAssignment<typeof MoveToPos> {
 
 		let exchangePos = USE_EXCHANGE_POS_UP ? EXCHANGE_POS_UP : EXCHANGE_POSITION_DOWN;
 		if (this._robot.pos.distanceToSq(exchangePos) < 1) {
@@ -60,7 +60,7 @@ export class RemoveExtraRobot extends Behavior {
 			 * to be sure the robot remains at the exchange pos
 			 * and does not change while the robot handler takes it
 			 */
-			this._applyForMainAttacker(undefined, undefined, -Infinity);
+			this.applyForMainAttacker(undefined, undefined, -Infinity);
 		}
 		amun.setRobotExchangeSymbol(this._robot.generation, this._robot.id, true);
 		return [MoveToPos, [{ pos: exchangePos }]];

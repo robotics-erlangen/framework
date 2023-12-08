@@ -23,7 +23,7 @@ export class DribbleChallenge extends HardwareChallengeBase {
 	private left: boolean = false;
 	private static previouslyLeft: boolean = false;
 
-	constructor(robots: FriendlyRobot[], messaging: MessageBox) {
+	public constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 		super(robots, messaging, Scenarios.challenge3);
 
 		for (let i = this.opponentTransforms.length - 1; i > 0; --i) {

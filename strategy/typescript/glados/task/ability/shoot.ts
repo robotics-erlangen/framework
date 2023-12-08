@@ -83,39 +83,39 @@ enum ShootState {
 }
 
 export class Shoot {
-	_state: ShootState = ShootState.Unknown;
+	private _state: ShootState = ShootState.Unknown;
 
 	// direct movement
-	_directExtraSpeed: number = 0;
-	_sideOffsetErrorSum: number = 0;
+	private _directExtraSpeed: number = 0;
+	private _sideOffsetErrorSum: number = 0;
 
-	_lastTargetPos: Position | undefined;
-	_linearShoot: boolean = true;
-	targetRobotDir: number = 0;
+	private _lastTargetPos: Position | undefined;
+	private _linearShoot: boolean = true;
+	private targetRobotDir: number = 0;
 
-	_precision: number = 0;
-	_rightOrientation: boolean = false;
+	private _precision: number = 0;
+	private _rightOrientation: boolean = false;
 
 	/** Whether the robot has stopped rotating during RotateWithBall */
 	private _stoppedRotation = false;
 
-	_lastBallInsideRobotTime: number = 0;
-	_directMovement: boolean = false;
-	_catchBallActive: boolean = false;
+	private _lastBallInsideRobotTime: number = 0;
+	private _directMovement: boolean = false;
+	private _catchBallActive: boolean = false;
 
-	ballInDribbler: boolean = false;
+	private ballInDribbler: boolean = false;
 
-	_robot: FriendlyRobot;
-	_task: Task;
+	private _robot: FriendlyRobot;
+	private _task: Task;
 
 	private get _messaging() {
 		return this._task.behavior().agent().messaging();
 	}
 
-	_catchBall: CatchBall;
-	_forceShoot: ForceShoot;
+	public _catchBall: CatchBall;
+	private _forceShoot: ForceShoot;
 
-	constructor(task: Task) {
+	public constructor(task: Task) {
 		this._robot = task.behavior().agent().robot();
 		this._task = task;
 		this._catchBall = new CatchBall(task);
@@ -596,7 +596,7 @@ export class Shoot {
 		vis.addPath("t/a/shoot: State", [futureBallPos, targetPos], color, undefined, undefined, 0.03);
 	}
 
-	_doShoot(targetPos: Position, targetSpeed: number, targetTime?: number, ballReceiptPos?: Position,
+	private _doShoot(targetPos: Position, targetSpeed: number, targetTime?: number, ballReceiptPos?: Position,
 			linearShoot: boolean = false, precision: number = MIN_PRECISION) {
 		this.targetRobotDir = (targetPos - this._robot.pos).angle();
 		let [futureBall, futureBallTime] = this._calculateFutureBall(ballReceiptPos);
@@ -659,7 +659,7 @@ export class Shoot {
 	 * @param ballReceiptPos - In case of incoming passes, where to shoot from
 	 * @param precision
 	 */
-	_shoot(targetPos: Position, targetSpeed: number, targetTime?: number, ballReceiptPos?: Position, precision?: number) {
+	public _shoot(targetPos: Position, targetSpeed: number, targetTime?: number, ballReceiptPos?: Position, precision?: number) {
 		this._doShoot(targetPos, targetSpeed, targetTime, ballReceiptPos, true, precision);
 	}
 
@@ -672,7 +672,7 @@ export class Shoot {
 	 * @param ballReceiptPos - In case of incoming passes, where to shoot from
 	 * @param precision
 	 */
-	_chipToPos(firstContactPos: Position, targetTime?: number, ballReceiptPos?: Position, precision?: number) {
+	public _chipToPos(firstContactPos: Position, targetTime?: number, ballReceiptPos?: Position, precision?: number) {
 		this._doShoot(firstContactPos, 8, targetTime, ballReceiptPos, false, precision);
 	}
 
@@ -686,7 +686,7 @@ export class Shoot {
 	 * @param precision
 	 * @param manualChipDistFactor
 	 */
-	_chipPass(rollingBallPos: Position, ballReceiptPos?: Position, targetTime?: undefined,
+	public _chipPass(rollingBallPos: Position, ballReceiptPos?: Position, targetTime?: undefined,
 			precision?: number, manualChipDistFactor: number = CHIP_PASS_DISTANCE_FACTOR) {
 		let origin: Position;
 		if (ballReceiptPos != undefined && (ballReceiptPos - World.Ball.pos).dot(World.Ball.speed) > 0
@@ -699,7 +699,7 @@ export class Shoot {
 		this._chipToPos(firstContactPos, undefined, ballReceiptPos, precision); // as we cannot time the chip anyways, we ignore the targetTime
 	}
 
-	_shootFreeKick(targetPos: Position, targetSpeed: number, targetTime?: number, precision: number = MIN_PRECISION) {
+	public _shootFreeKick(targetPos: Position, targetSpeed: number, targetTime?: number, precision: number = MIN_PRECISION) {
 		this._linearShoot = true;
 		this._precision = precision;
 		this._shootStationaryBall(targetPos, targetSpeed, targetTime, World.Ball);

@@ -21,7 +21,7 @@ const obstacleTable: PathHelper.PathHelperParameters = {
 export class DefenseChip extends Task {
 	private forceShoot: ForceShoot;
 
-	constructor(behavior: Behavior) {
+	public constructor(behavior: Behavior) {
 		super(behavior);
 
 		this.forceShoot = new ForceShoot(this);

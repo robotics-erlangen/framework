@@ -39,7 +39,7 @@ export class DribbleToPos extends Task {
 	private alternativeDirection: Vector = new Vector(0, 0);
 	private movingToPush: boolean = false;
 
-	constructor(behavior: Behavior, params: Parameters) {
+	public constructor(behavior: Behavior, params: Parameters) {
 		super(behavior);
 
 		this.pos = params.pos;

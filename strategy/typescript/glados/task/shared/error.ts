@@ -34,12 +34,12 @@ const B = 0.33;
 const L = 0.25;
 
 export class Error extends Task {
-	_id: number;
-	_goToTopBlock: boolean;
-	_startRotate: number | undefined;
+	private _id: number;
+	private _goToTopBlock: boolean;
+	private _startRotate: number | undefined;
 
 
-	constructor(behavior: Behavior) {
+	public constructor(behavior: Behavior) {
 		super(behavior);
 		this._id = EXCHANGE_TARGET[this._robot.id + 1].firstPosI;
 		this._goToTopBlock = false;

@@ -27,12 +27,12 @@ export class WallkickAbility {
 	private _firstBallPosWallkick: Position = new Vector(0, 0);
 	private _helpRestart: boolean = true;
 
-	constructor(robot: FriendlyRobot, placementPos: Position) {
+	public constructor(robot: FriendlyRobot, placementPos: Position) {
 		this._placementPos = placementPos;
 		this._robot = robot;
 	}
 
-	_wallkick(restart: boolean) {
+	public _wallkick(restart: boolean) {
 		let obstacleTable: PathHelper.PathHelperParameters = {
 			ignoreDefenseArea: true,
 			ignoreOpponentDefenseArea: true,

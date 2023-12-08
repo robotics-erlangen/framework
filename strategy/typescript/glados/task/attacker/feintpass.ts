@@ -46,7 +46,7 @@ export class FeintPassTask extends Task {
 	private _sampling: Sampling | undefined;
 	private _passDestSuggestion: Position | undefined;
 
-	constructor(behavior: Behavior, supportParameters: SupportParameters | undefined, relevantPassInfo: PassInfo,
+	public constructor(behavior: Behavior, supportParameters: SupportParameters | undefined, relevantPassInfo: PassInfo,
 			passRobot: FriendlyRobot, feintPos: Position, attackPosition: Position) {
 		super(behavior);
 
@@ -154,13 +154,13 @@ export class FeintPassTask extends Task {
 		this._passDestSuggestion = bestPoint;
 	}
 
-	updatePass(relevantPassInfo: PassInfo, feintPos: Position, attackPosition: Position): void {
+	public updatePass(relevantPassInfo: PassInfo, feintPos: Position, attackPosition: Position): void {
 		this.relevantPassInfo = relevantPassInfo;
 		this.feintPos = feintPos;
 		this.attackPosition = attackPosition;
 	}
 
-	run(): void {
+	public run(): void {
 		let groupName: "dummy" | "support" = this._suggestPass ? "support" : "dummy";
 		this._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: groupName });
 
@@ -217,7 +217,7 @@ export class FeintPassTask extends Task {
 		this._robot.trajectory.update(TrajectoryPath, this.feintPos, targetDir);
 	}
 
-	updateState(attackPosition: Position): void {
+	public updateState(attackPosition: Position): void {
 		let plannedAttackTime = this._messaging.receiveSingleSender(MessageType.plannedAttackTime)[1];
 		let [sender, passInfoTable] = this._messaging.receiveSingleSender(MessageType.passInfo);
 

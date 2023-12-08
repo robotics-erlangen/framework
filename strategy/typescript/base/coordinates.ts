@@ -106,7 +106,7 @@ interface CoordinatesType {
 }
 
 class Invert implements CoordinatesType {
-	toGlobal(data: any): any {
+	public toGlobal(data: any): any {
 		if (typeof(data) === "number") {
 			let num = data as number;
 			if (num > Math.PI) {
@@ -119,17 +119,17 @@ class Invert implements CoordinatesType {
 			return new Vector(-vector.x, -vector.y);
 		}
 	}
-	toLocal(data: any): any {
+	public toLocal(data: any): any {
 		return this.toGlobal(data);
 	}
-	listToGlobal(data: any[]): any[] {
+	public listToGlobal(data: any[]): any[] {
 		let inverted = [];
 		for (let v of data) {
 			inverted.push(this.toGlobal(v));
 		}
 		return inverted;
 	}
-	toVision(data: any): any {
+	public toVision(data: any): any {
 		if (typeof(data) === "number") {
 			// rotate 270 degrees
 			let num = data as number - Math.PI * 1.5;
@@ -143,7 +143,7 @@ class Invert implements CoordinatesType {
 			return new Vector(-vector.y, vector.x);
 		}
 	}
-	fromVision(data: any): any {
+	public fromVision(data: any): any {
 		if (typeof(data) === "number") {
 			// rotate 270 degrees
 			let num = data as number + Math.PI * 1.5;
@@ -160,16 +160,16 @@ class Invert implements CoordinatesType {
 }
 
 class Pass implements CoordinatesType {
-	toGlobal(value: any): any {
+	public toGlobal(value: any): any {
 		return value;
 	}
-	toLocal(value: any): any {
+	public toLocal(value: any): any {
 		return value;
 	}
-	listToGlobal(value: any): any {
+	public listToGlobal(value: any): any {
 		return value;
 	}
-	toVision(data: any): any {
+	public toVision(data: any): any {
 		if (typeof(data) === "number") {
 			// rotate 90 degrees
 			let num = data as number - Math.PI * 0.5;
@@ -183,7 +183,7 @@ class Pass implements CoordinatesType {
 			return new Vector(vector.y, -vector.x);
 		}
 	}
-	fromVision(data: any): any {
+	public fromVision(data: any): any {
 		if (typeof(data) === "number") {
 			// rotate 90 degrees
 			let num = data as number + Math.PI * 0.5;

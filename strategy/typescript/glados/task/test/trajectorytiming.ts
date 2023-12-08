@@ -23,7 +23,7 @@ export class TrajectoryTiming extends Task {
 		ignorePass: true
 	};
 
-	constructor(behavior: Behavior) {
+	public constructor(behavior: Behavior) {
 		super(behavior);
 	}
 

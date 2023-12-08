@@ -7,14 +7,14 @@ export class RunObjective implements Checkable {
 	private _agent: Attacker;
 	private _runner?: Checkable;
 
-	constructor(agent: Agent) {
+	public constructor(agent: Agent) {
 		if (!(agent instanceof Attacker)) {
 			throw new Error("a/a/runobjective may only be used on attackers");
 		}
 		this._agent = agent;
 	}
 
-	check(): Behavior | undefined {
+	public check(): Behavior | undefined {
 		const messaging = this._agent.messaging();
 
 		const [, receivedObjective] = messaging.receiveSingleSender(MessageType.selectedObjective, true);
@@ -47,7 +47,7 @@ export class RunObjective implements Checkable {
 		return this._runner.check();
 	}
 
-	mainAttackerParameters(activeBehavior?: Behavior) {
+	public mainAttackerParameters(activeBehavior?: Behavior) {
 		if (this._runner) {
 			return this._runner.mainAttackerParameters(activeBehavior);
 		}
@@ -55,17 +55,17 @@ export class RunObjective implements Checkable {
 		return [undefined, false] as [undefined, false];
 	}
 
-	clearMainAttackerParameters() {
+	public clearMainAttackerParameters() {
 		if (this._runner) {
 			this._runner.clearMainAttackerParameters();
 		}
 	}
 
-	agent() {
+	public agent() {
 		return this._agent;
 	}
 
-	setAgent(agent: Agent) {
+	public setAgent(agent: Agent) {
 		if (this._agent.robot() !== agent.robot()) {
 			throw new Error("Can't reuse behavior with different robot");
 		}

@@ -14,7 +14,7 @@ const EXCHANGE_LOW_BAT_DURING_GAME = false;
 const EXCHANGE_ERROR_ROBOTS_SPEED = false;
 
 export class Error extends Behavior {
-	check(): Behavior | undefined {
+	public check(): Behavior | undefined {
 		return undefined;
 		/* let errorTable = ErrorObserver.getErrorTable(this._robot);
 		if (this._active && World.RefereeState === "Stop") {
@@ -56,16 +56,16 @@ export class Error extends Behavior {
 		return undefined; */
 	}
 
-	start() {
+	public start() {
 		log(this.errorMsg());
 		this._active = true;
 	}
 
-	_stop() {
+	protected _stop() {
 		this._active = false;
 	}
 
-	errorMsg() {
+	private errorMsg() {
 		let out = `${this._robot.id}: `;
 		let msgParts: string[] = [];
 		let errorData = ErrorObserver.getErrorTable(this._robot);
@@ -110,7 +110,7 @@ export class Error extends Behavior {
 	}
 
 
-	_updateTask(): TaskAssignment<typeof ErrorTask> {
+	protected _updateTask(): TaskAssignment<typeof ErrorTask> {
 		// local errorFound = next(ErrorObserver.getErrorTable(this._robot)) ~= nil
 		// if errorFound and World.Time == ObserverReferee.getLastStateChange() then
 		// 	log(this.errorMsg())

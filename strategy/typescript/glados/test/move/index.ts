@@ -35,13 +35,12 @@ let coord: MainCoordinator | undefined = undefined;
 export function createEntrypoint(move: typeof Move) {
 	return function() {
 		if (coord == undefined) {
-			let moveGroup = new MoveGroup();
-			moveGroup.moveList = [move];
+			let moveGroup = new MoveGroup([move]);
 
 			let groupList: any[] = [new CenterBackGroup(), new SupportGroup(), moveGroup];
 
 			let trainer = new MainTrainer(undefined);
-			trainer._groups.setGroups(groupList);
+			trainer.setGroups(groupList);
 
 			coord = new MainCoordinator(trainer);
 		}

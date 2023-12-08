@@ -11,13 +11,13 @@ import { Direct } from "glados/trajectory/direct";
 export class RotateAndShoot {
 	private startTime: number | undefined;
 
-	_robot: FriendlyRobot;
+	private _robot: FriendlyRobot;
 
-	constructor(task: Task) {
+	public constructor(task: Task) {
 		this._robot = task.behavior().agent().robot();
 	}
 
-	_rotateAndShoot(destAngle: number, customPos: Position = World.Ball.pos) {
+	public _rotateAndShoot(destAngle: number, customPos: Position = World.Ball.pos) {
 		if (this.startTime == undefined) {
 			this.startTime = World.Time;
 		}

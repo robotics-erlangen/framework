@@ -22,7 +22,7 @@ export class Victory extends Task {
 
 	private _obstacleTable: PathHelper.PathHelperParameters;
 
-	constructor(behavior: Behavior, center: Position, startingAngle: number, angle: number, radius: number) {
+	public constructor(behavior: Behavior, center: Position, startingAngle: number, angle: number, radius: number) {
 		if (center == undefined || angle == undefined) {
 			throw new Error("Missing Parameters for Victory-Task");
 		}

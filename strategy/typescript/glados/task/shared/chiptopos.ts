@@ -13,7 +13,7 @@ export class ChipToPos extends Task {
 
 	private _shoot: Shoot;
 
-	constructor(behavior: Behavior, firstContactPos: Position, targetTime: number, ballReceiptPos?: Position, precision?: number) {
+	public constructor(behavior: Behavior, firstContactPos: Position, targetTime: number, ballReceiptPos?: Position, precision?: number) {
 		super(behavior);
 		this._firstContactPos = firstContactPos;
 		this._targetTime = targetTime;

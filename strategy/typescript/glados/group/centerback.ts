@@ -155,7 +155,7 @@ export class CenterBack implements Group {
 	// if two targets are both going to be NECESSARY soon, the first NECESSARY target will be covered and other targets will not be considered NECESSARY
 
 	// gets all CB applications as parameter (robot -> target)
-	calculateCenterBackPositions(centerBackApplications: Map<FriendlyRobot, Target>) {
+	public calculateCenterBackPositions(centerBackApplications: Map<FriendlyRobot, Target>) {
 		// important = if the centerbacks should take notice of that robot
 		// -> centerBacks move away to let that robot join the defense line
 		// -> must not happen to early
@@ -463,7 +463,7 @@ export class CenterBack implements Group {
 		}
 	}
 
-	run(messaging: MessageBox, messages: Map<FriendlyRobot, Target>) {
+	public run(messaging: MessageBox, messages: Map<FriendlyRobot, Target>) {
 		this.calculateCenterBackPositions(messages);
 
 		for (let robot of messages.keys()) {

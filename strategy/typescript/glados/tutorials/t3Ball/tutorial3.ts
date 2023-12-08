@@ -28,7 +28,7 @@ import { ToTarget } from "glados/trajectory/totarget";
 
 export class TutorialTask extends Task {
 
-	constructor(behavior: Behavior) {
+	public constructor(behavior: Behavior) {
 		super(behavior);
 	}
 

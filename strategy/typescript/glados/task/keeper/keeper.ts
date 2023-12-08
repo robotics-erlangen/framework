@@ -28,13 +28,13 @@ export class Keeper extends Task {
 	private _forceShoot: ForceShoot;
 	private lastBallBehindKeeper: boolean = false;
 
-	constructor(behavior: Behavior) {
+	public constructor(behavior: Behavior) {
 		super(behavior);
 		this._forceShoot = new ForceShoot(this);
 	}
 
 	// moves keeper do defending possition
-	run() {
+	public run() {
 		let keeperGoalDistance = 0.06;
 		if (Referee.isOpponentPenaltyState()) {
 			// during penalty prepare, the keeper has to touch the goal line

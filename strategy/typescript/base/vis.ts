@@ -37,11 +37,11 @@ export class Color {
 	public readonly blue: number;
 	public readonly alpha: number;
 
-	constructor(r: number, g: number, b: number, a: number) {
+	public constructor(r: number, g: number, b: number, a: number) {
 		this.red = r, this.green = g, this.blue = b, this.alpha = a;
 	}
 
-	setAlpha(a: number) {
+	public setAlpha(a: number) {
 		return new Color(this.red, this.green, this.blue, a);
 	}
 }

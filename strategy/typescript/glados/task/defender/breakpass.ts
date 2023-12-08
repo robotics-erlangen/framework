@@ -66,12 +66,12 @@ const obstacleTable: PathHelper.PathHelperParameters = {
 };
 
 export class BreakPass extends Task {
-	static readonly BUFFER_TIME = 0.7;
+	public static readonly BUFFER_TIME = 0.7;
 
-	static calculateBreakPos: (robot: FriendlyRobot) => [Position, Speed, number] =
+	public static calculateBreakPos: (robot: FriendlyRobot) => [Position, Speed, number] =
 		Cache.forFrame(calculateBreakPos);
 
-	run() {
+	public run() {
 
 		let [moveDest, endSpeed, waitingTime] = BreakPass.calculateBreakPos(this._robot);
 
@@ -79,7 +79,7 @@ export class BreakPass extends Task {
 
 		if (this._robot.pos.distanceTo(World.Ball.pos) < 0.5) {
 			this.setMainAttackerParameters(World.Ball.pos, 0);
-			this.behavior()._applyForMainAttacker();
+			this.behavior().applyForMainAttacker();
 			Attack.cancelCurrentPlannedMainAttacker();
 		}
 

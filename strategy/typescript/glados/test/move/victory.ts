@@ -15,23 +15,23 @@ export class Victory extends Move {
 	public static readonly MAX_ROBOTS = 12;
 	public static readonly ALLOW_EXTRA_ATTACKERS = false;
 
-	_state: string;
+	private _state: string;
 
 
-	constructor(robots: FriendlyRobot[], messaging: MessageBox) {
+	public constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 		super(robots, messaging);
 		this._state = "init";
 	}
 
-	static canStart() {
+	public static canStart() {
 		return true;
 	}
 
-	_canContinue() {
+	public canContinue(): boolean {
 		return true;
 	}
 
-	_updateTasks(): MoveParameters {
+	protected _updateTasks(): MoveParameters {
 		let taskAssignments: Map<FriendlyRobot, Assignment> = new Map<FriendlyRobot, Assignment>();
 
 		let nRobots = this._robots.length;

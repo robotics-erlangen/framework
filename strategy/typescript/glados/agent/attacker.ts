@@ -22,9 +22,9 @@ import { PenaltyPassiveDefense } from "glados/agent/shared/penaltypassivedefense
 import { MessageType } from "glados/control/messaging";
 
 export class Attacker extends Agent {
-	beOffensive: boolean = false;
+	public beOffensive: boolean = false;
 
-	_run() {
+	protected _run() {
 		if (this._activeBehavior) {
 			this._messaging.sendBroadcast(MessageType.attackerFlag);
 			this._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: "moves" });
@@ -33,7 +33,7 @@ export class Attacker extends Agent {
 		debug.set("pool rating", this.rateRobot());
 	}
 
-	getBehaviors(): CheckableConstructor[] {
+	public getBehaviors(): CheckableConstructor[] {
 		return [
 			ApplyForMainattacker,
 			SelectObjective,

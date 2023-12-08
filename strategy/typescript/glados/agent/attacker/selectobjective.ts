@@ -81,14 +81,14 @@ export class SelectObjective implements Checkable {
 	private _cachedNextRefereeState: World.RefereeStateType = "";
 	private _cachedRefereeState: World.RefereeStateType = "";
 
-	constructor(agent: Agent) {
+	public constructor(agent: Agent) {
 		if (!(agent instanceof Attacker)) {
 			throw new Error("a/a/selectobjective may only be used on attackers");
 		}
 		this._agent = agent;
 	}
 
-	check = debug.wrap("select objective", () => {
+	public check = debug.wrap("select objective", () => {
 		const messaging = this._agent.messaging();
 		const robot = this._agent.robot();
 
@@ -168,19 +168,19 @@ export class SelectObjective implements Checkable {
 	 * In both cases, this Checkable does not return any runnable Behavior,
 	 * thus it should provide no main attacker parameters
 	 */
-	mainAttackerParameters() {
+	public mainAttackerParameters() {
 		// this type assertion is necessary since the compiler infers the type
 		// to be (undefined | boolean)[]
 		return [undefined, false] as [undefined, false];
 	}
 
-	clearMainAttackerParameters() {}
+	public clearMainAttackerParameters() {}
 
-	agent() {
+	public agent() {
 		return this._agent;
 	}
 
-	setAgent(agent: Agent) {
+	public setAgent(agent: Agent) {
 		if (this._agent.robot() !== agent.robot()) {
 			throw new Error("Can't reuse behavior with different robot");
 		}

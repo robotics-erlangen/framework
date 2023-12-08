@@ -74,7 +74,7 @@ export class MrlTestCorner extends Move {
 	private _activeRobotShootPos: Position;
 	private _restart: boolean = true;
 
-	constructor(robots: FriendlyRobot[], messaging: MessageBox) {
+	public constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 		super(robots, messaging);
 		let goalDist = G.DefenseHeight + 0.4;
 		this._distractorPositions = [
@@ -91,7 +91,7 @@ export class MrlTestCorner extends Move {
 		this._activeRobotShootPos = new Vector(G.FieldWidthHalf / 2, G.FieldHeightHalf * 0.3);
 	}
 
-	public _canContinue(): boolean {
+	public canContinue(): boolean {
 		if (MrlTestCorner.Referee.isFriendlyFreeKickState()) {
 			return true;
 		}
@@ -101,7 +101,7 @@ export class MrlTestCorner extends Move {
 	}
 
 
-	_updateTasks(): MoveParameters {
+	protected _updateTasks(): MoveParameters {
 
 		// draw circles where robots cannot shoot a volley
 		let [center1, center2, radius] = MovesHelper.volleyCircle(World.Ball.pos, G.OpponentGoal, geom.degreeToRadian(55));

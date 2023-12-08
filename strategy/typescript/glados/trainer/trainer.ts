@@ -1,17 +1,17 @@
 import * as debug from "base/debug";
 
 import { dumpMessages, MessageBox, MessageType, MESSAGE_TYPE_LIST, Messaging } from "glados/control/messaging";
-import { Groups } from "glados/trainer/groups";
+import { Groups, Group } from "glados/trainer/groups";
 import { Roles } from "glados/trainer/roles";
 
 export class Trainer {
-	_messaging: MessageBox;
-	_allMessaging: Messaging;
+	public _messaging: MessageBox;
+	public _allMessaging: Messaging;
 
-	_groups: Groups;
-	_roles: Roles;
+	private _groups: Groups;
+	private _roles: Roles;
 
-	constructor() {
+	public constructor() {
 		this._allMessaging = new Messaging();
 		this._messaging = this._allMessaging.registerTrainer();
 
@@ -19,7 +19,11 @@ export class Trainer {
 		this._roles = new Roles(this._messaging);
 	}
 
-	_debugInbox(str: string) {
+	public setGroups(groupList: Group[]) {
+		this._groups.setGroups(groupList);
+	}
+
+	private _debugInbox(str: string) {
 		debug.pushtop(str);
 		for (const type of MESSAGE_TYPE_LIST) {
 			dumpMessages(type, this._messaging.receiveGeneric(type));
@@ -27,7 +31,7 @@ export class Trainer {
 		debug.pop(); // Trainer Inbox
 	}
 
-	run() {
+	public run() {
 		this._debugInbox("Trainer Inbox");
 		this._roles._chooseExclusiveRoles();
 		this._groups._runGroups();

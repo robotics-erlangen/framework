@@ -42,13 +42,13 @@ interface RandomMinor {
 
 class ExtendedRandom {
 	private _random: RandomMinor;
-	constructor(random: RandomMinor) {
+	public constructor(random: RandomMinor) {
 		this._random = random;
 	}
-	nextNumber53(): number {
+	public nextNumber53(): number {
 		return this._random.nextNumber53();
 	}
-	nextInt32(range?: [number, number]): number {
+	public nextInt32(range?: [number, number]): number {
 		if (range == undefined) {
 			throw new Error("nextInt32 without range is not possible for ExtendedRandom");
 		}

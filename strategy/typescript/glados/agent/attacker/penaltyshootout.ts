@@ -68,7 +68,7 @@ export class PenaltyShootout extends Behavior {
 	private _dribblePos: Position | undefined = undefined;
 	private _shootPos: Position = G.OpponentGoal;
 
-	_stop() {
+	protected _stop() {
 
 		this._penaltyStartTime = undefined;
 		this._contactPoint = undefined;
@@ -224,13 +224,13 @@ export class PenaltyShootout extends Behavior {
 		vis.addCircle("a/a/penalty: ball", ball.pos, 0.05, vis.colors.orchid, true);
 	}
 
-	_updateTask(): TaskAssignment<typeof ShootGoal> | TaskAssignment<typeof MoveToStaticBall> |
+	protected _updateTask(): TaskAssignment<typeof ShootGoal> | TaskAssignment<typeof MoveToStaticBall> |
 			TaskAssignment<typeof MoveToBall> | TaskAssignment<typeof StopAttack> |
 			TaskAssignment<typeof PenaltyChip> | TaskAssignment<typeof Dribble> |
 			TaskAssignment<typeof MoveToPos> {
 
 		// keep the attacking robot as MainAttacker
-		this._applyForMainAttacker(undefined, undefined, 2);
+		this.applyForMainAttacker(undefined, undefined, 2);
 
 		this._updateBall();
 		this._updateDribbling();

@@ -6,20 +6,20 @@ import { MessageType } from "glados/control/messaging";
 import { Piggy as PiggyTask } from "glados/task/defender/piggy";
 
 export class Piggy extends Behavior {
-	_opp: Robot | undefined = undefined;
+	private _opp: Robot | undefined = undefined;
 
-	_stop() {
+	protected _stop() {
 		this._opp = undefined;
 	}
 
-	check(): Behavior | undefined {
+	public check(): Behavior | undefined {
 		let role = this._messaging.receiveTrainer(MessageType.roleAssignment);
 		return role != undefined && role.name === "Piggy"
 			? this
 			: undefined;
 	}
 
-	_updateTask(): TaskAssignment<typeof PiggyTask> {
+	protected _updateTask(): TaskAssignment<typeof PiggyTask> {
 		let assignment = this._messaging.receiveTrainer(MessageType.roleAssignment);
 		if (assignment == undefined || assignment.name !== "Piggy") {
 			throw new Error();

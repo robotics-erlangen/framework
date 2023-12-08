@@ -13,27 +13,27 @@ const LEFT_POS = World.Geometry.FieldHeightHalf - 2;
 const HEIGHT_POS = World.Geometry.FieldWidthHalf - 0.3;
 
 export class InterceptPassMove extends Move {
-	public static MIN_ROBOTS: number = 2;
-	public static MAX_ROBOTS: number = 2;
+	public static readonly MIN_ROBOTS: number = 2;
+	public static readonly MAX_ROBOTS: number = 2;
 
-	public static ALLOW_EXTRA_ATTACKERS: boolean = false;
+	public static readonly ALLOW_EXTRA_ATTACKERS: boolean = false;
 
 	private lastMainAttacker: FriendlyRobot | undefined;
 
-	constructor(robots: FriendlyRobot[], messaging: MessageBox) {
+	public constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 		super(robots, messaging);
 		this.lastMainAttacker = undefined;
 	}
 
-	static canStart() {
+	public static canStart() {
 		return true;
 	}
 
-	_canContinue() {
+	public canContinue() {
 		return true;
 	}
 
-	_updateTasks(): MoveParameters {
+	protected _updateTasks(): MoveParameters {
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
 
 		let mainAttacker;

@@ -30,18 +30,18 @@ export interface MoveInfo {
 }
 
 export class Moves implements Group {
-	readonly name = "moves";
-	moveList: typeof Move[];
-	_numAttackersSent: boolean = false;
-	_chosenMove: undefined | {
+	public readonly name = "moves";
+	private moveList: typeof Move[];
+	private _numAttackersSent: boolean = false;
+	private _chosenMove: undefined | {
 		ctor: typeof Move;
 		requestedRobots: number;
 	};
-	_currentMove: Move | undefined;
-	_participatingRobots: FriendlyRobot[] = [];
+	private _currentMove: Move | undefined;
+	private _participatingRobots: FriendlyRobot[] = [];
 
-	constructor() {
-		this.moveList = [
+	public constructor(moveList?: typeof Move[]) {
+		this.moveList = moveList ?? [
 			KickOff,
 			KickOffDefensive,
 			MrlTestCorner,
@@ -62,7 +62,7 @@ export class Moves implements Group {
 		}
 	}
 
-	run(messaging: MessageBox, messages: Map<FriendlyRobot, undefined>) {
+	public run(messaging: MessageBox, messages: Map<FriendlyRobot, undefined>) {
 		// check if all participating robots are still available
 		if (this._currentMove) {
 			for (let r of this._participatingRobots) {
@@ -76,7 +76,7 @@ export class Moves implements Group {
 		}
 
 		// check if current move can be continued
-		if (this._currentMove && !this._currentMove._canContinue()) {
+		if (this._currentMove && !this._currentMove.canContinue()) {
 			this._currentMove = undefined;
 			this._chosenMove = undefined;
 			this._numAttackersSent = false;

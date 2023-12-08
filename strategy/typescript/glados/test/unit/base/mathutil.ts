@@ -75,7 +75,7 @@ function integerDistribution(from: number, to: number): (x: number) => number {
 
 
 export class BaseMathUtil extends UnitTest {
-	constructor() {
+	public constructor() {
 		super();
 		this.addTest("bound", this.testBound);
 		this.addTest("roundTowards", this.testRoundTowards);

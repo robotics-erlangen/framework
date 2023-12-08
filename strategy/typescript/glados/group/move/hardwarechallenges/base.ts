@@ -40,7 +40,7 @@ export abstract class HardwareChallengeBase extends Move {
 	private ballInitialized: boolean = false;
 
 	// any type meaning any of the scenarios in scenarios.ts from the JSONs
-	constructor(robots: FriendlyRobot[], messaging: MessageBox, positions: any) {
+	public constructor(robots: FriendlyRobot[], messaging: MessageBox, positions: any) {
 		super(robots, messaging);
 
 		PathHelper.setHardwareChallenge(0);
@@ -91,7 +91,7 @@ export abstract class HardwareChallengeBase extends Move {
 		return true;
 	}
 
-	public _canContinue() {
+	public canContinue(): boolean {
 		return true;
 	}
 

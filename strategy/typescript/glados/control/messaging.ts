@@ -509,325 +509,331 @@ type ReceiveRepeated = SentBy<"robot", SelectRepeated<true, SelectSingleSender<f
 type ReceiveTrainer = SentBy<"trainer", SelectRepeated<false, MessageType>>;
 type ReceiveTrainerRepeated = SentBy<"trainer", SelectRepeated<true, MessageType>>;
 
-export class MessageBox {
-	private messaging: Messaging;
-	private origin: MessageOrigin;
+export type MessageBox = Messaging.MessageBox;
+
+declare namespace Messaging {
+	type MessageBox = typeof Messaging.MessageBox.prototype;
+}
+
+export class Messaging {
+	// eslint-disable-next-line @typescript-eslint/naming-convention
+	public static readonly MessageBox = class {
+		private messaging: Messaging;
+		private origin: MessageOrigin;
 
 
-	constructor(messaging: Messaging, origin: MessageOrigin) {
-		this.messaging = messaging;
-		this.origin = origin;
-	}
+		public constructor(messaging: Messaging, origin: MessageOrigin) {
+			this.messaging = messaging;
+			this.origin = origin;
+		}
 
-	/**
-	 * Send a message to a certain robot. If a message of the same
-	 * sender-receiver-type constellation was already sent it will be
-	 * overwritten.
-	 * @param type - Which message to send
-	 * @param dest - The robot that will receive the message
-	 * @param data - The message data
-	 */
-	send<M extends Send>(type: M, dest: FriendlyRobot, data: DataOf<M>): void {
-		this.sendGeneric(type, dest, data, false);
-	}
+		/**
+		 * Send a message to a certain robot. If a message of the same
+		 * sender-receiver-type constellation was already sent it will be
+		 * overwritten.
+		 * @param type - Which message to send
+		 * @param dest - The robot that will receive the message
+		 * @param data - The message data
+		 */
+		public send<M extends Send>(type: M, dest: FriendlyRobot, data: DataOf<M>): void {
+			this.sendGeneric(type, dest, data, false);
+		}
 
-	/**
-	 * Send a repeated message to a certain robot. Multiple messages of the
-	 * same type can be sent by the same robot to the same receiver.
-	 * @param type - Which message to send
-	 * @param dest - The robot that will receive the message
-	 * @param data - The message data
-	 */
-	sendRepeated<M extends SendRepeated>(type: M, dest: FriendlyRobot, data: DataOf<M>): void {
-		this.sendGeneric(type, dest, data, true);
-	}
+		/**
+		 * Send a repeated message to a certain robot. Multiple messages of the
+		 * same type can be sent by the same robot to the same receiver.
+		 * @param type - Which message to send
+		 * @param dest - The robot that will receive the message
+		 * @param data - The message data
+		 */
+		public sendRepeated<M extends SendRepeated>(type: M, dest: FriendlyRobot, data: DataOf<M>): void {
+			this.sendGeneric(type, dest, data, true);
+		}
 
-	/**
-	 * Send a message to the trainer. If a message of the same sender-type
-	 * constellation was already sent it will be overwritten
-	 * @param type - Which message to send
-	 * @param data - The message data
-	 */
-	sendToTrainer<M extends SendToTrainer>(type: M, data: DataOf<M>): void {
-		this.sendGeneric(type, "trainer", data, false);
-	}
+		/**
+		 * Send a message to the trainer. If a message of the same sender-type
+		 * constellation was already sent it will be overwritten
+		 * @param type - Which message to send
+		 * @param data - The message data
+		 */
+		public sendToTrainer<M extends SendToTrainer>(type: M, data: DataOf<M>): void {
+			this.sendGeneric(type, "trainer", data, false);
+		}
 
-	/**
-	 * Send a repeated message to the trainer. Multiple messages of the same
-	 * type can be sent by the same robot.
-	 * @param type - Which message to send
-	 * @param data - The message data
-	 */
-	sendToTrainerRepeated<M extends SendToTrainerRepeated>(type: M, data: DataOf<M>): void {
-		this.sendGeneric(type, "trainer", data, true);
-	}
+		/**
+		 * Send a repeated message to the trainer. Multiple messages of the same
+		 * type can be sent by the same robot.
+		 * @param type - Which message to send
+		 * @param data - The message data
+		 */
+		public sendToTrainerRepeated<M extends SendToTrainerRepeated>(type: M, data: DataOf<M>): void {
+			this.sendGeneric(type, "trainer", data, true);
+		}
 
-	/**
-	 * Broadcast a flag message. Will be received by all robots and the
-	 * trainer.
-	 * @param type - Which flag to send
-	 */
-	sendBroadcast<M extends SendBroadcastNoData>(type: M, data?: undefined): void;
-	/**
-	 * Send a broadcast message. Will be received by all robots and the
-	 * trainer.
-	 * @param type - Which message to send
-	 * @param data - The message data
-	 * @param impersonation - Send the message in the name of someone else.
-	 * Only the trainer is allowed to do this. Note, that for non repeated
-	 * messages, messages sent by the impersonated sender will be overwritten.
-	 *
-	 * TODO Replace with proper sender types, see #936
-	 */
-	sendBroadcast(type: MessageType.selectedObjective, data: DataOf<MessageType.selectedObjective>, impersonation?: MessageOrigin): void;
-	/**
-	 * Send a broadcast message. Will be received by all robots and the
-	 * trainer.
-	 * @param type - Which message to send
-	 * @param data - The message data
-	 */
-	sendBroadcast<M extends SendBroadcast>(type: M, data: DataOf<M>): void;
-	sendBroadcast<M extends SendBroadcast | SendBroadcastNoData>(type: M, data: DataOf<M>, impersonation?: MessageOrigin): void {
-		if (type === MessageType.plannedAttackTime && (data === -Infinity || data === Infinity)) throw new Error("Invalid PAttackTime");
-		if (type === MessageType.earliestAttackTime && (data === -Infinity || data === Infinity)) throw new Error("Invalid EAttackTime");
-		this.sendGeneric(type, "all", data, false, impersonation);
-	}
+		/**
+		 * Broadcast a flag message. Will be received by all robots and the
+		 * trainer.
+		 * @param type - Which flag to send
+		 */
+		public sendBroadcast<M extends SendBroadcastNoData>(type: M, data?: undefined): void;
+		/**
+		 * Send a broadcast message. Will be received by all robots and the
+		 * trainer.
+		 * @param type - Which message to send
+		 * @param data - The message data
+		 * @param impersonation - Send the message in the name of someone else.
+		 * Only the trainer is allowed to do this. Note, that for non repeated
+		 * messages, messages sent by the impersonated sender will be overwritten.
+		 *
+		 * TODO Replace with proper sender types, see #936
+		 */
+		public sendBroadcast(type: MessageType.selectedObjective, data: DataOf<MessageType.selectedObjective>, impersonation?: MessageOrigin): void;
+		/**
+		 * Send a broadcast message. Will be received by all robots and the
+		 * trainer.
+		 * @param type - Which message to send
+		 * @param data - The message data
+		 */
+		public sendBroadcast<M extends SendBroadcast>(type: M, data: DataOf<M>): void;
+		public sendBroadcast<M extends SendBroadcast | SendBroadcastNoData>(type: M, data: DataOf<M>, impersonation?: MessageOrigin): void {
+			if (type === MessageType.plannedAttackTime && (data === -Infinity || data === Infinity)) throw new Error("Invalid PAttackTime");
+			if (type === MessageType.earliestAttackTime && (data === -Infinity || data === Infinity)) throw new Error("Invalid EAttackTime");
+			this.sendGeneric(type, "all", data, false, impersonation);
+		}
 
-	// for trainer -> trainer and impersonated messages
-	private debugTrainerMessage(type: MessageType, data: any, repeated: boolean, messageCount: number, impersonation?: MessageOrigin) {
-		debug.pushtop("Trainer -> Trainer Inbox");
+		// for trainer -> trainer and impersonated messages
+		private debugTrainerMessage(type: MessageType, data: any, repeated: boolean, messageCount: number, impersonation?: MessageOrigin) {
+			debug.pushtop("Trainer -> Trainer Inbox");
 
-		const messageName = impersonation && impersonation !== "trainer"
+			const messageName = impersonation && impersonation !== "trainer"
 			? `${MessageType[type]} (as Agent ${impersonation.id})`
 			: MessageType[type];
 
-		if (repeated) {
-			debug.push(messageName);
-			debug.set(`${messageCount - 1}`, data);
-			debug.pop(); // message type
-		} else {
-			debug.set(messageName, data);
-		}
-		debug.pop(); // Trainer -> Trainer Inbox
-	}
-
-	// TODO: more specific send methods for the different cases to improve performance
-	private sendGeneric<M extends MessageType>(type: M, receiver: "all" | "trainer" | FriendlyRobot, data: DataOf<M>, repeated: boolean, impersonation?: MessageOrigin) {
-		if (impersonation !== undefined && this.origin !== "trainer") {
-			throw new Error("Only the trainer is allowed to impersonate agents");
-		}
-
-		// although a sender is adressing a robot, a message is delivered
-		// to the corresponding agent. This ensures that a robot only receives
-		// messages sent in frames where he has had the current agent
-		if (receiver !== "all" && receiver !== "trainer") {
-			receiver = (this.messaging._robotToAgent.get(receiver) as AgentLike).robot();
-			if (receiver == undefined) {
-				return; // not registered yet
+			if (repeated) {
+				debug.push(messageName);
+				debug.set(`${messageCount - 1}`, data);
+				debug.pop(); // message type
+			} else {
+				debug.set(messageName, data);
 			}
+			debug.pop(); // Trainer -> Trainer Inbox
 		}
 
-		let messageBox = this.messaging._newMessages[type];
-		if (messageBox == undefined) {
-			messageBox = new Map<MessageOrigin, any>();
-			this.messaging._newMessages[type] = messageBox;
-		}
-		let receiveBox = messageBox.get(receiver);
-		if (receiveBox == undefined) {
-			receiveBox = new Map<FriendlyRobot, any>();
-			messageBox.set(receiver, receiveBox);
-		}
-
-		const sender = impersonation ?? this.origin;
-
-		let messageCount = 0;
-		if (repeated) {
-			let collection = receiveBox.get(sender);
-			if (collection == undefined) {
-				collection = [];
+		// TODO: more specific send methods for the different cases to improve performance
+		private sendGeneric<M extends MessageType>(type: M, receiver: "all" | "trainer" | FriendlyRobot, data: DataOf<M>, repeated: boolean, impersonation?: MessageOrigin) {
+			if (impersonation !== undefined && this.origin !== "trainer") {
+				throw new Error("Only the trainer is allowed to impersonate agents");
 			}
-			collection.push(data);
-			messageCount = collection.length;
-			receiveBox.set(sender, collection);
-		} else {
-			receiveBox.set(sender, data);
-		}
 
-		// debug messages from the trainer to itself directly, since they can be immediately received
-		if (impersonation !== undefined
+			// although a sender is adressing a robot, a message is delivered
+			// to the corresponding agent. This ensures that a robot only receives
+			// messages sent in frames where he has had the current agent
+			if (receiver !== "all" && receiver !== "trainer") {
+				receiver = (this.messaging._robotToAgent.get(receiver) as AgentLike).robot();
+				if (receiver == undefined) {
+					return; // not registered yet
+				}
+			}
+
+			let messageBox = this.messaging._newMessages[type];
+			if (messageBox == undefined) {
+				messageBox = new Map<MessageOrigin, any>();
+				this.messaging._newMessages[type] = messageBox;
+			}
+			let receiveBox = messageBox.get(receiver);
+			if (receiveBox == undefined) {
+				receiveBox = new Map<FriendlyRobot, any>();
+				messageBox.set(receiver, receiveBox);
+			}
+
+			const sender = impersonation ?? this.origin;
+
+			let messageCount = 0;
+			if (repeated) {
+				let collection = receiveBox.get(sender);
+				if (collection == undefined) {
+					collection = [];
+				}
+				collection.push(data);
+				messageCount = collection.length;
+				receiveBox.set(sender, collection);
+			} else {
+				receiveBox.set(sender, data);
+			}
+
+			// debug messages from the trainer to itself directly, since they can be immediately received
+			if (impersonation !== undefined
 				|| (receiver === "trainer" && this.origin === "trainer")) {
-			this.debugTrainerMessage(type, data, repeated, messageCount, impersonation);
+				this.debugTrainerMessage(type, data, repeated, messageCount, impersonation);
+			}
 		}
-	}
 
 
-	/**
-	 * Retrieve messages of a certain type sent to this box.
-	 * @param type - Which message to receive
-	 * @param receiveOwn - Whether to receive messages sent by this message box
-	 * @returns all messages of this type sent to this box along with their sender
-	 */
-	receive<M extends Receive>(type: M, receiveOwn?: boolean): ReadonlyRec<Map<FriendlyRobot, ReceivedData<M>>> {
-		return this.receiveGeneric(type, receiveOwn) as ReadonlyRec<Map<FriendlyRobot, any>>;
-	}
-
-	/**
-	 * Retrieve the `selectedObjective` message. This overload is required,
-	 * since objects returned by receive functions are usually immutable.
-	 * However, the objective lives in the messaging to allow the objective to
-	 * be reused even if the MA switches from defender to attacker. For this
-	 * reason it has to hold mutable state.
-	 *
-	 * This overload has to be higher up since `MessageType.selectedObjective`
-	 * is included in `ReceiveSingleSender`
-	 *
-	 * @param type - `MessageType.selectedObjective`
-	 * @param receiveOwn - Whether to receive messages sent by this message box
-	 * @returns the message along with its sender or an empty tuple if the message wasn't sent
-	 */
-	receiveSingleSender(type: MessageType.selectedObjective, receiveOwn?: boolean): [FriendlyRobot, ReceivedData<MessageType.selectedObjective>] | [];
-	/**
-	 * Retrieve a single sender message.
-	 * @param type - Which message to receive
-	 * @param receiveOwn - Whether to receive messages sent by this message box
-	 * @returns the message along with its sender or an empty tuple if the message wasn't sent
-	 */
-	receiveSingleSender<M extends ReceiveSingleSender>(type: M, receiveOwn?: boolean): ReadonlyRec<[FriendlyRobot, ReceivedData<M>] | []>;
-	receiveSingleSender<M extends ReceiveSingleSender>(type: M, receiveOwn?: boolean): ReadonlyRec<[FriendlyRobot, ReceivedData<M>] | []> {
-		const map = this.receiveGeneric(type, receiveOwn);
-		if (map.size > 1) {
-			throw new Error(`Single sender message ${MessageType[type]} sent by ${map.size} robots!`);
+		/**
+		 * Retrieve messages of a certain type sent to this box.
+		 * @param type - Which message to receive
+		 * @param receiveOwn - Whether to receive messages sent by this message box
+		 * @returns all messages of this type sent to this box along with their sender
+		 */
+		public receive<M extends Receive>(type: M, receiveOwn?: boolean): ReadonlyRec<Map<FriendlyRobot, ReceivedData<M>>> {
+			return this.receiveGeneric(type, receiveOwn) as ReadonlyRec<Map<FriendlyRobot, any>>;
 		}
-		const it = head(map);
-		return it
+
+		/**
+		 * Retrieve the `selectedObjective` message. This overload is required,
+		 * since objects returned by receive functions are usually immutable.
+		 * However, the objective lives in the messaging to allow the objective to
+		 * be reused even if the MA switches from defender to attacker. For this
+		 * reason it has to hold mutable state.
+		 *
+		 * This overload has to be higher up since `MessageType.selectedObjective`
+		 * is included in `ReceiveSingleSender`
+		 *
+		 * @param type - `MessageType.selectedObjective`
+		 * @param receiveOwn - Whether to receive messages sent by this message box
+		 * @returns the message along with its sender or an empty tuple if the message wasn't sent
+		 */
+		public receiveSingleSender(type: MessageType.selectedObjective, receiveOwn?: boolean): [FriendlyRobot, ReceivedData<MessageType.selectedObjective>] | [];
+		/**
+		 * Retrieve a single sender message.
+		 * @param type - Which message to receive
+		 * @param receiveOwn - Whether to receive messages sent by this message box
+		 * @returns the message along with its sender or an empty tuple if the message wasn't sent
+		 */
+		public receiveSingleSender<M extends ReceiveSingleSender>(type: M, receiveOwn?: boolean): ReadonlyRec<[FriendlyRobot, ReceivedData<M>] | []>;
+		public receiveSingleSender<M extends ReceiveSingleSender>(type: M, receiveOwn?: boolean): ReadonlyRec<[FriendlyRobot, ReceivedData<M>] | []> {
+			const map = this.receiveGeneric(type, receiveOwn);
+			if (map.size > 1) {
+				throw new Error(`Single sender message ${MessageType[type]} sent by ${map.size} robots!`);
+			}
+			const it = head(map);
+			return it
 			? it as ReadonlyRec<[FriendlyRobot, any]>
 			: [];
-	}
-
-	/**
-	 * Retrieve a repeated message.
-	 * @param param - Which message to receive
-	 * @param receiveOwn - Whether to receive messages sent by this message box
-	 * @returns the messages of this type sent to this box along with their sender
-	 */
-	receiveRepeated<M extends ReceiveRepeated>(type: M, receiveOwn?: boolean): ReadonlyRec<Map<FriendlyRobot, ReceivedData<M>>> {
-		return this.receiveGeneric(type, receiveOwn) as ReadonlyRec<Map<FriendlyRobot, ReceivedData<M>>>;
-	}
-
-	/**
-	 * Retrieve a message sent by the trainer.
-	 * @param type - Which message to receive
-	 * @param receiveOwn - Whether to receive messages sent by this message box (only sensible for the trainer)
-	 * @returns the message of this type or undefined if it wasn't sent
-	 */
-	receiveTrainer<M extends ReceiveTrainer>(type: M, receiveOwn?: boolean): ReadonlyRec<ReceivedData<M> | undefined> {
-		return this.receiveGeneric(type, receiveOwn).get("trainer");
-	}
-
-	/**
-	 * Retrieve a repeated message sent by the trainer.
-	 * @param type - Which message to receive
-	 * @param receiveOwn - Whether to receive messages sent by this message box (only sensible for the trainer)
-	 * @returns the messages of this type or undefined if it wasn't sent
-	 */
-	receiveTrainerRepeated<M extends ReceiveTrainerRepeated>(type: M, receiveOwn?: boolean): ReadonlyRec<ReceivedData<M> | undefined> {
-		return this.receiveGeneric(type, receiveOwn).get("trainer");
-	}
-
-	public receiveGeneric<M extends MessageType>(type: M, receiveOwn?: boolean): ReadonlyRec<Map<MessageOrigin, ReceivedData<M>>> {
-		let mtypeBox = this.messaging._deliveredMessages[type];
-		if (this.origin === "trainer") {
-			mtypeBox = this.messaging._newMessages[type];
 		}
-		if (mtypeBox == undefined) {
-			return emptyMap;
+
+		/**
+		 * Retrieve a repeated message.
+		 * @param param - Which message to receive
+		 * @param receiveOwn - Whether to receive messages sent by this message box
+		 * @returns the messages of this type sent to this box along with their sender
+		 */
+		public receiveRepeated<M extends ReceiveRepeated>(type: M, receiveOwn?: boolean): ReadonlyRec<Map<FriendlyRobot, ReceivedData<M>>> {
+			return this.receiveGeneric(type, receiveOwn) as ReadonlyRec<Map<FriendlyRobot, ReceivedData<M>>>;
 		}
-		// returns all messages of "type" which were sent to "all"
-		if (receiveOwn) {
+
+		/**
+		 * Retrieve a message sent by the trainer.
+		 * @param type - Which message to receive
+		 * @param receiveOwn - Whether to receive messages sent by this message box (only sensible for the trainer)
+		 * @returns the message of this type or undefined if it wasn't sent
+		 */
+		public receiveTrainer<M extends ReceiveTrainer>(type: M, receiveOwn?: boolean): ReadonlyRec<ReceivedData<M> | undefined> {
+			return this.receiveGeneric(type, receiveOwn).get("trainer");
+		}
+
+		/**
+		 * Retrieve a repeated message sent by the trainer.
+		 * @param type - Which message to receive
+		 * @param receiveOwn - Whether to receive messages sent by this message box (only sensible for the trainer)
+		 * @returns the messages of this type or undefined if it wasn't sent
+		 */
+		public receiveTrainerRepeated<M extends ReceiveTrainerRepeated>(type: M, receiveOwn?: boolean): ReadonlyRec<ReceivedData<M> | undefined> {
+			return this.receiveGeneric(type, receiveOwn).get("trainer");
+		}
+
+		public receiveGeneric<M extends MessageType>(type: M, receiveOwn?: boolean): ReadonlyRec<Map<MessageOrigin, ReceivedData<M>>> {
+			let mtypeBox = this.messaging._deliveredMessages[type];
+			if (this.origin === "trainer") {
+				mtypeBox = this.messaging._newMessages[type];
+			}
+			if (mtypeBox == undefined) {
+				return emptyMap;
+			}
+			// returns all messages of "type" which were sent to "all"
+			if (receiveOwn) {
+				if (mtypeBox.get("all") == undefined) {
+					return emptyMap;
+				}
+				return mtypeBox.get("all");
+			}
+			let receiveBox = mtypeBox.get(this.origin);
+			let allBox: Map<MessageOrigin, any> | undefined = mtypeBox.get("all");
+			if (receiveBox == undefined && allBox == undefined) {
+				return emptyMap;
+			} else {
+				if (receiveBox == undefined) {
+					receiveBox = new Map<FriendlyRobot, any>();
+					mtypeBox.set(this.origin, receiveBox);
+				}
+				if (allBox) {
+					let allMerged = mtypeBox.get("allBoxMerged");
+					if (allMerged == undefined) {
+						allMerged = new Map();
+						mtypeBox.set("allBoxMerged", allMerged);
+					}
+					if (allMerged.get(this.origin) == undefined) { // merge broadcasts into receiveBox
+						let receiverRobot = (this.origin === "trainer") ? "trainer" : this.origin;
+						for (let sender of allBox.keys()) {
+							let data = allBox.get(sender);
+							if (sender !== receiverRobot || this.origin === "trainer") {
+								receiveBox.set(sender, data);
+							}
+						}
+						allMerged.set(this.origin, true);
+					}
+				}
+
+				return receiveBox;
+			}
+		}
+
+		public receiveNoBroadcast<M extends MessageType>(type: M): ReadonlyRec<Map<MessageOrigin, ReceivedData<M>>> {
+			let mtypeBox = this.messaging._deliveredMessages[type];
+			if (this.origin === "trainer") {
+				mtypeBox = this.messaging._newMessages[type];
+			}
+			if (mtypeBox == undefined) {
+				return emptyMap;
+			}
+			let receiveBox = mtypeBox.get(this.origin);
+			if (receiveBox == undefined) {
+				return emptyMap;
+			} else {
+				return receiveBox;
+			}
+		}
+
+		public receiveAllInbox<M extends MessageType>(type: M): ReadonlyRec<Map<MessageOrigin, ReceivedData<M>>> {
+			let mtypeBox = this.messaging._deliveredMessages[type];
+			if (this.origin === "trainer") {
+				mtypeBox = this.messaging._newMessages[type];
+			}
+			if (mtypeBox == undefined) {
+				return emptyMap;
+			}
 			if (mtypeBox.get("all") == undefined) {
 				return emptyMap;
 			}
 			return mtypeBox.get("all");
 		}
-		let receiveBox = mtypeBox.get(this.origin);
-		let allBox: Map<MessageOrigin, any> | undefined = mtypeBox.get("all");
-		if (receiveBox == undefined && allBox == undefined) {
-			return emptyMap;
-		} else {
-			if (receiveBox == undefined) {
-				receiveBox = new Map<FriendlyRobot, any>();
-				mtypeBox.set(this.origin, receiveBox);
-			}
-			if (allBox) {
-				let allMerged = mtypeBox.get("allBoxMerged");
-				if (allMerged == undefined) {
-					allMerged = new Map();
-					mtypeBox.set("allBoxMerged", allMerged);
-				}
-				if (allMerged.get(this.origin) == undefined) { // merge broadcasts into receiveBox
-					let receiverRobot = (this.origin === "trainer") ? "trainer" : this.origin;
-					for (let sender of allBox.keys()) {
-						let data = allBox.get(sender);
-						if (sender !== receiverRobot || this.origin === "trainer") {
-							receiveBox.set(sender, data);
-						}
-					}
-					allMerged.set(this.origin, true);
-				}
-			}
 
-			return receiveBox;
-		}
-	}
-
-	public receiveNoBroadcast<M extends MessageType>(type: M): ReadonlyRec<Map<MessageOrigin, ReceivedData<M>>> {
-		let mtypeBox = this.messaging._deliveredMessages[type];
-		if (this.origin === "trainer") {
-			mtypeBox = this.messaging._newMessages[type];
-		}
-		if (mtypeBox == undefined) {
-			return emptyMap;
-		}
-		let receiveBox = mtypeBox.get(this.origin);
-		if (receiveBox == undefined) {
-			return emptyMap;
-		} else {
-			return receiveBox;
-		}
-	}
-
-	public receiveAllInbox<M extends MessageType>(type: M): ReadonlyRec<Map<MessageOrigin, ReceivedData<M>>> {
-		let mtypeBox = this.messaging._deliveredMessages[type];
-		if (this.origin === "trainer") {
-			mtypeBox = this.messaging._newMessages[type];
-		}
-		if (mtypeBox == undefined) {
-			return emptyMap;
-		}
-		if (mtypeBox.get("all") == undefined) {
-			return emptyMap;
-		}
-		return mtypeBox.get("all");
-	}
-
-	public cancel<M extends MessageType>(type: M): void {
+		public cancel<M extends MessageType>(type: M): void {
 		/* Most of the time, it probably is a bad idea to cancel messages, so
 		 * we restrict this ability a bit. It is most sensical for the trainer
 		 * to be able to do this, since it is an overseer. The same can't be
 		 * said for normal agents.
 		 */
-		if (this.origin !== "trainer") {
-			throw new Error("Only the trainer is allowed to cancel messages");
+			if (this.origin !== "trainer") {
+				throw new Error("Only the trainer is allowed to cancel messages");
+			}
+
+			this.messaging._newMessages[type]?.clear();
 		}
+	};
 
-		this.messaging._newMessages[type]?.clear();
-	}
-}
-
-export class Messaging {
-
-	_newMessages: { [type: number]: Map<MessageOrigin | "all" | "allBoxMerged", any | any[]> } = {}; // is reset every frame
-	_deliveredMessages: { [type: number]: Map<MessageOrigin | "all" | "allBoxMerged", any | any[]> } = {}; // reference to the newMessages table of the last last frame
+	private _newMessages: { [type: number]: Map<MessageOrigin | "all" | "allBoxMerged", any | any[]> } = {}; // is reset every frame
+	private _deliveredMessages: { [type: number]: Map<MessageOrigin | "all" | "allBoxMerged", any | any[]> } = {}; // reference to the newMessages table of the last last frame
 	// messages are stored in the following format:
 	// messages = {
 	// 	messageTypeA = {
@@ -835,24 +841,24 @@ export class Messaging {
 	// 	},
 	// 	messageTypeB = { Agent3 = { senderRobot4 = data} }
 	// }
-	_robotToAgent: Map<FriendlyRobot, AgentLike> = new Map<FriendlyRobot, AgentLike>();
-	_trainerRegistered = false;
+	private _robotToAgent: Map<FriendlyRobot, AgentLike> = new Map<FriendlyRobot, AgentLike>();
+	private _trainerRegistered = false;
 
-	registerAgent(agent: AgentLike): MessageBox {
+	public registerAgent(agent: AgentLike): MessageBox {
 		this._robotToAgent.set(agent.robot(), agent);
-		return new MessageBox(this, agent.robot());
+		return new Messaging.MessageBox(this, agent.robot());
 	}
 
-	registerTrainer(): MessageBox {
+	public registerTrainer(): MessageBox {
 		if (this._trainerRegistered) {
 			throw new Error("trainer is already registered!");
 		}
 		this._trainerRegistered = true;
-		return new MessageBox(this, "trainer");
+		return new Messaging.MessageBox(this, "trainer");
 	}
 
 	// this method should be called once every frame
-	deliverMessages() {
+	public deliverMessages() {
 		this._deliveredMessages = this._newMessages;
 		this._newMessages = {};
 	}

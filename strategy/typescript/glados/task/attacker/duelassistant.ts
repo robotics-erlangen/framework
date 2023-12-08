@@ -20,7 +20,7 @@ export class DuelAssistant extends Task {
 	private _lastPositionMode = false;
 	private _suggestPass: SuggestPass;
 
-	constructor(behavior: Behavior) {
+	public constructor(behavior: Behavior) {
 		super(behavior);
 		this._update();
 		if (this._duelist == undefined || this._opponent == undefined) {
@@ -40,7 +40,7 @@ export class DuelAssistant extends Task {
 		}
 	}
 
-	run() {
+	public run() {
 		const HYSTERESIS_DISTANCE = 0.3;
 		const HYSTERESIS_BASELINE = 0.5;
 		const HYSTERESIS_ORTHOGONAL_DISTANCE = 0.2 * this._robot.radius;

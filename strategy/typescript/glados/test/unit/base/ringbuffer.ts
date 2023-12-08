@@ -4,7 +4,7 @@ import { Vector } from "base/vector";
 import { UnitTest } from "glados/test/unit/unittest";
 
 export class BaseRingBuffer extends UnitTest {
-	constructor() {
+	public constructor() {
 		super();
 		this.addTest("new RingBuffer", this.testConstructor);
 		this.addTest("RingBuffer.isEmptyFull", this.testIsEmptyFull);

@@ -12,20 +12,20 @@ import * as UtilZone from "glados/util/zone";
 const G = World.Geometry;
 
 export class Support implements Group {
-	readonly name = "support";
+	public readonly name = "support";
 
-	_supportCount = 0;
+	private _supportCount = 0;
 
-	_zones: UtilZone.Zone[] = [];
-	_emptyZone: UtilZone.Zone | undefined;
+	private _zones: UtilZone.Zone[] = [];
+	private _emptyZone: UtilZone.Zone | undefined;
 
-	_lastMainAttacker: FriendlyRobot | undefined;
-	_lastRobots: FriendlyRobot[] | undefined;
-	_lastAssignments: Map<UtilZone.Zone, FriendlyRobot> | undefined = undefined;
+	private _lastMainAttacker: FriendlyRobot | undefined;
+	private _lastRobots: FriendlyRobot[] | undefined;
+	private _lastAssignments: Map<UtilZone.Zone, FriendlyRobot> | undefined = undefined;
 
 	private objective: Objective | undefined = undefined;
 
-	_chooseEmptyZone(mainAttackerPos?: Position) {
+	private _chooseEmptyZone(mainAttackerPos?: Position) {
 		let emptyZoneHysteresis = this._emptyZone ? 0.2 : 0;
 		if (mainAttackerPos != undefined) {
 			for (let zone of this._zones) {
@@ -44,7 +44,7 @@ export class Support implements Group {
 		}
 	}
 
-	run(messaging: MessageBox, messages: Map<FriendlyRobot, undefined>) {
+	public run(messaging: MessageBox, messages: Map<FriendlyRobot, undefined>) {
 		const [, objective] = messaging.receiveSingleSender(MessageType.selectedObjective);
 		if (!objective) {
 			return;

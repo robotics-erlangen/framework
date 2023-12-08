@@ -14,8 +14,8 @@ import * as Attack from "glados/util/attack";
  * It will participate in the support group and accept passes if necessary.
  */
 export class Support extends Behavior {
-	_forceKeepingInPool: boolean = false;
-	_supportParams: SupportParameters;
+	protected _forceKeepingInPool: boolean = false;
+	private _supportParams: SupportParameters;
 
 	/**
 	 * Construct a new instance.
@@ -23,21 +23,21 @@ export class Support extends Behavior {
 	 * @param agent - The agent this behavior will initially belong to
 	 * @param supportParams - Parameters to parameterize the {@link Support} task with
 	 */
-	constructor(agent: Agent, supportParams: SupportParameters) {
+	public constructor(agent: Agent, supportParams: SupportParameters) {
 		super(agent);
 		this._supportParams = supportParams;
 	}
 
-	addDebugInfo() {
+	public addDebugInfo() {
 		debug.set(undefined, this.constructor.name);
 		debug.set("Sampling", this._supportParams.samplingCtor.name);
 	}
 
-	_stop() {
+	protected _stop() {
 		this._forceKeepingInPool = false;
 	}
 
-	check(): Behavior {
+	public check(): Behavior {
 		this._forceKeepingInPool = false;
 		let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
 		if (passInfoTable) {
@@ -51,7 +51,7 @@ export class Support extends Behavior {
 		return this;
 	}
 
-	_updateTask(): TaskAssignment<typeof SideStep> | TaskAssignment<typeof AcceptPass> | TaskAssignment<typeof SupportTask> {
+	protected _updateTask(): TaskAssignment<typeof SideStep> | TaskAssignment<typeof AcceptPass> | TaskAssignment<typeof SupportTask> {
 		let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
 		let relevantPassInfo = passInfoTable ? Attack.relevantPassInfoMessage(this._robot, passInfoTable) : undefined;
 		let prevRobotTime = (this._task instanceof AcceptPass) ? (this._task as AcceptPass).getLastTime() : undefined;

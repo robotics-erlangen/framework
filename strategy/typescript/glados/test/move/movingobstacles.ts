@@ -16,7 +16,7 @@ class AlternatingObstacle {
 	private radius: number;
 
 	// wayOffset is in percent
-	constructor(pos1: Position, pos2: Position, speed: number = 1, radius = 0.2, wayOffset: number = 0) {
+	public constructor(pos1: Position, pos2: Position, speed: number = 1, radius = 0.2, wayOffset: number = 0) {
 		this.pos1 = pos1;
 		this.pos2 = pos2;
 		this.speed = speed;
@@ -60,7 +60,7 @@ export class MovingObstacles extends Move {
 		ignoreBallPlacementObstacle: true
 	};
 
-	constructor(robots: FriendlyRobot[], messaging: MessageBox) {
+	public constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 		super(robots, messaging);
 		for (let i = 0; i <= 10; i++) {
 			let y = (i - 5) / 1.5;
@@ -69,15 +69,15 @@ export class MovingObstacles extends Move {
 		}
 	}
 
-	static canStart() {
+	public static canStart() {
 		return true;
 	}
 
-	_canContinue() {
+	public canContinue(): boolean {
 		return true;
 	}
 
-	_updateTasks(): MoveParameters {
+	protected _updateTasks(): MoveParameters {
 		let changed = false;
 		if (this._robots[0].pos.distanceTo(this.targetPos) < 0.05) {
 			this.targetPos = this.targetPos * -1;

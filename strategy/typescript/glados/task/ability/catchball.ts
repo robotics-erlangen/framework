@@ -42,7 +42,7 @@ function isBallInRobot(robot: FriendlyRobot, ball: BallLike) {
 
 let lastReasonableBallPos: Position = World.Ball.pos;
 class BallPosProcess implements Process {
-	run() {
+	public run() {
 		// the current prediction model doesn't acoount for collisions, so avoid prediction of the ball state after a collision
 		let ballInsideRobot = false;
 		for (let robot of World.FriendlyRobots) {
@@ -56,7 +56,7 @@ class BallPosProcess implements Process {
 		}
 	}
 
-	isFinished(): boolean {
+	public isFinished(): boolean {
 		return false;
 	}
 }
@@ -68,14 +68,14 @@ export class CatchBall {
 	private _ignoringOpponents: boolean = false;
 	private lastWasBackOff: boolean = false;
 
-	_robot: FriendlyRobot;
-	_task: Task;
+	private _robot: FriendlyRobot;
+	private _task: Task;
 
 	private get _messaging() {
 		return this._task.behavior().agent().messaging();
 	}
 
-	constructor(task: Task) {
+	public constructor(task: Task) {
 		this._robot = task.behavior().agent().robot();
 		this._task = task;
 	}
@@ -90,7 +90,7 @@ export class CatchBall {
 	 * @param maxSpeed - Maximum speed of the robot
 	 * @returns [catchTime, catchPosition] - When we will catch the ball (relative Time) and the ball position then
 	 */
-	_catchBall(targetPos: Position, distanceToBall: number, targetSpeed?: number, maxSpeed?: number): [number, Position] {
+	public _catchBall(targetPos: Position, distanceToBall: number, targetSpeed?: number, maxSpeed?: number): [number, Position] {
 		let ball = World.Ball;
 		// update catch time
 		if (this._catchTime != undefined && !Ball.isAccelerating() && this._recalculateCatchTimeCounter < 20) {
@@ -256,7 +256,7 @@ export class CatchBall {
 		return [this._catchTime, moveDest + Vector.fromAngle(viewDir) * (this._robot.shootRadius + World.Ball.radius)];
 	}
 
-	_calculateHitTime(ball: BallLike & { maxSpeed: number }) {
+	private _calculateHitTime(ball: BallLike & { maxSpeed: number }) {
 		// first check if the ball is inside the robot
 		if (isBallInRobot(this._robot, ball)) {
 			// that means the ball is about to be reflected by the robot
@@ -327,7 +327,7 @@ export class CatchBall {
 		return Infinity;
 	}
 
-	limitEndSpeedToField(moveDest: Position, endSpeed: Speed): Speed {
+	public limitEndSpeedToField(moveDest: Position, endSpeed: Speed): Speed {
 		let endSpeedLength = endSpeed.length();
 		if (endSpeed.length() > 0.01) {
 			let extrapolatedRobot = {
@@ -347,7 +347,7 @@ export class CatchBall {
 		return endSpeed.withLength(endSpeedLength);
 	}
 
-	_ballCatchMethod(currentBall: BallLike, predictedBall: BallLike, moveDest: Position): CatchMethod {
+	private _ballCatchMethod(currentBall: BallLike, predictedBall: BallLike, moveDest: Position): CatchMethod {
 		// check whether the robot is stopping, moving around or hunting the ball
 		let robotTargetDist = this._robot.pos.distanceTo(moveDest);
 		// distance minus robot and ball radius thus the ball is for sure between the robot and the catch pos
@@ -376,7 +376,7 @@ export class CatchBall {
 		}
 	}
 
-	_createMoveAroundBallObstacle(path: Path, moveDest: Position, minBall: BallLike, predictedBall: BallLike) {
+	private _createMoveAroundBallObstacle(path: Path, moveDest: Position, minBall: BallLike, predictedBall: BallLike) {
 		let ballDist = predictedBall.pos.distanceTo(minBall.pos);
 		// block connection between first touch point and target catch pos
 		if (ballDist > OBSTACLE_EPSILON) {
@@ -426,7 +426,7 @@ export class CatchBall {
 
 	}
 
-	_createHuntingBallObstacle(path: Path, viewDir: number, predictedBall: BallLike) {
+	private _createHuntingBallObstacle(path: Path, viewDir: number, predictedBall: BallLike) {
 		path.addCircle(predictedBall.pos, predictedBall.radius - OBSTACLE_EPSILON, "ball", PathHelper.PRIORITIES.CATCH_BALL);
 		vis.addCircle("t/a/catchball: CatchBall", predictedBall.pos, predictedBall.radius, vis.colors.skyBlueHalf);
 
@@ -435,7 +435,7 @@ export class CatchBall {
 		vis.addPath("t/a/catchball: CatchBall", [predictedBall.pos, frontEnd], vis.colors.skyBlueHalf, undefined, undefined, 2 * (predictedBall.radius - OBSTACLE_EPSILON));
 	}
 
-	_createBallCorridor(path: Path, viewDir: number, predictedBall: BallLike) {
+	private _createBallCorridor(path: Path, viewDir: number, predictedBall: BallLike) {
 		// bracket to prevent hitting the ball with the robots side / back
 		let obstacleErrorDist = this._robot.radius - this._robot.shootRadius + DIST_ERROR;
 		let corridorRadius = predictedBall.radius;

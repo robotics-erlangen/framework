@@ -12,11 +12,11 @@ const CRITICAL_DISTANCE = 4;
 
 export class DefendPenaltyShootout extends Behavior {
 
-	check(): Behavior | undefined {
+	public check(): Behavior | undefined {
 		return Referee.isOpponentPenaltyState() ? this : undefined;
 	}
 
-	_updateTask(): TaskAssignment<typeof ShootoutKeeper> | TaskAssignment<typeof Keeper> {
+	protected _updateTask(): TaskAssignment<typeof ShootoutKeeper> | TaskAssignment<typeof Keeper> {
 		for (let r of World.OpponentRobots) {
 			if (World.RefereeState === "Game" && r.pos.distanceTo(G.FriendlyGoal) < CRITICAL_DISTANCE) {
 				return [ShootoutKeeper];

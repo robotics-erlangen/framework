@@ -126,7 +126,7 @@ export class LessThanHyst implements Hyst<number, boolean> {
 	 * to be less than or greater than the threshold
 	 * @param initialState - The initial state of the hysteresis
 	 */
-	constructor(threshold: number, hyst: number, initialState: boolean = false) {
+	public constructor(threshold: number, hyst: number, initialState: boolean = false) {
 		if (hyst < 0) {
 			throw Error(`trying to create hysteresis with a hysteresis value of ${hyst}`);
 		}
@@ -228,7 +228,7 @@ export class GreaterThanHyst implements Hyst<number, boolean> {
 	 * to be less than or greater than the threshold
 	 * @param initialState - The initial state of the hysteresis
 	 */
-	constructor(threshold: number, hyst: number, initialState: boolean = false) {
+	public constructor(threshold: number, hyst: number, initialState: boolean = false) {
 		this.lessThan = new LessThanHyst(threshold, hyst, !initialState);
 	}
 
@@ -354,7 +354,7 @@ export class InIntervalHyst implements Hyst<number, boolean> {
 	 * as well as the hyst value.
 	 * @param initialState - The initial state of the hysteresis
 	 */
-	constructor(interval: [number, number], hyst: number, initialState: boolean = false) {
+	public constructor(interval: [number, number], hyst: number, initialState: boolean = false) {
 		const [lower, upper] = interval;
 		if (lower > upper) {
 			throw Error(`trying to create interval hysteresis for interval [${lower}, ${upper}]`);
@@ -462,7 +462,7 @@ export class MultiValueHyst<T> implements Hyst<number, T> {
 	 * to be less than or greater than a threshold
 	 * @param initialState - The initial state of the hysteresis
 	 */
-	constructor(values: T[], thresholds: number[], hyst: number, initialState: T = values[0]) {
+	public constructor(values: T[], thresholds: number[], hyst: number, initialState: T = values[0]) {
 		if (values.length < 2) {
 			throw Error(`MultiValueHyst needs at least 2 values, but got only ${values.length} values`);
 		}
@@ -610,7 +610,7 @@ export class VectorHyst implements Hyst<Vector, boolean> {
 	 * @param hyst - The hysteresis value around dist
 	 * @param initialState - The initial state of the hysteresis
 	 */
-	constructor(target: Vector = new Vector(0, 0), threshold: number, hyst: number, initialState: boolean = false) {
+	public constructor(target: Vector = new Vector(0, 0), threshold: number, hyst: number, initialState: boolean = false) {
 		if (threshold < 0) {
 			throw new Error(`dist has to be greater than 0, but is ${threshold}`);
 		}
@@ -727,7 +727,7 @@ export class AngleHyst implements Hyst<number, boolean> {
 	 * @param hyst - The hysteresis value around the interval
 	 * @param initialState - The initial state of the hysteresis
 	 */
-	constructor(target: number, diff: number, hyst: number, initialState: boolean = false) {
+	public constructor(target: number, diff: number, hyst: number, initialState: boolean = false) {
 		if (diff < 0) {
 			throw new Error(`diff has to be greater than 0, but is ${diff}`);
 		}

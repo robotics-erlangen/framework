@@ -2,13 +2,13 @@ import { BaseTaskAssignment, Behavior, CONTINUE_TASK } from "glados/agent/base/b
 import { MessageType } from "glados/control/messaging";
 
 export class Move extends Behavior {
-	check(): Behavior | undefined {
+	public check(): Behavior | undefined {
 		return this._messaging.receiveTrainer(MessageType.moveAssignment) != undefined
 			? this
 			: undefined;
 	}
 
-	_updateTask(): BaseTaskAssignment | typeof CONTINUE_TASK {
+	protected _updateTask(): BaseTaskAssignment | typeof CONTINUE_TASK {
 		let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
 		if (passInfoTable) {
 			for (let passInfo of passInfoTable) {
@@ -25,7 +25,7 @@ export class Move extends Behavior {
 		}
 
 		if (assignment.mainAttacker) {
-			this._applyForMainAttacker(undefined, undefined, 2);
+			this.applyForMainAttacker(undefined, undefined, 2);
 		}
 		if (assignment.behavior) {
 			let deferredResult = this.runDeferredBehavior(assignment.behavior, assignment.restart);

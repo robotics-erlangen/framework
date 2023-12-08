@@ -14,13 +14,13 @@ export class AgentPool {
 	private _agentType: typeof Agent;
 	private _robotLimit: number;
 
-	constructor(agentType: typeof Agent, robotLimit: number = Infinity) {
+	public constructor(agentType: typeof Agent, robotLimit: number = Infinity) {
 		// robots and agents are mapped 1:1 to each other
 		this._agentType = agentType;
 		this._robotLimit = robotLimit;
 	}
 
-	run() {
+	public run() {
 		for (let agent of this._agents) {
 			agent.run();
 		}
@@ -32,7 +32,7 @@ export class AgentPool {
 	}
 
 	// remove agents and associated robots we no longer want to keep
-	cleanupRobots() {
+	public cleanupRobots() {
 		let agents: Agent[] = []; // agents to keep
 		for (let agent of this._agents) {
 			if (agent.keepRobot()) {
@@ -55,7 +55,7 @@ export class AgentPool {
 		this._agents = agents;
 	}
 
-	takeRobot(robots: FriendlyRobot[], messaging: Messaging): FriendlyRobot | undefined {
+	public takeRobot(robots: FriendlyRobot[], messaging: Messaging): FriendlyRobot | undefined {
 		if (this._agents.length >= this._robotLimit) {
 			return;
 		}
@@ -67,7 +67,7 @@ export class AgentPool {
 		return robot;
 	}
 
-	robots(): FriendlyRobot[] {
+	public robots(): FriendlyRobot[] {
 		let robots: FriendlyRobot[] = [];
 		for (let agent of this._agents) {
 			robots.push(agent.robot());
@@ -75,7 +75,7 @@ export class AgentPool {
 		return robots;
 	}
 
-	removeRobot(robot: FriendlyRobot): boolean {
+	public removeRobot(robot: FriendlyRobot): boolean {
 		for (let agent of this._agents) {
 			if (agent.robot() === robot) {
 				this._agents.splice(this._agents.indexOf(agent), 1);
@@ -85,7 +85,7 @@ export class AgentPool {
 		return false;
 	}
 
-	hasExchangeableRobot(): boolean {
+	public hasExchangeableRobot(): boolean {
 		if (this._agents.length < this._robotLimit) {
 			return true;
 		}
@@ -94,14 +94,14 @@ export class AgentPool {
 			if (this.isImmune(agent)) {
 				continue;
 			}
-			if (agent._activeBehavior && !agent._activeBehavior.forceKeepingInPool()) {
+			if (agent.activeBehavior && !agent.activeBehavior.forceKeepingInPool()) {
 				possibleRobots++;
 			}
 		}
 		return possibleRobots > Math.max(0, this._agents.length - this._robotLimit);
 	}
 
-	setRobotLimit(robotLimit: number) {
+	public setRobotLimit(robotLimit: number) {
 		if (robotLimit < 0) {
 			throw new Error(`We don't allow negative robot limits: ${robotLimit}`);
 		}
@@ -110,12 +110,12 @@ export class AgentPool {
 }
 
 export class AttackerPool extends AgentPool {
-	constructor(agentType: typeof Agent, robotLimit: number = Infinity) {
+	public constructor(agentType: typeof Agent, robotLimit: number = Infinity) {
 		super(agentType, robotLimit);
 	}
 
 	protected isImmune(x: Agent) {
-		let moveInfo = x._messaging.receiveTrainer(MessageType.moveInfo);
+		let moveInfo = x.messaging().receiveTrainer(MessageType.moveInfo);
 		if (moveInfo == undefined) {
 			return false;
 		}

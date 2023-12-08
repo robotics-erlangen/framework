@@ -9,7 +9,7 @@ import { HandleBall } from "glados/agent/keeper/handleball";
 
 export class Keeper extends Agent {
 
-	getBehaviors(): CheckableConstructor[] {
+	public getBehaviors(): CheckableConstructor[] {
 		return [
 			DefendPenaltyShootout,
 			HandleBall,
@@ -17,7 +17,7 @@ export class Keeper extends Agent {
 		];
 	}
 
-	static takeRobot(robots: FriendlyRobot[]): FriendlyRobot | undefined {
+	public static takeRobot(robots: FriendlyRobot[]): FriendlyRobot | undefined {
 		for (let robot of robots) {
 			if (robot === World.FriendlyKeeper) {
 				return robot;

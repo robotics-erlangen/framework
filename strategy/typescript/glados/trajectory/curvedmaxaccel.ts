@@ -651,7 +651,7 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 		return [{ spline: spline }, targetPos, endTime];
 	}
 
-	canHandle(...args: any[]): boolean {
+	public canHandle(...args: any[]): boolean {
 		return true;
 	}
 }

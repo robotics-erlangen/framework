@@ -27,7 +27,7 @@ enum State {
 }
 
 export class FreeKick extends Behavior {
-	_state: {
+	private _state: {
 		tag: State.Prepare | State.Wait | State.ShootGoal;
 		pass?: undefined;
 		passList?: undefined;
@@ -37,16 +37,16 @@ export class FreeKick extends Behavior {
 		passList: Attack.PassInfo[];
 	} = { tag: State.Prepare };
 
-	_dirty: boolean = false;
-	_waitStartTime: number | undefined = undefined;
-	_ratePass: Attack.PassRater;
+	private _dirty: boolean = false;
+	private _waitStartTime: number | undefined = undefined;
+	private _ratePass: Attack.PassRater;
 
-	constructor(agent: Agent, ratePass: Attack.PassRater) {
+	public constructor(agent: Agent, ratePass: Attack.PassRater) {
 		super(agent);
 		this._ratePass = ratePass;
 	}
 
-	_stop() {
+	protected _stop() {
 		this._state = {
 			tag: State.Prepare,
 		};
@@ -55,7 +55,7 @@ export class FreeKick extends Behavior {
 		this._waitStartTime = undefined;
 	}
 
-	check(): Behavior | undefined {
+	public check(): Behavior | undefined {
 		// we have to be main attacker
 		if (this._messaging.receiveTrainer(MessageType.mainAttacker) !== this._robot) {
 			return undefined;
@@ -75,7 +75,7 @@ export class FreeKick extends Behavior {
 		return undefined;
 	}
 
-	_updateTask(): TaskAssignment<typeof TaskPass> | TaskAssignment<typeof ShootGoal> | TaskAssignment<typeof MoveToStaticBall> {
+	protected _updateTask(): TaskAssignment<typeof TaskPass> | TaskAssignment<typeof ShootGoal> | TaskAssignment<typeof MoveToStaticBall> {
 		let prevState = this._state;
 
 		let ballDefenseDist = Field.distanceToFriendlyDefenseArea(World.Ball.pos, 0);
@@ -324,7 +324,7 @@ export class FreeKick extends Behavior {
 		}
 	}
 
-	addDebugInfo() {
+	public addDebugInfo() {
 		debug.set(undefined, "FreeKick");
 		debug.set("ratePass", this._ratePass.name);
 	}

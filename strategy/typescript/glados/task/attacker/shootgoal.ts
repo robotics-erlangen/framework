@@ -50,7 +50,7 @@ export class ShootGoal extends Task {
 
 	private _hitCorners: boolean;
 
-	constructor(behavior: Behavior, ballReceiptPos?: Position, forceDesperate = false, forceFast = false, hitCorners = false) {
+	public constructor(behavior: Behavior, ballReceiptPos?: Position, forceDesperate = false, forceFast = false, hitCorners = false) {
 		super(behavior);
 		this._desperate = forceDesperate;
 
@@ -131,7 +131,7 @@ export class ShootGoal extends Task {
 		return true;
 	}
 
-	run() {
+	public run() {
 		const obstacleTable = {
 			task: this,
 		};

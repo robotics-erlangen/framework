@@ -81,14 +81,14 @@ export abstract class Behavior implements Checkable {
 	private _deferredBehavior: Behavior | undefined;
 	private _deferredBehaviorRunning: boolean = false;
 
-	constructor(agent: Agent) {
+	public constructor(agent: Agent) {
 		this._agent = agent;
 		this._robot = this._agent.robot();
 		this.stop();
 	}
 
 	// is called when another behavior is being chosen
-	stop() {
+	public stop() {
 		this._task = undefined; // reset task
 		this._active = false;
 		this._forceKeepingInPool = false;
@@ -98,18 +98,18 @@ export abstract class Behavior implements Checkable {
 		this._stop();
 	}
 
-	isBehaviour(): boolean {
+	public isBehaviour(): boolean {
 		return true;
 	}
 
 	// override if necessary
-	start() { }
+	public start() { }
 
 	// when running a deferred behavior the results of this function should then be returned
 	// by the main behavior in order to use the task assignment of the deferred behavior
 	// a deferred behavior will be terminated as soon as it is not called in at least one frame
 	// this function MUST only be called in _updateTask
-	runDeferredBehavior(behavior: BehaviorConstructor, restart: boolean): BaseTaskAssignment | typeof CONTINUE_TASK {
+	public runDeferredBehavior(behavior: BehaviorConstructor, restart: boolean): BaseTaskAssignment | typeof CONTINUE_TASK {
 		if (this._deferredBehavior == undefined || !(this._deferredBehavior instanceof behavior) || restart) {
 			this._deferredBehavior = new behavior(this._agent);
 			this._deferredBehavior.start();
@@ -124,7 +124,7 @@ export abstract class Behavior implements Checkable {
 		return result;
 	}
 
-	run() {
+	public run() {
 		this._deferredBehaviorRunning = false;
 
 		const taskUpdate = this._updateTask();
@@ -159,7 +159,7 @@ export abstract class Behavior implements Checkable {
 		this._active = true;
 	}
 
-	abstract check(): Behavior | undefined;
+	public abstract check(): Behavior | undefined;
 
 	protected forceDeferredKeepingInPool() {
 		if (this._deferredBehavior) {
@@ -168,19 +168,19 @@ export abstract class Behavior implements Checkable {
 		this._forceKeepingInPool = true;
 	}
 
-	forceKeepingInPool(): boolean {
+	public forceKeepingInPool(): boolean {
 		return this._deferredBehavior ? this._deferredBehavior.forceKeepingInPool() : this._forceKeepingInPool;
 	}
 
-	task(): Task {
+	public task(): Task {
 		return <Task> this._task;
 	}
 
-	agent(): Agent {
+	public agent(): Agent {
 		return this._agent;
 	}
 
-	setAgent(agent: Agent) {
+	public setAgent(agent: Agent) {
 		// behavior/task hysteresis nearly always relies on robot position, speed etc.
 		if (this._robot !== agent.robot()) {
 			throw new Error("Can't reuse behavior with different robot");
@@ -189,28 +189,28 @@ export abstract class Behavior implements Checkable {
 	}
 
 	// chooses and returns a task and its parameters
-	abstract _updateTask(): BaseTaskAssignment | typeof CONTINUE_TASK;
+	protected abstract _updateTask(): BaseTaskAssignment | typeof CONTINUE_TASK;
 
-	_applyForMainAttacker(target?: Position, endSpeedLength?: number, overrideRating?: number) {
+	public applyForMainAttacker(target?: Position, endSpeedLength?: number, overrideRating?: number) {
 		this._mainAttackerParameters = [target, endSpeedLength, overrideRating];
 	}
 
-	mainAttackerParameters(activeBehavior?: Behavior): [MainAttackerParameters | undefined, boolean] {
+	public mainAttackerParameters(activeBehavior?: Behavior): [MainAttackerParameters | undefined, boolean] {
 		return [this._mainAttackerParameters, this === activeBehavior];
 	}
 
-	clearMainAttackerParameters() {
+	public clearMainAttackerParameters() {
 		this._mainAttackerParameters = undefined;
 	}
 
 	// can be overwritten for custom cleanups
-	_stop() { }
+	protected _stop() { }
 
 	/**
 	 * Add custom debug info for this behavior.
 	 * Will be put in a subtree in the debug tree.
 	 */
-	addDebugInfo() {
+	public addDebugInfo() {
 		debug.set(undefined, this.constructor.name);
 	}
 }
@@ -223,7 +223,7 @@ export class CheckableList implements Checkable {
 	private _agent: Agent;
 	private _checkables: Checkable[];
 
-	constructor(agent: Agent, checkables: CheckableConstructor[]) {
+	public constructor(agent: Agent, checkables: CheckableConstructor[]) {
 		this._agent = agent;
 		this._checkables = checkables.map((ctor) => new ctor(agent));
 	}
@@ -235,7 +235,7 @@ export class CheckableList implements Checkable {
 	 * @returns the return value of the first checkable, that did not return
 	 *          `undefined`, or `undefined` if there is no such checkable
 	 */
-	check(): Behavior | undefined {
+	public check(): Behavior | undefined {
 		for (const checkable of this._checkables) {
 			const result = checkable.check();
 			if (result) {
@@ -245,7 +245,7 @@ export class CheckableList implements Checkable {
 		return undefined;
 	}
 
-	mainAttackerParameters(activeBehavior?: Behavior): [MainAttackerParameters | undefined, boolean] {
+	public mainAttackerParameters(activeBehavior?: Behavior): [MainAttackerParameters | undefined, boolean] {
 		let params = undefined;
 		let active = false;
 		for (const checkable of this._checkables) {
@@ -259,17 +259,17 @@ export class CheckableList implements Checkable {
 		return [params, active];
 	}
 
-	clearMainAttackerParameters() {
+	public clearMainAttackerParameters() {
 		for (const checkable of this._checkables) {
 			checkable.clearMainAttackerParameters();
 		}
 	}
 
-	agent() {
+	public agent() {
 		return this._agent;
 	}
 
-	setAgent(agent: Agent) {
+	public setAgent(agent: Agent) {
 		this._agent = agent;
 		for (const checkable of this._checkables) {
 			checkable.setAgent(agent);

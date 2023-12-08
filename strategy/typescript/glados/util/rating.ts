@@ -30,12 +30,12 @@ const levels: Map<MessageType, number> = new Map([
 
 export class LeveledRating {
 
-	_ratingArray: (number | undefined)[];
-	_maxFilled: number = -1;
+	private _ratingArray: (number | undefined)[];
+	private _maxFilled: number = -1;
 
-	constructor(type: MessageType);
-	constructor(type: undefined, customNumLevels: number);
-	constructor(type: MessageType | undefined, customNumLevels: number | undefined = undefined) {
+	public constructor(type: MessageType);
+	public constructor(type: undefined, customNumLevels: number);
+	public constructor(type: MessageType | undefined, customNumLevels: number | undefined = undefined) {
 		let length = 0;
 
 		if (type !== undefined && levels.has(type)) {
@@ -51,6 +51,14 @@ export class LeveledRating {
 		this.clear();
 	}
 
+	public get ratingArray(): (number | undefined)[] {
+		return this._ratingArray;
+	}
+
+	public get maxFilled(): number {
+		return this._maxFilled;
+	}
+
 	public setRating(level: number, v: number) {
 		this._ratingArray[level] = v;
 		if (level > this._maxFilled) {
@@ -63,10 +71,10 @@ export class LeveledRating {
 	}
 
 	public static clone(rating: ReadonlyRec<LeveledRating>): LeveledRating {
-		let result = new LeveledRating(undefined, rating._ratingArray.length);
-		result._maxFilled = rating._maxFilled;
-		for (let i = 0; i < rating._ratingArray.length; i++) {
-			result._ratingArray[i] = rating._ratingArray[i];
+		let result = new LeveledRating(undefined, rating.ratingArray.length);
+		result._maxFilled = rating.maxFilled;
+		for (let i = 0; i < rating.ratingArray.length; i++) {
+			result._ratingArray[i] = rating.ratingArray[i];
 		}
 		return result;
 	}

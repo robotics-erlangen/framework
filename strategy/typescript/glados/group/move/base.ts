@@ -65,7 +65,7 @@ export abstract class Move {
 	// eslint-disable-next-line @typescript-eslint/naming-convention
 	protected static Referee: typeof Referee = Referee;
 
-	constructor(robots: FriendlyRobot[], messaging: MessageBox) {
+	public constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 		this._firstFrame = true;
 		this._robots = robots;
 		this._messaging = messaging;
@@ -80,7 +80,7 @@ export abstract class Move {
 		return params;
 	}
 
-	static injectReferee(pseudoRef: typeof Referee) {
+	public static injectReferee(pseudoRef: typeof Referee) {
 		Move.Referee = pseudoRef;
 	}
 
@@ -104,6 +104,6 @@ export abstract class Move {
 	 * @returns whether the move is suitable for execution
 	 */
 	public abstract static canStart(numCandidateRobots: number): boolean;
-	public abstract _canContinue(): boolean;
+	public abstract canContinue(): boolean;
 	protected abstract _updateTasks(): MoveParameters;
 }

@@ -12,7 +12,7 @@ export class BallEscort extends Task {
 	private _opponentRobot: Robot | undefined;
 	private _obstacleTable: PathHelper.PathHelperParameters;
 
-	constructor(behavior: Behavior, opponentRobot: Robot | undefined) {
+	public constructor(behavior: Behavior, opponentRobot: Robot | undefined) {
 		super(behavior);
 		this._opponentRobot = opponentRobot;
 		this._obstacleTable = {

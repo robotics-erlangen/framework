@@ -16,7 +16,7 @@ class SpyProcess implements Process {
 }
 
 export class BaseProcessor extends UnitTest {
-	constructor() {
+	public constructor() {
 		super();
 		this.addTest("correct pre and post", this.testCorrectPreAndPost);
 		this.addTest("finished process", this.testFinishedProcess);

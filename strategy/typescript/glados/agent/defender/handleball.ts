@@ -42,12 +42,12 @@ export class HandleBall extends Behavior {
 	private _forceDefenderFrameCounter: number = 0;
 	private _lastDuelWasWon: boolean = false;
 
-	_stop() {
+	protected _stop() {
 		this._taskDecision = undefined;
 		this._lastDuelWasWon = false;
 	}
 
-	start() {
+	public start() {
 		if (DefUtil.dangerousBallTowardsDefense() || Ball.isAccelerating()) {
 			this._forceDefenderFrameCounter = 0;
 		}
@@ -208,7 +208,7 @@ export class HandleBall extends Behavior {
 		return true;
 	}
 
-	check(): Behavior | undefined {
+	public check(): Behavior | undefined {
 		if (Referee.isFriendlyFreeKickState() || Referee.isStopState() || Referee.isKickoffState()
 				|| Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius)) {
 			return undefined;
@@ -235,7 +235,7 @@ export class HandleBall extends Behavior {
 					|| this._taskDecision === "attacker"
 					|| this._taskDecision === "duel")
 				&& this._taskDecision !== "interceptpass") {
-			this._applyForMainAttacker();
+			this.applyForMainAttacker();
 		}
 
 		return (mainAttacker === this._robot) || (this._messaging.receiveTrainer(MessageType.interceptPass) === this._robot)
@@ -243,7 +243,7 @@ export class HandleBall extends Behavior {
 			: undefined;
 	}
 
-	_updateTask(): TaskAssignment<typeof InterceptPass> | TaskAssignment<typeof Duel> |
+	protected _updateTask(): TaskAssignment<typeof InterceptPass> | TaskAssignment<typeof Duel> |
 			TaskAssignment<typeof CenterBack> {
 		const isMainAttacker = this._messaging.receiveTrainer(MessageType.mainAttacker) === this._robot;
 

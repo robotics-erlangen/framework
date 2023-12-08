@@ -7,7 +7,7 @@ import { UnitTest } from "glados/test/unit/unittest";
 const EPS = 1E-12;
 
 export class BaseGeom extends UnitTest {
-	constructor() {
+	public constructor() {
 		super();
 		this.addTest("intersectCircleCircle", this.testIntersectCircleCircle);
 		this.addTest("boundRect", this.testBoundRect);

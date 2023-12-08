@@ -23,18 +23,17 @@ import * as Defense from "glados/util/defense";
 export class HandleBall extends Behavior {
 	private _pass: { target?: FriendlyRobot; ballPos: Position; time: number } | undefined;
 
-	_stop() {
-
+	protected _stop() {
 	}
 
-	check(): Behavior | undefined {
+	public check(): Behavior | undefined {
 		if (Referee.isStopState() || Referee.isOpponentPenaltyState() || World.GameStage === "PenaltyShootout") {
 			return undefined;
 		}
 		// if a slow ball enters the defense area
 		if (Defense.keeperShouldBeMA()) {
 			// force being mainAttacker
-			this._applyForMainAttacker(undefined, undefined, 2);
+			this.applyForMainAttacker(undefined, undefined, 2);
 		}
 
 		let mainAttackerFlag = this._messaging.receiveTrainer(MessageType.mainAttacker) === this._robot;
@@ -43,7 +42,7 @@ export class HandleBall extends Behavior {
 			: undefined;
 	}
 
-	_updateTask(): TaskAssignment<typeof Keeper> | TaskAssignment<typeof Pass> | TaskAssignment<typeof KeeperChipAway>
+	protected _updateTask(): TaskAssignment<typeof Keeper> | TaskAssignment<typeof Pass> | TaskAssignment<typeof KeeperChipAway>
 			| TaskAssignment<typeof AggressiveKeeper> | TaskAssignment<typeof MoveToStaticBall> {
 		const [, receivedObjective] = this._messaging.receiveSingleSender(MessageType.selectedObjective, true);
 		if (receivedObjective) {

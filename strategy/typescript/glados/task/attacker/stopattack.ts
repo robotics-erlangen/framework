@@ -31,7 +31,7 @@ export class StopAttack extends Task {
 	private _defendGoalHysteresis: boolean;
 	private _minDistToBall: number;
 
-	constructor(behavior: Behavior, minDistToBall = Constants.stopBallDistance) {
+	public constructor(behavior: Behavior, minDistToBall = Constants.stopBallDistance) {
 		super(behavior);
 		this._focusPoint = new Vector(0, -World.Geometry.FieldHeightHalf + 4 * this._robot.radius);
 		this._side = World.Ball.pos.x < 0 ? "left" : "right";
@@ -41,7 +41,7 @@ export class StopAttack extends Task {
 
 	}
 
-	run() {
+	public run() {
 
 		let ballPos = World.Ball.pos;
 		// already go to the freekick position during ballplacement

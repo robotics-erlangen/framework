@@ -35,7 +35,7 @@ export class WindshieldWiper extends Move {
 		return false;
 	}
 
-	public _canContinue(): boolean {
+	public canContinue(): boolean {
 		if (WindshieldWiper.Referee.isFriendlyFreeKickState()) {
 			return true;
 		}
@@ -46,7 +46,7 @@ export class WindshieldWiper extends Move {
 	private _distances: { distance: number; robot: FriendlyRobot }[];
 	private _positions: Position[];
 
-	constructor(robots: FriendlyRobot[], messaging: MessageBox) {
+	public constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 		super(robots, messaging);
 		this._state = "init";
 		this._distances = [];
@@ -63,7 +63,7 @@ export class WindshieldWiper extends Move {
 		}
 	}
 
-	calcAcceptPos(pos: Vector, robotRadius: number): Vector | undefined {
+	private calcAcceptPos(pos: Vector, robotRadius: number): Vector | undefined {
 		let [center1, center2, radius] = MovesHelper.volleyCircle(World.Ball.pos, G.OpponentGoal, geom.degreeToRadian(55));
 		let circle = center1.y < center2.y ? center1 : center2;
 		let posToShiftFrom = (World.Ball.pos + G.OpponentGoal) / 2;
@@ -75,7 +75,7 @@ export class WindshieldWiper extends Move {
 	}
 
 
-	_updateTasks(): MoveParameters {
+	protected _updateTasks(): MoveParameters {
 		let distances = this._distances;
 		// sort(distances,World.Ball)
 		let mainrobot = distances[0].robot;

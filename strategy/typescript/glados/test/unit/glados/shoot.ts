@@ -11,22 +11,22 @@ import { UnitTest } from "glados/test/unit/unittest";
 import * as PathHelper from "glados/trajectory/pathhelper";
 
 class DummyBehavior extends Behavior {
-	check() {
+	public check() {
 		return this;
 	}
 
-	_updateTask(): TaskAssignment<typeof DummyTask> {
+	protected _updateTask(): TaskAssignment<typeof DummyTask> {
 		return [DummyTask];
 	}
 }
 
 class DummyTask extends Task {
-	run() {}
+	public run() {}
 }
 
 export class GladosAbilityShoot extends UnitTest {
 
-	constructor() {
+	public constructor() {
 		super();
 		this.addSituationTest("attackposition in field", this.testAttackPositionInField,
 			[["glados/test/unit/glados/shoot-situations/shoot-out-of-field", undefined]]);

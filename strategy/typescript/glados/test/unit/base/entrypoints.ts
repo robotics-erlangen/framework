@@ -3,7 +3,7 @@ import * as Entrypoints from "base/entrypoints";
 import { UnitTest } from "glados/test/unit/unittest";
 
 export class BaseEntrypoints extends UnitTest {
-	constructor() {
+	public constructor() {
 		super();
 		this.addTest("wrapper", this.testWrapper);
 		this.addTest("duplicates", this.testDuplicates);

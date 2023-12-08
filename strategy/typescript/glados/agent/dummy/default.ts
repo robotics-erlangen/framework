@@ -12,15 +12,15 @@ export class Default extends Behavior {
 
 	private lastPos: Vector | undefined = undefined;
 
-	check(): Behavior {
+	public check(): Behavior {
 		return this;
 	}
 
-	stop() {
+	public stop() {
 		this.lastPos = undefined;
 	}
 
-	_updateTask(): TaskAssignment<typeof BallEvadingMoveToPos> {
+	protected _updateTask(): TaskAssignment<typeof BallEvadingMoveToPos> {
 
 		addDummyVisualizations(this._robot);
 

@@ -14,36 +14,36 @@ const mockCheckable = (tag: string, shouldRun: boolean): CheckableConstructor =>
 
 		private _agent: Agent;
 
-		constructor(agent: Agent) {
+		public constructor(agent: Agent) {
 			this._agent = agent;
 		}
 
-		check() {
+		public check() {
 			return shouldRun ? this : undefined;
 		}
 
-		agent() {
+		public agent() {
 			return this._agent;
 		}
 
-		setAgent(agent: Agent) {
+		public setAgent(agent: Agent) {
 			this._agent = agent;
 		}
 	} as unknown as CheckableConstructor;
 };
 
 class TestBehavior extends Behavior {
-	check() {
+	public check() {
 		return this;
 	}
 
-	_updateTask() {
+	public _updateTask() {
 		return undefined!;
 	}
 }
 
 export class GladosBehavior extends UnitTest {
-	constructor() {
+	public constructor() {
 		super();
 		this.addTest("test_Behavior_agent", this.test_Behavior_agent);
 		this.addTest("test_CheckableList_check", this.test_CheckableList_check);

@@ -21,7 +21,7 @@ export class Tutorial extends Task {
 
 	// This is, like the name obviously indicates, the constructor.
 	// It creates an object (of the type) of this task.
-	constructor(behavior: Behavior, dir: number) {
+	public constructor(behavior: Behavior, dir: number) {
 		super(behavior);
 	}
 

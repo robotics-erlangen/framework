@@ -5,7 +5,7 @@ import { UnitTest } from "glados/test/unit/unittest";
 import { assignRobots } from "glados/util/moveshelper";
 
 export class MovesHelper extends UnitTest {
-	constructor() {
+	public constructor() {
 		super();
 		this.addTest("testSquare", this.testAssignRobotsForSquare);
 		this.addTest("testParallel", this.testAssignRobotsForParallelogram);

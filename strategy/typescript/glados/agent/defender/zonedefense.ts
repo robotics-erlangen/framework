@@ -5,20 +5,20 @@ import { MessageType } from "glados/control/messaging";
 import { BallEvadingMoveToPos } from "glados/task/defender/ballevadingmovetopos";
 
 export class ZoneDefense extends Behavior {
-	_movePos: Position | undefined = undefined;
+	private _movePos: Position | undefined = undefined;
 
-	_stop() {
+	protected _stop() {
 		this._movePos = undefined;
 	}
 
-	check(): Behavior | undefined {
+	public check(): Behavior | undefined {
 		let role = this._messaging.receiveTrainer(MessageType.roleAssignment);
 		return role != undefined && role.name === "ZoneDefense"
 			? this
 			: undefined;
 	}
 
-	_updateTask(): TaskAssignment<typeof BallEvadingMoveToPos> {
+	protected _updateTask(): TaskAssignment<typeof BallEvadingMoveToPos> {
 		let assignment = this._messaging.receiveTrainer(MessageType.roleAssignment);
 		if (assignment == undefined || assignment.name !== "ZoneDefense") {
 			throw new Error();

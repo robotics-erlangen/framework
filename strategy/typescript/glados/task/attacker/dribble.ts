@@ -27,7 +27,7 @@ export class Dribble extends Task {
 	private _catchBall: CatchBall;
 	private _suggestPass: SuggestPass;
 
-	constructor(behavior: Behavior, pos: Position, suggestPass = false, endSpeedLength = 0) {
+	public constructor(behavior: Behavior, pos: Position, suggestPass = false, endSpeedLength = 0) {
 		super(behavior);
 		this._pos = pos;
 		this._dir = (pos - this._robot.pos).angle();
@@ -38,7 +38,7 @@ export class Dribble extends Task {
 		this._suggestPass = new SuggestPass(this);
 	}
 
-	run() {
+	public run() {
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
 		this._robot.setDribblerSpeed(0.7);
 

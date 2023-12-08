@@ -37,7 +37,7 @@ function findPair(list: { isAttacker: boolean }[]): number | undefined {
 }
 
 export class MainCoordinator extends Coordinator {
-	constructor(trainer: MainTrainer) {
+	public constructor(trainer: MainTrainer) {
 		let pools: { [name: string]: AgentPool } = {
 			// manual: new AgentPool(Agents.Manual),
 			// ally: new AgentPool(Agents.Ally),
@@ -58,13 +58,13 @@ export class MainCoordinator extends Coordinator {
 		super(trainer, pools, poolGroups);
 	}
 
-	_postTrainerHook() {
+	protected _postTrainerHook() {
 		// the trainer inbox is empty after deliverMessages
-		let [attackers, defenders] = this._trainer._attackRatio.attackerDefenderDistribution();
+		let [attackers, defenders] = this._trainer.attackRatio.attackerDefenderDistribution();
 		debug.set("#attackers", attackers);
 
 		// process pool change requests
-		let changingRobots = this._trainer._attackRatio.changingRobots();
+		let changingRobots = this._trainer.attackRatio.changingRobots();
 		let pair = findPair(changingRobots);
 		while (pair != undefined) {
 			let robot1 = changingRobots[pair].robot;
@@ -86,7 +86,7 @@ export class MainCoordinator extends Coordinator {
 	}
 
 
-	_changeRobot(attackers: number, defenders: number, changingRobot: FriendlyRobot, isAttacker: boolean) {
+	private _changeRobot(attackers: number, defenders: number, changingRobot: FriendlyRobot, isAttacker: boolean) {
 		let oldPool = isAttacker ? "attack" : "defense";
 		let newPool = isAttacker ? "defense" : "attack";
 		let poolLimit = isAttacker ? defenders : attackers;

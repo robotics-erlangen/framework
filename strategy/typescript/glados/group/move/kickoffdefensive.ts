@@ -65,7 +65,7 @@ export class KickOffDefensive extends Move {
 	private _targetRight: Robot | undefined;
 
 
-	constructor(robots: FriendlyRobot[], messaging: MessageBox) {
+	public constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 		super(robots, messaging);
 
 
@@ -76,12 +76,12 @@ export class KickOffDefensive extends Move {
 		this._assignments = MovesHelper.assignRobots(this._robots, positions);
 	}
 
-	_canContinue(): boolean {
+	public canContinue(): boolean {
 		return World.RefereeState === "KickoffDefensivePrepare"
 				|| World.RefereeState === "KickoffDefensive";
 	}
 
-	_updateTasks(): MoveParameters {
+	protected _updateTasks(): MoveParameters {
 		let restartLeft: boolean | undefined, restartRight: boolean | undefined;
 		[this._targetLeft, restartLeft] = getTarget(this._targetLeft, this._fallbackPos[0]);
 		[this._targetRight, restartRight] = getTarget(this._targetRight, this._fallbackPos[1]);

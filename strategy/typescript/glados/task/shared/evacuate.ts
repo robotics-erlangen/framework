@@ -8,7 +8,7 @@ export class Evacuate extends Task {
 		task: this,
 	};
 
-	run() {
+	public run() {
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, this._obstacleTable);
 
 		this._robot.trajectory.update(ToTarget, this._robot.pos, this._robot.dir);

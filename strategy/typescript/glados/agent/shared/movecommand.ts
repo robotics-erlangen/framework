@@ -5,13 +5,13 @@ import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import { MoveToPos } from "glados/task/shared/movetopos";
 
 export class MoveCommand extends Behavior {
-	check(): Behavior | undefined {
+	public check(): Behavior | undefined {
 		return this._robot.moveCommand != undefined && World.WorldStateSource() !== pb.world.WorldSource.INTERNAL_SIMULATION
 			? this
 			: undefined;
 	}
 
-	_updateTask(): TaskAssignment<typeof MoveToPos> {
+	protected _updateTask(): TaskAssignment<typeof MoveToPos> {
 		return [MoveToPos, [{ pos: this._robot.moveCommand!.pos, ignoreDefaultObstacles: true }], true];
 	}
 }

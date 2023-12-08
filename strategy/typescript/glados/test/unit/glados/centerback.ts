@@ -17,7 +17,7 @@ interface CenterbackInfo {
 
 export class GladosCenterback extends UnitTest {
 
-	constructor() {
+	public constructor() {
 		super();
 
 		const s1 = {

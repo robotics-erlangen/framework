@@ -21,14 +21,14 @@ export class PenaltyShootoutGoal extends Task {
 	private _ball: { pos: Position; speed: Vector; radius: number };
 	private _dest: Position;
 
-	constructor(behavior: Behavior, dest: Position, ball: { pos: Position; speed: Vector; radius: number } = World.Ball) {
+	public constructor(behavior: Behavior, dest: Position, ball: { pos: Position; speed: Vector; radius: number } = World.Ball) {
 		super(behavior);
 		this._shoot = new Shoot(this);
 		// this._pos = pos;
 		this._ball = ball;
 		this._dest = dest;
 	}
-	run() {
+	public run() {
 		let robot = this._robot;
 		let ball = this._ball;
 		let obstacleTable: PathHelper.PathHelperParameters = {

@@ -8,14 +8,14 @@ export class Wallkick extends Task {
 	private _placementPos: Position;
 	private _wallkick: WallkickAbility;
 
-	constructor(behavior: Behavior, placementPos: Position) {
+	public constructor(behavior: Behavior, placementPos: Position) {
 		super(behavior);
 		this._placementPos = placementPos;
 
 		this._wallkick = new WallkickAbility(this._robot, this._placementPos);
 	}
 
-	run() {
+	public run() {
 		this._wallkick._wallkick(false);
 	}
 }

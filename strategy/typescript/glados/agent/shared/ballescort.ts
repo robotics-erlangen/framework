@@ -16,7 +16,7 @@ import { BallEscort as BallEscortTask } from "glados/task/shared/ballescort";
 
 export class BallEscort extends Behavior {
 	private _isDefender: boolean;
-	_minRobot: Robot | undefined = undefined;
+	public _minRobot: Robot | undefined = undefined;
 
 	private _checkOpponentTimings(): [Robot | undefined, number] {
 		let [minOppRobot, minOppTime] = Ball.firstRobotAtBall(World.OpponentRobots);
@@ -52,12 +52,12 @@ export class BallEscort extends Behavior {
 		return oppTime - ownTime > 1;
 	}
 
-	constructor(agent: Agent, isDefender: boolean) {
+	public constructor(agent: Agent, isDefender: boolean) {
 		super(agent);
 		this._isDefender = isDefender;
 	}
 
-	check(): Behavior | undefined {
+	public check(): Behavior | undefined {
 		let shotHysteresis = this._active ? 0.075 : 0.15;
 
 		if (Referee.isFriendlyFreeKickState()) {
@@ -133,7 +133,7 @@ export class BallEscort extends Behavior {
 			return undefined;
 		}
 
-		this._applyForMainAttacker();
+		this.applyForMainAttacker();
 		if (this._messaging.receiveTrainer(MessageType.mainAttacker) !== this._robot) {
 			return undefined;
 		}
@@ -141,7 +141,7 @@ export class BallEscort extends Behavior {
 		return this;
 	}
 
-	_updateTask(): TaskAssignment<typeof BallEscortTask> {
+	protected _updateTask(): TaskAssignment<typeof BallEscortTask> {
 		/*
 		 * Only send an objective when run on a defender.
 		 * If the main attacker is an attacker, he sends an objective in
