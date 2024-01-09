@@ -333,33 +333,6 @@ export class Shoot extends Behavior {
 			return true;
 		}
 
-		if (this._decision.task === "chipAwayFromDefenseArea") {
-			if (Math.abs(this._robot.pos.x) > G.DefenseWidth + 1.1
-					&& this._robot.pos.y > -(G.FieldHeightHalf - G.DefenseHeight - 1.1)) {
-
-				return true;
-			}
-
-			const obscured = this.isChipObscured();
-
-			const isGame = World.RefereeState === "Game" || World.RefereeState === "GameForce";
-			if (!isGame
-					|| obscured
-					|| Vector.fromAngle(this._robot.dir).absoluteAngleDiff(this._robot.pos - G.FriendlyGoal) > geom.degreeToRadian(100)
-					|| !Robot.hadBall(this._robot, 0.1)) {
-				debug.set("redeciding", "TRUE (stop chipAway)");
-				return true;
-			}
-		} else if (Math.abs(this._robot.pos.x) < G.DefenseWidth + 0.9
-				&& this._robot.pos.y < -(G.FieldHeightHalf - G.DefenseHeight - 0.9)
-				&& !this.isChipObscured()
-				&& Vector.fromAngle(this._robot.dir).absoluteAngleDiff(this._robot.pos - G.FriendlyGoal) < geom.degreeToRadian(80)
-				&& Robot.controlsBall(this._robot, 0.1)) {
-
-			debug.set("redeciding", "TRUE (consider chipAway)");
-			return true;
-		}
-
 		let suffixDebugString = "";
 		let redecidePassTiming = false;
 		let redecideNoLongerOffered = false;
@@ -409,6 +382,33 @@ export class Shoot extends Behavior {
 			World.Ball.pos.distanceToSq(dribblerPos) > 4 * World.Ball.radius * World.Ball.radius)) {
 			debug.set("redeciding", "FALSE (imminent)");
 			return false;
+		}
+
+		if (this._decision.task === "chipAwayFromDefenseArea") {
+			if (Math.abs(this._robot.pos.x) > G.DefenseWidth + 1.1
+					&& this._robot.pos.y > -(G.FieldHeightHalf - G.DefenseHeight - 1.1)) {
+
+				return true;
+			}
+
+			const obscured = this.isChipObscured();
+
+			const isGame = World.RefereeState === "Game" || World.RefereeState === "GameForce";
+			if (!isGame
+					|| obscured
+					|| Vector.fromAngle(this._robot.dir).absoluteAngleDiff(this._robot.pos - G.FriendlyGoal) > geom.degreeToRadian(100)
+					|| !Robot.hadBall(this._robot, 0.1)) {
+				debug.set("redeciding", "TRUE (stop chipAway)");
+				return true;
+			}
+		} else if (Math.abs(this._robot.pos.x) < G.DefenseWidth + 0.9
+				&& this._robot.pos.y < -(G.FieldHeightHalf - G.DefenseHeight - 0.9)
+				&& !this.isChipObscured()
+				&& Vector.fromAngle(this._robot.dir).absoluteAngleDiff(this._robot.pos - G.FriendlyGoal) < geom.degreeToRadian(80)
+				&& Robot.controlsBall(this._robot, 0.1)) {
+
+			debug.set("redeciding", "TRUE (consider chipAway)");
+			return true;
 		}
 
 		// redecide if rebound
