@@ -51,8 +51,8 @@ export class GladosPools extends UnitTest {
 		let coordinator = new MainCoordinator(mainTrainer);
 		coordinator.run();
 
-		let attackerRobot = coordinator._trainer._messaging.receive(MessageType.attackerFlag).keys().next().value;
-		let defenderRobot = coordinator._trainer._messaging.receive(MessageType.defenderFlag).keys().next().value;
+		let attackerRobot = mainTrainer._messaging.receive(MessageType.attackerFlag).keys().next().value;
+		let defenderRobot = mainTrainer._messaging.receive(MessageType.defenderFlag).keys().next().value;
 		let attackerAgent = getAgentForRobot(coordinator._pools.attack, attackerRobot, "Attack");
 		let defenderAgent = getAgentForRobot(coordinator._pools.defense, defenderRobot, "Defense");
 
@@ -60,8 +60,8 @@ export class GladosPools extends UnitTest {
 		attackerAgent._messaging.sendToTrainer(MessageType.poolChangeRequest, "defender");
 		coordinator.run();
 
-		attackerRobot = coordinator._trainer._messaging.receive(MessageType.attackerFlag).keys().next().value;
-		defenderRobot = coordinator._trainer._messaging.receive(MessageType.defenderFlag).keys().next().value;
+		attackerRobot = mainTrainer._messaging.receive(MessageType.attackerFlag).keys().next().value;
+		defenderRobot = mainTrainer._messaging.receive(MessageType.defenderFlag).keys().next().value;
 		this.assert_eq(attackerRobot, defenderBefore);
 		this.assert_eq(defenderRobot, attackerBefore);
 		attackerAgent = getAgentForRobot(coordinator._pools.attack, attackerRobot, "Attack");
@@ -71,8 +71,8 @@ export class GladosPools extends UnitTest {
 		defenderAgent._messaging.sendToTrainer(MessageType.poolChangeRequest, "attacker");
 		coordinator.run();
 
-		attackerRobot = coordinator._trainer._messaging.receive(MessageType.attackerFlag).keys().next().value;
-		defenderRobot = coordinator._trainer._messaging.receive(MessageType.defenderFlag).keys().next().value;
+		attackerRobot = mainTrainer._messaging.receive(MessageType.attackerFlag).keys().next().value;
+		defenderRobot = mainTrainer._messaging.receive(MessageType.defenderFlag).keys().next().value;
 		this.assert_eq(attackerRobot, defenderBefore);
 		this.assert_eq(defenderRobot, attackerBefore);
 		attackerAgent = getAgentForRobot(coordinator._pools.attack, attackerRobot, "Attack");
@@ -83,8 +83,8 @@ export class GladosPools extends UnitTest {
 		[defenderBefore, attackerBefore] = [defenderRobot, attackerRobot];
 		coordinator.run();
 
-		attackerRobot = coordinator._trainer._messaging.receive(MessageType.attackerFlag).keys().next().value;
-		defenderRobot = coordinator._trainer._messaging.receive(MessageType.defenderFlag).keys().next().value;
+		attackerRobot = mainTrainer._messaging.receive(MessageType.attackerFlag).keys().next().value;
+		defenderRobot = mainTrainer._messaging.receive(MessageType.defenderFlag).keys().next().value;
 		this.assert_eq(attackerRobot, defenderBefore);
 		this.assert_eq(defenderRobot, attackerBefore);
 		attackerAgent = getAgentForRobot(coordinator._pools.attack, attackerRobot, "Attack");
