@@ -44,8 +44,8 @@ export class GladosPools extends UnitTest {
 		(World as any).RefereeState = "Halt";
 
 		let mainTrainer = new MainTrainer(undefined);
-		let mainTrainerAttackerDefenderDistribution = mainTrainer._attackRatio.attackerDefenderDistribution;
-		mainTrainer._attackRatio.attackerDefenderDistribution = function() {
+		let mainTrainerAttackerDefenderDistribution = (mainTrainer as any)._attackRatio.attackerDefenderDistribution;
+		(mainTrainer as any)._attackRatio.attackerDefenderDistribution = function() {
 			return [1, 1];
 		};
 		let coordinator = new MainCoordinator(mainTrainer);
@@ -53,8 +53,9 @@ export class GladosPools extends UnitTest {
 
 		let attackerRobot = mainTrainer._messaging.receive(MessageType.attackerFlag).keys().next().value;
 		let defenderRobot = mainTrainer._messaging.receive(MessageType.defenderFlag).keys().next().value;
-		let attackerAgent = getAgentForRobot(coordinator._pools.attack, attackerRobot, "Attack");
-		let defenderAgent = getAgentForRobot(coordinator._pools.defense, defenderRobot, "Defense");
+		let pools = (coordinator as any)._pools;
+		let attackerAgent = getAgentForRobot(pools.attack, attackerRobot, "Attack");
+		let defenderAgent = getAgentForRobot(pools.defense, defenderRobot, "Defense");
 
 		let [defenderBefore, attackerBefore] = [defenderRobot, attackerRobot];
 		attackerAgent._messaging.sendToTrainer(MessageType.poolChangeRequest, "defender");
@@ -64,8 +65,8 @@ export class GladosPools extends UnitTest {
 		defenderRobot = mainTrainer._messaging.receive(MessageType.defenderFlag).keys().next().value;
 		this.assert_eq(attackerRobot, defenderBefore);
 		this.assert_eq(defenderRobot, attackerBefore);
-		attackerAgent = getAgentForRobot(coordinator._pools.attack, attackerRobot, "Attack");
-		defenderAgent = getAgentForRobot(coordinator._pools.defense, defenderRobot, "Defense");
+		attackerAgent = getAgentForRobot(pools.attack, attackerRobot, "Attack");
+		defenderAgent = getAgentForRobot(pools.defense, defenderRobot, "Defense");
 
 		[defenderBefore, attackerBefore] = [defenderRobot, attackerRobot];
 		defenderAgent._messaging.sendToTrainer(MessageType.poolChangeRequest, "attacker");
@@ -75,8 +76,8 @@ export class GladosPools extends UnitTest {
 		defenderRobot = mainTrainer._messaging.receive(MessageType.defenderFlag).keys().next().value;
 		this.assert_eq(attackerRobot, defenderBefore);
 		this.assert_eq(defenderRobot, attackerBefore);
-		attackerAgent = getAgentForRobot(coordinator._pools.attack, attackerRobot, "Attack");
-		defenderAgent = getAgentForRobot(coordinator._pools.defense, defenderRobot, "Defense");
+		attackerAgent = getAgentForRobot(pools.attack, attackerRobot, "Attack");
+		defenderAgent = getAgentForRobot(pools.defense, defenderRobot, "Defense");
 
 		attackerAgent._messaging.sendToTrainer(MessageType.poolChangeRequest, "defender");
 		defenderAgent._messaging.sendToTrainer(MessageType.poolChangeRequest, "attacker");
@@ -87,12 +88,12 @@ export class GladosPools extends UnitTest {
 		defenderRobot = mainTrainer._messaging.receive(MessageType.defenderFlag).keys().next().value;
 		this.assert_eq(attackerRobot, defenderBefore);
 		this.assert_eq(defenderRobot, attackerBefore);
-		attackerAgent = getAgentForRobot(coordinator._pools.attack, attackerRobot, "Attack");
-		defenderAgent = getAgentForRobot(coordinator._pools.defense, defenderRobot, "Defense");
+		attackerAgent = getAgentForRobot(pools.attack, attackerRobot, "Attack");
+		defenderAgent = getAgentForRobot(pools.defense, defenderRobot, "Defense");
 
 		(World as any).FriendlyRobotsAll = allFriendlyRobotsOrig;
 		(World as any).RefereeState = refereeStateOrig;
-		mainTrainer._attackRatio.attackerDefenderDistribution = mainTrainerAttackerDefenderDistribution;
+		(mainTrainer as any)._attackRatio.attackerDefenderDistribution = mainTrainerAttackerDefenderDistribution;
 	}
 }
 export let testClass = GladosPools;
