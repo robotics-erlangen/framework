@@ -3,7 +3,7 @@ import { Vector } from "base/vector";
 import * as World from "base/world";
 
 import { Agent } from "glados/agent/base/agent";
-import { Behavior, CheckableConstructor, MainAttackerParameters, TaskAssignment } from "glados/agent/base/behavior";
+import { Behavior, CheckableConstructor, CheckableList, MainAttackerParameters, TaskAssignment } from "glados/agent/base/behavior";
 import { MessageType, Messaging } from "glados/control/messaging";
 import { Task } from "glados/task/base";
 import { UnitTest } from "glados/test/unit/unittest";
@@ -24,6 +24,18 @@ class DummyTask extends Task {
 }
 
 class DummyAgent extends Agent {
+	public get behaviors(): CheckableList {
+		return this._behaviors;
+	}
+
+	public set activeBehavior(activeBehavior: Behavior | undefined) {
+		this._activeBehavior = activeBehavior;
+	}
+
+	public applyForMainAttacker(task: Task | undefined) {
+		this._applyForMainAttacker(task);
+	}
+
 	public static takeRobot(_robots: FriendlyRobot[]): FriendlyRobot | undefined {
 		return _robots[0];
 	}
@@ -76,19 +88,19 @@ export class GladosMainattacker extends UnitTest {
 		let trainerBox = messaging.registerTrainer();
 		for (let id of info.robotsToTest) {
 			let agent = new DummyAgent(World.FriendlyRobotsById[id], messaging);
-			let behavior = agent._behaviors.check();
-			agent._activeBehavior = behavior;
+			let behavior = agent.behaviors.check();
+			agent.activeBehavior = behavior;
 			if (info.parameters[id]) {
 				const parameters = info.parameters[id]!;
 				behavior!.applyForMainAttacker(parameters[0], parameters[1], parameters[2]);
 			} else {
 				behavior!.applyForMainAttacker();
 			}
-			agent._applyForMainAttacker(undefined);
+			agent.applyForMainAttacker(undefined);
 		}
 
 		let roles = new Roles(trainerBox);
-		roles._exclusiveRoles[MessageType.mainAttacker] = World.FriendlyRobotsById[info.previousMAId];
+		(roles as any)._exclusiveRoles[MessageType.mainAttacker] = World.FriendlyRobotsById[info.previousMAId];
 		roles._chooseExclusiveRoles();
 
 		let ma = trainerBox.receiveTrainer(MessageType.mainAttacker);
