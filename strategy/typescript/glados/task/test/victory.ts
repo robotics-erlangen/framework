@@ -86,7 +86,7 @@ export class Victory extends Task {
 		let endSpeed = new Vector(0, 0);
 		let dir = (<Position> pos - this._robot.pos).angle();
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, this._obstacleTable);
-		this._robot.trajectory.update(ToTarget, pos!, dir, 1, endSpeed);
+		this._robot.trajectory.update(ToTarget, pos!, dir, 10, endSpeed);
 	}
 
 }
