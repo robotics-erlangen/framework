@@ -124,6 +124,12 @@ find_package(Threads REQUIRED)
 sanitize_env()
 find_package(Protobuf 3.3.0)
 restore_env()
+# if protobouf is not found the version string is empty and apparently ifs in cmake do not follow short-circuit logic,
+# which means below it evaluates the if condition to "... OR VERSION_GREATER_EQUAL 4.25.0" and then cmake dies
+# this is stupid, but can't be helped
+if (NOT ${PROTOBUF_FOUND})
+    set(Protobuf_VERSION 4.25.0)
+endif()
 # old cmake versions can't detect the protobuf version number
 # the protobuf version on such systems is too old to be useful
 if(NOT ${PROTOBUF_FOUND}
