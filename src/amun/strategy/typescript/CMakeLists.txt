@@ -77,6 +77,7 @@ target_link_libraries(typescript
     PRIVATE shared::core
     PRIVATE shared::protobuf
 )
+add_dependencies(typescript lib::luajit lib::sourcemap)
 
 if(NOT MINGW32)
     target_compile_definitions(typescript

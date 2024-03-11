@@ -47,6 +47,7 @@ target_include_directories(simulator
     INTERFACE include
     PRIVATE include/simulator
 )
+add_dependencies(simulator lib::bullet)
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     # silence warnings about usage of the register specifier in header files of bullet

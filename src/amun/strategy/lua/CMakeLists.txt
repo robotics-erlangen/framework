@@ -46,5 +46,6 @@ target_link_libraries(lua
     PUBLIC amun::strategy::script
     PUBLIC lib::eigen
 )
+add_dependencies(lua lib::luajit lib::eigen)
 
 add_library(amun::strategy::lua ALIAS lua)

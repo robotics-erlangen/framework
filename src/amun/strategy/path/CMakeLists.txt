@@ -63,6 +63,7 @@ target_link_libraries(path
     PUBLIC Qt5::Core
     PRIVATE shared::config
 )
+add_dependencies(path lib::googletest)
 target_include_directories(path
     INTERFACE include
     PRIVATE include/path

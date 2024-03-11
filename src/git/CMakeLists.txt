@@ -126,5 +126,6 @@ target_link_libraries(gitconfig
     PRIVATE lib::git2
     PRIVATE Qt5::Core
 )
+add_dependencies(gitconfig lib::git2)
 
 add_library(shared::gitconfig ALIAS gitconfig)
