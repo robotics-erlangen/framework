@@ -36,7 +36,6 @@ export class FeintGoalShot extends Behavior {
 		if (this.redecideCounter > 5) {
 			debug.set("return case", "active too long");
 			debug.pop();
-			amun.log("Hello World!");
 			return undefined;
 		}
 
