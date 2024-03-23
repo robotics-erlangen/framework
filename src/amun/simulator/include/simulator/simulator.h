@@ -21,16 +21,26 @@
 #ifndef SIMULATOR_H
 #define SIMULATOR_H
 
+//#include "core/timer.h"
 #include "protobuf/command.h"
 #include "protobuf/status.h"
 #include "protobuf/sslsim.h"
+#include "protobuf/ssl_vision_detection_tracked.pb.h"
+#include <QFile>
 #include <QList>
 #include <QMap>
 #include <QPair>
 #include <QQueue>
 #include <QByteArray>
 #include <tuple>
+#include <list>
 #include <random>
+#include <google/protobuf/text_format.h>
+
+#include "protobuf/ssl_simulation_robot_control.pb.h"
+#include "protobuf/ssl_simulation_robot_feedback.pb.h"
+#include "protobuf/ssl_simulation_config.pb.h"
+#include "protobuf/ssl_simulation_error.pb.h"
 
 // higher values break the rolling friction of the ball
 const float SIMULATOR_SCALE = 10.0f;
@@ -58,6 +68,46 @@ namespace camun {
     }
 }
 
+namespace {
+    amun::SimulatorSetup loadSetupFromFile(std::string absolute_filepath) {
+        QFile file(QString::fromStdString(absolute_filepath));
+        if (!file.open(QFile::ReadOnly))
+        {
+            std::cerr <<
+                      "Could not open configuration file " << absolute_filepath
+                      << std::endl;
+        }
+
+        QString str = file.readAll();
+        file.close();
+
+        std::string s = qPrintable(str);
+        google::protobuf::TextFormat::Parser parser;
+        amun::SimulatorSetup er_force_sim_setup;
+        parser.ParseFromString(s, &er_force_sim_setup);
+        return er_force_sim_setup;
+    }
+
+    inline bool loadConfiguration(const std::string absolute_filepath, google::protobuf::Message *message, bool allowPartial)
+    {
+        QFile file(QString::fromStdString(absolute_filepath));
+        if (!file.open(QFile::ReadOnly)) {
+            std::cout <<"Could not open configuration file "<<absolute_filepath<<std::endl;
+            return false;
+        }
+        QString str = file.readAll();
+        file.close();
+        std::string s = qPrintable(str);
+
+        google::protobuf::TextFormat::Parser parser;
+        parser.AllowPartialMessage(allowPartial);
+        parser.ParseFromString(s, message);
+        return true;
+    }
+}
+
+using SerializedMsg = std::vector<uint8_t>;
+
 class camun::simulator::Simulator : public QObject
 {
     Q_OBJECT
@@ -65,12 +115,54 @@ class camun::simulator::Simulator : public QObject
 public:
     typedef QMap<unsigned int, QPair<SimRobot*, unsigned int>> RobotMap; /*First int: ID, Second int: Generation*/
 
+    explicit Simulator(std::string geometry_config_absolute_filepath, std::string realism_config_absolute_filepath);
     explicit Simulator(const Timer *timer, const amun::SimulatorSetup &setup, bool useManualTrigger = false);
     ~Simulator() override;
     Simulator(const Simulator&) = delete;
     Simulator& operator=(const Simulator&) = delete;
     void handleSimulatorTick(double timeStep);
     void seedPRGN(uint32_t seed);
+
+    template <typename T>
+    std::vector<uint8_t> serializeProto(const T& msg) {
+        size_t msg_size_bytes = msg.ByteSizeLong();
+        std::vector<uint8_t> data(msg_size_bytes);
+        if(data.data() != nullptr) {
+            msg.SerializeToArray(data.data(), msg_size_bytes);
+        }
+        return data;
+    }
+    template <typename T>
+    T parseProto(const SerializedMsg& msg) {
+        T parsed_msg;
+        if(!parsed_msg.ParseFromArray(msg.data(), msg.size())) {
+            // TODO: error
+        }
+        return parsed_msg;
+    }
+
+    void stepSimulation(float time_s);
+
+    sslsim::RobotControlResponse handleRobotControl(const sslsim::RobotControl& msg, bool is_blue);
+    sslsim::RobotControlResponse handleYellowRobotControl(sslsim::RobotControl msg);
+    sslsim::RobotControlResponse handleBlueRobotControl(sslsim::RobotControl msg);
+    void handleCommandWrapper(const Command& command);
+    sslsim::SimulatorResponse handleSimulatorCommand(sslsim::SimulatorCommand command, bool is_blue);
+    std::vector<SSL_WrapperPacket> getSslWrapperPackets(bool add_noise=true);
+    // Sometimes the simulation has to run before errors are detected, so provide
+    // a separate function the caller can check whenever they want
+    // Returns std::vector<sslsim::SimulatorError>
+    std::vector<sslsim::SimulatorError> getAndClearErrors();
+    gameController::TrackedFrame getTrueStateTrackedFrame();
+
+    // Even though some of these could be overloaded and share names with the above, it's easier
+    // for pybind to disambiguate types with different names
+    SerializedMsg handleSerializedYellowRobotControl(SerializedMsg msg);
+    SerializedMsg handleSerializedBlueRobotControl(SerializedMsg msg);
+    SerializedMsg handleSerializedSimulatorCommand(SerializedMsg msg);
+    std::vector<SerializedMsg> getSerializedSSLWrapperPackets();
+    std::vector<SerializedMsg> getAndClearSerializedErrors();
+    SerializedMsg getSerializedTrueStateTrackedFrame();
 
 signals:
     void gotPacket(const QByteArray &data, qint64 time, QString sender);

@@ -23,6 +23,9 @@
 #include "core/timer.h"
 #include "core/coordinates.h"
 #include "protobuf/ssl_wrapper.pb.h"
+#include "protobuf/ssl_simulation_config.pb.h"
+#include "protobuf/ssl_game_controller_common.pb.h"
+#include "protobuf/ssl_simulation_custom_erforce_robot_spec.pb.h"
 #include "protobuf/geometry.h"
 #include "simball.h"
 #include "simfield.h"
@@ -103,6 +106,14 @@ static void simulatorTickCallback(btDynamicsWorld *world, btScalar timeStep)
     sim->handleSimulatorTick(timeStep);
 }
 
+Simulator::Simulator(std::string geometry_config_absolute_filepath, std::string realism_config_absolute_filepath) : Simulator(nullptr, loadSetupFromFile(geometry_config_absolute_filepath), true){
+    Command command(new amun::Command);
+    if (!loadConfiguration(realism_config_absolute_filepath, command->mutable_simulator()->mutable_realism_config(), true)) {
+        throw std::runtime_error("Unable to load realism config file");
+    }
+    this->handleCommand(command);
+}
+
 /*!
  * \class Simulator
  * \ingroup simulator
@@ -172,7 +183,7 @@ Simulator::Simulator(const Timer *timer, const amun::SimulatorSetup &setup, bool
 
     // no robots after initialisation
 
-    connect(timer, &Timer::scalingChanged, this, &Simulator::setScaling);
+//    connect(timer, &Timer::scalingChanged, this, &Simulator::setScaling);
 }
 
 // does delete all Simrobots in the RobotMap, does not clear map
@@ -963,3 +974,577 @@ void Simulator::safelyTeleportBall(const float x, const float y)
         }
     }
 }
+
+void Simulator::stepSimulation(float time_s) {
+    m_data->dynamicsWorld->stepSimulation(time_s, 10, SUB_TIMESTEP);
+    m_time += static_cast<qint64>(time_s * 1E9);
+}
+
+sslsim::RobotControlResponse Simulator::handleRobotControl(const sslsim::RobotControl& msg, bool is_blue) {
+    // collect radio_responses from robots
+    QList<robot::RadioResponse> radio_responses;
+    for (const sslsim::RobotCommand& command : msg.robot_commands()) {
+
+        if (m_data->robotCommandPacketLoss > 0 && m_data->rng.uniformFloat(0, 1) <= m_data->robotCommandPacketLoss) {
+            continue;
+        }
+
+        // pass radio command to robot that matches the id
+        const auto id = command.id();
+        SimulatorData* data = m_data;
+        auto time = m_time;
+        auto charge = m_charge;
+        auto fabricateResponse = [data, &radio_responses, time, charge, &id, &command](const Simulator::RobotMap& map, const bool* isBlue) {
+            if (!map.contains(id)) return;
+            robot::RadioResponse response = map[id].first->setCommand(command, data->ball, charge,
+                                                                      data->robotCommandPacketLoss, data->robotReplyPacketLoss);
+            response.set_time(time);
+
+            if (isBlue != nullptr) {
+                response.set_is_blue(*isBlue);
+            }
+            // only collect valid radio_responses
+            if (response.IsInitialized()) {
+                if (data->robotReplyPacketLoss == 0 || data->rng.uniformFloat(0, 1) > data->robotReplyPacketLoss) {
+                    radio_responses.append(response);
+                }
+            }
+        };
+        if (is_blue) {
+            fabricateResponse(m_data->robotsBlue, &is_blue);
+        } else {
+            fabricateResponse(m_data->robotsYellow, &is_blue);
+        }
+    }
+
+    // Conversion copied from src/simulator/simulator.cpp : RobotCommandAdaptor::handleRobotResponse
+    sslsim::RobotControlResponse response;
+    for(const auto& radio_response : radio_responses) {
+        if (radio_response.has_is_blue() && radio_response.is_blue() == is_blue && radio_response.has_ball_detected()) {
+            sslsim::RobotFeedback feedback;
+            feedback.set_id(radio_response.id());
+            feedback.set_dribbler_ball_contact(radio_response.ball_detected());
+            *response.add_feedback() = feedback;
+        }
+    }
+
+    return response;
+}
+
+sslsim::RobotControlResponse Simulator::handleYellowRobotControl(sslsim::RobotControl msg) {
+    return handleRobotControl(msg, false);
+}
+
+SerializedMsg Simulator::handleSerializedYellowRobotControl(SerializedMsg msg) {
+    return serializeProto(handleYellowRobotControl(parseProto<sslsim::RobotControl>(msg)));
+}
+
+sslsim::RobotControlResponse Simulator::handleBlueRobotControl(sslsim::RobotControl msg) {
+    return handleRobotControl(msg, true);
+}
+
+SerializedMsg Simulator::handleSerializedBlueRobotControl(SerializedMsg msg) {
+    return serializeProto(handleBlueRobotControl(parseProto<sslsim::RobotControl>(msg)));
+}
+
+std::vector<sslsim::SimulatorError> Simulator::getAndClearErrors() {
+    QList<SSLSimError> aggregated_errors;
+    for(auto source : {ErrorSource::BLUE, ErrorSource::YELLOW, ErrorSource::CONFIG}) {
+        // getAggregates clears the errors as well
+        aggregated_errors.append(m_aggregator->getAggregates(source));
+    }
+
+    // Deduplicate aggregated_errors by appending their code and message, and checking against
+    // the set of existing aggregated_errors
+    std::set<std::string> error_set;
+    std::vector<sslsim::SimulatorError> errors;
+    for(const auto& e : aggregated_errors) {
+        std::string combined_error_str = e->code();
+        combined_error_str.append(e->message());
+        if(error_set.insert(combined_error_str).second) {
+            errors.emplace_back(*e);
+        }
+    }
+
+    return errors;
+}
+
+std::vector<SerializedMsg> Simulator::getAndClearSerializedErrors() {
+    std::vector<SerializedMsg> errors;
+    for(const auto& e : getAndClearErrors()) {
+        errors.emplace_back(serializeProto(e));
+    }
+    return errors;
+}
+
+std::vector<SSL_WrapperPacket> Simulator::getSslWrapperPackets(bool add_noise) {
+    // Copied from createVisionPacket, just without the serialization at the end
+    // and with an extra condition around adding any noise/variation
+    const std::size_t numCameras = m_data->reportedCameraSetup.size();
+    world::SimulatorState simState;
+    simState.set_time(m_time);
+
+    std::vector<SSL_DetectionFrame> detections(numCameras);
+    for (std::size_t i = 0;i<numCameras;i++) {
+        initializeDetection(&detections[i], i);
+    }
+
+    auto* ball = simState.mutable_ball();
+    m_data->ball->writeBallState(ball);
+
+    const btVector3 ballPosition = m_data->ball->position() / SIMULATOR_SCALE;
+    if (m_time - m_lastBallSendTime >= m_minBallDetectionTime && add_noise) {
+        m_lastBallSendTime = m_time;
+
+        for (std::size_t cameraId = 0; cameraId < numCameras; ++cameraId) {
+            // at least one id is always valid
+            if (!checkCameraID(cameraId, ballPosition, m_data->cameraPositions, m_data->cameraOverlap)) {
+                continue;
+            }
+
+            bool missingBall = m_data->missingBallDetections > 0 && m_data->rng.uniformFloat(0, 1) <= m_data->missingBallDetections;
+            if (missingBall) {
+                continue;
+            }
+
+            // get ball position
+            const btVector3 positionOffset = positionOffsetForCamera(m_data->objectPositionOffset, m_data->cameraPositions[cameraId]);
+            bool visible = m_data->ball->update(detections[cameraId].add_balls(), m_data->stddevBall, m_data->stddevBallArea, m_data->cameraPositions[cameraId],
+                                                m_data->enableInvisibleBall, m_data->ballVisibilityThreshold, positionOffset);
+            if (!visible) {
+                detections[cameraId].clear_balls();
+            }
+        }
+    }
+
+    // get robot positions
+    for (bool teamIsBlue : {true, false}) {
+        auto &team = teamIsBlue ? m_data->robotsBlue : m_data->robotsYellow;
+
+        for (const auto& it : team) {
+            SimRobot* robot = it.first;
+            auto* robotProto = teamIsBlue ? simState.add_blue_robots() : simState.add_yellow_robots();
+            robot->update(robotProto, m_data->ball);
+
+            if (m_time - robot->getLastSendTime() >= m_minRobotDetectionTime && add_noise) {
+                const float timeDiff = (m_time - robot->getLastSendTime()) * 1E-9;
+                const btVector3 robotPos = robot->position() / SIMULATOR_SCALE;
+
+                for (std::size_t cameraId = 0; cameraId < numCameras; ++cameraId) {
+
+                    if (!checkCameraID(cameraId, robotPos, m_data->cameraPositions, m_data->cameraOverlap)) {
+                        continue;
+                    }
+
+                    bool missingRobot = m_data->missingRobotDetections > 0 && m_data->rng.uniformFloat(0, 1) <= m_data->missingRobotDetections;
+                    if (missingRobot) {
+                        continue;
+                    }
+
+                    const btVector3 positionOffset = positionOffsetForCamera(m_data->objectPositionOffset, m_data->cameraPositions[cameraId]);
+                    if (teamIsBlue) {
+                        robot->update(detections[cameraId].add_robots_blue(), m_data->stddevRobot, m_data->stddevRobotPhi, m_time, positionOffset);
+                    } else {
+                        robot->update(detections[cameraId].add_robots_yellow(), m_data->stddevRobot, m_data->stddevRobotPhi, m_time, positionOffset);
+                    }
+
+                    // once in a while, add a ball mis-detection at a corner of the dribbler
+                    // in real games, this happens because the ball detection light beam used by many teams is red
+                    float detectionProb = timeDiff * m_data->ballDetectionsAtDribbler;
+                    if (m_data->ballDetectionsAtDribbler > 0 && m_data->rng.uniformFloat(0, 1) < detectionProb) {
+                        // always on the right side of the dribbler for now
+                        if (!m_data->ball->addDetection(detections[cameraId].add_balls(), robot->dribblerCorner(false) / SIMULATOR_SCALE,
+                                                        m_data->stddevRobot, 0, m_data->cameraPositions[cameraId], false, 0, positionOffset)) {
+                            detections[cameraId].mutable_balls()->DeleteSubrange(detections[cameraId].balls_size()-1, 1);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    std::vector<SSL_WrapperPacket> packets;
+    packets.reserve(numCameras);
+
+    // add a wrapper packet for all detections (also for empty ones).
+    // The reason is that other teams might rely on the fact that these detections are in regular intervals.
+    for (auto &frame : detections) {
+
+        // if multiple balls are reported, shuffle them randomly (the tracking might have systematic errors depending on the ball order)
+        if (frame.balls_size() > 1) {
+            std::shuffle(frame.mutable_balls()->begin(), frame.mutable_balls()->end(), rand_shuffle_src);
+        }
+
+        SSL_WrapperPacket packet;
+        packet.mutable_detection()->CopyFrom(frame);
+        packets.push_back(packet);
+    }
+
+    // add field geometry
+    if (packets.size() == 0) {
+        packets.push_back(SSL_WrapperPacket());
+    }
+    SSL_GeometryData *geometry = packets[0].mutable_geometry();
+    SSL_GeometryFieldSize *field = geometry->mutable_field();
+    convertToSSlGeometry(m_data->geometry, field);
+
+    const btVector3 positionErrorSimScale = btVector3(0.3f, 0.7f, 0.05f).normalized() * m_data->cameraPositionError;
+    btVector3 positionErrorVisionScale{0, 0, positionErrorSimScale.z() * 1000};
+    coordinates::toVision(positionErrorSimScale, positionErrorVisionScale);
+    for (const auto &calibration : m_data->reportedCameraSetup) {
+        auto calib = geometry->add_calib();
+        calib->CopyFrom(calibration);
+        calib->set_derived_camera_world_tx(calib->derived_camera_world_tx() + positionErrorVisionScale.x());
+        calib->set_derived_camera_world_ty(calib->derived_camera_world_ty() + positionErrorVisionScale.y());
+        calib->set_derived_camera_world_tz(calib->derived_camera_world_tz() + positionErrorVisionScale.z());
+    }
+
+    // add ball model to geometry data
+    geometry->mutable_models()->mutable_straight_two_phase()->set_acc_roll(-0.35);
+    geometry->mutable_models()->mutable_straight_two_phase()->set_acc_slide(-4.5);
+    geometry->mutable_models()->mutable_straight_two_phase()->set_k_switch(0.69);
+    geometry->mutable_models()->mutable_chip_fixed_loss()->set_damping_z(0.566);
+    geometry->mutable_models()->mutable_chip_fixed_loss()->set_damping_xy_first_hop(0.715);
+    geometry->mutable_models()->mutable_chip_fixed_loss()->set_damping_xy_other_hops(1);
+
+    return packets;
+}
+
+std::vector<SerializedMsg> Simulator::getSerializedSSLWrapperPackets() {
+    std::vector<SerializedMsg> serialized_packets;
+    for(const auto& p : getSslWrapperPackets()) {
+        serialized_packets.emplace_back(serializeProto(p));
+    }
+    return serialized_packets;
+}
+
+//TODO: Always update the following constant if the robotSpecs did change,
+// either disregard the new field and just increase the expected number if the new field is useless to our simulator,
+// or convert it properly and update this number.
+constexpr int expected_specs_fields = 10 + 3;
+constexpr int functionToFixForSpecs = __LINE__;
+template<class T>
+static bool convertSpecsToErForce(T outGen, const sslsim::RobotSpecs& in) // @return false: Error occured
+{
+    if (!in.has_mass()) {
+        std::cout << "\n\n1" << std::endl;
+        return false;
+    }
+    if (!in.has_limits()) {
+        std::cout << "\n\n2" << std::endl;
+        return false;
+    }
+    if (!in.has_center_to_dribbler()) {
+        std::cout << "\n\n3" << std::endl;
+        return false;
+    }
+    sslsim::RobotSpecErForce rsef;
+    bool rsefInitialized = false;
+    for(const auto& cus : in.custom()) {
+        if (cus.UnpackTo(&rsef)) {
+            rsefInitialized = true;
+            break;
+        }
+    }
+    if (!rsefInitialized) {
+        std::cout << "\n\n4" << std::endl;
+        return false;
+    }
+    if (!rsef.has_shoot_radius()) {
+        std::cout << "\n\n5" << std::endl;
+        return false;
+    }
+    /*if (!rsef.has_dribbler_height()) {
+        return false;
+    }*/
+    if (!rsef.has_dribbler_width()) {
+        std::cout << "\n\n6" << std::endl;
+        return false;
+    }
+    const sslsim::RobotLimits& lim = in.limits();
+    if (!lim.has_acc_speedup_absolute_max()) {
+        std::cout << "\n\n7" << std::endl;
+        return false;
+    }
+    if (!lim.has_acc_speedup_angular_max()) {
+        std::cout << "\n\n8" << std::endl;
+        return false;
+    }
+    if (!lim.has_acc_brake_absolute_max()) {
+        std::cout << "\n\n9" << std::endl;
+        return false;
+    }
+    if (!lim.has_acc_brake_angular_max()) {
+        std::cout << "\n\n10" << std::endl;
+        return false;
+    }
+    if (!lim.has_vel_absolute_max()) {
+        std::cout << "\n\n11" << std::endl;
+        return false;
+    }
+    if (!lim.has_vel_angular_max()) {
+        std::cout << "\n\n12" << std::endl;
+        return false;
+    }
+    if (!in.id().has_id()) {
+        std::cout << "\n\n13" << std::endl;
+        return false;
+    }
+    if (!in.id().has_team()) {
+        std::cout << "\n\n14" << std::endl;
+        return false;
+    }
+    robot::Specs* out = outGen(in.id().team() == gameController::BLUE);
+    out->set_year(1970);
+    out->set_generation(0);
+    out->set_id(in.id().id());
+    out->set_type(robot::Specs_GenerationType_Regular);
+    out->set_radius(in.radius());
+    out->set_height(in.height());
+    out->set_mass(in.mass());
+    out->set_v_max(lim.vel_absolute_max());
+    out->set_omega_max(lim.vel_angular_max());
+    if (in.has_max_linear_kick_speed()) {
+        out->set_shot_linear_max(in.max_linear_kick_speed());
+    } else {
+        out->set_shot_linear_max(100);
+    }
+    if (in.has_max_chip_kick_speed()) {
+        out->set_shot_chip_max(coordinates::chipDistanceFromChipVel(in.max_chip_kick_speed()));
+    } else {
+        out->set_shot_chip_max(100);
+    }
+
+    out->set_dribbler_width(rsef.dribbler_width());
+    auto* acc = out->mutable_strategy();
+
+    acc->set_a_speedup_f_max(lim.acc_speedup_absolute_max());
+    acc->set_a_speedup_s_max(lim.acc_speedup_absolute_max());
+    acc->set_a_speedup_phi_max(lim.acc_speedup_angular_max());
+    acc->set_a_brake_f_max(lim.acc_brake_absolute_max());
+    acc->set_a_brake_s_max(lim.acc_brake_absolute_max());
+    acc->set_a_brake_phi_max(lim.acc_brake_angular_max());
+
+    out->set_shoot_radius(rsef.shoot_radius());
+    out->set_dribbler_height(0.04/*rsef.dribbler_height()*/); //FIXME: We use only our specs, because we don't know if dribbling will be possible at all with any other values :/
+
+
+    // cos(angle / 2 ) = center_to_dribbler / radius
+    const float ratio = in.center_to_dribbler() / in.radius();
+    out->set_angle(2 * acosf(ratio));
+    return true;
+    /*
+// Movement limits for a robot
+message RobotLimits {
+// Max absolute speed-up acceleration [m/s^2]
+optional float acc_speedup_absolute_max = 1;
+// Max angular speed-up acceleration [rad/s^2]
+optional float acc_speedup_angular_max = 2;
+// Max absolute brake acceleration [m/s^2]
+optional float acc_brake_absolute_max = 3;
+// Max angular brake acceleration [rad/s^2]
+optional float acc_brake_angular_max = 4;
+// Max absolute velocity [m/s]
+optional float vel_absolute_max = 5;
+// Max angular velocity [rad/s]
+optional float vel_angular_max = 6;
+*/
+}
+
+enum class SimError {
+    UNSUPPORTED_VELOCITY,
+    UNSUPPORTED_ANGLE,
+    UNREADABLE,
+    MISSING_SPEC,
+    INVALID_REALISM,
+};
+
+enum class SimErrorSource {
+    CONTROLLER,
+    BLUE_TEAM,
+    YELLOW_TEAM,
+};
+
+static void setError(sslsim::SimulatorError* error, SimError code, SimErrorSource source, std::string appendix = "") {
+    const char* codeStr = nullptr;
+    std::string message;
+    switch(code) {
+        case SimError::UNREADABLE:
+            codeStr = "UNREADABLE";
+            message = "The received message was unreadable " + appendix;
+            break;
+        case SimError::UNSUPPORTED_VELOCITY:
+            codeStr = "VELOCITY_TYPE";
+            message = "The received message had a velocity type unsupported by this simulator " + appendix;
+            break;
+        case SimError::UNSUPPORTED_ANGLE:
+            codeStr = "ANGLE_VALUE";
+            message = "The received kick angle was not equal to either 0 or 45 " + appendix;
+            break;
+        case SimError::MISSING_SPEC:
+            codeStr = "INVALID_SPEC";
+            message = "The received spec is missing one of the required fields for this simulator " + appendix;
+            break;
+        case SimError::INVALID_REALISM:
+            codeStr = "INVALID_REALISM";
+            message = "The received realism is not conforming to the realism configuration for this simulator " + appendix;
+            break;
+        default:
+//            log(stderr, "Unmanaged SimError for message\n");
+            break;
+    }
+    if (!codeStr || message.size() == 0) {
+        return;
+    }
+    error->set_code(codeStr);
+    error->set_message(message);
+
+    const char* sourceStr = [source]() {
+        switch (source) {
+            case SimErrorSource::CONTROLLER:
+                return "CONTROLLER";
+            case SimErrorSource::BLUE_TEAM:
+                return "BLUE";
+            case SimErrorSource::YELLOW_TEAM:
+                return "YELLOW";
+            default:
+                return "INVALID";
+        }
+    }();
+
+//    log(stderr, "[%-10s - %-15s] %s\n", sourceStr, codeStr, message.c_str());
+}
+
+#define SCALE_UP(OBJ, ATTR) do{if((OBJ).has_##ATTR()) (OBJ).set_##ATTR((OBJ).ATTR() * 1e3);} while(0)
+
+sslsim::SimulatorResponse Simulator::handleSimulatorCommand(sslsim::SimulatorCommand simcom, bool is_blue) {
+    sslsim::SimulatorResponse response;
+    if (simcom.has_control()) {
+        Command c{new amun::Command};
+        auto* sslControl = c->mutable_simulator()->mutable_ssl_control();
+        sslControl->CopyFrom(simcom.control());
+        if (sslControl->has_teleport_ball()) {
+            auto* teleportBall = sslControl->mutable_teleport_ball();
+            SCALE_UP(*teleportBall, x);
+            SCALE_UP(*teleportBall, y);
+            SCALE_UP(*teleportBall, z);
+            SCALE_UP(*teleportBall, vx);
+            SCALE_UP(*teleportBall, vy);
+            SCALE_UP(*teleportBall, vz);
+        }
+        for(sslsim::TeleportRobot& robot : *sslControl->mutable_teleport_robot()) {
+            SCALE_UP(robot, x);
+            SCALE_UP(robot, y);
+            SCALE_UP(robot, v_x);
+            SCALE_UP(robot, v_y);
+        }
+        handleCommandWrapper(c);
+//        emit sendCommand(c);
+    }
+    if (simcom.has_config()) {
+        const auto& config{simcom.config()};
+
+        if (config.has_geometry()) {
+            Command c{new amun::Command};
+            auto* setup = c->mutable_simulator()->mutable_simulator_setup();
+            convertFromSSlGeometry(config.geometry().field(), *(setup->mutable_geometry()));
+            setup->mutable_camera_setup()->CopyFrom(config.geometry().calib());
+            handleCommandWrapper(c);
+//            emit sendCommand(c);
+        }
+
+        if (config.robot_specs_size() > 0) {
+            std::cout << "have robot specs" << std::endl;
+            Command c{new amun::Command};
+            robot::Team* blueTeam = nullptr;
+            robot::Team* yellowTeam = nullptr;
+            auto newSz = config.robot_specs_size();
+            for (const auto& spec : config.robot_specs()) {
+                bool success = convertSpecsToErForce([&blueTeam, &yellowTeam, &c](bool isBlue){
+                                                         if (isBlue) {
+                                                             if (blueTeam == nullptr) {
+                                                                 blueTeam = c->mutable_set_team_blue();
+                                                             }
+                                                             return blueTeam->add_robot();
+                                                         }
+                                                         if (yellowTeam == nullptr) {
+                                                             yellowTeam = c->mutable_set_team_yellow();
+                                                         }
+                                                         return yellowTeam->add_robot();
+                                                     }
+                        , spec);
+                if (!success) {
+                    std::cout << "Got error while setting robot specs" << std::endl;
+                    setError(response.add_errors(), SimError::MISSING_SPEC, SimErrorSource::CONTROLLER, spec.DebugString());
+                    newSz--;
+                }
+            }
+            std::cout << "handling specs command" << std::endl;
+//            log(stdout, "Updated to %d robots\n", newSz);
+            handleCommandWrapper(c);
+//            emit sendCommand(c);
+        }
+        if (config.has_realism_config()) {
+            for(const auto& c : config.realism_config().custom()) {
+                RealismConfigErForce rcef;
+                if (c.UnpackTo(&rcef)) {
+                    Command c{new amun::Command};
+                    c->mutable_simulator()->mutable_realism_config()->CopyFrom(rcef);
+                    handleCommandWrapper(c);
+//                    emit sendCommand(c);
+                }
+            }
+        }
+    }
+    return response;
+
+}
+
+void Simulator::handleCommandWrapper(const Command &command) {
+    if(command->has_simulator()) {
+        // Clear to avoid the code path where we read from m_timer in handleCommand(), which
+        // we set to nullptr in our custom constructor
+        command->mutable_simulator()->clear_enable();
+    }
+
+    handleCommand(command);
+}
+SerializedMsg Simulator::handleSerializedSimulatorCommand(SerializedMsg msg) {
+    auto command = parseProto<sslsim::SimulatorCommand>(msg);
+    return serializeProto(handleSimulatorCommand(command, true));
+}
+
+gameController::TrackedFrame Simulator::getTrueStateTrackedFrame() {
+    gameController::TrackedFrame frame;
+
+    frame.set_frame_number(0); // Dummy value
+    frame.set_timestamp(static_cast<double>(m_time) * 1E-9);
+
+    gameController::TrackedBall ball;
+    m_data->ball->writeTrueBallState(&ball);
+    *frame.add_balls() = ball;
+
+    auto getRobotStates = [&frame](const Simulator::RobotMap& robots, bool is_blue) {
+        for(const auto& it : robots) {
+            gameController::TrackedRobot robot;
+            it.first->updateTrueState(&robot);
+            robot.mutable_robot_id()->set_team(is_blue ? gameController::Team::BLUE : gameController::Team::YELLOW);
+            *frame.add_robots() = robot;
+        }
+    };
+
+    getRobotStates(m_data->robotsBlue, true);
+    getRobotStates(m_data->robotsYellow, false);
+
+    return frame;
+}
+
+SerializedMsg Simulator::getSerializedTrueStateTrackedFrame() {
+    SerializedMsg serialized_packet = serializeProto(getTrueStateTrackedFrame());
+    return serialized_packet;
+}
+
+//SerializedMsg Simulator::getSerializedTrueStateSslWrapperPacket() {
+//    SerializedMsg serialized_packet = serializeProto(getTrueStateTrackedFrame());
+//    return serialized_packet;
+//}

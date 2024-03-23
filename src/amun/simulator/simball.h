@@ -23,6 +23,7 @@
 
 #include "protobuf/command.pb.h"
 #include "protobuf/sslsim.h"
+#include "protobuf/ssl_vision_detection_tracked.pb.h"
 #include <btBulletDynamicsCommon.h>
 #include "simfield.h"
 #include <QObject>
@@ -63,6 +64,7 @@ public:
     btVector3 position() const;
     btVector3 speed() const;
     void writeBallState(world::SimBall *ball) const;
+    void writeTrueBallState(gameController::TrackedBall *ball) const;
     void restoreState(const world::SimBall &ball);
     btRigidBody *body() const { return m_body; }
     bool isInvalid() const;

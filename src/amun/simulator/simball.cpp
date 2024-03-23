@@ -360,3 +360,20 @@ void SimBall::kick(const btVector3 &power)
     // const btVector3 p = transform.getOrigin() / SIMULATOR_SCALE;
     // qDebug() << "kick at" << p.x() << p.y();
 }
+
+void SimBall::writeTrueBallState(gameController::TrackedBall *ball) const {
+    // Copied from writeBallState()
+
+    // The coordinate system internal to the simulator is rotated 90-degrees from the SSL
+    // coordinate system (ie. positive x in SSL is positive Y in sim, and positive Y in SSL
+    // is negative X in sim), so we transform to SSL coordinates here.
+    // Normally the "camera" logic handles this but we're skipping it here.
+    const btVector3 ballPosition = m_body->getWorldTransform().getOrigin() / SIMULATOR_SCALE;
+    ball->mutable_pos()->set_x(ballPosition.getY());
+    ball->mutable_pos()->set_y(-ballPosition.getX());
+    ball->mutable_pos()->set_z(ballPosition.getZ());
+    const btVector3 ballSpeed = speed() / SIMULATOR_SCALE;
+    ball->mutable_vel()->set_x(ballSpeed.getY());
+    ball->mutable_vel()->set_y(-ballSpeed.getX());
+    ball->mutable_vel()->set_z(ballSpeed.getZ());
+}

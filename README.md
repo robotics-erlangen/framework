@@ -1,3 +1,6 @@
+# Underbots ER-Force Simulator Python Bindings
+* If working in CLion, add a build profile with `-DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON`
+
 # ER-Force Framework
 This is the framework of the SSL-Team ER-Force. Its main features are:
 - Simulating SSL games with a varying number of robots on different possible field sizes

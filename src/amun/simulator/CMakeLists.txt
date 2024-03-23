@@ -18,7 +18,7 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-add_library(simulator STATIC
+add_library(simulator
     include/simulator/simulator.h
     include/simulator/fastsimulator.h
 
@@ -54,3 +54,20 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 add_library(amun::simulator ALIAS simulator)
+
+include(FetchContent)
+
+FetchContent_Declare(
+        pybind11
+        GIT_REPOSITORY https://github.com/pybind/pybind11.git
+        GIT_TAG        v2.10.0
+        GIT_SHALLOW    TRUE
+)
+# Must match the pyenv environment from the underbots setup scripts
+set(PYTHON_EXECUTABLE $ENV{HOME}/.pyenv/versions/underbots/bin/python)
+FetchContent_MakeAvailable(pybind11)
+
+pybind11_add_module(erforce_simulator simulator_pybind.cpp)
+target_link_libraries(erforce_simulator
+        PUBLIC amun::simulator
+)

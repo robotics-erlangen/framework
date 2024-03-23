@@ -22,6 +22,7 @@
 #include "core/coordinates.h"
 #include "mesh.h"
 #include "protobuf/ssl_detection.pb.h"
+#include "protobuf/ssl_game_controller_common.pb.h"
 #include "simball.h"
 #include "simrobot.h"
 #include "simulator.h"
@@ -722,4 +723,33 @@ btVector3 SimRobot::dribblerCorner(bool left) const
     const btVector3 corner = m_dribblerCenter + btVector3(0, 0.03, 0) * SIMULATOR_SCALE + (left ? -sideOffset : sideOffset);
     const btTransform transform = m_body->getWorldTransform();
     return transform * corner;
+}
+
+void SimRobot::updateTrueState(gameController::TrackedRobot *robot) const {
+    // Copied from the other update() functions
+
+    // The coordinate system internal to the simulator is rotated 90-degrees from the SSL
+    // coordinate system (ie. positive x in SSL is positive Y in sim, and positive Y in SSL
+    // is negative X in sim), so we transform to SSL coordinates here.
+    // Normally the "camera" logic handles this but we're skipping it here.
+    btTransform transform;
+    m_motionState->getWorldTransform(transform);
+    const btVector3 position = transform.getOrigin() / SIMULATOR_SCALE;
+    robot->mutable_pos()->set_x(position.y());
+    robot->mutable_pos()->set_y(-position.x());
+    gameController::BotId id;
+    id.set_id(m_specs.id());
+    id.set_team(gameController::Team::UNKNOWN);
+    *robot->mutable_robot_id() = id;
+
+    const btQuaternion q = transform.getRotation();
+    const btVector3 dir = btMatrix3x3(q).getColumn(0);
+    robot->set_orientation(atan2(dir.y(), dir.x()));
+
+    const btVector3 velocity = m_body->getLinearVelocity() / SIMULATOR_SCALE;
+    robot->mutable_vel()->set_x(velocity.y());
+    robot->mutable_vel()->set_y(-velocity.x());
+
+    const btVector3 angular = m_body->getAngularVelocity();
+    robot->set_vel_angular(angular.z());
 }
