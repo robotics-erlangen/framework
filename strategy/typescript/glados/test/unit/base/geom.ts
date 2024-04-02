@@ -155,59 +155,73 @@ export class BaseGeom extends UnitTest {
 
 	private testIntersectLineCorridor() {
 		// line with no direction and base point outside the corridor
-		let [p1, p2, l1, l2] = geom.intersectLineCorridor(new Vector(0, 0), new Vector(0, 0), new Vector(1, 1), new Vector(1, 0), 0.5);
+		let [p1, p2, l1, l2, l3, l4] = geom.intersectLineCorridor(new Vector(0, 0), new Vector(0, 0), new Vector(1, 1), new Vector(1, 0), 0.5);
 		this.assert_eq(p1, undefined);
 		this.assert_eq(p2, undefined);
 		this.assert_eq(l1, undefined);
 		this.assert_eq(l2, undefined);
+		this.assert_eq(l3, undefined);
+		this.assert_eq(l4, undefined);
 
 		// line with no direction and base point inside the corridor
-		[p1, p2, l1, l2] = geom.intersectLineCorridor(new Vector(1, 1), new Vector(0, 0), new Vector(1, 1), new Vector(1, 0), 0.5);
+		[p1, p2, l1, l2, l3, l4] = geom.intersectLineCorridor(new Vector(1, 1), new Vector(0, 0), new Vector(1, 1), new Vector(1, 0), 0.5);
 		this.assert_eq(p1, undefined);
 		this.assert_eq(p2, undefined);
 		this.assert_eq(l1, -Infinity);
 		this.assert_eq(l2, Infinity);
+		this.assert_eq(l3, -Infinity);
+		this.assert_eq(l4, Infinity);
 
 		// line inside the corridor
-		[p1, p2, l1, l2] = geom.intersectLineCorridor(new Vector(0, 1), new Vector(1, 0), new Vector(1, 1), new Vector(1, 0), 0.5);
+		[p1, p2, l1, l2, l3, l4] = geom.intersectLineCorridor(new Vector(0, 1), new Vector(1, 0), new Vector(1, 1), new Vector(1, 0), 0.5);
 		this.assert_eq(p1, undefined);
 		this.assert_eq(p2, undefined);
 		this.assert_eq(l1, -Infinity);
 		this.assert_eq(l2, Infinity);
+		this.assert_eq(l3, -Infinity);
+		this.assert_eq(l4, Infinity);
 
 		// line outside the corridor parallel (->no intersection)
-		[p1, p2, l1, l2] = geom.intersectLineCorridor(new Vector(0, 100), new Vector(1, 0), new Vector(1, 1), new Vector(1, 0), 0.5);
+		[p1, p2, l1, l2, l3, l4] = geom.intersectLineCorridor(new Vector(0, 100), new Vector(1, 0), new Vector(1, 1), new Vector(1, 0), 0.5);
 		this.assert_eq(p1, undefined);
 		this.assert_eq(p2, undefined);
 		this.assert_eq(l1, undefined);
 		this.assert_eq(l2, undefined);
+		this.assert_eq(l3, undefined);
+		this.assert_eq(l4, undefined);
 
 		// line perpendicular to corridor
-		[p1, p2, l1, l2] = geom.intersectLineCorridor(new Vector(0, 100), new Vector(0, -1), new Vector(1, 1), new Vector(1, 0), 0.5);
+		[p1, p2, l1, l2, l3, l4] = geom.intersectLineCorridor(new Vector(0, 100), new Vector(0, -1), new Vector(1, 1), new Vector(1, 0), 0.5);
 		this.assert_not_undefined(p1);
 		this.assert_not_undefined(p2);
 		this.assert_vector_eq(p1!, new Vector(0, 1.5));
 		this.assert_vector_eq(p2!, new Vector(0, 0.5));
 		this.assert_eq(l1, 98.5);
 		this.assert_eq(l2, 99.5);
+		this.assert_eq(l3, -1);
+		this.assert_eq(l4, -1);
 
 		// regular case
-		[p1, p2, l1, l2] = geom.intersectLineCorridor(new Vector(0, 0), new Vector(1, 1), new Vector(2, 0), new Vector(0, 1), 1);
+		[p1, p2, l1, l2, l3, l4] = geom.intersectLineCorridor(new Vector(0, 0), new Vector(1, 1), new Vector(2, 0), new Vector(0, 1), 1);
 		this.assert_not_undefined(p1);
 		this.assert_not_undefined(p2);
 		this.assert_vector_eq(p1!, new Vector(1, 1));
 		this.assert_vector_eq(p2!, new Vector(3, 3));
 		this.assert_eq(l1, 1);
 		this.assert_eq(l2, 3);
+		this.assert_eq(l3, 1);
+		this.assert_eq(l4, 3);
 
 		// corridor with width = 0
-		[p1, p2, l1, l2] = geom.intersectLineCorridor(new Vector(0, 0), new Vector(1, 1), new Vector(2, 0), new Vector(0, 1), 0);
+		[p1, p2, l1, l2, l3, l4] = geom.intersectLineCorridor(new Vector(0, 0), new Vector(1, 1), new Vector(2, 0), new Vector(0, 1), 0);
 		this.assert_not_undefined(p1);
 		this.assert_not_undefined(p2);
 		this.assert_vector_eq(p1!, new Vector(2, 2));
 		this.assert_vector_eq(p2!, new Vector(2, 2));
 		this.assert_eq(l1, 2);
 		this.assert_eq(l2, 2);
+		this.assert_eq(l3, 2);
+		this.assert_eq(l4, 2);
 	}
 
 	private testGetTangesToCircle() {
