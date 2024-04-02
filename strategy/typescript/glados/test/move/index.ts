@@ -16,15 +16,16 @@ import { Rotate } from "glados/test/move/rotate";
 import { SimplePass } from "glados/test/move/simplepass";
 import { makeSingleTaskMove } from "glados/test/move/singletaskmove";
 import { TIGERsTestGoalShot } from "glados/test/move/tigerstestgoalshot";
-import { Victory } from "glados/test/move/victory";
 import { Volley } from "glados/test/move/volley";
 import { RotTest } from "glados/test/task/rotation";
 import { AttackRatioKind, ValidAttackRatio } from "glados/trainer/attackratio";
 import { MainTrainer } from "glados/trainer/maintrainer";
+// victory moves
+/* eslint-disable import/order */
+import { Circle } from "glados/group/move/victory/circle";
+/* eslint-enable import/order */
 
-
-let moves: (typeof Move)[] = [
-	Victory,
+let testMoves: (typeof Move)[] = [
 	MovingObstacles,
 	DribbleTest,
 	Race,
@@ -36,6 +37,9 @@ let moves: (typeof Move)[] = [
 	InterceptPassMove,
 	makeSingleTaskMove(TIGERsTestGoalShot),
 	FeintKeeperTest
+];
+let victoryMoves: (typeof Move)[] = [
+	Circle,
 ];
 
 let coord: MainCoordinator | undefined = undefined;
@@ -59,7 +63,12 @@ export function createEntrypoint(move: typeof Move) {
 	};
 }
 
-for (let move of moves) {
+for (let move of testMoves) {
 	let name = move.NAME === "" ? move.name : move.NAME;
 	Entrypoints.add(`MoveTest/${name}`, createEntrypoint(move));
+}
+
+for (let move of victoryMoves) {
+	let name = move.NAME === "" ? move.name : move.NAME;
+	Entrypoints.add(`VictoryMoves/${name}`, createEntrypoint(move));
 }

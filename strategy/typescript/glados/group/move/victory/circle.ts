@@ -7,9 +7,9 @@ const G = World.Geometry;
 import { MessageBox } from "glados/control/messaging";
 import { Assignment, Move, MoveParameters } from "glados/group/move/base";
 import { MoveToPos } from "glados/task/shared/movetopos";
-import { Victory as VictoryTask } from "glados/task/test/victory";
+import { VictoryCircle } from "glados/task/victorycircle";
 
-export class Victory extends Move {
+export class Circle extends Move {
 
 	public static readonly MIN_ROBOTS = 3;
 	public static readonly MAX_ROBOTS = 12;
@@ -54,7 +54,7 @@ export class Victory extends Move {
 		} else if (this._state === "circle") {
 			for (let i = 0; i < this._robots.length; i++) {
 				let angle = (i - 1) * angleStep;
-				taskAssignments[this._robots[i]] = Assignment.create({ class: VictoryTask, params: [center, 0, angle, radius] });
+				taskAssignments[this._robots[i]] = Assignment.create({ class: VictoryCircle, params: [center, 0, angle, radius] });
 			}
 		}
 		let mainAttacker: FriendlyRobot | undefined = undefined;

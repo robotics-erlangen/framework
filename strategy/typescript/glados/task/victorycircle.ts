@@ -9,7 +9,7 @@ import { ToTarget } from "glados/trajectory/totarget";
 const NUM_OF_REVOLUTIONS = 3;
 const ANGULAR_SPEED_FACTOR = 0.8; // the higher it is, the longer it takes
 
-export class Victory extends Task {
+export class VictoryCircle extends Task {
 
 	private _center: Position;
 	private _centerAngle: number;
