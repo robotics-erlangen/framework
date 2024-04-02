@@ -127,6 +127,7 @@ export function intersectLineCircle(offset: Position, dir: RelativePosition, cen
  * @returns lambda2, intersection2 = offset + lambda2*direction (lambda of second point on the line)
  * @returns lambda3, intersection1 = offsetCorridor + lambda3*directionCorridor (lambda in the corridor)
  * @returns lambda4, intersection2 = offsetCorridor + lambda4*directionCorridor (lambda in the corridor)
+ *
  * lambda1, lambda2, lambda3, lambda4 can be undefined if no intersection exists or +/-Infinity if the line is inside the corridor
  * the intersection with their lambdas are sorted so that lambda1 <= lambda2
  */
@@ -155,7 +156,7 @@ export function intersectLineCorridor(offset: Position, direction: RelativePosit
 			lambdaRightLine < lambdaLeftLine) {
 		return [intersectionRight, intersectionLeft, lambdaRightLine, lambdaLeftLine, lambdaRight, lambdaLeft];
 	}
-	return [intersectionLeft, intersectionRight, lambdaLeftLine, lambdaRightLine, lambdaRight, lambdaLeft];
+	return [intersectionLeft, intersectionRight, lambdaLeftLine, lambdaRightLine, lambdaLeft, lambdaRight];
 }
 
 /**
