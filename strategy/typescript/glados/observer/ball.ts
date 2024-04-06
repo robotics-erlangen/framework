@@ -1,6 +1,7 @@
 import { Ball } from "base/ball";
 import * as Cache from "base/cache";
 import * as debug from "base/debug";
+import * as Field from "base/field";
 import * as geom from "base/geom";
 import { min } from "base/listutil";
 import * as MathUtil from "base/mathutil";
@@ -722,6 +723,22 @@ function updateInterrupted() {
 	speedOld = speedNew;
 }
 
+let lastWasInFriendlyDefenseArea: boolean = false;
+let timerStart: number = 0;
+function updateBallInDefenseTime() {
+	if (Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius) && !lastWasInFriendlyDefenseArea) {
+		timerStart = World.Time;
+	}
+	lastWasInFriendlyDefenseArea = Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius);
+}
+
+export function getBallInDefenseTime() {
+	if (Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius)) {
+		return World.Time - timerStart;
+	}
+	return 0;
+}
+
 export function _update() {
 	updateReceivesPass();
 	updateIsAccelerating();
@@ -737,4 +754,5 @@ export function _update() {
 	updateBallPlacementRobots();
 	updateIsStanding();
 	updateInterrupted();
+	updateBallInDefenseTime();
 }

@@ -9,6 +9,7 @@ import * as World from "base/world";
 
 import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 import { MessageType } from "glados/control/messaging";
+import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 import * as Robot from "glados/observer/robot";
 import { MoveToStaticBall } from "glados/task/attacker/movetostaticball";
@@ -21,10 +22,9 @@ import * as Defense from "glados/util/defense";
 
 export class HandleBall extends Behavior {
 	private _pass: { target?: FriendlyRobot; ballPos: Position; time: number } | undefined;
-	private _timeBegin: number | undefined = undefined;
 
 	_stop() {
-		this._timeBegin = undefined;
+
 	}
 
 	check(): Behavior | undefined {
@@ -66,13 +66,10 @@ export class HandleBall extends Behavior {
 			// if ball is inside defense area and will enter the goal -> block the ball
 			return [Keeper];
 		} else if (startInside && endInside && !ballBehindKeeper && suggestions ||
-			this._timeBegin !== undefined && World.Time - this._timeBegin < maxTimeBallDefenseArea[World.DIVISION]
+			Ball.getBallInDefenseTime() < maxTimeBallDefenseArea[World.DIVISION]
 			&& Robot.hadBall(this._robot, 0.1)) {
 			// if ball is inside defense area and will not leave it -> we have time to act
 			// try to find a good pass
-			if (this._timeBegin == undefined) {
-				this._timeBegin = World.Time;
-			}
 			const earliestAttackTime = this._messaging.receiveSingleSender(MessageType.earliestAttackTime, true)[1];
 			this._pass = Attack.choosePassFromSuggestions(this._robot, suggestions, {
 				earliestAttackTime,
@@ -101,7 +98,7 @@ export class HandleBall extends Behavior {
 			}
 			// if maxTimeBallDefenceArea is exceeded, the ball is chipped away
 			const bufferTime = 1;
-			if (World.Time - this._timeBegin < maxTimeBallDefenseArea[World.DIVISION] - bufferTime) {
+			if (Ball.getBallInDefenseTime() < maxTimeBallDefenseArea[World.DIVISION] - bufferTime) {
 				return [MoveToStaticBall];
 			} else {
 				return [KeeperChipAway];
