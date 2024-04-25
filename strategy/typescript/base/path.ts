@@ -253,12 +253,12 @@ export class Path {
 	private readonly _robotId: number;
 
 	// these contain the obstacles in global coordinates
-	private circleObstacles: CircleObstacle[] = [];
-	private lineObstacles: LineObstacle[] = [];
-	private rectObstacles: RectObstacle[] = [];
-	private triangleObstacles: TriangleObstacle[] = [];
+	private _circleObstacles: CircleObstacle[] = [];
+	private _lineObstacles: LineObstacle[] = [];
+	private _rectObstacles: RectObstacle[] = [];
+	private _triangleObstacles: TriangleObstacle[] = [];
 
-	private lastWasTrajectoryPath: boolean = false;
+	private _lastWasTrajectoryPath: boolean = false;
 
 	public constructor(robotId: number) {
 		this._inst = pathLocal.createPath();
@@ -279,16 +279,16 @@ export class Path {
 	}
 
 	private addObstaclesToPath(path: PathObjectCommon) {
-		for (let circle of this.circleObstacles) {
+		for (let circle of this._circleObstacles) {
 			path.addCircle(circle.center.x, circle.center.y, circle.radius, circle.name, circle.prio ?? 0);
 		}
-		for (let line of this.lineObstacles) {
+		for (let line of this._lineObstacles) {
 			path.addLine(line.start.x, line.start.y, line.end.x, line.end.y, line.radius, line.name, line.prio ?? 0);
 		}
-		for (let rect of this.rectObstacles) {
+		for (let rect of this._rectObstacles) {
 			path.addRect(rect.start.x, rect.start.y, rect.end.x, rect.end.y, rect.name, rect.prio ?? 0, rect.radius);
 		}
-		for (let tri of this.triangleObstacles) {
+		for (let tri of this._triangleObstacles) {
 			path.addTriangle(tri.p1.x, tri.p1.y, tri.p2.x, tri.p2.y, tri.p3.x, tri.p3.y, tri.lineWidth, tri.name, tri.prio ?? 0);
 		}
 	}
@@ -302,11 +302,11 @@ export class Path {
 	}
 
 	public setHalted() {
-		this.lastWasTrajectoryPath = false;
+		this._lastWasTrajectoryPath = false;
 	}
 
 	public getTrajectory(startPos: Position, startSpeed: Speed, endPos: Position, endSpeed: Speed, maxSpeed: number, acceleration: number): { pos: Position; speed: Speed; time: number }[] {
-		this.lastWasTrajectoryPath = true;
+		this._lastWasTrajectoryPath = true;
 		this.addObstaclesToPath(this._trajectoryInst);
 		let t = this._trajectoryInst.calculateTrajectory(startPos.x, startPos.y, startSpeed.x,
 			startSpeed.y, endPos.x, endPos.y, endSpeed.x, endSpeed.y, maxSpeed, acceleration);
@@ -318,13 +318,13 @@ export class Path {
 	}
 
 	public getPath(x1: number, y1: number, x2: number, y2: number): Waypoint[] {
-		this.lastWasTrajectoryPath = false;
+		this._lastWasTrajectoryPath = false;
 		this.addObstaclesToPath(this._inst);
 		return this._inst.getPath(x1, y1, x2, y2);
 	}
 
 	public lastFrameWasTrajectoryPath(): boolean {
-		return this.lastWasTrajectoryPath;
+		return this._lastWasTrajectoryPath;
 	}
 
 	public setProbabilities(a: number, b: number) {
@@ -339,10 +339,10 @@ export class Path {
 	public clearObstacles() {
 		this._inst.clearObstacles();
 		this._trajectoryInst.clearObstacles();
-		this.circleObstacles.length = 0;
-		this.lineObstacles.length = 0;
-		this.rectObstacles.length = 0;
-		this.triangleObstacles.length = 0;
+		this._circleObstacles.length = 0;
+		this._lineObstacles.length = 0;
+		this._rectObstacles.length = 0;
+		this._triangleObstacles.length = 0;
 	}
 
 	public setRadius(radius: number) {
@@ -364,7 +364,7 @@ export class Path {
 
 				// strategy to global coordinates conversion
 				obstacle.center = Coordinates.toGlobal(obstacle.center);
-				this.circleObstacles.push(obstacle);
+				this._circleObstacles.push(obstacle);
 				break;
 			}
 			case "line": {
@@ -375,7 +375,7 @@ export class Path {
 				// strategy to global coordinates conversion
 				obstacle.start = Coordinates.toGlobal(obstacle.start);
 				obstacle.end = Coordinates.toGlobal(obstacle.end);
-				this.lineObstacles.push(obstacle);
+				this._lineObstacles.push(obstacle);
 				break;
 			}
 			case "rect": {
@@ -390,7 +390,7 @@ export class Path {
 				// strategy to global coordinates conversion
 				obstacle.start = Coordinates.toGlobal(obstacle.start);
 				obstacle.end = Coordinates.toGlobal(obstacle.end);
-				this.rectObstacles.push(obstacle);
+				this._rectObstacles.push(obstacle);
 				break;
 			}
 			case "triangle": {
@@ -406,7 +406,7 @@ export class Path {
 				obstacle.p1 = Coordinates.toGlobal(obstacle.p1);
 				obstacle.p2 = Coordinates.toGlobal(obstacle.p2);
 				obstacle.p3 = Coordinates.toGlobal(obstacle.p3);
-				this.triangleObstacles.push(obstacle);
+				this._triangleObstacles.push(obstacle);
 				break;
 			}
 		}
